@@ -1,0 +1,106 @@
+---
+title: "Location-scale models"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Location-scale models}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+This article introduces the first implemented `drmTMB` model class:
+fixed-effect Gaussian location-scale regression.
+
+Current syntax:
+
+```r
+drmTMB(
+  bf(y ~ x, sigma ~ z),
+  family = gaussian(),
+  data = dat
+)
+```
+
+The location formula models the conditional mean, `mu`, on the identity scale.
+The scale formula models the residual standard deviation, `sigma`, on the log
+scale:
+
+```text
+y_i ~ Normal(mu_i, sigma_i)
+mu_i = X_mu beta_mu
+log(sigma_i) = X_sigma beta_sigma
+```
+
+This means coefficients returned by `coef(fit, "sigma")` are log-standard
+deviation effects. Exponentiating a `sigma` coefficient gives the multiplicative
+change in residual standard deviation for a one-unit change in that predictor.
+For example, a `sigma` coefficient of `0.3` means `exp(0.3) = 1.35`, or about a
+35% higher residual standard deviation.
+
+Minimal runnable example:
+
+```r
+set.seed(1)
+dat <- data.frame(x = rnorm(200), z = rnorm(200))
+dat$y <- rnorm(
+  200,
+  mean = 0.5 + 0.8 * dat$x,
+  sd = exp(-0.2 + 0.3 * dat$z)
+)
+
+fit <- drmTMB(
+  bf(y ~ x, sigma ~ z),
+  family = gaussian(),
+  data = dat
+)
+
+coef(fit, "mu")
+coef(fit, "sigma")
+predict(fit, dpar = "mu")[1:5]
+sigma(fit)[1:5]
+```
+
+If the `sigma` formula is omitted, `drmTMB` fits an intercept-only residual
+standard deviation:
+
+```r
+fit0 <- drmTMB(
+  bf(y ~ x),
+  family = gaussian(),
+  data = dat
+)
+```
+
+## Current implementation caveats
+
+- The current fitter supports `family = gaussian()` with fixed effects for
+  `mu` and `sigma`.
+- The `sigma` formula is the observation-level residual standard deviation. It
+  is not a random-effect scale component.
+- Missing rows are dropped when they are incomplete for variables used by
+  either the `mu` or `sigma` formula.
+- Diagonal known sampling variance via `meta_known_V(V = vi)` is supported for
+  Gaussian meta-analysis.
+- Fixed-effect bivariate Gaussian `rho12` models are implemented in the
+  bivariate coscale article.
+- Random effects, `sd(group)` scale formulas, phylogenetic terms, spatial
+  terms, and non-Gaussian families are planned but not implemented in this MVP.
+
+Future multiple scale components will use explicit `sd()` formulas, not extra
+residual `sigma` formulas:
+
+```r
+drmTMB(
+  bf(
+    y ~ x + (1 | study) + (1 | species),
+    sigma ~ x,
+    sd(study) ~ x,
+    sd(species) ~ 1
+  ),
+  family = gaussian(),
+  data = dat
+)
+```

@@ -1,0 +1,83 @@
+url: https://itchyshin.github.io/drmTMB/
+destination: pkgdown-site
+template:
+  bootstrap: 5
+  bootswatch: flatly
+  bslib:
+    primary: "#0f7887"
+    headings-color: "#112638"
+    link-color: "#0f7887"
+  opengraph:
+    image:
+      src: man/figures/logo.png
+      alt: "drmTMB hex logo"
+
+development:
+  mode: auto
+
+navbar:
+  structure:
+    left: [intro, reference, articles, tutorials, developer, news]
+    right: [search, github]
+  components:
+    tutorials:
+      text: Tutorials
+      menu:
+        - text: Location-scale models
+          href: articles/location-scale.html
+        - text: Bivariate coscale models
+          href: articles/bivariate-coscale.html
+        - text: Meta-analysis
+          href: articles/meta-analysis.html
+        - text: Phylogenetic and spatial dependence
+          href: articles/phylogenetic-spatial.html
+        - text: Distribution families
+          href: articles/distribution-families.html
+    developer:
+      text: Developer Notes
+      menu:
+        - text: Formula grammar
+          href: articles/formula-grammar.html
+        - text: Adding families
+          href: articles/adding-families.html
+        - text: Testing likelihoods
+          href: articles/testing-likelihoods.html
+
+reference:
+  - title: Package
+    contents:
+      - drmTMB-package
+  - title: Model specification
+    desc: Formula constructors and family objects.
+    contents:
+      - starts_with("bf")
+      - meta_known_V
+      - biv_gaussian
+      - gr
+      - phylo
+      - spatial
+      - starts_with("drm_family")
+      - ends_with("_family")
+  - title: Model fitting
+    desc: Fit, inspect, predict, and simulate distributional models.
+    contents:
+      - starts_with("drmTMB")
+      - starts_with("predict")
+      - starts_with("simulate")
+
+articles:
+  - title: Getting Started
+    contents:
+      - drmTMB
+  - title: Tutorials
+    contents:
+      - location-scale
+      - meta-analysis
+      - bivariate-coscale
+      - phylogenetic-spatial
+      - distribution-families
+  - title: Developer Notes
+    contents:
+      - formula-grammar
+      - adding-families
+      - testing-likelihoods

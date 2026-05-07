@@ -1,0 +1,19 @@
+---
+title: "Adding distribution families"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Adding distribution families}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+This developer article will explain the workflow for adding a new `drmTMB`
+family: family registry entry, likelihood, simulation, starting values, tests,
+documentation, and examples.
+
+The current planning references are `docs/design/02-family-registry.md` and
+`.agents/skills/add-family/SKILL.md`.

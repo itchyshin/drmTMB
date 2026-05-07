@@ -1,0 +1,35 @@
+Package: drmTMB
+Title: Distributional Regression Models Using Template Model Builder
+Version: 0.0.0.9000
+Authors@R: c(
+    person("drmTMB", "contributors", email = "maintainer@example.com",
+           role = c("aut", "cre"))
+  )
+Description: Fast distributional regression models for univariate and
+    bivariate responses using Template Model Builder. The package is designed
+    around formulae for distributional parameters such as location, scale,
+    shape, zero inflation, random-effect scale, and residual correlation.
+License: GPL (>= 3)
+URL: https://itchyshin.github.io/drmTMB/, https://github.com/itchyshin/drmTMB
+BugReports: https://github.com/itchyshin/drmTMB/issues
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+Depends:
+    R (>= 4.1.0)
+Imports:
+    cli,
+    Matrix,
+    stats,
+    TMB,
+    utils
+LinkingTo:
+    RcppEigen,
+    TMB
+Suggests:
+    knitr,
+    rmarkdown,
+    testthat (>= 3.0.0),
+    withr
+Config/testthat/edition: 3
+VignetteBuilder: knitr
+Config/roxygen2/version: 8.0.0

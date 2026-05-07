@@ -1,0 +1,71 @@
+---
+title: "Meta-analysis as Gaussian distributional regression"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Meta-analysis as Gaussian distributional regression}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+Meta-analysis in `drmTMB` is ordinary Gaussian distributional regression with
+known sampling variance supplied in the formula. It is not a separate family.
+
+The first implemented meta-analysis path is diagonal known sampling variance:
+
+```r
+drmTMB(
+  bf(
+    yi ~ moderator + meta_known_V(V = vi),
+    sigma ~ moderator
+  ),
+  family = gaussian(),
+  data = dat
+)
+```
+
+Here `vi` is a vector or data column of known sampling variances, not standard
+errors. The intended likelihood is:
+
+```text
+yi_i ~ Normal(mu_i, sqrt(vi_i + sigma_i^2))
+mu_i = X_mu beta_mu
+log(sigma_i) = X_sigma beta_sigma
+```
+
+The `sigma` formula models extra heterogeneity after accounting for known
+sampling error. In meta-analysis papers this is often written as `tau`, but the
+package API keeps `sigma` for consistency with other Gaussian distributional
+models.
+
+A concise runnable example:
+
+```r
+dat <- data.frame(
+  yi = c(0.10, 0.35, -0.05, 0.42),
+  vi = c(0.04, 0.03, 0.05, 0.02),
+  moderator = c(0, 1, 0, 1)
+)
+
+fit <- drmTMB(
+  bf(yi ~ moderator + meta_known_V(V = vi), sigma ~ moderator),
+  family = gaussian(),
+  data = dat
+)
+```
+
+## Implementation caveats
+
+- The diagonal MVP treats `V = vi` as independent known sampling
+  variances with one variance per retained row.
+- Negative and missing known variances are rejected or removed through the same
+  row-retention rules as the model data; standard-error inputs should be squared
+  by user code before fitting.
+- Full and block-diagonal covariance matrices are rejected for now and planned
+  after the diagonal path is hardened.
+- The API should keep `family = gaussian()` and `sigma ~ ...`; it should not
+  introduce `meta_gaussian()` or `tau ~` syntax without a separate design
+  decision.

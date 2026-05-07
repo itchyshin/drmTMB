@@ -1,0 +1,46 @@
+---
+title: "Phylogenetic and spatial dependence"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Phylogenetic and spatial dependence}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+Phylogenetic and spatial dependence are planned as core extensions, but they
+will enter through tested sparse-matrix modules after the Gaussian MVP is
+stable.
+
+Planned phylogenetic syntax:
+
+```r
+drmTMB(
+  bf(
+    y ~ x + phylo(species),
+    sigma ~ x
+  ),
+  family = gaussian(),
+  data = dat
+)
+```
+
+Planned spatial syntax:
+
+```r
+drmTMB(
+  bf(
+    y ~ depth + temp + spatial(easting, northing),
+    sigma ~ temp
+  ),
+  family = gaussian(),
+  data = dat
+)
+```
+
+The computational plan is to use sparse A-inverse tricks for phylogeny and
+SPDE/GMRF structure for spatial fields, with careful provenance notes for any
+code selectively ported from `gllvmTMB`.

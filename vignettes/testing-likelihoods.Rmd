@@ -1,0 +1,17 @@
+---
+title: "Testing likelihoods"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Testing likelihoods}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+This developer article will document simulation recovery tests, boundary-case
+tests, and TMB likelihood review practices.
+
+The current planning reference is `docs/design/05-testing-strategy.md`.

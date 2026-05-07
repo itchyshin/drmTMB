@@ -1,0 +1,7 @@
+drmTMB copyright and provenance notes
+
+drmTMB is currently a clean package scaffold. No source code has been ported
+from gllvmTMB, glmmTMB, sdmTMB, brms, or other modelling packages.
+
+Future selective reuse of GPL-compatible A-inverse, SPDE, or TMB utility code
+must be recorded here before the reused code is treated as complete.

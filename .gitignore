@@ -8,6 +8,7 @@
 
 # User-specific files
 .Ruserdata
+.DS_Store
 
 # Example code in package build process
 *-Ex.R
@@ -17,6 +18,11 @@
 
 # Output files from R CMD check
 /*.Rcheck/
+
+# Compiled objects from local package development
+src/*.o
+src/*.so
+src/*.dll
 
 # RStudio files
 .Rproj.user/
@@ -39,8 +45,15 @@ vignettes/*.pdf
 # R Environment Variables
 .Renviron
 
-# pkgdown site
-docs/
+# pkgdown site output, while keeping project design notes tracked
+docs/*
+!docs/design/
+!docs/design/**
+!docs/dev-log/
+!docs/dev-log/**
+!docs/course/
+!docs/course/**
+pkgdown-site/
 
 # translation temp files
 po/*~

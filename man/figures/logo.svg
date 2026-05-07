@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1254" height="1254" viewBox="0 0 1254 1254" role="img" aria-labelledby="title desc">
+  <title id="title">drmTMB hex logo</title>
+  <desc id="desc">A dark hexagon with contour lines, distributional regression curves, connected parameter nodes, and the text drmTMB.</desc>
+  <defs>
+    <linearGradient id="hex-fill" x1="214" y1="166" x2="1038" y2="1112" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#11283b"/>
+      <stop offset="0.52" stop-color="#0d3542"/>
+      <stop offset="1" stop-color="#09202d"/>
+    </linearGradient>
+    <linearGradient id="curve-fill" x1="326" y1="316" x2="918" y2="846" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#58d6c5"/>
+      <stop offset="0.52" stop-color="#f0ca5b"/>
+      <stop offset="1" stop-color="#e76f51"/>
+    </linearGradient>
+    <clipPath id="hex-clip">
+      <path d="M627 86 1095 356v542L627 1168 159 898V356Z"/>
+    </clipPath>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="18" stdDeviation="22" flood-color="#06111a" flood-opacity="0.34"/>
+    </filter>
+  </defs>
+
+  <rect width="1254" height="1254" fill="#ffffff"/>
+  <path d="M627 86 1095 356v542L627 1168 159 898V356Z" fill="url(#hex-fill)" filter="url(#shadow)"/>
+  <path d="M627 86 1095 356v542L627 1168 159 898V356Z" fill="none" stroke="#f8fbfc" stroke-width="34" stroke-linejoin="round"/>
+
+  <g clip-path="url(#hex-clip)">
+    <path d="M92 265c92 26 170 26 235 0 87-34 159-33 229 4 86 46 177 40 273-16 88-51 179-54 274-9" fill="none" stroke="#315468" stroke-width="13" stroke-linecap="round" opacity="0.62"/>
+    <path d="M84 344c102 34 188 32 258-4 89-45 171-45 247 0 82 49 169 47 261-7 82-48 172-50 270-6" fill="none" stroke="#2a6170" stroke-width="9" stroke-linecap="round" opacity="0.76"/>
+    <path d="M88 422c106 41 202 38 287-8 78-43 154-42 230 1 80 45 164 43 253-6 78-43 166-45 264-5" fill="none" stroke="#4db3aa" stroke-width="6" stroke-linecap="round" opacity="0.88"/>
+    <path d="M150 904c134-63 254-69 360-18 91 44 175 42 252-6 100-63 216-64 348-3" fill="none" stroke="#153548" stroke-width="88" stroke-linecap="round" opacity="0.54"/>
+    <path d="M186 858c119-46 231-48 337-7 89 35 174 33 254-6 88-42 185-39 291 10" fill="none" stroke="#1a5864" stroke-width="16" stroke-linecap="round" opacity="0.85"/>
+  </g>
+
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M315 655c68-121 137-169 206-143 72 27 116 123 185 144 74 23 151-35 231-174" stroke="#f8fbfc" stroke-width="24" opacity="0.98"/>
+    <path d="M315 654c68-120 137-168 206-142 72 27 116 123 185 144 74 23 151-35 231-174" stroke="url(#curve-fill)" stroke-width="13"/>
+    <path d="M345 726c84-40 162-39 234 4 66 39 132 38 200-3 58-35 119-38 183-8" stroke="#7ee6d7" stroke-width="9" opacity="0.86"/>
+    <path d="M354 789c79 39 152 39 219 0 72-42 144-41 216 1 60 35 120 37 180 5" stroke="#f0ca5b" stroke-width="9" opacity="0.86"/>
+  </g>
+
+  <g>
+    <path d="M357 579 520 512 706 656 905 492" fill="none" stroke="#dbe7ec" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" opacity="0.68"/>
+    <circle cx="357" cy="579" r="28" fill="#58d6c5" stroke="#f8fbfc" stroke-width="8"/>
+    <circle cx="520" cy="512" r="28" fill="#f0ca5b" stroke="#f8fbfc" stroke-width="8"/>
+    <circle cx="706" cy="656" r="28" fill="#e76f51" stroke="#f8fbfc" stroke-width="8"/>
+    <circle cx="905" cy="492" r="28" fill="#7bd389" stroke="#f8fbfc" stroke-width="8"/>
+    <text x="345" y="520" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="44" font-weight="700">mu</text>
+    <text x="486" y="464" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="38" font-weight="700">sigma</text>
+    <text x="685" y="724" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="38" font-weight="700">rho12</text>
+  </g>
+
+  <g font-family="Arial, Helvetica, sans-serif" text-anchor="middle">
+    <text x="627" y="935" fill="#f8fbfc" font-size="128" font-weight="800" letter-spacing="0">drm<tspan fill="#69d4d0">TMB</tspan></text>
+  </g>
+</svg>
