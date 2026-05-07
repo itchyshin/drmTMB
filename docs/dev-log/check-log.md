@@ -168,3 +168,42 @@ Known issues:
 - bivariate models are fixed-effect only.
 - bivariate `meta_known_V()`, random effects, `mvbind()` shorthand,
   phylogenetic terms, and spatial terms are not implemented yet.
+
+## 2026-05-07: First Push and pkgdown Workflow Fix
+
+Scope:
+
+- committed and pushed the initial `drmTMB` scaffold and Gaussian MVP work to
+  `origin/main`;
+- confirmed GitHub R-CMD-check succeeded after the push;
+- diagnosed the first pkgdown workflow failure;
+- changed the pkgdown workflow from `pkgdown::build_site_github_pages()` to
+  `pkgdown::build_site()` so the site builds into `pkgdown-site` rather than
+  trying to clean the tracked `docs/` design directory;
+- updated Pages artifact actions to current major versions where available.
+
+Commands run:
+
+- `git fetch origin`
+- `git add -A`
+- `git commit -m "Scaffold drmTMB package and Gaussian MVPs"`
+- `git push origin main`
+- `gh run list --repo itchyshin/drmTMB --limit 10`
+- `gh run view 25492948840 --repo itchyshin/drmTMB --job 74805330699 --log`
+- `Rscript -e "pkgdown::check_pkgdown(); pkgdown::build_site()"`
+
+Results:
+
+- pushed commit `69f11f8` to `origin/main`.
+- GitHub R-CMD-check for commit `69f11f8`: success.
+- Initial GitHub pkgdown run for commit `69f11f8`: failed because
+  `build_site_github_pages()` tried to clean `docs/`.
+- Local pkgdown after workflow diagnosis: no problems found; site built
+  successfully into `pkgdown-site`.
+
+Known issues:
+
+- A second push is needed for the corrected pkgdown workflow.
+- The pkgdown site intentionally publishes root Markdown pages such as
+  `AGENTS.html`, `CLAUDE.html`, and `ROADMAP.html`; revisit later if those
+  should be hidden.
