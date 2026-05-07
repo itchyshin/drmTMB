@@ -830,3 +830,45 @@ Follow-up design clarification:
 - phylogenetic and spatial random slopes should be staged more conservatively:
   intercept-only first, then one structured slope in `mu`, then only a small
   number of slopes or interaction slopes after strong recovery evidence.
+
+## 2026-05-07: Random-Slope Comparator Smoke Test
+
+Scope:
+
+- added an `lme4` comparator smoke test for the currently implemented
+  independent Gaussian random-intercept plus random-slope model;
+- compared fixed effects, random-effect SDs, residual SD, and log-likelihood
+  against `lme4::lmer(..., REML = FALSE)`;
+- kept the test skipped when `lme4` is not installed;
+- updated the testing strategy to distinguish implemented independent
+  random-slope comparator tests from future correlated-block comparator tests.
+
+Commands run:
+
+- `Rscript -e "devtools::test(filter = 'comparators')"`
+- `Rscript -e "devtools::test()"`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `Rscript -e "devtools::check(env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`
+- `git diff --check`
+
+Results:
+
+- targeted comparator tests: 14 passed, 0 failed.
+- full `devtools::test()`: 191 passed, 0 failed;
+- `pkgdown::check_pkgdown()`: no problems found;
+- `devtools::check(env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))`: 0
+  errors, 0 warnings, 0 notes;
+- `git diff --check`: passed.
+
+Known issues:
+
+- this comparator covers independent random-effect terms written as
+  `(1 | id) + (0 + x | id)`;
+- correlated blocks such as `(1 + x | id)` are still planned and need a
+  separate comparator once implemented.
+
+Team learning:
+
+- Fisher: comparator tests are useful only when covariance semantics match
+  exactly; independent and correlated random slopes should not share the same
+  comparator claim.

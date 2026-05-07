@@ -46,6 +46,63 @@ test_that("Gaussian random intercepts agree with lme4 on an overlapping model", 
   )
 })
 
+test_that("Gaussian independent random slopes agree with lme4 on an overlapping model", {
+  testthat::skip_if_not_installed("lme4")
+
+  set.seed(20260514)
+  n_id <- 36
+  n_each <- 9
+  n <- n_id * n_each
+  dat <- data.frame(
+    id = factor(rep(seq_len(n_id), each = n_each)),
+    x = stats::rnorm(n)
+  )
+  u0 <- stats::rnorm(n_id, sd = 0.5)
+  u1 <- stats::rnorm(n_id, sd = 0.4)
+  dat$y <- stats::rnorm(
+    n,
+    mean = 0.25 + 0.65 * dat$x + u0[dat$id] + u1[dat$id] * dat$x,
+    sd = 0.45
+  )
+
+  fit <- drmTMB(
+    bf(y ~ x + (1 | id) + (0 + x | id)),
+    family = gaussian(),
+    data = dat
+  )
+  fit_lme4 <- lme4::lmer(
+    y ~ x + (1 | id) + (0 + x | id),
+    data = dat,
+    REML = FALSE
+  )
+  sd_lme4 <- unname(unlist(lapply(
+    lme4::VarCorr(fit_lme4),
+    function(term) attr(term, "stddev")
+  )))
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(
+    unname(coef(fit, "mu")),
+    unname(lme4::fixef(fit_lme4)),
+    tolerance = 1e-4
+  )
+  expect_equal(
+    unname(fit$sdpars$mu),
+    sd_lme4,
+    tolerance = 1e-4
+  )
+  expect_equal(
+    stats::sigma(fit)[[1L]],
+    stats::sigma(fit_lme4),
+    tolerance = 1e-4
+  )
+  expect_equal(
+    as.numeric(stats::logLik(fit)),
+    as.numeric(stats::logLik(fit_lme4)),
+    tolerance = 1e-4
+  )
+})
+
 test_that("Gaussian meta-analysis agrees with metafor for ML tau2", {
   testthat::skip_if_not_installed("metafor")
 
