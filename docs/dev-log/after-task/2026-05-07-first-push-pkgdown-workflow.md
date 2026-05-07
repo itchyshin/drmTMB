@@ -61,5 +61,14 @@ Outcome:
 
 ## Remaining Follow-Up
 
-Push the workflow fix and confirm the second GitHub pkgdown run deploys
-successfully.
+Completed:
+
+- Pushed workflow-fix commit `d8082a1`.
+- Confirmed GitHub pkgdown success and deployment.
+- Confirmed GitHub R-CMD-check success.
+- Confirmed `https://itchyshin.github.io/drmTMB/` returns HTTP 200.
+
+Remaining later decision:
+
+- Decide whether root Markdown pages such as `AGENTS.html`, `CLAUDE.html`, and
+  `ROADMAP.html` should stay public on pkgdown.

@@ -200,10 +200,13 @@ Results:
   `build_site_github_pages()` tried to clean `docs/`.
 - Local pkgdown after workflow diagnosis: no problems found; site built
   successfully into `pkgdown-site`.
+- pushed commit `d8082a1` with the corrected pkgdown workflow.
+- GitHub pkgdown for commit `d8082a1`: success, including deployment to
+  `https://itchyshin.github.io/drmTMB/`.
+- GitHub R-CMD-check for commit `d8082a1`: success.
 
 Known issues:
 
-- A second push is needed for the corrected pkgdown workflow.
 - The pkgdown site intentionally publishes root Markdown pages such as
   `AGENTS.html`, `CLAUDE.html`, and `ROADMAP.html`; revisit later if those
   should be hidden.
