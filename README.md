@@ -8,7 +8,8 @@ ecology, evolution, and environmental science.
 
 The current implementation supports Gaussian location-scale models, including
 fixed effects, random intercepts, independent numeric random slopes, and
-ordinary correlated random intercept-slope blocks in the location formula:
+ordinary labelled or unlabelled correlated random intercept-slope blocks in
+the location formula:
 
 ```r
 drmTMB(
@@ -31,6 +32,20 @@ drmTMB(
 
 The group-level correlation from `(1 + x1 | id)` is reported separately from
 residual bivariate `rho12`.
+
+The same one-slope block can carry a covariance-block label:
+
+```r
+drmTMB(
+  bf(y ~ x1 + (1 + x1 | p | id), sigma ~ x1),
+  family = gaussian(),
+  data = dat
+)
+```
+
+For now, `p` is retained as a group-level covariance-block label in output
+names such as `cor((Intercept),x1 | p | id)`. Cross-parameter or bivariate
+sharing of labelled blocks is still future work.
 
 It also supports the fixed-effect seed of the bivariate location-coscale model,
 including predictor-dependent residual correlation:
@@ -94,11 +109,11 @@ drmTMB(
 
 Current project status: Gaussian location-scale MVP with `mu` random
 intercepts, independent numeric random slopes, ordinary correlated
-intercept-slope blocks, `meta_known_V(V = V)` support for diagonal and dense
-known sampling covariance, and fixed-effect bivariate Gaussian `rho12 ~
-predictors`. The next targets are labelled correlated random-effect blocks,
-random-effect scale models, sparse precision paths, phylogenetic A-inverse, and
-spatial SPDE paths.
+intercept-slope blocks, labelled one-slope `mu` covariance-block labels,
+`meta_known_V(V = V)` support for diagonal and dense known sampling covariance,
+and fixed-effect bivariate Gaussian `rho12 ~ predictors`. The next targets are
+cross-formula labelled covariance blocks, random-effect scale models, sparse
+precision paths, phylogenetic A-inverse, and spatial SPDE paths.
 
 Phylogenetic and spatial dependence will be treated as one structured-effect
 module: `z ~ MVN(0, sigma_z^2 K)`, with `K = A` for tree-derived phylogenetic

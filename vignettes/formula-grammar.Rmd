@@ -16,7 +16,33 @@ response blocks, distributional-parameter formulae, and validation rules.
 
 The current planning reference is `docs/design/01-formula-grammar.md`.
 
-Current canonical bivariate form:
+Current implemented univariate Gaussian random-effect forms include:
+
+```r
+bf(y ~ x + (1 | id), sigma ~ z)
+bf(y ~ x + (0 + x | id), sigma ~ z)
+bf(y ~ x + (1 + x | id), sigma ~ z)
+bf(y ~ x + (1 + x | p | id), sigma ~ z)
+```
+
+The middle `p` is a group-level covariance-block label. It is not residual
+`rho12`, and reserved distributional parameter names such as `rho12` should not
+be used as labels. Cross-formula use of matching labels remains future work.
+
+Current implemented bivariate form:
+
+```r
+bf(
+  mu1 = y1 ~ x1 + x2,
+  mu2 = y2 ~ x1,
+  sigma1 = ~ x1 + x2,
+  sigma2 = ~ x1,
+  rho12 = ~ x1 + x2
+)
+```
+
+Future bivariate random-effect syntax should be explicit about the distinction
+between group-level covariance labels and residual `rho12`:
 
 ```r
 bf(

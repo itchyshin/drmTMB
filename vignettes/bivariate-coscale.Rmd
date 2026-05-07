@@ -183,8 +183,9 @@ residual coupling between traits such as activity and boldness, body size and
 fecundity, or leaf area and seed number.
 
 The middle `p` in `(1 | p | id)` follows grouped covariance-block syntax for
-correlated group-level effects. That random-effect syntax is planned but not
-implemented yet. It is distinct from residual `rho12`.
+correlated group-level effects. Labelled one-slope blocks are implemented for
+univariate Gaussian `mu`; shared bivariate `mu1`/`mu2` covariance blocks remain
+future work. This syntax is distinct from residual `rho12`.
 
 In phylogenetic location-scale models, correlations among phylogenetic mean and
 scale effects answer different questions: mean-mean coevolution, scale-scale

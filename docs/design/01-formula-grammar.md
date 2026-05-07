@@ -148,8 +148,21 @@ univariate Gaussian `mu` path:
 bf(y ~ x1 + (1 + x1 | id), sigma ~ x1)
 ```
 
+The same one-slope block may carry a covariance-block label:
+
+```r
+bf(y ~ x1 + (1 + x1 | p | id), sigma ~ x1)
+```
+
+For this first labelled implementation, `p` is metadata for naming and future
+covariance-block matching. It is not looked up in `data`, and it does not yet
+share covariance across `mu`, `sigma`, `mu1`, or `mu2` formulas.
+
 The group-level intercept-slope correlation is extracted as `corpars$mu`, not
 as residual `rho12`.
+
+Covariance-block labels must not use reserved distributional parameter names
+such as `mu`, `sigma`, `rho`, or `rho12`.
 
 Future correlated multi-slope syntax should allow larger model-matrix terms
 such as:
@@ -178,7 +191,7 @@ bf(
 )
 ```
 
-Future correlated random-effect blocks should use ID labels:
+Future cross-formula correlated random-effect blocks should use ID labels:
 
 ```r
 bf(
@@ -187,14 +200,29 @@ bf(
 )
 ```
 
-Matching `p` labels request a shared group-level covariance block. These
-correlations are constant in the first implementation. Formulae for
-group-level correlations are reserved for later.
+Matching `p` labels will request a shared group-level covariance block once
+random effects in multiple distributional parameters are implemented. These
+correlations should be constant in the first cross-formula implementation.
+Formulae for group-level correlations are reserved for later.
 
 ## Correlation Namespace
 
 Use `rho12` only for residual or response-level correlation between response 1
-and response 2 in a bivariate likelihood:
+and response 2 in a bivariate likelihood. The current implemented bivariate
+form has fixed-effect distributional formulas:
+
+```r
+bf(
+  mu1 = y1 ~ x1 + x2,
+  mu2 = y2 ~ x1,
+  sigma1 = ~ x1 + x2,
+  sigma2 = ~ x1,
+  rho12 = ~ x1 + x2
+)
+```
+
+Future bivariate random-effect syntax should keep labelled group-level
+covariance blocks distinct from residual `rho12`:
 
 ```r
 bf(
@@ -206,7 +234,8 @@ bf(
 )
 ```
 
-Do not use `rho12` for group-level random-effect correlations.
+Do not use `rho12` for group-level random-effect correlations or as a
+covariance-block label.
 Double-hierarchical models for individual differences can contain several
 interpretable correlations among random intercepts, random slopes, random scale
 intercepts, and random scale slopes. Those correlations belong to labelled
@@ -264,7 +293,7 @@ Not every parameter should accept random effects at the same development stage.
 
 | Parameter class | Random effects policy |
 |---|---|
-| `mu`, `mu1`, `mu2` | Yes; univariate Gaussian `mu` random intercepts, independent numeric random slopes, and ordinary correlated intercept-slope blocks are implemented. |
+| `mu`, `mu1`, `mu2` | Yes for univariate Gaussian `mu`; random intercepts, independent numeric random slopes, and labelled or unlabelled ordinary correlated intercept-slope blocks are implemented. Bivariate `mu1`/`mu2` random effects are later. |
 | `sigma`, `sigma1`, `sigma2` | Later; needed for predictability/malleability models, but higher identifiability risk. |
 | `sd(group)` | Later; explicit random-effect scale model, not the same as residual `sigma`. |
 | `rho12` | No random effects initially; predictor-dependent fixed effects only. |
@@ -281,9 +310,9 @@ Not every parameter should accept random effects at the same development stage.
 - `rho` may become a convenience alias, but `rho12` is canonical.
 - `meta_known_V(V = V)` is a known-covariance marker, not a predictor.
 - Random intercepts, random slopes with one numeric predictor per random-slope
-  term, and ordinary correlated intercept-slope blocks are currently
-  implemented only for the univariate Gaussian `mu` formula; multiple separate
-  independent slope terms are allowed.
+  term, and labelled or unlabelled ordinary correlated intercept-slope blocks
+  are currently implemented only for the univariate Gaussian `mu` formula;
+  multiple separate independent slope terms are allowed.
 - The parser should reject unsupported formulae early with clear errors.
 
 ## Not in the MVP

@@ -38,6 +38,19 @@ drmTMB(
 The intercept-slope correlation from this block is a group-level correlation
 reported under `corpars$mu`; it is not residual bivariate `rho12`.
 
+A labelled version is implemented for univariate Gaussian `mu`:
+
+```r
+drmTMB(
+  bf(y ~ x1 + (1 + x1 | p | id), sigma ~ x1),
+  family = gaussian(),
+  data = dat
+)
+```
+
+The middle label `p` is retained in group-level SD and correlation names. It
+does not yet share covariance across `sigma`, `mu1`, or `mu2` formulas.
+
 The first implemented bivariate seed covers fixed-effect location-coscale
 regression with predictor-dependent residual correlation:
 

@@ -42,14 +42,13 @@ Implemented comparator smoke tests:
 - homoscedastic Gaussian random intercepts against `lme4::lmer(..., REML = FALSE)`;
 - homoscedastic Gaussian independent random intercept/slope models against
   `lme4::lmer(..., REML = FALSE)`;
+- labelled and unlabelled correlated Gaussian random-slope blocks against
+  `lme4::lmer(..., REML = FALSE)`;
 - Gaussian ML meta-analysis with known sampling variances against
   `metafor::rma.uni(..., method = "ML")`.
 
 Planned comparator smoke tests:
 
-- correlated Gaussian random-slope blocks against
-  `lme4::lmer(..., REML = FALSE)` once covariance-block semantics are
-  implemented;
 - dense known sampling covariance against `metafor::rma.mv(...)`;
 - dense known sampling covariance against `glmmTMB::equalto()` when the
   likelihood and residual heterogeneity parameterization overlap cleanly.

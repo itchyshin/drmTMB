@@ -186,8 +186,19 @@ drmTMB(
 ```
 
 The intercept-slope correlation from `(1 + x1 | id)` is a group-level
-correlation reported under `corpars$mu`. Labelled blocks such as
-`(1 + x1 | p | id)` remain planned for later cross-formula covariance blocks.
+correlation reported under `corpars$mu`. A labelled version is also
+implemented for univariate Gaussian `mu`:
+
+```r
+drmTMB(
+  bf(y ~ x1 + (1 + x1 | p | id), sigma ~ x2),
+  family = gaussian(),
+  data = dat
+)
+```
+
+Here `p` is retained as a group-level covariance-block label. It does not yet
+share covariance across `mu`, `sigma`, `mu1`, or `mu2` formulas.
 
 This is the source of the "two or three sigmas" issue in ordinary language:
 the model may contain several scale quantities, but only one of them is the
@@ -294,7 +305,8 @@ y | mu, sigma, V ~ MVN(mu, V + diag(sigma_i^2))
 
 - The current fitter supports `family = gaussian()` with fixed effects for
   `mu` and `sigma`, plus random intercepts, independent numeric random slopes,
-  and ordinary correlated intercept-slope blocks in `mu`.
+  and labelled or unlabelled ordinary correlated intercept-slope blocks in
+  `mu`.
 - The `sigma` formula is the observation-level residual standard deviation. It
   is not a random-effect scale component.
 - Missing rows are dropped when they are incomplete for variables used by
@@ -303,9 +315,9 @@ y | mu, sigma, V ~ MVN(mu, V + diag(sigma_i^2))
   supported for Gaussian meta-analysis.
 - Fixed-effect bivariate Gaussian `rho12` models are implemented in the
   bivariate coscale article.
-- `sd(group)` scale formulas, labelled covariance blocks, phylogenetic terms,
-  spatial terms, and non-Gaussian families are planned but not implemented in
-  this MVP.
+- `sd(group)` scale formulas, cross-formula labelled covariance sharing,
+  phylogenetic terms, spatial terms, and non-Gaussian families are planned but
+  not implemented in this MVP.
 
 Future multiple scale components will use explicit `sd()` formulas, not extra
 residual `sigma` formulas:

@@ -83,6 +83,37 @@ new_gaussian_corr_rs_data <- function(n_id = 36, n_each = 8, sd0 = 0.55,
   )
 }
 
+new_gaussian_labelled_corr_rs_data <- function(n_id = 30, n_each = 7,
+                                               sd0 = 0.5, sd1 = 0.35,
+                                               rho_re = 0.4, sigma = 0.45,
+                                               seed = 20260530) {
+  set.seed(seed)
+  n <- n_id * n_each
+  ID <- factor(rep(seq_len(n_id), each = n_each))
+  x <- stats::rnorm(n)
+  f <- factor(rep(c("control", "treated"), length.out = n))
+  z0 <- stats::rnorm(n_id)
+  z1 <- stats::rnorm(n_id)
+  u0 <- sd0 * z0
+  u1 <- sd1 * (rho_re * z0 + sqrt(1 - rho_re^2) * z1)
+  beta_mu <- c(`(Intercept)` = 0.25, x = 0.65, ftreated = 0.2)
+  mu <- beta_mu[[1L]] + beta_mu[[2L]] * x +
+    beta_mu[[3L]] * (f == "treated") + u0[ID] + u1[ID] * x
+
+  list(
+    data = data.frame(
+      y = stats::rnorm(n, mean = mu, sd = sigma),
+      x = x,
+      f = f,
+      ID = ID
+    ),
+    beta_mu = beta_mu,
+    sd = c(`(Intercept)` = sd0, x = sd1),
+    rho_re = rho_re,
+    sigma = sigma
+  )
+}
+
 test_that("Gaussian location models support random intercepts in mu", {
   sim <- new_gaussian_ri_data()
 
@@ -165,6 +196,22 @@ test_that("multiple Gaussian mu random-intercept terms are supported", {
   )
 })
 
+test_that("Gaussian mu supports labelled random intercepts", {
+  sim <- new_gaussian_ri_data(n_id = 30, n_each = 8, seed = 20260529)
+
+  fit <- drmTMB(
+    bf(y ~ x + (1 | p | id), sigma ~ z),
+    family = gaussian(),
+    data = sim$data
+  )
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_named(fit$sdpars$mu, "(1 | p | id)")
+  expect_equal(length(fit$random_effects$mu$values), nlevels(sim$data$id))
+  expect_equal(fit$corpars, list())
+  expect_lt(abs(unname(fit$sdpars$mu) - sim$sd_id), 0.25)
+})
+
 test_that("Gaussian location models support simple random slopes in mu", {
   sim <- new_gaussian_rs_data()
 
@@ -242,6 +289,161 @@ test_that("Gaussian mu supports correlated random intercept-slope blocks", {
   expect_lt(max(abs(unname(fit$sdpars$mu) - unname(sim$sd))), 0.25)
   expect_lt(abs(unname(fit$corpars$mu) - sim$rho_re), 0.3)
   expect_false(any(grepl("rho12", names(fit$corpars$mu), fixed = TRUE)))
+})
+
+test_that("labelled Gaussian mu correlated blocks match unlabelled block semantics", {
+  sim <- new_gaussian_labelled_corr_rs_data()
+
+  fit_labelled <- drmTMB(
+    bf(y ~ x + f + (1 + x | p | ID)),
+    family = gaussian(),
+    data = sim$data
+  )
+  fit_unlabelled <- drmTMB(
+    bf(y ~ x + f + (1 + x | ID)),
+    family = gaussian(),
+    data = sim$data
+  )
+
+  expect_equal(fit_labelled$opt$convergence, 0)
+  expect_equal(fit_unlabelled$opt$convergence, 0)
+  expect_equal(
+    unname(coef(fit_labelled, "mu")),
+    unname(coef(fit_unlabelled, "mu")),
+    tolerance = 1e-6
+  )
+  expect_equal(
+    stats::sigma(fit_labelled),
+    stats::sigma(fit_unlabelled),
+    tolerance = 1e-6
+  )
+  expect_equal(
+    unname(fit_labelled$sdpars$mu),
+    unname(fit_unlabelled$sdpars$mu),
+    tolerance = 1e-6
+  )
+  expect_equal(
+    unname(fit_labelled$corpars$mu),
+    unname(fit_unlabelled$corpars$mu),
+    tolerance = 1e-6
+  )
+  expect_equal(
+    as.numeric(stats::logLik(fit_labelled)),
+    as.numeric(stats::logLik(fit_unlabelled)),
+    tolerance = 1e-6
+  )
+  expect_named(
+    fit_labelled$sdpars$mu,
+    c("(1 + x | p | ID):(Intercept)", "(1 + x | p | ID):x")
+  )
+  expect_named(fit_labelled$corpars$mu, "cor((Intercept),x | p | ID)")
+  expect_false(any(grepl("rho12", names(fit_labelled$corpars$mu), fixed = TRUE)))
+})
+
+test_that("labelled Gaussian mu correlated blocks recover moderate covariance parameters", {
+  sim <- new_gaussian_labelled_corr_rs_data(
+    n_id = 34,
+    n_each = 8,
+    sd0 = 0.55,
+    sd1 = 0.35,
+    rho_re = 0.45,
+    sigma = 0.45,
+    seed = 20260531
+  )
+
+  fit <- drmTMB(
+    bf(y ~ x + f + (1 + x | p | ID)),
+    family = gaussian(),
+    data = sim$data
+  )
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_lt(max(abs(unname(coef(fit, "mu")) - unname(sim$beta_mu))), 0.22)
+  expect_lt(abs(stats::sigma(fit)[[1L]] - sim$sigma), 0.12)
+  expect_lt(max(abs(unname(fit$sdpars$mu) - unname(sim$sd))), 0.25)
+  expect_lt(abs(unname(fit$corpars$mu) - sim$rho_re), 0.35)
+})
+
+test_that("labelled Gaussian mu correlated blocks handle near-zero and high correlations", {
+  cases <- list(
+    near_zero = list(rho = 0.02, seed = 20260532),
+    high_pos = list(rho = 0.8, seed = 20260533),
+    high_neg = list(rho = -0.8, seed = 20260534)
+  )
+
+  for (case in cases) {
+    sim <- new_gaussian_labelled_corr_rs_data(
+      n_id = 28,
+      n_each = 7,
+      sd0 = 0.6,
+      sd1 = 0.4,
+      rho_re = case$rho,
+      seed = case$seed
+    )
+
+    fit <- drmTMB(
+      bf(y ~ x + (1 + x | p | ID)),
+      family = gaussian(),
+      data = sim$data
+    )
+    cor_est <- unname(fit$corpars$mu)
+
+    expect_equal(fit$opt$convergence, 0)
+    expect_true(all(is.finite(c(fit$sdpars$mu, cor_est))))
+    expect_lt(abs(cor_est), 1)
+    if (abs(case$rho) < 0.1) {
+      expect_lt(abs(cor_est), 0.35)
+    } else {
+      expect_equal(sign(cor_est), sign(case$rho))
+    }
+  }
+})
+
+test_that("labelled correlated blocks remain stable with small and large residual sigma", {
+  cases <- list(
+    small = list(sigma = 0.08, tol = 0.07, seed = 20260535),
+    large = list(sigma = 1.4, tol = 0.40, seed = 20260536)
+  )
+
+  for (case in cases) {
+    sim <- new_gaussian_labelled_corr_rs_data(
+      n_id = 30,
+      n_each = 8,
+      sigma = case$sigma,
+      seed = case$seed
+    )
+
+    fit <- drmTMB(
+      bf(y ~ x + (1 + x | p | ID)),
+      family = gaussian(),
+      data = sim$data
+    )
+
+    expect_equal(fit$opt$convergence, 0)
+    expect_true(all(is.finite(c(fit$sdpars$mu, fit$corpars$mu))))
+    expect_lt(abs(stats::sigma(fit)[[1L]] - case$sigma), case$tol)
+  }
+})
+
+test_that("labelled correlated-block variables participate in missingness", {
+  sim <- new_gaussian_labelled_corr_rs_data(n_id = 12, n_each = 5, seed = 20260537)
+  dat <- sim$data
+  dat$y[2] <- NA_real_
+  dat$x[5] <- NA_real_
+  dat$f[7] <- NA
+  dat$ID[11] <- NA
+  keep <- stats::complete.cases(dat[c("y", "x", "f", "ID")])
+
+  fit <- drmTMB(
+    bf(y ~ x + f + (1 + x | p | ID)),
+    family = gaussian(),
+    data = dat
+  )
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(fit$nobs, sum(keep))
+  expect_equal(fit$model$keep, keep)
+  expect_false(anyNA(fit$data[c("y", "x", "f", "ID")]))
 })
 
 test_that("Gaussian mu correlated blocks handle near-zero and negative correlations", {
@@ -455,7 +657,31 @@ test_that("unsupported random-effect cases fail clearly", {
     "must be numeric"
   )
   expect_error(
-    drmTMB(bf(y ~ x + (1 + x | p | id)), family = gaussian(), data = dat),
-    "planned later"
+    drmTMB(bf(y ~ x + (1 + group_label | p | id)), family = gaussian(), data = dat),
+    "must be numeric"
+  )
+  expect_error(
+    drmTMB(bf(y ~ x + (1 + x + y2 | p | id)), family = gaussian(), data = dat),
+    "Only random intercepts"
+  )
+  expect_error(
+    drmTMB(bf(y ~ x + (1 + x | p | id) + (0 + x | id)), family = gaussian(), data = dat),
+    "Overlapping random-effect terms"
+  )
+  expect_error(
+    drmTMB(bf(y ~ x + (1 + x | p | id) + (1 + x | q | id)), family = gaussian(), data = dat),
+    "Overlapping random-effect terms"
+  )
+  expect_error(
+    drmTMB(bf(y ~ x + (1 + x | 1 | id)), family = gaussian(), data = dat),
+    "covariance-block labels"
+  )
+  expect_error(
+    drmTMB(bf(y ~ x + (1 + x | rho12 | id)), family = gaussian(), data = dat),
+    "reserved distributional parameter"
+  )
+  expect_error(
+    drmTMB(bf(y ~ x, sigma ~ (1 | p | id)), family = gaussian(), data = dat),
+    "unsupported model terms"
   )
 })

@@ -2,8 +2,9 @@
 
 This note records the implemented design for ordinary correlated Gaussian `mu`
 random-effect blocks. The current implementation supports independent
-random-effect terms such as `(1 | id)` and `(0 + x | id)`, plus one-slope
-ordinary correlated blocks such as `(1 + x | id)`.
+random-effect terms such as `(1 | id)` and `(0 + x | id)`, labelled random
+intercepts such as `(1 | p | id)`, plus one-slope ordinary correlated blocks
+such as `(1 + x | id)` or `(1 + x | p | id)`.
 
 ## User Grammar
 
@@ -25,7 +26,22 @@ bf(y ~ x + (1 | id) + (0 + x | id), sigma ~ z)
 This means two independent variance components: one random intercept SD and one
 random slope SD, with no intercept-slope correlation.
 
-Labelled blocks should later support cross-formula or cross-parameter
+Labelled blocks are implemented for univariate Gaussian `mu` as a covariance
+namespace:
+
+```r
+bf(y ~ x + (1 + x | p | id), sigma ~ z)
+```
+
+Here `p` is a covariance-block label. It is not a grouping variable and it is
+not residual `rho12`. In the current implementation, the label is retained in
+`sdpars$mu`, `corpars$mu`, and `random_effects$mu` names, while the likelihood
+matches the unlabelled `(1 + x | id)` block.
+
+Reserved distributional parameter names such as `mu`, `sigma`, `rho`, and
+`rho12` are not valid covariance-block labels.
+
+Later, the same label should support cross-formula or cross-parameter
 covariance:
 
 ```r
@@ -35,8 +51,8 @@ bf(
 )
 ```
 
-Here `p` is a covariance-block label. It is not a grouping variable and it is
-not residual `rho12`.
+In that later model, matching `p` labels will request a shared group-level
+covariance block.
 
 ## Symbolic Model
 
@@ -136,18 +152,18 @@ Do not place group-level correlations under `rho12`.
 
 ## Implemented Boundary
 
-The first implementation supports ordinary unlabelled `q = 2` Gaussian `mu`
-blocks:
+The current implementation supports ordinary labelled or unlabelled `q = 2`
+Gaussian `mu` blocks:
 
 ```r
 bf(y ~ x + (1 + x | id), sigma ~ z)
+bf(y ~ x + (1 + x | p | id), sigma ~ z)
 ```
 
 Still deferred:
 
 - `q > 2` blocks;
 - factor or multi-column random slopes;
-- labelled `(1 + x | p | id)` blocks;
 - correlated blocks spanning `mu` and `sigma`;
 - bivariate `mu1`/`mu2` random-effect covariance blocks;
 - phylogenetic and spatial correlated slope blocks.
@@ -163,6 +179,9 @@ The first ordinary correlated block is tested against:
 ```r
 lme4::lmer(y ~ x + (1 + x | id), data = dat, REML = FALSE)
 ```
+
+Labelled blocks are tested against the same `lme4` model because the middle
+label is metadata for this phase, not a different Gaussian likelihood.
 
 Compare:
 

@@ -10,7 +10,7 @@ the grammar must support them from the start.
 3. Simple numeric random slopes in location. Implemented for univariate
    Gaussian `mu` as separate uncorrelated terms.
 4. Ordinary correlated random intercept-slope blocks in location. Implemented
-   for univariate Gaussian `mu`.
+   for univariate Gaussian `mu`, with optional covariance-block labels.
 5. Random intercepts in scale.
 6. Random-effect scale formulae such as `sd(id) ~ x`.
 7. Correlations among location and scale random effects when identifiable.
@@ -77,6 +77,19 @@ bf(
 The fitted group-level intercept-slope correlation is reported under
 `corpars$mu`. It is not residual `rho12`.
 
+The same block can carry a covariance-block label:
+
+```r
+bf(
+  y ~ x1 + (1 + x1 | p | id),
+  sigma ~ x1
+)
+```
+
+In the current univariate Gaussian `mu` implementation, `p` is retained in
+output names and future design metadata. It does not yet create covariance
+sharing across `mu`, `sigma`, `mu1`, or `mu2` formulas.
+
 Interaction slopes are not parsed as formula expressions yet. The temporary
 safe workflow is to create the interaction column before fitting:
 
@@ -93,10 +106,11 @@ Current implementation details:
 - supported only for univariate Gaussian `mu`;
 - random-slope terms must be written as `0 + x`, with a single numeric
   predictor, for independent slope terms;
-- ordinary correlated intercept-slope blocks are written as `(1 + x | id)` and
-  currently support one numeric slope;
-- labelled blocks such as `(1 + x | p | id)` are reserved for later
-  cross-formula or cross-parameter covariance-block support;
+- ordinary correlated intercept-slope blocks are written as `(1 + x | id)` or
+  `(1 + x | p | id)` and currently support one numeric slope;
+- labelled blocks are implemented only within univariate Gaussian `mu`; using
+  the same label for cross-formula or cross-parameter covariance-block support
+  is reserved for later;
 - random effects are integrated with TMB's Laplace approximation;
 - the TMB parameterization is non-centered; independent terms use
   `b_{term,group} = sd_term * u_{term,group}`, while correlated two-coefficient
@@ -157,17 +171,19 @@ does not put random effects inside the residual `sigma` model.
 
 ## Correlation Blocks
 
-`drmTMB` will use labelled group-level covariance blocks:
+`drmTMB` uses labelled group-level covariance blocks:
 
 ```r
 (1 + x1 | p | id)
 ```
 
-The middle label `p` ties terms into a shared group-level covariance block.
-When the same label appears in multiple parameter formulas, for example in
-`mu` and `sigma`, the model estimates constant correlations among those
-group-level effects. These are the correlations used in double-hierarchical
-models of personality, plasticity, predictability, and malleability.
+The middle label `p` identifies a group-level covariance block. In the current
+univariate Gaussian `mu` implementation, the label is retained in output names.
+When later implementations allow the same label in multiple parameter formulas,
+for example in `mu` and `sigma`, the model should estimate constant
+correlations among those group-level effects. These are the correlations used
+in double-hierarchical models of personality, plasticity, predictability, and
+malleability.
 
 Residual `rho12 ~` is separate and belongs to bivariate response likelihoods.
 It models the residual coupling between two responses after their location and

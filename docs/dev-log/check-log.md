@@ -1035,3 +1035,89 @@ Team learning:
 - small visual regressions should still pass through the same asset
   synchronization loop: SVG source, rendered PNGs, favicon derivatives,
   pkgdown build, and after-task note.
+
+## 2026-05-07: Labelled Gaussian `mu` Random-Effect Blocks
+
+Scope:
+
+- implemented labelled Gaussian `mu` random intercepts and labelled correlated
+  numeric random intercept-slope blocks, written as `(1 | p | id)` and
+  `(1 + x | p | id)`;
+- kept the current likelihood deliberately identical to the corresponding
+  unlabelled block, with the middle name retained as a covariance-block label
+  in fitted object names;
+- kept group-level correlations separate from residual bivariate correlation:
+  labelled block correlations are returned under `corpars$mu`, while residual
+  response-response correlation remains `rho12`;
+- updated README, NEWS, roadmap, known limitations, formula grammar, likelihood
+  notes, random-effect design notes, Gaussian math notes, bivariate-coscale
+  caveats, vignettes, generated Rd, and pkgdown pages;
+- left cross-formula/cross-parameter labelled covariance sharing for a later
+  design phase.
+
+Commands run:
+
+- `Rscript -e "devtools::test(filter = 'gaussian-random-intercepts')"`
+- `Rscript -e "devtools::test(filter = 'comparators')"`
+- `Rscript -e "devtools::test(filter = 'gaussian-location-scale')"`
+- `Rscript -e "devtools::document()"`
+- `Rscript -e "devtools::test()"`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `Rscript -e "pkgdown::build_site()"`
+- `Rscript -e "devtools::check(env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`
+
+Results:
+
+- targeted Gaussian random-effect tests: 141 passed, 0 failed;
+- targeted comparator tests: 26 passed, 0 failed;
+- targeted Gaussian location-scale tests: 40 passed, 0 failed;
+- full `devtools::test()`: 299 passed, 0 failed;
+- `pkgdown::check_pkgdown()`: no problems found;
+- `pkgdown::build_site()`: completed successfully;
+- `devtools::check(env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))`: 0
+  errors, 0 warnings, 0 notes;
+- after a read-only reviewer found two P1 issues, reserved distributional
+  parameter names were rejected as covariance-block labels and the formula
+  grammar vignette was split into current fixed-effect bivariate syntax versus
+  future bivariate random-effect syntax; the full package check was rerun after
+  those fixes and remained at 0 errors, 0 warnings, and 0 notes.
+
+Tests of the tests:
+
+- the labelled correlated-block test compares fixed effects, residual scale,
+  random-effect standard deviations, group-level correlation, and log-likelihood
+  against the same unlabelled block, because labels are metadata in the current
+  implementation;
+- the new `lme4` comparator checks that labelled `(1 + x | p | ID)` has the
+  same mixed-model semantics as `lme4::lmer(y ~ x + f + (1 + x | ID), REML =
+  FALSE)`;
+- malformed-input tests cover non-symbol labels, factor random slopes, `q > 2`
+  labelled blocks, duplicate covariance terms, labelled/unlabelled overlap, and
+  unsupported `sigma ~ (1 | p | id)`;
+- malformed-input tests now also reject misleading reserved labels such as
+  `(1 + x | rho12 | id)`;
+- recovery and stability tests cover moderate covariance, near-zero
+  correlation, high positive/negative correlation, small residual scale, large
+  residual scale, and missingness.
+
+Known issues:
+
+- the middle label is currently a namespace for output names and future
+  matching; it does not yet tie covariance blocks across `mu1`, `mu2`, `sigma`,
+  or other distributional parameters;
+- random effects in `sigma`, bivariate response formulas, phylogenetic
+  A-inverse effects, spatial SPDE effects, factor slopes, and `q > 2`
+  correlated blocks remain planned;
+- finite-sample recovery of variance components is noisy at very small residual
+  scales, so CRAN-safe stability checks use tolerances that reflect this.
+
+Team learning:
+
+- Boole's grammar rule is now explicit: the middle term in `(1 + x | p | id)`
+  is a simple label, not a data variable and not residual `rho12`;
+- Gauss confirmed no TMB likelihood change was needed because labelled and
+  unlabelled blocks share the same non-centered `q = 2` Gaussian machinery;
+- Curie's tests should keep combining comparator checks, simulation recovery,
+  and malformed-input checks for every mixed-model grammar change;
+- Rose's audit caught that pkgdown, README, NEWS, roadmap, known limitations,
+  and equation notes all needed synchronized wording.

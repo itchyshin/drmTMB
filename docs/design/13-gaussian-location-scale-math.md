@@ -136,9 +136,40 @@ drmTMB(
 )
 ```
 
-This is not yet a correlated intercept-slope block. Syntax such as
-`(1 + x1 | id)` and `(1 + x1 | p | id)` is reserved for the next
-covariance-block implementation.
+This is intentionally an independent random-intercept and random-slope model.
+The correlated block syntax is also implemented for one numeric slope:
+
+```text
+mu_ij = X_mu[ij, ] beta_mu + b_0j + x_ij b_1j
+[b_0j, b_1j]' ~ MVN(0, Sigma_id)
+Sigma_id =
+  [sd0^2,          rho_re sd0 sd1;
+   rho_re sd0 sd1, sd1^2]
+```
+
+Matching R syntax:
+
+```r
+drmTMB(
+  bf(y ~ x1 + (1 + x1 | id), sigma ~ x2),
+  family = gaussian(),
+  data = dat
+)
+```
+
+or with a covariance-block label retained in the fitted object:
+
+```r
+drmTMB(
+  bf(y ~ x1 + (1 + x1 | p | id), sigma ~ x2),
+  family = gaussian(),
+  data = dat
+)
+```
+
+In the current implementation, the label `p` does not change the univariate
+Gaussian likelihood. It names the group-level covariance block and prepares the
+grammar for later cross-formula covariance.
 
 ## Scale Names
 

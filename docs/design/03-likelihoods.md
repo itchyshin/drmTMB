@@ -13,8 +13,9 @@ Likelihoods are implemented in TMB templates and called from R wrappers.
 ## Implemented Gaussian Location-Scale
 
 Gaussian location-scale is implemented for fixed-effect models and for
-univariate Gaussian location random intercepts, independent numeric random
-slopes, and ordinary correlated random intercept-slope blocks:
+univariate Gaussian location random intercepts, labelled random intercepts,
+independent numeric random slopes, and labelled or unlabelled ordinary
+correlated random intercept-slope blocks:
 
 ```text
 y_i | mu_i, sigma_i ~ Normal(mu_i, sigma_i^2)
@@ -84,8 +85,21 @@ drmTMB(
 )
 ```
 
+or, with an explicit covariance-block label:
+
+```r
+drmTMB(
+  bf(y ~ x1 + (1 + x1 | p | id), sigma ~ x2),
+  family = gaussian(),
+  data = dat
+)
+```
+
 Here `rho_re` is a group-level random-effect correlation. It is extracted via
-`corpars$mu` and is not residual `rho12`.
+`corpars$mu` and is not residual `rho12`. In the current univariate Gaussian
+implementation, the middle label `p` is retained for naming and future
+cross-formula covariance matching; the likelihood is otherwise the same as the
+unlabelled `(1 + x1 | id)` block.
 
 Residuals are not part of the formula grammar. They are computed downstream
 from the fitted likelihood.
@@ -227,7 +241,7 @@ Implementation notes:
   for extreme linear predictors.
 - Simulation recovery tests live in `tests/testthat/test-biv-gaussian.R`.
 - Random effects, known sampling covariance, and `mvbind()` shorthand are not
-  implemented for this family yet.
+  implemented for this bivariate family yet.
 
 ## Review Requirements
 

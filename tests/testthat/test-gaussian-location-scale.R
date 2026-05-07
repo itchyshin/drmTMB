@@ -182,10 +182,6 @@ test_that("Phase 1 rejects unsupported model syntax clearly", {
     "Only random intercepts"
   )
   expect_error(
-    drmTMB(bf(y ~ x + (1 | p | id)), family = gaussian(), data = dat),
-    "Correlated-block syntax"
-  )
-  expect_error(
     drmTMB(bf(y ~ x, sigma ~ z + (1 | id)), family = gaussian(), data = dat),
     "unsupported model terms"
   )

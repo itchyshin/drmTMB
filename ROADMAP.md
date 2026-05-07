@@ -54,15 +54,16 @@ distributional regression models using TMB.
 
 - Status: random intercepts, independent numeric random slopes written as
   `(0 + x | id)`, and ordinary correlated intercept-slope blocks written as
-  `(1 + x | id)` are implemented for the univariate Gaussian location formula.
-- Add labelled correlated random intercept/slope blocks such as
-  `(1 + x | p | id)` for cross-formula or cross-parameter group-level
-  covariance, following `docs/design/17-correlated-random-effect-blocks.md`.
+  `(1 + x | id)` or `(1 + x | p | id)` are implemented for the univariate
+  Gaussian location formula.
+- Add cross-formula or cross-parameter covariance sharing for labelled blocks,
+  following `docs/design/17-correlated-random-effect-blocks.md`.
 - Add random intercepts in scale formulae.
 - Add random-effect scale formulae such as `sd(id) ~ x`.
 - Support multiple random-effect scale components, such as `sd(study) ~ x` and
   `sd(species) ~ 1`.
-- Respect labelled correlated group syntax such as `(1 + x | p | id)`.
+- Respect labelled correlated group syntax such as `(1 + x | p | id)` when
+  scale and bivariate random-effect paths are added.
 - Add variance-component correlation summaries when identifiable.
 
 ## Phase 5: Phylogenetic and Spatial Dependence

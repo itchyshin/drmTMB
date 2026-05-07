@@ -2,9 +2,9 @@
 #'
 #' `drmTMB()` is the main model-fitting entry point. The current implementation
 #' supports univariate Gaussian location-scale models, including random
-#' intercepts, independent numeric random slopes, and correlated numeric
-#' random intercept-slope blocks in the location formula, plus fixed-effect
-#' bivariate Gaussian distributional models.
+#' intercepts, independent numeric random slopes, and labelled or unlabelled
+#' correlated numeric random intercept-slope blocks in the location formula,
+#' plus fixed-effect bivariate Gaussian distributional models.
 #'
 #' @param formula A `drm_formula` object created by [bf()].
 #' @param family A response family, such as [stats::gaussian()] or
@@ -361,23 +361,36 @@ parse_random_mu_term <- function(expr, dpar) {
   expr <- strip_parens(expr)
   lhs <- expr[[2L]]
   group <- expr[[3L]]
+  covariance_label <- NULL
 
   if (is_random_bar_call(lhs)) {
-    cli::cli_abort(c(
-      "Only simple unlabelled location random-effect terms are implemented for {.code {dpar}}.",
-      "x" = "Correlated-block syntax such as {.code (1 | p | id)} is planned later."
-    ))
+    nested <- strip_parens(lhs)
+    lhs <- nested[[2L]]
+    covariance_label_expr <- nested[[3L]]
+    if (!is.symbol(covariance_label_expr)) {
+      cli::cli_abort(c(
+        "Random-effect covariance-block labels must be simple names.",
+        "x" = "Use syntax like {.code (1 | p | id)} or {.code (1 + x | p | id)}."
+      ))
+    }
+    covariance_label <- as.character(covariance_label_expr)
+    validate_random_mu_covariance_label(covariance_label)
   }
   if (!is.symbol(group)) {
     cli::cli_abort(c(
       "Random-effect grouping terms must be simple variables.",
-      "x" = "Use syntax like {.code (1 | id)} or {.code (0 + x | id)}."
+      "x" = "Use syntax like {.code (1 | id)}, {.code (0 + x | id)}, or {.code (1 + x | p | id)}."
     ))
   }
 
   group_name <- as.character(group)
-  coef <- parse_random_mu_lhs(lhs, dpar = dpar, group = group_name)
-  c(coef, list(group = group_name))
+  coef <- parse_random_mu_lhs(
+    lhs,
+    dpar = dpar,
+    group = group_name,
+    covariance_label = covariance_label
+  )
+  c(coef, list(group = group_name, covariance_label = covariance_label))
 }
 
 is_intercept_one <- function(expr) {
@@ -388,7 +401,7 @@ is_zero_term <- function(expr) {
   is.numeric(expr) && length(expr) == 1L && identical(as.numeric(expr), 0)
 }
 
-parse_random_mu_lhs <- function(lhs, dpar, group) {
+parse_random_mu_lhs <- function(lhs, dpar, group, covariance_label = NULL) {
   lhs <- strip_parens(lhs)
   if (is_intercept_one(lhs)) {
     return(list(
@@ -396,7 +409,7 @@ parse_random_mu_lhs <- function(lhs, dpar, group) {
       variable = NA_character_,
       variables = NA_character_,
       coef_names = "(Intercept)",
-      label = paste0("(1 | ", group, ")")
+      label = format_random_mu_label("1", group, covariance_label)
     ))
   }
 
@@ -410,7 +423,7 @@ parse_random_mu_lhs <- function(lhs, dpar, group) {
       variable = variable,
       variables = variable,
       coef_names = variable,
-      label = paste0("(0 + ", variable, " | ", group, ")")
+      label = format_random_mu_label(paste0("0 + ", variable), group, covariance_label)
     ))
   }
 
@@ -424,15 +437,49 @@ parse_random_mu_lhs <- function(lhs, dpar, group) {
       variable = variable,
       variables = variable,
       coef_names = c("(Intercept)", variable),
-      label = paste0("(1 + ", variable, " | ", group, ")")
+      label = format_random_mu_label(paste0("1 + ", variable), group, covariance_label)
     ))
   }
 
   cli::cli_abort(c(
     "Only random intercepts, independent random slopes, and correlated intercept-slope blocks are implemented for {.code {dpar}}.",
     "x" = "Use {.code (1 | id)} for a random intercept or {.code (0 + x | id)} for a random slope.",
-    "i" = "Use {.code (1 + x | id)} for a correlated random intercept and slope."
+    "i" = "Use {.code (1 + x | id)} or {.code (1 + x | p | id)} for a correlated random intercept and slope."
   ))
+}
+
+validate_random_mu_covariance_label <- function(label) {
+  reserved <- c(
+    "mu", "mu1", "mu2",
+    "sigma", "sigma1", "sigma2",
+    "rho", "rho12",
+    "nu", "skew", "kurtosis", "shape",
+    "zi"
+  )
+  if (label %in% reserved) {
+    cli::cli_abort(c(
+      "Random-effect covariance-block labels cannot use reserved distributional parameter names.",
+      "x" = "{.code {label}} is reserved for a model parameter.",
+      "i" = "Use a neutral label such as {.code p}, {.code q}, or {.code block1}."
+    ))
+  }
+  invisible(label)
+}
+
+format_random_mu_label <- function(lhs_label, group, covariance_label = NULL) {
+  if (is.null(covariance_label)) {
+    return(paste0("(", lhs_label, " | ", group, ")"))
+  }
+  paste0("(", lhs_label, " | ", covariance_label, " | ", group, ")")
+}
+
+format_random_mu_cor_label <- function(coef_names, group, covariance_label = NULL) {
+  group_label <- if (is.null(covariance_label)) {
+    group
+  } else {
+    paste0(covariance_label, " | ", group)
+  }
+  paste0("cor(", coef_names[[1L]], ",", coef_names[[2L]], " | ", group_label, ")")
 }
 
 random_effect_vars <- function(terms) {
@@ -525,14 +572,10 @@ build_random_mu_structure <- function(terms, data) {
       cor_id0 <- length(cor_labels)
       cor_labels <- c(
         cor_labels,
-        paste0(
-          "cor(",
-          terms[[k]]$coef_names[[1L]],
-          ",",
-          terms[[k]]$coef_names[[2L]],
-          " | ",
+        format_random_mu_cor_label(
+          terms[[k]]$coef_names,
           group_name,
-          ")"
+          terms[[k]]$covariance_label
         )
       )
     }
