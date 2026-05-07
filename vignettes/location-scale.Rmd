@@ -1,8 +1,8 @@
 ---
-title: "When variance is biological signal"
+title: "When variance carries signal"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{When variance is biological signal}
+  %\VignetteIndexEntry{When variance carries signal}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

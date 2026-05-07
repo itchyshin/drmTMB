@@ -23,15 +23,15 @@ navbar:
     tutorials:
       text: Tutorials
       menu:
-        - text: When variance is biological signal
+        - text: When variance carries signal
           href: articles/location-scale.html
-        - text: Changing trait coupling with rho12
+        - text: Changing residual coupling with rho12
           href: articles/bivariate-coscale.html
         - text: Mean effects and heterogeneous heterogeneity
           href: articles/meta-analysis.html
-        - text: Dependent species and places
+        - text: Structured dependence
           href: articles/phylogenetic-spatial.html
-        - text: Choosing families for ecological responses
+        - text: Choosing response families
           href: articles/distribution-families.html
     developer:
       text: Developer Notes

@@ -1,8 +1,8 @@
 ---
-title: "Distributional regression for biological data"
+title: "Distributional regression with drmTMB"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Distributional regression for biological data}
+  %\VignetteIndexEntry{Distributional regression with drmTMB}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

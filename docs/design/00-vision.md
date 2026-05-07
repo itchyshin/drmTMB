@@ -1,8 +1,9 @@
 # Vision
 
 `drmTMB` provides fast distributional regression models using TMB, focused on
-univariate and bivariate responses for ecologists, evolutionary biologists, and
-environmental scientists.
+univariate and bivariate responses. The package should remain broadly useful,
+like `glmmTMB`, while the first tutorials and examples are motivated by
+ecology, evolution, and environmental science.
 
 The package identity is:
 
@@ -70,7 +71,8 @@ which would be too easily confused with base R's formula tooling.
 
 ## Audience And Examples
 
-Examples, vignettes, and pkgdown pages should usually use biological questions:
+Examples, vignettes, and pkgdown pages should often use ecological and
+evolutionary questions, while package-level headings should stay general:
 
 - treatment effects on mean and among-individual variability;
 - environmental stress changing residual trait coupling;

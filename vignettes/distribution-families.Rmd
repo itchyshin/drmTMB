@@ -1,8 +1,8 @@
 ---
-title: "Choosing families for ecological responses"
+title: "Choosing response families"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Choosing families for ecological responses}
+  %\VignetteIndexEntry{Choosing response families}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -11,9 +11,10 @@ vignette: >
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 ```
 
-This article will help users choose response families for biological and
-environmental response data: continuous traits, counts, proportions,
-percentages, positive measurements, shape-sensitive traits, and ordinal scores.
+This article will help users choose response families for distributional
+regression data: continuous outcomes, counts, proportions, percentages,
+positive measurements, shape-sensitive outcomes, and ordinal scores. Examples
+emphasize ecological, evolutionary, and environmental applications.
 
 The current planning reference is `docs/design/06-distribution-roadmap.md`.
 
@@ -28,8 +29,8 @@ family = c(gaussian(), gaussian())
 family = c(gaussian(), poisson())
 ```
 
-This keeps mixed-response bivariate models natural for ecological data, for
-example body mass with fecundity counts, survival with dispersal counts, or leaf
-area with seed number. The current `biv_gaussian()` object is a prototype for
-the all-Gaussian case, not a commitment to one named family per response
-combination.
+This keeps mixed-response bivariate models natural. In ecological examples,
+this might mean body mass with fecundity counts, survival with dispersal
+counts, or leaf area with seed number. The current `biv_gaussian()` object is a
+prototype for the all-Gaussian case, not a commitment to one named family per
+response combination.

@@ -1,10 +1,10 @@
 # drmTMB <a href="https://itchyshin.github.io/drmTMB/"><img src="man/figures/logo.png" align="right" height="138" alt="drmTMB hex logo" /></a>
 
-A fast TMB-based distributional regression package for ecological, evolutionary,
-and environmental data, focused on univariate and bivariate
-location-scale-shape models where not only mu and sigma but also shape, zero
-inflation, random-effect variance, and residual correlation `rho12` can be
-modelled by predictors.
+A fast TMB-based distributional regression package for broadly useful
+univariate and bivariate location-scale-shape models. The package lets users
+model not only mu and sigma but also shape, zero inflation, random-effect
+variance, and residual correlation `rho12`; the first examples are motivated by
+ecology, evolution, and environmental science.
 
 The current implementation supports Gaussian location-scale models, including
 fixed effects and random intercepts in the location formula:
@@ -35,10 +35,11 @@ drmTMB(
 ```
 
 The planned double-hierarchical bivariate location-scale model is richer: the
-mean part can carry individual random intercepts and random slopes, while
-`sigma1` and `sigma2` remain the residual/within-individual scale parameters.
-This follows the individual-differences framework for personality, plasticity,
-predictability, and malleability described by O'Dea et al. (2022):
+mean part can carry group-level random intercepts and random slopes, while
+`sigma1` and `sigma2` remain residual/within-unit scale parameters. This
+supports general grouped-response workflows and is especially useful for
+individual-differences applications such as personality, plasticity,
+predictability, and malleability (O'Dea et al. 2022):
 
 ```r
 drmTMB(

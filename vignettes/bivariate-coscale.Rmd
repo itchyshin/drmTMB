@@ -1,8 +1,8 @@
 ---
-title: "Changing trait coupling with rho12"
+title: "Changing residual coupling with rho12"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Changing trait coupling with rho12}
+  %\VignetteIndexEntry{Changing residual coupling with rho12}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -30,16 +30,15 @@ drmTMB(
 )
 ```
 
-The central scientific question is whether predictors change trait coupling,
-not only trait means or trait variances.
+The central modelling question is whether predictors change residual coupling
+between two responses, not only their means or variances.
 
 This is why `rho12` is the selling point of `drmTMB`. A location-scale model
 asks whether predictors change residual SDs. A location-coscale model asks
-whether predictors also change the residual correlation between two biological
-responses. For example, a mammal analysis could ask whether the residual
-association between body mass and litter size differs among terrestrial,
-aquatic, and aerial lifestyles after modelling trait-specific means and
-dispersion.
+whether predictors also change the residual correlation between two responses.
+In ecology and evolution, this can ask whether the residual association between
+traits such as body mass and litter size differs among terrestrial, aquatic,
+and aerial lifestyles after modelling response-specific means and dispersion.
 
 The future double-hierarchical version should also allow individual-level
 random intercepts and random slopes in the mean structure, following the

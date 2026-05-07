@@ -562,3 +562,42 @@ Known issues:
 - sparse known covariance, A-inverse phylogeny, and SPDE spatial fields remain
   future work;
 - remaining `meta_gaussian()` and `tau ~` matches are intentional guardrails.
+
+## 2026-05-07: General Package Framing
+
+Scope:
+
+- broadened package-level wording so `drmTMB` is not described as belonging to
+  only one domain;
+- kept ecology, evolution, and environmental science as the main source of
+  examples and tutorials;
+- renamed the getting-started vignette and several tutorial titles to more
+  general headings;
+- updated `_pkgdown.yml` navigation to match the new titles;
+- updated `docs/design/00-vision.md` with the policy of broad package identity
+  and domain-focused examples.
+
+Sidecar agents used:
+
+- Emmy: pkgdown/documentation framing review.
+
+Commands run:
+
+- `rg` stale-heading scans over README, vignettes, docs, and `_pkgdown.yml`
+- `git diff --check`
+- `Rscript -e "devtools::test()"`
+- `Rscript -e "pkgdown::check_pkgdown(); pkgdown::build_site()"`
+- `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`
+
+Results:
+
+- `git diff --check`: passed;
+- full `devtools::test()`: 148 passed, 0 failed;
+- `pkgdown::check_pkgdown()`: no problems found;
+- `pkgdown::build_site()`: site built successfully;
+- `devtools::check(...)`: 0 errors, 0 warnings, 0 notes.
+
+Known issues:
+
+- examples remain ecology/evolution heavy by design, but future broader
+  examples may be useful as the package matures.

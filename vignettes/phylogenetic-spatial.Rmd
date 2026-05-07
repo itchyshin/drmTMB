@@ -1,8 +1,8 @@
 ---
-title: "Dependent species and places: roadmap"
+title: "Structured dependence: phylogeny and space roadmap"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Dependent species and places: roadmap}
+  %\VignetteIndexEntry{Structured dependence: phylogeny and space roadmap}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -65,12 +65,12 @@ p_species ~ MVN(0, sigma_phylo^2 A)   # phylogenetic structure
 l_location ~ MVN(0, sigma_space^2 M)  # spatial structure
 ```
 
-The same design will let `drmTMB` support ecological and evolutionary
-meta-analyses while keeping `family = gaussian()`.
+The same design will let `drmTMB` support structured Gaussian meta-analysis
+while making ecological and evolutionary meta-analyses straightforward.
 
 The phylogenetic flagship is the location-scale model: trait means and residual
 SDs can each have phylogenetic structure. In bivariate models this allows
-several biological correlations, including mean-mean, scale-scale, and
+several structured correlations, including mean-mean, scale-scale, and
 mean-scale phylogenetic correlations.
 
 `drmTMB` then adds the location-coscale extension:
