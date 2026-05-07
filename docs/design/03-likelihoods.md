@@ -183,7 +183,7 @@ mu2_ij = X_mu2[ij, ] beta_mu2 + b_0_2j + b_x_2j x_ij
 The correlations inside `Sigma_mu_ID` are group-level correlations among
 random effects. They are not residual `rho12`, and the first implementation
 should estimate them as constant covariance-block quantities rather than
-predictor-dependent `rho` formulae.
+predictor-dependent `rho12` formulae.
 
 Implementation notes:
 

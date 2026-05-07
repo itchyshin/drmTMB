@@ -161,7 +161,7 @@ A block with `q` random coefficients has `q * (q + 1) / 2` covariance
 parameters, so large random-slope blocks need simulation checks and clear user
 warnings.
 
-Use `sd(group) ~` for random-effect scale components:
+Future random-effect scale components should use `sd(group) ~`:
 
 ```r
 bf(
@@ -171,7 +171,7 @@ bf(
 )
 ```
 
-Use ID labels for correlated random-effect blocks:
+Future correlated random-effect blocks should use ID labels:
 
 ```r
 bf(
@@ -213,7 +213,7 @@ within-observation scale parameters. Do not overload `sigma` to mean every
 variance component.
 
 Random intercept/slope correlations are likely to be estimated as constant
-covariance-block parameters. The main predictor-dependent `rho` formulas in
+covariance-block parameters. The main predictor-dependent `rho12` formulas in
 `drmTMB` are reserved for correlations between two responses.
 
 ## Families For One Or Two Responses
@@ -273,8 +273,9 @@ Not every parameter should accept random effects at the same development stage.
 - `rho12` is allowed only for bivariate families.
 - `rho` may become a convenience alias, but `rho12` is canonical.
 - `meta_known_V(V = V)` is a known-covariance marker, not a predictor.
-- Random intercepts and single numeric random slopes are currently implemented
-  only for the univariate Gaussian `mu` formula.
+- Random intercepts and random slopes with one numeric predictor per
+  random-slope term are currently implemented only for the univariate Gaussian
+  `mu` formula; multiple separate independent slope terms are allowed.
 - The parser should reject unsupported formulae early with clear errors.
 
 ## Not in the MVP

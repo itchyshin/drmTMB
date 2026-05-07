@@ -759,7 +759,8 @@ Team learning:
 Scope:
 
 - extended univariate Gaussian `mu` random effects from random intercepts to
-  single numeric random slopes written as `(0 + x | id)`;
+  random slopes with one numeric predictor per random-slope term, written as
+  `(0 + x | id)`;
 - added a random-effect design-value matrix so TMB evaluates
   `mu_i = X_mu beta_mu + sum_j z_j[i] sd_j u_j[g[i]]`;
 - preserved the existing non-centered Laplace parameterization and the
@@ -853,7 +854,8 @@ Commands run:
 
 Results:
 
-- targeted comparator tests: 14 passed, 0 failed.
+- targeted comparator tests: 14 passed, 0 failed in the local environment;
+  comparator tests skip where optional comparator packages are unavailable.
 - full `devtools::test()`: 191 passed, 0 failed;
 - `pkgdown::check_pkgdown()`: no problems found;
 - `devtools::check(env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))`: 0
@@ -872,3 +874,58 @@ Team learning:
 - Fisher: comparator tests are useful only when covariance semantics match
   exactly; independent and correlated random slopes should not share the same
   comparator claim.
+
+## 2026-05-07: Parallel Correlated Random-Block Design
+
+Scope:
+
+- ran four parallel read-only side agents for the next correlated random-effect
+  block phase:
+  - Jason: related package landscape and source map;
+  - Gauss: TMB parameterization and data-structure design;
+  - Curie: simulation and comparator test plan;
+  - Rose: systems audit for stale wording and consistency gaps;
+- created `docs/design/17-correlated-random-effect-blocks.md`;
+- fixed Rose's wording findings around `rho12`, future grammar, random-slope
+  scope, random-effect SD naming, phylogenetic/spatial slope staging, and
+  optional comparator wording.
+
+Commands run:
+
+- stale-wording `rg` scans for generic `rho`, `X_rho`, future grammar wording,
+  random-slope scope, and comparator claims.
+- `git diff --check`
+- `Rscript -e "devtools::test()"`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `Rscript -e "pkgdown::build_site()"`
+- `Rscript -e "devtools::check(env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`
+
+Results:
+
+- the next implementation target is ordinary Gaussian `mu`
+  `(1 + x | id)` with a non-centered `q = 2` covariance block;
+- current independent syntax `(1 | id) + (0 + x | id)` remains unchanged;
+- labelled `(1 + x | p | id)` blocks remain planned after ordinary unlabelled
+  blocks work and pass comparator/recovery tests.
+- `git diff --check`: passed;
+- stale-wording scans: remaining hits are confined to audit/check-log text that
+  records the wording issues rather than active guidance;
+- `devtools::test()`: 191 passed, 0 failed, 0 warnings, 0 skipped;
+- `pkgdown::check_pkgdown()`: no problems found;
+- `pkgdown::build_site()`: completed successfully;
+- `devtools::check(env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))`: 0
+  errors, 0 warnings, 0 notes.
+
+Known issues:
+
+- this task changed design documentation only; it did not implement correlated
+  random-effect covariance blocks.
+
+Team learning:
+
+- parallel agents are useful for read-only scouting, design review, simulation
+  planning, and systems audit;
+- implementation remains safer through one integrator unless file ownership is
+  explicitly split;
+- future spawn requests should avoid combining full-history forking with named
+  specialist agents.

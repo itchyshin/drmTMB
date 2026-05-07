@@ -56,7 +56,7 @@ distributional regression models using TMB.
   implemented, along with simple numeric random-slope terms written as
   `(0 + x | id)`.
 - Add labelled correlated random intercept/slope blocks in the location
-  formula.
+  formula, following `docs/design/17-correlated-random-effect-blocks.md`.
 - Add random intercepts in scale formulae.
 - Add random-effect scale formulae such as `sd(id) ~ x`.
 - Support multiple random-effect scale components, such as `sd(study) ~ x` and
@@ -73,6 +73,9 @@ distributional regression models using TMB.
 - Add phylogenetic models using the A-inverse speed path.
 - Add spatial SPDE/GMRF fields after the core Gaussian and known-covariance
   path is reliable.
+- Stage structured phylogenetic and spatial slopes conservatively:
+  intercept-only structured effects first, then one `mu` slope, then only small
+  slope sets or interaction slopes after simulation recovery.
 - Add identifiability diagnostics for replication by study, species, location,
   and effect-size levels before complex structured models are promoted.
 - Selectively reuse GPL-compatible ideas or modules from `gllvmTMB` with

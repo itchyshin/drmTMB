@@ -187,6 +187,8 @@ residual `sigma`. The others should be named by what they scale:
   intercept term in the location formula;
 - observer random-intercept SD in `mu`: `sd_mu_observer`, from the observer
   random intercept term in the location formula;
+- ID random-slope SD in `mu`: `sd_mu_x_id`, from a random-slope term such as
+  `(0 + x1 | id)`;
 - future random-effect scale model: `sd(site)_i`, from syntax such as
   `sd(site) ~ x1`.
 

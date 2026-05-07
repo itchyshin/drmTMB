@@ -60,7 +60,8 @@ git diff --check
 
 Result:
 
-- targeted comparator tests: 14 passed, 0 failed.
+- targeted comparator tests: 14 passed, 0 failed in the local environment;
+  comparator tests skip where optional comparator packages are unavailable.
 - full `devtools::test()`: 191 passed, 0 failed;
 - `pkgdown::check_pkgdown()`: no problems found;
 - `devtools::check(env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))`: 0

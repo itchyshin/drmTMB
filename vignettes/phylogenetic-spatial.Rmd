@@ -30,11 +30,11 @@ one family of structured effects attached to a distributional parameter.
 Planned phylogenetic syntax:
 
 ```r
-	drmTMB(
-	  bf(
-	    y ~ x1 + phylo(species),
-	    sigma ~ x1
-	  ),
+drmTMB(
+  bf(
+    y ~ x1 + phylo(species),
+    sigma ~ x1
+  ),
   family = gaussian(),
   data = dat
 )
@@ -56,6 +56,13 @@ drmTMB(
 The computational plan is to use sparse A-inverse tricks for phylogeny and
 SPDE/GMRF structure for spatial fields, with careful provenance notes for any
 code selectively ported from `gllvmTMB`.
+
+Structured phylogenetic and spatial random slopes will be staged more
+conservatively than ordinary grouped random slopes. The first structured-effect
+target should be intercept-only `mu`; the next should be one structured `mu`
+slope. Small sets of structured slopes, interaction slopes, and structured
+effects in `sigma` or `rho12` should wait until simulation recovery shows that
+the simpler models are identifiable.
 
 In meta-analysis this becomes especially transparent:
 

@@ -147,7 +147,7 @@ Random-effect scales need separate names:
 
 ```text
 sd_mu_id          # random-intercept SD in the mean model
-sd_mu_x_id        # future random-slope SD in the mean model
+sd_mu_x_id        # random-slope SD in the mean model
 sigma_i           # residual SD
 ```
 
