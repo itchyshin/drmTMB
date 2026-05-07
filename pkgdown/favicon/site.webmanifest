@@ -1,6 +1,6 @@
 {
-  "name": "",
-  "short_name": "",
+  "name": "drmTMB",
+  "short_name": "drmTMB",
   "icons": [
     {
       "src": "/web-app-manifest-192x192.png",
@@ -15,7 +15,7 @@
       "purpose": "maskable"
     }
   ],
-  "theme_color": "#ffffff",
-  "background_color": "#ffffff",
+  "theme_color": "#07343d",
+  "background_color": "#07343d",
   "display": "standalone"
 }

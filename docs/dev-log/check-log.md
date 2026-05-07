@@ -649,3 +649,47 @@ Known issues:
 - `biv_gaussian()` remains in public examples because it is the implemented
   prototype, while `family = c(gaussian(), gaussian())` remains the design
   direction.
+
+## 2026-05-07: Sharpened Logo And Favicons
+
+Scope:
+
+- replaced the previous logo with a sharper vector-first version based on
+  Shinichi's preferred density-curve hex concept;
+- exported `man/figures/logo.png` from the SVG for README, pkgdown Open Graph,
+  and CRAN-style package assets;
+- regenerated pkgdown favicon assets from the same SVG, including SVG, PNG,
+  ICO, Apple touch icon, and web-app manifest PNGs;
+- updated the web app manifest name and theme/background colour to match the
+  logo.
+
+Commands run:
+
+- `rsvg-convert` exports for 1200px logo and favicon PNG sizes
+- small R script to rebuild `pkgdown/favicon/favicon.ico`
+- visual inspection with `view_image` for the full logo and 96px favicon
+- `git diff --check`
+- `Rscript -e "devtools::test()"`
+- `air format .`
+- `Rscript -e "pkgdown::check_pkgdown(); pkgdown::build_site()"`
+- generated-site asset checks with `file` and `rg`
+- `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`
+
+Results:
+
+- full logo renders as a 1200 by 1200 RGBA PNG;
+- pkgdown copies the new `logo.svg`, favicon files, and Open Graph logo into
+  `pkgdown-site`;
+- `git diff --check`: passed;
+- full `devtools::test()`: 148 passed, 0 failed;
+- `air format .`: not available locally;
+- `pkgdown::check_pkgdown()`: no problems found;
+- `pkgdown::build_site()`: site built successfully, including favicons;
+- `devtools::check(...)`: 0 errors, 0 warnings, 0 notes.
+
+Known issues:
+
+- the 96px favicon is readable as a hex and density-curve logo, but the text is
+  necessarily small at favicon size;
+- future refinements can simplify the favicon-specific SVG further if browser
+  tabs need stronger small-size legibility.
