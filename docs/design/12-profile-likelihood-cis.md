@@ -73,8 +73,8 @@ Examples:
 - repeatability;
 - heritability-like ratios;
 - cross-trait correlations derived from covariance matrices;
-- O'Dea-style correlations among personality, plasticity, predictability, and
-  malleability components.
+- correlations among personality, plasticity, predictability, and malleability
+  components in double-hierarchical individual-differences models.
 
 These are not direct `tmbprofile()` targets. The first robust path should be a
 fix-and-refit profile:

@@ -9,6 +9,12 @@ The current Gaussian location-scale MVP fits diagonal known-variance
 meta-analysis models. Full and block-diagonal covariance matrices remain
 planned.
 
+The phylogenetic-spatial meta-analysis tutorial reinforces a useful principle:
+meta-analysis is ordinary Gaussian regression plus known sampling covariance
+and, when needed, structured random effects. Sampling error uses `V`;
+phylogenetic dependence uses a tree-derived matrix `A`; spatial dependence uses
+a distance-derived matrix `M`.
+
 ## Implemented Diagonal MVP Syntax
 
 ```r
@@ -124,3 +130,46 @@ after ordinary random effects are implemented and tested.
 3. Random intercept meta-regression.
 4. Multiple random-effect scale components.
 5. Bivariate meta-analysis with known within-study covariance.
+
+## Phylogenetic And Spatial Meta-Analysis
+
+Phylogenetic and spatial meta-analyses should use the same structured-effect
+grammar as non-meta-analytic models.
+
+Teaching notation:
+
+```text
+yi_i = mu_i + u_study[j[i]] + p_species[k[i]] + q_species[k[i]] + e_i
+p_species ~ MVN(0, sigma_phylo^2 A)
+q_species ~ MVN(0, sigma_species^2 I)
+e ~ MVN(0, V)
+```
+
+Spatial notation:
+
+```text
+yi_i = mu_i + l_location[h[i]] + m_location[h[i]] + e_i
+l_location ~ MVN(0, sigma_space^2 M)
+m_location ~ MVN(0, sigma_location^2 I)
+e ~ MVN(0, V)
+```
+
+Here `A` and `M` are structured correlation matrices, and `I` is the
+unstructured counterpart at the same level. The tutorial cautions that
+separating structured and unstructured variance components requires replication
+and should be checked carefully before interpretation.
+
+Planned syntax should remain Gaussian:
+
+```r
+drmTMB(
+  formula = drm_formula(
+    mu = yi ~ x1 + meta_known_V(V = V) + phylo(species) + (1 | study),
+    sigma = ~ x1
+  ),
+  family = gaussian(),
+  data = dat
+)
+```
+
+No `meta_gaussian()` family is needed.

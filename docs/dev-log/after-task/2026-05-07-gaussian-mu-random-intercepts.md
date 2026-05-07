@@ -85,7 +85,7 @@ drmTMB(
 - Random slopes are not implemented.
 - Random effects in scale formulae are not implemented.
 - Random-effect scale formulae such as `sd(id) ~ x` are not implemented.
-- brms-style correlated-block syntax such as `(1 | p | id)` is rejected for
+- labelled correlated-block syntax such as `(1 | p | id)` is rejected for
   now.
 - Bivariate random effects are not implemented.
 - `newdata` prediction is fixed-effect-only for random-intercept models.

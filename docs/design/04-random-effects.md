@@ -68,7 +68,7 @@ does not put random effects inside the residual `sigma` model.
 
 ## Correlation Blocks
 
-`drmTMB` follows brms-style group-level ID syntax:
+`drmTMB` will use labelled group-level covariance blocks:
 
 ```r
 (1 + x1 | p | id)
@@ -77,17 +77,17 @@ does not put random effects inside the residual `sigma` model.
 The middle label `p` ties terms into a shared group-level covariance block.
 When the same label appears in multiple parameter formulas, for example in
 `mu` and `sigma`, the model estimates constant correlations among those
-group-level effects. These are the correlations used in O'Dea-style
-double-hierarchical models for personality, plasticity, and predictability.
+group-level effects. These are the correlations used in double-hierarchical
+models of personality, plasticity, predictability, and malleability.
 
 Residual `rho12 ~` is separate and belongs to bivariate response likelihoods.
 It models the residual coupling between two responses after their location and
 scale predictors have been accounted for.
 
-## O'Dea Correlation Taxonomy
+## Double-Hierarchical Correlation Taxonomy
 
-The O'Dea et al. double-hierarchical framework distinguishes correlations among
-individual differences:
+The individual-differences framework of O'Dea et al. (2022) distinguishes
+correlations among individual differences:
 
 - personality: random intercepts in mean models;
 - plasticity: random slopes in mean models;
@@ -109,9 +109,9 @@ residual or response-level `rho12` until identifiability is demonstrated.
 Use `sigma`, `sigma1`, and `sigma2` for residual or within-observation scale.
 Use group-level names for random-effect scale components, for example
 `sd_mu_intercept(ID)`, `sd_mu_slope(ID)`, and their correlation. In an
-O'Dea-style bivariate model, each response can therefore have multiple scale
-quantities: at least the random-intercept SD, the random-slope SD, and the
-residual `sigma`. These should not be collapsed into one `sigma` namespace.
+double-hierarchical bivariate model, each response can therefore have multiple
+scale quantities: at least the random-intercept SD, the random-slope SD, and
+the residual `sigma`. These should not be collapsed into one `sigma` namespace.
 
 ## Numerical Caution
 

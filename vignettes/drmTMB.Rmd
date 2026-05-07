@@ -39,8 +39,9 @@ drmTMB(
 )
 ```
 
-The planned O'Dea-style version adds the individual-level random intercept and
-random slope structure to each mean formula:
+The planned double-hierarchical bivariate version adds individual-level random
+intercepts and random slopes to each mean formula, following the
+individual-differences framework of O'Dea et al. (2022):
 
 ```r
 drmTMB(

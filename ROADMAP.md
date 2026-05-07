@@ -59,15 +59,20 @@ distributional regression models using TMB.
 - Add random-effect scale formulae such as `sd(id) ~ x`.
 - Support multiple random-effect scale components, such as `sd(study) ~ x` and
   `sd(species) ~ 1`.
-- Respect brms-style correlated group syntax such as `(1 + x | p | id)`.
+- Respect labelled correlated group syntax such as `(1 + x | p | id)`.
 - Add variance-component correlation summaries when identifiable.
 
 ## Phase 5: Phylogenetic and Spatial Dependence
 
+- Treat phylogenetic and spatial terms as one structured-effect module:
+  `z ~ MVN(0, sigma_z^2 K)`, with `K = A` for phylogeny and `K = M` for
+  spatial dependence.
 - Add sparse known-covariance infrastructure.
 - Add phylogenetic models using the A-inverse speed path.
 - Add spatial SPDE/GMRF fields after the core Gaussian and known-covariance
   path is reliable.
+- Add identifiability diagnostics for replication by study, species, location,
+  and effect-size levels before complex structured models are promoted.
 - Selectively reuse GPL-compatible ideas or modules from `gllvmTMB` with
   provenance notes and tests.
 

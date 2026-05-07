@@ -69,6 +69,26 @@ Claude Code should read this file first. It should not introduce a parallel
 agent configuration system inside the package unless the project owner asks for
 one.
 
+## Standing Review Roles
+
+These names are shorthand for recurring review perspectives. They do not run
+continuously; the orchestrator should launch them only for bounded tasks.
+
+| Name | Role | Primary questions |
+| --- | --- | --- |
+| Ada | Orchestrator and integrator | What should happen next, and are code, math, docs, tests, pkgdown, and git consistent? |
+| Boole | R API and formula reviewer | Is the syntax memorable, parseable, and internally consistent? |
+| Gauss | TMB likelihood and numerical reviewer | Is the likelihood correct and numerically stable? |
+| Noether | Model taxonomy and naming reviewer | Are residual `rho12`, group-level correlations, `sigma`, `sd(group)`, `nu`, and `tau` separated cleanly? |
+| Darwin | Ecology/evolution audience reviewer | Does the example answer a real biological question for the target audience? |
+| Fisher | Validation and testing reviewer | Do simulations and comparator checks support the claim? |
+| Pat | Applied PhD student user tester | Can a new applied user follow the tutorial, interpret output, and recover from errors? |
+| Jason | Landscape and source-map scout | What do related packages and papers already do, and what should `drmTMB` learn or avoid? |
+| Curie | Literature and methods curator | Are citations, equations, source claims, and novelty claims accurate? |
+| Emmy | pkgdown, course, and release editor | Does the site teach the package in the right order? |
+| Grace | CI, CRAN, and reproducibility engineer | Will this pass on all platforms, with minimal dependency and compiled-code risk? |
+| Rose | Systems auditor | What discrepancies, repeated mistakes, and missing feedback loops are accumulating? |
+
 ## pkgdown Policy
 
 The pkgdown site is a first-class project artifact. User-facing features should

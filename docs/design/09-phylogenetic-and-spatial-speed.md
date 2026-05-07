@@ -13,6 +13,21 @@ TMB packages, but the package identity stays distributional:
 - one formula per estimated parameter;
 - location, scale, shape, known covariance, and residual `rho12`.
 
+The common mathematical object is a structured Gaussian effect:
+
+```text
+eta_d = X_d beta_d + Z_d z
+z ~ MVN(0, sigma_z^2 K)
+```
+
+For phylogeny, `K = A`, the phylogenetic correlation matrix. For spatial
+dependence, `K = M`, the spatial correlation matrix. The dense covariance
+notation is the teaching layer; the implementation should use sparse precision
+matrices whenever possible.
+
+See `docs/design/16-phylo-spatial-common-math.md` for the full mathematical
+bridge between phylogenetic and spatial models.
+
 ## Phylogenetic Dependence
 
 Primary speed path:
@@ -67,9 +82,13 @@ high-dimensional GLLVM API assumptions. Specific sister-package files to study:
 
 | Purpose | gllvmTMB source | drmTMB translation |
 | --- | --- | --- |
+| Keyword grammar and desugaring | `../gllvmTMB/R/brms-sugar.R` terms such as `phylo_scalar()`, `phylo_unique()`, `spatial_scalar()`, and `spatial_unique()` | Use as precedent for readable aliases, but avoid importing the full 3 by 5 multivariate keyword grid. |
+| Public tree/VCV inputs | `../gllvmTMB/R/gllvmTMB.R` arguments such as `phylo_tree`, `phylo_vcv`, and `mesh` | Document tree-versus-VCV and mesh inputs, tied to one- or two-response distributional formulas. |
+| Formula AST parsing | `../gllvmTMB/R/parse-multi-formula.R` functions `parse_multi_formula()`, `parse_covstruct_call()`, and `parse_re_int_call()` | Split fixed terms, ordinary random effects, and structured effects before building TMB data. |
 | Sparse phylogenetic A-inverse setup | `../gllvmTMB/R/fit-multi.R` around the `Ainv_phy_rr` construction | Build a small univariate `phylo(species)` data-preparation path first. |
+| TMB data and maps | `../gllvmTMB/R/fit-multi.R` sections on phylogenetic VCV preparation, SPDE preparation, TMB inputs, and maps | Keep structured-effect variants explicit in R-side data and parameter maps. |
 | Sparse A-inverse TMB data contract | `../gllvmTMB/inst/tmb/gllvmTMB_multi.cpp` A-inverse data declarations | Define minimal sparse precision inputs for one random-effect term before bivariate use. |
-| Sparse phylogenetic prior | `../gllvmTMB/inst/tmb/gllvmTMB_multi.cpp` sparse quadratic-form prior | Add a tested GMRF/prior block that can attach to `mu`, later `sigma`. |
+| Sparse phylogenetic prior | `../gllvmTMB/inst/tmb/gllvmTMB_multi.cpp` Stage-35/Stage-40 phylogenetic blocks | Add a tested GMRF/prior block that can attach to `mu`, later `sigma`. |
 | Phylogenetic tests | `../gllvmTMB/tests/testthat/test-phylo-hadfield.R` | Use sparse-vs-dense equivalence and parameter-recovery tests. |
 
 ## Spatial Dependence
@@ -95,14 +114,39 @@ bf(
 | Purpose | gllvmTMB source | drmTMB translation |
 | --- | --- | --- |
 | Mesh construction | `../gllvmTMB/R/mesh.R` | Provide a small mesh helper or accept a prepared mesh object. |
+| SPDE keyword documentation | `../gllvmTMB/R/spde-keyword.R` | Reuse the teaching structure for Matérn/SPDE parameters without importing gllvmTMB's latent-factor API. |
 | Mesh validation and TMB data | `../gllvmTMB/R/fit-multi.R` spatial mesh validation and data passing | Start with one location-field term for one response. |
-| SPDE precision | `../gllvmTMB/inst/tmb/gllvmTMB_multi.cpp` SPDE data contract and `Q_base` construction | Build a focused SPDE module before allowing scale fields. |
+| SPDE precision | `../gllvmTMB/inst/tmb/gllvmTMB_multi.cpp` SPDE data contract, `Q_base` construction, and spatial projected fields | Build a focused SPDE module before allowing scale fields. |
 | SPDE tests | `../gllvmTMB/tests/testthat/test-stage4-spde.R` and `../gllvmTMB/tests/testthat/test-spatial-latent-recovery.R` | Use recovery tests for location fields before adding bivariate or scale models. |
+| API keyword grid | `../gllvmTMB/vignettes/articles/api-keyword-grid.Rmd` | Read for semantics, then simplify for `drmTMB`'s univariate/bivariate scope. |
+
+The most useful implementation abstraction is a structured random-effect block
+with a sparse precision and a design/projection map. Phylogeny supplies
+`K = A_phy` and the fast path evaluates with sparse `A_phy^{-1}`. Space makes
+`K` implicit through `Q_spde`, with mesh-node fields projected to observations.
+The public terms can be different, but the TMB block should be shared.
+
+For Matérn/SPDE documentation, keep this parameterization on the design radar:
+
+```text
+Q = kappa^4 M0 + 2 kappa^2 M1 + M2
+practical_range = sqrt(8) / kappa
+```
+
+This is a later implementation detail, but documenting it now prevents the
+spatial path from drifting away from the sister-package math.
 
 Residual `rho12` remains conceptually separate from phylogenetic or spatial
 correlation: `rho12 ~ predictors` models residual response coupling at the
 observation level, whereas A-inverse and SPDE terms model structured dependence
 among units or locations.
+
+The tutorial on phylogenetic and spatial meta-analysis makes this separation
+particularly clear: phylogenetic random effects are distributed as
+`MVN(0, sigma_phylo^2 A)`, spatial random effects as
+`MVN(0, sigma_space^2 M)`, while sampling errors enter through known variances
+or covariance matrix `V`. These are structured sources of dependence, not
+residual response-response correlation.
 
 Later phylogenetic coscale models may also allow phylogenetic structure in
 scale and coscale predictors, for example phylogenetic effects in

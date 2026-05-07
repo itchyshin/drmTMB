@@ -140,7 +140,7 @@ drmTMB(
 )
 ```
 
-Planned O'Dea-style syntax:
+Planned double-hierarchical bivariate syntax:
 
 ```r
 drmTMB(

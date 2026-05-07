@@ -222,7 +222,7 @@ Scope:
 - used TMB Laplace integration with a non-centered parameterization:
   `b_group = sd_group * u_group`, `u_group ~ Normal(0, 1)`;
 - kept random effects unsupported in `sigma` formulae, bivariate models,
-  random slopes, and brms-style labelled covariance blocks;
+  random slopes, and labelled covariance blocks;
 - added conditional fitted-data prediction and residuals that include `mu`
   random-intercept modes;
 - left `newdata` prediction fixed-effect-only for now;
@@ -270,8 +270,8 @@ Scope:
   `family = c(gaussian(), gaussian())` and
   `family = c(gaussian(), poisson())` as the public direction;
 - clarified that `rho12` is residual response-response correlation, while
-  O'Dea-style correlations among personality, plasticity, predictability, and
-  malleability live in group-level covariance blocks;
+  double-hierarchical correlations among personality, plasticity,
+  predictability, and malleability live in group-level covariance blocks;
 - recorded a random-effect eligibility table for downstream distributional
   parameters;
 - retargeted pkgdown/tutorial wording toward ecologists, evolutionary
@@ -395,8 +395,8 @@ Scope:
 - clarified that residual `sigma` is distinct from group-level random-effect
   standard deviations;
 - corrected bivariate teaching examples so fixed-effect syntax is labelled as
-  implemented now and O'Dea-style random-intercept/random-slope syntax is
-  labelled as planned;
+  implemented now and double-hierarchical random-intercept/random-slope syntax
+  is labelled as planned;
 - added `docs/design/13-gaussian-location-scale-math.md` as the
   source-of-truth Gaussian equation note;
 - regenerated Rd files after updating the `bf()` examples.
@@ -423,8 +423,8 @@ Known issues:
 
 - `drm_formula()` and `family = c(gaussian(), gaussian())` are still design
   directions, not implemented API.
-- O'Dea-style bivariate random slopes are not implemented yet; the docs now
-  label them as planned.
+- double-hierarchical bivariate random slopes are not implemented yet; the docs
+  now label them as planned.
 
 ## 2026-05-07: GAMLSS Parameter Names
 
@@ -503,3 +503,62 @@ Known issues:
   implemented;
 - `rho12 ~ predictors` is implemented only for fixed-effect bivariate Gaussian
   models at this stage.
+
+## 2026-05-07: Phylogenetic And Spatial Common Math
+
+Scope:
+
+- read the local phylogenetic/spatial meta-analysis tutorial;
+- added a shared structured-effect design note for phylogeny and space:
+  `z ~ MVN(0, sigma_z^2 K)`;
+- documented `K = A` for phylogenetic correlation, `K = M` for spatial
+  correlation, A-inverse as the phylogenetic speed path, and SPDE/GMRF
+  precision as the spatial speed path;
+- connected meta-analysis, known sampling covariance `V`, phylogenetic
+  structured effects, and spatial structured effects;
+- added a `gllvmTMB` source map for future A-inverse and SPDE borrowing;
+- replaced casual double-hierarchical shorthand in active docs and vignettes
+  with professional wording and a formal citation to O'Dea et al. (2022).
+- added Pat, an applied PhD student user tester role, and documented the
+  standing review team in `AGENTS.md`.
+- added Jason, Curie, Emmy, Grace, and Rose agent configs for landscape
+  scouting, literature, pkgdown/course editing, reproducibility, and systems
+  auditing.
+
+Sidecar agents used:
+
+- Jason: source-only `gllvmTMB` phylogenetic/SPDE source-map inspection.
+
+Commands run:
+
+- `pdfinfo /Users/z3437171/Downloads/Tutorial___Phylo_spatial_meta_analysis_2.pdf`
+- `pdftotext` plus targeted `rg` searches over the local tutorial PDF
+- `rg` consistency scans for casual author-name shorthand, package-name
+  shorthand, `meta_gaussian`, `tau ~`, and `rho ~`
+- `git diff --check`
+- `Rscript -e "devtools::test()"`
+- `air format .`
+- `Rscript -e "pkgdown::check_pkgdown(); pkgdown::build_site()"`
+- `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`
+- `gh run view 25498816381 --repo itchyshin/drmTMB --json status,conclusion,jobs`
+
+Results:
+
+- local PDF checks confirmed the tutorial's shared phylogenetic/spatial
+  random-effect framing and identifiability warnings;
+- full `devtools::test()`: 148 passed, 0 failed;
+- `git diff --check`: passed;
+- `air format .`: not available locally;
+- `pkgdown::check_pkgdown()`: no problems found;
+- `pkgdown::build_site()`: site built successfully;
+- `devtools::check(...)`: 0 errors, 0 warnings, 0 notes;
+- GitHub R-CMD-check for the previous pushed commit completed successfully on
+  macOS, Windows, and Ubuntu.
+
+Known issues:
+
+- this task changed design/docs only; no phylogenetic or spatial fitting code
+  has been implemented;
+- sparse known covariance, A-inverse phylogeny, and SPDE spatial fields remain
+  future work;
+- remaining `meta_gaussian()` and `tau ~` matches are intentional guardrails.

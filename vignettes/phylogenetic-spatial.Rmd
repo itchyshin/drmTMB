@@ -15,6 +15,18 @@ Phylogenetic and spatial dependence are planned as core extensions, but they
 will enter through tested sparse-matrix modules after the Gaussian MVP is
 stable.
 
+The mathematical bridge is simple:
+
+```text
+eta_d = X_d beta_d + Z_d z
+z ~ MVN(0, sigma_z^2 K)
+```
+
+For phylogenetic models, `K` is a tree-derived matrix `A`. For spatial models,
+`K` is a distance-derived matrix `M`, or a sparse SPDE/GMRF precision that
+represents the same idea computationally. The package should teach these as
+one family of structured effects attached to a distributional parameter.
+
 Planned phylogenetic syntax:
 
 ```r
@@ -45,6 +57,17 @@ The computational plan is to use sparse A-inverse tricks for phylogeny and
 SPDE/GMRF structure for spatial fields, with careful provenance notes for any
 code selectively ported from `gllvmTMB`.
 
+In meta-analysis this becomes especially transparent:
+
+```text
+e ~ MVN(0, V)                         # known sampling covariance
+p_species ~ MVN(0, sigma_phylo^2 A)   # phylogenetic structure
+l_location ~ MVN(0, sigma_space^2 M)  # spatial structure
+```
+
+The same design will let `drmTMB` support ecological and evolutionary
+meta-analyses while keeping `family = gaussian()`.
+
 The phylogenetic flagship is the location-scale model: trait means and residual
 SDs can each have phylogenetic structure. In bivariate models this allows
 several biological correlations, including mean-mean, scale-scale, and
@@ -70,3 +93,7 @@ This syntax is planned, not implemented. It captures the intended extension of
 phylogenetic location-scale models: after modelling mean and variance, test
 whether the residual association between two traits changes with ecological
 predictors such as lifestyle.
+
+The residual `rho12` term remains distinct from the phylogenetic or spatial
+correlation matrices. `rho12` is the residual coupling between two responses at
+the observation level; `A` and `M` describe dependence among species or places.

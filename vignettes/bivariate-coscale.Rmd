@@ -41,8 +41,9 @@ association between body mass and litter size differs among terrestrial,
 aquatic, and aerial lifestyles after modelling trait-specific means and
 dispersion.
 
-The future double-hierarchical version should also allow the individual-level
-mean structure used in O'Dea-style models:
+The future double-hierarchical version should also allow individual-level
+random intercepts and random slopes in the mean structure, following the
+individual-differences framework of O'Dea et al. (2022):
 
 ```r
 drmTMB(

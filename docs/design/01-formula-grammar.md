@@ -121,7 +121,7 @@ bf(
 )
 ```
 
-Use brms-style ID labels for correlated random-effect blocks:
+Use ID labels for correlated random-effect blocks:
 
 ```r
 bf(
@@ -149,11 +149,12 @@ bf(
 )
 ```
 
-Do not use `rho12` for group-level random-effect correlations. O'Dea-style
-double-hierarchical models contain several interpretable correlations among
-random intercepts, random slopes, random scale intercepts, and random scale
-slopes. Those correlations belong to labelled group-level covariance blocks
-such as `(1 + x1 | p | id)`, not to residual `rho12 ~`.
+Do not use `rho12` for group-level random-effect correlations.
+Double-hierarchical models for individual differences can contain several
+interpretable correlations among random intercepts, random slopes, random scale
+intercepts, and random scale slopes. Those correlations belong to labelled
+group-level covariance blocks such as `(1 + x1 | p | id)`, not to residual
+`rho12 ~`.
 
 For each response, the mean block may contain at least two group-level scale
 terms once random slopes are implemented: the random-intercept SD and the
@@ -207,7 +208,7 @@ Not every parameter should accept random effects at the same development stage.
 | Parameter class | Random effects policy |
 |---|---|
 | `mu`, `mu1`, `mu2` | Yes; random intercepts implemented first, then slopes and covariance blocks. |
-| `sigma`, `sigma1`, `sigma2` | Later; needed for O'Dea-style predictability/malleability, but higher identifiability risk. |
+| `sigma`, `sigma1`, `sigma2` | Later; needed for predictability/malleability models, but higher identifiability risk. |
 | `sd(group)` | Later; explicit random-effect scale model, not the same as residual `sigma`. |
 | `rho12` | No random effects initially; predictor-dependent fixed effects only. |
 | `nu`, `tau` | Fixed effects first; random effects only after simulations show identifiability. |

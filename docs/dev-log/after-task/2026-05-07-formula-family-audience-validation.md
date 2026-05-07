@@ -22,7 +22,7 @@ modelling feature.
 - Clarified that every estimated distributional parameter can have a formula,
   but only a staged subset should accept random-effect terms.
 - Clarified that residual `rho12` is different from group-level covariance-block
-  correlations in O'Dea-style double-hierarchical models.
+  correlations in double-hierarchical individual-differences models.
 - Added an O'Dea correlation taxonomy note for personality, plasticity,
   predictability, and malleability.
 - Added the two-tier validation strategy: comparator-package smoke tests plus
@@ -62,7 +62,7 @@ modelling feature.
 - `sigma` remains the public scale name, with documentation explaining the
   meta-analysis translation to `tau`.
 - `rho12` is reserved for residual correlation between two responses.
-- O'Dea-style correlations are documented as group-level covariance-block
+- Double-hierarchical correlations are documented as group-level covariance-block
   correlations, not `rho12` formulae.
 - The pkgdown navigation and vignette titles now use more biological language.
 

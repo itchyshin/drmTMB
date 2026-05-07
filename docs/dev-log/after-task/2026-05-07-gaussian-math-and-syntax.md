@@ -58,7 +58,7 @@ same parameter as personality or plasticity variance.
 
 - The fixed-effect bivariate `biv_gaussian()` example remains in the docs
   because it is implemented now.
-- The O'Dea-style random-intercept/random-slope bivariate syntax is explicitly
+- The double-hierarchical random-intercept/random-slope bivariate syntax is explicitly
   labelled as planned, not implemented.
 - Future model families should follow the same pattern: symbolic equations,
   matching R syntax, implementation mapping, and simulation/comparator tests.

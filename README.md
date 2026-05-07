@@ -34,9 +34,11 @@ drmTMB(
 )
 ```
 
-The fuller O'Dea-style double-hierarchical target is richer: the mean part can
-carry individual random intercepts and random slopes, while `sigma1` and
-`sigma2` remain the residual/within-individual scale parameters:
+The planned double-hierarchical bivariate location-scale model is richer: the
+mean part can carry individual random intercepts and random slopes, while
+`sigma1` and `sigma2` remain the residual/within-individual scale parameters.
+This follows the individual-differences framework for personality, plasticity,
+predictability, and malleability described by O'Dea et al. (2022):
 
 ```r
 drmTMB(
@@ -80,3 +82,10 @@ fixed-effect bivariate Gaussian `rho12 ~ predictors`. The next target is to
 harden these likelihoods and then add random slopes, random-effect scale
 models, sparse known covariance, phylogenetic A-inverse, and spatial SPDE
 paths.
+
+Phylogenetic and spatial dependence will be treated as one structured-effect
+module: `z ~ MVN(0, sigma_z^2 K)`, with `K = A` for tree-derived phylogenetic
+correlation and `K = M` for distance-derived spatial correlation. The speed
+routes differ, A-inverse for phylogeny and SPDE/GMRF for space, but the user
+model should feel like the same idea attached to `mu`, later `sigma`, and only
+experimentally to harder parameters such as `rho12`.

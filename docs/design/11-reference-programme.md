@@ -76,7 +76,8 @@ Package implications:
 
 - The formula grammar must support mean and scale models with shared grouping
   structures.
-- Brms-style `(1 | p | id)` labels are useful for correlated group-level effects.
+- Labelled `(1 | p | id)` covariance blocks are useful for correlated
+  group-level effects.
 - `sd(group) ~ predictors` is reserved for random-effect scale models.
 
 ## Correlations Between Variance Components
@@ -176,6 +177,7 @@ Local source:
 
 ```text
 main_phylo_spatial.pdf
+/Users/z3437171/Downloads/Tutorial___Phylo_spatial_meta_analysis_2.pdf
 ```
 
 Package implications:
@@ -184,6 +186,38 @@ Package implications:
   matrices.
 - Spatial syntax should be modular enough to attach initially to `mu`, and
   later to `sigma` when simulation tests show the model is identifiable.
+- Phylogenetic and spatial dependence share the same structured random-effect
+  template: `z ~ MVN(0, sigma_z^2 K)`, with `K = A` for phylogeny and `K = M`
+  for space.
+- Meta-analysis is an ideal teaching bridge because known sampling covariance
+  `V`, phylogenetic correlation `A`, and spatial correlation `M` are all known
+  matrix structures that enter the likelihood in different places.
+- Identifiability should be treated as a first-class package diagnostic:
+  species, locations, studies, and effect sizes must have enough replication to
+  separate structured and unstructured variance components.
+
+## Phylogenetic And Spatial Meta-Analysis Tutorial
+
+Local source:
+
+```text
+/Users/z3437171/Downloads/Tutorial___Phylo_spatial_meta_analysis_2.pdf
+```
+
+Package implications:
+
+- Teach phylogenetic and spatial models as distance-to-correlation models:
+  evolutionary distance for phylogeny, geographic distance for space.
+- Use Brownian motion versus linear spatial decay and OU versus exponential
+  spatial decay as paired examples.
+- Document that OU and exponential spatial kernels share the same form when
+  `alpha = 1 / range`.
+- When implementing meta-analysis extensions, support both structured and
+  unstructured components where identifiable:
+  `p_species ~ MVN(0, sigma_phylo^2 A)` plus
+  `q_species ~ MVN(0, sigma_species^2 I)`, or
+  `l_location ~ MVN(0, sigma_space^2 M)` plus
+  `m_location ~ MVN(0, sigma_location^2 I)`.
 
 ## Tutorial and Data Reuse
 
@@ -200,6 +234,6 @@ The first target tutorials should be:
 
 1. Gaussian location-scale.
 2. Location-scale meta-analysis.
-3. O'Dea-style double-hierarchical model.
+3. Double-hierarchical individual-differences model.
 4. Bivariate `rho12 ~ predictors`.
 5. Phylogenetic location-scale.
