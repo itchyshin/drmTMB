@@ -87,7 +87,7 @@ This syntax is aspirational. The implemented seed is fixed-effect
 ## Implementation Stages
 
 1. Fixed-effect Gaussian `rho12 ~ predictors`.
-2. Univariate Gaussian random intercepts and random slopes in `mu`.
+2. Univariate Gaussian simple random intercepts and random slopes in `mu`.
 3. Sparse phylogenetic `phylo(species)` in univariate `mu` using A-inverse.
 4. Bivariate Gaussian with phylogenetic and non-phylogenetic mean covariance.
 5. Bivariate location-scale with phylogenetic scale effects.

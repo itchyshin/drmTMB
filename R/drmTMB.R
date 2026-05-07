@@ -1,8 +1,8 @@
 #' Fit a distributional regression model with TMB
 #'
 #' `drmTMB()` is the main model-fitting entry point. The current implementation
-#' supports univariate Gaussian location-scale models, including random
-#' intercepts in the location formula, and fixed-effect bivariate Gaussian
+#' supports univariate Gaussian location-scale models, including simple random
+#' effects in the location formula, and fixed-effect bivariate Gaussian
 #' distributional models.
 #'
 #' @param formula A `drm_formula` object created by [bf()].
@@ -118,7 +118,7 @@ drm_build_gaussian_ls_spec <- function(formula, data, env = parent.frame()) {
 
   meta <- extract_meta_known_v(mu_entry$rhs)
   mu_entry$rhs <- meta$rhs
-  mu_re <- extract_random_intercepts(mu_entry$rhs, "mu")
+  mu_re <- extract_random_mu_terms(mu_entry$rhs, "mu")
   mu_entry$rhs <- mu_re$rhs
 
   drm_reject_phase1_terms(mu_entry$rhs, "mu")
@@ -127,7 +127,7 @@ drm_build_gaussian_ls_spec <- function(formula, data, env = parent.frame()) {
   f_mu <- drm_entry_formula(mu_entry, response = TRUE)
   f_sigma <- drm_entry_formula(sigma_entry, response = FALSE)
 
-  vars <- unique(c(all.vars(f_mu), all.vars(f_sigma), random_intercept_vars(mu_re$terms)))
+  vars <- unique(c(all.vars(f_mu), all.vars(f_sigma), random_effect_vars(mu_re$terms)))
   if (length(vars) > 0L) {
     model_keep <- stats::complete.cases(data[, vars, drop = FALSE])
   } else {
@@ -147,7 +147,7 @@ drm_build_gaussian_ls_spec <- function(formula, data, env = parent.frame()) {
 
   X_mu <- stats::model.matrix(stats::delete.response(stats::terms(mf_mu)), mf_mu)
   X_sigma <- stats::model.matrix(stats::terms(mf_sigma), mf_sigma)
-  re_mu <- build_random_intercept_structure(mu_re$terms, data_model)
+  re_mu <- build_random_mu_structure(mu_re$terms, data_model)
 
   if (length(y) != nrow(X_sigma)) {
     cli::cli_abort("Internal model-frame mismatch between {.code mu} and {.code sigma}.")
@@ -289,7 +289,7 @@ drm_build_biv_gaussian_spec <- function(formula, data, env = parent.frame()) {
       rho12 = mf_rho12
     ),
     data = data_model,
-    random = list(mu = empty_random_intercept_structure(nrow(data_model))),
+    random = list(mu = empty_random_mu_structure(nrow(data_model))),
     variables = vars,
     keep = keep,
     dpars = c("mu1", "mu2", "sigma1", "sigma2", "rho12"),
@@ -338,14 +338,14 @@ drm_reject_phase1_terms <- function(rhs, dpar) {
   }
 }
 
-extract_random_intercepts <- function(rhs, dpar) {
+extract_random_mu_terms <- function(rhs, dpar) {
   terms <- flatten_plus_terms(rhs)
   is_re <- vapply(terms, is_random_bar_call, logical(1))
   if (!any(is_re)) {
     return(list(rhs = rhs, terms = list()))
   }
 
-  re_terms <- lapply(terms[is_re], parse_random_intercept_term, dpar = dpar)
+  re_terms <- lapply(terms[is_re], parse_random_mu_term, dpar = dpar)
   clean_terms <- terms[!is_re]
   list(rhs = rebuild_plus_terms(clean_terms), terms = re_terms)
 }
@@ -355,51 +355,84 @@ is_random_bar_call <- function(expr) {
   is.call(expr) && identical(expr[[1L]], as.name("|"))
 }
 
-parse_random_intercept_term <- function(expr, dpar) {
+parse_random_mu_term <- function(expr, dpar) {
   expr <- strip_parens(expr)
   lhs <- expr[[2L]]
   group <- expr[[3L]]
 
   if (is_random_bar_call(lhs)) {
     cli::cli_abort(c(
-      "Only simple random intercepts are implemented for {.code {dpar}}.",
+      "Only simple unlabelled location random-effect terms are implemented for {.code {dpar}}.",
       "x" = "Correlated-block syntax such as {.code (1 | p | id)} is planned later."
-    ))
-  }
-  if (!is_intercept_one(lhs)) {
-    cli::cli_abort(c(
-      "Only random intercepts are implemented for {.code {dpar}}.",
-      "x" = "Use syntax like {.code (1 | id)}."
     ))
   }
   if (!is.symbol(group)) {
     cli::cli_abort(c(
-      "Random-intercept grouping terms must be simple variables.",
-      "x" = "Use syntax like {.code (1 | id)}."
+      "Random-effect grouping terms must be simple variables.",
+      "x" = "Use syntax like {.code (1 | id)} or {.code (0 + x | id)}."
     ))
   }
 
   group_name <- as.character(group)
-  list(
-    group = group_name,
-    label = paste0("(1 | ", group_name, ")")
-  )
+  coef <- parse_random_mu_lhs(lhs, dpar = dpar, group = group_name)
+  c(coef, list(group = group_name))
 }
 
 is_intercept_one <- function(expr) {
   is.numeric(expr) && length(expr) == 1L && identical(as.numeric(expr), 1)
 }
 
-random_intercept_vars <- function(terms) {
-  vapply(terms, `[[`, character(1), "group")
+is_zero_term <- function(expr) {
+  is.numeric(expr) && length(expr) == 1L && identical(as.numeric(expr), 0)
 }
 
-empty_random_intercept_structure <- function(n) {
+parse_random_mu_lhs <- function(lhs, dpar, group) {
+  lhs <- strip_parens(lhs)
+  if (is_intercept_one(lhs)) {
+    return(list(
+      type = "intercept",
+      variable = NA_character_,
+      label = paste0("(1 | ", group, ")")
+    ))
+  }
+
+  pieces <- flatten_plus_terms(lhs)
+  zero <- vapply(pieces, is_zero_term, logical(1))
+  non_zero <- pieces[!zero]
+  if (any(zero) && length(non_zero) == 1L && is.symbol(non_zero[[1L]])) {
+    variable <- as.character(non_zero[[1L]])
+    return(list(
+      type = "slope",
+      variable = variable,
+      label = paste0("(0 + ", variable, " | ", group, ")")
+    ))
+  }
+
+  cli::cli_abort(c(
+    "Only random intercepts and single random slopes are implemented for {.code {dpar}}.",
+    "x" = "Use {.code (1 | id)} for a random intercept or {.code (0 + x | id)} for a random slope.",
+    "i" = "Correlated intercept-slope blocks such as {.code (1 + x | id)} are planned, but are not implemented yet."
+  ))
+}
+
+random_effect_vars <- function(terms) {
+  if (length(terms) == 0L) {
+    return(character())
+  }
+  variables <- vapply(terms, `[[`, character(1), "variable")
+  unique(c(
+    vapply(terms, `[[`, character(1), "group"),
+    variables[!is.na(variables)]
+  ))
+}
+
+empty_random_mu_structure <- function(n) {
   list(
     n_terms = 0L,
     n_re = 0L,
     index = matrix(1L, nrow = n, ncol = 1L),
     index0 = matrix(0L, nrow = n, ncol = 1L),
+    value = matrix(1, nrow = n, ncol = 1L),
     term_id0 = 0L,
     labels = character(),
     groups = list(),
@@ -407,17 +440,18 @@ empty_random_intercept_structure <- function(n) {
   )
 }
 
-build_random_intercept_structure <- function(terms, data) {
+build_random_mu_structure <- function(terms, data) {
   if (length(terms) == 0L) {
-    return(empty_random_intercept_structure(nrow(data)))
+    return(empty_random_mu_structure(nrow(data)))
   }
 
   labels <- vapply(terms, `[[`, character(1), "label")
   if (anyDuplicated(labels)) {
-    cli::cli_abort("Duplicate random-intercept terms are not supported.")
+    cli::cli_abort("Duplicate random-effect terms are not supported.")
   }
 
   index <- matrix(NA_integer_, nrow = nrow(data), ncol = length(terms))
+  value <- matrix(1, nrow = nrow(data), ncol = length(terms))
   term_id0 <- integer()
   groups <- vector("list", length(terms))
   names(groups) <- labels
@@ -430,15 +464,27 @@ build_random_intercept_structure <- function(terms, data) {
     levels_k <- levels(group)
     if (length(levels_k) < 2L) {
       cli::cli_abort(c(
-        "Random-intercept grouping variable {.field {group_name}} has fewer than two levels.",
+        "Random-effect grouping variable {.field {group_name}} has fewer than two levels.",
         "x" = "At least two groups are needed to estimate a random-effect SD."
       ))
     }
     if (all(tabulate(as.integer(group)) == 1L)) {
       cli::cli_abort(c(
-        "Random-intercept grouping variable {.field {group_name}} has only singleton groups.",
-        "x" = "At least one group must have repeated observations in this initial random-intercept implementation."
+        "Random-effect grouping variable {.field {group_name}} has only singleton groups.",
+        "x" = "At least one group must have repeated observations in this initial random-effect implementation."
       ))
+    }
+
+    if (identical(terms[[k]]$type, "slope")) {
+      variable <- terms[[k]]$variable
+      slope_value <- data[[variable]]
+      if (!is.numeric(slope_value)) {
+        cli::cli_abort(c(
+          "Random-slope variable {.field {variable}} must be numeric.",
+          "x" = "Factor and multi-column random slopes are planned for a later formula-grammar pass."
+        ))
+      }
+      value[, k] <- as.numeric(slope_value)
     }
 
     group_index <- as.integer(group)
@@ -454,6 +500,7 @@ build_random_intercept_structure <- function(terms, data) {
     n_re = offset,
     index = index,
     index0 = index - 1L,
+    value = value,
     term_id0 = term_id0,
     labels = labels,
     groups = groups,
@@ -635,7 +682,7 @@ is_diagonal_known_v <- function(value) {
 }
 
 gaussian_ls_start <- function(y, X_mu, X_sigma, V_known = rep(0, length(y)),
-                              re_mu = empty_random_intercept_structure(length(y))) {
+                              re_mu = empty_random_mu_structure(length(y))) {
   lm_start <- stats::lm.fit(x = X_mu, y = y)
   beta_mu <- lm_start$coefficients
   beta_mu[is.na(beta_mu)] <- 0
@@ -686,12 +733,24 @@ gaussian_mu_re_start <- function(resid, re_mu, y_scale) {
 
   log_sd_mu <- numeric(re_mu$n_terms)
   for (k in seq_len(re_mu$n_terms)) {
-    group_means <- stats::aggregate(
-      resid,
-      by = list(group = re_mu$index[, k]),
-      FUN = mean
-    )$x
-    sd0 <- stats::sd(group_means)
+    design_value <- re_mu$value[, k]
+    group <- re_mu$index[, k]
+    if (isTRUE(all.equal(design_value, rep(1, length(design_value))))) {
+      group_est <- stats::aggregate(
+        resid,
+        by = list(group = group),
+        FUN = mean
+      )$x
+    } else {
+      moment <- stats::aggregate(
+        cbind(num = design_value * resid, den = design_value^2),
+        by = list(group = group),
+        FUN = sum
+      )
+      group_est <- ifelse(moment$den > sqrt(.Machine$double.eps), moment$num / moment$den, NA_real_)
+      group_est <- group_est[is.finite(group_est)]
+    }
+    sd0 <- stats::sd(group_est)
     if (!is.finite(sd0) || sd0 <= 0) {
       sd0 <- 0.25 * y_scale
     }
@@ -747,7 +806,7 @@ biv_gaussian_start <- function(y1, y2, X_mu1, X_mu2, X_sigma1, X_sigma2, X_rho12
   )
 }
 
-gaussian_ls_map <- function(re_mu = empty_random_intercept_structure(1L)) {
+gaussian_ls_map <- function(re_mu = empty_random_mu_structure(1L)) {
   out <- list(
     beta_mu1 = factor(NA),
     beta_mu2 = factor(NA),
@@ -793,6 +852,7 @@ make_tmb_data <- function(spec) {
       X_rho12 = dummy_matrix,
       n_mu_re_terms = spec$random$mu$n_terms,
       mu_re_index = spec$random$mu$index0,
+      mu_re_value = spec$random$mu$value,
       mu_re_term = spec$random$mu$term_id0
     ))
   }
@@ -813,6 +873,7 @@ make_tmb_data <- function(spec) {
     X_rho12 = spec$X$rho12,
     n_mu_re_terms = 0L,
     mu_re_index = matrix(0L, nrow = 1L, ncol = 1L),
+    mu_re_value = dummy_matrix,
     mu_re_term = 0L
   )
 }

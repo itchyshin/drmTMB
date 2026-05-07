@@ -16,8 +16,8 @@ distributional regression models using TMB.
 
 - Status: initial MVP implemented.
 - `bf()` and `drmTMB()` support Gaussian location-scale models with fixed
-  effects and `mu` random intercepts.
-- Supported syntax: `bf(y ~ x1 + (1 | id), sigma ~ x1)`.
+  effects, `mu` random intercepts, and simple numeric `mu` random slopes.
+- Supported syntax: `bf(y ~ x1 + (1 | id) + (0 + x1 | id), sigma ~ x1)`.
 - Keep parser support for future `sd(group) ~`, `meta_known_V(V = V)`,
   `phylo()`, and `spatial()` terms from the start.
 - Prediction for `mu` and `sigma` is implemented.
@@ -53,8 +53,10 @@ distributional regression models using TMB.
 ## Phase 4: Mixed and Double-Hierarchical Models
 
 - Status: random intercepts in the univariate Gaussian location formula are
-  implemented.
-- Add random slopes in the location formula.
+  implemented, along with simple numeric random-slope terms written as
+  `(0 + x | id)`.
+- Add labelled correlated random intercept/slope blocks in the location
+  formula.
 - Add random intercepts in scale formulae.
 - Add random-effect scale formulae such as `sd(id) ~ x`.
 - Support multiple random-effect scale components, such as `sd(study) ~ x` and

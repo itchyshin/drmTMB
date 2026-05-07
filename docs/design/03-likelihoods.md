@@ -13,7 +13,7 @@ Likelihoods are implemented in TMB templates and called from R wrappers.
 ## Implemented Gaussian Location-Scale
 
 Gaussian location-scale is implemented for fixed-effect models and for
-univariate Gaussian location random intercepts:
+univariate Gaussian location random intercepts and simple random slopes:
 
 ```text
 y_i | mu_i, sigma_i ~ Normal(mu_i, sigma_i^2)
@@ -33,22 +33,25 @@ drmTMB(
 )
 ```
 
-With one or more random intercepts in the location model:
+With one or more simple random-effect terms in the location model:
 
 ```text
 y_i | mu_i, sigma_i ~ Normal(mu_i, sigma_i^2)
-mu_i = X_mu[i, ] beta_mu + sum_j b_{j, g_j[i]}
+mu_i = X_mu[i, ] beta_mu + sum_j z_j[i] b_{j, g_j[i]}
 sigma_i = exp(X_sigma[i, ] beta_sigma)
 b_{j, g} = sd_j * u_{j, g}
 u_{j, g} ~ Normal(0, 1)
 sd_j = exp(theta_j)
 ```
 
+For a random intercept, `z_j[i] = 1`. For a simple random slope written as
+`(0 + x | id)`, `z_j[i] = x_i`.
+
 Matching R syntax:
 
 ```r
 drmTMB(
-  bf(y ~ x1 + (1 | site) + (1 | observer), sigma ~ x2),
+  bf(y ~ x1 + (1 | site) + (0 + x1 | observer), sigma ~ x2),
   family = gaussian(),
   data = dat
 )
@@ -64,7 +67,7 @@ Implementation notes:
 - Positive `sigma` uses `log(sigma_i) = X_sigma beta_sigma`.
 - Simulation recovery tests live in
   `tests/testthat/test-gaussian-location-scale.R`.
-- Random-intercept recovery tests live in
+- Random-effect recovery tests live in
   `tests/testthat/test-gaussian-random-intercepts.R`.
 - The univariate likelihood supports optional known sampling covariance via
   `meta_known_V(V = V)`. It has no residual correlation parameter.

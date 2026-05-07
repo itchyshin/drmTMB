@@ -7,11 +7,12 @@ variance, and residual correlation `rho12`; the first examples are motivated by
 ecology, evolution, and environmental science.
 
 The current implementation supports Gaussian location-scale models, including
-fixed effects and random intercepts in the location formula:
+fixed effects, random intercepts, and simple numeric random slopes in the
+location formula:
 
 ```r
 drmTMB(
-  bf(y ~ x1 + (1 | id), sigma ~ x1),
+  bf(y ~ x1 + (1 | id) + (0 + x1 | id), sigma ~ x1),
   family = gaussian(),
   data = dat
 )
@@ -77,12 +78,12 @@ drmTMB(
 )
 ```
 
-Current project status: Gaussian location-scale MVP with `mu` random
-intercepts, `meta_known_V(V = V)` support for diagonal and dense known sampling
+Current project status: Gaussian location-scale MVP with simple `mu` random
+effects, `meta_known_V(V = V)` support for diagonal and dense known sampling
 covariance, and fixed-effect bivariate Gaussian `rho12 ~ predictors`. The next
-target is to harden these likelihoods and then add random slopes, random-effect
-scale models, sparse precision paths, phylogenetic A-inverse, and spatial SPDE
-paths.
+target is to harden these likelihoods and then add labelled correlated random-
+effect blocks, random-effect scale models, sparse precision paths,
+phylogenetic A-inverse, and spatial SPDE paths.
 
 Phylogenetic and spatial dependence will be treated as one structured-effect
 module: `z ~ MVN(0, sigma_z^2 K)`, with `K = A` for tree-derived phylogenetic

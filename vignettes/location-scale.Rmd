@@ -12,8 +12,8 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 ```
 
 This article introduces the first implemented `drmTMB` model class: Gaussian
-location-scale regression with fixed effects and optional random intercepts in
-the location formula. The same pattern will be used throughout the
+location-scale regression with fixed effects and optional simple random effects
+in the location formula. The same pattern will be used throughout the
 documentation: write the model symbolically first, then show the matching R
 syntax.
 
@@ -32,6 +32,16 @@ Random-intercept location syntax:
 ```r
 drmTMB(
   bf(y ~ x1 + (1 | id), sigma ~ x1),
+  family = gaussian(),
+  data = dat
+)
+```
+
+Simple random-slope location syntax:
+
+```r
+drmTMB(
+  bf(y ~ x1 + (0 + x1 | id), sigma ~ x1),
   family = gaussian(),
   data = dat
 )
@@ -134,6 +144,40 @@ drmTMB(
 )
 ```
 
+With a simple random slope, the random effect multiplies the predictor value:
+
+```text
+y_ij | mu_ij, sigma_ij ~ Normal(mu_ij, sigma_ij^2)
+mu_ij = beta_0 + beta_1 x1_ij + x1_ij b_j
+log(sigma_ij) = gamma_0 + gamma_1 x2_ij
+b_j ~ Normal(0, sd_mu_x_id^2)
+```
+
+and the matching syntax is:
+
+```r
+drmTMB(
+  bf(y ~ x1 + (0 + x1 | id), sigma ~ x2),
+  family = gaussian(),
+  data = dat
+)
+```
+
+The current independent random-intercept and random-slope syntax writes the two
+group-level components separately:
+
+```r
+drmTMB(
+  bf(y ~ x1 + (1 | id) + (0 + x1 | id), sigma ~ x2),
+  family = gaussian(),
+  data = dat
+)
+```
+
+This is intentionally not the same as a correlated random intercept/slope block.
+Syntax such as `(1 + x1 | id)` and labelled blocks such as `(1 + x1 | p | id)`
+are reserved for the covariance-block implementation.
+
 This is the source of the "two or three sigmas" issue in ordinary language:
 the model may contain several scale quantities, but only one of them is the
 residual `sigma`. The others should be named by what they scale:
@@ -234,7 +278,8 @@ y | mu, sigma, V ~ MVN(mu, V + diag(sigma_i^2))
 ## Current implementation caveats
 
 - The current fitter supports `family = gaussian()` with fixed effects for
-  `mu` and `sigma`, and random intercepts in `mu`.
+  `mu` and `sigma`, plus simple random intercepts and numeric random slopes in
+  `mu`.
 - The `sigma` formula is the observation-level residual standard deviation. It
   is not a random-effect scale component.
 - Missing rows are dropped when they are incomplete for variables used by
@@ -243,8 +288,9 @@ y | mu, sigma, V ~ MVN(mu, V + diag(sigma_i^2))
   supported for Gaussian meta-analysis.
 - Fixed-effect bivariate Gaussian `rho12` models are implemented in the
   bivariate coscale article.
-- Random slopes, `sd(group)` scale formulas, phylogenetic terms, spatial terms,
-  and non-Gaussian families are planned but not implemented in this MVP.
+- Correlated random intercept/slope blocks, `sd(group)` scale formulas,
+  phylogenetic terms, spatial terms, and non-Gaussian families are planned but
+  not implemented in this MVP.
 
 Future multiple scale components will use explicit `sd()` formulas, not extra
 residual `sigma` formulas:

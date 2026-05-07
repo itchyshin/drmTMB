@@ -45,6 +45,8 @@ Implemented comparator smoke tests:
 
 Planned comparator smoke tests:
 
+- homoscedastic Gaussian random slopes against `lme4::lmer(..., REML = FALSE)`
+  once the exact correlated versus independent covariance semantics are matched;
 - dense known sampling covariance against `metafor::rma.mv(...)`;
 - dense known sampling covariance against `glmmTMB::equalto()` when the
   likelihood and residual heterogeneity parameterization overlap cleanly.

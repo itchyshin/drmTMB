@@ -84,6 +84,62 @@ drmTMB(
 )
 ```
 
+## Location Random Slopes
+
+For a simple random slope in the location part:
+
+```text
+y_ij | mu_ij, sigma_ij, b_j ~ Normal(mu_ij, sigma_ij^2)
+mu_ij = X_mu[ij, ] beta_mu + x_ij b_j
+log(sigma_ij) = X_sigma[ij, ] beta_sigma
+b_j = sd_mu_x_id * u_j
+u_j ~ Normal(0, 1)
+sd_mu_x_id = exp(theta_x_id)
+```
+
+Matching R syntax:
+
+```r
+drmTMB(
+  bf(y ~ x1 + (0 + x1 | id), sigma ~ x2),
+  family = gaussian(),
+  data = dat
+)
+```
+
+The random-effect design value is `x1_i`, not 1. The implemented TMB
+contribution is therefore:
+
+```text
+mu_i = X_mu[i, ] beta_mu + sum_j z_j[i] sd_j u_{j, g_j[i]}
+```
+
+where `z_j[i] = 1` for `(1 | group)` and `z_j[i] = x_i` for
+`(0 + x | group)`.
+
+For an independent random intercept and random slope in the current
+implementation:
+
+```text
+mu_ij = X_mu[ij, ] beta_mu + b_0j + x_ij b_1j
+b_0j ~ Normal(0, sd_mu_id^2)
+b_1j ~ Normal(0, sd_mu_x_id^2)
+```
+
+Matching R syntax:
+
+```r
+drmTMB(
+  bf(y ~ x1 + (1 | id) + (0 + x1 | id), sigma ~ x2),
+  family = gaussian(),
+  data = dat
+)
+```
+
+This is not yet a correlated intercept-slope block. Syntax such as
+`(1 + x1 | id)` and `(1 + x1 | p | id)` is reserved for the next
+covariance-block implementation.
+
 ## Scale Names
 
 Use `sigma_i` only for the residual or within-observation standard deviation.
@@ -123,7 +179,8 @@ Current R-side objects:
 
 - `X$mu` maps to `X_mu`.
 - `X$sigma` maps to `X_sigma`.
-- `random_effects$mu` maps to the location random-intercept design.
+- `random_effects$mu` maps to the location random-effect design.
+- `model$random$mu$value` maps to the random-effect design value `z_j[i]`.
 - `sdpars` reports group-level standard deviations.
 - `predict(fit, dpar = "sigma")` returns residual `sigma_i`.
 
@@ -131,7 +188,7 @@ Current TMB-side objects:
 
 - `beta_mu` estimates `beta_mu`.
 - `beta_sigma` estimates `beta_sigma`.
-- `theta_mu` estimates `log(sd_mu_group)`.
+- `log_sd_mu` estimates `log(sd_mu_group)` for each simple random-effect term.
 - `u_mu` is integrated by the Laplace approximation.
 
 ## Test Obligations

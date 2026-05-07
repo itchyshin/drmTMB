@@ -8,8 +8,8 @@ print.drmTMB <- function(x, ...) {
   )
   cli::cli_text("<drmTMB {label} fit>")
   cli::cli_text("  observations: {x$nobs}")
-  if (has_mu_random_intercepts(x)) {
-    cli::cli_text("  mu random-intercept terms: {length(x$sdpars$mu)}")
+  if (has_mu_random_effects(x)) {
+    cli::cli_text("  mu random-effect terms: {length(x$sdpars$mu)}")
   }
   cli::cli_text("  logLik: {format(x$logLik, digits = 4)}")
   cli::cli_text("  convergence: {x$opt$convergence}")
@@ -55,8 +55,8 @@ predict.drmTMB <- function(object, newdata = NULL, dpar = NULL,
   type <- match.arg(type)
   X <- drm_prediction_matrix(object, newdata, dpar)
   eta <- as.vector(X %*% object$coefficients[[dpar]])
-  if (is.null(newdata) && dpar == "mu" && has_mu_random_intercepts(object)) {
-    eta <- eta + mu_random_intercept_contribution(object)
+  if (is.null(newdata) && dpar == "mu" && has_mu_random_effects(object)) {
+    eta <- eta + mu_random_effect_contribution(object)
   }
 
   if (type == "link" || dpar %in% c("mu", "mu1", "mu2")) {
@@ -241,13 +241,18 @@ coefficient_labels <- function(object) {
   }), use.names = FALSE)
 }
 
-has_mu_random_intercepts <- function(object) {
+has_mu_random_effects <- function(object) {
   identical(object$model$model_type, "gaussian") &&
     length(object$random_effects$mu$values) > 0L
 }
 
-mu_random_intercept_contribution <- function(object) {
+has_mu_random_intercepts <- has_mu_random_effects
+
+mu_random_effect_contribution <- function(object) {
   values <- object$random_effects$mu$values
   index <- object$model$random$mu$index
-  rowSums(matrix(values[index], nrow = nrow(index)))
+  design_value <- object$model$random$mu$value
+  rowSums(matrix(values[index], nrow = nrow(index)) * design_value)
 }
+
+mu_random_intercept_contribution <- mu_random_effect_contribution

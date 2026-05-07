@@ -7,7 +7,8 @@ the grammar must support them from the start.
 
 1. No random effects.
 2. Random intercepts in location. Implemented for univariate Gaussian `mu`.
-3. Random slopes in location.
+3. Simple numeric random slopes in location. Implemented for univariate
+   Gaussian `mu` as separate uncorrelated terms.
 4. Random intercepts in scale.
 5. Random-effect scale formulae such as `sd(id) ~ x`.
 6. Correlations among location and scale random effects when identifiable.
@@ -32,12 +33,36 @@ bf(
 )
 ```
 
+Also implemented for simple numeric random slopes in `mu`:
+
+```r
+bf(
+  y ~ x1 + (0 + x1 | id),
+  sigma ~ x1
+)
+```
+
+To fit an independent random intercept and random slope in the current
+implementation, write them as separate terms:
+
+```r
+bf(
+  y ~ x1 + (1 | id) + (0 + x1 | id),
+  sigma ~ x1
+)
+```
+
 Current implementation details:
 
 - supported only for univariate Gaussian `mu`;
+- random-slope terms must be written as `0 + x`, with a single numeric
+  predictor;
+- `(1 + x | id)` and labelled blocks such as `(1 + x | p | id)` are reserved
+  for correlated covariance-block support;
 - random effects are integrated with TMB's Laplace approximation;
 - the TMB parameterization is non-centered:
-  `b_{group} = sd_group * u_group`, where `u_group ~ Normal(0, 1)`;
+  `b_{term,group} = sd_term * u_{term,group}`, where
+  `u_{term,group} ~ Normal(0, 1)`;
 - fitted-data `predict(fit, dpar = "mu")` includes conditional modes;
 - `newdata` prediction currently uses fixed effects only;
 - grouping variables with fewer than two levels or only singleton groups are

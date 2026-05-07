@@ -25,6 +25,33 @@ new_gaussian_ri_data <- function(n_id = 36, n_each = 10, sd_id = 0.7,
   )
 }
 
+new_gaussian_rs_data <- function(n_id = 45, n_each = 9, sd_slope = 0.45,
+                                 seed = 20260511) {
+  set.seed(seed)
+  n <- n_id * n_each
+  id <- factor(rep(seq_len(n_id), each = n_each))
+  x <- stats::rnorm(n)
+  z <- stats::rnorm(n)
+  u_slope <- stats::rnorm(n_id, sd = sd_slope)
+  u_slope <- u_slope - mean(u_slope)
+  beta_mu <- c(0.25, 0.7)
+  beta_sigma <- c(-0.3, 0.2)
+  mu <- beta_mu[[1L]] + (beta_mu[[2L]] + u_slope[id]) * x
+  sigma <- exp(beta_sigma[[1L]] + beta_sigma[[2L]] * z)
+
+  list(
+    data = data.frame(
+      y = stats::rnorm(n, mean = mu, sd = sigma),
+      x = x,
+      z = z,
+      id = id
+    ),
+    beta_mu = beta_mu,
+    beta_sigma = beta_sigma,
+    sd_slope = sd_slope
+  )
+}
+
 test_that("Gaussian location models support random intercepts in mu", {
   sim <- new_gaussian_ri_data()
 
@@ -107,6 +134,83 @@ test_that("multiple Gaussian mu random-intercept terms are supported", {
   )
 })
 
+test_that("Gaussian location models support simple random slopes in mu", {
+  sim <- new_gaussian_rs_data()
+
+  fit <- drmTMB(
+    bf(y ~ x + (0 + x | id), sigma ~ z),
+    family = gaussian(),
+    data = sim$data
+  )
+
+  expect_s3_class(fit, "drmTMB")
+  expect_equal(fit$opt$convergence, 0)
+  expect_lt(max(abs(unname(coef(fit, "mu")) - sim$beta_mu)), 0.16)
+  expect_lt(max(abs(unname(coef(fit, "sigma")) - sim$beta_sigma)), 0.15)
+  expect_lt(abs(unname(fit$sdpars$mu) - sim$sd_slope), 0.25)
+  expect_named(fit$sdpars$mu, "(0 + x | id)")
+  expect_equal(length(fit$random_effects$mu$values), nlevels(sim$data$id))
+  expect_equal(
+    length(fit$opt$par),
+    length(coef(fit, "mu")) + length(coef(fit, "sigma")) + length(fit$sdpars$mu)
+  )
+})
+
+test_that("Gaussian mu can combine independent random intercept and slope terms", {
+  set.seed(20260512)
+  n_id <- 36
+  n_each <- 9
+  n <- n_id * n_each
+  id <- factor(rep(seq_len(n_id), each = n_each))
+  x <- stats::rnorm(n)
+  z <- stats::rnorm(n)
+  u0 <- stats::rnorm(n_id, sd = 0.55)
+  u1 <- stats::rnorm(n_id, sd = 0.35)
+  dat <- data.frame(
+    y = stats::rnorm(
+      n,
+      mean = 0.1 + 0.6 * x + u0[id] + u1[id] * x,
+      sd = exp(-0.25 + 0.12 * z)
+    ),
+    x = x,
+    z = z,
+    id = id
+  )
+
+  fit <- drmTMB(
+    bf(y ~ x + (1 | id) + (0 + x | id), sigma ~ z),
+    family = gaussian(),
+    data = dat
+  )
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_named(fit$sdpars$mu, c("(1 | id)", "(0 + x | id)"))
+  expect_equal(length(fit$random_effects$mu$values), 2 * n_id)
+  expect_gt(unname(fit$sdpars$mu[["(1 | id)"]]), 0.15)
+  expect_gt(unname(fit$sdpars$mu[["(0 + x | id)"]]), 0.1)
+})
+
+test_that("random-slope variables participate in missingness", {
+  sim <- new_gaussian_rs_data(n_id = 12, n_each = 5, seed = 20260513)
+  dat <- sim$data
+  dat$y[2] <- NA_real_
+  dat$x[5] <- NA_real_
+  dat$z[7] <- NA_real_
+  dat$id[11] <- NA
+  keep <- stats::complete.cases(dat[c("y", "x", "z", "id")])
+
+  fit <- drmTMB(
+    bf(y ~ 1 + (0 + x | id), sigma ~ z),
+    family = gaussian(),
+    data = dat
+  )
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(fit$nobs, sum(keep))
+  expect_equal(fit$model$keep, keep)
+  expect_false(anyNA(fit$data[c("y", "x", "z", "id")]))
+})
+
 test_that("random-intercept grouping variables participate in missingness", {
   sim <- new_gaussian_ri_data(n_id = 10, n_each = 4, seed = 20260510)
   dat <- sim$data
@@ -153,5 +257,18 @@ test_that("unsupported random-effect cases fail clearly", {
       data = dat
     ),
     "unsupported model terms"
+  )
+  expect_error(
+    drmTMB(bf(y ~ x + (x | id)), family = gaussian(), data = dat),
+    "Only random intercepts and single random slopes"
+  )
+  expect_error(
+    drmTMB(bf(y ~ x + (1 + x | id)), family = gaussian(), data = dat),
+    "Correlated intercept-slope blocks"
+  )
+  dat$group_label <- factor(rep(letters[1:2], length.out = nrow(dat)))
+  expect_error(
+    drmTMB(bf(y ~ x + (0 + group_label | id)), family = gaussian(), data = dat),
+    "must be numeric"
   )
 })

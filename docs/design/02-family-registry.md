@@ -48,8 +48,8 @@ drm_family(
 )
 ```
 
-This is implemented for fixed-effect models, optional univariate `mu` random
-intercepts, and optional known sampling covariance through
+This is implemented for fixed-effect models, optional univariate simple `mu`
+random effects, and optional known sampling covariance through
 `meta_known_V(V = V)`. Sparse known covariance and additional families are later
 phases.
 
@@ -101,8 +101,8 @@ bf(
 ```
 
 `rho12` uses an atanh link internally and `tanh()` on the response scale.
-Univariate Gaussian `mu` random intercepts are implemented; bivariate random
-effects and `mvbind()` shorthand are planned but not implemented.
+Univariate Gaussian simple `mu` random effects are implemented; bivariate
+random effects and `mvbind()` shorthand are planned but not implemented.
 
 ## Design Principle
 

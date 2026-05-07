@@ -111,6 +111,23 @@ univariate Gaussian path:
 bf(y ~ x1 + (1 | site) + (1 | observer), sigma ~ x1)
 ```
 
+Simple numeric random-slope terms are also implemented in the univariate
+Gaussian `mu` path when written as a separate `0 + x` term:
+
+```r
+bf(y ~ x1 + (0 + x1 | id), sigma ~ x1)
+```
+
+The current independent intercept-plus-slope form is:
+
+```r
+bf(y ~ x1 + (1 | id) + (0 + x1 | id), sigma ~ x1)
+```
+
+Do not write `(1 + x1 | id)` yet if you need the random intercept and random
+slope correlation; that syntax is reserved for the correlated covariance-block
+implementation.
+
 Use `sd(group) ~` for random-effect scale components:
 
 ```r
@@ -207,7 +224,7 @@ Not every parameter should accept random effects at the same development stage.
 
 | Parameter class | Random effects policy |
 |---|---|
-| `mu`, `mu1`, `mu2` | Yes; random intercepts implemented first, then slopes and covariance blocks. |
+| `mu`, `mu1`, `mu2` | Yes; univariate Gaussian `mu` random intercepts and simple numeric random slopes are implemented; covariance blocks are next. |
 | `sigma`, `sigma1`, `sigma2` | Later; needed for predictability/malleability models, but higher identifiability risk. |
 | `sd(group)` | Later; explicit random-effect scale model, not the same as residual `sigma`. |
 | `rho12` | No random effects initially; predictor-dependent fixed effects only. |
@@ -223,8 +240,8 @@ Not every parameter should accept random effects at the same development stage.
 - `rho12` is allowed only for bivariate families.
 - `rho` may become a convenience alias, but `rho12` is canonical.
 - `meta_known_V(V = V)` is a known-covariance marker, not a predictor.
-- Random intercepts are currently implemented only for the univariate Gaussian
-  `mu` formula.
+- Random intercepts and single numeric random slopes are currently implemented
+  only for the univariate Gaussian `mu` formula.
 - The parser should reject unsupported formulae early with clear errors.
 
 ## Not in the MVP

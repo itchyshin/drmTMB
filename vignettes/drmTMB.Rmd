@@ -14,11 +14,11 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 `drmTMB` is being developed as a model-first package: the documentation should
 pair symbolic equations with the R syntax that fits them. The current
 implementation supports Gaussian location-scale models with fixed effects and
-optional random intercepts in the location formula:
+optional simple random effects in the location formula:
 
 ```r
 drmTMB(
-  bf(y ~ x1 + (1 | id), sigma ~ x1),
+  bf(y ~ x1 + (1 | id) + (0 + x1 | id), sigma ~ x1),
   family = gaussian(),
   data = dat
 )

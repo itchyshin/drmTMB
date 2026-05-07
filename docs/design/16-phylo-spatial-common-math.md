@@ -169,7 +169,7 @@ drmTMB(
 ```
 
 This is partly implemented. Current code supports dense known sampling
-covariance through `meta_known_V(V = V)` and ordinary `mu` random intercepts;
+covariance through `meta_known_V(V = V)` and simple `mu` random effects;
 `phylo()` and `spatial()` structured-effect terms are still planned.
 
 ## Identifiability Rule

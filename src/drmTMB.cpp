@@ -32,6 +32,7 @@ Type objective_function<Type>::operator()()
   DATA_MATRIX(X_rho12);
   DATA_INTEGER(n_mu_re_terms);
   DATA_IMATRIX(mu_re_index);
+  DATA_MATRIX(mu_re_value);
   DATA_IVECTOR(mu_re_term);
 
   PARAMETER_VECTOR(beta_mu);
@@ -56,7 +57,7 @@ Type objective_function<Type>::operator()()
       for (int i = 0; i < y.size(); ++i) {
         for (int j = 0; j < n_mu_re_terms; ++j) {
           int idx = mu_re_index(i, j);
-          mu(i) += sd_mu_re(mu_re_term(idx)) * u_mu(idx);
+          mu(i) += mu_re_value(i, j) * sd_mu_re(mu_re_term(idx)) * u_mu(idx);
         }
       }
       for (int j = 0; j < u_mu.size(); ++j) {

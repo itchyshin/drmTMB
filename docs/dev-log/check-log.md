@@ -753,3 +753,66 @@ Team learning:
   a meta-analysis comparator reference for `glmmTMB::equalto()`;
 - noted that `air format .` is unavailable locally and should either be
   installed later or replaced with a documented formatter.
+
+## 2026-05-07: Gaussian `mu` Random Slopes
+
+Scope:
+
+- extended univariate Gaussian `mu` random effects from random intercepts to
+  single numeric random slopes written as `(0 + x | id)`;
+- added a random-effect design-value matrix so TMB evaluates
+  `mu_i = X_mu beta_mu + sum_j z_j[i] sd_j u_j[g[i]]`;
+- preserved the existing non-centered Laplace parameterization and the
+  existing random-intercept path as the `z_j[i] = 1` special case;
+- allowed independent random intercept and slope terms through separate syntax:
+  `(1 | id) + (0 + x | id)`;
+- deliberately kept `(1 + x | id)` and `(1 + x | p | id)` reserved for the
+  later correlated covariance-block implementation;
+- updated the Gaussian equations, formula grammar, random-effect design note,
+  likelihood note, README, roadmap, NEWS, vignette text, and known limitations.
+
+Commands run:
+
+- `Rscript -e "devtools::test(filter = 'gaussian-random-intercepts')"`
+- `Rscript -e "devtools::test()"`
+- `Rscript -e "devtools::document()"`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `Rscript -e "devtools::check()"`
+- `Rscript -e "devtools::check(env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`
+- `Rscript -e "pkgdown::build_site()"`
+- `git diff --check`
+- stale-wording `rg` scans for random-slope and random-intercept-only wording
+- `air --version`
+
+Results:
+
+- targeted random-effect tests: 44 passed, 0 failed;
+- full `devtools::test()`: 186 passed, 0 failed;
+- `devtools::document()`: completed and updated `man/drmTMB.Rd`;
+- `pkgdown::check_pkgdown()`: no problems found;
+- `pkgdown::build_site()`: site built successfully;
+- `devtools::check()`: 0 errors, 0 warnings, 1 system-clock note;
+- `devtools::check(env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))`: 0
+  errors, 0 warnings, 0 notes;
+- `git diff --check`: passed;
+- `air --version`: not available locally.
+
+Known issues:
+
+- `(1 + x | id)` is not implemented because it implies an intercept-slope
+  covariance block that the current TMB parameterization does not yet estimate;
+- random slopes are restricted to a single numeric predictor, so factor and
+  multi-column slope terms are rejected;
+- random effects in `sigma`, `mu1`, `mu2`, phylogenetic/spatial structured
+  effects, and random-effect scale formulas remain planned.
+
+Team learning:
+
+- Boole: formula messages must protect users from accidentally assuming
+  correlated random effects when the implementation is currently independent.
+- Noether: the symbolic equation needed the design multiplier `z_j[i]`; without
+  it, the R formula and TMB implementation would not be auditable.
+- Curie: random-slope tests should cover recovery, missingness, unsupported
+  correlated syntax, and non-numeric slope rejection in one pass.
+- Rose: stale wording tends to persist in vignettes after implementation
+  changes, so after-task scans should include articles as well as design docs.
