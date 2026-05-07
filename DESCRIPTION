@@ -28,6 +28,8 @@ LinkingTo:
     TMB
 Suggests:
     knitr,
+    lme4,
+    metafor,
     rmarkdown,
     testthat (>= 3.0.0),
     withr

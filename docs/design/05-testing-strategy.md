@@ -34,6 +34,12 @@ cases. Full comparator sweeps belong in optional local scripts or scheduled CI,
 because package conventions, likelihood constants, priors, and optimizer
 settings can differ.
 
+Implemented comparator smoke tests:
+
+- homoscedastic Gaussian random intercepts against `lme4::lmer(..., REML = FALSE)`;
+- Gaussian ML meta-analysis with known sampling variances against
+  `metafor::rma.uni(..., method = "ML")`.
+
 Tier 2 is simulation recovery. This is the primary truth source:
 
 - simulate from known parameters;

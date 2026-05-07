@@ -347,3 +347,42 @@ Known issues:
 
 - profile-likelihood CIs are only a design roadmap item; no API or inference
   code has been implemented yet.
+
+## 2026-05-07: Comparator Smoke Tests
+
+Scope:
+
+- added the first Tier 1 comparator-package tests;
+- compared the homoscedastic Gaussian random-intercept overlap with
+  `lme4::lmer(..., REML = FALSE)`;
+- compared Gaussian ML meta-analysis with known sampling variances to
+  `metafor::rma.uni(..., method = "ML")`;
+- added `lme4` and `metafor` to `Suggests`;
+- documented the implemented comparator tests in the testing strategy.
+
+Commands run:
+
+- interactive smoke comparisons against `lme4` and `metafor`;
+- `Rscript -e "devtools::test(filter = 'comparators')"`
+- `Rscript -e "devtools::test()"`
+- `air format .`
+- `Rscript -e "pkgdown::check_pkgdown(); pkgdown::build_site()"`
+- `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`
+
+Results:
+
+- comparator tests: 9 passed, 0 failed.
+- full `devtools::test()`: 148 passed, 0 failed.
+- `air format .`: not available locally.
+- `pkgdown::check_pkgdown()`: no problems found.
+- `pkgdown::build_site()`: site built successfully.
+- `devtools::check(error_on = "never")` with `_R_CHECK_SYSTEM_CLOCK_=FALSE`:
+  0 errors, 0 warnings, 0 notes.
+
+Known issues:
+
+- `glmmTMB` was available locally but emitted a TMB version mismatch warning, so
+  it was not used for comparator tests.
+- `gamlss` was not installed locally.
+- Comparator tests are deliberately tiny smoke tests; broad comparator sweeps
+  remain long-test or scheduled-CI work.
