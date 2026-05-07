@@ -26,8 +26,8 @@ Planned syntax:
 
 ```r
 bf(
-  y ~ x + phylo(species),
-  sigma ~ x
+  y ~ x1 + phylo(species),
+  sigma ~ x1
 )
 ```
 
@@ -35,11 +35,11 @@ and later:
 
 ```r
 bf(
-  mu1 = y1 ~ x + phylo(species),
-  mu2 = y2 ~ x + phylo(species),
-  sigma1 = ~ x,
-  sigma2 = ~ x,
-  rho12 = ~ x
+  mu1 = y1 ~ x1 + phylo(species),
+  mu2 = y2 ~ x1 + phylo(species),
+  sigma1 = ~ x1,
+  sigma2 = ~ x1,
+  rho12 = ~ x1
 )
 ```
 

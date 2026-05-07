@@ -51,6 +51,7 @@ Commands run:
 - `Rscript -e "pkgdown::build_favicons(overwrite = TRUE)"`
 - `Rscript -e "pkgdown::build_site()"`
 - `Rscript -e "devtools::check(error_on = 'never')"`
+- `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`
 
 Results:
 
@@ -70,7 +71,7 @@ Known issues:
 Scope:
 
 - first TMB template for Gaussian `mu` and `sigma`;
-- `drmTMB()` fitting path for fixed-effect `bf(y ~ x, sigma ~ z)`;
+- `drmTMB()` fitting path for fixed-effect `bf(y ~ x1, sigma ~ x1)`;
 - S3 methods for coefficients, prediction, simulation, residuals, sigma,
   log-likelihood, variance-covariance, and summaries;
 - simulation recovery tests and Phase 1 rejection tests;
@@ -210,3 +211,107 @@ Known issues:
 - The pkgdown site intentionally publishes root Markdown pages such as
   `AGENTS.html`, `CLAUDE.html`, and `ROADMAP.html`; revisit later if those
   should be hidden.
+
+## 2026-05-07: Gaussian mu Random Intercepts
+
+Scope:
+
+- implemented univariate Gaussian random intercepts in the `mu` formula;
+- supported one or multiple additive terms such as `(1 | id)` and
+  `(1 | site) + (1 | observer)`;
+- used TMB Laplace integration with a non-centered parameterization:
+  `b_group = sd_group * u_group`, `u_group ~ Normal(0, 1)`;
+- kept random effects unsupported in `sigma` formulae, bivariate models,
+  random slopes, and brms-style labelled covariance blocks;
+- added conditional fitted-data prediction and residuals that include `mu`
+  random-intercept modes;
+- left `newdata` prediction fixed-effect-only for now;
+- added tests for recovery, multiple grouping factors, missing grouping
+  variables, singleton-group rejection, unsupported syntax, and fixed-parameter
+  counting.
+
+Commands run:
+
+- `Rscript -e "devtools::document()"`
+- interactive smoke test for `bf(y ~ x1 + (1 | id), sigma ~ x1)`
+- `Rscript -e "devtools::test(filter = 'gaussian-random-intercepts')"`
+- `Rscript -e "devtools::test(filter = 'gaussian')"`
+- `Rscript -e "devtools::test()"`
+- `Rscript -e "pkgdown::check_pkgdown(); pkgdown::build_site()"`
+- `Rscript -e "devtools::check(error_on = 'never')"`
+- `air format .`
+
+Results:
+
+- targeted random-intercept tests: 24 passed, 0 failed.
+- full `devtools::test()`: 139 passed, 0 failed.
+- `pkgdown::check_pkgdown()`: no problems found.
+- `pkgdown::build_site()`: site built successfully.
+- Standard `devtools::check(error_on = "never")`: 0 errors, 0 warnings,
+  1 environment note about verifying the current time.
+- `devtools::check(error_on = "never")` with `_R_CHECK_SYSTEM_CLOCK_=FALSE`:
+  0 errors, 0 warnings, 0 notes.
+
+Known issues:
+
+- `air` is not installed locally, so formatting could not be run.
+- random slopes, bivariate random effects, random effects in scale formulae,
+  and random-effect scale models remain future work.
+
+## 2026-05-07: Formula, Family, Audience, and Validation Refinements
+
+Scope:
+
+- recorded that `drmTMB` should develop a package-specific formula grammar
+  rather than copying `brms` wholesale;
+- documented `formula = drm_formula(...)` as the canonical long-form direction,
+  with `bf()` retained as the current prototype;
+- documented composed bivariate family syntax such as
+  `family = c(gaussian(), gaussian())` and
+  `family = c(gaussian(), poisson())` as the public direction;
+- clarified that `rho12` is residual response-response correlation, while
+  O'Dea-style correlations among personality, plasticity, predictability, and
+  malleability live in group-level covariance blocks;
+- recorded a random-effect eligibility table for downstream distributional
+  parameters;
+- retargeted pkgdown/tutorial wording toward ecologists, evolutionary
+  biologists, and environmental scientists;
+- documented the two-tier validation strategy: comparator-package checks plus
+  simulation recovery;
+- added Shinichi Nakagawa as author, maintainer, and copyright holder with
+  ORCID `0000-0002-7765-5182`.
+
+Sidecar agents used:
+
+- Boole: R API and formula parser review.
+- Gauss: TMB and random-effect likelihood review.
+- Noether: formula and correlation taxonomy review.
+- Darwin: ecological examples and pkgdown review.
+- Fisher: validation strategy review.
+
+Commands run:
+
+- `air format .`
+- `Rscript -e "devtools::test()"`
+- `Rscript -e "pkgdown::check_pkgdown(); pkgdown::build_site()"`
+- `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`
+- stale-text scan for placeholder author metadata and old `z`/`w` examples.
+
+Results:
+
+- `air format .`: not available locally.
+- full `devtools::test()`: 139 passed, 0 failed.
+- `pkgdown::check_pkgdown()`: no problems found.
+- `pkgdown::build_site()`: site built successfully.
+- `devtools::check(error_on = "never")` with `_R_CHECK_SYSTEM_CLOCK_=FALSE`:
+  0 errors, 0 warnings, 0 notes.
+- stale-text scan found no placeholder maintainer metadata or old `z`/`w`
+  formula examples in active docs.
+
+Known issues:
+
+- `drm_formula()` and composed bivariate family objects are design directions,
+  not implemented API yet.
+- `biv_gaussian()` remains the implemented bivariate Gaussian prototype.
+- Comparator-package tests are planned; current passing tests are simulation and
+  unit tests.

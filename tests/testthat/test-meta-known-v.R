@@ -84,7 +84,7 @@ test_that("meta_known_V rejects malformed marker calls", {
       family = gaussian(),
       data = dat
     ),
-    "fixed effects only"
+    "unsupported model terms"
   )
 })
 

@@ -23,15 +23,15 @@ navbar:
     tutorials:
       text: Tutorials
       menu:
-        - text: Location-scale models
+        - text: When variance is biological signal
           href: articles/location-scale.html
-        - text: Bivariate coscale models
+        - text: Changing trait coupling with rho12
           href: articles/bivariate-coscale.html
-        - text: Meta-analysis
+        - text: Mean effects and heterogeneous heterogeneity
           href: articles/meta-analysis.html
-        - text: Phylogenetic and spatial dependence
+        - text: Dependent species and places
           href: articles/phylogenetic-spatial.html
-        - text: Distribution families
+        - text: Choosing families for ecological responses
           href: articles/distribution-families.html
     developer:
       text: Developer Notes

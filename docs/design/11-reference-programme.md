@@ -21,7 +21,7 @@ Methods Ecol Evol - 2025 - Nakagawa - Location scale models in ecology and evolu
 Package implications:
 
 - `drmTMB` should make location-scale models routine rather than special.
-- The first worked path is Gaussian `bf(y ~ x, sigma ~ z)`.
+- The first worked path is Gaussian `bf(y ~ x1, sigma ~ x1)`.
 - Counts and proportions are not afterthoughts; negative binomial,
   COM-Poisson, beta, beta-binomial, and zero/one-inflated families belong on
   the roadmap.
@@ -46,8 +46,8 @@ Package implications:
 
 ```r
 bf(
-  yi ~ moderator + meta_known_V(V = vi),
-  sigma ~ moderator
+  yi ~ x1 + x2 + meta_known_V(V = V),
+  sigma ~ x1
 )
 ```
 

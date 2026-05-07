@@ -23,6 +23,7 @@ A \code{drmTMB} fit object.
 }
 \description{
 \code{drmTMB()} is the main model-fitting entry point. The current implementation
-supports fixed-effect univariate Gaussian and bivariate Gaussian
+supports univariate Gaussian location-scale models, including random
+intercepts in the location formula, and fixed-effect bivariate Gaussian
 distributional models.
 }

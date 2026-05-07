@@ -1,7 +1,8 @@
 #' Fit a distributional regression model with TMB
 #'
 #' `drmTMB()` is the main model-fitting entry point. The current implementation
-#' supports fixed-effect univariate Gaussian and bivariate Gaussian
+#' supports univariate Gaussian location-scale models, including random
+#' intercepts in the location formula, and fixed-effect bivariate Gaussian
 #' distributional models.
 #'
 #' @param formula A `drm_formula` object created by [bf()].
@@ -36,6 +37,7 @@ drmTMB <- function(formula, family = stats::gaussian(), data, control = list(), 
     data = spec$tmb_data,
     parameters = spec$start,
     map = spec$map,
+    random = spec$random_names,
     DLL = "drmTMB",
     silent = TRUE
   )
@@ -48,7 +50,8 @@ drmTMB <- function(formula, family = stats::gaussian(), data, control = list(), 
   )
 
   sdr <- TMB::sdreport(obj, par.fixed = opt$par)
-  par <- split_tmb_parameters(obj$env$parList(opt$par), spec)
+  par_list <- obj$env$parList(opt$par)
+  par <- split_tmb_parameters(par_list, spec)
 
   fit <- list(
     call = match.call(),
@@ -61,6 +64,8 @@ drmTMB <- function(formula, family = stats::gaussian(), data, control = list(), 
     sdr = sdr,
     par = par,
     coefficients = par,
+    sdpars = split_tmb_sdpars(par_list, spec),
+    random_effects = split_tmb_random_effects(par_list, spec),
     logLik = -opt$objective,
     df = length(opt$par),
     nobs = spec$nobs
@@ -113,6 +118,8 @@ drm_build_gaussian_ls_spec <- function(formula, data, env = parent.frame()) {
 
   meta <- extract_meta_known_v(mu_entry$rhs)
   mu_entry$rhs <- meta$rhs
+  mu_re <- extract_random_intercepts(mu_entry$rhs, "mu")
+  mu_entry$rhs <- mu_re$rhs
 
   drm_reject_phase1_terms(mu_entry$rhs, "mu")
   drm_reject_phase1_terms(sigma_entry$rhs, "sigma")
@@ -120,7 +127,7 @@ drm_build_gaussian_ls_spec <- function(formula, data, env = parent.frame()) {
   f_mu <- drm_entry_formula(mu_entry, response = TRUE)
   f_sigma <- drm_entry_formula(sigma_entry, response = FALSE)
 
-  vars <- unique(c(all.vars(f_mu), all.vars(f_sigma)))
+  vars <- unique(c(all.vars(f_mu), all.vars(f_sigma), random_intercept_vars(mu_re$terms)))
   if (length(vars) > 0L) {
     keep <- stats::complete.cases(data[, vars, drop = FALSE])
   } else {
@@ -138,6 +145,7 @@ drm_build_gaussian_ls_spec <- function(formula, data, env = parent.frame()) {
 
   X_mu <- stats::model.matrix(stats::delete.response(stats::terms(mf_mu)), mf_mu)
   X_sigma <- stats::model.matrix(stats::terms(mf_sigma), mf_sigma)
+  re_mu <- build_random_intercept_structure(mu_re$terms, data_model)
 
   if (length(y) != nrow(X_sigma)) {
     cli::cli_abort("Internal model-frame mismatch between {.code mu} and {.code sigma}.")
@@ -147,7 +155,7 @@ drm_build_gaussian_ls_spec <- function(formula, data, env = parent.frame()) {
     cli::cli_abort("No complete observations remain after applying model and known-variance missingness rules.")
   }
 
-  start <- gaussian_ls_start(y, X_mu, X_sigma, V_known)
+  start <- gaussian_ls_start(y, X_mu, X_sigma, V_known, re_mu)
   start <- c(start, gaussian_ls_dummy_start())
 
   spec <- list(
@@ -161,12 +169,14 @@ drm_build_gaussian_ls_spec <- function(formula, data, env = parent.frame()) {
       sigma = stats::terms(mf_sigma)
     ),
     model_frame = list(mu = mf_mu, sigma = mf_sigma),
+    random = list(mu = re_mu),
     data = data_model,
     variables = vars,
     keep = keep,
     dpars = c("mu", "sigma"),
     start = start,
-    map = gaussian_ls_map()
+    map = gaussian_ls_map(re_mu),
+    random_names = if (re_mu$n_re > 0L) "u_mu" else NULL
   )
   spec$tmb_data <- make_tmb_data(spec)
   spec$nobs <- length(spec$y)
@@ -275,11 +285,13 @@ drm_build_biv_gaussian_spec <- function(formula, data, env = parent.frame()) {
       rho12 = mf_rho12
     ),
     data = data_model,
+    random = list(mu = empty_random_intercept_structure(nrow(data_model))),
     variables = vars,
     keep = keep,
     dpars = c("mu1", "mu2", "sigma1", "sigma2", "rho12"),
     start = start,
-    map = biv_gaussian_map()
+    map = biv_gaussian_map(),
+    random_names = NULL
   )
   spec$tmb_data <- make_tmb_data(spec)
   spec$nobs <- length(spec$y1)
@@ -316,10 +328,133 @@ drm_reject_phase1_terms <- function(rhs, dpar) {
   )]
   if (length(hits) > 0L) {
     cli::cli_abort(c(
-      "Phase 1 supports fixed effects only.",
+      "This formula contains unsupported model terms.",
       "x" = "The {.code {dpar}} formula contains unsupported term{?s}: {.val {hits}}."
     ))
   }
+}
+
+extract_random_intercepts <- function(rhs, dpar) {
+  terms <- flatten_plus_terms(rhs)
+  is_re <- vapply(terms, is_random_bar_call, logical(1))
+  if (!any(is_re)) {
+    return(list(rhs = rhs, terms = list()))
+  }
+
+  re_terms <- lapply(terms[is_re], parse_random_intercept_term, dpar = dpar)
+  clean_terms <- terms[!is_re]
+  list(rhs = rebuild_plus_terms(clean_terms), terms = re_terms)
+}
+
+is_random_bar_call <- function(expr) {
+  expr <- strip_parens(expr)
+  is.call(expr) && identical(expr[[1L]], as.name("|"))
+}
+
+parse_random_intercept_term <- function(expr, dpar) {
+  expr <- strip_parens(expr)
+  lhs <- expr[[2L]]
+  group <- expr[[3L]]
+
+  if (is_random_bar_call(lhs)) {
+    cli::cli_abort(c(
+      "Only simple random intercepts are implemented for {.code {dpar}}.",
+      "x" = "Correlated-block syntax such as {.code (1 | p | id)} is planned later."
+    ))
+  }
+  if (!is_intercept_one(lhs)) {
+    cli::cli_abort(c(
+      "Only random intercepts are implemented for {.code {dpar}}.",
+      "x" = "Use syntax like {.code (1 | id)}."
+    ))
+  }
+  if (!is.symbol(group)) {
+    cli::cli_abort(c(
+      "Random-intercept grouping terms must be simple variables.",
+      "x" = "Use syntax like {.code (1 | id)}."
+    ))
+  }
+
+  group_name <- as.character(group)
+  list(
+    group = group_name,
+    label = paste0("(1 | ", group_name, ")")
+  )
+}
+
+is_intercept_one <- function(expr) {
+  is.numeric(expr) && length(expr) == 1L && identical(as.numeric(expr), 1)
+}
+
+random_intercept_vars <- function(terms) {
+  vapply(terms, `[[`, character(1), "group")
+}
+
+empty_random_intercept_structure <- function(n) {
+  list(
+    n_terms = 0L,
+    n_re = 0L,
+    index = matrix(1L, nrow = n, ncol = 1L),
+    index0 = matrix(0L, nrow = n, ncol = 1L),
+    term_id0 = 0L,
+    labels = character(),
+    groups = list(),
+    value_names = character()
+  )
+}
+
+build_random_intercept_structure <- function(terms, data) {
+  if (length(terms) == 0L) {
+    return(empty_random_intercept_structure(nrow(data)))
+  }
+
+  labels <- vapply(terms, `[[`, character(1), "label")
+  if (anyDuplicated(labels)) {
+    cli::cli_abort("Duplicate random-intercept terms are not supported.")
+  }
+
+  index <- matrix(NA_integer_, nrow = nrow(data), ncol = length(terms))
+  term_id0 <- integer()
+  groups <- vector("list", length(terms))
+  names(groups) <- labels
+  value_names <- character()
+  offset <- 0L
+
+  for (k in seq_along(terms)) {
+    group_name <- terms[[k]]$group
+    group <- factor(data[[group_name]])
+    levels_k <- levels(group)
+    if (length(levels_k) < 2L) {
+      cli::cli_abort(c(
+        "Random-intercept grouping variable {.field {group_name}} has fewer than two levels.",
+        "x" = "At least two groups are needed to estimate a random-effect SD."
+      ))
+    }
+    if (all(tabulate(as.integer(group)) == 1L)) {
+      cli::cli_abort(c(
+        "Random-intercept grouping variable {.field {group_name}} has only singleton groups.",
+        "x" = "At least one group must have repeated observations in this initial random-intercept implementation."
+      ))
+    }
+
+    group_index <- as.integer(group)
+    index[, k] <- offset + group_index
+    term_id0 <- c(term_id0, rep.int(k - 1L, length(levels_k)))
+    groups[[k]] <- levels_k
+    value_names <- c(value_names, paste0(labels[[k]], ":", levels_k))
+    offset <- offset + length(levels_k)
+  }
+
+  list(
+    n_terms = length(terms),
+    n_re = offset,
+    index = index,
+    index0 = index - 1L,
+    term_id0 = term_id0,
+    labels = labels,
+    groups = groups,
+    value_names = value_names
+  )
 }
 
 extract_meta_known_v <- function(rhs) {
@@ -341,6 +476,7 @@ extract_meta_known_v <- function(rhs) {
 }
 
 flatten_plus_terms <- function(expr) {
+  expr <- strip_parens(expr)
   if (is.call(expr) && identical(expr[[1L]], as.name("+"))) {
     c(flatten_plus_terms(expr[[2L]]), flatten_plus_terms(expr[[3L]]))
   } else {
@@ -356,6 +492,7 @@ rebuild_plus_terms <- function(terms) {
 }
 
 is_meta_known_v_call <- function(expr) {
+  expr <- strip_parens(expr)
   is.call(expr) && identical(expr[[1L]], as.name("meta_known_V"))
 }
 
@@ -378,6 +515,7 @@ extract_meta_known_v_arg <- function(expr) {
 }
 
 formula_contains_call <- function(expr, name) {
+  expr <- strip_parens(expr)
   if (!is.call(expr)) {
     return(FALSE)
   }
@@ -387,6 +525,13 @@ formula_contains_call <- function(expr, name) {
       function(part) formula_contains_call(part, name),
       logical(1)
     ))
+}
+
+strip_parens <- function(expr) {
+  while (is.call(expr) && identical(expr[[1L]], as.name("("))) {
+    expr <- expr[[2L]]
+  }
+  expr
 }
 
 evaluate_known_v <- function(expr, data, env) {
@@ -423,7 +568,8 @@ subset_known_v <- function(V_known, keep) {
   out
 }
 
-gaussian_ls_start <- function(y, X_mu, X_sigma, V_known = rep(0, length(y))) {
+gaussian_ls_start <- function(y, X_mu, X_sigma, V_known = rep(0, length(y)),
+                              re_mu = empty_random_intercept_structure(length(y))) {
   lm_start <- stats::lm.fit(x = X_mu, y = y)
   beta_mu <- lm_start$coefficients
   beta_mu[is.na(beta_mu)] <- 0
@@ -447,7 +593,14 @@ gaussian_ls_start <- function(y, X_mu, X_sigma, V_known = rep(0, length(y))) {
   beta_sigma <- numeric(ncol(X_sigma))
   beta_sigma[1L] <- log(sigma0)
 
-  list(beta_mu = beta_mu, beta_sigma = beta_sigma)
+  re_start <- gaussian_mu_re_start(resid, re_mu, y_scale)
+
+  list(
+    beta_mu = beta_mu,
+    beta_sigma = beta_sigma,
+    u_mu = re_start$u_mu,
+    log_sd_mu = re_start$log_sd_mu
+  )
 }
 
 gaussian_ls_dummy_start <- function() {
@@ -457,6 +610,34 @@ gaussian_ls_dummy_start <- function() {
     beta_sigma1 = 0,
     beta_sigma2 = 0,
     beta_rho12 = 0
+  )
+}
+
+gaussian_mu_re_start <- function(resid, re_mu, y_scale) {
+  if (re_mu$n_re == 0L) {
+    return(list(u_mu = 0, log_sd_mu = 0))
+  }
+
+  log_sd_mu <- numeric(re_mu$n_terms)
+  for (k in seq_len(re_mu$n_terms)) {
+    group_means <- stats::aggregate(
+      resid,
+      by = list(group = re_mu$index[, k]),
+      FUN = mean
+    )$x
+    sd0 <- stats::sd(group_means)
+    if (!is.finite(sd0) || sd0 <= 0) {
+      sd0 <- 0.25 * y_scale
+    }
+    if (!is.finite(sd0) || sd0 <= 0) {
+      sd0 <- 0.25
+    }
+    log_sd_mu[[k]] <- log(max(sd0, 1e-4))
+  }
+
+  list(
+    u_mu = rep(0, re_mu$n_re),
+    log_sd_mu = log_sd_mu
   )
 }
 
@@ -489,7 +670,7 @@ biv_gaussian_start <- function(y1, y2, X_mu1, X_mu2, X_sigma1, X_sigma2, X_rho12
   beta_rho12[1L] <- atanh(rho)
 
   c(
-    list(beta_mu = 0, beta_sigma = 0),
+    list(beta_mu = 0, beta_sigma = 0, u_mu = 0, log_sd_mu = 0),
     list(
       beta_mu1 = beta_mu1,
       beta_mu2 = beta_mu2,
@@ -500,20 +681,27 @@ biv_gaussian_start <- function(y1, y2, X_mu1, X_mu2, X_sigma1, X_sigma2, X_rho12
   )
 }
 
-gaussian_ls_map <- function() {
-  list(
+gaussian_ls_map <- function(re_mu = empty_random_intercept_structure(1L)) {
+  out <- list(
     beta_mu1 = factor(NA),
     beta_mu2 = factor(NA),
     beta_sigma1 = factor(NA),
     beta_sigma2 = factor(NA),
     beta_rho12 = factor(NA)
   )
+  if (re_mu$n_re == 0L) {
+    out$u_mu <- factor(NA)
+    out$log_sd_mu <- factor(NA)
+  }
+  out
 }
 
 biv_gaussian_map <- function() {
   list(
     beta_mu = factor(NA),
-    beta_sigma = factor(NA)
+    beta_sigma = factor(NA),
+    u_mu = factor(NA),
+    log_sd_mu = factor(NA)
   )
 }
 
@@ -532,7 +720,10 @@ make_tmb_data <- function(spec) {
       X_mu2 = dummy_matrix,
       X_sigma1 = dummy_matrix,
       X_sigma2 = dummy_matrix,
-      X_rho12 = dummy_matrix
+      X_rho12 = dummy_matrix,
+      n_mu_re_terms = spec$random$mu$n_terms,
+      mu_re_index = spec$random$mu$index0,
+      mu_re_term = spec$random$mu$term_id0
     ))
   }
   list(
@@ -547,7 +738,10 @@ make_tmb_data <- function(spec) {
     X_mu2 = spec$X$mu2,
     X_sigma1 = spec$X$sigma1,
     X_sigma2 = spec$X$sigma2,
-    X_rho12 = spec$X$rho12
+    X_rho12 = spec$X$rho12,
+    n_mu_re_terms = 0L,
+    mu_re_index = matrix(0L, nrow = 1L, ncol = 1L),
+    mu_re_term = 0L
   )
 }
 
@@ -578,4 +772,37 @@ split_tmb_parameters <- function(par, spec) {
     sigma2 = beta_sigma2,
     rho12 = beta_rho12
   )
+}
+
+split_tmb_sdpars <- function(par, spec) {
+  if (!identical(spec$model_type, "gaussian") || spec$random$mu$n_re == 0L) {
+    return(list())
+  }
+  sd_mu <- exp(unname(par$log_sd_mu[seq_len(spec$random$mu$n_terms)]))
+  names(sd_mu) <- spec$random$mu$labels
+  list(mu = sd_mu)
+}
+
+split_tmb_random_effects <- function(par, spec) {
+  if (!identical(spec$model_type, "gaussian") || spec$random$mu$n_re == 0L) {
+    return(list())
+  }
+
+  latent <- unname(par$u_mu[seq_len(spec$random$mu$n_re)])
+  sd_by_term <- exp(unname(par$log_sd_mu[seq_len(spec$random$mu$n_terms)]))
+  values <- latent * sd_by_term[spec$random$mu$term_id0 + 1L]
+  names(values) <- spec$random$mu$value_names
+  by_term <- vector("list", spec$random$mu$n_terms)
+  names(by_term) <- spec$random$mu$labels
+  start <- 1L
+  for (k in seq_len(spec$random$mu$n_terms)) {
+    n_group <- length(spec$random$mu$groups[[k]])
+    idx <- seq.int(start, length.out = n_group)
+    by_term[[k]] <- values[idx]
+    names(by_term[[k]]) <- spec$random$mu$groups[[k]]
+    start <- start + n_group
+  }
+
+  names(latent) <- spec$random$mu$value_names
+  list(mu = list(values = values, latent = latent, terms = by_term))
 }

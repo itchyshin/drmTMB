@@ -9,9 +9,51 @@ agents, including Codex and Claude Code.
 - Design memory lives in `docs/design/`.
 - Development memory lives in `docs/dev-log/`.
 - Agents should leave concise check-log entries after meaningful work.
+- One agent should act as integrator for each task.
+- Use read-only sidecar agents for design review, likelihood review,
+  documentation review, and validation planning.
+- Use write-capable workers only when their file ownership is narrow and does
+  not overlap with other active work.
 - No agent should revert another agent's or human's work without explicit
   instruction.
 - Likelihood and formula grammar changes require tests and design-doc updates.
+
+## Starting A New Conversation
+
+If a future Codex or Claude Code conversation starts outside this project, give
+it the repository path:
+
+```text
+/Users/z3437171/Dropbox/Github Local/drmTMB
+```
+
+Then ask it to read:
+
+- `AGENTS.md`;
+- `CLAUDE.md` for Claude Code;
+- `ROADMAP.md`;
+- `docs/design/00-vision.md`;
+- `docs/design/01-formula-grammar.md`;
+- the latest files in `docs/dev-log/after-task/`;
+- `docs/dev-log/check-log.md`.
+
+The project should remain reproducible from repo files, not from hidden agent
+memory. Important decisions should therefore be committed to design docs,
+check logs, after-task notes, or issues before moving on.
+
+## Current Agent Team
+
+| Role name | Kind | Responsibility |
+| --- | --- | --- |
+| Codex orchestrator | integrator | Implement, test, document, commit, push, and watch CI/pkgdown. |
+| Boole | R/API reviewer | Formula parser, R API, S3 methods, user-facing errors. |
+| Gauss | TMB reviewer | Likelihoods, parameter transforms, Laplace/random-effect numerics. |
+| Noether | formula taxonomy reviewer | Formula grammar, family composition, `rho12` naming, correlation namespaces. |
+| Darwin | ecology/pkgdown reviewer | Biological examples, pkgdown structure, gllvmTMB sibling positioning. |
+| Fisher | validation reviewer | Comparator-package checks, simulation recovery, CRAN versus long tests. |
+
+Most of these are sidecars, not permanent processes. The durable version of
+their advice must be copied into repository documents.
 
 ## Claude Code
 

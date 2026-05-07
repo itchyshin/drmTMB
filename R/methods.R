@@ -8,6 +8,9 @@ print.drmTMB <- function(x, ...) {
   )
   cli::cli_text("<drmTMB {label} fit>")
   cli::cli_text("  observations: {x$nobs}")
+  if (has_mu_random_intercepts(x)) {
+    cli::cli_text("  mu random-intercept terms: {length(x$sdpars$mu)}")
+  }
   cli::cli_text("  logLik: {format(x$logLik, digits = 4)}")
   cli::cli_text("  convergence: {x$opt$convergence}")
   invisible(x)
@@ -24,7 +27,8 @@ coef.drmTMB <- function(object, dpar = NULL, ...) {
 
 #' @export
 vcov.drmTMB <- function(object, ...) {
-  out <- object$sdr$cov.fixed
+  n_coef <- length(unlist(object$coefficients, use.names = FALSE))
+  out <- object$sdr$cov.fixed[seq_len(n_coef), seq_len(n_coef), drop = FALSE]
   labels <- coefficient_labels(object)
   if (length(labels) == nrow(out)) {
     dimnames(out) <- list(labels, labels)
@@ -51,6 +55,9 @@ predict.drmTMB <- function(object, newdata = NULL, dpar = NULL,
   type <- match.arg(type)
   X <- drm_prediction_matrix(object, newdata, dpar)
   eta <- as.vector(X %*% object$coefficients[[dpar]])
+  if (is.null(newdata) && dpar == "mu" && has_mu_random_intercepts(object)) {
+    eta <- eta + mu_random_intercept_contribution(object)
+  }
 
   if (type == "link" || dpar %in% c("mu", "mu1", "mu2")) {
     return(eta)
@@ -160,6 +167,7 @@ summary.drmTMB <- function(object, ...) {
       row.names = coefficient_labels(object),
       check.names = FALSE
     ),
+    sdpars = object$sdpars,
     logLik = stats::logLik(object),
     convergence = object$opt$convergence
   )
@@ -171,6 +179,10 @@ summary.drmTMB <- function(object, ...) {
 print.summary.drmTMB <- function(x, ...) {
   cli::cli_text("<summary.drmTMB>")
   print(x$coefficients)
+  if (length(x$sdpars) > 0L) {
+    cli::cli_text("Random-effect SDs:")
+    print(x$sdpars)
+  }
   cli::cli_text("logLik: {format(as.numeric(x$logLik), digits = 4)}")
   cli::cli_text("convergence: {x$convergence}")
   invisible(x)
@@ -198,4 +210,15 @@ coefficient_labels <- function(object) {
   unlist(lapply(names(object$coefficients), function(dpar) {
     paste0(dpar, ":", names(object$coefficients[[dpar]]))
   }), use.names = FALSE)
+}
+
+has_mu_random_intercepts <- function(object) {
+  identical(object$model$model_type, "gaussian") &&
+    length(object$random_effects$mu$values) > 0L
+}
+
+mu_random_intercept_contribution <- function(object) {
+  values <- object$random_effects$mu$values
+  index <- object$model$random$mu$index
+  rowSums(matrix(values[index], nrow = nrow(index)))
 }

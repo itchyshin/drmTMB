@@ -1,8 +1,8 @@
 ---
-title: "Bivariate location-coscale models"
+title: "Changing trait coupling with rho12"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Bivariate location-coscale models}
+  %\VignetteIndexEntry{Changing trait coupling with rho12}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -19,12 +19,12 @@ Current fixed-effect syntax:
 ```r
 drmTMB(
   bf(
-    mu1 = y1 ~ x1 + x2,
-    mu2 = y2 ~ x1,
-    sigma1 = ~ z1,
-    sigma2 = ~ z2,
-    rho12 = ~ w
-  ),
+	    mu1 = y1 ~ x1 + x2,
+	    mu2 = y2 ~ x1,
+	    sigma1 = ~ x1 + x2,
+	    sigma2 = ~ x1,
+	    rho12 = ~ x1 + x2
+	  ),
   family = biv_gaussian(),
   data = dat
 )
@@ -48,12 +48,12 @@ Minimal runnable example:
 ```r
 set.seed(1)
 n <- 300
-dat <- data.frame(x = rnorm(n), z1 = rnorm(n), z2 = rnorm(n), w = rnorm(n))
-mu1 <- 0.2 + 0.5 * dat$x
-mu2 <- -0.1 + 0.4 * dat$x
-sigma1 <- exp(-0.2 + 0.2 * dat$z1)
-sigma2 <- exp(0.1 - 0.2 * dat$z2)
-rho12 <- tanh(-0.1 + 0.4 * dat$w)
+dat <- data.frame(x1 = rnorm(n), x2 = rnorm(n), x3 = rnorm(n))
+mu1 <- 0.2 + 0.5 * dat$x1 + 0.2 * dat$x2
+mu2 <- -0.1 + 0.4 * dat$x1
+sigma1 <- exp(-0.2 + 0.2 * dat$x1 - 0.1 * dat$x2)
+sigma2 <- exp(0.1 - 0.2 * dat$x1)
+rho12 <- tanh(-0.1 + 0.4 * dat$x3)
 e1 <- rnorm(n)
 e2 <- rho12 * e1 + sqrt(1 - rho12^2) * rnorm(n)
 dat$y1 <- mu1 + sigma1 * e1
@@ -61,12 +61,12 @@ dat$y2 <- mu2 + sigma2 * e2
 
 fit <- drmTMB(
   bf(
-    mu1 = y1 ~ x,
-    mu2 = y2 ~ x,
-    sigma1 = ~ z1,
-    sigma2 = ~ z2,
-    rho12 = ~ w
-  ),
+	    mu1 = y1 ~ x1 + x2,
+	    mu2 = y2 ~ x1,
+	    sigma1 = ~ x1 + x2,
+	    sigma2 = ~ x1,
+	    rho12 = ~ x3
+	  ),
   family = biv_gaussian(),
   data = dat
 )
@@ -75,6 +75,10 @@ coef(fit, "rho12")
 predict(fit, dpar = "rho12")[1:5]
 ```
 
-The middle `p` in `(1 | p | id)` follows brms-style grouping for correlated
-group-level effects. That random-effect syntax is planned but not implemented
-yet. It is distinct from residual `rho12`.
+For ecological and evolutionary examples, `rho12` can represent changing
+residual coupling between traits such as activity and boldness, body size and
+fecundity, or leaf area and seed number.
+
+The middle `p` in `(1 | p | id)` follows grouped covariance-block syntax for
+correlated group-level effects. That random-effect syntax is planned but not
+implemented yet. It is distinct from residual `rho12`.

@@ -12,17 +12,17 @@ planned.
 ## Implemented Diagonal MVP Syntax
 
 ```r
-drmTMB(
-  bf(
-    yi ~ moderator + meta_known_V(V = vi),
-    sigma ~ moderator
-  ),
+	drmTMB(
+	  bf(
+	    yi ~ x1 + x2 + meta_known_V(V = V),
+	    sigma ~ x1
+	  ),
   family = gaussian(),
   data = dat
 )
 ```
 
-The response is on the left-hand side. `meta_known_V(V = vi)` supplies known
+The response is on the left-hand side. `meta_known_V(V = V)` supplies known
 sampling variance and should not repeat the response name.
 
 ## Known Covariance Input
@@ -52,8 +52,8 @@ The public API uses `sigma` consistently:
 
 ```r
 bf(
-  yi ~ moderator + meta_known_V(V = V),
-  sigma ~ moderator
+  yi ~ x1 + x2 + meta_known_V(V = V),
+  sigma ~ x1
 )
 ```
 
@@ -75,15 +75,15 @@ Location-scale meta-analysis is a central use case:
 
 ```r
 bf(
-  yi ~ moderator + meta_known_V(V = vi),
-  sigma ~ moderator
+  yi ~ x1 + x2 + meta_known_V(V = V),
+  sigma ~ x1
 )
 ```
 
 This follows the idea that categorical and continuous moderators can explain
 between-study heterogeneity, not only average effect size.
 
-Example interpretation: if the `sigma` slope for a binary moderator is `-0.4`,
+Example interpretation: if the `sigma` slope for a binary moderator `x1` is `-0.4`,
 then the extra heterogeneity SD is multiplied by `exp(-0.4) = 0.67` for the
 moderator group, after adding the known sampling variance `vi`.
 
@@ -93,8 +93,8 @@ Some meta-analyses require more than one unknown scale component:
 
 ```r
 bf(
-  yi ~ moderator + meta_known_V(V = V) + (1 | study) + (1 | species),
-  sd(study) ~ moderator,
+  yi ~ x1 + x2 + meta_known_V(V = V) + (1 | study) + (1 | species),
+  sd(study) ~ x1,
   sd(species) ~ 1
 )
 ```

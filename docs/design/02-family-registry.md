@@ -28,11 +28,27 @@ drm_family(
 )
 ```
 
-This is implemented for fixed-effect models, including optional diagonal known
-sampling variance through `meta_known_V(V = vi)`. Random effects, sparse known
-covariance, and additional families are later phases.
+This is implemented for fixed-effect models, optional univariate `mu` random
+intercepts, and optional diagonal known sampling variance through
+`meta_known_V(V = vi)`. Sparse known covariance and additional families are
+later phases.
 
 ## Implemented: Bivariate Gaussian Location-Coscale
+
+The stable public direction for two-response models is composed response
+families:
+
+```r
+family = c(gaussian(), gaussian())
+family = c(gaussian(), poisson())
+```
+
+This is easier for mixed ecological responses such as body mass plus fecundity
+counts. A composed family must still declare a coherent joint likelihood and
+state what `rho12` means: observed residual correlation, latent residual
+correlation, a copula parameter, or unsupported. The current `biv_gaussian()`
+object is the implemented all-Gaussian prototype and a useful internal testing
+target, not a commitment to one named family for every response combination.
 
 ```r
 biv_gaussian <- function() {
@@ -58,14 +74,15 @@ scale, and residual-correlation formulas:
 bf(
   mu1 = y1 ~ x1 + x2,
   mu2 = y2 ~ x1,
-  sigma1 = ~ z1,
-  sigma2 = ~ z2,
-  rho12 = ~ w
+  sigma1 = ~ x1 + x2,
+  sigma2 = ~ x1,
+  rho12 = ~ x1 + x2
 )
 ```
 
 `rho12` uses an atanh link internally and `tanh()` on the response scale.
-Random effects and `mvbind()` shorthand are planned but not implemented.
+Univariate Gaussian `mu` random intercepts are implemented; bivariate random
+effects and `mvbind()` shorthand are planned but not implemented.
 
 ## Design Principle
 

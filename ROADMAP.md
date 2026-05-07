@@ -15,8 +15,9 @@ distributional regression models using TMB.
 ## Phase 1: Gaussian Location-Scale MVP
 
 - Status: initial MVP implemented.
-- `bf()` and `drmTMB()` support fixed-effect Gaussian location-scale models.
-- Supported syntax: `bf(y ~ x, sigma ~ z)`.
+- `bf()` and `drmTMB()` support Gaussian location-scale models with fixed
+  effects and `mu` random intercepts.
+- Supported syntax: `bf(y ~ x1 + (1 | id), sigma ~ x1)`.
 - Keep parser support for future `sd(group) ~`, `meta_known_V(V = V)`,
   `phylo()`, and `spatial()` terms from the start.
 - Prediction for `mu` and `sigma` is implemented.
@@ -30,7 +31,7 @@ distributional regression models using TMB.
 - Support diagonal known sampling variance through vectors, columns, or diagonal
   matrices.
 - Add full or block-diagonal known covariance after diagonal tests pass.
-- Use `sigma ~ moderator` for heterogeneous heterogeneity, even when papers
+- Use `sigma ~ x1` for heterogeneous heterogeneity, even when papers
   describe the same unknown SD as `tau`.
 - Tests based on fixed known sampling variance and known extra heterogeneity
   are implemented.
@@ -44,11 +45,16 @@ distributional regression models using TMB.
 - Added predictor-dependent `rho12 ~ x` using the Fisher-z/atanh scale.
 - Added simulation tests for positive, near-zero, negative, and
   predictor-dependent residual correlations.
+- Public bivariate family grammar should move toward composed families such as
+  `family = c(gaussian(), gaussian())` and `family = c(gaussian(), poisson())`
+  where the joint likelihood is defined.
 - Random effects and `mvbind()` shorthand remain future work.
 
 ## Phase 4: Mixed and Double-Hierarchical Models
 
-- Add random intercepts in the location formula.
+- Status: random intercepts in the univariate Gaussian location formula are
+  implemented.
+- Add random slopes in the location formula.
 - Add random intercepts in scale formulae.
 - Add random-effect scale formulae such as `sd(id) ~ x`.
 - Support multiple random-effect scale components, such as `sd(study) ~ x` and

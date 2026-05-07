@@ -2,8 +2,9 @@ Package: drmTMB
 Title: Distributional Regression Models Using Template Model Builder
 Version: 0.0.0.9000
 Authors@R: c(
-    person("drmTMB", "contributors", email = "maintainer@example.com",
-           role = c("aut", "cre"))
+    person("Shinichi", "Nakagawa", email = "itchyshin@gmail.com",
+           role = c("aut", "cre", "cph"),
+           comment = c(ORCID = "0000-0002-7765-5182"))
   )
 Description: Fast distributional regression models for univariate and
     bivariate responses using Template Model Builder. The package is designed

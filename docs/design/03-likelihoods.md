@@ -10,14 +10,18 @@ Likelihoods are implemented in TMB templates and called from R wrappers.
   on the response scale.
 - Shape parameters use family-specific stable links.
 
-## Current Gaussian Location-Scale MVP
+## Implemented Gaussian Location-Scale
 
-Gaussian location-scale is implemented for fixed-effect models:
+Gaussian location-scale is implemented for fixed-effect models and for
+univariate Gaussian location random intercepts:
 
 ```text
 y_i ~ Normal(mu_i, sigma_i)
-mu_i = X_mu beta_mu
+mu_i = X_mu beta_mu + sum_j b_{j, group_j[i]}
 log(sigma_i) = X_sigma beta_sigma
+b_{j, g} = sd_j * u_{j, g}
+u_{j, g} ~ Normal(0, 1)
+log(sd_j) = theta_j
 ```
 
 Residuals are not part of the formula grammar. They are computed downstream
@@ -30,9 +34,10 @@ Implementation notes:
 - Positive `sigma` uses `log(sigma_i) = X_sigma beta_sigma`.
 - Simulation recovery tests live in
   `tests/testthat/test-gaussian-location-scale.R`.
+- Random-intercept recovery tests live in
+  `tests/testthat/test-gaussian-random-intercepts.R`.
 - The univariate likelihood supports optional diagonal known sampling variance via
-  `meta_known_V(V = vi)`. It has no random effects and no residual correlation
-  parameter.
+  `meta_known_V(V = vi)`. It has no residual correlation parameter.
 
 ## Implemented Diagonal Meta-Analytic Gaussian Regression
 
@@ -93,13 +98,13 @@ Implemented fixed-effect syntax:
 
 ```r
 drmTMB(
-  bf(
-    mu1 = y1 ~ x1 + x2,
-    mu2 = y2 ~ x1,
-    sigma1 = ~ z1,
-    sigma2 = ~ z2,
-    rho12 = ~ w
-  ),
+	  bf(
+	    mu1 = y1 ~ x1 + x2,
+	    mu2 = y2 ~ x1,
+	    sigma1 = ~ x1 + x2,
+	    sigma2 = ~ x1,
+	    rho12 = ~ x1 + x2
+	  ),
   family = biv_gaussian(),
   data = dat
 )

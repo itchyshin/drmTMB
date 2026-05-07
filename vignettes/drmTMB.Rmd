@@ -1,8 +1,8 @@
 ---
-title: "Getting started with drmTMB"
+title: "Distributional regression for biological data"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Getting started with drmTMB}
+  %\VignetteIndexEntry{Distributional regression for biological data}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -11,11 +11,12 @@ vignette: >
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 ```
 
-`drmTMB` currently implements fixed-effect Gaussian location-scale models:
+`drmTMB` currently implements Gaussian location-scale models with fixed effects
+and optional random intercepts in the location formula:
 
 ```r
 drmTMB(
-  bf(y ~ x, sigma ~ z),
+  bf(y ~ x1 + (1 | id), sigma ~ x1),
   family = gaussian(),
   data = dat
 )
@@ -27,12 +28,12 @@ predictor-dependent residual correlation:
 ```r
 drmTMB(
   bf(
-    mu1 = y1 ~ x1 + x2,
-    mu2 = y2 ~ x1,
-    sigma1 = ~ z1,
-    sigma2 = ~ z2,
-    rho12 = ~ w
-  ),
+	    mu1 = y1 ~ x1 + x2,
+	    mu2 = y2 ~ x1,
+	    sigma1 = ~ x1 + x2,
+	    sigma2 = ~ x1,
+	    rho12 = ~ x1 + x2
+	  ),
   family = biv_gaussian(),
   data = dat
 )
@@ -43,10 +44,10 @@ variance marker:
 
 ```r
 drmTMB(
-  bf(
-    yi ~ moderator + meta_known_V(V = V),
-    sigma ~ moderator
-  ),
+	  bf(
+	    yi ~ x1 + x2 + meta_known_V(V = V),
+	    sigma ~ x1
+	  ),
   family = gaussian(),
   data = dat
 )

@@ -16,9 +16,13 @@ simulation, and recovery tests.
 
 These are the package-defining families.
 
-- `biv_gaussian()`: `mu1`, `mu2`, `sigma1`, `sigma2`, `rho12`
-  implemented for fixed-effect models.
-- `biv_student()`: `mu1`, `mu2`, `sigma1`, `sigma2`, `rho12`, `nu`.
+- `c(gaussian(), gaussian())`: public direction for `mu1`, `mu2`,
+  `sigma1`, `sigma2`, and `rho12`.
+- `biv_gaussian()`: currently implemented all-Gaussian prototype for
+  fixed-effect models.
+- `c(student(), student())`: later robust bivariate model with `nu`.
+- `c(gaussian(), poisson())` and other mixed ecological responses: later only
+  after the joint likelihood and meaning of `rho12` are designed.
 
 `rho12 ~ predictors` is the flagship feature and is now implemented for the
 Gaussian fixed-effect path. It should be hardened before the package grows a
@@ -32,8 +36,8 @@ covariance marker:
 
 ```r
 bf(
-  yi ~ moderator + meta_known_V(V = V),
-  sigma ~ moderator
+  yi ~ x1 + x2 + meta_known_V(V = V),
+  sigma ~ x1
 )
 ```
 

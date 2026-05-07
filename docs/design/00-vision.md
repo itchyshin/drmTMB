@@ -1,12 +1,17 @@
 # Vision
 
 `drmTMB` provides fast distributional regression models using TMB, focused on
-univariate and bivariate responses.
+univariate and bivariate responses for ecologists, evolutionary biologists, and
+environmental scientists.
 
 The package identity is:
 
-> brms-like distributional formulae, glmmTMB-like speed, GAMLSS-style
+> memorable distributional formulae, glmmTMB-like speed, GAMLSS-style
 > parameter modelling, and explicit bivariate coscale models.
+
+`brms` is an important conceptual reference, but `drmTMB` should not copy its
+grammar wholesale. The public grammar should be easy to remember for applied
+biologists and strict enough to keep the TMB implementation identifiable.
 
 ## Core Idea
 
@@ -26,15 +31,16 @@ scale effects.
 
 ## Signature Feature
 
-The flagship syntax is:
+The flagship syntax should read like two biological response models plus
+formulae for scale and residual coupling:
 
 ```r
-bf(
-  mu1 = y1 ~ x1 + (1 | p | id),
-  mu2 = y2 ~ x2 + (1 | p | id),
-  sigma1 = ~ z1,
-  sigma2 = ~ z2,
-  rho12 = ~ w
+drm_formula(
+  mu1 = y1 ~ x1 + x2 + (1 | p | id),
+  mu2 = y2 ~ x1      + (1 | p | id),
+  sigma1 = ~ x1 + x2,
+  sigma2 = ~ x1,
+  rho12 = ~ x1 + x2
 )
 ```
 
@@ -42,6 +48,22 @@ The `rho12` formula models residual correlation as a scientific response
 rather than treating covariance homogeneity as a default assumption. The
 `|p|` label controls group-level random-effect correlation blocks and is not
 the same thing as residual `rho12`.
+
+The exact constructor name remains a public-API decision. The prototype uses
+`bf()` for speed, but a package-specific spelling such as `drm_formula()` should
+be reconsidered before API stabilization. Avoid a helper named `formula()`,
+which would be too easily confused with base R's formula tooling.
+
+## Audience And Examples
+
+Examples, vignettes, and pkgdown pages should usually use biological questions:
+
+- treatment effects on mean and among-individual variability;
+- environmental stress changing residual trait coupling;
+- personality, plasticity, predictability, and malleability;
+- phylogenetic comparative location-scale models;
+- spatial and spatiotemporal environmental gradients;
+- ecological and evolutionary meta-analysis.
 
 ## Sibling Boundary
 

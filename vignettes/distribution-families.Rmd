@@ -1,8 +1,8 @@
 ---
-title: "Choosing distribution families"
+title: "Choosing families for ecological responses"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Choosing distribution families}
+  %\VignetteIndexEntry{Choosing families for ecological responses}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -11,10 +11,25 @@ vignette: >
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 ```
 
-This article will help users choose response families for continuous, count,
-proportion, percentage, positive, shape, and ordinal data.
+This article will help users choose response families for biological and
+environmental response data: continuous traits, counts, proportions,
+percentages, positive measurements, shape-sensitive traits, and ordinal scores.
 
 The current planning reference is `docs/design/06-distribution-roadmap.md`.
 
 Meta-analysis is not listed as a separate family. It uses `family = gaussian()`
 with `meta_known_V(V = V)`.
+
+For bivariate models, the preferred public direction is to combine response
+families:
+
+```r
+family = c(gaussian(), gaussian())
+family = c(gaussian(), poisson())
+```
+
+This keeps mixed-response bivariate models natural for ecological data, for
+example body mass with fecundity counts, survival with dispersal counts, or leaf
+area with seed number. The current `biv_gaussian()` object is a prototype for
+the all-Gaussian case, not a commitment to one named family per response
+combination.

@@ -1,8 +1,8 @@
 ---
-title: "Location-scale models"
+title: "When variance is biological signal"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Location-scale models}
+  %\VignetteIndexEntry{When variance is biological signal}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -11,14 +11,25 @@ vignette: >
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 ```
 
-This article introduces the first implemented `drmTMB` model class:
-fixed-effect Gaussian location-scale regression.
+This article introduces the first implemented `drmTMB` model class: Gaussian
+location-scale regression with fixed effects and optional random intercepts in
+the location formula.
 
 Current syntax:
 
 ```r
 drmTMB(
-  bf(y ~ x, sigma ~ z),
+  bf(y ~ x1, sigma ~ x1),
+  family = gaussian(),
+  data = dat
+)
+```
+
+Random-intercept location syntax:
+
+```r
+drmTMB(
+  bf(y ~ x1 + (1 | id), sigma ~ x1),
   family = gaussian(),
   data = dat
 )
@@ -30,8 +41,10 @@ scale:
 
 ```text
 y_i ~ Normal(mu_i, sigma_i)
-mu_i = X_mu beta_mu
+mu_i = X_mu beta_mu + b_group[i]
 log(sigma_i) = X_sigma beta_sigma
+b_group = sd_group * u_group
+u_group ~ Normal(0, 1)
 ```
 
 This means coefficients returned by `coef(fit, "sigma")` are log-standard
@@ -44,15 +57,15 @@ Minimal runnable example:
 
 ```r
 set.seed(1)
-dat <- data.frame(x = rnorm(200), z = rnorm(200))
+dat <- data.frame(x1 = rnorm(200), x2 = rnorm(200))
 dat$y <- rnorm(
   200,
-  mean = 0.5 + 0.8 * dat$x,
-  sd = exp(-0.2 + 0.3 * dat$z)
+  mean = 0.5 + 0.8 * dat$x1,
+  sd = exp(-0.2 + 0.3 * dat$x2)
 )
 
 fit <- drmTMB(
-  bf(y ~ x, sigma ~ z),
+  bf(y ~ x1, sigma ~ x2),
   family = gaussian(),
   data = dat
 )
@@ -68,7 +81,7 @@ standard deviation:
 
 ```r
 fit0 <- drmTMB(
-  bf(y ~ x),
+  bf(y ~ x1),
   family = gaussian(),
   data = dat
 )
@@ -77,7 +90,7 @@ fit0 <- drmTMB(
 ## Current implementation caveats
 
 - The current fitter supports `family = gaussian()` with fixed effects for
-  `mu` and `sigma`.
+  `mu` and `sigma`, and random intercepts in `mu`.
 - The `sigma` formula is the observation-level residual standard deviation. It
   is not a random-effect scale component.
 - Missing rows are dropped when they are incomplete for variables used by
@@ -86,8 +99,8 @@ fit0 <- drmTMB(
   Gaussian meta-analysis.
 - Fixed-effect bivariate Gaussian `rho12` models are implemented in the
   bivariate coscale article.
-- Random effects, `sd(group)` scale formulas, phylogenetic terms, spatial
-  terms, and non-Gaussian families are planned but not implemented in this MVP.
+- Random slopes, `sd(group)` scale formulas, phylogenetic terms, spatial terms,
+  and non-Gaussian families are planned but not implemented in this MVP.
 
 Future multiple scale components will use explicit `sd()` formulas, not extra
 residual `sigma` formulas:
@@ -95,9 +108,9 @@ residual `sigma` formulas:
 ```r
 drmTMB(
   bf(
-    y ~ x + (1 | study) + (1 | species),
-    sigma ~ x,
-    sd(study) ~ x,
+	    y ~ x1 + (1 | study) + (1 | species),
+	    sigma ~ x1,
+	    sd(study) ~ x1,
     sd(species) ~ 1
   ),
   family = gaussian(),

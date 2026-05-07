@@ -161,6 +161,7 @@ test_that("Phase 1 rejects unsupported model syntax clearly", {
   dat <- data.frame(
     y = seq(-1, 1, length.out = 10),
     x = seq(1, 2, length.out = 10),
+    z = seq(0, 1, length.out = 10),
     id = rep(1:2, each = 5)
   )
 
@@ -177,8 +178,16 @@ test_that("Phase 1 rejects unsupported model syntax clearly", {
     "only support"
   )
   expect_error(
-    drmTMB(bf(y ~ x + (1 | id)), family = gaussian(), data = dat),
-    "fixed effects only"
+    drmTMB(bf(y ~ x + (x | id)), family = gaussian(), data = dat),
+    "Only random intercepts"
+  )
+  expect_error(
+    drmTMB(bf(y ~ x + (1 | p | id)), family = gaussian(), data = dat),
+    "Correlated-block syntax"
+  )
+  expect_error(
+    drmTMB(bf(y ~ x, sigma ~ z + (1 | id)), family = gaussian(), data = dat),
+    "unsupported model terms"
   )
   expect_error(
     drmTMB(bf(y ~ x, rho12 = ~ x), family = gaussian(), data = dat),
@@ -186,7 +195,7 @@ test_that("Phase 1 rejects unsupported model syntax clearly", {
   )
   expect_error(
     drmTMB(bf(y ~ x + phylo(id)), family = gaussian(), data = dat),
-    "fixed effects only"
+    "unsupported model terms"
   )
   expect_error(
     drmTMB(
@@ -194,7 +203,7 @@ test_that("Phase 1 rejects unsupported model syntax clearly", {
       family = gaussian(),
       data = dat
     ),
-    "fixed effects only"
+    "unsupported model terms"
   )
   expect_error(
     drmTMB(bf(y ~ x, sd(id) ~ 1), family = gaussian(), data = dat),

@@ -1,8 +1,8 @@
 ---
-title: "Meta-analysis as Gaussian distributional regression"
+title: "Mean effects and heterogeneous heterogeneity"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Meta-analysis as Gaussian distributional regression}
+  %\VignetteIndexEntry{Mean effects and heterogeneous heterogeneity}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -19,8 +19,8 @@ The first implemented meta-analysis path is diagonal known sampling variance:
 ```r
 drmTMB(
   bf(
-    yi ~ moderator + meta_known_V(V = vi),
-    sigma ~ moderator
+    yi ~ x1 + meta_known_V(V = V),
+    sigma ~ x1
   ),
   family = gaussian(),
   data = dat
@@ -46,12 +46,12 @@ A concise runnable example:
 ```r
 dat <- data.frame(
   yi = c(0.10, 0.35, -0.05, 0.42),
-  vi = c(0.04, 0.03, 0.05, 0.02),
-  moderator = c(0, 1, 0, 1)
+  V = c(0.04, 0.03, 0.05, 0.02),
+  x1 = c(0, 1, 0, 1)
 )
 
 fit <- drmTMB(
-  bf(yi ~ moderator + meta_known_V(V = vi), sigma ~ moderator),
+  bf(yi ~ x1 + meta_known_V(V = V), sigma ~ x1),
   family = gaussian(),
   data = dat
 )

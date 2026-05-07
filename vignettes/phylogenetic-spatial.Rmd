@@ -1,8 +1,8 @@
 ---
-title: "Phylogenetic and spatial dependence"
+title: "Dependent species and places: roadmap"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Phylogenetic and spatial dependence}
+  %\VignetteIndexEntry{Dependent species and places: roadmap}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -18,11 +18,11 @@ stable.
 Planned phylogenetic syntax:
 
 ```r
-drmTMB(
-  bf(
-    y ~ x + phylo(species),
-    sigma ~ x
-  ),
+	drmTMB(
+	  bf(
+	    y ~ x1 + phylo(species),
+	    sigma ~ x1
+	  ),
   family = gaussian(),
   data = dat
 )

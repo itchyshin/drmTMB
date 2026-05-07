@@ -235,6 +235,6 @@ test_that("bivariate Gaussian rejects unsupported Phase 3 syntax clearly", {
       family = biv_gaussian(),
       data = dat
     ),
-    "fixed effects only"
+    "unsupported model terms"
   )
 })
