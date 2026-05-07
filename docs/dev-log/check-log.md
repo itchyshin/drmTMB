@@ -998,3 +998,40 @@ Team learning:
   checked alongside the built site after logo or status changes;
 - keep group-level correlation extraction under `corpars`, not under residual
   `rho12`.
+
+## 2026-05-07: Logo Blue-Density Fit Adjustment
+
+Scope:
+
+- adjusted the rightmost blue distribution in the hex logo so its tail fits
+  inside the hex boundary rather than being clipped;
+- synchronized the source SVGs, rendered README/pkgdown PNGs, and favicon
+  assets.
+
+Commands run:
+
+- `rsvg-convert` renders for `man/figures/*.png` and `pkgdown/favicon/*.png`
+- Node-based PNG-in-ICO wrapper for `pkgdown/favicon/favicon.ico`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `Rscript -e "pkgdown::build_site()"`
+- file-type checks for the rendered PNG and ICO assets
+- `rg` checks for the updated blue-curve path in source and built-site SVGs
+
+Results:
+
+- `pkgdown::check_pkgdown()`: no problems found;
+- `pkgdown::build_site()`: completed successfully;
+- the main logo remains 1200 x 1200 RGBA PNG;
+- favicon PNG and ICO assets were regenerated from the same corrected SVG;
+- visual inspection confirmed the blue density now fits inside the hex.
+
+Known issues:
+
+- this was a visual asset-only task; no R code, likelihood, documentation
+  prose, or model examples changed.
+
+Team learning:
+
+- small visual regressions should still pass through the same asset
+  synchronization loop: SVG source, rendered PNGs, favicon derivatives,
+  pkgdown build, and after-task note.

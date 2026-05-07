@@ -25,7 +25,7 @@
     <path id="curveOrange" d="M218 601 C298 596 349 552 419 532 C493 510 564 535 651 601 Z"/>
     <path id="curveRed" d="M589 601 C601 552 608 482 638 467 C674 447 710 507 753 552 C794 596 846 604 897 601 Z"/>
     <path id="curvePurple" d="M658 601 C708 593 721 528 756 482 C786 441 824 466 848 531 C869 586 923 598 982 601 Z"/>
-    <path id="curveBlue" d="M706 601 C784 599 831 553 893 531 C976 502 1039 548 1138 601 Z"/>
+    <path id="curveBlue" d="M690 601 C760 599 805 554 866 532 C940 506 1000 545 1042 601 Z"/>
   </defs>
 
   <path d="M600 44 1058 322v556L600 1156 142 878V322Z" fill="url(#hexFill)" filter="url(#softShadow)"/>
@@ -67,7 +67,7 @@
       <path d="M223 590 C300 584 351 544 420 523 C494 501 563 529 646 590" stroke="#ffdc84" stroke-width="2.1"/>
       <path d="M594 590 C606 548 612 490 640 477 C675 462 705 515 747 558 C789 597 840 593 887 590" stroke="#ffd3cf" stroke-width="2.1"/>
       <path d="M666 590 C710 585 725 529 759 491 C787 459 819 478 842 534 C862 581 915 589 970 590" stroke="#ded7ff" stroke-width="2.1"/>
-      <path d="M715 590 C793 588 836 545 898 524 C973 499 1033 545 1124 590" stroke="#cfe4ff" stroke-width="2.1"/>
+      <path d="M699 590 C773 588 813 546 872 525 C940 502 996 544 1032 590" stroke="#cfe4ff" stroke-width="2.1"/>
     </g>
 
     <path d="M142 604 H1058" stroke="#f8fbfb" stroke-width="11" stroke-linecap="round"/>
