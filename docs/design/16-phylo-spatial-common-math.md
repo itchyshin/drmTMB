@@ -193,6 +193,32 @@ phylogenetic or spatial models are advertised as routine. These checks should
 summarize replication by grouping level, matrix rank/conditioning, and whether
 structured and unstructured effects are plausibly separable.
 
+## Structured Slopes
+
+Phylogenetic and spatial random slopes are mathematically natural but should be
+introduced more slowly than ordinary grouped random slopes. The shared symbolic
+form is:
+
+```text
+z_s ~ MVN(0, sigma_slope^2 K)
+mu_i = X_mu[i, ] beta_mu + x_i z_s[index_i]
+```
+
+where `K` is a phylogenetic relationship matrix, a spatial covariance matrix,
+or an implicit SPDE covariance. Each additional structured slope adds another
+latent vector or field, and possibly cross-covariances with intercept fields in
+later models.
+
+Recommended staging:
+
+- implement intercept-only structured effects first;
+- then one structured slope in `mu`;
+- delay interaction slopes until simulation studies show reliable recovery;
+- delay structured slopes in `sigma` and `rho12` until the location model is
+  stable;
+- warn when the number of structured slopes is large relative to species,
+  location, study, or within-group replication.
+
 ## Boundary With rho12
 
 `rho12` is residual response-response correlation at the observation level:

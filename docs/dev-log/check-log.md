@@ -816,3 +816,17 @@ Team learning:
   correlated syntax, and non-numeric slope rejection in one pass.
 - Rose: stale wording tends to persist in vignettes after implementation
   changes, so after-task scans should include articles as well as design docs.
+
+Follow-up design clarification:
+
+- ordinary grouped random effects may have several separate independent numeric
+  random slopes in the current implementation, for example
+  `(0 + x1 | id) + (0 + x2 | id)`;
+- random interaction slopes are currently supported only by precomputing the
+  interaction column before fitting;
+- future correlated blocks such as `(1 + x1 + x2 + x1:x2 | id)` should be
+  supported only with explicit covariance-block parameterization and simulation
+  checks;
+- phylogenetic and spatial random slopes should be staged more conservatively:
+  intercept-only first, then one structured slope in `mu`, then only a small
+  number of slopes or interaction slopes after strong recovery evidence.

@@ -124,9 +124,42 @@ The current independent intercept-plus-slope form is:
 bf(y ~ x1 + (1 | id) + (0 + x1 | id), sigma ~ x1)
 ```
 
+Multiple ordinary random slopes may be written as separate independent terms:
+
+```r
+bf(
+  y ~ x1 + x2 + (1 | id) + (0 + x1 | id) + (0 + x2 | id),
+  sigma ~ x1
+)
+```
+
+Interactions are not parsed directly as random slopes yet. For now, create the
+interaction column explicitly:
+
+```r
+dat$x1_x2 <- dat$x1 * dat$x2
+bf(y ~ x1 * x2 + (0 + x1_x2 | id), sigma ~ x1)
+```
+
 Do not write `(1 + x1 | id)` yet if you need the random intercept and random
 slope correlation; that syntax is reserved for the correlated covariance-block
 implementation.
+
+Future correlated multi-slope syntax should allow model-matrix terms such as:
+
+```r
+bf(y ~ x1 * x2 + (1 + x1 + x2 + x1:x2 | id), sigma ~ x1)
+```
+
+or labelled covariance blocks:
+
+```r
+bf(y ~ x1 * x2 + (1 + x1 + x2 + x1:x2 | p | id), sigma ~ x1)
+```
+
+A block with `q` random coefficients has `q * (q + 1) / 2` covariance
+parameters, so large random-slope blocks need simulation checks and clear user
+warnings.
 
 Use `sd(group) ~` for random-effect scale components:
 

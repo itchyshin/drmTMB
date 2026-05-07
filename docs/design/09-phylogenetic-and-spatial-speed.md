@@ -154,6 +154,29 @@ scale and coscale predictors, for example phylogenetic effects in
 with strong simulation evidence because they are much harder to identify than
 fixed-effect `rho12 ~ predictors`.
 
+## Structured Random-Slope Policy
+
+Ordinary grouped random slopes can be more permissive than phylogenetic and
+spatial random slopes. A term such as `(0 + x | id)` adds one independent
+group-level coefficient per group. A phylogenetic or spatial slope adds another
+structured latent vector or field, which is harder to separate from ordinary
+random effects, residual scale, and fixed effects.
+
+Implementation should therefore proceed in this order:
+
+1. intercept-only phylogenetic or spatial structured effects in `mu`;
+2. one structured random slope in `mu`, with strong simulation recovery;
+3. at most a small number of structured slopes after diagnostics show the data
+   have enough replication and design variation;
+4. interaction slopes only as experimental models with explicit warnings;
+5. structured slopes in `sigma` or `rho12` only after the `mu` path is stable.
+
+The number of possible slopes is not a hard mathematical limit, but the package
+should impose conservative defaults and diagnostics. For spatially varying
+coefficients or phylogenetic slope variation, the user-facing syntax can be
+generous later; the first implementation should be sparse, staged, and easy to
+validate.
+
 ## Reuse Policy
 
 `drmTMB` is a sister package to `gllvmTMB`, not a fork. Reuse should be

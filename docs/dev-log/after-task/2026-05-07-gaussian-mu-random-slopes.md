@@ -150,9 +150,31 @@ Results:
 
 - Correlated random intercept/slope blocks are not implemented.
 - Labelled covariance blocks such as `(1 + x | p | id)` are not implemented.
+- Multiple independent ordinary random slopes are possible as separate
+  `(0 + x | id)` terms, but correlated multi-slope blocks are not implemented.
+- Interaction random slopes require a precomputed interaction column for now.
 - Random effects in `sigma`, `mu1`, and `mu2` are not implemented.
 - Factor and multi-column random slopes are not implemented.
 - Phylogenetic A-inverse and spatial SPDE random effects remain planned.
+
+## Follow-Up Design Clarification
+
+Ordinary grouped random slopes and structured phylogenetic/spatial random
+slopes should not be released at the same pace.
+
+For ordinary grouped effects, the current implementation can support several
+separate independent numeric slopes:
+
+```r
+bf(
+  y ~ x1 + x2 + (1 | id) + (0 + x1 | id) + (0 + x2 | id),
+  sigma ~ x1
+)
+```
+
+For phylogenetic and spatial effects, start with intercept-only structured
+effects, then one structured slope in `mu`, and delay multiple slopes or
+interaction slopes until simulation evidence shows they can be recovered.
 
 ## Next Step
 

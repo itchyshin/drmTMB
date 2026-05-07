@@ -52,6 +52,27 @@ bf(
 )
 ```
 
+Several ordinary random slopes are allowed as separate independent variance
+components:
+
+```r
+bf(
+  y ~ x1 + x2 + (1 | id) + (0 + x1 | id) + (0 + x2 | id),
+  sigma ~ x1
+)
+```
+
+Interaction slopes are not parsed as formula expressions yet. The temporary
+safe workflow is to create the interaction column before fitting:
+
+```r
+dat$x1_x2 <- dat$x1 * dat$x2
+bf(
+  y ~ x1 * x2 + (0 + x1_x2 | id),
+  sigma ~ x1
+)
+```
+
 Current implementation details:
 
 - supported only for univariate Gaussian `mu`;
@@ -67,6 +88,32 @@ Current implementation details:
 - `newdata` prediction currently uses fixed effects only;
 - grouping variables with fewer than two levels or only singleton groups are
   rejected.
+
+## Correlated Multi-Slope Blocks
+
+Future correlated ordinary random-effect blocks should support:
+
+```r
+bf(
+  y ~ x1 * x2 + (1 + x1 + x2 + x1:x2 | id),
+  sigma ~ x1
+)
+```
+
+and labelled covariance-block syntax:
+
+```r
+bf(
+  y ~ x1 * x2 + (1 + x1 + x2 + x1:x2 | p | id),
+  sigma ~ x1
+)
+```
+
+If a block contains `q` random coefficients, it has `q * (q + 1) / 2`
+covariance parameters. For example, intercept, `x1`, `x2`, and `x1:x2` have
+four coefficients and therefore ten covariance parameters. These models should
+come with simulation recovery tests and warnings when the number of groups or
+within-group replication is weak.
 
 Double-hierarchical syntax should be explicit:
 
