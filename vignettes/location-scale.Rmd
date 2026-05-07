@@ -13,7 +13,9 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 
 This article introduces the first implemented `drmTMB` model class: Gaussian
 location-scale regression with fixed effects and optional random intercepts in
-the location formula.
+the location formula. The same pattern will be used throughout the
+documentation: write the model symbolically first, then show the matching R
+syntax.
 
 Current syntax:
 
@@ -36,6 +38,10 @@ drmTMB(
 ```
 
 ## Model equations and matching R syntax
+
+The basic discipline is simple: each estimated parameter gets its own linear
+predictor. For Gaussian location-scale regression those parameters are the
+mean, `mu`, and the residual standard deviation, `sigma`.
 
 For the fixed-effect Gaussian location-scale model, the symbolic model is:
 
@@ -63,13 +69,33 @@ coefficients. The scale formula `sigma ~ x2` defines the design matrix for the
 sigma_i = exp(gamma_0 + gamma_1 x2_i)
 ```
 
+The same model can be written more compactly as:
+
+```text
+eta_mu_i = X_mu[i, ] beta_mu
+eta_sigma_i = X_sigma[i, ] beta_sigma
+mu_i = eta_mu_i
+sigma_i = exp(eta_sigma_i)
+```
+
+The mapping is:
+
+| Symbol | Meaning | R syntax source |
+|---|---|---|
+| `y_i` | observed response | left-hand side of `y ~ x1` |
+| `X_mu` | design matrix for the mean | right-hand side of `y ~ x1` |
+| `beta_mu` | mean coefficients | `coef(fit, "mu")` |
+| `X_sigma` | design matrix for the residual scale | right-hand side of `sigma ~ x2` |
+| `beta_sigma` | log-scale coefficients | `coef(fit, "sigma")` |
+| `sigma_i` | residual standard deviation | `sigma(fit)` or `predict(fit, dpar = "sigma")` |
+
 With a random intercept in the location part, the model becomes:
 
 ```text
 y_ij | mu_ij, sigma_ij ~ Normal(mu_ij, sigma_ij^2)
 mu_ij = beta_0 + beta_1 x1_ij + b_j
 log(sigma_ij) = gamma_0 + gamma_1 x2_ij
-b_j ~ Normal(0, sigma_b^2)
+b_j ~ Normal(0, sd_mu_id^2)
 ```
 
 and the matching syntax is:
@@ -82,10 +108,43 @@ drmTMB(
 )
 ```
 
-Here `sigma_i` is the residual standard deviation. The random-intercept scale
-`sigma_b` is a separate group-level standard deviation. Later
+Here `sigma_ij` is the residual standard deviation. The random-intercept scale
+`sd_mu_id` is a separate group-level standard deviation. Later
 double-hierarchical models will expose those group-level scale components with
 their own names; they should not be confused with residual `sigma`.
+
+With two additive random intercepts, the equation has two group-level scale
+components:
+
+```text
+y_i | mu_i, sigma_i ~ Normal(mu_i, sigma_i^2)
+mu_i = X_mu[i, ] beta_mu + b_site[site_i] + b_observer[observer_i]
+log(sigma_i) = X_sigma[i, ] beta_sigma
+b_site[k] ~ Normal(0, sd_mu_site^2)
+b_observer[l] ~ Normal(0, sd_mu_observer^2)
+```
+
+and the matching syntax is:
+
+```r
+drmTMB(
+  bf(y ~ x1 + (1 | site) + (1 | observer), sigma ~ x2),
+  family = gaussian(),
+  data = dat
+)
+```
+
+This is the source of the "two or three sigmas" issue in ordinary language:
+the model may contain several scale quantities, but only one of them is the
+residual `sigma`. The others should be named by what they scale:
+
+- residual SD: `sigma_i`, from `sigma ~ x2`;
+- site random-intercept SD in `mu`: `sd_mu_site`, from the site random
+  intercept term in the location formula;
+- observer random-intercept SD in `mu`: `sd_mu_observer`, from the observer
+  random intercept term in the location formula;
+- future random-effect scale model: `sd(site)_i`, from syntax such as
+  `sd(site) ~ x1`.
 
 The location formula models the conditional mean, `mu`, on the identity scale.
 The scale formula models the residual standard deviation, `sigma`, on the log
@@ -138,6 +197,33 @@ fit0 <- drmTMB(
   data = dat
 )
 ```
+
+## Meta-analysis as Gaussian regression
+
+Meta-analysis is the same Gaussian regression idea with known sampling
+variance added to the likelihood. The current diagonal implementation is:
+
+```text
+yi_i | mu_i, sigma_i, v_i ~ Normal(mu_i, v_i + sigma_i^2)
+mu_i = X_mu[i, ] beta_mu
+sigma_i = exp(X_sigma[i, ] beta_sigma)
+```
+
+with matching syntax:
+
+```r
+drmTMB(
+  bf(yi ~ x1 + meta_known_V(V = vi), sigma ~ x1),
+  family = gaussian(),
+  data = dat
+)
+```
+
+Here `vi` is known sampling variance. The estimated `sigma_i` is the additional
+heterogeneity standard deviation after known sampling error has been included.
+In meta-analysis prose this quantity is often called `tau`, but the `drmTMB`
+API keeps the name `sigma` because it is still the residual scale parameter of
+the Gaussian regression.
 
 ## Current implementation caveats
 

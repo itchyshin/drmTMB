@@ -34,6 +34,15 @@ The first formula creates `X_mu`. The `sigma` formula creates `X_sigma`.
 Coefficients are parameter specific even when the same biological predictor
 appears in both formulas.
 
+Documentation pattern:
+
+| Equation term | User-facing syntax | Internal object |
+|---|---|---|
+| `y_i` | left-hand side of `y ~ ...` | response vector |
+| `X_mu[i, ] beta_mu` | right-hand side of `y ~ ...` | `X$mu`, `beta_mu` |
+| `X_sigma[i, ] beta_sigma` | right-hand side of `sigma ~ ...` | `X$sigma`, `beta_sigma` |
+| `sigma_i` | `sigma` distributional parameter | `exp(X$sigma %*% beta_sigma)` |
+
 ## Location Random Intercepts
 
 For observation `i` in group `g[i]`:
@@ -61,6 +70,8 @@ With two additive random-intercept terms:
 
 ```text
 mu_i = X_mu[i, ] beta_mu + b_site[site_i] + b_observer[observer_i]
+b_site[k] ~ Normal(0, sd_mu_site^2)
+b_observer[l] ~ Normal(0, sd_mu_observer^2)
 ```
 
 Matching R syntax:
@@ -88,6 +99,17 @@ This distinction matters for double-hierarchical models. An animal-behaviour
 model may have individual differences in personality and plasticity through
 the mean formula, plus residual predictability through `sigma`. These are
 related but not the same parameter.
+
+Meta-analysis keeps the same naming rule:
+
+```text
+yi_i | mu_i, sigma_i, v_i ~ Normal(mu_i, v_i + sigma_i^2)
+```
+
+where `v_i` is known sampling variance from `meta_known_V(V = vi)` and
+`sigma_i` is the estimated extra heterogeneity SD. This is traditionally called
+`tau` in much of the meta-analysis literature, but the package API keeps
+`sigma` for residual-scale consistency.
 
 ## Implementation Mapping
 

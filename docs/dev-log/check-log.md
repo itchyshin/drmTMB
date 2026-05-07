@@ -601,3 +601,51 @@ Known issues:
 
 - examples remain ecology/evolution heavy by design, but future broader
   examples may be useful as the package matures.
+
+## 2026-05-07: Equation And Syntax Pairing
+
+Scope:
+
+- expanded the location-scale tutorial so Gaussian equations, R syntax,
+  parameter meanings, random-intercept scale components, and meta-analysis
+  known variance are shown side by side;
+- expanded the bivariate coscale tutorial so the implemented `mu1`, `mu2`,
+  `sigma1`, `sigma2`, and `rho12` equations are paired with the exact current
+  prototype syntax;
+- added future group-level equations to distinguish covariance-block
+  correlations from residual `rho12`;
+- updated the getting-started article to state that `drmTMB` documentation is
+  model-first: equations before API;
+- updated design notes so the vignette equations and likelihood specification
+  match.
+
+Commands run:
+
+- `git diff --check`
+- `rg` stale-syntax scans for `O'Dea-style`, `biological data`,
+  `meta_gaussian()`, `tau ~`, `rho ~`, and bivariate prototype mentions
+- `Rscript -e "devtools::test()"`
+- `Rscript -e "pkgdown::check_pkgdown(); pkgdown::build_site()"`
+- `air format .`
+- `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`
+- `rg` generated-site checks for the new equation headings
+
+Results:
+
+- `git diff --check`: passed;
+- full `devtools::test()`: 148 passed, 0 failed;
+- `pkgdown::check_pkgdown()`: no problems found;
+- `pkgdown::build_site()`: site built successfully;
+- `air format .`: not available locally;
+- `devtools::check(...)`: 0 errors, 0 warnings, 0 notes;
+- generated `pkgdown-site` contains the new location-scale and bivariate
+  equation sections.
+
+Known issues:
+
+- this task changed documentation only; it did not implement random slopes,
+  bivariate random effects, full known covariance, phylogenetic A-inverse, or
+  spatial SPDE code;
+- `biv_gaussian()` remains in public examples because it is the implemented
+  prototype, while `family = c(gaussian(), gaussian())` remains the design
+  direction.

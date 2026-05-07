@@ -12,7 +12,9 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 ```
 
 This article introduces the first flagship `drmTMB` model: bivariate
-location-scale regression with predictor-dependent residual correlation.
+location-scale regression with predictor-dependent residual correlation. The
+scientific idea is that two responses can change in mean, change in residual
+variance, and change in residual coupling.
 
 Current fixed-effect syntax:
 
@@ -40,8 +42,73 @@ In ecology and evolution, this can ask whether the residual association between
 traits such as body mass and litter size differs among terrestrial, aquatic,
 and aerial lifestyles after modelling response-specific means and dispersion.
 
-The future double-hierarchical version should also allow individual-level
-random intercepts and random slopes in the mean structure, following the
+## Equations for the implemented model
+
+For observation `i`, the implemented fixed-effect bivariate Gaussian model is:
+
+```text
+[y1_i, y2_i]' | mu1_i, mu2_i, sigma1_i, sigma2_i, rho12_i
+  ~ MVN([mu1_i, mu2_i]', Omega_i)
+
+mu1_i = X_mu1[i, ] beta_mu1
+mu2_i = X_mu2[i, ] beta_mu2
+log(sigma1_i) = X_sigma1[i, ] beta_sigma1
+log(sigma2_i) = X_sigma2[i, ] beta_sigma2
+atanh(rho12_i) = X_rho12[i, ] beta_rho12
+```
+
+The observation-specific residual covariance matrix is:
+
+```text
+Omega_i[1, 1] = sigma1_i^2
+Omega_i[2, 2] = sigma2_i^2
+Omega_i[1, 2] = Omega_i[2, 1] = rho12_i * sigma1_i * sigma2_i
+```
+
+Equivalently:
+
+```text
+sigma1_i = exp(X_sigma1[i, ] beta_sigma1)
+sigma2_i = exp(X_sigma2[i, ] beta_sigma2)
+rho12_i = tanh(X_rho12[i, ] beta_rho12)
+```
+
+The matching `drmTMB` syntax is:
+
+```r
+drmTMB(
+  bf(
+    mu1 = y1 ~ x1 + x2,
+    mu2 = y2 ~ x1,
+    sigma1 = ~ x1 + x2,
+    sigma2 = ~ x1,
+    rho12 = ~ x1 + x2
+  ),
+  family = biv_gaussian(),
+  data = dat
+)
+```
+
+The mapping is:
+
+| Symbol | Meaning | R syntax source |
+|---|---|---|
+| `y1_i`, `y2_i` | observed responses | left-hand sides of `mu1` and `mu2` formulas |
+| `X_mu1`, `X_mu2` | response-specific mean design matrices | right-hand sides of `mu1` and `mu2` |
+| `X_sigma1`, `X_sigma2` | response-specific residual scale design matrices | right-hand sides of `sigma1` and `sigma2` |
+| `X_rho12` | residual correlation design matrix | right-hand side of `rho12` |
+| `sigma1_i`, `sigma2_i` | residual SDs for responses 1 and 2 | `predict(fit, dpar = "sigma1")`, `predict(fit, dpar = "sigma2")` |
+| `rho12_i` | residual response-response correlation | `predict(fit, dpar = "rho12")` |
+
+The fixed effects may be the same, overlapping, or different across
+parameters. For example, `x1` can appear in all five formulae, while `x2` might
+appear only in `mu1`, `sigma1`, and `rho12`. Each parameter still gets its own
+coefficient vector.
+
+## Future group-level equations
+
+The future double-hierarchical version should also allow group-level random
+intercepts and random slopes in the mean structure, following the
 individual-differences framework of O'Dea et al. (2022):
 
 ```r
@@ -64,15 +131,20 @@ parameters; additional random-effect scale components should be named and
 extracted as group-level standard deviations, not confused with residual
 `sigma`.
 
-The likelihood is:
+Symbolically, the mean part would look like:
 
 ```text
-[y1_i, y2_i]' ~ MVN([mu1_i, mu2_i]', Omega_i)
-Omega_i[1,1] = sigma1_i^2
-Omega_i[2,2] = sigma2_i^2
-Omega_i[1,2] = rho12_i * sigma1_i * sigma2_i
-rho12_i = tanh(X_rho12 beta_rho12)
+mu1_ij = X_mu1[ij, ] beta_mu1 + b_0_1j + b_x2_1j * x2_ij
+mu2_ij = X_mu2[ij, ] beta_mu2 + b_0_2j + b_x2_2j * x2_ij
+
+[b_0_1j, b_x2_1j, b_0_2j, b_x2_2j]' ~ MVN(0, Sigma_mu_ID)
 ```
+
+The covariance matrix `Sigma_mu_ID` contains group-level standard deviations
+and group-level correlations. Those correlations answer questions about
+between-group association in intercepts and slopes. They are not `rho12_i`.
+The parameter `rho12_i` remains the observation-level residual correlation in
+`Omega_i`.
 
 Minimal runnable example:
 

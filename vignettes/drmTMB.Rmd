@@ -11,8 +11,10 @@ vignette: >
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 ```
 
-`drmTMB` currently implements Gaussian location-scale models with fixed effects
-and optional random intercepts in the location formula:
+`drmTMB` is being developed as a model-first package: the documentation should
+pair symbolic equations with the R syntax that fits them. The current
+implementation supports Gaussian location-scale models with fixed effects and
+optional random intercepts in the location formula:
 
 ```r
 drmTMB(
@@ -66,11 +68,16 @@ variance marker:
 
 ```r
 drmTMB(
-	  bf(
-	    yi ~ x1 + x2 + meta_known_V(V = V),
-	    sigma ~ x1
-	  ),
+  bf(
+    yi ~ x1 + x2 + meta_known_V(V = V),
+    sigma ~ x1
+  ),
   family = gaussian(),
   data = dat
 )
 ```
+
+For the mathematical details, start with the location-scale and bivariate
+coscale tutorials. They spell out which part of the R formula creates each
+linear predictor, which scale each parameter uses, and which quantities are
+residual scales versus group-level standard deviations.

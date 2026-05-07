@@ -115,6 +115,11 @@ Bivariate Gaussian location-coscale:
 
 ```text
 [y1_i, y2_i]' ~ MVN([mu1_i, mu2_i]', Omega_i)
+mu1_i = X_mu1[i, ] beta_mu1
+mu2_i = X_mu2[i, ] beta_mu2
+log(sigma1_i) = X_sigma1[i, ] beta_sigma1
+log(sigma2_i) = X_sigma2[i, ] beta_sigma2
+atanh(rho12_i) = X_rho12[i, ] beta_rho12
 Omega_i[1,1] = sigma1_i^2
 Omega_i[2,2] = sigma2_i^2
 Omega_i[1,2] = rho12_i * sigma1_i * sigma2_i
@@ -159,6 +164,20 @@ drmTMB(
 Here `sigma1` and `sigma2` are residual scales. Random-intercept and
 random-slope standard deviations from the mean block are group-level scale
 components and should be exposed separately.
+
+For example, a future correlated random-intercept and random-slope block in
+the two mean formulas would add:
+
+```text
+mu1_ij = X_mu1[ij, ] beta_mu1 + b_0_1j + b_x_1j x_ij
+mu2_ij = X_mu2[ij, ] beta_mu2 + b_0_2j + b_x_2j x_ij
+[b_0_1j, b_x_1j, b_0_2j, b_x_2j]' ~ MVN(0, Sigma_mu_ID)
+```
+
+The correlations inside `Sigma_mu_ID` are group-level correlations among
+random effects. They are not residual `rho12`, and the first implementation
+should estimate them as constant covariance-block quantities rather than
+predictor-dependent `rho` formulae.
 
 Implementation notes:
 
