@@ -86,3 +86,15 @@ Examples of long-test grids:
 - phylogenetic A-inverse sparse-vs-dense equivalence and tree-size sweeps;
 - SPDE spatial recovery across mesh density, range, field SD, and sampling
   design.
+
+## Profile-Likelihood CI Tests
+
+When profile-likelihood intervals are implemented, tests should check:
+
+- direct TMB parameters recover sensible intervals on the transformed response
+  scale;
+- `uniroot()` bounds agree with a small diagnostic grid in simple models;
+- boundary variance components return flagged one-sided intervals;
+- failed constrained optimizations produce informative fallbacks;
+- profile CIs have better small-sample behavior than Wald intervals in targeted
+  long simulations.

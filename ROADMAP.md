@@ -71,13 +71,26 @@ distributional regression models using TMB.
 - Selectively reuse GPL-compatible ideas or modules from `gllvmTMB` with
   provenance notes and tests.
 
-## Phase 6: Robust Continuous and Shape Families
+## Phase 6: Profile-Likelihood Inference
+
+- Add profile-likelihood confidence intervals for direct TMB parameters such as
+  log SDs, variance components, and ordinal cutpoints.
+- Prefer `TMB::tmbprofile()` plus `uniroot()` for one-dimensional intervals,
+  because it warm-starts constrained optimizations and avoids wasteful grids.
+- Support linear combinations through TMB's `lincomb` machinery where possible.
+- Treat nonlinear derived quantities, such as ICCs and variance-component
+  correlations, as a later fix-and-refit problem with boundary and convergence
+  flags.
+- Keep parametric bootstrap as a fallback for boundary, non-monotone, or failed
+  inner-optimization cases.
+
+## Phase 7: Robust Continuous and Shape Families
 
 - Add Student-t, lognormal, gamma, skew-normal, and skew-t families.
 - Add formulae for shape and tail parameters where stable.
 - Add strict starting-value and boundary diagnostics.
 
-## Phase 7: Counts, Proportions, Percentages, and Ordinal Models
+## Phase 8: Counts, Proportions, Percentages, and Ordinal Models
 
 - Add negative binomial, COM-Poisson, beta, beta-binomial, zero-one-inflated
   beta, ordered logit/probit, and related families according to the distribution

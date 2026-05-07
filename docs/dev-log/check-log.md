@@ -315,3 +315,35 @@ Known issues:
 - `biv_gaussian()` remains the implemented bivariate Gaussian prototype.
 - Comparator-package tests are planned; current passing tests are simulation and
   unit tests.
+
+## 2026-05-07: Profile-Likelihood CI Roadmap
+
+Scope:
+
+- added profile-likelihood confidence intervals as a later inference phase;
+- documented the likelihood-ratio drop criterion
+  `qchisq(0.95, df = 1) / 2`;
+- recorded `TMB::tmbprofile()` plus `uniroot()` as the preferred first strategy
+  for direct TMB parameters;
+- distinguished direct parameters, linear combinations, and nonlinear derived
+  quantities such as ICCs and variance-component correlations;
+- recorded fix-and-refit profiling as the first robust route for nonlinear
+  derived quantities;
+- documented boundary, non-monotone profile, and inner-optimization failure
+  fallbacks.
+
+Commands run:
+
+- `Rscript -e "devtools::test()"`
+- `Rscript -e "pkgdown::check_pkgdown(); pkgdown::build_site()"`
+
+Results:
+
+- full `devtools::test()`: 139 passed, 0 failed.
+- `pkgdown::check_pkgdown()`: no problems found.
+- `pkgdown::build_site()`: site built successfully.
+
+Known issues:
+
+- profile-likelihood CIs are only a design roadmap item; no API or inference
+  code has been implemented yet.
