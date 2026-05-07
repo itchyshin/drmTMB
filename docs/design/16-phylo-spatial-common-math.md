@@ -168,8 +168,9 @@ drmTMB(
 )
 ```
 
-This is planned syntax, not implemented. Current code supports only diagonal
-known sampling variance and ordinary `mu` random intercepts.
+This is partly implemented. Current code supports dense known sampling
+covariance through `meta_known_V(V = V)` and ordinary `mu` random intercepts;
+`phylo()` and `spatial()` structured-effect terms are still planned.
 
 ## Identifiability Rule
 
@@ -220,7 +221,7 @@ for residual response coupling unless a suffix explicitly names another level.
 ## Implementation Order
 
 1. Keep the current Gaussian location-scale and bivariate `rho12` MVP stable.
-2. Extend `meta_known_V(V = V)` from diagonal to sparse/full known covariance.
+2. Extend `meta_known_V(V = V)` from dense known covariance to sparse storage.
 3. Add one structured `mu` effect using a supplied sparse precision matrix.
 4. Wrap that path as `phylo(species)` using A-inverse inputs.
 5. Add spatial SPDE fields using the same structured-effect TMB block.

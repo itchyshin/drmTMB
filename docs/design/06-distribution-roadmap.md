@@ -45,9 +45,9 @@ bf(
 ```
 
 The current implementation supports a column/vector of known sampling
-variances or a diagonal matrix. Block-diagonal and full covariance matrices are
-planned later. In meta-analysis language, `sigma` is the extra heterogeneity SD
-traditionally called `tau`.
+variances, a diagonal matrix, a dense block-diagonal matrix, or a dense full
+covariance matrix. Sparse covariance storage is planned later. In meta-analysis
+language, `sigma` is the extra heterogeneity SD traditionally called `tau`.
 
 Important extensions:
 

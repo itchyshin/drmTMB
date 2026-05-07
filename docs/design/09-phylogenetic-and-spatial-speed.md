@@ -172,7 +172,7 @@ are source maps for later design and review.
 1. Define formula markers and design docs.
 2. Implement fixed-effect Gaussian location-scale.
 3. Add random intercepts.
-4. Add diagonal known covariance for meta-analysis.
+4. Add dense known covariance for meta-analysis.
 5. Add sparse known covariance and A-inverse phylogenetic path.
 6. Add SPDE spatial fields.
 7. Combine bivariate `rho12` with phylogenetic or spatial structure only after

@@ -4,6 +4,9 @@ Every meaningful task or phase should leave a compact Markdown report. The
 report is part of the project memory and should make later Codex, Claude Code,
 and human review easier.
 
+Use the project-local `after-task-audit` skill before closing the task. That
+skill is the operational checklist; this document is the stable design note.
+
 ## Location
 
 Task reports live in:
@@ -27,6 +30,8 @@ Each report should include:
 - checks run and exact outcomes;
 - consistency audit;
 - tests of the tests;
+- what did not go smoothly;
+- team learning and process improvements;
 - design-doc updates;
 - pkgdown/documentation updates;
 - known limitations and next actions.

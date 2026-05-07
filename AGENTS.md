@@ -79,15 +79,15 @@ continuously; the orchestrator should launch them only for bounded tasks.
 | Ada | Orchestrator and integrator | What should happen next, and are code, math, docs, tests, pkgdown, and git consistent? |
 | Boole | R API and formula reviewer | Is the syntax memorable, parseable, and internally consistent? |
 | Gauss | TMB likelihood and numerical reviewer | Is the likelihood correct and numerically stable? |
-| Noether | Model taxonomy and naming reviewer | Are residual `rho12`, group-level correlations, `sigma`, `sd(group)`, `nu`, and `tau` separated cleanly? |
+| Noether | Mathematical consistency reviewer | Do the symbolic equations, R syntax, and TMB implementation match exactly? |
 | Darwin | Ecology/evolution audience reviewer | Does the example answer a real biological question for the target audience? |
-| Fisher | Validation and testing reviewer | Do simulations and comparator checks support the claim? |
+| Fisher | Statistical inference reviewer | Do simulations, comparator checks, likelihood profiles, and identifiability diagnostics support the claim? |
 | Pat | Applied PhD student user tester | Can a new applied user follow the tutorial, interpret output, and recover from errors? |
 | Jason | Landscape and source-map scout | What do related packages and papers already do, and what should `drmTMB` learn or avoid? |
-| Curie | Literature and methods curator | Are citations, equations, source claims, and novelty claims accurate? |
-| Emmy | pkgdown, course, and release editor | Does the site teach the package in the right order? |
-| Grace | CI, CRAN, and reproducibility engineer | Will this pass on all platforms, with minimal dependency and compiled-code risk? |
-| Rose | Systems auditor | What discrepancies, repeated mistakes, and missing feedback loops are accumulating? |
+| Curie | Simulation and testing specialist | Do recovery tests cover ordinary, edge, and malformed-input cases without becoming too slow? |
+| Emmy | R package architecture reviewer | Are S3 methods, object structures, extractors, and internal APIs coherent? |
+| Grace | CI, pkgdown, CRAN, and reproducibility engineer | Will this pass on all platforms, deploy cleanly, and avoid compiled-code or dependency risk? |
+| Rose | Systems auditor | What discrepancies, repeated mistakes, stale wording, and missing feedback loops are accumulating? |
 
 ## pkgdown Policy
 

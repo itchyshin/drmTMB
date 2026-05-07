@@ -129,13 +129,15 @@ drm_build_gaussian_ls_spec <- function(formula, data, env = parent.frame()) {
 
   vars <- unique(c(all.vars(f_mu), all.vars(f_sigma), random_intercept_vars(mu_re$terms)))
   if (length(vars) > 0L) {
-    keep <- stats::complete.cases(data[, vars, drop = FALSE])
+    model_keep <- stats::complete.cases(data[, vars, drop = FALSE])
   } else {
-    keep <- rep(TRUE, nrow(data))
+    model_keep <- rep(TRUE, nrow(data))
   }
 
   V_known_full <- evaluate_known_v(meta$V, data, env)
-  keep <- keep & known_v_complete(V_known_full)
+  V_known_model <- subset_known_v(V_known_full, model_keep, validate = FALSE)
+  keep <- model_keep
+  keep[model_keep] <- known_v_complete(V_known_model)
   data_model <- data[keep, , drop = FALSE]
   V_known <- subset_known_v(V_known_full, keep)
 
@@ -155,13 +157,15 @@ drm_build_gaussian_ls_spec <- function(formula, data, env = parent.frame()) {
     cli::cli_abort("No complete observations remain after applying model and known-variance missingness rules.")
   }
 
-  start <- gaussian_ls_start(y, X_mu, X_sigma, V_known, re_mu)
+  start <- gaussian_ls_start(y, X_mu, X_sigma, V_known$diag, re_mu)
   start <- c(start, gaussian_ls_dummy_start())
 
   spec <- list(
     model_type = "gaussian",
     y = as.numeric(y),
-    V_known = V_known,
+    V_known = V_known$V,
+    V_known_diag = V_known$diag,
+    V_known_type = V_known$type,
     has_known_v = !is.null(meta$V),
     X = list(mu = X_mu, sigma = X_sigma),
     terms = list(
@@ -536,36 +540,98 @@ strip_parens <- function(expr) {
 
 evaluate_known_v <- function(expr, data, env) {
   if (is.null(expr)) {
-    return(rep(0, nrow(data)))
+    return(new_known_v(rep(0, nrow(data)), type = "none"))
   }
   value <- eval(expr, envir = data, enclos = env)
   if (is.matrix(value)) {
     if (nrow(value) != nrow(data) || ncol(value) != nrow(data)) {
       cli::cli_abort("{.arg V} matrix must have one row and one column per observation.")
     }
-    off_diag <- value
-    diag(off_diag) <- 0
-    if (any(abs(off_diag) > sqrt(.Machine$double.eps), na.rm = TRUE)) {
-      cli::cli_abort("Phase 1 supports diagonal {.fn meta_known_V} only; full covariance matrices are planned later.")
+    if (!is.numeric(value)) {
+      cli::cli_abort("{.arg V} matrix must be numeric.")
     }
-    value <- diag(value)
+    if (is_diagonal_known_v(value)) {
+      return(new_known_v(diag(value), type = "diagonal"))
+    }
+    return(new_known_v(value, type = "matrix"))
   }
   if (!is.numeric(value) || length(value) != nrow(data)) {
     cli::cli_abort("{.arg V} must evaluate to a numeric vector of known sampling variances.")
   }
-  as.numeric(value)
+  new_known_v(as.numeric(value), type = "diagonal")
 }
 
 known_v_complete <- function(V_known) {
-  is.finite(V_known) & !is.na(V_known)
+  if (identical(V_known$type, "matrix")) {
+    rep(TRUE, nrow(V_known$V))
+  } else {
+    is.finite(V_known$diag) & !is.na(V_known$diag)
+  }
 }
 
-subset_known_v <- function(V_known, keep) {
-  out <- V_known[keep]
-  if (any(out < 0)) {
+subset_known_v <- function(V_known, keep, validate = TRUE) {
+  if (identical(V_known$type, "matrix")) {
+    out <- V_known$V[keep, keep, drop = FALSE]
+    if (isTRUE(validate)) {
+      validate_known_v_matrix(out)
+    }
+    return(new_known_v(out, type = "matrix"))
+  }
+  out <- V_known$diag[keep]
+  if (isTRUE(validate)) {
+    validate_known_v_diag(out)
+  }
+  new_known_v(out, type = V_known$type)
+}
+
+new_known_v <- function(value, type) {
+  if (identical(type, "matrix")) {
+    diag_value <- diag(value)
+  } else {
+    diag_value <- as.numeric(value)
+  }
+  structure(
+    list(
+      V = value,
+      diag = diag_value,
+      type = type
+    ),
+    class = "drm_known_v"
+  )
+}
+
+validate_known_v_diag <- function(value) {
+  if (any(!is.finite(value) | is.na(value))) {
+    cli::cli_abort("{.arg V} must contain finite known sampling variances.")
+  }
+  if (any(value < 0)) {
     cli::cli_abort("{.arg V} must contain non-negative known sampling variances.")
   }
-  out
+  invisible(value)
+}
+
+validate_known_v_matrix <- function(value) {
+  if (any(!is.finite(value) | is.na(value))) {
+    cli::cli_abort("{.arg V} matrix must contain only finite values.")
+  }
+  if (!isTRUE(all.equal(value, t(value), tolerance = sqrt(.Machine$double.eps)))) {
+    cli::cli_abort("{.arg V} matrix must be symmetric.")
+  }
+  validate_known_v_diag(diag(value))
+  ev <- eigen((value + t(value)) / 2, symmetric = TRUE, only.values = TRUE)$values
+  if (min(ev) < -sqrt(.Machine$double.eps)) {
+    cli::cli_abort("{.arg V} matrix must be positive semidefinite.")
+  }
+  invisible(value)
+}
+
+is_diagonal_known_v <- function(value) {
+  off_diag <- value
+  diag(off_diag) <- 0
+  if (anyNA(off_diag)) {
+    return(FALSE)
+  }
+  !any(abs(off_diag) > sqrt(.Machine$double.eps))
 }
 
 gaussian_ls_start <- function(y, X_mu, X_sigma, V_known = rep(0, length(y)),
@@ -711,7 +777,11 @@ make_tmb_data <- function(spec) {
     return(list(
       model_type = 1L,
       y = spec$y,
-      V_known = spec$V_known,
+      V_known = spec$V_known_diag,
+      V_known_matrix = if (identical(spec$V_known_type, "matrix")) spec$V_known else dummy_matrix,
+      V_known_type = as.integer(
+        match(spec$V_known_type, c("none", "diagonal", "matrix")) - 1L
+      ),
       y1 = numeric(1),
       y2 = numeric(1),
       X_mu = spec$X$mu,
@@ -730,6 +800,8 @@ make_tmb_data <- function(spec) {
     model_type = 2L,
     y = numeric(1),
     V_known = numeric(1),
+    V_known_matrix = dummy_matrix,
+    V_known_type = 0L,
     y1 = spec$y1,
     y2 = spec$y2,
     X_mu = dummy_matrix,

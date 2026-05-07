@@ -693,3 +693,63 @@ Known issues:
   necessarily small at favicon size;
 - future refinements can simplify the favicon-specific SVG further if browser
   tabs need stronger small-size legibility.
+
+## 2026-05-07: Dense `meta_known_V()` Gaussian Meta-Analysis
+
+Scope:
+
+- extended Gaussian meta-analysis from vector/diagonal known sampling variance
+  to dense full known sampling covariance via `meta_known_V(V = V)`;
+- kept meta-analysis as `family = gaussian()`, with unknown extra heterogeneity
+  still modelled by `sigma ~ ...`;
+- added dense MVN likelihood support in the TMB template;
+- added simulation, Pearson residual, and observation-covariance handling for
+  dense known `V`;
+- added tests for full-covariance log-likelihood agreement against a base R MVN
+  calculation, row/column subsetting after missing data, invalid covariance
+  rejection, and full known `V` combined with a `mu` random intercept;
+- added a regression test for full-`V` missing covariance entries in rows already
+  removed by model missingness, after Jason's review flagged possible
+  over-dropping;
+- created the project-local `after-task-audit` skill and aligned the standing
+  team table in `AGENTS.md`.
+
+Commands run:
+
+- `Rscript -e "devtools::test(filter = 'meta-known-v')"`
+- `Rscript -e "devtools::test()"`
+- `Rscript -e "devtools::document()"`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `Rscript -e "pkgdown::build_site()"`
+- `Rscript -e "devtools::check()"`
+- stale-wording `rg` scans for full/block covariance rejection, `meta_gaussian`,
+  `tau ~`, `rho ~`, and malformed `meta_known_V()` examples
+
+Results:
+
+- targeted `meta-known-v` tests: 36 passed, 0 failed;
+- full `devtools::test()`: 166 passed, 0 failed;
+- `devtools::document()`: completed;
+- `pkgdown::check_pkgdown()`: no problems found;
+- `pkgdown::build_site()`: site built successfully;
+- `devtools::check()`: 0 errors, 0 warnings, 0 notes;
+- `air format .`: not available locally.
+
+Known issues:
+
+- dense full `V` is appropriate for modest meta-analysis examples; sparse
+  covariance storage remains planned for large phylogenetic and spatial
+  workloads;
+- bivariate known sampling covariance is still not implemented;
+- historical after-task notes from the earlier diagonal-only implementation still
+  describe the state at the time they were written.
+
+Team learning:
+
+- created Rose's project-local `after-task-audit` skill;
+- updated the after-task protocol so future reports include what did not go
+  smoothly and which team/process capability should improve next;
+- added Williams et al. (2026), "Meta-analysis with the glmmTMB R package", as
+  a meta-analysis comparator reference for `glmmTMB::equalto()`;
+- noted that `air format .` is unavailable locally and should either be
+  installed later or replaced with a documented formatter.

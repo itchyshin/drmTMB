@@ -89,8 +89,14 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, ...) {
 
   if (identical(object$model$model_type, "gaussian")) {
     mu <- predict(object, dpar = "mu")
-    sigma <- observation_sigma(object)
-    sims <- replicate(nsim, stats::rnorm(length(mu), mean = mu, sd = sigma))
+    if (identical(object$model$V_known_type, "matrix")) {
+      Sigma <- observation_covariance(object)
+      chol_Sigma <- chol(Sigma)
+      sims <- replicate(nsim, as.vector(mu + t(chol_Sigma) %*% stats::rnorm(length(mu))))
+    } else {
+      sigma <- observation_sigma(object)
+      sims <- replicate(nsim, stats::rnorm(length(mu), mean = mu, sd = sigma))
+    }
     sims <- as.data.frame(sims)
     names(sims) <- paste0("sim_", seq_len(nsim))
     return(sims)
@@ -123,6 +129,9 @@ residuals.drmTMB <- function(object, type = c("response", "pearson"), ...) {
     response <- object$model$y - predict(object, dpar = "mu")
     if (type == "response") {
       return(response)
+    }
+    if (identical(object$model$V_known_type, "matrix")) {
+      return(as.vector(forwardsolve(t(chol(observation_covariance(object))), response)))
     }
     return(response / observation_sigma(object))
   }
@@ -199,7 +208,27 @@ drm_prediction_matrix <- function(object, newdata, dpar) {
 }
 
 observation_sigma <- function(object) {
-  sqrt(object$model$V_known + predict(object, dpar = "sigma")^2)
+  sqrt(known_v_diag(object) + predict(object, dpar = "sigma")^2)
+}
+
+observation_covariance <- function(object) {
+  sigma2 <- predict(object, dpar = "sigma")^2
+  if (identical(object$model$V_known_type, "matrix")) {
+    out <- object$model$V_known
+    diag(out) <- diag(out) + sigma2
+    return(out)
+  }
+  diag(known_v_diag(object) + sigma2, nrow = length(sigma2))
+}
+
+known_v_diag <- function(object) {
+  if (!is.null(object$model$V_known_diag)) {
+    return(object$model$V_known_diag)
+  }
+  if (is.matrix(object$model$V_known)) {
+    return(diag(object$model$V_known))
+  }
+  object$model$V_known
 }
 
 rho_response <- function(eta) {

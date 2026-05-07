@@ -100,16 +100,22 @@ model may have individual differences in personality and plasticity through
 the mean formula, plus residual predictability through `sigma`. These are
 related but not the same parameter.
 
-Meta-analysis keeps the same naming rule:
+Meta-analysis keeps the same naming rule. For diagonal known sampling variance:
 
 ```text
-yi_i | mu_i, sigma_i, v_i ~ Normal(mu_i, v_i + sigma_i^2)
+yi_i | mu_i, sigma_i, v_i ~ Normal(mu_i, sqrt(v_i + sigma_i^2))
 ```
 
 where `v_i` is known sampling variance from `meta_known_V(V = vi)` and
 `sigma_i` is the estimated extra heterogeneity SD. This is traditionally called
 `tau` in much of the meta-analysis literature, but the package API keeps
 `sigma` for residual-scale consistency.
+
+For full known sampling covariance:
+
+```text
+y | mu, sigma, V ~ MVN(mu, V + diag(sigma_i^2))
+```
 
 ## Implementation Mapping
 

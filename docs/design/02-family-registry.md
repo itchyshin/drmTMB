@@ -49,9 +49,9 @@ drm_family(
 ```
 
 This is implemented for fixed-effect models, optional univariate `mu` random
-intercepts, and optional diagonal known sampling variance through
-`meta_known_V(V = vi)`. Sparse known covariance and additional families are
-later phases.
+intercepts, and optional known sampling covariance through
+`meta_known_V(V = V)`. Sparse known covariance and additional families are later
+phases.
 
 ## Implemented: Bivariate Gaussian Location-Coscale
 

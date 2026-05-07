@@ -5,9 +5,17 @@ not a separate response family.
 
 ## Current Status
 
-The current Gaussian location-scale MVP fits diagonal known-variance
-meta-analysis models. Full and block-diagonal covariance matrices remain
-planned.
+The current Gaussian location-scale MVP fits meta-analysis models with known
+sampling covariance supplied as a variance vector, diagonal matrix, dense
+block-diagonal matrix, or dense full covariance matrix. Sparse covariance
+storage remains planned for larger phylogenetic and spatial workloads.
+
+Williams et al. (2026) introduce `glmmTMB::equalto()` for meta-analysis with
+known sampling error variance-covariance matrices. That paper is an important
+comparator and positioning reference for `drmTMB`: `glmmTMB` supplies a
+general-purpose GLMM route, whereas `drmTMB` should make known covariance one
+part of a distributional-regression grammar where `mu`, `sigma`, and later
+shape or `rho12` can each have their own formula.
 
 The phylogenetic-spatial meta-analysis tutorial reinforces a useful principle:
 meta-analysis is ordinary Gaussian regression plus known sampling covariance
@@ -15,42 +23,39 @@ and, when needed, structured random effects. Sampling error uses `V`;
 phylogenetic dependence uses a tree-derived matrix `A`; spatial dependence uses
 a distance-derived matrix `M`.
 
-## Implemented Diagonal MVP Syntax
+## Implemented Syntax
 
 ```r
-	drmTMB(
-	  bf(
-	    yi ~ x1 + x2 + meta_known_V(V = V),
-	    sigma ~ x1
-	  ),
+drmTMB(
+  bf(
+    yi ~ x1 + x2 + meta_known_V(V = V),
+    sigma ~ x1
+  ),
   family = gaussian(),
   data = dat
 )
 ```
 
 The response is on the left-hand side. `meta_known_V(V = V)` supplies known
-sampling variance and should not repeat the response name.
+sampling covariance and should not repeat the response name.
 
 ## Known Covariance Input
 
-The first fitting implementation supports diagonal known sampling variance:
+The fitting implementation supports:
 
 - `V = vi`, where `vi` is a data column or vector of known sampling variances;
 - one non-negative variance per retained response row;
-- independent known sampling errors conditional on the model.
+- a diagonal matrix, where the diagonal is extracted;
+- a dense block-diagonal matrix;
+- a dense full covariance matrix for correlated sampling errors.
 
-The current implementation also accepts a diagonal matrix and extracts its
-diagonal. Later implementations may allow:
-
-- a diagonal matrix;
-- a block-diagonal sparse matrix;
-- a full covariance matrix.
+Sparse matrix storage is not implemented yet.
 
 The parser should treat `meta_known_V()` as a covariance marker, not as an
 ordinary predictor column.
 
-The API should be explicit that `vi` contains variances. If users have standard
-errors, they should supply squared values.
+The API should be explicit that vector inputs contain variances. If users have
+standard errors, they should supply squared values.
 
 ## Unknown Heterogeneity
 
@@ -67,12 +72,18 @@ In meta-analysis writing, this `sigma` corresponds to the extra heterogeneity
 SD often called `tau`. We should explain that translation in documentation but
 avoid a second `tau ~` grammar.
 
-For the diagonal MVP, the implemented likelihood is:
+For diagonal `V`, the likelihood is:
 
 ```text
 yi_i ~ Normal(mu_i, sqrt(vi_i + sigma_i^2))
 mu_i = X_mu beta_mu
 log(sigma_i) = X_sigma beta_sigma
+```
+
+For full `V`, the likelihood is:
+
+```text
+y ~ MVN(mu, V + diag(sigma_i^2))
 ```
 
 ## Heterogeneous Heterogeneity
@@ -108,8 +119,7 @@ bf(
 This is not a residual `sigma` model with random effects inside it. It is a
 model with separate random-effect scale components.
 
-This stage is planned after the diagonal known-variance fixed-effect path and
-after ordinary random effects are implemented and tested.
+This stage is planned after ordinary random effects are implemented and tested.
 
 ## Implementation Caveats
 
@@ -117,16 +127,19 @@ after ordinary random effects are implemented and tested.
   `family = gaussian()`.
 - Do not introduce `tau ~` grammar; document the translation from `sigma` to
   meta-analysis terminology instead.
-- The diagonal MVP rejects unsupported full-matrix and block-matrix input until
-  those likelihood paths exist.
-- Row alignment matters: `vi` must be subset in the same way as the response
-  and model matrices after missing-data handling.
-- The diagonal path has simulation recovery tests with known `V`.
+- Row alignment matters: `V` must be subset in the same way as the response and
+  model matrices after missing-data handling. For full matrices, rows and
+  columns are subset together.
+- The implemented paths have simulation recovery, missing-row, and
+  likelihood-agreement tests with known `V`.
+- Comparator checks should use `metafor` for established meta-analysis
+  agreement and `glmmTMB::equalto()` for overlap with a TMB-based mixed-model
+  implementation.
 
 ## Initial Implementation Order
 
 1. Diagonal known sampling variance plus unknown residual `sigma`.
-2. Full or sparse known covariance matrix plus unknown diagonal `sigma`.
+2. Dense full known covariance matrix plus unknown diagonal `sigma`.
 3. Random intercept meta-regression.
 4. Multiple random-effect scale components.
 5. Bivariate meta-analysis with known within-study covariance.

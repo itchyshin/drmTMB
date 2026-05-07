@@ -201,10 +201,10 @@ fit0 <- drmTMB(
 ## Meta-analysis as Gaussian regression
 
 Meta-analysis is the same Gaussian regression idea with known sampling
-variance added to the likelihood. The current diagonal implementation is:
+covariance added to the likelihood. For diagonal known sampling variance:
 
 ```text
-yi_i | mu_i, sigma_i, v_i ~ Normal(mu_i, v_i + sigma_i^2)
+yi_i | mu_i, sigma_i, v_i ~ Normal(mu_i, sqrt(v_i + sigma_i^2))
 mu_i = X_mu[i, ] beta_mu
 sigma_i = exp(X_sigma[i, ] beta_sigma)
 ```
@@ -225,6 +225,12 @@ In meta-analysis prose this quantity is often called `tau`, but the `drmTMB`
 API keeps the name `sigma` because it is still the residual scale parameter of
 the Gaussian regression.
 
+When `V` is a full known covariance matrix, the same model is:
+
+```text
+y | mu, sigma, V ~ MVN(mu, V + diag(sigma_i^2))
+```
+
 ## Current implementation caveats
 
 - The current fitter supports `family = gaussian()` with fixed effects for
@@ -233,8 +239,8 @@ the Gaussian regression.
   is not a random-effect scale component.
 - Missing rows are dropped when they are incomplete for variables used by
   either the `mu` or `sigma` formula.
-- Diagonal known sampling variance via `meta_known_V(V = vi)` is supported for
-  Gaussian meta-analysis.
+- Diagonal and dense full known sampling covariance via `meta_known_V(V = V)` is
+  supported for Gaussian meta-analysis.
 - Fixed-effect bivariate Gaussian `rho12` models are implemented in the
   bivariate coscale article.
 - Random slopes, `sd(group)` scale formulas, phylogenetic terms, spatial terms,

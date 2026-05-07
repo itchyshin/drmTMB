@@ -26,11 +26,11 @@ distributional regression models using TMB.
 
 ## Phase 2: Meta-Analytic Gaussian Regression
 
-- Status: diagonal known sampling variance implemented.
+- Status: diagonal and dense full known sampling covariance implemented.
 - Treat meta-analysis as `family = gaussian()` plus `meta_known_V(V = V)`.
-- Support diagonal known sampling variance through vectors, columns, or diagonal
-  matrices.
-- Add full or block-diagonal known covariance after diagonal tests pass.
+- Support known sampling covariance through vectors, columns, diagonal matrices,
+  dense block-diagonal matrices, or dense full matrices.
+- Add sparse known covariance after dense covariance tests pass.
 - Use `sigma ~ x1` for heterogeneous heterogeneity, even when papers
   describe the same unknown SD as `tau`.
 - Tests based on fixed known sampling variance and known extra heterogeneity

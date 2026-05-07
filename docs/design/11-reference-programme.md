@@ -34,6 +34,7 @@ Local source:
 
 ```text
 Global Change Biology - 2025 - Nakagawa - Location-Scale Meta-Analysis and Meta-Regression as a Tool to Capture Large-Scale.pdf
+/Users/z3437171/Downloads/2604.04084v1.pdf
 ```
 
 Package implications:
@@ -42,6 +43,8 @@ Package implications:
 - Use `meta_known_V(V = V)` in the formula and `family = gaussian()`.
 - Keep public `sigma` terminology; explain that meta-analysis papers often call
   the same extra heterogeneity SD `tau`.
+- Use Williams et al. (2026) as the `glmmTMB::equalto()` comparator reference
+  for supplied known sampling covariance matrices in a TMB mixed-model package.
 - Make heterogeneous heterogeneity a first-class example:
 
 ```r

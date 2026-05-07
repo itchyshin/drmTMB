@@ -18,6 +18,8 @@ Type objective_function<Type>::operator()()
 {
   DATA_VECTOR(y);
   DATA_VECTOR(V_known);
+  DATA_MATRIX(V_known_matrix);
+  DATA_INTEGER(V_known_type);
   DATA_VECTOR(y1);
   DATA_VECTOR(y2);
   DATA_INTEGER(model_type);
@@ -62,8 +64,21 @@ Type objective_function<Type>::operator()()
       }
     }
 
-    for (int i = 0; i < y.size(); ++i) {
-      nll -= dnorm(y(i), mu(i), obs_sigma(i), true);
+    if (V_known_type == 2) {
+      int n = y.size();
+      matrix<Type> Omega(n, n);
+      for (int i = 0; i < n; ++i) {
+        for (int j = 0; j < n; ++j) {
+          Omega(i, j) = V_known_matrix(i, j);
+        }
+        Omega(i, i) += sigma(i) * sigma(i);
+      }
+      density::MVNORM_t<Type> neg_log_density(Omega);
+      nll += neg_log_density(y - mu);
+    } else {
+      for (int i = 0; i < y.size(); ++i) {
+        nll -= dnorm(y(i), mu(i), obs_sigma(i), true);
+      }
     }
 
     REPORT(mu);

@@ -63,8 +63,8 @@ Future bivariate public syntax should also allow composed response families such
 as `family = c(gaussian(), gaussian())` and `family = c(gaussian(), poisson())`
 where a coherent joint likelihood is defined.
 
-Diagonal meta-analysis is handled as Gaussian regression with known sampling
-variance, not as a separate family:
+Meta-analysis is handled as Gaussian regression with known sampling covariance,
+not as a separate family:
 
 ```r
 drmTMB(
@@ -78,10 +78,10 @@ drmTMB(
 ```
 
 Current project status: Gaussian location-scale MVP with `mu` random
-intercepts, diagonal `meta_known_V(V = vi)` meta-analysis support, and
-fixed-effect bivariate Gaussian `rho12 ~ predictors`. The next target is to
-harden these likelihoods and then add random slopes, random-effect scale
-models, sparse known covariance, phylogenetic A-inverse, and spatial SPDE
+intercepts, `meta_known_V(V = V)` support for diagonal and dense known sampling
+covariance, and fixed-effect bivariate Gaussian `rho12 ~ predictors`. The next
+target is to harden these likelihoods and then add random slopes, random-effect
+scale models, sparse precision paths, phylogenetic A-inverse, and spatial SPDE
 paths.
 
 Phylogenetic and spatial dependence will be treated as one structured-effect

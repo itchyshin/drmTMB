@@ -64,7 +64,7 @@ standard deviations and correlations from `(1 + x2 | p | ID)` are separate
 group-level quantities.
 
 Meta-analysis uses the ordinary Gaussian family plus a known sampling
-variance marker:
+covariance marker:
 
 ```r
 drmTMB(

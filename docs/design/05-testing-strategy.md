@@ -21,7 +21,10 @@ simple overlapping models:
 
 - `lme4` or `glmmTMB` for homoscedastic Gaussian random effects;
 - `glmmTMB`, `gamlss`, and sometimes `brms` for Gaussian location-scale models;
-- `metafor` for standard Gaussian meta-analysis and known sampling variances;
+- `metafor` for standard Gaussian meta-analysis and known sampling variances or
+  covariance matrices;
+- `glmmTMB::equalto()` for TMB-based meta-analysis with supplied known sampling
+  covariance matrices, following Williams et al. (2026);
 - analytic maximum-likelihood calculations for simple bivariate Gaussian
   residual correlations;
 - `brms` for occasional long-running Bayesian comparisons of bivariate
@@ -39,6 +42,12 @@ Implemented comparator smoke tests:
 - homoscedastic Gaussian random intercepts against `lme4::lmer(..., REML = FALSE)`;
 - Gaussian ML meta-analysis with known sampling variances against
   `metafor::rma.uni(..., method = "ML")`.
+
+Planned comparator smoke tests:
+
+- dense known sampling covariance against `metafor::rma.mv(...)`;
+- dense known sampling covariance against `glmmTMB::equalto()` when the
+  likelihood and residual heterogeneity parameterization overlap cleanly.
 
 Tier 2 is simulation recovery. This is the primary truth source:
 

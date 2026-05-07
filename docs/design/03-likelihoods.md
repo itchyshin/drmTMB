@@ -66,45 +66,48 @@ Implementation notes:
   `tests/testthat/test-gaussian-location-scale.R`.
 - Random-intercept recovery tests live in
   `tests/testthat/test-gaussian-random-intercepts.R`.
-- The univariate likelihood supports optional diagonal known sampling variance via
-  `meta_known_V(V = vi)`. It has no residual correlation parameter.
+- The univariate likelihood supports optional known sampling covariance via
+  `meta_known_V(V = V)`. It has no residual correlation parameter.
 
-## Implemented Diagonal Meta-Analytic Gaussian Regression
+## Implemented Meta-Analytic Gaussian Regression
 
-Meta-analysis uses the ordinary Gaussian family plus known sampling variance.
+Meta-analysis uses the ordinary Gaussian family plus known sampling covariance.
 It is not a separate family.
 
 ```text
 y ~ MVN(mu, V_known + Sigma_unknown)
 ```
 
-The implemented first path is diagonal `V`, written as `meta_known_V(V = vi)`
-in the location formula:
+For diagonal `V`, written as `meta_known_V(V = vi)` in the location formula:
 
 ```text
 y_i ~ Normal(mu_i, sqrt(vi_i + sigma_i^2))
 log(sigma_i) = X_sigma beta_sigma
 ```
 
-Implementation notes for the diagonal path:
+For dense full or block-diagonal `V`, the implemented likelihood is:
+
+```text
+y ~ MVN(mu, V + diag(sigma_i^2))
+```
+
+Implementation notes:
 
 - `vi` means known sampling variances, not known standard errors.
-- `vi_i` must be finite, non-negative, and aligned with the retained model rows.
+- A vector or data column supplies diagonal known sampling variances.
+- A matrix supplies dense known sampling covariance and must be symmetric
+  positive semidefinite after retained-row subsetting.
 - `sigma_i` is the extra heterogeneity SD after known sampling error is added.
 - `meta_known_V()` must be treated as a covariance marker, not as an ordinary
   fixed-effect predictor.
 - The marker is removed before model-matrix construction.
 - `predict(fit, dpar = "sigma")` returns the unknown heterogeneity SD;
-  likelihood, Pearson residuals, and simulation use
-  `sqrt(vi_i + sigma_i^2)`.
-- Simulation recovery tests with known `vi` live in
+  likelihood, Pearson residuals, and simulation include the known covariance.
+- Simulation, missing-row, and likelihood-agreement tests with known `vi` and
+  full `V` live in
   `tests/testthat/test-meta-known-v.R`.
-
-For later full or block-diagonal `V`:
-
-```text
-y ~ MVN(mu, V + diag(sigma_i^2))
-```
+- Sparse known covariance is planned for larger phylogenetic and spatial
+  workloads.
 
 In meta-analysis prose, `sigma` is the extra heterogeneity SD traditionally
 called `tau`. The public API still uses `sigma` for consistency.
