@@ -386,3 +386,120 @@ Known issues:
 - `gamlss` was not installed locally.
 - Comparator tests are deliberately tiny smoke tests; broad comparator sweeps
   remain long-test or scheduled-CI work.
+
+## 2026-05-07: Gaussian Math And Syntax
+
+Scope:
+
+- added symbolic equations beside R syntax for Gaussian location-scale models;
+- clarified that residual `sigma` is distinct from group-level random-effect
+  standard deviations;
+- corrected bivariate teaching examples so fixed-effect syntax is labelled as
+  implemented now and O'Dea-style random-intercept/random-slope syntax is
+  labelled as planned;
+- added `docs/design/13-gaussian-location-scale-math.md` as the
+  source-of-truth Gaussian equation note;
+- regenerated Rd files after updating the `bf()` examples.
+
+Commands run:
+
+- `Rscript -e "devtools::document()"`
+- `Rscript -e "devtools::test()"`
+- `air format .`
+- `Rscript -e "pkgdown::check_pkgdown(); pkgdown::build_site()"`
+- `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`
+- `rg` consistency searches over README, vignettes, docs, R, and man files.
+
+Results:
+
+- full `devtools::test()`: 148 passed, 0 failed.
+- `air format .`: not available locally.
+- `pkgdown::check_pkgdown()`: no problems found.
+- `pkgdown::build_site()`: site built successfully.
+- `devtools::check(error_on = "never")` with `_R_CHECK_SYSTEM_CLOCK_=FALSE`:
+  0 errors, 0 warnings, 0 notes.
+
+Known issues:
+
+- `drm_formula()` and `family = c(gaussian(), gaussian())` are still design
+  directions, not implemented API.
+- O'Dea-style bivariate random slopes are not implemented yet; the docs now
+  label them as planned.
+
+## 2026-05-07: GAMLSS Parameter Names
+
+Scope:
+
+- checked the local Rigby and Stasinopoulos (2005) GAMLSS PDF for parameter
+  naming;
+- added `Rigby2005GAMLSS` to `REFERENCES.bib`;
+- added `docs/design/14-gamlss-parameter-names.md`;
+- set `mu`, `sigma`, `nu`, and `tau` as the preferred canonical
+  distributional-parameter names;
+- updated the family registry, distribution roadmap, formula grammar, and
+  reference programme so skew-normal uses `nu` rather than canonical `skew`.
+
+Commands run:
+
+- `pdftotext` on the local Rigby and Stasinopoulos PDF;
+- `rg` consistency searches for `skew_normal`, `skew_t`, `skew`, `nu`, `tau`,
+  `Rigby`, and `GAMLSS`;
+- `Rscript -e "devtools::test()"`
+- `Rscript -e "pkgdown::check_pkgdown(); pkgdown::build_site()"`
+
+Results:
+
+- the PDF source check confirmed the GAMLSS convention of `mu`, `sigma`, `nu`,
+  and `tau`;
+- full `devtools::test()`: 148 passed, 0 failed;
+- `pkgdown::check_pkgdown()`: no problems found;
+- `pkgdown::build_site()`: site built successfully.
+
+Known issues:
+
+- `nu` and `tau` are documentation/design policy only until Student-t,
+  skew-normal, skew-t, COM-Poisson, or beta families are implemented.
+- Alias support for user-friendly names such as `skew` or `df` is deferred.
+
+## 2026-05-07: Location-Coscale Phylogenetic Sources
+
+Scope:
+
+- checked the bivariate location-coscale note, mammalian body mass-litter size
+  protocol, and MEE phylogenetic location-scale paper;
+- recorded that MEE PLSM is the foundation and location-coscale is the
+  extension that models residual correlation;
+- added `docs/design/15-location-coscale-phylogenetic-extension.md`;
+- updated vision, distribution roadmap, phylogenetic/spatial speed plan,
+  reference programme, bivariate coscale vignette, and phylogenetic-spatial
+  vignette;
+- added local-source bibliography entries for the coscale note and mammal
+  protocol.
+
+Commands run:
+
+- `pdfinfo` on the three source PDFs;
+- `pdftotext` plus `rg` source searches for coscale, residual correlation,
+  phylogenetic correlation, lifestyle, body mass, litter size, and PLSM terms;
+- `rg` consistency search over README, vignettes, docs, ROADMAP, and
+  `REFERENCES.bib`;
+- `git diff --check`;
+- `Rscript -e "devtools::test()"`;
+- `Rscript -e "pkgdown::check_pkgdown(); pkgdown::build_site()"`;
+- `air format .`
+- `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`
+
+Results:
+
+- full `devtools::test()`: 148 passed, 0 failed;
+- `pkgdown::check_pkgdown()`: no problems found;
+- `pkgdown::build_site()`: site built successfully;
+- `air format .`: not available locally;
+- `devtools::check(...)`: 0 errors, 0 warnings, 0 notes.
+
+Known issues:
+
+- phylogenetic location-coscale syntax in the vignette is planned, not
+  implemented;
+- `rho12 ~ predictors` is implemented only for fixed-effect bivariate Gaussian
+  models at this stage.

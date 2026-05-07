@@ -107,6 +107,43 @@ Package implications:
 - The computational path should use sparse A-inverse or precision-matrix tricks.
 - Multivariate phylogenetic examples should stay bivariate in `drmTMB`; larger
   response sets belong to `gllvmTMB`.
+- The key scientific move is to treat variance as an evolvable trait-like
+  response, not only as nuisance.
+- The bivariate MEE extension gives several interpretable phylogenetic
+  correlations: mean-mean, scale-scale, within-trait mean-scale, and
+  across-trait mean-scale. `drmTMB` should expose these as group-level
+  covariance summaries, not confuse them with residual `rho12`.
+
+## Location-Coscale Extension
+
+Local sources:
+
+```text
+/Users/z3437171/Downloads/Bivariate_location_coscale.pdf
+/Users/z3437171/Downloads/Mammalian_location_co_scale_trade_offs_protocol.pdf
+```
+
+Package implications:
+
+- Location-coscale models are the package's clearest unique contribution:
+  means, residual SDs, and residual correlations can all have predictors.
+- The core residual equations are:
+
+```text
+log(sigma1_i) = W1[i, ] gamma1
+log(sigma2_i) = W2[i, ] gamma2
+atanh(rho12_i) = R[i, ] delta
+```
+
+- For mammals, the natural teaching example is the body mass-litter size
+  trade-off, asking whether trait association is phylogenetic, non-phylogenetic,
+  lifestyle-dependent, or expressed through dispersion around mean patterns.
+- The location-coscale paper extends the MEE PLSM paper by releasing residual
+  covariance/correlation from homogeneity, just as location-scale models
+  release residual variance from homogeneity.
+- Phylogenetic effects in `sigma` or `rho12` predictors are important but later
+  implementation phases because they need strong replication, careful
+  regularisation, and simulation evidence.
 
 ## Location-Scale-Shape and GAMLSS Roots
 
@@ -120,8 +157,16 @@ Phylogenetic_location_scale_shape_models.pdf
 
 Package implications:
 
-- Shape parameters such as `skew`, `nu`, and positive-family shape parameters
-  should get formulae like any other estimated parameter.
+- Treat Rigby and Stasinopoulos (2005) as the foundational distributional
+  regression paper for the package grammar.
+- Use the GAMLSS-style parameter vocabulary as the default:
+  - `mu` for location;
+  - `sigma` for scale;
+  - `nu` for the first shape parameter;
+  - `tau` for the second shape parameter.
+- Shape parameters should get formulae like any other estimated parameter.
+- For skew-normal-like families, prefer canonical `nu` over `skew` unless a
+  later usability study shows that an alias is needed.
 - `skew_normal()` and `skew_t()` should come after Gaussian and Student-t
   location-scale are reliable.
 

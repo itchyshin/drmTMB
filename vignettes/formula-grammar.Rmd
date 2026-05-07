@@ -20,8 +20,8 @@ Current canonical bivariate form:
 
 ```r
 bf(
-  mu1 = y1 ~ x1 + x2 + (1 | p | id),
-  mu2 = y2 ~ x1      + (1 | p | id),
+  mu1 = y1 ~ x1 + x2 + (1 + x2 | p | ID),
+  mu2 = y2 ~ x1      + (1 + x2 | p | ID),
   sigma1 = ~ x1 + x2,
   sigma2 = ~ x1,
   rho12 = ~ x1 + x2

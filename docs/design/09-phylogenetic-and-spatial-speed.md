@@ -43,6 +43,23 @@ bf(
 )
 ```
 
+The biological target is the phylogenetic location-scale model of Nakagawa et
+al. (2025), extended in `drmTMB` with residual coscale regression. In the MEE
+PLSM framing, means and log residual SDs are treated as parallel evolutionary
+responses, with phylogenetic random effects and covariance among location and
+scale components. The `drmTMB` extension adds a residual-correlation predictor:
+
+```text
+log(sigma1_i) = W1[i, ] gamma1
+log(sigma2_i) = W2[i, ] gamma2
+atanh(rho12_i) = R[i, ] delta
+```
+
+This turns covariance homogeneity into a testable biological assumption.
+For example, the body mass-litter size relationship in mammals can be asked at
+three levels: phylogenetic correlation, non-phylogenetic among-species
+correlation, and residual coscale `rho12 ~ lifestyle`.
+
 ### gllvmTMB Source Map
 
 The first implementation should borrow concepts from `gllvmTMB`, not import
@@ -86,6 +103,12 @@ Residual `rho12` remains conceptually separate from phylogenetic or spatial
 correlation: `rho12 ~ predictors` models residual response coupling at the
 observation level, whereas A-inverse and SPDE terms model structured dependence
 among units or locations.
+
+Later phylogenetic coscale models may also allow phylogenetic structure in
+scale and coscale predictors, for example phylogenetic effects in
+`log(sigma1)`, `log(sigma2)`, or `atanh(rho12)`. These should be later phases
+with strong simulation evidence because they are much harder to identify than
+fixed-effect `rho12 ~ predictors`.
 
 ## Reuse Policy
 

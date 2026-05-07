@@ -17,8 +17,8 @@ drmTMB(
 )
 ```
 
-It also supports the first flagship bivariate location-coscale model, including
-predictor-dependent residual correlation:
+It also supports the fixed-effect seed of the bivariate location-coscale model,
+including predictor-dependent residual correlation:
 
 ```r
 drmTMB(
@@ -33,6 +33,28 @@ drmTMB(
   data = dat
 )
 ```
+
+The fuller O'Dea-style double-hierarchical target is richer: the mean part can
+carry individual random intercepts and random slopes, while `sigma1` and
+`sigma2` remain the residual/within-individual scale parameters:
+
+```r
+drmTMB(
+  formula = drm_formula(
+    mu1 = y1 ~ x1 + x2 + (1 + x2 | p | ID),
+    mu2 = y2 ~ x1      + (1 + x2 | p | ID),
+    sigma1 = ~ x1 + x2,
+    sigma2 = ~ x1,
+    rho12 = ~ x1 + x2
+  ),
+  family = c(gaussian(), gaussian()),
+  data = dat
+)
+```
+
+In this syntax, `(1 + x2 | p | ID)` describes the group-level covariance block
+for personality and plasticity. Residual `rho12` is a different parameter: it is
+the within-observation coupling between response 1 and response 2.
 
 Future bivariate public syntax should also allow composed response families such
 as `family = c(gaussian(), gaussian())` and `family = c(gaussian(), poisson())`

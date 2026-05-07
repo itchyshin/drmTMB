@@ -16,12 +16,42 @@ Gaussian location-scale is implemented for fixed-effect models and for
 univariate Gaussian location random intercepts:
 
 ```text
-y_i ~ Normal(mu_i, sigma_i)
-mu_i = X_mu beta_mu + sum_j b_{j, group_j[i]}
-log(sigma_i) = X_sigma beta_sigma
+y_i | mu_i, sigma_i ~ Normal(mu_i, sigma_i^2)
+eta_mu_i = X_mu[i, ] beta_mu
+eta_sigma_i = X_sigma[i, ] beta_sigma
+mu_i = eta_mu_i
+sigma_i = exp(eta_sigma_i)
+```
+
+Matching R syntax:
+
+```r
+drmTMB(
+  bf(y ~ x1, sigma ~ x2),
+  family = gaussian(),
+  data = dat
+)
+```
+
+With one or more random intercepts in the location model:
+
+```text
+y_i | mu_i, sigma_i ~ Normal(mu_i, sigma_i^2)
+mu_i = X_mu[i, ] beta_mu + sum_j b_{j, g_j[i]}
+sigma_i = exp(X_sigma[i, ] beta_sigma)
 b_{j, g} = sd_j * u_{j, g}
 u_{j, g} ~ Normal(0, 1)
-log(sd_j) = theta_j
+sd_j = exp(theta_j)
+```
+
+Matching R syntax:
+
+```r
+drmTMB(
+  bf(y ~ x1 + (1 | site) + (1 | observer), sigma ~ x2),
+  family = gaussian(),
+  data = dat
+)
 ```
 
 Residuals are not part of the formula grammar. They are computed downstream
@@ -98,17 +128,37 @@ Implemented fixed-effect syntax:
 
 ```r
 drmTMB(
-	  bf(
-	    mu1 = y1 ~ x1 + x2,
-	    mu2 = y2 ~ x1,
-	    sigma1 = ~ x1 + x2,
-	    sigma2 = ~ x1,
-	    rho12 = ~ x1 + x2
-	  ),
+  bf(
+    mu1 = y1 ~ x1 + x2,
+    mu2 = y2 ~ x1,
+    sigma1 = ~ x1 + x2,
+    sigma2 = ~ x1,
+    rho12 = ~ x1 + x2
+  ),
   family = biv_gaussian(),
   data = dat
 )
 ```
+
+Planned O'Dea-style syntax:
+
+```r
+drmTMB(
+  formula = drm_formula(
+    mu1 = y1 ~ x1 + x2 + (1 + x2 | p | ID),
+    mu2 = y2 ~ x1      + (1 + x2 | p | ID),
+    sigma1 = ~ x1 + x2,
+    sigma2 = ~ x1,
+    rho12 = ~ x1 + x2
+  ),
+  family = c(gaussian(), gaussian()),
+  data = dat
+)
+```
+
+Here `sigma1` and `sigma2` are residual scales. Random-intercept and
+random-slope standard deviations from the mean block are group-level scale
+components and should be exposed separately.
 
 Implementation notes:
 

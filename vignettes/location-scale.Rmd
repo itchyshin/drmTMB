@@ -35,12 +35,64 @@ drmTMB(
 )
 ```
 
+## Model equations and matching R syntax
+
+For the fixed-effect Gaussian location-scale model, the symbolic model is:
+
+```text
+y_i | mu_i, sigma_i ~ Normal(mu_i, sigma_i^2)
+mu_i = beta_0 + beta_1 x1_i
+log(sigma_i) = gamma_0 + gamma_1 x2_i
+```
+
+The matching `drmTMB` syntax is:
+
+```r
+drmTMB(
+  bf(y ~ x1, sigma ~ x2),
+  family = gaussian(),
+  data = dat
+)
+```
+
+The location formula `y ~ x1` defines the design matrix for the `beta`
+coefficients. The scale formula `sigma ~ x2` defines the design matrix for the
+`gamma` coefficients. The log link makes `sigma_i` positive:
+
+```text
+sigma_i = exp(gamma_0 + gamma_1 x2_i)
+```
+
+With a random intercept in the location part, the model becomes:
+
+```text
+y_ij | mu_ij, sigma_ij ~ Normal(mu_ij, sigma_ij^2)
+mu_ij = beta_0 + beta_1 x1_ij + b_j
+log(sigma_ij) = gamma_0 + gamma_1 x2_ij
+b_j ~ Normal(0, sigma_b^2)
+```
+
+and the matching syntax is:
+
+```r
+drmTMB(
+  bf(y ~ x1 + (1 | id), sigma ~ x2),
+  family = gaussian(),
+  data = dat
+)
+```
+
+Here `sigma_i` is the residual standard deviation. The random-intercept scale
+`sigma_b` is a separate group-level standard deviation. Later
+double-hierarchical models will expose those group-level scale components with
+their own names; they should not be confused with residual `sigma`.
+
 The location formula models the conditional mean, `mu`, on the identity scale.
 The scale formula models the residual standard deviation, `sigma`, on the log
 scale:
 
 ```text
-y_i ~ Normal(mu_i, sigma_i)
+y_i | mu_i, sigma_i ~ Normal(mu_i, sigma_i^2)
 mu_i = X_mu beta_mu + b_group[i]
 log(sigma_i) = X_sigma beta_sigma
 b_group = sd_group * u_group
@@ -108,9 +160,9 @@ residual `sigma` formulas:
 ```r
 drmTMB(
   bf(
-	    y ~ x1 + (1 | study) + (1 | species),
-	    sigma ~ x1,
-	    sd(study) ~ x1,
+    y ~ x1 + (1 | study) + (1 | species),
+    sigma ~ x1,
+    sd(study) ~ x1,
     sd(species) ~ 1
   ),
   family = gaussian(),

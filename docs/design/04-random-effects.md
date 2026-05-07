@@ -104,6 +104,15 @@ Initial random-intercept/slope correlations should be constant covariance-block
 parameters. Predictor-dependent correlation formulae should be reserved for
 residual or response-level `rho12` until identifiability is demonstrated.
 
+## Scale Naming
+
+Use `sigma`, `sigma1`, and `sigma2` for residual or within-observation scale.
+Use group-level names for random-effect scale components, for example
+`sd_mu_intercept(ID)`, `sd_mu_slope(ID)`, and their correlation. In an
+O'Dea-style bivariate model, each response can therefore have multiple scale
+quantities: at least the random-intercept SD, the random-slope SD, and the
+residual `sigma`. These should not be collapsed into one `sigma` namespace.
+
 ## Numerical Caution
 
 Random-effect variance components are often weakly identified, especially near

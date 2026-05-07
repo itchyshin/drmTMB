@@ -13,6 +13,14 @@ The package identity is:
 grammar wholesale. The public grammar should be easy to remember for applied
 biologists and strict enough to keep the TMB implementation identifiable.
 
+Every implemented model class should have two parallel representations:
+
+1. symbolic equations that define the likelihood and parameter meanings;
+2. matching R syntax that maps each equation term to a formula component.
+
+This is both a development discipline and a teaching principle. Equations
+should prevent API drift; syntax should make those equations usable.
+
 ## Core Idea
 
 A model is defined by:
@@ -36,8 +44,8 @@ formulae for scale and residual coupling:
 
 ```r
 drm_formula(
-  mu1 = y1 ~ x1 + x2 + (1 | p | id),
-  mu2 = y2 ~ x1      + (1 | p | id),
+  mu1 = y1 ~ x1 + x2 + (1 + x2 | p | id),
+  mu2 = y2 ~ x1      + (1 + x2 | p | id),
   sigma1 = ~ x1 + x2,
   sigma2 = ~ x1,
   rho12 = ~ x1 + x2
@@ -48,6 +56,12 @@ The `rho12` formula models residual correlation as a scientific response
 rather than treating covariance homogeneity as a default assumption. The
 `|p|` label controls group-level random-effect correlation blocks and is not
 the same thing as residual `rho12`.
+
+This is the package's strongest distinct contribution. Location-scale models
+ask whether predictors change means and residual SDs. Location-coscale models
+also ask whether predictors change the residual coupling between two traits.
+That opens biological questions about trade-offs, integration, constraint,
+release from selection, and environment-dependent trait coupling.
 
 The exact constructor name remains a public-API decision. The prototype uses
 `bf()` for speed, but a package-specific spelling such as `drm_formula()` should

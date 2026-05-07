@@ -15,6 +15,26 @@ Each family should be represented by a small structured object.
 - `starting_values`
 - `check_data`
 
+## Distributional Parameter Naming
+
+Use the GAMLSS convention from Rigby and Stasinopoulos (2005) as the default
+parameter vocabulary:
+
+- `mu`: location or mean-like parameter;
+- `sigma`: residual scale, dispersion, or standard-deviation-like parameter;
+- `nu`: first shape parameter;
+- `tau`: second shape parameter.
+
+The interpretation of `nu` and `tau` is family specific. In a skew-normal-like
+family, `nu` can be the skewness/shape parameter. In a Student-t-like family,
+`nu` may instead be tail weight or degrees of freedom. In a skew-t family, the
+preferred direction is `mu`, `sigma`, `nu`, and `tau`, with documentation
+explaining which shape controls asymmetry and which controls tails.
+
+Human-readable aliases such as `skew` or `df` can be considered later, but the
+canonical internal and documented names should stay consistent unless there is a
+strong reason not to.
+
 ## Implemented: Gaussian Location-Scale
 
 The first implementation accepts `stats::gaussian()` and maps it internally to:

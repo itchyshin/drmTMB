@@ -44,3 +44,29 @@ drmTMB(
 The computational plan is to use sparse A-inverse tricks for phylogeny and
 SPDE/GMRF structure for spatial fields, with careful provenance notes for any
 code selectively ported from `gllvmTMB`.
+
+The phylogenetic flagship is the location-scale model: trait means and residual
+SDs can each have phylogenetic structure. In bivariate models this allows
+several biological correlations, including mean-mean, scale-scale, and
+mean-scale phylogenetic correlations.
+
+`drmTMB` then adds the location-coscale extension:
+
+```r
+drmTMB(
+  formula = drm_formula(
+    mu1 = log_body_mass ~ lifestyle + phylo(species),
+    mu2 = log_litter_size ~ lifestyle + phylo(species),
+    sigma1 = ~ lifestyle,
+    sigma2 = ~ lifestyle,
+    rho12 = ~ lifestyle
+  ),
+  family = c(gaussian(), gaussian()),
+  data = mammals
+)
+```
+
+This syntax is planned, not implemented. It captures the intended extension of
+phylogenetic location-scale models: after modelling mean and variance, test
+whether the residual association between two traits changes with ecological
+predictors such as lifestyle.

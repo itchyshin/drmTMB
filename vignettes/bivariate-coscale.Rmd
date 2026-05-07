@@ -19,12 +19,12 @@ Current fixed-effect syntax:
 ```r
 drmTMB(
   bf(
-	    mu1 = y1 ~ x1 + x2,
-	    mu2 = y2 ~ x1,
-	    sigma1 = ~ x1 + x2,
-	    sigma2 = ~ x1,
-	    rho12 = ~ x1 + x2
-	  ),
+    mu1 = y1 ~ x1 + x2,
+    mu2 = y2 ~ x1,
+    sigma1 = ~ x1 + x2,
+    sigma2 = ~ x1,
+    rho12 = ~ x1 + x2
+  ),
   family = biv_gaussian(),
   data = dat
 )
@@ -32,6 +32,37 @@ drmTMB(
 
 The central scientific question is whether predictors change trait coupling,
 not only trait means or trait variances.
+
+This is why `rho12` is the selling point of `drmTMB`. A location-scale model
+asks whether predictors change residual SDs. A location-coscale model asks
+whether predictors also change the residual correlation between two biological
+responses. For example, a mammal analysis could ask whether the residual
+association between body mass and litter size differs among terrestrial,
+aquatic, and aerial lifestyles after modelling trait-specific means and
+dispersion.
+
+The future double-hierarchical version should also allow the individual-level
+mean structure used in O'Dea-style models:
+
+```r
+drmTMB(
+  formula = drm_formula(
+    mu1 = y1 ~ x1 + x2 + (1 + x2 | p | ID),
+    mu2 = y2 ~ x1      + (1 + x2 | p | ID),
+    sigma1 = ~ x1 + x2,
+    sigma2 = ~ x1,
+    rho12 = ~ x1 + x2
+  ),
+  family = c(gaussian(), gaussian()),
+  data = dat
+)
+```
+
+The two terms in `(1 + x2 | p | ID)` create the personality and plasticity
+random effects in the mean part. `sigma1` and `sigma2` are the residual scale
+parameters; additional random-effect scale components should be named and
+extracted as group-level standard deviations, not confused with residual
+`sigma`.
 
 The likelihood is:
 
@@ -61,12 +92,12 @@ dat$y2 <- mu2 + sigma2 * e2
 
 fit <- drmTMB(
   bf(
-	    mu1 = y1 ~ x1 + x2,
-	    mu2 = y2 ~ x1,
-	    sigma1 = ~ x1 + x2,
-	    sigma2 = ~ x1,
-	    rho12 = ~ x3
-	  ),
+    mu1 = y1 ~ x1 + x2,
+    mu2 = y2 ~ x1,
+    sigma1 = ~ x1 + x2,
+    sigma2 = ~ x1,
+    rho12 = ~ x3
+  ),
   family = biv_gaussian(),
   data = dat
 )
@@ -82,3 +113,9 @@ fecundity, or leaf area and seed number.
 The middle `p` in `(1 | p | id)` follows grouped covariance-block syntax for
 correlated group-level effects. That random-effect syntax is planned but not
 implemented yet. It is distinct from residual `rho12`.
+
+In phylogenetic location-scale models, correlations among phylogenetic mean and
+scale effects answer different questions: mean-mean coevolution, scale-scale
+co-divergence, and mean-scale evolutionary constraints. Those are group-level
+covariance summaries. Residual `rho12` is the observation-level trait coupling
+after those structured effects have been accounted for.

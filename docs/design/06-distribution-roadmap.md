@@ -26,7 +26,10 @@ These are the package-defining families.
 
 `rho12 ~ predictors` is the flagship feature and is now implemented for the
 Gaussian fixed-effect path. It should be hardened before the package grows a
-large family list.
+large family list. This is the key extension of phylogenetic location-scale
+thinking: after modelling trait means and variances, `drmTMB` lets users ask
+whether the covariance or correlation itself changes with biology,
+environment, lineage, treatment, or lifestyle.
 
 ## Tier 3: Meta-Analytic Gaussian Regression
 
@@ -59,11 +62,13 @@ Important extensions:
 Counts need location-scale thinking because dispersion is often biological.
 
 - `poisson()`: `mu`, mostly for baseline comparisons.
-- `nbinom2()`: `mu`, `shape` or `disp`; variance increases quadratically with
-  the mean.
-- `nbinom1()`: `mu`, `disp`; variance increases linearly with the mean.
+- `nbinom2()`: `mu`, `sigma` or family-specific `nu`; variance increases
+  quadratically with the mean.
+- `nbinom1()`: `mu`, `sigma` or family-specific `nu`; variance increases
+  linearly with the mean.
 - `compois()`: `mu`, `nu`; handles underdispersion and overdispersion.
-- `genpois()`: `mu`, `disp`; useful alternative for count dispersion.
+- `genpois()`: `mu`, `sigma` or family-specific `nu`; useful alternative for
+  count dispersion.
 - `truncated_nbinom2()` and `truncated_poisson()` for positive counts.
 - `zi_poisson()` and `zi_nbinom2()` with `zi ~ predictors`.
 - `hurdle_poisson()` and `hurdle_nbinom2()` with `hu ~ predictors`.
@@ -75,7 +80,9 @@ negative binomial.
 
 Percent data should be represented according to how the data were generated.
 
-- `beta()`: continuous proportions in `(0, 1)` with `mu` and `phi`.
+- `beta()`: continuous proportions in `(0, 1)` with `mu` and `sigma` in the
+  canonical GAMLSS-style grammar; documentation can translate to precision
+  `phi` where useful.
 - `zi_beta()`: extra zeros.
 - `zoibeta()` or `zero_one_inflated_beta()`: extra zeros and ones with `zoi`
   and `coi`.
@@ -103,11 +110,17 @@ Useful for body size, biomass, time, concentration, and rates.
 
 These connect directly to location-scale-shape modelling.
 
-- `skew_normal()`: `mu`, `sigma`, `skew`.
-- `skew_t()`: `mu`, `sigma`, `skew`, `nu`.
+- `skew_normal()`: `mu`, `sigma`, `nu`, where `nu` is the skewness/shape
+  parameter.
+- `skew_t()`: `mu`, `sigma`, `nu`, `tau`, where one shape controls asymmetry
+  and the other controls tail weight.
 - `asym_laplace()`: quantile-focused distributional regression.
 
 Start with `skew_normal()` after Student-t is stable.
+
+Shape naming follows the GAMLSS convention: `nu` for the first shape parameter
+and `tau` for the second. Aliases such as `skew` or `df` may be helpful later,
+but package examples should teach the canonical names first.
 
 ## Tier 8: Ordinal and Categorical Responses
 

@@ -14,8 +14,8 @@ Canonical long-form direction:
 ```r
 drmTMB(
   formula = drm_formula(
-    mu1 = y1 ~ x1 + x2 + (1 | p | id),
-    mu2 = y2 ~ x1      + (1 | p | id),
+    mu1 = y1 ~ x1 + x2 + (1 + x2 | p | id),
+    mu2 = y2 ~ x1      + (1 + x2 | p | id),
     sigma1 = ~ x1 + x2,
     sigma2 = ~ x1,
     rho12 = ~ x1 + x2
@@ -141,8 +141,8 @@ and response 2 in a bivariate likelihood:
 
 ```r
 bf(
-  mu1 = y1 ~ x1 + x2,
-  mu2 = y2 ~ x1,
+  mu1 = y1 ~ x1 + x2 + (1 + x2 | p | ID),
+  mu2 = y2 ~ x1      + (1 + x2 | p | ID),
   sigma1 = ~ x1 + x2,
   sigma2 = ~ x1,
   rho12 = ~ x1 + x2
@@ -154,6 +154,12 @@ double-hierarchical models contain several interpretable correlations among
 random intercepts, random slopes, random scale intercepts, and random scale
 slopes. Those correlations belong to labelled group-level covariance blocks
 such as `(1 + x1 | p | id)`, not to residual `rho12 ~`.
+
+For each response, the mean block may contain at least two group-level scale
+terms once random slopes are implemented: the random-intercept SD and the
+random-slope SD. Residual `sigma1` and `sigma2` remain separate
+within-observation scale parameters. Do not overload `sigma` to mean every
+variance component.
 
 Random intercept/slope correlations are likely to be estimated as constant
 covariance-block parameters. The main predictor-dependent `rho` formulas in
@@ -185,10 +191,14 @@ Formulae may target distributional parameters such as:
 
 - `mu`, `mu1`, `mu2`;
 - `sigma`, `sigma1`, `sigma2`;
-- `shape`, `skew`, `nu`;
+- `nu`, `tau`;
 - `zi`, `zoi`, `coi`, `hu`;
 - `rho12`;
 - `sd(group)` for random-effect scale models.
+
+`nu` and `tau` follow the GAMLSS convention for the first and second shape
+parameters. Family documentation should explain whether `nu` means skewness,
+tail weight, count dispersion, or another shape quantity.
 
 ## Random-Effect Eligibility
 
@@ -200,7 +210,7 @@ Not every parameter should accept random effects at the same development stage.
 | `sigma`, `sigma1`, `sigma2` | Later; needed for O'Dea-style predictability/malleability, but higher identifiability risk. |
 | `sd(group)` | Later; explicit random-effect scale model, not the same as residual `sigma`. |
 | `rho12` | No random effects initially; predictor-dependent fixed effects only. |
-| `shape`, `skew`, `kurtosis`, `nu` | Fixed effects first; random effects only after simulations show identifiability. |
+| `nu`, `tau` | Fixed effects first; random effects only after simulations show identifiability. |
 | `zi`, `hu`, `zoi`, `coi` | Fixed effects first; random effects later only for high-value use cases. |
 | `meta_known_V()` | Never; it is known sampling covariance, not an estimated parameter. |
 
