@@ -1,9 +1,10 @@
 #' Fit a distributional regression model with TMB
 #'
 #' `drmTMB()` is the main model-fitting entry point. The current implementation
-#' supports univariate Gaussian location-scale models, including simple random
-#' effects in the location formula, and fixed-effect bivariate Gaussian
-#' distributional models.
+#' supports univariate Gaussian location-scale models, including random
+#' intercepts, independent numeric random slopes, and correlated numeric
+#' random intercept-slope blocks in the location formula, plus fixed-effect
+#' bivariate Gaussian distributional models.
 #'
 #' @param formula A `drm_formula` object created by [bf()].
 #' @param family A response family, such as [stats::gaussian()] or
@@ -65,6 +66,7 @@ drmTMB <- function(formula, family = stats::gaussian(), data, control = list(), 
     par = par,
     coefficients = par,
     sdpars = split_tmb_sdpars(par_list, spec),
+    corpars = split_tmb_corpars(par_list, spec),
     random_effects = split_tmb_random_effects(par_list, spec),
     logLik = -opt$objective,
     df = length(opt$par),
@@ -392,6 +394,8 @@ parse_random_mu_lhs <- function(lhs, dpar, group) {
     return(list(
       type = "intercept",
       variable = NA_character_,
+      variables = NA_character_,
+      coef_names = "(Intercept)",
       label = paste0("(1 | ", group, ")")
     ))
   }
@@ -404,14 +408,30 @@ parse_random_mu_lhs <- function(lhs, dpar, group) {
     return(list(
       type = "slope",
       variable = variable,
+      variables = variable,
+      coef_names = variable,
       label = paste0("(0 + ", variable, " | ", group, ")")
     ))
   }
 
+  one <- vapply(pieces, is_intercept_one, logical(1))
+  symbol <- vapply(pieces, is.symbol, logical(1))
+  if (!any(zero) && sum(one) <= 1L && sum(symbol) == 1L &&
+      length(pieces) == sum(one) + sum(symbol)) {
+    variable <- as.character(pieces[[which(symbol)]])
+    return(list(
+      type = "correlated_slope",
+      variable = variable,
+      variables = variable,
+      coef_names = c("(Intercept)", variable),
+      label = paste0("(1 + ", variable, " | ", group, ")")
+    ))
+  }
+
   cli::cli_abort(c(
-    "Only random intercepts and single random slopes are implemented for {.code {dpar}}.",
+    "Only random intercepts, independent random slopes, and correlated intercept-slope blocks are implemented for {.code {dpar}}.",
     "x" = "Use {.code (1 | id)} for a random intercept or {.code (0 + x | id)} for a random slope.",
-    "i" = "Correlated intercept-slope blocks such as {.code (1 + x | id)} are planned, but are not implemented yet."
+    "i" = "Use {.code (1 + x | id)} for a correlated random intercept and slope."
   ))
 }
 
@@ -419,7 +439,7 @@ random_effect_vars <- function(terms) {
   if (length(terms) == 0L) {
     return(character())
   }
-  variables <- vapply(terms, `[[`, character(1), "variable")
+  variables <- unlist(lapply(terms, `[[`, "variables"), use.names = FALSE)
   unique(c(
     vapply(terms, `[[`, character(1), "group"),
     variables[!is.na(variables)]
@@ -434,6 +454,11 @@ empty_random_mu_structure <- function(n) {
     index0 = matrix(0L, nrow = n, ncol = 1L),
     value = matrix(1, nrow = n, ncol = 1L),
     term_id0 = 0L,
+    re_pos0 = 0L,
+    re_cor_id0 = -1L,
+    re_pair_index0 = -1L,
+    n_cors = 0L,
+    cor_labels = character(),
     labels = character(),
     groups = list(),
     value_names = character()
@@ -445,18 +470,26 @@ build_random_mu_structure <- function(terms, data) {
     return(empty_random_mu_structure(nrow(data)))
   }
 
-  labels <- vapply(terms, `[[`, character(1), "label")
-  if (anyDuplicated(labels)) {
+  validate_random_mu_term_overlap(terms)
+
+  coef_info <- expand_random_mu_terms(terms)
+  labels <- coef_info$labels
+  if (anyDuplicated(vapply(terms, `[[`, character(1), "label"))) {
     cli::cli_abort("Duplicate random-effect terms are not supported.")
   }
 
-  index <- matrix(NA_integer_, nrow = nrow(data), ncol = length(terms))
-  value <- matrix(1, nrow = nrow(data), ncol = length(terms))
+  index <- matrix(NA_integer_, nrow = nrow(data), ncol = length(labels))
+  value <- matrix(1, nrow = nrow(data), ncol = length(labels))
   term_id0 <- integer()
-  groups <- vector("list", length(terms))
+  re_pos0 <- integer()
+  re_cor_id0 <- integer()
+  re_pair_index0 <- integer()
+  groups <- vector("list", length(labels))
   names(groups) <- labels
   value_names <- character()
   offset <- 0L
+  coef_offset <- 0L
+  cor_labels <- character()
 
   for (k in seq_along(terms)) {
     group_name <- terms[[k]]$group
@@ -475,37 +508,97 @@ build_random_mu_structure <- function(terms, data) {
       ))
     }
 
-    if (identical(terms[[k]]$type, "slope")) {
-      variable <- terms[[k]]$variable
-      slope_value <- data[[variable]]
-      if (!is.numeric(slope_value)) {
+    variables <- terms[[k]]$variables
+    for (variable in variables[!is.na(variables)]) {
+      if (!is.numeric(data[[variable]])) {
         cli::cli_abort(c(
           "Random-slope variable {.field {variable}} must be numeric.",
           "x" = "Factor and multi-column random slopes are planned for a later formula-grammar pass."
         ))
       }
-      value[, k] <- as.numeric(slope_value)
     }
 
+    q <- length(terms[[k]]$coef_names)
     group_index <- as.integer(group)
-    index[, k] <- offset + group_index
-    term_id0 <- c(term_id0, rep.int(k - 1L, length(levels_k)))
-    groups[[k]] <- levels_k
-    value_names <- c(value_names, paste0(labels[[k]], ":", levels_k))
-    offset <- offset + length(levels_k)
+    cor_id0 <- -1L
+    if (q == 2L) {
+      cor_id0 <- length(cor_labels)
+      cor_labels <- c(
+        cor_labels,
+        paste0(
+          "cor(",
+          terms[[k]]$coef_names[[1L]],
+          ",",
+          terms[[k]]$coef_names[[2L]],
+          " | ",
+          group_name,
+          ")"
+        )
+      )
+    }
+
+    for (p in seq_len(q)) {
+      coef_id <- coef_offset + p
+      index[, coef_id] <- offset + (p - 1L) * length(levels_k) + group_index
+      if (!identical(terms[[k]]$coef_names[[p]], "(Intercept)")) {
+        variable <- terms[[k]]$coef_names[[p]]
+        value[, coef_id] <- as.numeric(data[[variable]])
+      }
+      term_id0 <- c(term_id0, rep.int(coef_id - 1L, length(levels_k)))
+      re_pos0 <- c(re_pos0, rep.int(p - 1L, length(levels_k)))
+      re_cor_id0 <- c(re_cor_id0, rep.int(cor_id0, length(levels_k)))
+      if (q == 2L && p == 2L) {
+        re_pair_index0 <- c(re_pair_index0, offset + seq_len(length(levels_k)) - 1L)
+      } else {
+        re_pair_index0 <- c(re_pair_index0, rep.int(-1L, length(levels_k)))
+      }
+      groups[[coef_id]] <- levels_k
+      value_names <- c(value_names, paste0(labels[[coef_id]], ":", levels_k))
+    }
+    offset <- offset + q * length(levels_k)
+    coef_offset <- coef_offset + q
   }
 
   list(
-    n_terms = length(terms),
+    n_terms = length(labels),
     n_re = offset,
     index = index,
     index0 = index - 1L,
     value = value,
     term_id0 = term_id0,
+    re_pos0 = re_pos0,
+    re_cor_id0 = re_cor_id0,
+    re_pair_index0 = re_pair_index0,
+    n_cors = length(cor_labels),
+    cor_labels = cor_labels,
     labels = labels,
     groups = groups,
     value_names = value_names
   )
+}
+
+expand_random_mu_terms <- function(terms) {
+  labels <- unlist(lapply(terms, function(term) {
+    if (length(term$coef_names) == 1L) {
+      return(term$label)
+    }
+    paste0(term$label, ":", term$coef_names)
+  }), use.names = FALSE)
+  list(labels = labels)
+}
+
+validate_random_mu_term_overlap <- function(terms) {
+  keys <- unlist(lapply(terms, function(term) {
+    coef_names <- term$coef_names
+    paste(term$group, coef_names, sep = "::")
+  }), use.names = FALSE)
+  if (anyDuplicated(keys)) {
+    cli::cli_abort(c(
+      "Overlapping random-effect terms are not supported.",
+      "x" = "Use either a correlated block such as {.code (1 + x | id)} or separate independent terms such as {.code (1 | id) + (0 + x | id)}, not both for the same group and coefficient."
+    ))
+  }
+  invisible(terms)
 }
 
 extract_meta_known_v <- function(rhs) {
@@ -712,7 +805,8 @@ gaussian_ls_start <- function(y, X_mu, X_sigma, V_known = rep(0, length(y)),
     beta_mu = beta_mu,
     beta_sigma = beta_sigma,
     u_mu = re_start$u_mu,
-    log_sd_mu = re_start$log_sd_mu
+    log_sd_mu = re_start$log_sd_mu,
+    eta_cor_mu = re_start$eta_cor_mu
   )
 }
 
@@ -728,7 +822,7 @@ gaussian_ls_dummy_start <- function() {
 
 gaussian_mu_re_start <- function(resid, re_mu, y_scale) {
   if (re_mu$n_re == 0L) {
-    return(list(u_mu = 0, log_sd_mu = 0))
+    return(list(u_mu = 0, log_sd_mu = 0, eta_cor_mu = 0))
   }
 
   log_sd_mu <- numeric(re_mu$n_terms)
@@ -762,7 +856,8 @@ gaussian_mu_re_start <- function(resid, re_mu, y_scale) {
 
   list(
     u_mu = rep(0, re_mu$n_re),
-    log_sd_mu = log_sd_mu
+    log_sd_mu = log_sd_mu,
+    eta_cor_mu = rep(0, max(1L, re_mu$n_cors))
   )
 }
 
@@ -795,7 +890,7 @@ biv_gaussian_start <- function(y1, y2, X_mu1, X_mu2, X_sigma1, X_sigma2, X_rho12
   beta_rho12[1L] <- atanh(rho)
 
   c(
-    list(beta_mu = 0, beta_sigma = 0, u_mu = 0, log_sd_mu = 0),
+    list(beta_mu = 0, beta_sigma = 0, u_mu = 0, log_sd_mu = 0, eta_cor_mu = 0),
     list(
       beta_mu1 = beta_mu1,
       beta_mu2 = beta_mu2,
@@ -818,6 +913,9 @@ gaussian_ls_map <- function(re_mu = empty_random_mu_structure(1L)) {
     out$u_mu <- factor(NA)
     out$log_sd_mu <- factor(NA)
   }
+  if (re_mu$n_cors == 0L) {
+    out$eta_cor_mu <- factor(NA)
+  }
   out
 }
 
@@ -826,7 +924,8 @@ biv_gaussian_map <- function() {
     beta_mu = factor(NA),
     beta_sigma = factor(NA),
     u_mu = factor(NA),
-    log_sd_mu = factor(NA)
+    log_sd_mu = factor(NA),
+    eta_cor_mu = factor(NA)
   )
 }
 
@@ -851,9 +950,13 @@ make_tmb_data <- function(spec) {
       X_sigma2 = dummy_matrix,
       X_rho12 = dummy_matrix,
       n_mu_re_terms = spec$random$mu$n_terms,
+      n_mu_re_cors = spec$random$mu$n_cors,
       mu_re_index = spec$random$mu$index0,
       mu_re_value = spec$random$mu$value,
-      mu_re_term = spec$random$mu$term_id0
+      mu_re_term = spec$random$mu$term_id0,
+      mu_re_pos = spec$random$mu$re_pos0,
+      mu_re_cor_id = spec$random$mu$re_cor_id0,
+      mu_re_pair_index = spec$random$mu$re_pair_index0
     ))
   }
   list(
@@ -872,9 +975,13 @@ make_tmb_data <- function(spec) {
     X_sigma2 = spec$X$sigma2,
     X_rho12 = spec$X$rho12,
     n_mu_re_terms = 0L,
+    n_mu_re_cors = 0L,
     mu_re_index = matrix(0L, nrow = 1L, ncol = 1L),
     mu_re_value = dummy_matrix,
-    mu_re_term = 0L
+    mu_re_term = 0L,
+    mu_re_pos = 0L,
+    mu_re_cor_id = -1L,
+    mu_re_pair_index = -1L
   )
 }
 
@@ -916,14 +1023,22 @@ split_tmb_sdpars <- function(par, spec) {
   list(mu = sd_mu)
 }
 
+split_tmb_corpars <- function(par, spec) {
+  if (!identical(spec$model_type, "gaussian") || spec$random$mu$n_cors == 0L) {
+    return(list())
+  }
+  rho_mu <- 0.999999 * tanh(unname(par$eta_cor_mu[seq_len(spec$random$mu$n_cors)]))
+  names(rho_mu) <- spec$random$mu$cor_labels
+  list(mu = rho_mu)
+}
+
 split_tmb_random_effects <- function(par, spec) {
   if (!identical(spec$model_type, "gaussian") || spec$random$mu$n_re == 0L) {
     return(list())
   }
 
   latent <- unname(par$u_mu[seq_len(spec$random$mu$n_re)])
-  sd_by_term <- exp(unname(par$log_sd_mu[seq_len(spec$random$mu$n_terms)]))
-  values <- latent * sd_by_term[spec$random$mu$term_id0 + 1L]
+  values <- transform_mu_random_effects(latent, par, spec$random$mu)
   names(values) <- spec$random$mu$value_names
   by_term <- vector("list", spec$random$mu$n_terms)
   names(by_term) <- spec$random$mu$labels
@@ -938,4 +1053,28 @@ split_tmb_random_effects <- function(par, spec) {
 
   names(latent) <- spec$random$mu$value_names
   list(mu = list(values = values, latent = latent, terms = by_term))
+}
+
+transform_mu_random_effects <- function(latent, par, re_mu) {
+  sd_by_term <- exp(unname(par$log_sd_mu[seq_len(re_mu$n_terms)]))
+  rho <- if (re_mu$n_cors > 0L) {
+    0.999999 * tanh(unname(par$eta_cor_mu[seq_len(re_mu$n_cors)]))
+  } else {
+    numeric()
+  }
+  values <- numeric(re_mu$n_re)
+  for (idx in seq_len(re_mu$n_re)) {
+    term <- re_mu$term_id0[[idx]] + 1L
+    cor_id <- re_mu$re_cor_id0[[idx]] + 1L
+    is_cor_slope <- cor_id > 0L && re_mu$re_pos0[[idx]] == 1L
+    if (is_cor_slope) {
+      pair <- re_mu$re_pair_index0[[idx]] + 1L
+      rho_i <- rho[[cor_id]]
+      values[[idx]] <- sd_by_term[[term]] *
+        (rho_i * latent[[pair]] + sqrt(1 - rho_i^2) * latent[[idx]])
+    } else {
+      values[[idx]] <- sd_by_term[[term]] * latent[[idx]]
+    }
+  }
+  values
 }

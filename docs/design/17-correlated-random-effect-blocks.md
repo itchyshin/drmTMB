@@ -1,9 +1,9 @@
 # Correlated Random-Effect Blocks
 
-This note records the design target for ordinary correlated Gaussian `mu`
-random-effect blocks. It is not implemented yet. The current implementation
-supports independent random-effect terms such as `(1 | id)` and
-`(0 + x | id)`.
+This note records the implemented design for ordinary correlated Gaussian `mu`
+random-effect blocks. The current implementation supports independent
+random-effect terms such as `(1 | id)` and `(0 + x | id)`, plus one-slope
+ordinary correlated blocks such as `(1 + x | id)`.
 
 ## User Grammar
 
@@ -13,8 +13,8 @@ Keep ordinary mixed-model syntax familiar:
 bf(y ~ x + (1 + x | id), sigma ~ z)
 ```
 
-This should mean a correlated random intercept and random slope for `x` within
-`id`, matching the usual `lme4` and `glmmTMB` meaning.
+This means a correlated random intercept and random slope for `x` within `id`,
+matching the usual `lme4` and `glmmTMB` meaning.
 
 Keep the current independent syntax unchanged:
 
@@ -134,16 +134,16 @@ Fitted objects should expose:
 
 Do not place group-level correlations under `rho12`.
 
-## Initial Implementation Boundary
+## Implemented Boundary
 
-The first implementation should support only ordinary unlabelled `q = 2`
-Gaussian `mu` blocks:
+The first implementation supports ordinary unlabelled `q = 2` Gaussian `mu`
+blocks:
 
 ```r
 bf(y ~ x + (1 + x | id), sigma ~ z)
 ```
 
-Defer:
+Still deferred:
 
 - `q > 2` blocks;
 - factor or multi-column random slopes;
@@ -158,7 +158,7 @@ directly because they do not guarantee a valid correlation matrix.
 
 ## Comparator Tests
 
-The first ordinary correlated block should match:
+The first ordinary correlated block is tested against:
 
 ```r
 lme4::lmer(y ~ x + (1 + x | id), data = dat, REML = FALSE)

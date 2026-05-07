@@ -9,7 +9,7 @@ template:
     link-color: "#0f7887"
   opengraph:
     image:
-      src: man/figures/logo.png
+      src: man/figures/drmTMB-logo.png
       alt: "drmTMB hex logo"
 
 development:

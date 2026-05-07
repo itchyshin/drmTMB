@@ -178,7 +178,7 @@ test_that("Phase 1 rejects unsupported model syntax clearly", {
     "only support"
   )
   expect_error(
-    drmTMB(bf(y ~ x + (x | id)), family = gaussian(), data = dat),
+    drmTMB(bf(y ~ x + (1 + x + z | id)), family = gaussian(), data = dat),
     "Only random intercepts"
   )
   expect_error(

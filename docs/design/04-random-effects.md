@@ -9,9 +9,11 @@ the grammar must support them from the start.
 2. Random intercepts in location. Implemented for univariate Gaussian `mu`.
 3. Simple numeric random slopes in location. Implemented for univariate
    Gaussian `mu` as separate uncorrelated terms.
-4. Random intercepts in scale.
-5. Random-effect scale formulae such as `sd(id) ~ x`.
-6. Correlations among location and scale random effects when identifiable.
+4. Ordinary correlated random intercept-slope blocks in location. Implemented
+   for univariate Gaussian `mu`.
+5. Random intercepts in scale.
+6. Random-effect scale formulae such as `sd(id) ~ x`.
+7. Correlations among location and scale random effects when identifiable.
 
 ## Initial Syntax
 
@@ -62,6 +64,19 @@ bf(
 )
 ```
 
+Ordinary correlated random intercept-slope blocks are implemented for one
+numeric slope:
+
+```r
+bf(
+  y ~ x1 + (1 + x1 | id),
+  sigma ~ x1
+)
+```
+
+The fitted group-level intercept-slope correlation is reported under
+`corpars$mu`. It is not residual `rho12`.
+
 Interaction slopes are not parsed as formula expressions yet. The temporary
 safe workflow is to create the interaction column before fitting:
 
@@ -77,21 +92,23 @@ Current implementation details:
 
 - supported only for univariate Gaussian `mu`;
 - random-slope terms must be written as `0 + x`, with a single numeric
-  predictor;
-- `(1 + x | id)` and labelled blocks such as `(1 + x | p | id)` are reserved
-  for correlated covariance-block support;
+  predictor, for independent slope terms;
+- ordinary correlated intercept-slope blocks are written as `(1 + x | id)` and
+  currently support one numeric slope;
+- labelled blocks such as `(1 + x | p | id)` are reserved for later
+  cross-formula or cross-parameter covariance-block support;
 - random effects are integrated with TMB's Laplace approximation;
-- the TMB parameterization is non-centered:
-  `b_{term,group} = sd_term * u_{term,group}`, where
-  `u_{term,group} ~ Normal(0, 1)`;
+- the TMB parameterization is non-centered; independent terms use
+  `b_{term,group} = sd_term * u_{term,group}`, while correlated two-coefficient
+  blocks use a Cholesky transform of standardized normal random effects;
 - fitted-data `predict(fit, dpar = "mu")` includes conditional modes;
 - `newdata` prediction currently uses fixed effects only;
 - grouping variables with fewer than two levels or only singleton groups are
   rejected.
 
-## Correlated Multi-Slope Blocks
+## Larger Correlated Multi-Slope Blocks
 
-Future correlated ordinary random-effect blocks should support:
+Future larger correlated ordinary random-effect blocks should support:
 
 ```r
 bf(

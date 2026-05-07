@@ -175,8 +175,19 @@ drmTMB(
 ```
 
 This is intentionally not the same as a correlated random intercept/slope block.
-Syntax such as `(1 + x1 | id)` and labelled blocks such as `(1 + x1 | p | id)`
-are reserved for the covariance-block implementation.
+The ordinary correlated block is also implemented:
+
+```r
+drmTMB(
+  bf(y ~ x1 + (1 + x1 | id), sigma ~ x2),
+  family = gaussian(),
+  data = dat
+)
+```
+
+The intercept-slope correlation from `(1 + x1 | id)` is a group-level
+correlation reported under `corpars$mu`. Labelled blocks such as
+`(1 + x1 | p | id)` remain planned for later cross-formula covariance blocks.
 
 This is the source of the "two or three sigmas" issue in ordinary language:
 the model may contain several scale quantities, but only one of them is the
@@ -189,6 +200,8 @@ residual `sigma`. The others should be named by what they scale:
   random intercept term in the location formula;
 - ID random-slope SD in `mu`: `sd_mu_x_id`, from a random-slope term such as
   `(0 + x1 | id)`;
+- ID random intercept-slope correlation in `mu`: `corpars$mu`, from a
+  correlated block such as `(1 + x1 | id)`;
 - future random-effect scale model: `sd(site)_i`, from syntax such as
   `sd(site) ~ x1`.
 
@@ -280,8 +293,8 @@ y | mu, sigma, V ~ MVN(mu, V + diag(sigma_i^2))
 ## Current implementation caveats
 
 - The current fitter supports `family = gaussian()` with fixed effects for
-  `mu` and `sigma`, plus simple random intercepts and numeric random slopes in
-  `mu`.
+  `mu` and `sigma`, plus random intercepts, independent numeric random slopes,
+  and ordinary correlated intercept-slope blocks in `mu`.
 - The `sigma` formula is the observation-level residual standard deviation. It
   is not a random-effect scale component.
 - Missing rows are dropped when they are incomplete for variables used by
@@ -290,9 +303,9 @@ y | mu, sigma, V ~ MVN(mu, V + diag(sigma_i^2))
   supported for Gaussian meta-analysis.
 - Fixed-effect bivariate Gaussian `rho12` models are implemented in the
   bivariate coscale article.
-- Correlated random intercept/slope blocks, `sd(group)` scale formulas,
-  phylogenetic terms, spatial terms, and non-Gaussian families are planned but
-  not implemented in this MVP.
+- `sd(group)` scale formulas, labelled covariance blocks, phylogenetic terms,
+  spatial terms, and non-Gaussian families are planned but not implemented in
+  this MVP.
 
 Future multiple scale components will use explicit `sd()` formulas, not extra
 residual `sigma` formulas:

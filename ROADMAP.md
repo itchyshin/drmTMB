@@ -52,11 +52,12 @@ distributional regression models using TMB.
 
 ## Phase 4: Mixed and Double-Hierarchical Models
 
-- Status: random intercepts in the univariate Gaussian location formula are
-  implemented, along with simple numeric random-slope terms written as
-  `(0 + x | id)`.
-- Add labelled correlated random intercept/slope blocks in the location
-  formula, following `docs/design/17-correlated-random-effect-blocks.md`.
+- Status: random intercepts, independent numeric random slopes written as
+  `(0 + x | id)`, and ordinary correlated intercept-slope blocks written as
+  `(1 + x | id)` are implemented for the univariate Gaussian location formula.
+- Add labelled correlated random intercept/slope blocks such as
+  `(1 + x | p | id)` for cross-formula or cross-parameter group-level
+  covariance, following `docs/design/17-correlated-random-effect-blocks.md`.
 - Add random intercepts in scale formulae.
 - Add random-effect scale formulae such as `sd(id) ~ x`.
 - Support multiple random-effect scale components, such as `sd(study) ~ x` and

@@ -177,6 +177,7 @@ summary.drmTMB <- function(object, ...) {
       check.names = FALSE
     ),
     sdpars = object$sdpars,
+    corpars = object$corpars,
     logLik = stats::logLik(object),
     convergence = object$opt$convergence
   )
@@ -191,6 +192,10 @@ print.summary.drmTMB <- function(x, ...) {
   if (length(x$sdpars) > 0L) {
     cli::cli_text("Random-effect SDs:")
     print(x$sdpars)
+  }
+  if (length(x$corpars) > 0L) {
+    cli::cli_text("Random-effect correlations:")
+    print(x$corpars)
   }
   cli::cli_text("logLik: {format(as.numeric(x$logLik), digits = 4)}")
   cli::cli_text("convergence: {x$convergence}")

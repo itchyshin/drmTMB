@@ -1,4 +1,4 @@
-# drmTMB <a href="https://itchyshin.github.io/drmTMB/"><img src="man/figures/logo.png" align="right" height="138" alt="drmTMB hex logo" /></a>
+# drmTMB <a href="https://itchyshin.github.io/drmTMB/"><img src="man/figures/drmTMB-logo.png" align="right" height="138" alt="drmTMB hex logo" /></a>
 
 A fast TMB-based distributional regression package for broadly useful
 univariate and bivariate location-scale-shape models. The package lets users
@@ -7,8 +7,8 @@ variance, and residual correlation `rho12`; the first examples are motivated by
 ecology, evolution, and environmental science.
 
 The current implementation supports Gaussian location-scale models, including
-fixed effects, random intercepts, and simple numeric random slopes in the
-location formula:
+fixed effects, random intercepts, independent numeric random slopes, and
+ordinary correlated random intercept-slope blocks in the location formula:
 
 ```r
 drmTMB(
@@ -17,6 +17,20 @@ drmTMB(
   data = dat
 )
 ```
+
+Use separate terms for independent group-level intercept and slope variation,
+and a single block when the intercept-slope correlation is part of the model:
+
+```r
+drmTMB(
+  bf(y ~ x1 + (1 + x1 | id), sigma ~ x1),
+  family = gaussian(),
+  data = dat
+)
+```
+
+The group-level correlation from `(1 + x1 | id)` is reported separately from
+residual bivariate `rho12`.
 
 It also supports the fixed-effect seed of the bivariate location-coscale model,
 including predictor-dependent residual correlation:
@@ -78,12 +92,13 @@ drmTMB(
 )
 ```
 
-Current project status: Gaussian location-scale MVP with simple `mu` random
-effects, `meta_known_V(V = V)` support for diagonal and dense known sampling
-covariance, and fixed-effect bivariate Gaussian `rho12 ~ predictors`. The next
-target is to harden these likelihoods and then add labelled correlated random-
-effect blocks, random-effect scale models, sparse precision paths,
-phylogenetic A-inverse, and spatial SPDE paths.
+Current project status: Gaussian location-scale MVP with `mu` random
+intercepts, independent numeric random slopes, ordinary correlated
+intercept-slope blocks, `meta_known_V(V = V)` support for diagonal and dense
+known sampling covariance, and fixed-effect bivariate Gaussian `rho12 ~
+predictors`. The next targets are labelled correlated random-effect blocks,
+random-effect scale models, sparse precision paths, phylogenetic A-inverse, and
+spatial SPDE paths.
 
 Phylogenetic and spatial dependence will be treated as one structured-effect
 module: `z ~ MVN(0, sigma_z^2 K)`, with `K = A` for tree-derived phylogenetic

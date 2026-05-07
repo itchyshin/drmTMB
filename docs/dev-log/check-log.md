@@ -929,3 +929,72 @@ Team learning:
   explicitly split;
 - future spawn requests should avoid combining full-history forking with named
   specialist agents.
+
+## 2026-05-07: Ordinary Correlated Gaussian `mu` Random-Effect Blocks
+
+Scope:
+
+- implemented ordinary unlabelled correlated Gaussian `mu` random
+  intercept-slope blocks written as `(1 + x | id)` or `(x | id)`;
+- kept independent syntax `(1 | id) + (0 + x | id)` unchanged;
+- added `eta_cor_mu` in the TMB parameter vector and exposed transformed
+  group-level correlations as `corpars$mu`;
+- kept labelled blocks such as `(1 + x | p | id)` rejected for the later
+  cross-formula covariance phase;
+- updated README, NEWS, pkgdown Open Graph image config, design docs,
+  location-scale docs, known limitations, roadmap, and generated reference docs;
+- added a repo-facing `man/figures/drmTMB-logo.png` asset so the GitHub README
+  page can refresh the hex logo without relying on the older filename cache.
+
+Commands run:
+
+- `Rscript -e "devtools::document()"`
+- `Rscript -e "devtools::test(filter = 'gaussian-random-intercepts')"`
+- `Rscript -e "devtools::test(filter = 'comparators')"`
+- `Rscript -e "devtools::test()"`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `Rscript -e "pkgdown::build_site()"`
+- local browser preview at `http://127.0.0.1:4187/index.html`
+- `Rscript -e "devtools::check(env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`
+
+Results:
+
+- `devtools::test(filter = 'gaussian-random-intercepts')`: 93 passed, 0
+  failed;
+- `devtools::test(filter = 'comparators')`: 20 passed, 0 failed;
+- full `devtools::test()`: 246 passed, 0 failed;
+- `pkgdown::check_pkgdown()`: no problems found;
+- `pkgdown::build_site()`: completed successfully;
+- local browser preview showed the updated home page wording and visible hex
+  logo;
+- `devtools::check(env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))`: 0
+  errors, 0 warnings, 0 notes.
+
+Tests of the tests:
+
+- the existing independent random-slope `lme4` comparator failed during the
+  first implementation attempt because the new block layout accidentally
+  treated independent slope values as intercept-like values; this caught a real
+  regression and was fixed before merging;
+- the new correlated-block comparator checks fixed effects, random-effect SDs,
+  intercept-slope correlation, residual SD, and marginal log-likelihood against
+  `lme4::lmer(..., REML = FALSE)`;
+- simulation tests cover positive, near-zero, negative, high-correlation,
+  weak-slope-SD, factor-fixed-effect, missingness, and malformed-syntax cases.
+
+Known issues:
+
+- only ordinary unlabelled `q = 2` Gaussian `mu` blocks are implemented;
+- factor or multi-column random slopes, `q > 2` blocks, labelled
+  `(1 + x | p | id)` blocks, scale-formula random effects, bivariate
+  group-level covariance blocks, phylogenetic/spatial slope blocks, and
+  non-Gaussian random-effect blocks remain planned.
+
+Team learning:
+
+- comparator tests are not just reassurance; they caught a real design-matrix
+  regression in the first implementation pass;
+- README and pkgdown can drift visually, so repo-facing assets should be
+  checked alongside the built site after logo or status changes;
+- keep group-level correlation extraction under `corpars`, not under residual
+  `rho12`.

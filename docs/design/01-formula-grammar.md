@@ -141,11 +141,18 @@ dat$x1_x2 <- dat$x1 * dat$x2
 bf(y ~ x1 * x2 + (0 + x1_x2 | id), sigma ~ x1)
 ```
 
-Do not write `(1 + x1 | id)` yet if you need the random intercept and random
-slope correlation; that syntax is reserved for the correlated covariance-block
-implementation.
+Ordinary correlated random intercept-slope blocks are implemented for the
+univariate Gaussian `mu` path:
 
-Future correlated multi-slope syntax should allow model-matrix terms such as:
+```r
+bf(y ~ x1 + (1 + x1 | id), sigma ~ x1)
+```
+
+The group-level intercept-slope correlation is extracted as `corpars$mu`, not
+as residual `rho12`.
+
+Future correlated multi-slope syntax should allow larger model-matrix terms
+such as:
 
 ```r
 bf(y ~ x1 * x2 + (1 + x1 + x2 + x1:x2 | id), sigma ~ x1)
@@ -257,7 +264,7 @@ Not every parameter should accept random effects at the same development stage.
 
 | Parameter class | Random effects policy |
 |---|---|
-| `mu`, `mu1`, `mu2` | Yes; univariate Gaussian `mu` random intercepts and simple numeric random slopes are implemented; covariance blocks are next. |
+| `mu`, `mu1`, `mu2` | Yes; univariate Gaussian `mu` random intercepts, independent numeric random slopes, and ordinary correlated intercept-slope blocks are implemented. |
 | `sigma`, `sigma1`, `sigma2` | Later; needed for predictability/malleability models, but higher identifiability risk. |
 | `sd(group)` | Later; explicit random-effect scale model, not the same as residual `sigma`. |
 | `rho12` | No random effects initially; predictor-dependent fixed effects only. |
@@ -273,9 +280,10 @@ Not every parameter should accept random effects at the same development stage.
 - `rho12` is allowed only for bivariate families.
 - `rho` may become a convenience alias, but `rho12` is canonical.
 - `meta_known_V(V = V)` is a known-covariance marker, not a predictor.
-- Random intercepts and random slopes with one numeric predictor per
-  random-slope term are currently implemented only for the univariate Gaussian
-  `mu` formula; multiple separate independent slope terms are allowed.
+- Random intercepts, random slopes with one numeric predictor per random-slope
+  term, and ordinary correlated intercept-slope blocks are currently
+  implemented only for the univariate Gaussian `mu` formula; multiple separate
+  independent slope terms are allowed.
 - The parser should reject unsupported formulae early with clear errors.
 
 ## Not in the MVP

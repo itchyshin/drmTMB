@@ -13,7 +13,8 @@ Likelihoods are implemented in TMB templates and called from R wrappers.
 ## Implemented Gaussian Location-Scale
 
 Gaussian location-scale is implemented for fixed-effect models and for
-univariate Gaussian location random intercepts and simple random slopes:
+univariate Gaussian location random intercepts, independent numeric random
+slopes, and ordinary correlated random intercept-slope blocks:
 
 ```text
 y_i | mu_i, sigma_i ~ Normal(mu_i, sigma_i^2)
@@ -57,6 +58,35 @@ drmTMB(
 )
 ```
 
+For an ordinary correlated random intercept-slope block:
+
+```text
+mu_i = X_mu[i, ] beta_mu + b_0,g[i] + x_i b_1,g[i]
+
+[b_0,g, b_1,g]' ~ MVN(0, Sigma_g)
+Sigma_g =
+  [sd0^2,          rho_re sd0 sd1;
+   rho_re sd0 sd1, sd1^2]
+
+u_g ~ Normal([0, 0]', I)
+b_0,g = sd0 * u_0,g
+b_1,g = sd1 * (rho_re * u_0,g + sqrt(1 - rho_re^2) * u_1,g)
+rho_re = 0.999999 * tanh(eta_cor)
+```
+
+Matching R syntax:
+
+```r
+drmTMB(
+  bf(y ~ x1 + (1 + x1 | id), sigma ~ x2),
+  family = gaussian(),
+  data = dat
+)
+```
+
+Here `rho_re` is a group-level random-effect correlation. It is extracted via
+`corpars$mu` and is not residual `rho12`.
+
 Residuals are not part of the formula grammar. They are computed downstream
 from the fitted likelihood.
 
@@ -69,6 +99,8 @@ Implementation notes:
   `tests/testthat/test-gaussian-location-scale.R`.
 - Random-effect recovery tests live in
   `tests/testthat/test-gaussian-random-intercepts.R`.
+- Comparator tests against `lme4` for overlapping Gaussian ML random-effect
+  models live in `tests/testthat/test-comparators.R`.
 - The univariate likelihood supports optional known sampling covariance via
   `meta_known_V(V = V)`. It has no residual correlation parameter.
 
