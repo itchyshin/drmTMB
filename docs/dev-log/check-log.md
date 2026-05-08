@@ -2133,7 +2133,7 @@ Team learning:
 - Rose found that stale status wording now needs a standard close-out grep
   whenever an implemented feature crosses from roadmap to current support.
 
-## 2026-05-08: Dense Full-V Plus Phylogenetic Comparator
+## 2026-05-08: Dense Full-V Plus Phylogenetic And Study Comparators
 
 Scope:
 
@@ -2142,8 +2142,12 @@ Scope:
 - the test fits
   `bf(yi ~ x + meta_known_V(V = V) + phylo(1 | species, tree = tree), sigma ~ 1)`
   with a dense full sampling covariance matrix;
+- a second test adds an ordinary `mu` study random intercept to the same
+  dense known-`V` plus phylogenetic model;
 - the independent comparator checks the fitted objective against
-  `Sigma = V_known + sigma^2 I + sd_phylo^2 A_obs`.
+  `Sigma = V_known + sigma^2 I + sd_phylo^2 A_obs`, and against
+  `Sigma = V_known + sigma^2 I + sd_study^2 J_study + sd_phylo^2 A_obs`
+  for the study-intercept model.
 
 Commands run:
 
@@ -2153,8 +2157,8 @@ Commands run:
 
 Results:
 
-- targeted `phylo-gaussian` tests: 22 passed, 0 failed;
-- full `devtools::test()`: 487 passed, 0 failed;
+- targeted `phylo-gaussian` tests: 25 passed, 0 failed;
+- full `devtools::test()`: 490 passed, 0 failed;
 - `devtools::check()` with `_R_CHECK_SYSTEM_CLOCK_=FALSE`: 0 errors,
   0 warnings, 0 notes.
 

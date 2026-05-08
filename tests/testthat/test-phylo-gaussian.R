@@ -247,6 +247,52 @@ test_that("phylogenetic meta-analysis accepts dense known V", {
   )
 })
 
+test_that("phylogenetic meta-analysis composes dense V and study intercepts", {
+  tree <- balanced_ultrametric_tree(n_tip = 4L)
+  species <- rep(tree$tip.label, each = 3L)
+  study <- factor(rep(seq_len(6L), each = 2L))
+  x <- rep(c(-0.4, 0.2, 0.8), times = 4L)
+  n <- length(x)
+  V <- 0.01 * outer(seq_len(n), seq_len(n), function(i, j) 0.35^abs(i - j))
+  diag(V) <- diag(V) + 0.015
+  phylo_signal <- c(sp_1 = -0.22, sp_2 = -0.1, sp_3 = 0.14, sp_4 = 0.28)
+  study_signal <- c(-0.08, 0.06, -0.03, 0.04, -0.02, 0.05)
+  dat <- data.frame(
+    yi = 0.15 + 0.35 * x + phylo_signal[species] + study_signal[study] +
+      rep(c(-0.02, 0.03, 0.04), times = 4L),
+    x = x,
+    species = species,
+    study = study
+  )
+
+  fit <- drmTMB(
+    bf(
+      yi ~ x + (1 | study) + meta_known_V(V = V) +
+        phylo(1 | species, tree = tree),
+      sigma ~ 1
+    ),
+    family = gaussian(),
+    data = dat
+  )
+
+  X_mu <- stats::model.matrix(~ x, dat)
+  mu <- as.vector(X_mu %*% coef(fit, "mu"))
+  A_tip <- drmTMB:::drm_phylo_tip_covariance(tree)
+  A_obs <- A_tip[dat$species, dat$species]
+  study_obs <- outer(dat$study, dat$study, `==`) + 0
+  covariance <- V + stats::sigma(fit)[[1L]]^2 * diag(n) +
+    unname(fit$sdpars$mu["(1 | study)"])^2 * study_obs +
+    unname(fit$sdpars$mu["phylo(1 | species)"])^2 * A_obs
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(fit$model$V_known_type, "matrix")
+  expect_equal(
+    fit$opt$objective,
+    dense_gaussian_nll(dat$yi, mu, covariance),
+    tolerance = 1e-4
+  )
+})
+
 test_that("conditional predictions include phylogenetic mu effects", {
   sim <- new_phylo_gaussian_data(seed = 20260548)
   dat <- sim$data

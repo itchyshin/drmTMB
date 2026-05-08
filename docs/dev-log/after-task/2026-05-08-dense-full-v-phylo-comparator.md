@@ -1,9 +1,10 @@
-# After Task: Dense Full-V Plus Phylogenetic Comparator
+# After Task: Dense Full-V Plus Phylogenetic And Study Comparators
 
 ## Goal
 
-Check that dense known sampling covariance and intercept-only phylogenetic
-location effects compose correctly in one Gaussian model.
+Check that dense known sampling covariance, intercept-only phylogenetic
+location effects, and ordinary study random intercepts compose correctly in
+Gaussian meta-analysis models.
 
 ## Implemented
 
@@ -20,8 +21,9 @@ drmTMB(
 )
 ```
 
-The test uses a dense full known covariance matrix `V`, not only a diagonal
-variance vector.
+The first test uses a dense full known covariance matrix `V`, not only a
+diagonal variance vector. A second test adds an ordinary `(1 | study)` random
+intercept to the same known-`V` plus phylogenetic model.
 
 ## Mathematical Contract
 
@@ -38,6 +40,15 @@ indexed to the observed species rows.
 The test compares the TMB/Laplace objective to an independent dense Gaussian
 negative log likelihood using that covariance.
 
+With a study random intercept, the comparator adds the ordinary study block:
+
+```text
+Sigma = V_known + sigma^2 I + sd_study^2 J_study + sd_phylo^2 A_obs
+```
+
+where `J_study[i, j] = 1` when rows `i` and `j` share the same study and 0
+otherwise.
+
 ## Files Changed
 
 - `tests/testthat/test-phylo-gaussian.R`
@@ -51,10 +62,10 @@ negative log likelihood using that covariance.
 
 ## Tests Of The Tests
 
-This is itself a test-of-the-test: it compares the fitted objective to an
-independent dense marginal likelihood calculation. It exercises covariance
-composition that was not covered by the previous diagonal-`V` phylogenetic
-meta-analysis comparator.
+These are tests-of-the-tests: they compare fitted objectives to independent
+dense marginal likelihood calculations. They exercise covariance composition
+that was not covered by the previous diagonal-`V` phylogenetic meta-analysis
+comparator.
 
 ## Consistency Audit
 
@@ -63,6 +74,9 @@ meta-analysis comparator.
 - The test supports the current docs claim that `meta_known_V(V = V)` can be
   combined with intercept-only `phylo(1 | species, tree = tree)` in Gaussian
   models.
+- The study-intercept test also supports the design-doc statement that
+  meta-analysis is Gaussian regression plus known sampling covariance and, when
+  needed, structured and ordinary random effects.
 - Targeted tests, the full test suite, and `devtools::check()` passed.
 
 ## What Did Not Go Smoothly
