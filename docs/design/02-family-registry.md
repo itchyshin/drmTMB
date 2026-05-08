@@ -48,10 +48,13 @@ drm_family(
 )
 ```
 
-This is implemented for fixed-effect models, optional univariate simple `mu`
-random effects, and optional known sampling covariance through
-`meta_known_V(V = V)`. Sparse known covariance and additional families are later
-phases.
+This is implemented for fixed-effect models, univariate Gaussian `mu` random
+intercepts, independent numeric `mu` random slopes, one-slope correlated `mu`
+random intercept-slope blocks with optional covariance-block labels,
+univariate Gaussian residual-scale random intercepts in `sigma`, and optional
+known sampling covariance through `meta_known_V(V = V)`. Sparse known
+covariance, residual-scale random slopes, random-effect scale formulae such as
+`sd(id) ~ x`, and additional families are later phases.
 
 ## Implemented: Bivariate Gaussian Location-Coscale
 
@@ -101,8 +104,8 @@ bf(
 ```
 
 `rho12` uses an atanh link internally and `tanh()` on the response scale.
-Univariate Gaussian simple `mu` random effects are implemented; bivariate
-random effects and `mvbind()` shorthand are planned but not implemented.
+Bivariate random effects and `mvbind()` shorthand are planned but not
+implemented.
 
 ## Design Principle
 

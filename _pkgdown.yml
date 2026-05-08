@@ -25,6 +25,8 @@ navbar:
       menu:
         - text: When variance carries signal
           href: articles/location-scale.html
+        - text: Which scale are you modelling?
+          href: articles/which-scale.html
         - text: Changing residual coupling with rho12
           href: articles/bivariate-coscale.html
         - text: Mean effects and heterogeneous heterogeneity
@@ -72,6 +74,7 @@ articles:
   - title: Tutorials
     contents:
       - location-scale
+      - which-scale
       - meta-analysis
       - bivariate-coscale
       - phylogenetic-spatial

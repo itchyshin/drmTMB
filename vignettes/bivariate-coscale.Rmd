@@ -192,3 +192,11 @@ scale effects answer different questions: mean-mean coevolution, scale-scale
 co-divergence, and mean-scale evolutionary constraints. Those are group-level
 covariance summaries. Residual `rho12` is the observation-level trait coupling
 after those structured effects have been accounted for.
+
+The long-term package should therefore support several correlation levels, not
+only residual correlation. For example, a comparative model could estimate a
+phylogenetic correlation between response-specific evolutionary deviations, a
+non-phylogenetic species correlation after shared ancestry is accounted for,
+and a residual `rho12` within observations. Those quantities should be named
+and extracted separately, for example as `corpars$phylo`,
+`corpars$species`, and `predict(fit, dpar = "rho12")`.

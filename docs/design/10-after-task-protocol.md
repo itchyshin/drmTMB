@@ -44,6 +44,7 @@ Common checks include:
 ```sh
 rg "meta_gaussian|tau ~|rho ~|meta_known_V\\([^V]" .
 rg "rho12|sigma1|sigma2|sd\\(" README.md ROADMAP.md docs vignettes R tests
+rg "simple.*mu random|sigma.*Later|currently.*only.*mu|optional simple.*location|log_sd_mu|Current TMB-side objects" README.md ROADMAP.md docs vignettes R tests
 ```
 
 The goal is not only to make tests pass. It is to make sure code, docs,

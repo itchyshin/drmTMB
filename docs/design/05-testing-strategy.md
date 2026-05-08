@@ -67,6 +67,47 @@ scale tests. `sigma ~ z + (1 | id)` checks group-to-group variation in residual
 scale, whereas future `sd(id) ~ z` checks predictors of a `mu` random-effect
 standard deviation.
 
+## Random-Effect Scale Formula Tests
+
+The first planned random-effect scale model is:
+
+```r
+drmTMB(
+  bf(
+    y ~ x1 + (1 | id),
+    sigma ~ x2,
+    sd(id) ~ x3
+  ),
+  family = gaussian(),
+  data = dat
+)
+```
+
+The test-generating equation should be:
+
+```text
+y_ij | mu_ij, sigma_ij, b_j ~ Normal(mu_ij, sigma_ij^2)
+mu_ij = beta_0 + beta_1 x1_ij + b_j
+log(sigma_ij) = gamma_0 + gamma_1 x2_ij
+b_j = tau_j u_j
+u_j ~ Normal(0, 1)
+log(tau_j) = alpha_0 + alpha_1 x3_j
+```
+
+Fast CRAN tests should include:
+
+- a moderate recovery case for `alpha_0` and `alpha_1`;
+- a near-constant random-effect scale case with `alpha_1 = 0`;
+- a factor predictor on the `sd(id)` right-hand side;
+- malformed-input tests for absent targets, duplicate targets, ambiguous
+  random-intercept/slope targets, bivariate models, non-Gaussian models, and
+  `sd(id)` predictors that vary within `id`;
+- a homoscedastic comparator against `lme4` when `alpha_1 = 0`.
+
+Larger recovery grids should stay out of CRAN checks and vary group count,
+within-group replication, unbalanced groups, small random-effect SDs, large
+random-effect SDs, and missingness.
+
 ## Simulation Recovery
 
 Each family should have tests that:

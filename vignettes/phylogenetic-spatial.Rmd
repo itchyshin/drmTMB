@@ -40,6 +40,8 @@ drmTMB(
 )
 ```
 
+This syntax is planned, not implemented.
+
 Planned spatial syntax:
 
 ```r
@@ -52,6 +54,8 @@ drmTMB(
   data = dat
 )
 ```
+
+This syntax is planned, not implemented.
 
 The computational plan is to use sparse A-inverse tricks for phylogeny and
 SPDE/GMRF structure for spatial fields, with careful provenance notes for any
@@ -104,3 +108,8 @@ predictors such as lifestyle.
 The residual `rho12` term remains distinct from the phylogenetic or spatial
 correlation matrices. `rho12` is the residual coupling between two responses at
 the observation level; `A` and `M` describe dependence among species or places.
+In future bivariate structured models, `drmTMB` should also estimate
+level-specific correlations such as phylogenetic mean-mean correlations,
+non-phylogenetic species correlations, spatial field correlations, and
+mean-scale correlations. These are not residual `rho12`; they should be
+reported as structured or group-level covariance summaries.

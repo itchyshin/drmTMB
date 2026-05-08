@@ -55,7 +55,10 @@ and residual scales have been modelled.
 
 ## Biological Questions
 
-The mammalian body mass-litter size protocol is an ideal flagship example.
+The mammalian body mass-litter size protocol by Ortega et al. is an ideal
+flagship example. It explicitly motivates partitioning a bivariate association
+into phylogenetic and non-phylogenetic components, then asking whether
+lifestyle changes means, dispersion, and residual coupling.
 It asks:
 
 - Is the body mass-litter size association mostly phylogenetic?
@@ -84,6 +87,30 @@ drmTMB(
 This syntax is aspirational. The implemented seed is fixed-effect
 `biv_gaussian()` with `rho12 ~ predictors`.
 
+## Correlation Levels
+
+`drmTMB` should eventually model more than residual correlation. The public
+grammar and extractors need a correlation namespace that keeps each level
+visible:
+
+| Level | Symbolic target | Scientific question | Status |
+|---|---|---|---|
+| Residual | `rho12_i` in `Omega_i` | Are the two responses coupled within an observation after means and scales are modelled? | implemented for fixed-effect bivariate Gaussian |
+| Phylogenetic mean | `cor(a_mu1, a_mu2)` where `[a_mu1, a_mu2] ~ MVN(0, Sigma_phylo)` | Do species with high phylogenetic deviation in trait 1 also have high phylogenetic deviation in trait 2? | planned |
+| Non-phylogenetic mean | `cor(c_mu1, c_mu2)` where `[c_mu1, c_mu2] ~ MVN(0, Sigma_species)` | Is there a residual among-species association beyond shared ancestry? | planned |
+| Phylogenetic scale | `cor(a_sigma1, a_sigma2)` | Do lineages that are more dispersed for one trait tend to be more dispersed for the other? | planned |
+| Mean-scale | `cor(a_mu1, a_sigma2)` or analogous terms | Do high trait means covary with dispersion in the same or another trait? | planned |
+| Spatial or site-level | `cor(z_mu1, z_mu2)` or covariance-block correlations | Do places, sites, studies, or other groups show coupled deviations across responses? | planned |
+
+The first implemented bivariate `rho12 ~ predictors` model covers only the
+residual row of this table. The long-term location-coscale programme should
+also estimate structured phylogenetic, non-phylogenetic, and spatial
+correlations when the data and simulations support them.
+
+Extractor names should therefore be level-specific, for example
+`corpars$phylo`, `corpars$species`, `corpars$spatial`, or labelled
+group-level covariance blocks. Do not use bare `rho12` for these quantities.
+
 ## Implementation Stages
 
 1. Fixed-effect Gaussian `rho12 ~ predictors`.
@@ -102,7 +129,9 @@ recovery, comparator checks where possible, and an after-task report.
 ## Naming Rule
 
 - Use `rho12` for residual response-response correlation.
-- Use covariance-block summaries for phylogenetic or random-effect
-  correlations such as `rho_a(l1,l2)` or `rho_a(s1,s2)`.
+- Use level-specific covariance-block summaries for phylogenetic,
+  non-phylogenetic species, spatial, study, site, or other random-effect
+  correlations, such as `cor_phylo(mu1,mu2)`, `cor_species(mu1,mu2)`, or
+  `rho_a(l1,l2)` in paper notation.
 - Do not call every correlation `rho12`; that would erase the biological
   distinction between residual coupling and evolutionary covariance.

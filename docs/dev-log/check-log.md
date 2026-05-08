@@ -1194,3 +1194,77 @@ Team learning:
   without introducing group-level scale-model matching yet;
 - Ada should keep the phrase "residual-scale random intercept" visible in docs
   to avoid collapsing all scale concepts into the single word `sigma`.
+
+## 2026-05-08: Random-Effect Scale Design And Equation Pairing
+
+Scope:
+
+- created the design contract for future `sd(id) ~ x_group` random-effect
+  scale models in `docs/design/18-random-effect-scale-models.md`;
+- added the pkgdown tutorial `vignettes/which-scale.Rmd`, pairing symbolic
+  equations with R syntax for residual `sigma`, residual-scale random
+  intercepts, future among-group `sd(id)`, random-slope correlations, and
+  residual bivariate `rho12`;
+- updated `_pkgdown.yml` so the new tutorial appears in the Tutorials menu and
+  article index;
+- fixed live stale wording from the previous phase: `sigma` random-effect
+  eligibility, Gaussian family status, Gaussian math implementation mapping,
+  phylo/spatial baseline status, location-scale vignette opening, and
+  `bf()` examples;
+- updated `CLAUDE.md` so Claude Code sees implemented bivariate fixed-effect
+  syntax separately from future bivariate random-effect syntax;
+- expanded the correlation roadmap beyond residual `rho12`, adding future
+  phylogenetic, non-phylogenetic species, spatial, study/site, and other
+  group-level correlations as separate covariance summaries;
+- broadened the after-task stale-wording scan to catch underreported
+  implementation status such as `sigma.*Later` and `currently.*only.*mu`.
+
+Commands run:
+
+- `gh run list --branch main --limit 6`
+- `Rscript -e "devtools::document()"`
+- `Rscript -e "devtools::test()"`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `Rscript -e "pkgdown::build_site()"`
+- `Rscript -e "devtools::check(env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`
+- `Rscript -e "pkgdown::build_site()"`
+- stale-wording `rg` scans for `simple.*mu random`, `sigma.*Later`,
+  `currently.*only.*mu`, `optional simple.*location`, `meta_gaussian`,
+  `tau ~`, `rho ~`, `sd(id) ~ x`, and generated-site article/navigation text.
+
+Results:
+
+- remote GitHub Actions for commit `44e86be` completed successfully for both
+  R-CMD-check and pkgdown;
+- full `devtools::test()`: 326 passed, 0 failed, 0 warnings, 0 skipped;
+- `pkgdown::check_pkgdown()`: no problems found;
+- `pkgdown::build_site()`: completed successfully and rendered
+  `articles/which-scale.html`;
+- `devtools::check(env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))`: 0
+  errors, 0 warnings, 0 notes.
+
+Tests of the tests:
+
+- this was a design/documentation phase, so no new model tests were added;
+- the full test suite and package check protect existing implemented behavior
+  while the new design files remain non-executable;
+- generated Rd and pkgdown pages were rebuilt to check that the roxygen example
+  correction and tutorial navigation are reflected in rendered documentation.
+
+Known issues:
+
+- `sd(id) ~ x_group` remains planned, not implemented;
+- future structured correlations need exact public extractor naming before
+  implementation;
+- the previous after-task report for residual-scale random intercepts
+  overstated the stale-wording audit: Rose found live docs that still
+  underreported implemented `sigma` random intercepts. This phase corrected
+  those files and updated the protocol to make the miss less likely.
+
+Team learning:
+
+- Pat and Noether converged on the same requirement as Shinichi: every
+  important syntax example should be paired with symbolic equations;
+- Rose's systems audit caught a real process weakness in stale-wording scans;
+- Ada should run the broader status-pattern scan before writing the
+  consistency-audit claim, not after.

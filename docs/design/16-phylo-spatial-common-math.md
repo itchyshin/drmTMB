@@ -169,7 +169,9 @@ drmTMB(
 ```
 
 This is partly implemented. Current code supports dense known sampling
-covariance through `meta_known_V(V = V)` and simple `mu` random effects;
+covariance through `meta_known_V(V = V)`, univariate Gaussian `mu` random
+intercepts, independent numeric `mu` random slopes, one-slope correlated `mu`
+blocks, and univariate Gaussian residual-scale random intercepts in `sigma`.
 `phylo()` and `spatial()` structured-effect terms are still planned.
 
 ## Identifiability Rule
@@ -235,14 +237,21 @@ In bivariate phylogenetic or spatial models, there may eventually be many
 correlations:
 
 - residual correlation `rho12`;
-- group-level mean-mean correlations;
-- group-level scale-scale correlations;
-- group-level mean-scale correlations;
+- phylogenetic mean-mean correlations;
+- non-phylogenetic species or group-level mean-mean correlations;
+- structured or unstructured scale-scale correlations;
+- structured or unstructured mean-scale correlations;
+- study, site, population, observer, or other grouped random-effect
+  correlations;
 - phylogenetic or spatial structured covariance among response-specific random
   effects.
 
 The naming system should keep these separate. `rho12` should remain reserved
 for residual response coupling unless a suffix explicitly names another level.
+Future extractors should therefore use level-specific containers such as
+`corpars$phylo`, `corpars$species`, `corpars$spatial`, or labelled group-level
+blocks, rather than treating every cross-response correlation as residual
+`rho12`.
 
 ## Implementation Order
 

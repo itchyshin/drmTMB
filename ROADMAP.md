@@ -61,6 +61,10 @@ distributional regression models using TMB.
 - Add cross-formula or cross-parameter covariance sharing for labelled blocks,
   following `docs/design/17-correlated-random-effect-blocks.md`.
 - Add random-effect scale formulae such as `sd(id) ~ x`.
+- Use `docs/design/18-random-effect-scale-models.md` as the design contract:
+  the first implementation should be univariate Gaussian `sd(id) ~ x_group`
+  for exactly one `mu` random intercept, with group-level predictors and
+  simulation recovery tests.
 - Support multiple random-effect scale components, such as `sd(study) ~ x` and
   `sd(species) ~ 1`.
 - Respect labelled correlated group syntax such as `(1 + x | p | id)` when
@@ -76,6 +80,10 @@ distributional regression models using TMB.
 - Add phylogenetic models using the A-inverse speed path.
 - Add spatial SPDE/GMRF fields after the core Gaussian and known-covariance
   path is reliable.
+- For bivariate structured models, estimate and report level-specific
+  correlations separately: residual `rho12`, phylogenetic correlations,
+  non-phylogenetic species correlations, spatial field correlations, and
+  ordinary grouped random-effect correlations should not share one namespace.
 - Stage structured phylogenetic and spatial slopes conservatively:
   intercept-only structured effects first, then one `mu` slope, then only small
   slope sets or interaction slopes after simulation recovery.

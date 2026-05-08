@@ -240,6 +240,10 @@ Current R-side objects:
 - `X$sigma` maps to `X_sigma`.
 - `random_effects$mu` maps to the location random-effect design.
 - `model$random$mu$value` maps to the random-effect design value `z_j[i]`.
+- `random_effects$sigma` maps to residual-scale random-effect conditional
+  modes when the `sigma` formula contains `(1 | group)`.
+- `model$random$sigma$value` is currently `1` for implemented residual-scale
+  random intercepts.
 - `sdpars` reports group-level standard deviations.
 - `predict(fit, dpar = "sigma")` returns residual `sigma_i`.
 
@@ -249,6 +253,16 @@ Current TMB-side objects:
 - `beta_sigma` estimates `beta_sigma`.
 - `log_sd_mu` estimates `log(sd_mu_group)` for each simple random-effect term.
 - `u_mu` is integrated by the Laplace approximation.
+- `log_sd_sigma` estimates `log(sd_sigma_group)` for each implemented
+  residual-scale random-intercept term.
+- `u_sigma` is integrated by the Laplace approximation and added to
+  `log(sigma_i)`.
+
+Planned random-effect scale objects for syntax such as `sd(id) ~ x_group`
+should be separate from these residual-scale objects. In that future model,
+the `sd(id)` formula will create a group-level design matrix `W_id` and
+coefficients such as `alpha_id`, while the standardized `u_mu` values remain
+the latent random effects in the location model.
 
 ## Test Obligations
 

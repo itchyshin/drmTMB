@@ -1,0 +1,230 @@
+---
+title: "Which scale are you modelling?"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Which scale are you modelling?}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+`drmTMB` deliberately separates residual scale from group-level scale. This
+article pairs each piece of R syntax with the symbolic model it represents.
+That pairing is the guardrail: before adding a feature to the package, the R
+syntax, equations, TMB parameters, tests, and documentation should describe the
+same model.
+
+## Residual standard deviation
+
+Implemented:
+
+```r
+drmTMB(
+  bf(growth ~ temperature, sigma ~ temperature),
+  family = gaussian(),
+  data = fish
+)
+```
+
+Symbolically:
+
+```text
+growth_i | mu_i, sigma_i ~ Normal(mu_i, sigma_i^2)
+mu_i = beta_0 + beta_1 temperature_i
+log(sigma_i) = gamma_0 + gamma_1 temperature_i
+sigma_i = exp(gamma_0 + gamma_1 temperature_i)
+```
+
+The `sigma` formula models the residual standard deviation. If `gamma_1` is
+positive, warmer observations have a larger residual SD around their fitted
+mean. The coefficient is on the log-SD scale, so `exp(gamma_1)` is the
+multiplicative change in residual SD for a one-unit change in temperature.
+
+## Mean-model random intercept
+
+Implemented:
+
+```r
+drmTMB(
+  bf(growth ~ temperature + (1 | population), sigma ~ temperature),
+  family = gaussian(),
+  data = fish
+)
+```
+
+Symbolically:
+
+```text
+growth_ij | mu_ij, sigma_ij, b_j ~ Normal(mu_ij, sigma_ij^2)
+mu_ij = beta_0 + beta_1 temperature_ij + b_j
+log(sigma_ij) = gamma_0 + gamma_1 temperature_ij
+b_j = sd_mu_population u_j
+u_j ~ Normal(0, 1)
+```
+
+Here `sd_mu_population` is the among-population SD in expected growth. It is a
+group-level scale parameter for the mean model. It is not the residual
+standard deviation `sigma_ij`.
+
+## Residual-scale random intercept
+
+Implemented:
+
+```r
+drmTMB(
+  bf(
+    growth ~ temperature + (1 | population),
+    sigma ~ temperature + (1 | population)
+  ),
+  family = gaussian(),
+  data = fish
+)
+```
+
+Symbolically:
+
+```text
+growth_ij | mu_ij, sigma_ij, b_j, a_j ~ Normal(mu_ij, sigma_ij^2)
+mu_ij = beta_0 + beta_1 temperature_ij + b_j
+log(sigma_ij) = gamma_0 + gamma_1 temperature_ij + a_j
+
+b_j = sd_mu_population u_j
+u_j ~ Normal(0, 1)
+
+a_j = sd_sigma_population v_j
+v_j ~ Normal(0, 1)
+```
+
+This asks whether populations differ in their residual variability after the
+fixed effects in the `sigma` formula have been accounted for. It is
+group-to-group variation in within-population variability.
+
+It is not the same as asking whether the among-population SD in mean growth
+depends on a predictor. That is the future `sd(population) ~ x` model.
+
+## Random-effect scale formula
+
+Planned, not yet implemented:
+
+```r
+drmTMB(
+  bf(
+    growth ~ temperature + (1 | population),
+    sigma ~ temperature,
+    sd(population) ~ habitat
+  ),
+  family = gaussian(),
+  data = fish
+)
+```
+
+Symbolically:
+
+```text
+growth_ij | mu_ij, sigma_ij, b_j ~ Normal(mu_ij, sigma_ij^2)
+mu_ij = beta_0 + beta_1 temperature_ij + b_j
+log(sigma_ij) = gamma_0 + gamma_1 temperature_ij
+
+b_j = sd_mu_population,j u_j
+u_j ~ Normal(0, 1)
+log(sd_mu_population,j) = alpha_0 + alpha_1 habitat_j
+```
+
+The right-hand side of `sd(population) ~ habitat` is group-level. In the first
+implementation, `habitat_j` should be constant within each population after
+missing rows are removed.
+
+This model asks whether among-population differences in expected growth are
+larger in some habitats. That is a different question from `sigma ~ habitat`,
+which asks whether individual observations are more variable around their
+fitted mean in some habitats.
+
+## Side-by-side guide
+
+| R syntax | Equation target | Question |
+|---|---|---|
+| `sigma ~ x` | `log(sigma_i) = X_sigma[i, ] beta_sigma` | Does `x` change residual SD? |
+| `sigma ~ x + (1 | id)` | `log(sigma_i) = X_sigma[i, ] beta_sigma + a_id[i]` | Do groups differ in residual SD? |
+| `y ~ x + (1 | id)` | `mu_i = X_mu[i, ] beta_mu + b_id[i]` | Do groups differ in mean response? |
+| `sd(id) ~ x_group` | `log(sd_mu_id,j) = W_id[j, ] alpha_id` | Does `x_group` change among-group SD in the mean model? |
+| `y ~ x + (1 + x | id)` | `[b_0j, b_1j]' ~ MVN(0, Sigma_id)` | Are group intercepts and slopes correlated? |
+| `rho12 ~ x` | `atanh(rho12_i) = X_rho12[i, ] beta_rho12` | Does `x` change residual coupling between two responses? |
+
+## Correlations: group-level versus residual
+
+Implemented univariate random-slope correlation:
+
+```r
+drmTMB(
+  bf(growth ~ temperature + (1 + temperature | population), sigma ~ temperature),
+  family = gaussian(),
+  data = fish
+)
+```
+
+Symbolically:
+
+```text
+mu_ij = beta_0 + beta_1 temperature_ij + b_0j + temperature_ij b_1j
+[b_0j, b_1j]' ~ MVN(0, Sigma_population)
+Sigma_population =
+  [sd0^2,          rho_re sd0 sd1;
+   rho_re sd0 sd1, sd1^2]
+```
+
+This `rho_re` is a group-level random-effect correlation. It is reported under
+`corpars$mu`.
+
+Implemented bivariate residual correlation:
+
+```r
+drmTMB(
+  bf(
+    mu1 = activity ~ treatment,
+    mu2 = boldness ~ treatment,
+    sigma1 = ~ treatment,
+    sigma2 = ~ treatment,
+    rho12 = ~ treatment
+  ),
+  family = biv_gaussian(),
+  data = behaviour
+)
+```
+
+Symbolically:
+
+```text
+[activity_i, boldness_i]' ~ MVN([mu1_i, mu2_i]', Omega_i)
+Omega_i[1, 2] = rho12_i sigma1_i sigma2_i
+atanh(rho12_i) = delta_0 + delta_1 treatment_i
+```
+
+Here `rho12_i` is residual response-response correlation within an observation
+after the response-specific means and residual SDs have been modelled. If the
+correlation is among random intercepts or random slopes, it is a group-level
+covariance parameter. If the correlation is between the two residual responses
+in one row, it is `rho12`.
+
+## Current boundary
+
+Current implemented Gaussian syntax covers:
+
+- `sigma ~ x` for residual SD fixed effects;
+- `y ~ x + (1 | id)` for `mu` random intercepts;
+- `y ~ x + (0 + x | id)` for independent numeric `mu` random slopes;
+- `y ~ x + (1 + x | id)` and `(1 + x | p | id)` for one-slope correlated
+  `mu` blocks;
+- `sigma ~ x + (1 | id)` for residual-scale random intercepts;
+- bivariate fixed-effect `rho12 ~ x` in `biv_gaussian()`.
+
+Current planned but not implemented syntax includes:
+
+- `sd(id) ~ x_group`;
+- residual-scale random slopes in `sigma`;
+- bivariate random effects;
+- cross-formula covariance sharing from repeated labels such as
+  `(1 + x | p | id)`;
+- phylogenetic and spatial structured effects.

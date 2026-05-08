@@ -174,6 +174,31 @@ bf(y ~ x1 + (1 | id), sigma ~ x1 + (1 | id))
 This models group-to-group variation in residual `sigma_i`. It is not a
 random-effect scale formula such as `sd(id) ~ x1`.
 
+The distinction is:
+
+```text
+log(sigma_i) = X_sigma[i, ] beta_sigma
+```
+
+matches `sigma ~ x1` and models residual or within-observation SD.
+
+```text
+log(sigma_i) = X_sigma[i, ] beta_sigma + a_{id[i]}
+a_id ~ Normal(0, sd_sigma_id^2)
+```
+
+matches `sigma ~ x1 + (1 | id)` and models group-to-group deviations in
+residual SD.
+
+```text
+b_id ~ Normal(0, sd_mu_id^2)
+log(sd_mu_id) = W_id alpha_id
+```
+
+matches future `sd(id) ~ x1` and models the standard deviation of a `mu`
+random effect. Detailed rules for that future grammar are in
+`docs/design/18-random-effect-scale-models.md`.
+
 Future correlated multi-slope syntax should allow larger model-matrix terms
 such as:
 
@@ -304,8 +329,8 @@ Not every parameter should accept random effects at the same development stage.
 | Parameter class | Random effects policy |
 |---|---|
 | `mu`, `mu1`, `mu2` | Yes for univariate Gaussian `mu`; random intercepts, independent numeric random slopes, and labelled or unlabelled ordinary correlated intercept-slope blocks are implemented. Bivariate `mu1`/`mu2` random effects are later. |
-| `sigma`, `sigma1`, `sigma2` | Later; needed for predictability/malleability models, but higher identifiability risk. |
-| `sd(group)` | Later; explicit random-effect scale model, not the same as residual `sigma`. |
+| `sigma`, `sigma1`, `sigma2` | Yes for univariate Gaussian `sigma` random intercepts only, written as `sigma ~ x + (1 | id)`. Residual-scale random slopes, labelled `sigma` blocks, bivariate `sigma1`/`sigma2` random effects, and non-Gaussian scale random effects are later. |
+| `sd(group)` | Later; explicit random-effect scale model for a group-level random-effect SD, not the same as residual `sigma`. The first target is `sd(id) ~ x_group` for exactly one univariate Gaussian `mu` random intercept. |
 | `rho12` | No random effects initially; predictor-dependent fixed effects only. |
 | `nu`, `tau` | Fixed effects first; random effects only after simulations show identifiability. |
 | `zi`, `hu`, `zoi`, `coi` | Fixed effects first; random effects later only for high-value use cases. |
@@ -321,8 +346,10 @@ Not every parameter should accept random effects at the same development stage.
 - `meta_known_V(V = V)` is a known-covariance marker, not a predictor.
 - Random intercepts, random slopes with one numeric predictor per random-slope
   term, and labelled or unlabelled ordinary correlated intercept-slope blocks
-  are currently implemented only for the univariate Gaussian `mu` formula;
-  multiple separate independent slope terms are allowed.
+  are currently implemented for the univariate Gaussian `mu` formula; multiple
+  separate independent slope terms are allowed.
+- Residual-scale random intercepts are currently implemented for the
+  univariate Gaussian `sigma` formula.
 - The parser should reject unsupported formulae early with clear errors.
 
 ## Not in the MVP

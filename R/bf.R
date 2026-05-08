@@ -14,8 +14,8 @@
 #' @examples
 #' bf(y ~ x, sigma ~ z)
 #' bf(
-#'   mu1 = y1 ~ x1 + x2 + (1 + x2 | p | id),
-#'   mu2 = y2 ~ x1      + (1 + x2 | p | id),
+#'   mu1 = y1 ~ x1 + x2,
+#'   mu2 = y2 ~ x1,
 #'   sigma1 = ~ x1,
 #'   sigma2 = ~ x2,
 #'   rho12 = ~ x1 + x2

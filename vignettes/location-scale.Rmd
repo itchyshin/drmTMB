@@ -12,10 +12,10 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 ```
 
 This article introduces the first implemented `drmTMB` model class: Gaussian
-location-scale regression with fixed effects and optional simple random effects
-in the location formula. The same pattern will be used throughout the
-documentation: write the model symbolically first, then show the matching R
-syntax.
+location-scale regression with fixed effects, optional random effects in the
+location formula, and residual-scale random intercepts in the `sigma` formula.
+The same pattern will be used throughout the documentation: write the model
+symbolically first, then show the matching R syntax.
 
 Current syntax:
 
@@ -46,6 +46,20 @@ drmTMB(
   data = dat
 )
 ```
+
+Residual-scale random-intercept syntax:
+
+```r
+drmTMB(
+  bf(y ~ x1 + (1 | id), sigma ~ x2 + (1 | id)),
+  family = gaussian(),
+  data = dat
+)
+```
+
+The companion article "Which scale are you modelling?" gives a side-by-side
+guide to `sigma ~ x`, `sigma ~ x + (1 | id)`, future `sd(id) ~ x`, random-slope
+correlations, and bivariate residual `rho12`.
 
 ## Model equations and matching R syntax
 

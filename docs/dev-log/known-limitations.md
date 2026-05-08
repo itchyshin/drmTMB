@@ -18,5 +18,9 @@
 - Cross-formula labelled covariance sharing, residual-scale random slopes,
   random-effect scale models such as `sd(id) ~ x`, and all non-Gaussian
   families are planned but not yet implemented.
+- `sd(id) ~ x` is planned for modelling predictors of the standard deviation
+  of a `mu` random effect. Users should not substitute
+  `sigma ~ x + (1 | id)` unless their scientific question is residual
+  variability rather than among-group variation in the mean model.
 - Sparse known sampling covariance for large meta-analysis, phylogenetic, and
   spatial workloads is planned but not yet implemented.

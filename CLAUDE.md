@@ -17,8 +17,23 @@ distributional parameter.
 
 - Use `sigma`, not `tau`, in the public API.
 - Treat meta-analysis as `family = gaussian()` plus `meta_known_V(V = V)`.
-- Use `rho12` for bivariate residual correlation.
-- Prefer bivariate formulas such as:
+- Use `rho12` for bivariate residual correlation. Phylogenetic,
+  non-phylogenetic species, spatial, study, site, and other group-level
+  correlations should be named as separate covariance summaries, not as
+  residual `rho12`.
+- Prefer implemented fixed-effect bivariate formulas such as:
+
+```r
+bf(
+  mu1 = y1 ~ x1 + x2,
+  mu2 = y2 ~ x1,
+  sigma1 = ~ x1 + x2,
+  sigma2 = ~ x1,
+  rho12 = ~ x1 + x2
+)
+```
+
+- Future bivariate random-effect syntax may look like:
 
 ```r
 bf(

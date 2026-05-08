@@ -103,6 +103,9 @@ drmTMB(
 In this syntax, `(1 + x2 | p | ID)` describes the group-level covariance block
 for personality and plasticity. Residual `rho12` is a different parameter: it is
 the within-observation coupling between response 1 and response 2.
+If the correlation is among random intercepts or random slopes, it is a
+group-level covariance parameter; if it is between the two residual responses
+in one row, it is `rho12`.
 
 Future bivariate public syntax should also allow composed response families such
 as `family = c(gaussian(), gaussian())` and `family = c(gaussian(), poisson())`
@@ -138,3 +141,8 @@ correlation and `K = M` for distance-derived spatial correlation. The speed
 routes differ, A-inverse for phylogeny and SPDE/GMRF for space, but the user
 model should feel like the same idea attached to `mu`, later `sigma`, and only
 experimentally to harder parameters such as `rho12`.
+
+The long-term correlation roadmap is broader than residual `rho12`: bivariate
+structured models should also expose phylogenetic, non-phylogenetic species,
+spatial, study, site, and other group-level correlations as separate covariance
+summaries.
