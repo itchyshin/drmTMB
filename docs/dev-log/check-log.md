@@ -1582,3 +1582,72 @@ Known limitations:
 
 - This is workflow hygiene only; package tests were not rerun locally because
   no R, C++, documentation, or package metadata changed.
+
+## 2026-05-08: Staggered Documentation And Structured-Effect Grammar Audit
+
+Scope:
+
+- ran a staggered read-only team pass: Jason/Goodall mapped `gllvmTMB`
+  phylogenetic/SPDE source patterns, Curie/Zeno designed the next phylogenetic
+  simulation tests, and Pat/Dirac audited current docs from an applied-user
+  perspective;
+- clarified implemented-versus-planned sections in README and the getting
+  started vignette;
+- added explicit Gaussian notation convention: `Normal(a, b)` uses variance as
+  the second argument;
+- added a runnable `sd(population) ~ habitat` tutorial example and a three-scale
+  equation block for residual `sigma`, `sd(population)`, and `sd(site)`;
+- defined "coscale" at first use as residual covariance structure represented
+  by `rho12` in the bivariate Gaussian seed;
+- updated public phylogenetic grammar direction from dense `Cphy` examples to
+  `phylo(1 | species, tree = tree)`, requiring an ultrametric tree with branch
+  lengths and the Hadfield plus Nakagawa A-inverse sparse-precision path;
+- aligned planned spatial grammar with the same structured random-effect shape:
+  `spatial(1 | site, coords = coords)` or later
+  `spatial(1 + x | site, coords = coords)`;
+- separated planned structured-effect markers in pkgdown reference navigation.
+
+Commands run:
+
+- `Rscript -e "devtools::load_all(quiet = TRUE); ..."` for the new
+  `sd(population) ~ habitat` example;
+- `Rscript -e "devtools::test()"`
+- `Rscript -e "devtools::document()"`
+- `Rscript -e "pkgdown::check_pkgdown(); pkgdown::build_site()"`
+- `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`
+- stale-wording `rg` scans for inconsistent Normal notation, `Cphy`,
+  `phylo(species)`, old spatial placeholders, `O'Dea-style`, and
+  `biological data`;
+- `git diff --check`.
+
+Results:
+
+- new tutorial example converged with `fit$opt$convergence == 0`, positive
+  `habitatopen` coefficient for `sd(population)`, and positive predicted
+  random-effect SDs;
+- full `devtools::test()`: 403 passed, 0 failed;
+- `pkgdown::check_pkgdown()`: no problems found;
+- `pkgdown::build_site()`: site built successfully;
+- `devtools::check()` with `_R_CHECK_SYSTEM_CLOCK_=FALSE`: 0 errors,
+  0 warnings, 0 notes;
+- stale-wording scans found no public `Cphy`, bare `phylo(species)`, old
+  `spatial(easting, northing)`, inconsistent `Normal(..., sqrt(...))`, or
+  `O'Dea-style` wording;
+- `git diff --check`: passed.
+
+Known limitations:
+
+- this task changed design and documentation only; no phylogenetic or spatial
+  likelihood code was implemented;
+- the public `phylo()` and `spatial()` functions are still planned markers and
+  should reject or remain inert until parser, A-inverse/SPDE, and simulation
+  tests are implemented.
+
+Team learning:
+
+- staggered parallel work was effective: Pat found user-facing confusion while
+  Jason and Curie worked ahead on the next implementation gate;
+- public phylogenetic syntax should require a real ultrametric branch-length
+  tree, not a user-supplied dense `Cphy`;
+- phylogenetic and spatial syntax should share the same structured
+  random-effect grammar, while their speed paths differ internally.

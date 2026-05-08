@@ -2,17 +2,24 @@
 % Please edit documentation in R/formula-markers.R
 \name{spatial}
 \alias{spatial}
-\title{Spatial effect}
+\title{Planned spatial structured-effect marker}
 \usage{
-spatial(...)
+spatial(term, coords = NULL, mesh = NULL)
 }
 \arguments{
-\item{...}{Coordinate columns or a spatial term specification.}
+\item{term}{Planned structured random-effect term, such as \code{1 | site}.}
+
+\item{coords}{Planned coordinate data or coordinate column specification.}
+
+\item{mesh}{Planned precomputed mesh object.}
 }
 \value{
 A formula marker; never evaluated by users.
 }
 \description{
-\code{spatial()} reserves user-facing syntax for spatial dependence. Future
-implementations will use an SPDE/GMRF representation.
+\code{spatial()} reserves user-facing syntax for spatial dependence. The planned
+grammar is structured random-effect syntax such as
+\code{spatial(1 | site, coords = coords)} and, later,
+\code{spatial(1 + depth | site, coords = coords)}. Future implementations will
+use an SPDE/GMRF representation built from coordinates or a mesh.
 }

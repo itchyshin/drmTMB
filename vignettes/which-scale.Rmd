@@ -17,6 +17,10 @@ That pairing is the guardrail: before adding a feature to the package, the R
 syntax, equations, TMB parameters, tests, and documentation should describe the
 same model.
 
+Throughout this article, `Normal(a, b)` uses variance as the second argument.
+Thus `Normal(mu_i, sigma_i^2)` means a Gaussian distribution with mean `mu_i`
+and standard deviation `sigma_i`.
+
 ## Residual standard deviation
 
 Implemented:
@@ -141,6 +145,92 @@ This model asks whether among-population differences in expected growth are
 larger in some habitats. That is a different question from `sigma ~ habitat`,
 which asks whether individual observations are more variable around their
 fitted mean in some habitats.
+
+A compact copy-run example:
+
+```r
+set.seed(1)
+n_population <- 24
+n_each <- 8
+population_info <- data.frame(
+  population = factor(seq_len(n_population)),
+  habitat = rep(c("closed", "open"), length.out = n_population)
+)
+fish <- population_info[rep(seq_len(n_population), each = n_each), ]
+fish$temperature <- rnorm(nrow(fish))
+
+sd_population <- exp(-0.4 + 0.5 * (population_info$habitat == "open"))
+b_population <- rnorm(n_population, sd = sd_population)
+sigma <- exp(-0.6 + 0.25 * fish$temperature)
+fish$growth <- 1 + 0.7 * fish$temperature +
+  b_population[fish$population] +
+  rnorm(nrow(fish), sd = sigma)
+
+fit <- drmTMB(
+  bf(
+    growth ~ temperature + (1 | population),
+    sigma ~ temperature,
+    sd(population) ~ habitat
+  ),
+  family = gaussian(),
+  data = fish
+)
+
+coef(fit, "sd(population)")
+head(predict(fit, dpar = "sd(population)"))
+```
+
+The `sd(population)` coefficients are on the log-SD scale. A positive
+`habitatopen` coefficient means the estimated among-population SD in expected
+growth is larger for open-habitat populations than for the baseline habitat.
+
+## One location model, several scale quantities
+
+A model can have one location predictor and several scale quantities. For
+example, suppose fish growth is measured across populations and sites:
+
+```r
+drmTMB(
+  bf(
+    growth ~ temperature + (1 | population) + (1 | site),
+    sigma ~ temperature,
+    sd(population) ~ habitat,
+    sd(site) ~ site_area
+  ),
+  family = gaussian(),
+  data = fish
+)
+```
+
+The matching symbolic model is:
+
+```text
+growth_i | mu_i, sigma_i, b_j[i], c_k[i] ~ Normal(mu_i, sigma_i^2)
+mu_i = beta_0 + beta_1 temperature_i + b_j[i] + c_k[i]
+log(sigma_i) = gamma_0 + gamma_1 temperature_i
+
+b_j = sd_mu_population,j u_j
+u_j ~ Normal(0, 1)
+log(sd_mu_population,j) = alpha_0 + alpha_1 habitat_j
+
+c_k = sd_mu_site,k r_k
+r_k ~ Normal(0, 1)
+log(sd_mu_site,k) = kappa_0 + kappa_1 site_area_k
+```
+
+This has three scale quantities:
+
+| Quantity | Formula | Interpretation |
+|---|---|---|
+| `sigma_i` | `sigma ~ temperature` | residual SD for each observation |
+| `sd_mu_population,j` | `sd(population) ~ habitat` | among-population SD in expected growth |
+| `sd_mu_site,k` | `sd(site) ~ site_area` | among-site SD in expected growth |
+
+There are no random effects in the residual scale unless the `sigma` formula
+contains a term such as `(1 | population)`. There is also no correlation
+between the population and site random effects in this example; they are
+separate grouping factors. Correlated random intercept-slope blocks require a
+single grouping factor block such as `(1 + temperature | population)`.
 
 ## Side-by-side guide
 

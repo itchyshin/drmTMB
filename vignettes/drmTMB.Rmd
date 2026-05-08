@@ -19,6 +19,8 @@ intercepts in the `sigma` formula. It also supports a first group-level
 random-effect scale grammar such as `sd(id) ~ x_group` for one or more
 distinct unlabelled Gaussian `mu` random intercepts:
 
+## Implemented now
+
 ```r
 drmTMB(
   drm_formula(y ~ x1 + (1 | id) + (0 + x1 | id), sigma ~ x1),
@@ -69,7 +71,9 @@ This is a model for residual or within-observation scale. It is distinct from
 group-level `mu` random intercept.
 
 The first implemented bivariate seed covers fixed-effect location-coscale
-regression with predictor-dependent residual correlation:
+regression with predictor-dependent residual correlation. Here "coscale" means
+the residual covariance structure; in the current bivariate Gaussian model,
+that structure is the residual correlation `rho12`:
 
 ```r
 drmTMB(
@@ -84,6 +88,22 @@ drmTMB(
   data = dat
 )
 ```
+
+Meta-analysis uses the ordinary Gaussian family plus a known sampling
+covariance marker:
+
+```r
+drmTMB(
+  bf(
+    yi ~ x1 + x2 + meta_known_V(V = V),
+    sigma ~ x1
+  ),
+  family = gaussian(),
+  data = dat
+)
+```
+
+## Planned next
 
 The planned double-hierarchical bivariate version adds individual-level random
 intercepts and random slopes to each mean formula, following the
@@ -106,20 +126,6 @@ drmTMB(
 Here `sigma1` and `sigma2` are residual scale parameters. The random-effect
 standard deviations and correlations from `(1 + x2 | p | ID)` are separate
 group-level quantities.
-
-Meta-analysis uses the ordinary Gaussian family plus a known sampling
-covariance marker:
-
-```r
-drmTMB(
-  bf(
-    yi ~ x1 + x2 + meta_known_V(V = V),
-    sigma ~ x1
-  ),
-  family = gaussian(),
-  data = dat
-)
-```
 
 For the mathematical details, start with the location-scale and bivariate
 coscale tutorials. They spell out which part of the R formula creates each

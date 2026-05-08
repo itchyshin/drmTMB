@@ -10,6 +10,12 @@ Likelihoods are implemented in TMB templates and called from R wrappers.
   on the response scale.
 - Shape parameters use family-specific stable links.
 
+## Notation
+
+In mathematical prose, `Normal(a, b)` uses variance as the second argument.
+The corresponding R density call uses standard deviation, as in
+`dnorm(y, mean = a, sd = sqrt(b), log = TRUE)`.
+
 ## Implemented Gaussian Location-Scale
 
 Gaussian location-scale is implemented for fixed-effect models and for
@@ -212,7 +218,7 @@ y ~ MVN(mu, V_known + Sigma_unknown)
 For diagonal `V`, written as `meta_known_V(V = vi)` in the location formula:
 
 ```text
-y_i ~ Normal(mu_i, sqrt(vi_i + sigma_i^2))
+y_i ~ Normal(mu_i, vi_i + sigma_i^2)
 log(sigma_i) = X_sigma beta_sigma
 ```
 

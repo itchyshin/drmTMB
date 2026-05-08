@@ -75,10 +75,12 @@ avoid a second `tau ~` grammar.
 For diagonal `V`, the likelihood is:
 
 ```text
-yi_i ~ Normal(mu_i, sqrt(vi_i + sigma_i^2))
+yi_i ~ Normal(mu_i, vi_i + sigma_i^2)
 mu_i = X_mu beta_mu
 log(sigma_i) = X_sigma beta_sigma
 ```
+
+Here `Normal(a, b)` uses variance as the second argument.
 
 For full `V`, the likelihood is:
 
@@ -177,7 +179,8 @@ Planned syntax should remain Gaussian:
 ```r
 drmTMB(
   formula = drm_formula(
-    mu = yi ~ x1 + meta_known_V(V = V) + phylo(species) + (1 | study),
+    mu = yi ~ x1 + meta_known_V(V = V) +
+      phylo(1 | species, tree = tree) + (1 | study),
     sigma = ~ x1
   ),
   family = gaussian(),

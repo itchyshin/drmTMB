@@ -13,9 +13,10 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 
 This article introduces the first implemented `drmTMB` model class: Gaussian
 location-scale regression with fixed effects, optional random effects in the
-location formula, and residual-scale random intercepts in the `sigma` formula.
-The same pattern will be used throughout the documentation: write the model
-symbolically first, then show the matching R syntax.
+location formula, residual-scale random intercepts in the `sigma` formula, and
+random-effect scale formulas such as `sd(id) ~ x_group`. The same pattern will
+be used throughout the documentation: write the model symbolically first, then
+show the matching R syntax.
 
 Current syntax:
 
@@ -66,6 +67,10 @@ random-slope correlations, and bivariate residual `rho12`.
 The basic discipline is simple: each estimated parameter gets its own linear
 predictor. For Gaussian location-scale regression those parameters are the
 mean, `mu`, and the residual standard deviation, `sigma`.
+
+Throughout this article, `Normal(a, b)` uses variance as the second argument.
+Thus `Normal(mu_i, sigma_i^2)` means a Gaussian distribution with mean `mu_i`
+and standard deviation `sigma_i`.
 
 For the fixed-effect Gaussian location-scale model, the symbolic model is:
 
@@ -161,6 +166,39 @@ Here `a_j` is residual-scale heterogeneity, or group-to-group variation in
 within-group variability. It is still not the same quantity as `sd_mu_id`, the
 standard deviation of the `mu` random intercepts.
 
+A double-hierarchical scale formula targets the random-effect standard
+deviation itself. For example:
+
+```text
+y_ij | mu_ij, sigma_ij, b_j ~ Normal(mu_ij, sigma_ij^2)
+mu_ij = beta_0 + beta_1 x1_ij + b_j
+log(sigma_ij) = gamma_0 + gamma_1 x2_ij
+
+b_j = sd_mu_id,j u_j
+u_j ~ Normal(0, 1)
+log(sd_mu_id,j) = alpha_0 + alpha_1 x_group_j
+```
+
+The matching syntax is:
+
+```r
+drmTMB(
+  bf(
+    y ~ x1 + (1 | id),
+    sigma ~ x2,
+    sd(id) ~ x_group
+  ),
+  family = gaussian(),
+  data = dat
+)
+```
+
+This model has one residual scale, `sigma_ij`, and one group-level scale,
+`sd_mu_id,j`. They answer different questions. The `sigma` formula asks whether
+observations are more or less variable around their fitted mean. The `sd(id)`
+formula asks whether among-group differences in the mean are larger for some
+types of groups.
+
 With two additive random intercepts, the equation has two group-level scale
 components:
 
@@ -238,9 +276,9 @@ drmTMB(
 Here `p` is retained as a group-level covariance-block label. It does not yet
 share covariance across `mu`, `sigma`, `mu1`, or `mu2` formulas.
 
-This is the source of the "two or three sigmas" issue in ordinary language:
-the model may contain several scale quantities, but only one of them is the
-residual `sigma`. The others should be named by what they scale:
+This is where ordinary language can become slippery: the model may contain
+several scale quantities, but only one of them is the residual `sigma`. The
+others should be named by what they scale:
 
 - residual SD: `sigma_i`, from `sigma ~ x2`;
 - site random-intercept SD in `mu`: `sd_mu_site`, from the site random
@@ -313,7 +351,7 @@ Meta-analysis is the same Gaussian regression idea with known sampling
 covariance added to the likelihood. For diagonal known sampling variance:
 
 ```text
-yi_i | mu_i, sigma_i, v_i ~ Normal(mu_i, sqrt(v_i + sigma_i^2))
+yi_i | mu_i, sigma_i, v_i ~ Normal(mu_i, v_i + sigma_i^2)
 mu_i = X_mu[i, ] beta_mu
 sigma_i = exp(X_sigma[i, ] beta_sigma)
 ```

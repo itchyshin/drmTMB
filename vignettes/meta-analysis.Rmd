@@ -34,10 +34,12 @@ sampling covariance matrix. If users have standard errors, they should square
 them before fitting. For diagonal `V`, the likelihood is:
 
 ```text
-yi_i ~ Normal(mu_i, sqrt(vi_i + sigma_i^2))
+yi_i ~ Normal(mu_i, vi_i + sigma_i^2)
 mu_i = X_mu beta_mu
 log(sigma_i) = X_sigma beta_sigma
 ```
+
+In these equations, `Normal(a, b)` uses variance as the second argument.
 
 For full `V`, the same model is written:
 

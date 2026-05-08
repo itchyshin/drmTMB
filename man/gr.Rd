@@ -2,7 +2,7 @@
 % Please edit documentation in R/formula-markers.R
 \name{gr}
 \alias{gr}
-\title{Known-covariance group effect}
+\title{Planned known-covariance group effect marker}
 \usage{
 gr(group, cov)
 }

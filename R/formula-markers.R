@@ -17,7 +17,7 @@ meta_known_V <- function(V) {
   invisible(NULL)
 }
 
-#' Known-covariance group effect
+#' Planned known-covariance group effect marker
 #'
 #' `gr()` reserves syntax for group-level effects with a user-supplied
 #' covariance matrix. It is the planned low-level foundation for phylogenetic
@@ -32,28 +32,38 @@ gr <- function(group, cov) {
   invisible(NULL)
 }
 
-#' Phylogenetic group effect
+#' Planned phylogenetic structured-effect marker
 #'
-#' `phylo()` reserves user-facing syntax for phylogenetic dependence. Future
-#' implementations will use a sparse A-inverse path when a tree is supplied.
+#' `phylo()` reserves user-facing syntax for phylogenetic dependence. The
+#' planned grammar is structured random-effect syntax such as
+#' `phylo(1 | species, tree = tree)` and, later,
+#' `phylo(1 + x | species, tree = tree)`. The public `phylo()` API should
+#' require an ultrametric tree with branch lengths and use the Hadfield and
+#' Nakagawa A-inverse sparse-precision path internally.
 #'
-#' @param species Species or taxon factor.
+#' @param term Planned structured random-effect term, such as `1 | species`.
+#' @param tree Planned ultrametric phylogeny input with branch lengths.
 #'
 #' @return A formula marker; never evaluated by users.
 #' @export
-phylo <- function(species) {
+phylo <- function(term, tree) {
   invisible(NULL)
 }
 
-#' Spatial effect
+#' Planned spatial structured-effect marker
 #'
-#' `spatial()` reserves user-facing syntax for spatial dependence. Future
-#' implementations will use an SPDE/GMRF representation.
+#' `spatial()` reserves user-facing syntax for spatial dependence. The planned
+#' grammar is structured random-effect syntax such as
+#' `spatial(1 | site, coords = coords)` and, later,
+#' `spatial(1 + depth | site, coords = coords)`. Future implementations will
+#' use an SPDE/GMRF representation built from coordinates or a mesh.
 #'
-#' @param ... Coordinate columns or a spatial term specification.
+#' @param term Planned structured random-effect term, such as `1 | site`.
+#' @param coords Planned coordinate data or coordinate column specification.
+#' @param mesh Planned precomputed mesh object.
 #'
 #' @return A formula marker; never evaluated by users.
 #' @export
-spatial <- function(...) {
+spatial <- function(term, coords = NULL, mesh = NULL) {
   invisible(NULL)
 }

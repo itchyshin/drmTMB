@@ -103,11 +103,69 @@ structured_effect(
 The public syntax can differ:
 
 ```r
-phylo(species)
-spatial(easting, northing)
+phylo(1 | species, tree = tree)
+spatial(1 | site, coords = coords)
 ```
 
 but the TMB likelihood should see the same kind of structured-effect block.
+
+The mature phylogenetic grammar should probably look like structured
+random-effect syntax rather than a bare marker:
+
+```r
+phylo(1 | species, tree = tree)
+phylo(1 + x | species, tree = tree)
+```
+
+Here `phylo(1 | species, tree = tree)` is a phylogenetic random intercept and
+`phylo(1 + x | species, tree = tree)` is a phylogenetic random intercept plus a
+phylogenetic random slope. Public `phylo()` should require an ultrametric tree
+with branch lengths. Dense covariance matrices should be reserved for
+lower-level structured-covariance or comparator pathways, not the main
+phylogeny API.
+
+The first parser should validate:
+
+```text
+tree has branch lengths
+tree is ultrametric, within numerical tolerance
+all observed species are represented by tree tip labels
+species levels and tree tip labels can be matched unambiguously
+```
+
+Accepted public forms:
+
+```r
+phylo(1 | species, tree = tree)         # build sparse A-inverse internally
+phylo(1 + x | species, tree = tree)     # later structured slope path
+```
+
+The preferred tree path should follow the Hadfield and Nakagawa comparative
+mixed-model construction: expand the phylogenetic covariance to include
+internal nodes, form the sparse inverse of the expanded relationship matrix,
+and treat ancestral states as latent Gaussian effects. The implementation can
+then map the tip-level species effects to observations while evaluating the
+prior with the sparse augmented precision. Dense tip-only covariance is useful
+for teaching, small comparators, and fallback inputs, but it should not be the
+large-tree computational path.
+
+The same idea can later extend to spatial terms, but the first spatial
+implementation should use mesh/projection objects rather than dense distance
+matrices.
+
+The spatial grammar should mirror the phylogenetic grammar:
+
+```r
+spatial(1 | site, coords = coords)
+spatial(1 + depth | site, coords = coords)
+spatial(1 | site, mesh = mesh)
+```
+
+Here `spatial(1 | site, coords = coords)` is a spatial random intercept.
+`coords` supplies observed coordinates that the R layer can use to build or
+validate a mesh/projection object. `mesh = mesh` is the planned route for users
+who have already built an SPDE mesh. Structured spatial slopes should come
+after intercept-only spatial fields are tested.
 
 The sibling `gllvmTMB` implementation already follows this broad idea. The
 files to study when implementation begins are:
@@ -160,7 +218,8 @@ known sampling covariance:
 ```r
 drmTMB(
   formula = drm_formula(
-    mu = yi ~ x1 + meta_known_V(V = V) + phylo(species) + (1 | study),
+    mu = yi ~ x1 + meta_known_V(V = V) +
+      phylo(1 | species, tree = tree) + (1 | study),
     sigma = ~ x1
   ),
   family = gaussian(),
@@ -258,8 +317,66 @@ blocks, rather than treating every cross-response correlation as residual
 1. Keep the current Gaussian location-scale and bivariate `rho12` MVP stable.
 2. Extend `meta_known_V(V = V)` from dense known covariance to sparse storage.
 3. Add one structured `mu` effect using a supplied sparse precision matrix.
-4. Wrap that path as `phylo(species)` using A-inverse inputs.
+4. Wrap that path as `phylo(1 | species, tree = tree)` using the Hadfield and
+   Nakagawa A-inverse tree path.
 5. Add spatial SPDE fields using the same structured-effect TMB block.
 6. Only then allow structured effects in `sigma`.
 7. Treat structured effects in `rho12` as experimental until simulation
    evidence shows identifiability.
+
+## Next Implementation Gate
+
+The next useful slice is deliberately small:
+
+```r
+drmTMB(
+  bf(y ~ x + phylo(1 | species, tree = tree), sigma ~ z),
+  family = gaussian(),
+  data = dat
+)
+```
+
+Symbolically:
+
+```text
+y_i | a_species[i] ~ Normal(mu_i, sigma_i^2)
+mu_i = beta_0 + beta_1 x_i + a_species[i]
+log(sigma_i) = gamma_0 + gamma_1 z_i
+a ~ MVN(0, sigma_phylo^2 A)
+```
+
+Computationally, the first tree-backed version should be equivalent to:
+
+```text
+a_aug ~ MVN(0, sigma_phylo^2 S)
+Q_aug = S^{-1} / sigma_phylo^2
+a_species = P_tip a_aug
+```
+
+where `S` is the expanded phylogenetic relationship matrix including internal
+nodes, `Q_aug` is sparse, and `P_tip` selects or maps the observed tip species.
+For internal comparator tests, the same model can be validated against a dense
+tip covariance implied by the tree on small examples. That dense matrix should
+not be the main public input for `phylo()`.
+
+The first implementation should attach the structured effect only to
+univariate Gaussian `mu`. It should not yet add bivariate covariance, structured
+scale effects, structured `rho12`, or random slopes.
+
+Testing should be staged:
+
+- parser tests for `phylo(1 | species, tree = tree)` in `mu` and clear
+  rejection in unsupported parameters such as `sigma` and `rho12`;
+- deterministic algebra tests comparing sparse A-inverse prior calculations
+  with a small dense covariance calculation;
+- one CRAN-safe simulation recovery test with a hand-built positive-definite
+  phylogenetic correlation matrix;
+- optional long simulations for many species, near-zero phylogenetic SD,
+  large residual noise, and simultaneous phylogenetic plus non-phylogenetic
+  species effects.
+
+The sibling `gllvmTMB` source map supports this order. Use it for design
+lessons: tree input should prefer a sparse A-inverse path, dense VCV should be
+a compatibility fallback, and SPDE should enter later through mesh/projection
+objects. Do not import the high-dimensional GLLVM keyword grid or loading
+machinery into this one- and two-response package.

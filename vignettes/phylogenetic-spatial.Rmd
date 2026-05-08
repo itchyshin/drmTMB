@@ -32,7 +32,7 @@ Planned phylogenetic syntax:
 ```r
 drmTMB(
   bf(
-    y ~ x1 + phylo(species),
+    y ~ x1 + phylo(1 | species, tree = tree),
     sigma ~ x1
   ),
   family = gaussian(),
@@ -40,14 +40,29 @@ drmTMB(
 )
 ```
 
-This syntax is planned, not implemented.
+This syntax is planned, not implemented. The intended meaning is a
+phylogenetic random intercept. The public `phylo()` term should require an
+ultrametric tree with branch lengths so `drmTMB` can build and validate the
+Hadfield and Nakagawa A-inverse path internally.
+
+Later phylogenetic random slopes should extend the same grammar:
+
+```r
+bf(
+  y ~ x1 + phylo(1 + x1 | species, tree = tree),
+  sigma ~ x1
+)
+```
+
+This would estimate phylogenetic covariance among species-specific intercepts
+and slopes. It should come after intercept-only `mu` phylogeny has been tested.
 
 Planned spatial syntax:
 
 ```r
 drmTMB(
   bf(
-    y ~ depth + temp + spatial(easting, northing),
+    y ~ depth + temp + spatial(1 | site, coords = coords),
     sigma ~ temp
   ),
   family = gaussian(),
@@ -56,6 +71,19 @@ drmTMB(
 ```
 
 This syntax is planned, not implemented.
+
+The spatial term is deliberately parallel to the phylogenetic term:
+
+```r
+phylo(1 | species, tree = tree)
+spatial(1 | site, coords = coords)
+```
+
+The mathematical role is the same: add a structured Gaussian random intercept
+to a distributional predictor. The computational route differs. `phylo()`
+starts from an ultrametric tree with branch lengths and builds a sparse
+A-inverse; `spatial()` starts from coordinates or a mesh and builds an
+SPDE/GMRF precision.
 
 The computational plan is to use sparse A-inverse tricks for phylogeny and
 SPDE/GMRF structure for spatial fields, with careful provenance notes for any
@@ -89,8 +117,8 @@ mean-scale phylogenetic correlations.
 ```r
 drmTMB(
   formula = drm_formula(
-    mu1 = log_body_mass ~ lifestyle + phylo(species),
-    mu2 = log_litter_size ~ lifestyle + phylo(species),
+    mu1 = log_body_mass ~ lifestyle + phylo(1 | species, tree = tree),
+    mu2 = log_litter_size ~ lifestyle + phylo(1 | species, tree = tree),
     sigma1 = ~ lifestyle,
     sigma2 = ~ lifestyle,
     rho12 = ~ lifestyle

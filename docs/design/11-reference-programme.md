@@ -103,12 +103,16 @@ Local source:
 
 ```text
 Methods Ecol Evol - 2025 - Nakagawa - Quantifying macro-evolutionary patterns of trait mean and variance with phylogenetic.pdf
+/Users/z3437171/Downloads/jevbio0494.pdf
 ```
 
 Package implications:
 
 - Phylogenetic dependence should be planned from Phase 1.
-- The computational path should use sparse A-inverse or precision-matrix tricks.
+- The computational path should use the Hadfield and Nakagawa A-inverse sparse
+  precision construction: expand the tree to include internal nodes, evaluate
+  the Gaussian prior through the sparse inverse, and project tip effects to
+  observations.
 - Multivariate phylogenetic examples should stay bivariate in `drmTMB`; larger
   response sets belong to `gllvmTMB`.
 - The key scientific move is to treat variance as an evolvable trait-like

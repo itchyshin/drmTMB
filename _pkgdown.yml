@@ -56,9 +56,15 @@ reference:
       - bf
       - meta_known_V
       - biv_gaussian
+  - title: Planned structured-effect markers
+    desc: Reserved syntax for future structured covariance terms.
+    contents:
       - gr
       - phylo
       - spatial
+  - title: Family internals
+    desc: Family constructor helpers.
+    contents:
       - starts_with("drm_family")
       - ends_with("_family")
   - title: Model fitting

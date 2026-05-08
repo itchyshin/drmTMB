@@ -73,8 +73,8 @@ In `drmTMB`, the bivariate location-coscale part targets questions like:
 ```r
 drmTMB(
   formula = drm_formula(
-    mu1 = log_body_mass ~ lifestyle + x1 + phylo(species),
-    mu2 = log_litter_size ~ lifestyle + x1 + phylo(species),
+    mu1 = log_body_mass ~ lifestyle + x1 + phylo(1 | species, tree = tree),
+    mu2 = log_litter_size ~ lifestyle + x1 + phylo(1 | species, tree = tree),
     sigma1 = ~ lifestyle,
     sigma2 = ~ lifestyle,
     rho12 = ~ lifestyle
@@ -115,7 +115,8 @@ group-level covariance blocks. Do not use bare `rho12` for these quantities.
 
 1. Fixed-effect Gaussian `rho12 ~ predictors`.
 2. Univariate Gaussian simple random intercepts and random slopes in `mu`.
-3. Sparse phylogenetic `phylo(species)` in univariate `mu` using A-inverse.
+3. Sparse phylogenetic `phylo(1 | species, tree = tree)` in univariate `mu`
+   using the Hadfield and Nakagawa A-inverse path.
 4. Bivariate Gaussian with phylogenetic and non-phylogenetic mean covariance.
 5. Bivariate location-scale with phylogenetic scale effects.
 6. Bivariate location-coscale with fixed-effect `rho12 ~ predictors` plus

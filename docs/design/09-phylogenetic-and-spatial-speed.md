@@ -32,16 +32,21 @@ bridge between phylogenetic and spatial models.
 
 Primary speed path:
 
-- use the A-inverse trick for phylogenetic random effects;
+- use the Hadfield and Nakagawa A-inverse trick for phylogenetic random
+  effects;
 - prefer sparse precision matrices when available;
 - keep `gr()` as the low-level known-covariance term;
-- expose `phylo(species)` as the high-level user-facing term.
+- expose structured random-effect syntax such as
+  `phylo(1 | species, tree = tree)` as the high-level user-facing term.
+  Public `phylo()` should require an ultrametric tree with branch lengths; a
+  dense covariance matrix is useful for small internal comparators but should
+  not be the main user-facing phylogeny input.
 
 Planned syntax:
 
 ```r
 bf(
-  y ~ x1 + phylo(species),
+  y ~ x1 + phylo(1 | species, tree = tree),
   sigma ~ x1
 )
 ```
@@ -50,8 +55,8 @@ and later:
 
 ```r
 bf(
-  mu1 = y1 ~ x1 + phylo(species),
-  mu2 = y2 ~ x1 + phylo(species),
+  mu1 = y1 ~ x1 + phylo(1 | species, tree = tree),
+  mu2 = y2 ~ x1 + phylo(1 | species, tree = tree),
   sigma1 = ~ x1,
   sigma2 = ~ x1,
   rho12 = ~ x1
@@ -85,7 +90,7 @@ high-dimensional GLLVM API assumptions. Specific sister-package files to study:
 | Keyword grammar and desugaring | `../gllvmTMB/R/brms-sugar.R` terms such as `phylo_scalar()`, `phylo_unique()`, `spatial_scalar()`, and `spatial_unique()` | Use as precedent for readable aliases, but avoid importing the full 3 by 5 multivariate keyword grid. |
 | Public tree/VCV inputs | `../gllvmTMB/R/gllvmTMB.R` arguments such as `phylo_tree`, `phylo_vcv`, and `mesh` | Document tree-versus-VCV and mesh inputs, tied to one- or two-response distributional formulas. |
 | Formula AST parsing | `../gllvmTMB/R/parse-multi-formula.R` functions `parse_multi_formula()`, `parse_covstruct_call()`, and `parse_re_int_call()` | Split fixed terms, ordinary random effects, and structured effects before building TMB data. |
-| Sparse phylogenetic A-inverse setup | `../gllvmTMB/R/fit-multi.R` around the `Ainv_phy_rr` construction | Build a small univariate `phylo(species)` data-preparation path first. |
+| Sparse phylogenetic A-inverse setup | `../gllvmTMB/R/fit-multi.R` around the `Ainv_phy_rr` construction | Build a small univariate `phylo(1 | species, tree = tree)` data-preparation path first. |
 | TMB data and maps | `../gllvmTMB/R/fit-multi.R` sections on phylogenetic VCV preparation, SPDE preparation, TMB inputs, and maps | Keep structured-effect variants explicit in R-side data and parameter maps. |
 | Sparse A-inverse TMB data contract | `../gllvmTMB/inst/tmb/gllvmTMB_multi.cpp` A-inverse data declarations | Define minimal sparse precision inputs for one random-effect term before bivariate use. |
 | Sparse phylogenetic prior | `../gllvmTMB/inst/tmb/gllvmTMB_multi.cpp` Stage-35/Stage-40 phylogenetic blocks | Add a tested GMRF/prior block that can attach to `mu`, later `sigma`. |
@@ -98,13 +103,23 @@ Primary speed path:
 - use SPDE/GMRF sparse precision structures;
 - keep spatial fields modular so they can be added to `mu`, and later to
   `sigma` when identifiable;
-- use `spatial()` as the user-facing placeholder.
+- use structured random-effect syntax such as
+  `spatial(1 | site, coords = coords)` or `spatial(1 | site, mesh = mesh)`.
 
 Planned syntax:
 
 ```r
 bf(
-  y ~ depth + temp + spatial(x, y),
+  y ~ depth + temp + spatial(1 | site, coords = coords),
+  sigma ~ temp
+)
+```
+
+Later spatial random slopes should follow the same pattern:
+
+```r
+bf(
+  y ~ depth + temp + spatial(1 + depth | site, coords = coords),
   sigma ~ temp
 )
 ```
@@ -125,6 +140,12 @@ with a sparse precision and a design/projection map. Phylogeny supplies
 `K = A_phy` and the fast path evaluates with sparse `A_phy^{-1}`. Space makes
 `K` implicit through `Q_spde`, with mesh-node fields projected to observations.
 The public terms can be different, but the TMB block should be shared.
+
+For phylogeny, the large-tree implementation should work with the expanded
+tree precision described by Hadfield and Nakagawa: include internal nodes,
+build the sparse inverse of the expanded relationship matrix, and project the
+tip-level species effects back to observations. Dense tip covariance should
+remain a teaching and comparator route, not the main speed route.
 
 For Matérn/SPDE documentation, keep this parameterization on the design radar:
 

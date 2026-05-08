@@ -4,6 +4,10 @@ This note is the source-of-truth mathematical specification for the first
 `drmTMB` model class. Every implementation and tutorial should be checkable
 against these equations.
 
+Notation convention: `Normal(a, b)` uses variance as the second argument.
+Thus `Normal(mu_i, sigma_i^2)` has mean `mu_i` and residual standard deviation
+`sigma_i`.
+
 ## Fixed-Effect Location-Scale
 
 For observation `i`:
@@ -178,6 +182,50 @@ unlabelled targets such as `sd(id) ~ x_id` and `sd(site) ~ x_site` can appear
 in the same model. If a predictor on the right-hand side varies within its
 target group after missing-row filtering, the model is rejected.
 
+For two distinct group-level scale formulas:
+
+```text
+y_i | mu_i, sigma_i, b_j[i], c_k[i] ~ Normal(mu_i, sigma_i^2)
+mu_i = X_mu[i, ] beta_mu + b_j[i] + c_k[i]
+log(sigma_i) = X_sigma[i, ] beta_sigma
+
+b_j = sd_mu_id,j u_j
+u_j ~ Normal(0, 1)
+log(sd_mu_id,j) = W_id[j, ] alpha_id
+
+c_k = sd_mu_site,k r_k
+r_k ~ Normal(0, 1)
+log(sd_mu_site,k) = W_site[k, ] alpha_site
+```
+
+Matching R syntax:
+
+```r
+drmTMB(
+  bf(
+    y ~ x1 + (1 | id) + (1 | site),
+    sigma ~ x2,
+    sd(id) ~ x_group,
+    sd(site) ~ site_type
+  ),
+  family = gaussian(),
+  data = dat
+)
+```
+
+This is one location model with three separate scale quantities:
+
+```text
+sigma_i          # residual SD
+sd_mu_id,j       # SD of id-level random intercepts in the mean model
+sd_mu_site,k     # SD of site-level random intercepts in the mean model
+```
+
+The current TMB implementation receives one stacked `X_sd_mu` matrix and one
+stacked `beta_sd_mu` vector. The R layer builds this matrix as a block diagonal
+combination of `W_id`, `W_site`, and any other distinct supported `sd(group)`
+targets, then maps each group level to the coefficient block for its target.
+
 For an independent random intercept and random slope in the current
 implementation:
 
@@ -251,7 +299,7 @@ related but not the same parameter.
 Meta-analysis keeps the same naming rule. For diagonal known sampling variance:
 
 ```text
-yi_i | mu_i, sigma_i, v_i ~ Normal(mu_i, sqrt(v_i + sigma_i^2))
+yi_i | mu_i, sigma_i, v_i ~ Normal(mu_i, v_i + sigma_i^2)
 ```
 
 where `v_i` is known sampling variance from `meta_known_V(V = vi)` and

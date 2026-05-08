@@ -37,10 +37,12 @@ between two responses, not only their means or variances.
 
 This is why `rho12` is the selling point of `drmTMB`. A location-scale model
 asks whether predictors change residual SDs. A location-coscale model asks
-whether predictors also change the residual correlation between two responses.
-In ecology and evolution, this can ask whether the residual association between
-traits such as body mass and litter size differs among terrestrial, aquatic,
-and aerial lifestyles after modelling response-specific means and dispersion.
+whether predictors also change the residual covariance structure between two
+responses; in the current bivariate Gaussian model, that structure is the
+residual correlation `rho12`. In ecology and evolution, this can ask whether
+the residual association between traits such as body mass and litter size
+differs among terrestrial, aquatic, and aerial lifestyles after modelling
+response-specific means and dispersion.
 
 ## Equations for the implemented model
 

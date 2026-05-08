@@ -13,6 +13,8 @@ the location formula, residual-scale random intercepts in the `sigma`
 formula, and random-effect scale formulae for one or several distinct `mu`
 random intercepts:
 
+## Implemented now
+
 ```r
 drmTMB(
   drm_formula(y ~ x1 + (1 | id) + (0 + x1 | id), sigma ~ x1),
@@ -81,9 +83,14 @@ drmTMB(
 
 The right-hand side of each `sd(group) ~ ...` formula is group-level:
 predictors must be constant within the named group after missing-row filtering.
+In the example above, `sigma ~ x1`, `sd(id) ~ x_group`, and
+`sd(site) ~ site_type` are three different scale models: residual variation,
+among-`id` variation in the mean, and among-`site` variation in the mean.
 
 It also supports the fixed-effect seed of the bivariate location-coscale model,
-including predictor-dependent residual correlation:
+including predictor-dependent residual correlation. Here "coscale" means the
+residual covariance structure, represented in this bivariate Gaussian case by
+the residual correlation parameter `rho12`:
 
 ```r
 drmTMB(
@@ -98,6 +105,28 @@ drmTMB(
   data = dat
 )
 ```
+
+The legacy helper `biv_gaussian()` remains available, but the public direction
+is composed response families. Both `family = c(gaussian(), gaussian())` and
+`family = list(gaussian(), gaussian())` route to the current bivariate Gaussian
+engine. Mixed bivariate families such as `family = c(gaussian(), poisson())`
+are planned for later, where a coherent joint likelihood is defined.
+
+Meta-analysis is handled as Gaussian regression with known sampling covariance,
+not as a separate family:
+
+```r
+drmTMB(
+  bf(
+    yi ~ x1 + x2 + meta_known_V(V = V),
+    sigma ~ x1
+  ),
+  family = gaussian(),
+  data = dat
+)
+```
+
+## Planned next
 
 The planned double-hierarchical bivariate location-scale model is richer: the
 mean part can carry group-level random intercepts and random slopes, while
@@ -127,27 +156,9 @@ If the correlation is among random intercepts or random slopes, it is a
 group-level covariance parameter; if it is between the two residual responses
 in one row, it is `rho12`.
 
-The legacy helper `biv_gaussian()` remains available, but the public direction
-is composed response families. Both `family = c(gaussian(), gaussian())` and
-`family = list(gaussian(), gaussian())` route to the current bivariate Gaussian
-engine. Mixed bivariate families such as `family = c(gaussian(), poisson())`
-are planned for later, where a coherent joint likelihood is defined.
+## Current project status
 
-Meta-analysis is handled as Gaussian regression with known sampling covariance,
-not as a separate family:
-
-```r
-drmTMB(
-  bf(
-    yi ~ x1 + x2 + meta_known_V(V = V),
-    sigma ~ x1
-  ),
-  family = gaussian(),
-  data = dat
-)
-```
-
-Current project status: Gaussian location-scale MVP with `mu` random
+Gaussian location-scale MVP with `mu` random
 intercepts, independent numeric random slopes, ordinary correlated
 intercept-slope blocks, labelled one-slope `mu` covariance-block labels,
 residual-scale random intercepts in `sigma`,
