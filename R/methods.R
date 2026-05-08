@@ -9,7 +9,7 @@ print.drmTMB <- function(x, ...) {
   cli::cli_text("<drmTMB {label} fit>")
   cli::cli_text("  observations: {x$nobs}")
   if (has_mu_random_effects(x)) {
-    cli::cli_text("  mu random-effect terms: {length(x$model$random$mu$labels)}")
+    cli::cli_text("  mu random-effect terms: {n_mu_random_effect_terms(x)}")
   }
   if (has_sigma_random_effects(x)) {
     cli::cli_text("  sigma random-effect terms: {length(x$sdpars$sigma)}")
@@ -61,8 +61,11 @@ predict.drmTMB <- function(object, newdata = NULL, dpar = NULL,
   }
   X <- drm_prediction_matrix(object, newdata, dpar)
   eta <- as.vector(X %*% object$coefficients[[dpar]])
-  if (is.null(newdata) && dpar == "mu" && has_mu_random_effects(object)) {
+  if (is.null(newdata) && dpar == "mu" && has_ordinary_mu_random_effects(object)) {
     eta <- eta + mu_random_effect_contribution(object)
+  }
+  if (is.null(newdata) && dpar == "mu" && has_phylo_mu_effect(object)) {
+    eta <- eta + phylo_mu_contribution(object)
   }
   if (is.null(newdata) && dpar == "sigma" && has_sigma_random_effects(object)) {
     eta <- eta + sigma_random_effect_contribution(object)
@@ -256,11 +259,24 @@ coefficient_labels <- function(object) {
 }
 
 has_mu_random_effects <- function(object) {
+  has_ordinary_mu_random_effects(object) || has_phylo_mu_effect(object)
+}
+
+has_ordinary_mu_random_effects <- function(object) {
   identical(object$model$model_type, "gaussian") &&
     length(object$random_effects$mu$values) > 0L
 }
 
 has_mu_random_intercepts <- has_mu_random_effects
+
+has_phylo_mu_effect <- function(object) {
+  identical(object$model$model_type, "gaussian") &&
+    isTRUE(object$model$structured$phylo_mu$has)
+}
+
+n_mu_random_effect_terms <- function(object) {
+  length(object$model$random$mu$labels) + as.integer(has_phylo_mu_effect(object))
+}
 
 has_sigma_random_effects <- function(object) {
   identical(object$model$model_type, "gaussian") &&
@@ -306,6 +322,12 @@ mu_random_effect_contribution <- function(object) {
 }
 
 mu_random_intercept_contribution <- mu_random_effect_contribution
+
+phylo_mu_contribution <- function(object) {
+  values <- object$random_effects$phylo_mu$values
+  index <- object$model$structured$phylo_mu$observation_node_index
+  unname(values[index])
+}
 
 sigma_random_effect_contribution <- function(object) {
   values <- object$random_effects$sigma$values

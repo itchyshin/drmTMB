@@ -51,6 +51,8 @@ phylo_prior_tmb_data <- function(precision) {
     sigma_re_index = matrix(0L, nrow = 1L, ncol = 1L),
     sigma_re_value = dummy_matrix,
     sigma_re_term = 0L,
+    has_phylo_mu = 0L,
+    phylo_mu_node_index = 0L,
     Q_phylo = precision$precision,
     log_det_Q_phylo = precision$log_det_precision
   )

@@ -1,6 +1,6 @@
 # Phylogenetic and Spatial Common Math
 
-This note records the shared mathematical spine for future phylogenetic and
+This note records the shared mathematical spine for phylogenetic and future
 spatial models in `drmTMB`. It is based on the local tutorial:
 
 ```text
@@ -108,6 +108,8 @@ spatial(1 | site, coords = coords)
 ```
 
 but the TMB likelihood should see the same kind of structured-effect block.
+The first fitted instance is univariate Gaussian `mu` with
+`phylo(1 | species, tree = tree)`.
 
 The mature phylogenetic grammar should probably look like structured
 random-effect syntax rather than a bare marker:
@@ -133,8 +135,8 @@ all observed species are represented by tree tip labels
 species levels and tree tip labels can be matched unambiguously
 ```
 
-The first internal validation scaffold now checks those conditions for a small
-`phylo` object and can also build a dense Brownian-motion comparator for tests.
+The internal validation scaffold checks those conditions for `phylo` objects
+and can also build a dense Brownian-motion comparator for tests.
 For a rooted ultrametric tree, let `d(v)` be the distance from the root to node
 `v`, and let `mrca(a, b)` be the most recent common ancestor of tips `a` and
 `b`. The Brownian shared-history covariance is:
@@ -152,10 +154,10 @@ R_ab = A_ab / H
 This dense matrix is useful for exact tests on tiny trees and for teaching why
 branch lengths matter. It is not the intended large-tree fitting path.
 
-The second internal scaffold builds the sparse augmented precision that should
-eventually feed the TMB likelihood. The root is fixed at zero and excluded from
-the latent state. For every edge from parent `p` to child `c` with branch length
-`l`, the Brownian increment contributes:
+The sparse implementation builds the augmented precision that feeds the TMB
+likelihood for the first fitted phylogenetic location model. The root is fixed
+at zero and excluded from the latent state. For every edge from parent `p` to
+child `c` with branch length `l`, the Brownian increment contributes:
 
 ```text
 (x_c - x_p)^2 / l
@@ -198,10 +200,13 @@ nll_phylo =
   ]
 ```
 
-This is still internal algebra, not fitted model support. The next C++/TMB
-block should reproduce this expression exactly. A hidden TMB test branch now
-does this for parity testing only; it is not routed through `drmTMB()` model
-fitting.
+The hidden TMB parity branch and the fitted univariate Gaussian `mu`
+phylogenetic path both reproduce this expression. In the fitted path,
+observation `i` receives the tip effect selected by the species mapping:
+
+```text
+eta_mu_i = X_mu[i, ] beta_mu + z_tip[species_i]
+```
 
 Accepted public forms:
 
@@ -300,8 +305,10 @@ drmTMB(
 This is partly implemented. Current code supports dense known sampling
 covariance through `meta_known_V(V = V)`, univariate Gaussian `mu` random
 intercepts, independent numeric `mu` random slopes, one-slope correlated `mu`
-blocks, and univariate Gaussian residual-scale random intercepts in `sigma`.
-`phylo()` and `spatial()` structured-effect terms are still planned.
+blocks, univariate Gaussian residual-scale random intercepts in `sigma`, and
+intercept-only `phylo(1 | species, tree = tree)` in `mu`. Spatial structured
+effects, phylogenetic slopes, and phylogenetic effects in `sigma` are still
+planned.
 
 ## Identifiability Rule
 
@@ -386,17 +393,17 @@ blocks, rather than treating every cross-response correlation as residual
 
 1. Keep the current Gaussian location-scale and bivariate `rho12` MVP stable.
 2. Extend `meta_known_V(V = V)` from dense known covariance to sparse storage.
-3. Add one structured `mu` effect using a supplied sparse precision matrix.
-4. Wrap that path as `phylo(1 | species, tree = tree)` using the Hadfield and
-   Nakagawa A-inverse tree path.
-5. Add spatial SPDE fields using the same structured-effect TMB block.
+3. Keep the first `phylo(1 | species, tree = tree)` univariate Gaussian `mu`
+   path under simulation and comparator tests.
+4. Add spatial SPDE fields using the same structured-effect TMB block.
+5. Add one phylogenetic or spatial structured slope in `mu`.
 6. Only then allow structured effects in `sigma`.
 7. Treat structured effects in `rho12` as experimental until simulation
    evidence shows identifiability.
 
-## Next Implementation Gate
+## Current Implementation Gate
 
-The next useful slice is deliberately small:
+The current fitted slice is deliberately small:
 
 ```r
 drmTMB(
@@ -415,7 +422,7 @@ log(sigma_i) = gamma_0 + gamma_1 z_i
 a ~ MVN(0, sigma_phylo^2 A)
 ```
 
-Computationally, the first tree-backed version should be equivalent to:
+Computationally, the tree-backed version is equivalent to:
 
 ```text
 a_aug ~ MVN(0, sigma_phylo^2 S)
@@ -429,18 +436,18 @@ For internal comparator tests, the same model can be validated against a dense
 tip covariance implied by the tree on small examples. That dense matrix should
 not be the main public input for `phylo()`.
 
-The first implementation should attach the structured effect only to
-univariate Gaussian `mu`. It should not yet add bivariate covariance, structured
-scale effects, structured `rho12`, or random slopes.
+The first implementation attaches the structured effect only to univariate
+Gaussian `mu`. It does not yet add bivariate covariance, structured scale
+effects, structured `rho12`, or random slopes.
 
 Testing should be staged:
 
-- parser tests for `phylo(1 | species, tree = tree)` in `mu` and clear
-  rejection in unsupported parameters such as `sigma` and `rho12`;
+- parser and fitted-model tests for `phylo(1 | species, tree = tree)` in `mu`
+  and clear rejection in unsupported parameters such as `sigma` and `rho12`;
 - deterministic algebra tests comparing sparse A-inverse prior calculations
   with a small dense covariance calculation;
-- one CRAN-safe simulation recovery test with a hand-built positive-definite
-  phylogenetic correlation matrix;
+- one CRAN-safe simulation recovery test with a hand-built ultrametric tree and
+  its implied phylogenetic correlation matrix;
 - optional long simulations for many species, near-zero phylogenetic SD,
   large residual noise, and simultaneous phylogenetic plus non-phylogenetic
   species effects.

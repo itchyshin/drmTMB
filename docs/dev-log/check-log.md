@@ -1902,3 +1902,64 @@ Team learning:
   low-risk bridge from R algebra to TMB implementation;
 - this protects the next fitting slice from simultaneously debugging formula
   parsing, sparse precision construction, and C++ prior constants.
+
+## 2026-05-08: Fitted Univariate Gaussian Phylogenetic Location Model
+
+Scope:
+
+- implemented the first public fitted phylogenetic model path:
+  `bf(y ~ x + phylo(1 | species, tree = tree), sigma ~ z)` with
+  `family = gaussian()`;
+- removed the `phylo()` marker from the fixed-effect `mu` formula before model
+  matrix construction and routed an intercept-only phylogenetic structured
+  effect into the Gaussian TMB branch;
+- passed the sparse augmented Brownian precision, log determinant, and
+  observation-to-tip mapping into TMB;
+- added fitted-model tests, prediction algebra tests, missingness tests, and
+  rejection tests for unsupported phylogenetic slopes and `sigma` terms;
+- updated NEWS, README, formula grammar, phylogenetic/spatial math notes,
+  known limitations, roxygen documentation, ROADMAP, and pkgdown site output.
+
+Commands run:
+
+- `Rscript -e "devtools::test(filter = 'phylo')"`
+- `Rscript -e "devtools::document()"`
+- `git diff --check`
+- `command -v air`
+- `Rscript -e "devtools::test()"`
+- `Rscript -e "pkgdown::check_pkgdown(); pkgdown::build_site()"`
+- `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`
+
+Results:
+
+- targeted phylogenetic tests: 57 passed, 0 failed.
+- full `devtools::test()`: 477 passed, 0 failed.
+- `devtools::document()`: regenerated `man/drmTMB.Rd` and `man/phylo.Rd`.
+- `git diff --check`: passed.
+- `command -v air`: no local `air` executable found.
+- `pkgdown::check_pkgdown()`: no problems found.
+- `pkgdown::build_site()`: site built successfully.
+- `devtools::check()` with `_R_CHECK_SYSTEM_CLOCK_=FALSE`: 0 errors,
+  0 warnings, 0 notes.
+
+Known limitations:
+
+- fitted phylogenetic support is limited to intercept-only univariate Gaussian
+  `mu` terms;
+- phylogenetic random slopes, phylogenetic `sigma` terms, bivariate
+  structured covariance, spatial fields, and structured effects in `rho12`
+  remain planned;
+- simulation recovery is CRAN-safe and intentionally modest, so larger
+  long-run recovery and comparator studies are still needed.
+
+Team learning:
+
+- the latent phylogenetic effect is already on the response scale because the
+  prior is `z ~ MVN(0, sigma_phylo^2 A)`; the `mu` predictor adds `z_tip`
+  directly rather than multiplying by `sigma_phylo` a second time;
+- the fitted path became much safer because the R-side prior helper and hidden
+  TMB parity branch already fixed the sparse precision and log-determinant
+  contract;
+- one fixed-effect recovery tolerance had to be relaxed for a 16-tip CRAN-safe
+  simulation, reminding us that phylogenetic SD recovery tests should avoid
+  pretending small trees provide large-sample certainty.

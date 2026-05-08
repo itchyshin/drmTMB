@@ -75,11 +75,14 @@ distributional regression models using TMB.
 
 ## Phase 5: Phylogenetic and Spatial Dependence
 
+- Status: first univariate Gaussian phylogenetic location path implemented.
 - Treat phylogenetic and spatial terms as one structured-effect module:
   `z ~ MVN(0, sigma_z^2 K)`, with `K = A` for phylogeny and `K = M` for
   spatial dependence.
 - Add sparse known-covariance infrastructure.
-- Add phylogenetic models using the A-inverse speed path.
+- Implemented `phylo(1 | species, tree = tree)` for univariate Gaussian `mu`
+  using an ultrametric branch-length tree, the sparse augmented A-inverse path,
+  and simulation recovery tests.
 - Add spatial SPDE/GMRF fields after the core Gaussian and known-covariance
   path is reliable.
 - For bivariate structured models, estimate and report level-specific

@@ -6,7 +6,8 @@
 #' correlated numeric random intercept-slope blocks in the location formula,
 #' residual-scale random intercepts in the scale formula, and one or more
 #' group-level random-effect scale formulae such as `sd(id) ~ x_group`,
-#' plus fixed-effect bivariate Gaussian distributional models.
+#' plus intercept-only phylogenetic random effects in the univariate Gaussian
+#' location formula, and fixed-effect bivariate Gaussian distributional models.
 #'
 #' @param formula A `drm_formula` object created by [drm_formula()] or [bf()].
 #' @param family A response family, such as [stats::gaussian()] or
@@ -177,6 +178,8 @@ drm_build_gaussian_ls_spec <- function(formula, data, env = parent.frame()) {
 
   meta <- extract_meta_known_v(mu_entry$rhs)
   mu_entry$rhs <- meta$rhs
+  mu_phylo <- extract_gaussian_mu_phylo_term(mu_entry)
+  mu_entry$rhs <- mu_phylo$rhs
   mu_re <- extract_random_mu_terms(mu_entry$rhs, "mu")
   mu_entry$rhs <- mu_re$rhs
   sigma_re <- extract_random_sigma_terms(sigma_entry$rhs, "sigma")
@@ -197,6 +200,7 @@ drm_build_gaussian_ls_spec <- function(formula, data, env = parent.frame()) {
     all.vars(f_mu),
     all.vars(f_sigma),
     unlist(lapply(f_sd_mu, all.vars), use.names = FALSE),
+    phylo_mu_vars(mu_phylo$term),
     vapply(sd_mu_targets, `[[`, character(1), "group"),
     random_effect_vars(mu_re$terms),
     random_effect_vars(sigma_re$terms)
@@ -223,6 +227,7 @@ drm_build_gaussian_ls_spec <- function(formula, data, env = parent.frame()) {
   re_mu <- build_random_mu_structure(mu_re$terms, data_model)
   re_sigma <- build_random_sigma_structure(sigma_re$terms, data_model)
   sd_mu <- build_sd_mu_structure(sd_mu_entries, sd_mu_targets, re_mu, data_model)
+  phylo_mu <- build_phylo_mu_structure(mu_phylo$term, data_model, env)
 
   if (length(y) != nrow(X_sigma)) {
     cli::cli_abort("Internal model-frame mismatch between {.code mu} and {.code sigma}.")
@@ -233,7 +238,7 @@ drm_build_gaussian_ls_spec <- function(formula, data, env = parent.frame()) {
   }
 
   start <- gaussian_ls_start(y, X_mu, X_sigma, V_known$diag, re_mu, re_sigma, sd_mu)
-  start <- c(start, gaussian_ls_dummy_start())
+  start <- c(start, gaussian_ls_dummy_start(phylo_mu, y = y))
 
   spec <- list(
     model_type = "gaussian",
@@ -253,15 +258,17 @@ drm_build_gaussian_ls_spec <- function(formula, data, env = parent.frame()) {
     model_frame = c(list(mu = mf_mu, sigma = mf_sigma), sd_mu$model_frame_list),
     random = list(mu = re_mu, sigma = re_sigma),
     random_scale = list(mu = sd_mu),
+    structured = list(phylo_mu = phylo_mu),
     data = data_model,
     variables = vars,
     keep = keep,
     dpars = c("mu", "sigma", sd_mu$dpars),
     start = start,
-    map = gaussian_ls_map(re_mu, re_sigma, sd_mu),
+    map = gaussian_ls_map(re_mu, re_sigma, sd_mu, phylo_mu),
     random_names = c(
       if (re_mu$n_re > 0L) "u_mu",
-      if (re_sigma$n_re > 0L) "u_sigma"
+      if (re_sigma$n_re > 0L) "u_sigma",
+      if (isTRUE(phylo_mu$has)) "u_phylo"
     )
   )
   spec$tmb_data <- make_tmb_data(spec)
@@ -376,6 +383,7 @@ drm_build_biv_gaussian_spec <- function(formula, data, env = parent.frame()) {
       sigma = empty_random_sigma_structure(nrow(data_model))
     ),
     random_scale = list(mu = empty_sd_mu_structure(1L)),
+    structured = list(phylo_mu = empty_phylo_mu_structure()),
     variables = vars,
     keep = keep,
     dpars = c("mu1", "mu2", "sigma1", "sigma2", "rho12"),
@@ -420,7 +428,7 @@ drm_reject_phase1_terms <- function(rhs, dpar) {
     cli::cli_abort(c(
       "Structured-effect syntax is planned, not implemented.",
       "x" = "The {.code {dpar}} formula contains structured marker{?s}: {.val {structured}}.",
-      "i" = "The first target is intercept-only {.code mu} syntax such as {.code phylo(1 | species, tree = tree)} or {.code spatial(1 | site, coords = coords)}."
+      "i" = "The implemented structured path is intercept-only {.code mu} syntax {.code phylo(1 | species, tree = tree)}; spatial terms and structured effects in other parameters are still planned."
     ))
   }
 
@@ -640,6 +648,110 @@ random_effect_vars <- function(terms) {
     vapply(terms, `[[`, character(1), "group"),
     variables[!is.na(variables)]
   ))
+}
+
+extract_gaussian_mu_phylo_term <- function(entry) {
+  terms <- flatten_plus_terms(entry$rhs)
+  is_phylo <- vapply(terms, is_structured_marker_call, logical(1), name = "phylo")
+  if (!any(is_phylo)) {
+    return(list(rhs = entry$rhs, term = NULL))
+  }
+  if (sum(is_phylo) > 1L) {
+    cli::cli_abort(c(
+      "Only one phylogenetic structured effect is implemented in {.code mu}.",
+      "x" = "Use one term such as {.code phylo(1 | species, tree = tree)}."
+    ))
+  }
+
+  phylo_terms <- Filter(function(term) identical(term$type, "phylo"), entry$structured)
+  if (length(phylo_terms) != 1L) {
+    cli::cli_abort("Internal formula parser error while extracting {.fn phylo}.")
+  }
+  phylo_term <- phylo_terms[[1L]]
+  if (!identical(phylo_term$coef_names, "(Intercept)")) {
+    cli::cli_abort(c(
+      "Only intercept-only phylogenetic {.code mu} effects are implemented.",
+      "x" = "Requested structured coefficient{?s}: {.val {phylo_term$coef_names}}.",
+      "i" = "Use {.code phylo(1 | species, tree = tree)}. Phylogenetic random slopes are planned after intercept-only recovery tests."
+    ))
+  }
+
+  list(rhs = rebuild_plus_terms(terms[!is_phylo]), term = phylo_term)
+}
+
+phylo_mu_vars <- function(term) {
+  if (is.null(term)) {
+    return(character())
+  }
+  term$group
+}
+
+empty_phylo_mu_structure <- function() {
+  list(
+    has = FALSE,
+    label = character(),
+    group = NA_character_,
+    tree = NA_character_,
+    n_re = 0L,
+    precision = NULL,
+    observation_node_index = integer(),
+    observation_node_index0 = 0L,
+    node_labels = character(),
+    species_levels = character()
+  )
+}
+
+build_phylo_mu_structure <- function(term, data, env) {
+  if (is.null(term)) {
+    return(empty_phylo_mu_structure())
+  }
+
+  group <- term$group
+  if (!group %in% names(data)) {
+    cli::cli_abort(c(
+      "Phylogenetic grouping variable {.field {group}} was not found in {.arg data}.",
+      "x" = "Use syntax like {.code phylo(1 | species, tree = tree)} where {.field species} is a column in {.arg data}."
+    ))
+  }
+  species <- as.character(data[[group]])
+  if (length(unique(species)) < 2L) {
+    cli::cli_abort(c(
+      "Phylogenetic grouping variable {.field {group}} has fewer than two observed species.",
+      "x" = "At least two species are needed to estimate a phylogenetic SD."
+    ))
+  }
+
+  tree <- evaluate_phylo_tree(term$tree, env)
+  precision <- drm_phylo_augmented_precision(tree, species = species)
+  observation_node_index <- precision$species_node_index[
+    precision$observation_species_index
+  ]
+  if (anyNA(observation_node_index)) {
+    cli::cli_abort("Internal error: failed to align observations with phylogenetic tip nodes.")
+  }
+
+  list(
+    has = TRUE,
+    label = paste0("phylo(1 | ", group, ")"),
+    group = group,
+    tree = term$tree,
+    n_re = nrow(precision$precision),
+    precision = precision,
+    observation_node_index = unname(as.integer(observation_node_index)),
+    observation_node_index0 = unname(as.integer(observation_node_index - 1L)),
+    node_labels = precision$node_labels,
+    species_levels = precision$species_levels
+  )
+}
+
+evaluate_phylo_tree <- function(name, env) {
+  if (!exists(name, envir = env, inherits = TRUE)) {
+    cli::cli_abort(c(
+      "Could not find phylogeny object {.field {name}}.",
+      "x" = "{.fn phylo} terms use objects from the calling environment, for example {.code phylo(1 | species, tree = tree)}."
+    ))
+  }
+  get(name, envir = env, inherits = TRUE)
 }
 
 parse_sd_mu_entry <- function(entry, mu_terms) {
@@ -1265,15 +1377,31 @@ gaussian_ls_start <- function(y, X_mu, X_sigma, V_known = rep(0, length(y)),
   )
 }
 
-gaussian_ls_dummy_start <- function() {
+gaussian_ls_dummy_start <- function(phylo_mu = empty_phylo_mu_structure(),
+                                    y = NULL) {
+  phylo_start <- gaussian_phylo_start(y, phylo_mu)
   list(
     beta_mu1 = 0,
     beta_mu2 = 0,
     beta_sigma1 = 0,
     beta_sigma2 = 0,
     beta_rho12 = 0,
-    u_phylo = 0,
-    log_sd_phylo = 0
+    u_phylo = phylo_start$u_phylo,
+    log_sd_phylo = phylo_start$log_sd_phylo
+  )
+}
+
+gaussian_phylo_start <- function(y, phylo_mu) {
+  if (!isTRUE(phylo_mu$has)) {
+    return(list(u_phylo = 0, log_sd_phylo = 0))
+  }
+  y_scale <- stats::sd(y)
+  if (!is.finite(y_scale) || y_scale <= 0) {
+    y_scale <- 1
+  }
+  list(
+    u_phylo = rep(0, phylo_mu$n_re),
+    log_sd_phylo = log(max(0.25 * y_scale, 1e-4))
   )
 }
 
@@ -1396,16 +1524,19 @@ biv_gaussian_start <- function(y1, y2, X_mu1, X_mu2, X_sigma1, X_sigma2, X_rho12
 
 gaussian_ls_map <- function(re_mu = empty_random_mu_structure(1L),
                             re_sigma = empty_random_sigma_structure(1L),
-                            sd_mu = empty_sd_mu_structure(re_mu$n_re)) {
+                            sd_mu = empty_sd_mu_structure(re_mu$n_re),
+                            phylo_mu = empty_phylo_mu_structure()) {
   out <- list(
     beta_mu1 = factor(NA),
     beta_mu2 = factor(NA),
     beta_sigma1 = factor(NA),
     beta_sigma2 = factor(NA),
-    beta_rho12 = factor(NA),
-    u_phylo = factor(NA),
-    log_sd_phylo = factor(NA)
+    beta_rho12 = factor(NA)
   )
+  if (!isTRUE(phylo_mu$has)) {
+    out$u_phylo <- factor(NA)
+    out$log_sd_phylo <- factor(NA)
+  }
   if (re_mu$n_re == 0L) {
     out$u_mu <- factor(NA)
     out$log_sd_mu <- factor(NA)
@@ -1452,6 +1583,7 @@ make_tmb_data <- function(spec) {
     dims = c(1L, 1L)
   )
   if (identical(spec$model_type, "gaussian")) {
+    phylo_mu <- spec$structured$phylo_mu
     return(list(
       model_type = 1L,
       y = spec$y,
@@ -1484,8 +1616,10 @@ make_tmb_data <- function(spec) {
       sigma_re_index = spec$random$sigma$index0,
       sigma_re_value = spec$random$sigma$value,
       sigma_re_term = spec$random$sigma$term_id0,
-      Q_phylo = dummy_sparse,
-      log_det_Q_phylo = 0
+      has_phylo_mu = as.integer(isTRUE(phylo_mu$has)),
+      phylo_mu_node_index = if (isTRUE(phylo_mu$has)) phylo_mu$observation_node_index0 else 0L,
+      Q_phylo = if (isTRUE(phylo_mu$has)) phylo_mu$precision$precision else dummy_sparse,
+      log_det_Q_phylo = if (isTRUE(phylo_mu$has)) phylo_mu$precision$log_det_precision else 0
     ))
   }
   list(
@@ -1518,6 +1652,8 @@ make_tmb_data <- function(spec) {
     sigma_re_index = matrix(0L, nrow = 1L, ncol = 1L),
     sigma_re_value = dummy_matrix,
     sigma_re_term = 0L,
+    has_phylo_mu = 0L,
+    phylo_mu_node_index = 0L,
     Q_phylo = dummy_sparse,
     log_det_Q_phylo = 0
   )
@@ -1588,6 +1724,13 @@ split_tmb_sdpars <- function(par, spec) {
     names(sd_sigma) <- spec$random$sigma$labels
     out$sigma <- sd_sigma
   }
+  if (isTRUE(spec$structured$phylo_mu$has)) {
+    sd_phylo <- stats::setNames(
+      exp(unname(par$log_sd_phylo)),
+      spec$structured$phylo_mu$label
+    )
+    out$mu <- c(out$mu, sd_phylo)
+  }
   out
 }
 
@@ -1619,6 +1762,18 @@ split_tmb_random_effects <- function(par, spec) {
       spec$random$sigma
     )
     out$sigma <- format_random_effect_values(latent, values, spec$random$sigma)
+  }
+  if (isTRUE(spec$structured$phylo_mu$has)) {
+    latent <- unname(par$u_phylo[seq_len(spec$structured$phylo_mu$n_re)])
+    names(latent) <- spec$structured$phylo_mu$node_labels
+    out$phylo_mu <- list(
+      values = latent,
+      latent = latent,
+      terms = stats::setNames(
+        list(latent),
+        spec$structured$phylo_mu$label
+      )
+    )
   }
   out
 }

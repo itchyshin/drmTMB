@@ -233,10 +233,10 @@ bf(
 
 ## Structured Phylogenetic and Spatial Markers
 
-`drm_formula()` parses the planned structured-effect markers so that the public
-grammar is testable before the TMB likelihood is implemented. These markers are
-recognized and stored as structured metadata, but `drmTMB()` still aborts before
-model fitting.
+`drm_formula()` parses structured-effect markers and stores them as structured
+metadata. The first fitted path is intercept-only phylogenetic structure in the
+univariate Gaussian `mu` formula. Spatial terms, phylogenetic slopes,
+phylogenetic `sigma` terms, and bivariate structured effects remain planned.
 
 The canonical phylogenetic syntax is:
 
@@ -245,8 +245,8 @@ bf(y ~ x1 + phylo(1 | species, tree = tree), sigma ~ x2)
 ```
 
 Here `tree` is the name of an ultrametric phylogeny object with branch lengths.
-The future implementation should build the sparse A-inverse internally using
-the Hadfield and Nakagawa route. Dense covariance matrices are lower-level
+The fitted implementation builds the sparse augmented A-inverse internally
+using the Hadfield and Nakagawa route. Dense covariance matrices are lower-level
 comparator or `gr()` inputs, not the main public phylogeny API.
 
 The canonical spatial syntax is:
@@ -259,7 +259,8 @@ bf(y ~ x1 + spatial(1 | site, mesh = mesh), sigma ~ x2)
 Here `coords` or `mesh` names the object that will be used to build an
 SPDE/GMRF precision. Exactly one of `coords` or `mesh` should be supplied.
 
-The parser currently reserves intercept-only and one-slope forms:
+The parser currently reserves intercept-only and one-slope forms, but only the
+intercept-only phylogenetic `mu` form is fitted:
 
 ```r
 phylo(1 | species, tree = tree)

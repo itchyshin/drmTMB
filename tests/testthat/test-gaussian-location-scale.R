@@ -187,11 +187,11 @@ test_that("Phase 1 rejects unsupported model syntax clearly", {
   )
   expect_error(
     drmTMB(
-      bf(y ~ x + phylo(1 | id, tree = tree)),
+      bf(y ~ x + phylo(1 + x | id, tree = tree)),
       family = gaussian(),
       data = dat
     ),
-    "planned, not implemented"
+    "intercept-only phylogenetic"
   )
   expect_error(
     drmTMB(

@@ -165,18 +165,20 @@ residual-scale random intercepts in `sigma`,
 one or more univariate Gaussian random-effect scale models such as
 `sd(id) ~ x_group` and `sd(site) ~ site_type`,
 `meta_known_V(V = V)` support for diagonal and dense known sampling covariance,
+intercept-only univariate Gaussian phylogenetic location effects such as
+`phylo(1 | species, tree = tree)`,
 and fixed-effect bivariate Gaussian `rho12 ~ predictors` using either
 `biv_gaussian()`, `family = c(gaussian(), gaussian())`, or
 `family = list(gaussian(), gaussian())`. The next targets are cross-formula
-labelled covariance blocks, sparse precision paths, phylogenetic A-inverse, and
-spatial SPDE paths.
+labelled covariance blocks, phylogenetic slopes and scale effects, larger
+sparse covariance routes, and spatial SPDE paths.
 
-Phylogenetic and spatial dependence will be treated as one structured-effect
+Phylogenetic and spatial dependence are treated as one structured-effect
 module: `z ~ MVN(0, sigma_z^2 K)`, with `K = A` for tree-derived phylogenetic
 correlation and `K = M` for distance-derived spatial correlation. The speed
-routes differ, A-inverse for phylogeny and SPDE/GMRF for space, but the user
-model should feel like the same idea attached to `mu`, later `sigma`, and only
-experimentally to harder parameters such as `rho12`.
+routes differ, sparse A-inverse for phylogeny and SPDE/GMRF for space, but the
+user model should feel like the same idea attached to `mu`, later `sigma`, and
+only experimentally to harder parameters such as `rho12`.
 
 The long-term correlation roadmap is broader than residual `rho12`: bivariate
 structured models should also expose phylogenetic, non-phylogenetic species,

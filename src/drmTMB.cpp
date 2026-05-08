@@ -45,6 +45,8 @@ Type objective_function<Type>::operator()()
   DATA_IMATRIX(sigma_re_index);
   DATA_MATRIX(sigma_re_value);
   DATA_IVECTOR(sigma_re_term);
+  DATA_INTEGER(has_phylo_mu);
+  DATA_IVECTOR(phylo_mu_node_index);
   DATA_SPARSE_MATRIX(Q_phylo);
   DATA_SCALAR(log_det_Q_phylo);
 
@@ -134,6 +136,31 @@ Type objective_function<Type>::operator()()
       for (int j = 0; j < u_sigma.size(); ++j) {
         nll -= dnorm(u_sigma(j), Type(0.0), Type(1.0), true);
       }
+    }
+
+    if (has_phylo_mu == 1) {
+      for (int i = 0; i < y.size(); ++i) {
+        mu(i) += u_phylo(phylo_mu_node_index(i));
+      }
+      int n_phylo = u_phylo.size();
+      vector<Type> Q_u = Q_phylo * u_phylo;
+      Type quadratic = Type(0.0);
+      for (int j = 0; j < n_phylo; ++j) {
+        quadratic += u_phylo(j) * Q_u(j);
+      }
+      nll += Type(0.5) * (
+        Type(n_phylo) * log(Type(2.0) * M_PI) +
+        Type(2.0) * Type(n_phylo) * log_sd_phylo -
+        log_det_Q_phylo +
+        exp(Type(-2.0) * log_sd_phylo) * quadratic
+      );
+      REPORT(u_phylo);
+      REPORT(log_sd_phylo);
+      REPORT(quadratic);
+      ADREPORT(log_sd_phylo);
+      Type sd_phylo = exp(log_sd_phylo);
+      REPORT(sd_phylo);
+      ADREPORT(sd_phylo);
     }
 
     vector<Type> sigma = exp(log_sigma);

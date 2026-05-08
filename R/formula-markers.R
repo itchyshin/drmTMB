@@ -32,17 +32,17 @@ gr <- function(group, cov) {
   invisible(NULL)
 }
 
-#' Planned phylogenetic structured-effect marker
+#' Phylogenetic structured-effect marker
 #'
-#' `phylo()` reserves user-facing syntax for phylogenetic dependence. The
-#' planned grammar is structured random-effect syntax such as
-#' `phylo(1 | species, tree = tree)` and, later,
-#' `phylo(1 + x | species, tree = tree)`. The public `phylo()` API should
-#' require an ultrametric tree with branch lengths and use the Hadfield and
+#' `phylo()` marks user-facing syntax for phylogenetic dependence. The current
+#' fitted path supports intercept-only univariate Gaussian location effects,
+#' `phylo(1 | species, tree = tree)`. Later phases will add structured slopes
+#' such as `phylo(1 + x | species, tree = tree)`. The public `phylo()` API
+#' requires an ultrametric tree with branch lengths and uses the Hadfield and
 #' Nakagawa A-inverse sparse-precision path internally.
 #'
-#' @param term Planned structured random-effect term, such as `1 | species`.
-#' @param tree Planned ultrametric phylogeny input with branch lengths.
+#' @param term Structured random-effect term, currently `1 | species`.
+#' @param tree Ultrametric phylogeny input with branch lengths.
 #'
 #' @return A formula marker; never evaluated by users.
 #' @export

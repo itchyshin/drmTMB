@@ -11,9 +11,10 @@ vignette: >
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 ```
 
-Phylogenetic and spatial dependence are planned as core extensions, but they
-will enter through tested sparse-matrix modules after the Gaussian MVP is
-stable.
+Phylogenetic and spatial dependence are core extensions. The first fitted path
+is intercept-only phylogenetic structure in the univariate Gaussian location
+formula. Spatial fields, phylogenetic slopes, phylogenetic scale terms, and
+bivariate structured covariance blocks remain staged extensions.
 
 The mathematical bridge is simple:
 
@@ -27,7 +28,7 @@ For phylogenetic models, `K` is a tree-derived matrix `A`. For spatial models,
 represents the same idea computationally. The package should teach these as
 one family of structured effects attached to a distributional parameter.
 
-Planned phylogenetic syntax:
+Implemented phylogenetic syntax:
 
 ```r
 drmTMB(
@@ -40,10 +41,10 @@ drmTMB(
 )
 ```
 
-This syntax is planned, not implemented. The intended meaning is a
-phylogenetic random intercept. The public `phylo()` term should require an
-ultrametric tree with branch lengths so `drmTMB` can build and validate the
-Hadfield and Nakagawa A-inverse path internally.
+This fits a phylogenetic random intercept in the location model. The public
+`phylo()` term requires an ultrametric tree with positive branch lengths so
+`drmTMB` can build and validate the Hadfield and Nakagawa sparse augmented
+A-inverse path internally.
 
 Later phylogenetic random slopes should extend the same grammar:
 
@@ -55,7 +56,8 @@ bf(
 ```
 
 This would estimate phylogenetic covariance among species-specific intercepts
-and slopes. It should come after intercept-only `mu` phylogeny has been tested.
+and slopes. It is planned, not implemented, and should come after more
+intercept-only recovery and comparator checks.
 
 Planned spatial syntax:
 
@@ -82,12 +84,12 @@ spatial(1 | site, coords = coords)
 The mathematical role is the same: add a structured Gaussian random intercept
 to a distributional predictor. The computational route differs. `phylo()`
 starts from an ultrametric tree with branch lengths and builds a sparse
-A-inverse; `spatial()` starts from coordinates or a mesh and builds an
+A-inverse; `spatial()` will start from coordinates or a mesh and build an
 SPDE/GMRF precision.
 
-The computational plan is to use sparse A-inverse tricks for phylogeny and
-SPDE/GMRF structure for spatial fields, with careful provenance notes for any
-code selectively ported from `gllvmTMB`.
+The computational plan is to keep using sparse A-inverse tricks for phylogeny
+and add SPDE/GMRF structure for spatial fields, with careful provenance notes
+for any code selectively ported from `gllvmTMB`.
 
 Structured phylogenetic and spatial random slopes will be staged more
 conservatively than ordinary grouped random slopes. The first structured-effect

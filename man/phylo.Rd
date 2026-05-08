@@ -2,24 +2,24 @@
 % Please edit documentation in R/formula-markers.R
 \name{phylo}
 \alias{phylo}
-\title{Planned phylogenetic structured-effect marker}
+\title{Phylogenetic structured-effect marker}
 \usage{
 phylo(term, tree)
 }
 \arguments{
-\item{term}{Planned structured random-effect term, such as \code{1 | species}.}
+\item{term}{Structured random-effect term, currently \code{1 | species}.}
 
-\item{tree}{Planned ultrametric phylogeny input with branch lengths.}
+\item{tree}{Ultrametric phylogeny input with branch lengths.}
 }
 \value{
 A formula marker; never evaluated by users.
 }
 \description{
-\code{phylo()} reserves user-facing syntax for phylogenetic dependence. The
-planned grammar is structured random-effect syntax such as
-\code{phylo(1 | species, tree = tree)} and, later,
-\code{phylo(1 + x | species, tree = tree)}. The public \code{phylo()} API should
-require an ultrametric tree with branch lengths and use the Hadfield and
+\code{phylo()} marks user-facing syntax for phylogenetic dependence. The current
+fitted path supports intercept-only univariate Gaussian location effects,
+\code{phylo(1 | species, tree = tree)}. Later phases will add structured slopes
+such as \code{phylo(1 + x | species, tree = tree)}. The public \code{phylo()} API
+requires an ultrametric tree with branch lengths and uses the Hadfield and
 Nakagawa A-inverse sparse-precision path internally.
 }
 \examples{
