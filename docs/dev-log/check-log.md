@@ -2401,3 +2401,69 @@ Team learning:
 - base-R S3 methods for `stats` generics need both the S3 method registration
   and the generic import; `devtools::test()` alone did not catch this, but
   `devtools::check()` did.
+
+## 2026-05-08: Equation Syntax Documentation Alignment
+
+Scope:
+
+- split the main overview and README examples so fixed-effect Gaussian
+  location-scale equations are paired with fixed-effect syntax, and random
+  effects are introduced with their own matching equations;
+- added a formula-grammar status map to the design contract, using
+  implemented/reserved/planned consistently;
+- clarified planned spatial `coords` versus `mesh` inputs in the
+  phylogenetic/spatial vignette and speed design note;
+- tightened the package `DESCRIPTION` so generated pkgdown metadata describes
+  the current implementation first and the shape/zero-inflation roadmap as
+  staged future work;
+- updated `NEWS.md` for the documentation alignment.
+
+Commands run:
+
+- `Rscript -e "devtools::test()"`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `git diff --check`
+- `Rscript -e "pkgdown::build_site()"`
+- `air format .`
+- `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`
+- `rg -n "current implementation focuses|Public documentation now pairs|For a fixed-effect Gaussian location-scale model|spatial\\(1 \\| site, mesh = mesh\\)|Current Status Map|O.Dea-style|rho ~|tau ~|meta_gaussian" DESCRIPTION NEWS.md README.md vignettes docs/design pkgdown-site/index.html pkgdown-site/news/index.html pkgdown-site/articles/drmTMB.html pkgdown-site/articles/phylogenetic-spatial.html pkgdown-site/articles/formula-grammar.html`
+
+Results:
+
+- full `devtools::test()`: 518 passed, 0 failed;
+- `pkgdown::check_pkgdown()`: no problems found;
+- `pkgdown::build_site()`: site built successfully and rebuilt the home page,
+  `articles/drmTMB.html`, `articles/phylogenetic-spatial.html`, and
+  `news/index.html`;
+- final `devtools::check()` with `_R_CHECK_SYSTEM_CLOCK_=FALSE`: 0 errors,
+  0 warnings, 0 notes;
+- `git diff --check`: clean;
+- `air format .` could not run because `air` is not installed on this machine.
+
+Consistency audit:
+
+- `pkgdown-site/articles/drmTMB.html` now contains the fixed-effect Gaussian
+  location-scale equation/syntax pairing;
+- `pkgdown-site/index.html` metadata now says the current implementation
+  focuses on Gaussian location-scale, known sampling covariance, phylogenetic
+  location effects, random-effect scale models, and bivariate residual
+  correlation before mentioning staged future families;
+- `pkgdown-site/news/index.html` contains the new documentation-alignment
+  NEWS item;
+- remaining `meta_gaussian()` and `tau ~` matches are intentional guardrails in
+  meta-analysis docs and after-task protocol, not promoted syntax.
+
+What did not go smoothly:
+
+- reviewer-style scans caught that the overview vignette had paired a
+  fixed-effect symbolic equation with a random-effect syntax example. Splitting
+  those examples fixed the mismatch.
+- the pkgdown metadata inherited a broader DESCRIPTION than the current
+  implementation warranted, so DESCRIPTION was tightened and site/checks were
+  rerun.
+
+Team learning:
+
+- equation/syntax pairing should be treated as a testable documentation
+  contract: the equation immediately before a code block must describe exactly
+  the model fitted by that code block.

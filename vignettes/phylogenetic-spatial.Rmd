@@ -89,11 +89,23 @@ drmTMB(
 
 This syntax is planned, not implemented.
 
+The planned `coords` and `mesh` arguments play different roles. `coords`
+should name the observation or site coordinates in the modelling data, ideally
+in a projected coordinate system such as UTM rather than raw longitude and
+latitude. A `mesh` is the computational scaffold for an SPDE/GMRF field: a
+triangular network of vertices where the latent spatial field is represented
+and then projected back to observations. Users should not interpret mesh
+vertices as biological sampling units; they are numerical support points for
+the spatial surface. The first spatial implementation should either build this
+mesh from coordinates through a helper, or accept a precomputed mesh object and
+validate that its projection matrix matches the fitted rows.
+
 The spatial term is deliberately parallel to the phylogenetic term:
 
 ```r
 phylo(1 | species, tree = tree)
 spatial(1 | site, coords = coords)
+spatial(1 | site, mesh = mesh)
 ```
 
 The mathematical role is the same: add a structured Gaussian random intercept

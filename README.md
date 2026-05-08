@@ -1,14 +1,15 @@
 # drmTMB <a href="https://itchyshin.github.io/drmTMB/"><img src="man/figures/drmTMB-logo.png" align="right" height="138" alt="drmTMB hex logo" /></a>
 
 A fast TMB-based distributional regression package for broadly useful
-univariate and bivariate distributional regression. The package is designed to
-model not only mu and sigma but also shape, zero inflation, random-effect
-variance, and residual correlation `rho12`; the current implementation starts
-with Gaussian location-scale, known-covariance meta-analysis, phylogenetic
-location effects, and bivariate Gaussian residual-correlation models. The first
-examples are motivated by ecology, evolution, and environmental science. Here
-`mu` is the expected response, `sigma` is the residual standard deviation, and
-`rho12` is the residual correlation between two responses.
+univariate and bivariate distributional regression. The current implementation
+starts with Gaussian location-scale models, known-covariance meta-analysis,
+phylogenetic location effects, random-effect scale models, and bivariate
+Gaussian residual-correlation models. The long-term design also includes
+shape, zero inflation, and additional response families. The first examples
+are motivated by ecology, evolution, and environmental science, but the package
+is general-purpose. Here `mu` is the expected response, `sigma` is the residual
+standard deviation, and `rho12` is the residual correlation between two
+responses.
 
 The current implementation supports Gaussian location-scale models, including
 fixed effects, random intercepts, independent numeric random slopes, and
@@ -19,12 +20,39 @@ random intercepts:
 
 ## Implemented now
 
+The simplest fitted Gaussian location-scale model is:
+
+```text
+y_i | mu_i, sigma_i ~ Normal(mu_i, sigma_i^2)
+mu_i = beta_0 + beta_1 x1_i
+log(sigma_i) = gamma_0 + gamma_1 x1_i
+```
+
+```r
+drmTMB(
+  drm_formula(y ~ x1, sigma ~ x1),
+  family = gaussian(),
+  data = dat
+)
+```
+
+Here `x1` can change both the expected response and the residual standard
+deviation.
+
 ```r
 drmTMB(
   drm_formula(y ~ x1 + (1 | id) + (0 + x1 | id), sigma ~ x1),
   family = gaussian(),
   data = dat
 )
+```
+
+This adds independent group-level intercept and slope variation in the mean:
+
+```text
+mu_ij = beta_0 + beta_1 x1_ij + b_{0j} + b_{1j} x1_ij
+b_{0j} ~ Normal(0, sd_mu_id_intercept^2)
+b_{1j} ~ Normal(0, sd_mu_id_x1^2)
 ```
 
 `bf()` remains available as a short alias for `drm_formula()`.
@@ -69,8 +97,21 @@ drmTMB(
 
 Here `sigma` is the residual or within-observation standard deviation. This is
 not the same as `sd(id) ~ x_group`, which models the standard deviation of a
-group-level `mu` random effect. The implemented `sd()` grammar supports one or
-more distinct unlabelled Gaussian `mu` random-intercept targets:
+group-level `mu` random effect:
+
+```text
+sigma formula:
+  log(sigma_ij) = gamma_0 + gamma_1 x1_ij + a_j
+  a_j ~ Normal(0, sd_sigma_id^2)
+
+sd(id) formula:
+  b_j = sd_mu_id,j u_j
+  u_j ~ Normal(0, 1)
+  log(sd_mu_id,j) = alpha_0 + alpha_1 x_group_j
+```
+
+The implemented `sd()` grammar supports one or more distinct unlabelled
+Gaussian `mu` random-intercept targets:
 
 ```r
 drmTMB(

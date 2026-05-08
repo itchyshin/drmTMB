@@ -115,6 +115,23 @@ bf(
 )
 ```
 
+`coords` and `mesh` should be treated as two entry points to the same spatial
+field, not as two biological model types. `coords` identifies the observation
+or site coordinates used to build a mesh. `mesh` supplies an already-built
+finite-element scaffold plus the projection information needed to map mesh
+vertices back to observations. In both cases, the fitted quantity is a
+structured spatial random effect; the mesh itself is a computational support,
+not a response, predictor, or sampling level to interpret biologically.
+
+Planned mesh-explicit syntax:
+
+```r
+bf(
+  y ~ depth + temp + spatial(1 | site, mesh = mesh),
+  sigma ~ temp
+)
+```
+
 Later spatial random slopes should follow the same pattern:
 
 ```r

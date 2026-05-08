@@ -7,9 +7,11 @@ Authors@R: c(
            comment = c(ORCID = "0000-0002-7765-5182"))
   )
 Description: Fast distributional regression models for univariate and
-    bivariate responses using Template Model Builder. The package is designed
-    around formulae for distributional parameters such as location, scale,
-    shape, zero inflation, random-effect scale, and residual correlation.
+    bivariate responses using Template Model Builder. The current
+    implementation focuses on Gaussian location-scale models, known sampling
+    covariance, phylogenetic location effects, random-effect scale models, and
+    bivariate residual correlation, with a staged design for later shape,
+    zero-inflation, and additional response-family models.
 License: GPL (>= 3)
 URL: https://itchyshin.github.io/drmTMB/, https://github.com/itchyshin/drmTMB
 BugReports: https://github.com/itchyshin/drmTMB/issues

@@ -16,5 +16,6 @@
 * `rho12()` now returns response-scale residual correlations from bivariate Gaussian location-coscale fits, with `type = "link"` available for atanh-scale linear predictors.
 * `drmTMB()` now fits intercept-only phylogenetic random effects in the univariate Gaussian location formula with `phylo(1 | species, tree = tree)`, using an ultrametric branch-length tree and the sparse augmented A-inverse path.
 * Planned structured-effect markers outside that first phylogenetic path, such as `phylo(1 + x | species, tree = tree)`, phylogenetic terms in `sigma`, and `spatial(1 | site, coords = coords)`, are parsed by `drm_formula()` and rejected by `drmTMB()` with planned-feature errors until their TMB likelihoods and recovery tests are implemented.
+* Public documentation now pairs symbolic model equations with matching R syntax for the first Gaussian location-scale, random-effect scale, bivariate `rho12`, meta-analysis, and phylogenetic examples, and clarifies planned spatial `coords` versus `mesh` inputs.
 * `residuals()` now returns whitened Pearson residuals for bivariate Gaussian fits, and `vcov()` now uses coefficient-level row and column names.
 * Initial project scaffold.

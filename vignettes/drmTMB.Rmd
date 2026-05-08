@@ -17,7 +17,7 @@ implementation supports Gaussian location-scale models with fixed effects and
 optional random effects in the location formula and residual-scale random
 intercepts in the `sigma` formula. It also supports a first group-level
 random-effect scale grammar such as `sd(id) ~ x_group` for one or more
-distinct unlabelled Gaussian `mu` random intercepts:
+distinct unlabelled Gaussian `mu` random intercepts.
 
 The current package is already useful for one central workflow: write one
 formula for each parameter you want to estimate, then check that the fitted
@@ -30,15 +30,37 @@ written as one formula for the mean and one formula for the residual scale.
 
 ## Implemented now
 
-For a Gaussian location-scale model:
+For a fixed-effect Gaussian location-scale model:
 
 ```text
 y_i | mu_i, sigma_i ~ Normal(mu_i, sigma_i^2)
-mu_i = X_mu[i, ] beta_mu
-log(sigma_i) = X_sigma[i, ] beta_sigma
+mu_i = beta_0 + beta_1 x1_i
+log(sigma_i) = gamma_0 + gamma_1 x1_i
 ```
 
 the matching syntax is:
+
+```r
+drmTMB(
+  drm_formula(y ~ x1, sigma ~ x1),
+  family = gaussian(),
+  data = dat
+)
+```
+
+Here `sigma_i` is the residual or within-observation standard deviation. The
+location formula may also include ordinary grouped random effects. Adding an
+independent random intercept and random slope for `id` gives:
+
+```text
+y_ij | mu_ij, sigma_ij ~ Normal(mu_ij, sigma_ij^2)
+mu_ij = beta_0 + beta_1 x1_ij + b_{0j} + b_{1j} x1_ij
+log(sigma_ij) = gamma_0 + gamma_1 x1_ij
+b_{0j} ~ Normal(0, sd_mu_id_intercept^2)
+b_{1j} ~ Normal(0, sd_mu_id_x1^2)
+```
+
+with matching syntax:
 
 ```r
 drmTMB(
@@ -48,17 +70,16 @@ drmTMB(
 )
 ```
 
-Here `sigma_i` is the residual or within-observation standard deviation. The
-location formula may also include ordinary grouped random effects. For example,
-the random-intercept part of the model above is:
-
-```text
-mu_ij = X_mu[ij, ] beta_mu + b_j
-b_j ~ Normal(0, sd_mu_id^2)
-```
+The separate `(1 | id)` and `(0 + x1 | id)` terms are independent in the
+current implementation.
 
 The ordinary correlated random intercept-slope form is also implemented for
 univariate Gaussian `mu`:
+
+```text
+mu_ij = beta_0 + beta_1 x1_ij + b_{0j} + b_{1j} x1_ij
+[b_{0j}, b_{1j}]' ~ MVN(0, Sigma_mu_id)
+```
 
 ```r
 drmTMB(

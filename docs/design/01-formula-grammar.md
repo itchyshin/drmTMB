@@ -29,6 +29,31 @@ Use generic predictor names such as `x1`, `x2`, and `x3` in design examples.
 Different distributional parameters often share predictors, with parameter-
 specific coefficients:
 
+## Current Status Map
+
+Use three status words consistently across documentation:
+
+- implemented: parsed, fitted, documented, and tested;
+- reserved: parsed or reserved as public grammar, but rejected by `drmTMB()`
+  until the likelihood and tests exist;
+- planned: shown only to explain the roadmap.
+
+| Syntax | Current status | Notes |
+| --- | --- | --- |
+| `drm_formula()` and `bf()` | Implemented | `drm_formula()` is the explicit constructor; `bf()` is a short alias. |
+| `y ~ x1`, `sigma ~ x1` | Implemented | Univariate Gaussian location-scale model. |
+| `(1 | id)`, `(0 + x1 | id)`, `(1 + x1 | id)` in `mu` | Implemented | Ordinary Gaussian location random effects; one-slope correlated blocks may be labelled as `(1 + x1 | p | id)`. |
+| `(1 | id)` in `sigma` | Implemented | Residual-scale random intercept. |
+| `sd(id) ~ x_group` | Implemented | Random-effect scale model for one or more distinct unlabelled Gaussian `mu` random intercepts. |
+| `meta_known_V(V = V)` | Implemented | Known diagonal, block-diagonal, or dense sampling covariance with `family = gaussian()`. |
+| `mu1`, `mu2`, `sigma1`, `sigma2`, `rho12` | Implemented for fixed effects | Bivariate Gaussian location-coscale model with predictor-dependent residual correlation. |
+| `family = c(gaussian(), gaussian())` | Implemented | Public bivariate Gaussian family direction; mixed composed families are planned. |
+| `mvbind(y1, y2) ~ x1` | Reserved | Planned shorthand for identical bivariate location formulas, not the implemented path. |
+| `phylo(1 | species, tree = tree)` in `mu` | Implemented | Intercept-only univariate Gaussian phylogenetic location effect; requires an ultrametric tree with branch lengths. |
+| `phylo(1 + x1 | species, tree = tree)` | Planned | Structured slopes come after the intercept-only path is hardened. |
+| `spatial(1 | site, coords = coords)` and `spatial(1 | site, mesh = mesh)` | Planned | Spatial SPDE/GMRF terms are part of the design but not fitted yet. |
+| Random effects in bivariate `mu1`/`mu2`, `sigma1`/`sigma2`, or `rho12` | Planned | Requires separate likelihood, simulation, and naming checks. |
+
 ## Univariate Syntax
 
 The unnamed response formula is interpreted as the location (`mu`) formula:
