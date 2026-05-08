@@ -2022,3 +2022,49 @@ Team learning:
   risk in this phase;
 - shell searches containing backticks must be single-quoted so zsh does not
   try to execute fragments such as `mu`.
+
+## 2026-05-08: Dense Comparator For Fitted Phylogenetic Gaussian Objective
+
+Scope:
+
+- added a CRAN-safe fitted-model comparator test for the intercept-only
+  univariate Gaussian phylogenetic `mu` path;
+- the test fits `bf(y ~ x + phylo(1 | species, tree = tree), sigma ~ 1)` on a
+  four-tip ultrametric tree and compares the TMB/Laplace objective to an
+  independent dense marginal Gaussian negative log likelihood;
+- the dense comparator uses
+  `Sigma = sigma^2 I + sd_phylo^2 A[species, species]`, where `A` is built by
+  the dense Brownian tip-covariance helper;
+- this strengthens the bridge between the public equation,
+  `a ~ MVN(0, sigma_phylo^2 A)`, and the sparse augmented A-inverse
+  implementation.
+
+Commands run:
+
+- `Rscript -e "devtools::test(filter = 'phylo-gaussian')"`
+- `Rscript -e "devtools::test(filter = 'phylo')"`
+- `Rscript -e "devtools::test()"`
+- `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`
+
+Results:
+
+- targeted `phylo-gaussian` tests: 14 passed, 0 failed;
+- targeted phylogenetic tests: 59 passed, 0 failed;
+- full `devtools::test()`: 479 passed, 0 failed.
+- `devtools::check()` with `_R_CHECK_SYSTEM_CLOCK_=FALSE`: 0 errors,
+  0 warnings, 0 notes.
+
+Known limitations:
+
+- the comparator uses a tiny dense covariance matrix for testing; it is not the
+  large-tree fitting route;
+- this validates the fitted marginal objective at the fitted parameter values,
+  not long-run parameter-recovery coverage across many tree shapes.
+
+Team learning:
+
+- Curie's read-only review identified the right next gap: utility tests already
+  checked sparse algebra, but the fitted model needed an end-to-end marginal
+  likelihood comparator;
+- a dense comparator is a compact way to test the sparse A-inverse route
+  without turning CRAN tests into long simulations.

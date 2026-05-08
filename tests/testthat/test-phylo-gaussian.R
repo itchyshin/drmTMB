@@ -58,6 +58,18 @@ new_phylo_gaussian_data <- function(seed = 20260547, n_tip = 16L,
   )
 }
 
+dense_phylo_gaussian_nll <- function(y, mu, sigma, sd_phylo, A) {
+  covariance <- sigma^2 * diag(length(y)) + sd_phylo^2 * A
+  chol_covariance <- chol(covariance)
+  residual <- y - mu
+  standardized <- backsolve(chol_covariance, residual, transpose = TRUE)
+  0.5 * (
+    length(y) * log(2 * pi) +
+      2 * sum(log(diag(chol_covariance))) +
+      sum(standardized^2)
+  )
+}
+
 test_that("Gaussian mu supports phylogenetic random intercepts", {
   sim <- new_phylo_gaussian_data()
   dat <- sim$data
@@ -75,6 +87,40 @@ test_that("Gaussian mu supports phylogenetic random intercepts", {
   expect_lt(max(abs(unname(coef(fit, "mu")) - unname(sim$beta_mu))), 0.35)
   expect_lt(abs(unname(fit$sdpars$mu) - sim$sd_phylo), 0.45)
   expect_lt(abs(stats::sigma(fit)[[1L]] - sim$sigma), 0.10)
+})
+
+test_that("fitted phylogenetic mu objective matches dense marginal likelihood", {
+  tree <- balanced_ultrametric_tree(n_tip = 4L)
+  species <- rep(tree$tip.label, each = 3L)
+  x <- rep(c(-0.7, 0.1, 0.8), times = 4L)
+  phylo_signal <- c(sp_1 = -0.45, sp_2 = -0.2, sp_3 = 0.25, sp_4 = 0.55)
+  dat <- data.frame(
+    y = 0.3 + 0.6 * x + phylo_signal[species] +
+      rep(c(-0.1, 0.05, 0.12), times = 4L),
+    x = x,
+    species = species
+  )
+
+  fit <- drmTMB(
+    bf(y ~ x + phylo(1 | species, tree = tree), sigma ~ 1),
+    family = gaussian(),
+    data = dat
+  )
+
+  X_mu <- stats::model.matrix(~ x, dat)
+  mu <- as.vector(X_mu %*% coef(fit, "mu"))
+  A_tip <- drmTMB:::drm_phylo_tip_covariance(tree)
+  A_obs <- A_tip[dat$species, dat$species]
+  dense_nll <- dense_phylo_gaussian_nll(
+    y = dat$y,
+    mu = mu,
+    sigma = stats::sigma(fit)[[1L]],
+    sd_phylo = unname(fit$sdpars$mu),
+    A = A_obs
+  )
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(fit$opt$objective, dense_nll, tolerance = 1e-4)
 })
 
 test_that("conditional predictions include phylogenetic mu effects", {
