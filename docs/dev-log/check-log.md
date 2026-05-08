@@ -2173,3 +2173,58 @@ Team learning:
 - combining two already-tested covariance paths is still worth an explicit
   comparator because row order, covariance addition, and Laplace integration
   can drift independently.
+
+## 2026-05-08: Fixed And Random Effect Extractors
+
+Scope:
+
+- added exported `fixef()` and `ranef()` generics plus `drmTMB` methods;
+- `fixef()` is a mixed-model-friendly alias for distributional fixed-effect
+  coefficient blocks returned by `coef()`;
+- `ranef()` returns stored conditional random-effect blocks, currently
+  including ordinary `mu`, residual-scale `sigma`, and `phylo_mu` blocks when
+  those effects are present;
+- added extractor documentation, pkgdown reference entries, NEWS bullets, and
+  tests for fixed-effect-only, ordinary random-effect, residual-scale random
+  effect, and phylogenetic random-effect paths.
+
+Commands run:
+
+- `Rscript -e "devtools::document()"`
+- `Rscript -e "devtools::test(filter = 'gaussian-location-scale')"`
+- `Rscript -e "devtools::test(filter = 'gaussian-random-intercepts')"`
+- `Rscript -e "devtools::test(filter = 'phylo-gaussian')"`
+- `air format .`
+- `Rscript -e "devtools::test()"`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `git diff --check`
+- `Rscript -e "pkgdown::build_site()"`
+- `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`
+
+Results:
+
+- targeted `gaussian-location-scale` tests: 43 passed, 0 failed;
+- targeted `gaussian-random-intercepts` tests: 173 passed, 0 failed after
+  recording the new `ranef()` error snapshot;
+- targeted `phylo-gaussian` tests: 26 passed, 0 failed;
+- full `devtools::test()`: 498 passed, 0 failed;
+- `pkgdown::check_pkgdown()`: no problems found;
+- `pkgdown::build_site()`: site built successfully with `fixef()` and
+  `ranef()` reference pages;
+- `devtools::check()` with `_R_CHECK_SYSTEM_CLOCK_=FALSE`: 0 errors,
+  0 warnings, 0 notes;
+- `air format .` could not run because `air` is not installed on this machine.
+
+Known limitations:
+
+- `ranef()` intentionally returns the current structural `drmTMB` random-effect
+  block format rather than an `lme4`-style data frame;
+- `ranef(dpar = "phylo_mu")` is an exact block selector for the current
+  phylogenetic effect storage name, not yet a polished public alias system for
+  all future structured effects.
+
+Team learning:
+
+- familiar extractor names help users coming from mixed-model software, but the
+  documentation should be explicit when the returned object shape is still a
+  `drmTMB` structure.

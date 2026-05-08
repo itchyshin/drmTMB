@@ -159,6 +159,9 @@ test_that("Gaussian location models support random intercepts in mu", {
   expect_lt(max(abs(unname(coef(fit, "sigma")) - sim$beta_sigma)), 0.15)
   expect_lt(abs(unname(fit$sdpars$mu) - sim$sd_id), 0.25)
   expect_equal(length(fit$random_effects$mu$values), nlevels(sim$data$id))
+  expect_equal(ranef(fit), fit$random_effects)
+  expect_equal(ranef(fit, "mu"), fit$random_effects$mu)
+  expect_snapshot(ranef(fit, "tau"), error = TRUE)
   expect_named(summary(fit)$sdpars, "mu")
   expect_equal(
     length(fit$opt$par),
@@ -570,6 +573,7 @@ test_that("Gaussian mu and sigma random intercepts can coexist independently", {
   expect_named(fit$sdpars$sigma, "(1 | id)")
   expect_equal(length(fit$random_effects$mu$values), nlevels(dat$id))
   expect_equal(length(fit$random_effects$sigma$values), nlevels(dat$id))
+  expect_equal(ranef(fit, "sigma"), fit$random_effects$sigma)
   expect_true(all(stats::sigma(fit) > 0))
 })
 

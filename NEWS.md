@@ -8,7 +8,9 @@
 * Gaussian residual-scale random intercepts are implemented in the `sigma` formula, for example `bf(y ~ x1 + (1 | id), sigma ~ x1 + (1 | id))`. These model residual-scale heterogeneity and are distinct from random-effect scale formulae such as `sd(id) ~ x_group`.
 * Gaussian random-effect scale formulae are implemented for one or more distinct unlabelled `mu` random intercepts, for example `bf(y ~ x1 + (1 | id) + (1 | site), sigma ~ x2, sd(id) ~ x_group, sd(site) ~ site_type)`. Each `sd(group)` predictor must be constant within the named group after missing-row filtering.
 * Gaussian `mu` random-effect correlations from correlated blocks are exposed as `corpars$mu`, keeping group-level labels such as `p` separate from residual bivariate `rho12`.
+* `fixef()` now returns distributional fixed-effect coefficients and acts as a mixed-model-friendly alias for `coef()`.
 * `meta_known_V(V = V)` now fits Gaussian meta-analysis with diagonal or dense full known sampling covariance using `family = gaussian()`.
+* `ranef()` now returns fitted conditional random-effect blocks, including ordinary `mu`, residual-scale `sigma`, and current `phylo_mu` blocks when present.
 * `drmTMB()` now fits intercept-only phylogenetic random effects in the univariate Gaussian location formula with `phylo(1 | species, tree = tree)`, using an ultrametric branch-length tree and the sparse augmented A-inverse path.
 * Planned structured-effect markers outside that first phylogenetic path, such as `phylo(1 + x | species, tree = tree)`, phylogenetic terms in `sigma`, and `spatial(1 | site, coords = coords)`, are parsed by `drm_formula()` and rejected by `drmTMB()` with planned-feature errors until their TMB likelihoods and recovery tests are implemented.
 * `residuals()` now returns whitened Pearson residuals for bivariate Gaussian fits, and `vcov()` now uses coefficient-level row and column names.

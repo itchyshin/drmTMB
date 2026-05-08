@@ -19,6 +19,70 @@ print.drmTMB <- function(x, ...) {
   invisible(x)
 }
 
+#' Extract fixed-effect coefficients
+#'
+#' `fixef()` returns the fixed-effect coefficients for one distributional
+#' parameter, or all fixed-effect coefficient blocks when `dpar = NULL`.
+#' It is a mixed-model-friendly alias for `coef()`.
+#'
+#' @param object A `drmTMB` fit.
+#' @param dpar Optional distributional parameter name, such as `"mu"`,
+#'   `"sigma"`, `"rho12"`, or `"sd(id)"`.
+#' @param ... Reserved for future extractor options.
+#'
+#' @return A named numeric vector when `dpar` is supplied, otherwise a named
+#'   list of coefficient vectors.
+#' @export
+fixef <- function(object, ...) {
+  UseMethod("fixef")
+}
+
+#' @rdname fixef
+#' @export
+fixef.drmTMB <- function(object, dpar = NULL, ...) {
+  coef.drmTMB(object, dpar = dpar, ...)
+}
+
+#' Extract conditional random-effect estimates
+#'
+#' `ranef()` returns conditional random-effect estimates for one fitted random
+#' effect block, or all fitted random-effect blocks when `dpar = NULL`.
+#'
+#' The returned blocks use the internal `drmTMB` structure: `values` are on the
+#' model scale, `latent` are the corresponding standard-normal latent effects,
+#' and `terms` split model-scale values by random-effect term.
+#'
+#' @param object A `drmTMB` fit.
+#' @param dpar Optional random-effect block name, such as `"mu"`, `"sigma"`,
+#'   or `"phylo_mu"`.
+#' @param ... Reserved for future extractor options.
+#'
+#' @return A named list of random-effect blocks when `dpar = NULL`, otherwise
+#'   one random-effect block.
+#' @export
+ranef <- function(object, ...) {
+  UseMethod("ranef")
+}
+
+#' @rdname ranef
+#' @export
+ranef.drmTMB <- function(object, dpar = NULL, ...) {
+  blocks <- object$random_effects
+  if (is.null(dpar)) {
+    return(blocks)
+  }
+  if (!length(blocks)) {
+    cli::cli_abort("This {.cls drmTMB} fit does not contain random effects.")
+  }
+  if (!dpar %in% names(blocks)) {
+    cli::cli_abort(c(
+      "Unknown random-effect block {.val {dpar}}.",
+      i = "Available blocks: {.val {names(blocks)}}."
+    ))
+  }
+  blocks[[dpar]]
+}
+
 #' @export
 coef.drmTMB <- function(object, dpar = NULL, ...) {
   if (is.null(dpar)) {

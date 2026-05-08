@@ -91,6 +91,7 @@ test_that("Gaussian mu supports phylogenetic random intercepts", {
   expect_equal(fit$opt$convergence, 0)
   expect_named(fit$sdpars$mu, "phylo(1 | species)")
   expect_equal(length(fit$random_effects$phylo_mu$values), 2 * 16 - 2)
+  expect_equal(ranef(fit, "phylo_mu"), fit$random_effects$phylo_mu)
   expect_lt(max(abs(unname(coef(fit, "mu")) - unname(sim$beta_mu))), 0.35)
   expect_lt(abs(unname(fit$sdpars$mu) - sim$sd_phylo), 0.45)
   expect_lt(abs(stats::sigma(fit)[[1L]] - sim$sigma), 0.10)
