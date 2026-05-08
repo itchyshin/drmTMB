@@ -2132,3 +2132,40 @@ Team learning:
   surrounding prose;
 - Rose found that stale status wording now needs a standard close-out grep
   whenever an implemented feature crosses from roadmap to current support.
+
+## 2026-05-08: Dense Full-V Plus Phylogenetic Comparator
+
+Scope:
+
+- added a CRAN-safe likelihood comparator for Gaussian known-covariance
+  meta-analysis combined with the intercept-only phylogenetic `mu` effect;
+- the test fits
+  `bf(yi ~ x + meta_known_V(V = V) + phylo(1 | species, tree = tree), sigma ~ 1)`
+  with a dense full sampling covariance matrix;
+- the independent comparator checks the fitted objective against
+  `Sigma = V_known + sigma^2 I + sd_phylo^2 A_obs`.
+
+Commands run:
+
+- `Rscript -e "devtools::test(filter = 'phylo-gaussian')"`
+- `Rscript -e "devtools::test()"`
+- `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`
+
+Results:
+
+- targeted `phylo-gaussian` tests: 22 passed, 0 failed;
+- full `devtools::test()`: 487 passed, 0 failed;
+- `devtools::check()` with `_R_CHECK_SYSTEM_CLOCK_=FALSE`: 0 errors,
+  0 warnings, 0 notes.
+
+Known limitations:
+
+- the test uses a small dense covariance matrix to keep CRAN checks fast;
+- it validates the marginal objective at fitted values, not long-run
+  simulation recovery for large full-`V` phylogenetic meta-analyses.
+
+Team learning:
+
+- combining two already-tested covariance paths is still worth an explicit
+  comparator because row order, covariance addition, and Laplace integration
+  can drift independently.
