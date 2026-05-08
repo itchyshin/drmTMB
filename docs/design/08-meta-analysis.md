@@ -23,6 +23,13 @@ and, when needed, structured random effects. Sampling error uses `V`;
 phylogenetic dependence uses a tree-derived matrix `A`; spatial dependence uses
 a distance-derived matrix `M`.
 
+For bivariate and multivariate meta-analysis, Mavridis and Salanti (2013)
+emphasize that studies contribute effect-size vectors and a within-study
+variance-covariance matrix. The same distinction is central for `drmTMB`:
+known within-study sampling covariance belongs in `V`, whereas estimated
+residual or between-study covariance belongs in `sigma1`, `sigma2`, and
+`rho12`.
+
 ## Implemented Syntax
 
 ```r
@@ -94,6 +101,101 @@ For full `V`, the likelihood is:
 y ~ MVN(mu, V + diag(sigma_i^2))
 ```
 
+## Planned Bivariate Meta-Analysis
+
+Bivariate meta-analysis should use the same Gaussian bivariate family as other
+bivariate location-coscale models. It should not introduce a
+`meta_gaussian()` family.
+
+The key model separates known within-study sampling covariance from unknown
+residual heterogeneity covariance:
+
+```text
+y_i = [y1_i, y2_i]'
+mu_i = [mu1_i, mu2_i]'
+
+y_i | mu_i, S_i, Omega_i ~ MVN(mu_i, S_i + Omega_i)
+
+S_i =
+  [v1_i,   c12_i;
+   c12_i, v2_i]
+
+Omega_i =
+  [sigma1_i^2,                  rho12_i sigma1_i sigma2_i;
+   rho12_i sigma1_i sigma2_i,   sigma2_i^2]
+
+log(sigma1_i) = X_sigma1[i, ] beta_sigma1
+log(sigma2_i) = X_sigma2[i, ] beta_sigma2
+atanh(rho12_i) = X_rho12[i, ] beta_rho12
+```
+
+Here `S_i` is known and supplied through `meta_known_V(V = V)`. The fitted
+`rho12_i` is the residual or between-study correlation after the known
+within-study covariance has already been included. This prevents `rho12` from
+being asked to explain sampling correlation.
+
+The planned user syntax should allow:
+
+```r
+drmTMB(
+  formula = drm_formula(
+    mu1 = y1 ~ x1 + meta_known_V(V = V),
+    mu2 = y2 ~ x1 + x2,
+    sigma1 = ~ z,
+    sigma2 = ~ z,
+    rho12 = ~ z
+  ),
+  family = c(gaussian(), gaussian()),
+  data = dat
+)
+```
+
+The `meta_known_V(V = V)` marker is still a model-level known-covariance marker
+even if it appears in one location formula. The parser should reject duplicate
+markers across `mu1` and `mu2`.
+
+For direct matrix input, `V` should be a `2n` by `2n` matrix using row-paired
+stacking:
+
+```text
+y_stack = [y1_1, y2_1, y1_2, y2_2, ..., y1_n, y2_n]'
+```
+
+For the common study-level case, `V` will usually be block diagonal with one
+`2` by `2` block per study. Dense full matrices should remain possible for
+unusual dependence structures, but sparse block-diagonal storage should be the
+practical route for large meta-analyses.
+
+A helper should reduce user error:
+
+```r
+V <- meta_vcov_bivariate(v1 = v1, v2 = v2, cov12 = cov12)
+V <- meta_vcov_bivariate(v1 = v1, v2 = v2, cor12 = r12)
+```
+
+The helper should treat `v1` and `v2` as known sampling variances, not standard
+errors. If users have standard errors, they should square them before passing
+them or use an explicit helper argument that does the squaring visibly.
+
+If within-study correlations are unknown, `drmTMB` should not estimate them
+silently in the first implementation. Instead, documentation should encourage
+sensitivity analysis over plausible sampling correlations:
+
+```r
+fits <- meta_cor_sensitivity(
+  formula = ...,
+  family = c(gaussian(), gaussian()),
+  sampling_cor12 = c(0, 0.3, 0.6, 0.9),
+  data = dat
+)
+```
+
+Missing outcomes need a separate design decision. The safest first
+implementation is complete bivariate rows only. Later, missing outcomes can be
+handled by row/column dropping in the stacked vector or by the large-variance
+device used in some multivariate meta-analysis software, but that should not
+be implicit until tests show the behaviour is clear.
+
 ## Heterogeneous Heterogeneity
 
 Location-scale meta-analysis is a central use case:
@@ -139,6 +241,9 @@ components in known-covariance meta-analysis remain a separate validation task.
 - Row alignment matters: `V` must be subset in the same way as the response and
   model matrices after missing-data handling. For full matrices, rows and
   columns are subset together.
+- In bivariate meta-analysis, `V` is known sampling covariance and `rho12` is
+  estimated residual or between-study correlation. These quantities should not
+  be conflated.
 - The implemented paths have simulation recovery, missing-row, and
   likelihood-agreement tests with known `V`.
 - Comparator checks should use `metafor` for established meta-analysis
@@ -152,7 +257,9 @@ components in known-covariance meta-analysis remain a separate validation task.
 3. Random intercept meta-regression.
 4. Intercept-only phylogenetic `mu` meta-regression.
 5. Multiple random-effect scale components.
-6. Bivariate meta-analysis with known within-study covariance.
+6. Bivariate meta-analysis with independent known sampling variances.
+7. Bivariate meta-analysis with known within-study covariance.
+8. Sensitivity helpers for unknown within-study correlations.
 
 ## Phylogenetic And Spatial Meta-Analysis
 

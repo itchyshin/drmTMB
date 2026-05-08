@@ -52,6 +52,9 @@ Implemented comparator smoke tests:
 Planned comparator smoke tests:
 
 - dense known sampling covariance against `metafor::rma.mv(...)`;
+- bivariate meta-analysis with known within-study covariance against
+  `metafor::rma.mv(...)` or another established multivariate meta-analysis
+  implementation for fixed-effect and simple random-effect cases;
 - dense known sampling covariance against `glmmTMB::equalto()` when the
   likelihood and residual heterogeneity parameterization overlap cleanly.
 
@@ -63,6 +66,17 @@ Tier 2 is simulation recovery. This is the primary truth source:
 - check parameter recovery on the link and response scales;
 - check edge cases such as near-zero scale components, high or negative
   `rho12`, sparse grouping, uneven sampling variances, and missing rows.
+
+Bivariate meta-analysis tests must separate two correlations:
+
+```text
+S_i[1,2] = known within-study sampling covariance
+Omega_i[1,2] = rho12_i sigma1_i sigma2_i
+```
+
+Recovery tests should show that fitted `rho12` targets residual or
+between-study correlation after the known sampling covariance has been added,
+not the sampling correlation supplied in `V`.
 
 Residual-scale random intercept tests stay separate from random-effect scale
 tests. `sigma ~ z + (1 | id)` checks group-to-group variation in residual

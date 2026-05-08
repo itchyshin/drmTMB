@@ -53,7 +53,12 @@ Important extensions:
 
 - location-scale meta-regression for heterogeneous heterogeneity;
 - robust Student-t residuals after Gaussian meta-analysis is stable;
-- bivariate meta-analysis with known within-study covariance;
+- bivariate meta-analysis with known within-study covariance, where
+  `meta_known_V(V = V)` supplies sampling covariance and fitted `rho12`
+  remains residual or between-study correlation;
+- helper functions for constructing bivariate block-diagonal sampling
+  covariance matrices from `v1`, `v2`, and either `cov12` or `cor12`;
+- sensitivity workflows for unknown within-study correlations;
 - multiple unknown variance components when study, species, lab, or effect-size
   type require them.
 

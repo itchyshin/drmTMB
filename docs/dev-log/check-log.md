@@ -2815,3 +2815,88 @@ Team learning:
   interpretation without overloading the main getting-started article;
 - docs-heavy tasks still need generated-site checks because pkgdown navigation
   is part of the user-facing behaviour.
+
+## 2026-05-08: Bivariate Meta-Analysis Known-Covariance Design
+
+Scope:
+
+- recorded the planned bivariate meta-analysis likelihood that separates known
+  within-study sampling covariance from unknown residual or between-study
+  covariance;
+- clarified that `meta_known_V(V = V)` supplies `S_i` or stacked `V`, while
+  fitted `rho12` remains the residual or heterogeneity correlation;
+- added row-paired stacking order for a `2n` by `2n` known covariance matrix;
+- added planned helper names for constructing bivariate block-diagonal
+  sampling covariance matrices from `v1`, `v2`, and either `cov12` or `cor12`;
+- added a testing requirement that recovery tests must distinguish sampling
+  correlation in `V` from fitted residual `rho12`;
+- added Mavridis and Salanti (2013) to `REFERENCES.bib`.
+
+Commands run:
+
+- `rg -n "meta_known_V|known V|sampling covariance|bivariate|rho12" R docs/design vignettes tests README.md NEWS.md`
+- `pdfinfo '/Users/z3437171/Downloads/mavridis-salanti-2012-a-practical-introduction-to-multivariate-meta-analysis.pdf'`
+- `pdftotext '/Users/z3437171/Downloads/mavridis-salanti-2012-a-practical-introduction-to-multivariate-meta-analysis.pdf' - | rg -n -i "within-study|within study|correlation|covariance|bivariate|multivariate|known|variance" -C 2`
+- `rg -n "Mavridis|Salanti|multivariate meta-analysis|Riley|Jackson" REFERENCES.bib docs/design/11-reference-programme.md vignettes docs`
+- `rg -n "Planned Bivariate Meta|Mavridis|row-paired|meta_vcov_bivariate|S_i|Omega_i|within-study" docs/design REFERENCES.bib`
+- `git diff --check`
+- `Rscript -e "devtools::test()"`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `rg -n 'meta_gaussian\\(\\)|tau ~|rho ~|Planned Bivariate Meta|row-paired|meta_vcov_bivariate|sampling correlation|residual' docs/design docs/dev-log REFERENCES.bib`
+
+Results:
+
+- confirmed that current bivariate Gaussian code still rejects
+  `meta_known_V()`, so this task was design-only;
+- confirmed from the Mavridis and Salanti PDF that multivariate meta-analysis
+  needs effect-size vectors plus their within-study variance-covariance
+  matrices;
+- design docs now state that known sampling covariance and fitted residual
+  `rho12` are different quantities;
+- roadmap and testing strategy now include bivariate known-covariance
+  meta-analysis as a distinct future implementation target.
+- `devtools::test()`: 572 passed, 0 failed;
+- `pkgdown::check_pkgdown()`: no problems found;
+- `git diff --check`: clean;
+- stale-wording scan found the new design targets plus older intentional
+  guardrails for `meta_gaussian()`, `tau ~`, and `rho ~`.
+
+Tests of the tests:
+
+- no unit tests were added because no implementation changed;
+- the testing strategy now specifies the future simulation target: data
+  generated with known sampling covariance in `V` and separate residual
+  `rho12` should recover the residual correlation, not the sampling
+  correlation.
+
+Consistency audit:
+
+- no `meta_gaussian()` family or `tau ~` grammar was introduced;
+- `sigma1`, `sigma2`, and `rho12` remain the names for unknown bivariate
+  residual or heterogeneity components;
+- `V` remains the known sampling covariance input;
+- planned syntax uses `family = c(gaussian(), gaussian())`, consistent with
+  the current family-composition direction.
+
+What did not go smoothly:
+
+- the natural bivariate syntax still has an awkward design point: the
+  `meta_known_V(V = V)` marker is model-level, but current grammar attaches it
+  inside a location formula. The design records that duplicate markers should
+  be rejected, and this may need a cleaner parser representation later.
+
+Known limitations:
+
+- no bivariate known-covariance likelihood has been implemented yet;
+- missing outcome handling is deliberately deferred;
+- unknown within-study correlations should be handled by sensitivity analysis
+  before any automatic estimation is attempted.
+
+Team learning:
+
+- Noether's rule is useful here: write the covariance equation before touching
+  the parser;
+- Fisher's rule is to test sampling correlation and residual correlation as
+  separate recovery targets;
+- Boole should revisit whether model-level formula markers need a cleaner
+  grammar before bivariate meta-analysis is implemented.

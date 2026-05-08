@@ -249,6 +249,51 @@ Implementation notes:
 In meta-analysis prose, `sigma` is the extra heterogeneity SD traditionally
 called `tau`. The public API still uses `sigma` for consistency.
 
+## Planned Bivariate Meta-Analytic Gaussian Regression
+
+Bivariate meta-analysis must add known sampling covariance to the bivariate
+Gaussian location-coscale likelihood. For observation or study `i`:
+
+```text
+y_i = [y1_i, y2_i]'
+mu_i = [mu1_i, mu2_i]'
+
+y_i | mu_i, S_i, Omega_i ~ MVN(mu_i, S_i + Omega_i)
+
+S_i =
+  [v1_i,   c12_i;
+   c12_i, v2_i]
+
+Omega_i =
+  [sigma1_i^2,                  rho12_i sigma1_i sigma2_i;
+   rho12_i sigma1_i sigma2_i,   sigma2_i^2]
+```
+
+`S_i` is known within-study sampling covariance supplied by
+`meta_known_V(V = V)`. `Omega_i` is unknown residual or between-study
+heterogeneity covariance. The fitted `rho12_i` therefore remains the residual
+or heterogeneity correlation; it is not the known within-study sampling
+correlation.
+
+Equivalently, with row-paired stacking:
+
+```text
+y_stack = [y1_1, y2_1, y1_2, y2_2, ..., y1_n, y2_n]'
+y_stack ~ MVN(mu_stack, V_stack + Omega_stack)
+```
+
+where `V_stack` is the supplied known sampling covariance and `Omega_stack`
+contains the fitted `sigma1`, `sigma2`, and `rho12` blocks.
+
+The first implementation should:
+
+- require complete bivariate rows;
+- accept a `2n` by `2n` dense or block-diagonal `V` in row-paired order;
+- reject duplicate `meta_known_V()` markers across `mu1` and `mu2`;
+- provide a helper to build the common block-diagonal `V` from `v1`, `v2`, and
+  either `cov12` or `cor12`;
+- document sensitivity analysis when within-study correlations are unknown.
+
 ## Implemented Bivariate Gaussian Location-Coscale
 
 Bivariate Gaussian location-coscale:
