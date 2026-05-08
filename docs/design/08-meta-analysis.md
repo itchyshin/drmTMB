@@ -166,7 +166,8 @@ For the common study-level case, `V` will usually be block diagonal with one
 unusual dependence structures, but sparse block-diagonal storage should be the
 practical route for large meta-analyses.
 
-A helper should reduce user error:
+The user-facing helper `meta_vcov_bivariate()` reduces user error when
+constructing the common block-diagonal, row-paired matrix:
 
 ```r
 V <- meta_vcov_bivariate(v1 = v1, v2 = v2, cov12 = cov12)
@@ -176,6 +177,9 @@ V <- meta_vcov_bivariate(v1 = v1, v2 = v2, cor12 = r12)
 The helper should treat `v1` and `v2` as known sampling variances, not standard
 errors. If users have standard errors, they should square them before passing
 them or use an explicit helper argument that does the squaring visibly.
+
+The helper is implemented as a matrix constructor; the bivariate fitting path
+that adds this known `V` to `Omega_i` remains the next likelihood task.
 
 If within-study correlations are unknown, `drmTMB` should not estimate them
 silently in the first implementation. Instead, documentation should encourage

@@ -68,6 +68,23 @@ fit <- drmTMB(
 )
 ```
 
+For planned bivariate meta-analysis, the known sampling covariance should
+include the within-study covariance between the two effect-size estimates when
+it is available. `meta_vcov_bivariate()` builds the common row-paired matrix:
+
+```r
+V <- meta_vcov_bivariate(
+  v1 = c(0.04, 0.03),
+  v2 = c(0.05, 0.02),
+  cor12 = c(0.4, 0.2)
+)
+```
+
+The stacking is `[y1_1, y2_1, y1_2, y2_2, ...]`. This helper is implemented
+now; bivariate fitting with known sampling covariance is the next likelihood
+task, where the known sampling covariance will be added to the fitted residual
+or between-study covariance.
+
 ## Implementation caveats
 
 - Dense full covariance is useful for correlated effect sizes and can also

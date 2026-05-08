@@ -2,6 +2,42 @@
 
 Record meaningful development checks here.
 
+## 2026-05-08: Bivariate Meta-Analysis Covariance Helper
+
+Scope:
+
+- implemented `meta_vcov_bivariate()` as a user-facing constructor for
+  row-paired dense known sampling covariance matrices;
+- added tests for covariance construction from `cov12`, construction from
+  `cor12`, independent-sampling defaults, and malformed input rejection;
+- updated meta-analysis documentation to distinguish the implemented helper
+  from the still-planned bivariate known-`V` likelihood.
+
+Commands run:
+
+- `Rscript -e "devtools::load_all(); V <- meta_vcov_bivariate(c(0.04, 0.03), c(0.05, 0.02), cor12 = c(0.4, 0.2)); stopifnot(all(dim(V) == c(4, 4))); print(V)"`
+- `Rscript -e "testthat::test_file('tests/testthat/test-meta-vcov.R')"` (failed because this direct call did not load the package namespace)
+- `Rscript -e "devtools::test(filter = 'meta-vcov')"`
+- `Rscript -e "devtools::document()"`
+- `Rscript -e "devtools::test()"`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `Rscript -e "pkgdown::build_site()"`
+- `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`
+- `git diff --check`
+- stale-wording and generated-site scans for `meta_vcov_bivariate()`, planned
+  bivariate known-`V` wording, `meta_gaussian()`, `tau ~`, and malformed
+  `meta_known_V()` markers.
+
+Results:
+
+- targeted `devtools::test(filter = 'meta-vcov')`: 17 passed, 0 failed;
+- full `devtools::test()`: 589 passed, 0 failed;
+- `pkgdown::check_pkgdown()`: no problems found;
+- `pkgdown::build_site()`: rebuilt the helper reference page and meta-analysis
+  article;
+- `devtools::check(...)`: 0 errors, 0 warnings, 0 notes;
+- `git diff --check`: clean.
+
 ## 2026-05-06: Initial Scaffold
 
 Scope:

@@ -57,6 +57,7 @@ reference:
       - drm_formula
       - bf
       - meta_known_V
+      - meta_vcov_bivariate
       - biv_gaussian
   - title: Structured-effect markers
     desc: Phylogenetic and planned spatial structured covariance terms.
