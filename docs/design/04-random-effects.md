@@ -13,8 +13,10 @@ the grammar must support them from the start.
    for univariate Gaussian `mu`, with optional covariance-block labels.
 5. Random intercepts in residual scale. Implemented for univariate Gaussian
    `sigma`.
-6. Random-effect scale formulae such as `sd(id) ~ x`.
-7. Correlations among location and scale random effects when identifiable.
+6. Random-effect scale formulae such as `sd(id) ~ x_group`. Implemented first
+   for one unlabelled univariate Gaussian `mu` random intercept.
+7. Multiple random-effect scale components, slope-specific scales, and
+   correlations among location and scale random effects when identifiable.
 
 ## Initial Syntax
 
@@ -111,6 +113,29 @@ v_id ~ Normal(0, 1)
 It models residual-scale heterogeneity. It does not model the standard
 deviation of the `mu` random intercept.
 
+Random-effect scale formulae are implemented for the first simple case:
+
+```r
+bf(
+  y ~ x1 + (1 | id),
+  sigma ~ x2,
+  sd(id) ~ x_group
+)
+```
+
+This means:
+
+```text
+mu_i = X_mu[i, ] beta_mu + b_{id[i]}
+b_j = sd_mu_id,j u_j
+u_j ~ Normal(0, 1)
+log(sd_mu_id,j) = W_id[j, ] alpha_id
+```
+
+The `sd(id)` formula targets the standard deviation of the `mu` random
+intercept. Its predictors must be group-level, constant within `id` after
+missing-row filtering.
+
 Interaction slopes are not parsed as formula expressions yet. The temporary
 safe workflow is to create the interaction column before fitting:
 
@@ -135,6 +160,8 @@ Current implementation details:
   is reserved for later;
 - residual `sigma` random effects are limited to unlabelled random intercepts
   such as `(1 | id)`;
+- random-effect scale formulae are limited to one unlabelled Gaussian `mu`
+  random intercept, such as `sd(id) ~ x_group`;
 - random effects are integrated with TMB's Laplace approximation;
 - the TMB parameterization is non-centered; independent terms use
   `b_{term,group} = sd_term * u_{term,group}`, while correlated two-coefficient
@@ -172,7 +199,8 @@ four coefficients and therefore ten covariance parameters. These models should
 come with simulation recovery tests and warnings when the number of groups or
 within-group replication is weak.
 
-Double-hierarchical syntax should be explicit:
+The first double-hierarchical scale syntax is explicit and implemented for one
+unlabelled random-intercept target:
 
 ```r
 bf(

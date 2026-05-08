@@ -9,7 +9,7 @@ print.drmTMB <- function(x, ...) {
   cli::cli_text("<drmTMB {label} fit>")
   cli::cli_text("  observations: {x$nobs}")
   if (has_mu_random_effects(x)) {
-    cli::cli_text("  mu random-effect terms: {length(x$sdpars$mu)}")
+    cli::cli_text("  mu random-effect terms: {length(x$model$random$mu$labels)}")
   }
   if (has_sigma_random_effects(x)) {
     cli::cli_text("  sigma random-effect terms: {length(x$sdpars$sigma)}")
@@ -56,6 +56,9 @@ predict.drmTMB <- function(object, newdata = NULL, dpar = NULL,
   }
   dpar <- match.arg(dpar, names(object$coefficients))
   type <- match.arg(type)
+  if (is_random_scale_dpar(object, dpar)) {
+    return(predict_random_scale_dpar(object, dpar, newdata = newdata, type = type))
+  }
   X <- drm_prediction_matrix(object, newdata, dpar)
   eta <- as.vector(X %*% object$coefficients[[dpar]])
   if (is.null(newdata) && dpar == "mu" && has_mu_random_effects(object)) {
@@ -262,6 +265,37 @@ has_mu_random_intercepts <- has_mu_random_effects
 has_sigma_random_effects <- function(object) {
   identical(object$model$model_type, "gaussian") &&
     length(object$random_effects$sigma$values) > 0L
+}
+
+is_random_scale_dpar <- function(object, dpar) {
+  identical(object$model$model_type, "gaussian") &&
+    object$model$random_scale$mu$n_models > 0L &&
+    identical(dpar, object$model$random_scale$mu$dpar)
+}
+
+predict_random_scale_dpar <- function(object, dpar, newdata = NULL,
+                                      type = c("response", "link")) {
+  type <- match.arg(type)
+  sd_mu <- object$model$random_scale$mu
+  if (!identical(dpar, sd_mu$dpar)) {
+    cli::cli_abort("Unknown random-effect scale parameter {.val {dpar}}.")
+  }
+  if (is.null(newdata)) {
+    X <- sd_mu$X
+    names_out <- sd_mu$group_levels
+  } else {
+    if (!is.data.frame(newdata)) {
+      cli::cli_abort("{.arg newdata} must be a data frame.")
+    }
+    X <- stats::model.matrix(sd_mu$terms, data = newdata)
+    names_out <- rownames(newdata)
+  }
+  eta <- as.vector(X %*% object$coefficients[[dpar]])
+  if (type == "link") {
+    stats::setNames(eta, names_out)
+  } else {
+    stats::setNames(exp(eta), names_out)
+  }
 }
 
 mu_random_effect_contribution <- function(object) {

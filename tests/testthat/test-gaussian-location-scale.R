@@ -199,6 +199,6 @@ test_that("Phase 1 rejects unsupported model syntax clearly", {
   )
   expect_error(
     drmTMB(bf(y ~ x, sd(id) ~ 1), family = gaussian(), data = dat),
-    "only support"
+    "No random-effect term matches"
   )
 })

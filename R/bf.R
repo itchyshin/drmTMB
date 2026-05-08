@@ -13,6 +13,7 @@
 #'
 #' @examples
 #' bf(y ~ x, sigma ~ z)
+#' bf(y ~ x + (1 | id), sigma ~ z, sd(id) ~ x_group)
 #' bf(
 #'   mu1 = y1 ~ x1 + x2,
 #'   mu2 = y2 ~ x1,

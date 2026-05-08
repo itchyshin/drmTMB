@@ -141,9 +141,41 @@ drmTMB(
 )
 ```
 
-This is residual-scale heterogeneity. It should not be confused with future
-syntax such as `sd(id) ~ x2`, which will model the standard deviation of a
-group-level random effect in the location model.
+This is residual-scale heterogeneity. It should not be confused with
+`sd(id) ~ x2`, which models the standard deviation of a group-level random
+effect in the location model.
+
+## Random-Effect Scale Formula
+
+For the first implemented double-hierarchical scale model, observation `i`
+belongs to group `g[i]`:
+
+```text
+y_i | mu_i, sigma_i, b_g[i] ~ Normal(mu_i, sigma_i^2)
+mu_i = X_mu[i, ] beta_mu + b_g[i]
+log(sigma_i) = X_sigma[i, ] beta_sigma
+
+b_g = sd_mu_group,g u_g
+u_g ~ Normal(0, 1)
+log(sd_mu_group,g) = W_group[g, ] alpha_group
+sd_mu_group,g = exp(W_group[g, ] alpha_group)
+```
+
+Matching R syntax:
+
+```r
+drmTMB(
+  bf(y ~ x1 + (1 | id), sigma ~ x2, sd(id) ~ x_group),
+  family = gaussian(),
+  data = dat
+)
+```
+
+The `sd(id)` formula creates a group-level design matrix `W_id`, one row per
+retained `id` level. The first implementation accepts this formula only when
+`id` targets exactly one unlabelled Gaussian `mu` random intercept. If a
+predictor on the right-hand side varies within `id` after missing-row
+filtering, the model is rejected.
 
 For an independent random intercept and random slope in the current
 implementation:
@@ -244,7 +276,10 @@ Current R-side objects:
   modes when the `sigma` formula contains `(1 | group)`.
 - `model$random$sigma$value` is currently `1` for implemented residual-scale
   random intercepts.
-- `sdpars` reports group-level standard deviations.
+- `model$random_scale$mu$X` maps to the group-level `W_group` matrix for
+  implemented `sd(group)` formulas.
+- `sdpars` reports group-level standard deviations. For `sd(id) ~ x_group`,
+  `sdpars$sd(id)` reports the fitted group-specific random-intercept SDs.
 - `predict(fit, dpar = "sigma")` returns residual `sigma_i`.
 
 Current TMB-side objects:
@@ -252,17 +287,18 @@ Current TMB-side objects:
 - `beta_mu` estimates `beta_mu`.
 - `beta_sigma` estimates `beta_sigma`.
 - `log_sd_mu` estimates `log(sd_mu_group)` for each simple random-effect term.
+  If that term is targeted by `sd(id) ~ x_group`, its scalar `log_sd_mu` entry
+  is fixed and replaced by `beta_sd_mu`.
+- `beta_sd_mu` estimates `alpha_group` for implemented `sd(group)` formulas.
 - `u_mu` is integrated by the Laplace approximation.
 - `log_sd_sigma` estimates `log(sd_sigma_group)` for each implemented
   residual-scale random-intercept term.
 - `u_sigma` is integrated by the Laplace approximation and added to
   `log(sigma_i)`.
 
-Planned random-effect scale objects for syntax such as `sd(id) ~ x_group`
-should be separate from these residual-scale objects. In that future model,
-the `sd(id)` formula will create a group-level design matrix `W_id` and
-coefficients such as `alpha_id`, while the standardized `u_mu` values remain
-the latent random effects in the location model.
+Random-effect scale objects for syntax such as `sd(id) ~ x_group` are separate
+from residual-scale objects. The standardized `u_mu` values remain the latent
+random effects in the location model.
 
 ## Test Obligations
 

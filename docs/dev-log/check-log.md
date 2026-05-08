@@ -1268,3 +1268,104 @@ Team learning:
 - Rose's systems audit caught a real process weakness in stale-wording scans;
 - Ada should run the broader status-pattern scan before writing the
   consistency-audit claim, not after.
+
+## 2026-05-08: Gaussian Random-Effect Scale MVP
+
+Scope:
+
+- implemented the first `sd(group) ~ x_group` random-effect scale model for
+  univariate Gaussian fits;
+- the implemented target is exactly one unlabelled `mu` random intercept, for
+  example `bf(y ~ x + (1 | id), sigma ~ z, sd(id) ~ w)`;
+- added group-level design matrix construction for `sd(id)`, with predictors
+  checked for constancy within group after missing-row filtering;
+- added TMB likelihood support through `beta_sd_mu`, `X_sd_mu`, and
+  group-specific `sd_mu_group = exp(W alpha)` while keeping standardized
+  `u_mu` as the Laplace-integrated random effect;
+- mapped out the replaced scalar `log_sd_mu` entry when `sd(id)` is active;
+- updated coefficient, prediction, random-effect, and `sdpars` extraction so
+  `coef(fit, "sd(id)")`, `predict(fit, dpar = "sd(id)")`, and
+  `sdpars$sd(id)` agree with the fitted model;
+- documented the symbolic model and R syntax in the likelihood, formula,
+  random-effect, Gaussian math, testing, roadmap, README, NEWS, and vignette
+  files;
+- kept the correlation roadmap separate from this feature: residual `rho12` is
+  still distinct from phylogenetic, non-phylogenetic species, spatial,
+  study/site, and other group-level covariance correlations.
+
+Commands run:
+
+- `gh run list --branch main --limit 6`
+- `Rscript -e "devtools::test(filter = 'gaussian-random-effect-scale')"`
+- `Rscript -e "devtools::test(filter = 'gaussian-random-effect-scale|comparators')"`
+- manual smoke fit for `bf(y ~ x + (1 | id), sigma ~ z, sd(id) ~ w)`
+- manual mapping smoke fit for `bf(y ~ x + (1 + x | site) + (1 | id), sigma ~ z, sd(id) ~ w)`
+- `Rscript -e "devtools::document()"`
+- `Rscript -e "devtools::test()"`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `Rscript -e "pkgdown::build_site()"`
+- `Rscript -e "devtools::check(env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'), manual = FALSE)"`
+- stale-wording `rg` scans over README, NEWS, ROADMAP, docs, vignettes, R, man,
+  tests, and generated pkgdown output for old `sd(id)` planned/future wording.
+
+Results:
+
+- prior remote GitHub Actions for commit `bd91b61` completed successfully for
+  both R-CMD-check and pkgdown;
+- targeted `gaussian-random-effect-scale|comparators` tests: 78 passed, 0
+  failed, 0 warnings, 0 skipped;
+- full `devtools::test()`: 378 passed, 0 failed, 0 warnings, 0 skipped;
+- `pkgdown::check_pkgdown()`: no problems found;
+- `pkgdown::build_site()`: completed successfully and rebuilt the reference,
+  README, NEWS, and tutorials;
+- the first `devtools::check()` pass had one NOTE from an unqualified
+  `setNames()` call; this was fixed by using `stats::setNames()`;
+- rerun `devtools::check(env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'), manual = FALSE)`:
+  0 errors, 0 warnings, 0 notes.
+
+Tests of the tests:
+
+- simulation recovery checks estimate `mu`, `sigma`, and `sd(id)` coefficients
+  from generated data;
+- zero-slope tests check reduction toward a constant random-intercept scale;
+- factor-RHS and missingness tests check model-matrix and retained-row handling;
+- malformed-input tests cover absent targets, wrong groups, ambiguous slopes,
+  labelled targets, duplicate `sd()` formulae, within-group-varying predictors,
+  bivariate rejection, and unsupported non-Gaussian family rejection;
+- comparator tests check the `sd(id) ~ 1` overlap against
+  `lme4::lmer(..., REML = FALSE)`;
+- a regression test checks that `sd(id)` still targets the correct expanded
+  coefficient when a preceding correlated random-effect block is present;
+- summary/vcov tests check finite aligned coefficient SEs for `sd(id)`.
+
+Review findings addressed:
+
+- Gauss/Fisher found no P0/P1 likelihood issues and requested a summary/vcov
+  alignment test for `sd(id)`; added.
+- Rose found a blocking expanded-coefficient indexing bug when another
+  multi-coefficient `mu` block preceded the `sd(id)` target; fixed by carrying
+  `target_coef` separately from the original random-term index and adding a
+  regression test.
+- Rose also found stale vignette and known-limitation wording; updated.
+
+Known limitations:
+
+- only one `sd(group)` formula is supported;
+- the target must be one unlabelled univariate Gaussian `mu` random intercept;
+- group-level predictors in `sd(group)` must be constant within the group after
+  missing-row filtering;
+- slope-specific, labelled-block, residual-scale, bivariate, phylogenetic,
+  spatial, and non-Gaussian random-effect scale models remain future work;
+- `sdpars$sd(id)` names include both the dpar and group level, while
+  `predict(fit, dpar = "sd(id)")` names values by group level only. This is
+  not blocking but should be revisited when extractor APIs mature.
+
+Team learning:
+
+- the code needed the same distinction as the mathematical notation: original
+  random-effect term index and expanded covariance coefficient index are not
+  the same object;
+- Rose's systems audit caught both a numerical wiring risk and stale wording,
+  so the after-task-audit skill is paying for itself;
+- future likelihood changes should include an explicit "preceding block" test
+  whenever parser terms are expanded into internal coefficient blocks.

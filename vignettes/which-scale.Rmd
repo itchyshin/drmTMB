@@ -103,11 +103,11 @@ fixed effects in the `sigma` formula have been accounted for. It is
 group-to-group variation in within-population variability.
 
 It is not the same as asking whether the among-population SD in mean growth
-depends on a predictor. That is the future `sd(population) ~ x` model.
+depends on a predictor. That is the `sd(population) ~ x_group` model.
 
 ## Random-effect scale formula
 
-Planned, not yet implemented:
+Implemented for one unlabelled Gaussian `mu` random intercept:
 
 ```r
 drmTMB(
@@ -134,7 +134,7 @@ log(sd_mu_population,j) = alpha_0 + alpha_1 habitat_j
 ```
 
 The right-hand side of `sd(population) ~ habitat` is group-level. In the first
-implementation, `habitat_j` should be constant within each population after
+implementation, `habitat_j` must be constant within each population after
 missing rows are removed.
 
 This model asks whether among-population differences in expected growth are
@@ -218,11 +218,14 @@ Current implemented Gaussian syntax covers:
 - `y ~ x + (1 + x | id)` and `(1 + x | p | id)` for one-slope correlated
   `mu` blocks;
 - `sigma ~ x + (1 | id)` for residual-scale random intercepts;
+- `sd(id) ~ x_group` for the standard deviation of one unlabelled Gaussian
+  `mu` random intercept;
 - bivariate fixed-effect `rho12 ~ x` in `biv_gaussian()`.
 
 Current planned but not implemented syntax includes:
 
-- `sd(id) ~ x_group`;
+- multiple `sd(group) ~ x_group` targets;
+- slope-specific and labelled-block random-effect scale models;
 - residual-scale random slopes in `sigma`;
 - bivariate random effects;
 - cross-formula covariance sharing from repeated labels such as

@@ -19,8 +19,8 @@ distributional regression models using TMB.
   effects, `mu` random intercepts, simple numeric `mu` random slopes, and
   residual-scale random intercepts in `sigma`.
 - Supported syntax: `bf(y ~ x1 + (1 | id) + (0 + x1 | id), sigma ~ x1)`.
-- Keep parser support for future `sd(group) ~`, `meta_known_V(V = V)`,
-  `phylo()`, and `spatial()` terms from the start.
+- Keep parser support for `sd(group) ~`, `meta_known_V(V = V)`, `phylo()`,
+  and `spatial()` terms from the start.
 - Prediction for `mu` and `sigma` is implemented.
 - Simulation and parameter-recovery tests are implemented for the first
   Gaussian case.
@@ -57,14 +57,14 @@ distributional regression models using TMB.
   `(0 + x | id)`, and ordinary correlated intercept-slope blocks written as
   `(1 + x | id)` or `(1 + x | p | id)` are implemented for the univariate
   Gaussian location formula. Random intercepts in the residual `sigma` formula
-  are also implemented.
+  are also implemented. The first random-effect scale formula is implemented
+  for one unlabelled Gaussian `mu` random intercept: `sd(id) ~ x_group`.
 - Add cross-formula or cross-parameter covariance sharing for labelled blocks,
   following `docs/design/17-correlated-random-effect-blocks.md`.
-- Add random-effect scale formulae such as `sd(id) ~ x`.
 - Use `docs/design/18-random-effect-scale-models.md` as the design contract:
-  the first implementation should be univariate Gaussian `sd(id) ~ x_group`
-  for exactly one `mu` random intercept, with group-level predictors and
-  simulation recovery tests.
+  the implemented MVP is univariate Gaussian `sd(id) ~ x_group` for exactly
+  one `mu` random intercept, with group-level predictors, simulation recovery
+  tests, and an `lme4` overlap test.
 - Support multiple random-effect scale components, such as `sd(study) ~ x` and
   `sd(species) ~ 1`.
 - Respect labelled correlated group syntax such as `(1 + x | p | id)` when

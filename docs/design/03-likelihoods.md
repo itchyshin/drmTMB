@@ -15,8 +15,9 @@ Likelihoods are implemented in TMB templates and called from R wrappers.
 Gaussian location-scale is implemented for fixed-effect models and for
 univariate Gaussian location random intercepts, labelled random intercepts,
 independent numeric random slopes, and labelled or unlabelled ordinary
-correlated random intercept-slope blocks, plus residual-scale random
-intercepts in the univariate Gaussian `sigma` formula:
+correlated random intercept-slope blocks, residual-scale random intercepts in
+the univariate Gaussian `sigma` formula, and a first random-effect scale model
+for one `mu` random intercept:
 
 ```text
 y_i | mu_i, sigma_i ~ Normal(mu_i, sigma_i^2)
@@ -121,8 +122,37 @@ drmTMB(
 )
 ```
 
-This is residual-scale heterogeneity. It is distinct from future
-random-effect scale models such as `sd(id) ~ x`.
+This is residual-scale heterogeneity. It is distinct from random-effect scale
+models such as `sd(id) ~ x_group`.
+
+The implemented random-effect scale MVP targets exactly one unlabelled
+univariate Gaussian `mu` random intercept:
+
+```text
+y_ij | mu_ij, sigma_ij, b_j ~ Normal(mu_ij, sigma_ij^2)
+mu_ij = X_mu[ij, ] beta_mu + b_j
+log(sigma_ij) = X_sigma[ij, ] beta_sigma
+
+b_j = sd_mu_id,j u_j
+u_j ~ Normal(0, 1)
+log(sd_mu_id,j) = W_id[j, ] alpha_id
+sd_mu_id,j = exp(W_id[j, ] alpha_id)
+```
+
+Matching R syntax:
+
+```r
+drmTMB(
+  bf(y ~ x1 + (1 | id), sigma ~ x2, sd(id) ~ x_group),
+  family = gaussian(),
+  data = dat
+)
+```
+
+The right-hand side of `sd(id) ~ x_group` is evaluated once per `id` level.
+Predictors must be constant within `id` after missing-row filtering. This
+models among-group variation in the location random intercept; it is not a
+residual-scale model and it is not a second `sigma` formula.
 
 Residuals are not part of the formula grammar. They are computed downstream
 from the fitted likelihood.
@@ -136,6 +166,8 @@ Implementation notes:
   `tests/testthat/test-gaussian-location-scale.R`.
 - Random-effect recovery tests live in
   `tests/testthat/test-gaussian-random-intercepts.R`.
+- Random-effect scale recovery tests live in
+  `tests/testthat/test-gaussian-random-effect-scale.R`.
 - Comparator tests against `lme4` for overlapping Gaussian ML random-effect
   models live in `tests/testthat/test-comparators.R`.
 - The univariate likelihood supports optional known sampling covariance via

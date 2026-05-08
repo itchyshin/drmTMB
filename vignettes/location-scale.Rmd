@@ -58,8 +58,8 @@ drmTMB(
 ```
 
 The companion article "Which scale are you modelling?" gives a side-by-side
-guide to `sigma ~ x`, `sigma ~ x + (1 | id)`, future `sd(id) ~ x`, random-slope
-correlations, and bivariate residual `rho12`.
+guide to `sigma ~ x`, `sigma ~ x + (1 | id)`, `sd(id) ~ x_group`,
+random-slope correlations, and bivariate residual `rho12`.
 
 ## Model equations and matching R syntax
 
@@ -251,8 +251,9 @@ residual `sigma`. The others should be named by what they scale:
   `(0 + x1 | id)`;
 - ID random intercept-slope correlation in `mu`: `corpars$mu`, from a
   correlated block such as `(1 + x1 | id)`;
-- future random-effect scale model: `sd(site)_i`, from syntax such as
-  `sd(site) ~ x1`.
+- random-effect scale model: `sd(site)_i`, from syntax such as
+  `sd(site) ~ x_group` when the target is one unlabelled Gaussian `mu` random
+  intercept.
 
 The location formula models the conditional mean, `mu`, on the identity scale.
 The scale formula models the residual standard deviation, `sigma`, on the log
@@ -355,7 +356,11 @@ y | mu, sigma, V ~ MVN(mu, V + diag(sigma_i^2))
   supported for Gaussian meta-analysis.
 - Fixed-effect bivariate Gaussian `rho12` models are implemented in the
   bivariate coscale article.
-- Residual-scale random slopes, `sd(group)` scale formulas, cross-formula
+- The first `sd(group)` random-effect scale formula is implemented for exactly
+  one unlabelled Gaussian `mu` random intercept, with group-level predictors
+  that are constant within the grouping variable.
+- Residual-scale random slopes, multiple `sd(group)` scale targets,
+  slope-specific `sd()` targets, labelled-block `sd()` targets, cross-formula
   labelled covariance sharing, phylogenetic terms, spatial terms, and
   non-Gaussian families are planned but not implemented in this MVP.
 

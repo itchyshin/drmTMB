@@ -1,8 +1,9 @@
 # Random-Effect Scale Models
 
-This note is the design contract for future random-effect scale formulae such
-as `sd(id) ~ x`. It exists before implementation so the math, R syntax, tests,
-and user explanations can be checked against one another.
+This note is the design contract for random-effect scale formulae such as
+`sd(id) ~ x_group`. The first univariate Gaussian MVP is implemented; the same
+document also records the future extensions so math, R syntax, tests, and user
+explanations stay aligned.
 
 ## Core Distinction
 
@@ -13,7 +14,7 @@ word.
 |---|---|---|---|
 | `sigma_i` | residual or within-observation standard deviation | `sigma ~ x1` | implemented for Gaussian |
 | `a_g` | residual-scale random effect added to `log(sigma_i)` | `sigma ~ x1 + (1 | id)` | implemented for univariate Gaussian random intercepts |
-| `sd_mu_id` | standard deviation of a `mu` random effect | `sd(id) ~ x1` | planned |
+| `sd_mu_id` | standard deviation of a `mu` random effect | `sd(id) ~ x_group` | implemented for one unlabelled Gaussian `mu` random intercept |
 | `rho_re` | group-level random-effect correlation | `(1 + x1 | id)` | implemented for one `mu` slope |
 | `rho12_i` | residual correlation between two responses | `rho12 ~ x1` | implemented for fixed-effect bivariate Gaussian |
 
@@ -77,9 +78,9 @@ variation than others?
 It does not answer whether the among-group variation in the mean-model random
 intercepts changes with a predictor. That is the role of `sd(id) ~ x`.
 
-## Planned Random-Effect Scale Formula
+## Implemented Random-Effect Scale Formula
 
-The first planned random-effect scale model should target exactly one existing
+The first random-effect scale model targets exactly one existing unlabelled
 univariate Gaussian `mu` random intercept:
 
 ```text
@@ -92,24 +93,25 @@ u_j ~ Normal(0, 1)
 log(sd_mu_id,j) = W_id[j, ] alpha_id
 ```
 
-Matching planned R syntax:
+Matching implemented R syntax:
 
 ```r
 drmTMB(
   bf(
     y ~ x1 + (1 | id),
     sigma ~ x2,
-    sd(id) ~ x3
+    sd(id) ~ x_group
   ),
   family = gaussian(),
   data = dat
 )
 ```
 
-The right-hand side of `sd(id) ~ x3` is group-level. In the MVP, each predictor
-in `W_id` must be constant within levels of `id` after missing-row filtering.
-If `x3` varies within `id`, the user should use `sigma ~ x3` for residual
-scale or aggregate/define a group-level predictor before fitting `sd(id) ~ x3`.
+The right-hand side of `sd(id) ~ x_group` is group-level. In the MVP, each
+predictor in `W_id` must be constant within levels of `id` after missing-row
+filtering. If a predictor varies within `id`, the user should use
+`sigma ~ predictor` for residual scale or aggregate/define a group-level
+predictor before fitting `sd(id) ~ predictor`.
 
 Ecology/evolution interpretation:
 

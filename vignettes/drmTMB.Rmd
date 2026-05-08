@@ -15,7 +15,9 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 pair symbolic equations with the R syntax that fits them. The current
 implementation supports Gaussian location-scale models with fixed effects and
 optional random effects in the location formula and residual-scale random
-intercepts in the `sigma` formula:
+intercepts in the `sigma` formula. It also supports a first group-level
+random-effect scale formula such as `sd(id) ~ x_group` for one unlabelled
+Gaussian `mu` random intercept:
 
 ```r
 drmTMB(
@@ -62,9 +64,9 @@ drmTMB(
 )
 ```
 
-This is a model for residual or within-observation scale. It is distinct from a
-future `sd(id) ~ x1` formula for the standard deviation of a group-level `mu`
-random effect.
+This is a model for residual or within-observation scale. It is distinct from
+`sd(id) ~ x_group`, which models the standard deviation of one unlabelled
+group-level `mu` random intercept.
 
 The first implemented bivariate seed covers fixed-effect location-coscale
 regression with predictor-dependent residual correlation:

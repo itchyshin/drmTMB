@@ -225,6 +225,48 @@ test_that("labelled Gaussian correlated random slopes agree with lme4 semantics"
   )
 })
 
+test_that("Gaussian sd(id) intercept-only random-effect scale agrees with lme4", {
+  testthat::skip_if_not_installed("lme4")
+
+  sim <- new_gaussian_re_scale_data(
+    n_id = 30,
+    n_each = 8,
+    alpha = c(`(Intercept)` = log(0.6), w = 0),
+    beta_sigma = c(`(Intercept)` = log(0.5), z = 0),
+    seed = 20260560
+  )
+  dat <- sim$data
+
+  fit <- drmTMB(
+    bf(y ~ x + (1 | id), sigma ~ 1, sd(id) ~ 1),
+    family = gaussian(),
+    data = dat
+  )
+  fit_lme4 <- lme4::lmer(y ~ x + (1 | id), data = dat, REML = FALSE)
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(
+    unname(coef(fit, "mu")),
+    unname(lme4::fixef(fit_lme4)),
+    tolerance = 1e-4
+  )
+  expect_equal(
+    exp(unname(coef(fit, "sd(id)")[[1L]])),
+    unname(attr(lme4::VarCorr(fit_lme4)$id, "stddev")),
+    tolerance = 1e-4
+  )
+  expect_equal(
+    stats::sigma(fit)[[1L]],
+    stats::sigma(fit_lme4),
+    tolerance = 1e-4
+  )
+  expect_equal(
+    as.numeric(stats::logLik(fit)),
+    as.numeric(stats::logLik(fit_lme4)),
+    tolerance = 1e-4
+  )
+})
+
 test_that("Gaussian meta-analysis agrees with metafor for ML tau2", {
   testthat::skip_if_not_installed("metafor")
 

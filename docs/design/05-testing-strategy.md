@@ -44,6 +44,8 @@ Implemented comparator smoke tests:
   `lme4::lmer(..., REML = FALSE)`;
 - labelled and unlabelled correlated Gaussian random-slope blocks against
   `lme4::lmer(..., REML = FALSE)`;
+- intercept-only Gaussian random-effect scale formulae such as `sd(id) ~ 1`
+  against `lme4::lmer(..., REML = FALSE)`;
 - Gaussian ML meta-analysis with known sampling variances against
   `metafor::rma.uni(..., method = "ML")`.
 
@@ -62,14 +64,14 @@ Tier 2 is simulation recovery. This is the primary truth source:
 - check edge cases such as near-zero scale components, high or negative
   `rho12`, sparse grouping, uneven sampling variances, and missing rows.
 
-Residual-scale random intercept tests should stay separate from random-effect
-scale tests. `sigma ~ z + (1 | id)` checks group-to-group variation in residual
-scale, whereas future `sd(id) ~ z` checks predictors of a `mu` random-effect
+Residual-scale random intercept tests stay separate from random-effect scale
+tests. `sigma ~ z + (1 | id)` checks group-to-group variation in residual
+scale, whereas `sd(id) ~ z_group` checks predictors of a `mu` random-effect
 standard deviation.
 
 ## Random-Effect Scale Formula Tests
 
-The first planned random-effect scale model is:
+The first implemented random-effect scale model is:
 
 ```r
 drmTMB(
@@ -103,6 +105,10 @@ Fast CRAN tests should include:
   random-intercept/slope targets, bivariate models, non-Gaussian models, and
   `sd(id)` predictors that vary within `id`;
 - a homoscedastic comparator against `lme4` when `alpha_1 = 0`.
+
+These tests are implemented in
+`tests/testthat/test-gaussian-random-effect-scale.R` and
+`tests/testthat/test-comparators.R`.
 
 Larger recovery grids should stay out of CRAN checks and vary group count,
 within-group replication, unbalanced groups, small random-effect SDs, large
