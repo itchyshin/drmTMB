@@ -1271,7 +1271,9 @@ gaussian_ls_dummy_start <- function() {
     beta_mu2 = 0,
     beta_sigma1 = 0,
     beta_sigma2 = 0,
-    beta_rho12 = 0
+    beta_rho12 = 0,
+    u_phylo = 0,
+    log_sd_phylo = 0
   )
 }
 
@@ -1384,6 +1386,10 @@ biv_gaussian_start <- function(y1, y2, X_mu1, X_mu2, X_sigma1, X_sigma2, X_rho12
       beta_sigma1 = beta_sigma1,
       beta_sigma2 = beta_sigma2,
       beta_rho12 = beta_rho12
+    ),
+    list(
+      u_phylo = 0,
+      log_sd_phylo = 0
     )
   )
 }
@@ -1396,7 +1402,9 @@ gaussian_ls_map <- function(re_mu = empty_random_mu_structure(1L),
     beta_mu2 = factor(NA),
     beta_sigma1 = factor(NA),
     beta_sigma2 = factor(NA),
-    beta_rho12 = factor(NA)
+    beta_rho12 = factor(NA),
+    u_phylo = factor(NA),
+    log_sd_phylo = factor(NA)
   )
   if (re_mu$n_re == 0L) {
     out$u_mu <- factor(NA)
@@ -1429,12 +1437,20 @@ biv_gaussian_map <- function() {
     log_sd_mu = factor(NA),
     eta_cor_mu = factor(NA),
     u_sigma = factor(NA),
-    log_sd_sigma = factor(NA)
+    log_sd_sigma = factor(NA),
+    u_phylo = factor(NA),
+    log_sd_phylo = factor(NA)
   )
 }
 
 make_tmb_data <- function(spec) {
   dummy_matrix <- matrix(0, nrow = 1, ncol = 1)
+  dummy_sparse <- Matrix::sparseMatrix(
+    i = integer(0),
+    j = integer(0),
+    x = numeric(0),
+    dims = c(1L, 1L)
+  )
   if (identical(spec$model_type, "gaussian")) {
     return(list(
       model_type = 1L,
@@ -1467,7 +1483,9 @@ make_tmb_data <- function(spec) {
       n_sigma_re_terms = spec$random$sigma$n_terms,
       sigma_re_index = spec$random$sigma$index0,
       sigma_re_value = spec$random$sigma$value,
-      sigma_re_term = spec$random$sigma$term_id0
+      sigma_re_term = spec$random$sigma$term_id0,
+      Q_phylo = dummy_sparse,
+      log_det_Q_phylo = 0
     ))
   }
   list(
@@ -1499,7 +1517,9 @@ make_tmb_data <- function(spec) {
     n_sigma_re_terms = 0L,
     sigma_re_index = matrix(0L, nrow = 1L, ncol = 1L),
     sigma_re_value = dummy_matrix,
-    sigma_re_term = 0L
+    sigma_re_term = 0L,
+    Q_phylo = dummy_sparse,
+    log_det_Q_phylo = 0
   )
 }
 

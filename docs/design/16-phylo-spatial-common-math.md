@@ -199,7 +199,9 @@ nll_phylo =
 ```
 
 This is still internal algebra, not fitted model support. The next C++/TMB
-block should reproduce this expression exactly.
+block should reproduce this expression exactly. A hidden TMB test branch now
+does this for parity testing only; it is not routed through `drmTMB()` model
+fitting.
 
 Accepted public forms:
 

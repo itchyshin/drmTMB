@@ -19,6 +19,63 @@ tiny_ultrametric_tree <- function() {
   )
 }
 
+phylo_prior_tmb_data <- function(precision) {
+  dummy_matrix <- matrix(0, nrow = 1, ncol = 1)
+  list(
+    model_type = 99L,
+    y = numeric(1),
+    V_known = numeric(1),
+    V_known_matrix = dummy_matrix,
+    V_known_type = 0L,
+    y1 = numeric(1),
+    y2 = numeric(1),
+    X_mu = dummy_matrix,
+    X_sigma = dummy_matrix,
+    X_sd_mu = dummy_matrix,
+    has_sd_mu_model = 0L,
+    X_mu1 = dummy_matrix,
+    X_mu2 = dummy_matrix,
+    X_sigma1 = dummy_matrix,
+    X_sigma2 = dummy_matrix,
+    X_rho12 = dummy_matrix,
+    n_mu_re_terms = 0L,
+    n_mu_re_cors = 0L,
+    mu_re_index = matrix(0L, nrow = 1L, ncol = 1L),
+    mu_re_value = dummy_matrix,
+    mu_re_term = 0L,
+    mu_re_pos = 0L,
+    mu_re_cor_id = -1L,
+    mu_re_pair_index = -1L,
+    mu_re_sd_row = -1L,
+    n_sigma_re_terms = 0L,
+    sigma_re_index = matrix(0L, nrow = 1L, ncol = 1L),
+    sigma_re_value = dummy_matrix,
+    sigma_re_term = 0L,
+    Q_phylo = precision$precision,
+    log_det_Q_phylo = precision$log_det_precision
+  )
+}
+
+phylo_prior_tmb_parameters <- function(effect, log_sd) {
+  list(
+    beta_mu = 0,
+    beta_sigma = 0,
+    beta_sd_mu = 0,
+    beta_mu1 = 0,
+    beta_mu2 = 0,
+    beta_sigma1 = 0,
+    beta_sigma2 = 0,
+    beta_rho12 = 0,
+    u_mu = 0,
+    log_sd_mu = 0,
+    eta_cor_mu = 0,
+    u_sigma = 0,
+    log_sd_sigma = 0,
+    u_phylo = unname(effect),
+    log_sd_phylo = log_sd
+  )
+}
+
 test_that("validate_phylo_tree checks ultrametric trees and observed species", {
   tree <- tiny_ultrametric_tree()
 
@@ -225,6 +282,27 @@ test_that("drm_phylo_precision_nll matches the augmented Gaussian density", {
     drmTMB:::drm_phylo_precision_nll(effect, precision, log_sd = NA_real_),
     "finite numeric scalar"
   )
+})
+
+test_that("TMB phylogenetic prior branch matches the R algebra helper", {
+  tree <- tiny_ultrametric_tree()
+  precision <- drmTMB:::drm_phylo_augmented_precision(tree)
+  effect <- c(sp_a = 0.2, sp_b = -0.1, sp_c = 0.35, node4 = 0.05)
+  log_sd <- log(0.7)
+
+  obj <- TMB::MakeADFun(
+    data = phylo_prior_tmb_data(precision),
+    parameters = phylo_prior_tmb_parameters(effect, log_sd),
+    DLL = "drmTMB",
+    silent = TRUE
+  )
+
+  expect_equal(
+    obj$fn(obj$par),
+    drmTMB:::drm_phylo_precision_nll(effect, precision, log_sd = log_sd),
+    tolerance = 1e-10
+  )
+  expect_true(all(is.finite(obj$gr(obj$par))))
 })
 
 test_that("validate_phylo_tree rejects malformed tree inputs", {

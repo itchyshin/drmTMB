@@ -45,6 +45,8 @@ Type objective_function<Type>::operator()()
   DATA_IMATRIX(sigma_re_index);
   DATA_MATRIX(sigma_re_value);
   DATA_IVECTOR(sigma_re_term);
+  DATA_SPARSE_MATRIX(Q_phylo);
+  DATA_SCALAR(log_det_Q_phylo);
 
   PARAMETER_VECTOR(beta_mu);
   PARAMETER_VECTOR(beta_sigma);
@@ -59,9 +61,26 @@ Type objective_function<Type>::operator()()
   PARAMETER_VECTOR(eta_cor_mu);
   PARAMETER_VECTOR(u_sigma);
   PARAMETER_VECTOR(log_sd_sigma);
+  PARAMETER_VECTOR(u_phylo);
+  PARAMETER(log_sd_phylo);
 
   Type nll = 0;
-  if (model_type == 1) {
+  if (model_type == 99) {
+    int n_phylo = u_phylo.size();
+    vector<Type> Q_u = Q_phylo * u_phylo;
+    Type quadratic = Type(0.0);
+    for (int i = 0; i < n_phylo; ++i) {
+      quadratic += u_phylo(i) * Q_u(i);
+    }
+    nll += Type(0.5) * (
+      Type(n_phylo) * log(Type(2.0) * M_PI) +
+      Type(2.0) * Type(n_phylo) * log_sd_phylo -
+      log_det_Q_phylo +
+      exp(Type(-2.0) * log_sd_phylo) * quadratic
+    );
+    REPORT(quadratic);
+    REPORT(log_det_Q_phylo);
+  } else if (model_type == 1) {
     vector<Type> mu = X_mu * beta_mu;
     vector<Type> log_sigma = X_sigma * beta_sigma;
 

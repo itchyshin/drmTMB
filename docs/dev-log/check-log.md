@@ -1860,3 +1860,45 @@ Team learning:
   because `Q_A` is the precision for the correlation matrix;
 - testing the edge-increment quadratic and the precision-density formula in
   the same test gives Noether and Gauss the same contract before C++ work.
+
+## 2026-05-08: Hidden TMB Phylogenetic Prior Parity Branch
+
+Scope:
+
+- added a hidden `model_type == 99` TMB branch for the augmented phylogenetic
+  Gaussian prior contribution only;
+- added dummy TMB data and mapped dummy parameters so existing Gaussian and
+  bivariate Gaussian fits are unaffected;
+- added a test comparing the TMB objective value with the pure-R prior NLL
+  helper on the exact tiny tree.
+
+Commands run:
+
+- `Rscript -e "devtools::test(filter = 'phylo-utils')"`
+- `Rscript -e "devtools::test()"`
+- `git diff --check`
+- `air format .`
+- `Rscript -e "pkgdown::check_pkgdown(); pkgdown::build_site()"`
+- `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`
+
+Results:
+
+- targeted phylogenetic utility tests: 45 passed, 0 failed.
+- full `devtools::test()`: 465 passed, 0 failed.
+- `git diff --check`: passed.
+- `pkgdown::check_pkgdown()`: no problems found.
+- `pkgdown::build_site()`: site built successfully.
+- `devtools::check()` with `_R_CHECK_SYSTEM_CLOCK_=FALSE`: 0 errors,
+  0 warnings, 0 notes.
+
+Known limitations:
+
+- `air` is not installed locally, so formatting could not be run.
+- this is a parity-test branch, not fitted `phylo()` model support;
+
+Team learning:
+
+- adding a C++ parity branch before model-builder plumbing is a useful
+  low-risk bridge from R algebra to TMB implementation;
+- this protects the next fitting slice from simultaneously debugging formula
+  parsing, sparse precision construction, and C++ prior constants.

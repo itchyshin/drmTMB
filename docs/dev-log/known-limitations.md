@@ -22,8 +22,8 @@
 - An internal phylogenetic tree validator and dense Brownian covariance
   comparator exist for tiny ultrametric `phylo` objects. An internal sparse
   augmented Brownian precision helper also exists for positive branch lengths,
-  along with a pure-R Gaussian prior contribution helper, but the public
-  `phylo()` model term still does not fit a phylogenetic effect.
+  along with pure-R and hidden TMB Gaussian prior contribution checks, but the
+  public `phylo()` model term still does not fit a phylogenetic effect.
 - The TMB template currently supports fixed effects, univariate Gaussian `mu`
   random intercepts, numeric random-slope terms, ordinary correlated
   intercept-slope blocks with optional covariance-block labels, and univariate
