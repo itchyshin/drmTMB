@@ -46,9 +46,66 @@ test_that("drm_formula() captures meta-analysis and random-effect scale syntax",
   expect_match(deparse1(form$calls[[4]]), "sd\\(species\\)")
 })
 
+test_that("drm_formula() captures planned structured-effect syntax", {
+  form <- drm_formula(
+    y ~ x + phylo(1 | species, tree = tree) +
+      spatial(1 | site, coords = coords)
+  )
+
+  expect_s3_class(form, "drm_formula")
+  expect_equal(form$entries[[1]]$dpar, "mu")
+  expect_length(form$entries[[1]]$structured, 2)
+  expect_equal(
+    form$entries[[1]]$structured[[1]][c("type", "group", "tree")],
+    list(type = "phylo", group = "species", tree = "tree")
+  )
+  expect_equal(
+    form$entries[[1]]$structured[[2]][c("type", "group", "structure", "object")],
+    list(type = "spatial", group = "site", structure = "coords", object = "coords")
+  )
+
+  mesh_form <- drm_formula(y ~ spatial(1 | site, mesh = mesh))
+  expect_equal(
+    mesh_form$entries[[1]]$structured[[1]][c("type", "group", "structure", "object")],
+    list(type = "spatial", group = "site", structure = "mesh", object = "mesh")
+  )
+
+  slope_form <- drm_formula(y ~ phylo(1 + depth | species, tree = tree))
+  expect_equal(slope_form$entries[[1]]$structured[[1]]$coef_names, c("(Intercept)", "depth"))
+  expect_equal(slope_form$entries[[1]]$structured[[1]]$variables, "depth")
+})
+
 test_that("formula markers are no-op placeholders", {
   expect_null(meta_known_V(V = 1))
   expect_null(gr(id, cov = diag(1)))
-  expect_null(phylo(species))
-  expect_null(spatial(x, y))
+  expect_null(phylo(1 | species, tree = tree))
+  expect_null(spatial(1 | site, coords = coords))
+  expect_null(spatial(1 | site, mesh = mesh))
+})
+
+test_that("planned structured-effect markers validate their grammar", {
+  expect_error(
+    drm_formula(y ~ x + phylo(species)),
+    "random-effect syntax"
+  )
+  expect_error(
+    drm_formula(y ~ x + phylo(1 | species)),
+    "tree"
+  )
+  expect_error(
+    drm_formula(y ~ x + phylo(1 + x + z | species, tree = tree)),
+    "one-slope structured terms"
+  )
+  expect_error(
+    drm_formula(y ~ x + spatial(1 | site)),
+    "coords.*mesh"
+  )
+  expect_error(
+    drm_formula(y ~ x + spatial(1 | site, coords = coords, mesh = mesh)),
+    "coords.*mesh"
+  )
+  expect_error(
+    drm_formula(y ~ x + log(phylo(1 | species, tree = tree))),
+    "additive formula terms"
+  )
 })

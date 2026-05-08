@@ -9,7 +9,8 @@ spatial(term, coords = NULL, mesh = NULL)
 \arguments{
 \item{term}{Planned structured random-effect term, such as \code{1 | site}.}
 
-\item{coords}{Planned coordinate data or coordinate column specification.}
+\item{coords}{Planned coordinate object, such as a data frame or matrix of
+spatial coordinates.}
 
 \item{mesh}{Planned precomputed mesh object.}
 }
@@ -22,4 +23,8 @@ grammar is structured random-effect syntax such as
 \code{spatial(1 | site, coords = coords)} and, later,
 \code{spatial(1 + depth | site, coords = coords)}. Future implementations will
 use an SPDE/GMRF representation built from coordinates or a mesh.
+}
+\examples{
+bf(y ~ x + spatial(1 | site, coords = coords), sigma ~ z)
+bf(y ~ x + spatial(1 | site, mesh = mesh), sigma ~ z)
 }

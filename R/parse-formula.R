@@ -51,7 +51,8 @@ parse_drm_formula_entry <- function(expr, name, position) {
     lhs = lhs,
     rhs = rhs,
     expr = expr,
-    source_name = name
+    source_name = name,
+    structured = collect_structured_effects(rhs, dpar)
   )
 }
 
@@ -117,4 +118,154 @@ parse_sd_lhs <- function(lhs) {
     group = group,
     dpar = paste0("sd(", group, ")")
   )
+}
+
+collect_structured_effects <- function(rhs, dpar) {
+  terms <- flatten_plus_terms(rhs)
+  structured <- list()
+  for (term in terms) {
+    term <- strip_parens(term)
+    if (is_structured_marker_call(term, "phylo")) {
+      structured[[length(structured) + 1L]] <- parse_structured_marker_call(term, "phylo", dpar)
+      next
+    }
+    if (is_structured_marker_call(term, "spatial")) {
+      structured[[length(structured) + 1L]] <- parse_structured_marker_call(term, "spatial", dpar)
+      next
+    }
+    nested <- c("phylo", "spatial")[vapply(
+      c("phylo", "spatial"),
+      function(name) formula_contains_call(term, name),
+      logical(1)
+    )]
+    if (length(nested) > 0L) {
+      cli::cli_abort(c(
+        "Structured-effect markers must be additive formula terms.",
+        "x" = "The {.code {dpar}} formula contains nested marker{?s}: {.val {nested}}.",
+        "i" = "Use syntax like {.code y ~ x + phylo(1 | species, tree = tree)} or {.code y ~ x + spatial(1 | site, coords = coords)}."
+      ))
+    }
+  }
+  structured
+}
+
+is_structured_marker_call <- function(expr, name) {
+  expr <- strip_parens(expr)
+  is.call(expr) && identical(expr[[1L]], as.name(name))
+}
+
+parse_structured_marker_call <- function(expr, marker, dpar) {
+  args <- as.list(expr)[-1L]
+  arg_names <- names(args)
+  if (is.null(arg_names)) {
+    arg_names <- rep("", length(args))
+  }
+  arg_names[is.na(arg_names)] <- ""
+
+  term_pos <- which(arg_names %in% c("", "term"))
+  if (length(term_pos) != 1L) {
+    cli::cli_abort(c(
+      "{.fn {marker}} requires exactly one structured random-effect term.",
+      "x" = "Use syntax like {.code {marker}(1 | group, tree = tree)} or {.code {marker}(1 | group, coords = coords)}."
+    ))
+  }
+
+  term <- parse_structured_bar_term(args[[term_pos]], marker)
+  marker_args <- args[-term_pos]
+  marker_arg_names <- arg_names[-term_pos]
+  if (identical(marker, "phylo")) {
+    extra <- setdiff(marker_arg_names, "tree")
+    if (length(marker_args) != 1L || !identical(marker_arg_names, "tree") || length(extra) > 0L) {
+      cli::cli_abort(c(
+        "{.fn phylo} requires a single named {.arg tree} argument.",
+        "x" = "Use syntax like {.code phylo(1 | species, tree = tree)}.",
+        "i" = "The public phylogeny API will build a sparse A-inverse from an ultrametric tree with branch lengths."
+      ))
+    }
+    if (!is.symbol(marker_args[[1L]])) {
+      cli::cli_abort(c(
+        "{.arg tree} must be the name of a phylogeny object.",
+        "x" = "Use syntax like {.code phylo(1 | species, tree = tree)}."
+      ))
+    }
+    return(c(
+      list(type = "phylo", dpar = dpar),
+      term,
+      list(tree = as.character(marker_args[[1L]]))
+    ))
+  }
+
+  bad <- setdiff(marker_arg_names, c("coords", "mesh"))
+  has_coords <- any(marker_arg_names == "coords")
+  has_mesh <- any(marker_arg_names == "mesh")
+  if (length(bad) > 0L || identical(has_coords, has_mesh)) {
+    cli::cli_abort(c(
+      "{.fn spatial} requires exactly one of {.arg coords} or {.arg mesh}.",
+      "x" = "Use syntax like {.code spatial(1 | site, coords = coords)} or {.code spatial(1 | site, mesh = mesh)}."
+    ))
+  }
+  structure_arg <- marker_args[[which(marker_arg_names %in% c("coords", "mesh"))]]
+  if (!is.symbol(structure_arg)) {
+    cli::cli_abort(c(
+      "{.arg coords} and {.arg mesh} must name objects.",
+      "x" = "Use syntax like {.code spatial(1 | site, coords = coords)}."
+    ))
+  }
+  c(
+    list(type = "spatial", dpar = dpar),
+    term,
+    list(
+      structure = marker_arg_names[[which(marker_arg_names %in% c("coords", "mesh"))]],
+      object = as.character(structure_arg)
+    )
+  )
+}
+
+parse_structured_bar_term <- function(expr, marker) {
+  expr <- strip_parens(expr)
+  if (!is_random_bar_call(expr)) {
+    cli::cli_abort(c(
+      "{.fn {marker}} terms must use random-effect syntax.",
+      "x" = "Use syntax like {.code {marker}(1 | group, ...)} or {.code {marker}(1 + x | group, ...)}."
+    ))
+  }
+  lhs <- strip_parens(expr[[2L]])
+  group <- expr[[3L]]
+  if (!is.symbol(group)) {
+    cli::cli_abort(c(
+      "{.fn {marker}} grouping terms must be simple variables.",
+      "x" = "Use syntax like {.code {marker}(1 | species, ...)}."
+    ))
+  }
+
+  group_name <- as.character(group)
+  if (is_intercept_one(lhs)) {
+    return(list(
+      group = group_name,
+      variables = NA_character_,
+      coef_names = "(Intercept)",
+      label = paste0(marker, "(1 | ", group_name, ")")
+    ))
+  }
+
+  pieces <- flatten_plus_terms(lhs)
+  one <- vapply(pieces, is_intercept_one, logical(1))
+  symbol <- vapply(pieces, is.symbol, logical(1))
+  if (!any(vapply(pieces, is_zero_term, logical(1))) &&
+      sum(one) == 1L && sum(symbol) == 1L &&
+      length(pieces) == sum(one) + sum(symbol)) {
+    variable <- as.character(pieces[[which(symbol)]])
+    return(list(
+      group = group_name,
+      variables = variable,
+      coef_names = c("(Intercept)", variable),
+      label = paste0(marker, "(1 + ", variable, " | ", group_name, ")")
+    ))
+  }
+
+  cli::cli_abort(c(
+    "{.fn {marker}} currently reserves only intercept and one-slope structured terms.",
+    "x" = "Use {.code {marker}(1 | group, ...)} or {.code {marker}(1 + x | group, ...)}.",
+    "i" = "Multiple structured slopes and interactions are planned only after intercept-only structured effects are tested."
+  ))
 }

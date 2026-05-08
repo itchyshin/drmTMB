@@ -396,7 +396,8 @@ default_dpar_entry <- function(dpar, rhs) {
     lhs = NULL,
     rhs = rhs,
     expr = call("~", rhs),
-    source_name = dpar
+    source_name = dpar,
+    structured = list()
   )
 }
 
@@ -410,6 +411,19 @@ drm_entry_formula <- function(entry, response = FALSE) {
 }
 
 drm_reject_phase1_terms <- function(rhs, dpar) {
+  structured <- c("phylo", "spatial")[vapply(
+    c("phylo", "spatial"),
+    function(name) formula_contains_call(rhs, name),
+    logical(1)
+  )]
+  if (length(structured) > 0L) {
+    cli::cli_abort(c(
+      "Structured-effect syntax is planned, not implemented.",
+      "x" = "The {.code {dpar}} formula contains structured marker{?s}: {.val {structured}}.",
+      "i" = "The first target is intercept-only {.code mu} syntax such as {.code phylo(1 | species, tree = tree)} or {.code spatial(1 | site, coords = coords)}."
+    ))
+  }
+
   unsupported <- c("|", "meta_known_V", "gr", "phylo", "spatial")
   hits <- unsupported[vapply(
     unsupported,

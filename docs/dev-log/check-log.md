@@ -1651,3 +1651,69 @@ Team learning:
   tree, not a user-supplied dense `Cphy`;
 - phylogenetic and spatial syntax should share the same structured
   random-effect grammar, while their speed paths differ internally.
+
+## 2026-05-08: Planned Structured-Effect Parser Markers
+
+Scope:
+
+- added parser metadata for planned structured-effect markers in
+  `drm_formula()`;
+- locked the public planned grammar for
+  `phylo(1 | species, tree = tree)`,
+  `phylo(1 + x | species, tree = tree)`,
+  `spatial(1 | site, coords = coords)`, and
+  `spatial(1 | site, mesh = mesh)`;
+- added grammar validation for malformed marker calls, nested marker calls,
+  multiple spatial structure inputs, and oversized structured-slope forms;
+- changed `drmTMB()` unsupported-structured errors from generic formula-term
+  errors to explicit "planned, not implemented" messages;
+- updated formula-grammar documentation, NEWS, known limitations, and Rd
+  examples.
+
+Commands run:
+
+- `Rscript -e 'devtools::load_all(quiet = TRUE); ...'` to inspect parsed
+  structured metadata;
+- `Rscript -e "devtools::test(filter = 'package-skeleton')"`
+- `Rscript -e "devtools::test()"`
+- `Rscript -e "devtools::document()"`
+- `Rscript -e "pkgdown::check_pkgdown(); pkgdown::build_site()"`
+- `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`
+- stale-wording `rg` scan for old bare `phylo(species)`, `Cphy`,
+  `spatial(x, y)`, and generic public unsupported-status wording;
+- `git diff --check`.
+
+Results:
+
+- interactive parser inspection stored `type`, `group`, `tree`/`coords`, and
+  one-slope coefficient metadata without evaluating external objects;
+- focused parser test: 35 passed, 0 failed;
+- full `devtools::test()`: 420 passed, 0 failed;
+- Rose's systems audit found no blockers; the non-blocking mesh metadata test
+  gap and after-task role-name wording were resolved before commit;
+- `pkgdown::check_pkgdown()`: no problems found;
+- `pkgdown::build_site()`: site built successfully;
+- `devtools::check()` with `_R_CHECK_SYSTEM_CLOCK_=FALSE`: 0 errors,
+  0 warnings, 0 notes;
+- stale-wording scan found only expected historical after-task notes, parser
+  failure tests, and still-valid generic unsupported-term tests for unrelated
+  syntax;
+- `git diff --check`: passed.
+
+Known limitations:
+
+- `phylo()` and `spatial()` are still planned markers; no TMB likelihood,
+  A-inverse construction, tree validation, SPDE mesh construction, or
+  structured-effect simulation recovery was implemented in this task;
+- the first fitting target remains univariate Gaussian `mu` with an
+  intercept-only phylogenetic structured effect from an ultrametric
+  branch-length tree.
+
+Team learning:
+
+- parser-recognized planned syntax is useful because it lets docs and tests
+  stabilize the public API before numerical implementation;
+- the current parser can safely avoid evaluating `tree`, `coords`, and `mesh`
+  while still detecting invalid grammar early;
+- `rho12` remains reserved for residual bivariate response correlation, not
+  phylogenetic or spatial structured-effect covariance.

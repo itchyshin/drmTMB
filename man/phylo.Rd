@@ -22,3 +22,6 @@ planned grammar is structured random-effect syntax such as
 require an ultrametric tree with branch lengths and use the Hadfield and
 Nakagawa A-inverse sparse-precision path internally.
 }
+\examples{
+bf(y ~ x + phylo(1 | species, tree = tree), sigma ~ z)
+}

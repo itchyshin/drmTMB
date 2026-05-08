@@ -186,8 +186,20 @@ test_that("Phase 1 rejects unsupported model syntax clearly", {
     "only support"
   )
   expect_error(
-    drmTMB(bf(y ~ x + phylo(id)), family = gaussian(), data = dat),
-    "unsupported model terms"
+    drmTMB(
+      bf(y ~ x + phylo(1 | id, tree = tree)),
+      family = gaussian(),
+      data = dat
+    ),
+    "planned, not implemented"
+  )
+  expect_error(
+    drmTMB(
+      bf(y ~ x + spatial(1 | id, coords = coords)),
+      family = gaussian(),
+      data = dat
+    ),
+    "planned, not implemented"
   )
   expect_error(
     drmTMB(

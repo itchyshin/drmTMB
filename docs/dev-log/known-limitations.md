@@ -15,6 +15,10 @@
   implemented.
 - Fixed-effect bivariate Gaussian location-scale-coscale models are
   implemented with `mu1`, `mu2`, `sigma1`, `sigma2`, and `rho12` formulas.
+- Planned structured-effect markers such as
+  `phylo(1 | species, tree = tree)` and
+  `spatial(1 | site, coords = coords)` are parsed and rejected clearly, but
+  they are not yet routed into the TMB likelihood.
 - The TMB template currently supports fixed effects, univariate Gaussian `mu`
   random intercepts, numeric random-slope terms, ordinary correlated
   intercept-slope blocks with optional covariance-block labels, and univariate

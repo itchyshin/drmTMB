@@ -50,6 +50,21 @@ drm_formula(
 )
 ```
 
+Planned structured-effect markers are parsed so the future API remains stable,
+but they are not fitted yet:
+
+```r
+drm_formula(y ~ x + phylo(1 | species, tree = tree), sigma ~ z)
+drm_formula(y ~ x + spatial(1 | site, coords = coords), sigma ~ z)
+drm_formula(y ~ x + spatial(1 | site, mesh = mesh), sigma ~ z)
+```
+
+`phylo()` is the public tree-based syntax: the future implementation should use
+an ultrametric tree with branch lengths and build the sparse A-inverse
+internally. `spatial()` will use coordinates or a precomputed mesh to build an
+SPDE/GMRF precision. These structured effects are separate from residual
+`rho12`.
+
 Future bivariate random-effect syntax should be explicit about the distinction
 between group-level covariance labels and residual `rho12`:
 

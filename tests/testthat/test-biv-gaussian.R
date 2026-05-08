@@ -266,6 +266,14 @@ test_that("bivariate Gaussian rejects unsupported Phase 3 syntax clearly", {
   )
   expect_error(
     drmTMB(
+      bf(mu1 = y1 ~ x + phylo(1 | id, tree = tree), mu2 = y2 ~ x),
+      family = biv_gaussian(),
+      data = dat
+    ),
+    "planned, not implemented"
+  )
+  expect_error(
+    drmTMB(
       bf(mu1 = y1 ~ x, mu2 = y2 ~ x),
       family = c(gaussian(), poisson()),
       data = dat

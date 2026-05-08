@@ -46,6 +46,9 @@ gr <- function(group, cov) {
 #'
 #' @return A formula marker; never evaluated by users.
 #' @export
+#'
+#' @examples
+#' bf(y ~ x + phylo(1 | species, tree = tree), sigma ~ z)
 phylo <- function(term, tree) {
   invisible(NULL)
 }
@@ -59,11 +62,16 @@ phylo <- function(term, tree) {
 #' use an SPDE/GMRF representation built from coordinates or a mesh.
 #'
 #' @param term Planned structured random-effect term, such as `1 | site`.
-#' @param coords Planned coordinate data or coordinate column specification.
+#' @param coords Planned coordinate object, such as a data frame or matrix of
+#'   spatial coordinates.
 #' @param mesh Planned precomputed mesh object.
 #'
 #' @return A formula marker; never evaluated by users.
 #' @export
+#'
+#' @examples
+#' bf(y ~ x + spatial(1 | site, coords = coords), sigma ~ z)
+#' bf(y ~ x + spatial(1 | site, mesh = mesh), sigma ~ z)
 spatial <- function(term, coords = NULL, mesh = NULL) {
   invisible(NULL)
 }

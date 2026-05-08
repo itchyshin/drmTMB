@@ -231,6 +231,48 @@ bf(
 )
 ```
 
+## Structured Phylogenetic and Spatial Markers
+
+`drm_formula()` parses the planned structured-effect markers so that the public
+grammar is testable before the TMB likelihood is implemented. These markers are
+recognized and stored as structured metadata, but `drmTMB()` still aborts before
+model fitting.
+
+The canonical phylogenetic syntax is:
+
+```r
+bf(y ~ x1 + phylo(1 | species, tree = tree), sigma ~ x2)
+```
+
+Here `tree` is the name of an ultrametric phylogeny object with branch lengths.
+The future implementation should build the sparse A-inverse internally using
+the Hadfield and Nakagawa route. Dense covariance matrices are lower-level
+comparator or `gr()` inputs, not the main public phylogeny API.
+
+The canonical spatial syntax is:
+
+```r
+bf(y ~ x1 + spatial(1 | site, coords = coords), sigma ~ x2)
+bf(y ~ x1 + spatial(1 | site, mesh = mesh), sigma ~ x2)
+```
+
+Here `coords` or `mesh` names the object that will be used to build an
+SPDE/GMRF precision. Exactly one of `coords` or `mesh` should be supplied.
+
+The parser currently reserves intercept-only and one-slope forms:
+
+```r
+phylo(1 | species, tree = tree)
+phylo(1 + x1 | species, tree = tree)
+spatial(1 | site, coords = coords)
+spatial(1 + depth | site, coords = coords)
+```
+
+Multiple structured slopes, interaction slopes, structured `sigma` effects,
+structured `rho12` effects, and bivariate structured effects remain planned
+until intercept-only univariate Gaussian `mu` models have simulation and
+comparator coverage.
+
 Future cross-formula correlated random-effect blocks should use ID labels:
 
 ```r
