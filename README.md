@@ -10,8 +10,8 @@ The current implementation supports Gaussian location-scale models, including
 fixed effects, random intercepts, independent numeric random slopes, and
 ordinary labelled or unlabelled correlated random intercept-slope blocks in
 the location formula, residual-scale random intercepts in the `sigma`
-formula, and a first random-effect scale formula for a single `mu` random
-intercept:
+formula, and random-effect scale formulae for one or several distinct `mu`
+random intercepts:
 
 ```r
 drmTMB(
@@ -63,19 +63,24 @@ drmTMB(
 
 Here `sigma` is the residual or within-observation standard deviation. This is
 not the same as `sd(id) ~ x_group`, which models the standard deviation of a
-group-level `mu` random effect. The first implemented `sd()` model targets
-exactly one unlabelled Gaussian `mu` random intercept:
+group-level `mu` random effect. The implemented `sd()` grammar supports one or
+more distinct unlabelled Gaussian `mu` random-intercept targets:
 
 ```r
 drmTMB(
-  bf(y ~ x1 + (1 | id), sigma ~ x1, sd(id) ~ x_group),
+  bf(
+    y ~ x1 + (1 | id) + (1 | site),
+    sigma ~ x1,
+    sd(id) ~ x_group,
+    sd(site) ~ site_type
+  ),
   family = gaussian(),
   data = dat
 )
 ```
 
-The right-hand side of `sd(id) ~ x_group` is group-level: predictors must be
-constant within `id` after missing-row filtering.
+The right-hand side of each `sd(group) ~ ...` formula is group-level:
+predictors must be constant within the named group after missing-row filtering.
 
 It also supports the fixed-effect seed of the bivariate location-coscale model,
 including predictor-dependent residual correlation:
@@ -146,13 +151,14 @@ Current project status: Gaussian location-scale MVP with `mu` random
 intercepts, independent numeric random slopes, ordinary correlated
 intercept-slope blocks, labelled one-slope `mu` covariance-block labels,
 residual-scale random intercepts in `sigma`,
-one univariate Gaussian random-effect scale model such as `sd(id) ~ x_group`,
+one or more univariate Gaussian random-effect scale models such as
+`sd(id) ~ x_group` and `sd(site) ~ site_type`,
 `meta_known_V(V = V)` support for diagonal and dense known sampling covariance,
 and fixed-effect bivariate Gaussian `rho12 ~ predictors` using either
 `biv_gaussian()`, `family = c(gaussian(), gaussian())`, or
-`family = list(gaussian(), gaussian())`. The next targets are multiple
-random-effect scale components, cross-formula labelled covariance blocks,
-sparse precision paths, phylogenetic A-inverse, and spatial SPDE paths.
+`family = list(gaussian(), gaussian())`. The next targets are cross-formula
+labelled covariance blocks, sparse precision paths, phylogenetic A-inverse, and
+spatial SPDE paths.
 
 Phylogenetic and spatial dependence will be treated as one structured-effect
 module: `z ~ MVN(0, sigma_z^2 K)`, with `K = A` for tree-derived phylogenetic

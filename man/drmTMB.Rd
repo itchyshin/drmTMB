@@ -28,7 +28,7 @@ A \code{drmTMB} fit object.
 supports univariate Gaussian location-scale models, including random
 intercepts, independent numeric random slopes, and labelled or unlabelled
 correlated numeric random intercept-slope blocks in the location formula,
-residual-scale random intercepts in the scale formula, and a first
-group-level random-effect scale formula such as \code{sd(id) ~ x_group},
+residual-scale random intercepts in the scale formula, and one or more
+group-level random-effect scale formulae such as \code{sd(id) ~ x_group},
 plus fixed-effect bivariate Gaussian distributional models.
 }

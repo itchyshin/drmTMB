@@ -58,16 +58,17 @@ distributional regression models using TMB.
   `(0 + x | id)`, and ordinary correlated intercept-slope blocks written as
   `(1 + x | id)` or `(1 + x | p | id)` are implemented for the univariate
   Gaussian location formula. Random intercepts in the residual `sigma` formula
-  are also implemented. The first random-effect scale formula is implemented
-  for one unlabelled Gaussian `mu` random intercept: `sd(id) ~ x_group`.
+  are also implemented. Random-effect scale formulae are implemented for one or
+  more distinct unlabelled Gaussian `mu` random intercepts, such as
+  `sd(id) ~ x_group` and `sd(site) ~ site_type`.
 - Add cross-formula or cross-parameter covariance sharing for labelled blocks,
   following `docs/design/17-correlated-random-effect-blocks.md`.
 - Use `docs/design/18-random-effect-scale-models.md` as the design contract:
   the implemented MVP is univariate Gaussian `sd(id) ~ x_group` for exactly
   one `mu` random intercept, with group-level predictors, simulation recovery
   tests, and an `lme4` overlap test.
-- Support multiple random-effect scale components, such as `sd(study) ~ x` and
-  `sd(species) ~ 1`.
+- Extend random-effect scale models beyond unlabelled intercept targets, such
+  as slope-specific, labelled-block, bivariate, and non-Gaussian targets.
 - Respect labelled correlated group syntax such as `(1 + x | p | id)` when
   scale and bivariate random-effect paths are added.
 - Add variance-component correlation summaries when identifiable.

@@ -107,7 +107,8 @@ depends on a predictor. That is the `sd(population) ~ x_group` model.
 
 ## Random-effect scale formula
 
-Implemented for one unlabelled Gaussian `mu` random intercept:
+Implemented for one or more distinct unlabelled Gaussian `mu` random
+intercepts:
 
 ```r
 drmTMB(
@@ -133,9 +134,8 @@ u_j ~ Normal(0, 1)
 log(sd_mu_population,j) = alpha_0 + alpha_1 habitat_j
 ```
 
-The right-hand side of `sd(population) ~ habitat` is group-level. In the first
-implementation, `habitat_j` must be constant within each population after
-missing rows are removed.
+The right-hand side of `sd(population) ~ habitat` is group-level. `habitat_j`
+must be constant within each population after missing rows are removed.
 
 This model asks whether among-population differences in expected growth are
 larger in some habitats. That is a different question from `sigma ~ habitat`,
@@ -218,13 +218,12 @@ Current implemented Gaussian syntax covers:
 - `y ~ x + (1 + x | id)` and `(1 + x | p | id)` for one-slope correlated
   `mu` blocks;
 - `sigma ~ x + (1 | id)` for residual-scale random intercepts;
-- `sd(id) ~ x_group` for the standard deviation of one unlabelled Gaussian
-  `mu` random intercept;
+- `sd(id) ~ x_group` and multiple distinct `sd(group) ~ x_group` formulas for
+  standard deviations of unlabelled Gaussian `mu` random intercepts;
 - bivariate fixed-effect `rho12 ~ x` with `family = c(gaussian(), gaussian())`.
 
 Current planned but not implemented syntax includes:
 
-- multiple `sd(group) ~ x_group` targets;
 - slope-specific and labelled-block random-effect scale models;
 - residual-scale random slopes in `sigma`;
 - bivariate random effects;

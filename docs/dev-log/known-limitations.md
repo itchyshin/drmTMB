@@ -7,9 +7,10 @@
   implemented as `(1 + x | id)` or `(1 + x | p | id)`.
 - Residual-scale random intercepts are implemented in the `sigma` formula as
   `sigma ~ x + (1 | id)`.
-- Random-effect scale formulae are implemented for exactly one unlabelled
-  Gaussian `mu` random intercept, such as `sd(id) ~ x_group`; predictors must
-  be constant within the grouping variable after missing-row filtering.
+- Random-effect scale formulae are implemented for one or more distinct
+  unlabelled Gaussian `mu` random intercepts, such as `sd(id) ~ x_group` and
+  `sd(site) ~ site_type`; predictors must be constant within the named grouping
+  variable after missing-row filtering.
 - Diagonal and dense full known-covariance Gaussian meta-analysis is
   implemented.
 - Fixed-effect bivariate Gaussian location-scale-coscale models are
@@ -17,13 +18,13 @@
 - The TMB template currently supports fixed effects, univariate Gaussian `mu`
   random intercepts, numeric random-slope terms, ordinary correlated
   intercept-slope blocks with optional covariance-block labels, and univariate
-  Gaussian residual-scale random intercepts in `sigma`, plus one unlabelled
-  Gaussian `mu` random-intercept scale formula through `sd(group) ~ x_group`.
+  Gaussian residual-scale random intercepts in `sigma`, plus one or more
+  unlabelled Gaussian `mu` random-intercept scale formulae through
+  `sd(group) ~ x_group`.
 - Cross-formula labelled covariance sharing, residual-scale random slopes,
-  multiple random-effect scale targets, slope-specific random-effect scale
-  targets, labelled-block random-effect scale targets, bivariate random-effect
-  scale targets, and all non-Gaussian families are planned but not yet
-  implemented.
+  slope-specific random-effect scale targets, labelled-block random-effect
+  scale targets, bivariate random-effect scale targets, and all non-Gaussian
+  families are planned but not yet implemented.
 - Users should not substitute `sigma ~ x + (1 | id)` for `sd(id) ~ x_group`
   unless their scientific question is residual variability rather than
   among-group variation in the mean model.

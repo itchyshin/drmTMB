@@ -270,24 +270,24 @@ has_sigma_random_effects <- function(object) {
 is_random_scale_dpar <- function(object, dpar) {
   identical(object$model$model_type, "gaussian") &&
     object$model$random_scale$mu$n_models > 0L &&
-    identical(dpar, object$model$random_scale$mu$dpar)
+    dpar %in% object$model$random_scale$mu$dpars
 }
 
 predict_random_scale_dpar <- function(object, dpar, newdata = NULL,
                                       type = c("response", "link")) {
   type <- match.arg(type)
   sd_mu <- object$model$random_scale$mu
-  if (!identical(dpar, sd_mu$dpar)) {
+  if (!dpar %in% sd_mu$dpars) {
     cli::cli_abort("Unknown random-effect scale parameter {.val {dpar}}.")
   }
   if (is.null(newdata)) {
-    X <- sd_mu$X
-    names_out <- sd_mu$group_levels
+    X <- sd_mu$X_list[[dpar]]
+    names_out <- sd_mu$group_levels_list[[dpar]]
   } else {
     if (!is.data.frame(newdata)) {
       cli::cli_abort("{.arg newdata} must be a data frame.")
     }
-    X <- stats::model.matrix(sd_mu$terms, data = newdata)
+    X <- stats::model.matrix(sd_mu$terms_list[[dpar]], data = newdata)
     names_out <- rownames(newdata)
   }
   eta <- as.vector(X %*% object$coefficients[[dpar]])

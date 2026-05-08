@@ -1501,3 +1501,62 @@ Team learning:
   habit;
 - Rose's provenance check helped keep the repository lightweight and clear
   about what was adapted versus copied.
+
+## 2026-05-08: Multiple Random-Effect Scale Formulae
+
+Scope:
+
+- generalized Gaussian random-effect scale formulas from one `sd(group) ~ ...`
+  target to one or more distinct unlabelled `mu` random-intercept targets;
+- kept `sigma ~ ...` as residual or within-observation scale and
+  `sd(group) ~ ...` as random-effect SD scale;
+- added a two-target simulation helper and recovery test for
+  `sd(id) ~ w_id` plus `sd(site) ~ w_site`;
+- updated formula grammar, likelihood, random-effect, testing, roadmap,
+  vignette, README, NEWS, and known-limitations text;
+- added a planning design note for future phylogenetic location-scale-shape
+  models and linked shape/skewness/kurtosis papers into the reference
+  programme.
+
+Commands run:
+
+- `Rscript -e "devtools::test(filter = 'gaussian-random-effect-scale')"`
+- `Rscript -e "devtools::test(filter = 'package-skeleton')"`
+- `Rscript -e "devtools::test(filter = 'comparators')"`
+- `Rscript -e "devtools::test()"`
+- `Rscript -e "devtools::document()"`
+- `Rscript -e "pkgdown::check_pkgdown(); pkgdown::build_site()"`
+- `Rscript -e "devtools::check(error_on = 'never')"`
+- `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`
+- `git diff --check`
+- `air format .`
+
+Results:
+
+- targeted random-effect scale tests: 60 passed, 0 failed.
+- package skeleton tests: 20 passed, 0 failed.
+- comparator tests: 31 passed, 0 failed.
+- full `devtools::test()`: 403 passed, 0 failed.
+- `pkgdown::check_pkgdown()`: no problems found.
+- `pkgdown::build_site()`: site built successfully.
+- standard `devtools::check(error_on = "never")`: 0 errors, 0 warnings,
+  1 local current-time verification note.
+- check with `_R_CHECK_SYSTEM_CLOCK_=FALSE`: 0 errors, 0 warnings, 0 notes.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- `air` is not installed locally, so formatting could not be run.
+- multiple `sd(group) ~ ...` formulas are still limited to distinct unlabelled
+  Gaussian `mu` random intercepts. Slope-specific, labelled-block, bivariate,
+  phylogenetic, spatial, and non-Gaussian scale targets remain future work.
+
+Team learning:
+
+- the C++ likelihood could stay simple by stacking block-diagonal
+  random-effect scale design matrices on the R side;
+- the old single-target assumption was scattered across extractors, prediction,
+  docs, tests, and vignettes, so Rose-style stale-wording scans were essential;
+- Feynman and Confucius clarified that `sd(group) ~ ...` is a bridge toward
+  phylogenetic/spatial random-factor scale models, while shape/skewness should
+  remain a later, more heavily tested extension.

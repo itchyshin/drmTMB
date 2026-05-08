@@ -25,6 +25,13 @@ drm_formula(y ~ x + (0 + x | id), sigma ~ z)
 drm_formula(y ~ x + (1 + x | id), sigma ~ z)
 drm_formula(y ~ x + (1 + x | p | id), sigma ~ z)
 drm_formula(y ~ x + (1 | id), sigma ~ z + (1 | id))
+drm_formula(y ~ x + (1 | id), sigma ~ z, sd(id) ~ x_group)
+drm_formula(
+  y ~ x + (1 | id) + (1 | site),
+  sigma ~ z,
+  sd(id) ~ x_group,
+  sd(site) ~ site_type
+)
 ```
 
 The middle `p` is a group-level covariance-block label. It is not residual

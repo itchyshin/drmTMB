@@ -30,15 +30,20 @@ test_that("drm_formula() captures meta-analysis and random-effect scale syntax",
   form <- drm_formula(
     yi ~ moderator + meta_known_V(V = vi),
     sigma ~ moderator,
-    sd(study) ~ moderator
+    sd(study) ~ moderator,
+    sd(species) ~ habitat
   )
 
   expect_s3_class(form, "drm_formula")
-  expect_length(form$calls, 3)
-  expect_equal(vapply(form$entries, `[[`, character(1), "dpar"), c("mu", "sigma", "sd(study)"))
+  expect_length(form$calls, 4)
+  expect_equal(
+    vapply(form$entries, `[[`, character(1), "dpar"),
+    c("mu", "sigma", "sd(study)", "sd(species)")
+  )
   expect_equal(form$entries[[1]]$response, "yi")
   expect_match(deparse1(form$calls[[1]]), "meta_known_V\\(V = vi\\)")
   expect_match(deparse1(form$calls[[3]]), "sd\\(study\\)")
+  expect_match(deparse1(form$calls[[4]]), "sd\\(species\\)")
 })
 
 test_that("formula markers are no-op placeholders", {

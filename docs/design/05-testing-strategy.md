@@ -71,7 +71,7 @@ standard deviation.
 
 ## Random-Effect Scale Formula Tests
 
-The first implemented random-effect scale model is:
+The simplest implemented random-effect scale model is:
 
 ```r
 drmTMB(
@@ -91,14 +91,15 @@ The test-generating equation should be:
 y_ij | mu_ij, sigma_ij, b_j ~ Normal(mu_ij, sigma_ij^2)
 mu_ij = beta_0 + beta_1 x1_ij + b_j
 log(sigma_ij) = gamma_0 + gamma_1 x2_ij
-b_j = tau_j u_j
+b_j = sd_mu_id,j u_j
 u_j ~ Normal(0, 1)
-log(tau_j) = alpha_0 + alpha_1 x3_j
+log(sd_mu_id,j) = alpha_0 + alpha_1 x3_j
 ```
 
 Fast CRAN tests should include:
 
 - a moderate recovery case for `alpha_0` and `alpha_1`;
+- a multi-target case such as `sd(id) ~ x_id` plus `sd(site) ~ x_site`;
 - a near-constant random-effect scale case with `alpha_1 = 0`;
 - a factor predictor on the `sd(id)` right-hand side;
 - malformed-input tests for absent targets, duplicate targets, ambiguous

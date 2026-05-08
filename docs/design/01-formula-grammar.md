@@ -196,8 +196,10 @@ log(sd_mu_id) = W_id alpha_id
 ```
 
 matches implemented `sd(id) ~ x1` when `id` targets exactly one unlabelled
-univariate Gaussian `mu` random intercept. It models the standard deviation of
-a `mu` random effect, not residual `sigma`. Detailed rules are in
+univariate Gaussian `mu` random intercept. Several distinct unlabelled
+intercept targets can be modelled in the same Gaussian fit, such as `sd(id) ~
+x_id` and `sd(site) ~ x_site`. The syntax models the standard deviation of a
+`mu` random effect, not residual `sigma`. Detailed rules are in
 `docs/design/18-random-effect-scale-models.md`.
 
 Future correlated multi-slope syntax should allow larger model-matrix terms
@@ -217,22 +219,13 @@ A block with `q` random coefficients has `q * (q + 1) / 2` covariance
 parameters, so large random-slope blocks need simulation checks and clear user
 warnings.
 
-Random-effect scale components use `sd(group) ~`. The implemented MVP supports
-one unlabelled Gaussian `mu` random-intercept target:
-
-```r
-bf(
-  y ~ x1 + x2 + (1 | id1),
-  sigma ~ x1,
-  sd(id1) ~ x2
-)
-```
-
-Future multiple random-effect scale components should extend the same syntax:
+Random-effect scale components use `sd(group) ~`. The implemented Gaussian
+path supports one or more distinct unlabelled `mu` random-intercept targets:
 
 ```r
 bf(
   y ~ x1 + x2 + (1 | id1) + (1 | id2),
+  sigma ~ x1,
   sd(id1) ~ x1,
   sd(id2) ~ x1 + x2
 )
@@ -344,7 +337,7 @@ Not every parameter should accept random effects at the same development stage.
 |---|---|
 | `mu`, `mu1`, `mu2` | Yes for univariate Gaussian `mu`; random intercepts, independent numeric random slopes, and labelled or unlabelled ordinary correlated intercept-slope blocks are implemented. Bivariate `mu1`/`mu2` random effects are later. |
 | `sigma`, `sigma1`, `sigma2` | Yes for univariate Gaussian `sigma` random intercepts only, written as `sigma ~ x + (1 | id)`. Residual-scale random slopes, labelled `sigma` blocks, bivariate `sigma1`/`sigma2` random effects, and non-Gaussian scale random effects are later. |
-| `sd(group)` | Implemented first for one unlabelled univariate Gaussian `mu` random intercept, such as `sd(id) ~ x_group`; predictors must be constant within group after missing-row filtering. Multiple targets, labelled blocks, slopes, `sigma` random-effect scales, bivariate models, and non-Gaussian models are later. |
+| `sd(group)` | Implemented for one or more distinct unlabelled univariate Gaussian `mu` random intercepts, such as `sd(id) ~ x_group` and `sd(site) ~ site_type`; predictors must be constant within group after missing-row filtering. Labelled blocks, slopes, `sigma` random-effect scales, bivariate models, and non-Gaussian models are later. |
 | `rho12` | No random effects initially; predictor-dependent fixed effects only. |
 | `nu`, `tau` | Fixed effects first; random effects only after simulations show identifiability. |
 | `zi`, `hu`, `zoi`, `coi` | Fixed effects first; random effects later only for high-value use cases. |
@@ -364,9 +357,9 @@ Not every parameter should accept random effects at the same development stage.
   separate independent slope terms are allowed.
 - Residual-scale random intercepts are currently implemented for the
   univariate Gaussian `sigma` formula.
-- Random-effect scale formulae are currently implemented only as
-  `sd(group) ~ x_group` for exactly one unlabelled univariate Gaussian `mu`
-  random intercept.
+- Random-effect scale formulae are currently implemented as
+  `sd(group) ~ x_group` for one or more distinct unlabelled univariate Gaussian
+  `mu` random intercepts.
 - The parser should reject unsupported formulae early with clear errors.
 
 ## Not in the MVP

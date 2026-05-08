@@ -1,9 +1,10 @@
 # Random-Effect Scale Models
 
 This note is the design contract for random-effect scale formulae such as
-`sd(id) ~ x_group`. The first univariate Gaussian MVP is implemented; the same
-document also records the future extensions so math, R syntax, tests, and user
-explanations stay aligned.
+`sd(id) ~ x_group`. The univariate Gaussian implementation supports one or
+more distinct unlabelled `mu` random-intercept targets; the same document also
+records future extensions so math, R syntax, tests, and user explanations stay
+aligned.
 
 ## Core Distinction
 
@@ -14,7 +15,7 @@ word.
 |---|---|---|---|
 | `sigma_i` | residual or within-observation standard deviation | `sigma ~ x1` | implemented for Gaussian |
 | `a_g` | residual-scale random effect added to `log(sigma_i)` | `sigma ~ x1 + (1 | id)` | implemented for univariate Gaussian random intercepts |
-| `sd_mu_id` | standard deviation of a `mu` random effect | `sd(id) ~ x_group` | implemented for one unlabelled Gaussian `mu` random intercept |
+| `sd_mu_id` | standard deviation of a `mu` random effect | `sd(id) ~ x_group` | implemented for one or more distinct unlabelled Gaussian `mu` random intercepts |
 | `rho_re` | group-level random-effect correlation | `(1 + x1 | id)` | implemented for one `mu` slope |
 | `rho12_i` | residual correlation between two responses | `rho12 ~ x1` | implemented for fixed-effect bivariate Gaussian |
 
@@ -80,7 +81,7 @@ intercepts changes with a predictor. That is the role of `sd(id) ~ x`.
 
 ## Implemented Random-Effect Scale Formula
 
-The first random-effect scale model targets exactly one existing unlabelled
+The simplest random-effect scale model targets one existing unlabelled
 univariate Gaussian `mu` random intercept:
 
 ```text
@@ -107,11 +108,11 @@ drmTMB(
 )
 ```
 
-The right-hand side of `sd(id) ~ x_group` is group-level. In the MVP, each
-predictor in `W_id` must be constant within levels of `id` after missing-row
-filtering. If a predictor varies within `id`, the user should use
-`sigma ~ predictor` for residual scale or aggregate/define a group-level
-predictor before fitting `sd(id) ~ predictor`.
+The right-hand side of `sd(id) ~ x_group` is group-level. Each predictor in
+`W_id` must be constant within levels of `id` after missing-row filtering. If a
+predictor varies within `id`, the user should use `sigma ~ predictor` for
+residual scale or aggregate/define a group-level predictor before fitting
+`sd(id) ~ predictor`.
 
 Ecology/evolution interpretation:
 
@@ -145,6 +146,14 @@ This model has two biologically different scale regressions:
 - `sd(id) ~ habitat`: habitat changes among-individual differences in the
   expected response, or the spread of individual-level intercepts.
 
+This distinction also matches the logic of phylogenetic location-scale models:
+a residual scale equation models log residual SD, whereas a random-factor scale
+equation models the SD of a structured or unstructured group effect. Box 1 of
+the Nakagawa et al. phylogenetic location-scale model paper is the bridge for
+future `drmTMB` work: separate scale equations can be written for different
+random factors, such as phylogenetic and non-phylogenetic species effects,
+without treating all of them as residual `sigma`.
+
 ## Multiple Random-Effect Scale Components
 
 When there are several random-effect components, each scale formula must name
@@ -158,7 +167,7 @@ log(sd_mu_site,k) = W_site[k, ] alpha_site
 log(sd_mu_species,l) = W_species[l, ] alpha_species
 ```
 
-Planned R syntax:
+Implemented R syntax:
 
 ```r
 drmTMB(
@@ -184,8 +193,10 @@ sd(id, dpar = "mu", coef = "(Intercept)") ~ x1
 sd(id, dpar = "mu", coef = "x1") ~ x2
 ```
 
-The first implementation can accept `sd(id) ~ x1` only when there is exactly
-one matching univariate Gaussian `mu` random-intercept term for `id`.
+The current implementation accepts `sd(id) ~ x1` only when there is exactly one
+matching univariate Gaussian `mu` random-intercept term for `id`, but it can
+accept several distinct targets in the same model, such as `sd(site) ~ x3` and
+`sd(species) ~ 1`.
 
 ## Random Slopes
 
@@ -251,20 +262,21 @@ drmTMB(
 between random intercepts, random slopes, or random scale effects. Those
 belong to group-level covariance blocks and should be extracted separately.
 
-## MVP Implementation Rules
+## Implementation Rules
 
-The first `sd(id) ~ x` implementation should:
+The implemented `sd(group) ~ x` path should:
 
 1. support only univariate Gaussian models;
-2. target only one unlabelled `mu` random intercept `(1 | id)`;
+2. target one or more distinct unlabelled `mu` random intercepts such as
+   `(1 | id)` and `(1 | site)`;
 3. reject bivariate models, random slopes, labelled blocks, duplicate targets,
    and mismatched grouping factors;
 4. require right-hand-side predictors to be constant within target groups;
 5. use a non-centered TMB parameterization with standardized `u_j`;
-6. replace the scalar `log_sd_mu` for that target with a group-level linear
-   predictor `W_id alpha_id`;
+6. replace each targeted scalar `log_sd_mu` with a group-level linear
+   predictor such as `W_id alpha_id`;
 7. keep residual `sigma` and residual-scale random effects independent of the
-   `sd(id)` scale model;
+   `sd(group)` scale model;
 8. add simulation recovery and malformed-input tests before user docs call the
    syntax implemented.
 
@@ -273,6 +285,7 @@ The first `sd(id) ~ x` implementation should:
 Tests for the first implementation should include:
 
 - a moderate recovery case for `log(sd_id,j) = alpha_0 + alpha_1 x_j`;
+- a multi-target case such as `sd(id) ~ x_id` plus `sd(site) ~ x_site`;
 - a near-constant scale case with `alpha_1 = 0`;
 - a large scale-slope case that checks positivity and convergence;
 - a factor predictor on the `sd(id)` right-hand side;

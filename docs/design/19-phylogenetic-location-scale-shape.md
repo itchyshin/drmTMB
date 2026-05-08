@@ -1,0 +1,116 @@
+# Phylogenetic Location-Scale-Shape Models
+
+This note records the cautious design direction for future shape models in
+`drmTMB`. It is a planning note, not an implemented feature contract.
+
+## Core Position
+
+Shape models should come after robust Gaussian and Student-t location-scale
+models. In `drmTMB`, a shape parameter should be treated like any other
+distributional parameter, but it is harder to interpret and harder to identify
+than `sigma`.
+
+For a skew-normal-like family:
+
+```text
+y_i ~ SkewNormal(mu_i, sigma_i, nu_i)
+mu_i = X_mu[i, ] beta_mu
+log(sigma_i) = X_sigma[i, ] beta_sigma
+eta_nu_i = X_nu[i, ] beta_nu
+nu_i = inverse_link_nu(eta_nu_i)
+```
+
+Matching future R syntax:
+
+```r
+drmTMB(
+  bf(y ~ x1, sigma ~ x2, nu ~ x3),
+  family = skew_normal(),
+  data = dat
+)
+```
+
+The family documentation must explain what `nu` means for that likelihood. It
+should not assume that `nu` is universally interpretable as biological
+skewness.
+
+## Why Shape Is Harder Than Scale
+
+Scale has a stable role in the current Gaussian implementation:
+
+```text
+log(sigma_i) = X_sigma[i, ] beta_sigma
+```
+
+Shape is family-specific. The same observed asymmetry can arise from skewed
+residuals, heterogeneous residual SDs, non-Gaussian random effects, selective
+disappearance, outliers, unmodelled predictors, or mixtures of subgroups. A
+shape formula can therefore be scientifically useful, but it can also absorb
+misspecified scale or location structure.
+
+For phylogenetic models, this risk is larger. A species-level skewness
+parameter usually requires within-species distributions, not only one species
+mean. A phylogenetic shape model for species averages should not be advertised
+without a specific likelihood and simulation evidence.
+
+## Naming
+
+Use the GAMLSS-style names:
+
+```text
+mu     location
+sigma  scale
+nu     first shape parameter
+tau    second shape parameter
+```
+
+For `skew_normal()`, `nu` can be the asymmetry parameter if the family help page
+documents the mapping to the native skew-normal parameterization.
+
+For `skew_t()`, `nu` and `tau` must be assigned explicitly in the family help
+page. One should control asymmetry and the other tail weight. Do not rely on the
+names alone to communicate the biology.
+
+Aliases such as `skew ~ x` or `shape ~ x` may be considered after the canonical
+grammar is stable, but examples should teach `nu` first.
+
+## Staged Implementation
+
+1. Implement `student()` with `mu`, `sigma`, and tail `nu`.
+2. Implement fixed-effect `skew_normal()` with `mu`, `sigma`, and `nu`.
+3. Add `nu ~ predictors` only after density, simulation, prediction, and
+   residual diagnostics are stable.
+4. Implement Gaussian phylogenetic `mu` and `sigma` before any phylogenetic
+   shape model.
+5. Fit skew-normal models with phylogenetic `mu` or `sigma` but fixed `nu`.
+6. Explore phylogenetic or species-level effects in `nu` only when data include
+   enough within-species replication.
+7. Implement `skew_t()` last because asymmetry and tail weight can trade off.
+
+## Minimum Tests
+
+Before release, shape families need:
+
+- density checks against trusted reference implementations;
+- simulation checks for positive and negative asymmetry;
+- normal-limit tests where the shape parameter reduces to a Gaussian-like case;
+- false-positive tests where data are Gaussian but heteroscedastic;
+- separation tests where both `sigma ~ x` and `nu ~ x` are present;
+- stress tests for sparse species replication before any phylogenetic shape
+  model is promoted.
+
+## Sources To Keep Connected
+
+Local sources:
+
+```text
+/Users/z3437171/Downloads/s41559-022-01694-2.pdf
+/Users/z3437171/Downloads/journal.pbio.3003653.pdf
+/Users/z3437171/Desktop/dis_reg_models/Phylogenetic_location_scale_shape_models.pdf
+/Users/z3437171/Desktop/dis_reg_models/Royal Stata Society Series C - 2005 - Rigby - Generalized additive models for location scale and shape.pdf
+```
+
+The PLOS Biology paper on meta-analysing differences in skewness, kurtosis, and
+correlation belongs in the same evidence set. It should inform future
+meta-analytic shape examples, but it does not change the immediate
+implementation order.

@@ -15,6 +15,12 @@
 #' drm_formula(y ~ x, sigma ~ z)
 #' drm_formula(y ~ x + (1 | id), sigma ~ z, sd(id) ~ x_group)
 #' drm_formula(
+#'   y ~ x + (1 | id) + (1 | site),
+#'   sigma ~ z,
+#'   sd(id) ~ x_group,
+#'   sd(site) ~ site_type
+#' )
+#' drm_formula(
 #'   mu1 = y1 ~ x1 + x2,
 #'   mu2 = y2 ~ x1,
 #'   sigma1 = ~ x1,

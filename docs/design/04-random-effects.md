@@ -13,9 +13,9 @@ the grammar must support them from the start.
    for univariate Gaussian `mu`, with optional covariance-block labels.
 5. Random intercepts in residual scale. Implemented for univariate Gaussian
    `sigma`.
-6. Random-effect scale formulae such as `sd(id) ~ x_group`. Implemented first
-   for one unlabelled univariate Gaussian `mu` random intercept.
-7. Multiple random-effect scale components, slope-specific scales, and
+6. Random-effect scale formulae such as `sd(id) ~ x_group`. Implemented for
+   one or more distinct unlabelled univariate Gaussian `mu` random intercepts.
+7. Slope-specific random-effect scale models, labelled-block scales, and
    correlations among location and scale random effects when identifiable.
 
 ## Initial Syntax
@@ -160,8 +160,9 @@ Current implementation details:
   is reserved for later;
 - residual `sigma` random effects are limited to unlabelled random intercepts
   such as `(1 | id)`;
-- random-effect scale formulae are limited to one unlabelled Gaussian `mu`
-  random intercept, such as `sd(id) ~ x_group`;
+- random-effect scale formulae are implemented for one or more distinct
+  unlabelled Gaussian `mu` random intercepts, such as `sd(id) ~ x_group` and
+  `sd(site) ~ site_type`;
 - random effects are integrated with TMB's Laplace approximation;
 - the TMB parameterization is non-centered; independent terms use
   `b_{term,group} = sd_term * u_{term,group}`, while correlated two-coefficient

@@ -16,8 +16,8 @@ Gaussian location-scale is implemented for fixed-effect models and for
 univariate Gaussian location random intercepts, labelled random intercepts,
 independent numeric random slopes, and labelled or unlabelled ordinary
 correlated random intercept-slope blocks, residual-scale random intercepts in
-the univariate Gaussian `sigma` formula, and a first random-effect scale model
-for one `mu` random intercept:
+the univariate Gaussian `sigma` formula, and random-effect scale models for
+one or more distinct unlabelled `mu` random intercepts:
 
 ```text
 y_i | mu_i, sigma_i ~ Normal(mu_i, sigma_i^2)
@@ -125,8 +125,8 @@ drmTMB(
 This is residual-scale heterogeneity. It is distinct from random-effect scale
 models such as `sd(id) ~ x_group`.
 
-The implemented random-effect scale MVP targets exactly one unlabelled
-univariate Gaussian `mu` random intercept:
+The implemented random-effect scale grammar can target one or more distinct
+unlabelled univariate Gaussian `mu` random intercepts. For one target:
 
 ```text
 y_ij | mu_ij, sigma_ij, b_j ~ Normal(mu_ij, sigma_ij^2)
@@ -153,6 +153,33 @@ The right-hand side of `sd(id) ~ x_group` is evaluated once per `id` level.
 Predictors must be constant within `id` after missing-row filtering. This
 models among-group variation in the location random intercept; it is not a
 residual-scale model and it is not a second `sigma` formula.
+
+For several distinct random-intercept targets, the likelihood uses the same
+non-centered construction for each component:
+
+```text
+mu_i = X_mu[i, ] beta_mu + b_id[id_i] + b_site[site_i]
+b_id[j] = sd_mu_id,j u_id,j
+b_site[k] = sd_mu_site,k u_site,k
+u_id,j, u_site,k ~ Normal(0, 1)
+log(sd_mu_id,j) = W_id[j, ] alpha_id
+log(sd_mu_site,k) = W_site[k, ] alpha_site
+```
+
+Matching R syntax:
+
+```r
+drmTMB(
+  bf(
+    y ~ x1 + (1 | id) + (1 | site),
+    sigma ~ x2,
+    sd(id) ~ x_group,
+    sd(site) ~ site_type
+  ),
+  family = gaussian(),
+  data = dat
+)
+```
 
 Residuals are not part of the formula grammar. They are computed downstream
 from the fitted likelihood.

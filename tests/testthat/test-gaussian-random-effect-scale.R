@@ -64,10 +64,42 @@ test_that("Gaussian sd(id) targets the correct coefficient after preceding block
   non_target_re <- setdiff(seq_len(fit$model$random$mu$n_re), target_re)
 
   expect_equal(fit$opt$convergence, 0)
-  expect_equal(fit$model$random_scale$mu$target_coef, target_coef)
+  expect_equal(unname(fit$model$random_scale$mu$target_coef), target_coef)
   expect_true(all(fit$model$random_scale$mu$re_sd_row0[target_re] >= 0))
   expect_true(all(fit$model$random_scale$mu$re_sd_row0[non_target_re] < 0))
   expect_equal(length(predict(fit, dpar = "sd(id)")), nlevels(dat$id))
+})
+
+test_that("Gaussian supports multiple random-effect scale formulas", {
+  sim <- new_gaussian_multi_re_scale_data()
+
+  fit <- drmTMB(
+    bf(
+      y ~ x + (1 | id) + (1 | site),
+      sigma ~ z,
+      sd(id) ~ w_id,
+      sd(site) ~ w_site
+    ),
+    family = gaussian(),
+    data = sim$data
+  )
+
+  sd_id <- predict(fit, dpar = "sd(id)")
+  sd_site <- predict(fit, dpar = "sd(site)")
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_true(fit$sdr$pdHess)
+  expect_named(fit$coefficients, c("mu", "sigma", "sd(id)", "sd(site)"))
+  expect_named(fit$sdpars, c("sd(id)", "sd(site)"))
+  expect_false("mu" %in% names(fit$sdpars))
+  expect_equal(length(sd_id), nlevels(sim$data$id))
+  expect_equal(length(sd_site), nlevels(sim$data$site))
+  expect_true(all(sd_id > 0))
+  expect_true(all(sd_site > 0))
+  expect_gt(stats::cor(log(sd_id), log(sim$tau_id)), 0.45)
+  expect_gt(stats::cor(log(sd_site), log(sim$tau_site)), 0.35)
+  expect_lt(max(abs(unname(coef(fit, "sd(id)")) - unname(sim$alpha_id))), 0.45)
+  expect_lt(max(abs(unname(coef(fit, "sd(site)")) - unname(sim$alpha_site))), 0.55)
 })
 
 test_that("Gaussian sd(id) reduces to constant random-intercept scale when slope is zero", {
@@ -172,7 +204,7 @@ test_that("Gaussian sd(id) rejects unsupported and ambiguous targets", {
       family = gaussian(),
       data = dat
     ),
-    "Only one random-effect scale formula"
+    "Duplicate random-effect scale formula"
   )
 
   dat$w_obs <- stats::rnorm(nrow(dat))

@@ -172,10 +172,11 @@ drmTMB(
 ```
 
 The `sd(id)` formula creates a group-level design matrix `W_id`, one row per
-retained `id` level. The first implementation accepts this formula only when
-`id` targets exactly one unlabelled Gaussian `mu` random intercept. If a
-predictor on the right-hand side varies within `id` after missing-row
-filtering, the model is rejected.
+retained `id` level. The implementation accepts this formula when `id` targets
+exactly one unlabelled Gaussian `mu` random intercept; several distinct
+unlabelled targets such as `sd(id) ~ x_id` and `sd(site) ~ x_site` can appear
+in the same model. If a predictor on the right-hand side varies within its
+target group after missing-row filtering, the model is rejected.
 
 For an independent random intercept and random slope in the current
 implementation:

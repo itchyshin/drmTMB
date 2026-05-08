@@ -157,6 +157,8 @@ Local sources:
 Royal Stata Society Series C - 2005 - Rigby - Generalized additive models for location scale and shape.pdf
 Statistical Analysis - 2021 - Corrales - Bayesian modeling of location scale and shape parameters in skew-normal.pdf
 Phylogenetic_location_scale_shape_models.pdf
+/Users/z3437171/Downloads/s41559-022-01694-2.pdf
+/Users/z3437171/Downloads/journal.pbio.3003653.pdf
 ```
 
 Package implications:
@@ -173,6 +175,16 @@ Package implications:
   later usability study shows that an alias is needed.
 - `skew_normal()` and `skew_t()` should come after Gaussian and Student-t
   location-scale are reliable.
+- Shape is harder than scale: skewness can come from different biological and
+  statistical levels, including genetic/phylogenetic structure, shared
+  environment, residual environment, outliers, selective disappearance, or
+  unmodelled heteroscedasticity. Do not advertise phylogenetic shape models
+  until simulations show that shape, scale, and tail effects are identifiable.
+- Treat phylogenetic shape as a later extension of phylogenetic location-scale
+  models, not as part of the first phylogenetic implementation.
+- The PLOS Biology paper on meta-analysing differences in skewness, kurtosis,
+  and correlation is relevant for later shape-focused meta-analysis examples,
+  but it does not change the immediate implementation order.
 
 ## Spatial Dependence
 

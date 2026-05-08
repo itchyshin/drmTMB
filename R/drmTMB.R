@@ -4,8 +4,8 @@
 #' supports univariate Gaussian location-scale models, including random
 #' intercepts, independent numeric random slopes, and labelled or unlabelled
 #' correlated numeric random intercept-slope blocks in the location formula,
-#' residual-scale random intercepts in the scale formula, and a first
-#' group-level random-effect scale formula such as `sd(id) ~ x_group`,
+#' residual-scale random intercepts in the scale formula, and one or more
+#' group-level random-effect scale formulae such as `sd(id) ~ x_group`,
 #' plus fixed-effect bivariate Gaussian distributional models.
 #'
 #' @param formula A `drm_formula` object created by [drm_formula()] or [bf()].
@@ -159,23 +159,16 @@ drm_build_gaussian_ls_spec <- function(formula, data, env = parent.frame()) {
   if (sum(dpars[!is_sd_dpar] == "sigma") > 1L) {
     cli::cli_abort("A univariate Gaussian model can have at most one residual {.code sigma} formula.")
   }
-  if (sum(is_sd_dpar) > 1L) {
-    cli::cli_abort(c(
-      "Only one random-effect scale formula is supported in this phase.",
-      "x" = "Use a single formula such as {.code sd(id) ~ x_group}."
-    ))
-  }
-
   mu_entry <- entries[[which(dpars == "mu")]]
   sigma_entry <- if (any(dpars == "sigma")) {
     entries[[which(dpars == "sigma")]]
   } else {
     default_dpar_entry("sigma", quote(1))
   }
-  sd_mu_entry <- if (any(is_sd_dpar)) {
-    entries[[which(is_sd_dpar)]]
+  sd_mu_entries <- if (any(is_sd_dpar)) {
+    entries[is_sd_dpar]
   } else {
-    NULL
+    list()
   }
 
   if (is.na(mu_entry$response)) {
@@ -188,27 +181,23 @@ drm_build_gaussian_ls_spec <- function(formula, data, env = parent.frame()) {
   mu_entry$rhs <- mu_re$rhs
   sigma_re <- extract_random_sigma_terms(sigma_entry$rhs, "sigma")
   sigma_entry$rhs <- sigma_re$rhs
-  sd_mu_target <- parse_sd_mu_entry(sd_mu_entry, mu_re$terms)
+  sd_mu_targets <- parse_sd_mu_entries(sd_mu_entries, mu_re$terms)
 
   drm_reject_phase1_terms(mu_entry$rhs, "mu")
   drm_reject_phase1_terms(sigma_entry$rhs, "sigma")
-  if (!is.null(sd_mu_entry)) {
+  for (sd_mu_entry in sd_mu_entries) {
     drm_reject_phase1_terms(sd_mu_entry$rhs, sd_mu_entry$dpar)
   }
 
   f_mu <- drm_entry_formula(mu_entry, response = TRUE)
   f_sigma <- drm_entry_formula(sigma_entry, response = FALSE)
-  f_sd_mu <- if (!is.null(sd_mu_entry)) {
-    drm_entry_formula(sd_mu_entry, response = FALSE)
-  } else {
-    NULL
-  }
+  f_sd_mu <- lapply(sd_mu_entries, drm_entry_formula, response = FALSE)
 
   vars <- unique(c(
     all.vars(f_mu),
     all.vars(f_sigma),
-    if (!is.null(f_sd_mu)) all.vars(f_sd_mu),
-    if (!is.null(sd_mu_target)) sd_mu_target$group,
+    unlist(lapply(f_sd_mu, all.vars), use.names = FALSE),
+    vapply(sd_mu_targets, `[[`, character(1), "group"),
     random_effect_vars(mu_re$terms),
     random_effect_vars(sigma_re$terms)
   ))
@@ -233,7 +222,7 @@ drm_build_gaussian_ls_spec <- function(formula, data, env = parent.frame()) {
   X_sigma <- stats::model.matrix(stats::terms(mf_sigma), mf_sigma)
   re_mu <- build_random_mu_structure(mu_re$terms, data_model)
   re_sigma <- build_random_sigma_structure(sigma_re$terms, data_model)
-  sd_mu <- build_sd_mu_structure(sd_mu_entry, sd_mu_target, re_mu, data_model)
+  sd_mu <- build_sd_mu_structure(sd_mu_entries, sd_mu_targets, re_mu, data_model)
 
   if (length(y) != nrow(X_sigma)) {
     cli::cli_abort("Internal model-frame mismatch between {.code mu} and {.code sigma}.")
@@ -693,6 +682,30 @@ parse_sd_mu_entry <- function(entry, mu_terms) {
   )
 }
 
+parse_sd_mu_entries <- function(entries, mu_terms) {
+  if (length(entries) == 0L) {
+    return(list())
+  }
+  targets <- lapply(entries, parse_sd_mu_entry, mu_terms = mu_terms)
+  dpars <- vapply(targets, `[[`, character(1), "dpar")
+  if (anyDuplicated(dpars)) {
+    duplicate <- dpars[duplicated(dpars)][[1L]]
+    cli::cli_abort(c(
+      "Duplicate random-effect scale formula {.code {duplicate}}.",
+      "x" = "Each unlabelled {.fn sd} target can have only one scale formula."
+    ))
+  }
+  target_coef <- vapply(targets, `[[`, integer(1), "target_coef")
+  if (anyDuplicated(target_coef)) {
+    duplicate <- dpars[duplicated(target_coef)][[1L]]
+    cli::cli_abort(c(
+      "Duplicate random-effect scale target {.code {duplicate}}.",
+      "x" = "Each {.code mu} random-effect coefficient can have only one scale formula."
+    ))
+  }
+  targets
+}
+
 empty_random_mu_structure <- function(n) {
   list(
     n_terms = 0L,
@@ -727,12 +740,16 @@ empty_sd_mu_structure <- function(n_re = 1L) {
     target_label = NA_character_,
     X = matrix(0, nrow = 1L, ncol = 1L),
     X_list = list(),
+    coef_index = list(),
+    row_index = list(),
     terms = NULL,
     terms_list = list(),
     model_frame = NULL,
     model_frame_list = list(),
     coef_names = character(),
+    coef_names_list = list(),
     group_levels = character(),
+    group_levels_list = list(),
     re_sd_row0 = rep.int(-1L, n_re)
   )
 }
@@ -853,52 +870,124 @@ build_random_sigma_structure <- function(terms, data) {
   re_sigma
 }
 
-build_sd_mu_structure <- function(entry, target, re_mu, data) {
-  if (is.null(entry)) {
+build_sd_mu_structure <- function(entries, targets, re_mu, data) {
+  if (length(entries) == 0L) {
     return(empty_sd_mu_structure(re_mu$n_re))
   }
   if (re_mu$n_re == 0L) {
     cli::cli_abort("Internal error: {.code sd()} target was validated without a {.code mu} random effect.")
   }
 
-  f_sd <- drm_entry_formula(entry, response = FALSE)
-  mf_sd <- stats::model.frame(f_sd, data = data, na.action = stats::na.omit)
-  group <- factor(data[[target$group]], levels = re_mu$groups[[target$target_coef]])
-  validate_sd_mu_group_constant(mf_sd, group, entry$dpar, target$group)
-
-  group_first <- match(levels(group), as.character(group))
-  if (anyNA(group_first)) {
-    cli::cli_abort("Internal error: failed to align {.code sd()} scale rows with random-effect groups.")
-  }
-  mf_group <- mf_sd[group_first, , drop = FALSE]
-  X <- stats::model.matrix(stats::terms(mf_sd), mf_group)
-  rownames(X) <- levels(group)
-
+  dpars <- vapply(entries, `[[`, character(1), "dpar")
+  X_list <- vector("list", length(entries))
+  terms_list <- vector("list", length(entries))
+  model_frame_list <- vector("list", length(entries))
+  coef_index <- vector("list", length(entries))
+  row_index <- vector("list", length(entries))
+  coef_names_list <- vector("list", length(entries))
+  group_levels_list <- vector("list", length(entries))
+  names(X_list) <- names(terms_list) <- names(model_frame_list) <- dpars
+  names(coef_index) <- names(row_index) <- names(coef_names_list) <- dpars
+  names(group_levels_list) <- dpars
   re_sd_row0 <- rep.int(-1L, re_mu$n_re)
-  target_re <- which(re_mu$term_id0 == target$target_coef - 1L)
-  re_sd_row0[target_re] <- seq_along(target_re) - 1L
+  coef_offset <- 0L
+  row_offset <- 0L
+
+  for (i in seq_along(entries)) {
+    entry <- entries[[i]]
+    target <- targets[[i]]
+    f_sd <- drm_entry_formula(entry, response = FALSE)
+    mf_sd <- stats::model.frame(f_sd, data = data, na.action = stats::na.omit)
+    group <- factor(data[[target$group]], levels = re_mu$groups[[target$target_coef]])
+    validate_sd_mu_group_constant(mf_sd, group, entry$dpar, target$group)
+
+    group_first <- match(levels(group), as.character(group))
+    if (anyNA(group_first)) {
+      cli::cli_abort("Internal error: failed to align {.code sd()} scale rows with random-effect groups.")
+    }
+    mf_group <- mf_sd[group_first, , drop = FALSE]
+    X <- stats::model.matrix(stats::terms(mf_sd), mf_group)
+    rownames(X) <- levels(group)
+
+    p <- ncol(X)
+    r <- nrow(X)
+    coef_index[[entry$dpar]] <- seq.int(coef_offset + 1L, length.out = p)
+    row_index[[entry$dpar]] <- seq.int(row_offset + 1L, length.out = r)
+    coef_offset <- coef_offset + p
+    row_offset <- row_offset + r
+
+    target_re <- which(re_mu$term_id0 == target$target_coef - 1L)
+    re_sd_row0[target_re] <- row_index[[entry$dpar]][seq_along(target_re)] - 1L
+
+    X_list[[entry$dpar]] <- X
+    terms_list[[entry$dpar]] <- stats::terms(mf_sd)
+    model_frame_list[[entry$dpar]] <- mf_group
+    coef_names_list[[entry$dpar]] <- colnames(X)
+    group_levels_list[[entry$dpar]] <- rownames(X)
+  }
+
+  X <- block_diagonal_matrices(X_list, dpars)
+  target_term <- stats::setNames(
+    vapply(targets, `[[`, integer(1), "target_term"),
+    dpars
+  )
+  target_coef <- stats::setNames(
+    vapply(targets, `[[`, integer(1), "target_coef"),
+    dpars
+  )
+  group <- stats::setNames(vapply(targets, `[[`, character(1), "group"), dpars)
+  target_label <- stats::setNames(
+    vapply(targets, `[[`, character(1), "label"),
+    dpars
+  )
 
   structure(
     list(
-      n_models = 1L,
-      dpars = entry$dpar,
-      dpar = entry$dpar,
-      group = target$group,
-      target_term = target$target_term,
-      target_coef = target$target_coef,
-      target_label = target$label,
+      n_models = length(entries),
+      dpars = dpars,
+      dpar = if (length(dpars) == 1L) dpars else NA_character_,
+      group = group,
+      target_term = target_term,
+      target_coef = target_coef,
+      target_label = target_label,
       X = X,
-      X_list = stats::setNames(list(X), entry$dpar),
-      terms = stats::terms(mf_sd),
-      terms_list = stats::setNames(list(stats::terms(mf_sd)), entry$dpar),
-      model_frame = mf_group,
-      model_frame_list = stats::setNames(list(mf_group), entry$dpar),
-      coef_names = colnames(X),
-      group_levels = rownames(X),
+      X_list = X_list,
+      coef_index = coef_index,
+      row_index = row_index,
+      terms = if (length(dpars) == 1L) terms_list[[1L]] else NULL,
+      terms_list = terms_list,
+      model_frame = if (length(dpars) == 1L) model_frame_list[[1L]] else NULL,
+      model_frame_list = model_frame_list,
+      coef_names = if (length(dpars) == 1L) coef_names_list[[1L]] else colnames(X),
+      coef_names_list = coef_names_list,
+      group_levels = if (length(dpars) == 1L) group_levels_list[[1L]] else rownames(X),
+      group_levels_list = group_levels_list,
       re_sd_row0 = re_sd_row0
     ),
     class = "drm_sd_mu_structure"
   )
+}
+
+block_diagonal_matrices <- function(mats, names = names(mats)) {
+  n_row <- sum(vapply(mats, nrow, integer(1)))
+  n_col <- sum(vapply(mats, ncol, integer(1)))
+  out <- matrix(0, nrow = n_row, ncol = n_col)
+  row_names <- character(n_row)
+  col_names <- character(n_col)
+  row_offset <- 0L
+  col_offset <- 0L
+  for (i in seq_along(mats)) {
+    mat <- mats[[i]]
+    rows <- seq.int(row_offset + 1L, length.out = nrow(mat))
+    cols <- seq.int(col_offset + 1L, length.out = ncol(mat))
+    out[rows, cols] <- mat
+    row_names[rows] <- paste0(names[[i]], ":", rownames(mat))
+    col_names[cols] <- paste0(names[[i]], ":", colnames(mat))
+    row_offset <- row_offset + nrow(mat)
+    col_offset <- col_offset + ncol(mat)
+  }
+  dimnames(out) <- list(row_names, col_names)
+  out
 }
 
 validate_sd_mu_group_constant <- function(model_frame, group, dpar, group_name) {
@@ -1228,7 +1317,10 @@ gaussian_sd_mu_start <- function(mu_re_start, sd_mu) {
     return(0)
   }
   out <- numeric(ncol(sd_mu$X))
-  out[1L] <- mu_re_start$log_sd_mu[[sd_mu$target_coef]]
+  for (dpar in sd_mu$dpars) {
+    coef_index <- sd_mu$coef_index[[dpar]]
+    out[[coef_index[[1L]]]] <- mu_re_start$log_sd_mu[[sd_mu$target_coef[[dpar]]]]
+  }
   names(out) <- colnames(sd_mu$X)
   out
 }
@@ -1298,7 +1390,7 @@ gaussian_ls_map <- function(re_mu = empty_random_mu_structure(1L),
   }
   if (re_mu$n_re > 0L && sd_mu$n_models > 0L) {
     log_sd_map <- seq_len(re_mu$n_terms)
-    log_sd_map[[sd_mu$target_coef]] <- NA_integer_
+    log_sd_map[unname(sd_mu$target_coef)] <- NA_integer_
     out$log_sd_mu <- factor(log_sd_map)
   }
   if (re_sigma$n_re == 0L) {
@@ -1406,8 +1498,12 @@ split_tmb_parameters <- function(par, spec) {
     out <- list(mu = beta_mu, sigma = beta_sigma)
     if (spec$random_scale$mu$n_models > 0L) {
       beta_sd_mu <- unname(par$beta_sd_mu[seq_len(ncol(spec$random_scale$mu$X))])
-      names(beta_sd_mu) <- colnames(spec$random_scale$mu$X)
-      out[[spec$random_scale$mu$dpar]] <- beta_sd_mu
+      for (dpar in spec$random_scale$mu$dpars) {
+        coef_index <- spec$random_scale$mu$coef_index[[dpar]]
+        beta_sd_mu_dpar <- beta_sd_mu[coef_index]
+        names(beta_sd_mu_dpar) <- spec$random_scale$mu$coef_names_list[[dpar]]
+        out[[dpar]] <- beta_sd_mu_dpar
+      }
     }
     return(out)
   }
@@ -1440,10 +1536,12 @@ split_tmb_sdpars <- function(par, spec) {
   if (spec$random$mu$n_re > 0L) {
     unmodelled <- seq_len(spec$random$mu$n_terms)
     if (spec$random_scale$mu$n_models > 0L) {
-      unmodelled <- setdiff(unmodelled, spec$random_scale$mu$target_coef)
-      sd_group <- sd_mu_group_values(par, spec$random_scale$mu)
-      names(sd_group) <- paste0(spec$random_scale$mu$dpar, ":", spec$random_scale$mu$group_levels)
-      out[[spec$random_scale$mu$dpar]] <- sd_group
+      unmodelled <- setdiff(unmodelled, unname(spec$random_scale$mu$target_coef))
+      for (dpar in spec$random_scale$mu$dpars) {
+        sd_group <- sd_mu_group_values(par, spec$random_scale$mu, dpar = dpar)
+        names(sd_group) <- paste0(dpar, ":", spec$random_scale$mu$group_levels_list[[dpar]])
+        out[[dpar]] <- sd_group
+      }
     }
     if (length(unmodelled) > 0L) {
       sd_mu <- exp(unname(par$log_sd_mu[unmodelled]))
@@ -1526,10 +1624,15 @@ mu_sd_by_random_effect <- function(par, re_mu, sd_mu) {
   out
 }
 
-sd_mu_group_values <- function(par, sd_mu) {
+sd_mu_group_values <- function(par, sd_mu, dpar = NULL) {
   eta <- as.vector(sd_mu$X %*% unname(par$beta_sd_mu[seq_len(ncol(sd_mu$X))]))
   out <- exp(eta)
   names(out) <- sd_mu$group_levels
+  if (!is.null(dpar)) {
+    row_index <- sd_mu$row_index[[dpar]]
+    out <- out[row_index]
+    names(out) <- sd_mu$group_levels_list[[dpar]]
+  }
   out
 }
 

@@ -116,11 +116,21 @@ These connect directly to location-scale-shape modelling.
   and the other controls tail weight.
 - `asym_laplace()`: quantile-focused distributional regression.
 
-Start with `skew_normal()` after Student-t is stable.
+Start with `skew_normal()` after Student-t is stable, and keep shape random
+effects out of the first implementation. Shape models are more fragile than
+scale models because asymmetry can trade off with location, residual scale,
+tail weight, outliers, and unmodelled heteroscedasticity. Phylogenetic
+location-scale-shape models should be staged only after Gaussian phylogenetic
+location-scale models pass simulation recovery.
 
 Shape naming follows the GAMLSS convention: `nu` for the first shape parameter
 and `tau` for the second. Aliases such as `skew` or `df` may be helpful later,
 but package examples should teach the canonical names first.
+
+For skew-normal-like families, document precisely how `nu` maps to the native
+asymmetry parameter. For skew-t-like families, document which of `nu` and `tau`
+controls asymmetry and which controls tail weight; do not assume users can infer
+that from the parameter name alone.
 
 ## Tier 8: Ordinal and Categorical Responses
 
