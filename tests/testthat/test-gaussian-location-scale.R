@@ -43,6 +43,18 @@ test_that("drmTMB fits fixed-effect Gaussian location-scale models", {
   expect_equal(stats::fitted(fit), predict(fit, dpar = "mu"), tolerance = 1e-12)
   expect_true(all(stats::sigma(fit) > 0))
   expect_s3_class(stats::logLik(fit), "logLik")
+  expect_equal(stats::nobs(fit), n)
+  expect_equal(stats::df.residual(fit), fit$nobs - fit$df)
+  expect_equal(
+    stats::deviance(fit),
+    -2 * as.numeric(stats::logLik(fit)),
+    tolerance = 1e-12
+  )
+  expect_equal(
+    stats::AIC(fit),
+    stats::deviance(fit) + 2 * fit$df,
+    tolerance = 1e-12
+  )
 })
 
 test_that("drmTMB uses complete cases across Gaussian location-scale terms", {
@@ -61,6 +73,7 @@ test_that("drmTMB uses complete cases across Gaussian location-scale terms", {
 
   expect_equal(fit$opt$convergence, 0)
   expect_equal(fit$nobs, sum(keep))
+  expect_equal(stats::nobs(fit), sum(keep))
   expect_equal(fit$model$keep, keep)
   expect_equal(fit$data$y, dat$y[keep])
   expect_equal(fit$data$x, dat$x[keep])

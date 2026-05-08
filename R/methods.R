@@ -170,6 +170,43 @@ logLik.drmTMB <- function(object, ...) {
   out
 }
 
+#' Extract standard model-fit quantities
+#'
+#' These methods expose `drmTMB` fits to standard base-R model summary and
+#' comparison helpers.
+#'
+#' `nobs()` returns the number of fitted rows after complete-case filtering.
+#' `df.residual()` returns `nobs - df`, where `df` is the number of optimized
+#' top-level parameters recorded in `logLik()`. `deviance()` returns
+#' `-2 * logLik`; for these likelihood-based distributional models this is an
+#' absolute negative twice log-likelihood value, not a saturated-model GLM
+#' deviance.
+#'
+#' @param object A `drmTMB` fit.
+#' @param ... Reserved for future extractor options.
+#'
+#' @return Numeric scalar.
+#' @name model-fit-extractors
+NULL
+
+#' @rdname model-fit-extractors
+#' @export
+nobs.drmTMB <- function(object, ...) {
+  object$nobs
+}
+
+#' @rdname model-fit-extractors
+#' @export
+df.residual.drmTMB <- function(object, ...) {
+  object$nobs - object$df
+}
+
+#' @rdname model-fit-extractors
+#' @export
+deviance.drmTMB <- function(object, ...) {
+  -2 * as.numeric(stats::logLik(object))
+}
+
 #' @export
 predict.drmTMB <- function(object, newdata = NULL, dpar = NULL,
                            type = c("response", "link"), ...) {

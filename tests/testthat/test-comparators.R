@@ -44,6 +44,8 @@ test_that("Gaussian random intercepts agree with lme4 on an overlapping model", 
     as.numeric(stats::logLik(fit_lme4)),
     tolerance = 1e-4
   )
+  expect_equal(stats::AIC(fit), stats::AIC(fit_lme4), tolerance = 1e-4)
+  expect_equal(stats::BIC(fit), stats::BIC(fit_lme4), tolerance = 1e-4)
 })
 
 test_that("Gaussian independent random slopes agree with lme4 on an overlapping model", {

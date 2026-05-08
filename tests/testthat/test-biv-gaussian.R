@@ -192,6 +192,13 @@ test_that("bivariate Gaussian methods return expected structures", {
   expect_equal(colnames(fitted_mu), c("mu1", "mu2"))
   expect_equal(fitted_mu[, "mu1"], predict(fit, dpar = "mu1"), tolerance = 1e-12)
   expect_equal(fitted_mu[, "mu2"], predict(fit, dpar = "mu2"), tolerance = 1e-12)
+  expect_equal(stats::nobs(fit), nrow(sim$data))
+  expect_equal(stats::df.residual(fit), fit$nobs - fit$df)
+  expect_equal(
+    stats::deviance(fit),
+    -2 * as.numeric(stats::logLik(fit)),
+    tolerance = 1e-12
+  )
   expect_named(sig, c("sigma1", "sigma2"))
   expect_equal(length(sig$sigma1), nrow(sim$data))
   expect_equal(dim(sims), c(nrow(sim$data), 4))

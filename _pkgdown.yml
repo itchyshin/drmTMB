@@ -73,6 +73,7 @@ reference:
       - starts_with("drmTMB")
       - fitted.drmTMB
       - fixef
+      - model-fit-extractors
       - ranef
       - rho12
       - starts_with("predict")

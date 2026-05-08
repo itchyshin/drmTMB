@@ -2338,3 +2338,66 @@ Team learning:
 - familiar base-R extractors reduce friction, but the tutorials still need the
   math-to-R mapping so users know exactly which model quantity is being
   returned.
+
+## 2026-05-08: Standard Model-Fit Extractors
+
+Scope:
+
+- added S3 methods for `nobs()`, `df.residual()`, and `deviance()`;
+- documented that `deviance()` is `-2 * logLik` for these likelihood-based
+  distributional models, not a saturated-model GLM deviance;
+- added a pkgdown reference page for the standard model-fit extractor methods;
+- added tests for complete-case row counts, residual degrees of freedom,
+  deviance algebra, AIC algebra, and AIC/BIC agreement with `lme4` on an
+  overlapping Gaussian mixed model.
+
+Commands run:
+
+- `Rscript -e "devtools::document()"`
+- `Rscript -e "devtools::test(filter = 'gaussian-location-scale')"`
+- `Rscript -e "devtools::test(filter = 'biv-gaussian')"`
+- `Rscript -e "devtools::test(filter = 'comparators')"`
+- `Rscript -e "devtools::load_all(); fit <- drmTMB(bf(y ~ x), data = data.frame(y = rnorm(20), x = rnorm(20)), family = gaussian()); stopifnot(stats::nobs(fit) == 20L, is.numeric(stats::df.residual(fit)), is.numeric(stats::deviance(fit))); cat('namespace smoke ok\\n')"`
+- `air format .`
+- `Rscript -e "devtools::test()"`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `git diff --check`
+- `Rscript -e "pkgdown::build_site()"`
+- `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`
+- `rg -n "model-fit-extractors|nobs\\(|df\\.residual\\(|deviance\\(|AIC\\(|BIC\\(" R tests vignettes README.md NEWS.md man _pkgdown.yml pkgdown-site/reference pkgdown-site/news`
+
+Results:
+
+- targeted `gaussian-location-scale` tests: 50 passed, 0 failed;
+- targeted `biv-gaussian` tests: 59 passed, 0 failed;
+- targeted `comparators` tests: 33 passed, 0 failed;
+- namespace smoke test for `nobs()`, `df.residual()`, and `deviance()` passed;
+- full `devtools::test()`: 518 passed, 0 failed;
+- `pkgdown::check_pkgdown()`: no problems found;
+- `pkgdown::build_site()`: site built successfully with
+  `reference/model-fit-extractors.html`;
+- final `devtools::check()` with `_R_CHECK_SYSTEM_CLOCK_=FALSE`: 0 errors,
+  0 warnings, 0 notes;
+- `git diff --check`: clean;
+- `air format .` could not run because `air` is not installed on this machine.
+
+What did not go smoothly:
+
+- The first `devtools::check()` run failed with namespace-load warnings because
+  `nobs`, `df.residual`, and `deviance` were registered as S3 methods before
+  their `stats` generics were imported.
+- Adding the missing `@importFrom stats nobs df.residual deviance` entries and
+  regenerating `NAMESPACE` fixed the issue.
+
+Known limitations:
+
+- `df.residual()` uses the current `nobs - df` convention where `df` is the
+  number of optimized top-level parameters in `logLik()`;
+- future penalized or constrained models may need more explicit documentation
+  if effective degrees of freedom differ from this simple count.
+
+Team learning:
+
+- base-R S3 methods for `stats` generics need both the S3 method registration
+  and the generic import; `devtools::test()` alone did not catch this, but
+  `devtools::check()` did.
