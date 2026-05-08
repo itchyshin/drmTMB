@@ -192,6 +192,41 @@ test_that("drm_phylo_augmented_precision handles ultrametric polytomies", {
   )
 })
 
+test_that("drm_phylo_precision_nll matches the augmented Gaussian density", {
+  tree <- tiny_ultrametric_tree()
+  precision <- drmTMB:::drm_phylo_augmented_precision(tree)
+  effect <- c(sp_a = 0.2, sp_b = -0.1, sp_c = 0.35, node4 = 0.05)
+  log_sd <- log(0.7)
+  quadratic <- sum(effect * as.numeric(precision$precision %*% effect))
+  expected <- 0.5 * (
+    length(effect) * log(2 * pi) +
+      2 * length(effect) * log_sd -
+      precision$log_det_precision +
+      exp(-2 * log_sd) * quadratic
+  )
+  edge_quadratic <- precision$height * (
+    (effect[["node4"]] - 0)^2 / 1 +
+      (effect[["sp_a"]] - effect[["node4"]])^2 / 1 +
+      (effect[["sp_b"]] - effect[["node4"]])^2 / 1 +
+      (effect[["sp_c"]] - 0)^2 / 2
+  )
+
+  expect_equal(quadratic, edge_quadratic, tolerance = 1e-12)
+  expect_equal(
+    drmTMB:::drm_phylo_precision_nll(effect, precision, log_sd = log_sd),
+    expected,
+    tolerance = 1e-12
+  )
+  expect_error(
+    drmTMB:::drm_phylo_precision_nll(effect[-1], precision),
+    "matching"
+  )
+  expect_error(
+    drmTMB:::drm_phylo_precision_nll(effect, precision, log_sd = NA_real_),
+    "finite numeric scalar"
+  )
+})
+
 test_that("validate_phylo_tree rejects malformed tree inputs", {
   tree <- tiny_ultrametric_tree()
   no_lengths <- tree

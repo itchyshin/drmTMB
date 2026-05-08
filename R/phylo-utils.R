@@ -283,6 +283,32 @@ drm_phylo_augmented_precision <- function(tree, species = NULL,
   out
 }
 
+drm_phylo_precision_nll <- function(effect, precision, log_sd = 0) {
+  if (!inherits(precision, "drm_phylo_precision")) {
+    cli::cli_abort("{.arg precision} must come from {.fn drm_phylo_augmented_precision}.")
+  }
+  effect <- as.numeric(effect)
+  n_effect <- length(effect)
+  if (n_effect != nrow(precision$precision) || anyNA(effect) ||
+      any(!is.finite(effect))) {
+    cli::cli_abort(
+      "{.arg effect} must be a finite numeric vector matching the precision size."
+    )
+  }
+  if (!is.numeric(log_sd) || length(log_sd) != 1L ||
+      is.na(log_sd) || !is.finite(log_sd)) {
+    cli::cli_abort("{.arg log_sd} must be a finite numeric scalar.")
+  }
+
+  quadratic <- sum(effect * as.numeric(precision$precision %*% effect))
+  0.5 * (
+    n_effect * log(2 * pi) +
+      2 * n_effect * log_sd -
+      precision$log_det_precision +
+      exp(-2 * log_sd) * quadratic
+  )
+}
+
 phylo_augmented_node_labels <- function(node_id, tip_label) {
   labels <- paste0("node", node_id)
   tip <- node_id <= length(tip_label)

@@ -1818,3 +1818,45 @@ Team learning:
   invariance, species mapping, and malformed-input paths;
 - this helper is the bridge from symbolic Brownian increments to the eventual
   TMB sparse prior block.
+
+## 2026-05-08: Phylogenetic Prior NLL Algebra Helper
+
+Scope:
+
+- added an internal pure-R Gaussian prior contribution helper for augmented
+  phylogenetic effects;
+- matched the helper to the sparse augmented precision, log determinant, and
+  structured-effect SD parameterization that the future TMB block should use;
+- added tests comparing the helper with the explicit Gaussian precision-density
+  formula and the edge-increment quadratic form.
+
+Commands run:
+
+- `Rscript -e "devtools::test(filter = 'phylo-utils')"`
+- `Rscript -e "devtools::test()"`
+- `git diff --check`
+- `air format .`
+- `Rscript -e "pkgdown::check_pkgdown(); pkgdown::build_site()"`
+- `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`
+
+Results:
+
+- targeted phylogenetic utility tests: 43 passed, 0 failed.
+- full `devtools::test()`: 463 passed, 0 failed.
+- `git diff --check`: passed.
+- `pkgdown::check_pkgdown()`: no problems found.
+- `pkgdown::build_site()`: site built successfully.
+- `devtools::check()` with `_R_CHECK_SYSTEM_CLOCK_=FALSE`: 0 errors,
+  0 warnings, 0 notes.
+
+Known limitations:
+
+- `air` is not installed locally, so formatting could not be run.
+- no TMB likelihood or fitted `phylo()` model term was changed in this slice;
+
+Team learning:
+
+- the Gaussian prior constant must use `-logdet(Q_A)` in the NLL expression
+  because `Q_A` is the precision for the correlation matrix;
+- testing the edge-increment quadratic and the precision-density formula in
+  the same test gives Noether and Gauss the same contract before C++ work.

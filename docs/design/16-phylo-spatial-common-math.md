@@ -185,7 +185,21 @@ comparator:
 solve(Q_A)[tips, tips] = R
 ```
 
-This is still internal algebra, not fitted model support.
+For a structured-effect SD `sigma_phylo = exp(log_sd)`, the Gaussian prior
+contribution for augmented latent vector `z` is:
+
+```text
+nll_phylo =
+  0.5 * [
+    n log(2 pi)
+    + 2 n log_sd
+    - logdet(Q_A)
+    + exp(-2 log_sd) z' Q_A z
+  ]
+```
+
+This is still internal algebra, not fitted model support. The next C++/TMB
+block should reproduce this expression exactly.
 
 Accepted public forms:
 
