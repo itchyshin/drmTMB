@@ -20,8 +20,9 @@
   `spatial(1 | site, coords = coords)` are parsed and rejected clearly, but
   they are not yet routed into the TMB likelihood.
 - An internal phylogenetic tree validator and dense Brownian covariance
-  comparator exist for tiny ultrametric `phylo` objects, but the public
-  `phylo()` model term still does not fit a phylogenetic effect.
+  comparator exist for tiny ultrametric `phylo` objects. An internal sparse
+  augmented Brownian precision helper also exists for positive branch lengths,
+  but the public `phylo()` model term still does not fit a phylogenetic effect.
 - The TMB template currently supports fixed effects, univariate Gaussian `mu`
   random intercepts, numeric random-slope terms, ordinary correlated
   intercept-slope blocks with optional covariance-block labels, and univariate

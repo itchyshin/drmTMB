@@ -1768,3 +1768,53 @@ Team learning:
   likelihood path;
 - public docs must continue to say that `phylo(1 | species, tree = tree)` is
   planned, even though internal tree checks now exist.
+
+## 2026-05-08: Phylogenetic Augmented Precision Scaffold
+
+Scope:
+
+- added an internal sparse augmented Brownian precision helper for ultrametric
+  `phylo` trees with positive branch lengths;
+- fixed the root state at zero and excluded it from the latent vector;
+- defaulted the precision to the phylogenetic correlation scale used by
+  `z ~ MVN(0, sigma_phylo^2 A)`;
+- tested sparse augmented precision against the existing dense Brownian
+  comparator by marginalizing the augmented covariance back to tips;
+- added species-to-tip and species-to-augmented-node mapping metadata for the
+  future `phylo(1 | species, tree = tree)` likelihood path.
+
+Commands run:
+
+- `Rscript -e "devtools::test(filter = 'phylo-utils')"`
+- `Rscript -e "devtools::test()"`
+- `git diff --check`
+- `air format .`
+- `Rscript -e "pkgdown::check_pkgdown(); pkgdown::build_site()"`
+- `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`
+
+Results:
+
+- targeted phylogenetic utility tests: 39 passed, 0 failed.
+- full `devtools::test()`: 459 passed, 0 failed.
+- `git diff --check`: passed.
+- `pkgdown::check_pkgdown()`: no problems found.
+- `pkgdown::build_site()`: site built successfully.
+- `devtools::check()` with `_R_CHECK_SYSTEM_CLOCK_=FALSE`: 0 errors,
+  0 warnings, 0 notes.
+
+Known limitations:
+
+- `air` is not installed locally, so formatting could not be run.
+- no fitted `phylo()` model term or TMB likelihood was changed in this slice;
+- zero-length branches are rejected by the precision helper, even though the
+  tree validator can still validate a zero-length ultrametric tree;
+
+Team learning:
+
+- Locke caught the key numerical distinction: the tip block of a precision
+  matrix is not the marginal tip precision; tests must solve the augmented
+  system and then select tip rows;
+- Pasteur's test plan helped pin exact log-determinants, edge-order
+  invariance, species mapping, and malformed-input paths;
+- this helper is the bridge from symbolic Brownian increments to the eventual
+  TMB sparse prior block.

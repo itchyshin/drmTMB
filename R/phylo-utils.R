@@ -85,11 +85,21 @@ validate_phylo_tree <- function(tree, species = NULL,
     cli::cli_abort("{.arg tree} must have positive root-to-tip height.")
   }
 
-  species_levels <- validate_phylo_species(species, tip_label)
+  species_values <- if (is.null(species)) {
+    NULL
+  } else {
+    as.character(species)
+  }
+  species_levels <- validate_phylo_species(species_values, tip_label)
   species_index <- if (is.null(species_levels)) {
     NULL
   } else {
     match(species_levels, tip_label)
+  }
+  observation_species_index <- if (is.null(species_levels)) {
+    NULL
+  } else {
+    match(species_values, species_levels)
   }
 
   list(
@@ -100,7 +110,8 @@ validate_phylo_tree <- function(tree, species = NULL,
     height = height,
     node_depth = depths,
     species_levels = species_levels,
-    species_index = species_index
+    species_index = species_index,
+    observation_species_index = observation_species_index
   )
 }
 
@@ -182,6 +193,101 @@ drm_phylo_tip_covariance <- function(tree, species = NULL,
   }
   dimnames(covariance) <- list(labels, labels)
   covariance
+}
+
+drm_phylo_augmented_precision <- function(tree, species = NULL,
+                                          correlation = TRUE,
+                                          tolerance = sqrt(.Machine$double.eps)) {
+  if (!is.logical(correlation) || length(correlation) != 1L ||
+      is.na(correlation)) {
+    cli::cli_abort("{.arg correlation} must be {.code TRUE} or {.code FALSE}.")
+  }
+  info <- validate_phylo_tree(tree, species = species, tolerance = tolerance)
+  edge <- matrix(as.integer(tree$edge), ncol = 2L)
+  edge_length <- tree$edge.length
+  if (any(edge_length <= 0)) {
+    cli::cli_abort(
+      "{.arg tree} branch lengths must be positive to build sparse precision."
+    )
+  }
+
+  n_total <- info$n_tip + info$n_node
+  included_nodes <- setdiff(seq_len(n_total), info$root)
+  node_index <- integer(n_total)
+  node_index[included_nodes] <- seq_along(included_nodes)
+  n_aug <- length(included_nodes)
+
+  rows <- integer(0)
+  cols <- integer(0)
+  values <- numeric(0)
+  for (edge_id in seq_len(nrow(edge))) {
+    parent <- edge[edge_id, 1L]
+    child <- edge[edge_id, 2L]
+    child_index <- node_index[[child]]
+    weight <- 1 / edge_length[[edge_id]]
+
+    rows <- c(rows, child_index)
+    cols <- c(cols, child_index)
+    values <- c(values, weight)
+
+    if (parent != info$root) {
+      parent_index <- node_index[[parent]]
+      rows <- c(rows, parent_index, parent_index, child_index)
+      cols <- c(cols, parent_index, child_index, parent_index)
+      values <- c(values, weight, -weight, -weight)
+    }
+  }
+
+  scale <- if (isTRUE(correlation)) {
+    info$height
+  } else {
+    1
+  }
+  node_labels <- phylo_augmented_node_labels(included_nodes, info$tip_label)
+  precision <- Matrix::drop0(Matrix::sparseMatrix(
+    i = rows,
+    j = cols,
+    x = scale * values,
+    dims = c(n_aug, n_aug),
+    dimnames = list(node_labels, node_labels)
+  ))
+
+  tip_node_index <- node_index[seq_len(info$n_tip)]
+  names(tip_node_index) <- info$tip_label
+  species_node_index <- if (is.null(info$species_index)) {
+    NULL
+  } else {
+    out <- tip_node_index[info$species_index]
+    names(out) <- info$species_levels
+    out
+  }
+
+  out <- list(
+    precision = precision,
+    log_det_precision = n_aug * log(scale) - sum(log(edge_length)),
+    correlation = isTRUE(correlation),
+    scale = scale,
+    node_id = included_nodes,
+    node_index = node_index,
+    node_labels = node_labels,
+    tip_label = info$tip_label,
+    tip_node_index = tip_node_index,
+    species_levels = info$species_levels,
+    species_tip_index = info$species_index,
+    species_node_index = species_node_index,
+    observation_species_index = info$observation_species_index,
+    root = info$root,
+    height = info$height
+  )
+  class(out) <- "drm_phylo_precision"
+  out
+}
+
+phylo_augmented_node_labels <- function(node_id, tip_label) {
+  labels <- paste0("node", node_id)
+  tip <- node_id <= length(tip_label)
+  labels[tip] <- tip_label[node_id[tip]]
+  labels
 }
 
 phylo_node_ancestors <- function(node, parent) {

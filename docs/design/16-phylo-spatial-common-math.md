@@ -152,6 +152,41 @@ R_ab = A_ab / H
 This dense matrix is useful for exact tests on tiny trees and for teaching why
 branch lengths matter. It is not the intended large-tree fitting path.
 
+The second internal scaffold builds the sparse augmented precision that should
+eventually feed the TMB likelihood. The root is fixed at zero and excluded from
+the latent state. For every edge from parent `p` to child `c` with branch length
+`l`, the Brownian increment contributes:
+
+```text
+(x_c - x_p)^2 / l
+```
+
+If `p` is not the root, this adds:
+
+```text
+Q_cc = Q_cc + 1 / l
+Q_pp = Q_pp + 1 / l
+Q_cp = Q_cp - 1 / l
+Q_pc = Q_pc - 1 / l
+```
+
+If `p` is the root, `x_p = 0`, so only `Q_cc = Q_cc + 1 / l` is added. On the
+correlation scale used by `z ~ MVN(0, sigma_phylo^2 A)`, the precision is:
+
+```text
+Q_A = H Q_raw
+```
+
+where `H` is the ultrametric tree height. Solving the augmented precision and
+then selecting the tip rows gives the same dense tip matrix as the Brownian
+comparator:
+
+```text
+solve(Q_A)[tips, tips] = R
+```
+
+This is still internal algebra, not fitted model support.
+
 Accepted public forms:
 
 ```r
