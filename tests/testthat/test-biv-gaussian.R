@@ -101,6 +101,41 @@ test_that("composed Gaussian family syntax routes to bivariate Gaussian", {
   expect_abs_error_below(coef(fit_c, "rho12"), atanh(0.3), 0.15)
 })
 
+test_that("mvbind shorthand expands to identical bivariate location formulas", {
+  sim <- new_biv_gaussian_data(n = 360, beta_rho12 = atanh(0.25), seed = 20260562)
+
+  fit_explicit <- drmTMB(
+    drm_formula(
+      mu1 = y1 ~ x,
+      mu2 = y2 ~ x,
+      sigma1 = ~ z1,
+      sigma2 = ~ z2,
+      rho12 = ~ 1
+    ),
+    family = c(gaussian(), gaussian()),
+    data = sim$data
+  )
+  fit_mvbind <- drmTMB(
+    drm_formula(
+      mvbind(y1, y2) ~ x,
+      sigma1 = ~ z1,
+      sigma2 = ~ z2,
+      rho12 = ~ 1
+    ),
+    family = c(gaussian(), gaussian()),
+    data = sim$data
+  )
+
+  expect_equal(fit_mvbind$opt$convergence, 0)
+  expect_equal(fit_mvbind$model$model_type, "biv_gaussian")
+  expect_equal(fit_mvbind$model$dpars, c("mu1", "mu2", "sigma1", "sigma2", "rho12"))
+  expect_equal(fit_mvbind$model$y1, sim$data$y1)
+  expect_equal(fit_mvbind$model$y2, sim$data$y2)
+  expect_equal(as.numeric(stats::logLik(fit_mvbind)), as.numeric(stats::logLik(fit_explicit)), tolerance = 1e-8)
+  expect_equal(coef(fit_mvbind, "mu1"), coef(fit_explicit, "mu1"), tolerance = 1e-8)
+  expect_equal(coef(fit_mvbind, "mu2"), coef(fit_explicit, "mu2"), tolerance = 1e-8)
+})
+
 test_that("drmTMB recovers predictor-dependent bivariate rho12", {
   sim <- new_biv_gaussian_data(
     n = 1200,
@@ -318,5 +353,37 @@ test_that("bivariate Gaussian rejects unsupported Phase 3 syntax clearly", {
       data = dat
     ),
     "one-response and two-response models only"
+  )
+  expect_error(
+    drmTMB(
+      bf(mvbind(y1, y2) ~ x),
+      family = gaussian(),
+      data = dat
+    ),
+    "mvbind.*only available"
+  )
+  expect_error(
+    drmTMB(
+      bf(mvbind(y1, y2, y3) ~ x),
+      family = c(gaussian(), gaussian()),
+      data = dat
+    ),
+    "exactly two"
+  )
+  expect_error(
+    drmTMB(
+      bf(mu1 = mvbind(y1, y2) ~ x, mu2 = y2 ~ x),
+      family = c(gaussian(), gaussian()),
+      data = dat
+    ),
+    "unnamed"
+  )
+  expect_error(
+    drmTMB(
+      bf(mvbind(y1, y2) ~ x, mu2 = y2 ~ x),
+      family = c(gaussian(), gaussian()),
+      data = dat
+    ),
+    "cannot be combined"
   )
 })

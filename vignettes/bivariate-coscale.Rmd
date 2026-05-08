@@ -108,6 +108,26 @@ parameters. For example, `x1` can appear in all five formulae, while `x2` might
 appear only in `mu1`, `sigma1`, and `rho12`. Each parameter still gets its own
 coefficient vector.
 
+If both responses have the same location predictors, `mvbind()` is a shorthand
+for the two location formulas:
+
+```r
+drmTMB(
+  bf(
+    mvbind(y1, y2) ~ x1 + x2,
+    sigma1 = ~ x1 + x2,
+    sigma2 = ~ x1,
+    rho12 = ~ x1 + x2
+  ),
+  family = c(gaussian(), gaussian()),
+  data = dat
+)
+```
+
+This expands internally to `mu1 = y1 ~ x1 + x2` and
+`mu2 = y2 ~ x1 + x2`. Use explicit `mu1` and `mu2` formulas whenever the
+responses need different location predictors.
+
 ## Future group-level equations
 
 The future double-hierarchical version should also allow group-level random

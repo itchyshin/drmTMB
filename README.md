@@ -171,6 +171,11 @@ is composed response families. Both `family = c(gaussian(), gaussian())` and
 engine. Mixed bivariate families such as `family = c(gaussian(), poisson())`
 are planned for later, where a coherent joint likelihood is defined.
 
+If both responses share the same location predictors, `mvbind(y1, y2) ~ x`
+is implemented as shorthand for identical `mu1` and `mu2` location formulas.
+Use explicit `mu1 = y1 ~ ...` and `mu2 = y2 ~ ...` when the two responses need
+different predictors.
+
 Meta-analysis is handled as Gaussian regression with known sampling covariance,
 not as a separate family:
 
@@ -251,7 +256,8 @@ intercept-only univariate Gaussian phylogenetic location effects such as
 `phylo(1 | species, tree = tree)`,
 and fixed-effect bivariate Gaussian `rho12 ~ predictors` using either
 `biv_gaussian()`, `family = c(gaussian(), gaussian())`, or
-`family = list(gaussian(), gaussian())`. `check_drm()` provides a first-pass
+`family = list(gaussian(), gaussian())`; `mvbind(y1, y2) ~ x` is implemented
+as shorthand for identical bivariate location formulas. `check_drm()` provides a first-pass
 diagnostic table for convergence, gradients, Hessian status, dropped rows,
 scale positivity, `rho12` boundaries, known sampling covariance summaries, and
 random-effect replication/design checks. The next targets are cross-formula

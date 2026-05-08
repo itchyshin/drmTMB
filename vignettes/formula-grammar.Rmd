@@ -39,7 +39,7 @@ is shown only to explain the roadmap.
 | `mu1`, `mu2`, `sigma1`, `sigma2`, `rho12` | Implemented for fixed effects | Bivariate Gaussian location-coscale model with predictor-dependent residual correlation. |
 | `family = c(gaussian(), gaussian())` | Implemented | Routes to the bivariate Gaussian engine; mixed composed families are planned. |
 | `biv_gaussian()` | Implemented legacy helper | Kept for compatibility while composed families become the public direction. |
-| `mvbind(y1, y2) ~ x1` | Reserved | Planned shorthand for identical bivariate location formulas, not the main implemented path. |
+| `mvbind(y1, y2) ~ x1` | Implemented | Shorthand for identical bivariate location formulas; explicit `mu1`/`mu2` remains preferred for different predictors. |
 | `phylo(1 | species, tree = tree)` in `mu` | Implemented | Intercept-only univariate Gaussian phylogenetic location effect; requires an ultrametric tree with branch lengths. |
 | `phylo(1 + x1 | species, tree = tree)` | Planned | Structured slopes come after the intercept-only path is fully hardened. |
 | `spatial(1 | site, coords = coords)` | Planned | Spatial SPDE/GMRF terms are part of the design but not fitted yet. |
@@ -78,6 +78,22 @@ drm_formula(
   rho12 = ~ x1 + x2
 )
 ```
+
+When both responses share the same location predictors, the shorter form is
+also implemented:
+
+```r
+drm_formula(
+  mvbind(y1, y2) ~ x1 + x2,
+  sigma1 = ~ x1 + x2,
+  sigma2 = ~ x1,
+  rho12 = ~ x1 + x2
+)
+```
+
+This expands internally to `mu1 = y1 ~ x1 + x2` and
+`mu2 = y2 ~ x1 + x2`. Use the explicit `mu1` and `mu2` formulas when the two
+responses need different location predictors.
 
 The first fitted structured-effect marker is an intercept-only phylogenetic
 location effect:

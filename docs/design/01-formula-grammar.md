@@ -48,7 +48,7 @@ Use three status words consistently across documentation:
 | `meta_known_V(V = V)` | Implemented | Known diagonal, block-diagonal, or dense sampling covariance with `family = gaussian()`. |
 | `mu1`, `mu2`, `sigma1`, `sigma2`, `rho12` | Implemented for fixed effects | Bivariate Gaussian location-coscale model with predictor-dependent residual correlation. |
 | `family = c(gaussian(), gaussian())` | Implemented | Public bivariate Gaussian family direction; mixed composed families are planned. |
-| `mvbind(y1, y2) ~ x1` | Reserved | Planned shorthand for identical bivariate location formulas, not the implemented path. |
+| `mvbind(y1, y2) ~ x1` | Implemented | Shorthand for identical bivariate location formulas; explicit `mu1`/`mu2` remains preferred for different predictors. |
 | `phylo(1 | species, tree = tree)` in `mu` | Implemented | Intercept-only univariate Gaussian phylogenetic location effect; requires an ultrametric tree with branch lengths. |
 | `phylo(1 + x1 | species, tree = tree)` | Planned | Structured slopes come after the intercept-only path is hardened. |
 | `spatial(1 | site, coords = coords)` and `spatial(1 | site, mesh = mesh)` | Planned | Spatial SPDE/GMRF terms are part of the design but not fitted yet. |
@@ -95,8 +95,8 @@ meta-analysis family.
 
 ## Bivariate Syntax
 
-Implemented bivariate Gaussian models use separate response formulas and fixed
-effects only:
+Implemented bivariate Gaussian models usually use separate response formulas
+and fixed effects only:
 
 ```r
 bf(
@@ -121,15 +121,16 @@ bf(
 )
 ```
 
-The `mvbind()` form is reserved as shorthand for identical location formulas:
+The `mvbind()` form is implemented as shorthand for identical location
+formulas:
 
 ```r
 bf(mvbind(y1, y2) ~ x)
 ```
 
-It should eventually expand internally to separate `mu1 = y1 ~ x` and
-`mu2 = y2 ~ x`, but the shorthand is not part of the implemented bivariate
-Gaussian path yet.
+It expands internally to separate `mu1 = y1 ~ x` and `mu2 = y2 ~ x`.
+Do not combine `mvbind()` with explicit `mu1` or `mu2` formulas. Use explicit
+formulas whenever the two responses need different predictors.
 
 ## Random Effects and Scale Components
 

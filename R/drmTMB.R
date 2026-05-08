@@ -9,6 +9,9 @@
 #' random-effect scale formulae such as `sd(id) ~ x_group`, plus
 #' intercept-only phylogenetic random effects in the univariate Gaussian
 #' location formula, and fixed-effect bivariate Gaussian distributional models.
+#' Bivariate Gaussian location formulas may be written explicitly as
+#' `mu1 = y1 ~ ...`, `mu2 = y2 ~ ...`, or with `mvbind(y1, y2) ~ ...` shorthand
+#' when both responses share the same location predictors.
 #'
 #' @param formula A `drm_formula` object created by [drm_formula()] or [bf()].
 #' @param family A response family, such as [stats::gaussian()] or
@@ -176,6 +179,12 @@ drm_build_gaussian_ls_spec <- function(formula, data, env = parent.frame()) {
   if (is.na(mu_entry$response)) {
     cli::cli_abort("The {.code mu} formula must include a response on the left-hand side.")
   }
+  if (is_mvbind_lhs(mu_entry$lhs)) {
+    cli::cli_abort(c(
+      "{.fn mvbind} shorthand is only available for two-response Gaussian models.",
+      "x" = "Use {.code family = c(gaussian(), gaussian())} or explicit formulas such as {.code mu1 = y1 ~ x} and {.code mu2 = y2 ~ x}."
+    ))
+  }
 
   meta <- extract_meta_known_v(mu_entry$rhs)
   mu_entry$rhs <- meta$rhs
@@ -278,7 +287,7 @@ drm_build_gaussian_ls_spec <- function(formula, data, env = parent.frame()) {
 }
 
 drm_build_biv_gaussian_spec <- function(formula, data, env = parent.frame()) {
-  entries <- formula$entries
+  entries <- expand_biv_mvbind_entries(formula$entries)
   dpars <- vapply(entries, `[[`, character(1), "dpar")
   allowed <- c("mu1", "mu2", "sigma1", "sigma2", "rho12")
   unsupported <- setdiff(dpars, allowed)
@@ -395,6 +404,83 @@ drm_build_biv_gaussian_spec <- function(formula, data, env = parent.frame()) {
   spec$tmb_data <- make_tmb_data(spec)
   spec$nobs <- length(spec$y1)
   spec
+}
+
+expand_biv_mvbind_entries <- function(entries) {
+  dpars <- vapply(entries, `[[`, character(1), "dpar")
+  has_mvbind <- vapply(entries, function(entry) {
+    is_mvbind_lhs(entry$lhs)
+  }, logical(1))
+
+  if (!any(has_mvbind)) {
+    return(entries)
+  }
+  if (sum(has_mvbind) > 1L) {
+    cli::cli_abort("{.fn mvbind} shorthand can appear only once in a bivariate model.")
+  }
+
+  mvbind_index <- which(has_mvbind)
+  if (!identical(dpars[[mvbind_index]], "mu")) {
+    cli::cli_abort(
+      "{.fn mvbind} shorthand must be an unnamed bivariate location formula."
+    )
+  }
+  if (any(dpars %in% c("mu1", "mu2"))) {
+    cli::cli_abort(c(
+      "{.fn mvbind} shorthand cannot be combined with explicit {.code mu1} or {.code mu2} formulas.",
+      "i" = "Use either {.code mvbind(y1, y2) ~ x} for identical location predictors or separate {.code mu1 = y1 ~ ...} and {.code mu2 = y2 ~ ...} formulas."
+    ))
+  }
+
+  responses <- parse_mvbind_lhs(entries[[mvbind_index]]$lhs)
+  mu1_entry <- mvbind_location_entry(entries[[mvbind_index]], "mu1", responses[[1L]])
+  mu2_entry <- mvbind_location_entry(entries[[mvbind_index]], "mu2", responses[[2L]])
+
+  before <- if (mvbind_index > 1L) entries[seq_len(mvbind_index - 1L)] else list()
+  after <- if (mvbind_index < length(entries)) {
+    entries[seq.int(mvbind_index + 1L, length(entries))]
+  } else {
+    list()
+  }
+  out <- c(before, list(mu1_entry, mu2_entry), after)
+  class(out) <- class(entries)
+  out
+}
+
+is_mvbind_lhs <- function(lhs) {
+  lhs <- strip_parens(lhs)
+  is.call(lhs) && identical(lhs[[1L]], as.name("mvbind"))
+}
+
+parse_mvbind_lhs <- function(lhs) {
+  lhs <- strip_parens(lhs)
+  args <- as.list(lhs)[-1L]
+  arg_names <- names(args)
+  if (is.null(arg_names)) {
+    arg_names <- rep("", length(args))
+  }
+  arg_names[is.na(arg_names)] <- ""
+  valid <- length(args) == 2L &&
+    all(!nzchar(arg_names)) &&
+    all(vapply(args, is.symbol, logical(1)))
+  if (!valid) {
+    cli::cli_abort(c(
+      "{.fn mvbind} shorthand currently requires exactly two unnamed response variables.",
+      "x" = "Use syntax like {.code mvbind(y1, y2) ~ x}.",
+      "i" = "For different location predictors, use explicit {.code mu1 = y1 ~ ...} and {.code mu2 = y2 ~ ...} formulas."
+    ))
+  }
+  vapply(args, as.character, character(1))
+}
+
+mvbind_location_entry <- function(entry, dpar, response) {
+  entry$dpar <- dpar
+  entry$response <- response
+  entry$lhs <- as.name(response)
+  entry$expr <- call("~", as.name(response), entry$rhs)
+  entry$source_name <- dpar
+  entry$structured <- collect_structured_effects(entry$rhs, dpar)
+  entry
 }
 
 default_dpar_entry <- function(dpar, rhs) {

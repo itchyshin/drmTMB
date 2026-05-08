@@ -2564,3 +2564,90 @@ Team learning:
   diagnostic rows;
 - pkgdown freshness must be verified with generated-site searches, not only
   `pkgdown::check_pkgdown()`.
+
+## 2026-05-08: `mvbind()` Bivariate Location Shorthand
+
+Scope:
+
+- implemented `mvbind(y1, y2) ~ x` as shorthand for identical bivariate
+  Gaussian location formulas;
+- the shorthand expands internally to `mu1 = y1 ~ x` and `mu2 = y2 ~ x`;
+- explicit `mu1` and `mu2` formulas remain the preferred syntax whenever the
+  two responses need different location predictors;
+- added validation for malformed, named, repeated, or mixed explicit-plus-
+  shorthand `mvbind()` inputs;
+- updated README, ROADMAP, formula grammar documentation, likelihood/family
+  design notes, bivariate and formula-grammar vignettes, NEWS, tests, and
+  roxygen documentation.
+
+Commands run:
+
+- `Rscript -e "devtools::test(filter = 'biv-gaussian|package-skeleton')"`
+- `Rscript -e "devtools::document()"`
+- `rg -n "mvbind.*Reserved|mvbind.*planned|mvbind.*not implemented|not implemented.*mvbind|future work.*mvbind|Reserved \\| Planned shorthand" README.md ROADMAP.md NEWS.md docs/design vignettes R tests man`
+- `Rscript -e "devtools::test()"`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `git diff --check`
+- `Rscript -e "pkgdown::build_site()"`
+- `rg -n "mvbind|identical bivariate location|shorthand for identical" pkgdown-site/index.html pkgdown-site/ROADMAP.html pkgdown-site/reference/drmTMB.html pkgdown-site/reference/drm_formula.html pkgdown-site/articles/bivariate-coscale.html pkgdown-site/articles/formula-grammar.html pkgdown-site/news/index.html`
+- `air format .`
+- `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`
+
+Results:
+
+- targeted tests: 110 passed, 0 failed;
+- full `devtools::test()`: 572 passed, 0 failed;
+- `pkgdown::check_pkgdown()`: no problems found;
+- `pkgdown::build_site()`: completed successfully;
+- generated-site search found the shorthand on the home page, roadmap,
+  `drmTMB()` reference, `drm_formula()` reference, bivariate coscale article,
+  formula grammar article, and changelog;
+- final `devtools::check()` with `_R_CHECK_SYSTEM_CLOCK_=FALSE`: 0 errors,
+  0 warnings, 0 notes;
+- `git diff --check`: clean;
+- `air format .` could not run because `air` is not installed on this machine.
+
+Tests of the tests:
+
+- the equivalence test fits both the explicit and `mvbind()` forms to the same
+  simulated data and checks equal log-likelihood and equal `mu1`/`mu2`
+  coefficients;
+- failure-path tests reject `mvbind()` with a univariate Gaussian family,
+  three responses, named `mvbind()` formulas, and mixing `mvbind()` with
+  explicit `mu1` or `mu2` formulas;
+- a parser-level test checks that `drm_formula()` captures `mvbind()` as an
+  unnamed location formula before model building expands it.
+
+Consistency audit:
+
+- the formula grammar status table now marks `mvbind(y1, y2) ~ x` as
+  implemented shorthand, not planned syntax;
+- README, ROADMAP, vignettes, design notes, NEWS, roxygen Rd files, and
+  generated pkgdown pages all use the same contract: shorthand only for
+  identical bivariate location predictors;
+- stale wording searches found no remaining current-document claims that
+  `mvbind()` is reserved, planned, or not implemented.
+
+What did not go smoothly:
+
+- `mvbind()` had to remain a deliberately narrow shorthand, because the
+  project still prefers explicit `mu1` and `mu2` formulas for scientific
+  clarity when predictors differ;
+- the generated site had to be rebuilt and searched directly because
+  `pkgdown::check_pkgdown()` alone does not prove freshness;
+- local formatting through `air` is still unavailable on this machine.
+
+Known limitations:
+
+- `mvbind()` is implemented only for the all-Gaussian two-response engine;
+- mixed composed families such as `family = c(gaussian(), poisson())` remain
+  planned until a coherent joint likelihood is implemented;
+- bivariate random effects remain planned, so `mvbind()` currently expands
+  only fixed-effect location formulas.
+
+Team learning:
+
+- Boole's formula lens was useful here: shorthand is helpful only when it
+  reduces repetition without hiding different scientific predictors.
+- Rose's stale-wording audit prevented the formula grammar, roadmap, and
+  rendered pkgdown site from drifting out of sync after the parser changed.

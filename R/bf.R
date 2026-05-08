@@ -27,6 +27,7 @@
 #'   sigma2 = ~ x2,
 #'   rho12 = ~ x1 + x2
 #' )
+#' drm_formula(mvbind(y1, y2) ~ x1 + x2, sigma1 = ~ x1, sigma2 = ~ x2)
 drm_formula <- function(...) {
   calls <- as.list(substitute(list(...)))[-1L]
   if (length(calls) == 0L) {

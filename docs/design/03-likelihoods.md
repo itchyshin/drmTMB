@@ -328,8 +328,10 @@ Implementation notes:
   on the response scale so the covariance matrix stays positive definite even
   for extreme linear predictors.
 - Simulation recovery tests live in `tests/testthat/test-biv-gaussian.R`.
-- Random effects, known sampling covariance, and `mvbind()` shorthand are not
-  implemented for this bivariate family yet.
+- `mvbind(y1, y2) ~ x` is implemented as a formula shorthand that creates
+  identical `mu1` and `mu2` design matrices.
+- Random effects and known sampling covariance are not implemented for this
+  bivariate family yet.
 
 ## Review Requirements
 

@@ -109,7 +109,8 @@ bf(
 ```
 
 `rho12` uses an atanh link internally and `tanh()` on the response scale.
-Bivariate random effects and `mvbind()` shorthand are planned but not
+`mvbind(y1, y2) ~ x` is implemented as shorthand for identical `mu1` and
+`mu2` location formulas. Bivariate random effects are planned but not
 implemented.
 
 ## Design Principle

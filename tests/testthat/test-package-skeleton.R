@@ -18,6 +18,20 @@ test_that("drm_formula() captures distributional formulas", {
   expect_equal(form$entries[[5]]$dpar, "rho12")
 })
 
+test_that("drm_formula() captures mvbind shorthand as a location formula", {
+  form <- drm_formula(
+    mvbind(y1, y2) ~ x1 + x2,
+    sigma1 = ~ x1,
+    sigma2 = ~ x2,
+    rho12 = ~ x1 + x2
+  )
+
+  expect_s3_class(form, "drm_formula")
+  expect_equal(form$entries[[1]]$dpar, "mu")
+  expect_equal(form$entries[[1]]$response, "mvbind(y1, y2)")
+  expect_true(drmTMB:::is_mvbind_lhs(form$entries[[1]]$lhs))
+})
+
 test_that("bf() remains a short alias for drm_formula()", {
   form <- bf(y ~ x, sigma ~ z)
 
