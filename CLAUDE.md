@@ -52,6 +52,10 @@ bf(
 - Update design docs if grammar, likelihoods, random effects, families,
   phylogenetic, spatial, or meta-analysis behaviour changes.
 - Add or update an after-task report in `docs/dev-log/after-task/`.
+- For substantial prose, apply the project-local `prose-style-review` standard:
+  name the reader, lead with purpose, use concrete claims, keep terms stable,
+  cite factual or literature claims, and explain what users should try next
+  when syntax is unsupported.
 - Do not revert Codex or human changes unless explicitly asked.
 
 ## Reusing gllvmTMB Code

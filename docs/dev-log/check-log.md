@@ -1449,3 +1449,55 @@ Team learning:
   wording changes;
 - Rose-style audits are best run before the final commit, not after, because
   small naming/API inconsistencies are cheap to fix early.
+
+## 2026-05-08: Project-Local Prose Style Review Skill
+
+Scope:
+
+- read `yzhao062/agent-style` and adapted its relevant writing principles into
+  a compact project-local `prose-style-review` skill;
+- updated `AGENTS.md`, `CLAUDE.md`, `docs/design/10-after-task-protocol.md`,
+  and Pat/Rose/documentation/pkgdown agent configs so the team can apply the
+  standard consistently;
+- updated `after-task-audit` so prose-heavy tasks actually trigger the prose
+  gate before closing;
+- recorded provenance: no files or text were copied from `yzhao062/agent-style`;
+  this is a local adaptation of review principles, and `agent-style` is not a
+  package dependency.
+
+Commands run:
+
+- browsed `https://github.com/yzhao062/agent-style` and
+  `https://github.com/yzhao062/agent-style/blob/main/RULES.md`;
+- `python3` TOML parse check over `.codex/agents/*.toml`;
+- `git diff --check`;
+- `rg` scans for dependency-wording drift, pkgdown role names,
+  `skew`, and `tau`.
+
+Results:
+
+- TOML parse check: passed;
+- `git diff --check`: passed;
+- no package metadata, namespace, compiled code, tests, or likelihood code
+  changed;
+- Pat found no blocking confusion and requested clearer `tau`, `coscale`, and
+  error-recovery wording; incorporated;
+- Rose found no dependency addition and requested updating `after-task-audit`,
+  normalizing dependency wording, recording provenance, and removing pkgdown
+  role drift; incorporated.
+
+Known limitations:
+
+- this is a prose-process change only; it does not run an automatic prose
+  linter;
+- external links to `agent-style` are inspiration and citation context, not a
+  package dependency.
+
+Team learning:
+
+- adding a rule to a design protocol is not enough; the operational skill that
+  agents actually invoke must carry the same gate;
+- Pat's user-focused review caught terminology drift before it became a docs
+  habit;
+- Rose's provenance check helped keep the repository lightweight and clear
+  about what was adapted versus copied.

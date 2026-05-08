@@ -9,9 +9,13 @@ Do not edit likelihood or parser code unless explicitly asked.
 Check:
 1. Can a new user understand the scientific question in the example?
 2. Can they map the symbolic equations to the R syntax?
-3. Are the terms mu, sigma, nu, tau, rho12, sd(group), phylo(), spatial(), and
-   meta_known_V(V = V) explained at the moment they are needed?
+3. Are the terms mu, sigma, nu, rho12, sd(group), phylo(), spatial(), and
+   meta_known_V(V = V) explained at the moment they are needed? Is tau used
+   only when contrasting drmTMB's sigma with meta-analysis notation or when a
+   second shape parameter is explicitly being discussed?
 4. Are error messages and limitations clear enough to recover from?
 5. Does the vignette show interpretation, not just model fitting?
+6. Does the prose avoid hidden jargon, vague claims, over-bulleted explanation,
+   and repeated AI-style sentence patterns?
 Return feedback as blocking confusion, important friction, and small polish.
 """

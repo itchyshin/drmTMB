@@ -49,6 +49,35 @@ pkgdown::check_pkgdown()
 A feature is done only when implementation, tests, documentation, examples,
 check logs, after-task notes, and review are all present.
 
+## Writing Style
+
+For user-facing prose, developer notes, after-task reports, and release text,
+write for a named reader and keep the prose concrete. The main readers are
+applied ecology, evolution, and environmental-science users, plus statistical
+method developers and R package contributors.
+
+- Name the purpose before mechanics.
+- Pair symbolic equations, R syntax, and interpretation when explaining models.
+- Use concrete terms, files, equations, functions, or numerical results rather
+  than vague phrases such as "various factors" or "significant improvements".
+- Use active voice when the agent matters.
+- Do not turn prose into bullets unless the content is a genuine list.
+- Keep terms stable: `sigma`, `rho12`, `sd(group)`, `meta_known_V(V = V)`,
+  `phylo()`, `spatial()`, `mu`, and `nu` should not drift across documents.
+  Mention `tau` only when explaining a second shape parameter or when
+  contrasting drmTMB's `sigma` with meta-analysis notation.
+- Support factual, statistical, or literature claims with a citation, local
+  evidence, or a clear note that the statement is a design assumption.
+- Define location, scale, shape, and coscale at first use; connect coscale to
+  residual correlation `rho12`.
+- For tutorials and error-message docs, tell the reader what to try next when a
+  model or syntax is unsupported.
+
+Use the project-local `prose-style-review` skill for substantial README,
+vignette, pkgdown, after-task, release, or paper-oriented text. This skill was
+adapted from lessons in `yzhao062/agent-style`; do not copy that project into
+this repository or add it as a package dependency without a separate decision.
+
 ## Multi-Agent Collaboration
 
 Codex and Claude Code may both contribute to this repository. All agent work
@@ -82,12 +111,12 @@ continuously; the orchestrator should launch them only for bounded tasks.
 | Noether | Mathematical consistency reviewer | Do the symbolic equations, R syntax, and TMB implementation match exactly? |
 | Darwin | Ecology/evolution audience reviewer | Does the example answer a real biological question for the target audience? |
 | Fisher | Statistical inference reviewer | Do simulations, comparator checks, likelihood profiles, and identifiability diagnostics support the claim? |
-| Pat | Applied PhD student user tester | Can a new applied user follow the tutorial, interpret output, and recover from errors? |
+| Pat | Applied PhD student user tester | Can a new applied user follow the tutorial, interpret output, recover from errors, and avoid hidden jargon? |
 | Jason | Landscape and source-map scout | What do related packages and papers already do, and what should `drmTMB` learn or avoid? |
 | Curie | Simulation and testing specialist | Do recovery tests cover ordinary, edge, and malformed-input cases without becoming too slow? |
 | Emmy | R package architecture reviewer | Are S3 methods, object structures, extractors, and internal APIs coherent? |
 | Grace | CI, pkgdown, CRAN, and reproducibility engineer | Will this pass on all platforms, deploy cleanly, and avoid compiled-code or dependency risk? |
-| Rose | Systems auditor | What discrepancies, repeated mistakes, stale wording, and missing feedback loops are accumulating? |
+| Rose | Systems auditor | What discrepancies, repeated mistakes, stale wording, unsupported claims, and missing feedback loops are accumulating? |
 
 ## pkgdown Policy
 

@@ -24,9 +24,12 @@ coherent story after code changes.
    - `pkgdown::build_site()` if user-facing docs changed
    - `devtools::check()`
 8. Search for stale wording across docs and generated site.
-9. Update roadmap, NEWS, known limitations, and design docs when behaviour
+9. For prose-heavy tasks, apply the `prose-style-review` skill before closing.
+   Check reader fit, concrete claims, stable terminology, citations or local
+   evidence, error recoverability, and over-bulleted prose.
+10. Update roadmap, NEWS, known limitations, and design docs when behaviour
    changed.
-10. Add a compact after-task report under `docs/dev-log/after-task/`.
+11. Add a compact after-task report under `docs/dev-log/after-task/`.
 
 ## Stale-Wording Searches
 

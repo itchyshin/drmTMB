@@ -50,6 +50,31 @@ rg "simple.*mu random|sigma.*Later|currently.*only.*mu|optional simple.*location
 The goal is not only to make tests pass. It is to make sure code, docs,
 examples, design notes, and site navigation describe the same package.
 
+## Prose Audit
+
+If the task changes README text, vignettes, pkgdown pages, after-task notes,
+release notes, paper drafts, or long design docs, run a prose-style pass before
+closing. Use the project-local `prose-style-review` skill.
+
+For very small prose-only tasks, keep the report compact: record the goal,
+files changed, checks, consistency audit, and any remaining limitation. Do not
+inflate a one-line documentation correction into a full phase report.
+
+Check that:
+
+- the intended reader is clear;
+- the first paragraph states the purpose before implementation details;
+- model explanations pair symbolic equations, R syntax, and interpretation;
+- claims are concrete and supported by citations, local files, checks, or
+  explicit design assumptions;
+- terms such as `sigma`, `rho12`, `sd(group)`, and `meta_known_V(V = V)` stay
+  consistent;
+- `tau` appears only when explaining a second shape parameter or when
+  contrasting drmTMB's `sigma` with meta-analysis notation;
+- users can see what to do next when a model or syntax is unsupported;
+- bullets are genuine lists, not chopped prose;
+- stale wording from earlier phases is either removed or superseded.
+
 ## Tests of the Tests
 
 When adding tests, confirm that they actually exercise the intended behaviour.
