@@ -133,6 +133,25 @@ all observed species are represented by tree tip labels
 species levels and tree tip labels can be matched unambiguously
 ```
 
+The first internal validation scaffold now checks those conditions for a small
+`phylo` object and can also build a dense Brownian-motion comparator for tests.
+For a rooted ultrametric tree, let `d(v)` be the distance from the root to node
+`v`, and let `mrca(a, b)` be the most recent common ancestor of tips `a` and
+`b`. The Brownian shared-history covariance is:
+
+```text
+A_ab = d(mrca(a, b))
+```
+
+If the tree height is `H`, the corresponding correlation matrix is:
+
+```text
+R_ab = A_ab / H
+```
+
+This dense matrix is useful for exact tests on tiny trees and for teaching why
+branch lengths matter. It is not the intended large-tree fitting path.
+
 Accepted public forms:
 
 ```r

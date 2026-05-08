@@ -1717,3 +1717,54 @@ Team learning:
   while still detecting invalid grammar early;
 - `rho12` remains reserved for residual bivariate response correlation, not
   phylogenetic or spatial structured-effect covariance.
+
+## 2026-05-08: Phylogenetic Tree Validation Scaffold
+
+Scope:
+
+- added internal validation for tiny ultrametric `phylo` objects with branch
+  lengths, unique tip labels, one root, connected node structure, and observed
+  species matching;
+- added an internal dense Brownian shared-history covariance/correlation
+  comparator for exact tiny-tree tests;
+- documented the comparator math as a test and teaching tool, not the
+  user-facing large-tree phylogeny API;
+- updated known limitations to distinguish the internal validator from fitted
+  `phylo()` model support.
+
+Commands run:
+
+- `Rscript -e "devtools::test(filter = 'phylo-utils')"`
+- `Rscript -e "devtools::test()"`
+- `git diff --check`
+- `air format .`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `Rscript -e "pkgdown::build_site()"`
+- `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`
+
+Results:
+
+- targeted phylogenetic utility tests: 18 passed, 0 failed;
+- full `devtools::test()`: 438 passed, 0 failed;
+- `git diff --check`: passed;
+- `pkgdown::check_pkgdown()`: no problems found;
+- `pkgdown::build_site()`: site built successfully;
+- `devtools::check()` with `_R_CHECK_SYSTEM_CLOCK_=FALSE`: 0 errors,
+  0 warnings, 0 notes.
+
+Known limitations:
+
+- `air` is not installed locally, so formatting could not be run.
+- The dense Brownian comparator is internal and test-oriented. It does not fit
+  `phylo()` model terms and should not replace the planned sparse A-inverse
+  path.
+
+Team learning:
+
+- tiny algebraic trees are a good bridge between Noether's symbolic checks and
+  Gauss's future sparse-precision implementation;
+- Zeno's simulation plan and Goodall's `gllvmTMB` source map both support using
+  dense tree comparators only as validation scaffolding before the A-inverse
+  likelihood path;
+- public docs must continue to say that `phylo(1 | species, tree = tree)` is
+  planned, even though internal tree checks now exist.
