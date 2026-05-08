@@ -2651,3 +2651,81 @@ Team learning:
   reduces repetition without hiding different scientific predictors.
 - Rose's stale-wording audit prevented the formula grammar, roadmap, and
   rendered pkgdown site from drifting out of sync after the parser changed.
+
+## 2026-05-08: Public Model-Method Documentation
+
+Scope:
+
+- added roxygen documentation for existing public S3 methods:
+  `predict.drmTMB()`, `simulate.drmTMB()`, `residuals.drmTMB()`,
+  `sigma.drmTMB()`, and `summary.drmTMB()`;
+- listed these methods explicitly in the pkgdown reference index;
+- clarified that `predict(..., newdata = ...)` returns fixed-effect,
+  population-level predictions, while fitted-row predictions include currently
+  implemented random-effect contributions;
+- clarified that `sigma(fit)` returns the modelled residual scale, and that
+  simulations and Pearson residuals combine known sampling covariance with
+  residual scale when relevant.
+
+Commands run:
+
+- `Rscript -e "devtools::document()"`
+- `Rscript -e "devtools::test()"`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `git diff --check`
+- `Rscript -e "pkgdown::build_site()"`
+- `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`
+- `air format .`
+- `rg -n "Predict distributional parameters|Extract fitted residual scale|Simulate from a fitted model|Extract model residuals|Summarize a fitted model|meta_known_V\\(V = V\\)" pkgdown-site/reference/index.html pkgdown-site/reference/predict.drmTMB.html pkgdown-site/reference/sigma.drmTMB.html pkgdown-site/reference/simulate.drmTMB.html pkgdown-site/reference/residuals.drmTMB.html pkgdown-site/reference/summary.drmTMB.html`
+
+Results:
+
+- `devtools::document()` generated five new Rd files;
+- full `devtools::test()`: 572 passed, 0 failed;
+- `pkgdown::check_pkgdown()`: no problems found;
+- `pkgdown::build_site()`: completed successfully and built the five new
+  reference pages;
+- generated-site search found all new reference-page headings and the
+  `meta_known_V(V = V)` residual-scale clarification;
+- final `devtools::check()` with `_R_CHECK_SYSTEM_CLOCK_=FALSE`: 0 errors,
+  0 warnings, 0 notes;
+- `git diff --check`: clean;
+- `air format .` could not run because `air` is not installed on this machine.
+
+Tests of the tests:
+
+- this was a documentation task, so no unit tests were added;
+- the new examples were exercised by the full R CMD check examples stage;
+- pkgdown was built and the generated reference index/pages were searched
+  directly to check that the new documentation is visible.
+
+Consistency audit:
+
+- `_pkgdown.yml` now lists each documented S3 method explicitly;
+- `NAMESPACE` already registered the S3 methods, so this task added missing
+  user documentation rather than new API behaviour;
+- no NEWS bullet was added because this was documentation coverage for existing
+  behaviour, not a user-visible behaviour change.
+
+What did not go smoothly:
+
+- the first attempt to launch a documentation-review agent was blocked because
+  the current thread had already reached the agent limit;
+- this made the local after-task audit more important than usual;
+- local formatting through `air` remains unavailable.
+
+Known limitations:
+
+- the examples are deliberately minimal and synthetic;
+- richer ecological/evolutionary examples for prediction, simulation, and
+  residual checking should live in tutorials rather than method Rd pages;
+- `predict(..., newdata = ...)` still gives fixed-effect population-level
+  predictions only; conditional prediction for new group levels remains a
+  later design decision.
+
+Team learning:
+
+- method documentation should be added as soon as a method becomes useful,
+  even if the method was created in an earlier implementation slice;
+- `sigma()` documentation must keep the residual-scale versus observation-scale
+  distinction explicit, especially for meta-analysis users.

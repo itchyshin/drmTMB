@@ -75,10 +75,13 @@ reference:
       - fitted.drmTMB
       - fixef
       - model-fit-extractors
+      - predict.drmTMB
       - ranef
+      - residuals.drmTMB
       - rho12
-      - starts_with("predict")
-      - starts_with("simulate")
+      - sigma.drmTMB
+      - simulate.drmTMB
+      - summary.drmTMB
 
 articles:
   - title: Getting Started

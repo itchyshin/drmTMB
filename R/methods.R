@@ -207,6 +207,43 @@ deviance.drmTMB <- function(object, ...) {
   -2 * as.numeric(stats::logLik(object))
 }
 
+#' Predict distributional parameters
+#'
+#' `predict()` returns fitted or predicted values for one distributional
+#' parameter of a `drmTMB` fit.
+#'
+#' By default, predictions are returned on the response scale. For positive
+#' scale parameters such as `sigma`, this means the exponentiated value. For
+#' bivariate residual correlation `rho12`, this means the correlation scale.
+#' Use `type = "link"` to return the linear predictor instead.
+#'
+#' When `newdata = NULL`, predictions are for the fitted rows and include
+#' currently implemented conditional random-effect contributions for `mu`,
+#' phylogenetic `mu`, and residual-scale `sigma`. When `newdata` is supplied,
+#' predictions are fixed-effect, population-level predictions for the supplied
+#' rows.
+#'
+#' @param object A `drmTMB` fit.
+#' @param newdata Optional data frame for prediction. If omitted, fitted rows
+#'   are used.
+#' @param dpar Distributional parameter to predict. If `NULL`, the first
+#'   fitted distributional parameter is used.
+#' @param type Prediction scale: `"response"` or `"link"`.
+#' @param ... Reserved for future prediction options.
+#'
+#' @return A numeric vector.
+#' @seealso [fitted.drmTMB()], [rho12()], [stats::sigma()]
+#'
+#' @examples
+#' dat <- data.frame(
+#'   y = c(0.2, 0.5, 1.1, 1.4, 1.8, 2.2),
+#'   x = c(-1, -0.5, 0, 0.5, 1, 1.5)
+#' )
+#' fit <- drmTMB(bf(y ~ x, sigma = ~ x), data = dat)
+#' predict(fit, dpar = "mu")
+#' predict(fit, dpar = "sigma")
+#' predict(fit, dpar = "sigma", type = "link")
+#' predict(fit, newdata = data.frame(x = c(0, 1)), dpar = "mu")
 #' @export
 predict.drmTMB <- function(object, newdata = NULL, dpar = NULL,
                            type = c("response", "link"), ...) {
@@ -239,6 +276,28 @@ predict.drmTMB <- function(object, newdata = NULL, dpar = NULL,
   exp(eta)
 }
 
+#' Simulate from a fitted model
+#'
+#' `simulate()` draws new response values from the fitted `drmTMB` model. For
+#' univariate Gaussian models with known sampling covariance, simulation uses
+#' the total observation covariance implied by the known sampling covariance
+#' plus the fitted residual scale. For bivariate Gaussian models, simulation
+#' uses the fitted `mu1`, `mu2`, `sigma1`, `sigma2`, and residual `rho12`.
+#'
+#' @param object A `drmTMB` fit.
+#' @param nsim Number of simulated data sets.
+#' @param seed Optional random-number seed. The previous `.Random.seed` state
+#'   is restored after simulation.
+#' @param ... Reserved for future simulation options.
+#'
+#' @return A data frame. Univariate models return one column per simulation.
+#'   Bivariate models return paired columns named `sim_<j>_y1` and
+#'   `sim_<j>_y2`.
+#'
+#' @examples
+#' dat <- data.frame(y = c(0.2, 0.5, 1.1, 1.4), x = c(-1, 0, 1, 2))
+#' fit <- drmTMB(bf(y ~ x, sigma = ~ 1), data = dat)
+#' simulate(fit, nsim = 2, seed = 1)
 #' @export
 simulate.drmTMB <- function(object, nsim = 1, seed = NULL, ...) {
   if (!is.null(seed)) {
@@ -293,6 +352,32 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, ...) {
   as.data.frame(out)
 }
 
+#' Extract model residuals
+#'
+#' `residuals()` returns response residuals or Pearson-style residuals from a
+#' `drmTMB` fit.
+#'
+#' For univariate Gaussian models, response residuals are `y - mu`. Pearson
+#' residuals divide by the fitted observation standard deviation. If a dense
+#' known sampling covariance was used, Pearson residuals are whitened by the
+#' fitted total observation covariance.
+#'
+#' For bivariate Gaussian models, response residuals are returned as a
+#' two-column matrix. Pearson residuals are standardized and whitened using the
+#' fitted residual `sigma1`, `sigma2`, and `rho12`.
+#'
+#' @param object A `drmTMB` fit.
+#' @param type Residual type: `"response"` or `"pearson"`.
+#' @param ... Reserved for future residual options.
+#'
+#' @return A numeric vector for univariate models, or a two-column matrix for
+#'   bivariate Gaussian models.
+#'
+#' @examples
+#' dat <- data.frame(y = c(0.2, 0.5, 1.1, 1.4), x = c(-1, 0, 1, 2))
+#' fit <- drmTMB(bf(y ~ x, sigma = ~ 1), data = dat)
+#' residuals(fit)
+#' residuals(fit, type = "pearson")
 #' @export
 residuals.drmTMB <- function(object, type = c("response", "pearson"), ...) {
   type <- match.arg(type)
@@ -323,6 +408,28 @@ residuals.drmTMB <- function(object, type = c("response", "pearson"), ...) {
   cbind(y1 = e1, y2 = e2)
 }
 
+#' Extract fitted residual scale
+#'
+#' `sigma()` returns the fitted residual scale parameter from a `drmTMB` model.
+#' For univariate Gaussian location-scale models this is the fitted `sigma_i`
+#' vector on the response scale. For bivariate Gaussian models it returns a
+#' list with fitted `sigma1` and `sigma2` vectors.
+#'
+#' In meta-analytic models fitted with `meta_known_V(V = V)`, this is the
+#' modelled residual heterogeneity scale, not the square root of the known
+#' sampling variance plus residual variance. Simulation and Pearson residuals
+#' combine known sampling covariance with residual scale internally.
+#'
+#' @param object A `drmTMB` fit.
+#' @param ... Reserved for future scale-extractor options.
+#'
+#' @return A numeric vector for univariate models, or a named list of numeric
+#'   vectors for bivariate Gaussian models.
+#'
+#' @examples
+#' dat <- data.frame(y = c(0.2, 0.5, 1.1, 1.4), x = c(-1, 0, 1, 2))
+#' fit <- drmTMB(bf(y ~ x, sigma = ~ x), data = dat)
+#' sigma(fit)
 #' @export
 sigma.drmTMB <- function(object, ...) {
   if (identical(object$model$model_type, "gaussian")) {
@@ -334,6 +441,21 @@ sigma.drmTMB <- function(object, ...) {
   )
 }
 
+#' Summarize a fitted model
+#'
+#' `summary()` returns a compact summary of fixed-effect estimates, fitted
+#' random-effect standard deviations and correlations, log-likelihood, and
+#' optimizer convergence code.
+#'
+#' @param object A `drmTMB` fit.
+#' @param ... Reserved for future summary options.
+#'
+#' @return An object of class `summary.drmTMB`.
+#'
+#' @examples
+#' dat <- data.frame(y = c(0.2, 0.5, 1.1, 1.4), x = c(-1, 0, 1, 2))
+#' fit <- drmTMB(bf(y ~ x, sigma = ~ 1), data = dat)
+#' summary(fit)
 #' @export
 summary.drmTMB <- function(object, ...) {
   se <- sqrt(diag(stats::vcov(object)))
