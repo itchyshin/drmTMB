@@ -1963,3 +1963,62 @@ Team learning:
 - one fixed-effect recovery tolerance had to be relaxed for a 16-tip CRAN-safe
   simulation, reminding us that phylogenetic SD recovery tests should avoid
   pretending small trees provide large-sample certainty.
+
+## 2026-05-08: Equation-Syntax Documentation Consistency Pass
+
+Scope:
+
+- strengthened the get-started vignette so implemented Gaussian
+  location-scale, residual-scale, `sd(group)`, bivariate `rho12`,
+  `meta_known_V(V = V)`, and phylogenetic `mu` examples pair R syntax with
+  symbolic equations;
+- added compact equation context to the README for bivariate residual
+  covariance, known sampling covariance, and phylogenetic location effects;
+- corrected formula-grammar status wording for bivariate random effects,
+  `mvbind()` shorthand, and implemented intercept-only `phylo()` support;
+- corrected roadmap wording so `sd(group)` support is consistently described
+  as one or more distinct unlabelled univariate Gaussian `mu` random-intercept
+  targets;
+- updated pkgdown navigation wording for structured-effect markers;
+- clarified that phylogenetic residual-scale terms remain planned while
+  intercept-only phylogenetic `mu` is implemented.
+
+Commands run:
+
+- `rg` stale-status scans for bivariate random-effect, `mvbind()`,
+  intercept-only `phylo()`, `sd(group)`, old person-name shorthand, and
+  biology-only wording;
+- `git diff --check`;
+- `Rscript -e "pkgdown::check_pkgdown()"`;
+- `Rscript -e "pkgdown::check_pkgdown(); pkgdown::build_site()"`;
+- `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`.
+
+Results:
+
+- targeted stale-status scan: no remaining matches for the exact status
+  problems reported by Pat and Rose, except historical check-log and
+  after-task notes that were true when written;
+- `git diff --check`: passed;
+- `pkgdown::check_pkgdown()`: no problems found;
+- `pkgdown::build_site()`: site built successfully;
+- `devtools::check()` with `_R_CHECK_SYSTEM_CLOCK_=FALSE`: 0 errors,
+  0 warnings, 0 notes.
+
+Known limitations:
+
+- this was a documentation and consistency pass, not new model-fitting code;
+- shape, zero inflation, mixed bivariate families, `mvbind()` shorthand,
+  bivariate random effects, phylogenetic slopes, phylogenetic `sigma`, and
+  spatial terms remain planned;
+- rendered pkgdown search text still includes historical changelog entries and
+  old after-task notes, which should not be mechanically rewritten.
+
+Team learning:
+
+- Pat was right that the first public page needed an applied question before
+  equations; users should see why they are fitting the model before they see
+  symbols;
+- Rose caught that status drift, rather than terminology drift, was the main
+  risk in this phase;
+- shell searches containing backticks must be single-quoted so zsh does not
+  try to execute fragments such as `mu`.

@@ -9,7 +9,7 @@ package-specific. `bf()` remains a short alias. Avoid a public helper named
 `formula()` because it would be easy to confuse with base R's formula tools and
 with `formula(fit)` extractors.
 
-Canonical long-form direction:
+Long-term bivariate direction:
 
 ```r
 drmTMB(
@@ -70,7 +70,21 @@ meta-analysis family.
 
 ## Bivariate Syntax
 
-Canonical bivariate models use separate response formulas:
+Implemented bivariate Gaussian models use separate response formulas and fixed
+effects only:
+
+```r
+bf(
+  mu1 = y1 ~ x1 + x2,
+  mu2 = y2 ~ x1,
+  sigma1 = ~ x1 + x2,
+  sigma2 = ~ x1,
+  rho12 = ~ x1 + x2
+)
+```
+
+Future bivariate random-effect models should still use separate response
+formulas:
 
 ```r
 bf(
@@ -82,13 +96,15 @@ bf(
 )
 ```
 
-The `mvbind()` form is only shorthand for identical location formulas:
+The `mvbind()` form is reserved as shorthand for identical location formulas:
 
 ```r
 bf(mvbind(y1, y2) ~ x)
 ```
 
-expands internally to separate `mu1 = y1 ~ x` and `mu2 = y2 ~ x`.
+It should eventually expand internally to separate `mu1 = y1 ~ x` and
+`mu2 = y2 ~ x`, but the shorthand is not part of the implemented bivariate
+Gaussian path yet.
 
 ## Random Effects and Scale Components
 
@@ -385,7 +401,7 @@ Not every parameter should accept random effects at the same development stage.
 | `nu`, `tau` | Fixed effects first; random effects only after simulations show identifiability. |
 | `zi`, `hu`, `zoi`, `coi` | Fixed effects first; random effects later only for high-value use cases. |
 | `meta_known_V()` | Never; it is known sampling covariance, not an estimated parameter. |
-| `phylo(1 | species, tree = tree)` | Planned structured random intercept for univariate Gaussian `mu`; `tree` must be an ultrametric phylogeny with branch lengths. |
+| `phylo(1 | species, tree = tree)` | Implemented structured random intercept for univariate Gaussian `mu`; `tree` must be an ultrametric phylogeny with branch lengths. |
 | `phylo(1 + x | species, tree = tree)` | Planned structured random slope syntax after intercept-only phylogeny is tested. |
 | `spatial(1 | site, coords = coords)` | Planned structured spatial random intercept for univariate Gaussian `mu`; coordinates or a mesh must define the SPDE/GMRF structure. |
 | `spatial(1 + x | site, coords = coords)` | Planned structured spatial random slope syntax after intercept-only spatial fields are tested. |
@@ -407,12 +423,12 @@ Not every parameter should accept random effects at the same development stage.
 - Random-effect scale formulae are currently implemented as
   `sd(group) ~ x_group` for one or more distinct unlabelled univariate Gaussian
   `mu` random intercepts.
-- Phylogenetic and spatial terms are planned structured random effects. The
-  mature phylogenetic syntax should support `phylo(1 | species, tree = tree)`
-  and later `phylo(1 + x | species, tree = tree)`. Public `phylo()` should
-  require an ultrametric tree with branch lengths; dense covariance matrices
-  belong to lower-level comparators or `gr()`-style structured covariance
-  inputs, not the main phylogeny API.
+- Phylogenetic and spatial terms are structured random effects. The first
+  fitted path is `phylo(1 | species, tree = tree)` in univariate Gaussian
+  `mu`; later paths should support `phylo(1 + x | species, tree = tree)` and
+  spatial analogues. Public `phylo()` should require an ultrametric tree with
+  branch lengths; dense covariance matrices belong to lower-level comparators
+  or `gr()`-style structured covariance inputs, not the main phylogeny API.
 - Spatial syntax should mirror this pattern with terms such as
   `spatial(1 | site, coords = coords)` and later
   `spatial(1 + x | site, coords = coords)`, using coordinates or mesh objects

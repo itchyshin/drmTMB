@@ -41,7 +41,9 @@ distributional regression models using TMB.
 
 - Status: fixed-effect bivariate Gaussian implemented.
 - Support separate formulas for `mu1 = y1 ~ ...` and `mu2 = y2 ~ ...`.
-- Keep `mvbind(y1, y2) ~ x` only as shorthand for identical location formulas.
+- Keep `mvbind(y1, y2) ~ x` as a planned shorthand for identical location
+  formulas; do not advertise it as implemented until parser and likelihood
+  tests exist.
 - Added `sigma1`, `sigma2`, and constant `rho12`.
 - Added predictor-dependent `rho12 ~ x` using the Fisher-z/atanh scale.
 - Added simulation tests for positive, near-zero, negative, and
@@ -64,9 +66,9 @@ distributional regression models using TMB.
 - Add cross-formula or cross-parameter covariance sharing for labelled blocks,
   following `docs/design/17-correlated-random-effect-blocks.md`.
 - Use `docs/design/18-random-effect-scale-models.md` as the design contract:
-  the implemented MVP is univariate Gaussian `sd(id) ~ x_group` for exactly
-  one `mu` random intercept, with group-level predictors, simulation recovery
-  tests, and an `lme4` overlap test.
+  the implemented MVP targets one or more distinct unlabelled univariate
+  Gaussian `mu` random intercepts, with group-level predictors, simulation
+  recovery tests, and an `lme4` overlap test.
 - Extend random-effect scale models beyond unlabelled intercept targets, such
   as slope-specific, labelled-block, bivariate, and non-Gaussian targets.
 - Respect labelled correlated group syntax such as `(1 + x | p | id)` when

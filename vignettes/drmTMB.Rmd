@@ -19,7 +19,26 @@ intercepts in the `sigma` formula. It also supports a first group-level
 random-effect scale grammar such as `sd(id) ~ x_group` for one or more
 distinct unlabelled Gaussian `mu` random intercepts:
 
+The current package is already useful for one central workflow: write one
+formula for each parameter you want to estimate, then check that the fitted
+model matches the symbolic model you had in mind.
+
+For example, an applied user might ask: do mean trait values and residual
+variability change with an environmental predictor, after accounting for
+repeated measures from the same site or species? In `drmTMB`, that question is
+written as one formula for the mean and one formula for the residual scale.
+
 ## Implemented now
+
+For a Gaussian location-scale model:
+
+```text
+y_i | mu_i, sigma_i ~ Normal(mu_i, sigma_i^2)
+mu_i = X_mu[i, ] beta_mu
+log(sigma_i) = X_sigma[i, ] beta_sigma
+```
+
+the matching syntax is:
 
 ```r
 drmTMB(
@@ -27,6 +46,15 @@ drmTMB(
   family = gaussian(),
   data = dat
 )
+```
+
+Here `sigma_i` is the residual or within-observation standard deviation. The
+location formula may also include ordinary grouped random effects. For example,
+the random-intercept part of the model above is:
+
+```text
+mu_ij = X_mu[ij, ] beta_mu + b_j
+b_j ~ Normal(0, sd_mu_id^2)
 ```
 
 The ordinary correlated random intercept-slope form is also implemented for
@@ -70,6 +98,50 @@ This is a model for residual or within-observation scale. It is distinct from
 `sd(id) ~ x_group`, which models the standard deviation of an unlabelled
 group-level `mu` random intercept.
 
+Symbolically, those two scale models target different quantities:
+
+```text
+sigma formula:
+  log(sigma_ij) = X_sigma[ij, ] beta_sigma + a_j
+  a_j ~ Normal(0, sd_sigma_id^2)
+
+sd(id) formula:
+  b_j = sd_mu_id,j u_j
+  u_j ~ Normal(0, 1)
+  log(sd_mu_id,j) = W_id[j, ] alpha_id
+```
+
+So `sigma ~ x + (1 | id)` models residual-scale heterogeneity, whereas
+`sd(id) ~ x_group` models among-`id` heterogeneity in the mean.
+
+The first fitted phylogenetic path attaches a tree-structured random intercept
+to the location model:
+
+```text
+y_i | mu_i, sigma_i ~ Normal(mu_i, sigma_i^2)
+mu_i = X_mu[i, ] beta_mu + a_species[i]
+log(sigma_i) = X_sigma[i, ] beta_sigma
+a ~ MVN(0, sigma_phylo^2 A)
+```
+
+with matching syntax:
+
+```r
+drmTMB(
+  drm_formula(
+    y ~ x1 + phylo(1 | species, tree = tree),
+    sigma ~ x1
+  ),
+  family = gaussian(),
+  data = dat
+)
+```
+
+The public `phylo()` path takes an ultrametric tree with branch lengths. Internally,
+`drmTMB` uses the sparse augmented A-inverse route so the fitted model is a
+phylogenetic random intercept, not a dense covariance matrix supplied by the
+user.
+
 The first implemented bivariate seed covers fixed-effect location-coscale
 regression with predictor-dependent residual correlation. Here "coscale" means
 the residual covariance structure; in the current bivariate Gaussian model,
@@ -89,6 +161,21 @@ drmTMB(
 )
 ```
 
+The matching symbolic model is:
+
+```text
+[y1_i, y2_i]' ~ MVN([mu1_i, mu2_i]', Omega_i)
+mu1_i = X_mu1[i, ] beta_mu1
+mu2_i = X_mu2[i, ] beta_mu2
+log(sigma1_i) = X_sigma1[i, ] beta_sigma1
+log(sigma2_i) = X_sigma2[i, ] beta_sigma2
+rho12_i = tanh(X_rho12[i, ] beta_rho12)
+
+Omega_i[1, 1] = sigma1_i^2
+Omega_i[2, 2] = sigma2_i^2
+Omega_i[1, 2] = rho12_i sigma1_i sigma2_i
+```
+
 Meta-analysis uses the ordinary Gaussian family plus a known sampling
 covariance marker:
 
@@ -103,11 +190,28 @@ drmTMB(
 )
 ```
 
+Use this when each observation has known sampling uncertainty, such as a set of
+effect sizes from studies. The marker supplies known sampling variance or
+covariance; the fitted `sigma` remains the extra heterogeneity SD.
+
+For diagonal known sampling variances `vi`, this is:
+
+```text
+yi_i | mu_i, sigma_i, vi_i ~ Normal(mu_i, vi_i + sigma_i^2)
+```
+
+For a dense or block-diagonal known covariance matrix `V`, it is:
+
+```text
+y | mu, sigma, V ~ MVN(mu, V + diag(sigma_i^2))
+```
+
 ## Planned next
 
 The planned double-hierarchical bivariate version adds individual-level random
 intercepts and random slopes to each mean formula, following the
-individual-differences framework of O'Dea et al. (2022):
+individual-differences literature on personality, plasticity, predictability,
+and malleability:
 
 ```r
 drmTMB(

@@ -399,8 +399,10 @@ y | mu, sigma, V ~ MVN(mu, V + diag(sigma_i^2))
   predictors that are constant within the named grouping variable.
 - Residual-scale random slopes, slope-specific `sd()` targets, labelled-block
   `sd()` targets, cross-formula labelled covariance sharing, phylogenetic
-  terms, spatial terms, and non-Gaussian families are planned but not
-  implemented in this MVP.
+  slopes, phylogenetic `sigma` terms, spatial terms, and non-Gaussian families
+  are planned but not implemented in this MVP.
+- Intercept-only phylogenetic random effects are implemented in univariate
+  Gaussian `mu` formulas as `phylo(1 | species, tree = tree)`.
 
 Multiple random-effect scale components use explicit `sd()` formulas, not
 extra residual `sigma` formulas:

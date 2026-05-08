@@ -23,10 +23,25 @@ eta_d = X_d beta_d + Z_d z
 z ~ MVN(0, sigma_z^2 K)
 ```
 
-For phylogenetic models, `K` is a tree-derived matrix `A`. For spatial models,
-`K` is a distance-derived matrix `M`, or a sparse SPDE/GMRF precision that
-represents the same idea computationally. The package should teach these as
-one family of structured effects attached to a distributional parameter.
+Here `d` is the distributional parameter being modelled. In the first
+implemented case, `d = mu`: the structured effect is added to the mean
+predictor. For phylogenetic models, `K` is a tree-derived matrix `A`. For
+spatial models, `K` is a distance-derived matrix `M`, or a sparse SPDE/GMRF
+precision that represents the same idea computationally. The package should
+teach these as one family of structured effects attached to a distributional
+parameter.
+
+For the implemented univariate Gaussian `mu` model, the bridge becomes:
+
+```text
+y_i | mu_i, sigma_i ~ Normal(mu_i, sigma_i^2)
+mu_i = X_mu[i, ] beta_mu + a_species[i]
+log(sigma_i) = X_sigma[i, ] beta_sigma
+a ~ MVN(0, sigma_phylo^2 A)
+```
+
+The phylogenetic SD `sigma_phylo` measures how strongly related species remain
+similar in their fitted mean after the fixed effects have been included.
 
 Implemented phylogenetic syntax:
 
@@ -106,13 +121,17 @@ p_species ~ MVN(0, sigma_phylo^2 A)   # phylogenetic structure
 l_location ~ MVN(0, sigma_space^2 M)  # spatial structure
 ```
 
-The same design will let `drmTMB` support structured Gaussian meta-analysis
-while making ecological and evolutionary meta-analyses straightforward.
+The known matrix `V` handles sampling uncertainty. The phylogenetic and spatial
+terms add extra biological or environmental dependence after that known
+uncertainty has been included. The same design will let `drmTMB` support
+structured Gaussian meta-analysis while keeping ecological and evolutionary
+meta-analyses readable.
 
-The phylogenetic flagship is the location-scale model: trait means and residual
-SDs can each have phylogenetic structure. In bivariate models this allows
-several structured correlations, including mean-mean, scale-scale, and
-mean-scale phylogenetic correlations.
+The phylogenetic flagship is the location-scale model: trait means are the
+first implemented target, and residual SDs are a planned target once the
+location path has enough simulation and comparator coverage. In future
+bivariate models this could allow several structured correlations, including
+mean-mean, scale-scale, and mean-scale phylogenetic correlations.
 
 `drmTMB` then adds the location-coscale extension:
 

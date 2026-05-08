@@ -1,10 +1,14 @@
 # drmTMB <a href="https://itchyshin.github.io/drmTMB/"><img src="man/figures/drmTMB-logo.png" align="right" height="138" alt="drmTMB hex logo" /></a>
 
 A fast TMB-based distributional regression package for broadly useful
-univariate and bivariate location-scale-shape models. The package lets users
+univariate and bivariate distributional regression. The package is designed to
 model not only mu and sigma but also shape, zero inflation, random-effect
-variance, and residual correlation `rho12`; the first examples are motivated by
-ecology, evolution, and environmental science.
+variance, and residual correlation `rho12`; the current implementation starts
+with Gaussian location-scale, known-covariance meta-analysis, phylogenetic
+location effects, and bivariate Gaussian residual-correlation models. The first
+examples are motivated by ecology, evolution, and environmental science. Here
+`mu` is the expected response, `sigma` is the residual standard deviation, and
+`rho12` is the residual correlation between two responses.
 
 The current implementation supports Gaussian location-scale models, including
 fixed effects, random intercepts, independent numeric random slopes, and
@@ -106,6 +110,19 @@ drmTMB(
 )
 ```
 
+The fitted covariance matrix for observation `i` is:
+
+```text
+Omega_i =
+  [sigma1_i^2,                  rho12_i sigma1_i sigma2_i;
+   rho12_i sigma1_i sigma2_i,   sigma2_i^2]
+rho12_i = tanh(X_rho12[i, ] beta_rho12)
+```
+
+That equation is the package's first location-coscale contract: predictors may
+change means, residual standard deviations, and the residual coupling between
+two responses.
+
 The legacy helper `biv_gaussian()` remains available, but the public direction
 is composed response families. Both `family = c(gaussian(), gaussian())` and
 `family = list(gaussian(), gaussian())` route to the current bivariate Gaussian
@@ -125,6 +142,29 @@ drmTMB(
   data = dat
 )
 ```
+
+Use `meta_known_V(V = V)` when observations have known sampling variances or a
+known sampling covariance matrix, such as effect sizes from studies. The known
+`V` is sampling uncertainty; fitted `sigma` is the extra residual heterogeneity
+SD after that known uncertainty has been included.
+
+Phylogenetic location effects are fitted as structured Gaussian random effects
+in the `mu` formula:
+
+```r
+drmTMB(
+  bf(
+    y ~ x1 + phylo(1 | species, tree = tree),
+    sigma ~ x1
+  ),
+  family = gaussian(),
+  data = dat
+)
+```
+
+Symbolically, this adds `a_species ~ MVN(0, sigma_phylo^2 A)` to the mean
+model, where `A` is derived from an ultrametric branch-length tree. The current
+implemented path is intercept-only and univariate Gaussian.
 
 ## Planned next
 

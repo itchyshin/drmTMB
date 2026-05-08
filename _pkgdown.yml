@@ -56,8 +56,8 @@ reference:
       - bf
       - meta_known_V
       - biv_gaussian
-  - title: Planned structured-effect markers
-    desc: Reserved syntax for future structured covariance terms.
+  - title: Structured-effect markers
+    desc: Phylogenetic and planned spatial structured covariance terms.
     contents:
       - gr
       - phylo
