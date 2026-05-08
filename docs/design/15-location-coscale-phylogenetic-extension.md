@@ -85,7 +85,7 @@ drmTMB(
 ```
 
 This syntax is aspirational. The implemented seed is fixed-effect
-`biv_gaussian()` with `rho12 ~ predictors`.
+`family = c(gaussian(), gaussian())` with `rho12 ~ predictors`.
 
 ## Correlation Levels
 

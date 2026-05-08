@@ -18,8 +18,8 @@ These are the package-defining families.
 
 - `c(gaussian(), gaussian())`: public direction for `mu1`, `mu2`,
   `sigma1`, `sigma2`, and `rho12`.
-- `biv_gaussian()`: currently implemented all-Gaussian prototype for
-  fixed-effect models.
+- `biv_gaussian()`: retained helper for the implemented all-Gaussian
+  fixed-effect model.
 - `c(student(), student())`: later robust bivariate model with `nu`.
 - `c(gaussian(), poisson())` and other mixed ecological responses: later only
   after the joint likelihood and meaning of `rho12` are designed.

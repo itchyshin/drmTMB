@@ -189,7 +189,7 @@ drmTMB(
     sigma2 = ~ treatment,
     rho12 = ~ treatment
   ),
-  family = biv_gaussian(),
+  family = c(gaussian(), gaussian()),
   data = behaviour
 )
 ```
@@ -220,7 +220,7 @@ Current implemented Gaussian syntax covers:
 - `sigma ~ x + (1 | id)` for residual-scale random intercepts;
 - `sd(id) ~ x_group` for the standard deviation of one unlabelled Gaussian
   `mu` random intercept;
-- bivariate fixed-effect `rho12 ~ x` in `biv_gaussian()`.
+- bivariate fixed-effect `rho12 ~ x` with `family = c(gaussian(), gaussian())`.
 
 Current planned but not implemented syntax includes:
 

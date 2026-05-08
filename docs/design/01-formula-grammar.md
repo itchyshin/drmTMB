@@ -3,11 +3,11 @@
 The formula grammar is the heart of `drmTMB`. Every estimated parameter gets a
 formula. The family decides which parameters exist.
 
-The package should learn from `brms` without copying it wholesale. The prototype
-uses `bf()` because it is short and familiar, but the stable API may use a
-package-specific constructor such as `drm_formula()` if that is clearer for
-`drmTMB` users. Avoid a public helper named `formula()` because it would be easy
-to confuse with base R's formula tools.
+The package should learn from `brms` without copying it wholesale.
+`drm_formula()` is the primary public constructor because it is explicit and
+package-specific. `bf()` remains a short alias. Avoid a public helper named
+`formula()` because it would be easy to confuse with base R's formula tools and
+with `formula(fit)` extractors.
 
 Canonical long-form direction:
 
@@ -311,13 +311,15 @@ For bivariate models, prefer a vector/list of response families:
 
 ```r
 family = c(gaussian(), gaussian())
+family = list(gaussian(), gaussian())
 family = c(gaussian(), poisson())
 ```
 
-This makes mixed-response bivariate models natural. The current
-`biv_gaussian()` prototype can remain a temporary convenience or lower-level
-family object, but it should not force the public grammar into a separate
-family name for every response combination.
+This makes mixed-response bivariate models natural. The all-Gaussian composed
+case is implemented for both `c()` and `list()` spellings and routes to the
+same likelihood as `biv_gaussian()`. Mixed-response bivariate families remain
+future work until their joint likelihood and interpretation of `rho12` are
+specified.
 
 ## Distributional Parameters
 

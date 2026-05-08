@@ -1,8 +1,8 @@
 #' Build a drmTMB formula object
 #'
-#' `bf()` captures the formulae that define a `drmTMB` model. The family
-#' decides which distributional parameters are valid; `bf()` only records the
-#' user's intended formulas.
+#' `drm_formula()` captures the formulae that define a `drmTMB` model. The
+#' family decides which distributional parameters are valid; `drm_formula()`
+#' only records the user's intended formulas. `bf()` is a short alias.
 #'
 #' @param ... Formulae or named formulae. The unnamed response formula is
 #'   interpreted as the location formula for a univariate model. For bivariate
@@ -12,19 +12,19 @@
 #' @export
 #'
 #' @examples
-#' bf(y ~ x, sigma ~ z)
-#' bf(y ~ x + (1 | id), sigma ~ z, sd(id) ~ x_group)
-#' bf(
+#' drm_formula(y ~ x, sigma ~ z)
+#' drm_formula(y ~ x + (1 | id), sigma ~ z, sd(id) ~ x_group)
+#' drm_formula(
 #'   mu1 = y1 ~ x1 + x2,
 #'   mu2 = y2 ~ x1,
 #'   sigma1 = ~ x1,
 #'   sigma2 = ~ x2,
 #'   rho12 = ~ x1 + x2
 #' )
-bf <- function(...) {
+drm_formula <- function(...) {
   calls <- as.list(substitute(list(...)))[-1L]
   if (length(calls) == 0L) {
-    cli::cli_abort("{.fn bf} requires at least one formula.")
+    cli::cli_abort("{.fn drm_formula} requires at least one formula.")
   }
   names <- names(calls)
   if (is.null(names)) {
@@ -40,6 +40,10 @@ bf <- function(...) {
   class(out) <- "drm_formula"
   out
 }
+
+#' @rdname drm_formula
+#' @export
+bf <- drm_formula
 
 #' @export
 print.drm_formula <- function(x, ...) {

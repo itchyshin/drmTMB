@@ -7,10 +7,12 @@
 drmTMB(formula, family = stats::gaussian(), data, control = list(), ...)
 }
 \arguments{
-\item{formula}{A \code{drm_formula} object created by \code{\link[=bf]{bf()}}.}
+\item{formula}{A \code{drm_formula} object created by \code{\link[=drm_formula]{drm_formula()}} or \code{\link[=bf]{bf()}}.}
 
 \item{family}{A response family, such as \code{\link[stats:gaussian]{stats::gaussian()}} or
-\code{\link[=biv_gaussian]{biv_gaussian()}}.}
+\code{\link[=biv_gaussian]{biv_gaussian()}}. The current bivariate Gaussian engine also accepts
+\code{family = c(gaussian(), gaussian())} and
+\code{family = list(gaussian(), gaussian())}.}
 
 \item{data}{A data frame.}
 

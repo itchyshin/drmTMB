@@ -1369,3 +1369,83 @@ Team learning:
   so the after-task-audit skill is paying for itself;
 - future likelihood changes should include an explicit "preceding block" test
   whenever parser terms are expanded into internal coefficient blocks.
+
+## 2026-05-08: Formula Constructor and Composed Gaussian Family API
+
+Scope:
+
+- made `drm_formula()` the primary public formula constructor while keeping
+  `bf()` as a short alias;
+- routed `family = c(gaussian(), gaussian())` and
+  `family = list(gaussian(), gaussian())` to the implemented bivariate
+  Gaussian location-coscale likelihood;
+- kept mixed-response bivariate families as planned future work with a clear
+  error path;
+- added an explicit one-response/two-response scope guard for composed
+  families with more than two entries.
+
+Commands run:
+
+- `if command -v air >/dev/null 2>&1; then air format .; else echo 'air not installed'; fi`
+- `Rscript -e "devtools::document()"`
+- `Rscript -e "devtools::test(filter = 'package-skeleton|biv-gaussian')"`
+- manual smoke fit for `drm_formula(mu1 = y1 ~ x, mu2 = y2 ~ x)` with
+  `family = c(gaussian(), gaussian())`
+- manual smoke rejection for `family = c(gaussian(), poisson())`
+- `Rscript -e "devtools::test()"`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `Rscript -e "pkgdown::build_site()"`
+- `Rscript -e "devtools::check(env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'), manual = FALSE)"`
+- stale-wording `rg` scans over source, man pages, vignettes, and generated
+  `pkgdown-site` for old `bf()`-primary wording, `biv_gaussian()` prototype
+  wording, and obsolete composed-family future wording.
+
+Results:
+
+- `air` was not installed locally, so no formatter was run;
+- targeted `package-skeleton|biv-gaussian` tests: 67 passed, 0 failed, 0
+  warnings, 0 skipped;
+- full `devtools::test()`: 389 passed, 0 failed, 0 warnings, 0 skipped;
+- `pkgdown::check_pkgdown()`: no problems found;
+- `pkgdown::build_site()`: completed successfully and regenerated
+  `pkgdown-site`;
+- generated-site audit confirmed `reference/bf.html` is a redirect to
+  `reference/drm_formula.html`, and generated docs describe
+  `drm_formula()`/`bf()` and both all-Gaussian composed-family spellings;
+- `devtools::check(env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'), manual = FALSE)`:
+  0 errors, 0 warnings, 0 notes.
+
+Tests of the tests:
+
+- acceptance tests fit the same bivariate Gaussian likelihood through both
+  `c(gaussian(), gaussian())` and `list(gaussian(), gaussian())`;
+- malformed-family tests reject `c(gaussian(), poisson())`;
+- new scope tests reject three-response composed families through both `c()`
+  and `list()` spellings;
+- constructor tests verify that `drm_formula()` captures distributional
+  formula entries and that `bf()` remains a working alias.
+
+Review findings addressed:
+
+- Franklin found no P0/P1 issues and flagged the under-documented
+  `list(gaussian(), gaussian())` spelling plus the missing three-response
+  composed-family guard; both were fixed and tested.
+- Jason/Rose flagged generated pkgdown lag and missing closure notes; the site
+  was rebuilt, generated pages were scanned, and this check-log plus an
+  after-task report now supersede earlier design-only notes.
+
+Known limitations:
+
+- only all-Gaussian composed bivariate families are implemented;
+- mixed bivariate families such as `c(gaussian(), poisson())` still require a
+  designed joint likelihood and interpretation of `rho12`;
+- bivariate random effects and `mvbind()` shorthand remain future work.
+
+Team learning:
+
+- if code tolerates an input spelling and tests rely on it, the docs should
+  either bless it or the tests should remove it;
+- generated pkgdown output must be part of the phase gate whenever public API
+  wording changes;
+- Rose-style audits are best run before the final commit, not after, because
+  small naming/API inconsistencies are cheap to fix early.

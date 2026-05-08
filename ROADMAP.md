@@ -46,9 +46,10 @@ distributional regression models using TMB.
 - Added predictor-dependent `rho12 ~ x` using the Fisher-z/atanh scale.
 - Added simulation tests for positive, near-zero, negative, and
   predictor-dependent residual correlations.
-- Public bivariate family grammar should move toward composed families such as
-  `family = c(gaussian(), gaussian())` and `family = c(gaussian(), poisson())`
-  where the joint likelihood is defined.
+- Public bivariate family grammar accepts `family = c(gaussian(), gaussian())`
+  or `family = list(gaussian(), gaussian())` for the implemented all-Gaussian
+  likelihood. Mixed composed families such as `family = c(gaussian(), poisson())`
+  remain future work where the joint likelihood is defined.
 - Random effects and `mvbind()` shorthand remain future work.
 
 ## Phase 4: Mixed and Double-Hierarchical Models

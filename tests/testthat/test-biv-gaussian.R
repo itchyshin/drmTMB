@@ -68,6 +68,33 @@ test_that("drmTMB fits bivariate Gaussian models with constant rho12", {
   expect_true(all(abs(predict(fit, dpar = "rho12")) < 1))
 })
 
+test_that("composed Gaussian family syntax routes to bivariate Gaussian", {
+  sim <- new_biv_gaussian_data(n = 400, beta_rho12 = atanh(0.3), seed = 20260561)
+
+  fit_c <- drmTMB(
+    drm_formula(
+      mu1 = y1 ~ x,
+      mu2 = y2 ~ x,
+      sigma1 = ~ z1,
+      sigma2 = ~ z2,
+      rho12 = ~ 1
+    ),
+    family = c(gaussian(), gaussian()),
+    data = sim$data
+  )
+  fit_list <- drmTMB(
+    drm_formula(mu1 = y1 ~ x, mu2 = y2 ~ x),
+    family = list(gaussian(), gaussian()),
+    data = sim$data
+  )
+
+  expect_equal(fit_c$model$model_type, "biv_gaussian")
+  expect_equal(fit_list$model$model_type, "biv_gaussian")
+  expect_equal(fit_c$opt$convergence, 0)
+  expect_equal(fit_list$opt$convergence, 0)
+  expect_abs_error_below(coef(fit_c, "rho12"), atanh(0.3), 0.15)
+})
+
 test_that("drmTMB recovers predictor-dependent bivariate rho12", {
   sim <- new_biv_gaussian_data(
     n = 1200,
@@ -236,5 +263,29 @@ test_that("bivariate Gaussian rejects unsupported Phase 3 syntax clearly", {
       data = dat
     ),
     "unsupported model terms"
+  )
+  expect_error(
+    drmTMB(
+      bf(mu1 = y1 ~ x, mu2 = y2 ~ x),
+      family = c(gaussian(), poisson()),
+      data = dat
+    ),
+    "Mixed-response bivariate families"
+  )
+  expect_error(
+    drmTMB(
+      bf(mu1 = y1 ~ x, mu2 = y2 ~ x),
+      family = c(gaussian(), gaussian(), gaussian()),
+      data = dat
+    ),
+    "one-response and two-response models only"
+  )
+  expect_error(
+    drmTMB(
+      bf(mu1 = y1 ~ x, mu2 = y2 ~ x),
+      family = list(gaussian(), gaussian(), gaussian()),
+      data = dat
+    ),
+    "one-response and two-response models only"
   )
 })

@@ -64,10 +64,9 @@ also ask whether predictors change the residual coupling between two traits.
 That opens biological questions about trade-offs, integration, constraint,
 release from selection, and environment-dependent trait coupling.
 
-The exact constructor name remains a public-API decision. The prototype uses
-`bf()` for speed, but a package-specific spelling such as `drm_formula()` should
-be reconsidered before API stabilization. Avoid a helper named `formula()`,
-which would be too easily confused with base R's formula tooling.
+The primary constructor is `drm_formula()`. The short alias `bf()` remains
+available for familiar interactive use. Avoid a helper named `formula()`, which
+would be too easily confused with base R's formula tooling.
 
 ## Audience And Examples
 

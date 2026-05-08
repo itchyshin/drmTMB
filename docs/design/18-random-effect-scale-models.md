@@ -242,7 +242,7 @@ drmTMB(
     sigma2 = ~ x1,
     rho12 = ~ x1 + x2
   ),
-  family = biv_gaussian(),
+  family = c(gaussian(), gaussian()),
   data = dat
 )
 ```

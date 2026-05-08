@@ -15,11 +15,13 @@ intercept:
 
 ```r
 drmTMB(
-  bf(y ~ x1 + (1 | id) + (0 + x1 | id), sigma ~ x1),
+  drm_formula(y ~ x1 + (1 | id) + (0 + x1 | id), sigma ~ x1),
   family = gaussian(),
   data = dat
 )
 ```
+
+`bf()` remains available as a short alias for `drm_formula()`.
 
 Use separate terms for independent group-level intercept and slope variation,
 and a single block when the intercept-slope correlation is part of the model:
@@ -87,7 +89,7 @@ drmTMB(
     sigma2 = ~ x1,
     rho12 = ~ x1 + x2
   ),
-  family = biv_gaussian(),
+  family = c(gaussian(), gaussian()),
   data = dat
 )
 ```
@@ -120,9 +122,11 @@ If the correlation is among random intercepts or random slopes, it is a
 group-level covariance parameter; if it is between the two residual responses
 in one row, it is `rho12`.
 
-Future bivariate public syntax should also allow composed response families such
-as `family = c(gaussian(), gaussian())` and `family = c(gaussian(), poisson())`
-where a coherent joint likelihood is defined.
+The legacy helper `biv_gaussian()` remains available, but the public direction
+is composed response families. Both `family = c(gaussian(), gaussian())` and
+`family = list(gaussian(), gaussian())` route to the current bivariate Gaussian
+engine. Mixed bivariate families such as `family = c(gaussian(), poisson())`
+are planned for later, where a coherent joint likelihood is defined.
 
 Meta-analysis is handled as Gaussian regression with known sampling covariance,
 not as a separate family:
@@ -144,9 +148,11 @@ intercept-slope blocks, labelled one-slope `mu` covariance-block labels,
 residual-scale random intercepts in `sigma`,
 one univariate Gaussian random-effect scale model such as `sd(id) ~ x_group`,
 `meta_known_V(V = V)` support for diagonal and dense known sampling covariance,
-and fixed-effect bivariate Gaussian `rho12 ~ predictors`. The next targets are
-multiple random-effect scale components, cross-formula labelled covariance
-blocks, sparse precision paths, phylogenetic A-inverse, and spatial SPDE paths.
+and fixed-effect bivariate Gaussian `rho12 ~ predictors` using either
+`biv_gaussian()`, `family = c(gaussian(), gaussian())`, or
+`family = list(gaussian(), gaussian())`. The next targets are multiple
+random-effect scale components, cross-formula labelled covariance blocks,
+sparse precision paths, phylogenetic A-inverse, and spatial SPDE paths.
 
 Phylogenetic and spatial dependence will be treated as one structured-effect
 module: `z ~ MVN(0, sigma_z^2 K)`, with `K = A` for tree-derived phylogenetic

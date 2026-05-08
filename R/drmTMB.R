@@ -8,9 +8,11 @@
 #' group-level random-effect scale formula such as `sd(id) ~ x_group`,
 #' plus fixed-effect bivariate Gaussian distributional models.
 #'
-#' @param formula A `drm_formula` object created by [bf()].
+#' @param formula A `drm_formula` object created by [drm_formula()] or [bf()].
 #' @param family A response family, such as [stats::gaussian()] or
-#'   [biv_gaussian()].
+#'   [biv_gaussian()]. The current bivariate Gaussian engine also accepts
+#'   `family = c(gaussian(), gaussian())` and
+#'   `family = list(gaussian(), gaussian())`.
 #' @param data A data frame.
 #' @param control Optional list passed to [stats::nlminb()].
 #' @param ... Reserved for future model options.
@@ -19,7 +21,7 @@
 #' @export
 drmTMB <- function(formula, family = stats::gaussian(), data, control = list(), ...) {
   if (!inherits(formula, "drm_formula")) {
-    cli::cli_abort("{.arg formula} must be created with {.fn bf}.")
+    cli::cli_abort("{.arg formula} must be created with {.fn drm_formula} or {.fn bf}.")
   }
   dots <- list(...)
   if (length(dots) > 0L) {
@@ -85,9 +87,57 @@ drm_family_type <- function(family) {
   if (inherits(family, "drm_family") && identical(family$name, "biv_gaussian")) {
     return("biv_gaussian")
   }
+  composed <- drm_composed_families(family)
+  if (!is.null(composed)) {
+    family_names <- vapply(composed, `[[`, character(1), "family")
+    if (length(family_names) != 2L) {
+      cli::cli_abort(c(
+        "{.pkg drmTMB} currently supports one-response and two-response models only.",
+        "x" = "Received {length(family_names)} response families: {.val {family_names}}.",
+        "i" = "Use a single family such as {.fn gaussian} or a two-response family such as {.code c(gaussian(), gaussian())}."
+      ))
+    }
+    if (identical(family_names, c("gaussian", "gaussian"))) {
+      return("biv_gaussian")
+    }
+    cli::cli_abort(c(
+      "Mixed-response bivariate families are not implemented yet.",
+      "x" = "Requested families: {.val {family_names}}.",
+      "i" = "Only {.code family = c(gaussian(), gaussian())} or {.code family = list(gaussian(), gaussian())} is currently routed to the bivariate Gaussian engine."
+    ))
+  }
   cli::cli_abort(
-    "Currently supported families are {.code gaussian()} and {.fn biv_gaussian}."
+    "Currently supported families are {.code gaussian()}, {.fn biv_gaussian}, {.code c(gaussian(), gaussian())}, and {.code list(gaussian(), gaussian())}."
   )
+}
+
+drm_composed_families <- function(family) {
+  if (is.list(family) && !inherits(family, "family") &&
+      !inherits(family, "drm_family") && length(family) >= 2L &&
+      all(vapply(family, is_r_family_object, logical(1)))) {
+    return(family)
+  }
+  if (!is.list(family) || inherits(family, "family") || inherits(family, "drm_family")) {
+    return(NULL)
+  }
+  family_starts <- which(names(family) == "family")
+  if (length(family_starts) < 2L || family_starts[[1L]] != 1L) {
+    return(NULL)
+  }
+  family_ends <- c(family_starts[-1L] - 1L, length(family))
+  families <- Map(function(start, end) {
+    out <- family[seq.int(start, end)]
+    class(out) <- "family"
+    out
+  }, family_starts, family_ends)
+  if (!all(vapply(families, is_r_family_object, logical(1)))) {
+    return(NULL)
+  }
+  families
+}
+
+is_r_family_object <- function(x) {
+  inherits(x, "family") && is.character(x$family) && length(x$family) == 1L
 }
 
 drm_build_gaussian_ls_spec <- function(formula, data, env = parent.frame()) {

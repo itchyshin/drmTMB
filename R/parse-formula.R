@@ -10,7 +10,7 @@ parse_drm_formula_entries <- function(calls, names) {
 parse_drm_formula_entry <- function(expr, name, position) {
   if (!is_formula_call(expr)) {
     cli::cli_abort(
-      "{.fn bf} inputs must be formulas; input {position} is not a formula."
+      "{.fn drm_formula} inputs must be formulas; input {position} is not a formula."
     )
   }
 
@@ -40,7 +40,7 @@ parse_drm_formula_entry <- function(expr, name, position) {
     response <- deparse1(lhs)
   } else {
     cli::cli_abort(
-      "{.fn bf} input {position} is missing both a parameter name and a left-hand side."
+      "{.fn drm_formula} input {position} is missing both a parameter name and a left-hand side."
     )
   }
 

@@ -26,11 +26,13 @@ families:
 
 ```r
 family = c(gaussian(), gaussian())
+family = list(gaussian(), gaussian())
 family = c(gaussian(), poisson())
 ```
 
 This keeps mixed-response bivariate models natural. In ecological examples,
 this might mean body mass with fecundity counts, survival with dispersal
-counts, or leaf area with seed number. The current `biv_gaussian()` object is a
-prototype for the all-Gaussian case, not a commitment to one named family per
-response combination.
+counts, or leaf area with seed number. The all-Gaussian composed case is
+implemented for both `c()` and `list()` spellings and currently routes to the
+same likelihood as `biv_gaussian()`. Mixed-response composed families remain
+future work.

@@ -2,8 +2,8 @@ test_that("package metadata is available", {
   expect_equal(utils::packageDescription("drmTMB")$Package, "drmTMB")
 })
 
-test_that("bf() captures distributional formulas", {
-  form <- bf(
+test_that("drm_formula() captures distributional formulas", {
+  form <- drm_formula(
     mu1 = y1 ~ x1 + (1 | p | id),
     mu2 = y2 ~ x2 + (1 | p | id),
     sigma1 = ~ x1,
@@ -18,8 +18,16 @@ test_that("bf() captures distributional formulas", {
   expect_equal(form$entries[[5]]$dpar, "rho12")
 })
 
-test_that("bf() captures meta-analysis and random-effect scale syntax", {
-  form <- bf(
+test_that("bf() remains a short alias for drm_formula()", {
+  form <- bf(y ~ x, sigma ~ z)
+
+  expect_s3_class(form, "drm_formula")
+  expect_length(form$calls, 2)
+  expect_equal(vapply(form$entries, `[[`, character(1), "dpar"), c("mu", "sigma"))
+})
+
+test_that("drm_formula() captures meta-analysis and random-effect scale syntax", {
+  form <- drm_formula(
     yi ~ moderator + meta_known_V(V = vi),
     sigma ~ moderator,
     sd(study) ~ moderator

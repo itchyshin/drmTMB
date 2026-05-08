@@ -54,7 +54,8 @@ random intercept-slope blocks with optional covariance-block labels,
 univariate Gaussian residual-scale random intercepts in `sigma`, and optional
 known sampling covariance through `meta_known_V(V = V)`. Sparse known
 covariance, residual-scale random slopes, random-effect scale formulae such as
-`sd(id) ~ x`, and additional families are later phases.
+multiple `sd(group) ~ x_group` targets, and additional families are later
+phases.
 
 ## Implemented: Bivariate Gaussian Location-Coscale
 
@@ -63,15 +64,18 @@ families:
 
 ```r
 family = c(gaussian(), gaussian())
+family = list(gaussian(), gaussian())
 family = c(gaussian(), poisson())
 ```
 
 This is easier for mixed ecological responses such as body mass plus fecundity
 counts. A composed family must still declare a coherent joint likelihood and
 state what `rho12` means: observed residual correlation, latent residual
-correlation, a copula parameter, or unsupported. The current `biv_gaussian()`
-object is the implemented all-Gaussian prototype and a useful internal testing
-target, not a commitment to one named family for every response combination.
+correlation, a copula parameter, or unsupported. The all-Gaussian composed
+case is implemented for both `c()` and `list()` spellings and routes to the
+same likelihood as `biv_gaussian()`. The `biv_gaussian()` object remains a
+convenience and internal testing target, not a commitment to one named family
+for every response combination.
 
 ```r
 biv_gaussian <- function() {
