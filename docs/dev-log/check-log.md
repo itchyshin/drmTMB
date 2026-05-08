@@ -2729,3 +2729,89 @@ Team learning:
   even if the method was created in an earlier implementation slice;
 - `sigma()` documentation must keep the residual-scale versus observation-scale
   distinction explicit, especially for meta-analysis users.
+
+## 2026-05-08: Post-Fit Model Workflow Tutorial
+
+Scope:
+
+- added `vignettes/model-workflow.Rmd`, a tutorial that walks from a fitted
+  Gaussian location-scale model through diagnostics, coefficients, prediction,
+  residuals, and simulation;
+- paired the symbolic Gaussian location-scale equations with matching
+  `drmTMB()` syntax and parameter interpretation;
+- added the tutorial to the pkgdown Tutorials menu and article index;
+- documented how the same post-fit loop applies to meta-analytic Gaussian
+  models with `meta_known_V(V = V)` and to bivariate Pearson residuals using
+  `sigma1`, `sigma2`, and `rho12`.
+
+Commands run:
+
+- `Rscript -e "rmarkdown::render('vignettes/model-workflow.Rmd', quiet = TRUE)"`
+- `Rscript -e "pkgdown::build_article('model-workflow')"`
+- `Rscript -e "devtools::test()"`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `git diff --check`
+- `Rscript -e "pkgdown::build_site()"`
+- `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`
+- `air format .`
+- `rg -n "Checking and using fitted models|post-fit loop|meta_known_V\\(V = V\\)|simulate\\(fit|residuals\\(fit|check_drm\\(fit\\)" pkgdown-site/articles/model-workflow.html pkgdown-site/articles/index.html pkgdown-site/index.html`
+- `rg -n "meta_gaussian|tau ~|rho ~|biv_gaussian|biological data|O.Dea-style|O'Dea-style" vignettes/model-workflow.Rmd pkgdown-site/articles/model-workflow.html docs README.md vignettes _pkgdown.yml`
+
+Results:
+
+- full `devtools::test()`: 572 passed, 0 failed;
+- `pkgdown::check_pkgdown()`: no problems found;
+- `pkgdown::build_site()`: completed successfully and generated
+  `articles/model-workflow.html`;
+- generated-site search found the new tutorial title, navbar entry,
+  `meta_known_V(V = V)` note, `check_drm(fit)`, `residuals(fit, type =
+  "pearson")`, and `simulate(fit)` workflow text;
+- full `devtools::check()` with `_R_CHECK_SYSTEM_CLOCK_=FALSE`: 0 errors,
+  0 warnings, 0 notes;
+- `git diff --check`: clean;
+- direct standalone `rmarkdown::render()` and `pkgdown::build_article()` failed
+  in a plain session because the package was not installed there, but the full
+  pkgdown site build and R CMD check both installed the package first and built
+  the vignette successfully;
+- `air format .` could not run because `air` is not installed on this machine.
+
+Tests of the tests:
+
+- this was a tutorial/documentation task, so no unit tests were added;
+- the vignette chunks were exercised by both full pkgdown build and R CMD check
+  vignette rebuild;
+- the generated HTML was searched directly to verify that navigation and the
+  central workflow text reached the site.
+
+Consistency audit:
+
+- the tutorial uses implemented syntax only: `bf(growth ~ ..., sigma ~ ...)`,
+  `family = gaussian()`, `check_drm()`, `coef()`, `summary()`, `predict()`,
+  `sigma()`, `residuals()`, and `simulate()`;
+- the tutorial keeps `sigma` as the residual standard deviation parameter and
+  uses `rho12` only for the bivariate residual-correlation note;
+- no NEWS bullet was added because this was a new learning-path article, not a
+  new fitting feature or API change;
+- no roadmap or likelihood design update was needed because no model behaviour
+  changed.
+
+What did not go smoothly:
+
+- direct article rendering outside an installed-package context was misleading;
+  full pkgdown/R CMD check was the correct verification route for this package;
+- local formatting through `air` remains unavailable.
+
+Known limitations:
+
+- the example is intentionally compact and synthetic;
+- richer ecology/evolution examples should be added later with real or
+  package-data-style workflows;
+- the tutorial explains current post-fit tools but does not yet cover profile
+  likelihood intervals or conditional prediction for new random-effect levels.
+
+Team learning:
+
+- post-fit tutorials are a good place to pair equations, syntax, and
+  interpretation without overloading the main getting-started article;
+- docs-heavy tasks still need generated-site checks because pkgdown navigation
+  is part of the user-facing behaviour.

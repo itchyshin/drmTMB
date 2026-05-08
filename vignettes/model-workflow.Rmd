@@ -1,0 +1,175 @@
+---
+title: "Checking and using fitted models"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Checking and using fitted models}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+After fitting a distributional model, the next question is not only "what are
+the coefficients?" A useful workflow checks the fit, extracts the fitted
+distributional parameters, predicts to meaningful covariate values, examines
+residuals, and simulates from the fitted model.
+
+This article uses a small growth example, but the same workflow applies to
+other Gaussian location-scale models in `drmTMB`.
+
+## Fit the model
+
+Suppose growth is measured along a temperature gradient in two habitat types.
+The model asks whether temperature and habitat change expected growth, and
+whether temperature also changes residual variability.
+
+Symbolically:
+
+```text
+growth_i | mu_i, sigma_i ~ Normal(mu_i, sigma_i^2)
+mu_i = beta_0 + beta_1 temperature_i + beta_2 habitat_i
+log(sigma_i) = gamma_0 + gamma_1 temperature_i
+```
+
+Matching R syntax:
+
+```{r}
+library(drmTMB)
+
+set.seed(12)
+n <- 120
+fish <- data.frame(
+  temperature = runif(n, -1.5, 1.5),
+  habitat = factor(sample(c("reef", "kelp"), n, replace = TRUE))
+)
+eta_mu <- 1 + 0.7 * fish$temperature + 0.35 * (fish$habitat == "kelp")
+eta_sigma <- -0.5 + 0.25 * fish$temperature
+fish$growth <- rnorm(n, mean = eta_mu, sd = exp(eta_sigma))
+
+fit <- drmTMB(
+  bf(growth ~ temperature + habitat, sigma ~ temperature),
+  family = gaussian(),
+  data = fish
+)
+```
+
+Here `growth ~ temperature + habitat` defines the location model, and
+`sigma ~ temperature` defines the residual standard deviation model on the
+log scale.
+
+## Check before interpreting
+
+Run `check_drm()` before interpreting estimates:
+
+```{r}
+check_drm(fit)
+```
+
+A clean diagnostic table does not prove that the model is scientifically
+correct, but it catches common problems early: optimizer convergence, gradients,
+Hessian status, dropped rows, positive scale values, and random-effect design
+issues when random effects are present.
+
+## Read coefficients by parameter
+
+Each distributional parameter has its own coefficient vector:
+
+```{r}
+coef(fit, "mu")
+coef(fit, "sigma")
+```
+
+The `sigma` coefficients are on the log-standard-deviation scale. A positive
+temperature coefficient in `sigma` means that residual variability increases
+with temperature. Exponentiating the coefficient gives a multiplicative change
+in residual standard deviation for a one-unit temperature increase.
+
+`summary()` puts the fixed-effect estimates, log likelihood, and convergence
+code in one place:
+
+```{r}
+summary(fit)
+```
+
+## Predict distributional parameters
+
+`predict()` returns one distributional parameter at a time. For fitted rows,
+`fitted(fit)` and `predict(fit, dpar = "mu")` return the same location values
+for this fixed-effect model:
+
+```{r}
+head(fitted(fit))
+head(predict(fit, dpar = "mu"))
+head(sigma(fit))
+```
+
+For new covariate values, supply `newdata`. These are fixed-effect,
+population-level predictions:
+
+```{r}
+new_fish <- data.frame(
+  temperature = c(-1, 0, 1),
+  habitat = factor("reef", levels = levels(fish$habitat))
+)
+
+predict(fit, newdata = new_fish, dpar = "mu")
+predict(fit, newdata = new_fish, dpar = "sigma")
+predict(fit, newdata = new_fish, dpar = "sigma", type = "link")
+```
+
+The response-scale `sigma` predictions are residual standard deviations. The
+link-scale predictions are the corresponding log-standard deviations.
+
+In meta-analytic Gaussian models with `meta_known_V(V = V)`, `sigma(fit)`
+still returns the modelled residual heterogeneity scale. Simulation and
+Pearson residuals combine the known sampling covariance with that residual
+scale internally.
+
+## Inspect residuals
+
+Response residuals are observed minus fitted location:
+
+```{r}
+head(residuals(fit))
+```
+
+Pearson residuals divide by the fitted observation scale:
+
+```{r}
+head(residuals(fit, type = "pearson"))
+```
+
+For bivariate Gaussian fits, `residuals(fit, type = "pearson")` returns a
+two-column matrix whitened by the fitted `sigma1`, `sigma2`, and residual
+correlation `rho12`.
+
+## Simulate from the fitted model
+
+Simulation is a compact way to ask whether the fitted model generates data on
+the same scale as the observed response:
+
+```{r}
+sims <- simulate(fit, nsim = 3, seed = 1)
+head(sims)
+```
+
+For this univariate model, the output has one column per simulated data set.
+For bivariate Gaussian models, simulations are returned in paired columns such
+as `sim_1_y1` and `sim_1_y2`.
+
+## A compact post-fit checklist
+
+For routine fitted models, the post-fit loop is:
+
+1. `check_drm(fit)` before interpreting estimates.
+2. `coef(fit, dpar)` or `summary(fit)` for parameter-specific coefficients.
+3. `predict(fit, dpar = ...)` for fitted or new-data distributional
+   parameters.
+4. `residuals(fit, type = "pearson")` to inspect standardized lack of fit.
+5. `simulate(fit)` to compare fitted-model behaviour with the observed data.
+
+The same loop will extend as more families arrive. The parameter names change,
+but the discipline stays the same: check the fit, then interpret each
+distributional parameter on its own scale.
