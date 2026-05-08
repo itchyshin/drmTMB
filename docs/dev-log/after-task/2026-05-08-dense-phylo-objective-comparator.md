@@ -13,6 +13,8 @@ model has the same marginal likelihood as the dense Brownian covariance model.
   observations per species.
 - Added a second fitted-model test combining a non-phylogenetic species random
   intercept and a phylogenetic species random intercept.
+- Added a third fitted-model test combining known sampling variances from
+  `meta_known_V(V = vi)` and a phylogenetic species random intercept.
 - The test fits:
 
 ```r
@@ -49,6 +51,25 @@ and compares against:
 Sigma = sigma^2 I + sd_species^2 I_species + sd_phylo^2 A[species, species]
 ```
 
+For the known-variance meta-analytic model, the test fits:
+
+```r
+drmTMB(
+  bf(
+    yi ~ x + meta_known_V(V = vi) + phylo(1 | species, tree = tree),
+    sigma ~ 1
+  ),
+  family = gaussian(),
+  data = dat
+)
+```
+
+and compares against:
+
+```text
+Sigma = V_known + sigma^2 I + sd_phylo^2 A[species, species]
+```
+
 ## Mathematical Contract
 
 The fitted sparse path integrates a latent tree effect:
@@ -71,6 +92,12 @@ y ~ MVN(
   X_mu beta_mu,
   sigma^2 I + sd_species^2 I_species + sd_phylo^2 A_obs
 )
+```
+
+With known sampling variance from meta-analysis:
+
+```text
+y ~ MVN(X_mu beta_mu, V_known + sigma^2 I + sd_phylo^2 A_obs)
 ```
 
 where `A_obs = A[species, species]`. For Gaussian random effects, the TMB
@@ -103,7 +130,8 @@ to sparse TMB objective.
   the first fitted path should be validated against a dense tip covariance on
   small examples.
 - The tests use supported public syntax only: ordinary univariate Gaussian
-  random intercepts and intercept-only univariate Gaussian `phylo()` in `mu`.
+  random intercepts, `meta_known_V(V = V)`, and intercept-only univariate
+  Gaussian `phylo()` in `mu`.
 - No README, roadmap, or user-facing syntax changed.
 
 ## What Did Not Go Smoothly
@@ -121,8 +149,9 @@ Nothing substantial. Both comparators passed on targeted runs.
 
 - The comparators validate tiny trees and fitted parameter points.
 - Larger simulation and comparator studies are still needed for many species,
-  weak phylogenetic signal, near-zero variance components, and simultaneous
-  phylogenetic plus non-phylogenetic species effects.
+  weak phylogenetic signal, near-zero variance components, dense or sparse
+  block covariance matrices, and simultaneous phylogenetic plus
+  non-phylogenetic species effects.
 
 ## Next Actions
 

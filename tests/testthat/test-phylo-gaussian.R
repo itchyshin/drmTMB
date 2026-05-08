@@ -168,6 +168,44 @@ test_that("ordinary and phylogenetic species intercepts match dense marginal lik
   )
 })
 
+test_that("phylogenetic meta-analysis objective matches dense known-V likelihood", {
+  tree <- balanced_ultrametric_tree(n_tip = 4L)
+  species <- rep(tree$tip.label, each = 3L)
+  x <- rep(c(-0.6, 0.0, 0.6), times = 4L)
+  vi <- rep(c(0.02, 0.03, 0.04), times = 4L)
+  phylo_signal <- c(sp_1 = -0.25, sp_2 = -0.2, sp_3 = 0.25, sp_4 = 0.35)
+  dat <- data.frame(
+    yi = 0.2 + 0.5 * x + phylo_signal[species] +
+      rep(c(-0.04, 0.01, 0.05), times = 4L),
+    x = x,
+    vi = vi,
+    species = species
+  )
+
+  fit <- drmTMB(
+    bf(
+      yi ~ x + meta_known_V(V = vi) + phylo(1 | species, tree = tree),
+      sigma ~ 1
+    ),
+    family = gaussian(),
+    data = dat
+  )
+
+  X_mu <- stats::model.matrix(~ x, dat)
+  mu <- as.vector(X_mu %*% coef(fit, "mu"))
+  A_tip <- drmTMB:::drm_phylo_tip_covariance(tree)
+  A_obs <- A_tip[dat$species, dat$species]
+  covariance <- diag(dat$vi + stats::sigma(fit)[[1L]]^2) +
+    unname(fit$sdpars$mu)^2 * A_obs
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(
+    fit$opt$objective,
+    dense_gaussian_nll(dat$yi, mu, covariance),
+    tolerance = 1e-4
+  )
+})
+
 test_that("conditional predictions include phylogenetic mu effects", {
   sim <- new_phylo_gaussian_data(seed = 20260548)
   dat <- sim$data

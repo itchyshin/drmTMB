@@ -2036,11 +2036,16 @@ Scope:
   `bf(y ~ x + (1 | species) + phylo(1 | species, tree = tree), sigma ~ 1)`
   and checks the marginal covariance with both non-phylogenetic and
   phylogenetic species intercepts;
+- a third comparator fits Gaussian meta-analysis with known sampling variance
+  and a phylogenetic `mu` intercept, checking
+  `Sigma = V_known + sigma^2 I + sd_phylo^2 A_obs`;
 - the dense comparator uses
   `Sigma = sigma^2 I + sd_phylo^2 A[species, species]`, where `A` is built by
   the dense Brownian tip-covariance helper, and extends to
   `Sigma = sigma^2 I + sd_species^2 I_species + sd_phylo^2 A_obs` for the
-  combined species model;
+  combined species model, and to
+  `Sigma = V_known + sigma^2 I + sd_phylo^2 A_obs` for the known-variance
+  meta-analytic model;
 - this strengthens the bridge between the public equation,
   `a ~ MVN(0, sigma_phylo^2 A)`, and the sparse augmented A-inverse
   implementation.
@@ -2054,9 +2059,9 @@ Commands run:
 
 Results:
 
-- targeted `phylo-gaussian` tests: 16 passed, 0 failed;
-- targeted phylogenetic tests: 61 passed, 0 failed;
-- full `devtools::test()`: 481 passed, 0 failed.
+- targeted `phylo-gaussian` tests: 18 passed, 0 failed;
+- targeted phylogenetic tests: 63 passed, 0 failed;
+- full `devtools::test()`: 483 passed, 0 failed.
 - `devtools::check()` with `_R_CHECK_SYSTEM_CLOCK_=FALSE`: 0 errors,
   0 warnings, 0 notes.
 
