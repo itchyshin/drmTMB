@@ -1560,3 +1560,25 @@ Team learning:
 - Feynman and Confucius clarified that `sd(group) ~ ...` is a bridge toward
   phylogenetic/spatial random-factor scale models, while shape/skewness should
   remain a later, more heavily tested extension.
+
+## 2026-05-08: GitHub Actions Node 24 Opt-In
+
+Scope:
+
+- opted both GitHub Actions workflows into Node.js 24 for JavaScript actions
+  using `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true`;
+- addressed the deprecation annotation emitted by GitHub Actions after the
+  multiple random-effect scale formula push.
+
+Commands run:
+
+- `git diff --check`
+
+Results:
+
+- `git diff --check`: passed.
+
+Known limitations:
+
+- This is workflow hygiene only; package tests were not rerun locally because
+  no R, C++, documentation, or package metadata changed.
