@@ -2228,3 +2228,59 @@ Team learning:
 - familiar extractor names help users coming from mixed-model software, but the
   documentation should be explicit when the returned object shape is still a
   `drmTMB` structure.
+
+## 2026-05-08: rho12 Residual Correlation Extractor
+
+Scope:
+
+- added exported `rho12()` and `rho12.drmTMB()`;
+- `rho12(fit)` returns response-scale residual correlations for bivariate
+  Gaussian location-coscale fits;
+- `rho12(fit, type = "link")` returns the atanh-scale linear predictor;
+- `rho12(fit, newdata = dat)` delegates to the existing prediction matrix
+  machinery;
+- updated README, the getting-started article, the bivariate-coscale article,
+  the which-scale tutorial, NEWS, pkgdown reference navigation, tests, and
+  roxygen documentation.
+
+Commands run:
+
+- `Rscript -e "devtools::document()"`
+- `Rscript -e "devtools::test(filter = 'biv-gaussian')"`
+- `Rscript -e "devtools::test(filter = 'gaussian-location-scale')"`
+- `air format .`
+- `Rscript -e "devtools::test()"`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `git diff --check`
+- `Rscript -e "pkgdown::build_site()"`
+- `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`
+- `rg 'predict\(fit, dpar = "rho12"\)' vignettes README.md pkgdown-site/articles/bivariate-coscale.html pkgdown-site/articles/drmTMB.html pkgdown-site/articles/which-scale.html pkgdown-site/news/index.html`
+- `rg "rho12\\(fit\\)|rho12\\(object|S3method\\(rho12|export\\(rho12|reference/rho12" NAMESPACE README.md R man tests vignettes _pkgdown.yml NEWS.md pkgdown-site/reference/index.html pkgdown-site/reference/rho12.html pkgdown-site/articles/bivariate-coscale.html pkgdown-site/articles/drmTMB.html pkgdown-site/articles/which-scale.html`
+
+Results:
+
+- targeted `biv-gaussian` tests: 52 passed, 0 failed;
+- targeted `gaussian-location-scale` tests: 44 passed, 0 failed after
+  recording the new non-bivariate `rho12()` error snapshot;
+- full `devtools::test()`: 502 passed, 0 failed;
+- `pkgdown::check_pkgdown()`: no problems found;
+- `pkgdown::build_site()`: site built successfully with the `rho12()`
+  reference page and updated tutorials;
+- `devtools::check()` with `_R_CHECK_SYSTEM_CLOCK_=FALSE`: 0 errors,
+  0 warnings, 0 notes;
+- stale teaching search found no remaining `predict(fit, dpar = "rho12")`
+  examples in active vignettes, README, or rebuilt article pages;
+- `air format .` could not run because `air` is not installed on this machine.
+
+Known limitations:
+
+- `rho12()` is currently defined only for the implemented bivariate Gaussian
+  residual correlation;
+- other correlation levels, such as phylogenetic, species, site, or spatial
+  covariance correlations, remain separate future extractors or summaries.
+
+Team learning:
+
+- when a flagship parameter gets a dedicated extractor, the teaching prose
+  should immediately move to that extractor so equations, syntax, and examples
+  reinforce one another.

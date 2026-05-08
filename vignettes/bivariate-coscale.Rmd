@@ -100,7 +100,7 @@ The mapping is:
 | `X_sigma1`, `X_sigma2` | response-specific residual scale design matrices | right-hand sides of `sigma1` and `sigma2` |
 | `X_rho12` | residual correlation design matrix | right-hand side of `rho12` |
 | `sigma1_i`, `sigma2_i` | residual SDs for responses 1 and 2 | `predict(fit, dpar = "sigma1")`, `predict(fit, dpar = "sigma2")` |
-| `rho12_i` | residual response-response correlation | `predict(fit, dpar = "rho12")` |
+| `rho12_i` | residual response-response correlation | `rho12(fit)` |
 
 The fixed effects may be the same, overlapping, or different across
 parameters. For example, `x1` can appear in all five formulae, while `x2` might
@@ -177,7 +177,8 @@ fit <- drmTMB(
 )
 
 coef(fit, "rho12")
-predict(fit, dpar = "rho12")[1:5]
+rho12(fit)[1:5]
+rho12(fit, type = "link")[1:5]
 ```
 
 For ecological and evolutionary examples, `rho12` can represent changing
@@ -201,4 +202,4 @@ phylogenetic correlation between response-specific evolutionary deviations, a
 non-phylogenetic species correlation after shared ancestry is accounted for,
 and a residual `rho12` within observations. Those quantities should be named
 and extracted separately, for example as `corpars$phylo`,
-`corpars$species`, and `predict(fit, dpar = "rho12")`.
+`corpars$species`, and `rho12(fit)`.

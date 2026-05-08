@@ -176,6 +176,9 @@ Omega_i[2, 2] = sigma2_i^2
 Omega_i[1, 2] = rho12_i sigma1_i sigma2_i
 ```
 
+The fitted response-scale residual correlations are available with
+`rho12(fit)`.
+
 Meta-analysis uses the ordinary Gaussian family plus a known sampling
 covariance marker:
 

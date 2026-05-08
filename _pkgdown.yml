@@ -73,6 +73,7 @@ reference:
       - starts_with("drmTMB")
       - fixef
       - ranef
+      - rho12
       - starts_with("predict")
       - starts_with("simulate")
 

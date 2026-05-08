@@ -121,7 +121,8 @@ rho12_i = tanh(X_rho12[i, ] beta_rho12)
 
 That equation is the package's first location-coscale contract: predictors may
 change means, residual standard deviations, and the residual coupling between
-two responses.
+two responses. Use `rho12(fit)` to extract the fitted response-scale residual
+correlations.
 
 The legacy helper `biv_gaussian()` remains available, but the public direction
 is composed response families. Both `family = c(gaussian(), gaussian())` and

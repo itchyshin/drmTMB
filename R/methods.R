@@ -83,6 +83,38 @@ ranef.drmTMB <- function(object, dpar = NULL, ...) {
   blocks[[dpar]]
 }
 
+#' Extract residual correlation rho12
+#'
+#' `rho12()` returns the residual response-response correlation from a
+#' bivariate Gaussian `drmTMB` fit. By default it returns the response-scale
+#' correlation. Use `type = "link"` for the Fisher-z/atanh linear predictor.
+#'
+#' @param object A `drmTMB` fit.
+#' @param newdata Optional data frame for prediction.
+#' @param type Scale of returned values: `"response"` for correlation values or
+#'   `"link"` for atanh-scale linear predictors.
+#' @param ... Reserved for future extractor options.
+#'
+#' @return A numeric vector of residual correlations, or atanh-scale linear
+#'   predictors when `type = "link"`.
+#' @export
+rho12 <- function(object, ...) {
+  UseMethod("rho12")
+}
+
+#' @rdname rho12
+#' @export
+rho12.drmTMB <- function(object, newdata = NULL,
+                         type = c("response", "link"), ...) {
+  type <- match.arg(type)
+  if (!"rho12" %in% names(object$coefficients)) {
+    cli::cli_abort(
+      "This {.cls drmTMB} fit does not contain residual correlation {.code rho12}."
+    )
+  }
+  predict.drmTMB(object, newdata = newdata, dpar = "rho12", type = type, ...)
+}
+
 #' @export
 coef.drmTMB <- function(object, dpar = NULL, ...) {
   if (is.null(dpar)) {

@@ -11,6 +11,7 @@
 * `fixef()` now returns distributional fixed-effect coefficients and acts as a mixed-model-friendly alias for `coef()`.
 * `meta_known_V(V = V)` now fits Gaussian meta-analysis with diagonal or dense full known sampling covariance using `family = gaussian()`.
 * `ranef()` now returns fitted conditional random-effect blocks, including ordinary `mu`, residual-scale `sigma`, and current `phylo_mu` blocks when present.
+* `rho12()` now returns response-scale residual correlations from bivariate Gaussian location-coscale fits, with `type = "link"` available for atanh-scale linear predictors.
 * `drmTMB()` now fits intercept-only phylogenetic random effects in the univariate Gaussian location formula with `phylo(1 | species, tree = tree)`, using an ultrametric branch-length tree and the sparse augmented A-inverse path.
 * Planned structured-effect markers outside that first phylogenetic path, such as `phylo(1 + x | species, tree = tree)`, phylogenetic terms in `sigma`, and `spatial(1 | site, coords = coords)`, are parsed by `drm_formula()` and rejected by `drmTMB()` with planned-feature errors until their TMB likelihoods and recovery tests are implemented.
 * `residuals()` now returns whitened Pearson residuals for bivariate Gaussian fits, and `vcov()` now uses coefficient-level row and column names.

@@ -296,7 +296,8 @@ Here `rho12_i` is residual response-response correlation within an observation
 after the response-specific means and residual SDs have been modelled. If the
 correlation is among random intercepts or random slopes, it is a group-level
 covariance parameter. If the correlation is between the two residual responses
-in one row, it is `rho12`.
+in one row, it is `rho12`. Extract fitted response-scale residual correlations
+with `rho12(fit)`.
 
 ## Current boundary
 

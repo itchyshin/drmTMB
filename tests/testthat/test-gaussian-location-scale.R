@@ -38,6 +38,7 @@ test_that("drmTMB fits fixed-effect Gaussian location-scale models", {
   expect_equal(fixef(fit), coef(fit))
   expect_equal(fixef(fit, "mu"), coef(fit, "mu"))
   expect_equal(ranef(fit), list())
+  expect_snapshot(rho12(fit), error = TRUE)
   expect_length(predict(fit, dpar = "mu"), n)
   expect_true(all(stats::sigma(fit) > 0))
   expect_s3_class(stats::logLik(fit), "logLik")

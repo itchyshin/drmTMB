@@ -66,6 +66,12 @@ test_that("drmTMB fits bivariate Gaussian models with constant rho12", {
   expect_abs_error_below(coef(fit, "rho12"), sim$beta_rho12, 0.12)
   expect_length(predict(fit), nrow(sim$data))
   expect_true(all(abs(predict(fit, dpar = "rho12")) < 1))
+  expect_equal(rho12(fit), predict(fit, dpar = "rho12"), tolerance = 1e-12)
+  expect_equal(
+    rho12(fit, type = "link"),
+    predict(fit, dpar = "rho12", type = "link"),
+    tolerance = 1e-12
+  )
 })
 
 test_that("composed Gaussian family syntax routes to bivariate Gaussian", {
@@ -135,6 +141,11 @@ test_that("drmTMB recovers predictor-dependent bivariate rho12", {
     w = c(-1, 1)
   )
   expect_equal(length(predict(fit, newdata = newdata, dpar = "rho12")), 2)
+  expect_equal(
+    rho12(fit, newdata = newdata),
+    predict(fit, newdata = newdata, dpar = "rho12"),
+    tolerance = 1e-12
+  )
 })
 
 test_that("bivariate rho12 handles near-zero and negative correlations", {
