@@ -115,6 +115,32 @@ rho12.drmTMB <- function(object, newdata = NULL,
   predict.drmTMB(object, newdata = newdata, dpar = "rho12", type = type, ...)
 }
 
+#' Extract fitted mean values
+#'
+#' `fitted()` returns fitted location values from a `drmTMB` model. For
+#' univariate Gaussian fits this is the fitted `mu` vector. For bivariate
+#' Gaussian fits this is a two-column matrix with `mu1` and `mu2`.
+#'
+#' Fitted values are returned for the original fitted rows. Use [predict()] for
+#' new data or for non-location distributional parameters such as `sigma` or
+#' `rho12`.
+#'
+#' @param object A `drmTMB` fit.
+#' @param ... Reserved for future fitted-value options.
+#'
+#' @return A numeric vector for univariate fits, or a two-column matrix for
+#'   bivariate Gaussian fits.
+#' @export
+fitted.drmTMB <- function(object, ...) {
+  if (identical(object$model$model_type, "biv_gaussian")) {
+    return(cbind(
+      mu1 = predict.drmTMB(object, dpar = "mu1"),
+      mu2 = predict.drmTMB(object, dpar = "mu2")
+    ))
+  }
+  predict.drmTMB(object, dpar = "mu")
+}
+
 #' @export
 coef.drmTMB <- function(object, dpar = NULL, ...) {
   if (is.null(dpar)) {

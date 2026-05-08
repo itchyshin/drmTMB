@@ -71,6 +71,7 @@ reference:
     desc: Fit, inspect, predict, and simulate distributional models.
     contents:
       - starts_with("drmTMB")
+      - fitted.drmTMB
       - fixef
       - ranef
       - rho12

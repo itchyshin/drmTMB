@@ -114,6 +114,7 @@ The mapping is:
 | `y_i` | observed response | left-hand side of `y ~ x1` |
 | `X_mu` | design matrix for the mean | right-hand side of `y ~ x1` |
 | `beta_mu` | mean coefficients | `coef(fit, "mu")` |
+| `mu_i` | fitted mean | `fitted(fit)` or `predict(fit, dpar = "mu")` |
 | `X_sigma` | design matrix for the residual scale | right-hand side of `sigma ~ x2` |
 | `beta_sigma` | log-scale coefficients | `coef(fit, "sigma")` |
 | `sigma_i` | residual standard deviation | `sigma(fit)` or `predict(fit, dpar = "sigma")` |
@@ -330,6 +331,7 @@ fit <- drmTMB(
 
 coef(fit, "mu")
 coef(fit, "sigma")
+fitted(fit)[1:5]
 predict(fit, dpar = "mu")[1:5]
 sigma(fit)[1:5]
 ```

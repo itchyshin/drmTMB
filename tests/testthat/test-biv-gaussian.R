@@ -181,12 +181,17 @@ test_that("bivariate Gaussian methods return expected structures", {
     data = sim$data
   )
 
+  fitted_mu <- stats::fitted(fit)
   sig <- stats::sigma(fit)
   sims <- simulate(fit, nsim = 2, seed = 1)
   res <- residuals(fit)
   pearson <- residuals(fit, type = "pearson")
 
   expect_equal(fit$opt$convergence, 0)
+  expect_equal(dim(fitted_mu), c(nrow(sim$data), 2))
+  expect_equal(colnames(fitted_mu), c("mu1", "mu2"))
+  expect_equal(fitted_mu[, "mu1"], predict(fit, dpar = "mu1"), tolerance = 1e-12)
+  expect_equal(fitted_mu[, "mu2"], predict(fit, dpar = "mu2"), tolerance = 1e-12)
   expect_named(sig, c("sigma1", "sigma2"))
   expect_equal(length(sig$sigma1), nrow(sim$data))
   expect_equal(dim(sims), c(nrow(sim$data), 4))

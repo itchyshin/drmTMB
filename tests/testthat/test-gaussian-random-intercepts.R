@@ -184,6 +184,7 @@ test_that("conditional predictions and residuals include mu random intercepts", 
 
   expect_equal(fit$opt$convergence, 0)
   expect_gt(stats::sd(conditional_mu - fixed_mu), 0.05)
+  expect_equal(stats::fitted(fit), conditional_mu, tolerance = 1e-12)
   expect_lt(stats::sd(sim$data$y - conditional_mu), stats::sd(sim$data$y - fixed_mu))
   expect_equal(response_resid, sim$data$y - conditional_mu, tolerance = 1e-12)
 

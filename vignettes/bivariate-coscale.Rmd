@@ -97,6 +97,7 @@ The mapping is:
 |---|---|---|
 | `y1_i`, `y2_i` | observed responses | left-hand sides of `mu1` and `mu2` formulas |
 | `X_mu1`, `X_mu2` | response-specific mean design matrices | right-hand sides of `mu1` and `mu2` |
+| `mu1_i`, `mu2_i` | fitted response-specific means | columns of `fitted(fit)` |
 | `X_sigma1`, `X_sigma2` | response-specific residual scale design matrices | right-hand sides of `sigma1` and `sigma2` |
 | `X_rho12` | residual correlation design matrix | right-hand side of `rho12` |
 | `sigma1_i`, `sigma2_i` | residual SDs for responses 1 and 2 | `predict(fit, dpar = "sigma1")`, `predict(fit, dpar = "sigma2")` |

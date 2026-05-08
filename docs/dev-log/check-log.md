@@ -2284,3 +2284,57 @@ Team learning:
 - when a flagship parameter gets a dedicated extractor, the teaching prose
   should immediately move to that extractor so equations, syntax, and examples
   reinforce one another.
+
+## 2026-05-08: Fitted Mean Extractor
+
+Scope:
+
+- added exported `fitted.drmTMB()`;
+- `fitted(fit)` returns fitted `mu` values for univariate Gaussian models;
+- `fitted(fit)` returns a two-column `mu1`/`mu2` matrix for bivariate Gaussian
+  models;
+- the extractor delegates to the existing `predict()` path, so fitted training
+  values include current conditional `mu` random-effect contributions;
+- updated the location-scale and bivariate-coscale tutorials so symbolic mean
+  quantities map directly to `fitted(fit)`.
+
+Commands run:
+
+- `Rscript -e "devtools::document()"`
+- `Rscript -e "devtools::test(filter = 'gaussian-location-scale')"`
+- `Rscript -e "devtools::test(filter = 'gaussian-random-intercepts')"`
+- `Rscript -e "devtools::test(filter = 'biv-gaussian')"`
+- `air format .`
+- `Rscript -e "devtools::test()"`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `git diff --check`
+- `Rscript -e "pkgdown::build_site()"`
+- `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`
+- `rg -n "fitted\\(fit\\)|fitted\\.drmTMB|reference/fitted|mu1_i.*fitted|mu_i.*fitted" R tests vignettes README.md NEWS.md man _pkgdown.yml pkgdown-site/reference pkgdown-site/articles pkgdown-site/news`
+
+Results:
+
+- targeted `gaussian-location-scale` tests: 45 passed, 0 failed;
+- targeted `gaussian-random-intercepts` tests: 174 passed, 0 failed;
+- targeted `biv-gaussian` tests: 56 passed, 0 failed;
+- full `devtools::test()`: 508 passed, 0 failed;
+- `pkgdown::check_pkgdown()`: no problems found;
+- `pkgdown::build_site()`: site built successfully with
+  `reference/fitted.drmTMB.html`;
+- `devtools::check()` with `_R_CHECK_SYSTEM_CLOCK_=FALSE`: 0 errors,
+  0 warnings, 0 notes;
+- `git diff --check`: clean;
+- `air format .` could not run because `air` is not installed on this machine.
+
+Known limitations:
+
+- `fitted()` is intentionally limited to fitted training rows; users should use
+  `predict()` for `newdata` or non-location distributional parameters;
+- future composed-response families may need family-specific fitted-value
+  shapes beyond the current vector or two-column matrix.
+
+Team learning:
+
+- familiar base-R extractors reduce friction, but the tutorials still need the
+  math-to-R mapping so users know exactly which model quantity is being
+  returned.
