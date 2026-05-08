@@ -4,9 +4,10 @@
 #' supports univariate Gaussian location-scale models, including random
 #' intercepts, independent numeric random slopes, and labelled or unlabelled
 #' correlated numeric random intercept-slope blocks in the location formula,
-#' residual-scale random intercepts in the scale formula, and one or more
-#' group-level random-effect scale formulae such as `sd(id) ~ x_group`,
-#' plus intercept-only phylogenetic random effects in the univariate Gaussian
+#' known sampling covariance through `meta_known_V(V = V)`, residual-scale
+#' random intercepts in the scale formula, and one or more group-level
+#' random-effect scale formulae such as `sd(id) ~ x_group`, plus
+#' intercept-only phylogenetic random effects in the univariate Gaussian
 #' location formula, and fixed-effect bivariate Gaussian distributional models.
 #'
 #' @param formula A `drm_formula` object created by [drm_formula()] or [bf()].

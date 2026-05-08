@@ -213,6 +213,8 @@ and fixed-effect bivariate Gaussian `rho12 ~ predictors` using either
 labelled covariance blocks, phylogenetic slopes and scale effects, larger
 sparse covariance routes, and spatial SPDE paths.
 
+Roadmap note:
+
 Phylogenetic and spatial dependence are treated as one structured-effect
 module: `z ~ MVN(0, sigma_z^2 K)`, with `K = A` for tree-derived phylogenetic
 correlation and `K = M` for distance-derived spatial correlation. The speed

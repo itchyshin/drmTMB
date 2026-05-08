@@ -25,6 +25,7 @@ grammar is structured random-effect syntax such as
 use an SPDE/GMRF representation built from coordinates or a mesh.
 }
 \examples{
+# planned only; drmTMB() will currently reject spatial terms
 bf(y ~ x + spatial(1 | site, coords = coords), sigma ~ z)
 bf(y ~ x + spatial(1 | site, mesh = mesh), sigma ~ z)
 }

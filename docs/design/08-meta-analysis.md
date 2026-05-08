@@ -51,6 +51,12 @@ The fitting implementation supports:
 
 Sparse matrix storage is not implemented yet.
 
+Known-covariance Gaussian models can also be combined with implemented
+ordinary `mu` random intercepts and the intercept-only phylogenetic `mu` path.
+These combinations are covered by dense likelihood-comparator tests. Random-
+effect scale formulas such as `sd(study) ~ x1` in known-covariance meta-
+analysis still need explicit validation before they are documented as routine.
+
 The parser should treat `meta_known_V()` as a covariance marker, not as an
 ordinary predictor column.
 
@@ -121,7 +127,8 @@ bf(
 This is not a residual `sigma` model with random effects inside it. It is a
 model with separate random-effect scale components.
 
-This stage is planned after ordinary random effects are implemented and tested.
+Ordinary random-intercept meta-regression is implemented. Random-effect scale
+components in known-covariance meta-analysis remain a separate validation task.
 
 ## Implementation Caveats
 
@@ -143,8 +150,9 @@ This stage is planned after ordinary random effects are implemented and tested.
 1. Diagonal known sampling variance plus unknown residual `sigma`.
 2. Dense full known covariance matrix plus unknown diagonal `sigma`.
 3. Random intercept meta-regression.
-4. Multiple random-effect scale components.
-5. Bivariate meta-analysis with known within-study covariance.
+4. Intercept-only phylogenetic `mu` meta-regression.
+5. Multiple random-effect scale components.
+6. Bivariate meta-analysis with known within-study covariance.
 
 ## Phylogenetic And Spatial Meta-Analysis
 
@@ -174,7 +182,8 @@ unstructured counterpart at the same level. The tutorial cautions that
 separating structured and unstructured variance components requires replication
 and should be checked carefully before interpretation.
 
-Planned syntax should remain Gaussian:
+The implemented intercept-only phylogenetic `mu` path already supports this
+Gaussian syntax:
 
 ```r
 drmTMB(

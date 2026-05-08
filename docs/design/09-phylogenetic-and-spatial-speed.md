@@ -42,7 +42,7 @@ Primary speed path:
   dense covariance matrix is useful for small internal comparators but should
   not be the main user-facing phylogeny input.
 
-Planned syntax:
+Implemented univariate phylogenetic syntax:
 
 ```r
 bf(
@@ -51,7 +51,7 @@ bf(
 )
 ```
 
-and later:
+Planned bivariate and distributional extensions:
 
 ```r
 bf(
@@ -217,7 +217,8 @@ are source maps for later design and review.
 2. Implement fixed-effect Gaussian location-scale.
 3. Add random intercepts.
 4. Add dense known covariance for meta-analysis.
-5. Add sparse known covariance and A-inverse phylogenetic path.
+5. Add and harden the A-inverse phylogenetic path for intercept-only
+   univariate Gaussian `mu`.
 6. Add SPDE spatial fields.
 7. Combine bivariate `rho12` with phylogenetic or spatial structure only after
    simpler pieces pass recovery tests.

@@ -70,6 +70,7 @@ phylo <- function(term, tree) {
 #' @export
 #'
 #' @examples
+#' # planned only; drmTMB() will currently reject spatial terms
 #' bf(y ~ x + spatial(1 | site, coords = coords), sigma ~ z)
 #' bf(y ~ x + spatial(1 | site, mesh = mesh), sigma ~ z)
 spatial <- function(term, coords = NULL, mesh = NULL) {

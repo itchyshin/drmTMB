@@ -2079,3 +2079,56 @@ Team learning:
   likelihood comparator;
 - a dense comparator is a compact way to test the sparse A-inverse route
   without turning CRAN tests into long simulations.
+
+## 2026-05-08: Formula Grammar Status Map And Stale-Status Cleanup
+
+Scope:
+
+- added a current-status map to the formula grammar vignette so users can
+  distinguish implemented, reserved, and planned syntax before copying code;
+- marked planned phylogenetic slope, spatial, and bivariate random-effect
+  examples as planned-only in visible docs;
+- corrected stale active-doc wording that still treated intercept-only
+  `phylo(1 | species, tree = tree)` and random-intercept meta-regression as
+  wholly future;
+- updated the `drmTMB()` help page to mention implemented
+  `meta_known_V(V = V)` support;
+- regenerated roxygen documentation and rebuilt the pkgdown site.
+
+Commands run:
+
+- `Rscript -e "devtools::document()"`
+- `Rscript -e "devtools::test()"`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `Rscript -e "pkgdown::build_site()"`
+- `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`
+- `rg -n "planned|not implemented|future|Reserved|roadmap|Current planned" README.md vignettes docs/design R man | rg "phylo\\(1 \\||meta_known_V|sd\\(group\\)|mvbind|rho12|spatial|A-inverse|random-intercept meta"`
+
+Results:
+
+- full `devtools::test()`: 483 passed, 0 failed;
+- `pkgdown::check_pkgdown()`: no problems found;
+- `pkgdown::build_site()`: site built successfully;
+- `devtools::check()` with `_R_CHECK_SYSTEM_CLOCK_=FALSE`: 0 errors,
+  0 warnings, 0 notes;
+- GitHub Actions for commit `48a9085` completed successfully for both
+  `R-CMD-check` and `pkgdown`;
+- remaining stale-status grep hits were manually classified as appropriate
+  planned-feature or roadmap wording, not contradictions with implemented
+  support.
+
+Known limitations:
+
+- this was a documentation/status-consistency pass, not new fitting code;
+- historical after-task notes and changelog entries may describe older states
+  and should not be mechanically rewritten;
+- spatial fields, phylogenetic slopes, phylogenetic `sigma`, bivariate
+  structured effects, `mvbind()` shorthand, and mixed bivariate families remain
+  planned.
+
+Team learning:
+
+- Pat found that visible planned examples need inline comments, not only
+  surrounding prose;
+- Rose found that stale status wording now needs a standard close-out grep
+  whenever an implemented feature crosses from roadmap to current support.

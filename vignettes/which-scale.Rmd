@@ -319,4 +319,5 @@ Current planned but not implemented syntax includes:
 - bivariate random effects;
 - cross-formula covariance sharing from repeated labels such as
   `(1 + x | p | id)`;
-- phylogenetic and spatial structured effects.
+- phylogenetic slopes, phylogenetic `sigma` terms, bivariate phylogenetic
+  effects, and spatial structured effects.

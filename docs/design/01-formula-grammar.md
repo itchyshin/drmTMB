@@ -265,13 +265,14 @@ The fitted implementation builds the sparse augmented A-inverse internally
 using the Hadfield and Nakagawa route. Dense covariance matrices are lower-level
 comparator or `gr()` inputs, not the main public phylogeny API.
 
-The canonical spatial syntax is:
+Reserved planned spatial syntax is:
 
 ```r
 bf(y ~ x1 + spatial(1 | site, coords = coords), sigma ~ x2)
 bf(y ~ x1 + spatial(1 | site, mesh = mesh), sigma ~ x2)
 ```
 
+These calls are part of the formula grammar design but are not fitted yet.
 Here `coords` or `mesh` names the object that will be used to build an
 SPDE/GMRF precision. Exactly one of `coords` or `mesh` should be supplied.
 
@@ -324,6 +325,7 @@ Future bivariate random-effect syntax should keep labelled group-level
 covariance blocks distinct from residual `rho12`:
 
 ```r
+# planned; drmTMB() will currently reject this
 bf(
   mu1 = y1 ~ x1 + x2 + (1 + x2 | p | ID),
   mu2 = y2 ~ x1      + (1 + x2 | p | ID),
