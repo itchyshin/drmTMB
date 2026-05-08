@@ -114,6 +114,36 @@ new_gaussian_labelled_corr_rs_data <- function(n_id = 30, n_each = 7,
   )
 }
 
+new_gaussian_sigma_ri_data <- function(n_id = 36, n_each = 8,
+                                       sd_sigma_id = 0.35,
+                                       seed = 20260539) {
+  set.seed(seed)
+  n <- n_id * n_each
+  id <- factor(rep(seq_len(n_id), each = n_each))
+  x <- stats::rnorm(n)
+  z <- stats::rnorm(n)
+  f <- factor(rep(c("control", "treated"), length.out = n))
+  a_id <- stats::rnorm(n_id, sd = sd_sigma_id)
+  a_id <- a_id - mean(a_id)
+  beta_mu <- c(`(Intercept)` = 0.2, x = 0.6, ftreated = 0.15)
+  beta_sigma <- c(`(Intercept)` = log(0.5), z = 0.32)
+  mu <- beta_mu[[1L]] + beta_mu[[2L]] * x + beta_mu[[3L]] * (f == "treated")
+  sigma <- exp(beta_sigma[[1L]] + beta_sigma[[2L]] * z + a_id[id])
+
+  list(
+    data = data.frame(
+      y = stats::rnorm(n, mean = mu, sd = sigma),
+      x = x,
+      z = z,
+      f = f,
+      id = id
+    ),
+    beta_mu = beta_mu,
+    beta_sigma = beta_sigma,
+    sd_sigma_id = sd_sigma_id
+  )
+}
+
 test_that("Gaussian location models support random intercepts in mu", {
   sim <- new_gaussian_ri_data()
 
@@ -446,6 +476,103 @@ test_that("labelled correlated-block variables participate in missingness", {
   expect_false(anyNA(fit$data[c("y", "x", "f", "ID")]))
 })
 
+test_that("Gaussian sigma supports residual-scale random intercepts", {
+  sim <- new_gaussian_sigma_ri_data()
+
+  fit <- drmTMB(
+    bf(y ~ x + f, sigma ~ z + (1 | id)),
+    family = gaussian(),
+    data = sim$data
+  )
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(length(fit$random_effects$sigma$values), nlevels(sim$data$id))
+  expect_named(fit$sdpars$sigma, "(1 | id)")
+  expect_lt(max(abs(unname(coef(fit, "mu")) - unname(sim$beta_mu))), 0.18)
+  expect_lt(max(abs(unname(coef(fit, "sigma")) - unname(sim$beta_sigma))), 0.22)
+  expect_lt(abs(unname(fit$sdpars$sigma) - sim$sd_sigma_id), 0.30)
+  expect_true(all(stats::sigma(fit) > 0))
+  expect_false(any(grepl("rho12", names(fit$sdpars$sigma), fixed = TRUE)))
+})
+
+test_that("Gaussian sigma random intercepts handle boundary and large scale heterogeneity", {
+  cases <- list(
+    near_zero = list(sd_sigma_id = 0.06, max_est = 0.30, seed = 20260540),
+    large = list(sd_sigma_id = 0.85, max_abs = 0.50, seed = 20260541)
+  )
+
+  for (case in cases) {
+    sim <- new_gaussian_sigma_ri_data(
+      n_id = 32,
+      n_each = 9,
+      sd_sigma_id = case$sd_sigma_id,
+      seed = case$seed
+    )
+
+    fit <- drmTMB(
+      bf(y ~ x, sigma ~ z + (1 | id)),
+      family = gaussian(),
+      data = sim$data
+    )
+
+    expect_equal(fit$opt$convergence, 0)
+    expect_true(all(is.finite(c(fit$sdpars$sigma, coef(fit, "sigma")))))
+    expect_true(all(stats::sigma(fit) > 0))
+    if (!is.null(case$max_est)) {
+      expect_lt(unname(fit$sdpars$sigma), case$max_est)
+    } else {
+      expect_lt(abs(unname(fit$sdpars$sigma) - case$sd_sigma_id), case$max_abs)
+    }
+  }
+})
+
+test_that("Gaussian sigma random intercepts participate in missingness", {
+  sim <- new_gaussian_sigma_ri_data(n_id = 12, n_each = 5, seed = 20260542)
+  dat <- sim$data
+  dat$y[2] <- NA_real_
+  dat$x[5] <- NA_real_
+  dat$z[7] <- NA_real_
+  dat$f[9] <- NA
+  dat$id[11] <- NA
+  keep <- stats::complete.cases(dat[c("y", "x", "z", "f", "id")])
+
+  fit <- drmTMB(
+    bf(y ~ x + f, sigma ~ z + (1 | id)),
+    family = gaussian(),
+    data = dat
+  )
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(fit$nobs, sum(keep))
+  expect_equal(fit$model$keep, keep)
+  expect_false(anyNA(fit$data[c("y", "x", "z", "f", "id")]))
+})
+
+test_that("Gaussian mu and sigma random intercepts can coexist independently", {
+  sim <- new_gaussian_ri_data(n_id = 30, n_each = 8, sd_id = 0.55, seed = 20260543)
+  dat <- sim$data
+  log_sigma_group <- stats::rnorm(nlevels(dat$id), sd = 0.3)
+  dat$y <- stats::rnorm(
+    nrow(dat),
+    mean = sim$beta_mu[[1L]] + sim$beta_mu[[2L]] * dat$x,
+    sd = exp(sim$beta_sigma[[1L]] + sim$beta_sigma[[2L]] * dat$z + log_sigma_group[dat$id])
+  )
+
+  fit <- drmTMB(
+    bf(y ~ x + (1 | id), sigma ~ z + (1 | id)),
+    family = gaussian(),
+    data = dat
+  )
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_named(fit$sdpars, c("mu", "sigma"))
+  expect_named(fit$sdpars$mu, "(1 | id)")
+  expect_named(fit$sdpars$sigma, "(1 | id)")
+  expect_equal(length(fit$random_effects$mu$values), nlevels(dat$id))
+  expect_equal(length(fit$random_effects$sigma$values), nlevels(dat$id))
+  expect_true(all(stats::sigma(fit) > 0))
+})
+
 test_that("Gaussian mu correlated blocks handle near-zero and negative correlations", {
   cases <- list(
     near_zero = list(rho = 0.02, seed = 20260516),
@@ -681,7 +808,11 @@ test_that("unsupported random-effect cases fail clearly", {
     "reserved distributional parameter"
   )
   expect_error(
+    drmTMB(bf(y ~ x, sigma ~ (0 + x | id)), family = gaussian(), data = dat),
+    "Only random intercepts"
+  )
+  expect_error(
     drmTMB(bf(y ~ x, sigma ~ (1 | p | id)), family = gaussian(), data = dat),
-    "unsupported model terms"
+    "Labelled covariance blocks"
   )
 })

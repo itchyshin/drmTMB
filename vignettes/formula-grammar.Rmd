@@ -23,6 +23,7 @@ bf(y ~ x + (1 | id), sigma ~ z)
 bf(y ~ x + (0 + x | id), sigma ~ z)
 bf(y ~ x + (1 + x | id), sigma ~ z)
 bf(y ~ x + (1 + x | p | id), sigma ~ z)
+bf(y ~ x + (1 | id), sigma ~ z + (1 | id))
 ```
 
 The middle `p` is a group-level covariance-block label. It is not residual

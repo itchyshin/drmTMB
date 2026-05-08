@@ -4,6 +4,7 @@
 #' supports univariate Gaussian location-scale models, including random
 #' intercepts, independent numeric random slopes, and labelled or unlabelled
 #' correlated numeric random intercept-slope blocks in the location formula,
+#' residual-scale random intercepts in the scale formula,
 #' plus fixed-effect bivariate Gaussian distributional models.
 #'
 #' @param formula A `drm_formula` object created by [bf()].
@@ -122,6 +123,8 @@ drm_build_gaussian_ls_spec <- function(formula, data, env = parent.frame()) {
   mu_entry$rhs <- meta$rhs
   mu_re <- extract_random_mu_terms(mu_entry$rhs, "mu")
   mu_entry$rhs <- mu_re$rhs
+  sigma_re <- extract_random_sigma_terms(sigma_entry$rhs, "sigma")
+  sigma_entry$rhs <- sigma_re$rhs
 
   drm_reject_phase1_terms(mu_entry$rhs, "mu")
   drm_reject_phase1_terms(sigma_entry$rhs, "sigma")
@@ -129,7 +132,12 @@ drm_build_gaussian_ls_spec <- function(formula, data, env = parent.frame()) {
   f_mu <- drm_entry_formula(mu_entry, response = TRUE)
   f_sigma <- drm_entry_formula(sigma_entry, response = FALSE)
 
-  vars <- unique(c(all.vars(f_mu), all.vars(f_sigma), random_effect_vars(mu_re$terms)))
+  vars <- unique(c(
+    all.vars(f_mu),
+    all.vars(f_sigma),
+    random_effect_vars(mu_re$terms),
+    random_effect_vars(sigma_re$terms)
+  ))
   if (length(vars) > 0L) {
     model_keep <- stats::complete.cases(data[, vars, drop = FALSE])
   } else {
@@ -150,6 +158,7 @@ drm_build_gaussian_ls_spec <- function(formula, data, env = parent.frame()) {
   X_mu <- stats::model.matrix(stats::delete.response(stats::terms(mf_mu)), mf_mu)
   X_sigma <- stats::model.matrix(stats::terms(mf_sigma), mf_sigma)
   re_mu <- build_random_mu_structure(mu_re$terms, data_model)
+  re_sigma <- build_random_sigma_structure(sigma_re$terms, data_model)
 
   if (length(y) != nrow(X_sigma)) {
     cli::cli_abort("Internal model-frame mismatch between {.code mu} and {.code sigma}.")
@@ -159,7 +168,7 @@ drm_build_gaussian_ls_spec <- function(formula, data, env = parent.frame()) {
     cli::cli_abort("No complete observations remain after applying model and known-variance missingness rules.")
   }
 
-  start <- gaussian_ls_start(y, X_mu, X_sigma, V_known$diag, re_mu)
+  start <- gaussian_ls_start(y, X_mu, X_sigma, V_known$diag, re_mu, re_sigma)
   start <- c(start, gaussian_ls_dummy_start())
 
   spec <- list(
@@ -175,14 +184,17 @@ drm_build_gaussian_ls_spec <- function(formula, data, env = parent.frame()) {
       sigma = stats::terms(mf_sigma)
     ),
     model_frame = list(mu = mf_mu, sigma = mf_sigma),
-    random = list(mu = re_mu),
+    random = list(mu = re_mu, sigma = re_sigma),
     data = data_model,
     variables = vars,
     keep = keep,
     dpars = c("mu", "sigma"),
     start = start,
-    map = gaussian_ls_map(re_mu),
-    random_names = if (re_mu$n_re > 0L) "u_mu" else NULL
+    map = gaussian_ls_map(re_mu, re_sigma),
+    random_names = c(
+      if (re_mu$n_re > 0L) "u_mu",
+      if (re_sigma$n_re > 0L) "u_sigma"
+    )
   )
   spec$tmb_data <- make_tmb_data(spec)
   spec$nobs <- length(spec$y)
@@ -291,7 +303,10 @@ drm_build_biv_gaussian_spec <- function(formula, data, env = parent.frame()) {
       rho12 = mf_rho12
     ),
     data = data_model,
-    random = list(mu = empty_random_mu_structure(nrow(data_model))),
+    random = list(
+      mu = empty_random_mu_structure(nrow(data_model)),
+      sigma = empty_random_sigma_structure(nrow(data_model))
+    ),
     variables = vars,
     keep = keep,
     dpars = c("mu1", "mu2", "sigma1", "sigma2", "rho12"),
@@ -352,9 +367,60 @@ extract_random_mu_terms <- function(rhs, dpar) {
   list(rhs = rebuild_plus_terms(clean_terms), terms = re_terms)
 }
 
+extract_random_sigma_terms <- function(rhs, dpar) {
+  terms <- flatten_plus_terms(rhs)
+  is_re <- vapply(terms, is_random_bar_call, logical(1))
+  if (!any(is_re)) {
+    return(list(rhs = rhs, terms = list()))
+  }
+
+  re_terms <- lapply(terms[is_re], parse_random_sigma_term, dpar = dpar)
+  clean_terms <- terms[!is_re]
+  list(rhs = rebuild_plus_terms(clean_terms), terms = re_terms)
+}
+
 is_random_bar_call <- function(expr) {
   expr <- strip_parens(expr)
   is.call(expr) && identical(expr[[1L]], as.name("|"))
+}
+
+parse_random_sigma_term <- function(expr, dpar) {
+  expr <- strip_parens(expr)
+  lhs <- expr[[2L]]
+  group <- expr[[3L]]
+
+  if (is_random_bar_call(lhs)) {
+    cli::cli_abort(c(
+      "Labelled covariance blocks are not implemented for {.code {dpar}} random effects yet.",
+      "x" = "Use unlabelled residual-scale random intercepts such as {.code sigma ~ z + (1 | id)}."
+    ))
+  }
+  if (!is.symbol(group)) {
+    cli::cli_abort(c(
+      "Random-effect grouping terms must be simple variables.",
+      "x" = "Use syntax like {.code sigma ~ z + (1 | id)}."
+    ))
+  }
+
+  lhs <- strip_parens(lhs)
+  if (!is_intercept_one(lhs)) {
+    cli::cli_abort(c(
+      "Only random intercepts are implemented for residual {.code sigma} random effects.",
+      "x" = "Use {.code sigma ~ z + (1 | id)}.",
+      "i" = "Residual-scale random slopes are planned for a later phase."
+    ))
+  }
+
+  group_name <- as.character(group)
+  list(
+    type = "intercept",
+    variable = NA_character_,
+    variables = NA_character_,
+    coef_names = "(Intercept)",
+    label = format_random_mu_label("1", group_name),
+    group = group_name,
+    covariance_label = NULL
+  )
 }
 
 parse_random_mu_term <- function(expr, dpar) {
@@ -512,6 +578,10 @@ empty_random_mu_structure <- function(n) {
   )
 }
 
+empty_random_sigma_structure <- function(n) {
+  empty_random_mu_structure(n)
+}
+
 build_random_mu_structure <- function(terms, data) {
   if (length(terms) == 0L) {
     return(empty_random_mu_structure(nrow(data)))
@@ -618,6 +688,14 @@ build_random_mu_structure <- function(terms, data) {
     groups = groups,
     value_names = value_names
   )
+}
+
+build_random_sigma_structure <- function(terms, data) {
+  re_sigma <- build_random_mu_structure(terms, data)
+  if (re_sigma$n_cors > 0L) {
+    cli::cli_abort("Internal error: residual sigma random-effect correlations are not implemented.")
+  }
+  re_sigma
 }
 
 expand_random_mu_terms <- function(terms) {
@@ -818,7 +896,8 @@ is_diagonal_known_v <- function(value) {
 }
 
 gaussian_ls_start <- function(y, X_mu, X_sigma, V_known = rep(0, length(y)),
-                              re_mu = empty_random_mu_structure(length(y))) {
+                              re_mu = empty_random_mu_structure(length(y)),
+                              re_sigma = empty_random_sigma_structure(length(y))) {
   lm_start <- stats::lm.fit(x = X_mu, y = y)
   beta_mu <- lm_start$coefficients
   beta_mu[is.na(beta_mu)] <- 0
@@ -842,14 +921,17 @@ gaussian_ls_start <- function(y, X_mu, X_sigma, V_known = rep(0, length(y)),
   beta_sigma <- numeric(ncol(X_sigma))
   beta_sigma[1L] <- log(sigma0)
 
-  re_start <- gaussian_mu_re_start(resid, re_mu, y_scale)
+  mu_re_start <- gaussian_mu_re_start(resid, re_mu, y_scale)
+  sigma_re_start <- gaussian_sigma_re_start(re_sigma)
 
   list(
     beta_mu = beta_mu,
     beta_sigma = beta_sigma,
-    u_mu = re_start$u_mu,
-    log_sd_mu = re_start$log_sd_mu,
-    eta_cor_mu = re_start$eta_cor_mu
+    u_mu = mu_re_start$u_mu,
+    log_sd_mu = mu_re_start$log_sd_mu,
+    eta_cor_mu = mu_re_start$eta_cor_mu,
+    u_sigma = sigma_re_start$u_sigma,
+    log_sd_sigma = sigma_re_start$log_sd_sigma
   )
 }
 
@@ -904,6 +986,16 @@ gaussian_mu_re_start <- function(resid, re_mu, y_scale) {
   )
 }
 
+gaussian_sigma_re_start <- function(re_sigma) {
+  if (re_sigma$n_re == 0L) {
+    return(list(u_sigma = 0, log_sd_sigma = 0))
+  }
+  list(
+    u_sigma = rep(0, re_sigma$n_re),
+    log_sd_sigma = rep(log(0.2), re_sigma$n_terms)
+  )
+}
+
 biv_gaussian_start <- function(y1, y2, X_mu1, X_mu2, X_sigma1, X_sigma2, X_rho12) {
   fit1 <- stats::lm.fit(x = X_mu1, y = y1)
   fit2 <- stats::lm.fit(x = X_mu2, y = y2)
@@ -933,7 +1025,15 @@ biv_gaussian_start <- function(y1, y2, X_mu1, X_mu2, X_sigma1, X_sigma2, X_rho12
   beta_rho12[1L] <- atanh(rho)
 
   c(
-    list(beta_mu = 0, beta_sigma = 0, u_mu = 0, log_sd_mu = 0, eta_cor_mu = 0),
+    list(
+      beta_mu = 0,
+      beta_sigma = 0,
+      u_mu = 0,
+      log_sd_mu = 0,
+      eta_cor_mu = 0,
+      u_sigma = 0,
+      log_sd_sigma = 0
+    ),
     list(
       beta_mu1 = beta_mu1,
       beta_mu2 = beta_mu2,
@@ -944,7 +1044,8 @@ biv_gaussian_start <- function(y1, y2, X_mu1, X_mu2, X_sigma1, X_sigma2, X_rho12
   )
 }
 
-gaussian_ls_map <- function(re_mu = empty_random_mu_structure(1L)) {
+gaussian_ls_map <- function(re_mu = empty_random_mu_structure(1L),
+                            re_sigma = empty_random_sigma_structure(1L)) {
   out <- list(
     beta_mu1 = factor(NA),
     beta_mu2 = factor(NA),
@@ -955,6 +1056,10 @@ gaussian_ls_map <- function(re_mu = empty_random_mu_structure(1L)) {
   if (re_mu$n_re == 0L) {
     out$u_mu <- factor(NA)
     out$log_sd_mu <- factor(NA)
+  }
+  if (re_sigma$n_re == 0L) {
+    out$u_sigma <- factor(NA)
+    out$log_sd_sigma <- factor(NA)
   }
   if (re_mu$n_cors == 0L) {
     out$eta_cor_mu <- factor(NA)
@@ -968,7 +1073,9 @@ biv_gaussian_map <- function() {
     beta_sigma = factor(NA),
     u_mu = factor(NA),
     log_sd_mu = factor(NA),
-    eta_cor_mu = factor(NA)
+    eta_cor_mu = factor(NA),
+    u_sigma = factor(NA),
+    log_sd_sigma = factor(NA)
   )
 }
 
@@ -999,7 +1106,11 @@ make_tmb_data <- function(spec) {
       mu_re_term = spec$random$mu$term_id0,
       mu_re_pos = spec$random$mu$re_pos0,
       mu_re_cor_id = spec$random$mu$re_cor_id0,
-      mu_re_pair_index = spec$random$mu$re_pair_index0
+      mu_re_pair_index = spec$random$mu$re_pair_index0,
+      n_sigma_re_terms = spec$random$sigma$n_terms,
+      sigma_re_index = spec$random$sigma$index0,
+      sigma_re_value = spec$random$sigma$value,
+      sigma_re_term = spec$random$sigma$term_id0
     ))
   }
   list(
@@ -1024,7 +1135,11 @@ make_tmb_data <- function(spec) {
     mu_re_term = 0L,
     mu_re_pos = 0L,
     mu_re_cor_id = -1L,
-    mu_re_pair_index = -1L
+    mu_re_pair_index = -1L,
+    n_sigma_re_terms = 0L,
+    sigma_re_index = matrix(0L, nrow = 1L, ncol = 1L),
+    sigma_re_value = dummy_matrix,
+    sigma_re_term = 0L
   )
 }
 
@@ -1058,12 +1173,21 @@ split_tmb_parameters <- function(par, spec) {
 }
 
 split_tmb_sdpars <- function(par, spec) {
-  if (!identical(spec$model_type, "gaussian") || spec$random$mu$n_re == 0L) {
+  if (!identical(spec$model_type, "gaussian")) {
     return(list())
   }
-  sd_mu <- exp(unname(par$log_sd_mu[seq_len(spec$random$mu$n_terms)]))
-  names(sd_mu) <- spec$random$mu$labels
-  list(mu = sd_mu)
+  out <- list()
+  if (spec$random$mu$n_re > 0L) {
+    sd_mu <- exp(unname(par$log_sd_mu[seq_len(spec$random$mu$n_terms)]))
+    names(sd_mu) <- spec$random$mu$labels
+    out$mu <- sd_mu
+  }
+  if (spec$random$sigma$n_re > 0L) {
+    sd_sigma <- exp(unname(par$log_sd_sigma[seq_len(spec$random$sigma$n_terms)]))
+    names(sd_sigma) <- spec$random$sigma$labels
+    out$sigma <- sd_sigma
+  }
+  out
 }
 
 split_tmb_corpars <- function(par, spec) {
@@ -1076,26 +1200,26 @@ split_tmb_corpars <- function(par, spec) {
 }
 
 split_tmb_random_effects <- function(par, spec) {
-  if (!identical(spec$model_type, "gaussian") || spec$random$mu$n_re == 0L) {
+  if (!identical(spec$model_type, "gaussian")) {
     return(list())
   }
 
-  latent <- unname(par$u_mu[seq_len(spec$random$mu$n_re)])
-  values <- transform_mu_random_effects(latent, par, spec$random$mu)
-  names(values) <- spec$random$mu$value_names
-  by_term <- vector("list", spec$random$mu$n_terms)
-  names(by_term) <- spec$random$mu$labels
-  start <- 1L
-  for (k in seq_len(spec$random$mu$n_terms)) {
-    n_group <- length(spec$random$mu$groups[[k]])
-    idx <- seq.int(start, length.out = n_group)
-    by_term[[k]] <- values[idx]
-    names(by_term[[k]]) <- spec$random$mu$groups[[k]]
-    start <- start + n_group
+  out <- list()
+  if (spec$random$mu$n_re > 0L) {
+    latent <- unname(par$u_mu[seq_len(spec$random$mu$n_re)])
+    values <- transform_mu_random_effects(latent, par, spec$random$mu)
+    out$mu <- format_random_effect_values(latent, values, spec$random$mu)
   }
-
-  names(latent) <- spec$random$mu$value_names
-  list(mu = list(values = values, latent = latent, terms = by_term))
+  if (spec$random$sigma$n_re > 0L) {
+    latent <- unname(par$u_sigma[seq_len(spec$random$sigma$n_re)])
+    values <- transform_independent_random_effects(
+      latent,
+      par$log_sd_sigma,
+      spec$random$sigma
+    )
+    out$sigma <- format_random_effect_values(latent, values, spec$random$sigma)
+  }
+  out
 }
 
 transform_mu_random_effects <- function(latent, par, re_mu) {
@@ -1120,4 +1244,31 @@ transform_mu_random_effects <- function(latent, par, re_mu) {
     }
   }
   values
+}
+
+transform_independent_random_effects <- function(latent, log_sd, re) {
+  sd_by_term <- exp(unname(log_sd[seq_len(re$n_terms)]))
+  values <- numeric(re$n_re)
+  for (idx in seq_len(re$n_re)) {
+    term <- re$term_id0[[idx]] + 1L
+    values[[idx]] <- sd_by_term[[term]] * latent[[idx]]
+  }
+  values
+}
+
+format_random_effect_values <- function(latent, values, re) {
+  names(values) <- re$value_names
+  by_term <- vector("list", re$n_terms)
+  names(by_term) <- re$labels
+  start <- 1L
+  for (k in seq_len(re$n_terms)) {
+    n_group <- length(re$groups[[k]])
+    idx <- seq.int(start, length.out = n_group)
+    by_term[[k]] <- values[idx]
+    names(by_term[[k]]) <- re$groups[[k]]
+    start <- start + n_group
+  }
+
+  names(latent) <- re$value_names
+  list(values = values, latent = latent, terms = by_term)
 }

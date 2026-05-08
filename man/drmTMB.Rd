@@ -26,5 +26,6 @@ A \code{drmTMB} fit object.
 supports univariate Gaussian location-scale models, including random
 intercepts, independent numeric random slopes, and labelled or unlabelled
 correlated numeric random intercept-slope blocks in the location formula,
+residual-scale random intercepts in the scale formula,
 plus fixed-effect bivariate Gaussian distributional models.
 }

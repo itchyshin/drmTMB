@@ -62,6 +62,11 @@ Tier 2 is simulation recovery. This is the primary truth source:
 - check edge cases such as near-zero scale components, high or negative
   `rho12`, sparse grouping, uneven sampling variances, and missing rows.
 
+Residual-scale random intercept tests should stay separate from random-effect
+scale tests. `sigma ~ z + (1 | id)` checks group-to-group variation in residual
+scale, whereas future `sd(id) ~ z` checks predictors of a `mu` random-effect
+standard deviation.
+
 ## Simulation Recovery
 
 Each family should have tests that:

@@ -38,6 +38,10 @@ Type objective_function<Type>::operator()()
   DATA_IVECTOR(mu_re_pos);
   DATA_IVECTOR(mu_re_cor_id);
   DATA_IVECTOR(mu_re_pair_index);
+  DATA_INTEGER(n_sigma_re_terms);
+  DATA_IMATRIX(sigma_re_index);
+  DATA_MATRIX(sigma_re_value);
+  DATA_IVECTOR(sigma_re_term);
 
   PARAMETER_VECTOR(beta_mu);
   PARAMETER_VECTOR(beta_sigma);
@@ -49,13 +53,13 @@ Type objective_function<Type>::operator()()
   PARAMETER_VECTOR(u_mu);
   PARAMETER_VECTOR(log_sd_mu);
   PARAMETER_VECTOR(eta_cor_mu);
+  PARAMETER_VECTOR(u_sigma);
+  PARAMETER_VECTOR(log_sd_sigma);
 
   Type nll = 0;
   if (model_type == 1) {
     vector<Type> mu = X_mu * beta_mu;
     vector<Type> log_sigma = X_sigma * beta_sigma;
-    vector<Type> sigma = exp(log_sigma);
-    vector<Type> obs_sigma = sqrt(V_known + sigma * sigma);
 
     if (n_mu_re_terms > 0) {
       vector<Type> sd_mu_re = exp(log_sd_mu);
@@ -80,6 +84,22 @@ Type objective_function<Type>::operator()()
         nll -= dnorm(u_mu(j), Type(0.0), Type(1.0), true);
       }
     }
+
+    if (n_sigma_re_terms > 0) {
+      vector<Type> sd_sigma_re = exp(log_sd_sigma);
+      for (int i = 0; i < y.size(); ++i) {
+        for (int j = 0; j < n_sigma_re_terms; ++j) {
+          int idx = sigma_re_index(i, j);
+          log_sigma(i) += sigma_re_value(i, j) * sd_sigma_re(sigma_re_term(idx)) * u_sigma(idx);
+        }
+      }
+      for (int j = 0; j < u_sigma.size(); ++j) {
+        nll -= dnorm(u_sigma(j), Type(0.0), Type(1.0), true);
+      }
+    }
+
+    vector<Type> sigma = exp(log_sigma);
+    vector<Type> obs_sigma = sqrt(V_known + sigma * sigma);
 
     if (V_known_type == 2) {
       int n = y.size();
@@ -121,6 +141,14 @@ Type objective_function<Type>::operator()()
         ADREPORT(eta_cor_mu);
         ADREPORT(rho_mu_re);
       }
+    }
+    if (n_sigma_re_terms > 0) {
+      vector<Type> sd_sigma_re = exp(log_sd_sigma);
+      REPORT(u_sigma);
+      REPORT(log_sd_sigma);
+      REPORT(sd_sigma_re);
+      ADREPORT(log_sd_sigma);
+      ADREPORT(sd_sigma_re);
     }
   } else if (model_type == 2) {
     vector<Type> mu1 = X_mu1 * beta_mu1;

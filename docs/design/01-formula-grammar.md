@@ -164,6 +164,16 @@ as residual `rho12`.
 Covariance-block labels must not use reserved distributional parameter names
 such as `mu`, `sigma`, `rho`, or `rho12`.
 
+Residual-scale random intercepts are implemented in the univariate Gaussian
+`sigma` formula:
+
+```r
+bf(y ~ x1 + (1 | id), sigma ~ x1 + (1 | id))
+```
+
+This models group-to-group variation in residual `sigma_i`. It is not a
+random-effect scale formula such as `sd(id) ~ x1`.
+
 Future correlated multi-slope syntax should allow larger model-matrix terms
 such as:
 

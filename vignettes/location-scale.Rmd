@@ -123,6 +123,30 @@ Here `sigma_ij` is the residual standard deviation. The random-intercept scale
 double-hierarchical models will expose those group-level scale components with
 their own names; they should not be confused with residual `sigma`.
 
+Residual-scale random intercepts enter a different part of the model:
+
+```text
+y_ij | mu_ij, sigma_ij ~ Normal(mu_ij, sigma_ij^2)
+mu_ij = X_mu[ij, ] beta_mu + b_j
+log(sigma_ij) = X_sigma[ij, ] beta_sigma + a_j
+b_j ~ Normal(0, sd_mu_id^2)
+a_j ~ Normal(0, sd_sigma_id^2)
+```
+
+The matching syntax is:
+
+```r
+drmTMB(
+  bf(y ~ x1 + (1 | id), sigma ~ x2 + (1 | id)),
+  family = gaussian(),
+  data = dat
+)
+```
+
+Here `a_j` is residual-scale heterogeneity, or group-to-group variation in
+within-group variability. It is still not the same quantity as `sd_mu_id`, the
+standard deviation of the `mu` random intercepts.
+
 With two additive random intercepts, the equation has two group-level scale
 components:
 
@@ -307,6 +331,8 @@ y | mu, sigma, V ~ MVN(mu, V + diag(sigma_i^2))
   `mu` and `sigma`, plus random intercepts, independent numeric random slopes,
   and labelled or unlabelled ordinary correlated intercept-slope blocks in
   `mu`.
+- Residual-scale random intercepts in `sigma`, such as `sigma ~ x2 + (1 | id)`,
+  are implemented for univariate Gaussian models.
 - The `sigma` formula is the observation-level residual standard deviation. It
   is not a random-effect scale component.
 - Missing rows are dropped when they are incomplete for variables used by
@@ -315,9 +341,9 @@ y | mu, sigma, V ~ MVN(mu, V + diag(sigma_i^2))
   supported for Gaussian meta-analysis.
 - Fixed-effect bivariate Gaussian `rho12` models are implemented in the
   bivariate coscale article.
-- `sd(group)` scale formulas, cross-formula labelled covariance sharing,
-  phylogenetic terms, spatial terms, and non-Gaussian families are planned but
-  not implemented in this MVP.
+- Residual-scale random slopes, `sd(group)` scale formulas, cross-formula
+  labelled covariance sharing, phylogenetic terms, spatial terms, and
+  non-Gaussian families are planned but not implemented in this MVP.
 
 Future multiple scale components will use explicit `sd()` formulas, not extra
 residual `sigma` formulas:

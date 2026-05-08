@@ -11,6 +11,9 @@ print.drmTMB <- function(x, ...) {
   if (has_mu_random_effects(x)) {
     cli::cli_text("  mu random-effect terms: {length(x$sdpars$mu)}")
   }
+  if (has_sigma_random_effects(x)) {
+    cli::cli_text("  sigma random-effect terms: {length(x$sdpars$sigma)}")
+  }
   cli::cli_text("  logLik: {format(x$logLik, digits = 4)}")
   cli::cli_text("  convergence: {x$opt$convergence}")
   invisible(x)
@@ -57,6 +60,9 @@ predict.drmTMB <- function(object, newdata = NULL, dpar = NULL,
   eta <- as.vector(X %*% object$coefficients[[dpar]])
   if (is.null(newdata) && dpar == "mu" && has_mu_random_effects(object)) {
     eta <- eta + mu_random_effect_contribution(object)
+  }
+  if (is.null(newdata) && dpar == "sigma" && has_sigma_random_effects(object)) {
+    eta <- eta + sigma_random_effect_contribution(object)
   }
 
   if (type == "link" || dpar %in% c("mu", "mu1", "mu2")) {
@@ -253,6 +259,11 @@ has_mu_random_effects <- function(object) {
 
 has_mu_random_intercepts <- has_mu_random_effects
 
+has_sigma_random_effects <- function(object) {
+  identical(object$model$model_type, "gaussian") &&
+    length(object$random_effects$sigma$values) > 0L
+}
+
 mu_random_effect_contribution <- function(object) {
   values <- object$random_effects$mu$values
   index <- object$model$random$mu$index
@@ -261,3 +272,10 @@ mu_random_effect_contribution <- function(object) {
 }
 
 mu_random_intercept_contribution <- mu_random_effect_contribution
+
+sigma_random_effect_contribution <- function(object) {
+  values <- object$random_effects$sigma$values
+  index <- object$model$random$sigma$index
+  design_value <- object$model$random$sigma$value
+  rowSums(matrix(values[index], nrow = nrow(index)) * design_value)
+}

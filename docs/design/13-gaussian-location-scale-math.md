@@ -117,6 +117,34 @@ mu_i = X_mu[i, ] beta_mu + sum_j z_j[i] sd_j u_{j, g_j[i]}
 where `z_j[i] = 1` for `(1 | group)` and `z_j[i] = x_i` for
 `(0 + x | group)`.
 
+## Residual-Scale Random Intercepts
+
+For observation `i` in group `g[i]`, residual-scale random intercepts enter the
+log residual standard deviation:
+
+```text
+y_i | mu_i, sigma_i, a_g[i] ~ Normal(mu_i, sigma_i^2)
+mu_i = X_mu[i, ] beta_mu
+log(sigma_i) = X_sigma[i, ] beta_sigma + a_g[i]
+a_g = sd_sigma_group * v_g
+v_g ~ Normal(0, 1)
+sd_sigma_group = exp(theta_sigma_group)
+```
+
+Matching R syntax:
+
+```r
+drmTMB(
+  bf(y ~ x1 + (1 | id), sigma ~ x2 + (1 | id)),
+  family = gaussian(),
+  data = dat
+)
+```
+
+This is residual-scale heterogeneity. It should not be confused with future
+syntax such as `sd(id) ~ x2`, which will model the standard deviation of a
+group-level random effect in the location model.
+
 For an independent random intercept and random slope in the current
 implementation:
 

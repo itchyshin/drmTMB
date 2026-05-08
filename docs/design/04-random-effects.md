@@ -11,7 +11,8 @@ the grammar must support them from the start.
    Gaussian `mu` as separate uncorrelated terms.
 4. Ordinary correlated random intercept-slope blocks in location. Implemented
    for univariate Gaussian `mu`, with optional covariance-block labels.
-5. Random intercepts in scale.
+5. Random intercepts in residual scale. Implemented for univariate Gaussian
+   `sigma`.
 6. Random-effect scale formulae such as `sd(id) ~ x`.
 7. Correlations among location and scale random effects when identifiable.
 
@@ -90,6 +91,26 @@ In the current univariate Gaussian `mu` implementation, `p` is retained in
 output names and future design metadata. It does not yet create covariance
 sharing across `mu`, `sigma`, `mu1`, or `mu2` formulas.
 
+Residual-scale random intercepts are implemented in `sigma`:
+
+```r
+bf(
+  y ~ x1 + (1 | id),
+  sigma ~ x1 + (1 | id)
+)
+```
+
+This means:
+
+```text
+log(sigma_i) = X_sigma[i, ] beta_sigma + a_{id[i]}
+a_id = sd_sigma_id * v_id
+v_id ~ Normal(0, 1)
+```
+
+It models residual-scale heterogeneity. It does not model the standard
+deviation of the `mu` random intercept.
+
 Interaction slopes are not parsed as formula expressions yet. The temporary
 safe workflow is to create the interaction column before fitting:
 
@@ -103,7 +124,8 @@ bf(
 
 Current implementation details:
 
-- supported only for univariate Gaussian `mu`;
+- random effects are supported only for univariate Gaussian `mu` and residual
+  `sigma`;
 - random-slope terms must be written as `0 + x`, with a single numeric
   predictor, for independent slope terms;
 - ordinary correlated intercept-slope blocks are written as `(1 + x | id)` or
@@ -111,11 +133,15 @@ Current implementation details:
 - labelled blocks are implemented only within univariate Gaussian `mu`; using
   the same label for cross-formula or cross-parameter covariance-block support
   is reserved for later;
+- residual `sigma` random effects are limited to unlabelled random intercepts
+  such as `(1 | id)`;
 - random effects are integrated with TMB's Laplace approximation;
 - the TMB parameterization is non-centered; independent terms use
   `b_{term,group} = sd_term * u_{term,group}`, while correlated two-coefficient
   blocks use a Cholesky transform of standardized normal random effects;
 - fitted-data `predict(fit, dpar = "mu")` includes conditional modes;
+- fitted-data `predict(fit, dpar = "sigma")` includes conditional residual
+  scale random-effect modes;
 - `newdata` prediction currently uses fixed effects only;
 - grouping variables with fewer than two levels or only singleton groups are
   rejected.

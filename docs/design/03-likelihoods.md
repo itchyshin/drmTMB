@@ -15,7 +15,8 @@ Likelihoods are implemented in TMB templates and called from R wrappers.
 Gaussian location-scale is implemented for fixed-effect models and for
 univariate Gaussian location random intercepts, labelled random intercepts,
 independent numeric random slopes, and labelled or unlabelled ordinary
-correlated random intercept-slope blocks:
+correlated random intercept-slope blocks, plus residual-scale random
+intercepts in the univariate Gaussian `sigma` formula:
 
 ```text
 y_i | mu_i, sigma_i ~ Normal(mu_i, sigma_i^2)
@@ -100,6 +101,28 @@ Here `rho_re` is a group-level random-effect correlation. It is extracted via
 implementation, the middle label `p` is retained for naming and future
 cross-formula covariance matching; the likelihood is otherwise the same as the
 unlabelled `(1 + x1 | id)` block.
+
+Residual-scale random intercepts are implemented on the log-`sigma` scale:
+
+```text
+log(sigma_i) = X_sigma[i, ] beta_sigma + a_{g[i]}
+a_g = sd_sigma_group * v_g
+v_g ~ Normal(0, 1)
+sd_sigma_group = exp(theta_sigma_group)
+```
+
+Matching R syntax:
+
+```r
+drmTMB(
+  bf(y ~ x1 + (1 | id), sigma ~ x2 + (1 | id)),
+  family = gaussian(),
+  data = dat
+)
+```
+
+This is residual-scale heterogeneity. It is distinct from future
+random-effect scale models such as `sd(id) ~ x`.
 
 Residuals are not part of the formula grammar. They are computed downstream
 from the fitted likelihood.

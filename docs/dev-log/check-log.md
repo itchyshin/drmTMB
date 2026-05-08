@@ -1121,3 +1121,76 @@ Team learning:
   and malformed-input checks for every mixed-model grammar change;
 - Rose's audit caught that pkgdown, README, NEWS, roadmap, known limitations,
   and equation notes all needed synchronized wording.
+
+## 2026-05-07: Gaussian Residual-Scale Random Intercepts
+
+Scope:
+
+- implemented residual-scale random intercepts in the univariate Gaussian
+  `sigma` formula, written as `sigma ~ z + (1 | id)`;
+- kept the first slice narrow: no labelled `sigma` blocks, no residual-scale
+  random slopes, no bivariate `sigma1`/`sigma2` random effects, and no
+  `sd(id) ~ x` random-effect scale models yet;
+- added TMB data and parameters for `u_sigma` and `log_sd_sigma`, with
+  non-centered standard-normal residual-scale random effects added to
+  `log(sigma_i)`;
+- updated conditional fitted-data prediction so `predict(fit, dpar = "sigma")`,
+  `sigma(fit)`, residuals, and simulation include fitted `sigma` random-effect
+  modes;
+- updated README, NEWS, roadmap, likelihood notes, formula grammar, random
+  effects notes, Gaussian math notes, testing strategy, vignettes, known
+  limitations, and generated Rd.
+
+Commands run:
+
+- `Rscript -e "devtools::load_all(quiet = FALSE)"`
+- manual smoke fit for `bf(y ~ x, sigma ~ z + (1 | id))`
+- manual smoke fit for `bf(y ~ x + (1 | id), sigma ~ z + (1 | id))`
+- `Rscript -e "devtools::test(filter = 'gaussian-random-intercepts')"`
+- `Rscript -e "devtools::test(filter = 'gaussian-location-scale')"`
+- `Rscript -e "devtools::document()"`
+- `Rscript -e "devtools::test()"`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `Rscript -e "pkgdown::build_site()"`
+- `Rscript -e "devtools::check(env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`
+- `git diff --check`
+
+Results:
+
+- targeted Gaussian random-effect tests: 169 passed, 0 failed;
+- targeted Gaussian location-scale tests: 39 passed, 0 failed;
+- full `devtools::test()`: 326 passed, 0 failed;
+- `pkgdown::check_pkgdown()`: no problems found;
+- `pkgdown::build_site()`: completed successfully;
+- `devtools::check(env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))`: 0
+  errors, 0 warnings, 0 notes;
+- `git diff --check`: passed.
+
+Tests of the tests:
+
+- simulation tests cover moderate residual-scale random-intercept recovery,
+  near-zero residual-scale heterogeneity, large residual-scale heterogeneity,
+  missingness in `sigma` random-effect variables, and coexistence of independent
+  `mu` and `sigma` random intercepts on the same grouping factor;
+- malformed-input tests still reject labelled `sigma` blocks and residual-scale
+  random slopes, preserving the intended narrow phase boundary;
+- manual smoke fits checked that fitted `sigma` predictions are positive and
+  that `sdpars$sigma` and `random_effects$sigma` are populated.
+
+Known issues:
+
+- residual-scale random slopes are not implemented;
+- labelled covariance blocks in `sigma` are not implemented;
+- `sd(id) ~ x` random-effect scale models remain a separate future
+  double-hierarchical phase;
+- bivariate `sigma1` and `sigma2` random effects remain future work.
+
+Team learning:
+
+- Bacon and Leibniz emphasized that `sigma ~ (1 | id)` and `sd(id) ~ x` are
+  different likelihoods and need different tests;
+- Arendt recommended this narrow residual-scale random-intercept slice before
+  the broader `sd(id) ~ x` grammar because it extends the current Laplace path
+  without introducing group-level scale-model matching yet;
+- Ada should keep the phrase "residual-scale random intercept" visible in docs
+  to avoid collapsing all scale concepts into the single word `sigma`.

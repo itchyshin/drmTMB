@@ -14,7 +14,8 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 `drmTMB` is being developed as a model-first package: the documentation should
 pair symbolic equations with the R syntax that fits them. The current
 implementation supports Gaussian location-scale models with fixed effects and
-optional random effects in the location formula:
+optional random effects in the location formula and residual-scale random
+intercepts in the `sigma` formula:
 
 ```r
 drmTMB(
@@ -50,6 +51,20 @@ drmTMB(
 
 The middle label `p` is retained in group-level SD and correlation names. It
 does not yet share covariance across `sigma`, `mu1`, or `mu2` formulas.
+
+Residual-scale random intercepts in `sigma` are also implemented:
+
+```r
+drmTMB(
+  bf(y ~ x1 + (1 | id), sigma ~ x1 + (1 | id)),
+  family = gaussian(),
+  data = dat
+)
+```
+
+This is a model for residual or within-observation scale. It is distinct from a
+future `sd(id) ~ x1` formula for the standard deviation of a group-level `mu`
+random effect.
 
 The first implemented bivariate seed covers fixed-effect location-coscale
 regression with predictor-dependent residual correlation:

@@ -9,7 +9,8 @@ ecology, evolution, and environmental science.
 The current implementation supports Gaussian location-scale models, including
 fixed effects, random intercepts, independent numeric random slopes, and
 ordinary labelled or unlabelled correlated random intercept-slope blocks in
-the location formula:
+the location formula, plus residual-scale random intercepts in the `sigma`
+formula:
 
 ```r
 drmTMB(
@@ -46,6 +47,20 @@ drmTMB(
 For now, `p` is retained as a group-level covariance-block label in output
 names such as `cor((Intercept),x1 | p | id)`. Cross-parameter or bivariate
 sharing of labelled blocks is still future work.
+
+Residual-scale random intercepts are also implemented:
+
+```r
+drmTMB(
+  bf(y ~ x1 + (1 | id), sigma ~ x1 + (1 | id)),
+  family = gaussian(),
+  data = dat
+)
+```
+
+Here `sigma` is the residual or within-observation standard deviation. This is
+not the same as a future `sd(id) ~ x1` model, which will model the standard
+deviation of a group-level `mu` random effect.
 
 It also supports the fixed-effect seed of the bivariate location-coscale model,
 including predictor-dependent residual correlation:
@@ -110,10 +125,12 @@ drmTMB(
 Current project status: Gaussian location-scale MVP with `mu` random
 intercepts, independent numeric random slopes, ordinary correlated
 intercept-slope blocks, labelled one-slope `mu` covariance-block labels,
+residual-scale random intercepts in `sigma`,
 `meta_known_V(V = V)` support for diagonal and dense known sampling covariance,
 and fixed-effect bivariate Gaussian `rho12 ~ predictors`. The next targets are
-cross-formula labelled covariance blocks, random-effect scale models, sparse
-precision paths, phylogenetic A-inverse, and spatial SPDE paths.
+random-effect scale models such as `sd(id) ~ x`, cross-formula labelled
+covariance blocks, sparse precision paths, phylogenetic A-inverse, and spatial
+SPDE paths.
 
 Phylogenetic and spatial dependence will be treated as one structured-effect
 module: `z ~ MVN(0, sigma_z^2 K)`, with `K = A` for tree-derived phylogenetic
