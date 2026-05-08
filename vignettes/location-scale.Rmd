@@ -329,6 +329,7 @@ fit <- drmTMB(
   data = dat
 )
 
+check_drm(fit)
 coef(fit, "mu")
 coef(fit, "sigma")
 fitted(fit)[1:5]

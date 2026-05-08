@@ -177,6 +177,7 @@ fit <- drmTMB(
   data = dat
 )
 
+check_drm(fit)
 coef(fit, "rho12")
 rho12(fit)[1:5]
 rho12(fit, type = "link")[1:5]

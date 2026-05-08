@@ -2467,3 +2467,100 @@ Team learning:
 - equation/syntax pairing should be treated as a testable documentation
   contract: the equation immediately before a code block must describe exactly
   the model fitted by that code block.
+
+## 2026-05-08: `check_drm()` Fit Diagnostics
+
+Scope:
+
+- added exported `check_drm()` generic and `check_drm.drmTMB()` method;
+- added a `drm_check` print method and programmatic `attr(x, "ok")` flag;
+- diagnostics now cover optimizer convergence, finite objective/log-likelihood,
+  fixed-parameter gradients, Hessian status, dropped rows, positive fitted
+  scale values, bivariate residual `rho12` boundary checks, known sampling
+  covariance summaries, ordinary random-effect replication, ordinary
+  random-slope design variation, and phylogenetic species replication;
+- added `check_drm()` examples to the getting-started, location-scale, and
+  bivariate-coscale vignettes;
+- added the reference page to `_pkgdown.yml`, updated `NEWS.md`, README, and
+  the structured-effect diagnostics design note.
+
+Commands run:
+
+- `Rscript -e "devtools::document()"`
+- `Rscript -e "devtools::test(filter = 'check-drm')"`
+- `Rscript -e "devtools::test()"`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `git diff --check`
+- `Rscript -e "pkgdown::build_site()"`
+- `rg -n "check_drm|known sampling covariance summaries|weak random-slope|drmTMB-logo|favicon" pkgdown-site/index.html pkgdown-site/reference/index.html pkgdown-site/reference/check_drm.html pkgdown-site/articles/drmTMB.html pkgdown-site/articles/location-scale.html pkgdown-site/articles/bivariate-coscale.html pkgdown-site/news/index.html`
+- `air format .`
+- `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`
+
+Results:
+
+- targeted `check-drm` tests: 38 passed, 0 failed;
+- full `devtools::test()`: 556 passed, 0 failed;
+- `pkgdown::check_pkgdown()`: no problems found;
+- `pkgdown::build_site()`: site built successfully, including
+  `reference/check_drm.html`;
+- generated-site search found `check_drm()` on the home page, reference index,
+  reference page, getting-started article, location-scale article,
+  bivariate-coscale article, and changelog;
+- final `devtools::check()` with `_R_CHECK_SYSTEM_CLOCK_=FALSE`: 0 errors,
+  0 warnings, 0 notes;
+- `git diff --check`: clean;
+- `air format .` could not run because `air` is not installed on this machine.
+
+Tests of the tests:
+
+- tests mutate a fitted object to exercise nonzero optimizer convergence,
+  non-finite objective, gradient evaluation failure, non-finite gradients,
+  non-positive-definite Hessian status, and scale-extraction failure;
+- tests cover dropped-row notes, `rho12` boundary warnings, random-effect
+  singleton notes, weak random-slope design notes, dense known sampling
+  covariance summaries, phylogenetic replication notes, and unused `...`
+  rejection;
+- the print test now captures output instead of leaking the full diagnostic
+  table into the test log.
+
+Consistency audit:
+
+- `NAMESPACE` exports `check_drm` and registers `check_drm.drmTMB` plus
+  `print.drm_check`;
+- `man/check_drm.Rd`, `_pkgdown.yml`, README, `NEWS.md`, and vignettes all
+  describe the same first-pass diagnostic surface;
+- the design note
+  `docs/design/16-phylo-spatial-common-math.md` now records which diagnostics
+  are implemented and which separability checks remain future work.
+
+What did not go smoothly:
+
+- the first test version treated dropped-row `note`s as a failed model; that
+  was corrected so `attr(x, "ok")` is false only for `warning` or `error`
+  statuses;
+- the first print test used `expect_output()` but `cli` output and
+  `print.data.frame()` output did not land in the same stream, so the test was
+  changed to capture both streams;
+- reviewer/auditor passes caught that vignettes and generated pkgdown pages
+  initially lagged behind the new exported function;
+- the known sampling covariance and random-slope checks were initially too
+  thin, so matrix rank/conditioning summaries and within-group design checks
+  were added before closing the task.
+
+Known limitations:
+
+- `check_drm()` is a first-pass diagnostic, not a formal identifiability proof;
+- future phylogenetic plus non-phylogenetic, spatial plus site/study, and
+  cross-formula covariance models still need separability diagnostics;
+- gradient and Hessian checks are based on the current TMB object and
+  `sdreport()` status, not profile-likelihood or bootstrap uncertainty checks.
+
+Team learning:
+
+- diagnostic functions need tests that deliberately break fitted-object
+  components, not only tests on successful models;
+- `note`, `warning`, and `error` semantics should be documented from the first
+  exported version because applied users will otherwise over- or under-react to
+  diagnostic rows;
+- pkgdown freshness must be verified with generated-site searches, not only
+  `pkgdown::check_pkgdown()`.

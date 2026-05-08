@@ -331,6 +331,15 @@ phylogenetic or spatial models are advertised as routine. These checks should
 summarize replication by grouping level, matrix rank/conditioning, and whether
 structured and unstructured effects are plausibly separable.
 
+Current first-pass `check_drm()` support covers optimizer convergence,
+fixed-parameter gradients, Hessian status, dropped rows, positive residual
+scale values, `rho12` boundary warnings, known sampling covariance summaries
+including dense-matrix rank/conditioning, ordinary random-effect replication,
+ordinary random-slope design variation, and phylogenetic species replication.
+Future structured-effect phases still need separability diagnostics for
+phylogenetic plus non-phylogenetic species effects and spatial field plus site
+or study effects.
+
 ## Structured Slopes
 
 Phylogenetic and spatial random slopes are mathematically natural but should be

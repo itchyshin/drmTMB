@@ -251,7 +251,10 @@ intercept-only univariate Gaussian phylogenetic location effects such as
 `phylo(1 | species, tree = tree)`,
 and fixed-effect bivariate Gaussian `rho12 ~ predictors` using either
 `biv_gaussian()`, `family = c(gaussian(), gaussian())`, or
-`family = list(gaussian(), gaussian())`. The next targets are cross-formula
+`family = list(gaussian(), gaussian())`. `check_drm()` provides a first-pass
+diagnostic table for convergence, gradients, Hessian status, dropped rows,
+scale positivity, `rho12` boundaries, known sampling covariance summaries, and
+random-effect replication/design checks. The next targets are cross-formula
 labelled covariance blocks, phylogenetic slopes and scale effects, larger
 sparse covariance routes, and spatial SPDE paths.
 

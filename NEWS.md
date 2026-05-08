@@ -2,6 +2,7 @@
 
 * `bf()` now stores parsed formula entries for distributional parameters, including bivariate `rho12`, meta-analysis `meta_known_V(V = V)`, and random-effect scale syntax.
 * `biv_gaussian()` now fits fixed-effect bivariate Gaussian location-scale-coscale models with separate `mu1`, `mu2`, `sigma1`, `sigma2`, and predictor-dependent `rho12` formulas.
+* `check_drm()` now provides a first-pass diagnostic table for optimizer convergence, fixed gradients, Hessian status, dropped rows, scale positivity, `rho12` boundaries, known sampling covariance summaries, random-effect replication, and weak random-slope design checks.
 * `drm_formula()` is now the primary formula constructor; `bf()` remains a short alias.
 * `drmTMB()` now fits Gaussian location-scale models with fixed effects, random intercepts, labelled random intercepts such as `(1 | p | id)`, independent numeric random slopes, and ordinary labelled or unlabelled correlated random intercept-slope blocks in the `mu` formula, such as `bf(y ~ x1 + (1 | id) + (0 + x1 | id), sigma ~ x1)`, `bf(y ~ x1 + (1 + x1 | id), sigma ~ x1)`, and `bf(y ~ x1 + (1 + x1 | p | id), sigma ~ x1)`.
 * `drmTMB()` now accepts `family = c(gaussian(), gaussian())` and `family = list(gaussian(), gaussian())`, routing both to the implemented bivariate Gaussian location-coscale likelihood. Mixed composed families such as `c(gaussian(), poisson())` remain planned and currently error clearly.

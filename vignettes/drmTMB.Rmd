@@ -200,6 +200,20 @@ Omega_i[1, 2] = rho12_i sigma1_i sigma2_i
 The fitted response-scale residual correlations are available with
 `rho12(fit)`.
 
+After fitting any model, run `check_drm()` before interpreting the estimates:
+
+```r
+check_drm(fit)
+```
+
+The diagnostic table reports optimizer convergence, fixed-parameter gradients,
+Hessian status, dropped rows, positive scale values, residual `rho12`
+boundaries when relevant, known sampling covariance summaries, random-effect
+replication, and weak random-slope design checks. A `note` records something
+to inspect, such as dropped rows, a singly observed random-effect level, or a
+random-slope block with little within-group variation; a `warning` or `error`
+should be resolved before treating estimates as stable.
+
 Meta-analysis uses the ordinary Gaussian family plus a known sampling
 covariance marker:
 

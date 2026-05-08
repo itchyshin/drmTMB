@@ -71,6 +71,7 @@ reference:
     desc: Fit, inspect, predict, and simulate distributional models.
     contents:
       - starts_with("drmTMB")
+      - check_drm
       - fitted.drmTMB
       - fixef
       - model-fit-extractors
