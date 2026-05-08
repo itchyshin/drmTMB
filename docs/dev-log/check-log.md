@@ -2032,9 +2032,15 @@ Scope:
 - the test fits `bf(y ~ x + phylo(1 | species, tree = tree), sigma ~ 1)` on a
   four-tip ultrametric tree and compares the TMB/Laplace objective to an
   independent dense marginal Gaussian negative log likelihood;
+- a second comparator fits
+  `bf(y ~ x + (1 | species) + phylo(1 | species, tree = tree), sigma ~ 1)`
+  and checks the marginal covariance with both non-phylogenetic and
+  phylogenetic species intercepts;
 - the dense comparator uses
   `Sigma = sigma^2 I + sd_phylo^2 A[species, species]`, where `A` is built by
-  the dense Brownian tip-covariance helper;
+  the dense Brownian tip-covariance helper, and extends to
+  `Sigma = sigma^2 I + sd_species^2 I_species + sd_phylo^2 A_obs` for the
+  combined species model;
 - this strengthens the bridge between the public equation,
   `a ~ MVN(0, sigma_phylo^2 A)`, and the sparse augmented A-inverse
   implementation.
@@ -2048,16 +2054,16 @@ Commands run:
 
 Results:
 
-- targeted `phylo-gaussian` tests: 14 passed, 0 failed;
-- targeted phylogenetic tests: 59 passed, 0 failed;
-- full `devtools::test()`: 479 passed, 0 failed.
+- targeted `phylo-gaussian` tests: 16 passed, 0 failed;
+- targeted phylogenetic tests: 61 passed, 0 failed;
+- full `devtools::test()`: 481 passed, 0 failed.
 - `devtools::check()` with `_R_CHECK_SYSTEM_CLOCK_=FALSE`: 0 errors,
   0 warnings, 0 notes.
 
 Known limitations:
 
-- the comparator uses a tiny dense covariance matrix for testing; it is not the
-  large-tree fitting route;
+- the comparators use tiny dense covariance matrices for testing; this is not
+  the large-tree fitting route;
 - this validates the fitted marginal objective at the fitted parameter values,
   not long-run parameter-recovery coverage across many tree shapes.
 

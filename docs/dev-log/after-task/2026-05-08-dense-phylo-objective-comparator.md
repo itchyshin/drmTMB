@@ -11,6 +11,8 @@ model has the same marginal likelihood as the dense Brownian covariance model.
   `tests/testthat/test-phylo-gaussian.R`.
 - Added a fitted-model test on a four-tip ultrametric tree with three
   observations per species.
+- Added a second fitted-model test combining a non-phylogenetic species random
+  intercept and a phylogenetic species random intercept.
 - The test fits:
 
 ```r
@@ -31,6 +33,22 @@ Sigma = sigma^2 I + sd_phylo^2 A[species, species]
 and compares the dense Gaussian negative log likelihood with
 `fit$opt$objective`.
 
+For the combined species model, the test fits:
+
+```r
+drmTMB(
+  bf(y ~ x + (1 | species) + phylo(1 | species, tree = tree), sigma ~ 1),
+  family = gaussian(),
+  data = dat
+)
+```
+
+and compares against:
+
+```text
+Sigma = sigma^2 I + sd_species^2 I_species + sd_phylo^2 A[species, species]
+```
+
 ## Mathematical Contract
 
 The fitted sparse path integrates a latent tree effect:
@@ -44,6 +62,15 @@ Marginally, the observed response vector satisfies:
 
 ```text
 y ~ MVN(X_mu beta_mu, sigma^2 I + sd_phylo^2 A_obs)
+```
+
+With an additional non-phylogenetic species intercept:
+
+```text
+y ~ MVN(
+  X_mu beta_mu,
+  sigma^2 I + sd_species^2 I_species + sd_phylo^2 A_obs
+)
 ```
 
 where `A_obs = A[species, species]`. For Gaussian random effects, the TMB
@@ -75,13 +102,13 @@ to sparse TMB objective.
 - The test matches `docs/design/16-phylo-spatial-common-math.md`, which says
   the first fitted path should be validated against a dense tip covariance on
   small examples.
-- The test uses supported public syntax only: intercept-only univariate
-  Gaussian `phylo()` in `mu`.
+- The tests use supported public syntax only: ordinary univariate Gaussian
+  random intercepts and intercept-only univariate Gaussian `phylo()` in `mu`.
 - No README, roadmap, or user-facing syntax changed.
 
 ## What Did Not Go Smoothly
 
-Nothing substantial. The comparator passed on the first targeted run.
+Nothing substantial. Both comparators passed on targeted runs.
 
 ## Team Learning
 
@@ -92,15 +119,13 @@ Nothing substantial. The comparator passed on the first targeted run.
 
 ## Known Limitations
 
-- The comparator validates one tiny tree and one fitted parameter point.
+- The comparators validate tiny trees and fitted parameter points.
 - Larger simulation and comparator studies are still needed for many species,
   weak phylogenetic signal, near-zero variance components, and simultaneous
   phylogenetic plus non-phylogenetic species effects.
 
 ## Next Actions
 
-1. Add a non-phylogenetic species random intercept plus phylogenetic random
-   intercept comparator once that model path exists.
-2. Add optional long simulations outside CRAN tests for larger trees and
+1. Add optional long simulations outside CRAN tests for larger trees and
    boundary cases.
-3. Keep the dense comparator pattern for the future spatial SPDE path.
+2. Keep the dense comparator pattern for the future spatial SPDE path.

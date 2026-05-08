@@ -58,8 +58,7 @@ new_phylo_gaussian_data <- function(seed = 20260547, n_tip = 16L,
   )
 }
 
-dense_phylo_gaussian_nll <- function(y, mu, sigma, sd_phylo, A) {
-  covariance <- sigma^2 * diag(length(y)) + sd_phylo^2 * A
+dense_gaussian_nll <- function(y, mu, covariance) {
   chol_covariance <- chol(covariance)
   residual <- y - mu
   standardized <- backsolve(chol_covariance, residual, transpose = TRUE)
@@ -67,6 +66,14 @@ dense_phylo_gaussian_nll <- function(y, mu, sigma, sd_phylo, A) {
     length(y) * log(2 * pi) +
       2 * sum(log(diag(chol_covariance))) +
       sum(standardized^2)
+  )
+}
+
+dense_phylo_gaussian_nll <- function(y, mu, sigma, sd_phylo, A) {
+  dense_gaussian_nll(
+    y = y,
+    mu = mu,
+    covariance = sigma^2 * diag(length(y)) + sd_phylo^2 * A
   )
 }
 
@@ -121,6 +128,44 @@ test_that("fitted phylogenetic mu objective matches dense marginal likelihood", 
 
   expect_equal(fit$opt$convergence, 0)
   expect_equal(fit$opt$objective, dense_nll, tolerance = 1e-4)
+})
+
+test_that("ordinary and phylogenetic species intercepts match dense marginal likelihood", {
+  tree <- balanced_ultrametric_tree(n_tip = 4L)
+  species <- rep(tree$tip.label, each = 4L)
+  x <- rep(c(-0.8, -0.2, 0.3, 0.9), times = 4L)
+  phylo_signal <- c(sp_1 = -0.35, sp_2 = -0.25, sp_3 = 0.3, sp_4 = 0.45)
+  species_signal <- c(sp_1 = 0.25, sp_2 = -0.15, sp_3 = -0.2, sp_4 = 0.1)
+  dat <- data.frame(
+    y = -0.1 + 0.4 * x + phylo_signal[species] + species_signal[species] +
+      rep(c(-0.08, 0.02, 0.06, 0.12), times = 4L),
+    x = x,
+    species = species
+  )
+
+  fit <- drmTMB(
+    bf(y ~ x + (1 | species) + phylo(1 | species, tree = tree), sigma ~ 1),
+    family = gaussian(),
+    data = dat
+  )
+
+  X_mu <- stats::model.matrix(~ x, dat)
+  mu <- as.vector(X_mu %*% coef(fit, "mu"))
+  A_tip <- drmTMB:::drm_phylo_tip_covariance(tree)
+  A_obs <- A_tip[dat$species, dat$species]
+  species_obs <- outer(dat$species, dat$species, `==`) + 0
+  sd_species <- unname(fit$sdpars$mu["(1 | species)"])
+  sd_phylo <- unname(fit$sdpars$mu["phylo(1 | species)"])
+  covariance <- stats::sigma(fit)[[1L]]^2 * diag(nrow(dat)) +
+    sd_species^2 * species_obs +
+    sd_phylo^2 * A_obs
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(
+    fit$opt$objective,
+    dense_gaussian_nll(dat$y, mu, covariance),
+    tolerance = 1e-4
+  )
 })
 
 test_that("conditional predictions include phylogenetic mu effects", {
