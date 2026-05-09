@@ -24,9 +24,10 @@ Student-t scale parameter; when \code{nu > 2}, the residual standard deviation i
 standard deviation of \code{log(y)}. For Gamma models this is the fitted
 coefficient of variation. Poisson and zero-inflated Poisson models have no
 fitted residual scale parameter and return a fixed unit dispersion vector for
-consistency with base-R \code{sigma()} conventions. For negative-binomial 2 models
-this is the fitted overdispersion scale in \code{Var(y) = mu + sigma^2 * mu^2}.
-For bivariate Gaussian models it returns a list with fitted \code{sigma1} and
+consistency with base-R \code{sigma()} conventions. For negative-binomial 2 and
+zero-inflated negative-binomial 2 models this is the fitted overdispersion
+scale in \code{Var(y | nonstructural) = mu + sigma^2 * mu^2}. For bivariate
+Gaussian models it returns a list with fitted \code{sigma1} and
 \code{sigma2} vectors.
 }
 \details{

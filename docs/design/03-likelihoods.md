@@ -20,7 +20,7 @@ The corresponding R density call uses standard deviation, as in
 
 The R builders use descriptive model labels, such as `"gaussian"`,
 `"student"`, `"lognormal"`, `"gamma"`, `"poisson"`, `"zi_poisson"`,
-`"nbinom2"`, and `"biv_gaussian"`. Before calling the TMB template, `make_tmb_data()` turns
+`"nbinom2"`, `"zi_nbinom2"`, and `"biv_gaussian"`. Before calling the TMB template, `make_tmb_data()` turns
 those labels into integer branches in `src/drmTMB.cpp`. Unknown labels are
 rejected before they can fall through to a wrong likelihood branch. This table
 is the current routing contract:
@@ -35,6 +35,7 @@ is the current routing contract:
 | `6` | `family = poisson(link = "log")` | `drm_build_poisson_spec()` | Univariate fixed-effect Poisson mean models for non-negative integer counts, with `mu` as the count mean. |
 | `7` | `family = nbinom2()` | `drm_build_nbinom2_spec()` | Univariate fixed-effect negative-binomial 2 models for overdispersed counts, with `mu` as the count mean and `sigma` as an overdispersion scale. |
 | `8` | `family = poisson(link = "log")` plus `zi ~ ...` | `drm_build_poisson_spec()` | Univariate fixed-effect zero-inflated Poisson models, with `mu` as the conditional count mean and `zi` as the structural-zero probability. |
+| `9` | `family = nbinom2()` plus `zi ~ ...` | `drm_build_nbinom2_spec()` | Univariate fixed-effect zero-inflated negative-binomial 2 models, with `mu` as the conditional count mean, `sigma` as the NB2 overdispersion scale, and `zi` as the structural-zero probability. |
 | `99` | no public route | direct test construction only | Hidden phylogenetic precision-prior parity branch used to test the sparse augmented A-inverse objective in isolation. |
 
 The hidden `model_type = 99` branch is not a family and should not appear in
@@ -526,9 +527,51 @@ drmTMB(
 For `nbinom2()` fits, `predict(fit, dpar = "mu")` and `fitted(fit)` return the
 count mean. `sigma(fit)` returns the overdispersion scale in the variance
 equation, not a residual standard deviation. Larger `sigma` means greater
-extra-Poisson variation. Random effects, known sampling covariance, zero
-inflation, hurdle components, phylogenetic terms, and bivariate or mixed
-negative-binomial models are later phases.
+extra-Poisson variation. Random effects, known sampling covariance, hurdle
+components, phylogenetic terms, and bivariate or mixed negative-binomial models
+are later phases.
+
+## Implemented Zero-Inflated Negative Binomial 2
+
+Zero-inflated NB2 models reuse `nbinom2()` and add a formula for the
+structural-zero probability:
+
+```text
+y_i | mu_i, sigma_i, zi_i ~ zero-inflated NB2(mu_i, sigma_i, zi_i)
+eta_mu_i = X_mu[i, ] beta_mu
+eta_sigma_i = X_sigma[i, ] beta_sigma
+eta_zi_i = X_zi[i, ] beta_zi
+mu_i = exp(eta_mu_i)
+sigma_i = exp(eta_sigma_i)
+zi_i = logit^{-1}(eta_zi_i)
+size_i = 1 / sigma_i^2
+```
+
+The probability mass is:
+
+```text
+Pr(y_i = 0) = zi_i + (1 - zi_i) NB2(0 | mu_i, size_i)
+Pr(y_i = y > 0) = (1 - zi_i) NB2(y | mu_i, size_i)
+E[y_i] = (1 - zi_i) mu_i
+Var[y_i] = (1 - zi_i) (mu_i + sigma_i^2 mu_i^2) + zi_i (1 - zi_i) mu_i^2
+```
+
+Matching R syntax:
+
+```r
+drmTMB(
+  drm_formula(count ~ habitat, sigma ~ treatment, zi ~ survey_method),
+  family = nbinom2(),
+  data = dat
+)
+```
+
+Here `mu` is the conditional NB2 mean among observations that are not
+structural zeros, `sigma` is the conditional NB2 overdispersion scale, and `zi`
+is the structural-zero probability. Consequently, `predict(fit, dpar = "mu")`
+returns the conditional mean, `sigma(fit)` returns the conditional
+overdispersion scale, `predict(fit, dpar = "zi")` returns the zero-inflation
+probability, and `fitted(fit)` returns `(1 - zi) * mu`.
 
 ## Implemented Bivariate Meta-Analytic Gaussian Regression
 

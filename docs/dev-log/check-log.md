@@ -4632,3 +4632,102 @@ Team learning:
   family because base R can drop offsets from model matrices silently;
 - stable log-space tests are needed at mixture boundaries, because naive
   probability-scale comparators lose precision near `zi = 1`.
+
+## 2026-05-09 — Zero-Inflated NB2 Distributional Parameter
+
+Task: implement fixed-effect zero-inflated negative-binomial 2 models through
+the existing `nbinom2()` family route.
+
+Implemented:
+
+- extended `family = nbinom2()` so `drm_formula(count ~ x, sigma ~ z, zi ~ w)`
+  fits a fixed-effect zero-inflated NB2 likelihood;
+- added TMB `model_type = 9` with conditional `mu = exp(X_mu beta_mu)`,
+  overdispersion scale `sigma = exp(X_sigma beta_sigma)`, and
+  structural-zero probability `zi = logit^{-1}(X_zi beta_zi)`;
+- kept plain NB2 semantics unchanged: `sigma` is an overdispersion scale with
+  count-component `Var(y) = mu + sigma^2 * mu^2`;
+- made `predict(dpar = "mu")` and `sigma()` describe the conditional count
+  component, `predict(dpar = "zi")` return structural-zero probability, and
+  `fitted()` return `(1 - zi) * mu`;
+- added `simulate()`, response and Pearson residuals, link-helper, coefficient
+  splitting, and print-method support for the zero-inflated NB2 path;
+- added simulation recovery, independent likelihood, boundary, complete-case,
+  and malformed-input tests;
+- updated README, ROADMAP, NEWS, formula grammar, family registry, likelihood,
+  family-link, distribution-family, source-map, and known-limits
+  documentation.
+
+Review:
+
+- Kepler reviewed simulation-test design and recommended direct NB2-mixture
+  likelihood comparison, `zi -> 0` and `zi -> 1` boundary tests, and malformed
+  input coverage;
+- Copernicus reviewed the implementation and flagged stale roxygen/public-doc
+  wording plus the untracked test file before closeout.
+
+Commands run:
+
+- `air format .` (failed: `air` is not installed locally)
+- `R -q -e 'devtools::document()'`
+- `R -q -e 'devtools::test(filter = "zi-nbinom2|nbinom2|family-link-contract")'`
+- `R -q -e 'devtools::test()'`
+- `R -q -e 'pkgdown::check_pkgdown()'`
+- `R -q -e 'pkgdown::build_site()'`
+- `R -q -e 'devtools::check()'`
+- `git diff --check`
+- `rg -n "zero inflation.*NB2|zero inflation.*negative|zero-inflated NB2.*planned|NB2.*zero inflation.*not|zero-inflated negative|zi_nbinom2\\(\\)" README.md ROADMAP.md NEWS.md docs vignettes man pkgdown-site --glob '!pkgdown-site/search.json'`
+- `rg -n "model_type = 8|model_type = 9|zi_nbinom2|zi_poisson|X_zi|beta_zi" R src tests docs vignettes man pkgdown-site --glob '!pkgdown-site/search.json'`
+
+Results:
+
+- targeted ZINB2/NB2/link tests: 135 passed, 0 failed, 0 warnings, 0 skips;
+- full `devtools::test()`: 966 passed, 0 failed, 0 warnings, 0 skips;
+- `pkgdown::check_pkgdown()`: no problems found;
+- `pkgdown::build_site()`: completed successfully;
+- `devtools::check()`: 0 errors, 0 warnings, 0 notes;
+- `git diff --check`: clean.
+
+Tests of the tests:
+
+- recovery test simulates from known `mu`, `sigma`, and `zi` coefficients with
+  factor predictors;
+- likelihood test compares the fitted objective to an independent
+  zero-inflated NB2 log-likelihood using `stats::dnbinom()`;
+- boundary tests check both `zi -> 0` NB2 convergence and `zi -> 1` log-space
+  mixture stability;
+- complete-case test checks that rows missing from the `zi` formula are
+  filtered consistently;
+- malformed-input tests cover duplicate `zi`, two-sided `zi`, unsupported
+  random terms, offsets, `zi ~ 0`, `meta_known_V()`, `sd(id)`, `mvbind()`, and
+  non-integer counts.
+
+Consistency audit:
+
+- public examples use `family = nbinom2()` plus `zi ~ ...`;
+- no public `zi_nbinom2()` constructor was added;
+- generated Rd files and pkgdown pages describe zero-inflated NB2 fitted,
+  simulation, residual, and `sigma()` semantics;
+- known limitations now distinguish implemented count zero-inflation from
+  future count zero-inflation with random or structured effects;
+- remaining `zi_nbinom2()` hits are intentional statements that no public
+  constructor exists, and historical after-task notes were left unchanged where
+  they were true when written.
+
+Known limitations:
+
+- fixed-effect and univariate only;
+- no random effects, hurdle component, known sampling covariance,
+  phylogenetic/spatial structured effects, bivariate count model, or mixed
+  composed count model yet;
+- offsets are rejected rather than implemented.
+
+Team learning:
+
+- documenting plain NB2 and zero-inflated NB2 in the same route reduces API
+  clutter but requires extra stale-wording scans because `nbinom2()` now has
+  two implemented behaviours;
+- count-mixture families should always carry an independent density-comparison
+  test plus boundary tests at both mixture extremes;
+- local formatter availability should be checked when a new repo skill says to
+  run a formatter that may not be installed.

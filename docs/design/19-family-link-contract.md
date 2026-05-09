@@ -68,6 +68,8 @@ Student-t:  predict(mu) = location; fitted() currently returns mu
 Lognormal:  predict(mu) = E[log(y)]; fitted() = exp(mu + sigma^2 / 2)
 Poisson:    predict(mu) = E[y] = fitted()
 ZIP:        predict(mu) = conditional count mean; fitted() = (1 - zi) * mu
+NB2:        predict(mu) = E[y] = fitted()
+ZINB2:      predict(mu) = conditional count mean; fitted() = (1 - zi) * mu
 ```
 
 The extractor `sigma(fit)` should return the modelled parameter named `sigma`,
@@ -190,6 +192,20 @@ Zero-inflated Poisson:
 For this model, `predict(fit, dpar = "mu")` returns the conditional Poisson
 mean and `predict(fit, dpar = "zi")` returns the structural-zero probability.
 `fitted(fit)` returns the unconditional response mean `(1 - zi) * mu`.
+
+Zero-inflated NB2 uses the same `zi` contract while retaining the NB2
+overdispersion scale:
+
+```text
+Zero-inflated negative binomial 2:
+  y_i ~ ZINB2(mu_i, sigma_i, zi_i)
+  log(mu_i) = X_mu[i, ] beta_mu
+  log(sigma_i) = X_sigma[i, ] beta_sigma
+  logit(zi_i) = X_zi[i, ] beta_zi
+  E[y_i] = (1 - zi_i) mu_i
+  Var[y_i] = (1 - zi_i) (mu_i + sigma_i^2 mu_i^2) +
+             zi_i (1 - zi_i) mu_i^2
+```
 
 ## Candidate Proportion Contract
 

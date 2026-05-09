@@ -140,7 +140,8 @@ distributional regression models using TMB.
 - Status: `poisson(link = "log")` is implemented as a fixed-effect baseline
   count model, including optional `zi ~ predictors` for zero-inflated Poisson
   models. `nbinom2()` is implemented as a fixed-effect `mu`/`sigma`
-  overdispersed count model with `Var(y) = mu + sigma^2 * mu^2`.
+  overdispersed count model with `Var(y) = mu + sigma^2 * mu^2`, including
+  optional `zi ~ predictors` for zero-inflated NB2 models.
 - Add COM-Poisson, beta, beta-binomial, zero-one-inflated
   beta, ordered logit/probit, and related families according to the distribution
   roadmap.

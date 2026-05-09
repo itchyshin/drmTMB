@@ -6,6 +6,7 @@ test_that("internal link table maps implemented distributional parameters", {
   fake_poisson <- list(model = list(model_type = "poisson"))
   fake_zip <- list(model = list(model_type = "zi_poisson"))
   fake_nbinom2 <- list(model = list(model_type = "nbinom2"))
+  fake_zinb2 <- list(model = list(model_type = "zi_nbinom2"))
   fake_biv <- list(model = list(model_type = "biv_gaussian"))
 
   expect_equal(drmTMB:::drm_dpar_link(fake_gaussian, "mu"), "identity")
@@ -19,6 +20,9 @@ test_that("internal link table maps implemented distributional parameters", {
   expect_equal(drmTMB:::drm_dpar_link(fake_zip, "zi"), "logit")
   expect_equal(drmTMB:::drm_dpar_link(fake_nbinom2, "mu"), "log")
   expect_equal(drmTMB:::drm_dpar_link(fake_nbinom2, "sigma"), "log")
+  expect_equal(drmTMB:::drm_dpar_link(fake_zinb2, "mu"), "log")
+  expect_equal(drmTMB:::drm_dpar_link(fake_zinb2, "sigma"), "log")
+  expect_equal(drmTMB:::drm_dpar_link(fake_zinb2, "zi"), "logit")
   expect_equal(drmTMB:::drm_dpar_link(fake_biv, "rho12"), "atanh_guarded")
   expect_equal(unname(biv_gaussian()$links[["rho12"]]), "atanh_guarded")
   expect_equal(unname(nbinom2()$links[["mu"]]), "log")
@@ -32,6 +36,7 @@ test_that("internal inverse links match the documented parameter scales", {
   fake_poisson <- list(model = list(model_type = "poisson"))
   fake_zip <- list(model = list(model_type = "zi_poisson"))
   fake_nbinom2 <- list(model = list(model_type = "nbinom2"))
+  fake_zinb2 <- list(model = list(model_type = "zi_nbinom2"))
   fake_biv <- list(model = list(model_type = "biv_gaussian"))
   eta <- c(-1, 0, 1)
 
@@ -45,6 +50,9 @@ test_that("internal inverse links match the documented parameter scales", {
   expect_equal(drmTMB:::drm_inverse_link(fake_zip, "zi", eta), stats::plogis(eta))
   expect_equal(drmTMB:::drm_inverse_link(fake_nbinom2, "mu", eta), exp(eta))
   expect_equal(drmTMB:::drm_inverse_link(fake_nbinom2, "sigma", eta), exp(eta))
+  expect_equal(drmTMB:::drm_inverse_link(fake_zinb2, "mu", eta), exp(eta))
+  expect_equal(drmTMB:::drm_inverse_link(fake_zinb2, "sigma", eta), exp(eta))
+  expect_equal(drmTMB:::drm_inverse_link(fake_zinb2, "zi", eta), stats::plogis(eta))
   expect_equal(
     drmTMB:::drm_inverse_link(fake_biv, "rho12", eta),
     0.99999999 * tanh(eta)
@@ -101,6 +109,11 @@ test_that("fitted response helper uses family-specific response summaries", {
     family = nbinom2(),
     data = dat_nbinom2
   )
+  fit_zinb2 <- drmTMB(
+    bf(y ~ x, sigma ~ 1, zi ~ x),
+    family = nbinom2(),
+    data = dat_nbinom2
+  )
 
   expect_equal(
     fitted(fit_lognormal),
@@ -125,6 +138,11 @@ test_that("fitted response helper uses family-specific response summaries", {
   expect_equal(
     fitted(fit_nbinom2),
     predict(fit_nbinom2, dpar = "mu"),
+    tolerance = 1e-12
+  )
+  expect_equal(
+    fitted(fit_zinb2),
+    (1 - predict(fit_zinb2, dpar = "zi")) * predict(fit_zinb2, dpar = "mu"),
     tolerance = 1e-12
   )
 })

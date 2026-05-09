@@ -33,8 +33,9 @@ Poisson mean family uses `log(mu)` and has no fitted `sigma` distributional
 parameter. The implemented zero-inflated Poisson extension uses the same
 Poisson route with `logit(zi)` and `fitted()` returning `(1 - zi) * mu`. The
 implemented negative-binomial 2 family uses `log(mu)` and `log(sigma)`, with
-`sigma` interpreted as an overdispersion scale. Beta models would use
-`logit(mu)`.
+`sigma` interpreted as an overdispersion scale; its zero-inflated extension
+adds `logit(zi)` and the same fitted-response rule `(1 - zi) * mu`. Beta
+models would use `logit(mu)`.
 
 The detailed contract is in `docs/design/19-family-link-contract.md`. Treat it
 as a prerequisite before implementing additional count, beta, ordinal, or
@@ -220,9 +221,19 @@ Var[y_i] = mu_i + sigma_i^2 * mu_i^2
 Here `sigma` is an extra-Poisson scale, not a residual standard deviation and
 not the native NB size or precision parameter. Larger `sigma` means greater
 overdispersion. This direction is deliberate so `sigma` continues to mean
-"more scale" across `drmTMB` families. Random effects, known sampling
-covariance, zero inflation, hurdle components, phylogenetic terms, and
-bivariate or mixed negative-binomial models are later phases.
+"more scale" across `drmTMB` families.
+
+Adding `zi ~ predictors` fits the implemented zero-inflated NB2 extension:
+
+```text
+log(mu_i) = X_mu[i, ] beta_mu
+log(sigma_i) = X_sigma[i, ] beta_sigma
+logit(zi_i) = X_zi[i, ] beta_zi
+E[y_i] = (1 - zi_i) mu_i
+```
+
+Random effects, known sampling covariance, hurdle components, phylogenetic
+terms, and bivariate or mixed negative-binomial models are later phases.
 
 ## Implemented: Bivariate Gaussian Location-Coscale
 

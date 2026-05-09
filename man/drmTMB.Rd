@@ -12,7 +12,9 @@ drmTMB(formula, family = stats::gaussian(), data, control = list(), ...)
 \item{family}{A response family, such as \code{\link[stats:gaussian]{stats::gaussian()}}, \code{\link[=student]{student()}},
 \code{\link[=lognormal]{lognormal()}}, \code{\link[stats:Gamma]{stats::Gamma()}} with \code{link = "log"},
 \code{\link[stats:poisson]{stats::poisson()}} with \code{link = "log"}, \code{\link[=nbinom2]{nbinom2()}}, or
-\code{\link[=biv_gaussian]{biv_gaussian()}}. The current bivariate Gaussian engine also accepts
+\code{\link[=biv_gaussian]{biv_gaussian()}}. Adding \code{zi ~ predictors} to a Poisson or \code{nbinom2()}
+model fits the corresponding zero-inflated count model. The current
+bivariate Gaussian engine also accepts
 \code{family = c(gaussian(), gaussian())} and
 \code{family = list(gaussian(), gaussian())}.}
 
@@ -30,10 +32,11 @@ A \code{drmTMB} fit object.
 supports univariate Gaussian location-scale models, fixed-effect
 univariate Student-t location-scale-shape models, fixed-effect lognormal
 location-scale models, Gamma mean-CV models for positive responses,
-fixed-effect Poisson mean and negative-binomial mean-dispersion models for
-counts, Gaussian random
-intercepts, independent numeric random slopes, and labelled or unlabelled
-correlated numeric random intercept-slope blocks in the location formula,
+fixed-effect Poisson mean, zero-inflated Poisson, negative-binomial
+mean-dispersion, and zero-inflated negative-binomial mean-dispersion models
+for counts, Gaussian random intercepts, independent numeric random slopes,
+and labelled or unlabelled correlated numeric random intercept-slope blocks
+in the location formula,
 known sampling covariance through \code{meta_known_V(V = V)}, residual-scale
 random intercepts in the scale formula, and one or more group-level
 random-effect scale formulae such as \code{sd(id) ~ x_group}, plus

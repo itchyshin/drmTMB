@@ -361,6 +361,42 @@ Type objective_function<Type>::operator()()
     REPORT(sigma);
     ADREPORT(beta_mu);
     ADREPORT(beta_sigma);
+  } else if (model_type == 9) {
+    vector<Type> eta_mu = X_mu * beta_mu;
+    vector<Type> log_sigma = X_sigma * beta_sigma;
+    vector<Type> eta_zi = X_zi * beta_zi;
+    vector<Type> mu = exp(eta_mu);
+    vector<Type> sigma = exp(log_sigma);
+    vector<Type> zi = Type(1.0) / (Type(1.0) + exp(-eta_zi));
+    for (int i = 0; i < y.size(); ++i) {
+      Type alpha = exp(Type(2.0) * log_sigma(i)) + Type(1e-300);
+      Type log1p_alpha_mu = drm_log1p_pos(alpha * mu(i));
+      Type log_density =
+        y(i) * eta_mu(i) -
+        lgamma(y(i) + Type(1.0)) -
+        y(i) * log1p_alpha_mu -
+        log1p_alpha_mu / alpha;
+      int yi = (int) asDouble(y(i));
+      for (int j = 0; j < yi; ++j) {
+        log_density += drm_log1p_pos(alpha * Type(j));
+      }
+      Type log_zi = -logspace_add(Type(0.0), -eta_zi(i));
+      Type log_one_minus_zi = -logspace_add(Type(0.0), eta_zi(i));
+      if (yi == 0) {
+        nll -= logspace_add(log_zi, log_one_minus_zi + log_density);
+      } else {
+        nll -= log_one_minus_zi + log_density;
+      }
+    }
+    REPORT(eta_mu);
+    REPORT(mu);
+    REPORT(log_sigma);
+    REPORT(sigma);
+    REPORT(eta_zi);
+    REPORT(zi);
+    ADREPORT(beta_mu);
+    ADREPORT(beta_sigma);
+    ADREPORT(beta_zi);
   } else if (model_type == 2) {
     vector<Type> mu1 = X_mu1 * beta_mu1;
     vector<Type> mu2 = X_mu2 * beta_mu2;

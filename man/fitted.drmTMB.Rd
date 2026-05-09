@@ -19,8 +19,9 @@ bivariate Gaussian fits.
 \code{fitted()} returns fitted response values from a \code{drmTMB} model. For
 univariate Gaussian, Student-t, Gamma, ordinary Poisson, and
 negative-binomial fits this is the fitted \code{mu} vector. For zero-inflated
-Poisson fits this is the unconditional response mean \code{(1 - zi) * mu}, where
-\code{mu} is the conditional Poisson mean. For bivariate Gaussian fits this is a
+Poisson and zero-inflated negative-binomial 2 fits this is the unconditional
+response mean \code{(1 - zi) * mu}, where \code{mu} is the conditional count mean. For
+bivariate Gaussian fits this is a
 two-column matrix with \code{mu1} and \code{mu2}. For lognormal fits this is the
 arithmetic response mean, \code{exp(mu + sigma^2 / 2)}.
 }

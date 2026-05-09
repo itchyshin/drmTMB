@@ -36,7 +36,9 @@ the coefficient of variation. For Poisson models, response residuals are
 Poisson models, response residuals are \code{y - (1 - zi) * mu}, and Pearson
 residuals divide by \code{sqrt((1 - zi) * mu * (1 + zi * mu))}. For
 negative-binomial 2 models, Pearson residuals divide by
-\code{sqrt(mu + sigma^2 * mu^2)}.
+\code{sqrt(mu + sigma^2 * mu^2)}. For zero-inflated NB2 models, response
+residuals are \code{y - (1 - zi) * mu}, and Pearson residuals divide by the
+unconditional standard deviation implied by the structural-zero mixture.
 
 For bivariate Gaussian models, response residuals are returned as a
 two-column matrix. Pearson residuals are standardized and whitened using the

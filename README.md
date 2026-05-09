@@ -188,10 +188,21 @@ drmTMB(
 
 Here `sigma` is the extra-Poisson scale. Larger `sigma` means more
 overdispersion. This is the opposite direction from parameterizations that use
-a size or precision parameter; for example, `size = 1 / sigma^2`. Random
-effects, zero inflation, hurdle components, known sampling covariance,
-phylogenetic or spatial structured effects, and bivariate count models are
-later phases.
+a size or precision parameter; for example, `size = 1 / sigma^2`.
+Zero-inflated NB2 models add `zi ~ predictors` to the same family route:
+
+```r
+drmTMB(
+  drm_formula(count ~ habitat, sigma ~ treatment, zi ~ survey_method),
+  family = nbinom2(),
+  data = dat
+)
+```
+
+Here `mu` and `sigma` describe the conditional NB2 count component, while
+`zi` is the structural-zero probability. `fitted()` returns `(1 - zi) * mu`.
+Random effects, hurdle components, known sampling covariance, phylogenetic or
+spatial structured effects, and bivariate count models are later phases.
 
 ```r
 drmTMB(
@@ -439,7 +450,9 @@ Student-t `mu`, `sigma`, and `nu` models, fixed-effect lognormal `mu` and
 `family = Gamma(link = "log")`, fixed-effect Poisson mean models with
 `family = poisson(link = "log")`, fixed-effect zero-inflated Poisson models
 using `family = poisson(link = "log")` plus `zi ~ predictors`, fixed-effect negative-binomial 2
-mean-dispersion models with `family = nbinom2()`, `meta_known_V(V = V)` support for diagonal and
+mean-dispersion models with `family = nbinom2()`, fixed-effect zero-inflated
+NB2 models using `family = nbinom2()` plus `zi ~ predictors`,
+`meta_known_V(V = V)` support for diagonal and
 dense known sampling covariance, intercept-only univariate Gaussian
 phylogenetic location effects such as
 `phylo(1 | species, tree = tree)`, and fixed-effect bivariate Gaussian

@@ -81,18 +81,19 @@ families.
   present.
 - `nbinom2()`: `mu`, `sigma`; implemented fixed-effect path with
   `Var(y) = mu + sigma^2 * mu^2`, so larger `sigma` means greater
-  overdispersion.
+  overdispersion. Adding `zi ~ predictors` fits the implemented fixed-effect
+  zero-inflated NB2 path.
 - `nbinom1()`: `mu`, `sigma` or family-specific `nu`; variance increases
   linearly with the mean.
 - `compois()`: `mu`, `nu`; handles underdispersion and overdispersion.
 - `genpois()`: `mu`, `sigma` or family-specific `nu`; useful alternative for
   count dispersion.
 - `truncated_nbinom2()` and `truncated_poisson()` for positive counts.
-- zero-inflated NB2 with `family = nbinom2()` plus `zi ~ predictors`.
 - `hurdle_poisson()` and `hurdle_nbinom2()` with `hu ~ predictors`.
 
-Priority order after the Poisson, zero-inflated Poisson, and NB2 seeds:
-zero-inflated negative binomial, `compois`, hurdle negative binomial.
+Priority order after the Poisson, zero-inflated Poisson, NB2, and
+zero-inflated NB2 seeds: `compois`, hurdle negative binomial, then truncated
+count models.
 
 ## Tier 5: Proportions, Percentages, and Bounded Continuous Responses
 
