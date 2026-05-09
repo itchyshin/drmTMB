@@ -403,13 +403,15 @@ Omega_i =
   [sigma1_i^2,                  rho12_i sigma1_i sigma2_i;
    rho12_i sigma1_i sigma2_i,   sigma2_i^2]
 eta_rho12_i = X_rho12[i, ] beta_rho12
-rho12_i = 0.99999999 * tanh(eta_rho12_i)
+rho12_i = tanh(eta_rho12_i)
 ```
 
 That equation is the package's first location-coscale contract: predictors may
 change means, residual standard deviations, and the residual coupling between
 two responses. Use `rho12(fit)` to extract the fitted response-scale residual
-correlations.
+correlations. Internally the C++ likelihood applies a tiny numerical guard to
+the `tanh()` transform so covariance matrices stay strictly positive definite;
+the guard is not part of the biological or statistical interpretation.
 
 The legacy helper `biv_gaussian()` remains available, but the public direction
 is composed response families. Both `family = c(gaussian(), gaussian())` and

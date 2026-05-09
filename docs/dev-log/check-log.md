@@ -5519,3 +5519,93 @@ Team learning:
   pkgdown builds.
 - Ada should treat namespace imports for new S3 generics as part of the
   implementation checklist, not only as a `devtools::check()` cleanup item.
+
+## 2026-05-09 — Scale Tutorial Output Upgrade
+
+Goal:
+
+- improve the "Which scale are you modelling?" tutorial so readers see
+  symbolic equations, matching R syntax, fitted output, and interpretation for
+  the main scale-like quantities;
+- remove the tiny `rho12` numerical guard from user-facing symbolic equations
+  where it distracts from the statistical model.
+
+Changes:
+
+- added a copy-run scale audit to `vignettes/which-scale.Rmd`;
+- added executed examples and fitted output for `sigma ~ temperature`,
+  `weights = reliability`, `meta_known_V(V = vi)`, `sd(population) ~ habitat`,
+  and bivariate `rho12 ~ treatment`;
+- added LaTeX equations for the residual scale, known sampling variance,
+  random-effect scale, and residual coscale examples;
+- revised the `rho12` side-by-side guide to show the teaching equation
+  `rho12_i = tanh(eta_rho12_i)` and moved the exact numerical guard into an
+  implementation-detail note;
+- made the same teaching-notation change in the README bivariate equation;
+- made matching teaching-notation updates in `vignettes/drmTMB.Rmd` and
+  `vignettes/adding-families.Rmd`;
+- recorded the tutorial upgrade in `NEWS.md`.
+
+Commands run:
+
+- `Rscript -e "devtools::load_all(quiet = TRUE); rmarkdown::render('vignettes/which-scale.Rmd', output_dir = tempdir(), quiet = TRUE)"`
+- `Rscript -e "devtools::test(filter = 'gaussian-location-scale|biv-gaussian|meta-known-v|random-effect-scale')"`
+- `git diff --check`
+- `Rscript -e "devtools::test()"`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `Rscript -e "pkgdown::build_site()"`
+- `Rscript tools/fix-pkgdown-favicon-mime.R pkgdown-site`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`
+- `Rscript -e "devtools::load_all(quiet = TRUE); rmarkdown::render('vignettes/which-scale.Rmd', output_dir = tempdir(), quiet = TRUE); rmarkdown::render('vignettes/drmTMB.Rmd', output_dir = tempdir(), quiet = TRUE); rmarkdown::render('vignettes/adding-families.Rmd', output_dir = tempdir(), quiet = TRUE)"`
+- `Rscript -e "pkgdown::build_site()"`
+- `Rscript tools/fix-pkgdown-favicon-mime.R pkgdown-site`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`
+- `rg -n '0\\.99999999 \\* tanh|rho12_i = 0\\.99999999|tiny guard|scale audit|weights = reliability|meta_known_V\\(V = vi\\)' README.md vignettes pkgdown-site/index.html pkgdown-site/articles/which-scale.html docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-09-scale-tutorial-output-upgrade.md`
+
+Results:
+
+- changed tutorial rendered successfully;
+- getting-started and adding-families vignettes rendered successfully after
+  the additional guard-notation cleanup;
+- targeted neighbouring tests: 268 passed, 0 failed, 0 warnings, 0 skips;
+- full `devtools::test()`: 1215 passed, 0 failed, 0 warnings, 0 skips;
+- `pkgdown::check_pkgdown()`: no problems found before and after site build;
+- `pkgdown::build_site()`: completed successfully;
+- favicon MIME post-processing completed successfully;
+- final `devtools::check()`: 0 errors, 0 warnings, 0 notes;
+- final post-cleanup `devtools::check()`: 0 errors, 0 warnings, 0 notes;
+- `git diff --check`: clean.
+- stale-guard scan found no exact `0.99999999 * tanh()` guard in `README.md`,
+  `vignettes/which-scale.Rmd`, `pkgdown-site/index.html`, or the rendered
+  `which-scale` article; remaining hits are in historical check-log entries,
+  the new after-task note, and implementation/developer vignettes where the
+  guard is part of source or likelihood review.
+
+Tests of the tests:
+
+- the tutorial now executes model fits for the same likelihood paths checked by
+  the targeted tests: Gaussian location-scale, known-`V` Gaussian
+  meta-analysis, random-effect scale models, and bivariate Gaussian `rho12`;
+- the rendered output checks that examples show actual `summary()`, `coef()`,
+  `sigma()`, `weights()`, `predict(..., dpar = "sd(population)")`, and
+  `rho12()` output rather than syntax-only blocks.
+- the final `devtools::check()` rebuilt all vignettes after the extra README
+  and article guard-notation cleanup.
+
+Known limitations:
+
+- the tutorial examples are simulated and deliberately compact; they do not yet
+  include plots or a full biological data-analysis narrative;
+- the exact `0.99999999 * tanh()` guard remains documented in implementation
+  design notes, NEWS, and source-oriented pages where numerical details matter.
+
+Team learning:
+
+- Pat and Darwin should keep asking whether a tutorial shows fitted output and
+  an interpretation, not only a valid formula;
+- Noether should treat the readable equation and the exact guarded
+  implementation as two linked but differently scoped objects;
+- Rose should search both articles and README pages for user-facing numerical
+  implementation details that belong in footnotes or implementation notes.

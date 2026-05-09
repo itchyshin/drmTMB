@@ -80,8 +80,13 @@ means. The implemented all-Gaussian composed family uses:
 Omega_i =
   [ sigma1_i^2                         rho12_i sigma1_i sigma2_i ]
   [ rho12_i sigma1_i sigma2_i          sigma2_i^2                ]
-rho12_i = 0.99999999 * tanh(eta_rho12_i)
+rho12_i = tanh(eta_rho12_i)
 ```
+
+The TMB likelihood can still add a tiny numerical guard to this transform when
+needed for positive-definite covariance matrices. Keep the family-facing model
+equation readable, then document numerical guards in the likelihood
+implementation notes and tests.
 
 with:
 

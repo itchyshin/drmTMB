@@ -9,6 +9,7 @@ vignette: >
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+library(drmTMB)
 ```
 
 `drmTMB` deliberately separates residual scale from group-level scale. This
@@ -232,6 +233,240 @@ between the population and site random effects in this example; they are
 separate grouping factors. Correlated random intercept-slope blocks require a
 single grouping factor block such as `(1 + temperature | population)`.
 
+## A copy-run scale audit
+
+This section uses one small ecological example to show what each scale means
+in fitted output. Suppose `growth` is a growth-rate measurement from several
+populations. Temperature may change the expected growth rate and the residual
+SD around that expectation. Populations may also differ in their mean growth,
+and that among-population SD may be larger in one habitat.
+
+```{r scale-audit-data}
+set.seed(42)
+n_population <- 32
+n_each <- 6
+
+population_info <- data.frame(
+  population = factor(seq_len(n_population)),
+  habitat = rep(c("forest", "grassland"), length.out = n_population)
+)
+
+fish <- population_info[rep(seq_len(n_population), each = n_each), ]
+fish$temperature <- rnorm(nrow(fish))
+fish$reliability <- ifelse(seq_len(nrow(fish)) %% 3 == 0, 2, 1)
+
+pop_sd <- exp(-0.8 + 0.7 * (population_info$habitat == "grassland"))
+b_population <- rnorm(n_population, sd = pop_sd)
+fish$sigma_true <- exp(-0.7 + 0.3 * fish$temperature)
+fish$growth <- 1.2 + 0.55 * fish$temperature +
+  b_population[fish$population] +
+  rnorm(nrow(fish), sd = fish$sigma_true)
+```
+
+### Residual scale: `sigma ~ temperature`
+
+The model
+
+\[
+\begin{aligned}
+growth_i &\sim \mathrm{Normal}(\mu_i, \sigma_i^2),\\
+\mu_i &= \beta_0 + \beta_1 temperature_i,\\
+\log(\sigma_i) &= \gamma_0 + \gamma_1 temperature_i
+\end{aligned}
+\]
+
+is fitted by:
+
+```{r residual-scale-fit}
+fit_sigma <- drmTMB(
+  bf(growth ~ temperature, sigma ~ temperature),
+  family = gaussian(),
+  data = fish
+)
+
+summary(fit_sigma)
+round(coef(fit_sigma, "sigma"), 3)
+round(range(sigma(fit_sigma)), 3)
+```
+
+The `sigma:temperature` coefficient is on the log-SD scale. A positive value
+means residual variation in growth is larger at warmer temperatures, after the
+mean temperature effect has been modelled. The displayed range of `sigma(fit)`
+is on the response scale, so it is the fitted residual SD, not a variance.
+
+### Likelihood weights: `weights = reliability`
+
+Likelihood weights do not define a new biological scale. They multiply the row
+log-likelihood contribution:
+
+\[
+\ell(\theta) = \sum_i w_i \log f(y_i \mid \theta_i).
+\]
+
+The model syntax stays ordinary:
+
+```{r likelihood-weights-fit}
+fit_weighted <- drmTMB(
+  bf(growth ~ temperature, sigma ~ 1),
+  family = gaussian(),
+  data = fish,
+  weights = reliability
+)
+
+summary(fit_weighted)
+head(weights(fit_weighted), 8)
+```
+
+Here rows with `reliability = 2` count twice in the likelihood. That may be a
+reasonable model-fitting choice for replicated or reliability-weighted rows,
+but it is not the same as telling the model that an effect size has known
+sampling variance. Known sampling variance belongs in `meta_known_V(V = V)`.
+
+### Known sampling variance: `meta_known_V(V = vi)`
+
+For meta-analysis, the known sampling variance is part of the observation
+model. In a diagonal Gaussian meta-analysis:
+
+\[
+\begin{aligned}
+y_i &\sim \mathrm{Normal}(\mu_i, v_i + \sigma_i^2),\\
+\mu_i &= \beta_0 + \beta_1 treatment_i,\\
+\log(\sigma_i) &= \gamma_0 + \gamma_1 treatment_i .
+\end{aligned}
+\]
+
+The R syntax puts the known variance in the formula, not in `weights`:
+
+```{r meta-known-v-fit}
+set.seed(101)
+n_effect <- 50
+meta <- data.frame(treatment = rep(c(0, 1), each = n_effect / 2))
+meta$vi <- runif(n_effect, 0.02, 0.08)
+
+mu_meta <- 0.1 + 0.25 * meta$treatment
+sigma_meta <- exp(-1.1 + 0.35 * meta$treatment)
+meta$yi <- rnorm(n_effect, mu_meta, sqrt(meta$vi + sigma_meta^2))
+
+fit_meta <- drmTMB(
+  bf(yi ~ treatment + meta_known_V(V = vi), sigma ~ treatment),
+  family = gaussian(),
+  data = meta
+)
+
+summary(fit_meta)
+round(tapply(sigma(fit_meta), meta$treatment, mean), 3)
+```
+
+The `vi` values are known before the model is fitted. The fitted `sigma`
+describes extra heterogeneity after those known sampling variances have been
+included. In meta-analysis notation this extra heterogeneity is often written
+as `tau`, but `drmTMB` keeps the name `sigma` so Gaussian distributional
+models use one stable scale vocabulary.
+
+### Random-effect scale: `sd(population) ~ habitat`
+
+Now the question changes again. The model
+
+\[
+\begin{aligned}
+growth_{ij} &\sim \mathrm{Normal}(\mu_{ij}, \sigma_{ij}^2),\\
+\mu_{ij} &= \beta_0 + \beta_1 temperature_{ij} + b_j,\\
+b_j &= sd_{population,j} u_j,\quad u_j \sim \mathrm{Normal}(0, 1),\\
+\log(sd_{population,j}) &= \alpha_0 + \alpha_1 habitat_j
+\end{aligned}
+\]
+
+asks whether the among-population SD in expected growth differs by habitat:
+
+```{r random-effect-scale-fit}
+fit_sd <- drmTMB(
+  bf(
+    growth ~ temperature + (1 | population),
+    sigma ~ temperature,
+    sd(population) ~ habitat
+  ),
+  family = gaussian(),
+  data = fish
+)
+
+round(coef(fit_sd, "sd(population)"), 3)
+round(tapply(
+  predict(fit_sd, dpar = "sd(population)"),
+  population_info$habitat,
+  mean
+), 3)
+```
+
+The `habitatgrassland` coefficient is on the log-SD scale for the population
+random intercept. In this example, grassland populations have a larger fitted
+among-population SD in expected growth. That is not residual variation among
+individual observations; it is variation among population-level means.
+
+### Residual coscale: `rho12 ~ treatment`
+
+For two responses, coscale means residual coupling after both response means
+and residual SDs have been modelled. In the implemented bivariate Gaussian
+model:
+
+\[
+\begin{aligned}
+\begin{bmatrix} activity_i \\ boldness_i \end{bmatrix}
+&\sim \mathrm{MVN}
+\left(
+\begin{bmatrix} \mu_{1i} \\ \mu_{2i} \end{bmatrix},
+\begin{bmatrix}
+\sigma_{1i}^2 & \rho_{12i}\sigma_{1i}\sigma_{2i}\\
+\rho_{12i}\sigma_{1i}\sigma_{2i} & \sigma_{2i}^2
+\end{bmatrix}
+\right),\\
+\rho_{12i} &= \tanh(\eta_{\rho12,i}),\\
+\eta_{\rho12,i} &= \delta_0 + \delta_1 treatment_i .
+\end{aligned}
+\]
+
+The matching syntax is:
+
+```{r residual-coscale-fit}
+set.seed(12)
+behaviour <- data.frame(treatment = rep(c(0, 1), each = 50))
+Sigma0 <- matrix(c(0.6^2, 0.2 * 0.6 * 0.5,
+                   0.2 * 0.6 * 0.5, 0.5^2), 2, 2)
+Sigma1 <- matrix(c(0.6^2, 0.65 * 0.6 * 0.5,
+                   0.65 * 0.6 * 0.5, 0.5^2), 2, 2)
+Y <- matrix(NA_real_, nrow(behaviour), 2)
+
+for (i in seq_len(nrow(behaviour))) {
+  Sigma_i <- if (behaviour$treatment[i] == 0) Sigma0 else Sigma1
+  mu_i <- c(1 + 0.2 * behaviour$treatment[i],
+            0.5 + 0.1 * behaviour$treatment[i])
+  Y[i, ] <- as.numeric(mu_i + t(chol(Sigma_i)) %*% rnorm(2))
+}
+
+behaviour$activity <- Y[, 1]
+behaviour$boldness <- Y[, 2]
+
+fit_rho12 <- drmTMB(
+  bf(
+    mu1 = activity ~ treatment,
+    mu2 = boldness ~ treatment,
+    sigma1 = ~ treatment,
+    sigma2 = ~ treatment,
+    rho12 = ~ treatment
+  ),
+  family = c(gaussian(), gaussian()),
+  data = behaviour
+)
+
+summary(fit_rho12)
+round(coef(fit_rho12, "rho12"), 3)
+round(tapply(rho12(fit_rho12), behaviour$treatment, mean), 3)
+```
+
+The `rho12:treatment` coefficient is on the correlation-link scale. The final
+line shows the same fitted residual coupling on the response scale. In this
+simulated example, treatment changes how tightly activity and boldness remain
+coupled after their means and residual SDs have been modelled.
+
 ## Side-by-side guide
 
 | R syntax | Equation target | Question |
@@ -240,14 +475,16 @@ single grouping factor block such as `(1 + temperature | population)`.
 | `sigma ~ x + (1 | id)` | `log(sigma_i) = X_sigma[i, ] beta_sigma + a_id[i]` | Do groups differ in residual SD? |
 | `y ~ x + (1 | id)` | `mu_i = X_mu[i, ] beta_mu + b_id[i]` | Do groups differ in mean response? |
 | `sd(id) ~ x_group` | `log(sd_mu_id,j) = W_id[j, ] alpha_id` | Does `x_group` change among-group SD in the mean model? |
+| `weights = w` | `logLik = sum_i w_i log f(y_i | theta_i)` | Should row `i` contribute more or less to the likelihood? |
+| `meta_known_V(V = V)` | `y ~ MVN(mu, V + Omega_est)` | What sampling covariance is known before fitting? |
 | `y ~ x + (1 + x | id)` | `[b_0j, b_1j]' ~ MVN(0, Sigma_id)` | Are group intercepts and slopes correlated? |
-| `rho12 ~ x` | `eta_rho12_i = X_rho12[i, ] beta_rho12`; `rho12_i = tanh(eta_rho12_i)` with a tiny internal guard | Does `x` change residual coupling between two responses? |
+| `rho12 ~ x` | `eta_rho12_i = X_rho12[i, ] beta_rho12`; `rho12_i = tanh(eta_rho12_i)` | Does `x` change residual coupling between two responses? |
 
-The tiny guard used internally is `0.99999999 * tanh(eta_rho12_i)`. It keeps
-the fitted covariance matrix strictly positive definite in floating-point
-arithmetic. It is not a biological scaling factor; interpret the model as a
-standard Fisher-z-style `tanh()` transform from an unconstrained predictor to a
-correlation.
+Implementation detail: the C++ likelihood applies a tiny numerical guard to
+the `tanh()` transform so fitted covariance matrices stay strictly positive
+definite in floating-point arithmetic. The guard is not a biological scaling
+factor. Tutorials and model equations should be read as the standard
+Fisher-z-style map from an unconstrained predictor to a correlation.
 
 ## Correlations: group-level versus residual
 

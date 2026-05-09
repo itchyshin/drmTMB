@@ -194,7 +194,7 @@ mu2_i = X_mu2[i, ] beta_mu2
 log(sigma1_i) = X_sigma1[i, ] beta_sigma1
 log(sigma2_i) = X_sigma2[i, ] beta_sigma2
 eta_rho12_i = X_rho12[i, ] beta_rho12
-rho12_i = 0.99999999 * tanh(eta_rho12_i)
+rho12_i = tanh(eta_rho12_i)
 
 Omega_i[1, 1] = sigma1_i^2
 Omega_i[2, 2] = sigma2_i^2
@@ -202,7 +202,10 @@ Omega_i[1, 2] = rho12_i sigma1_i sigma2_i
 ```
 
 The fitted response-scale residual correlations are available with
-`rho12(fit)`.
+`rho12(fit)`. Internally, the TMB likelihood applies a tiny numerical guard to
+the `tanh()` transform so covariance matrices stay strictly positive definite;
+that guard is an implementation detail, not part of the biological
+interpretation.
 
 After fitting any model, run `check_drm()` before interpreting the estimates:
 
