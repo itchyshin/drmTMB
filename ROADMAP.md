@@ -105,6 +105,9 @@ distributional regression models using TMB.
 
 - Add profile-likelihood confidence intervals for direct TMB parameters such as
   log SDs, variance components, and ordinal cutpoints.
+- Use user-facing target names from the fitted object, for example
+  `sd:mu:(1 | id)`, `sd:mu:phylo(1 | species)`,
+  `cor:mu:cor((Intercept),x | id)`, and `fixef:rho12:(Intercept)`.
 - Prefer `TMB::tmbprofile()` plus `uniroot()` for one-dimensional intervals,
   because it warm-starts constrained optimizations and avoids wasteful grids.
 - Support linear combinations through TMB's `lincomb` machinery where possible.

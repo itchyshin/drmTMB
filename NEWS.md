@@ -11,6 +11,7 @@
 * Gaussian random-effect scale formulae are implemented for one or more distinct unlabelled `mu` random intercepts, for example `bf(y ~ x1 + (1 | id) + (1 | site), sigma ~ x2, sd(id) ~ x_group, sd(site) ~ site_type)`. Each `sd(group)` predictor must be constant within the named group after missing-row filtering.
 * Gaussian known-covariance meta-analysis with `meta_known_V(V = V)` is now covered by targeted validation when combined with random-effect scale formulae such as `sd(id) ~ x_group`, using an independent dense marginal-likelihood comparator.
 * Gaussian `mu` random-effect correlations from correlated blocks are exposed as `corpars$mu`, keeping group-level labels such as `p` separate from residual bivariate `rho12`.
+* Profile-likelihood confidence intervals are documented as a planned inference phase with an explicit target namespace, such as `sd:mu:(1 | id)`, `cor:mu:cor((Intercept),x | id)`, and `fixef:rho12:(Intercept)`, plus boundary flags and nonlinear derived-quantity guidance.
 * `deviance()`, `df.residual()`, and `nobs()` now work for `drmTMB` fits, making base-R model summaries and comparison helpers more complete.
 * `fitted()` now returns fitted location values: a numeric `mu` vector for univariate Gaussian models and a two-column `mu1`/`mu2` matrix for bivariate Gaussian models.
 * `fixef()` now returns distributional fixed-effect coefficients and acts as a mixed-model-friendly alias for `coef()`.

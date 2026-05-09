@@ -26,6 +26,7 @@ Commands run:
 - `Rscript -e "devtools::test()"`
 - `Rscript -e "pkgdown::build_site()"`
 - `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`
+- `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`
 
 Results:
 
@@ -3679,3 +3680,77 @@ Team learning:
 - Noether's equation-first review should explicitly check the marginal
   covariance whenever known `V`, residual `sigma`, and random-effect scales are
   combined.
+
+## 2026-05-08: Profile-Likelihood Target Design Clarification
+
+Scope:
+
+- clarified that profile-likelihood confidence intervals are planned, not yet
+  implemented;
+- introduced a user-facing profile target namespace for fixed effects,
+  random-effect SDs, group-level correlations, residual-correlation fixed
+  effects, and derived quantities;
+- replaced the stale `sd_id` example with target names such as
+  `sd:mu:(1 | id)` and `fixef:rho12:(Intercept)`;
+- documented boundary control flow, correlation search guards, and the
+  distinction between direct TMB parameters, linear combinations, and nonlinear
+  derived quantities.
+
+Commands run:
+
+- `git diff --check`
+- `rg -n 'sd_id|dpar:rho12|two threshold crossings|confint\\(fit, parm = "sd_id"|O.Dea-style|O.De[aA]-style|biological data' docs/design/12-profile-likelihood-cis.md NEWS.md ROADMAP.md README.md docs vignettes`
+- `Rscript -e "rmarkdown::render('vignettes/source-map.Rmd', output_dir = tempdir(), quiet = TRUE)"`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `Rscript -e "devtools::test()"`
+- `Rscript -e "pkgdown::build_site()"`
+
+Results:
+
+- Fermat review P1/P2/P3 findings were addressed in
+  `docs/design/12-profile-likelihood-cis.md`;
+- `git diff --check`: clean;
+- stale-pattern scan: no active `sd_id`, `dpar:rho12`, or old profile-CI
+  example in the profile design, NEWS, roadmap, README, or current vignettes;
+  remaining hits were historical logs or intentional symbolic notation in the
+  random-effect scale design note;
+- direct source-map render: passed;
+- `pkgdown::check_pkgdown()`: no problems found;
+- `devtools::test()`: 646 passed, 0 failed, 0 warnings, 0 skips;
+- `pkgdown::build_site()`: completed successfully.
+- `devtools::check(...)` with `_R_CHECK_SYSTEM_CLOCK_=FALSE`: 0 errors,
+  0 warnings, 0 notes.
+
+Tests of the tests:
+
+- no model code or unit tests were added;
+- the design now lists the future tests required before profile-likelihood
+  support can be called implemented, including boundary SDs, group-level
+  correlations, unsupported target errors, and comparison against a diagnostic
+  grid.
+
+Consistency audit:
+
+- `rho12` remains the residual bivariate correlation parameter;
+- `fixef:rho12:(Intercept)` now follows the same fixed-effect namespace as
+  `fixef:mu:x` and `fixef:sigma:x`;
+- profile targets for `phylo()` use fitted-object labels while the document
+  still states that the original model syntax must supply `tree = tree`.
+
+What did not go smoothly:
+
+- the first draft mixed target namespaces and kept an old `sd_id` example;
+  reviewer feedback caught this before the design became a user-facing promise.
+
+Known limitations:
+
+- `confint.drmTMB(method = "profile")` is still not implemented;
+- nonlinear derived profiles for ICCs, repeatability, phylogenetic signal, and
+  covariance-matrix correlations remain design targets.
+
+Team learning:
+
+- profile-CI design should always start from fitted-object target names before
+  discussing TMB parameter names;
+- Rose's stale-wording scan should include old API examples as well as old
+  status claims.
