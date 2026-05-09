@@ -50,6 +50,12 @@ The `model_type = 99` path is not a user-facing family. It lets tests compare
 the hidden phylogenetic precision prior used inside the Gaussian engine against
 the same objective in isolation.
 
+Post-fit response-scale transforms live in `R/methods.R`. `predict()` delegates
+implemented distributional-parameter links to `drm_dpar_link()` and
+`drm_inverse_link()`, while `fitted()` delegates family-specific response
+summaries to `drm_fitted_response()`. These helpers keep future non-identity
+`mu` families from silently inheriting Gaussian assumptions.
+
 ## Implemented paths
 
 | Path | User-facing syntax | R builder and helpers | TMB branch | Main tests | Main docs |

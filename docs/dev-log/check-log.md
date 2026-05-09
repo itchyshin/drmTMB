@@ -4033,3 +4033,82 @@ Team learning:
 - when a design note introduces future required fields, Emmy should check that
   all existing contributor checklists, skills, and registry docs name the same
   fields.
+
+## 2026-05-08: Implement Family Link Helpers
+
+Scope:
+
+- moved `predict()` response-scale transforms to internal helpers:
+  `drm_dpar_link()` and `drm_inverse_link()`;
+- moved `fitted()` response summaries to `drm_fitted_response()`;
+- added tests for implemented link mappings, inverse links, family-specific
+  fitted responses, and unsupported internal routing;
+- updated the family-link contract note, source-map article, roadmap wording,
+  and generated `predict()` documentation.
+
+Commands run:
+
+- `Rscript -e "devtools::test(filter = 'family-link-contract')"`
+- `Rscript -e "devtools::test(filter = 'family-link-contract|gaussian-location-scale|student-location-scale|lognormal-location-scale|biv-gaussian')"`
+- `Rscript -e "devtools::document()"`
+- `Rscript -e "devtools::test()"`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `Rscript -e "pkgdown::build_site()"`
+- `_R_CHECK_SYSTEM_CLOCK_=FALSE Rscript -e "devtools::check(document = FALSE, manual = FALSE, args = '--no-manual')"`
+- `git diff --check`
+- `rg -n "Implement the family-link contract before|hard-coded.*dpar|dpar == \"mu\"|response scale\\. For positive|Post-fit response-scale transforms|distributional parameter" README.md ROADMAP.md NEWS.md docs vignettes man pkgdown-site/reference/predict.drmTMB.html pkgdown-site/articles/source-map.html --glob '!pkgdown-site/search.json'`
+
+Results:
+
+- targeted link-helper tests: 14 passed;
+- targeted neighbouring model tests: 208 passed;
+- full `devtools::test()`: 700 passed, 0 failed, 0 skipped;
+- `pkgdown::check_pkgdown()`: no problems found;
+- `pkgdown::build_site()`: completed successfully and refreshed local pages;
+- `devtools::check()`: 0 errors, 0 warnings, 0 notes;
+- `git diff --check`: clean;
+- GitHub Actions for the preceding family-link contract commit were green
+  before this slice was closed.
+
+Tests of the tests:
+
+- `test-family-link-contract.R` checks both successful mappings and malformed
+  internal routing;
+- the lognormal fitted-response test would fail if `fitted()` returned `mu`
+  instead of the arithmetic response mean;
+- the Student-t `nu` inverse-link test would fail if the `2 + exp(eta)`
+  finite-variance transform drifted.
+
+Consistency audit:
+
+- `ROADMAP.md` now says the implemented helper table must be extended before
+  new families are added, rather than saying the whole family-link contract is
+  still unimplemented;
+- `docs/design/19-family-link-contract.md` names the implemented helpers and
+  keeps future Gamma/count/beta/ordinal work behind explicit link and fitted
+  rules;
+- `vignettes/source-map.Rmd` points contributors to the helper route in
+  `R/methods.R`;
+- local pkgdown pages contain both the updated `predict()` wording and the new
+  source-map paragraph.
+
+What did not go smoothly:
+
+- `air format` is not installed in this environment, so formatting was kept
+  manual and checked with `git diff --check`;
+- Rose's review caught that closure artifacts and roadmap wording had not yet
+  been updated.
+
+Known limitations:
+
+- the link table is internal and small; it records only implemented Gaussian,
+  Student-t, lognormal, and bivariate Gaussian paths;
+- family objects do not yet expose the full registry contract programmatically.
+
+Team learning:
+
+- Rose's after-task audit should run before any "small internal refactor" is
+  treated as complete, because internal changes still create doc and roadmap
+  consistency obligations;
+- future add-family work should start by extending the link table and fitted
+  response helper, then adding tests before touching the TMB likelihood.

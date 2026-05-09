@@ -84,10 +84,23 @@ bounds
 ```
 
 The current constructors expose only the fields needed by the implemented
-builders. Before adding families with non-identity `mu` links, the R-side
-prediction helpers should stop using hard-coded parameter names alone and
-should instead use the family's link table plus a small family-specific fitted
-mean rule.
+builders.
+
+## Implemented R-Side Helpers
+
+The post-fit methods now use internal helpers in `R/methods.R` rather than
+scattering link rules across extractors:
+
+```text
+drm_dpar_link()       maps model type and dpar to the implemented link
+drm_inverse_link()    applies the family-specific inverse link
+drm_fitted_response() applies the family-specific fitted-response rule
+```
+
+The current helper table is still internal and deliberately small. It records
+only implemented model paths. Before adding a new family, update this table and
+add tests that check `predict(type = "link")`, response-scale `predict()`, and
+`fitted()` for the new family.
 
 ## Candidate Positive Continuous Contract
 
@@ -194,9 +207,9 @@ latent correlation is harder to identify and validate.
 
 Before implementing Gamma, count, beta, or ordinal families:
 
-1. Add family-specific inverse-link helpers rather than relying on hard-coded
-   `dpar == "mu"` identity behaviour.
-2. Add a fitted-mean helper for every family where `fitted()` is supported.
+1. Add the family to `drm_dpar_link()` and `drm_inverse_link()`.
+2. Add the fitted-response rule to `drm_fitted_response()` where `fitted()` is
+   supported.
 3. Add documentation that states whether `mu` is an expected response,
    location, log-location, probability, or latent location.
 4. Add tests for `predict(type = "link")`, `predict(type = "response")`, and

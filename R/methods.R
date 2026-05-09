@@ -136,16 +136,7 @@ rho12.drmTMB <- function(object, newdata = NULL,
 #'   bivariate Gaussian fits.
 #' @export
 fitted.drmTMB <- function(object, ...) {
-  if (identical(object$model$model_type, "biv_gaussian")) {
-    return(cbind(
-      mu1 = predict.drmTMB(object, dpar = "mu1"),
-      mu2 = predict.drmTMB(object, dpar = "mu2")
-    ))
-  }
-  if (identical(object$model$model_type, "lognormal")) {
-    return(lognormal_mean(object))
-  }
-  predict.drmTMB(object, dpar = "mu")
+  drm_fitted_response(object)
 }
 
 #' @export
@@ -219,10 +210,11 @@ deviance.drmTMB <- function(object, ...) {
 #' `predict()` returns fitted or predicted values for one distributional
 #' parameter of a `drmTMB` fit.
 #'
-#' By default, predictions are returned on the response scale. For positive
-#' scale parameters such as `sigma`, this means the exponentiated value. For
-#' bivariate residual correlation `rho12`, this means the correlation scale.
-#' Use `type = "link"` to return the linear predictor instead.
+#' By default, predictions are returned on the distributional parameter's
+#' response scale. For positive scale parameters such as `sigma`, this means
+#' the exponentiated value. For bivariate residual correlation `rho12`, this
+#' means the correlation scale. Use `type = "link"` to return the linear
+#' predictor instead.
 #'
 #' When `newdata = NULL`, predictions are for the fitted rows and include
 #' currently implemented conditional random-effect contributions for `mu`,
@@ -274,16 +266,10 @@ predict.drmTMB <- function(object, newdata = NULL, dpar = NULL,
     eta <- eta + sigma_random_effect_contribution(object)
   }
 
-  if (type == "link" || dpar %in% c("mu", "mu1", "mu2")) {
+  if (type == "link") {
     return(eta)
   }
-  if (dpar == "nu") {
-    return(2 + exp(eta))
-  }
-  if (dpar == "rho12") {
-    return(rho_response(eta))
-  }
-  exp(eta)
+  drm_inverse_link(object, dpar, eta)
 }
 
 #' Simulate from a fitted model
@@ -643,6 +629,65 @@ lognormal_mean <- function(object) {
   mu <- predict(object, dpar = "mu")
   sigma <- predict(object, dpar = "sigma")
   exp(mu + 0.5 * sigma^2)
+}
+
+drm_fitted_response <- function(object) {
+  if (identical(object$model$model_type, "biv_gaussian")) {
+    return(cbind(
+      mu1 = predict.drmTMB(object, dpar = "mu1"),
+      mu2 = predict.drmTMB(object, dpar = "mu2")
+    ))
+  }
+  if (identical(object$model$model_type, "lognormal")) {
+    return(lognormal_mean(object))
+  }
+  if (identical(object$model$model_type, "gaussian") ||
+      identical(object$model$model_type, "student")) {
+    return(predict.drmTMB(object, dpar = "mu"))
+  }
+  cli::cli_abort(
+    "Internal error: no fitted-response rule for model type {.val {object$model$model_type}}."
+  )
+}
+
+drm_inverse_link <- function(object, dpar, eta) {
+  link <- drm_dpar_link(object, dpar)
+  switch(
+    link,
+    identity = eta,
+    log = exp(eta),
+    logm2 = 2 + exp(eta),
+    atanh_guarded = rho_response(eta),
+    cli::cli_abort("Internal error: unknown inverse link {.val {link}}.")
+  )
+}
+
+drm_dpar_link <- function(object, dpar) {
+  links <- switch(
+    object$model$model_type,
+    gaussian = c(mu = "identity", sigma = "log"),
+    student = c(mu = "identity", sigma = "log", nu = "logm2"),
+    lognormal = c(mu = "identity", sigma = "log"),
+    biv_gaussian = c(
+      mu1 = "identity",
+      mu2 = "identity",
+      sigma1 = "log",
+      sigma2 = "log",
+      rho12 = "atanh_guarded"
+    ),
+    NULL
+  )
+  if (is.null(links)) {
+    cli::cli_abort(
+      "Internal error: no link table for model type {.val {object$model$model_type}}."
+    )
+  }
+  if (!dpar %in% names(links)) {
+    cli::cli_abort(
+      "Internal error: no link entry for distributional parameter {.val {dpar}}."
+    )
+  }
+  unname(links[[dpar]])
 }
 
 rho_response <- function(eta) {
