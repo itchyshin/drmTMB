@@ -9,14 +9,25 @@ vignette: >
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+if (!"package:drmTMB" %in% search()) {
+  library(drmTMB)
+}
 ```
 
-This article introduces the first implemented `drmTMB` model class: Gaussian
-location-scale regression with fixed effects, optional random effects in the
-location formula, residual-scale random intercepts in the `sigma` formula, and
-random-effect scale formulas such as `sd(id) ~ x_group`. The same pattern will
-be used throughout the documentation: write the model symbolically first, then
-show the matching R syntax.
+This tutorial starts with a biological question: do two habitats differ only in
+mean growth, or does one habitat also make growth less predictable? In a
+Gaussian location-scale model, the location part models the expected response
+`mu`, while the scale part models the residual standard deviation `sigma`.
+That residual scale is not just a nuisance parameter; it can be the scientific
+answer when the question is about individual variability, predictability, or
+heterogeneous heterogeneity.
+
+The first implemented `drmTMB` model class is Gaussian location-scale
+regression with fixed effects, optional random effects in the location formula,
+residual-scale random intercepts in the `sigma` formula, and random-effect
+scale formulas such as `sd(id) ~ x_group`. The same pattern will be used
+throughout the documentation: write the model symbolically first, then show the
+matching R syntax, fit the model, and interpret the fitted output.
 
 Current syntax:
 
@@ -290,7 +301,7 @@ others should be named by what they scale:
   `(0 + x1 | id)`;
 - ID random intercept-slope correlation in `mu`: `corpars$mu`, from a
   correlated block such as `(1 + x1 | id)`;
-- random-effect scale model: `sd(site)_i`, from syntax such as
+- random-effect scale model: `sd(site)_k`, from syntax such as
   `sd(site) ~ x_group` when the target is an unlabelled Gaussian `mu` random
   intercept.
 
@@ -312,41 +323,136 @@ change in residual standard deviation for a one-unit change in that predictor.
 For example, a `sigma` coefficient of `0.3` means `exp(0.3) = 1.35`, or about a
 35% higher residual standard deviation.
 
-Minimal runnable example:
+## Worked example: growth mean and predictability
+
+Suppose an ecologist measures juvenile growth in two habitats and records the
+temperature at each observation. The location question is whether mean growth
+differs between habitats and changes with temperature. The scale question is
+whether residual growth variability differs between habitats after accounting
+for those mean effects.
+
+For this example, the fitted model is:
+
+\[
+\begin{aligned}
+growth_i &\sim \operatorname{Normal}(\mu_i, \sigma_i^2), \\
+\mu_i &= \beta_0 + \beta_1 I(habitat_i = grassland) +
+        \beta_2 temperature_i, \\
+\log(\sigma_i) &= \gamma_0 +
+        \gamma_1 I(habitat_i = grassland).
+\end{aligned}
+\]
+
+The matching `drmTMB` syntax is:
 
 ```r
-set.seed(1)
-dat <- data.frame(x1 = rnorm(200), x2 = rnorm(200))
-dat$y <- rnorm(
-  200,
-  mean = 0.5 + 0.8 * dat$x1,
-  sd = exp(-0.2 + 0.3 * dat$x2)
-)
-
-fit <- drmTMB(
-  bf(y ~ x1, sigma ~ x2),
+drmTMB(
+  drm_formula(growth ~ habitat + temperature, sigma ~ habitat),
   family = gaussian(),
   data = dat
 )
-
-check_drm(fit)
-coef(fit, "mu")
-coef(fit, "sigma")
-fitted(fit)[1:5]
-predict(fit, dpar = "mu")[1:5]
-sigma(fit)[1:5]
 ```
+
+The code below simulates one dataset with the same structure. Simulated data
+keep the vignette small and reproducible; a real analysis would replace this
+block with field or laboratory measurements.
+
+```{r location-scale-simulate}
+set.seed(42)
+n <- 240
+dat <- data.frame(
+  habitat = factor(rep(c("forest", "grassland"), each = n / 2)),
+  temperature = rnorm(n)
+)
+
+mu <- 8 + 1.2 * (dat$habitat == "grassland") + 0.6 * dat$temperature
+sigma_true <- exp(log(0.6) + 0.55 * (dat$habitat == "grassland"))
+dat$growth <- rnorm(n, mean = mu, sd = sigma_true)
+```
+
+Fit the location-scale model:
+
+```{r location-scale-fit}
+fit_growth <- drmTMB(
+  drm_formula(growth ~ habitat + temperature, sigma ~ habitat),
+  family = gaussian(),
+  data = dat
+)
+```
+
+Before interpreting coefficients, check the fitted object:
+
+```{r location-scale-check}
+check_drm(fit_growth)
+```
+
+Now print the coefficient table:
+
+```{r location-scale-summary}
+summary(fit_growth)
+```
+
+How to read this output:
+
+1. Rows beginning with `mu:` are mean-growth effects on the response scale.
+   For example, `mu:temperature` is the expected change in mean growth for a
+   one-unit increase in temperature.
+2. Rows beginning with `sigma:` are log-residual-standard-deviation effects.
+   For example, `sigma:habitatgrassland` is not an additive change in growth;
+   it is a log-scale change in residual variability.
+3. Exponentiating a `sigma` coefficient gives the multiplicative change in
+   residual standard deviation.
+
+```{r location-scale-interpret-sigma}
+sigma_habitat <- coef(fit_growth, "sigma")["habitatgrassland"]
+data.frame(
+  coefficient = sigma_habitat,
+  residual_sd_ratio = exp(sigma_habitat)
+)
+```
+
+In this fitted example, `exp(sigma:habitatgrassland)` is the estimated ratio of
+grassland residual SD to forest residual SD. A value near 2 would mean that
+growth is about twice as variable, and therefore less predictable, in
+grassland than in forest after accounting for mean habitat and temperature
+effects.
+
+It is often clearer to report the fitted residual SDs directly:
+
+```{r location-scale-response-table}
+newdat <- data.frame(
+  habitat = factor(c("forest", "grassland"), levels = levels(dat$habitat)),
+  temperature = 0
+)
+
+data.frame(
+  habitat = newdat$habitat,
+  fitted_mean_growth = predict(fit_growth, newdata = newdat, dpar = "mu"),
+  fitted_residual_sd = predict(fit_growth, newdata = newdat, dpar = "sigma")
+)
+```
+
+This table maps the model back to the scientific question. The mean column
+summarises the location model. The residual SD column summarises the scale
+model. If grassland has a larger fitted residual SD, the model says that
+individual growth is more variable in grassland even after the mean difference
+and temperature effect have been modelled.
 
 If the `sigma` formula is omitted, `drmTMB` fits an intercept-only residual
 standard deviation:
 
-```r
+```{r location-scale-intercept-only}
 fit0 <- drmTMB(
-  bf(y ~ x1),
+  drm_formula(growth ~ habitat + temperature),
   family = gaussian(),
   data = dat
 )
+
+coef(fit0, "sigma")
 ```
+
+That simpler model can still estimate habitat and temperature effects on mean
+growth, but it assumes one residual SD for all observations.
 
 ## Meta-analysis as Gaussian regression
 
@@ -402,8 +508,8 @@ y | mu, sigma, V ~ MVN(mu, V + diag(sigma_i^2))
   predictors that are constant within the named grouping variable.
 - Residual-scale random slopes, slope-specific `sd()` targets, labelled-block
   `sd()` targets, cross-formula labelled covariance sharing, phylogenetic
-  slopes, phylogenetic `sigma` terms, spatial terms, and non-Gaussian families
-  are planned but not implemented in this MVP.
+  slopes, phylogenetic `sigma` terms, spatial terms, and non-Gaussian random
+  effects are planned but not implemented in this Gaussian tutorial.
 - Intercept-only phylogenetic random effects are implemented in univariate
   Gaussian `mu` formulas as `phylo(1 | species, tree = tree)`.
 

@@ -236,8 +236,8 @@ head(rho12(fit_biv))
 ```
 
 `corpairs()` gives the same residual correlation in the long correlation-pair
-format that future group-level, phylogenetic, spatial, and study-level
-correlations will also use:
+format. The same table shape is the design target for future group-level,
+phylogenetic, spatial, and study-level correlations:
 
 ```{r bivariate-coscale-corpairs}
 corpairs(fit_biv)[

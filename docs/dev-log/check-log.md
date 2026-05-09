@@ -5609,3 +5609,79 @@ Team learning:
   implementation as two linked but differently scoped objects;
 - Rose should search both articles and README pages for user-facing numerical
   implementation details that belong in footnotes or implementation notes.
+
+## 2026-05-09 — Location-Scale Tutorial Teaching Upgrade
+
+Goal:
+
+- make the Gaussian location-scale tutorial feel like a worked applied
+  tutorial rather than only an API grammar page;
+- answer Shinichi's request for symbolic equations paired with R syntax,
+  fitted output, and biological interpretation.
+
+Changes:
+
+- added a fish-growth style worked example to `vignettes/location-scale.Rmd`;
+- added executable simulation, model fit, `check_drm()`, `summary()`,
+  response-scale `sigma` interpretation, and a fitted mean/residual-SD table;
+- rewrote the opening of the article around the biological question of mean
+  growth versus growth predictability;
+- corrected `sd(site)_i` to group-level `sd(site)_k`;
+- narrowed stale caveat wording from all non-Gaussian families to
+  non-Gaussian random effects in this Gaussian tutorial;
+- softened the future `corpairs()` wording in `vignettes/bivariate-coscale.Rmd`
+  so planned correlation levels are not presented as current implementation;
+- added a tutorial sentence clarifying that dense full `meta_known_V(V = V)`
+  paths currently reject non-unit likelihood weights;
+- recorded the tutorial upgrade in `NEWS.md`.
+
+Commands run so far:
+
+- `Rscript -e "devtools::load_all(quiet = TRUE); rmarkdown::render('vignettes/location-scale.Rmd', output_dir = tempdir(), quiet = TRUE)"`
+- `Rscript -e "devtools::test(filter = 'gaussian-location-scale|gaussian-random-effect-scale|gaussian-random-intercepts')"`
+- `Rscript -e "devtools::load_all(quiet = TRUE); rmarkdown::render('vignettes/location-scale.Rmd', output_dir = tempdir(), quiet = TRUE); rmarkdown::render('vignettes/which-scale.Rmd', output_dir = tempdir(), quiet = TRUE); rmarkdown::render('vignettes/bivariate-coscale.Rmd', output_dir = tempdir(), quiet = TRUE)"`
+- `rg -n "first implemented|planned but not implemented|weights.*not implemented|non-Gaussian families|rho ~|tau ~|will also use|sd\\(site\\)_i" README.md vignettes docs/design docs/dev-log/known-limitations.md NEWS.md`
+- `git diff --check`
+- `Rscript -e "devtools::test()"`
+- `Rscript -e "pkgdown::build_site()"`
+- `Rscript tools/fix-pkgdown-favicon-mime.R pkgdown-site`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`
+
+Results so far:
+
+- `vignettes/location-scale.Rmd`, `vignettes/which-scale.Rmd`, and
+  `vignettes/bivariate-coscale.Rmd` render successfully;
+- targeted Gaussian neighbouring tests: 301 passed, 0 failed, 0 warnings,
+  0 skips;
+- full `devtools::test()`: 1215 passed, 0 failed, 0 warnings, 0 skips;
+- `git diff --check`: clean;
+- `pkgdown::build_site()`: completed successfully;
+- favicon MIME post-processing completed successfully;
+- `pkgdown::check_pkgdown()`: no problems found;
+- `devtools::check()`: 0 errors, 0 warnings, 0 notes;
+- stale-status scan found no remaining `sd(site)_i`, no `will also use`, and
+  no user-facing `non-Gaussian families` stale claim in changed vignettes;
+  remaining hits are current planned-feature caveats or design-log patterns.
+
+Tests of the tests:
+
+- the rendered location-scale vignette now executes the exact Gaussian
+  location-scale path exercised by `test-gaussian-location-scale.R`;
+- the targeted tests also covered neighbouring random-intercept and
+  random-effect-scale paths that the same vignette documents.
+
+Known limitations:
+
+- this pass adds a response-scale table but not a full plot; a future tutorial
+  polish pass should add a small visual summary and possibly a real dataset;
+- the example remains simulated to keep the vignette fast and deterministic.
+
+Team learning:
+
+- Pat's usability review correctly identified that `location-scale` was still
+  too abstract compared with `which-scale` and `bivariate-coscale`;
+- Rose's systems audit caught stale status wording and one observation-level
+  index that should have been group-level;
+- Ada should keep using staggered review during tutorial work: edit locally
+  while Pat checks user comprehension and Rose checks cross-document drift.

@@ -321,6 +321,9 @@ Here rows with `reliability = 2` count twice in the likelihood. That may be a
 reasonable model-fitting choice for replicated or reliability-weighted rows,
 but it is not the same as telling the model that an effect size has known
 sampling variance. Known sampling variance belongs in `meta_known_V(V = V)`.
+At present, dense full known-covariance models reject non-unit likelihood
+weights; keep row weighting and known sampling covariance as separate modelling
+decisions unless the fitted model explicitly supports their combination.
 
 ### Known sampling variance: `meta_known_V(V = vi)`
 
