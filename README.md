@@ -8,8 +8,11 @@ bivariate Gaussian residual-correlation models. The long-term design also
 includes skewness, zero inflation, and additional response families. The first
 examples are motivated by ecology, evolution, and environmental science, but
 the package is general-purpose. Here `mu` is the expected response, `sigma` is
-the residual standard deviation, `nu` is the first shape parameter, and `rho12`
-is the residual correlation between two responses.
+the residual scale parameter, `nu` is the first shape parameter, and `rho12` is
+the residual correlation between two responses. For Gaussian models, `sigma` is
+the residual standard deviation. For Student-t models, `sigma` is the Student-t
+scale parameter; when `nu > 2`, the residual standard deviation is
+`sigma * sqrt(nu / (nu - 2))`.
 
 The current implementation supports Gaussian location-scale models, including
 fixed effects, random intercepts, independent numeric random slopes, and

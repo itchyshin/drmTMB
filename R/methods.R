@@ -459,7 +459,9 @@ residuals.drmTMB <- function(object, type = c("response", "pearson"), ...) {
 #'
 #' `sigma()` returns the fitted residual scale parameter from a `drmTMB` model.
 #' For univariate Gaussian location-scale models this is the fitted `sigma_i`
-#' vector on the response scale. For bivariate Gaussian models it returns a
+#' vector on the response scale. For Student-t models this is the Student-t
+#' scale parameter; when `nu > 2`, the residual standard deviation is
+#' `sigma * sqrt(nu / (nu - 2))`. For bivariate Gaussian models it returns a
 #' list with fitted `sigma1` and `sigma2` vectors.
 #'
 #' In meta-analytic models fitted with `meta_known_V(V = V)`, this is the

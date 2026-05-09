@@ -2,6 +2,54 @@
 
 Record meaningful development checks here.
 
+## 2026-05-08: Student-t Scale Terminology Audit
+
+Scope:
+
+- clarified package-level README wording so `sigma` is the general residual
+  scale parameter, with Gaussian residual SD as a special case;
+- clarified `sigma.drmTMB()` documentation so Student-t `sigma` is described
+  as the Student-t scale parameter;
+- documented the residual standard deviation conversion
+  `sigma * sqrt(nu / (nu - 2))` when `nu > 2`.
+
+Commands run:
+
+- `Rscript -e "devtools::document()"`
+- `Rscript -e "devtools::test(filter = 'student-location-scale')"`
+- `Rscript -e "devtools::test()"`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `Rscript -e "pkgdown::build_site()"`
+- `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`
+- `git diff --check`
+- `rg` scans for Student-t `sigma` and residual-standard-deviation wording.
+
+Results:
+
+- roxygen rebuilt `man/sigma.drmTMB.Rd`;
+- targeted Student-t tests: 21 passed, 0 failed;
+- full `devtools::test()`: 638 passed, 0 failed;
+- `pkgdown::check_pkgdown()`: no problems found;
+- `pkgdown::build_site()`: rebuilt the home page and `sigma.drmTMB()`
+  reference page with the revised scale wording;
+- `devtools::check(...)`: 0 errors, 0 warnings, 0 notes;
+- `git diff --check`: clean.
+
+Tests of the tests:
+
+- this was a documentation terminology task, so no new unit tests were added;
+- targeted Student-t tests were rerun to check that no documentation edit
+  accidentally accompanied a behaviour change.
+
+Notes:
+
+- Gaussian-specific tutorials still correctly describe `sigma` as residual
+  standard deviation because `Normal(mu_i, sigma_i^2)` uses `sigma_i` that way;
+- Student-t tutorials and extractor documentation now explicitly distinguish
+  scale from residual SD.
+- no helper currently returns Student-t residual SD directly; users can compute
+  it from `sigma()` and `predict(..., dpar = "nu")` when `nu > 2`.
+
 ## 2026-05-08: Robust Student-t Tutorial
 
 Scope:

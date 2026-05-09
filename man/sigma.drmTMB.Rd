@@ -18,7 +18,9 @@ vectors for bivariate Gaussian models.
 \description{
 \code{sigma()} returns the fitted residual scale parameter from a \code{drmTMB} model.
 For univariate Gaussian location-scale models this is the fitted \code{sigma_i}
-vector on the response scale. For bivariate Gaussian models it returns a
+vector on the response scale. For Student-t models this is the Student-t
+scale parameter; when \code{nu > 2}, the residual standard deviation is
+\code{sigma * sqrt(nu / (nu - 2))}. For bivariate Gaussian models it returns a
 list with fitted \code{sigma1} and \code{sigma2} vectors.
 }
 \details{
