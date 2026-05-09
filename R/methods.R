@@ -3,6 +3,7 @@ print.drmTMB <- function(x, ...) {
   label <- switch(
     x$model$model_type,
     gaussian = "Gaussian location-scale",
+    student = "Student-t location-scale-shape",
     biv_gaussian = "bivariate Gaussian location-scale-coscale",
     "distributional"
   )
@@ -270,6 +271,9 @@ predict.drmTMB <- function(object, newdata = NULL, dpar = NULL,
   if (type == "link" || dpar %in% c("mu", "mu1", "mu2")) {
     return(eta)
   }
+  if (dpar == "nu") {
+    return(2 + exp(eta))
+  }
   if (dpar == "rho12") {
     return(rho_response(eta))
   }
@@ -281,10 +285,11 @@ predict.drmTMB <- function(object, newdata = NULL, dpar = NULL,
 #' `simulate()` draws new response values from the fitted `drmTMB` model. For
 #' univariate Gaussian models with known sampling covariance, simulation uses
 #' the total observation covariance implied by the known sampling covariance
-#' plus the fitted residual scale. For bivariate Gaussian models without known
-#' sampling covariance, simulation uses the fitted `mu1`, `mu2`, `sigma1`,
-#' `sigma2`, and residual `rho12`. If a dense bivariate known `V` was supplied,
-#' simulation uses the full row-paired observation covariance `V + Omega`.
+#' plus the fitted residual scale. For Student-t models, simulation uses fitted
+#' `mu`, `sigma`, and `nu`. For bivariate Gaussian models without known sampling
+#' covariance, simulation uses the fitted `mu1`, `mu2`, `sigma1`, `sigma2`, and
+#' residual `rho12`. If a dense bivariate known `V` was supplied, simulation
+#' uses the full row-paired observation covariance `V + Omega`.
 #'
 #' @param object A `drmTMB` fit.
 #' @param nsim Number of simulated data sets.
@@ -317,6 +322,16 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, ...) {
       }
     }, add = TRUE)
     set.seed(seed)
+  }
+
+  if (identical(object$model$model_type, "student")) {
+    mu <- predict(object, dpar = "mu")
+    sigma <- predict(object, dpar = "sigma")
+    nu <- predict(object, dpar = "nu")
+    sims <- replicate(nsim, mu + sigma * stats::rt(length(mu), df = nu))
+    sims <- as.data.frame(sims)
+    names(sims) <- paste0("sim_", seq_len(nsim))
+    return(sims)
   }
 
   if (identical(object$model$model_type, "gaussian")) {
@@ -404,7 +419,8 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, ...) {
 #' @export
 residuals.drmTMB <- function(object, type = c("response", "pearson"), ...) {
   type <- match.arg(type)
-  if (identical(object$model$model_type, "gaussian")) {
+  if (identical(object$model$model_type, "gaussian") ||
+      identical(object$model$model_type, "student")) {
     response <- object$model$y - predict(object, dpar = "mu")
     if (type == "response") {
       return(response)
@@ -463,7 +479,8 @@ residuals.drmTMB <- function(object, type = c("response", "pearson"), ...) {
 #' sigma(fit)
 #' @export
 sigma.drmTMB <- function(object, ...) {
-  if (identical(object$model$model_type, "gaussian")) {
+  if (identical(object$model$model_type, "gaussian") ||
+      identical(object$model$model_type, "student")) {
     return(predict(object, dpar = "sigma"))
   }
   list(

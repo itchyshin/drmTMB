@@ -2,6 +2,70 @@
 
 Record meaningful development checks here.
 
+## 2026-05-08: Student-t Fixed-Effect Location-Scale-Shape
+
+Scope:
+
+- added `student()` as a one-response robust continuous family with
+  `mu`, `sigma`, and `nu` formulas;
+- implemented the Student-t likelihood in TMB with
+  `nu_i = 2 + exp(eta_nu_i)` and all normalizing constants;
+- added prediction, simulation, residual, summary, and scale-extractor support
+  through the existing S3 methods;
+- added simulation-recovery, independent R likelihood comparison, method, and
+  unsupported-term tests;
+- updated family registry, likelihood, distribution-roadmap, shape-planning,
+  README, NEWS, roxygen, pkgdown reference, and distribution-family vignette
+  documentation.
+
+Commands run:
+
+- `Rscript -e "devtools::load_all()"`
+- ad hoc Student-t fit, coefficient, prediction, and simulation smoke test;
+- `Rscript -e "devtools::test(filter = 'student-location-scale')"`
+- targeted regression slice:
+  `Rscript -e "devtools::test(filter = 'gaussian-location-scale|biv-gaussian|meta-known-v|phylo-gaussian')"`
+- `Rscript -e "devtools::document()"` twice, rerunning after the new
+  `student()` topic existed;
+- `Rscript -e "devtools::test()"`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `Rscript -e "pkgdown::build_site()"`
+- generated-site and stale-wording scans for Student-t claims;
+- `air format .` (failed: `air` is not installed);
+- `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`
+- `git diff --check`
+
+Results:
+
+- final targeted Student-t tests: 21 passed, 0 failed;
+- targeted Gaussian/bivariate/meta/phylo regression slice: 196 passed,
+  0 failed;
+- full `devtools::test()`: 623 passed, 0 failed;
+- `pkgdown::check_pkgdown()`: no problems found;
+- `pkgdown::build_site()`: rebuilt the `student()` reference page,
+  distribution-family article, home page, and changelog;
+- final `devtools::check(...)`: 0 errors, 0 warnings, 0 notes;
+- `git diff --check`: clean.
+
+Tests of the tests:
+
+- the Student-t objective is compared against an independent base-R likelihood
+  using `dt((y - mu) / sigma, df = nu, log = TRUE) - log(sigma)`;
+- the recovery test uses deterministic Student-t quantiles to keep CRAN tests
+  stable while checking `mu`, `sigma`, and tail `nu`;
+- unsupported early-phase terms test random effects, `meta_known_V(V = V)`,
+  and `sd(group)` rejection for Student-t fits.
+
+Notes:
+
+- the first full test run failed because the direct TMB phylogenetic-prior test
+  constructs its own data list and needed the new dummy `X_nu` and `beta_nu`
+  entries; the helper was updated and the full test suite then passed;
+- `student()` is fixed-effect only for now: no random effects, known sampling
+  covariance, phylogenetic terms, or bivariate Student-t likelihood yet;
+- `nu` is the canonical first shape parameter here and means Student-t degrees
+  of freedom/tail weight, not skewness.
+
 ## 2026-05-08: Main Documentation Known-`V` Equation Pairing
 
 Scope:

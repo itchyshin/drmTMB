@@ -58,6 +58,27 @@ for distinct unlabelled Gaussian `mu` random intercepts. Sparse known
 covariance, residual-scale random slopes, slope-specific or labelled
 random-effect scale formulae, and additional families are later phases.
 
+## Implemented: Student-t Location-Scale-Shape
+
+The first robust continuous family is univariate and fixed-effect only:
+
+```r
+student <- function() {
+  drm_family(
+    name = "student",
+    n_response = 1,
+    dpars = c("mu", "sigma", "nu"),
+    links = c(mu = "identity", sigma = "log", nu = "logm2")
+  )
+}
+```
+
+The response-scale degrees of freedom are
+`nu_i = 2 + exp(eta_nu_i)`. This keeps the model in the finite-variance region
+and makes Student-t a robust continuous extension of the Gaussian
+location-scale MVP. Random effects, known sampling covariance, phylogenetic
+terms, and bivariate Student-t models are later phases.
+
 ## Implemented: Bivariate Gaussian Location-Coscale
 
 The stable public direction for two-response models is composed response

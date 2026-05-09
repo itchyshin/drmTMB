@@ -25,6 +25,7 @@ Type objective_function<Type>::operator()()
   DATA_INTEGER(model_type);
   DATA_MATRIX(X_mu);
   DATA_MATRIX(X_sigma);
+  DATA_MATRIX(X_nu);
   DATA_MATRIX(X_sd_mu);
   DATA_INTEGER(has_sd_mu_model);
   DATA_MATRIX(X_mu1);
@@ -52,6 +53,7 @@ Type objective_function<Type>::operator()()
 
   PARAMETER_VECTOR(beta_mu);
   PARAMETER_VECTOR(beta_sigma);
+  PARAMETER_VECTOR(beta_nu);
   PARAMETER_VECTOR(beta_sd_mu);
   PARAMETER_VECTOR(beta_mu1);
   PARAMETER_VECTOR(beta_mu2);
@@ -235,6 +237,31 @@ Type objective_function<Type>::operator()()
       ADREPORT(log_sd_sigma);
       ADREPORT(sd_sigma_re);
     }
+  } else if (model_type == 3) {
+    vector<Type> mu = X_mu * beta_mu;
+    vector<Type> log_sigma = X_sigma * beta_sigma;
+    vector<Type> eta_nu = X_nu * beta_nu;
+    vector<Type> sigma = exp(log_sigma);
+    vector<Type> nu = Type(2.0) + exp(eta_nu);
+    for (int i = 0; i < y.size(); ++i) {
+      Type z = (y(i) - mu(i)) / sigma(i);
+      Type half = Type(0.5);
+      Type log_density =
+        lgamma(half * (nu(i) + Type(1.0))) -
+        lgamma(half * nu(i)) -
+        half * log(nu(i) * M_PI) -
+        log_sigma(i) -
+        half * (nu(i) + Type(1.0)) * log(Type(1.0) + z * z / nu(i));
+      nll -= log_density;
+    }
+    REPORT(mu);
+    REPORT(log_sigma);
+    REPORT(sigma);
+    REPORT(eta_nu);
+    REPORT(nu);
+    ADREPORT(beta_mu);
+    ADREPORT(beta_sigma);
+    ADREPORT(beta_nu);
   } else if (model_type == 2) {
     vector<Type> mu1 = X_mu1 * beta_mu1;
     vector<Type> mu2 = X_mu2 * beta_mu2;

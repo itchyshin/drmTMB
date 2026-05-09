@@ -5,10 +5,10 @@ This note records the cautious design direction for future shape models in
 
 ## Core Position
 
-Shape models should come after robust Gaussian and Student-t location-scale
-models. In `drmTMB`, a shape parameter should be treated like any other
-distributional parameter, but it is harder to interpret and harder to identify
-than `sigma`.
+Shape models should build on the implemented Gaussian and Student-t
+location-scale paths. In `drmTMB`, a shape parameter should be treated like any
+other distributional parameter, but it is harder to interpret and harder to
+identify than `sigma`.
 
 For a skew-normal-like family:
 
@@ -76,10 +76,11 @@ grammar is stable, but examples should teach `nu` first.
 
 ## Staged Implementation
 
-1. Implement `student()` with `mu`, `sigma`, and tail `nu`.
+1. Harden the implemented fixed-effect `student()` path with `mu`, `sigma`,
+   and tail `nu`.
 2. Implement fixed-effect `skew_normal()` with `mu`, `sigma`, and `nu`.
-3. Add `nu ~ predictors` only after density, simulation, prediction, and
-   residual diagnostics are stable.
+3. Add skew-normal `nu ~ predictors` only after density, simulation,
+   prediction, and residual diagnostics are stable.
 4. Implement Gaussian phylogenetic `mu` and `sigma` before any phylogenetic
    shape model.
 5. Fit skew-normal models with phylogenetic `mu` or `sigma` but fixed `nu`.

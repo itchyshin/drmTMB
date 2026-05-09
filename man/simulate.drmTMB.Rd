@@ -25,10 +25,11 @@ Bivariate models return paired columns named \verb{sim_<j>_y1} and
 \code{simulate()} draws new response values from the fitted \code{drmTMB} model. For
 univariate Gaussian models with known sampling covariance, simulation uses
 the total observation covariance implied by the known sampling covariance
-plus the fitted residual scale. For bivariate Gaussian models without known
-sampling covariance, simulation uses the fitted \code{mu1}, \code{mu2}, \code{sigma1},
-\code{sigma2}, and residual \code{rho12}. If a dense bivariate known \code{V} was supplied,
-simulation uses the full row-paired observation covariance \code{V + Omega}.
+plus the fitted residual scale. For Student-t models, simulation uses fitted
+\code{mu}, \code{sigma}, and \code{nu}. For bivariate Gaussian models without known sampling
+covariance, simulation uses the fitted \code{mu1}, \code{mu2}, \code{sigma1}, \code{sigma2}, and
+residual \code{rho12}. If a dense bivariate known \code{V} was supplied, simulation
+uses the full row-paired observation covariance \code{V + Omega}.
 }
 \examples{
 dat <- data.frame(y = c(0.2, 0.5, 1.1, 1.4), x = c(-1, 0, 1, 2))

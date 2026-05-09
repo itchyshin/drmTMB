@@ -2,14 +2,14 @@
 
 A fast TMB-based distributional regression package for broadly useful
 univariate and bivariate distributional regression. The current implementation
-starts with Gaussian location-scale models, known-covariance meta-analysis,
-phylogenetic location effects, random-effect scale models, and bivariate
-Gaussian residual-correlation models. The long-term design also includes
-shape, zero inflation, and additional response families. The first examples
-are motivated by ecology, evolution, and environmental science, but the package
-is general-purpose. Here `mu` is the expected response, `sigma` is the residual
-standard deviation, and `rho12` is the residual correlation between two
-responses.
+starts with Gaussian and Student-t location-scale models, known-covariance
+meta-analysis, phylogenetic location effects, random-effect scale models, and
+bivariate Gaussian residual-correlation models. The long-term design also
+includes skewness, zero inflation, and additional response families. The first
+examples are motivated by ecology, evolution, and environmental science, but
+the package is general-purpose. Here `mu` is the expected response, `sigma` is
+the residual standard deviation, `nu` is the first shape parameter, and `rho12`
+is the residual correlation between two responses.
 
 The current implementation supports Gaussian location-scale models, including
 fixed effects, random intercepts, independent numeric random slopes, and
@@ -38,6 +38,28 @@ drmTMB(
 
 Here `x1` can change both the expected response and the residual standard
 deviation.
+
+The first robust continuous family uses the same location-scale grammar and
+adds a tail-weight formula:
+
+```text
+y_i | mu_i, sigma_i, nu_i ~ Student-t(mu_i, sigma_i, nu_i)
+mu_i = beta_0 + beta_1 x1_i
+log(sigma_i) = gamma_0 + gamma_1 x1_i
+nu_i = 2 + exp(delta_0)
+```
+
+```r
+drmTMB(
+  drm_formula(y ~ x1, sigma ~ x1, nu ~ 1),
+  family = student(),
+  data = dat
+)
+```
+
+This is useful when a continuous response has occasional large residuals but
+the scientific question is still about predictors of the mean and residual
+scale.
 
 ```r
 drmTMB(

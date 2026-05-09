@@ -9,8 +9,8 @@ drmTMB(formula, family = stats::gaussian(), data, control = list(), ...)
 \arguments{
 \item{formula}{A \code{drm_formula} object created by \code{\link[=drm_formula]{drm_formula()}} or \code{\link[=bf]{bf()}}.}
 
-\item{family}{A response family, such as \code{\link[stats:gaussian]{stats::gaussian()}} or
-\code{\link[=biv_gaussian]{biv_gaussian()}}. The current bivariate Gaussian engine also accepts
+\item{family}{A response family, such as \code{\link[stats:gaussian]{stats::gaussian()}}, \code{\link[=student]{student()}},
+or \code{\link[=biv_gaussian]{biv_gaussian()}}. The current bivariate Gaussian engine also accepts
 \code{family = c(gaussian(), gaussian())} and
 \code{family = list(gaussian(), gaussian())}.}
 
@@ -25,7 +25,8 @@ A \code{drmTMB} fit object.
 }
 \description{
 \code{drmTMB()} is the main model-fitting entry point. The current implementation
-supports univariate Gaussian location-scale models, including random
+supports univariate Gaussian location-scale models, fixed-effect
+univariate Student-t location-scale-shape models, Gaussian random
 intercepts, independent numeric random slopes, and labelled or unlabelled
 correlated numeric random intercept-slope blocks in the location formula,
 known sampling covariance through \code{meta_known_V(V = V)}, residual-scale

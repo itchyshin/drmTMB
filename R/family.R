@@ -27,3 +27,30 @@ biv_gaussian <- function() {
     class = "drm_family"
   )
 }
+
+#' Student-t response family
+#'
+#' `student()` defines a one-response Student-t distribution with formulas for
+#' location `mu`, residual scale `sigma`, and degrees of freedom `nu`.
+#'
+#' The `nu` parameter uses a log link with a lower bound of 2:
+#' `nu = 2 + exp(eta_nu)`. This keeps the fitted distribution in the
+#' finite-variance region while still allowing heavy tails.
+#'
+#' @return A `drm_family` object.
+#' @export
+#'
+#' @examples
+#' student()
+student <- function() {
+  structure(
+    list(
+      name = "student",
+      family = "student",
+      n_response = 1L,
+      dpars = c("mu", "sigma", "nu"),
+      links = c(mu = "identity", sigma = "log", nu = "logm2")
+    ),
+    class = "drm_family"
+  )
+}

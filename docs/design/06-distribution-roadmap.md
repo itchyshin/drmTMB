@@ -9,7 +9,8 @@ These establish the formula parser, family registry, TMB pipeline, prediction,
 simulation, and recovery tests.
 
 - `gaussian()`: `mu`, `sigma`.
-- `student()`: `mu`, `sigma`, `nu`.
+- `student()`: `mu`, `sigma`, `nu`; fixed-effect univariate path
+  implemented.
 - `lognormal()`: `mu`, `sigma` on the log response scale.
 
 ## Tier 2: Bivariate Coscale

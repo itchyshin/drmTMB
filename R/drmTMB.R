@@ -1,7 +1,8 @@
 #' Fit a distributional regression model with TMB
 #'
 #' `drmTMB()` is the main model-fitting entry point. The current implementation
-#' supports univariate Gaussian location-scale models, including random
+#' supports univariate Gaussian location-scale models, fixed-effect
+#' univariate Student-t location-scale-shape models, Gaussian random
 #' intercepts, independent numeric random slopes, and labelled or unlabelled
 #' correlated numeric random intercept-slope blocks in the location formula,
 #' known sampling covariance through `meta_known_V(V = V)`, residual-scale
@@ -14,8 +15,8 @@
 #' when both responses share the same location predictors.
 #'
 #' @param formula A `drm_formula` object created by [drm_formula()] or [bf()].
-#' @param family A response family, such as [stats::gaussian()] or
-#'   [biv_gaussian()]. The current bivariate Gaussian engine also accepts
+#' @param family A response family, such as [stats::gaussian()], [student()],
+#'   or [biv_gaussian()]. The current bivariate Gaussian engine also accepts
 #'   `family = c(gaussian(), gaussian())` and
 #'   `family = list(gaussian(), gaussian())`.
 #' @param data A data frame.
@@ -40,6 +41,7 @@ drmTMB <- function(formula, family = stats::gaussian(), data, control = list(), 
   spec <- switch(
     family_type,
     gaussian = drm_build_gaussian_ls_spec(formula, data, env = parent.frame()),
+    student = drm_build_student_ls_spec(formula, data, env = parent.frame()),
     biv_gaussian = drm_build_biv_gaussian_spec(formula, data, env = parent.frame())
   )
 
@@ -92,6 +94,9 @@ drm_family_type <- function(family) {
   if (inherits(family, "drm_family") && identical(family$name, "biv_gaussian")) {
     return("biv_gaussian")
   }
+  if (inherits(family, "drm_family") && identical(family$name, "student")) {
+    return("student")
+  }
   composed <- drm_composed_families(family)
   if (!is.null(composed)) {
     family_names <- vapply(composed, `[[`, character(1), "family")
@@ -112,7 +117,7 @@ drm_family_type <- function(family) {
     ))
   }
   cli::cli_abort(
-    "Currently supported families are {.code gaussian()}, {.fn biv_gaussian}, {.code c(gaussian(), gaussian())}, and {.code list(gaussian(), gaussian())}."
+    "Currently supported families are {.code gaussian()}, {.fn student}, {.fn biv_gaussian}, {.code c(gaussian(), gaussian())}, and {.code list(gaussian(), gaussian())}."
   )
 }
 
@@ -280,6 +285,129 @@ drm_build_gaussian_ls_spec <- function(formula, data, env = parent.frame()) {
       if (re_sigma$n_re > 0L) "u_sigma",
       if (isTRUE(phylo_mu$has)) "u_phylo"
     )
+  )
+  spec$tmb_data <- make_tmb_data(spec)
+  spec$nobs <- length(spec$y)
+  spec
+}
+
+drm_build_student_ls_spec <- function(formula, data, env = parent.frame()) {
+  entries <- formula$entries
+  dpars <- vapply(entries, `[[`, character(1), "dpar")
+  is_sd_dpar <- startsWith(dpars, "sd(")
+
+  unsupported <- setdiff(dpars[!is_sd_dpar], c("mu", "sigma", "nu"))
+  if (length(unsupported) > 0L) {
+    cli::cli_abort(c(
+      "Student-t models only support {.code mu}, {.code sigma}, and {.code nu}.",
+      "x" = "Unsupported parameter{?s}: {.val {unsupported}}."
+    ))
+  }
+  if (any(is_sd_dpar)) {
+    cli::cli_abort(c(
+      "Random-effect scale formulae are not implemented for {.fn student} models yet.",
+      "i" = "Start with fixed-effect Student-t formulas such as {.code bf(y ~ x, sigma ~ z, nu ~ 1)}."
+    ))
+  }
+  if (sum(dpars == "mu") != 1L) {
+    cli::cli_abort("A Student-t model requires exactly one location formula.")
+  }
+  for (optional in c("sigma", "nu")) {
+    if (sum(dpars == optional) > 1L) {
+      cli::cli_abort("A Student-t model can have at most one {.code {optional}} formula.")
+    }
+  }
+
+  mu_entry <- entries[[which(dpars == "mu")]]
+  sigma_entry <- if (any(dpars == "sigma")) {
+    entries[[which(dpars == "sigma")]]
+  } else {
+    default_dpar_entry("sigma", quote(1))
+  }
+  nu_entry <- if (any(dpars == "nu")) {
+    entries[[which(dpars == "nu")]]
+  } else {
+    default_dpar_entry("nu", quote(1))
+  }
+
+  if (is.na(mu_entry$response)) {
+    cli::cli_abort("The {.code mu} formula must include a response on the left-hand side.")
+  }
+  if (is_mvbind_lhs(mu_entry$lhs)) {
+    cli::cli_abort(c(
+      "{.fn mvbind} shorthand is only available for two-response Gaussian models.",
+      "x" = "Student-t models currently support one response."
+    ))
+  }
+
+  meta <- extract_meta_known_v(mu_entry$rhs)
+  if (!is.null(meta$V)) {
+    cli::cli_abort(c(
+      "{.fn meta_known_V} is not implemented for {.fn student} models yet.",
+      "i" = "Use {.code family = gaussian()} for Gaussian meta-analysis with known sampling covariance."
+    ))
+  }
+  mu_entry$rhs <- meta$rhs
+
+  for (entry in list(mu_entry, sigma_entry, nu_entry)) {
+    drm_reject_phase1_terms(entry$rhs, entry$dpar)
+  }
+
+  f_mu <- drm_entry_formula(mu_entry, response = TRUE)
+  f_sigma <- drm_entry_formula(sigma_entry, response = FALSE)
+  f_nu <- drm_entry_formula(nu_entry, response = FALSE)
+
+  vars <- unique(c(all.vars(f_mu), all.vars(f_sigma), all.vars(f_nu)))
+  if (length(vars) > 0L) {
+    keep <- stats::complete.cases(data[, vars, drop = FALSE])
+  } else {
+    keep <- rep(TRUE, nrow(data))
+  }
+  data_model <- data[keep, , drop = FALSE]
+
+  mf_mu <- stats::model.frame(f_mu, data = data_model, na.action = stats::na.omit)
+  mf_sigma <- stats::model.frame(f_sigma, data = data_model, na.action = stats::na.omit)
+  mf_nu <- stats::model.frame(f_nu, data = data_model, na.action = stats::na.omit)
+  y <- stats::model.response(mf_mu)
+
+  X_mu <- stats::model.matrix(stats::delete.response(stats::terms(mf_mu)), mf_mu)
+  X_sigma <- stats::model.matrix(stats::terms(mf_sigma), mf_sigma)
+  X_nu <- stats::model.matrix(stats::terms(mf_nu), mf_nu)
+
+  if (length(y) == 0L) {
+    cli::cli_abort("No complete observations remain after applying model missingness rules.")
+  }
+  if (!all(c(nrow(X_sigma), nrow(X_nu)) == length(y))) {
+    cli::cli_abort("Internal model-frame mismatch in Student-t model.")
+  }
+
+  spec <- list(
+    model_type = "student",
+    y = as.numeric(y),
+    V_known = rep(0, length(y)),
+    V_known_diag = rep(0, length(y)),
+    V_known_type = "none",
+    has_known_v = FALSE,
+    X = list(mu = X_mu, sigma = X_sigma, nu = X_nu),
+    terms = list(
+      mu = stats::delete.response(stats::terms(mf_mu)),
+      sigma = stats::terms(mf_sigma),
+      nu = stats::terms(mf_nu)
+    ),
+    model_frame = list(mu = mf_mu, sigma = mf_sigma, nu = mf_nu),
+    random = list(
+      mu = empty_random_mu_structure(nrow(data_model)),
+      sigma = empty_random_sigma_structure(nrow(data_model))
+    ),
+    random_scale = list(mu = empty_sd_mu_structure(1L)),
+    structured = list(phylo_mu = empty_phylo_mu_structure()),
+    data = data_model,
+    variables = vars,
+    keep = keep,
+    dpars = c("mu", "sigma", "nu"),
+    start = student_ls_start(y, X_mu, X_sigma, X_nu),
+    map = student_ls_map(),
+    random_names = NULL
   )
   spec$tmb_data <- make_tmb_data(spec)
   spec$nobs <- length(spec$y)
@@ -1517,6 +1645,7 @@ gaussian_ls_dummy_start <- function(phylo_mu = empty_phylo_mu_structure(),
                                     y = NULL) {
   phylo_start <- gaussian_phylo_start(y, phylo_mu)
   list(
+    beta_nu = 0,
     beta_mu1 = 0,
     beta_mu2 = 0,
     beta_sigma1 = 0,
@@ -1525,6 +1654,46 @@ gaussian_ls_dummy_start <- function(phylo_mu = empty_phylo_mu_structure(),
     u_phylo = phylo_start$u_phylo,
     log_sd_phylo = phylo_start$log_sd_phylo
   )
+}
+
+student_ls_start <- function(y, X_mu, X_sigma, X_nu) {
+  gaussian_start <- gaussian_ls_start(y, X_mu, X_sigma)
+  c(
+    list(
+      beta_mu = gaussian_start$beta_mu,
+      beta_sigma = gaussian_start$beta_sigma,
+      beta_nu = student_nu_start(y, X_mu, gaussian_start$beta_mu, X_nu)
+    ),
+    list(
+      beta_sd_mu = 0,
+      u_mu = 0,
+      log_sd_mu = 0,
+      eta_cor_mu = 0,
+      u_sigma = 0,
+      log_sd_sigma = 0,
+      beta_mu1 = 0,
+      beta_mu2 = 0,
+      beta_sigma1 = 0,
+      beta_sigma2 = 0,
+      beta_rho12 = 0,
+      u_phylo = 0,
+      log_sd_phylo = 0
+    )
+  )
+}
+
+student_nu_start <- function(y, X_mu, beta_mu, X_nu) {
+  resid <- y - as.vector(X_mu %*% beta_mu)
+  kurtosis <- mean((resid - mean(resid))^4) / stats::var(resid)^2
+  nu0 <- if (is.finite(kurtosis) && kurtosis > 3.1) {
+    4 + 6 / (kurtosis - 3)
+  } else {
+    10
+  }
+  nu0 <- max(min(nu0, 30), 3)
+  beta_nu <- numeric(ncol(X_nu))
+  beta_nu[[1L]] <- log(nu0 - 2)
+  beta_nu
 }
 
 gaussian_phylo_start <- function(y, phylo_mu) {
@@ -1641,6 +1810,7 @@ biv_gaussian_start <- function(y1, y2, X_mu1, X_mu2, X_sigma1, X_sigma2, X_rho12
     list(
       beta_mu = 0,
       beta_sigma = 0,
+      beta_nu = 0,
       beta_sd_mu = 0,
       u_mu = 0,
       log_sd_mu = 0,
@@ -1671,7 +1841,8 @@ gaussian_ls_map <- function(re_mu = empty_random_mu_structure(1L),
     beta_mu2 = factor(NA),
     beta_sigma1 = factor(NA),
     beta_sigma2 = factor(NA),
-    beta_rho12 = factor(NA)
+    beta_rho12 = factor(NA),
+    beta_nu = factor(NA)
   )
   if (!isTRUE(phylo_mu$has)) {
     out$u_phylo <- factor(NA)
@@ -1699,10 +1870,29 @@ gaussian_ls_map <- function(re_mu = empty_random_mu_structure(1L),
   out
 }
 
+student_ls_map <- function() {
+  list(
+    beta_sd_mu = factor(NA),
+    beta_mu1 = factor(NA),
+    beta_mu2 = factor(NA),
+    beta_sigma1 = factor(NA),
+    beta_sigma2 = factor(NA),
+    beta_rho12 = factor(NA),
+    u_mu = factor(NA),
+    log_sd_mu = factor(NA),
+    eta_cor_mu = factor(NA),
+    u_sigma = factor(NA),
+    log_sd_sigma = factor(NA),
+    u_phylo = factor(NA),
+    log_sd_phylo = factor(NA)
+  )
+}
+
 biv_gaussian_map <- function() {
   list(
     beta_mu = factor(NA),
     beta_sigma = factor(NA),
+    beta_nu = factor(NA),
     beta_sd_mu = factor(NA),
     u_mu = factor(NA),
     log_sd_mu = factor(NA),
@@ -1736,6 +1926,7 @@ make_tmb_data <- function(spec) {
       y2 = numeric(1),
       X_mu = spec$X$mu,
       X_sigma = spec$X$sigma,
+      X_nu = dummy_matrix,
       X_sd_mu = spec$random_scale$mu$X,
       has_sd_mu_model = as.integer(spec$random_scale$mu$n_models > 0L),
       X_mu1 = dummy_matrix,
@@ -1762,6 +1953,44 @@ make_tmb_data <- function(spec) {
       log_det_Q_phylo = if (isTRUE(phylo_mu$has)) phylo_mu$precision$log_det_precision else 0
     ))
   }
+  if (identical(spec$model_type, "student")) {
+    return(list(
+      model_type = 3L,
+      y = spec$y,
+      V_known = spec$V_known_diag,
+      V_known_matrix = dummy_matrix,
+      V_known_type = 0L,
+      y1 = numeric(1),
+      y2 = numeric(1),
+      X_mu = spec$X$mu,
+      X_sigma = spec$X$sigma,
+      X_nu = spec$X$nu,
+      X_sd_mu = dummy_matrix,
+      has_sd_mu_model = 0L,
+      X_mu1 = dummy_matrix,
+      X_mu2 = dummy_matrix,
+      X_sigma1 = dummy_matrix,
+      X_sigma2 = dummy_matrix,
+      X_rho12 = dummy_matrix,
+      n_mu_re_terms = 0L,
+      n_mu_re_cors = 0L,
+      mu_re_index = matrix(0L, nrow = 1L, ncol = 1L),
+      mu_re_value = dummy_matrix,
+      mu_re_term = 0L,
+      mu_re_pos = 0L,
+      mu_re_cor_id = -1L,
+      mu_re_pair_index = -1L,
+      mu_re_sd_row = -1L,
+      n_sigma_re_terms = 0L,
+      sigma_re_index = matrix(0L, nrow = 1L, ncol = 1L),
+      sigma_re_value = dummy_matrix,
+      sigma_re_term = 0L,
+      has_phylo_mu = 0L,
+      phylo_mu_node_index = 0L,
+      Q_phylo = dummy_sparse,
+      log_det_Q_phylo = 0
+    ))
+  }
   list(
     model_type = 2L,
     y = numeric(1),
@@ -1774,6 +2003,7 @@ make_tmb_data <- function(spec) {
     y2 = spec$y2,
     X_mu = dummy_matrix,
     X_sigma = dummy_matrix,
+    X_nu = dummy_matrix,
     X_sd_mu = dummy_matrix,
     has_sd_mu_model = 0L,
     X_mu1 = spec$X$mu1,
@@ -1802,12 +2032,18 @@ make_tmb_data <- function(spec) {
 }
 
 split_tmb_parameters <- function(par, spec) {
-  if (identical(spec$model_type, "gaussian")) {
+  if (identical(spec$model_type, "gaussian") || identical(spec$model_type, "student")) {
     beta_mu <- unname(par$beta_mu)
     beta_sigma <- unname(par$beta_sigma)
     names(beta_mu) <- colnames(spec$X$mu)
     names(beta_sigma) <- colnames(spec$X$sigma)
     out <- list(mu = beta_mu, sigma = beta_sigma)
+    if (identical(spec$model_type, "student")) {
+      beta_nu <- unname(par$beta_nu)
+      names(beta_nu) <- colnames(spec$X$nu)
+      out$nu <- beta_nu
+      return(out)
+    }
     if (spec$random_scale$mu$n_models > 0L) {
       beta_sd_mu <- unname(par$beta_sd_mu[seq_len(ncol(spec$random_scale$mu$X))])
       for (dpar in spec$random_scale$mu$dpars) {

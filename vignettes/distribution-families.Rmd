@@ -21,6 +21,39 @@ The current planning reference is `docs/design/06-distribution-roadmap.md`.
 Meta-analysis is not listed as a separate family. It uses `family = gaussian()`
 with `meta_known_V(V = V)`.
 
+## Implemented continuous families
+
+Gaussian location-scale models use `mu` and `sigma`:
+
+```r
+drmTMB(
+  bf(y ~ temperature, sigma ~ treatment),
+  family = gaussian(),
+  data = dat
+)
+```
+
+Student-t location-scale-shape models add `nu`, the degrees-of-freedom or tail
+weight parameter:
+
+```text
+y_i | mu_i, sigma_i, nu_i ~ Student-t(mu_i, sigma_i, nu_i)
+nu_i = 2 + exp(eta_nu_i)
+```
+
+```r
+drmTMB(
+  bf(y ~ temperature, sigma ~ treatment, nu ~ 1),
+  family = student(),
+  data = dat
+)
+```
+
+Use this first Student-t path when a continuous response is mostly well
+described by a location-scale model but has heavier-tailed residuals than a
+Gaussian model. Random effects, meta-analytic known covariance, phylogenetic
+terms, and bivariate Student-t models are planned later.
+
 For bivariate models, the preferred public direction is to combine response
 families:
 

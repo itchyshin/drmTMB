@@ -249,7 +249,45 @@ Implementation notes:
 In meta-analysis prose, `sigma` is the extra heterogeneity SD traditionally
 called `tau`. The public API still uses `sigma` for consistency.
 
-## Planned Bivariate Meta-Analytic Gaussian Regression
+## Implemented Student-t Location-Scale-Shape
+
+The first robust continuous likelihood is fixed-effect Student-t regression:
+
+```text
+y_i | mu_i, sigma_i, nu_i ~ Student-t(mu_i, sigma_i, nu_i)
+eta_mu_i = X_mu[i, ] beta_mu
+eta_sigma_i = X_sigma[i, ] beta_sigma
+eta_nu_i = X_nu[i, ] beta_nu
+mu_i = eta_mu_i
+sigma_i = exp(eta_sigma_i)
+nu_i = 2 + exp(eta_nu_i)
+```
+
+The TMB likelihood includes all Student-t normalizing constants:
+
+```text
+z_i = (y_i - mu_i) / sigma_i
+log f(y_i) =
+  lgamma((nu_i + 1) / 2) - lgamma(nu_i / 2)
+  - 0.5 log(nu_i pi) - log(sigma_i)
+  - 0.5 (nu_i + 1) log(1 + z_i^2 / nu_i)
+```
+
+Matching R syntax:
+
+```r
+drmTMB(
+  bf(y ~ x1, sigma ~ x2, nu ~ x3),
+  family = student(),
+  data = dat
+)
+```
+
+This first implementation deliberately rejects random effects, known sampling
+covariance, phylogenetic terms, and bivariate Student-t families until the
+fixed-effect likelihood and recovery tests remain stable.
+
+## Implemented Bivariate Meta-Analytic Gaussian Regression
 
 Bivariate meta-analysis must add known sampling covariance to the bivariate
 Gaussian location-coscale likelihood. For observation or study `i`:
@@ -285,14 +323,15 @@ y_stack ~ MVN(mu_stack, V_stack + Omega_stack)
 where `V_stack` is the supplied known sampling covariance and `Omega_stack`
 contains the fitted `sigma1`, `sigma2`, and `rho12` blocks.
 
-The first implementation should:
+The current implementation:
 
-- require complete bivariate rows;
-- accept a `2n` by `2n` dense or block-diagonal `V` in row-paired order;
-- reject duplicate `meta_known_V()` markers across `mu1` and `mu2`;
-- provide a helper to build the common block-diagonal `V` from `v1`, `v2`, and
+- requires complete bivariate rows;
+- accepts a `2n` by `2n` dense or block-diagonal `V` in row-paired order;
+- rejects duplicate `meta_known_V()` markers across `mu1` and `mu2`;
+- provides `meta_vcov_bivariate()` to build the common block-diagonal `V` from
+  `v1`, `v2`, and
   either `cov12` or `cor12`;
-- document sensitivity analysis when within-study correlations are unknown.
+- documents sensitivity analysis when within-study correlations are unknown.
 
 ## Implemented Bivariate Gaussian Location-Coscale
 

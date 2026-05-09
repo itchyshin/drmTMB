@@ -31,6 +31,7 @@ phylo_prior_tmb_data <- function(precision) {
     y2 = numeric(1),
     X_mu = dummy_matrix,
     X_sigma = dummy_matrix,
+    X_nu = dummy_matrix,
     X_sd_mu = dummy_matrix,
     has_sd_mu_model = 0L,
     X_mu1 = dummy_matrix,
@@ -62,6 +63,7 @@ phylo_prior_tmb_parameters <- function(effect, log_sd) {
   list(
     beta_mu = 0,
     beta_sigma = 0,
+    beta_nu = 0,
     beta_sd_mu = 0,
     beta_mu1 = 0,
     beta_mu2 = 0,
