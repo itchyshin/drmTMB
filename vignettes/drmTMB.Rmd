@@ -16,8 +16,8 @@ pair symbolic equations with the R syntax that fits them. The current
 implementation includes Gaussian location-scale models with fixed effects,
 location random effects, residual-scale random intercepts, and group-level
 random-effect scale formulae such as `sd(id) ~ x_group`. It also includes
-fixed-effect Student-t, lognormal, Gamma, Poisson, zero-inflated Poisson, NB2,
-and zero-inflated NB2 models, known-covariance Gaussian meta-analysis,
+fixed-effect Student-t, lognormal, Gamma, beta, Poisson, zero-inflated Poisson,
+NB2, and zero-inflated NB2 models, known-covariance Gaussian meta-analysis,
 intercept-only phylogenetic Gaussian location effects, and fixed-effect
 bivariate Gaussian location-coscale models with `rho12 ~ predictors`. The
 article "Choosing response families" gives the broader implemented family map.

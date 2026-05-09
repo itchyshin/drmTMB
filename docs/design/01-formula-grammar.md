@@ -46,6 +46,7 @@ Use three status words consistently across documentation:
 | `y ~ x1`, `sigma ~ x1`, `nu ~ x2` | Implemented | Fixed-effect univariate Student-t location-scale-shape model. Random effects, known sampling covariance, phylogenetic terms, and bivariate Student-t models are later. |
 | `y ~ x1`, `sigma ~ x1`, `family = lognormal()` | Implemented | Fixed-effect univariate lognormal model for positive responses; `mu` and `sigma` are on the log-response scale. |
 | `y ~ x1`, `sigma ~ x1`, `family = Gamma(link = "log")` | Implemented | Fixed-effect univariate Gamma mean-CV model for positive responses; `mu` is the response mean and `sigma` is the coefficient of variation. |
+| `y ~ x1`, `sigma ~ x2`, `family = beta()` | Implemented | Fixed-effect beta mean-scale model for strict continuous proportions in `(0, 1)`; public `sigma` maps internally to `phi = 1 / sigma^2`. |
 | `y ~ x1`, `family = poisson(link = "log")` | Implemented | Fixed-effect univariate Poisson mean model for non-negative integer counts. |
 | `y ~ x1`, `zi ~ x2`, `family = poisson(link = "log")` | Implemented | Fixed-effect zero-inflated Poisson model; `mu` is the conditional count mean, `zi` is the structural-zero probability, and `fitted()` returns `(1 - zi) * mu`. |
 | `y ~ x1`, `sigma ~ x1`, `family = nbinom2()` | Implemented | Fixed-effect univariate negative-binomial 2 model for overdispersed counts; `sigma` is an overdispersion scale in `Var(y) = mu + sigma^2 * mu^2`. |
@@ -58,7 +59,6 @@ Use three status words consistently across documentation:
 | `family = c(gaussian(), gaussian())` | Implemented | Public bivariate Gaussian family direction; mixed composed families are planned. |
 | `mvbind(y1, y2) ~ x1` | Implemented | Shorthand for identical bivariate location formulas; explicit `mu1`/`mu2` remains preferred for different predictors. |
 | `phylo(1 | species, tree = tree)` in `mu` | Implemented | Intercept-only univariate Gaussian phylogenetic location effect; requires an ultrametric tree with branch lengths. |
-| `y ~ x1`, `sigma ~ x2`, `family = beta()` | Planned | Strict continuous proportions in `(0, 1)` with public `sigma`; internally `phi = 1 / sigma^2`. |
 | `cbind(successes, failures) ~ x1`, `family = beta_binomial()` | Planned | Denominator-preserving percentage/count syntax candidate; a successes/trials interface is another candidate. |
 | `y ~ x1`, `sigma ~ x2`, `family = truncated_nbinom2()` | Planned | Positive-count NB2 model where `mu` and `sigma` describe the untruncated NB2 count component. |
 | `y ~ x1`, `sigma ~ x2`, `hu ~ x3`, `family = truncated_nbinom2()` | Planned | Hurdle NB2 grammar; `hu` is the hurdle-zero probability and nonzero counts come from a zero-truncated count distribution. |
@@ -406,6 +406,7 @@ family = gaussian()
 family = student()
 family = lognormal()
 family = Gamma(link = "log")
+family = beta()
 family = poisson(link = "log")
 family = nbinom2()
 ```
@@ -413,7 +414,6 @@ family = nbinom2()
 Planned univariate family syntax now includes:
 
 ```r
-family = beta()
 family = beta_binomial()
 family = truncated_nbinom2()
 family = cumulative_logit()

@@ -27,6 +27,8 @@ The implemented families use these parameter meanings:
 | Lognormal | `sigma` | log | standard deviation of `log(y)` |
 | Gamma | `mu` | log | arithmetic mean of `y` |
 | Gamma | `sigma` | log | coefficient of variation; residual SD is `mu * sigma` |
+| Beta | `mu` | logit | arithmetic mean of the strict proportion response |
+| Beta | `sigma` | log | public scale; internal precision is `phi = 1 / sigma^2` |
 | Poisson | `mu` | log | arithmetic mean and variance of the count response |
 | Zero-inflated Poisson | `mu` | log | conditional Poisson mean |
 | Zero-inflated Poisson | `zi` | logit | structural-zero probability |
@@ -72,6 +74,7 @@ Gaussian:   predict(mu) = E[y] = fitted()
 Student-t:  predict(mu) = location; fitted() currently returns mu
 Lognormal:  predict(mu) = E[log(y)]; fitted() = exp(mu + sigma^2 / 2)
 Poisson:    predict(mu) = E[y] = fitted()
+Beta:       predict(mu) = E[y] = fitted()
 ZIP:        predict(mu) = conditional count mean; fitted() = (1 - zi) * mu
 NB2:        predict(mu) = E[y] = fitted()
 ZINB2:      predict(mu) = conditional count mean; fitted() = (1 - zi) * mu
@@ -212,7 +215,7 @@ Zero-inflated negative binomial 2:
              zi_i (1 - zi_i) mu_i^2
 ```
 
-## Candidate Beta Proportion Contract
+## Implemented Beta Proportion Contract
 
 For continuous proportions, `mu` should live in `(0, 1)`:
 
@@ -261,9 +264,9 @@ Therefore an intercept-only precision coefficient from a mean-precision
 package corresponds to `beta_sigma = -0.5 * beta_phi`. Slope coefficients have
 the same `-0.5` multiplier when the linear predictors use the same columns.
 
-The beta implementation should reject `y <= 0`, `y >= 1`, non-finite responses,
-and missing or unsupported denominator syntax. Boundary responses should be
-handled later through zero/one-inflated beta or ordered beta models.
+The implemented beta path rejects `y <= 0`, `y >= 1`, non-finite responses,
+and unsupported denominator syntax. Boundary responses should be handled later
+through zero/one-inflated beta or ordered beta models.
 
 Do not add `phi ~` as a second public grammar without a design decision,
 because `sigma` is the package's stable scale name.

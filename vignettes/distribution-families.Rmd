@@ -121,6 +121,36 @@ first implementation requires `stats::Gamma(link = "log")`; `stats::Gamma()`
 with its default inverse link is rejected, and `drmTMB` does not export
 `gamma()` because `base::gamma()` already exists.
 
+Beta mean-scale models are implemented for continuous responses strictly
+inside `(0, 1)`, such as continuously measured cover proportions or rates that
+are not generated as successes out of known trials:
+
+```text
+y_i | mu_i, sigma_i ~ Beta(alpha_i, beta_i)
+logit(mu_i) = beta_0 + beta_1 habitat_i
+log(sigma_i) = gamma_0 + gamma_1 treatment_i
+phi_i = 1 / sigma_i^2
+alpha_i = mu_i phi_i
+beta_i = (1 - mu_i) phi_i
+E[y_i] = mu_i
+Var[y_i] = mu_i (1 - mu_i) sigma_i^2 / (1 + sigma_i^2)
+```
+
+```r
+drmTMB(
+  bf(cover ~ habitat, sigma ~ treatment),
+  family = beta(),
+  data = dat
+)
+```
+
+For this family, `predict(fit, dpar = "mu")` and `fitted(fit)` return the mean
+proportion. `sigma(fit)` returns the public scale parameter, not beta
+precision; internally `phi = 1 / sigma^2`, so larger `sigma` means more
+variation around the mean. Responses equal to 0 or 1 need a later
+zero/one-inflated beta or ordered-beta route. Percentages derived from counts
+should wait for `beta_binomial()` so the denominator remains part of the data.
+
 Poisson mean models are implemented for count responses:
 
 ```text
@@ -226,37 +256,6 @@ The families in this section are roadmap syntax, not supported fitting paths
 yet. They are included here so users and contributors can see the intended
 grammar before implementation begins.
 
-The next proportion family should be `beta()` for continuous responses strictly
-inside `(0, 1)`, such as a continuously measured cover proportion or a rate
-that is not generated as successes out of known trials. The planned public
-grammar uses `sigma`, not `phi`, so the scale formula reads like the rest of
-`drmTMB`:
-
-```text
-y_i | mu_i, sigma_i ~ Beta(alpha_i, beta_i)
-logit(mu_i) = beta_0 + beta_1 habitat_i
-log(sigma_i) = gamma_0 + gamma_1 treatment_i
-phi_i = 1 / sigma_i^2
-alpha_i = mu_i phi_i
-beta_i = (1 - mu_i) phi_i
-E[y_i] = mu_i
-Var[y_i] = mu_i (1 - mu_i) / (phi_i + 1)
-```
-
-```r
-drmTMB(
-  bf(cover ~ habitat, sigma ~ treatment),
-  family = beta(),
-  data = dat
-)
-```
-
-Here larger `sigma` means more variation around the mean proportion. This is
-the opposite direction from beta precision, because `phi = 1 / sigma^2`.
-Once implemented, `fitted()` should return `mu`. Responses equal to 0 or 1
-will need a zero/one-inflated beta or ordered-beta route rather than the first
-strict beta implementation.
-
 Percentages derived from counts should keep their denominator. The planned
 route is a binomial or beta-binomial syntax rather than converting the
 response to a continuous percentage. The public denominator syntax is not
@@ -343,10 +342,10 @@ Bivariate ordinal and mixed-response correlation models remain research
 features because the latent correlation and residual `rho12` interpretation
 need dedicated simulation tests.
 
-The practical next-family order is `beta()`, `truncated_nbinom2()`, hurdle
-NB2 via `hu`, and then univariate ordinal models. COM-Poisson and generalized
-Poisson remain valuable, but they should wait until the mean-dispersion
-contract and comparator checks are designed.
+The practical next-family order is `truncated_nbinom2()`, hurdle NB2 via `hu`,
+and then univariate ordinal models. COM-Poisson and generalized Poisson remain
+valuable, but they should wait until the mean-dispersion contract and
+comparator checks are designed.
 
 ## Bivariate Gaussian families
 

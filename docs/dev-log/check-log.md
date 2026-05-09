@@ -4943,3 +4943,100 @@ Team learning:
   same patch as any roadmap article;
 - user-facing planned examples need an explicit non-runnable warning when they
   look like ordinary `drmTMB()` calls.
+
+## 2026-05-09 — Fixed-Effect Beta Mean-Scale Family
+
+Task: implement the strict continuous-proportion `beta()` family with `mu` and
+public `sigma` formulas.
+
+Implemented:
+
+- added exported `beta()` family constructor with `dpars = c("mu", "sigma")`
+  and links `mu = "logit"`, `sigma = "log"`;
+- added `drm_build_beta_ls_spec()` for fixed-effect univariate beta models,
+  including strict `(0, 1)` response validation after missing-row filtering,
+  default `sigma ~ 1`, starting values, and unsupported-grammar checks;
+- added TMB `model_type = 10` beta likelihood with
+  `phi = 1 / sigma^2`, `alpha = mu * phi`, and
+  `beta_shape = (1 - mu) * phi`;
+- updated `predict()`, `fitted()`, `sigma()`, `simulate()`, `residuals()`,
+  `print()`, and the internal family-link table for beta models;
+- added simulation recovery, independent `stats::dbeta()` likelihood,
+  response-scale method, complete-case, factor-predictor, edge-scale, and
+  unsupported-input tests;
+- synchronized README, NEWS, pkgdown reference, formula grammar, family
+  registry, likelihood design, family-link contract, source map, response
+  family article, testing guide, and roadmap.
+
+Commands run:
+
+- `Rscript -e "parse('R/drmTMB.R'); parse('R/methods.R')"`
+- `Rscript -e "devtools::load_all()"` (first run failed on `log1p()` in the
+  TMB beta branch; rerun passed after replacing it with AD-safe `log(1 - y)`)
+- `Rscript -e "devtools::test(filter = 'beta|family-link-contract')"` (first
+  run caught an exact-boundary beta quantile in an edge test and a parser-level
+  unsupported-parameter error message; rerun passed)
+- `Rscript -e "devtools::test(filter = 'gamma-location-scale')"`
+- `Rscript -e "devtools::document()"`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `air format .` (failed: `air` is not installed locally)
+- `Rscript -e "devtools::test()"`
+- `git diff --check`
+- `Rscript -e "pkgdown::build_site()"`
+- `Rscript tools/fix-pkgdown-favicon-mime.R pkgdown-site`
+- `Rscript -e "devtools::check()"`
+- `rg -n 'future beta|planned beta|Candidate Beta|beta\(\).*Planned|Next family sequence: `beta\(\)`|before adding beta|not supported fitting paths.*beta|Once implemented.*beta|beta\(\).*roadmap syntax' README.md ROADMAP.md NEWS.md docs vignettes R tests pkgdown-site --glob '!docs/dev-log/**' --glob '!pkgdown-site/search.json'`
+- `rg -n 'Beta mean-scale|model_type = 10|family = beta\(\)|strict continuous proportions|phi = 1 / sigma\^2' README.md ROADMAP.md NEWS.md DESCRIPTION _pkgdown.yml docs/design vignettes pkgdown-site/articles pkgdown-site/reference/beta.html pkgdown-site/news/index.html R tests/testthat --glob '!docs/dev-log/**' --glob '!pkgdown-site/search.json'`
+- `rg -n 'type="”|drmTMB_v25|trancated|lue distribution|old hex|man/figures/logo.png' README.md docs vignettes pkgdown-site --glob '!docs/dev-log/**' --glob '!pkgdown-site/search.json'`
+
+Results:
+
+- targeted beta and family-link tests: 103 passed, 0 failed, 0 warnings,
+  0 skips;
+- post-documentation-refresh targeted beta and family-link tests: 103 passed,
+  0 failed, 0 warnings, 0 skips;
+- Gamma neighbour regression test: 54 passed, 0 failed, 0 warnings, 0 skips;
+- full `devtools::test()`: 1043 passed, 0 failed, 0 warnings, 0 skips;
+- `pkgdown::check_pkgdown()`: no problems found;
+- `pkgdown::build_site()`: completed successfully;
+- favicon post-processing completed successfully;
+- post-documentation-refresh `pkgdown::check_pkgdown()`: no problems found;
+- post-documentation-refresh `devtools::check()`: 0 errors, 0 warnings,
+  0 notes;
+- `git diff --check`: clean;
+- stale-wording scan found no active non-dev-log docs still describing
+  `beta()` as planned, future, or roadmap-only;
+- positive consistency scan found beta implemented wording in the README,
+  NEWS, ROADMAP, design docs, vignettes, generated pkgdown article pages,
+  `reference/beta.html`, and `news/index.html`;
+- logo/favicon stale scan found no old-logo or malformed favicon wording hits.
+
+Tests of the tests:
+
+- independent likelihood test compares fitted `logLik()` to
+  `stats::dbeta()` using the documented transform `phi = 1 / sigma^2`;
+- complete-case test verifies boundary 0/1 rows are dropped before strict beta
+  response validation when their predictors are missing;
+- unsupported-input tests check boundary responses, `phi ~`, `nu ~`, duplicate
+  `sigma`, response-less formulas, random effects, `sd(id)`, `meta_known_V()`,
+  `mvbind()`, and `cbind(successes, failures)` denominator syntax;
+- the first beta edge test failed before correction because deterministic
+  quantiles for a very diffuse beta case reached exact machine boundaries.
+
+Known limitations:
+
+- beta models are fixed-effect, univariate, and strict `(0, 1)` only;
+- random effects, known sampling covariance, phylogenetic/spatial terms,
+  bivariate or mixed beta responses, zero/one inflation, ordered beta, and
+  beta-binomial denominator syntax remain later phases;
+- the C++ likelihood uses `log(1 - y)` rather than `log1p(-y)` because the
+  local TMB autodiff type did not compile with plain `log1p()`.
+
+Team learning:
+
+- Curie's likelihood checklist caught the exact parameter transform and dummy
+  TMB-data requirements before implementation;
+- Meitner's test plan caught the most important boundary and method paths;
+- Rose's after-task audit should keep checking generated pkgdown pages, not
+  only source docs, because reference and news pages are where stale status
+  often survives.

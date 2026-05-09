@@ -19,7 +19,7 @@ The corresponding R density call uses standard deviation, as in
 ## Implemented TMB Routing
 
 The R builders use descriptive model labels, such as `"gaussian"`,
-`"student"`, `"lognormal"`, `"gamma"`, `"poisson"`, `"zi_poisson"`,
+`"student"`, `"lognormal"`, `"gamma"`, `"beta"`, `"poisson"`, `"zi_poisson"`,
 `"nbinom2"`, `"zi_nbinom2"`, and `"biv_gaussian"`. Before calling the TMB template, `make_tmb_data()` turns
 those labels into integer branches in `src/drmTMB.cpp`. Unknown labels are
 rejected before they can fall through to a wrong likelihood branch. This table
@@ -36,6 +36,7 @@ is the current routing contract:
 | `7` | `family = nbinom2()` | `drm_build_nbinom2_spec()` | Univariate fixed-effect negative-binomial 2 models for overdispersed counts, with `mu` as the count mean and `sigma` as an overdispersion scale. |
 | `8` | `family = poisson(link = "log")` plus `zi ~ ...` | `drm_build_poisson_spec()` | Univariate fixed-effect zero-inflated Poisson models, with `mu` as the conditional count mean and `zi` as the structural-zero probability. |
 | `9` | `family = nbinom2()` plus `zi ~ ...` | `drm_build_nbinom2_spec()` | Univariate fixed-effect zero-inflated negative-binomial 2 models, with `mu` as the conditional count mean, `sigma` as the NB2 overdispersion scale, and `zi` as the structural-zero probability. |
+| `10` | `family = beta()` | `drm_build_beta_ls_spec()` | Univariate fixed-effect beta mean-scale models for strict continuous proportions, with `mu` as the mean proportion and public `sigma` mapped internally to `phi = 1 / sigma^2`. |
 | `99` | no public route | direct test construction only | Hidden phylogenetic precision-prior parity branch used to test the sparse augmented A-inverse objective in isolation. |
 
 The hidden `model_type = 99` branch is not a family and should not appear in
@@ -398,6 +399,49 @@ residual standard deviation; the fitted residual standard deviation is
 `mu_i * sigma_i`. The response must be positive and finite after missing-row
 filtering. Random effects, known sampling covariance, phylogenetic terms, and
 bivariate or mixed Gamma models are later phases.
+
+## Implemented Beta Mean-Scale
+
+The first beta path is fixed-effect mean-scale regression for strict
+continuous proportions:
+
+```text
+y_i | mu_i, sigma_i ~ Beta(alpha_i, beta_i)
+eta_mu_i = X_mu[i, ] beta_mu
+eta_sigma_i = X_sigma[i, ] beta_sigma
+mu_i = logit^{-1}(eta_mu_i)
+sigma_i = exp(eta_sigma_i)
+phi_i = 1 / sigma_i^2
+alpha_i = mu_i phi_i
+beta_i = (1 - mu_i) phi_i
+E[y_i] = mu_i
+Var[y_i] = mu_i (1 - mu_i) sigma_i^2 / (1 + sigma_i^2)
+```
+
+The TMB likelihood is:
+
+```text
+log f(y_i) =
+  log Gamma(phi_i) - log Gamma(alpha_i) - log Gamma(beta_i) +
+  (alpha_i - 1) log(y_i) + (beta_i - 1) log(1 - y_i)
+```
+
+Matching R syntax:
+
+```r
+drmTMB(
+  bf(prop ~ habitat, sigma ~ treatment),
+  family = beta(),
+  data = dat
+)
+```
+
+For beta fits, `predict(fit, dpar = "mu")` and `fitted(fit)` return the mean
+proportion. `sigma(fit)` returns the public scale parameter, not beta
+precision; internally `phi_i = 1 / sigma_i^2`. The response must be finite and
+strictly between 0 and 1 after missing-row filtering. Boundary responses,
+denominator syntax, random effects, known sampling covariance, phylogenetic
+terms, and bivariate or mixed beta models are later phases.
 
 ## Implemented Poisson Mean
 

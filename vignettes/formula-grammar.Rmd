@@ -32,6 +32,7 @@ should currently give a clear unsupported-feature error rather than a fit.
 | `y ~ x1 + x2`, `sigma ~ x1`, `nu ~ x2` | Implemented | Fixed-effect univariate Student-t location-scale-shape model. |
 | `y ~ x1 + x2`, `sigma ~ x1`, `family = lognormal()` | Implemented | Fixed-effect univariate lognormal model for positive responses; `mu` and `sigma` are on the log-response scale. |
 | `y ~ x1 + x2`, `sigma ~ x1`, `family = Gamma(link = "log")` | Implemented | Fixed-effect univariate Gamma mean-CV model for positive responses; `mu` is the response mean and `sigma` is the coefficient of variation. |
+| `y ~ x1 + x2`, `sigma ~ x1`, `family = beta()` | Implemented | Fixed-effect beta mean-scale model for strict continuous proportions in `(0, 1)`; public `sigma` maps internally to `phi = 1 / sigma^2`. |
 | `y ~ x1 + x2`, `family = poisson(link = "log")` | Implemented | Fixed-effect univariate Poisson mean model for non-negative integer counts. |
 | `y ~ x1 + x2`, `zi ~ x1`, `family = poisson(link = "log")` | Implemented | Fixed-effect zero-inflated Poisson model; `mu` is the conditional count mean and `zi` is the structural-zero probability. |
 | `y ~ x1 + x2`, `sigma ~ x1`, `family = nbinom2()` | Implemented | Fixed-effect univariate negative-binomial 2 model for overdispersed counts; `sigma` is an overdispersion scale. |
@@ -48,7 +49,6 @@ should currently give a clear unsupported-feature error rather than a fit.
 | `biv_gaussian()` | Implemented legacy helper | Kept for compatibility while composed families become the public direction. |
 | `mvbind(y1, y2) ~ x1` | Implemented | Shorthand for identical bivariate location formulas; explicit `mu1`/`mu2` remains preferred for different predictors. |
 | `phylo(1 | species, tree = tree)` in `mu` | Implemented | Intercept-only univariate Gaussian phylogenetic location effect; requires an ultrametric tree with branch lengths. |
-| `y ~ x1 + x2`, `sigma ~ x1`, `family = beta()` | Planned | Strict continuous proportions in `(0, 1)` with public `sigma`; internally `phi = 1 / sigma^2`. |
 | `cbind(successes, failures) ~ x1`, `family = beta_binomial()` | Planned | Denominator-preserving percentage/count syntax candidate; a successes/trials interface is another candidate. |
 | `y ~ x1 + x2`, `sigma ~ x1`, `family = truncated_nbinom2()` | Planned | Positive-count NB2 model where `mu` and `sigma` describe the untruncated NB2 count component. |
 | `y ~ x1 + x2`, `sigma ~ x1`, `hu ~ x2`, `family = truncated_nbinom2()` | Planned | Hurdle NB2 grammar; `hu` is the hurdle-zero probability and nonzero counts come from a zero-truncated count distribution. |

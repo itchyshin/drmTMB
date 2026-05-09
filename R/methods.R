@@ -6,6 +6,7 @@ print.drmTMB <- function(x, ...) {
     student = "Student-t location-scale-shape",
     lognormal = "Lognormal location-scale",
     gamma = "Gamma mean-CV",
+    beta = "Beta mean-scale",
     poisson = "Poisson mean",
     zi_poisson = "zero-inflated Poisson mean",
     nbinom2 = "negative binomial 2 mean-dispersion",
@@ -126,7 +127,7 @@ rho12.drmTMB <- function(object, newdata = NULL,
 #' Extract fitted response values
 #'
 #' `fitted()` returns fitted response values from a `drmTMB` model. For
-#' univariate Gaussian, Student-t, Gamma, ordinary Poisson, and
+#' univariate Gaussian, Student-t, Gamma, beta, ordinary Poisson, and
 #' negative-binomial fits this is the fitted `mu` vector. For zero-inflated
 #' Poisson and zero-inflated negative-binomial 2 fits this is the unconditional
 #' response mean `(1 - zi) * mu`, where `mu` is the conditional count mean. For
@@ -289,8 +290,10 @@ predict.drmTMB <- function(object, newdata = NULL, dpar = NULL,
 #' plus the fitted residual scale. For Student-t models, simulation uses fitted
 #' `mu`, `sigma`, and `nu`. For lognormal models, simulation uses fitted
 #' log-scale `mu` and `sigma`. For Gamma models, simulation uses fitted mean
-#' `mu` and coefficient of variation `sigma`. For Poisson models, simulation
-#' uses the fitted mean `mu`. For zero-inflated Poisson models, simulation uses
+#' `mu` and coefficient of variation `sigma`. For beta models, simulation uses
+#' fitted mean `mu` and public scale `sigma` with internal
+#' `phi = 1 / sigma^2`. For Poisson models, simulation uses the fitted mean
+#' `mu`. For zero-inflated Poisson models, simulation uses
 #' fitted conditional mean `mu` and structural-zero probability `zi`. For
 #' negative-binomial 2 models, simulation uses fitted `mu` and overdispersion
 #' scale `sigma`, with `Var(y) = mu + sigma^2 * mu^2`; the zero-inflated NB2
@@ -357,6 +360,20 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, ...) {
     shape <- 1 / sigma^2
     scale <- mu * sigma^2
     sims <- replicate(nsim, stats::rgamma(length(mu), shape = shape, scale = scale))
+    sims <- as.data.frame(sims)
+    names(sims) <- paste0("sim_", seq_len(nsim))
+    return(sims)
+  }
+
+  if (identical(object$model$model_type, "beta")) {
+    mu <- predict(object, dpar = "mu")
+    sigma <- predict(object, dpar = "sigma")
+    phi <- 1 / sigma^2
+    sims <- replicate(nsim, stats::rbeta(
+      length(mu),
+      shape1 = mu * phi,
+      shape2 = (1 - mu) * phi
+    ))
     sims <- as.data.frame(sims)
     names(sims) <- paste0("sim_", seq_len(nsim))
     return(sims)
@@ -520,6 +537,15 @@ residuals.drmTMB <- function(object, type = c("response", "pearson"), ...) {
     }
     return(response / (predict(object, dpar = "mu") * predict(object, dpar = "sigma")))
   }
+  if (identical(object$model$model_type, "beta")) {
+    mu <- predict(object, dpar = "mu")
+    sigma <- predict(object, dpar = "sigma")
+    response <- object$model$y - mu
+    if (type == "response") {
+      return(response)
+    }
+    return(response / sqrt(mu * (1 - mu) * sigma^2 / (1 + sigma^2)))
+  }
   if (identical(object$model$model_type, "poisson")) {
     mu <- predict(object, dpar = "mu")
     response <- object$model$y - mu
@@ -604,9 +630,11 @@ residuals.drmTMB <- function(object, type = c("response", "pearson"), ...) {
 #' Student-t scale parameter; when `nu > 2`, the residual standard deviation is
 #' `sigma * sqrt(nu / (nu - 2))`. For lognormal models this is the fitted
 #' standard deviation of `log(y)`. For Gamma models this is the fitted
-#' coefficient of variation. Poisson and zero-inflated Poisson models have no
-#' fitted residual scale parameter and return a fixed unit dispersion vector for
-#' consistency with base-R `sigma()` conventions. For negative-binomial 2 and
+#' coefficient of variation. For beta models this is the public scale parameter
+#' where internal precision is `phi = 1 / sigma^2`. Poisson and zero-inflated
+#' Poisson models have no fitted residual scale parameter and return a fixed
+#' unit dispersion vector for consistency with base-R `sigma()` conventions. For
+#' negative-binomial 2 and
 #' zero-inflated negative-binomial 2 models this is the fitted overdispersion
 #' scale in `Var(y | nonstructural) = mu + sigma^2 * mu^2`. For bivariate
 #' Gaussian models it returns a list with fitted `sigma1` and
@@ -633,6 +661,7 @@ sigma.drmTMB <- function(object, ...) {
       identical(object$model$model_type, "student") ||
       identical(object$model$model_type, "lognormal") ||
       identical(object$model$model_type, "gamma") ||
+      identical(object$model$model_type, "beta") ||
       identical(object$model$model_type, "nbinom2") ||
       identical(object$model$model_type, "zi_nbinom2")) {
     return(predict(object, dpar = "sigma"))
@@ -786,6 +815,9 @@ drm_fitted_response <- function(object) {
   if (identical(object$model$model_type, "gamma")) {
     return(predict.drmTMB(object, dpar = "mu"))
   }
+  if (identical(object$model$model_type, "beta")) {
+    return(predict.drmTMB(object, dpar = "mu"))
+  }
   if (identical(object$model$model_type, "poisson")) {
     return(predict.drmTMB(object, dpar = "mu"))
   }
@@ -831,6 +863,7 @@ drm_dpar_link <- function(object, dpar) {
     student = c(mu = "identity", sigma = "log", nu = "logm2"),
     lognormal = c(mu = "identity", sigma = "log"),
     gamma = c(mu = "log", sigma = "log"),
+    beta = c(mu = "logit", sigma = "log"),
     poisson = c(mu = "log"),
     zi_poisson = c(mu = "log", zi = "logit"),
     nbinom2 = c(mu = "log", sigma = "log"),

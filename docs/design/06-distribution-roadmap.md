@@ -15,6 +15,8 @@ simulation, and recovery tests.
   univariate path implemented for positive responses.
 - `Gamma(link = "log")`: `mu`, `sigma` as coefficient of variation;
   fixed-effect univariate path implemented for positive responses.
+- `beta()`: `mu`, `sigma` for strict continuous proportions; fixed-effect
+  univariate path implemented with `phi = 1 / sigma^2` internally.
 
 ## Tier 2: Bivariate Coscale
 
@@ -115,9 +117,10 @@ Percent data should be represented according to how the data were generated.
 Continuous proportions require a logit-linked `mu`; public scale naming should
 remain consistent with the rest of `drmTMB`.
 
-- `beta()`: continuous proportions in `(0, 1)` with `mu` and public `sigma`.
-  Internally `sigma` maps to beta precision through `phi = 1 / sigma^2`, so
-  larger `sigma` means more variance, not more precision.
+- `beta()`: implemented for continuous proportions in `(0, 1)` with `mu` and
+  public `sigma`. Internally `sigma` maps to beta precision through
+  `phi = 1 / sigma^2`, so larger `sigma` means more variance, not more
+  precision.
 - zero-inflated beta: extra zeros, using `zi ~ predictors` with `beta()`
   rather than a separate public constructor unless a later design decision says
   otherwise.
@@ -134,10 +137,10 @@ Recommended user guidance:
 - Use `beta()` for continuous rates strictly between 0 and 1.
 - Use zero/one-inflated beta or ordered beta when exact boundaries occur.
 
-Priority order after the implemented count seeds is therefore `beta()`,
+Priority order after the implemented `beta()` seed is therefore
 `truncated_nbinom2()`, hurdle NB2, then univariate ordinal models. This gives
-users a proportion model before the count-family tail grows too wide, while
-keeping every new family within a clear parameter-link contract.
+users the positive-count and bounded-score routes after the strict proportion
+path, while keeping every new family within a clear parameter-link contract.
 
 ## Tier 6: Positive Continuous Responses
 

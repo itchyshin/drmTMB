@@ -84,6 +84,37 @@ lognormal <- function() {
   )
 }
 
+#' Beta response family
+#'
+#' `beta()` defines a one-response distribution for continuous proportions
+#' strictly inside `(0, 1)`, with formulas for mean `mu` and scale `sigma`.
+#'
+#' The implemented contract is
+#' `logit(mu) = eta_mu`, `log(sigma) = eta_sigma`, and internal precision
+#' `phi = 1 / sigma^2`. Larger `sigma` therefore means more variation around
+#' the mean, not more precision.
+#'
+#' This helper masks [base::beta()] when `drmTMB` is attached. Use
+#' `base::beta()` for the mathematical beta function.
+#'
+#' @return A `drm_family` object.
+#' @export
+#'
+#' @examples
+#' beta()
+beta <- function() {
+  structure(
+    list(
+      name = "beta",
+      family = "beta",
+      n_response = 1L,
+      dpars = c("mu", "sigma"),
+      links = c(mu = "logit", sigma = "log")
+    ),
+    class = "drm_family"
+  )
+}
+
 #' Negative binomial 2 response family
 #'
 #' `nbinom2()` defines a one-response count distribution with formulas for the

@@ -167,11 +167,11 @@ E[y_i] = exp(mu_i + sigma_i^2 / 2)
 
 `predict(fit, dpar = "mu")` returns the mean of `log(y)`, while `fitted(fit)`
 returns the arithmetic mean of `y`. The implemented Gamma mean-CV route uses
-`log(mu)` so `mu` is positive and equal to `E[y]`. A future beta family will
-need `logit(mu)` because `mu` is a probability.
+`log(mu)` so `mu` is positive and equal to `E[y]`. The implemented beta
+mean-scale route uses `logit(mu)` because `mu` is a probability.
 
-Before adding a family with non-identity `mu`, update the family link contract
-and add tests for all three quantities:
+Before adding another family with non-identity `mu`, update the family link
+contract and add tests for all three quantities:
 
 ```text
 predict(type = "link")

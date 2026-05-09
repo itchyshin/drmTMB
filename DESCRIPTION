@@ -10,9 +10,10 @@ Description: Fast distributional regression models for univariate and
     bivariate responses using Template Model Builder. The current
     implementation focuses on Gaussian and Student-t location-scale models,
     known sampling covariance, phylogenetic location effects, random-effect
-    scale models, bivariate residual correlation, positive-continuous
-    families, and fixed-effect Poisson and negative-binomial count models,
-    including zero-inflation via formulae for structural-zero probability.
+    scale models, bivariate residual correlation, positive-continuous and
+    strict-proportion families, and fixed-effect Poisson and negative-binomial
+    count models, including zero-inflation via formulae for structural-zero
+    probability.
     Hurdle, truncated, skewness, and additional response-family models are
     staged for later phases.
 License: GPL (>= 3)

@@ -180,6 +180,33 @@ expect_equal(as.numeric(stats::logLik(fit)),
              tolerance = 1e-4)
 ```
 
+For beta mean-scale models, the always-available comparator is the base R
+`stats::dbeta()` density at the fitted coefficients. The public `sigma`
+parameter maps to precision as `phi = 1 / sigma^2`:
+
+```text
+logit(mu_i) = X_mu[i, ] beta_mu
+log(sigma_i) = X_sigma[i, ] beta_sigma
+phi_i = 1 / sigma_i^2
+alpha_i = mu_i phi_i
+beta_i = (1 - mu_i) phi_i
+```
+
+```{r beta-comparator-checks, eval = FALSE}
+eta_mu <- as.vector(fit$model$X$mu %*% coef(fit, "mu"))
+eta_sigma <- as.vector(fit$model$X$sigma %*% coef(fit, "sigma"))
+mu <- plogis(eta_mu)
+sigma <- exp(eta_sigma)
+phi <- 1 / sigma^2
+ll_independent <- sum(stats::dbeta(
+  fit$model$y,
+  shape1 = mu * phi,
+  shape2 = (1 - mu) * phi,
+  log = TRUE
+))
+expect_equal(as.numeric(logLik(fit)), ll_independent, tolerance = 1e-6)
+```
+
 ## Tier 2: simulation recovery
 
 Simulation recovery is the main internal validation source for new `drmTMB`

@@ -156,6 +156,35 @@ not the residual standard deviation; the residual standard deviation is
 covariance, phylogenetic terms, and bivariate or mixed Gamma models are later
 phases.
 
+## Implemented: Beta Mean-Scale
+
+`beta()` is the first strict-proportion family:
+
+```r
+family = beta()
+```
+
+The implemented model is fixed-effect, univariate, and requires response
+values strictly inside `(0, 1)`:
+
+```text
+y_i | mu_i, sigma_i ~ Beta(alpha_i, beta_i)
+logit(mu_i) = X_mu[i, ] beta_mu
+log(sigma_i) = X_sigma[i, ] beta_sigma
+phi_i = 1 / sigma_i^2
+alpha_i = mu_i phi_i
+beta_i = (1 - mu_i) phi_i
+E[y_i] = mu_i
+Var[y_i] = mu_i (1 - mu_i) sigma_i^2 / (1 + sigma_i^2)
+```
+
+Here `mu` is the mean proportion. `sigma` is the public scale parameter, not
+beta precision. Internally, `phi = 1 / sigma^2`, so larger `sigma` means more
+variation around the mean. Boundary responses equal to 0 or 1, denominator
+syntax such as `cbind(successes, failures)`, random effects, known sampling
+covariance, phylogenetic terms, and bivariate or mixed beta models are later
+phases.
+
 ## Implemented: Poisson Mean
 
 The first count path uses the existing R family constructor:

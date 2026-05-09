@@ -30,6 +30,7 @@ gaussian()                  -> drm_build_gaussian_ls_spec()
 student()                   -> drm_build_student_ls_spec()
 lognormal()                 -> drm_build_lognormal_ls_spec()
 Gamma(link = "log")         -> drm_build_gamma_ls_spec()
+beta()                      -> drm_build_beta_ls_spec()
 poisson(link = "log")       -> drm_build_poisson_spec()
 poisson(link = "log") + zi  -> drm_build_poisson_spec()
 nbinom2()                   -> drm_build_nbinom2_spec()
@@ -53,6 +54,7 @@ model_type = 6   univariate Poisson mean engine
 model_type = 7   univariate negative-binomial 2 mean-dispersion engine
 model_type = 8   univariate zero-inflated Poisson engine
 model_type = 9   univariate zero-inflated negative-binomial 2 engine
+model_type = 10  univariate beta mean-scale engine
 model_type = 99  internal phylogenetic prior helper used by tests
 ```
 
@@ -79,6 +81,7 @@ summaries to `drm_fitted_response()`. These helpers keep future non-identity
 | Student-t location-scale-shape | `drm_formula(y ~ x, sigma ~ z, nu ~ w)` | `student()` in `R/family.R`; `drm_build_student_ls_spec()` in `R/drmTMB.R` | `model_type = 3`; `nu = 2 + exp(eta_nu)` | `tests/testthat/test-student-location-scale.R` | `vignettes/robust-student.Rmd`, `docs/design/14-gamlss-parameter-names.md` |
 | Lognormal location-scale | `drm_formula(biomass ~ x, sigma ~ z)` | `lognormal()` in `R/family.R`; `drm_build_lognormal_ls_spec()` in `R/drmTMB.R` | `model_type = 4`; `log(y) ~ Normal(mu, sigma^2)` with the log-Jacobian term | `tests/testthat/test-lognormal-location-scale.R` | `vignettes/distribution-families.Rmd`, `docs/design/02-family-registry.md`, `docs/design/03-likelihoods.md` |
 | Gamma mean-CV | `drm_formula(biomass ~ x, sigma ~ z)` with `family = Gamma(link = "log")` | `drm_build_gamma_ls_spec()` in `R/drmTMB.R`; generic family object from `stats::Gamma(link = "log")` | `model_type = 5`; `shape = 1 / sigma^2`, `scale = mu * sigma^2` | `tests/testthat/test-gamma-location-scale.R` | `vignettes/distribution-families.Rmd`, `docs/design/02-family-registry.md`, `docs/design/03-likelihoods.md`, `docs/design/19-family-link-contract.md` |
+| Beta mean-scale | `drm_formula(prop ~ x, sigma ~ z)` with `family = beta()` | `beta()` in `R/family.R`; `drm_build_beta_ls_spec()` in `R/drmTMB.R` | `model_type = 10`; `mu = logit^{-1}(eta_mu)`, `phi = 1 / sigma^2`, `alpha = mu * phi`, `beta_shape = (1 - mu) * phi` | `tests/testthat/test-beta-location-scale.R` | `vignettes/distribution-families.Rmd`, `docs/design/02-family-registry.md`, `docs/design/03-likelihoods.md`, `docs/design/19-family-link-contract.md` |
 | Poisson mean | `drm_formula(count ~ x)` with `family = poisson(link = "log")` | `drm_build_poisson_spec()` in `R/drmTMB.R`; generic family object from `stats::poisson(link = "log")` | `model_type = 6`; `y ~ Poisson(mu)` with `mu = exp(X beta)` | `tests/testthat/test-poisson-mean.R` | `vignettes/distribution-families.Rmd`, `docs/design/02-family-registry.md`, `docs/design/03-likelihoods.md`, `docs/design/19-family-link-contract.md` |
 | Zero-inflated Poisson | `drm_formula(count ~ x, zi ~ z)` with `family = poisson(link = "log")` | `drm_build_poisson_spec()` in `R/drmTMB.R`; `zi` formula adds the structural-zero block | `model_type = 8`; `Pr(y = 0) = zi + (1 - zi) exp(-mu)` and `Pr(y > 0) = (1 - zi) Poisson(y \| mu)` | `tests/testthat/test-zi-poisson.R` | `vignettes/distribution-families.Rmd`, `docs/design/02-family-registry.md`, `docs/design/03-likelihoods.md`, `docs/design/19-family-link-contract.md` |
 | Negative-binomial 2 mean-dispersion | `drm_formula(count ~ x, sigma ~ z)` with `family = nbinom2()` | `nbinom2()` in `R/family.R`; `drm_build_nbinom2_spec()` in `R/drmTMB.R` | `model_type = 7`; `Var(y) = mu + sigma^2 * mu^2`, `size = 1 / sigma^2` | `tests/testthat/test-nbinom2-location-scale.R`, `tests/testthat/test-comparators.R` | `vignettes/distribution-families.Rmd`, `docs/design/02-family-registry.md`, `docs/design/03-likelihoods.md`, `docs/design/19-family-link-contract.md` |

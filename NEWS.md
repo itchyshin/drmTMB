@@ -1,6 +1,7 @@
 # drmTMB 0.0.0.9000
 
 * `bf()` now stores parsed formula entries for distributional parameters, including bivariate `rho12`, meta-analysis `meta_known_V(V = V)`, and random-effect scale syntax.
+* `beta()` now fits fixed-effect beta mean-scale models for strict continuous proportions in `(0, 1)`, using `logit(mu)`, `log(sigma)`, and internal precision `phi = 1 / sigma^2`; `fitted()` returns `mu` and `sigma(fit)` returns the public scale parameter.
 * `biv_gaussian()` now fits fixed-effect bivariate Gaussian location-scale-coscale models with separate `mu1`, `mu2`, `sigma1`, `sigma2`, and predictor-dependent `rho12` formulas.
 * `check_drm()` now provides a first-pass diagnostic table for optimizer convergence, fixed gradients, Hessian status, dropped rows, scale positivity, `rho12` boundaries, Student-t `nu` boundary behaviour, known sampling covariance summaries, random-effect replication, and weak random-slope design checks.
 * `drm_formula()` is now the primary formula constructor; `bf()` remains a short alias.
@@ -16,7 +17,7 @@
 * Gaussian `mu` random-effect correlations from correlated blocks are exposed as `corpars$mu`, keeping group-level labels such as `p` separate from residual bivariate `rho12`.
 * Profile-likelihood confidence intervals are documented as a planned inference phase with an explicit target namespace, such as `sd:mu:(1 | id)`, `cor:mu:cor((Intercept),x | id)`, and `fixef:rho12:(Intercept)`, plus boundary flags and nonlinear derived-quantity guidance.
 * `deviance()`, `df.residual()`, and `nobs()` now work for `drmTMB` fits, making base-R model summaries and comparison helpers more complete.
-* `fitted()` now returns family-specific response summaries: `mu` for implemented Gaussian-like, Gamma, Poisson, and NB2 mean models, the arithmetic response mean for lognormal models, `(1 - zi) * mu` for zero-inflated Poisson and zero-inflated NB2 models, and a two-column `mu1`/`mu2` matrix for bivariate Gaussian models.
+* `fitted()` now returns family-specific response summaries: `mu` for implemented Gaussian-like, Gamma, beta, Poisson, and NB2 mean models, the arithmetic response mean for lognormal models, `(1 - zi) * mu` for zero-inflated Poisson and zero-inflated NB2 models, and a two-column `mu1`/`mu2` matrix for bivariate Gaussian models.
 * `fixef()` now returns distributional fixed-effect coefficients and acts as a mixed-model-friendly alias for `coef()`.
 * `lognormal()` now fits fixed-effect univariate lognormal location-scale models for positive responses, with `mu` and `sigma` defined on the log-response scale, `fitted()` returning the arithmetic response mean, and simulation plus likelihood tests checked against `stats::dlnorm()`.
 * `meta_known_V(V = V)` now fits Gaussian meta-analysis with diagonal or dense full known sampling covariance using `family = gaussian()`.

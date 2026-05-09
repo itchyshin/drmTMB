@@ -2,7 +2,7 @@
 
 A fast TMB-based distributional regression package for broadly useful
 univariate and bivariate distributional regression. The current implementation
-starts with Gaussian, Student-t, lognormal, Gamma, Poisson, and negative
+starts with Gaussian, Student-t, lognormal, Gamma, beta, Poisson, and negative
 binomial models,
 known-covariance meta-analysis, phylogenetic location effects, random-effect
 scale models, and bivariate Gaussian residual-correlation models. The long-term
@@ -18,11 +18,13 @@ Student-t scale parameter; when `nu > 2`, the residual standard deviation is
 mean and standard deviation of `log(y)`, and `fitted()` returns the arithmetic
 mean `exp(mu + sigma^2 / 2)`. For Gamma models, `mu` is the response mean and
 `sigma` is the coefficient of variation, so the residual standard deviation is
-`mu * sigma`. For Poisson models, `mu` is the count mean and variance; there
-is no fitted residual `sigma` parameter in the first Poisson path. For
-negative-binomial 2 models, `mu` is the count mean and `sigma` is an
-overdispersion scale in `Var(y) = mu + sigma^2 * mu^2`, not a residual
-standard deviation.
+`mu * sigma`. For beta models, `mu` is the mean proportion and `sigma` is a
+public scale parameter; internally `phi = 1 / sigma^2`, so larger `sigma`
+means more variation around the mean. For Poisson models, `mu` is the count
+mean and variance; there is no fitted residual `sigma` parameter in the first
+Poisson path. For negative-binomial 2 models, `mu` is the count mean and
+`sigma` is an overdispersion scale in `Var(y) = mu + sigma^2 * mu^2`, not a
+residual standard deviation.
 
 The current implementation supports Gaussian location-scale models, including
 fixed effects, random intercepts, independent numeric random slopes, and
@@ -121,6 +123,32 @@ may change relative variability in positive responses such as biomass, body
 mass, metabolic rate, or concentration. `drmTMB` requires the log-linked
 `stats::Gamma()` family route; it does not export a lowercase `gamma()` helper
 because `base::gamma()` is already the special gamma function.
+
+Beta mean-scale models are implemented for strict continuous proportions:
+
+```text
+y_i | mu_i, sigma_i ~ Beta(alpha_i, beta_i)
+logit(mu_i) = beta_0 + beta_1 habitat_i
+log(sigma_i) = gamma_0 + gamma_1 treatment_i
+phi_i = 1 / sigma_i^2
+alpha_i = mu_i phi_i
+beta_i = (1 - mu_i) phi_i
+E[y_i] = mu_i
+Var[y_i] = mu_i (1 - mu_i) sigma_i^2 / (1 + sigma_i^2)
+```
+
+```r
+drmTMB(
+  drm_formula(cover ~ habitat, sigma ~ treatment),
+  family = beta(),
+  data = dat
+)
+```
+
+Here `cover` must be strictly between 0 and 1. `fitted()` returns the mean
+proportion `mu`, and `sigma(fit)` returns the public scale parameter, not beta
+precision. Percentages derived from counts should wait for the planned
+`beta_binomial()` route, because the denominator is part of the data.
 
 The first count family is a fixed-effect Poisson mean model:
 
@@ -447,7 +475,8 @@ intercepts in `sigma`, one or more univariate Gaussian random-effect scale
 models such as `sd(id) ~ x_group` and `sd(site) ~ site_type`, fixed-effect
 Student-t `mu`, `sigma`, and `nu` models, fixed-effect lognormal `mu` and
 `sigma` models for positive responses, fixed-effect Gamma mean-CV models with
-`family = Gamma(link = "log")`, fixed-effect Poisson mean models with
+`family = Gamma(link = "log")`, fixed-effect beta mean-scale models with
+`family = beta()`, fixed-effect Poisson mean models with
 `family = poisson(link = "log")`, fixed-effect zero-inflated Poisson models
 using `family = poisson(link = "log")` plus `zi ~ predictors`, fixed-effect negative-binomial 2
 mean-dispersion models with `family = nbinom2()`, fixed-effect zero-inflated

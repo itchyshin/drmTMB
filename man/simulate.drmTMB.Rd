@@ -28,8 +28,10 @@ the total observation covariance implied by the known sampling covariance
 plus the fitted residual scale. For Student-t models, simulation uses fitted
 \code{mu}, \code{sigma}, and \code{nu}. For lognormal models, simulation uses fitted
 log-scale \code{mu} and \code{sigma}. For Gamma models, simulation uses fitted mean
-\code{mu} and coefficient of variation \code{sigma}. For Poisson models, simulation
-uses the fitted mean \code{mu}. For zero-inflated Poisson models, simulation uses
+\code{mu} and coefficient of variation \code{sigma}. For beta models, simulation uses
+fitted mean \code{mu} and public scale \code{sigma} with internal
+\code{phi = 1 / sigma^2}. For Poisson models, simulation uses the fitted mean
+\code{mu}. For zero-inflated Poisson models, simulation uses
 fitted conditional mean \code{mu} and structural-zero probability \code{zi}. For
 negative-binomial 2 models, simulation uses fitted \code{mu} and overdispersion
 scale \code{sigma}, with \code{Var(y) = mu + sigma^2 * mu^2}; the zero-inflated NB2

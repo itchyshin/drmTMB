@@ -120,17 +120,19 @@ distributional regression models using TMB.
 ## Phase 7: Robust and Positive Continuous Families
 
 - Status: fixed-effect univariate Student-t location-scale-shape, lognormal
-  location-scale, Gamma mean-CV, Poisson mean, and negative-binomial 2
-  mean-dispersion models are implemented.
-- Harden and extend Student-t, lognormal, Gamma, Poisson, and negative-binomial
-  models before adding skew-normal and skew-t families.
+  location-scale, Gamma mean-CV, beta mean-scale, Poisson mean, and
+  negative-binomial 2 mean-dispersion models are implemented.
+- Harden and extend Student-t, lognormal, Gamma, beta, Poisson, and
+  negative-binomial models before adding skew-normal and skew-t families.
 - Use `lognormal()` for positive continuous responses where `mu` and `sigma`
   are defined on the log-response scale and `fitted()` returns the arithmetic
   response mean.
 - Use `Gamma(link = "log")` for positive continuous responses where `mu` is
   the response mean and `sigma` is the coefficient of variation.
-- Extend the implemented family-link helper table before adding beta, ordinal,
-  or additional positive-continuous likelihoods, so `predict()` and `fitted()`
+- Use `beta()` for strict continuous proportions where `mu` is the mean
+  proportion and public `sigma` maps internally to `phi = 1 / sigma^2`.
+- Extend the implemented family-link helper table before adding ordinal or
+  additional positive-continuous likelihoods, so `predict()` and `fitted()`
   handle non-identity `mu` links consistently.
 - Add formulae for shape and tail parameters where stable.
 - Add strict starting-value and boundary diagnostics.
@@ -141,9 +143,9 @@ distributional regression models using TMB.
   count model, including optional `zi ~ predictors` for zero-inflated Poisson
   models. `nbinom2()` is implemented as a fixed-effect `mu`/`sigma`
   overdispersed count model with `Var(y) = mu + sigma^2 * mu^2`, including
-  optional `zi ~ predictors` for zero-inflated NB2 models.
-- Next family sequence: `beta()` for strict continuous proportions with public
-  `sigma`, `truncated_nbinom2()` for positive counts, hurdle NB2 using
+  optional `zi ~ predictors` for zero-inflated NB2 models. `beta()` is
+  implemented for strict continuous proportions with public `sigma`.
+- Next family sequence: `truncated_nbinom2()` for positive counts, hurdle NB2 using
   `hu ~ predictors`, and then univariate ordinal models.
 - Add beta-binomial, zero-one-inflated beta, ordered logit/probit, COM-Poisson,
   generalized Poisson, and related families according to the distribution
