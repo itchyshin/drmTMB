@@ -1,53 +1,117 @@
 ---
-title: "Structured dependence: phylogeny and space roadmap"
+title: "Structured dependence: implemented phylogeny and planned spatial models"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Structured dependence: phylogeny and space roadmap}
+  %\VignetteIndexEntry{Structured dependence: implemented phylogeny and planned spatial models}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+library(drmTMB)
+
+balanced_ultrametric_tree <- function(n_tip = 16L) {
+  stopifnot(n_tip >= 2L, log2(n_tip) == floor(log2(n_tip)))
+  edges <- matrix(integer(), ncol = 2L)
+  edge_lengths <- numeric()
+  next_node <- n_tip + 1L
+
+  build <- function(tips) {
+    if (length(tips) == 1L) {
+      return(tips)
+    }
+    node <- next_node
+    next_node <<- next_node + 1L
+    mid <- length(tips) / 2L
+    left <- build(tips[seq_len(mid)])
+    right <- build(tips[seq.int(mid + 1L, length(tips))])
+    edges <<- rbind(edges, c(node, left), c(node, right))
+    edge_lengths <<- c(edge_lengths, 1, 1)
+    node
+  }
+
+  build(seq_len(n_tip))
+  structure(
+    list(
+      edge = edges,
+      edge.length = edge_lengths,
+      tip.label = paste0("sp_", seq_len(n_tip)),
+      Nnode = n_tip - 1L
+    ),
+    class = "phylo"
+  )
+}
 ```
 
-Phylogenetic and spatial dependence are core extensions. The first fitted path
-is intercept-only phylogenetic structure in the univariate Gaussian location
-formula. Spatial fields, phylogenetic slopes, phylogenetic scale terms, and
-bivariate structured covariance blocks remain staged extensions.
+Phylogenetic and spatial dependence are structured random effects. The first
+implemented path in `drmTMB` is an intercept-only phylogenetic effect in the
+univariate Gaussian location formula. Spatial fields, phylogenetic slopes,
+phylogenetic scale terms, and bivariate structured covariance blocks remain
+planned extensions.
 
-The mathematical bridge is simple:
+The scientific question for the implemented path is simple:
 
-```text
-eta_d = X_d beta_d + Z_d z
-z ~ MVN(0, sigma_z^2 K)
-```
+> Do predictors explain species trait means after accounting for similarity
+> among related species?
 
-Here `d` is the distributional parameter being modelled. In the first
-implemented case, `d = mu`: the structured effect is added to the mean
-predictor. For phylogenetic models, `K` is a tree-derived matrix `A`. For
-spatial models, `K` is a distance-derived matrix `M`, or a sparse SPDE/GMRF
-precision that represents the same idea computationally. The package should
-teach these as one family of structured effects attached to a distributional
-parameter.
+In the first fitted path, `species` indexes the rows in the data and `tree`
+supplies the relatedness among those species. The model estimates a
+phylogenetic deviation in the location parameter `mu` for each species.
 
-For the implemented univariate Gaussian `mu` model, the bridge becomes:
+Throughout this article, `Normal(a, b)` and `MVN(a, B)` use variance or
+covariance as the second argument.
 
-```text
-y_i | mu_i, sigma_i ~ Normal(mu_i, sigma_i^2)
-mu_i = X_mu[i, ] beta_mu + a_species[i]
-log(sigma_i) = X_sigma[i, ] beta_sigma
-a ~ MVN(0, sigma_phylo^2 A)
-```
+## Mathematical contract
 
-The phylogenetic SD `sigma_phylo` measures how strongly related species remain
-similar in their fitted mean after the fixed effects have been included.
+The general structured-effect bridge is:
 
-Implemented phylogenetic syntax:
+\[
+\eta_d =
+  \mathbf{X}_d \boldsymbol{\beta}_d +
+  \mathbf{Z}_d \mathbf{z},
+\qquad
+\mathbf{z} \sim
+  \operatorname{MVN}(\mathbf{0}, \sigma_z^2 \mathbf{K}).
+\]
+
+Here \(d\) is the distributional parameter being modelled. In the first
+implemented case, \(d = \mu\): the structured effect is added to the mean
+predictor. For phylogenetic models, \(\mathbf{K}\) is a tree-derived
+phylogenetic covariance matrix \(\mathbf{A}\). For spatial models,
+\(\mathbf{K}\) will be a distance-derived matrix or an SPDE/GMRF precision.
+
+For the implemented univariate Gaussian phylogenetic location model:
+
+\[
+y_i \mid \mu_i, \sigma_i
+  \sim \operatorname{Normal}(\mu_i, \sigma_i^2),
+\]
+
+\[
+\mu_i =
+  \mathbf{x}_{\mu i}^{\top}\boldsymbol{\beta}_{\mu}
+  + a_{species[i]},
+\qquad
+\log(\sigma_i) =
+  \mathbf{x}_{\sigma i}^{\top}\boldsymbol{\beta}_{\sigma},
+\]
+
+\[
+\mathbf{a} \sim
+  \operatorname{MVN}(\mathbf{0}, \sigma_{phylo}^2\mathbf{A}).
+\]
+
+The phylogenetic SD \(\sigma_{phylo}\) measures how strongly related species
+remain similar in their fitted mean after the fixed effects have been included.
+The residual `sigma` remains the within-observation residual SD. These are
+different scale parameters.
+
+The matching implemented R syntax is:
 
 ```r
 drmTMB(
-  bf(
+  drm_formula(
     y ~ x1 + phylo(1 | species, tree = tree),
     sigma ~ x1
   ),
@@ -56,29 +120,109 @@ drmTMB(
 )
 ```
 
-This fits a phylogenetic random intercept in the location model. The public
-`phylo()` term requires an ultrametric tree with positive branch lengths so
-`drmTMB` can build and validate the Hadfield and Nakagawa sparse augmented
-A-inverse path internally.
+## Worked example: thermal tolerance across species
 
-Later phylogenetic random slopes should extend the same grammar:
+Suppose we measure thermal tolerance for multiple observations per species and
+ask whether body size predicts thermal tolerance after accounting for shared
+ancestry. In a real analysis, `tree` would usually come from a phylogenetic
+data workflow. For this vignette, the setup code creates a small ultrametric
+branch-length tree so the example stays self-contained.
 
-```r
-bf(
-  y ~ x1 + phylo(1 + x1 | species, tree = tree),
-  sigma ~ x1
+```{r}
+set.seed(31)
+tree <- balanced_ultrametric_tree(16)
+
+species_info <- data.frame(
+  species = tree$tip.label,
+  body_size = scale(
+    rnorm(16, mean = rep(c(-0.4, 0.4), each = 8), sd = 0.35)
+  )[, 1]
 )
+
+phylo_shift <- rep(c(-0.5, 0.5), each = 8) +
+  rep(c(-0.18, 0.18), each = 4, length.out = 16)
+
+n_each <- 5
+dat <- species_info[rep(seq_len(nrow(species_info)), each = n_each), ]
+dat$body_size <- dat$body_size + rnorm(nrow(dat), sd = 0.08)
+dat$thermal_tolerance <- 1.2 + 0.45 * dat$body_size +
+  phylo_shift[match(dat$species, species_info$species)] +
+  rnorm(nrow(dat), sd = 0.25)
+
+head(dat)
 ```
 
-This would estimate phylogenetic covariance among species-specific intercepts
-and slopes. It is planned, not implemented, and should come after more
-intercept-only recovery and comparator checks.
+The fitted model follows the equation above:
 
-Planned spatial syntax:
+```{r}
+fit_phylo <- drmTMB(
+  drm_formula(
+    thermal_tolerance ~ body_size + phylo(1 | species, tree = tree),
+    sigma ~ 1
+  ),
+  family = gaussian(),
+  data = dat
+)
+
+summary(fit_phylo)
+```
+
+How to read this output:
+
+The `mu:body_size` row is the fixed-effect slope for body size in the mean
+thermal tolerance model. The `sigma:(Intercept)` row is the log residual SD, so
+`exp(coef(fit_phylo, "sigma"))` gives the within-observation residual SD. The
+`phylo(1 | species)` random-effect SD is \(\sigma_{phylo}\), the phylogenetic
+among-species SD in the mean after body size has been included.
+
+```{r}
+phylo_sd <- unname(fit_phylo$sdpars$mu["phylo(1 | species)"])
+residual_sd <- exp(coef(fit_phylo, "sigma")["(Intercept)"])
+c(phylogenetic_sd = phylo_sd, residual_sd = residual_sd)
+```
+
+In this run, related species remain similar in thermal tolerance after
+accounting for body size. The fitted phylogenetic SD is larger than the
+within-observation residual SD, so shared ancestry explains a visible part of
+the remaining mean-level structure.
+
+`check_drm()` reports whether the optimizer, Hessian, scale, dropped-row, and
+phylogenetic replication checks passed:
+
+```{r}
+check_drm(fit_phylo)
+```
+
+## Practical checks for phylogenetic fits
+
+The public `phylo()` term requires an ultrametric tree with branch lengths.
+Users pass the tree; `drmTMB` builds the sparse phylogenetic precision
+internally. You do not need to construct the phylogenetic covariance matrix or
+A-inverse yourself.
+
+If a phylogenetic fit fails before optimization, check these points first:
+
+- the tree object has class `phylo`;
+- every observed species in `data$species` appears in `tree$tip.label`;
+- species names use the same spelling and underscore/space convention in the
+  data and tree;
+- the tree has finite positive branch lengths and is ultrametric;
+- the model uses the implemented syntax
+  `phylo(1 | species, tree = tree)` in a univariate Gaussian `mu` formula.
+
+Phylogenetic slopes, phylogenetic terms in `sigma`, and bivariate phylogenetic
+covariance blocks are planned. They should error clearly rather than silently
+fitting a different model.
+
+## Planned, not implemented: spatial random intercepts
+
+Spatial fields are deliberately planned to look parallel to phylogenetic
+effects, but the spatial likelihood is not implemented yet. The planned syntax
+is:
 
 ```r
 drmTMB(
-  bf(
+  drm_formula(
     y ~ depth + temp + spatial(1 | site, coords = coords),
     sigma ~ temp
   ),
@@ -87,8 +231,6 @@ drmTMB(
 )
 ```
 
-This syntax is planned, not implemented.
-
 The planned `coords` and `mesh` arguments play different roles. `coords`
 should name the observation or site coordinates in the modelling data, ideally
 in a projected coordinate system such as UTM rather than raw longitude and
@@ -96,36 +238,37 @@ latitude. A `mesh` is the computational scaffold for an SPDE/GMRF field: a
 triangular network of vertices where the latent spatial field is represented
 and then projected back to observations. Users should not interpret mesh
 vertices as biological sampling units; they are numerical support points for
-the spatial surface. The first spatial implementation should either build this
-mesh from coordinates through a helper, or accept a precomputed mesh object and
-validate that its projection matrix matches the fitted rows.
+the spatial surface.
 
 The spatial term is deliberately parallel to the phylogenetic term:
 
 ```r
-phylo(1 | species, tree = tree)
-spatial(1 | site, coords = coords)
-spatial(1 | site, mesh = mesh)
+phylo(1 | species, tree = tree)     # implemented for univariate Gaussian mu
+spatial(1 | site, coords = coords)  # planned
+spatial(1 | site, mesh = mesh)      # planned
 ```
 
 The mathematical role is the same: add a structured Gaussian random intercept
 to a distributional predictor. The computational route differs. `phylo()`
 starts from an ultrametric tree with branch lengths and builds a sparse
-A-inverse; `spatial()` will start from coordinates or a mesh and build an
-SPDE/GMRF precision.
+tree-derived precision. `spatial()` will start from coordinates or a mesh and
+build an SPDE/GMRF precision.
 
-The computational plan is to keep using sparse A-inverse tricks for phylogeny
-and add SPDE/GMRF structure for spatial fields, with careful provenance notes
-for any code selectively ported from `gllvmTMB`.
+The computational plan is to keep using sparse A-inverse ideas for phylogeny
+and add SPDE/GMRF structure for spatial fields, with provenance notes for any
+code selectively ported from `gllvmTMB`.
 
 Structured phylogenetic and spatial random slopes will be staged more
 conservatively than ordinary grouped random slopes. The first structured-effect
-target should be intercept-only `mu`; the next should be one structured `mu`
-slope. Small sets of structured slopes, interaction slopes, and structured
-effects in `sigma` or `rho12` should wait until simulation recovery shows that
-the simpler models are identifiable.
+target is intercept-only `mu`; the next should be one structured `mu` slope.
+Small sets of structured slopes, interaction slopes, and structured effects in
+`sigma` or `rho12` should wait until simulation recovery shows that the simpler
+models are identifiable.
 
-In meta-analysis this becomes especially transparent:
+## Meta-analysis and future bivariate structure
+
+In meta-analysis, the separation among known sampling covariance,
+phylogenetic dependence, and spatial dependence is especially transparent:
 
 ```text
 e ~ MVN(0, V)                         # known sampling covariance
@@ -145,7 +288,7 @@ location path has enough simulation and comparator coverage. In future
 bivariate models this could allow several structured correlations, including
 mean-mean, scale-scale, and mean-scale phylogenetic correlations.
 
-`drmTMB` then adds the location-coscale extension:
+Planned bivariate phylogenetic location-coscale syntax looks like this:
 
 ```r
 drmTMB(

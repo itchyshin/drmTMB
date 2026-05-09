@@ -488,7 +488,9 @@ drmTMB(
 
 Symbolically, this adds `a_species ~ MVN(0, sigma_phylo^2 A)` to the mean
 model, where `A` is derived from an ultrametric branch-length tree. The current
-implemented path is intercept-only and univariate Gaussian.
+implemented path is intercept-only and univariate Gaussian. Here
+`sigma_phylo` is the among-species phylogenetic SD in the mean after fixed
+effects; `sigma` remains the residual within-observation SD.
 
 ## Planned next
 

@@ -5842,3 +5842,93 @@ Team learning:
   guards such as `0.99999999` into implementation notes;
 - Rose's stale-wording scan should include design docs, not only vignettes,
   because ambiguous tutorial wording can hide in design notes too.
+
+## 2026-05-09 — Phylogenetic-Spatial Tutorial Teaching Upgrade
+
+Goal:
+
+- make the structured-dependence article teach the implemented
+  `phylo(1 | species, tree = tree)` path with a concrete ecology/evolution
+  example, equations, fitted output, interpretation, and failure-recovery
+  guidance;
+- keep planned spatial syntax visibly marked as planned before any spatial
+  code block appears.
+
+Changes:
+
+- retitled the article to "Structured dependence: implemented phylogeny and
+  planned spatial models";
+- added a worked thermal-tolerance example where body size predicts species
+  trait means after accounting for shared ancestry;
+- added LaTeX equations for the structured-effect bridge and the implemented
+  Gaussian phylogenetic location model;
+- added fitted `summary(fit_phylo)` output, response-scale residual SD, fitted
+  phylogenetic SD, and `check_drm(fit_phylo)`;
+- added a practical tree/species recovery checklist covering `phylo` class,
+  tip labels, name matching, positive branch lengths, ultrametricity, and the
+  currently implemented intercept-only Gaussian `mu` syntax;
+- changed the spatial section heading and lead sentence so users see
+  "planned, not implemented" before the code block;
+- clarified in `README.md` that `sigma_phylo` is the among-species
+  phylogenetic SD in the mean, while `sigma` remains the residual
+  within-observation SD;
+- clarified in `ROADMAP.md` that future sparse known-covariance infrastructure
+  is beyond the current phylogenetic A-inverse path.
+
+Commands run so far:
+
+- `Rscript -e "devtools::load_all(quiet = TRUE); rmarkdown::render('vignettes/phylogenetic-spatial.Rmd', output_dir = tempdir(), quiet = TRUE)"`
+- `Rscript -e "devtools::test(filter = 'phylo|check-drm')"`
+- `git diff --check`
+- `rg -n "spatial fields|spatial\\(1 \\| site|planned, not implemented|Hadfield and Nakagawa|A-inverse path internally|sigma_phylo|thermal tolerance|species names" vignettes/phylogenetic-spatial.Rmd README.md ROADMAP.md NEWS.md`
+- `Rscript -e "devtools::test()"`
+- `Rscript -e "pkgdown::build_site()"`
+- `Rscript tools/fix-pkgdown-favicon-mime.R pkgdown-site`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `rg -n "Structured dependence: implemented phylogeny|thermal tolerance|body size predicts|tree object has class|spatial likelihood is not implemented|setup code creates|sigma_phylo|Hadfield and Nakagawa|A-inverse path internally" pkgdown-site/articles/phylogenetic-spatial.html pkgdown-site/index.html pkgdown-site/ROADMAP.html pkgdown-site/news/index.html`
+- `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`
+
+Results so far:
+
+- `vignettes/phylogenetic-spatial.Rmd` renders successfully;
+- targeted phylogenetic/check tests: 124 passed, 0 failed, 0 warnings, 0 skips;
+- `git diff --check`: clean;
+- full `devtools::test()`: 1215 passed, 0 failed, 0 warnings, 0 skips;
+- `pkgdown::build_site()`: completed successfully;
+- favicon MIME post-processing completed successfully;
+- `pkgdown::check_pkgdown()`: no problems found;
+- generated HTML contains the new title, thermal-tolerance example,
+  tree/species checklist, explicit spatial-not-implemented wording, and
+  `sigma_phylo` explanation;
+- `devtools::check()`: 0 errors, 0 warnings, 0 notes.
+
+Tests of the tests:
+
+- the rendered tutorial executes the implemented univariate Gaussian
+  phylogenetic `mu` likelihood and prints `summary()`, `check_drm()`, residual
+  SD, and phylogenetic SD output;
+- targeted tests exercise the phylogenetic Gaussian objective, dense marginal
+  likelihood comparators, meta-analysis composition, conditional prediction,
+  missing-row handling, and planned-feature errors for phylogenetic slopes and
+  phylogenetic `sigma`.
+
+Known limitations:
+
+- the worked thermal-tolerance dataset is simulated so the vignette remains
+  deterministic and fast;
+- the tree helper is a toy setup helper, not a recommended phylogenetic data
+  workflow;
+- spatial random effects, phylogenetic slopes, phylogenetic `sigma`, and
+  bivariate structured covariance blocks remain planned.
+
+Team learning:
+
+- Socrates caught that a roadmap article still needs a concrete scientific
+  question before syntax;
+- applied users need recovery guidance immediately after implemented
+  structured syntax, especially tree-tip and species-name checks;
+- Ada should keep planned spatial syntax in clearly labelled "not implemented"
+  sections until the likelihood and recovery tests exist;
+- Ada should treat token and context efficiency as a project skill: use
+  targeted reads, concise updates, and fewer agents unless parallel review
+  clearly reduces risk.

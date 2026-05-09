@@ -100,7 +100,9 @@ distributional regression models using TMB.
 - Treat phylogenetic and spatial terms as one structured-effect module:
   `z ~ MVN(0, sigma_z^2 K)`, with `K = A` for phylogeny and `K = M` for
   spatial dependence.
-- Add sparse known-covariance infrastructure.
+- Add sparse known-covariance infrastructure beyond the current phylogenetic
+  A-inverse path, especially for large known sampling covariance, spatial
+  precision matrices, and combined phylogenetic-spatial meta-analysis.
 - Implemented `phylo(1 | species, tree = tree)` for univariate Gaussian `mu`
   using an ultrametric branch-length tree, the sparse augmented A-inverse path,
   and simulation recovery tests.
