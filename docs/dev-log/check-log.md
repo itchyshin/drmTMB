@@ -4188,3 +4188,107 @@ Team learning:
   transforms before public examples are expanded;
 - Pat's interpretation request improved the tutorial: extraction examples need
   a sentence saying what the coefficient and response-scale value mean.
+
+## 2026-05-08: Add Gamma Mean-CV Family
+
+Scope:
+
+- added fixed-effect univariate Gamma mean-CV models through
+  `family = Gamma(link = "log")`;
+- used `mu` as the response mean and `sigma` as the coefficient of variation,
+  with `shape = 1 / sigma^2` and `scale = mu * sigma^2`;
+- fixed the positive-continuous parameter map so unused `beta_nu` is fixed in
+  lognormal and Gamma fits rather than counted as a free parameter;
+- deliberately did not export a lowercase `gamma()` helper because
+  `base::gamma()` is already the gamma special function;
+- rejected non-log Gamma links, random effects, `sd(group)` scale formulae,
+  `meta_known_V(V = V)`, `mvbind()`, and composed Gamma or mixed response
+  families until those paths have explicit likelihood designs;
+- updated formula grammar docs so the implemented Gamma route appears in the
+  supported syntax map.
+
+Commands run:
+
+- `Rscript -e "devtools::test(filter = 'gamma-location-scale|family-link-contract')"`
+- `Rscript -e "devtools::test(filter = 'gamma-location-scale|lognormal-location-scale|family-link-contract')"`
+- `command -v air >/dev/null 2>&1 && air format . || true`
+- `Rscript -e "devtools::document()"`
+- `Rscript -e "devtools::test()"`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `Rscript -e "pkgdown::build_site()"`
+- `Rscript -e "devtools::check()"`
+- `git diff --check`
+- `rg -n "future Gamma|Candidate Positive|Before implementing Gamma|additional non-Gaussian families beyond the first Student-t and lognormal|Gamma family may instead|gamma\\(\\) helper" README.md ROADMAP.md NEWS.md R man tests vignettes docs/design docs/dev-log/known-limitations.md pkgdown-site --glob '!docs/dev-log/after-task/**'`
+- `rg -n "stats::Gamma\\(\\)|Gamma\\(link = \\\"log\\\"\\)|model_type = 5|Gamma mean-CV|coefficient of variation|base::gamma\\(\\)" README.md ROADMAP.md NEWS.md R man tests vignettes docs/design docs/dev-log/known-limitations.md pkgdown-site --glob '!docs/dev-log/after-task/**'`
+- `rg -n "atanh\\(rho12|rho12_i = tanh|rho12 = tanh|rho12 = \\\"atanh\\\"|atanh-scale|atanh link internally|meta_gaussian|tau ~|meta_known_V\\([^V]" README.md ROADMAP.md NEWS.md R man tests vignettes docs/design docs/dev-log/known-limitations.md pkgdown-site --glob '!docs/dev-log/after-task/**'`
+
+Results:
+
+- initial targeted Gamma and family-link tests: 55 passed;
+- targeted Gamma, lognormal, and family-link tests after reviewer fixes:
+  114 passed;
+- full `devtools::test()` after reviewer fixes: 761 passed, 0 failed, 0 skipped;
+- `pkgdown::check_pkgdown()`: no problems found;
+- `pkgdown::build_site()`: completed successfully;
+- `devtools::check()`: 0 errors, 0 warnings, 0 notes;
+- `git diff --check`: clean.
+
+Tests of the tests:
+
+- the Gamma likelihood test compares the fitted log-likelihood with an
+  independent `stats::dgamma()` calculation at the fitted coefficients;
+- Gamma and lognormal tests check `fit$sdr$pdHess` and `fit$df` against the
+  number of reported fixed-effect coefficients, protecting against unused free
+  TMB parameters;
+- the prediction tests check that response-scale `mu` equals
+  `exp(link-scale mu)`, that `newdata` prediction uses the log links for both
+  `mu` and `sigma`, and that `fitted()` returns the response mean;
+- the method tests check `sigma()` as coefficient of variation, Pearson
+  residuals as `(y - mu) / (mu * sigma)`, and positive simulations;
+- the failure-path tests reject the default inverse-link `stats::Gamma()`,
+  `base::gamma`, non-positive responses, unsupported distributional
+  parameters, random effects, known sampling covariance, `sd(group)`, and
+  bivariate or composed Gamma families;
+- the edge-case test fits both small and large coefficient-of-variation cases;
+- Gamma complete-case filtering and default intercept-only `sigma` are tested.
+
+Consistency audit:
+
+- `README.md`, `ROADMAP.md`, `NEWS.md`, generated Rd files, formula grammar
+  docs,
+  `vignettes/distribution-families.Rmd`, `vignettes/adding-families.Rmd`,
+  `vignettes/source-map.Rmd`, and family/likelihood/link design notes now
+  describe the same Gamma mean-CV contract;
+- `docs/dev-log/known-limitations.md` now lists Gamma as implemented but keeps
+  random effects, known sampling covariance, phylogenetic terms, and bivariate
+  or mixed Gamma models as future work;
+- generated pkgdown pages contain the new Gamma source-map row and method
+  documentation;
+- remaining `meta_gaussian()` and `tau ~` hits are intentional guardrails, and
+  remaining `gamma()` hits explain why no lowercase helper is exported.
+
+What did not go smoothly:
+
+- the first composed `Gamma/Gamma` failure-path test expected a narrower
+  message, but the actual router correctly used the general mixed-response
+  rejection. The test was updated to check the intended rejection path;
+- the source map and adding-families vignette initially lagged behind the code
+  and were caught by the stale-wording scan before closure;
+- reviewer pass found that Gamma inherited a lognormal map that left unused
+  `beta_nu` free. The fix also hardened lognormal by fixing `beta_nu` there.
+
+Known limitations:
+
+- Gamma models are fixed-effect and univariate only;
+- `sigma` is a coefficient of variation in Gamma models, not a residual
+  standard deviation. Docs state the residual SD as `mu * sigma`;
+- bivariate Gamma, mixed composed families, Gamma meta-analysis,
+  phylogenetic/spatial Gamma terms, and Gamma random effects remain future
+  design work.
+
+Team learning:
+
+- Jason's landscape note was useful: use `stats::Gamma(link = "log")` rather
+  than adding a `gamma()` helper that would collide with `base::gamma()`;
+- future add-family tasks should begin with the family-link table, fitted
+  response rule, and independent likelihood test before extending examples.

@@ -13,6 +13,8 @@ simulation, and recovery tests.
   implemented.
 - `lognormal()`: `mu`, `sigma` on the log response scale; fixed-effect
   univariate path implemented for positive responses.
+- `Gamma(link = "log")`: `mu`, `sigma` as coefficient of variation;
+  fixed-effect univariate path implemented for positive responses.
 
 ## Tier 2: Bivariate Coscale
 
@@ -118,8 +120,8 @@ Useful for body size, biomass, time, concentration, and rates.
 - `lognormal()`: implemented fixed-effect path for positive multiplicative
   responses; random effects, known covariance, phylogenetic terms, and
   bivariate extensions are later phases.
-- `gamma()`: proposed first contract is mean-CV, with `log(mu)`,
-  `log(sigma)`, `E[y] = mu`, and `Var[y] = mu^2 sigma^2`.
+- `Gamma(link = "log")`: implemented first contract is mean-CV, with
+  `log(mu)`, `log(sigma)`, `E[y] = mu`, and `Var[y] = mu^2 sigma^2`.
 - `weibull()`: scale and shape.
 - `exgaussian()`: location, scale, and positive-tail parameter.
 - `gengamma()`: flexible positive continuous family, later only.

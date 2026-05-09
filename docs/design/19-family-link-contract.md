@@ -25,6 +25,8 @@ The implemented families use these parameter meanings:
 | Student-t | `nu` | `logm2` | degrees of freedom, `nu = 2 + exp(eta_nu)` |
 | Lognormal | `mu` | identity | mean of `log(y)`, not mean of `y` |
 | Lognormal | `sigma` | log | standard deviation of `log(y)` |
+| Gamma | `mu` | log | arithmetic mean of `y` |
+| Gamma | `sigma` | log | coefficient of variation; residual SD is `mu * sigma` |
 | Bivariate Gaussian | `mu1`, `mu2` | identity | arithmetic means of `y1` and `y2` |
 | Bivariate Gaussian | `sigma1`, `sigma2` | log | residual standard deviations |
 | Bivariate Gaussian | `rho12` | guarded atanh | residual response-response correlation |
@@ -102,9 +104,10 @@ only implemented model paths. Before adding a new family, update this table and
 add tests that check `predict(type = "link")`, response-scale `predict()`, and
 `fitted()` for the new family.
 
-## Candidate Positive Continuous Contract
+## Implemented Gamma Positive Continuous Contract
 
-For `gamma()`, the preferred first contract is a mean-CV parameterization:
+For `Gamma(link = "log")`, the implemented first contract is a mean-CV
+parameterization:
 
 ```text
 y_i | mu_i, sigma_i ~ Gamma(shape_i, scale_i)
@@ -121,9 +124,10 @@ response and gives the scale formula a direct interpretation: predictors change
 relative variability. That is useful for ecology and evolution examples such as
 biomass, body mass, metabolic rate, and concentration.
 
-This should be treated as a design proposal until implemented and tested. The
-implementation must document that `sigma` is not the residual standard
-deviation of `y`; the residual standard deviation is `mu * sigma`.
+The implementation rejects non-log `stats::Gamma()` links so that the symbolic
+equations, `predict()`, and `fitted()` stay aligned. It also deliberately does
+not export `gamma()`, because `base::gamma()` is already the special gamma
+function.
 
 ## Candidate Count Contract
 
@@ -205,7 +209,8 @@ latent correlation is harder to identify and validate.
 
 ## Implementation Checklist Before New Families
 
-Before implementing Gamma, count, beta, or ordinal families:
+Before implementing additional count, beta, ordinal, or positive-continuous
+families:
 
 1. Add the family to `drm_dpar_link()` and `drm_inverse_link()`.
 2. Add the fitted-response rule to `drm_fitted_response()` where `fitted()` is

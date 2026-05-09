@@ -52,6 +52,8 @@ Implemented comparator smoke tests:
   `metafor::rma.mv(..., random = ~ 1 | obs, method = "ML")`.
 - lognormal fixed-effect likelihood against an independent `stats::dlnorm()`
   calculation at the fitted coefficients.
+- Gamma mean-CV fixed-effect likelihood against an independent
+  `stats::dgamma()` calculation at the fitted coefficients.
 
 Planned comparator smoke tests:
 

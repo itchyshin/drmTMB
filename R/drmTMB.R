@@ -3,7 +3,7 @@
 #' `drmTMB()` is the main model-fitting entry point. The current implementation
 #' supports univariate Gaussian location-scale models, fixed-effect
 #' univariate Student-t location-scale-shape models, fixed-effect lognormal
-#' location-scale models for positive responses, Gaussian random
+#' and Gamma location-scale models for positive responses, Gaussian random
 #' intercepts, independent numeric random slopes, and labelled or unlabelled
 #' correlated numeric random intercept-slope blocks in the location formula,
 #' known sampling covariance through `meta_known_V(V = V)`, residual-scale
@@ -17,8 +17,9 @@
 #'
 #' @param formula A `drm_formula` object created by [drm_formula()] or [bf()].
 #' @param family A response family, such as [stats::gaussian()], [student()],
-#'   [lognormal()], or [biv_gaussian()]. The current bivariate Gaussian engine
-#'   also accepts `family = c(gaussian(), gaussian())` and
+#'   [lognormal()], [stats::Gamma()] with `link = "log"`, or
+#'   [biv_gaussian()]. The current bivariate Gaussian engine also accepts
+#'   `family = c(gaussian(), gaussian())` and
 #'   `family = list(gaussian(), gaussian())`.
 #' @param data A data frame.
 #' @param control Optional list passed to [stats::nlminb()].
@@ -44,6 +45,7 @@ drmTMB <- function(formula, family = stats::gaussian(), data, control = list(), 
     gaussian = drm_build_gaussian_ls_spec(formula, data, env = parent.frame()),
     student = drm_build_student_ls_spec(formula, data, env = parent.frame()),
     lognormal = drm_build_lognormal_ls_spec(formula, data, env = parent.frame()),
+    gamma = drm_build_gamma_ls_spec(formula, data, env = parent.frame()),
     biv_gaussian = drm_build_biv_gaussian_spec(formula, data, env = parent.frame())
   )
 
@@ -93,6 +95,16 @@ drm_family_type <- function(family) {
   if (inherits(family, "family") && identical(family$family, "gaussian")) {
     return("gaussian")
   }
+  if (inherits(family, "family") && identical(family$family, "Gamma")) {
+    if (!identical(family$link, "log")) {
+      cli::cli_abort(c(
+        "{.pkg drmTMB} Gamma models currently require {.code Gamma(link = \"log\")}.",
+        "x" = "Received Gamma link {.val {family$link}}.",
+        "i" = "The implemented Gamma contract is {.code log(mu) = X_mu beta_mu} and {.code log(sigma) = X_sigma beta_sigma}, where {.code sigma} is the coefficient of variation."
+      ))
+    }
+    return("gamma")
+  }
   if (inherits(family, "drm_family") && identical(family$name, "biv_gaussian")) {
     return("biv_gaussian")
   }
@@ -122,7 +134,7 @@ drm_family_type <- function(family) {
     ))
   }
   cli::cli_abort(
-    "Currently supported families are {.code gaussian()}, {.fn student}, {.fn lognormal}, {.fn biv_gaussian}, {.code c(gaussian(), gaussian())}, and {.code list(gaussian(), gaussian())}."
+    "Currently supported families are {.code gaussian()}, {.fn student}, {.fn lognormal}, {.code Gamma(link = \"log\")}, {.fn biv_gaussian}, {.code c(gaussian(), gaussian())}, and {.code list(gaussian(), gaussian())}."
   )
 }
 
@@ -530,6 +542,125 @@ drm_build_lognormal_ls_spec <- function(formula, data, env = parent.frame()) {
     keep = keep,
     dpars = c("mu", "sigma"),
     start = lognormal_ls_start(y, X_mu, X_sigma),
+    map = gamma_ls_map(),
+    random_names = NULL
+  )
+  spec$tmb_data <- make_tmb_data(spec)
+  spec$nobs <- length(spec$y)
+  spec
+}
+
+drm_build_gamma_ls_spec <- function(formula, data, env = parent.frame()) {
+  entries <- formula$entries
+  dpars <- vapply(entries, `[[`, character(1), "dpar")
+  is_sd_dpar <- startsWith(dpars, "sd(")
+
+  unsupported <- setdiff(dpars[!is_sd_dpar], c("mu", "sigma"))
+  if (length(unsupported) > 0L) {
+    cli::cli_abort(c(
+      "Gamma models only support {.code mu} and {.code sigma}.",
+      "x" = "Unsupported parameter{?s}: {.val {unsupported}}."
+    ))
+  }
+  if (any(is_sd_dpar)) {
+    cli::cli_abort(c(
+      "Random-effect scale formulae are not implemented for {.fn Gamma} models yet.",
+      "i" = "Start with fixed-effect Gamma formulas such as {.code bf(y ~ x, sigma ~ z)}."
+    ))
+  }
+  if (sum(dpars == "mu") != 1L) {
+    cli::cli_abort("A Gamma model requires exactly one location formula.")
+  }
+  if (sum(dpars == "sigma") > 1L) {
+    cli::cli_abort("A Gamma model can have at most one residual {.code sigma} formula.")
+  }
+
+  mu_entry <- entries[[which(dpars == "mu")]]
+  sigma_entry <- if (any(dpars == "sigma")) {
+    entries[[which(dpars == "sigma")]]
+  } else {
+    default_dpar_entry("sigma", quote(1))
+  }
+
+  if (is.na(mu_entry$response)) {
+    cli::cli_abort("The {.code mu} formula must include a response on the left-hand side.")
+  }
+  if (is_mvbind_lhs(mu_entry$lhs)) {
+    cli::cli_abort(c(
+      "{.fn mvbind} shorthand is only available for two-response Gaussian models.",
+      "x" = "Gamma models currently support one positive response."
+    ))
+  }
+
+  meta <- extract_meta_known_v(mu_entry$rhs)
+  if (!is.null(meta$V)) {
+    cli::cli_abort(c(
+      "{.fn meta_known_V} is not implemented for {.fn Gamma} models yet.",
+      "i" = "Use {.code family = gaussian()} for Gaussian meta-analysis with known sampling covariance."
+    ))
+  }
+  mu_entry$rhs <- meta$rhs
+
+  for (entry in list(mu_entry, sigma_entry)) {
+    drm_reject_phase1_terms(entry$rhs, entry$dpar)
+  }
+
+  f_mu <- drm_entry_formula(mu_entry, response = TRUE)
+  f_sigma <- drm_entry_formula(sigma_entry, response = FALSE)
+
+  vars <- unique(c(all.vars(f_mu), all.vars(f_sigma)))
+  if (length(vars) > 0L) {
+    keep <- stats::complete.cases(data[, vars, drop = FALSE])
+  } else {
+    keep <- rep(TRUE, nrow(data))
+  }
+  data_model <- data[keep, , drop = FALSE]
+
+  mf_mu <- stats::model.frame(f_mu, data = data_model, na.action = stats::na.omit)
+  mf_sigma <- stats::model.frame(f_sigma, data = data_model, na.action = stats::na.omit)
+  y <- stats::model.response(mf_mu)
+
+  if (length(y) == 0L) {
+    cli::cli_abort("No complete observations remain after applying model missingness rules.")
+  }
+  if (!all(is.finite(y)) || any(y <= 0)) {
+    cli::cli_abort(c(
+      "Gamma models require positive finite response values.",
+      "x" = "The response {.val {mu_entry$response}} contains zero, negative, or non-finite values after missing-row filtering."
+    ))
+  }
+
+  X_mu <- stats::model.matrix(stats::delete.response(stats::terms(mf_mu)), mf_mu)
+  X_sigma <- stats::model.matrix(stats::terms(mf_sigma), mf_sigma)
+
+  if (nrow(X_sigma) != length(y)) {
+    cli::cli_abort("Internal model-frame mismatch in Gamma model.")
+  }
+
+  spec <- list(
+    model_type = "gamma",
+    y = as.numeric(y),
+    V_known = rep(0, length(y)),
+    V_known_diag = rep(0, length(y)),
+    V_known_type = "none",
+    has_known_v = FALSE,
+    X = list(mu = X_mu, sigma = X_sigma),
+    terms = list(
+      mu = stats::delete.response(stats::terms(mf_mu)),
+      sigma = stats::terms(mf_sigma)
+    ),
+    model_frame = list(mu = mf_mu, sigma = mf_sigma),
+    random = list(
+      mu = empty_random_mu_structure(nrow(data_model)),
+      sigma = empty_random_sigma_structure(nrow(data_model))
+    ),
+    random_scale = list(mu = empty_sd_mu_structure(1L)),
+    structured = list(phylo_mu = empty_phylo_mu_structure()),
+    data = data_model,
+    variables = vars,
+    keep = keep,
+    dpars = c("mu", "sigma"),
+    start = gamma_ls_start(y, X_mu, X_sigma),
     map = lognormal_ls_map(),
     random_names = NULL
   )
@@ -1848,7 +1979,51 @@ lognormal_ls_start <- function(y, X_mu, X_sigma) {
 }
 
 lognormal_ls_map <- function() {
-  student_ls_map()
+  out <- student_ls_map()
+  out$beta_nu <- factor(NA)
+  out
+}
+
+gamma_ls_map <- function() {
+  lognormal_ls_map()
+}
+
+gamma_ls_start <- function(y, X_mu, X_sigma) {
+  beta_mu <- tryCatch(
+    stats::lm.fit(X_mu, log(y))$coefficients,
+    error = function(e) rep(0, ncol(X_mu))
+  )
+  beta_mu[!is.finite(beta_mu)] <- 0
+  eta_mu <- as.vector(X_mu %*% beta_mu)
+  mu <- exp(eta_mu)
+  cv0 <- stats::sd((y - mu) / mu)
+  if (!is.finite(cv0) || cv0 <= 0) {
+    cv0 <- 0.5
+  }
+  beta_sigma <- rep(0, ncol(X_sigma))
+  beta_sigma[[1L]] <- log(max(cv0, 1e-3))
+  c(
+    list(
+      beta_mu = beta_mu,
+      beta_sigma = beta_sigma
+    ),
+    list(
+      beta_nu = 0,
+      beta_sd_mu = 0,
+      u_mu = 0,
+      log_sd_mu = 0,
+      eta_cor_mu = 0,
+      u_sigma = 0,
+      log_sd_sigma = 0,
+      beta_mu1 = 0,
+      beta_mu2 = 0,
+      beta_sigma1 = 0,
+      beta_sigma2 = 0,
+      beta_rho12 = 0,
+      u_phylo = 0,
+      log_sd_phylo = 0
+    )
+  )
 }
 
 gaussian_phylo_start <- function(y, phylo_mu) {
@@ -2184,6 +2359,44 @@ make_tmb_data <- function(spec) {
       log_det_Q_phylo = 0
     ))
   }
+  if (identical(spec$model_type, "gamma")) {
+    return(list(
+      model_type = 5L,
+      y = spec$y,
+      V_known = spec$V_known_diag,
+      V_known_matrix = dummy_matrix,
+      V_known_type = 0L,
+      y1 = numeric(1),
+      y2 = numeric(1),
+      X_mu = spec$X$mu,
+      X_sigma = spec$X$sigma,
+      X_nu = dummy_matrix,
+      X_sd_mu = dummy_matrix,
+      has_sd_mu_model = 0L,
+      X_mu1 = dummy_matrix,
+      X_mu2 = dummy_matrix,
+      X_sigma1 = dummy_matrix,
+      X_sigma2 = dummy_matrix,
+      X_rho12 = dummy_matrix,
+      n_mu_re_terms = 0L,
+      n_mu_re_cors = 0L,
+      mu_re_index = matrix(0L, nrow = 1L, ncol = 1L),
+      mu_re_value = dummy_matrix,
+      mu_re_term = 0L,
+      mu_re_pos = 0L,
+      mu_re_cor_id = -1L,
+      mu_re_pair_index = -1L,
+      mu_re_sd_row = -1L,
+      n_sigma_re_terms = 0L,
+      sigma_re_index = matrix(0L, nrow = 1L, ncol = 1L),
+      sigma_re_value = dummy_matrix,
+      sigma_re_term = 0L,
+      has_phylo_mu = 0L,
+      phylo_mu_node_index = 0L,
+      Q_phylo = dummy_sparse,
+      log_det_Q_phylo = 0
+    ))
+  }
   if (identical(spec$model_type, "biv_gaussian")) {
     return(list(
       model_type = 2L,
@@ -2238,7 +2451,8 @@ make_tmb_data <- function(spec) {
 split_tmb_parameters <- function(par, spec) {
   if (identical(spec$model_type, "gaussian") ||
       identical(spec$model_type, "student") ||
-      identical(spec$model_type, "lognormal")) {
+      identical(spec$model_type, "lognormal") ||
+      identical(spec$model_type, "gamma")) {
     beta_mu <- unname(par$beta_mu)
     beta_sigma <- unname(par$beta_sigma)
     names(beta_mu) <- colnames(spec$X$mu)

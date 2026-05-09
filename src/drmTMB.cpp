@@ -275,6 +275,28 @@ Type objective_function<Type>::operator()()
     REPORT(sigma);
     ADREPORT(beta_mu);
     ADREPORT(beta_sigma);
+  } else if (model_type == 5) {
+    vector<Type> eta_mu = X_mu * beta_mu;
+    vector<Type> log_sigma = X_sigma * beta_sigma;
+    vector<Type> mu = exp(eta_mu);
+    vector<Type> sigma = exp(log_sigma);
+    for (int i = 0; i < y.size(); ++i) {
+      Type variance_multiplier = sigma(i) * sigma(i);
+      Type shape = Type(1.0) / variance_multiplier;
+      Type scale = mu(i) * variance_multiplier;
+      Type log_density =
+        (shape - Type(1.0)) * log(y(i)) -
+        y(i) / scale -
+        lgamma(shape) -
+        shape * log(scale);
+      nll -= log_density;
+    }
+    REPORT(eta_mu);
+    REPORT(mu);
+    REPORT(log_sigma);
+    REPORT(sigma);
+    ADREPORT(beta_mu);
+    ADREPORT(beta_sigma);
   } else if (model_type == 2) {
     vector<Type> mu1 = X_mu1 * beta_mu1;
     vector<Type> mu2 = X_mu2 * beta_mu2;

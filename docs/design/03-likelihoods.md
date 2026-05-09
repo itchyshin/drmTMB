@@ -6,8 +6,8 @@ Likelihoods are implemented in TMB templates and called from R wrappers.
 
 - Positive parameters use log links.
 - Unit-interval parameters use logit links.
-- Residual correlations use Fisher-z/atanh on the linear predictor and `tanh()`
-  on the response scale.
+- Residual correlations use a Fisher-z-like linear predictor and a guarded
+  `0.99999999 * tanh()` response transform.
 - Shape parameters use family-specific stable links.
 
 ## Notation
@@ -19,10 +19,10 @@ The corresponding R density call uses standard deviation, as in
 ## Implemented TMB Routing
 
 The R builders use descriptive model labels, such as `"gaussian"`,
-`"student"`, `"lognormal"`, and `"biv_gaussian"`. Before calling the TMB template,
-`make_tmb_data()` turns those labels into integer branches in `src/drmTMB.cpp`.
-Unknown labels are rejected before they can fall through to a wrong likelihood
-branch. This table is the current routing contract:
+`"student"`, `"lognormal"`, `"gamma"`, and `"biv_gaussian"`. Before calling the
+TMB template, `make_tmb_data()` turns those labels into integer branches in
+`src/drmTMB.cpp`. Unknown labels are rejected before they can fall through to a
+wrong likelihood branch. This table is the current routing contract:
 
 | TMB `model_type` | User-facing route | R builder | TMB branch purpose |
 |---:|---|---|---|
@@ -30,6 +30,7 @@ branch. This table is the current routing contract:
 | `2` | `family = biv_gaussian()`, `family = c(gaussian(), gaussian())`, or `family = list(gaussian(), gaussian())` | `drm_build_biv_gaussian_spec()` | Bivariate Gaussian location-scale-coscale models with `mu1`, `mu2`, `sigma1`, `sigma2`, and residual `rho12`, including complete-row dense known sampling covariance. |
 | `3` | `family = student()` | `drm_build_student_ls_spec()` | Univariate Student-t location-scale-shape models with `mu`, `sigma`, and `nu = 2 + exp(eta_nu)`. |
 | `4` | `family = lognormal()` | `drm_build_lognormal_ls_spec()` | Univariate fixed-effect lognormal location-scale models for positive responses, with `mu` and `sigma` defined on the log-response scale. |
+| `5` | `family = Gamma(link = "log")` | `drm_build_gamma_ls_spec()` | Univariate fixed-effect Gamma mean-CV models for positive responses, with `mu` as the response mean and `sigma` as the coefficient of variation. |
 | `99` | no public route | direct test construction only | Hidden phylogenetic precision-prior parity branch used to test the sparse augmented A-inverse objective in isolation. |
 
 The hidden `model_type = 99` branch is not a family and should not appear in
@@ -351,6 +352,47 @@ location parameter, `sigma(fit)` returns the log-scale standard deviation, and
 must be positive and finite after missing-row filtering. Random effects, known
 sampling covariance, phylogenetic terms, and bivariate lognormal models are
 later phases.
+
+## Implemented Gamma Mean-CV
+
+The first Gamma path is fixed-effect mean-CV regression:
+
+```text
+y_i | mu_i, sigma_i ~ Gamma(shape_i, scale_i)
+eta_mu_i = X_mu[i, ] beta_mu
+eta_sigma_i = X_sigma[i, ] beta_sigma
+mu_i = exp(eta_mu_i)
+sigma_i = exp(eta_sigma_i)
+shape_i = 1 / sigma_i^2
+scale_i = mu_i * sigma_i^2
+E[y_i] = mu_i
+Var[y_i] = mu_i^2 sigma_i^2
+```
+
+The TMB likelihood is:
+
+```text
+log f(y_i) =
+  (shape_i - 1) log(y_i) - y_i / scale_i -
+  log Gamma(shape_i) - shape_i log(scale_i)
+```
+
+Matching R syntax:
+
+```r
+drmTMB(
+  bf(biomass ~ habitat, sigma ~ treatment),
+  family = Gamma(link = "log"),
+  data = dat
+)
+```
+
+For Gamma fits, `predict(fit, dpar = "mu")` and `fitted(fit)` return the
+response mean. `sigma(fit)` returns the coefficient of variation, not the
+residual standard deviation; the fitted residual standard deviation is
+`mu_i * sigma_i`. The response must be positive and finite after missing-row
+filtering. Random effects, known sampling covariance, phylogenetic terms, and
+bivariate or mixed Gamma models are later phases.
 
 ## Implemented Bivariate Meta-Analytic Gaussian Regression
 

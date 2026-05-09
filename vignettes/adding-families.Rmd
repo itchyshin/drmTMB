@@ -166,7 +166,7 @@ E[y_i] = exp(mu_i + sigma_i^2 / 2)
 ```
 
 `predict(fit, dpar = "mu")` returns the mean of `log(y)`, while `fitted(fit)`
-returns the arithmetic mean of `y`. A future Gamma family may instead use
+returns the arithmetic mean of `y`. The implemented Gamma mean-CV route uses
 `log(mu)` so `mu` is positive and equal to `E[y]`. A future beta family will
 need `logit(mu)` because `mu` is a probability.
 

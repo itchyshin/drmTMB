@@ -26,14 +26,14 @@ Gaussian and Student-t models, `mu` currently uses an identity link and
 the modelled parameter, but the modelled parameter is the mean of `log(y)`;
 `fitted()` returns `exp(mu + sigma^2 / 2)` instead.
 
-Future families must declare both the native parameter scale and the fitted
-response rule. For example, a Gamma mean-CV family would probably use
-`log(mu)` and `log(sigma)`, with `sigma` interpreted as a coefficient of
-variation. Count models would use `log(mu)`, and beta models would use
-`logit(mu)`.
+Families must declare both the native parameter scale and the fitted response
+rule. The implemented Gamma mean-CV family uses `log(mu)` and `log(sigma)`,
+with `sigma` interpreted as a coefficient of variation. Count models would use
+`log(mu)`, and beta models would use `logit(mu)`.
 
 The detailed contract is in `docs/design/19-family-link-contract.md`. Treat it
-as a prerequisite before implementing Gamma, count, beta, or ordinal families.
+as a prerequisite before implementing count, beta, ordinal, or additional
+positive-continuous families.
 
 ## Distributional Parameter Naming
 
@@ -124,6 +124,31 @@ Here `mu` is the mean of `log(y)`, not the arithmetic mean of `y`. The
 response-scale mean is `exp(mu_i + sigma_i^2 / 2)`, which is what `fitted()`
 returns for lognormal fits. Random effects, known sampling covariance,
 phylogenetic terms, and bivariate or mixed lognormal models are later phases.
+
+## Implemented: Gamma Mean-CV
+
+The first Gamma path uses the existing R family constructor rather than
+exporting `gamma()`, which would mask `base::gamma()`:
+
+```r
+family = Gamma(link = "log")
+```
+
+The implemented model is fixed-effect, univariate, and positive-response only:
+
+```text
+y_i | mu_i, sigma_i ~ Gamma(shape_i, scale_i)
+log(mu_i) = X_mu[i, ] beta_mu
+log(sigma_i) = X_sigma[i, ] beta_sigma
+shape_i = 1 / sigma_i^2
+scale_i = mu_i * sigma_i^2
+```
+
+Here `mu` is the expected response. `sigma` is the coefficient of variation,
+not the residual standard deviation; the residual standard deviation is
+`mu_i * sigma_i`. Non-log `Gamma()` links, random effects, known sampling
+covariance, phylogenetic terms, and bivariate or mixed Gamma models are later
+phases.
 
 ## Implemented: Bivariate Gaussian Location-Coscale
 

@@ -119,16 +119,18 @@ distributional regression models using TMB.
 
 ## Phase 7: Robust and Positive Continuous Families
 
-- Status: fixed-effect univariate Student-t location-scale-shape and
-  lognormal location-scale models are implemented.
-- Harden and extend Student-t and lognormal models before adding gamma,
-  skew-normal, and skew-t families.
+- Status: fixed-effect univariate Student-t location-scale-shape, lognormal
+  location-scale, and Gamma mean-CV models are implemented.
+- Harden and extend Student-t, lognormal, and Gamma models before adding
+  skew-normal and skew-t families.
 - Use `lognormal()` for positive continuous responses where `mu` and `sigma`
   are defined on the log-response scale and `fitted()` returns the arithmetic
   response mean.
-- Extend the implemented family-link helper table before adding Gamma, count,
-  beta, or ordinal likelihoods, so `predict()` and `fitted()` handle
-  non-identity `mu` links consistently.
+- Use `Gamma(link = "log")` for positive continuous responses where `mu` is
+  the response mean and `sigma` is the coefficient of variation.
+- Extend the implemented family-link helper table before adding count, beta,
+  ordinal, or additional positive-continuous likelihoods, so `predict()` and
+  `fitted()` handle non-identity `mu` links consistently.
 - Add formulae for shape and tail parameters where stable.
 - Add strict starting-value and boundary diagnostics.
 

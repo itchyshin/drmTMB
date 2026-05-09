@@ -24,6 +24,8 @@ test_that("drmTMB fits fixed-effect lognormal location-scale models", {
   expect_s3_class(fit, "drmTMB")
   expect_equal(fit$model$model_type, "lognormal")
   expect_equal(fit$opt$convergence, 0)
+  expect_true(fit$sdr$pdHess)
+  expect_equal(fit$df, length(unlist(coef(fit), use.names = FALSE)))
   expect_lt(max(abs(coef(fit, "mu") - sim$beta_mu)), 0.08)
   expect_lt(max(abs(coef(fit, "sigma") - sim$beta_sigma)), 0.08)
   expect_true(all(sigma(fit) > 0))

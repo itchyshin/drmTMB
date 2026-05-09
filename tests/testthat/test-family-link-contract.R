@@ -2,12 +2,15 @@ test_that("internal link table maps implemented distributional parameters", {
   fake_gaussian <- list(model = list(model_type = "gaussian"))
   fake_student <- list(model = list(model_type = "student"))
   fake_lognormal <- list(model = list(model_type = "lognormal"))
+  fake_gamma <- list(model = list(model_type = "gamma"))
   fake_biv <- list(model = list(model_type = "biv_gaussian"))
 
   expect_equal(drmTMB:::drm_dpar_link(fake_gaussian, "mu"), "identity")
   expect_equal(drmTMB:::drm_dpar_link(fake_gaussian, "sigma"), "log")
   expect_equal(drmTMB:::drm_dpar_link(fake_student, "nu"), "logm2")
   expect_equal(drmTMB:::drm_dpar_link(fake_lognormal, "sigma"), "log")
+  expect_equal(drmTMB:::drm_dpar_link(fake_gamma, "mu"), "log")
+  expect_equal(drmTMB:::drm_dpar_link(fake_gamma, "sigma"), "log")
   expect_equal(drmTMB:::drm_dpar_link(fake_biv, "rho12"), "atanh_guarded")
   expect_equal(unname(biv_gaussian()$links[["rho12"]]), "atanh_guarded")
 })
@@ -15,12 +18,15 @@ test_that("internal link table maps implemented distributional parameters", {
 test_that("internal inverse links match the documented parameter scales", {
   fake_gaussian <- list(model = list(model_type = "gaussian"))
   fake_student <- list(model = list(model_type = "student"))
+  fake_gamma <- list(model = list(model_type = "gamma"))
   fake_biv <- list(model = list(model_type = "biv_gaussian"))
   eta <- c(-1, 0, 1)
 
   expect_equal(drmTMB:::drm_inverse_link(fake_gaussian, "mu", eta), eta)
   expect_equal(drmTMB:::drm_inverse_link(fake_gaussian, "sigma", eta), exp(eta))
   expect_equal(drmTMB:::drm_inverse_link(fake_student, "nu", eta), 2 + exp(eta))
+  expect_equal(drmTMB:::drm_inverse_link(fake_gamma, "mu", eta), exp(eta))
+  expect_equal(drmTMB:::drm_inverse_link(fake_gamma, "sigma", eta), exp(eta))
   expect_equal(
     drmTMB:::drm_inverse_link(fake_biv, "rho12", eta),
     0.99999999 * tanh(eta)

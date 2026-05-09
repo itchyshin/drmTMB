@@ -91,6 +91,36 @@ variation is scientifically natural and the response values are positive and
 finite. Random effects, known sampling covariance, phylogenetic terms, and
 bivariate lognormal models are planned later.
 
+Gamma mean-CV models are implemented for positive continuous responses where
+relative variability is the scale target:
+
+```text
+y_i | mu_i, sigma_i ~ Gamma(shape_i, scale_i)
+log(mu_i) = beta_0 + beta_1 habitat_i
+log(sigma_i) = gamma_0 + gamma_1 treatment_i
+shape_i = 1 / sigma_i^2
+scale_i = mu_i * sigma_i^2
+E[y_i] = mu_i
+Var[y_i] = mu_i^2 sigma_i^2
+```
+
+```r
+drmTMB(
+  bf(biomass ~ habitat, sigma ~ treatment),
+  family = Gamma(link = "log"),
+  data = dat
+)
+```
+
+For this family, `predict(fit, dpar = "mu")` and `fitted(fit)` return the
+response mean. `sigma(fit)` returns the coefficient of variation, not the
+residual standard deviation; the residual standard deviation is `mu * sigma`.
+Use this path for positive responses such as biomass, body mass, metabolic
+rate, or concentration when predictors may change relative variability. The
+first implementation requires `stats::Gamma(link = "log")`; `stats::Gamma()`
+with its default inverse link is rejected, and `drmTMB` does not export
+`gamma()` because `base::gamma()` already exists.
+
 For implemented bivariate Gaussian models, the preferred public spelling is to
 combine two Gaussian response families:
 

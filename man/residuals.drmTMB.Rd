@@ -29,6 +29,9 @@ fitted total observation covariance.
 
 For lognormal models, response residuals are \code{y - fitted_mean}. Pearson
 residuals are computed on the log-response scale as \code{(log(y) - mu) / sigma}.
+For Gamma models, response residuals are \code{y - mu} and Pearson residuals
+divide by the fitted Gamma standard deviation \code{mu * sigma}, where \code{sigma} is
+the coefficient of variation.
 
 For bivariate Gaussian models, response residuals are returned as a
 two-column matrix. Pearson residuals are standardized and whitened using the
