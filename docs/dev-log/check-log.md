@@ -2,6 +2,58 @@
 
 Record meaningful development checks here.
 
+## 2026-05-08: Adding Families Developer Guide
+
+Scope:
+
+- replaced the placeholder `adding-families` pkgdown article with a practical
+  developer guide for adding a family to `drmTMB`;
+- paired symbolic equations, R syntax, registry fields, TMB likelihood mapping,
+  simulation support, tests, documentation, pkgdown, and after-task closure;
+- used implemented Student-t and bivariate Gaussian patterns as the worked
+  examples rather than presenting unsupported families as runnable code;
+- kept the one-response/two-response boundary, canonical `mu`/`sigma`/`nu`/
+  `tau` naming, and canonical residual `rho12` wording explicit.
+
+Commands run:
+
+- `Rscript -e "rmarkdown::render('vignettes/adding-families.Rmd', output_dir = tempdir(), quiet = TRUE)"`
+- `git diff --check`
+- `rg -n 'This developer article will|rho ~|tau ~|meta_gaussian|family = c\\(gaussian\\(\\), poisson\\(\\)\\)|skew_normal\\(\\)|bivariate random effects|bivariate Student-t|sparse known covariance|not implemented|planned' vignettes/adding-families.Rmd`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `Rscript -e "devtools::test()"`
+- `Rscript -e "pkgdown::build_site()"`
+- `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`
+
+Results:
+
+- direct vignette render: passed;
+- `git diff --check`: clean;
+- prose-style review: passed with no follow-up edits needed; the article names
+  contributors as the reader, leads with the family contract, and pairs
+  equations with supported syntax;
+- stale/unsupported-syntax scan: no old placeholder text, no `rho ~`, no
+  `tau ~`, no `meta_gaussian`, no mixed composed-family runnable example, and
+  no skew-normal runnable example. Remaining hits are intentional planned-syntax
+  or rejection-message wording;
+- `pkgdown::check_pkgdown()`: no problems found;
+- full `devtools::test()`: 642 passed, 0 failed;
+- `pkgdown::build_site()`: rebuilt successfully;
+- `devtools::check(...)`: 0 errors, 0 warnings, 0 notes.
+
+Tests of the tests:
+
+- no package code changed; the article points contributors to already
+  implemented test patterns: Student-t independent likelihood checks,
+  simulation recovery, method checks, rejection tests, and comparator tests.
+
+Notes:
+
+- the documentation-writer sidecar provided the outline and flagged the main
+  stale-wording risks before drafting;
+- `R CMD check` emitted only the standard installed-size INFO for compiled TMB
+  code; the final status was still 0/0/0.
+
 ## 2026-05-08: Testing Likelihoods Developer Guide
 
 Scope:

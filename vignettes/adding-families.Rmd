@@ -11,9 +11,336 @@ vignette: >
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 ```
 
-This developer article will explain the workflow for adding a new `drmTMB`
-family: family registry entry, likelihood, simulation, starting values, tests,
-documentation, and examples.
+This article describes the workflow for adding a distribution family to
+`drmTMB`. It is written for contributors, not end users. A new family is not a
+single constructor in `R/family.R`; it is a contract across symbolic equations,
+formula grammar, R builders, TMB likelihood code, simulation, tests,
+documentation, pkgdown, and after-task notes.
 
-The current planning references are `docs/design/02-family-registry.md` and
+The planning references are `docs/design/02-family-registry.md`,
+`docs/design/03-likelihoods.md`, `docs/design/05-testing-strategy.md`, and
 `.agents/skills/add-family/SKILL.md`.
+
+## Scope first
+
+Every new family must stay inside the package boundary:
+
+- one response or two responses only;
+- one formula per distributional parameter;
+- explicit parameter names such as `mu`, `sigma`, `nu`, `tau`, and `rho12`;
+- no higher-dimensional multivariate response models;
+- no family is complete without simulation tests and documentation.
+
+In this article, location means a mean-like parameter such as `mu`; scale means
+a residual spread or dispersion-like parameter such as `sigma`; shape means a
+family-specific parameter such as Student-t `nu`; and coscale means residual
+coupling, represented in the bivariate Gaussian model by `rho12`.
+
+Do not add a family only because another package has it. Add one when it serves
+a distributional-regression question that `drmTMB` can answer clearly.
+
+## Start with the mathematical contract
+
+Before touching code, write the model as equations. The implemented Student-t
+family is the simplest current example of a location-scale-shape family:
+
+```text
+y_i | mu_i, sigma_i, nu_i ~ Student-t(mu_i, sigma_i, nu_i)
+mu_i = X_mu[i, ] beta_mu
+log(sigma_i) = X_sigma[i, ] beta_sigma
+nu_i = 2 + exp(X_nu[i, ] beta_nu)
+```
+
+The matching R syntax is:
+
+```{r student-family-syntax, eval = FALSE}
+fit <- drmTMB(
+  drm_formula(
+    y ~ x1,
+    sigma ~ x2,
+    nu ~ x3
+  ),
+  family = student(),
+  data = dat
+)
+```
+
+This equation-syntax pair decides almost everything that follows. It tells the
+parser which distributional parameters are legal, the builder which model
+matrices to create, the TMB template which transformed parameters to use, and
+the tests what data-generating process to simulate.
+
+For a two-response family, also define what any residual coupling parameter
+means. The implemented all-Gaussian composed family uses:
+
+```text
+[y1_i, y2_i]' ~ MVN([mu1_i, mu2_i]', Omega_i)
+Omega_i =
+  [ sigma1_i^2                         rho12_i sigma1_i sigma2_i ]
+  [ rho12_i sigma1_i sigma2_i          sigma2_i^2                ]
+rho12_i = tanh(eta_rho12_i)
+```
+
+with:
+
+```{r bivariate-family-syntax, eval = FALSE}
+fit <- drmTMB(
+  drm_formula(
+    mu1 = y1 ~ x1 + x2,
+    mu2 = y2 ~ x1,
+    sigma1 = ~ x1 + x2,
+    sigma2 = ~ x1,
+    rho12 = ~ x1 + x2
+  ),
+  family = c(gaussian(), gaussian()),
+  data = dat
+)
+```
+
+For later mixed composed families, such as a Gaussian response plus a count
+response, do not assume `rho12` is automatically meaningful. The family design
+must say whether `rho12` is an observed residual correlation, a latent residual
+correlation, a copula parameter, or unsupported.
+
+## Define the registry entry
+
+Each family needs a small structured contract. The design document lists these
+fields:
+
+```text
+name
+n_response
+dpars
+links
+inverse_links
+bounds
+density_id
+simulate
+starting_values
+check_data
+```
+
+The current lightweight R family constructors expose the pieces that are needed
+by the implemented builders:
+
+```{r student-registry, eval = FALSE}
+student <- function() {
+  structure(
+    list(
+      name = "student",
+      family = "student",
+      n_response = 1L,
+      dpars = c("mu", "sigma", "nu"),
+      links = c(mu = "identity", sigma = "log", nu = "logm2")
+    ),
+    class = "drm_family"
+  )
+}
+```
+
+Use the canonical GAMLSS-style names unless there is a strong reason not to:
+
+```text
+mu     location or mean-like parameter
+sigma  scale, residual SD, or dispersion-like parameter
+nu     first shape parameter
+tau    second shape parameter
+```
+
+Aliases such as `skew`, `df`, or `shape` should wait until the canonical grammar
+is stable. If an alias is ever added, tests must show that it resolves to the
+same internal parameter before model matrices are built.
+
+## Connect the family to the builder
+
+A family constructor is not enough. The high-level fitting function has to route
+the family to a model builder. In broad terms, that builder must:
+
+1. validate the formula only uses legal distributional parameters;
+2. reject unsupported neighbouring syntax before optimization;
+3. build one model matrix for each distributional parameter;
+4. create starting values and parameter maps;
+5. assemble the data list passed to TMB;
+6. record enough metadata for prediction, simulation, summaries, and checks.
+
+For the Student-t family, the builder currently rejects random effects,
+`meta_known_V(V = V)`, random-effect scale formulae, and bivariate terms. That is
+intentional. A clear unsupported-feature error is better than a plausible fit
+whose likelihood has not been implemented.
+
+When adding a family, update formula grammar docs only after the fitting path
+and tests exist. If syntax is planned but not fitted, label it as planned.
+
+## Implement the likelihood
+
+The likelihood should be written on stable transformed scales. For the
+implemented Student-t family, TMB receives unconstrained linear predictors and
+uses:
+
+```text
+sigma_i = exp(eta_sigma_i)
+nu_i = 2 + exp(eta_nu_i)
+z_i = (y_i - mu_i) / sigma_i
+```
+
+The log density is:
+
+```text
+log f(y_i) =
+  lgamma((nu_i + 1) / 2) -
+  lgamma(nu_i / 2) -
+  0.5 log(nu_i pi) -
+  log(sigma_i) -
+  0.5 (nu_i + 1) log(1 + z_i^2 / nu_i)
+```
+
+The `-log(sigma_i)` term is part of the scaled Student-t density. Likelihood
+constants matter because `logLik()`, AIC, BIC, comparator tests, and profile
+likelihoods depend on them.
+
+For a new family, document:
+
+- the response-scale parameter definitions;
+- the link functions and inverse links;
+- the parameter bounds;
+- any density constants;
+- the starting-value strategy;
+- what is reported and predicted on the response scale.
+
+## Add simulation and method support
+
+Every family should be able to simulate from a fitted model. Simulation is not
+just a convenience for users; it is how we test whether the likelihood and
+extractors agree with the symbolic model.
+
+For a new univariate family, check these methods:
+
+```{r method-checks, eval = FALSE}
+coef(fit, "mu")
+coef(fit, "sigma")
+predict(fit, dpar = "mu")
+predict(fit, dpar = "sigma")
+simulate(fit, nsim = 2, seed = 1)
+residuals(fit)
+check_drm(fit)
+summary(fit)
+```
+
+Add family-specific diagnostics when a parameter has a boundary or biological
+interpretation risk. The implemented Student-t path adds `check_drm()` guidance
+for `nu`, because very small `nu` is boundary-prone and very large `nu` means
+the likelihood is close to Gaussian.
+
+## Write tests before calling the family implemented
+
+A minimal family test set should include four layers.
+
+First, test parameter recovery from a known data-generating process:
+
+```{r recovery-test-pattern, eval = FALSE}
+set.seed(1)
+dat <- simulate_from_known_parameters()
+
+fit <- drmTMB(
+  drm_formula(y ~ x1, sigma ~ x2, nu ~ x3),
+  family = student(),
+  data = dat
+)
+
+expect_equal(fit$opt$convergence, 0)
+expect_lt(max(abs(coef(fit, "mu") - beta_mu)), tolerance_mu)
+expect_lt(max(abs(coef(fit, "sigma") - beta_sigma)), tolerance_sigma)
+expect_lt(max(abs(coef(fit, "nu") - beta_nu)), tolerance_nu)
+```
+
+Second, add an independent likelihood check when the density is simple enough:
+
+```{r independent-likelihood-pattern, eval = FALSE}
+loglik <- sum(
+  stats::dt((y - mu) / sigma, df = nu, log = TRUE) - log(sigma)
+)
+
+expect_equal(
+  as.numeric(logLik(fit)),
+  loglik,
+  tolerance = 1e-8
+)
+```
+
+Third, test methods such as prediction, simulation, residuals, summaries, and
+diagnostics.
+
+Fourth, test rejection paths. Unsupported combinations should fail before TMB
+optimization with useful messages:
+
+```{r rejection-pattern, eval = FALSE}
+expect_error(
+  drmTMB(
+    drm_formula(y ~ x + meta_known_V(V = V), sigma ~ 1),
+    family = student(),
+    data = dat
+  ),
+  "not implemented"
+)
+```
+
+Use comparator packages only where the parameterization overlaps cleanly. For
+example, `metafor` is useful for Gaussian meta-analysis with known sampling
+covariance, and `lme4` is useful for overlapping Gaussian mixed models.
+Comparator tests should use `testthat::skip_if_not_installed()` so package
+checks remain portable.
+
+## Update user and developer documentation
+
+A family task is incomplete until the documentation tells the same story as the
+code and tests.
+
+Update these files when relevant:
+
+```text
+R/family.R
+R/drmTMB.R
+R/methods.R
+R/check.R
+src/drmTMB.cpp
+tests/testthat/test-<family>.R
+docs/design/02-family-registry.md
+docs/design/03-likelihoods.md
+docs/design/05-testing-strategy.md
+docs/design/06-distribution-roadmap.md
+vignettes/distribution-families.Rmd
+vignettes/testing-likelihoods.Rmd
+README.md
+NEWS.md
+_pkgdown.yml
+```
+
+This list is not automatic ownership. Touch only the files affected by the
+feature. The point is to check whether each public claim remains true.
+
+For exported family constructors, add roxygen documentation and examples. If
+the family changes the user-facing learning path, add or update a vignette and
+make sure `_pkgdown.yml` exposes it in the right section.
+
+## Close with an after-task audit
+
+Before merging or pushing a family change, use the after-task audit. The
+minimum closure record should answer:
+
+- What model is now implemented?
+- Which equations define the likelihood?
+- Which R syntax is supported?
+- Which unsupported neighbouring syntax is rejected?
+- Which simulation, comparator, or independent likelihood checks passed?
+- Did `devtools::document()`, `devtools::test()`, `pkgdown::check_pkgdown()`,
+  `pkgdown::build_site()`, and `devtools::check()` pass?
+- Which docs, roadmap entries, NEWS bullets, and known-limitations notes were
+  synchronized?
+- What did not go smoothly?
+
+Write the answer in `docs/dev-log/check-log.md` and in a compact after-task
+file under `docs/dev-log/after-task/`.
+
+The goal is not bureaucracy. It is how `drmTMB` avoids the usual modelling
+package failure mode: code, equations, examples, and tests drifting apart while
+the public API still looks confident.
