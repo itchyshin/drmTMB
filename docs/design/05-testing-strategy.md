@@ -47,11 +47,12 @@ Implemented comparator smoke tests:
 - intercept-only Gaussian random-effect scale formulae such as `sd(id) ~ 1`
   against `lme4::lmer(..., REML = FALSE)`;
 - Gaussian ML meta-analysis with known sampling variances against
-  `metafor::rma.uni(..., method = "ML")`.
+  `metafor::rma.uni(..., method = "ML")`;
+- dense known sampling covariance with constant residual heterogeneity against
+  `metafor::rma.mv(..., random = ~ 1 | obs, method = "ML")`.
 
 Planned comparator smoke tests:
 
-- dense known sampling covariance against `metafor::rma.mv(...)`;
 - bivariate meta-analysis with known within-study covariance against
   `metafor::rma.mv(...)` or another established multivariate meta-analysis
   implementation for fixed-effect and simple random-effect cases;

@@ -2,6 +2,53 @@
 
 Record meaningful development checks here.
 
+## 2026-05-08: Dense Known-`V` `metafor::rma.mv()` Comparator
+
+Scope:
+
+- added a comparator smoke test for dense full known sampling covariance in
+  Gaussian meta-analysis;
+- compared `drmTMB` against `metafor::rma.mv(..., random = ~ 1 | obs,
+  method = "ML")` for the overlapping case where the unknown residual
+  heterogeneity is a constant observation-level variance component;
+- updated the testing strategy so this comparator is listed as implemented
+  rather than planned.
+
+Commands run:
+
+- ad hoc `drmTMB` versus `metafor::rma.mv()` smoke comparison for fixed effects,
+  heterogeneity variance, and log-likelihood;
+- `Rscript -e "devtools::test(filter = 'comparators|meta-known-v')"`
+- `Rscript -e "devtools::test()"`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `Rscript -e "pkgdown::build_site()"`
+- `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`
+- `git diff --check`
+- `rg -n 'rma\\.mv|dense known sampling covariance|metafor::rma\\.mv' docs/design/05-testing-strategy.md tests/testthat/test-comparators.R docs/dev-log/check-log.md`
+
+Results:
+
+- targeted comparator and meta-known-`V` tests: 73 passed, 0 failed;
+- full `devtools::test()`: 642 passed, 0 failed;
+- `pkgdown::check_pkgdown()`: no problems found;
+- `pkgdown::build_site()`: rebuilt successfully;
+- `devtools::check(...)`: 0 errors, 0 warnings, 0 notes;
+- `git diff --check`: clean.
+
+Tests of the tests:
+
+- the comparator checks fixed-effect coefficients, the estimated residual
+  heterogeneity variance, and the full ML log-likelihood against independent
+  `metafor` output;
+- the dense `V` matrix has off-diagonal sampling covariance, so it is not just
+  a diagonal-known-variance repeat.
+
+Notes:
+
+- the first source scan command failed because shell backticks in the pattern
+  were not quoted safely; the successful recorded `rg` command uses single
+  quotes.
+
 ## 2026-05-08: Student-t Status Inventory Cleanup
 
 Scope:

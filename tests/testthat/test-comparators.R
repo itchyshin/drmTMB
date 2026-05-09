@@ -315,3 +315,51 @@ test_that("Gaussian meta-analysis agrees with metafor for ML tau2", {
     tolerance = 1e-4
   )
 })
+
+test_that("dense known-V Gaussian meta-analysis agrees with metafor rma.mv", {
+  testthat::skip_if_not_installed("metafor")
+
+  set.seed(20260590)
+  n <- 36
+  dat <- data.frame(
+    x = stats::rnorm(n),
+    obs = factor(seq_len(n))
+  )
+  V <- 0.012 * outer(seq_len(n), seq_len(n), function(i, j) 0.35^abs(i - j))
+  beta_mu <- c(0.15, -0.45)
+  tau <- 0.28
+  mu <- beta_mu[[1L]] + beta_mu[[2L]] * dat$x
+  Sigma <- V + diag(tau^2, n)
+  dat$yi <- as.vector(mu + t(chol(Sigma)) %*% stats::rnorm(n))
+
+  fit <- drmTMB(
+    bf(yi ~ x + meta_known_V(V = V)),
+    family = gaussian(),
+    data = dat
+  )
+  fit_metafor <- metafor::rma.mv(
+    yi = yi,
+    V = V,
+    mods = ~ x,
+    random = ~ 1 | obs,
+    data = dat,
+    method = "ML"
+  )
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(
+    unname(coef(fit, "mu")),
+    unname(stats::coef(fit_metafor)),
+    tolerance = 1e-4
+  )
+  expect_equal(
+    stats::sigma(fit)[[1L]]^2,
+    fit_metafor$sigma2[[1L]],
+    tolerance = 1e-4
+  )
+  expect_equal(
+    as.numeric(stats::logLik(fit)),
+    as.numeric(stats::logLik(fit_metafor)),
+    tolerance = 1e-4
+  )
+})
