@@ -121,8 +121,8 @@ distributional regression models using TMB.
 
 - Status: fixed-effect univariate Student-t location-scale-shape, lognormal
   location-scale, Gamma mean-CV, beta mean-scale, Poisson mean,
-  negative-binomial 2 mean-dispersion, and zero-truncated NB2
-  mean-dispersion models are implemented.
+  negative-binomial 2 mean-dispersion, zero-truncated NB2 mean-dispersion, and
+  hurdle NB2 mean-dispersion models are implemented.
 - Harden and extend Student-t, lognormal, Gamma, beta, Poisson, and
   negative-binomial models before adding skew-normal and skew-t families.
 - Use `lognormal()` for positive continuous responses where `mu` and `sigma`
@@ -147,10 +147,12 @@ distributional regression models using TMB.
   optional `zi ~ predictors` for zero-inflated NB2 models.
   `truncated_nbinom2()` is implemented for positive counts where `mu` and
   `sigma` describe the untruncated NB2 component and `fitted()` returns the
-  conditional positive-count mean. `beta()` is implemented for strict
-  continuous proportions with public `sigma`.
-- Next family sequence: hurdle NB2 using `hu ~ predictors`, and then
-  univariate ordinal models.
+  conditional positive-count mean. Adding `hu ~ predictors` to the same family
+  route fits the implemented fixed-effect hurdle NB2 model. `beta()` is
+  implemented for strict continuous proportions with public `sigma`.
+- Next family sequence: univariate ordinal models, then beta-binomial and
+  zero-one-inflated beta after their denominator and boundary contracts are
+  settled.
 - Add beta-binomial, zero-one-inflated beta, ordered logit/probit, COM-Poisson,
   generalized Poisson, and related families according to the distribution
   roadmap after their parameter-link and comparator contracts are documented.

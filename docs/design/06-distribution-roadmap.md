@@ -88,10 +88,12 @@ families.
 - `truncated_nbinom2()`: `mu`, `sigma`; implemented fixed-effect
   zero-truncated NB2 path for positive counts. The parameters describe the
   untruncated NB2 component, and `fitted()` returns the conditional
-  positive-count mean.
+  positive-count mean. Adding `hu ~ predictors` fits the implemented
+  fixed-effect hurdle NB2 path, where `hu` is the hurdle-zero probability and
+  nonzero counts come from the zero-truncated NB2 component.
 - `truncated_poisson()` for positive counts without overdispersion.
-- hurdle count models, using `hu ~ predictors` as the hurdle-zero probability
-  on an otherwise truncated count family.
+- hurdle Poisson models, using `hu ~ predictors` as the hurdle-zero
+  probability on a future truncated Poisson family.
 - `compois()`: `mu`, `nu`; handles underdispersion and overdispersion.
 - `genpois()`: `mu`, `sigma` or family-specific `nu`; useful alternative for
   count dispersion.
@@ -99,19 +101,19 @@ families.
   linearly with the mean.
 
 Priority order after the Poisson, zero-inflated Poisson, NB2,
-zero-inflated NB2, and zero-truncated NB2 seeds:
+zero-inflated NB2, zero-truncated NB2, and hurdle NB2 seeds:
 
-1. add hurdle NB2 by combining the truncated NB2 count component with
-   `hu ~ predictors`, where `hu` is the hurdle-zero probability;
-2. add `truncated_poisson()` and hurdle Poisson if examples show they are useful
+1. add `truncated_poisson()` and hurdle Poisson if examples show they are useful
    beyond NB2;
+2. add univariate ordinal models with an explicit cutpoint contract;
 3. defer `compois()` and `genpois()` until the mean/dispersion contract and
    comparator strategy are designed.
 
-Do not add separate `hurdle_nbinom2()` or `hurdle_poisson()` public constructors
-without a design decision. The preferred grammar is to keep the response family
-focused on the positive count component and use `hu ~ predictors` for the
-hurdle component, parallel to the current `zi ~ predictors` route.
+The implemented NB2 hurdle grammar keeps the response family focused on the
+positive count component and uses `hu ~ predictors` for the hurdle component,
+parallel to the current `zi ~ predictors` route. Do not add separate
+`hurdle_nbinom2()` or `hurdle_poisson()` public constructors without a design
+decision.
 
 ## Tier 5: Proportions, Percentages, and Bounded Continuous Responses
 
@@ -139,10 +141,11 @@ Recommended user guidance:
 - Use `beta()` for continuous rates strictly between 0 and 1.
 - Use zero/one-inflated beta or ordered beta when exact boundaries occur.
 
-Priority order after the implemented `beta()` and `truncated_nbinom2()` seeds
-is therefore hurdle NB2, then univariate ordinal models. This gives users the
-positive-count and bounded-score routes after the strict proportion path,
-while keeping every new family within a clear parameter-link contract.
+Priority order after the implemented `beta()`, `truncated_nbinom2()`, and
+hurdle NB2 seeds is therefore univariate ordinal models, then
+denominator-aware count proportions. This gives users the positive-count,
+hurdle-count, and bounded-score routes after the strict proportion path, while
+keeping every new family within a clear parameter-link contract.
 
 ## Tier 6: Positive Continuous Responses
 

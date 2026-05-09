@@ -304,6 +304,38 @@ that zeros are rejected, that `predict(fit, dpar = "mu")` returns the
 untruncated NB2 component mean, and that `fitted(fit)` returns
 `mu / (1 - Pr_NB2(0))`.
 
+For hurdle NB2, the independent likelihood separates the zero process from the
+positive truncated NB2 component:
+
+```text
+Pr(y_i = 0) = hu_i
+Pr(y_i = k > 0) = (1 - hu_i) Pr_NB2(k) / (1 - Pr_NB2(0))
+```
+
+```{r independent-hurdle-nbinom2-likelihood, eval = FALSE}
+eta_mu <- X_mu %*% beta_mu
+eta_sigma <- X_sigma %*% beta_sigma
+eta_hu <- X_hu %*% beta_hu
+
+mu <- exp(as.vector(eta_mu))
+sigma <- exp(as.vector(eta_sigma))
+hu <- plogis(as.vector(eta_hu))
+size <- 1 / sigma^2
+
+log_p0 <- stats::dnbinom(0, mu = mu, size = size, log = TRUE)
+log_positive <- log1p(-exp(log_p0))
+loglik <- sum(ifelse(
+  y == 0,
+  log(hu),
+  log1p(-hu) + stats::dnbinom(y, mu = mu, size = size, log = TRUE) -
+    log_positive
+))
+```
+
+The matching test should also check that zeros are accepted only when `hu` is
+present, that `predict(fit, dpar = "hu")` returns a probability, and that
+`fitted(fit)` returns `(1 - hu) * mu / (1 - Pr_NB2(0))`.
+
 ## Bivariate and coscale checks
 
 The first bivariate Gaussian location-coscale model uses:

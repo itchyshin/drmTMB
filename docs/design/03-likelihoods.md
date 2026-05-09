@@ -20,7 +20,8 @@ The corresponding R density call uses standard deviation, as in
 
 The R builders use descriptive model labels, such as `"gaussian"`,
 `"student"`, `"lognormal"`, `"gamma"`, `"beta"`, `"poisson"`, `"zi_poisson"`,
-`"nbinom2"`, `"truncated_nbinom2"`, `"zi_nbinom2"`, and `"biv_gaussian"`. Before calling the TMB template, `make_tmb_data()` turns
+`"nbinom2"`, `"truncated_nbinom2"`, `"hurdle_nbinom2"`, `"zi_nbinom2"`, and
+`"biv_gaussian"`. Before calling the TMB template, `make_tmb_data()` turns
 those labels into integer branches in `src/drmTMB.cpp`. Unknown labels are
 rejected before they can fall through to a wrong likelihood branch. This table
 is the current routing contract:
@@ -38,6 +39,7 @@ is the current routing contract:
 | `9` | `family = nbinom2()` plus `zi ~ ...` | `drm_build_nbinom2_spec()` | Univariate fixed-effect zero-inflated negative-binomial 2 models, with `mu` as the conditional count mean, `sigma` as the NB2 overdispersion scale, and `zi` as the structural-zero probability. |
 | `10` | `family = beta()` | `drm_build_beta_ls_spec()` | Univariate fixed-effect beta mean-scale models for strict continuous proportions, with `mu` as the mean proportion and public `sigma` mapped internally to `phi = 1 / sigma^2`. |
 | `11` | `family = truncated_nbinom2()` | `drm_build_truncated_nbinom2_spec()` | Univariate fixed-effect zero-truncated negative-binomial 2 models for positive counts, with `mu` and `sigma` describing the untruncated NB2 component. |
+| `12` | `family = truncated_nbinom2()` plus `hu ~ ...` | `drm_build_truncated_nbinom2_spec()` | Univariate fixed-effect hurdle negative-binomial 2 models, with `hu` as the hurdle-zero probability and nonzero counts drawn from the zero-truncated NB2 component. |
 | `99` | no public route | direct test construction only | Hidden phylogenetic precision-prior parity branch used to test the sparse augmented A-inverse objective in isolation. |
 
 The hidden `model_type = 99` branch is not a family and should not appear in
@@ -572,9 +574,9 @@ drmTMB(
 For `nbinom2()` fits, `predict(fit, dpar = "mu")` and `fitted(fit)` return the
 count mean. `sigma(fit)` returns the overdispersion scale in the variance
 equation, not a residual standard deviation. Larger `sigma` means greater
-extra-Poisson variation. Random effects, known sampling covariance, hurdle
-components, phylogenetic terms, and bivariate or mixed negative-binomial models
-are later phases.
+extra-Poisson variation. Random effects, known sampling covariance,
+phylogenetic terms, and bivariate or mixed negative-binomial models are later
+phases.
 
 ## Implemented Zero-Truncated Negative Binomial 2
 
@@ -615,8 +617,55 @@ For `truncated_nbinom2()` fits, `predict(fit, dpar = "mu")` returns the
 untruncated NB2 component mean, `sigma(fit)` returns the NB2 overdispersion
 scale, and `fitted(fit)` returns the observed positive-count mean
 `mu / (1 - Pr_NB2(0))`. The response must contain positive integer counts
-after missing-row filtering. Hurdle models using `hu ~ predictors` remain a
-later phase.
+after missing-row filtering unless a hurdle formula is supplied.
+
+## Implemented Hurdle Negative Binomial 2
+
+Hurdle NB2 models reuse `truncated_nbinom2()` and add a formula for the
+hurdle-zero probability:
+
+```text
+eta_mu_i = X_mu[i, ] beta_mu
+eta_sigma_i = X_sigma[i, ] beta_sigma
+eta_hu_i = X_hu[i, ] beta_hu
+mu_i = exp(eta_mu_i)
+sigma_i = exp(eta_sigma_i)
+hu_i = logit^{-1}(eta_hu_i)
+size_i = 1 / sigma_i^2
+Z_i = 1 - NB2(0 | mu_i, size_i)
+```
+
+The probability mass is:
+
+```text
+Pr(y_i = 0) = hu_i
+Pr(y_i = k > 0) = (1 - hu_i) NB2(k | mu_i, size_i) / Z_i
+E[y_i] = (1 - hu_i) mu_i / Z_i
+```
+
+The response variance used by Pearson residuals is the mixture variance:
+
+```text
+m_i = mu_i / Z_i
+v_i = Var_NB2(y_i | y_i > 0, mu_i, sigma_i)
+Var(y_i) = (1 - hu_i) v_i + hu_i (1 - hu_i) m_i^2
+```
+
+Matching R syntax:
+
+```r
+drmTMB(
+  drm_formula(count ~ habitat, sigma ~ treatment, hu ~ survey_method),
+  family = truncated_nbinom2(),
+  data = dat
+)
+```
+
+Here `mu` and `sigma` continue to describe the untruncated NB2 component.
+`predict(fit, dpar = "hu")` returns the hurdle-zero probability. `fitted(fit)`
+returns the unconditional response mean `(1 - hu) * mu / (1 - Pr_NB2(0))`.
+Zeros are allowed only when the `hu` formula is present, and at least one
+positive count must remain after missing-row filtering.
 
 ## Implemented Zero-Inflated Negative Binomial 2
 

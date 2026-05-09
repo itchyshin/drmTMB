@@ -150,6 +150,10 @@ nbinom2 <- function() {
 #' with formulas for the untruncated NB2 mean `mu` and overdispersion scale
 #' `sigma`.
 #'
+#' Adding `hu ~ predictors` to the model formula fits the corresponding hurdle
+#' NB2 model: `hu` is the probability of a hurdle zero, and nonzero counts are
+#' drawn from the zero-truncated NB2 component.
+#'
 #' The implemented contract is
 #' `log(mu) = eta_mu`, `log(sigma) = eta_sigma`, and the count response is
 #' distributed as NB2 conditional on being greater than zero. The untruncated

@@ -332,9 +332,9 @@ This mirrors the implemented zero-inflation grammar while keeping the
 interpretation distinct. Use `zi` when the count distribution can still
 generate sampling zeros and the model adds an extra structural-zero process.
 Use `hu` when zeros are modelled separately and all nonzero counts come from a
-zero-truncated count distribution. The later hurdle implementation should not
-export separate `hurdle_nbinom2()` or `hurdle_poisson()` constructors unless
-that choice is revisited in the formula-grammar design.
+zero-truncated count distribution. The implemented NB2 hurdle path does not
+export a separate `hurdle_nbinom2()` constructor; any future
+`hurdle_poisson()` constructor would need a separate formula-grammar decision.
 
 ## Candidate Ordinal Contract
 

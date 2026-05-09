@@ -21,6 +21,8 @@ univariate Gaussian, Student-t, Gamma, beta, ordinary Poisson, and ordinary
 negative-binomial fits this is the fitted \code{mu} vector. For zero-truncated
 negative-binomial 2 fits this is the positive-count mean
 \code{mu / (1 - Pr_NB2(0))}, where \code{mu} is the untruncated NB2 component mean.
+For hurdle negative-binomial 2 fits this is the unconditional response mean
+\code{(1 - hu) * mu / (1 - Pr_NB2(0))}.
 For zero-inflated Poisson and zero-inflated negative-binomial 2 fits this is
 the unconditional response mean \code{(1 - zi) * mu}, where \code{mu} is the
 conditional count mean. For bivariate Gaussian fits this is a

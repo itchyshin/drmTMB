@@ -36,7 +36,9 @@ fitted conditional mean \code{mu} and structural-zero probability \code{zi}. For
 negative-binomial 2 models, simulation uses fitted \code{mu} and overdispersion
 scale \code{sigma}, with \code{Var(y) = mu + sigma^2 * mu^2}; zero-truncated NB2
 models draw from this NB2 component conditional on positive counts. The
-zero-inflated NB2 path adds structural-zero probability \code{zi}. For bivariate
+zero-inflated NB2 path adds structural-zero probability \code{zi}; the hurdle NB2
+path adds hurdle-zero probability \code{hu} and draws nonzero counts from the
+zero-truncated NB2 component. For bivariate
 Gaussian models without known
 sampling covariance, simulation uses the fitted \code{mu1}, \code{mu2}, \code{sigma1},
 \code{sigma2}, and residual \code{rho12}. If a dense bivariate known \code{V} was supplied,

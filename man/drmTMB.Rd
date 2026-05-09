@@ -14,7 +14,9 @@ drmTMB(formula, family = stats::gaussian(), data, control = list(), ...)
 \code{\link[stats:poisson]{stats::poisson()}} with \code{link = "log"}, \code{\link[=nbinom2]{nbinom2()}},
 \code{\link[=truncated_nbinom2]{truncated_nbinom2()}}, or \code{\link[=biv_gaussian]{biv_gaussian()}}. Adding \code{zi ~ predictors} to
 a Poisson or \code{nbinom2()} model fits the corresponding zero-inflated count
-model. The current
+model. Adding \code{hu ~ predictors} to a \code{truncated_nbinom2()} model fits a
+hurdle count model whose nonzero counts use the zero-truncated NB2
+component. The current
 bivariate Gaussian engine also accepts
 \code{family = c(gaussian(), gaussian())} and
 \code{family = list(gaussian(), gaussian())}.}
@@ -35,8 +37,9 @@ univariate Student-t location-scale-shape models, fixed-effect lognormal
 location-scale models, Gamma mean-CV models for positive responses,
 fixed-effect beta mean-scale models for strict proportions,
 fixed-effect Poisson mean, zero-inflated Poisson, negative-binomial
-mean-dispersion, zero-inflated negative-binomial mean-dispersion, and
-zero-truncated negative-binomial mean-dispersion models for counts,
+mean-dispersion, zero-inflated negative-binomial mean-dispersion,
+zero-truncated negative-binomial mean-dispersion, and hurdle
+negative-binomial mean-dispersion models for counts,
 Gaussian random intercepts, independent numeric random slopes,
 and labelled or unlabelled correlated numeric random intercept-slope blocks
 in the location formula,

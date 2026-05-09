@@ -8,6 +8,7 @@ test_that("internal link table maps implemented distributional parameters", {
   fake_zip <- list(model = list(model_type = "zi_poisson"))
   fake_nbinom2 <- list(model = list(model_type = "nbinom2"))
   fake_truncnb2 <- list(model = list(model_type = "truncated_nbinom2"))
+  fake_hurdlenb2 <- list(model = list(model_type = "hurdle_nbinom2"))
   fake_zinb2 <- list(model = list(model_type = "zi_nbinom2"))
   fake_biv <- list(model = list(model_type = "biv_gaussian"))
 
@@ -26,6 +27,9 @@ test_that("internal link table maps implemented distributional parameters", {
   expect_equal(drmTMB:::drm_dpar_link(fake_nbinom2, "sigma"), "log")
   expect_equal(drmTMB:::drm_dpar_link(fake_truncnb2, "mu"), "log")
   expect_equal(drmTMB:::drm_dpar_link(fake_truncnb2, "sigma"), "log")
+  expect_equal(drmTMB:::drm_dpar_link(fake_hurdlenb2, "mu"), "log")
+  expect_equal(drmTMB:::drm_dpar_link(fake_hurdlenb2, "sigma"), "log")
+  expect_equal(drmTMB:::drm_dpar_link(fake_hurdlenb2, "hu"), "logit")
   expect_equal(drmTMB:::drm_dpar_link(fake_zinb2, "mu"), "log")
   expect_equal(drmTMB:::drm_dpar_link(fake_zinb2, "sigma"), "log")
   expect_equal(drmTMB:::drm_dpar_link(fake_zinb2, "zi"), "logit")
@@ -48,6 +52,7 @@ test_that("internal inverse links match the documented parameter scales", {
   fake_zip <- list(model = list(model_type = "zi_poisson"))
   fake_nbinom2 <- list(model = list(model_type = "nbinom2"))
   fake_truncnb2 <- list(model = list(model_type = "truncated_nbinom2"))
+  fake_hurdlenb2 <- list(model = list(model_type = "hurdle_nbinom2"))
   fake_zinb2 <- list(model = list(model_type = "zi_nbinom2"))
   fake_biv <- list(model = list(model_type = "biv_gaussian"))
   eta <- c(-1, 0, 1)
@@ -66,6 +71,9 @@ test_that("internal inverse links match the documented parameter scales", {
   expect_equal(drmTMB:::drm_inverse_link(fake_nbinom2, "sigma", eta), exp(eta))
   expect_equal(drmTMB:::drm_inverse_link(fake_truncnb2, "mu", eta), exp(eta))
   expect_equal(drmTMB:::drm_inverse_link(fake_truncnb2, "sigma", eta), exp(eta))
+  expect_equal(drmTMB:::drm_inverse_link(fake_hurdlenb2, "mu", eta), exp(eta))
+  expect_equal(drmTMB:::drm_inverse_link(fake_hurdlenb2, "sigma", eta), exp(eta))
+  expect_equal(drmTMB:::drm_inverse_link(fake_hurdlenb2, "hu", eta), stats::plogis(eta))
   expect_equal(drmTMB:::drm_inverse_link(fake_zinb2, "mu", eta), exp(eta))
   expect_equal(drmTMB:::drm_inverse_link(fake_zinb2, "sigma", eta), exp(eta))
   expect_equal(drmTMB:::drm_inverse_link(fake_zinb2, "zi", eta), stats::plogis(eta))
@@ -141,6 +149,14 @@ test_that("fitted response helper uses family-specific response summaries", {
     family = truncated_nbinom2(),
     data = dat_truncnb2
   )
+  dat_hurdlenb2 <- dat_truncnb2
+  dat_hurdlenb2$z <- rep(c(-1, 0, 1, 0), length.out = nrow(dat_hurdlenb2))
+  dat_hurdlenb2$y[seq(1, nrow(dat_hurdlenb2), by = 5)] <- 0
+  fit_hurdlenb2 <- drmTMB(
+    bf(y ~ x, sigma ~ 1, hu ~ z),
+    family = truncated_nbinom2(),
+    data = dat_hurdlenb2
+  )
   set.seed(20260619)
   dat_beta <- data.frame(
     x = rep(seq(-1, 1, length.out = 20), each = 4)
@@ -194,6 +210,15 @@ test_that("fitted response helper uses family-specific response summaries", {
   expect_equal(
     fitted(fit_truncnb2),
     mu_truncnb2 / (1 - p0_truncnb2),
+    tolerance = 1e-12
+  )
+  mu_hurdlenb2 <- predict(fit_hurdlenb2, dpar = "mu")
+  sigma_hurdlenb2 <- sigma(fit_hurdlenb2)
+  hu_hurdlenb2 <- predict(fit_hurdlenb2, dpar = "hu")
+  p0_hurdlenb2 <- stats::dnbinom(0, size = 1 / sigma_hurdlenb2^2, mu = mu_hurdlenb2)
+  expect_equal(
+    fitted(fit_hurdlenb2),
+    (1 - hu_hurdlenb2) * mu_hurdlenb2 / (1 - p0_hurdlenb2),
     tolerance = 1e-12
   )
   expect_equal(

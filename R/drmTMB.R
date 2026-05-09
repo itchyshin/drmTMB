@@ -6,8 +6,9 @@
 #' location-scale models, Gamma mean-CV models for positive responses,
 #' fixed-effect beta mean-scale models for strict proportions,
 #' fixed-effect Poisson mean, zero-inflated Poisson, negative-binomial
-#' mean-dispersion, zero-inflated negative-binomial mean-dispersion, and
-#' zero-truncated negative-binomial mean-dispersion models for counts,
+#' mean-dispersion, zero-inflated negative-binomial mean-dispersion,
+#' zero-truncated negative-binomial mean-dispersion, and hurdle
+#' negative-binomial mean-dispersion models for counts,
 #' Gaussian random intercepts, independent numeric random slopes,
 #' and labelled or unlabelled correlated numeric random intercept-slope blocks
 #' in the location formula,
@@ -26,7 +27,9 @@
 #'   [stats::poisson()] with `link = "log"`, [nbinom2()],
 #'   [truncated_nbinom2()], or [biv_gaussian()]. Adding `zi ~ predictors` to
 #'   a Poisson or `nbinom2()` model fits the corresponding zero-inflated count
-#'   model. The current
+#'   model. Adding `hu ~ predictors` to a `truncated_nbinom2()` model fits a
+#'   hurdle count model whose nonzero counts use the zero-truncated NB2
+#'   component. The current
 #'   bivariate Gaussian engine also accepts
 #'   `family = c(gaussian(), gaussian())` and
 #'   `family = list(gaussian(), gaussian())`.
@@ -166,7 +169,7 @@ drm_family_type <- function(family) {
     ))
   }
   cli::cli_abort(
-    "Currently supported families are {.code gaussian()}, {.fn student}, {.fn lognormal}, {.code Gamma(link = \"log\")}, {.fn beta}, {.code poisson(link = \"log\")}, {.fn nbinom2}, {.fn truncated_nbinom2}, {.fn biv_gaussian}, {.code c(gaussian(), gaussian())}, and {.code list(gaussian(), gaussian())}. Zero-inflated Poisson and NB2 models use the same family route plus a {.code zi ~ ...} formula."
+    "Currently supported families are {.code gaussian()}, {.fn student}, {.fn lognormal}, {.code Gamma(link = \"log\")}, {.fn beta}, {.code poisson(link = \"log\")}, {.fn nbinom2}, {.fn truncated_nbinom2}, {.fn biv_gaussian}, {.code c(gaussian(), gaussian())}, and {.code list(gaussian(), gaussian())}. Zero-inflated Poisson and NB2 models use the same family route plus a {.code zi ~ ...} formula; hurdle NB2 models use {.fn truncated_nbinom2} plus a {.code hu ~ ...} formula."
   )
 }
 
@@ -1124,12 +1127,11 @@ drm_build_truncated_nbinom2_spec <- function(formula, data, env = parent.frame()
   dpars <- vapply(entries, `[[`, character(1), "dpar")
   is_sd_dpar <- startsWith(dpars, "sd(")
 
-  unsupported <- setdiff(dpars[!is_sd_dpar], c("mu", "sigma"))
+  unsupported <- setdiff(dpars[!is_sd_dpar], c("mu", "sigma", "hu"))
   if (length(unsupported) > 0L) {
     cli::cli_abort(c(
-      "{.fn truncated_nbinom2} models only support {.code mu} and optional {.code sigma}.",
-      "x" = "Unsupported parameter{?s}: {.val {unsupported}}.",
-      "i" = "{.code hu} hurdle models are planned after the zero-truncated count likelihood is tested."
+      "{.fn truncated_nbinom2} models only support {.code mu}, optional {.code sigma}, and optional {.code hu}.",
+      "x" = "Unsupported parameter{?s}: {.val {unsupported}}."
     ))
   }
   if (any(is_sd_dpar)) {
@@ -1144,6 +1146,9 @@ drm_build_truncated_nbinom2_spec <- function(formula, data, env = parent.frame()
   if (sum(dpars == "sigma") > 1L) {
     cli::cli_abort("A {.fn truncated_nbinom2} model can have at most one overdispersion {.code sigma} formula.")
   }
+  if (sum(dpars == "hu") > 1L) {
+    cli::cli_abort("A {.fn truncated_nbinom2} model can have at most one hurdle {.code hu} formula.")
+  }
 
   mu_entry <- entries[[which(dpars == "mu")]]
   sigma_entry <- if (any(dpars == "sigma")) {
@@ -1151,9 +1156,17 @@ drm_build_truncated_nbinom2_spec <- function(formula, data, env = parent.frame()
   } else {
     default_dpar_entry("sigma", quote(1))
   }
+  hu_entry <- if (any(dpars == "hu")) {
+    entries[[which(dpars == "hu")]]
+  } else {
+    NULL
+  }
 
   if (is.na(mu_entry$response)) {
     cli::cli_abort("The {.code mu} formula must include a response on the left-hand side.")
+  }
+  if (!is.null(hu_entry) && !is.na(hu_entry$response)) {
+    cli::cli_abort("The {.code hu} formula must be one-sided, for example {.code hu ~ survey_method}.")
   }
   if (is_mvbind_lhs(mu_entry$lhs)) {
     cli::cli_abort(c(
@@ -1177,13 +1190,14 @@ drm_build_truncated_nbinom2_spec <- function(formula, data, env = parent.frame()
   }
   mu_entry$rhs <- meta$rhs
 
-  for (entry in list(mu_entry, sigma_entry)) {
+  for (entry in c(list(mu_entry, sigma_entry), if (!is.null(hu_entry)) list(hu_entry))) {
     drm_reject_phase1_terms(entry$rhs, entry$dpar)
   }
 
   f_mu <- drm_entry_formula(mu_entry, response = TRUE)
   f_sigma <- drm_entry_formula(sigma_entry, response = FALSE)
-  vars <- unique(c(all.vars(f_mu), all.vars(f_sigma)))
+  f_hu <- if (!is.null(hu_entry)) drm_entry_formula(hu_entry, response = FALSE) else NULL
+  vars <- unique(c(all.vars(f_mu), all.vars(f_sigma), if (!is.null(f_hu)) all.vars(f_hu)))
   if (length(vars) > 0L) {
     keep <- stats::complete.cases(data[, vars, drop = FALSE])
   } else {
@@ -1193,38 +1207,79 @@ drm_build_truncated_nbinom2_spec <- function(formula, data, env = parent.frame()
 
   mf_mu <- stats::model.frame(f_mu, data = data_model, na.action = stats::na.omit)
   mf_sigma <- stats::model.frame(f_sigma, data = data_model, na.action = stats::na.omit)
+  mf_hu <- if (!is.null(f_hu)) {
+    stats::model.frame(f_hu, data = data_model, na.action = stats::na.omit)
+  } else {
+    NULL
+  }
   y <- stats::model.response(mf_mu)
 
   if (length(y) == 0L) {
     cli::cli_abort("No complete observations remain after applying model missingness rules.")
   }
   count_tolerance <- sqrt(.Machine$double.eps)
-  if (!all(is.finite(y)) || any(y <= 0) || any(abs(y - round(y)) > count_tolerance)) {
+  has_hu <- !is.null(hu_entry)
+  invalid_count <- !all(is.finite(y)) || any(abs(y - round(y)) > count_tolerance)
+  invalid_truncated <- invalid_count || any(y <= 0)
+  invalid_hurdle <- invalid_count || any(y < 0)
+  if ((!has_hu && invalid_truncated) || (has_hu && invalid_hurdle)) {
     cli::cli_abort(c(
-      "{.fn truncated_nbinom2} models require positive integer count response values.",
-      "x" = "The response {.val {mu_entry$response}} contains zero, negative, non-integer, or non-finite values after missing-row filtering."
+      if (has_hu) {
+        "{.fn truncated_nbinom2} hurdle models require non-negative integer count response values."
+      } else {
+        "{.fn truncated_nbinom2} models require positive integer count response values."
+      },
+      "x" = if (has_hu) {
+        "The response {.val {mu_entry$response}} contains negative, non-integer, or non-finite values after missing-row filtering."
+      } else {
+        "The response {.val {mu_entry$response}} contains zero, negative, non-integer, or non-finite values after missing-row filtering."
+      }
+    ))
+  }
+  if (has_hu && !any(y > 0)) {
+    cli::cli_abort(c(
+      "{.fn truncated_nbinom2} hurdle models need at least one positive count after missing-row filtering.",
+      "x" = "The positive-count NB2 component cannot be estimated from all-zero responses."
     ))
   }
 
   X_mu <- stats::model.matrix(stats::delete.response(stats::terms(mf_mu)), mf_mu)
   X_sigma <- stats::model.matrix(stats::terms(mf_sigma), mf_sigma)
+  X_hu <- if (!is.null(mf_hu)) stats::model.matrix(stats::terms(mf_hu), mf_hu) else NULL
   if (nrow(X_sigma) != length(y)) {
     cli::cli_abort("Internal model-frame mismatch in truncated_nbinom2 model.")
   }
+  if (!is.null(X_hu) && nrow(X_hu) != length(y)) {
+    cli::cli_abort("Internal model-frame mismatch in hurdle nbinom2 model.")
+  }
+  if (!is.null(X_hu) && ncol(X_hu) == 0L) {
+    cli::cli_abort(c(
+      "Cannot fit a zero-column {.code hu} formula in a hurdle nbinom2 model.",
+      "i" = "Use a formula with an intercept or predictors, such as {.code hu ~ 1} or {.code hu ~ survey_method}."
+    ))
+  }
 
   spec <- list(
-    model_type = "truncated_nbinom2",
+    model_type = if (has_hu) "hurdle_nbinom2" else "truncated_nbinom2",
     y = as.numeric(y),
     V_known = rep(0, length(y)),
     V_known_diag = rep(0, length(y)),
     V_known_type = "none",
     has_known_v = FALSE,
-    X = list(mu = X_mu, sigma = X_sigma),
-    terms = list(
-      mu = stats::delete.response(stats::terms(mf_mu)),
-      sigma = stats::terms(mf_sigma)
-    ),
-    model_frame = list(mu = mf_mu, sigma = mf_sigma),
+    X = if (has_hu) list(mu = X_mu, sigma = X_sigma, hu = X_hu) else list(mu = X_mu, sigma = X_sigma),
+    terms = if (has_hu) {
+      list(
+        mu = stats::delete.response(stats::terms(mf_mu)),
+        sigma = stats::terms(mf_sigma),
+        hu = stats::terms(mf_hu)
+      )
+    } else {
+      list(
+        mu = stats::delete.response(stats::terms(mf_mu)),
+        sigma = stats::terms(mf_sigma)
+      )
+    },
+    model_frame = if (has_hu) list(mu = mf_mu, sigma = mf_sigma, hu = mf_hu) else list(mu = mf_mu, sigma = mf_sigma),
     random = list(
       mu = empty_random_mu_structure(nrow(data_model)),
       sigma = empty_random_sigma_structure(nrow(data_model))
@@ -1234,9 +1289,9 @@ drm_build_truncated_nbinom2_spec <- function(formula, data, env = parent.frame()
     data = data_model,
     variables = vars,
     keep = keep,
-    dpars = c("mu", "sigma"),
-    start = truncated_nbinom2_start(y, X_mu, X_sigma),
-    map = truncated_nbinom2_map(),
+    dpars = if (has_hu) c("mu", "sigma", "hu") else c("mu", "sigma"),
+    start = if (has_hu) hurdle_nbinom2_start(y, X_mu, X_sigma, X_hu) else truncated_nbinom2_start(y, X_mu, X_sigma),
+    map = if (has_hu) hurdle_nbinom2_map() else truncated_nbinom2_map(),
     random_names = NULL
   )
   spec$tmb_data <- make_tmb_data(spec)
@@ -2762,6 +2817,25 @@ truncated_nbinom2_map <- function() {
   nbinom2_map()
 }
 
+hurdle_nbinom2_start <- function(y, X_mu, X_sigma, X_hu) {
+  nb <- truncated_nbinom2_start(
+    y[y > 0],
+    X_mu[y > 0, , drop = FALSE],
+    X_sigma[y > 0, , drop = FALSE]
+  )
+  hu0 <- min(max(mean(y == 0), 0.02), 0.8)
+  beta_hu <- numeric(ncol(X_hu))
+  beta_hu[[1L]] <- stats::qlogis(hu0)
+  nb$beta_zi <- beta_hu
+  nb
+}
+
+hurdle_nbinom2_map <- function() {
+  out <- nbinom2_map()
+  out$beta_zi <- NULL
+  out
+}
+
 zi_nbinom2_start <- function(y, X_mu, X_sigma, X_zi) {
   nb <- nbinom2_start(y, X_mu, X_sigma)
   beta_mu <- nb$beta_mu
@@ -3401,6 +3475,45 @@ make_tmb_data <- function(spec) {
       log_det_Q_phylo = 0
     ))
   }
+  if (identical(spec$model_type, "hurdle_nbinom2")) {
+    return(list(
+      model_type = 12L,
+      y = spec$y,
+      V_known = spec$V_known_diag,
+      V_known_matrix = dummy_matrix,
+      V_known_type = 0L,
+      y1 = numeric(1),
+      y2 = numeric(1),
+      X_mu = spec$X$mu,
+      X_sigma = spec$X$sigma,
+      X_nu = dummy_matrix,
+      X_zi = spec$X$hu,
+      X_sd_mu = dummy_matrix,
+      has_sd_mu_model = 0L,
+      X_mu1 = dummy_matrix,
+      X_mu2 = dummy_matrix,
+      X_sigma1 = dummy_matrix,
+      X_sigma2 = dummy_matrix,
+      X_rho12 = dummy_matrix,
+      n_mu_re_terms = 0L,
+      n_mu_re_cors = 0L,
+      mu_re_index = matrix(0L, nrow = 1L, ncol = 1L),
+      mu_re_value = dummy_matrix,
+      mu_re_term = 0L,
+      mu_re_pos = 0L,
+      mu_re_cor_id = -1L,
+      mu_re_pair_index = -1L,
+      mu_re_sd_row = -1L,
+      n_sigma_re_terms = 0L,
+      sigma_re_index = matrix(0L, nrow = 1L, ncol = 1L),
+      sigma_re_value = dummy_matrix,
+      sigma_re_term = 0L,
+      has_phylo_mu = 0L,
+      phylo_mu_node_index = 0L,
+      Q_phylo = dummy_sparse,
+      log_det_Q_phylo = 0
+    ))
+  }
   if (identical(spec$model_type, "zi_nbinom2")) {
     return(list(
       model_type = 9L,
@@ -3513,6 +3626,15 @@ split_tmb_parameters <- function(par, spec) {
     names(beta_sigma) <- colnames(spec$X$sigma)
     names(beta_zi) <- colnames(spec$X$zi)
     return(list(mu = beta_mu, sigma = beta_sigma, zi = beta_zi))
+  }
+  if (identical(spec$model_type, "hurdle_nbinom2")) {
+    beta_mu <- unname(par$beta_mu)
+    beta_sigma <- unname(par$beta_sigma)
+    beta_hu <- unname(par$beta_zi)
+    names(beta_mu) <- colnames(spec$X$mu)
+    names(beta_sigma) <- colnames(spec$X$sigma)
+    names(beta_hu) <- colnames(spec$X$hu)
+    return(list(mu = beta_mu, sigma = beta_sigma, hu = beta_hu))
   }
 
   if (identical(spec$model_type, "gaussian") ||

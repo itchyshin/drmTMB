@@ -26,9 +26,9 @@ coefficient of variation. For beta models this is the public scale parameter
 where internal precision is \code{phi = 1 / sigma^2}. Poisson and zero-inflated
 Poisson models have no fitted residual scale parameter and return a fixed
 unit dispersion vector for consistency with base-R \code{sigma()} conventions. For
-negative-binomial 2, zero-truncated negative-binomial 2, and
-zero-inflated negative-binomial 2 models this is the fitted overdispersion
-scale in the untruncated NB2 component
+negative-binomial 2, zero-truncated negative-binomial 2, hurdle
+negative-binomial 2, and zero-inflated negative-binomial 2 models this is
+the fitted overdispersion scale in the untruncated NB2 component
 \code{Var(y | component) = mu + sigma^2 * mu^2}. For bivariate Gaussian models
 it returns a list with fitted \code{sigma1} and
 \code{sigma2} vectors.

@@ -212,10 +212,6 @@ test_that("truncated nbinom2 rejects unsupported or invalid inputs", {
     "only support"
   )
   expect_error(
-    drmTMB(bf(y ~ x, hu ~ 1), family = truncated_nbinom2(), data = dat),
-    "hurdle"
-  )
-  expect_error(
     drmTMB(bf(mu = ~ x, sigma ~ 1), family = truncated_nbinom2(), data = dat),
     "must include a response"
   )

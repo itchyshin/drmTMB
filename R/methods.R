@@ -11,6 +11,7 @@ print.drmTMB <- function(x, ...) {
     zi_poisson = "zero-inflated Poisson mean",
     nbinom2 = "negative binomial 2 mean-dispersion",
     truncated_nbinom2 = "zero-truncated negative binomial 2 mean-dispersion",
+    hurdle_nbinom2 = "hurdle negative binomial 2 mean-dispersion",
     zi_nbinom2 = "zero-inflated negative binomial 2 mean-dispersion",
     biv_gaussian = "bivariate Gaussian location-scale-coscale",
     "distributional"
@@ -36,7 +37,7 @@ print.drmTMB <- function(x, ...) {
 #'
 #' @param object A `drmTMB` fit.
 #' @param dpar Optional distributional parameter name, such as `"mu"`,
-#'   `"sigma"`, `"rho12"`, or `"sd(id)"`.
+#'   `"sigma"`, `"hu"`, `"rho12"`, or `"sd(id)"`.
 #' @param ... Reserved for future extractor options.
 #'
 #' @return A named numeric vector when `dpar` is supplied, otherwise a named
@@ -132,6 +133,8 @@ rho12.drmTMB <- function(object, newdata = NULL,
 #' negative-binomial fits this is the fitted `mu` vector. For zero-truncated
 #' negative-binomial 2 fits this is the positive-count mean
 #' `mu / (1 - Pr_NB2(0))`, where `mu` is the untruncated NB2 component mean.
+#' For hurdle negative-binomial 2 fits this is the unconditional response mean
+#' `(1 - hu) * mu / (1 - Pr_NB2(0))`.
 #' For zero-inflated Poisson and zero-inflated negative-binomial 2 fits this is
 #' the unconditional response mean `(1 - zi) * mu`, where `mu` is the
 #' conditional count mean. For bivariate Gaussian fits this is a
@@ -301,7 +304,9 @@ predict.drmTMB <- function(object, newdata = NULL, dpar = NULL,
 #' negative-binomial 2 models, simulation uses fitted `mu` and overdispersion
 #' scale `sigma`, with `Var(y) = mu + sigma^2 * mu^2`; zero-truncated NB2
 #' models draw from this NB2 component conditional on positive counts. The
-#' zero-inflated NB2 path adds structural-zero probability `zi`. For bivariate
+#' zero-inflated NB2 path adds structural-zero probability `zi`; the hurdle NB2
+#' path adds hurdle-zero probability `hu` and draws nonzero counts from the
+#' zero-truncated NB2 component. For bivariate
 #' Gaussian models without known
 #' sampling covariance, simulation uses the fitted `mu1`, `mu2`, `sigma1`,
 #' `sigma2`, and residual `rho12`. If a dense bivariate known `V` was supplied,
@@ -426,6 +431,25 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, ...) {
     return(sims)
   }
 
+  if (identical(object$model$model_type, "hurdle_nbinom2")) {
+    mu <- predict(object, dpar = "mu")
+    sigma <- predict(object, dpar = "sigma")
+    hu <- predict(object, dpar = "hu")
+    p0 <- truncated_nbinom2_p0(mu, sigma)
+    sims <- replicate(nsim, {
+      hurdle_zero <- stats::runif(length(mu)) < hu
+      u <- p0 + pmax(stats::runif(length(mu)), .Machine$double.eps) * (1 - p0)
+      ifelse(
+        hurdle_zero,
+        0L,
+        stats::qnbinom(u, size = 1 / sigma^2, mu = mu)
+      )
+    })
+    sims <- as.data.frame(sims)
+    names(sims) <- paste0("sim_", seq_len(nsim))
+    return(sims)
+  }
+
   if (identical(object$model$model_type, "zi_nbinom2")) {
     mu <- predict(object, dpar = "mu")
     sigma <- predict(object, dpar = "sigma")
@@ -519,10 +543,12 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, ...) {
 #' negative-binomial 2 models, Pearson residuals divide by
 #' `sqrt(mu + sigma^2 * mu^2)`. For zero-truncated NB2 models, response
 #' residuals are `y - mu / (1 - Pr_NB2(0))`, and Pearson residuals divide by
-#' the conditional positive-count standard deviation. For zero-inflated NB2
-#' models, response residuals are `y - (1 - zi) * mu`, and Pearson residuals
-#' divide by the unconditional standard deviation implied by the
-#' structural-zero mixture.
+#' the conditional positive-count standard deviation. For hurdle NB2 models,
+#' response residuals are `y - (1 - hu) * mu / (1 - Pr_NB2(0))`, and Pearson
+#' residuals divide by the unconditional standard deviation implied by the
+#' hurdle-zero mixture. For zero-inflated NB2 models, response residuals are
+#' `y - (1 - zi) * mu`, and Pearson residuals divide by the unconditional
+#' standard deviation implied by the structural-zero mixture.
 #'
 #' For bivariate Gaussian models, response residuals are returned as a
 #' two-column matrix. Pearson residuals are standardized and whitened using the
@@ -604,6 +630,17 @@ residuals.drmTMB <- function(object, type = c("response", "pearson"), ...) {
     }
     return(response / sqrt(truncated_nbinom2_variance(mu, sigma)))
   }
+  if (identical(object$model$model_type, "hurdle_nbinom2")) {
+    mu <- predict(object, dpar = "mu")
+    sigma <- predict(object, dpar = "sigma")
+    hu <- predict(object, dpar = "hu")
+    fitted_mean <- hurdle_nbinom2_mean(mu, sigma, hu)
+    response <- object$model$y - fitted_mean
+    if (type == "response") {
+      return(response)
+    }
+    return(response / sqrt(hurdle_nbinom2_variance(mu, sigma, hu)))
+  }
   if (identical(object$model$model_type, "zi_nbinom2")) {
     mu <- predict(object, dpar = "mu")
     sigma <- predict(object, dpar = "sigma")
@@ -665,9 +702,9 @@ residuals.drmTMB <- function(object, type = c("response", "pearson"), ...) {
 #' where internal precision is `phi = 1 / sigma^2`. Poisson and zero-inflated
 #' Poisson models have no fitted residual scale parameter and return a fixed
 #' unit dispersion vector for consistency with base-R `sigma()` conventions. For
-#' negative-binomial 2, zero-truncated negative-binomial 2, and
-#' zero-inflated negative-binomial 2 models this is the fitted overdispersion
-#' scale in the untruncated NB2 component
+#' negative-binomial 2, zero-truncated negative-binomial 2, hurdle
+#' negative-binomial 2, and zero-inflated negative-binomial 2 models this is
+#' the fitted overdispersion scale in the untruncated NB2 component
 #' `Var(y | component) = mu + sigma^2 * mu^2`. For bivariate Gaussian models
 #' it returns a list with fitted `sigma1` and
 #' `sigma2` vectors.
@@ -696,6 +733,7 @@ sigma.drmTMB <- function(object, ...) {
       identical(object$model$model_type, "beta") ||
       identical(object$model$model_type, "nbinom2") ||
       identical(object$model$model_type, "truncated_nbinom2") ||
+      identical(object$model$model_type, "hurdle_nbinom2") ||
       identical(object$model$model_type, "zi_nbinom2")) {
     return(predict(object, dpar = "sigma"))
   }
@@ -853,6 +891,16 @@ truncated_nbinom2_variance <- function(mu, sigma) {
   pmax(second_moment - (mu / q)^2, .Machine$double.eps)
 }
 
+hurdle_nbinom2_mean <- function(mu, sigma, hu) {
+  (1 - hu) * truncated_nbinom2_mean(mu, sigma)
+}
+
+hurdle_nbinom2_variance <- function(mu, sigma, hu) {
+  positive_mean <- truncated_nbinom2_mean(mu, sigma)
+  positive_var <- truncated_nbinom2_variance(mu, sigma)
+  pmax((1 - hu) * positive_var + hu * (1 - hu) * positive_mean^2, .Machine$double.eps)
+}
+
 drm_fitted_response <- function(object) {
   if (identical(object$model$model_type, "biv_gaussian")) {
     return(cbind(
@@ -884,6 +932,12 @@ drm_fitted_response <- function(object) {
     mu <- predict.drmTMB(object, dpar = "mu")
     sigma <- predict.drmTMB(object, dpar = "sigma")
     return(truncated_nbinom2_mean(mu, sigma))
+  }
+  if (identical(object$model$model_type, "hurdle_nbinom2")) {
+    mu <- predict.drmTMB(object, dpar = "mu")
+    sigma <- predict.drmTMB(object, dpar = "sigma")
+    hu <- predict.drmTMB(object, dpar = "hu")
+    return(hurdle_nbinom2_mean(mu, sigma, hu))
   }
   if (identical(object$model$model_type, "zi_nbinom2")) {
     mu <- predict.drmTMB(object, dpar = "mu")
@@ -924,6 +978,7 @@ drm_dpar_link <- function(object, dpar) {
     zi_poisson = c(mu = "log", zi = "logit"),
     nbinom2 = c(mu = "log", sigma = "log"),
     truncated_nbinom2 = c(mu = "log", sigma = "log"),
+    hurdle_nbinom2 = c(mu = "log", sigma = "log", hu = "logit"),
     zi_nbinom2 = c(mu = "log", sigma = "log", zi = "logit"),
     biv_gaussian = c(
       mu1 = "identity",

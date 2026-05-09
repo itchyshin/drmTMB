@@ -5139,3 +5139,91 @@ Team learning:
 - generated pkgdown meta descriptions can trigger broad stale-wording scans,
   so future audits should classify those hits rather than blindly rewrite
   correct summaries.
+
+## 2026-05-09 — Fixed-Effect Hurdle NB2 Family Component
+
+Task: implement fixed-effect hurdle negative-binomial 2 models by adding
+`hu ~ predictors` to the existing `truncated_nbinom2()` family route.
+
+Implemented:
+
+- extended `drm_build_truncated_nbinom2_spec()` so `hu` is an optional
+  one-sided hurdle-zero formula;
+- kept plain `truncated_nbinom2()` positive-only, while
+  `truncated_nbinom2()` plus `hu ~ ...` accepts non-negative integer counts
+  with at least one positive count;
+- added TMB `model_type = 12` with
+  `Pr(y = 0) = hu` and
+  `Pr(y = k > 0) = (1 - hu) Pr_NB2(k) / (1 - Pr_NB2(0))`;
+- exposed public coefficients and predictions as `hu`, while keeping
+  `predict(fit, dpar = "mu")` as the untruncated NB2 component mean;
+- updated `fitted()`, `simulate()`, `residuals()`, `sigma()`, `print()`, and
+  the family-link helper for hurdle NB2;
+- added simulation recovery, independent likelihood, method, complete-case,
+  Poisson-limit, and malformed-input tests;
+- synchronized DESCRIPTION, NEWS, README, ROADMAP, formula grammar, family
+  registry, likelihood design, testing strategy, distribution roadmap,
+  family-link contract, source map, response-family vignette, testing guide,
+  known limitations, and generated Rd files.
+
+Commands run:
+
+- `Rscript -e "devtools::document(); devtools::test(filter = 'hurdle-nbinom2|truncated-nbinom2|family-link-contract')"`
+- `air format .` (failed: `air` is not installed locally)
+- `Rscript -e "devtools::test(filter = 'nbinom2|zi-nbinom2')"`
+- `git diff --check`
+- `Rscript -e "devtools::test()"`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `Rscript -e "pkgdown::build_site()"`
+- `Rscript tools/fix-pkgdown-favicon-mime.R pkgdown-site`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- ``rg -n 'hurdle NB2.*planned|hu ~.*Planned|Hurdle syntax.*planned|hurdle components.*later|hurdle count models.*planned|Next family sequence: hurdle|add hurdle NB2|hurdle models using .*remain|hurdle.*later phase|rejects `hu`' README.md ROADMAP.md NEWS.md DESCRIPTION docs/design vignettes R tests man``
+- `rg -n 'model_type = 12|hu ~|hurdle-zero|hurdle_nbinom2|Hurdle NB2 models are implemented' pkgdown-site/articles pkgdown-site/reference pkgdown-site/index.html pkgdown-site/news/index.html`
+- `Rscript -e "devtools::check()"`
+
+Results:
+
+- targeted hurdle/truncated/family-link tests: 166 passed, 0 failed, 0
+  warnings, 0 skips;
+- neighbouring NB2/zero-inflated/truncated/hurdle tests: 198 passed, 0 failed,
+  0 warnings, 0 skips;
+- full `devtools::test()`: 1161 passed, 0 failed, 0 warnings, 0 skips;
+- `pkgdown::check_pkgdown()`: no problems found before and after site build;
+- `pkgdown::build_site()`: completed successfully;
+- favicon MIME post-processing completed successfully;
+- `git diff --check`: clean;
+- `devtools::check()`: 0 errors, 0 warnings, 0 notes;
+- stale-wording scan found no active source docs still describing hurdle NB2
+  as planned. A broad generated-site scan matched only the correct DESCRIPTION
+  sentence saying hurdle count models are implemented and skewness/additional
+  response families are later phases.
+
+Tests of the tests:
+
+- independent likelihood test compares `logLik()` to a hand calculation using
+  `log(hu)` for zeros and `log(1 - hu) + log Pr_NB2(y) -
+  log(1 - Pr_NB2(0))` for positive counts;
+- Poisson-limit test fixes `sigma` near zero and compares the objective to a
+  hand-coded hurdle zero-truncated Poisson likelihood;
+- method tests check that `predict(mu)` remains the untruncated NB2 component
+  mean while `fitted()` returns `(1 - hu) * mu / (1 - Pr_NB2(0))`;
+- malformed-input tests cover simultaneous `zi` and `hu`, duplicate `hu`,
+  two-sided `hu`, zero-column `hu`, random effects, `sd(id)`, `meta_known_V()`,
+  negative/noninteger/all-zero responses, `mvbind()`, and `cbind()`.
+
+Known limitations:
+
+- hurdle NB2 is fixed-effect and univariate only;
+- random effects, known sampling covariance, phylogenetic/spatial terms,
+  bivariate count models, and mixed composed count families remain later
+  phases for this count route;
+- there is no separate `hurdle_nbinom2()` constructor by design.
+
+Team learning:
+
+- Rose's after-task audit paid off again: the main risk was stale status text,
+  not only likelihood code;
+- Noether's math/R pairing rule kept the `predict(mu)` versus `fitted()`
+  distinction explicit in docs and tests;
+- the next skill improvement should be a small local formatting helper or
+  installing `air`, because the desired formatter is still absent.

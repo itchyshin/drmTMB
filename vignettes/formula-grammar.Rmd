@@ -38,6 +38,7 @@ should currently give a clear unsupported-feature error rather than a fit.
 | `y ~ x1 + x2`, `sigma ~ x1`, `family = nbinom2()` | Implemented | Fixed-effect univariate negative-binomial 2 model for overdispersed counts; `sigma` is an overdispersion scale. |
 | `y ~ x1 + x2`, `sigma ~ x1`, `zi ~ x2`, `family = nbinom2()` | Implemented | Fixed-effect zero-inflated NB2 model; `mu` and `sigma` describe the conditional count component and `zi` is structural-zero probability. |
 | `y ~ x1 + x2`, `sigma ~ x1`, `family = truncated_nbinom2()` | Implemented | Fixed-effect zero-truncated NB2 model for positive counts; `mu` and `sigma` describe the untruncated count component and `fitted()` is the positive-count mean. |
+| `y ~ x1 + x2`, `sigma ~ x1`, `hu ~ x2`, `family = truncated_nbinom2()` | Implemented | Fixed-effect hurdle NB2 model; `hu` is the hurdle-zero probability and nonzero counts come from the zero-truncated NB2 component. |
 | `(1 | id)` in `mu` | Implemented | Ordinary Gaussian location random intercept. |
 | `(0 + x1 | id)` in `mu` | Implemented | Independent numeric location random slope. |
 | `(1 + x1 | id)` in `mu` | Implemented | Correlated ordinary intercept-slope block. |
@@ -51,7 +52,6 @@ should currently give a clear unsupported-feature error rather than a fit.
 | `mvbind(y1, y2) ~ x1` | Implemented | Shorthand for identical bivariate location formulas; explicit `mu1`/`mu2` remains preferred for different predictors. |
 | `phylo(1 | species, tree = tree)` in `mu` | Implemented | Intercept-only univariate Gaussian phylogenetic location effect; requires an ultrametric tree with branch lengths. |
 | `cbind(successes, failures) ~ x1`, `family = beta_binomial()` | Planned | Denominator-preserving percentage/count syntax candidate; a successes/trials interface is another candidate. |
-| `y ~ x1 + x2`, `sigma ~ x1`, `hu ~ x2`, `family = truncated_nbinom2()` | Planned | Hurdle NB2 grammar; `hu` is the hurdle-zero probability and nonzero counts come from a zero-truncated count distribution. |
 | `y ~ x1 + x2`, `family = cumulative_logit()` | Planned | First ordinal model path for ordered scores with cutpoints; univariate only. |
 | `phylo(1 + x1 | species, tree = tree)` | Planned | Structured slopes come after the intercept-only path is fully hardened. |
 | `spatial(1 | site, coords = coords)` | Planned | Spatial SPDE/GMRF terms are part of the design but not fitted yet. |
