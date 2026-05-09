@@ -166,6 +166,7 @@ Each family should have tests that:
 - `rho12 = 0`;
 - moderate positive `rho12`;
 - moderate negative `rho12`;
+- high positive and high negative `rho12` near `+/-0.8`;
 - predictor-dependent `rho12`;
 - unequal `sigma1` and `sigma2`.
 

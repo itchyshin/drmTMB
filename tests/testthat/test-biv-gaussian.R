@@ -259,6 +259,36 @@ test_that("bivariate rho12 handles near-zero and negative correlations", {
   }
 })
 
+test_that("bivariate rho12 handles high positive and high negative correlations", {
+  targets <- c(high_positive = 0.8, high_negative = -0.8)
+  for (i in seq_along(targets)) {
+    sim <- new_biv_gaussian_data(
+      n = 1200,
+      beta_rho12 = atanh(targets[[i]]),
+      seed = 20260620 + i
+    )
+    fit <- drmTMB(
+      bf(
+        mu1 = y1 ~ x,
+        mu2 = y2 ~ x,
+        sigma1 = ~ z1,
+        sigma2 = ~ z2,
+        rho12 = ~ 1
+      ),
+      family = biv_gaussian(),
+      data = sim$data
+    )
+
+    rho_hat <- predict(fit, dpar = "rho12")
+
+    expect_equal(fit$opt$convergence, 0)
+    expect_equal(fit$sdr$pdHess, TRUE)
+    expect_lt(abs(tanh(unname(coef(fit, "rho12"))) - targets[[i]]), 0.15)
+    expect_lt(max(abs(rho_hat)), 1)
+    expect_equal(rho_hat, rho12(fit), tolerance = 1e-12)
+  }
+})
+
 test_that("bivariate Gaussian methods return expected structures", {
   sim <- new_biv_gaussian_data(n = 160, beta_rho12 = atanh(0.25), seed = 20260514)
   fit <- drmTMB(

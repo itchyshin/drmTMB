@@ -4794,3 +4794,80 @@ Team learning:
 - comparator tests should name the exact overlapping submodel, not the whole
   family, because `MASS::glm.nb()` cannot check distributional `sigma`
   predictors.
+
+## 2026-05-09 — High `rho12` Recovery and Site Consistency
+
+Task: harden the package-defining bivariate residual-correlation path and clean
+up drift found by Rose's systems audit.
+
+Implemented:
+
+- added bivariate Gaussian recovery coverage for high positive and high
+  negative residual correlations near `rho12 = +/-0.8`;
+- updated the testing strategy and testing-likelihoods vignette so high
+  `rho12` is part of the required bivariate test surface;
+- refreshed DESCRIPTION and overview-vignette wording so zero-inflated
+  Poisson and zero-inflated NB2 are no longer described as later work;
+- added lognormal rows and syntax to the formula-grammar design note and
+  vignette;
+- changed placeholder wording in the distribution-family vignette to
+  present-tense documentation;
+- added `tools/fix-pkgdown-favicon-mime.R` and wired it into the pkgdown
+  workflow to correct the smart-quote favicon MIME string introduced by the
+  installed pkgdown template;
+- added a count-family after-phase roll-up that supersedes older Poisson/NB2
+  task-note limitations with the current Poisson, ZIP, NB2, and ZINB2 surface.
+
+Commands run:
+
+- `Rscript -e "devtools::test(filter = 'biv-gaussian')"`
+- `Rscript -e "devtools::test()"`
+- `air format .` (failed: `air` is not installed locally)
+- `git diff --check`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `Rscript -e "pkgdown::build_site()"`
+- `Rscript tools/fix-pkgdown-favicon-mime.R pkgdown-site`
+- `Rscript -e "devtools::check()"`
+- `rg -n 'type="”|later .*zero-inflation|zero-inflation, and additional|This article will help|current planning reference' DESCRIPTION vignettes docs/design pkgdown-site/index.html pkgdown-site/articles/drmTMB.html pkgdown-site/articles/distribution-families.html pkgdown-site/articles/formula-grammar.html pkgdown-site/articles/testing-likelihoods.html`
+- `rg -n 'lognormal\(\).*Implemented|family = lognormal\(\)|high positive and high negative|\+/-0\.8|drmTMB-logo\.png|man/figures/logo\.png' docs/design/01-formula-grammar.md docs/design/05-testing-strategy.md vignettes/formula-grammar.Rmd vignettes/testing-likelihoods.Rmd README.md _pkgdown.yml pkgdown-site/index.html pkgdown-site/articles/formula-grammar.html pkgdown-site/articles/testing-likelihoods.html`
+
+Results:
+
+- targeted bivariate tests: 94 passed, 0 failed, 0 warnings, 0 skips;
+- full `devtools::test()`: 981 passed, 0 failed, 0 warnings, 0 skips;
+- `pkgdown::check_pkgdown()`: no problems found;
+- `pkgdown::build_site()`: completed successfully;
+- favicon post-processing removed all malformed smart-quote favicon MIME hits
+  from the generated local site;
+- `devtools::check()`: 0 errors, 0 warnings, 0 notes;
+- `git diff --check`: clean.
+
+Tests of the tests:
+
+- the new recovery test checks both `rho12 = 0.8` and `rho12 = -0.8`;
+- it checks optimizer convergence, positive-definite Hessian status,
+  response-scale recovery, and the guarded response transform staying inside
+  the correlation boundary.
+
+Consistency audit:
+
+- active docs now mention fixed-effect ZIP/ZINB2 as implemented rather than
+  future work;
+- formula-grammar docs and vignette now include `lognormal()`;
+- README and `_pkgdown.yml` both point to `man/figures/drmTMB-logo.png`;
+- historical after-task reports with older logo and count-family limitations
+  were left unchanged, because they were accurate when written.
+
+Known limitations:
+
+- the new `rho12` edge test is still fixed-effect bivariate Gaussian only;
+- pkgdown 2.1.3 contains the upstream smart-quote favicon template, so the
+  project-side fixer remains necessary until that template is corrected
+  upstream or the package uses a newer fixed pkgdown release.
+
+Team learning:
+
+- Rose's audit caught wording and generated-site details that ordinary model
+  tests cannot see;
+- site-generation quirks should be checked as artifacts, not assumed correct
+  because `pkgdown::check_pkgdown()` passed.

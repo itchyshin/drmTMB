@@ -13,11 +13,14 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 
 `drmTMB` is being developed as a model-first package: the documentation should
 pair symbolic equations with the R syntax that fits them. The current
-implementation supports Gaussian location-scale models with fixed effects and
-optional random effects in the location formula and residual-scale random
-intercepts in the `sigma` formula. It also supports a first group-level
-random-effect scale grammar such as `sd(id) ~ x_group` for one or more
-distinct unlabelled Gaussian `mu` random intercepts.
+implementation includes Gaussian location-scale models with fixed effects,
+location random effects, residual-scale random intercepts, and group-level
+random-effect scale formulae such as `sd(id) ~ x_group`. It also includes
+fixed-effect Student-t, lognormal, Gamma, Poisson, zero-inflated Poisson, NB2,
+and zero-inflated NB2 models, known-covariance Gaussian meta-analysis,
+intercept-only phylogenetic Gaussian location effects, and fixed-effect
+bivariate Gaussian location-coscale models with `rho12 ~ predictors`. The
+article "Choosing response families" gives the broader implemented family map.
 
 The current package is already useful for one central workflow: write one
 formula for each parameter you want to estimate, then check that the fitted

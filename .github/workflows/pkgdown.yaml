@@ -45,6 +45,9 @@ jobs:
         run: pkgdown::build_site(new_process = FALSE, install = FALSE)
         shell: Rscript {0}
 
+      - name: Fix favicon MIME markup
+        run: Rscript tools/fix-pkgdown-favicon-mime.R pkgdown-site
+
       - uses: actions/upload-pages-artifact@v4
         with:
           path: pkgdown-site

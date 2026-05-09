@@ -15,7 +15,7 @@ This developer article documents the supported `drm_formula()` grammar,
 including response blocks, distributional-parameter formulae, and validation
 rules. `bf()` remains a short alias.
 
-The current planning reference is `docs/design/01-formula-grammar.md`.
+The design reference is `docs/design/01-formula-grammar.md`.
 
 ## Current status map
 
@@ -30,6 +30,7 @@ should currently give a clear unsupported-feature error rather than a fit.
 | `drm_formula()` and `bf()` | Implemented | `drm_formula()` is the explicit constructor; `bf()` is a short alias. |
 | `y ~ x1 + x2`, `sigma ~ x1` | Implemented | Univariate Gaussian location-scale model. |
 | `y ~ x1 + x2`, `sigma ~ x1`, `nu ~ x2` | Implemented | Fixed-effect univariate Student-t location-scale-shape model. |
+| `y ~ x1 + x2`, `sigma ~ x1`, `family = lognormal()` | Implemented | Fixed-effect univariate lognormal model for positive responses; `mu` and `sigma` are on the log-response scale. |
 | `y ~ x1 + x2`, `sigma ~ x1`, `family = Gamma(link = "log")` | Implemented | Fixed-effect univariate Gamma mean-CV model for positive responses; `mu` is the response mean and `sigma` is the coefficient of variation. |
 | `y ~ x1 + x2`, `family = poisson(link = "log")` | Implemented | Fixed-effect univariate Poisson mean model for non-negative integer counts. |
 | `y ~ x1 + x2`, `zi ~ x1`, `family = poisson(link = "log")` | Implemented | Fixed-effect zero-inflated Poisson model; `mu` is the conditional count mean and `zi` is the structural-zero probability. |
@@ -78,6 +79,22 @@ drm_formula(y ~ x, sigma ~ z, nu ~ x)
 
 Student-t random effects, known sampling covariance, phylogenetic terms, and
 bivariate Student-t models are later phases.
+
+Current implemented lognormal form:
+
+```r
+drm_formula(biomass ~ habitat, sigma ~ treatment)
+```
+
+paired with:
+
+```r
+family = lognormal()
+```
+
+The response must be positive and finite. `mu` and `sigma` are defined on the
+log-response scale, and `fitted()` returns the arithmetic response mean
+`exp(mu + sigma^2 / 2)`.
 
 Current implemented Gamma form:
 

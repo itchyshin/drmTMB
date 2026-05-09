@@ -11,12 +11,12 @@ vignette: >
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 ```
 
-This article will help users choose response families for distributional
-regression data: continuous outcomes, counts, proportions, percentages,
-positive measurements, shape-sensitive outcomes, and ordinal scores. Examples
-emphasize ecological, evolutionary, and environmental applications.
+This article helps users choose response families for distributional regression
+data: continuous outcomes, counts, proportions, percentages, positive
+measurements, shape-sensitive outcomes, and ordinal scores. Examples emphasize
+ecological, evolutionary, and environmental applications.
 
-The current planning reference is `docs/design/06-distribution-roadmap.md`.
+The implementation roadmap lives in `docs/design/06-distribution-roadmap.md`.
 
 Meta-analysis is not listed as a separate family. It uses `family = gaussian()`
 with `meta_known_V(V = V)`.
