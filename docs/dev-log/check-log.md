@@ -4292,3 +4292,60 @@ Team learning:
   than adding a `gamma()` helper that would collide with `base::gamma()`;
 - future add-family tasks should begin with the family-link table, fitted
   response rule, and independent likelihood test before extending examples.
+
+## 2026-05-08: Add Gamma GLM Comparator
+
+Scope:
+
+- added a two-tier comparator test for the overlapping Gamma mean-regression
+  case against base R `stats::glm(..., family = Gamma(link = "log"))`;
+- documented why the comparator checks `mu` coefficients rather than residual
+  scale: base GLM and `drmTMB` estimate the Gamma dispersion on different
+  routes.
+
+Commands run:
+
+- `Rscript -e "devtools::test(filter = 'comparators|gamma-location-scale')"`
+- `Rscript -e "devtools::test()"`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `Rscript -e "pkgdown::build_site()"`
+- `Rscript -e "devtools::check()"`
+
+Results:
+
+- targeted comparator and Gamma tests: 94 passed;
+- full `devtools::test()`: 764 passed, 0 failed, 0 skipped;
+- `pkgdown::check_pkgdown()`: no problems found;
+- `pkgdown::build_site()`: completed successfully;
+- `devtools::check()`: 0 errors, 0 warnings, 0 notes.
+
+Tests of the tests:
+
+- the comparator would fail if the Gamma `mu` log-link design matrix or
+  coefficient extraction drifted from the base GLM overlap case;
+- the test also checks optimizer convergence and positive-definite Hessian for
+  the fitted `drmTMB` model.
+
+Consistency audit:
+
+- `docs/design/05-testing-strategy.md` now lists the base GLM Gamma comparator
+  alongside the independent `stats::dgamma()` likelihood check;
+- no user-facing syntax changed.
+
+What did not go smoothly:
+
+- comparing Gamma residual scale directly to `glm()` would be misleading
+  because the base GLM dispersion estimate is not the same object as
+  `drmTMB`'s ML coefficient-of-variation parameter. The comparator was kept to
+  the overlapping mean coefficients.
+
+Known limitations:
+
+- this is a mean-model comparator only; `sigma ~ predictors` still relies on
+  simulation and independent likelihood tests.
+
+Team learning:
+
+- comparator tests should state exactly which parameterization overlaps with
+  the external package. A loose "compare to glm" label would have hidden an
+  avoidable scale-parameter mismatch.

@@ -269,6 +269,35 @@ test_that("Gaussian sd(id) intercept-only random-effect scale agrees with lme4",
   )
 })
 
+test_that("Gamma mean model agrees with base glm on an overlapping model", {
+  set.seed(20260595)
+  n <- 240
+  dat <- data.frame(x = stats::rnorm(n))
+  beta_mu <- c(0.2, -0.35)
+  cv <- 0.55
+  mu <- exp(beta_mu[[1L]] + beta_mu[[2L]] * dat$x)
+  dat$biomass <- stats::rgamma(n, shape = 1 / cv^2, scale = mu * cv^2)
+
+  fit <- drmTMB(
+    bf(biomass ~ x),
+    family = stats::Gamma(link = "log"),
+    data = dat
+  )
+  fit_glm <- stats::glm(
+    biomass ~ x,
+    family = stats::Gamma(link = "log"),
+    data = dat
+  )
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_true(fit$sdr$pdHess)
+  expect_equal(
+    unname(coef(fit, "mu")),
+    unname(stats::coef(fit_glm)),
+    tolerance = 1e-4
+  )
+})
+
 test_that("Gaussian meta-analysis agrees with metafor for ML tau2", {
   testthat::skip_if_not_installed("metafor")
 

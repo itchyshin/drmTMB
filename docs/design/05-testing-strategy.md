@@ -54,6 +54,10 @@ Implemented comparator smoke tests:
   calculation at the fitted coefficients.
 - Gamma mean-CV fixed-effect likelihood against an independent
   `stats::dgamma()` calculation at the fitted coefficients.
+- Gamma mean-only coefficients against `stats::glm(..., family =
+  Gamma(link = "log"))` for the overlapping mean-regression case. The
+  comparator checks coefficients rather than residual scale because base GLM
+  and `drmTMB` estimate the Gamma dispersion differently.
 
 Planned comparator smoke tests:
 
