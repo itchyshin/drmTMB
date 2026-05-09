@@ -4540,3 +4540,95 @@ Team learning:
   for overdispersed count models;
 - future count families should include an explicit map to any base-R density
   parameters before code is written.
+
+## 2026-05-09 — Zero-Inflated Poisson Distributional Parameter
+
+Task: implement fixed-effect zero-inflated Poisson models without adding a
+public `zi_poisson()` constructor.
+
+Implemented:
+
+- extended the existing `family = poisson(link = "log")` route so
+  `drm_formula(count ~ x, zi ~ z)` fits a fixed-effect zero-inflated Poisson
+  likelihood;
+- added TMB `model_type = 8` with conditional `mu = exp(X_mu beta_mu)` and
+  structural-zero probability `zi = logit^{-1}(X_zi beta_zi)`;
+- made `predict(dpar = "mu")` return the conditional Poisson mean,
+  `predict(dpar = "zi")` return the structural-zero probability, and
+  `fitted()` return `(1 - zi) * mu`;
+- added `simulate()`, `residuals()`, `sigma()`, link-helper, and print-method
+  support for the zero-inflated Poisson path;
+- rejected unsupported `offset()` terms rather than letting `model.matrix()`
+  silently drop them;
+- rejected zero-column `zi` formulae such as `zi ~ 0`;
+- updated README, ROADMAP, NEWS, formula grammar, family registry,
+  likelihood, family-link, distribution-family, source-map, and known-limits
+  documentation.
+
+Review:
+
+- Beauvoir reviewed simulation coverage and recommended adding `zi`-RHS
+  unsupported-term coverage plus a high-`zi` boundary check;
+- Poincare reviewed likelihood/plumbing and found the offset-silencing risk,
+  the `zi ~ 0` start-length edge case, and stale fitted-response wording.
+
+Commands run:
+
+- `R -q -e 'devtools::load_all(recompile = TRUE)'`
+- `R -q -e 'devtools::test(filter = "zi-poisson|family-link-contract")'`
+- `R -q -e 'devtools::test(filter = "zi-poisson|poisson-mean|family-link-contract")'`
+- `R -q -e 'devtools::document()'`
+- `R -q -e 'devtools::test()'`
+- `R -q -e 'pkgdown::check_pkgdown()'`
+- `R -q -e 'pkgdown::build_site()'`
+- `R -q -e 'devtools::check()'`
+- `git diff --check`
+- `rg -n 'zi_poisson\\(\\)|Poisson.*zero inflation.*later|mu-only|Only mu|No overdispersion, zero inflation|no zero inflation' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes man pkgdown-site --glob '!pkgdown-site/search.json'`
+
+Results:
+
+- targeted ZIP/link tests: 78 passed before review additions;
+- targeted count/link tests after review additions: 120 passed;
+- full `devtools::test()`: 912 passed, 0 failed, 0 warnings, 0 skips;
+- `pkgdown::check_pkgdown()`: no problems found;
+- `pkgdown::build_site()`: completed successfully;
+- `devtools::check()`: 0 errors, 0 warnings, 0 notes;
+- `git diff --check`: clean.
+
+Tests of the tests:
+
+- recovery test simulates from known `mu` and `zi` coefficients with a factor
+  predictor;
+- likelihood test compares the fitted objective to an independent ZIP
+  log-likelihood calculation;
+- boundary tests check both `zi -> 0` Poisson convergence and `zi -> 1`
+  log-space mixture stability;
+- malformed-input tests cover duplicate `zi`, two-sided `zi`, unsupported
+  random terms inside `mu` and `zi`, offsets, `zi ~ 0`, `meta_known_V()`,
+  `sd(id)`, `mvbind()`, and non-integer counts.
+
+Consistency audit:
+
+- public examples use `family = poisson(link = "log")` plus `zi ~ ...`;
+- no public `zi_poisson()` constructor was added;
+- generated Rd files and pkgdown pages now describe zero-inflated Poisson
+  fitted-response semantics;
+- old historical after-task notes that correctly described Poisson as
+  `mu`-only when written were left unchanged.
+
+Known limitations:
+
+- fixed-effect and univariate only;
+- no random effects, overdispersion, hurdle component, known sampling
+  covariance, phylogenetic/spatial structured effects, bivariate count model,
+  or mixed composed count model yet;
+- offsets are rejected rather than implemented.
+
+Team learning:
+
+- adding one TMB parameter vector requires updating all direct `MakeADFun()`
+  test helpers with dummy data and parameters;
+- count-family offset handling should be decided early for every new count
+  family because base R can drop offsets from model matrices silently;
+- stable log-space tests are needed at mixture boundaries, because naive
+  probability-scale comparators lose precision near `zi = 1`.

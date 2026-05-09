@@ -25,10 +25,12 @@
   random effects, known sampling covariance, phylogenetic terms, and bivariate
   or mixed Gamma models are not yet implemented.
 - Fixed-effect univariate Poisson mean models are implemented for
-  non-negative integer counts with `family = poisson(link = "log")`. Only
-  `mu` is fitted; there is no modelled `sigma` parameter. Overdispersion, zero
-  inflation, random effects, known sampling covariance, phylogenetic terms, and
-  bivariate or mixed Poisson models are not yet implemented.
+  non-negative integer counts with `family = poisson(link = "log")`.
+  Zero-inflated Poisson models are implemented by adding `zi ~ predictors`;
+  here `mu` is the conditional count mean and `zi` is the structural-zero
+  probability. There is no modelled `sigma` parameter. Overdispersion, random
+  effects, known sampling covariance, phylogenetic terms, and bivariate or
+  mixed Poisson models are not yet implemented.
 - Fixed-effect univariate negative-binomial 2 mean-dispersion models are
   implemented for overdispersed counts with `family = nbinom2()`. `mu` is the
   count mean and `sigma` is an overdispersion scale in

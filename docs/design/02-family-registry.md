@@ -30,9 +30,11 @@ Families must declare both the native parameter scale and the fitted response
 rule. The implemented Gamma mean-CV family uses `log(mu)` and `log(sigma)`,
 with `sigma` interpreted as a coefficient of variation. The implemented
 Poisson mean family uses `log(mu)` and has no fitted `sigma` distributional
-parameter. The implemented negative-binomial 2 family uses `log(mu)` and
-`log(sigma)`, with `sigma` interpreted as an overdispersion scale. Beta models
-would use `logit(mu)`.
+parameter. The implemented zero-inflated Poisson extension uses the same
+Poisson route with `logit(zi)` and `fitted()` returning `(1 - zi) * mu`. The
+implemented negative-binomial 2 family uses `log(mu)` and `log(sigma)`, with
+`sigma` interpreted as an overdispersion scale. Beta models would use
+`logit(mu)`.
 
 The detailed contract is in `docs/design/19-family-link-contract.md`. Treat it
 as a prerequisite before implementing additional count, beta, ordinal, or
@@ -173,8 +175,28 @@ This path is mostly a baseline count-regression model and a comparator for
 later overdispersed count families. It deliberately has no fitted `sigma`
 distributional parameter. `sigma(fit)` returns a fixed unit dispersion vector
 for base-R method compatibility, not a modelled residual scale. Random effects,
-known sampling covariance, zero inflation, overdispersion, phylogenetic terms,
-and bivariate or mixed Poisson models are later phases.
+known sampling covariance, overdispersion, phylogenetic terms, and bivariate or
+mixed Poisson models are later phases.
+
+The same Poisson route also supports fixed-effect structural-zero regression by
+adding a `zi` formula:
+
+```r
+family = poisson(link = "log")
+drm_formula(count ~ habitat, zi ~ treatment)
+```
+
+Here `mu` is the conditional Poisson mean and `zi` is the structural-zero
+probability:
+
+```text
+log(mu_i) = X_mu[i, ] beta_mu
+logit(zi_i) = X_zi[i, ] beta_zi
+E[y_i] = (1 - zi_i) mu_i
+```
+
+There is intentionally no exported `zi_poisson()` constructor at this stage;
+zero inflation is a distributional parameter of the existing Poisson family.
 
 ## Implemented: Negative Binomial 2 Mean-Dispersion
 

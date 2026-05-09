@@ -45,7 +45,8 @@ Use three status words consistently across documentation:
 | `y ~ x1`, `sigma ~ x1` | Implemented | Univariate Gaussian location-scale model. |
 | `y ~ x1`, `sigma ~ x1`, `nu ~ x2` | Implemented | Fixed-effect univariate Student-t location-scale-shape model. Random effects, known sampling covariance, phylogenetic terms, and bivariate Student-t models are later. |
 | `y ~ x1`, `sigma ~ x1`, `family = Gamma(link = "log")` | Implemented | Fixed-effect univariate Gamma mean-CV model for positive responses; `mu` is the response mean and `sigma` is the coefficient of variation. |
-| `y ~ x1`, `family = poisson(link = "log")` | Implemented | Fixed-effect univariate Poisson mean model for non-negative integer counts. Only `mu` is fitted; overdispersion, zero inflation, random effects, and bivariate count models are later. |
+| `y ~ x1`, `family = poisson(link = "log")` | Implemented | Fixed-effect univariate Poisson mean model for non-negative integer counts. |
+| `y ~ x1`, `zi ~ x2`, `family = poisson(link = "log")` | Implemented | Fixed-effect zero-inflated Poisson model; `mu` is the conditional count mean, `zi` is the structural-zero probability, and `fitted()` returns `(1 - zi) * mu`. |
 | `y ~ x1`, `sigma ~ x1`, `family = nbinom2()` | Implemented | Fixed-effect univariate negative-binomial 2 model for overdispersed counts; `sigma` is an overdispersion scale in `Var(y) = mu + sigma^2 * mu^2`. |
 | `(1 | id)`, `(0 + x1 | id)`, `(1 + x1 | id)` in `mu` | Implemented | Ordinary Gaussian location random effects; one-slope correlated blocks may be labelled as `(1 + x1 | p | id)`. |
 | `(1 | id)` in `sigma` | Implemented | Residual-scale random intercept. |
@@ -459,6 +460,8 @@ Not every parameter should accept random effects at the same development stage.
 - `rho12` is allowed only for bivariate families.
 - `rho` may become a convenience alias, but `rho12` is canonical.
 - `meta_known_V(V = V)` is a known-covariance marker, not a predictor.
+- `offset()` terms are not implemented yet. They must be rejected rather than
+  accepted and silently ignored.
 - Random intercepts, random slopes with one numeric predictor per random-slope
   term, and labelled or unlabelled ordinary correlated intercept-slope blocks
   are currently implemented for the univariate Gaussian `mu` formula; multiple

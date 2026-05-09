@@ -19,8 +19,8 @@ The corresponding R density call uses standard deviation, as in
 ## Implemented TMB Routing
 
 The R builders use descriptive model labels, such as `"gaussian"`,
-`"student"`, `"lognormal"`, `"gamma"`, `"poisson"`, `"nbinom2"`, and
-`"biv_gaussian"`. Before calling the TMB template, `make_tmb_data()` turns
+`"student"`, `"lognormal"`, `"gamma"`, `"poisson"`, `"zi_poisson"`,
+`"nbinom2"`, and `"biv_gaussian"`. Before calling the TMB template, `make_tmb_data()` turns
 those labels into integer branches in `src/drmTMB.cpp`. Unknown labels are
 rejected before they can fall through to a wrong likelihood branch. This table
 is the current routing contract:
@@ -34,6 +34,7 @@ is the current routing contract:
 | `5` | `family = Gamma(link = "log")` | `drm_build_gamma_ls_spec()` | Univariate fixed-effect Gamma mean-CV models for positive responses, with `mu` as the response mean and `sigma` as the coefficient of variation. |
 | `6` | `family = poisson(link = "log")` | `drm_build_poisson_spec()` | Univariate fixed-effect Poisson mean models for non-negative integer counts, with `mu` as the count mean. |
 | `7` | `family = nbinom2()` | `drm_build_nbinom2_spec()` | Univariate fixed-effect negative-binomial 2 models for overdispersed counts, with `mu` as the count mean and `sigma` as an overdispersion scale. |
+| `8` | `family = poisson(link = "log")` plus `zi ~ ...` | `drm_build_poisson_spec()` | Univariate fixed-effect zero-inflated Poisson models, with `mu` as the conditional count mean and `zi` as the structural-zero probability. |
 | `99` | no public route | direct test construction only | Hidden phylogenetic precision-prior parity branch used to test the sparse augmented A-inverse objective in isolation. |
 
 The hidden `model_type = 99` branch is not a family and should not appear in
@@ -428,9 +429,49 @@ For Poisson fits, `predict(fit, dpar = "mu")` and `fitted(fit)` return the
 count mean. There is no fitted `sigma` distributional parameter; `sigma(fit)`
 returns a fixed unit dispersion vector for compatibility with base-R method
 expectations. The response must contain non-negative integer counts after
-missing-row filtering. Random effects, known sampling covariance, zero
-inflation, overdispersion, phylogenetic terms, and bivariate or mixed Poisson
-models are later phases.
+missing-row filtering. Random effects, known sampling covariance,
+overdispersion, phylogenetic terms, and bivariate or mixed Poisson models are
+later phases.
+
+## Implemented Zero-Inflated Poisson Mean
+
+Zero-inflated Poisson models reuse the ordinary Poisson family route and add a
+formula for the structural-zero probability:
+
+```text
+y_i | mu_i, zi_i ~ zero-inflated Poisson(mu_i, zi_i)
+eta_mu_i = X_mu[i, ] beta_mu
+eta_zi_i = X_zi[i, ] beta_zi
+mu_i = exp(eta_mu_i)
+zi_i = logit^{-1}(eta_zi_i)
+```
+
+The probability mass is:
+
+```text
+Pr(y_i = 0) = zi_i + (1 - zi_i) exp(-mu_i)
+Pr(y_i = y > 0) = (1 - zi_i) Poisson(y | mu_i)
+E[y_i] = (1 - zi_i) mu_i
+Var[y_i] = (1 - zi_i) mu_i (1 + zi_i mu_i)
+```
+
+Matching R syntax:
+
+```r
+drmTMB(
+  drm_formula(count ~ habitat, zi ~ treatment),
+  family = poisson(link = "log"),
+  data = dat
+)
+```
+
+Here `mu` is the conditional count mean among observations that are not
+structural zeros. The structural-zero probability is `zi`, not a scale
+parameter. Consequently, `predict(fit, dpar = "mu")` returns the conditional
+mean, `predict(fit, dpar = "zi")` returns the zero-inflation probability, and
+`fitted(fit)` returns the unconditional response mean `(1 - zi) * mu`.
+`sigma(fit)` returns a fixed unit dispersion vector because no residual scale
+parameter is fitted.
 
 ## Implemented Negative Binomial 2 Mean-Dispersion
 

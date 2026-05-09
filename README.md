@@ -6,7 +6,7 @@ starts with Gaussian, Student-t, lognormal, Gamma, Poisson, and negative
 binomial models,
 known-covariance meta-analysis, phylogenetic location effects, random-effect
 scale models, and bivariate Gaussian residual-correlation models. The long-term
-design also includes skewness, zero inflation, and additional response
+design also includes skewness, further zero-inflation paths, and additional response
 families. The first examples are motivated by ecology, evolution, and
 environmental science, but the package is general-purpose. Here `mu` is the
 location or mean-like parameter, `sigma` is the residual scale parameter, `nu`
@@ -143,6 +143,28 @@ overdispersed count families. It intentionally does not accept `sigma`,
 `sd(group)`, `meta_known_V()`, random effects, or bivariate count syntax yet.
 Ecological counts with biological overdispersion will usually need
 `nbinom2()` or the planned COM-Poisson family.
+
+Zero-inflated Poisson models are fitted by adding a `zi` formula to the same
+Poisson family route:
+
+```text
+y_i | mu_i, zi_i ~ ZIP(mu_i, zi_i)
+log(mu_i) = beta_0 + beta_1 habitat_i
+logit(zi_i) = gamma_0 + gamma_1 survey_method_i
+E[y_i] = (1 - zi_i) mu_i
+```
+
+```r
+drmTMB(
+  drm_formula(count ~ habitat, zi ~ survey_method),
+  family = poisson(link = "log"),
+  data = dat
+)
+```
+
+Here `mu` is the conditional count mean and `zi` is the structural-zero
+probability. `fitted()` returns the unconditional response mean `(1 - zi) *
+mu`.
 
 Negative-binomial 2 mean-dispersion models are implemented for overdispersed
 counts:
@@ -415,7 +437,8 @@ models such as `sd(id) ~ x_group` and `sd(site) ~ site_type`, fixed-effect
 Student-t `mu`, `sigma`, and `nu` models, fixed-effect lognormal `mu` and
 `sigma` models for positive responses, fixed-effect Gamma mean-CV models with
 `family = Gamma(link = "log")`, fixed-effect Poisson mean models with
-`family = poisson(link = "log")`, fixed-effect negative-binomial 2
+`family = poisson(link = "log")`, fixed-effect zero-inflated Poisson models
+using `family = poisson(link = "log")` plus `zi ~ predictors`, fixed-effect negative-binomial 2
 mean-dispersion models with `family = nbinom2()`, `meta_known_V(V = V)` support for diagonal and
 dense known sampling covariance, intercept-only univariate Gaussian
 phylogenetic location effects such as

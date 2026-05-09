@@ -152,7 +152,7 @@ drm_family_type <- function(family) {
     ))
   }
   cli::cli_abort(
-    "Currently supported families are {.code gaussian()}, {.fn student}, {.fn lognormal}, {.code Gamma(link = \"log\")}, {.code poisson(link = \"log\")}, {.fn nbinom2}, {.fn biv_gaussian}, {.code c(gaussian(), gaussian())}, and {.code list(gaussian(), gaussian())}."
+    "Currently supported families are {.code gaussian()}, {.fn student}, {.fn lognormal}, {.code Gamma(link = \"log\")}, {.code poisson(link = \"log\")}, {.fn nbinom2}, {.fn biv_gaussian}, {.code c(gaussian(), gaussian())}, and {.code list(gaussian(), gaussian())}. Zero-inflated Poisson models use {.code family = poisson(link = \"log\")} plus a {.code zi ~ ...} formula."
   )
 }
 
@@ -692,10 +692,10 @@ drm_build_poisson_spec <- function(formula, data, env = parent.frame()) {
   dpars <- vapply(entries, `[[`, character(1), "dpar")
   is_sd_dpar <- startsWith(dpars, "sd(")
 
-  unsupported <- setdiff(dpars[!is_sd_dpar], "mu")
+  unsupported <- setdiff(dpars[!is_sd_dpar], c("mu", "zi"))
   if (length(unsupported) > 0L) {
     cli::cli_abort(c(
-      "Poisson models only support {.code mu}.",
+      "Poisson models only support {.code mu} and optional {.code zi}.",
       "x" = "Unsupported parameter{?s}: {.val {unsupported}}."
     ))
   }
@@ -708,10 +708,21 @@ drm_build_poisson_spec <- function(formula, data, env = parent.frame()) {
   if (sum(dpars == "mu") != 1L) {
     cli::cli_abort("A Poisson model requires exactly one location formula.")
   }
+  if (sum(dpars == "zi") > 1L) {
+    cli::cli_abort("A Poisson model can have at most one zero-inflation {.code zi} formula.")
+  }
 
   mu_entry <- entries[[which(dpars == "mu")]]
+  zi_entry <- if (any(dpars == "zi")) {
+    entries[[which(dpars == "zi")]]
+  } else {
+    NULL
+  }
   if (is.na(mu_entry$response)) {
     cli::cli_abort("The {.code mu} formula must include a response on the left-hand side.")
+  }
+  if (!is.null(zi_entry) && !is.na(zi_entry$response)) {
+    cli::cli_abort("The {.code zi} formula must be one-sided, for example {.code zi ~ habitat}.")
   }
   if (is_mvbind_lhs(mu_entry$lhs)) {
     cli::cli_abort(c(
@@ -729,9 +740,13 @@ drm_build_poisson_spec <- function(formula, data, env = parent.frame()) {
   }
   mu_entry$rhs <- meta$rhs
   drm_reject_phase1_terms(mu_entry$rhs, mu_entry$dpar)
+  if (!is.null(zi_entry)) {
+    drm_reject_phase1_terms(zi_entry$rhs, zi_entry$dpar)
+  }
 
   f_mu <- drm_entry_formula(mu_entry, response = TRUE)
-  vars <- all.vars(f_mu)
+  f_zi <- if (!is.null(zi_entry)) drm_entry_formula(zi_entry, response = FALSE) else NULL
+  vars <- unique(c(all.vars(f_mu), if (!is.null(f_zi)) all.vars(f_zi)))
   if (length(vars) > 0L) {
     keep <- stats::complete.cases(data[, vars, drop = FALSE])
   } else {
@@ -740,6 +755,11 @@ drm_build_poisson_spec <- function(formula, data, env = parent.frame()) {
   data_model <- data[keep, , drop = FALSE]
 
   mf_mu <- stats::model.frame(f_mu, data = data_model, na.action = stats::na.omit)
+  mf_zi <- if (!is.null(f_zi)) {
+    stats::model.frame(f_zi, data = data_model, na.action = stats::na.omit)
+  } else {
+    NULL
+  }
   y <- stats::model.response(mf_mu)
 
   if (length(y) == 0L) {
@@ -754,17 +774,32 @@ drm_build_poisson_spec <- function(formula, data, env = parent.frame()) {
   }
 
   X_mu <- stats::model.matrix(stats::delete.response(stats::terms(mf_mu)), mf_mu)
+  X_zi <- if (!is.null(mf_zi)) stats::model.matrix(stats::terms(mf_zi), mf_zi) else NULL
+  if (!is.null(X_zi) && nrow(X_zi) != length(y)) {
+    cli::cli_abort("Internal model-frame mismatch in zero-inflated Poisson model.")
+  }
+  if (!is.null(X_zi) && ncol(X_zi) == 0L) {
+    cli::cli_abort(c(
+      "Cannot fit a zero-column {.code zi} formula in a zero-inflated Poisson model.",
+      "i" = "Use a formula with an intercept or predictors, such as {.code zi ~ 1} or {.code zi ~ habitat}."
+    ))
+  }
+  has_zi <- !is.null(X_zi)
 
   spec <- list(
-    model_type = "poisson",
+    model_type = if (has_zi) "zi_poisson" else "poisson",
     y = as.numeric(y),
     V_known = rep(0, length(y)),
     V_known_diag = rep(0, length(y)),
     V_known_type = "none",
     has_known_v = FALSE,
-    X = list(mu = X_mu),
-    terms = list(mu = stats::delete.response(stats::terms(mf_mu))),
-    model_frame = list(mu = mf_mu),
+    X = if (has_zi) list(mu = X_mu, zi = X_zi) else list(mu = X_mu),
+    terms = if (has_zi) {
+      list(mu = stats::delete.response(stats::terms(mf_mu)), zi = stats::terms(mf_zi))
+    } else {
+      list(mu = stats::delete.response(stats::terms(mf_mu)))
+    },
+    model_frame = if (has_zi) list(mu = mf_mu, zi = mf_zi) else list(mu = mf_mu),
     random = list(
       mu = empty_random_mu_structure(nrow(data_model)),
       sigma = empty_random_sigma_structure(nrow(data_model))
@@ -774,9 +809,9 @@ drm_build_poisson_spec <- function(formula, data, env = parent.frame()) {
     data = data_model,
     variables = vars,
     keep = keep,
-    dpars = "mu",
-    start = poisson_start(y, X_mu),
-    map = poisson_map(),
+    dpars = if (has_zi) c("mu", "zi") else "mu",
+    start = if (has_zi) zi_poisson_start(y, X_mu, X_zi) else poisson_start(y, X_mu),
+    map = if (has_zi) zi_poisson_map() else poisson_map(),
     random_names = NULL
   )
   spec$tmb_data <- make_tmb_data(spec)
@@ -1155,7 +1190,7 @@ drm_reject_phase1_terms <- function(rhs, dpar) {
     ))
   }
 
-  unsupported <- c("|", "meta_known_V", "gr", "phylo", "spatial")
+  unsupported <- c("|", "meta_known_V", "gr", "phylo", "spatial", "offset")
   hits <- unsupported[vapply(
     unsupported,
     function(name) formula_contains_call(rhs, name),
@@ -2136,6 +2171,7 @@ gaussian_ls_dummy_start <- function(phylo_mu = empty_phylo_mu_structure(),
   phylo_start <- gaussian_phylo_start(y, phylo_mu)
   list(
     beta_nu = 0,
+    beta_zi = 0,
     beta_mu1 = 0,
     beta_mu2 = 0,
     beta_sigma1 = 0,
@@ -2155,6 +2191,7 @@ student_ls_start <- function(y, X_mu, X_sigma, X_nu) {
       beta_nu = student_nu_start(y, X_mu, gaussian_start$beta_mu, X_nu)
     ),
     list(
+      beta_zi = 0,
       beta_sd_mu = 0,
       u_mu = 0,
       log_sd_mu = 0,
@@ -2195,6 +2232,7 @@ lognormal_ls_start <- function(y, X_mu, X_sigma) {
     ),
     list(
       beta_nu = 0,
+      beta_zi = 0,
       beta_sd_mu = 0,
       u_mu = 0,
       log_sd_mu = 0,
@@ -2236,6 +2274,7 @@ poisson_start <- function(y, X_mu) {
     list(
       beta_sigma = 0,
       beta_nu = 0,
+      beta_zi = 0,
       beta_sd_mu = 0,
       u_mu = 0,
       log_sd_mu = 0,
@@ -2256,6 +2295,51 @@ poisson_start <- function(y, X_mu) {
 poisson_map <- function() {
   out <- lognormal_ls_map()
   out$beta_sigma <- factor(NA)
+  out
+}
+
+zi_poisson_start <- function(y, X_mu, X_zi) {
+  poisson <- poisson_start(y, X_mu)
+  beta_mu <- poisson$beta_mu
+  mu <- exp(as.vector(X_mu %*% beta_mu))
+  observed_zero <- mean(y == 0)
+  poisson_zero <- mean(exp(-mu))
+  zi0 <- if (is.finite(observed_zero) && is.finite(poisson_zero) && poisson_zero < 0.99) {
+    (observed_zero - poisson_zero) / (1 - poisson_zero)
+  } else {
+    0.1
+  }
+  zi0 <- min(max(zi0, 0.02), 0.8)
+  beta_zi <- numeric(ncol(X_zi))
+  beta_zi[[1L]] <- stats::qlogis(zi0)
+  c(
+    list(
+      beta_mu = beta_mu,
+      beta_zi = beta_zi
+    ),
+    list(
+      beta_sigma = 0,
+      beta_nu = 0,
+      beta_sd_mu = 0,
+      u_mu = 0,
+      log_sd_mu = 0,
+      eta_cor_mu = 0,
+      u_sigma = 0,
+      log_sd_sigma = 0,
+      beta_mu1 = 0,
+      beta_mu2 = 0,
+      beta_sigma1 = 0,
+      beta_sigma2 = 0,
+      beta_rho12 = 0,
+      u_phylo = 0,
+      log_sd_phylo = 0
+    )
+  )
+}
+
+zi_poisson_map <- function() {
+  out <- poisson_map()
+  out$beta_zi <- NULL
   out
 }
 
@@ -2280,6 +2364,7 @@ nbinom2_start <- function(y, X_mu, X_sigma) {
     ),
     list(
       beta_nu = 0,
+      beta_zi = 0,
       beta_sd_mu = 0,
       u_mu = 0,
       log_sd_mu = 0,
@@ -2322,6 +2407,7 @@ gamma_ls_start <- function(y, X_mu, X_sigma) {
     ),
     list(
       beta_nu = 0,
+      beta_zi = 0,
       beta_sd_mu = 0,
       u_mu = 0,
       log_sd_mu = 0,
@@ -2454,6 +2540,7 @@ biv_gaussian_start <- function(y1, y2, X_mu1, X_mu2, X_sigma1, X_sigma2, X_rho12
       beta_mu = 0,
       beta_sigma = 0,
       beta_nu = 0,
+      beta_zi = 0,
       beta_sd_mu = 0,
       u_mu = 0,
       log_sd_mu = 0,
@@ -2485,7 +2572,8 @@ gaussian_ls_map <- function(re_mu = empty_random_mu_structure(1L),
     beta_sigma1 = factor(NA),
     beta_sigma2 = factor(NA),
     beta_rho12 = factor(NA),
-    beta_nu = factor(NA)
+    beta_nu = factor(NA),
+    beta_zi = factor(NA)
   )
   if (!isTRUE(phylo_mu$has)) {
     out$u_phylo <- factor(NA)
@@ -2521,6 +2609,7 @@ student_ls_map <- function() {
     beta_sigma1 = factor(NA),
     beta_sigma2 = factor(NA),
     beta_rho12 = factor(NA),
+    beta_zi = factor(NA),
     u_mu = factor(NA),
     log_sd_mu = factor(NA),
     eta_cor_mu = factor(NA),
@@ -2536,6 +2625,7 @@ biv_gaussian_map <- function() {
     beta_mu = factor(NA),
     beta_sigma = factor(NA),
     beta_nu = factor(NA),
+    beta_zi = factor(NA),
     beta_sd_mu = factor(NA),
     u_mu = factor(NA),
     log_sd_mu = factor(NA),
@@ -2570,6 +2660,7 @@ make_tmb_data <- function(spec) {
       X_mu = spec$X$mu,
       X_sigma = spec$X$sigma,
       X_nu = dummy_matrix,
+      X_zi = dummy_matrix,
       X_sd_mu = spec$random_scale$mu$X,
       has_sd_mu_model = as.integer(spec$random_scale$mu$n_models > 0L),
       X_mu1 = dummy_matrix,
@@ -2608,6 +2699,7 @@ make_tmb_data <- function(spec) {
       X_mu = spec$X$mu,
       X_sigma = spec$X$sigma,
       X_nu = spec$X$nu,
+      X_zi = dummy_matrix,
       X_sd_mu = dummy_matrix,
       has_sd_mu_model = 0L,
       X_mu1 = dummy_matrix,
@@ -2646,6 +2738,7 @@ make_tmb_data <- function(spec) {
       X_mu = spec$X$mu,
       X_sigma = spec$X$sigma,
       X_nu = dummy_matrix,
+      X_zi = dummy_matrix,
       X_sd_mu = dummy_matrix,
       has_sd_mu_model = 0L,
       X_mu1 = dummy_matrix,
@@ -2684,6 +2777,7 @@ make_tmb_data <- function(spec) {
       X_mu = spec$X$mu,
       X_sigma = spec$X$sigma,
       X_nu = dummy_matrix,
+      X_zi = dummy_matrix,
       X_sd_mu = dummy_matrix,
       has_sd_mu_model = 0L,
       X_mu1 = dummy_matrix,
@@ -2722,6 +2816,46 @@ make_tmb_data <- function(spec) {
       X_mu = spec$X$mu,
       X_sigma = dummy_matrix,
       X_nu = dummy_matrix,
+      X_zi = dummy_matrix,
+      X_sd_mu = dummy_matrix,
+      has_sd_mu_model = 0L,
+      X_mu1 = dummy_matrix,
+      X_mu2 = dummy_matrix,
+      X_sigma1 = dummy_matrix,
+      X_sigma2 = dummy_matrix,
+      X_rho12 = dummy_matrix,
+      n_mu_re_terms = 0L,
+      n_mu_re_cors = 0L,
+      mu_re_index = matrix(0L, nrow = 1L, ncol = 1L),
+      mu_re_value = dummy_matrix,
+      mu_re_term = 0L,
+      mu_re_pos = 0L,
+      mu_re_cor_id = -1L,
+      mu_re_pair_index = -1L,
+      mu_re_sd_row = -1L,
+      n_sigma_re_terms = 0L,
+      sigma_re_index = matrix(0L, nrow = 1L, ncol = 1L),
+      sigma_re_value = dummy_matrix,
+      sigma_re_term = 0L,
+      has_phylo_mu = 0L,
+      phylo_mu_node_index = 0L,
+      Q_phylo = dummy_sparse,
+      log_det_Q_phylo = 0
+    ))
+  }
+  if (identical(spec$model_type, "zi_poisson")) {
+    return(list(
+      model_type = 8L,
+      y = spec$y,
+      V_known = spec$V_known_diag,
+      V_known_matrix = dummy_matrix,
+      V_known_type = 0L,
+      y1 = numeric(1),
+      y2 = numeric(1),
+      X_mu = spec$X$mu,
+      X_sigma = dummy_matrix,
+      X_nu = dummy_matrix,
+      X_zi = spec$X$zi,
       X_sd_mu = dummy_matrix,
       has_sd_mu_model = 0L,
       X_mu1 = dummy_matrix,
@@ -2760,6 +2894,7 @@ make_tmb_data <- function(spec) {
       X_mu = spec$X$mu,
       X_sigma = spec$X$sigma,
       X_nu = dummy_matrix,
+      X_zi = dummy_matrix,
       X_sd_mu = dummy_matrix,
       has_sd_mu_model = 0L,
       X_mu1 = dummy_matrix,
@@ -2800,6 +2935,7 @@ make_tmb_data <- function(spec) {
       X_mu = dummy_matrix,
       X_sigma = dummy_matrix,
       X_nu = dummy_matrix,
+      X_zi = dummy_matrix,
       X_sd_mu = dummy_matrix,
       has_sd_mu_model = 0L,
       X_mu1 = spec$X$mu1,
@@ -2842,6 +2978,13 @@ split_tmb_parameters <- function(par, spec) {
     beta_mu <- unname(par$beta_mu)
     names(beta_mu) <- colnames(spec$X$mu)
     return(list(mu = beta_mu))
+  }
+  if (identical(spec$model_type, "zi_poisson")) {
+    beta_mu <- unname(par$beta_mu)
+    beta_zi <- unname(par$beta_zi)
+    names(beta_mu) <- colnames(spec$X$mu)
+    names(beta_zi) <- colnames(spec$X$zi)
+    return(list(mu = beta_mu, zi = beta_zi))
   }
 
   if (identical(spec$model_type, "gaussian") ||

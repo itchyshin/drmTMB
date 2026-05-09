@@ -144,6 +144,28 @@ Use this path as a baseline count model and as a comparator for later
 overdispersed count families. Biological count data with extra-Poisson
 variation will usually need `nbinom2()` or the planned COM-Poisson path.
 
+Zero-inflated Poisson models are implemented by adding a `zi` formula:
+
+```text
+y_i | mu_i, zi_i ~ ZIP(mu_i, zi_i)
+log(mu_i) = beta_0 + beta_1 habitat_i
+logit(zi_i) = gamma_0 + gamma_1 survey_method_i
+E[y_i] = (1 - zi_i) mu_i
+```
+
+```r
+drmTMB(
+  bf(count ~ habitat, zi ~ survey_method),
+  family = poisson(link = "log"),
+  data = dat
+)
+```
+
+For this model, `predict(fit, dpar = "mu")` returns the conditional Poisson
+mean, `predict(fit, dpar = "zi")` returns the structural-zero probability, and
+`fitted(fit)` returns `(1 - zi) * mu`. There is no separate `zi_poisson()`
+constructor in the current public API.
+
 Negative-binomial 2 mean-dispersion models are implemented for overdispersed
 count responses:
 

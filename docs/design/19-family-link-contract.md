@@ -66,6 +66,8 @@ Examples:
 Gaussian:   predict(mu) = E[y] = fitted()
 Student-t:  predict(mu) = location; fitted() currently returns mu
 Lognormal:  predict(mu) = E[log(y)]; fitted() = exp(mu + sigma^2 / 2)
+Poisson:    predict(mu) = E[y] = fitted()
+ZIP:        predict(mu) = conditional count mean; fitted() = (1 - zi) * mu
 ```
 
 The extractor `sigma(fit)` should return the modelled parameter named `sigma`,
@@ -173,7 +175,21 @@ Zero inflation should use a separate parameter such as `zi`:
 logit(zi_i) = X_zi[i, ] beta_zi
 ```
 
-`zi` is a probability, not a scale parameter.
+`zi` is a probability, not a scale parameter. The implemented zero-inflated
+Poisson path is:
+
+```text
+Zero-inflated Poisson:
+  y_i ~ ZIP(mu_i, zi_i)
+  log(mu_i) = X_mu[i, ] beta_mu
+  logit(zi_i) = X_zi[i, ] beta_zi
+  E[y_i] = (1 - zi_i) mu_i
+  Var[y_i] = (1 - zi_i) mu_i (1 + zi_i mu_i)
+```
+
+For this model, `predict(fit, dpar = "mu")` returns the conditional Poisson
+mean and `predict(fit, dpar = "zi")` returns the structural-zero probability.
+`fitted(fit)` returns the unconditional response mean `(1 - zi) * mu`.
 
 ## Candidate Proportion Contract
 

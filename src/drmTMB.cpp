@@ -34,6 +34,7 @@ Type objective_function<Type>::operator()()
   DATA_MATRIX(X_mu);
   DATA_MATRIX(X_sigma);
   DATA_MATRIX(X_nu);
+  DATA_MATRIX(X_zi);
   DATA_MATRIX(X_sd_mu);
   DATA_INTEGER(has_sd_mu_model);
   DATA_MATRIX(X_mu1);
@@ -62,6 +63,7 @@ Type objective_function<Type>::operator()()
   PARAMETER_VECTOR(beta_mu);
   PARAMETER_VECTOR(beta_sigma);
   PARAMETER_VECTOR(beta_nu);
+  PARAMETER_VECTOR(beta_zi);
   PARAMETER_VECTOR(beta_sd_mu);
   PARAMETER_VECTOR(beta_mu1);
   PARAMETER_VECTOR(beta_mu2);
@@ -314,6 +316,26 @@ Type objective_function<Type>::operator()()
     REPORT(eta_mu);
     REPORT(mu);
     ADREPORT(beta_mu);
+  } else if (model_type == 8) {
+    vector<Type> eta_mu = X_mu * beta_mu;
+    vector<Type> eta_zi = X_zi * beta_zi;
+    vector<Type> mu = exp(eta_mu);
+    vector<Type> zi = Type(1.0) / (Type(1.0) + exp(-eta_zi));
+    for (int i = 0; i < y.size(); ++i) {
+      Type log_zi = -logspace_add(Type(0.0), -eta_zi(i));
+      Type log_one_minus_zi = -logspace_add(Type(0.0), eta_zi(i));
+      if (asDouble(y(i)) == 0.0) {
+        nll -= logspace_add(log_zi, log_one_minus_zi - mu(i));
+      } else {
+        nll -= log_one_minus_zi + dpois(y(i), mu(i), true);
+      }
+    }
+    REPORT(eta_mu);
+    REPORT(mu);
+    REPORT(eta_zi);
+    REPORT(zi);
+    ADREPORT(beta_mu);
+    ADREPORT(beta_zi);
   } else if (model_type == 7) {
     vector<Type> eta_mu = X_mu * beta_mu;
     vector<Type> log_sigma = X_sigma * beta_sigma;

@@ -182,6 +182,14 @@ test_that("Poisson models reject unsupported or invalid inputs", {
   )
   expect_error(
     drmTMB(
+      bf(y ~ x + offset(rep(1, 4))),
+      family = stats::poisson(link = "log"),
+      data = dat
+    ),
+    "unsupported model terms"
+  )
+  expect_error(
+    drmTMB(
       bf(y ~ x + meta_known_V(V = rep(0.1, 4))),
       family = stats::poisson(link = "log"),
       data = dat

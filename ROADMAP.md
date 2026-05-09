@@ -137,10 +137,10 @@ distributional regression models using TMB.
 
 ## Phase 8: Counts, Proportions, Percentages, and Ordinal Models
 
-- Status: `poisson(link = "log")` is implemented as a fixed-effect `mu`-only
-  baseline count model, and `nbinom2()` is implemented as a fixed-effect
-  `mu`/`sigma` overdispersed count model with
-  `Var(y) = mu + sigma^2 * mu^2`.
+- Status: `poisson(link = "log")` is implemented as a fixed-effect baseline
+  count model, including optional `zi ~ predictors` for zero-inflated Poisson
+  models. `nbinom2()` is implemented as a fixed-effect `mu`/`sigma`
+  overdispersed count model with `Var(y) = mu + sigma^2 * mu^2`.
 - Add COM-Poisson, beta, beta-binomial, zero-one-inflated
   beta, ordered logit/probit, and related families according to the distribution
   roadmap.

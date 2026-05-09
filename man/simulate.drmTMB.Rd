@@ -29,8 +29,9 @@ plus the fitted residual scale. For Student-t models, simulation uses fitted
 \code{mu}, \code{sigma}, and \code{nu}. For lognormal models, simulation uses fitted
 log-scale \code{mu} and \code{sigma}. For Gamma models, simulation uses fitted mean
 \code{mu} and coefficient of variation \code{sigma}. For Poisson models, simulation
-uses the fitted mean \code{mu}. For negative-binomial 2 models, simulation uses
-fitted \code{mu} and overdispersion scale \code{sigma}, with
+uses the fitted mean \code{mu}. For zero-inflated Poisson models, simulation uses
+fitted conditional mean \code{mu} and structural-zero probability \code{zi}. For
+negative-binomial 2 models, simulation uses fitted \code{mu} and overdispersion scale \code{sigma}, with
 \code{Var(y) = mu + sigma^2 * mu^2}. For bivariate Gaussian models without known
 sampling covariance, simulation uses the fitted \code{mu1}, \code{mu2}, \code{sigma1},
 \code{sigma2}, and residual \code{rho12}. If a dense bivariate known \code{V} was supplied,
