@@ -310,8 +310,9 @@ and fixed-effect bivariate Gaussian `rho12 ~ predictors` using either
 `family = list(gaussian(), gaussian())`; `mvbind(y1, y2) ~ x` is implemented
 as shorthand for identical bivariate location formulas. `check_drm()` provides a first-pass
 diagnostic table for convergence, gradients, Hessian status, dropped rows,
-scale positivity, `rho12` boundaries, known sampling covariance summaries, and
-random-effect replication/design checks. The next targets are cross-formula
+finite objective values, scale positivity, `rho12` boundaries, Student-t `nu`
+boundary behaviour, known sampling covariance summaries, and random-effect
+replication/design checks. The next targets are cross-formula
 labelled covariance blocks, phylogenetic slopes and scale effects, larger
 sparse covariance routes, and spatial SPDE paths.
 

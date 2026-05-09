@@ -2,6 +2,63 @@
 
 Record meaningful development checks here.
 
+## 2026-05-08: `check_drm()` Student-t `nu` Diagnostics
+
+Scope:
+
+- added a `student_nu` row to `check_drm()` for Student-t fits;
+- report an error for non-finite `nu` values or values not above 2;
+- report a warning when fitted `nu` is very close to the finite-variance
+  boundary at 2;
+- report a note when fitted `nu` is large enough that the fitted tail behaviour
+  may be close to Gaussian;
+- synchronized the `check_drm()` diagnostic summaries in README, vignettes,
+  NEWS, roxygen, and the phylogenetic/spatial design note.
+
+Commands run:
+
+- `Rscript -e "devtools::test(filter = 'check-drm|student-location-scale')"`
+  before fixing the test fixture: failed because the fitted Student-t fixture
+  legitimately landed near the `nu = 2` boundary;
+- `Rscript -e "devtools::test(filter = 'check-drm|student-location-scale')"`
+  after fixture and coverage updates;
+- `Rscript -e "devtools::document()"`
+- `air format .` (failed: `air` is not installed);
+- Rawls read-only reviewer pass over implementation, tests, and docs;
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `Rscript -e "devtools::test()"`
+- `Rscript -e "pkgdown::build_site()"`
+- stale-wording scans for `check_drm()` diagnostic lists and Student-t `nu`
+  wording;
+- `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`
+- `git diff --check`
+
+Results:
+
+- targeted `check_drm()` plus Student-t tests: 74 passed, 0 failed;
+- full `devtools::test()`: 638 passed, 0 failed;
+- `pkgdown::check_pkgdown()`: no problems found;
+- `pkgdown::build_site()`: rebuilt the `check_drm()` reference page, overview
+  article, model-workflow article, home page, and changelog;
+- `devtools::check(...)`: 0 errors, 0 warnings, 0 notes;
+- `git diff --check`: clean.
+
+Tests of the tests:
+
+- the first targeted test run failed because the ordinary Student-t fixture was
+  too heavy-tailed and correctly triggered a boundary warning;
+- the revised test uses controlled coefficient mutations to exercise the ok,
+  warning, note, and error branches independently of optimizer behaviour;
+- a separate predictor-varying `nu ~ x` test checks that `check_drm()` reports
+  a fitted `nu` range rather than only an intercept-only value.
+
+Notes:
+
+- large `nu` is a `note`, not a warning, because it can be a scientifically
+  useful result: the robust model may simply be close to Gaussian;
+- near-boundary `nu` is a `warning` because the finite-variance lower bound can
+  be influential for inference and should be inspected.
+
 ## 2026-05-08: Student-t Fixed-Effect Location-Scale-Shape
 
 Scope:

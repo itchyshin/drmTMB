@@ -207,12 +207,13 @@ check_drm(fit)
 ```
 
 The diagnostic table reports optimizer convergence, fixed-parameter gradients,
-Hessian status, dropped rows, positive scale values, residual `rho12`
-boundaries when relevant, known sampling covariance summaries, random-effect
-replication, and weak random-slope design checks. A `note` records something
-to inspect, such as dropped rows, a singly observed random-effect level, or a
-random-slope block with little within-group variation; a `warning` or `error`
-should be resolved before treating estimates as stable.
+finite objective values, Hessian status, dropped rows, positive scale values,
+residual `rho12` boundaries when relevant, Student-t `nu` boundary behaviour,
+known sampling covariance summaries, random-effect replication, and weak
+random-slope design checks. A `note` records something to inspect, such as
+dropped rows, a singly observed random-effect level, a very large Student-t
+`nu`, or a random-slope block with little within-group variation; a `warning`
+or `error` should be resolved before treating estimates as stable.
 
 Meta-analysis uses the ordinary Gaussian family plus a known sampling
 covariance marker:

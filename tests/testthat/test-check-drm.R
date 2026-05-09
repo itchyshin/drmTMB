@@ -92,6 +92,75 @@ test_that("check_drm() warns when residual rho12 is near a requested boundary", 
   expect_false(attr(chk, "ok"))
 })
 
+test_that("check_drm() reports Student-t nu diagnostics", {
+  n <- 160
+  x <- seq(-1, 1, length.out = n)
+  z <- rep(c(-0.5, 0.5), length.out = n)
+  nu_true <- 8
+  dat <- data.frame(x = x, z = z)
+  dat$y <- 0.2 + 0.5 * x +
+    exp(-0.4 + 0.2 * z) * stats::qt((seq_len(n) - 0.5) / n, df = nu_true)
+  fit <- drmTMB(
+    bf(y ~ x, sigma ~ z, nu ~ 1),
+    family = student(),
+    data = dat
+  )
+  stable <- fit
+  stable$coefficients$nu[[1L]] <- log(6)
+
+  chk <- check_drm(stable)
+  nu <- chk[chk$check == "student_nu", ]
+
+  expect_equal(nu$status, "ok")
+  expect_match(nu$value, "range=")
+  expect_true(attr(chk, "ok"))
+
+  near_boundary <- fit
+  near_boundary$coefficients$nu[[1L]] <- log(0.01)
+  chk_boundary <- check_drm(near_boundary)
+  nu_boundary <- chk_boundary[chk_boundary$check == "student_nu", ]
+  expect_equal(nu_boundary$status, "warning")
+  expect_match(nu_boundary$message, "finite-variance boundary")
+  expect_false(attr(chk_boundary, "ok"))
+
+  nearly_gaussian <- fit
+  nearly_gaussian$coefficients$nu[[1L]] <- log(200)
+  chk_gaussian <- check_drm(nearly_gaussian)
+  nu_gaussian <- chk_gaussian[chk_gaussian$check == "student_nu", ]
+  expect_equal(nu_gaussian$status, "note")
+  expect_match(nu_gaussian$message, "Gaussian")
+  expect_true(attr(chk_gaussian, "ok"))
+
+  invalid <- fit
+  invalid$coefficients$nu[[1L]] <- Inf
+  chk_invalid <- check_drm(invalid)
+  nu_invalid <- chk_invalid[chk_invalid$check == "student_nu", ]
+  expect_equal(nu_invalid$status, "error")
+  expect_match(nu_invalid$message, "non-finite")
+  expect_false(attr(chk_invalid, "ok"))
+})
+
+test_that("check_drm() reports predictor-varying Student-t nu ranges", {
+  n <- 180
+  x <- seq(-1, 1, length.out = n)
+  dat <- data.frame(x = x)
+  dat$y <- 0.3 + 0.4 * x +
+    stats::qt((seq_len(n) - 0.5) / n, df = 10)
+  fit <- drmTMB(
+    bf(y ~ x, sigma ~ 1, nu ~ x),
+    family = student(),
+    data = dat
+  )
+  fit$coefficients$nu[] <- c(log(6), 0.5)
+
+  chk <- check_drm(fit)
+  nu <- chk[chk$check == "student_nu", ]
+
+  expect_equal(nu$status, "ok")
+  expect_match(nu$value, "range=\\[[0-9.]+,[0-9.]+\\]")
+  expect_true(attr(chk, "ok"))
+})
+
 test_that("check_drm() reports random-effect replication notes", {
   set.seed(20260510)
   dat <- data.frame(

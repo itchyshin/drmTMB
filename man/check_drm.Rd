@@ -34,8 +34,9 @@ effects, or bivariate residual correlation \code{rho12}.
 The current checks cover optimizer convergence, finite objective values,
 fixed-parameter gradients, Hessian status from \code{\link[TMB:sdreport]{TMB::sdreport()}}, dropped
 rows, positive scale parameters, bivariate residual-correlation \code{rho12}
-values near the boundary, known sampling covariance summaries, random-effect
-replication, and random-slope design variation.
+values near the boundary, Student-t \code{nu} boundary behaviour, known sampling
+covariance summaries, random-effect replication, and random-slope design
+variation.
 
 Use \code{check_drm()} before interpreting coefficients, fitted values, or
 response-scale quantities. A \code{note} records something to inspect, such as

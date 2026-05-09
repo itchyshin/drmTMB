@@ -8,8 +8,9 @@
 #' The current checks cover optimizer convergence, finite objective values,
 #' fixed-parameter gradients, Hessian status from [TMB::sdreport()], dropped
 #' rows, positive scale parameters, bivariate residual-correlation `rho12`
-#' values near the boundary, known sampling covariance summaries, random-effect
-#' replication, and random-slope design variation.
+#' values near the boundary, Student-t `nu` boundary behaviour, known sampling
+#' covariance summaries, random-effect replication, and random-slope design
+#' variation.
 #'
 #' Use `check_drm()` before interpreting coefficients, fitted values, or
 #' response-scale quantities. A `note` records something to inspect, such as
@@ -60,6 +61,7 @@ check_drm.drmTMB <- function(object, gradient_tolerance = 1e-3,
     check_dropped_rows(object),
     check_scale_positive(object),
     check_rho12_boundary(object, rho_boundary = rho_boundary),
+    check_student_nu(object),
     check_known_v(object),
     check_random_effect_replication(object, "mu"),
     check_random_effect_replication(object, "sigma"),
@@ -245,6 +247,58 @@ check_rho12_boundary <- function(object, rho_boundary) {
     } else {
       paste0("At least one fitted residual correlation is close to +/-1 using boundary ", rho_boundary, ".")
     }
+  )
+}
+
+check_student_nu <- function(object) {
+  if (!identical(object$model$model_type, "student")) {
+    return(NULL)
+  }
+  nu <- tryCatch(predict(object, dpar = "nu"), error = function(e) e)
+  if (inherits(nu, "error")) {
+    return(check_row(
+      "student_nu",
+      "warning",
+      NA_character_,
+      paste("Could not extract Student-t nu values:", conditionMessage(nu))
+    ))
+  }
+  if (!all(is.finite(nu)) || any(nu <= 2)) {
+    return(check_row(
+      "student_nu",
+      "error",
+      NA_character_,
+      "At least one fitted Student-t nu value is non-finite or not above 2."
+    ))
+  }
+
+  min_nu <- min(nu)
+  max_nu <- max(nu)
+  value <- paste0(
+    "range=[", format_check_number(min_nu),
+    ",", format_check_number(max_nu), "]"
+  )
+  if (min_nu < 2.05) {
+    return(check_row(
+      "student_nu",
+      "warning",
+      value,
+      "At least one fitted Student-t nu value is very close to the finite-variance boundary at 2."
+    ))
+  }
+  if (max_nu > 100) {
+    return(check_row(
+      "student_nu",
+      "note",
+      value,
+      "At least one fitted Student-t nu value is large; compare against a Gaussian model because tails may be nearly Gaussian."
+    ))
+  }
+  check_row(
+    "student_nu",
+    "ok",
+    value,
+    "All fitted Student-t nu values are finite and above the boundary at 2."
   )
 }
 
