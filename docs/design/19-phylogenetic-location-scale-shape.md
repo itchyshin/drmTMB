@@ -68,7 +68,7 @@ For `skew_normal()`, `nu` can be the asymmetry parameter if the family help page
 documents the mapping to the native skew-normal parameterization.
 
 For `skew_t()`, `nu` and `tau` must be assigned explicitly in the family help
-page. One should control asymmetry and the other tail weight. Do not rely on the
+page. One should control asymmetry and the other tail shape. Do not rely on the
 names alone to communicate the biology.
 
 Aliases such as `skew ~ x` or `shape ~ x` may be considered after the canonical
@@ -86,7 +86,7 @@ grammar is stable, but examples should teach `nu` first.
 5. Fit skew-normal models with phylogenetic `mu` or `sigma` but fixed `nu`.
 6. Explore phylogenetic or species-level effects in `nu` only when data include
    enough within-species replication.
-7. Implement `skew_t()` last because asymmetry and tail weight can trade off.
+7. Implement `skew_t()` last because asymmetry and tail shape can trade off.
 
 ## Minimum Tests
 

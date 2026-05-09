@@ -27,9 +27,15 @@ coherent story after code changes.
 9. For prose-heavy tasks, apply the `prose-style-review` skill before closing.
    Check reader fit, concrete claims, stable terminology, citations or local
    evidence, error recoverability, and over-bulleted prose.
-10. Update roadmap, NEWS, known limitations, and design docs when behaviour
-   changed.
-11. Add a compact after-task report under `docs/dev-log/after-task/`.
+10. For family, formula-grammar, diagnostic, or implemented-scope changes,
+    check the status inventory explicitly: `README.md` current status,
+    `ROADMAP.md`, `NEWS.md`, `docs/dev-log/known-limitations.md`,
+    `docs/design/01-formula-grammar.md`, `vignettes/formula-grammar.Rmd`, and
+    `_pkgdown.yml` when navigation should change. Record the exact `rg`
+    patterns used; do not write only "stale-wording scans".
+11. Update roadmap, NEWS, known limitations, and design docs when behaviour
+    changed.
+12. Add a compact after-task report under `docs/dev-log/after-task/`.
 
 ## Stale-Wording Searches
 

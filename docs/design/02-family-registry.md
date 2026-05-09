@@ -27,7 +27,7 @@ parameter vocabulary:
 
 The interpretation of `nu` and `tau` is family specific. In a skew-normal-like
 family, `nu` can be the skewness/shape parameter. In a Student-t-like family,
-`nu` may instead be tail weight or degrees of freedom. In a skew-t family, the
+`nu` may instead be tail shape or degrees of freedom. In a skew-t family, the
 preferred direction is `mu`, `sigma`, `nu`, and `tau`, with documentation
 explaining which shape controls asymmetry and which controls tails.
 
@@ -87,16 +87,15 @@ families:
 ```r
 family = c(gaussian(), gaussian())
 family = list(gaussian(), gaussian())
-family = c(gaussian(), poisson())
 ```
 
-This is easier for mixed ecological responses such as body mass plus fecundity
-counts. A composed family must still declare a coherent joint likelihood and
-state what `rho12` means: observed residual correlation, latent residual
-correlation, a copula parameter, or unsupported. The all-Gaussian composed
-case is implemented for both `c()` and `list()` spellings and routes to the
-same likelihood as `biv_gaussian()`. The `biv_gaussian()` object remains a
-convenience and internal testing target, not a commitment to one named family
+Mixed ecological responses such as body mass plus fecundity counts remain a
+planned use case. A composed family must still declare a coherent joint
+likelihood and state what `rho12` means: observed residual correlation, latent
+residual correlation, a copula parameter, or unsupported. The all-Gaussian
+composed case is implemented for both `c()` and `list()` spellings and routes
+to the same likelihood as `biv_gaussian()`. The `biv_gaussian()` object remains
+a convenience and internal testing target, not a commitment to one named family
 for every response combination.
 
 ```r

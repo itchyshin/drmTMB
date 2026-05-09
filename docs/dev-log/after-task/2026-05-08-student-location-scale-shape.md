@@ -135,7 +135,7 @@ drmTMB(
 - Student-t models are fixed-effect only in this task.
 - `meta_known_V(V = V)`, `phylo()`, `spatial()`, ordinary random effects, and
   random-effect scale formulae are not implemented for Student-t yet.
-- `nu` is degrees of freedom/tail weight here. It is not a skewness parameter;
+- `nu` is degrees of freedom/tail shape here. It is not a skewness parameter;
   future skew-normal and skew-t families need separate documentation.
 
 ## Next Actions

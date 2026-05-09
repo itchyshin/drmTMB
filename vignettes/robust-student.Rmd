@@ -100,10 +100,10 @@ fit_student <- drmTMB(
 )
 ```
 
-The extra line `nu ~ 1` says that tail weight is estimated as a constant across
-observations. Predictor-varying fixed-effect `nu` formulas are also supported;
-this first tutorial keeps `nu` constant so the comparison focuses on location,
-scale, and residual-tail assumptions.
+The extra line `nu ~ 1` says that the tail-shape parameter is estimated as a
+constant across observations. Predictor-varying fixed-effect `nu` formulas are
+also supported. This first tutorial keeps `nu` constant so the comparison
+focuses on location, scale, and residual-tail assumptions.
 
 ## Check the fitted robust model
 
@@ -114,11 +114,13 @@ check_drm(fit_student)
 ```
 
 The `student_nu` row inspects fitted response-scale `nu` values. A near-boundary
-warning means the heavy-tail parameter is close to 2, where the finite-variance
+warning means the tail-shape parameter is close to 2, where the finite-variance
 constraint matters. A large-`nu` note means the Student-t fit may be close to a
-Gaussian fit. If `nu` is near the boundary, inspect influential observations,
-compare Gaussian and Student-t conclusions, and report that the fitted tail
-parameter is near the lower bound.
+Gaussian fit. If `nu` is large, report that the Student-t fit is close to
+Gaussian and check whether the Gaussian and Student-t `mu` and `sigma`
+conclusions differ. If `nu` is near the boundary, inspect influential
+observations, compare Gaussian and Student-t conclusions, and report that the
+fitted tail-shape parameter is near the lower bound.
 
 ## Interpret coefficients by parameter
 

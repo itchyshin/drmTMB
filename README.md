@@ -43,7 +43,7 @@ Here `x1` can change both the expected response and the residual standard
 deviation.
 
 The first robust continuous family uses the same location-scale grammar and
-adds a tail-weight formula:
+adds a tail-shape formula:
 
 ```text
 y_i | mu_i, sigma_i, nu_i ~ Student-t(mu_i, sigma_i, nu_i)
@@ -299,25 +299,26 @@ in one row, it is `rho12`.
 
 ## Current project status
 
-Gaussian location-scale MVP with `mu` random
-intercepts, independent numeric random slopes, ordinary correlated
-intercept-slope blocks, labelled one-slope `mu` covariance-block labels,
-residual-scale random intercepts in `sigma`,
-one or more univariate Gaussian random-effect scale models such as
-`sd(id) ~ x_group` and `sd(site) ~ site_type`,
-`meta_known_V(V = V)` support for diagonal and dense known sampling covariance,
-intercept-only univariate Gaussian phylogenetic location effects such as
-`phylo(1 | species, tree = tree)`,
-and fixed-effect bivariate Gaussian `rho12 ~ predictors` using either
-`biv_gaussian()`, `family = c(gaussian(), gaussian())`, or
-`family = list(gaussian(), gaussian())`; `mvbind(y1, y2) ~ x` is implemented
-as shorthand for identical bivariate location formulas. `check_drm()` provides a first-pass
-diagnostic table for convergence, gradients, Hessian status, dropped rows,
-finite objective values, scale positivity, `rho12` boundaries, Student-t `nu`
-boundary behaviour, known sampling covariance summaries, and random-effect
-replication/design checks. The next targets are cross-formula
-labelled covariance blocks, phylogenetic slopes and scale effects, larger
-sparse covariance routes, and spatial SPDE paths.
+Implemented now: Gaussian location-scale models with `mu` random intercepts,
+independent numeric random slopes, ordinary correlated intercept-slope blocks,
+labelled one-slope `mu` covariance-block labels, residual-scale random
+intercepts in `sigma`, one or more univariate Gaussian random-effect scale
+models such as `sd(id) ~ x_group` and `sd(site) ~ site_type`, fixed-effect
+Student-t `mu`, `sigma`, and `nu` models, `meta_known_V(V = V)` support for
+diagonal and dense known sampling covariance, intercept-only univariate
+Gaussian phylogenetic location effects such as
+`phylo(1 | species, tree = tree)`, and fixed-effect bivariate Gaussian
+`rho12 ~ predictors` using either `biv_gaussian()`,
+`family = c(gaussian(), gaussian())`, or
+`family = list(gaussian(), gaussian())`. `mvbind(y1, y2) ~ x` is implemented
+as shorthand for identical bivariate location formulas.
+
+`check_drm()` provides a first-pass diagnostic table for convergence, gradients,
+Hessian status, dropped rows, finite objective values, scale positivity,
+`rho12` boundaries, Student-t `nu` boundary behaviour, known sampling covariance
+summaries, and random-effect replication/design checks. The next targets are
+cross-formula labelled covariance blocks, phylogenetic slopes and scale effects,
+larger sparse covariance routes, and spatial SPDE paths.
 
 Roadmap note:
 

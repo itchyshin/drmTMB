@@ -113,7 +113,10 @@ distributional regression models using TMB.
 
 ## Phase 7: Robust Continuous and Shape Families
 
-- Add Student-t, lognormal, gamma, skew-normal, and skew-t families.
+- Status: fixed-effect univariate Student-t location-scale-shape models are
+  implemented.
+- Harden and extend Student-t models before adding lognormal, gamma,
+  skew-normal, and skew-t families.
 - Add formulae for shape and tail parameters where stable.
 - Add strict starting-value and boundary diagnostics.
 

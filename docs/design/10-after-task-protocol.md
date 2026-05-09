@@ -50,6 +50,23 @@ rg "simple.*mu random|sigma.*Later|currently.*only.*mu|optional simple.*location
 The goal is not only to make tests pass. It is to make sure code, docs,
 examples, design notes, and site navigation describe the same package.
 
+## Status Inventory
+
+For family, formula-grammar, diagnostic, or implemented-scope changes, explicitly
+check the status inventory before closing:
+
+- `README.md` current project status;
+- `ROADMAP.md`;
+- `NEWS.md`;
+- `docs/dev-log/known-limitations.md`;
+- `docs/design/01-formula-grammar.md`;
+- `vignettes/formula-grammar.Rmd`;
+- `_pkgdown.yml` when navigation should change.
+
+Paste the exact `rg` patterns used into the check log or after-task report. A
+generic phrase such as "stale-wording scans" is not enough for later auditors to
+know whether the inventory files were included.
+
 ## Prose Audit
 
 If the task changes README text, vignettes, pkgdown pages, after-task notes,

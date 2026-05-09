@@ -20,7 +20,8 @@ keeps the package close to the location-scale-shape literature.
 `nu` and `tau` are shape-parameter positions, not universal biological
 meanings. Their interpretation depends on the family:
 
-- Student-t: `nu` is usually tail weight or degrees of freedom.
+- Student-t: `nu` is usually tail shape or degrees of freedom; in `drmTMB`,
+  larger `nu` means lighter tails and a more Gaussian-like likelihood.
 - Skew normal: `nu` can be the skewness/shape parameter.
 - Skew-t: `nu` and `tau` should be documented as asymmetry and tail shape in
   the family-specific order chosen by the likelihood.

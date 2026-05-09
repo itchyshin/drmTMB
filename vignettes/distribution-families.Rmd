@@ -25,6 +25,12 @@ with `meta_known_V(V = V)`.
 
 Gaussian location-scale models use `mu` and `sigma`:
 
+```text
+y_i | mu_i, sigma_i ~ Normal(mu_i, sigma_i^2)
+mu_i = beta_0 + beta_1 temperature_i
+log(sigma_i) = gamma_0 + gamma_1 treatment_i
+```
+
 ```r
 drmTMB(
   bf(y ~ temperature, sigma ~ treatment),
@@ -33,12 +39,14 @@ drmTMB(
 )
 ```
 
-Student-t location-scale-shape models add `nu`, the degrees-of-freedom or tail
-weight parameter:
+Student-t location-scale-shape models add `nu`, the degrees-of-freedom or
+tail-shape parameter:
 
 ```text
 y_i | mu_i, sigma_i, nu_i ~ Student-t(mu_i, sigma_i, nu_i)
-nu_i = 2 + exp(eta_nu_i)
+mu_i = beta_0 + beta_1 temperature_i
+log(sigma_i) = gamma_0 + gamma_1 treatment_i
+nu_i = 2 + exp(delta_0)
 ```
 
 ```r
@@ -51,23 +59,25 @@ drmTMB(
 
 Use this first Student-t path when a continuous response is mostly well
 described by a location-scale model but has heavier-tailed residuals than a
-Gaussian model. Random effects, meta-analytic known covariance, phylogenetic
-terms, and bivariate Student-t models are planned later. The tutorial
-"Robust continuous responses" shows the equation, syntax, diagnostics, and a
-Gaussian comparison for this family.
+Gaussian model. Here `sigma` is the Student-t scale parameter; when `nu > 2`,
+the residual standard deviation is `sigma * sqrt(nu / (nu - 2))`. Random
+effects, meta-analytic known covariance, phylogenetic terms, and bivariate
+Student-t models are planned later. The tutorial "Robust continuous responses"
+shows the equation, syntax, diagnostics, and a Gaussian comparison for this
+family.
 
-For bivariate models, the preferred public direction is to combine response
-families:
+For implemented bivariate Gaussian models, the preferred public spelling is to
+combine two Gaussian response families:
 
 ```r
 family = c(gaussian(), gaussian())
 family = list(gaussian(), gaussian())
-family = c(gaussian(), poisson())
 ```
 
-This keeps mixed-response bivariate models natural. In ecological examples,
-this might mean body mass with fecundity counts, survival with dispersal
-counts, or leaf area with seed number. The all-Gaussian composed case is
-implemented for both `c()` and `list()` spellings and currently routes to the
-same likelihood as `biv_gaussian()`. Mixed-response composed families remain
-future work.
+The all-Gaussian composed case is implemented for both `c()` and `list()`
+spellings and currently routes to the same likelihood as `biv_gaussian()`.
+
+Mixed-response composed families remain future work. For example,
+`family = c(gaussian(), poisson())` is a planned direction for ecological
+examples such as body mass with fecundity counts, survival with dispersal
+counts, or leaf area with seed number. It is not a supported fitting path yet.

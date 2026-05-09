@@ -20,15 +20,16 @@ The current planning reference is `docs/design/01-formula-grammar.md`.
 ## Current status map
 
 Use this table before copying syntax into an analysis. "Implemented" means the
-syntax is parsed and has a fitted Gaussian likelihood path. "Reserved" means
-the syntax is part of the public design vocabulary but should currently give a
-clear unsupported-feature error rather than a fit. "Planned" means the syntax
-is shown only to explain the roadmap.
+syntax is parsed and has a fitted likelihood path for the family named in the
+notes. "Reserved" means the syntax is part of the public design vocabulary but
+should currently give a clear unsupported-feature error rather than a fit.
+"Planned" means the syntax is shown only to explain the roadmap.
 
 | Syntax | Current status | Notes |
 |---|---|---|
 | `drm_formula()` and `bf()` | Implemented | `drm_formula()` is the explicit constructor; `bf()` is a short alias. |
 | `y ~ x1 + x2`, `sigma ~ x1` | Implemented | Univariate Gaussian location-scale model. |
+| `y ~ x1 + x2`, `sigma ~ x1`, `nu ~ x2` | Implemented | Fixed-effect univariate Student-t location-scale-shape model. |
 | `(1 | id)` in `mu` | Implemented | Ordinary Gaussian location random intercept. |
 | `(0 + x1 | id)` in `mu` | Implemented | Independent numeric location random slope. |
 | `(1 + x1 | id)` in `mu` | Implemented | Correlated ordinary intercept-slope block. |
@@ -62,6 +63,16 @@ drm_formula(
   sd(site) ~ site_type
 )
 ```
+
+Current implemented Student-t form:
+
+```r
+drm_formula(y ~ x, sigma ~ z, nu ~ 1)
+drm_formula(y ~ x, sigma ~ z, nu ~ x)
+```
+
+Student-t random effects, known sampling covariance, phylogenetic terms, and
+bivariate Student-t models are later phases.
 
 The middle `p` is a group-level covariance-block label. It is not residual
 `rho12`, and reserved distributional parameter names such as `rho12` should not

@@ -2,6 +2,64 @@
 
 Record meaningful development checks here.
 
+## 2026-05-08: Student-t Status Inventory Cleanup
+
+Scope:
+
+- fixed status-inventory drift after the Student-t implementation;
+- updated README current status, ROADMAP, known limitations, formula grammar
+  maps, family docs, and affected tutorials to list the implemented
+  fixed-effect univariate Student-t path;
+- clarified that `family = c(gaussian(), poisson())` is planned, not runnable
+  implemented syntax;
+- replaced active Student-t "tail weight" wording with "tail shape" or
+  degrees-of-freedom language where larger `nu` could otherwise be read
+  backwards;
+- updated the after-task protocol and project-local `after-task-audit` skill so
+  future family, grammar, diagnostic, and implemented-scope changes must check
+  the status inventory explicitly.
+
+Commands run:
+
+- `Rscript -e "devtools::load_all(quiet=TRUE); for (f in c('vignettes/distribution-families.Rmd','vignettes/formula-grammar.Rmd','vignettes/robust-student.Rmd','vignettes/model-workflow.Rmd')) rmarkdown::render(f, output_format = rmarkdown::html_vignette(), output_file = tempfile(fileext = '.html'), quiet = TRUE)"`
+- `Rscript -e "devtools::test()"`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `Rscript -e "pkgdown::build_site()"`
+- `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`
+- `git diff --check`
+
+Status-inventory and stale-wording scans:
+
+- `rg -n "tail weight|tail-weight|heavy-tail parameter|all non-Gaussian families are planned|Add Student-t|fitted Gaussian likelihood path" README.md ROADMAP.md docs/design docs/dev-log/known-limitations.md vignettes R man NEWS.md tests pkgdown-site --glob '!pkgdown-site/search.json'`
+- `rg -n "family = c\\(gaussian\\(\\), poisson\\(\\)\\)" README.md ROADMAP.md docs/design docs/dev-log/known-limitations.md vignettes tests pkgdown-site --glob '!pkgdown-site/search.json'`
+
+Results:
+
+- standalone renders for the four touched vignettes passed;
+- full `devtools::test()`: 638 passed, 0 failed;
+- `pkgdown::check_pkgdown()`: no problems found;
+- `pkgdown::build_site()`: rebuilt the affected articles, home page, roadmap,
+  and search index;
+- `devtools::check(...)`: 0 errors, 0 warnings, 0 notes;
+- `git diff --check`: clean;
+- the first stale-wording scan returned no active hits;
+- the mixed-family scan returns only planned/future-work text or the deliberate
+  unsupported-syntax test.
+
+Tests of the tests:
+
+- no new unit tests were added because this was a documentation and process
+  consistency task;
+- full tests and R CMD check were run to ensure the vignette/status edits did
+  not break examples or package checks.
+
+Notes:
+
+- Pat caught the runnable-looking mixed-family code block in the family article;
+- Rose caught the stale known-limitations and formula-status maps;
+- the after-task protocol now requires exact status-inventory scans for this
+  class of change.
+
 ## 2026-05-08: Student-t Scale Terminology Audit
 
 Scope:
@@ -222,7 +280,7 @@ Notes:
 - `student()` is fixed-effect only for now: no random effects, known sampling
   covariance, phylogenetic terms, or bivariate Student-t likelihood yet;
 - `nu` is the canonical first shape parameter here and means Student-t degrees
-  of freedom/tail weight, not skewness.
+  of freedom/tail shape, not skewness.
 
 ## 2026-05-08: Main Documentation Known-`V` Equation Pairing
 

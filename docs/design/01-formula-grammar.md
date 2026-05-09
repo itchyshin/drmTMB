@@ -43,6 +43,7 @@ Use three status words consistently across documentation:
 | --- | --- | --- |
 | `drm_formula()` and `bf()` | Implemented | `drm_formula()` is the explicit constructor; `bf()` is a short alias. |
 | `y ~ x1`, `sigma ~ x1` | Implemented | Univariate Gaussian location-scale model. |
+| `y ~ x1`, `sigma ~ x1`, `nu ~ x2` | Implemented | Fixed-effect univariate Student-t location-scale-shape model. Random effects, known sampling covariance, phylogenetic terms, and bivariate Student-t models are later. |
 | `(1 | id)`, `(0 + x1 | id)`, `(1 + x1 | id)` in `mu` | Implemented | Ordinary Gaussian location random effects; one-slope correlated blocks may be labelled as `(1 + x1 | p | id)`. |
 | `(1 | id)` in `sigma` | Implemented | Residual-scale random intercept. |
 | `sd(id) ~ x_group` | Implemented | Random-effect scale model for one or more distinct unlabelled Gaussian `mu` random intercepts. |
@@ -391,6 +392,7 @@ For univariate models, the stable public API should accept one family:
 
 ```r
 family = gaussian()
+family = student()
 ```
 
 For bivariate models, prefer a vector/list of response families:
@@ -398,14 +400,14 @@ For bivariate models, prefer a vector/list of response families:
 ```r
 family = c(gaussian(), gaussian())
 family = list(gaussian(), gaussian())
-family = c(gaussian(), poisson())
 ```
 
-This makes mixed-response bivariate models natural. The all-Gaussian composed
-case is implemented for both `c()` and `list()` spellings and routes to the
-same likelihood as `biv_gaussian()`. Mixed-response bivariate families remain
-future work until their joint likelihood and interpretation of `rho12` are
-specified.
+This makes mixed-response bivariate models natural later, but only the
+all-Gaussian composed case is implemented now. It works for both `c()` and
+`list()` spellings and routes to the same likelihood as `biv_gaussian()`.
+Mixed-response bivariate families such as `family = c(gaussian(), poisson())`
+remain future work until their joint likelihood and interpretation of `rho12`
+are specified.
 
 ## Distributional Parameters
 
@@ -420,7 +422,7 @@ Formulae may target distributional parameters such as:
 
 `nu` and `tau` follow the GAMLSS convention for the first and second shape
 parameters. Family documentation should explain whether `nu` means skewness,
-tail weight, count dispersion, or another shape quantity.
+degrees of freedom, tail shape, count dispersion, or another shape quantity.
 
 ## Random-Effect Eligibility
 

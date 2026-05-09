@@ -120,13 +120,13 @@ These connect directly to location-scale-shape modelling.
 - `skew_normal()`: `mu`, `sigma`, `nu`, where `nu` is the skewness/shape
   parameter.
 - `skew_t()`: `mu`, `sigma`, `nu`, `tau`, where one shape controls asymmetry
-  and the other controls tail weight.
+  and the other controls tail shape.
 - `asym_laplace()`: quantile-focused distributional regression.
 
 Start with `skew_normal()` after Student-t is stable, and keep shape random
 effects out of the first implementation. Shape models are more fragile than
 scale models because asymmetry can trade off with location, residual scale,
-tail weight, outliers, and unmodelled heteroscedasticity. Phylogenetic
+tail shape, outliers, and unmodelled heteroscedasticity. Phylogenetic
 location-scale-shape models should be staged only after Gaussian phylogenetic
 location-scale models pass simulation recovery.
 
@@ -136,7 +136,7 @@ but package examples should teach the canonical names first.
 
 For skew-normal-like families, document precisely how `nu` maps to the native
 asymmetry parameter. For skew-t-like families, document which of `nu` and `tau`
-controls asymmetry and which controls tail weight; do not assume users can infer
+controls asymmetry and which controls tail shape; do not assume users can infer
 that from the parameter name alone.
 
 ## Tier 8: Ordinal and Categorical Responses
