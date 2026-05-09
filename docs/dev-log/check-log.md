@@ -4731,3 +4731,66 @@ Team learning:
   test plus boundary tests at both mixture extremes;
 - local formatter availability should be checked when a new repo skill says to
   run a formatter that may not be installed.
+
+## 2026-05-09 — NB2 MASS Comparator
+
+Task: add a Tier 1 comparator check for the implemented negative-binomial 2
+constant-dispersion overlap.
+
+Implemented:
+
+- added `MASS` to `Suggests`;
+- added a `tests/testthat/test-comparators.R` smoke test comparing
+  `drmTMB(family = nbinom2(), sigma ~ 1)` with `MASS::glm.nb()`;
+- compared `mu` coefficients, `sigma = 1 / sqrt(theta)`, and `logLik()`;
+- updated the testing-strategy design note, the testing-likelihoods vignette,
+  and the implemented source map.
+
+Commands run:
+
+- `R -q -e 'packageVersion("MASS")'`
+- ad hoc `drmTMB()` versus `MASS::glm.nb()` smoke comparison
+- `R -q -e 'devtools::test(filter = "comparators|nbinom2")'`
+- `R -q -e 'devtools::test()'`
+- `R -q -e 'pkgdown::check_pkgdown()'`
+- `R -q -e 'pkgdown::build_site()'`
+- `R -q -e 'devtools::check()'`
+- `air format .` (failed: `air` is not installed locally)
+- `git diff --check`
+- `rg -n "MASS::glm.nb|glm.nb|MASS,|Negative-binomial 2 mean coefficients|test-comparators\\.R" DESCRIPTION tests docs/design/05-testing-strategy.md vignettes/testing-likelihoods.Rmd vignettes/source-map.Rmd docs/dev-log/check-log.md docs/dev-log/after-task --glob '!docs/dev-log/after-task/2026-05-09-nb2-mass-comparator.md'`
+
+Results:
+
+- targeted comparator/NB2 tests: 139 passed, 0 failed, 0 warnings, 0 skips;
+- full `devtools::test()`: 971 passed, 0 failed, 0 warnings, 0 skips;
+- `pkgdown::check_pkgdown()`: no problems found;
+- `pkgdown::build_site()`: completed successfully;
+- `devtools::check()`: 0 errors, 0 warnings, 0 notes;
+- `git diff --check`: clean.
+
+Tests of the tests:
+
+- the comparator would fail if `drmTMB` used the wrong NB2 scale direction,
+  because it checks `sigma = 1 / sqrt(theta)`;
+- the comparator also checks log-likelihood, so equal coefficients cannot hide
+  missing constants or a mismatched variance function.
+
+Consistency audit:
+
+- the testing strategy now lists the MASS NB2 comparator as implemented;
+- the testing-likelihoods vignette teaches the exact scale translation;
+- the source map now records `tests/testthat/test-comparators.R` as an NB2
+  test file.
+
+Known limitations:
+
+- this comparator covers only the constant-dispersion NB2 overlap;
+- NB2 models with `sigma ~ predictors` and zero-inflated NB2 models still rely
+  on simulation and independent likelihood tests rather than an external
+  package comparator.
+
+Team learning:
+
+- comparator tests should name the exact overlapping submodel, not the whole
+  family, because `MASS::glm.nb()` cannot check distributional `sigma`
+  predictors.

@@ -298,6 +298,43 @@ test_that("Gamma mean model agrees with base glm on an overlapping model", {
   )
 })
 
+test_that("negative-binomial 2 mean-dispersion agrees with MASS glm.nb", {
+  testthat::skip_if_not_installed("MASS")
+
+  set.seed(20260618)
+  n <- 260
+  dat <- data.frame(x = stats::rnorm(n))
+  beta_mu <- c(`(Intercept)` = 0.25, x = -0.40)
+  sigma <- 0.55
+  mu <- exp(beta_mu[[1L]] + beta_mu[[2L]] * dat$x)
+  dat$count <- stats::rnbinom(n, size = 1 / sigma^2, mu = mu)
+
+  fit <- drmTMB(
+    bf(count ~ x, sigma ~ 1),
+    family = nbinom2(),
+    data = dat
+  )
+  fit_mass <- MASS::glm.nb(count ~ x, data = dat)
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_true(fit$sdr$pdHess)
+  expect_equal(
+    unname(coef(fit, "mu")),
+    unname(stats::coef(fit_mass)),
+    tolerance = 1e-4
+  )
+  expect_equal(
+    unname(sigma(fit)[[1L]]),
+    unname(1 / sqrt(fit_mass$theta)),
+    tolerance = 1e-4
+  )
+  expect_equal(
+    as.numeric(stats::logLik(fit)),
+    as.numeric(stats::logLik(fit_mass)),
+    tolerance = 1e-4
+  )
+})
+
 test_that("Gaussian meta-analysis agrees with metafor for ML tau2", {
   testthat::skip_if_not_installed("metafor")
 

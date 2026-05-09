@@ -32,6 +32,7 @@ LinkingTo:
 Suggests:
     knitr,
     lme4,
+    MASS,
     metafor,
     rmarkdown,
     testthat (>= 3.0.0),

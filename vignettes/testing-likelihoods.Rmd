@@ -144,6 +144,42 @@ expect_equal(as.numeric(stats::logLik(fit)),
 Optional comparator packages should use `testthat::skip_if_not_installed()` so
 routine checks stay portable.
 
+Count models also need comparator checks when another package has the same
+parameterization. For the overlapping negative-binomial 2 case with constant
+overdispersion, `MASS::glm.nb()` estimates `theta = size`, whereas `drmTMB`
+uses `sigma = 1 / sqrt(size)`:
+
+```text
+y_i ~ NB2(mu_i, size)
+log(mu_i) = beta_0 + beta_1 x_i
+sigma = 1 / sqrt(size)
+```
+
+```{r mass-nb-comparator-syntax, eval = FALSE}
+fit <- drmTMB(
+  drm_formula(count ~ x, sigma ~ 1),
+  family = nbinom2(),
+  data = dat
+)
+
+fit_mass <- MASS::glm.nb(count ~ x, data = dat)
+```
+
+The comparator should check the `mu` coefficients, the transformed
+overdispersion scale, and `logLik()`:
+
+```{r mass-nb-comparator-checks, eval = FALSE}
+expect_equal(unname(coef(fit, "mu")),
+             unname(stats::coef(fit_mass)),
+             tolerance = 1e-4)
+expect_equal(sigma(fit)[[1L]],
+             1 / sqrt(fit_mass$theta),
+             tolerance = 1e-4)
+expect_equal(as.numeric(stats::logLik(fit)),
+             as.numeric(stats::logLik(fit_mass)),
+             tolerance = 1e-4)
+```
+
 ## Tier 2: simulation recovery
 
 Simulation recovery is the main internal validation source for new `drmTMB`
