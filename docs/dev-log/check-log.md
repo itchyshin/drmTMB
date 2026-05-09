@@ -6031,3 +6031,53 @@ Team learning:
 - Curie should prefer cross-family tests for shared TMB machinery;
 - Ada should treat small tolerance differences between two optimizations as a
   test-design issue, not as a model-behaviour change.
+
+## 2026-05-09 — NB2 Likelihood Weight Test
+
+Goal:
+
+- extend likelihood-weight coverage to a distributional count model where both
+  `mu` and `sigma` are estimated by formulas.
+
+Changes:
+
+- added an `nbinom2()` test that constant weights keep both `mu` and `sigma`
+  coefficients stable while doubling the log-likelihood;
+- added an `nbinom2()` test that integer row weights, including zero weights,
+  match an explicitly row-duplicated dataset.
+
+Commands run:
+
+- `Rscript -e "devtools::test(filter = 'nbinom2-location-scale')"`
+- `rg -n "nbinom2.*weights|weights.*nbinom2|weights.*planned|does not yet.*weights" README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes tests/testthat/test-nbinom2-location-scale.R R man _pkgdown.yml`
+- `git diff --check`
+
+Results:
+
+- targeted NB2-family tests passed: 108 passed, 0 failed, 0 warnings, 0 skips;
+- the filter also ran the neighbouring truncated NB2 test file, which remained
+  green;
+- stale-wording search found no current documentation claiming that
+  `weights =` is unimplemented.
+
+Tests of the tests:
+
+- the new checks exercise row weights in a count model with an estimated
+  overdispersion formula, so they protect more than the simpler Poisson mean
+  branch;
+- integer row weights are compared with explicit row duplication for both
+  `mu` and `sigma` coefficients and for the fitted log-likelihood.
+
+Known limitations:
+
+- this phase added no new user-facing behaviour; it only improved test
+  coverage for an implemented feature;
+- zero-inflated, hurdle, and truncated count-family weight tests remain useful
+  future coverage.
+
+Team learning:
+
+- Curie should keep adding one representative test per likelihood class rather
+  than duplicating every possible family immediately;
+- Ada should keep these coverage passes staggered and small so CI failures are
+  easy to locate.

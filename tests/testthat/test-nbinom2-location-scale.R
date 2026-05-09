@@ -67,6 +67,59 @@ test_that("nbinom2 likelihood matches independent dnbinom calculation", {
   expect_equal(as.numeric(logLik(fit)), ll_independent, tolerance = 1e-6)
 })
 
+test_that("nbinom2 likelihood weights scale rows and match row duplication", {
+  sim <- new_nbinom2_data(n = 220, seed = 20260607)
+  dat <- sim$data
+
+  fit <- drmTMB(
+    bf(count ~ x, sigma ~ z),
+    family = nbinom2(),
+    data = dat
+  )
+  fit_double <- drmTMB(
+    bf(count ~ x, sigma ~ z),
+    family = nbinom2(),
+    data = dat,
+    weights = rep(2, nrow(dat))
+  )
+
+  expect_equal(coef(fit_double, "mu"), coef(fit, "mu"), tolerance = 1e-6)
+  expect_equal(coef(fit_double, "sigma"), coef(fit, "sigma"), tolerance = 1e-6)
+  expect_equal(
+    as.numeric(logLik(fit_double)),
+    2 * as.numeric(logLik(fit)),
+    tolerance = 1e-6
+  )
+  expect_equal(stats::weights(fit_double), rep(2, nrow(dat)))
+
+  w <- rep(c(0, 1, 2, 3), length.out = nrow(dat))
+  fit_weighted <- drmTMB(
+    bf(count ~ x, sigma ~ z),
+    family = nbinom2(),
+    data = dat,
+    weights = w
+  )
+  dat_expanded <- dat[rep(seq_len(nrow(dat)), w), , drop = FALSE]
+  fit_expanded <- drmTMB(
+    bf(count ~ x, sigma ~ z),
+    family = nbinom2(),
+    data = dat_expanded
+  )
+
+  expect_equal(stats::weights(fit_weighted), w)
+  expect_equal(coef(fit_weighted, "mu"), coef(fit_expanded, "mu"), tolerance = 1e-4)
+  expect_equal(
+    coef(fit_weighted, "sigma"),
+    coef(fit_expanded, "sigma"),
+    tolerance = 1e-4
+  )
+  expect_equal(
+    as.numeric(logLik(fit_weighted)),
+    as.numeric(logLik(fit_expanded)),
+    tolerance = 1e-4
+  )
+})
+
 test_that("nbinom2 methods return mean and overdispersion scales", {
   sim <- new_nbinom2_data(n = 220, seed = 20260604)
   fit <- drmTMB(
