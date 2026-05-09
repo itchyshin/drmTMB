@@ -66,6 +66,31 @@ Student-t models are planned later. The tutorial "Robust continuous responses"
 shows the equation, syntax, diagnostics, and a Gaussian comparison for this
 family.
 
+Lognormal location-scale models are implemented for positive continuous
+responses such as biomass, body mass, concentration, time, and area:
+
+```text
+log(y_i) | mu_i, sigma_i ~ Normal(mu_i, sigma_i^2)
+mu_i = beta_0 + beta_1 habitat_i
+log(sigma_i) = gamma_0 + gamma_1 treatment_i
+E[y_i] = exp(mu_i + sigma_i^2 / 2)
+```
+
+```r
+drmTMB(
+  bf(biomass ~ habitat, sigma ~ treatment),
+  family = lognormal(),
+  data = dat
+)
+```
+
+For this family, `predict(fit, dpar = "mu")` returns the mean of `log(y)`,
+`sigma(fit)` returns the standard deviation of `log(y)`, and `fitted(fit)`
+returns the arithmetic response mean. Use this path when multiplicative
+variation is scientifically natural and the response values are positive and
+finite. Random effects, known sampling covariance, phylogenetic terms, and
+bivariate lognormal models are planned later.
+
 For implemented bivariate Gaussian models, the preferred public spelling is to
 combine two Gaussian response families:
 

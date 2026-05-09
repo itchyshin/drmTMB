@@ -4,6 +4,7 @@ print.drmTMB <- function(x, ...) {
     x$model$model_type,
     gaussian = "Gaussian location-scale",
     student = "Student-t location-scale-shape",
+    lognormal = "Lognormal location-scale",
     biv_gaussian = "bivariate Gaussian location-scale-coscale",
     "distributional"
   )
@@ -116,11 +117,13 @@ rho12.drmTMB <- function(object, newdata = NULL,
   predict.drmTMB(object, newdata = newdata, dpar = "rho12", type = type, ...)
 }
 
-#' Extract fitted mean values
+#' Extract fitted response values
 #'
-#' `fitted()` returns fitted location values from a `drmTMB` model. For
-#' univariate Gaussian fits this is the fitted `mu` vector. For bivariate
-#' Gaussian fits this is a two-column matrix with `mu1` and `mu2`.
+#' `fitted()` returns fitted response values from a `drmTMB` model. For
+#' univariate Gaussian and Student-t fits this is the fitted `mu` vector. For
+#' bivariate Gaussian fits this is a two-column matrix with `mu1` and `mu2`.
+#' For lognormal fits this is the arithmetic response mean,
+#' `exp(mu + sigma^2 / 2)`.
 #'
 #' Fitted values are returned for the original fitted rows. Use [predict()] for
 #' new data or for non-location distributional parameters such as `sigma` or
@@ -138,6 +141,9 @@ fitted.drmTMB <- function(object, ...) {
       mu1 = predict.drmTMB(object, dpar = "mu1"),
       mu2 = predict.drmTMB(object, dpar = "mu2")
     ))
+  }
+  if (identical(object$model$model_type, "lognormal")) {
+    return(lognormal_mean(object))
   }
   predict.drmTMB(object, dpar = "mu")
 }
@@ -286,10 +292,11 @@ predict.drmTMB <- function(object, newdata = NULL, dpar = NULL,
 #' univariate Gaussian models with known sampling covariance, simulation uses
 #' the total observation covariance implied by the known sampling covariance
 #' plus the fitted residual scale. For Student-t models, simulation uses fitted
-#' `mu`, `sigma`, and `nu`. For bivariate Gaussian models without known sampling
-#' covariance, simulation uses the fitted `mu1`, `mu2`, `sigma1`, `sigma2`, and
-#' residual `rho12`. If a dense bivariate known `V` was supplied, simulation
-#' uses the full row-paired observation covariance `V + Omega`.
+#' `mu`, `sigma`, and `nu`. For lognormal models, simulation uses fitted
+#' log-scale `mu` and `sigma`. For bivariate Gaussian models without known
+#' sampling covariance, simulation uses the fitted `mu1`, `mu2`, `sigma1`,
+#' `sigma2`, and residual `rho12`. If a dense bivariate known `V` was supplied,
+#' simulation uses the full row-paired observation covariance `V + Omega`.
 #'
 #' @param object A `drmTMB` fit.
 #' @param nsim Number of simulated data sets.
@@ -329,6 +336,15 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, ...) {
     sigma <- predict(object, dpar = "sigma")
     nu <- predict(object, dpar = "nu")
     sims <- replicate(nsim, mu + sigma * stats::rt(length(mu), df = nu))
+    sims <- as.data.frame(sims)
+    names(sims) <- paste0("sim_", seq_len(nsim))
+    return(sims)
+  }
+
+  if (identical(object$model$model_type, "lognormal")) {
+    mu <- predict(object, dpar = "mu")
+    sigma <- predict(object, dpar = "sigma")
+    sims <- replicate(nsim, stats::rlnorm(length(mu), meanlog = mu, sdlog = sigma))
     sims <- as.data.frame(sims)
     names(sims) <- paste0("sim_", seq_len(nsim))
     return(sims)
@@ -399,6 +415,9 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, ...) {
 #' known sampling covariance was used, Pearson residuals are whitened by the
 #' fitted total observation covariance.
 #'
+#' For lognormal models, response residuals are `y - fitted_mean`. Pearson
+#' residuals are computed on the log-response scale as `(log(y) - mu) / sigma`.
+#'
 #' For bivariate Gaussian models, response residuals are returned as a
 #' two-column matrix. Pearson residuals are standardized and whitened using the
 #' fitted residual `sigma1`, `sigma2`, and `rho12`, or using the full row-paired
@@ -419,6 +438,13 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, ...) {
 #' @export
 residuals.drmTMB <- function(object, type = c("response", "pearson"), ...) {
   type <- match.arg(type)
+  if (identical(object$model$model_type, "lognormal")) {
+    if (type == "response") {
+      return(object$model$y - stats::fitted(object))
+    }
+    return((log(object$model$y) - predict(object, dpar = "mu")) /
+      predict(object, dpar = "sigma"))
+  }
   if (identical(object$model$model_type, "gaussian") ||
       identical(object$model$model_type, "student")) {
     response <- object$model$y - predict(object, dpar = "mu")
@@ -461,7 +487,8 @@ residuals.drmTMB <- function(object, type = c("response", "pearson"), ...) {
 #' For univariate Gaussian location-scale models this is the fitted `sigma_i`
 #' vector on the response scale. For Student-t models this is the Student-t
 #' scale parameter; when `nu > 2`, the residual standard deviation is
-#' `sigma * sqrt(nu / (nu - 2))`. For bivariate Gaussian models it returns a
+#' `sigma * sqrt(nu / (nu - 2))`. For lognormal models this is the fitted
+#' standard deviation of `log(y)`. For bivariate Gaussian models it returns a
 #' list with fitted `sigma1` and `sigma2` vectors.
 #'
 #' In meta-analytic models fitted with `meta_known_V(V = V)`, this is the
@@ -482,7 +509,8 @@ residuals.drmTMB <- function(object, type = c("response", "pearson"), ...) {
 #' @export
 sigma.drmTMB <- function(object, ...) {
   if (identical(object$model$model_type, "gaussian") ||
-      identical(object$model$model_type, "student")) {
+      identical(object$model$model_type, "student") ||
+      identical(object$model$model_type, "lognormal")) {
     return(predict(object, dpar = "sigma"))
   }
   list(
@@ -609,6 +637,12 @@ known_v_diag <- function(object) {
     return(diag(object$model$V_known))
   }
   object$model$V_known
+}
+
+lognormal_mean <- function(object) {
+  mu <- predict(object, dpar = "mu")
+  sigma <- predict(object, dpar = "sigma")
+  exp(mu + 0.5 * sigma^2)
 }
 
 rho_response <- function(eta) {

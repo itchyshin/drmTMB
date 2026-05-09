@@ -117,12 +117,15 @@ distributional regression models using TMB.
 - Keep parametric bootstrap as a fallback for boundary, non-monotone, or failed
   inner-optimization cases.
 
-## Phase 7: Robust Continuous and Shape Families
+## Phase 7: Robust and Positive Continuous Families
 
-- Status: fixed-effect univariate Student-t location-scale-shape models are
-  implemented.
-- Harden and extend Student-t models before adding lognormal, gamma,
+- Status: fixed-effect univariate Student-t location-scale-shape and
+  lognormal location-scale models are implemented.
+- Harden and extend Student-t and lognormal models before adding gamma,
   skew-normal, and skew-t families.
+- Use `lognormal()` for positive continuous responses where `mu` and `sigma`
+  are defined on the log-response scale and `fitted()` returns the arithmetic
+  response mean.
 - Add formulae for shape and tail parameters where stable.
 - Add strict starting-value and boundary diagnostics.
 

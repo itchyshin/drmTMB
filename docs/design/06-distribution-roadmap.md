@@ -11,7 +11,8 @@ simulation, and recovery tests.
 - `gaussian()`: `mu`, `sigma`.
 - `student()`: `mu`, `sigma`, `nu`; fixed-effect univariate path
   implemented.
-- `lognormal()`: `mu`, `sigma` on the log response scale.
+- `lognormal()`: `mu`, `sigma` on the log response scale; fixed-effect
+  univariate path implemented for positive responses.
 
 ## Tier 2: Bivariate Coscale
 
@@ -108,6 +109,9 @@ Recommended user guidance:
 
 Useful for body size, biomass, time, concentration, and rates.
 
+- `lognormal()`: implemented fixed-effect path for positive multiplicative
+  responses; random effects, known covariance, phylogenetic terms, and
+  bivariate extensions are later phases.
 - `gamma()`: `mu`, `shape` or `sigma`.
 - `weibull()`: scale and shape.
 - `exgaussian()`: location, scale, and positive-tail parameter.

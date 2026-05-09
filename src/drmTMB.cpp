@@ -262,6 +262,19 @@ Type objective_function<Type>::operator()()
     ADREPORT(beta_mu);
     ADREPORT(beta_sigma);
     ADREPORT(beta_nu);
+  } else if (model_type == 4) {
+    vector<Type> mu = X_mu * beta_mu;
+    vector<Type> log_sigma = X_sigma * beta_sigma;
+    vector<Type> sigma = exp(log_sigma);
+    for (int i = 0; i < y.size(); ++i) {
+      Type log_y = log(y(i));
+      nll -= dnorm(log_y, mu(i), sigma(i), true) - log_y;
+    }
+    REPORT(mu);
+    REPORT(log_sigma);
+    REPORT(sigma);
+    ADREPORT(beta_mu);
+    ADREPORT(beta_sigma);
   } else if (model_type == 2) {
     vector<Type> mu1 = X_mu1 * beta_mu1;
     vector<Type> mu2 = X_mu2 * beta_mu2;

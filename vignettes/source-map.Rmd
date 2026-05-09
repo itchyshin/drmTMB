@@ -23,11 +23,12 @@ until implementation, tests, and documentation all exist.
 ## Routing overview
 
 All fitted models enter through `drmTMB()` in `R/drmTMB.R`. The family router
-dispatches to one of three implemented builders:
+dispatches to one of the implemented builders:
 
 ```text
 gaussian()                  -> drm_build_gaussian_ls_spec()
 student()                   -> drm_build_student_ls_spec()
+lognormal()                 -> drm_build_lognormal_ls_spec()
 biv_gaussian()              -> drm_build_biv_gaussian_spec()
 c(gaussian(), gaussian())   -> drm_build_biv_gaussian_spec()
 list(gaussian(), gaussian()) -> drm_build_biv_gaussian_spec()
@@ -41,6 +42,7 @@ TMB template then uses these integer model paths:
 model_type = 1   univariate Gaussian location-scale engine
 model_type = 2   bivariate Gaussian location-scale-coscale engine
 model_type = 3   univariate Student-t location-scale-shape engine
+model_type = 4   univariate lognormal location-scale engine
 model_type = 99  internal phylogenetic prior helper used by tests
 ```
 
@@ -59,6 +61,7 @@ the same objective in isolation.
 | Gaussian meta-analysis with known sampling covariance | `yi ~ x + meta_known_V(V = vi)` or `meta_known_V(V = V)` | `meta_known_V()` in `R/formula-markers.R`; `evaluate_known_v()` and `subset_known_v()` in `R/drmTMB.R` | `model_type = 1`; diagonal path adds `V_known`, dense path uses `density::MVNORM` | `tests/testthat/test-meta-known-v.R`, `tests/testthat/test-comparators.R` | `vignettes/meta-analysis.Rmd`, `docs/design/08-meta-analysis.md` |
 | Gaussian phylogenetic location effect | `phylo(1 \| species, tree = tree)` in the `mu` formula | `phylo()` marker and helpers in `R/phylo-utils.R`; `build_phylo_mu_structure()` inside the Gaussian builder | `model_type = 1`; `u_phylo`, `log_sd_phylo`, sparse `Q_phylo` | `tests/testthat/test-phylo-gaussian.R`, `tests/testthat/test-phylo-utils.R` | `vignettes/phylogenetic-spatial.Rmd`, `docs/design/09-phylogenetic-and-spatial-speed.md` |
 | Student-t location-scale-shape | `drm_formula(y ~ x, sigma ~ z, nu ~ w)` | `student()` in `R/family.R`; `drm_build_student_ls_spec()` in `R/drmTMB.R` | `model_type = 3`; `nu = 2 + exp(eta_nu)` | `tests/testthat/test-student-location-scale.R` | `vignettes/robust-student.Rmd`, `docs/design/14-gamlss-parameter-names.md` |
+| Lognormal location-scale | `drm_formula(biomass ~ x, sigma ~ z)` | `lognormal()` in `R/family.R`; `drm_build_lognormal_ls_spec()` in `R/drmTMB.R` | `model_type = 4`; `log(y) ~ Normal(mu, sigma^2)` with the log-Jacobian term | `tests/testthat/test-lognormal-location-scale.R` | `vignettes/distribution-families.Rmd`, `docs/design/02-family-registry.md`, `docs/design/03-likelihoods.md` |
 | Bivariate Gaussian location-coscale | `mu1 = y1 ~ x`; `mu2 = y2 ~ x`; `sigma1 ~ z1`; `sigma2 ~ z2`; `rho12 ~ w` | `biv_gaussian()` in `R/family.R`; `drm_build_biv_gaussian_spec()` in `R/drmTMB.R`; `rho12()` in `R/methods.R` | `model_type = 2`; `rho12 = 0.99999999 * tanh(eta_rho12)` | `tests/testthat/test-biv-gaussian.R` | `vignettes/bivariate-coscale.Rmd`, `docs/design/15-location-coscale-phylogenetic-extension.md` |
 | Bivariate Gaussian known sampling covariance | `meta_known_V(V = V)` in one bivariate location formula, with `V` a row-paired `2n` by `2n` matrix | `meta_vcov_bivariate()` in `R/meta-vcov.R`; `evaluate_biv_known_v()` and `subset_biv_known_v()` in `R/drmTMB.R` | `model_type = 2`; dense `V_known_matrix` plus fitted residual `sigma1`, `sigma2`, and `rho12` | `tests/testthat/test-biv-gaussian.R`, `tests/testthat/test-meta-vcov.R` | `vignettes/meta-analysis.Rmd`, `vignettes/testing-likelihoods.Rmd` |
 

@@ -19,7 +19,7 @@ The corresponding R density call uses standard deviation, as in
 ## Implemented TMB Routing
 
 The R builders use descriptive model labels, such as `"gaussian"`,
-`"student"`, and `"biv_gaussian"`. Before calling the TMB template,
+`"student"`, `"lognormal"`, and `"biv_gaussian"`. Before calling the TMB template,
 `make_tmb_data()` turns those labels into integer branches in `src/drmTMB.cpp`.
 Unknown labels are rejected before they can fall through to a wrong likelihood
 branch. This table is the current routing contract:
@@ -29,6 +29,7 @@ branch. This table is the current routing contract:
 | `1` | `family = gaussian()` | `drm_build_gaussian_ls_spec()` | Univariate Gaussian location-scale models, including ordinary `mu` random effects, residual-scale `sigma` random effects, `sd(group) ~ ...` random-effect scale models, `meta_known_V(V = V)`, and the implemented intercept-only `phylo()` location effect. |
 | `2` | `family = biv_gaussian()`, `family = c(gaussian(), gaussian())`, or `family = list(gaussian(), gaussian())` | `drm_build_biv_gaussian_spec()` | Bivariate Gaussian location-scale-coscale models with `mu1`, `mu2`, `sigma1`, `sigma2`, and residual `rho12`, including complete-row dense known sampling covariance. |
 | `3` | `family = student()` | `drm_build_student_ls_spec()` | Univariate Student-t location-scale-shape models with `mu`, `sigma`, and `nu = 2 + exp(eta_nu)`. |
+| `4` | `family = lognormal()` | `drm_build_lognormal_ls_spec()` | Univariate fixed-effect lognormal location-scale models for positive responses, with `mu` and `sigma` defined on the log-response scale. |
 | `99` | no public route | direct test construction only | Hidden phylogenetic precision-prior parity branch used to test the sparse augmented A-inverse objective in isolation. |
 
 The hidden `model_type = 99` branch is not a family and should not appear in
@@ -306,6 +307,50 @@ drmTMB(
 This first implementation deliberately rejects random effects, known sampling
 covariance, phylogenetic terms, and bivariate Student-t families until the
 fixed-effect likelihood and recovery tests remain stable.
+
+## Implemented Lognormal Location-Scale
+
+The first positive continuous likelihood is fixed-effect lognormal regression:
+
+```text
+log(y_i) | mu_i, sigma_i ~ Normal(mu_i, sigma_i^2)
+eta_mu_i = X_mu[i, ] beta_mu
+eta_sigma_i = X_sigma[i, ] beta_sigma
+mu_i = eta_mu_i
+sigma_i = exp(eta_sigma_i)
+```
+
+The TMB likelihood is evaluated on the original positive response scale with
+the log-Jacobian term:
+
+```text
+log_y_i = log(y_i)
+log f(y_i) =
+  log Normal(log_y_i | mu_i, sigma_i^2) - log_y_i
+```
+
+The arithmetic response mean is:
+
+```text
+E[y_i] = exp(mu_i + sigma_i^2 / 2)
+```
+
+Matching R syntax:
+
+```r
+drmTMB(
+  bf(biomass ~ habitat, sigma ~ treatment),
+  family = lognormal(),
+  data = dat
+)
+```
+
+For lognormal fits, `predict(fit, dpar = "mu")` returns the log-scale
+location parameter, `sigma(fit)` returns the log-scale standard deviation, and
+`fitted(fit)` returns `E[y_i]` on the original response scale. The response
+must be positive and finite after missing-row filtering. Random effects, known
+sampling covariance, phylogenetic terms, and bivariate lognormal models are
+later phases.
 
 ## Implemented Bivariate Meta-Analytic Gaussian Regression
 

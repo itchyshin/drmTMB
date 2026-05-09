@@ -2,7 +2,7 @@
 % Please edit documentation in R/methods.R
 \name{fitted.drmTMB}
 \alias{fitted.drmTMB}
-\title{Extract fitted mean values}
+\title{Extract fitted response values}
 \usage{
 \method{fitted}{drmTMB}(object, ...)
 }
@@ -16,9 +16,11 @@ A numeric vector for univariate fits, or a two-column matrix for
 bivariate Gaussian fits.
 }
 \description{
-\code{fitted()} returns fitted location values from a \code{drmTMB} model. For
-univariate Gaussian fits this is the fitted \code{mu} vector. For bivariate
-Gaussian fits this is a two-column matrix with \code{mu1} and \code{mu2}.
+\code{fitted()} returns fitted response values from a \code{drmTMB} model. For
+univariate Gaussian and Student-t fits this is the fitted \code{mu} vector. For
+bivariate Gaussian fits this is a two-column matrix with \code{mu1} and \code{mu2}.
+For lognormal fits this is the arithmetic response mean,
+\code{exp(mu + sigma^2 / 2)}.
 }
 \details{
 Fitted values are returned for the original fitted rows. Use \code{\link[=predict]{predict()}} for

@@ -2,17 +2,20 @@
 
 A fast TMB-based distributional regression package for broadly useful
 univariate and bivariate distributional regression. The current implementation
-starts with Gaussian and Student-t location-scale models, known-covariance
-meta-analysis, phylogenetic location effects, random-effect scale models, and
-bivariate Gaussian residual-correlation models. The long-term design also
-includes skewness, zero inflation, and additional response families. The first
-examples are motivated by ecology, evolution, and environmental science, but
-the package is general-purpose. Here `mu` is the expected response, `sigma` is
-the residual scale parameter, `nu` is the first shape parameter, and `rho12` is
-the residual correlation between two responses. For Gaussian models, `sigma` is
-the residual standard deviation. For Student-t models, `sigma` is the Student-t
-scale parameter; when `nu > 2`, the residual standard deviation is
-`sigma * sqrt(nu / (nu - 2))`.
+starts with Gaussian, Student-t, and lognormal location-scale models,
+known-covariance meta-analysis, phylogenetic location effects, random-effect
+scale models, and bivariate Gaussian residual-correlation models. The long-term
+design also includes skewness, zero inflation, and additional response
+families. The first examples are motivated by ecology, evolution, and
+environmental science, but the package is general-purpose. Here `mu` is the
+location or mean-like parameter, `sigma` is the residual scale parameter, `nu`
+is the first shape parameter, and `rho12` is the residual correlation between
+two responses. For Gaussian models, `mu` is the expected response and `sigma`
+is the residual standard deviation. For Student-t models, `sigma` is the
+Student-t scale parameter; when `nu > 2`, the residual standard deviation is
+`sigma * sqrt(nu / (nu - 2))`. For lognormal models, `mu` and `sigma` are the
+mean and standard deviation of `log(y)`, and `fitted()` returns the arithmetic
+mean `exp(mu + sigma^2 / 2)`.
 
 The current implementation supports Gaussian location-scale models, including
 fixed effects, random intercepts, independent numeric random slopes, and
@@ -63,6 +66,29 @@ drmTMB(
 This is useful when a continuous response has occasional large residuals but
 the scientific question is still about predictors of the mean and residual
 scale.
+
+Positive continuous responses can use the fixed-effect lognormal path:
+
+```text
+log(y_i) | mu_i, sigma_i ~ Normal(mu_i, sigma_i^2)
+mu_i = beta_0 + beta_1 habitat_i
+log(sigma_i) = gamma_0 + gamma_1 treatment_i
+E[y_i] = exp(mu_i + sigma_i^2 / 2)
+```
+
+```r
+drmTMB(
+  drm_formula(biomass ~ habitat, sigma ~ treatment),
+  family = lognormal(),
+  data = dat
+)
+```
+
+This is useful for positive measurements such as biomass, body mass,
+concentration, area, and time-to-event measurements when multiplicative
+variation is scientifically natural. The response must be positive and finite.
+Random effects, known sampling covariance, phylogenetic terms, and bivariate
+lognormal models are later phases.
 
 ```r
 drmTMB(
@@ -304,7 +330,8 @@ independent numeric random slopes, ordinary correlated intercept-slope blocks,
 labelled one-slope `mu` covariance-block labels, residual-scale random
 intercepts in `sigma`, one or more univariate Gaussian random-effect scale
 models such as `sd(id) ~ x_group` and `sd(site) ~ site_type`, fixed-effect
-Student-t `mu`, `sigma`, and `nu` models, `meta_known_V(V = V)` support for
+Student-t `mu`, `sigma`, and `nu` models, fixed-effect lognormal `mu` and
+`sigma` models for positive responses, `meta_known_V(V = V)` support for
 diagonal and dense known sampling covariance, intercept-only univariate
 Gaussian phylogenetic location effects such as
 `phylo(1 | species, tree = tree)`, and fixed-effect bivariate Gaussian

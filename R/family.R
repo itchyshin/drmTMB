@@ -54,3 +54,30 @@ student <- function() {
     class = "drm_family"
   )
 }
+
+#' Lognormal response family
+#'
+#' `lognormal()` defines a one-response positive continuous distribution with
+#' formulas for log-location `mu` and log-scale `sigma`.
+#'
+#' The model is defined on the log response scale:
+#' `log(y) ~ Normal(mu, sigma^2)`. The fitted distributional parameter `mu` is
+#' therefore the mean of `log(y)`, not the arithmetic mean of `y`.
+#'
+#' @return A `drm_family` object.
+#' @export
+#'
+#' @examples
+#' lognormal()
+lognormal <- function() {
+  structure(
+    list(
+      name = "lognormal",
+      family = "lognormal",
+      n_response = 1L,
+      dpars = c("mu", "sigma"),
+      links = c(mu = "identity", sigma = "log")
+    ),
+    class = "drm_family"
+  )
+}

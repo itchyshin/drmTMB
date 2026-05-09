@@ -15,6 +15,7 @@
 * `deviance()`, `df.residual()`, and `nobs()` now work for `drmTMB` fits, making base-R model summaries and comparison helpers more complete.
 * `fitted()` now returns fitted location values: a numeric `mu` vector for univariate Gaussian models and a two-column `mu1`/`mu2` matrix for bivariate Gaussian models.
 * `fixef()` now returns distributional fixed-effect coefficients and acts as a mixed-model-friendly alias for `coef()`.
+* `lognormal()` now fits fixed-effect univariate lognormal location-scale models for positive responses, with `mu` and `sigma` defined on the log-response scale, `fitted()` returning the arithmetic response mean, and simulation plus likelihood tests checked against `stats::dlnorm()`.
 * `meta_known_V(V = V)` now fits Gaussian meta-analysis with diagonal or dense full known sampling covariance using `family = gaussian()`.
 * `meta_vcov_bivariate()` now builds row-paired dense sampling covariance matrices for bivariate Gaussian meta-analysis with known within-study covariance, and `meta_known_V(V = V)` now fits complete-row bivariate Gaussian known-`V` models by adding that sampling covariance to the fitted residual covariance from `sigma1`, `sigma2`, and `rho12`.
 * `ranef()` now returns fitted conditional random-effect blocks, including ordinary `mu`, residual-scale `sigma`, and current `phylo_mu` blocks when present.

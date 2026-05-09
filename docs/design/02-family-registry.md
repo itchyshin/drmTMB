@@ -79,6 +79,32 @@ and makes Student-t a robust continuous extension of the Gaussian
 location-scale MVP. Random effects, known sampling covariance, phylogenetic
 terms, and bivariate Student-t models are later phases.
 
+## Implemented: Lognormal Location-Scale
+
+The first positive continuous family is univariate and fixed-effect only:
+
+```r
+lognormal <- function() {
+  drm_family(
+    name = "lognormal",
+    n_response = 1,
+    dpars = c("mu", "sigma"),
+    links = c(mu = "identity", sigma = "log")
+  )
+}
+```
+
+The fitted distribution is Gaussian on the log-response scale:
+
+```text
+log(y_i) | mu_i, sigma_i ~ Normal(mu_i, sigma_i^2)
+```
+
+Here `mu` is the mean of `log(y)`, not the arithmetic mean of `y`. The
+response-scale mean is `exp(mu_i + sigma_i^2 / 2)`, which is what `fitted()`
+returns for lognormal fits. Random effects, known sampling covariance,
+phylogenetic terms, and bivariate or mixed lognormal models are later phases.
+
 ## Implemented: Bivariate Gaussian Location-Coscale
 
 The stable public direction for two-response models is composed response

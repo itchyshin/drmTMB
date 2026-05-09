@@ -20,7 +20,8 @@ vectors for bivariate Gaussian models.
 For univariate Gaussian location-scale models this is the fitted \code{sigma_i}
 vector on the response scale. For Student-t models this is the Student-t
 scale parameter; when \code{nu > 2}, the residual standard deviation is
-\code{sigma * sqrt(nu / (nu - 2))}. For bivariate Gaussian models it returns a
+\code{sigma * sqrt(nu / (nu - 2))}. For lognormal models this is the fitted
+standard deviation of \code{log(y)}. For bivariate Gaussian models it returns a
 list with fitted \code{sigma1} and \code{sigma2} vectors.
 }
 \details{

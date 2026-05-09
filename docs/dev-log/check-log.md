@@ -3887,3 +3887,90 @@ Team learning:
 
 - when a design note describes a routing contract, the code should enforce the
   same contract rather than rely on upstream validation alone.
+
+## 2026-05-08: Lognormal Location-Scale Family
+
+Scope:
+
+- added exported `lognormal()` for fixed-effect univariate positive continuous
+  responses;
+- routed lognormal fits through `drm_build_lognormal_ls_spec()` and
+  `model_type = 4`;
+- implemented the TMB lognormal likelihood with the log-Jacobian term;
+- added `fitted()`, `simulate()`, `residuals()`, and `sigma()` handling for
+  lognormal fits;
+- updated family, likelihood, distribution-roadmap, README, pkgdown source-map,
+  known-limitation, and testing-strategy documentation.
+
+Commands run:
+
+- `Rscript -e "devtools::document()"`
+- `Rscript -e "devtools::test(filter = '^lognormal-location-scale$')"`
+- `Rscript -e "devtools::test(filter = '^package-skeleton$')"`
+- `git diff --check`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `Rscript -e "devtools::test()"`
+- `Rscript -e "pkgdown::check_pkgdown(); pkgdown::build_site()"`
+- `Rscript -e "Sys.setenv('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'); devtools::check(document = FALSE, manual = FALSE, args = c('--no-manual'))"`
+- `rg -n 'starts with Gaussian and Student-t|Here mu is the expected response|before adding lognormal|three implemented builders' README.md ROADMAP.md NEWS.md docs vignettes R man pkgdown-site/index.html pkgdown-site/ROADMAP.html pkgdown-site/articles/source-map.html pkgdown-site/articles/distribution-families.html pkgdown-site/reference/fitted.drmTMB.html`
+- `rg -n 'lognormal\\(\\)|model_type = 4|dlnorm|arithmetic response mean|positive finite' README.md ROADMAP.md NEWS.md _pkgdown.yml docs/design docs/dev-log/known-limitations.md vignettes R tests man pkgdown-site/index.html pkgdown-site/reference/lognormal.html pkgdown-site/articles/source-map.html pkgdown-site/articles/distribution-families.html pkgdown-site/news/index.html`
+- `rg -n 'meta_gaussian|tau ~|rho ~|family = meta' README.md ROADMAP.md NEWS.md docs/design vignettes R tests`
+
+Results:
+
+- `devtools::document()`: regenerated `NAMESPACE`, `man/lognormal.Rd`, and
+  updated method docs; second run completed without roxygen warnings.
+- Lognormal targeted tests: 39 passed, 0 failed.
+- Package-skeleton targeted tests: 40 passed, 0 failed.
+- `git diff --check`: clean.
+- `pkgdown::check_pkgdown()`: no problems found.
+- `devtools::test()`: 686 passed, 0 failed, 0 warnings, 0 skips.
+- `pkgdown::build_site()`: completed successfully and generated the
+  `reference/lognormal.html` page.
+- First `devtools::check(...)`: 0 errors, 0 warnings, 1 note for an
+  unqualified `fitted()` call in `residuals.drmTMB()`.
+- After changing that call to `stats::fitted(object)`, final
+  `devtools::check(...)`: 0 errors, 0 warnings, 0 notes.
+
+Tests of the tests:
+
+- `tests/testthat/test-lognormal-location-scale.R` checks parameter recovery,
+  the fitted response mean formula, and an independent likelihood calculation
+  against `stats::dlnorm()`.
+- Reviewer-requested tests now cover factor predictors, small and large
+  `sigma`, missing-row filtering before positivity checks, `mvbind()`
+  rejection, `sd(group)` rejection, duplicate `sigma` formulas, missing
+  response, and no-complete-observation errors.
+
+Consistency audit:
+
+- Boole read-only review found no likelihood or parameter-scale issues and one
+  closure-artifact gap, now addressed by this check-log and after-task report.
+- Bohr read-only review found missing edge-test coverage; the requested cases
+  were added before broad checks.
+- Stale wording scan found no old "Gaussian and Student-t only",
+  "mu is the expected response", "before adding lognormal", or "three
+  implemented builders" wording in active docs or generated pages.
+- Guardrail scan found only intentional `meta_gaussian()` and `tau ~` warnings
+  in meta-analysis design/tutorial docs and the after-task protocol.
+
+What did not go smoothly:
+
+- the first documentation patch missed several files because the README context
+  had changed;
+- the first R CMD check found the bare `fitted()` call, which is now fixed;
+- Bohr's review showed the first test set was too happy-path oriented.
+
+Known limitations:
+
+- `lognormal()` is fixed-effect and univariate only;
+- no lognormal random effects, known sampling covariance, phylogenetic or
+  spatial structured effects, bivariate lognormal, or mixed lognormal composed
+  family is implemented yet.
+
+Team learning:
+
+- for every new family, Curie should check edge cases from the project testing
+  contract before broad checks, not after the first reviewer pass;
+- Rose should search generated pkgdown pages for old status claims after every
+  family status change.
