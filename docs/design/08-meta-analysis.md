@@ -217,9 +217,11 @@ bf(
 This follows the idea that categorical and continuous moderators can explain
 between-study heterogeneity, not only average effect size.
 
-Example interpretation: if the `sigma` slope for a binary moderator `x1` is `-0.4`,
-then the extra heterogeneity SD is multiplied by `exp(-0.4) = 0.67` for the
-moderator group, after adding the known sampling variance `vi`.
+Example interpretation: if the `sigma` slope for a binary moderator `x1` is
+`-0.4`, then the unknown residual heterogeneity SD is multiplied by
+`exp(-0.4) = 0.67` for the moderator group. The marginal observation-level
+variance remains `vi_i + sigma_i^2`; the multiplier applies only to
+`sigma_i`, not to the known sampling variance `vi_i`.
 
 ## Multiple Variance Components
 
@@ -236,8 +238,32 @@ bf(
 This is not a residual `sigma` model with random effects inside it. It is a
 model with separate random-effect scale components.
 
-Ordinary random-intercept meta-regression is implemented. Random-effect scale
-components in known-covariance meta-analysis remain a separate validation task.
+The implemented univariate Gaussian known-covariance path supports ordinary
+`mu` random intercepts and random-effect scale formulae for unlabelled random
+intercepts. The mathematical contract is:
+
+```text
+y_i = mu_i + b_study[j[i]] + b_species[k[i]] + e_i
+mu_i = X_mu[i, ] beta_mu
+b_study,j ~ Normal(0, omega_study,j^2)
+b_species,k ~ Normal(0, omega_species,k^2)
+log(omega_study,j) = X_sd_study[j, ] alpha_study
+log(omega_species,k) = X_sd_species[k, ] alpha_species
+e ~ MVN(0, V + diag(sigma_i^2))
+```
+
+Equivalently, after integrating over the random effects:
+
+```text
+y ~ MVN(mu, Omega)
+Omega = V + diag(sigma_i^2) +
+  Z_study diag(omega_study,j^2) Z_study' +
+  Z_species diag(omega_species,k^2) Z_species'
+```
+
+Predictors in `sd(study) ~ ...` and `sd(species) ~ ...` must be constant within
+the named group after missing-data filtering. The validation test compares the
+fitted log likelihood with an independent dense marginal Gaussian likelihood.
 
 ## Implementation Caveats
 

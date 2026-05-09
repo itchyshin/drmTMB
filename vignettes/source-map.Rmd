@@ -111,9 +111,9 @@ models yet:
 Do not present those forms as runnable examples until the source map has an
 implemented row with code, tests, and documentation.
 
-One neighbouring combination now has a targeted validation test but still needs
-careful tutorial wording before it becomes a headline example: Gaussian
-known-covariance meta-analysis with `sd(group) ~ predictors`. The test checks
-the fitted objective against an independent dense marginal Gaussian likelihood;
-future examples should still explain clearly that `sigma` is residual
-heterogeneity and `sd(group)` is group-level heterogeneity in a random effect.
+One neighbouring combination now has both a targeted validation test and a
+careful tutorial explanation: Gaussian known-covariance meta-analysis with
+`sd(group) ~ predictors`. The test checks the fitted objective against an
+independent dense marginal Gaussian likelihood. The tutorial explains that
+`sigma` is residual heterogeneity and `sd(group)` is group-level heterogeneity
+in a random effect.

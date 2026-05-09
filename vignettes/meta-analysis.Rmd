@@ -68,6 +68,55 @@ fit <- drmTMB(
 )
 ```
 
+## Known sampling variance plus group-level heterogeneity
+
+When a meta-analysis has multiple effect sizes per study, site, species, lab,
+or other grouping unit, `sigma` and `sd(group)` answer different questions.
+`meta_known_V(V = V)` supplies the sampling covariance that is known before
+fitting. `sigma` is remaining observation-level heterogeneity. `sd(group)` is
+the scale of a random effect in the location model.
+
+For example:
+
+```r
+fit_study <- drmTMB(
+  drm_formula(
+    yi ~ treatment + (1 | study) + meta_known_V(V = vi),
+    sigma ~ 1,
+    sd(study) ~ habitat
+  ),
+  family = gaussian(),
+  data = dat
+)
+```
+
+matches this model:
+
+```text
+y_i = mu_i + b_study[j[i]] + r_i + s_i
+mu_i = X_mu[i, ] beta_mu
+b_study,j ~ Normal(0, omega_j^2)
+log(omega_j) = a0 + a1 habitat_j
+r_i ~ Normal(0, sigma^2)
+s ~ MVN(0, V)
+```
+
+Here `s_i` is the known sampling-error component supplied by
+`meta_known_V(V = vi)` or `meta_known_V(V = V)`. If `V` is diagonal, the
+marginal variance of `y_i` is `vi_i + sigma^2 + omega_j^2` for a one-study
+random-intercept design. More generally, the marginal covariance is:
+
+```text
+Omega = V + diag(sigma_i^2) + Z_study diag(omega_j^2) Z_study'
+y ~ MVN(mu, Omega)
+```
+
+The `sd(study)` formula models `omega_j`, the study-level random-effect standard
+deviation. The `sigma` formula models residual heterogeneity at the observation
+level. Predictors in `sd(study) ~ ...` must be constant within each study after
+missing-data filtering; otherwise a single study-level random-effect SD would
+not be well defined.
+
 Bivariate meta-analysis uses the same Gaussian bivariate family as other
 location-coscale models. The known sampling covariance should include the
 within-study covariance between the two effect-size estimates when it is

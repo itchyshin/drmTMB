@@ -3605,3 +3605,77 @@ Team learning:
 - Jason's source-map role caught a real validation gap without changing code;
 - Rose's after-task checklist is useful for turning "implemented somewhere"
   into "implemented, tested, documented, and consistently described."
+
+## 2026-05-08: Meta-Analysis Scale Tutorial Clarification
+
+Scope:
+
+- added a public tutorial section pairing R syntax and symbolic equations for
+  known sampling covariance plus group-level random-effect scale models;
+- corrected stale design wording that still described `sd(study) ~ x1` in
+  known-covariance meta-analysis as awaiting validation;
+- clarified that the `sigma` slope multiplies only unknown residual
+  heterogeneity, not the known sampling variance;
+- updated the source map to say the combination now has both a targeted
+  validation test and tutorial explanation.
+
+Commands run:
+
+- `Rscript -e "rmarkdown::render('vignettes/meta-analysis.Rmd', output_dir = tempdir(), quiet = TRUE); rmarkdown::render('vignettes/source-map.Rmd', output_dir = tempdir(), quiet = TRUE)"`
+- `rg -n 'remain a separate validation task|still needs validation|after adding the known sampling variance|after adding known sampling|sampling error that is known|The$|Normal\\(a, b\\) again' vignettes/meta-analysis.Rmd docs/design/08-meta-analysis.md vignettes/source-map.Rmd NEWS.md ROADMAP.md docs/dev-log/known-limitations.md`
+- `git diff --check`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `Rscript -e "devtools::test()"`
+- `Rscript -e "pkgdown::build_site()"`
+- `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`
+
+Results:
+
+- direct meta-analysis and source-map renders: passed;
+- stale-wording scan: no active hits;
+- `git diff --check`: clean;
+- `pkgdown::check_pkgdown()`: no problems found;
+- `devtools::test()`: 646 passed, 0 failed;
+- `pkgdown::build_site()`: completed successfully and rebuilt
+  `articles/meta-analysis.html` and `articles/source-map.html`;
+- `devtools::check(...)` with `_R_CHECK_SYSTEM_CLOCK_=FALSE`: 0 errors,
+  0 warnings, 0 notes;
+- GitHub Actions for commit `a33ea96`: pkgdown and R CMD check succeeded,
+  including macOS, Ubuntu, and Windows.
+
+Tests of the tests:
+
+- no new model code or unit tests were added;
+- the documentation now points back to the existing dense marginal-likelihood
+  comparator for `meta_known_V(V = vi)` plus `sd(id) ~ w`;
+- Pat and Fisher/Noether both identified the stale status contradiction before
+  the documentation update, and the follow-up scan now finds no active copy of
+  that contradiction.
+
+Consistency audit:
+
+- no `meta_gaussian()` family or `tau ~` syntax was introduced;
+- the vignette separates `meta_known_V(V = V)`, `sigma`, and `sd(study)` as
+  known sampling covariance, residual heterogeneity, and group-level
+  random-effect heterogeneity;
+- the design note now includes the marginal covariance
+  `V + diag(sigma_i^2) + Z diag(omega_j^2) Z'`.
+
+What did not go smoothly:
+
+- the validation checkpoint fixed the test gap but left one stale sentence in
+  the design note; Pat and Noether caught the user-facing consequence quickly.
+
+Known limitations:
+
+- this is a documentation and consistency pass only;
+- sparse known covariance and bivariate known-covariance random-effect scale
+  models remain future implementation targets.
+
+Team learning:
+
+- Pat should review tutorials before we promote a newly validated combination
+  from "source-map status" to "headline example";
+- Noether's equation-first review should explicitly check the marginal
+  covariance whenever known `V`, residual `sigma`, and random-effect scales are
+  combined.
