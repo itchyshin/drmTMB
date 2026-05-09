@@ -403,6 +403,44 @@ test_that("bivariate Gaussian known V recovers residual rho12 separately from sa
   expect_true(all(is.finite(pearson)))
 })
 
+test_that("bivariate Gaussian likelihood weights are complete-row multipliers", {
+  sim <- new_biv_gaussian_data(n = 120, beta_rho12 = atanh(0.35), seed = 20260564)
+
+  fit <- drmTMB(
+    bf(
+      mu1 = y1 ~ x,
+      mu2 = y2 ~ x,
+      sigma1 = ~ z1,
+      sigma2 = ~ z2,
+      rho12 = ~ 1
+    ),
+    family = c(gaussian(), gaussian()),
+    data = sim$data
+  )
+  fit_double <- drmTMB(
+    bf(
+      mu1 = y1 ~ x,
+      mu2 = y2 ~ x,
+      sigma1 = ~ z1,
+      sigma2 = ~ z2,
+      rho12 = ~ 1
+    ),
+    family = c(gaussian(), gaussian()),
+    data = sim$data,
+    weights = rep(2, nrow(sim$data))
+  )
+
+  expect_equal(stats::weights(fit_double), rep(2, nrow(sim$data)))
+  expect_equal(coef(fit_double, "mu1"), coef(fit, "mu1"), tolerance = 1e-5)
+  expect_equal(coef(fit_double, "mu2"), coef(fit, "mu2"), tolerance = 1e-5)
+  expect_equal(coef(fit_double, "rho12"), coef(fit, "rho12"), tolerance = 1e-5)
+  expect_equal(
+    as.numeric(stats::logLik(fit_double)),
+    2 * as.numeric(stats::logLik(fit)),
+    tolerance = 1e-4
+  )
+})
+
 test_that("rho12 response-scale transform stays inside the correlation boundary", {
   eta <- c(-1e6, -20, 0, 20, 1e6)
   rho12 <- drmTMB:::rho_response(eta)
@@ -497,6 +535,15 @@ test_that("bivariate Gaussian rejects unsupported Phase 3 syntax clearly", {
     "2n.*2n"
   )
   V <- diag(rep(0.01, 40))
+  expect_error(
+    drmTMB(
+      bf(mu1 = y1 ~ x + meta_known_V(V = V), mu2 = y2 ~ x),
+      family = biv_gaussian(),
+      data = dat,
+      weights = rep(1.5, nrow(dat))
+    ),
+    "full.*meta_known_V.*covariance"
+  )
   expect_error(
     drmTMB(
       bf(

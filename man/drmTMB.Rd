@@ -4,7 +4,14 @@
 \alias{drmTMB}
 \title{Fit a distributional regression model with TMB}
 \usage{
-drmTMB(formula, family = stats::gaussian(), data, control = list(), ...)
+drmTMB(
+  formula,
+  family = stats::gaussian(),
+  data,
+  weights = NULL,
+  control = list(),
+  ...
+)
 }
 \arguments{
 \item{formula}{A \code{drm_formula} object created by \code{\link[=drm_formula]{drm_formula()}} or \code{\link[=bf]{bf()}}.}
@@ -22,6 +29,11 @@ bivariate Gaussian engine also accepts
 \code{family = list(gaussian(), gaussian())}.}
 
 \item{data}{A data frame.}
+
+\item{weights}{Optional non-negative likelihood weights. These are row
+log-likelihood multipliers, not known sampling variances. For
+meta-analytic sampling variance or covariance, use \code{\link[=meta_known_V]{meta_known_V()}} in the
+model formula instead.}
 
 \item{control}{Optional list passed to \code{\link[stats:nlminb]{stats::nlminb()}}.}
 

@@ -34,12 +34,17 @@
 #'   `family = c(gaussian(), gaussian())` and
 #'   `family = list(gaussian(), gaussian())`.
 #' @param data A data frame.
+#' @param weights Optional non-negative likelihood weights. These are row
+#'   log-likelihood multipliers, not known sampling variances. For
+#'   meta-analytic sampling variance or covariance, use [meta_known_V()] in the
+#'   model formula instead.
 #' @param control Optional list passed to [stats::nlminb()].
 #' @param ... Reserved for future model options.
 #'
 #' @return A `drmTMB` fit object.
 #' @export
-drmTMB <- function(formula, family = stats::gaussian(), data, control = list(), ...) {
+drmTMB <- function(formula, family = stats::gaussian(), data,
+                   weights = NULL, control = list(), ...) {
   if (!inherits(formula, "drm_formula")) {
     cli::cli_abort("{.arg formula} must be created with {.fn drm_formula} or {.fn bf}.")
   }
@@ -51,18 +56,25 @@ drmTMB <- function(formula, family = stats::gaussian(), data, control = list(), 
     cli::cli_abort("{.arg data} must be a data frame.")
   }
 
+  weights_expr <- if (missing(weights)) NULL else substitute(weights)
+  weights_full <- evaluate_likelihood_weights_arg(
+    weights_expr = weights_expr,
+    data = data,
+    env = parent.frame()
+  )
+
   family_type <- drm_family_type(family)
   spec <- switch(
     family_type,
-    gaussian = drm_build_gaussian_ls_spec(formula, data, env = parent.frame()),
-    student = drm_build_student_ls_spec(formula, data, env = parent.frame()),
-    lognormal = drm_build_lognormal_ls_spec(formula, data, env = parent.frame()),
-    gamma = drm_build_gamma_ls_spec(formula, data, env = parent.frame()),
-    beta = drm_build_beta_ls_spec(formula, data, env = parent.frame()),
-    poisson = drm_build_poisson_spec(formula, data, env = parent.frame()),
-    nbinom2 = drm_build_nbinom2_spec(formula, data, env = parent.frame()),
-    truncated_nbinom2 = drm_build_truncated_nbinom2_spec(formula, data, env = parent.frame()),
-    biv_gaussian = drm_build_biv_gaussian_spec(formula, data, env = parent.frame())
+    gaussian = drm_build_gaussian_ls_spec(formula, data, env = parent.frame(), weights = weights_full),
+    student = drm_build_student_ls_spec(formula, data, env = parent.frame(), weights = weights_full),
+    lognormal = drm_build_lognormal_ls_spec(formula, data, env = parent.frame(), weights = weights_full),
+    gamma = drm_build_gamma_ls_spec(formula, data, env = parent.frame(), weights = weights_full),
+    beta = drm_build_beta_ls_spec(formula, data, env = parent.frame(), weights = weights_full),
+    poisson = drm_build_poisson_spec(formula, data, env = parent.frame(), weights = weights_full),
+    nbinom2 = drm_build_nbinom2_spec(formula, data, env = parent.frame(), weights = weights_full),
+    truncated_nbinom2 = drm_build_truncated_nbinom2_spec(formula, data, env = parent.frame(), weights = weights_full),
+    biv_gaussian = drm_build_biv_gaussian_spec(formula, data, env = parent.frame(), weights = weights_full)
   )
 
   obj <- TMB::MakeADFun(
@@ -202,7 +214,8 @@ is_r_family_object <- function(x) {
   inherits(x, "family") && is.character(x$family) && length(x$family) == 1L
 }
 
-drm_build_gaussian_ls_spec <- function(formula, data, env = parent.frame()) {
+drm_build_gaussian_ls_spec <- function(formula, data, env = parent.frame(),
+                                       weights = NULL) {
   entries <- formula$entries
   dpars <- vapply(entries, `[[`, character(1), "dpar")
   is_sd_dpar <- startsWith(dpars, "sd(")
@@ -284,6 +297,7 @@ drm_build_gaussian_ls_spec <- function(formula, data, env = parent.frame()) {
   keep[model_keep] <- known_v_complete(V_known_model)
   data_model <- data[keep, , drop = FALSE]
   V_known <- subset_known_v(V_known_full, keep)
+  weights_model <- subset_likelihood_weights(weights, keep, nrow(data), sum(keep))
 
   mf_mu <- stats::model.frame(f_mu, data = data_model, na.action = stats::na.omit)
   mf_sigma <- stats::model.frame(f_sigma, data = data_model, na.action = stats::na.omit)
@@ -310,6 +324,7 @@ drm_build_gaussian_ls_spec <- function(formula, data, env = parent.frame()) {
   spec <- list(
     model_type = "gaussian",
     y = as.numeric(y),
+    weights = weights_model,
     V_known = V_known$V,
     V_known_diag = V_known$diag,
     V_known_type = V_known$type,
@@ -338,12 +353,14 @@ drm_build_gaussian_ls_spec <- function(formula, data, env = parent.frame()) {
       if (isTRUE(phylo_mu$has)) "u_phylo"
     )
   )
+  check_weights_known_covariance(spec)
   spec$tmb_data <- make_tmb_data(spec)
   spec$nobs <- length(spec$y)
   spec
 }
 
-drm_build_student_ls_spec <- function(formula, data, env = parent.frame()) {
+drm_build_student_ls_spec <- function(formula, data, env = parent.frame(),
+                                      weights = NULL) {
   entries <- formula$entries
   dpars <- vapply(entries, `[[`, character(1), "dpar")
   is_sd_dpar <- startsWith(dpars, "sd(")
@@ -416,6 +433,7 @@ drm_build_student_ls_spec <- function(formula, data, env = parent.frame()) {
     keep <- rep(TRUE, nrow(data))
   }
   data_model <- data[keep, , drop = FALSE]
+  weights_model <- subset_likelihood_weights(weights, keep, nrow(data), sum(keep))
 
   mf_mu <- stats::model.frame(f_mu, data = data_model, na.action = stats::na.omit)
   mf_sigma <- stats::model.frame(f_sigma, data = data_model, na.action = stats::na.omit)
@@ -436,6 +454,7 @@ drm_build_student_ls_spec <- function(formula, data, env = parent.frame()) {
   spec <- list(
     model_type = "student",
     y = as.numeric(y),
+    weights = weights_model,
     V_known = rep(0, length(y)),
     V_known_diag = rep(0, length(y)),
     V_known_type = "none",
@@ -466,7 +485,8 @@ drm_build_student_ls_spec <- function(formula, data, env = parent.frame()) {
   spec
 }
 
-drm_build_lognormal_ls_spec <- function(formula, data, env = parent.frame()) {
+drm_build_lognormal_ls_spec <- function(formula, data, env = parent.frame(),
+                                        weights = NULL) {
   entries <- formula$entries
   dpars <- vapply(entries, `[[`, character(1), "dpar")
   is_sd_dpar <- startsWith(dpars, "sd(")
@@ -531,6 +551,7 @@ drm_build_lognormal_ls_spec <- function(formula, data, env = parent.frame()) {
     keep <- rep(TRUE, nrow(data))
   }
   data_model <- data[keep, , drop = FALSE]
+  weights_model <- subset_likelihood_weights(weights, keep, nrow(data), sum(keep))
 
   mf_mu <- stats::model.frame(f_mu, data = data_model, na.action = stats::na.omit)
   mf_sigma <- stats::model.frame(f_sigma, data = data_model, na.action = stats::na.omit)
@@ -556,6 +577,7 @@ drm_build_lognormal_ls_spec <- function(formula, data, env = parent.frame()) {
   spec <- list(
     model_type = "lognormal",
     y = as.numeric(y),
+    weights = weights_model,
     V_known = rep(0, length(y)),
     V_known_diag = rep(0, length(y)),
     V_known_type = "none",
@@ -585,7 +607,8 @@ drm_build_lognormal_ls_spec <- function(formula, data, env = parent.frame()) {
   spec
 }
 
-drm_build_gamma_ls_spec <- function(formula, data, env = parent.frame()) {
+drm_build_gamma_ls_spec <- function(formula, data, env = parent.frame(),
+                                    weights = NULL) {
   entries <- formula$entries
   dpars <- vapply(entries, `[[`, character(1), "dpar")
   is_sd_dpar <- startsWith(dpars, "sd(")
@@ -650,6 +673,7 @@ drm_build_gamma_ls_spec <- function(formula, data, env = parent.frame()) {
     keep <- rep(TRUE, nrow(data))
   }
   data_model <- data[keep, , drop = FALSE]
+  weights_model <- subset_likelihood_weights(weights, keep, nrow(data), sum(keep))
 
   mf_mu <- stats::model.frame(f_mu, data = data_model, na.action = stats::na.omit)
   mf_sigma <- stats::model.frame(f_sigma, data = data_model, na.action = stats::na.omit)
@@ -675,6 +699,7 @@ drm_build_gamma_ls_spec <- function(formula, data, env = parent.frame()) {
   spec <- list(
     model_type = "gamma",
     y = as.numeric(y),
+    weights = weights_model,
     V_known = rep(0, length(y)),
     V_known_diag = rep(0, length(y)),
     V_known_type = "none",
@@ -704,7 +729,8 @@ drm_build_gamma_ls_spec <- function(formula, data, env = parent.frame()) {
   spec
 }
 
-drm_build_beta_ls_spec <- function(formula, data, env = parent.frame()) {
+drm_build_beta_ls_spec <- function(formula, data, env = parent.frame(),
+                                   weights = NULL) {
   entries <- formula$entries
   dpars <- vapply(entries, `[[`, character(1), "dpar")
   is_sd_dpar <- startsWith(dpars, "sd(")
@@ -775,6 +801,7 @@ drm_build_beta_ls_spec <- function(formula, data, env = parent.frame()) {
     keep <- rep(TRUE, nrow(data))
   }
   data_model <- data[keep, , drop = FALSE]
+  weights_model <- subset_likelihood_weights(weights, keep, nrow(data), sum(keep))
 
   mf_mu <- stats::model.frame(f_mu, data = data_model, na.action = stats::na.omit)
   mf_sigma <- stats::model.frame(f_sigma, data = data_model, na.action = stats::na.omit)
@@ -806,6 +833,7 @@ drm_build_beta_ls_spec <- function(formula, data, env = parent.frame()) {
   spec <- list(
     model_type = "beta",
     y = as.numeric(y),
+    weights = weights_model,
     V_known = rep(0, length(y)),
     V_known_diag = rep(0, length(y)),
     V_known_type = "none",
@@ -835,7 +863,8 @@ drm_build_beta_ls_spec <- function(formula, data, env = parent.frame()) {
   spec
 }
 
-drm_build_poisson_spec <- function(formula, data, env = parent.frame()) {
+drm_build_poisson_spec <- function(formula, data, env = parent.frame(),
+                                   weights = NULL) {
   entries <- formula$entries
   dpars <- vapply(entries, `[[`, character(1), "dpar")
   is_sd_dpar <- startsWith(dpars, "sd(")
@@ -901,6 +930,7 @@ drm_build_poisson_spec <- function(formula, data, env = parent.frame()) {
     keep <- rep(TRUE, nrow(data))
   }
   data_model <- data[keep, , drop = FALSE]
+  weights_model <- subset_likelihood_weights(weights, keep, nrow(data), sum(keep))
 
   mf_mu <- stats::model.frame(f_mu, data = data_model, na.action = stats::na.omit)
   mf_zi <- if (!is.null(f_zi)) {
@@ -937,6 +967,7 @@ drm_build_poisson_spec <- function(formula, data, env = parent.frame()) {
   spec <- list(
     model_type = if (has_zi) "zi_poisson" else "poisson",
     y = as.numeric(y),
+    weights = weights_model,
     V_known = rep(0, length(y)),
     V_known_diag = rep(0, length(y)),
     V_known_type = "none",
@@ -967,7 +998,8 @@ drm_build_poisson_spec <- function(formula, data, env = parent.frame()) {
   spec
 }
 
-drm_build_nbinom2_spec <- function(formula, data, env = parent.frame()) {
+drm_build_nbinom2_spec <- function(formula, data, env = parent.frame(),
+                                   weights = NULL) {
   entries <- formula$entries
   dpars <- vapply(entries, `[[`, character(1), "dpar")
   is_sd_dpar <- startsWith(dpars, "sd(")
@@ -1043,6 +1075,7 @@ drm_build_nbinom2_spec <- function(formula, data, env = parent.frame()) {
     keep <- rep(TRUE, nrow(data))
   }
   data_model <- data[keep, , drop = FALSE]
+  weights_model <- subset_likelihood_weights(weights, keep, nrow(data), sum(keep))
 
   mf_mu <- stats::model.frame(f_mu, data = data_model, na.action = stats::na.omit)
   mf_sigma <- stats::model.frame(f_sigma, data = data_model, na.action = stats::na.omit)
@@ -1085,6 +1118,7 @@ drm_build_nbinom2_spec <- function(formula, data, env = parent.frame()) {
   spec <- list(
     model_type = if (has_zi) "zi_nbinom2" else "nbinom2",
     y = as.numeric(y),
+    weights = weights_model,
     V_known = rep(0, length(y)),
     V_known_diag = rep(0, length(y)),
     V_known_type = "none",
@@ -1122,7 +1156,8 @@ drm_build_nbinom2_spec <- function(formula, data, env = parent.frame()) {
   spec
 }
 
-drm_build_truncated_nbinom2_spec <- function(formula, data, env = parent.frame()) {
+drm_build_truncated_nbinom2_spec <- function(formula, data, env = parent.frame(),
+                                             weights = NULL) {
   entries <- formula$entries
   dpars <- vapply(entries, `[[`, character(1), "dpar")
   is_sd_dpar <- startsWith(dpars, "sd(")
@@ -1204,6 +1239,7 @@ drm_build_truncated_nbinom2_spec <- function(formula, data, env = parent.frame()
     keep <- rep(TRUE, nrow(data))
   }
   data_model <- data[keep, , drop = FALSE]
+  weights_model <- subset_likelihood_weights(weights, keep, nrow(data), sum(keep))
 
   mf_mu <- stats::model.frame(f_mu, data = data_model, na.action = stats::na.omit)
   mf_sigma <- stats::model.frame(f_sigma, data = data_model, na.action = stats::na.omit)
@@ -1262,6 +1298,7 @@ drm_build_truncated_nbinom2_spec <- function(formula, data, env = parent.frame()
   spec <- list(
     model_type = if (has_hu) "hurdle_nbinom2" else "truncated_nbinom2",
     y = as.numeric(y),
+    weights = weights_model,
     V_known = rep(0, length(y)),
     V_known_diag = rep(0, length(y)),
     V_known_type = "none",
@@ -1300,7 +1337,8 @@ drm_build_truncated_nbinom2_spec <- function(formula, data, env = parent.frame()
 }
 
 
-drm_build_biv_gaussian_spec <- function(formula, data, env = parent.frame()) {
+drm_build_biv_gaussian_spec <- function(formula, data, env = parent.frame(),
+                                        weights = NULL) {
   entries <- expand_biv_mvbind_entries(formula$entries)
   dpars <- vapply(entries, `[[`, character(1), "dpar")
   allowed <- c("mu1", "mu2", "sigma1", "sigma2", "rho12")
@@ -1362,6 +1400,7 @@ drm_build_biv_gaussian_spec <- function(formula, data, env = parent.frame()) {
   data_model <- data[keep, , drop = FALSE]
   V_known_full <- evaluate_biv_known_v(meta$V, data, env)
   V_known <- subset_biv_known_v(V_known_full, keep)
+  weights_model <- subset_likelihood_weights(weights, keep, nrow(data), sum(keep))
 
   mf_mu1 <- stats::model.frame(f_mu1, data = data_model, na.action = stats::na.omit)
   mf_mu2 <- stats::model.frame(f_mu2, data = data_model, na.action = stats::na.omit)
@@ -1394,6 +1433,7 @@ drm_build_biv_gaussian_spec <- function(formula, data, env = parent.frame()) {
     model_type = "biv_gaussian",
     y1 = as.numeric(y1),
     y2 = as.numeric(y2),
+    weights = weights_model,
     V_known = V_known$V,
     V_known_diag = V_known$diag,
     V_known_type = V_known$type,
@@ -1433,6 +1473,7 @@ drm_build_biv_gaussian_spec <- function(formula, data, env = parent.frame()) {
     map = biv_gaussian_map(),
     random_names = NULL
   )
+  check_weights_known_covariance(spec)
   spec$tmb_data <- make_tmb_data(spec)
   spec$nobs <- length(spec$y1)
   spec
@@ -2447,6 +2488,73 @@ subset_known_v <- function(V_known, keep, validate = TRUE) {
   new_known_v(out, type = V_known$type)
 }
 
+evaluate_likelihood_weights_arg <- function(weights_expr, data, env) {
+  if (is.null(weights_expr)) {
+    return(NULL)
+  }
+  value <- eval(weights_expr, envir = data, enclos = env)
+  if (is.null(value)) {
+    return(NULL)
+  }
+  if (!is.numeric(value) || is.matrix(value) || is.array(value)) {
+    cli::cli_abort(c(
+      "{.arg weights} must be a numeric vector.",
+      "i" = "{.arg weights} are row log-likelihood multipliers, not known sampling variances or covariance matrices."
+    ))
+  }
+  if (length(value) != nrow(data)) {
+    cli::cli_abort(c(
+      "{.arg weights} must have one value per row of {.arg data}.",
+      "x" = "Received {length(value)} weight{?s} for {nrow(data)} data row{?s}."
+    ))
+  }
+  as.numeric(value)
+}
+
+subset_likelihood_weights <- function(weights, keep, n_data, n_model) {
+  if (is.null(weights)) {
+    return(rep(1, n_model))
+  }
+  if (length(weights) != n_data) {
+    cli::cli_abort("Internal error: {.arg weights} length changed before row filtering.")
+  }
+  out <- weights[keep]
+  bad <- !is.finite(out) | is.na(out)
+  if (any(bad)) {
+    cli::cli_abort(c(
+      "{.arg weights} must be finite and non-missing for all modelled rows.",
+      "x" = "After model-row filtering, {sum(bad)} weight value{?s} are missing or non-finite."
+    ))
+  }
+  if (any(out < 0)) {
+    cli::cli_abort(c(
+      "{.arg weights} must be non-negative.",
+      "x" = "After model-row filtering, {sum(out < 0)} weight value{?s} are negative."
+    ))
+  }
+  if (!any(out > 0)) {
+    cli::cli_abort(c(
+      "{.arg weights} must include at least one positive modelled row.",
+      "x" = "All modelled rows have weight zero."
+    ))
+  }
+  out
+}
+
+check_weights_known_covariance <- function(spec) {
+  if (!identical(spec$V_known_type, "matrix")) {
+    return(invisible(spec))
+  }
+  if (is.null(spec$weights) || all(spec$weights == 1)) {
+    return(invisible(spec))
+  }
+  cli::cli_abort(c(
+    "{.arg weights} cannot currently be combined with a full {.fn meta_known_V} covariance matrix.",
+    "x" = "Full known covariance uses one joint multivariate likelihood block, not independent row contributions.",
+    "i" = "Use {.fn meta_known_V} without {.arg weights}, or use diagonal known variances when row likelihood weighting is scientifically intended."
+  ))
+}
+
 new_known_v <- function(value, type) {
   if (identical(type, "matrix")) {
     diag_value <- diag(value)
@@ -3134,6 +3242,7 @@ make_tmb_data <- function(spec) {
     return(list(
       model_type = 1L,
       y = spec$y,
+      weights = spec$weights,
       V_known = spec$V_known_diag,
       V_known_matrix = if (identical(spec$V_known_type, "matrix")) spec$V_known else dummy_matrix,
       V_known_type = as.integer(
@@ -3175,6 +3284,7 @@ make_tmb_data <- function(spec) {
     return(list(
       model_type = 3L,
       y = spec$y,
+      weights = spec$weights,
       V_known = spec$V_known_diag,
       V_known_matrix = dummy_matrix,
       V_known_type = 0L,
@@ -3214,6 +3324,7 @@ make_tmb_data <- function(spec) {
     return(list(
       model_type = 4L,
       y = spec$y,
+      weights = spec$weights,
       V_known = spec$V_known_diag,
       V_known_matrix = dummy_matrix,
       V_known_type = 0L,
@@ -3253,6 +3364,7 @@ make_tmb_data <- function(spec) {
     return(list(
       model_type = 5L,
       y = spec$y,
+      weights = spec$weights,
       V_known = spec$V_known_diag,
       V_known_matrix = dummy_matrix,
       V_known_type = 0L,
@@ -3292,6 +3404,7 @@ make_tmb_data <- function(spec) {
     return(list(
       model_type = 10L,
       y = spec$y,
+      weights = spec$weights,
       V_known = spec$V_known_diag,
       V_known_matrix = dummy_matrix,
       V_known_type = 0L,
@@ -3331,6 +3444,7 @@ make_tmb_data <- function(spec) {
     return(list(
       model_type = 6L,
       y = spec$y,
+      weights = spec$weights,
       V_known = spec$V_known_diag,
       V_known_matrix = dummy_matrix,
       V_known_type = 0L,
@@ -3370,6 +3484,7 @@ make_tmb_data <- function(spec) {
     return(list(
       model_type = 8L,
       y = spec$y,
+      weights = spec$weights,
       V_known = spec$V_known_diag,
       V_known_matrix = dummy_matrix,
       V_known_type = 0L,
@@ -3409,6 +3524,7 @@ make_tmb_data <- function(spec) {
     return(list(
       model_type = 7L,
       y = spec$y,
+      weights = spec$weights,
       V_known = spec$V_known_diag,
       V_known_matrix = dummy_matrix,
       V_known_type = 0L,
@@ -3448,6 +3564,7 @@ make_tmb_data <- function(spec) {
     return(list(
       model_type = 11L,
       y = spec$y,
+      weights = spec$weights,
       V_known = spec$V_known_diag,
       V_known_matrix = dummy_matrix,
       V_known_type = 0L,
@@ -3487,6 +3604,7 @@ make_tmb_data <- function(spec) {
     return(list(
       model_type = 12L,
       y = spec$y,
+      weights = spec$weights,
       V_known = spec$V_known_diag,
       V_known_matrix = dummy_matrix,
       V_known_type = 0L,
@@ -3526,6 +3644,7 @@ make_tmb_data <- function(spec) {
     return(list(
       model_type = 9L,
       y = spec$y,
+      weights = spec$weights,
       V_known = spec$V_known_diag,
       V_known_matrix = dummy_matrix,
       V_known_type = 0L,
@@ -3565,6 +3684,7 @@ make_tmb_data <- function(spec) {
     return(list(
       model_type = 2L,
       y = numeric(1),
+      weights = spec$weights,
       V_known = spec$V_known_diag,
       V_known_matrix = if (identical(spec$V_known_type, "matrix")) spec$V_known else dummy_matrix,
       V_known_type = as.integer(

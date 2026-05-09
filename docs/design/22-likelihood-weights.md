@@ -2,15 +2,15 @@
 
 ## Purpose
 
-`drmTMB` should eventually support a top-level `weights =` argument, but the
-meaning must be narrow and explicit. In this package, `weights =` will mean
+`drmTMB` supports a top-level `weights =` argument, but the meaning is narrow
+and explicit. In this package, `weights =` means
 ordinary likelihood weights: observation-level multipliers on log-likelihood
 contributions.
 
 This is different from known sampling variances or known sampling covariance.
 Those belong in `meta_known_V(V = V)`.
 
-## Planned Public Syntax
+## Public Syntax
 
 Univariate models will use one weight per observed response:
 
@@ -43,7 +43,7 @@ drmTMB(
 )
 ```
 
-Response-specific bivariate weights are not part of the first design. They
+Response-specific bivariate weights are not part of the design. They
 would need a separate likelihood and interpretation note.
 
 ## Mathematical Contract
@@ -60,10 +60,10 @@ With likelihood weights:
 nll = sum_i w_i {-log f(y_i | theta_i)}
 ```
 
-where `w_i` is supplied by `weights =`. The first implementation should require
-all `w_i` to be finite and non-negative. Rows with `w_i = 0` contribute nothing
-to the objective but should still pass data-shape validation unless a later
-decision explicitly drops them.
+where `w_i` is supplied by `weights =`. The implementation requires all
+modelled-row `w_i` to be finite and non-negative. Rows with `w_i = 0`
+contribute nothing to the objective but still pass data-shape validation unless
+a later decision explicitly drops them.
 
 For complete-row bivariate Gaussian models:
 
@@ -111,19 +111,25 @@ sigma ~ x = modelled extra residual or heterogeneity scale
 sd(group) ~ x = modelled group-level random-effect scale
 ```
 
-## Implementation Notes
+## Implementation Status
 
-- Add `weights = NULL` to `drmTMB()`, not to `drm_formula()`.
-- Evaluate `weights` in the model-fitting environment using the same row
-  filtering as the response and model matrices.
-- Store the processed vector in `fit$model$weights` and expose it through a
-  `weights.drmTMB()` method.
-- Pass weights to TMB as `DATA_VECTOR(weights)`.
-- Multiply per-row likelihood contributions inside each implemented family.
-- Keep family tests simple at first: a weight of 2 on every row should match
-  doubling the objective value at the same parameter vector.
-- Add malformed-input tests for missing values, negative weights, non-finite
-  weights, wrong length, and bivariate incomplete-row filtering.
+- `weights = NULL` is implemented in `drmTMB()`, not in `drm_formula()`.
+- Weights are evaluated in the model-fitting environment and then subset by
+  the same row filter as the response and model matrices.
+- The processed vector is stored in `fit$model$weights` and exposed through
+  `weights(fit)`.
+- TMB receives weights as `DATA_VECTOR(weights)`.
+- Independent-row likelihood branches multiply each row contribution by
+  `weights[i]`.
+- Bivariate Gaussian models without full known sampling covariance use one
+  weight per complete response row.
+- Gaussian tests check that constant weights double the log-likelihood,
+  integer weights match row duplication, zero weights match row dropping, and
+  malformed weights error clearly.
+- Bivariate Gaussian tests check that constant complete-row weights double the
+  log-likelihood and keep parameter estimates stable.
+- Full dense `meta_known_V(V = V)` covariance cannot yet be combined with
+  non-unit `weights =`, because that path is one joint MVN likelihood block.
 
 ## Open Questions
 

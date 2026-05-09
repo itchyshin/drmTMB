@@ -149,6 +149,108 @@ test_that("predict() uses newdata for Gaussian location-scale fits", {
   )
 })
 
+test_that("Gaussian likelihood weights are row log-likelihood multipliers", {
+  dat <- new_gaussian_ls_data(75)
+
+  fit <- drmTMB(
+    bf(y ~ x, sigma ~ z),
+    family = gaussian(),
+    data = dat
+  )
+  fit_double <- drmTMB(
+    bf(y ~ x, sigma ~ z),
+    family = gaussian(),
+    data = dat,
+    weights = rep(2, nrow(dat))
+  )
+
+  expect_equal(stats::weights(fit), rep(1, nrow(dat)))
+  expect_equal(stats::weights(fit_double), rep(2, nrow(dat)))
+  expect_equal(coef(fit_double, "mu"), coef(fit, "mu"), tolerance = 1e-5)
+  expect_equal(coef(fit_double, "sigma"), coef(fit, "sigma"), tolerance = 1e-5)
+  expect_equal(
+    as.numeric(stats::logLik(fit_double)),
+    2 * as.numeric(stats::logLik(fit)),
+    tolerance = 1e-4
+  )
+})
+
+test_that("Gaussian likelihood weights match row duplication and zero-row dropping", {
+  dat <- new_gaussian_ls_data(80)
+  w <- rep(c(0, 1, 2, 3), length.out = nrow(dat))
+  dat_expanded <- dat[rep(seq_len(nrow(dat)), w), , drop = FALSE]
+
+  fit_weighted <- drmTMB(
+    bf(y ~ x, sigma ~ z),
+    family = gaussian(),
+    data = dat,
+    weights = w
+  )
+  fit_expanded <- drmTMB(
+    bf(y ~ x, sigma ~ z),
+    family = gaussian(),
+    data = dat_expanded
+  )
+
+  expect_equal(stats::weights(fit_weighted), w)
+  expect_equal(coef(fit_weighted, "mu"), coef(fit_expanded, "mu"), tolerance = 1e-5)
+  expect_equal(
+    coef(fit_weighted, "sigma"),
+    coef(fit_expanded, "sigma"),
+    tolerance = 1e-5
+  )
+  expect_equal(
+    as.numeric(stats::logLik(fit_weighted)),
+    as.numeric(stats::logLik(fit_expanded)),
+    tolerance = 1e-4
+  )
+})
+
+test_that("Gaussian likelihood weights follow model-row filtering", {
+  dat <- new_gaussian_ls_data(48)
+  dat$y[3] <- NA_real_
+  dat$x[7] <- NA_real_
+  dat$z[11] <- NA_real_
+  dat$w <- seq_len(nrow(dat))
+  keep <- stats::complete.cases(dat[c("y", "x", "z")])
+
+  fit <- drmTMB(
+    bf(y ~ x, sigma ~ z),
+    family = gaussian(),
+    data = dat,
+    weights = w
+  )
+
+  expect_equal(fit$model$keep, keep)
+  expect_equal(stats::weights(fit), dat$w[keep])
+  expect_equal(length(stats::weights(fit)), stats::nobs(fit))
+})
+
+test_that("Gaussian likelihood weights validate malformed inputs", {
+  dat <- new_gaussian_ls_data(12)
+
+  expect_error(
+    drmTMB(bf(y ~ x, sigma ~ z), data = dat, weights = rep(1, 11)),
+    "one value per row"
+  )
+  expect_error(
+    drmTMB(bf(y ~ x, sigma ~ z), data = dat, weights = c(rep(1, 11), -1)),
+    "non-negative"
+  )
+  expect_error(
+    drmTMB(bf(y ~ x, sigma ~ z), data = dat, weights = c(rep(1, 11), NA)),
+    "finite and non-missing"
+  )
+  expect_error(
+    drmTMB(bf(y ~ x, sigma ~ z), data = dat, weights = rep(0, 12)),
+    "at least one positive"
+  )
+  expect_error(
+    drmTMB(bf(y ~ x, sigma ~ z), data = dat, weights = matrix(1, nrow = 12)),
+    "numeric vector"
+  )
+})
+
 test_that("drmTMB handles factor predictors and default sigma", {
   set.seed(20260507)
   n <- 240

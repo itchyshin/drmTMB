@@ -53,6 +53,29 @@ user examples. Public phylogenetic Gaussian fits stay on `model_type = 1`; the
 hidden branch exists only so tests can compare the isolated TMB prior objective
 against the R algebra helper.
 
+## Likelihood Weights
+
+The top-level `weights =` argument supplies row log-likelihood multipliers,
+not sampling variances. For independent-row likelihood branches, the TMB
+template evaluates:
+
+```text
+nll = sum_i w_i {-log f(y_i | theta_i)}
+```
+
+where `w_i` is the processed weight after model-row filtering. For the
+implemented bivariate Gaussian independent-row path, `w_i` belongs to the
+complete response pair:
+
+```text
+nll = sum_i w_i {-log f([y1_i, y2_i]' | theta_i)}
+```
+
+Known sampling variances or sampling covariance still belong in
+`meta_known_V(V = V)`. When `meta_known_V(V = V)` supplies a full dense
+covariance matrix, `weights =` is rejected for now because the likelihood is a
+joint multivariate block rather than a sum of independent row contributions.
+
 ## Implemented Gaussian Location-Scale
 
 Gaussian location-scale is implemented for fixed-effect models and for

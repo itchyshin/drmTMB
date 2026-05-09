@@ -96,11 +96,12 @@
 - Sparse known sampling covariance for large meta-analysis and spatial
   workloads is planned but not yet implemented. The first sparse phylogenetic
   route is implemented for univariate Gaussian `mu` random intercepts only.
-- `drmTMB()` does not yet have a `weights` argument. The planned first meaning
-  is ordinary likelihood weights: one non-negative finite weight per
-  observation for univariate models, and one weight per complete response pair
-  for bivariate models. Known sampling covariance remains `meta_known_V(V = V)`,
-  not `weights`.
+- `weights =` is implemented as ordinary likelihood weights: one
+  non-negative finite weight per observation for univariate models, and one
+  weight per complete response pair for bivariate models. Known sampling
+  covariance remains `meta_known_V(V = V)`, not `weights`. Full dense
+  `meta_known_V(V = V)` covariance paths currently reject non-unit weights
+  because they are joint MVN likelihood blocks.
 - Large-data memory controls are not implemented yet. Current fits still build
   ordinary R model frames/model matrices and store fitted-object components in
   the usual development-friendly way. Before claiming readiness for millions

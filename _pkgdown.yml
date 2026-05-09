@@ -95,6 +95,7 @@ reference:
       - sigma.drmTMB
       - simulate.drmTMB
       - summary.drmTMB
+      - weights.drmTMB
 
 articles:
   - title: Getting Started

@@ -213,6 +213,39 @@ Package implications:
   and correlation is relevant for later shape-focused meta-analysis examples,
   but it does not change the immediate implementation order.
 
+## Statistical Computing and Inference Influences
+
+External sources and people to track:
+
+```text
+Andrew Gelman
+Paul-Christian Buerkner
+Jarrod Hadfield
+David Fletcher
+Shun-ichi Amari
+```
+
+Package implications:
+
+- Gelman's work is useful as a model for applied statistical communication:
+  show the model, show what it estimates, show checks, and avoid hiding
+  assumptions behind notation.
+- Buerkner's `brms` work remains the main inspiration for formulae attached to
+  distributional parameters, but `drmTMB` should keep a stricter grammar and a
+  likelihood/TMB backend.
+- Hadfield's `MCMCglmm` work is central for phylogenetic and pedigree mixed
+  models, especially the sparse inverse relationship-matrix way of thinking.
+  The `drmTMB` phylogenetic path should continue to cite and test the
+  Hadfield and Nakagawa A-inverse trick carefully.
+- David's teaching on profile likelihood, Fisher information, and single-fit
+  bootstrap belongs in the planned inference phase. The package should expose
+  profile-likelihood intervals for variance and correlation parameters before
+  relying on Wald intervals for difficult boundary quantities.
+- Amari's information geometry is not a near-term implementation dependency,
+  but it is relevant background for Fisher information, likelihood curvature,
+  natural-gradient ideas, and later diagnostics for difficult distributional
+  parameters such as skewness, kurtosis, and correlations.
+
 ## Spatial Dependence
 
 Local source:

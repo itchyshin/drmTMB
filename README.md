@@ -7,7 +7,9 @@ binomial, zero-truncated negative-binomial, and hurdle negative-binomial models,
 known-covariance meta-analysis, phylogenetic location effects, random-effect
 scale models, and bivariate Gaussian residual-correlation models. The long-term
 design also includes skewness, further zero-inflation paths, and additional response
-families. The first examples are motivated by ecology, evolution, and
+families. The top-level `weights =` argument supplies row log-likelihood
+multipliers; known sampling variance or covariance belongs in
+`meta_known_V(V = V)`. The first examples are motivated by ecology, evolution, and
 environmental science, but the package is general-purpose. Here `mu` is the
 location or mean-like parameter, `sigma` is the residual scale parameter, `nu`
 is the first shape parameter, and `rho12` is the residual correlation between

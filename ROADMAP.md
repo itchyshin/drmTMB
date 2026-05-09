@@ -42,16 +42,19 @@ distributional regression models using TMB.
 
 ## Phase 2b: Likelihood Weights
 
-- Status: planned.
-- Add a top-level `weights =` argument to `drmTMB()` for ordinary likelihood
-  weights, matching the broad convention in mixed-model packages.
+- Status: implemented for ordinary row likelihood weights.
+- A top-level `weights =` argument to `drmTMB()` now supplies ordinary
+  likelihood weights, matching the broad convention in mixed-model packages.
 - Keep likelihood weights separate from `meta_known_V(V = V)`: weights multiply
   observation log-likelihood contributions, whereas `meta_known_V()` supplies
   known sampling covariance.
-- First design rule: univariate models use one non-negative finite weight per
-  observation; bivariate models use one weight per complete response pair.
+- Implemented design rule: univariate models use one non-negative finite
+  weight per observation; bivariate models use one weight per complete response
+  pair.
 - Do not add response-specific bivariate weights until the likelihood and
   interpretation are documented.
+- Full dense `meta_known_V(V = V)` covariance paths reject non-unit
+  `weights =` until a joint-block weighting design is documented.
 
 ## Phase 3: Bivariate Gaussian Coscale
 

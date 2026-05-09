@@ -93,6 +93,24 @@ ranef.drmTMB <- function(object, dpar = NULL, ...) {
   blocks[[dpar]]
 }
 
+#' Extract likelihood weights
+#'
+#' `weights()` returns the row likelihood multipliers used by a fitted
+#' `drmTMB` model after model-row filtering. These weights multiply
+#' log-likelihood contributions. They are not known sampling variances or known
+#' sampling covariance; use [meta_known_V()] for that meta-analytic role.
+#'
+#' @param object A `drmTMB` fit.
+#' @param ... Reserved for future extractor options.
+#'
+#' @return A numeric vector with one weight per modelled response row, or per
+#'   complete response pair for bivariate Gaussian models.
+#' @importFrom stats weights
+#' @export
+weights.drmTMB <- function(object, ...) {
+  object$model$weights
+}
+
 #' Extract residual correlation rho12
 #'
 #' `rho12()` returns the residual response-response correlation from a

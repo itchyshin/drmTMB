@@ -5412,3 +5412,110 @@ Team learning:
   syntax.
 - Grace should treat large-data readiness as a benchmarked release criterion,
   not a claim inferred from ordinary unit tests.
+
+## 2026-05-09 — Likelihood Row Weights
+
+Goal:
+
+- implement top-level `weights =` as ordinary row log-likelihood multipliers;
+- keep `weights =` separate from known sampling variance/covariance through
+  `meta_known_V(V = V)`;
+- expose processed model-row weights through `weights(fit)`.
+
+Changes:
+
+- added `weights = NULL` to `drmTMB()`;
+- added internal `evaluate_likelihood_weights_arg()` and
+  `subset_likelihood_weights()` helpers;
+- stored processed weights in `fit$model$weights` and passed them to TMB as
+  `DATA_VECTOR(weights)`;
+- multiplied independent-row TMB likelihood contributions by `weights(i)`;
+- used one complete-row weight per bivariate Gaussian response pair;
+- rejected non-unit weights with full dense `meta_known_V(V = V)` covariance
+  matrices because those paths are joint MVN likelihood blocks;
+- added `weights.drmTMB()` documentation and pkgdown reference entry;
+- updated `README.md`, `NEWS.md`, `docs/design/01-formula-grammar.md`,
+  `docs/design/03-likelihoods.md`, `docs/design/22-likelihood-weights.md`,
+  `docs/design/23-large-data-memory.md`, and `vignettes/source-map.Rmd`;
+- recorded Andrew Gelman, Paul-Christian Buerkner, Jarrod Hadfield, David
+  Fletcher, and Shun-ichi Amari in the reference programme as statistical
+  computing and inference influences.
+
+Commands run:
+
+- `Rscript -e "devtools::test(filter = 'gaussian-location-scale')"`
+- `Rscript -e "devtools::test(filter = 'biv-gaussian')"`
+- `Rscript -e "devtools::test(filter = 'phylo-utils')"`
+- `Rscript -e "devtools::document()"`
+- `Rscript -e "devtools::test()"`
+- `Rscript -e "devtools::load_all(quiet = TRUE); rmarkdown::render('vignettes/source-map.Rmd', output_dir = tempdir(), quiet = TRUE)"`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `Rscript -e "pkgdown::build_site()"`
+- `Rscript tools/fix-pkgdown-favicon-mime.R pkgdown-site`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`
+- `Rscript -e "devtools::test(filter = 'gaussian-location-scale|biv-gaussian|phylo-utils')"`
+- `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`
+- `git diff --check`
+- `rg -n "S3method\\(weights|weights.drmTMB|@param weights|weights =" NAMESPACE man R tests docs/design vignettes/source-map.Rmd README.md NEWS.md _pkgdown.yml`
+- `rg -n 'weights.*not yet|does not yet have.*weights|planned.*weights|weights.*planned|Status: planned' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes R tests man _pkgdown.yml pkgdown-site --glob '!docs/dev-log/after-task/**'`
+- `rg -n 'David \\[surname|Buerkner|Bürkner|Hadfield|Amari|Gelman|Fletcher' README.md ROADMAP.md NEWS.md docs/design docs/dev-log vignettes R tests man _pkgdown.yml`
+
+Results:
+
+- targeted Gaussian location-scale tests: 67 passed, 0 failed, 0 warnings,
+  0 skips;
+- targeted bivariate Gaussian tests: 101 passed, 0 failed, 0 warnings,
+  0 skips;
+- targeted phylo-utils tests: 45 passed, 0 failed, 0 warnings, 0 skips;
+- full `devtools::test()`: 1215 passed, 0 failed, 0 warnings, 0 skips;
+- combined targeted rerun after namespace repair: 213 passed, 0 failed,
+  0 warnings, 0 skips;
+- source-map vignette rendered successfully;
+- `devtools::document()` updated `NAMESPACE`, `man/drmTMB.Rd`, and
+  `man/weights.drmTMB.Rd`;
+- `pkgdown::check_pkgdown()`: no problems found before and after site build;
+- `pkgdown::build_site()`: completed successfully;
+- favicon MIME post-processing completed successfully;
+- first `devtools::check()` attempt exposed a missing `stats::weights`
+  namespace import for the new S3 method;
+- after adding `@importFrom stats weights`, final `devtools::check()`: 0 errors,
+  0 warnings, 0 notes;
+- `git diff --check`: clean.
+- stale-wording scans found no stale current-source `weights planned` wording;
+  the remaining `Status: planned` hit is the unrelated Phase 5b large-data
+  memory strategy.
+
+Tests of the tests:
+
+- constant Gaussian weights check that parameter estimates are stable and
+  `logLik` doubles;
+- integer Gaussian weights check equivalence with explicit row duplication,
+  including zero weights;
+- malformed Gaussian weights check wrong length, negative values, missing or
+  non-finite values, all-zero weights, and matrix input;
+- bivariate Gaussian weights check complete-row weighting by doubling the
+  row-paired likelihood;
+- the full dense known-covariance rejection test protects the
+  `meta_known_V(V = V)` distinction.
+
+Known limitations:
+
+- `weights =` are ordinary likelihood multipliers, not a memory-saving
+  aggregation path;
+- dense full known-covariance meta-analysis cannot yet be combined with
+  non-unit weights;
+- response-specific bivariate weights are not implemented;
+- sufficient-statistic aggregation for very large Gaussian data remains a
+  separate planned scaling feature.
+
+Team learning:
+
+- Boole and Emmy should keep `weights =` out of formula grammar;
+- Fisher should require comparator checks before documenting weights as
+  frequency weights beyond independent likelihoods;
+- Grace should watch dense known-covariance and weight interactions in CI;
+- Rose should continue checking for stale `weights planned` wording after
+  pkgdown builds.
+- Ada should treat namespace imports for new S3 generics as part of the
+  implementation checklist, not only as a `devtools::check()` cleanup item.

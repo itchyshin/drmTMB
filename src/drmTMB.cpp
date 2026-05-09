@@ -35,6 +35,7 @@ template<class Type>
 Type objective_function<Type>::operator()()
 {
   DATA_VECTOR(y);
+  DATA_VECTOR(weights);
   DATA_VECTOR(V_known);
   DATA_MATRIX(V_known_matrix);
   DATA_INTEGER(V_known_type);
@@ -201,7 +202,7 @@ Type objective_function<Type>::operator()()
       nll += neg_log_density(y - mu);
     } else {
       for (int i = 0; i < y.size(); ++i) {
-        nll -= dnorm(y(i), mu(i), obs_sigma(i), true);
+        nll -= weights(i) * dnorm(y(i), mu(i), obs_sigma(i), true);
       }
     }
 
@@ -272,7 +273,7 @@ Type objective_function<Type>::operator()()
         half * log(nu(i) * M_PI) -
         log_sigma(i) -
         half * (nu(i) + Type(1.0)) * log(Type(1.0) + z * z / nu(i));
-      nll -= log_density;
+      nll -= weights(i) * log_density;
     }
     REPORT(mu);
     REPORT(log_sigma);
@@ -288,7 +289,7 @@ Type objective_function<Type>::operator()()
     vector<Type> sigma = exp(log_sigma);
     for (int i = 0; i < y.size(); ++i) {
       Type log_y = log(y(i));
-      nll -= dnorm(log_y, mu(i), sigma(i), true) - log_y;
+      nll -= weights(i) * (dnorm(log_y, mu(i), sigma(i), true) - log_y);
     }
     REPORT(mu);
     REPORT(log_sigma);
@@ -309,7 +310,7 @@ Type objective_function<Type>::operator()()
         y(i) / scale -
         lgamma(shape) -
         shape * log(scale);
-      nll -= log_density;
+      nll -= weights(i) * log_density;
     }
     REPORT(eta_mu);
     REPORT(mu);
@@ -335,7 +336,7 @@ Type objective_function<Type>::operator()()
         lgamma(beta_shape(i)) +
         (alpha(i) - Type(1.0)) * log(y(i)) +
         (beta_shape(i) - Type(1.0)) * log(Type(1.0) - y(i));
-      nll -= log_density;
+      nll -= weights(i) * log_density;
     }
     REPORT(eta_mu);
     REPORT(mu);
@@ -350,7 +351,7 @@ Type objective_function<Type>::operator()()
     vector<Type> eta_mu = X_mu * beta_mu;
     vector<Type> mu = exp(eta_mu);
     for (int i = 0; i < y.size(); ++i) {
-      nll -= dpois(y(i), mu(i), true);
+      nll -= weights(i) * dpois(y(i), mu(i), true);
     }
     REPORT(eta_mu);
     REPORT(mu);
@@ -364,9 +365,9 @@ Type objective_function<Type>::operator()()
       Type log_zi = -logspace_add(Type(0.0), -eta_zi(i));
       Type log_one_minus_zi = -logspace_add(Type(0.0), eta_zi(i));
       if (asDouble(y(i)) == 0.0) {
-        nll -= logspace_add(log_zi, log_one_minus_zi - mu(i));
+        nll -= weights(i) * logspace_add(log_zi, log_one_minus_zi - mu(i));
       } else {
-        nll -= log_one_minus_zi + dpois(y(i), mu(i), true);
+        nll -= weights(i) * (log_one_minus_zi + dpois(y(i), mu(i), true));
       }
     }
     REPORT(eta_mu);
@@ -392,7 +393,7 @@ Type objective_function<Type>::operator()()
       for (int j = 0; j < yi; ++j) {
         log_density += drm_log1p_pos(alpha * Type(j));
       }
-      nll -= log_density;
+      nll -= weights(i) * log_density;
     }
     REPORT(eta_mu);
     REPORT(mu);
@@ -423,7 +424,7 @@ Type objective_function<Type>::operator()()
       Type log_trunc_prob = drm_log1mexp(log_p0);
       trunc_prob(i) = exp(log_trunc_prob);
       positive_mean(i) = mu(i) / trunc_prob(i);
-      nll -= log_density - log_trunc_prob;
+      nll -= weights(i) * (log_density - log_trunc_prob);
     }
     REPORT(eta_mu);
     REPORT(mu);
@@ -463,9 +464,9 @@ Type objective_function<Type>::operator()()
       positive_mean(i) = mu(i) / trunc_prob(i);
       fitted_mean(i) = (Type(1.0) - hu(i)) * positive_mean(i);
       if (yi == 0) {
-        nll -= log_hu;
+        nll -= weights(i) * log_hu;
       } else {
-        nll -= log_one_minus_hu + log_density - log_trunc_prob;
+        nll -= weights(i) * (log_one_minus_hu + log_density - log_trunc_prob);
       }
     }
     REPORT(eta_mu);
@@ -502,9 +503,9 @@ Type objective_function<Type>::operator()()
       Type log_zi = -logspace_add(Type(0.0), -eta_zi(i));
       Type log_one_minus_zi = -logspace_add(Type(0.0), eta_zi(i));
       if (yi == 0) {
-        nll -= logspace_add(log_zi, log_one_minus_zi + log_density);
+        nll -= weights(i) * logspace_add(log_zi, log_one_minus_zi + log_density);
       } else {
-        nll -= log_one_minus_zi + log_density;
+        nll -= weights(i) * (log_one_minus_zi + log_density);
       }
     }
     REPORT(eta_mu);
@@ -558,9 +559,10 @@ Type objective_function<Type>::operator()()
         Type z1 = (y1(i) - mu1(i)) / sigma1(i);
         Type z2 = (y2(i) - mu2(i)) / sigma2(i);
         Type one_minus_rho2 = Type(1.0) - rho12(i) * rho12(i);
-        nll += log2pi + log_sigma1(i) + log_sigma2(i);
-        nll += Type(0.5) * log(one_minus_rho2);
-        nll += Type(0.5) * (z1 * z1 - Type(2.0) * rho12(i) * z1 * z2 + z2 * z2) / one_minus_rho2;
+        Type row_nll = log2pi + log_sigma1(i) + log_sigma2(i);
+        row_nll += Type(0.5) * log(one_minus_rho2);
+        row_nll += Type(0.5) * (z1 * z1 - Type(2.0) * rho12(i) * z1 * z2 + z2 * z2) / one_minus_rho2;
+        nll += weights(i) * row_nll;
       }
     }
 

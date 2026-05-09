@@ -160,5 +160,6 @@ Record:
 - Should `predict()` default to requiring `newdata` when `keep_data = FALSE`?
 - Should sufficient-statistic aggregation be automatic or require an explicit
   argument such as `aggregate = TRUE`?
-- Should `weights =` and aggregation share one internal representation, or
-  should aggregation have a separate Gaussian-only sufficient-statistics path?
+- `weights =` is now an ordinary likelihood multiplier. Aggregation should
+  still have a separate Gaussian-only sufficient-statistics path when the
+  within-cell squared residual term matters.
