@@ -139,9 +139,9 @@ drmTMB(
 ```
 
 Here `sigma_ij` is the residual standard deviation. The random-intercept scale
-`sd_mu_id` is a separate group-level standard deviation. Later
-double-hierarchical models will expose those group-level scale components with
-their own names; they should not be confused with residual `sigma`.
+`sd_mu_id` is a separate group-level standard deviation. In implemented
+double-hierarchical scale models, `sd(id) ~ x_group` exposes this group-level
+scale component by name; it should not be confused with residual `sigma`.
 
 Residual-scale random intercepts enter a different part of the model:
 

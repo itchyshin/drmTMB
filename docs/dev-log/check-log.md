@@ -2,6 +2,64 @@
 
 Record meaningful development checks here.
 
+## 2026-05-08: Implemented Source Map
+
+Scope:
+
+- added a developer source-map article that links implemented model paths to
+  their R builders, TMB `model_type` branches, tests, and docs;
+- added the article to the pkgdown Developer Notes menu and articles index;
+- fixed stale location-scale wording so `sd(id) ~ x_group` is described as an
+  implemented double-hierarchical random-effect scale path rather than future
+  work;
+- recorded the known follow-up that Gaussian known-covariance meta-analysis
+  with `sd(group) ~ predictors` needs targeted validation before routine
+  tutorial use.
+
+Commands run:
+
+- `Rscript -e "rmarkdown::render('vignettes/source-map.Rmd', output_dir = tempdir(), quiet = TRUE)"`
+- `Rscript -e "rmarkdown::render('vignettes/source-map.Rmd', output_dir = tempdir(), quiet = TRUE); rmarkdown::render('vignettes/location-scale.Rmd', output_dir = tempdir(), quiet = TRUE)"`
+- `git diff --check`
+- `rg -n 'Later double-hierarchical|This developer article will|current planning reference|model_type = 99|meta_gaussian|tau ~|rho ~|c\\(gaussian\\(\\), poisson\\(\\)\\)|skew_normal\\(\\)' vignettes/source-map.Rmd vignettes/location-scale.Rmd _pkgdown.yml docs/design/08-meta-analysis.md`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `Rscript -e "devtools::test()"`
+- `Rscript -e "pkgdown::build_site()"`
+- `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`
+
+Results:
+
+- direct source-map render: passed;
+- direct source-map and location-scale render after stale-wording fix: passed;
+- `git diff --check`: clean;
+- stale/unsupported-syntax scan: no old placeholder text and no stale "Later
+  double-hierarchical" wording remained. Remaining hits were intentional:
+  `model_type = 99` is documented as internal, `c(gaussian(), poisson())` is in
+  an unsupported-feature list, and `meta_gaussian()` / `tau ~` are in the
+  meta-analysis guardrail design note;
+- `pkgdown::check_pkgdown()`: no problems found;
+- full `devtools::test()`: 642 passed, 0 failed;
+- `pkgdown::build_site()`: rebuilt successfully;
+- `devtools::check(...)`: 0 errors, 0 warnings, 0 notes.
+
+Tests of the tests:
+
+- no package code changed; this task mapped existing tests to implemented paths;
+- the source map was checked against Jason's source-only scan and against
+  rendered pkgdown navigation.
+
+Notes:
+
+- Jason identified the stale location-scale sentence and the missing central
+  model-type table. The new source-map article closes the model-type table gap;
+  the location-scale wording was updated.
+- Jason also identified that `meta_known_V()` plus `sd(group) ~ predictors`
+  needs targeted validation. The source map now names that as a follow-up rather
+  than teaching it as routine syntax.
+- the already-pushed `fe0cd04` adding-families commit passed GitHub pkgdown and
+  R-CMD-check on macOS, Ubuntu, and Windows; only GitHub runner deprecation
+  notices were reported.
+
 ## 2026-05-08: Adding Families Developer Guide
 
 Scope:

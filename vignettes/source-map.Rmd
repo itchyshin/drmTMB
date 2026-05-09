@@ -1,0 +1,118 @@
+---
+title: "Implemented source map"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Implemented source map}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+This developer article maps the implemented `drmTMB` model paths to the files
+that define, test, and document them. It is written for contributors who need to
+make a small, reviewable change without rediscovering the whole package.
+
+The source map is not a roadmap. It records what currently exists. Planned
+features belong in `docs/design/06-distribution-roadmap.md`,
+`docs/design/09-phylogenetic-and-spatial-speed.md`, and related design notes
+until implementation, tests, and documentation all exist.
+
+## Routing overview
+
+All fitted models enter through `drmTMB()` in `R/drmTMB.R`. The family router
+dispatches to one of three implemented builders:
+
+```text
+gaussian()                  -> drm_build_gaussian_ls_spec()
+student()                   -> drm_build_student_ls_spec()
+biv_gaussian()              -> drm_build_biv_gaussian_spec()
+c(gaussian(), gaussian())   -> drm_build_biv_gaussian_spec()
+```
+
+The R builders assemble model frames, design matrices, starting values, random
+effect metadata, known covariance objects, and the TMB data list. The current
+TMB template then uses these integer model paths:
+
+```text
+model_type = 1   univariate Gaussian location-scale engine
+model_type = 2   bivariate Gaussian location-scale-coscale engine
+model_type = 3   univariate Student-t location-scale-shape engine
+model_type = 99  internal phylogenetic prior helper used by tests
+```
+
+The `model_type = 99` path is not a user-facing family. It lets tests compare
+the hidden phylogenetic precision prior used inside the Gaussian engine against
+the same objective in isolation.
+
+## Implemented paths
+
+| Path | User-facing syntax | R builder and helpers | TMB branch | Main tests | Main docs |
+|---|---|---|---|---|---|
+| Gaussian location-scale | `drm_formula(y ~ x, sigma ~ z)` | `drm_build_gaussian_ls_spec()` in `R/drmTMB.R`; generic family object from `stats::gaussian()` | `model_type = 1` in `src/drmTMB.cpp` | `tests/testthat/test-gaussian-location-scale.R` | `vignettes/location-scale.Rmd`, `docs/design/13-gaussian-location-scale-math.md` |
+| Gaussian location random effects | `y ~ x + (1 \| id)`; `y ~ x + (1 + x \| id)`; labelled form `(1 + x \| p \| id)` | `extract_random_mu_terms()` and `build_random_mu_structure()` inside the Gaussian builder | `model_type = 1`; `u_mu`, `log_sd_mu`, and `eta_cor_mu` blocks | `tests/testthat/test-gaussian-random-intercepts.R`, `tests/testthat/test-comparators.R` | `docs/design/04-random-effects.md`, `vignettes/formula-grammar.Rmd` |
+| Gaussian residual scale random effects | `sigma ~ z + (1 \| id)` | `extract_random_sigma_terms()` and `build_random_sigma_structure()` inside the Gaussian builder | `model_type = 1`; `u_sigma` and `log_sd_sigma` blocks | `tests/testthat/test-gaussian-random-intercepts.R` | `docs/design/04-random-effects.md`, `vignettes/which-scale.Rmd` |
+| Gaussian random-effect scale models | `sd(id) ~ w`; `sd(site) ~ site_type` | `parse_sd_mu_entries()` and `build_sd_mu_structure()` inside the Gaussian builder | `model_type = 1`; `X_sd_mu`, `beta_sd_mu`, and `mu_re_sd_row` | `tests/testthat/test-gaussian-random-effect-scale.R`, `tests/testthat/test-comparators.R` | `docs/design/18-random-effect-scale-models.md`, `docs/design/13-gaussian-location-scale-math.md` |
+| Gaussian meta-analysis with known sampling covariance | `yi ~ x + meta_known_V(V = vi)` or `meta_known_V(V = V)` | `meta_known_V()` in `R/formula-markers.R`; `evaluate_known_v()` and `subset_known_v()` in `R/drmTMB.R` | `model_type = 1`; diagonal path adds `V_known`, dense path uses `density::MVNORM` | `tests/testthat/test-meta-known-v.R`, `tests/testthat/test-comparators.R` | `vignettes/meta-analysis.Rmd`, `docs/design/08-meta-analysis.md` |
+| Gaussian phylogenetic location effect | `phylo(1 \| species, tree = tree)` in the `mu` formula | `phylo()` marker and helpers in `R/phylo-utils.R`; `build_phylo_mu_structure()` inside the Gaussian builder | `model_type = 1`; `u_phylo`, `log_sd_phylo`, sparse `Q_phylo` | `tests/testthat/test-phylo-gaussian.R`, `tests/testthat/test-phylo-utils.R` | `vignettes/phylogenetic-spatial.Rmd`, `docs/design/09-phylogenetic-and-spatial-speed.md` |
+| Student-t location-scale-shape | `drm_formula(y ~ x, sigma ~ z, nu ~ w)` | `student()` in `R/family.R`; `drm_build_student_ls_spec()` in `R/drmTMB.R` | `model_type = 3`; `nu = 2 + exp(eta_nu)` | `tests/testthat/test-student-location-scale.R` | `vignettes/robust-student.Rmd`, `docs/design/14-gamlss-parameter-names.md` |
+| Bivariate Gaussian location-coscale | `mu1 = y1 ~ x`; `mu2 = y2 ~ x`; `sigma1 ~ z1`; `sigma2 ~ z2`; `rho12 ~ w` | `biv_gaussian()` in `R/family.R`; `drm_build_biv_gaussian_spec()` in `R/drmTMB.R`; `rho12()` in `R/methods.R` | `model_type = 2`; `rho12 = tanh(eta_rho12)` | `tests/testthat/test-biv-gaussian.R` | `vignettes/bivariate-coscale.Rmd`, `docs/design/15-location-coscale-phylogenetic-extension.md` |
+| Bivariate Gaussian known sampling covariance | `meta_known_V(V = V)` in one bivariate location formula, with `V` a row-paired `2n` by `2n` matrix | `meta_vcov_bivariate()` in `R/meta-vcov.R`; `evaluate_biv_known_v()` and `subset_biv_known_v()` in `R/drmTMB.R` | `model_type = 2`; dense `V_known_matrix` plus fitted residual `sigma1`, `sigma2`, and `rho12` | `tests/testthat/test-biv-gaussian.R`, `tests/testthat/test-meta-vcov.R` | `vignettes/meta-analysis.Rmd`, `vignettes/testing-likelihoods.Rmd` |
+
+## What the source map protects
+
+When a feature changes, update all rows touched by that feature. A change to the
+Student-t likelihood, for example, should be checked against:
+
+```text
+R/family.R
+R/drmTMB.R
+src/drmTMB.cpp
+tests/testthat/test-student-location-scale.R
+vignettes/robust-student.Rmd
+vignettes/testing-likelihoods.Rmd
+vignettes/adding-families.Rmd
+docs/design/03-likelihoods.md
+docs/design/14-gamlss-parameter-names.md
+```
+
+A change to residual bivariate correlation `rho12` should be checked against:
+
+```text
+R/family.R
+R/drmTMB.R
+R/methods.R
+src/drmTMB.cpp
+tests/testthat/test-biv-gaussian.R
+vignettes/bivariate-coscale.Rmd
+vignettes/formula-grammar.Rmd
+vignettes/testing-likelihoods.Rmd
+docs/design/03-likelihoods.md
+docs/design/15-location-coscale-phylogenetic-extension.md
+```
+
+The goal is consistency. The symbolic equations, R syntax, TMB branch, tests,
+vignettes, and check log should make the same claim.
+
+## Current boundaries
+
+The following neighbouring features are intentionally not implemented as fitted
+models yet:
+
+- mixed composed families such as `c(gaussian(), poisson())`;
+- bivariate Student-t or bivariate skew-normal families;
+- random effects in bivariate `mu1`, `mu2`, `sigma1`, `sigma2`, or `rho12`;
+- spatial random fields;
+- phylogenetic or spatial effects in `sigma`, `nu`, or `rho12`;
+- profile-likelihood confidence intervals.
+
+Do not present those forms as runnable examples until the source map has an
+implemented row with code, tests, and documentation.
+
+One neighbouring combination needs a targeted follow-up before it becomes
+routine tutorial syntax: Gaussian known-covariance meta-analysis with
+`sd(group) ~ predictors`. The generic Gaussian builder can route nearby pieces,
+but the project still needs an explicit validation test and a documented
+interpretation before examples recommend the combination.

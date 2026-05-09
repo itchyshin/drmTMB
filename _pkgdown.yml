@@ -48,6 +48,8 @@ navbar:
           href: articles/adding-families.html
         - text: Testing likelihoods
           href: articles/testing-likelihoods.html
+        - text: Implemented source map
+          href: articles/source-map.html
 
 reference:
   - title: Package
@@ -108,3 +110,4 @@ articles:
       - formula-grammar
       - adding-families
       - testing-likelihoods
+      - source-map
