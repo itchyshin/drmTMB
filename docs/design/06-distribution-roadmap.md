@@ -85,7 +85,11 @@ families.
   `Var(y) = mu + sigma^2 * mu^2`, so larger `sigma` means greater
   overdispersion. Adding `zi ~ predictors` fits the implemented fixed-effect
   zero-inflated NB2 path.
-- `truncated_nbinom2()` and `truncated_poisson()` for positive counts.
+- `truncated_nbinom2()`: `mu`, `sigma`; implemented fixed-effect
+  zero-truncated NB2 path for positive counts. The parameters describe the
+  untruncated NB2 component, and `fitted()` returns the conditional
+  positive-count mean.
+- `truncated_poisson()` for positive counts without overdispersion.
 - hurdle count models, using `hu ~ predictors` as the hurdle-zero probability
   on an otherwise truncated count family.
 - `compois()`: `mu`, `nu`; handles underdispersion and overdispersion.
@@ -94,16 +98,14 @@ families.
 - `nbinom1()`: `mu`, `sigma` or family-specific `nu`; variance increases
   linearly with the mean.
 
-Priority order after the Poisson, zero-inflated Poisson, NB2, and
-zero-inflated NB2 seeds:
+Priority order after the Poisson, zero-inflated Poisson, NB2,
+zero-inflated NB2, and zero-truncated NB2 seeds:
 
-1. implement `truncated_nbinom2()` before hurdle models, because it establishes
-   the positive-count normalising constant and gives a direct likelihood check;
-2. add hurdle NB2 by combining the truncated NB2 count component with
+1. add hurdle NB2 by combining the truncated NB2 count component with
    `hu ~ predictors`, where `hu` is the hurdle-zero probability;
-3. add `truncated_poisson()` and hurdle Poisson if examples show they are useful
+2. add `truncated_poisson()` and hurdle Poisson if examples show they are useful
    beyond NB2;
-4. defer `compois()` and `genpois()` until the mean/dispersion contract and
+3. defer `compois()` and `genpois()` until the mean/dispersion contract and
    comparator strategy are designed.
 
 Do not add separate `hurdle_nbinom2()` or `hurdle_poisson()` public constructors
@@ -137,10 +139,10 @@ Recommended user guidance:
 - Use `beta()` for continuous rates strictly between 0 and 1.
 - Use zero/one-inflated beta or ordered beta when exact boundaries occur.
 
-Priority order after the implemented `beta()` seed is therefore
-`truncated_nbinom2()`, hurdle NB2, then univariate ordinal models. This gives
-users the positive-count and bounded-score routes after the strict proportion
-path, while keeping every new family within a clear parameter-link contract.
+Priority order after the implemented `beta()` and `truncated_nbinom2()` seeds
+is therefore hurdle NB2, then univariate ordinal models. This gives users the
+positive-count and bounded-score routes after the strict proportion path,
+while keeping every new family within a clear parameter-link contract.
 
 ## Tier 6: Positive Continuous Responses
 

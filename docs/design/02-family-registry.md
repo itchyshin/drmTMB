@@ -264,6 +264,30 @@ E[y_i] = (1 - zi_i) mu_i
 Random effects, known sampling covariance, hurdle components, phylogenetic
 terms, and bivariate or mixed negative-binomial models are later phases.
 
+## Implemented: Zero-Truncated Negative Binomial 2 Mean-Dispersion
+
+`truncated_nbinom2()` handles positive counts where zero is absent by design:
+
+```r
+family = truncated_nbinom2()
+```
+
+The implemented model is fixed-effect and univariate:
+
+```text
+y_i | y_i > 0, mu_i, sigma_i ~ NB2(mu_i, size_i) truncated at zero
+log(mu_i) = X_mu[i, ] beta_mu
+log(sigma_i) = X_sigma[i, ] beta_sigma
+size_i = 1 / sigma_i^2
+Pr(y_i = k | y_i > 0) = Pr_NB2(y_i = k) / (1 - Pr_NB2(0))
+E[y_i | y_i > 0] = mu_i / (1 - Pr_NB2(0))
+```
+
+Here `mu` and `sigma` describe the untruncated NB2 component. This keeps the
+count-scale `sigma` interpretation aligned with `nbinom2()`, while `fitted()`
+returns the observed positive-count mean. Hurdle models using `hu ~ predictors`
+are planned after this zero-truncated likelihood and its simulation tests.
+
 ## Implemented: Bivariate Gaussian Location-Coscale
 
 The stable public direction for two-response models is composed response

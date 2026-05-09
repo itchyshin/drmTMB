@@ -7,6 +7,7 @@ test_that("internal link table maps implemented distributional parameters", {
   fake_poisson <- list(model = list(model_type = "poisson"))
   fake_zip <- list(model = list(model_type = "zi_poisson"))
   fake_nbinom2 <- list(model = list(model_type = "nbinom2"))
+  fake_truncnb2 <- list(model = list(model_type = "truncated_nbinom2"))
   fake_zinb2 <- list(model = list(model_type = "zi_nbinom2"))
   fake_biv <- list(model = list(model_type = "biv_gaussian"))
 
@@ -23,6 +24,8 @@ test_that("internal link table maps implemented distributional parameters", {
   expect_equal(drmTMB:::drm_dpar_link(fake_zip, "zi"), "logit")
   expect_equal(drmTMB:::drm_dpar_link(fake_nbinom2, "mu"), "log")
   expect_equal(drmTMB:::drm_dpar_link(fake_nbinom2, "sigma"), "log")
+  expect_equal(drmTMB:::drm_dpar_link(fake_truncnb2, "mu"), "log")
+  expect_equal(drmTMB:::drm_dpar_link(fake_truncnb2, "sigma"), "log")
   expect_equal(drmTMB:::drm_dpar_link(fake_zinb2, "mu"), "log")
   expect_equal(drmTMB:::drm_dpar_link(fake_zinb2, "sigma"), "log")
   expect_equal(drmTMB:::drm_dpar_link(fake_zinb2, "zi"), "logit")
@@ -30,6 +33,8 @@ test_that("internal link table maps implemented distributional parameters", {
   expect_equal(unname(biv_gaussian()$links[["rho12"]]), "atanh_guarded")
   expect_equal(unname(nbinom2()$links[["mu"]]), "log")
   expect_equal(unname(nbinom2()$links[["sigma"]]), "log")
+  expect_equal(unname(truncated_nbinom2()$links[["mu"]]), "log")
+  expect_equal(unname(truncated_nbinom2()$links[["sigma"]]), "log")
   expect_equal(unname(beta()$links[["mu"]]), "logit")
   expect_equal(unname(beta()$links[["sigma"]]), "log")
 })
@@ -42,6 +47,7 @@ test_that("internal inverse links match the documented parameter scales", {
   fake_poisson <- list(model = list(model_type = "poisson"))
   fake_zip <- list(model = list(model_type = "zi_poisson"))
   fake_nbinom2 <- list(model = list(model_type = "nbinom2"))
+  fake_truncnb2 <- list(model = list(model_type = "truncated_nbinom2"))
   fake_zinb2 <- list(model = list(model_type = "zi_nbinom2"))
   fake_biv <- list(model = list(model_type = "biv_gaussian"))
   eta <- c(-1, 0, 1)
@@ -58,6 +64,8 @@ test_that("internal inverse links match the documented parameter scales", {
   expect_equal(drmTMB:::drm_inverse_link(fake_zip, "zi", eta), stats::plogis(eta))
   expect_equal(drmTMB:::drm_inverse_link(fake_nbinom2, "mu", eta), exp(eta))
   expect_equal(drmTMB:::drm_inverse_link(fake_nbinom2, "sigma", eta), exp(eta))
+  expect_equal(drmTMB:::drm_inverse_link(fake_truncnb2, "mu", eta), exp(eta))
+  expect_equal(drmTMB:::drm_inverse_link(fake_truncnb2, "sigma", eta), exp(eta))
   expect_equal(drmTMB:::drm_inverse_link(fake_zinb2, "mu", eta), exp(eta))
   expect_equal(drmTMB:::drm_inverse_link(fake_zinb2, "sigma", eta), exp(eta))
   expect_equal(drmTMB:::drm_inverse_link(fake_zinb2, "zi", eta), stats::plogis(eta))
@@ -117,6 +125,22 @@ test_that("fitted response helper uses family-specific response summaries", {
     family = nbinom2(),
     data = dat_nbinom2
   )
+  p0_trunc <- stats::dnbinom(
+    0,
+    size = 1 / 0.45^2,
+    mu = exp(0.2 + 0.5 * dat_nbinom2$x)
+  )
+  dat_truncnb2 <- dat_nbinom2
+  dat_truncnb2$y <- stats::qnbinom(
+    p0_trunc + seq(0.1, 0.9, length.out = nrow(dat_truncnb2)) * (1 - p0_trunc),
+    size = 1 / 0.45^2,
+    mu = exp(0.2 + 0.5 * dat_nbinom2$x)
+  )
+  fit_truncnb2 <- drmTMB(
+    bf(y ~ x, sigma ~ 1),
+    family = truncated_nbinom2(),
+    data = dat_truncnb2
+  )
   set.seed(20260619)
   dat_beta <- data.frame(
     x = rep(seq(-1, 1, length.out = 20), each = 4)
@@ -162,6 +186,14 @@ test_that("fitted response helper uses family-specific response summaries", {
   expect_equal(
     fitted(fit_nbinom2),
     predict(fit_nbinom2, dpar = "mu"),
+    tolerance = 1e-12
+  )
+  mu_truncnb2 <- predict(fit_truncnb2, dpar = "mu")
+  sigma_truncnb2 <- sigma(fit_truncnb2)
+  p0_truncnb2 <- stats::dnbinom(0, size = 1 / sigma_truncnb2^2, mu = mu_truncnb2)
+  expect_equal(
+    fitted(fit_truncnb2),
+    mu_truncnb2 / (1 - p0_truncnb2),
     tolerance = 1e-12
   )
   expect_equal(

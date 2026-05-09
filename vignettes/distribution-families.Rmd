@@ -250,6 +250,33 @@ structural-zero probability, and `fitted(fit)` returns the unconditional
 response mean `(1 - zi) * mu`. There is no separate `zi_nbinom2()`
 constructor in the current public API.
 
+Zero-truncated NB2 models are implemented for positive counts where zeros are
+absent by design, such as clutch size among breeding individuals or parasite
+load among infected hosts:
+
+```text
+y_i | y_i > 0, mu_i, sigma_i ~ truncated NB2(mu_i, sigma_i)
+log(mu_i) = beta_0 + beta_1 habitat_i
+log(sigma_i) = gamma_0 + gamma_1 treatment_i
+size_i = 1 / sigma_i^2
+Pr_trunc(y_i) = Pr_NB2(y_i) / (1 - Pr_NB2(0))
+E[y_i | y_i > 0] = mu_i / (1 - Pr_NB2(0))
+```
+
+```r
+drmTMB(
+  bf(count ~ habitat, sigma ~ treatment),
+  family = truncated_nbinom2(),
+  data = dat
+)
+```
+
+For this family, `predict(fit, dpar = "mu")` and `sigma(fit)` describe the
+untruncated NB2 count component. `fitted(fit)` returns the expected observed
+positive count, `mu / (1 - Pr_NB2(0))`. Hurdle syntax with `hu ~ predictors`
+remains planned; the current implementation rejects zeros and rejects `hu`
+clearly.
+
 ## Planned bounded and positive-count families
 
 The families in this section are roadmap syntax, not supported fitting paths
@@ -272,27 +299,8 @@ drmTMB(
 For beta-binomial models, `sigma` would describe extra-binomial variation, not
 residual standard deviation.
 
-Positive-count models should come before full hurdle models. A truncated NB2
-model describes counts after zero has been removed by design, such as clutch
-size among breeding individuals:
-
-```text
-y_i | y_i > 0, mu_i, sigma_i ~ truncated NB2(mu_i, sigma_i)
-Pr_trunc(y_i) = Pr_NB2(y_i) / (1 - Pr_NB2(0))
-```
-
-Here `mu` and `sigma` describe the untruncated NB2 count component. The
-expected observed positive count is the NB2 mean conditional on `y > 0`.
-
-```r
-drmTMB(
-  bf(count ~ habitat, sigma ~ treatment),
-  family = truncated_nbinom2(),
-  data = dat
-)
-```
-
-Hurdle models then add `hu ~ predictors` for the probability of zero:
+Hurdle models add `hu ~ predictors` for the probability of zero and combine a
+zero model with a positive-count truncated distribution:
 
 ```text
 Pr(y_i = 0) = hu_i
@@ -342,10 +350,10 @@ Bivariate ordinal and mixed-response correlation models remain research
 features because the latent correlation and residual `rho12` interpretation
 need dedicated simulation tests.
 
-The practical next-family order is `truncated_nbinom2()`, hurdle NB2 via `hu`,
-and then univariate ordinal models. COM-Poisson and generalized Poisson remain
-valuable, but they should wait until the mean-dispersion contract and
-comparator checks are designed.
+The practical next-family order is hurdle NB2 via `hu`, and then univariate
+ordinal models. COM-Poisson and generalized Poisson remain valuable, but they
+should wait until the mean-dispersion contract and comparator checks are
+designed.
 
 ## Bivariate Gaussian families
 

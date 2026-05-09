@@ -22,6 +22,16 @@ Type drm_log1p_pos(Type x)
 }
 
 template<class Type>
+Type drm_log1mexp(Type log_p)
+{
+  Type u = -log_p;
+  Type series_arg = u - u * u / Type(2.0) + u * u * u / Type(6.0);
+  Type series = log(series_arg);
+  Type direct = log(Type(1.0) - exp(log_p));
+  return CppAD::CondExpLt(u, Type(1e-6), series, direct);
+}
+
+template<class Type>
 Type objective_function<Type>::operator()()
 {
   DATA_VECTOR(y);
@@ -388,6 +398,39 @@ Type objective_function<Type>::operator()()
     REPORT(mu);
     REPORT(log_sigma);
     REPORT(sigma);
+    ADREPORT(beta_mu);
+    ADREPORT(beta_sigma);
+  } else if (model_type == 11) {
+    vector<Type> eta_mu = X_mu * beta_mu;
+    vector<Type> log_sigma = X_sigma * beta_sigma;
+    vector<Type> mu = exp(eta_mu);
+    vector<Type> sigma = exp(log_sigma);
+    vector<Type> trunc_prob(y.size());
+    vector<Type> positive_mean(y.size());
+    for (int i = 0; i < y.size(); ++i) {
+      Type alpha = exp(Type(2.0) * log_sigma(i)) + Type(1e-300);
+      Type log1p_alpha_mu = drm_log1p_pos(alpha * mu(i));
+      Type log_density =
+        y(i) * eta_mu(i) -
+        lgamma(y(i) + Type(1.0)) -
+        y(i) * log1p_alpha_mu -
+        log1p_alpha_mu / alpha;
+      int yi = (int) asDouble(y(i));
+      for (int j = 0; j < yi; ++j) {
+        log_density += drm_log1p_pos(alpha * Type(j));
+      }
+      Type log_p0 = -log1p_alpha_mu / alpha;
+      Type log_trunc_prob = drm_log1mexp(log_p0);
+      trunc_prob(i) = exp(log_trunc_prob);
+      positive_mean(i) = mu(i) / trunc_prob(i);
+      nll -= log_density - log_trunc_prob;
+    }
+    REPORT(eta_mu);
+    REPORT(mu);
+    REPORT(log_sigma);
+    REPORT(sigma);
+    REPORT(trunc_prob);
+    REPORT(positive_mean);
     ADREPORT(beta_mu);
     ADREPORT(beta_sigma);
   } else if (model_type == 9) {

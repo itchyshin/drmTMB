@@ -69,6 +69,9 @@ Implemented comparator smoke tests:
 - Negative-binomial 2 fixed-effect likelihood against an independent
   `stats::dnbinom(mu = mu, size = 1 / sigma^2)` calculation at the fitted
   coefficients.
+- Zero-truncated negative-binomial 2 fixed-effect likelihood against an
+  independent `stats::dnbinom()` calculation with the positive-count
+  normalising constant `log(1 - Pr_NB2(0))`.
 - Negative-binomial 2 mean coefficients, constant overdispersion scale, and
   log-likelihood against `MASS::glm.nb()` for the overlapping
   constant-dispersion case.

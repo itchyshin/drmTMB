@@ -34,6 +34,8 @@ The implemented families use these parameter meanings:
 | Zero-inflated Poisson | `zi` | logit | structural-zero probability |
 | Negative binomial 2 | `mu` | log | arithmetic mean of the count response |
 | Negative binomial 2 | `sigma` | log | overdispersion scale; `Var(y) = mu + sigma^2 * mu^2` |
+| Zero-truncated negative binomial 2 | `mu` | log | untruncated NB2 component mean |
+| Zero-truncated negative binomial 2 | `sigma` | log | untruncated NB2 overdispersion scale |
 | Zero-inflated negative binomial 2 | `mu` | log | conditional NB2 count mean |
 | Zero-inflated negative binomial 2 | `sigma` | log | conditional NB2 overdispersion scale |
 | Zero-inflated negative binomial 2 | `zi` | logit | structural-zero probability |
@@ -77,6 +79,7 @@ Poisson:    predict(mu) = E[y] = fitted()
 Beta:       predict(mu) = E[y] = fitted()
 ZIP:        predict(mu) = conditional count mean; fitted() = (1 - zi) * mu
 NB2:        predict(mu) = E[y] = fitted()
+Trunc NB2:  predict(mu) = untruncated component mean; fitted() = mu / (1 - Pr_NB2(0))
 ZINB2:      predict(mu) = conditional count mean; fitted() = (1 - zi) * mu
 ```
 
@@ -278,7 +281,7 @@ The public syntax is not settled yet; candidates include
 interface. The design decision should be made before implementation because it
 controls how missing values, totals, and predictions are checked.
 
-## Candidate Truncated and Hurdle Count Contract
+## Implemented Truncated Count Contract
 
 Truncated count models describe positive counts:
 
@@ -287,12 +290,13 @@ y_i | y_i > 0, mu_i, sigma_i ~ truncated NB2(mu_i, sigma_i)
 log(mu_i) = X_mu[i, ] beta_mu
 log(sigma_i) = X_sigma[i, ] beta_sigma
 Pr_trunc(y_i) = Pr_NB2(y_i) / (1 - Pr_NB2(0))
+E[y_i | y_i > 0] = mu_i / (1 - Pr_NB2(0))
 ```
 
 Here `mu` and `sigma` describe the untruncated NB2 count component. The
-expected observed positive count is the NB2 mean conditional on `y > 0`, so
-`fitted()` should document whether it returns that conditional positive-count
-mean or another user-facing target.
+expected observed positive count is the NB2 mean conditional on `y > 0`.
+`predict(fit, dpar = "mu")` returns the untruncated component mean, while
+`fitted(fit)` returns `mu / (1 - Pr_NB2(0))`.
 
 Matching R syntax:
 
@@ -328,9 +332,9 @@ This mirrors the implemented zero-inflation grammar while keeping the
 interpretation distinct. Use `zi` when the count distribution can still
 generate sampling zeros and the model adds an extra structural-zero process.
 Use `hu` when zeros are modelled separately and all nonzero counts come from a
-zero-truncated count distribution. The first implementation should not export
-separate `hurdle_nbinom2()` or `hurdle_poisson()` constructors unless that
-choice is revisited in the formula-grammar design.
+zero-truncated count distribution. The later hurdle implementation should not
+export separate `hurdle_nbinom2()` or `hurdle_poisson()` constructors unless
+that choice is revisited in the formula-grammar design.
 
 ## Candidate Ordinal Contract
 

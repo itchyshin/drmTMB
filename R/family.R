@@ -143,3 +143,33 @@ nbinom2 <- function() {
     class = "drm_family"
   )
 }
+
+#' Zero-truncated negative binomial 2 response family
+#'
+#' `truncated_nbinom2()` defines a one-response positive-count distribution
+#' with formulas for the untruncated NB2 mean `mu` and overdispersion scale
+#' `sigma`.
+#'
+#' The implemented contract is
+#' `log(mu) = eta_mu`, `log(sigma) = eta_sigma`, and the count response is
+#' distributed as NB2 conditional on being greater than zero. The untruncated
+#' NB2 variance is `Var(y) = mu + sigma^2 * mu^2`, with internal
+#' `size = 1 / sigma^2`.
+#'
+#' @return A `drm_family` object.
+#' @export
+#'
+#' @examples
+#' truncated_nbinom2()
+truncated_nbinom2 <- function() {
+  structure(
+    list(
+      name = "truncated_nbinom2",
+      family = "truncated_nbinom2",
+      n_response = 1L,
+      dpars = c("mu", "sigma"),
+      links = c(mu = "log", sigma = "log")
+    ),
+    class = "drm_family"
+  )
+}

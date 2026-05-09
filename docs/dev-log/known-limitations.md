@@ -37,9 +37,13 @@
   `Var(y) = mu + sigma^2 * mu^2`; it is not a residual standard deviation or
   NB size parameter. Zero-inflated NB2 models are implemented by adding
   `zi ~ predictors`; here `mu` and `sigma` describe the conditional count
-  component and `zi` is the structural-zero probability. Random effects,
-  hurdle components, known sampling covariance, phylogenetic terms, and
-  bivariate or mixed negative-binomial models are not yet implemented.
+  component and `zi` is the structural-zero probability. Zero-truncated NB2
+  models are implemented with `family = truncated_nbinom2()` for positive
+  counts; here `mu` and `sigma` describe the untruncated count component and
+  `fitted()` returns the conditional positive-count mean. Random effects,
+  hurdle components using `hu ~ predictors`, known sampling covariance,
+  phylogenetic terms, and bivariate or mixed negative-binomial models are not
+  yet implemented.
 - Intercept-only phylogenetic random effects are implemented in univariate
   Gaussian location formulas as `phylo(1 | species, tree = tree)`. The tree
   must be an ultrametric `phylo` object with positive branch lengths, and every
@@ -62,9 +66,10 @@
   It also supports fixed-effect univariate lognormal models with `mu` and
   `sigma` on the log-response scale, fixed-effect univariate Gamma mean-CV
   models with positive response mean `mu` and coefficient of variation
-  `sigma`, fixed-effect univariate Poisson mean models, and fixed-effect
-  univariate negative-binomial 2 mean-dispersion models, with zero-inflated
-  variants for Poisson and NB2 through `zi ~ predictors`.
+  `sigma`, fixed-effect univariate Poisson mean models, fixed-effect
+  univariate negative-binomial 2 mean-dispersion models, zero-inflated variants
+  for Poisson and NB2 through `zi ~ predictors`, and a zero-truncated NB2 path
+  for positive counts.
 - Cross-formula labelled covariance sharing, residual-scale random slopes,
   slope-specific random-effect scale targets, labelled-block random-effect
   scale targets, bivariate random-effect scale targets, Student-t random
@@ -73,8 +78,9 @@
   models, Gamma random-effect and structured-effect models, Poisson and
   negative-binomial random-effect models, hurdle count models, count
   zero-inflation with random effects or structured effects, and additional
-  non-Gaussian families beyond the first Student-t, lognormal, Gamma, Poisson,
-  and negative-binomial paths are planned but not yet implemented.
+  non-Gaussian families beyond the first Student-t, lognormal, Gamma, beta,
+  Poisson, negative-binomial, zero-inflated, and zero-truncated paths are
+  planned but not yet implemented.
 - Users should not substitute `sigma ~ x + (1 | id)` for `sd(id) ~ x_group`
   unless their scientific question is residual variability rather than
   among-group variation in the mean model.

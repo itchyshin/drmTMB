@@ -20,7 +20,7 @@ The corresponding R density call uses standard deviation, as in
 
 The R builders use descriptive model labels, such as `"gaussian"`,
 `"student"`, `"lognormal"`, `"gamma"`, `"beta"`, `"poisson"`, `"zi_poisson"`,
-`"nbinom2"`, `"zi_nbinom2"`, and `"biv_gaussian"`. Before calling the TMB template, `make_tmb_data()` turns
+`"nbinom2"`, `"truncated_nbinom2"`, `"zi_nbinom2"`, and `"biv_gaussian"`. Before calling the TMB template, `make_tmb_data()` turns
 those labels into integer branches in `src/drmTMB.cpp`. Unknown labels are
 rejected before they can fall through to a wrong likelihood branch. This table
 is the current routing contract:
@@ -37,6 +37,7 @@ is the current routing contract:
 | `8` | `family = poisson(link = "log")` plus `zi ~ ...` | `drm_build_poisson_spec()` | Univariate fixed-effect zero-inflated Poisson models, with `mu` as the conditional count mean and `zi` as the structural-zero probability. |
 | `9` | `family = nbinom2()` plus `zi ~ ...` | `drm_build_nbinom2_spec()` | Univariate fixed-effect zero-inflated negative-binomial 2 models, with `mu` as the conditional count mean, `sigma` as the NB2 overdispersion scale, and `zi` as the structural-zero probability. |
 | `10` | `family = beta()` | `drm_build_beta_ls_spec()` | Univariate fixed-effect beta mean-scale models for strict continuous proportions, with `mu` as the mean proportion and public `sigma` mapped internally to `phi = 1 / sigma^2`. |
+| `11` | `family = truncated_nbinom2()` | `drm_build_truncated_nbinom2_spec()` | Univariate fixed-effect zero-truncated negative-binomial 2 models for positive counts, with `mu` and `sigma` describing the untruncated NB2 component. |
 | `99` | no public route | direct test construction only | Hidden phylogenetic precision-prior parity branch used to test the sparse augmented A-inverse objective in isolation. |
 
 The hidden `model_type = 99` branch is not a family and should not appear in
@@ -574,6 +575,48 @@ equation, not a residual standard deviation. Larger `sigma` means greater
 extra-Poisson variation. Random effects, known sampling covariance, hurdle
 components, phylogenetic terms, and bivariate or mixed negative-binomial models
 are later phases.
+
+## Implemented Zero-Truncated Negative Binomial 2
+
+The positive-count NB2 path is fixed-effect zero-truncated regression:
+
+```text
+y_i | y_i > 0, mu_i, sigma_i ~ NB2(mu_i, size_i) truncated at zero
+eta_mu_i = X_mu[i, ] beta_mu
+eta_sigma_i = X_sigma[i, ] beta_sigma
+mu_i = exp(eta_mu_i)
+sigma_i = exp(eta_sigma_i)
+size_i = 1 / sigma_i^2
+Z_i = 1 - NB2(0 | mu_i, size_i)
+Pr(y_i = k | y_i > 0) = NB2(k | mu_i, size_i) / Z_i
+E[y_i | y_i > 0] = mu_i / Z_i
+```
+
+The TMB branch reuses the AD-stable NB2 log-density and subtracts the
+normalising constant:
+
+```text
+log f_trunc(y_i) = log f_NB2(y_i) - log(Z_i)
+```
+
+where `log(Z_i) = log(1 - exp(log Pr_NB2(0)))` is evaluated with a small
+`log(1 - exp(x))` helper to avoid cancellation when almost all mass is at
+zero. Matching R syntax:
+
+```r
+drmTMB(
+  bf(count ~ habitat, sigma ~ treatment),
+  family = truncated_nbinom2(),
+  data = dat
+)
+```
+
+For `truncated_nbinom2()` fits, `predict(fit, dpar = "mu")` returns the
+untruncated NB2 component mean, `sigma(fit)` returns the NB2 overdispersion
+scale, and `fitted(fit)` returns the observed positive-count mean
+`mu / (1 - Pr_NB2(0))`. The response must contain positive integer counts
+after missing-row filtering. Hurdle models using `hu ~ predictors` remain a
+later phase.
 
 ## Implemented Zero-Inflated Negative Binomial 2
 

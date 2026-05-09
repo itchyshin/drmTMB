@@ -5040,3 +5040,102 @@ Team learning:
 - Rose's after-task audit should keep checking generated pkgdown pages, not
   only source docs, because reference and news pages are where stale status
   often survives.
+
+## 2026-05-09 — Fixed-Effect Zero-Truncated NB2 Family
+
+Task: implement `truncated_nbinom2()` for fixed-effect positive-count
+negative-binomial 2 distributional regression.
+
+Implemented:
+
+- added exported `truncated_nbinom2()` family constructor with
+  `dpars = c("mu", "sigma")` and links `mu = "log"`, `sigma = "log"`;
+- added `drm_build_truncated_nbinom2_spec()` for fixed-effect univariate
+  positive-count models, including default `sigma ~ 1`, complete-case
+  filtering before response validation, positive-integer checks, and clear
+  rejections for `zi`, `hu`, random effects, `sd(group)`, `meta_known_V()`,
+  `mvbind()`, and `cbind()` denominator syntax;
+- added TMB `model_type = 11` with an NB2 log density minus the
+  zero-truncation normalising constant `log(1 - Pr_NB2(0))`;
+- updated `predict()`, `fitted()`, `sigma()`, `simulate()`, `residuals()`,
+  `print()`, and the internal family-link table for zero-truncated NB2;
+- added simulation recovery, independent `stats::dnbinom()` likelihood,
+  response-scale method, complete-case, Poisson-limit, factor-predictor,
+  scale-edge, and unsupported-input tests;
+- synchronized README, NEWS, DESCRIPTION, pkgdown reference, formula grammar,
+  family registry, likelihood design, testing strategy, distribution roadmap,
+  family-link contract, source map, response-family article, testing guide,
+  and known limitations.
+
+Commands run:
+
+- `Rscript -e "parse('R/drmTMB.R'); parse('R/methods.R'); parse('R/family.R'); parse('tests/testthat/test-truncated-nbinom2-location-scale.R')"`
+- `Rscript -e "devtools::load_all()"`
+- `Rscript -e "devtools::document()"` (first run warned because the new
+  `truncated_nbinom2` Rd topic did not exist yet; rerun after generation was
+  clean)
+- `Rscript -e "devtools::test(filter = 'truncated-nbinom2|family-link-contract')"`
+- `Rscript -e "devtools::test(filter = 'nbinom2|zi-nbinom2')"`
+- `air format .` (failed: `air` is not installed locally)
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `git diff --check`
+- ``rg -n 'truncated_nbinom2\(\).*planned|planned.*truncated_nbinom2|implement `truncated_nbinom2|practical next-family order is `truncated_nbinom2|Hurdle, truncated|truncated.*staged|Positive-count models should come before|zero-truncated.*planned' README.md ROADMAP.md NEWS.md DESCRIPTION docs vignettes R tests man --glob '!docs/dev-log/**'``
+- `rg -n 'model_type = 11|family = truncated_nbinom2\(\)|Zero-truncated negative|zero-truncated NB2|truncated_nbinom2\(\).*fits|fitted\(\).*Pr_NB2\(0\)' README.md ROADMAP.md NEWS.md DESCRIPTION _pkgdown.yml docs/design vignettes man R tests/testthat --glob '!docs/dev-log/after-task/**'`
+- `Rscript -e "devtools::test()"`
+- `Rscript -e "pkgdown::build_site()"`
+- `Rscript tools/fix-pkgdown-favicon-mime.R pkgdown-site`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- ``rg -n 'truncated_nbinom2\(\).*planned|planned.*truncated_nbinom2|implement `truncated_nbinom2|practical next-family order is `truncated_nbinom2|Hurdle, truncated|truncated.*staged|zero-truncated.*planned' README.md ROADMAP.md NEWS.md DESCRIPTION docs vignettes man pkgdown-site --glob '!docs/dev-log/after-task/**' --glob '!pkgdown-site/search.json'``
+- `rg -n 'Zero-truncated negative|zero-truncated NB2|truncated_nbinom2|model_type = 11|positive-count mean' pkgdown-site/articles pkgdown-site/reference pkgdown-site/news pkgdown-site/index.html pkgdown-site/ROADMAP.html --glob '!pkgdown-site/search.json'`
+- `Rscript -e "devtools::check()"`
+
+Results:
+
+- targeted truncated-NB2 and family-link tests: 109 passed, 0 failed, 0
+  warnings, 0 skips;
+- neighbouring NB2, zero-inflated NB2, and truncated-NB2 tests: 148 passed, 0
+  failed, 0 warnings, 0 skips;
+- full `devtools::test()`: 1104 passed, 0 failed, 0 warnings, 0 skips;
+- `pkgdown::check_pkgdown()`: no problems found before and after site build;
+- `pkgdown::build_site()`: completed successfully and generated
+  `reference/truncated_nbinom2.html`;
+- favicon post-processing completed successfully;
+- `git diff --check`: clean;
+- `devtools::check()`: 0 errors, 0 warnings, 0 notes;
+- stale-wording scan found no active source docs still describing
+  `truncated_nbinom2()` as planned; the generated pkgdown meta description
+  matched the broader pattern `truncated.*staged` only because it correctly
+  says zero-truncated count models are implemented and hurdle/skewness models
+  are staged later.
+
+Tests of the tests:
+
+- independent likelihood test compares fitted `logLik()` to
+  `stats::dnbinom(y, mu, size) - log(1 - Pr_NB2(0))`;
+- Poisson-limit test fixes `sigma` near zero and compares the objective to a
+  hand-coded zero-truncated Poisson likelihood;
+- complete-case test verifies invalid positive-count responses are dropped
+  before validation when their predictors are missing;
+- unsupported-input tests cover `nu`, `zi`, planned `hu`, duplicate `sigma`,
+  missing response, zero/noninteger/negative/all-missing responses, random
+  effects, `meta_known_V()`, `sd(id)`, `mvbind()`, and `cbind()`.
+
+Known limitations:
+
+- `truncated_nbinom2()` is fixed-effect and univariate only;
+- `mu` and `sigma` describe the untruncated NB2 component; users should use
+  `fitted()` for the expected observed positive count;
+- hurdle models with `hu ~ predictors`, random effects, known sampling
+  covariance, phylogenetic/spatial terms, bivariate count models, and mixed
+  composed count families remain later phases.
+
+Team learning:
+
+- zero-truncated and hurdle models need sharply separated language because
+  they share the truncated count kernel but answer different data-generating
+  questions;
+- extractor semantics must be checked whenever `predict(mu)` is not the same
+  quantity as `fitted()`;
+- generated pkgdown meta descriptions can trigger broad stale-wording scans,
+  so future audits should classify those hits rather than blindly rewrite
+  correct summaries.

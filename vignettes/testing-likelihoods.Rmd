@@ -276,6 +276,34 @@ The test should compare `logLik(fit)` with `loglik` at the fitted parameter
 values. This catches transform mistakes such as forgetting the Jacobian-like
 `-log(sigma)` density adjustment for scaled Student-t residuals.
 
+For zero-truncated NB2, the independent likelihood must include the
+normalizing probability that the untruncated NB2 count component is positive:
+
+```text
+y_i | y_i > 0, mu_i, sigma_i ~ truncated NB2(mu_i, sigma_i)
+Pr_trunc(y_i) = Pr_NB2(y_i) / (1 - Pr_NB2(0))
+```
+
+```{r independent-truncated-nbinom2-likelihood, eval = FALSE}
+eta_mu <- X_mu %*% beta_mu
+eta_sigma <- X_sigma %*% beta_sigma
+
+mu <- exp(as.vector(eta_mu))
+sigma <- exp(as.vector(eta_sigma))
+size <- 1 / sigma^2
+
+log_p0 <- stats::dnbinom(0, mu = mu, size = size, log = TRUE)
+log_positive <- log1p(-exp(log_p0))
+loglik <- sum(
+  stats::dnbinom(y, mu = mu, size = size, log = TRUE) - log_positive
+)
+```
+
+The matching test should also check that all responses are positive integers,
+that zeros are rejected, that `predict(fit, dpar = "mu")` returns the
+untruncated NB2 component mean, and that `fitted(fit)` returns
+`mu / (1 - Pr_NB2(0))`.
+
 ## Bivariate and coscale checks
 
 The first bivariate Gaussian location-coscale model uses:

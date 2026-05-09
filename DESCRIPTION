@@ -11,11 +11,10 @@ Description: Fast distributional regression models for univariate and
     implementation focuses on Gaussian and Student-t location-scale models,
     known sampling covariance, phylogenetic location effects, random-effect
     scale models, bivariate residual correlation, positive-continuous and
-    strict-proportion families, and fixed-effect Poisson and negative-binomial
-    count models, including zero-inflation via formulae for structural-zero
-    probability.
-    Hurdle, truncated, skewness, and additional response-family models are
-    staged for later phases.
+    strict-proportion families, and fixed-effect Poisson, negative-binomial,
+    zero-inflated, and zero-truncated count models.
+    Hurdle, skewness, and additional response-family models are staged for
+    later phases.
 License: GPL (>= 3)
 URL: https://itchyshin.github.io/drmTMB/, https://github.com/itchyshin/drmTMB
 BugReports: https://github.com/itchyshin/drmTMB/issues

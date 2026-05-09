@@ -66,6 +66,7 @@ reference:
       - student
       - lognormal
       - nbinom2
+      - truncated_nbinom2
       - biv_gaussian
   - title: Structured-effect markers
     desc: Phylogenetic and planned spatial structured covariance terms.

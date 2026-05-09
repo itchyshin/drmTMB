@@ -6,8 +6,9 @@
 #' location-scale models, Gamma mean-CV models for positive responses,
 #' fixed-effect beta mean-scale models for strict proportions,
 #' fixed-effect Poisson mean, zero-inflated Poisson, negative-binomial
-#' mean-dispersion, and zero-inflated negative-binomial mean-dispersion models
-#' for counts, Gaussian random intercepts, independent numeric random slopes,
+#' mean-dispersion, zero-inflated negative-binomial mean-dispersion, and
+#' zero-truncated negative-binomial mean-dispersion models for counts,
+#' Gaussian random intercepts, independent numeric random slopes,
 #' and labelled or unlabelled correlated numeric random intercept-slope blocks
 #' in the location formula,
 #' known sampling covariance through `meta_known_V(V = V)`, residual-scale
@@ -22,9 +23,10 @@
 #' @param formula A `drm_formula` object created by [drm_formula()] or [bf()].
 #' @param family A response family, such as [stats::gaussian()], [student()],
 #'   [lognormal()], [stats::Gamma()] with `link = "log"`, [beta()],
-#'   [stats::poisson()] with `link = "log"`, [nbinom2()], or
-#'   [biv_gaussian()]. Adding `zi ~ predictors` to a Poisson or `nbinom2()`
-#'   model fits the corresponding zero-inflated count model. The current
+#'   [stats::poisson()] with `link = "log"`, [nbinom2()],
+#'   [truncated_nbinom2()], or [biv_gaussian()]. Adding `zi ~ predictors` to
+#'   a Poisson or `nbinom2()` model fits the corresponding zero-inflated count
+#'   model. The current
 #'   bivariate Gaussian engine also accepts
 #'   `family = c(gaussian(), gaussian())` and
 #'   `family = list(gaussian(), gaussian())`.
@@ -56,6 +58,7 @@ drmTMB <- function(formula, family = stats::gaussian(), data, control = list(), 
     beta = drm_build_beta_ls_spec(formula, data, env = parent.frame()),
     poisson = drm_build_poisson_spec(formula, data, env = parent.frame()),
     nbinom2 = drm_build_nbinom2_spec(formula, data, env = parent.frame()),
+    truncated_nbinom2 = drm_build_truncated_nbinom2_spec(formula, data, env = parent.frame()),
     biv_gaussian = drm_build_biv_gaussian_spec(formula, data, env = parent.frame())
   )
 
@@ -128,6 +131,9 @@ drm_family_type <- function(family) {
   if (inherits(family, "drm_family") && identical(family$name, "nbinom2")) {
     return("nbinom2")
   }
+  if (inherits(family, "drm_family") && identical(family$name, "truncated_nbinom2")) {
+    return("truncated_nbinom2")
+  }
   if (inherits(family, "drm_family") && identical(family$name, "beta")) {
     return("beta")
   }
@@ -160,7 +166,7 @@ drm_family_type <- function(family) {
     ))
   }
   cli::cli_abort(
-    "Currently supported families are {.code gaussian()}, {.fn student}, {.fn lognormal}, {.code Gamma(link = \"log\")}, {.fn beta}, {.code poisson(link = \"log\")}, {.fn nbinom2}, {.fn biv_gaussian}, {.code c(gaussian(), gaussian())}, and {.code list(gaussian(), gaussian())}. Zero-inflated Poisson and NB2 models use the same family route plus a {.code zi ~ ...} formula."
+    "Currently supported families are {.code gaussian()}, {.fn student}, {.fn lognormal}, {.code Gamma(link = \"log\")}, {.fn beta}, {.code poisson(link = \"log\")}, {.fn nbinom2}, {.fn truncated_nbinom2}, {.fn biv_gaussian}, {.code c(gaussian(), gaussian())}, and {.code list(gaussian(), gaussian())}. Zero-inflated Poisson and NB2 models use the same family route plus a {.code zi ~ ...} formula."
   )
 }
 
@@ -1106,6 +1112,131 @@ drm_build_nbinom2_spec <- function(formula, data, env = parent.frame()) {
     dpars = if (has_zi) c("mu", "sigma", "zi") else c("mu", "sigma"),
     start = if (has_zi) zi_nbinom2_start(y, X_mu, X_sigma, X_zi) else nbinom2_start(y, X_mu, X_sigma),
     map = if (has_zi) zi_nbinom2_map() else nbinom2_map(),
+    random_names = NULL
+  )
+  spec$tmb_data <- make_tmb_data(spec)
+  spec$nobs <- length(spec$y)
+  spec
+}
+
+drm_build_truncated_nbinom2_spec <- function(formula, data, env = parent.frame()) {
+  entries <- formula$entries
+  dpars <- vapply(entries, `[[`, character(1), "dpar")
+  is_sd_dpar <- startsWith(dpars, "sd(")
+
+  unsupported <- setdiff(dpars[!is_sd_dpar], c("mu", "sigma"))
+  if (length(unsupported) > 0L) {
+    cli::cli_abort(c(
+      "{.fn truncated_nbinom2} models only support {.code mu} and optional {.code sigma}.",
+      "x" = "Unsupported parameter{?s}: {.val {unsupported}}.",
+      "i" = "{.code hu} hurdle models are planned after the zero-truncated count likelihood is tested."
+    ))
+  }
+  if (any(is_sd_dpar)) {
+    cli::cli_abort(c(
+      "Random-effect scale formulae are not implemented for {.fn truncated_nbinom2} models.",
+      "i" = "Start with fixed-effect positive-count formulas such as {.code bf(count ~ x, sigma ~ z)}."
+    ))
+  }
+  if (sum(dpars == "mu") != 1L) {
+    cli::cli_abort("A {.fn truncated_nbinom2} model requires exactly one location formula.")
+  }
+  if (sum(dpars == "sigma") > 1L) {
+    cli::cli_abort("A {.fn truncated_nbinom2} model can have at most one overdispersion {.code sigma} formula.")
+  }
+
+  mu_entry <- entries[[which(dpars == "mu")]]
+  sigma_entry <- if (any(dpars == "sigma")) {
+    entries[[which(dpars == "sigma")]]
+  } else {
+    default_dpar_entry("sigma", quote(1))
+  }
+
+  if (is.na(mu_entry$response)) {
+    cli::cli_abort("The {.code mu} formula must include a response on the left-hand side.")
+  }
+  if (is_mvbind_lhs(mu_entry$lhs)) {
+    cli::cli_abort(c(
+      "{.fn mvbind} shorthand is only available for two-response Gaussian models.",
+      "x" = "{.fn truncated_nbinom2} models currently support one positive-count response."
+    ))
+  }
+  if (is_cbind_lhs(mu_entry$lhs)) {
+    cli::cli_abort(c(
+      "{.fn truncated_nbinom2} models require a single positive-count response.",
+      "x" = "Denominator syntax such as {.code cbind(successes, failures)} is planned for beta-binomial models, not zero-truncated count models."
+    ))
+  }
+
+  meta <- extract_meta_known_v(mu_entry$rhs)
+  if (!is.null(meta$V)) {
+    cli::cli_abort(c(
+      "{.fn meta_known_V} is not implemented for {.fn truncated_nbinom2} models.",
+      "i" = "Use {.code family = gaussian()} for Gaussian meta-analysis with known sampling covariance."
+    ))
+  }
+  mu_entry$rhs <- meta$rhs
+
+  for (entry in list(mu_entry, sigma_entry)) {
+    drm_reject_phase1_terms(entry$rhs, entry$dpar)
+  }
+
+  f_mu <- drm_entry_formula(mu_entry, response = TRUE)
+  f_sigma <- drm_entry_formula(sigma_entry, response = FALSE)
+  vars <- unique(c(all.vars(f_mu), all.vars(f_sigma)))
+  if (length(vars) > 0L) {
+    keep <- stats::complete.cases(data[, vars, drop = FALSE])
+  } else {
+    keep <- rep(TRUE, nrow(data))
+  }
+  data_model <- data[keep, , drop = FALSE]
+
+  mf_mu <- stats::model.frame(f_mu, data = data_model, na.action = stats::na.omit)
+  mf_sigma <- stats::model.frame(f_sigma, data = data_model, na.action = stats::na.omit)
+  y <- stats::model.response(mf_mu)
+
+  if (length(y) == 0L) {
+    cli::cli_abort("No complete observations remain after applying model missingness rules.")
+  }
+  count_tolerance <- sqrt(.Machine$double.eps)
+  if (!all(is.finite(y)) || any(y <= 0) || any(abs(y - round(y)) > count_tolerance)) {
+    cli::cli_abort(c(
+      "{.fn truncated_nbinom2} models require positive integer count response values.",
+      "x" = "The response {.val {mu_entry$response}} contains zero, negative, non-integer, or non-finite values after missing-row filtering."
+    ))
+  }
+
+  X_mu <- stats::model.matrix(stats::delete.response(stats::terms(mf_mu)), mf_mu)
+  X_sigma <- stats::model.matrix(stats::terms(mf_sigma), mf_sigma)
+  if (nrow(X_sigma) != length(y)) {
+    cli::cli_abort("Internal model-frame mismatch in truncated_nbinom2 model.")
+  }
+
+  spec <- list(
+    model_type = "truncated_nbinom2",
+    y = as.numeric(y),
+    V_known = rep(0, length(y)),
+    V_known_diag = rep(0, length(y)),
+    V_known_type = "none",
+    has_known_v = FALSE,
+    X = list(mu = X_mu, sigma = X_sigma),
+    terms = list(
+      mu = stats::delete.response(stats::terms(mf_mu)),
+      sigma = stats::terms(mf_sigma)
+    ),
+    model_frame = list(mu = mf_mu, sigma = mf_sigma),
+    random = list(
+      mu = empty_random_mu_structure(nrow(data_model)),
+      sigma = empty_random_sigma_structure(nrow(data_model))
+    ),
+    random_scale = list(mu = empty_sd_mu_structure(1L)),
+    structured = list(phylo_mu = empty_phylo_mu_structure()),
+    data = data_model,
+    variables = vars,
+    keep = keep,
+    dpars = c("mu", "sigma"),
+    start = truncated_nbinom2_start(y, X_mu, X_sigma),
+    map = truncated_nbinom2_map(),
     random_names = NULL
   )
   spec$tmb_data <- make_tmb_data(spec)
@@ -2617,6 +2748,20 @@ nbinom2_map <- function() {
   lognormal_ls_map()
 }
 
+truncated_nbinom2_start <- function(y, X_mu, X_sigma) {
+  nb <- nbinom2_start(y, X_mu, X_sigma)
+  mu <- exp(as.vector(X_mu %*% nb$beta_mu))
+  sigma <- exp(as.vector(X_sigma %*% nb$beta_sigma))
+  p0 <- stats::dnbinom(0, size = 1 / sigma^2, mu = mu)
+  q <- pmin(pmax(1 - p0, 1e-6), 1)
+  nb$beta_mu[[1L]] <- nb$beta_mu[[1L]] + log(mean(q))
+  nb
+}
+
+truncated_nbinom2_map <- function() {
+  nbinom2_map()
+}
+
 zi_nbinom2_start <- function(y, X_mu, X_sigma, X_zi) {
   nb <- nbinom2_start(y, X_mu, X_sigma)
   beta_mu <- nb$beta_mu
@@ -3217,6 +3362,45 @@ make_tmb_data <- function(spec) {
       log_det_Q_phylo = 0
     ))
   }
+  if (identical(spec$model_type, "truncated_nbinom2")) {
+    return(list(
+      model_type = 11L,
+      y = spec$y,
+      V_known = spec$V_known_diag,
+      V_known_matrix = dummy_matrix,
+      V_known_type = 0L,
+      y1 = numeric(1),
+      y2 = numeric(1),
+      X_mu = spec$X$mu,
+      X_sigma = spec$X$sigma,
+      X_nu = dummy_matrix,
+      X_zi = dummy_matrix,
+      X_sd_mu = dummy_matrix,
+      has_sd_mu_model = 0L,
+      X_mu1 = dummy_matrix,
+      X_mu2 = dummy_matrix,
+      X_sigma1 = dummy_matrix,
+      X_sigma2 = dummy_matrix,
+      X_rho12 = dummy_matrix,
+      n_mu_re_terms = 0L,
+      n_mu_re_cors = 0L,
+      mu_re_index = matrix(0L, nrow = 1L, ncol = 1L),
+      mu_re_value = dummy_matrix,
+      mu_re_term = 0L,
+      mu_re_pos = 0L,
+      mu_re_cor_id = -1L,
+      mu_re_pair_index = -1L,
+      mu_re_sd_row = -1L,
+      n_sigma_re_terms = 0L,
+      sigma_re_index = matrix(0L, nrow = 1L, ncol = 1L),
+      sigma_re_value = dummy_matrix,
+      sigma_re_term = 0L,
+      has_phylo_mu = 0L,
+      phylo_mu_node_index = 0L,
+      Q_phylo = dummy_sparse,
+      log_det_Q_phylo = 0
+    ))
+  }
   if (identical(spec$model_type, "zi_nbinom2")) {
     return(list(
       model_type = 9L,
@@ -3336,7 +3520,8 @@ split_tmb_parameters <- function(par, spec) {
       identical(spec$model_type, "lognormal") ||
       identical(spec$model_type, "gamma") ||
       identical(spec$model_type, "beta") ||
-      identical(spec$model_type, "nbinom2")) {
+      identical(spec$model_type, "nbinom2") ||
+      identical(spec$model_type, "truncated_nbinom2")) {
     beta_mu <- unname(par$beta_mu)
     beta_sigma <- unname(par$beta_sigma)
     names(beta_mu) <- colnames(spec$X$mu)

@@ -2,8 +2,8 @@
 
 A fast TMB-based distributional regression package for broadly useful
 univariate and bivariate distributional regression. The current implementation
-starts with Gaussian, Student-t, lognormal, Gamma, beta, Poisson, and negative
-binomial models,
+starts with Gaussian, Student-t, lognormal, Gamma, beta, Poisson, negative
+binomial, and zero-truncated negative-binomial models,
 known-covariance meta-analysis, phylogenetic location effects, random-effect
 scale models, and bivariate Gaussian residual-correlation models. The long-term
 design also includes skewness, further zero-inflation paths, and additional response
@@ -24,7 +24,9 @@ means more variation around the mean. For Poisson models, `mu` is the count
 mean and variance; there is no fitted residual `sigma` parameter in the first
 Poisson path. For negative-binomial 2 models, `mu` is the count mean and
 `sigma` is an overdispersion scale in `Var(y) = mu + sigma^2 * mu^2`, not a
-residual standard deviation.
+residual standard deviation. For zero-truncated NB2 models, `mu` and `sigma`
+describe the untruncated NB2 component, while `fitted()` returns the observed
+positive-count mean conditional on `y > 0`.
 
 The current implementation supports Gaussian location-scale models, including
 fixed effects, random intercepts, independent numeric random slopes, and
@@ -231,6 +233,31 @@ Here `mu` and `sigma` describe the conditional NB2 count component, while
 `zi` is the structural-zero probability. `fitted()` returns `(1 - zi) * mu`.
 Random effects, hurdle components, known sampling covariance, phylogenetic or
 spatial structured effects, and bivariate count models are later phases.
+
+Zero-truncated NB2 models are implemented for positive counts when zero is
+absent by design:
+
+```text
+y_i | y_i > 0, mu_i, sigma_i ~ NB2(mu_i, size_i) truncated at zero
+log(mu_i) = beta_0 + beta_1 habitat_i
+log(sigma_i) = gamma_0 + gamma_1 treatment_i
+size_i = 1 / sigma_i^2
+Pr(y_i = k | y_i > 0) = Pr_NB2(y_i = k) / (1 - Pr_NB2(0))
+E[y_i | y_i > 0] = mu_i / (1 - Pr_NB2(0))
+```
+
+```r
+drmTMB(
+  drm_formula(count ~ habitat, sigma ~ treatment),
+  family = truncated_nbinom2(),
+  data = dat
+)
+```
+
+Use this when observations are conditional on being positive, such as counts
+recorded only after an event occurred. `predict(fit, dpar = "mu")` returns
+the untruncated NB2 component mean, while `fitted(fit)` returns the
+positive-count mean. Hurdle syntax with `hu ~ predictors` remains planned.
 
 ```r
 drmTMB(
@@ -479,8 +506,9 @@ Student-t `mu`, `sigma`, and `nu` models, fixed-effect lognormal `mu` and
 `family = beta()`, fixed-effect Poisson mean models with
 `family = poisson(link = "log")`, fixed-effect zero-inflated Poisson models
 using `family = poisson(link = "log")` plus `zi ~ predictors`, fixed-effect negative-binomial 2
-mean-dispersion models with `family = nbinom2()`, fixed-effect zero-inflated
-NB2 models using `family = nbinom2()` plus `zi ~ predictors`,
+mean-dispersion models with `family = nbinom2()`, fixed-effect
+zero-truncated NB2 models with `family = truncated_nbinom2()`,
+fixed-effect zero-inflated NB2 models using `family = nbinom2()` plus `zi ~ predictors`,
 `meta_known_V(V = V)` support for diagonal and
 dense known sampling covariance, intercept-only univariate Gaussian
 phylogenetic location effects such as

@@ -120,8 +120,9 @@ distributional regression models using TMB.
 ## Phase 7: Robust and Positive Continuous Families
 
 - Status: fixed-effect univariate Student-t location-scale-shape, lognormal
-  location-scale, Gamma mean-CV, beta mean-scale, Poisson mean, and
-  negative-binomial 2 mean-dispersion models are implemented.
+  location-scale, Gamma mean-CV, beta mean-scale, Poisson mean,
+  negative-binomial 2 mean-dispersion, and zero-truncated NB2
+  mean-dispersion models are implemented.
 - Harden and extend Student-t, lognormal, Gamma, beta, Poisson, and
   negative-binomial models before adding skew-normal and skew-t families.
 - Use `lognormal()` for positive continuous responses where `mu` and `sigma`
@@ -143,10 +144,13 @@ distributional regression models using TMB.
   count model, including optional `zi ~ predictors` for zero-inflated Poisson
   models. `nbinom2()` is implemented as a fixed-effect `mu`/`sigma`
   overdispersed count model with `Var(y) = mu + sigma^2 * mu^2`, including
-  optional `zi ~ predictors` for zero-inflated NB2 models. `beta()` is
-  implemented for strict continuous proportions with public `sigma`.
-- Next family sequence: `truncated_nbinom2()` for positive counts, hurdle NB2 using
-  `hu ~ predictors`, and then univariate ordinal models.
+  optional `zi ~ predictors` for zero-inflated NB2 models.
+  `truncated_nbinom2()` is implemented for positive counts where `mu` and
+  `sigma` describe the untruncated NB2 component and `fitted()` returns the
+  conditional positive-count mean. `beta()` is implemented for strict
+  continuous proportions with public `sigma`.
+- Next family sequence: hurdle NB2 using `hu ~ predictors`, and then
+  univariate ordinal models.
 - Add beta-binomial, zero-one-inflated beta, ordered logit/probit, COM-Poisson,
   generalized Poisson, and related families according to the distribution
   roadmap after their parameter-link and comparator contracts are documented.
