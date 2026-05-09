@@ -514,7 +514,21 @@ test_that("bivariate Gaussian rejects unsupported Phase 3 syntax clearly", {
       family = biv_gaussian(),
       data = dat
     ),
-    "unsupported model terms"
+    "Bivariate random-effect syntax is planned"
+  )
+  expect_error(
+    drmTMB(
+      bf(
+        mu1 = y1 ~ x + (1 + x | p | id),
+        mu2 = y2 ~ x + (1 + x | p | id),
+        sigma1 = ~ 1,
+        sigma2 = ~ 1,
+        rho12 = ~ x
+      ),
+      family = c(gaussian(), gaussian()),
+      data = dat
+    ),
+    "labelled group-level covariance blocks"
   )
   expect_error(
     drmTMB(

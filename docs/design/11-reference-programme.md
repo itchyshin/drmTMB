@@ -98,6 +98,27 @@ Package implications:
   random-effect-scale components where identifiable.
 - This is distinct from residual bivariate `rho12`.
 
+## Ordinal Location-Scale Nest Success
+
+Local source:
+
+```text
+/Users/z3437171/Downloads/main.pdf
+```
+
+Package implications:
+
+- Ordered outcomes such as fledging categories need an ordinal family with
+  cutpoints; they should not be treated as continuous Gaussian responses.
+- The first ordinal design should pair a location equation for expected
+  reproductive success with a scale or discrimination equation for outcome
+  consistency.
+- If public `sigma` is used for ordinal scale, document the direction:
+  larger `sigma` means more diffuse categories, while a reported
+  discrimination summary can be `zeta = 1 / sigma`.
+- This is a strong ecology/evolution vignette candidate once a univariate
+  cumulative-logit path is implemented.
+
 ## Phylogenetic Location-Scale Models
 
 Local source:

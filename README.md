@@ -562,4 +562,7 @@ only experimentally to harder parameters such as `rho12`.
 The long-term correlation roadmap is broader than residual `rho12`: bivariate
 structured models should also expose phylogenetic, non-phylogenetic species,
 spatial, study, site, and other group-level correlations as separate covariance
-summaries.
+summaries. The planned correlation-pair table should identify the level,
+group, covariance block, distributional parameters, responses, and
+random-effect coefficients for each pair so users can distinguish residual
+coupling from mean-mean, scale-scale, and mean-scale correlations.

@@ -344,14 +344,26 @@ ordinary fixed-effect formulas in the first implementation.
 First univariate ordinal path:
 
 ```text
-Pr(y_i <= k) = link^{-1}(theta_k - eta_i)
-eta_i = X_mu[i, ] beta_mu
+Pr(y_i <= k) = logit^{-1}((theta_k - mu_i) / sigma_i)
+mu_i = X_mu[i, ] beta_mu
+log(sigma_i) = X_sigma[i, ] beta_sigma
 theta_1 < theta_2 < ... < theta_{K-1}
 ```
 
-Distributional extensions such as threshold scale or discrimination models are
-later phases. Bivariate ordinal correlation is a research project because the
-latent correlation is harder to identify and validate.
+This treats public `sigma` as ordinal scale: larger `sigma_i` spreads the
+latent cumulative distribution across cutpoints and means less consistent
+ordinal outcomes. A discrimination or consistency summary can be reported as
+`zeta_i = 1 / sigma_i`. This matches the seabird nest-success example of
+Ortega et al. (2026), where higher discrimination means clearer separation
+among ordered fledging categories.
+
+An alternative implementation could expose a native `zeta` parameter directly,
+but that would require an explicit formula-grammar decision. Do not silently
+reuse `sigma` for a parameter where larger values mean more consistency unless
+the documentation and tests make that direction unavoidable.
+
+Bivariate ordinal correlation is a research project because the latent
+correlation is harder to identify and validate.
 
 ## Implementation Checklist Before New Families
 

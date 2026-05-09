@@ -112,6 +112,8 @@ correlations when the data and simulations support them.
 Extractor names should therefore be level-specific, for example
 `corpars$phylo`, `corpars$species`, `corpars$spatial`, or labelled
 group-level covariance blocks. Do not use bare `rho12` for these quantities.
+The general long-format pair plan is in
+`docs/design/20-coscale-correlation-pairs.md`.
 
 ## Implementation Stages
 

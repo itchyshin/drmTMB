@@ -1563,6 +1563,14 @@ drm_reject_phase1_terms <- function(rhs, dpar) {
     logical(1)
   )]
   if (length(hits) > 0L) {
+    if ("|" %in% hits && dpar %in% c("mu1", "mu2", "sigma1", "sigma2", "rho12")) {
+      cli::cli_abort(c(
+        "Bivariate random-effect syntax is planned, not implemented.",
+        "x" = "The {.code {dpar}} formula contains unsupported model terms: {.val {hits}}.",
+        "i" = "Use fixed-effect bivariate formulas with residual {.code rho12} for now.",
+        "i" = "Future bivariate double-hierarchical models will use labelled group-level covariance blocks, separate from residual {.code rho12}."
+      ))
+    }
     cli::cli_abort(c(
       "This formula contains unsupported model terms.",
       "x" = "The {.code {dpar}} formula contains unsupported term{?s}: {.val {hits}}."

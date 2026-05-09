@@ -330,17 +330,18 @@ For beta-binomial models, `sigma` would describe extra-binomial variation, not
 residual standard deviation.
 
 Ordinal models are planned as univariate first-pass models with ordered
-cutpoints:
+cutpoints and, later, an ordinal scale formula:
 
 ```text
-Pr(y_i <= k) = link^{-1}(theta_k - eta_i)
-eta_i = beta_0 + beta_1 habitat_i
+Pr(y_i <= k) = logit^{-1}((theta_k - mu_i) / sigma_i)
+mu_i = beta_0 + beta_1 habitat_i
+log(sigma_i) = gamma_0 + gamma_1 mismatch_i
 theta_1 < theta_2 < ... < theta_{K-1}
 ```
 
 ```r
 drmTMB(
-  bf(score ~ habitat),
+  bf(score ~ habitat, sigma ~ mismatch),
   family = cumulative_logit(),
   data = dat
 )
@@ -349,6 +350,13 @@ drmTMB(
 Use an ordinal model for ordered scores such as disease severity, breeding
 condition, or habitat quality classes where category order matters but
 distances between categories are not numeric measurements.
+
+For an ecology/evolution example, nest success can be recorded as ordered
+fledging categories. The location equation models expected reproductive
+success, while the scale equation models how consistently observations fall
+into separated categories. With the convention above, larger `sigma` means
+more diffuse outcomes; a reported discrimination summary could be
+`zeta = 1 / sigma`.
 
 Bivariate ordinal and mixed-response correlation models remain research
 features because the latent correlation and residual `rho12` interpretation

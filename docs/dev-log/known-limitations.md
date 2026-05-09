@@ -15,6 +15,9 @@
   implemented.
 - Fixed-effect bivariate Gaussian location-scale-coscale models are
   implemented with `mu1`, `mu2`, `sigma1`, `sigma2`, and `rho12` formulas.
+  Bivariate group-level random effects and double-hierarchical correlation
+  pairs are planned only; residual `rho12` should not be interpreted as a
+  phylogenetic, spatial, or group-level covariance parameter.
 - Fixed-effect univariate lognormal location-scale models are implemented for
   positive finite responses. `mu` and `sigma` are on the log-response scale;
   random effects, known sampling covariance, phylogenetic terms, and bivariate

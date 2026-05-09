@@ -5227,3 +5227,81 @@ Team learning:
   distinction explicit in docs and tests;
 - the next skill improvement should be a small local formatting helper or
   installing `air`, because the desired formatter is still absent.
+
+## 2026-05-09 — Bivariate Correlation-Pair and Ordinal Guard Design
+
+Goal:
+
+- clarify that bivariate double-hierarchical random-effect covariance blocks
+  remain planned, separate from residual `rho12`;
+- create a dedicated coscale correlation-pair design note before implementing
+  complex pair extraction or likelihoods;
+- fold Ortega et al. (2026) nest-success ordinal location-scale motivation
+  into the distribution roadmap and family-link contract.
+
+Changes:
+
+- added `docs/design/20-coscale-correlation-pairs.md`;
+- updated bivariate unsupported random-effect errors so `(1 | id)` and
+  `(1 + x | p | id)` in `mu1`/`mu2` point users to the planned bivariate
+  covariance-block path instead of a generic unsupported-term message;
+- added bivariate guard tests in `tests/testthat/test-biv-gaussian.R`;
+- updated the distribution roadmap, family-link contract, random-effects note,
+  location-coscale phylogenetic note, formula-grammar vignette, response-family
+  vignette, README, ROADMAP, reference programme, and known limitations;
+- added `Ortega2026SeabirdPredictability` to `REFERENCES.bib`.
+
+Commands run:
+
+- `Rscript -e "devtools::test(filter = 'biv-gaussian')"`
+- `Rscript -e "devtools::test(filter = 'formula-grammar|gaussian-random-intercepts|gaussian-random-effect-scale')"`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `Rscript -e "pkgdown::build_site()"`
+- `Rscript tools/fix-pkgdown-favicon-mime.R pkgdown-site`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `Rscript -e "devtools::test()"`
+- `Rscript -e "devtools::check()"`
+- `git diff --check`
+- `air format .` (failed: `air` is not installed locally)
+- `rg -n "Bivariate random-effect syntax is planned|correlation-pair|corpairs|zeta|cumulative_logit|O.Dea-style|O'Dea-style|biological data|rho ~|tau ~|meta_gaussian" README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes R tests REFERENCES.bib`
+- `rg -n "Bivariate random-effect syntax is planned|correlation-pair|corpairs|zeta|cumulative_logit|O.Dea-style|O'Dea-style|biological data|rho ~|tau ~|meta_gaussian" pkgdown-site README.md ROADMAP.md docs/design docs/dev-log/known-limitations.md vignettes R tests REFERENCES.bib`
+
+Results:
+
+- targeted bivariate Gaussian tests: 95 passed, 0 failed, 0 warnings, 0 skips;
+- neighbouring formula/random-effect tests: 234 passed, 0 failed, 0 warnings,
+  0 skips;
+- full `devtools::test()`: 1162 passed, 0 failed, 0 warnings, 0 skips;
+- `pkgdown::check_pkgdown()`: no problems found before and after site build;
+- `pkgdown::build_site()`: completed successfully;
+- favicon MIME post-processing completed successfully;
+- `git diff --check`: clean;
+- `devtools::check()`: 0 errors, 0 warnings, 0 notes;
+- stale-wording scans found expected planned ordinal/correlation-pair text and
+  existing meta-analysis policy text; no `O'Dea-style` or "biological data"
+  framing remained in the scanned source files.
+
+Tests of the tests:
+
+- new bivariate tests check malformed future syntax with both unlabelled and
+  labelled bivariate random-effect blocks;
+- the labelled-block test verifies that the user-facing error mentions planned
+  labelled group-level covariance blocks rather than residual `rho12`.
+
+Known limitations:
+
+- this is a guard/design phase, not a new bivariate random-effect likelihood;
+- `corpairs()` is a proposed extractor name, not an exported function;
+- ordinal cumulative-logit location-scale models remain planned, and the
+  `sigma` versus `zeta` public naming decision must be revisited before coding.
+
+Team learning:
+
+- Boole and Emmy should use the new pair table as the syntax/API constraint for
+  future bivariate covariance work;
+- Noether should require every future pair class to have symbolic equations
+  paired with R syntax and extractor output;
+- Rose should check that future docs do not use `rho12` for phylogenetic,
+  spatial, or group-level correlations;
+- Pat should review the ordinal nest-success explanation for whether an
+  applied user understands the direction of `sigma` versus `zeta`.

@@ -93,6 +93,10 @@ distributional regression models using TMB.
   correlations separately: residual `rho12`, phylogenetic correlations,
   non-phylogenetic species correlations, spatial field correlations, and
   ordinary grouped random-effect correlations should not share one namespace.
+- Use the correlation-pair design in
+  `docs/design/20-coscale-correlation-pairs.md` before implementing bivariate
+  double-hierarchical covariance blocks; pair outputs should identify the
+  level, group, block, distributional parameters, responses, and coefficients.
 - Stage structured phylogenetic and spatial slopes conservatively:
   intercept-only structured effects first, then one `mu` slope, then only small
   slope sets or interaction slopes after simulation recovery.

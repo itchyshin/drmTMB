@@ -264,6 +264,12 @@ Initial random-intercept/slope correlations should be constant covariance-block
 parameters. Predictor-dependent correlation formulae should be reserved for
 residual or response-level `rho12` until identifiability is demonstrated.
 
+The detailed long-format correlation-pair namespace is recorded in
+`docs/design/20-coscale-correlation-pairs.md`. Future implementations should
+return enough labels to identify the level, grouping factor, covariance block,
+distributional parameters, responses, and random-effect coefficients involved
+in each pair.
+
 ## Scale Naming
 
 Use `sigma`, `sigma1`, and `sigma2` for residual or within-observation scale.

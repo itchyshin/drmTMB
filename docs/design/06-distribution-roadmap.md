@@ -189,15 +189,38 @@ that from the parameter name alone.
 ## Tier 8: Ordinal and Categorical Responses
 
 Ordinal models are valuable, but they are not the first identity of `drmTMB`.
+The motivating ecology/evolution example is nest success recorded as ordered
+fledging categories, as in Ortega et al. (2026), where the location model
+describes expected reproductive success and the ordinal scale or discrimination
+model describes the consistency of reproductive outcomes.
 
 - `cumulative_logit()`: ordered categories with thresholds.
 - `cumulative_probit()`: ordered categories with probit link.
 - `adjacent_category()` or `continuation_ratio()`: later if needed.
 - Distributional extensions: threshold scale or discrimination models.
 
-Initial ordinal scope should be univariate only. Bivariate ordinal correlation is
-a later research project because latent residual correlations are harder to
-identify and test.
+Initial ordinal scope should be univariate only. The first implementation
+should probably use a cumulative logit model with ordered cutpoints and an
+optional `sigma` formula interpreted as ordinal scale:
+
+```text
+Pr(y_i <= k) = logit^{-1}((theta_k - mu_i) / sigma_i)
+mu_i = X_mu[i, ] beta_mu
+log(sigma_i) = X_sigma[i, ] beta_sigma
+theta_1 < theta_2 < ... < theta_{K-1}
+```
+
+With this convention, larger `sigma_i` means more diffuse ordinal outcomes and
+lower consistency. A native discrimination or consistency quantity can be
+reported as `zeta_i = 1 / sigma_i`, matching the interpretation in the seabird
+nest-success example where higher `zeta` means clearer separation among
+fledging categories. If the implementation instead exposes `zeta` directly,
+that should be an explicit formula-grammar decision, not a silent reuse of
+`sigma`. The main rule is that the direction of the scale effect must be stated
+in the family-link contract before coding starts.
+
+Bivariate ordinal correlation is a later research project because latent
+residual correlations are harder to identify and test.
 
 ## Explicitly Out of Scope at First
 
