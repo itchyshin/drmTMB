@@ -11,8 +11,8 @@ branch.
 - Added an "Implemented TMB Routing" section to
   `docs/design/03-likelihoods.md`.
 - Documented `model_type = 1`, `2`, `3`, and hidden `99`.
-- Clarified that bivariate Gaussian is the validated fallthrough in
-  `make_tmb_data()` after Gaussian and Student-t labels.
+- Documented the bivariate Gaussian route and, in the follow-up hardening
+  phase, aligned `make_tmb_data()` with an explicit `"biv_gaussian"` branch.
 - Added `family = list(gaussian(), gaussian())` to the source-map routing
   overview.
 - Corrected `rho12` documentation to match the guarded TMB transform:
@@ -102,10 +102,9 @@ contract.
 
 ## Known Limitations
 
-The bivariate TMB data route is still a fallthrough after Gaussian and
-Student-t handling. This is acceptable while the family router validates model
-types before `make_tmb_data()`, but future families may make an explicit guard
-clearer.
+This task documented the explicit routing contract. The follow-up code
+hardening should keep `make_tmb_data()` aligned with the table as new families
+are added.
 
 ## Next Actions
 

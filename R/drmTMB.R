@@ -1991,43 +1991,54 @@ make_tmb_data <- function(spec) {
       log_det_Q_phylo = 0
     ))
   }
-  list(
-    model_type = 2L,
-    y = numeric(1),
-    V_known = spec$V_known_diag,
-    V_known_matrix = if (identical(spec$V_known_type, "matrix")) spec$V_known else dummy_matrix,
-    V_known_type = as.integer(
-      match(spec$V_known_type, c("none", "diagonal", "matrix")) - 1L
-    ),
-    y1 = spec$y1,
-    y2 = spec$y2,
-    X_mu = dummy_matrix,
-    X_sigma = dummy_matrix,
-    X_nu = dummy_matrix,
-    X_sd_mu = dummy_matrix,
-    has_sd_mu_model = 0L,
-    X_mu1 = spec$X$mu1,
-    X_mu2 = spec$X$mu2,
-    X_sigma1 = spec$X$sigma1,
-    X_sigma2 = spec$X$sigma2,
-    X_rho12 = spec$X$rho12,
-    n_mu_re_terms = 0L,
-    n_mu_re_cors = 0L,
-    mu_re_index = matrix(0L, nrow = 1L, ncol = 1L),
-    mu_re_value = dummy_matrix,
-    mu_re_term = 0L,
-    mu_re_pos = 0L,
-    mu_re_cor_id = -1L,
-    mu_re_pair_index = -1L,
-    mu_re_sd_row = -1L,
-    n_sigma_re_terms = 0L,
-    sigma_re_index = matrix(0L, nrow = 1L, ncol = 1L),
-    sigma_re_value = dummy_matrix,
-    sigma_re_term = 0L,
-    has_phylo_mu = 0L,
-    phylo_mu_node_index = 0L,
-    Q_phylo = dummy_sparse,
-    log_det_Q_phylo = 0
+  if (identical(spec$model_type, "biv_gaussian")) {
+    return(list(
+      model_type = 2L,
+      y = numeric(1),
+      V_known = spec$V_known_diag,
+      V_known_matrix = if (identical(spec$V_known_type, "matrix")) spec$V_known else dummy_matrix,
+      V_known_type = as.integer(
+        match(spec$V_known_type, c("none", "diagonal", "matrix")) - 1L
+      ),
+      y1 = spec$y1,
+      y2 = spec$y2,
+      X_mu = dummy_matrix,
+      X_sigma = dummy_matrix,
+      X_nu = dummy_matrix,
+      X_sd_mu = dummy_matrix,
+      has_sd_mu_model = 0L,
+      X_mu1 = spec$X$mu1,
+      X_mu2 = spec$X$mu2,
+      X_sigma1 = spec$X$sigma1,
+      X_sigma2 = spec$X$sigma2,
+      X_rho12 = spec$X$rho12,
+      n_mu_re_terms = 0L,
+      n_mu_re_cors = 0L,
+      mu_re_index = matrix(0L, nrow = 1L, ncol = 1L),
+      mu_re_value = dummy_matrix,
+      mu_re_term = 0L,
+      mu_re_pos = 0L,
+      mu_re_cor_id = -1L,
+      mu_re_pair_index = -1L,
+      mu_re_sd_row = -1L,
+      n_sigma_re_terms = 0L,
+      sigma_re_index = matrix(0L, nrow = 1L, ncol = 1L),
+      sigma_re_value = dummy_matrix,
+      sigma_re_term = 0L,
+      has_phylo_mu = 0L,
+      phylo_mu_node_index = 0L,
+      Q_phylo = dummy_sparse,
+      log_det_Q_phylo = 0
+    ))
+  }
+
+  model_type <- if (is.null(spec$model_type)) {
+    "<NULL>"
+  } else {
+    as.character(spec$model_type)[[1L]]
+  }
+  cli::cli_abort(
+    "Internal error: unknown {.pkg drmTMB} model type {.val {model_type}}."
   )
 }
 

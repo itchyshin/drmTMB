@@ -21,9 +21,8 @@ The corresponding R density call uses standard deviation, as in
 The R builders use descriptive model labels, such as `"gaussian"`,
 `"student"`, and `"biv_gaussian"`. Before calling the TMB template,
 `make_tmb_data()` turns those labels into integer branches in `src/drmTMB.cpp`.
-The Gaussian and Student-t routes are explicit; the bivariate Gaussian route is
-the validated fallthrough after those two labels. This table is the current
-routing contract:
+Unknown labels are rejected before they can fall through to a wrong likelihood
+branch. This table is the current routing contract:
 
 | TMB `model_type` | User-facing route | R builder | TMB branch purpose |
 |---:|---|---|---|

@@ -40,6 +40,13 @@ test_that("bf() remains a short alias for drm_formula()", {
   expect_equal(vapply(form$entries, `[[`, character(1), "dpar"), c("mu", "sigma"))
 })
 
+test_that("internal TMB data routing rejects unknown model labels", {
+  expect_error(
+    drmTMB:::make_tmb_data(list(model_type = "broken")),
+    "unknown .*drmTMB.* model type"
+  )
+})
+
 test_that("drm_formula() captures meta-analysis and random-effect scale syntax", {
   form <- drm_formula(
     yi ~ moderator + meta_known_V(V = vi),

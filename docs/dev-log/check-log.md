@@ -27,6 +27,7 @@ Commands run:
 - `Rscript -e "pkgdown::build_site()"`
 - `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`
 - `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`
+- `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`
 
 Results:
 
@@ -3825,3 +3826,64 @@ Team learning:
 
 - when documenting routing, Rose should compare the docs against both the
   family-normalization route and the final TMB data mapper.
+
+## 2026-05-08: Explicit TMB Data Model-Type Guard
+
+Scope:
+
+- changed `make_tmb_data()` so `"biv_gaussian"` is an explicit route to
+  `model_type = 2L` instead of an implicit fallthrough;
+- added an internal regression test that unknown model labels fail before they
+  can reach the TMB template;
+- updated the likelihood design and previous routing after-task note so they
+  describe the explicit guard.
+
+Commands run:
+
+- `git diff --check`
+- `Rscript -e "devtools::test(filter = '^package-skeleton$')"`
+- `Rscript -e "devtools::test(filter = '^biv-gaussian$')"`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `Rscript -e "devtools::test()"`
+- `Rscript -e "pkgdown::build_site()"`
+
+Results:
+
+- `git diff --check`: clean;
+- package-skeleton targeted tests: 40 passed, 0 failed;
+- bivariate Gaussian targeted tests: 84 passed, 0 failed.
+- Hooke/Emmy read-only review: no P1/P2 findings; one stale after-task P3
+  sentence was corrected;
+- `pkgdown::check_pkgdown()`: no problems found;
+- `devtools::test()`: 647 passed, 0 failed, 0 warnings, 0 skips;
+- `pkgdown::build_site()`: completed successfully.
+- `devtools::check(...)` with `_R_CHECK_SYSTEM_CLOCK_=FALSE`: 0 errors,
+  0 warnings, 0 notes.
+
+Tests of the tests:
+
+- the new package-skeleton test calls `drmTMB:::make_tmb_data()` with
+  `model_type = "broken"` and checks for a clear internal error;
+- the bivariate targeted tests confirm the explicit `"biv_gaussian"` branch
+  still supports the existing bivariate Gaussian fit paths.
+
+Consistency audit:
+
+- the likelihood design now says unknown labels are rejected;
+- the previous routing-table after-task note no longer records the fallthrough
+  as a known limitation.
+
+What did not go smoothly:
+
+- Rose first found the fallthrough while reviewing documentation, which shows
+  that architecture docs can expose useful code-hardening work.
+
+Known limitations:
+
+- this is an internal guard only; it does not add new model families or user
+  syntax.
+
+Team learning:
+
+- when a design note describes a routing contract, the code should enforce the
+  same contract rather than rely on upstream validation alone.
