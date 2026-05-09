@@ -19,6 +19,7 @@ documentation, pkgdown, and after-task notes.
 
 The planning references are `docs/design/02-family-registry.md`,
 `docs/design/03-likelihoods.md`, `docs/design/05-testing-strategy.md`, and
+`docs/design/19-family-link-contract.md`, plus
 `.agents/skills/add-family/SKILL.md`.
 
 ## Scope first
@@ -78,7 +79,7 @@ means. The implemented all-Gaussian composed family uses:
 Omega_i =
   [ sigma1_i^2                         rho12_i sigma1_i sigma2_i ]
   [ rho12_i sigma1_i sigma2_i          sigma2_i^2                ]
-rho12_i = tanh(eta_rho12_i)
+rho12_i = 0.99999999 * tanh(eta_rho12_i)
 ```
 
 with:
@@ -150,6 +151,35 @@ tau    second shape parameter
 Aliases such as `skew`, `df`, or `shape` should wait until the canonical grammar
 is stable. If an alias is ever added, tests must show that it resolves to the
 same internal parameter before model matrices are built.
+
+## Do not assume identity links
+
+The name `mu` does not automatically mean "identity-linked arithmetic mean".
+That is true for Gaussian models, but it is not a general rule.
+
+For the implemented lognormal family:
+
+```text
+log(y_i) | mu_i, sigma_i ~ Normal(mu_i, sigma_i^2)
+E[y_i] = exp(mu_i + sigma_i^2 / 2)
+```
+
+`predict(fit, dpar = "mu")` returns the mean of `log(y)`, while `fitted(fit)`
+returns the arithmetic mean of `y`. A future Gamma family may instead use
+`log(mu)` so `mu` is positive and equal to `E[y]`. A future beta family will
+need `logit(mu)` because `mu` is a probability.
+
+Before adding a family with non-identity `mu`, update the family link contract
+and add tests for all three quantities:
+
+```text
+predict(type = "link")
+predict(type = "response")
+fitted()
+```
+
+Those tests protect the API distinction between a distributional parameter and
+the expected response.
 
 ## Connect the family to the builder
 

@@ -126,6 +126,9 @@ distributional regression models using TMB.
 - Use `lognormal()` for positive continuous responses where `mu` and `sigma`
   are defined on the log-response scale and `fitted()` returns the arithmetic
   response mean.
+- Implement the family-link contract before adding Gamma, count, beta, or
+  ordinal likelihoods, so `predict()` and `fitted()` handle non-identity `mu`
+  links consistently.
 - Add formulae for shape and tail parameters where stable.
 - Add strict starting-value and boundary diagnostics.
 

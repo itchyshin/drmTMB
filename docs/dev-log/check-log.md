@@ -3974,3 +3974,62 @@ Team learning:
   contract before broad checks, not after the first reviewer pass;
 - Rose should search generated pkgdown pages for old status claims after every
   family status change.
+
+## 2026-05-08: Family Link and Response-Scale Contract
+
+Scope:
+
+- added `docs/design/19-family-link-contract.md`;
+- updated the family registry to require native parameter meaning,
+  fitted-response rule, and variance rule;
+- clarified that future Gamma, count, beta, and ordinal families need explicit
+  link and `fitted()` contracts before likelihood code;
+- updated the adding-families tutorial, distribution roadmap, and project-local
+  add-family skill.
+
+Commands run:
+
+- `Rscript -e "rmarkdown::render('vignettes/adding-families.Rmd', output_dir = tempdir(), quiet = TRUE); cat('rendered adding-families\\n')"`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `git diff --check`
+- `sed -n '1,180p' .agents/skills/add-family/SKILL.md`
+
+Results:
+
+- adding-families vignette rendered successfully;
+- `pkgdown::check_pkgdown()`: no problems found;
+- `git diff --check`: clean;
+- Hegel read-only review: no P0/P1 findings; P2/P3 wording and consistency
+  findings were fixed before commit.
+
+Tests of the tests:
+
+- this design-only slice added no R likelihood tests;
+- the contributor vignette render verifies the new prose and equations parse.
+
+Consistency audit:
+
+- the family registry now lists the same future contract fields as the new
+  design note;
+- the adding-families `rho12` equation uses the implemented guarded transform
+  `0.99999999 * tanh(eta_rho12)`;
+- the beta roadmap now says scale or precision naming is undecided, matching
+  the new design note.
+- the add-family skill now asks for native parameter meaning, fitted response
+  rule, variance rule, and prediction/fitted tests.
+
+What did not go smoothly:
+
+- the first draft left the older family-registry required-fields list too
+  small and used unguarded bivariate `rho12` in one contributor equation.
+
+Known limitations:
+
+- this is a design contract only; no Gamma, count, beta, or ordinal likelihood
+  was implemented.
+
+Team learning:
+
+- when a design note introduces future required fields, Emmy should check that
+  all existing contributor checklists, skills, and registry docs name the same
+  fields.

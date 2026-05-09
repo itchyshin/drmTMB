@@ -68,6 +68,10 @@ Important extensions:
 ## Tier 4: Counts
 
 Counts need location-scale thinking because dispersion is often biological.
+They also require the family-link contract in
+`docs/design/19-family-link-contract.md`, because `mu` should use a log link
+rather than the identity-link behaviour used by the first Gaussian-like
+families.
 
 - `poisson()`: `mu`, mostly for baseline comparisons.
 - `nbinom2()`: `mu`, `sigma` or family-specific `nu`; variance increases
@@ -87,10 +91,12 @@ negative binomial.
 ## Tier 5: Proportions, Percentages, and Bounded Continuous Responses
 
 Percent data should be represented according to how the data were generated.
+Continuous proportions require a logit-linked `mu`; scale or precision naming
+needs a final design choice before implementation.
 
-- `beta()`: continuous proportions in `(0, 1)` with `mu` and `sigma` in the
-  canonical GAMLSS-style grammar; documentation can translate to precision
-  `phi` where useful.
+- `beta()`: continuous proportions in `(0, 1)` with `mu` plus a scale or
+  precision parameter; public naming is still undecided and must be resolved
+  before implementation.
 - `zi_beta()`: extra zeros.
 - `zoibeta()` or `zero_one_inflated_beta()`: extra zeros and ones with `zoi`
   and `coi`.
@@ -112,7 +118,8 @@ Useful for body size, biomass, time, concentration, and rates.
 - `lognormal()`: implemented fixed-effect path for positive multiplicative
   responses; random effects, known covariance, phylogenetic terms, and
   bivariate extensions are later phases.
-- `gamma()`: `mu`, `shape` or `sigma`.
+- `gamma()`: proposed first contract is mean-CV, with `log(mu)`,
+  `log(sigma)`, `E[y] = mu`, and `Var[y] = mu^2 sigma^2`.
 - `weibull()`: scale and shape.
 - `exgaussian()`: location, scale, and positive-tail parameter.
 - `gengamma()`: flexible positive continuous family, later only.

@@ -14,6 +14,26 @@ Each family should be represented by a small structured object.
 - `simulate`
 - `starting_values`
 - `check_data`
+- `native_parameter_meaning`
+- `fitted_response_rule`
+- `variance_rule`
+
+## Link and Response-Scale Contract
+
+Distributional parameter names do not determine links by themselves. For
+Gaussian and Student-t models, `mu` currently uses an identity link and
+`fitted()` returns `mu`. For lognormal models, `mu` is still identity-link on
+the modelled parameter, but the modelled parameter is the mean of `log(y)`;
+`fitted()` returns `exp(mu + sigma^2 / 2)` instead.
+
+Future families must declare both the native parameter scale and the fitted
+response rule. For example, a Gamma mean-CV family would probably use
+`log(mu)` and `log(sigma)`, with `sigma` interpreted as a coefficient of
+variation. Count models would use `log(mu)`, and beta models would use
+`logit(mu)`.
+
+The detailed contract is in `docs/design/19-family-link-contract.md`. Treat it
+as a prerequisite before implementing Gamma, count, beta, or ordinal families.
 
 ## Distributional Parameter Naming
 
