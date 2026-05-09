@@ -175,12 +175,38 @@ This expands internally to `mu1 = y1 ~ x1 + x2` and
 `mu2 = y2 ~ x1 + x2`. Use explicit `mu1` and `mu2` formulas whenever the
 responses need different location predictors.
 
-## Minimal runnable example
+## Worked example: behaviour coupling and disturbance
 
 Suppose an ecologist measures two behaviours, activity and boldness, and wants
 to know whether an environmental gradient changes their residual coupling after
 accounting for response-specific means and residual SDs. The code below uses
 simulated data, but the model structure matches that scientific question.
+
+For this example, the fitted biological model is:
+
+\[
+\begin{aligned}
+\begin{bmatrix} activity_i \\ boldness_i \end{bmatrix}
+&\sim
+\operatorname{MVN}
+\left(
+\begin{bmatrix} \mu_{activity,i} \\ \mu_{boldness,i} \end{bmatrix},
+\Omega_i
+\right),\\
+\mu_{activity,i} &= \beta_{a0} + \beta_{a1} food_i +
+                  \beta_{a2} temperature_i,\\
+\mu_{boldness,i} &= \beta_{b0} + \beta_{b1} food_i,\\
+\log(\sigma_{activity,i}) &= \gamma_{a0} + \gamma_{a1} food_i +
+                            \gamma_{a2} temperature_i,\\
+\log(\sigma_{boldness,i}) &= \gamma_{b0} + \gamma_{b1} food_i,\\
+\eta_{\rho12,i} &= \delta_0 + \delta_1 disturbance_i,\\
+\rho_{12,i} &= \tanh(\eta_{\rho12,i}).
+\end{aligned}
+\]
+
+Here `rho12` is not the ordinary correlation between raw activity and raw
+boldness. It is the residual correlation after the model has already adjusted
+for the mean and residual SD predictors in each response.
 
 ```{r bivariate-coscale-simulate}
 set.seed(1)
@@ -228,6 +254,16 @@ check_drm(fit_biv)
 summary(fit_biv)
 ```
 
+How to read this output:
+
+1. Rows beginning with `mu1:` describe expected activity, and rows beginning
+   with `mu2:` describe expected boldness.
+2. Rows beginning with `sigma1:` and `sigma2:` describe log residual SDs for
+   activity and boldness.
+3. Rows beginning with `rho12:` describe the residual activity-boldness
+   correlation on the linear-predictor scale. Use `rho12(fit_biv)` or
+   `rho12(fit_biv, newdata = ...)` to read that effect as a correlation.
+
 The `rho12` coefficients are on the linear-predictor scale:
 
 ```{r bivariate-coscale-rho12}
@@ -270,12 +306,40 @@ data.frame(
 )
 ```
 
+The same response-scale result can be visualised as a `rho12` curve:
+
+```{r bivariate-coscale-rho12-curve, fig.width = 6, fig.height = 4}
+rho_grid <- data.frame(
+  food = 0,
+  temperature = 0,
+  disturbance = seq(-2, 2, length.out = 80)
+)
+rho_grid$rho12 <- rho12(fit_biv, newdata = rho_grid)
+
+plot(
+  rho12 ~ disturbance,
+  data = rho_grid,
+  type = "l",
+  lwd = 2,
+  ylim = c(-1, 1),
+  xlab = "Disturbance",
+  ylab = "Fitted residual correlation (rho12)"
+)
+abline(h = 0, lty = 2, col = "grey60")
+```
+
 In this example, a positive `disturbance` coefficient for `rho12` means that
 activity and boldness become more tightly positively coupled at higher
 disturbance, after their means and residual SDs have been modelled. It does
 not say that disturbance changes among-individual personality or plasticity
 correlations; those require group-level covariance blocks and should appear as
 separate rows in `corpairs(fit)`.
+
+A concise reporting sentence would be: after accounting for food,
+temperature, and response-specific residual SDs, the fitted residual
+correlation between activity and boldness increased along the disturbance
+gradient. In biological terms, individuals that were more active than expected
+were also more bold than expected under higher disturbance.
 
 ## What this model does not estimate
 

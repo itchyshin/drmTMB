@@ -5685,3 +5685,71 @@ Team learning:
   index that should have been group-level;
 - Ada should keep using staggered review during tutorial work: edit locally
   while Pat checks user comprehension and Rose checks cross-document drift.
+
+## 2026-05-09 — Bivariate Coscale Tutorial Teaching Upgrade
+
+Goal:
+
+- make the bivariate location-coscale article teach residual `rho12` with
+  biological variables, symbolic equations, fitted output, and response-scale
+  interpretation;
+- continue the tutorial style used in the location-scale upgrade.
+
+Changes:
+
+- renamed the runnable example section to a worked behaviour-coupling example;
+- added activity-boldness model equations with `food`, `temperature`, and
+  `disturbance` as biological predictors;
+- clarified that `rho12` is not the raw activity-boldness correlation, but the
+  residual correlation after response-specific mean and residual-SD models;
+- added a "How to read this output" block after `summary(fit_biv)`;
+- added a response-scale `rho12` curve along the disturbance gradient;
+- added a concise reporting sentence for the fitted residual-correlation
+  result;
+- recorded the tutorial upgrade in `NEWS.md`.
+
+Commands run so far:
+
+- `Rscript -e "devtools::load_all(quiet = TRUE); rmarkdown::render('vignettes/bivariate-coscale.Rmd', output_dir = tempdir(), quiet = TRUE)"`
+- `Rscript -e "devtools::test(filter = 'biv-gaussian|corpairs|check-drm')"`
+- `git diff --check`
+- `Rscript -e "devtools::test()"`
+- `Rscript -e "pkgdown::build_site()"`
+- `Rscript tools/fix-pkgdown-favicon-mime.R pkgdown-site`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`
+
+Results so far:
+
+- `vignettes/bivariate-coscale.Rmd` renders successfully;
+- targeted bivariate/correlation diagnostics tests: 184 passed, 0 failed,
+  0 warnings, 0 skips.
+- `git diff --check`: clean;
+- full `devtools::test()`: 1215 passed, 0 failed, 0 warnings, 0 skips;
+- `pkgdown::build_site()`: completed successfully;
+- favicon MIME post-processing completed successfully;
+- `pkgdown::check_pkgdown()`: no problems found;
+- `devtools::check()`: 0 errors, 0 warnings, 0 notes.
+
+Tests of the tests:
+
+- the rendered vignette executes the same fixed-effect bivariate Gaussian
+  `rho12` path tested by `test-biv-gaussian.R`;
+- the targeted test command also exercises `corpairs()` and `check_drm()`,
+  which the edited tutorial prints.
+
+Known limitations:
+
+- the example is still simulated rather than a real behaviour dataset;
+- the curve is a teaching plot, not an uncertainty interval;
+- bivariate random effects and group-level bivariate covariance blocks remain
+  planned and are explicitly separated from residual `rho12`.
+
+Team learning:
+
+- Noether's equation/syntax pairing should continue to use actual variables in
+  user tutorials;
+- Darwin and Pat's style preference is now clear: show the output row, explain
+  the link scale, then translate to the biological question;
+- Rose should continue watching for future-correlation wording that sounds
+  implemented before the TMB likelihood exists.
