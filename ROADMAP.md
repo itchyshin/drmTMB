@@ -31,6 +31,9 @@ distributional regression models using TMB.
 - Treat meta-analysis as `family = gaussian()` plus `meta_known_V(V = V)`.
 - Support known sampling covariance through vectors, columns, diagonal matrices,
   dense block-diagonal matrices, or dense full matrices.
+- The implemented known-covariance Gaussian path is now tested with ordinary
+  `mu` random intercepts and random-effect scale formulae such as
+  `sd(id) ~ x_group` using independent dense marginal-likelihood comparators.
 - Add sparse known covariance after dense covariance tests pass.
 - Use `sigma ~ x1` for heterogeneous heterogeneity, even when papers
   describe the same unknown SD as `tau`.

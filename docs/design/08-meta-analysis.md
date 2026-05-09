@@ -62,8 +62,9 @@ Sparse matrix storage is not implemented yet.
 Known-covariance Gaussian models can also be combined with implemented
 ordinary `mu` random intercepts and the intercept-only phylogenetic `mu` path.
 These combinations are covered by dense likelihood-comparator tests. Random-
-effect scale formulas such as `sd(study) ~ x1` in known-covariance meta-
-analysis still need explicit validation before they are documented as routine.
+effect scale formulas such as `sd(study) ~ x1` are also supported for
+univariate Gaussian known-covariance models and are covered by an independent
+dense marginal-likelihood test.
 
 The parser should treat `meta_known_V()` as a covariance marker, not as an
 ordinary predictor column.

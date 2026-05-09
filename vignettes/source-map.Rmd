@@ -111,8 +111,9 @@ models yet:
 Do not present those forms as runnable examples until the source map has an
 implemented row with code, tests, and documentation.
 
-One neighbouring combination needs a targeted follow-up before it becomes
-routine tutorial syntax: Gaussian known-covariance meta-analysis with
-`sd(group) ~ predictors`. The generic Gaussian builder can route nearby pieces,
-but the project still needs an explicit validation test and a documented
-interpretation before examples recommend the combination.
+One neighbouring combination now has a targeted validation test but still needs
+careful tutorial wording before it becomes a headline example: Gaussian
+known-covariance meta-analysis with `sd(group) ~ predictors`. The test checks
+the fitted objective against an independent dense marginal Gaussian likelihood;
+future examples should still explain clearly that `sigma` is residual
+heterogeneity and `sd(group)` is group-level heterogeneity in a random effect.

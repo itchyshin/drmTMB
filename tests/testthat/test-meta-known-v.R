@@ -120,6 +120,53 @@ test_that("full meta_known_V works with location random intercepts", {
   expect_true(all(is.finite(fit$sdpars$mu)))
 })
 
+test_that("meta_known_V works with random-effect scale formulas", {
+  set.seed(20260601)
+  n_id <- 10
+  n_each <- 5
+  id <- factor(rep(seq_len(n_id), each = n_each))
+  n <- length(id)
+  dat <- data.frame(
+    id = id,
+    x = stats::rnorm(n),
+    vi = stats::runif(n, min = 0.01, max = 0.05)
+  )
+  w_id <- seq(-0.8, 0.8, length.out = n_id)
+  dat$w <- w_id[dat$id]
+  beta_mu <- c(`(Intercept)` = 0.1, x = 0.4)
+  sigma <- 0.22
+  alpha <- c(`(Intercept)` = log(0.35), w = 0.35)
+  tau_id <- exp(alpha[[1L]] + alpha[[2L]] * w_id)
+  u_id <- stats::rnorm(n_id)
+  mu <- beta_mu[[1L]] + beta_mu[[2L]] * dat$x + tau_id[dat$id] * u_id[dat$id]
+  dat$yi <- stats::rnorm(n, mean = mu, sd = sqrt(dat$vi + sigma^2))
+
+  fit <- drmTMB(
+    bf(
+      yi ~ x + (1 | id) + meta_known_V(V = vi),
+      sigma ~ 1,
+      sd(id) ~ w
+    ),
+    family = gaussian(),
+    data = dat
+  )
+
+  tau_hat <- as.numeric(predict(fit, dpar = "sd(id)"))
+  Z <- stats::model.matrix(~ 0 + id, data = fit$data)
+  Sigma <- diag(fit$model$V_known + stats::sigma(fit)^2, fit$nobs) +
+    Z %*% diag(tau_hat^2, ncol(Z)) %*% t(Z)
+  mu_hat <- as.vector(fit$model$X$mu %*% coef(fit, "mu"))
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_true(fit$sdr$pdHess)
+  expect_equal(length(tau_hat), nlevels(fit$data$id))
+  expect_equal(
+    as.numeric(stats::logLik(fit)),
+    mvn_loglik(fit$model$y, mu_hat, Sigma),
+    tolerance = 1e-6
+  )
+})
+
 test_that("meta_known_V rejects malformed marker calls", {
   dat <- data.frame(
     yi = stats::rnorm(20),

@@ -3527,3 +3527,81 @@ Team learning:
   separate recovery targets;
 - Boole should revisit whether model-level formula markers need a cleaner
   grammar before bivariate meta-analysis is implemented.
+
+## 2026-05-08: Known-V Random-Effect Scale Validation
+
+Scope:
+
+- added a targeted validation test for univariate Gaussian
+  `meta_known_V(V = vi)` models combined with a `mu` random intercept and a
+  random-effect scale formula, `sd(id) ~ w`;
+- updated the meta-analysis design note to state that this implemented
+  combination is supported and covered by an independent dense
+  marginal-likelihood test;
+- updated the source map, roadmap, and NEWS so the implemented-status wording
+  matches the test coverage.
+
+Commands run:
+
+- `Rscript -e "devtools::test(filter = '^meta-known-v$')"`
+- `Rscript -e "rmarkdown::render('vignettes/source-map.Rmd', output_dir = tempdir(), quiet = TRUE)"`
+- `Rscript -e "devtools::test()"`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `git diff --check`
+- `rg -n 'meta_gaussian\\(\\)|tau ~|still need explicit validation|still needs validation|routine tutorial syntax|planned.*implemented|only diagonal' README.md ROADMAP.md NEWS.md docs vignettes tests`
+- `rg -n 'meta_known_V|sd\\(id\\)|sd\\(group\\)|known-covariance|known sampling' NEWS.md ROADMAP.md docs/design/08-meta-analysis.md vignettes/source-map.Rmd docs/dev-log/known-limitations.md`
+- `Rscript -e "pkgdown::build_site()"`
+- `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`
+
+Results:
+
+- targeted `meta-known-v` tests: 40 passed, 0 failed;
+- full test suite: 646 passed, 0 failed;
+- `pkgdown::check_pkgdown()`: no problems found;
+- `git diff --check`: clean;
+- stale-wording scan found no active obsolete "still needs validation" caveat;
+  remaining `meta_gaussian()`, `tau ~`, and planned-feature hits are
+  intentional guardrails or historical after-task/check-log records;
+- `pkgdown::build_site()`: completed successfully and rebuilt
+  `articles/source-map.html`, NEWS, and site metadata;
+- `devtools::check(...)` with `_R_CHECK_SYSTEM_CLOCK_=FALSE`: 0 errors,
+  0 warnings, 0 notes.
+
+Tests of the tests:
+
+- the new test compares `logLik(fit)` with an independent dense marginal
+  Gaussian likelihood calculation using
+  `diag(V_known + sigma^2) + Z diag(sd(id)^2) Z'`;
+- the fitted `sd(id)` values are checked at the group level, making the test
+  exercise the intended `sd(group) ~ predictor` path rather than only ordinary
+  residual `sigma`.
+
+Consistency audit:
+
+- no `meta_gaussian()` family or `tau ~` formula was introduced;
+- `sigma` remains the residual heterogeneity parameter, while `sd(id)` is the
+  group-level random-effect scale;
+- the source map still warns that this should not become a headline tutorial
+  example until the interpretation is written carefully.
+
+What did not go smoothly:
+
+- the implemented pieces were already routable, but the source map correctly
+  exposed that the specific combination lacked a direct likelihood-comparator
+  test;
+- the project needed status wording updates in several places so users would
+  not see an obsolete "still needs validation" caveat.
+
+Known limitations:
+
+- this validates the univariate Gaussian known-variance vector path with
+  `sd(id) ~ w`; sparse known covariance and bivariate known-covariance
+  meta-analysis remain separate future targets;
+- the test is a dense marginal-likelihood comparator, so it is intentionally
+  small and not a performance benchmark.
+
+Team learning:
+
+- Jason's source-map role caught a real validation gap without changing code;
+- Rose's after-task checklist is useful for turning "implemented somewhere"
+  into "implemented, tested, documented, and consistently described."
