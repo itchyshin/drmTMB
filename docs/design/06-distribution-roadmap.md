@@ -61,7 +61,8 @@ Important extensions:
 - robust Student-t residuals after Gaussian meta-analysis is stable;
 - bivariate meta-analysis with known within-study covariance, where
   `meta_known_V(V = V)` supplies sampling covariance and fitted `rho12`
-  remains residual or between-study correlation;
+  remains the residual covariance component after known sampling covariance has
+  been included;
 - `meta_vcov_bivariate()` now constructs bivariate row-paired dense sampling
   covariance matrices from `v1`, `v2`, and either `cov12` or `cor12`;
   complete-row bivariate Gaussian models can fit with this known `V`;

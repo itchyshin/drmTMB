@@ -37,8 +37,9 @@ computed as \code{cor12 * sqrt(v1 * v2)}.
 
 In a bivariate Gaussian fit, this known sampling covariance is added to the
 fitted residual covariance from \code{sigma1}, \code{sigma2}, and \code{rho12}. The fitted
-\code{rho12} therefore remains the residual or between-study correlation after
-accounting for known within-study sampling covariance.
+\code{rho12} therefore remains the residual covariance component after accounting
+for known within-study sampling covariance. A separate study-level random
+effect would be needed to label a correlation as a study-level correlation.
 }
 \examples{
 V <- meta_vcov_bivariate(

@@ -304,8 +304,9 @@ drmTMB(
 ```
 
 The known `V` describes within-study sampling uncertainty. The fitted `rho12`
-describes residual or between-study correlation after that known uncertainty
-has been included.
+describes the residual covariance component after that known uncertainty has
+been included. It should only be called a study-level correlation when a
+separate study-level random effect is part of the model.
 
 ## Planned next
 

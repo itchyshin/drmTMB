@@ -13,8 +13,9 @@
 #'
 #' In a bivariate Gaussian fit, this known sampling covariance is added to the
 #' fitted residual covariance from `sigma1`, `sigma2`, and `rho12`. The fitted
-#' `rho12` therefore remains the residual or between-study correlation after
-#' accounting for known within-study sampling covariance.
+#' `rho12` therefore remains the residual covariance component after accounting
+#' for known within-study sampling covariance. A separate study-level random
+#' effect would be needed to label a correlation as a study-level correlation.
 #'
 #' @param v1,v2 Numeric vectors of known sampling variances for response 1 and
 #'   response 2.

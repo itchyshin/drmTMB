@@ -763,10 +763,10 @@ Omega_i =
 ```
 
 `S_i` is known within-study sampling covariance supplied by
-`meta_known_V(V = V)`. `Omega_i` is unknown residual or between-study
-heterogeneity covariance. The fitted `rho12_i` therefore remains the residual
-or heterogeneity correlation; it is not the known within-study sampling
-correlation.
+`meta_known_V(V = V)`. `Omega_i` is the unknown residual heterogeneity
+covariance after known sampling covariance has been included. The fitted
+`rho12_i` is not the known within-study sampling correlation; it should only be
+called study-level if a separate study-level random effect is fitted.
 
 Equivalently, with row-paired stacking:
 
@@ -799,11 +799,14 @@ mu2_i = X_mu2[i, ] beta_mu2
 log(sigma1_i) = X_sigma1[i, ] beta_sigma1
 log(sigma2_i) = X_sigma2[i, ] beta_sigma2
 eta_rho12_i = X_rho12[i, ] beta_rho12
-rho12_i = 0.99999999 * tanh(eta_rho12_i)
+rho12_i = tanh(eta_rho12_i)
 Omega_i[1,1] = sigma1_i^2
 Omega_i[2,2] = sigma2_i^2
 Omega_i[1,2] = rho12_i * sigma1_i * sigma2_i
 ```
+
+The TMB implementation uses a tiny boundary guard around `tanh()` for numerical
+positive definiteness; the clean transform above is the statistical model.
 
 Location formulas for the two responses may differ. `rho12` is residual
 response-response correlation, not a group-level random-effect correlation.

@@ -363,6 +363,7 @@ test_that("drmTMB handles factor predictors and default sigma", {
 test_that("Phase 1 rejects unsupported model syntax clearly", {
   dat <- data.frame(
     y = seq(-1, 1, length.out = 10),
+    y2 = seq(0.5, 1.5, length.out = 10),
     x = seq(1, 2, length.out = 10),
     z = seq(0, 1, length.out = 10),
     id = rep(1:2, each = 5)
@@ -400,6 +401,50 @@ test_that("Phase 1 rejects unsupported model syntax clearly", {
     drmTMB(
       bf(y ~ x + spatial(1 | id, coords = coords)),
       family = gaussian(),
+      data = dat
+    ),
+    "planned, not implemented"
+  )
+  expect_error(
+    drmTMB(
+      bf(y ~ x + spatial(1 | id, mesh = mesh)),
+      family = gaussian(),
+      data = dat
+    ),
+    "planned, not implemented"
+  )
+  expect_error(
+    drmTMB(
+      bf(y ~ x, sigma ~ spatial(1 | id, coords = coords)),
+      family = gaussian(),
+      data = dat
+    ),
+    "planned, not implemented"
+  )
+  expect_error(
+    drmTMB(
+      bf(
+        mu1 = y ~ x + spatial(1 | id, coords = coords),
+        mu2 = y2 ~ x,
+        sigma1 = ~ 1,
+        sigma2 = ~ 1,
+        rho12 = ~ 1
+      ),
+      family = c(gaussian(), gaussian()),
+      data = dat
+    ),
+    "planned, not implemented"
+  )
+  expect_error(
+    drmTMB(
+      bf(
+        mu1 = y ~ x + phylo(1 | id, tree = tree),
+        mu2 = y2 ~ x,
+        sigma1 = ~ 1,
+        sigma2 = ~ 1,
+        rho12 = ~ 1
+      ),
+      family = c(gaussian(), gaussian()),
       data = dat
     ),
     "planned, not implemented"

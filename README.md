@@ -448,8 +448,10 @@ SD after that known uncertainty has been included.
 
 Bivariate Gaussian meta-analysis uses the same marker with a dense row-paired
 `2n` by `2n` covariance matrix. `meta_vcov_bivariate()` builds the common
-within-study block-diagonal case, and fitted `rho12` remains the residual or
-between-study correlation after known sampling covariance has been included.
+within-study block-diagonal case, and fitted `rho12` remains the residual
+covariance component after known sampling covariance has been included. A
+separate study-level random effect would be needed before calling that
+correlation study-level.
 
 ```text
 y_stack = (y1_1, y2_1, ..., y1_n, y2_n)'

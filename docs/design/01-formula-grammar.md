@@ -118,8 +118,9 @@ meta-analysis family.
 
 For bivariate Gaussian meta-analysis, `meta_known_V(V = V)` marks one
 location formula and `V` is a dense `2n` by `2n` row-paired matrix. The fitted
-`rho12` is then residual or between-study correlation after known within-study
-sampling covariance has been included.
+`rho12` is then the residual covariance component after known within-study
+sampling covariance has been included. It should not be called a study-level
+correlation unless a separate study-level random effect is fitted.
 
 ## Bivariate Syntax
 

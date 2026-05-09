@@ -346,8 +346,12 @@ Omega_i =
   [ sigma1_i^2                         rho12_i sigma1_i sigma2_i ]
   [ rho12_i sigma1_i sigma2_i          sigma2_i^2                ]
 eta_rho12_i = X_rho12[i, ] beta_rho12
-rho12_i = 0.99999999 * tanh(eta_rho12_i)
+rho12_i = tanh(eta_rho12_i)
 ```
+
+The C++ bivariate Gaussian branch uses a tiny boundary guard around this
+transform during optimization. Likelihood tests should know that implementation
+detail, but tutorial equations should show the clean statistical transform.
 
 The matching syntax is:
 
@@ -380,9 +384,8 @@ In the current implementation, bivariate `meta_known_V(V = V)` must evaluate to
 a complete-row `2n` by `2n` row-paired covariance matrix, with
 `meta_vcov_bivariate()` available as the helper. Conceptually this stacked
 matrix contains the known within-study sampling covariance blocks `S_i`.
-`rho12` models the unknown residual or between-study coupling. A valid test must
-show that fitted `rho12` is not merely reproducing the known sampling
-correlation.
+`rho12` models the unknown residual covariance component. A valid test must show
+that fitted `rho12` is not merely reproducing the known sampling correlation.
 
 ## Boundary and rejection tests
 

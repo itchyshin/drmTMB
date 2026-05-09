@@ -107,7 +107,8 @@ distributional regression models using TMB.
 
 ## Phase 5: Phylogenetic and Spatial Dependence
 
-- Status: first univariate Gaussian phylogenetic location path implemented.
+- Status: first univariate Gaussian phylogenetic location path implemented and
+  Phase 5 closure-audited.
 - Treat phylogenetic and spatial terms as one structured-effect module:
   `z ~ MVN(0, sigma_z^2 K)`, with `K = A` for phylogeny and `K = M` for
   spatial dependence.
@@ -116,7 +117,8 @@ distributional regression models using TMB.
   precision matrices, and combined phylogenetic-spatial meta-analysis.
 - Implemented `phylo(1 | species, tree = tree)` for univariate Gaussian `mu`
   using an ultrametric branch-length tree, the sparse augmented A-inverse path,
-  and simulation recovery tests.
+  one CRAN-safe simulation recovery test, and dense marginal likelihood
+  comparator tests.
 - Add spatial SPDE/GMRF fields after the core Gaussian and known-covariance
   path is reliable.
 - For bivariate structured models, estimate and report level-specific
@@ -224,3 +226,120 @@ distributional regression models using TMB.
 - Add beta-binomial, zero-one-inflated beta, ordered logit/probit, COM-Poisson,
   generalized Poisson, and related families according to the distribution
   roadmap after their parameter-link and comparator contracts are documented.
+
+## Phase 9: Ordinal and Denominator-Aware Models
+
+- Status: planned.
+- Implement univariate cumulative ordinal models first, starting with a
+  cumulative logit likelihood and an explicit cutpoint contract.
+- Decide whether the ordinal scale formula is exposed as `sigma ~ ...` or a
+  family-specific discrimination parameter before coding starts; the direction
+  of interpretation must be unambiguous.
+- Add beta-binomial for percentages derived from counts with known denominators.
+- Add zero-one-inflated beta or ordered beta for continuous bounded responses
+  with exact 0 or 1 values.
+- Keep these models univariate until their parameter recovery, boundary
+  behaviour, and tutorial interpretation are reliable.
+
+## Phase 10: Spatial Structured Effects
+
+- Status: planned.
+- Implement the first fitted spatial model as an intercept-only univariate
+  Gaussian `mu` structured effect, parallel to the implemented phylogenetic path.
+- Support either `spatial(1 | site, coords = coords)` or
+  `spatial(1 | site, mesh = mesh)` only after the data contract is documented:
+  `coords` identify observation or site locations, while `mesh` is the SPDE/GMRF
+  computational scaffold.
+- Use a small comparator or simulation recovery test before exposing spatial
+  effects beyond `mu`.
+- Do not add spatial terms in `sigma`, `rho12`, or bivariate structured
+  covariance blocks until the intercept-only path is stable.
+
+## Phase 11: Bivariate Random Effects and Correlation Pairs
+
+- Status: planned.
+- Add bivariate ordinary group-level random effects after the fixed-effect
+  bivariate Gaussian location-coscale model is stable.
+- Use labelled group-level covariance blocks so residual `rho12`, ordinary
+  group-level correlations, phylogenetic correlations, spatial field
+  correlations, and mean-scale correlations stay in separate namespaces.
+- Extend `corpairs()` before adding complex covariance blocks, so users can see
+  the level, group, block, responses, distributional parameters, coefficients,
+  estimates, and uncertainty source.
+- Start with small ordinary grouped models before adding phylogenetic or spatial
+  bivariate covariance structures.
+
+## Phase 12: Phylogenetic Location-Scale Extensions
+
+- Status: planned.
+- Extend the implemented `phylo(1 | species, tree = tree)` Gaussian `mu` path to
+  one structured `mu` slope, then only later to small structured slope sets.
+- Add phylogenetic terms in `sigma` only after the location path has larger
+  simulation evidence and clear identifiability diagnostics.
+- Keep phylogenetic location-scale-shape models as a research target, not an
+  early production feature.
+- Add long optional simulations for many species, near-zero phylogenetic SD,
+  high residual noise, and combined phylogenetic plus non-phylogenetic species
+  effects.
+
+## Phase 13: Profile-Likelihood Inference
+
+- Status: planned.
+- Implement profile-likelihood confidence intervals for direct TMB parameters
+  before nonlinear derived quantities.
+- Initial targets should include fixed effects, residual-scale parameters,
+  random-effect SDs, `rho12` link-scale coefficients, and ordinal cutpoints.
+- Use `TMB::tmbprofile()` and `uniroot()` where possible, with clear boundary,
+  failed-optimization, and non-monotone-profile flags.
+- Add derived quantities such as ICC, repeatability, phylogenetic signal, and
+  correlation-pair functions only after the direct-parameter path is tested.
+
+## Phase 14: Large-Data Engine
+
+- Status: planned.
+- Add memory-light fitted objects for large ecological, evolutionary, and
+  environmental datasets.
+- Add sparse fixed-effect matrices before claiming million-row readiness.
+- Add Gaussian aggregation or sufficient-statistic paths where repeated rows can
+  be collapsed without changing the likelihood.
+- Add non-CRAN benchmarks for 100k, 500k, 1M, and 5M rows with 1k-10k species.
+- Treat sparse phylogenetic A-inverse scaling, sparse known sampling covariance,
+  and large-row model-frame memory as separate engineering problems.
+
+## Phase 15: Mixed-Response Bivariate Families
+
+- Status: planned.
+- Design mixed composed families such as `family = c(gaussian(), poisson())` only
+  after the joint likelihood and interpretation of cross-response dependence are
+  explicit.
+- Decide whether mixed-response dependence is residual `rho12`, a latent
+  Gaussian copula, a shared random effect, or another likelihood-specific
+  construction before coding.
+- Keep higher-dimensional response matrices out of scope; they belong to
+  `gllvmTMB`.
+
+## Phase 16: Shape and Asymmetry Models
+
+- Status: planned.
+- Add skew-normal and skew-t only after Student-t, Gaussian phylogenetic
+  location-scale, and the core family-link contract are stable.
+- Use GAMLSS-style names: `nu` for the first shape parameter and `tau` for the
+  second when needed.
+- Start with fixed-effect shape formulae and clear warnings about identifiability
+  among location, residual scale, skewness, tail shape, outliers, and unmodelled
+  heteroscedasticity.
+- Treat phylogenetic location-scale-shape and skewness/kurtosis evolution as a
+  later methods programme, not a first implementation target.
+
+## Phase 17: Release Hardening, Teaching, and Papers
+
+- Status: planned.
+- Harden the package for CRAN with platform checks, dependency review, examples,
+  vignettes, pkgdown, and NEWS.
+- Build the teaching sequence around applied ecological, evolutionary, and
+  environmental examples, while keeping the package general like `glmmTMB`.
+- Prepare benchmark articles comparing `drmTMB` with relevant overlap in
+  `glmmTMB`, `brms`, `metafor`, `gamlss`, and phylogenetic/spatial tools.
+- Draft methods papers around the package-defining pieces: fast
+  location-scale regression, modelled residual `rho12`, and structured
+  phylogenetic/spatial distributional regression.

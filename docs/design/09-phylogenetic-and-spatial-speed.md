@@ -35,7 +35,7 @@ Primary speed path:
 - use the Hadfield and Nakagawa A-inverse trick for phylogenetic random
   effects;
 - prefer sparse precision matrices when available;
-- keep `gr()` as the low-level known-covariance term;
+- reserve `gr()` for a later low-level known-covariance group-effect term;
 - expose structured random-effect syntax such as
   `phylo(1 | species, tree = tree)` as the high-level user-facing term.
   Public `phylo()` should require an ultrametric tree with branch lengths; a
@@ -73,8 +73,14 @@ scale components. The `drmTMB` extension adds a residual-correlation predictor:
 log(sigma1_i) = W1[i, ] gamma1
 log(sigma2_i) = W2[i, ] gamma2
 eta_rho12_i = R[i, ] delta
-rho12_i = 0.99999999 * tanh(eta_rho12_i)
+rho12_i = tanh(eta_rho12_i)
 ```
+
+The current C++ bivariate Gaussian implementation uses a tiny internal boundary
+guard around the hyperbolic-tangent transform so covariance matrices remain
+strictly positive definite during optimization. User-facing mathematical
+equations should show the clean statistical transform above and explain the
+guard separately when implementation details matter.
 
 This turns covariance homogeneity into a testable biological assumption.
 For example, the body mass-litter size relationship in mammals can be asked at

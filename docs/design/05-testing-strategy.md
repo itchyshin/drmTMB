@@ -109,9 +109,9 @@ S_i[1,2] = known within-study sampling covariance
 Omega_i[1,2] = rho12_i sigma1_i sigma2_i
 ```
 
-Recovery tests should show that fitted `rho12` targets residual or
-between-study correlation after the known sampling covariance has been added,
-not the sampling correlation supplied in `V`.
+Recovery tests should show that fitted `rho12` targets the residual covariance
+component after the known sampling covariance has been added, not the sampling
+correlation supplied in `V`.
 
 Residual-scale random intercept tests stay separate from random-effect scale
 tests. `sigma ~ z + (1 | id)` checks group-to-group variation in residual

@@ -6412,3 +6412,102 @@ Known limitations:
 - the tutorial still uses simulated data so the article remains fast and
   reproducible;
 - uncertainty intervals for `rho12` predictions remain future work.
+
+## 2026-05-09 -- Phase 5 phylogenetic structured-effect closure
+
+Goal:
+
+- close the first structured-effect phase around implemented
+  `phylo(1 | species, tree = tree)` support for univariate Gaussian `mu`;
+- verify that code, equations, tests, active docs, pkgdown, roadmap, known
+  limitations, and after-phase reporting agree.
+
+Changes:
+
+- marked Phase 5 as implemented and closure-audited in `ROADMAP.md`;
+- added model-level rejection tests for planned spatial `coords`, spatial
+  `mesh`, spatial-in-`sigma`, bivariate spatial, and bivariate phylogenetic
+  structured syntax;
+- clarified that `gr()` is reserved, not fitted;
+- replaced teaching-page guarded `rho12` equations with the clean
+  `rho12 = tanh(eta_rho12)` transform and explained the tiny implementation
+  guard separately;
+- tightened bivariate meta-analysis wording so fitted `rho12` is the residual
+  covariance component after known sampling covariance, not a study-level
+  correlation unless a study-level random effect is fitted;
+- added
+  `docs/dev-log/after-phase/2026-05-09-phase-5-phylogenetic-structured-effects-closure.md`.
+
+Commands run:
+
+- `Rscript -e "devtools::load_all(quiet = TRUE); testthat::test_file('tests/testthat/test-gaussian-location-scale.R')"`
+- `Rscript -e "devtools::load_all(quiet = TRUE); testthat::test_file('tests/testthat/test-package-skeleton.R')"`
+- `Rscript -e "devtools::document()"`
+- `Rscript -e "devtools::load_all(quiet = TRUE); rmarkdown::render('vignettes/phylogenetic-spatial.Rmd', output_dir = tempdir(), quiet = TRUE)"`
+- `Rscript -e "devtools::load_all(quiet = TRUE); rmarkdown::render('vignettes/drmTMB.Rmd', output_dir = tempdir(), quiet = TRUE); rmarkdown::render('vignettes/testing-likelihoods.Rmd', output_dir = tempdir(), quiet = TRUE); rmarkdown::render('vignettes/phylogenetic-spatial.Rmd', output_dir = tempdir(), quiet = TRUE)"`
+- `Rscript -e "devtools::test()"`
+- `Rscript -e "pkgdown::build_site()"`
+- `Rscript tools/fix-pkgdown-favicon-mime.R pkgdown-site`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`
+- `git diff --check`
+- `rg -n 'residual or between-study|unknown residual or between-study|between-study coupling|between-study correlation' README.md ROADMAP.md NEWS.md docs/design vignettes R man tests --glob '!docs/dev-log/after-task/**' --glob '!docs/dev-log/after-phase/**'`
+- `rg -n 'rho12_i = 0\\.99999999 \\* tanh|0\\.99999999 \\* tanh\\(eta_rho12_i\\)' vignettes/drmTMB.Rmd vignettes/phylogenetic-spatial.Rmd vignettes/testing-likelihoods.Rmd docs/design/03-likelihoods.md docs/design/09-phylogenetic-and-spatial-speed.md`
+
+Results:
+
+- `test-gaussian-location-scale.R`: 69 passed, 0 failed, 1 skipped on CRAN;
+- `test-package-skeleton.R`: 40 passed, 0 failed;
+- direct renders for `drmTMB.Rmd`, `testing-likelihoods.Rmd`, and
+  `phylogenetic-spatial.Rmd`: passed;
+- full `devtools::test()`: 1264 passed, 0 failed;
+- `pkgdown::build_site()`: passed after rerunning with normal cache/network
+  access;
+- `pkgdown::check_pkgdown()`: no problems found;
+- `devtools::check(...)`: 0 errors, 0 warnings, 1 note for local macOS temp
+  detritus (`xcrun_db`);
+- `git diff --check`: clean;
+- active-doc stale scans found no remaining "residual or between-study" wording
+  and no guarded `rho12` transform in the targeted teaching pages.
+
+Known limitations:
+
+- Phase 5 currently fits only intercept-only phylogenetic location effects in
+  univariate Gaussian models;
+- spatial fields, phylogenetic slopes, phylogenetic `sigma`, bivariate
+  structured covariance blocks, and structured `rho12` effects remain planned;
+- long-run large-tree simulations and external phylogenetic-model comparators
+  remain future work.
+
+## 2026-05-09 -- Post-Phase-8 roadmap extension
+
+Goal:
+
+- answer the planning gap after Phase 8 by adding explicit roadmap phases for
+  ordinal/denominator models, spatial structured effects, bivariate random
+  effects, phylogenetic location-scale extensions, profile likelihood, large
+  data, mixed-response bivariate families, shape/asymmetry models, and release
+  hardening.
+
+Changes:
+
+- added Phase 9 through Phase 17 to `ROADMAP.md`;
+- added
+  `docs/dev-log/after-task/2026-05-09-post-phase-8-roadmap.md`.
+
+Checks:
+
+- reviewed the new phase sequence against `docs/design/06-distribution-roadmap.md`
+  and the existing Phase 0-8 roadmap structure.
+- `Rscript -e "pkgdown::build_site()"`: passed after rerunning with normal
+  cache/network access.
+- `Rscript tools/fix-pkgdown-favicon-mime.R pkgdown-site`: passed.
+- `Rscript -e "pkgdown::check_pkgdown()"`: no problems found.
+- `rg -n "Phase 9: Ordinal|Phase 17: Release|residual covariance component after known sampling covariance|rho12_i = tanh" ROADMAP.md README.md vignettes/drmTMB.Rmd vignettes/testing-likelihoods.Rmd docs/design/03-likelihoods.md docs/design/09-phylogenetic-and-spatial-speed.md pkgdown-site/ROADMAP.html pkgdown-site/articles/drmTMB.html pkgdown-site/articles/testing-likelihoods.html`:
+  confirmed the new roadmap headings and generated-site equation wording.
+- `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`:
+  0 errors, 0 warnings, 1 local macOS temp-directory note for `xcrun_db`.
+
+Known limitations:
+
+- this was roadmap-only; no likelihood or user-facing API was implemented.
