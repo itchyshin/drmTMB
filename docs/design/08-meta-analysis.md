@@ -12,7 +12,8 @@ storage remains planned for larger phylogenetic and spatial workloads.
 
 Williams et al. (2026) introduce `glmmTMB::equalto()` for meta-analysis with
 known sampling error variance-covariance matrices. That paper is an important
-comparator and positioning reference for `drmTMB`: `glmmTMB` supplies a
+planned comparator and positioning reference for `drmTMB`, but `equalto()` is
+not currently part of the package test suite. `glmmTMB` supplies a
 general-purpose GLMM route, whereas `drmTMB` should make known covariance one
 part of a distributional-regression grammar where `mu`, `sigma`, and later
 shape or `rho12` can each have their own formula.
@@ -251,9 +252,9 @@ components in known-covariance meta-analysis remain a separate validation task.
   be conflated.
 - The implemented paths have simulation recovery, missing-row, and
   likelihood-agreement tests with known `V`.
-- Comparator checks should use `metafor` for established meta-analysis
-  agreement and `glmmTMB::equalto()` for overlap with a TMB-based mixed-model
-  implementation.
+- Comparator checks should use `metafor` for implemented established
+  meta-analysis agreement. `glmmTMB::equalto()` remains a planned comparator for
+  overlap with a TMB-based mixed-model implementation.
 
 ## Initial Implementation Order
 

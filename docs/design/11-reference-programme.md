@@ -43,8 +43,9 @@ Package implications:
 - Use `meta_known_V(V = V)` in the formula and `family = gaussian()`.
 - Keep public `sigma` terminology; explain that meta-analysis papers often call
   the same extra heterogeneity SD `tau`.
-- Use Williams et al. (2026) as the `glmmTMB::equalto()` comparator reference
-  for supplied known sampling covariance matrices in a TMB mixed-model package.
+- Use Williams et al. (2026) as the planned `glmmTMB::equalto()` comparator
+  reference for supplied known sampling covariance matrices in a TMB mixed-model
+  package.
 - Make heterogeneous heterogeneity a first-class example:
 
 ```r

@@ -45,12 +45,18 @@ check logs, after-task notes, or issues before moving on.
 
 | Role name | Kind | Responsibility |
 | --- | --- | --- |
-| Codex orchestrator | integrator | Implement, test, document, commit, push, and watch CI/pkgdown. |
-| Boole | R/API reviewer | Formula parser, R API, S3 methods, user-facing errors. |
-| Gauss | TMB reviewer | Likelihoods, parameter transforms, Laplace/random-effect numerics. |
-| Noether | formula taxonomy reviewer | Formula grammar, family composition, `rho12` naming, correlation namespaces. |
-| Darwin | ecology/pkgdown reviewer | Biological examples, pkgdown structure, gllvmTMB sibling positioning. |
-| Fisher | validation reviewer | Comparator-package checks, simulation recovery, CRAN versus long tests. |
+| Ada | orchestrator and integrator | Decide the next slice, implement or delegate, and keep code, math, docs, tests, pkgdown, git, and CI consistent. |
+| Boole | R/API reviewer | Formula parser, R API, S3 methods, and user-facing errors. |
+| Gauss | TMB reviewer | Likelihoods, parameter transforms, Laplace/random-effect numerics, and optimizer risk. |
+| Noether | mathematical consistency reviewer | Symbolic equations, formula taxonomy, family composition, `rho12` naming, and correlation namespaces. |
+| Darwin | ecology/evolution audience reviewer | Biological examples, ecological interpretation, and gllvmTMB sibling positioning. |
+| Fisher | statistical inference reviewer | Comparator-package checks, simulation recovery, profile-likelihood plans, and identifiability diagnostics. |
+| Pat | applied user tester | Tutorial clarity, output interpretation, error recovery, and whether a new applied user can follow the workflow. |
+| Jason | landscape and source-map scout | Related package capabilities, literature context, and what `drmTMB` should learn or avoid. |
+| Curie | simulation and testing specialist | Recovery tests, edge cases, malformed-input tests, and CRAN-safe versus long-test balance. |
+| Emmy | R package architecture reviewer | S3 structures, fit objects, extractors, internal APIs, and package coherence. |
+| Grace | reproducibility engineer | GitHub Actions, pkgdown, CRAN checks, platform portability, and dependency risk. |
+| Rose | systems auditor | After-task audits, stale wording, repeated mistakes, and discrepancies across files. |
 
 Most of these are sidecars, not permanent processes. The durable version of
 their advice must be copied into repository documents.

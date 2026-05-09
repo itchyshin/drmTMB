@@ -2,6 +2,73 @@
 
 Record meaningful development checks here.
 
+## 2026-05-08: Testing Likelihoods Developer Guide
+
+Scope:
+
+- replaced the placeholder `testing-likelihoods` pkgdown article with a
+  developer guide for likelihood validation;
+- paired symbolic equations with `drmTMB` syntax for Gaussian location-scale,
+  Gaussian random-intercept comparators, dense known-`V` meta-analysis,
+  Student-t location-scale-shape, and bivariate `rho12` models;
+- documented the two-tier testing pattern: comparator checks against established
+  packages and simulation/independent-likelihood checks;
+- clarified that `glmmTMB::equalto()` is a planned comparator, not currently in
+  routine tests;
+- labelled planned skew-normal syntax as future-only in the GAMLSS parameter
+  naming design note;
+- synchronized the collaboration/team table with the current standing review
+  roles in `AGENTS.md`.
+
+Commands run:
+
+- `Rscript -e "rmarkdown::render('vignettes/testing-likelihoods.Rmd', output_dir = tempdir(), quiet = TRUE)"`
+- `git diff --check`
+- `rg -n "This developer article will|will document simulation recovery|current planning reference|skew_normal\\(\\)|glmmTMB::equalto\\(\\)|Current Agent Team|Testing likelihoods" vignettes docs/design README.md ROADMAP.md NEWS.md`
+- `rg -n 'location means|complete-row `2n`|per-study list|This developer article will|will document simulation recovery|glmmTMB::equalto\\(\\)|skew_normal\\(\\)' vignettes/testing-likelihoods.Rmd docs/design/05-testing-strategy.md docs/design/08-meta-analysis.md docs/design/11-reference-programme.md docs/design/14-gamlss-parameter-names.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-08-testing-likelihoods-developer-guide.md`
+- `Rscript -e "devtools::test()"`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `Rscript -e "pkgdown::build_site()"`
+- `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`
+
+Results:
+
+- direct vignette render: passed;
+- `git diff --check`: clean;
+- stale-wording scan: no old `testing-likelihoods` placeholder text remained in
+  the article; remaining `skew_normal()` and `glmmTMB::equalto()` hits are
+  planned-feature references;
+- post-audit scan: found the new location/scale/shape/coscale definition, the
+  row-paired `2n` by `2n` wording, and only intentional planned-feature
+  references;
+- full `devtools::test()`: 642 passed, 0 failed;
+- `pkgdown::check_pkgdown()`: no problems found;
+- `pkgdown::build_site()`: rebuilt successfully;
+- `devtools::check(...)`: 0 errors, 0 warnings, 0 notes.
+
+Tests of the tests:
+
+- no package code changed, so this task used the existing full test suite plus
+  vignette rendering and pkgdown checks;
+- the new article points contributors to test patterns that already exist:
+  independent likelihood checks, comparator checks, rejection tests, and
+  bivariate sampling-versus-residual covariance checks.
+
+Notes:
+
+- Pat reviewed the placeholder article and identified that pkgdown exposed a
+  two-sentence page where contributors expected a practical recipe; this task
+  fixes that gap.
+- Rose caught two P2 wording issues after the first draft: the article needed to
+  define location, scale, shape, and coscale at first use, and the bivariate
+  known-`V` wording needed to say that the implemented input is a complete-row
+  `2n` by `2n` row-paired matrix rather than a per-study list of `S_i` blocks.
+- one post-audit `rg` scan failed because shell backticks in the pattern were
+  not quoted safely; the successful scan used single quotes and is recorded
+  above.
+- `R CMD check` emitted only the standard installed-size INFO for compiled TMB
+  code; the final status was still 0/0/0.
+
 ## 2026-05-08: Dense Known-`V` `metafor::rma.mv()` Comparator
 
 Scope:

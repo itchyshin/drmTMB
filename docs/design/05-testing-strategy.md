@@ -23,8 +23,8 @@ simple overlapping models:
 - `glmmTMB`, `gamlss`, and sometimes `brms` for Gaussian location-scale models;
 - `metafor` for standard Gaussian meta-analysis and known sampling variances or
   covariance matrices;
-- `glmmTMB::equalto()` for TMB-based meta-analysis with supplied known sampling
-  covariance matrices, following Williams et al. (2026);
+- planned `glmmTMB::equalto()` checks for TMB-based meta-analysis with supplied
+  known sampling covariance matrices, following Williams et al. (2026);
 - analytic maximum-likelihood calculations for simple bivariate Gaussian
   residual correlations;
 - `brms` for occasional long-running Bayesian comparisons of bivariate

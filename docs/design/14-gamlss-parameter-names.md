@@ -36,9 +36,10 @@ Avoid making `skew`, `df`, `shape`, and `disp` first-class canonical dpar names
 too early. They can be tempting, but they fragment the grammar. If needed, add
 aliases later that resolve to canonical names and print a clear message.
 
-Preferred:
+Preferred canonical spelling once a skew-normal family is implemented:
 
 ```r
+# planned; not implemented yet
 drmTMB(
   bf(y ~ x1, sigma ~ x1, nu ~ x2),
   family = skew_normal(),
@@ -46,17 +47,16 @@ drmTMB(
 )
 ```
 
-Only consider:
+Only consider this alias after the core syntax is stable:
 
 ```r
+# planned alias; not implemented yet
 drmTMB(
   bf(y ~ x1, sigma ~ x1, skew ~ x2),
   family = skew_normal(),
   data = dat
 )
 ```
-
-as a documented alias after the core syntax is stable.
 
 ## Testing Implication
 

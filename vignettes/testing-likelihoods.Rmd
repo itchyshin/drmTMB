@@ -11,7 +11,333 @@ vignette: >
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 ```
 
-This developer article will document simulation recovery tests, boundary-case
-tests, and TMB likelihood review practices.
+This article describes how `drmTMB` likelihoods should be checked before they
+are treated as implemented. It is written for package contributors: the goal is
+to make each model defensible by matching the symbolic model, the R syntax, the
+TMB likelihood, and the tests.
 
-The current planning reference is `docs/design/05-testing-strategy.md`.
+The planning reference is `docs/design/05-testing-strategy.md`. This article is
+the practical version: what to put in a pull request or phase before asking
+users to trust a model.
+
+In this guide, location means a mean-like parameter such as `mu`; scale means a
+residual spread or dispersion-like parameter such as `sigma`; shape means a
+family-specific parameter such as Student-t `nu`; and coscale means residual
+coupling, represented in the bivariate Gaussian model by `rho12`.
+
+## The contract
+
+Every fitted model should have the same four-part contract:
+
+1. a symbolic model that defines the likelihood;
+2. the `drmTMB` syntax that represents that model;
+3. an independent likelihood, simulation, or comparator check;
+4. a clear statement of what is still unsupported.
+
+For example, the fixed-effect Gaussian location-scale model is:
+
+```text
+y_i | mu_i, sigma_i ~ Normal(mu_i, sigma_i^2)
+mu_i = beta_0 + beta_1 x_i
+log(sigma_i) = gamma_0 + gamma_1 x_i
+```
+
+The matching user syntax is:
+
+```{r gaussian-ls-syntax, eval = FALSE}
+fit <- drmTMB(
+  drm_formula(
+    y ~ x,
+    sigma ~ x
+  ),
+  family = gaussian(),
+  data = dat
+)
+```
+
+The test should then simulate from the same equations, fit the same model, and
+check recovery of `beta` and `gamma`. If the equation, syntax, or TMB template
+changes, the test should change in the same commit.
+
+## Tier 1: comparator checks
+
+Comparator checks compare `drmTMB` with established software in an overlapping
+case. They are not enough by themselves, because no other package has exactly
+the whole `drmTMB` grammar. They are still powerful: they catch likelihood
+constants, scale definitions, covariance assembly, and optimizer plumbing.
+
+The simplest Gaussian mixed-model comparator is:
+
+```text
+y_ij | b_j, sigma ~ Normal(beta_0 + beta_1 x_ij + b_j, sigma^2)
+b_j ~ Normal(0, sd_id^2)
+```
+
+with syntax:
+
+```{r lme4-comparator-syntax, eval = FALSE}
+fit <- drmTMB(
+  drm_formula(y ~ x + (1 | id)),
+  family = gaussian(),
+  data = dat
+)
+
+fit_lme4 <- lme4::lmer(
+  y ~ x + (1 | id),
+  data = dat,
+  REML = FALSE
+)
+```
+
+The comparator test should check fixed effects, random-effect standard
+deviations, residual scale, and `logLik()`. Checking the log likelihood matters
+because equal coefficients can hide a wrong likelihood constant or covariance
+term.
+
+Meta-analysis gives another useful comparator. The implemented dense known-`V`
+Gaussian model is:
+
+```text
+y ~ Normal(X beta, V + sigma^2 I)
+```
+
+where `V` is known sampling covariance and `sigma^2` is residual
+heterogeneity. The matching `drmTMB` syntax is:
+
+```{r dense-meta-syntax, eval = FALSE}
+fit <- drmTMB(
+  drm_formula(yi ~ x + meta_known_V(V = V)),
+  family = gaussian(),
+  data = dat
+)
+```
+
+For the overlapping model, the comparator is:
+
+```{r metafor-comparator-syntax, eval = FALSE}
+fit_metafor <- metafor::rma.mv(
+  yi = yi,
+  V = V,
+  mods = ~ x,
+  random = ~ 1 | obs,
+  data = dat,
+  method = "ML"
+)
+```
+
+Here `obs` has one level per row, so `metafor` estimates one constant
+observation-level heterogeneity variance. The corresponding `drmTMB` test
+should compare:
+
+```{r metafor-comparator-checks, eval = FALSE}
+expect_equal(unname(coef(fit, "mu")),
+             unname(stats::coef(fit_metafor)),
+             tolerance = 1e-4)
+expect_equal(stats::sigma(fit)[[1L]]^2,
+             fit_metafor$sigma2[[1L]],
+             tolerance = 1e-4)
+expect_equal(as.numeric(stats::logLik(fit)),
+             as.numeric(stats::logLik(fit_metafor)),
+             tolerance = 1e-4)
+```
+
+Optional comparator packages should use `testthat::skip_if_not_installed()` so
+routine checks stay portable.
+
+## Tier 2: simulation recovery
+
+Simulation recovery is the main internal validation source for new `drmTMB`
+features. It should be used whenever a model has no exact comparator, or
+whenever the package adds a distributional parameter that other software does
+not model in the same way.
+
+A simulation recovery test should:
+
+1. choose known parameters on the link scale;
+2. simulate from the symbolic model;
+3. fit the matching `drmTMB` model;
+4. check optimizer convergence;
+5. check estimates on the scale that is most meaningful for the parameter;
+6. include at least one edge or malformed-input case nearby.
+
+For the Student-t location-scale-shape model, the implemented equations are:
+
+```text
+y_i | mu_i, sigma_i, nu_i ~ Student-t(mu_i, sigma_i, nu_i)
+mu_i = beta_0 + beta_1 x_i
+log(sigma_i) = gamma_0 + gamma_1 x_i
+nu_i = 2 + exp(delta_0 + delta_1 x_i)
+```
+
+The matching syntax is:
+
+```{r student-syntax, eval = FALSE}
+fit <- drmTMB(
+  drm_formula(
+    y ~ x,
+    sigma ~ x,
+    nu ~ x
+  ),
+  family = student(),
+  data = dat
+)
+```
+
+The test should check that `nu` stays above 2, because the current
+parameterization makes the residual variance finite. For a fitted Student-t
+model, `sigma` is a scale parameter; the residual standard deviation is
+`sigma * sqrt(nu / (nu - 2))` when `nu > 2`.
+
+## Independent likelihood checks
+
+When the density is simple enough, add a likelihood check that does not call the
+TMB objective. This is especially useful for the first implementation of a
+family. For the Student-t model above, an independent R calculation has the
+form:
+
+```{r independent-student-likelihood, eval = FALSE}
+eta_mu <- X_mu %*% beta_mu
+eta_sigma <- X_sigma %*% beta_sigma
+eta_nu <- X_nu %*% beta_nu
+
+mu <- as.vector(eta_mu)
+sigma <- exp(as.vector(eta_sigma))
+nu <- 2 + exp(as.vector(eta_nu))
+
+loglik <- sum(
+  stats::dt((y - mu) / sigma, df = nu, log = TRUE) - log(sigma)
+)
+```
+
+The test should compare `logLik(fit)` with `loglik` at the fitted parameter
+values. This catches transform mistakes such as forgetting the Jacobian-like
+`-log(sigma)` density adjustment for scaled Student-t residuals.
+
+## Bivariate and coscale checks
+
+The first bivariate Gaussian location-coscale model uses:
+
+```text
+[y1_i, y2_i]' ~ MVN([mu1_i, mu2_i]', Omega_i)
+Omega_i =
+  [ sigma1_i^2                         rho12_i sigma1_i sigma2_i ]
+  [ rho12_i sigma1_i sigma2_i          sigma2_i^2                ]
+rho12_i = tanh(eta_rho12_i)
+```
+
+The matching syntax is:
+
+```{r bivariate-rho12-syntax, eval = FALSE}
+fit <- drmTMB(
+  drm_formula(
+    mu1 = y1 ~ x1 + x2,
+    mu2 = y2 ~ x1,
+    sigma1 = ~ x1 + x2,
+    sigma2 = ~ x1,
+    rho12 = ~ x1 + x2
+  ),
+  family = c(gaussian(), gaussian()),
+  data = dat
+)
+```
+
+Tests for this model should include `rho12 = 0`, negative `rho12`, positive
+`rho12`, predictor-dependent `rho12`, and unequal `sigma1` and `sigma2`.
+
+For bivariate meta-analysis, keep two covariance objects separate:
+
+```text
+S_i[1,2] = known within-study sampling covariance
+Omega_i[1,2] = rho12_i sigma1_i sigma2_i
+```
+
+In the current implementation, bivariate `meta_known_V(V = V)` must evaluate to
+a complete-row `2n` by `2n` row-paired covariance matrix, with
+`meta_vcov_bivariate()` available as the helper. Conceptually this stacked
+matrix contains the known within-study sampling covariance blocks `S_i`.
+`rho12` models the unknown residual or between-study coupling. A valid test must
+show that fitted `rho12` is not merely reproducing the known sampling
+correlation.
+
+## Boundary and rejection tests
+
+Likelihood tests should include unsupported syntax and boundary-prone cases.
+For early phases, rejecting a model clearly is a feature, because it protects
+users from syntax that looks plausible but has no fitted likelihood path.
+
+Examples of rejection tests:
+
+```{r rejection-test-examples, eval = FALSE}
+expect_snapshot(
+  {
+    drmTMB(
+      drm_formula(y ~ x + meta_known_V(V = V), nu ~ x),
+      family = student(),
+      data = dat
+    )
+  },
+  error = TRUE
+)
+
+expect_snapshot(
+  {
+    drmTMB(
+      drm_formula(
+        mu1 = y1 ~ x + (1 | id),
+        mu2 = y2 ~ x,
+        sigma1 = ~ 1,
+        sigma2 = ~ 1,
+        rho12 = ~ 1
+      ),
+      family = c(gaussian(), gaussian()),
+      data = dat
+    )
+  },
+  error = TRUE
+)
+```
+
+The exact messages may change, but the rule should not: an unsupported
+combination should fail before optimization with an explanation of the missing
+feature.
+
+## Fast and long tests
+
+CRAN-facing tests should be small and deterministic. They answer whether the
+likelihood is wired correctly for a few representative cases.
+
+Long tests belong in optional scripts, scheduled CI, or a simulation study. They
+answer whether the estimator behaves well across sample sizes, effect sizes,
+mesh densities, tree sizes, boundary variances, and extreme correlations.
+
+Use this split deliberately:
+
+| Test type | Runs in routine checks | Purpose |
+|---|---:|---|
+| Unit test | yes | parser, family, extractor, and error-message behaviour |
+| Independent likelihood check | yes | density constants, transforms, covariance assembly |
+| Small simulation recovery | yes | basic estimator recovery |
+| Comparator smoke test | yes, with `skip_if_not_installed()` | parity with established software |
+| Large simulation grid | no | operating characteristics across parameter space |
+| Bootstrap or profile-likelihood coverage | no, until scheduled | uncertainty calibration |
+
+## Before closing a task
+
+Before a likelihood task is complete, run the after-task audit. The compact
+checklist is:
+
+- the symbolic equation, R syntax, and TMB implementation describe the same
+  model;
+- tests include either an independent likelihood check, a comparator check, or
+  simulation recovery;
+- at least one unsupported or malformed neighbouring case is checked;
+- `docs/design/03-likelihoods.md`, `docs/design/05-testing-strategy.md`, and
+  relevant vignettes are synchronized;
+- `pkgdown::check_pkgdown()` and `pkgdown::build_site()` pass for user-facing
+  documentation changes;
+- `docs/dev-log/check-log.md` and an after-task report record the checks, what
+  did not go smoothly, and what remains unsupported.
+
+This discipline is deliberately slow at the end of each task. It is much faster
+than debugging a package whose equations, examples, tests, and documentation
+have drifted apart.
