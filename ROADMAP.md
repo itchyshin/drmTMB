@@ -142,6 +142,9 @@ distributional regression models using TMB.
   models. `nbinom2()` is implemented as a fixed-effect `mu`/`sigma`
   overdispersed count model with `Var(y) = mu + sigma^2 * mu^2`, including
   optional `zi ~ predictors` for zero-inflated NB2 models.
-- Add COM-Poisson, beta, beta-binomial, zero-one-inflated
-  beta, ordered logit/probit, and related families according to the distribution
-  roadmap.
+- Next family sequence: `beta()` for strict continuous proportions with public
+  `sigma`, `truncated_nbinom2()` for positive counts, hurdle NB2 using
+  `hu ~ predictors`, and then univariate ordinal models.
+- Add beta-binomial, zero-one-inflated beta, ordered logit/probit, COM-Poisson,
+  generalized Poisson, and related families according to the distribution
+  roadmap after their parameter-link and comparator contracts are documented.

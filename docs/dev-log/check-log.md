@@ -4871,3 +4871,75 @@ Team learning:
   tests cannot see;
 - site-generation quirks should be checked as artifacts, not assumed correct
   because `pkgdown::check_pkgdown()` passed.
+
+## 2026-05-09 — Beta, Truncated Count, Hurdle, and Ordinal Roadmap Contract
+
+Task: lock down the next-family roadmap before implementing another likelihood.
+
+Implemented:
+
+- made `beta()` the next planned family for strict continuous proportions, with
+  public `sigma` and internal precision `phi = 1 / sigma^2`;
+- reordered the count roadmap so `truncated_nbinom2()` comes before hurdle NB2,
+  and hurdle NB2 uses `hu ~ predictors` as the hurdle-zero probability;
+- clarified that beta-binomial denominator syntax is not settled yet, with
+  `cbind(successes, failures)` recorded as one candidate;
+- recorded first-pass ordinal scope as univariate cumulative-logit syntax with
+  cutpoints;
+- synchronized `ROADMAP.md`, the formula-grammar design note and vignette, the
+  distribution-family article, and the family-link contract;
+- added explicit implemented-contract rows for ZIP/ZINB2 `zi`.
+
+Commands run:
+
+- `Rscript -e "rmarkdown::render('vignettes/distribution-families.Rmd', output_dir = tempdir(), quiet = TRUE); rmarkdown::render('vignettes/formula-grammar.Rmd', output_dir = tempdir(), quiet = TRUE)"`
+- `git diff --check`
+- `rg -n 'public naming is still undecided|scale/precision parameterization needs|Priority order after the Poisson.*compois|planned COM-Poisson path|Var\\[y_i\\)|structural zero or hurdle-crossing|Implemented continuous families|Planned syntax candidate|hurdle-crossing probability' docs/design/06-distribution-roadmap.md docs/design/19-family-link-contract.md docs/design/01-formula-grammar.md vignettes/distribution-families.Rmd vignettes/formula-grammar.Rmd ROADMAP.md`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `Rscript -e "devtools::test()"`
+- `air format .` (failed: `air` is not installed locally)
+- `Rscript -e "pkgdown::build_site()" && Rscript tools/fix-pkgdown-favicon-mime.R pkgdown-site`
+- `Rscript -e "devtools::check()"`
+- `rg -n 'public naming is still undecided|scale/precision parameterization needs|Priority order after the Poisson.*compois|planned COM-Poisson path|Var\\[y_i\\)|structural zero or hurdle-crossing|hurdle-crossing probability|Implemented continuous families|Planned syntax candidate|type="”' ROADMAP.md docs/design vignettes pkgdown-site/articles/distribution-families.html pkgdown-site/articles/formula-grammar.html --glob '!docs/dev-log/**'`
+- `rg -n 'roadmap syntax|hurdle-zero probability|Zero-inflated Poisson.*zi|beta\\(\\).*Planned|truncated_nbinom2\\(\\).*Planned|cumulative_logit\\(\\).*Planned|Implemented univariate families' docs/design/01-formula-grammar.md docs/design/06-distribution-roadmap.md docs/design/19-family-link-contract.md vignettes/distribution-families.Rmd vignettes/formula-grammar.Rmd pkgdown-site/articles/distribution-families.html pkgdown-site/articles/formula-grammar.html`
+
+Results:
+
+- direct renders for the distribution-family and formula-grammar vignettes:
+  passed;
+- `git diff --check`: clean;
+- stale-wording scan: no hits for the old undecided beta precision wording,
+  old COM-Poisson priority, old `Implemented continuous families` heading,
+  malformed variance bracket, `hurdle-crossing probability`, malformed favicon
+  MIME, or planned-status wording drift;
+- positive consistency scan found the planned family rows, hurdle-zero wording,
+  `zi` contract row, roadmap-syntax warning, and generated pkgdown pages;
+- `pkgdown::check_pkgdown()`: no problems found;
+- full `devtools::test()`: 981 passed, 0 failed, 0 warnings, 0 skips;
+- `pkgdown::build_site()`: completed successfully;
+- `devtools::check()`: 0 errors, 0 warnings, 0 notes.
+
+Tests of the tests:
+
+- no model code changed, so the test surface was consistency-focused rather
+  than a new likelihood-recovery test;
+- Pat's user-test review caught planned examples that looked runnable,
+  denominator-syntax ambiguity, and the missing `zi` versus `hu` contrast;
+- Rose's systems audit caught the missing formula-grammar source-of-truth
+  update, missing implemented `zi` rows, and stale vignette heading.
+
+Known limitations:
+
+- `beta()`, `beta_binomial()`, `truncated_nbinom2()`, `hu`, and
+  `cumulative_logit()` remain planned syntax, not fitted paths;
+- beta-binomial denominator syntax is intentionally unresolved;
+- the next implementation should start with strict fixed-effect `beta()` and
+  add simulation plus comparator tests before any zero-inflated or
+  beta-binomial extension.
+
+Team learning:
+
+- planned syntax should be added to the formula-grammar source of truth in the
+  same patch as any roadmap article;
+- user-facing planned examples need an explicit non-runnable warning when they
+  look like ordinary `drmTMB()` calls.

@@ -58,6 +58,11 @@ Use three status words consistently across documentation:
 | `family = c(gaussian(), gaussian())` | Implemented | Public bivariate Gaussian family direction; mixed composed families are planned. |
 | `mvbind(y1, y2) ~ x1` | Implemented | Shorthand for identical bivariate location formulas; explicit `mu1`/`mu2` remains preferred for different predictors. |
 | `phylo(1 | species, tree = tree)` in `mu` | Implemented | Intercept-only univariate Gaussian phylogenetic location effect; requires an ultrametric tree with branch lengths. |
+| `y ~ x1`, `sigma ~ x2`, `family = beta()` | Planned | Strict continuous proportions in `(0, 1)` with public `sigma`; internally `phi = 1 / sigma^2`. |
+| `cbind(successes, failures) ~ x1`, `family = beta_binomial()` | Planned | Denominator-preserving percentage/count syntax candidate; a successes/trials interface is another candidate. |
+| `y ~ x1`, `sigma ~ x2`, `family = truncated_nbinom2()` | Planned | Positive-count NB2 model where `mu` and `sigma` describe the untruncated NB2 count component. |
+| `y ~ x1`, `sigma ~ x2`, `hu ~ x3`, `family = truncated_nbinom2()` | Planned | Hurdle NB2 grammar; `hu` is the hurdle-zero probability and nonzero counts come from a zero-truncated count distribution. |
+| `y ~ x1`, `family = cumulative_logit()` | Planned | First ordinal model path for ordered scores with cutpoints; univariate only. |
 | `phylo(1 + x1 | species, tree = tree)` | Planned | Structured slopes come after the intercept-only path is hardened. |
 | `spatial(1 | site, coords = coords)` and `spatial(1 | site, mesh = mesh)` | Planned | Spatial SPDE/GMRF terms are part of the design but not fitted yet. |
 | Random effects in bivariate `mu1`/`mu2`, `sigma1`/`sigma2`, or `rho12` | Planned | Requires separate likelihood, simulation, and naming checks. |
@@ -404,6 +409,19 @@ family = Gamma(link = "log")
 family = poisson(link = "log")
 family = nbinom2()
 ```
+
+Planned univariate family syntax now includes:
+
+```r
+family = beta()
+family = beta_binomial()
+family = truncated_nbinom2()
+family = cumulative_logit()
+```
+
+These are roadmap spellings only. They should produce clear unsupported-feature
+errors until each likelihood, simulation path, extractor behaviour, and
+comparator check exists.
 
 For bivariate models, prefer a vector/list of response families:
 

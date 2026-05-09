@@ -83,28 +83,44 @@ families.
   `Var(y) = mu + sigma^2 * mu^2`, so larger `sigma` means greater
   overdispersion. Adding `zi ~ predictors` fits the implemented fixed-effect
   zero-inflated NB2 path.
-- `nbinom1()`: `mu`, `sigma` or family-specific `nu`; variance increases
-  linearly with the mean.
+- `truncated_nbinom2()` and `truncated_poisson()` for positive counts.
+- hurdle count models, using `hu ~ predictors` as the hurdle-zero probability
+  on an otherwise truncated count family.
 - `compois()`: `mu`, `nu`; handles underdispersion and overdispersion.
 - `genpois()`: `mu`, `sigma` or family-specific `nu`; useful alternative for
   count dispersion.
-- `truncated_nbinom2()` and `truncated_poisson()` for positive counts.
-- `hurdle_poisson()` and `hurdle_nbinom2()` with `hu ~ predictors`.
+- `nbinom1()`: `mu`, `sigma` or family-specific `nu`; variance increases
+  linearly with the mean.
 
 Priority order after the Poisson, zero-inflated Poisson, NB2, and
-zero-inflated NB2 seeds: `compois`, hurdle negative binomial, then truncated
-count models.
+zero-inflated NB2 seeds:
+
+1. implement `truncated_nbinom2()` before hurdle models, because it establishes
+   the positive-count normalising constant and gives a direct likelihood check;
+2. add hurdle NB2 by combining the truncated NB2 count component with
+   `hu ~ predictors`, where `hu` is the hurdle-zero probability;
+3. add `truncated_poisson()` and hurdle Poisson if examples show they are useful
+   beyond NB2;
+4. defer `compois()` and `genpois()` until the mean/dispersion contract and
+   comparator strategy are designed.
+
+Do not add separate `hurdle_nbinom2()` or `hurdle_poisson()` public constructors
+without a design decision. The preferred grammar is to keep the response family
+focused on the positive count component and use `hu ~ predictors` for the
+hurdle component, parallel to the current `zi ~ predictors` route.
 
 ## Tier 5: Proportions, Percentages, and Bounded Continuous Responses
 
 Percent data should be represented according to how the data were generated.
-Continuous proportions require a logit-linked `mu`; scale or precision naming
-needs a final design choice before implementation.
+Continuous proportions require a logit-linked `mu`; public scale naming should
+remain consistent with the rest of `drmTMB`.
 
-- `beta()`: continuous proportions in `(0, 1)` with `mu` plus a scale or
-  precision parameter; public naming is still undecided and must be resolved
-  before implementation.
-- `zi_beta()`: extra zeros.
+- `beta()`: continuous proportions in `(0, 1)` with `mu` and public `sigma`.
+  Internally `sigma` maps to beta precision through `phi = 1 / sigma^2`, so
+  larger `sigma` means more variance, not more precision.
+- zero-inflated beta: extra zeros, using `zi ~ predictors` with `beta()`
+  rather than a separate public constructor unless a later design decision says
+  otherwise.
 - `zoibeta()` or `zero_one_inflated_beta()`: extra zeros and ones with `zoi`
   and `coi`.
 - `ordbeta()`: continuous bounded responses including exact 0 and 1.
@@ -117,6 +133,11 @@ Recommended user guidance:
   denominators.
 - Use `beta()` for continuous rates strictly between 0 and 1.
 - Use zero/one-inflated beta or ordered beta when exact boundaries occur.
+
+Priority order after the implemented count seeds is therefore `beta()`,
+`truncated_nbinom2()`, hurdle NB2, then univariate ordinal models. This gives
+users a proportion model before the count-family tail grows too wide, while
+keeping every new family within a clear parameter-link contract.
 
 ## Tier 6: Positive Continuous Responses
 

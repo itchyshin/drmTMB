@@ -28,8 +28,13 @@ The implemented families use these parameter meanings:
 | Gamma | `mu` | log | arithmetic mean of `y` |
 | Gamma | `sigma` | log | coefficient of variation; residual SD is `mu * sigma` |
 | Poisson | `mu` | log | arithmetic mean and variance of the count response |
+| Zero-inflated Poisson | `mu` | log | conditional Poisson mean |
+| Zero-inflated Poisson | `zi` | logit | structural-zero probability |
 | Negative binomial 2 | `mu` | log | arithmetic mean of the count response |
 | Negative binomial 2 | `sigma` | log | overdispersion scale; `Var(y) = mu + sigma^2 * mu^2` |
+| Zero-inflated negative binomial 2 | `mu` | log | conditional NB2 count mean |
+| Zero-inflated negative binomial 2 | `sigma` | log | conditional NB2 overdispersion scale |
+| Zero-inflated negative binomial 2 | `zi` | logit | structural-zero probability |
 | Bivariate Gaussian | `mu1`, `mu2` | identity | arithmetic means of `y1` and `y2` |
 | Bivariate Gaussian | `sigma1`, `sigma2` | log | residual standard deviations |
 | Bivariate Gaussian | `rho12` | guarded atanh | residual response-response correlation |
@@ -207,7 +212,7 @@ Zero-inflated negative binomial 2:
              zi_i (1 - zi_i) mu_i^2
 ```
 
-## Candidate Proportion Contract
+## Candidate Beta Proportion Contract
 
 For continuous proportions, `mu` should live in `(0, 1)`:
 
@@ -215,26 +220,114 @@ For continuous proportions, `mu` should live in `(0, 1)`:
 logit(mu_i) = X_mu[i, ] beta_mu
 ```
 
-The scale/precision parameterization needs a separate design decision before
-coding. Two candidates are:
+The public scale parameter should be `sigma`, not `phi`. This keeps the grammar
+consistent with Gaussian, Student-t, Gamma, lognormal, and NB2 models, where
+larger `sigma` means more residual or distributional variation. Internally,
+beta precision is:
 
 ```text
-Beta mean-precision:
-  phi_i = exp(X_phi[i, ] beta_phi)
+Beta mean-scale:
+  y_i ~ Beta(alpha_i, beta_i)
+  logit(mu_i) = X_mu[i, ] beta_mu
+  log(sigma_i) = X_sigma[i, ] beta_sigma
+  phi_i = 1 / sigma_i^2
   alpha_i = mu_i phi_i
   beta_i = (1 - mu_i) phi_i
-
-Beta mean-dispersion:
-  sigma_i = inverse_link(X_sigma[i, ] beta_sigma)
-  Var[y_i] = function(mu_i, sigma_i)
+  E[y_i] = mu_i
+  Var[y_i] = mu_i (1 - mu_i) / (phi_i + 1)
+           = mu_i (1 - mu_i) sigma_i^2 / (1 + sigma_i^2)
 ```
 
-The public grammar can still use `sigma ~ predictors` if we document how it
-maps to precision or dispersion. Do not add `phi ~` as a second public grammar
-without a design decision, because `sigma` is the package's stable scale name.
+Matching R syntax:
 
-For percentages derived from counts, `beta_binomial()` should take successes
-and trials rather than forcing users to convert to a continuous proportion.
+```r
+drmTMB(
+  bf(prop ~ habitat, sigma ~ treatment),
+  family = beta(),
+  data = dat
+)
+```
+
+This parameterization makes `beta()` parallel to `nbinom2()`: both expose
+`sigma` as a positive scale and use a reciprocal-squared precision internally.
+It also gives a direct comparator transform for packages that report beta
+precision:
+
+```text
+log(phi_i) = -2 log(sigma_i)
+```
+
+Therefore an intercept-only precision coefficient from a mean-precision
+package corresponds to `beta_sigma = -0.5 * beta_phi`. Slope coefficients have
+the same `-0.5` multiplier when the linear predictors use the same columns.
+
+The beta implementation should reject `y <= 0`, `y >= 1`, non-finite responses,
+and missing or unsupported denominator syntax. Boundary responses should be
+handled later through zero/one-inflated beta or ordered beta models.
+
+Do not add `phi ~` as a second public grammar without a design decision,
+because `sigma` is the package's stable scale name.
+
+For percentages derived from counts, `beta_binomial()` should keep the
+denominator rather than forcing users to convert to a continuous proportion.
+The public syntax is not settled yet; candidates include
+`cbind(successes, failures) ~ predictors` and a two-column successes/trials
+interface. The design decision should be made before implementation because it
+controls how missing values, totals, and predictions are checked.
+
+## Candidate Truncated and Hurdle Count Contract
+
+Truncated count models describe positive counts:
+
+```text
+y_i | y_i > 0, mu_i, sigma_i ~ truncated NB2(mu_i, sigma_i)
+log(mu_i) = X_mu[i, ] beta_mu
+log(sigma_i) = X_sigma[i, ] beta_sigma
+Pr_trunc(y_i) = Pr_NB2(y_i) / (1 - Pr_NB2(0))
+```
+
+Here `mu` and `sigma` describe the untruncated NB2 count component. The
+expected observed positive count is the NB2 mean conditional on `y > 0`, so
+`fitted()` should document whether it returns that conditional positive-count
+mean or another user-facing target.
+
+Matching R syntax:
+
+```r
+drmTMB(
+  bf(count ~ habitat, sigma ~ treatment),
+  family = truncated_nbinom2(),
+  data = dat
+)
+```
+
+Hurdle models add a separate probability for observing zero:
+
+```text
+logit(hu_i) = X_hu[i, ] beta_hu
+
+Pr(y_i = 0) = hu_i
+Pr(y_i = k > 0) = (1 - hu_i) Pr_trunc(k | mu_i, sigma_i)
+E[y_i] = (1 - hu_i) E_trunc[y_i | y_i > 0]
+```
+
+Matching R syntax:
+
+```r
+drmTMB(
+  bf(count ~ habitat, sigma ~ treatment, hu ~ survey_method),
+  family = truncated_nbinom2(),
+  data = dat
+)
+```
+
+This mirrors the implemented zero-inflation grammar while keeping the
+interpretation distinct. Use `zi` when the count distribution can still
+generate sampling zeros and the model adds an extra structural-zero process.
+Use `hu` when zeros are modelled separately and all nonzero counts come from a
+zero-truncated count distribution. The first implementation should not export
+separate `hurdle_nbinom2()` or `hurdle_poisson()` constructors unless that
+choice is revisited in the formula-grammar design.
 
 ## Candidate Ordinal Contract
 

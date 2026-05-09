@@ -21,7 +21,7 @@ The implementation roadmap lives in `docs/design/06-distribution-roadmap.md`.
 Meta-analysis is not listed as a separate family. It uses `family = gaussian()`
 with `meta_known_V(V = V)`.
 
-## Implemented continuous families
+## Implemented univariate families
 
 Gaussian location-scale models use `mu` and `sigma`:
 
@@ -142,7 +142,8 @@ count mean. There is no fitted `sigma` distributional parameter; `sigma(fit)`
 returns a fixed unit dispersion vector only for base-R method compatibility.
 Use this path as a baseline count model and as a comparator for later
 overdispersed count families. Biological count data with extra-Poisson
-variation will usually need `nbinom2()` or the planned COM-Poisson path.
+variation will usually need `nbinom2()`; COM-Poisson remains a later route for
+underdispersion or dispersion patterns that NB2 does not describe well.
 
 Zero-inflated Poisson models are implemented by adding a `zi` formula:
 
@@ -218,6 +219,136 @@ conditional NB2 count component. `predict(fit, dpar = "zi")` returns the
 structural-zero probability, and `fitted(fit)` returns the unconditional
 response mean `(1 - zi) * mu`. There is no separate `zi_nbinom2()`
 constructor in the current public API.
+
+## Planned bounded and positive-count families
+
+The families in this section are roadmap syntax, not supported fitting paths
+yet. They are included here so users and contributors can see the intended
+grammar before implementation begins.
+
+The next proportion family should be `beta()` for continuous responses strictly
+inside `(0, 1)`, such as a continuously measured cover proportion or a rate
+that is not generated as successes out of known trials. The planned public
+grammar uses `sigma`, not `phi`, so the scale formula reads like the rest of
+`drmTMB`:
+
+```text
+y_i | mu_i, sigma_i ~ Beta(alpha_i, beta_i)
+logit(mu_i) = beta_0 + beta_1 habitat_i
+log(sigma_i) = gamma_0 + gamma_1 treatment_i
+phi_i = 1 / sigma_i^2
+alpha_i = mu_i phi_i
+beta_i = (1 - mu_i) phi_i
+E[y_i] = mu_i
+Var[y_i] = mu_i (1 - mu_i) / (phi_i + 1)
+```
+
+```r
+drmTMB(
+  bf(cover ~ habitat, sigma ~ treatment),
+  family = beta(),
+  data = dat
+)
+```
+
+Here larger `sigma` means more variation around the mean proportion. This is
+the opposite direction from beta precision, because `phi = 1 / sigma^2`.
+Once implemented, `fitted()` should return `mu`. Responses equal to 0 or 1
+will need a zero/one-inflated beta or ordered-beta route rather than the first
+strict beta implementation.
+
+Percentages derived from counts should keep their denominator. The planned
+route is a binomial or beta-binomial syntax rather than converting the
+response to a continuous percentage. The public denominator syntax is not
+settled yet; `cbind(successes, failures)` is one candidate:
+
+```r
+drmTMB(
+  bf(cbind(successes, failures) ~ habitat),
+  family = beta_binomial(),
+  data = dat
+)
+```
+
+For beta-binomial models, `sigma` would describe extra-binomial variation, not
+residual standard deviation.
+
+Positive-count models should come before full hurdle models. A truncated NB2
+model describes counts after zero has been removed by design, such as clutch
+size among breeding individuals:
+
+```text
+y_i | y_i > 0, mu_i, sigma_i ~ truncated NB2(mu_i, sigma_i)
+Pr_trunc(y_i) = Pr_NB2(y_i) / (1 - Pr_NB2(0))
+```
+
+Here `mu` and `sigma` describe the untruncated NB2 count component. The
+expected observed positive count is the NB2 mean conditional on `y > 0`.
+
+```r
+drmTMB(
+  bf(count ~ habitat, sigma ~ treatment),
+  family = truncated_nbinom2(),
+  data = dat
+)
+```
+
+Hurdle models then add `hu ~ predictors` for the probability of zero:
+
+```text
+Pr(y_i = 0) = hu_i
+Pr(y_i = k > 0) = (1 - hu_i) Pr_trunc(k | mu_i, sigma_i)
+```
+
+```r
+drmTMB(
+  bf(count ~ habitat, sigma ~ treatment, hu ~ survey_method),
+  family = truncated_nbinom2(),
+  data = dat
+)
+```
+
+The design preference is to use `hu` as a formula component, parallel to the
+implemented `zi` component, instead of immediately adding separate
+`hurdle_nbinom2()` and `hurdle_poisson()` constructors.
+
+Use `zi` when the count distribution can still generate sampling zeros and you
+want an extra structural-zero process. Use `hu` when zeros are modelled
+separately and all nonzero counts come from a zero-truncated count
+distribution; then `hu` is the overall probability that the observed response
+is zero.
+
+Ordinal models are planned as univariate first-pass models with ordered
+cutpoints:
+
+```text
+Pr(y_i <= k) = link^{-1}(theta_k - eta_i)
+eta_i = beta_0 + beta_1 habitat_i
+theta_1 < theta_2 < ... < theta_{K-1}
+```
+
+```r
+drmTMB(
+  bf(score ~ habitat),
+  family = cumulative_logit(),
+  data = dat
+)
+```
+
+Use an ordinal model for ordered scores such as disease severity, breeding
+condition, or habitat quality classes where category order matters but
+distances between categories are not numeric measurements.
+
+Bivariate ordinal and mixed-response correlation models remain research
+features because the latent correlation and residual `rho12` interpretation
+need dedicated simulation tests.
+
+The practical next-family order is `beta()`, `truncated_nbinom2()`, hurdle
+NB2 via `hu`, and then univariate ordinal models. COM-Poisson and generalized
+Poisson remain valuable, but they should wait until the mean-dispersion
+contract and comparator checks are designed.
+
+## Bivariate Gaussian families
 
 For implemented bivariate Gaussian models, the preferred public spelling is to
 combine two Gaussian response families:
