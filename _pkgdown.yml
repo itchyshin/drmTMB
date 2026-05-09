@@ -29,6 +29,8 @@ navbar:
           href: articles/which-scale.html
         - text: Checking and using fitted models
           href: articles/model-workflow.html
+        - text: Robust continuous responses
+          href: articles/robust-student.html
         - text: Changing residual coupling with rho12
           href: articles/bivariate-coscale.html
         - text: Mean effects and heterogeneous heterogeneity
@@ -96,6 +98,7 @@ articles:
       - location-scale
       - which-scale
       - model-workflow
+      - robust-student
       - meta-analysis
       - bivariate-coscale
       - phylogenetic-spatial

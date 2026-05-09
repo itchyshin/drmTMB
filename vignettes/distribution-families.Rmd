@@ -52,7 +52,9 @@ drmTMB(
 Use this first Student-t path when a continuous response is mostly well
 described by a location-scale model but has heavier-tailed residuals than a
 Gaussian model. Random effects, meta-analytic known covariance, phylogenetic
-terms, and bivariate Student-t models are planned later.
+terms, and bivariate Student-t models are planned later. The tutorial
+"Robust continuous responses" shows the equation, syntax, diagnostics, and a
+Gaussian comparison for this family.
 
 For bivariate models, the preferred public direction is to combine response
 families:

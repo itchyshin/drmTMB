@@ -1,0 +1,185 @@
+---
+title: "Robust continuous responses"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Robust continuous responses}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+Continuous biological and environmental measurements, such as seedling height
+growth in centimetres, often contain a few large residuals. They may be real
+rare events, short-term stress responses, field measurement problems, or
+individuals that experienced unmeasured conditions. A Gaussian location-scale
+model can still be useful, but a Student-t model asks a slightly different
+question: are the location and scale patterns stable when the likelihood allows
+heavier tails?
+
+This article introduces the first implemented robust continuous family in
+`drmTMB`: fixed-effect Student-t location-scale-shape regression.
+
+## Model equation and R syntax
+
+The Student-t model has three distributional parameters:
+
+```text
+growth_i | mu_i, sigma_i, nu_i ~ Student-t(mu_i, sigma_i, nu_i)
+mu_i = beta_0 + beta_1 dry_i
+log(sigma_i) = gamma_0 + gamma_1 dry_i
+nu_i = 2 + exp(delta_0)
+```
+
+The matching `drmTMB` syntax is:
+
+```r
+drmTMB(
+  bf(growth ~ drought, sigma ~ drought, nu ~ 1),
+  family = student(),
+  data = seedlings
+)
+```
+
+Here `mu` is the expected response, `sigma` is the Student-t scale parameter,
+and `nu` is the tail-shape parameter. When `nu > 2`, the residual standard
+deviation is `sigma * sqrt(nu / (nu - 2))`, so `sigma` should not be read as
+the exact residual SD unless `nu` is large. Smaller `nu` means heavier tails.
+Large `nu` means the Student-t likelihood is close to Gaussian. In `drmTMB`,
+
+```text
+nu_i = 2 + exp(eta_nu_i)
+```
+
+so fitted `nu` values stay above 2. This keeps the fitted Student-t
+distribution in the finite-variance region.
+
+## A seedling growth example
+
+Suppose seedlings are grown under ambient and dry conditions, and growth is
+measured as height increase in centimetres. We expect drought to reduce average
+growth, and we also allow drought to change scale among seedlings.
+
+```{r}
+library(drmTMB)
+
+set.seed(101)
+n <- 180
+seedlings <- data.frame(
+  drought = factor(rep(c("ambient", "dry"), each = n / 2))
+)
+dry <- as.numeric(seedlings$drought == "dry")
+mu <- 1.2 - 0.45 * dry
+sigma <- exp(-1 + 0.35 * dry)
+seedlings$growth <- mu + sigma * rt(n, df = 5)
+```
+
+In the equation above, `dry_i` is the model-matrix indicator for the dry
+treatment level. It corresponds to the `droughtdry` coefficient printed by R.
+
+A Gaussian location-scale model is a useful baseline:
+
+```{r}
+fit_gaussian <- drmTMB(
+  bf(growth ~ drought, sigma ~ drought),
+  family = gaussian(),
+  data = seedlings
+)
+```
+
+The robust version keeps the same location and scale formulas, then adds a
+formula for `nu`:
+
+```{r}
+fit_student <- drmTMB(
+  bf(growth ~ drought, sigma ~ drought, nu ~ 1),
+  family = student(),
+  data = seedlings
+)
+```
+
+The extra line `nu ~ 1` says that tail weight is estimated as a constant across
+observations. Predictor-varying fixed-effect `nu` formulas are also supported;
+this first tutorial keeps `nu` constant so the comparison focuses on location,
+scale, and residual-tail assumptions.
+
+## Check the fitted robust model
+
+Run `check_drm()` before interpreting the Student-t coefficients:
+
+```{r}
+check_drm(fit_student)
+```
+
+The `student_nu` row inspects fitted response-scale `nu` values. A near-boundary
+warning means the heavy-tail parameter is close to 2, where the finite-variance
+constraint matters. A large-`nu` note means the Student-t fit may be close to a
+Gaussian fit. If `nu` is near the boundary, inspect influential observations,
+compare Gaussian and Student-t conclusions, and report that the fitted tail
+parameter is near the lower bound.
+
+## Interpret coefficients by parameter
+
+Location and scale coefficients use the same formula grammar as Gaussian
+location-scale models:
+
+```{r}
+coef(fit_student, "mu")
+coef(fit_student, "sigma")
+coef(fit_student, "nu")
+```
+
+The `mu` coefficient for `droughtdry` estimates the drought difference in
+expected growth. The `sigma` coefficient for `droughtdry` is on the log
+Student-t scale-parameter scale: a positive value means the fitted scale is
+larger under drought. The `nu` coefficient is on the link scale for
+`nu = 2 + exp(eta_nu)`. Use prediction to read `nu` on the response scale:
+
+```{r}
+head(predict(fit_student, dpar = "nu"))
+```
+
+## Compare with the Gaussian model
+
+For this simulated example, the two models share `mu` and `sigma` formulas:
+does drought reduce growth, and does it change scale? They differ in the
+residual-tail assumption.
+
+```{r}
+AIC(fit_gaussian, fit_student)
+```
+
+AIC is only one summary. The more important habit is to inspect whether the
+scientific conclusions about `mu` and `sigma` are sensitive to the residual
+tail assumption.
+
+```{r}
+coef(fit_gaussian, "mu")
+coef(fit_student, "mu")
+
+coef(fit_gaussian, "sigma")
+coef(fit_student, "sigma")
+```
+
+If the `mu` and `sigma` conclusions change strongly, the large residuals are
+not a side detail. They are part of the distributional story and should be
+reported.
+
+## Current boundary
+
+The implemented Student-t path is intentionally narrow:
+
+```r
+drmTMB(
+  bf(y ~ x1, sigma ~ x2, nu ~ x3),
+  family = student(),
+  data = dat
+)
+```
+
+Random effects, known sampling covariance, phylogenetic terms, spatial terms,
+and bivariate Student-t models are later phases. Start with this fixed-effect
+path when you need a robust continuous comparison to a Gaussian
+location-scale model.

@@ -2,6 +2,59 @@
 
 Record meaningful development checks here.
 
+## 2026-05-08: Robust Student-t Tutorial
+
+Scope:
+
+- added `vignettes/robust-student.Rmd` as a user-facing tutorial for
+  fixed-effect Student-t location-scale-shape models;
+- paired the symbolic Student-t equation with matching `drmTMB` syntax;
+- used a seedling growth example with ambient and dry treatments;
+- documented the distinction between Student-t `sigma` as a scale parameter
+  and the residual standard deviation `sigma * sqrt(nu / (nu - 2))`;
+- explained `check_drm()` `student_nu` output and next steps for near-boundary
+  tail estimates;
+- added the tutorial to the pkgdown Tutorials menu and article index;
+- linked the tutorial from the response-family article.
+
+Commands run:
+
+- `Rscript -e "devtools::load_all(quiet=TRUE); rmarkdown::render('vignettes/robust-student.Rmd', output_format = rmarkdown::html_vignette(), output_file = tempfile(fileext = '.html'), quiet = TRUE)"`
+- `Rscript -e "devtools::test(filter = 'student-location-scale|check-drm')"`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `Rscript -e "pkgdown::build_site()"`
+- generated-site scans for `robust-student.html`, Student-t scale wording,
+  `dry_i`, navigation, and near-boundary `nu` guidance.
+- `Rscript -e "devtools::test()"`
+- `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`
+- `git diff --check`
+
+Results:
+
+- standalone vignette render with `devtools::load_all()`: passed;
+- targeted Student-t and `check_drm()` tests: 74 passed, 0 failed;
+- full `devtools::test()`: 638 passed, 0 failed;
+- `pkgdown::check_pkgdown()`: no problems found;
+- `pkgdown::build_site()`: built `articles/robust-student.html` and updated
+  article indexes and navigation.
+- `devtools::check(...)`: 0 errors, 0 warnings, 0 notes.
+- `git diff --check`: clean.
+
+Tests of the tests:
+
+- Volta reviewed the tutorial from an applied-user perspective and caught that
+  early prose incorrectly described Student-t `sigma` as residual standard
+  deviation;
+- Dewey caught that the first draft underclaimed implemented fixed-effect
+  `nu ~ predictors` syntax and lacked protocol closure.
+
+Notes:
+
+- the first direct `rmarkdown::render()` failed because the vignette calls
+  `library(drmTMB)` before the package is installed; the successful local
+  render used `devtools::load_all()`, and pkgdown installs the package before
+  rendering.
+
 ## 2026-05-08: `check_drm()` Student-t `nu` Diagnostics
 
 Scope:
