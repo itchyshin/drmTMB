@@ -2,6 +2,55 @@
 
 Record meaningful development checks here.
 
+## 2026-05-08: Bivariate Gaussian Known Sampling Covariance Likelihood
+
+Scope:
+
+- implemented complete-row bivariate Gaussian known-`V` fitting, where
+  `meta_known_V(V = V)` supplies a dense row-paired `2n` by `2n` sampling
+  covariance matrix;
+- added the known sampling covariance to the fitted residual covariance from
+  `sigma1`, `sigma2`, and `rho12` before evaluating the TMB multivariate
+  normal likelihood;
+- updated bivariate `simulate()` and Pearson residuals to use the full
+  row-paired observation covariance when known `V` is present;
+- added likelihood-comparison, residual-`rho12` recovery, missing-row, and
+  malformed-input tests;
+- updated README, formula grammar, likelihood, distribution-roadmap,
+  meta-analysis vignette, NEWS, and generated roxygen documentation.
+
+Commands run:
+
+- `Rscript -e "devtools::document()"`
+- `Rscript -e "devtools::test(filter = 'biv-gaussian')"`
+- `Rscript -e "devtools::test()"`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `Rscript -e "pkgdown::build_site()"`
+- `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`
+- `git diff --check`
+- stale-wording scans for planned bivariate known-`V` text, stale diagonal/full
+  covariance claims, informal author-style shorthand, and active-doc
+  `meta_gaussian()` / `tau ~` guardrails.
+
+Results:
+
+- targeted bivariate test: 84 passed, 0 failed;
+- full `devtools::test()`: 602 passed, 0 failed;
+- `pkgdown::check_pkgdown()`: no problems found;
+- `pkgdown::build_site()`: rebuilt meta-analysis, formula grammar, NEWS,
+  `simulate()`, and `residuals()` pages;
+- `devtools::check(...)`: 0 errors, 0 warnings, 0 notes;
+- `git diff --check`: clean.
+
+Notes:
+
+- active docs and generated pages no longer describe bivariate known `V` as a
+  planned likelihood task;
+- remaining `planned, not implemented` matches are for structured
+  phylogenetic/spatial slopes and other intentionally planned features;
+- remaining `meta_gaussian()` and `tau ~` matches are guardrails against
+  unwanted meta-analysis syntax.
+
 ## 2026-05-08: Bivariate Meta-Analysis Covariance Helper
 
 Scope:

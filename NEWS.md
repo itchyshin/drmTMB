@@ -14,7 +14,7 @@
 * `fitted()` now returns fitted location values: a numeric `mu` vector for univariate Gaussian models and a two-column `mu1`/`mu2` matrix for bivariate Gaussian models.
 * `fixef()` now returns distributional fixed-effect coefficients and acts as a mixed-model-friendly alias for `coef()`.
 * `meta_known_V(V = V)` now fits Gaussian meta-analysis with diagonal or dense full known sampling covariance using `family = gaussian()`.
-* `meta_vcov_bivariate()` now builds row-paired dense sampling covariance matrices for planned bivariate Gaussian meta-analysis with known within-study covariance.
+* `meta_vcov_bivariate()` now builds row-paired dense sampling covariance matrices for bivariate Gaussian meta-analysis with known within-study covariance, and `meta_known_V(V = V)` now fits complete-row bivariate Gaussian known-`V` models by adding that sampling covariance to the fitted residual covariance from `sigma1`, `sigma2`, and `rho12`.
 * `ranef()` now returns fitted conditional random-effect blocks, including ordinary `mu`, residual-scale `sigma`, and current `phylo_mu` blocks when present.
 * `rho12()` now returns response-scale residual correlations from bivariate Gaussian location-coscale fits, with `type = "link"` available for atanh-scale linear predictors.
 * `drmTMB()` now fits intercept-only phylogenetic random effects in the univariate Gaussian location formula with `phylo(1 | species, tree = tree)`, using an ultrametric branch-length tree and the sparse augmented A-inverse path.

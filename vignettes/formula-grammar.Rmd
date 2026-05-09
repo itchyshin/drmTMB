@@ -35,7 +35,7 @@ is shown only to explain the roadmap.
 | `(1 + x1 | p | id)` in `mu` | Implemented for naming | `p` labels the group-level covariance block; it does not yet share covariance across formulas. |
 | `(1 | id)` in `sigma` | Implemented | Residual-scale random intercept in the univariate Gaussian `sigma` formula. |
 | `sd(id) ~ x_group` | Implemented | Models the SD of an unlabelled Gaussian `mu` random intercept; predictors must be group-level. |
-| `meta_known_V(V = V)` | Implemented | Known diagonal, block-diagonal, or dense sampling covariance in a Gaussian model. |
+| `meta_known_V(V = V)` | Implemented | Known diagonal, block-diagonal, or dense sampling covariance in a Gaussian model; bivariate Gaussian known `V` uses a complete-row `2n` by `2n` row-paired matrix. |
 | `mu1`, `mu2`, `sigma1`, `sigma2`, `rho12` | Implemented for fixed effects | Bivariate Gaussian location-coscale model with predictor-dependent residual correlation. |
 | `family = c(gaussian(), gaussian())` | Implemented | Routes to the bivariate Gaussian engine; mixed composed families are planned. |
 | `biv_gaussian()` | Implemented legacy helper | Kept for compatibility while composed families become the public direction. |

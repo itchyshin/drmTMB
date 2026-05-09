@@ -195,6 +195,11 @@ known sampling covariance matrix, such as effect sizes from studies. The known
 `V` is sampling uncertainty; fitted `sigma` is the extra residual heterogeneity
 SD after that known uncertainty has been included.
 
+Bivariate Gaussian meta-analysis uses the same marker with a dense row-paired
+`2n` by `2n` covariance matrix. `meta_vcov_bivariate()` builds the common
+within-study block-diagonal case, and fitted `rho12` remains the residual or
+between-study correlation after known sampling covariance has been included.
+
 Phylogenetic location effects are fitted as structured Gaussian random effects
 in the `mu` formula:
 

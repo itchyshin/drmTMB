@@ -245,14 +245,42 @@ Type objective_function<Type>::operator()()
     vector<Type> eta_rho12 = X_rho12 * beta_rho12;
     vector<Type> rho12 = Type(0.99999999) * tanh(eta_rho12);
 
-    Type log2pi = log(Type(2.0) * M_PI);
-    for (int i = 0; i < y1.size(); ++i) {
-      Type z1 = (y1(i) - mu1(i)) / sigma1(i);
-      Type z2 = (y2(i) - mu2(i)) / sigma2(i);
-      Type one_minus_rho2 = Type(1.0) - rho12(i) * rho12(i);
-      nll += log2pi + log_sigma1(i) + log_sigma2(i);
-      nll += Type(0.5) * log(one_minus_rho2);
-      nll += Type(0.5) * (z1 * z1 - Type(2.0) * rho12(i) * z1 * z2 + z2 * z2) / one_minus_rho2;
+    if (V_known_type == 2) {
+      int n = y1.size();
+      int m = 2 * n;
+      vector<Type> y_stack(m);
+      vector<Type> mu_stack(m);
+      matrix<Type> Omega(m, m);
+      for (int r = 0; r < m; ++r) {
+        for (int c = 0; c < m; ++c) {
+          Omega(r, c) = V_known_matrix(r, c);
+        }
+      }
+      for (int i = 0; i < n; ++i) {
+        int i1 = 2 * i;
+        int i2 = i1 + 1;
+        Type cov12 = rho12(i) * sigma1(i) * sigma2(i);
+        y_stack(i1) = y1(i);
+        y_stack(i2) = y2(i);
+        mu_stack(i1) = mu1(i);
+        mu_stack(i2) = mu2(i);
+        Omega(i1, i1) += sigma1(i) * sigma1(i);
+        Omega(i2, i2) += sigma2(i) * sigma2(i);
+        Omega(i1, i2) += cov12;
+        Omega(i2, i1) += cov12;
+      }
+      density::MVNORM_t<Type> neg_log_density(Omega);
+      nll += neg_log_density(y_stack - mu_stack);
+    } else {
+      Type log2pi = log(Type(2.0) * M_PI);
+      for (int i = 0; i < y1.size(); ++i) {
+        Type z1 = (y1(i) - mu1(i)) / sigma1(i);
+        Type z2 = (y2(i) - mu2(i)) / sigma2(i);
+        Type one_minus_rho2 = Type(1.0) - rho12(i) * rho12(i);
+        nll += log2pi + log_sigma1(i) + log_sigma2(i);
+        nll += Type(0.5) * log(one_minus_rho2);
+        nll += Type(0.5) * (z1 * z1 - Type(2.0) * rho12(i) * z1 * z2 + z2 * z2) / one_minus_rho2;
+      }
     }
 
     REPORT(mu1);

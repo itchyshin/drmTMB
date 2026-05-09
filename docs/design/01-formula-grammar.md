@@ -45,7 +45,7 @@ Use three status words consistently across documentation:
 | `(1 | id)`, `(0 + x1 | id)`, `(1 + x1 | id)` in `mu` | Implemented | Ordinary Gaussian location random effects; one-slope correlated blocks may be labelled as `(1 + x1 | p | id)`. |
 | `(1 | id)` in `sigma` | Implemented | Residual-scale random intercept. |
 | `sd(id) ~ x_group` | Implemented | Random-effect scale model for one or more distinct unlabelled Gaussian `mu` random intercepts. |
-| `meta_known_V(V = V)` | Implemented | Known diagonal, block-diagonal, or dense sampling covariance with `family = gaussian()`. |
+| `meta_known_V(V = V)` | Implemented | Known diagonal, block-diagonal, or dense sampling covariance with `family = gaussian()`; bivariate Gaussian known `V` uses a complete-row `2n` by `2n` row-paired matrix. |
 | `mu1`, `mu2`, `sigma1`, `sigma2`, `rho12` | Implemented for fixed effects | Bivariate Gaussian location-coscale model with predictor-dependent residual correlation. |
 | `family = c(gaussian(), gaussian())` | Implemented | Public bivariate Gaussian family direction; mixed composed families are planned. |
 | `mvbind(y1, y2) ~ x1` | Implemented | Shorthand for identical bivariate location formulas; explicit `mu1`/`mu2` remains preferred for different predictors. |
@@ -92,6 +92,11 @@ covariance matrix. The response is already on the left-hand side, so the marker
 does not repeat the response name. Meta-analysis is still regression; Gaussian
 meta-analysis should normally use `family = gaussian()`, not a special
 meta-analysis family.
+
+For bivariate Gaussian meta-analysis, `meta_known_V(V = V)` marks one
+location formula and `V` is a dense `2n` by `2n` row-paired matrix. The fitted
+`rho12` is then residual or between-study correlation after known within-study
+sampling covariance has been included.
 
 ## Bivariate Syntax
 

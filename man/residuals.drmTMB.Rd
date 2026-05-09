@@ -29,7 +29,8 @@ fitted total observation covariance.
 
 For bivariate Gaussian models, response residuals are returned as a
 two-column matrix. Pearson residuals are standardized and whitened using the
-fitted residual \code{sigma1}, \code{sigma2}, and \code{rho12}.
+fitted residual \code{sigma1}, \code{sigma2}, and \code{rho12}, or using the full row-paired
+observation covariance when a dense bivariate known \code{V} was supplied.
 }
 \examples{
 dat <- data.frame(y = c(0.2, 0.5, 1.1, 1.4), x = c(-1, 0, 1, 2))

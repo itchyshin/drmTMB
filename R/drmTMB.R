@@ -318,10 +318,19 @@ drm_build_biv_gaussian_spec <- function(formula, data, env = parent.frame()) {
     cli::cli_abort("{.code mu1} and {.code mu2} formulas must include responses on the left-hand side.")
   }
 
+  meta_mu1 <- extract_meta_known_v(mu1_entry$rhs)
+  meta_mu2 <- extract_meta_known_v(mu2_entry$rhs)
+  if (!is.null(meta_mu1$V) && !is.null(meta_mu2$V)) {
+    cli::cli_abort(c(
+      "Only one {.fn meta_known_V} term is supported in a bivariate model.",
+      "i" = "{.fn meta_known_V} is a model-level known-covariance marker even if it appears in a location formula."
+    ))
+  }
+  mu1_entry$rhs <- meta_mu1$rhs
+  mu2_entry$rhs <- meta_mu2$rhs
+  meta <- if (!is.null(meta_mu1$V)) meta_mu1 else meta_mu2
+
   for (entry in list(mu1_entry, mu2_entry, sigma1_entry, sigma2_entry, rho12_entry)) {
-    if (formula_contains_call(entry$rhs, "meta_known_V")) {
-      cli::cli_abort("{.fn biv_gaussian} does not support {.fn meta_known_V} yet.")
-    }
     drm_reject_phase1_terms(entry$rhs, entry$dpar)
   }
 
@@ -337,6 +346,8 @@ drm_build_biv_gaussian_spec <- function(formula, data, env = parent.frame()) {
   ))
   keep <- stats::complete.cases(data[, vars, drop = FALSE])
   data_model <- data[keep, , drop = FALSE]
+  V_known_full <- evaluate_biv_known_v(meta$V, data, env)
+  V_known <- subset_biv_known_v(V_known_full, keep)
 
   mf_mu1 <- stats::model.frame(f_mu1, data = data_model, na.action = stats::na.omit)
   mf_mu2 <- stats::model.frame(f_mu2, data = data_model, na.action = stats::na.omit)
@@ -360,12 +371,19 @@ drm_build_biv_gaussian_spec <- function(formula, data, env = parent.frame()) {
     cli::cli_abort("Internal model-frame mismatch in bivariate Gaussian model.")
   }
 
-  start <- biv_gaussian_start(y1, y2, X_mu1, X_mu2, X_sigma1, X_sigma2, X_rho12)
+  start <- biv_gaussian_start(
+    y1, y2, X_mu1, X_mu2, X_sigma1, X_sigma2, X_rho12,
+    V_known_diag = V_known$diag
+  )
 
   spec <- list(
     model_type = "biv_gaussian",
     y1 = as.numeric(y1),
     y2 = as.numeric(y2),
+    V_known = V_known$V,
+    V_known_diag = V_known$diag,
+    V_known_type = V_known$type,
+    has_known_v = !is.null(meta$V),
     X = list(
       mu1 = X_mu1,
       mu2 = X_mu2,
@@ -1348,12 +1366,43 @@ evaluate_known_v <- function(expr, data, env) {
   new_known_v(as.numeric(value), type = "diagonal")
 }
 
+evaluate_biv_known_v <- function(expr, data, env) {
+  n <- nrow(data)
+  if (is.null(expr)) {
+    return(new_known_v(rep(0, 2L * n), type = "none"))
+  }
+  value <- eval(expr, envir = data, enclos = env)
+  if (!is.matrix(value) || nrow(value) != 2L * n || ncol(value) != 2L * n) {
+    cli::cli_abort(c(
+      "{.arg V} for bivariate {.fn meta_known_V} must evaluate to a {.code 2n} by {.code 2n} matrix.",
+      "i" = "Use row-paired stacking: {.code y1[1], y2[1], y1[2], y2[2], ...}.",
+      "i" = "For common bivariate meta-analysis, build this matrix with {.fn meta_vcov_bivariate}."
+    ))
+  }
+  if (!is.numeric(value)) {
+    cli::cli_abort("{.arg V} matrix must be numeric.")
+  }
+  new_known_v(value, type = "matrix")
+}
+
 known_v_complete <- function(V_known) {
   if (identical(V_known$type, "matrix")) {
     rep(TRUE, nrow(V_known$V))
   } else {
     is.finite(V_known$diag) & !is.na(V_known$diag)
   }
+}
+
+subset_biv_known_v <- function(V_known, keep, validate = TRUE) {
+  if (!identical(V_known$type, "matrix")) {
+    return(new_known_v(rep(0, 2L * sum(keep)), type = V_known$type))
+  }
+  pair_keep <- as.vector(rbind(keep, keep))
+  out <- V_known$V[pair_keep, pair_keep, drop = FALSE]
+  if (isTRUE(validate)) {
+    validate_known_v_matrix(out)
+  }
+  new_known_v(out, type = "matrix")
 }
 
 subset_known_v <- function(V_known, keep, validate = TRUE) {
@@ -1556,7 +1605,8 @@ gaussian_sd_mu_start <- function(mu_re_start, sd_mu) {
   out
 }
 
-biv_gaussian_start <- function(y1, y2, X_mu1, X_mu2, X_sigma1, X_sigma2, X_rho12) {
+biv_gaussian_start <- function(y1, y2, X_mu1, X_mu2, X_sigma1, X_sigma2, X_rho12,
+                               V_known_diag = rep(0, 2L * length(y1))) {
   fit1 <- stats::lm.fit(x = X_mu1, y = y1)
   fit2 <- stats::lm.fit(x = X_mu2, y = y2)
   beta_mu1 <- fit1$coefficients
@@ -1566,8 +1616,11 @@ biv_gaussian_start <- function(y1, y2, X_mu1, X_mu2, X_sigma1, X_sigma2, X_rho12
 
   resid1 <- y1 - as.vector(X_mu1 %*% beta_mu1)
   resid2 <- y2 - as.vector(X_mu2 %*% beta_mu2)
-  sigma1 <- stats::sd(resid1)
-  sigma2 <- stats::sd(resid2)
+  V1 <- V_known_diag[seq.int(1L, by = 2L, length.out = length(y1))]
+  V2 <- V_known_diag[seq.int(2L, by = 2L, length.out = length(y1))]
+  sigma_floor <- 1e-4
+  sigma1 <- sqrt(max(stats::var(resid1) - stats::median(V1, na.rm = TRUE), sigma_floor^2))
+  sigma2 <- sqrt(max(stats::var(resid2) - stats::median(V2, na.rm = TRUE), sigma_floor^2))
   if (!is.finite(sigma1) || sigma1 <= 0) sigma1 <- stats::sd(y1)
   if (!is.finite(sigma2) || sigma2 <= 0) sigma2 <- stats::sd(y2)
   if (!is.finite(sigma1) || sigma1 <= 0) sigma1 <- 1
@@ -1712,9 +1765,11 @@ make_tmb_data <- function(spec) {
   list(
     model_type = 2L,
     y = numeric(1),
-    V_known = numeric(1),
-    V_known_matrix = dummy_matrix,
-    V_known_type = 0L,
+    V_known = spec$V_known_diag,
+    V_known_matrix = if (identical(spec$V_known_type, "matrix")) spec$V_known else dummy_matrix,
+    V_known_type = as.integer(
+      match(spec$V_known_type, c("none", "diagonal", "matrix")) - 1L
+    ),
     y1 = spec$y1,
     y2 = spec$y2,
     X_mu = dummy_matrix,

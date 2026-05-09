@@ -25,9 +25,8 @@ class \code{"drm_meta_vcov_bivariate"}.
 \description{
 \code{meta_vcov_bivariate()} builds a dense row-paired sampling covariance matrix
 for bivariate meta-analysis. It is a convenience helper for constructing the
-known \code{V} matrix used by \code{\link[=meta_known_V]{meta_known_V()}}. Model fitting with bivariate
-known sampling covariance is planned after the corresponding bivariate
-likelihood path is implemented.
+known \code{V} matrix used by \code{\link[=meta_known_V]{meta_known_V()}} in complete-row bivariate Gaussian
+meta-analysis.
 }
 \details{
 The returned matrix uses row-paired stacking:
@@ -35,6 +34,11 @@ The returned matrix uses row-paired stacking:
 one \code{2} by \code{2} block with diagonal entries \code{v1[i]} and \code{v2[i]} and
 off-diagonal entries \code{cov12[i]}. If \code{cor12} is supplied, the covariance is
 computed as \code{cor12 * sqrt(v1 * v2)}.
+
+In a bivariate Gaussian fit, this known sampling covariance is added to the
+fitted residual covariance from \code{sigma1}, \code{sigma2}, and \code{rho12}. The fitted
+\code{rho12} therefore remains the residual or between-study correlation after
+accounting for known within-study sampling covariance.
 }
 \examples{
 V <- meta_vcov_bivariate(

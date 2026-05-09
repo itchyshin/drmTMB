@@ -375,8 +375,10 @@ Implementation notes:
 - Simulation recovery tests live in `tests/testthat/test-biv-gaussian.R`.
 - `mvbind(y1, y2) ~ x` is implemented as a formula shorthand that creates
   identical `mu1` and `mu2` design matrices.
-- Random effects and known sampling covariance are not implemented for this
-  bivariate family yet.
+- Dense known sampling covariance is implemented for complete-row bivariate
+  Gaussian models through `meta_known_V(V = V)`, where `V` is a row-paired
+  `2n` by `2n` matrix added to the fitted residual covariance.
+- Random effects are not implemented for this bivariate family yet.
 
 ## Review Requirements
 

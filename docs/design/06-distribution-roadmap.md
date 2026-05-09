@@ -57,8 +57,8 @@ Important extensions:
   `meta_known_V(V = V)` supplies sampling covariance and fitted `rho12`
   remains residual or between-study correlation;
 - `meta_vcov_bivariate()` now constructs bivariate row-paired dense sampling
-  covariance matrices from `v1`, `v2`, and either `cov12` or `cor12`; fitting
-  bivariate models with this known `V` remains the next likelihood task;
+  covariance matrices from `v1`, `v2`, and either `cov12` or `cor12`;
+  complete-row bivariate Gaussian models can fit with this known `V`;
 - sensitivity workflows for unknown within-study correlations;
 - multiple unknown variance components when study, species, lab, or effect-size
   type require them.

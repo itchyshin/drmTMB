@@ -2,15 +2,19 @@
 #'
 #' `meta_vcov_bivariate()` builds a dense row-paired sampling covariance matrix
 #' for bivariate meta-analysis. It is a convenience helper for constructing the
-#' known `V` matrix used by [meta_known_V()]. Model fitting with bivariate
-#' known sampling covariance is planned after the corresponding bivariate
-#' likelihood path is implemented.
+#' known `V` matrix used by [meta_known_V()] in complete-row bivariate Gaussian
+#' meta-analysis.
 #'
 #' The returned matrix uses row-paired stacking:
 #' `y1[1], y2[1], y1[2], y2[2], ..., y1[n], y2[n]`. Each study contributes
 #' one `2` by `2` block with diagonal entries `v1[i]` and `v2[i]` and
 #' off-diagonal entries `cov12[i]`. If `cor12` is supplied, the covariance is
 #' computed as `cor12 * sqrt(v1 * v2)`.
+#'
+#' In a bivariate Gaussian fit, this known sampling covariance is added to the
+#' fitted residual covariance from `sigma1`, `sigma2`, and `rho12`. The fitted
+#' `rho12` therefore remains the residual or between-study correlation after
+#' accounting for known within-study sampling covariance.
 #'
 #' @param v1,v2 Numeric vectors of known sampling variances for response 1 and
 #'   response 2.

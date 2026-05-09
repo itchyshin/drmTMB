@@ -281,8 +281,10 @@ predict.drmTMB <- function(object, newdata = NULL, dpar = NULL,
 #' `simulate()` draws new response values from the fitted `drmTMB` model. For
 #' univariate Gaussian models with known sampling covariance, simulation uses
 #' the total observation covariance implied by the known sampling covariance
-#' plus the fitted residual scale. For bivariate Gaussian models, simulation
-#' uses the fitted `mu1`, `mu2`, `sigma1`, `sigma2`, and residual `rho12`.
+#' plus the fitted residual scale. For bivariate Gaussian models without known
+#' sampling covariance, simulation uses the fitted `mu1`, `mu2`, `sigma1`,
+#' `sigma2`, and residual `rho12`. If a dense bivariate known `V` was supplied,
+#' simulation uses the full row-paired observation covariance `V + Omega`.
 #'
 #' @param object A `drmTMB` fit.
 #' @param nsim Number of simulated data sets.
@@ -337,6 +339,26 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, ...) {
   sigma1 <- predict(object, dpar = "sigma1")
   sigma2 <- predict(object, dpar = "sigma2")
   rho12 <- predict(object, dpar = "rho12")
+  if (identical(object$model$V_known_type, "matrix")) {
+    mu_stack <- stack_biv_response(mu1, mu2)
+    Sigma <- bivariate_observation_covariance(object)
+    chol_Sigma <- chol(Sigma)
+    sims_stack <- replicate(
+      nsim,
+      as.vector(mu_stack + t(chol_Sigma) %*% stats::rnorm(length(mu_stack)))
+    )
+    out <- vector("list", nsim * 2L)
+    names(out) <- as.vector(rbind(
+      paste0("sim_", seq_len(nsim), "_y1"),
+      paste0("sim_", seq_len(nsim), "_y2")
+    ))
+    for (j in seq_len(nsim)) {
+      sim_j <- unstack_biv_response(sims_stack[, j])
+      out[[paste0("sim_", j, "_y1")]] <- sim_j[, "y1"]
+      out[[paste0("sim_", j, "_y2")]] <- sim_j[, "y2"]
+    }
+    return(as.data.frame(out))
+  }
   out <- vector("list", nsim * 2L)
   names(out) <- as.vector(rbind(
     paste0("sim_", seq_len(nsim), "_y1"),
@@ -364,7 +386,8 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, ...) {
 #'
 #' For bivariate Gaussian models, response residuals are returned as a
 #' two-column matrix. Pearson residuals are standardized and whitened using the
-#' fitted residual `sigma1`, `sigma2`, and `rho12`.
+#' fitted residual `sigma1`, `sigma2`, and `rho12`, or using the full row-paired
+#' observation covariance when a dense bivariate known `V` was supplied.
 #'
 #' @param object A `drmTMB` fit.
 #' @param type Residual type: `"response"` or `"pearson"`.
@@ -398,6 +421,14 @@ residuals.drmTMB <- function(object, type = c("response", "pearson"), ...) {
   )
   if (type == "response") {
     return(response)
+  }
+  if (identical(object$model$V_known_type, "matrix")) {
+    response_stack <- stack_biv_response(response[, "y1"], response[, "y2"])
+    white <- as.vector(forwardsolve(
+      t(chol(bivariate_observation_covariance(object))),
+      response_stack
+    ))
+    return(unstack_biv_response(white))
   }
   sigma1 <- predict(object, dpar = "sigma1")
   sigma2 <- predict(object, dpar = "sigma2")
@@ -517,6 +548,38 @@ observation_covariance <- function(object) {
     return(out)
   }
   diag(known_v_diag(object) + sigma2, nrow = length(sigma2))
+}
+
+bivariate_observation_covariance <- function(object) {
+  n <- length(object$model$y1)
+  out <- if (identical(object$model$V_known_type, "matrix")) {
+    object$model$V_known
+  } else {
+    matrix(0, nrow = 2L * n, ncol = 2L * n)
+  }
+  sigma1 <- predict(object, dpar = "sigma1")
+  sigma2 <- predict(object, dpar = "sigma2")
+  rho12 <- predict(object, dpar = "rho12")
+  i1 <- seq.int(1L, by = 2L, length.out = n)
+  i2 <- i1 + 1L
+  cov12 <- rho12 * sigma1 * sigma2
+  out[cbind(i1, i1)] <- out[cbind(i1, i1)] + sigma1^2
+  out[cbind(i2, i2)] <- out[cbind(i2, i2)] + sigma2^2
+  out[cbind(i1, i2)] <- out[cbind(i1, i2)] + cov12
+  out[cbind(i2, i1)] <- out[cbind(i2, i1)] + cov12
+  out
+}
+
+stack_biv_response <- function(y1, y2) {
+  as.vector(rbind(y1, y2))
+}
+
+unstack_biv_response <- function(y) {
+  n <- length(y) / 2L
+  cbind(
+    y1 = y[seq.int(1L, by = 2L, length.out = n)],
+    y2 = y[seq.int(2L, by = 2L, length.out = n)]
+  )
 }
 
 known_v_diag <- function(object) {

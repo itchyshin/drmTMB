@@ -68,9 +68,10 @@ fit <- drmTMB(
 )
 ```
 
-For planned bivariate meta-analysis, the known sampling covariance should
-include the within-study covariance between the two effect-size estimates when
-it is available. `meta_vcov_bivariate()` builds the common row-paired matrix:
+Bivariate meta-analysis uses the same Gaussian bivariate family as other
+location-coscale models. The known sampling covariance should include the
+within-study covariance between the two effect-size estimates when it is
+available. `meta_vcov_bivariate()` builds the common row-paired matrix:
 
 ```r
 V <- meta_vcov_bivariate(
@@ -80,16 +81,36 @@ V <- meta_vcov_bivariate(
 )
 ```
 
-The stacking is `[y1_1, y2_1, y1_2, y2_2, ...]`. This helper is implemented
-now; bivariate fitting with known sampling covariance is the next likelihood
-task, where the known sampling covariance will be added to the fitted residual
-or between-study covariance.
+The stacking is `[y1_1, y2_1, y1_2, y2_2, ...]`. In a fitted model, this known
+sampling covariance is added to the estimated residual covariance:
+
+```r
+fit_biv <- drmTMB(
+  bf(
+    mu1 = y1 ~ x1 + meta_known_V(V = V),
+    mu2 = y2 ~ x1,
+    sigma1 = ~ 1,
+    sigma2 = ~ 1,
+    rho12 = ~ x1
+  ),
+  family = c(gaussian(), gaussian()),
+  data = dat
+)
+```
+
+Here `rho12` is the fitted residual or between-study correlation after the
+known within-study sampling covariance has already been included. The current
+implementation expects complete bivariate rows and a dense `2n` by `2n`
+row-paired `V` matrix.
 
 ## Implementation caveats
 
 - Dense full covariance is useful for correlated effect sizes and can also
   represent block-diagonal covariance. Sparse covariance storage is planned for
   larger phylogenetic and spatial workloads.
+- Bivariate known-`V` fitting currently uses a dense row-paired matrix and
+  complete bivariate rows. Missing single outcomes and sparse matrix storage
+  need separate likelihood and user-interface decisions.
 - Negative and missing known variances are rejected or removed through the same
   row-retention rules as the model data; full matrices must be symmetric and
   positive semidefinite after row subsetting.

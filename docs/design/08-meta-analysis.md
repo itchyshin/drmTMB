@@ -101,7 +101,7 @@ For full `V`, the likelihood is:
 y ~ MVN(mu, V + diag(sigma_i^2))
 ```
 
-## Planned Bivariate Meta-Analysis
+## Bivariate Meta-Analysis
 
 Bivariate meta-analysis should use the same Gaussian bivariate family as other
 bivariate location-coscale models. It should not introduce a
@@ -134,16 +134,16 @@ Here `S_i` is known and supplied through `meta_known_V(V = V)`. The fitted
 within-study covariance has already been included. This prevents `rho12` from
 being asked to explain sampling correlation.
 
-The planned user syntax should allow:
+The implemented complete-row syntax is:
 
 ```r
 drmTMB(
   formula = drm_formula(
     mu1 = y1 ~ x1 + meta_known_V(V = V),
     mu2 = y2 ~ x1 + x2,
-    sigma1 = ~ z,
-    sigma2 = ~ z,
-    rho12 = ~ z
+    sigma1 = ~ x1,
+    sigma2 = ~ x1,
+    rho12 = ~ x1
   ),
   family = c(gaussian(), gaussian()),
   data = dat
@@ -151,7 +151,7 @@ drmTMB(
 ```
 
 The `meta_known_V(V = V)` marker is still a model-level known-covariance marker
-even if it appears in one location formula. The parser should reject duplicate
+even if it appears in one location formula. The parser rejects duplicate
 markers across `mu1` and `mu2`.
 
 For direct matrix input, `V` should be a `2n` by `2n` matrix using row-paired
@@ -178,8 +178,9 @@ The helper should treat `v1` and `v2` as known sampling variances, not standard
 errors. If users have standard errors, they should square them before passing
 them or use an explicit helper argument that does the squaring visibly.
 
-The helper is implemented as a matrix constructor; the bivariate fitting path
-that adds this known `V` to `Omega_i` remains the next likelihood task.
+The helper is implemented as a matrix constructor, and the complete-row
+bivariate Gaussian fitting path now adds this known `V` to the fitted residual
+covariance before evaluating the row-paired multivariate normal density.
 
 If within-study correlations are unknown, `drmTMB` should not estimate them
 silently in the first implementation. Instead, documentation should encourage
@@ -194,7 +195,7 @@ fits <- meta_cor_sensitivity(
 )
 ```
 
-Missing outcomes need a separate design decision. The safest first
+Missing single outcomes need a separate design decision. The current
 implementation is complete bivariate rows only. Later, missing outcomes can be
 handled by row/column dropping in the stacked vector or by the large-variance
 device used in some multivariate meta-analysis software, but that should not
@@ -261,9 +262,8 @@ components in known-covariance meta-analysis remain a separate validation task.
 3. Random intercept meta-regression.
 4. Intercept-only phylogenetic `mu` meta-regression.
 5. Multiple random-effect scale components.
-6. Bivariate meta-analysis with independent known sampling variances.
-7. Bivariate meta-analysis with known within-study covariance.
-8. Sensitivity helpers for unknown within-study correlations.
+6. Bivariate meta-analysis with dense row-paired known sampling covariance.
+7. Sensitivity helpers for unknown within-study correlations.
 
 ## Phylogenetic And Spatial Meta-Analysis
 
