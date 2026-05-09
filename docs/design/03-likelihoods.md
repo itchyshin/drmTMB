@@ -19,11 +19,11 @@ The corresponding R density call uses standard deviation, as in
 ## Implemented TMB Routing
 
 The R builders use descriptive model labels, such as `"gaussian"`,
-`"student"`, `"lognormal"`, `"gamma"`, `"poisson"`, and `"biv_gaussian"`.
-Before calling the TMB template, `make_tmb_data()` turns those labels into
-integer branches in `src/drmTMB.cpp`. Unknown labels are rejected before they
-can fall through to a wrong likelihood branch. This table is the current
-routing contract:
+`"student"`, `"lognormal"`, `"gamma"`, `"poisson"`, `"nbinom2"`, and
+`"biv_gaussian"`. Before calling the TMB template, `make_tmb_data()` turns
+those labels into integer branches in `src/drmTMB.cpp`. Unknown labels are
+rejected before they can fall through to a wrong likelihood branch. This table
+is the current routing contract:
 
 | TMB `model_type` | User-facing route | R builder | TMB branch purpose |
 |---:|---|---|---|
@@ -33,6 +33,7 @@ routing contract:
 | `4` | `family = lognormal()` | `drm_build_lognormal_ls_spec()` | Univariate fixed-effect lognormal location-scale models for positive responses, with `mu` and `sigma` defined on the log-response scale. |
 | `5` | `family = Gamma(link = "log")` | `drm_build_gamma_ls_spec()` | Univariate fixed-effect Gamma mean-CV models for positive responses, with `mu` as the response mean and `sigma` as the coefficient of variation. |
 | `6` | `family = poisson(link = "log")` | `drm_build_poisson_spec()` | Univariate fixed-effect Poisson mean models for non-negative integer counts, with `mu` as the count mean. |
+| `7` | `family = nbinom2()` | `drm_build_nbinom2_spec()` | Univariate fixed-effect negative-binomial 2 models for overdispersed counts, with `mu` as the count mean and `sigma` as an overdispersion scale. |
 | `99` | no public route | direct test construction only | Hidden phylogenetic precision-prior parity branch used to test the sparse augmented A-inverse objective in isolation. |
 
 The hidden `model_type = 99` branch is not a family and should not appear in
@@ -430,6 +431,63 @@ expectations. The response must contain non-negative integer counts after
 missing-row filtering. Random effects, known sampling covariance, zero
 inflation, overdispersion, phylogenetic terms, and bivariate or mixed Poisson
 models are later phases.
+
+## Implemented Negative Binomial 2 Mean-Dispersion
+
+The first overdispersed count path is fixed-effect NB2 regression:
+
+```text
+y_i | mu_i, sigma_i ~ NB2(mu_i, size_i)
+eta_mu_i = X_mu[i, ] beta_mu
+eta_sigma_i = X_sigma[i, ] beta_sigma
+mu_i = exp(eta_mu_i)
+sigma_i = exp(eta_sigma_i)
+size_i = 1 / sigma_i^2
+E[y_i] = mu_i
+Var[y_i] = mu_i + sigma_i^2 * mu_i^2
+```
+
+The TMB likelihood matches the `stats::dnbinom(mu = mu_i, size = size_i)`
+mean parameterization:
+
+```text
+log f(y_i) =
+  log Gamma(y_i + size_i) - log Gamma(size_i) - log Gamma(y_i + 1) +
+  size_i [log(size_i) - log(size_i + mu_i)] +
+  y_i [log(mu_i) - log(size_i + mu_i)]
+```
+
+The C++ template evaluates an algebraically equivalent form that cancels the
+unstable `size_i = 1 / sigma_i^2` terms. With
+`alpha_i = sigma_i^2`, it uses
+
+```text
+log f(y_i) =
+  y_i eta_mu_i - log Gamma(y_i + 1)
+  + sum_{j = 0}^{y_i - 1} log(1 + alpha_i j)
+  - y_i log(1 + alpha_i mu_i)
+  - log(1 + alpha_i mu_i) / alpha_i
+```
+
+This form has the correct Poisson limit as `alpha_i` approaches zero and avoids
+overflow from computing very large `size_i`.
+
+Matching R syntax:
+
+```r
+drmTMB(
+  bf(count ~ habitat, sigma ~ treatment),
+  family = nbinom2(),
+  data = dat
+)
+```
+
+For `nbinom2()` fits, `predict(fit, dpar = "mu")` and `fitted(fit)` return the
+count mean. `sigma(fit)` returns the overdispersion scale in the variance
+equation, not a residual standard deviation. Larger `sigma` means greater
+extra-Poisson variation. Random effects, known sampling covariance, zero
+inflation, hurdle components, phylogenetic terms, and bivariate or mixed
+negative-binomial models are later phases.
 
 ## Implemented Bivariate Meta-Analytic Gaussian Regression
 

@@ -30,7 +30,9 @@ Families must declare both the native parameter scale and the fitted response
 rule. The implemented Gamma mean-CV family uses `log(mu)` and `log(sigma)`,
 with `sigma` interpreted as a coefficient of variation. The implemented
 Poisson mean family uses `log(mu)` and has no fitted `sigma` distributional
-parameter. Beta models would use `logit(mu)`.
+parameter. The implemented negative-binomial 2 family uses `log(mu)` and
+`log(sigma)`, with `sigma` interpreted as an overdispersion scale. Beta models
+would use `logit(mu)`.
 
 The detailed contract is in `docs/design/19-family-link-contract.md`. Treat it
 as a prerequisite before implementing additional count, beta, ordinal, or
@@ -173,6 +175,32 @@ distributional parameter. `sigma(fit)` returns a fixed unit dispersion vector
 for base-R method compatibility, not a modelled residual scale. Random effects,
 known sampling covariance, zero inflation, overdispersion, phylogenetic terms,
 and bivariate or mixed Poisson models are later phases.
+
+## Implemented: Negative Binomial 2 Mean-Dispersion
+
+`nbinom2()` is the first overdispersed count family:
+
+```r
+family = nbinom2()
+```
+
+The implemented model is fixed-effect and univariate:
+
+```text
+y_i | mu_i, sigma_i ~ NB2(mu_i, size_i)
+log(mu_i) = X_mu[i, ] beta_mu
+log(sigma_i) = X_sigma[i, ] beta_sigma
+size_i = 1 / sigma_i^2
+E[y_i] = mu_i
+Var[y_i] = mu_i + sigma_i^2 * mu_i^2
+```
+
+Here `sigma` is an extra-Poisson scale, not a residual standard deviation and
+not the native NB size or precision parameter. Larger `sigma` means greater
+overdispersion. This direction is deliberate so `sigma` continues to mean
+"more scale" across `drmTMB` families. Random effects, known sampling
+covariance, zero inflation, hurdle components, phylogenetic terms, and
+bivariate or mixed negative-binomial models are later phases.
 
 ## Implemented: Bivariate Gaussian Location-Coscale
 

@@ -2,7 +2,7 @@
 % Please edit documentation in R/methods.R
 \name{sigma.drmTMB}
 \alias{sigma.drmTMB}
-\title{Extract fitted residual scale}
+\title{Extract fitted scale or dispersion}
 \usage{
 \method{sigma}{drmTMB}(object, ...)
 }
@@ -16,16 +16,17 @@ A numeric vector for univariate models, or a named list of numeric
 vectors for bivariate Gaussian models.
 }
 \description{
-\code{sigma()} returns the fitted residual scale parameter from a \code{drmTMB} model.
-For univariate Gaussian location-scale models this is the fitted \code{sigma_i}
-vector on the response scale. For Student-t models this is the Student-t
-scale parameter; when \code{nu > 2}, the residual standard deviation is
+\code{sigma()} returns the fitted scale-like parameter from a \code{drmTMB} model. For
+univariate Gaussian location-scale models this is the fitted residual
+\code{sigma_i} vector on the response scale. For Student-t models this is the
+Student-t scale parameter; when \code{nu > 2}, the residual standard deviation is
 \code{sigma * sqrt(nu / (nu - 2))}. For lognormal models this is the fitted
 standard deviation of \code{log(y)}. For Gamma models this is the fitted
 coefficient of variation. Poisson models have no fitted residual scale
 parameter and return a fixed unit dispersion vector for consistency with
-base-R \code{sigma()} conventions. For bivariate Gaussian models it returns a
-list with fitted \code{sigma1} and \code{sigma2} vectors.
+base-R \code{sigma()} conventions. For negative-binomial 2 models this is the
+fitted overdispersion scale in \code{Var(y) = mu + sigma^2 * mu^2}. For bivariate
+Gaussian models it returns a list with fitted \code{sigma1} and \code{sigma2} vectors.
 }
 \details{
 In meta-analytic models fitted with \code{meta_known_V(V = V)}, this is the

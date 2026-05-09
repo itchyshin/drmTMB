@@ -7,6 +7,7 @@ print.drmTMB <- function(x, ...) {
     lognormal = "Lognormal location-scale",
     gamma = "Gamma mean-CV",
     poisson = "Poisson mean",
+    nbinom2 = "negative binomial 2 mean-dispersion",
     biv_gaussian = "bivariate Gaussian location-scale-coscale",
     "distributional"
   )
@@ -123,9 +124,9 @@ rho12.drmTMB <- function(object, newdata = NULL,
 #' Extract fitted response values
 #'
 #' `fitted()` returns fitted response values from a `drmTMB` model. For
-#' univariate Gaussian, Student-t, Gamma, and Poisson fits this is the fitted `mu`
-#' vector. For bivariate Gaussian fits this is a two-column matrix with `mu1`
-#' and `mu2`. For lognormal fits this is the arithmetic response mean,
+#' univariate Gaussian, Student-t, Gamma, Poisson, and negative-binomial fits
+#' this is the fitted `mu` vector. For bivariate Gaussian fits this is a
+#' two-column matrix with `mu1` and `mu2`. For lognormal fits this is the arithmetic response mean,
 #' `exp(mu + sigma^2 / 2)`.
 #'
 #' Fitted values are returned for the original fitted rows. Use [predict()] for
@@ -284,7 +285,9 @@ predict.drmTMB <- function(object, newdata = NULL, dpar = NULL,
 #' `mu`, `sigma`, and `nu`. For lognormal models, simulation uses fitted
 #' log-scale `mu` and `sigma`. For Gamma models, simulation uses fitted mean
 #' `mu` and coefficient of variation `sigma`. For Poisson models, simulation
-#' uses the fitted mean `mu`. For bivariate Gaussian models without known
+#' uses the fitted mean `mu`. For negative-binomial 2 models, simulation uses
+#' fitted `mu` and overdispersion scale `sigma`, with
+#' `Var(y) = mu + sigma^2 * mu^2`. For bivariate Gaussian models without known
 #' sampling covariance, simulation uses the fitted `mu1`, `mu2`, `sigma1`,
 #' `sigma2`, and residual `rho12`. If a dense bivariate known `V` was supplied,
 #' simulation uses the full row-paired observation covariance `V + Omega`.
@@ -360,6 +363,15 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, ...) {
     return(sims)
   }
 
+  if (identical(object$model$model_type, "nbinom2")) {
+    mu <- predict(object, dpar = "mu")
+    sigma <- predict(object, dpar = "sigma")
+    sims <- replicate(nsim, stats::rnbinom(length(mu), size = 1 / sigma^2, mu = mu))
+    sims <- as.data.frame(sims)
+    names(sims) <- paste0("sim_", seq_len(nsim))
+    return(sims)
+  }
+
   if (identical(object$model$model_type, "gaussian")) {
     mu <- predict(object, dpar = "mu")
     if (identical(object$model$V_known_type, "matrix")) {
@@ -430,7 +442,8 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, ...) {
 #' For Gamma models, response residuals are `y - mu` and Pearson residuals
 #' divide by the fitted Gamma standard deviation `mu * sigma`, where `sigma` is
 #' the coefficient of variation. For Poisson models, response residuals are
-#' `y - mu` and Pearson residuals divide by `sqrt(mu)`.
+#' `y - mu` and Pearson residuals divide by `sqrt(mu)`. For negative-binomial
+#' 2 models, Pearson residuals divide by `sqrt(mu + sigma^2 * mu^2)`.
 #'
 #' For bivariate Gaussian models, response residuals are returned as a
 #' two-column matrix. Pearson residuals are standardized and whitened using the
@@ -474,6 +487,15 @@ residuals.drmTMB <- function(object, type = c("response", "pearson"), ...) {
     }
     return(response / sqrt(mu))
   }
+  if (identical(object$model$model_type, "nbinom2")) {
+    mu <- predict(object, dpar = "mu")
+    sigma <- predict(object, dpar = "sigma")
+    response <- object$model$y - mu
+    if (type == "response") {
+      return(response)
+    }
+    return(response / sqrt(mu + sigma^2 * mu^2))
+  }
   if (identical(object$model$model_type, "gaussian") ||
       identical(object$model$model_type, "student")) {
     response <- object$model$y - predict(object, dpar = "mu")
@@ -510,18 +532,19 @@ residuals.drmTMB <- function(object, type = c("response", "pearson"), ...) {
   cbind(y1 = e1, y2 = e2)
 }
 
-#' Extract fitted residual scale
+#' Extract fitted scale or dispersion
 #'
-#' `sigma()` returns the fitted residual scale parameter from a `drmTMB` model.
-#' For univariate Gaussian location-scale models this is the fitted `sigma_i`
-#' vector on the response scale. For Student-t models this is the Student-t
-#' scale parameter; when `nu > 2`, the residual standard deviation is
+#' `sigma()` returns the fitted scale-like parameter from a `drmTMB` model. For
+#' univariate Gaussian location-scale models this is the fitted residual
+#' `sigma_i` vector on the response scale. For Student-t models this is the
+#' Student-t scale parameter; when `nu > 2`, the residual standard deviation is
 #' `sigma * sqrt(nu / (nu - 2))`. For lognormal models this is the fitted
 #' standard deviation of `log(y)`. For Gamma models this is the fitted
 #' coefficient of variation. Poisson models have no fitted residual scale
 #' parameter and return a fixed unit dispersion vector for consistency with
-#' base-R `sigma()` conventions. For bivariate Gaussian models it returns a
-#' list with fitted `sigma1` and `sigma2` vectors.
+#' base-R `sigma()` conventions. For negative-binomial 2 models this is the
+#' fitted overdispersion scale in `Var(y) = mu + sigma^2 * mu^2`. For bivariate
+#' Gaussian models it returns a list with fitted `sigma1` and `sigma2` vectors.
 #'
 #' In meta-analytic models fitted with `meta_known_V(V = V)`, this is the
 #' modelled residual heterogeneity scale, not the square root of the known
@@ -543,7 +566,8 @@ sigma.drmTMB <- function(object, ...) {
   if (identical(object$model$model_type, "gaussian") ||
       identical(object$model$model_type, "student") ||
       identical(object$model$model_type, "lognormal") ||
-      identical(object$model$model_type, "gamma")) {
+      identical(object$model$model_type, "gamma") ||
+      identical(object$model$model_type, "nbinom2")) {
     return(predict(object, dpar = "sigma"))
   }
   if (identical(object$model$model_type, "poisson")) {
@@ -697,6 +721,9 @@ drm_fitted_response <- function(object) {
   if (identical(object$model$model_type, "poisson")) {
     return(predict.drmTMB(object, dpar = "mu"))
   }
+  if (identical(object$model$model_type, "nbinom2")) {
+    return(predict.drmTMB(object, dpar = "mu"))
+  }
   if (identical(object$model$model_type, "gaussian") ||
       identical(object$model$model_type, "student")) {
     return(predict.drmTMB(object, dpar = "mu"))
@@ -726,6 +753,7 @@ drm_dpar_link <- function(object, dpar) {
     lognormal = c(mu = "identity", sigma = "log"),
     gamma = c(mu = "log", sigma = "log"),
     poisson = c(mu = "log"),
+    nbinom2 = c(mu = "log", sigma = "log"),
     biv_gaussian = c(
       mu1 = "identity",
       mu2 = "identity",

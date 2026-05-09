@@ -63,6 +63,11 @@ Implemented comparator smoke tests:
 - Poisson mean coefficients and log-likelihood against
   `stats::glm(..., family = poisson(link = "log"))` for the overlapping
   mean-regression case.
+- Negative-binomial 2 fixed-effect likelihood against an independent
+  `stats::dnbinom(mu = mu, size = 1 / sigma^2)` calculation at the fitted
+  coefficients.
+- Negative-binomial 2 Poisson-limit behaviour, checking that the NB2
+  likelihood approaches the Poisson likelihood as `sigma` approaches zero.
 
 Planned comparator smoke tests:
 

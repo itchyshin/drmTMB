@@ -14,6 +14,14 @@
 #include <TMB.hpp>
 
 template<class Type>
+Type drm_log1p_pos(Type x)
+{
+  Type series = x - x * x / Type(2.0) + x * x * x / Type(3.0);
+  Type direct = log(Type(1.0) + x);
+  return CppAD::CondExpLt(x, Type(1e-6), series, direct);
+}
+
+template<class Type>
 Type objective_function<Type>::operator()()
 {
   DATA_VECTOR(y);
@@ -306,6 +314,31 @@ Type objective_function<Type>::operator()()
     REPORT(eta_mu);
     REPORT(mu);
     ADREPORT(beta_mu);
+  } else if (model_type == 7) {
+    vector<Type> eta_mu = X_mu * beta_mu;
+    vector<Type> log_sigma = X_sigma * beta_sigma;
+    vector<Type> mu = exp(eta_mu);
+    vector<Type> sigma = exp(log_sigma);
+    for (int i = 0; i < y.size(); ++i) {
+      Type alpha = exp(Type(2.0) * log_sigma(i)) + Type(1e-300);
+      Type log1p_alpha_mu = drm_log1p_pos(alpha * mu(i));
+      Type log_density =
+        y(i) * eta_mu(i) -
+        lgamma(y(i) + Type(1.0)) -
+        y(i) * log1p_alpha_mu -
+        log1p_alpha_mu / alpha;
+      int yi = (int) asDouble(y(i));
+      for (int j = 0; j < yi; ++j) {
+        log_density += drm_log1p_pos(alpha * Type(j));
+      }
+      nll -= log_density;
+    }
+    REPORT(eta_mu);
+    REPORT(mu);
+    REPORT(log_sigma);
+    REPORT(sigma);
+    ADREPORT(beta_mu);
+    ADREPORT(beta_sigma);
   } else if (model_type == 2) {
     vector<Type> mu1 = X_mu1 * beta_mu1;
     vector<Type> mu2 = X_mu2 * beta_mu2;

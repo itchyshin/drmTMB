@@ -83,3 +83,32 @@ lognormal <- function() {
     class = "drm_family"
   )
 }
+
+#' Negative binomial 2 response family
+#'
+#' `nbinom2()` defines a one-response count distribution with formulas for the
+#' mean `mu` and overdispersion scale `sigma`.
+#'
+#' The implemented contract is
+#' `log(mu) = eta_mu`, `log(sigma) = eta_sigma`, and
+#' `Var(y) = mu + sigma^2 * mu^2`. Thus larger `sigma` means greater
+#' extra-Poisson variation. Internally this is equivalent to the usual NB2
+#' size parameter `size = 1 / sigma^2`.
+#'
+#' @return A `drm_family` object.
+#' @export
+#'
+#' @examples
+#' nbinom2()
+nbinom2 <- function() {
+  structure(
+    list(
+      name = "nbinom2",
+      family = "nbinom2",
+      n_response = 1L,
+      dpars = c("mu", "sigma"),
+      links = c(mu = "log", sigma = "log")
+    ),
+    class = "drm_family"
+  )
+}

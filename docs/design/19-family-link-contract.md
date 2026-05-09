@@ -28,6 +28,8 @@ The implemented families use these parameter meanings:
 | Gamma | `mu` | log | arithmetic mean of `y` |
 | Gamma | `sigma` | log | coefficient of variation; residual SD is `mu * sigma` |
 | Poisson | `mu` | log | arithmetic mean and variance of the count response |
+| Negative binomial 2 | `mu` | log | arithmetic mean of the count response |
+| Negative binomial 2 | `sigma` | log | overdispersion scale; `Var(y) = mu + sigma^2 * mu^2` |
 | Bivariate Gaussian | `mu1`, `mu2` | identity | arithmetic means of `y1` and `y2` |
 | Bivariate Gaussian | `sigma1`, `sigma2` | log | residual standard deviations |
 | Bivariate Gaussian | `rho12` | guarded atanh | residual response-response correlation |
@@ -147,21 +149,23 @@ This path has no fitted `sigma` distributional parameter. `sigma(fit)` returns
 a fixed unit dispersion vector for base-R method compatibility only. It should
 not be interpreted as a modelled residual scale.
 
-Overdispersed count families remain planned and are the main biological target
-for count distributional regression:
+The first overdispersed count family is fixed-effect NB2 regression:
 
 ```text
-Candidate negative binomial 2:
+Negative binomial 2:
   y_i ~ NB2(mu_i, sigma_i)
 
   log(mu_i) = X_mu[i, ] beta_mu
   log(sigma_i) = X_sigma[i, ] beta_sigma
+  size_i = 1 / sigma_i^2
+  E[y_i] = mu_i
   Var[y_i] = mu_i + sigma_i^2 mu_i^2
 ```
 
-The `nbinom2()` `sigma` proposal makes `sigma` an overdispersion scale, with
-larger values meaning greater extra-Poisson variation. Before implementation,
-compare this with `glmmTMB` and other conventions and document the translation.
+The `nbinom2()` `sigma` parameter is an overdispersion scale, with larger
+values meaning greater extra-Poisson variation. This is not the usual NB size
+or precision parameter; the implementation uses `size = 1 / sigma^2` in the
+`stats::dnbinom(mu = mu, size = size)` mean parameterization.
 
 Zero inflation should use a separate parameter such as `zi`:
 

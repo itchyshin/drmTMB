@@ -2,7 +2,8 @@
 
 A fast TMB-based distributional regression package for broadly useful
 univariate and bivariate distributional regression. The current implementation
-starts with Gaussian, Student-t, lognormal, Gamma, and Poisson models,
+starts with Gaussian, Student-t, lognormal, Gamma, Poisson, and negative
+binomial models,
 known-covariance meta-analysis, phylogenetic location effects, random-effect
 scale models, and bivariate Gaussian residual-correlation models. The long-term
 design also includes skewness, zero inflation, and additional response
@@ -18,7 +19,10 @@ mean and standard deviation of `log(y)`, and `fitted()` returns the arithmetic
 mean `exp(mu + sigma^2 / 2)`. For Gamma models, `mu` is the response mean and
 `sigma` is the coefficient of variation, so the residual standard deviation is
 `mu * sigma`. For Poisson models, `mu` is the count mean and variance; there
-is no fitted residual `sigma` parameter in the first Poisson path.
+is no fitted residual `sigma` parameter in the first Poisson path. For
+negative-binomial 2 models, `mu` is the count mean and `sigma` is an
+overdispersion scale in `Var(y) = mu + sigma^2 * mu^2`, not a residual
+standard deviation.
 
 The current implementation supports Gaussian location-scale models, including
 fixed effects, random intercepts, independent numeric random slopes, and
@@ -137,8 +141,35 @@ drmTMB(
 This is mainly a baseline count-regression path and a comparator for later
 overdispersed count families. It intentionally does not accept `sigma`,
 `sd(group)`, `meta_known_V()`, random effects, or bivariate count syntax yet.
-Ecological counts with biological overdispersion will usually need the planned
-negative binomial or COM-Poisson families once those likelihoods are added.
+Ecological counts with biological overdispersion will usually need
+`nbinom2()` or the planned COM-Poisson family.
+
+Negative-binomial 2 mean-dispersion models are implemented for overdispersed
+counts:
+
+```text
+y_i | mu_i, sigma_i ~ NB2(mu_i, size_i)
+log(mu_i) = beta_0 + beta_1 habitat_i
+log(sigma_i) = gamma_0 + gamma_1 treatment_i
+size_i = 1 / sigma_i^2
+E[y_i] = mu_i
+Var[y_i] = mu_i + sigma_i^2 * mu_i^2
+```
+
+```r
+drmTMB(
+  drm_formula(count ~ habitat, sigma ~ treatment),
+  family = nbinom2(),
+  data = dat
+)
+```
+
+Here `sigma` is the extra-Poisson scale. Larger `sigma` means more
+overdispersion. This is the opposite direction from parameterizations that use
+a size or precision parameter; for example, `size = 1 / sigma^2`. Random
+effects, zero inflation, hurdle components, known sampling covariance,
+phylogenetic or spatial structured effects, and bivariate count models are
+later phases.
 
 ```r
 drmTMB(
@@ -384,7 +415,8 @@ models such as `sd(id) ~ x_group` and `sd(site) ~ site_type`, fixed-effect
 Student-t `mu`, `sigma`, and `nu` models, fixed-effect lognormal `mu` and
 `sigma` models for positive responses, fixed-effect Gamma mean-CV models with
 `family = Gamma(link = "log")`, fixed-effect Poisson mean models with
-`family = poisson(link = "log")`, `meta_known_V(V = V)` support for diagonal and
+`family = poisson(link = "log")`, fixed-effect negative-binomial 2
+mean-dispersion models with `family = nbinom2()`, `meta_known_V(V = V)` support for diagonal and
 dense known sampling covariance, intercept-only univariate Gaussian
 phylogenetic location effects such as
 `phylo(1 | species, tree = tree)`, and fixed-effect bivariate Gaussian

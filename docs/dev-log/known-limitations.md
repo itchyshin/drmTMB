@@ -29,6 +29,13 @@
   `mu` is fitted; there is no modelled `sigma` parameter. Overdispersion, zero
   inflation, random effects, known sampling covariance, phylogenetic terms, and
   bivariate or mixed Poisson models are not yet implemented.
+- Fixed-effect univariate negative-binomial 2 mean-dispersion models are
+  implemented for overdispersed counts with `family = nbinom2()`. `mu` is the
+  count mean and `sigma` is an overdispersion scale in
+  `Var(y) = mu + sigma^2 * mu^2`; it is not a residual standard deviation or
+  NB size parameter. Random effects, zero inflation, hurdle components, known
+  sampling covariance, phylogenetic terms, and bivariate or mixed
+  negative-binomial models are not yet implemented.
 - Intercept-only phylogenetic random effects are implemented in univariate
   Gaussian location formulas as `phylo(1 | species, tree = tree)`. The tree
   must be an ultrametric `phylo` object with positive branch lengths, and every
@@ -51,16 +58,18 @@
   It also supports fixed-effect univariate lognormal models with `mu` and
   `sigma` on the log-response scale, fixed-effect univariate Gamma mean-CV
   models with positive response mean `mu` and coefficient of variation
-  `sigma`, and fixed-effect univariate Poisson mean models.
+  `sigma`, fixed-effect univariate Poisson mean models, and fixed-effect
+  univariate negative-binomial 2 mean-dispersion models.
 - Cross-formula labelled covariance sharing, residual-scale random slopes,
   slope-specific random-effect scale targets, labelled-block random-effect
   scale targets, bivariate random-effect scale targets, Student-t random
   effects, Student-t known-covariance models, Student-t phylogenetic models,
   bivariate Student-t models, lognormal random-effect and structured-effect
-  models, Gamma random-effect and structured-effect models, Poisson
-  random-effect and overdispersion models, and additional non-Gaussian
-  families beyond the first Student-t, lognormal, Gamma, and Poisson paths are
-  planned but not yet implemented.
+  models, Gamma random-effect and structured-effect models, Poisson and
+  negative-binomial random-effect models, zero-inflation and hurdle count
+  models, and additional non-Gaussian families beyond the first Student-t,
+  lognormal, Gamma, Poisson, and negative-binomial paths are planned but not
+  yet implemented.
 - Users should not substitute `sigma ~ x + (1 | id)` for `sd(id) ~ x_group`
   unless their scientific question is residual variability rather than
   among-group variation in the mean model.

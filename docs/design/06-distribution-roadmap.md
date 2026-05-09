@@ -77,8 +77,9 @@ families.
 
 - `poisson(link = "log")`: `mu`; implemented as the fixed-effect baseline
   count model and comparator for later overdispersed count families.
-- `nbinom2()`: `mu`, `sigma` or family-specific `nu`; variance increases
-  quadratically with the mean.
+- `nbinom2()`: `mu`, `sigma`; implemented fixed-effect path with
+  `Var(y) = mu + sigma^2 * mu^2`, so larger `sigma` means greater
+  overdispersion.
 - `nbinom1()`: `mu`, `sigma` or family-specific `nu`; variance increases
   linearly with the mean.
 - `compois()`: `mu`, `nu`; handles underdispersion and overdispersion.
@@ -88,7 +89,7 @@ families.
 - `zi_poisson()` and `zi_nbinom2()` with `zi ~ predictors`.
 - `hurdle_poisson()` and `hurdle_nbinom2()` with `hu ~ predictors`.
 
-Priority order after the Poisson seed: `nbinom2`, `compois`, zero-inflated
+Priority order after the Poisson and NB2 seeds: `compois`, zero-inflated
 negative binomial, hurdle negative binomial.
 
 ## Tier 5: Proportions, Percentages, and Bounded Continuous Responses

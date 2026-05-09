@@ -64,6 +64,7 @@ reference:
       - meta_vcov_bivariate
       - student
       - lognormal
+      - nbinom2
       - biv_gaussian
   - title: Structured-effect markers
     desc: Phylogenetic and planned spatial structured covariance terms.

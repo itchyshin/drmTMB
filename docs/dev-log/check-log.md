@@ -4440,3 +4440,103 @@ Team learning:
   families become implemented;
 - Rose's after-task audit should always include generated pkgdown pages, not
   only source R Markdown and design docs.
+
+## 2026-05-09: Add Fixed-Effect NB2 Mean-Dispersion Family
+
+Scope:
+
+- added `nbinom2()` as a fixed-effect univariate negative-binomial 2 family for
+  overdispersed counts;
+- defined the contract as `log(mu) = X_mu beta_mu`,
+  `log(sigma) = X_sigma beta_sigma`, `size = 1 / sigma^2`, and
+  `Var(y) = mu + sigma^2 * mu^2`;
+- kept the first implementation narrow: no random effects, no `meta_known_V()`,
+  no zero inflation, no hurdle component, no phylogenetic/spatial terms, and no
+  bivariate or mixed count model;
+- updated methods, tests, generated docs, pkgdown navigation, README, NEWS,
+  ROADMAP, family registry, likelihood docs, testing strategy, distribution
+  roadmap, family-link contract, known limitations, formula grammar, source
+  map, and distribution-family vignette.
+
+Commands run:
+
+- Euclid landscape pass over NB2 conventions and sigma/size mapping
+- `R -q -e 'devtools::test(filter = "nbinom2|family-link-contract")'`
+- `R -q -e 'devtools::test(filter = "nbinom2|poisson|family-link-contract")'`
+- `R -q -e 'devtools::document()'`
+- `R -q -e 'devtools::test()'`
+- `R -q -e 'pkgdown::check_pkgdown()'`
+- `R -q -e 'pkgdown::build_site()'`
+- `R -q -e 'devtools::check()'`
+- `rg -n 'nbinom2.*planned|negative binomial.*planned|planned negative binomial|Candidate negative binomial|before implementing.*nbinom2|Use this contract before implementing `gamma\\(\\)`|model_type = 7|dnbinom|drm_build_nbinom2_spec' README.md ROADMAP.md NEWS.md DESCRIPTION _pkgdown.yml R src tests docs vignettes man pkgdown-site --glob '!pkgdown-site/search.json'`
+- `rg -n 'sigma.*overdispersion|size = 1 / sigma\\^2|Var\\(y\\) = mu \\+ sigma\\^2|negative-binomial 2|Negative-binomial 2|nbinom2\\(\\)' README.md ROADMAP.md NEWS.md docs vignettes R tests man pkgdown-site --glob '!pkgdown-site/search.json'`
+- `rg -n 'Poisson mean, and negative-binomial|Poisson paths|Poisson and negative-binomial|count-response families|COM-Poisson' README.md ROADMAP.md NEWS.md DESCRIPTION docs vignettes pkgdown-site --glob '!pkgdown-site/search.json'`
+- `git diff --check`
+
+Results:
+
+- narrow NB2 and link-contract tests: 76 passed after replacing a fragile
+  tiny-data link-contract fit and adding direct Poisson-limit objective checks;
+- targeted count/link tests: 115 passed;
+- full `devtools::test()`: 860 passed, 0 failed, 0 skipped;
+- `pkgdown::check_pkgdown()`: no problems found;
+- `pkgdown::build_site()`: completed successfully and produced the `nbinom2`
+  reference page;
+- `devtools::check()`: 0 errors, 0 warnings, 0 notes;
+- `git diff --check`: clean.
+
+Tests of the tests:
+
+- independent likelihood test compares fitted log-likelihood to
+  `sum(dnbinom(y, mu = mu, size = 1 / sigma^2, log = TRUE))`;
+- simulation tests use `stats::rnbinom()` with the same `size = 1 / sigma^2`
+  mapping;
+- Poisson-limit test checks that the NB2 likelihood approaches `dpois()` as
+  `sigma` approaches zero and directly evaluates the TMB objective at very
+  small `sigma` values;
+- malformed-input tests reject unsupported `nu`, missing response, duplicated
+  `sigma`, negative and non-integer counts, random effects, `meta_known_V()`,
+  `sd(id)`, and `mvbind()`.
+
+Consistency audit:
+
+- symbolic equations and R syntax now match in the README,
+  `docs/design/03-likelihoods.md`, `docs/design/19-family-link-contract.md`,
+  and `vignettes/distribution-families.Rmd`;
+- `docs/design/01-formula-grammar.md` and `vignettes/formula-grammar.Rmd`
+  now list NB2 as implemented;
+- generated pkgdown pages include `reference/nbinom2.html`;
+- historical after-task notes that called NB2 future work were left unchanged
+  where they were true when written.
+
+What did not go smoothly:
+
+- the first link-contract smoke fit used six toy observations and produced
+  `sdreport()` NaN warnings. The test was changed to a modest simulated NB2
+  example so it exercises fitted-response routing without making the Hessian
+  fragile;
+- NB2 naming is easy to confuse with size/precision conventions in other
+  packages. The docs now state explicitly that `sigma` maps to
+  `size = 1 / sigma^2` and larger `sigma` means more overdispersion.
+- Darwin's review caught a numerical fragility in the first algebraically
+  correct C++ density near the Poisson limit. The TMB template now uses an
+  equivalent log-likelihood written in terms of `alpha = sigma^2`, avoiding
+  direct computation of very large `size = 1 / sigma^2`.
+
+Known limitations:
+
+- NB2 models are fixed-effect, univariate, and complete-case only;
+- no random effects, zero inflation, hurdle component, known sampling
+  covariance, phylogenetic/spatial structured effects, bivariate count model,
+  or mixed composed count model is implemented yet;
+- no external `glmmTMB` or GAMLSS comparator is in the CRAN-safe test path yet.
+
+Team learning:
+
+- Euclid's landscape pass was valuable before coding because it clarified
+  sigma direction and avoided accidentally copying a precision-parameter
+  convention;
+- small "smoke" fits can be numerically worse than moderate simulated examples
+  for overdispersed count models;
+- future count families should include an explicit map to any base-R density
+  parameters before code is written.

@@ -142,7 +142,33 @@ count mean. There is no fitted `sigma` distributional parameter; `sigma(fit)`
 returns a fixed unit dispersion vector only for base-R method compatibility.
 Use this path as a baseline count model and as a comparator for later
 overdispersed count families. Biological count data with extra-Poisson
-variation will usually need the planned negative binomial or COM-Poisson paths.
+variation will usually need `nbinom2()` or the planned COM-Poisson path.
+
+Negative-binomial 2 mean-dispersion models are implemented for overdispersed
+count responses:
+
+```text
+y_i | mu_i, sigma_i ~ NB2(mu_i, size_i)
+log(mu_i) = beta_0 + beta_1 habitat_i
+log(sigma_i) = gamma_0 + gamma_1 treatment_i
+size_i = 1 / sigma_i^2
+E[y_i] = mu_i
+Var[y_i] = mu_i + sigma_i^2 * mu_i^2
+```
+
+```r
+drmTMB(
+  bf(count ~ habitat, sigma ~ treatment),
+  family = nbinom2(),
+  data = dat
+)
+```
+
+For this family, `predict(fit, dpar = "mu")` and `fitted(fit)` return the
+count mean. `sigma(fit)` returns the overdispersion scale in the variance
+equation, not a residual standard deviation. Larger `sigma` means greater
+extra-Poisson variation. The implementation uses the equivalent
+`stats::dnbinom(mu = mu, size = 1 / sigma^2)` parameterization internally.
 
 For implemented bivariate Gaussian models, the preferred public spelling is to
 combine two Gaussian response families:
