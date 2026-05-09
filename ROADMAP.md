@@ -197,9 +197,11 @@ distributional regression models using TMB.
 
 - Status: `poisson(link = "log")` is implemented as a fixed-effect baseline
   count model, including optional `zi ~ predictors` for zero-inflated Poisson
-  models. `nbinom2()` is implemented as a fixed-effect `mu`/`sigma`
+  models and standard R `offset(log(exposure))` terms in the `mu` formula.
+  `nbinom2()` is implemented as a fixed-effect `mu`/`sigma`
   overdispersed count model with `Var(y) = mu + sigma^2 * mu^2`, including
-  optional `zi ~ predictors` for zero-inflated NB2 models.
+  standard R `offset(log(exposure))` terms in the `mu` formula and optional
+  `zi ~ predictors` for zero-inflated NB2 models.
   `truncated_nbinom2()` is implemented for positive counts where `mu` and
   `sigma` describe the untruncated NB2 component and `fitted()` returns the
   conditional positive-count mean. Adding `hu ~ predictors` to the same family

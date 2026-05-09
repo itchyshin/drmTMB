@@ -75,6 +75,32 @@ test_that("zero-inflated Poisson likelihood matches independent calculation", {
   expect_equal(as.numeric(logLik(fit)), sum(ll_independent), tolerance = 1e-6)
 })
 
+test_that("zero-inflated Poisson supports exposure offsets in the mean formula", {
+  sim <- new_zi_poisson_data(n = 420, seed = 20260618)
+  dat <- sim$data
+  dat$effort <- exp(stats::rnorm(nrow(dat), mean = 0, sd = 0.4))
+
+  fit <- drmTMB(
+    bf(count ~ x + habitat + offset(log(effort)), zi ~ z + habitat),
+    family = stats::poisson(link = "log"),
+    data = dat
+  )
+
+  eta_mu <- log(dat$effort) + as.vector(fit$model$X$mu %*% coef(fit, "mu"))
+  eta_zi <- as.vector(fit$model$X$zi %*% coef(fit, "zi"))
+  mu <- exp(eta_mu)
+  zi <- stats::plogis(eta_zi)
+  ll_independent <- ifelse(
+    fit$model$y == 0,
+    log(zi + (1 - zi) * stats::dpois(0, lambda = mu)),
+    log1p(-zi) + stats::dpois(fit$model$y, lambda = mu, log = TRUE)
+  )
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(as.numeric(logLik(fit)), sum(ll_independent), tolerance = 1e-6)
+  expect_equal(fit$model$offset$mu, log(dat$effort), tolerance = 1e-12)
+})
+
 test_that("zero-inflated Poisson methods return count-scale summaries", {
   sim <- new_zi_poisson_data(n = 260, seed = 20260610)
   fit <- drmTMB(

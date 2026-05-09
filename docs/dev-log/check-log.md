@@ -6081,3 +6081,93 @@ Team learning:
   than duplicating every possible family immediately;
 - Ada should keep these coverage passes staggered and small so CI failures are
   easy to locate.
+
+## 2026-05-09 — Count Exposure Offsets
+
+Goal:
+
+- respect standard R count-model convention by supporting
+  `offset(log(exposure))` in the `mu` formula for implemented Poisson and NB2
+  count models.
+
+Changes:
+
+- added `offset()` extraction, validation, storage, TMB data plumbing, starting
+  values, and prediction support for Poisson and NB2 `mu` formulas;
+- added offset support to the implemented zero-inflated Poisson and
+  zero-inflated NB2 paths;
+- kept offsets rejected in `sigma`, `zi`, `hu`, Gaussian, bivariate,
+  meta-analytic, phylogenetic, spatial, truncated NB2, and hurdle NB2 formulas;
+- updated README, NEWS, formula grammar, family registry, likelihood equations,
+  family-link contract, distribution roadmap, source map, known limitations,
+  and distribution-family tutorials.
+
+Commands run:
+
+- `command -v air || true`
+- `Rscript -e "devtools::test(filter = 'poisson-mean|zi-poisson|nbinom2-location-scale|zi-nbinom2')"`
+- `Rscript -e "rmarkdown::render('vignettes/distribution-families.Rmd', output_dir = tempdir(), quiet = TRUE); rmarkdown::render('vignettes/formula-grammar.Rmd', output_dir = tempdir(), quiet = TRUE)"`
+- `Rscript -e "devtools::document()"`
+- `Rscript -e "devtools::test()"`
+- `Rscript -e "devtools::test(filter = 'phylo-utils|poisson-mean|zi-poisson|nbinom2-location-scale|zi-nbinom2')"`
+- `Rscript -e "devtools::test()"`
+- `Rscript -e "pkgdown::build_site()"`
+- `Rscript tools/fix-pkgdown-favicon-mime.R pkgdown-site`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`
+- `rg -n "offset|exposure|trap_nights|rate model|Poisson mean|nbinom2" ROADMAP.md docs/dev-log/known-limitations.md README.md docs/design vignettes _pkgdown.yml`
+- `rg -n "offset|exposure|trap_nights|rate model" pkgdown-site`
+- `git diff --check`
+
+Results:
+
+- `air` was not installed in this environment, so no formatter was run;
+- first targeted count-family offset tests passed: 264 passed, 0 failed;
+- direct renders of the distribution-family and formula-grammar vignettes
+  passed;
+- `devtools::document()` regenerated `man/drmTMB.Rd`;
+- first full `devtools::test()` failed in the hidden phylogenetic prior TMB
+  branch because its direct TMB data fixture lacked the new `offset_mu` slot;
+- after adding the dummy `offset_mu` fixture, targeted count plus phylo tests
+  passed: 309 passed, 0 failed;
+- second full `devtools::test()` passed: 1246 passed, 0 failed;
+- `pkgdown::build_site()` rebuilt successfully;
+- favicon MIME repair script completed without output;
+- `pkgdown::check_pkgdown()`: no problems found;
+- `devtools::check(...)`: 0 errors, 0 warnings, 0 notes;
+- stale-wording scans found current offset/exposure wording in the intended
+  user-facing, design, and generated-site files. Remaining `offset` hits in
+  generated CSS/SVG/pkgdown JavaScript were unrelated to model offsets;
+- `git diff --check`: clean.
+
+Tests of the tests:
+
+- Poisson offsets are compared against `stats::glm()` with the same
+  `offset(log(effort))` formula for coefficients and log-likelihood;
+- NB2, zero-inflated Poisson, and zero-inflated NB2 offsets are checked against
+  independent pointwise likelihood calculations;
+- prediction tests verify that newdata exposure changes the response-scale
+  `mu` prediction as `exposure * exp(X beta)`;
+- malformed exposure with `log(0)` triggers the finite-offset validation path;
+- the failed full-test run confirmed that direct TMB fixtures also need to
+  track new C++ data slots.
+
+Known limitations:
+
+- offsets are implemented only for `mu` in Poisson and NB2 routes, including
+  zero-inflated variants;
+- offsets remain intentionally unsupported for `sigma`, `zi`, `hu`,
+  truncated NB2, hurdle NB2, Gaussian, bivariate, meta-analysis,
+  phylogenetic, and spatial formulas;
+- this phase does not add response-specific bivariate weights or count-family
+  random effects.
+
+Team learning:
+
+- respecting R history made the user-facing syntax clearer than inventing an
+  `exposure =` argument;
+- Rose's status-inventory scan caught the source-map and known-limitations
+  pages after the first implementation pass;
+- the hidden phylogenetic branch failure is a useful reminder that every new
+  `DATA_*` slot in TMB must be mirrored in test fixtures that bypass the R
+  model builder.

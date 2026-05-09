@@ -481,10 +481,14 @@ The first count path is fixed-effect mean regression:
 
 ```text
 y_i | mu_i ~ Poisson(mu_i)
-eta_mu_i = X_mu[i, ] beta_mu
+eta_mu_i = o_i + X_mu[i, ] beta_mu
 mu_i = exp(eta_mu_i)
 E[y_i] = Var[y_i] = mu_i
 ```
+
+For exposure or effort models, `o_i` is the known offset supplied by standard
+R syntax such as `offset(log(trap_nights))`. If no offset is present,
+`o_i = 0`.
 
 The TMB likelihood is:
 
@@ -496,7 +500,7 @@ Matching R syntax:
 
 ```r
 drmTMB(
-  bf(count ~ habitat),
+  bf(count ~ habitat + offset(log(trap_nights))),
   family = poisson(link = "log"),
   data = dat
 )
@@ -517,7 +521,7 @@ formula for the structural-zero probability:
 
 ```text
 y_i | mu_i, zi_i ~ zero-inflated Poisson(mu_i, zi_i)
-eta_mu_i = X_mu[i, ] beta_mu
+eta_mu_i = o_i + X_mu[i, ] beta_mu
 eta_zi_i = X_zi[i, ] beta_zi
 mu_i = exp(eta_mu_i)
 zi_i = logit^{-1}(eta_zi_i)
@@ -536,7 +540,7 @@ Matching R syntax:
 
 ```r
 drmTMB(
-  drm_formula(count ~ habitat, zi ~ treatment),
+  drm_formula(count ~ habitat + offset(log(trap_nights)), zi ~ treatment),
   family = poisson(link = "log"),
   data = dat
 )
@@ -556,7 +560,7 @@ The first overdispersed count path is fixed-effect NB2 regression:
 
 ```text
 y_i | mu_i, sigma_i ~ NB2(mu_i, size_i)
-eta_mu_i = X_mu[i, ] beta_mu
+eta_mu_i = o_i + X_mu[i, ] beta_mu
 eta_sigma_i = X_sigma[i, ] beta_sigma
 mu_i = exp(eta_mu_i)
 sigma_i = exp(eta_sigma_i)
@@ -594,7 +598,7 @@ Matching R syntax:
 
 ```r
 drmTMB(
-  bf(count ~ habitat, sigma ~ treatment),
+  bf(count ~ habitat + offset(log(trap_nights)), sigma ~ treatment),
   family = nbinom2(),
   data = dat
 )

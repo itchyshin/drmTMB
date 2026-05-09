@@ -155,13 +155,13 @@ Poisson mean models are implemented for count responses:
 
 ```text
 y_i | mu_i ~ Poisson(mu_i)
-log(mu_i) = beta_0 + beta_1 habitat_i
+log(mu_i) = log(trap_nights_i) + beta_0 + beta_1 habitat_i
 E[y_i] = Var[y_i] = mu_i
 ```
 
 ```r
 drmTMB(
-  bf(count ~ habitat),
+  bf(count ~ habitat + offset(log(trap_nights))),
   family = poisson(link = "log"),
   data = dat
 )
@@ -170,6 +170,9 @@ drmTMB(
 For this family, `predict(fit, dpar = "mu")` and `fitted(fit)` return the
 count mean. There is no fitted `sigma` distributional parameter; `sigma(fit)`
 returns a fixed unit dispersion vector only for base-R method compatibility.
+The `offset(log(trap_nights))` term is the standard R exposure form: the model
+estimates a rate per trap night while the expected count remains proportional
+to sampling effort.
 Use this path as a baseline count model and as a comparator for later
 overdispersed count families. Biological count data with extra-Poisson
 variation will usually need `nbinom2()`; COM-Poisson remains a later route for
@@ -179,14 +182,14 @@ Zero-inflated Poisson models are implemented by adding a `zi` formula:
 
 ```text
 y_i | mu_i, zi_i ~ ZIP(mu_i, zi_i)
-log(mu_i) = beta_0 + beta_1 habitat_i
+log(mu_i) = log(trap_nights_i) + beta_0 + beta_1 habitat_i
 logit(zi_i) = gamma_0 + gamma_1 survey_method_i
 E[y_i] = (1 - zi_i) mu_i
 ```
 
 ```r
 drmTMB(
-  bf(count ~ habitat, zi ~ survey_method),
+  bf(count ~ habitat + offset(log(trap_nights)), zi ~ survey_method),
   family = poisson(link = "log"),
   data = dat
 )
@@ -202,7 +205,7 @@ count responses:
 
 ```text
 y_i | mu_i, sigma_i ~ NB2(mu_i, size_i)
-log(mu_i) = beta_0 + beta_1 habitat_i
+log(mu_i) = log(trap_nights_i) + beta_0 + beta_1 habitat_i
 log(sigma_i) = gamma_0 + gamma_1 treatment_i
 size_i = 1 / sigma_i^2
 E[y_i] = mu_i
@@ -211,7 +214,7 @@ Var[y_i] = mu_i + sigma_i^2 * mu_i^2
 
 ```r
 drmTMB(
-  bf(count ~ habitat, sigma ~ treatment),
+  bf(count ~ habitat + offset(log(trap_nights)), sigma ~ treatment),
   family = nbinom2(),
   data = dat
 )
@@ -228,7 +231,7 @@ formula for structural zeros:
 
 ```text
 y_i | mu_i, sigma_i, zi_i ~ ZINB2(mu_i, sigma_i, zi_i)
-log(mu_i) = beta_0 + beta_1 habitat_i
+log(mu_i) = log(trap_nights_i) + beta_0 + beta_1 habitat_i
 log(sigma_i) = gamma_0 + gamma_1 treatment_i
 logit(zi_i) = delta_0 + delta_1 survey_method_i
 size_i = 1 / sigma_i^2
@@ -238,7 +241,7 @@ Var[y_i | count component] = mu_i + sigma_i^2 * mu_i^2
 
 ```r
 drmTMB(
-  bf(count ~ habitat, sigma ~ treatment, zi ~ survey_method),
+  bf(count ~ habitat + offset(log(trap_nights)), sigma ~ treatment, zi ~ survey_method),
   family = nbinom2(),
   data = dat
 )

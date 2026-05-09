@@ -575,7 +575,8 @@ predict.drmTMB <- function(object, newdata = NULL, dpar = NULL,
     return(predict_random_scale_dpar(object, dpar, newdata = newdata, type = type))
   }
   X <- drm_prediction_matrix(object, newdata, dpar)
-  eta <- as.vector(X %*% object$coefficients[[dpar]])
+  eta <- as.vector(X %*% object$coefficients[[dpar]]) +
+    drm_prediction_offset(object, newdata, dpar)
   if (is.null(newdata) && dpar == "mu" && has_ordinary_mu_random_effects(object)) {
     eta <- eta + mu_random_effect_contribution(object)
   }
@@ -1113,6 +1114,36 @@ drm_prediction_matrix <- function(object, newdata, dpar) {
     cli::cli_abort("{.arg newdata} must be a data frame.")
   }
   stats::model.matrix(object$model$terms[[dpar]], data = newdata)
+}
+
+drm_prediction_offset <- function(object, newdata, dpar) {
+  offset <- object$model$offset[[dpar]]
+  if (is.null(offset)) {
+    if (is.null(newdata)) {
+      return(rep(0, nrow(object$model$X[[dpar]])))
+    }
+    return(rep(0, nrow(newdata)))
+  }
+  if (is.null(newdata)) {
+    return(offset)
+  }
+  mf <- stats::model.frame(
+    object$model$terms[[dpar]],
+    data = newdata,
+    na.action = stats::na.pass
+  )
+  out <- stats::model.offset(mf)
+  if (is.null(out)) {
+    return(rep(0, nrow(newdata)))
+  }
+  out <- as.numeric(out)
+  if (length(out) != nrow(newdata) || any(!is.finite(out))) {
+    cli::cli_abort(c(
+      "Offset terms in {.arg newdata} must evaluate to one finite value per row.",
+      "i" = "For exposure prediction, supply positive finite exposure values used by {.code offset(log(exposure))}."
+    ))
+  }
+  out
 }
 
 observation_sigma <- function(object) {

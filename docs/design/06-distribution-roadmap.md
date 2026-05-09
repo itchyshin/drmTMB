@@ -79,12 +79,14 @@ families.
 
 - `poisson(link = "log")`: `mu`, with optional `zi`; implemented as the
   fixed-effect baseline count model and fixed-effect zero-inflated Poisson
-  model. The `mu` parameter is the conditional Poisson mean when `zi` is
-  present.
+  model. The `mu` formula supports standard R exposure offsets such as
+  `offset(log(trap_nights))`. The `mu` parameter is the conditional Poisson
+  mean when `zi` is present.
 - `nbinom2()`: `mu`, `sigma`; implemented fixed-effect path with
   `Var(y) = mu + sigma^2 * mu^2`, so larger `sigma` means greater
-  overdispersion. Adding `zi ~ predictors` fits the implemented fixed-effect
-  zero-inflated NB2 path.
+  overdispersion. The `mu` formula supports standard R exposure offsets such as
+  `offset(log(trap_nights))`. Adding `zi ~ predictors` fits the implemented
+  fixed-effect zero-inflated NB2 path.
 - `truncated_nbinom2()`: `mu`, `sigma`; implemented fixed-effect
   zero-truncated NB2 path for positive counts. The parameters describe the
   untruncated NB2 component, and `fitted()` returns the conditional

@@ -159,20 +159,23 @@ The first count family is a fixed-effect Poisson mean model:
 
 ```text
 y_i | mu_i ~ Poisson(mu_i)
-log(mu_i) = beta_0 + beta_1 habitat_i
+log(mu_i) = log(trap_nights_i) + beta_0 + beta_1 habitat_i
 E[y_i] = Var[y_i] = mu_i
 ```
 
 ```r
 drmTMB(
-  drm_formula(count ~ habitat),
+  drm_formula(count ~ habitat + offset(log(trap_nights))),
   family = poisson(link = "log"),
   data = dat
 )
 ```
 
 This is mainly a baseline count-regression path and a comparator for later
-overdispersed count families. It intentionally does not accept `sigma`,
+overdispersed count families. The `offset(log(trap_nights))` term is the
+standard R exposure form: it models a count rate per trap night while keeping
+the expected count proportional to effort. Poisson models intentionally do not
+accept `sigma`,
 `sd(group)`, `meta_known_V()`, random effects, or bivariate count syntax yet.
 Ecological counts with biological overdispersion will usually need
 `nbinom2()` or the planned COM-Poisson family.
@@ -182,14 +185,14 @@ Poisson family route:
 
 ```text
 y_i | mu_i, zi_i ~ ZIP(mu_i, zi_i)
-log(mu_i) = beta_0 + beta_1 habitat_i
+log(mu_i) = log(trap_nights_i) + beta_0 + beta_1 habitat_i
 logit(zi_i) = gamma_0 + gamma_1 survey_method_i
 E[y_i] = (1 - zi_i) mu_i
 ```
 
 ```r
 drmTMB(
-  drm_formula(count ~ habitat, zi ~ survey_method),
+  drm_formula(count ~ habitat + offset(log(trap_nights)), zi ~ survey_method),
   family = poisson(link = "log"),
   data = dat
 )
@@ -204,7 +207,7 @@ counts:
 
 ```text
 y_i | mu_i, sigma_i ~ NB2(mu_i, size_i)
-log(mu_i) = beta_0 + beta_1 habitat_i
+log(mu_i) = log(trap_nights_i) + beta_0 + beta_1 habitat_i
 log(sigma_i) = gamma_0 + gamma_1 treatment_i
 size_i = 1 / sigma_i^2
 E[y_i] = mu_i
@@ -213,7 +216,7 @@ Var[y_i] = mu_i + sigma_i^2 * mu_i^2
 
 ```r
 drmTMB(
-  drm_formula(count ~ habitat, sigma ~ treatment),
+  drm_formula(count ~ habitat + offset(log(trap_nights)), sigma ~ treatment),
   family = nbinom2(),
   data = dat
 )
@@ -226,7 +229,7 @@ Zero-inflated NB2 models add `zi ~ predictors` to the same family route:
 
 ```r
 drmTMB(
-  drm_formula(count ~ habitat, sigma ~ treatment, zi ~ survey_method),
+  drm_formula(count ~ habitat + offset(log(trap_nights)), sigma ~ treatment, zi ~ survey_method),
   family = nbinom2(),
   data = dat
 )

@@ -48,8 +48,10 @@ Use three status words consistently across documentation:
 | `y ~ x1`, `sigma ~ x1`, `family = Gamma(link = "log")` | Implemented | Fixed-effect univariate Gamma mean-CV model for positive responses; `mu` is the response mean and `sigma` is the coefficient of variation. |
 | `y ~ x1`, `sigma ~ x2`, `family = beta()` | Implemented | Fixed-effect beta mean-scale model for strict continuous proportions in `(0, 1)`; public `sigma` maps internally to `phi = 1 / sigma^2`. |
 | `y ~ x1`, `family = poisson(link = "log")` | Implemented | Fixed-effect univariate Poisson mean model for non-negative integer counts. |
+| `y ~ x1 + offset(log(exposure))`, `family = poisson(link = "log")` | Implemented | Exposure/rate Poisson model using standard R `offset()` syntax in the `mu` formula. |
 | `y ~ x1`, `zi ~ x2`, `family = poisson(link = "log")` | Implemented | Fixed-effect zero-inflated Poisson model; `mu` is the conditional count mean, `zi` is the structural-zero probability, and `fitted()` returns `(1 - zi) * mu`. |
 | `y ~ x1`, `sigma ~ x1`, `family = nbinom2()` | Implemented | Fixed-effect univariate negative-binomial 2 model for overdispersed counts; `sigma` is an overdispersion scale in `Var(y) = mu + sigma^2 * mu^2`. |
+| `y ~ x1 + offset(log(exposure))`, `sigma ~ x2`, `family = nbinom2()` | Implemented | Exposure/rate NB2 model; the offset enters the `mu` linear predictor and `sigma` remains overdispersion. |
 | `y ~ x1`, `sigma ~ x1`, `zi ~ x2`, `family = nbinom2()` | Implemented | Fixed-effect zero-inflated NB2 model; `mu` and `sigma` describe the conditional NB2 count component and `zi` is the structural-zero probability. |
 | `y ~ x1`, `sigma ~ x2`, `family = truncated_nbinom2()` | Implemented | Fixed-effect zero-truncated NB2 model for positive counts; `mu` and `sigma` describe the untruncated NB2 component and `fitted()` returns the positive-count mean. |
 | `y ~ x1`, `sigma ~ x2`, `hu ~ x3`, `family = truncated_nbinom2()` | Implemented | Fixed-effect hurdle NB2 model; `hu` is the hurdle-zero probability and nonzero counts come from the zero-truncated NB2 component. |
@@ -481,8 +483,11 @@ Not every parameter should accept random effects at the same development stage.
 - `rho12` is allowed only for bivariate families.
 - `rho` may become a convenience alias, but `rho12` is canonical.
 - `meta_known_V(V = V)` is a known-covariance marker, not a predictor.
-- `offset()` terms are not implemented yet. They must be rejected rather than
-  accepted and silently ignored.
+- `offset()` terms are implemented only in the `mu` formula for Poisson and
+  `nbinom2()` count models, including their zero-inflated paths. Use standard
+  exposure syntax such as `offset(log(trap_nights))`. Offsets in `sigma`, `zi`,
+  `hu`, Gaussian, bivariate, meta-analytic, phylogenetic, or spatial formulas
+  must be rejected rather than accepted silently.
 - Random intercepts, random slopes with one numeric predictor per random-slope
   term, and labelled or unlabelled ordinary correlated intercept-slope blocks
   are currently implemented for the univariate Gaussian `mu` formula; multiple

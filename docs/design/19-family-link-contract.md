@@ -155,10 +155,15 @@ fixed-effect Poisson mean model:
 ```text
 Poisson:
   y_i ~ Poisson(mu_i)
-  log(mu_i) = X_mu[i, ] beta_mu
+  log(mu_i) = o_i + X_mu[i, ] beta_mu
   E[y_i] = mu_i
   Var[y_i] = mu_i
 ```
+
+Here `o_i` is a known offset supplied by standard R formula syntax such as
+`offset(log(trap_nights))`; if no offset is present, `o_i = 0`. This preserves
+the familiar exposure/rate convention from `glm()` while keeping the public
+parameter as the expected count `mu_i`.
 
 This path has no fitted `sigma` distributional parameter. `sigma(fit)` returns
 a fixed unit dispersion vector for base-R method compatibility only. It should
@@ -170,7 +175,7 @@ The first overdispersed count family is fixed-effect NB2 regression:
 Negative binomial 2:
   y_i ~ NB2(mu_i, sigma_i)
 
-  log(mu_i) = X_mu[i, ] beta_mu
+  log(mu_i) = o_i + X_mu[i, ] beta_mu
   log(sigma_i) = X_sigma[i, ] beta_sigma
   size_i = 1 / sigma_i^2
   E[y_i] = mu_i
@@ -194,7 +199,7 @@ Poisson path is:
 ```text
 Zero-inflated Poisson:
   y_i ~ ZIP(mu_i, zi_i)
-  log(mu_i) = X_mu[i, ] beta_mu
+  log(mu_i) = o_i + X_mu[i, ] beta_mu
   logit(zi_i) = X_zi[i, ] beta_zi
   E[y_i] = (1 - zi_i) mu_i
   Var[y_i] = (1 - zi_i) mu_i (1 + zi_i mu_i)
@@ -210,7 +215,7 @@ overdispersion scale:
 ```text
 Zero-inflated negative binomial 2:
   y_i ~ ZINB2(mu_i, sigma_i, zi_i)
-  log(mu_i) = X_mu[i, ] beta_mu
+  log(mu_i) = o_i + X_mu[i, ] beta_mu
   log(sigma_i) = X_sigma[i, ] beta_sigma
   logit(zi_i) = X_zi[i, ] beta_zi
   E[y_i] = (1 - zi_i) mu_i

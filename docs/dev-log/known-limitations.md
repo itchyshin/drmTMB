@@ -33,18 +33,20 @@
   or mixed Gamma models are not yet implemented.
 - Fixed-effect univariate Poisson mean models are implemented for
   non-negative integer counts with `family = poisson(link = "log")`.
-  Zero-inflated Poisson models are implemented by adding `zi ~ predictors`;
-  here `mu` is the conditional count mean and `zi` is the structural-zero
-  probability. There is no modelled `sigma` parameter. Overdispersion, random
-  effects, known sampling covariance, phylogenetic terms, and bivariate or
-  mixed Poisson models are not yet implemented.
+  The `mu` formula supports standard R exposure offsets such as
+  `offset(log(trap_nights))`. Zero-inflated Poisson models are implemented by
+  adding `zi ~ predictors`; here `mu` is the conditional count mean and `zi` is
+  the structural-zero probability. There is no modelled `sigma` parameter.
+  Overdispersion, random effects, known sampling covariance, phylogenetic
+  terms, and bivariate or mixed Poisson models are not yet implemented.
 - Fixed-effect univariate negative-binomial 2 mean-dispersion models are
   implemented for overdispersed counts with `family = nbinom2()`. `mu` is the
   count mean and `sigma` is an overdispersion scale in
   `Var(y) = mu + sigma^2 * mu^2`; it is not a residual standard deviation or
-  NB size parameter. Zero-inflated NB2 models are implemented by adding
-  `zi ~ predictors`; here `mu` and `sigma` describe the conditional count
-  component and `zi` is the structural-zero probability. Zero-truncated NB2
+  NB size parameter. The `mu` formula supports standard R exposure offsets
+  such as `offset(log(trap_nights))`. Zero-inflated NB2 models are implemented
+  by adding `zi ~ predictors`; here `mu` and `sigma` describe the conditional
+  count component and `zi` is the structural-zero probability. Zero-truncated NB2
   models are implemented with `family = truncated_nbinom2()` for positive
   counts; here `mu` and `sigma` describe the untruncated count component and
   `fitted()` returns the conditional positive-count mean. Hurdle NB2 models

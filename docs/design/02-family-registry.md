@@ -197,9 +197,12 @@ The implemented model is fixed-effect and univariate:
 
 ```text
 y_i | mu_i ~ Poisson(mu_i)
-log(mu_i) = X_mu[i, ] beta_mu
+log(mu_i) = o_i + X_mu[i, ] beta_mu
 E[y_i] = Var[y_i] = mu_i
 ```
+
+For exposure models, `o_i` is a known offset from standard R syntax such as
+`offset(log(trap_nights))`; otherwise `o_i = 0`.
 
 This path is mostly a baseline count-regression model and a comparator for
 later overdispersed count families. It deliberately has no fitted `sigma`
@@ -213,14 +216,14 @@ adding a `zi` formula:
 
 ```r
 family = poisson(link = "log")
-drm_formula(count ~ habitat, zi ~ treatment)
+drm_formula(count ~ habitat + offset(log(trap_nights)), zi ~ treatment)
 ```
 
 Here `mu` is the conditional Poisson mean and `zi` is the structural-zero
 probability:
 
 ```text
-log(mu_i) = X_mu[i, ] beta_mu
+log(mu_i) = o_i + X_mu[i, ] beta_mu
 logit(zi_i) = X_zi[i, ] beta_zi
 E[y_i] = (1 - zi_i) mu_i
 ```
@@ -240,7 +243,7 @@ The implemented model is fixed-effect and univariate:
 
 ```text
 y_i | mu_i, sigma_i ~ NB2(mu_i, size_i)
-log(mu_i) = X_mu[i, ] beta_mu
+log(mu_i) = o_i + X_mu[i, ] beta_mu
 log(sigma_i) = X_sigma[i, ] beta_sigma
 size_i = 1 / sigma_i^2
 E[y_i] = mu_i
@@ -255,7 +258,7 @@ overdispersion. This direction is deliberate so `sigma` continues to mean
 Adding `zi ~ predictors` fits the implemented zero-inflated NB2 extension:
 
 ```text
-log(mu_i) = X_mu[i, ] beta_mu
+log(mu_i) = o_i + X_mu[i, ] beta_mu
 log(sigma_i) = X_sigma[i, ] beta_sigma
 logit(zi_i) = X_zi[i, ] beta_zi
 E[y_i] = (1 - zi_i) mu_i

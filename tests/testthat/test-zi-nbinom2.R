@@ -92,6 +92,35 @@ test_that("zero-inflated nbinom2 likelihood matches independent calculation", {
   expect_equal(as.numeric(logLik(fit)), sum(ll_independent), tolerance = 1e-6)
 })
 
+test_that("zero-inflated nbinom2 supports exposure offsets in the mean formula", {
+  sim <- new_zi_nbinom2_data(n = 420, seed = 20260619)
+  dat <- sim$data
+  dat$effort <- exp(stats::rnorm(nrow(dat), mean = 0, sd = 0.4))
+
+  fit <- drmTMB(
+    drm_formula(count ~ x + habitat + offset(log(effort)), sigma ~ z, zi ~ w + habitat),
+    family = nbinom2(),
+    data = dat
+  )
+
+  eta_mu <- log(dat$effort) + as.vector(fit$model$X$mu %*% coef(fit, "mu"))
+  eta_sigma <- as.vector(fit$model$X$sigma %*% coef(fit, "sigma"))
+  eta_zi <- as.vector(fit$model$X$zi %*% coef(fit, "zi"))
+  mu <- exp(eta_mu)
+  sigma <- exp(eta_sigma)
+  zi <- stats::plogis(eta_zi)
+  nb_log <- stats::dnbinom(fit$model$y, size = 1 / sigma^2, mu = mu, log = TRUE)
+  ll_independent <- ifelse(
+    fit$model$y == 0,
+    log(zi + (1 - zi) * exp(nb_log)),
+    log1p(-zi) + nb_log
+  )
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(as.numeric(logLik(fit)), sum(ll_independent), tolerance = 1e-6)
+  expect_equal(fit$model$offset$mu, log(dat$effort), tolerance = 1e-12)
+})
+
 test_that("zero-inflated nbinom2 methods return count-scale summaries", {
   sim <- new_zi_nbinom2_data(n = 300, seed = 20260615)
   fit <- drmTMB(

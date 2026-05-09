@@ -8,7 +8,9 @@
 #' fixed-effect Poisson mean, zero-inflated Poisson, negative-binomial
 #' mean-dispersion, zero-inflated negative-binomial mean-dispersion,
 #' zero-truncated negative-binomial mean-dispersion, and hurdle
-#' negative-binomial mean-dispersion models for counts,
+#' negative-binomial mean-dispersion models for counts. Poisson and
+#' negative-binomial `mu` formulas may include standard R
+#' `offset(log(exposure))` terms for exposure or effort,
 #' Gaussian random intercepts, independent numeric random slopes,
 #' and labelled or unlabelled correlated numeric random intercept-slope blocks
 #' in the location formula,
@@ -916,7 +918,7 @@ drm_build_poisson_spec <- function(formula, data, env = parent.frame(),
     ))
   }
   mu_entry$rhs <- meta$rhs
-  drm_reject_phase1_terms(mu_entry$rhs, mu_entry$dpar)
+  drm_reject_phase1_terms(mu_entry$rhs, mu_entry$dpar, allow_offset = TRUE)
   if (!is.null(zi_entry)) {
     drm_reject_phase1_terms(zi_entry$rhs, zi_entry$dpar)
   }
@@ -939,6 +941,7 @@ drm_build_poisson_spec <- function(formula, data, env = parent.frame(),
     NULL
   }
   y <- stats::model.response(mf_mu)
+  offset_mu <- drm_model_offset(mf_mu, dpar = "mu")
 
   if (length(y) == 0L) {
     cli::cli_abort("No complete observations remain after applying model missingness rules.")
@@ -972,6 +975,7 @@ drm_build_poisson_spec <- function(formula, data, env = parent.frame(),
     V_known_diag = rep(0, length(y)),
     V_known_type = "none",
     has_known_v = FALSE,
+    offset = list(mu = offset_mu),
     X = if (has_zi) list(mu = X_mu, zi = X_zi) else list(mu = X_mu),
     terms = if (has_zi) {
       list(mu = stats::delete.response(stats::terms(mf_mu)), zi = stats::terms(mf_zi))
@@ -989,7 +993,7 @@ drm_build_poisson_spec <- function(formula, data, env = parent.frame(),
     variables = vars,
     keep = keep,
     dpars = if (has_zi) c("mu", "zi") else "mu",
-    start = if (has_zi) zi_poisson_start(y, X_mu, X_zi) else poisson_start(y, X_mu),
+    start = if (has_zi) zi_poisson_start(y, X_mu, X_zi, offset_mu) else poisson_start(y, X_mu, offset_mu),
     map = if (has_zi) zi_poisson_map() else poisson_map(),
     random_names = NULL
   )
@@ -1062,7 +1066,7 @@ drm_build_nbinom2_spec <- function(formula, data, env = parent.frame(),
   mu_entry$rhs <- meta$rhs
 
   for (entry in c(list(mu_entry, sigma_entry), if (!is.null(zi_entry)) list(zi_entry))) {
-    drm_reject_phase1_terms(entry$rhs, entry$dpar)
+    drm_reject_phase1_terms(entry$rhs, entry$dpar, allow_offset = identical(entry$dpar, "mu"))
   }
 
   f_mu <- drm_entry_formula(mu_entry, response = TRUE)
@@ -1085,6 +1089,7 @@ drm_build_nbinom2_spec <- function(formula, data, env = parent.frame(),
     NULL
   }
   y <- stats::model.response(mf_mu)
+  offset_mu <- drm_model_offset(mf_mu, dpar = "mu")
 
   if (length(y) == 0L) {
     cli::cli_abort("No complete observations remain after applying model missingness rules.")
@@ -1123,6 +1128,7 @@ drm_build_nbinom2_spec <- function(formula, data, env = parent.frame(),
     V_known_diag = rep(0, length(y)),
     V_known_type = "none",
     has_known_v = FALSE,
+    offset = list(mu = offset_mu),
     X = if (has_zi) list(mu = X_mu, sigma = X_sigma, zi = X_zi) else list(mu = X_mu, sigma = X_sigma),
     terms = if (has_zi) {
       list(
@@ -1147,7 +1153,7 @@ drm_build_nbinom2_spec <- function(formula, data, env = parent.frame(),
     variables = vars,
     keep = keep,
     dpars = if (has_zi) c("mu", "sigma", "zi") else c("mu", "sigma"),
-    start = if (has_zi) zi_nbinom2_start(y, X_mu, X_sigma, X_zi) else nbinom2_start(y, X_mu, X_sigma),
+    start = if (has_zi) zi_nbinom2_start(y, X_mu, X_sigma, X_zi, offset_mu) else nbinom2_start(y, X_mu, X_sigma, offset_mu),
     map = if (has_zi) zi_nbinom2_map() else nbinom2_map(),
     random_names = NULL
   )
@@ -1583,7 +1589,7 @@ drm_entry_formula <- function(entry, response = FALSE) {
   stats::as.formula(expr, env = parent.frame())
 }
 
-drm_reject_phase1_terms <- function(rhs, dpar) {
+drm_reject_phase1_terms <- function(rhs, dpar, allow_offset = FALSE) {
   structured <- c("phylo", "spatial")[vapply(
     c("phylo", "spatial"),
     function(name) formula_contains_call(rhs, name),
@@ -1597,7 +1603,10 @@ drm_reject_phase1_terms <- function(rhs, dpar) {
     ))
   }
 
-  unsupported <- c("|", "meta_known_V", "gr", "phylo", "spatial", "offset")
+  unsupported <- c("|", "meta_known_V", "gr", "phylo", "spatial")
+  if (!isTRUE(allow_offset)) {
+    unsupported <- c(unsupported, "offset")
+  }
   hits <- unsupported[vapply(
     unsupported,
     function(name) formula_contains_call(rhs, name),
@@ -2541,6 +2550,23 @@ subset_likelihood_weights <- function(weights, keep, n_data, n_model) {
   out
 }
 
+drm_model_offset <- function(model_frame, dpar) {
+  out <- stats::model.offset(model_frame)
+  n <- nrow(model_frame)
+  if (is.null(out)) {
+    return(rep(0, n))
+  }
+  out <- as.numeric(out)
+  if (length(out) != n || any(!is.finite(out))) {
+    cli::cli_abort(c(
+      "Offset terms must evaluate to one finite value per modelled row.",
+      "x" = "The {.code {dpar}} formula contains a non-finite offset.",
+      "i" = "For count exposure models, use {.code offset(log(exposure))} with positive finite exposure values."
+    ))
+  }
+  out
+}
+
 check_weights_known_covariance <- function(spec) {
   if (!identical(spec$V_known_type, "matrix")) {
     return(invisible(spec))
@@ -2793,14 +2819,19 @@ beta_ls_map <- function() {
   lognormal_ls_map()
 }
 
-poisson_start <- function(y, X_mu) {
+poisson_start <- function(y, X_mu, offset_mu = rep(0, length(y))) {
   beta_mu <- tryCatch(
-    suppressWarnings(stats::glm.fit(X_mu, y, family = stats::poisson())$coefficients),
+    suppressWarnings(stats::glm.fit(
+      X_mu,
+      y,
+      family = stats::poisson(),
+      offset = offset_mu
+    )$coefficients),
     error = function(e) rep(0, ncol(X_mu))
   )
   if (length(beta_mu) != ncol(X_mu) || any(!is.finite(beta_mu))) {
     beta_mu <- rep(0, ncol(X_mu))
-    beta_mu[[1L]] <- log(max(mean(y), 1e-4))
+    beta_mu[[1L]] <- log(max(mean(y), 1e-4)) - mean(offset_mu)
   }
   c(
     list(beta_mu = beta_mu),
@@ -2831,10 +2862,10 @@ poisson_map <- function() {
   out
 }
 
-zi_poisson_start <- function(y, X_mu, X_zi) {
-  poisson <- poisson_start(y, X_mu)
+zi_poisson_start <- function(y, X_mu, X_zi, offset_mu = rep(0, length(y))) {
+  poisson <- poisson_start(y, X_mu, offset_mu)
   beta_mu <- poisson$beta_mu
-  mu <- exp(as.vector(X_mu %*% beta_mu))
+  mu <- exp(offset_mu + as.vector(X_mu %*% beta_mu))
   observed_zero <- mean(y == 0)
   poisson_zero <- mean(exp(-mu))
   zi0 <- if (is.finite(observed_zero) && is.finite(poisson_zero) && poisson_zero < 0.99) {
@@ -2876,10 +2907,10 @@ zi_poisson_map <- function() {
   out
 }
 
-nbinom2_start <- function(y, X_mu, X_sigma) {
-  poisson <- poisson_start(y, X_mu)
+nbinom2_start <- function(y, X_mu, X_sigma, offset_mu = rep(0, length(y))) {
+  poisson <- poisson_start(y, X_mu, offset_mu)
   beta_mu <- poisson$beta_mu
-  mu <- exp(as.vector(X_mu %*% beta_mu))
+  mu <- exp(offset_mu + as.vector(X_mu %*% beta_mu))
   moment_sigma2 <- stats::var(y) - mean(mu)
   mean_mu2 <- mean(mu^2)
   sigma0 <- if (is.finite(moment_sigma2) && is.finite(mean_mu2) && mean_mu2 > 0) {
@@ -2952,11 +2983,11 @@ hurdle_nbinom2_map <- function() {
   out
 }
 
-zi_nbinom2_start <- function(y, X_mu, X_sigma, X_zi) {
-  nb <- nbinom2_start(y, X_mu, X_sigma)
+zi_nbinom2_start <- function(y, X_mu, X_sigma, X_zi, offset_mu = rep(0, length(y))) {
+  nb <- nbinom2_start(y, X_mu, X_sigma, offset_mu)
   beta_mu <- nb$beta_mu
   beta_sigma <- nb$beta_sigma
-  mu <- exp(as.vector(X_mu %*% beta_mu))
+  mu <- exp(offset_mu + as.vector(X_mu %*% beta_mu))
   sigma <- exp(as.vector(X_sigma %*% beta_sigma))
   observed_zero <- mean(y == 0)
   nb_zero <- mean(stats::dnbinom(0, size = 1 / sigma^2, mu = mu))
@@ -3237,12 +3268,14 @@ make_tmb_data <- function(spec) {
     x = numeric(0),
     dims = c(1L, 1L)
   )
+  offset_mu <- if (!is.null(spec$offset$mu)) spec$offset$mu else numeric(1)
   if (identical(spec$model_type, "gaussian")) {
     phylo_mu <- spec$structured$phylo_mu
     return(list(
       model_type = 1L,
       y = spec$y,
       weights = spec$weights,
+      offset_mu = offset_mu,
       V_known = spec$V_known_diag,
       V_known_matrix = if (identical(spec$V_known_type, "matrix")) spec$V_known else dummy_matrix,
       V_known_type = as.integer(
@@ -3285,6 +3318,7 @@ make_tmb_data <- function(spec) {
       model_type = 3L,
       y = spec$y,
       weights = spec$weights,
+      offset_mu = offset_mu,
       V_known = spec$V_known_diag,
       V_known_matrix = dummy_matrix,
       V_known_type = 0L,
@@ -3325,6 +3359,7 @@ make_tmb_data <- function(spec) {
       model_type = 4L,
       y = spec$y,
       weights = spec$weights,
+      offset_mu = offset_mu,
       V_known = spec$V_known_diag,
       V_known_matrix = dummy_matrix,
       V_known_type = 0L,
@@ -3365,6 +3400,7 @@ make_tmb_data <- function(spec) {
       model_type = 5L,
       y = spec$y,
       weights = spec$weights,
+      offset_mu = offset_mu,
       V_known = spec$V_known_diag,
       V_known_matrix = dummy_matrix,
       V_known_type = 0L,
@@ -3405,6 +3441,7 @@ make_tmb_data <- function(spec) {
       model_type = 10L,
       y = spec$y,
       weights = spec$weights,
+      offset_mu = offset_mu,
       V_known = spec$V_known_diag,
       V_known_matrix = dummy_matrix,
       V_known_type = 0L,
@@ -3445,6 +3482,7 @@ make_tmb_data <- function(spec) {
       model_type = 6L,
       y = spec$y,
       weights = spec$weights,
+      offset_mu = offset_mu,
       V_known = spec$V_known_diag,
       V_known_matrix = dummy_matrix,
       V_known_type = 0L,
@@ -3485,6 +3523,7 @@ make_tmb_data <- function(spec) {
       model_type = 8L,
       y = spec$y,
       weights = spec$weights,
+      offset_mu = offset_mu,
       V_known = spec$V_known_diag,
       V_known_matrix = dummy_matrix,
       V_known_type = 0L,
@@ -3525,6 +3564,7 @@ make_tmb_data <- function(spec) {
       model_type = 7L,
       y = spec$y,
       weights = spec$weights,
+      offset_mu = offset_mu,
       V_known = spec$V_known_diag,
       V_known_matrix = dummy_matrix,
       V_known_type = 0L,
@@ -3565,6 +3605,7 @@ make_tmb_data <- function(spec) {
       model_type = 11L,
       y = spec$y,
       weights = spec$weights,
+      offset_mu = offset_mu,
       V_known = spec$V_known_diag,
       V_known_matrix = dummy_matrix,
       V_known_type = 0L,
@@ -3605,6 +3646,7 @@ make_tmb_data <- function(spec) {
       model_type = 12L,
       y = spec$y,
       weights = spec$weights,
+      offset_mu = offset_mu,
       V_known = spec$V_known_diag,
       V_known_matrix = dummy_matrix,
       V_known_type = 0L,
@@ -3645,6 +3687,7 @@ make_tmb_data <- function(spec) {
       model_type = 9L,
       y = spec$y,
       weights = spec$weights,
+      offset_mu = offset_mu,
       V_known = spec$V_known_diag,
       V_known_matrix = dummy_matrix,
       V_known_type = 0L,
@@ -3685,6 +3728,7 @@ make_tmb_data <- function(spec) {
       model_type = 2L,
       y = numeric(1),
       weights = spec$weights,
+      offset_mu = offset_mu,
       V_known = spec$V_known_diag,
       V_known_matrix = if (identical(spec$V_known_type, "matrix")) spec$V_known else dummy_matrix,
       V_known_type = as.integer(

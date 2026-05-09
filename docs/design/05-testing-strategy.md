@@ -65,10 +65,14 @@ Implemented comparator smoke tests:
   calculation at the fitted coefficients.
 - Poisson mean coefficients and log-likelihood against
   `stats::glm(..., family = poisson(link = "log"))` for the overlapping
-  mean-regression case.
+  mean-regression case, including a standard R `offset(log(exposure))`
+  exposure model.
 - Negative-binomial 2 fixed-effect likelihood against an independent
   `stats::dnbinom(mu = mu, size = 1 / sigma^2)` calculation at the fitted
-  coefficients.
+  coefficients, including an exposure offset in the `mu` predictor.
+- Zero-inflated Poisson and zero-inflated NB2 likelihoods against independent
+  pointwise calculations, including exposure offsets in the conditional count
+  mean.
 - Zero-truncated negative-binomial 2 fixed-effect likelihood against an
   independent `stats::dnbinom()` calculation with the positive-count
   normalising constant `log(1 - Pr_NB2(0))`.

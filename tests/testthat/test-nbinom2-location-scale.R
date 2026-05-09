@@ -67,6 +67,46 @@ test_that("nbinom2 likelihood matches independent dnbinom calculation", {
   expect_equal(as.numeric(logLik(fit)), ll_independent, tolerance = 1e-6)
 })
 
+test_that("nbinom2 supports exposure offsets in the mean formula", {
+  sim <- new_nbinom2_data(n = 300, seed = 20260608)
+  dat <- sim$data
+  dat$effort <- exp(stats::rnorm(nrow(dat), mean = -0.1, sd = 0.35))
+  eta_rate <- 0.20 - 0.25 * dat$x
+  sigma <- exp(-0.55 + 0.20 * dat$z)
+  dat$count <- stats::rnbinom(
+    nrow(dat),
+    size = 1 / sigma^2,
+    mu = dat$effort * exp(eta_rate)
+  )
+
+  fit <- drmTMB(
+    bf(count ~ x + offset(log(effort)), sigma ~ z),
+    family = nbinom2(),
+    data = dat
+  )
+
+  eta_mu <- log(dat$effort) + as.vector(fit$model$X$mu %*% coef(fit, "mu"))
+  eta_sigma <- as.vector(fit$model$X$sigma %*% coef(fit, "sigma"))
+  mu <- exp(eta_mu)
+  sigma_hat <- exp(eta_sigma)
+  ll_independent <- sum(stats::dnbinom(
+    fit$model$y,
+    size = 1 / sigma_hat^2,
+    mu = mu,
+    log = TRUE
+  ))
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(as.numeric(logLik(fit)), ll_independent, tolerance = 1e-6)
+  expect_equal(fit$model$offset$mu, log(dat$effort), tolerance = 1e-12)
+  newdata <- data.frame(x = c(-1, 0, 1), z = c(-1, 0, 1), effort = c(0.25, 1, 4))
+  expect_equal(
+    predict(fit, newdata = newdata, dpar = "mu"),
+    newdata$effort * exp(as.vector(stats::model.matrix(~ x, newdata) %*% coef(fit, "mu"))),
+    tolerance = 1e-12
+  )
+})
+
 test_that("nbinom2 likelihood weights scale rows and match row duplication", {
   sim <- new_nbinom2_data(n = 220, seed = 20260607)
   dat <- sim$data
@@ -255,6 +295,14 @@ test_that("nbinom2 rejects unsupported or invalid inputs", {
       data = transform(dat, y = NA_real_)
     ),
     "No complete observations"
+  )
+  expect_error(
+    drmTMB(
+      bf(y ~ x + offset(log(c(1, 0, 2, 3))), sigma ~ 1),
+      family = nbinom2(),
+      data = dat
+    ),
+    "Offset terms"
   )
   expect_error(
     drmTMB(bf(y ~ x + (1 | id), sigma ~ 1), family = nbinom2(), data = dat),

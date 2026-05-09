@@ -123,6 +123,42 @@ test_that("Poisson mean model agrees with base glm on an overlapping model", {
   )
 })
 
+test_that("Poisson supports exposure offsets in the mean formula", {
+  sim <- new_poisson_data(n = 260, seed = 20260603)
+  dat <- sim$data
+  dat$effort <- exp(stats::rnorm(nrow(dat), mean = 0.1, sd = 0.45))
+  eta_rate <- 0.15 - 0.30 * dat$x
+  dat$count <- stats::rpois(nrow(dat), lambda = dat$effort * exp(eta_rate))
+
+  fit <- drmTMB(
+    bf(count ~ x + offset(log(effort))),
+    family = stats::poisson(link = "log"),
+    data = dat
+  )
+  fit_glm <- stats::glm(
+    count ~ x + offset(log(effort)),
+    family = stats::poisson(link = "log"),
+    data = dat
+  )
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(coef(fit, "mu"), stats::coef(fit_glm), tolerance = 1e-6)
+  expect_equal(as.numeric(logLik(fit)), as.numeric(stats::logLik(fit_glm)), tolerance = 1e-6)
+  expect_equal(fit$model$offset$mu, log(dat$effort), tolerance = 1e-12)
+  expect_equal(
+    predict(fit, dpar = "mu", type = "link"),
+    log(dat$effort) + as.vector(stats::model.matrix(~ x, dat) %*% coef(fit, "mu")),
+    tolerance = 1e-12
+  )
+
+  newdata <- data.frame(x = c(-1, 0, 1), effort = c(0.5, 1, 3))
+  expect_equal(
+    predict(fit, newdata = newdata, dpar = "mu"),
+    newdata$effort * exp(as.vector(stats::model.matrix(~ x, newdata) %*% coef(fit, "mu"))),
+    tolerance = 1e-12
+  )
+})
+
 test_that("Poisson methods return count-scale summaries", {
   sim <- new_poisson_data(n = 180, seed = 20260599)
   fit <- drmTMB(
@@ -229,11 +265,11 @@ test_that("Poisson models reject unsupported or invalid inputs", {
   )
   expect_error(
     drmTMB(
-      bf(y ~ x + offset(rep(1, 4))),
+      bf(y ~ x + offset(log(c(1, 0, 2, 3)))),
       family = stats::poisson(link = "log"),
       data = dat
     ),
-    "unsupported model terms"
+    "Offset terms"
   )
   expect_error(
     drmTMB(

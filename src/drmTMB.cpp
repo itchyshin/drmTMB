@@ -36,6 +36,7 @@ Type objective_function<Type>::operator()()
 {
   DATA_VECTOR(y);
   DATA_VECTOR(weights);
+  DATA_VECTOR(offset_mu);
   DATA_VECTOR(V_known);
   DATA_MATRIX(V_known_matrix);
   DATA_INTEGER(V_known_type);
@@ -348,7 +349,7 @@ Type objective_function<Type>::operator()()
     ADREPORT(beta_mu);
     ADREPORT(beta_sigma);
   } else if (model_type == 6) {
-    vector<Type> eta_mu = X_mu * beta_mu;
+    vector<Type> eta_mu = offset_mu + X_mu * beta_mu;
     vector<Type> mu = exp(eta_mu);
     for (int i = 0; i < y.size(); ++i) {
       nll -= weights(i) * dpois(y(i), mu(i), true);
@@ -357,7 +358,7 @@ Type objective_function<Type>::operator()()
     REPORT(mu);
     ADREPORT(beta_mu);
   } else if (model_type == 8) {
-    vector<Type> eta_mu = X_mu * beta_mu;
+    vector<Type> eta_mu = offset_mu + X_mu * beta_mu;
     vector<Type> eta_zi = X_zi * beta_zi;
     vector<Type> mu = exp(eta_mu);
     vector<Type> zi = Type(1.0) / (Type(1.0) + exp(-eta_zi));
@@ -377,7 +378,7 @@ Type objective_function<Type>::operator()()
     ADREPORT(beta_mu);
     ADREPORT(beta_zi);
   } else if (model_type == 7) {
-    vector<Type> eta_mu = X_mu * beta_mu;
+    vector<Type> eta_mu = offset_mu + X_mu * beta_mu;
     vector<Type> log_sigma = X_sigma * beta_sigma;
     vector<Type> mu = exp(eta_mu);
     vector<Type> sigma = exp(log_sigma);
@@ -482,7 +483,7 @@ Type objective_function<Type>::operator()()
     ADREPORT(beta_sigma);
     ADREPORT(beta_zi);
   } else if (model_type == 9) {
-    vector<Type> eta_mu = X_mu * beta_mu;
+    vector<Type> eta_mu = offset_mu + X_mu * beta_mu;
     vector<Type> log_sigma = X_sigma * beta_sigma;
     vector<Type> eta_zi = X_zi * beta_zi;
     vector<Type> mu = exp(eta_mu);

@@ -25,6 +25,7 @@ phylo_prior_tmb_data <- function(precision) {
     model_type = 99L,
     y = numeric(1),
     weights = 1,
+    offset_mu = numeric(1),
     V_known = numeric(1),
     V_known_matrix = dummy_matrix,
     V_known_type = 0L,

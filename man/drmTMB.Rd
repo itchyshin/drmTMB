@@ -51,7 +51,9 @@ fixed-effect beta mean-scale models for strict proportions,
 fixed-effect Poisson mean, zero-inflated Poisson, negative-binomial
 mean-dispersion, zero-inflated negative-binomial mean-dispersion,
 zero-truncated negative-binomial mean-dispersion, and hurdle
-negative-binomial mean-dispersion models for counts,
+negative-binomial mean-dispersion models for counts. Poisson and
+negative-binomial \code{mu} formulas may include standard R
+\code{offset(log(exposure))} terms for exposure or effort,
 Gaussian random intercepts, independent numeric random slopes,
 and labelled or unlabelled correlated numeric random intercept-slope blocks
 in the location formula,
