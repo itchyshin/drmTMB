@@ -298,13 +298,73 @@ newdat <- data.frame(
   temperature = 0,
   disturbance = c(-1, 0, 1)
 )
-data.frame(
+rho_table <- data.frame(
   disturbance = newdat$disturbance,
   sigma_activity = predict(fit_biv, newdata = newdat, dpar = "sigma1"),
   sigma_boldness = predict(fit_biv, newdata = newdat, dpar = "sigma2"),
   rho12 = rho12(fit_biv, newdata = newdat)
 )
+rho_table$residual_covariance <- with(
+  rho_table,
+  rho12 * sigma_activity * sigma_boldness
+)
+round(rho_table, 3)
 ```
+
+This table gives three quantities a reader can report directly. `sigma_activity`
+and `sigma_boldness` are the fitted residual SDs for each response at the
+chosen covariate values. `rho12` is the fitted residual correlation between the
+two responses. `residual_covariance` is the off-diagonal element of
+`\Omega_i`, computed as `rho12 * sigma_activity * sigma_boldness`.
+
+## What should I report?
+
+For a location-coscale model, a useful result sentence usually needs all three
+distributional pieces: means, residual SDs, and residual coupling. A minimal
+table for the coscale part is:
+
+```{r bivariate-coscale-report-table}
+report_grid <- data.frame(
+  food = 0,
+  temperature = 0,
+  disturbance = c(-1.5, 0, 1.5)
+)
+report_table <- data.frame(
+  disturbance = report_grid$disturbance,
+  eta_rho12 = predict(
+    fit_biv,
+    newdata = report_grid,
+    dpar = "rho12",
+    type = "link"
+  ),
+  rho12 = rho12(fit_biv, newdata = report_grid),
+  sigma_activity = predict(fit_biv, newdata = report_grid, dpar = "sigma1"),
+  sigma_boldness = predict(fit_biv, newdata = report_grid, dpar = "sigma2")
+)
+report_table$residual_covariance <- with(
+  report_table,
+  rho12 * sigma_activity * sigma_boldness
+)
+round(report_table, 3)
+```
+
+The raw correlation between activity and boldness is not the same estimand as
+`rho12`. The raw correlation mixes mean structure, residual SDs, and residual
+coupling. The fitted `rho12` is the residual correlation after the model has
+accounted for the formulae in `mu1`, `mu2`, `sigma1`, and `sigma2`:
+
+```{r bivariate-coscale-raw-vs-residual}
+round(data.frame(
+  raw_activity_boldness_correlation = stats::cor(dat$activity, dat$boldness),
+  mean_fitted_residual_rho12 = mean(rho12(fit_biv))
+), 3)
+```
+
+When reporting this model, avoid saying only "activity and boldness were
+correlated". A better sentence is: "After modelling response-specific means
+and residual SDs, the fitted residual activity-boldness correlation increased
+with disturbance." That sentence tells the reader which correlation has been
+modelled.
 
 The same response-scale result can be visualised as a `rho12` curve:
 

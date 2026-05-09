@@ -6290,3 +6290,59 @@ Known limitations:
 - it does not add new model functionality or broaden random-effect slope
   grammar;
 - the example uses simulated data so the page remains fast and reproducible.
+
+## 2026-05-09 -- Bivariate coscale reportable-output tutorial
+
+Goal:
+
+- make the bivariate location-coscale tutorial easier to use by showing what
+  an applied reader can report from a fitted `rho12 ~ predictor` model.
+
+Changes:
+
+- added a report-ready coscale table with fitted `rho12`, response-specific
+  residual SDs, and residual covariance;
+- added a "What should I report?" section that contrasts the raw
+  activity-boldness correlation with the fitted residual `rho12`;
+- rounded tutorial tables for readability;
+- kept the boundary explicit: residual `rho12` is not a group-level,
+  phylogenetic, spatial, or personality/plasticity correlation.
+
+Commands run:
+
+- `Rscript -e "devtools::load_all(quiet = TRUE); rmarkdown::render('vignettes/bivariate-coscale.Rmd', output_dir = tempdir(), quiet = TRUE)"`
+- `Rscript -e "pkgdown::build_site()"`
+- `Rscript tools/fix-pkgdown-favicon-mime.R pkgdown-site`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `git diff --check`
+- `rg -n "What should I report|raw_activity_boldness_correlation|mean_fitted_residual_rho12|residual_covariance|round\\(report_table|round\\(rho_table" vignettes/bivariate-coscale.Rmd pkgdown-site/articles/bivariate-coscale.html`
+
+Results:
+
+- the bivariate coscale vignette rendered successfully with the package loaded
+  by `devtools::load_all()`;
+- `pkgdown::build_site()` passed and rendered the updated article;
+- favicon MIME repair completed without output;
+- `pkgdown::check_pkgdown()`: no problems found;
+- `git diff --check`: clean;
+- generated-site scan confirmed the report section, raw-versus-residual
+  comparison, rounded output tables, and residual covariance output were
+  present in `pkgdown-site/articles/bivariate-coscale.html`.
+
+Tests of the tests:
+
+- this was an executable-docs change, so the key check was rendering the
+  touched vignette and the generated pkgdown page;
+- the new chunks call `predict(..., dpar = "rho12", type = "link")`,
+  `rho12(fit_biv, newdata = ...)`, `predict(..., dpar = "sigma1")`, and
+  `predict(..., dpar = "sigma2")`; the page will fail to render if any of
+  those user-facing extractor paths break;
+- the raw-versus-residual comparison guards against a common interpretation
+  error by making the two quantities visible side by side.
+
+Known limitations:
+
+- this phase did not add new model functionality;
+- the tutorial still uses simulated data so the article remains fast and
+  reproducible;
+- uncertainty intervals for `rho12` predictions remain future work.
