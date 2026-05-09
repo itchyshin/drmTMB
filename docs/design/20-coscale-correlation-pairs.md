@@ -6,7 +6,7 @@ exists because the package should eventually estimate more than residual
 
 ## Current Boundary
 
-Implemented now:
+Implemented now for the bivariate residual correlation:
 
 ```text
 [y1_i, y2_i]' ~ MVN([mu1_i, mu2_i]', Omega_i)
@@ -15,7 +15,7 @@ Omega_i[1,1] = sigma1_i^2
 Omega_i[2,2] = sigma2_i^2
 Omega_i[1,2] = rho12_i sigma1_i sigma2_i
 
-rho12_i = 0.99999999 tanh(X_rho12[i, ] beta_rho12)
+rho12_i = 0.99999999 * tanh(X_rho12[i, ] beta_rho12)
 ```
 
 Matching implemented R syntax:
@@ -37,6 +37,13 @@ drmTMB(
 Here `rho12` is a residual or within-row response-response correlation. It is
 not a phylogenetic correlation, not a spatial correlation, and not a
 group-level random-effect correlation.
+
+The helper `corpairs(fit)` is implemented for fitted correlations that already
+exist: residual bivariate `rho12` summaries and ordinary univariate Gaussian
+`mu` random-effect correlations from `corpars$mu`. It is intentionally a
+reporting helper, not a new likelihood. Future rows can be added as bivariate
+group-level, phylogenetic, spatial, and double-hierarchical correlation
+likelihoods become implemented.
 
 ## Why Named Correlation Pairs Are Needed
 
@@ -81,7 +88,7 @@ A row should identify the full pair:
 | `estimate` | response-scale correlation |
 | `link_estimate` | unconstrained optimizer-scale value when available |
 
-Candidate extractor names:
+Implemented extractor:
 
 ```r
 corpairs(fit)
@@ -170,7 +177,8 @@ as residual `rho12`, even in bivariate models.
 1. Keep fixed-effect residual `rho12 ~ predictors` stable.
 2. Keep univariate ordinary random-effect correlations under `corpars$mu`.
 3. Add a `corpairs()` design table for existing fitted correlations, including
-   residual `rho12` and univariate `mu` intercept-slope correlations.
+   residual `rho12` and univariate `mu` intercept-slope correlations. Done for
+   the currently fitted correlation classes.
 4. Add bivariate group-level random intercept covariance blocks.
 5. Add bivariate random intercept-slope covariance blocks.
 6. Add residual-scale random-effect covariance blocks.

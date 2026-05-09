@@ -58,7 +58,7 @@ and residual scales have been modelled.
 ## Biological Questions
 
 The mammalian body mass-litter size protocol by Ortega et al. is an ideal
-flagship example. It explicitly motivates partitioning a bivariate association
+central example. It explicitly motivates partitioning a bivariate association
 into phylogenetic and non-phylogenetic components, then asking whether
 lifestyle changes means, dispersion, and residual coupling.
 It asks:

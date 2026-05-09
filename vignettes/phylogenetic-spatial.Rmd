@@ -139,7 +139,7 @@ uncertainty has been included. The same design will let `drmTMB` support
 structured Gaussian meta-analysis while keeping ecological and evolutionary
 meta-analyses readable.
 
-The phylogenetic flagship is the location-scale model: trait means are the
+The first phylogenetic target is the location-scale model: trait means are the
 first implemented target, and residual SDs are a planned target once the
 location path has enough simulation and comparator coverage. In future
 bivariate models this could allow several structured correlations, including

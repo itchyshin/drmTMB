@@ -61,6 +61,7 @@ Use three status words consistently across documentation:
 | `family = c(gaussian(), gaussian())` | Implemented | Public bivariate Gaussian family direction; mixed composed families are planned. |
 | `mvbind(y1, y2) ~ x1` | Implemented | Shorthand for identical bivariate location formulas; explicit `mu1`/`mu2` remains preferred for different predictors. |
 | `phylo(1 | species, tree = tree)` in `mu` | Implemented | Intercept-only univariate Gaussian phylogenetic location effect; requires an ultrametric tree with branch lengths. |
+| `weights = w` | Planned | Top-level likelihood weights, not formula syntax. Known sampling covariance remains `meta_known_V(V = V)`. |
 | `cbind(successes, failures) ~ x1`, `family = beta_binomial()` | Planned | Denominator-preserving percentage/count syntax candidate; a successes/trials interface is another candidate. |
 | `y ~ x1`, `family = cumulative_logit()` | Planned | First ordinal model path for ordered scores with cutpoints; univariate only. |
 | `phylo(1 + x1 | species, tree = tree)` | Planned | Structured slopes come after the intercept-only path is hardened. |

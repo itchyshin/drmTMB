@@ -241,7 +241,13 @@ single grouping factor block such as `(1 + temperature | population)`.
 | `y ~ x + (1 | id)` | `mu_i = X_mu[i, ] beta_mu + b_id[i]` | Do groups differ in mean response? |
 | `sd(id) ~ x_group` | `log(sd_mu_id,j) = W_id[j, ] alpha_id` | Does `x_group` change among-group SD in the mean model? |
 | `y ~ x + (1 + x | id)` | `[b_0j, b_1j]' ~ MVN(0, Sigma_id)` | Are group intercepts and slopes correlated? |
-| `rho12 ~ x` | `eta_rho12_i = X_rho12[i, ] beta_rho12`; `rho12_i = 0.99999999 * tanh(eta_rho12_i)` | Does `x` change residual coupling between two responses? |
+| `rho12 ~ x` | `eta_rho12_i = X_rho12[i, ] beta_rho12`; `rho12_i = tanh(eta_rho12_i)` with a tiny internal guard | Does `x` change residual coupling between two responses? |
+
+The tiny guard used internally is `0.99999999 * tanh(eta_rho12_i)`. It keeps
+the fitted covariance matrix strictly positive definite in floating-point
+arithmetic. It is not a biological scaling factor; interpret the model as a
+standard Fisher-z-style `tanh()` transform from an unconstrained predictor to a
+correlation.
 
 ## Correlations: group-level versus residual
 
@@ -290,7 +296,7 @@ Symbolically:
 [activity_i, boldness_i]' ~ MVN([mu1_i, mu2_i]', Omega_i)
 Omega_i[1, 2] = rho12_i sigma1_i sigma2_i
 eta_rho12_i = delta_0 + delta_1 treatment_i
-rho12_i = 0.99999999 * tanh(eta_rho12_i)
+rho12_i = tanh(eta_rho12_i)
 ```
 
 Here `rho12_i` is residual response-response correlation within an observation
@@ -298,7 +304,8 @@ after the response-specific means and residual SDs have been modelled. If the
 correlation is among random intercepts or random slopes, it is a group-level
 covariance parameter. If the correlation is between the two residual responses
 in one row, it is `rho12`. Extract fitted response-scale residual correlations
-with `rho12(fit)`.
+with `rho12(fit)`. Use `corpairs(fit)` when you want a table that keeps
+residual `rho12` separate from ordinary group-level random-effect correlations.
 
 ## Current boundary
 

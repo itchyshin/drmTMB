@@ -40,6 +40,19 @@ distributional regression models using TMB.
 - Tests based on fixed known sampling variance and known extra heterogeneity
   are implemented.
 
+## Phase 2b: Likelihood Weights
+
+- Status: planned.
+- Add a top-level `weights =` argument to `drmTMB()` for ordinary likelihood
+  weights, matching the broad convention in mixed-model packages.
+- Keep likelihood weights separate from `meta_known_V(V = V)`: weights multiply
+  observation log-likelihood contributions, whereas `meta_known_V()` supplies
+  known sampling covariance.
+- First design rule: univariate models use one non-negative finite weight per
+  observation; bivariate models use one weight per complete response pair.
+- Do not add response-specific bivariate weights until the likelihood and
+  interpretation are documented.
+
 ## Phase 3: Bivariate Gaussian Coscale
 
 - Status: fixed-effect bivariate Gaussian implemented.
@@ -47,7 +60,8 @@ distributional regression models using TMB.
 - `mvbind(y1, y2) ~ x` is implemented as shorthand for identical location
   formulas and expands internally to `mu1 = y1 ~ x` and `mu2 = y2 ~ x`.
 - Added `sigma1`, `sigma2`, and constant `rho12`.
-- Added predictor-dependent `rho12 ~ x` using the Fisher-z/atanh scale.
+- Added predictor-dependent `rho12 ~ x` using an unconstrained correlation
+  predictor with a tanh response transform.
 - Added simulation tests for positive, near-zero, negative, and
   predictor-dependent residual correlations.
 - Public bivariate family grammar accepts `family = c(gaussian(), gaussian())`
@@ -97,6 +111,10 @@ distributional regression models using TMB.
   `docs/design/20-coscale-correlation-pairs.md` before implementing bivariate
   double-hierarchical covariance blocks; pair outputs should identify the
   level, group, block, distributional parameters, responses, and coefficients.
+- The first `corpairs()` extractor is implemented for currently fitted
+  correlations only: residual `rho12` and ordinary group-level `mu`
+  random-effect correlations. Extend this table as new correlation likelihoods
+  are added.
 - Stage structured phylogenetic and spatial slopes conservatively:
   intercept-only structured effects first, then one `mu` slope, then only small
   slope sets or interaction slopes after simulation recovery.
@@ -104,6 +122,20 @@ distributional regression models using TMB.
   and effect-size levels before complex structured models are promoted.
 - Selectively reuse GPL-compatible ideas or modules from `gllvmTMB` with
   provenance notes and tests.
+
+## Phase 5b: Large-Data Memory Strategy
+
+- Status: planned.
+- Add memory-light fit controls for large phylogenetic and spatial datasets,
+  including options to avoid storing full data and model frames in fitted
+  objects.
+- Add sparse fixed-effect matrix support before claiming million-row readiness.
+- Add optional aggregation or sufficient-statistic paths for Gaussian models
+  where repeated rows can be collapsed without changing the likelihood.
+- Add non-CRAN benchmarks for 100k, 500k, 1M, and 5M observation rows with
+  1k-10k species.
+- Treat the sparse A-inverse phylogenetic path and large-row memory path as
+  separate scaling problems.
 
 ## Phase 6: Profile-Likelihood Inference
 
@@ -120,6 +152,20 @@ distributional regression models using TMB.
   flags.
 - Keep parametric bootstrap as a fallback for boundary, non-monotone, or failed
   inner-optimization cases.
+
+## Phase 6b: Tutorial Quality Upgrade
+
+- Use `docs/design/21-tutorial-style.md` as the tutorial contract.
+- Jason should source-map the existing Nakagawa-group tutorial examples the
+  project owner provided, including location-scale meta-analysis, phylogenetic
+  location-scale, ecology location-scale, phylo-spatial, multinomial GLMM,
+  phylogenetic simulation, and `glmmTMB::equalto()` examples.
+- Pat should user-test each major `drmTMB` tutorial for a concrete question,
+  real or transparent simulated data, symbolic equations, model output,
+  plots or tables, interpretation, diagnostics, and recovery advice.
+- Upgrade the first tutorials in this order: Gaussian location-scale,
+  bivariate location-coscale, meta-analysis, phylogenetic location effects,
+  and random-effect scale models.
 
 ## Phase 7: Robust and Positive Continuous Families
 

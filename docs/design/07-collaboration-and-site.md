@@ -72,7 +72,7 @@ rules. It should not introduce a separate project architecture or dependency.
 The pkgdown site should become the public face of `drmTMB`, similar in spirit
 to other ecology/evolution modelling package sites:
 
-- clear homepage with the package identity and flagship syntax;
+- clear homepage with the package identity and core syntax;
 - reference index grouped by user task;
 - getting-started article;
 - location-scale tutorial;

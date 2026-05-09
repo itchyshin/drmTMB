@@ -40,7 +40,7 @@ scale effects.
 
 ## Signature Feature
 
-The flagship syntax should read like two biological response models plus
+The signature syntax should read like two biological response models plus
 formulae for scale and residual coupling:
 
 ```r

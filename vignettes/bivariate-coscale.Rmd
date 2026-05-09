@@ -9,14 +9,17 @@ vignette: >
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+if (!"package:drmTMB" %in% search()) {
+  library(drmTMB)
+}
 ```
 
-This article introduces the first flagship `drmTMB` model: bivariate
-location-scale regression with predictor-dependent residual correlation. The
-scientific idea is that two responses can change in mean, change in residual
-variance, and change in residual coupling.
+This tutorial introduces bivariate location-scale regression with
+predictor-dependent residual correlation. The scientific idea is that two
+responses can change in mean, change in residual variance, and change in
+residual coupling.
 
-Current fixed-effect syntax:
+Current fixed-effect syntax uses one formula per distributional parameter:
 
 ```r
 drmTMB(
@@ -35,47 +38,89 @@ drmTMB(
 The central modelling question is whether predictors change residual coupling
 between two responses, not only their means or variances.
 
-This is why `rho12` is the selling point of `drmTMB`. A location-scale model
-asks whether predictors change residual SDs. A location-coscale model asks
-whether predictors also change the residual covariance structure between two
-responses; in the current bivariate Gaussian model, that structure is the
-residual correlation `rho12`. In ecology and evolution, this can ask whether
-the residual association between traits such as body mass and litter size
-differs among terrestrial, aquatic, and aerial lifestyles after modelling
-response-specific means and dispersion.
+The key parameter is `rho12`. A location-scale model asks whether predictors
+change residual SDs. A location-coscale model asks whether predictors also
+change the residual covariance structure between two responses; in the current
+bivariate Gaussian model, that structure is the residual correlation `rho12`.
+In ecology and evolution, this can ask whether the residual association between
+traits such as body mass and litter size differs among terrestrial, aquatic,
+and aerial lifestyles after modelling response-specific means and dispersion.
 
 ## Equations for the implemented model
 
 For observation `i`, the implemented fixed-effect bivariate Gaussian model is:
 
-```text
-[y1_i, y2_i]' | mu1_i, mu2_i, sigma1_i, sigma2_i, rho12_i
-  ~ MVN([mu1_i, mu2_i]', Omega_i)
+\[
+\begin{bmatrix}
+y_{1i} \\
+y_{2i}
+\end{bmatrix}
+\mid
+\mu_{1i}, \mu_{2i}, \sigma_{1i}, \sigma_{2i}, \rho_{12i}
+\sim
+\operatorname{MVN}
+\left(
+\begin{bmatrix}
+\mu_{1i} \\
+\mu_{2i}
+\end{bmatrix},
+\Omega_i
+\right).
+\]
 
+The five distributional predictors are:
+
+\[
+\begin{aligned}
+\mu_{1i} &= X_{\mu 1,i}\beta_{\mu 1}, \\
+\mu_{2i} &= X_{\mu 2,i}\beta_{\mu 2}, \\
+\log(\sigma_{1i}) &= X_{\sigma 1,i}\beta_{\sigma 1}, \\
+\log(\sigma_{2i}) &= X_{\sigma 2,i}\beta_{\sigma 2}, \\
+\eta_{\rho 12,i} &= X_{\rho 12,i}\beta_{\rho 12}, \\
+\rho_{12i} &= \tanh(\eta_{\rho 12,i}).
+\end{aligned}
+\]
+
+The residual covariance matrix is:
+
+\[
+\Omega_i =
+\begin{bmatrix}
+\sigma_{1i}^2 & \rho_{12i}\sigma_{1i}\sigma_{2i} \\
+\rho_{12i}\sigma_{1i}\sigma_{2i} & \sigma_{2i}^2
+\end{bmatrix}.
+\]
+
+Component meanings:
+
+| Component | Meaning |
+|---|---|
+| `mu1`, `mu2` | expected values for responses 1 and 2 |
+| `sigma1`, `sigma2` | residual SDs for responses 1 and 2 |
+| `eta_rho12` | unconstrained linear predictor for residual correlation |
+| `rho12` | residual response-response correlation within observation `i` |
+| `Omega_i` | residual covariance matrix after means and residual SDs are modelled |
+
+For implementation cross-checking, the same model can also be written in a
+compact code-like form:
+
+```text
 mu1_i = X_mu1[i, ] beta_mu1
 mu2_i = X_mu2[i, ] beta_mu2
 log(sigma1_i) = X_sigma1[i, ] beta_sigma1
 log(sigma2_i) = X_sigma2[i, ] beta_sigma2
 eta_rho12_i = X_rho12[i, ] beta_rho12
-rho12_i = 0.99999999 * tanh(eta_rho12_i)
-```
-
-The observation-specific residual covariance matrix is:
-
-```text
+rho12_i = tanh(eta_rho12_i)
 Omega_i[1, 1] = sigma1_i^2
 Omega_i[2, 2] = sigma2_i^2
 Omega_i[1, 2] = Omega_i[2, 1] = rho12_i * sigma1_i * sigma2_i
 ```
 
-Equivalently:
-
-```text
-sigma1_i = exp(X_sigma1[i, ] beta_sigma1)
-sigma2_i = exp(X_sigma2[i, ] beta_sigma2)
-eta_rho12_i = X_rho12[i, ] beta_rho12
-rho12_i = 0.99999999 * tanh(eta_rho12_i)
-```
+Implementation note: `drmTMB` internally evaluates residual correlations as
+`0.99999999 * tanh(eta_rho12_i)`. The tiny multiplier keeps covariance
+matrices strictly positive definite near the boundaries. It is not a
+biological scaling factor, and it should not change how users interpret the
+model.
 
 The matching `drmTMB` syntax is:
 
@@ -130,93 +175,161 @@ This expands internally to `mu1 = y1 ~ x1 + x2` and
 `mu2 = y2 ~ x1 + x2`. Use explicit `mu1` and `mu2` formulas whenever the
 responses need different location predictors.
 
-## Future group-level equations
+## Minimal runnable example
 
-The future double-hierarchical version should also allow group-level random
-intercepts and random slopes in the mean structure, following the
-individual-differences framework of O'Dea et al. (2022):
+Suppose an ecologist measures two behaviours, activity and boldness, and wants
+to know whether an environmental gradient changes their residual coupling after
+accounting for response-specific means and residual SDs. The code below uses
+simulated data, but the model structure matches that scientific question.
 
-```r
-drmTMB(
-  formula = drm_formula(
-    mu1 = y1 ~ x1 + x2 + (1 + x2 | p | ID),
-    mu2 = y2 ~ x1      + (1 + x2 | p | ID),
-    sigma1 = ~ x1 + x2,
-    sigma2 = ~ x1,
-    rho12 = ~ x1 + x2
-  ),
-  family = c(gaussian(), gaussian()),
-  data = dat
-)
-```
-
-The two terms in `(1 + x2 | p | ID)` create the personality and plasticity
-random effects in the mean part. `sigma1` and `sigma2` are the residual scale
-parameters; additional random-effect scale components should be named and
-extracted as group-level standard deviations, not confused with residual
-`sigma`.
-
-Symbolically, the mean part would look like:
-
-```text
-mu1_ij = X_mu1[ij, ] beta_mu1 + b_0_1j + b_x2_1j * x2_ij
-mu2_ij = X_mu2[ij, ] beta_mu2 + b_0_2j + b_x2_2j * x2_ij
-
-[b_0_1j, b_x2_1j, b_0_2j, b_x2_2j]' ~ MVN(0, Sigma_mu_ID)
-```
-
-The covariance matrix `Sigma_mu_ID` contains group-level standard deviations
-and group-level correlations. Those correlations answer questions about
-between-group association in intercepts and slopes. They are not `rho12_i`.
-The parameter `rho12_i` remains the observation-level residual correlation in
-`Omega_i`.
-
-Minimal runnable example:
-
-```r
+```{r bivariate-coscale-simulate}
 set.seed(1)
-n <- 300
-dat <- data.frame(x1 = rnorm(n), x2 = rnorm(n), x3 = rnorm(n))
-mu1 <- 0.2 + 0.5 * dat$x1 + 0.2 * dat$x2
-mu2 <- -0.1 + 0.4 * dat$x1
-sigma1 <- exp(-0.2 + 0.2 * dat$x1 - 0.1 * dat$x2)
-sigma2 <- exp(0.1 - 0.2 * dat$x1)
-eta_rho12 <- -0.1 + 0.4 * dat$x3
-rho12 <- 0.99999999 * tanh(eta_rho12)
+n <- 180
+dat <- data.frame(
+  food = rnorm(n),
+  temperature = rnorm(n),
+  disturbance = rnorm(n)
+)
+mu1 <- 0.2 + 0.5 * dat$food + 0.2 * dat$temperature
+mu2 <- -0.1 + 0.4 * dat$food
+sigma1 <- exp(-0.2 + 0.2 * dat$food - 0.1 * dat$temperature)
+sigma2 <- exp(0.1 - 0.2 * dat$food)
+eta_rho12 <- -0.1 + 0.4 * dat$disturbance
+rho12 <- tanh(eta_rho12)
 e1 <- rnorm(n)
 e2 <- rho12 * e1 + sqrt(1 - rho12^2) * rnorm(n)
-dat$y1 <- mu1 + sigma1 * e1
-dat$y2 <- mu2 + sigma2 * e2
+dat$activity <- mu1 + sigma1 * e1
+dat$boldness <- mu2 + sigma2 * e2
+```
 
-fit <- drmTMB(
-  bf(
-    mu1 = y1 ~ x1 + x2,
-    mu2 = y2 ~ x1,
-    sigma1 = ~ x1 + x2,
-    sigma2 = ~ x1,
-    rho12 = ~ x3
+The model lets `food` and `temperature` explain mean activity, lets `food`
+explain mean boldness, lets `food` and `temperature` explain residual SD in
+activity, lets `food` explain residual SD in boldness, and lets `disturbance`
+explain residual correlation:
+
+```{r bivariate-coscale-fit}
+fit_biv <- drmTMB(
+  drm_formula(
+    mu1 = activity ~ food + temperature,
+    mu2 = boldness ~ food,
+    sigma1 = ~ food + temperature,
+    sigma2 = ~ food,
+    rho12 = ~ disturbance
   ),
   family = c(gaussian(), gaussian()),
   data = dat
 )
+```
 
-check_drm(fit)
-coef(fit, "rho12")
-rho12(fit)[1:5]
-rho12(fit, type = "link")[1:5]
+Check the fit and inspect the coefficient table:
+
+```{r bivariate-coscale-output}
+check_drm(fit_biv)
+summary(fit_biv)
+```
+
+The `rho12` coefficients are on the linear-predictor scale:
+
+```{r bivariate-coscale-rho12}
+coef(fit_biv, "rho12")
+head(rho12(fit_biv))
+```
+
+`corpairs()` gives the same residual correlation in the long correlation-pair
+format that future group-level, phylogenetic, spatial, and study-level
+correlations will also use:
+
+```{r bivariate-coscale-corpairs}
+corpairs(fit_biv)[
+  c("level", "from_response", "to_response", "class", "parameter",
+    "estimate", "min", "max", "modelled")
+]
 ```
 
 The `rho12` coefficients are fitted on the linear-predictor scale
 `eta_rho12`; the response transform is
-`rho12 = 0.99999999 * tanh(eta_rho12)`. Use `rho12(fit)` to read them as
-residual correlations. In this example, a positive coefficient for `x3` means
-that observations with larger `x3` have stronger positive residual coupling
-between `y1` and `y2`, after the model has already accounted for the
-predictors in `mu1`, `mu2`, `sigma1`, and `sigma2`.
+`rho12 = tanh(eta_rho12)` with the tiny internal guard described above. Use
+`rho12(fit)` to read them as residual correlations, and use `corpairs(fit)` to
+place residual `rho12` in a table that is ready to hold other correlation
+levels later. In this example, a positive coefficient for `disturbance` means
+that observations with larger disturbance have stronger positive residual
+coupling between activity and boldness, after the model has already accounted
+for the predictors in `mu1`, `mu2`, `sigma1`, and `sigma2`.
 
-For ecological and evolutionary examples, `rho12` can represent changing
-residual coupling between traits such as activity and boldness, body size and
-fecundity, or leaf area and seed number.
+```{r bivariate-coscale-interpretation-table}
+newdat <- data.frame(
+  food = 0,
+  temperature = 0,
+  disturbance = c(-1, 0, 1)
+)
+data.frame(
+  disturbance = newdat$disturbance,
+  sigma_activity = predict(fit_biv, newdata = newdat, dpar = "sigma1"),
+  sigma_boldness = predict(fit_biv, newdata = newdat, dpar = "sigma2"),
+  rho12 = rho12(fit_biv, newdata = newdat)
+)
+```
+
+In this example, a positive `disturbance` coefficient for `rho12` means that
+activity and boldness become more tightly positively coupled at higher
+disturbance, after their means and residual SDs have been modelled. It does
+not say that disturbance changes among-individual personality or plasticity
+correlations; those require group-level covariance blocks and should appear as
+separate rows in `corpairs(fit)`.
+
+## What this model does not estimate
+
+This fitted model has no bivariate random effects, no group-level
+personality/plasticity correlations, no phylogenetic correlation, and no
+spatial field correlation. If bivariate random-effect syntax currently errors,
+fit the fixed-effect bivariate model shown here or use the implemented
+univariate Gaussian random-effect models until bivariate covariance blocks are
+added.
+
+For ecological and evolutionary examples, residual `rho12` can represent
+changing residual coupling between traits such as activity and boldness, body
+size and fecundity, or leaf area and seed number.
+
+## Future group-level equations
+
+The future double-hierarchical version should also allow group-level random
+intercepts and random slopes in the mean structure:
+
+```r
+drmTMB(
+  formula = drm_formula(
+    mu1 = activity ~ food + disturbance + (1 + disturbance | p | ID),
+    mu2 = boldness ~ food              + (1 + disturbance | p | ID),
+    sigma1 = ~ food + disturbance,
+    sigma2 = ~ food,
+    rho12 = ~ disturbance
+  ),
+  family = c(gaussian(), gaussian()),
+  data = dat
+)
+```
+
+This syntax is planned, not implemented. The two terms in
+`(1 + disturbance | p | ID)` would create group-level intercept and slope
+variation in the mean part. `sigma1` and `sigma2` are residual scale
+parameters; additional random-effect scale components should be named and
+extracted as group-level standard deviations, not confused with residual
+`sigma`.
+
+Symbolically, the future mean part would look like:
+
+```text
+mu1_ij = X_mu1[ij, ] beta_mu1 + b_0_1j + b_disturbance_1j disturbance_ij
+mu2_ij = X_mu2[ij, ] beta_mu2 + b_0_2j + b_disturbance_2j disturbance_ij
+
+[b_0_1j, b_disturbance_1j, b_0_2j, b_disturbance_2j]' ~ MVN(0, Sigma_mu_ID)
+```
+
+The covariance matrix `Sigma_mu_ID` would contain group-level standard
+deviations and group-level correlations. Those correlations answer questions
+about between-group association in intercepts and slopes. They are not
+`rho12_i`. The parameter `rho12_i` remains the observation-level residual
+correlation in `Omega_i`.
 
 The middle `p` in `(1 | p | id)` follows grouped covariance-block syntax for
 correlated group-level effects. Labelled one-slope blocks are implemented for

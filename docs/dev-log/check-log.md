@@ -5305,3 +5305,110 @@ Team learning:
   spatial, or group-level correlations;
 - Pat should review the ordinal nest-success explanation for whether an
   applied user understands the direction of `sigma` versus `zeta`.
+
+## 2026-05-09 — Correlation-Pair Extractor and Tutorial Weight Clarification
+
+Goal:
+
+- export a first `corpairs()` helper for correlations that are already fitted;
+- improve the bivariate coscale tutorial so symbolic equations, R syntax,
+  model output, and interpretation are paired for applied users;
+- clarify that the internal `0.99999999 * tanh()` residual-correlation guard
+  is a numerical detail, not the biological model;
+- record a first design contract for future `weights =` support.
+
+Changes:
+
+- added exported `corpairs()` and `corpairs.drmTMB()` methods;
+- added `tests/testthat/test-corpairs.R`;
+- added `man/corpairs.Rd` through `devtools::document()`;
+- added `docs/design/21-tutorial-style.md`;
+- added `docs/design/22-likelihood-weights.md`;
+- added `docs/design/23-large-data-memory.md`;
+- revised `vignettes/bivariate-coscale.Rmd` with LaTeX equations, a runnable
+  ecological example, `summary(fit)`, `coef(fit, "rho12")`, `rho12(fit)`,
+  `corpairs(fit)`, and a response-scale interpretation table;
+- updated `vignettes/which-scale.Rmd` and
+  `docs/design/03-likelihoods.md` to separate teaching notation
+  `rho12_i = tanh(eta_rho12_i)` from the exact guarded implementation;
+- updated `vignettes/formula-grammar.Rmd`, `_pkgdown.yml`, `README.md`,
+  `ROADMAP.md`, `NEWS.md`, `docs/design/20-coscale-correlation-pairs.md`, and
+  `docs/dev-log/known-limitations.md`;
+- replaced remaining current-source `flagship` wording in roadmap/design prose
+  with more professional terms such as `signature`, `core`, or
+  `central example`;
+- recorded that top-level `weights =` is planned for ordinary likelihood row
+  weights and should remain distinct from `meta_known_V(V = V)`.
+- recorded that the sparse phylogenetic A-inverse path and the million-row
+  R-memory path are separate scaling problems.
+
+Commands run:
+
+- `Rscript -e "devtools::document()"`
+- `Rscript -e "devtools::test(filter = 'corpairs|biv-gaussian|gaussian-random-intercepts')"`
+- `Rscript -e "devtools::load_all(quiet = TRUE); rmarkdown::render('vignettes/bivariate-coscale.Rmd', output_dir = tempdir(), quiet = TRUE); rmarkdown::render('vignettes/which-scale.Rmd', output_dir = tempdir(), quiet = TRUE); rmarkdown::render('vignettes/phylogenetic-spatial.Rmd', output_dir = tempdir(), quiet = TRUE)"`
+- `Rscript -e "devtools::test()"`
+- `Rscript -e "devtools::load_all(quiet = TRUE); rmarkdown::render('vignettes/formula-grammar.Rmd', output_dir = tempdir(), quiet = TRUE); rmarkdown::render('vignettes/bivariate-coscale.Rmd', output_dir = tempdir(), quiet = TRUE); rmarkdown::render('vignettes/which-scale.Rmd', output_dir = tempdir(), quiet = TRUE); rmarkdown::render('vignettes/phylogenetic-spatial.Rmd', output_dir = tempdir(), quiet = TRUE)"`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `Rscript -e "pkgdown::build_site()"`
+- `Rscript tools/fix-pkgdown-favicon-mime.R pkgdown-site`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`
+- `git diff --check`
+- `air format .`
+- `rg -n 'Fisher-z/atanh scale|flagship|selling point|O.Dea-style|O\\x27Dea-style|biological data' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes R tests man pkgdown-site --glob '!docs/dev-log/after-task/**'`
+- `rg -n 'weights|meta_known_V\\(V = V\\)|rho12_i = tanh|0\\.99999999 \\* tanh|corpairs|Goodall|Russell|Confucius' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes R tests man pkgdown-site --glob '!docs/dev-log/after-task/**'`
+
+Results:
+
+- targeted tests: 299 passed, 0 failed, 0 warnings, 0 skips;
+- full `devtools::test()`: 1192 passed, 0 failed, 0 warnings, 0 skips;
+- direct vignette renders completed for formula grammar, bivariate coscale,
+  which-scale, and phylogenetic-spatial pages;
+- `pkgdown::check_pkgdown()`: no problems found before and after site build;
+- `pkgdown::build_site()`: completed successfully;
+- favicon MIME post-processing completed successfully;
+- `devtools::check()`: 0 errors, 0 warnings, 0 notes;
+- `git diff --check`: clean;
+- `air format .`: failed because `air` is not installed locally;
+- stale-wording scans found no current-source `flagship`, `selling point`,
+  `O'Dea-style`, or narrow "biological data" framing outside historical
+  after-task notes.
+
+Tests of the tests:
+
+- `corpairs()` tests cover a predictor-dependent residual `rho12`, an ordinary
+  labelled group-level `mu` random intercept-slope correlation, and the empty
+  no-correlation case;
+- the group-level test checks parsed covariance-block labels, coefficient
+  names, response names, class labels, and the guarded correlation link;
+- the bivariate residual test checks both response-scale and link-scale
+  summaries against `rho12(fit)` and `predict(..., dpar = "rho12")`.
+
+Known limitations:
+
+- `corpairs()` only reports correlations already fitted by current likelihoods:
+  residual bivariate `rho12` and ordinary univariate Gaussian `mu`
+  random-effect correlations;
+- bivariate group-level, phylogenetic, spatial, study-level, and cross-parameter
+  correlation pairs remain planned;
+- `weights =` remains a design note, not an implemented `drmTMB()` argument;
+- large-data memory controls, sparse fixed-effect model matrices, and
+  sufficient-statistic aggregation are planned but not implemented;
+- `air` remains unavailable in the local toolchain.
+
+Team learning:
+
+- Ada should keep using stable team names in reports; temporary app nicknames
+  should not appear in user-facing logs;
+- Pat and Darwin pushed the bivariate tutorial toward real output and
+  interpretation rather than syntax-only examples;
+- Rose caught that tutorial notation and implementation notation need different
+  jobs: readable model equations first, exact numerical guard in implementation
+  notes;
+- Fisher should require large-data benchmarks before the 10,000-tip,
+  5-million-row phylogenetic path is called production-ready;
+- Boole and Emmy should treat `weights =` as top-level fit syntax, not formula
+  syntax.
+- Grace should treat large-data readiness as a benchmarked release criterion,
+  not a claim inferred from ordinary unit tests.

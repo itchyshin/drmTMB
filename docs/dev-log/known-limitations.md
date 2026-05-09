@@ -18,6 +18,10 @@
   Bivariate group-level random effects and double-hierarchical correlation
   pairs are planned only; residual `rho12` should not be interpreted as a
   phylogenetic, spatial, or group-level covariance parameter.
+- `corpairs()` currently reports only correlations that are already fitted:
+  residual bivariate `rho12` summaries and ordinary univariate Gaussian `mu`
+  random-effect correlations. It does not yet report bivariate group-level,
+  phylogenetic, spatial, study-level, or cross-parameter correlation pairs.
 - Fixed-effect univariate lognormal location-scale models are implemented for
   positive finite responses. `mu` and `sigma` are on the log-response scale;
   random effects, known sampling covariance, phylogenetic terms, and bivariate
@@ -92,3 +96,14 @@
 - Sparse known sampling covariance for large meta-analysis and spatial
   workloads is planned but not yet implemented. The first sparse phylogenetic
   route is implemented for univariate Gaussian `mu` random intercepts only.
+- `drmTMB()` does not yet have a `weights` argument. The planned first meaning
+  is ordinary likelihood weights: one non-negative finite weight per
+  observation for univariate models, and one weight per complete response pair
+  for bivariate models. Known sampling covariance remains `meta_known_V(V = V)`,
+  not `weights`.
+- Large-data memory controls are not implemented yet. Current fits still build
+  ordinary R model frames/model matrices and store fitted-object components in
+  the usual development-friendly way. Before claiming readiness for millions
+  of rows, `drmTMB` needs memory-light fit controls, sparse fixed-effect
+  matrices where appropriate, and explicit large phylogenetic benchmark
+  scripts.

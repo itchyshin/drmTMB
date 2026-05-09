@@ -10,6 +10,12 @@ Likelihoods are implemented in TMB templates and called from R wrappers.
   `0.99999999 * tanh()` response transform.
 - Shape parameters use family-specific stable links.
 
+The guard on residual correlations is purely numerical. In teaching material,
+describe the model as the standard transform `rho = tanh(eta)`, then note that
+the implementation multiplies by `0.99999999` so covariance matrices stay
+strictly positive definite in floating-point arithmetic near `rho = -1` or
+`rho = 1`.
+
 ## Notation
 
 In mathematical prose, `Normal(a, b)` uses variance as the second argument.

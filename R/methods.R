@@ -126,6 +126,292 @@ rho12.drmTMB <- function(object, newdata = NULL,
   predict.drmTMB(object, newdata = newdata, dpar = "rho12", type = type, ...)
 }
 
+#' Extract fitted correlation pairs
+#'
+#' `corpairs()` returns a long table of fitted correlation pairs from a
+#' `drmTMB` model. The first implementation reports correlations that are
+#' already fitted elsewhere: residual bivariate `rho12` and ordinary
+#' group-level `mu` random-effect correlations from `corpars$mu`.
+#'
+#' The table is intentionally more explicit than `rho12()` or `corpars`
+#' because future double-hierarchical, phylogenetic, spatial, and study-level
+#' models will contain several scientifically different correlations.
+#'
+#' @param object A `drmTMB` fit.
+#' @param level Optional character vector of correlation levels to keep, such
+#'   as `"residual"` or `"group"`.
+#' @param class Optional character vector of pair classes to keep, such as
+#'   `"residual"` or `"mean-slope"`.
+#' @param ... Reserved for future extractor options.
+#'
+#' @return A data frame with one row per fitted correlation pair or pair
+#'   summary. Predictor-dependent `rho12` is summarized by its mean, minimum,
+#'   and maximum over the fitted rows.
+#'
+#' @examples
+#' set.seed(1)
+#' n <- 40
+#' x <- rnorm(n)
+#' z1 <- rnorm(n)
+#' z2 <- rnorm(n)
+#' mu1 <- 0.2 + 0.5 * x
+#' mu2 <- -0.1 + 0.4 * x
+#' sigma1 <- exp(-0.2 + 0.15 * z1)
+#' sigma2 <- exp(0.1 - 0.1 * z2)
+#' rho <- 0.35
+#' e1 <- rnorm(n)
+#' e2 <- rho * e1 + sqrt(1 - rho^2) * rnorm(n)
+#' dat <- data.frame(
+#'   y1 = mu1 + sigma1 * e1,
+#'   y2 = mu2 + sigma2 * e2,
+#'   x = x,
+#'   z1 = z1,
+#'   z2 = z2
+#' )
+#' fit <- drmTMB(
+#'   bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~ z1, sigma2 = ~ z2),
+#'   family = c(gaussian(), gaussian()),
+#'   data = dat
+#' )
+#' corpairs(fit)
+#' @export
+corpairs <- function(object, ...) {
+  UseMethod("corpairs")
+}
+
+#' @rdname corpairs
+#' @export
+corpairs.drmTMB <- function(object, level = NULL, class = NULL, ...) {
+  rows <- list()
+
+  if ("rho12" %in% names(object$coefficients)) {
+    rows[[length(rows) + 1L]] <- residual_rho12_corpair(object)
+  }
+
+  if (length(object$corpars) > 0L) {
+    for (dpar in names(object$corpars)) {
+      cor_values <- object$corpars[[dpar]]
+      for (i in seq_along(cor_values)) {
+        rows[[length(rows) + 1L]] <- random_effect_corpair(
+          object = object,
+          dpar = dpar,
+          label = names(cor_values)[[i]],
+          estimate = unname(cor_values[[i]])
+        )
+      }
+    }
+  }
+
+  out <- if (length(rows) == 0L) {
+    empty_corpairs()
+  } else {
+    do.call(rbind, rows)
+  }
+
+  if (!is.null(level)) {
+    out <- out[out$level %in% level, , drop = FALSE]
+  }
+  if (!is.null(class)) {
+    out <- out[out$class %in% class, , drop = FALSE]
+  }
+  row.names(out) <- NULL
+  out
+}
+
+empty_corpairs <- function() {
+  data.frame(
+    level = character(),
+    group = character(),
+    block = character(),
+    from_dpar = character(),
+    to_dpar = character(),
+    from_coef = character(),
+    to_coef = character(),
+    from_response = character(),
+    to_response = character(),
+    class = character(),
+    parameter = character(),
+    estimate = numeric(),
+    min = numeric(),
+    max = numeric(),
+    n_values = integer(),
+    link_estimate = numeric(),
+    link_min = numeric(),
+    link_max = numeric(),
+    modelled = logical(),
+    stringsAsFactors = FALSE
+  )
+}
+
+residual_rho12_corpair <- function(object) {
+  rho <- predict(object, dpar = "rho12", type = "response")
+  eta <- predict(object, dpar = "rho12", type = "link")
+  n_coef <- length(coef(object, dpar = "rho12"))
+  response_names <- bivariate_response_names(object)
+  new_corpair_row(
+    level = "residual",
+    group = NA_character_,
+    block = NA_character_,
+    from_dpar = "residual",
+    to_dpar = "residual",
+    from_coef = NA_character_,
+    to_coef = NA_character_,
+    from_response = response_names[[1L]],
+    to_response = response_names[[2L]],
+    class = "residual",
+    parameter = "rho12",
+    estimate = mean(rho),
+    min = min(rho),
+    max = max(rho),
+    n_values = length(rho),
+    link_estimate = mean(eta),
+    link_min = min(eta),
+    link_max = max(eta),
+    modelled = n_coef > 1L
+  )
+}
+
+random_effect_corpair <- function(object, dpar, label, estimate) {
+  parsed <- parse_random_correlation_label(label)
+  new_corpair_row(
+    level = "group",
+    group = parsed$group,
+    block = parsed$block,
+    from_dpar = dpar,
+    to_dpar = dpar,
+    from_coef = parsed$from_coef,
+    to_coef = parsed$to_coef,
+    from_response = univariate_response_name(object, dpar),
+    to_response = univariate_response_name(object, dpar),
+    class = random_correlation_class(dpar, parsed$from_coef, parsed$to_coef),
+    parameter = label,
+    estimate = estimate,
+    min = estimate,
+    max = estimate,
+    n_values = 1L,
+    link_estimate = guarded_correlation_link(estimate, guard = 0.999999),
+    link_min = guarded_correlation_link(estimate, guard = 0.999999),
+    link_max = guarded_correlation_link(estimate, guard = 0.999999),
+    modelled = FALSE
+  )
+}
+
+new_corpair_row <- function(level, group, block, from_dpar, to_dpar,
+                            from_coef, to_coef, from_response, to_response,
+                            class, parameter, estimate, min, max, n_values,
+                            link_estimate, link_min, link_max, modelled) {
+  data.frame(
+    level = level,
+    group = group,
+    block = block,
+    from_dpar = from_dpar,
+    to_dpar = to_dpar,
+    from_coef = from_coef,
+    to_coef = to_coef,
+    from_response = from_response,
+    to_response = to_response,
+    class = class,
+    parameter = parameter,
+    estimate = estimate,
+    min = min,
+    max = max,
+    n_values = n_values,
+    link_estimate = link_estimate,
+    link_min = link_min,
+    link_max = link_max,
+    modelled = modelled,
+    stringsAsFactors = FALSE
+  )
+}
+
+parse_random_correlation_label <- function(label) {
+  if (!startsWith(label, "cor(") || !endsWith(label, ")")) {
+    return(list(
+      from_coef = NA_character_,
+      to_coef = NA_character_,
+      group = NA_character_,
+      block = NA_character_
+    ))
+  }
+
+  inner <- substring(label, 5L, nchar(label) - 1L)
+  pair_and_group <- strsplit(inner, " \\| ", fixed = FALSE)[[1L]]
+  if (length(pair_and_group) < 2L) {
+    return(list(
+      from_coef = NA_character_,
+      to_coef = NA_character_,
+      group = NA_character_,
+      block = NA_character_
+    ))
+  }
+
+  pair <- pair_and_group[[1L]]
+  pair_parts <- strsplit(pair, ",", fixed = TRUE)[[1L]]
+  if (length(pair_parts) != 2L) {
+    return(list(
+      from_coef = NA_character_,
+      to_coef = NA_character_,
+      group = NA_character_,
+      block = NA_character_
+    ))
+  }
+
+  group_parts <- pair_and_group[-1L]
+  if (length(group_parts) == 2L) {
+    block <- group_parts[[1L]]
+    group <- group_parts[[2L]]
+  } else {
+    block <- NA_character_
+    group <- paste(group_parts, collapse = " | ")
+  }
+
+  list(
+    from_coef = trimws(pair_parts[[1L]]),
+    to_coef = trimws(pair_parts[[2L]]),
+    group = trimws(group),
+    block = trimws(block)
+  )
+}
+
+random_correlation_class <- function(dpar, from_coef, to_coef) {
+  from_intercept <- identical(from_coef, "(Intercept)")
+  to_intercept <- identical(to_coef, "(Intercept)")
+  if (identical(dpar, "mu")) {
+    if (from_intercept && to_intercept) return("mean-mean")
+    if (!from_intercept && !to_intercept) return("slope-slope")
+    return("mean-slope")
+  }
+  if (identical(dpar, "sigma")) {
+    if (from_intercept && to_intercept) return("scale-scale")
+    if (!from_intercept && !to_intercept) return("malleability")
+    return("scale-slope")
+  }
+  paste0(dpar, "-", dpar)
+}
+
+guarded_correlation_link <- function(x, guard) {
+  atanh(pmax(pmin(x / guard, 1 - 1e-12), -1 + 1e-12))
+}
+
+bivariate_response_names <- function(object) {
+  c(
+    response_name_from_model_frame(object, "mu1", fallback = "y1"),
+    response_name_from_model_frame(object, "mu2", fallback = "y2")
+  )
+}
+
+univariate_response_name <- function(object, dpar) {
+  response_name_from_model_frame(object, dpar, fallback = NA_character_)
+}
+
+response_name_from_model_frame <- function(object, dpar, fallback) {
+  mf <- object$model$model_frame[[dpar]]
+  if (is.data.frame(mf) && ncol(mf) > 0L) {
+    return(names(mf)[[1L]])
+  }
+  fallback
+}
+
 #' Extract fitted response values
 #'
 #' `fitted()` returns fitted response values from a `drmTMB` model. For

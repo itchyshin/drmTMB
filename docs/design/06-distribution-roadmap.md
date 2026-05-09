@@ -30,7 +30,7 @@ These are the package-defining families.
 - `c(gaussian(), poisson())` and other mixed ecological responses: later only
   after the joint likelihood and meaning of `rho12` are designed.
 
-`rho12 ~ predictors` is the flagship feature and is now implemented for the
+`rho12 ~ predictors` is the signature feature and is now implemented for the
 Gaussian fixed-effect path. It should be hardened before the package grows a
 large family list. This is the key extension of phylogenetic location-scale
 thinking: after modelling trait means and variances, `drmTMB` lets users ask

@@ -84,6 +84,7 @@ reference:
     contents:
       - starts_with("drmTMB")
       - check_drm
+      - corpairs
       - fitted.drmTMB
       - fixef
       - model-fit-extractors
