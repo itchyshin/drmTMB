@@ -6232,3 +6232,61 @@ Known limitations:
   and structured `phylo()`/`spatial()` slope designs remain future work;
 - transformed covariates are still linear predictors in transformed basis
   columns, not general nonlinear likelihood components.
+
+## 2026-05-09 -- Curved-effects user tutorial
+
+Goal:
+
+- improve the location-scale tutorial from a user-first perspective by adding
+  a biological example where ordinary R formula terms express a curved
+  environmental response and a habitat-temperature interaction.
+
+Changes:
+
+- added a "Curved responses and interactions" section to the
+  `location-scale` article;
+- paired symbolic equations with matching `drmTMB` syntax for
+  `habitat * temperature` and `I(temperature^2)`;
+- added a simulated ecology example, fitted model, `summary()` output, and
+  prediction table for cold, moderate, and warm temperatures in two habitats;
+- explained why `I(temperature^2)` is often easier to interpret than
+  `poly(temperature, 2)`, while still noting that `poly()` is supported.
+
+Commands run:
+
+- `Rscript -e "rmarkdown::render('vignettes/location-scale.Rmd', output_dir = tempdir(), quiet = TRUE)"`
+- `Rscript -e "devtools::load_all(quiet = TRUE); rmarkdown::render('vignettes/location-scale.Rmd', output_dir = tempdir(), quiet = TRUE)"`
+- `Rscript -e "pkgdown::build_site()"`
+- `Rscript tools/fix-pkgdown-favicon-mime.R pkgdown-site`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `rg -n "Curved responses|poly\\(temperature|temperature\\^2|habitat \\* temperature|fitted_residual_sd|third-order" vignettes/location-scale.Rmd pkgdown-site/articles/location-scale.html`
+
+Results:
+
+- the first direct vignette render failed because `drmTMB` was not installed
+  in that bare R session;
+- rerunning the vignette render after `devtools::load_all()` passed;
+- `pkgdown::build_site()` passed and rendered the new article section;
+- favicon MIME repair completed without output;
+- `pkgdown::check_pkgdown()`: no problems found;
+- generated-site scan confirmed the new section, equations, model syntax,
+  `summary()` output, and prediction table were present in
+  `pkgdown-site/articles/location-scale.html`.
+
+Tests of the tests:
+
+- this was a tutorial-only change, so the meaningful check was executable
+  documentation rather than a new unit test;
+- the vignette chunk fits the model and prints `summary(fit_curve)`, so the
+  tutorial will fail to render if the documented formula syntax or output path
+  breaks;
+- pkgdown rendered the generated HTML, which checks the actual public page
+  rather than just the source R Markdown.
+
+Known limitations:
+
+- this section teaches fixed-effect formula transformations and interactions
+  only;
+- it does not add new model functionality or broaden random-effect slope
+  grammar;
+- the example uses simulated data so the page remains fast and reproducible.
