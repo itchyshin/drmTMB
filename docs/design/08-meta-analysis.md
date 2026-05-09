@@ -28,8 +28,9 @@ For bivariate and multivariate meta-analysis, Mavridis and Salanti (2013)
 emphasize that studies contribute effect-size vectors and a within-study
 variance-covariance matrix. The same distinction is central for `drmTMB`:
 known within-study sampling covariance belongs in `V`, whereas estimated
-residual or between-study covariance belongs in `sigma1`, `sigma2`, and
-`rho12`.
+residual covariance belongs in `sigma1`, `sigma2`, and `rho12`. In a model
+where the residual component represents between-study heterogeneity, this
+fitted covariance can be interpreted as between-study residual heterogeneity.
 
 ## Implemented Syntax
 
@@ -129,13 +130,20 @@ Omega_i =
 log(sigma1_i) = X_sigma1[i, ] beta_sigma1
 log(sigma2_i) = X_sigma2[i, ] beta_sigma2
 eta_rho12_i = X_rho12[i, ] beta_rho12
-rho12_i = 0.99999999 * tanh(eta_rho12_i)
+rho12_i = tanh(eta_rho12_i)
 ```
 
 Here `S_i` is known and supplied through `meta_known_V(V = V)`. The fitted
-`rho12_i` is the residual or between-study correlation after the known
-within-study covariance has already been included. This prevents `rho12` from
-being asked to explain sampling correlation.
+`rho12_i` is the estimated residual correlation after the known within-study
+covariance has already been included. In a model where the residual component
+represents between-study heterogeneity, this is the between-study residual
+correlation. This prevents `rho12` from being asked to explain sampling
+correlation.
+
+The TMB likelihood applies a small numerical boundary guard before evaluating
+the covariance matrix so that optimization does not land exactly at `-1` or
+`1`. User-facing equations should show the statistical transform above; tests
+and likelihood notes can document the guard separately.
 
 The implemented complete-row syntax is:
 
@@ -276,8 +284,10 @@ fitted log likelihood with an independent dense marginal Gaussian likelihood.
   model matrices after missing-data handling. For full matrices, rows and
   columns are subset together.
 - In bivariate meta-analysis, `V` is known sampling covariance and `rho12` is
-  estimated residual or between-study correlation. These quantities should not
-  be conflated.
+  estimated residual correlation after known within-study sampling covariance
+  has been included. When the residual component represents between-study
+  heterogeneity, `rho12` may be reported as a between-study residual
+  correlation.
 - The implemented paths have simulation recovery, missing-row, and
   likelihood-agreement tests with known `V`.
 - Comparator checks should use `metafor` for implemented established

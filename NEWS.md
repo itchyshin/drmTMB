@@ -34,6 +34,7 @@
 * Tutorial prose now clarifies that ordinary likelihood weights and known sampling covariance are separate concepts, and that dense full `meta_known_V(V = V)` paths currently reject non-unit weights.
 * The Gaussian location-scale tutorial now includes a worked growth example with equations, fitted `summary()` output, response-scale `sigma` interpretation, and a table mapping mean growth and residual SD back to the biological question.
 * The bivariate location-coscale tutorial now includes worked activity-boldness equations, output-reading guidance for `rho12`, and a response-scale residual-correlation curve along a disturbance gradient.
+* The meta-analysis tutorial now includes a worked restoration example with equations, fitted `summary()` output, response-scale residual heterogeneity interpretation, and a clearer distinction between `meta_known_V(V = V)` and ordinary likelihood `weights =`.
 * Public documentation now pairs symbolic model equations with matching R syntax for the first Gaussian location-scale, random-effect scale, bivariate `rho12`, meta-analysis, and phylogenetic examples, and clarifies planned spatial `coords` versus `mesh` inputs.
 * The likelihood design now includes a central TMB `model_type` routing table, aligned with the implemented source map, including the hidden phylogenetic prior parity branch used only by tests.
 * `residuals()` now returns whitened Pearson residuals for bivariate Gaussian fits, and `vcov()` now uses coefficient-level row and column names.

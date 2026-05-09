@@ -5753,3 +5753,92 @@ Team learning:
   the link scale, then translate to the biological question;
 - Rose should continue watching for future-correlation wording that sounds
   implemented before the TMB likelihood exists.
+
+## 2026-05-09 — Meta-Analysis Tutorial Teaching Upgrade
+
+Goal:
+
+- turn the meta-analysis article from a design scaffold into a teaching
+  tutorial with equations, executable R syntax, fitted output, response-scale
+  interpretation, and a clear `weights =` versus `meta_known_V(V = V)`
+  distinction;
+- keep meta-analysis framed as Gaussian regression with known sampling
+  covariance, not a separate family or `tau ~` grammar.
+
+Changes:
+
+- retitled the article to "Mean effects and residual heterogeneity in
+  meta-analysis";
+- added univariate diagonal-`V` equations and full-`V` equations;
+- added a worked ecological restoration example with `habitat`, `duration`,
+  known sampling variance `vi`, `summary(fit_meta)`, response-scale `sigma`,
+  and `check_drm(fit_meta)`;
+- clarified that `weights = 1 / vi` is not equivalent to
+  `meta_known_V(V = vi)`;
+- made the repeated-study `sd(study)` example explicitly schematic and tied it
+  to `dat_repeated`, avoiding confusion with the one-row-per-study simulated
+  example;
+- clarified that bivariate `rho12` is estimated residual correlation after
+  known within-study sampling covariance, and only becomes a between-study
+  residual correlation when the residual component represents between-study
+  heterogeneity;
+- updated `docs/design/08-meta-analysis.md` with the same `rho12` wording and
+  moved the `0.99999999` boundary guard out of the symbolic transform and into
+  implementation prose;
+- recorded the tutorial upgrade in `NEWS.md`.
+
+Commands run so far:
+
+- `Rscript -e "devtools::load_all(quiet = TRUE); rmarkdown::render('vignettes/meta-analysis.Rmd', output_dir = tempdir(), quiet = TRUE)"`
+- `Rscript -e "devtools::test(filter = 'meta')"`
+- `rg -n "residual or between-study|heterogeneous heterogeneity|rho12_i = 0\\.99999999|0\\.99999999 \\* tanh|O.Dea-style|O'Dea-style|meta_gaussian|tau ~" vignettes/meta-analysis.Rmd docs/design/08-meta-analysis.md NEWS.md README.md ROADMAP.md docs/dev-log/known-limitations.md`
+- `git diff --check`
+- `Rscript -e "devtools::test()"`
+- `Rscript -e "pkgdown::build_site()"`
+- `Rscript tools/fix-pkgdown-favicon-mime.R pkgdown-site`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `rg -n "Mean effects and residual heterogeneity|restoration|weights = 1 / vi|coscale means|between-study residual correlation|0\\.99999999" pkgdown-site/articles/meta-analysis.html pkgdown-site/news/index.html`
+- `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`
+
+Results so far:
+
+- `vignettes/meta-analysis.Rmd` renders successfully after `devtools::load_all()`;
+- targeted meta-analysis tests: 57 passed, 0 failed, 0 warnings, 0 skips;
+- `git diff --check`: clean;
+- full `devtools::test()`: 1215 passed, 0 failed, 0 warnings, 0 skips;
+- `pkgdown::build_site()`: completed successfully and wrote the updated
+  `articles/meta-analysis.html`;
+- favicon MIME post-processing completed successfully;
+- `pkgdown::check_pkgdown()`: no problems found;
+- generated HTML contains the new title, restoration example, weights
+  clarification, coscale definition, and corrected between-study residual
+  correlation wording;
+- `devtools::check()`: 0 errors, 0 warnings, 0 notes.
+
+Tests of the tests:
+
+- the rendered tutorial executes the implemented univariate Gaussian
+  `meta_known_V(V = vi)` path and prints `summary()`, `sigma()`, and
+  `check_drm()` output;
+- targeted tests exercise diagonal and dense known-`V` paths, malformed
+  covariance input, row filtering, random-effect scale combinations, and the
+  bivariate `meta_vcov_bivariate()` helper.
+
+Known limitations:
+
+- the worked restoration example is simulated to keep the vignette
+  deterministic and fast;
+- the repeated-study `sd(study)` example remains schematic rather than
+  executable in this article;
+- bivariate known-`V` fitting remains dense, complete-row, and without sparse
+  storage or missing-single-outcome support.
+
+Team learning:
+
+- Pat caught that "multiple effect sizes per study" conflicted with the
+  earlier one-row-per-study simulation, so tutorial sections should say clearly
+  when they are executable versus schematic;
+- Noether's equation pass should keep public equations clean and move numerical
+  guards such as `0.99999999` into implementation notes;
+- Rose's stale-wording scan should include design docs, not only vignettes,
+  because ambiguous tutorial wording can hide in design notes too.
