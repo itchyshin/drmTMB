@@ -5983,3 +5983,51 @@ Team learning:
 - Good planning reduces token and compute waste: this phase used targeted reads,
   no extra agents, and documentation-specific checks rather than a broad test
   sweep.
+
+## 2026-05-09 — Poisson Likelihood Weight Test
+
+Goal:
+
+- strengthen the ordinary likelihood `weights =` implementation by testing one
+  non-Gaussian independent-row family.
+
+Changes:
+
+- added a Poisson test that constant weights keep coefficient estimates stable
+  while doubling the log-likelihood;
+- added a Poisson test that integer row weights, including zero weights, match
+  an explicitly row-duplicated dataset.
+
+Commands run:
+
+- `Rscript -e "devtools::test(filter = 'poisson-mean')"`
+- `rg -n "Poisson.*weights|weights.*Poisson|weights.*planned|does not yet.*weights" README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes tests/testthat/test-poisson-mean.R R man _pkgdown.yml`
+- `git diff --check`
+
+Results:
+
+- first targeted run failed on an overly tight coefficient comparison between
+  the weighted and duplicated Poisson fits;
+- after relaxing that comparison to `1e-4`, targeted Poisson tests passed:
+  46 passed, 0 failed, 0 warnings, 0 skips;
+- stale-wording search found no current documentation claiming that
+  `weights =` is unimplemented.
+
+Tests of the tests:
+
+- the new test failed before the tolerance correction, confirming it was
+  exercising the weighted-vs-duplicated likelihood path;
+- constant-weight and row-duplication checks both protect the TMB row-weight
+  multiplication for count likelihoods, not only Gaussian likelihoods.
+
+Known limitations:
+
+- this phase added no new user-facing behaviour; it only improved coverage for
+  an implemented feature;
+- dense full `meta_known_V(V = V)` still rejects non-unit weights by design.
+
+Team learning:
+
+- Curie should prefer cross-family tests for shared TMB machinery;
+- Ada should treat small tolerance differences between two optimizations as a
+  test-design issue, not as a model-behaviour change.

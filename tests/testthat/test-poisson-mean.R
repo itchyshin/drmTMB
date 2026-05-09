@@ -49,6 +49,53 @@ test_that("Poisson likelihood matches independent dpois calculation", {
   expect_equal(as.numeric(logLik(fit)), ll_independent, tolerance = 1e-6)
 })
 
+test_that("Poisson likelihood weights scale rows and match row duplication", {
+  sim <- new_poisson_data(n = 180, seed = 20260602)
+  dat <- sim$data
+
+  fit <- drmTMB(
+    bf(count ~ x),
+    family = stats::poisson(link = "log"),
+    data = dat
+  )
+  fit_double <- drmTMB(
+    bf(count ~ x),
+    family = stats::poisson(link = "log"),
+    data = dat,
+    weights = rep(2, nrow(dat))
+  )
+
+  expect_equal(coef(fit_double, "mu"), coef(fit, "mu"), tolerance = 1e-6)
+  expect_equal(
+    as.numeric(logLik(fit_double)),
+    2 * as.numeric(logLik(fit)),
+    tolerance = 1e-6
+  )
+  expect_equal(stats::weights(fit_double), rep(2, nrow(dat)))
+
+  w <- rep(c(0, 1, 2, 3), length.out = nrow(dat))
+  fit_weighted <- drmTMB(
+    bf(count ~ x),
+    family = stats::poisson(link = "log"),
+    data = dat,
+    weights = w
+  )
+  dat_expanded <- dat[rep(seq_len(nrow(dat)), w), , drop = FALSE]
+  fit_expanded <- drmTMB(
+    bf(count ~ x),
+    family = stats::poisson(link = "log"),
+    data = dat_expanded
+  )
+
+  expect_equal(stats::weights(fit_weighted), w)
+  expect_equal(coef(fit_weighted, "mu"), coef(fit_expanded, "mu"), tolerance = 1e-4)
+  expect_equal(
+    as.numeric(logLik(fit_weighted)),
+    as.numeric(logLik(fit_expanded)),
+    tolerance = 1e-5
+  )
+})
+
 test_that("Poisson mean model agrees with base glm on an overlapping model", {
   sim <- new_poisson_data(n = 280, seed = 20260598)
 
