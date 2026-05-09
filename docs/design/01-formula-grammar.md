@@ -9,7 +9,8 @@ package-specific. `bf()` remains a short alias. Avoid a public helper named
 `formula()` because it would be easy to confuse with base R's formula tools and
 with `formula(fit)` extractors.
 
-Long-term bivariate direction:
+Long-term bivariate direction, not the current implemented bivariate random
+effects surface:
 
 ```r
 drmTMB(

@@ -244,6 +244,40 @@ For a dense or block-diagonal known covariance matrix `V`, it is:
 y | mu, sigma, V ~ MVN(mu, V + diag(sigma_i^2))
 ```
 
+Bivariate Gaussian meta-analysis uses the same idea, but the known sampling
+covariance is row-paired so each study contributes both responses:
+
+```text
+y_stack = (y1_1, y2_1, ..., y1_n, y2_n)'
+y_stack ~ MVN(mu_stack, V + Omega_stack)
+
+Omega_i =
+  [sigma1_i^2,                 rho12_i sigma1_i sigma2_i;
+   rho12_i sigma1_i sigma2_i,  sigma2_i^2]
+```
+
+The matching syntax is:
+
+```r
+V <- meta_vcov_bivariate(v1 = v1, v2 = v2, cor12 = sampling_cor12)
+
+drmTMB(
+  bf(
+    mu1 = y1 ~ x1 + meta_known_V(V = V),
+    mu2 = y2 ~ x1,
+    sigma1 = ~ 1,
+    sigma2 = ~ 1,
+    rho12 = ~ x1
+  ),
+  family = c(gaussian(), gaussian()),
+  data = dat
+)
+```
+
+The known `V` describes within-study sampling uncertainty. The fitted `rho12`
+describes residual or between-study correlation after that known uncertainty
+has been included.
+
 ## Planned next
 
 The planned double-hierarchical bivariate version adds individual-level random

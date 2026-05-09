@@ -2,6 +2,44 @@
 
 Record meaningful development checks here.
 
+## 2026-05-08: Main Documentation Known-`V` Equation Pairing
+
+Scope:
+
+- paired the public bivariate Gaussian meta-analysis syntax with the symbolic
+  row-paired model equation in the README and main overview vignette;
+- defined `y_stack = (y1_1, y2_1, ..., y1_n, y2_n)'` before the
+  `V + Omega_stack` likelihood;
+- clarified that the long-term bivariate random-effect example in the formula
+  grammar is not the current implemented bivariate random-effects surface.
+
+Commands run:
+
+- `git diff --check`
+- stale-wording scans for old bivariate known-`V` and unsupported-syntax text
+  in README, vignettes, design docs, and selected generated pages;
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `Rscript -e "devtools::test(filter = 'biv-gaussian')"`
+- `Rscript -e "pkgdown::build_site()"`
+- `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`
+
+Results:
+
+- `git diff --check`: clean;
+- `pkgdown::check_pkgdown()`: no problems found;
+- targeted bivariate test: 84 passed, 0 failed;
+- `pkgdown::build_site()`: rebuilt the home page and main overview article;
+- `devtools::check(...)`: 0 errors, 0 warnings, 0 notes;
+- generated pages now include the new row-paired `y_stack` equation and
+  matching `meta_vcov_bivariate()` syntax.
+
+Notes:
+
+- no implementation changed in this task;
+- old dev-log entries that mention earlier rejected full/block known
+  covariance behaviour were left intact as historical records;
+- remaining `meta_gaussian()` and `tau ~` matches are intentional guardrails.
+
 ## 2026-05-08: Bivariate Gaussian Known Sampling Covariance Likelihood
 
 Scope:

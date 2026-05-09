@@ -200,6 +200,30 @@ Bivariate Gaussian meta-analysis uses the same marker with a dense row-paired
 within-study block-diagonal case, and fitted `rho12` remains the residual or
 between-study correlation after known sampling covariance has been included.
 
+```text
+y_stack = (y1_1, y2_1, ..., y1_n, y2_n)'
+y_stack ~ MVN(mu_stack, V + Omega_stack)
+Omega_i =
+  [sigma1_i^2,                  rho12_i sigma1_i sigma2_i;
+   rho12_i sigma1_i sigma2_i,   sigma2_i^2]
+```
+
+```r
+V <- meta_vcov_bivariate(v1 = v1, v2 = v2, cor12 = sampling_cor12)
+
+drmTMB(
+  bf(
+    mu1 = y1 ~ x1 + meta_known_V(V = V),
+    mu2 = y2 ~ x1,
+    sigma1 = ~ 1,
+    sigma2 = ~ 1,
+    rho12 = ~ x1
+  ),
+  family = c(gaussian(), gaussian()),
+  data = dat
+)
+```
+
 Phylogenetic location effects are fitted as structured Gaussian random effects
 in the `mu` formula:
 
