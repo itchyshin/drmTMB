@@ -28,7 +28,8 @@ Every new family must stay inside the package boundary:
 
 - one response or two responses only;
 - one formula per distributional parameter;
-- explicit parameter names such as `mu`, `sigma`, `nu`, `tau`, and `rho12`;
+- explicit parameter names such as `mu`, `sigma`, `nu`, `rho12`, and future
+  second-shape `tau`;
 - no higher-dimensional multivariate response models;
 - no family is complete without simulation tests and documentation.
 

@@ -4112,3 +4112,79 @@ Team learning:
   consistency obligations;
 - future add-family work should start by extending the link table and fitted
   response helper, then adding tests before touching the TMB likelihood.
+
+## 2026-05-08: Align rho12 Equations and Interpretation
+
+Scope:
+
+- aligned active `rho12` equations with the implemented guarded transform:
+  `rho12 = 0.99999999 * tanh(eta_rho12)`;
+- updated bivariate interpretation prose so users read `coef(fit, "rho12")`
+  as linear-predictor-scale coefficients and `rho12(fit)` as response-scale
+  residual correlations;
+- changed the `biv_gaussian()` family metadata to `rho12 = "atanh_guarded"`;
+- clarified that `tau` is future second-shape syntax, not current formula
+  grammar and not meta-analytic heterogeneity syntax;
+- moved the bivariate phylogenetic aspirational warning before unsupported
+  example code in the location-coscale extension note.
+
+Commands run:
+
+- `Rscript -e "devtools::document()"`
+- `Rscript -e "devtools::test(filter = 'family-link-contract|biv-gaussian')"`
+- `git diff --check`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `Rscript -e "rmarkdown::render('vignettes/bivariate-coscale.Rmd', output_dir = tempdir(), quiet = TRUE); rmarkdown::render('vignettes/which-scale.Rmd', output_dir = tempdir(), quiet = TRUE); rmarkdown::render('vignettes/drmTMB.Rmd', output_dir = tempdir(), quiet = TRUE); rmarkdown::render('vignettes/testing-likelihoods.Rmd', output_dir = tempdir(), quiet = TRUE); cat('rendered selected vignettes\\n')"`
+- `Rscript -e "devtools::test()"`
+- `Rscript -e "pkgdown::build_site()"`
+- `_R_CHECK_SYSTEM_CLOCK_=FALSE Rscript -e "devtools::check(document = FALSE, manual = FALSE, args = '--no-manual')"`
+- `rg -n 'atanh\\(rho12|rho12_i = tanh|rho12 = tanh|rho12 = "atanh"|atanh-scale|atanh link internally|`nu`, `tau`|tau ~|explicit parameter names such as `mu`, `sigma`, `nu`, `tau`' README.md R man tests vignettes docs/design --glob '!docs/dev-log/**'`
+
+Results:
+
+- targeted bivariate and family-link tests: 99 passed;
+- full `devtools::test()`: 701 passed, 0 failed, 0 skipped;
+- selected vignettes rendered successfully;
+- `pkgdown::check_pkgdown()`: no problems found;
+- `pkgdown::build_site()`: completed successfully;
+- `devtools::check()`: 0 errors, 0 warnings, 0 notes;
+- `git diff --check`: clean.
+
+Tests of the tests:
+
+- `test-family-link-contract.R` now checks that the public `biv_gaussian()`
+  object and internal post-fit helper agree on `rho12 = "atanh_guarded"`;
+- the bivariate regression tests still exercise `rho12(fit)`,
+  `rho12(fit, type = "link")`, and `predict(..., dpar = "rho12")` after the
+  metadata change.
+
+Consistency audit:
+
+- README, main vignette, bivariate-coscale vignette, scale-choice vignette,
+  testing-likelihoods vignette, and design notes now use `eta_rho12` plus the
+  guarded response transform;
+- no active non-dev-log text remains with `rho12_i = tanh(...)`,
+  `atanh(rho12_i) = ...`, `rho12 = "atanh"`, or `atanh-scale`;
+- formula grammar now treats `tau` as future second-shape syntax only.
+
+What did not go smoothly:
+
+- the first documentation wording followed the simpler mathematical transform
+  rather than the implemented guarded transform;
+- a mechanical replacement temporarily created a multiline markdown table cell,
+  which was fixed before rendering checks.
+
+Known limitations:
+
+- `rho12` uses a small guard for numerical stability; docs now state this, but
+  papers may still present the idealized `tanh()` transform with an explanatory
+  implementation note;
+- `tau` remains design vocabulary for future shape families, not implemented
+  formula syntax.
+
+Team learning:
+
+- Noether/Fisher should review symbolic equations against C++ and R helper
+  transforms before public examples are expanded;
+- Pat's interpretation request improved the tutorial: extraction examples need
+  a sentence saying what the coefficient and response-scale value mean.

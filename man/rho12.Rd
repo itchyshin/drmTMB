@@ -17,14 +17,15 @@ rho12(object, ...)
 \item{newdata}{Optional data frame for prediction.}
 
 \item{type}{Scale of returned values: \code{"response"} for correlation values or
-\code{"link"} for atanh-scale linear predictors.}
+\code{"link"} for Fisher-z-like linear predictors.}
 }
 \value{
-A numeric vector of residual correlations, or atanh-scale linear
+A numeric vector of residual correlations, or Fisher-z-like linear
 predictors when \code{type = "link"}.
 }
 \description{
 \code{rho12()} returns the residual response-response correlation from a
 bivariate Gaussian \code{drmTMB} fit. By default it returns the response-scale
-correlation. Use \code{type = "link"} for the Fisher-z/atanh linear predictor.
+correlation. Use \code{type = "link"} for the Fisher-z-like linear predictor
+whose response transform is \code{0.99999999 * tanh(eta)}.
 }

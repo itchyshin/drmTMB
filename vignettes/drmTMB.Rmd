@@ -190,7 +190,8 @@ mu1_i = X_mu1[i, ] beta_mu1
 mu2_i = X_mu2[i, ] beta_mu2
 log(sigma1_i) = X_sigma1[i, ] beta_sigma1
 log(sigma2_i) = X_sigma2[i, ] beta_sigma2
-rho12_i = tanh(X_rho12[i, ] beta_rho12)
+eta_rho12_i = X_rho12[i, ] beta_rho12
+rho12_i = 0.99999999 * tanh(eta_rho12_i)
 
 Omega_i[1, 1] = sigma1_i^2
 Omega_i[2, 2] = sigma2_i^2

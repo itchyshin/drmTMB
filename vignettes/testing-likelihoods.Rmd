@@ -222,7 +222,8 @@ The first bivariate Gaussian location-coscale model uses:
 Omega_i =
   [ sigma1_i^2                         rho12_i sigma1_i sigma2_i ]
   [ rho12_i sigma1_i sigma2_i          sigma2_i^2                ]
-rho12_i = tanh(eta_rho12_i)
+eta_rho12_i = X_rho12[i, ] beta_rho12
+rho12_i = 0.99999999 * tanh(eta_rho12_i)
 ```
 
 The matching syntax is:

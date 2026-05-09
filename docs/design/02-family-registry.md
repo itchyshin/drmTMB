@@ -155,7 +155,7 @@ biv_gaussian <- function() {
       mu2 = "identity",
       sigma1 = "log",
       sigma2 = "log",
-      rho12 = "atanh"
+      rho12 = "atanh_guarded"
     )
   )
 }
@@ -174,7 +174,8 @@ bf(
 )
 ```
 
-`rho12` uses an atanh link internally and `tanh()` on the response scale.
+`rho12` uses a guarded atanh-style link internally:
+`rho12 = 0.99999999 * tanh(eta_rho12)` on the response scale.
 `mvbind(y1, y2) ~ x` is implemented as shorthand for identical `mu1` and
 `mu2` location formulas. Bivariate random effects are planned but not
 implemented.

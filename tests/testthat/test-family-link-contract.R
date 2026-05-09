@@ -9,6 +9,7 @@ test_that("internal link table maps implemented distributional parameters", {
   expect_equal(drmTMB:::drm_dpar_link(fake_student, "nu"), "logm2")
   expect_equal(drmTMB:::drm_dpar_link(fake_lognormal, "sigma"), "log")
   expect_equal(drmTMB:::drm_dpar_link(fake_biv, "rho12"), "atanh_guarded")
+  expect_equal(unname(biv_gaussian()$links[["rho12"]]), "atanh_guarded")
 })
 
 test_that("internal inverse links match the documented parameter scales", {

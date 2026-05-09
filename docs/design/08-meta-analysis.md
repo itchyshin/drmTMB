@@ -128,7 +128,8 @@ Omega_i =
 
 log(sigma1_i) = X_sigma1[i, ] beta_sigma1
 log(sigma2_i) = X_sigma2[i, ] beta_sigma2
-atanh(rho12_i) = X_rho12[i, ] beta_rho12
+eta_rho12_i = X_rho12[i, ] beta_rho12
+rho12_i = 0.99999999 * tanh(eta_rho12_i)
 ```
 
 Here `S_i` is known and supplied through `meta_known_V(V = V)`. The fitted

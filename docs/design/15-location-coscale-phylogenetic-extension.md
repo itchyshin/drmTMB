@@ -33,7 +33,8 @@ group-level effects.
 ## Extension: Location-Coscale Models
 
 Location-scale models relax constant residual variance. Location-coscale
-models also relax constant residual covariance.
+models also relax constant residual covariance or correlation between two
+responses.
 
 For two responses:
 
@@ -46,7 +47,8 @@ Omega_i[1,2] = rho12_i * sigma1_i * sigma2_i
 
 log(sigma1_i) = W1[i, ] gamma1
 log(sigma2_i) = W2[i, ] gamma2
-atanh(rho12_i) = R[i, ] delta
+eta_rho12_i = R[i, ] delta
+rho12_i = 0.99999999 * tanh(eta_rho12_i)
 ```
 
 The third equation is the distinctive `drmTMB` idea. It asks whether the
@@ -68,7 +70,10 @@ It asks:
 - Do lineages with different mean trait values also differ in dispersion?
 - Does dispersion covary across traits?
 
-In `drmTMB`, the bivariate location-coscale part targets questions like:
+In `drmTMB`, the bivariate location-coscale part should eventually target
+questions like the following. This syntax is aspirational: the implemented seed
+is fixed-effect `family = c(gaussian(), gaussian())` with
+`rho12 ~ predictors`.
 
 ```r
 drmTMB(
@@ -83,9 +88,6 @@ drmTMB(
   data = mammals
 )
 ```
-
-This syntax is aspirational. The implemented seed is fixed-effect
-`family = c(gaussian(), gaussian())` with `rho12 ~ predictors`.
 
 ## Correlation Levels
 
@@ -121,7 +123,7 @@ group-level covariance blocks. Do not use bare `rho12` for these quantities.
 5. Bivariate location-scale with phylogenetic scale effects.
 6. Bivariate location-coscale with fixed-effect `rho12 ~ predictors` plus
    phylogenetic mean and scale structure.
-7. Later only: phylogenetic effects in `atanh(rho12)` itself.
+7. Later only: phylogenetic effects in the `rho12` linear predictor itself.
 
 The ordering matters. The coscale idea is powerful, but the models become
 weakly identified quickly. Each stage needs symbolic equations, simulation

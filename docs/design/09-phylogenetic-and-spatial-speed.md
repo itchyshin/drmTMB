@@ -72,7 +72,8 @@ scale components. The `drmTMB` extension adds a residual-correlation predictor:
 ```text
 log(sigma1_i) = W1[i, ] gamma1
 log(sigma2_i) = W2[i, ] gamma2
-atanh(rho12_i) = R[i, ] delta
+eta_rho12_i = R[i, ] delta
+rho12_i = 0.99999999 * tanh(eta_rho12_i)
 ```
 
 This turns covariance homogeneity into a testable biological assumption.
@@ -188,9 +189,9 @@ residual response-response correlation.
 
 Later phylogenetic coscale models may also allow phylogenetic structure in
 scale and coscale predictors, for example phylogenetic effects in
-`log(sigma1)`, `log(sigma2)`, or `atanh(rho12)`. These should be later phases
-with strong simulation evidence because they are much harder to identify than
-fixed-effect `rho12 ~ predictors`.
+`log(sigma1)`, `log(sigma2)`, or the `rho12` linear predictor. These should be
+later phases with strong simulation evidence because they are much harder to
+identify than fixed-effect `rho12 ~ predictors`.
 
 ## Structured Random-Slope Policy
 

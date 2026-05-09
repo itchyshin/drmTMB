@@ -141,7 +141,8 @@ Package implications:
 ```text
 log(sigma1_i) = W1[i, ] gamma1
 log(sigma2_i) = W2[i, ] gamma2
-atanh(rho12_i) = R[i, ] delta
+eta_rho12_i = R[i, ] delta
+rho12_i = 0.99999999 * tanh(eta_rho12_i)
 ```
 
 - For mammals, the natural teaching example is the body mass-litter size

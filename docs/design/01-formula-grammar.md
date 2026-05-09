@@ -415,14 +415,16 @@ Formulae may target distributional parameters such as:
 
 - `mu`, `mu1`, `mu2`;
 - `sigma`, `sigma1`, `sigma2`;
-- `nu`, `tau`;
+- `nu`;
 - `zi`, `zoi`, `coi`, `hu`;
 - `rho12`;
 - `sd(group)` for random-effect scale models.
 
-`nu` and `tau` follow the GAMLSS convention for the first and second shape
-parameters. Family documentation should explain whether `nu` means skewness,
-degrees of freedom, tail shape, count dispersion, or another shape quantity.
+`nu` follows the GAMLSS convention for the first shape parameter. Family
+documentation should explain whether `nu` means skewness, degrees of freedom,
+tail shape, count dispersion, or another shape quantity. `tau` is reserved for
+a possible second shape parameter in future families; it is not current formula
+syntax and should not be used for meta-analytic heterogeneity.
 
 ## Random-Effect Eligibility
 
@@ -434,7 +436,7 @@ Not every parameter should accept random effects at the same development stage.
 | `sigma`, `sigma1`, `sigma2` | Yes for univariate Gaussian `sigma` random intercepts only, written as `sigma ~ x + (1 | id)`. Residual-scale random slopes, labelled `sigma` blocks, bivariate `sigma1`/`sigma2` random effects, and non-Gaussian scale random effects are later. |
 | `sd(group)` | Implemented for one or more distinct unlabelled univariate Gaussian `mu` random intercepts, such as `sd(id) ~ x_group` and `sd(site) ~ site_type`; predictors must be constant within group after missing-row filtering. Labelled blocks, slopes, `sigma` random-effect scales, bivariate models, and non-Gaussian models are later. |
 | `rho12` | No random effects initially; predictor-dependent fixed effects only. |
-| `nu`, `tau` | Fixed effects first; random effects only after simulations show identifiability. |
+| `nu`; future `tau` | Fixed effects first; random effects only after simulations show identifiability. `tau` is reserved for a possible second shape parameter and is not current syntax. |
 | `zi`, `hu`, `zoi`, `coi` | Fixed effects first; random effects later only for high-value use cases. |
 | `meta_known_V()` | Never; it is known sampling covariance, not an estimated parameter. |
 | `phylo(1 | species, tree = tree)` | Implemented structured random intercept for univariate Gaussian `mu`; `tree` must be an ultrametric phylogeny with branch lengths. |

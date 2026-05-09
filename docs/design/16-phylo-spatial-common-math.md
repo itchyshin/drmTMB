@@ -372,7 +372,8 @@ Recommended staging:
 `rho12` is residual response-response correlation at the observation level:
 
 ```text
-atanh(rho12_i) = X_rho12[i, ] beta_rho12
+eta_rho12_i = X_rho12[i, ] beta_rho12
+rho12_i = 0.99999999 * tanh(eta_rho12_i)
 ```
 
 Phylogenetic and spatial correlation matrices describe dependence among

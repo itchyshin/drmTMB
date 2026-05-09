@@ -208,7 +208,8 @@ The fitted covariance matrix for observation `i` is:
 Omega_i =
   [sigma1_i^2,                  rho12_i sigma1_i sigma2_i;
    rho12_i sigma1_i sigma2_i,   sigma2_i^2]
-rho12_i = tanh(X_rho12[i, ] beta_rho12)
+eta_rho12_i = X_rho12[i, ] beta_rho12
+rho12_i = 0.99999999 * tanh(eta_rho12_i)
 ```
 
 That equation is the package's first location-coscale contract: predictors may

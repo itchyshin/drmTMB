@@ -56,7 +56,8 @@ mu1_i = X_mu1[i, ] beta_mu1
 mu2_i = X_mu2[i, ] beta_mu2
 log(sigma1_i) = X_sigma1[i, ] beta_sigma1
 log(sigma2_i) = X_sigma2[i, ] beta_sigma2
-atanh(rho12_i) = X_rho12[i, ] beta_rho12
+eta_rho12_i = X_rho12[i, ] beta_rho12
+rho12_i = 0.99999999 * tanh(eta_rho12_i)
 ```
 
 The observation-specific residual covariance matrix is:
@@ -72,7 +73,8 @@ Equivalently:
 ```text
 sigma1_i = exp(X_sigma1[i, ] beta_sigma1)
 sigma2_i = exp(X_sigma2[i, ] beta_sigma2)
-rho12_i = tanh(X_rho12[i, ] beta_rho12)
+eta_rho12_i = X_rho12[i, ] beta_rho12
+rho12_i = 0.99999999 * tanh(eta_rho12_i)
 ```
 
 The matching `drmTMB` syntax is:
@@ -179,7 +181,8 @@ mu1 <- 0.2 + 0.5 * dat$x1 + 0.2 * dat$x2
 mu2 <- -0.1 + 0.4 * dat$x1
 sigma1 <- exp(-0.2 + 0.2 * dat$x1 - 0.1 * dat$x2)
 sigma2 <- exp(0.1 - 0.2 * dat$x1)
-rho12 <- tanh(-0.1 + 0.4 * dat$x3)
+eta_rho12 <- -0.1 + 0.4 * dat$x3
+rho12 <- 0.99999999 * tanh(eta_rho12)
 e1 <- rnorm(n)
 e2 <- rho12 * e1 + sqrt(1 - rho12^2) * rnorm(n)
 dat$y1 <- mu1 + sigma1 * e1
@@ -202,6 +205,14 @@ coef(fit, "rho12")
 rho12(fit)[1:5]
 rho12(fit, type = "link")[1:5]
 ```
+
+The `rho12` coefficients are fitted on the linear-predictor scale
+`eta_rho12`; the response transform is
+`rho12 = 0.99999999 * tanh(eta_rho12)`. Use `rho12(fit)` to read them as
+residual correlations. In this example, a positive coefficient for `x3` means
+that observations with larger `x3` have stronger positive residual coupling
+between `y1` and `y2`, after the model has already accounted for the
+predictors in `mu1`, `mu2`, `sigma1`, and `sigma2`.
 
 For ecological and evolutionary examples, `rho12` can represent changing
 residual coupling between traits such as activity and boldness, body size and

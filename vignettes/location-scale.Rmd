@@ -22,7 +22,7 @@ Current syntax:
 
 ```r
 drmTMB(
-  bf(y ~ x1, sigma ~ x1),
+  bf(y ~ x1, sigma ~ x2),
   family = gaussian(),
   data = dat
 )

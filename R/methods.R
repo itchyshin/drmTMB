@@ -89,15 +89,16 @@ ranef.drmTMB <- function(object, dpar = NULL, ...) {
 #'
 #' `rho12()` returns the residual response-response correlation from a
 #' bivariate Gaussian `drmTMB` fit. By default it returns the response-scale
-#' correlation. Use `type = "link"` for the Fisher-z/atanh linear predictor.
+#' correlation. Use `type = "link"` for the Fisher-z-like linear predictor
+#' whose response transform is `0.99999999 * tanh(eta)`.
 #'
 #' @param object A `drmTMB` fit.
 #' @param newdata Optional data frame for prediction.
 #' @param type Scale of returned values: `"response"` for correlation values or
-#'   `"link"` for atanh-scale linear predictors.
+#'   `"link"` for Fisher-z-like linear predictors.
 #' @param ... Reserved for future extractor options.
 #'
-#' @return A numeric vector of residual correlations, or atanh-scale linear
+#' @return A numeric vector of residual correlations, or Fisher-z-like linear
 #'   predictors when `type = "link"`.
 #' @export
 rho12 <- function(object, ...) {
