@@ -58,7 +58,7 @@ distributional regression models using TMB.
 
 ## Phase 3: Bivariate Gaussian Coscale
 
-- Status: fixed-effect bivariate Gaussian implemented.
+- Status: fixed-effect bivariate Gaussian implemented and closure-audited.
 - Support separate formulas for `mu1 = y1 ~ ...` and `mu2 = y2 ~ ...`.
 - `mvbind(y1, y2) ~ x` is implemented as shorthand for identical location
   formulas and expands internally to `mu1 = y1 ~ x` and `mu2 = y2 ~ x`.
@@ -67,11 +67,22 @@ distributional regression models using TMB.
   predictor with a tanh response transform.
 - Added simulation tests for positive, near-zero, negative, and
   predictor-dependent residual correlations.
+- Added tests and documentation for `rho12()`, `corpairs()`, `fitted()`,
+  `sigma()`, `simulate()`, whitened Pearson residuals, and coefficient-level
+  `vcov()` names.
+- Added complete-row bivariate Gaussian known sampling covariance through
+  `meta_known_V(V = V)` and `meta_vcov_bivariate()`, with an independent base R
+  MVN likelihood comparator and tests that residual `rho12` stays distinct from
+  known sampling correlation.
+- Added row likelihood weights for independent bivariate rows; dense known-`V`
+  bivariate fits reject non-unit weights until a joint-block weighting design is
+  documented.
 - Public bivariate family grammar accepts `family = c(gaussian(), gaussian())`
   or `family = list(gaussian(), gaussian())` for the implemented all-Gaussian
   likelihood. Mixed composed families such as `family = c(gaussian(), poisson())`
   remain future work where the joint likelihood is defined.
-- Random effects remain future work.
+- Random effects remain future work and are rejected before optimization with
+  planned-feature messages.
 
 ## Phase 4: Mixed and Double-Hierarchical Models
 

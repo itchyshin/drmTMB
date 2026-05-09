@@ -70,6 +70,30 @@ test_that("corpairs summarizes predictor-dependent residual rho12", {
   expect_equal(nrow(corpairs(fit, level = "group")), 0L)
 })
 
+test_that("corpairs keeps response labels for mvbind bivariate shorthand", {
+  dat <- new_corpairs_biv_data(n = 160, beta_rho12 = c(0.2, -0.15), seed = 20260577)
+  fit <- drmTMB(
+    bf(
+      mvbind(y1, y2) ~ x,
+      sigma1 = ~ z1,
+      sigma2 = ~ z2,
+      rho12 = ~ w
+    ),
+    family = c(gaussian(), gaussian()),
+    data = dat
+  )
+
+  pairs <- corpairs(fit)
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(nrow(pairs), 1L)
+  expect_equal(pairs$level, "residual")
+  expect_equal(pairs$from_response, "y1")
+  expect_equal(pairs$to_response, "y2")
+  expect_equal(pairs$parameter, "rho12")
+  expect_equal(pairs$estimate, mean(rho12(fit)), tolerance = 1e-12)
+})
+
 test_that("corpairs reports ordinary group-level correlation labels", {
   dat <- new_corpairs_group_data()
   fit <- drmTMB(

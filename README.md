@@ -380,7 +380,7 @@ In the example above, `sigma ~ x1`, `sd(id) ~ x_group`, and
 `sd(site) ~ site_type` are three different scale models: residual variation,
 among-`id` variation in the mean, and among-`site` variation in the mean.
 
-It also supports the fixed-effect seed of the bivariate location-coscale model,
+It also supports the implemented fixed-effect bivariate location-coscale model,
 including predictor-dependent residual correlation. Here "coscale" means the
 residual covariance structure, represented in this bivariate Gaussian case by
 the residual correlation parameter `rho12`:

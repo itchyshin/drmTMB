@@ -21,6 +21,30 @@ The implementation roadmap lives in `docs/design/06-distribution-roadmap.md`.
 Meta-analysis is not listed as a separate family. It uses `family = gaussian()`
 with `meta_known_V(V = V)`.
 
+## At a glance
+
+Start from the measurement process, not from the name of the distribution. The
+table below summarizes the implemented first-pass families and the main
+quantity each `sigma` formula models.
+
+| Response type | First family to try | Distributional parameters | What `sigma` means | Main current limit |
+| --- | --- | --- | --- | --- |
+| Continuous, symmetric residuals | `gaussian()` | `mu`, `sigma` | residual standard deviation | most mature path; non-Gaussian extensions are separate |
+| Continuous with heavy tails | `student()` | `mu`, `sigma`, `nu` | Student-t scale, not exactly residual SD | fixed effects only |
+| Positive multiplicative response | `lognormal()` | `mu`, `sigma` | SD on the log-response scale | fixed effects only |
+| Positive response with mean-CV interpretation | `Gamma(link = "log")` | `mu`, `sigma` | coefficient of variation | fixed effects only |
+| Continuous proportion in `(0, 1)` | `beta()` | `mu`, `sigma` | public scale mapped to beta precision | no 0/1 boundary mass yet |
+| Count baseline or rate with exposure | `poisson(link = "log")` | `mu`, optional `zi` | no modelled `sigma` | no random effects yet |
+| Overdispersed count or rate | `nbinom2()` | `mu`, `sigma`, optional `zi` | extra-Poisson dispersion scale | fixed effects only |
+| Positive count, zeros absent by design | `truncated_nbinom2()` | `mu`, `sigma` | NB2 dispersion for the untruncated component | fixed effects only |
+| Count with a separate zero process | `truncated_nbinom2()` plus `hu ~` | `mu`, `sigma`, `hu` | NB2 dispersion for nonzero counts | fixed effects only |
+| Two continuous Gaussian responses | `c(gaussian(), gaussian())` | `mu1`, `mu2`, `sigma1`, `sigma2`, `rho12` | residual SDs for each response | bivariate random effects planned |
+
+The current design keeps constructor names close to base R where possible. For
+example, exposure in count models is written with the standard formula term
+`offset(log(exposure))`, and Gamma models use `stats::Gamma(link = "log")`
+because `gamma()` already names the base R gamma function.
+
 ## Implemented univariate families
 
 Gaussian location-scale models use `mu` and `sigma`:

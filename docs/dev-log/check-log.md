@@ -2,6 +2,72 @@
 
 Record meaningful development checks here.
 
+## 2026-05-09: Phase 3 Bivariate Coscale Closure
+
+Scope:
+
+- marked Phase 3 in `ROADMAP.md` as implemented and closure-audited for the
+  fixed-effect bivariate Gaussian location-coscale model;
+- added closure details for `rho12()`, `corpairs()`, complete-row bivariate
+  known sampling covariance, row likelihood weights, residual diagnostics,
+  `mvbind()` shorthand, composed Gaussian family syntax, and unsupported
+  bivariate random-effect guards;
+- added a `corpairs()` regression test for the `mvbind(y1, y2) ~ x` shorthand so
+  residual pair output keeps response labels `y1` and `y2`;
+- added an at-a-glance response-family table to the distribution-family tutorial;
+- replaced stale README wording "fixed-effect seed" with "implemented
+  fixed-effect" for the bivariate location-coscale model;
+- created
+  `docs/dev-log/after-phase/2026-05-09-phase-3-bivariate-coscale-closure.md`.
+
+Commands run:
+
+- `Rscript -e "devtools::load_all(quiet = TRUE); testthat::test_file('tests/testthat/test-corpairs.R')"`
+- `Rscript -e "devtools::load_all(quiet = TRUE); testthat::test_file('tests/testthat/test-biv-gaussian.R')"`
+- `Rscript -e "devtools::load_all(quiet = TRUE); rmarkdown::render('vignettes/distribution-families.Rmd', output_dir = tempdir(), quiet = TRUE)"`
+- `Rscript -e "devtools::load_all(quiet = TRUE); rmarkdown::render('vignettes/bivariate-coscale.Rmd', output_dir = tempdir(), quiet = TRUE)"`
+- `Rscript -e "devtools::test()"`
+- `Rscript -e "pkgdown::build_site()"`
+- `Rscript tools/fix-pkgdown-favicon-mime.R pkgdown-site`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`
+- `git diff --check`
+- `rg -n "At a glance|Start from the measurement process|bivariate Gaussian coscale phase|closure-audited|corpairs keeps response labels|mvbind bivariate shorthand" vignettes/distribution-families.Rmd pkgdown-site/articles/distribution-families.html ROADMAP.md NEWS.md tests/testthat/test-corpairs.R`
+- `rg -n "fixed-effect seed|Phase 3.*planned|Random effects remain future work|Bivariate random-effect syntax is planned|rho ~|meta_gaussian\\(|tau ~" README.md ROADMAP.md NEWS.md docs/design vignettes R tests --glob '!docs/dev-log/after-task/**' --glob '!docs/dev-log/after-phase/**'`
+
+Results:
+
+- `test-corpairs.R`: 37 passed, 0 failed;
+- `test-biv-gaussian.R`: 101 passed, 0 failed;
+- `devtools::test()`: 1260 passed, 0 failed;
+- tutorial renders for `distribution-families.Rmd` and `bivariate-coscale.Rmd`:
+  passed after loading the local package;
+- `pkgdown::build_site()`: passed after rerunning with normal cache/network
+  access;
+- `pkgdown::check_pkgdown()`: no problems found;
+- `devtools::check(...)`: 0 errors, 0 warnings, 1 note. The note was local
+  macOS temp-directory detritus (`xcrun_db`), not a package failure;
+- `git diff --check`: clean;
+- stale scan: no "fixed-effect seed" wording remains; remaining matches are
+  intentional planned-feature or meta-analysis guardrail text.
+
+Tests of the tests:
+
+- the new `corpairs()` test exercises the extractor and response-label path for
+  `mvbind()`, not only the bivariate likelihood;
+- the existing bivariate test file already covers constant, predictor-dependent,
+  near-zero, negative, high positive, and high negative residual correlations,
+  known sampling covariance, row weights, missing rows, composed families, and
+  unsupported bivariate random effects.
+
+Notes:
+
+- direct `test_file()` and direct vignette rendering failed before
+  `devtools::load_all()` because the standalone R process had not loaded the
+  local package;
+- the first pkgdown build failed in the sandbox due sass-cache permission and
+  CRAN DNS access, then passed with normal cache/network access.
+
 ## 2026-05-08: Implemented Source Map
 
 Scope:
