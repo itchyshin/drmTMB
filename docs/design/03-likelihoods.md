@@ -16,6 +16,27 @@ In mathematical prose, `Normal(a, b)` uses variance as the second argument.
 The corresponding R density call uses standard deviation, as in
 `dnorm(y, mean = a, sd = sqrt(b), log = TRUE)`.
 
+## Implemented TMB Routing
+
+The R builders use descriptive model labels, such as `"gaussian"`,
+`"student"`, and `"biv_gaussian"`. Before calling the TMB template,
+`make_tmb_data()` turns those labels into integer branches in `src/drmTMB.cpp`.
+The Gaussian and Student-t routes are explicit; the bivariate Gaussian route is
+the validated fallthrough after those two labels. This table is the current
+routing contract:
+
+| TMB `model_type` | User-facing route | R builder | TMB branch purpose |
+|---:|---|---|---|
+| `1` | `family = gaussian()` | `drm_build_gaussian_ls_spec()` | Univariate Gaussian location-scale models, including ordinary `mu` random effects, residual-scale `sigma` random effects, `sd(group) ~ ...` random-effect scale models, `meta_known_V(V = V)`, and the implemented intercept-only `phylo()` location effect. |
+| `2` | `family = biv_gaussian()`, `family = c(gaussian(), gaussian())`, or `family = list(gaussian(), gaussian())` | `drm_build_biv_gaussian_spec()` | Bivariate Gaussian location-scale-coscale models with `mu1`, `mu2`, `sigma1`, `sigma2`, and residual `rho12`, including complete-row dense known sampling covariance. |
+| `3` | `family = student()` | `drm_build_student_ls_spec()` | Univariate Student-t location-scale-shape models with `mu`, `sigma`, and `nu = 2 + exp(eta_nu)`. |
+| `99` | no public route | direct test construction only | Hidden phylogenetic precision-prior parity branch used to test the sparse augmented A-inverse objective in isolation. |
+
+The hidden `model_type = 99` branch is not a family and should not appear in
+user examples. Public phylogenetic Gaussian fits stay on `model_type = 1`; the
+hidden branch exists only so tests can compare the isolated TMB prior objective
+against the R algebra helper.
+
 ## Implemented Gaussian Location-Scale
 
 Gaussian location-scale is implemented for fixed-effect models and for
@@ -343,11 +364,11 @@ mu1_i = X_mu1[i, ] beta_mu1
 mu2_i = X_mu2[i, ] beta_mu2
 log(sigma1_i) = X_sigma1[i, ] beta_sigma1
 log(sigma2_i) = X_sigma2[i, ] beta_sigma2
-atanh(rho12_i) = X_rho12[i, ] beta_rho12
+eta_rho12_i = X_rho12[i, ] beta_rho12
+rho12_i = 0.99999999 * tanh(eta_rho12_i)
 Omega_i[1,1] = sigma1_i^2
 Omega_i[2,2] = sigma2_i^2
 Omega_i[1,2] = rho12_i * sigma1_i * sigma2_i
-rho12_i = tanh(eta_rho12_i)
 ```
 
 Location formulas for the two responses may differ. `rho12` is residual
@@ -409,8 +430,8 @@ Implementation notes:
 - R builder: `R/drmTMB.R`.
 - Positive `sigma1` and `sigma2` use log links.
 - `rho12` uses `eta_rho12 = X_rho12 beta_rho12` and a bounded tanh transform
-  on the response scale so the covariance matrix stays positive definite even
-  for extreme linear predictors.
+  `rho12 = 0.99999999 * tanh(eta_rho12)` on the response scale so the
+  covariance matrix stays positive definite even for extreme linear predictors.
 - Simulation recovery tests live in `tests/testthat/test-biv-gaussian.R`.
 - `mvbind(y1, y2) ~ x` is implemented as a formula shorthand that creates
   identical `mu1` and `mu2` design matrices.

@@ -3704,6 +3704,9 @@ Commands run:
 - `Rscript -e "pkgdown::check_pkgdown()"`
 - `Rscript -e "devtools::test()"`
 - `Rscript -e "pkgdown::build_site()"`
+- `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`
+- `Rscript -e "devtools::test()"`
+- `Rscript -e "pkgdown::build_site()"`
 
 Results:
 
@@ -3754,3 +3757,71 @@ Team learning:
   discussing TMB parameter names;
 - Rose's stale-wording scan should include old API examples as well as old
   status claims.
+
+## 2026-05-08: Likelihood Routing Table
+
+Scope:
+
+- added a central `model_type` routing table to
+  `docs/design/03-likelihoods.md`;
+- documented that `model_type = 99` is a hidden phylogenetic precision-prior
+  parity branch used by tests, not a public family;
+- aligned the source map and likelihood design with
+  `family = list(gaussian(), gaussian())`;
+- corrected bivariate `rho12` documentation to use the same guarded transform
+  as the TMB template: `rho12 = 0.99999999 * tanh(eta_rho12)`.
+
+Commands run:
+
+- `git diff --check`
+- `rg -n 'list\\(gaussian\\(\\), gaussian\\(\\)\\)|rho12 = tanh|atanh\\(rho12|0\\.99999999|fallthrough|model_type = 2' docs/design/03-likelihoods.md vignettes/source-map.Rmd R/drmTMB.R src/drmTMB.cpp`
+- `Rscript -e "rmarkdown::render('vignettes/source-map.Rmd', output_dir = tempdir(), quiet = TRUE)"`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+
+Results:
+
+- Rose/Wegener found three consistency issues before commit:
+  `list(gaussian(), gaussian())` was missing from routing docs, bivariate
+  `model_type = 2` is a validated fallthrough in `make_tmb_data()`, and
+  `rho12` prose omitted the numerical guard;
+- all three issues were patched in `docs/design/03-likelihoods.md` and
+  `vignettes/source-map.Rmd`;
+- `git diff --check`: clean;
+- direct source-map render: passed;
+- `pkgdown::check_pkgdown()`: no problems found.
+- `devtools::test()`: 646 passed, 0 failed, 0 warnings, 0 skips;
+- `pkgdown::build_site()`: completed successfully;
+- `devtools::check(...)` with `_R_CHECK_SYSTEM_CLOCK_=FALSE`: 0 errors,
+  0 warnings, 0 notes.
+
+Tests of the tests:
+
+- no likelihood code or unit tests were added;
+- the routing table was checked against `R/drmTMB.R`, `src/drmTMB.cpp`, and
+  the implemented source map.
+
+Consistency audit:
+
+- `model_type = 1`, `2`, `3`, and hidden `99` are now documented in both the
+  developer source map and the likelihood design;
+- `family = c(gaussian(), gaussian())` and
+  `family = list(gaussian(), gaussian())` are documented as equivalent routes
+  to the bivariate Gaussian builder;
+- public phylogenetic fits remain `model_type = 1`; the hidden branch is test
+  machinery only.
+
+What did not go smoothly:
+
+- the first routing-table draft was too confident about `make_tmb_data()` and
+  missed one supported composed-family spelling.
+
+Known limitations:
+
+- the bivariate route still falls through after Gaussian and Student-t checks;
+  this is documented, but a future implementation could make it explicit if
+  new model families make the fallthrough fragile.
+
+Team learning:
+
+- when documenting routing, Rose should compare the docs against both the
+  family-normalization route and the final TMB data mapper.
