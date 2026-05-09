@@ -230,6 +230,6 @@ test_that("Gaussian sd(id) rejects unsupported and ambiguous targets", {
   )
   expect_error(
     drmTMB(bf(y ~ x + (1 | id), sd(id) ~ w), family = stats::poisson(), data = dat),
-    "supported families"
+    "Random-effect scale"
   )
 })

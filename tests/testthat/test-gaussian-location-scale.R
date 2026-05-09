@@ -185,7 +185,7 @@ test_that("Phase 1 rejects unsupported model syntax clearly", {
 
   expect_error(
     drmTMB(bf(y ~ x), family = poisson(), data = dat),
-    "supported families"
+    "non-negative integer"
   )
   expect_error(
     drmTMB(bf(mu1 = y ~ x, mu2 = y ~ x), family = gaussian(), data = dat),

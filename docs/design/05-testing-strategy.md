@@ -58,6 +58,11 @@ Implemented comparator smoke tests:
   Gamma(link = "log"))` for the overlapping mean-regression case. The
   comparator checks coefficients rather than residual scale because base GLM
   and `drmTMB` estimate the Gamma dispersion differently.
+- Poisson fixed-effect likelihood against an independent `stats::dpois()`
+  calculation at the fitted coefficients.
+- Poisson mean coefficients and log-likelihood against
+  `stats::glm(..., family = poisson(link = "log"))` for the overlapping
+  mean-regression case.
 
 Planned comparator smoke tests:
 

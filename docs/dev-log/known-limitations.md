@@ -24,6 +24,11 @@
   mean and `sigma` is the coefficient of variation; non-log Gamma links,
   random effects, known sampling covariance, phylogenetic terms, and bivariate
   or mixed Gamma models are not yet implemented.
+- Fixed-effect univariate Poisson mean models are implemented for
+  non-negative integer counts with `family = poisson(link = "log")`. Only
+  `mu` is fitted; there is no modelled `sigma` parameter. Overdispersion, zero
+  inflation, random effects, known sampling covariance, phylogenetic terms, and
+  bivariate or mixed Poisson models are not yet implemented.
 - Intercept-only phylogenetic random effects are implemented in univariate
   Gaussian location formulas as `phylo(1 | species, tree = tree)`. The tree
   must be an ultrametric `phylo` object with positive branch lengths, and every
@@ -44,17 +49,18 @@
   random-intercept scale formulae through `sd(group) ~ x_group`, and
   fixed-effect univariate Student-t models with `mu`, `sigma`, and `nu`.
   It also supports fixed-effect univariate lognormal models with `mu` and
-  `sigma` on the log-response scale, and fixed-effect univariate Gamma
-  mean-CV models with positive response mean `mu` and coefficient of variation
-  `sigma`.
+  `sigma` on the log-response scale, fixed-effect univariate Gamma mean-CV
+  models with positive response mean `mu` and coefficient of variation
+  `sigma`, and fixed-effect univariate Poisson mean models.
 - Cross-formula labelled covariance sharing, residual-scale random slopes,
   slope-specific random-effect scale targets, labelled-block random-effect
   scale targets, bivariate random-effect scale targets, Student-t random
   effects, Student-t known-covariance models, Student-t phylogenetic models,
   bivariate Student-t models, lognormal random-effect and structured-effect
-  models, Gamma random-effect and structured-effect models, and additional
-  non-Gaussian families beyond the first Student-t, lognormal, and Gamma paths
-  are planned but not yet implemented.
+  models, Gamma random-effect and structured-effect models, Poisson
+  random-effect and overdispersion models, and additional non-Gaussian
+  families beyond the first Student-t, lognormal, Gamma, and Poisson paths are
+  planned but not yet implemented.
 - Users should not substitute `sigma ~ x + (1 | id)` for `sd(id) ~ x_group`
   unless their scientific question is residual variability rather than
   among-group variation in the mean model.

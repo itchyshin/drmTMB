@@ -120,22 +120,24 @@ distributional regression models using TMB.
 ## Phase 7: Robust and Positive Continuous Families
 
 - Status: fixed-effect univariate Student-t location-scale-shape, lognormal
-  location-scale, and Gamma mean-CV models are implemented.
-- Harden and extend Student-t, lognormal, and Gamma models before adding
-  skew-normal and skew-t families.
+  location-scale, Gamma mean-CV, and Poisson mean models are implemented.
+- Harden and extend Student-t, lognormal, Gamma, and Poisson models before
+  adding skew-normal and skew-t families.
 - Use `lognormal()` for positive continuous responses where `mu` and `sigma`
   are defined on the log-response scale and `fitted()` returns the arithmetic
   response mean.
 - Use `Gamma(link = "log")` for positive continuous responses where `mu` is
   the response mean and `sigma` is the coefficient of variation.
-- Extend the implemented family-link helper table before adding count, beta,
-  ordinal, or additional positive-continuous likelihoods, so `predict()` and
-  `fitted()` handle non-identity `mu` links consistently.
+- Extend the implemented family-link helper table before adding beta, ordinal,
+  or additional positive-continuous likelihoods, so `predict()` and `fitted()`
+  handle non-identity `mu` links consistently.
 - Add formulae for shape and tail parameters where stable.
 - Add strict starting-value and boundary diagnostics.
 
 ## Phase 8: Counts, Proportions, Percentages, and Ordinal Models
 
+- Status: `poisson(link = "log")` is implemented as a fixed-effect `mu`-only
+  baseline count model and comparator for later overdispersed count families.
 - Add negative binomial, COM-Poisson, beta, beta-binomial, zero-one-inflated
   beta, ordered logit/probit, and related families according to the distribution
   roadmap.

@@ -75,7 +75,8 @@ They also require the family-link contract in
 rather than the identity-link behaviour used by the first Gaussian-like
 families.
 
-- `poisson()`: `mu`, mostly for baseline comparisons.
+- `poisson(link = "log")`: `mu`; implemented as the fixed-effect baseline
+  count model and comparator for later overdispersed count families.
 - `nbinom2()`: `mu`, `sigma` or family-specific `nu`; variance increases
   quadratically with the mean.
 - `nbinom1()`: `mu`, `sigma` or family-specific `nu`; variance increases
@@ -87,8 +88,8 @@ families.
 - `zi_poisson()` and `zi_nbinom2()` with `zi ~ predictors`.
 - `hurdle_poisson()` and `hurdle_nbinom2()` with `hu ~ predictors`.
 
-Priority order: `nbinom2`, `compois`, zero-inflated negative binomial, hurdle
-negative binomial.
+Priority order after the Poisson seed: `nbinom2`, `compois`, zero-inflated
+negative binomial, hurdle negative binomial.
 
 ## Tier 5: Proportions, Percentages, and Bounded Continuous Responses
 

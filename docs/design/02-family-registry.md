@@ -28,11 +28,12 @@ the modelled parameter, but the modelled parameter is the mean of `log(y)`;
 
 Families must declare both the native parameter scale and the fitted response
 rule. The implemented Gamma mean-CV family uses `log(mu)` and `log(sigma)`,
-with `sigma` interpreted as a coefficient of variation. Count models would use
-`log(mu)`, and beta models would use `logit(mu)`.
+with `sigma` interpreted as a coefficient of variation. The implemented
+Poisson mean family uses `log(mu)` and has no fitted `sigma` distributional
+parameter. Beta models would use `logit(mu)`.
 
 The detailed contract is in `docs/design/19-family-link-contract.md`. Treat it
-as a prerequisite before implementing count, beta, ordinal, or additional
+as a prerequisite before implementing additional count, beta, ordinal, or
 positive-continuous families.
 
 ## Distributional Parameter Naming
@@ -149,6 +150,29 @@ not the residual standard deviation; the residual standard deviation is
 `mu_i * sigma_i`. Non-log `Gamma()` links, random effects, known sampling
 covariance, phylogenetic terms, and bivariate or mixed Gamma models are later
 phases.
+
+## Implemented: Poisson Mean
+
+The first count path uses the existing R family constructor:
+
+```r
+family = poisson(link = "log")
+```
+
+The implemented model is fixed-effect and univariate:
+
+```text
+y_i | mu_i ~ Poisson(mu_i)
+log(mu_i) = X_mu[i, ] beta_mu
+E[y_i] = Var[y_i] = mu_i
+```
+
+This path is mostly a baseline count-regression model and a comparator for
+later overdispersed count families. It deliberately has no fitted `sigma`
+distributional parameter. `sigma(fit)` returns a fixed unit dispersion vector
+for base-R method compatibility, not a modelled residual scale. Random effects,
+known sampling covariance, zero inflation, overdispersion, phylogenetic terms,
+and bivariate or mixed Poisson models are later phases.
 
 ## Implemented: Bivariate Gaussian Location-Coscale
 

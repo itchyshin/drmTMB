@@ -30,6 +30,7 @@ gaussian()                  -> drm_build_gaussian_ls_spec()
 student()                   -> drm_build_student_ls_spec()
 lognormal()                 -> drm_build_lognormal_ls_spec()
 Gamma(link = "log")         -> drm_build_gamma_ls_spec()
+poisson(link = "log")       -> drm_build_poisson_spec()
 biv_gaussian()              -> drm_build_biv_gaussian_spec()
 c(gaussian(), gaussian())   -> drm_build_biv_gaussian_spec()
 list(gaussian(), gaussian()) -> drm_build_biv_gaussian_spec()
@@ -45,6 +46,7 @@ model_type = 2   bivariate Gaussian location-scale-coscale engine
 model_type = 3   univariate Student-t location-scale-shape engine
 model_type = 4   univariate lognormal location-scale engine
 model_type = 5   univariate Gamma mean-CV engine
+model_type = 6   univariate Poisson mean engine
 model_type = 99  internal phylogenetic prior helper used by tests
 ```
 
@@ -71,6 +73,7 @@ summaries to `drm_fitted_response()`. These helpers keep future non-identity
 | Student-t location-scale-shape | `drm_formula(y ~ x, sigma ~ z, nu ~ w)` | `student()` in `R/family.R`; `drm_build_student_ls_spec()` in `R/drmTMB.R` | `model_type = 3`; `nu = 2 + exp(eta_nu)` | `tests/testthat/test-student-location-scale.R` | `vignettes/robust-student.Rmd`, `docs/design/14-gamlss-parameter-names.md` |
 | Lognormal location-scale | `drm_formula(biomass ~ x, sigma ~ z)` | `lognormal()` in `R/family.R`; `drm_build_lognormal_ls_spec()` in `R/drmTMB.R` | `model_type = 4`; `log(y) ~ Normal(mu, sigma^2)` with the log-Jacobian term | `tests/testthat/test-lognormal-location-scale.R` | `vignettes/distribution-families.Rmd`, `docs/design/02-family-registry.md`, `docs/design/03-likelihoods.md` |
 | Gamma mean-CV | `drm_formula(biomass ~ x, sigma ~ z)` with `family = Gamma(link = "log")` | `drm_build_gamma_ls_spec()` in `R/drmTMB.R`; generic family object from `stats::Gamma(link = "log")` | `model_type = 5`; `shape = 1 / sigma^2`, `scale = mu * sigma^2` | `tests/testthat/test-gamma-location-scale.R` | `vignettes/distribution-families.Rmd`, `docs/design/02-family-registry.md`, `docs/design/03-likelihoods.md`, `docs/design/19-family-link-contract.md` |
+| Poisson mean | `drm_formula(count ~ x)` with `family = poisson(link = "log")` | `drm_build_poisson_spec()` in `R/drmTMB.R`; generic family object from `stats::poisson(link = "log")` | `model_type = 6`; `y ~ Poisson(mu)` with `mu = exp(X beta)` | `tests/testthat/test-poisson-mean.R` | `vignettes/distribution-families.Rmd`, `docs/design/02-family-registry.md`, `docs/design/03-likelihoods.md`, `docs/design/19-family-link-contract.md` |
 | Bivariate Gaussian location-coscale | `mu1 = y1 ~ x`; `mu2 = y2 ~ x`; `sigma1 ~ z1`; `sigma2 ~ z2`; `rho12 ~ w` | `biv_gaussian()` in `R/family.R`; `drm_build_biv_gaussian_spec()` in `R/drmTMB.R`; `rho12()` in `R/methods.R` | `model_type = 2`; `rho12 = 0.99999999 * tanh(eta_rho12)` | `tests/testthat/test-biv-gaussian.R` | `vignettes/bivariate-coscale.Rmd`, `docs/design/15-location-coscale-phylogenetic-extension.md` |
 | Bivariate Gaussian known sampling covariance | `meta_known_V(V = V)` in one bivariate location formula, with `V` a row-paired `2n` by `2n` matrix | `meta_vcov_bivariate()` in `R/meta-vcov.R`; `evaluate_biv_known_v()` and `subset_biv_known_v()` in `R/drmTMB.R` | `model_type = 2`; dense `V_known_matrix` plus fitted residual `sigma1`, `sigma2`, and `rho12` | `tests/testthat/test-biv-gaussian.R`, `tests/testthat/test-meta-vcov.R` | `vignettes/meta-analysis.Rmd`, `vignettes/testing-likelihoods.Rmd` |
 

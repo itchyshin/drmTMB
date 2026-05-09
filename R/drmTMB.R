@@ -3,7 +3,8 @@
 #' `drmTMB()` is the main model-fitting entry point. The current implementation
 #' supports univariate Gaussian location-scale models, fixed-effect
 #' univariate Student-t location-scale-shape models, fixed-effect lognormal
-#' and Gamma location-scale models for positive responses, Gaussian random
+#' location-scale models, Gamma mean-CV models for positive responses,
+#' fixed-effect Poisson mean models for counts, Gaussian random
 #' intercepts, independent numeric random slopes, and labelled or unlabelled
 #' correlated numeric random intercept-slope blocks in the location formula,
 #' known sampling covariance through `meta_known_V(V = V)`, residual-scale
@@ -18,8 +19,8 @@
 #' @param formula A `drm_formula` object created by [drm_formula()] or [bf()].
 #' @param family A response family, such as [stats::gaussian()], [student()],
 #'   [lognormal()], [stats::Gamma()] with `link = "log"`, or
-#'   [biv_gaussian()]. The current bivariate Gaussian engine also accepts
-#'   `family = c(gaussian(), gaussian())` and
+#'   [stats::poisson()] with `link = "log"`, or [biv_gaussian()]. The current
+#'   bivariate Gaussian engine also accepts `family = c(gaussian(), gaussian())` and
 #'   `family = list(gaussian(), gaussian())`.
 #' @param data A data frame.
 #' @param control Optional list passed to [stats::nlminb()].
@@ -46,6 +47,7 @@ drmTMB <- function(formula, family = stats::gaussian(), data, control = list(), 
     student = drm_build_student_ls_spec(formula, data, env = parent.frame()),
     lognormal = drm_build_lognormal_ls_spec(formula, data, env = parent.frame()),
     gamma = drm_build_gamma_ls_spec(formula, data, env = parent.frame()),
+    poisson = drm_build_poisson_spec(formula, data, env = parent.frame()),
     biv_gaussian = drm_build_biv_gaussian_spec(formula, data, env = parent.frame())
   )
 
@@ -105,6 +107,16 @@ drm_family_type <- function(family) {
     }
     return("gamma")
   }
+  if (inherits(family, "family") && identical(family$family, "poisson")) {
+    if (!identical(family$link, "log")) {
+      cli::cli_abort(c(
+        "{.pkg drmTMB} Poisson models currently require {.code poisson(link = \"log\")}.",
+        "x" = "Received Poisson link {.val {family$link}}.",
+        "i" = "The implemented Poisson contract is {.code log(mu) = X_mu beta_mu}."
+      ))
+    }
+    return("poisson")
+  }
   if (inherits(family, "drm_family") && identical(family$name, "biv_gaussian")) {
     return("biv_gaussian")
   }
@@ -134,7 +146,7 @@ drm_family_type <- function(family) {
     ))
   }
   cli::cli_abort(
-    "Currently supported families are {.code gaussian()}, {.fn student}, {.fn lognormal}, {.code Gamma(link = \"log\")}, {.fn biv_gaussian}, {.code c(gaussian(), gaussian())}, and {.code list(gaussian(), gaussian())}."
+    "Currently supported families are {.code gaussian()}, {.fn student}, {.fn lognormal}, {.code Gamma(link = \"log\")}, {.code poisson(link = \"log\")}, {.fn biv_gaussian}, {.code c(gaussian(), gaussian())}, and {.code list(gaussian(), gaussian())}."
   )
 }
 
@@ -542,7 +554,7 @@ drm_build_lognormal_ls_spec <- function(formula, data, env = parent.frame()) {
     keep = keep,
     dpars = c("mu", "sigma"),
     start = lognormal_ls_start(y, X_mu, X_sigma),
-    map = gamma_ls_map(),
+    map = lognormal_ls_map(),
     random_names = NULL
   )
   spec$tmb_data <- make_tmb_data(spec)
@@ -661,7 +673,104 @@ drm_build_gamma_ls_spec <- function(formula, data, env = parent.frame()) {
     keep = keep,
     dpars = c("mu", "sigma"),
     start = gamma_ls_start(y, X_mu, X_sigma),
-    map = lognormal_ls_map(),
+    map = gamma_ls_map(),
+    random_names = NULL
+  )
+  spec$tmb_data <- make_tmb_data(spec)
+  spec$nobs <- length(spec$y)
+  spec
+}
+
+drm_build_poisson_spec <- function(formula, data, env = parent.frame()) {
+  entries <- formula$entries
+  dpars <- vapply(entries, `[[`, character(1), "dpar")
+  is_sd_dpar <- startsWith(dpars, "sd(")
+
+  unsupported <- setdiff(dpars[!is_sd_dpar], "mu")
+  if (length(unsupported) > 0L) {
+    cli::cli_abort(c(
+      "Poisson models only support {.code mu}.",
+      "x" = "Unsupported parameter{?s}: {.val {unsupported}}."
+    ))
+  }
+  if (any(is_sd_dpar)) {
+    cli::cli_abort(c(
+      "Random-effect scale formulae are not implemented for Poisson models.",
+      "i" = "Poisson models currently have no fitted {.code sigma} parameter."
+    ))
+  }
+  if (sum(dpars == "mu") != 1L) {
+    cli::cli_abort("A Poisson model requires exactly one location formula.")
+  }
+
+  mu_entry <- entries[[which(dpars == "mu")]]
+  if (is.na(mu_entry$response)) {
+    cli::cli_abort("The {.code mu} formula must include a response on the left-hand side.")
+  }
+  if (is_mvbind_lhs(mu_entry$lhs)) {
+    cli::cli_abort(c(
+      "{.fn mvbind} shorthand is only available for two-response Gaussian models.",
+      "x" = "Poisson models currently support one count response."
+    ))
+  }
+
+  meta <- extract_meta_known_v(mu_entry$rhs)
+  if (!is.null(meta$V)) {
+    cli::cli_abort(c(
+      "{.fn meta_known_V} is not implemented for Poisson models.",
+      "i" = "Use {.code family = gaussian()} for Gaussian meta-analysis with known sampling covariance."
+    ))
+  }
+  mu_entry$rhs <- meta$rhs
+  drm_reject_phase1_terms(mu_entry$rhs, mu_entry$dpar)
+
+  f_mu <- drm_entry_formula(mu_entry, response = TRUE)
+  vars <- all.vars(f_mu)
+  if (length(vars) > 0L) {
+    keep <- stats::complete.cases(data[, vars, drop = FALSE])
+  } else {
+    keep <- rep(TRUE, nrow(data))
+  }
+  data_model <- data[keep, , drop = FALSE]
+
+  mf_mu <- stats::model.frame(f_mu, data = data_model, na.action = stats::na.omit)
+  y <- stats::model.response(mf_mu)
+
+  if (length(y) == 0L) {
+    cli::cli_abort("No complete observations remain after applying model missingness rules.")
+  }
+  count_tolerance <- sqrt(.Machine$double.eps)
+  if (!all(is.finite(y)) || any(y < 0) || any(abs(y - round(y)) > count_tolerance)) {
+    cli::cli_abort(c(
+      "Poisson models require non-negative integer count response values.",
+      "x" = "The response {.val {mu_entry$response}} contains negative, non-integer, or non-finite values after missing-row filtering."
+    ))
+  }
+
+  X_mu <- stats::model.matrix(stats::delete.response(stats::terms(mf_mu)), mf_mu)
+
+  spec <- list(
+    model_type = "poisson",
+    y = as.numeric(y),
+    V_known = rep(0, length(y)),
+    V_known_diag = rep(0, length(y)),
+    V_known_type = "none",
+    has_known_v = FALSE,
+    X = list(mu = X_mu),
+    terms = list(mu = stats::delete.response(stats::terms(mf_mu))),
+    model_frame = list(mu = mf_mu),
+    random = list(
+      mu = empty_random_mu_structure(nrow(data_model)),
+      sigma = empty_random_sigma_structure(nrow(data_model))
+    ),
+    random_scale = list(mu = empty_sd_mu_structure(1L)),
+    structured = list(phylo_mu = empty_phylo_mu_structure()),
+    data = data_model,
+    variables = vars,
+    keep = keep,
+    dpars = "mu",
+    start = poisson_start(y, X_mu),
+    map = poisson_map(),
     random_names = NULL
   )
   spec$tmb_data <- make_tmb_data(spec)
@@ -1988,6 +2097,43 @@ gamma_ls_map <- function() {
   lognormal_ls_map()
 }
 
+poisson_start <- function(y, X_mu) {
+  beta_mu <- tryCatch(
+    suppressWarnings(stats::glm.fit(X_mu, y, family = stats::poisson())$coefficients),
+    error = function(e) rep(0, ncol(X_mu))
+  )
+  if (length(beta_mu) != ncol(X_mu) || any(!is.finite(beta_mu))) {
+    beta_mu <- rep(0, ncol(X_mu))
+    beta_mu[[1L]] <- log(max(mean(y), 1e-4))
+  }
+  c(
+    list(beta_mu = beta_mu),
+    list(
+      beta_sigma = 0,
+      beta_nu = 0,
+      beta_sd_mu = 0,
+      u_mu = 0,
+      log_sd_mu = 0,
+      eta_cor_mu = 0,
+      u_sigma = 0,
+      log_sd_sigma = 0,
+      beta_mu1 = 0,
+      beta_mu2 = 0,
+      beta_sigma1 = 0,
+      beta_sigma2 = 0,
+      beta_rho12 = 0,
+      u_phylo = 0,
+      log_sd_phylo = 0
+    )
+  )
+}
+
+poisson_map <- function() {
+  out <- lognormal_ls_map()
+  out$beta_sigma <- factor(NA)
+  out
+}
+
 gamma_ls_start <- function(y, X_mu, X_sigma) {
   beta_mu <- tryCatch(
     stats::lm.fit(X_mu, log(y))$coefficients,
@@ -2397,6 +2543,44 @@ make_tmb_data <- function(spec) {
       log_det_Q_phylo = 0
     ))
   }
+  if (identical(spec$model_type, "poisson")) {
+    return(list(
+      model_type = 6L,
+      y = spec$y,
+      V_known = spec$V_known_diag,
+      V_known_matrix = dummy_matrix,
+      V_known_type = 0L,
+      y1 = numeric(1),
+      y2 = numeric(1),
+      X_mu = spec$X$mu,
+      X_sigma = dummy_matrix,
+      X_nu = dummy_matrix,
+      X_sd_mu = dummy_matrix,
+      has_sd_mu_model = 0L,
+      X_mu1 = dummy_matrix,
+      X_mu2 = dummy_matrix,
+      X_sigma1 = dummy_matrix,
+      X_sigma2 = dummy_matrix,
+      X_rho12 = dummy_matrix,
+      n_mu_re_terms = 0L,
+      n_mu_re_cors = 0L,
+      mu_re_index = matrix(0L, nrow = 1L, ncol = 1L),
+      mu_re_value = dummy_matrix,
+      mu_re_term = 0L,
+      mu_re_pos = 0L,
+      mu_re_cor_id = -1L,
+      mu_re_pair_index = -1L,
+      mu_re_sd_row = -1L,
+      n_sigma_re_terms = 0L,
+      sigma_re_index = matrix(0L, nrow = 1L, ncol = 1L),
+      sigma_re_value = dummy_matrix,
+      sigma_re_term = 0L,
+      has_phylo_mu = 0L,
+      phylo_mu_node_index = 0L,
+      Q_phylo = dummy_sparse,
+      log_det_Q_phylo = 0
+    ))
+  }
   if (identical(spec$model_type, "biv_gaussian")) {
     return(list(
       model_type = 2L,
@@ -2449,6 +2633,12 @@ make_tmb_data <- function(spec) {
 }
 
 split_tmb_parameters <- function(par, spec) {
+  if (identical(spec$model_type, "poisson")) {
+    beta_mu <- unname(par$beta_mu)
+    names(beta_mu) <- colnames(spec$X$mu)
+    return(list(mu = beta_mu))
+  }
+
   if (identical(spec$model_type, "gaussian") ||
       identical(spec$model_type, "student") ||
       identical(spec$model_type, "lognormal") ||

@@ -27,6 +27,7 @@ The implemented families use these parameter meanings:
 | Lognormal | `sigma` | log | standard deviation of `log(y)` |
 | Gamma | `mu` | log | arithmetic mean of `y` |
 | Gamma | `sigma` | log | coefficient of variation; residual SD is `mu * sigma` |
+| Poisson | `mu` | log | arithmetic mean and variance of the count response |
 | Bivariate Gaussian | `mu1`, `mu2` | identity | arithmetic means of `y1` and `y2` |
 | Bivariate Gaussian | `sigma1`, `sigma2` | log | residual standard deviations |
 | Bivariate Gaussian | `rho12` | guarded atanh | residual response-response correlation |
@@ -129,21 +130,30 @@ equations, `predict()`, and `fitted()` stay aligned. It also deliberately does
 not export `gamma()`, because `base::gamma()` is already the special gamma
 function.
 
-## Candidate Count Contract
+## Implemented Poisson Count Contract
 
-Counts need log links for the mean. The first count family should probably be
-negative binomial rather than Poisson because overdispersion is often the
-scientific target.
-
-Candidate contracts:
+Counts need log links for the mean. The first implemented count family is a
+fixed-effect Poisson mean model:
 
 ```text
 Poisson:
   y_i ~ Poisson(mu_i)
   log(mu_i) = X_mu[i, ] beta_mu
+  E[y_i] = mu_i
   Var[y_i] = mu_i
+```
 
-Negative binomial 2:
+This path has no fitted `sigma` distributional parameter. `sigma(fit)` returns
+a fixed unit dispersion vector for base-R method compatibility only. It should
+not be interpreted as a modelled residual scale.
+
+Overdispersed count families remain planned and are the main biological target
+for count distributional regression:
+
+```text
+Candidate negative binomial 2:
+  y_i ~ NB2(mu_i, sigma_i)
+
   log(mu_i) = X_mu[i, ] beta_mu
   log(sigma_i) = X_sigma[i, ] beta_sigma
   Var[y_i] = mu_i + sigma_i^2 mu_i^2

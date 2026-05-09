@@ -297,6 +297,15 @@ Type objective_function<Type>::operator()()
     REPORT(sigma);
     ADREPORT(beta_mu);
     ADREPORT(beta_sigma);
+  } else if (model_type == 6) {
+    vector<Type> eta_mu = X_mu * beta_mu;
+    vector<Type> mu = exp(eta_mu);
+    for (int i = 0; i < y.size(); ++i) {
+      nll -= dpois(y(i), mu(i), true);
+    }
+    REPORT(eta_mu);
+    REPORT(mu);
+    ADREPORT(beta_mu);
   } else if (model_type == 2) {
     vector<Type> mu1 = X_mu1 * beta_mu1;
     vector<Type> mu2 = X_mu2 * beta_mu2;

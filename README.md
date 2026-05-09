@@ -2,7 +2,7 @@
 
 A fast TMB-based distributional regression package for broadly useful
 univariate and bivariate distributional regression. The current implementation
-starts with Gaussian, Student-t, lognormal, and Gamma location-scale models,
+starts with Gaussian, Student-t, lognormal, Gamma, and Poisson models,
 known-covariance meta-analysis, phylogenetic location effects, random-effect
 scale models, and bivariate Gaussian residual-correlation models. The long-term
 design also includes skewness, zero inflation, and additional response
@@ -17,7 +17,8 @@ Student-t scale parameter; when `nu > 2`, the residual standard deviation is
 mean and standard deviation of `log(y)`, and `fitted()` returns the arithmetic
 mean `exp(mu + sigma^2 / 2)`. For Gamma models, `mu` is the response mean and
 `sigma` is the coefficient of variation, so the residual standard deviation is
-`mu * sigma`.
+`mu * sigma`. For Poisson models, `mu` is the count mean and variance; there
+is no fitted residual `sigma` parameter in the first Poisson path.
 
 The current implementation supports Gaussian location-scale models, including
 fixed effects, random intercepts, independent numeric random slopes, and
@@ -116,6 +117,28 @@ may change relative variability in positive responses such as biomass, body
 mass, metabolic rate, or concentration. `drmTMB` requires the log-linked
 `stats::Gamma()` family route; it does not export a lowercase `gamma()` helper
 because `base::gamma()` is already the special gamma function.
+
+The first count family is a fixed-effect Poisson mean model:
+
+```text
+y_i | mu_i ~ Poisson(mu_i)
+log(mu_i) = beta_0 + beta_1 habitat_i
+E[y_i] = Var[y_i] = mu_i
+```
+
+```r
+drmTMB(
+  drm_formula(count ~ habitat),
+  family = poisson(link = "log"),
+  data = dat
+)
+```
+
+This is mainly a baseline count-regression path and a comparator for later
+overdispersed count families. It intentionally does not accept `sigma`,
+`sd(group)`, `meta_known_V()`, random effects, or bivariate count syntax yet.
+Ecological counts with biological overdispersion will usually need the planned
+negative binomial or COM-Poisson families once those likelihoods are added.
 
 ```r
 drmTMB(
@@ -360,7 +383,8 @@ intercepts in `sigma`, one or more univariate Gaussian random-effect scale
 models such as `sd(id) ~ x_group` and `sd(site) ~ site_type`, fixed-effect
 Student-t `mu`, `sigma`, and `nu` models, fixed-effect lognormal `mu` and
 `sigma` models for positive responses, fixed-effect Gamma mean-CV models with
-`family = Gamma(link = "log")`, `meta_known_V(V = V)` support for diagonal and
+`family = Gamma(link = "log")`, fixed-effect Poisson mean models with
+`family = poisson(link = "log")`, `meta_known_V(V = V)` support for diagonal and
 dense known sampling covariance, intercept-only univariate Gaussian
 phylogenetic location effects such as
 `phylo(1 | species, tree = tree)`, and fixed-effect bivariate Gaussian

@@ -45,6 +45,7 @@ Use three status words consistently across documentation:
 | `y ~ x1`, `sigma ~ x1` | Implemented | Univariate Gaussian location-scale model. |
 | `y ~ x1`, `sigma ~ x1`, `nu ~ x2` | Implemented | Fixed-effect univariate Student-t location-scale-shape model. Random effects, known sampling covariance, phylogenetic terms, and bivariate Student-t models are later. |
 | `y ~ x1`, `sigma ~ x1`, `family = Gamma(link = "log")` | Implemented | Fixed-effect univariate Gamma mean-CV model for positive responses; `mu` is the response mean and `sigma` is the coefficient of variation. |
+| `y ~ x1`, `family = poisson(link = "log")` | Implemented | Fixed-effect univariate Poisson mean model for non-negative integer counts. Only `mu` is fitted; overdispersion, zero inflation, random effects, and bivariate count models are later. |
 | `(1 | id)`, `(0 + x1 | id)`, `(1 + x1 | id)` in `mu` | Implemented | Ordinary Gaussian location random effects; one-slope correlated blocks may be labelled as `(1 + x1 | p | id)`. |
 | `(1 | id)` in `sigma` | Implemented | Residual-scale random intercept. |
 | `sd(id) ~ x_group` | Implemented | Random-effect scale model for one or more distinct unlabelled Gaussian `mu` random intercepts. |
@@ -394,6 +395,9 @@ For univariate models, the stable public API should accept one family:
 ```r
 family = gaussian()
 family = student()
+family = lognormal()
+family = Gamma(link = "log")
+family = poisson(link = "log")
 ```
 
 For bivariate models, prefer a vector/list of response families:

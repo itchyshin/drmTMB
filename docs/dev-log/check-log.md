@@ -4349,3 +4349,94 @@ Team learning:
 - comparator tests should state exactly which parameterization overlaps with
   the external package. A loose "compare to glm" label would have hidden an
   avoidable scale-parameter mismatch.
+
+## 2026-05-09: Add Fixed-Effect Poisson Mean Family
+
+Scope:
+
+- added a fixed-effect univariate Poisson mean path with
+  `family = poisson(link = "log")`;
+- kept the model deliberately narrow: `mu` only, no fitted `sigma`, no random
+  effects, no `meta_known_V()`, no zero inflation, no overdispersion, and no
+  bivariate count model;
+- updated methods so `predict(dpar = "mu")`, `fitted()`, `simulate()`,
+  `residuals()`, `sigma()`, `logLik()`, and coefficient extraction work for
+  the implemented Poisson path;
+- updated formula grammar, likelihood, family registry, testing strategy,
+  distribution roadmap, family-link contract, README, NEWS, known limitations,
+  source map, distribution-family vignette, formula grammar vignette, and
+  generated Rd files.
+
+Commands run:
+
+- `R -q -e 'devtools::test(filter = "poisson|family-link-contract")'`
+- reviewer pass by Euler over the uncommitted Poisson slice
+- `R -q -e 'devtools::test(filter = "gaussian-location-scale|gaussian-random-effect-scale|poisson-mean|family-link-contract")'`
+- `R -q -e 'devtools::document()'`
+- `R -q -e 'devtools::test()'`
+- `R -q -e 'pkgdown::check_pkgdown()'`
+- `R -q -e 'pkgdown::build_site()'`
+- `R -q -e 'devtools::check()'`
+- `rg -n 'Poisson.*planned|poisson.*unsupported|supported families|count models would|Candidate Count|before implementing count|first count family should|model_type = 6|dpois|drm_build_poisson_spec' README.md ROADMAP.md NEWS.md docs vignettes tests R src man pkgdown-site --glob '!pkgdown-site/search.json'`
+- `rg -n 'poisson\\(link = "log"\\)|Poisson mean|non-negative integer|unit dispersion|fixed unit dispersion|no fitted `sigma`' README.md ROADMAP.md NEWS.md docs vignettes tests R man pkgdown-site --glob '!pkgdown-site/search.json'`
+- `rg -n 'Student-t, lognormal, and Gamma|first Student-t, lognormal, and Gamma|Gamma paths|count, beta' README.md ROADMAP.md NEWS.md docs vignettes pkgdown-site --glob '!pkgdown-site/search.json'`
+
+Results:
+
+- first targeted Poisson/link tests: 61 passed;
+- stale-test regression pass after Euler review: 171 passed;
+- full `devtools::test()`: 806 passed, 0 failed, 0 skipped;
+- `pkgdown::check_pkgdown()`: no problems found;
+- `pkgdown::build_site()`: completed successfully;
+- `devtools::check()`: 0 errors, 0 warnings, 0 notes.
+
+Tests of the tests:
+
+- independent likelihood test compares fitted log-likelihood to
+  `sum(dpois(y, lambda = mu, log = TRUE))`;
+- external comparator checks Poisson coefficients and log-likelihood against
+  `stats::glm(..., family = poisson(link = "log"))`;
+- malformed-input tests reject non-log links, `sigma` formulas, missing
+  responses, negative counts, non-integer counts, random effects,
+  `meta_known_V()`, `sd(id)`, and `mvbind()`;
+- complete-case test confirms invalid count rows are ignored only when removed
+  by missingness in model predictors.
+
+Consistency audit:
+
+- symbolic equations and R syntax are paired in the README,
+  `docs/design/03-likelihoods.md`, `docs/design/19-family-link-contract.md`,
+  and `vignettes/distribution-families.Rmd`;
+- `docs/design/01-formula-grammar.md` and `vignettes/formula-grammar.Rmd`
+  now list Poisson as implemented;
+- generated pkgdown pages include the new Poisson wording after site build;
+- historical after-task notes were left unchanged where they were true when
+  written.
+
+What did not go smoothly:
+
+- two older tests still expected `poisson()` to be unsupported. Euler caught
+  this before closure; the tests now check the new Poisson-specific rejection
+  paths;
+- roxygen-generated Rd files were stale until `devtools::document()` was run;
+- `sigma(fit)` for Poisson needed an explicit interpretation. The package
+  returns a fixed unit dispersion vector for base-R compatibility, and docs
+  state that this is not a fitted distributional `sigma`.
+
+Known limitations:
+
+- Poisson models are fixed-effect, univariate, and `mu`-only;
+- no overdispersion, zero inflation, hurdle component, random effects, known
+  sampling covariance, phylogenetic/spatial effects, or bivariate count path is
+  implemented yet;
+- ecological count data with extra-Poisson variation will usually need the
+  planned negative binomial or COM-Poisson paths.
+
+Team learning:
+
+- count-family work should start with the family-link table, because `mu` is
+  no longer identity-linked;
+- stale "unsupported family" tests are a predictable failure mode when planned
+  families become implemented;
+- Rose's after-task audit should always include generated pkgdown pages, not
+  only source R Markdown and design docs.

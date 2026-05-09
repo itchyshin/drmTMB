@@ -11,8 +11,8 @@ drmTMB(formula, family = stats::gaussian(), data, control = list(), ...)
 
 \item{family}{A response family, such as \code{\link[stats:gaussian]{stats::gaussian()}}, \code{\link[=student]{student()}},
 \code{\link[=lognormal]{lognormal()}}, \code{\link[stats:Gamma]{stats::Gamma()}} with \code{link = "log"}, or
-\code{\link[=biv_gaussian]{biv_gaussian()}}. The current bivariate Gaussian engine also accepts
-\code{family = c(gaussian(), gaussian())} and
+\code{\link[stats:poisson]{stats::poisson()}} with \code{link = "log"}, or \code{\link[=biv_gaussian]{biv_gaussian()}}. The current
+bivariate Gaussian engine also accepts \code{family = c(gaussian(), gaussian())} and
 \code{family = list(gaussian(), gaussian())}.}
 
 \item{data}{A data frame.}
@@ -28,7 +28,8 @@ A \code{drmTMB} fit object.
 \code{drmTMB()} is the main model-fitting entry point. The current implementation
 supports univariate Gaussian location-scale models, fixed-effect
 univariate Student-t location-scale-shape models, fixed-effect lognormal
-and Gamma location-scale models for positive responses, Gaussian random
+location-scale models, Gamma mean-CV models for positive responses,
+fixed-effect Poisson mean models for counts, Gaussian random
 intercepts, independent numeric random slopes, and labelled or unlabelled
 correlated numeric random intercept-slope blocks in the location formula,
 known sampling covariance through \code{meta_known_V(V = V)}, residual-scale

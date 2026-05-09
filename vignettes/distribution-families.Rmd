@@ -121,6 +121,29 @@ first implementation requires `stats::Gamma(link = "log")`; `stats::Gamma()`
 with its default inverse link is rejected, and `drmTMB` does not export
 `gamma()` because `base::gamma()` already exists.
 
+Poisson mean models are implemented for count responses:
+
+```text
+y_i | mu_i ~ Poisson(mu_i)
+log(mu_i) = beta_0 + beta_1 habitat_i
+E[y_i] = Var[y_i] = mu_i
+```
+
+```r
+drmTMB(
+  bf(count ~ habitat),
+  family = poisson(link = "log"),
+  data = dat
+)
+```
+
+For this family, `predict(fit, dpar = "mu")` and `fitted(fit)` return the
+count mean. There is no fitted `sigma` distributional parameter; `sigma(fit)`
+returns a fixed unit dispersion vector only for base-R method compatibility.
+Use this path as a baseline count model and as a comparator for later
+overdispersed count families. Biological count data with extra-Poisson
+variation will usually need the planned negative binomial or COM-Poisson paths.
+
 For implemented bivariate Gaussian models, the preferred public spelling is to
 combine two Gaussian response families:
 
