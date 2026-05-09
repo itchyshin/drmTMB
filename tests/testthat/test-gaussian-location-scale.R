@@ -149,6 +149,89 @@ test_that("predict() uses newdata for Gaussian location-scale fits", {
   )
 })
 
+test_that("fixed-effect formulas support standard R transformations and interactions", {
+  set.seed(20260620)
+  n <- 120
+  dat <- data.frame(
+    x = stats::runif(n, -1, 1),
+    x1 = stats::rnorm(n),
+    x2 = stats::rnorm(n),
+    x3 = stats::rnorm(n),
+    z = stats::runif(n, -1, 1)
+  )
+  dat$y <- 0.2 + 0.3 * dat$x + 0.2 * dat$x^2 +
+    0.1 * dat$x1 * dat$x2 + stats::rnorm(n, sd = 0.5)
+
+  fit <- drmTMB(
+    drm_formula(
+      y ~ poly(x, 2) + I(x^2) + (x1 + x2 + x3)^2,
+      sigma ~ poly(z, 2) + x1:x2
+    ),
+    family = gaussian(),
+    data = dat
+  )
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(
+    names(coef(fit, "mu")),
+    c(
+      "(Intercept)", "poly(x, 2)1", "poly(x, 2)2", "I(x^2)",
+      "x1", "x2", "x3", "x1:x2", "x1:x3", "x2:x3"
+    )
+  )
+  expect_equal(
+    names(coef(fit, "sigma")),
+    c("(Intercept)", "poly(z, 2)1", "poly(z, 2)2", "x1:x2")
+  )
+
+  newdata <- dat[1:4, ]
+  mu_poly <- stats::poly(dat$x, 2)
+  mu_poly_new <- stats::predict(mu_poly, newdata$x)
+  expected_mu_X <- cbind(
+    "(Intercept)" = 1,
+    "poly(x, 2)1" = mu_poly_new[, 1],
+    "poly(x, 2)2" = mu_poly_new[, 2],
+    "I(x^2)" = newdata$x^2,
+    "x1" = newdata$x1,
+    "x2" = newdata$x2,
+    "x3" = newdata$x3,
+    "x1:x2" = newdata$x1 * newdata$x2,
+    "x1:x3" = newdata$x1 * newdata$x3,
+    "x2:x3" = newdata$x2 * newdata$x3
+  )
+  sigma_poly <- stats::poly(dat$z, 2)
+  sigma_poly_new <- stats::predict(sigma_poly, newdata$z)
+  expected_sigma_X <- cbind(
+    "(Intercept)" = 1,
+    "poly(z, 2)1" = sigma_poly_new[, 1],
+    "poly(z, 2)2" = sigma_poly_new[, 2],
+    "x1:x2" = newdata$x1 * newdata$x2
+  )
+
+  expect_equal(
+    stats::model.matrix(fit$model$terms$mu, newdata),
+    expected_mu_X,
+    tolerance = 1e-12,
+    ignore_attr = TRUE
+  )
+  expect_equal(
+    stats::model.matrix(fit$model$terms$sigma, newdata),
+    expected_sigma_X,
+    tolerance = 1e-12,
+    ignore_attr = TRUE
+  )
+  expect_equal(
+    predict(fit, newdata = newdata, dpar = "mu"),
+    as.vector(expected_mu_X %*% coef(fit, "mu")),
+    tolerance = 1e-12
+  )
+  expect_equal(
+    predict(fit, newdata = newdata, dpar = "sigma", type = "link"),
+    as.vector(expected_sigma_X %*% coef(fit, "sigma")),
+    tolerance = 1e-12
+  )
+})
+
 test_that("Gaussian likelihood weights are row log-likelihood multipliers", {
   dat <- new_gaussian_ls_data(75)
 

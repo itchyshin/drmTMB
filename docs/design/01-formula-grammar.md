@@ -81,6 +81,13 @@ bf(
 )
 ```
 
+Fixed-effect formulas use base R's ordinary formula machinery. Transformations
+and interaction expansions such as `poly(x1, 2)`, `I(x1^2)`, `x1 * x2`, and
+`(x1 + x2 + x3)^2` are supported wherever fixed effects are implemented for a
+distributional parameter. Ecological examples should usually keep polynomial
+orders modest, commonly second order and only rarely third order, so the fitted
+curves remain interpretable.
+
 Equivalent explicit form:
 
 ```r

@@ -6171,3 +6171,64 @@ Team learning:
 - the hidden phylogenetic branch failure is a useful reminder that every new
   `DATA_*` slot in TMB must be mirrored in test fixtures that bypass the R
   model builder.
+
+## 2026-05-09 -- Standard fixed-effect formula terms
+
+Goal:
+
+- verify and document that implemented fixed-effect distributional-parameter
+  formulas use base R formula semantics for transformations and interactions.
+
+Changes:
+
+- added a Gaussian location-scale test covering `poly(x, 2)`, `I(x^2)`,
+  `(x1 + x2 + x3)^2`, `x1:x2`, and `predict(newdata = ...)`;
+- updated the formula grammar design note and formula-grammar vignette to
+  say that implemented fixed-effect formulas support ordinary R formula
+  transformations and interaction expansions;
+- kept the scope explicit: this covers fixed-effect formula terms, not
+  expanded random-effect or structured-effect slope grammar.
+
+Commands run:
+
+- `Rscript -e 'devtools::load_all(quiet=TRUE); set.seed(1); n<-120; dat<-data.frame(x=runif(n,-1,1), x1=rnorm(n), x2=rnorm(n), x3=rnorm(n), z=runif(n,-1,1)); dat$y <- 0.2 + 0.3*dat$x + 0.2*dat$x^2 + 0.1*dat$x1*dat$x2 + rnorm(n, sd=.5); fit<-drmTMB(drm_formula(y ~ poly(x,2) + I(x^2) + (x1+x2+x3)^2, sigma ~ poly(z,2) + x1:x2), data=dat, family=gaussian()); print(fit$opt$convergence); nd<-dat[1:3,]; print(predict(fit,newdata=nd,dpar="mu")); print(predict(fit,newdata=nd,dpar="sigma"))'`
+- `Rscript -e "devtools::test(filter = 'gaussian-location-scale')"`
+- `Rscript -e "rmarkdown::render('vignettes/formula-grammar.Rmd', output_dir = tempdir(), quiet = TRUE)"`
+- `Rscript -e "devtools::test()"`
+- `Rscript -e "pkgdown::build_site()"`
+- `Rscript tools/fix-pkgdown-favicon-mime.R pkgdown-site`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `git diff --check`
+
+Results:
+
+- the ad hoc fit converged with code 0 and produced `mu` and `sigma`
+  predictions for `newdata`;
+- targeted Gaussian location-scale tests passed after strengthening the
+  `poly()` newdata-basis checks: 74 passed, 0 failed;
+- formula-grammar vignette render passed;
+- full `devtools::test()` passed after the final test update: 1253 passed,
+  0 failed;
+- first pkgdown build attempt failed because the sandbox could not write to
+  the R Sass cache and could not resolve `cloud.r-project.org`; rebuilding
+  with the required cache/network permission passed;
+- favicon MIME repair completed without output;
+- `pkgdown::check_pkgdown()`: no problems found;
+- `git diff --check`: clean.
+
+Tests of the tests:
+
+- the new test checks exact column names produced by `model.matrix()` for the
+  transformed and interaction terms, so a future custom parser that drops or
+  renames these terms will fail;
+- the prediction checks compare `predict(..., newdata = ...)` to manually
+  constructed design matrices using the training-data `poly()` basis, so the
+  subtle `poly()` prediction contract is tested as well as fitting.
+
+Known limitations:
+
+- this confirms ordinary fixed-effect formula behaviour only;
+- random-effect slopes remain limited by the implemented random-effect grammar
+  and structured `phylo()`/`spatial()` slope designs remain future work;
+- transformed covariates are still linear predictors in transformed basis
+  columns, not general nonlinear likelihood components.

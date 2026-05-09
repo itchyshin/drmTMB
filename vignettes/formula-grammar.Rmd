@@ -17,6 +17,13 @@ rules. `bf()` remains a short alias.
 
 The design reference is `docs/design/01-formula-grammar.md`.
 
+Fixed-effect formulas use base R's ordinary formula machinery. Transformations
+and interaction expansions such as `poly(x1, 2)`, `I(x1^2)`, `x1 * x2`, and
+`(x1 + x2 + x3)^2` work for implemented fixed-effect distributional-parameter
+formulas. For ecological and evolutionary examples, second-order terms are
+usually the practical default; third-order polynomials should be treated as
+exceptional and justified by the question and data.
+
 ## Current status map
 
 Use this table before copying syntax into an analysis. "Implemented" means the
