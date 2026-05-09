@@ -33,9 +33,9 @@ navbar:
           href: articles/robust-student.html
         - text: Changing residual coupling with rho12
           href: articles/bivariate-coscale.html
-        - text: Mean effects and heterogeneous heterogeneity
+        - text: Mean effects and residual heterogeneity
           href: articles/meta-analysis.html
-        - text: Structured dependence
+        - text: Implemented phylogeny and planned space
           href: articles/phylogenetic-spatial.html
         - text: Choosing response families
           href: articles/distribution-families.html

@@ -5932,3 +5932,54 @@ Team learning:
 - Ada should treat token and context efficiency as a project skill: use
   targeted reads, concise updates, and fewer agents unless parallel review
   clearly reduces risk.
+
+## 2026-05-09 — Tutorial Learning Path Navigation
+
+Goal:
+
+- make the pkgdown tutorial navigation and get-started article point users to
+  the right tutorial from their scientific or statistical question;
+- keep the pass small and efficient after the larger tutorial upgrades.
+
+Changes:
+
+- added a "Learning path" table to `vignettes/drmTMB.Rmd`;
+- updated pkgdown tutorial menu labels for meta-analysis and
+  phylogenetic-spatial tutorials;
+- recorded the navigation change in `NEWS.md`.
+
+Commands run:
+
+- `Rscript -e "devtools::load_all(quiet = TRUE); rmarkdown::render('vignettes/drmTMB.Rmd', output_dir = tempdir(), quiet = TRUE)"`
+- `Rscript -e "pkgdown::build_site()"`
+- `Rscript tools/fix-pkgdown-favicon-mime.R pkgdown-site`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `rg -n "Learning path|Start with the question|Mean effects and heterogeneous heterogeneity|Implemented phylogeny and planned space|Mean effects and residual heterogeneity|Structured dependence$" pkgdown-site/articles/drmTMB.html pkgdown-site/articles/index.html pkgdown-site/news/index.html pkgdown-site/pkgdown.yml _pkgdown.yml vignettes/drmTMB.Rmd NEWS.md`
+- `git diff --check`
+
+Results:
+
+- get-started article render: passed;
+- pkgdown build: passed;
+- pkgdown check: no problems found;
+- generated HTML contains the learning path and updated tutorial menu labels;
+- no stale generated-site hit remains for the old meta-analysis menu label.
+
+Tests of the tests:
+
+- this was a documentation-navigation change only; no likelihood or parser path
+  changed;
+- the rendered get-started article and generated pkgdown HTML verify that the
+  user-facing learning path is present.
+
+Known limitations:
+
+- this pass does not add new model examples;
+- the learning path is compact and should be revisited after real datasets are
+  added to the tutorials.
+
+Team learning:
+
+- Good planning reduces token and compute waste: this phase used targeted reads,
+  no extra agents, and documentation-specific checks rather than a broad test
+  sweep.

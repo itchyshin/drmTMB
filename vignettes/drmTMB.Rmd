@@ -31,6 +31,27 @@ variability change with an environmental predictor, after accounting for
 repeated measures from the same site or species? In `drmTMB`, that question is
 written as one formula for the mean and one formula for the residual scale.
 
+## Learning path
+
+Start with the question you want to answer, not with the full list of features.
+The tutorials are arranged so that each article pairs symbolic equations, R
+syntax, fitted output, and interpretation.
+
+| If your question is... | Read this first | Main parameter |
+| --- | --- | --- |
+| Do predictors change the mean and residual variability of one response? | "When variance carries signal" | `mu`, `sigma` |
+| Am I modelling residual variation, group-level variation, or likelihood weights? | "Which scale are you modelling?" | `sigma`, `sd(group)`, `weights` |
+| Which continuous, count, proportion, or robust family should I use? | "Choosing response families" | family-specific `mu`, `sigma`, `nu`, `zi`, `hu` |
+| Does a predictor change residual coupling between two responses? | "Changing residual coupling with rho12" | `rho12` |
+| Do effect sizes have known sampling variances or covariance? | "Mean effects and residual heterogeneity in meta-analysis" | `meta_known_V(V = V)`, `sigma` |
+| Do species trait means remain similar after accounting for shared ancestry? | "Structured dependence: implemented phylogeny and planned spatial models" | `phylo()`, `sigma_phylo` |
+
+For a first applied analysis, fit the simplest model that answers the question,
+run `check_drm()`, and then read the coefficient table on the parameter scale
+used by the model. For example, `sigma` coefficients are on a log scale in
+Gaussian location-scale models, while `rho12(fit)` returns residual
+correlations on the response scale.
+
 ## Implemented now
 
 For a fixed-effect Gaussian location-scale model:
