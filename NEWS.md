@@ -1,13 +1,18 @@
-# drmTMB 0.1.0 (2026-05-10)
+# drmTMB 0.1.1 (2026-05-10)
 
 * A new large-data workflow article documents current memory-light fit controls, practical post-fit output cautions, and the optional `bench/large-phylo-location.R` benchmark harness for Gaussian phylogenetic location models.
+* `check_drm()` now reports optimizer evaluation counts and dense fixed-effect design size, helping users diagnose large or difficult fits before interpreting estimates.
+* `drm_control()` is now exported and provides the first large-data storage controls for `drmTMB()`: users can pass optimizer settings through `optimizer = list(...)`, drop stored complete-case data with `keep_data = FALSE`, drop stored model frames after fitting with `keep_model_frame = FALSE`, and drop the retained TMB automatic-differentiation object with `keep_tmb_object = FALSE`.
+* Installation docs now point tagged-preview users to `pak::pak("itchyshin/drmTMB@v0.1.1")`.
+
+# drmTMB 0.1.0 (2026-05-10)
+
 * `bf()` now stores parsed formula entries for distributional parameters, including bivariate `rho12`, meta-analysis `meta_known_V(V = V)`, and random-effect scale syntax.
 * `beta()` now fits fixed-effect beta mean-scale models for strict continuous proportions in `(0, 1)`, using `logit(mu)`, `log(sigma)`, and internal precision `phi = 1 / sigma^2`; `fitted()` returns `mu` and `sigma(fit)` returns the public scale parameter.
 * `beta_binomial()` now fits fixed-effect beta-binomial mean-overdispersion models for `cbind(successes, failures)` responses, using `logit(mu)`, `log(sigma)`, and internal beta precision `phi = 1 / sigma^2`. `fitted()` returns the success probability `mu`, and `sigma(fit)` returns the public extra-binomial variation scale.
 * `biv_gaussian()` now fits fixed-effect bivariate Gaussian location-scale-coscale models with separate `mu1`, `mu2`, `sigma1`, `sigma2`, and predictor-dependent `rho12` formulas.
-* `check_drm()` now provides a first-pass diagnostic table for optimizer convergence and evaluation counts, fixed gradients, Hessian status, dropped rows, scale positivity, `rho12` boundaries, Student-t `nu` boundary behaviour, known sampling covariance summaries, dense fixed-effect design size, random-effect replication, and weak random-slope design checks.
+* `check_drm()` now provides a first-pass diagnostic table for optimizer convergence, fixed gradients, Hessian status, dropped rows, scale positivity, `rho12` boundaries, Student-t `nu` boundary behaviour, known sampling covariance summaries, random-effect replication, and weak random-slope design checks.
 * `corpairs()` now returns a long table of fitted correlation pairs that already exist in a `drmTMB` fit, currently residual bivariate `rho12` summaries and ordinary group-level `mu` random-effect correlations.
-* `drm_control()` now provides the first large-data storage controls for `drmTMB()`: users can pass optimizer settings through `optimizer = list(...)`, drop stored complete-case data with `keep_data = FALSE`, drop stored model frames after fitting with `keep_model_frame = FALSE`, and drop the retained TMB automatic-differentiation object with `keep_tmb_object = FALSE`.
 * `drm_formula()` is now the primary formula constructor; `bf()` remains a short alias.
 * `drm_formula(mvbind(y1, y2) ~ x)` is now implemented as shorthand for identical bivariate Gaussian location formulas, expanding internally to `mu1 = y1 ~ x` and `mu2 = y2 ~ x`.
 * `drmTMB()` now fits Gaussian location-scale models with fixed effects, random intercepts, labelled random intercepts such as `(1 | p | id)`, independent numeric random slopes, and ordinary labelled or unlabelled correlated random intercept-slope blocks in the `mu` formula, such as `bf(y ~ x1 + (1 | id) + (0 + x1 | id), sigma ~ x1)`, `bf(y ~ x1 + (1 + x1 | id), sigma ~ x1)`, and `bf(y ~ x1 + (1 + x1 | p | id), sigma ~ x1)`.

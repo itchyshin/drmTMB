@@ -30,19 +30,19 @@ science, but the package is general-purpose. The public scale parameter is
 
 ## Preview status
 
-This site is built from the first public preview, `0.1.0`. The package is still
+This site is built from preview version `0.1.1`. The package is still
 pre-CRAN and intentionally bounded: use it for the implemented one-response and
 two-response workflows listed below, and treat unsupported model classes as
 roadmap work rather than hidden features.
 
 ## Install
 
-`drmTMB` is not on CRAN yet. Install the tagged `0.1.0` preview from GitHub
+`drmTMB` is not on CRAN yet. Install the tagged `0.1.1` preview from GitHub
 with `pak`:
 
 ```r
 install.packages("pak")
-pak::pak("itchyshin/drmTMB@v0.1.0")
+pak::pak("itchyshin/drmTMB@v0.1.1")
 ```
 
 If you want the newest development build from `main`, use:

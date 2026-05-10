@@ -36,7 +36,7 @@ model matches the symbolic model you had in mind.
 
 ```r
 install.packages("pak")
-pak::pak("itchyshin/drmTMB@v0.1.0")
+pak::pak("itchyshin/drmTMB@v0.1.1")
 ```
 
 For the newest development build from `main`, use:

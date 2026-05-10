@@ -7941,3 +7941,46 @@ Known limitations:
 
 - the diagnostic reports budget use; it does not decide whether a larger
   optimizer budget is the right scientific response.
+
+## 2026-05-10 -- Dispatch 0.1.1 preview
+
+Goal:
+
+- correct the tagged preview install target because `v0.1.0` does not export
+  `drm_control()` even though current docs and large-data workflows use it.
+
+Implemented:
+
+- confirmed `git show v0.1.0:NAMESPACE` has no `export(drm_control)`;
+- bumped `DESCRIPTION` from `0.1.0` to `0.1.1`;
+- added a `NEWS.md` section for `drmTMB 0.1.1 (2026-05-10)`;
+- updated README, the getting-started article, pkgdown version note, and roadmap
+  preview status to `0.1.1`;
+- kept the existing `v0.1.0` tag immutable and prepared `v0.1.1` as the patch
+  preview target.
+
+Commands run:
+
+- `git show v0.1.0:NAMESPACE | rg -n "drm_control|drmTMB|check_drm"`:
+  confirmed `v0.1.0` exports `check_drm()` and `drmTMB()` but not
+  `drm_control()`.
+- `air format DESCRIPTION NEWS.md README.md _pkgdown.yml ROADMAP.md vignettes/drmTMB.Rmd docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-10-0.1.1-preview-dispatch.md`:
+  passed.
+- `Rscript -e "devtools::document()"`: passed.
+- `Rscript -e "devtools::test()"`: passed with 1464 tests, 0 failures,
+  0 warnings, 0 skips.
+- `git diff --check`: passed.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with no problems.
+- `Rscript -e "pkgdown::build_site()"`: passed.
+- `Rscript tools/fix-pkgdown-favicon-mime.R pkgdown-site`: passed.
+- `rg -n "0\\.1\\.1|v0\\.1\\.1|0\\.1\\.0|v0\\.1\\.0|drm_control" DESCRIPTION NEWS.md README.md ROADMAP.md _pkgdown.yml vignettes/drmTMB.Rmd NAMESPACE pkgdown-site/index.html pkgdown-site/articles/drmTMB.html pkgdown-site/news/index.html pkgdown-site/ROADMAP.html pkgdown-site/reference/drm_control.html --glob '!pkgdown-site/search.json'`:
+  passed and found expected `0.1.1` install, NEWS, pkgdown, and
+  `drm_control()` reference entries, with historical `0.1.0` mentions retained
+  for the prior release.
+- `Rscript -e "devtools::check(document = FALSE, manual = FALSE, args = '--no-tests')"`:
+  passed with 0 errors, 0 warnings, 0 notes for `drmTMB 0.1.1`.
+
+Known limitations:
+
+- users pinned to `v0.1.0` need to drop `drm_control()` and any `keep_*`
+  storage controls; those controls start in `v0.1.1`.
