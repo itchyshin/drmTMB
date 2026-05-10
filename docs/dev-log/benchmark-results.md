@@ -6,20 +6,21 @@ claim.
 
 ## Large Phylogenetic Gaussian Location Model
 
-All rows use a balanced synthetic tree, Gaussian responses, and
-`phylo(1 | species, tree = tree)`. Except where noted, rows use `sigma ~ 1`
-and a small fixed-effect location formula. The macOS peak-memory values come
-from `/usr/bin/time -l`.
+All rows use a balanced synthetic tree, Gaussian responses,
+`phylo(1 | species, tree = tree)`, and the same small numeric fixed-effect
+location formula unless the `Factor levels` column says otherwise. The macOS
+peak-memory values come from `/usr/bin/time -l`. `R heap after fit MB` is a
+post-fit garbage-collector summary, not peak memory.
 
-| Date | Rows | Species | Storage | Convergence | Fit seconds | Fit object MB | Model matrix MB | TMB data MB | R heap after fit MB | Max RSS bytes | Peak footprint bytes |
-| --- | ---: | ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| 2026-05-10 | 10,000 | 100 | memory-light | 0 | 2.283 | 4.658 | 1.528 | 2.140 | 251.397 | 454,672,384 | 332,383,288 |
-| 2026-05-10 | 100,000 | 1,000 | memory-light | 0 | 25.074 | 45.730 | 15.261 | 21.326 | 405.741 | 1,415,626,752 | 723,666,504 |
-| 2026-05-10 | 100,000 | 1,000 | default | 0 | 25.070 | 54.935 | 15.261 | 21.326 | 500.926 | 1,399,848,960 | 678,839,880 |
-| 2026-05-10 | 100,000 | 1,000 | memory-light, `sigma ~ x1` | 0 | 62.701 | 47.257 | 16.024 | 22.089 | 416.295 | 1,779,056,640 | 742,148,088 |
-| 2026-05-10 | 100,000 | 1,000 | memory-light, 40-level factor | 1 | 77.712 | 105.289 | 45.019 | 51.084 | 622.011 | 2,123,055,104 | 797,017,960 |
-| 2026-05-10 | 100,000 | 5,000 | memory-light | 0 | 32.492 | 52.764 | 15.261 | 22.669 | 417.313 | 1,654,964,224 | 664,749,976 |
-| 2026-05-10 | 500,000 | 1,000 | memory-light | 0 | 131.407 | 221.206 | 76.296 | 105.249 | 1092.205 | 5,050,040,320 | 2,045,808,360 |
+| Date | Rows | Species | Family | Sigma formula | Factor levels | Memory-light | Status | Convergence | Fit seconds | Fit object MB | Model matrix MB | TMB data MB | R heap after fit MB | Max RSS bytes | Peak footprint bytes |
+| --- | ---: | ---: | --- | --- | ---: | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 2026-05-10 | 10,000 | 100 | Gaussian | `sigma ~ 1` | 0 | yes | timing usable | 0 | 2.283 | 4.658 | 1.528 | 2.140 | 251.397 | 454,672,384 | 332,383,288 |
+| 2026-05-10 | 100,000 | 1,000 | Gaussian | `sigma ~ 1` | 0 | yes | timing usable | 0 | 25.074 | 45.730 | 15.261 | 21.326 | 405.741 | 1,415,626,752 | 723,666,504 |
+| 2026-05-10 | 100,000 | 1,000 | Gaussian | `sigma ~ 1` | 0 | no | timing usable | 0 | 25.070 | 54.935 | 15.261 | 21.326 | 500.926 | 1,399,848,960 | 678,839,880 |
+| 2026-05-10 | 100,000 | 1,000 | Gaussian | `sigma ~ x1` | 0 | yes | timing usable | 0 | 62.701 | 47.257 | 16.024 | 22.089 | 416.295 | 1,779,056,640 | 742,148,088 |
+| 2026-05-10 | 100,000 | 1,000 | Gaussian | `sigma ~ 1` | 40 | yes | diagnostic only | 1 | 77.712 | 105.289 | 45.019 | 51.084 | 622.011 | 2,123,055,104 | 797,017,960 |
+| 2026-05-10 | 100,000 | 5,000 | Gaussian | `sigma ~ 1` | 0 | yes | timing usable | 0 | 32.492 | 52.764 | 15.261 | 22.669 | 417.313 | 1,654,964,224 | 664,749,976 |
+| 2026-05-10 | 500,000 | 1,000 | Gaussian | `sigma ~ 1` | 0 | yes | timing usable | 0 | 131.407 | 221.206 | 76.296 | 105.249 | 1092.205 | 5,050,040,320 | 2,045,808,360 |
 
 Interpretation:
 

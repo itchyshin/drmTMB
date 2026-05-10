@@ -8323,3 +8323,33 @@ Known limitations:
 - this is a selected local benchmark summary only; it does not prove
   million-row, 10,000-species, factor-heavy, non-Gaussian, or bivariate
   readiness.
+
+## 2026-05-10 -- Split benchmark stressor columns
+
+Goal:
+
+- make `docs/dev-log/benchmark-results.md` separate memory-light storage,
+  scale predictors, fixed-effect factor pressure, row pressure, and species
+  pressure instead of mixing them inside one `Storage` column.
+
+Implemented:
+
+- replaced the durable benchmark table's `Storage` column with `Family`,
+  `Sigma formula`, `Factor levels`, `Memory-light`, and `Status`;
+- added a caveat that `R heap after fit MB` is a post-fit
+  garbage-collector summary, not peak memory;
+- added an after-task note.
+
+Commands run:
+
+- `air format docs/dev-log/benchmark-results.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-10-benchmark-table-stressor-columns.md`:
+  passed.
+- `rg -n "Family \\| Sigma formula|Factor levels|Memory-light|diagnostic only|post-fit garbage-collector|not peak memory|Storage" docs/dev-log/benchmark-results.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-10-benchmark-table-stressor-columns.md`:
+  passed and found the new column names, diagnostic status, R-heap caveat, and
+  recorded replacement of the old `Storage` column.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- this is table-structure documentation only; it does not add new benchmark
+  rows or change package behaviour.
