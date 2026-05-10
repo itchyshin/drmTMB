@@ -36,7 +36,8 @@ Checks:
 - `Rscript -e "pkgdown::check_pkgdown()"`: no problems found after the final
   wording simplification.
 - `git diff --check`: clean.
-- Pending after commit: push and GitHub Actions.
+- Pushed in commit `f879c2e`; GitHub Actions completed successfully for
+  `pkgdown` and `R-CMD-check`.
 
 ## 2026-05-10 -- Installation guidance on landing page
 
@@ -64,7 +65,8 @@ Checks:
   confirmed the install, compiler, dependency, and rendered-site text.
 - `Rscript -e "pkgdown::check_pkgdown()"`: no problems found.
 - `git diff --check`: clean.
-- Pending after commit: push and GitHub Actions.
+- Pushed in commit `1085900`; GitHub Actions completed successfully for
+  `pkgdown` and `R-CMD-check`.
 
 ## 2026-05-10 -- Next-five 0.1.0 release-gate batch
 
@@ -114,7 +116,8 @@ Checks:
 - `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`:
   0 errors, 0 warnings, 0 notes.
 - `git diff --check`: clean.
-- Pending after commit: push and GitHub Actions.
+- Pushed in commit `5c6ac6f`; GitHub Actions completed successfully for
+  `pkgdown` and `R-CMD-check`.
 
 ## 2026-05-10 -- Sleep consolidation pause
 

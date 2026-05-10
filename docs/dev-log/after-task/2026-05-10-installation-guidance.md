@@ -9,6 +9,8 @@ they start reporting usability bugs and ideas.
 ## Files Created Or Changed
 
 - `README.md`
+- `_pkgdown.yml`
+- `pkgdown/extra.css`
 - `docs/dev-log/check-log.md`
 - `docs/dev-log/after-task/2026-05-10-installation-guidance.md`
 
@@ -42,7 +44,8 @@ tests, and site checks.
   sections visible.
 - `Rscript -e "pkgdown::check_pkgdown()"`: no problems found.
 - `git diff --check`: clean.
-- Commit, push, and GitHub Actions are pending until this report is committed.
+- Pushed in commits `1085900` and `f879c2e`; GitHub Actions completed
+  successfully for `pkgdown` and `R-CMD-check`.
 
 ## Tests Of The Tests
 
