@@ -7802,3 +7802,35 @@ Known limitations:
 - this is a diagnostic note, not sparse fixed-effect support;
 - the thresholds are deliberately simple guardrails and can be tuned when
   broader benchmark evidence accumulates.
+
+## 2026-05-10 -- Design sparse fixed-effect matrix path
+
+Goal:
+
+- turn the factor-heavy benchmark lesson into an implementation contract for
+  future sparse fixed-effect matrices.
+
+Implemented:
+
+- added `docs/design/26-sparse-fixed-effect-matrices.md`;
+- linked the new design note from the large-data memory design note and
+  roadmap;
+- scoped the first sparse target to univariate Gaussian fixed-effect location
+  models before broader distributional and bivariate support;
+- recorded dense-versus-sparse parity tests as a requirement before any
+  million-row performance claim.
+
+Commands run:
+
+- `git diff --check`: passed.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with no problems.
+- `rg -n "implemented yet|planned until|performance claim|O'Dea/Nakagawa|Nakagawa" docs/design/26-sparse-fixed-effect-matrices.md docs/design/23-large-data-memory.md ROADMAP.md docs/dev-log/after-task/2026-05-10-sparse-fixed-effect-design.md`:
+  no use of the discouraged combined shorthand; expected existing roadmap
+  surname mentions are outside the new design note.
+- `Rscript -e "pkgdown::build_site()"`: passed.
+- `Rscript tools/fix-pkgdown-favicon-mime.R pkgdown-site`: passed.
+
+Known limitations:
+
+- this is a design document only; no sparse fixed-effect TMB path is
+  implemented yet.

@@ -174,6 +174,8 @@ distributional regression models using TMB.
   datasets with broader method-matrix coverage, sparse fixed-effect matrices,
   aggregation, and repeated large-row benchmarks.
 - Add sparse fixed-effect matrix support before claiming million-row readiness.
+- Use `docs/design/26-sparse-fixed-effect-matrices.md` as the implementation
+  contract for sparse fixed-effect matrices.
 - Add optional aggregation or sufficient-statistic paths for Gaussian models
   where repeated rows can be collapsed without changing the likelihood.
 - An initial non-CRAN benchmark harness exists at

@@ -154,6 +154,9 @@ Candidate first targets:
 The sparse path should have dense-versus-sparse parity tests on small datasets
 before it is used for large fits.
 
+See `docs/design/26-sparse-fixed-effect-matrices.md` for the proposed sparse
+fixed-effect matrix contract.
+
 ## TMB-Side Computation
 
 The C++ likelihood should avoid storing per-row intermediate vectors when a
