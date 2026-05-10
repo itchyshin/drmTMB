@@ -8107,3 +8107,117 @@ Known limitations:
 
 - the helper summarizes CSV files only; it does not measure peak resident
   memory or make a million-row readiness claim.
+
+## 2026-05-10 -- Compare 100k benchmark storage modes
+
+Goal:
+
+- collect current-schema benchmark evidence comparing memory-light and default
+  fitted-object storage on the same 100,000-row, 1,000-species phylogenetic
+  Gaussian location scenario.
+
+Implemented:
+
+- no package code changed;
+- ran two local benchmark rows into
+  `/tmp/drmTMB-storage-current-schema-25640258868.csv`;
+- summarized the pair with `bench/summarize-results.R`;
+- recorded the local result in an after-task note.
+
+Commands run:
+
+- `/usr/bin/time -l Rscript bench/large-phylo-location.R --rows 100000 --species 1000 --eval-max 180 --iter-max 180 --memory-light true --output /tmp/drmTMB-storage-current-schema-25640258868.csv`:
+  passed; convergence code 0, optimizer message `relative convergence (4)`,
+  45 iterations, 69 function evaluations, 46 gradient evaluations, fit time
+  25.074 seconds, fitted-object size 45.730 MB, post-fit R heap 405.741 MB,
+  max RSS 1,415,626,752 bytes, and peak memory footprint 723,666,504 bytes.
+- `/usr/bin/time -l Rscript bench/large-phylo-location.R --rows 100000 --species 1000 --eval-max 180 --iter-max 180 --memory-light false --output /tmp/drmTMB-storage-current-schema-25640258868.csv`:
+  passed; convergence code 0, optimizer message `relative convergence (4)`,
+  45 iterations, 69 function evaluations, 46 gradient evaluations, fit time
+  25.070 seconds, fitted-object size 54.935 MB, post-fit R heap 500.926 MB,
+  max RSS 1,399,848,960 bytes, and peak memory footprint 678,839,880 bytes.
+- `Rscript bench/summarize-results.R --input /tmp/drmTMB-storage-current-schema-25640258868.csv`:
+  passed and marked both rows as `timing_usable` with
+  `diagnostics_recorded`.
+- `Rscript -e "x <- read.csv('/tmp/drmTMB-storage-current-schema-25640258868.csv', check.names = FALSE); print(x[, c('memory_light','convergence','convergence_message','iterations','function_evaluations','gradient_evaluations','fit_sec','fit_object_mb','model_matrix_mb','tmb_data_mb','gc_used_mb_post_fit')]);"`:
+  passed.
+
+Known limitations:
+
+- this one local pair supports the post-fit storage claim, not a million-row
+  readiness claim; the OS peak-memory numbers need repeated runs before
+  interpretation.
+
+## 2026-05-10 -- Add Tweedie to future wishlist
+
+Goal:
+
+- record Tweedie as a future real-data family for non-negative semicontinuous
+  ecological and evolutionary responses.
+
+Implemented:
+
+- added a Phase 7 roadmap note for future `tweedie()` support;
+- added a distribution-roadmap entry for biomass, cover, CPUE-like indices, and
+  abundance-index responses with exact zeros and positive continuous values;
+- added a family-registry warning that the public `sigma` to Tweedie
+  dispersion mapping must be decided before comparator tests.
+
+Commands run:
+
+- Web source check: glmmTMB official family documentation currently lists
+  `tweedie(link = "log")`, describes `V = phi * mu^power`, and restricts the
+  power parameter to `1 < power < 2`.
+- Web source check: glmmTMB `family_params()` documentation names Tweedie as a
+  family with an additional family-specific parameter.
+- `air format ROADMAP.md docs/design/06-distribution-roadmap.md docs/design/02-family-registry.md`:
+  passed.
+- `rg -n "tweedie|Tweedie|phi \\* mu\\^nu|1 < nu < 2|sigma.*phi" ROADMAP.md docs/design/06-distribution-roadmap.md docs/design/02-family-registry.md`:
+  passed and found the roadmap, family-registry, and distribution-roadmap
+  entries.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with no problems.
+- `Rscript -e "pkgdown::build_site()"`: passed.
+- `Rscript tools/fix-pkgdown-favicon-mime.R pkgdown-site`: passed.
+- `rg -n "tweedie|Tweedie|semi-continuous|semicontinuous" ROADMAP.md docs/design/06-distribution-roadmap.md docs/design/02-family-registry.md pkgdown-site/ROADMAP.html --glob '!pkgdown-site/search.json'`:
+  passed and confirmed the generated roadmap page includes the Tweedie
+  wishlist entry.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- this is wishlist/design work only; no Tweedie likelihood, simulation,
+  extractor, or comparator test exists yet.
+
+## 2026-05-10 -- Run 100k sigma-predictor benchmark
+
+Goal:
+
+- collect current-schema benchmark evidence for a 100,000-row, 1,000-species
+  phylogenetic Gaussian location-scale model with `sigma ~ x1`.
+
+Implemented:
+
+- no package code changed;
+- ran one local benchmark row into
+  `/tmp/drmTMB-sigma-x-current-schema-25640258868.csv`;
+- summarized the row with `bench/summarize-results.R`;
+- recorded the local result in an after-task note.
+
+Commands run:
+
+- `/usr/bin/time -l Rscript bench/large-phylo-location.R --rows 100000 --species 1000 --eval-max 220 --iter-max 220 --sigma-x true --memory-light true --output /tmp/drmTMB-sigma-x-current-schema-25640258868.csv`:
+  passed; convergence code 0, optimizer message `relative convergence (4)`,
+  65 iterations, 97 function evaluations, 66 gradient evaluations, fit time
+  62.701 seconds, fitted-object size 47.257 MB, model-matrix size 16.024 MB,
+  TMB-data size 22.089 MB, post-fit R heap 416.295 MB, max RSS
+  1,779,056,640 bytes, and peak memory footprint 742,148,088 bytes.
+- `Rscript bench/summarize-results.R --input /tmp/drmTMB-sigma-x-current-schema-25640258868.csv`:
+  passed and marked the row as `timing_usable` with
+  `diagnostics_recorded`.
+- `Rscript -e "x <- read.csv('/tmp/drmTMB-sigma-x-current-schema-25640258868.csv', check.names = FALSE); print(x[, c('sigma_x','memory_light','convergence','convergence_message','iterations','function_evaluations','gradient_evaluations','fit_sec','fit_object_mb','model_matrix_mb','tmb_data_mb','gc_used_mb_post_fit','sigma_hat')]);"`:
+  passed.
+
+Known limitations:
+
+- this one local row supports only a staged benchmark claim; it does not prove
+  factor-heavy, non-Gaussian, bivariate, or million-row readiness.

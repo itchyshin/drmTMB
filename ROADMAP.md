@@ -228,6 +228,12 @@ distributional regression models using TMB.
   the response mean and `sigma` is the coefficient of variation.
 - Use `beta()` for strict continuous proportions where `mu` is the mean
   proportion and public `sigma` maps internally to `phi = 1 / sigma^2`.
+- Add `tweedie()` to the real-data wish list for non-negative semicontinuous
+  ecological responses such as biomass, cover, or abundance indices with exact
+  zeros and positive continuous values. Stage it after the Gamma/lognormal/count
+  contracts are stable, with an explicit design decision about whether public
+  `sigma` represents Tweedie dispersion `phi` or a square-root scale, and with
+  `nu` reserved for the power parameter constrained between 1 and 2.
 - Extend the implemented family-link helper table before adding ordinal scale,
   denominator-aware, or additional positive-continuous likelihoods, so
   `predict()` and `fitted()` handle non-identity `mu` links consistently.

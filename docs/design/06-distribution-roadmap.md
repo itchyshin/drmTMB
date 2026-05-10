@@ -159,6 +159,16 @@ Useful for body size, biomass, time, concentration, and rates.
   bivariate extensions are later phases.
 - `Gamma(link = "log")`: implemented first contract is mean-CV, with
   `log(mu)`, `log(sigma)`, `E[y] = mu`, and `Var[y] = mu^2 sigma^2`.
+- `tweedie()`: future non-negative semicontinuous response for biomass, cover,
+  CPUE-like indices, and other eco-evo measurements with exact zeros plus
+  positive continuous values. The likely variance contract is
+  `Var[y] = phi * mu^nu` with `1 < nu < 2`, but the implementation must decide
+  and document whether public `sigma` is `phi`, `sqrt(phi)`, or another
+  stable scale before comparator tests are written.
+  [glmmTMB's family documentation](https://glmmtmb.github.io/glmmTMB/reference/nbinom2.html)
+  is the first comparator source because it already exposes
+  `tweedie(link = "log")` and treats the power parameter as a family-specific
+  parameter.
 - `weibull()`: scale and shape.
 - `exgaussian()`: location, scale, and positive-tail parameter.
 - `gengamma()`: flexible positive continuous family, later only.
