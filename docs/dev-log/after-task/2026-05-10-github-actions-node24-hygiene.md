@@ -43,9 +43,9 @@ interface changed.
 
 ## Tests Of The Tests
 
-The meaningful test is the next pushed GitHub Actions run: R-CMD-check should
-still run on macOS, Ubuntu, and Windows, and pkgdown should still deploy after a
-successful check.
+The meaningful test was the next pushed GitHub Actions run. Commit `17c817f`
+passed R-CMD-check on macOS, Ubuntu, and Windows in run `25642430251`, and
+pkgdown deployed successfully in run `25642554902`.
 
 ## Consistency Audit
 
@@ -67,10 +67,12 @@ repeated deprecation annotations is still asking for maintenance.
 
 ## Known Limitations
 
-This has to be validated by the next pushed GitHub Actions run.
+The R-CMD-check run reported a GitHub-hosted runner notice that
+`windows-2025` requests are being redirected to `windows-2025-vs2026` by
+May 12, 2026. This is a platform notice, not a package failure.
 
 ## Next Actions
 
-- Watch the next R-CMD-check and pkgdown runs.
+- Keep watching future green-run annotations, including runner-image notices.
 - If a first-party action tag changes behaviour, revert that action alone and
   record the exact failure.

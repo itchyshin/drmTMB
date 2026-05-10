@@ -8623,11 +8623,18 @@ Checks run:
 - `rg -n "actions/checkout|actions/configure-pages|actions/upload-pages-artifact|actions/deploy-pages|FORCE_JAVASCRIPT_ACTIONS_TO_NODE24" .github/workflows docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-10-github-actions-node24-hygiene.md`:
   passed and found the updated workflow tags plus historical check-log mentions.
 - `git diff --check`: passed.
+- R-CMD-check run `25642430251` for commit `17c817f`: passed on macOS,
+  Ubuntu, and Windows with `actions/checkout@v6.0.2`.
+- pkgdown run `25642554902` for commit `17c817f`: passed, including
+  `actions/configure-pages@v6.0.0`,
+  `actions/upload-pages-artifact@v5.0.0`, and
+  `actions/deploy-pages@v5.0.0`.
 
 Known limitations:
 
-- this workflow change still needs validation from the next pushed
-  R-CMD-check and pkgdown runs.
+- R-CMD-check reported a GitHub-hosted runner notice that `windows-2025`
+  requests are being redirected to `windows-2025-vs2026` by May 12, 2026. This
+  is a platform notice, not a package failure.
 
 ## 2026-05-10 -- Refine Tweedie working scale recommendation
 
