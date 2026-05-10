@@ -28,9 +28,24 @@ science, but the package is general-purpose. The public scale parameter is
   [Model workflow](https://itchyshin.github.io/drmTMB/articles/model-workflow.html)
   and the [`check_drm()` reference](https://itchyshin.github.io/drmTMB/reference/check_drm.html).
 
+## Development status
+
+This site is built from the current development version, `0.0.0.9000`. The
+first public preview target is `0.1.0`; the package version will be bumped
+when the release checklist is closed. Until then, install from GitHub and
+treat your results as development feedback.
+
 ## Install
 
-`drmTMB` is not on CRAN yet. Install the development version from GitHub:
+`drmTMB` is not on CRAN yet. Install the development version from GitHub with
+`pak`:
+
+```r
+install.packages("pak")
+pak::pak("itchyshin/drmTMB")
+```
+
+If you already use `remotes`, this fallback also works:
 
 ```r
 install.packages("remotes")
@@ -60,11 +75,11 @@ are compiled during installation. If installation fails while compiling C++,
 install the usual R build tools for your platform: Rtools on Windows, Xcode
 Command Line Tools on macOS, or the R development toolchain on Linux.
 
-Core runtime dependencies are installed automatically: `cli`, `Matrix`, `TMB`,
-and the compiled headers from `RcppEigen` and `TMB`. Some articles,
-comparators, and development checks also use optional packages such as
-`glmmTMB`, `lme4`, `MASS`, `metafor`, `knitr`, `rmarkdown`, `testthat`, and
-`withr`; site checks use `pkgdown`.
+Core runtime dependencies are installed automatically by `pak` or `remotes`:
+`cli`, `Matrix`, `TMB`, and the compiled headers from `RcppEigen` and `TMB`.
+Some articles, comparators, and development checks also use optional packages
+such as `glmmTMB`, `lme4`, `MASS`, `metafor`, `knitr`, `rmarkdown`,
+`testthat`, and `withr`; site checks use `pkgdown`.
 
 ## Tiny example
 

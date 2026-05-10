@@ -2,6 +2,42 @@
 
 Record meaningful development checks here.
 
+## 2026-05-10 -- Development-version status clarification
+
+Scope:
+
+- changed the primary GitHub installation recommendation from
+  `remotes::install_github()` to `pak::pak()`, keeping `remotes` as a fallback;
+- clarified that the pkgdown header shows `0.0.0.9000` because the site is
+  built from the current development version in `DESCRIPTION`;
+- added a small navbar status badge that says the site is a development build
+  and that `0.1.0` is the planned preview;
+- added a landing-page sentence explaining that `0.1.0` should be assigned
+  only when the release checklist closes.
+- simplified that sentence into a `Development status` section after a
+  back-to-basics user-path review.
+
+Checks:
+
+- `Rscript -e "pkgdown::build_site()"`: passed.
+- `Rscript tools/fix-pkgdown-favicon-mime.R pkgdown-site`: passed.
+- `Rscript -e "pkgdown::check_pkgdown()"`: no problems found before the final
+  wording simplification.
+- `rg -n 'Development status|development version|0\.0\.0\.9000|0\.1\.0|pak::pak|install_github|development build; 0\.1\.0 preview planned' README.md _pkgdown.yml pkgdown-site/index.html`:
+  confirmed the source and rendered version-status and install-path text.
+- `rg -n 'pak|install_github|install\.packages|development version|development build|release checklist' pkgdown-site/index.html`:
+  confirmed the rendered `pak` command, `remotes` fallback, dependency text,
+  and development-version explanation.
+- Chrome/Playwright layout sanity check over `pkgdown-site/index.html`: desktop
+  viewport `1280 x 900` had `scrollWidth = 1280` and showed the development
+  badge; mobile viewport `390 x 844` had `scrollWidth = 390` and hid the badge
+  while keeping the `Development status`, `Install`, and `Tiny example`
+  sections visible.
+- `Rscript -e "pkgdown::check_pkgdown()"`: no problems found after the final
+  wording simplification.
+- `git diff --check`: clean.
+- Pending after commit: push and GitHub Actions.
+
 ## 2026-05-10 -- Installation guidance on landing page
 
 Scope:

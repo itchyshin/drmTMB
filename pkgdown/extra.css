@@ -15,9 +15,26 @@
   overflow-wrap: anywhere;
 }
 
+.drmtmb-version-note {
+  border: 1px solid rgba(15, 120, 135, 0.25);
+  border-radius: 999px;
+  color: #37515a;
+  display: inline-flex;
+  font-size: 0.76rem;
+  line-height: 1.1;
+  margin-right: 0.85rem;
+  max-width: 18rem;
+  padding: 0.16rem 0.48rem;
+  white-space: normal;
+}
+
 @media (max-width: 767.98px) {
   .template-home .page-header .logo {
     height: auto;
     max-width: 72px;
+  }
+
+  .drmtmb-version-note {
+    display: none;
   }
 }
