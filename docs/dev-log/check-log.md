@@ -25,7 +25,9 @@ Scope:
   `workflow_run` on `main` or `master`, while preserving manual dispatch;
 - made the pkgdown checkout use the successful `workflow_run` head SHA, with
   `github.sha` as the manual-dispatch fallback;
-- added `v*` tag triggers and workflow-level concurrency to `R-CMD-check`.
+- added `v*` tag triggers, manual dispatch, workflow-level concurrency, and a
+  30-minute job timeout to `R-CMD-check`;
+- added a 30-minute job timeout to `pkgdown`.
 
 Checks:
 

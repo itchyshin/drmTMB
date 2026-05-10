@@ -23,8 +23,9 @@ pkgdown deployment workflow wait for successful package checks on `main`.
   workflow runs on `main` or `master`, with manual dispatch retained.
 - Made the pkgdown job check out the successful `R-CMD-check` head SHA, with
   `github.sha` as the manual-dispatch fallback.
-- Added `v*` release-tag triggers and workflow-level concurrency to
-  `R-CMD-check`.
+- Added `v*` release-tag triggers, manual dispatch, workflow-level
+  concurrency, and a 30-minute job timeout to `R-CMD-check`.
+- Added a 30-minute job timeout to `pkgdown`.
 
 ## Mathematical Contract
 
