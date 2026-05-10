@@ -5,15 +5,16 @@
 # without bundling external tutorial data.
 
 load_drmTMB <- function() {
-  if (requireNamespace("drmTMB", quietly = TRUE)) {
-    return(invisible(TRUE))
-  }
   if (
     file.exists("DESCRIPTION") &&
       dir.exists("R") &&
       requireNamespace("devtools", quietly = TRUE)
   ) {
     devtools::load_all(quiet = TRUE)
+    return(invisible(TRUE))
+  }
+  if (requireNamespace("drmTMB", quietly = TRUE)) {
+    suppressPackageStartupMessages(library(drmTMB))
     return(invisible(TRUE))
   }
   stop(

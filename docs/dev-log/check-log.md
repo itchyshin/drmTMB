@@ -8673,3 +8673,35 @@ Known limitations:
 
 - this is design and tracking work only; it does not add `tweedie()`,
   likelihood code, tests, or a real-data tutorial.
+
+## 2026-05-10 -- Fix standalone comparator harness loading
+
+Goal:
+
+- make `tools/replicate-location-scale-gaussian.R` work when run directly from
+  the package root.
+
+Implemented:
+
+- changed `load_drmTMB()` so package-root runs use `devtools::load_all()` before
+  falling back to an installed `drmTMB` package;
+- attached installed `drmTMB` when the script is run outside the package root;
+- added an after-task note.
+
+Checks run:
+
+- initial `Rscript tools/replicate-location-scale-gaussian.R`: failed because
+  `requireNamespace("drmTMB")` returned true but did not attach `drmTMB()` and
+  `bf()` into the script namespace;
+- `air format tools/replicate-location-scale-gaussian.R docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-10-comparator-harness-standalone-load.md`:
+  passed.
+- `git diff --check`: passed.
+- `Rscript tools/replicate-location-scale-gaussian.R`: passed. Both comparator
+  rows reported `passed = TRUE`; the largest absolute coefficient difference
+  was about `6.7e-06`.
+
+Known limitations:
+
+- the harness remains optional and requires `glmmTMB`;
+- it validates overlapping Gaussian location-scale examples only, not future
+  individual-difference covariance blocks.
