@@ -7834,3 +7834,34 @@ Known limitations:
 
 - this is a design document only; no sparse fixed-effect TMB path is
   implemented yet.
+
+## 2026-05-10 -- Teach fixed-design diagnostics in large-data article
+
+Goal:
+
+- make the large-data vignette tell applied users how to interpret the new
+  `fixed_effect_design_size` diagnostic.
+
+Implemented:
+
+- `vignettes/large-data.Rmd` now points users to the
+  `fixed_effect_design_size` row in `check_drm()`;
+- the benchmark description now includes optimizer messages and evaluation
+  counts;
+- the practical checklist now recommends all three storage controls:
+  `keep_data = FALSE`, `keep_model_frame = FALSE`, and
+  `keep_tmb_object = FALSE`.
+
+Commands run:
+
+- `git diff --check`: passed.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with no problems.
+- `rg -n "keep_data = FALSE|keep_model_frame = FALSE|fixed_effect_design_size|optimizer message|sparse fixed-effect" vignettes/large-data.Rmd docs/dev-log/after-task/2026-05-10-large-data-diagnostic-docs.md docs/dev-log/check-log.md`:
+  passed and found the expected updated wording.
+- `Rscript -e "pkgdown::build_site()"`: passed.
+- `Rscript tools/fix-pkgdown-favicon-mime.R pkgdown-site`: passed.
+
+Known limitations:
+
+- sparse fixed-effect matrices remain planned; the article names the pressure
+  but does not claim that drmTMB can avoid dense fixed-effect construction yet.

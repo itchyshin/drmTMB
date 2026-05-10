@@ -92,6 +92,13 @@ If `keep_tmb_object = FALSE`, the fixed-gradient row is a note rather than an
 `drm_control(keep_tmb_object = TRUE)` when you need the gradient diagnostic for
 a final report.
 
+Also inspect the `fixed_effect_design_size` row. It reports the retained dense
+fixed-effect design size and the widest design block. A note there means
+high-cardinality factors or interactions may be driving memory use before TMB
+optimization. That is a sparse fixed-effect design problem; simplifying the
+formula or waiting for the future sparse path is more relevant than changing
+the phylogenetic tree.
+
 ## Avoid accidental full-row output
 
 Functions such as `predict(fit)`, `fitted(fit)`, `residuals(fit)`, and
@@ -131,8 +138,9 @@ sigma ~ 1
 ```
 
 and records elapsed time, fitted-object size, model-matrix size, TMB-data size,
-prediction time, residual time, convergence code, and fitted scale summaries.
-Use it to learn how your machine behaves before running the full analysis.
+prediction time, residual time, convergence code, optimizer message, optimizer
+evaluation counts, and fitted scale summaries. Use it to learn how your
+machine behaves before running the full analysis.
 
 For factor-heavy designs, add:
 
@@ -156,10 +164,13 @@ as much as package code.
 
 - Start with a fixed-effect or smaller phylogenetic model that answers a
   simpler version of the question.
-- Fit with `keep_data = FALSE` and `keep_tmb_object = FALSE` when you do not
-  need to carry the original data or TMB object inside the saved fit.
+- Fit with `keep_data = FALSE`, `keep_model_frame = FALSE`, and
+  `keep_tmb_object = FALSE` when you do not need to carry the original data,
+  model frames, or TMB object inside the saved fit.
 - Keep `keep_tmb_object = TRUE` for final diagnostic refits where the fixed
   gradient check matters.
+- Inspect `check_drm(fit)` for fixed-effect design-size notes before assuming
+  the phylogenetic part caused memory pressure.
 - Use `newdata` grids for interpretation instead of creating full-row
   predictions by default.
 - Run the benchmark script at 100k rows before trying million-row analyses.
