@@ -47,6 +47,31 @@ example, exposure in count models is written with the standard formula term
 `offset(log(exposure))`, and Gamma models use `stats::Gamma(link = "log")`
 because `gamma()` already names the base R gamma function.
 
+## Reporting variation
+
+The formula name `sigma` is stable across families, but the reported variation
+is family-specific. Start with `predict(fit, dpar = "mu")` and `sigma(fit)`,
+then transform those fitted quantities for the scale your reader needs.
+
+| Family | Variation-facing summary |
+| --- | --- |
+| `gaussian()` | residual SD is `sigma`; residual variance is `sigma^2` |
+| `student()` | model scale is `sigma`; residual variance is `sigma^2 * nu / (nu - 2)` when `nu > 2` |
+| `lognormal()` | log-scale variance is `sigma^2`; response variance is `(exp(sigma^2) - 1) * exp(2 * mu + sigma^2)` |
+| `Gamma(link = "log")` | residual SD is `mu * sigma`; variance is `(mu * sigma)^2` |
+| `beta()` | variance is `mu * (1 - mu) * sigma^2 / (1 + sigma^2)` |
+| `beta_binomial()` | proportion variance is `mu * (1 - mu) * (1 + trials * sigma^2) / (trials * (1 + sigma^2))` |
+| `poisson(link = "log")` | variance is `mu`; there is no modelled `sigma` |
+| zero-inflated Poisson | variance is `(1 - zi) * mu * (1 + zi * mu)` |
+| `nbinom2()` | variance is `mu + sigma^2 * mu^2` |
+| zero-inflated `nbinom2()` | variance is `(1 - zi) * (mu + sigma^2 * mu^2) + zi * (1 - zi) * mu^2` |
+| `truncated_nbinom2()` and hurdle models | use the zero-truncated or hurdle mean and variance described below |
+| bivariate Gaussian | marginal variances are `sigma1^2` and `sigma2^2`; residual covariance is `rho12 * sigma1 * sigma2` |
+
+For Gaussian location-scale examples, `sigma^2` is a residual variance. Do not
+carry that shortcut to Gamma, beta, count, zero-inflated, hurdle, or bivariate
+models without the family-specific transformation.
+
 ## Implemented univariate families
 
 Gaussian location-scale models use `mu` and `sigma`:

@@ -407,17 +407,18 @@ How to read this output:
 sigma_habitat <- coef(fit_growth, "sigma")["habitatgrassland"]
 data.frame(
   coefficient = sigma_habitat,
-  residual_sd_ratio = exp(sigma_habitat)
+  residual_sd_ratio = exp(sigma_habitat),
+  residual_variance_ratio = exp(2 * sigma_habitat)
 )
 ```
 
 In this fitted example, `exp(sigma:habitatgrassland)` is the estimated ratio of
-grassland residual SD to forest residual SD. A value near 2 would mean that
-growth is about twice as variable, and therefore less predictable, in
-grassland than in forest after accounting for mean habitat and temperature
-effects.
+grassland residual SD to forest residual SD. A value near 2 means that
+grassland has about twice the residual SD of forest after accounting for mean
+habitat and temperature effects. Because residual variance is SD squared, the
+same fitted coefficient implies about four times the residual variance.
 
-It is often clearer to report the fitted residual SDs directly:
+It is often clearer to report the fitted residual SDs and variances directly:
 
 ```{r location-scale-response-table}
 newdat <- data.frame(
@@ -425,18 +426,22 @@ newdat <- data.frame(
   temperature = 0
 )
 
-data.frame(
+growth_report <- data.frame(
   habitat = newdat$habitat,
   fitted_mean_growth = predict(fit_growth, newdata = newdat, dpar = "mu"),
   fitted_residual_sd = predict(fit_growth, newdata = newdat, dpar = "sigma")
 )
+growth_report$fitted_residual_variance <- growth_report$fitted_residual_sd^2
+growth_report
 ```
 
 This table maps the model back to the scientific question. The mean column
 summarises the location model. The residual SD column summarises the scale
-model. If grassland has a larger fitted residual SD, the model says that
-individual growth is more variable in grassland even after the mean difference
-and temperature effect have been modelled.
+model in the units of growth. The residual variance column is the
+variance-facing version of the same fitted Gaussian scale model. If grassland
+has a larger fitted residual SD and residual variance, the model says that
+individual growth is less predictable in grassland even after the mean
+difference and temperature effect have been modelled.
 
 ## Curved responses and interactions
 

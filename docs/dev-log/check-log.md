@@ -2,6 +2,48 @@
 
 Record meaningful development checks here.
 
+## 2026-05-10 -- Variance-facing sigma reporting
+
+Scope:
+
+- clarified in the location-scale tutorial that Gaussian `sigma` coefficients
+  are fitted on the log-residual-SD scale, so SD ratios are `exp(coef)` and
+  variance ratios are `exp(2 * coef)`;
+- added fitted residual variance to the Gaussian location-scale reporting
+  table;
+- expanded the scale-choice meta-analysis example to report extra
+  heterogeneity SD, extra heterogeneity variance, and total observation
+  variance after known sampling variance is added;
+- added a family guide table that translates fitted `sigma` into
+  variation-facing summaries for Gaussian, Student-t, lognormal, Gamma, beta,
+  beta-binomial, Poisson, zero-inflated, NB2, hurdle, and bivariate Gaussian
+  models;
+- added a model-workflow pointer warning readers not to square log-SD
+  coefficients when they want residual variance.
+
+Checks:
+
+- `air format vignettes/location-scale.Rmd vignettes/which-scale.Rmd vignettes/distribution-families.Rmd vignettes/model-workflow.Rmd`:
+  completed.
+- `Rscript -e "pkgdown::build_articles()"`: first attempt failed because
+  `drmTMB` was not installed in the active R library for direct vignette
+  rendering.
+- `Rscript -e "devtools::install(upgrade = 'never', quick = TRUE)"`: installed
+  the current checkout locally for direct article rendering.
+- `Rscript -e "pkgdown::build_articles()"`: passed after local installation.
+- `Rscript -e "pkgdown::check_pkgdown()"`: no problems found.
+- `Rscript -e "devtools::test()"`: 1400 passed, 0 failed, 0 warnings, 0 skips.
+- `Rscript -e "pkgdown::build_site()"`: passed.
+- `Rscript tools/fix-pkgdown-favicon-mime.R pkgdown-site`: passed.
+- `rg -n "residual_variance_ratio|fitted_residual_variance|extra_heterogeneity_variance|total_observation_variance|Reporting variation|do not square the|rho12 \\* sigma1" vignettes pkgdown-site/articles --glob '!pkgdown-site/search.json'`:
+  confirmed the new source and rendered guidance.
+- `rg -n "O'Dea/Nakagawa|O'Dea-style|O\\.Dea/Nakagawa|O\\.Dea-style" README.md ROADMAP.md NEWS.md docs/design vignettes R tests _pkgdown.yml pkgdown-site --glob '!pkgdown-site/search.json'`:
+  no matches.
+- `rg -n "tau ~|meta_gaussian\\(|rho ~" README.md ROADMAP.md NEWS.md docs/design vignettes R tests _pkgdown.yml pkgdown-site --glob '!pkgdown-site/search.json'`:
+  found only the intended meta-analysis guardrail and the new reporting
+  conversion note.
+- `git diff --check`: clean.
+
 ## 2026-05-10 -- Version 0.1.0 install smoke test
 
 Scope:

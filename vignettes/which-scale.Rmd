@@ -357,14 +357,38 @@ fit_meta <- drmTMB(
 )
 
 summary(fit_meta)
-round(tapply(sigma(fit_meta), meta$treatment, mean), 3)
+
+meta_report <- data.frame(
+  treatment = meta$treatment,
+  known_sampling_variance = meta$vi,
+  extra_heterogeneity_sd = sigma(fit_meta)
+)
+meta_report$extra_heterogeneity_variance <-
+  meta_report$extra_heterogeneity_sd^2
+meta_report$total_observation_variance <-
+  meta_report$known_sampling_variance +
+  meta_report$extra_heterogeneity_variance
+
+meta_summary <- aggregate(
+  meta_report[c(
+    "extra_heterogeneity_sd",
+    "extra_heterogeneity_variance",
+    "total_observation_variance"
+  )],
+  by = list(treatment = meta_report$treatment),
+  FUN = mean
+)
+round(meta_summary, 3)
 ```
 
 The `vi` values are known before the model is fitted. The fitted `sigma`
 describes extra heterogeneity after those known sampling variances have been
 included. In meta-analysis notation this extra heterogeneity is often written
 as `tau`, but `drmTMB` keeps the name `sigma` so Gaussian distributional
-models use one stable scale vocabulary.
+models use one stable scale vocabulary. If the scientific summary needs a
+variance, square the fitted `sigma` to report extra heterogeneity variance.
+If it needs the total observation variance, add the known sampling variance
+`vi`. This is a reporting conversion, not a separate `tau ~` formula.
 
 ### Random-effect scale: `sd(population) ~ habitat`
 

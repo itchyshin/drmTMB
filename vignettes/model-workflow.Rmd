@@ -123,7 +123,9 @@ predict(fit, newdata = new_fish, dpar = "sigma", type = "link")
 
 For this Gaussian model, the response-scale `sigma` predictions are residual
 standard deviations. The link-scale predictions are the corresponding
-log-standard deviations.
+log-standard deviations. Report residual variance as `sigma(fit)^2` or
+`predict(fit, newdata = new_fish, dpar = "sigma")^2`; do not square the
+`sigma` coefficient, because coefficients are fitted on the log-SD scale.
 
 In meta-analytic Gaussian models with `meta_known_V(V = V)`, `sigma(fit)`
 still returns the modelled residual heterogeneity scale. Simulation and
