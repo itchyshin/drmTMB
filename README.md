@@ -64,7 +64,12 @@ Then load the package and run a small smoke test:
 library(drmTMB)
 
 set.seed(1)
-dat <- data.frame(y = rnorm(80), x1 = rnorm(80))
+dat <- data.frame(x1 = rnorm(80))
+dat$y <- rnorm(
+  80,
+  mean = 0.2 + 0.4 * dat$x1,
+  sd = exp(-0.4 + 0.5 * dat$x1)
+)
 
 fit <- drmTMB(
   drm_formula(y ~ x1, sigma ~ x1),
@@ -108,7 +113,15 @@ fit <- drmTMB(
 
 Here `x1` can change the expected response through `y ~ x1` and the residual
 standard deviation through `sigma ~ x1`. A positive `sigma` coefficient means
-residual variation increases with `x1`.
+residual variation increases with `x1`. The coefficient is on the log-SD
+scale, so exponentiate it before interpreting it:
+
+```r
+sigma_x1 <- coef(fit, "sigma")["x1"]
+exp(sigma_x1) # residual SD ratio for a one-unit increase in x1
+exp(2 * sigma_x1) # residual variance ratio
+head(sigma(fit)^2) # fitted residual variances
+```
 
 `bf()` is available as a short alias for `drm_formula()`.
 

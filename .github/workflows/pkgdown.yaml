@@ -1,5 +1,7 @@
 on:
-  push:
+  workflow_run:
+    workflows: ["R-CMD-check"]
+    types: [completed]
     branches: [main, master]
   workflow_dispatch:
 
@@ -19,6 +21,7 @@ concurrency:
 
 jobs:
   pkgdown:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
 
     environment:

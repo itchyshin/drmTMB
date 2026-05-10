@@ -25,6 +25,8 @@ navbar:
     tutorials:
       text: Tutorials
       menu:
+        - text: Getting started
+          href: articles/drmTMB.html
         - text: When variance carries signal
           href: articles/location-scale.html
         - text: Which scale are you modelling?

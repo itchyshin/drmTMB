@@ -308,6 +308,8 @@ rho_table$residual_covariance <- with(
   rho_table,
   rho12 * sigma_activity * sigma_boldness
 )
+rho_table$residual_variance_activity <- rho_table$sigma_activity^2
+rho_table$residual_variance_boldness <- rho_table$sigma_boldness^2
 round(rho_table, 3)
 ```
 
@@ -315,7 +317,8 @@ This table gives three quantities a reader can report directly. `sigma_activity`
 and `sigma_boldness` are the fitted residual SDs for each response at the
 chosen covariate values. `rho12` is the fitted residual correlation between the
 two responses. `residual_covariance` is the off-diagonal element of
-`\Omega_i`, computed as `rho12 * sigma_activity * sigma_boldness`.
+`\Omega_i`, computed as `rho12 * sigma_activity * sigma_boldness`. The two
+residual variance columns are the diagonal elements of `\Omega_i`.
 
 ## What should I report?
 
@@ -345,6 +348,8 @@ report_table$residual_covariance <- with(
   report_table,
   rho12 * sigma_activity * sigma_boldness
 )
+report_table$residual_variance_activity <- report_table$sigma_activity^2
+report_table$residual_variance_boldness <- report_table$sigma_boldness^2
 round(report_table, 3)
 ```
 

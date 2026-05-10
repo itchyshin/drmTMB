@@ -2,6 +2,56 @@
 
 Record meaningful development checks here.
 
+## 2026-05-10 -- First-use variance reporting and CI deploy gate
+
+Scope:
+
+- made the README smoke-test data include a real Gaussian scale effect and
+  added explicit residual SD ratio, residual variance ratio, and fitted
+  residual variance code;
+- added a "Fit your first model" section near the top of the getting-started
+  article with simulated growth data, `check_drm()`, and sigma-to-variance
+  interpretation;
+- added "Getting started" as the first item in the pkgdown Tutorials menu;
+- added marginal residual variance columns to the bivariate coscale reporting
+  tables;
+- expanded the meta-analysis article to report extra heterogeneity variance,
+  total observation variance, and bivariate residual covariance reporting;
+- corrected the previous variance-facing after-task note so its next action no
+  longer names an already-present bivariate covariance example;
+- changed `pkgdown` deployment to run from a successful `R-CMD-check`
+  `workflow_run` on `main` or `master`, while preserving manual dispatch;
+- added `v*` tag triggers and workflow-level concurrency to `R-CMD-check`.
+
+Checks:
+
+- `air format README.md vignettes/drmTMB.Rmd vignettes/bivariate-coscale.Rmd`
+  completed.
+- `Rscript -e "pkgdown::build_articles(c('drmTMB', 'bivariate-coscale', 'meta-analysis'))"`:
+  failed because `pkgdown::build_articles()` expects a package path, not a
+  character vector of article names.
+- `Rscript -e "pkgdown::build_article('drmTMB'); pkgdown::build_article('bivariate-coscale'); pkgdown::build_article('meta-analysis')"`:
+  passed.
+- `Rscript -e "pkgdown::build_home()"`: passed.
+- `Rscript -e "pkgdown::check_pkgdown()"`: no problems found.
+- `Rscript -e "pkgdown::build_site()"`: passed.
+- `Rscript tools/fix-pkgdown-favicon-mime.R pkgdown-site`: passed.
+- README smoke-test command with the edited example: first attempt failed
+  because `$x1` was expanded by the shell inside a double-quoted R expression;
+  rerunning with a single-quoted R expression passed and returned finite
+  summary output, `head(sigma(fit))`, SD ratio, variance ratio, and fitted
+  residual variances.
+- `ruby -e 'require "yaml"; ARGV.each { |f| YAML.load_file(f); puts "ok #{f}" }' .github/workflows/R-CMD-check.yaml .github/workflows/pkgdown.yaml`:
+  both workflow files parsed as YAML.
+- `command -v actionlint || true`: `actionlint` was not installed locally.
+- `rg -n "residual_sd_ratio|residual_variance_ratio|Fit your first model|Getting started|residual_variance_activity|fitted_extra_heterogeneity_variance|workflow_run|concurrency|tags" README.md _pkgdown.yml vignettes/drmTMB.Rmd vignettes/bivariate-coscale.Rmd vignettes/meta-analysis.Rmd .github/workflows docs/dev-log/after-task/2026-05-10-variance-facing-sigma-reporting.md pkgdown-site/index.html pkgdown-site/articles/drmTMB.html pkgdown-site/articles/bivariate-coscale.html pkgdown-site/articles/meta-analysis.html --glob '!pkgdown-site/search.json'`:
+  confirmed source and rendered documentation updates.
+- `gh run list --branch main --limit 2`: confirmed commit `480ff00` passed
+  both `R-CMD-check` and `pkgdown` before starting this follow-up push.
+- GitHub Actions workflow syntax was checked against official GitHub docs for
+  `workflow_run` branch filters, `push` tag filters, and `concurrency`.
+- `git diff --check`: clean.
+
 ## 2026-05-10 -- Variance-facing sigma reporting
 
 Scope:

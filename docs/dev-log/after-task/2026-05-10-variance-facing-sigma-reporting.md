@@ -94,7 +94,7 @@ bivariate Gaussian cases.
 
 ## Next Actions
 
-- Add a compact user-facing example for bivariate Gaussian residual covariance
-  reporting when the coscale tutorial is next touched.
+- Add uncertainty guidance for bivariate residual covariance reporting when
+  the coscale inference tools are designed.
 - Keep the full individual-difference roadmap focused on variance-facing
   reporting without changing the public `sigma` formula grammar.

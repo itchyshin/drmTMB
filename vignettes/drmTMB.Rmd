@@ -9,6 +9,9 @@ vignette: >
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+if (!"package:drmTMB" %in% search()) {
+  library(drmTMB)
+}
 ```
 
 `drmTMB` is being developed as a model-first package: the documentation should
@@ -30,6 +33,52 @@ For example, an applied user might ask: do mean trait values and residual
 variability change with an environmental predictor, after accounting for
 repeated measures from the same site or species? In `drmTMB`, that question is
 written as one formula for the mean and one formula for the residual scale.
+
+## Fit your first model
+
+Start with a Gaussian location-scale model when the response is continuous and
+the scientific question is about both the expected value and predictability.
+In the small example below, habitat and temperature affect mean growth, while
+habitat also changes residual variation:
+
+```{r first-model-data}
+set.seed(13)
+n <- 120
+dat <- data.frame(
+  habitat = factor(rep(c("forest", "grassland"), each = n / 2)),
+  temperature = rnorm(n)
+)
+mu <- 1 + 0.6 * (dat$habitat == "grassland") + 0.4 * dat$temperature
+sigma <- exp(-0.5 + 0.45 * (dat$habitat == "grassland"))
+dat$growth <- rnorm(n, mean = mu, sd = sigma)
+```
+
+The fitted model uses one formula for `mu` and one formula for `sigma`:
+
+```{r first-model-fit}
+fit <- drmTMB(
+  drm_formula(growth ~ habitat + temperature, sigma ~ habitat),
+  family = gaussian(),
+  data = dat
+)
+
+check_drm(fit)
+```
+
+Read the `sigma` coefficient as a log residual-SD contrast. Exponentiating it
+gives an SD ratio; exponentiating twice the coefficient gives a residual
+variance ratio:
+
+```{r first-model-interpret}
+sigma_habitat <- coef(fit, "sigma")["habitatgrassland"]
+data.frame(
+  residual_sd_ratio = exp(sigma_habitat),
+  residual_variance_ratio = exp(2 * sigma_habitat)
+)
+```
+
+For a fuller walkthrough of fitted means, residual SDs, and residual
+variances, read "When variance carries signal".
 
 ## Learning path
 

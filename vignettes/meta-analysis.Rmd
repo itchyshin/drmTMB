@@ -145,21 +145,39 @@ In this run, forest studies have about `r round(exp(sigma_coef["habitatforest"])
 times the extra heterogeneity SD of grassland studies. That multiplier applies
 to `sigma_i`; it does not alter the known sampling variances `vi`.
 
-It is often helpful to translate fitted values back to the response scale:
+It is often helpful to translate fitted values back to the response scale and
+to the variance scale used in many meta-analysis summaries:
 
 ```{r}
-sigma_by_habitat <- aggregate(
-  sigma(fit_meta),
-  list(habitat = dat$habitat),
+meta_report <- data.frame(
+  habitat = dat$habitat,
+  known_sampling_variance = dat$vi,
+  fitted_extra_heterogeneity_sd = sigma(fit_meta)
+)
+meta_report$fitted_extra_heterogeneity_variance <-
+  meta_report$fitted_extra_heterogeneity_sd^2
+meta_report$total_observation_variance <-
+  meta_report$known_sampling_variance +
+  meta_report$fitted_extra_heterogeneity_variance
+
+meta_by_habitat <- aggregate(
+  meta_report[c(
+    "fitted_extra_heterogeneity_sd",
+    "fitted_extra_heterogeneity_variance",
+    "total_observation_variance"
+  )],
+  list(habitat = meta_report$habitat),
   mean
 )
-names(sigma_by_habitat)[2] <- "fitted_extra_heterogeneity_sd"
-sigma_by_habitat
+meta_by_habitat
 ```
 
 For this model, the fitted residual heterogeneity SD is larger in forest
-studies. A biological interpretation would be: restoration effects are not
-only larger on average in forests, they are also less predictable across
+studies. The heterogeneity variance column is the same fitted `sigma` model
+reported as `sigma^2`. The total observation variance column adds the known
+sampling variance `vi`, so it is larger than the estimated heterogeneity
+variance alone. A biological interpretation would be: restoration effects are
+not only larger on average in forests, they are also less predictable across
 forest studies after known sampling uncertainty is accounted for.
 
 A quick diagnostic check flags optimizer, Hessian, row-filtering, scale, and
@@ -344,6 +362,19 @@ residual component represents between-study heterogeneity, this is the
 between-study residual correlation. In other words, `rho12` should not be asked
 to explain sampling correlation that belongs in `V`. The current implementation
 expects complete bivariate rows and a dense `2n` by `2n` row-paired `V` matrix.
+
+For reporting, translate the fitted residual scales and residual correlation
+into marginal residual variances and residual covariance:
+
+```r
+s <- sigma(fit_biv)
+residual_variance_1 <- s$sigma1^2
+residual_variance_2 <- s$sigma2^2
+residual_covariance_12 <- rho12(fit_biv) * s$sigma1 * s$sigma2
+```
+
+These are residual heterogeneity summaries after the known sampling covariance
+has been accounted for. They are not replacements for the supplied `V`.
 
 ## Implementation caveats
 
