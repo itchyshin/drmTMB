@@ -7524,3 +7524,41 @@ Known limitations:
   coverage across every implemented family;
 - the public control still correctly errors when users request
   `keep_model_frame = FALSE`.
+
+## 2026-05-10 -- Large-data benchmark smoke result
+
+Goal:
+
+- exercise the documented benchmark workflow on a non-trivial local run before
+  scaling to 100k rows and above.
+
+Command run:
+
+- `/usr/bin/time -l Rscript bench/large-phylo-location.R --rows 10000 --species 100 --eval-max 120 --iter-max 120 --memory-light true --output bench/results/large-phylo-location.csv`:
+  passed and wrote one result row.
+
+Result:
+
+- rows: 10,000;
+- species: 100;
+- tree: balanced;
+- memory-light storage: TRUE;
+- convergence code: 0;
+- data-build time: 0.028 seconds;
+- fit time: 2.261 seconds;
+- residual time: 0.013 seconds;
+- fitted-object size: 4.896 MB;
+- model-matrix size: 1.528 MB;
+- TMB-data size: 2.140 MB;
+- post-fit R heap summary: 251.356 MB;
+- macOS maximum resident set size from `/usr/bin/time -l`:
+  462,323,712 bytes;
+- macOS peak memory footprint from `/usr/bin/time -l`: 331,891,768 bytes.
+
+Known limitations:
+
+- this is a smoke run, not a scaling claim;
+- the benchmark result CSV is intentionally ignored by git, so durable
+  benchmark evidence still needs a deliberate results table or release note;
+- the next evidence step is 100k rows and 1,000 species, then factor-heavy and
+  `sigma ~ x` variants.
