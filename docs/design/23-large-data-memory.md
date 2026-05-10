@@ -78,6 +78,33 @@ Two larger memory controls remain planned rather than implemented:
 - sparse fixed-effect matrices: use sparse design matrices when factors or
   high-dimensional terms would make dense matrices costly.
 
+## Model-Frame Dependency Map
+
+The next storage target is `keep_model_frame = FALSE`. This should be designed
+as a method-dependency change, not as a bulk deletion of `model$model_frame`.
+The fitted object already stores the model matrices, terms, offsets, response
+vectors, known covariance objects, and random-effect structures needed by most
+post-fit methods.
+
+| Surface | Main Stored Inputs | Model-Frame Role | Safe Before Dropping? |
+| --- | --- | --- | --- |
+| `predict(fit)` | `model$X`, `coefficients`, stored offsets, random-effect contributions | None for fitted rows | Yes, with tests. |
+| `predict(fit, newdata = ...)` | `model$terms`, `coefficients`, `newdata` | None; offsets are recomputed from `newdata` with `model.frame()` | Yes, with offset tests. |
+| `fitted(fit)` | `predict()`, family-specific response summaries | None beyond `predict()` | Yes, with family smoke tests. |
+| `residuals(fit)` | stored response vectors, `predict()`, known covariance, trials for beta-binomial | None when response vectors remain stored | Yes, unless a later control drops responses too. |
+| `simulate(fit)` | `predict()`, stored trials, ordinal levels, known covariance | None for current fitted-row simulation | Yes, with family smoke tests. |
+| `sigma(fit)` and `rho12(fit)` | `predict()` | None | Yes. |
+| `corpairs(fit)` | fitted correlations, `predict()`, response-name metadata | Previously used `model_frame`; now should prefer stored response names | Yes, once response-name fallback tests pass. |
+| `check_drm(fit)` | optimizer result, `sdr`, `obj`, stored row filter, `sigma()`, `rho12()`, known covariance, random structures | None for current checks | Yes, except fixed-gradient already needs `obj`. |
+| Printing and summaries | coefficients, `vcov()`, log-likelihood, random-effect summaries | None | Yes. |
+
+The first low-risk implementation step is to store response names separately
+from model frames, then update response-label extractors to prefer that
+metadata. After that, a guarded `keep_model_frame = FALSE` implementation can
+drop only `model$model_frame` and run a family matrix of `predict()`,
+`fitted()`, `residuals()`, `simulate()`, `sigma()`, `rho12()`, `corpairs()`,
+and `check_drm()` tests.
+
 ## Aggregation Path
 
 For Gaussian location models, repeated rows can sometimes be collapsed. If a

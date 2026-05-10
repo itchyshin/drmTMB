@@ -1,5 +1,8 @@
-new_corpairs_biv_data <- function(n = 220, beta_rho12 = c(0.15, 0.35),
-                                  seed = 20260574) {
+new_corpairs_biv_data <- function(
+  n = 220,
+  beta_rho12 = c(0.15, 0.35),
+  seed = 20260574
+) {
   set.seed(seed)
   x <- stats::rnorm(n)
   z1 <- stats::rnorm(n)
@@ -23,8 +26,7 @@ new_corpairs_biv_data <- function(n = 220, beta_rho12 = c(0.15, 0.35),
   )
 }
 
-new_corpairs_group_data <- function(n_id = 24, n_each = 6,
-                                    seed = 20260575) {
+new_corpairs_group_data <- function(n_id = 24, n_each = 6, seed = 20260575) {
   set.seed(seed)
   n <- n_id * n_each
   ID <- factor(rep(seq_len(n_id), each = n_each))
@@ -46,9 +48,9 @@ test_that("corpairs summarizes predictor-dependent residual rho12", {
     bf(
       mu1 = y1 ~ x,
       mu2 = y2 ~ x,
-      sigma1 = ~ z1,
-      sigma2 = ~ z2,
-      rho12 = ~ w
+      sigma1 = ~z1,
+      sigma2 = ~z2,
+      rho12 = ~w
     ),
     family = c(gaussian(), gaussian()),
     data = dat
@@ -64,20 +66,34 @@ test_that("corpairs summarizes predictor-dependent residual rho12", {
   expect_equal(pairs$to_response, "y2")
   expect_equal(pairs$n_values, nrow(dat))
   expect_equal(pairs$estimate, mean(rho12(fit)), tolerance = 1e-12)
-  expect_equal(pairs$link_estimate, mean(rho12(fit, type = "link")), tolerance = 1e-12)
+  expect_equal(
+    pairs$link_estimate,
+    mean(rho12(fit, type = "link")),
+    tolerance = 1e-12
+  )
   expect_lt(pairs$min, pairs$max)
   expect_equal(pairs$modelled, TRUE)
   expect_equal(nrow(corpairs(fit, level = "group")), 0L)
+
+  fit_no_frame <- fit
+  fit_no_frame$model$model_frame <- NULL
+  pairs_no_frame <- corpairs(fit_no_frame)
+  expect_equal(pairs_no_frame$from_response, "y1")
+  expect_equal(pairs_no_frame$to_response, "y2")
 })
 
 test_that("corpairs keeps response labels for mvbind bivariate shorthand", {
-  dat <- new_corpairs_biv_data(n = 160, beta_rho12 = c(0.2, -0.15), seed = 20260577)
+  dat <- new_corpairs_biv_data(
+    n = 160,
+    beta_rho12 = c(0.2, -0.15),
+    seed = 20260577
+  )
   fit <- drmTMB(
     bf(
       mvbind(y1, y2) ~ x,
-      sigma1 = ~ z1,
-      sigma2 = ~ z2,
-      rho12 = ~ w
+      sigma1 = ~z1,
+      sigma2 = ~z2,
+      rho12 = ~w
     ),
     family = c(gaussian(), gaussian()),
     data = dat
@@ -125,6 +141,12 @@ test_that("corpairs reports ordinary group-level correlation labels", {
   )
   expect_false(grepl("rho12", pairs$parameter, fixed = TRUE))
   expect_equal(corpairs(fit, class = "mean-slope"), pairs)
+
+  fit_no_frame <- fit
+  fit_no_frame$model$model_frame <- NULL
+  pairs_no_frame <- corpairs(fit_no_frame)
+  expect_equal(pairs_no_frame$from_response, "y")
+  expect_equal(pairs_no_frame$to_response, "y")
 })
 
 test_that("corpairs returns an empty table when no correlations are fitted", {
@@ -137,10 +159,25 @@ test_that("corpairs returns an empty table when no correlations are fitted", {
   expect_named(
     pairs,
     c(
-      "level", "group", "block", "from_dpar", "to_dpar", "from_coef",
-      "to_coef", "from_response", "to_response", "class", "parameter",
-      "estimate", "min", "max", "n_values", "link_estimate", "link_min",
-      "link_max", "modelled"
+      "level",
+      "group",
+      "block",
+      "from_dpar",
+      "to_dpar",
+      "from_coef",
+      "to_coef",
+      "from_response",
+      "to_response",
+      "class",
+      "parameter",
+      "estimate",
+      "min",
+      "max",
+      "n_values",
+      "link_estimate",
+      "link_min",
+      "link_max",
+      "modelled"
     )
   )
 })

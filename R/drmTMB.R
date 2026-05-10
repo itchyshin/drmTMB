@@ -149,6 +149,8 @@ drmTMB <- function(
     )
   )
 
+  spec$response_names <- drm_spec_response_names(spec)
+
   obj <- TMB::MakeADFun(
     data = spec$tmb_data,
     parameters = spec$start,
@@ -190,6 +192,25 @@ drmTMB <- function(
   )
   class(fit) <- "drmTMB"
   drm_apply_storage_control(fit, control)
+}
+
+drm_spec_response_names <- function(spec) {
+  response_dpars <- if (identical(spec$model_type, "biv_gaussian")) {
+    c("mu1", "mu2")
+  } else {
+    "mu"
+  }
+  out <- stats::setNames(
+    as.list(rep(NA_character_, length(response_dpars))),
+    response_dpars
+  )
+  for (dpar in response_dpars) {
+    mf <- spec$model_frame[[dpar]]
+    if (is.data.frame(mf) && ncol(mf) > 0L) {
+      out[[dpar]] <- names(mf)[[1L]]
+    }
+  }
+  out
 }
 
 drm_family_type <- function(family) {

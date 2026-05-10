@@ -7453,3 +7453,42 @@ Known limitations:
 - peak-memory examples are platform-specific (`/usr/bin/time -l` on macOS,
   `/usr/bin/time -v` on Linux), so Windows users still need a separate
   measurement path.
+
+## 2026-05-10 -- Model-frame dependency map and response-name fallback
+
+Goal:
+
+- remove one blocker for future `keep_model_frame = FALSE` support without
+  exposing that control before post-fit methods are tested.
+
+Implemented:
+
+- added a model-frame dependency map to `docs/design/23-large-data-memory.md`;
+- stored fitted response names in `model$response_names`;
+- updated response-label extraction to prefer stored response names before
+  falling back to `model$model_frame`;
+- added `corpairs()` regression checks for bivariate residual `rho12` labels
+  and univariate group-level correlation labels after `model$model_frame` is
+  manually removed from a fitted object.
+
+Commands run:
+
+- `air format R/drmTMB.R R/methods.R tests/testthat/test-corpairs.R`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'corpairs|control')"`: 65 passed,
+  0 failed, 0 warnings, 0 skips.
+- `git diff --check`: passed.
+- `rg -n "model-frame dependency|Model-Frame Dependency Map|response_names|keep_model_frame = FALSE|manually removed|corpairs\\(\\) regression" R tests docs/design/23-large-data-memory.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-10-model-frame-dependency-map.md`:
+  confirmed the design note, implementation, tests, and task report include the
+  new fallback and keep the public control planned.
+- `Rscript -e "devtools::test()"`: 1428 passed, 0 failed, 0 warnings,
+  0 skips.
+- `Rscript -e "pkgdown::check_pkgdown()"`: no problems found.
+- `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`:
+  0 errors, 0 warnings, 0 notes.
+
+Known limitations:
+
+- `drm_control(keep_model_frame = FALSE)` remains intentionally unavailable;
+  this task prepares one fallback path but does not prove the full storage
+  control safe yet.

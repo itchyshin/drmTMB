@@ -454,6 +454,14 @@ univariate_response_name <- function(object, dpar) {
 }
 
 response_name_from_model_frame <- function(object, dpar, fallback) {
+  response_name <- object$model$response_names[[dpar]]
+  if (
+    is.character(response_name) &&
+      length(response_name) == 1L &&
+      !is.na(response_name)
+  ) {
+    return(response_name)
+  }
   mf <- object$model$model_frame[[dpar]]
   if (is.data.frame(mf) && ncol(mf) > 0L) {
     return(names(mf)[[1L]])
