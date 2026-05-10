@@ -19,7 +19,7 @@ Primary sources checked:
 | Tutorial or paper target | Comparator code in the tutorial | drmTMB status | Roadmap phase | Quality gate before claiming parity |
 |---|---|---|---|---|
 | Gaussian fixed-effect location-scale model for adult tarsus | `glmmTMB(log(AdTarsus) ~ Sex * Treatment, dispformula = ~ Sex * Treatment, family = gaussian)` and matching `brms` `sigma ~ ...` model | implemented now | Phase 7/8 validation | Add a local replication script and compare log-likelihood, `mu` coefficients, and `sigma` predictions. Keep drmTMB's public API on `sigma`, matching brms-style syntax and the local `glmmTMB` Gaussian check where `exp(dispformula linear predictor)` matched residual SD. When the paper interprets predictability as variance, report the derived `sigma^2` beside `sigma`. |
-| Gaussian model with `mu` random intercepts and fixed-effect residual scale | `glmmTMB(lnSMI ~ RANK + (1 | NEST) + (1 | WORKYEAR), dispformula = ~ RANK, family = gaussian)` | implemented now if the current Gaussian random-effect and `sigma` paths pass the real-data comparator | Phase 7/8 validation | Compare likelihood and fixed effects against glmmTMB, then square `sigma` predictions for O'Dea-style variance/predictability interpretation. Add deterministic checks for row filtering and group levels. |
+| Gaussian model with `mu` random intercepts and fixed-effect residual scale | `glmmTMB(lnSMI ~ RANK + (1 | NEST) + (1 | WORKYEAR), dispformula = ~ RANK, family = gaussian)` | implemented now if the current Gaussian random-effect and `sigma` paths pass the real-data comparator | Phase 7/8 validation | Compare likelihood and fixed effects against glmmTMB, then square `sigma` predictions for variance-scale predictability interpretation. Add deterministic checks for row filtering and group levels. |
 | Double-hierarchical Gaussian location-scale model with correlated `mu` and `sigma` nest effects | `brms::bf(log(SMI) ~ RANK + (1 | q | NEST) + (1 | WORKYEAR), sigma ~ RANK + (1 | q | NEST) + (1 | WORKYEAR))` | partially supported only without the cross-parameter `mu`/`sigma` covariance; full model not implemented | Phase 11 | Implement labelled covariance blocks spanning `mu` and `sigma`, expose correlation pairs outside residual `rho12`, then add simulation recovery and brms comparator checks. |
 | Negative-binomial location-scale count model with `mu` random intercepts | `glmmTMB(frequency ~ condition + sex + (1 | species) + (1 | id), dispformula = ~ condition + sex, family = nbinom2)` | fixed-effect NB2 exists; NB2 random effects are not implemented | Phase 8 then Phase 11 | Add NB2 random effects, verify glmmTMB parameterization, then compare estimates and log-likelihood on the preference-count data. |
 | COM-Poisson location-scale count model | `glmmTMB(..., dispformula = ~ condition + sex, family = compois(link = "log"))` | not implemented | Phase 8 | Add a documented COM-Poisson parameter-link contract, independent likelihood checks, simulation recovery, and glmmTMB comparator tests for over- and under-dispersion. |
@@ -36,14 +36,14 @@ referenced as OSF downloads rather than stored in the GitHub repository.
 
 The brms examples establish six concrete comparator shapes for drmTMB:
 
-| O'Dea target | brms pattern | drmTMB implication |
+| Individual-difference target | brms pattern | drmTMB implication |
 |---|---|---|
 | Personality only | `bf(aggression ~ sex + age.Z + (1 | id))` | Already close to implemented univariate Gaussian `mu` random intercepts. |
 | Personality and predictability | `bf(aggression ~ sex + age.Z + (1 | p | id), sigma ~ sex + age.Z + (1 | p | id))` | Requires a labelled covariance block spanning `mu` and `sigma` intercepts. Current drmTMB has separate `mu` random effects and Gaussian residual-scale random intercepts, but not their covariance. |
-| Personality and plasticity | `bf(aggression ~ sex + age.Z + (1 + age.Z | p | id))` | Current drmTMB supports one Gaussian `mu` random slope; this is the nearest implemented O'Dea slice. |
+| Personality and plasticity | `bf(aggression ~ sex + age.Z + (1 + age.Z | p | id))` | Current drmTMB supports one Gaussian `mu` random slope; this is the nearest implemented individual-difference slice. |
 | Personality, plasticity, and predictability | `bf(aggression ~ sex + age.Z + (1 + age.Z | q | id), sigma ~ sex + age.Z + (1 | q | id))` | This is the univariate full DHGLM MVP: one group-level block containing `mu` intercept, `mu` slope, and `sigma` intercept. |
 | Bivariate personality | two formulas, each `bf(trait ~ sex + age.Z + (1 | q | id))`, added in one `brm()` call | Phase 11 should add bivariate group-level `mu1`/`mu2` covariance before attempting bivariate DHGLM. |
-| Bivariate personality, plasticity, and predictability | two formulas, each `bf(trait ~ sex + age.Z + (1 + age.Z | z | id), sigma ~ sex + age.Z + (1 | z | id))`, added in one `brm()` call | This is the richest O'Dea target: a covariance block across two trait intercepts, two trait slopes, and two trait `sigma` intercepts. It is the acceptance-test horizon, not the first implementation step. |
+| Bivariate personality, plasticity, and predictability | two formulas, each `bf(trait ~ sex + age.Z + (1 + age.Z | z | id), sigma ~ sex + age.Z + (1 | z | id))`, added in one `brm()` call | This is the richest individual-difference target: a covariance block across two trait intercepts, two trait slopes, and two trait `sigma` intercepts. It is the acceptance-test horizon, not the first implementation step. |
 
 The translation also records the derived quantities we should eventually expose
 or teach in drmTMB examples:
@@ -66,14 +66,14 @@ should make that convention explicit instead of silently returning raw
 correlations on the `sigma`/variance scale.
 
 The brms translation does not implement a residual `rho12` or coscale formula.
-That is an important drmTMB opportunity, not a gap to copy. O'Dea-style
+That is an important drmTMB opportunity, not a gap to copy. The paper's
 group-level correlations describe between-individual covariance among
 personality, plasticity, and predictability terms. drmTMB's bivariate Gaussian
-`rho12` describes residual within-observation correlation after response-specific
-location and scale models. The package should keep those correlation levels in
-separate namespaces and teach both: `rho12` for residual/coscale association,
-and labelled group-level covariance blocks for individual-difference
-correlations.
+`rho12` describes residual within-observation correlation after
+response-specific location and scale models. The package should keep those
+correlation levels in separate namespaces and teach both: `rho12` for
+residual/coscale association, and labelled group-level covariance blocks for
+individual-difference correlations.
 
 ## Timing Estimate
 
@@ -85,7 +85,7 @@ calendar promises.
 | Set up a local replication harness using the tutorial GitHub data and code | after current Phase 9 checks close | 2-4 | Pull data, write drmTMB formulas, record glmmTMB/brms targets, and define comparator tolerances. |
 | Reproduce Gaussian model 1 and model 2 with drmTMB and glmmTMB comparators | after harness | 4-8 | Mostly validation work; the important risk is scale-parameter mapping. |
 | Full brms-style double-hierarchical Gaussian model | after Phase 11 design starts | 18-35 for a univariate MVP; 35-60 for robust docs/tests | First target should match `bf(y ~ x + (1 + x | q | id), sigma ~ x + (1 | q | id))`. Needs covariance blocks spanning `mu` and `sigma`, extractor design, simulation recovery, sign-aware association summaries, and careful optimizer diagnostics. |
-| Bivariate brms-style double-hierarchical O'Dea model | after univariate MVP and bivariate `mu` covariance are stable | 40-80 | Acceptance horizon is two traits with one labelled block spanning both traits' `mu` intercepts, `mu` slopes, and `sigma` intercepts. This should wait until univariate DHGLM and bivariate `mu` random effects are tested. |
+| Bivariate brms-style double-hierarchical individual-difference model | after univariate MVP and bivariate `mu` covariance are stable | 40-80 | Acceptance horizon is two traits with one labelled block spanning both traits' `mu` intercepts, `mu` slopes, and `sigma` intercepts. This should wait until univariate DHGLM and bivariate `mu` random effects are tested. |
 | NB2 random-effect comparator examples | after Gaussian comparator harness | 8-16 for first random-effect NB2 path | Current NB2 path is fixed-effect only. |
 | COM-Poisson family and comparator | after NB2 random-effect path or as a separate Phase 8 slice | 12-24 | Needs parameterization decisions and numerical stability checks. |
 | Zero-one-inflated beta examples | after Phase 9 boundary contract | 14-28 | Needs `zoi`/`coi` naming, boundary likelihood tests, and a brms-oriented comparator strategy. |
@@ -100,10 +100,10 @@ bivariate residual correlation, not for group-level `mu`/`sigma` covariance.
 
 Scale vocabulary needs explicit checks before every external comparison.
 The public drmTMB grammar should stay on `sigma`, matching brms-style
-distributional syntax and the current project terminology. O'Dea-style
-biological terms such as predictability and malleability are often interpreted
-on the variance scale, so tutorials and comparator harnesses should report
-derived `sigma^2` when that is the paper-facing estimand.
+distributional syntax and the current project terminology. Biological terms
+such as predictability and malleability are often interpreted on the variance
+scale, so tutorials and comparator harnesses should report derived `sigma^2`
+when that is the paper-facing estimand.
 
 The O'Dea, Noble, and Nakagawa supplementary information explicitly contrasts
 dispersion models based on residual standard deviations with dispersion models

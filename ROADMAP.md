@@ -7,7 +7,7 @@ distributional regression models using TMB.
 
 - Current development version: `0.0.0.9000`.
 - Target meaning of `0.1.0`: the first reliable public preview, not the final
-  double-hierarchical or O'Dea-style endpoint.
+  double-hierarchical individual-difference endpoint.
 - Target timing: after Phase 9 closure plus release hardening, provided checks
   stay clean. Phase 11 bivariate random effects and full
   double-hierarchical covariance should remain roadmap work for later releases.
@@ -20,8 +20,9 @@ distributional regression models using TMB.
     comparator coverage plus malformed-input tests;
   - `docs/dev-log/known-limitations.md`, `NEWS.md`, `README.md`, and the
     roadmap agree about what is implemented versus planned;
-  - O'Dea/Nakagawa examples are presented as a replication roadmap unless the
-    matching drmTMB model class is actually implemented and tested.
+  - paper examples for individual-difference location-scale models are
+    presented as a replication roadmap unless the matching drmTMB model class
+    is actually implemented and tested.
 
 ## Phase 0: Project Infrastructure
 

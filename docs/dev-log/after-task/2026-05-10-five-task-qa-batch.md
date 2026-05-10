@@ -34,7 +34,7 @@ work, without starting a new large likelihood feature.
 
 | Next task | Phase | Why next |
 | --- | --- | --- |
-| Add the local O'Dea/Nakagawa Gaussian replication harness | Phase 7/8 validation, feeding Phase 17 | It turns the paper-map into executable evidence while staying inside implemented Gaussian location-scale support. |
+| Add the local Gaussian individual-difference location-scale replication harness | Phase 7/8 validation, feeding Phase 17 | It turns the paper map into executable evidence while staying inside implemented Gaussian location-scale support. |
 | Audit pkgdown mobile/desktop rendering of the new landing page | Phase 17 | Pat found the information architecture issue; visual QA is the next accessibility step before deployment. |
 | Add beta-binomial denominator alias design note | Phase 9 | The implemented path is `cbind(successes, failures)`; a `successes/trials` alias needs a deliberate grammar decision before code. |
 | Add ordinal-scale/discrimination naming decision note | Phase 9 | The next ordinal extension should not begin until the direction of `sigma` versus a native discrimination parameter is clear. |

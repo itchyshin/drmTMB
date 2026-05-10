@@ -9,7 +9,7 @@ Complete five bounded tasks that move `drmTMB` toward Phase 9 closure and the
 
 | Task | Phase | Result |
 | --- | --- | --- |
-| O'Dea/Nakagawa Gaussian replication harness | Phase 7/8 validation, feeding Phase 17 | Added `tools/replicate-location-scale-gaussian.R` with fixed-effect and random-intercept Gaussian location-scale comparisons against `glmmTMB`. |
+| Gaussian individual-difference location-scale replication harness | Phase 7/8 validation, feeding Phase 17 | Added `tools/replicate-location-scale-gaussian.R` with fixed-effect and random-intercept Gaussian location-scale comparisons against `glmmTMB`. |
 | Landing-page mobile/desktop audit | Phase 17 | Rebuilt pkgdown, added `pkgdown/extra.css`, and confirmed the mobile home page has no horizontal page overflow at 390 px. |
 | Beta-binomial denominator syntax note | Phase 9 | Added `docs/design/24-denominator-response-syntax.md`; `cbind(successes, failures)` remains canonical until a helper alias is designed and tested. |
 | Ordinal scale/discrimination note | Phase 9 | Added `docs/design/25-ordinal-scale-discrimination.md`; the preferred first extension is `sigma ~ ...` with `zeta = 1 / sigma` as a derived discrimination summary. |
@@ -76,8 +76,8 @@ because plain headless Chrome laid out the page at a 500 px minimum width.
 The family registry, family-link contract, roadmap, README, and rendered
 pkgdown home page now agree that public `sigma` remains the scale grammar,
 paper-facing variance summaries are derived as `sigma^2`, `rho12` is the
-residual bivariate correlation, and full O'Dea-style double-hierarchical
-covariance remains planned rather than implemented.
+residual bivariate correlation, and full double-hierarchical covariance for
+individual-difference models remains planned rather than implemented.
 
 ## What Did Not Go Smoothly
 
@@ -106,14 +106,16 @@ Gaussian overlap with `glmmTMB`.
 ## Known Limitations
 
 The harness is simulated replication scaffolding, not a full real-data
-reproduction of every O'Dea/Nakagawa model. The denominator helper and ordinal
-scale formula remain design notes until their parser, likelihood, tests,
-documentation, and after-task report are implemented.
+reproduction of every individual-difference location-scale model. The
+denominator helper and ordinal scale formula remain design notes until their
+parser, likelihood, tests, documentation, and after-task report are
+implemented.
 
 ## Next Actions
 
 Open the `0.1.0` checklist as a GitHub issue when the user wants release work
-tracked publicly. For O'Dea/Nakagawa replication, the next step is to pin the
-paper/tutorial datasets and translate each model into a table that records
-whether the current `drmTMB` likelihood can fit it, whether only a derived
-`sigma^2` summary is needed, or whether a future covariance block is required.
+tracked publicly. For replication of the individual-difference location-scale
+paper and tutorial, the next step is to pin the datasets and translate each
+model into a table that records whether the current `drmTMB` likelihood can
+fit it, whether only a derived `sigma^2` summary is needed, or whether a future
+covariance block is required.

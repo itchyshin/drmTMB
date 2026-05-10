@@ -2,8 +2,9 @@
 
 Date: 2026-05-10
 
-Reader: contributors validating the first O'Dea/Nakagawa-style replication
-targets before implementing richer double-hierarchical covariance blocks.
+Reader: contributors validating the first individual-difference location-scale
+replication targets before implementing richer double-hierarchical covariance
+blocks.
 
 ## Goal
 
@@ -45,6 +46,7 @@ location-scale paper and tutorial.
 ## Remaining Limitations
 
 These are simulation-based smoke tests, not full real-data reproductions of
-the O'Dea/Nakagawa tutorial examples. The next replication step is a local
-script or optional test harness that loads the tutorial data and records
-paper-facing `sigma^2` summaries beside drmTMB's public `sigma` estimates.
+the individual-difference location-scale tutorial examples. The next
+replication step is a local script or optional test harness that loads the
+tutorial data and records paper-facing `sigma^2` summaries beside drmTMB's
+public `sigma` estimates.

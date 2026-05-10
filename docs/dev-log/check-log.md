@@ -2,6 +2,50 @@
 
 Record meaningful development checks here.
 
+## 2026-05-10 -- Reader-first individual-difference wording
+
+Scope:
+
+- replaced project-internal author shorthand in active user-facing docs and the
+  newest development notes;
+- kept formal paper references where the citation itself is useful, but made
+  the surrounding prose describe the model class: individual-difference
+  location-scale models, predictability, plasticity, malleability, and
+  double-hierarchical covariance.
+
+Files touched:
+
+- `README.md`
+- `ROADMAP.md`
+- `docs/design/18-random-effect-scale-models.md`
+- `docs/dev-log/release-checklists/2026-05-10-0.1.0-preview-release.md`
+- recent 2026-05-10 after-task reports for the landing page, comparator
+  tests, paper phase map, QA batch, and release-readiness batch.
+
+Checks:
+
+- shorthand scans over `README.md`, `ROADMAP.md`, `NEWS.md`, active design
+  docs, release checklists, 2026-05-10 after-task reports, vignettes, and
+  `_pkgdown.yml`: no matches for the removed slash-author or author-style
+  labels.
+- `Rscript -e "pkgdown::build_site()"`: passed and regenerated the rendered
+  landing page and roadmap.
+- `Rscript tools/fix-pkgdown-favicon-mime.R pkgdown-site`: passed.
+- `Rscript -e "pkgdown::check_pkgdown()"`: no problems found.
+- rendered-site shorthand scan over `pkgdown-site` excluding `search.json`: no
+  matches for the removed slash-author or author-style labels.
+- `Rscript -e "devtools::test()"`: 1400 passed, 0 failed, 0 warnings,
+  0 skips.
+- `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`:
+  0 errors, 0 warnings, 0 notes.
+- `git diff --check`: clean.
+
+Team learning:
+
+- Pat's reader check applies to roadmap and dev-log prose, not only tutorials:
+  if a phrase only makes sense to the project team, replace it with the model
+  class or the scientific quantity the reader came to understand.
+
 ## 2026-05-10 -- CI follow-up for beta-binomial boundary test
 
 Scope:
@@ -48,9 +92,9 @@ Team learning:
 Goal:
 
 - complete the next five bounded tasks after the Phase 9 QA batch: add a local
-  O'Dea/Nakagawa Gaussian replication harness, visually audit the landing page,
-  record denominator-aware and ordinal-scale design guardrails, and make the
-  `0.1.0` preview-release checklist concrete.
+  Gaussian individual-difference location-scale replication harness, visually
+  audit the landing page, record denominator-aware and ordinal-scale design
+  guardrails, and make the `0.1.0` preview-release checklist concrete.
 
 Completed tasks:
 
@@ -95,8 +139,8 @@ Commands run:
 Known limitations:
 
 - the harness uses simulated paper-shaped Gaussian examples; it is not yet a
-  full real-data reproduction of every model in the O'Dea/Nakagawa paper or
-  tutorial;
+  full real-data reproduction of every model in the individual-difference
+  location-scale paper or tutorial;
 - the ordinal scale and denominator-helper notes are design guardrails, not
   implemented formula grammar;
 - the `0.1.0` checklist is a local issue-ready artifact. It has not been opened
@@ -6744,10 +6788,10 @@ Scale-comparator correction:
 
 - drmTMB should keep public `sigma` as the user-facing scale, matching
   brms-style distributional syntax and the project's stable terminology.
-  O'Dea-style predictability and malleability often need variance-scale
-  summaries, so comparator harnesses should report package-native parameters,
-  drmTMB `sigma`, and derived paper-facing `sigma^2` interpretations side by
-  side.
+  Individual-difference predictability and malleability summaries often need
+  variance-scale summaries, so comparator harnesses should report
+  package-native parameters, drmTMB `sigma`, and derived paper-facing
+  `sigma^2` interpretations side by side.
 - `/Users/z3437171/Downloads/mee313755-sup-0001-supinfo.pdf` was checked for
   the O'Dea, Noble, and Nakagawa conversion: the supplement notes that `brms`
   DHGLM dispersion defaults use residual standard deviations, and that
@@ -6772,8 +6816,8 @@ Known limitations:
 
 - the location-scale paper/tutorial data have been mapped but not yet run
   through drmTMB;
-- full O'Dea-style double-hierarchical covariance between `mu` and `sigma`
-  random effects remains Phase 11 work;
+- full double-hierarchical covariance between `mu` and `sigma` random effects
+  remains Phase 11 work;
 - beta-binomial random effects, structured effects, bivariate models, and
   successes/trials alias syntax remain planned.
 
@@ -6827,7 +6871,8 @@ Goal:
 
 - add a small optional comparator rung for the Gaussian location-scale examples
   that overlap with `glmmTMB`, before moving toward real-data paper
-  replications or O'Dea-style double-hierarchical covariance blocks.
+  replications or double-hierarchical covariance blocks for
+  individual-difference models.
 
 Changes:
 
@@ -6872,7 +6917,7 @@ Commands run:
 Known limitations:
 
 - these are small simulation-based comparator smoke tests, not the full
-  real-data O'Dea/Nakagawa replication harness;
+  real-data individual-difference location-scale replication harness;
 - the next replication step should load the tutorial data, fit overlapping
   `glmmTMB` and drmTMB models, and report drmTMB `sigma` plus paper-facing
   `sigma^2` summaries side by side.

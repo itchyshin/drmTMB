@@ -33,8 +33,7 @@ capability table, article links, and brief limitations.
   phylogenetic/spatial articles.
 - Kept current boundaries visible: one/two responses only, non-Gaussian random
   effects mostly planned, residual `rho12` is not group-level covariance, and
-  O'Dea-style double-hierarchical individual-difference covariance remains
-  planned work.
+  double-hierarchical individual-difference covariance remains planned work.
 - Preserved the public `sigma` convention and explained that variance-facing
   summaries should use derived `sigma^2`.
 

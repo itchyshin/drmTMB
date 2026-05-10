@@ -28,10 +28,10 @@ bf(y ~ x, sigma ~ z)
 ```
 
 Keep that public syntax. It matches brms-style distributional formulas and the
-project's stable terminology. For O'Dea-style predictability and malleability
-summaries, the scientific interpretation often concerns residual variance.
-Report that as a derived quantity, `sigma^2`, rather than changing the model
-grammar to a variance formula.
+project's stable terminology. For individual-difference summaries of
+predictability and malleability, the scientific interpretation often concerns
+residual variance. Report that as a derived quantity, `sigma^2`, rather than
+changing the model grammar to a variance formula.
 
 For log-scale Gaussian models:
 
@@ -44,7 +44,7 @@ variance_i = sigma_i^2 = exp(2 eta_sigma_i)
 Thus a coefficient in a log-`sigma` model doubles when expressed on the
 log-variance scale. A random-effect variance component on the log-`sigma` scale
 is multiplied by four when expressed on the log-variance scale. This conversion
-is needed when comparing drmTMB or brms-style `sigma` models with O'Dea-style
+is needed when comparing drmTMB or brms-style `sigma` models with paper-facing
 summaries that are written for residual variances.
 
 ## Implemented Residual Scale

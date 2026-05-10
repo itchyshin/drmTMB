@@ -93,10 +93,12 @@ Residual `rho12` is a within-observation bivariate Gaussian correlation. It is
 not the same as a group-level correlation among individual intercepts, slopes,
 or residual-scale random effects.
 
-Full O'Dea-style double-hierarchical individual-difference models are planned
-work. The package direction is to keep the public `sigma` grammar, report
-variance-facing summaries as `sigma^2`, and eventually expose both group-level
-personality/plasticity/predictability correlations and residual `rho12`.
+Full double-hierarchical individual-difference models are planned work. These
+models would jointly describe individual differences in average behaviour,
+plasticity, predictability, and malleability. The package direction is to keep
+the public `sigma` grammar, report variance-facing summaries as `sigma^2`, and
+eventually expose both group-level individual-difference correlations and
+residual `rho12`.
 
 Spatial syntax is part of the structured-effect design, but routine spatial
 model fitting is still planned rather than a first landing-page workflow.
