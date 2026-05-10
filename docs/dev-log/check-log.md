@@ -8583,3 +8583,48 @@ Known limitations:
 
 - metadata does not include CPU model, available RAM, BLAS details, or
   operating-system peak memory.
+
+## 2026-05-10 -- GitHub Actions Node 24 hygiene
+
+Goal:
+
+- remove Node.js 20 deprecation annotations from otherwise green CI runs by
+  updating first-party GitHub actions to current Node 24 releases.
+
+Implemented:
+
+- updated `actions/checkout` from `v4` to `v6.0.2`;
+- updated `actions/configure-pages` from `v5` to `v6.0.0`;
+- updated `actions/upload-pages-artifact` from `v4` to `v5.0.0`;
+- updated `actions/deploy-pages` from `v4` to `v5.0.0`;
+- removed `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24` from both workflows.
+
+Checks run:
+
+- `gh api repos/actions/checkout/releases/latest --jq '.tag_name'`:
+  returned `v6.0.2`.
+- `gh api repos/actions/configure-pages/releases/latest --jq '.tag_name'`:
+  returned `v6.0.0`.
+- `gh api repos/actions/upload-pages-artifact/releases/latest --jq '.tag_name'`:
+  returned `v5.0.0`.
+- `gh api repos/actions/deploy-pages/releases/latest --jq '.tag_name'`:
+  returned `v5.0.0`.
+- `gh api 'repos/actions/checkout/contents/action.yml?ref=v6.0.2' --jq '.content' | base64 --decode | rg -n "using:"`:
+  confirmed `using: node24`.
+- `gh api 'repos/actions/configure-pages/contents/action.yml?ref=v6.0.0' --jq '.content' | base64 --decode | rg -n "using:"`:
+  confirmed `using: 'node24'`.
+- `gh api 'repos/actions/upload-pages-artifact/contents/action.yml?ref=v5.0.0' --jq '.content' | base64 --decode | rg -n "using:"`:
+  confirmed the action is composite and uses `actions/upload-artifact` v7
+  internally.
+- `gh api 'repos/actions/deploy-pages/contents/action.yml?ref=v5.0.0' --jq '.content' | base64 --decode | rg -n "using:"`:
+  confirmed `using: 'node24'`.
+- `ruby -e 'require "yaml"; ARGV.each { |f| YAML.load_file(f); puts "ok #{f}" }' .github/workflows/R-CMD-check.yaml .github/workflows/pkgdown.yaml`:
+  passed and parsed both workflow YAML files.
+- `rg -n "actions/checkout|actions/configure-pages|actions/upload-pages-artifact|actions/deploy-pages|FORCE_JAVASCRIPT_ACTIONS_TO_NODE24" .github/workflows docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-10-github-actions-node24-hygiene.md`:
+  passed and found the updated workflow tags plus historical check-log mentions.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- this workflow change still needs validation from the next pushed
+  R-CMD-check and pkgdown runs.

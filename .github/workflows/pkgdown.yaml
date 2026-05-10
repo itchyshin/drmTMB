@@ -7,9 +7,6 @@ on:
 
 name: pkgdown
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
 permissions:
   contents: read
   pages: write
@@ -30,11 +27,11 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6.0.2
         with:
           ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
-      - uses: actions/configure-pages@v5
+      - uses: actions/configure-pages@v6.0.0
 
       - uses: r-lib/actions/setup-pandoc@v2
 
@@ -54,9 +51,9 @@ jobs:
       - name: Fix favicon MIME markup
         run: Rscript tools/fix-pkgdown-favicon-mime.R pkgdown-site
 
-      - uses: actions/upload-pages-artifact@v4
+      - uses: actions/upload-pages-artifact@v5.0.0
         with:
           path: pkgdown-site
 
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5.0.0
