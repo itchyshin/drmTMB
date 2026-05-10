@@ -114,3 +114,80 @@ test_that("offset prediction tolerates manually removed model frames", {
   expect_length(residuals(fit), nrow(dat))
   expect_equal(dim(simulate(fit, nsim = 2, seed = 1)), c(nrow(dat), 2L))
 })
+
+test_that("representative family methods tolerate manually removed model frames", {
+  beta_binomial_dat <- data.frame(
+    success = c(2L, 4L, 6L, 8L, 3L, 5L, 7L, 9L, 4L, 6L),
+    failure = c(8L, 6L, 4L, 2L, 7L, 5L, 3L, 1L, 6L, 4L),
+    x = seq(-1, 1, length.out = 10)
+  )
+  beta_binomial_fit <- drmTMB(
+    bf(cbind(success, failure) ~ x, sigma ~ 1),
+    family = beta_binomial(),
+    data = beta_binomial_dat,
+    control = list(eval.max = 100, iter.max = 100)
+  )
+  beta_binomial_fit$model$model_frame <- NULL
+
+  expect_length(
+    predict(beta_binomial_fit, dpar = "mu"),
+    nrow(beta_binomial_dat)
+  )
+  expect_length(
+    predict(beta_binomial_fit, newdata = data.frame(x = c(0, 1)), dpar = "mu"),
+    2L
+  )
+  expect_length(residuals(beta_binomial_fit), nrow(beta_binomial_dat))
+  expect_equal(
+    dim(simulate(beta_binomial_fit, nsim = 2, seed = 1)),
+    c(nrow(beta_binomial_dat), 2L)
+  )
+
+  ordinal_dat <- data.frame(
+    score = ordered(
+      rep(c("low", "medium", "high"), each = 4),
+      levels = c("low", "medium", "high")
+    ),
+    x = rep(c(-1, -0.5, 0.5, 1), times = 3)
+  )
+  ordinal_fit <- drmTMB(
+    bf(score ~ x),
+    family = cumulative_logit(),
+    data = ordinal_dat,
+    control = list(eval.max = 100, iter.max = 100)
+  )
+  ordinal_fit$model$model_frame <- NULL
+
+  expect_length(predict(ordinal_fit, dpar = "mu"), nrow(ordinal_dat))
+  expect_length(
+    predict(ordinal_fit, newdata = data.frame(x = c(0, 1)), dpar = "mu"),
+    2L
+  )
+  expect_length(fitted(ordinal_fit), nrow(ordinal_dat))
+  expect_length(residuals(ordinal_fit), nrow(ordinal_dat))
+  expect_equal(
+    dim(simulate(ordinal_fit, nsim = 2, seed = 1)),
+    c(nrow(ordinal_dat), 2L)
+  )
+
+  biv_dat <- data.frame(
+    y1 = c(-0.4, -0.1, 0.2, 0.4, 0.7, 1.0, 1.2, 1.5),
+    y2 = c(0.3, 0.2, 0.4, 0.5, 0.9, 1.1, 1.0, 1.4),
+    x = c(-1, -0.5, 0, 0.5, 1, 1.5, 2, 2.5)
+  )
+  biv_fit <- drmTMB(
+    bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~1, sigma2 = ~1, rho12 = ~1),
+    family = c(gaussian(), gaussian()),
+    data = biv_dat,
+    control = list(eval.max = 100, iter.max = 100)
+  )
+  biv_fit$model$model_frame <- NULL
+
+  expect_equal(dim(fitted(biv_fit)), c(nrow(biv_dat), 2L))
+  expect_equal(dim(residuals(biv_fit)), c(nrow(biv_dat), 2L))
+  expect_length(rho12(biv_fit), nrow(biv_dat))
+  expect_equal(dim(simulate(biv_fit, nsim = 2, seed = 1)), c(nrow(biv_dat), 4L))
+  pairs <- corpairs(biv_fit)
+  expect_equal(pairs$from_response, "y1")
+  expect_equal(pairs$to_response, "y2")
+})

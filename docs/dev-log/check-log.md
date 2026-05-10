@@ -7508,6 +7508,9 @@ Implemented:
 - added an offset prediction test that manually removes `model_frame` from a
   Poisson offset fit and checks `predict(newdata = ...)`, `residuals()`, and
   `simulate()`.
+- added a representative family matrix covering beta-binomial trial storage,
+  cumulative-logit ordinal metadata, and two-response bivariate Gaussian
+  output after `model_frame` is manually removed.
 
 Commands run:
 
@@ -7517,11 +7520,17 @@ Commands run:
 - `git diff --check`: passed.
 - `Rscript -e "devtools::test()"`: 1439 passed, 0 failed, 0 warnings,
   0 skips.
+- after adding the representative family matrix,
+  `Rscript -e "devtools::test(filter = 'control')"`: 50 passed, 0 failed,
+  0 warnings, 0 skips.
+- after adding the representative family matrix,
+  `Rscript -e "devtools::test()"`: 1454 passed, 0 failed, 0 warnings,
+  0 skips.
 
 Known limitations:
 
-- this is an early method smoke test, not complete `keep_model_frame = FALSE`
-  coverage across every implemented family;
+- this is an expanded representative method smoke test, not complete
+  `keep_model_frame = FALSE` coverage across every implemented family;
 - the public control still correctly errors when users request
   `keep_model_frame = FALSE`.
 

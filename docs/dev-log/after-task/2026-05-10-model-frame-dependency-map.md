@@ -49,7 +49,9 @@ The targeted tests completed with 65 passes. The full test suite completed with
 1428 passes. `pkgdown::check_pkgdown()` found no problems. R CMD check
 completed with 0 errors, 0 warnings, and 0 notes. The follow-up control test
 run completed with 35 passes after adding the first method-matrix smoke tests,
-and the follow-up full suite completed with 1439 passes.
+and the follow-up full suite completed with 1439 passes. A later representative
+family matrix in `test-control.R` completed with 50 passes, and the full suite
+after that matrix completed with 1454 passes.
 
 ## Tests Of The Tests
 
@@ -57,7 +59,9 @@ The new tests mutate fitted objects by setting `fit$model$model_frame <- NULL`.
 That forces `corpairs()` to use the new response-name metadata instead of the
 old model-frame path. The follow-up control tests use the same mutation to
 check core Gaussian post-fit methods and Poisson offset prediction without a
-stored model frame.
+stored model frame. The representative family matrix extends that pattern to
+beta-binomial trial storage, cumulative-logit ordinal metadata, and bivariate
+Gaussian two-response output.
 
 ## Consistency Audit
 
