@@ -69,10 +69,11 @@ check_drm(fit)
 
 A clean diagnostic table does not prove that the model is scientifically
 correct, but it catches common problems early: optimizer convergence, gradients,
-finite objective values, Hessian status, dropped rows, positive scale values,
-residual `rho12` values near the boundary, Student-t `nu` values near the
-boundary or close to Gaussian behaviour, known sampling covariance summaries,
-and random-effect design issues when random effects are present.
+optimizer evaluation counts, finite objective values, Hessian status, dropped
+rows, positive scale values, residual `rho12` values near the boundary,
+Student-t `nu` values near the boundary or close to Gaussian behaviour, known
+sampling covariance summaries, and random-effect design issues when random
+effects are present.
 
 ## Read coefficients by parameter
 

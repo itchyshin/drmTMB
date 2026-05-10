@@ -48,6 +48,7 @@ test_that("check_drm() reports core diagnostics for Gaussian fits", {
   expect_true(all(
     c(
       "optimizer_convergence",
+      "optimizer_budget",
       "finite_objective",
       "fixed_gradient",
       "hessian_positive_definite",
@@ -299,10 +300,25 @@ test_that("check_drm() reports mutated diagnostic failure branches", {
   nonconverged <- fit
   nonconverged$opt$convergence <- 1L
   nonconverged$opt$message <- "test convergence failure"
+  nonconverged$opt$iterations <- 10L
+  nonconverged$opt$evaluations["function"] <- 10L
+  nonconverged$control$optimizer <- list(iter.max = 10, eval.max = 10)
   convergence <- check_drm(nonconverged)
   convergence <- convergence[convergence$check == "optimizer_convergence", ]
   expect_equal(convergence$status, "warning")
   expect_match(convergence$message, "test convergence failure")
+
+  budget <- check_drm(nonconverged)
+  budget <- budget[budget$check == "optimizer_budget", ]
+  expect_equal(budget$status, "warning")
+  expect_match(budget$value, "iterations=10; function=10")
+  expect_match(budget$message, "evaluation or iteration limit")
+
+  converged_budget <- nonconverged
+  converged_budget$opt$convergence <- 0L
+  budget_note <- check_drm(converged_budget)
+  budget_note <- budget_note[budget_note$check == "optimizer_budget", ]
+  expect_equal(budget_note$status, "note")
 
   nonfinite <- fit
   nonfinite$opt$objective <- Inf

@@ -32,13 +32,14 @@ effects, or bivariate residual correlation \code{rho12}.
 }
 \details{
 The current checks cover optimizer convergence, finite objective values,
-fixed-parameter gradients, Hessian status from \code{\link[TMB:sdreport]{TMB::sdreport()}}, dropped
-rows, positive scale parameters, bivariate residual-correlation \code{rho12}
-values near the boundary, Student-t \code{nu} boundary behaviour, known sampling
-covariance summaries, dense fixed-effect design size, random-effect
-replication, and random-slope design variation. If the fit was stored with
-\code{drm_control(keep_tmb_object = FALSE)}, the fixed-gradient check is reported
-as a note because the TMB automatic-differentiation object is not available.
+optimizer evaluation counts, fixed-parameter gradients, Hessian status from
+\code{\link[TMB:sdreport]{TMB::sdreport()}}, dropped rows, positive scale parameters, bivariate
+residual-correlation \code{rho12} values near the boundary, Student-t \code{nu}
+boundary behaviour, known sampling covariance summaries, dense fixed-effect
+design size, random-effect replication, and random-slope design variation. If
+the fit was stored with \code{drm_control(keep_tmb_object = FALSE)}, the
+fixed-gradient check is reported as a note because the TMB
+automatic-differentiation object is not available.
 
 Use \code{check_drm()} before interpreting coefficients, fitted values, or
 response-scale quantities. A \code{note} records something to inspect, such as

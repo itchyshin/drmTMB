@@ -7899,3 +7899,45 @@ Known limitations:
 
 - users without `pak` still need to install `pak` first, which the README
   shows explicitly.
+
+## 2026-05-10 -- Add optimizer budget diagnostics
+
+Goal:
+
+- make `check_drm()` show optimizer iteration and evaluation counts so users can
+  triage difficult fits without digging into `fit$opt`.
+
+Implemented:
+
+- added an `optimizer_budget` row to `check_drm()`;
+- reports optimizer iterations, function evaluations, and gradient evaluations;
+- flags a supplied `eval.max` or `iter.max` limit as a note for converged fits
+  and as a warning for non-converged fits;
+- updated roxygen documentation, NEWS, and the getting-started and
+  model-workflow articles;
+- added targeted tests for the new diagnostic row and budget-limit statuses.
+
+Commands run:
+
+- `air format R/check.R tests/testthat/test-check-drm.R vignettes/drmTMB.Rmd vignettes/model-workflow.Rmd NEWS.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-10-optimizer-budget-diagnostic.md`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'check-drm')"`: passed with 61 tests,
+  0 failures, 0 warnings, 0 skips.
+- `Rscript -e "devtools::document()"`: passed and refreshed
+  `man/check_drm.Rd`.
+- `Rscript -e "devtools::test()"`: passed with 1464 tests, 0 failures,
+  0 warnings, 0 skips.
+- `git diff --check`: passed.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with no problems.
+- `Rscript -e "pkgdown::build_site()"`: passed.
+- `Rscript tools/fix-pkgdown-favicon-mime.R pkgdown-site`: passed.
+- `rg -n "optimizer_budget|optimizer evaluation counts|eval\\.max|iter\\.max" R/check.R man/check_drm.Rd tests/testthat/test-check-drm.R vignettes/drmTMB.Rmd vignettes/model-workflow.Rmd NEWS.md pkgdown-site/reference/check_drm.html pkgdown-site/articles/drmTMB.html pkgdown-site/articles/model-workflow.html docs/dev-log/after-task/2026-05-10-optimizer-budget-diagnostic.md docs/dev-log/check-log.md`:
+  passed and found the expected source, test, documentation, and rendered-site
+  entries.
+- `Rscript -e "devtools::check(document = FALSE, manual = FALSE, args = '--no-tests')"`:
+  passed with 0 errors, 0 warnings, 0 notes.
+
+Known limitations:
+
+- the diagnostic reports budget use; it does not decide whether a larger
+  optimizer budget is the right scientific response.

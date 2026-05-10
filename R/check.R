@@ -6,13 +6,14 @@
 #' effects, or bivariate residual correlation `rho12`.
 #'
 #' The current checks cover optimizer convergence, finite objective values,
-#' fixed-parameter gradients, Hessian status from [TMB::sdreport()], dropped
-#' rows, positive scale parameters, bivariate residual-correlation `rho12`
-#' values near the boundary, Student-t `nu` boundary behaviour, known sampling
-#' covariance summaries, dense fixed-effect design size, random-effect
-#' replication, and random-slope design variation. If the fit was stored with
-#' `drm_control(keep_tmb_object = FALSE)`, the fixed-gradient check is reported
-#' as a note because the TMB automatic-differentiation object is not available.
+#' optimizer evaluation counts, fixed-parameter gradients, Hessian status from
+#' [TMB::sdreport()], dropped rows, positive scale parameters, bivariate
+#' residual-correlation `rho12` values near the boundary, Student-t `nu`
+#' boundary behaviour, known sampling covariance summaries, dense fixed-effect
+#' design size, random-effect replication, and random-slope design variation. If
+#' the fit was stored with `drm_control(keep_tmb_object = FALSE)`, the
+#' fixed-gradient check is reported as a note because the TMB
+#' automatic-differentiation object is not available.
 #'
 #' Use `check_drm()` before interpreting coefficients, fitted values, or
 #' response-scale quantities. A `note` records something to inspect, such as
@@ -61,6 +62,7 @@ check_drm.drmTMB <- function(
 
   rows <- list(
     check_optimizer_convergence(object),
+    check_optimizer_budget(object),
     check_finite_objective(object),
     check_fixed_gradient(object, gradient_tolerance = gradient_tolerance),
     check_hessian(object),
@@ -138,6 +140,87 @@ check_optimizer_convergence <- function(object) {
     convergence,
     message
   )
+}
+
+check_optimizer_budget <- function(object) {
+  iterations <- object$opt$iterations
+  evaluations <- object$opt$evaluations
+  function_evaluations <- optimizer_evaluation_count(evaluations, "function")
+  gradient_evaluations <- optimizer_evaluation_count(evaluations, "gradient")
+
+  control <- object$control$optimizer
+  if (is.null(control)) {
+    control <- list()
+  }
+  iter_max <- optimizer_budget_limit(control, "iter.max")
+  eval_max <- optimizer_budget_limit(control, "eval.max")
+
+  hit_iter <- optimizer_budget_reached(iterations, iter_max)
+  hit_eval <- optimizer_budget_reached(function_evaluations, eval_max)
+  hit_budget <- hit_iter || hit_eval
+  converged <- identical(as.integer(object$opt$convergence), 0L)
+
+  value <- paste0(
+    "iterations=",
+    format_optimizer_count(iterations),
+    "; function=",
+    format_optimizer_count(function_evaluations),
+    "; gradient=",
+    format_optimizer_count(gradient_evaluations)
+  )
+  message <- if (hit_budget) {
+    paste(
+      "Optimizer reached a supplied evaluation or iteration limit;",
+      "inspect convergence, gradients, and model structure before increasing",
+      "`eval.max` or `iter.max`."
+    )
+  } else if (length(control) > 0L) {
+    "Optimizer stayed below supplied evaluation and iteration limits."
+  } else {
+    "Optimizer evaluation counts recorded; no eval.max or iter.max control was supplied."
+  }
+
+  check_row(
+    "optimizer_budget",
+    if (hit_budget && !converged) {
+      "warning"
+    } else if (hit_budget) {
+      "note"
+    } else {
+      "ok"
+    },
+    value,
+    message
+  )
+}
+
+optimizer_evaluation_count <- function(evaluations, name) {
+  if (is.null(evaluations) || is.null(evaluations[[name]])) {
+    return(NA_real_)
+  }
+  as.numeric(evaluations[[name]])
+}
+
+optimizer_budget_limit <- function(control, name) {
+  if (is.null(control[[name]])) {
+    return(NA_real_)
+  }
+  as.numeric(control[[name]])
+}
+
+optimizer_budget_reached <- function(count, limit) {
+  length(count) == 1L &&
+    length(limit) == 1L &&
+    is.finite(count) &&
+    is.finite(limit) &&
+    count >= limit
+}
+
+format_optimizer_count <- function(x) {
+  if (length(x) != 1L || !is.finite(x)) {
+    return("NA")
+  }
+  as.character(as.integer(x))
 }
 
 check_finite_objective <- function(object) {
