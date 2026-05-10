@@ -32,6 +32,9 @@ notes. "Reserved" means the syntax is part of the public design vocabulary but
 should currently give a clear unsupported-feature error rather than a fit.
 "Planned" means the syntax is shown only to explain the roadmap.
 
+In this table, "coscale" means a model for residual correlation, currently
+`rho12` in two-response Gaussian models.
+
 | Syntax | Current status | Notes |
 |---|---|---|
 | `drm_formula()` and `bf()` | Implemented | `drm_formula()` is the explicit constructor; `bf()` is a short alias. |
@@ -60,8 +63,8 @@ should currently give a clear unsupported-feature error rather than a fit.
 | `biv_gaussian()` | Implemented legacy helper | Kept for compatibility while composed families become the public direction. |
 | `mvbind(y1, y2) ~ x1` | Implemented | Shorthand for identical bivariate location formulas; explicit `mu1`/`mu2` remains preferred for different predictors. |
 | `phylo(1 | species, tree = tree)` in `mu` | Implemented | Intercept-only univariate Gaussian phylogenetic location effect; requires an ultrametric tree with branch lengths. |
-| `cbind(successes, failures) ~ x1`, `family = beta_binomial()` | Planned | Denominator-preserving percentage/count syntax candidate; a successes/trials interface is another candidate. |
-| `y ~ x1 + x2`, `family = cumulative_logit()` | Planned | First ordinal model path for ordered scores with cutpoints; univariate only. |
+| `y ~ x1 + x2`, `family = cumulative_logit()` | Implemented | Fixed-effect univariate ordinal model for ordered scores with cutpoints; ordinal scale formulas are planned. |
+| `cbind(successes, failures) ~ x1`, `family = beta_binomial()` | Implemented | Fixed-effect denominator-aware model for success counts with known trial totals; `sigma` is extra-binomial variation. |
 | `phylo(1 + x1 | species, tree = tree)` | Planned | Structured slopes come after the intercept-only path is fully hardened. |
 | `spatial(1 | site, coords = coords)` | Planned | Spatial SPDE/GMRF terms are part of the design but not fitted yet. |
 | Random effects in bivariate `mu1`/`mu2`, `sigma1`/`sigma2`, or `rho12` | Planned | These need separate likelihood, simulation, and naming checks before fitting. |

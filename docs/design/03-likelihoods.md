@@ -25,9 +25,10 @@ The corresponding R density call uses standard deviation, as in
 ## Implemented TMB Routing
 
 The R builders use descriptive model labels, such as `"gaussian"`,
-`"student"`, `"lognormal"`, `"gamma"`, `"beta"`, `"poisson"`, `"zi_poisson"`,
-`"nbinom2"`, `"truncated_nbinom2"`, `"hurdle_nbinom2"`, `"zi_nbinom2"`, and
-`"biv_gaussian"`. Before calling the TMB template, `make_tmb_data()` turns
+`"student"`, `"lognormal"`, `"gamma"`, `"beta"`, `"beta_binomial"`,
+`"poisson"`, `"zi_poisson"`, `"cumulative_logit"`, `"nbinom2"`, `"truncated_nbinom2"`,
+`"hurdle_nbinom2"`, `"zi_nbinom2"`, and `"biv_gaussian"`. Before calling
+the TMB template, `make_tmb_data()` turns
 those labels into integer branches in `src/drmTMB.cpp`. Unknown labels are
 rejected before they can fall through to a wrong likelihood branch. This table
 is the current routing contract:
@@ -46,6 +47,8 @@ is the current routing contract:
 | `10` | `family = beta()` | `drm_build_beta_ls_spec()` | Univariate fixed-effect beta mean-scale models for strict continuous proportions, with `mu` as the mean proportion and public `sigma` mapped internally to `phi = 1 / sigma^2`. |
 | `11` | `family = truncated_nbinom2()` | `drm_build_truncated_nbinom2_spec()` | Univariate fixed-effect zero-truncated negative-binomial 2 models for positive counts, with `mu` and `sigma` describing the untruncated NB2 component. |
 | `12` | `family = truncated_nbinom2()` plus `hu ~ ...` | `drm_build_truncated_nbinom2_spec()` | Univariate fixed-effect hurdle negative-binomial 2 models, with `hu` as the hurdle-zero probability and nonzero counts drawn from the zero-truncated NB2 component. |
+| `13` | `family = cumulative_logit()` | `drm_build_cumulative_logit_spec()` | Univariate fixed-effect cumulative-logit ordinal location models, with ordered cutpoints and fixed latent logistic scale. |
+| `14` | `family = beta_binomial()` | `drm_build_beta_binomial_spec()` | Univariate fixed-effect beta-binomial models for counted successes out of known trials, with `mu` as success probability and `sigma` as extra-binomial variation. |
 | `99` | no public route | direct test construction only | Hidden phylogenetic precision-prior parity branch used to test the sparse augmented A-inverse objective in isolation. |
 
 The hidden `model_type = 99` branch is not a family and should not appear in
@@ -472,8 +475,105 @@ For beta fits, `predict(fit, dpar = "mu")` and `fitted(fit)` return the mean
 proportion. `sigma(fit)` returns the public scale parameter, not beta
 precision; internally `phi_i = 1 / sigma_i^2`. The response must be finite and
 strictly between 0 and 1 after missing-row filtering. Boundary responses,
-denominator syntax, random effects, known sampling covariance, phylogenetic
-terms, and bivariate or mixed beta models are later phases.
+random effects, known sampling covariance, phylogenetic terms, and bivariate
+or mixed beta models are later phases.
+
+## Implemented Beta-Binomial Mean-Overdispersion
+
+Beta-binomial models keep the denominator in the likelihood:
+
+```text
+y_i | n_i, p_i ~ Binomial(n_i, p_i)
+p_i | mu_i, sigma_i ~ Beta(alpha_i, beta_i)
+eta_mu_i = X_mu[i, ] beta_mu
+eta_sigma_i = X_sigma[i, ] beta_sigma
+mu_i = logit^{-1}(eta_mu_i)
+sigma_i = exp(eta_sigma_i)
+phi_i = 1 / sigma_i^2
+alpha_i = mu_i phi_i
+beta_i = (1 - mu_i) phi_i
+E[y_i / n_i] = mu_i
+Var(y_i / n_i) =
+  mu_i (1 - mu_i) (1 + n_i sigma_i^2) /
+  (n_i (1 + sigma_i^2))
+```
+
+The TMB likelihood is:
+
+```text
+log Pr(y_i | n_i, mu_i, sigma_i) =
+  log Gamma(n_i + 1) - log Gamma(y_i + 1) -
+  log Gamma(n_i - y_i + 1) +
+  log Gamma(phi_i) - log Gamma(n_i + phi_i) +
+  log Gamma(y_i + alpha_i) - log Gamma(alpha_i) +
+  log Gamma(n_i - y_i + beta_i) - log Gamma(beta_i)
+```
+
+Matching R syntax:
+
+```r
+drmTMB(
+  bf(cbind(successes, failures) ~ habitat, sigma ~ treatment),
+  family = beta_binomial(),
+  data = dat
+)
+```
+
+For beta-binomial fits, `predict(fit, dpar = "mu")` and `fitted(fit)` return
+the success probability. `sigma(fit)` returns the public extra-binomial
+variation scale; internally `phi_i = 1 / sigma_i^2`. The response counts must
+be finite non-negative integers with positive row totals after missing-row
+filtering. Random effects, known sampling covariance, phylogenetic terms,
+bivariate or mixed beta-binomial models, and a possible successes/trials
+response alias are later phases.
+
+## Implemented Cumulative-Logit Ordinal Location
+
+The first ordinal path is fixed-effect, univariate, and location-only:
+
+```text
+Pr(y_i <= k) = logit^{-1}(theta_k - mu_i)
+mu_i = X_mu[i, ] beta_mu
+theta_1 < theta_2 < ... < theta_{K-1}
+```
+
+The response is represented internally by integer category scores
+`1, ..., K`. Ordered factor labels are retained on the fitted object so
+simulation can return ordered categories with the original labels. The
+location intercept is removed before fitting because a free intercept and free
+cutpoints are not jointly identifiable; factor predictors keep ordinary
+treatment-contrast columns after the intercept column is dropped.
+
+For category `k`, the TMB branch evaluates:
+
+```text
+Pr(y_i = 1) = F(theta_1 - mu_i)
+Pr(y_i = k) = F(theta_k - mu_i) - F(theta_{k-1} - mu_i), 1 < k < K
+Pr(y_i = K) = 1 - F(theta_{K-1} - mu_i)
+```
+
+where `F(a) = logit^{-1}(a)`. The middle-category log probabilities use a
+`log(1 - exp(x))` helper on the log-CDF scale so close cutpoints do not lose
+the likelihood contribution to cancellation.
+
+Matching R syntax:
+
+```r
+drmTMB(
+  bf(score ~ habitat),
+  family = cumulative_logit(),
+  data = dat
+)
+```
+
+For cumulative-logit fits, `predict(fit, dpar = "mu")` returns the latent
+ordinal location. `fitted(fit)` returns the expected ordered-category score
+`sum_k k * Pr(y_i = k)`, which is useful as a fitted response summary but is
+not a measured continuous outcome. `sigma(fit)` returns a fixed unit vector
+because this MVP fixes the latent logistic scale. Ordinal scale or
+discrimination formulas, random effects, known sampling covariance,
+phylogenetic terms, bivariate ordinal models, and mixed-response ordinal
+models are later phases.
 
 ## Implemented Poisson Mean
 

@@ -32,9 +32,30 @@ Type drm_log1mexp(Type log_p)
 }
 
 template<class Type>
+Type drm_log_inv_logit(Type eta)
+{
+  return -logspace_add(Type(0.0), -eta);
+}
+
+template<class Type>
+Type drm_log1m_inv_logit(Type eta)
+{
+  return -logspace_add(Type(0.0), eta);
+}
+
+template<class Type>
+Type drm_log_inv_logit_diff(Type upper, Type lower)
+{
+  return upper + drm_log1mexp(lower - upper) -
+    logspace_add(Type(0.0), upper) -
+    logspace_add(Type(0.0), lower);
+}
+
+template<class Type>
 Type objective_function<Type>::operator()()
 {
   DATA_VECTOR(y);
+  DATA_VECTOR(trials);
   DATA_VECTOR(weights);
   DATA_VECTOR(offset_mu);
   DATA_VECTOR(V_known);
@@ -76,6 +97,7 @@ Type objective_function<Type>::operator()()
   PARAMETER_VECTOR(beta_sigma);
   PARAMETER_VECTOR(beta_nu);
   PARAMETER_VECTOR(beta_zi);
+  PARAMETER_VECTOR(theta_ord);
   PARAMETER_VECTOR(beta_sd_mu);
   PARAMETER_VECTOR(beta_mu1);
   PARAMETER_VECTOR(beta_mu2);
@@ -348,6 +370,68 @@ Type objective_function<Type>::operator()()
     REPORT(beta_shape);
     ADREPORT(beta_mu);
     ADREPORT(beta_sigma);
+  } else if (model_type == 14) {
+    vector<Type> eta_mu = X_mu * beta_mu;
+    vector<Type> log_sigma = X_sigma * beta_sigma;
+    vector<Type> mu = Type(1.0) / (Type(1.0) + exp(-eta_mu));
+    vector<Type> sigma = exp(log_sigma);
+    vector<Type> phi(y.size());
+    vector<Type> alpha(y.size());
+    vector<Type> beta_shape(y.size());
+    for (int i = 0; i < y.size(); ++i) {
+      Type failures = trials(i) - y(i);
+      phi(i) = exp(Type(-2.0) * log_sigma(i));
+      alpha(i) = mu(i) * phi(i);
+      beta_shape(i) = (Type(1.0) - mu(i)) * phi(i);
+      Type log_density =
+        lgamma(trials(i) + Type(1.0)) -
+        lgamma(y(i) + Type(1.0)) -
+        lgamma(failures + Type(1.0)) +
+        lgamma(phi(i)) -
+        lgamma(trials(i) + phi(i)) +
+        lgamma(y(i) + alpha(i)) -
+        lgamma(alpha(i)) +
+        lgamma(failures + beta_shape(i)) -
+        lgamma(beta_shape(i));
+      nll -= weights(i) * log_density;
+    }
+    REPORT(eta_mu);
+    REPORT(mu);
+    REPORT(log_sigma);
+    REPORT(sigma);
+    REPORT(phi);
+    REPORT(alpha);
+    REPORT(beta_shape);
+    ADREPORT(beta_mu);
+    ADREPORT(beta_sigma);
+  } else if (model_type == 13) {
+    vector<Type> mu = X_mu * beta_mu;
+    vector<Type> cutpoints(theta_ord.size());
+    if (theta_ord.size() > 0) {
+      cutpoints(0) = theta_ord(0);
+      for (int j = 1; j < theta_ord.size(); ++j) {
+        cutpoints(j) = cutpoints(j - 1) + exp(theta_ord(j));
+      }
+    }
+    int n_categories = theta_ord.size() + 1;
+    for (int i = 0; i < y.size(); ++i) {
+      int yi = (int) asDouble(y(i));
+      Type log_prob;
+      if (yi == 1) {
+        log_prob = drm_log_inv_logit(cutpoints(0) - mu(i));
+      } else if (yi == n_categories) {
+        log_prob = drm_log1m_inv_logit(cutpoints(n_categories - 2) - mu(i));
+      } else {
+        Type upper = cutpoints(yi - 1) - mu(i);
+        Type lower = cutpoints(yi - 2) - mu(i);
+        log_prob = drm_log_inv_logit_diff(upper, lower);
+      }
+      nll -= weights(i) * log_prob;
+    }
+    REPORT(mu);
+    REPORT(cutpoints);
+    ADREPORT(beta_mu);
+    ADREPORT(cutpoints);
   } else if (model_type == 6) {
     vector<Type> eta_mu = offset_mu + X_mu * beta_mu;
     vector<Type> mu = exp(eta_mu);

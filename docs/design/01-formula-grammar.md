@@ -39,6 +39,9 @@ Use three status words consistently across documentation:
   until the likelihood and tests exist;
 - planned: shown only to explain the roadmap.
 
+In this table, "coscale" means a model for residual correlation, currently
+`rho12` in two-response Gaussian models.
+
 | Syntax | Current status | Notes |
 | --- | --- | --- |
 | `drm_formula()` and `bf()` | Implemented | `drm_formula()` is the explicit constructor; `bf()` is a short alias. |
@@ -64,8 +67,8 @@ Use three status words consistently across documentation:
 | `mvbind(y1, y2) ~ x1` | Implemented | Shorthand for identical bivariate location formulas; explicit `mu1`/`mu2` remains preferred for different predictors. |
 | `phylo(1 | species, tree = tree)` in `mu` | Implemented | Intercept-only univariate Gaussian phylogenetic location effect; requires an ultrametric tree with branch lengths. |
 | `weights = w` | Implemented | Top-level likelihood weights, not formula syntax. Known sampling covariance remains `meta_known_V(V = V)`. |
-| `cbind(successes, failures) ~ x1`, `family = beta_binomial()` | Planned | Denominator-preserving percentage/count syntax candidate; a successes/trials interface is another candidate. |
-| `y ~ x1`, `family = cumulative_logit()` | Planned | First ordinal model path for ordered scores with cutpoints; univariate only. |
+| `y ~ x1`, `family = cumulative_logit()` | Implemented | Fixed-effect univariate ordinal model for ordered scores with cutpoints; `mu` is a latent location and ordinal scale formulas are planned. |
+| `cbind(successes, failures) ~ x1`, `family = beta_binomial()` | Implemented | Fixed-effect denominator-aware model for success counts with known trial totals; `sigma` is extra-binomial variation. |
 | `phylo(1 + x1 | species, tree = tree)` | Planned | Structured slopes come after the intercept-only path is hardened. |
 | `spatial(1 | site, coords = coords)` and `spatial(1 | site, mesh = mesh)` | Planned | Spatial SPDE/GMRF terms are part of the design but not fitted yet. |
 | Random effects in bivariate `mu1`/`mu2`, `sigma1`/`sigma2`, or `rho12` | Planned | Requires separate likelihood, simulation, and naming checks. |
@@ -423,16 +426,21 @@ family = nbinom2()
 family = truncated_nbinom2()
 ```
 
-Planned univariate family syntax now includes:
+Implemented ordinal and denominator-aware family syntax now includes:
 
 ```r
-family = beta_binomial()
 family = cumulative_logit()
+family = beta_binomial()
 ```
 
-These are roadmap spellings only. They should produce clear unsupported-feature
-errors until each likelihood, simulation path, extractor behaviour, and
-comparator check exists.
+This route fits one ordered response with a `mu` location formula and ordered
+cutpoints. Ordinal `sigma` or discrimination formulas remain planned and
+should produce clear unsupported-feature errors until their likelihood,
+simulation path, extractor behaviour, and comparator checks exist.
+`beta_binomial()` fits `cbind(successes, failures)` responses with `mu` as the
+success probability and `sigma` as extra-binomial variation. A two-column
+successes/trials interface remains a possible later alias, not a second
+implemented grammar.
 
 For bivariate models, prefer a vector/list of response families:
 

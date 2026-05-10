@@ -110,14 +110,16 @@ Package implications:
 
 - Ordered outcomes such as fledging categories need an ordinal family with
   cutpoints; they should not be treated as continuous Gaussian responses.
-- The first ordinal design should pair a location equation for expected
-  reproductive success with a scale or discrimination equation for outcome
-  consistency.
+- The first implemented ordinal design pairs a location equation for expected
+  reproductive success with ordered cutpoints and a fixed latent logistic
+  scale.
+- A later ordinal scale or discrimination extension should model outcome
+  consistency separately.
 - If public `sigma` is used for ordinal scale, document the direction:
   larger `sigma` means more diffuse categories, while a reported
   discrimination summary can be `zeta = 1 / sigma`.
-- This is a strong ecology/evolution vignette candidate once a univariate
-  cumulative-logit path is implemented.
+- This is a strong ecology/evolution vignette candidate now that a univariate
+  cumulative-logit location path is implemented.
 
 ## Phylogenetic Location-Scale Models
 

@@ -31,8 +31,14 @@ For lognormal models, response residuals are \code{y - fitted_mean}. Pearson
 residuals are computed on the log-response scale as \code{(log(y) - mu) / sigma}.
 For Gamma models, response residuals are \code{y - mu} and Pearson residuals
 divide by the fitted Gamma standard deviation \code{mu * sigma}, where \code{sigma} is
-the coefficient of variation. For Poisson models, response residuals are
-\code{y - mu} and Pearson residuals divide by \code{sqrt(mu)}. For zero-inflated
+the coefficient of variation. For beta-binomial models, response residuals
+are observed success proportions minus fitted \code{mu}, and Pearson residuals
+divide by the fitted beta-binomial proportion standard deviation. For
+cumulative-logit ordinal models, response residuals are the observed
+ordered-category score minus the fitted expected score, and Pearson
+residuals divide by the fitted category-score standard deviation. For
+Poisson models, response residuals are \code{y - mu} and Pearson residuals divide
+by \code{sqrt(mu)}. For zero-inflated
 Poisson models, response residuals are \code{y - (1 - zi) * mu}, and Pearson
 residuals divide by \code{sqrt((1 - zi) * mu * (1 + zi * mu))}. For
 negative-binomial 2 models, Pearson residuals divide by

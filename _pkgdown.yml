@@ -63,6 +63,8 @@ reference:
       - meta_known_V
       - meta_vcov_bivariate
       - beta
+      - beta_binomial
+      - cumulative_logit
       - student
       - lognormal
       - nbinom2

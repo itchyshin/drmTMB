@@ -2,6 +2,65 @@
 
 Record meaningful development checks here.
 
+## 2026-05-10 -- Next-five release-readiness batch
+
+Goal:
+
+- complete the next five bounded tasks after the Phase 9 QA batch: add a local
+  O'Dea/Nakagawa Gaussian replication harness, visually audit the landing page,
+  record denominator-aware and ordinal-scale design guardrails, and make the
+  `0.1.0` preview-release checklist concrete.
+
+Completed tasks:
+
+- added `tools/replicate-location-scale-gaussian.R`, an optional local harness
+  that simulates fixed-effect and random-intercept Gaussian location-scale
+  examples and compares `drmTMB` with `glmmTMB`;
+- replaced the landing-page capability table with a shorter mobile-friendly
+  list and added `pkgdown/extra.css` so the home page has no horizontal page
+  overflow on a 390 px viewport;
+- added `docs/design/24-denominator-response-syntax.md`, keeping
+  `cbind(successes, failures)` as the canonical `beta_binomial()` response
+  until a denominator helper is designed and tested;
+- added `docs/design/25-ordinal-scale-discrimination.md`, preferring an
+  ordinal `sigma ~ ...` scale extension with discrimination reported as the
+  derived summary `zeta = 1 / sigma`;
+- added `docs/dev-log/release-checklists/2026-05-10-0.1.0-preview-release.md`
+  as an issue-ready preview-release gate.
+
+Commands run:
+
+- `air format tools/replicate-location-scale-gaussian.R`: passed.
+- `Rscript -e "pkgdown::build_site()"`: passed and copied `pkgdown/extra.css`
+  into `pkgdown-site/extra.css`.
+- `Rscript tools/fix-pkgdown-favicon-mime.R pkgdown-site`: passed.
+- Chrome/Playwright visual audit of `pkgdown-site/index.html`: desktop
+  screenshot looked balanced; mobile viewport metrics were
+  `innerWidth = 390`, `scrollWidth = 390`, and `bodyScrollWidth = 390`.
+- `Rscript tools/replicate-location-scale-gaussian.R`: passed. Fixed-effect
+  maximum absolute differences were `1.37e-06` for `mu` coefficients,
+  `2.00e-06` for `sigma` coefficients, and `3.96e-10` for log-likelihood.
+  Random-intercept maximum absolute differences were `6.23e-08` for `mu`
+  coefficients, `6.68e-06` for `sigma` coefficients, `6.81e-07` for the `mu`
+  random-intercept SD, and `2.12e-09` for log-likelihood.
+- `Rscript -e "pkgdown::check_pkgdown()"`: no problems found.
+- `rg -n "successes/trials|zeta|sigma\\^2|0\\.1\\.0|O'Dea|extra\\.css|cbind\\(successes, failures\\)" README.md ROADMAP.md docs/design/02-family-registry.md docs/design/19-family-link-contract.md docs/design/24-denominator-response-syntax.md docs/design/25-ordinal-scale-discrimination.md docs/dev-log/release-checklists/2026-05-10-0.1.0-preview-release.md pkgdown-site/index.html pkgdown-site/extra.css`:
+  confirmed the scale, alias, release, and rendered-homepage wording.
+- `Rscript -e "devtools::test()"`: 1400 passed, 0 failed, 0 warnings,
+  0 skips.
+- `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`:
+  0 errors, 0 warnings, 0 notes.
+
+Known limitations:
+
+- the harness uses simulated paper-shaped Gaussian examples; it is not yet a
+  full real-data reproduction of every model in the O'Dea/Nakagawa paper or
+  tutorial;
+- the ordinal scale and denominator-helper notes are design guardrails, not
+  implemented formula grammar;
+- the `0.1.0` checklist is a local issue-ready artifact. It has not been opened
+  as a GitHub issue yet.
+
 ## 2026-05-09: Phase 3 Bivariate Coscale Closure
 
 Scope:
@@ -6511,3 +6570,325 @@ Checks:
 Known limitations:
 
 - this was roadmap-only; no likelihood or user-facing API was implemented.
+
+## 2026-05-09 -- Cumulative-logit ordinal family
+
+Goal:
+
+- resume and close the first ordinal family path by implementing fixed-effect
+  univariate cumulative-logit location models for ordered responses.
+
+Changes:
+
+- added the exported `cumulative_logit()` family constructor;
+- added the `drm_build_cumulative_logit_spec()` R builder, ordinal response
+  validation, intercept-free `mu` design matrices, ordered cutpoint starts, and
+  a TMB `model_type = 13` likelihood branch;
+- added ordinal prediction support for latent `mu`, `fitted()` expected
+  ordered-category scores, response and Pearson residuals, `sigma()` fixed
+  unit vectors, `simulate()` ordered-category draws, and summary cutpoints;
+- added `tests/testthat/test-cumulative-logit.R` with parameter recovery,
+  independent likelihood checks, three- and four-category simulations, missing
+  rows, sparse nonempty categories, close-cutpoint stability, simulation
+  reproducibility, and malformed-input errors;
+- updated README, NEWS, ROADMAP, pkgdown navigation, formula grammar,
+  distribution-family, likelihood, family-link, reference-programme, known
+  limitation, and source-map documentation;
+- added `docs/dev-log/after-task/2026-05-09-cumulative-logit-family.md`.
+
+Commands run:
+
+- `Rscript -e "devtools::load_all(quiet = TRUE); testthat::test_file('tests/testthat/test-cumulative-logit.R')"` before the final four-category audit patch:
+  55 passed, 0 failed.
+- `Rscript -e "devtools::document()"`
+- `Rscript -e "devtools::test()"` before the final four-category audit patch:
+  1319 passed, 0 failed.
+- `Rscript -e "pkgdown::build_site()"`
+- `Rscript tools/fix-pkgdown-favicon-mime.R pkgdown-site`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `git diff --check`
+- `rg -n "cumulative_logit\\(\\).*Planned|cumulative-logit.*planned|ordinal.*planned|No ordinal likelihood was added|not implemented.*cumulative_logit|not implemented.*ordinal|ordered logit/probit|rho ~|meta_gaussian|tau ~" README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes R tests man _pkgdown.yml`
+- `Rscript -e "devtools::load_all(quiet = TRUE); testthat::test_file('tests/testthat/test-cumulative-logit.R')"` after the final four-category audit patch:
+  61 passed, 0 failed.
+- `Rscript -e "devtools::test()"`
+- `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`
+
+Results:
+
+- `devtools::document()`: passed.
+- focused cumulative-logit tests after the audit patch: 61 passed, 0 failed.
+- final full `devtools::test()`: 1325 passed, 0 failed.
+- `pkgdown::build_site()`: passed and generated
+  `pkgdown-site/reference/cumulative_logit.html`.
+- `pkgdown::check_pkgdown()`: no problems found.
+- `git diff --check`: clean.
+- final `devtools::check(...)`: 0 errors, 0 warnings, 0 notes.
+- the stale-wording scan found expected text only: ordinal scale/discrimination
+  remains planned, unsupported ordinal features produce explicit errors,
+  `ordered logit/probit` remains in the broader roadmap, and existing
+  meta-analysis guardrails still mention `meta_gaussian` and `tau ~`.
+
+Known limitations:
+
+- `cumulative_logit()` currently supports one ordered response, fixed effects,
+  a `mu` location formula, ordered cutpoints, and fixed latent logistic scale;
+- ordinal scale or discrimination formulas, random effects, known sampling
+  covariance, phylogenetic terms, non-logit ordinal links, bivariate ordinal
+  models, and mixed-response ordinal models remain planned.
+
+## 2026-05-10 -- Beta-binomial family and location-scale paper phase map
+
+Goal:
+
+- close the first denominator-aware beta-binomial family path and map the
+  Nakagawa et al. location-scale paper/tutorial examples onto the remaining
+  drmTMB roadmap.
+
+Changes:
+
+- added exported `beta_binomial()` and routed it through the R builder, TMB
+  `model_type = 14`, fitted-object methods, tests, generated Rd, README, NEWS,
+  ROADMAP, design notes, vignettes, pkgdown navigation, and known limitations;
+- hardened cumulative-logit middle-category probabilities against cancellation
+  in both the TMB likelihood and R probability helper;
+- added weighted likelihood tests for beta-binomial and cumulative-logit
+  families, plus beta-binomial all-boundary count tests;
+- installed `air` 0.9.0 through Homebrew and formatted the touched R and test
+  files;
+- added
+  `docs/dev-log/after-task/2026-05-10-beta-binomial-family.md`;
+- added
+  `docs/dev-log/after-task/2026-05-10-location-scale-paper-phase-map.md`;
+- updated `AGENTS.md` so status notes use the canonical standing-review names
+  Ada, Boole, Gauss, Noether, Darwin, Fisher, Pat, Jason, Curie, Emmy, Grace,
+  and Rose without renaming them.
+
+Commands run:
+
+- `brew install air`: installed `air` 0.9.0.
+- `air --version`: reported `air 0.9.0`.
+- `air format R/drmTMB.R R/family.R R/methods.R tests/testthat/test-beta-binomial.R tests/testthat/test-cumulative-logit.R tests/testthat/test-phylo-utils.R`:
+  passed.
+- `Rscript -e "devtools::load_all(quiet = TRUE); testthat::test_file('tests/testthat/test-phylo-utils.R'); testthat::test_file('tests/testthat/test-beta-binomial.R'); testthat::test_file('tests/testthat/test-cumulative-logit.R')"`:
+  phylo-utils 45 passed, beta-binomial 43 passed, cumulative-logit 71 passed.
+- `Rscript -e "devtools::document()"`: passed and generated
+  `man/beta_binomial.Rd`.
+- `Rscript -e "devtools::test()"`: 1378 passed, 0 failed, 0 warnings,
+  0 skips.
+- `Rscript -e "pkgdown::build_site()"`: passed and generated
+  `pkgdown-site/reference/beta_binomial.html`.
+- `Rscript tools/fix-pkgdown-favicon-mime.R pkgdown-site`: passed.
+- `Rscript -e "pkgdown::check_pkgdown()"`: no problems found.
+- `git diff --check`: clean.
+- `rg -n "beta_binomial\\(\\).*planned|planned.*beta_binomial|not implemented.*beta_binomial|cumulative_logit\\(\\).*planned|planned.*cumulative_logit|not implemented.*cumulative_logit|No ordinal likelihood was added|denominator syntax.*not settled|successes, trials|log variance; drmTMB|factor of two|dispersion model is on log variance" README.md ROADMAP.md NEWS.md DESCRIPTION docs/design docs/dev-log/known-limitations.md docs/dev-log/after-task/2026-05-10-location-scale-paper-phase-map.md vignettes R tests man _pkgdown.yml --glob '!docs/dev-log/check-log.md'`:
+  expected hits only: unsupported-feature messages for beta-binomial and
+  cumulative-logit extensions, ordinal scale planned notes, and the deliberate
+  warning not to use `cbind(successes, trials)`.
+- `rg -n 'beta_binomial|cumulative_logit|sigma\\^2|log-variance|variance summaries' pkgdown-site/reference/index.html pkgdown-site/reference/beta_binomial.html pkgdown-site/articles/distribution-families.html pkgdown-site/articles/source-map.html pkgdown-site/articles/which-scale.html pkgdown-site/articles/location-scale.html pkgdown-site/ROADMAP.html pkgdown-site/AGENTS.html`:
+  confirmed generated beta-binomial/cumulative-logit reference and article
+  links plus generated scale wording.
+- `Rscript -e "library(glmmTMB); ..."` local Gaussian dispersion check:
+  with `glmmTMB` 1.1.11, `exp(dispformula linear predictor)` matched fitted
+  residual SD in the simple Gaussian example; the local install warned that
+  `glmmTMB` was built against TMB 1.9.17 while TMB 1.9.21 is installed.
+- `Rscript -e "library(metafor); ..."` local location-scale check:
+  with `metafor` 4.8-0, `exp(alpha)` matched `tau^2` in the simple
+  location-scale example.
+- `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`:
+  first rerun found one note from a temporary top-level `tmp` directory created
+  for PDF page rendering; after removing that directory, the final rerun
+  reported 0 errors, 0 warnings, and 0 notes.
+
+Scale-comparator correction:
+
+- drmTMB should keep public `sigma` as the user-facing scale, matching
+  brms-style distributional syntax and the project's stable terminology.
+  O'Dea-style predictability and malleability often need variance-scale
+  summaries, so comparator harnesses should report package-native parameters,
+  drmTMB `sigma`, and derived paper-facing `sigma^2` interpretations side by
+  side.
+- `/Users/z3437171/Downloads/mee313755-sup-0001-supinfo.pdf` was checked for
+  the O'Dea, Noble, and Nakagawa conversion: the supplement notes that `brms`
+  DHGLM dispersion defaults use residual standard deviations, and that
+  converting log-SD models to log-variance models multiplies fixed/log-mean
+  terms by 2 and corresponding variance components by 4.
+- `https://github.com/daniel1noble/individual_differences` was checked as the
+  brms translation of the O'Dea worked example. The public clone contains the
+  rendered article and `individual_differences.Rmd`; data and saved model
+  objects are referenced as OSF downloads. The R Markdown establishes the key
+  Phase 11 target syntax: univariate
+  `bf(y ~ x + (1 + x | q | id), sigma ~ x + (1 | q | id))` and bivariate
+  paired formulas with the same labelled block spanning two traits' `mu`
+  intercepts, `mu` slopes, and `sigma` intercepts. It also confirms the
+  sign-reversal convention for predictability associations because larger
+  residual variance means lower predictability.
+- the brms translation does not add a residual `rho12` or coscale formula.
+  This is a drmTMB opportunity: keep residual `rho12`/coscale association
+  separate from group-level individual-difference covariance, and eventually
+  teach both in the same O'Dea-motivated example.
+
+Known limitations:
+
+- the location-scale paper/tutorial data have been mapped but not yet run
+  through drmTMB;
+- full O'Dea-style double-hierarchical covariance between `mu` and `sigma`
+  random effects remains Phase 11 work;
+- beta-binomial random effects, structured effects, bivariate models, and
+  successes/trials alias syntax remain planned.
+
+## 2026-05-10 -- Landing page accessibility pass
+
+Goal:
+
+- make the pkgdown landing page a short overview and routing page for applied
+  users rather than a combined tutorial, family registry, formula guide, and
+  roadmap.
+
+Changes:
+
+- Pat reviewed the landing page from the new-user perspective and flagged that
+  it was doing too many jobs at once;
+- rewrote `README.md` from a long reference-style catalogue into a 94-line
+  home page with one overview, one Gaussian location-scale example, a compact
+  "What can I model now?" table, article links, and brief current boundaries;
+- preserved the public `sigma` convention and stated that variance-facing
+  paper summaries should use derived `sigma^2`;
+- kept residual `rho12` separate from group-level individual-difference
+  covariance in the limitations section;
+- added
+  `docs/dev-log/after-task/2026-05-10-landing-page-accessibility.md`.
+
+Commands run:
+
+- `Rscript -e "pkgdown::build_site()"`: passed and rendered the shorter
+  `pkgdown-site/index.html`.
+- `Rscript -e "pkgdown::build_home()"`: passed after the final table-syntax
+  polish.
+- `Rscript tools/fix-pkgdown-favicon-mime.R pkgdown-site`: passed.
+- `Rscript -e "pkgdown::check_pkgdown()"`: no problems found.
+- `rg -n "Start here|What can I model now|Tiny example|Current boundaries|phylogenetic-spatial|phylo\\(1" pkgdown-site/index.html`:
+  confirmed the rendered home-page anchors, article link, and displayed
+  `phylo(1 | species, tree = tree)` syntax.
+- `rg -n "Implemented now|Planned next|Current project status|family registry|lognormal|hurdle NB2|Zero-truncated" README.md pkgdown-site/index.html`:
+  found no stale top-level landing-page section headings; the expected
+  remaining hits were compact capability-table family names.
+- `git diff --check`: clean.
+
+Known limitations:
+
+- this was a content-accessibility pass, not a full screen-reader,
+  keyboard-navigation, or mobile visual QA audit;
+- the public site still needs deployment after the local pkgdown render.
+
+## 2026-05-10 -- glmmTMB Gaussian location-scale comparators
+
+Goal:
+
+- add a small optional comparator rung for the Gaussian location-scale examples
+  that overlap with `glmmTMB`, before moving toward real-data paper
+  replications or O'Dea-style double-hierarchical covariance blocks.
+
+Changes:
+
+- added a fixed-effect Gaussian location-scale comparator against
+  `glmmTMB::glmmTMB(y ~ x, dispformula = ~ z, family = gaussian())`;
+- added a Gaussian random-intercept location-scale comparator against
+  `glmmTMB::glmmTMB(y ~ x + (1 | id), dispformula = ~ z, family = gaussian())`;
+- both tests check `mu` coefficients, `sigma` formula coefficients, and
+  log-likelihood agreement; the random-intercept test also checks the
+  group-level SD;
+- suppressed the local optional-dependency namespace warning from a
+  `glmmTMB`/`TMB` version mismatch during skip checks, while keeping the
+  comparator assertions warning-clean;
+- updated `docs/design/05-testing-strategy.md` and `vignettes/source-map.Rmd`
+  so the comparator coverage is documented;
+- added
+  `docs/dev-log/after-task/2026-05-10-glmmtmb-gaussian-location-scale-comparators.md`.
+
+Commands run:
+
+- `air format tests/testthat/test-comparators.R`: passed.
+- `Rscript -e "devtools::load_all(quiet = TRUE); testthat::test_file('tests/testthat/test-comparators.R')"` before warning suppression:
+  54 passed, 0 failed, 1 warning from the local `glmmTMB` namespace load.
+- `air format tests/testthat/test-comparators.R && Rscript -e "devtools::load_all(quiet = TRUE); testthat::test_file('tests/testthat/test-comparators.R')"`:
+  54 passed, 0 failed, 0 warnings, 0 skips.
+- `Rscript -e "devtools::test()"`: 1387 passed, 0 failed, 0 warnings,
+  0 skips.
+- `Rscript -e "pkgdown::build_site()"`: passed and regenerated the source-map
+  article with the comparator-test pointer.
+- `Rscript tools/fix-pkgdown-favicon-mime.R pkgdown-site`: passed.
+- `Rscript -e "pkgdown::check_pkgdown()"`: no problems found.
+- `rg -n "Gaussian location-scale|test-comparators|glmmTMB" pkgdown-site/articles/source-map.html pkgdown-site/AGENTS.html pkgdown-site/index.html`:
+  confirmed the generated source-map article points the Gaussian
+  location-scale row at `tests/testthat/test-comparators.R`.
+- `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`:
+  first run found one warning because `glmmTMB` was used in tests but missing
+  from `Suggests`.
+- added `glmmTMB` to `DESCRIPTION` `Suggests`.
+- final `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`:
+  0 errors, 0 warnings, 0 notes.
+
+Known limitations:
+
+- these are small simulation-based comparator smoke tests, not the full
+  real-data O'Dea/Nakagawa replication harness;
+- the next replication step should load the tutorial data, fit overlapping
+  `glmmTMB` and drmTMB models, and report drmTMB `sigma` plus paper-facing
+  `sigma^2` summaries side by side.
+
+## 2026-05-10 -- Five-task Phase 9 QA batch and 0.1.0 gate
+
+Goal:
+
+- complete five bounded quality tasks after the landing-page and comparator
+  work, and make the `0.1.0` preview-release timing explicit.
+
+Completed tasks:
+
+- beta-binomial newdata prediction coverage: added link- and response-scale
+  `newdata` checks for `mu` and `sigma`;
+- beta-binomial malformed-response coverage: added negative tests for
+  negative counts, infinite counts, and one-column `cbind()` responses;
+- cumulative-logit newdata probability coverage: added `newdata` checks for
+  category probabilities, expected ordinal score, and score variance;
+- cumulative-logit malformed-response coverage: added negative tests for
+  character responses and two-category ordered responses;
+- release/QA planning: expanded the family testing checklist in
+  `docs/design/05-testing-strategy.md` and added a `0.1.0` preview-release
+  gate to `ROADMAP.md`.
+
+Commands run:
+
+- `air format tests/testthat/test-beta-binomial.R tests/testthat/test-cumulative-logit.R`:
+  passed.
+- focused beta-binomial and cumulative-logit test run before assertion polish:
+  beta-binomial passed; cumulative-logit had one test assertion mistake because
+  a matrix uses `colnames()`, not vector `names()`.
+- final focused beta-binomial and cumulative-logit tests:
+  127 passed, 0 failed, 0 warnings, 0 skips.
+- `Rscript -e "devtools::test()"`: 1400 passed, 0 failed, 0 warnings,
+  0 skips.
+- `Rscript -e "pkgdown::build_home()"`: passed and regenerated
+  `pkgdown-site/ROADMAP.html`.
+- `Rscript tools/fix-pkgdown-favicon-mime.R pkgdown-site`: passed.
+- `Rscript -e "pkgdown::check_pkgdown()"`: no problems found.
+- `rg -n "Version 0.1.0 Preview Release Gate|0.1.0|0.0.0.9000|Phase 9 closure" ROADMAP.md pkgdown-site/ROADMAP.html`:
+  confirmed the release gate rendered locally.
+- `git diff --check`: clean.
+
+0.1.0 position:
+
+- the current development version remains `0.0.0.9000`;
+- `0.1.0` should mean first reliable public preview, not full
+  double-hierarchical O'Dea support;
+- target timing is after Phase 9 closure plus release hardening, with Phase 11
+  bivariate random effects and full double-hierarchical covariance left on the
+  roadmap for later releases.
+
+Known limitations:
+
+- this batch did not add a new likelihood family;
+- the public site still needs deployment after local pkgdown rendering;
+- `devtools::check()` was not rerun after this test-only and roadmap batch
+  because full check had passed immediately before it and the new full test
+  suite passed.

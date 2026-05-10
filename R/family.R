@@ -115,6 +115,78 @@ beta <- function() {
   )
 }
 
+#' Beta-binomial response family
+#'
+#' `beta_binomial()` defines a one-response denominator-aware distribution for
+#' successes out of known trials. Use it with two-column count responses such as
+#' `bf(cbind(successes, failures) ~ x, sigma ~ z)`, where
+#' `trials_i = successes_i + failures_i`.
+#'
+#' The implemented contract is `logit(mu) = eta_mu`,
+#' `log(sigma) = eta_sigma`, and internal beta precision
+#' `phi = 1 / sigma^2`. Conditional on a latent success probability
+#' `p_i ~ Beta(mu_i * phi_i, (1 - mu_i) * phi_i)`, the observed successes
+#' follow `Binomial(trials_i, p_i)`. Larger `sigma` means more extra-binomial
+#' variation around the mean probability.
+#'
+#' The first implementation supports fixed effects only. Random effects,
+#' `meta_known_V(V = V)`, phylogenetic or spatial terms, bivariate
+#' beta-binomial models, and a `successes/trials` response alias are planned
+#' but not implemented.
+#'
+#' @return A `drm_family` object.
+#' @export
+#'
+#' @examples
+#' beta_binomial()
+beta_binomial <- function() {
+  structure(
+    list(
+      name = "beta_binomial",
+      family = "beta_binomial",
+      n_response = 1L,
+      dpars = c("mu", "sigma"),
+      links = c(mu = "logit", sigma = "log")
+    ),
+    class = "drm_family"
+  )
+}
+
+#' Cumulative logit ordinal response family
+#'
+#' `cumulative_logit()` defines a one-response ordinal model for ordered
+#' categories. The first implemented path uses a location formula `mu ~ ...`
+#' and ordered cutpoints with a fixed latent logistic scale. The location
+#' intercept is dropped internally, as in standard cumulative-link models,
+#' because a free location intercept and free cutpoints are not jointly
+#' identifiable.
+#'
+#' The implemented contract is
+#' `Pr(y_i <= k) = logit^-1(theta_k - mu_i)`, with
+#' `mu_i = X_mu[i, ] beta_mu` and
+#' `theta[1] < theta[2] < ... < theta[K - 1]`. `fitted()` returns the expected
+#' ordered-category score, `sum_k k * Pr(y_i = k)`. Ordinal scale or
+#' discrimination formulas are planned but not exposed in this first
+#' implementation.
+#'
+#' @return A `drm_family` object.
+#' @export
+#'
+#' @examples
+#' cumulative_logit()
+cumulative_logit <- function() {
+  structure(
+    list(
+      name = "cumulative_logit",
+      family = "cumulative_logit",
+      n_response = 1L,
+      dpars = c("mu"),
+      links = c(mu = "identity")
+    ),
+    class = "drm_family"
+  )
+}
+
 #' Negative binomial 2 response family
 #'
 #' `nbinom2()` defines a one-response count distribution with formulas for the

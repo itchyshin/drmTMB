@@ -3,6 +3,26 @@
 `drmTMB` is a focused R package for fast univariate and bivariate
 distributional regression models using TMB.
 
+## Version 0.1.0 Preview Release Gate
+
+- Current development version: `0.0.0.9000`.
+- Target meaning of `0.1.0`: the first reliable public preview, not the final
+  double-hierarchical or O'Dea-style endpoint.
+- Target timing: after Phase 9 closure plus release hardening, provided checks
+  stay clean. Phase 11 bivariate random effects and full
+  double-hierarchical covariance should remain roadmap work for later releases.
+- Required before bumping the version:
+  - `devtools::check()` passes with 0 errors, 0 warnings, and 0 notes;
+  - `devtools::test()` and `pkgdown::check_pkgdown()` pass;
+  - pkgdown deploys with the short landing page and current family reference
+    pages;
+  - implemented families have simulation, independent-likelihood, or
+    comparator coverage plus malformed-input tests;
+  - `docs/dev-log/known-limitations.md`, `NEWS.md`, `README.md`, and the
+    roadmap agree about what is implemented versus planned;
+  - O'Dea/Nakagawa examples are presented as a replication roadmap unless the
+    matching drmTMB model class is actually implemented and tested.
+
 ## Phase 0: Project Infrastructure
 
 - R package scaffold with `DESCRIPTION`, `R/`, `src/`, `tests/`, and
@@ -188,9 +208,7 @@ distributional regression models using TMB.
 ## Phase 7: Robust and Positive Continuous Families
 
 - Status: fixed-effect univariate Student-t location-scale-shape, lognormal
-  location-scale, Gamma mean-CV, beta mean-scale, Poisson mean,
-  negative-binomial 2 mean-dispersion, zero-truncated NB2 mean-dispersion, and
-  hurdle NB2 mean-dispersion models are implemented.
+  location-scale, Gamma mean-CV, and beta mean-scale models are implemented.
 - Harden and extend Student-t, lognormal, Gamma, beta, Poisson, and
   negative-binomial models before adding skew-normal and skew-t families.
 - Use `lognormal()` for positive continuous responses where `mu` and `sigma`
@@ -200,9 +218,9 @@ distributional regression models using TMB.
   the response mean and `sigma` is the coefficient of variation.
 - Use `beta()` for strict continuous proportions where `mu` is the mean
   proportion and public `sigma` maps internally to `phi = 1 / sigma^2`.
-- Extend the implemented family-link helper table before adding ordinal or
-  additional positive-continuous likelihoods, so `predict()` and `fitted()`
-  handle non-identity `mu` links consistently.
+- Extend the implemented family-link helper table before adding ordinal scale,
+  denominator-aware, or additional positive-continuous likelihoods, so
+  `predict()` and `fitted()` handle non-identity `mu` links consistently.
 - Add formulae for shape and tail parameters where stable.
 - Add strict starting-value and boundary diagnostics.
 
@@ -220,22 +238,38 @@ distributional regression models using TMB.
   conditional positive-count mean. Adding `hu ~ predictors` to the same family
   route fits the implemented fixed-effect hurdle NB2 model. `beta()` is
   implemented for strict continuous proportions with public `sigma`.
-- Next family sequence: univariate ordinal models, then beta-binomial and
-  zero-one-inflated beta after their denominator and boundary contracts are
-  settled.
-- Add beta-binomial, zero-one-inflated beta, ordered logit/probit, COM-Poisson,
-  generalized Poisson, and related families according to the distribution
-  roadmap after their parameter-link and comparator contracts are documented.
+  `beta_binomial()` is implemented for counted successes out of known trial
+  totals with public extra-binomial `sigma`.
+  `cumulative_logit()` is implemented for fixed-effect univariate ordinal
+  location models with ordered cutpoints and fixed latent logistic scale.
+- Next family sequence: zero-one-inflated beta after the boundary contract is
+  settled, plus ordinal scale or discrimination formulas after their direction
+  is documented.
+- Add zero-one-inflated beta, ordered logit/probit, COM-Poisson, generalized
+  Poisson, and related families according to the distribution roadmap after
+  their parameter-link and comparator contracts are documented.
+
+Nakagawa, Ortega, Gazzea, Lagisz, Lenz, Lundgren, and Mizuno's
+location-scale paper and tutorial are a concrete replication target for this
+phase series. The current package should first reproduce the Gaussian
+fixed-effect and Gaussian location-random-effect examples, then add comparator
+tests for count and bounded-response examples as the required likelihood and
+random-effect features land.
 
 ## Phase 9: Ordinal and Denominator-Aware Models
 
-- Status: planned.
-- Implement univariate cumulative ordinal models first, starting with a
-  cumulative logit likelihood and an explicit cutpoint contract.
-- Decide whether the ordinal scale formula is exposed as `sigma ~ ...` or a
-  family-specific discrimination parameter before coding starts; the direction
-  of interpretation must be unambiguous.
-- Add beta-binomial for percentages derived from counts with known denominators.
+- Status: partially implemented. The location-only `cumulative_logit()` MVP is
+  implemented for one ordered response, fixed effects, ordered cutpoints, and
+  fixed latent logistic scale. The first `beta_binomial()` path is implemented
+  for `cbind(successes, failures)` responses, fixed effects, known trial
+  totals, and extra-binomial `sigma`.
+- Decide whether the next ordinal scale formula is exposed as `sigma ~ ...` or
+  a family-specific discrimination parameter before coding starts; the
+  direction of interpretation must be unambiguous. The current design note
+  prefers `sigma ~ ...` with discrimination reported as derived
+  `zeta = 1 / sigma`.
+- Keep `cbind(successes, failures)` as the canonical beta-binomial response
+  until the denominator-helper design note is implemented with tests.
 - Add zero-one-inflated beta or ordered beta for continuous bounded responses
   with exact 0 or 1 values.
 - Keep these models univariate until their parameter recovery, boundary

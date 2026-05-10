@@ -54,6 +54,18 @@
   probability and nonzero counts come from the zero-truncated NB2 component.
   Random effects, known sampling covariance, phylogenetic terms, and bivariate
   or mixed negative-binomial models are not yet implemented.
+- Fixed-effect univariate cumulative-logit ordinal models are implemented for
+  ordered responses with `family = cumulative_logit()`. The first path supports
+  only a `mu` location formula, ordered cutpoints, and a fixed latent logistic
+  scale. Ordinal `sigma` or discrimination formulas, random effects, known
+  sampling covariance, phylogenetic terms, bivariate or mixed ordinal models,
+  and non-logit ordinal links are not yet implemented.
+- Fixed-effect univariate beta-binomial models are implemented for counted
+  successes and failures with `family = beta_binomial()`. The first path
+  supports `cbind(successes, failures)` responses, fixed-effect `mu` and
+  `sigma` formulas, known trial totals from row sums, and no random effects,
+  known sampling covariance, phylogenetic terms, bivariate or mixed
+  beta-binomial models, or successes/trials response alias.
 - Intercept-only phylogenetic random effects are implemented in univariate
   Gaussian location formulas as `phylo(1 | species, tree = tree)`. The tree
   must be an ultrametric `phylo` object with positive branch lengths, and every
@@ -79,19 +91,22 @@
   `sigma`, fixed-effect univariate Poisson mean models, fixed-effect
   univariate negative-binomial 2 mean-dispersion models, zero-inflated variants
   for Poisson and NB2 through `zi ~ predictors`, a zero-truncated NB2 path for
-  positive counts, and a hurdle NB2 path through `hu ~ predictors`.
+  positive counts, a hurdle NB2 path through `hu ~ predictors`, a
+  fixed-effect univariate cumulative-logit ordinal path, and a fixed-effect
+  univariate beta-binomial path.
 - Cross-formula labelled covariance sharing, residual-scale random slopes,
   slope-specific random-effect scale targets, labelled-block random-effect
   scale targets, bivariate random-effect scale targets, Student-t random
   effects, Student-t known-covariance models, Student-t phylogenetic models,
   bivariate Student-t models, lognormal random-effect and structured-effect
-  models, Gamma random-effect and structured-effect models, Poisson and
-  negative-binomial random-effect models, hurdle count models beyond the
-  fixed-effect NB2 path, count zero-inflation with random effects or structured
-  effects, and additional
-  non-Gaussian families beyond the first Student-t, lognormal, Gamma, beta,
-  Poisson, negative-binomial, zero-inflated, zero-truncated, and hurdle paths
-  are planned but not yet implemented.
+  models, Gamma random-effect and structured-effect models, beta-binomial
+  random-effect and structured-effect models, ordinal scale or discrimination
+  models, Poisson and negative-binomial random-effect models, hurdle count
+  models beyond the fixed-effect NB2 path, count zero-inflation with random
+  effects or structured effects, and additional non-Gaussian families beyond
+  the first Student-t, lognormal, Gamma, beta, beta-binomial, Poisson,
+  negative-binomial, zero-inflated, zero-truncated, and hurdle paths are
+  planned but not yet implemented.
 - Users should not substitute `sigma ~ x + (1 | id)` for `sd(id) ~ x_group`
   unless their scientific question is residual variability rather than
   among-group variation in the mean model.

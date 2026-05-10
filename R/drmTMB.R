@@ -5,10 +5,12 @@
 #' univariate Student-t location-scale-shape models, fixed-effect lognormal
 #' location-scale models, Gamma mean-CV models for positive responses,
 #' fixed-effect beta mean-scale models for strict proportions,
-#' fixed-effect Poisson mean, zero-inflated Poisson, negative-binomial
-#' mean-dispersion, zero-inflated negative-binomial mean-dispersion,
-#' zero-truncated negative-binomial mean-dispersion, and hurdle
-#' negative-binomial mean-dispersion models for counts. Poisson and
+#' fixed-effect beta-binomial mean-overdispersion models for success counts,
+#' fixed-effect cumulative-logit ordinal location models, fixed-effect Poisson
+#' mean, zero-inflated Poisson, negative-binomial mean-dispersion,
+#' zero-inflated negative-binomial mean-dispersion, zero-truncated
+#' negative-binomial mean-dispersion, and hurdle negative-binomial
+#' mean-dispersion models for counts. Poisson and
 #' negative-binomial `mu` formulas may include standard R
 #' `offset(log(exposure))` terms for exposure or effort,
 #' Gaussian random intercepts, independent numeric random slopes,
@@ -26,12 +28,12 @@
 #' @param formula A `drm_formula` object created by [drm_formula()] or [bf()].
 #' @param family A response family, such as [stats::gaussian()], [student()],
 #'   [lognormal()], [stats::Gamma()] with `link = "log"`, [beta()],
-#'   [stats::poisson()] with `link = "log"`, [nbinom2()],
-#'   [truncated_nbinom2()], or [biv_gaussian()]. Adding `zi ~ predictors` to
-#'   a Poisson or `nbinom2()` model fits the corresponding zero-inflated count
-#'   model. Adding `hu ~ predictors` to a `truncated_nbinom2()` model fits a
-#'   hurdle count model whose nonzero counts use the zero-truncated NB2
-#'   component. The current
+#'   [beta_binomial()], [cumulative_logit()], [stats::poisson()] with `link = "log"`,
+#'   [nbinom2()], [truncated_nbinom2()], or [biv_gaussian()]. Adding
+#'   `zi ~ predictors` to a Poisson or `nbinom2()` model fits the corresponding
+#'   zero-inflated count model. Adding `hu ~ predictors` to a
+#'   `truncated_nbinom2()` model fits a hurdle count model whose nonzero counts
+#'   use the zero-truncated NB2 component. The current
 #'   bivariate Gaussian engine also accepts
 #'   `family = c(gaussian(), gaussian())` and
 #'   `family = list(gaussian(), gaussian())`.
@@ -45,10 +47,18 @@
 #'
 #' @return A `drmTMB` fit object.
 #' @export
-drmTMB <- function(formula, family = stats::gaussian(), data,
-                   weights = NULL, control = list(), ...) {
+drmTMB <- function(
+  formula,
+  family = stats::gaussian(),
+  data,
+  weights = NULL,
+  control = list(),
+  ...
+) {
   if (!inherits(formula, "drm_formula")) {
-    cli::cli_abort("{.arg formula} must be created with {.fn drm_formula} or {.fn bf}.")
+    cli::cli_abort(
+      "{.arg formula} must be created with {.fn drm_formula} or {.fn bf}."
+    )
   }
   dots <- list(...)
   if (length(dots) > 0L) {
@@ -68,15 +78,72 @@ drmTMB <- function(formula, family = stats::gaussian(), data,
   family_type <- drm_family_type(family)
   spec <- switch(
     family_type,
-    gaussian = drm_build_gaussian_ls_spec(formula, data, env = parent.frame(), weights = weights_full),
-    student = drm_build_student_ls_spec(formula, data, env = parent.frame(), weights = weights_full),
-    lognormal = drm_build_lognormal_ls_spec(formula, data, env = parent.frame(), weights = weights_full),
-    gamma = drm_build_gamma_ls_spec(formula, data, env = parent.frame(), weights = weights_full),
-    beta = drm_build_beta_ls_spec(formula, data, env = parent.frame(), weights = weights_full),
-    poisson = drm_build_poisson_spec(formula, data, env = parent.frame(), weights = weights_full),
-    nbinom2 = drm_build_nbinom2_spec(formula, data, env = parent.frame(), weights = weights_full),
-    truncated_nbinom2 = drm_build_truncated_nbinom2_spec(formula, data, env = parent.frame(), weights = weights_full),
-    biv_gaussian = drm_build_biv_gaussian_spec(formula, data, env = parent.frame(), weights = weights_full)
+    gaussian = drm_build_gaussian_ls_spec(
+      formula,
+      data,
+      env = parent.frame(),
+      weights = weights_full
+    ),
+    student = drm_build_student_ls_spec(
+      formula,
+      data,
+      env = parent.frame(),
+      weights = weights_full
+    ),
+    lognormal = drm_build_lognormal_ls_spec(
+      formula,
+      data,
+      env = parent.frame(),
+      weights = weights_full
+    ),
+    gamma = drm_build_gamma_ls_spec(
+      formula,
+      data,
+      env = parent.frame(),
+      weights = weights_full
+    ),
+    beta = drm_build_beta_ls_spec(
+      formula,
+      data,
+      env = parent.frame(),
+      weights = weights_full
+    ),
+    beta_binomial = drm_build_beta_binomial_spec(
+      formula,
+      data,
+      env = parent.frame(),
+      weights = weights_full
+    ),
+    cumulative_logit = drm_build_cumulative_logit_spec(
+      formula,
+      data,
+      env = parent.frame(),
+      weights = weights_full
+    ),
+    poisson = drm_build_poisson_spec(
+      formula,
+      data,
+      env = parent.frame(),
+      weights = weights_full
+    ),
+    nbinom2 = drm_build_nbinom2_spec(
+      formula,
+      data,
+      env = parent.frame(),
+      weights = weights_full
+    ),
+    truncated_nbinom2 = drm_build_truncated_nbinom2_spec(
+      formula,
+      data,
+      env = parent.frame(),
+      weights = weights_full
+    ),
+    biv_gaussian = drm_build_biv_gaussian_spec(
+      formula,
+      data,
+      env = parent.frame(),
+      weights = weights_full
+    )
   )
 
   obj <- TMB::MakeADFun(
@@ -113,6 +180,7 @@ drmTMB <- function(formula, family = stats::gaussian(), data,
     sdpars = split_tmb_sdpars(par_list, spec),
     corpars = split_tmb_corpars(par_list, spec),
     random_effects = split_tmb_random_effects(par_list, spec),
+    ordinal = ordinal_fit_info(par_list, spec),
     logLik = -opt$objective,
     df = length(opt$par),
     nobs = spec$nobs
@@ -148,13 +216,28 @@ drm_family_type <- function(family) {
   if (inherits(family, "drm_family") && identical(family$name, "nbinom2")) {
     return("nbinom2")
   }
-  if (inherits(family, "drm_family") && identical(family$name, "truncated_nbinom2")) {
+  if (
+    inherits(family, "drm_family") &&
+      identical(family$name, "truncated_nbinom2")
+  ) {
     return("truncated_nbinom2")
   }
   if (inherits(family, "drm_family") && identical(family$name, "beta")) {
     return("beta")
   }
-  if (inherits(family, "drm_family") && identical(family$name, "biv_gaussian")) {
+  if (
+    inherits(family, "drm_family") && identical(family$name, "beta_binomial")
+  ) {
+    return("beta_binomial")
+  }
+  if (
+    inherits(family, "drm_family") && identical(family$name, "cumulative_logit")
+  ) {
+    return("cumulative_logit")
+  }
+  if (
+    inherits(family, "drm_family") && identical(family$name, "biv_gaussian")
+  ) {
     return("biv_gaussian")
   }
   if (inherits(family, "drm_family") && identical(family$name, "student")) {
@@ -183,17 +266,25 @@ drm_family_type <- function(family) {
     ))
   }
   cli::cli_abort(
-    "Currently supported families are {.code gaussian()}, {.fn student}, {.fn lognormal}, {.code Gamma(link = \"log\")}, {.fn beta}, {.code poisson(link = \"log\")}, {.fn nbinom2}, {.fn truncated_nbinom2}, {.fn biv_gaussian}, {.code c(gaussian(), gaussian())}, and {.code list(gaussian(), gaussian())}. Zero-inflated Poisson and NB2 models use the same family route plus a {.code zi ~ ...} formula; hurdle NB2 models use {.fn truncated_nbinom2} plus a {.code hu ~ ...} formula."
+    "Currently supported families are {.code gaussian()}, {.fn student}, {.fn lognormal}, {.code Gamma(link = \"log\")}, {.fn beta}, {.fn beta_binomial}, {.fn cumulative_logit}, {.code poisson(link = \"log\")}, {.fn nbinom2}, {.fn truncated_nbinom2}, {.fn biv_gaussian}, {.code c(gaussian(), gaussian())}, and {.code list(gaussian(), gaussian())}. Zero-inflated Poisson and NB2 models use the same family route plus a {.code zi ~ ...} formula; hurdle NB2 models use {.fn truncated_nbinom2} plus a {.code hu ~ ...} formula."
   )
 }
 
 drm_composed_families <- function(family) {
-  if (is.list(family) && !inherits(family, "family") &&
-      !inherits(family, "drm_family") && length(family) >= 2L &&
-      all(vapply(family, is_r_family_object, logical(1)))) {
+  if (
+    is.list(family) &&
+      !inherits(family, "family") &&
+      !inherits(family, "drm_family") &&
+      length(family) >= 2L &&
+      all(vapply(family, is_r_family_object, logical(1)))
+  ) {
     return(family)
   }
-  if (!is.list(family) || inherits(family, "family") || inherits(family, "drm_family")) {
+  if (
+    !is.list(family) ||
+      inherits(family, "family") ||
+      inherits(family, "drm_family")
+  ) {
     return(NULL)
   }
   family_starts <- which(names(family) == "family")
@@ -201,11 +292,15 @@ drm_composed_families <- function(family) {
     return(NULL)
   }
   family_ends <- c(family_starts[-1L] - 1L, length(family))
-  families <- Map(function(start, end) {
-    out <- family[seq.int(start, end)]
-    class(out) <- "family"
-    out
-  }, family_starts, family_ends)
+  families <- Map(
+    function(start, end) {
+      out <- family[seq.int(start, end)]
+      class(out) <- "family"
+      out
+    },
+    family_starts,
+    family_ends
+  )
   if (!all(vapply(families, is_r_family_object, logical(1)))) {
     return(NULL)
   }
@@ -216,8 +311,12 @@ is_r_family_object <- function(x) {
   inherits(x, "family") && is.character(x$family) && length(x$family) == 1L
 }
 
-drm_build_gaussian_ls_spec <- function(formula, data, env = parent.frame(),
-                                       weights = NULL) {
+drm_build_gaussian_ls_spec <- function(
+  formula,
+  data,
+  env = parent.frame(),
+  weights = NULL
+) {
   entries <- formula$entries
   dpars <- vapply(entries, `[[`, character(1), "dpar")
   is_sd_dpar <- startsWith(dpars, "sd(")
@@ -231,10 +330,14 @@ drm_build_gaussian_ls_spec <- function(formula, data, env = parent.frame(),
   }
 
   if (sum(dpars[!is_sd_dpar] == "mu") != 1L) {
-    cli::cli_abort("A univariate Gaussian model requires exactly one location formula.")
+    cli::cli_abort(
+      "A univariate Gaussian model requires exactly one location formula."
+    )
   }
   if (sum(dpars[!is_sd_dpar] == "sigma") > 1L) {
-    cli::cli_abort("A univariate Gaussian model can have at most one residual {.code sigma} formula.")
+    cli::cli_abort(
+      "A univariate Gaussian model can have at most one residual {.code sigma} formula."
+    )
   }
   mu_entry <- entries[[which(dpars == "mu")]]
   sigma_entry <- if (any(dpars == "sigma")) {
@@ -249,7 +352,9 @@ drm_build_gaussian_ls_spec <- function(formula, data, env = parent.frame(),
   }
 
   if (is.na(mu_entry$response)) {
-    cli::cli_abort("The {.code mu} formula must include a response on the left-hand side.")
+    cli::cli_abort(
+      "The {.code mu} formula must include a response on the left-hand side."
+    )
   }
   if (is_mvbind_lhs(mu_entry$lhs)) {
     cli::cli_abort(c(
@@ -299,28 +404,61 @@ drm_build_gaussian_ls_spec <- function(formula, data, env = parent.frame(),
   keep[model_keep] <- known_v_complete(V_known_model)
   data_model <- data[keep, , drop = FALSE]
   V_known <- subset_known_v(V_known_full, keep)
-  weights_model <- subset_likelihood_weights(weights, keep, nrow(data), sum(keep))
+  weights_model <- subset_likelihood_weights(
+    weights,
+    keep,
+    nrow(data),
+    sum(keep)
+  )
 
-  mf_mu <- stats::model.frame(f_mu, data = data_model, na.action = stats::na.omit)
-  mf_sigma <- stats::model.frame(f_sigma, data = data_model, na.action = stats::na.omit)
+  mf_mu <- stats::model.frame(
+    f_mu,
+    data = data_model,
+    na.action = stats::na.omit
+  )
+  mf_sigma <- stats::model.frame(
+    f_sigma,
+    data = data_model,
+    na.action = stats::na.omit
+  )
   y <- stats::model.response(mf_mu)
 
-  X_mu <- stats::model.matrix(stats::delete.response(stats::terms(mf_mu)), mf_mu)
+  X_mu <- stats::model.matrix(
+    stats::delete.response(stats::terms(mf_mu)),
+    mf_mu
+  )
   X_sigma <- stats::model.matrix(stats::terms(mf_sigma), mf_sigma)
   re_mu <- build_random_mu_structure(mu_re$terms, data_model)
   re_sigma <- build_random_sigma_structure(sigma_re$terms, data_model)
-  sd_mu <- build_sd_mu_structure(sd_mu_entries, sd_mu_targets, re_mu, data_model)
+  sd_mu <- build_sd_mu_structure(
+    sd_mu_entries,
+    sd_mu_targets,
+    re_mu,
+    data_model
+  )
   phylo_mu <- build_phylo_mu_structure(mu_phylo$term, data_model, env)
 
   if (length(y) != nrow(X_sigma)) {
-    cli::cli_abort("Internal model-frame mismatch between {.code mu} and {.code sigma}.")
+    cli::cli_abort(
+      "Internal model-frame mismatch between {.code mu} and {.code sigma}."
+    )
   }
 
   if (length(y) == 0L) {
-    cli::cli_abort("No complete observations remain after applying model and known-variance missingness rules.")
+    cli::cli_abort(
+      "No complete observations remain after applying model and known-variance missingness rules."
+    )
   }
 
-  start <- gaussian_ls_start(y, X_mu, X_sigma, V_known$diag, re_mu, re_sigma, sd_mu)
+  start <- gaussian_ls_start(
+    y,
+    X_mu,
+    X_sigma,
+    V_known$diag,
+    re_mu,
+    re_sigma,
+    sd_mu
+  )
   start <- c(start, gaussian_ls_dummy_start(phylo_mu, y = y))
 
   spec <- list(
@@ -361,8 +499,12 @@ drm_build_gaussian_ls_spec <- function(formula, data, env = parent.frame(),
   spec
 }
 
-drm_build_student_ls_spec <- function(formula, data, env = parent.frame(),
-                                      weights = NULL) {
+drm_build_student_ls_spec <- function(
+  formula,
+  data,
+  env = parent.frame(),
+  weights = NULL
+) {
   entries <- formula$entries
   dpars <- vapply(entries, `[[`, character(1), "dpar")
   is_sd_dpar <- startsWith(dpars, "sd(")
@@ -385,7 +527,9 @@ drm_build_student_ls_spec <- function(formula, data, env = parent.frame(),
   }
   for (optional in c("sigma", "nu")) {
     if (sum(dpars == optional) > 1L) {
-      cli::cli_abort("A Student-t model can have at most one {.code {optional}} formula.")
+      cli::cli_abort(
+        "A Student-t model can have at most one {.code {optional}} formula."
+      )
     }
   }
 
@@ -402,7 +546,9 @@ drm_build_student_ls_spec <- function(formula, data, env = parent.frame(),
   }
 
   if (is.na(mu_entry$response)) {
-    cli::cli_abort("The {.code mu} formula must include a response on the left-hand side.")
+    cli::cli_abort(
+      "The {.code mu} formula must include a response on the left-hand side."
+    )
   }
   if (is_mvbind_lhs(mu_entry$lhs)) {
     cli::cli_abort(c(
@@ -435,19 +581,41 @@ drm_build_student_ls_spec <- function(formula, data, env = parent.frame(),
     keep <- rep(TRUE, nrow(data))
   }
   data_model <- data[keep, , drop = FALSE]
-  weights_model <- subset_likelihood_weights(weights, keep, nrow(data), sum(keep))
+  weights_model <- subset_likelihood_weights(
+    weights,
+    keep,
+    nrow(data),
+    sum(keep)
+  )
 
-  mf_mu <- stats::model.frame(f_mu, data = data_model, na.action = stats::na.omit)
-  mf_sigma <- stats::model.frame(f_sigma, data = data_model, na.action = stats::na.omit)
-  mf_nu <- stats::model.frame(f_nu, data = data_model, na.action = stats::na.omit)
+  mf_mu <- stats::model.frame(
+    f_mu,
+    data = data_model,
+    na.action = stats::na.omit
+  )
+  mf_sigma <- stats::model.frame(
+    f_sigma,
+    data = data_model,
+    na.action = stats::na.omit
+  )
+  mf_nu <- stats::model.frame(
+    f_nu,
+    data = data_model,
+    na.action = stats::na.omit
+  )
   y <- stats::model.response(mf_mu)
 
-  X_mu <- stats::model.matrix(stats::delete.response(stats::terms(mf_mu)), mf_mu)
+  X_mu <- stats::model.matrix(
+    stats::delete.response(stats::terms(mf_mu)),
+    mf_mu
+  )
   X_sigma <- stats::model.matrix(stats::terms(mf_sigma), mf_sigma)
   X_nu <- stats::model.matrix(stats::terms(mf_nu), mf_nu)
 
   if (length(y) == 0L) {
-    cli::cli_abort("No complete observations remain after applying model missingness rules.")
+    cli::cli_abort(
+      "No complete observations remain after applying model missingness rules."
+    )
   }
   if (!all(c(nrow(X_sigma), nrow(X_nu)) == length(y))) {
     cli::cli_abort("Internal model-frame mismatch in Student-t model.")
@@ -487,8 +655,12 @@ drm_build_student_ls_spec <- function(formula, data, env = parent.frame(),
   spec
 }
 
-drm_build_lognormal_ls_spec <- function(formula, data, env = parent.frame(),
-                                        weights = NULL) {
+drm_build_lognormal_ls_spec <- function(
+  formula,
+  data,
+  env = parent.frame(),
+  weights = NULL
+) {
   entries <- formula$entries
   dpars <- vapply(entries, `[[`, character(1), "dpar")
   is_sd_dpar <- startsWith(dpars, "sd(")
@@ -510,7 +682,9 @@ drm_build_lognormal_ls_spec <- function(formula, data, env = parent.frame(),
     cli::cli_abort("A lognormal model requires exactly one location formula.")
   }
   if (sum(dpars == "sigma") > 1L) {
-    cli::cli_abort("A lognormal model can have at most one residual {.code sigma} formula.")
+    cli::cli_abort(
+      "A lognormal model can have at most one residual {.code sigma} formula."
+    )
   }
 
   mu_entry <- entries[[which(dpars == "mu")]]
@@ -521,7 +695,9 @@ drm_build_lognormal_ls_spec <- function(formula, data, env = parent.frame(),
   }
 
   if (is.na(mu_entry$response)) {
-    cli::cli_abort("The {.code mu} formula must include a response on the left-hand side.")
+    cli::cli_abort(
+      "The {.code mu} formula must include a response on the left-hand side."
+    )
   }
   if (is_mvbind_lhs(mu_entry$lhs)) {
     cli::cli_abort(c(
@@ -553,14 +729,29 @@ drm_build_lognormal_ls_spec <- function(formula, data, env = parent.frame(),
     keep <- rep(TRUE, nrow(data))
   }
   data_model <- data[keep, , drop = FALSE]
-  weights_model <- subset_likelihood_weights(weights, keep, nrow(data), sum(keep))
+  weights_model <- subset_likelihood_weights(
+    weights,
+    keep,
+    nrow(data),
+    sum(keep)
+  )
 
-  mf_mu <- stats::model.frame(f_mu, data = data_model, na.action = stats::na.omit)
-  mf_sigma <- stats::model.frame(f_sigma, data = data_model, na.action = stats::na.omit)
+  mf_mu <- stats::model.frame(
+    f_mu,
+    data = data_model,
+    na.action = stats::na.omit
+  )
+  mf_sigma <- stats::model.frame(
+    f_sigma,
+    data = data_model,
+    na.action = stats::na.omit
+  )
   y <- stats::model.response(mf_mu)
 
   if (length(y) == 0L) {
-    cli::cli_abort("No complete observations remain after applying model missingness rules.")
+    cli::cli_abort(
+      "No complete observations remain after applying model missingness rules."
+    )
   }
   if (!all(is.finite(y)) || any(y <= 0)) {
     cli::cli_abort(c(
@@ -569,7 +760,10 @@ drm_build_lognormal_ls_spec <- function(formula, data, env = parent.frame(),
     ))
   }
 
-  X_mu <- stats::model.matrix(stats::delete.response(stats::terms(mf_mu)), mf_mu)
+  X_mu <- stats::model.matrix(
+    stats::delete.response(stats::terms(mf_mu)),
+    mf_mu
+  )
   X_sigma <- stats::model.matrix(stats::terms(mf_sigma), mf_sigma)
 
   if (nrow(X_sigma) != length(y)) {
@@ -609,8 +803,12 @@ drm_build_lognormal_ls_spec <- function(formula, data, env = parent.frame(),
   spec
 }
 
-drm_build_gamma_ls_spec <- function(formula, data, env = parent.frame(),
-                                    weights = NULL) {
+drm_build_gamma_ls_spec <- function(
+  formula,
+  data,
+  env = parent.frame(),
+  weights = NULL
+) {
   entries <- formula$entries
   dpars <- vapply(entries, `[[`, character(1), "dpar")
   is_sd_dpar <- startsWith(dpars, "sd(")
@@ -632,7 +830,9 @@ drm_build_gamma_ls_spec <- function(formula, data, env = parent.frame(),
     cli::cli_abort("A Gamma model requires exactly one location formula.")
   }
   if (sum(dpars == "sigma") > 1L) {
-    cli::cli_abort("A Gamma model can have at most one residual {.code sigma} formula.")
+    cli::cli_abort(
+      "A Gamma model can have at most one residual {.code sigma} formula."
+    )
   }
 
   mu_entry <- entries[[which(dpars == "mu")]]
@@ -643,7 +843,9 @@ drm_build_gamma_ls_spec <- function(formula, data, env = parent.frame(),
   }
 
   if (is.na(mu_entry$response)) {
-    cli::cli_abort("The {.code mu} formula must include a response on the left-hand side.")
+    cli::cli_abort(
+      "The {.code mu} formula must include a response on the left-hand side."
+    )
   }
   if (is_mvbind_lhs(mu_entry$lhs)) {
     cli::cli_abort(c(
@@ -675,14 +877,29 @@ drm_build_gamma_ls_spec <- function(formula, data, env = parent.frame(),
     keep <- rep(TRUE, nrow(data))
   }
   data_model <- data[keep, , drop = FALSE]
-  weights_model <- subset_likelihood_weights(weights, keep, nrow(data), sum(keep))
+  weights_model <- subset_likelihood_weights(
+    weights,
+    keep,
+    nrow(data),
+    sum(keep)
+  )
 
-  mf_mu <- stats::model.frame(f_mu, data = data_model, na.action = stats::na.omit)
-  mf_sigma <- stats::model.frame(f_sigma, data = data_model, na.action = stats::na.omit)
+  mf_mu <- stats::model.frame(
+    f_mu,
+    data = data_model,
+    na.action = stats::na.omit
+  )
+  mf_sigma <- stats::model.frame(
+    f_sigma,
+    data = data_model,
+    na.action = stats::na.omit
+  )
   y <- stats::model.response(mf_mu)
 
   if (length(y) == 0L) {
-    cli::cli_abort("No complete observations remain after applying model missingness rules.")
+    cli::cli_abort(
+      "No complete observations remain after applying model missingness rules."
+    )
   }
   if (!all(is.finite(y)) || any(y <= 0)) {
     cli::cli_abort(c(
@@ -691,7 +908,10 @@ drm_build_gamma_ls_spec <- function(formula, data, env = parent.frame(),
     ))
   }
 
-  X_mu <- stats::model.matrix(stats::delete.response(stats::terms(mf_mu)), mf_mu)
+  X_mu <- stats::model.matrix(
+    stats::delete.response(stats::terms(mf_mu)),
+    mf_mu
+  )
   X_sigma <- stats::model.matrix(stats::terms(mf_sigma), mf_sigma)
 
   if (nrow(X_sigma) != length(y)) {
@@ -731,8 +951,12 @@ drm_build_gamma_ls_spec <- function(formula, data, env = parent.frame(),
   spec
 }
 
-drm_build_beta_ls_spec <- function(formula, data, env = parent.frame(),
-                                   weights = NULL) {
+drm_build_beta_ls_spec <- function(
+  formula,
+  data,
+  env = parent.frame(),
+  weights = NULL
+) {
   entries <- formula$entries
   dpars <- vapply(entries, `[[`, character(1), "dpar")
   is_sd_dpar <- startsWith(dpars, "sd(")
@@ -754,7 +978,9 @@ drm_build_beta_ls_spec <- function(formula, data, env = parent.frame(),
     cli::cli_abort("A beta model requires exactly one location formula.")
   }
   if (sum(dpars == "sigma") > 1L) {
-    cli::cli_abort("A beta model can have at most one scale {.code sigma} formula.")
+    cli::cli_abort(
+      "A beta model can have at most one scale {.code sigma} formula."
+    )
   }
 
   mu_entry <- entries[[which(dpars == "mu")]]
@@ -765,7 +991,9 @@ drm_build_beta_ls_spec <- function(formula, data, env = parent.frame(),
   }
 
   if (is.na(mu_entry$response)) {
-    cli::cli_abort("The {.code mu} formula must include a response on the left-hand side.")
+    cli::cli_abort(
+      "The {.code mu} formula must include a response on the left-hand side."
+    )
   }
   if (is_mvbind_lhs(mu_entry$lhs)) {
     cli::cli_abort(c(
@@ -803,10 +1031,23 @@ drm_build_beta_ls_spec <- function(formula, data, env = parent.frame(),
     keep <- rep(TRUE, nrow(data))
   }
   data_model <- data[keep, , drop = FALSE]
-  weights_model <- subset_likelihood_weights(weights, keep, nrow(data), sum(keep))
+  weights_model <- subset_likelihood_weights(
+    weights,
+    keep,
+    nrow(data),
+    sum(keep)
+  )
 
-  mf_mu <- stats::model.frame(f_mu, data = data_model, na.action = stats::na.omit)
-  mf_sigma <- stats::model.frame(f_sigma, data = data_model, na.action = stats::na.omit)
+  mf_mu <- stats::model.frame(
+    f_mu,
+    data = data_model,
+    na.action = stats::na.omit
+  )
+  mf_sigma <- stats::model.frame(
+    f_sigma,
+    data = data_model,
+    na.action = stats::na.omit
+  )
   y <- stats::model.response(mf_mu)
 
   if (!is.null(dim(y))) {
@@ -816,7 +1057,9 @@ drm_build_beta_ls_spec <- function(formula, data, env = parent.frame(),
     ))
   }
   if (length(y) == 0L) {
-    cli::cli_abort("No complete observations remain after applying model missingness rules.")
+    cli::cli_abort(
+      "No complete observations remain after applying model missingness rules."
+    )
   }
   if (!all(is.finite(y)) || any(y <= 0) || any(y >= 1)) {
     cli::cli_abort(c(
@@ -825,7 +1068,10 @@ drm_build_beta_ls_spec <- function(formula, data, env = parent.frame(),
     ))
   }
 
-  X_mu <- stats::model.matrix(stats::delete.response(stats::terms(mf_mu)), mf_mu)
+  X_mu <- stats::model.matrix(
+    stats::delete.response(stats::terms(mf_mu)),
+    mf_mu
+  )
   X_sigma <- stats::model.matrix(stats::terms(mf_sigma), mf_sigma)
 
   if (nrow(X_sigma) != length(y)) {
@@ -865,8 +1111,292 @@ drm_build_beta_ls_spec <- function(formula, data, env = parent.frame(),
   spec
 }
 
-drm_build_poisson_spec <- function(formula, data, env = parent.frame(),
-                                   weights = NULL) {
+drm_build_beta_binomial_spec <- function(
+  formula,
+  data,
+  env = parent.frame(),
+  weights = NULL
+) {
+  entries <- formula$entries
+  dpars <- vapply(entries, `[[`, character(1), "dpar")
+  is_sd_dpar <- startsWith(dpars, "sd(")
+
+  unsupported <- setdiff(dpars[!is_sd_dpar], c("mu", "sigma"))
+  if (length(unsupported) > 0L) {
+    cli::cli_abort(c(
+      "Beta-binomial models only support {.code mu} and {.code sigma}.",
+      "x" = "Unsupported parameter{?s}: {.val {unsupported}}."
+    ))
+  }
+  if (any(is_sd_dpar)) {
+    cli::cli_abort(c(
+      "Random-effect scale formulae are not implemented for {.fn beta_binomial} models yet.",
+      "i" = "Start with fixed-effect denominator-aware formulas such as {.code bf(cbind(success, failure) ~ x, sigma ~ z)}."
+    ))
+  }
+  if (sum(dpars == "mu") != 1L) {
+    cli::cli_abort(
+      "A beta-binomial model requires exactly one location formula."
+    )
+  }
+  if (sum(dpars == "sigma") > 1L) {
+    cli::cli_abort(
+      "A beta-binomial model can have at most one overdispersion {.code sigma} formula."
+    )
+  }
+
+  mu_entry <- entries[[which(dpars == "mu")]]
+  sigma_entry <- if (any(dpars == "sigma")) {
+    entries[[which(dpars == "sigma")]]
+  } else {
+    default_dpar_entry("sigma", quote(1))
+  }
+
+  if (is.na(mu_entry$response)) {
+    cli::cli_abort(
+      "The {.code mu} formula must include a denominator-aware response on the left-hand side."
+    )
+  }
+  if (is_mvbind_lhs(mu_entry$lhs)) {
+    cli::cli_abort(c(
+      "{.fn beta_binomial} models currently support one two-column count response.",
+      "x" = "{.fn mvbind} shorthand is only available for two-response Gaussian models."
+    ))
+  }
+  if (!is_cbind_lhs(mu_entry$lhs)) {
+    cli::cli_abort(c(
+      "{.fn beta_binomial} models require two-column count syntax on the left-hand side.",
+      "i" = "Use {.code bf(cbind(successes, failures) ~ predictors, sigma ~ predictors)}."
+    ))
+  }
+
+  meta <- extract_meta_known_v(mu_entry$rhs)
+  if (!is.null(meta$V)) {
+    cli::cli_abort(c(
+      "{.fn meta_known_V} is not implemented for {.fn beta_binomial} models.",
+      "i" = "Use {.code family = gaussian()} for Gaussian meta-analysis with known sampling covariance."
+    ))
+  }
+  mu_entry$rhs <- meta$rhs
+
+  for (entry in list(mu_entry, sigma_entry)) {
+    drm_reject_phase1_terms(entry$rhs, entry$dpar)
+  }
+
+  f_mu <- drm_entry_formula(mu_entry, response = TRUE)
+  f_sigma <- drm_entry_formula(sigma_entry, response = FALSE)
+
+  vars <- unique(c(all.vars(f_mu), all.vars(f_sigma)))
+  if (length(vars) > 0L) {
+    keep <- stats::complete.cases(data[, vars, drop = FALSE])
+  } else {
+    keep <- rep(TRUE, nrow(data))
+  }
+  data_model <- data[keep, , drop = FALSE]
+  weights_model <- subset_likelihood_weights(
+    weights,
+    keep,
+    nrow(data),
+    sum(keep)
+  )
+
+  mf_mu <- stats::model.frame(
+    f_mu,
+    data = data_model,
+    na.action = stats::na.omit
+  )
+  mf_sigma <- stats::model.frame(
+    f_sigma,
+    data = data_model,
+    na.action = stats::na.omit
+  )
+  response <- prepare_betabinomial_response(
+    stats::model.response(mf_mu),
+    response = mu_entry$response
+  )
+
+  X_mu <- stats::model.matrix(
+    stats::delete.response(stats::terms(mf_mu)),
+    mf_mu
+  )
+  X_sigma <- stats::model.matrix(stats::terms(mf_sigma), mf_sigma)
+
+  if (nrow(X_sigma) != length(response$successes)) {
+    cli::cli_abort("Internal model-frame mismatch in beta-binomial model.")
+  }
+
+  spec <- list(
+    model_type = "beta_binomial",
+    y = as.numeric(response$successes),
+    trials = as.numeric(response$trials),
+    failures = as.numeric(response$failures),
+    weights = weights_model,
+    V_known = rep(0, length(response$successes)),
+    V_known_diag = rep(0, length(response$successes)),
+    V_known_type = "none",
+    has_known_v = FALSE,
+    X = list(mu = X_mu, sigma = X_sigma),
+    terms = list(
+      mu = stats::delete.response(stats::terms(mf_mu)),
+      sigma = stats::terms(mf_sigma)
+    ),
+    model_frame = list(mu = mf_mu, sigma = mf_sigma),
+    random = list(
+      mu = empty_random_mu_structure(nrow(data_model)),
+      sigma = empty_random_sigma_structure(nrow(data_model))
+    ),
+    random_scale = list(mu = empty_sd_mu_structure(1L)),
+    structured = list(phylo_mu = empty_phylo_mu_structure()),
+    denominator = response[c("success_name", "failure_name", "trials")],
+    data = data_model,
+    variables = vars,
+    keep = keep,
+    dpars = c("mu", "sigma"),
+    start = beta_binomial_start(
+      response$successes,
+      response$failures,
+      X_mu,
+      X_sigma
+    ),
+    map = beta_binomial_map(),
+    random_names = NULL
+  )
+  spec$tmb_data <- make_tmb_data(spec)
+  spec$nobs <- length(spec$y)
+  spec
+}
+
+drm_build_cumulative_logit_spec <- function(
+  formula,
+  data,
+  env = parent.frame(),
+  weights = NULL
+) {
+  entries <- formula$entries
+  dpars <- vapply(entries, `[[`, character(1), "dpar")
+  is_sd_dpar <- startsWith(dpars, "sd(")
+
+  unsupported <- setdiff(dpars[!is_sd_dpar], "mu")
+  if (length(unsupported) > 0L) {
+    cli::cli_abort(c(
+      "{.fn cumulative_logit} models currently support only a {.code mu} location formula.",
+      "x" = "Unsupported parameter{?s}: {.val {unsupported}}.",
+      "i" = "Ordinal scale/discrimination formulas are planned after the identifiability contract is finalized."
+    ))
+  }
+  if (any(is_sd_dpar)) {
+    cli::cli_abort(c(
+      "Random-effect scale formulae are not implemented for {.fn cumulative_logit} models.",
+      "i" = "Start with fixed-effect ordinal formulas such as {.code bf(score ~ treatment)}."
+    ))
+  }
+  if (sum(dpars == "mu") != 1L) {
+    cli::cli_abort(
+      "A {.fn cumulative_logit} model requires exactly one location formula."
+    )
+  }
+
+  mu_entry <- entries[[which(dpars == "mu")]]
+  if (is.na(mu_entry$response)) {
+    cli::cli_abort(
+      "The {.code mu} formula must include an ordinal response on the left-hand side."
+    )
+  }
+  if (is_mvbind_lhs(mu_entry$lhs)) {
+    cli::cli_abort(c(
+      "{.fn cumulative_logit} models currently support one ordered response.",
+      "x" = "{.fn mvbind} shorthand is only available for two-response Gaussian models."
+    ))
+  }
+  if (is_cbind_lhs(mu_entry$lhs)) {
+    cli::cli_abort(c(
+      "{.fn cumulative_logit} models require a single ordered response.",
+      "x" = "Denominator syntax such as {.code cbind(successes, failures)} is planned for beta-binomial models, not ordinal models."
+    ))
+  }
+
+  meta <- extract_meta_known_v(mu_entry$rhs)
+  if (!is.null(meta$V)) {
+    cli::cli_abort(c(
+      "{.fn meta_known_V} is not implemented for {.fn cumulative_logit} models.",
+      "i" = "Use {.code family = gaussian()} for Gaussian meta-analysis with known sampling covariance."
+    ))
+  }
+  mu_entry$rhs <- meta$rhs
+  drm_reject_phase1_terms(mu_entry$rhs, mu_entry$dpar)
+
+  f_mu <- drm_entry_formula(mu_entry, response = TRUE)
+  vars <- all.vars(f_mu)
+  if (length(vars) > 0L) {
+    keep <- stats::complete.cases(data[, vars, drop = FALSE])
+  } else {
+    keep <- rep(TRUE, nrow(data))
+  }
+  data_model <- data[keep, , drop = FALSE]
+  weights_model <- subset_likelihood_weights(
+    weights,
+    keep,
+    nrow(data),
+    sum(keep)
+  )
+
+  mf_mu <- stats::model.frame(
+    f_mu,
+    data = data_model,
+    na.action = stats::na.omit
+  )
+  y <- stats::model.response(mf_mu)
+  if (length(y) == 0L) {
+    cli::cli_abort(
+      "No complete observations remain after applying ordinal model missingness rules."
+    )
+  }
+  ordinal <- prepare_ordinal_response(y, response = mu_entry$response)
+
+  terms_mu <- stats::delete.response(stats::terms(mf_mu))
+  X_mu <- ordinal_mu_model_matrix(terms_mu, mf_mu)
+
+  if (nrow(X_mu) != length(ordinal$y)) {
+    cli::cli_abort("Internal model-frame mismatch in cumulative_logit model.")
+  }
+
+  spec <- list(
+    model_type = "cumulative_logit",
+    y = as.numeric(ordinal$y),
+    weights = weights_model,
+    V_known = rep(0, length(ordinal$y)),
+    V_known_diag = rep(0, length(ordinal$y)),
+    V_known_type = "none",
+    has_known_v = FALSE,
+    X = list(mu = X_mu),
+    terms = list(mu = terms_mu),
+    model_frame = list(mu = mf_mu),
+    random = list(
+      mu = empty_random_mu_structure(nrow(data_model)),
+      sigma = empty_random_sigma_structure(nrow(data_model))
+    ),
+    random_scale = list(mu = empty_sd_mu_structure(1L)),
+    structured = list(phylo_mu = empty_phylo_mu_structure()),
+    ordinal = ordinal[c("levels", "n_categories", "response")],
+    data = data_model,
+    variables = vars,
+    keep = keep,
+    dpars = "mu",
+    start = cumulative_logit_start(ordinal$y, X_mu, ordinal$n_categories),
+    map = cumulative_logit_map(),
+    random_names = NULL
+  )
+  spec$tmb_data <- make_tmb_data(spec)
+  spec$nobs <- length(spec$y)
+  spec
+}
+
+drm_build_poisson_spec <- function(
+  formula,
+  data,
+  env = parent.frame(),
+  weights = NULL
+) {
   entries <- formula$entries
   dpars <- vapply(entries, `[[`, character(1), "dpar")
   is_sd_dpar <- startsWith(dpars, "sd(")
@@ -888,7 +1418,9 @@ drm_build_poisson_spec <- function(formula, data, env = parent.frame(),
     cli::cli_abort("A Poisson model requires exactly one location formula.")
   }
   if (sum(dpars == "zi") > 1L) {
-    cli::cli_abort("A Poisson model can have at most one zero-inflation {.code zi} formula.")
+    cli::cli_abort(
+      "A Poisson model can have at most one zero-inflation {.code zi} formula."
+    )
   }
 
   mu_entry <- entries[[which(dpars == "mu")]]
@@ -898,10 +1430,14 @@ drm_build_poisson_spec <- function(formula, data, env = parent.frame(),
     NULL
   }
   if (is.na(mu_entry$response)) {
-    cli::cli_abort("The {.code mu} formula must include a response on the left-hand side.")
+    cli::cli_abort(
+      "The {.code mu} formula must include a response on the left-hand side."
+    )
   }
   if (!is.null(zi_entry) && !is.na(zi_entry$response)) {
-    cli::cli_abort("The {.code zi} formula must be one-sided, for example {.code zi ~ habitat}.")
+    cli::cli_abort(
+      "The {.code zi} formula must be one-sided, for example {.code zi ~ habitat}."
+    )
   }
   if (is_mvbind_lhs(mu_entry$lhs)) {
     cli::cli_abort(c(
@@ -924,7 +1460,11 @@ drm_build_poisson_spec <- function(formula, data, env = parent.frame(),
   }
 
   f_mu <- drm_entry_formula(mu_entry, response = TRUE)
-  f_zi <- if (!is.null(zi_entry)) drm_entry_formula(zi_entry, response = FALSE) else NULL
+  f_zi <- if (!is.null(zi_entry)) {
+    drm_entry_formula(zi_entry, response = FALSE)
+  } else {
+    NULL
+  }
   vars <- unique(c(all.vars(f_mu), if (!is.null(f_zi)) all.vars(f_zi)))
   if (length(vars) > 0L) {
     keep <- stats::complete.cases(data[, vars, drop = FALSE])
@@ -932,9 +1472,18 @@ drm_build_poisson_spec <- function(formula, data, env = parent.frame(),
     keep <- rep(TRUE, nrow(data))
   }
   data_model <- data[keep, , drop = FALSE]
-  weights_model <- subset_likelihood_weights(weights, keep, nrow(data), sum(keep))
+  weights_model <- subset_likelihood_weights(
+    weights,
+    keep,
+    nrow(data),
+    sum(keep)
+  )
 
-  mf_mu <- stats::model.frame(f_mu, data = data_model, na.action = stats::na.omit)
+  mf_mu <- stats::model.frame(
+    f_mu,
+    data = data_model,
+    na.action = stats::na.omit
+  )
   mf_zi <- if (!is.null(f_zi)) {
     stats::model.frame(f_zi, data = data_model, na.action = stats::na.omit)
   } else {
@@ -944,20 +1493,33 @@ drm_build_poisson_spec <- function(formula, data, env = parent.frame(),
   offset_mu <- drm_model_offset(mf_mu, dpar = "mu")
 
   if (length(y) == 0L) {
-    cli::cli_abort("No complete observations remain after applying model missingness rules.")
+    cli::cli_abort(
+      "No complete observations remain after applying model missingness rules."
+    )
   }
   count_tolerance <- sqrt(.Machine$double.eps)
-  if (!all(is.finite(y)) || any(y < 0) || any(abs(y - round(y)) > count_tolerance)) {
+  if (
+    !all(is.finite(y)) || any(y < 0) || any(abs(y - round(y)) > count_tolerance)
+  ) {
     cli::cli_abort(c(
       "Poisson models require non-negative integer count response values.",
       "x" = "The response {.val {mu_entry$response}} contains negative, non-integer, or non-finite values after missing-row filtering."
     ))
   }
 
-  X_mu <- stats::model.matrix(stats::delete.response(stats::terms(mf_mu)), mf_mu)
-  X_zi <- if (!is.null(mf_zi)) stats::model.matrix(stats::terms(mf_zi), mf_zi) else NULL
+  X_mu <- stats::model.matrix(
+    stats::delete.response(stats::terms(mf_mu)),
+    mf_mu
+  )
+  X_zi <- if (!is.null(mf_zi)) {
+    stats::model.matrix(stats::terms(mf_zi), mf_zi)
+  } else {
+    NULL
+  }
   if (!is.null(X_zi) && nrow(X_zi) != length(y)) {
-    cli::cli_abort("Internal model-frame mismatch in zero-inflated Poisson model.")
+    cli::cli_abort(
+      "Internal model-frame mismatch in zero-inflated Poisson model."
+    )
   }
   if (!is.null(X_zi) && ncol(X_zi) == 0L) {
     cli::cli_abort(c(
@@ -978,11 +1540,18 @@ drm_build_poisson_spec <- function(formula, data, env = parent.frame(),
     offset = list(mu = offset_mu),
     X = if (has_zi) list(mu = X_mu, zi = X_zi) else list(mu = X_mu),
     terms = if (has_zi) {
-      list(mu = stats::delete.response(stats::terms(mf_mu)), zi = stats::terms(mf_zi))
+      list(
+        mu = stats::delete.response(stats::terms(mf_mu)),
+        zi = stats::terms(mf_zi)
+      )
     } else {
       list(mu = stats::delete.response(stats::terms(mf_mu)))
     },
-    model_frame = if (has_zi) list(mu = mf_mu, zi = mf_zi) else list(mu = mf_mu),
+    model_frame = if (has_zi) {
+      list(mu = mf_mu, zi = mf_zi)
+    } else {
+      list(mu = mf_mu)
+    },
     random = list(
       mu = empty_random_mu_structure(nrow(data_model)),
       sigma = empty_random_sigma_structure(nrow(data_model))
@@ -993,7 +1562,11 @@ drm_build_poisson_spec <- function(formula, data, env = parent.frame(),
     variables = vars,
     keep = keep,
     dpars = if (has_zi) c("mu", "zi") else "mu",
-    start = if (has_zi) zi_poisson_start(y, X_mu, X_zi, offset_mu) else poisson_start(y, X_mu, offset_mu),
+    start = if (has_zi) {
+      zi_poisson_start(y, X_mu, X_zi, offset_mu)
+    } else {
+      poisson_start(y, X_mu, offset_mu)
+    },
     map = if (has_zi) zi_poisson_map() else poisson_map(),
     random_names = NULL
   )
@@ -1002,8 +1575,12 @@ drm_build_poisson_spec <- function(formula, data, env = parent.frame(),
   spec
 }
 
-drm_build_nbinom2_spec <- function(formula, data, env = parent.frame(),
-                                   weights = NULL) {
+drm_build_nbinom2_spec <- function(
+  formula,
+  data,
+  env = parent.frame(),
+  weights = NULL
+) {
   entries <- formula$entries
   dpars <- vapply(entries, `[[`, character(1), "dpar")
   is_sd_dpar <- startsWith(dpars, "sd(")
@@ -1022,13 +1599,19 @@ drm_build_nbinom2_spec <- function(formula, data, env = parent.frame(),
     ))
   }
   if (sum(dpars == "mu") != 1L) {
-    cli::cli_abort("An {.fn nbinom2} model requires exactly one location formula.")
+    cli::cli_abort(
+      "An {.fn nbinom2} model requires exactly one location formula."
+    )
   }
   if (sum(dpars == "sigma") > 1L) {
-    cli::cli_abort("An {.fn nbinom2} model can have at most one overdispersion {.code sigma} formula.")
+    cli::cli_abort(
+      "An {.fn nbinom2} model can have at most one overdispersion {.code sigma} formula."
+    )
   }
   if (sum(dpars == "zi") > 1L) {
-    cli::cli_abort("An {.fn nbinom2} model can have at most one zero-inflation {.code zi} formula.")
+    cli::cli_abort(
+      "An {.fn nbinom2} model can have at most one zero-inflation {.code zi} formula."
+    )
   }
 
   mu_entry <- entries[[which(dpars == "mu")]]
@@ -1044,10 +1627,14 @@ drm_build_nbinom2_spec <- function(formula, data, env = parent.frame(),
   }
 
   if (is.na(mu_entry$response)) {
-    cli::cli_abort("The {.code mu} formula must include a response on the left-hand side.")
+    cli::cli_abort(
+      "The {.code mu} formula must include a response on the left-hand side."
+    )
   }
   if (!is.null(zi_entry) && !is.na(zi_entry$response)) {
-    cli::cli_abort("The {.code zi} formula must be one-sided, for example {.code zi ~ habitat}.")
+    cli::cli_abort(
+      "The {.code zi} formula must be one-sided, for example {.code zi ~ habitat}."
+    )
   }
   if (is_mvbind_lhs(mu_entry$lhs)) {
     cli::cli_abort(c(
@@ -1065,24 +1652,52 @@ drm_build_nbinom2_spec <- function(formula, data, env = parent.frame(),
   }
   mu_entry$rhs <- meta$rhs
 
-  for (entry in c(list(mu_entry, sigma_entry), if (!is.null(zi_entry)) list(zi_entry))) {
-    drm_reject_phase1_terms(entry$rhs, entry$dpar, allow_offset = identical(entry$dpar, "mu"))
+  for (entry in c(
+    list(mu_entry, sigma_entry),
+    if (!is.null(zi_entry)) list(zi_entry)
+  )) {
+    drm_reject_phase1_terms(
+      entry$rhs,
+      entry$dpar,
+      allow_offset = identical(entry$dpar, "mu")
+    )
   }
 
   f_mu <- drm_entry_formula(mu_entry, response = TRUE)
   f_sigma <- drm_entry_formula(sigma_entry, response = FALSE)
-  f_zi <- if (!is.null(zi_entry)) drm_entry_formula(zi_entry, response = FALSE) else NULL
-  vars <- unique(c(all.vars(f_mu), all.vars(f_sigma), if (!is.null(f_zi)) all.vars(f_zi)))
+  f_zi <- if (!is.null(zi_entry)) {
+    drm_entry_formula(zi_entry, response = FALSE)
+  } else {
+    NULL
+  }
+  vars <- unique(c(
+    all.vars(f_mu),
+    all.vars(f_sigma),
+    if (!is.null(f_zi)) all.vars(f_zi)
+  ))
   if (length(vars) > 0L) {
     keep <- stats::complete.cases(data[, vars, drop = FALSE])
   } else {
     keep <- rep(TRUE, nrow(data))
   }
   data_model <- data[keep, , drop = FALSE]
-  weights_model <- subset_likelihood_weights(weights, keep, nrow(data), sum(keep))
+  weights_model <- subset_likelihood_weights(
+    weights,
+    keep,
+    nrow(data),
+    sum(keep)
+  )
 
-  mf_mu <- stats::model.frame(f_mu, data = data_model, na.action = stats::na.omit)
-  mf_sigma <- stats::model.frame(f_sigma, data = data_model, na.action = stats::na.omit)
+  mf_mu <- stats::model.frame(
+    f_mu,
+    data = data_model,
+    na.action = stats::na.omit
+  )
+  mf_sigma <- stats::model.frame(
+    f_sigma,
+    data = data_model,
+    na.action = stats::na.omit
+  )
   mf_zi <- if (!is.null(f_zi)) {
     stats::model.frame(f_zi, data = data_model, na.action = stats::na.omit)
   } else {
@@ -1092,25 +1707,38 @@ drm_build_nbinom2_spec <- function(formula, data, env = parent.frame(),
   offset_mu <- drm_model_offset(mf_mu, dpar = "mu")
 
   if (length(y) == 0L) {
-    cli::cli_abort("No complete observations remain after applying model missingness rules.")
+    cli::cli_abort(
+      "No complete observations remain after applying model missingness rules."
+    )
   }
   count_tolerance <- sqrt(.Machine$double.eps)
-  if (!all(is.finite(y)) || any(y < 0) || any(abs(y - round(y)) > count_tolerance)) {
+  if (
+    !all(is.finite(y)) || any(y < 0) || any(abs(y - round(y)) > count_tolerance)
+  ) {
     cli::cli_abort(c(
       "{.fn nbinom2} models require non-negative integer count response values.",
       "x" = "The response {.val {mu_entry$response}} contains negative, non-integer, or non-finite values after missing-row filtering."
     ))
   }
 
-  X_mu <- stats::model.matrix(stats::delete.response(stats::terms(mf_mu)), mf_mu)
+  X_mu <- stats::model.matrix(
+    stats::delete.response(stats::terms(mf_mu)),
+    mf_mu
+  )
   X_sigma <- stats::model.matrix(stats::terms(mf_sigma), mf_sigma)
-  X_zi <- if (!is.null(mf_zi)) stats::model.matrix(stats::terms(mf_zi), mf_zi) else NULL
+  X_zi <- if (!is.null(mf_zi)) {
+    stats::model.matrix(stats::terms(mf_zi), mf_zi)
+  } else {
+    NULL
+  }
 
   if (nrow(X_sigma) != length(y)) {
     cli::cli_abort("Internal model-frame mismatch in nbinom2 model.")
   }
   if (!is.null(X_zi) && nrow(X_zi) != length(y)) {
-    cli::cli_abort("Internal model-frame mismatch in zero-inflated nbinom2 model.")
+    cli::cli_abort(
+      "Internal model-frame mismatch in zero-inflated nbinom2 model."
+    )
   }
   if (!is.null(X_zi) && ncol(X_zi) == 0L) {
     cli::cli_abort(c(
@@ -1129,7 +1757,11 @@ drm_build_nbinom2_spec <- function(formula, data, env = parent.frame(),
     V_known_type = "none",
     has_known_v = FALSE,
     offset = list(mu = offset_mu),
-    X = if (has_zi) list(mu = X_mu, sigma = X_sigma, zi = X_zi) else list(mu = X_mu, sigma = X_sigma),
+    X = if (has_zi) {
+      list(mu = X_mu, sigma = X_sigma, zi = X_zi)
+    } else {
+      list(mu = X_mu, sigma = X_sigma)
+    },
     terms = if (has_zi) {
       list(
         mu = stats::delete.response(stats::terms(mf_mu)),
@@ -1142,7 +1774,11 @@ drm_build_nbinom2_spec <- function(formula, data, env = parent.frame(),
         sigma = stats::terms(mf_sigma)
       )
     },
-    model_frame = if (has_zi) list(mu = mf_mu, sigma = mf_sigma, zi = mf_zi) else list(mu = mf_mu, sigma = mf_sigma),
+    model_frame = if (has_zi) {
+      list(mu = mf_mu, sigma = mf_sigma, zi = mf_zi)
+    } else {
+      list(mu = mf_mu, sigma = mf_sigma)
+    },
     random = list(
       mu = empty_random_mu_structure(nrow(data_model)),
       sigma = empty_random_sigma_structure(nrow(data_model))
@@ -1153,7 +1789,11 @@ drm_build_nbinom2_spec <- function(formula, data, env = parent.frame(),
     variables = vars,
     keep = keep,
     dpars = if (has_zi) c("mu", "sigma", "zi") else c("mu", "sigma"),
-    start = if (has_zi) zi_nbinom2_start(y, X_mu, X_sigma, X_zi, offset_mu) else nbinom2_start(y, X_mu, X_sigma, offset_mu),
+    start = if (has_zi) {
+      zi_nbinom2_start(y, X_mu, X_sigma, X_zi, offset_mu)
+    } else {
+      nbinom2_start(y, X_mu, X_sigma, offset_mu)
+    },
     map = if (has_zi) zi_nbinom2_map() else nbinom2_map(),
     random_names = NULL
   )
@@ -1162,8 +1802,12 @@ drm_build_nbinom2_spec <- function(formula, data, env = parent.frame(),
   spec
 }
 
-drm_build_truncated_nbinom2_spec <- function(formula, data, env = parent.frame(),
-                                             weights = NULL) {
+drm_build_truncated_nbinom2_spec <- function(
+  formula,
+  data,
+  env = parent.frame(),
+  weights = NULL
+) {
   entries <- formula$entries
   dpars <- vapply(entries, `[[`, character(1), "dpar")
   is_sd_dpar <- startsWith(dpars, "sd(")
@@ -1182,13 +1826,19 @@ drm_build_truncated_nbinom2_spec <- function(formula, data, env = parent.frame()
     ))
   }
   if (sum(dpars == "mu") != 1L) {
-    cli::cli_abort("A {.fn truncated_nbinom2} model requires exactly one location formula.")
+    cli::cli_abort(
+      "A {.fn truncated_nbinom2} model requires exactly one location formula."
+    )
   }
   if (sum(dpars == "sigma") > 1L) {
-    cli::cli_abort("A {.fn truncated_nbinom2} model can have at most one overdispersion {.code sigma} formula.")
+    cli::cli_abort(
+      "A {.fn truncated_nbinom2} model can have at most one overdispersion {.code sigma} formula."
+    )
   }
   if (sum(dpars == "hu") > 1L) {
-    cli::cli_abort("A {.fn truncated_nbinom2} model can have at most one hurdle {.code hu} formula.")
+    cli::cli_abort(
+      "A {.fn truncated_nbinom2} model can have at most one hurdle {.code hu} formula."
+    )
   }
 
   mu_entry <- entries[[which(dpars == "mu")]]
@@ -1204,10 +1854,14 @@ drm_build_truncated_nbinom2_spec <- function(formula, data, env = parent.frame()
   }
 
   if (is.na(mu_entry$response)) {
-    cli::cli_abort("The {.code mu} formula must include a response on the left-hand side.")
+    cli::cli_abort(
+      "The {.code mu} formula must include a response on the left-hand side."
+    )
   }
   if (!is.null(hu_entry) && !is.na(hu_entry$response)) {
-    cli::cli_abort("The {.code hu} formula must be one-sided, for example {.code hu ~ survey_method}.")
+    cli::cli_abort(
+      "The {.code hu} formula must be one-sided, for example {.code hu ~ survey_method}."
+    )
   }
   if (is_mvbind_lhs(mu_entry$lhs)) {
     cli::cli_abort(c(
@@ -1231,24 +1885,48 @@ drm_build_truncated_nbinom2_spec <- function(formula, data, env = parent.frame()
   }
   mu_entry$rhs <- meta$rhs
 
-  for (entry in c(list(mu_entry, sigma_entry), if (!is.null(hu_entry)) list(hu_entry))) {
+  for (entry in c(
+    list(mu_entry, sigma_entry),
+    if (!is.null(hu_entry)) list(hu_entry)
+  )) {
     drm_reject_phase1_terms(entry$rhs, entry$dpar)
   }
 
   f_mu <- drm_entry_formula(mu_entry, response = TRUE)
   f_sigma <- drm_entry_formula(sigma_entry, response = FALSE)
-  f_hu <- if (!is.null(hu_entry)) drm_entry_formula(hu_entry, response = FALSE) else NULL
-  vars <- unique(c(all.vars(f_mu), all.vars(f_sigma), if (!is.null(f_hu)) all.vars(f_hu)))
+  f_hu <- if (!is.null(hu_entry)) {
+    drm_entry_formula(hu_entry, response = FALSE)
+  } else {
+    NULL
+  }
+  vars <- unique(c(
+    all.vars(f_mu),
+    all.vars(f_sigma),
+    if (!is.null(f_hu)) all.vars(f_hu)
+  ))
   if (length(vars) > 0L) {
     keep <- stats::complete.cases(data[, vars, drop = FALSE])
   } else {
     keep <- rep(TRUE, nrow(data))
   }
   data_model <- data[keep, , drop = FALSE]
-  weights_model <- subset_likelihood_weights(weights, keep, nrow(data), sum(keep))
+  weights_model <- subset_likelihood_weights(
+    weights,
+    keep,
+    nrow(data),
+    sum(keep)
+  )
 
-  mf_mu <- stats::model.frame(f_mu, data = data_model, na.action = stats::na.omit)
-  mf_sigma <- stats::model.frame(f_sigma, data = data_model, na.action = stats::na.omit)
+  mf_mu <- stats::model.frame(
+    f_mu,
+    data = data_model,
+    na.action = stats::na.omit
+  )
+  mf_sigma <- stats::model.frame(
+    f_sigma,
+    data = data_model,
+    na.action = stats::na.omit
+  )
   mf_hu <- if (!is.null(f_hu)) {
     stats::model.frame(f_hu, data = data_model, na.action = stats::na.omit)
   } else {
@@ -1257,11 +1935,14 @@ drm_build_truncated_nbinom2_spec <- function(formula, data, env = parent.frame()
   y <- stats::model.response(mf_mu)
 
   if (length(y) == 0L) {
-    cli::cli_abort("No complete observations remain after applying model missingness rules.")
+    cli::cli_abort(
+      "No complete observations remain after applying model missingness rules."
+    )
   }
   count_tolerance <- sqrt(.Machine$double.eps)
   has_hu <- !is.null(hu_entry)
-  invalid_count <- !all(is.finite(y)) || any(abs(y - round(y)) > count_tolerance)
+  invalid_count <- !all(is.finite(y)) ||
+    any(abs(y - round(y)) > count_tolerance)
   invalid_truncated <- invalid_count || any(y <= 0)
   invalid_hurdle <- invalid_count || any(y < 0)
   if ((!has_hu && invalid_truncated) || (has_hu && invalid_hurdle)) {
@@ -1285,9 +1966,16 @@ drm_build_truncated_nbinom2_spec <- function(formula, data, env = parent.frame()
     ))
   }
 
-  X_mu <- stats::model.matrix(stats::delete.response(stats::terms(mf_mu)), mf_mu)
+  X_mu <- stats::model.matrix(
+    stats::delete.response(stats::terms(mf_mu)),
+    mf_mu
+  )
   X_sigma <- stats::model.matrix(stats::terms(mf_sigma), mf_sigma)
-  X_hu <- if (!is.null(mf_hu)) stats::model.matrix(stats::terms(mf_hu), mf_hu) else NULL
+  X_hu <- if (!is.null(mf_hu)) {
+    stats::model.matrix(stats::terms(mf_hu), mf_hu)
+  } else {
+    NULL
+  }
   if (nrow(X_sigma) != length(y)) {
     cli::cli_abort("Internal model-frame mismatch in truncated_nbinom2 model.")
   }
@@ -1309,7 +1997,11 @@ drm_build_truncated_nbinom2_spec <- function(formula, data, env = parent.frame()
     V_known_diag = rep(0, length(y)),
     V_known_type = "none",
     has_known_v = FALSE,
-    X = if (has_hu) list(mu = X_mu, sigma = X_sigma, hu = X_hu) else list(mu = X_mu, sigma = X_sigma),
+    X = if (has_hu) {
+      list(mu = X_mu, sigma = X_sigma, hu = X_hu)
+    } else {
+      list(mu = X_mu, sigma = X_sigma)
+    },
     terms = if (has_hu) {
       list(
         mu = stats::delete.response(stats::terms(mf_mu)),
@@ -1322,7 +2014,11 @@ drm_build_truncated_nbinom2_spec <- function(formula, data, env = parent.frame()
         sigma = stats::terms(mf_sigma)
       )
     },
-    model_frame = if (has_hu) list(mu = mf_mu, sigma = mf_sigma, hu = mf_hu) else list(mu = mf_mu, sigma = mf_sigma),
+    model_frame = if (has_hu) {
+      list(mu = mf_mu, sigma = mf_sigma, hu = mf_hu)
+    } else {
+      list(mu = mf_mu, sigma = mf_sigma)
+    },
     random = list(
       mu = empty_random_mu_structure(nrow(data_model)),
       sigma = empty_random_sigma_structure(nrow(data_model))
@@ -1333,7 +2029,11 @@ drm_build_truncated_nbinom2_spec <- function(formula, data, env = parent.frame()
     variables = vars,
     keep = keep,
     dpars = if (has_hu) c("mu", "sigma", "hu") else c("mu", "sigma"),
-    start = if (has_hu) hurdle_nbinom2_start(y, X_mu, X_sigma, X_hu) else truncated_nbinom2_start(y, X_mu, X_sigma),
+    start = if (has_hu) {
+      hurdle_nbinom2_start(y, X_mu, X_sigma, X_hu)
+    } else {
+      truncated_nbinom2_start(y, X_mu, X_sigma)
+    },
     map = if (has_hu) hurdle_nbinom2_map() else truncated_nbinom2_map(),
     random_names = NULL
   )
@@ -1343,8 +2043,12 @@ drm_build_truncated_nbinom2_spec <- function(formula, data, env = parent.frame()
 }
 
 
-drm_build_biv_gaussian_spec <- function(formula, data, env = parent.frame(),
-                                        weights = NULL) {
+drm_build_biv_gaussian_spec <- function(
+  formula,
+  data,
+  env = parent.frame(),
+  weights = NULL
+) {
   entries <- expand_biv_mvbind_entries(formula$entries)
   dpars <- vapply(entries, `[[`, character(1), "dpar")
   allowed <- c("mu1", "mu2", "sigma1", "sigma2", "rho12")
@@ -1357,23 +2061,41 @@ drm_build_biv_gaussian_spec <- function(formula, data, env = parent.frame(),
   }
   for (required in c("mu1", "mu2")) {
     if (sum(dpars == required) != 1L) {
-      cli::cli_abort("{.fn biv_gaussian} requires exactly one {.code {required}} formula.")
+      cli::cli_abort(
+        "{.fn biv_gaussian} requires exactly one {.code {required}} formula."
+      )
     }
   }
   for (optional in c("sigma1", "sigma2", "rho12")) {
     if (sum(dpars == optional) > 1L) {
-      cli::cli_abort("{.fn biv_gaussian} can have at most one {.code {optional}} formula.")
+      cli::cli_abort(
+        "{.fn biv_gaussian} can have at most one {.code {optional}} formula."
+      )
     }
   }
 
   mu1_entry <- entries[[which(dpars == "mu1")]]
   mu2_entry <- entries[[which(dpars == "mu2")]]
-  sigma1_entry <- if (any(dpars == "sigma1")) entries[[which(dpars == "sigma1")]] else default_dpar_entry("sigma1", quote(1))
-  sigma2_entry <- if (any(dpars == "sigma2")) entries[[which(dpars == "sigma2")]] else default_dpar_entry("sigma2", quote(1))
-  rho12_entry <- if (any(dpars == "rho12")) entries[[which(dpars == "rho12")]] else default_dpar_entry("rho12", quote(1))
+  sigma1_entry <- if (any(dpars == "sigma1")) {
+    entries[[which(dpars == "sigma1")]]
+  } else {
+    default_dpar_entry("sigma1", quote(1))
+  }
+  sigma2_entry <- if (any(dpars == "sigma2")) {
+    entries[[which(dpars == "sigma2")]]
+  } else {
+    default_dpar_entry("sigma2", quote(1))
+  }
+  rho12_entry <- if (any(dpars == "rho12")) {
+    entries[[which(dpars == "rho12")]]
+  } else {
+    default_dpar_entry("rho12", quote(1))
+  }
 
   if (is.na(mu1_entry$response) || is.na(mu2_entry$response)) {
-    cli::cli_abort("{.code mu1} and {.code mu2} formulas must include responses on the left-hand side.")
+    cli::cli_abort(
+      "{.code mu1} and {.code mu2} formulas must include responses on the left-hand side."
+    )
   }
 
   meta_mu1 <- extract_meta_known_v(mu1_entry$rhs)
@@ -1388,7 +2110,13 @@ drm_build_biv_gaussian_spec <- function(formula, data, env = parent.frame(),
   mu2_entry$rhs <- meta_mu2$rhs
   meta <- if (!is.null(meta_mu1$V)) meta_mu1 else meta_mu2
 
-  for (entry in list(mu1_entry, mu2_entry, sigma1_entry, sigma2_entry, rho12_entry)) {
+  for (entry in list(
+    mu1_entry,
+    mu2_entry,
+    sigma1_entry,
+    sigma2_entry,
+    rho12_entry
+  )) {
     drm_reject_phase1_terms(entry$rhs, entry$dpar)
   }
 
@@ -1399,39 +2127,81 @@ drm_build_biv_gaussian_spec <- function(formula, data, env = parent.frame(),
   f_rho12 <- drm_entry_formula(rho12_entry, response = FALSE)
 
   vars <- unique(c(
-    all.vars(f_mu1), all.vars(f_mu2), all.vars(f_sigma1),
-    all.vars(f_sigma2), all.vars(f_rho12)
+    all.vars(f_mu1),
+    all.vars(f_mu2),
+    all.vars(f_sigma1),
+    all.vars(f_sigma2),
+    all.vars(f_rho12)
   ))
   keep <- stats::complete.cases(data[, vars, drop = FALSE])
   data_model <- data[keep, , drop = FALSE]
   V_known_full <- evaluate_biv_known_v(meta$V, data, env)
   V_known <- subset_biv_known_v(V_known_full, keep)
-  weights_model <- subset_likelihood_weights(weights, keep, nrow(data), sum(keep))
+  weights_model <- subset_likelihood_weights(
+    weights,
+    keep,
+    nrow(data),
+    sum(keep)
+  )
 
-  mf_mu1 <- stats::model.frame(f_mu1, data = data_model, na.action = stats::na.omit)
-  mf_mu2 <- stats::model.frame(f_mu2, data = data_model, na.action = stats::na.omit)
-  mf_sigma1 <- stats::model.frame(f_sigma1, data = data_model, na.action = stats::na.omit)
-  mf_sigma2 <- stats::model.frame(f_sigma2, data = data_model, na.action = stats::na.omit)
-  mf_rho12 <- stats::model.frame(f_rho12, data = data_model, na.action = stats::na.omit)
+  mf_mu1 <- stats::model.frame(
+    f_mu1,
+    data = data_model,
+    na.action = stats::na.omit
+  )
+  mf_mu2 <- stats::model.frame(
+    f_mu2,
+    data = data_model,
+    na.action = stats::na.omit
+  )
+  mf_sigma1 <- stats::model.frame(
+    f_sigma1,
+    data = data_model,
+    na.action = stats::na.omit
+  )
+  mf_sigma2 <- stats::model.frame(
+    f_sigma2,
+    data = data_model,
+    na.action = stats::na.omit
+  )
+  mf_rho12 <- stats::model.frame(
+    f_rho12,
+    data = data_model,
+    na.action = stats::na.omit
+  )
 
   y1 <- stats::model.response(mf_mu1)
   y2 <- stats::model.response(mf_mu2)
-  X_mu1 <- stats::model.matrix(stats::delete.response(stats::terms(mf_mu1)), mf_mu1)
-  X_mu2 <- stats::model.matrix(stats::delete.response(stats::terms(mf_mu2)), mf_mu2)
+  X_mu1 <- stats::model.matrix(
+    stats::delete.response(stats::terms(mf_mu1)),
+    mf_mu1
+  )
+  X_mu2 <- stats::model.matrix(
+    stats::delete.response(stats::terms(mf_mu2)),
+    mf_mu2
+  )
   X_sigma1 <- stats::model.matrix(stats::terms(mf_sigma1), mf_sigma1)
   X_sigma2 <- stats::model.matrix(stats::terms(mf_sigma2), mf_sigma2)
   X_rho12 <- stats::model.matrix(stats::terms(mf_rho12), mf_rho12)
 
   n <- length(y1)
   if (n == 0L) {
-    cli::cli_abort("No complete observations remain after applying bivariate model missingness rules.")
+    cli::cli_abort(
+      "No complete observations remain after applying bivariate model missingness rules."
+    )
   }
   if (!all(c(length(y2), nrow(X_sigma1), nrow(X_sigma2), nrow(X_rho12)) == n)) {
     cli::cli_abort("Internal model-frame mismatch in bivariate Gaussian model.")
   }
 
   start <- biv_gaussian_start(
-    y1, y2, X_mu1, X_mu2, X_sigma1, X_sigma2, X_rho12,
+    y1,
+    y2,
+    X_mu1,
+    X_mu2,
+    X_sigma1,
+    X_sigma2,
+    X_rho12,
     V_known_diag = V_known$diag
   )
 
@@ -1487,15 +2257,21 @@ drm_build_biv_gaussian_spec <- function(formula, data, env = parent.frame(),
 
 expand_biv_mvbind_entries <- function(entries) {
   dpars <- vapply(entries, `[[`, character(1), "dpar")
-  has_mvbind <- vapply(entries, function(entry) {
-    is_mvbind_lhs(entry$lhs)
-  }, logical(1))
+  has_mvbind <- vapply(
+    entries,
+    function(entry) {
+      is_mvbind_lhs(entry$lhs)
+    },
+    logical(1)
+  )
 
   if (!any(has_mvbind)) {
     return(entries)
   }
   if (sum(has_mvbind) > 1L) {
-    cli::cli_abort("{.fn mvbind} shorthand can appear only once in a bivariate model.")
+    cli::cli_abort(
+      "{.fn mvbind} shorthand can appear only once in a bivariate model."
+    )
   }
 
   mvbind_index <- which(has_mvbind)
@@ -1512,10 +2288,22 @@ expand_biv_mvbind_entries <- function(entries) {
   }
 
   responses <- parse_mvbind_lhs(entries[[mvbind_index]]$lhs)
-  mu1_entry <- mvbind_location_entry(entries[[mvbind_index]], "mu1", responses[[1L]])
-  mu2_entry <- mvbind_location_entry(entries[[mvbind_index]], "mu2", responses[[2L]])
+  mu1_entry <- mvbind_location_entry(
+    entries[[mvbind_index]],
+    "mu1",
+    responses[[1L]]
+  )
+  mu2_entry <- mvbind_location_entry(
+    entries[[mvbind_index]],
+    "mu2",
+    responses[[2L]]
+  )
 
-  before <- if (mvbind_index > 1L) entries[seq_len(mvbind_index - 1L)] else list()
+  before <- if (mvbind_index > 1L) {
+    entries[seq_len(mvbind_index - 1L)]
+  } else {
+    list()
+  }
   after <- if (mvbind_index < length(entries)) {
     entries[seq.int(mvbind_index + 1L, length(entries))]
   } else {
@@ -1582,7 +2370,8 @@ default_dpar_entry <- function(dpar, rhs) {
 
 drm_entry_formula <- function(entry, response = FALSE) {
   if (response) {
-    expr <- call("~", as.name(entry$response), entry$rhs)
+    lhs <- if (!is.null(entry$lhs)) entry$lhs else as.name(entry$response)
+    expr <- call("~", lhs, entry$rhs)
   } else {
     expr <- call("~", entry$rhs)
   }
@@ -1613,7 +2402,9 @@ drm_reject_phase1_terms <- function(rhs, dpar, allow_offset = FALSE) {
     logical(1)
   )]
   if (length(hits) > 0L) {
-    if ("|" %in% hits && dpar %in% c("mu1", "mu2", "sigma1", "sigma2", "rho12")) {
+    if (
+      "|" %in% hits && dpar %in% c("mu1", "mu2", "sigma1", "sigma2", "rho12")
+    ) {
       cli::cli_abort(c(
         "Bivariate random-effect syntax is planned, not implemented.",
         "x" = "The {.code {dpar}} formula contains unsupported model terms: {.val {hits}}.",
@@ -1762,21 +2553,33 @@ parse_random_mu_lhs <- function(lhs, dpar, group, covariance_label = NULL) {
       variable = variable,
       variables = variable,
       coef_names = variable,
-      label = format_random_mu_label(paste0("0 + ", variable), group, covariance_label)
+      label = format_random_mu_label(
+        paste0("0 + ", variable),
+        group,
+        covariance_label
+      )
     ))
   }
 
   one <- vapply(pieces, is_intercept_one, logical(1))
   symbol <- vapply(pieces, is.symbol, logical(1))
-  if (!any(zero) && sum(one) <= 1L && sum(symbol) == 1L &&
-      length(pieces) == sum(one) + sum(symbol)) {
+  if (
+    !any(zero) &&
+      sum(one) <= 1L &&
+      sum(symbol) == 1L &&
+      length(pieces) == sum(one) + sum(symbol)
+  ) {
     variable <- as.character(pieces[[which(symbol)]])
     return(list(
       type = "correlated_slope",
       variable = variable,
       variables = variable,
       coef_names = c("(Intercept)", variable),
-      label = format_random_mu_label(paste0("1 + ", variable), group, covariance_label)
+      label = format_random_mu_label(
+        paste0("1 + ", variable),
+        group,
+        covariance_label
+      )
     ))
   }
 
@@ -1789,10 +2592,18 @@ parse_random_mu_lhs <- function(lhs, dpar, group, covariance_label = NULL) {
 
 validate_random_mu_covariance_label <- function(label) {
   reserved <- c(
-    "mu", "mu1", "mu2",
-    "sigma", "sigma1", "sigma2",
-    "rho", "rho12",
-    "nu", "skew", "kurtosis", "shape",
+    "mu",
+    "mu1",
+    "mu2",
+    "sigma",
+    "sigma1",
+    "sigma2",
+    "rho",
+    "rho12",
+    "nu",
+    "skew",
+    "kurtosis",
+    "shape",
     "zi"
   )
   if (label %in% reserved) {
@@ -1812,13 +2623,25 @@ format_random_mu_label <- function(lhs_label, group, covariance_label = NULL) {
   paste0("(", lhs_label, " | ", covariance_label, " | ", group, ")")
 }
 
-format_random_mu_cor_label <- function(coef_names, group, covariance_label = NULL) {
+format_random_mu_cor_label <- function(
+  coef_names,
+  group,
+  covariance_label = NULL
+) {
   group_label <- if (is.null(covariance_label)) {
     group
   } else {
     paste0(covariance_label, " | ", group)
   }
-  paste0("cor(", coef_names[[1L]], ",", coef_names[[2L]], " | ", group_label, ")")
+  paste0(
+    "cor(",
+    coef_names[[1L]],
+    ",",
+    coef_names[[2L]],
+    " | ",
+    group_label,
+    ")"
+  )
 }
 
 random_effect_vars <- function(terms) {
@@ -1834,7 +2657,12 @@ random_effect_vars <- function(terms) {
 
 extract_gaussian_mu_phylo_term <- function(entry) {
   terms <- flatten_plus_terms(entry$rhs)
-  is_phylo <- vapply(terms, is_structured_marker_call, logical(1), name = "phylo")
+  is_phylo <- vapply(
+    terms,
+    is_structured_marker_call,
+    logical(1),
+    name = "phylo"
+  )
   if (!any(is_phylo)) {
     return(list(rhs = entry$rhs, term = NULL))
   }
@@ -1845,9 +2673,14 @@ extract_gaussian_mu_phylo_term <- function(entry) {
     ))
   }
 
-  phylo_terms <- Filter(function(term) identical(term$type, "phylo"), entry$structured)
+  phylo_terms <- Filter(
+    function(term) identical(term$type, "phylo"),
+    entry$structured
+  )
   if (length(phylo_terms) != 1L) {
-    cli::cli_abort("Internal formula parser error while extracting {.fn phylo}.")
+    cli::cli_abort(
+      "Internal formula parser error while extracting {.fn phylo}."
+    )
   }
   phylo_term <- phylo_terms[[1L]]
   if (!identical(phylo_term$coef_names, "(Intercept)")) {
@@ -1909,7 +2742,9 @@ build_phylo_mu_structure <- function(term, data, env) {
     precision$observation_species_index
   ]
   if (anyNA(observation_node_index)) {
-    cli::cli_abort("Internal error: failed to align observations with phylogenetic tip nodes.")
+    cli::cli_abort(
+      "Internal error: failed to align observations with phylogenetic tip nodes."
+    )
   }
 
   list(
@@ -1955,7 +2790,10 @@ parse_sd_mu_entry <- function(entry, mu_terms) {
     ))
   }
   if (length(matches) > 1L) {
-    coef_names <- unique(unlist(lapply(mu_terms[matches], `[[`, "coef_names"), use.names = FALSE))
+    coef_names <- unique(unlist(
+      lapply(mu_terms[matches], `[[`, "coef_names"),
+      use.names = FALSE
+    ))
     cli::cli_abort(c(
       "Ambiguous random-effect scale target {.code {entry$dpar}}.",
       "x" = "Group {.field {target_group}} has multiple {.code mu} random-effect coefficients: {.val {coef_names}}.",
@@ -1963,11 +2801,19 @@ parse_sd_mu_entry <- function(entry, mu_terms) {
     ))
   }
 
-  target_coef <- sum(vapply(mu_terms[seq_len(matches - 1L)], function(term) {
-    length(term$coef_names)
-  }, integer(1))) + 1L
+  target_coef <- sum(vapply(
+    mu_terms[seq_len(matches - 1L)],
+    function(term) {
+      length(term$coef_names)
+    },
+    integer(1)
+  )) +
+    1L
   term <- mu_terms[[matches]]
-  if (!identical(term$type, "intercept") || !identical(term$coef_names, "(Intercept)")) {
+  if (
+    !identical(term$type, "intercept") ||
+      !identical(term$coef_names, "(Intercept)")
+  ) {
     cli::cli_abort(c(
       "Ambiguous random-effect scale target {.code {entry$dpar}}.",
       "x" = "This phase supports only univariate Gaussian {.code mu} random intercepts such as {.code (1 | {target_group})}.",
@@ -2141,7 +2987,10 @@ build_random_mu_structure <- function(terms, data) {
       re_pos0 <- c(re_pos0, rep.int(p - 1L, length(levels_k)))
       re_cor_id0 <- c(re_cor_id0, rep.int(cor_id0, length(levels_k)))
       if (q == 2L && p == 2L) {
-        re_pair_index0 <- c(re_pair_index0, offset + seq_len(length(levels_k)) - 1L)
+        re_pair_index0 <- c(
+          re_pair_index0,
+          offset + seq_len(length(levels_k)) - 1L
+        )
       } else {
         re_pair_index0 <- c(re_pair_index0, rep.int(-1L, length(levels_k)))
       }
@@ -2173,7 +3022,9 @@ build_random_mu_structure <- function(terms, data) {
 build_random_sigma_structure <- function(terms, data) {
   re_sigma <- build_random_mu_structure(terms, data)
   if (re_sigma$n_cors > 0L) {
-    cli::cli_abort("Internal error: residual sigma random-effect correlations are not implemented.")
+    cli::cli_abort(
+      "Internal error: residual sigma random-effect correlations are not implemented."
+    )
   }
   re_sigma
 }
@@ -2183,7 +3034,9 @@ build_sd_mu_structure <- function(entries, targets, re_mu, data) {
     return(empty_sd_mu_structure(re_mu$n_re))
   }
   if (re_mu$n_re == 0L) {
-    cli::cli_abort("Internal error: {.code sd()} target was validated without a {.code mu} random effect.")
+    cli::cli_abort(
+      "Internal error: {.code sd()} target was validated without a {.code mu} random effect."
+    )
   }
 
   dpars <- vapply(entries, `[[`, character(1), "dpar")
@@ -2206,12 +3059,17 @@ build_sd_mu_structure <- function(entries, targets, re_mu, data) {
     target <- targets[[i]]
     f_sd <- drm_entry_formula(entry, response = FALSE)
     mf_sd <- stats::model.frame(f_sd, data = data, na.action = stats::na.omit)
-    group <- factor(data[[target$group]], levels = re_mu$groups[[target$target_coef]])
+    group <- factor(
+      data[[target$group]],
+      levels = re_mu$groups[[target$target_coef]]
+    )
     validate_sd_mu_group_constant(mf_sd, group, entry$dpar, target$group)
 
     group_first <- match(levels(group), as.character(group))
     if (anyNA(group_first)) {
-      cli::cli_abort("Internal error: failed to align {.code sd()} scale rows with random-effect groups.")
+      cli::cli_abort(
+        "Internal error: failed to align {.code sd()} scale rows with random-effect groups."
+      )
     }
     mf_group <- mf_sd[group_first, , drop = FALSE]
     X <- stats::model.matrix(stats::terms(mf_sd), mf_group)
@@ -2266,9 +3124,17 @@ build_sd_mu_structure <- function(entries, targets, re_mu, data) {
       terms_list = terms_list,
       model_frame = if (length(dpars) == 1L) model_frame_list[[1L]] else NULL,
       model_frame_list = model_frame_list,
-      coef_names = if (length(dpars) == 1L) coef_names_list[[1L]] else colnames(X),
+      coef_names = if (length(dpars) == 1L) {
+        coef_names_list[[1L]]
+      } else {
+        colnames(X)
+      },
       coef_names_list = coef_names_list,
-      group_levels = if (length(dpars) == 1L) group_levels_list[[1L]] else rownames(X),
+      group_levels = if (length(dpars) == 1L) {
+        group_levels_list[[1L]]
+      } else {
+        rownames(X)
+      },
       group_levels_list = group_levels_list,
       re_sd_row0 = re_sd_row0
     ),
@@ -2298,15 +3164,24 @@ block_diagonal_matrices <- function(mats, names = names(mats)) {
   out
 }
 
-validate_sd_mu_group_constant <- function(model_frame, group, dpar, group_name) {
+validate_sd_mu_group_constant <- function(
+  model_frame,
+  group,
+  dpar,
+  group_name
+) {
   if (ncol(model_frame) == 0L) {
     return(invisible(model_frame))
   }
   for (variable in names(model_frame)) {
     values <- model_frame[[variable]]
-    variable_ok <- vapply(split(values, group), function(x) {
-      length(unique(x)) <= 1L
-    }, logical(1))
+    variable_ok <- vapply(
+      split(values, group),
+      function(x) {
+        length(unique(x)) <= 1L
+      },
+      logical(1)
+    )
     if (!all(variable_ok)) {
       bad_group <- names(variable_ok)[which(!variable_ok)[[1L]]]
       cli::cli_abort(c(
@@ -2320,20 +3195,26 @@ validate_sd_mu_group_constant <- function(model_frame, group, dpar, group_name) 
 }
 
 expand_random_mu_terms <- function(terms) {
-  labels <- unlist(lapply(terms, function(term) {
-    if (length(term$coef_names) == 1L) {
-      return(term$label)
-    }
-    paste0(term$label, ":", term$coef_names)
-  }), use.names = FALSE)
+  labels <- unlist(
+    lapply(terms, function(term) {
+      if (length(term$coef_names) == 1L) {
+        return(term$label)
+      }
+      paste0(term$label, ":", term$coef_names)
+    }),
+    use.names = FALSE
+  )
   list(labels = labels)
 }
 
 validate_random_mu_term_overlap <- function(terms) {
-  keys <- unlist(lapply(terms, function(term) {
-    coef_names <- term$coef_names
-    paste(term$group, coef_names, sep = "::")
-  }), use.names = FALSE)
+  keys <- unlist(
+    lapply(terms, function(term) {
+      coef_names <- term$coef_names
+      paste(term$group, coef_names, sep = "::")
+    }),
+    use.names = FALSE
+  )
   if (anyDuplicated(keys)) {
     cli::cli_abort(c(
       "Overlapping random-effect terms are not supported.",
@@ -2427,7 +3308,9 @@ evaluate_known_v <- function(expr, data, env) {
   value <- eval(expr, envir = data, enclos = env)
   if (is.matrix(value)) {
     if (nrow(value) != nrow(data) || ncol(value) != nrow(data)) {
-      cli::cli_abort("{.arg V} matrix must have one row and one column per observation.")
+      cli::cli_abort(
+        "{.arg V} matrix must have one row and one column per observation."
+      )
     }
     if (!is.numeric(value)) {
       cli::cli_abort("{.arg V} matrix must be numeric.")
@@ -2438,7 +3321,9 @@ evaluate_known_v <- function(expr, data, env) {
     return(new_known_v(value, type = "matrix"))
   }
   if (!is.numeric(value) || length(value) != nrow(data)) {
-    cli::cli_abort("{.arg V} must evaluate to a numeric vector of known sampling variances.")
+    cli::cli_abort(
+      "{.arg V} must evaluate to a numeric vector of known sampling variances."
+    )
   }
   new_known_v(as.numeric(value), type = "diagonal")
 }
@@ -2525,7 +3410,9 @@ subset_likelihood_weights <- function(weights, keep, n_data, n_model) {
     return(rep(1, n_model))
   }
   if (length(weights) != n_data) {
-    cli::cli_abort("Internal error: {.arg weights} length changed before row filtering.")
+    cli::cli_abort(
+      "Internal error: {.arg weights} length changed before row filtering."
+    )
   }
   out <- weights[keep]
   bad <- !is.finite(out) | is.na(out)
@@ -2602,7 +3489,9 @@ validate_known_v_diag <- function(value) {
     cli::cli_abort("{.arg V} must contain finite known sampling variances.")
   }
   if (any(value < 0)) {
-    cli::cli_abort("{.arg V} must contain non-negative known sampling variances.")
+    cli::cli_abort(
+      "{.arg V} must contain non-negative known sampling variances."
+    )
   }
   invisible(value)
 }
@@ -2611,11 +3500,17 @@ validate_known_v_matrix <- function(value) {
   if (any(!is.finite(value) | is.na(value))) {
     cli::cli_abort("{.arg V} matrix must contain only finite values.")
   }
-  if (!isTRUE(all.equal(value, t(value), tolerance = sqrt(.Machine$double.eps)))) {
+  if (
+    !isTRUE(all.equal(value, t(value), tolerance = sqrt(.Machine$double.eps)))
+  ) {
     cli::cli_abort("{.arg V} matrix must be symmetric.")
   }
   validate_known_v_diag(diag(value))
-  ev <- eigen((value + t(value)) / 2, symmetric = TRUE, only.values = TRUE)$values
+  ev <- eigen(
+    (value + t(value)) / 2,
+    symmetric = TRUE,
+    only.values = TRUE
+  )$values
   if (min(ev) < -sqrt(.Machine$double.eps)) {
     cli::cli_abort("{.arg V} matrix must be positive semidefinite.")
   }
@@ -2631,10 +3526,134 @@ is_diagonal_known_v <- function(value) {
   !any(abs(off_diag) > sqrt(.Machine$double.eps))
 }
 
-gaussian_ls_start <- function(y, X_mu, X_sigma, V_known = rep(0, length(y)),
-                              re_mu = empty_random_mu_structure(length(y)),
-                              re_sigma = empty_random_sigma_structure(length(y)),
-                              sd_mu = empty_sd_mu_structure(re_mu$n_re)) {
+prepare_betabinomial_response <- function(y, response) {
+  if (length(y) == 0L) {
+    cli::cli_abort(
+      "No complete observations remain after applying beta-binomial model missingness rules."
+    )
+  }
+  if (is.null(dim(y)) || ncol(y) != 2L) {
+    cli::cli_abort(c(
+      "{.fn beta_binomial} requires a two-column count response.",
+      "i" = "Use {.code cbind(successes, failures)} on the left-hand side."
+    ))
+  }
+  if (!is.numeric(y) && !is.integer(y)) {
+    cli::cli_abort("Beta-binomial response counts must be numeric or integer.")
+  }
+  tolerance <- sqrt(.Machine$double.eps)
+  if (!all(is.finite(y)) || any(y < 0) || any(abs(y - round(y)) > tolerance)) {
+    cli::cli_abort(c(
+      "Beta-binomial response counts must be finite non-negative integers.",
+      "x" = "Response {.val {response}} contains negative, non-integer, or non-finite counts."
+    ))
+  }
+  y_int <- round(y)
+  trials <- rowSums(y_int)
+  if (any(trials <= 0)) {
+    cli::cli_abort(c(
+      "Beta-binomial trials must be positive for every modelled row.",
+      "x" = "Response {.val {response}} contains at least one row with zero total trials."
+    ))
+  }
+  response_names <- colnames(y_int)
+  if (is.null(response_names) || any(!nzchar(response_names))) {
+    response_names <- c("successes", "failures")
+  }
+  list(
+    successes = as.numeric(y_int[, 1L]),
+    failures = as.numeric(y_int[, 2L]),
+    trials = as.numeric(trials),
+    success_name = response_names[[1L]],
+    failure_name = response_names[[2L]]
+  )
+}
+
+prepare_ordinal_response <- function(y, response) {
+  if (is.ordered(y)) {
+    y_int <- as.integer(y)
+    levels <- levels(y)
+    if (anyNA(y_int)) {
+      cli::cli_abort(
+        "Ordinal response {.val {response}} contains missing levels after model-frame filtering."
+      )
+    }
+    return(validate_ordinal_codes(y_int, levels = levels, response = response))
+  }
+  if (is.factor(y)) {
+    cli::cli_abort(c(
+      "Ordinal models require an ordered response.",
+      "x" = "Response {.val {response}} is an unordered factor.",
+      "i" = "Use {.code ordered({response})} or integer category scores 1, 2, ..., K."
+    ))
+  }
+  if (!is.numeric(y) && !is.integer(y)) {
+    cli::cli_abort(c(
+      "Ordinal models require an ordered factor or integer category scores.",
+      "x" = "Response {.val {response}} has class {.val {class(y)}}."
+    ))
+  }
+  tolerance <- sqrt(.Machine$double.eps)
+  if (!all(is.finite(y)) || any(y < 1) || any(abs(y - round(y)) > tolerance)) {
+    cli::cli_abort(c(
+      "Numeric ordinal responses must be finite integer category scores starting at 1.",
+      "x" = "Response {.val {response}} contains non-integer, non-finite, or less-than-one values."
+    ))
+  }
+  y_int <- as.integer(round(y))
+  validate_ordinal_codes(
+    y_int,
+    levels = as.character(seq_len(max(y_int))),
+    response = response
+  )
+}
+
+validate_ordinal_codes <- function(y, levels, response) {
+  n_categories <- length(levels)
+  if (n_categories < 3L) {
+    cli::cli_abort(c(
+      "{.fn cumulative_logit} needs at least three ordered categories.",
+      "x" = "Response {.val {response}} has {n_categories} categor{?y/ies} after filtering."
+    ))
+  }
+  expected <- seq_len(n_categories)
+  if (!all(y %in% expected)) {
+    cli::cli_abort("Internal ordinal response coding is outside 1, ..., K.")
+  }
+  counts <- tabulate(y, nbins = n_categories)
+  if (any(counts == 0L)) {
+    empty <- levels[counts == 0L]
+    cli::cli_abort(c(
+      "Every ordinal category must appear at least once in the fitted data.",
+      "x" = "Response {.val {response}} has empty categor{?y/ies}: {.val {empty}}.",
+      "i" = "Drop unused ordered-factor levels or combine sparse categories before fitting."
+    ))
+  }
+  list(
+    y = y,
+    levels = levels,
+    n_categories = n_categories,
+    response = response
+  )
+}
+
+ordinal_mu_model_matrix <- function(terms, data) {
+  X <- stats::model.matrix(terms, data)
+  if ("(Intercept)" %in% colnames(X)) {
+    X <- X[, colnames(X) != "(Intercept)", drop = FALSE]
+  }
+  X
+}
+
+gaussian_ls_start <- function(
+  y,
+  X_mu,
+  X_sigma,
+  V_known = rep(0, length(y)),
+  re_mu = empty_random_mu_structure(length(y)),
+  re_sigma = empty_random_sigma_structure(length(y)),
+  sd_mu = empty_sd_mu_structure(re_mu$n_re)
+) {
   lm_start <- stats::lm.fit(x = X_mu, y = y)
   beta_mu <- lm_start$coefficients
   beta_mu[is.na(beta_mu)] <- 0
@@ -2674,12 +3693,15 @@ gaussian_ls_start <- function(y, X_mu, X_sigma, V_known = rep(0, length(y)),
   )
 }
 
-gaussian_ls_dummy_start <- function(phylo_mu = empty_phylo_mu_structure(),
-                                    y = NULL) {
+gaussian_ls_dummy_start <- function(
+  phylo_mu = empty_phylo_mu_structure(),
+  y = NULL
+) {
   phylo_start <- gaussian_phylo_start(y, phylo_mu)
   list(
     beta_nu = 0,
     beta_zi = 0,
+    theta_ord = 0,
     beta_mu1 = 0,
     beta_mu2 = 0,
     beta_sigma1 = 0,
@@ -2700,6 +3722,7 @@ student_ls_start <- function(y, X_mu, X_sigma, X_nu) {
     ),
     list(
       beta_zi = 0,
+      theta_ord = 0,
       beta_sd_mu = 0,
       u_mu = 0,
       log_sd_mu = 0,
@@ -2741,6 +3764,7 @@ lognormal_ls_start <- function(y, X_mu, X_sigma) {
     list(
       beta_nu = 0,
       beta_zi = 0,
+      theta_ord = 0,
       beta_sd_mu = 0,
       u_mu = 0,
       log_sd_mu = 0,
@@ -2770,11 +3794,13 @@ gamma_ls_map <- function() {
 
 beta_ls_start <- function(y, X_mu, X_sigma) {
   beta_mu <- tryCatch(
-    suppressWarnings(stats::glm.fit(
-      X_mu,
-      y,
-      family = stats::quasibinomial(link = "logit")
-    )$coefficients),
+    suppressWarnings(
+      stats::glm.fit(
+        X_mu,
+        y,
+        family = stats::quasibinomial(link = "logit")
+      )$coefficients
+    ),
     error = function(e) rep(0, ncol(X_mu))
   )
   if (length(beta_mu) != ncol(X_mu) || any(!is.finite(beta_mu))) {
@@ -2798,6 +3824,7 @@ beta_ls_start <- function(y, X_mu, X_sigma) {
     list(
       beta_nu = 0,
       beta_zi = 0,
+      theta_ord = 0,
       beta_sd_mu = 0,
       u_mu = 0,
       log_sd_mu = 0,
@@ -2819,14 +3846,69 @@ beta_ls_map <- function() {
   lognormal_ls_map()
 }
 
+beta_binomial_start <- function(successes, failures, X_mu, X_sigma) {
+  trials <- successes + failures
+  beta_mu <- tryCatch(
+    suppressWarnings(
+      stats::glm.fit(
+        X_mu,
+        cbind(successes, failures),
+        family = stats::quasibinomial(link = "logit")
+      )$coefficients
+    ),
+    error = function(e) rep(0, ncol(X_mu))
+  )
+  if (length(beta_mu) != ncol(X_mu) || any(!is.finite(beta_mu))) {
+    prop <- (successes + 0.5) / (trials + 1)
+    beta_mu <- rep(0, ncol(X_mu))
+    beta_mu[[1L]] <- stats::qlogis(min(max(mean(prop), 1e-4), 1 - 1e-4))
+  }
+
+  beta_sigma <- rep(0, ncol(X_sigma))
+  names(beta_mu) <- colnames(X_mu)
+  names(beta_sigma) <- colnames(X_sigma)
+  beta_sigma[[1L]] <- log(0.35)
+
+  c(
+    list(
+      beta_mu = beta_mu,
+      beta_sigma = beta_sigma
+    ),
+    list(
+      beta_nu = 0,
+      beta_zi = 0,
+      theta_ord = 0,
+      beta_sd_mu = 0,
+      u_mu = 0,
+      log_sd_mu = 0,
+      eta_cor_mu = 0,
+      u_sigma = 0,
+      log_sd_sigma = 0,
+      beta_mu1 = 0,
+      beta_mu2 = 0,
+      beta_sigma1 = 0,
+      beta_sigma2 = 0,
+      beta_rho12 = 0,
+      u_phylo = 0,
+      log_sd_phylo = 0
+    )
+  )
+}
+
+beta_binomial_map <- function() {
+  beta_ls_map()
+}
+
 poisson_start <- function(y, X_mu, offset_mu = rep(0, length(y))) {
   beta_mu <- tryCatch(
-    suppressWarnings(stats::glm.fit(
-      X_mu,
-      y,
-      family = stats::poisson(),
-      offset = offset_mu
-    )$coefficients),
+    suppressWarnings(
+      stats::glm.fit(
+        X_mu,
+        y,
+        family = stats::poisson(),
+        offset = offset_mu
+      )$coefficients
+    ),
     error = function(e) rep(0, ncol(X_mu))
   )
   if (length(beta_mu) != ncol(X_mu) || any(!is.finite(beta_mu))) {
@@ -2839,6 +3921,7 @@ poisson_start <- function(y, X_mu, offset_mu = rep(0, length(y))) {
       beta_sigma = 0,
       beta_nu = 0,
       beta_zi = 0,
+      theta_ord = 0,
       beta_sd_mu = 0,
       u_mu = 0,
       log_sd_mu = 0,
@@ -2868,7 +3951,9 @@ zi_poisson_start <- function(y, X_mu, X_zi, offset_mu = rep(0, length(y))) {
   mu <- exp(offset_mu + as.vector(X_mu %*% beta_mu))
   observed_zero <- mean(y == 0)
   poisson_zero <- mean(exp(-mu))
-  zi0 <- if (is.finite(observed_zero) && is.finite(poisson_zero) && poisson_zero < 0.99) {
+  zi0 <- if (
+    is.finite(observed_zero) && is.finite(poisson_zero) && poisson_zero < 0.99
+  ) {
     (observed_zero - poisson_zero) / (1 - poisson_zero)
   } else {
     0.1
@@ -2884,6 +3969,7 @@ zi_poisson_start <- function(y, X_mu, X_zi, offset_mu = rep(0, length(y))) {
     list(
       beta_sigma = 0,
       beta_nu = 0,
+      theta_ord = 0,
       beta_sd_mu = 0,
       u_mu = 0,
       log_sd_mu = 0,
@@ -2913,7 +3999,9 @@ nbinom2_start <- function(y, X_mu, X_sigma, offset_mu = rep(0, length(y))) {
   mu <- exp(offset_mu + as.vector(X_mu %*% beta_mu))
   moment_sigma2 <- stats::var(y) - mean(mu)
   mean_mu2 <- mean(mu^2)
-  sigma0 <- if (is.finite(moment_sigma2) && is.finite(mean_mu2) && mean_mu2 > 0) {
+  sigma0 <- if (
+    is.finite(moment_sigma2) && is.finite(mean_mu2) && mean_mu2 > 0
+  ) {
     sqrt(max(moment_sigma2 / mean_mu2, 1e-4))
   } else {
     0.3
@@ -2929,6 +4017,7 @@ nbinom2_start <- function(y, X_mu, X_sigma, offset_mu = rep(0, length(y))) {
     list(
       beta_nu = 0,
       beta_zi = 0,
+      theta_ord = 0,
       beta_sd_mu = 0,
       u_mu = 0,
       log_sd_mu = 0,
@@ -2983,7 +4072,13 @@ hurdle_nbinom2_map <- function() {
   out
 }
 
-zi_nbinom2_start <- function(y, X_mu, X_sigma, X_zi, offset_mu = rep(0, length(y))) {
+zi_nbinom2_start <- function(
+  y,
+  X_mu,
+  X_sigma,
+  X_zi,
+  offset_mu = rep(0, length(y))
+) {
   nb <- nbinom2_start(y, X_mu, X_sigma, offset_mu)
   beta_mu <- nb$beta_mu
   beta_sigma <- nb$beta_sigma
@@ -3031,6 +4126,7 @@ gamma_ls_start <- function(y, X_mu, X_sigma) {
     list(
       beta_nu = 0,
       beta_zi = 0,
+      theta_ord = 0,
       beta_sd_mu = 0,
       u_mu = 0,
       log_sd_mu = 0,
@@ -3045,6 +4141,92 @@ gamma_ls_start <- function(y, X_mu, X_sigma) {
       u_phylo = 0,
       log_sd_phylo = 0
     )
+  )
+}
+
+cumulative_logit_start <- function(y, X_mu, n_categories) {
+  beta_mu <- rep(0, ncol(X_mu))
+  names(beta_mu) <- colnames(X_mu)
+
+  cumulative <- cumsum(tabulate(y, nbins = n_categories)) / length(y)
+  cutpoints <- stats::qlogis(cumulative[-n_categories])
+  theta_ord <- ordinal_raw_from_cutpoints(cutpoints)
+
+  c(
+    list(
+      beta_mu = beta_mu,
+      theta_ord = theta_ord
+    ),
+    list(
+      beta_sigma = 0,
+      beta_nu = 0,
+      beta_zi = 0,
+      beta_sd_mu = 0,
+      u_mu = 0,
+      log_sd_mu = 0,
+      eta_cor_mu = 0,
+      u_sigma = 0,
+      log_sd_sigma = 0,
+      beta_mu1 = 0,
+      beta_mu2 = 0,
+      beta_sigma1 = 0,
+      beta_sigma2 = 0,
+      beta_rho12 = 0,
+      u_phylo = 0,
+      log_sd_phylo = 0
+    )
+  )
+}
+
+ordinal_raw_from_cutpoints <- function(cutpoints) {
+  if (length(cutpoints) == 0L) {
+    return(numeric())
+  }
+  spacings <- diff(cutpoints)
+  if (
+    any(!is.finite(cutpoints)) ||
+      any(!is.finite(spacings)) ||
+      any(spacings <= 0)
+  ) {
+    cli::cli_abort(
+      "Internal ordinal cutpoint starts must be finite and strictly increasing."
+    )
+  }
+  c(cutpoints[[1L]], log(spacings))
+}
+
+ordinal_cutpoints_from_raw <- function(theta_ord) {
+  if (length(theta_ord) == 0L) {
+    return(numeric())
+  }
+  out <- numeric(length(theta_ord))
+  out[[1L]] <- theta_ord[[1L]]
+  if (length(theta_ord) > 1L) {
+    for (j in 2:length(theta_ord)) {
+      out[[j]] <- out[[j - 1L]] + exp(theta_ord[[j]])
+    }
+  }
+  out
+}
+
+cumulative_logit_map <- function() {
+  list(
+    beta_sigma = factor(NA),
+    beta_nu = factor(NA),
+    beta_zi = factor(NA),
+    beta_sd_mu = factor(NA),
+    beta_mu1 = factor(NA),
+    beta_mu2 = factor(NA),
+    beta_sigma1 = factor(NA),
+    beta_sigma2 = factor(NA),
+    beta_rho12 = factor(NA),
+    u_mu = factor(NA),
+    log_sd_mu = factor(NA),
+    eta_cor_mu = factor(NA),
+    u_sigma = factor(NA),
+    log_sd_sigma = factor(NA),
+    u_phylo = factor(NA),
+    log_sd_phylo = factor(NA)
   )
 }
 
@@ -3083,7 +4265,11 @@ gaussian_mu_re_start <- function(resid, re_mu, y_scale) {
         by = list(group = group),
         FUN = sum
       )
-      group_est <- ifelse(moment$den > sqrt(.Machine$double.eps), moment$num / moment$den, NA_real_)
+      group_est <- ifelse(
+        moment$den > sqrt(.Machine$double.eps),
+        moment$num / moment$den,
+        NA_real_
+      )
       group_est <- group_est[is.finite(group_est)]
     }
     sd0 <- stats::sd(group_est)
@@ -3120,14 +4306,24 @@ gaussian_sd_mu_start <- function(mu_re_start, sd_mu) {
   out <- numeric(ncol(sd_mu$X))
   for (dpar in sd_mu$dpars) {
     coef_index <- sd_mu$coef_index[[dpar]]
-    out[[coef_index[[1L]]]] <- mu_re_start$log_sd_mu[[sd_mu$target_coef[[dpar]]]]
+    out[[coef_index[[1L]]]] <- mu_re_start$log_sd_mu[[sd_mu$target_coef[[
+      dpar
+    ]]]]
   }
   names(out) <- colnames(sd_mu$X)
   out
 }
 
-biv_gaussian_start <- function(y1, y2, X_mu1, X_mu2, X_sigma1, X_sigma2, X_rho12,
-                               V_known_diag = rep(0, 2L * length(y1))) {
+biv_gaussian_start <- function(
+  y1,
+  y2,
+  X_mu1,
+  X_mu2,
+  X_sigma1,
+  X_sigma2,
+  X_rho12,
+  V_known_diag = rep(0, 2L * length(y1))
+) {
   fit1 <- stats::lm.fit(x = X_mu1, y = y1)
   fit2 <- stats::lm.fit(x = X_mu2, y = y2)
   beta_mu1 <- fit1$coefficients
@@ -3140,15 +4336,31 @@ biv_gaussian_start <- function(y1, y2, X_mu1, X_mu2, X_sigma1, X_sigma2, X_rho12
   V1 <- V_known_diag[seq.int(1L, by = 2L, length.out = length(y1))]
   V2 <- V_known_diag[seq.int(2L, by = 2L, length.out = length(y1))]
   sigma_floor <- 1e-4
-  sigma1 <- sqrt(max(stats::var(resid1) - stats::median(V1, na.rm = TRUE), sigma_floor^2))
-  sigma2 <- sqrt(max(stats::var(resid2) - stats::median(V2, na.rm = TRUE), sigma_floor^2))
-  if (!is.finite(sigma1) || sigma1 <= 0) sigma1 <- stats::sd(y1)
-  if (!is.finite(sigma2) || sigma2 <= 0) sigma2 <- stats::sd(y2)
-  if (!is.finite(sigma1) || sigma1 <= 0) sigma1 <- 1
-  if (!is.finite(sigma2) || sigma2 <= 0) sigma2 <- 1
+  sigma1 <- sqrt(max(
+    stats::var(resid1) - stats::median(V1, na.rm = TRUE),
+    sigma_floor^2
+  ))
+  sigma2 <- sqrt(max(
+    stats::var(resid2) - stats::median(V2, na.rm = TRUE),
+    sigma_floor^2
+  ))
+  if (!is.finite(sigma1) || sigma1 <= 0) {
+    sigma1 <- stats::sd(y1)
+  }
+  if (!is.finite(sigma2) || sigma2 <= 0) {
+    sigma2 <- stats::sd(y2)
+  }
+  if (!is.finite(sigma1) || sigma1 <= 0) {
+    sigma1 <- 1
+  }
+  if (!is.finite(sigma2) || sigma2 <= 0) {
+    sigma2 <- 1
+  }
 
   rho <- stats::cor(resid1, resid2)
-  if (!is.finite(rho)) rho <- 0
+  if (!is.finite(rho)) {
+    rho <- 0
+  }
   rho <- max(min(rho, 0.8), -0.8)
 
   beta_sigma1 <- numeric(ncol(X_sigma1))
@@ -3164,6 +4376,7 @@ biv_gaussian_start <- function(y1, y2, X_mu1, X_mu2, X_sigma1, X_sigma2, X_rho12
       beta_sigma = 0,
       beta_nu = 0,
       beta_zi = 0,
+      theta_ord = 0,
       beta_sd_mu = 0,
       u_mu = 0,
       log_sd_mu = 0,
@@ -3185,10 +4398,12 @@ biv_gaussian_start <- function(y1, y2, X_mu1, X_mu2, X_sigma1, X_sigma2, X_rho12
   )
 }
 
-gaussian_ls_map <- function(re_mu = empty_random_mu_structure(1L),
-                            re_sigma = empty_random_sigma_structure(1L),
-                            sd_mu = empty_sd_mu_structure(re_mu$n_re),
-                            phylo_mu = empty_phylo_mu_structure()) {
+gaussian_ls_map <- function(
+  re_mu = empty_random_mu_structure(1L),
+  re_sigma = empty_random_sigma_structure(1L),
+  sd_mu = empty_sd_mu_structure(re_mu$n_re),
+  phylo_mu = empty_phylo_mu_structure()
+) {
   out <- list(
     beta_mu1 = factor(NA),
     beta_mu2 = factor(NA),
@@ -3196,7 +4411,8 @@ gaussian_ls_map <- function(re_mu = empty_random_mu_structure(1L),
     beta_sigma2 = factor(NA),
     beta_rho12 = factor(NA),
     beta_nu = factor(NA),
-    beta_zi = factor(NA)
+    beta_zi = factor(NA),
+    theta_ord = factor(NA)
   )
   if (!isTRUE(phylo_mu$has)) {
     out$u_phylo <- factor(NA)
@@ -3233,6 +4449,7 @@ student_ls_map <- function() {
     beta_sigma2 = factor(NA),
     beta_rho12 = factor(NA),
     beta_zi = factor(NA),
+    theta_ord = factor(NA),
     u_mu = factor(NA),
     log_sd_mu = factor(NA),
     eta_cor_mu = factor(NA),
@@ -3249,6 +4466,7 @@ biv_gaussian_map <- function() {
     beta_sigma = factor(NA),
     beta_nu = factor(NA),
     beta_zi = factor(NA),
+    theta_ord = factor(NA),
     beta_sd_mu = factor(NA),
     u_mu = factor(NA),
     log_sd_mu = factor(NA),
@@ -3269,15 +4487,25 @@ make_tmb_data <- function(spec) {
     dims = c(1L, 1L)
   )
   offset_mu <- if (!is.null(spec$offset$mu)) spec$offset$mu else numeric(1)
+  tmb_trials <- if (!is.null(spec$trials)) {
+    spec$trials
+  } else {
+    rep(1, length(spec$y))
+  }
   if (identical(spec$model_type, "gaussian")) {
     phylo_mu <- spec$structured$phylo_mu
     return(list(
       model_type = 1L,
       y = spec$y,
+      trials = tmb_trials,
       weights = spec$weights,
       offset_mu = offset_mu,
       V_known = spec$V_known_diag,
-      V_known_matrix = if (identical(spec$V_known_type, "matrix")) spec$V_known else dummy_matrix,
+      V_known_matrix = if (identical(spec$V_known_type, "matrix")) {
+        spec$V_known
+      } else {
+        dummy_matrix
+      },
       V_known_type = as.integer(
         match(spec$V_known_type, c("none", "diagonal", "matrix")) - 1L
       ),
@@ -3308,15 +4536,28 @@ make_tmb_data <- function(spec) {
       sigma_re_value = spec$random$sigma$value,
       sigma_re_term = spec$random$sigma$term_id0,
       has_phylo_mu = as.integer(isTRUE(phylo_mu$has)),
-      phylo_mu_node_index = if (isTRUE(phylo_mu$has)) phylo_mu$observation_node_index0 else 0L,
-      Q_phylo = if (isTRUE(phylo_mu$has)) phylo_mu$precision$precision else dummy_sparse,
-      log_det_Q_phylo = if (isTRUE(phylo_mu$has)) phylo_mu$precision$log_det_precision else 0
+      phylo_mu_node_index = if (isTRUE(phylo_mu$has)) {
+        phylo_mu$observation_node_index0
+      } else {
+        0L
+      },
+      Q_phylo = if (isTRUE(phylo_mu$has)) {
+        phylo_mu$precision$precision
+      } else {
+        dummy_sparse
+      },
+      log_det_Q_phylo = if (isTRUE(phylo_mu$has)) {
+        phylo_mu$precision$log_det_precision
+      } else {
+        0
+      }
     ))
   }
   if (identical(spec$model_type, "student")) {
     return(list(
       model_type = 3L,
       y = spec$y,
+      trials = tmb_trials,
       weights = spec$weights,
       offset_mu = offset_mu,
       V_known = spec$V_known_diag,
@@ -3358,6 +4599,7 @@ make_tmb_data <- function(spec) {
     return(list(
       model_type = 4L,
       y = spec$y,
+      trials = tmb_trials,
       weights = spec$weights,
       offset_mu = offset_mu,
       V_known = spec$V_known_diag,
@@ -3399,6 +4641,7 @@ make_tmb_data <- function(spec) {
     return(list(
       model_type = 5L,
       y = spec$y,
+      trials = tmb_trials,
       weights = spec$weights,
       offset_mu = offset_mu,
       V_known = spec$V_known_diag,
@@ -3440,6 +4683,7 @@ make_tmb_data <- function(spec) {
     return(list(
       model_type = 10L,
       y = spec$y,
+      trials = tmb_trials,
       weights = spec$weights,
       offset_mu = offset_mu,
       V_known = spec$V_known_diag,
@@ -3477,10 +4721,95 @@ make_tmb_data <- function(spec) {
       log_det_Q_phylo = 0
     ))
   }
+  if (identical(spec$model_type, "beta_binomial")) {
+    return(list(
+      model_type = 14L,
+      y = spec$y,
+      trials = tmb_trials,
+      weights = spec$weights,
+      offset_mu = offset_mu,
+      V_known = spec$V_known_diag,
+      V_known_matrix = dummy_matrix,
+      V_known_type = 0L,
+      y1 = numeric(1),
+      y2 = numeric(1),
+      X_mu = spec$X$mu,
+      X_sigma = spec$X$sigma,
+      X_nu = dummy_matrix,
+      X_zi = dummy_matrix,
+      X_sd_mu = dummy_matrix,
+      has_sd_mu_model = 0L,
+      X_mu1 = dummy_matrix,
+      X_mu2 = dummy_matrix,
+      X_sigma1 = dummy_matrix,
+      X_sigma2 = dummy_matrix,
+      X_rho12 = dummy_matrix,
+      n_mu_re_terms = 0L,
+      n_mu_re_cors = 0L,
+      mu_re_index = matrix(0L, nrow = 1L, ncol = 1L),
+      mu_re_value = dummy_matrix,
+      mu_re_term = 0L,
+      mu_re_pos = 0L,
+      mu_re_cor_id = -1L,
+      mu_re_pair_index = -1L,
+      mu_re_sd_row = -1L,
+      n_sigma_re_terms = 0L,
+      sigma_re_index = matrix(0L, nrow = 1L, ncol = 1L),
+      sigma_re_value = dummy_matrix,
+      sigma_re_term = 0L,
+      has_phylo_mu = 0L,
+      phylo_mu_node_index = 0L,
+      Q_phylo = dummy_sparse,
+      log_det_Q_phylo = 0
+    ))
+  }
+  if (identical(spec$model_type, "cumulative_logit")) {
+    return(list(
+      model_type = 13L,
+      y = spec$y,
+      trials = tmb_trials,
+      weights = spec$weights,
+      offset_mu = offset_mu,
+      V_known = spec$V_known_diag,
+      V_known_matrix = dummy_matrix,
+      V_known_type = 0L,
+      y1 = numeric(1),
+      y2 = numeric(1),
+      X_mu = spec$X$mu,
+      X_sigma = dummy_matrix,
+      X_nu = dummy_matrix,
+      X_zi = dummy_matrix,
+      X_sd_mu = dummy_matrix,
+      has_sd_mu_model = 0L,
+      X_mu1 = dummy_matrix,
+      X_mu2 = dummy_matrix,
+      X_sigma1 = dummy_matrix,
+      X_sigma2 = dummy_matrix,
+      X_rho12 = dummy_matrix,
+      n_mu_re_terms = 0L,
+      n_mu_re_cors = 0L,
+      mu_re_index = matrix(0L, nrow = 1L, ncol = 1L),
+      mu_re_value = dummy_matrix,
+      mu_re_term = 0L,
+      mu_re_pos = 0L,
+      mu_re_cor_id = -1L,
+      mu_re_pair_index = -1L,
+      mu_re_sd_row = -1L,
+      n_sigma_re_terms = 0L,
+      sigma_re_index = matrix(0L, nrow = 1L, ncol = 1L),
+      sigma_re_value = dummy_matrix,
+      sigma_re_term = 0L,
+      has_phylo_mu = 0L,
+      phylo_mu_node_index = 0L,
+      Q_phylo = dummy_sparse,
+      log_det_Q_phylo = 0
+    ))
+  }
   if (identical(spec$model_type, "poisson")) {
     return(list(
       model_type = 6L,
       y = spec$y,
+      trials = tmb_trials,
       weights = spec$weights,
       offset_mu = offset_mu,
       V_known = spec$V_known_diag,
@@ -3522,6 +4851,7 @@ make_tmb_data <- function(spec) {
     return(list(
       model_type = 8L,
       y = spec$y,
+      trials = tmb_trials,
       weights = spec$weights,
       offset_mu = offset_mu,
       V_known = spec$V_known_diag,
@@ -3563,6 +4893,7 @@ make_tmb_data <- function(spec) {
     return(list(
       model_type = 7L,
       y = spec$y,
+      trials = tmb_trials,
       weights = spec$weights,
       offset_mu = offset_mu,
       V_known = spec$V_known_diag,
@@ -3604,6 +4935,7 @@ make_tmb_data <- function(spec) {
     return(list(
       model_type = 11L,
       y = spec$y,
+      trials = tmb_trials,
       weights = spec$weights,
       offset_mu = offset_mu,
       V_known = spec$V_known_diag,
@@ -3645,6 +4977,7 @@ make_tmb_data <- function(spec) {
     return(list(
       model_type = 12L,
       y = spec$y,
+      trials = tmb_trials,
       weights = spec$weights,
       offset_mu = offset_mu,
       V_known = spec$V_known_diag,
@@ -3686,6 +5019,7 @@ make_tmb_data <- function(spec) {
     return(list(
       model_type = 9L,
       y = spec$y,
+      trials = tmb_trials,
       weights = spec$weights,
       offset_mu = offset_mu,
       V_known = spec$V_known_diag,
@@ -3727,10 +5061,15 @@ make_tmb_data <- function(spec) {
     return(list(
       model_type = 2L,
       y = numeric(1),
+      trials = numeric(1),
       weights = spec$weights,
       offset_mu = offset_mu,
       V_known = spec$V_known_diag,
-      V_known_matrix = if (identical(spec$V_known_type, "matrix")) spec$V_known else dummy_matrix,
+      V_known_matrix = if (identical(spec$V_known_type, "matrix")) {
+        spec$V_known
+      } else {
+        dummy_matrix
+      },
       V_known_type = as.integer(
         match(spec$V_known_type, c("none", "diagonal", "matrix")) - 1L
       ),
@@ -3808,14 +5147,22 @@ split_tmb_parameters <- function(par, spec) {
     names(beta_hu) <- colnames(spec$X$hu)
     return(list(mu = beta_mu, sigma = beta_sigma, hu = beta_hu))
   }
+  if (identical(spec$model_type, "cumulative_logit")) {
+    beta_mu <- unname(par$beta_mu)
+    names(beta_mu) <- colnames(spec$X$mu)
+    return(list(mu = beta_mu))
+  }
 
-  if (identical(spec$model_type, "gaussian") ||
+  if (
+    identical(spec$model_type, "gaussian") ||
       identical(spec$model_type, "student") ||
       identical(spec$model_type, "lognormal") ||
       identical(spec$model_type, "gamma") ||
       identical(spec$model_type, "beta") ||
+      identical(spec$model_type, "beta_binomial") ||
       identical(spec$model_type, "nbinom2") ||
-      identical(spec$model_type, "truncated_nbinom2")) {
+      identical(spec$model_type, "truncated_nbinom2")
+  ) {
     beta_mu <- unname(par$beta_mu)
     beta_sigma <- unname(par$beta_sigma)
     names(beta_mu) <- colnames(spec$X$mu)
@@ -3828,7 +5175,9 @@ split_tmb_parameters <- function(par, spec) {
       return(out)
     }
     if (spec$random_scale$mu$n_models > 0L) {
-      beta_sd_mu <- unname(par$beta_sd_mu[seq_len(ncol(spec$random_scale$mu$X))])
+      beta_sd_mu <- unname(par$beta_sd_mu[seq_len(ncol(
+        spec$random_scale$mu$X
+      ))])
       for (dpar in spec$random_scale$mu$dpars) {
         coef_index <- spec$random_scale$mu$coef_index[[dpar]]
         beta_sd_mu_dpar <- beta_sd_mu[coef_index]
@@ -3859,6 +5208,25 @@ split_tmb_parameters <- function(par, spec) {
   )
 }
 
+ordinal_fit_info <- function(par, spec) {
+  if (!identical(spec$model_type, "cumulative_logit")) {
+    return(NULL)
+  }
+  cutpoints <- ordinal_cutpoints_from_raw(unname(par$theta_ord))
+  names(cutpoints) <- ordinal_cutpoint_names(spec$ordinal$levels)
+  list(
+    response = spec$ordinal$response,
+    levels = spec$ordinal$levels,
+    n_categories = spec$ordinal$n_categories,
+    cutpoints = cutpoints,
+    theta_raw = stats::setNames(unname(par$theta_ord), names(cutpoints))
+  )
+}
+
+ordinal_cutpoint_names <- function(levels) {
+  paste0(levels[-length(levels)], "|", levels[-1L])
+}
+
 split_tmb_sdpars <- function(par, spec) {
   if (!identical(spec$model_type, "gaussian")) {
     return(list())
@@ -3867,10 +5235,17 @@ split_tmb_sdpars <- function(par, spec) {
   if (spec$random$mu$n_re > 0L) {
     unmodelled <- seq_len(spec$random$mu$n_terms)
     if (spec$random_scale$mu$n_models > 0L) {
-      unmodelled <- setdiff(unmodelled, unname(spec$random_scale$mu$target_coef))
+      unmodelled <- setdiff(
+        unmodelled,
+        unname(spec$random_scale$mu$target_coef)
+      )
       for (dpar in spec$random_scale$mu$dpars) {
         sd_group <- sd_mu_group_values(par, spec$random_scale$mu, dpar = dpar)
-        names(sd_group) <- paste0(dpar, ":", spec$random_scale$mu$group_levels_list[[dpar]])
+        names(sd_group) <- paste0(
+          dpar,
+          ":",
+          spec$random_scale$mu$group_levels_list[[dpar]]
+        )
         out[[dpar]] <- sd_group
       }
     }
@@ -3881,7 +5256,9 @@ split_tmb_sdpars <- function(par, spec) {
     }
   }
   if (spec$random$sigma$n_re > 0L) {
-    sd_sigma <- exp(unname(par$log_sd_sigma[seq_len(spec$random$sigma$n_terms)]))
+    sd_sigma <- exp(unname(par$log_sd_sigma[seq_len(
+      spec$random$sigma$n_terms
+    )]))
     names(sd_sigma) <- spec$random$sigma$labels
     out$sigma <- sd_sigma
   }
@@ -3899,7 +5276,8 @@ split_tmb_corpars <- function(par, spec) {
   if (!identical(spec$model_type, "gaussian") || spec$random$mu$n_cors == 0L) {
     return(list())
   }
-  rho_mu <- 0.999999 * tanh(unname(par$eta_cor_mu[seq_len(spec$random$mu$n_cors)]))
+  rho_mu <- 0.999999 *
+    tanh(unname(par$eta_cor_mu[seq_len(spec$random$mu$n_cors)]))
   names(rho_mu) <- spec$random$mu$cor_labels
   list(mu = rho_mu)
 }
@@ -3912,7 +5290,12 @@ split_tmb_random_effects <- function(par, spec) {
   out <- list()
   if (spec$random$mu$n_re > 0L) {
     latent <- unname(par$u_mu[seq_len(spec$random$mu$n_re)])
-    values <- transform_mu_random_effects(latent, par, spec$random$mu, spec$random_scale$mu)
+    values <- transform_mu_random_effects(
+      latent,
+      par,
+      spec$random$mu,
+      spec$random_scale$mu
+    )
     out$mu <- format_random_effect_values(latent, values, spec$random$mu)
   }
   if (spec$random$sigma$n_re > 0L) {
@@ -3939,7 +5322,12 @@ split_tmb_random_effects <- function(par, spec) {
   out
 }
 
-transform_mu_random_effects <- function(latent, par, re_mu, sd_mu = empty_sd_mu_structure(re_mu$n_re)) {
+transform_mu_random_effects <- function(
+  latent,
+  par,
+  re_mu,
+  sd_mu = empty_sd_mu_structure(re_mu$n_re)
+) {
   sd_by_index <- mu_sd_by_random_effect(par, re_mu, sd_mu)
   rho <- if (re_mu$n_cors > 0L) {
     0.999999 * tanh(unname(par$eta_cor_mu[seq_len(re_mu$n_cors)]))

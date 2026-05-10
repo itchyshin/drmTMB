@@ -29,6 +29,9 @@ The implemented families use these parameter meanings:
 | Gamma | `sigma` | log | coefficient of variation; residual SD is `mu * sigma` |
 | Beta | `mu` | logit | arithmetic mean of the strict proportion response |
 | Beta | `sigma` | log | public scale; internal precision is `phi = 1 / sigma^2` |
+| Beta-binomial | `mu` | logit | success probability for counted successes out of known trials |
+| Beta-binomial | `sigma` | log | extra-binomial variation scale; internal precision is `phi = 1 / sigma^2` |
+| Cumulative logit | `mu` | identity | latent ordinal location; `fitted()` returns expected category score |
 | Poisson | `mu` | log | arithmetic mean and variance of the count response |
 | Zero-inflated Poisson | `mu` | log | conditional Poisson mean |
 | Zero-inflated Poisson | `zi` | logit | structural-zero probability |
@@ -272,19 +275,33 @@ Therefore an intercept-only precision coefficient from a mean-precision
 package corresponds to `beta_sigma = -0.5 * beta_phi`. Slope coefficients have
 the same `-0.5` multiplier when the linear predictors use the same columns.
 
-The implemented beta path rejects `y <= 0`, `y >= 1`, non-finite responses,
-and unsupported denominator syntax. Boundary responses should be handled later
-through zero/one-inflated beta or ordered beta models.
+The implemented beta path rejects `y <= 0`, `y >= 1`, and non-finite
+responses. Boundary responses should be handled later through zero/one-inflated
+beta or ordered beta models.
 
 Do not add `phi ~` as a second public grammar without a design decision,
 because `sigma` is the package's stable scale name.
 
-For percentages derived from counts, `beta_binomial()` should keep the
-denominator rather than forcing users to convert to a continuous proportion.
-The public syntax is not settled yet; candidates include
-`cbind(successes, failures) ~ predictors` and a two-column successes/trials
-interface. The design decision should be made before implementation because it
-controls how missing values, totals, and predictions are checked.
+For percentages derived from counts, `beta_binomial()` keeps the denominator
+rather than forcing users to convert to a continuous proportion:
+
+```text
+y_i | n_i, p_i ~ Binomial(n_i, p_i)
+p_i | mu_i, sigma_i ~ Beta(mu_i phi_i, (1 - mu_i) phi_i)
+logit(mu_i) = X_mu[i, ] beta_mu
+log(sigma_i) = X_sigma[i, ] beta_sigma
+phi_i = 1 / sigma_i^2
+E[y_i / n_i] = mu_i
+Var(y_i / n_i) =
+  mu_i (1 - mu_i) (1 + n_i sigma_i^2) /
+  (n_i (1 + sigma_i^2))
+```
+
+The implemented syntax is `cbind(successes, failures) ~ predictors`; `n_i` is
+the row total. `fitted()` returns the success probability `mu`, and
+`sigma(fit)` returns the public extra-binomial variation scale. A two-column
+successes/trials interface remains a possible later alias, with design
+guardrails in `docs/design/24-denominator-response-syntax.md`.
 
 ## Implemented Truncated Count Contract
 
@@ -341,7 +358,7 @@ zero-truncated count distribution. The implemented NB2 hurdle path does not
 export a separate `hurdle_nbinom2()` constructor; any future
 `hurdle_poisson()` constructor would need a separate formula-grammar decision.
 
-## Candidate Ordinal Contract
+## Implemented Cumulative-Logit Ordinal Contract
 
 Ordinal models introduce cutpoints. Cutpoints are direct model parameters, not
 ordinary fixed-effect formulas in the first implementation.
@@ -349,18 +366,30 @@ ordinary fixed-effect formulas in the first implementation.
 First univariate ordinal path:
 
 ```text
-Pr(y_i <= k) = logit^{-1}((theta_k - mu_i) / sigma_i)
+Pr(y_i <= k) = logit^{-1}(theta_k - mu_i)
 mu_i = X_mu[i, ] beta_mu
-log(sigma_i) = X_sigma[i, ] beta_sigma
 theta_1 < theta_2 < ... < theta_{K-1}
 ```
 
-This treats public `sigma` as ordinal scale: larger `sigma_i` spreads the
-latent cumulative distribution across cutpoints and means less consistent
-ordinal outcomes. A discrimination or consistency summary can be reported as
-`zeta_i = 1 / sigma_i`. This matches the seabird nest-success example of
-Ortega et al. (2026), where higher discrimination means clearer separation
-among ordered fledging categories.
+This MVP fixes the latent logistic scale and exposes only the location formula.
+The location intercept is removed internally because a free intercept and free
+cutpoints are not jointly identifiable. `predict(fit, dpar = "mu")` returns
+the latent location, while `fitted(fit)` returns the expected ordered-category
+score `sum_k k * Pr(y_i = k)`.
+
+An ordinal scale or discrimination formula remains planned. One candidate is:
+
+```text
+Pr(y_i <= k) = logit^{-1}((theta_k - mu_i) / sigma_i)
+log(sigma_i) = X_sigma[i, ] beta_sigma
+```
+
+With this convention, larger `sigma_i` spreads the latent cumulative
+distribution across cutpoints and means less consistent ordinal outcomes. A
+discrimination or consistency summary can be reported as `zeta_i = 1 / sigma_i`.
+This matches the seabird nest-success example of Ortega et al. (2026), where
+higher discrimination means clearer separation among ordered fledging
+categories.
 
 An alternative implementation could expose a native `zeta` parameter directly,
 but that would require an explicit formula-grammar decision. Do not silently
@@ -368,12 +397,14 @@ reuse `sigma` for a parameter where larger values mean more consistency unless
 the documentation and tests make that direction unavoidable.
 
 Bivariate ordinal correlation is a research project because the latent
-correlation is harder to identify and validate.
+correlation is harder to identify and validate. The planned scale direction and
+acceptance criteria are recorded in
+`docs/design/25-ordinal-scale-discrimination.md`.
 
 ## Implementation Checklist Before New Families
 
-Before implementing additional count, beta, ordinal, or positive-continuous
-families:
+Before implementing additional count, beta, ordinal-scale, or
+positive-continuous families:
 
 1. Add the family to `drm_dpar_link()` and `drm_inverse_link()`.
 2. Add the fitted-response rule to `drm_fitted_response()` where `fitted()` is

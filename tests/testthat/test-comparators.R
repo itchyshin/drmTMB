@@ -186,8 +186,11 @@ test_that("labelled Gaussian correlated random slopes agree with lme4 semantics"
   u1 <- sd1 * (rho_re * z0 + sqrt(1 - rho_re^2) * z1)
   dat$y <- stats::rnorm(
     n,
-    mean = 0.25 + 0.65 * dat$x + 0.2 * (dat$f == "treated") +
-      u0[dat$ID] + u1[dat$ID] * dat$x,
+    mean = 0.25 +
+      0.65 * dat$x +
+      0.2 * (dat$f == "treated") +
+      u0[dat$ID] +
+      u1[dat$ID] * dat$x,
     sd = 0.45
   )
 
@@ -265,6 +268,107 @@ test_that("Gaussian sd(id) intercept-only random-effect scale agrees with lme4",
   expect_equal(
     as.numeric(stats::logLik(fit)),
     as.numeric(stats::logLik(fit_lme4)),
+    tolerance = 1e-4
+  )
+})
+
+test_that("Gaussian fixed-effect location-scale agrees with glmmTMB dispersion", {
+  suppressWarnings(testthat::skip_if_not_installed("glmmTMB"))
+
+  set.seed(20260620)
+  n <- 240
+  dat <- data.frame(
+    x = stats::rnorm(n),
+    z = stats::rnorm(n)
+  )
+  beta_mu <- c(`(Intercept)` = 0.30, x = -0.45)
+  beta_sigma <- c(`(Intercept)` = log(0.55), z = 0.25)
+  mu <- beta_mu[[1L]] + beta_mu[[2L]] * dat$x
+  sigma <- exp(beta_sigma[[1L]] + beta_sigma[[2L]] * dat$z)
+  dat$y <- stats::rnorm(n, mean = mu, sd = sigma)
+
+  fit <- drmTMB(
+    bf(y ~ x, sigma ~ z),
+    family = gaussian(),
+    data = dat
+  )
+  fit_glmmTMB <- suppressWarnings(glmmTMB::glmmTMB(
+    y ~ x,
+    dispformula = ~z,
+    family = gaussian(),
+    data = dat
+  ))
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(
+    unname(coef(fit, "mu")),
+    unname(glmmTMB::fixef(fit_glmmTMB)$cond),
+    tolerance = 1e-4
+  )
+  expect_equal(
+    unname(coef(fit, "sigma")),
+    unname(glmmTMB::fixef(fit_glmmTMB)$disp),
+    tolerance = 1e-4
+  )
+  expect_equal(
+    as.numeric(stats::logLik(fit)),
+    as.numeric(stats::logLik(fit_glmmTMB)),
+    tolerance = 1e-4
+  )
+})
+
+test_that("Gaussian random-intercept location-scale agrees with glmmTMB dispersion", {
+  suppressWarnings(testthat::skip_if_not_installed("glmmTMB"))
+
+  set.seed(20260621)
+  n_id <- 24
+  n_each <- 8
+  n <- n_id * n_each
+  dat <- data.frame(
+    id = factor(rep(seq_len(n_id), each = n_each)),
+    x = stats::rnorm(n),
+    z = stats::rnorm(n)
+  )
+  beta_mu <- c(`(Intercept)` = 0.20, x = 0.50)
+  beta_sigma <- c(`(Intercept)` = log(0.45), z = -0.20)
+  sd_id <- 0.35
+  u_id <- stats::rnorm(n_id, sd = sd_id)
+  mu <- beta_mu[[1L]] + beta_mu[[2L]] * dat$x + u_id[dat$id]
+  sigma <- exp(beta_sigma[[1L]] + beta_sigma[[2L]] * dat$z)
+  dat$y <- stats::rnorm(n, mean = mu, sd = sigma)
+
+  fit <- drmTMB(
+    bf(y ~ x + (1 | id), sigma ~ z),
+    family = gaussian(),
+    data = dat
+  )
+  fit_glmmTMB <- suppressWarnings(glmmTMB::glmmTMB(
+    y ~ x + (1 | id),
+    dispformula = ~z,
+    family = gaussian(),
+    data = dat
+  ))
+  vc_glmmTMB <- glmmTMB::VarCorr(fit_glmmTMB)$cond$id
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(
+    unname(coef(fit, "mu")),
+    unname(glmmTMB::fixef(fit_glmmTMB)$cond),
+    tolerance = 1e-4
+  )
+  expect_equal(
+    unname(coef(fit, "sigma")),
+    unname(glmmTMB::fixef(fit_glmmTMB)$disp),
+    tolerance = 1e-4
+  )
+  expect_equal(
+    unname(fit$sdpars$mu),
+    unname(attr(vc_glmmTMB, "stddev")),
+    tolerance = 1e-4
+  )
+  expect_equal(
+    as.numeric(stats::logLik(fit)),
+    as.numeric(stats::logLik(fit_glmmTMB)),
     tolerance = 1e-4
   )
 })
@@ -359,7 +463,7 @@ test_that("Gaussian meta-analysis agrees with metafor for ML tau2", {
   fit_metafor <- metafor::rma.uni(
     yi = yi,
     vi = vi,
-    mods = ~ x,
+    mods = ~x,
     data = dat,
     method = "ML"
   )
@@ -406,7 +510,7 @@ test_that("dense known-V Gaussian meta-analysis agrees with metafor rma.mv", {
   fit_metafor <- metafor::rma.mv(
     yi = yi,
     V = V,
-    mods = ~ x,
+    mods = ~x,
     random = ~ 1 | obs,
     data = dat,
     method = "ML"

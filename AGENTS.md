@@ -101,7 +101,9 @@ one.
 ## Standing Review Roles
 
 These names are shorthand for recurring review perspectives. They do not run
-continuously; the orchestrator should launch them only for bounded tasks.
+continuously; the orchestrator should launch them only for bounded tasks. Use
+these canonical names when reporting team perspectives; do not rename them in
+status updates or project notes.
 
 | Name | Role | Primary questions |
 | --- | --- | --- |

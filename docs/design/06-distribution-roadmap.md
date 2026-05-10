@@ -134,7 +134,8 @@ remain consistent with the rest of `drmTMB`.
 - `zoibeta()` or `zero_one_inflated_beta()`: extra zeros and ones with `zoi`
   and `coi`.
 - `ordbeta()`: continuous bounded responses including exact 0 and 1.
-- `beta_binomial()`: counts of successes out of trials with overdispersion.
+- `beta_binomial()`: implemented fixed-effect path for counts of successes out
+  of trials with overdispersion.
 - `binomial()`: successes out of trials, with optional random effects.
 
 Recommended user guidance:
@@ -144,11 +145,10 @@ Recommended user guidance:
 - Use `beta()` for continuous rates strictly between 0 and 1.
 - Use zero/one-inflated beta or ordered beta when exact boundaries occur.
 
-Priority order after the implemented `beta()`, `truncated_nbinom2()`, and
-hurdle NB2 seeds is therefore univariate ordinal models, then
-denominator-aware count proportions. This gives users the positive-count,
-hurdle-count, and bounded-score routes after the strict proportion path, while
-keeping every new family within a clear parameter-link contract.
+The implemented `beta()`, `beta_binomial()`, `truncated_nbinom2()`, hurdle
+NB2, and cumulative-logit seeds give users strict-proportion,
+denominator-aware proportion, positive-count, hurdle-count, and ordered-score
+routes while keeping every new family within a clear parameter-link contract.
 
 ## Tier 6: Positive Continuous Responses
 
@@ -202,20 +202,22 @@ model describes the consistency of reproductive outcomes.
 - `adjacent_category()` or `continuation_ratio()`: later if needed.
 - Distributional extensions: threshold scale or discrimination models.
 
-Initial ordinal scope should be univariate only. The first implementation
-should probably use a cumulative logit model with ordered cutpoints and an
-optional `sigma` formula interpreted as ordinal scale:
+Initial ordinal scope is univariate only. The first implemented
+`cumulative_logit()` path uses ordered cutpoints, a location formula, and a
+fixed latent logistic scale:
 
 ```text
-Pr(y_i <= k) = logit^{-1}((theta_k - mu_i) / sigma_i)
+Pr(y_i <= k) = logit^{-1}(theta_k - mu_i)
 mu_i = X_mu[i, ] beta_mu
-log(sigma_i) = X_sigma[i, ] beta_sigma
 theta_1 < theta_2 < ... < theta_{K-1}
 ```
 
-With this convention, larger `sigma_i` means more diffuse ordinal outcomes and
-lower consistency. A native discrimination or consistency quantity can be
-reported as `zeta_i = 1 / sigma_i`, matching the interpretation in the seabird
+The next ordinal extension is a scale or discrimination formula. One candidate
+is `Pr(y_i <= k) = logit^{-1}((theta_k - mu_i) / sigma_i)` with
+`log(sigma_i) = X_sigma[i, ] beta_sigma`. With this convention, larger
+`sigma_i` means more diffuse ordinal outcomes and lower consistency. A native
+discrimination or consistency quantity can be reported as
+`zeta_i = 1 / sigma_i`, matching the interpretation in the seabird
 nest-success example where higher `zeta` means clearer separation among
 fledging categories. If the implementation instead exposes `zeta` directly,
 that should be an explicit formula-grammar decision, not a silent reuse of

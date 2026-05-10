@@ -18,12 +18,12 @@ drmTMB(
 
 \item{family}{A response family, such as \code{\link[stats:gaussian]{stats::gaussian()}}, \code{\link[=student]{student()}},
 \code{\link[=lognormal]{lognormal()}}, \code{\link[stats:Gamma]{stats::Gamma()}} with \code{link = "log"}, \code{\link[=beta]{beta()}},
-\code{\link[stats:poisson]{stats::poisson()}} with \code{link = "log"}, \code{\link[=nbinom2]{nbinom2()}},
-\code{\link[=truncated_nbinom2]{truncated_nbinom2()}}, or \code{\link[=biv_gaussian]{biv_gaussian()}}. Adding \code{zi ~ predictors} to
-a Poisson or \code{nbinom2()} model fits the corresponding zero-inflated count
-model. Adding \code{hu ~ predictors} to a \code{truncated_nbinom2()} model fits a
-hurdle count model whose nonzero counts use the zero-truncated NB2
-component. The current
+\code{\link[=beta_binomial]{beta_binomial()}}, \code{\link[=cumulative_logit]{cumulative_logit()}}, \code{\link[stats:poisson]{stats::poisson()}} with \code{link = "log"},
+\code{\link[=nbinom2]{nbinom2()}}, \code{\link[=truncated_nbinom2]{truncated_nbinom2()}}, or \code{\link[=biv_gaussian]{biv_gaussian()}}. Adding
+\code{zi ~ predictors} to a Poisson or \code{nbinom2()} model fits the corresponding
+zero-inflated count model. Adding \code{hu ~ predictors} to a
+\code{truncated_nbinom2()} model fits a hurdle count model whose nonzero counts
+use the zero-truncated NB2 component. The current
 bivariate Gaussian engine also accepts
 \code{family = c(gaussian(), gaussian())} and
 \code{family = list(gaussian(), gaussian())}.}
@@ -48,10 +48,12 @@ supports univariate Gaussian location-scale models, fixed-effect
 univariate Student-t location-scale-shape models, fixed-effect lognormal
 location-scale models, Gamma mean-CV models for positive responses,
 fixed-effect beta mean-scale models for strict proportions,
-fixed-effect Poisson mean, zero-inflated Poisson, negative-binomial
-mean-dispersion, zero-inflated negative-binomial mean-dispersion,
-zero-truncated negative-binomial mean-dispersion, and hurdle
-negative-binomial mean-dispersion models for counts. Poisson and
+fixed-effect beta-binomial mean-overdispersion models for success counts,
+fixed-effect cumulative-logit ordinal location models, fixed-effect Poisson
+mean, zero-inflated Poisson, negative-binomial mean-dispersion,
+zero-inflated negative-binomial mean-dispersion, zero-truncated
+negative-binomial mean-dispersion, and hurdle negative-binomial
+mean-dispersion models for counts. Poisson and
 negative-binomial \code{mu} formulas may include standard R
 \code{offset(log(exposure))} terms for exposure or effort,
 Gaussian random intercepts, independent numeric random slopes,

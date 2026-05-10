@@ -3,10 +3,14 @@ tiny_ultrametric_tree <- function() {
     list(
       edge = matrix(
         c(
-          5, 4,
-          4, 1,
-          4, 2,
-          5, 3
+          5,
+          4,
+          4,
+          1,
+          4,
+          2,
+          5,
+          3
         ),
         byrow = TRUE,
         ncol = 2
@@ -24,6 +28,7 @@ phylo_prior_tmb_data <- function(precision) {
   list(
     model_type = 99L,
     y = numeric(1),
+    trials = numeric(1),
     weights = 1,
     offset_mu = numeric(1),
     V_known = numeric(1),
@@ -68,6 +73,7 @@ phylo_prior_tmb_parameters <- function(effect, log_sd) {
     beta_sigma = 0,
     beta_nu = 0,
     beta_zi = 0,
+    theta_ord = 0,
     beta_sd_mu = 0,
     beta_mu1 = 0,
     beta_mu2 = 0,
@@ -108,9 +114,15 @@ test_that("drm_phylo_tip_covariance builds a dense Brownian comparator", {
 
   expected_correlation <- matrix(
     c(
-      1, 0.5, 0,
-      0.5, 1, 0,
-      0, 0, 1
+      1,
+      0.5,
+      0,
+      0.5,
+      1,
+      0,
+      0,
+      0,
+      1
     ),
     nrow = 3,
     byrow = TRUE,
@@ -144,10 +156,22 @@ test_that("drm_phylo_augmented_precision matches the dense Brownian comparator",
   )
   expected_raw_q <- matrix(
     c(
-      1, 0, 0, -1,
-      0, 1, 0, -1,
-      0, 0, 0.5, 0,
-      -1, -1, 0, 3
+      1,
+      0,
+      0,
+      -1,
+      0,
+      1,
+      0,
+      -1,
+      0,
+      0,
+      0.5,
+      0,
+      -1,
+      -1,
+      0,
+      3
     ),
     nrow = 4,
     byrow = TRUE,
@@ -263,18 +287,18 @@ test_that("drm_phylo_precision_nll matches the augmented Gaussian density", {
   effect <- c(sp_a = 0.2, sp_b = -0.1, sp_c = 0.35, node4 = 0.05)
   log_sd <- log(0.7)
   quadratic <- sum(effect * as.numeric(precision$precision %*% effect))
-  expected <- 0.5 * (
-    length(effect) * log(2 * pi) +
+  expected <- 0.5 *
+    (length(effect) *
+      log(2 * pi) +
       2 * length(effect) * log_sd -
       precision$log_det_precision +
-      exp(-2 * log_sd) * quadratic
-  )
-  edge_quadratic <- precision$height * (
-    (effect[["node4"]] - 0)^2 / 1 +
+      exp(-2 * log_sd) * quadratic)
+  edge_quadratic <- precision$height *
+    ((effect[["node4"]] - 0)^2 /
+      1 +
       (effect[["sp_a"]] - effect[["node4"]])^2 / 1 +
       (effect[["sp_b"]] - effect[["node4"]])^2 / 1 +
-      (effect[["sp_c"]] - 0)^2 / 2
-  )
+      (effect[["sp_c"]] - 0)^2 / 2)
 
   expect_equal(quadratic, edge_quadratic, tolerance = 1e-12)
   expect_equal(
@@ -373,7 +397,10 @@ test_that("drm_phylo_augmented_precision requires positive branch lengths", {
     "positive"
   )
   expect_error(
-    drmTMB:::drm_phylo_augmented_precision(tiny_ultrametric_tree(), correlation = NA),
+    drmTMB:::drm_phylo_augmented_precision(
+      tiny_ultrametric_tree(),
+      correlation = NA
+    ),
     "correlation"
   )
 })

@@ -31,6 +31,8 @@ student()                   -> drm_build_student_ls_spec()
 lognormal()                 -> drm_build_lognormal_ls_spec()
 Gamma(link = "log")         -> drm_build_gamma_ls_spec()
 beta()                      -> drm_build_beta_ls_spec()
+beta_binomial()             -> drm_build_beta_binomial_spec()
+cumulative_logit()          -> drm_build_cumulative_logit_spec()
 poisson(link = "log")       -> drm_build_poisson_spec()
 poisson(link = "log") + zi  -> drm_build_poisson_spec()
 nbinom2()                   -> drm_build_nbinom2_spec()
@@ -59,6 +61,8 @@ model_type = 9   univariate zero-inflated negative-binomial 2 engine
 model_type = 10  univariate beta mean-scale engine
 model_type = 11  univariate zero-truncated negative-binomial 2 engine
 model_type = 12  univariate hurdle negative-binomial 2 engine
+model_type = 13  univariate cumulative-logit ordinal engine
+model_type = 14  univariate beta-binomial mean-overdispersion engine
 model_type = 99  internal phylogenetic prior helper used by tests
 ```
 
@@ -83,7 +87,7 @@ covariance.
 
 | Path | User-facing syntax | R builder and helpers | TMB branch | Main tests | Main docs |
 |---|---|---|---|---|---|
-| Gaussian location-scale | `drm_formula(y ~ x, sigma ~ z)` | `drm_build_gaussian_ls_spec()` in `R/drmTMB.R`; generic family object from `stats::gaussian()` | `model_type = 1` in `src/drmTMB.cpp` | `tests/testthat/test-gaussian-location-scale.R` | `vignettes/location-scale.Rmd`, `docs/design/13-gaussian-location-scale-math.md` |
+| Gaussian location-scale | `drm_formula(y ~ x, sigma ~ z)` | `drm_build_gaussian_ls_spec()` in `R/drmTMB.R`; generic family object from `stats::gaussian()` | `model_type = 1` in `src/drmTMB.cpp` | `tests/testthat/test-gaussian-location-scale.R`, `tests/testthat/test-comparators.R` | `vignettes/location-scale.Rmd`, `docs/design/13-gaussian-location-scale-math.md` |
 | Gaussian location random effects | `y ~ x + (1 \| id)`; `y ~ x + (1 + x \| id)`; labelled form `(1 + x \| p \| id)` | `extract_random_mu_terms()` and `build_random_mu_structure()` inside the Gaussian builder | `model_type = 1`; `u_mu`, `log_sd_mu`, and `eta_cor_mu` blocks | `tests/testthat/test-gaussian-random-intercepts.R`, `tests/testthat/test-comparators.R` | `docs/design/04-random-effects.md`, `vignettes/formula-grammar.Rmd` |
 | Gaussian residual scale random effects | `sigma ~ z + (1 \| id)` | `extract_random_sigma_terms()` and `build_random_sigma_structure()` inside the Gaussian builder | `model_type = 1`; `u_sigma` and `log_sd_sigma` blocks | `tests/testthat/test-gaussian-random-intercepts.R` | `docs/design/04-random-effects.md`, `vignettes/which-scale.Rmd` |
 | Gaussian random-effect scale models | `sd(id) ~ w`; `sd(site) ~ site_type` | `parse_sd_mu_entries()` and `build_sd_mu_structure()` inside the Gaussian builder | `model_type = 1`; `X_sd_mu`, `beta_sd_mu`, and `mu_re_sd_row` | `tests/testthat/test-gaussian-random-effect-scale.R`, `tests/testthat/test-comparators.R` | `docs/design/18-random-effect-scale-models.md`, `docs/design/13-gaussian-location-scale-math.md` |
@@ -94,6 +98,8 @@ covariance.
 | Lognormal location-scale | `drm_formula(biomass ~ x, sigma ~ z)` | `lognormal()` in `R/family.R`; `drm_build_lognormal_ls_spec()` in `R/drmTMB.R` | `model_type = 4`; `log(y) ~ Normal(mu, sigma^2)` with the log-Jacobian term | `tests/testthat/test-lognormal-location-scale.R` | `vignettes/distribution-families.Rmd`, `docs/design/02-family-registry.md`, `docs/design/03-likelihoods.md` |
 | Gamma mean-CV | `drm_formula(biomass ~ x, sigma ~ z)` with `family = Gamma(link = "log")` | `drm_build_gamma_ls_spec()` in `R/drmTMB.R`; generic family object from `stats::Gamma(link = "log")` | `model_type = 5`; `shape = 1 / sigma^2`, `scale = mu * sigma^2` | `tests/testthat/test-gamma-location-scale.R` | `vignettes/distribution-families.Rmd`, `docs/design/02-family-registry.md`, `docs/design/03-likelihoods.md`, `docs/design/19-family-link-contract.md` |
 | Beta mean-scale | `drm_formula(prop ~ x, sigma ~ z)` with `family = beta()` | `beta()` in `R/family.R`; `drm_build_beta_ls_spec()` in `R/drmTMB.R` | `model_type = 10`; `mu = logit^{-1}(eta_mu)`, `phi = 1 / sigma^2`, `alpha = mu * phi`, `beta_shape = (1 - mu) * phi` | `tests/testthat/test-beta-location-scale.R` | `vignettes/distribution-families.Rmd`, `docs/design/02-family-registry.md`, `docs/design/03-likelihoods.md`, `docs/design/19-family-link-contract.md` |
+| Beta-binomial mean-overdispersion | `drm_formula(cbind(successes, failures) ~ x, sigma ~ z)` with `family = beta_binomial()` | `beta_binomial()` in `R/family.R`; `drm_build_beta_binomial_spec()` in `R/drmTMB.R` | `model_type = 14`; `mu = logit^{-1}(eta_mu)`, `phi = 1 / sigma^2`, successes follow a beta-binomial distribution with known trial totals | `tests/testthat/test-beta-binomial.R` | `vignettes/distribution-families.Rmd`, `docs/design/02-family-registry.md`, `docs/design/03-likelihoods.md`, `docs/design/19-family-link-contract.md` |
+| Cumulative-logit ordinal location | `drm_formula(score ~ x)` with `family = cumulative_logit()` | `cumulative_logit()` in `R/family.R`; `drm_build_cumulative_logit_spec()` in `R/drmTMB.R` | `model_type = 13`; `Pr(y_i <= k) = logit^{-1}(theta_k - mu_i)` with ordered cutpoints and fixed latent logistic scale | `tests/testthat/test-cumulative-logit.R` | `vignettes/distribution-families.Rmd`, `docs/design/02-family-registry.md`, `docs/design/03-likelihoods.md`, `docs/design/19-family-link-contract.md` |
 | Poisson mean | `drm_formula(count ~ x + offset(log(effort)))` with `family = poisson(link = "log")` | `drm_build_poisson_spec()` in `R/drmTMB.R`; generic family object from `stats::poisson(link = "log")` | `model_type = 6`; `y ~ Poisson(mu)` with `mu = exp(offset + X beta)` | `tests/testthat/test-poisson-mean.R` | `vignettes/distribution-families.Rmd`, `docs/design/02-family-registry.md`, `docs/design/03-likelihoods.md`, `docs/design/19-family-link-contract.md` |
 | Zero-inflated Poisson | `drm_formula(count ~ x + offset(log(effort)), zi ~ z)` with `family = poisson(link = "log")` | `drm_build_poisson_spec()` in `R/drmTMB.R`; `zi` formula adds the structural-zero block | `model_type = 8`; `Pr(y = 0) = zi + (1 - zi) exp(-mu)` and `Pr(y > 0) = (1 - zi) Poisson(y \| mu)` | `tests/testthat/test-zi-poisson.R` | `vignettes/distribution-families.Rmd`, `docs/design/02-family-registry.md`, `docs/design/03-likelihoods.md`, `docs/design/19-family-link-contract.md` |
 | Negative-binomial 2 mean-dispersion | `drm_formula(count ~ x + offset(log(effort)), sigma ~ z)` with `family = nbinom2()` | `nbinom2()` in `R/family.R`; `drm_build_nbinom2_spec()` in `R/drmTMB.R` | `model_type = 7`; `mu = exp(offset + X beta)`, `Var(y) = mu + sigma^2 * mu^2`, `size = 1 / sigma^2` | `tests/testthat/test-nbinom2-location-scale.R`, `tests/testthat/test-comparators.R` | `vignettes/distribution-families.Rmd`, `docs/design/02-family-registry.md`, `docs/design/03-likelihoods.md`, `docs/design/19-family-link-contract.md` |

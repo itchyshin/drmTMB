@@ -34,12 +34,15 @@ parameter. The implemented zero-inflated Poisson extension uses the same
 Poisson route with `logit(zi)` and `fitted()` returning `(1 - zi) * mu`. The
 implemented negative-binomial 2 family uses `log(mu)` and `log(sigma)`, with
 `sigma` interpreted as an overdispersion scale; its zero-inflated extension
-adds `logit(zi)` and the same fitted-response rule `(1 - zi) * mu`. Beta
-models would use `logit(mu)`.
+adds `logit(zi)` and the same fitted-response rule `(1 - zi) * mu`. Beta and
+beta-binomial models use `logit(mu)` and `log(sigma)`, with `sigma` mapped to
+internal precision through `phi = 1 / sigma^2`. The first cumulative-logit
+ordinal path uses an identity-link latent `mu`, ordered cutpoints, and
+`fitted()` returning the expected ordered-category score.
 
 The detailed contract is in `docs/design/19-family-link-contract.md`. Treat it
-as a prerequisite before implementing additional count, beta, ordinal, or
-positive-continuous families.
+as a prerequisite before implementing additional count, ordinal-scale,
+denominator-aware, or positive-continuous families.
 
 ## Distributional Parameter Naming
 
@@ -180,10 +183,74 @@ Var[y_i] = mu_i (1 - mu_i) sigma_i^2 / (1 + sigma_i^2)
 
 Here `mu` is the mean proportion. `sigma` is the public scale parameter, not
 beta precision. Internally, `phi = 1 / sigma^2`, so larger `sigma` means more
-variation around the mean. Boundary responses equal to 0 or 1, denominator
-syntax such as `cbind(successes, failures)`, random effects, known sampling
-covariance, phylogenetic terms, and bivariate or mixed beta models are later
-phases.
+variation around the mean. Boundary responses equal to 0 or 1, random effects,
+known sampling covariance, phylogenetic terms, and bivariate or mixed beta
+models are later phases.
+
+## Implemented: Beta-Binomial Mean-Overdispersion
+
+`beta_binomial()` keeps denominators inside the likelihood for counted
+successes and failures:
+
+```r
+family = beta_binomial()
+```
+
+The implemented model is fixed-effect and univariate:
+
+```text
+y_i | n_i, p_i ~ Binomial(n_i, p_i)
+p_i | mu_i, sigma_i ~ Beta(mu_i phi_i, (1 - mu_i) phi_i)
+logit(mu_i) = X_mu[i, ] beta_mu
+log(sigma_i) = X_sigma[i, ] beta_sigma
+phi_i = 1 / sigma_i^2
+E[y_i / n_i] = mu_i
+Var(y_i / n_i) =
+  mu_i (1 - mu_i) (1 + n_i sigma_i^2) /
+  (n_i (1 + sigma_i^2))
+```
+
+The response syntax is `cbind(successes, failures) ~ predictors`; `n_i` is the
+row total. Counts must be finite non-negative integers and each row must have
+positive trials. `fitted()` returns the success probability `mu`,
+`sigma(fit)` returns the public extra-binomial variation scale, and
+`simulate()` returns success counts for the fitted trial totals. Random
+effects, known sampling covariance, phylogenetic terms, bivariate or mixed
+beta-binomial models, and a possible successes/trials response alias are later
+phases. The alias design guardrails are in
+`docs/design/24-denominator-response-syntax.md`.
+
+## Implemented: Cumulative-Logit Ordinal Location
+
+`cumulative_logit()` is the first ordinal family:
+
+```r
+family = cumulative_logit()
+```
+
+The implemented model is fixed-effect, univariate, and location-only:
+
+```text
+Pr(y_i <= k) = logit^{-1}(theta_k - mu_i)
+mu_i = X_mu[i, ] beta_mu
+theta_1 < theta_2 < ... < theta_{K-1}
+```
+
+The response must be an ordered factor or finite integer category scores
+`1, ..., K`, and every category must appear after missing-row filtering. The
+location intercept is dropped internally because a free intercept and free
+cutpoints are not jointly identifiable. With ordinary treatment contrasts,
+factor predictors keep their contrast columns after the intercept is removed.
+
+Here `mu` is a latent ordinal location, not an arithmetic response mean.
+`fitted()` returns the expected ordered-category score
+`sum_k k * Pr(y_i = k)`, and `simulate()` returns ordered factors with the
+fitted category labels. `sigma(fit)` returns a fixed unit vector because this
+MVP has no fitted ordinal scale parameter. Ordinal scale or discrimination
+formulas, random effects, known sampling covariance, phylogenetic terms,
+bivariate ordinal models, and mixed-response ordinal models are later phases.
+The scale/discrimination direction is recorded in
+`docs/design/25-ordinal-scale-discrimination.md`.
 
 ## Implemented: Poisson Mean
 

@@ -19,6 +19,34 @@ word.
 | `rho_re` | group-level random-effect correlation | `(1 + x1 | id)` | implemented for one `mu` slope |
 | `rho12_i` | residual correlation between two responses | `rho12 ~ x1` | implemented for fixed-effect bivariate Gaussian |
 
+## Sigma And Variance Reporting
+
+The public drmTMB grammar uses `sigma` for residual scale:
+
+```r
+bf(y ~ x, sigma ~ z)
+```
+
+Keep that public syntax. It matches brms-style distributional formulas and the
+project's stable terminology. For O'Dea-style predictability and malleability
+summaries, the scientific interpretation often concerns residual variance.
+Report that as a derived quantity, `sigma^2`, rather than changing the model
+grammar to a variance formula.
+
+For log-scale Gaussian models:
+
+```text
+log(sigma_i) = eta_sigma_i
+sigma_i = exp(eta_sigma_i)
+variance_i = sigma_i^2 = exp(2 eta_sigma_i)
+```
+
+Thus a coefficient in a log-`sigma` model doubles when expressed on the
+log-variance scale. A random-effect variance component on the log-`sigma` scale
+is multiplied by four when expressed on the log-variance scale. This conversion
+is needed when comparing drmTMB or brms-style `sigma` models with O'Dea-style
+summaries that are written for residual variances.
+
 ## Implemented Residual Scale
 
 The implemented fixed-effect Gaussian location-scale model is:

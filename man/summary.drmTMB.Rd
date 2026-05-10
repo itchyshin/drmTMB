@@ -16,8 +16,8 @@ An object of class \code{summary.drmTMB}.
 }
 \description{
 \code{summary()} returns a compact summary of fixed-effect estimates, fitted
-random-effect standard deviations and correlations, log-likelihood, and
-optimizer convergence code.
+random-effect standard deviations and correlations, ordinal cutpoints when
+present, log-likelihood, and optimizer convergence code.
 }
 \examples{
 dat <- data.frame(y = c(0.2, 0.5, 1.1, 1.4), x = c(-1, 0, 1, 2))

@@ -1,0 +1,23 @@
+/* Keep the pkgdown landing page readable on narrow mobile screens. */
+.template-home main,
+.template-home aside {
+  min-width: 0;
+}
+
+.template-home pre,
+.template-home .sourceCode {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.template-home p,
+.template-home li {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 767.98px) {
+  .template-home .page-header .logo {
+    height: auto;
+    max-width: 72px;
+  }
+}

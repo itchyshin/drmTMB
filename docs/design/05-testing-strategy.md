@@ -46,6 +46,10 @@ Implemented comparator smoke tests:
   `lme4::lmer(..., REML = FALSE)`;
 - intercept-only Gaussian random-effect scale formulae such as `sd(id) ~ 1`
   against `lme4::lmer(..., REML = FALSE)`;
+- Gaussian fixed-effect and random-intercept location-scale models against
+  `glmmTMB::glmmTMB(..., dispformula = ~ z, family = gaussian())`, checking
+  that drmTMB `sigma` formula coefficients agree with the overlapping
+  `glmmTMB` dispersion coefficients;
 - Gaussian ML meta-analysis with known sampling variances against
   `metafor::rma.uni(..., method = "ML")`;
 - dense known sampling covariance with constant residual heterogeneity against
@@ -172,7 +176,13 @@ Each family should have tests that:
 2. fit the corresponding model;
 3. check convergence;
 4. check estimates within tolerance;
-5. cover boundary-prone cases.
+5. compare `predict(..., newdata = ...)` on link and response scales for every
+   fitted distributional parameter;
+6. check family-specific fitted values, residuals, `sigma()`, and
+   `simulate()` semantics;
+7. reject malformed responses and unsupported formula combinations before TMB
+   evaluation;
+8. cover boundary-prone cases.
 
 ## Bivariate Required Cases
 
