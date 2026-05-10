@@ -264,7 +264,9 @@ object_mb <- function(x) {
 
 gc_used_mb <- function() {
   gc_out <- gc()
-  sum(gc_out[, "used"] * c(8, 56)) / 1024^2
+  bytes_per_cell <- c(Ncells = 56, Vcells = 8)
+  cell_names <- intersect(names(bytes_per_cell), rownames(gc_out))
+  sum(gc_out[cell_names, "used"] * bytes_per_cell[cell_names]) / 1024^2
 }
 
 opt_scalar <- function(x, name, default = NA_real_) {

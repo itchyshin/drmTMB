@@ -8392,3 +8392,41 @@ Known limitations:
 
 - this repeated row still tests only one Gaussian phylogenetic row-pressure
   scenario on one local machine.
+
+## 2026-05-10 -- Fix benchmark R-heap calculation
+
+Goal:
+
+- correct the optional benchmark harness's approximate R-heap calculation for
+  `gc()` Ncells and Vcells.
+
+Implemented:
+
+- updated `bench/large-phylo-location.R` so `gc_used_mb()` weights Ncells by
+  56 bytes and Vcells by 8 bytes;
+- updated `bench/README.md` to describe the `gc()` cell-count basis for the
+  heap columns;
+- added a caveat to `docs/dev-log/benchmark-results.md` that historical
+  R-heap values should be treated as rough context.
+
+Commands run:
+
+- `air format bench/large-phylo-location.R bench/README.md docs/dev-log/benchmark-results.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-10-benchmark-gc-used-mb-fix.md`:
+  passed.
+- `rg -n "bytes_per_cell|Ncells = 56|Vcells = 8|cell-count|historical context|gc_used_mb\\(\\)" bench/large-phylo-location.R bench/README.md docs/dev-log/benchmark-results.md docs/dev-log/after-task/2026-05-10-benchmark-gc-used-mb-fix.md docs/dev-log/check-log.md`:
+  passed and found the corrected cell weights plus the historical-results
+  caveat.
+- `Rscript bench/large-phylo-location.R --rows 300 --species 20 --eval-max 80 --iter-max 80 --memory-light true --output /tmp/drmTMB-gc-used-mb-fix-smoke.csv`:
+  passed and wrote a fresh CSV row.
+- `Rscript bench/summarize-results.R --input /tmp/drmTMB-gc-used-mb-fix-smoke.csv`:
+  passed and marked the row as `timing_usable` with
+  `diagnostics_recorded`.
+- `Rscript -e "x <- read.csv('/tmp/drmTMB-gc-used-mb-fix-smoke.csv', check.names = FALSE); print(x[, c('gc_used_mb_before','gc_used_mb_pre_fit','gc_used_mb_post_fit','convergence','fit_sec')]); stopifnot(all(is.finite(unlist(x[, c('gc_used_mb_before','gc_used_mb_pre_fit','gc_used_mb_post_fit')]))));"`:
+  passed; the smoke row reported finite heap summaries of 132.420, 132.587,
+  and 135.876 MB.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- this does not recompute historical benchmark rows; future rows should use
+  fresh output paths.

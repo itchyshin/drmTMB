@@ -11,6 +11,9 @@ All rows use a balanced synthetic tree, Gaussian responses,
 location formula unless the `Factor levels` column says otherwise. The macOS
 peak-memory values come from `/usr/bin/time -l`. `R heap after fit MB` is a
 post-fit garbage-collector summary, not peak memory.
+Rows collected before the 2026-05-10 `gc_used_mb()` cell-weight fix should use
+this column only as rough historical context; prefer object sizes, max RSS, and
+peak footprint when interpreting those rows.
 
 | Date | Rows | Species | Family | Sigma formula | Factor levels | Memory-light | Status | Convergence | Fit seconds | Fit object MB | Model matrix MB | TMB data MB | R heap after fit MB | Max RSS bytes | Peak footprint bytes |
 | --- | ---: | ---: | --- | --- | ---: | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |

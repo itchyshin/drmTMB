@@ -57,9 +57,9 @@ larger values when the fit is intended as a real timing result.
 | `fit_object_mb` | Base R object size for the fitted `drmTMB` object. |
 | `model_matrix_mb` | Base R object size for stored fixed-effect model matrices. |
 | `tmb_data_mb` | Base R object size for the TMB data list stored in the fit. |
-| `gc_used_mb_before` | Approximate R heap use before data generation. |
-| `gc_used_mb_pre_fit` | Approximate R heap use after data generation. |
-| `gc_used_mb_post_fit` | Approximate R heap use after fitting. |
+| `gc_used_mb_before` | Approximate R heap use before data generation, calculated from `gc()` Ncells and Vcells counts. |
+| `gc_used_mb_pre_fit` | Approximate R heap use after data generation, calculated from `gc()` Ncells and Vcells counts. |
+| `gc_used_mb_post_fit` | Approximate R heap use after fitting, calculated from `gc()` Ncells and Vcells counts. |
 | `mu_mean`, `residual_sd` | Simple output summaries used as sanity checks. |
 | `sigma_hat`, `sd_phylo_hat` | Mean fitted residual `sigma` and fitted phylogenetic SD. |
 
