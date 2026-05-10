@@ -37,19 +37,25 @@ roadmap work rather than hidden features.
 
 ## Install
 
-`drmTMB` is not on CRAN yet. Install the preview version from GitHub with
-`pak`:
+`drmTMB` is not on CRAN yet. Install the tagged `0.1.0` preview from GitHub
+with `pak`:
 
 ```r
 install.packages("pak")
+pak::pak("itchyshin/drmTMB@v0.1.0")
+```
+
+If you want the newest development build from `main`, use:
+
+```r
 pak::pak("itchyshin/drmTMB")
 ```
 
-If you already use `remotes`, this fallback also works:
+If you already use `remotes`, this fallback installs the tagged preview:
 
 ```r
 install.packages("remotes")
-remotes::install_github("itchyshin/drmTMB", build_vignettes = FALSE)
+remotes::install_github("itchyshin/drmTMB", ref = "v0.1.0", build_vignettes = FALSE)
 ```
 
 Then load the package and run a small smoke test:

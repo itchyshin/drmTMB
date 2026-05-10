@@ -2,6 +2,35 @@
 
 Record meaningful development checks here.
 
+## 2026-05-10 -- Version 0.1.0 install smoke test
+
+Scope:
+
+- installed the tagged `v0.1.0` preview into a clean temporary R library using
+  `pak::pak("itchyshin/drmTMB@v0.1.0")`;
+- loaded the installed package and ran the README Gaussian location-scale smoke
+  model;
+- updated the README install section to distinguish the tagged preview from the
+  newest development build on `main`;
+- recorded the package-load `beta()` masking message as first-use friction for a
+  later API or documentation pass.
+
+Checks:
+
+- clean temporary-library install: `pak` installed `drmTMB 0.1.0` from GitHub
+  commit `5f8e669` plus hard dependencies `cli`, `Rcpp`, `RcppEigen`, and
+  `TMB`.
+- installed-package smoke model: returned finite `mu` coefficients, `sigma`
+  coefficients, and `sigma(fit)` values.
+- `Rscript -e "pkgdown::build_home()"`: passed.
+- `Rscript tools/fix-pkgdown-favicon-mime.R pkgdown-site`: passed.
+- `Rscript -e "pkgdown::check_pkgdown()"`: no problems found.
+- rendered install-section scan over `README.md` and `pkgdown-site/index.html`:
+  confirmed the tagged `pak` install, development-branch `pak` install, and
+  pinned `remotes` fallback.
+- `Rscript -e "devtools::test()"`: 1400 passed, 0 failed, 0 warnings, 0 skips.
+- `git diff --check`: clean.
+
 ## 2026-05-10 -- Version 0.1.0 release preparation
 
 Scope:
