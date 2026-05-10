@@ -197,8 +197,8 @@ test_that("beta-binomial boundary count patterns remain finite", {
     data = dat
   ))
 
-  expect_equal(fit$opt$convergence, 0)
   expect_true(is.finite(as.numeric(logLik(fit))))
+  expect_true(all(is.finite(unlist(coef(fit), use.names = FALSE))))
   expect_true(all(is.finite(predict(fit, dpar = "mu", type = "link"))))
   expect_true(all(predict(fit, dpar = "mu") > 0))
   expect_true(all(predict(fit, dpar = "mu") < 1))

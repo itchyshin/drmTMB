@@ -2,6 +2,47 @@
 
 Record meaningful development checks here.
 
+## 2026-05-10 -- CI follow-up for beta-binomial boundary test
+
+Scope:
+
+- fixed the first red GitHub Actions run after the Phase 9 release-readiness
+  push;
+- kept the landing-page deployment commit intact because `pkgdown` deployed
+  successfully;
+- narrowed the R-CMD-check failure to one brittle beta-binomial test that
+  expected optimizer convergence code `0` for a deliberately boundary-heavy
+  dataset with all-zero and all-success rows.
+
+Commands and evidence:
+
+- GitHub `pkgdown` run `25629346156` for commit `ed92360`: success and deployed
+  GitHub Pages.
+- GitHub `R-CMD-check` run `25629346165` for commit `ed92360`: macOS passed;
+  Ubuntu and Windows failed in
+  `tests/testthat/test-beta-binomial.R:200` because `fit$opt$convergence` was
+  `1` instead of `0` for the boundary-pattern test.
+- `gh run view 25629346165 --job 75230092326 --log`: confirmed Ubuntu failure
+  was `Expected fit$opt$convergence to equal 0` with `actual: 1.0`.
+- `gh run view 25629346165 --job 75230092323 --log-failed`: confirmed Windows
+  failed on the same expectation.
+
+Fix:
+
+- changed the boundary-pattern test to check the intended contract: finite
+  log-likelihood, finite fitted coefficients, finite link-scale predictions,
+  response-scale probabilities inside `(0, 1)`, and finite `sigma(fit)`;
+- kept strict convergence assertions in ordinary recovery and independent
+  likelihood tests where the data-generating process is well posed.
+
+Team learning:
+
+- Curie and Grace should treat optimizer convergence equality as a claim about
+  a well-posed estimation problem, not as a generic assertion for pathological
+  boundary data;
+- boundary tests should protect finite likelihood and extractor behaviour
+  unless the purpose is explicitly to test convergence diagnostics.
+
 ## 2026-05-10 -- Next-five release-readiness batch
 
 Goal:

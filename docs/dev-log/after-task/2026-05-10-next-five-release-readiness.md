@@ -86,6 +86,15 @@ The first mobile screenshot was misleading because plain Chrome headless used a
 390 px mobile viewport fixed the audit. One ad hoc R grep command also failed
 because of string escaping; it was replaced with an `rg` scan.
 
+After the first push, GitHub `R-CMD-check` failed on Ubuntu and Windows because
+the beta-binomial boundary-pattern test expected optimizer convergence code
+`0` for a deliberately near-separated dataset. The test intent was finite
+boundary behaviour, not platform-identical optimizer status, so the follow-up
+fix checks finite likelihood, coefficients, predictions, probabilities, and
+`sigma()` instead. This is a process lesson: convergence-code assertions belong
+in ordinary recovery or comparator tests, not in pathological boundary tests
+unless convergence diagnostics are the target.
+
 ## Team Learning
 
 Pat's landing-page concern produced a concrete accessibility fix: avoid dense
