@@ -7571,3 +7571,81 @@ Known limitations:
   benchmark evidence still needs a deliberate results table or release note;
 - the next evidence step is 100k rows and 1,000 species, then factor-heavy and
   `sigma ~ x` variants.
+
+## 2026-05-10 -- 100k-row large-data benchmark baseline
+
+Goal:
+
+- run the next benchmark rung after the 10k smoke test: 100,000 observation
+  rows and 1,000 species with memory-light fitted-object storage.
+
+Command run:
+
+- `/usr/bin/time -l Rscript bench/large-phylo-location.R --rows 100000 --species 1000 --eval-max 160 --iter-max 160 --memory-light true --output bench/results/large-phylo-location.csv`:
+  passed and appended one result row.
+
+Result:
+
+- rows: 100,000;
+- species: 1,000;
+- tree: balanced;
+- memory-light storage: TRUE;
+- convergence code: 0;
+- data-build time: 0.103 seconds;
+- fit time: 25.547 seconds;
+- residual time: 0.014 seconds;
+- fitted-object size: 48.027 MB;
+- model-matrix size: 15.261 MB;
+- TMB-data size: 21.326 MB;
+- post-fit R heap summary: 405.262 MB;
+- macOS maximum resident set size from `/usr/bin/time -l`:
+  1,425,932,288 bytes;
+- macOS peak memory footprint from `/usr/bin/time -l`: 671,073,984 bytes.
+
+Known limitations:
+
+- this is an encouraging baseline, not million-row readiness;
+- the run used the simplest `sigma ~ 1` benchmark with few fixed effects;
+- factor-heavy, `sigma ~ x`, and default-storage comparisons still need to be
+  collected before making broader large-data claims.
+
+## 2026-05-10 -- Enable keep_model_frame storage control
+
+Goal:
+
+- expose the tested post-fit model-frame storage control so large fitted
+  objects can drop construction-time model frames after optimization.
+
+Implemented:
+
+- `drm_control(keep_model_frame = FALSE)` now validates and is accepted;
+- `drm_apply_storage_control()` drops `fit$model$model_frame` and nested
+  random-effect scale model-frame caches after fitting;
+- `drm_control()` documentation, the large-data vignette, NEWS, roadmap, known
+  limitations, and large-data design note now describe the implemented control;
+- the control tests now exercise a real `keep_model_frame = FALSE` fit instead
+  of only manual post-hoc deletion.
+
+Commands run:
+
+- `air format R/control.R tests/testthat/test-control.R`: passed.
+- `Rscript -e "devtools::test(filter = 'control')"`: 52 passed, 0 failed,
+  0 warnings, 0 skips.
+- `Rscript -e "devtools::test()"`: 1,456 passed, 0 failed, 0 warnings,
+  0 skips.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with no problems.
+- `Rscript -e "pkgdown::build_site()"`: passed.
+- `Rscript tools/fix-pkgdown-favicon-mime.R pkgdown-site`: passed.
+- `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`:
+  0 errors, 0 warnings, 0 notes.
+- `rg -n "0\\.0\\.0\\.9000|drmTMB 0\\.0\\.0\\.9000|version ['\\\"]?0\\.0\\.0\\.9000|not implemented|later keep_model_frame|planned.*keep_model_frame|must be TRUE" ...`:
+  no stale package-version or `keep_model_frame` implementation drift found;
+  one expected roadmap/news match for spatial terms remaining planned.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- `keep_model_frame = FALSE` reduces fitted-object storage after fitting; it
+  does not avoid building model frames before TMB optimization;
+- sparse fixed-effect matrices and Gaussian sufficient-statistic aggregation
+  remain the next memory reductions.

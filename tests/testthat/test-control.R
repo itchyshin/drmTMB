@@ -10,10 +10,11 @@ test_that("drm_control() validates optimizer and storage settings", {
   expect_false(ctrl$keep_data)
   expect_true(ctrl$keep_model_frame)
   expect_false(ctrl$keep_tmb_object)
+  expect_false(drm_control(keep_model_frame = FALSE)$keep_model_frame)
   expect_error(drm_control(optimizer = 1), "optimizer")
   expect_error(drm_control(optimizer = list(25)), "named list")
   expect_error(drm_control(keep_data = NA), "keep_data")
-  expect_error(drm_control(keep_model_frame = FALSE), "keep_model_frame")
+  expect_error(drm_control(keep_model_frame = NA), "keep_model_frame")
 })
 
 test_that("plain control lists remain optimizer controls", {
@@ -49,12 +50,14 @@ test_that("memory-light storage keeps core post-fit methods working", {
     control = drm_control(
       optimizer = list(eval.max = 100, iter.max = 100),
       keep_data = FALSE,
+      keep_model_frame = FALSE,
       keep_tmb_object = FALSE
     )
   )
 
   expect_null(fit$data)
   expect_null(fit$model$data)
+  expect_null(fit$model$model_frame)
   expect_null(fit$obj)
   expect_length(predict(fit, dpar = "mu"), nrow(dat))
   expect_length(fitted(fit), nrow(dat))

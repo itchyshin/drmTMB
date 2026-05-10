@@ -120,9 +120,10 @@
   `meta_known_V(V = V)` covariance paths currently reject non-unit weights
   because they are joint MVN likelihood blocks.
 - The first large-data storage controls are implemented through
-  `drm_control(keep_data = FALSE, keep_tmb_object = FALSE)`, but current fits
-  still build ordinary R model frames and dense fixed-effect model matrices
-  before optimization. Before claiming readiness for millions of rows,
-  `drmTMB` still needs safe model-frame dropping, sparse fixed-effect matrices
-  where appropriate, and repeated large phylogenetic benchmark runs beyond the
-  initial optional harness in `bench/large-phylo-location.R`.
+  `drm_control(keep_data = FALSE, keep_model_frame = FALSE, keep_tmb_object = FALSE)`,
+  but current fits still build ordinary R model frames and dense fixed-effect
+  model matrices before optimization. Before claiming readiness for millions of
+  rows, `drmTMB` still needs sparse fixed-effect matrices where appropriate,
+  aggregation for repeated Gaussian rows, and repeated large phylogenetic
+  benchmark runs beyond the initial optional harness in
+  `bench/large-phylo-location.R`.

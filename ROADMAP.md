@@ -164,14 +164,15 @@ distributional regression models using TMB.
 
 ## Phase 5b: Large-Data Memory Strategy
 
-- Status: first storage controls implemented; sparse and benchmark paths
+- Status: first storage controls and benchmark harness implemented; sparse and
+  aggregation paths
   planned.
 - `drm_control()` now supports optimizer settings plus the first memory-light
-  fitted-object controls: `keep_data = FALSE` and
-  `keep_tmb_object = FALSE`.
+  fitted-object controls: `keep_data = FALSE`,
+  `keep_model_frame = FALSE`, and `keep_tmb_object = FALSE`.
 - Extend memory-light fit controls for large phylogenetic and spatial
-  datasets, especially safe `keep_model_frame = FALSE` behaviour with
-  prediction, residual, offset, and diagnostic fallbacks.
+  datasets with broader method-matrix coverage, sparse fixed-effect matrices,
+  aggregation, and repeated large-row benchmarks.
 - Add sparse fixed-effect matrix support before claiming million-row readiness.
 - Add optional aggregation or sufficient-statistic paths for Gaussian models
   where repeated rows can be collapsed without changing the likelihood.
@@ -342,8 +343,8 @@ random-effect features land.
 ## Phase 14: Large-Data Engine
 
 - Status: planned.
-- Add memory-light fitted objects for large ecological, evolutionary, and
-  environmental datasets.
+- Extend memory-light fitted objects for large ecological, evolutionary, and
+  environmental datasets beyond the current post-fit storage controls.
 - Add sparse fixed-effect matrices before claiming million-row readiness.
 - Add Gaussian aggregation or sufficient-statistic paths where repeated rows can
   be collapsed without changing the likelihood.

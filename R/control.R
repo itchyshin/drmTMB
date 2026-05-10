@@ -12,9 +12,11 @@
 #'   object. Set to `FALSE` to drop `fit$data` and `fit$model$data` after
 #'   fitting. Prediction, fitted values, residuals, simulation, and basic
 #'   summaries still use the stored model matrices and response vectors.
-#' @param keep_model_frame Logical; currently must be `TRUE`. Dropping model
-#'   frames is planned for a later large-data phase because it needs method-by-
-#'   method fallbacks for response names, offsets, residuals, and prediction.
+#' @param keep_model_frame Logical; keep model frames in the fitted object. Set
+#'   to `FALSE` to drop `fit$model$model_frame` and random-effect scale model
+#'   frames after fitting. Prediction, fitted values, residuals, simulation,
+#'   `sigma()`, `rho12()`, `corpairs()`, and `check_drm()` use stored model
+#'   matrices, terms, response vectors, offsets, and response-name metadata.
 #' @param keep_tmb_object Logical; keep the TMB automatic-differentiation object
 #'   in `fit$obj`. Set to `FALSE` to reduce fitted-object size after
 #'   optimization. `check_drm()` will then report the fixed-gradient check as a
@@ -31,6 +33,7 @@
 #'   control = drm_control(
 #'     optimizer = list(eval.max = 100),
 #'     keep_data = FALSE,
+#'     keep_model_frame = FALSE,
 #'     keep_tmb_object = FALSE
 #'   )
 #' )
@@ -50,13 +53,6 @@ drm_control <- function(
   keep_data <- drm_control_flag(keep_data, "keep_data")
   keep_model_frame <- drm_control_flag(keep_model_frame, "keep_model_frame")
   keep_tmb_object <- drm_control_flag(keep_tmb_object, "keep_tmb_object")
-  if (!isTRUE(keep_model_frame)) {
-    cli::cli_abort(c(
-      "{.arg keep_model_frame} must be {.code TRUE} in the current release.",
-      "i" = "Use {.code keep_data = FALSE} and {.code keep_tmb_object = FALSE} for the first memory-light path.",
-      "i" = "Dropping model frames needs method fallbacks before it is safe for users."
-    ))
-  }
   structure(
     list(
       optimizer = optimizer,
@@ -91,8 +87,22 @@ drm_apply_storage_control <- function(fit, control) {
     fit$data <- NULL
     fit$model$data <- NULL
   }
+  if (!isTRUE(control$keep_model_frame)) {
+    fit <- drm_drop_model_frames(fit)
+  }
   if (!isTRUE(control$keep_tmb_object)) {
     fit$obj <- NULL
+  }
+  fit
+}
+
+drm_drop_model_frames <- function(fit) {
+  fit$model$model_frame <- NULL
+  if (!is.null(fit$model$random_scale$mu$model_frame)) {
+    fit$model$random_scale$mu$model_frame <- NULL
+  }
+  if (!is.null(fit$model$random_scale$mu$model_frame_list)) {
+    fit$model$random_scale$mu$model_frame_list <- NULL
   }
   fit
 }

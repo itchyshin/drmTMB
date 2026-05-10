@@ -56,6 +56,7 @@ fit <- drmTMB(
   data = dat,
   control = drm_control(
     keep_data = FALSE,
+    keep_model_frame = FALSE,
     keep_tmb_object = FALSE,
     optimizer = list(eval.max = 1000)
   )
@@ -65,23 +66,24 @@ fit <- drmTMB(
 The implemented first slice means:
 
 - `keep_data = FALSE`: do not store the full input data frame in the fit;
+- `keep_model_frame = FALSE`: do not store model frames in the fit after TMB
+  data has been built. Fitted-row prediction, new-data prediction, residuals,
+  simulation, response names, and diagnostics use stored matrices, terms,
+  offsets, response vectors, response-name metadata, and diagnostic state;
 - `keep_tmb_object = FALSE`: do not retain the TMB
   automatic-differentiation object after optimization; `check_drm()` then
   reports the fixed-gradient check as a note rather than re-evaluating it;
 - `optimizer = list(...)`: pass optimizer controls to `stats::nlminb()`.
 
-Two larger memory controls remain planned rather than implemented:
+The next larger memory controls remain planned rather than implemented:
 
-- `keep_model_frame = FALSE`: do not store the full model frame after TMB data
-  has been built. This needs method fallbacks for prediction, offsets, response
-  names, residuals, and user-facing diagnostics before it is safe;
 - sparse fixed-effect matrices: use sparse design matrices when factors or
   high-dimensional terms would make dense matrices costly.
 
 ## Model-Frame Dependency Map
 
-The next storage target is `keep_model_frame = FALSE`. This should be designed
-as a method-dependency change, not as a bulk deletion of `model$model_frame`.
+The `keep_model_frame = FALSE` storage path is a method-dependency change, not
+a bulk deletion of `model$model_frame`.
 The fitted object already stores the model matrices, terms, offsets, response
 vectors, known covariance objects, and random-effect structures needed by most
 post-fit methods.
@@ -98,12 +100,12 @@ post-fit methods.
 | `check_drm(fit)` | optimizer result, `sdr`, `obj`, stored row filter, `sigma()`, `rho12()`, known covariance, random structures | None for current checks | Yes, except fixed-gradient already needs `obj`. |
 | Printing and summaries | coefficients, `vcov()`, log-likelihood, random-effect summaries | None | Yes. |
 
-The first low-risk implementation step is to store response names separately
-from model frames, then update response-label extractors to prefer that
-metadata. After that, a guarded `keep_model_frame = FALSE` implementation can
-drop only `model$model_frame` and run a family matrix of `predict()`,
-`fitted()`, `residuals()`, `simulate()`, `sigma()`, `rho12()`, `corpairs()`,
-and `check_drm()` tests.
+The implemented storage path stores response names separately from model frames
+and updates response-label extractors to prefer that metadata. It then drops
+top-level model frames after fitting when requested. Regression tests currently
+cover Gaussian, Poisson offset prediction, beta-binomial trial storage,
+cumulative-logit ordinal metadata, and bivariate Gaussian two-response output
+after model frames are removed.
 
 ## Aggregation Path
 
@@ -191,8 +193,9 @@ cross-platform peak-memory measure.
 
 - Should memory-light fits disable `residuals()` when both stored data and the
   stored response vector are absent?
-- Should `predict()` default to requiring `newdata` when a later
-  `keep_model_frame = FALSE` path is implemented?
+- Should `predict()` ever require `newdata` for future storage modes that drop
+  response vectors, offsets, or design matrices, rather than only stored model
+  frames?
 - Should sufficient-statistic aggregation be automatic or require an explicit
   argument such as `aggregate = TRUE`?
 - `weights =` is now an ordinary likelihood multiplier. Aggregation should

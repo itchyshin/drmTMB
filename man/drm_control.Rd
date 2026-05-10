@@ -20,9 +20,11 @@ object. Set to \code{FALSE} to drop \code{fit$data} and \code{fit$model$data} af
 fitting. Prediction, fitted values, residuals, simulation, and basic
 summaries still use the stored model matrices and response vectors.}
 
-\item{keep_model_frame}{Logical; currently must be \code{TRUE}. Dropping model
-frames is planned for a later large-data phase because it needs method-by-
-method fallbacks for response names, offsets, residuals, and prediction.}
+\item{keep_model_frame}{Logical; keep model frames in the fitted object. Set
+to \code{FALSE} to drop \code{fit$model$model_frame} and random-effect scale model
+frames after fitting. Prediction, fitted values, residuals, simulation,
+\code{sigma()}, \code{rho12()}, \code{corpairs()}, and \code{check_drm()} use stored model
+matrices, terms, response vectors, offsets, and response-name metadata.}
 
 \item{keep_tmb_object}{Logical; keep the TMB automatic-differentiation object
 in \code{fit$obj}. Set to \code{FALSE} to reduce fitted-object size after
@@ -47,6 +49,7 @@ fit <- drmTMB(
   control = drm_control(
     optimizer = list(eval.max = 100),
     keep_data = FALSE,
+    keep_model_frame = FALSE,
     keep_tmb_object = FALSE
   )
 )

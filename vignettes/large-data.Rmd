@@ -39,17 +39,20 @@ fit <- drmTMB(
   control = drm_control(
     optimizer = list(eval.max = 1000, iter.max = 1000),
     keep_data = FALSE,
+    keep_model_frame = FALSE,
     keep_tmb_object = FALSE
   )
 )
 ```
 
 Here `keep_data = FALSE` removes the stored complete-case data frame from the
-fitted object after optimization. `keep_tmb_object = FALSE` removes the TMB
-automatic-differentiation object after optimization. The fitted coefficients,
-standard errors, fitted values, residuals, simulation, and `sigma` extraction
-still use the stored model matrices, response vectors, optimized parameters,
-and `sdreport` object.
+fitted object after optimization. `keep_model_frame = FALSE` removes stored
+model frames after TMB data are built. `keep_tmb_object = FALSE` removes the
+TMB automatic-differentiation object after optimization. The fitted
+coefficients, standard errors, fitted values, residuals, simulation, and
+`sigma` extraction still use the stored model matrices, terms, offsets,
+response vectors, response-name metadata, optimized parameters, and `sdreport`
+object.
 
 This control is useful when the fitted model is kept for interpretation,
 prediction, or plotting, but the original data frame and TMB object do not need
@@ -58,13 +61,13 @@ to travel with it.
 ## What this does not solve yet
 
 The current memory-light path does not prevent R from building model frames and
-model matrices before optimization. That means it helps fitted-object size, but
-it is not a complete solution for millions of rows.
+model matrices before optimization. It can drop model frames after fitting, but
+those objects still need to exist during model construction. That means the
+control helps fitted-object size, but it is not a complete solution for
+millions of rows.
 
 These pieces remain planned:
 
-- `keep_model_frame = FALSE`, with safe fallbacks for prediction, offsets,
-  residuals, response names, and diagnostics;
 - sparse fixed-effect matrices for factor-heavy models;
 - Gaussian sufficient-statistic aggregation when repeated rows can be collapsed
   without changing the likelihood;
