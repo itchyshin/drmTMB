@@ -8430,3 +8430,42 @@ Known limitations:
 
 - this does not recompute historical benchmark rows; future rows should use
   fresh output paths.
+
+## 2026-05-10 -- Add corrected-heap 100k benchmark row
+
+Goal:
+
+- collect one fresh 100,000-row, 1,000-species memory-light Gaussian
+  phylogenetic baseline after the `gc_used_mb()` fix.
+
+Implemented:
+
+- ran one local benchmark row into
+  `/tmp/drmTMB-gc-fixed-100k-baseline-d9d5240.csv`;
+- summarized the row with `bench/summarize-results.R`;
+- added the corrected-heap row to `docs/dev-log/benchmark-results.md`;
+- recorded the local result in an after-task note.
+
+Commands run:
+
+- `/usr/bin/time -l Rscript bench/large-phylo-location.R --rows 100000 --species 1000 --eval-max 220 --iter-max 220 --memory-light true --output /tmp/drmTMB-gc-fixed-100k-baseline-d9d5240.csv`:
+  passed; convergence code 0, optimizer message `relative convergence (4)`,
+  45 iterations, 69 function evaluations, 46 gradient evaluations, fit time
+  28.450 seconds, fitted-object size 45.730 MB, model-matrix size 15.261 MB,
+  TMB-data size 21.326 MB, corrected post-fit R heap 165.544 MB, max RSS
+  1,401,323,520 bytes, and peak memory footprint 721,061,472 bytes.
+- `Rscript bench/summarize-results.R --input /tmp/drmTMB-gc-fixed-100k-baseline-d9d5240.csv`:
+  passed and marked the row as `timing_usable` with
+  `diagnostics_recorded`.
+- `Rscript -e "x <- read.csv('/tmp/drmTMB-gc-fixed-100k-baseline-d9d5240.csv', check.names = FALSE); print(x[, c('rows','species','memory_light','convergence','convergence_message','iterations','function_evaluations','gradient_evaluations','fit_sec','fit_object_mb','model_matrix_mb','tmb_data_mb','gc_used_mb_post_fit','sigma_hat','sd_phylo_hat')]);"`:
+  passed.
+- `air format docs/dev-log/benchmark-results.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-10-benchmark-corrected-heap-100k.md`:
+  passed.
+- `rg -n "corrected heap|Corrected|165\\.544|gc-fixed-100k|1,401,323,520|timing usable, corrected heap" docs/dev-log/benchmark-results.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-10-benchmark-corrected-heap-100k.md`:
+  passed and found the corrected-heap row and after-task evidence.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- this is one corrected-heap row only; it does not recompute all historical
+  benchmark rows.

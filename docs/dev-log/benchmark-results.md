@@ -19,6 +19,7 @@ peak footprint when interpreting those rows.
 | --- | ---: | ---: | --- | --- | ---: | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
 | 2026-05-10 | 10,000 | 100 | Gaussian | `sigma ~ 1` | 0 | yes | timing usable | 0 | 2.283 | 4.658 | 1.528 | 2.140 | 251.397 | 454,672,384 | 332,383,288 |
 | 2026-05-10 | 100,000 | 1,000 | Gaussian | `sigma ~ 1` | 0 | yes | timing usable | 0 | 25.074 | 45.730 | 15.261 | 21.326 | 405.741 | 1,415,626,752 | 723,666,504 |
+| 2026-05-10 | 100,000 | 1,000 | Gaussian | `sigma ~ 1` | 0 | yes | timing usable, corrected heap | 0 | 28.450 | 45.730 | 15.261 | 21.326 | 165.544 | 1,401,323,520 | 721,061,472 |
 | 2026-05-10 | 100,000 | 1,000 | Gaussian | `sigma ~ 1` | 0 | no | timing usable | 0 | 25.070 | 54.935 | 15.261 | 21.326 | 500.926 | 1,399,848,960 | 678,839,880 |
 | 2026-05-10 | 100,000 | 1,000 | Gaussian | `sigma ~ x1` | 0 | yes | timing usable | 0 | 62.701 | 47.257 | 16.024 | 22.089 | 416.295 | 1,779,056,640 | 742,148,088 |
 | 2026-05-10 | 100,000 | 1,000 | Gaussian | `sigma ~ 1` | 40 | yes | diagnostic only | 1 | 77.712 | 105.289 | 45.019 | 51.084 | 622.011 | 2,123,055,104 | 797,017,960 |
@@ -30,9 +31,13 @@ Interpretation:
 
 - The 100k default-storage run retained about 9.2 MB more fitted-object state
   and used about 95 MB more post-fit R heap than the memory-light run.
+  The post-fit R-heap comparison uses historical rows collected before the
+  heap-weight fix; use it only as rough context.
 - The memory-light rows use all three post-fit storage controls:
   `keep_data = FALSE`, `keep_model_frame = FALSE`, and
   `keep_tmb_object = FALSE`.
+- The fresh corrected-heap 100k baseline reported 165.544 MB post-fit R heap,
+  compared with about 1.4 GB macOS max RSS and a 45.730 MB fitted object.
 - The two 100k runs had similar operating-system peak footprints. This is
   expected because the current storage controls drop objects after model
   construction and optimization; they do not yet reduce construction-time peak
