@@ -9,8 +9,8 @@
 #' fixed-parameter gradients, Hessian status from [TMB::sdreport()], dropped
 #' rows, positive scale parameters, bivariate residual-correlation `rho12`
 #' values near the boundary, Student-t `nu` boundary behaviour, known sampling
-#' covariance summaries, random-effect replication, and random-slope design
-#' variation. If the fit was stored with
+#' covariance summaries, dense fixed-effect design size, random-effect
+#' replication, and random-slope design variation. If the fit was stored with
 #' `drm_control(keep_tmb_object = FALSE)`, the fixed-gradient check is reported
 #' as a note because the TMB automatic-differentiation object is not available.
 #'
@@ -44,8 +44,12 @@ check_drm <- function(object, ...) {
 
 #' @rdname check_drm
 #' @export
-check_drm.drmTMB <- function(object, gradient_tolerance = 1e-3,
-                             rho_boundary = 0.98, ...) {
+check_drm.drmTMB <- function(
+  object,
+  gradient_tolerance = 1e-3,
+  rho_boundary = 0.98,
+  ...
+) {
   dots <- list(...)
   if (length(dots) > 0L) {
     cli::cli_abort(
@@ -65,6 +69,7 @@ check_drm.drmTMB <- function(object, gradient_tolerance = 1e-3,
     check_rho12_boundary(object, rho_boundary = rho_boundary),
     check_student_nu(object),
     check_known_v(object),
+    check_fixed_effect_design_size(object),
     check_random_effect_replication(object, "mu"),
     check_random_effect_replication(object, "sigma"),
     check_random_effect_design(object, "mu"),
@@ -104,8 +109,14 @@ check_row <- function(check, status, value, message) {
 }
 
 validate_check_scalar <- function(x, name, lower = -Inf, upper = Inf) {
-  if (!is.numeric(x) || length(x) != 1L || is.na(x) || !is.finite(x) ||
-      x <= lower || x >= upper) {
+  if (
+    !is.numeric(x) ||
+      length(x) != 1L ||
+      is.na(x) ||
+      !is.finite(x) ||
+      x <= lower ||
+      x >= upper
+  ) {
     cli::cli_abort(
       "{.arg {name}} must be a finite numeric scalar between {lower} and {upper}."
     )
@@ -136,7 +147,11 @@ check_finite_objective <- function(object) {
     "finite_objective",
     if (ok) "ok" else "error",
     format_check_number(object$opt$objective),
-    if (ok) "Objective and log-likelihood are finite." else "Objective or log-likelihood is not finite."
+    if (ok) {
+      "Objective and log-likelihood are finite."
+    } else {
+      "Objective or log-likelihood is not finite."
+    }
   )
 }
 
@@ -234,13 +249,18 @@ check_scale_positive <- function(object) {
     ))
   }
   scale_values <- unlist(scale_values, use.names = FALSE)
-  ok <- length(scale_values) > 0L && all(is.finite(scale_values)) &&
+  ok <- length(scale_values) > 0L &&
+    all(is.finite(scale_values)) &&
     all(scale_values > 0)
   check_row(
     "positive_scale",
     if (ok) "ok" else "error",
     paste0("min=", format_check_number(min(scale_values, na.rm = TRUE))),
-    if (ok) "All fitted scale values are finite and positive." else "At least one fitted scale value is non-positive or non-finite."
+    if (ok) {
+      "All fitted scale values are finite and positive."
+    } else {
+      "At least one fitted scale value is non-positive or non-finite."
+    }
   )
 }
 
@@ -256,9 +276,17 @@ check_rho12_boundary <- function(object, rho_boundary) {
     if (ok) "ok" else "warning",
     format_check_number(max_abs),
     if (ok) {
-      paste0("All fitted residual correlations have absolute value <= ", rho_boundary, ".")
+      paste0(
+        "All fitted residual correlations have absolute value <= ",
+        rho_boundary,
+        "."
+      )
     } else {
-      paste0("At least one fitted residual correlation is close to +/-1 using boundary ", rho_boundary, ".")
+      paste0(
+        "At least one fitted residual correlation is close to +/-1 using boundary ",
+        rho_boundary,
+        "."
+      )
     }
   )
 }
@@ -288,8 +316,11 @@ check_student_nu <- function(object) {
   min_nu <- min(nu)
   max_nu <- max(nu)
   value <- paste0(
-    "range=[", format_check_number(min_nu),
-    ",", format_check_number(max_nu), "]"
+    "range=[",
+    format_check_number(min_nu),
+    ",",
+    format_check_number(max_nu),
+    "]"
   )
   if (min_nu < 2.05) {
     return(check_row(
@@ -323,7 +354,8 @@ check_known_v <- function(object) {
   known_diag <- known_v_diag(object)
   ok <- all(is.finite(known_diag)) && all(known_diag >= 0)
   if (identical(known_type, "matrix")) {
-    eig <- eigen((object$model$V_known + t(object$model$V_known)) / 2,
+    eig <- eigen(
+      (object$model$V_known + t(object$model$V_known)) / 2,
       symmetric = TRUE,
       only.values = TRUE
     )$values
@@ -346,9 +378,12 @@ check_known_v <- function(object) {
       "known_sampling_covariance",
       status,
       paste0(
-        "type=matrix; n=", length(eig),
-        "; rank=", rank,
-        "; cond=", format_check_number(condition)
+        "type=matrix; n=",
+        length(eig),
+        "; rank=",
+        rank,
+        "; cond=",
+        format_check_number(condition)
       ),
       if (identical(status, "note")) {
         "Known sampling covariance is recorded; inspect rank or conditioning if estimates are unstable."
@@ -363,15 +398,72 @@ check_known_v <- function(object) {
     "known_sampling_covariance",
     if (ok) "ok" else "error",
     paste0(
-      "type=", known_type,
-      "; n=", length(known_diag),
-      "; range=[", format_check_number(min(known_diag, na.rm = TRUE)),
-      ",", format_check_number(max(known_diag, na.rm = TRUE)), "]"
+      "type=",
+      known_type,
+      "; n=",
+      length(known_diag),
+      "; range=[",
+      format_check_number(min(known_diag, na.rm = TRUE)),
+      ",",
+      format_check_number(max(known_diag, na.rm = TRUE)),
+      "]"
     ),
     if (ok) {
       "Known sampling covariance is recorded through meta_known_V(V = V)."
     } else {
       "Known sampling variances contain non-finite or negative values."
+    }
+  )
+}
+
+check_fixed_effect_design_size <- function(object) {
+  X <- object$model$X
+  if (is.null(X) || length(X) == 0L) {
+    return(NULL)
+  }
+  sizes_mb <- vapply(
+    X,
+    function(x) {
+      as.numeric(utils::object.size(x)) / 1024^2
+    },
+    numeric(1)
+  )
+  cols <- vapply(
+    X,
+    function(x) {
+      if (is.null(dim(x))) {
+        return(0L)
+      }
+      ncol(x)
+    },
+    integer(1)
+  )
+  total_mb <- sum(sizes_mb)
+  max_cols <- max(cols, 0L)
+  largest <- names(sizes_mb)[[which.max(sizes_mb)]]
+  if (is.null(largest) || is.na(largest) || !nzchar(largest)) {
+    largest <- "unnamed"
+  }
+  note <- total_mb >= 25 || max_cols >= 30L
+  value <- paste0(
+    "total_mb=",
+    format_check_number(total_mb),
+    "; max_cols=",
+    max_cols,
+    "; largest=",
+    largest
+  )
+  check_row(
+    "fixed_effect_design_size",
+    if (note) "note" else "ok",
+    value,
+    if (note) {
+      paste(
+        "Dense fixed-effect design matrices are large enough to inspect;",
+        "high-cardinality factors or interactions may dominate memory before TMB optimization."
+      )
+    } else {
+      "Dense fixed-effect design matrices are modest for this fit."
     }
   )
 }
@@ -384,9 +476,13 @@ check_random_effect_replication <- function(object, block) {
   if (is.null(re) || re$n_re == 0L) {
     return(NULL)
   }
-  min_counts <- vapply(seq_len(re$n_terms), function(k) {
-    min(tabulate(re$index[, k], nbins = re$n_re)[re$index[, k]])
-  }, integer(1))
+  min_counts <- vapply(
+    seq_len(re$n_terms),
+    function(k) {
+      min(tabulate(re$index[, k], nbins = re$n_re)[re$index[, k]])
+    },
+    integer(1)
+  )
   names(min_counts) <- re$labels
   min_count <- min(min_counts)
   check_row(
@@ -409,35 +505,58 @@ check_random_effect_design <- function(object, block) {
   if (is.null(re) || re$n_re == 0L) {
     return(NULL)
   }
-  slope_terms <- which(!vapply(re$labels, random_effect_label_is_intercept, logical(1)))
+  slope_terms <- which(
+    !vapply(re$labels, random_effect_label_is_intercept, logical(1))
+  )
   correlated_ranks <- random_effect_correlated_block_ranks(re)
   if (length(slope_terms) == 0L && length(correlated_ranks) == 0L) {
     return(NULL)
   }
 
-  unique_counts <- vapply(slope_terms, function(k) {
-    min(vapply(split(re$value[, k], re$index[, k]), random_effect_unique_n, integer(1)))
-  }, integer(1))
+  unique_counts <- vapply(
+    slope_terms,
+    function(k) {
+      min(vapply(
+        split(re$value[, k], re$index[, k]),
+        random_effect_unique_n,
+        integer(1)
+      ))
+    },
+    integer(1)
+  )
   names(unique_counts) <- re$labels[slope_terms]
 
   values <- character()
   if (length(unique_counts) > 0L) {
-    values <- c(values, paste0(
-      "min_unique=",
-      paste(names(unique_counts), unique_counts, sep = "=", collapse = "; ")
-    ))
+    values <- c(
+      values,
+      paste0(
+        "min_unique=",
+        paste(names(unique_counts), unique_counts, sep = "=", collapse = "; ")
+      )
+    )
   }
   if (length(correlated_ranks) > 0L) {
-    values <- c(values, paste0(
-      "min_rank=",
-      paste(names(correlated_ranks), correlated_ranks, sep = "=", collapse = "; ")
-    ))
+    values <- c(
+      values,
+      paste0(
+        "min_rank=",
+        paste(
+          names(correlated_ranks),
+          correlated_ranks,
+          sep = "=",
+          collapse = "; "
+        )
+      )
+    )
   }
 
   weak_unique <- length(unique_counts) > 0L && any(unique_counts < 2L)
   weak_rank <- length(correlated_ranks) > 0L &&
-    any(as.integer(sub("/.*", "", correlated_ranks)) <
-      as.integer(sub(".*/", "", correlated_ranks)))
+    any(
+      as.integer(sub("/.*", "", correlated_ranks)) <
+        as.integer(sub(".*/", "", correlated_ranks))
+    )
   ok <- !weak_unique && !weak_rank
 
   check_row(
@@ -464,18 +583,26 @@ random_effect_correlated_block_ranks <- function(re) {
   if (re$n_cors == 0L) {
     return(character())
   }
-  term_cor_id <- vapply(seq_len(re$n_terms), function(k) {
-    ids <- unique(re$re_cor_id0[re$term_id0 == k - 1L])
-    ids <- ids[ids >= 0L]
-    if (length(ids) == 0L) -1L else ids[[1L]]
-  }, integer(1))
+  term_cor_id <- vapply(
+    seq_len(re$n_terms),
+    function(k) {
+      ids <- unique(re$re_cor_id0[re$term_id0 == k - 1L])
+      ids <- ids[ids >= 0L]
+      if (length(ids) == 0L) -1L else ids[[1L]]
+    },
+    integer(1)
+  )
   out <- character()
   for (cor_id in unique(term_cor_id[term_cor_id >= 0L])) {
     cols <- which(term_cor_id == cor_id)
     group_id <- re$index[, cols[[1L]]]
-    ranks <- vapply(split(seq_along(group_id), group_id), function(row) {
-      qr(re$value[row, cols, drop = FALSE])$rank
-    }, integer(1))
+    ranks <- vapply(
+      split(seq_along(group_id), group_id),
+      function(row) {
+        qr(re$value[row, cols, drop = FALSE])$rank
+      },
+      integer(1)
+    )
     out <- c(out, paste0(min(ranks), "/", length(cols)))
   }
   names(out) <- re$cor_labels[unique(term_cor_id[term_cor_id >= 0L]) + 1L]

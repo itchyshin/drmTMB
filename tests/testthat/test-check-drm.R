@@ -1,14 +1,24 @@
 check_drm_test_tree <- function() {
   structure(
     list(
-      edge = matrix(c(
-        5, 6,
-        5, 7,
-        6, 1,
-        6, 2,
-        7, 3,
-        7, 4
-      ), ncol = 2, byrow = TRUE),
+      edge = matrix(
+        c(
+          5,
+          6,
+          5,
+          7,
+          6,
+          1,
+          6,
+          2,
+          7,
+          3,
+          7,
+          4
+        ),
+        ncol = 2,
+        byrow = TRUE
+      ),
       edge.length = rep(1, 6),
       tip.label = paste0("sp_", 1:4),
       Nnode = 3L
@@ -35,14 +45,17 @@ test_that("check_drm() reports core diagnostics for Gaussian fits", {
   expect_named(chk, c("check", "status", "value", "message"))
   expect_true(attr(chk, "ok"))
   expect_true(all(chk$status == "ok"))
-  expect_true(all(c(
-    "optimizer_convergence",
-    "finite_objective",
-    "fixed_gradient",
-    "hessian_positive_definite",
-    "dropped_rows",
-    "positive_scale"
-  ) %in% chk$check))
+  expect_true(all(
+    c(
+      "optimizer_convergence",
+      "finite_objective",
+      "fixed_gradient",
+      "hessian_positive_definite",
+      "dropped_rows",
+      "positive_scale"
+    ) %in%
+      chk$check
+  ))
   printed <- NULL
   messages <- capture.output(
     printed <- capture.output(print(chk)),
@@ -80,7 +93,7 @@ test_that("check_drm() warns when residual rho12 is near a requested boundary", 
   dat$y2 <- 0.7 * dat$y1 + sqrt(1 - 0.7^2) * stats::rnorm(n)
 
   fit <- drmTMB(
-    bf(mu1 = y1 ~ x, mu2 = y2 ~ x, rho12 = ~ 1),
+    bf(mu1 = y1 ~ x, mu2 = y2 ~ x, rho12 = ~1),
     family = c(gaussian(), gaussian()),
     data = dat
   )
@@ -98,7 +111,8 @@ test_that("check_drm() reports Student-t nu diagnostics", {
   z <- rep(c(-0.5, 0.5), length.out = n)
   nu_true <- 8
   dat <- data.frame(x = x, z = z)
-  dat$y <- 0.2 + 0.5 * x +
+  dat$y <- 0.2 +
+    0.5 * x +
     exp(-0.4 + 0.2 * z) * stats::qt((seq_len(n) - 0.5) / n, df = nu_true)
   fit <- drmTMB(
     bf(y ~ x, sigma ~ z, nu ~ 1),
@@ -144,8 +158,7 @@ test_that("check_drm() reports predictor-varying Student-t nu ranges", {
   n <- 180
   x <- seq(-1, 1, length.out = n)
   dat <- data.frame(x = x)
-  dat$y <- 0.3 + 0.4 * x +
-    stats::qt((seq_len(n) - 0.5) / n, df = 10)
+  dat$y <- 0.3 + 0.4 * x + stats::qt((seq_len(n) - 0.5) / n, df = 10)
   fit <- drmTMB(
     bf(y ~ x, sigma ~ 1, nu ~ x),
     family = student(),
@@ -167,7 +180,8 @@ test_that("check_drm() reports random-effect replication notes", {
     id = factor(c("a", "a", "b", "b", "c", "d", "d", "e", "e", "e")),
     x = stats::rnorm(10)
   )
-  dat$y <- 0.2 + 0.4 * dat$x +
+  dat$y <- 0.2 +
+    0.4 * dat$x +
     c(a = -0.2, b = 0.1, c = 0.3, d = -0.1, e = 0.2)[dat$id] +
     stats::rnorm(10, sd = 0.15)
 
@@ -189,7 +203,8 @@ test_that("check_drm() reports weak random-slope design notes", {
   id <- factor(rep(letters[1:8], each = 3))
   x <- rep(seq(-1, 1, length.out = 8), each = 3)
   dat <- data.frame(id = id, x = x)
-  dat$y <- 0.3 + 0.5 * dat$x +
+  dat$y <- 0.3 +
+    0.5 * dat$x +
     rep(stats::rnorm(8, sd = 0.2), each = 3) +
     stats::rnorm(nrow(dat), sd = 0.2)
 
@@ -228,6 +243,29 @@ test_that("check_drm() records known sampling covariance summaries", {
   expect_match(known_v$value, "rank=24")
 })
 
+test_that("check_drm() notes wide dense fixed-effect designs", {
+  set.seed(20260510)
+  n <- 90
+  dat <- data.frame(
+    y = stats::rnorm(n),
+    habitat = factor(rep(paste0("hab_", seq_len(45)), each = 2))
+  )
+
+  fit <- drmTMB(
+    bf(y ~ habitat, sigma ~ 1),
+    family = gaussian(),
+    data = dat,
+    control = list(eval.max = 120, iter.max = 120)
+  )
+  chk <- check_drm(fit)
+  design <- chk[chk$check == "fixed_effect_design_size", ]
+
+  expect_equal(design$status, "note")
+  expect_match(design$value, "max_cols=45")
+  expect_match(design$message, "high-cardinality factors")
+  expect_true(attr(chk, "ok"))
+})
+
 test_that("check_drm() records phylogenetic replication notes", {
   set.seed(20260513)
   tree <- check_drm_test_tree()
@@ -235,7 +273,8 @@ test_that("check_drm() records phylogenetic replication notes", {
     species = factor(c("sp_1", "sp_2", "sp_2", "sp_3", "sp_3", "sp_4", "sp_4")),
     x = c(-1, -0.5, 0.5, -0.2, 0.3, -0.1, 0.7)
   )
-  dat$y <- 0.2 + 0.4 * dat$x +
+  dat$y <- 0.2 +
+    0.4 * dat$x +
     c(sp_1 = -0.1, sp_2 = 0.2, sp_3 = 0.05, sp_4 = -0.2)[dat$species] +
     stats::rnorm(nrow(dat), sd = 0.15)
 

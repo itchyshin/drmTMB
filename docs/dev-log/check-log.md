@@ -7763,3 +7763,40 @@ Known limitations:
   script.
 - the 100k factor-heavy stress run needs convergence diagnostics before it can
   support a timing claim; raising iteration limits alone did not close it.
+
+## 2026-05-10 -- Add dense fixed-effect design diagnostic
+
+Goal:
+
+- surface dense fixed-effect design size directly in `check_drm()` so users
+  fitting factor-heavy large-data models see the memory pressure before
+  treating a slow or unstable fit as only a phylogenetic problem.
+
+Implemented:
+
+- `check_drm()` now includes a `fixed_effect_design_size` row;
+- the row reports total dense fixed-effect model-matrix size, maximum column
+  count, and the largest distributional-parameter block;
+- the row is a note when total dense design storage is at least 25 MB or any
+  fixed-effect design has at least 30 columns;
+- NEWS and `man/check_drm.Rd` describe the new diagnostic.
+
+Commands run:
+
+- `air format R/check.R tests/testthat/test-check-drm.R`: passed.
+- `Rscript -e "devtools::test(filter = 'check-drm')"`: 57 passed, 0 failed,
+  0 warnings, 0 skips.
+- `Rscript -e "devtools::document()"`: passed and updated
+  `man/check_drm.Rd`.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with no problems.
+- `Rscript -e "devtools::test()"`: 1,460 passed, 0 failed, 0 warnings,
+  0 skips.
+- `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`:
+  0 errors, 0 warnings, 0 notes.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- this is a diagnostic note, not sparse fixed-effect support;
+- the thresholds are deliberately simple guardrails and can be tuned when
+  broader benchmark evidence accumulates.
