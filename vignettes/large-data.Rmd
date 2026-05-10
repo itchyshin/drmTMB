@@ -71,8 +71,8 @@ These pieces remain planned:
 - sparse fixed-effect matrices for factor-heavy models;
 - Gaussian sufficient-statistic aggregation when repeated rows can be collapsed
   without changing the likelihood;
-- explicit benchmark runs for 100k, 500k, 1M, and 5M rows with 1k to 10k
-  species.
+- repeated benchmark runs for million-row, bivariate, factor-heavy,
+  non-Gaussian, and 10,000-species analyses.
 
 If a model has a high-cardinality factor in a fixed-effect formula, the dense
 `model.matrix()` step may dominate memory before TMB sees the data. Treat that
@@ -165,6 +165,23 @@ The benchmark is intentionally outside the package test suite. It can be slow,
 and it measures local hardware, BLAS, compiler, and operating-system behaviour
 as much as package code.
 
+## What the current development benchmarks say
+
+The development benchmark table in `docs/dev-log/benchmark-results.md` records
+selected local runs. Treat the numbers as planning evidence, not as speed
+promises for your computer.
+
+| Scenario | Local result | What to learn |
+| --- | --- | --- |
+| 100k rows, 1k species, ordinary location model | converged; about 25 seconds; about 1.4 GB macOS max RSS | This is the first useful local rung before trying a real large analysis. |
+| 100k rows, 5k species | converged; about 32 seconds; about 1.7 GB macOS max RSS | Species-index pressure is separate from row-count pressure. |
+| 500k rows, 1k species | converged; about 131 seconds; about 5.1 GB macOS max RSS | Row pressure is feasible on the test machine, but peak memory is already substantial. |
+| 100k rows, 1k species, 40-level fixed factor | did not converge under the benchmark optimizer budget | Dense fixed-effect matrices remain a real scaling limitation. |
+
+These results support cautious use of the current sparse phylogenetic location
+path. They do not prove million-row readiness, 10,000-species readiness,
+bivariate large-data readiness, or non-Gaussian large-data readiness.
+
 ## Practical checklist
 
 - Start with a fixed-effect or smaller phylogenetic model that answers a
@@ -179,5 +196,7 @@ as much as package code.
 - Use `newdata` grids for interpretation instead of creating full-row
   predictions by default.
 - Run the benchmark script at 100k rows before trying million-row analyses.
+- Treat a non-zero optimizer code as a diagnostic result, not as timing
+  evidence.
 - Treat sparse fixed-effect matrices and data aggregation as future scaling
   features, not current guarantees.

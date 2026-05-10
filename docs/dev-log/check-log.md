@@ -8289,3 +8289,37 @@ Known limitations:
 
 - this one local row tests row pressure only; it does not prove million-row,
   10,000-species, factor-heavy, non-Gaussian, or bivariate readiness.
+
+## 2026-05-10 -- Summarize large-data benchmark evidence for users
+
+Goal:
+
+- make the large-data article and benchmark-results table reflect the latest
+  current-schema local benchmark rows without making broad performance claims.
+
+Implemented:
+
+- updated `vignettes/large-data.Rmd` with a compact current benchmark summary;
+- updated `docs/dev-log/benchmark-results.md` with current 100k storage,
+  100k `sigma ~ x1`, 100k / 5k species-pressure, and 500k / 1k row-pressure
+  rows;
+- added an after-task note.
+
+Commands run:
+
+- `air format vignettes/large-data.Rmd docs/dev-log/benchmark-results.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-10-large-data-benchmark-summary-docs.md`:
+  passed.
+- `rg -n "500k rows|500,000|10,000-species|factor-heavy|non-Gaussian|5\\.1 GB|memory-light" vignettes/large-data.Rmd docs/dev-log/benchmark-results.md docs/dev-log/after-task/2026-05-10-large-data-benchmark-summary-docs.md docs/dev-log/check-log.md`:
+  passed and found the expected source text.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with no problems found.
+- `Rscript -e "pkgdown::build_site()"`: passed.
+- `Rscript tools/fix-pkgdown-favicon-mime.R pkgdown-site`: passed.
+- `rg -n "What the current development benchmarks say|500k rows|5\\.1 GB|10,000-species|factor-heavy|non-Gaussian" vignettes/large-data.Rmd pkgdown-site/articles/large-data.html docs/dev-log/benchmark-results.md docs/dev-log/after-task/2026-05-10-large-data-benchmark-summary-docs.md --glob '!pkgdown-site/search.json'`:
+  passed and confirmed the generated article includes the new section.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- this is a selected local benchmark summary only; it does not prove
+  million-row, 10,000-species, factor-heavy, non-Gaussian, or bivariate
+  readiness.

@@ -14,10 +14,12 @@ from `/usr/bin/time -l`.
 | Date | Rows | Species | Storage | Convergence | Fit seconds | Fit object MB | Model matrix MB | TMB data MB | R heap after fit MB | Max RSS bytes | Peak footprint bytes |
 | --- | ---: | ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
 | 2026-05-10 | 10,000 | 100 | memory-light | 0 | 2.283 | 4.658 | 1.528 | 2.140 | 251.397 | 454,672,384 | 332,383,288 |
-| 2026-05-10 | 100,000 | 1,000 | memory-light | 0 | 25.031 | 45.730 | 15.261 | 21.326 | 405.303 | 1,414,168,576 | 692,831,840 |
-| 2026-05-10 | 100,000 | 1,000 | default | 0 | 24.793 | 54.935 | 15.261 | 21.326 | 500.488 | 1,365,606,400 | 682,952,216 |
-| 2026-05-10 | 100,000 | 1,000 | memory-light, `sigma ~ x1` | 0 | 62.585 | 47.257 | 16.024 | 22.089 | 415.857 | 1,815,838,720 | 773,457,888 |
+| 2026-05-10 | 100,000 | 1,000 | memory-light | 0 | 25.074 | 45.730 | 15.261 | 21.326 | 405.741 | 1,415,626,752 | 723,666,504 |
+| 2026-05-10 | 100,000 | 1,000 | default | 0 | 25.070 | 54.935 | 15.261 | 21.326 | 500.926 | 1,399,848,960 | 678,839,880 |
+| 2026-05-10 | 100,000 | 1,000 | memory-light, `sigma ~ x1` | 0 | 62.701 | 47.257 | 16.024 | 22.089 | 416.295 | 1,779,056,640 | 742,148,088 |
 | 2026-05-10 | 100,000 | 1,000 | memory-light, 40-level factor | 1 | 77.712 | 105.289 | 45.019 | 51.084 | 622.011 | 2,123,055,104 | 797,017,960 |
+| 2026-05-10 | 100,000 | 5,000 | memory-light | 0 | 32.492 | 52.764 | 15.261 | 22.669 | 417.313 | 1,654,964,224 | 664,749,976 |
+| 2026-05-10 | 500,000 | 1,000 | memory-light | 0 | 131.407 | 221.206 | 76.296 | 105.249 | 1092.205 | 5,050,040,320 | 2,045,808,360 |
 
 Interpretation:
 
@@ -30,6 +32,9 @@ Interpretation:
   expected because the current storage controls drop objects after model
   construction and optimization; they do not yet reduce construction-time peak
   memory.
+- The 100k rows / 5k species row and the 500k rows / 1k species row separate
+  species-index pressure from row-count pressure. Both converged, but the
+  500k-row run reached about 5.1 GB macOS max RSS on the test machine.
 - Sparse fixed-effect matrices and sufficient-statistic aggregation remain the
   next features needed before making stronger claims about million-row data.
 - The 40-level-factor row is a diagnostic stress run, not an accepted timing
