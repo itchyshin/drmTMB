@@ -26,6 +26,7 @@ peak footprint when interpreting those rows.
 | 2026-05-10 | 100,000 | 5,000 | Gaussian | `sigma ~ 1` | 0 | yes | timing usable | 0 | 32.492 | 52.764 | 15.261 | 22.669 | 417.313 | 1,654,964,224 | 664,749,976 |
 | 2026-05-10 | 500,000 | 1,000 | Gaussian | `sigma ~ 1` | 0 | yes | timing usable | 0 | 131.407 | 221.206 | 76.296 | 105.249 | 1092.205 | 5,050,040,320 | 2,045,808,360 |
 | 2026-05-10 | 500,000 | 1,000 | Gaussian | `sigma ~ 1` | 0 | yes | timing usable, repeat | 0 | 133.997 | 221.206 | 76.296 | 105.249 | 1092.205 | 5,066,604,544 | 2,028,277,504 |
+| 2026-05-10 | 500,000 | 1,000 | Gaussian | `sigma ~ x1` | 0 | yes | timing usable, corrected heap | 0 | 389.028 | 228.837 | 80.111 | 109.064 | 292.102 | 5,451,743,232 | 2,023,231,496 |
 
 Interpretation:
 
@@ -49,6 +50,10 @@ Interpretation:
   optimizer message, 50 iterations, and 74 function evaluations. Fit seconds
   were 131.407 and 133.997, with macOS max RSS of 5,050,040,320 and
   5,066,604,544 bytes.
+- The 500k rows / 1k species `sigma ~ x1` run converged with 72 iterations and
+  105 function evaluations. It took 389.028 seconds and reached
+  5,451,743,232 bytes max RSS, so predictor-dependent scale is feasible in the
+  current schema but should not be presented as a casual large-data workflow.
 - Sparse fixed-effect matrices and sufficient-statistic aggregation remain the
   next features needed before making stronger claims about million-row data.
 - The 40-level-factor row is a diagnostic stress run, not an accepted timing

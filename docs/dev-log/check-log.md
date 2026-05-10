@@ -8469,3 +8469,37 @@ Known limitations:
 
 - this is one corrected-heap row only; it does not recompute all historical
   benchmark rows.
+
+## 2026-05-10 -- Add 500k sigma-predictor benchmark row
+
+Goal:
+
+- collect one 500,000-row, 1,000-species memory-light Gaussian phylogenetic
+  benchmark with `sigma ~ x1`.
+
+Implemented:
+
+- ran one local benchmark row into
+  `/tmp/drmTMB-gc-fixed-500k-sigma-x-a67891b.csv`;
+- summarized the row with `bench/summarize-results.R`;
+- added the row to `docs/dev-log/benchmark-results.md`;
+- recorded the local result in an after-task note.
+
+Commands run:
+
+- `/usr/bin/time -l Rscript bench/large-phylo-location.R --rows 500000 --species 1000 --eval-max 260 --iter-max 260 --sigma-x true --memory-light true --output /tmp/drmTMB-gc-fixed-500k-sigma-x-a67891b.csv`:
+  passed; convergence code 0, optimizer message `relative convergence (4)`,
+  72 iterations, 105 function evaluations, 73 gradient evaluations, fit time
+  389.028 seconds, fitted-object size 228.837 MB, model-matrix size
+  80.111 MB, TMB-data size 109.064 MB, corrected post-fit R heap 292.102 MB,
+  max RSS 5,451,743,232 bytes, and peak memory footprint 2,023,231,496 bytes.
+- `Rscript bench/summarize-results.R --input /tmp/drmTMB-gc-fixed-500k-sigma-x-a67891b.csv`:
+  passed and marked the row as `timing_usable` with
+  `diagnostics_recorded`.
+- `Rscript -e "x <- read.csv('/tmp/drmTMB-gc-fixed-500k-sigma-x-a67891b.csv', check.names = FALSE); print(x[, c('rows','species','sigma_x','memory_light','convergence','convergence_message','iterations','function_evaluations','gradient_evaluations','fit_sec','fit_object_mb','model_matrix_mb','tmb_data_mb','gc_used_mb_post_fit','sigma_hat','sd_phylo_hat')]);"`:
+  passed.
+
+Known limitations:
+
+- this is one local current-schema stress row; it does not test bivariate,
+  coscale, non-Gaussian, sparse-matrix, or sufficient-statistic pathways.
