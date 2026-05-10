@@ -233,7 +233,9 @@ distributional regression models using TMB.
   zeros and positive continuous values. Stage it after the Gamma/lognormal/count
   contracts are stable, with an explicit design decision about whether public
   `sigma` represents Tweedie dispersion `phi` or a square-root scale, and with
-  `nu` reserved for the power parameter constrained between 1 and 2.
+  `nu` reserved for the power parameter constrained between 1 and 2. The future
+  implementation gate is recorded in
+  `docs/design/27-tweedie-family-plan.md`.
 - Extend the implemented family-link helper table before adding ordinal scale,
   denominator-aware, or additional positive-continuous likelihoods, so
   `predict()` and `fitted()` handle non-identity `mu` links consistently.

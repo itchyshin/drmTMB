@@ -168,7 +168,8 @@ Useful for body size, biomass, time, concentration, and rates.
   [glmmTMB's family documentation](https://glmmtmb.github.io/glmmTMB/reference/nbinom2.html)
   is the first comparator source because it already exposes
   `tweedie(link = "log")` and treats the power parameter as a family-specific
-  parameter.
+  parameter. The implementation gate is in
+  `docs/design/27-tweedie-family-plan.md`.
 - `weibull()`: scale and shape.
 - `exgaussian()`: location, scale, and positive-tail parameter.
 - `gengamma()`: flexible positive continuous family, later only.

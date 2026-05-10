@@ -8508,3 +8508,41 @@ Known limitations:
 
 - this is one local current-schema stress row; it does not test bivariate,
   coscale, non-Gaussian, sparse-matrix, or sufficient-statistic pathways.
+
+## 2026-05-10 -- Add Tweedie design gate
+
+Goal:
+
+- turn the Tweedie real-data wish-list item into a concrete future design gate
+  without implying implementation.
+
+Implemented:
+
+- added `docs/design/27-tweedie-family-plan.md`;
+- linked the design gate from `ROADMAP.md`;
+- linked the design gate from `docs/design/06-distribution-roadmap.md`;
+- added an after-task report.
+
+Checks run:
+
+- web source check: glmmTMB family documentation currently lists
+  `tweedie(link = "log")`, writes `V = phi * mu^power`, and restricts the
+  power parameter to `1 < power < 2`;
+- web source check: glmmTMB `family_params()` documentation treats Tweedie
+  power as an additional family-specific parameter;
+- prose-style review lens applied for applied eco-evo readers and package
+  contributors.
+- `air format ROADMAP.md docs/design/06-distribution-roadmap.md docs/design/27-tweedie-family-plan.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-10-tweedie-design-gate.md`:
+  passed.
+- `rg -n "Tweedie|tweedie|phi \\* mu|sigma = sqrt|sigma = phi|not currently|future syntax|27-tweedie" ROADMAP.md docs/design/06-distribution-roadmap.md docs/design/27-tweedie-family-plan.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-10-tweedie-design-gate.md`:
+  passed and found the design-gate wording.
+- `rg -n "tweedie\\(\\).*Implemented|Implemented.*tweedie|Tweedie.*implemented|fit Tweedie|can fit Tweedie|family = tweedie\\(\\)" README.md ROADMAP.md NEWS.md docs/design docs/dev-log/after-task vignettes R tests`:
+  passed; only the design note and after-task report mention that `drmTMB`
+  does not currently fit Tweedie models and mark `family = tweedie()` as future
+  syntax.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- this is design documentation only; it does not add a Tweedie likelihood,
+  family helper, simulation, or comparator test.
