@@ -8628,3 +8628,41 @@ Known limitations:
 
 - this workflow change still needs validation from the next pushed
   R-CMD-check and pkgdown runs.
+
+## 2026-05-10 -- Refine Tweedie working scale recommendation
+
+Goal:
+
+- record a clearer working direction for future Tweedie scale semantics without
+  adding a likelihood or implying implementation.
+
+Implemented:
+
+- recorded `sigma = sqrt(phi)` as the current working recommendation in
+  `docs/design/27-tweedie-family-plan.md`;
+- clarified that the first Tweedie slice should use intercept-only `nu ~ 1`;
+- updated `ROADMAP.md`, `docs/design/06-distribution-roadmap.md`, and
+  `docs/design/02-family-registry.md`;
+- updated the Tweedie design-gate after-task report;
+- created GitHub issue #2 to track future Tweedie implementation.
+
+Checks run:
+
+- team review: Noether, Boole, and Curie all recommended `sigma = sqrt(phi)` as
+  the working direction, with comparator tests comparing `sigma^2` against
+  Tweedie dispersion `phi`;
+- prose-style review lens applied for applied eco-evo readers and package
+  contributors.
+- `air format ROADMAP.md docs/design/06-distribution-roadmap.md docs/design/02-family-registry.md docs/design/27-tweedie-family-plan.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-10-tweedie-design-gate.md docs/dev-log/after-task/2026-05-10-tweedie-working-scale.md`:
+  passed.
+- `rg -n "sigma = sqrt\\(phi\\)|sigma\\^2 \\* mu\\^nu|nu ~ 1|GitHub issue #2|Tweedie working" ROADMAP.md docs/design/02-family-registry.md docs/design/06-distribution-roadmap.md docs/design/27-tweedie-family-plan.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-10-tweedie-design-gate.md docs/dev-log/after-task/2026-05-10-tweedie-working-scale.md`:
+  passed and confirmed the working-scale wording.
+- `rg -n "tweedie\\(\\).*Implemented|Implemented.*tweedie|Tweedie.*implemented|can fit Tweedie|fit Tweedie models|family = tweedie\\(\\)" README.md ROADMAP.md NEWS.md docs/design docs/dev-log/after-task vignettes R tests`:
+  passed; matches are limited to future syntax and explicit not-implemented
+  wording in design notes.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- this is design and tracking work only; it does not add `tweedie()`,
+  likelihood code, tests, or a real-data tutorial.

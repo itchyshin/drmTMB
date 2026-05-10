@@ -22,8 +22,15 @@ Var[y_i] = phi_i * mu_i^nu_i
 1 < nu_i < 2
 ```
 
-The design note deliberately leaves the public `sigma` mapping unresolved:
-`sigma = phi` and `sigma = sqrt(phi)` remain competing options.
+The design note originally left the public `sigma` mapping unresolved. A
+follow-up team review now records `sigma = sqrt(phi)` as the working
+recommendation, pending owner confirmation before likelihood code lands:
+
+```text
+E[y_i] = mu_i
+Var[y_i] = sigma_i^2 * mu_i^nu_i
+1 < nu_i < 2
+```
 
 ## Files Changed
 
@@ -75,7 +82,7 @@ test exists yet.
 
 ## Next Actions
 
-- Decide whether public `sigma` is Tweedie `phi`, `sqrt(phi)`, or another
-  documented scale.
+- Confirm or revise the working recommendation that public `sigma` is
+  `sqrt(phi)`.
 - Add likelihood equations and simulation design before implementation.
 - Choose one real eco-evo teaching dataset after simulated recovery tests pass.

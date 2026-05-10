@@ -62,9 +62,12 @@ explaining which shape controls asymmetry and which controls tails.
 
 For a future Tweedie family, `nu` should be considered for the power parameter
 constrained between 1 and 2, while `sigma` should stay the public scale or
-dispersion parameter only after a design note fixes whether it represents
-Tweedie `phi`, `sqrt(phi)`, or another stable scale. Do not add comparator tests
-against related software until that scale convention is explicit.
+dispersion parameter only after a design note fixes the final mapping. The
+current working recommendation is `sigma = sqrt(phi)`, so Tweedie variance
+would be reported to users as `Var[y] = sigma^2 * mu^nu` while comparator tests
+against software that reports Tweedie `phi` would square public `sigma`
+explicitly. Do not add comparator tests against related software until that
+scale convention is confirmed.
 
 Human-readable aliases such as `skew` or `df` can be considered later, but the
 canonical internal and documented names should stay consistent unless there is a

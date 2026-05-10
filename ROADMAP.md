@@ -231,10 +231,11 @@ distributional regression models using TMB.
 - Add `tweedie()` to the real-data wish list for non-negative semicontinuous
   ecological responses such as biomass, cover, or abundance indices with exact
   zeros and positive continuous values. Stage it after the Gamma/lognormal/count
-  contracts are stable, with an explicit design decision about whether public
-  `sigma` represents Tweedie dispersion `phi` or a square-root scale, and with
-  `nu` reserved for the power parameter constrained between 1 and 2. The future
-  implementation gate is recorded in
+  contracts are stable. The current working recommendation is public
+  `sigma = sqrt(phi)`, so `sigma` remains scale-like while comparator checks can
+  square it to compare against Tweedie dispersion `phi`; `nu` is reserved for
+  the power parameter constrained between 1 and 2. The future implementation
+  gate is recorded in
   `docs/design/27-tweedie-family-plan.md`.
 - Extend the implemented family-link helper table before adding ordinal scale,
   denominator-aware, or additional positive-continuous likelihoods, so

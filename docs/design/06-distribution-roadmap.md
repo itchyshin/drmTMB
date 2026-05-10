@@ -162,9 +162,11 @@ Useful for body size, biomass, time, concentration, and rates.
 - `tweedie()`: future non-negative semicontinuous response for biomass, cover,
   CPUE-like indices, and other eco-evo measurements with exact zeros plus
   positive continuous values. The likely variance contract is
-  `Var[y] = phi * mu^nu` with `1 < nu < 2`, but the implementation must decide
-  and document whether public `sigma` is `phi`, `sqrt(phi)`, or another
-  stable scale before comparator tests are written.
+  `Var[y] = phi * mu^nu` with `1 < nu < 2`. The current working
+  recommendation is public `sigma = sqrt(phi)`, so the drmTMB-facing variance
+  expression would be `Var[y] = sigma^2 * mu^nu`, with comparator tests
+  explicitly transforming `sigma^2` back to software that reports Tweedie
+  dispersion `phi`.
   [glmmTMB's family documentation](https://glmmtmb.github.io/glmmTMB/reference/nbinom2.html)
   is the first comparator source because it already exposes
   `tweedie(link = "log")` and treats the power parameter as a family-specific
