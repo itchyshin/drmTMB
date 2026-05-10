@@ -26,6 +26,7 @@ fallbacks only.
 
 - `R/drmTMB.R`
 - `R/methods.R`
+- `tests/testthat/test-control.R`
 - `tests/testthat/test-corpairs.R`
 - `docs/design/23-large-data-memory.md`
 - `docs/dev-log/check-log.md`
@@ -40,16 +41,23 @@ fallbacks only.
 - `Rscript -e "devtools::test()"`
 - `Rscript -e "pkgdown::check_pkgdown()"`
 - `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`
+- `air format tests/testthat/test-control.R`
+- `Rscript -e "devtools::test(filter = 'control')"`
+- `Rscript -e "devtools::test()"`
 
 The targeted tests completed with 65 passes. The full test suite completed with
 1428 passes. `pkgdown::check_pkgdown()` found no problems. R CMD check
-completed with 0 errors, 0 warnings, and 0 notes.
+completed with 0 errors, 0 warnings, and 0 notes. The follow-up control test
+run completed with 35 passes after adding the first method-matrix smoke tests,
+and the follow-up full suite completed with 1439 passes.
 
 ## Tests Of The Tests
 
 The new tests mutate fitted objects by setting `fit$model$model_frame <- NULL`.
 That forces `corpairs()` to use the new response-name metadata instead of the
-old model-frame path.
+old model-frame path. The follow-up control tests use the same mutation to
+check core Gaussian post-fit methods and Poisson offset prediction without a
+stored model frame.
 
 ## Consistency Audit
 
@@ -78,6 +86,7 @@ extractors across the implemented family set before exposing it.
 
 ## Next Actions
 
-1. Run targeted `corpairs()` and control tests.
-2. Add a full method matrix for `keep_model_frame = FALSE` on small data.
+1. Add a broader method matrix across the remaining family set.
+2. Test bivariate known-covariance and beta-binomial trial paths without stored
+   model frames.
 3. Only then allow the control to drop `model$model_frame`.

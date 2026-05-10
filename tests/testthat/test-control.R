@@ -67,3 +67,50 @@ test_that("memory-light storage keeps core post-fit methods working", {
   expect_equal(fixed_gradient$status, "note")
   expect_match(fixed_gradient$message, "not retained")
 })
+
+test_that("core methods tolerate manually removed model frames", {
+  dat <- data.frame(
+    y = c(-0.2, 0.0, 0.3, 0.6, 0.8, 1.2),
+    x = c(-1, -0.5, 0, 0.5, 1, 1.5)
+  )
+  fit <- drmTMB(
+    bf(y ~ x, sigma ~ x),
+    family = gaussian(),
+    data = dat,
+    control = list(eval.max = 100, iter.max = 100)
+  )
+  fit$model$model_frame <- NULL
+
+  expect_length(predict(fit, dpar = "mu"), nrow(dat))
+  expect_length(predict(fit, newdata = data.frame(x = c(0, 1))), 2L)
+  expect_length(fitted(fit), nrow(dat))
+  expect_length(residuals(fit), nrow(dat))
+  expect_equal(dim(simulate(fit, nsim = 2, seed = 1)), c(nrow(dat), 2L))
+  expect_length(sigma(fit), nrow(dat))
+  expect_s3_class(check_drm(fit), "drm_check")
+})
+
+test_that("offset prediction tolerates manually removed model frames", {
+  dat <- data.frame(
+    y = c(0L, 1L, 2L, 3L, 1L, 4L),
+    x = c(-1, -0.5, 0, 0.5, 1, 1.5),
+    exposure = c(1, 1.5, 2, 2.5, 3, 3.5)
+  )
+  fit <- drmTMB(
+    bf(y ~ x + offset(log(exposure))),
+    family = poisson(),
+    data = dat,
+    control = list(eval.max = 100, iter.max = 100)
+  )
+  fit$model$model_frame <- NULL
+
+  pred <- predict(
+    fit,
+    newdata = data.frame(x = c(0, 1), exposure = c(2, 4)),
+    dpar = "mu"
+  )
+  expect_length(pred, 2L)
+  expect_true(all(is.finite(pred)))
+  expect_length(residuals(fit), nrow(dat))
+  expect_equal(dim(simulate(fit, nsim = 2, seed = 1)), c(nrow(dat), 2L))
+})

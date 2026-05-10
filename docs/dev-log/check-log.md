@@ -7492,3 +7492,35 @@ Known limitations:
 - `drm_control(keep_model_frame = FALSE)` remains intentionally unavailable;
   this task prepares one fallback path but does not prove the full storage
   control safe yet.
+
+## 2026-05-10 -- Model-frame method smoke tests
+
+Goal:
+
+- add the first small method-matrix tests for the future
+  `keep_model_frame = FALSE` path while keeping the public control disabled.
+
+Implemented:
+
+- added control-file tests that manually remove `fit$model$model_frame` from a
+  Gaussian location-scale fit and check `predict()`, `predict(newdata = ...)`,
+  `fitted()`, `residuals()`, `simulate()`, `sigma()`, and `check_drm()`;
+- added an offset prediction test that manually removes `model_frame` from a
+  Poisson offset fit and checks `predict(newdata = ...)`, `residuals()`, and
+  `simulate()`.
+
+Commands run:
+
+- `air format tests/testthat/test-control.R`: passed.
+- `Rscript -e "devtools::test(filter = 'control')"`: 35 passed, 0 failed,
+  0 warnings, 0 skips.
+- `git diff --check`: passed.
+- `Rscript -e "devtools::test()"`: 1439 passed, 0 failed, 0 warnings,
+  0 skips.
+
+Known limitations:
+
+- this is an early method smoke test, not complete `keep_model_frame = FALSE`
+  coverage across every implemented family;
+- the public control still correctly errors when users request
+  `keep_model_frame = FALSE`.
