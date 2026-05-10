@@ -8255,3 +8255,37 @@ Known limitations:
 
 - this one local row tests species pressure only; it does not prove 10,000
   species, factor-heavy, non-Gaussian, bivariate, or million-row readiness.
+
+## 2026-05-10 -- Run 500k row-pressure benchmark
+
+Goal:
+
+- collect current-schema benchmark evidence for a 500,000-row, 1,000-species
+  phylogenetic Gaussian location model.
+
+Implemented:
+
+- no package code changed;
+- ran one local benchmark row into
+  `/tmp/drmTMB-row-pressure-current-schema-087c000.csv`;
+- summarized the row with `bench/summarize-results.R`;
+- recorded the local result in an after-task note.
+
+Commands run:
+
+- `/usr/bin/time -l Rscript bench/large-phylo-location.R --rows 500000 --species 1000 --eval-max 220 --iter-max 220 --memory-light true --output /tmp/drmTMB-row-pressure-current-schema-087c000.csv`:
+  passed; convergence code 0, optimizer message `relative convergence (4)`,
+  50 iterations, 74 function evaluations, 50 gradient evaluations, fit time
+  131.407 seconds, fitted-object size 221.206 MB, model-matrix size
+  76.296 MB, TMB-data size 105.249 MB, post-fit R heap 1092.205 MB, max RSS
+  5,050,040,320 bytes, and peak memory footprint 2,045,808,360 bytes.
+- `Rscript bench/summarize-results.R --input /tmp/drmTMB-row-pressure-current-schema-087c000.csv`:
+  passed and marked the row as `timing_usable` with
+  `diagnostics_recorded`.
+- `Rscript -e "x <- read.csv('/tmp/drmTMB-row-pressure-current-schema-087c000.csv', check.names = FALSE); print(x[, c('rows','species','memory_light','convergence','convergence_message','iterations','function_evaluations','gradient_evaluations','fit_sec','fit_object_mb','model_matrix_mb','tmb_data_mb','gc_used_mb_post_fit','sigma_hat','sd_phylo_hat')]);"`:
+  passed.
+
+Known limitations:
+
+- this one local row tests row pressure only; it does not prove million-row,
+  10,000-species, factor-heavy, non-Gaussian, or bivariate readiness.
