@@ -277,11 +277,55 @@ opt_scalar <- function(x, name, default = NA_real_) {
   unname(value[[1L]])
 }
 
+package_version_or_na <- function(package) {
+  if (!requireNamespace(package, quietly = TRUE)) {
+    return(NA_character_)
+  }
+  as.character(utils::packageVersion(package))
+}
+
+local_package_version <- function() {
+  if (file.exists("DESCRIPTION")) {
+    desc <- tryCatch(
+      utils::read.dcf("DESCRIPTION", fields = "Version"),
+      error = function(e) NULL
+    )
+    if (!is.null(desc) && length(desc) > 0L && nzchar(desc[[1L]])) {
+      return(desc[[1L]])
+    }
+  }
+  package_version_or_na("drmTMB")
+}
+
+benchmark_environment <- function() {
+  sys <- Sys.info()
+  sys_value <- function(name) {
+    value <- unname(sys[[name]])
+    if (is.null(value) || is.na(value) || !nzchar(value)) {
+      return(NA_character_)
+    }
+    value
+  }
+  list(
+    run_started_utc = format(Sys.time(), "%Y-%m-%dT%H:%M:%SZ", tz = "UTC"),
+    r_version = paste(R.version$major, R.version$minor, sep = "."),
+    platform = R.version$platform,
+    os = paste(
+      na.omit(c(sys_value("sysname"), sys_value("release"))),
+      collapse = " "
+    ),
+    machine = sys_value("machine"),
+    drmTMB_version = local_package_version(),
+    TMB_version = package_version_or_na("TMB")
+  )
+}
+
 run_benchmark <- function(args) {
   load_drmTMB()
   if (args$species < 2L) {
     stop("--species must be at least 2 for phylogenetic models.", call. = FALSE)
   }
+  env <- benchmark_environment()
   gc()
   before_mb <- gc_used_mb()
   data_time <- system.time(sim <- simulate_benchmark_data(args))
@@ -313,36 +357,39 @@ run_benchmark <- function(args) {
     opt_message <- NA_character_
   }
 
-  data.frame(
-    rows = args$rows,
-    species = args$species,
-    tree = args$tree,
-    factor_heavy = args$factor_heavy,
-    sigma_x = args$sigma_x,
-    memory_light = args$memory_light,
-    convergence = fit$opt$convergence,
-    convergence_message = opt_message[[1L]],
-    iterations = opt_scalar(fit$opt, "iterations"),
-    function_evaluations = opt_scalar(fit$opt$evaluations, "function"),
-    gradient_evaluations = opt_scalar(fit$opt$evaluations, "gradient"),
-    nobs = stats::nobs(fit),
-    data_build_sec = unname(data_time[["elapsed"]]),
-    fit_sec = unname(fit_time[["elapsed"]]),
-    predict_mu_sec = unname(predict_time[["elapsed"]]),
-    residuals_sec = unname(residual_time[["elapsed"]]),
-    data_object_mb = data_mb,
-    tree_object_mb = tree_mb,
-    fit_object_mb = object_mb(fit),
-    model_matrix_mb = object_mb(fit$model$X),
-    tmb_data_mb = object_mb(fit$model$tmb_data),
-    gc_used_mb_before = before_mb,
-    gc_used_mb_pre_fit = pre_fit_mb,
-    gc_used_mb_post_fit = post_fit_mb,
-    mu_mean = mean(pred),
-    residual_sd = stats::sd(res),
-    sigma_hat = mean(stats::sigma(fit)),
-    sd_phylo_hat = unname(fit$sdpars$mu[[1L]]),
-    stringsAsFactors = FALSE
+  cbind(
+    as.data.frame(env, stringsAsFactors = FALSE),
+    data.frame(
+      rows = args$rows,
+      species = args$species,
+      tree = args$tree,
+      factor_heavy = args$factor_heavy,
+      sigma_x = args$sigma_x,
+      memory_light = args$memory_light,
+      convergence = fit$opt$convergence,
+      convergence_message = opt_message[[1L]],
+      iterations = opt_scalar(fit$opt, "iterations"),
+      function_evaluations = opt_scalar(fit$opt$evaluations, "function"),
+      gradient_evaluations = opt_scalar(fit$opt$evaluations, "gradient"),
+      nobs = stats::nobs(fit),
+      data_build_sec = unname(data_time[["elapsed"]]),
+      fit_sec = unname(fit_time[["elapsed"]]),
+      predict_mu_sec = unname(predict_time[["elapsed"]]),
+      residuals_sec = unname(residual_time[["elapsed"]]),
+      data_object_mb = data_mb,
+      tree_object_mb = tree_mb,
+      fit_object_mb = object_mb(fit),
+      model_matrix_mb = object_mb(fit$model$X),
+      tmb_data_mb = object_mb(fit$model$tmb_data),
+      gc_used_mb_before = before_mb,
+      gc_used_mb_pre_fit = pre_fit_mb,
+      gc_used_mb_post_fit = post_fit_mb,
+      mu_mean = mean(pred),
+      residual_sd = stats::sd(res),
+      sigma_hat = mean(stats::sigma(fit)),
+      sd_phylo_hat = unname(fit$sdpars$mu[[1L]]),
+      stringsAsFactors = FALSE
+    )
   )
 }
 

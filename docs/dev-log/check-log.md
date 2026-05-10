@@ -8546,3 +8546,40 @@ Known limitations:
 
 - this is design documentation only; it does not add a Tweedie likelihood,
   family helper, simulation, or comparator test.
+
+## 2026-05-10 -- Add benchmark environment metadata
+
+Goal:
+
+- record R, package, and platform context in optional large-data benchmark CSV
+  rows.
+
+Implemented:
+
+- added `run_started_utc`, `r_version`, `platform`, `os`, `machine`,
+  `drmTMB_version`, and `TMB_version` columns to
+  `bench/large-phylo-location.R` output;
+- documented the metadata columns in `bench/README.md`;
+- added an after-task report.
+
+Checks run:
+
+- `air format bench/large-phylo-location.R bench/README.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-10-benchmark-environment-metadata.md`:
+  passed.
+- `Rscript -e "parse('bench/large-phylo-location.R'); parse('bench/summarize-results.R')"`:
+  passed.
+- `Rscript bench/large-phylo-location.R --rows 300 --species 20 --eval-max 80 --iter-max 80 --memory-light true --output /tmp/drmTMB-benchmark-env-metadata-smoke.csv`:
+  passed and wrote the smoke benchmark CSV.
+- `Rscript bench/summarize-results.R --input /tmp/drmTMB-benchmark-env-metadata-smoke.csv`:
+  passed; convergence code 0, status `timing_usable`, and diagnostics
+  `diagnostics_recorded`.
+- `Rscript -e "x <- read.csv('/tmp/drmTMB-benchmark-env-metadata-smoke.csv', check.names = FALSE); print(x[, c('run_started_utc','r_version','platform','os','machine','drmTMB_version','TMB_version','rows','species','convergence')]); stopifnot(all(c('run_started_utc','r_version','platform','os','machine','drmTMB_version','TMB_version') %in% names(x)))"`:
+  passed and confirmed the new metadata columns.
+- `rg -n "run_started_utc|drmTMB_version|benchmark environment metadata|schema can change|R and platform metadata" bench/README.md bench/large-phylo-location.R docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-10-benchmark-environment-metadata.md`:
+  passed.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- metadata does not include CPU model, available RAM, BLAS details, or
+  operating-system peak memory.

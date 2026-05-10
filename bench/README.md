@@ -17,6 +17,8 @@ with `devtools::load_all()` when available; otherwise it uses an installed
 
 If an existing output CSV was created by an older benchmark schema, choose a
 new `--output` path or remove the old ignored CSV before appending new rows.
+The benchmark schema can change as diagnostics improve; a fresh output path is
+usually the safest choice for development evidence.
 
 ## Recommended Matrix
 
@@ -39,6 +41,9 @@ larger values when the fit is intended as a real timing result.
 
 | Column | Meaning |
 | --- | --- |
+| `run_started_utc` | UTC timestamp when the benchmark run started. |
+| `r_version`, `platform`, `os`, `machine` | R and platform metadata for interpreting local timing and memory results. |
+| `drmTMB_version`, `TMB_version` | Package versions used by the benchmark. For a development checkout, `drmTMB_version` comes from the local `DESCRIPTION`. |
 | `rows`, `species` | Requested observation rows and species count. |
 | `tree` | Synthetic tree shape: `balanced` or `star`. |
 | `factor_heavy` | Whether the `mu` formula includes a 40-level factor. |
