@@ -7984,3 +7984,36 @@ Known limitations:
 
 - users pinned to `v0.1.0` need to drop `drm_control()` and any `keep_*`
   storage controls; those controls start in `v0.1.1`.
+
+## 2026-05-10 -- Add release install-smoke script
+
+Goal:
+
+- make the tagged-preview install path testable from a clean temporary library,
+  so future releases catch tag/docs mismatches before users do.
+
+Implemented:
+
+- added `tools/install-smoke.R`;
+- the script installs a GitHub ref with `pak`, optionally checks the installed
+  version, checks key exported functions including `drm_control()`, fits a
+  Gaussian location-scale storage-control model, and verifies expected
+  `check_drm()` diagnostic rows;
+- added a `0.1.1` release checklist recording branch CI, tag CI, pkgdown, and
+  tag-install smoke evidence.
+
+Commands run:
+
+- `air format tools/install-smoke.R docs/dev-log/release-checklists/2026-05-10-0.1.1-preview-release.md docs/dev-log/after-task/2026-05-10-release-install-smoke-script.md docs/dev-log/check-log.md`:
+  passed.
+- `Rscript tools/install-smoke.R v0.1.1 0.1.1`: passed; installed
+  `drmTMB 0.1.1` from GitHub ref `b4e222c`, confirmed required exports, fitted
+  the storage-control smoke model, and confirmed the expected diagnostics.
+- `git diff --check`: passed.
+- `rg -n "install-smoke|v0\\.1\\.1|drm_control|optimizer_budget|fixed_effect_design_size|25639416001|25639248630|25639387716" tools/install-smoke.R docs/dev-log/release-checklists/2026-05-10-0.1.1-preview-release.md docs/dev-log/after-task/2026-05-10-release-install-smoke-script.md docs/dev-log/check-log.md`:
+  passed and found the expected script, release checklist, and evidence entries.
+
+Known limitations:
+
+- the install smoke uses GitHub and is intended for release hygiene, not for
+  fast local unit-test loops.
