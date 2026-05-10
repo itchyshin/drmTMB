@@ -41,13 +41,18 @@ storage flags when a fitted object should keep less R-side state, for
 example during large-data experiments where the original data frame and TMB
 automatic-differentiation object are expensive to retain.
 }
+\details{
+For optimizer-only settings, \code{control = list(eval.max = 1000)} remains
+valid. When using \code{drm_control()}, put optimizer arguments inside
+\code{optimizer = list(...)}; do not pass \code{eval.max} directly to \code{drm_control()}.
+}
 \examples{
 dat <- data.frame(y = rnorm(20), x = rnorm(20))
 fit <- drmTMB(
   bf(y ~ x, sigma ~ 1),
   data = dat,
   control = drm_control(
-    optimizer = list(eval.max = 100),
+    optimizer = list(eval.max = 100, iter.max = 100),
     keep_data = FALSE,
     keep_model_frame = FALSE,
     keep_tmb_object = FALSE

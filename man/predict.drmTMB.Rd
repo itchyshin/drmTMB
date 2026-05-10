@@ -44,7 +44,7 @@ dat <- data.frame(
   y = c(0.2, 0.5, 1.1, 1.4, 1.8, 2.2),
   x = c(-1, -0.5, 0, 0.5, 1, 1.5)
 )
-fit <- drmTMB(bf(y ~ x, sigma = ~ x), data = dat)
+fit <- drmTMB(bf(y ~ x, sigma ~ x), data = dat)
 predict(fit, dpar = "mu")
 predict(fit, dpar = "sigma")
 predict(fit, dpar = "sigma", type = "link")

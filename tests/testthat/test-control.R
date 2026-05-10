@@ -71,6 +71,87 @@ test_that("memory-light storage keeps core post-fit methods working", {
   expect_match(fixed_gradient$message, "not retained")
 })
 
+test_that("memory-light storage keeps bivariate known-V methods working", {
+  n <- 10
+  dat <- data.frame(
+    x = seq(-1, 1, length.out = n)
+  )
+  dat$y1 <- 0.2 +
+    0.4 * dat$x +
+    c(
+      -0.20,
+      0.10,
+      -0.05,
+      0.15,
+      -0.10,
+      0.05,
+      0.20,
+      -0.15,
+      0.10,
+      -0.05
+    )
+  dat$y2 <- -0.1 -
+    0.3 * dat$x +
+    c(
+      0.15,
+      -0.10,
+      0.05,
+      -0.05,
+      0.10,
+      -0.15,
+      0.05,
+      0.20,
+      -0.10,
+      0.00
+    )
+  V <- meta_vcov_bivariate(
+    v1 = rep(0.01, n),
+    v2 = rep(0.015, n),
+    cor12 = 0.25
+  )
+
+  fit <- drmTMB(
+    bf(
+      mu1 = y1 ~ x + meta_known_V(V = V),
+      mu2 = y2 ~ x,
+      sigma1 = ~1,
+      sigma2 = ~1,
+      rho12 = ~1
+    ),
+    family = c(gaussian(), gaussian()),
+    data = dat,
+    control = drm_control(
+      optimizer = list(eval.max = 100, iter.max = 100),
+      keep_data = FALSE,
+      keep_model_frame = FALSE,
+      keep_tmb_object = FALSE
+    )
+  )
+
+  expect_null(fit$data)
+  expect_null(fit$model$data)
+  expect_null(fit$model$model_frame)
+  expect_null(fit$obj)
+  expect_equal(fit$model$V_known_type, "matrix")
+  expect_equal(dim(fit$model$V_known), c(2L * n, 2L * n))
+  expect_equal(dim(fitted(fit)), c(n, 2L))
+  expect_equal(dim(residuals(fit, type = "pearson")), c(n, 2L))
+  expect_equal(dim(simulate(fit, nsim = 2, seed = 1)), c(n, 4L))
+  expect_length(sigma(fit)$sigma1, n)
+  expect_length(sigma(fit)$sigma2, n)
+  expect_length(rho12(fit), n)
+
+  pairs <- corpairs(fit)
+  expect_equal(pairs$from_response, "y1")
+  expect_equal(pairs$to_response, "y2")
+
+  chk <- check_drm(fit)
+  known_v <- chk[chk$check == "known_sampling_covariance", ]
+  fixed_gradient <- chk[chk$check == "fixed_gradient", ]
+  expect_equal(known_v$status, "ok")
+  expect_equal(fixed_gradient$status, "note")
+})
+
 test_that("core methods tolerate manually removed model frames", {
   dat <- data.frame(
     y = c(-0.2, 0.0, 0.3, 0.6, 0.8, 1.2),

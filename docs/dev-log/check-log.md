@@ -8017,3 +8017,53 @@ Known limitations:
 
 - the install smoke uses GitHub and is intended for release hygiene, not for
   fast local unit-test loops.
+
+## 2026-05-10 -- Apply team feedback usability audit
+
+Goal:
+
+- act on Noether, Boole, and Curie's review feedback after the `0.1.1` dispatch
+  without broadening the model scope.
+
+Implemented:
+
+- tightened README scale wording so `sigma^2` is not treated as a universal
+  shortcut outside Gaussian residual-variance and meta-analytic heterogeneity
+  summaries;
+- added `check_drm()` and response-scale `sigma` interpretation to the README
+  install smoke path;
+- changed README capability wording to family-specific variation;
+- documented zero-truncated and hurdle NB2 variance equations in the
+  response-family article;
+- added large-data guidance for interpreting `optimizer_budget`;
+- clarified `drm_control()` optimizer syntax and regenerated Rd examples using
+  canonical `sigma ~ ...` grammar;
+- marked the `0.1.0` Phase 9 roadmap note as historical;
+- added a bivariate known-sampling-covariance memory-light storage test.
+
+Commands run:
+
+- `air format README.md vignettes/distribution-families.Rmd vignettes/large-data.Rmd R/control.R R/methods.R ROADMAP.md tests/testthat/test-control.R`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'control')"`: passed with 68 tests, 0
+  failures, 0 warnings, and 0 skips.
+- `Rscript -e "devtools::document()"`: passed and regenerated affected Rd
+  examples.
+- `Rscript -e "devtools::test()"`: passed with 1,480 tests, 0 failures, 0
+  warnings, and 0 skips.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with no problems.
+- `Rscript -e "pkgdown::build_site()"`: passed.
+- `Rscript tools/fix-pkgdown-favicon-mime.R pkgdown-site`: passed.
+- `git diff --check`: passed.
+- `rg -n 'sigma = ~|Gaussian residual-variance|family-specific variation|optimizer_budget|Var\\[y_i \\| y_i > 0\\]|Historical .*0\\.1\\.0|memory-light storage keeps bivariate known-V' README.md ROADMAP.md R man tests/testthat/test-control.R vignettes pkgdown-site --glob '!pkgdown-site/search.json'`:
+  passed; no `sigma = ~` examples remained, and the expected corrected
+  wording/equation/test/site entries were present.
+- `Rscript -e "devtools::check(document = FALSE, manual = FALSE, args = '--no-tests')"`:
+  passed with 0 errors, 0 warnings, and 0 notes for `drmTMB 0.1.1`.
+- Noether, Boole, and Curie reviewer pass: clear; no blocker-level scale,
+  syntax, install, or test-fragility issues remained.
+
+Known limitations:
+
+- the new bivariate memory-light test is a focused method smoke test, not a
+  large-data benchmark.

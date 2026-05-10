@@ -42,6 +42,6 @@ combine known sampling covariance with residual scale internally.
 }
 \examples{
 dat <- data.frame(y = c(0.2, 0.5, 1.1, 1.4), x = c(-1, 0, 1, 2))
-fit <- drmTMB(bf(y ~ x, sigma = ~ x), data = dat)
+fit <- drmTMB(bf(y ~ x, sigma ~ x), data = dat)
 sigma(fit)
 }

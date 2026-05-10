@@ -6,6 +6,10 @@
 #' example during large-data experiments where the original data frame and TMB
 #' automatic-differentiation object are expensive to retain.
 #'
+#' For optimizer-only settings, `control = list(eval.max = 1000)` remains
+#' valid. When using `drm_control()`, put optimizer arguments inside
+#' `optimizer = list(...)`; do not pass `eval.max` directly to `drm_control()`.
+#'
 #' @param optimizer Named list passed to the `control` argument of
 #'   [stats::nlminb()].
 #' @param keep_data Logical; keep the complete-case model data in the fitted
@@ -31,7 +35,7 @@
 #'   bf(y ~ x, sigma ~ 1),
 #'   data = dat,
 #'   control = drm_control(
-#'     optimizer = list(eval.max = 100),
+#'     optimizer = list(eval.max = 100, iter.max = 100),
 #'     keep_data = FALSE,
 #'     keep_model_frame = FALSE,
 #'     keep_tmb_object = FALSE

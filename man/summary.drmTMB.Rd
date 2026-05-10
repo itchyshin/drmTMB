@@ -21,6 +21,6 @@ present, log-likelihood, and optimizer convergence code.
 }
 \examples{
 dat <- data.frame(y = c(0.2, 0.5, 1.1, 1.4), x = c(-1, 0, 1, 2))
-fit <- drmTMB(bf(y ~ x, sigma = ~ 1), data = dat)
+fit <- drmTMB(bf(y ~ x, sigma ~ 1), data = dat)
 summary(fit)
 }

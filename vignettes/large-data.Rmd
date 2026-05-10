@@ -92,6 +92,11 @@ If `keep_tmb_object = FALSE`, the fixed-gradient row is a note rather than an
 `drm_control(keep_tmb_object = TRUE)` when you need the gradient diagnostic for
 a final report.
 
+The `optimizer_budget` row compares `nlminb()` iterations and function
+evaluations with supplied `iter.max` and `eval.max`. If it is a note or warning,
+inspect convergence, gradients, and model structure before increasing the
+limits.
+
 Also inspect the `fixed_effect_design_size` row. It reports the retained dense
 fixed-effect design size and the widest design block. A note there means
 high-cardinality factors or interactions may be driving memory use before TMB

@@ -8,8 +8,11 @@ bivariate residual correlation `rho12`.
 
 The first examples are motivated by ecology, evolution, and environmental
 science, but the package is general-purpose. The public scale parameter is
-`sigma`; when a paper reports residual variance or predictability, summarize
-`sigma^2` from fitted values rather than changing the model grammar.
+`sigma`. For Gaussian residual-variance or meta-analytic heterogeneity
+summaries, report fitted `sigma^2`; for Gamma, beta, count, zero-inflated,
+hurdle, Student-t, and bivariate models, use the family-specific
+transformations in
+[Choosing response families](https://itchyshin.github.io/drmTMB/articles/distribution-families.html).
 
 ## Start here
 
@@ -71,7 +74,12 @@ fit <- drmTMB(
 )
 
 summary(fit)
+check_drm(fit)
 head(sigma(fit))
+
+sigma_x1 <- coef(fit, "sigma")["x1"]
+exp(sigma_x1) # residual SD ratio for a one-unit increase in x1
+exp(2 * sigma_x1) # residual variance ratio
 ```
 
 You need R 4.1.0 or newer and a working compiler toolchain because TMB models
@@ -120,8 +128,8 @@ head(sigma(fit)^2) # fitted residual variances
 
 ## What can I model now?
 
-- **Continuous response, changing mean or residual variation.** Use Gaussian,
-  Student-t, lognormal, Gamma, or beta location-scale regression with
+- **Continuous response, changing mean or family-specific variation.** Use
+  Gaussian, Student-t, lognormal, Gamma, or beta location-scale regression with
   `drm_formula(y ~ x, sigma ~ x)`. Read
   [Which scale are you modelling?](https://itchyshin.github.io/drmTMB/articles/which-scale.html).
 - **Successes out of known trials.** Use `beta_binomial()` with
