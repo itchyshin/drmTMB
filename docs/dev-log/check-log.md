@@ -7865,3 +7865,37 @@ Known limitations:
 
 - sparse fixed-effect matrices remain planned; the article names the pressure
   but does not claim that drmTMB can avoid dense fixed-effect construction yet.
+
+## 2026-05-10 -- Keep pak as the install path
+
+Goal:
+
+- avoid presenting `remotes::install_github()` as a parallel recommended
+  installation route on the landing page.
+
+Implemented:
+
+- removed the `remotes::install_github()` fallback block from `README.md`;
+- removed the stale "pak or remotes" dependency wording from `README.md`;
+- the README and getting-started article now keep
+  `pak::pak("itchyshin/drmTMB@v0.1.0")` as the tagged-preview path and
+  `pak::pak("itchyshin/drmTMB")` as the development path.
+
+Commands run:
+
+- `git diff --check`: passed.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with no problems.
+- `Rscript -e "pkgdown::build_site()"`: passed.
+- `Rscript tools/fix-pkgdown-favicon-mime.R pkgdown-site`: passed.
+- `rg -n "install_github|remotes::|pak::pak|install\\.packages\\(\"pak\"\\)" README.md pkgdown-site/index.html docs/dev-log/after-task/2026-05-10-pak-install-path.md docs/dev-log/check-log.md`:
+  passed; `README.md` and `pkgdown-site/index.html` show only the `pak`
+  install commands, while dev-log matches record the historical fallback removal.
+- `rg -n "pak or remotes|remotes::install_github|install_github" README.md vignettes/drmTMB.Rmd pkgdown-site/index.html pkgdown-site/articles/drmTMB.html`:
+  passed with no matches.
+- `rg -n "Install the preview|Core runtime dependencies|install\\.packages\\(\"pak\"\\)|pak::pak" README.md vignettes/drmTMB.Rmd pkgdown-site/index.html pkgdown-site/articles/drmTMB.html`:
+  passed and found the expected `pak` installation guidance.
+
+Known limitations:
+
+- users without `pak` still need to install `pak` first, which the README
+  shows explicitly.

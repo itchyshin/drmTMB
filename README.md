@@ -51,13 +51,6 @@ If you want the newest development build from `main`, use:
 pak::pak("itchyshin/drmTMB")
 ```
 
-If you already use `remotes`, this fallback installs the tagged preview:
-
-```r
-install.packages("remotes")
-remotes::install_github("itchyshin/drmTMB", ref = "v0.1.0", build_vignettes = FALSE)
-```
-
 Then load the package and run a small smoke test:
 
 ```r
@@ -86,8 +79,8 @@ are compiled during installation. If installation fails while compiling C++,
 install the usual R build tools for your platform: Rtools on Windows, Xcode
 Command Line Tools on macOS, or the R development toolchain on Linux.
 
-Core runtime dependencies are installed automatically by `pak` or `remotes`:
-`cli`, `Matrix`, `TMB`, and the compiled headers from `RcppEigen` and `TMB`.
+Core runtime dependencies are installed automatically by `pak`: `cli`,
+`Matrix`, `TMB`, and the compiled headers from `RcppEigen` and `TMB`.
 Some articles, comparators, and development checks also use optional packages
 such as `glmmTMB`, `lme4`, `MASS`, `metafor`, `knitr`, `rmarkdown`,
 `testthat`, and `withr`; site checks use `pkgdown`.

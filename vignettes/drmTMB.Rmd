@@ -29,6 +29,33 @@ The current package is already useful for one central workflow: write one
 formula for each parameter you want to estimate, then check that the fitted
 model matches the symbolic model you had in mind.
 
+## Install the preview
+
+`drmTMB` is not on CRAN yet. Install the tagged preview from GitHub with
+`pak`:
+
+```r
+install.packages("pak")
+pak::pak("itchyshin/drmTMB@v0.1.0")
+```
+
+For the newest development build from `main`, use:
+
+```r
+pak::pak("itchyshin/drmTMB")
+```
+
+You need R 4.1.0 or newer and a working compiler toolchain because TMB models
+are compiled during installation. If installation fails while compiling C++,
+install the usual R build tools for your platform: Rtools on Windows, Xcode
+Command Line Tools on macOS, or the R development toolchain on Linux.
+
+The core runtime dependencies are installed automatically by `pak`: `cli`,
+`Matrix`, `TMB`, and the compiled headers from `RcppEigen` and `TMB`. The
+articles and development checks also use optional packages such as `glmmTMB`,
+`lme4`, `MASS`, `metafor`, `knitr`, `rmarkdown`, `testthat`, `withr`, and
+`pkgdown`.
+
 For example, an applied user might ask: do mean trait values and residual
 variability change with an environmental predictor, after accounting for
 repeated measures from the same site or species? In `drmTMB`, that question is
