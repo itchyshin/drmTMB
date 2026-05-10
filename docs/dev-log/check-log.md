@@ -32,6 +32,12 @@ Checks:
   had `scrollWidth = 390`; both showed version `0.1.0` and kept the first
   headings as `Start here`, `Preview status`, `Install`, and `Tiny example`.
 - `git diff --check`: clean.
+- GitHub Actions `R-CMD-check` run `25632815210`: passed on macOS, Ubuntu, and
+  Windows for commit `5f8e669`.
+- GitHub Actions `pkgdown` run `25632815212`: passed and deployed the site for
+  commit `5f8e669`.
+- `git tag -a v0.1.0 -m "drmTMB 0.1.0 preview release" && git push origin
+  v0.1.0`: pushed the annotated `v0.1.0` release tag after branch CI was green.
 
 ## 2026-05-10 -- Release-hardening gate refresh
 
