@@ -7793,6 +7793,8 @@ Commands run:
   0 skips.
 - `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`:
   0 errors, 0 warnings, 0 notes.
+- `Rscript -e "pkgdown::build_site()"`: passed.
+- `Rscript tools/fix-pkgdown-favicon-mime.R pkgdown-site`: passed.
 - `git diff --check`: passed.
 
 Known limitations:

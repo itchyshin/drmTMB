@@ -37,6 +37,8 @@ changed. This task only adds a post-fit diagnostic row.
 - `Rscript -e "pkgdown::check_pkgdown()"`
 - `Rscript -e "devtools::test()"`
 - `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`
+- `Rscript -e "pkgdown::build_site()"`
+- `Rscript tools/fix-pkgdown-favicon-mime.R pkgdown-site`
 - `git diff --check`
 
 The targeted check-drm tests completed with 57 passes. The full package test
