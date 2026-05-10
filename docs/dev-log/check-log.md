@@ -2,6 +2,34 @@
 
 Record meaningful development checks here.
 
+## 2026-05-10 -- Installation guidance on landing page
+
+Scope:
+
+- added a compact installation section to `README.md`, which renders as the
+  pkgdown landing page;
+- told users that `drmTMB` is not on CRAN yet and should be installed from
+  GitHub;
+- listed R version, compiler-toolchain, runtime, linking, optional example,
+  comparator, and site-check dependencies;
+- added a runnable smoke test so first-time users can immediately check that
+  installation, loading, fitting, `summary()`, and `sigma()` work.
+
+Commands and evidence:
+
+- `Rscript -e "devtools::load_all(quiet = TRUE); set.seed(1); dat <- data.frame(y = rnorm(80), x1 = rnorm(80)); fit <- drmTMB(drm_formula(y ~ x1, sigma ~ x1), family = gaussian(), data = dat); print(head(sigma(fit)))"`:
+  returned finite fitted `sigma` values.
+
+Checks:
+
+- `Rscript -e "pkgdown::build_site()"`: passed.
+- `Rscript tools/fix-pkgdown-favicon-mime.R pkgdown-site`: passed.
+- `rg -n "Install|install_github|R 4\.1\.0|Rtools|Core runtime dependencies|pkgdown" README.md pkgdown-site/index.html`:
+  confirmed the install, compiler, dependency, and rendered-site text.
+- `Rscript -e "pkgdown::check_pkgdown()"`: no problems found.
+- `git diff --check`: clean.
+- Pending after commit: push and GitHub Actions.
+
 ## 2026-05-10 -- Next-five 0.1.0 release-gate batch
 
 Scope:
