@@ -97,7 +97,7 @@ print_usage <- function() {
     "  --tree balanced|star  Synthetic ultrametric tree shape; default balanced\n",
     "  --factor-heavy bool   Add a 40-level habitat factor; default false\n",
     "  --sigma-x bool        Fit sigma ~ x1 instead of sigma ~ 1; default false\n",
-    "  --memory-light bool   Use keep_data=FALSE and keep_tmb_object=FALSE; default true\n",
+    "  --memory-light bool   Use all fitted-object storage controls; default true\n",
     "  --eval-max N          nlminb eval.max; default 200\n",
     "  --iter-max N          nlminb iter.max; default 200\n",
     "  --output PATH         Optional CSV output path\n",
@@ -282,6 +282,7 @@ run_benchmark <- function(args) {
   control <- drm_control(
     optimizer = list(eval.max = args$eval_max, iter.max = args$iter_max),
     keep_data = !args$memory_light,
+    keep_model_frame = !args$memory_light,
     keep_tmb_object = !args$memory_light
   )
   fit_time <- system.time({

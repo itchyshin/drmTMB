@@ -40,7 +40,7 @@ larger values when the fit is intended as a real timing result.
 | `tree` | Synthetic tree shape: `balanced` or `star`. |
 | `factor_heavy` | Whether the `mu` formula includes a 40-level factor. |
 | `sigma_x` | Whether the scale model is `sigma ~ x1` instead of `sigma ~ 1`. |
-| `memory_light` | Whether `keep_data = FALSE` and `keep_tmb_object = FALSE` were used. |
+| `memory_light` | Whether `keep_data = FALSE`, `keep_model_frame = FALSE`, and `keep_tmb_object = FALSE` were used. |
 | `convergence` | `stats::nlminb()` convergence code; `0` is the target. |
 | `nobs` | Number of modelled observations after filtering. |
 | `data_build_sec` | Time to generate synthetic data and tree objects. |
@@ -81,9 +81,11 @@ Rscript bench/large-phylo-location.R --rows 100000 --species 1000 \
 
 Compare `fit_object_mb`, `gc_used_mb_post_fit`, and `convergence`. If the
 memory-light fit converges but the default fit is too large to save or pass
-around, `drm_control(keep_data = FALSE, keep_tmb_object = FALSE)` is doing
-useful post-fit storage work. If both runs fail before optimization, the next
-problem is probably model-frame or dense-model-matrix memory.
+around,
+`drm_control(keep_data = FALSE, keep_model_frame = FALSE, keep_tmb_object = FALSE)`
+is doing useful post-fit storage work. If both runs fail before optimization,
+the next problem is probably model-frame construction or dense-model-matrix
+memory.
 
 ## What Not To Claim
 

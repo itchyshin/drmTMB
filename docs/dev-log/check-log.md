@@ -7649,3 +7649,62 @@ Known limitations:
   does not avoid building model frames before TMB optimization;
 - sparse fixed-effect matrices and Gaussian sufficient-statistic aggregation
   remain the next memory reductions.
+
+## 2026-05-10 -- Benchmark harness uses model-frame storage control
+
+Goal:
+
+- make the large-data benchmark's `--memory-light true` setting exercise all
+  implemented fitted-object storage controls, including
+  `keep_model_frame = FALSE`.
+
+Implemented:
+
+- `bench/large-phylo-location.R` now sets `keep_model_frame = FALSE` whenever
+  `--memory-light true` is used;
+- `bench/README.md` describes the three storage controls used by the benchmark;
+- `docs/dev-log/benchmark-results.md` records selected durable benchmark
+  results because `bench/results/*.csv` is intentionally ignored by git.
+
+Commands run:
+
+- `air format bench/large-phylo-location.R`: passed.
+- `/usr/bin/time -l Rscript bench/large-phylo-location.R --rows 10000 --species 100 --eval-max 120 --iter-max 120 --memory-light true --output bench/results/large-phylo-location.csv`:
+  passed.
+- `/usr/bin/time -l Rscript bench/large-phylo-location.R --rows 100000 --species 1000 --eval-max 160 --iter-max 160 --memory-light true --output bench/results/large-phylo-location.csv`:
+  passed.
+- `Rscript -e "x <- read.csv('bench/results/large-phylo-location.csv'); print(tail(x, 6));"`:
+  passed and showed all benchmark rows parseable.
+- `/usr/bin/time -l Rscript bench/large-phylo-location.R --rows 100000 --species 1000 --eval-max 180 --iter-max 180 --factor-heavy true --memory-light true --output bench/results/large-phylo-location.csv`:
+  completed and produced convergence code 1.
+- `/usr/bin/time -l Rscript bench/large-phylo-location.R --rows 100000 --species 1000 --eval-max 180 --iter-max 180 --sigma-x true --memory-light true --output bench/results/large-phylo-location.csv`:
+  passed with convergence code 0.
+- `Rscript -e "x <- read.csv('bench/results/large-phylo-location.csv'); print(tail(x, 5));"`:
+  passed and showed all benchmark rows parseable.
+
+Result:
+
+- 10,000-row memory-light rerun: convergence code 0, 2.283 fit seconds,
+  4.658 MB fitted-object size, 251.397 MB post-fit R heap, 454,672,384 bytes
+  maximum resident set size, and 332,383,288 bytes peak memory footprint.
+- 100,000-row memory-light rerun: convergence code 0, 25.031 fit seconds,
+  45.730 MB fitted-object size, 405.303 MB post-fit R heap,
+  1,414,168,576 bytes maximum resident set size, and 692,831,840 bytes peak
+  memory footprint.
+- 100,000-row `sigma ~ x1` memory-light run: convergence code 0, 62.585 fit
+  seconds, 47.257 MB fitted-object size, 415.857 MB post-fit R heap,
+  1,815,838,720 bytes maximum resident set size, and 773,457,888 bytes peak
+  memory footprint.
+- 100,000-row factor-heavy memory-light run: convergence code 1, 77.712 fit
+  seconds, 105.289 MB fitted-object size, 622.011 MB post-fit R heap,
+  2,123,055,104 bytes maximum resident set size, and 797,017,960 bytes peak
+  memory footprint. This is a diagnostic stress run, not an accepted timing
+  result.
+
+Known limitations:
+
+- this change improves the benchmark harness and post-fit fitted-object
+  comparison; it still does not reduce model-frame construction or dense
+  model-matrix peak memory;
+- the factor-heavy row needs a follow-up convergence-focused rerun or sparse
+  fixed-effect design work before it can support a performance claim.
