@@ -1,4 +1,4 @@
-# drmTMB 0.0.0.9000
+# drmTMB 0.1.0 (2026-05-10)
 
 * `bf()` now stores parsed formula entries for distributional parameters, including bivariate `rho12`, meta-analysis `meta_known_V(V = V)`, and random-effect scale syntax.
 * `beta()` now fits fixed-effect beta mean-scale models for strict continuous proportions in `(0, 1)`, using `logit(mu)`, `log(sigma)`, and internal precision `phi = 1 / sigma^2`; `fitted()` returns `mu` and `sigma(fit)` returns the public scale parameter.

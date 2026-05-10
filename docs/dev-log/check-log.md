@@ -2,6 +2,37 @@
 
 Record meaningful development checks here.
 
+## 2026-05-10 -- Version 0.1.0 release preparation
+
+Scope:
+
+- bumped `DESCRIPTION` from `0.0.0.9000` to `0.1.0`;
+- changed the `NEWS.md` heading to `drmTMB 0.1.0 (2026-05-10)`;
+- updated the landing-page status from development-target wording to first
+  public preview wording;
+- updated the pkgdown status badge to `0.1.0 preview release`;
+- updated the roadmap release section from a pre-release gate to the `0.1.0`
+  preview release boundary.
+
+Checks:
+
+- `Rscript -e "devtools::document()"`: completed.
+- `Rscript -e "devtools::test()"`: 1400 passed, 0 failed, 0 warnings, 0 skips.
+- `Rscript -e "pkgdown::check_pkgdown()"`: no problems found.
+- `Rscript -e "pkgdown::build_site()"`: passed.
+- `Rscript tools/fix-pkgdown-favicon-mime.R pkgdown-site`: passed.
+- `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`:
+  0 errors, 0 warnings, 0 notes for `drmTMB 0.1.0`.
+- `rg -n "0\\.0\\.0\\.9000|version will be bumped|development build; 0\\.1\\.0 preview planned|first public preview target|current development version|Development status" README.md NEWS.md DESCRIPTION _pkgdown.yml ROADMAP.md pkgdown-site/index.html pkgdown-site/news/index.html pkgdown-site/ROADMAP.html`:
+  no matches in active source and rendered landing, news, or roadmap pages.
+- `rg -n "0\\.1\\.0|Preview status|preview version|0.1.0 preview release|drmTMB 0.1.0|Released version" README.md NEWS.md DESCRIPTION _pkgdown.yml ROADMAP.md docs/dev-log/release-checklists/2026-05-10-0.1.0-preview-release.md pkgdown-site/index.html pkgdown-site/news/index.html pkgdown-site/ROADMAP.html`:
+  confirmed the source and rendered `0.1.0` release wording.
+- Chrome/Playwright layout sanity check over `pkgdown-site/index.html`: desktop
+  viewport `1280 x 900` had `scrollWidth = 1280`; mobile viewport `390 x 844`
+  had `scrollWidth = 390`; both showed version `0.1.0` and kept the first
+  headings as `Start here`, `Preview status`, `Install`, and `Tiny example`.
+- `git diff --check`: clean.
+
 ## 2026-05-10 -- Release-hardening gate refresh
 
 Scope:

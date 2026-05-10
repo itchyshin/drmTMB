@@ -28,16 +28,16 @@ science, but the package is general-purpose. The public scale parameter is
   [Model workflow](https://itchyshin.github.io/drmTMB/articles/model-workflow.html)
   and the [`check_drm()` reference](https://itchyshin.github.io/drmTMB/reference/check_drm.html).
 
-## Development status
+## Preview status
 
-This site is built from the current development version, `0.0.0.9000`. The
-first public preview target is `0.1.0`; the package version will be bumped
-when the release checklist is closed. Until then, install from GitHub and
-treat your results as development feedback.
+This site is built from the first public preview, `0.1.0`. The package is still
+pre-CRAN and intentionally bounded: use it for the implemented one-response and
+two-response workflows listed below, and treat unsupported model classes as
+roadmap work rather than hidden features.
 
 ## Install
 
-`drmTMB` is not on CRAN yet. Install the development version from GitHub with
+`drmTMB` is not on CRAN yet. Install the preview version from GitHub with
 `pak`:
 
 ```r
