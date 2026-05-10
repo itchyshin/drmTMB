@@ -22,6 +22,10 @@ That residual scale is not just a nuisance parameter; it can be the scientific
 answer when the question is about individual variability, predictability, or
 heterogeneous heterogeneity.
 
+If you are fitting your first model, start with the
+[worked growth example](#worked-example-growth-mean-and-predictability), then
+return to the syntax overview below when you want to adapt the formula.
+
 The first implemented `drmTMB` model class is Gaussian location-scale
 regression with fixed effects, optional random effects in the location formula,
 residual-scale random intercepts in the `sigma` formula, and random-effect

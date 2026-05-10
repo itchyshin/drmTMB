@@ -9,6 +9,8 @@ Scope:
 - made the README smoke-test data include a real Gaussian scale effect and
   added explicit residual SD ratio, residual variance ratio, and fitted
   residual variance code;
+- added an early link from the location-scale tutorial opening to the worked
+  growth example so new users can skip the syntax overview on first read;
 - added a "Fit your first model" section near the top of the getting-started
   article with simulated growth data, `check_drm()`, and sigma-to-variance
   interpretation;
@@ -21,17 +23,20 @@ Scope:
   longer names an already-present bivariate covariance example;
 - changed `pkgdown` deployment to run from a successful `R-CMD-check`
   `workflow_run` on `main` or `master`, while preserving manual dispatch;
+- made the pkgdown checkout use the successful `workflow_run` head SHA, with
+  `github.sha` as the manual-dispatch fallback;
 - added `v*` tag triggers and workflow-level concurrency to `R-CMD-check`.
 
 Checks:
 
-- `air format README.md vignettes/drmTMB.Rmd vignettes/bivariate-coscale.Rmd`
+- `air format README.md vignettes/drmTMB.Rmd vignettes/bivariate-coscale.Rmd vignettes/location-scale.Rmd`:
   completed.
 - `Rscript -e "pkgdown::build_articles(c('drmTMB', 'bivariate-coscale', 'meta-analysis'))"`:
   failed because `pkgdown::build_articles()` expects a package path, not a
   character vector of article names.
 - `Rscript -e "pkgdown::build_article('drmTMB'); pkgdown::build_article('bivariate-coscale'); pkgdown::build_article('meta-analysis')"`:
   passed.
+- `Rscript -e "pkgdown::build_article('location-scale')"`: passed.
 - `Rscript -e "pkgdown::build_home()"`: passed.
 - `Rscript -e "pkgdown::check_pkgdown()"`: no problems found.
 - `Rscript -e "pkgdown::build_site()"`: passed.
@@ -48,6 +53,10 @@ Checks:
   confirmed source and rendered documentation updates.
 - `gh run list --branch main --limit 2`: confirmed commit `480ff00` passed
   both `R-CMD-check` and `pkgdown` before starting this follow-up push.
+- GitHub Actions `R-CMD-check` run `25634267316`: passed on macOS, Ubuntu,
+  and Windows for commit `45158fc`.
+- GitHub Actions `pkgdown` run `25634395896`: triggered by `workflow_run` after
+  `R-CMD-check` passed and completed successfully for commit `45158fc`.
 - GitHub Actions workflow syntax was checked against official GitHub docs for
   `workflow_run` branch filters, `push` tag filters, and `concurrency`.
 - `git diff --check`: clean.

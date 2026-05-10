@@ -11,6 +11,8 @@ pkgdown deployment workflow wait for successful package checks on `main`.
   than unrelated random noise.
 - Added README code for residual SD ratios, residual variance ratios, and
   fitted residual variances.
+- Added an early link from the location-scale tutorial opening to its worked
+  growth example.
 - Added a "Fit your first model" section to the getting-started article before
   the feature catalogue.
 - Added "Getting started" as the first Tutorials navbar item.
@@ -19,6 +21,8 @@ pkgdown deployment workflow wait for successful package checks on `main`.
   observation variance, and bivariate residual covariance reporting.
 - Changed `pkgdown` deployment to trigger from successful `R-CMD-check`
   workflow runs on `main` or `master`, with manual dispatch retained.
+- Made the pkgdown job check out the successful `R-CMD-check` head SHA, with
+  `github.sha` as the manual-dispatch fallback.
 - Added `v*` release-tag triggers and workflow-level concurrency to
   `R-CMD-check`.
 
@@ -48,9 +52,10 @@ residual covariance is `rho12 * sigma1 * sigma2`.
 
 ## Checks Run
 
-- `air format README.md vignettes/drmTMB.Rmd vignettes/bivariate-coscale.Rmd`
+- `air format README.md vignettes/drmTMB.Rmd vignettes/bivariate-coscale.Rmd vignettes/location-scale.Rmd`
 - `Rscript -e "pkgdown::build_articles(c('drmTMB', 'bivariate-coscale', 'meta-analysis'))"` failed because the function expects a package path, not an article-name vector.
 - `Rscript -e "pkgdown::build_article('drmTMB'); pkgdown::build_article('bivariate-coscale'); pkgdown::build_article('meta-analysis')"`
+- `Rscript -e "pkgdown::build_article('location-scale')"`
 - `Rscript -e "pkgdown::build_home()"`
 - `Rscript -e "pkgdown::check_pkgdown()"`
 - `Rscript -e "pkgdown::build_site()"`
@@ -62,6 +67,10 @@ residual covariance is `rho12 * sigma1 * sigma2`.
 - `command -v actionlint || true`
 - `rg -n "residual_sd_ratio|residual_variance_ratio|Fit your first model|Getting started|residual_variance_activity|fitted_extra_heterogeneity_variance|workflow_run|concurrency|tags" README.md _pkgdown.yml vignettes/drmTMB.Rmd vignettes/bivariate-coscale.Rmd vignettes/meta-analysis.Rmd .github/workflows docs/dev-log/after-task/2026-05-10-variance-facing-sigma-reporting.md pkgdown-site/index.html pkgdown-site/articles/drmTMB.html pkgdown-site/articles/bivariate-coscale.html pkgdown-site/articles/meta-analysis.html --glob '!pkgdown-site/search.json'`
 - `gh run list --branch main --limit 2`
+- GitHub Actions `R-CMD-check` run `25634267316`: passed on macOS, Ubuntu,
+  and Windows for commit `45158fc`.
+- GitHub Actions `pkgdown` run `25634395896`: triggered by `workflow_run` after
+  `R-CMD-check` passed and completed successfully for commit `45158fc`.
 - `git diff --check`
 
 ## Tests Of The Tests
@@ -69,8 +78,9 @@ residual covariance is `rho12 * sigma1 * sigma2`.
 This task changed documentation and workflow YAML, not model code. The
 executable changed articles were rendered, the home page was rebuilt, and
 `pkgdown::check_pkgdown()` passed. Workflow files were parsed as YAML locally.
-`actionlint` was not installed, so final workflow validation depends on
-GitHub Actions after push.
+`actionlint` was not installed, so workflow validation also depended on GitHub
+Actions after push. That live validation passed: `R-CMD-check` succeeded first,
+and pkgdown then ran from `workflow_run`.
 
 ## Consistency Audit
 
@@ -100,9 +110,10 @@ as a workflow design bug, not just a one-off CI failure.
 
 ## Known Limitations
 
-The workflow change has been checked against GitHub documentation and YAML
-parsing, but it still needs a live GitHub Actions run to confirm that
-`workflow_run` deploys pkgdown only after the `R-CMD-check` workflow succeeds.
+The live GitHub Actions run confirmed that `workflow_run` triggers pkgdown only
+after the `R-CMD-check` workflow succeeds. The follow-up checkout refinement
+that pins pkgdown to the successful head SHA still needs its own live run after
+push.
 
 ## Next Actions
 
