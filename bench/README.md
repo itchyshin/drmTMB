@@ -93,6 +93,20 @@ is doing useful post-fit storage work. If both runs fail before optimization,
 the next problem is probably model-frame construction or dense-model-matrix
 memory.
 
+## Summarising Results
+
+Use the summary helper to turn a benchmark CSV into a small Markdown table:
+
+```sh
+Rscript bench/summarize-results.R \
+  --input bench/results/large-phylo-location.csv
+```
+
+The helper labels non-converged rows as diagnostic only. It also flags older
+CSV files that do not contain optimizer messages and evaluation counts; rerun
+those scenarios with a fresh output path before treating them as timing
+evidence.
+
 ## What Not To Claim
 
 Do not claim million-row readiness from one small benchmark. A credible claim

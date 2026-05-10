@@ -8067,3 +8067,43 @@ Known limitations:
 
 - the new bivariate memory-light test is a focused method smoke test, not a
   large-data benchmark.
+
+## 2026-05-10 -- Add benchmark summary helper
+
+Goal:
+
+- make local large-data benchmark CSV files easier to inspect while keeping
+  non-converged and legacy-schema rows visibly caveated.
+
+Implemented:
+
+- added `bench/summarize-results.R`;
+- the helper prints a Markdown table with scenario labels, convergence status,
+  diagnostic status, timing, object-size, heap-use, `sigma`, and phylogenetic
+  SD summaries;
+- older CSV files without optimizer messages and evaluation counts are labelled
+  `legacy_schema`;
+- non-converged rows are labelled `diagnostic_only`;
+- updated `bench/README.md` with the summary command and cautions.
+
+Commands run:
+
+- `air format bench/summarize-results.R bench/README.md`: passed.
+- `Rscript bench/summarize-results.R --input bench/results/large-phylo-location.csv`:
+  passed; it identified the local ignored CSV as `legacy_schema` and marked
+  the non-converged factor-heavy row as diagnostic only.
+- `Rscript bench/large-phylo-location.R --rows 1000 --species 50 --eval-max 80 --iter-max 80 --memory-light true --output /tmp/drmTMB-summary-smoke.csv`:
+  passed and wrote a fresh current-schema benchmark CSV.
+- `Rscript bench/summarize-results.R --input /tmp/drmTMB-summary-smoke.csv`:
+  passed and printed optimizer diagnostics for the current-schema row.
+- `Rscript bench/summarize-results.R --input /tmp/drmTMB-summary-smoke.csv --converged-only true`:
+  passed.
+- `Rscript bench/summarize-results.R --help`: passed.
+- `rg -n "summarize-results|Summarising Results|converged-only|legacy_schema|diagnostic_only" bench/README.md bench/summarize-results.R`:
+  passed.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- the helper summarizes CSV files only; it does not measure peak resident
+  memory or make a million-row readiness claim.
