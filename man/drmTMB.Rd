@@ -35,7 +35,9 @@ log-likelihood multipliers, not known sampling variances. For
 meta-analytic sampling variance or covariance, use \code{\link[=meta_known_V]{meta_known_V()}} in the
 model formula instead.}
 
-\item{control}{Optional list passed to \code{\link[stats:nlminb]{stats::nlminb()}}.}
+\item{control}{Optional list passed to \code{\link[stats:nlminb]{stats::nlminb()}}, or a
+\code{\link[=drm_control]{drm_control()}} object when optimizer settings and fitted-object storage
+choices should be supplied together.}
 
 \item{...}{Reserved for future model options.}
 }

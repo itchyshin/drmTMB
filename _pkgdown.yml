@@ -89,6 +89,7 @@ reference:
     desc: Fit, inspect, predict, and simulate distributional models.
     contents:
       - starts_with("drmTMB")
+      - drm_control
       - check_drm
       - corpairs
       - fitted.drmTMB

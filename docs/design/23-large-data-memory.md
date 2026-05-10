@@ -41,9 +41,10 @@ of 5 million-row objects before TMB starts optimizing.
 6. Benchmark scale-up explicitly; do not infer million-row performance from
    small simulation tests.
 
-## Planned User Controls
+## User Controls
 
-The first public control should be conservative and explicit:
+The first public control is conservative and explicit. Users can keep ordinary
+optimizer settings and fitted-object storage settings in one place:
 
 ```r
 fit <- drmTMB(
@@ -55,19 +56,26 @@ fit <- drmTMB(
   data = dat,
   control = drm_control(
     keep_data = FALSE,
-    keep_model_frame = FALSE,
-    sparse_fixed = "auto"
+    keep_tmb_object = FALSE,
+    optimizer = list(eval.max = 1000)
   )
 )
 ```
 
-The exact `drm_control()` interface is not implemented yet. The intended
-meaning is:
+The implemented first slice means:
 
 - `keep_data = FALSE`: do not store the full input data frame in the fit;
+- `keep_tmb_object = FALSE`: do not retain the TMB
+  automatic-differentiation object after optimization; `check_drm()` then
+  reports the fixed-gradient check as a note rather than re-evaluating it;
+- `optimizer = list(...)`: pass optimizer controls to `stats::nlminb()`.
+
+Two larger memory controls remain planned rather than implemented:
+
 - `keep_model_frame = FALSE`: do not store the full model frame after TMB data
-  has been built;
-- `sparse_fixed = "auto"`: use sparse fixed-effect matrices when factors or
+  has been built. This needs method fallbacks for prediction, offsets, response
+  names, residuals, and user-facing diagnostics before it is safe;
+- sparse fixed-effect matrices: use sparse design matrices when factors or
   high-dimensional terms would make dense matrices costly.
 
 ## Aggregation Path
@@ -155,9 +163,10 @@ Record:
 
 ## Open Questions
 
-- Should memory-light fits disable `residuals()` unless `newdata` or a stored
-  response vector is available?
-- Should `predict()` default to requiring `newdata` when `keep_data = FALSE`?
+- Should memory-light fits disable `residuals()` when both stored data and the
+  stored response vector are absent?
+- Should `predict()` default to requiring `newdata` when a later
+  `keep_model_frame = FALSE` path is implemented?
 - Should sufficient-statistic aggregation be automatic or require an explicit
   argument such as `aggregate = TRUE`?
 - `weights =` is now an ordinary likelihood multiplier. Aggregation should

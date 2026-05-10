@@ -7319,3 +7319,56 @@ Known limitations:
 - `devtools::check()` was not rerun after this test-only and roadmap batch
   because full check had passed immediately before it and the new full test
   suite passed.
+
+## 2026-05-10 -- Large-data storage control first slice
+
+Goal:
+
+- prepare `drmTMB` for large phylogenetic and ecological datasets by adding a
+  conservative memory-light fitted-object control path without changing any
+  likelihood.
+
+Implemented:
+
+- added exported `drm_control()` for optimizer settings plus fitted-object
+  storage controls;
+- preserved backward compatibility for plain `control = list(...)` optimizer
+  settings passed to `stats::nlminb()`;
+- added `keep_data = FALSE` to drop `fit$data` and `fit$model$data` after
+  fitting;
+- added `keep_tmb_object = FALSE` to drop `fit$obj` after optimization;
+- taught `check_drm()` to report the fixed-gradient check as a note when the
+  TMB object was intentionally not retained;
+- updated the large-data design note, roadmap, known limitations, NEWS, and
+  pkgdown reference index.
+
+Commands run:
+
+- `air format R/control.R R/drmTMB.R R/check.R tests/testthat/test-control.R`:
+  passed.
+- `Rscript -e "devtools::test(filter = '^control|^check-drm')"`: 77 passed,
+  0 failed, 0 warnings, 0 skips.
+- `Rscript -e "devtools::document()"`: first run wrote the new
+  `drm_control.Rd` topic and warned once because the link was new; second run
+  passed without warnings.
+- `Rscript -e "devtools::test()"`: 1424 passed, 0 failed, 0 warnings,
+  0 skips.
+- `Rscript -e "pkgdown::check_pkgdown()"`: no problems found.
+- `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`:
+  0 errors, 0 warnings, 0 notes.
+- `Rscript -e "pkgdown::build_site()"`: passed and generated
+  `pkgdown-site/reference/drm_control.html`.
+- `Rscript tools/fix-pkgdown-favicon-mime.R pkgdown-site`: passed.
+- `rg -n "Large-data memory controls are not implemented yet|drm_control|keep_tmb_object|keep_model_frame = FALSE|sparse_fixed" ROADMAP.md NEWS.md docs/dev-log/known-limitations.md docs/design/23-large-data-memory.md pkgdown-site/ROADMAP.html pkgdown-site/reference/drm_control.html pkgdown-site/news/index.html`:
+  confirmed the stale "not implemented yet" wording was removed and the new
+  reference page rendered.
+
+Known limitations:
+
+- this is not million-row readiness yet: fits still build ordinary R model
+  frames and dense fixed-effect model matrices before optimization;
+- `keep_model_frame = FALSE`, sparse fixed-effect matrices,
+  sufficient-statistic aggregation, and large benchmark scripts remain planned;
+- `check_drm()` cannot evaluate fixed gradients after `fit$obj` is dropped, so
+  it records that check as a note and tells the user how to refit for the
+  gradient check.

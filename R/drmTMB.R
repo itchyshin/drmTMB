@@ -42,7 +42,9 @@
 #'   log-likelihood multipliers, not known sampling variances. For
 #'   meta-analytic sampling variance or covariance, use [meta_known_V()] in the
 #'   model formula instead.
-#' @param control Optional list passed to [stats::nlminb()].
+#' @param control Optional list passed to [stats::nlminb()], or a
+#'   [drm_control()] object when optimizer settings and fitted-object storage
+#'   choices should be supplied together.
 #' @param ... Reserved for future model options.
 #'
 #' @return A `drmTMB` fit object.
@@ -67,6 +69,7 @@ drmTMB <- function(
   if (!is.data.frame(data)) {
     cli::cli_abort("{.arg data} must be a data frame.")
   }
+  control <- drm_parse_control(control)
 
   weights_expr <- if (missing(weights)) NULL else substitute(weights)
   weights_full <- evaluate_likelihood_weights_arg(
@@ -159,7 +162,7 @@ drmTMB <- function(
     start = obj$par,
     objective = obj$fn,
     gradient = obj$gr,
-    control = control
+    control = control$optimizer
   )
 
   sdr <- TMB::sdreport(obj, par.fixed = opt$par)
@@ -186,7 +189,7 @@ drmTMB <- function(
     nobs = spec$nobs
   )
   class(fit) <- "drmTMB"
-  fit
+  drm_apply_storage_control(fit, control)
 }
 
 drm_family_type <- function(family) {

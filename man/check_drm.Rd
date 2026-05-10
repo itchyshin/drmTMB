@@ -36,7 +36,9 @@ fixed-parameter gradients, Hessian status from \code{\link[TMB:sdreport]{TMB::sd
 rows, positive scale parameters, bivariate residual-correlation \code{rho12}
 values near the boundary, Student-t \code{nu} boundary behaviour, known sampling
 covariance summaries, random-effect replication, and random-slope design
-variation.
+variation. If the fit was stored with
+\code{drm_control(keep_tmb_object = FALSE)}, the fixed-gradient check is reported
+as a note because the TMB automatic-differentiation object is not available.
 
 Use \code{check_drm()} before interpreting coefficients, fitted values, or
 response-scale quantities. A \code{note} records something to inspect, such as
