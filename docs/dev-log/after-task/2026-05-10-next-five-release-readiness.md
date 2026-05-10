@@ -113,9 +113,10 @@ implemented.
 
 ## Next Actions
 
-Open the `0.1.0` checklist as a GitHub issue when the user wants release work
-tracked publicly. For replication of the individual-difference location-scale
-paper and tutorial, the next step is to pin the datasets and translate each
-model into a table that records whether the current `drmTMB` likelihood can
-fit it, whether only a derived `sigma^2` summary is needed, or whether a future
-covariance block is required.
+The `0.1.0` checklist was opened publicly in
+https://github.com/itchyshin/drmTMB/issues/1 during the follow-up release-gate
+batch. For replication of the individual-difference location-scale paper and
+tutorial, the next step is to pin the datasets and translate each model into a
+table that records whether the current `drmTMB` likelihood can fit it, whether
+only a derived `sigma^2` summary is needed, or whether a future covariance
+block is required.

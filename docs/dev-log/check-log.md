@@ -2,6 +2,56 @@
 
 Record meaningful development checks here.
 
+## 2026-05-10 -- Next-five 0.1.0 release-gate batch
+
+Scope:
+
+- ran and archived the Gaussian location-scale comparator result that overlaps
+  with `glmmTMB`;
+- verified roxygen output with `devtools::document()`;
+- opened the public `0.1.0` preview-release checklist as
+  https://github.com/itchyshin/drmTMB/issues/1;
+- updated the release checklist, check log, and after-task evidence trail
+  before running package and site validation.
+
+Files touched:
+
+- `docs/dev-log/comparator-results/2026-05-10-gaussian-location-scale-glmmtmb.md`
+- `docs/dev-log/release-checklists/2026-05-10-0.1.0-preview-release.md`
+- `docs/dev-log/after-task/2026-05-10-next-five-release-readiness.md`
+- `docs/dev-log/after-task/2026-05-10-next-five-release-gate.md`
+- `docs/dev-log/check-log.md`
+
+Commands and evidence:
+
+- `Rscript tools/replicate-location-scale-gaussian.R`: passed. Fixed-effect
+  maximum absolute differences were `1.372665e-06` for `mu` coefficients,
+  `1.999083e-06` for `sigma` coefficients, and `3.964260e-10` for
+  log-likelihood. Random-intercept maximum absolute differences were
+  `6.226181e-08` for `mu` coefficients, `6.677708e-06` for `sigma`
+  coefficients, `6.810643e-07` for the `mu` random-intercept SD, and
+  `2.117218e-09` for log-likelihood.
+- `Rscript -e "devtools::document()"`: completed and produced no file changes.
+- `gh issue create --title "Release checklist: drmTMB 0.1.0 preview" --body-file docs/dev-log/release-checklists/2026-05-10-0.1.0-preview-release.md`:
+  opened issue #1.
+
+Checks:
+
+- `Rscript -e "pkgdown::build_site()"`: passed.
+- `Rscript tools/fix-pkgdown-favicon-mime.R pkgdown-site`: passed.
+- `Rscript -e "pkgdown::check_pkgdown()"`: no problems found.
+- `rg -n "O'Dea/Nakagawa|O'Dea-style|O\.Dea/Nakagawa|O\.Dea-style" README.md ROADMAP.md NEWS.md docs/design docs/dev-log/release-checklists docs/dev-log/after-task/2026-05-10-next-five-release-gate.md docs/dev-log/after-task/2026-05-10-next-five-release-readiness.md vignettes _pkgdown.yml pkgdown-site --glob '!pkgdown-site/search.json'`:
+  no matches for the removed internal shorthand in active user-facing and
+  current release-gate files.
+- `rg -n "rho ~|meta_gaussian\(|tau ~|family = c\(gaussian\(\), poisson\(\)\)" README.md ROADMAP.md NEWS.md vignettes R tests docs/dev-log/after-task/2026-05-10-next-five-release-gate.md docs/dev-log/release-checklists/2026-05-10-0.1.0-preview-release.md`:
+  found only guardrail prose, planned-feature prose, and a negative test.
+- `Rscript -e "devtools::test()"`: 1400 passed, 0 failed, 0 warnings,
+  0 skips.
+- `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`:
+  0 errors, 0 warnings, 0 notes.
+- `git diff --check`: clean.
+- Pending after commit: push and GitHub Actions.
+
 ## 2026-05-10 -- Sleep consolidation pause
 
 Scope:
