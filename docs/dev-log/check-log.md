@@ -7424,3 +7424,32 @@ Known limitations:
 - the harness is synthetic and does not replace real user-data timing;
 - full million-row readiness still needs safe model-frame pruning, sparse
   fixed-effect matrices, and repeated benchmark logs at 100k to 5M rows.
+
+## 2026-05-10 -- Benchmark result guidance
+
+Goal:
+
+- make the optional large-data benchmark easier to run, compare, and interpret
+  without implying that one smoke run proves million-row readiness.
+
+Implemented:
+
+- added `bench/README.md` with a recommended large-data benchmark matrix,
+  output-column definitions, operating-system peak-memory commands, and a
+  default-versus-memory-light comparison workflow;
+- ignored local benchmark CSV files and `bench/results/` in `.gitignore`.
+
+Commands run:
+
+- `git diff --check`: passed.
+- `rg -n "Recommended Matrix|Output Columns|memory-light false|bench/results" bench/README.md .gitignore`:
+  confirmed the benchmark guide, default-versus-memory-light example, and local
+  output ignore rules are present.
+
+Known limitations:
+
+- this task documents how to collect benchmark evidence; it does not add new
+  benchmark results or change package behaviour;
+- peak-memory examples are platform-specific (`/usr/bin/time -l` on macOS,
+  `/usr/bin/time -v` on Linux), so Windows users still need a separate
+  measurement path.

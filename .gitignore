@@ -55,6 +55,10 @@ docs/*
 !docs/course/**
 pkgdown-site/
 
+# Local benchmark outputs
+bench/*.csv
+bench/results/
+
 # translation temp files
 po/*~
 
