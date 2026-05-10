@@ -7708,3 +7708,58 @@ Known limitations:
   model-matrix peak memory;
 - the factor-heavy row needs a follow-up convergence-focused rerun or sparse
   fixed-effect design work before it can support a performance claim.
+
+## 2026-05-10 -- Add optimizer diagnostics to benchmark output
+
+Goal:
+
+- make benchmark CSV rows explain optimizer status, not only the integer
+  convergence code.
+
+Implemented:
+
+- `bench/large-phylo-location.R` now records optimizer message, iteration
+  count, function-evaluation count, and gradient-evaluation count;
+- the benchmark writer now checks column names before appending and errors
+  with a clear message if an existing ignored CSV uses an older schema;
+- `bench/README.md` documents the new columns and the output-schema caveat.
+
+Commands run:
+
+- `air format bench/large-phylo-location.R`: passed.
+- `Rscript bench/large-phylo-location.R --rows 1000 --species 50 --eval-max 80 --iter-max 80 --memory-light true --output /tmp/drmTMB-benchmark-diagnostics.csv`:
+  passed.
+- `Rscript -e "x <- read.csv('/tmp/drmTMB-benchmark-diagnostics.csv', check.names = FALSE); print(names(x)); print(x[, c('convergence', 'convergence_message', 'iterations', 'function_evaluations', 'gradient_evaluations')]);"`:
+  passed and confirmed the diagnostic columns.
+- `Rscript bench/large-phylo-location.R --rows 1000 --species 50 --eval-max 80 --iter-max 80 --memory-light true --output /tmp/drmTMB-benchmark-diagnostics.csv`:
+  passed and appended a second row with the same schema.
+- `Rscript -e "x <- read.csv('/tmp/drmTMB-benchmark-diagnostics.csv', check.names = FALSE); print(dim(x)); print(x[, c('convergence', 'convergence_message', 'iterations', 'function_evaluations', 'gradient_evaluations')]);"`:
+  passed and confirmed the output had 2 rows and 28 columns.
+- `/usr/bin/time -l Rscript bench/large-phylo-location.R --rows 100000 --species 1000 --eval-max 180 --iter-max 180 --factor-heavy true --memory-light true --output /tmp/drmTMB-factor-heavy-diagnostics.csv`:
+  completed and produced convergence code 1.
+- `Rscript -e "x <- read.csv('/tmp/drmTMB-factor-heavy-diagnostics.csv', check.names = FALSE); print(x[, c('convergence', 'convergence_message', 'iterations', 'function_evaluations', 'gradient_evaluations', 'fit_sec', 'fit_object_mb', 'model_matrix_mb', 'gc_used_mb_post_fit')]);"`:
+  passed and confirmed the optimizer stopped at the function-evaluation limit.
+- `/usr/bin/time -l Rscript bench/large-phylo-location.R --rows 100000 --species 1000 --eval-max 400 --iter-max 400 --factor-heavy true --memory-light true --output /tmp/drmTMB-factor-heavy-diagnostics-400.csv`:
+  completed and produced convergence code 1.
+- `Rscript -e "x <- read.csv('/tmp/drmTMB-factor-heavy-diagnostics-400.csv', check.names = FALSE); print(x[, c('convergence', 'convergence_message', 'iterations', 'function_evaluations', 'gradient_evaluations', 'fit_sec', 'fit_object_mb', 'model_matrix_mb', 'gc_used_mb_post_fit')]);"`:
+  passed and confirmed the longer run ended with false convergence.
+
+Result:
+
+- the smoke benchmark converged with convergence code 0, optimizer message
+  `relative convergence (4)`, 40 iterations, 49 function evaluations, and
+  41 gradient evaluations.
+- the 100k factor-heavy diagnostic rerun returned convergence code 1 with
+  message `function evaluation limit reached without convergence (9)`,
+  147 iterations, 180 function evaluations, and 147 gradient evaluations.
+- the 100k factor-heavy rerun with `eval.max = 400` and `iter.max = 400`
+  returned convergence code 1 with message `false convergence (8)`, 301
+  iterations, 382 function evaluations, and 301 gradient evaluations.
+
+Known limitations:
+
+- existing local ignored CSV files written by the older schema need a new
+  output path or removal before appending rows from the updated benchmark
+  script.
+- the 100k factor-heavy stress run needs convergence diagnostics before it can
+  support a timing claim; raising iteration limits alone did not close it.

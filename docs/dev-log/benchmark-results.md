@@ -33,6 +33,10 @@ Interpretation:
 - Sparse fixed-effect matrices and sufficient-statistic aggregation remain the
   next features needed before making stronger claims about million-row data.
 - The 40-level-factor row is a diagnostic stress run, not an accepted timing
-  result, because `nlminb()` returned convergence code 1 under the benchmark
-  iteration settings. It still shows the dense fixed-effect matrix pressure
-  that sparse design matrices need to address.
+  result, because `nlminb()` returned convergence code 1 with the message
+  `function evaluation limit reached without convergence (9)` under the
+  benchmark iteration settings. A rerun with `eval.max = 400` and
+  `iter.max = 400` still returned convergence code 1, now with
+  `false convergence (8)`. It still shows the dense fixed-effect matrix
+  pressure that sparse design matrices and convergence diagnostics need to
+  address.

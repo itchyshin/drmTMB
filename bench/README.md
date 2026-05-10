@@ -15,6 +15,9 @@ Run it from the package root. The script loads the local development checkout
 with `devtools::load_all()` when available; otherwise it uses an installed
 `drmTMB`.
 
+If an existing output CSV was created by an older benchmark schema, choose a
+new `--output` path or remove the old ignored CSV before appending new rows.
+
 ## Recommended Matrix
 
 Start small, then scale only when the previous run converges and memory use is
@@ -42,6 +45,9 @@ larger values when the fit is intended as a real timing result.
 | `sigma_x` | Whether the scale model is `sigma ~ x1` instead of `sigma ~ 1`. |
 | `memory_light` | Whether `keep_data = FALSE`, `keep_model_frame = FALSE`, and `keep_tmb_object = FALSE` were used. |
 | `convergence` | `stats::nlminb()` convergence code; `0` is the target. |
+| `convergence_message` | Optimizer message from `stats::nlminb()`, when available. |
+| `iterations` | Number of optimizer iterations reported by `stats::nlminb()`. |
+| `function_evaluations`, `gradient_evaluations` | Optimizer evaluation counts reported by `stats::nlminb()`. |
 | `nobs` | Number of modelled observations after filtering. |
 | `data_build_sec` | Time to generate synthetic data and tree objects. |
 | `fit_sec` | Elapsed model-fitting time. |
@@ -91,4 +97,5 @@ memory.
 
 Do not claim million-row readiness from one small benchmark. A credible claim
 needs repeated runs, the command used, machine details, convergence code,
-object sizes, and peak-memory evidence from the operating system.
+optimizer message, object sizes, and peak-memory evidence from the operating
+system.

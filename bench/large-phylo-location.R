@@ -267,6 +267,14 @@ gc_used_mb <- function() {
   sum(gc_out[, "used"] * c(8, 56)) / 1024^2
 }
 
+opt_scalar <- function(x, name, default = NA_real_) {
+  value <- x[[name]]
+  if (is.null(value) || length(value) == 0L) {
+    return(default)
+  }
+  unname(value[[1L]])
+}
+
 run_benchmark <- function(args) {
   load_drmTMB()
   if (args$species < 2L) {
@@ -298,6 +306,10 @@ run_benchmark <- function(args) {
   post_fit_mb <- gc_used_mb()
   predict_time <- system.time(pred <- predict(fit, dpar = "mu"))
   residual_time <- system.time(res <- residuals(fit))
+  opt_message <- fit$opt$message
+  if (is.null(opt_message) || length(opt_message) == 0L) {
+    opt_message <- NA_character_
+  }
 
   data.frame(
     rows = args$rows,
@@ -307,6 +319,10 @@ run_benchmark <- function(args) {
     sigma_x = args$sigma_x,
     memory_light = args$memory_light,
     convergence = fit$opt$convergence,
+    convergence_message = opt_message[[1L]],
+    iterations = opt_scalar(fit$opt, "iterations"),
+    function_evaluations = opt_scalar(fit$opt$evaluations, "function"),
+    gradient_evaluations = opt_scalar(fit$opt$evaluations, "gradient"),
     nobs = stats::nobs(fit),
     data_build_sec = unname(data_time[["elapsed"]]),
     fit_sec = unname(fit_time[["elapsed"]]),
@@ -335,6 +351,16 @@ write_result <- function(result, output) {
   }
   dir.create(dirname(output), recursive = TRUE, showWarnings = FALSE)
   append <- file.exists(output) && file.info(output)$size > 0
+  if (append) {
+    header <- names(utils::read.csv(output, nrows = 0L, check.names = FALSE))
+    if (!identical(header, names(result))) {
+      stop(
+        "Existing benchmark CSV has a different schema. ",
+        "Choose a new --output path or remove the old benchmark CSV.",
+        call. = FALSE
+      )
+    }
+  }
   utils::write.table(
     result,
     file = output,
