@@ -124,4 +124,5 @@
   still build ordinary R model frames and dense fixed-effect model matrices
   before optimization. Before claiming readiness for millions of rows,
   `drmTMB` still needs safe model-frame dropping, sparse fixed-effect matrices
-  where appropriate, and explicit large phylogenetic benchmark scripts.
+  where appropriate, and repeated large phylogenetic benchmark runs beyond the
+  initial optional harness in `bench/large-phylo-location.R`.

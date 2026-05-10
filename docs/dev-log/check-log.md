@@ -7372,3 +7372,55 @@ Known limitations:
 - `check_drm()` cannot evaluate fixed gradients after `fit$obj` is dropped, so
   it records that check as a note and tells the user how to refit for the
   gradient check.
+
+## 2026-05-10 -- Large-data workflow article and benchmark harness
+
+Goal:
+
+- make the large-data path visible and practical for applied users, not only
+  recorded as a developer design note.
+
+Implemented:
+
+- added `vignettes/large-data.Rmd`, a short user-facing article about current
+  memory-light controls, post-fit output risks, and current limitations;
+- added `bench/large-phylo-location.R`, an optional non-CRAN benchmark harness
+  for univariate Gaussian phylogenetic location models;
+- wired the article into `_pkgdown.yml` and the Tutorials navbar;
+- updated `NEWS.md`, `ROADMAP.md`, `docs/design/23-large-data-memory.md`, and
+  `docs/dev-log/known-limitations.md`;
+- added `^bench$` to `.Rbuildignore` so the benchmark remains a repository
+  development artifact and does not create an R CMD check top-level-file note.
+
+Commands run:
+
+- `air format bench/large-phylo-location.R`: passed.
+- `Rscript bench/large-phylo-location.R --rows 200 --species 16 --eval-max 80 --iter-max 80 --memory-light true`:
+  passed with convergence code 0.
+- `Rscript bench/large-phylo-location.R --rows 120 --species 10 --tree star --eval-max 80 --iter-max 80 --memory-light true`:
+  passed with convergence code 0.
+- `Rscript bench/large-phylo-location.R --help | head -n 20`: confirmed the
+  public command-line options use hyphenated names such as `--memory-light`.
+- temporary CSV-output smoke run with `--factor-heavy true --sigma-x true`:
+  wrote a header and one result row after fixing append detection for empty
+  `mktemp` files.
+- `Rscript -e "pkgdown::check_pkgdown()"`: no problems found.
+- `Rscript -e "pkgdown::build_site()"`: passed and generated
+  `pkgdown-site/articles/large-data.html`.
+- `Rscript tools/fix-pkgdown-favicon-mime.R pkgdown-site`: passed.
+- first `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`:
+  found 1 note because top-level `bench/` was included in the source package.
+- added `^bench$` to `.Rbuildignore`.
+- final `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`:
+  0 errors, 0 warnings, 0 notes.
+- `rg -n "large-data|large data|Working with large data|large-phylo-location|memory-light|memory_light|factor_heavy|sigma_x|not implemented yet" README.md ROADMAP.md NEWS.md _pkgdown.yml docs/design/23-large-data-memory.md docs/dev-log/known-limitations.md vignettes/large-data.Rmd pkgdown-site/articles/large-data.html pkgdown-site/ROADMAP.html pkgdown-site/news/index.html`:
+  confirmed the article rendered, navbar links exist, and public examples use
+  the hyphenated benchmark options.
+
+Known limitations:
+
+- the benchmark uses base R object sizes and garbage-collector summaries; peak
+  resident memory still needs an external OS tool such as `/usr/bin/time -l`;
+- the harness is synthetic and does not replace real user-data timing;
+- full million-row readiness still needs safe model-frame pruning, sparse
+  fixed-effect matrices, and repeated benchmark logs at 100k to 5M rows.

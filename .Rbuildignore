@@ -1,6 +1,7 @@
 ^\.agents$
 ^\.codex$
 ^\.github$
+^bench$
 ^data-raw$
 ^dis_reg_models$
 ^docs$

@@ -41,6 +41,8 @@ navbar:
           href: articles/meta-analysis.html
         - text: Implemented phylogeny and planned space
           href: articles/phylogenetic-spatial.html
+        - text: Working with large data
+          href: articles/large-data.html
         - text: Choosing response families
           href: articles/distribution-families.html
     developer:
@@ -117,6 +119,7 @@ articles:
       - meta-analysis
       - bivariate-coscale
       - phylogenetic-spatial
+      - large-data
       - distribution-families
   - title: Developer Notes
     contents:

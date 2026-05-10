@@ -175,8 +175,9 @@ distributional regression models using TMB.
 - Add sparse fixed-effect matrix support before claiming million-row readiness.
 - Add optional aggregation or sufficient-statistic paths for Gaussian models
   where repeated rows can be collapsed without changing the likelihood.
-- Add non-CRAN benchmarks for 100k, 500k, 1M, and 5M observation rows with
-  1k-10k species.
+- An initial non-CRAN benchmark harness exists at
+  `bench/large-phylo-location.R`; use it to record 100k, 500k, 1M, and 5M
+  observation-row runs with 1k-10k species as the implementation matures.
 - Treat the sparse A-inverse phylogenetic path and large-row memory path as
   separate scaling problems.
 

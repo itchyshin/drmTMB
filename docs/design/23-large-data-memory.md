@@ -138,28 +138,27 @@ temporary memory use if the data are copied or if large reports are built.
 
 ## Benchmark Plan
 
-Add a non-CRAN benchmark script, not a unit test:
+The repository includes a non-CRAN benchmark script, not a unit test:
 
 ```text
 bench/large-phylo-location.R
 ```
 
-The script should generate or load synthetic data with:
+The script generates synthetic data and records elapsed time, fitted-object
+size, model-matrix size, TMB-data size, prediction time, residual time,
+convergence code, and fitted scale summaries. It accepts command-line options
+for:
 
-- 1,000, 5,000, and 10,000 species;
-- 100,000, 500,000, 1,000,000, and 5,000,000 rows;
-- few fixed effects first, then factor-heavy fixed effects;
-- `sigma ~ 1` first, then `sigma ~ x`;
+- 1,000, 5,000, and 10,000 species through `--species`;
+- 100,000, 500,000, 1,000,000, and 5,000,000 rows through `--rows`;
+- few fixed effects first, then factor-heavy fixed effects through
+  `--factor-heavy`;
+- `sigma ~ 1` first, then `sigma ~ x` through `--sigma-x`;
 - intercept-only `phylo(1 | species, tree = tree)`.
 
-Record:
-
-- peak memory;
-- time to build model frame and TMB data;
-- time per objective/gradient evaluation;
-- total optimization time;
-- fitted-parameter recovery for synthetic data;
-- whether prediction/residual extraction is feasible at full row scale.
+For peak resident memory, run the script through an external operating-system
+tool such as `/usr/bin/time -l` on macOS. Base R does not expose a portable
+cross-platform peak-memory measure.
 
 ## Open Questions
 

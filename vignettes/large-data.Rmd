@@ -1,0 +1,164 @@
+---
+title: "Working with large data"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Working with large data}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", eval = FALSE)
+```
+
+Large data changes the workflow. A model that is statistically reasonable can
+still fail because R builds large model frames, dense model matrices, fitted
+objects, predictions, and residual vectors before the scientific question is
+answered. This article is for users fitting ecological, evolutionary, or
+environmental-science models with many observation rows, many species, or both.
+
+The short version is: fit the smallest model that answers the question, keep
+only the fitted-object pieces you need, and benchmark on a smaller version of
+the real data before running the full analysis.
+
+## What is implemented now
+
+`drmTMB` has a first memory-light fitted-object path through `drm_control()`.
+For a large univariate Gaussian phylogenetic location model, use:
+
+```{r}
+library(drmTMB)
+
+fit <- drmTMB(
+  bf(
+    y ~ x1 + x2 + phylo(1 | species, tree = tree),
+    sigma ~ 1
+  ),
+  family = gaussian(),
+  data = dat,
+  control = drm_control(
+    optimizer = list(eval.max = 1000, iter.max = 1000),
+    keep_data = FALSE,
+    keep_tmb_object = FALSE
+  )
+)
+```
+
+Here `keep_data = FALSE` removes the stored complete-case data frame from the
+fitted object after optimization. `keep_tmb_object = FALSE` removes the TMB
+automatic-differentiation object after optimization. The fitted coefficients,
+standard errors, fitted values, residuals, simulation, and `sigma` extraction
+still use the stored model matrices, response vectors, optimized parameters,
+and `sdreport` object.
+
+This control is useful when the fitted model is kept for interpretation,
+prediction, or plotting, but the original data frame and TMB object do not need
+to travel with it.
+
+## What this does not solve yet
+
+The current memory-light path does not prevent R from building model frames and
+model matrices before optimization. That means it helps fitted-object size, but
+it is not a complete solution for millions of rows.
+
+These pieces remain planned:
+
+- `keep_model_frame = FALSE`, with safe fallbacks for prediction, offsets,
+  residuals, response names, and diagnostics;
+- sparse fixed-effect matrices for factor-heavy models;
+- Gaussian sufficient-statistic aggregation when repeated rows can be collapsed
+  without changing the likelihood;
+- explicit benchmark runs for 100k, 500k, 1M, and 5M rows with 1k to 10k
+  species.
+
+If a model has a high-cardinality factor in a fixed-effect formula, the dense
+`model.matrix()` step may dominate memory before TMB sees the data. Treat that
+as a sparse-design problem, not as a phylogenetic precision problem.
+
+## Check the fit with the storage choice in mind
+
+Run `check_drm()` before interpreting a large fit:
+
+```{r}
+check_drm(fit)
+```
+
+If `keep_tmb_object = FALSE`, the fixed-gradient row is a note rather than an
+`ok` result. That note means the gradient cannot be re-evaluated because
+`fit$obj` was intentionally dropped. Refit with
+`drm_control(keep_tmb_object = TRUE)` when you need the gradient diagnostic for
+a final report.
+
+## Avoid accidental full-row output
+
+Functions such as `predict(fit)`, `fitted(fit)`, `residuals(fit)`, and
+`simulate(fit)` can create vectors or data frames with one value per
+observation. On a five-million-row dataset, that output is itself large.
+
+For interpretation plots, prefer smaller `newdata` grids:
+
+```{r}
+new_dat <- data.frame(
+  x1 = seq(-2, 2, length.out = 100),
+  x2 = 0,
+  species = dat$species[[1]]
+)
+
+predict(fit, newdata = new_dat, dpar = "mu")
+```
+
+For residual checks, decide whether you need every row or a targeted sample.
+For simulations, start with small `nsim` and store only the summaries needed
+for the biological question.
+
+## Benchmark before the full run
+
+The repository includes a non-CRAN benchmark harness:
+
+```sh
+Rscript bench/large-phylo-location.R --rows 100000 --species 1000 \
+  --memory-light true --output bench/results.csv
+```
+
+The script generates a synthetic Gaussian phylogenetic location dataset, fits:
+
+```r
+y ~ x1 + x2 + phylo(1 | species, tree = tree)
+sigma ~ 1
+```
+
+and records elapsed time, fitted-object size, model-matrix size, TMB-data size,
+prediction time, residual time, convergence code, and fitted scale summaries.
+Use it to learn how your machine behaves before running the full analysis.
+
+For factor-heavy designs, add:
+
+```sh
+Rscript bench/large-phylo-location.R --rows 100000 --species 1000 \
+  --factor-heavy true --memory-light true --output bench/results.csv
+```
+
+For a model with a scale predictor, add:
+
+```sh
+Rscript bench/large-phylo-location.R --rows 100000 --species 1000 \
+  --sigma-x true --memory-light true --output bench/results.csv
+```
+
+The benchmark is intentionally outside the package test suite. It can be slow,
+and it measures local hardware, BLAS, compiler, and operating-system behaviour
+as much as package code.
+
+## Practical checklist
+
+- Start with a fixed-effect or smaller phylogenetic model that answers a
+  simpler version of the question.
+- Fit with `keep_data = FALSE` and `keep_tmb_object = FALSE` when you do not
+  need to carry the original data or TMB object inside the saved fit.
+- Keep `keep_tmb_object = TRUE` for final diagnostic refits where the fixed
+  gradient check matters.
+- Use `newdata` grids for interpretation instead of creating full-row
+  predictions by default.
+- Run the benchmark script at 100k rows before trying million-row analyses.
+- Treat sparse fixed-effect matrices and data aggregation as future scaling
+  features, not current guarantees.

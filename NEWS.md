@@ -1,5 +1,6 @@
 # drmTMB 0.1.0 (2026-05-10)
 
+* A new large-data workflow article documents current memory-light fit controls, practical post-fit output cautions, and the optional `bench/large-phylo-location.R` benchmark harness for Gaussian phylogenetic location models.
 * `bf()` now stores parsed formula entries for distributional parameters, including bivariate `rho12`, meta-analysis `meta_known_V(V = V)`, and random-effect scale syntax.
 * `beta()` now fits fixed-effect beta mean-scale models for strict continuous proportions in `(0, 1)`, using `logit(mu)`, `log(sigma)`, and internal precision `phi = 1 / sigma^2`; `fitted()` returns `mu` and `sigma(fit)` returns the public scale parameter.
 * `beta_binomial()` now fits fixed-effect beta-binomial mean-overdispersion models for `cbind(successes, failures)` responses, using `logit(mu)`, `log(sigma)`, and internal beta precision `phi = 1 / sigma^2`. `fitted()` returns the success probability `mu`, and `sigma(fit)` returns the public extra-binomial variation scale.
