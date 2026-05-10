@@ -2,6 +2,23 @@
 
 Record meaningful development checks here.
 
+## 2026-05-10 -- Sleep consolidation pause
+
+Scope:
+
+- recorded a pause note after the Phase 9 release-readiness push and reader
+  wording correction;
+- distilled what is stronger, what failed usefully, and what the next focused
+  move should be before starting another implementation batch.
+
+Artifact:
+
+- `docs/dev-log/after-task/2026-05-10-sleep-consolidation.md`
+
+Checks:
+
+- `git diff --check`: clean.
+
 ## 2026-05-10 -- Reader-first individual-difference wording
 
 Scope:
