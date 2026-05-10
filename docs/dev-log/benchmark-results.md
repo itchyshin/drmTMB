@@ -4,13 +4,13 @@ This file records selected development benchmark results from ignored CSV
 outputs. Use it as evidence for internal planning, not as a public performance
 claim.
 
-## Large Phylogenetic Gaussian Location Model
+## Large Phylogenetic Gaussian Location-Scale Benchmarks
 
-All rows use a balanced synthetic tree, Gaussian responses,
-`phylo(1 | species, tree = tree)`, and the same small numeric fixed-effect
-location formula unless the `Factor levels` column says otherwise. The macOS
-peak-memory values come from `/usr/bin/time -l`. `R heap after fit MB` is a
-post-fit garbage-collector summary, not peak memory.
+All rows use a balanced synthetic tree, Gaussian responses, and
+`y ~ x1 + x2 + phylo(1 | species, tree = tree)` unless the `Factor levels`
+column says otherwise. The macOS peak-memory values come from
+`/usr/bin/time -l`. `R heap after fit MB` is a post-fit garbage-collector
+summary, not peak memory.
 Rows collected before the 2026-05-10 `gc_used_mb()` cell-weight fix should use
 this column only as rough historical context; prefer object sizes, max RSS, and
 peak footprint when interpreting those rows.

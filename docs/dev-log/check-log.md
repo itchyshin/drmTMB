@@ -8498,6 +8498,11 @@ Commands run:
   `diagnostics_recorded`.
 - `Rscript -e "x <- read.csv('/tmp/drmTMB-gc-fixed-500k-sigma-x-a67891b.csv', check.names = FALSE); print(x[, c('rows','species','sigma_x','memory_light','convergence','convergence_message','iterations','function_evaluations','gradient_evaluations','fit_sec','fit_object_mb','model_matrix_mb','tmb_data_mb','gc_used_mb_post_fit','sigma_hat','sd_phylo_hat')]);"`:
   passed.
+- `air format docs/dev-log/benchmark-results.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-10-benchmark-sigma-x-500k.md`:
+  passed.
+- `rg -n "sigma ~ x1|389\\.028|5,451,743,232|gc-fixed-500k-sigma-x|72 iterations|105 function" docs/dev-log/benchmark-results.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-10-benchmark-sigma-x-500k.md`:
+  passed and found the 500k `sigma ~ x1` benchmark evidence.
+- `git diff --check`: passed.
 
 Known limitations:
 
