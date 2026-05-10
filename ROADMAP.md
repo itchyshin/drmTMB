@@ -264,6 +264,11 @@ random-effect features land.
   fixed latent logistic scale. The first `beta_binomial()` path is implemented
   for `cbind(successes, failures)` responses, fixed effects, known trial
   totals, and extra-binomial `sigma`.
+- Release decision for `0.1.0`: Phase 9 is closed at this MVP boundary. Ordinal
+  scale or discrimination formulae, denominator aliases beyond
+  `cbind(successes, failures)`, zero-one-inflated beta, and ordered beta remain
+  post-preview work unless they are implemented with tests before the version
+  bump.
 - Decide whether the next ordinal scale formula is exposed as `sigma ~ ...` or
   a family-specific discrimination parameter before coding starts; the
   direction of interpretation must be unambiguous. The current design note

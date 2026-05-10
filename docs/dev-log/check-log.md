@@ -2,6 +2,44 @@
 
 Record meaningful development checks here.
 
+## 2026-05-10 -- Release-hardening gate refresh
+
+Scope:
+
+- synced the local `0.1.0` release checklist with the Phase 9 preview boundary;
+- closed Phase 9 for `0.1.0` at the implemented location-only ordinal and
+  `cbind(successes, failures)` beta-binomial MVPs;
+- added an implemented-family coverage audit at
+  `docs/dev-log/release-audits/2026-05-10-family-coverage.md`;
+- synced GitHub issue #1 with the updated local checklist and applied the
+  `release`, `0.1.0`, `pkgdown`, and `CRAN-ish` labels.
+
+Checks:
+
+- `rg -n "test_that\\(" tests/testthat/test-{beta-binomial,beta-location-scale,biv-gaussian,cumulative-logit,gamma-location-scale,gaussian-location-scale,gaussian-random-effect-scale,gaussian-random-intercepts,hurdle-nbinom2,lognormal-location-scale,meta-known-v,nbinom2-location-scale,phylo-gaussian,poisson-mean,student-location-scale,truncated-nbinom2-location-scale,zi-nbinom2,zi-poisson}.R`:
+  mapped the implemented family test files and test descriptions.
+- `rg -n "likelihood matches independent|matches independent|comparator|recover|reject|unsupported|malformed|boundary|edge|complete-case|weights|simulation|simulate|finite|approaches|offset|zero" tests/testthat/test-{beta-binomial,beta-location-scale,biv-gaussian,cumulative-logit,gamma-location-scale,gaussian-location-scale,gaussian-random-effect-scale,gaussian-random-intercepts,hurdle-nbinom2,lognormal-location-scale,meta-known-v,nbinom2-location-scale,phylo-gaussian,poisson-mean,student-location-scale,truncated-nbinom2-location-scale,zi-nbinom2,zi-poisson}.R`:
+  confirmed coverage categories for the family audit.
+- `Rscript -e "devtools::test()"`: 1400 passed, 0 failed, 0 warnings, 0 skips.
+- `Rscript -e "devtools::document()"`: completed.
+- `Rscript -e "pkgdown::check_pkgdown()"`: no problems found.
+- `Rscript -e "pkgdown::build_site()"`: passed.
+- `Rscript tools/fix-pkgdown-favicon-mime.R pkgdown-site`: passed.
+- `Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`:
+  0 errors, 0 warnings, 0 notes.
+- `rg -n "O'Dea/Nakagawa|O'Dea-style|O\\.Dea/Nakagawa|O\\.Dea-style|rho ~|meta_gaussian\\(|tau ~|family = c\\(gaussian\\(\\), poisson\\(\\)\\)" README.md ROADMAP.md NEWS.md docs/design docs/dev-log/release-checklists docs/dev-log/release-audits vignettes R tests _pkgdown.yml pkgdown-site --glob '!pkgdown-site/search.json'`:
+  found only guardrail prose, planned-feature prose, design checks, and one
+  negative test.
+- `rg -n 'Development status|development version|0\\.0\\.0\\.9000|0\\.1\\.0|pak::pak|development build; 0\\.1\\.0 preview planned|Phase 9|family coverage|cbind\\(successes, failures\\)' README.md ROADMAP.md docs/dev-log/release-checklists/2026-05-10-0.1.0-preview-release.md docs/dev-log/release-audits/2026-05-10-family-coverage.md pkgdown-site/index.html pkgdown-site/ROADMAP.html`:
+  confirmed rendered status, install, roadmap, and Phase 9 release-boundary text.
+- Chrome/Playwright layout sanity check over `pkgdown-site/index.html`: desktop
+  viewport `1280 x 900` had `scrollWidth = 1280`; mobile viewport `390 x 844`
+  had `scrollWidth = 390`; both kept the first headings as `Start here`,
+  `Development status`, `Install`, and `Tiny example`.
+- `git diff --check`: clean.
+- `gh issue edit 1 --body-file docs/dev-log/release-checklists/2026-05-10-0.1.0-preview-release.md --add-label release --add-label "0.1.0" --add-label pkgdown --add-label "CRAN-ish"`:
+  updated https://github.com/itchyshin/drmTMB/issues/1.
+
 ## 2026-05-10 -- Development-version status clarification
 
 Scope:
