@@ -228,6 +228,18 @@ profiling. `confint.drmTMB(method = "profile")` should later accept only
 targets listed by this inventory. Unsupported targets should fail with a
 message that points to the available target table.
 
+A second internal helper now profiles direct fixed-effect targets from this
+inventory:
+
+```r
+drmTMB:::drm_profile_confint(fit, parm = "fixef:mu:x")
+```
+
+This is deliberately not a public `confint()` method yet. It wraps
+`TMB::tmbprofile()` for ready fixed-effect target rows only, so unsupported
+variance, correlation, ordinal-transform, and derived-summary targets still
+fail before doing expensive optimization.
+
 The first fitted targets should be direct parameters in this order:
 
 1. fixed-effect coefficients for `mu`, `sigma`, `nu`, `zi`, `hu`, and `rho12`;

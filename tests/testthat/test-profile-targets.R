@@ -113,6 +113,86 @@ test_that("profile target inventory lists fixed effects", {
   expect_true(all(targets$target_type == "direct"))
 })
 
+test_that("profile confidence intervals wrap direct fixed-effect profiles", {
+  set.seed(20260595)
+  n <- 55
+  x <- stats::rnorm(n)
+  dat <- data.frame(
+    y = 0.2 + 0.5 * x + stats::rnorm(n, sd = 0.7),
+    x = x
+  )
+  fit <- drmTMB(bf(y ~ x, sigma ~ 1), family = gaussian(), data = dat)
+
+  ci <- drmTMB:::drm_profile_confint(
+    fit,
+    parm = "fixef:mu:x",
+    level = 0.90,
+    trace = FALSE,
+    ystep = 0.25
+  )
+
+  manual_lincomb <- rep(0, length(fit$opt$par))
+  manual_lincomb[which(names(fit$opt$par) == "beta_mu")[[2L]]] <- 1
+  manual_profile <- TMB::tmbprofile(
+    fit$obj,
+    name = "fixef:mu:x",
+    lincomb = manual_lincomb,
+    trace = FALSE,
+    ystep = 0.25
+  )
+  manual_ci <- stats::confint(manual_profile, level = 0.90)
+
+  expect_named(
+    ci,
+    c(
+      "parm",
+      "level",
+      "lower",
+      "upper",
+      "scale",
+      "transformation",
+      "tmb_parameter",
+      "index",
+      "method"
+    )
+  )
+  expect_equal(ci$parm, "fixef:mu:x")
+  expect_equal(ci$level, 0.90)
+  expect_equal(ci$lower, unname(manual_ci[1L, "lower"]), tolerance = 1e-12)
+  expect_equal(ci$upper, unname(manual_ci[1L, "upper"]), tolerance = 1e-12)
+  expect_equal(ci$tmb_parameter, "beta_mu")
+  expect_equal(ci$index, 2L)
+  expect_equal(ci$method, "profile")
+  expect_lt(ci$lower, unname(coef(fit, "mu")[["x"]]))
+  expect_gt(ci$upper, unname(coef(fit, "mu")[["x"]]))
+})
+
+test_that("profile confidence intervals reject unsupported targets clearly", {
+  dat <- new_profile_group_data(n_id = 8, n_each = 4, seed = 20260596)
+  fit <- drmTMB(
+    bf(y ~ x + (1 + x | p | ID)),
+    family = gaussian(),
+    data = dat
+  )
+
+  expect_error(
+    drmTMB:::drm_profile_confint(
+      fit,
+      parm = "sd:mu:(1 + x | p | ID):x",
+      trace = FALSE
+    ),
+    "Only fixed-effect profile targets"
+  )
+  expect_error(
+    drmTMB:::drm_profile_confint(fit, parm = "missing-target"),
+    "Unknown profile target"
+  )
+  expect_error(
+    drmTMB:::drm_profile_confint(fit, parm = "fixef:mu:x", level = 1),
+    "between 0 and 1"
+  )
+})
+
 test_that("profile target inventory maps hurdle probabilities to beta_zi", {
   dat <- new_profile_hurdle_data()
   fit <- drmTMB(

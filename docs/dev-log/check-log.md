@@ -8808,3 +8808,47 @@ Known limitations:
 - derived summaries such as ICC, repeatability, phylogenetic signal, and
   double-hierarchical correlation-pair summaries are deliberately inventoried
   only as future work until direct TMB-parameter profiles are implemented.
+
+## 2026-05-10 -- Internal fixed-effect profile engine
+
+Goal:
+
+- turn the internal target inventory into one working `TMB::tmbprofile()` path
+  for direct fixed-effect targets, while keeping the public `confint()` API
+  closed.
+
+Implemented:
+
+- added private `drm_profile_confint()` for direct fixed-effect profile
+  intervals;
+- matched requested target names against `drm_profile_targets()`;
+- constructed one-hot linear combinations over the optimized TMB parameter
+  vector so duplicated internal names such as `beta_mu` can be profiled by
+  target index;
+- rejected unsupported target classes, unknown target names, and invalid
+  confidence levels before calling the optimizer;
+- documented the private helper and its current fixed-effect-only boundary in
+  `docs/design/12-profile-likelihood-cis.md`;
+- added an after-task note for the internal profile engine.
+
+Checks run:
+
+- `air format R/profile.R tests/testthat/test-profile-targets.R docs/design/12-profile-likelihood-cis.md docs/dev-log/after-task/2026-05-10-profile-fixed-effect-engine.md`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'profile-targets')"`: passed with 0
+  failures, 0 warnings, 0 skips, and 59 passing expectations.
+- `Rscript -e "devtools::test()"`: passed with 0 failures, 0 warnings, 0 skips,
+  and 1539 passing expectations.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed.
+- `git diff --check`: passed.
+- `rg -n "confint\\.drmTMB\\(method = \\\"profile\\\"\\).*implemented|profile.*public.*implemented|O'Dea/Nakagawa|O'Dea-style|O’Dea-style" R/profile.R tests/testthat/test-profile-targets.R docs/design/12-profile-likelihood-cis.md docs/dev-log/after-task/2026-05-10-profile-fixed-effect-engine.md ROADMAP.md README.md NEWS.md vignettes`:
+  found only the expected after-task limitation that
+  `confint.drmTMB(method = "profile")` is not implemented.
+
+Known limitations:
+
+- this is still private infrastructure; no `confint.drmTMB(method = "profile")`
+  method is exported;
+- only direct fixed-effect targets are accepted;
+- SD, correlation, transformed ordinal-cutpoint, and derived-summary targets
+  still need separate boundary and interpretation work before profiling.
