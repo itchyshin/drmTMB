@@ -466,6 +466,49 @@ residual standard deviation; the fitted residual standard deviation is
 filtering. Random effects, known sampling covariance, phylogenetic terms, and
 bivariate or mixed Gamma models are later phases.
 
+## Planned Tweedie Mean-Scale-Shape Gate
+
+The future Tweedie path is for non-negative semicontinuous responses with exact
+zeros and positive continuous values. It is not implemented yet. The current
+working public-scale contract is:
+
+```text
+y_i | mu_i, sigma_i, nu_i ~ Tweedie(mu_i, phi_i, nu_i)
+eta_mu_i = X_mu[i, ] beta_mu
+eta_sigma_i = X_sigma[i, ] beta_sigma
+eta_nu_i = X_nu[i, ] beta_nu
+mu_i = exp(eta_mu_i)
+sigma_i = exp(eta_sigma_i)
+phi_i = sigma_i^2
+nu_i = 1 + exp(eta_nu_i) / (1 + exp(eta_nu_i))
+E[y_i] = mu_i
+Var[y_i] = sigma_i^2 * mu_i^nu_i
+1 < nu_i < 2
+```
+
+The likelihood must include the Tweedie density normalizing terms, not only the
+mean-variance relationship. The first comparator should be
+`glmmTMB::tweedie(link = "log")`, which reports Tweedie dispersion `phi`; tests
+against that scale should compare `sigma_i^2` with `phi_i` and name the
+transform explicitly.
+
+Matching future R syntax:
+
+```r
+drmTMB(
+  bf(biomass ~ habitat, sigma ~ habitat, nu ~ 1),
+  family = tweedie(),
+  data = dat
+)
+```
+
+The first implementation should be fixed-effect and univariate, with
+intercept-only `nu ~ 1` before predictor-dependent power models. It should
+reject negative responses, random effects in `sigma` or `nu`, bivariate
+Tweedie families, `rho12`, `meta_known_V(V = V)`, and phylogenetic or spatial
+terms until separate recovery and comparator tests exist. The implementation
+gate is in `docs/design/27-tweedie-family-plan.md`.
+
 ## Implemented Beta Mean-Scale
 
 The first beta path is fixed-effect mean-scale regression for strict
