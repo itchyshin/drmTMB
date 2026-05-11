@@ -7,7 +7,13 @@
 \usage{
 check_drm(object, ...)
 
-\method{check_drm}{drmTMB}(object, gradient_tolerance = 0.001, rho_boundary = 0.98, ...)
+\method{check_drm}{drmTMB}(
+  object,
+  gradient_tolerance = 0.001,
+  rho_boundary = 0.98,
+  sd_boundary = 1e-04,
+  ...
+)
 }
 \arguments{
 \item{object}{A \code{drmTMB} fit.}
@@ -19,6 +25,10 @@ as acceptable.}
 
 \item{rho_boundary}{Absolute residual correlation value above which a
 bivariate Gaussian fit receives a warning.}
+
+\item{sd_boundary}{Random-effect standard deviation below which a fit
+receives a warning that the variance component is near the lower
+boundary.}
 }
 \value{
 A data frame of checks with columns \code{check}, \code{status}, \code{value}, and
@@ -33,12 +43,13 @@ effects, or bivariate residual correlation \code{rho12}.
 \details{
 The current checks cover optimizer convergence, finite objective values,
 optimizer evaluation counts, fixed-parameter gradients, Hessian status from
-\code{\link[TMB:sdreport]{TMB::sdreport()}}, dropped rows, positive scale parameters, bivariate
-residual-correlation \code{rho12} values near the boundary, Student-t \code{nu}
-boundary behaviour, known sampling covariance summaries, dense fixed-effect
-design size, random-effect replication, and random-slope design variation. If
-the fit was stored with \code{drm_control(keep_tmb_object = FALSE)}, the
-fixed-gradient check is reported as a note because the TMB
+\code{\link[TMB:sdreport]{TMB::sdreport()}}, finite fixed-effect standard errors, dropped rows,
+positive scale parameters, random-effect standard deviations near the lower
+boundary, bivariate residual-correlation \code{rho12} values near the boundary,
+Student-t \code{nu} boundary behaviour, known sampling covariance summaries, dense
+fixed-effect design size, random-effect replication, and random-slope design
+variation. If the fit was stored with \code{drm_control(keep_tmb_object = FALSE)},
+the fixed-gradient check is reported as a note because the TMB
 automatic-differentiation object is not available.
 
 Use \code{check_drm()} before interpreting coefficients, fitted values, or
