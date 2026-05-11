@@ -9600,3 +9600,21 @@ Audit notes:
   confirmed the helpers are described as interpretation tables and future
   plotting or marginalisation surfaces, not as implemented uncertainty,
   contrast, or plotting machinery.
+
+## 2026-05-11 -- Comparator result scope table
+
+Scope:
+
+- aligned the durable Gaussian location-scale comparator result note with the
+  current CSV output from `tools/replicate-location-scale-gaussian.R`;
+- added human-readable blocked rows for shared `mu`/`sigma` covariance,
+  bivariate group-level covariance, and non-Gaussian location-scale random
+  effects.
+
+Checks run:
+
+- `Rscript tools/replicate-location-scale-gaussian.R`: passed and rewrote
+  `docs/dev-log/comparator-results/gaussian-location-scale-glmmtmb-current.csv`.
+- `air format docs/dev-log/comparator-results/2026-05-10-gaussian-location-scale-glmmtmb.md docs/dev-log/after-task/2026-05-11-comparator-result-scope-table.md docs/dev-log/check-log.md`:
+  passed.
+- `git diff --check`: passed.
