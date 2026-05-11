@@ -4,6 +4,79 @@
 # It uses simulated paper-shaped examples so the harness remains reproducible
 # without bundling external tutorial data.
 
+usage <- function() {
+  cat(
+    paste(
+      "Usage: Rscript tools/replicate-location-scale-gaussian.R [options]",
+      "",
+      "Options:",
+      "  --output PATH      CSV result table path.",
+      "                     Default: docs/dev-log/comparator-results/gaussian-location-scale-glmmtmb-current.csv",
+      "  --tolerance VALUE  Numeric tolerance for implemented comparator rows.",
+      "                     Default: 1e-4",
+      "  --help             Show this help message.",
+      "",
+      "The output table contains implemented comparator rows plus blocked future",
+      "individual-difference rows so the harness records both evidence and scope.",
+      sep = "\n"
+    ),
+    "\n"
+  )
+}
+
+parse_args <- function(args) {
+  out <- list(
+    output = "docs/dev-log/comparator-results/gaussian-location-scale-glmmtmb-current.csv",
+    tolerance = 1e-4,
+    help = FALSE
+  )
+  i <- 1L
+  while (i <= length(args)) {
+    arg <- args[[i]]
+    if (identical(arg, "--help") || identical(arg, "-h")) {
+      out$help <- TRUE
+      i <- i + 1L
+      next
+    }
+    if (identical(arg, "--output")) {
+      if (i == length(args)) {
+        stop("--output requires a path.", call. = FALSE)
+      }
+      out$output <- args[[i + 1L]]
+      i <- i + 2L
+      next
+    }
+    if (startsWith(arg, "--output=")) {
+      out$output <- sub("^--output=", "", arg)
+      i <- i + 1L
+      next
+    }
+    if (identical(arg, "--tolerance")) {
+      if (i == length(args)) {
+        stop("--tolerance requires a numeric value.", call. = FALSE)
+      }
+      out$tolerance <- as.numeric(args[[i + 1L]])
+      i <- i + 2L
+      next
+    }
+    if (startsWith(arg, "--tolerance=")) {
+      out$tolerance <- as.numeric(sub("^--tolerance=", "", arg))
+      i <- i + 1L
+      next
+    }
+    stop("Unknown argument: ", arg, call. = FALSE)
+  }
+  if (
+    !is.character(out$output) || length(out$output) != 1L || !nzchar(out$output)
+  ) {
+    stop("--output must be a non-empty path.", call. = FALSE)
+  }
+  if (!is.finite(out$tolerance) || out$tolerance <= 0) {
+    stop("--tolerance must be a positive finite number.", call. = FALSE)
+  }
+  out
+}
+
 load_drmTMB <- function() {
   if (
     file.exists("DESCRIPTION") &&
@@ -120,6 +193,10 @@ summarize_comparison <- function(case, fit_drm, fit_glmm) {
   }
   data.frame(
     case = case,
+    comparison_status = "implemented",
+    comparator = "glmmTMB",
+    blocked_by = NA_character_,
+    scale_note = "drmTMB sigma coefficients match glmmTMB dispersion coefficients on the log-SD scale; variance-facing summaries should square response-scale sigma.",
     max_abs_mu_coef_diff = max(abs(
       unname(coef(fit_drm, "mu")) -
         unname(glmmTMB::fixef(fit_glmm)$cond)
@@ -137,19 +214,58 @@ summarize_comparison <- function(case, fit_drm, fit_glmm) {
   )
 }
 
-main <- function(tolerance = 1e-4) {
+blocked_comparisons <- function() {
+  data.frame(
+    case = c(
+      "shared_mu_sigma_covariance_block",
+      "bivariate_group_level_covariance_block",
+      "non_gaussian_location_scale_random_effects"
+    ),
+    comparison_status = c("blocked", "blocked", "blocked"),
+    comparator = c(NA_character_, NA_character_, NA_character_),
+    blocked_by = c(
+      "cross-formula labelled covariance blocks are planned in issue #5",
+      "bivariate group-level random effects are planned in issue #5",
+      "non-Gaussian random-effect location-scale paths are not implemented yet"
+    ),
+    scale_note = c(
+      "would compare correlations among individual mean and residual-scale effects",
+      "would compare group-level correlations separately from residual rho12",
+      "would require family-specific random-effect likelihoods before comparators"
+    ),
+    max_abs_mu_coef_diff = NA_real_,
+    max_abs_sigma_coef_diff = NA_real_,
+    max_abs_mu_sd_diff = NA_real_,
+    abs_loglik_diff = NA_real_,
+    stringsAsFactors = FALSE
+  )
+}
+
+write_results <- function(out, output) {
+  dir.create(dirname(output), recursive = TRUE, showWarnings = FALSE)
+  utils::write.csv(out, output, row.names = FALSE)
+  message("Wrote comparator result table to ", output)
+}
+
+main <- function(tolerance = 1e-4, output = NULL) {
   load_drmTMB()
   require_glmmTMB()
-  out <- rbind(compare_fixed_case(), compare_random_case())
-  out$passed <- with(
-    out,
+  implemented <- rbind(compare_fixed_case(), compare_random_case())
+  implemented$passed <- with(
+    implemented,
     max_abs_mu_coef_diff < tolerance &
       max_abs_sigma_coef_diff < tolerance &
       (is.na(max_abs_mu_sd_diff) | max_abs_mu_sd_diff < tolerance) &
       abs_loglik_diff < tolerance
   )
+  blocked <- blocked_comparisons()
+  blocked$passed <- NA
+  out <- rbind(implemented, blocked)
   print(out, row.names = FALSE)
-  if (!all(out$passed)) {
+  if (!is.null(output)) {
+    write_results(out, output)
+  }
+  if (!all(implemented$passed)) {
     stop(
       "One or more Gaussian location-scale comparator checks failed.",
       call. = FALSE
@@ -159,5 +275,10 @@ main <- function(tolerance = 1e-4) {
 }
 
 if (identical(environment(), globalenv())) {
-  main()
+  args <- parse_args(commandArgs(trailingOnly = TRUE))
+  if (isTRUE(args$help)) {
+    usage()
+    quit(status = 0L)
+  }
+  main(tolerance = args$tolerance, output = args$output)
 }

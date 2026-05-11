@@ -52,6 +52,7 @@ test_that("check_drm() reports core diagnostics for Gaussian fits", {
       "finite_objective",
       "fixed_gradient",
       "hessian_positive_definite",
+      "standard_errors_finite",
       "dropped_rows",
       "positive_scale"
     ) %in%
@@ -197,6 +198,27 @@ test_that("check_drm() reports random-effect replication notes", {
   expect_equal(fit$opt$convergence, 0)
   expect_equal(replication$status, "note")
   expect_match(replication$message, "one fitted observation")
+
+  near_boundary <- fit
+  near_boundary$sdpars$mu[] <- 1e-8
+  chk_boundary <- check_drm(near_boundary)
+  sd_boundary <- chk_boundary[
+    chk_boundary$check == "random_effect_sd_boundary",
+  ]
+  expect_equal(sd_boundary$status, "warning")
+  expect_match(sd_boundary$value, "boundary=")
+  expect_match(sd_boundary$message, "lower boundary")
+  expect_false(attr(chk_boundary, "ok"))
+
+  bad_sd <- fit
+  bad_sd$sdpars$mu[] <- 0
+  chk_bad_sd <- check_drm(bad_sd)
+  bad_sd_boundary <- chk_bad_sd[
+    chk_bad_sd$check == "random_effect_sd_boundary",
+  ]
+  expect_equal(bad_sd_boundary$status, "error")
+  expect_match(bad_sd_boundary$message, "non-positive")
+  expect_false(attr(chk_bad_sd, "ok"))
 })
 
 test_that("check_drm() reports weak random-slope design notes", {
@@ -349,6 +371,15 @@ test_that("check_drm() reports mutated diagnostic failure branches", {
   hessian <- hessian[hessian$check == "hessian_positive_definite", ]
   expect_equal(hessian$status, "warning")
 
+  bad_se <- fit
+  bad_se$sdr$cov.fixed[1, 1] <- Inf
+  standard_errors <- check_drm(bad_se)
+  standard_errors <- standard_errors[
+    standard_errors$check == "standard_errors_finite",
+  ]
+  expect_equal(standard_errors$status, "warning")
+  expect_match(standard_errors$message, "non-finite")
+
   bad_scale <- fit
   bad_scale$model$model_type <- "broken"
   scale <- check_drm(bad_scale)
@@ -362,5 +393,6 @@ test_that("check_drm() validates scalar diagnostic thresholds", {
 
   expect_error(check_drm(fit, gradient_tolerance = 0), "gradient_tolerance")
   expect_error(check_drm(fit, rho_boundary = 1), "rho_boundary")
+  expect_error(check_drm(fit, sd_boundary = 0), "sd_boundary")
   expect_error(check_drm(fit, unknown_option = TRUE), "reserved")
 })

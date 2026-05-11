@@ -15,6 +15,10 @@ Check the current Gaussian location-scale overlap between `drmTMB` and
 simulated, paper-shaped comparator, not a real-data replication of every
 individual-difference location-scale example.
 
+Current result table:
+
+- `docs/dev-log/comparator-results/gaussian-location-scale-glmmtmb-current.csv`
+
 ## Results
 
 | Scenario | Maximum absolute `mu` coefficient difference | Maximum absolute `sigma` coefficient difference | Maximum absolute `mu` random-effect SD difference | Absolute log-likelihood difference | Passed |
@@ -23,6 +27,17 @@ individual-difference location-scale example.
 | Random-intercept location-scale | `6.226181e-08` | `6.677708e-06` | `6.810643e-07` | `2.117218e-09` | yes |
 
 All finite differences were below the harness tolerance of `1e-4`.
+
+## Blocked Future Examples
+
+The same command writes blocked rows for richer individual-difference examples
+so issue #6 can track evidence and scope in one file.
+
+| Scenario | Status | Blocked by | Scale note |
+| --- | --- | --- | --- |
+| Shared `mu`/`sigma` covariance block | blocked | Cross-formula labelled covariance blocks are planned in issue #5. | Would compare correlations among individual mean and residual-scale effects. |
+| Bivariate group-level covariance block | blocked | Bivariate group-level random effects are planned in issue #5. | Would compare group-level correlations separately from residual `rho12`. |
+| Non-Gaussian location-scale random effects | blocked | Non-Gaussian random-effect location-scale paths are not implemented yet. | Would require family-specific random-effect likelihoods before comparators. |
 
 ## Scale Contract
 
