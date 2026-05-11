@@ -1220,12 +1220,28 @@ sigma.drmTMB <- function(object, ...) {
 
 #' Summarize a fitted model
 #'
-#' `summary()` returns a compact summary of fixed-effect estimates, fitted
-#' random-effect standard deviations and correlations, ordinal cutpoints when
-#' present, log-likelihood, and optimizer convergence code.
+#' `summary()` returns a compact summary of fixed-effect estimates and
+#' response-scale distributional, scale, shape, random-effect SD, and correlation
+#' quantities when they are present. Confidence intervals are opt-in: fast Wald
+#' intervals are available for fixed effects, and slower profile-likelihood
+#' intervals are available for selected direct profile targets.
 #'
 #' @param object A `drmTMB` fit.
-#' @param ... Reserved for future summary options.
+#' @param conf.int Logical; include confidence intervals when `TRUE`.
+#' @param level Confidence level for intervals.
+#' @param method Interval method used when `conf.int = TRUE`: `"wald"` for
+#'   fixed-effect intervals or `"profile"` for profile-likelihood intervals on
+#'   selected direct targets.
+#' @param ci_parm Optional character or integer vector selecting confidence
+#'   interval targets. For `method = "wald"`, targets must be fixed effects. For
+#'   `method = "profile"`, targets use the [profile_targets()] namespace, such
+#'   as `"sigma"`, `"rho12"`, `"sd:mu:(1 | id)"`, or
+#'   `"cor:mu:cor((Intercept),x | id)"`. `NULL` selects all fixed effects for
+#'   Wald intervals and all currently ready direct targets for profile
+#'   intervals.
+#' @param trace Logical; passed to [TMB::tmbprofile()] for profile intervals.
+#' @param ... Additional arguments passed to [TMB::tmbprofile()] when
+#'   `conf.int = TRUE` and `method = "profile"`.
 #'
 #' @return An object of class `summary.drmTMB`.
 #'
@@ -1234,23 +1250,77 @@ sigma.drmTMB <- function(object, ...) {
 #' fit <- drmTMB(bf(y ~ x, sigma ~ 1), data = dat)
 #' summary(fit)
 #' @export
-summary.drmTMB <- function(object, ...) {
-  se <- sqrt(diag(stats::vcov(object)))
-  est <- unlist(object$coefficients, use.names = FALSE)
+summary.drmTMB <- function(
+  object,
+  conf.int = FALSE,
+  level = 0.95,
+  method = c("wald", "profile"),
+  ci_parm = NULL,
+  trace = FALSE,
+  ...
+) {
+  validate_summary_conf_int(conf.int)
+  validate_summary_trace(trace)
+  validate_profile_level(level)
+  method <- match.arg(method)
+
+  dots <- list(...)
+  if (!conf.int && length(dots) > 0L) {
+    cli::cli_abort(
+      "Additional arguments in {.arg ...} are only used when {.arg conf.int = TRUE} and {.code method = \"profile\"}."
+    )
+  }
+  if (!conf.int && !is.null(ci_parm)) {
+    cli::cli_abort("{.arg ci_parm} is only used when {.arg conf.int = TRUE}.")
+  }
+  if (conf.int && !identical(method, "profile") && length(dots) > 0L) {
+    cli::cli_abort(
+      "Additional arguments in {.arg ...} are only used when {.code method = \"profile\"}."
+    )
+  }
+
+  coefficients <- drm_summary_coefficients(object)
+  parameters <- drm_summary_parameters(object)
+  ci <- NULL
+  if (conf.int) {
+    if (identical(method, "wald")) {
+      ci <- drm_wald_confint(object, parm = ci_parm, level = level)
+    } else {
+      ci <- drm_summary_profile_confint(
+        object,
+        ci_parm = ci_parm,
+        level = level,
+        trace = trace,
+        ...
+      )
+    }
+    coefficients <- drm_summary_add_coefficient_ci(
+      coefficients,
+      ci,
+      level = level,
+      method = method
+    )
+    parameters <- drm_summary_add_parameter_ci(
+      parameters,
+      ci,
+      level = level,
+      method = method
+    )
+  }
 
   out <- list(
     call = object$call,
-    coefficients = data.frame(
-      estimate = est,
-      std_error = se,
-      row.names = coefficient_labels(object),
-      check.names = FALSE
-    ),
+    coefficients = coefficients,
+    parameters = parameters,
     sdpars = object$sdpars,
     corpars = object$corpars,
     ordinal = object$ordinal,
     logLik = stats::logLik(object),
-    convergence = object$opt$convergence
+    convergence = object$opt$convergence,
+    conf.int = conf.int,
+    conf.level = if (conf.int) level else NA_real_,
+    conf.method = if (conf.int) method else NA_character_,
+    confint = ci
   )
   class(out) <- "summary.drmTMB"
   out
@@ -1259,14 +1329,15 @@ summary.drmTMB <- function(object, ...) {
 #' @export
 print.summary.drmTMB <- function(x, ...) {
   cli::cli_text("<summary.drmTMB>")
-  print(x$coefficients)
-  if (length(x$sdpars) > 0L) {
-    cli::cli_text("Random-effect SDs:")
-    print(x$sdpars)
+  if (isTRUE(x$conf.int)) {
+    cli::cli_text(
+      "confidence intervals: {x$conf.method}, level = {format(x$conf.level)}"
+    )
   }
-  if (length(x$corpars) > 0L) {
-    cli::cli_text("Random-effect correlations:")
-    print(x$corpars)
+  print(x$coefficients)
+  if (nrow(x$parameters) > 0L) {
+    cli::cli_text("Distributional, scale, and correlation parameters:")
+    print(drm_summary_print_parameters(x$parameters))
   }
   if (!is.null(x$ordinal)) {
     cli::cli_text("Ordinal cutpoints:")
@@ -1275,6 +1346,253 @@ print.summary.drmTMB <- function(x, ...) {
   cli::cli_text("logLik: {format(as.numeric(x$logLik), digits = 4)}")
   cli::cli_text("convergence: {x$convergence}")
   invisible(x)
+}
+
+validate_summary_conf_int <- function(conf.int) {
+  if (
+    !is.logical(conf.int) ||
+      length(conf.int) != 1L ||
+      is.na(conf.int)
+  ) {
+    cli::cli_abort(
+      "{.arg conf.int} must be a single {.code TRUE} or {.code FALSE}."
+    )
+  }
+  invisible(conf.int)
+}
+
+validate_summary_trace <- function(trace) {
+  if (
+    !is.logical(trace) ||
+      length(trace) != 1L ||
+      is.na(trace)
+  ) {
+    cli::cli_abort(
+      "{.arg trace} must be a single {.code TRUE} or {.code FALSE}."
+    )
+  }
+  invisible(trace)
+}
+
+drm_summary_coefficients <- function(object) {
+  variances <- diag(stats::vcov(object))
+  se <- rep(NA_real_, length(variances))
+  ok <- is.finite(variances) & variances >= 0
+  se[ok] <- sqrt(variances[ok])
+  est <- unlist(object$coefficients, use.names = FALSE)
+  data.frame(
+    estimate = est,
+    std_error = se,
+    row.names = coefficient_labels(object),
+    check.names = FALSE
+  )
+}
+
+drm_summary_parameters <- function(object) {
+  rows <- list(
+    drm_summary_direct_parameters(object),
+    drm_summary_fitted_range_parameters(object)
+  )
+  rows <- rows[vapply(rows, nrow, integer(1)) > 0L]
+  if (!length(rows)) {
+    return(empty_summary_parameters())
+  }
+  out <- do.call(rbind, rows)
+  row.names(out) <- out$parm
+  out
+}
+
+drm_summary_direct_parameters <- function(object) {
+  targets <- drm_profile_targets(object)
+  keep <- targets$target_class %in%
+    c(
+      "distributional-scale",
+      "residual-correlation",
+      "random-effect-sd",
+      "random-effect-correlation"
+    )
+  targets <- targets[keep, , drop = FALSE]
+  if (nrow(targets) == 0L) {
+    return(empty_summary_parameters())
+  }
+  out <- data.frame(
+    component = targets$target_class,
+    dpar = targets$dpar,
+    term = targets$term,
+    estimate = targets$estimate,
+    minimum = targets$estimate,
+    maximum = targets$estimate,
+    scale = targets$scale,
+    parm = targets$parm,
+    profile_ready = targets$profile_ready,
+    profile_note = targets$profile_note,
+    stringsAsFactors = FALSE,
+    check.names = FALSE
+  )
+  row.names(out) <- NULL
+  out
+}
+
+drm_summary_fitted_range_parameters <- function(object) {
+  dpars <- setdiff(names(object$coefficients), c("mu", "mu1", "mu2"))
+  if (!length(dpars)) {
+    return(empty_summary_parameters())
+  }
+  direct_parms <- drm_summary_direct_parameters(object)$parm
+  rows <- lapply(dpars, function(dpar) {
+    if (dpar %in% direct_parms) {
+      return(NULL)
+    }
+    values <- tryCatch(
+      predict(object, dpar = dpar, type = "response"),
+      error = function(e) NULL
+    )
+    if (is.null(values) || length(values) == 0L || !all(is.finite(values))) {
+      return(NULL)
+    }
+    values <- as.numeric(values)
+    data.frame(
+      component = drm_dpar_component(dpar),
+      dpar = dpar,
+      term = "fitted range",
+      estimate = mean(values),
+      minimum = min(values),
+      maximum = max(values),
+      scale = "response",
+      parm = paste0("fitted:", dpar),
+      profile_ready = FALSE,
+      profile_note = drm_summary_range_profile_note(dpar),
+      stringsAsFactors = FALSE,
+      check.names = FALSE
+    )
+  })
+  rows <- Filter(Negate(is.null), rows)
+  if (!length(rows)) {
+    return(empty_summary_parameters())
+  }
+  out <- do.call(rbind, rows)
+  row.names(out) <- NULL
+  out
+}
+
+drm_summary_range_profile_note <- function(dpar) {
+  if (dpar %in% c("sigma", "sigma1", "sigma2", "rho12")) {
+    return("use_confint_newdata")
+  }
+  "fitted_range_only"
+}
+
+empty_summary_parameters <- function() {
+  data.frame(
+    component = character(),
+    dpar = character(),
+    term = character(),
+    estimate = numeric(),
+    minimum = numeric(),
+    maximum = numeric(),
+    scale = character(),
+    parm = character(),
+    profile_ready = logical(),
+    profile_note = character(),
+    stringsAsFactors = FALSE,
+    check.names = FALSE
+  )
+}
+
+drm_summary_profile_confint <- function(
+  object,
+  ci_parm,
+  level,
+  trace,
+  ...
+) {
+  targets <- drm_profile_targets(object)
+  if (is.null(ci_parm)) {
+    targets <- targets[
+      targets$target_type == "direct" & targets$profile_ready,
+      ,
+      drop = FALSE
+    ]
+    if (nrow(targets) == 0L) {
+      return(empty_summary_confint())
+    }
+    ci_parm <- targets$parm
+  }
+  drm_profile_confint(
+    object,
+    parm = ci_parm,
+    level = level,
+    trace = trace,
+    ...
+  )
+}
+
+empty_summary_confint <- function() {
+  data.frame(
+    parm = character(),
+    level = numeric(),
+    lower = numeric(),
+    upper = numeric(),
+    scale = character(),
+    transformation = character(),
+    tmb_parameter = character(),
+    index = integer(),
+    method = character(),
+    stringsAsFactors = FALSE
+  )
+}
+
+drm_summary_add_coefficient_ci <- function(coefficients, ci, level, method) {
+  coefficients$conf.low <- NA_real_
+  coefficients$conf.high <- NA_real_
+  coefficients$conf.level <- level
+  coefficients$conf.method <- method
+  if (is.null(ci) || nrow(ci) == 0L) {
+    return(coefficients)
+  }
+  keys <- paste0("fixef:", row.names(coefficients))
+  matched <- match(keys, ci$parm)
+  has_ci <- !is.na(matched)
+  coefficients$conf.low[has_ci] <- ci$lower[matched[has_ci]]
+  coefficients$conf.high[has_ci] <- ci$upper[matched[has_ci]]
+  coefficients
+}
+
+drm_summary_add_parameter_ci <- function(parameters, ci, level, method) {
+  parameters$conf.low <- NA_real_
+  parameters$conf.high <- NA_real_
+  parameters$conf.level <- level
+  parameters$conf.method <- method
+  if (nrow(parameters) == 0L || is.null(ci) || nrow(ci) == 0L) {
+    return(parameters)
+  }
+  matched <- match(parameters$parm, ci$parm)
+  has_ci <- !is.na(matched)
+  parameters$conf.low[has_ci] <- ci$lower[matched[has_ci]]
+  parameters$conf.high[has_ci] <- ci$upper[matched[has_ci]]
+  parameters
+}
+
+drm_summary_print_parameters <- function(parameters) {
+  keep <- c(
+    "component",
+    "dpar",
+    "term",
+    "estimate",
+    "minimum",
+    "maximum",
+    "scale"
+  )
+  if ("conf.low" %in% names(parameters)) {
+    has_interval <- any(is.finite(parameters$conf.low)) ||
+      any(is.finite(parameters$conf.high))
+    if (has_interval) {
+      keep <- c(keep, "conf.low", "conf.high")
+    }
+  }
+  out <- parameters[, keep, drop = FALSE]
+  row.names(out) <- row.names(parameters)
+  out
 }
 
 drm_prediction_matrix <- function(object, newdata, dpar) {

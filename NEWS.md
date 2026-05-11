@@ -1,11 +1,14 @@
 # drmTMB 0.1.1 (2026-05-10)
 
 * A new large-data workflow article documents current memory-light fit controls, practical post-fit output cautions, and the optional `bench/large-phylo-location.R` benchmark harness for Gaussian phylogenetic location models.
-* `check_drm()` now reports optimizer evaluation counts and dense fixed-effect design size, helping users diagnose large or difficult fits before interpreting estimates.
+* `check_drm()` now reports optimizer evaluation counts, dense fixed-effect design size, finite fixed-effect standard errors, and near-boundary random-effect standard deviations, helping users diagnose large, difficult, or weakly identified fits before interpreting estimates.
 * `profile_targets()` lists the fitted-model target names that can be passed to `confint()`, including whether each target is ready for direct profile-likelihood intervals.
 * `confint()` now returns Wald fixed-effect confidence intervals by default and can compute profile-likelihood intervals for explicit direct targets such as `fixef:mu:x`, constant `sigma`, `sd:mu:(1 + x | id):(Intercept)`, `sd:mu:phylo(1 | species)`, `cor:mu:cor((Intercept),x | id)`, and constant residual `rho12`. It also profiles row-specific response-scale `sigma`, `sigma1`, `sigma2`, and `rho12` values when `newdata` is supplied.
 * `drm_control()` is now exported and provides the first large-data storage controls for `drmTMB()`: users can pass optimizer settings through `optimizer = list(...)`, drop stored complete-case data with `keep_data = FALSE`, drop stored model frames after fitting with `keep_model_frame = FALSE`, and drop the retained TMB automatic-differentiation object with `keep_tmb_object = FALSE`.
 * Installation docs now point tagged-preview users to `pak::pak("itchyshin/drmTMB@v0.1.1")`.
+* `marginal_parameters()` averages long-format distributional-parameter predictions over fitted rows or supplied `newdata` groups, providing the first simple marginalisation surface for mean, scale, shape, and residual-correlation summaries.
+* `predict_parameters()` returns long-format predictions for fitted distributional parameters such as `mu`, `sigma`, `nu`, and `rho12`, giving interpretation tables and future plotting or marginalisation helpers one shared data surface.
+* `summary()` now reports a response-scale parameter table for fitted scale, shape, random-effect SD, and correlation quantities, with opt-in Wald or profile-likelihood confidence intervals through `conf.int = TRUE`.
 
 # drmTMB 0.1.0 (2026-05-10)
 

@@ -70,9 +70,10 @@ check_drm(fit)
 A clean diagnostic table does not prove that the model is scientifically
 correct, but it catches common problems early: optimizer convergence, gradients,
 optimizer evaluation counts, finite objective values, Hessian status, dropped
-rows, positive scale values, residual `rho12` values near the boundary,
-Student-t `nu` values near the boundary or close to Gaussian behaviour, known
-sampling covariance summaries, and random-effect design issues when random
+rows, finite fixed-effect standard errors, positive scale values, residual
+`rho12` values near the boundary, Student-t `nu` values near the boundary or
+close to Gaussian behaviour, known sampling covariance summaries, random-effect
+standard deviations near zero, and random-effect design issues when random
 effects are present.
 
 ## Read coefficients by parameter
@@ -89,11 +90,26 @@ temperature coefficient in `sigma` means that residual variability increases
 with temperature. Exponentiating the coefficient gives a multiplicative change
 in residual standard deviation for a one-unit temperature increase.
 
-`summary()` puts the fixed-effect estimates, log likelihood, and convergence
-code in one place:
+`summary()` puts the fixed-effect estimates, response-scale scale, shape, and
+correlation summaries, log likelihood, and convergence code in one place:
 
 ```{r}
 summary(fit)
+```
+
+For confidence intervals, keep the fast default summary separate from the
+expensive profile step. Wald intervals are available for fixed effects:
+
+```{r}
+summary(fit, conf.int = TRUE)
+```
+
+Profile intervals are available for selected direct targets such as constant
+`sigma`, random-effect SDs, random-effect correlations, and constant residual
+`rho12`:
+
+```{r, eval = FALSE}
+summary(fit, conf.int = TRUE, method = "profile", ci_parm = "sigma")
 ```
 
 ## Predict distributional parameters
@@ -120,6 +136,20 @@ new_fish <- data.frame(
 predict(fit, newdata = new_fish, dpar = "mu")
 predict(fit, newdata = new_fish, dpar = "sigma")
 predict(fit, newdata = new_fish, dpar = "sigma", type = "link")
+```
+
+Use `predict_parameters()` when the interpretation task needs several
+distributional parameters on the same grid:
+
+```{r}
+predict_parameters(fit, newdata = new_fish, dpar = c("mu", "sigma"))
+```
+
+Use `marginal_parameters()` when a grid should be reduced to group-level
+interpretation summaries:
+
+```{r}
+marginal_parameters(fit, newdata = new_fish, dpar = c("mu", "sigma"))
 ```
 
 For this Gaussian model, the response-scale `sigma` predictions are residual

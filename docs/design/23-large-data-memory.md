@@ -178,8 +178,9 @@ bench/large-phylo-location.R
 
 The script generates synthetic data and records elapsed time, fitted-object
 size, model-matrix size, TMB-data size, prediction time, residual time,
-convergence code, and fitted scale summaries. It accepts command-line options
-for:
+convergence code, optimizer diagnostics, package versions, Git state, the
+reconstructed benchmark command, and fitted scale summaries. It accepts
+command-line options for:
 
 - 1,000, 5,000, and 10,000 species through `--species`;
 - 100,000, 500,000, 1,000,000, and 5,000,000 rows through `--rows`;
