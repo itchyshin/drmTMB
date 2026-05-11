@@ -9,9 +9,10 @@ variance and correlation quantities.
 
 Profile-likelihood confidence intervals are partly implemented. `confint(fit)`
 returns Wald fixed-effect intervals by default, and
-`confint(fit, parm = "fixef:mu:x", method = "profile")` profiles explicit
-fixed-effect targets. Variance-component, correlation, transformed ordinal, and
-derived-summary profile intervals remain planned.
+`confint(fit, parm = "fixef:mu:x", method = "profile")` profiles explicit direct
+targets. Direct ordinary random-effect SD and correlation targets are
+transformed back to the response scale. Transformed ordinal, modelled group-SD,
+and derived-summary profile intervals remain planned.
 
 The first implementation must therefore start from a stable target inventory,
 not from ad hoc parameter names in the C++ template. Public targets should be
@@ -238,9 +239,9 @@ confint(fit, parm = "fixef:mu:x", method = "profile")
 By default, `confint(fit)` returns fast Wald intervals for fixed-effect
 coefficients on their link scales. Profile intervals must be requested by name
 because they can be slow. The profile path wraps `TMB::tmbprofile()` for ready
-fixed-effect target rows only, so unsupported variance, correlation,
-ordinal-transform, and derived-summary targets still fail before doing
-expensive optimization.
+fixed-effect, ordinary random-effect SD, and ordinary random-effect correlation
+target rows. Unsupported ordinal-transform, modelled group-SD, and
+derived-summary targets still fail before doing expensive optimization.
 
 The first fitted targets should be direct parameters in this order:
 

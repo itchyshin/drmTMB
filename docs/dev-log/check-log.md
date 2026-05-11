@@ -8908,3 +8908,62 @@ Known limitations:
   boundary-aware profile paths;
 - profile intervals require `fit$obj`, so they are unavailable after fitting
   with `drm_control(keep_tmb_object = FALSE)`.
+
+## 2026-05-11 -- Profile SD and ordinary random-effect correlation intervals
+
+Goal:
+
+- extend public profile-likelihood confidence intervals from direct
+  fixed-effect targets to the first ordinary random-effect SD and group-level
+  correlation targets.
+
+Implemented:
+
+- `confint.drmTMB(method = "profile")` now accepts profile-ready
+  random-effect SD targets such as `sd:mu:(1 + x | p | ID):(Intercept)`;
+- SD profile intervals transform `log_sd_*` intervals with `exp()` and report
+  on the SD scale;
+- ordinary group-level random-effect correlation targets such as
+  `cor:mu:cor((Intercept),x | p | ID)` profile `eta_cor_mu` and transform
+  intervals with `0.999999 * tanh()`;
+- unsupported profile targets still fail before expensive optimization starts;
+- `NEWS.md`, `ROADMAP.md`, `docs/design/12-profile-likelihood-cis.md`, and
+  `man/confint.drmTMB.Rd` were synchronized with the new partial Phase 6 scope;
+- added `docs/dev-log/after-task/2026-05-11-profile-sd-correlation-intervals.md`.
+
+Checks run:
+
+- Initial Curie/Fisher test attempt: a smaller grouped-data fixture failed
+  honestly because `confint.tmbprofile()` did not have enough usable
+  interpolation points and warned about collapsed unique `x` values. The test
+  was changed to `n_id = 24`, `n_each = 6`, and seed `20260598`.
+- `air format R/profile.R tests/testthat/test-profile-targets.R`: passed.
+- `Rscript -e "devtools::test(filter = 'profile-targets')"`: passed with 0
+  failures, 0 warnings, 0 skips, and 80 passing expectations.
+- `air format R/profile.R tests/testthat/test-profile-targets.R docs/design/12-profile-likelihood-cis.md ROADMAP.md NEWS.md`:
+  passed.
+- `Rscript -e "devtools::document()"`: passed and wrote
+  `man/confint.drmTMB.Rd`.
+- `Rscript -e "devtools::test()"`: passed with 0 failures, 0 warnings, 0 skips,
+  and 1560 passing expectations.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed and rendered
+  `reference/confint.drmTMB.html` and `ROADMAP.html`.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with no problems found.
+- `Rscript -e "devtools::check(document = FALSE, manual = FALSE)"`: passed with
+  0 errors, 0 warnings, and 0 notes.
+- `git diff --check`: passed.
+- `LC_ALL=C rg -n "[^\x00-\x7F]" R/profile.R tests/testthat/test-profile-targets.R NEWS.md ROADMAP.md docs/design/12-profile-likelihood-cis.md man/confint.drmTMB.Rd`:
+  passed with no matches.
+- `rg -n "Only fixed-effect profile targets|fixed-effect targets only|profile.*SD.*planned|profile.*correlation.*planned" R/profile.R tests/testthat/test-profile-targets.R docs/design/12-profile-likelihood-cis.md ROADMAP.md NEWS.md man/confint.drmTMB.Rd pkgdown-site/reference/confint.drmTMB.html pkgdown-site/ROADMAP.html --glob '!pkgdown-site/search.json'`:
+  passed with no matches.
+- `rg -n "O.Dea/Nakagawa|O.Dea-style" R/profile.R tests/testthat/test-profile-targets.R docs/design/12-profile-likelihood-cis.md ROADMAP.md NEWS.md man/confint.drmTMB.Rd pkgdown-site/reference/confint.drmTMB.html pkgdown-site/ROADMAP.html --glob '!pkgdown-site/search.json'`:
+  passed with no matches.
+
+Known limitations:
+
+- residual `rho12` response-scale profile intervals, transformed ordinal
+  cutpoints, modelled group-SD rows, and derived summaries remain planned;
+- phylogenetic SD profile targets were not claimed because this slice did not
+  add a focused phylogenetic profile test;
+- complete double-hierarchical derived intervals still need named extractors
+  and covariance-summary design before public implementation.

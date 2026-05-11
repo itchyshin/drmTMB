@@ -1,20 +1,22 @@
-#' Confidence intervals for fitted fixed effects
+#' Confidence intervals for fitted model parameters
 #'
-#' `confint()` returns fixed-effect confidence intervals for a fitted
-#' `drmTMB` model. Wald intervals are fast and are returned by default.
+#' `confint()` returns confidence intervals for a fitted `drmTMB` model. Wald
+#' intervals are fast and are returned for fixed-effect coefficients by default.
 #' Profile-likelihood intervals are slower because nuisance parameters are
-#' re-optimized; this first public profile path supports explicit fixed-effect
-#' targets only.
+#' re-optimized; this first public profile path supports explicit fixed-effect,
+#' random-effect standard-deviation, and random-effect correlation targets.
 #'
 #' Target names follow the profile target namespace. For fixed effects, use
 #' names such as `"fixef:mu:x"`, `"fixef:sigma:(Intercept)"`, or
 #' `"fixef:rho12:w"`. Compact coefficient labels from `summary(fit)`, such as
-#' `"mu:x"`, are also accepted.
+#' `"mu:x"`, are also accepted. Random-effect SD intervals are reported on the
+#' SD scale, and random-effect correlation intervals are reported on the
+#' correlation scale.
 #'
 #' @param object A `drmTMB` fit.
-#' @param parm Optional character or integer vector selecting fixed-effect
-#'   coefficients. `NULL` selects all fixed effects for Wald intervals. Profile
-#'   intervals require explicit target names.
+#' @param parm Optional character or integer vector selecting interval targets.
+#'   `NULL` selects all fixed effects for Wald intervals. Profile intervals
+#'   require explicit target names.
 #' @param level Confidence level.
 #' @param method Interval method: `"wald"` or `"profile"`.
 #' @param trace Logical; passed to [TMB::tmbprofile()] for profile intervals.
@@ -296,9 +298,14 @@ drm_profile_target_confint <- function(
   trace,
   ...
 ) {
-  if (!identical(target$target_class, "fixed-effect")) {
+  implemented_classes <- c(
+    "fixed-effect",
+    "random-effect-sd",
+    "random-effect-correlation"
+  )
+  if (!target$target_class %in% implemented_classes) {
     cli::cli_abort(c(
-      "Only fixed-effect profile targets are implemented in this slice.",
+      "Profile intervals are implemented for direct fixed-effect, random-effect SD, and random-effect correlation targets.",
       i = "Requested {.val {target$parm}} has target class {.val {target$target_class}}."
     ))
   }
@@ -318,18 +325,32 @@ drm_profile_target_confint <- function(
     ...
   )
   ci <- stats::confint(prof, level = level)
+  interval <- profile_transform_interval(
+    c(unname(ci[1L, "lower"]), unname(ci[1L, "upper"])),
+    target
+  )
 
   data.frame(
     parm = target$parm,
     level = level,
-    lower = unname(ci[1L, "lower"]),
-    upper = unname(ci[1L, "upper"]),
+    lower = interval[[1L]],
+    upper = interval[[2L]],
     scale = target$scale,
     transformation = target$transformation,
     tmb_parameter = target$tmb_parameter,
     index = target$index,
     method = "profile",
     stringsAsFactors = FALSE
+  )
+}
+
+profile_transform_interval <- function(interval, target) {
+  switch(
+    target$transformation,
+    linear_predictor = interval,
+    exp = exp(interval),
+    tanh = 0.999999 * tanh(interval),
+    interval
   )
 }
 

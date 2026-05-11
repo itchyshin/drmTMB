@@ -217,6 +217,86 @@ test_that("confint profile intervals wrap direct fixed-effect profiles", {
   expect_gt(ci$upper, unname(coef(fit, "mu")[["x"]]))
 })
 
+test_that("confint profile intervals transform SD and correlation targets", {
+  dat <- new_profile_group_data(n_id = 24, n_each = 6, seed = 20260598)
+  fit <- drmTMB(
+    bf(y ~ x + (1 + x | p | ID)),
+    family = gaussian(),
+    data = dat
+  )
+
+  sd_parm <- "sd:mu:(1 + x | p | ID):(Intercept)"
+  sd_ci <- stats::confint(
+    fit,
+    parm = sd_parm,
+    level = 0.80,
+    method = "profile",
+    trace = FALSE,
+    ystep = 0.30
+  )
+  sd_lincomb <- rep(0, length(fit$opt$par))
+  sd_lincomb[which(names(fit$opt$par) == "log_sd_mu")[[1L]]] <- 1
+  manual_sd_profile <- TMB::tmbprofile(
+    fit$obj,
+    name = sd_parm,
+    lincomb = sd_lincomb,
+    trace = FALSE,
+    ystep = 0.30
+  )
+  manual_sd_ci <- stats::confint(manual_sd_profile, level = 0.80)
+
+  cor_parm <- "cor:mu:cor((Intercept),x | p | ID)"
+  cor_ci <- stats::confint(
+    fit,
+    parm = cor_parm,
+    level = 0.80,
+    method = "profile",
+    trace = FALSE,
+    ystep = 0.30
+  )
+  cor_lincomb <- rep(0, length(fit$opt$par))
+  cor_lincomb[which(names(fit$opt$par) == "eta_cor_mu")[[1L]]] <- 1
+  manual_cor_profile <- TMB::tmbprofile(
+    fit$obj,
+    name = cor_parm,
+    lincomb = cor_lincomb,
+    trace = FALSE,
+    ystep = 0.30
+  )
+  manual_cor_ci <- stats::confint(manual_cor_profile, level = 0.80)
+
+  expect_equal(sd_ci$parm, sd_parm)
+  expect_equal(sd_ci$scale, "response")
+  expect_equal(sd_ci$transformation, "exp")
+  expect_equal(
+    sd_ci$lower,
+    exp(unname(manual_sd_ci[1L, "lower"])),
+    tolerance = 1e-12
+  )
+  expect_equal(
+    sd_ci$upper,
+    exp(unname(manual_sd_ci[1L, "upper"])),
+    tolerance = 1e-12
+  )
+  expect_gt(sd_ci$lower, 0)
+
+  expect_equal(cor_ci$parm, cor_parm)
+  expect_equal(cor_ci$scale, "response")
+  expect_equal(cor_ci$transformation, "tanh")
+  expect_equal(
+    cor_ci$lower,
+    0.999999 * tanh(unname(manual_cor_ci[1L, "lower"])),
+    tolerance = 1e-12
+  )
+  expect_equal(
+    cor_ci$upper,
+    0.999999 * tanh(unname(manual_cor_ci[1L, "upper"])),
+    tolerance = 1e-12
+  )
+  expect_true(abs(cor_ci$lower) < 1)
+  expect_true(abs(cor_ci$upper) < 1)
+})
+
 test_that("profile confidence intervals reject unsupported targets clearly", {
   dat <- new_profile_group_data(n_id = 8, n_each = 4, seed = 20260596)
   fit <- drmTMB(
@@ -225,14 +305,24 @@ test_that("profile confidence intervals reject unsupported targets clearly", {
     data = dat
   )
 
+  ordinal_dat <- data.frame(
+    y = ordered(rep(1:3, each = 15)),
+    x = stats::rnorm(45)
+  )
+  fit_ord <- drmTMB(
+    bf(y ~ x),
+    family = cumulative_logit(),
+    data = ordinal_dat
+  )
+
   expect_error(
     stats::confint(
-      fit,
-      parm = "sd:mu:(1 + x | p | ID):x",
+      fit_ord,
+      parm = "ordinal:theta_ord:1|2",
       method = "profile",
       trace = FALSE
     ),
-    "Only fixed-effect profile targets"
+    "direct fixed-effect, random-effect SD, and random-effect correlation"
   )
   expect_error(
     stats::confint(fit, method = "profile"),

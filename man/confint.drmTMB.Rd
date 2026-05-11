@@ -2,7 +2,7 @@
 % Please edit documentation in R/profile.R
 \name{confint.drmTMB}
 \alias{confint.drmTMB}
-\title{Confidence intervals for fitted fixed effects}
+\title{Confidence intervals for fitted model parameters}
 \usage{
 \method{confint}{drmTMB}(
   object,
@@ -16,9 +16,9 @@
 \arguments{
 \item{object}{A \code{drmTMB} fit.}
 
-\item{parm}{Optional character or integer vector selecting fixed-effect
-coefficients. \code{NULL} selects all fixed effects for Wald intervals. Profile
-intervals require explicit target names.}
+\item{parm}{Optional character or integer vector selecting interval targets.
+\code{NULL} selects all fixed effects for Wald intervals. Profile intervals
+require explicit target names.}
 
 \item{level}{Confidence level.}
 
@@ -34,17 +34,19 @@ A data frame with columns \code{parm}, \code{level}, \code{lower}, \code{upper},
 \code{scale}, \code{transformation}, \code{tmb_parameter}, \code{index}, and \code{method}.
 }
 \description{
-\code{confint()} returns fixed-effect confidence intervals for a fitted
-\code{drmTMB} model. Wald intervals are fast and are returned by default.
+\code{confint()} returns confidence intervals for a fitted \code{drmTMB} model. Wald
+intervals are fast and are returned for fixed-effect coefficients by default.
 Profile-likelihood intervals are slower because nuisance parameters are
-re-optimized; this first public profile path supports explicit fixed-effect
-targets only.
+re-optimized; this first public profile path supports explicit fixed-effect,
+random-effect standard-deviation, and random-effect correlation targets.
 }
 \details{
 Target names follow the profile target namespace. For fixed effects, use
 names such as \code{"fixef:mu:x"}, \code{"fixef:sigma:(Intercept)"}, or
 \code{"fixef:rho12:w"}. Compact coefficient labels from \code{summary(fit)}, such as
-\code{"mu:x"}, are also accepted.
+\code{"mu:x"}, are also accepted. Random-effect SD intervals are reported on the
+SD scale, and random-effect correlation intervals are reported on the
+correlation scale.
 }
 \examples{
 dat <- data.frame(y = c(0.2, 0.5, 1.1, 1.4), x = c(-1, 0, 1, 2))
