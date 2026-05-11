@@ -9781,3 +9781,152 @@ Checks run:
 - `air format docs/dev-log/comparator-results/2026-05-10-gaussian-location-scale-glmmtmb.md docs/dev-log/after-task/2026-05-11-comparator-result-scope-table.md docs/dev-log/check-log.md`:
   passed.
 - `git diff --check`: passed.
+
+## 2026-05-11 -- Bivariate mu random-intercept covariance
+
+Goal:
+
+- implement the first bivariate group-level covariance block for
+  `biv_gaussian()` models while keeping residual correlation `rho12` separate
+  from between-group `mu1`/`mu2` covariance.
+
+Implemented:
+
+- added labelled matching random-intercept covariance syntax for bivariate
+  Gaussian location formulas, for example
+  `mu1 = y1 ~ x + (1 | p | id)` and
+  `mu2 = y2 ~ x + (1 | p | id)`;
+- required an explicit shared covariance-block label and rejected unlabelled
+  or mismatched bivariate random-effect terms;
+- added paired non-centred TMB random effects for `mu1` and `mu2`, with
+  separate group standard deviations and a between-group correlation;
+- kept bivariate random slopes, random effects in `sigma1`, `sigma2`, or
+  `rho12`, structured bivariate covariance, and `meta_known_V(V = V)` plus
+  random effects out of scope;
+- updated `corpairs()` so residual `rho12` rows and bivariate group-level
+  `mu1`/`mu2` covariance rows are reported as separate correlation layers;
+- updated prediction, R documentation, design notes, vignettes, README,
+  ROADMAP, NEWS, known limitations, and the after-task report
+  `docs/dev-log/after-task/2026-05-11-bivariate-mu-random-intercept-covariance.md`.
+
+Checks run:
+
+- `Rscript -e "devtools::load_all(quiet = TRUE)"`: passed.
+- `Rscript -e "devtools::test(filter = 'biv-gaussian')"`: passed with 123
+  passing expectations.
+- `Rscript -e "devtools::test(filter = 'biv-gaussian|gaussian-random-intercepts|corpairs')"`:
+  passed with 338 passing expectations.
+- `air format R/drmTMB.R R/methods.R tests/testthat/test-biv-gaussian.R tests/testthat/test-gaussian-random-intercepts.R NEWS.md README.md ROADMAP.md docs/design/01-formula-grammar.md docs/design/03-likelihoods.md docs/design/04-random-effects.md docs/design/17-correlated-random-effect-blocks.md docs/design/20-coscale-correlation-pairs.md docs/design/28-double-hierarchical-endpoint.md docs/dev-log/known-limitations.md vignettes/bivariate-coscale.Rmd vignettes/distribution-families.Rmd vignettes/drmTMB.Rmd vignettes/formula-grammar.Rmd vignettes/source-map.Rmd vignettes/which-scale.Rmd`:
+  passed.
+- `Rscript -e "devtools::document()"`: passed and regenerated
+  `man/drmTMB.Rd`, `man/corpairs.Rd`, and `man/predict.drmTMB.Rd`.
+- `Rscript -e "devtools::test()"`: passed with 1669 passing expectations.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with no problems found.
+- `_R_CHECK_SYSTEM_CLOCK_=FALSE Rscript -e "devtools::check(document = FALSE, manual = FALSE, args = '--no-tests')"`:
+  passed with 0 errors, 0 warnings, and 0 notes.
+- `Rscript -e "pkgdown::build_home()"`: passed after the final ROADMAP wording
+  change.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with no problems found.
+- `git diff --check`: passed.
+- stale-wording scans for planned-only bivariate random-effect prose passed with
+  no source or generated-site matches, apart from intentional historical NEWS
+  entries.
+
+Known limitations:
+
+- only matching labelled random intercepts in `mu1` and `mu2` are supported;
+- bivariate random slopes, distributional-parameter random effects, spatial or
+  phylogenetic bivariate covariance, and bivariate meta-analysis with known
+  sampling covariance plus random effects remain planned work;
+- `rho12` is still the residual correlation parameter, not the label for the
+  new between-group `mu1`/`mu2` covariance block.
+
+## 2026-05-11 -- Bivariate mu covariance `check_drm()` diagnostics
+
+Goal:
+
+- add first-pass `check_drm()` diagnostics for the implemented bivariate
+  Gaussian `mu1`/`mu2` random-intercept covariance block.
+
+Implemented:
+
+- added a `biv_mu_random_effect_covariance` row for `biv_gaussian()` fits with
+  matching labelled `mu1`/`mu2` random intercepts;
+- the diagnostic reports group count, minimum fitted group replication,
+  singleton-group count, and the smallest fitted group-level SD relative to its
+  matching residual scale;
+- the diagnostic returns `note` when any group has fewer than two fitted
+  observations or when either fitted group-level SD is less than 5% of the
+  matching residual scale;
+- updated `NEWS.md`, `R/check.R`, `tests/testthat/test-check-drm.R`,
+  `man/check_drm.Rd`, `vignettes/bivariate-coscale.Rmd`,
+  `docs/design/16-phylo-spatial-common-math.md`, and
+  `docs/dev-log/after-task/2026-05-11-bivariate-mu-covariance-check-drm-diagnostics.md`.
+
+Checks run:
+
+- `Rscript -e "devtools::test(filter = 'check-drm')"`: passed with 73
+  expectations.
+- `Rscript -e "devtools::document()"`: passed and regenerated
+  `man/check_drm.Rd`.
+- `air format R/check.R tests/testthat/test-check-drm.R NEWS.md vignettes/bivariate-coscale.Rmd docs/design/16-phylo-spatial-common-math.md man/check_drm.Rd`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'check-drm|biv-gaussian')"`: passed
+  with 196 expectations.
+- `Rscript -e "devtools::test()"`: passed with 1681 expectations.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with no problems found.
+- `_R_CHECK_SYSTEM_CLOCK_=FALSE Rscript -e "devtools::check(document = FALSE, manual = FALSE, args = '--no-tests')"`:
+  passed with 0 errors, 0 warnings, and 0 notes.
+- `git diff --check`: passed.
+- stale-wording scans for the new diagnostic row and old standalone diagnostic
+  lists passed.
+
+Known limitations:
+
+- the 5% relative-SD threshold is a first-pass diagnostic heuristic;
+- the diagnostic covers only matching labelled bivariate `mu1`/`mu2`
+  random-intercept covariance blocks;
+- richer bivariate covariance structures still need their own diagnostics.
+
+## 2026-05-11 -- Bivariate mu profile-target coverage
+
+Goal:
+
+- close the issue #13 follow-up by making the profile-target surface explicit
+  for the implemented bivariate Gaussian `mu1`/`mu2` random-intercept
+  covariance block.
+
+Implemented:
+
+- added a focused `profile_targets()` test for a fitted `biv_gaussian()` model
+  with matching labelled `mu1` and `mu2` random intercepts;
+- checked exact target names for `sd:mu:mu1:(1 | p | id)`,
+  `sd:mu:mu2:(1 | p | id)`, and
+  `cor:mu:cor(mu1:(Intercept),mu2:(Intercept) | p | id)`;
+- checked `tmb_parameter`, `index`, response-scale transformation,
+  `target_type`, `profile_ready`, and `profile_note`;
+- checked that residual `rho12` remains a separate residual-correlation target;
+- updated `NEWS.md`, `docs/design/12-profile-likelihood-cis.md`,
+  `vignettes/bivariate-coscale.Rmd`, and the after-task report
+  `docs/dev-log/after-task/2026-05-11-bivariate-mu-profile-targets.md`.
+
+Checks run:
+
+- `air format tests/testthat/test-profile-targets.R NEWS.md docs/design/12-profile-likelihood-cis.md vignettes/bivariate-coscale.Rmd`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'profile-targets|biv-gaussian')"`:
+  passed with 303 expectations.
+- `Rscript -e "devtools::document()"`: passed.
+- `Rscript -e "devtools::test()"`: passed with 1776 expectations.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with no problems found.
+- `_R_CHECK_SYSTEM_CLOCK_=FALSE Rscript -e "devtools::check(document = FALSE, manual = FALSE, args = '--no-tests')"`:
+  passed with 0 errors, 0 warnings, and 0 notes.
+
+Known limitations:
+
+- this slice covers the target inventory and direct target mapping, not a
+  separate long-running profile-interval simulation study for the bivariate
+  group-level covariance parameters.

@@ -19,7 +19,8 @@ it does not yet fit the complete double-hierarchical covariance model.
 | Bivariate Gaussian residual coscale | Implemented | `rho12 ~ x` |
 | `corpairs()` for fitted correlations | Partly implemented | residual `rho12`, ordinary `mu` intercept-slope correlations |
 | Cross-formula covariance blocks | Planned | shared labelled blocks across `mu` and `sigma` |
-| Bivariate group-level covariance blocks | Planned | shared labelled blocks across `mu1`, `mu2`, `sigma1`, and `sigma2` |
+| Bivariate `mu1`/`mu2` random-intercept covariance blocks | Implemented first slice | matching labelled `(1 | p | id)` terms in both location formulas |
+| Bivariate random-slope, residual-scale, and cross-parameter covariance blocks | Planned | shared labelled blocks across `mu1`, `mu2`, `sigma1`, and `sigma2` |
 | Profile-likelihood intervals for covariance summaries | Planned | see `docs/design/12-profile-likelihood-cis.md` |
 
 ## Target Model
@@ -106,6 +107,7 @@ meaning of the row.
 4. Extend `corpairs()` to report each fitted group-level pair from the shared
    block and keep those rows distinct from residual `rho12`.
 5. Add bivariate `mu1`/`mu2` group-level blocks without scale random effects.
+   Done for matching labelled random intercepts.
 6. Add bivariate `sigma1`/`sigma2` group-level blocks only after the univariate
    scale-block recovery tests are stable.
 7. Combine bivariate group-level covariance blocks with residual `rho12 ~ x`.

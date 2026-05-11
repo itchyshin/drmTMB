@@ -202,8 +202,10 @@ drmTMB(
 )
 ```
 
-The middle label `p` is retained in group-level SD and correlation names. It
-does not yet share covariance across `sigma`, `mu1`, or `mu2` formulas.
+The middle label `p` is retained in group-level SD and correlation names. In
+the bivariate Gaussian path, matching `(1 | p | id)` terms in `mu1` and `mu2`
+now fit one cross-response random-intercept covariance block; sharing across
+`sigma` formulas remains planned.
 
 Residual-scale random intercepts in `sigma` are also implemented:
 
@@ -386,18 +388,19 @@ describes the residual covariance component after that known uncertainty has
 been included. It should only be called a study-level correlation when a
 separate study-level random effect is part of the model.
 
-## Planned next
+## Next covariance steps
 
-The planned double-hierarchical bivariate version adds individual-level random
-intercepts and random slopes to each mean formula, following the
+The first bivariate group-level covariance slice adds matching labelled random
+intercepts to each mean formula. The planned double-hierarchical version adds
+random slopes and residual-scale random effects, following the
 individual-differences literature on personality, plasticity, predictability,
 and malleability:
 
 ```r
 drmTMB(
   formula = drm_formula(
-    mu1 = y1 ~ x1 + x2 + (1 + x2 | p | ID),
-    mu2 = y2 ~ x1      + (1 + x2 | p | ID),
+    mu1 = y1 ~ x1 + x2 + (1 | p | ID),
+    mu2 = y2 ~ x1      + (1 | p | ID),
     sigma1 = ~ x1 + x2,
     sigma2 = ~ x1,
     rho12 = ~ x1 + x2
@@ -408,7 +411,7 @@ drmTMB(
 ```
 
 Here `sigma1` and `sigma2` are residual scale parameters. The random-effect
-standard deviations and correlations from `(1 + x2 | p | ID)` are separate
+standard deviations and correlation from `(1 | p | ID)` are separate
 group-level quantities.
 
 For the mathematical details, start with the location-scale and bivariate

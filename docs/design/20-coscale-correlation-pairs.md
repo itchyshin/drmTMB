@@ -39,10 +39,11 @@ not a phylogenetic correlation, not a spatial correlation, and not a
 group-level random-effect correlation.
 
 The helper `corpairs(fit)` is implemented for fitted correlations that already
-exist: residual bivariate `rho12` summaries and ordinary univariate Gaussian
-`mu` random-effect correlations from `corpars$mu`. It is intentionally a
-reporting helper, not a new likelihood. Future rows can be added as bivariate
-group-level, phylogenetic, spatial, and double-hierarchical correlation
+exist: residual bivariate `rho12` summaries, ordinary univariate Gaussian `mu`
+random-effect correlations from `corpars$mu`, and the first bivariate
+`mu1`/`mu2` labelled random-intercept correlation. It is intentionally a
+reporting helper, not a new likelihood. Future rows can be added as
+phylogenetic, spatial, study-level, and richer double-hierarchical correlation
 likelihoods become implemented.
 
 ## Why Named Correlation Pairs Are Needed
@@ -186,7 +187,8 @@ display preference, because each layer answers a different biological question.
 3. Add a `corpairs()` design table for existing fitted correlations, including
    residual `rho12` and univariate `mu` intercept-slope correlations. Done for
    the currently fitted correlation classes.
-4. Add bivariate group-level random intercept covariance blocks.
+4. Add bivariate group-level random intercept covariance blocks. Done for
+   matching labelled `mu1`/`mu2` random intercepts.
 5. Add bivariate random intercept-slope covariance blocks.
 6. Add residual-scale random-effect covariance blocks.
 7. Add cross-parameter mean-scale covariance blocks.

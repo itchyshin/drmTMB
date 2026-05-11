@@ -22,6 +22,28 @@ new_profile_biv_data <- function(
   )
 }
 
+new_profile_biv_group_data <- function(
+  n_id = 14L,
+  n_each = 5L,
+  rho_group = 0.35,
+  seed = 20260611
+) {
+  set.seed(seed)
+  id <- factor(rep(seq_len(n_id), each = n_each))
+  n <- length(id)
+  x <- stats::rnorm(n)
+  z1 <- stats::rnorm(n_id)
+  z2 <- stats::rnorm(n_id)
+  b1 <- 0.4 * z1
+  b2 <- 0.45 * (rho_group * z1 + sqrt(1 - rho_group^2) * z2)
+  data.frame(
+    y1 = 0.2 + 0.45 * x + b1[id] + stats::rnorm(n, sd = 0.35),
+    y2 = -0.15 - 0.3 * x + b2[id] + stats::rnorm(n, sd = 0.45),
+    x = x,
+    id = id
+  )
+}
+
 new_profile_group_data <- function(n_id = 18, n_each = 5, seed = 20260591) {
   set.seed(seed)
   n <- n_id * n_each
@@ -810,6 +832,59 @@ test_that("profile target inventory separates random-effect SDs and correlations
     drmTMB:::guarded_correlation_link(cor_target$estimate, guard = 0.999999),
     tolerance = 1e-12
   )
+})
+
+test_that("profile target inventory covers bivariate mu covariance labels", {
+  dat <- new_profile_biv_group_data()
+  fit <- drmTMB(
+    bf(
+      mu1 = y1 ~ x + (1 | p | id),
+      mu2 = y2 ~ x + (1 | p | id),
+      sigma1 = ~1,
+      sigma2 = ~1,
+      rho12 = ~1
+    ),
+    family = biv_gaussian(),
+    data = dat
+  )
+
+  targets <- profile_targets(fit)
+  ready_targets <- profile_targets(fit, ready_only = TRUE)
+  biv_parms <- c(
+    "sd:mu:mu1:(1 | p | id)",
+    "sd:mu:mu2:(1 | p | id)",
+    "cor:mu:cor(mu1:(Intercept),mu2:(Intercept) | p | id)"
+  )
+  biv_targets <- targets[match(biv_parms, targets$parm), ]
+
+  expect_equal(biv_targets$parm, biv_parms)
+  expect_equal(
+    biv_targets$target_class,
+    c(
+      "random-effect-sd",
+      "random-effect-sd",
+      "random-effect-correlation"
+    )
+  )
+  expect_equal(biv_targets$dpar, rep("mu", 3))
+  expect_equal(
+    biv_targets$tmb_parameter,
+    c("log_sd_mu", "log_sd_mu", "eta_cor_mu")
+  )
+  expect_equal(biv_targets$index, c(1L, 2L, 1L))
+  expect_equal(biv_targets$transformation, c("exp", "exp", "tanh"))
+  expect_equal(biv_targets$target_type, rep("direct", 3))
+  expect_true(all(biv_targets$profile_ready))
+  expect_equal(biv_targets$profile_note, rep("ready", 3))
+  expect_true(all(biv_parms %in% ready_targets$parm))
+
+  rho12_targets <- targets[targets$dpar == "rho12", ]
+  expect_true("rho12" %in% rho12_targets$parm)
+  expect_equal(
+    targets[targets$parm == "rho12", "target_class"],
+    "residual-correlation"
+  )
+  expect_false(any(rho12_targets$parm %in% biv_parms))
 })
 
 test_that("profile target inventory marks modelled group scales as derived", {

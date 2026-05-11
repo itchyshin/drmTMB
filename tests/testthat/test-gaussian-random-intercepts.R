@@ -1,5 +1,9 @@
-new_gaussian_ri_data <- function(n_id = 36, n_each = 10, sd_id = 0.7,
-                                 seed = 20260507) {
+new_gaussian_ri_data <- function(
+  n_id = 36,
+  n_each = 10,
+  sd_id = 0.7,
+  seed = 20260507
+) {
   set.seed(seed)
   n <- n_id * n_each
   id <- factor(rep(seq_len(n_id), each = n_each))
@@ -25,8 +29,12 @@ new_gaussian_ri_data <- function(n_id = 36, n_each = 10, sd_id = 0.7,
   )
 }
 
-new_gaussian_rs_data <- function(n_id = 45, n_each = 9, sd_slope = 0.45,
-                                 seed = 20260511) {
+new_gaussian_rs_data <- function(
+  n_id = 45,
+  n_each = 9,
+  sd_slope = 0.45,
+  seed = 20260511
+) {
   set.seed(seed)
   n <- n_id * n_each
   id <- factor(rep(seq_len(n_id), each = n_each))
@@ -52,9 +60,14 @@ new_gaussian_rs_data <- function(n_id = 45, n_each = 9, sd_slope = 0.45,
   )
 }
 
-new_gaussian_corr_rs_data <- function(n_id = 36, n_each = 8, sd0 = 0.55,
-                                      sd1 = 0.35, rho_re = 0.45,
-                                      seed = 20260515) {
+new_gaussian_corr_rs_data <- function(
+  n_id = 36,
+  n_each = 8,
+  sd0 = 0.55,
+  sd1 = 0.35,
+  rho_re = 0.45,
+  seed = 20260515
+) {
   set.seed(seed)
   n <- n_id * n_each
   id <- factor(rep(seq_len(n_id), each = n_each))
@@ -83,10 +96,15 @@ new_gaussian_corr_rs_data <- function(n_id = 36, n_each = 8, sd0 = 0.55,
   )
 }
 
-new_gaussian_labelled_corr_rs_data <- function(n_id = 30, n_each = 7,
-                                               sd0 = 0.5, sd1 = 0.35,
-                                               rho_re = 0.4, sigma = 0.45,
-                                               seed = 20260530) {
+new_gaussian_labelled_corr_rs_data <- function(
+  n_id = 30,
+  n_each = 7,
+  sd0 = 0.5,
+  sd1 = 0.35,
+  rho_re = 0.4,
+  sigma = 0.45,
+  seed = 20260530
+) {
   set.seed(seed)
   n <- n_id * n_each
   ID <- factor(rep(seq_len(n_id), each = n_each))
@@ -97,8 +115,11 @@ new_gaussian_labelled_corr_rs_data <- function(n_id = 30, n_each = 7,
   u0 <- sd0 * z0
   u1 <- sd1 * (rho_re * z0 + sqrt(1 - rho_re^2) * z1)
   beta_mu <- c(`(Intercept)` = 0.25, x = 0.65, ftreated = 0.2)
-  mu <- beta_mu[[1L]] + beta_mu[[2L]] * x +
-    beta_mu[[3L]] * (f == "treated") + u0[ID] + u1[ID] * x
+  mu <- beta_mu[[1L]] +
+    beta_mu[[2L]] * x +
+    beta_mu[[3L]] * (f == "treated") +
+    u0[ID] +
+    u1[ID] * x
 
   list(
     data = data.frame(
@@ -114,9 +135,12 @@ new_gaussian_labelled_corr_rs_data <- function(n_id = 30, n_each = 7,
   )
 }
 
-new_gaussian_sigma_ri_data <- function(n_id = 36, n_each = 8,
-                                       sd_sigma_id = 0.35,
-                                       seed = 20260539) {
+new_gaussian_sigma_ri_data <- function(
+  n_id = 36,
+  n_each = 8,
+  sd_sigma_id = 0.35,
+  seed = 20260539
+) {
   set.seed(seed)
   n <- n_id * n_each
   id <- factor(rep(seq_len(n_id), each = n_each))
@@ -178,20 +202,23 @@ test_that("conditional predictions and residuals include mu random intercepts", 
     data = sim$data
   )
 
-  fixed_mu <- as.vector(stats::model.matrix(~ x, sim$data) %*% coef(fit, "mu"))
+  fixed_mu <- as.vector(stats::model.matrix(~x, sim$data) %*% coef(fit, "mu"))
   conditional_mu <- predict(fit, dpar = "mu")
   response_resid <- residuals(fit)
 
   expect_equal(fit$opt$convergence, 0)
   expect_gt(stats::sd(conditional_mu - fixed_mu), 0.05)
   expect_equal(stats::fitted(fit), conditional_mu, tolerance = 1e-12)
-  expect_lt(stats::sd(sim$data$y - conditional_mu), stats::sd(sim$data$y - fixed_mu))
+  expect_lt(
+    stats::sd(sim$data$y - conditional_mu),
+    stats::sd(sim$data$y - fixed_mu)
+  )
   expect_equal(response_resid, sim$data$y - conditional_mu, tolerance = 1e-12)
 
   newdata <- data.frame(x = c(-0.2, 0.3), z = c(0, 1), id = sim$data$id[1:2])
   expect_equal(
     predict(fit, newdata = newdata, dpar = "mu"),
-    as.vector(stats::model.matrix(~ x, newdata) %*% coef(fit, "mu")),
+    as.vector(stats::model.matrix(~x, newdata) %*% coef(fit, "mu")),
     tolerance = 1e-12
   )
 })
@@ -371,7 +398,11 @@ test_that("labelled Gaussian mu correlated blocks match unlabelled block semanti
     c("(1 + x | p | ID):(Intercept)", "(1 + x | p | ID):x")
   )
   expect_named(fit_labelled$corpars$mu, "cor((Intercept),x | p | ID)")
-  expect_false(any(grepl("rho12", names(fit_labelled$corpars$mu), fixed = TRUE)))
+  expect_false(any(grepl(
+    "rho12",
+    names(fit_labelled$corpars$mu),
+    fixed = TRUE
+  )))
 })
 
 test_that("labelled Gaussian mu correlated blocks recover moderate covariance parameters", {
@@ -460,7 +491,11 @@ test_that("labelled correlated blocks remain stable with small and large residua
 })
 
 test_that("labelled correlated-block variables participate in missingness", {
-  sim <- new_gaussian_labelled_corr_rs_data(n_id = 12, n_each = 5, seed = 20260537)
+  sim <- new_gaussian_labelled_corr_rs_data(
+    n_id = 12,
+    n_each = 5,
+    seed = 20260537
+  )
   dat <- sim$data
   dat$y[2] <- NA_real_
   dat$x[5] <- NA_real_
@@ -553,13 +588,22 @@ test_that("Gaussian sigma random intercepts participate in missingness", {
 })
 
 test_that("Gaussian mu and sigma random intercepts can coexist independently", {
-  sim <- new_gaussian_ri_data(n_id = 30, n_each = 8, sd_id = 0.55, seed = 20260543)
+  sim <- new_gaussian_ri_data(
+    n_id = 30,
+    n_each = 8,
+    sd_id = 0.55,
+    seed = 20260543
+  )
   dat <- sim$data
   log_sigma_group <- stats::rnorm(nlevels(dat$id), sd = 0.3)
   dat$y <- stats::rnorm(
     nrow(dat),
     mean = sim$beta_mu[[1L]] + sim$beta_mu[[2L]] * dat$x,
-    sd = exp(sim$beta_sigma[[1L]] + sim$beta_sigma[[2L]] * dat$z + log_sigma_group[dat$id])
+    sd = exp(
+      sim$beta_sigma[[1L]] +
+        sim$beta_sigma[[2L]] * dat$z +
+        log_sigma_group[dat$id]
+    )
   )
 
   fit <- drmTMB(
@@ -773,14 +817,18 @@ test_that("unsupported random-effect cases fail clearly", {
       family = biv_gaussian(),
       data = dat
     ),
-    "unsupported model terms"
+    "one matching random-intercept"
   )
   expect_error(
     drmTMB(bf(y ~ x + (1 + x + y2 | id)), family = gaussian(), data = dat),
     "Only random intercepts"
   )
   expect_error(
-    drmTMB(bf(y ~ x + (1 + x | id) + (0 + x | id)), family = gaussian(), data = dat),
+    drmTMB(
+      bf(y ~ x + (1 + x | id) + (0 + x | id)),
+      family = gaussian(),
+      data = dat
+    ),
     "Overlapping random-effect terms"
   )
   dat$group_label <- factor(rep(letters[1:2], length.out = nrow(dat)))
@@ -789,7 +837,11 @@ test_that("unsupported random-effect cases fail clearly", {
     "must be numeric"
   )
   expect_error(
-    drmTMB(bf(y ~ x + (1 + group_label | p | id)), family = gaussian(), data = dat),
+    drmTMB(
+      bf(y ~ x + (1 + group_label | p | id)),
+      family = gaussian(),
+      data = dat
+    ),
     "must be numeric"
   )
   expect_error(
@@ -797,11 +849,19 @@ test_that("unsupported random-effect cases fail clearly", {
     "Only random intercepts"
   )
   expect_error(
-    drmTMB(bf(y ~ x + (1 + x | p | id) + (0 + x | id)), family = gaussian(), data = dat),
+    drmTMB(
+      bf(y ~ x + (1 + x | p | id) + (0 + x | id)),
+      family = gaussian(),
+      data = dat
+    ),
     "Overlapping random-effect terms"
   )
   expect_error(
-    drmTMB(bf(y ~ x + (1 + x | p | id) + (1 + x | q | id)), family = gaussian(), data = dat),
+    drmTMB(
+      bf(y ~ x + (1 + x | p | id) + (1 + x | q | id)),
+      family = gaussian(),
+      data = dat
+    ),
     "Overlapping random-effect terms"
   )
   expect_error(

@@ -612,6 +612,49 @@ Type objective_function<Type>::operator()()
     vector<Type> eta_rho12 = X_rho12 * beta_rho12;
     vector<Type> rho12 = Type(0.99999999) * tanh(eta_rho12);
 
+    if (n_mu_re_terms > 0) {
+      vector<Type> sd_mu_re = exp(log_sd_mu);
+      vector<Type> sd_mu_group(X_sd_mu.rows());
+      if (has_sd_mu_model == 1) {
+        for (int g = 0; g < X_sd_mu.rows(); ++g) {
+          Type eta_sd = Type(0.0);
+          for (int k = 0; k < X_sd_mu.cols(); ++k) {
+            eta_sd += X_sd_mu(g, k) * beta_sd_mu(k);
+          }
+          sd_mu_group(g) = exp(eta_sd);
+        }
+      }
+      vector<Type> rho_mu_re(n_mu_re_cors);
+      for (int j = 0; j < n_mu_re_cors; ++j) {
+        rho_mu_re(j) = Type(0.999999) * tanh(eta_cor_mu(j));
+      }
+      for (int i = 0; i < y1.size(); ++i) {
+        for (int j = 0; j < n_mu_re_terms; ++j) {
+          int idx = mu_re_index(i, j);
+          int cor_id = mu_re_cor_id(idx);
+          int sd_row = mu_re_sd_row(idx);
+          Type sd_current = sd_mu_re(mu_re_term(idx));
+          if (sd_row >= 0) {
+            sd_current = sd_mu_group(sd_row);
+          }
+          Type u_cond = u_mu(idx);
+          if (cor_id >= 0 && mu_re_pos(idx) == 1) {
+            Type rho = rho_mu_re(cor_id);
+            int pair_idx = mu_re_pair_index(idx);
+            u_cond = rho * u_mu(pair_idx) + sqrt(Type(1.0) - rho * rho) * u_mu(idx);
+          }
+          if (j == 0) {
+            mu1(i) += mu_re_value(i, j) * sd_current * u_cond;
+          } else if (j == 1) {
+            mu2(i) += mu_re_value(i, j) * sd_current * u_cond;
+          }
+        }
+      }
+      for (int j = 0; j < u_mu.size(); ++j) {
+        nll -= dnorm(u_mu(j), Type(0.0), Type(1.0), true);
+      }
+    }
+
     if (V_known_type == 2) {
       int n = y1.size();
       int m = 2 * n;
@@ -664,6 +707,44 @@ Type objective_function<Type>::operator()()
     ADREPORT(beta_sigma1);
     ADREPORT(beta_sigma2);
     ADREPORT(beta_rho12);
+    if (n_mu_re_terms > 0) {
+      vector<Type> sd_mu_re = exp(log_sd_mu);
+      vector<Type> log_sd_mu_group(X_sd_mu.rows());
+      vector<Type> sd_mu_group(X_sd_mu.rows());
+      if (has_sd_mu_model == 1) {
+        for (int g = 0; g < X_sd_mu.rows(); ++g) {
+          Type eta_sd = Type(0.0);
+          for (int k = 0; k < X_sd_mu.cols(); ++k) {
+            eta_sd += X_sd_mu(g, k) * beta_sd_mu(k);
+          }
+          log_sd_mu_group(g) = eta_sd;
+          sd_mu_group(g) = exp(eta_sd);
+        }
+      }
+      vector<Type> rho_mu_re(n_mu_re_cors);
+      for (int j = 0; j < n_mu_re_cors; ++j) {
+        rho_mu_re(j) = Type(0.999999) * tanh(eta_cor_mu(j));
+      }
+      REPORT(u_mu);
+      REPORT(log_sd_mu);
+      REPORT(sd_mu_re);
+      ADREPORT(log_sd_mu);
+      ADREPORT(sd_mu_re);
+      if (has_sd_mu_model == 1) {
+        REPORT(beta_sd_mu);
+        REPORT(log_sd_mu_group);
+        REPORT(sd_mu_group);
+        ADREPORT(beta_sd_mu);
+        ADREPORT(log_sd_mu_group);
+        ADREPORT(sd_mu_group);
+      }
+      if (n_mu_re_cors > 0) {
+        REPORT(eta_cor_mu);
+        REPORT(rho_mu_re);
+        ADREPORT(eta_cor_mu);
+        ADREPORT(rho_mu_re);
+      }
+    }
   }
 
   return nll;

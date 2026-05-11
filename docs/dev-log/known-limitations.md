@@ -13,15 +13,19 @@
   variable after missing-row filtering.
 - Diagonal and dense full known-covariance Gaussian meta-analysis is
   implemented.
-- Fixed-effect bivariate Gaussian location-scale-coscale models are
-  implemented with `mu1`, `mu2`, `sigma1`, `sigma2`, and `rho12` formulas.
-  Bivariate group-level random effects and double-hierarchical correlation
-  pairs are planned only; residual `rho12` should not be interpreted as a
-  phylogenetic, spatial, or group-level covariance parameter.
+- Bivariate Gaussian location-scale-coscale models are implemented with `mu1`,
+  `mu2`, `sigma1`, `sigma2`, and `rho12` formulas. The first group-level
+  bivariate covariance slice is implemented for matching labelled
+  random-intercept terms in `mu1` and `mu2`, such as `(1 | p | id)` in both
+  response formulas. Bivariate random slopes, residual-scale random effects,
+  and double-hierarchical cross-parameter covariance are still planned;
+  residual `rho12` should not be interpreted as a phylogenetic, spatial, or
+  group-level covariance parameter.
 - `corpairs()` currently reports only correlations that are already fitted:
   residual bivariate `rho12` summaries and ordinary univariate Gaussian `mu`
-  random-effect correlations. It does not yet report bivariate group-level,
-  phylogenetic, spatial, study-level, or cross-parameter correlation pairs.
+  random-effect correlations, plus the implemented bivariate `mu1`/`mu2`
+  random-intercept correlation. It does not yet report phylogenetic, spatial,
+  study-level, or cross-parameter correlation pairs.
 - `summary()`, `predict_parameters()`, and `marginal_parameters()` expose
   fitted response-scale parameter summaries for interpretation, but the first
   marginal helper computes unweighted plug-in means only. It does not yet
@@ -88,8 +92,9 @@
   intercept-slope blocks with optional covariance-block labels, and univariate
   Gaussian residual-scale random intercepts in `sigma`, intercept-only
   phylogenetic location effects, plus one or more unlabelled Gaussian `mu`
-  random-intercept scale formulae through `sd(group) ~ x_group`, and
-  fixed-effect univariate Student-t models with `mu`, `sigma`, and `nu`.
+  random-intercept scale formulae through `sd(group) ~ x_group`, matched
+  labelled bivariate Gaussian `mu1`/`mu2` random-intercept covariance blocks,
+  and fixed-effect univariate Student-t models with `mu`, `sigma`, and `nu`.
   It also supports fixed-effect univariate lognormal models with `mu` and
   `sigma` on the log-response scale, fixed-effect univariate Gamma mean-CV
   models with positive response mean `mu` and coefficient of variation

@@ -232,10 +232,12 @@ does not put random effects inside the residual `sigma` model.
 (1 + x1 | p | id)
 ```
 
-The middle label `p` identifies a group-level covariance block. In the current
+The middle label `p` identifies a group-level covariance block. In the
 univariate Gaussian `mu` implementation, the label is retained in output names.
-When later implementations allow the same label in multiple parameter formulas,
-for example in `mu` and `sigma`, the model should estimate constant
+In the first bivariate Gaussian covariance slice, matching `(1 | p | id)` terms
+in `mu1` and `mu2` estimate one constant group-level random-intercept
+correlation. Later implementations should allow the same label in more
+parameter formulas, for example in `mu` and `sigma`, to estimate constant
 correlations among those group-level effects. These are the correlations used
 in double-hierarchical models of individual averages, mean-model slopes,
 residual scale, and scale-model slopes.
