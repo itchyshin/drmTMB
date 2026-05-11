@@ -9097,3 +9097,38 @@ Known limitations:
   non-phylogenetic species covariance likelihood is implemented;
 - `corpairs()` cannot report these structured layers until the corresponding
   covariance blocks are fitted and tested.
+
+## 2026-05-11 -- Phylogenetic SD profile coverage
+
+Goal:
+
+- add focused profile-likelihood coverage for the implemented univariate
+  Gaussian phylogenetic `mu` standard deviation.
+
+Implemented:
+
+- added a deterministic small balanced-tree fixture to
+  `tests/testthat/test-profile-targets.R`;
+- added a public `confint()` profile test for
+  `sd:mu:phylo(1 | species)`;
+- compared `confint.drmTMB()` with a manual `TMB::tmbprofile()` call for
+  `log_sd_phylo[1]`;
+- updated `NEWS.md`, `ROADMAP.md`, and
+  `docs/design/12-profile-likelihood-cis.md` so phylogenetic `mu` SD is claimed
+  as an explicitly covered direct profile target.
+
+Checks run:
+
+- exploratory R snippets over seeds `20260601` to `20260610`: seed `20260603`
+  with 16 tips and six observations per tip profiled cleanly without warnings;
+- `air format tests/testthat/test-profile-targets.R`: passed;
+- `Rscript -e "devtools::test(filter = 'profile-targets')"`: passed with 0
+  failures, 0 warnings, 0 skips, and 106 passing expectations;
+- `Rscript -e "devtools::test()"`: passed with 0 failures, 0 warnings, 0 skips,
+  and 1586 passing expectations.
+
+Known limitations:
+
+- this adds a direct phylogenetic SD interval test only;
+- phylogenetic correlation, non-phylogenetic species covariance, phylogenetic
+  signal, and derived variance-ratio intervals remain planned.

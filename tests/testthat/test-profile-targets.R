@@ -38,6 +38,63 @@ new_profile_group_data <- function(n_id = 18, n_each = 5, seed = 20260591) {
   data.frame(y = y, x = x, ID = ID)
 }
 
+new_profile_balanced_tree <- function(n_tip = 16L) {
+  stopifnot(n_tip >= 2L, log2(n_tip) == floor(log2(n_tip)))
+  edges <- matrix(integer(), ncol = 2L)
+  edge_lengths <- numeric()
+  next_node <- n_tip + 1L
+
+  build <- function(tips) {
+    if (length(tips) == 1L) {
+      return(tips)
+    }
+    node <- next_node
+    next_node <<- next_node + 1L
+    mid <- length(tips) / 2L
+    left <- build(tips[seq_len(mid)])
+    right <- build(tips[seq.int(mid + 1L, length(tips))])
+    edges <<- rbind(edges, c(node, left), c(node, right))
+    edge_lengths <<- c(edge_lengths, 1, 1)
+    node
+  }
+
+  build(seq_len(n_tip))
+  structure(
+    list(
+      edge = edges,
+      edge.length = edge_lengths,
+      tip.label = paste0("sp_", seq_len(n_tip)),
+      Nnode = n_tip - 1L
+    ),
+    class = "phylo"
+  )
+}
+
+new_profile_phylo_data <- function(
+  seed = 20260603,
+  n_tip = 16L,
+  n_each = 6L,
+  sd_phylo = 0.9,
+  sigma = 0.25
+) {
+  set.seed(seed)
+  tree <- new_profile_balanced_tree(n_tip)
+  A <- drmTMB:::drm_phylo_tip_covariance(tree)
+  phylo_effect <- as.vector(t(chol(A)) %*% stats::rnorm(n_tip, sd = sd_phylo))
+  names(phylo_effect) <- tree$tip.label
+  species <- rep(tree$tip.label, each = n_each)
+  x <- stats::rnorm(length(species))
+  y <- 0.25 +
+    0.45 * x +
+    phylo_effect[species] +
+    stats::rnorm(length(species), sd = sigma)
+
+  list(
+    data = data.frame(y = unname(y), x = x, species = species),
+    tree = tree
+  )
+}
+
 new_profile_hurdle_data <- function(n = 360, seed = 20260594) {
   set.seed(seed)
   dat <- data.frame(
@@ -358,6 +415,46 @@ test_that("confint profile intervals transform SD and correlation targets", {
   )
   expect_true(abs(cor_ci$lower) < 1)
   expect_true(abs(cor_ci$upper) < 1)
+})
+
+test_that("confint profile intervals transform phylogenetic SD targets", {
+  sim <- new_profile_phylo_data()
+  dat <- sim$data
+  tree <- sim$tree
+  fit <- drmTMB(
+    bf(y ~ x + phylo(1 | species, tree = tree), sigma ~ 1),
+    family = gaussian(),
+    data = dat
+  )
+
+  phylo_parm <- "sd:mu:phylo(1 | species)"
+  ci <- stats::confint(
+    fit,
+    parm = phylo_parm,
+    level = 0.80,
+    method = "profile",
+    trace = FALSE,
+    ystep = 0.30
+  )
+  manual_lincomb <- rep(0, length(fit$opt$par))
+  manual_lincomb[which(names(fit$opt$par) == "log_sd_phylo")[[1L]]] <- 1
+  manual_profile <- TMB::tmbprofile(
+    fit$obj,
+    name = phylo_parm,
+    lincomb = manual_lincomb,
+    trace = FALSE,
+    ystep = 0.30
+  )
+  manual_ci <- stats::confint(manual_profile, level = 0.80)
+
+  expect_equal(ci$parm, phylo_parm)
+  expect_equal(ci$scale, "response")
+  expect_equal(ci$transformation, "exp")
+  expect_equal(ci$tmb_parameter, "log_sd_phylo")
+  expect_equal(ci$index, 1L)
+  expect_equal(ci$lower, exp(unname(manual_ci[1L, "lower"])), tolerance = 1e-12)
+  expect_equal(ci$upper, exp(unname(manual_ci[1L, "upper"])), tolerance = 1e-12)
+  expect_gt(ci$lower, 0)
 })
 
 test_that("profile confidence intervals reject unsupported targets clearly", {

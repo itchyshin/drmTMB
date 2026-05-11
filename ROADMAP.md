@@ -192,8 +192,8 @@ distributional regression models using TMB.
   confidence-interval and profile-likelihood work.
 - `confint(fit)` now returns Wald fixed-effect intervals, and
   `confint(fit, parm = "fixef:mu:x", method = "profile")` profiles explicit
-  direct fixed-effect, ordinary random-effect SD, and ordinary random-effect
-  correlation targets.
+  direct fixed-effect, ordinary random-effect SD, ordinary random-effect
+  correlation, and phylogenetic `mu` SD targets.
 - Extend profile-likelihood confidence intervals to additional direct TMB
   parameters such as residual-scale parameters, `rho12` link-scale coefficients,
   and ordinal cutpoints.
