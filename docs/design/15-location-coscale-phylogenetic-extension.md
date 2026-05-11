@@ -61,6 +61,9 @@ The mammalian body mass-litter size protocol by Ortega et al. is an ideal
 central example. It explicitly motivates partitioning a bivariate association
 into phylogenetic and non-phylogenetic components, then asking whether
 lifestyle changes means, dispersion, and residual coupling.
+`docs/design/29-mammal-location-coscale-route.md` maps that protocol to the
+current `drmTMB` boundary and to the staged covariance work needed before the
+full model is runnable.
 It asks:
 
 - Is the body mass-litter size association mostly phylogenetic?

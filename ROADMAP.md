@@ -344,7 +344,10 @@ random-effect features land.
 - Start with small ordinary grouped models before adding phylogenetic or spatial
   bivariate covariance structures.
 - Use `docs/design/28-double-hierarchical-endpoint.md` as the endpoint map for
-  full individual-difference location-scale covariance models. The first
+  full individual-difference location-scale covariance models. Use
+  `docs/design/29-mammal-location-coscale-route.md` as the concrete mammal
+  body mass-litter size route for the phylogenetic bivariate covariance
+  endpoint. The first
   double-hierarchical slices should add one covariance block at a time, with
   `corpairs()` output and simulation recovery before the next block is added.
 
