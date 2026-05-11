@@ -9055,3 +9055,45 @@ Known limitations:
   work;
 - phylogenetic and non-phylogenetic correlation modelling remain future
   structured-covariance work, distinct from residual `rho12`.
+
+## 2026-05-11 -- Structured correlation roadmap refresh
+
+Goal:
+
+- record the future modelling requirement that residual `rho12`, phylogenetic
+  correlation, and non-phylogenetic species or individual correlation remain
+  separate layers in structured two-response models.
+
+Implemented:
+
+- updated `ROADMAP.md` Phase 11 to keep ordinary grouped personality and
+  plasticity covariance as the first target before structured phylogenetic or
+  non-phylogenetic species correlation layers;
+- updated `ROADMAP.md` Phase 12 to state that future two-response or two-trait
+  structured models should estimate and report phylogenetic correlation,
+  non-phylogenetic species correlation, and residual `rho12` separately;
+- updated `docs/design/28-double-hierarchical-endpoint.md` to distinguish
+  ordinary grouped covariance, bivariate phylogenetic and non-phylogenetic
+  species covariance, residual `rho12`, and later spatial covariance;
+- updated `docs/design/20-coscale-correlation-pairs.md` so the future
+  correlation-pair namespace keeps the three layers visible at once;
+- added
+  `docs/dev-log/after-task/2026-05-11-structured-correlation-roadmap-refresh.md`.
+
+Checks run:
+
+- `air format ROADMAP.md docs/design/20-coscale-correlation-pairs.md docs/design/28-double-hierarchical-endpoint.md`:
+  passed.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed and rendered
+  `ROADMAP.html`.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with no problems found.
+- `git diff --check`: passed.
+- `LC_ALL=C rg -n "[^\x00-\x7F]" ROADMAP.md docs/design/20-coscale-correlation-pairs.md docs/design/28-double-hierarchical-endpoint.md`:
+  passed with no matches.
+
+Known limitations:
+
+- this is roadmap/design work only; no bivariate phylogenetic or
+  non-phylogenetic species covariance likelihood is implemented;
+- `corpairs()` cannot report these structured layers until the corresponding
+  covariance blocks are fitted and tested.

@@ -109,8 +109,13 @@ meaning of the row.
 6. Add bivariate `sigma1`/`sigma2` group-level blocks only after the univariate
    scale-block recovery tests are stable.
 7. Combine bivariate group-level covariance blocks with residual `rho12 ~ x`.
-8. Add phylogenetic or spatial double-hierarchical blocks only after ordinary
-   grouped models have recovery evidence and clear diagnostics.
+8. Add bivariate phylogenetic and non-phylogenetic species covariance blocks
+   only after ordinary grouped models have recovery evidence and clear
+   diagnostics. These blocks should report phylogenetic correlation,
+   non-phylogenetic species correlation, and residual `rho12` as separate
+   layers.
+9. Add spatial double-hierarchical blocks only after the phylogenetic and
+   ordinary grouped covariance paths have clear diagnostics.
 
 Each step should add only one covariance expansion. If a step cannot recover
 SDs and correlations in small simulation tests, the next step should wait.
@@ -132,6 +137,13 @@ Every implemented slice needs:
 The first implementation should prefer small Gaussian models with many repeated
 measurements per individual. Large phylogenetic, spatial, or non-Gaussian
 versions are research extensions, not the first production target.
+
+For structured two-response models, the same caution applies to interpretation:
+phylogenetic correlation answers whether evolutionary shared history explains
+coordinated response components, non-phylogenetic species or individual
+correlation answers whether remaining group-level deviations are coupled, and
+residual `rho12` answers whether the two responses are coupled within an
+observation after those higher-level effects have been accounted for.
 
 ## Reporting And Inference
 

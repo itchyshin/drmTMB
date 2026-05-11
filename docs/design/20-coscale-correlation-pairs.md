@@ -174,6 +174,11 @@ Analogous non-phylogenetic species, site, study, and spatial field
 correlations should have their own `level` labels. They should not be reported
 as residual `rho12`, even in bivariate models.
 
+The first structured two-response target should keep three layers visible at
+the same time: phylogenetic correlation, non-phylogenetic species or individual
+correlation, and residual `rho12`. This is a modelling requirement, not a
+display preference, because each layer answers a different biological question.
+
 ## Implementation Order
 
 1. Keep fixed-effect residual `rho12 ~ predictors` stable.
@@ -185,8 +190,10 @@ as residual `rho12`, even in bivariate models.
 5. Add bivariate random intercept-slope covariance blocks.
 6. Add residual-scale random-effect covariance blocks.
 7. Add cross-parameter mean-scale covariance blocks.
-8. Add phylogenetic and spatial bivariate covariance blocks.
-9. Only after simulation evidence: consider predictor-dependent group-level or
+8. Add bivariate phylogenetic covariance blocks with matching non-phylogenetic
+   species or individual covariance blocks.
+9. Add spatial bivariate covariance blocks.
+10. Only after simulation evidence: consider predictor-dependent group-level or
    structured-effect correlation formulas.
 
 For covariance blocks with more than two random-effect coefficients, use a

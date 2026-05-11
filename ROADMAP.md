@@ -329,6 +329,9 @@ random-effect features land.
 - Use labelled group-level covariance blocks so residual `rho12`, ordinary
   group-level correlations, phylogenetic correlations, spatial field
   correlations, and mean-scale correlations stay in separate namespaces.
+- Keep the first individual-difference covariance target focused on ordinary
+  grouped personality and plasticity terms before adding structured
+  phylogenetic or non-phylogenetic species correlation layers.
 - Extend `corpairs()` before adding complex covariance blocks, so users can see
   the level, group, block, responses, distributional parameters, coefficients,
   estimates, and uncertainty source.
@@ -351,6 +354,10 @@ random-effect features land.
 - Add long optional simulations for many species, near-zero phylogenetic SD,
   high residual noise, and combined phylogenetic plus non-phylogenetic species
   effects.
+- For future two-response or two-trait structured models, estimate and report
+  phylogenetic correlation, non-phylogenetic species correlation, and residual
+  `rho12` as separate layers. Residual `rho12` is not a substitute for
+  phylogenetic or species-level covariance.
 
 ## Phase 13: Double-Hierarchical Derived Inference
 
