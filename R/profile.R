@@ -6,6 +6,9 @@
 #' re-optimized; this first public profile path supports explicit fixed-effect,
 #' constant distributional-scale, random-effect standard-deviation,
 #' random-effect correlation, and constant residual-correlation targets.
+#' For predictor-dependent scale or residual-correlation formulae, supply
+#' `newdata` with `parm = "sigma"` or `parm = "rho12"` to profile the fitted
+#' response-scale value for each supplied row.
 #'
 #' Target names follow the profile target namespace. For fixed effects, use
 #' names such as `"fixef:mu:x"`, `"fixef:sigma:(Intercept)"`, or
@@ -23,7 +26,12 @@
 #'   `NULL` selects all fixed effects for Wald intervals. Profile intervals
 #'   require explicit target names.
 #' @param level Confidence level.
-#' @param method Interval method: `"wald"` or `"profile"`.
+#' @param method Interval method: `"wald"` or `"profile"`. If `newdata` is
+#'   supplied and `method` is omitted, `method = "profile"` is used.
+#' @param newdata Optional data frame for response-scale profile intervals for
+#'   predictor-dependent `sigma`, `sigma1`, `sigma2`, or `rho12` values. Each
+#'   row is profiled separately by profiling its fixed-effect linear predictor
+#'   and then transforming the interval to the response scale.
 #' @param trace Logical; passed to [TMB::tmbprofile()] for profile intervals.
 #' @param ... Additional arguments passed to [TMB::tmbprofile()] when
 #'   `method = "profile"`.
@@ -41,13 +49,23 @@ confint.drmTMB <- function(
   parm = NULL,
   level = 0.95,
   method = c("wald", "profile"),
+  newdata = NULL,
   trace = FALSE,
   ...
 ) {
+  method_missing <- missing(method)
   method <- match.arg(method)
+  if (!is.null(newdata) && method_missing) {
+    method <- "profile"
+  }
   validate_profile_level(level)
 
   if (identical(method, "wald")) {
+    if (!is.null(newdata)) {
+      cli::cli_abort(
+        "{.arg newdata} is only used when {.code method = \"profile\"}."
+      )
+    }
     dots <- list(...)
     if (length(dots) > 0L) {
       cli::cli_abort(
@@ -55,6 +73,17 @@ confint.drmTMB <- function(
       )
     }
     return(drm_wald_confint(object, parm = parm, level = level))
+  }
+
+  if (!is.null(newdata)) {
+    return(drm_profile_response_newdata_confint(
+      object,
+      parm = parm,
+      newdata = newdata,
+      level = level,
+      trace = trace,
+      ...
+    ))
   }
 
   if (is.null(parm)) {
@@ -360,6 +389,91 @@ drm_profile_confint <- function(
   out
 }
 
+drm_profile_response_newdata_confint <- function(
+  object,
+  parm,
+  newdata,
+  level = 0.95,
+  trace = FALSE,
+  ...
+) {
+  validate_profile_level(level)
+  if (is.null(object$obj)) {
+    cli::cli_abort(c(
+      "Profile confidence intervals require the TMB object retained in {.code fit$obj}.",
+      i = "Refit with {.code drm_control(keep_tmb_object = TRUE)} before using {.code method = \"profile\"}."
+    ))
+  }
+  dpar <- profile_newdata_dpar(object, parm)
+  if (!is.data.frame(newdata)) {
+    cli::cli_abort("{.arg newdata} must be a data frame.")
+  }
+  if (nrow(newdata) < 1L) {
+    cli::cli_abort("{.arg newdata} must contain at least one row.")
+  }
+
+  X <- drm_prediction_matrix(object, newdata, dpar)
+  beta <- object$coefficients[[dpar]]
+  if (!identical(colnames(X), names(beta))) {
+    cli::cli_abort(c(
+      "Could not align {.arg newdata} with the fitted {.val {dpar}} formula.",
+      i = "Check that factor levels and predictor columns match the fitted model."
+    ))
+  }
+  offset <- drm_prediction_offset(object, newdata, dpar)
+  if (length(offset) != nrow(X)) {
+    cli::cli_abort(
+      "Internal error: response-scale profile offsets do not match {.arg newdata} rows."
+    )
+  }
+
+  internal <- profile_fixef_internal(dpar)
+  par_names <- names(object$opt$par)
+  positions <- which(par_names == internal)
+  if (length(positions) < ncol(X)) {
+    cli::cli_abort(c(
+      "Profile target {.val {dpar}} cannot be mapped to optimized parameters.",
+      i = "Expected {ncol(X)} coefficient{?s} in TMB parameter {.val {internal}}."
+    ))
+  }
+
+  labels <- profile_newdata_parm_labels(dpar, newdata)
+  rows <- lapply(seq_len(nrow(X)), function(i) {
+    lincomb <- rep(0, length(object$opt$par))
+    lincomb[positions[seq_len(ncol(X))]] <- as.numeric(X[i, ])
+    prof <- TMB::tmbprofile(
+      obj = object$obj,
+      name = labels[[i]],
+      lincomb = lincomb,
+      trace = trace,
+      ...
+    )
+    ci <- stats::confint(prof, level = level)
+    interval <- profile_transform_newdata_interval(
+      c(unname(ci[1L, "lower"]), unname(ci[1L, "upper"])),
+      object = object,
+      dpar = dpar,
+      offset = offset[[i]]
+    )
+
+    data.frame(
+      parm = labels[[i]],
+      level = level,
+      lower = interval[[1L]],
+      upper = interval[[2L]],
+      scale = "response",
+      transformation = profile_newdata_transformation(object, dpar),
+      tmb_parameter = internal,
+      index = NA_integer_,
+      method = "profile",
+      stringsAsFactors = FALSE
+    )
+  })
+  out <- do.call(rbind, rows)
+  row.names(out) <- NULL
+  out
+}
+
 drm_wald_confint <- function(object, parm, level) {
   targets <- drm_profile_targets(object)
   targets <- targets[targets$target_class == "fixed-effect", , drop = FALSE]
@@ -454,6 +568,27 @@ profile_transform_interval <- function(interval, target) {
     tanh = 0.999999 * tanh(interval),
     rho12_tanh = rho_response(interval),
     interval
+  )
+}
+
+profile_transform_newdata_interval <- function(interval, object, dpar, offset) {
+  eta_interval <- interval + offset
+  switch(
+    drm_dpar_link(object, dpar),
+    log = exp(eta_interval),
+    atanh_guarded = rho_response(eta_interval),
+    cli::cli_abort(
+      "Internal error: no response-scale profile transformation for {.val {dpar}}."
+    )
+  )
+}
+
+profile_newdata_transformation <- function(object, dpar) {
+  switch(
+    drm_dpar_link(object, dpar),
+    log = "exp",
+    atanh_guarded = "rho12_tanh",
+    "unknown"
   )
 }
 
@@ -617,6 +752,56 @@ profile_match_confint_targets <- function(targets, parm, fixed_only) {
     ))
   }
   targets[index, , drop = FALSE]
+}
+
+profile_newdata_dpar <- function(object, parm) {
+  if (is.null(parm)) {
+    cli::cli_abort(c(
+      "{.arg parm} must name one distributional parameter when {.arg newdata} is supplied.",
+      i = "Use {.val sigma}, {.val sigma1}, {.val sigma2}, or {.val rho12}."
+    ))
+  }
+  if (!is.character(parm) || length(parm) != 1L || is.na(parm)) {
+    cli::cli_abort(
+      "{.arg parm} must be one distributional-parameter name when {.arg newdata} is supplied."
+    )
+  }
+
+  supported <- intersect(
+    c("sigma", "sigma1", "sigma2", "rho12"),
+    names(object$coefficients)
+  )
+  supported <- supported[vapply(
+    supported,
+    function(dpar) drm_dpar_link(object, dpar) %in% c("log", "atanh_guarded"),
+    logical(1)
+  )]
+  if (!parm %in% supported) {
+    available <- if (length(supported)) {
+      paste(supported, collapse = ", ")
+    } else {
+      "none for this fitted model"
+    }
+    cli::cli_abort(c(
+      "Response-scale profile intervals with {.arg newdata} are implemented for fitted scale and residual-correlation parameters.",
+      i = "Requested {.val {parm}}; available for this fit: {available}."
+    ))
+  }
+  parm
+}
+
+profile_newdata_parm_labels <- function(dpar, newdata) {
+  labels <- row.names(newdata)
+  default_labels <- as.character(seq_len(nrow(newdata)))
+  if (
+    is.null(labels) ||
+      anyNA(labels) ||
+      any(!nzchar(labels)) ||
+      identical(labels, default_labels)
+  ) {
+    labels <- default_labels
+  }
+  paste0(dpar, "[", labels, "]")
 }
 
 profile_target_positions <- function(targets, labels) {

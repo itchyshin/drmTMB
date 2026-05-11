@@ -9240,3 +9240,56 @@ Known limitations:
   need an explicit `newdata` or contrast API;
 - other transformed direct targets such as constant `nu`, probabilities, and
   ordinal cutpoints remain planned.
+
+## 2026-05-11 -- Row-specific newdata profile intervals
+
+Goal:
+
+- add profile-likelihood intervals for response-scale `sigma`, `sigma1`,
+  `sigma2`, and `rho12` values at supplied `newdata` rows.
+
+Implemented:
+
+- added `newdata` to `confint.drmTMB()`;
+- defaulted to `method = "profile"` when `newdata` is supplied and `method`
+  is omitted;
+- profiled each row's fixed-effect linear predictor with `TMB::tmbprofile()`;
+- transformed profile endpoints with `exp()` for scale parameters and
+  `rho_response()` for residual `rho12`;
+- updated `NEWS.md`, `ROADMAP.md`,
+  `docs/design/12-profile-likelihood-cis.md`,
+  `man/confint.drmTMB.Rd`, and
+  `docs/dev-log/after-task/2026-05-11-newdata-profile-intervals.md`.
+
+Checks run:
+
+- `air format R/profile.R tests/testthat/test-profile-targets.R`: passed.
+- `Rscript -e "devtools::test(filter = 'profile-targets')"`: passed with 0
+  failures, 0 warnings, 0 skips, and 167 passing expectations.
+- `air format R/profile.R tests/testthat/test-profile-targets.R NEWS.md ROADMAP.md docs/design/12-profile-likelihood-cis.md`:
+  passed.
+- `Rscript -e "devtools::document()"`: passed and regenerated
+  `man/confint.drmTMB.Rd`.
+- `Rscript -e "devtools::test()"`: passed with 0 failures, 0 warnings, 0
+  skips, and 1647 passing expectations.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed and rendered
+  `reference/confint.drmTMB.html` and `ROADMAP.html`.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with no problems found.
+- `_R_CHECK_SYSTEM_CLOCK_=FALSE Rscript -e "devtools::check(document = FALSE, manual = FALSE, args = '--no-tests')"`:
+  passed with 0 errors, 0 warnings, and 0 notes.
+- `git diff --check`: passed.
+- `LC_ALL=C rg -n "[^\x00-\x7F]" R/profile.R tests/testthat/test-profile-targets.R NEWS.md ROADMAP.md docs/design/12-profile-likelihood-cis.md docs/dev-log/after-task/2026-05-11-newdata-profile-intervals.md man/confint.drmTMB.Rd`:
+  passed with no matches.
+- `rg -n 'O.Dea/Nakagawa|O.Dea-style|predictor-dependent .*remain planned|newdata or contrast|response-scale scale' R/profile.R tests/testthat/test-profile-targets.R NEWS.md ROADMAP.md docs/design/12-profile-likelihood-cis.md docs/dev-log/after-task/2026-05-11-newdata-profile-intervals.md man/confint.drmTMB.Rd pkgdown-site/reference/confint.drmTMB.html pkgdown-site/ROADMAP.html --glob '!pkgdown-site/search.json'`:
+  passed with no matches.
+- `rg -n 'newdata|row-specific|sigma\]|rho12\]|response-scale' R/profile.R tests/testthat/test-profile-targets.R NEWS.md ROADMAP.md docs/design/12-profile-likelihood-cis.md docs/dev-log/after-task/2026-05-11-newdata-profile-intervals.md man/confint.drmTMB.Rd pkgdown-site/reference/confint.drmTMB.html pkgdown-site/ROADMAP.html --glob '!pkgdown-site/search.json'`:
+  confirmed source and generated-site wording.
+
+Known limitations:
+
+- each `newdata` row runs a separate one-dimensional profile and can be slow;
+- only fixed-effect row values for `sigma`, `sigma1`, `sigma2`, and `rho12`
+  are covered;
+- random-effect conditional row intervals, ordinal transformations, modelled
+  group-SD profiles, custom multi-row contrasts, and derived summaries remain
+  planned.

@@ -195,9 +195,13 @@ distributional regression models using TMB.
   direct fixed-effect, constant `sigma`/`sigma1`/`sigma2`, ordinary
   random-effect SD, ordinary random-effect correlation, phylogenetic `mu` SD,
   and constant residual `rho12` targets.
+- `confint(fit, parm = "sigma", method = "profile", newdata = grid)` and
+  `confint(fit, parm = "rho12", method = "profile", newdata = grid)` profile
+  row-specific response-scale `sigma` and residual-correlation values by
+  profiling the fixed-effect linear predictor for each supplied row.
 - Extend profile-likelihood confidence intervals to additional direct TMB
-  parameters such as predictor-dependent `sigma` and `rho12` response-scale
-  contrasts, other residual-scale parameters, and ordinal cutpoints.
+  parameters such as other residual-scale parameters, ordinal cutpoints, and
+  multi-row or custom contrasts beyond one `newdata` row at a time.
 - Use user-facing target names from the fitted object, for example
   `sd:mu:(1 | id)`, `sd:mu:phylo(1 | species)`,
   `cor:mu:cor((Intercept),x | id)`, `fixef:rho12:(Intercept)`, and

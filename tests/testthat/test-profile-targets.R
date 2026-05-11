@@ -353,6 +353,50 @@ test_that("confint profile intervals transform constant sigma targets", {
   expect_gt(ci$upper, mean(stats::sigma(fit)))
 })
 
+test_that("confint profile intervals transform newdata sigma targets", {
+  set.seed(20260606)
+  n <- 90
+  x <- stats::rnorm(n)
+  dat <- data.frame(
+    y = 0.2 + 0.5 * x + stats::rnorm(n, sd = exp(-0.4 + 0.25 * x)),
+    x = x
+  )
+  fit <- drmTMB(bf(y ~ x, sigma ~ x), family = gaussian(), data = dat)
+  newdata <- data.frame(x = 0.35)
+  row.names(newdata) <- "at_x"
+
+  ci <- stats::confint(
+    fit,
+    parm = "sigma",
+    level = 0.80,
+    newdata = newdata,
+    trace = FALSE,
+    ystep = 0.30
+  )
+  X <- stats::model.matrix(fit$model$terms$sigma, data = newdata)
+  manual_lincomb <- rep(0, length(fit$opt$par))
+  manual_lincomb[which(names(fit$opt$par) == "beta_sigma")] <- as.numeric(X)
+  manual_profile <- TMB::tmbprofile(
+    fit$obj,
+    name = "sigma[at_x]",
+    lincomb = manual_lincomb,
+    trace = FALSE,
+    ystep = 0.30
+  )
+  manual_ci <- stats::confint(manual_profile, level = 0.80)
+  sigma_hat <- predict(fit, newdata = newdata, dpar = "sigma")
+
+  expect_equal(ci$parm, "sigma[at_x]")
+  expect_equal(ci$scale, "response")
+  expect_equal(ci$transformation, "exp")
+  expect_equal(ci$tmb_parameter, "beta_sigma")
+  expect_true(is.na(ci$index))
+  expect_equal(ci$lower, exp(unname(manual_ci[1L, "lower"])), tolerance = 1e-12)
+  expect_equal(ci$upper, exp(unname(manual_ci[1L, "upper"])), tolerance = 1e-12)
+  expect_lt(ci$lower, sigma_hat)
+  expect_gt(ci$upper, sigma_hat)
+})
+
 test_that("confint profile intervals cover residual rho12 coefficients on link scale", {
   dat <- new_profile_biv_data(n = 120, seed = 20260600)
   fit <- drmTMB(
@@ -459,6 +503,59 @@ test_that("confint profile intervals transform constant residual rho12 targets",
   expect_true(abs(ci$upper) < 1)
   expect_lt(ci$lower, mean(rho12(fit)))
   expect_gt(ci$upper, mean(rho12(fit)))
+})
+
+test_that("confint profile intervals transform newdata rho12 targets", {
+  dat <- new_profile_biv_data(n = 140, seed = 20260607)
+  fit <- drmTMB(
+    bf(mu1 = y1 ~ x, mu2 = y2 ~ x, rho12 = ~w),
+    family = c(gaussian(), gaussian()),
+    data = dat
+  )
+  newdata <- data.frame(x = 0, w = 0.2)
+  row.names(newdata) <- "warm"
+
+  ci <- stats::confint(
+    fit,
+    parm = "rho12",
+    level = 0.80,
+    method = "profile",
+    newdata = newdata,
+    trace = FALSE,
+    ystep = 0.30
+  )
+  X <- stats::model.matrix(fit$model$terms$rho12, data = newdata)
+  manual_lincomb <- rep(0, length(fit$opt$par))
+  manual_lincomb[which(names(fit$opt$par) == "beta_rho12")] <- as.numeric(X)
+  manual_profile <- TMB::tmbprofile(
+    fit$obj,
+    name = "rho12[warm]",
+    lincomb = manual_lincomb,
+    trace = FALSE,
+    ystep = 0.30
+  )
+  manual_ci <- stats::confint(manual_profile, level = 0.80)
+  rho_hat <- rho12(fit, newdata = newdata)
+
+  expect_equal(ci$parm, "rho12[warm]")
+  expect_equal(ci$scale, "response")
+  expect_equal(ci$transformation, "rho12_tanh")
+  expect_equal(ci$tmb_parameter, "beta_rho12")
+  expect_true(is.na(ci$index))
+  expect_equal(
+    ci$lower,
+    drmTMB:::rho_response(unname(manual_ci[1L, "lower"])),
+    tolerance = 1e-12
+  )
+  expect_equal(
+    ci$upper,
+    drmTMB:::rho_response(unname(manual_ci[1L, "upper"])),
+    tolerance = 1e-12
+  )
+  expect_true(abs(ci$lower) < 1)
+  expect_true(abs(ci$upper) < 1)
+  expect_lt(ci$lower, rho_hat)
+  expect_gt(ci$upper, rho_hat)
 })
 
 test_that("confint profile intervals transform SD and correlation targets", {
@@ -619,6 +716,35 @@ test_that("profile confidence intervals reject unsupported targets clearly", {
   expect_error(
     stats::confint(fit, parm = "fixef:mu:x", level = 1),
     "between 0 and 1"
+  )
+  expect_error(
+    stats::confint(
+      fit,
+      parm = "sigma",
+      method = "wald",
+      newdata = data.frame(x = 0)
+    ),
+    "only used when"
+  )
+  expect_error(
+    stats::confint(
+      fit,
+      parm = NULL,
+      method = "profile",
+      newdata = data.frame(x = 0),
+      trace = FALSE
+    ),
+    "must name one distributional parameter"
+  )
+  expect_error(
+    stats::confint(
+      fit,
+      parm = "mu",
+      method = "profile",
+      newdata = data.frame(x = 0),
+      trace = FALSE
+    ),
+    "scale and residual-correlation"
   )
 
   missing_obj <- fit

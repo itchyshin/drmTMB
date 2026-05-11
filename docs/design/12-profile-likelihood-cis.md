@@ -14,10 +14,14 @@ direct targets. Direct ordinary random-effect SD, ordinary random-effect
 correlation, and phylogenetic `mu` SD targets are transformed back to the
 response scale. Constant `sigma`, `sigma1`, `sigma2`, and residual `rho12` can
 also be profiled as direct response-scale targets with names such as
-`parm = "sigma"` or `parm = "rho12"`. `profile_targets(fit)` lists the target
-names and readiness notes for a fitted model. Transformed ordinal, modelled
-group-SD, predictor-dependent `sigma` and `rho12` response-scale contrasts, and
-derived-summary profile intervals remain planned.
+`parm = "sigma"` or `parm = "rho12"`. When `sigma`, `sigma1`, `sigma2`, or
+`rho12` depends on predictors, use `confint()` with `method = "profile"` and
+`newdata` to profile each supplied row. The corresponding `rho12` call profiles
+the fixed-effect linear predictor for that row and transforms the interval to
+the response scale. `profile_targets(fit)` lists fitted-object target names and
+readiness notes; row-specific `newdata` targets are generated at call time.
+Transformed ordinal, modelled group-SD, custom multi-row contrasts, and derived
+summary profile intervals remain planned.
 
 The first implementation must therefore start from a stable target inventory,
 not from ad hoc parameter names in the C++ template. Public targets should be
@@ -47,9 +51,10 @@ Those names can then map internally to TMB parameters such as `beta_mu`,
 `beta_sigma`, `log_sd_mu`, `log_sd_sigma`, `log_sd_phylo`, `eta_cor_mu`,
 `beta_sd_mu`, and `beta_rho12`. The short `sigma`, `sigma1`, `sigma2`, and
 `rho12` targets are available only when the corresponding model formula is
-constant. Predictor-dependent scale and residual-correlation models still
-expose their link-scale coefficients until the API has a `newdata` or contrast
-design for response-scale intervals.
+constant. Predictor-dependent scale and residual-correlation models expose
+their link-scale coefficients in `profile_targets(fit)` and support
+row-specific response-scale profiles through `newdata`; arbitrary contrasts
+remain planned.
 
 ## Core Definition
 
@@ -136,8 +141,8 @@ beta_rho12         -> fixed effects in residual correlation formulae
 ```
 
 For `beta_rho12`, the profile is on the atanh linear-predictor scale unless a
-single interpretable contrast is requested and transformed back through
-`tanh()`.
+single interpretable row-specific value is requested with `newdata` and
+transformed back through `tanh()`.
 
 ### Linear Combinations
 
@@ -253,16 +258,18 @@ By default, `confint(fit)` returns fast Wald intervals for fixed-effect
 coefficients on their link scales. Profile intervals must be requested by name
 because they can be slow. The profile path wraps `TMB::tmbprofile()` for ready
 fixed-effect, constant distributional-scale, ordinary random-effect SD,
-ordinary random-effect correlation, phylogenetic `mu` SD, and constant residual
-`rho12` target rows. Unsupported ordinal-transform, modelled group-SD,
-predictor-dependent response-scale contrast, and derived-summary targets still
-fail before doing expensive optimization.
+ordinary random-effect correlation, phylogenetic `mu` SD, constant residual
+`rho12` target rows, and row-specific `newdata` profiles for
+predictor-dependent `sigma`, `sigma1`, `sigma2`, and `rho12`. Unsupported
+ordinal-transform, modelled group-SD, custom multi-row contrast, and
+derived-summary targets still fail before doing expensive optimization.
 
 The first fitted targets should be direct parameters in this order:
 
 1. fixed-effect coefficients for `mu`, `sigma`, `nu`, `zi`, `hu`, and `rho12`;
-2. constant `sigma`, `sigma1`, `sigma2`, residual `rho12`, and other
-   residual-scale parameters where they are direct TMB parameters;
+2. constant `sigma`, `sigma1`, `sigma2`, residual `rho12`, and row-specific
+   `newdata` profiles for predictor-dependent scale and residual-correlation
+   values;
 3. ordinary Gaussian random-effect SDs in `sdpars$mu`;
 4. ordinary Gaussian random-effect correlations in `corpars$mu`;
 5. phylogenetic `mu` SDs;
@@ -294,6 +301,8 @@ confint(fit, parm = "sd:mu:(1 | id)", method = "profile")
 confint(fit, parm = "sd:mu:(1 + x | p | id):x", method = "profile")
 confint(fit, parm = "sd:mu:phylo(1 | species)", method = "profile")
 confint(fit, parm = "cor:mu:cor((Intercept),x | id)", method = "profile")
+confint(fit, parm = "sigma", method = "profile", newdata = data.frame(x = 0))
+confint(fit, parm = "rho12", method = "profile", newdata = data.frame(w = 0))
 confint(fit, parm = "derived:ICC(id)", method = "profile")
 ```
 
