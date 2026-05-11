@@ -2,6 +2,25 @@
 
 Record meaningful development checks here.
 
+## 2026-05-11 -- Tweedie likelihood gate
+
+Scope:
+
+- added a planned Tweedie mean-scale-shape section to
+  `docs/design/03-likelihoods.md`;
+- kept `tweedie()` future-only while recording the working variance contract
+  `Var[y_i] = sigma_i^2 * mu_i^nu_i` with `1 < nu_i < 2`;
+- added an after-task note at
+  `docs/dev-log/after-task/2026-05-11-tweedie-likelihood-gate.md`.
+
+Checks:
+
+- `air format docs/design/03-likelihoods.md docs/dev-log/after-task/2026-05-11-tweedie-likelihood-gate.md docs/dev-log/check-log.md`:
+  passed.
+- `rg -n "Planned Tweedie|tweedie\\(|sigma_i\\^2 \\* mu_i\\^nu_i|glmmTMB::tweedie|issue #2|Tweedie" docs/design/03-likelihoods.md docs/design/27-tweedie-family-plan.md docs/design/06-distribution-roadmap.md ROADMAP.md docs/dev-log/after-task/2026-05-11-tweedie-likelihood-gate.md`:
+  confirmed the design-gate wording.
+- `git diff --check`: passed.
+
 ## 2026-05-10 -- First-use variance reporting and CI deploy gate
 
 Scope:
