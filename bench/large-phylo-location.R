@@ -284,6 +284,41 @@ package_version_or_na <- function(package) {
   as.character(utils::packageVersion(package))
 }
 
+format_cli_value <- function(value) {
+  if (is.logical(value)) {
+    return(tolower(as.character(value)))
+  }
+  as.character(value)
+}
+
+benchmark_command <- function(args) {
+  keys <- c(
+    "rows",
+    "species",
+    "seed",
+    "tree",
+    "factor_heavy",
+    "sigma_x",
+    "memory_light",
+    "eval_max",
+    "iter_max",
+    "output"
+  )
+  pieces <- c("Rscript", "bench/large-phylo-location.R")
+  for (key in keys) {
+    value <- format_cli_value(args[[key]])
+    if (identical(key, "output") && !nzchar(value)) {
+      next
+    }
+    pieces <- c(
+      pieces,
+      paste0("--", gsub("_", "-", key, fixed = TRUE)),
+      shQuote(value, type = "sh")
+    )
+  }
+  paste(pieces, collapse = " ")
+}
+
 local_package_version <- function() {
   if (file.exists("DESCRIPTION")) {
     desc <- tryCatch(
@@ -297,7 +332,36 @@ local_package_version <- function() {
   package_version_or_na("drmTMB")
 }
 
-benchmark_environment <- function() {
+local_git_sha <- function() {
+  out <- tryCatch(
+    system2(
+      "git",
+      c("rev-parse", "--short", "HEAD"),
+      stdout = TRUE,
+      stderr = FALSE
+    ),
+    warning = function(w) character(),
+    error = function(e) character()
+  )
+  if (length(out) == 0L || !nzchar(out[[1L]])) {
+    return(NA_character_)
+  }
+  out[[1L]]
+}
+
+local_git_dirty <- function() {
+  out <- tryCatch(
+    system2("git", c("status", "--porcelain"), stdout = TRUE, stderr = FALSE),
+    warning = function(w) NA_character_,
+    error = function(e) NA_character_
+  )
+  if (length(out) == 1L && is.na(out[[1L]])) {
+    return(NA)
+  }
+  length(out) > 0L
+}
+
+benchmark_environment <- function(args) {
   sys <- Sys.info()
   sys_value <- function(name) {
     value <- unname(sys[[name]])
@@ -316,7 +380,10 @@ benchmark_environment <- function() {
     ),
     machine = sys_value("machine"),
     drmTMB_version = local_package_version(),
-    TMB_version = package_version_or_na("TMB")
+    TMB_version = package_version_or_na("TMB"),
+    git_sha = local_git_sha(),
+    git_dirty = local_git_dirty(),
+    benchmark_command = benchmark_command(args)
   )
 }
 
@@ -325,7 +392,7 @@ run_benchmark <- function(args) {
   if (args$species < 2L) {
     stop("--species must be at least 2 for phylogenetic models.", call. = FALSE)
   }
-  env <- benchmark_environment()
+  env <- benchmark_environment(args)
   gc()
   before_mb <- gc_used_mb()
   data_time <- system.time(sim <- simulate_benchmark_data(args))

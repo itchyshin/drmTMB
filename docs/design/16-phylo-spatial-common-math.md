@@ -331,10 +331,12 @@ phylogenetic or spatial models are advertised as routine. These checks should
 summarize replication by grouping level, matrix rank/conditioning, and whether
 structured and unstructured effects are plausibly separable.
 
-Current first-pass `check_drm()` support covers optimizer convergence,
-fixed-parameter gradients, Hessian status, dropped rows, positive residual
-scale values, `rho12` boundary warnings, Student-t `nu` boundary behaviour,
-known sampling covariance summaries including dense-matrix rank/conditioning,
+Current first-pass `check_drm()` support covers optimizer convergence, optimizer
+evaluation counts, finite objective values, fixed-parameter gradients, Hessian
+status, finite fixed-effect standard errors, dropped rows, positive residual
+scale values, random-effect standard deviations near zero, `rho12` boundary
+warnings, Student-t `nu` boundary behaviour, known sampling covariance summaries
+including dense-matrix rank/conditioning, dense fixed-effect design size,
 ordinary random-effect replication, ordinary random-slope design variation, and
 phylogenetic species replication.
 Future structured-effect phases still need separability diagnostics for

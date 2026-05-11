@@ -48,6 +48,25 @@ Checks:
   checked that the new equations, R syntax, status table, and naming rules
   preserve the implemented-versus-planned boundary.
 
+## 2026-05-11 -- Tweedie likelihood gate
+
+Scope:
+
+- added a planned Tweedie mean-scale-shape section to
+  `docs/design/03-likelihoods.md`;
+- kept `tweedie()` future-only while recording the working variance contract
+  `Var[y_i] = sigma_i^2 * mu_i^nu_i` with `1 < nu_i < 2`;
+- added an after-task note at
+  `docs/dev-log/after-task/2026-05-11-tweedie-likelihood-gate.md`.
+
+Checks:
+
+- `air format docs/design/03-likelihoods.md docs/dev-log/after-task/2026-05-11-tweedie-likelihood-gate.md docs/dev-log/check-log.md`:
+  passed.
+- `rg -n "Planned Tweedie|tweedie\\(|sigma_i\\^2 \\* mu_i\\^nu_i|glmmTMB::tweedie|issue #2|Tweedie" docs/design/03-likelihoods.md docs/design/27-tweedie-family-plan.md docs/design/06-distribution-roadmap.md ROADMAP.md docs/dev-log/after-task/2026-05-11-tweedie-likelihood-gate.md`:
+  confirmed the design-gate wording.
+- `git diff --check`: passed.
+
 ## 2026-05-10 -- First-use variance reporting and CI deploy gate
 
 Scope:
@@ -9376,3 +9395,389 @@ Known limitations:
 - this is a documentation/design-contract change; no likelihood code changed;
 - Tweedie, COM-Poisson, ordinal scale/discrimination, and skew-normal scale or
   shape conventions still need their own design rows before implementation.
+
+## 2026-05-11 -- Explicit `rho12` in `corpairs()` example
+
+Goal:
+
+- make the `corpairs()` help example name the residual correlation formula it
+  is summarising.
+
+Implemented:
+
+- updated the `corpairs()` roxygen example in `R/methods.R` to include
+  `rho12 = ~ 1` explicitly;
+- regenerated `man/corpairs.Rd`;
+- created
+  `docs/dev-log/after-task/2026-05-11-corpairs-example-rho12.md`.
+
+Checks run:
+
+- `air format R/methods.R docs/dev-log/after-task/2026-05-11-corpairs-example-rho12.md docs/dev-log/check-log.md`:
+  passed.
+- `Rscript -e "devtools::document()"`: passed and regenerated
+  `man/corpairs.Rd`.
+- `Rscript -e "devtools::test(filter = 'corpairs')"`: passed.
+- `rg -n "rho12 = ~ 1|corpairs\\(fit\\)|issue #5|Explicit" R/methods.R man/corpairs.Rd docs/dev-log/after-task/2026-05-11-corpairs-example-rho12.md docs/dev-log/check-log.md`:
+  confirmed source, generated docs, and dev-log wording.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- this is documentation clarity only; it does not add new covariance-block
+  likelihoods or extend `corpairs()` to planned issue #5 pair classes.
+
+## 2026-05-11 -- Benchmark reproducibility metadata
+
+Goal:
+
+- improve issue #4 benchmark evidence by recording enough metadata to rerun a
+  large-data benchmark row.
+
+Implemented:
+
+- added `git_sha`, `git_dirty`, and `benchmark_command` columns to
+  `bench/large-phylo-location.R`;
+- updated `bench/README.md` and `docs/design/23-large-data-memory.md` so the
+  benchmark evidence contract includes command and Git metadata;
+- created
+  `docs/dev-log/after-task/2026-05-11-benchmark-repro-metadata.md`.
+
+Checks run:
+
+- `air format bench/large-phylo-location.R bench/README.md docs/design/23-large-data-memory.md docs/dev-log/after-task/2026-05-11-benchmark-repro-metadata.md docs/dev-log/check-log.md`:
+  passed.
+- `Rscript -e 'e <- new.env(parent = globalenv()); sys.source("bench/large-phylo-location.R", e); args <- e$parse_args(c("--rows", "50", "--species", "8", "--memory-light", "true")); env <- e$benchmark_environment(args); stopifnot(grepl("--rows", env$benchmark_command), nzchar(env$git_sha), is.logical(env$git_dirty) || is.na(env$git_dirty))'`:
+  passed.
+- `rg -n "benchmark_command|git_sha|git_dirty|reconstructed benchmark command|issue #4" bench/large-phylo-location.R bench/README.md docs/design/23-large-data-memory.md docs/dev-log/after-task/2026-05-11-benchmark-repro-metadata.md docs/dev-log/check-log.md`:
+  confirmed source and documentation coverage.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- this changes the benchmark CSV schema; append to a fresh output path or remove
+  older ignored CSV files before collecting new rows;
+- no new large benchmark was run, and this does not prove million-row readiness.
+
+## 2026-05-11 -- Skew-normal likelihood gate
+
+Goal:
+
+- record the first issue #3 design gate before any `skew_normal()` family code
+  is added.
+
+Implemented:
+
+- added a planned skew-normal location-scale-shape section to
+  `docs/design/03-likelihoods.md`;
+- documented the candidate density, `mu`, `sigma`, and `nu` transforms,
+  response mean and variance formulas, and the positive/zero/negative `nu`
+  sign convention;
+- added a planned `skew_normal()` registry contract to
+  `docs/design/02-family-registry.md`;
+- created
+  `docs/dev-log/after-task/2026-05-11-skew-normal-likelihood-gate.md`.
+
+Checks run:
+
+- `air format docs/design/03-likelihoods.md docs/design/02-family-registry.md docs/dev-log/after-task/2026-05-11-skew-normal-likelihood-gate.md docs/dev-log/check-log.md`:
+  passed.
+- `rg -n "Planned Skew-Normal|skew_normal\\(|nu_i = eta_nu_i|right-skewed|left-skewed|issue #3" docs/design/03-likelihoods.md docs/design/02-family-registry.md docs/design/14-gamlss-parameter-names.md docs/design/19-phylogenetic-location-scale-shape.md docs/dev-log/after-task/2026-05-11-skew-normal-likelihood-gate.md`:
+  confirmed the design contract and existing naming notes.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- this is documentation only; `skew_normal()` is not implemented;
+- the `nu` sign convention still needs a comparator check before TMB code is
+  added;
+- simulation recovery, malformed-input tests, normal-limit tests, and
+  false-positive heteroscedasticity checks remain planned.
+
+## 2026-05-11 -- `check_drm()` SE and SD diagnostics
+
+Goal:
+
+- finish the interrupted `check_drm()` diagnostic expansion for fixed-effect
+  standard errors and random-effect SDs near the lower boundary.
+
+Implemented:
+
+- added a `standard_errors_finite` row based on finite fixed-effect standard
+  errors from `vcov(fit)`;
+- added a `random_effect_sd_boundary` row for fitted random-effect standard
+  deviations in `fit$sdpars`;
+- added user-facing `sd_boundary`, defaulting to `1e-4`;
+- updated `NEWS.md`, `man/check_drm.Rd`, `vignettes/drmTMB.Rmd`,
+  `vignettes/model-workflow.Rmd`,
+  `docs/design/16-phylo-spatial-common-math.md`, and
+  `docs/dev-log/after-task/2026-05-11-check-drm-se-sd-diagnostics.md`.
+
+Checks run:
+
+- `air format R/check.R tests/testthat/test-check-drm.R NEWS.md vignettes/drmTMB.Rmd vignettes/model-workflow.Rmd docs/design/16-phylo-spatial-common-math.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-11-check-drm-se-sd-diagnostics.md`:
+  passed.
+- `Rscript -e "devtools::document()"`: passed and regenerated
+  `man/check_drm.Rd`.
+- `Rscript -e "devtools::test(filter = 'check-drm')"`: passed with 71
+  expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript -e "devtools::test(filter = 'check-drm|control')"`: passed with 139
+  expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript -e "devtools::test()"`: passed with 1657 expectations, 0 failures,
+  0 warnings, and 0 skips.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed and rendered
+  `reference/check_drm.html` and `news/index.html`.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with no problems found.
+- `_R_CHECK_SYSTEM_CLOCK_=FALSE Rscript -e "devtools::check(document = FALSE, manual = FALSE, args = '--no-tests')"`:
+  passed with 0 errors, 0 warnings, and 0 notes.
+- `git diff --check`: passed.
+- `rg -n "standard_errors_finite|random_effect_sd_boundary|sd_boundary|standard errors|finite fixed-effect standard errors|random-effect standard deviations|random-effect standard deviations near zero" R/check.R tests/testthat/test-check-drm.R man/check_drm.Rd NEWS.md vignettes/drmTMB.Rmd vignettes/model-workflow.Rmd docs/design/16-phylo-spatial-common-math.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-11-check-drm-se-sd-diagnostics.md pkgdown-site/reference/check_drm.html pkgdown-site/articles/drmTMB.html pkgdown-site/articles/model-workflow.html pkgdown-site/articles/phylogenetic-spatial.html pkgdown-site/news/index.html --glob '!pkgdown-site/search.json'`:
+  confirmed source, tests, generated documentation, NEWS, and generated-site
+  wording.
+- `rg -n 'optimizer convergence, fixed gradients|scale positivity|known sampling covariance summaries, and random-effect design|Current first-pass.*check_drm\\(\\).*optimizer convergence, fixed-parameter gradients' README.md ROADMAP.md docs vignettes pkgdown-site --glob '!docs/dev-log/**' --glob '!pkgdown-site/search.json'`:
+  found only the historical `NEWS.md` / generated-news 0.1.0 release bullet,
+  which was true for that release and intentionally left unchanged.
+
+Known limitations:
+
+- fixed-effect standard errors are checked through `vcov(fit)` only;
+- near-zero random-effect SDs are flagged as a diagnostic warning, not as an
+  automatic model-selection decision.
+
+## 2026-05-11 -- `summary()` parameter table
+
+Goal:
+
+- make `summary.drmTMB()` show the distributional parameters that distinguish
+  `drmTMB` from generic mixed-model summaries: scale, shape, residual
+  correlation, random-effect standard deviations, and random-effect
+  correlations.
+
+Implemented:
+
+- added a response-scale `parameters` table to `summary.drmTMB()`;
+- kept existing `coefficients`, `sdpars`, and `corpars` summary components for
+  compatibility;
+- reported direct profile targets such as constant `sigma`, constant `rho12`,
+  random-effect SDs, and random-effect correlations;
+- reported fitted-row ranges for row-varying distributional parameters such as
+  `sigma` and Student-t `nu`;
+- added opt-in fixed-effect Wald intervals with `summary(fit, conf.int = TRUE)`;
+- added opt-in profile intervals for selected direct targets with
+  `summary(fit, conf.int = TRUE, method = "profile", ci_parm = ...)`;
+- updated `NEWS.md`, `vignettes/model-workflow.Rmd`,
+  `man/summary.drmTMB.Rd`, and
+  `docs/dev-log/after-task/2026-05-11-summary-parameter-table.md`.
+
+Checks run:
+
+- `air format R/methods.R tests/testthat/test-summary.R NEWS.md vignettes/model-workflow.Rmd`:
+  passed.
+- `Rscript -e "devtools::document()"`: passed and regenerated
+  `man/summary.drmTMB.Rd`.
+- `Rscript -e "devtools::test(filter = 'summary')"`: passed with 32
+  expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript -e "devtools::test()"`: passed with 1689 expectations, 0 failures,
+  0 warnings, and 0 skips.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed and rendered
+  `reference/summary.drmTMB.html`, `articles/model-workflow.html`, and
+  `news/index.html`.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with no problems found.
+- `_R_CHECK_SYSTEM_CLOCK_=FALSE Rscript -e "devtools::check(document = FALSE, manual = FALSE, args = '--no-tests')"`:
+  passed with 0 errors, 0 warnings, and 0 notes.
+- `git diff --check`: passed.
+- `rg -n "summary\\(\\).*fixed-effect estimates|summary\\(\\).*response-scale|conf\\.int|ci_parm|profile-likelihood confidence|Distributional, scale, and correlation parameters|fitted scale, shape|fitted:nu|sd:mu:\\(1 \\| id\\)" R/methods.R tests/testthat/test-summary.R man/summary.drmTMB.Rd NEWS.md vignettes/model-workflow.Rmd pkgdown-site/reference/summary.drmTMB.html pkgdown-site/articles/model-workflow.html pkgdown-site/news/index.html --glob '!pkgdown-site/search.json'`:
+  confirmed source, test, documentation, and generated-site wording.
+- `rg -n "summary\\(\\).*fixed-effect estimates, log likelihood|summary\\(\\).*fitted random-effect standard deviations|Reserved for future summary options|Random-effect SDs:|Random-effect correlations:" README.md ROADMAP.md docs vignettes R man pkgdown-site --glob '!docs/dev-log/**' --glob '!pkgdown-site/search.json'`:
+  found no stale non-historical wording.
+
+Known limitations:
+
+- row-varying distributional parameters are summarized as fitted-row ranges;
+- row-specific intervals still belong in `confint(..., newdata = ...)`;
+- the summary table is descriptive and does not yet provide marginal means,
+  averaging over covariates, or visual contrasts.
+
+## 2026-05-11 -- `predict_parameters()` table
+
+Goal:
+
+- add a small interpretation surface that can carry mean, scale, shape,
+  probability, and residual-correlation predictions on the same `newdata` grid.
+
+Implemented:
+
+- added exported `predict_parameters()`;
+- added `predict_parameters.drmTMB()` for fitted `drmTMB` objects;
+- returned long-format predictions with `row`, `row_label`, `dpar`,
+  `component`, `type`, and `estimate` columns;
+- appended supplied `newdata` columns by default, with reserved output-column
+  names prefixed as `newdata_*`;
+- added component labels for location, distributional scale, shape,
+  probability, residual correlation, random-effect scale models, and other
+  distributional parameters;
+- updated `NEWS.md`, `_pkgdown.yml`, `vignettes/model-workflow.Rmd`,
+  `NAMESPACE`, `man/predict_parameters.Rd`, and
+  `docs/dev-log/after-task/2026-05-11-predict-parameters-table.md`.
+
+Checks run:
+
+- `air format R/predict-parameters.R R/methods.R tests/testthat/test-predict-parameters.R NEWS.md vignettes/model-workflow.Rmd _pkgdown.yml`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'predict-parameters')"`: passed with 23
+  expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript -e "devtools::document()"`: passed and regenerated `NAMESPACE` and
+  `man/predict_parameters.Rd`.
+- `Rscript -e "devtools::load_all(); dat <- data.frame(y=rnorm(12), x=seq(-1,1,length.out=12)); fit <- drmTMB(bf(y ~ x, sigma ~ x), data=dat); print(predict_parameters(fit, newdata=data.frame(x=c(0,1)), dpar=c('mu','sigma')))"`:
+  passed and printed a four-row `mu`/`sigma` prediction table.
+- `Rscript -e "devtools::test(filter = 'predict-parameters|summary')"`:
+  passed with 55 expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript -e "devtools::test()"`: passed with 1712 expectations, 0 failures,
+  0 warnings, and 0 skips.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed and rendered
+  `reference/predict_parameters.html`, `articles/model-workflow.html`, and
+  `news/index.html`.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with no problems found.
+- `_R_CHECK_SYSTEM_CLOCK_=FALSE Rscript -e "devtools::check(document = FALSE, manual = FALSE, args = '--no-tests')"`:
+  passed with 0 errors, 0 warnings, and 0 notes.
+- `git diff --check`: passed.
+- `LC_ALL=C rg -n "[^\x00-\x7F]" R/predict-parameters.R tests/testthat/test-predict-parameters.R NEWS.md vignettes/model-workflow.Rmd man/predict_parameters.Rd _pkgdown.yml`:
+  passed with no matches.
+- `rg -n "predict_parameters|long-format predictions|newdata_dpar|location.*distributional-scale|future plotting or marginalisation|same grid" R/predict-parameters.R tests/testthat/test-predict-parameters.R man/predict_parameters.Rd NEWS.md vignettes/model-workflow.Rmd _pkgdown.yml pkgdown-site/reference/predict_parameters.html pkgdown-site/articles/model-workflow.html pkgdown-site/news/index.html pkgdown-site/reference/index.html --glob '!pkgdown-site/search.json'`:
+  confirmed source, tests, documentation, pkgdown navigation, generated
+  reference, workflow article, and generated NEWS.
+- `rg -n "predict\\(\\) returns one distributional parameter at a time|interpretation task needs several distributional parameters|plotting|marginalisation|marginalization|emmeans" README.md ROADMAP.md docs vignettes R man pkgdown-site --glob '!docs/dev-log/**' --glob '!pkgdown-site/search.json'`:
+  confirmed that the new helper is described as a prediction-table surface, not
+  as implemented emmeans-style marginalisation or plotting.
+
+Known limitations:
+
+- the helper does not compute confidence intervals;
+- the helper does not average over covariate distributions or produce emmeans
+  contrasts;
+- the helper does not draw plots.
+
+## 2026-05-11 -- `marginal_parameters()` table
+
+Goal:
+
+- add a small marginal summary layer that averages predicted distributional
+  parameters over fitted rows or supplied `newdata` groups.
+
+Implemented:
+
+- added exported `marginal_parameters()`;
+- added `marginal_parameters.drmTMB()` for fitted `drmTMB` objects;
+- delegated prediction to `predict_parameters()` so the marginal table uses the
+  same `dpar`, `newdata`, and `type` contract;
+- added optional `by` grouping over supplied `newdata` columns;
+- returned one row per distributional parameter and group combination, with
+  `dpar`, `component`, `type`, optional grouping columns, `estimate`, and `n`;
+- updated `NEWS.md`, `_pkgdown.yml`, `vignettes/model-workflow.Rmd`,
+  `NAMESPACE`, `man/marginal_parameters.Rd`, and
+  `docs/dev-log/after-task/2026-05-11-marginal-parameters-table.md`.
+
+Checks run:
+
+- `air format R/marginal-parameters.R tests/testthat/test-marginal-parameters.R NEWS.md vignettes/model-workflow.Rmd _pkgdown.yml`:
+  passed.
+- `Rscript -e "devtools::document()"`: passed and regenerated `NAMESPACE` and
+  `man/marginal_parameters.Rd`.
+- `Rscript -e "devtools::load_all(); dat <- data.frame(y=rnorm(20), x=rep(c(0,1),10), g=factor(rep(c('a','b'), each=10))); fit <- drmTMB(bf(y ~ x + g, sigma ~ x), data=dat); grid <- expand.grid(x=c(0,1), g=levels(dat$g)); print(marginal_parameters(fit, newdata=grid, dpar=c('mu','sigma'), by='g'))"`:
+  passed and printed a grouped `mu`/`sigma` marginal table.
+- `Rscript -e "devtools::test(filter = 'marginal-parameters')"`: passed with
+  17 expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript -e "devtools::test(filter = 'marginal-parameters|predict-parameters|summary')"`:
+  passed with 72 expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript -e "devtools::test()"`: passed with 1729 expectations, 0 failures,
+  0 warnings, and 0 skips.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed and rendered
+  `reference/marginal_parameters.html`, `articles/model-workflow.html`, and
+  `news/index.html`.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with no problems found.
+- `_R_CHECK_SYSTEM_CLOCK_=FALSE Rscript -e "devtools::check(document = FALSE, manual = FALSE, args = '--no-tests')"`:
+  passed with 0 errors, 0 warnings, and 0 notes.
+- `git diff --check`: passed.
+- `git diff -U0 -- R/marginal-parameters.R tests/testthat/test-marginal-parameters.R NEWS.md vignettes/model-workflow.Rmd man/marginal_parameters.Rd _pkgdown.yml docs/dev-log/check-log.md | LC_ALL=C rg -n '[^\x00-\x7F]'`:
+  passed with no matches.
+- `rg -n '[ \t]+$' R/marginal-parameters.R tests/testthat/test-marginal-parameters.R man/marginal_parameters.Rd`:
+  passed with no matches.
+- `rg -n 'marginal_parameters|simple marginalisation|group-level interpretation|future emmeans-style|supplied `newdata` groups|marginal-parameters' R/marginal-parameters.R tests/testthat/test-marginal-parameters.R man/marginal_parameters.Rd NEWS.md vignettes/model-workflow.Rmd _pkgdown.yml pkgdown-site/reference/marginal_parameters.html pkgdown-site/articles/model-workflow.html pkgdown-site/news/index.html pkgdown-site/reference/index.html --glob '!pkgdown-site/search.json'`:
+  confirmed source, tests, documentation, pkgdown navigation, generated
+  reference, workflow article, and generated NEWS.
+- `rg -n "emmeans|contrast|confidence intervals|profile intervals|plots|plotting|marginalisation|marginalization" R/marginal-parameters.R tests/testthat/test-marginal-parameters.R man/marginal_parameters.Rd NEWS.md vignettes/model-workflow.Rmd pkgdown-site/reference/marginal_parameters.html pkgdown-site/articles/model-workflow.html pkgdown-site/news/index.html --glob '!pkgdown-site/search.json'`:
+  confirmed that the helper is described as a simple plug-in marginal summary,
+  not as implemented uncertainty, contrasts, or plotting.
+
+Known limitations:
+
+- the helper computes unweighted means only;
+- the helper does not compute confidence intervals, standard errors, contrasts,
+  or profile intervals;
+- the helper does not implement full `emmeans` integration;
+- the helper does not draw plots.
+
+## 2026-05-11 -- Crash recovery validation for parameter summaries
+
+Scope:
+
+- resumed the interrupted working tree that already contained the
+  `check_drm()` SE/SD diagnostics, `summary()` parameter table,
+  `predict_parameters()`, `marginal_parameters()`, comparator-harness, generated
+  documentation, pkgdown, and after-task-report changes;
+- preserved the existing uncommitted files and reran the validation steps needed
+  to make the patch reviewable again;
+- added the new summary/prediction/marginal helper limitation to
+  `docs/dev-log/known-limitations.md`.
+
+Checks run:
+
+- `Rscript -e "devtools::test(filter = 'check-drm|summary|predict-parameters|marginal-parameters')"`:
+  passed with 143 expectations, 0 failures, 0 warnings, and 0 skips.
+- `air format R/check.R R/methods.R R/predict-parameters.R R/marginal-parameters.R tests/testthat/test-check-drm.R tests/testthat/test-summary.R tests/testthat/test-predict-parameters.R tests/testthat/test-marginal-parameters.R NEWS.md ROADMAP.md _pkgdown.yml vignettes/drmTMB.Rmd vignettes/model-workflow.Rmd docs/design/05-testing-strategy.md docs/design/16-phylo-spatial-common-math.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-11-check-drm-se-sd-diagnostics.md docs/dev-log/after-task/2026-05-11-summary-parameter-table.md docs/dev-log/after-task/2026-05-11-predict-parameters-table.md docs/dev-log/after-task/2026-05-11-marginal-parameters-table.md tools/replicate-location-scale-gaussian.R`:
+  passed.
+- `Rscript -e "devtools::document()"`: passed.
+- `Rscript -e "devtools::test()"`: passed with 1729 expectations, 0 failures,
+  0 warnings, and 0 skips.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with no problems found.
+- `_R_CHECK_SYSTEM_CLOCK_=FALSE Rscript -e "devtools::check(document = FALSE, manual = FALSE, args = '--no-tests')"`:
+  passed with 0 errors, 0 warnings, and 0 notes.
+- `Rscript tools/replicate-location-scale-gaussian.R`: passed and rewrote
+  `docs/dev-log/comparator-results/gaussian-location-scale-glmmtmb-current.csv`.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed.
+- `Rscript tools/fix-pkgdown-favicon-mime.R pkgdown-site`: passed.
+- `git diff --check`: passed.
+- `git diff -U0 -- ... | LC_ALL=C rg -n "[^\x00-\x7F]"`: passed with no
+  matches in the active diff.
+
+Audit notes:
+
+- stale-summary wording scan:
+  `rg -n "summary\\(\\).*fixed-effect estimates, log likelihood|summary\\(\\).*fitted random-effect standard deviations|Reserved for future summary options|Random-effect SDs:|Random-effect correlations:" README.md ROADMAP.md NEWS.md docs vignettes R man pkgdown-site --glob '!docs/dev-log/**' --glob '!pkgdown-site/search.json'`;
+  no active-source matches.
+- stale-`check_drm()` wording scan:
+  `rg -n "optimizer convergence, fixed gradients|scale positivity|known sampling covariance summaries, and random-effect design|Current first-pass.*check_drm\\(\\).*optimizer convergence, fixed-parameter gradients" README.md ROADMAP.md NEWS.md docs vignettes pkgdown-site --glob '!docs/dev-log/**' --glob '!pkgdown-site/search.json'`;
+  found only the historical `NEWS.md` 0.1.0 release bullet and generated news.
+- helper-scope scan:
+  `rg -n "predict_parameters|marginal_parameters|emmeans|confidence intervals|profile intervals|plotting|marginalisation|marginalization" README.md ROADMAP.md NEWS.md docs vignettes R man pkgdown-site --glob '!docs/dev-log/**' --glob '!pkgdown-site/search.json'`;
+  confirmed the helpers are described as interpretation tables and future
+  plotting or marginalisation surfaces, not as implemented uncertainty,
+  contrast, or plotting machinery.
+
+## 2026-05-11 -- Comparator result scope table
+
+Scope:
+
+- aligned the durable Gaussian location-scale comparator result note with the
+  current CSV output from `tools/replicate-location-scale-gaussian.R`;
+- added human-readable blocked rows for shared `mu`/`sigma` covariance,
+  bivariate group-level covariance, and non-Gaussian location-scale random
+  effects.
+
+Checks run:
+
+- `Rscript tools/replicate-location-scale-gaussian.R`: passed and rewrote
+  `docs/dev-log/comparator-results/gaussian-location-scale-glmmtmb-current.csv`.
+- `air format docs/dev-log/comparator-results/2026-05-10-gaussian-location-scale-glmmtmb.md docs/dev-log/after-task/2026-05-11-comparator-result-scope-table.md docs/dev-log/check-log.md`:
+  passed.
+- `git diff --check`: passed.

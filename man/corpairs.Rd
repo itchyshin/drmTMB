@@ -57,7 +57,13 @@ dat <- data.frame(
   z2 = z2
 )
 fit <- drmTMB(
-  bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~ z1, sigma2 = ~ z2),
+  bf(
+    mu1 = y1 ~ x,
+    mu2 = y2 ~ x,
+    sigma1 = ~ z1,
+    sigma2 = ~ z2,
+    rho12 = ~ 1
+  ),
   family = c(gaussian(), gaussian()),
   data = dat
 )

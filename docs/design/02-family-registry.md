@@ -117,6 +117,34 @@ and makes Student-t a robust continuous extension of the Gaussian
 location-scale MVP. Random effects, known sampling covariance, phylogenetic
 terms, and bivariate Student-t models are later phases.
 
+## Planned: Skew-Normal Location-Scale-Shape
+
+The first skew-normal family is planned as a univariate fixed-effect path:
+
+```r
+skew_normal <- function() {
+  drm_family(
+    name = "skew_normal",
+    n_response = 1,
+    dpars = c("mu", "sigma", "nu"),
+    links = c(mu = "identity", sigma = "log", nu = "identity")
+  )
+}
+```
+
+This contract treats `mu` as the native skew-normal location parameter,
+`sigma` as positive residual scale, and `nu` as the unrestricted native
+asymmetry shape used in the density in `docs/design/03-likelihoods.md`.
+Positive `nu` means right-skewed residuals, `nu = 0` reduces to the Gaussian
+location-scale likelihood, and negative `nu` means left-skewed residuals. This
+sign convention is a design assumption until checked against the first trusted
+comparator.
+
+Random effects, known sampling covariance, phylogenetic terms, spatial terms,
+bivariate skew-normal models, `rho12`, and aliases such as `skew ~ x` are later
+phases. Examples and reference documentation should teach canonical `nu ~ x`
+before any alias is added.
+
 ## Implemented: Lognormal Location-Scale
 
 The first positive continuous family is univariate and fixed-effect only:

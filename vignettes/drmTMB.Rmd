@@ -310,9 +310,10 @@ After fitting any model, run `check_drm()` before interpreting the estimates:
 check_drm(fit)
 ```
 
-The diagnostic table reports optimizer convergence, fixed-parameter gradients,
-optimizer evaluation counts, finite objective values, Hessian status, dropped
-rows, positive scale values, residual `rho12` boundaries when relevant,
+The diagnostic table reports optimizer convergence, optimizer evaluation counts,
+finite objective values, fixed-parameter gradients, Hessian status, finite
+fixed-effect standard errors, dropped rows, positive scale values, random-effect
+standard deviations near zero, residual `rho12` boundaries when relevant,
 Student-t `nu` boundary behaviour, known sampling covariance summaries,
 random-effect replication, and weak random-slope design checks. A `note`
 records something to inspect, such as dropped rows, an optimizer budget that was

@@ -35,7 +35,10 @@ simple overlapping models:
 Fast package tests should use `skip_if_not_installed()` and only tiny comparator
 cases. Full comparator sweeps belong in optional local scripts or scheduled CI,
 because package conventions, likelihood constants, priors, and optimizer
-settings can differ.
+settings can differ. The current optional Gaussian location-scale sweep is
+`tools/replicate-location-scale-gaussian.R`; it writes a compact CSV under
+`docs/dev-log/comparator-results/` and includes blocked future
+individual-difference rows beside the implemented `glmmTMB` overlap rows.
 
 Implemented comparator smoke tests:
 
