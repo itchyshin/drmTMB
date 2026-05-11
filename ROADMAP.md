@@ -287,7 +287,10 @@ The recent location-scale modelling paper and companion tutorial listed in
 this phase series. The current package should first reproduce the Gaussian
 fixed-effect and Gaussian location-random-effect examples, then add comparator
 tests for count and bounded-response examples as the required likelihood and
-random-effect features land.
+random-effect features land. The optional local command
+`Rscript tools/replicate-location-scale-gaussian.R` writes the current
+Gaussian overlap table and records which richer individual-difference examples
+remain blocked by future covariance or non-Gaussian random-effect work.
 
 ## Phase 9: Ordinal and Denominator-Aware Models
 

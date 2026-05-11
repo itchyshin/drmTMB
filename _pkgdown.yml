@@ -99,6 +99,8 @@ reference:
       - fitted.drmTMB
       - fixef
       - model-fit-extractors
+      - marginal_parameters
+      - predict_parameters
       - predict.drmTMB
       - ranef
       - residuals.drmTMB
