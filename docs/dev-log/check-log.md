@@ -9350,6 +9350,38 @@ Known limitations:
 - Tweedie, COM-Poisson, ordinal scale/discrimination, and skew-normal scale or
   shape conventions still need their own design rows before implementation.
 
+## 2026-05-11 -- Benchmark reproducibility metadata
+
+Goal:
+
+- improve issue #4 benchmark evidence by recording enough metadata to rerun a
+  large-data benchmark row.
+
+Implemented:
+
+- added `git_sha`, `git_dirty`, and `benchmark_command` columns to
+  `bench/large-phylo-location.R`;
+- updated `bench/README.md` and `docs/design/23-large-data-memory.md` so the
+  benchmark evidence contract includes command and Git metadata;
+- created
+  `docs/dev-log/after-task/2026-05-11-benchmark-repro-metadata.md`.
+
+Checks run:
+
+- `air format bench/large-phylo-location.R bench/README.md docs/design/23-large-data-memory.md docs/dev-log/after-task/2026-05-11-benchmark-repro-metadata.md docs/dev-log/check-log.md`:
+  passed.
+- `Rscript -e 'e <- new.env(parent = globalenv()); sys.source("bench/large-phylo-location.R", e); args <- e$parse_args(c("--rows", "50", "--species", "8", "--memory-light", "true")); env <- e$benchmark_environment(args); stopifnot(grepl("--rows", env$benchmark_command), nzchar(env$git_sha), is.logical(env$git_dirty) || is.na(env$git_dirty))'`:
+  passed.
+- `rg -n "benchmark_command|git_sha|git_dirty|reconstructed benchmark command|issue #4" bench/large-phylo-location.R bench/README.md docs/design/23-large-data-memory.md docs/dev-log/after-task/2026-05-11-benchmark-repro-metadata.md docs/dev-log/check-log.md`:
+  confirmed source and documentation coverage.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- this changes the benchmark CSV schema; append to a fresh output path or remove
+  older ignored CSV files before collecting new rows;
+- no new large benchmark was run, and this does not prove million-row readiness.
+
 ## 2026-05-11 -- Skew-normal likelihood gate
 
 Goal:
@@ -9384,6 +9416,7 @@ Known limitations:
   added;
 - simulation recovery, malformed-input tests, normal-limit tests, and
   false-positive heteroscedasticity checks remain planned.
+
 ## 2026-05-11 -- `check_drm()` SE and SD diagnostics
 
 Goal:
