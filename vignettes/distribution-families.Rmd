@@ -47,6 +47,38 @@ example, exposure in count models is written with the standard formula term
 `offset(log(exposure))`, and Gamma models use `stats::Gamma(link = "log")`
 because `gamma()` already names the base R gamma function.
 
+## Why `sigma` is not always `phi`
+
+`drmTMB` uses `sigma` as the public variability-facing scale slot. This does
+not mean every likelihood is written internally with a standard deviation.
+Instead, the package keeps the modelling grammar stable and records the
+family-specific conversion. The rule is simple:
+
+```text
+larger fitted sigma -> larger modelled variability
+```
+
+That rule is different from some comparator packages. For example,
+[glmmTMB's `sigma()` documentation](https://glmmtmb.github.io/glmmTMB/reference/sigma.glmmTMB.html)
+reports a beta precision `phi`, where larger `phi` decreases the variance, and
+an NB2 size parameter often written `theta` or `k`, where larger values also
+lower the variance. In `drmTMB`, these precision-like parameters are internal
+or comparator quantities:
+
+| Family | drmTMB public scale | Internal or comparator parameter | Variability direction |
+| --- | --- | --- | --- |
+| `gaussian()` | residual SD `sigma` | residual SD | larger `sigma` means larger residual variance |
+| `Gamma(link = "log")` | coefficient of variation `sigma` | shape `1 / sigma^2` | larger `sigma` means larger response CV |
+| `beta()` | public scale `sigma` | precision `phi = 1 / sigma^2` | larger `sigma` means lower precision and larger variance |
+| `beta_binomial()` | extra-binomial scale `sigma` | precision `phi = 1 / sigma^2` | larger `sigma` means more among-trial probability variation |
+| `nbinom2()` | overdispersion scale `sigma` | size `theta = 1 / sigma^2` | larger `sigma` means more extra-Poisson variation |
+| `student()` | scale `sigma`; shape `nu` | degrees of freedom `nu` | larger `sigma` widens the core scale; larger `nu` lightens tails |
+
+So a `sigma` coefficient answers a variability question in the same direction
+across implemented mean-scale families. If a paper, package, or diagnostic
+uses `phi`, `theta`, `k`, shape, precision, or variance, convert explicitly
+before comparing numerical values.
+
 ## Reporting variation
 
 The formula name `sigma` is stable across families, but the reported variation

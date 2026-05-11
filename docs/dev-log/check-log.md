@@ -9293,3 +9293,40 @@ Known limitations:
 - random-effect conditional row intervals, ordinal transformations, modelled
   group-SD profiles, custom multi-row contrasts, and derived summaries remain
   planned.
+
+## 2026-05-11 -- Variability orientation contract
+
+Goal:
+
+- clarify how the public `sigma` grammar relates to precision, size, shape,
+  and variance parameters across families and comparator software.
+
+Implemented:
+
+- added the rule that larger public `sigma` means larger modelled variability,
+  dispersion, or heterogeneity;
+- documented that beta and beta-binomial use internal `phi = 1 / sigma^2`,
+  NB2 uses `theta` or `size = 1 / sigma^2`, Gamma uses shape
+  `1 / sigma^2`, and Student-t `nu` is a shape parameter rather than a public
+  scale slot;
+- updated `README.md`, `docs/design/03-likelihoods.md`,
+  `vignettes/distribution-families.Rmd`,
+  `vignettes/which-scale.Rmd`, and
+  `docs/dev-log/after-task/2026-05-11-variability-orientation-contract.md`.
+
+Checks run:
+
+- `air format README.md docs/design/03-likelihoods.md vignettes/distribution-families.Rmd vignettes/which-scale.Rmd`:
+  passed.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed and rendered
+  `index.html`, `articles/distribution-families.html`, and
+  `articles/which-scale.html`.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with no problems found.
+- `_R_CHECK_SYSTEM_CLOCK_=FALSE Rscript -e "devtools::check(document = FALSE, manual = FALSE, args = '--no-tests')"`:
+  passed with 0 errors, 0 warnings, and 0 notes.
+
+Known limitations:
+
+- this is a documentation/design-contract change; no likelihood code changed;
+- Tweedie, COM-Poisson, ordinal scale/discrimination, and skew-normal scale or
+  shape conventions still need their own design rows before implementation.

@@ -13,6 +13,9 @@ summaries, report fitted `sigma^2`; for Gamma, beta, count, zero-inflated,
 hurdle, Student-t, and bivariate models, use the family-specific
 transformations in
 [Choosing response families](https://itchyshin.github.io/drmTMB/articles/distribution-families.html).
+The design rule is that larger `sigma` should mean larger modelled
+variability, even when another package or textbook writes the same likelihood
+with a precision parameter such as `phi` or `theta`.
 
 ## Start here
 

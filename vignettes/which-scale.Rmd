@@ -22,6 +22,13 @@ Throughout this article, `Normal(a, b)` uses variance as the second argument.
 Thus `Normal(mu_i, sigma_i^2)` means a Gaussian distribution with mean `mu_i`
 and standard deviation `sigma_i`.
 
+For non-Gaussian families, `sigma` is still the public variability-facing scale,
+but its family-specific meaning changes. For example, beta and NB2 likelihoods
+use precision-like internal parameters, while `drmTMB` reports `sigma` so that
+larger fitted values mean larger modelled variability. See
+`vignette("distribution-families")` for the conversion table before comparing
+`sigma` with `phi`, `theta`, or other software-specific dispersion parameters.
+
 ## Residual standard deviation
 
 Implemented:

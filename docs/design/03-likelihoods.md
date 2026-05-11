@@ -10,6 +10,37 @@ Likelihoods are implemented in TMB templates and called from R wrappers.
   `0.99999999 * tanh()` response transform.
 - Shape parameters use family-specific stable links.
 
+## Variability Orientation
+
+The public scale slot is `sigma` when the parameter controls modelled
+variability. The user-facing orientation is:
+
+```text
+larger sigma -> larger variability, dispersion, or heterogeneity
+```
+
+This is a user-interface contract, not a claim that every likelihood is written
+with a standard deviation parameter internally. Some likelihoods are naturally
+expressed with precision or size parameters. In those cases, the TMB objective
+may use a transformed internal quantity, but extractors and tutorials should
+report the public `sigma` direction unless a comparator check explicitly needs
+the original parameterization.
+
+Current examples:
+
+| Family | Public scale | Internal or comparator scale | Direction |
+| --- | --- | --- | --- |
+| `gaussian()` | `sigma` | residual SD | larger `sigma` means larger residual variance |
+| `Gamma(link = "log")` | `sigma` | shape `1 / sigma^2` | larger `sigma` means larger coefficient of variation |
+| `beta()` | `sigma` | beta precision `phi = 1 / sigma^2` | larger `sigma` means lower precision and larger variance |
+| `beta_binomial()` | `sigma` | beta precision `phi = 1 / sigma^2` | larger `sigma` means more extra-binomial variation |
+| `nbinom2()` | `sigma` | NB2 size `theta = 1 / sigma^2` | larger `sigma` means more extra-Poisson variation |
+| `student()` | `sigma`, `nu` | scale plus degrees of freedom | larger `sigma` means wider core scale; larger `nu` means lighter tails |
+
+Names that are not scale slots should stay specific. For example, ordinal
+`theta` values are cutpoints, not a precision or variability parameter, and
+Student-t `nu` is a shape parameter rather than an alias for `sigma`.
+
 The guard on residual correlations is purely numerical. In teaching material,
 describe the model as the standard transform `rho = tanh(eta)`, then note that
 the implementation multiplies by `0.99999999` so covariance matrices stay
