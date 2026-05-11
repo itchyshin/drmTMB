@@ -217,14 +217,16 @@ The first code slice should not attempt every interval type. It should add an
 internal target inventory first:
 
 ```r
-profile_targets(fit)
+drmTMB:::drm_profile_targets(fit)
 ```
 
-The inventory should return user-facing target names, internal TMB parameter
-names, current estimates, transformation labels, and whether the target is
-direct, linear, or derived. `confint.drmTMB(method = "profile")` should then
-accept only targets listed by this inventory. Unsupported targets should fail
-with a message that points to the available target table.
+This internal helper is now the seed for a later public profile/confidence
+interval API. It returns target names, target classes, internal TMB parameter
+names, current estimates, transformation labels, whether the target is direct or
+derived, and a short note explaining whether the target is ready for direct
+profiling. `confint.drmTMB(method = "profile")` should later accept only
+targets listed by this inventory. Unsupported targets should fail with a
+message that points to the available target table.
 
 The first fitted targets should be direct parameters in this order:
 
@@ -234,6 +236,10 @@ The first fitted targets should be direct parameters in this order:
 4. ordinary Gaussian random-effect correlations in `corpars$mu`;
 5. phylogenetic `mu` SDs;
 6. ordinal cutpoints.
+
+Ordinal rows in the internal inventory currently refer to raw `theta_ord`
+parameters. A later user-facing interval table can add transformed cutpoint
+rows, but it should keep `theta_ord` visible as the profiled TMB parameter.
 
 Derived summaries such as repeatability, ICC, phylogenetic signal, and
 double-hierarchical correlation-pair summaries should wait until direct
@@ -253,10 +259,15 @@ the fitted object:
 
 ```r
 confint(fit, parm = "sd:mu:(1 | id)", method = "profile")
+confint(fit, parm = "sd:mu:(1 + x | p | id):x", method = "profile")
 confint(fit, parm = "sd:mu:phylo(1 | species)", method = "profile")
 confint(fit, parm = "cor:mu:cor((Intercept),x | id)", method = "profile")
 confint(fit, parm = "derived:ICC(id)", method = "profile")
 ```
+
+Multi-coefficient random-effect blocks should keep the fitted-object
+coefficient suffix, such as `:x`, in the canonical target name. Intercept-only
+blocks can keep the shorter target name shown by `sdpars`.
 
 The implementation should reject unsupported profile targets with a message
 that lists available targets from the fitted object.

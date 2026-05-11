@@ -8750,3 +8750,61 @@ Known limitations:
 - this is design and phase-map work only; no `confint.drmTMB()` method,
   profile target inventory, cross-formula covariance block, or new `corpairs()`
   row class has been implemented yet.
+
+## 2026-05-10 -- Internal profile target inventory seed
+
+Goal:
+
+- add the first internal target inventory for future profile-likelihood
+  confidence intervals, without exposing a public `confint()` method yet.
+
+Implemented:
+
+- added internal `drm_profile_targets()` to list fixed-effect coefficients,
+  random-effect SDs, random-effect correlations, residual `rho12` coefficients,
+  hurdle `hu` coefficients, modelled group-scale rows, and ordinal raw
+  `theta_ord` parameters;
+- returned stable columns for `parm`, `target_class`, `dpar`, `term`,
+  `tmb_parameter`, `index`, `estimate`, `link_estimate`, `scale`,
+  `transformation`, `target_type`, `profile_ready`, and `profile_note`;
+- marked directly profile-ready rows separately from derived group-scale rows;
+- mapped hurdle `hu` coefficients to the internal TMB `beta_zi` parameter,
+  matching the compiled likelihood route;
+- updated `docs/design/12-profile-likelihood-cis.md` so the design now names
+  the private helper, the table columns, the explicit multi-coefficient random
+  effect grammar, and the raw `theta_ord` ordinal boundary.
+
+Checks run:
+
+- Curie review: caught that the first test file depended on helper functions
+  from `test-corpairs.R` and that the six-row Gaussian fit emitted an
+  `sdreport()` warning; the tests were made self-contained with stable
+  simulated data.
+- Boole review: caught that `internal` and `class` were weak future API-seed
+  column names and that unsupported targets needed a reason column; the table
+  now uses `tmb_parameter`, `target_class`, and `profile_note`.
+- Noether review: caught the `hu` to `beta_hu` mismatch before closure; the
+  implementation now maps public `hu` to internal `beta_zi` and has a focused
+  regression test.
+- `air format R/profile.R tests/testthat/test-profile-targets.R docs/design/12-profile-likelihood-cis.md`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'profile-targets')"`: passed with 0
+  failures, 0 warnings, 0 skips, and 46 passing expectations.
+- `Rscript -e "devtools::test()"`: passed with 0 failures, 0 warnings, 0 skips,
+  and 1526 passing expectations.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed.
+- `git diff --check`: passed.
+- `rg -n "O'Dea/Nakagawa|O'Dea-style|O’Dea-style|Nakagawa" R/profile.R tests/testthat/test-profile-targets.R docs/design/12-profile-likelihood-cis.md docs/dev-log/after-task/2026-05-10-profile-target-inventory.md ROADMAP.md README.md NEWS.md vignettes`:
+  passed with no matches.
+- `rg -n "tmb_parameter.*beta_hu|fixef:hu.*beta_hu|profile.*beta_hu" R/profile.R tests/testthat/test-profile-targets.R docs/design/12-profile-likelihood-cis.md docs/dev-log/after-task/2026-05-10-profile-target-inventory.md`:
+  passed with no matches.
+- `rg -n 'drm_profile_targets|raw \`theta_ord\`|multi-coefficient random-effect|profile_note' docs/design/12-profile-likelihood-cis.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-10-profile-target-inventory.md R/profile.R tests/testthat/test-profile-targets.R`:
+  passed and confirmed the implementation, design note, and after-task report
+  all name the same helper and profile-status columns.
+
+Known limitations:
+
+- no public profile-likelihood confidence interval API is exposed yet;
+- derived summaries such as ICC, repeatability, phylogenetic signal, and
+  double-hierarchical correlation-pair summaries are deliberately inventoried
+  only as future work until direct TMB-parameter profiles are implemented.
