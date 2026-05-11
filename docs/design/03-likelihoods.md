@@ -381,6 +381,59 @@ This first implementation deliberately rejects random effects, known sampling
 covariance, phylogenetic terms, and bivariate Student-t families until the
 fixed-effect likelihood and recovery tests remain stable.
 
+## Planned Skew-Normal Location-Scale-Shape Gate
+
+The future skew-normal path is for continuous responses where residual
+asymmetry is part of the scientific question. It is not implemented yet. The
+candidate first implementation uses the Azzalini-style skew-normal density,
+with drmTMB's first shape parameter `nu` mapped to the native asymmetry shape:
+
+```text
+y_i | mu_i, sigma_i, nu_i ~ SkewNormal(mu_i, sigma_i, nu_i)
+eta_mu_i = X_mu[i, ] beta_mu
+eta_sigma_i = X_sigma[i, ] beta_sigma
+eta_nu_i = X_nu[i, ] beta_nu
+mu_i = eta_mu_i
+sigma_i = exp(eta_sigma_i)
+nu_i = eta_nu_i
+z_i = (y_i - mu_i) / sigma_i
+log f(y_i) = log(2) - log(sigma_i) + log phi(z_i) + log Phi(nu_i z_i)
+```
+
+Here `phi()` and `Phi()` are the standard normal density and distribution
+function. The sign convention is part of the proposed public contract:
+`nu_i = 0` gives the Gaussian location-scale likelihood, `nu_i > 0` gives
+right-skewed residuals, and `nu_i < 0` gives left-skewed residuals. This sign
+mapping must be checked against the trusted comparator before implementation.
+
+The native `mu_i` above is the skew-normal location parameter, not the
+arithmetic response mean when `nu_i != 0`. If the family returns arithmetic
+means from `fitted()`, the implementation must use:
+
+```text
+delta_i = nu_i / sqrt(1 + nu_i^2)
+E[y_i] = mu_i + sigma_i delta_i sqrt(2 / pi)
+Var[y_i] = sigma_i^2 * (1 - 2 delta_i^2 / pi)
+```
+
+Matching future R syntax:
+
+```r
+drmTMB(
+  bf(y ~ x1, sigma ~ x2, nu ~ x3),
+  family = skew_normal(),
+  data = dat
+)
+```
+
+The first implementation should be fixed-effect and univariate. It should
+start with intercept-only or simple fixed-effect `nu` formulas, reject random
+effects in `sigma` or `nu`, and reject bivariate, `rho12`,
+`meta_known_V(V = V)`, `phylo()`, and `spatial()` paths until separate
+recovery, normal-limit, false-positive heteroscedasticity, and comparator
+tests exist. Treat this section as an implementation gate for issue #3, not as
+evidence that `skew_normal()` is available.
+
 ## Implemented Lognormal Location-Scale
 
 The first positive continuous likelihood is fixed-effect lognormal regression:

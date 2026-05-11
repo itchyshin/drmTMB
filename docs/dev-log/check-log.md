@@ -9330,3 +9330,38 @@ Known limitations:
 - this is a documentation/design-contract change; no likelihood code changed;
 - Tweedie, COM-Poisson, ordinal scale/discrimination, and skew-normal scale or
   shape conventions still need their own design rows before implementation.
+
+## 2026-05-11 -- Skew-normal likelihood gate
+
+Goal:
+
+- record the first issue #3 design gate before any `skew_normal()` family code
+  is added.
+
+Implemented:
+
+- added a planned skew-normal location-scale-shape section to
+  `docs/design/03-likelihoods.md`;
+- documented the candidate density, `mu`, `sigma`, and `nu` transforms,
+  response mean and variance formulas, and the positive/zero/negative `nu`
+  sign convention;
+- added a planned `skew_normal()` registry contract to
+  `docs/design/02-family-registry.md`;
+- created
+  `docs/dev-log/after-task/2026-05-11-skew-normal-likelihood-gate.md`.
+
+Checks run:
+
+- `air format docs/design/03-likelihoods.md docs/design/02-family-registry.md docs/dev-log/after-task/2026-05-11-skew-normal-likelihood-gate.md docs/dev-log/check-log.md`:
+  passed.
+- `rg -n "Planned Skew-Normal|skew_normal\\(|nu_i = eta_nu_i|right-skewed|left-skewed|issue #3" docs/design/03-likelihoods.md docs/design/02-family-registry.md docs/design/14-gamlss-parameter-names.md docs/design/19-phylogenetic-location-scale-shape.md docs/dev-log/after-task/2026-05-11-skew-normal-likelihood-gate.md`:
+  confirmed the design contract and existing naming notes.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- this is documentation only; `skew_normal()` is not implemented;
+- the `nu` sign convention still needs a comparator check before TMB code is
+  added;
+- simulation recovery, malformed-input tests, normal-limit tests, and
+  false-positive heteroscedasticity checks remain planned.
