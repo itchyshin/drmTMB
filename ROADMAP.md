@@ -188,6 +188,8 @@ distributional regression models using TMB.
 ## Phase 6: Profile-Likelihood Inference
 
 - Status: partly implemented.
+- `profile_targets(fit)` lists the current target names and readiness notes for
+  confidence-interval and profile-likelihood work.
 - `confint(fit)` now returns Wald fixed-effect intervals, and
   `confint(fit, parm = "fixef:mu:x", method = "profile")` profiles explicit
   direct fixed-effect, ordinary random-effect SD, and ordinary random-effect

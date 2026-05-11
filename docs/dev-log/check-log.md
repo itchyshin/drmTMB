@@ -8967,3 +8967,53 @@ Known limitations:
   add a focused phylogenetic profile test;
 - complete double-hierarchical derived intervals still need named extractors
   and covariance-summary design before public implementation.
+
+## 2026-05-11 -- Public profile target discovery helper
+
+Goal:
+
+- add a supported user-facing helper for discovering `confint()` and
+  profile-likelihood target names before running expensive profiles.
+
+Implemented:
+
+- added exported `profile_targets()` in `R/profile.R`;
+- `profile_targets(fit)` returns the fitted target inventory used internally by
+  `confint.drmTMB()`;
+- `profile_targets(fit, ready_only = TRUE)` filters to rows with
+  `profile_ready = TRUE`;
+- invalid `object` and malformed `ready_only` inputs now fail with clear
+  messages;
+- updated `NAMESPACE`, `man/profile_targets.Rd`, `_pkgdown.yml`, `NEWS.md`,
+  `ROADMAP.md`, and `docs/design/12-profile-likelihood-cis.md`;
+- added `docs/dev-log/after-task/2026-05-11-profile-targets-public-helper.md`.
+
+Checks run:
+
+- `air format R/profile.R tests/testthat/test-profile-targets.R NEWS.md ROADMAP.md docs/design/12-profile-likelihood-cis.md _pkgdown.yml`:
+  passed.
+- `Rscript -e "devtools::document()"`: passed and wrote `NAMESPACE` plus
+  `man/profile_targets.Rd`.
+- `Rscript -e "devtools::test(filter = 'profile-targets')"`: passed with 0
+  failures, 0 warnings, 0 skips, and 89 passing expectations.
+- `Rscript -e "devtools::test()"`: passed with 0 failures, 0 warnings, 0 skips,
+  and 1569 passing expectations.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed and rendered
+  `reference/profile_targets.html`.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with no problems found.
+- First `Rscript -e "devtools::check(document = FALSE, manual = FALSE)"`: 0
+  errors, 0 warnings, and 1 note, the known local
+  `unable to verify current time` note.
+- Final `Rscript -e "devtools::check(document = FALSE, manual = FALSE, env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"`:
+  passed with 0 errors, 0 warnings, and 0 notes.
+- `git diff --check`: passed.
+- `LC_ALL=C rg -n "[^\x00-\x7F]" R/profile.R tests/testthat/test-profile-targets.R NEWS.md ROADMAP.md docs/design/12-profile-likelihood-cis.md man/profile_targets.Rd _pkgdown.yml NAMESPACE`:
+  passed with no matches.
+
+Known limitations:
+
+- `profile_targets()` exposes readiness; it does not make derived or unsupported
+  target classes profile-ready;
+- residual response-scale `rho12`, phylogenetic SD, transformed ordinal, and
+  derived-summary intervals still need focused tests and implementation before
+  being claimed.

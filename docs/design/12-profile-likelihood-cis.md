@@ -11,8 +11,9 @@ Profile-likelihood confidence intervals are partly implemented. `confint(fit)`
 returns Wald fixed-effect intervals by default, and
 `confint(fit, parm = "fixef:mu:x", method = "profile")` profiles explicit direct
 targets. Direct ordinary random-effect SD and correlation targets are
-transformed back to the response scale. Transformed ordinal, modelled group-SD,
-and derived-summary profile intervals remain planned.
+transformed back to the response scale. `profile_targets(fit)` lists the target
+names and readiness notes for a fitted model. Transformed ordinal, modelled
+group-SD, and derived-summary profile intervals remain planned.
 
 The first implementation must therefore start from a stable target inventory,
 not from ad hoc parameter names in the C++ template. Public targets should be
@@ -214,19 +215,19 @@ flagged as near-boundary intervals.
 
 ## First Implementation Slice
 
-The first code slice should not attempt every interval type. It should add an
-internal target inventory first:
+The first code slice should not attempt every interval type. It should expose a
+target inventory while keeping the internal TMB mapping in one helper:
 
 ```r
-drmTMB:::drm_profile_targets(fit)
+profile_targets(fit)
 ```
 
-This internal helper is the target table behind the public profile/confidence
-interval API. It returns target names, target classes, internal TMB parameter
-names, current estimates, transformation labels, whether the target is direct or
+This public helper is the target table behind the profile/confidence interval
+API. It returns target names, target classes, internal TMB parameter names,
+current estimates, transformation labels, whether the target is direct or
 derived, and a short note explaining whether the target is ready for direct
-profiling. `confint(fit, method = "profile")` accepts targets from this
-inventory. Unsupported targets fail before expensive optimization.
+profiling. `confint(fit, method = "profile")` accepts targets from this table.
+Unsupported targets fail before expensive optimization.
 
 A second internal helper now profiles direct fixed-effect targets from this
 inventory, and the public `confint()` method exposes the first user-facing

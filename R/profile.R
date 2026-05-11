@@ -73,6 +73,48 @@ confint.drmTMB <- function(
   )
 }
 
+#' List confidence-interval targets for a fitted model
+#'
+#' `profile_targets()` shows the names that can be supplied to
+#' [confint.drmTMB()]. The table also records whether each row is currently
+#' ready for direct profile-likelihood intervals. This helps users inspect the
+#' fitted object before starting an expensive profile.
+#'
+#' @param object A `drmTMB` fit.
+#' @param ready_only Logical; if `TRUE`, return only targets whose
+#'   `profile_ready` column is `TRUE`.
+#'
+#' @return A data frame with columns `parm`, `target_class`, `dpar`, `term`,
+#'   `tmb_parameter`, `index`, `estimate`, `link_estimate`, `scale`,
+#'   `transformation`, `target_type`, `profile_ready`, and `profile_note`.
+#'
+#' @examples
+#' dat <- data.frame(y = c(0.2, 0.5, 1.1, 1.4), x = c(-1, 0, 1, 2))
+#' fit <- drmTMB(bf(y ~ x, sigma ~ 1), data = dat)
+#' profile_targets(fit)
+#' @export
+profile_targets <- function(object, ready_only = FALSE) {
+  if (!inherits(object, "drmTMB")) {
+    cli::cli_abort("{.arg object} must be a {.cls drmTMB} fit.")
+  }
+  if (
+    !is.logical(ready_only) ||
+      length(ready_only) != 1L ||
+      is.na(ready_only)
+  ) {
+    cli::cli_abort(
+      "{.arg ready_only} must be a single {.code TRUE} or {.code FALSE}."
+    )
+  }
+
+  targets <- drm_profile_targets(object)
+  if (ready_only) {
+    targets <- targets[targets$profile_ready, , drop = FALSE]
+  }
+  row.names(targets) <- NULL
+  targets
+}
+
 drm_profile_targets <- function(object) {
   rows <- list()
   counters <- new.env(parent = emptyenv())

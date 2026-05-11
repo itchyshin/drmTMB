@@ -94,6 +94,7 @@ reference:
       - drm_control
       - check_drm
       - confint.drmTMB
+      - profile_targets
       - corpairs
       - fitted.drmTMB
       - fixef

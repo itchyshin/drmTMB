@@ -113,6 +113,31 @@ test_that("profile target inventory lists fixed effects", {
   expect_true(all(targets$target_type == "direct"))
 })
 
+test_that("profile_targets exposes available confidence-interval targets", {
+  dat <- new_profile_group_data(n_id = 10, n_each = 4, seed = 20260599)
+  fit <- drmTMB(
+    bf(y ~ x + (1 + x | p | ID)),
+    family = gaussian(),
+    data = dat
+  )
+
+  targets <- profile_targets(fit)
+  ready_targets <- profile_targets(fit, ready_only = TRUE)
+
+  expect_s3_class(targets, "data.frame")
+  expect_equal(targets, drmTMB:::drm_profile_targets(fit))
+  expect_true("fixef:mu:x" %in% targets$parm)
+  expect_true("sd:mu:(1 + x | p | ID):x" %in% targets$parm)
+  expect_true("cor:mu:cor((Intercept),x | p | ID)" %in% targets$parm)
+  expect_true(all(ready_targets$profile_ready))
+  expect_equal(
+    ready_targets$parm,
+    targets$parm[targets$profile_ready]
+  )
+  expect_error(profile_targets(list()), "drmTMB")
+  expect_error(profile_targets(fit, ready_only = c(TRUE, FALSE)), "single")
+})
+
 test_that("confint returns Wald fixed-effect intervals", {
   set.seed(20260597)
   n <- 70
