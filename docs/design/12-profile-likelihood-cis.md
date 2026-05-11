@@ -147,8 +147,8 @@ Examples:
 - repeatability;
 - heritability-like ratios;
 - cross-trait correlations derived from covariance matrices;
-- correlations among personality, plasticity, predictability, and malleability
-  components in double-hierarchical individual-differences models.
+- correlations among individual averages, mean-model slopes, residual scale,
+  and scale-model slopes in double-hierarchical individual-difference models.
 
 These are not direct `tmbprofile()` targets. The first robust path should be a
 fix-and-refit profile:
@@ -210,6 +210,34 @@ flagged as near-boundary intervals.
   starts before falling back.
 - Wald intervals for variance components and correlations should not be the main
   default because they are often poor near boundaries.
+
+## First Implementation Slice
+
+The first code slice should not attempt every interval type. It should add an
+internal target inventory first:
+
+```r
+profile_targets(fit)
+```
+
+The inventory should return user-facing target names, internal TMB parameter
+names, current estimates, transformation labels, and whether the target is
+direct, linear, or derived. `confint.drmTMB(method = "profile")` should then
+accept only targets listed by this inventory. Unsupported targets should fail
+with a message that points to the available target table.
+
+The first fitted targets should be direct parameters in this order:
+
+1. fixed-effect coefficients for `mu`, `sigma`, `nu`, `zi`, `hu`, and `rho12`;
+2. residual-scale parameters where they are direct TMB parameters;
+3. ordinary Gaussian random-effect SDs in `sdpars$mu`;
+4. ordinary Gaussian random-effect correlations in `corpars$mu`;
+5. phylogenetic `mu` SDs;
+6. ordinal cutpoints.
+
+Derived summaries such as repeatability, ICC, phylogenetic signal, and
+double-hierarchical correlation-pair summaries should wait until direct
+profiles are stable and the derived quantity has a named extractor.
 
 ## Implementation Stage
 

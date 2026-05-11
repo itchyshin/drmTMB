@@ -8705,3 +8705,48 @@ Known limitations:
 - the harness remains optional and requires `glmmTMB`;
 - it validates overlapping Gaussian location-scale examples only, not future
   individual-difference covariance blocks.
+
+## 2026-05-10 -- Profile CI and double-hierarchical phase map
+
+Goal:
+
+- sharpen the overnight plan for profile-likelihood confidence intervals and
+  complete double-hierarchical individual-difference covariance models without
+  claiming either path is implemented.
+
+Implemented:
+
+- added `docs/design/28-double-hierarchical-endpoint.md` as the endpoint map for
+  complete individual-difference location-scale covariance models;
+- updated `ROADMAP.md` so Phase 6 is the first direct-parameter
+  profile-likelihood CI phase and Phase 13 is derived inference for complete
+  double-hierarchical models;
+- added a first implementation slice to
+  `docs/design/12-profile-likelihood-cis.md`, beginning with a target inventory
+  such as `profile_targets(fit)`;
+- updated `docs/design/20-coscale-correlation-pairs.md` and
+  `docs/design/04-random-effects.md` to use reader-facing descriptions of
+  individual averages, mean-model slopes, residual scale, and scale-model
+  slopes instead of relying on shorthand from the literature.
+
+Checks run:
+
+- prose-style review lens applied for applied ecology/evolution readers and R
+  package contributors;
+- `air format ROADMAP.md docs/design/04-random-effects.md docs/design/12-profile-likelihood-cis.md docs/design/20-coscale-correlation-pairs.md docs/design/28-double-hierarchical-endpoint.md`:
+  passed;
+- `git diff --check`: passed;
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed;
+- `rg -n "Phase 13: Double-Hierarchical Derived Inference|28-double-hierarchical-endpoint|profile_targets|individual averages|rho12" pkgdown-site/ROADMAP.html pkgdown-site/search.json ROADMAP.md docs/design/28-double-hierarchical-endpoint.md docs/design/12-profile-likelihood-cis.md`:
+  passed and confirmed the rendered roadmap includes the Phase 13 rename and
+  endpoint-map reference;
+- `Rscript -e "devtools::test()"`: passed with 0 failures, 0 warnings, 0 skips,
+  and 1480 passing expectations;
+- `rg -n "O'Dea|O’Dea|Nakagawa|personality|plasticity|predictability|malleability|O'Dea/Nakagawa|O'Dea-style|O’Dea-style" ROADMAP.md docs/design/04-random-effects.md docs/design/12-profile-likelihood-cis.md docs/design/20-coscale-correlation-pairs.md docs/design/28-double-hierarchical-endpoint.md`:
+  passed with no matches after the final wording pass.
+
+Known limitations:
+
+- this is design and phase-map work only; no `confint.drmTMB()` method,
+  profile target inventory, cross-formula covariance block, or new `corpairs()`
+  row class has been implemented yet.

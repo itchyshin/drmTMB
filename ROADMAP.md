@@ -187,27 +187,29 @@ distributional regression models using TMB.
 
 ## Phase 6: Profile-Likelihood Inference
 
-- Add profile-likelihood confidence intervals for direct TMB parameters such as
-  log SDs, variance components, and ordinal cutpoints.
+- Status: planned.
+- Add the first profile-likelihood confidence intervals for direct TMB
+  parameters such as fixed effects, log SDs, residual-scale parameters,
+  `rho12` link-scale coefficients, and ordinal cutpoints.
 - Use user-facing target names from the fitted object, for example
   `sd:mu:(1 | id)`, `sd:mu:phylo(1 | species)`,
   `cor:mu:cor((Intercept),x | id)`, and `fixef:rho12:(Intercept)`.
 - Prefer `TMB::tmbprofile()` plus `uniroot()` for one-dimensional intervals,
   because it warm-starts constrained optimizations and avoids wasteful grids.
 - Support linear combinations through TMB's `lincomb` machinery where possible.
-- Treat nonlinear derived quantities, such as ICCs and variance-component
-  correlations, as a later fix-and-refit problem with boundary and convergence
-  flags.
+- Treat nonlinear derived quantities, such as ICCs, repeatability,
+  phylogenetic signal, and variance-component correlations, as a later
+  fix-and-refit problem with boundary and convergence flags.
 - Keep parametric bootstrap as a fallback for boundary, non-monotone, or failed
   inner-optimization cases.
 
 ## Phase 6b: Tutorial Quality Upgrade
 
 - Use `docs/design/21-tutorial-style.md` as the tutorial contract.
-- Jason should source-map the existing Nakagawa-group tutorial examples the
-  project owner provided, including location-scale meta-analysis, phylogenetic
-  location-scale, ecology location-scale, phylo-spatial, multinomial GLMM,
-  phylogenetic simulation, and `glmmTMB::equalto()` examples.
+- Jason should source-map the tutorial examples the project owner provided,
+  including location-scale meta-analysis, phylogenetic location-scale, ecology
+  location-scale, phylo-spatial, multinomial GLMM, phylogenetic simulation, and
+  `glmmTMB::equalto()` examples.
 - Pat should user-test each major `drmTMB` tutorial for a concrete question,
   real or transparent simulated data, symbolic equations, model output,
   plots or tables, interpretation, diagnostics, and recovery advice.
@@ -268,9 +270,9 @@ distributional regression models using TMB.
   Poisson, and related families according to the distribution roadmap after
   their parameter-link and comparator contracts are documented.
 
-Nakagawa, Ortega, Gazzea, Lagisz, Lenz, Lundgren, and Mizuno's
-location-scale paper and tutorial are a concrete replication target for this
-phase series. The current package should first reproduce the Gaussian
+The recent location-scale modelling paper and companion tutorial listed in
+`docs/design/11-reference-programme.md` are concrete replication targets for
+this phase series. The current package should first reproduce the Gaussian
 fixed-effect and Gaussian location-random-effect examples, then add comparator
 tests for count and bounded-response examples as the required likelihood and
 random-effect features land.
@@ -326,6 +328,10 @@ random-effect features land.
   estimates, and uncertainty source.
 - Start with small ordinary grouped models before adding phylogenetic or spatial
   bivariate covariance structures.
+- Use `docs/design/28-double-hierarchical-endpoint.md` as the endpoint map for
+  full individual-difference location-scale covariance models. The first
+  double-hierarchical slices should add one covariance block at a time, with
+  `corpairs()` output and simulation recovery before the next block is added.
 
 ## Phase 12: Phylogenetic Location-Scale Extensions
 
@@ -340,17 +346,21 @@ random-effect features land.
   high residual noise, and combined phylogenetic plus non-phylogenetic species
   effects.
 
-## Phase 13: Profile-Likelihood Inference
+## Phase 13: Double-Hierarchical Derived Inference
 
 - Status: planned.
-- Implement profile-likelihood confidence intervals for direct TMB parameters
-  before nonlinear derived quantities.
-- Initial targets should include fixed effects, residual-scale parameters,
-  random-effect SDs, `rho12` link-scale coefficients, and ordinal cutpoints.
-- Use `TMB::tmbprofile()` and `uniroot()` where possible, with clear boundary,
-  failed-optimization, and non-monotone-profile flags.
-- Add derived quantities such as ICC, repeatability, phylogenetic signal, and
-  correlation-pair functions only after the direct-parameter path is tested.
+- Build on Phase 6 direct-parameter profile intervals and Phase 11
+  correlation-pair models.
+- Add uncertainty for derived quantities that matter in complete
+  individual-difference location-scale models: repeatability, phylogenetic
+  signal, total variance, and correlations among individual differences in
+  average response, mean-model slopes, residual scale, and scale-model slopes.
+- Use fix-and-refit profiles or carefully parameterized direct targets for
+  nonlinear quantities; do not treat Wald intervals as the default for boundary
+  variance components or correlations.
+- Report these intervals through the same `corpairs()` and derived-summary
+  namespaces used for point estimates, with explicit boundary, convergence,
+  and near-correlation-limit flags.
 
 ## Phase 14: Large-Data Engine
 

@@ -65,11 +65,10 @@ u_j ~ MVN(0, Sigma_ID)
 ```
 
 The covariance matrix `Sigma_ID` contains many interpretable correlation
-pairs. The same fitted model can ask whether individual differences in means,
-plasticity, predictability, and malleability are correlated within or between
-responses. These are the correlation types described by O'Dea, Noble, and
-Nakagawa (2022) and extended by later work on correlations between variance
-components. They are group-level covariance parameters, not residual `rho12`.
+pairs. The same fitted model can ask whether individual differences in average
+response, mean-model slopes, residual scale, and scale-model slopes are
+correlated within or between responses. These are group-level covariance
+parameters, not residual `rho12`.
 
 ## Correlation-Pair Table
 
@@ -99,20 +98,20 @@ corpairs(fit, class = "mean-scale")
 The existing `rho12(fit)` helper should remain a narrow convenience extractor
 for residual response-response correlation only.
 
-## Biological Names As Interpretations
+## Reader-Facing Interpretations
 
 The package should not hard-code one field's terminology into the model, but it
 can teach common interpretations:
 
 | Correlation class | Example pair | Common interpretation |
 |---|---|---|
-| mean-mean intercept | `cor(mu1:(Intercept), mu2:(Intercept) | ID)` | behavioural syndrome or between-trait association in individual averages |
-| slope-slope mean | `cor(mu1:x, mu2:x | ID)` | plasticity syndrome |
-| scale-scale intercept | `cor(sigma1:(Intercept), sigma2:(Intercept) | ID)` | predictability syndrome |
-| scale-scale slope | `cor(sigma1:x, sigma2:x | ID)` | malleability syndrome |
-| mean-slope | `cor(mu1:(Intercept), mu1:x | ID)` | personality-plasticity association |
-| mean-scale | `cor(mu1:(Intercept), sigma1:(Intercept) | ID)` | personality-predictability association |
-| slope-scale | `cor(mu1:x, sigma1:(Intercept) | ID)` | plasticity-predictability association |
+| mean-mean intercept | `cor(mu1:(Intercept), mu2:(Intercept) | ID)` | between-response association in individual averages |
+| slope-slope mean | `cor(mu1:x, mu2:x | ID)` | association between individual mean-model slopes |
+| scale-scale intercept | `cor(sigma1:(Intercept), sigma2:(Intercept) | ID)` | association between individual baseline residual scales |
+| scale-scale slope | `cor(sigma1:x, sigma2:x | ID)` | association between individual changes in residual scale |
+| mean-slope | `cor(mu1:(Intercept), mu1:x | ID)` | individual average response versus mean-model slope |
+| mean-scale | `cor(mu1:(Intercept), sigma1:(Intercept) | ID)` | individual average response versus residual scale |
+| slope-scale | `cor(mu1:x, sigma1:(Intercept) | ID)` | mean-model slope versus residual scale |
 
 These names are interpretation aids. The extractor should always report the
 formal pair so users can interpret other designs without guessing.
@@ -151,6 +150,9 @@ drm_formula(
 This syntax is not implemented. The current `drmTMB()` path must reject it
 clearly until the likelihood, positive-definite covariance parameterization,
 simulation recovery, and extractor tests are implemented.
+
+The full endpoint and its staged implementation map are recorded in
+`docs/design/28-double-hierarchical-endpoint.md`.
 
 ## Structured Correlation Pairs
 

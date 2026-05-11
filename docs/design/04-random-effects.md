@@ -237,8 +237,8 @@ univariate Gaussian `mu` implementation, the label is retained in output names.
 When later implementations allow the same label in multiple parameter formulas,
 for example in `mu` and `sigma`, the model should estimate constant
 correlations among those group-level effects. These are the correlations used
-in double-hierarchical models of personality, plasticity, predictability, and
-malleability.
+in double-hierarchical models of individual averages, mean-model slopes,
+residual scale, and scale-model slopes.
 
 Residual `rho12 ~` is separate and belongs to bivariate response likelihoods.
 It models the residual coupling between two responses after their location and
@@ -246,19 +246,18 @@ scale predictors have been accounted for.
 
 ## Double-Hierarchical Correlation Taxonomy
 
-The individual-differences framework of O'Dea et al. (2022) distinguishes
-correlations among individual differences:
+Individual-difference location-scale models distinguish correlations among
+persistent individual effects:
 
-- personality: random intercepts in mean models;
-- plasticity: random slopes in mean models;
-- predictability: random intercepts in dispersion or scale models;
-- malleability: random slopes in dispersion or scale models.
+- individual averages: random intercepts in mean models;
+- individual mean-model slopes: random slopes in mean models;
+- individual residual scale: random intercepts in scale models;
+- individual changes in residual scale: random slopes in scale models.
 
-In bivariate models these can produce behavioural syndromes, plasticity
-syndromes, predictability syndromes, and cross-associations among personality,
-plasticity, predictability, and malleability. These are group-level covariance
-parameters and should be named/extracted as group-level correlations, not as
-`rho12`.
+In bivariate models these can produce correlations within and between responses
+for average response, mean-model slope, residual scale, and scale-model slope.
+These are group-level covariance parameters and should be named/extracted as
+group-level correlations, not as `rho12`.
 
 Initial random-intercept/slope correlations should be constant covariance-block
 parameters. Predictor-dependent correlation formulae should be reserved for
@@ -269,6 +268,9 @@ The detailed long-format correlation-pair namespace is recorded in
 return enough labels to identify the level, grouping factor, covariance block,
 distributional parameters, responses, and random-effect coefficients involved
 in each pair.
+
+The staged endpoint for the complete model is recorded in
+`docs/design/28-double-hierarchical-endpoint.md`.
 
 ## Scale Naming
 
