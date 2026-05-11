@@ -299,6 +299,60 @@ test_that("confint profile intervals wrap direct fixed-effect profiles", {
   expect_gt(ci$upper, unname(coef(fit, "mu")[["x"]]))
 })
 
+test_that("confint profile intervals transform constant sigma targets", {
+  set.seed(20260605)
+  n <- 80
+  x <- stats::rnorm(n)
+  dat <- data.frame(
+    y = 0.2 + 0.5 * x + stats::rnorm(n, sd = 0.7),
+    x = x
+  )
+  fit <- drmTMB(bf(y ~ x, sigma ~ 1), family = gaussian(), data = dat)
+
+  targets <- profile_targets(fit)
+  sigma_target <- targets[targets$parm == "sigma", , drop = FALSE]
+  expect_equal(nrow(sigma_target), 1L)
+  expect_equal(sigma_target$target_class, "distributional-scale")
+  expect_equal(sigma_target$scale, "response")
+  expect_equal(sigma_target$transformation, "exp")
+  expect_true(sigma_target$profile_ready)
+  expect_equal(
+    sigma_target$estimate,
+    mean(stats::sigma(fit)),
+    tolerance = 1e-12
+  )
+
+  ci <- stats::confint(
+    fit,
+    parm = "sigma",
+    level = 0.80,
+    method = "profile",
+    trace = FALSE,
+    ystep = 0.30
+  )
+  manual_lincomb <- rep(0, length(fit$opt$par))
+  manual_lincomb[which(names(fit$opt$par) == "beta_sigma")[[1L]]] <- 1
+  manual_profile <- TMB::tmbprofile(
+    fit$obj,
+    name = "sigma",
+    lincomb = manual_lincomb,
+    trace = FALSE,
+    ystep = 0.30
+  )
+  manual_ci <- stats::confint(manual_profile, level = 0.80)
+
+  expect_equal(ci$parm, "sigma")
+  expect_equal(ci$scale, "response")
+  expect_equal(ci$transformation, "exp")
+  expect_equal(ci$tmb_parameter, "beta_sigma")
+  expect_equal(ci$index, 1L)
+  expect_equal(ci$lower, exp(unname(manual_ci[1L, "lower"])), tolerance = 1e-12)
+  expect_equal(ci$upper, exp(unname(manual_ci[1L, "upper"])), tolerance = 1e-12)
+  expect_gt(ci$lower, 0)
+  expect_lt(ci$lower, mean(stats::sigma(fit)))
+  expect_gt(ci$upper, mean(stats::sigma(fit)))
+})
+
 test_that("confint profile intervals cover residual rho12 coefficients on link scale", {
   dat <- new_profile_biv_data(n = 120, seed = 20260600)
   fit <- drmTMB(
@@ -356,6 +410,11 @@ test_that("confint profile intervals transform constant residual rho12 targets",
   expect_equal(rho_target$scale, "response")
   expect_equal(rho_target$transformation, "rho12_tanh")
   expect_true(rho_target$profile_ready)
+  scale_targets <- targets[targets$parm %in% c("sigma1", "sigma2"), ]
+  expect_equal(scale_targets$target_class, rep("distributional-scale", 2))
+  expect_equal(scale_targets$tmb_parameter, c("beta_sigma1", "beta_sigma2"))
+  expect_equal(scale_targets$transformation, c("exp", "exp"))
+  expect_true(all(scale_targets$profile_ready))
   expect_equal(
     rho_target$estimate,
     mean(rho12(fit)),

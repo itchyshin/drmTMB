@@ -192,15 +192,16 @@ distributional regression models using TMB.
   confidence-interval and profile-likelihood work.
 - `confint(fit)` now returns Wald fixed-effect intervals, and
   `confint(fit, parm = "fixef:mu:x", method = "profile")` profiles explicit
-  direct fixed-effect, ordinary random-effect SD, ordinary random-effect
-  correlation, phylogenetic `mu` SD, and constant residual `rho12` targets.
+  direct fixed-effect, constant `sigma`/`sigma1`/`sigma2`, ordinary
+  random-effect SD, ordinary random-effect correlation, phylogenetic `mu` SD,
+  and constant residual `rho12` targets.
 - Extend profile-likelihood confidence intervals to additional direct TMB
-  parameters such as residual-scale parameters, predictor-dependent `rho12`
-  response-scale contrasts, and ordinal cutpoints.
+  parameters such as predictor-dependent `sigma` and `rho12` response-scale
+  contrasts, other residual-scale parameters, and ordinal cutpoints.
 - Use user-facing target names from the fitted object, for example
   `sd:mu:(1 | id)`, `sd:mu:phylo(1 | species)`,
   `cor:mu:cor((Intercept),x | id)`, `fixef:rho12:(Intercept)`, and
-  `rho12`.
+  `sigma` or `rho12`.
 - Prefer `TMB::tmbprofile()` plus `uniroot()` for one-dimensional intervals,
   because it warm-starts constrained optimizations and avoids wasteful grids.
 - Support linear combinations through TMB's `lincomb` machinery where possible.

@@ -38,8 +38,8 @@ A data frame with columns \code{parm}, \code{level}, \code{lower}, \code{upper},
 intervals are fast and are returned for fixed-effect coefficients by default.
 Profile-likelihood intervals are slower because nuisance parameters are
 re-optimized; this first public profile path supports explicit fixed-effect,
-random-effect standard-deviation, random-effect correlation, and constant
-residual-correlation targets.
+constant distributional-scale, random-effect standard-deviation,
+random-effect correlation, and constant residual-correlation targets.
 }
 \details{
 Target names follow the profile target namespace. For fixed effects, use
@@ -49,7 +49,9 @@ names such as \code{"fixef:mu:x"}, \code{"fixef:sigma:(Intercept)"}, or
 SD scale, and random-effect correlation intervals are reported on the
 correlation scale. For bivariate Gaussian fits with constant residual
 correlation, \code{parm = "rho12"} profiles the residual correlation and reports
-the interval on the response correlation scale.
+the interval on the response correlation scale. For fits with constant
+\code{sigma}, \code{sigma1}, or \code{sigma2}, \code{parm = "sigma"} and friends report
+response-scale intervals.
 }
 \examples{
 dat <- data.frame(y = c(0.2, 0.5, 1.1, 1.4), x = c(-1, 0, 1, 2))

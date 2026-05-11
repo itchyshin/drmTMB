@@ -9188,3 +9188,55 @@ Known limitations:
   `newdata` or contrast API;
 - derived residual covariance, repeatability, phylogenetic signal, and
   double-hierarchical correlation-pair intervals remain planned.
+
+## 2026-05-11 -- Constant sigma profile intervals
+
+Goal:
+
+- add response-scale profile-likelihood intervals for constant `sigma`,
+  `sigma1`, and `sigma2`.
+
+Implemented:
+
+- added short profile targets `sigma`, `sigma1`, and `sigma2` for constant
+  log-scale formulas;
+- mapped the targets to `beta_sigma[1]`, `beta_sigma1[1]`, or
+  `beta_sigma2[1]` and transformed profile endpoints with `exp()`;
+- kept predictor-dependent response-scale `sigma` intervals as planned
+  `newdata` or contrast work;
+- updated `NEWS.md`, `ROADMAP.md`,
+  `docs/design/12-profile-likelihood-cis.md`,
+  `man/confint.drmTMB.Rd`, and
+  `docs/dev-log/after-task/2026-05-11-constant-sigma-profile-intervals.md`.
+
+Checks run:
+
+- `air format R/profile.R tests/testthat/test-profile-targets.R`: passed.
+- `Rscript -e "devtools::test(filter = 'profile-targets')"`: passed with 0
+  failures, 0 warnings, 0 skips, and 144 passing expectations.
+- `air format NEWS.md ROADMAP.md docs/design/12-profile-likelihood-cis.md`:
+  passed.
+- `Rscript -e "devtools::document()"`: passed and regenerated
+  `man/confint.drmTMB.Rd`.
+- `Rscript -e "devtools::test()"`: passed with 0 failures, 0 warnings, 0
+  skips, and 1624 passing expectations.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed and rendered
+  `reference/confint.drmTMB.html`, `reference/profile_targets.html`, and
+  `ROADMAP.html`.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with no problems found.
+- `_R_CHECK_SYSTEM_CLOCK_=FALSE Rscript -e "devtools::check(document = FALSE, manual = FALSE, args = '--no-tests')"`:
+  passed with 0 errors, 0 warnings, and 0 notes.
+- `git diff --check`: passed.
+- `LC_ALL=C rg -n "[^\x00-\x7F]" R/profile.R tests/testthat/test-profile-targets.R NEWS.md ROADMAP.md docs/design/12-profile-likelihood-cis.md man/confint.drmTMB.Rd`:
+  passed with no matches.
+- `rg -n 'O.Dea/Nakagawa|O.Dea-style' R/profile.R tests/testthat/test-profile-targets.R NEWS.md ROADMAP.md docs/design/12-profile-likelihood-cis.md man/confint.drmTMB.Rd pkgdown-site/reference/confint.drmTMB.html pkgdown-site/reference/profile_targets.html pkgdown-site/ROADMAP.html --glob '!pkgdown-site/search.json'`:
+  passed with no matches.
+- `rg -n 'constant .*sigma|parm = "sigma"|distributional-scale|sigma1|sigma2' R/profile.R tests/testthat/test-profile-targets.R NEWS.md ROADMAP.md docs/design/12-profile-likelihood-cis.md man/confint.drmTMB.Rd pkgdown-site/reference/confint.drmTMB.html pkgdown-site/reference/profile_targets.html pkgdown-site/ROADMAP.html --glob '!pkgdown-site/search.json'`:
+  confirmed source and generated-site wording.
+
+Known limitations:
+
+- predictor-dependent `sigma`, `sigma1`, and `sigma2` response-scale intervals
+  need an explicit `newdata` or contrast API;
+- other transformed direct targets such as constant `nu`, probabilities, and
+  ordinal cutpoints remain planned.

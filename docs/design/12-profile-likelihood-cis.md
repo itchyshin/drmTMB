@@ -12,11 +12,12 @@ returns Wald fixed-effect intervals by default, and
 `confint(fit, parm = "fixef:mu:x", method = "profile")` profiles explicit
 direct targets. Direct ordinary random-effect SD, ordinary random-effect
 correlation, and phylogenetic `mu` SD targets are transformed back to the
-response scale. Constant residual `rho12` can also be profiled as a direct
-response-scale correlation target with `parm = "rho12"`. `profile_targets(fit)`
-lists the target names and readiness notes for a fitted model. Transformed
-ordinal, modelled group-SD, predictor-dependent `rho12` response-scale
-contrasts, and derived-summary profile intervals remain planned.
+response scale. Constant `sigma`, `sigma1`, `sigma2`, and residual `rho12` can
+also be profiled as direct response-scale targets with names such as
+`parm = "sigma"` or `parm = "rho12"`. `profile_targets(fit)` lists the target
+names and readiness notes for a fitted model. Transformed ordinal, modelled
+group-SD, predictor-dependent `sigma` and `rho12` response-scale contrasts, and
+derived-summary profile intervals remain planned.
 
 The first implementation must therefore start from a stable target inventory,
 not from ad hoc parameter names in the C++ template. Public targets should be
@@ -25,6 +26,9 @@ named using user-facing quantities:
 ```text
 fixef:mu:x
 fixef:sigma:x
+sigma
+sigma1
+sigma2
 sd:mu:(1 | id)
 sd:sigma:(1 | id)
 sd:mu:phylo(1 | species)
@@ -41,10 +45,11 @@ syntax such as `phylo(1 | species, tree = tree)`.
 
 Those names can then map internally to TMB parameters such as `beta_mu`,
 `beta_sigma`, `log_sd_mu`, `log_sd_sigma`, `log_sd_phylo`, `eta_cor_mu`,
-`beta_sd_mu`, and `beta_rho12`. The `rho12` target is available only when the
-residual correlation is constant; predictor-dependent residual correlations
-still expose their link-scale coefficients until the API has a `newdata` or
-contrast design for response-scale intervals.
+`beta_sd_mu`, and `beta_rho12`. The short `sigma`, `sigma1`, `sigma2`, and
+`rho12` targets are available only when the corresponding model formula is
+constant. Predictor-dependent scale and residual-correlation models still
+expose their link-scale coefficients until the API has a `newdata` or contrast
+design for response-scale intervals.
 
 ## Core Definition
 
@@ -247,17 +252,17 @@ confint(fit, parm = "fixef:mu:x", method = "profile")
 By default, `confint(fit)` returns fast Wald intervals for fixed-effect
 coefficients on their link scales. Profile intervals must be requested by name
 because they can be slow. The profile path wraps `TMB::tmbprofile()` for ready
-fixed-effect, ordinary random-effect SD, ordinary random-effect correlation,
-phylogenetic `mu` SD, and constant residual `rho12` target rows. Unsupported
-ordinal-transform, modelled group-SD, predictor-dependent `rho12`
-response-scale contrast, and derived-summary targets still fail before doing
-expensive optimization.
+fixed-effect, constant distributional-scale, ordinary random-effect SD,
+ordinary random-effect correlation, phylogenetic `mu` SD, and constant residual
+`rho12` target rows. Unsupported ordinal-transform, modelled group-SD,
+predictor-dependent response-scale contrast, and derived-summary targets still
+fail before doing expensive optimization.
 
 The first fitted targets should be direct parameters in this order:
 
 1. fixed-effect coefficients for `mu`, `sigma`, `nu`, `zi`, `hu`, and `rho12`;
-2. constant residual `rho12` and residual-scale parameters where they are
-   direct TMB parameters;
+2. constant `sigma`, `sigma1`, `sigma2`, residual `rho12`, and other
+   residual-scale parameters where they are direct TMB parameters;
 3. ordinary Gaussian random-effect SDs in `sdpars$mu`;
 4. ordinary Gaussian random-effect correlations in `corpars$mu`;
 5. phylogenetic `mu` SDs;
