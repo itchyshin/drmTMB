@@ -315,6 +315,74 @@ test_that("check_drm() records phylogenetic replication notes", {
   expect_true(attr(chk, "ok"))
 })
 
+test_that("check_drm() reports bivariate mu random-effect covariance diagnostics", {
+  set.seed(2026051102)
+  n_id <- 20
+  n_each <- 5
+  id <- factor(rep(seq_len(n_id), each = n_each))
+  n <- length(id)
+  x <- stats::rnorm(n)
+  sigma1 <- 0.25
+  sigma2 <- 0.3
+  sd_mu1 <- 0.7
+  sd_mu2 <- 0.8
+  rho_group <- 0.35
+  rho12 <- 0.15
+
+  u1 <- stats::rnorm(n_id)
+  u2 <- rho_group * u1 + sqrt(1 - rho_group^2) * stats::rnorm(n_id)
+  e1 <- stats::rnorm(n)
+  e2 <- rho12 * e1 + sqrt(1 - rho12^2) * stats::rnorm(n)
+  dat <- data.frame(id = id, x = x)
+  dat$y1 <- 0.2 + 0.45 * x + sd_mu1 * u1[id] + sigma1 * e1
+  dat$y2 <- -0.1 - 0.3 * x + sd_mu2 * u2[id] + sigma2 * e2
+
+  fit <- drmTMB(
+    bf(
+      mu1 = y1 ~ x + (1 | p | id),
+      mu2 = y2 ~ x + (1 | p | id),
+      sigma1 = ~1,
+      sigma2 = ~1,
+      rho12 = ~1
+    ),
+    family = biv_gaussian(),
+    data = dat,
+    control = list(eval.max = 250, iter.max = 250)
+  )
+  chk <- check_drm(fit)
+  group_cov <- chk[chk$check == "biv_mu_random_effect_covariance", ]
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(group_cov$status, "ok")
+  expect_match(group_cov$value, "n_groups=20")
+  expect_match(group_cov$value, "min_group_n=5")
+  expect_match(group_cov$message, "non-negligible")
+
+  singleton <- fit
+  n_group <- singleton$model$random$mu$n_re / singleton$model$random$mu$n_terms
+  singleton_rows <- which(singleton$model$random$mu$index[, 1L] == 1L)[-1L]
+  singleton$model$random$mu$index[singleton_rows, 1L] <- 2L
+  singleton$model$random$mu$index[singleton_rows, 2L] <- n_group + 2L
+  singleton_chk <- check_drm(singleton)
+  singleton_cov <- singleton_chk[
+    singleton_chk$check == "biv_mu_random_effect_covariance",
+  ]
+
+  expect_equal(singleton_cov$status, "note")
+  expect_match(singleton_cov$value, "singleton_groups=1")
+  expect_match(singleton_cov$message, "fewer than two")
+  expect_true(attr(singleton_chk, "ok"))
+
+  weak_sd <- fit
+  weak_sd$sdpars$mu[[1L]] <- mean(stats::sigma(fit)$sigma1) * 0.001
+  weak_chk <- check_drm(weak_sd)
+  weak_cov <- weak_chk[weak_chk$check == "biv_mu_random_effect_covariance", ]
+
+  expect_equal(weak_cov$status, "note")
+  expect_match(weak_cov$message, "tiny relative")
+  expect_true(attr(weak_chk, "ok"))
+})
+
 test_that("check_drm() reports mutated diagnostic failure branches", {
   dat <- data.frame(y = stats::rnorm(24), x = stats::rnorm(24))
   fit <- drmTMB(bf(y ~ x, sigma ~ 1), family = gaussian(), data = dat)

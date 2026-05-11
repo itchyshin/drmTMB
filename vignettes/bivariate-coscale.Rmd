@@ -408,27 +408,29 @@ were also more bold than expected under higher disturbance.
 
 ## What this model does not estimate
 
-This fitted model has no bivariate random effects, no group-level
-personality/plasticity correlations, no phylogenetic correlation, and no
-spatial field correlation. If bivariate random-effect syntax currently errors,
-fit the fixed-effect bivariate model shown here or use the implemented
-univariate Gaussian random-effect models until bivariate covariance blocks are
-added.
+This fitted model has no group-level personality or plasticity correlations, no
+phylogenetic correlation, and no spatial field correlation. The first
+bivariate group-level covariance slice is implemented for matching labelled
+random intercepts, such as `(1 | p | ID)` in both `mu1` and `mu2`. If you need
+random slopes, residual-scale random effects, phylogenetic covariance, or
+spatial covariance, fit the fixed-effect bivariate model shown here or use the
+implemented univariate Gaussian random-effect models until those covariance
+blocks are added.
 
 For ecological and evolutionary examples, residual `rho12` can represent
 changing residual coupling between traits such as activity and boldness, body
 size and fecundity, or leaf area and seed number.
 
-## Future group-level equations
+## Group-level equations
 
-The future double-hierarchical version should also allow group-level random
-intercepts and random slopes in the mean structure:
+The first fitted group-level version adds matching labelled random intercepts
+in the mean structure:
 
 ```r
 drmTMB(
   formula = drm_formula(
-    mu1 = activity ~ food + disturbance + (1 + disturbance | p | ID),
-    mu2 = boldness ~ food              + (1 + disturbance | p | ID),
+    mu1 = activity ~ food + disturbance + (1 | p | ID),
+    mu2 = boldness ~ food              + (1 | p | ID),
     sigma1 = ~ food + disturbance,
     sigma2 = ~ food,
     rho12 = ~ disturbance
@@ -438,32 +440,42 @@ drmTMB(
 )
 ```
 
-This syntax is planned, not implemented. The two terms in
-`(1 + disturbance | p | ID)` would create group-level intercept and slope
-variation in the mean part. `sigma1` and `sigma2` are residual scale
-parameters; additional random-effect scale components should be named and
-extracted as group-level standard deviations, not confused with residual
-`sigma`.
+The shared `p` label creates one group-level covariance block for the
+`mu1` and `mu2` random intercepts. `sigma1` and `sigma2` are residual scale
+parameters; fitted random-intercept SDs are group-level standard deviations in
+`sdpars$mu`, not residual `sigma`.
 
-Symbolically, the future mean part would look like:
+Symbolically, the implemented random-intercept mean part is:
 
 ```text
-mu1_ij = X_mu1[ij, ] beta_mu1 + b_0_1j + b_disturbance_1j disturbance_ij
-mu2_ij = X_mu2[ij, ] beta_mu2 + b_0_2j + b_disturbance_2j disturbance_ij
+mu1_ij = X_mu1[ij, ] beta_mu1 + b_0_1j
+mu2_ij = X_mu2[ij, ] beta_mu2 + b_0_2j
 
-[b_0_1j, b_disturbance_1j, b_0_2j, b_disturbance_2j]' ~ MVN(0, Sigma_mu_ID)
+[b_0_1j, b_0_2j]' ~ MVN(0, Sigma_mu_ID)
 ```
 
 The covariance matrix `Sigma_mu_ID` would contain group-level standard
-deviations and group-level correlations. Those correlations answer questions
-about between-group association in intercepts and slopes. They are not
-`rho12_i`. The parameter `rho12_i` remains the observation-level residual
-correlation in `Omega_i`.
+deviations and one group-level correlation. That correlation answers whether
+groups with higher average activity also tend to have higher average boldness.
+It is not `rho12_i`. The parameter `rho12_i` remains the observation-level
+residual correlation in `Omega_i`.
+
+For this fitted block, `check_drm()` reports whether group levels are
+replicated and whether either group-level SD is tiny relative to the matching
+residual scale. A note there is not a proof that the model is wrong; it tells
+you to inspect whether the group-level SDs and correlation are supported by the
+data before treating them as biological conclusions.
+
+Use `profile_targets(fit)` before requesting profile intervals for this block.
+The group-level SD targets are named like `sd:mu:mu1:(1 | p | id)` and
+`sd:mu:mu2:(1 | p | id)`, while the group-level correlation target is named
+like `cor:mu:cor(mu1:(Intercept),mu2:(Intercept) | p | id)`. These are
+separate from the residual-correlation target `rho12`.
 
 The middle `p` in `(1 | p | id)` follows grouped covariance-block syntax for
 correlated group-level effects. Labelled one-slope blocks are implemented for
-univariate Gaussian `mu`; shared bivariate `mu1`/`mu2` covariance blocks remain
-future work. This syntax is distinct from residual `rho12`.
+univariate Gaussian `mu`; bivariate random slopes remain future work. This
+syntax is distinct from residual `rho12`.
 
 In phylogenetic location-scale models, correlations among phylogenetic mean and
 scale effects answer different questions: mean-mean coevolution, scale-scale

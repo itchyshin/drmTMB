@@ -259,7 +259,8 @@ coefficients on their link scales. Profile intervals must be requested by name
 because they can be slow. The profile path wraps `TMB::tmbprofile()` for ready
 fixed-effect, constant distributional-scale, ordinary random-effect SD,
 ordinary random-effect correlation, phylogenetic `mu` SD, constant residual
-`rho12` target rows, and row-specific `newdata` profiles for
+`rho12`, bivariate Gaussian group-level `mu1`/`mu2` random-intercept SD and
+correlation target rows, and row-specific `newdata` profiles for
 predictor-dependent `sigma`, `sigma1`, `sigma2`, and `rho12`. Unsupported
 ordinal-transform, modelled group-SD, custom multi-row contrast, and
 derived-summary targets still fail before doing expensive optimization.
@@ -272,8 +273,10 @@ The first fitted targets should be direct parameters in this order:
    values;
 3. ordinary Gaussian random-effect SDs in `sdpars$mu`;
 4. ordinary Gaussian random-effect correlations in `corpars$mu`;
-5. phylogenetic `mu` SDs;
-6. ordinal cutpoints.
+5. bivariate Gaussian group-level `mu1`/`mu2` random-intercept SDs and
+   correlations, still under the `mu` random-effect target namespace;
+6. phylogenetic `mu` SDs;
+7. ordinal cutpoints.
 
 Ordinal rows in the internal inventory currently refer to raw `theta_ord`
 parameters. A later user-facing interval table can add transformed cutpoint
@@ -299,6 +302,12 @@ the fitted object:
 ```r
 confint(fit, parm = "sd:mu:(1 | id)", method = "profile")
 confint(fit, parm = "sd:mu:(1 + x | p | id):x", method = "profile")
+confint(fit, parm = "sd:mu:mu1:(1 | p | id)", method = "profile")
+confint(
+  fit,
+  parm = "cor:mu:cor(mu1:(Intercept),mu2:(Intercept) | p | id)",
+  method = "profile"
+)
 confint(fit, parm = "sd:mu:phylo(1 | species)", method = "profile")
 confint(fit, parm = "cor:mu:cor((Intercept),x | id)", method = "profile")
 confint(fit, parm = "sigma", method = "profile", newdata = data.frame(x = 0))
@@ -309,6 +318,9 @@ confint(fit, parm = "derived:ICC(id)", method = "profile")
 Multi-coefficient random-effect blocks should keep the fitted-object
 coefficient suffix, such as `:x`, in the canonical target name. Intercept-only
 blocks can keep the shorter target name shown by `sdpars`.
+Bivariate `mu1`/`mu2` covariance blocks keep the response label in the term so
+users can tell group-level targets such as `sd:mu:mu1:(1 | p | id)` apart from
+the residual-correlation target `rho12`.
 
 The implementation should reject unsupported profile targets with a message
 that lists available targets from the fitted object.

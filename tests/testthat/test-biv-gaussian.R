@@ -1,5 +1,8 @@
-new_biv_gaussian_data <- function(n = 500, beta_rho12 = atanh(0.4),
-                                  seed = 20260512) {
+new_biv_gaussian_data <- function(
+  n = 500,
+  beta_rho12 = atanh(0.4),
+  seed = 20260512
+) {
   set.seed(seed)
   dat <- data.frame(
     x = stats::rnorm(n),
@@ -16,11 +19,12 @@ new_biv_gaussian_data <- function(n = 500, beta_rho12 = atanh(0.4),
   mu2 <- beta_mu2[[1L]] + beta_mu2[[2L]] * dat$x
   sigma1 <- exp(beta_sigma1[[1L]] + beta_sigma1[[2L]] * dat$z1)
   sigma2 <- exp(beta_sigma2[[1L]] + beta_sigma2[[2L]] * dat$z2)
-  eta_rho12 <- beta_rho12[[1L]] + if (length(beta_rho12) > 1L) {
-    beta_rho12[[2L]] * dat$w
-  } else {
-    0
-  }
+  eta_rho12 <- beta_rho12[[1L]] +
+    if (length(beta_rho12) > 1L) {
+      beta_rho12[[2L]] * dat$w
+    } else {
+      0
+    }
   rho12 <- tanh(eta_rho12)
 
   e1 <- stats::rnorm(n)
@@ -44,9 +48,12 @@ mvn_loglik_biv <- function(y, mu, Sigma) {
   -0.5 * (length(y) * log(2 * pi) + 2 * sum(log(diag(U))) + sum(z^2))
 }
 
-new_biv_gaussian_known_v_data <- function(n = 160, residual_rho = -0.35,
-                                          sampling_cor = 0.6,
-                                          seed = 20260516) {
+new_biv_gaussian_known_v_data <- function(
+  n = 160,
+  residual_rho = -0.35,
+  sampling_cor = 0.6,
+  seed = 20260516
+) {
   set.seed(seed)
   dat <- data.frame(x = stats::rnorm(n))
   beta_mu1 <- c(0.2, 0.5)
@@ -89,6 +96,50 @@ new_biv_gaussian_known_v_data <- function(n = 160, residual_rho = -0.35,
   )
 }
 
+new_biv_gaussian_mu_re_data <- function(
+  n_id = 60,
+  n_each = 7,
+  rho_group = 0.45,
+  residual_rho = 0.25,
+  seed = 2026051101
+) {
+  set.seed(seed)
+  id <- factor(rep(seq_len(n_id), each = n_each))
+  n <- length(id)
+  x <- stats::rnorm(n)
+  beta_mu1 <- c(0.2, 0.45)
+  beta_mu2 <- c(-0.15, -0.35)
+  sigma1 <- 0.35
+  sigma2 <- 0.45
+  sd_mu1 <- 0.55
+  sd_mu2 <- 0.65
+
+  u1 <- stats::rnorm(n_id)
+  u2 <- rho_group * u1 + sqrt(1 - rho_group^2) * stats::rnorm(n_id)
+  b1 <- sd_mu1 * u1
+  b2 <- sd_mu2 * u2
+  e1 <- stats::rnorm(n)
+  e2 <- residual_rho * e1 + sqrt(1 - residual_rho^2) * stats::rnorm(n)
+
+  dat <- data.frame(id = id, x = x)
+  dat$y1 <- beta_mu1[[1L]] + beta_mu1[[2L]] * x + b1[id] + sigma1 * e1
+  dat$y2 <- beta_mu2[[1L]] + beta_mu2[[2L]] * x + b2[id] + sigma2 * e2
+
+  list(
+    data = dat,
+    beta_mu1 = beta_mu1,
+    beta_mu2 = beta_mu2,
+    sigma1 = sigma1,
+    sigma2 = sigma2,
+    sd_mu = c(
+      "mu1:(1 | p | id)" = sd_mu1,
+      "mu2:(1 | p | id)" = sd_mu2
+    ),
+    rho_group = rho_group,
+    residual_rho = residual_rho
+  )
+}
+
 expect_abs_error_below <- function(actual, expected, tolerance) {
   expect_lt(max(abs(unname(actual) - unname(expected))), tolerance)
 }
@@ -100,9 +151,9 @@ test_that("drmTMB fits bivariate Gaussian models with constant rho12", {
     bf(
       mu1 = y1 ~ x,
       mu2 = y2 ~ x,
-      sigma1 = ~ z1,
-      sigma2 = ~ z2,
-      rho12 = ~ 1
+      sigma1 = ~z1,
+      sigma2 = ~z2,
+      rho12 = ~1
     ),
     family = biv_gaussian(),
     data = sim$data
@@ -125,16 +176,76 @@ test_that("drmTMB fits bivariate Gaussian models with constant rho12", {
   )
 })
 
+test_that("bivariate Gaussian supports labelled mu1/mu2 random-intercept covariance blocks", {
+  sim <- new_biv_gaussian_mu_re_data()
+
+  fit <- drmTMB(
+    bf(
+      mu1 = y1 ~ x + (1 | p | id),
+      mu2 = y2 ~ x + (1 | p | id),
+      sigma1 = ~1,
+      sigma2 = ~1,
+      rho12 = ~1
+    ),
+    family = biv_gaussian(),
+    data = sim$data
+  )
+
+  fixed_mu1 <- as.vector(
+    stats::model.matrix(~x, sim$data) %*% coef(fit, "mu1")
+  )
+  fixed_mu2 <- as.vector(
+    stats::model.matrix(~x, sim$data) %*% coef(fit, "mu2")
+  )
+  pairs <- corpairs(fit)
+  group_pair <- pairs[pairs$level == "group", , drop = FALSE]
+
+  expect_s3_class(fit, "drmTMB")
+  expect_equal(fit$opt$convergence, 0)
+  expect_abs_error_below(coef(fit, "mu1"), sim$beta_mu1, 0.22)
+  expect_abs_error_below(coef(fit, "mu2"), sim$beta_mu2, 0.15)
+  expect_abs_error_below(
+    c(mean(stats::sigma(fit)$sigma1), mean(stats::sigma(fit)$sigma2)),
+    c(sim$sigma1, sim$sigma2),
+    0.12
+  )
+  expect_abs_error_below(fit$sdpars$mu, sim$sd_mu, 0.22)
+  expect_lt(abs(unname(fit$corpars$mu) - sim$rho_group), 0.28)
+  expect_lt(abs(tanh(unname(coef(fit, "rho12"))) - sim$residual_rho), 0.12)
+  expect_named(
+    fit$corpars$mu,
+    "cor(mu1:(Intercept),mu2:(Intercept) | p | id)"
+  )
+  expect_equal(length(fit$random_effects$mu$values), 2 * nlevels(sim$data$id))
+  expect_gt(stats::sd(predict(fit, dpar = "mu1") - fixed_mu1), 0.05)
+  expect_gt(stats::sd(predict(fit, dpar = "mu2") - fixed_mu2), 0.05)
+  expect_equal(
+    predict(fit, newdata = sim$data[1:3, ], dpar = "mu1"),
+    fixed_mu1[1:3],
+    tolerance = 1e-12
+  )
+  expect_equal(group_pair$from_dpar, "mu1")
+  expect_equal(group_pair$to_dpar, "mu2")
+  expect_equal(group_pair$from_response, "y1")
+  expect_equal(group_pair$to_response, "y2")
+  expect_equal(group_pair$class, "mean-mean")
+  expect_equal(group_pair$estimate, unname(fit$corpars$mu), tolerance = 1e-12)
+})
+
 test_that("composed Gaussian family syntax routes to bivariate Gaussian", {
-  sim <- new_biv_gaussian_data(n = 400, beta_rho12 = atanh(0.3), seed = 20260561)
+  sim <- new_biv_gaussian_data(
+    n = 400,
+    beta_rho12 = atanh(0.3),
+    seed = 20260561
+  )
 
   fit_c <- drmTMB(
     drm_formula(
       mu1 = y1 ~ x,
       mu2 = y2 ~ x,
-      sigma1 = ~ z1,
-      sigma2 = ~ z2,
-      rho12 = ~ 1
+      sigma1 = ~z1,
+      sigma2 = ~z2,
+      rho12 = ~1
     ),
     family = c(gaussian(), gaussian()),
     data = sim$data
@@ -153,15 +264,19 @@ test_that("composed Gaussian family syntax routes to bivariate Gaussian", {
 })
 
 test_that("mvbind shorthand expands to identical bivariate location formulas", {
-  sim <- new_biv_gaussian_data(n = 360, beta_rho12 = atanh(0.25), seed = 20260562)
+  sim <- new_biv_gaussian_data(
+    n = 360,
+    beta_rho12 = atanh(0.25),
+    seed = 20260562
+  )
 
   fit_explicit <- drmTMB(
     drm_formula(
       mu1 = y1 ~ x,
       mu2 = y2 ~ x,
-      sigma1 = ~ z1,
-      sigma2 = ~ z2,
-      rho12 = ~ 1
+      sigma1 = ~z1,
+      sigma2 = ~z2,
+      rho12 = ~1
     ),
     family = c(gaussian(), gaussian()),
     data = sim$data
@@ -169,9 +284,9 @@ test_that("mvbind shorthand expands to identical bivariate location formulas", {
   fit_mvbind <- drmTMB(
     drm_formula(
       mvbind(y1, y2) ~ x,
-      sigma1 = ~ z1,
-      sigma2 = ~ z2,
-      rho12 = ~ 1
+      sigma1 = ~z1,
+      sigma2 = ~z2,
+      rho12 = ~1
     ),
     family = c(gaussian(), gaussian()),
     data = sim$data
@@ -179,12 +294,27 @@ test_that("mvbind shorthand expands to identical bivariate location formulas", {
 
   expect_equal(fit_mvbind$opt$convergence, 0)
   expect_equal(fit_mvbind$model$model_type, "biv_gaussian")
-  expect_equal(fit_mvbind$model$dpars, c("mu1", "mu2", "sigma1", "sigma2", "rho12"))
+  expect_equal(
+    fit_mvbind$model$dpars,
+    c("mu1", "mu2", "sigma1", "sigma2", "rho12")
+  )
   expect_equal(fit_mvbind$model$y1, sim$data$y1)
   expect_equal(fit_mvbind$model$y2, sim$data$y2)
-  expect_equal(as.numeric(stats::logLik(fit_mvbind)), as.numeric(stats::logLik(fit_explicit)), tolerance = 1e-8)
-  expect_equal(coef(fit_mvbind, "mu1"), coef(fit_explicit, "mu1"), tolerance = 1e-8)
-  expect_equal(coef(fit_mvbind, "mu2"), coef(fit_explicit, "mu2"), tolerance = 1e-8)
+  expect_equal(
+    as.numeric(stats::logLik(fit_mvbind)),
+    as.numeric(stats::logLik(fit_explicit)),
+    tolerance = 1e-8
+  )
+  expect_equal(
+    coef(fit_mvbind, "mu1"),
+    coef(fit_explicit, "mu1"),
+    tolerance = 1e-8
+  )
+  expect_equal(
+    coef(fit_mvbind, "mu2"),
+    coef(fit_explicit, "mu2"),
+    tolerance = 1e-8
+  )
 })
 
 test_that("drmTMB recovers predictor-dependent bivariate rho12", {
@@ -198,9 +328,9 @@ test_that("drmTMB recovers predictor-dependent bivariate rho12", {
     bf(
       mu1 = y1 ~ x,
       mu2 = y2 ~ x,
-      sigma1 = ~ z1,
-      sigma2 = ~ z2,
-      rho12 = ~ w
+      sigma1 = ~z1,
+      sigma2 = ~z2,
+      rho12 = ~w
     ),
     family = biv_gaussian(),
     data = sim$data
@@ -210,7 +340,7 @@ test_that("drmTMB recovers predictor-dependent bivariate rho12", {
   expect_abs_error_below(coef(fit, "rho12"), sim$beta_rho12, 0.12)
   expect_equal(
     predict(fit, dpar = "rho12", type = "link"),
-    as.vector(stats::model.matrix(~ w, sim$data) %*% coef(fit, "rho12")),
+    as.vector(stats::model.matrix(~w, sim$data) %*% coef(fit, "rho12")),
     tolerance = 1e-12
   )
   expect_true(all(abs(predict(fit, dpar = "rho12")) < 1))
@@ -246,9 +376,9 @@ test_that("bivariate rho12 handles near-zero and negative correlations", {
       bf(
         mu1 = y1 ~ x,
         mu2 = y2 ~ x,
-        sigma1 = ~ z1,
-        sigma2 = ~ z2,
-        rho12 = ~ 1
+        sigma1 = ~z1,
+        sigma2 = ~z2,
+        rho12 = ~1
       ),
       family = biv_gaussian(),
       data = sim$data
@@ -271,9 +401,9 @@ test_that("bivariate rho12 handles high positive and high negative correlations"
       bf(
         mu1 = y1 ~ x,
         mu2 = y2 ~ x,
-        sigma1 = ~ z1,
-        sigma2 = ~ z2,
-        rho12 = ~ 1
+        sigma1 = ~z1,
+        sigma2 = ~z2,
+        rho12 = ~1
       ),
       family = biv_gaussian(),
       data = sim$data
@@ -290,7 +420,11 @@ test_that("bivariate rho12 handles high positive and high negative correlations"
 })
 
 test_that("bivariate Gaussian methods return expected structures", {
-  sim <- new_biv_gaussian_data(n = 160, beta_rho12 = atanh(0.25), seed = 20260514)
+  sim <- new_biv_gaussian_data(
+    n = 160,
+    beta_rho12 = atanh(0.25),
+    seed = 20260514
+  )
   fit <- drmTMB(
     bf(mu1 = y1 ~ x, mu2 = y2 ~ x),
     family = biv_gaussian(),
@@ -306,8 +440,16 @@ test_that("bivariate Gaussian methods return expected structures", {
   expect_equal(fit$opt$convergence, 0)
   expect_equal(dim(fitted_mu), c(nrow(sim$data), 2))
   expect_equal(colnames(fitted_mu), c("mu1", "mu2"))
-  expect_equal(fitted_mu[, "mu1"], predict(fit, dpar = "mu1"), tolerance = 1e-12)
-  expect_equal(fitted_mu[, "mu2"], predict(fit, dpar = "mu2"), tolerance = 1e-12)
+  expect_equal(
+    fitted_mu[, "mu1"],
+    predict(fit, dpar = "mu1"),
+    tolerance = 1e-12
+  )
+  expect_equal(
+    fitted_mu[, "mu2"],
+    predict(fit, dpar = "mu2"),
+    tolerance = 1e-12
+  )
   expect_equal(stats::nobs(fit), nrow(sim$data))
   expect_equal(stats::df.residual(fit), fit$nobs - fit$df)
   expect_equal(
@@ -321,9 +463,12 @@ test_that("bivariate Gaussian methods return expected structures", {
   expect_equal(dim(res), c(nrow(sim$data), 2))
   expect_equal(dim(pearson), c(nrow(sim$data), 2))
 
-  labels <- unlist(lapply(names(coef(fit)), function(dpar) {
-    paste0(dpar, ":", names(coef(fit, dpar)))
-  }), use.names = FALSE)
+  labels <- unlist(
+    lapply(names(coef(fit)), function(dpar) {
+      paste0(dpar, ":", names(coef(fit, dpar)))
+    }),
+    use.names = FALSE
+  )
   expect_equal(rownames(stats::vcov(fit)), labels)
   expect_equal(colnames(stats::vcov(fit)), labels)
   expect_equal(rownames(summary(fit)$coefficients), labels)
@@ -337,9 +482,9 @@ test_that("bivariate Gaussian known V likelihood matches a base R MVN calculatio
     bf(
       mu1 = y1 ~ x + meta_known_V(V = V),
       mu2 = y2 ~ x,
-      sigma1 = ~ 1,
-      sigma2 = ~ 1,
-      rho12 = ~ 1
+      sigma1 = ~1,
+      sigma2 = ~1,
+      rho12 = ~1
     ),
     family = c(gaussian(), gaussian()),
     data = sim$data
@@ -385,9 +530,9 @@ test_that("bivariate Gaussian known V recovers residual rho12 separately from sa
     bf(
       mu1 = y1 ~ x + meta_known_V(V = V),
       mu2 = y2 ~ x,
-      sigma1 = ~ 1,
-      sigma2 = ~ 1,
-      rho12 = ~ 1
+      sigma1 = ~1,
+      sigma2 = ~1,
+      rho12 = ~1
     ),
     family = c(gaussian(), gaussian()),
     data = sim$data
@@ -404,15 +549,19 @@ test_that("bivariate Gaussian known V recovers residual rho12 separately from sa
 })
 
 test_that("bivariate Gaussian likelihood weights are complete-row multipliers", {
-  sim <- new_biv_gaussian_data(n = 120, beta_rho12 = atanh(0.35), seed = 20260564)
+  sim <- new_biv_gaussian_data(
+    n = 120,
+    beta_rho12 = atanh(0.35),
+    seed = 20260564
+  )
 
   fit <- drmTMB(
     bf(
       mu1 = y1 ~ x,
       mu2 = y2 ~ x,
-      sigma1 = ~ z1,
-      sigma2 = ~ z2,
-      rho12 = ~ 1
+      sigma1 = ~z1,
+      sigma2 = ~z2,
+      rho12 = ~1
     ),
     family = c(gaussian(), gaussian()),
     data = sim$data
@@ -421,9 +570,9 @@ test_that("bivariate Gaussian likelihood weights are complete-row multipliers", 
     bf(
       mu1 = y1 ~ x,
       mu2 = y2 ~ x,
-      sigma1 = ~ z1,
-      sigma2 = ~ z2,
-      rho12 = ~ 1
+      sigma1 = ~z1,
+      sigma2 = ~z2,
+      rho12 = ~1
     ),
     family = c(gaussian(), gaussian()),
     data = sim$data,
@@ -450,7 +599,11 @@ test_that("rho12 response-scale transform stays inside the correlation boundary"
 })
 
 test_that("bivariate Gaussian uses complete cases across all parameter formulas", {
-  sim <- new_biv_gaussian_data(n = 60, beta_rho12 = c(0.1, 0.2), seed = 20260515)
+  sim <- new_biv_gaussian_data(
+    n = 60,
+    beta_rho12 = c(0.1, 0.2),
+    seed = 20260515
+  )
   dat <- sim$data
   dat$y1[2] <- NA_real_
   dat$y2[5] <- NA_real_
@@ -464,9 +617,9 @@ test_that("bivariate Gaussian uses complete cases across all parameter formulas"
     bf(
       mu1 = y1 ~ x,
       mu2 = y2 ~ x,
-      sigma1 = ~ z1,
-      sigma2 = ~ z2,
-      rho12 = ~ w
+      sigma1 = ~z1,
+      sigma2 = ~z2,
+      rho12 = ~w
     ),
     family = biv_gaussian(),
     data = dat
@@ -492,8 +645,8 @@ test_that("bivariate Gaussian known V removes paired rows and columns consistent
     bf(
       mu1 = y1 ~ x + meta_known_V(V = V),
       mu2 = y2 ~ x,
-      sigma1 = ~ 1,
-      sigma2 = ~ 1
+      sigma1 = ~1,
+      sigma2 = ~1
     ),
     family = c(gaussian(), gaussian()),
     data = dat
@@ -520,7 +673,7 @@ test_that("bivariate Gaussian rejects unsupported Phase 3 syntax clearly", {
   )
   expect_error(
     drmTMB(
-      bf(mu1 = y1 ~ x, mu2 = y2 ~ x, rho12 = ~ x, rho12 = ~ 1),
+      bf(mu1 = y1 ~ x, mu2 = y2 ~ x, rho12 = ~x, rho12 = ~1),
       family = biv_gaussian(),
       data = dat
     ),
@@ -561,21 +714,45 @@ test_that("bivariate Gaussian rejects unsupported Phase 3 syntax clearly", {
       family = biv_gaussian(),
       data = dat
     ),
-    "Bivariate random-effect syntax is planned"
+    "one matching random-intercept"
+  )
+  expect_error(
+    drmTMB(
+      bf(mu1 = y1 ~ x + (1 | id), mu2 = y2 ~ x + (1 | id)),
+      family = biv_gaussian(),
+      data = dat
+    ),
+    "shared covariance-block label"
+  )
+  expect_error(
+    drmTMB(
+      bf(mu1 = y1 ~ x + (1 | p | id), mu2 = y2 ~ x + (1 | q | id)),
+      family = biv_gaussian(),
+      data = dat
+    ),
+    "same covariance-block label"
+  )
+  expect_error(
+    drmTMB(
+      bf(mu1 = y1 ~ x + meta_known_V(V = V), mu2 = y2 ~ x + (1 | p | id)),
+      family = biv_gaussian(),
+      data = dat
+    ),
+    "cannot yet be combined"
   )
   expect_error(
     drmTMB(
       bf(
         mu1 = y1 ~ x + (1 + x | p | id),
         mu2 = y2 ~ x + (1 + x | p | id),
-        sigma1 = ~ 1,
-        sigma2 = ~ 1,
-        rho12 = ~ x
+        sigma1 = ~1,
+        sigma2 = ~1,
+        rho12 = ~x
       ),
       family = c(gaussian(), gaussian()),
       data = dat
     ),
-    "labelled group-level covariance blocks"
+    "Only bivariate random intercepts"
   )
   expect_error(
     drmTMB(

@@ -3,8 +3,9 @@
 This note records the implemented design for ordinary correlated Gaussian `mu`
 random-effect blocks. The current implementation supports independent
 random-effect terms such as `(1 | id)` and `(0 + x | id)`, labelled random
-intercepts such as `(1 | p | id)`, plus one-slope ordinary correlated blocks
-such as `(1 + x | id)` or `(1 + x | p | id)`.
+intercepts such as `(1 | p | id)`, one-slope ordinary correlated blocks such as
+`(1 + x | id)` or `(1 + x | p | id)`, and the first bivariate labelled
+`mu1`/`mu2` random-intercept covariance block.
 
 ## User Grammar
 
@@ -40,6 +41,21 @@ matches the unlabelled `(1 + x | id)` block.
 
 Reserved distributional parameter names such as `mu`, `sigma`, `rho`, and
 `rho12` are not valid covariance-block labels.
+
+The same label now supports the first cross-response bivariate location
+covariance slice:
+
+```r
+bf(
+  mu1 = y1 ~ x + (1 | p | id),
+  mu2 = y2 ~ x + (1 | p | id),
+  rho12 = ~ x
+)
+```
+
+This fits a group-level random-intercept correlation between the two response
+means. It is separate from residual `rho12`, which remains an
+observation-level response-response correlation.
 
 Later, the same label should support cross-formula or cross-parameter
 covariance:
@@ -165,7 +181,8 @@ Still deferred:
 - `q > 2` blocks;
 - factor or multi-column random slopes;
 - correlated blocks spanning `mu` and `sigma`;
-- bivariate `mu1`/`mu2` random-effect covariance blocks;
+- bivariate `mu1`/`mu2` random-slope covariance blocks;
+- bivariate `sigma1`/`sigma2` and cross-parameter covariance blocks;
 - phylogenetic and spatial correlated slope blocks.
 
 For `q > 2`, use a positive-definite Cholesky or partial-correlation

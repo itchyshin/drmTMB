@@ -67,7 +67,7 @@ is the current routing contract:
 | TMB `model_type` | User-facing route | R builder | TMB branch purpose |
 |---:|---|---|---|
 | `1` | `family = gaussian()` | `drm_build_gaussian_ls_spec()` | Univariate Gaussian location-scale models, including ordinary `mu` random effects, residual-scale `sigma` random effects, `sd(group) ~ ...` random-effect scale models, `meta_known_V(V = V)`, and the implemented intercept-only `phylo()` location effect. |
-| `2` | `family = biv_gaussian()`, `family = c(gaussian(), gaussian())`, or `family = list(gaussian(), gaussian())` | `drm_build_biv_gaussian_spec()` | Bivariate Gaussian location-scale-coscale models with `mu1`, `mu2`, `sigma1`, `sigma2`, and residual `rho12`, including complete-row dense known sampling covariance. |
+| `2` | `family = biv_gaussian()`, `family = c(gaussian(), gaussian())`, or `family = list(gaussian(), gaussian())` | `drm_build_biv_gaussian_spec()` | Bivariate Gaussian location-scale-coscale models with `mu1`, `mu2`, `sigma1`, `sigma2`, and residual `rho12`, including complete-row dense known sampling covariance and matching labelled `mu1`/`mu2` random-intercept covariance blocks. |
 | `3` | `family = student()` | `drm_build_student_ls_spec()` | Univariate Student-t location-scale-shape models with `mu`, `sigma`, and `nu = 2 + exp(eta_nu)`. |
 | `4` | `family = lognormal()` | `drm_build_lognormal_ls_spec()` | Univariate fixed-effect lognormal location-scale models for positive responses, with `mu` and `sigma` defined on the log-response scale. |
 | `5` | `family = Gamma(link = "log")` | `drm_build_gamma_ls_spec()` | Univariate fixed-effect Gamma mean-CV models for positive responses, with `mu` as the response mean and `sigma` as the coefficient of variation. |
@@ -1021,8 +1021,8 @@ Bivariate Gaussian location-coscale:
 
 ```text
 [y1_i, y2_i]' ~ MVN([mu1_i, mu2_i]', Omega_i)
-mu1_i = X_mu1[i, ] beta_mu1
-mu2_i = X_mu2[i, ] beta_mu2
+mu1_i = X_mu1[i, ] beta_mu1 + b1_group[i]
+mu2_i = X_mu2[i, ] beta_mu2 + b2_group[i]
 log(sigma1_i) = X_sigma1[i, ] beta_sigma1
 log(sigma2_i) = X_sigma2[i, ] beta_sigma2
 eta_rho12_i = X_rho12[i, ] beta_rho12
@@ -1032,8 +1032,21 @@ Omega_i[2,2] = sigma2_i^2
 Omega_i[1,2] = rho12_i * sigma1_i * sigma2_i
 ```
 
-The TMB implementation uses a tiny boundary guard around `tanh()` for numerical
-positive definiteness; the clean transform above is the statistical model.
+For fixed-effect models, `b1_group[i]` and `b2_group[i]` are zero. With matching
+labelled random-intercept terms in `mu1` and `mu2`, they come from a
+group-level covariance block:
+
+```text
+[b1_j, b2_j]' = diag(sd_mu1_id, sd_mu2_id) L_group [u1_j, u2_j]'
+[u1_j, u2_j]' ~ Normal([0, 0]', I)
+L_group =
+  [1,          0;
+   rho_group, sqrt(1 - rho_group^2)]
+rho_group = 0.999999 * tanh(eta_cor_mu)
+```
+
+The TMB implementation uses tiny boundary guards around `tanh()` for numerical
+positive definiteness; the clean transforms above are the statistical model.
 
 Location formulas for the two responses may differ. `rho12` is residual
 response-response correlation, not a group-level random-effect correlation.
@@ -1054,11 +1067,33 @@ drmTMB(
 )
 ```
 
-Planned double-hierarchical bivariate syntax:
+Implemented bivariate group-level random-intercept syntax:
 
 ```r
 drmTMB(
-  formula = drm_formula(
+  formula = bf(
+    mu1 = y1 ~ x1 + x2 + (1 | p | ID),
+    mu2 = y2 ~ x1      + (1 | p | ID),
+    sigma1 = ~ x1 + x2,
+    sigma2 = ~ x1,
+    rho12 = ~ x1 + x2
+  ),
+  family = c(gaussian(), gaussian()),
+  data = dat
+)
+```
+
+Here the shared `p` label says that the two response-specific random intercepts
+belong to one group-level covariance block. The model reports
+`sdpars$mu["mu1:(1 | p | ID)"]`, `sdpars$mu["mu2:(1 | p | ID)"]`, and
+`corpars$mu["cor(mu1:(Intercept),mu2:(Intercept) | p | ID)"]`.
+
+Planned double-hierarchical bivariate syntax with random slopes and scale
+random effects:
+
+```r
+drmTMB(
+  formula = bf(
     mu1 = y1 ~ x1 + x2 + (1 + x2 | p | ID),
     mu2 = y2 ~ x1      + (1 + x2 | p | ID),
     sigma1 = ~ x1 + x2,
@@ -1102,7 +1137,11 @@ Implementation notes:
 - Dense known sampling covariance is implemented for complete-row bivariate
   Gaussian models through `meta_known_V(V = V)`, where `V` is a row-paired
   `2n` by `2n` matrix added to the fitted residual covariance.
-- Random effects are not implemented for this bivariate family yet.
+- Matching labelled random intercepts in `mu1` and `mu2` are implemented as one
+  group-level covariance block. They cannot yet be combined with
+  `meta_known_V(V = V)`.
+- Bivariate random slopes, `sigma1`/`sigma2` random effects, and
+  cross-parameter covariance blocks remain planned.
 
 ## Review Requirements
 

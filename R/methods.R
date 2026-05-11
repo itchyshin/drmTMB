@@ -154,8 +154,9 @@ rho12.drmTMB <- function(
 #'
 #' `corpairs()` returns a long table of fitted correlation pairs from a
 #' `drmTMB` model. The first implementation reports correlations that are
-#' already fitted elsewhere: residual bivariate `rho12` and ordinary
-#' group-level `mu` random-effect correlations from `corpars$mu`.
+#' already fitted elsewhere: residual bivariate `rho12`, ordinary univariate
+#' group-level `mu` random-effect correlations, and matched bivariate
+#' `mu1`/`mu2` random-intercept covariance blocks from `corpars$mu`.
 #'
 #' The table is intentionally more explicit than `rho12()` or `corpars`
 #' because future double-hierarchical, phylogenetic, spatial, and study-level
@@ -303,17 +304,24 @@ residual_rho12_corpair <- function(object) {
 
 random_effect_corpair <- function(object, dpar, label, estimate) {
   parsed <- parse_random_correlation_label(label)
+  from <- parse_random_correlation_endpoint(parsed$from_coef, dpar)
+  to <- parse_random_correlation_endpoint(parsed$to_coef, dpar)
   new_corpair_row(
     level = "group",
     group = parsed$group,
     block = parsed$block,
-    from_dpar = dpar,
-    to_dpar = dpar,
-    from_coef = parsed$from_coef,
-    to_coef = parsed$to_coef,
-    from_response = univariate_response_name(object, dpar),
-    to_response = univariate_response_name(object, dpar),
-    class = random_correlation_class(dpar, parsed$from_coef, parsed$to_coef),
+    from_dpar = from$dpar,
+    to_dpar = to$dpar,
+    from_coef = from$coef,
+    to_coef = to$coef,
+    from_response = random_effect_response_name(object, from$dpar),
+    to_response = random_effect_response_name(object, to$dpar),
+    class = random_correlation_class(
+      from$dpar,
+      from$coef,
+      to$coef,
+      to_dpar = to$dpar
+    ),
     parameter = label,
     estimate = estimate,
     min = estimate,
@@ -324,6 +332,20 @@ random_effect_corpair <- function(object, dpar, label, estimate) {
     link_max = guarded_correlation_link(estimate, guard = 0.999999),
     modelled = FALSE
   )
+}
+
+parse_random_correlation_endpoint <- function(value, default_dpar) {
+  parts <- strsplit(value, ":", fixed = TRUE)[[1L]]
+  if (
+    length(parts) >= 2L &&
+      parts[[1L]] %in% c("mu", "mu1", "mu2", "sigma", "sigma1", "sigma2")
+  ) {
+    return(list(
+      dpar = parts[[1L]],
+      coef = paste(parts[-1L], collapse = ":")
+    ))
+  }
+  list(dpar = default_dpar, coef = value)
 }
 
 new_corpair_row <- function(
@@ -420,10 +442,12 @@ parse_random_correlation_label <- function(label) {
   )
 }
 
-random_correlation_class <- function(dpar, from_coef, to_coef) {
+random_correlation_class <- function(dpar, from_coef, to_coef, to_dpar = dpar) {
+  from_family <- sub("[0-9]+$", "", dpar)
+  to_family <- sub("[0-9]+$", "", to_dpar)
   from_intercept <- identical(from_coef, "(Intercept)")
   to_intercept <- identical(to_coef, "(Intercept)")
-  if (identical(dpar, "mu")) {
+  if (identical(from_family, "mu") && identical(to_family, "mu")) {
     if (from_intercept && to_intercept) {
       return("mean-mean")
     }
@@ -432,7 +456,7 @@ random_correlation_class <- function(dpar, from_coef, to_coef) {
     }
     return("mean-slope")
   }
-  if (identical(dpar, "sigma")) {
+  if (identical(from_family, "sigma") && identical(to_family, "sigma")) {
     if (from_intercept && to_intercept) {
       return("scale-scale")
     }
@@ -457,6 +481,19 @@ bivariate_response_names <- function(object) {
 
 univariate_response_name <- function(object, dpar) {
   response_name_from_model_frame(object, dpar, fallback = NA_character_)
+}
+
+random_effect_response_name <- function(object, dpar) {
+  if (identical(object$model$model_type, "biv_gaussian")) {
+    response_names <- bivariate_response_names(object)
+    if (dpar %in% c("mu1", "sigma1")) {
+      return(response_names[[1L]])
+    }
+    if (dpar %in% c("mu2", "sigma2")) {
+      return(response_names[[2L]])
+    }
+  }
+  univariate_response_name(object, dpar)
 }
 
 response_name_from_model_frame <- function(object, dpar, fallback) {
@@ -586,9 +623,9 @@ deviance.drmTMB <- function(object, ...) {
 #'
 #' When `newdata = NULL`, predictions are for the fitted rows and include
 #' currently implemented conditional random-effect contributions for `mu`,
-#' phylogenetic `mu`, and residual-scale `sigma`. When `newdata` is supplied,
-#' predictions are fixed-effect, population-level predictions for the supplied
-#' rows.
+#' bivariate `mu1`/`mu2`, phylogenetic `mu`, and residual-scale `sigma`. When
+#' `newdata` is supplied, predictions are fixed-effect, population-level
+#' predictions for the supplied rows.
 #'
 #' @param object A `drmTMB` fit.
 #' @param newdata Optional data frame for prediction. If omitted, fitted rows
@@ -636,9 +673,11 @@ predict.drmTMB <- function(
   eta <- as.vector(X %*% object$coefficients[[dpar]]) +
     drm_prediction_offset(object, newdata, dpar)
   if (
-    is.null(newdata) && dpar == "mu" && has_ordinary_mu_random_effects(object)
+    is.null(newdata) &&
+      dpar %in% mu_random_effect_dpars(object) &&
+      has_ordinary_mu_random_effects(object)
   ) {
-    eta <- eta + mu_random_effect_contribution(object)
+    eta <- eta + mu_random_effect_contribution(object, dpar = dpar)
   }
   if (is.null(newdata) && dpar == "mu" && has_phylo_mu_effect(object)) {
     eta <- eta + phylo_mu_contribution(object)
@@ -1935,7 +1974,8 @@ has_mu_random_effects <- function(object) {
 }
 
 has_ordinary_mu_random_effects <- function(object) {
-  identical(object$model$model_type, "gaussian") &&
+  object$model$model_type %in%
+    c("gaussian", "biv_gaussian") &&
     length(object$random_effects$mu$values) > 0L
 }
 
@@ -1954,6 +1994,15 @@ n_mu_random_effect_terms <- function(object) {
 has_sigma_random_effects <- function(object) {
   identical(object$model$model_type, "gaussian") &&
     length(object$random_effects$sigma$values) > 0L
+}
+
+mu_random_effect_dpars <- function(object) {
+  dpars <- object$model$random$mu$dpars
+  if (length(dpars) == 0L) {
+    character()
+  } else {
+    unique(dpars)
+  }
 }
 
 is_random_scale_dpar <- function(object, dpar) {
@@ -1991,10 +2040,15 @@ predict_random_scale_dpar <- function(
   }
 }
 
-mu_random_effect_contribution <- function(object) {
+mu_random_effect_contribution <- function(object, dpar = NULL) {
   values <- object$random_effects$mu$values
   index <- object$model$random$mu$index
   design_value <- object$model$random$mu$value
+  if (!is.null(dpar)) {
+    terms <- which(object$model$random$mu$dpars %in% dpar)
+    index <- index[, terms, drop = FALSE]
+    design_value <- design_value[, terms, drop = FALSE]
+  }
   rowSums(matrix(values[index], nrow = nrow(index)) * design_value)
 }
 

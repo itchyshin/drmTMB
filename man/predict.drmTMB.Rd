@@ -35,9 +35,9 @@ predictor instead.
 
 When \code{newdata = NULL}, predictions are for the fitted rows and include
 currently implemented conditional random-effect contributions for \code{mu},
-phylogenetic \code{mu}, and residual-scale \code{sigma}. When \code{newdata} is supplied,
-predictions are fixed-effect, population-level predictions for the supplied
-rows.
+bivariate \code{mu1}/\code{mu2}, phylogenetic \code{mu}, and residual-scale \code{sigma}. When
+\code{newdata} is supplied, predictions are fixed-effect, population-level
+predictions for the supplied rows.
 }
 \examples{
 dat <- data.frame(

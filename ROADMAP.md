@@ -10,8 +10,11 @@ distributional regression models using TMB.
   storage controls and corrected installation guidance. It is not the final
   double-hierarchical individual-difference endpoint.
 - Release boundary: Phase 9 is closed at the implemented ordinal and
-  denominator-aware MVPs. Phase 11 bivariate random effects and full
-  double-hierarchical covariance remain roadmap work for later releases.
+  denominator-aware MVPs. The first Phase 11 bivariate `mu1`/`mu2`
+  random-intercept covariance slice is now implemented, while richer
+  bivariate random slopes, residual-scale covariance, structured covariance,
+  and the full double-hierarchical endpoint remain roadmap work for later
+  releases.
 - Completed before bumping the version:
   - `devtools::check()` passes with 0 errors, 0 warnings, and 0 notes;
   - `devtools::test()` and `pkgdown::check_pkgdown()` pass;
@@ -80,7 +83,9 @@ distributional regression models using TMB.
 
 ## Phase 3: Bivariate Gaussian Coscale
 
-- Status: fixed-effect bivariate Gaussian implemented and closure-audited.
+- Status: fixed-effect bivariate Gaussian implemented and closure-audited;
+  matched labelled `mu1`/`mu2` random-intercept covariance blocks are
+  implemented as the first bivariate group-level covariance slice.
 - Support separate formulas for `mu1 = y1 ~ ...` and `mu2 = y2 ~ ...`.
 - `mvbind(y1, y2) ~ x` is implemented as shorthand for identical location
   formulas and expands internally to `mu1 = y1 ~ x` and `mu2 = y2 ~ x`.
@@ -103,8 +108,14 @@ distributional regression models using TMB.
   or `family = list(gaussian(), gaussian())` for the implemented all-Gaussian
   likelihood. Mixed composed families such as `family = c(gaussian(), poisson())`
   remain future work where the joint likelihood is defined.
-- Random effects remain future work and are rejected before optimization with
-  planned-feature messages.
+- Matching labelled random intercepts in `mu1` and `mu2`, such as
+  `(1 | p | id)` in both location formulas, now fit one group-level
+  covariance block. The two group-level SDs are reported in `sdpars$mu`, the
+  group-level `mu1`/`mu2` correlation is reported in `corpars$mu` and
+  `corpairs()`, and residual `rho12` remains separate.
+- Bivariate random slopes, random effects in `sigma1`/`sigma2` or `rho12`,
+  bivariate `meta_known_V()` plus random effects, and structured bivariate
+  covariance remain future work and are rejected before optimization.
 
 ## Phase 4: Mixed and Double-Hierarchical Models
 
@@ -114,7 +125,8 @@ distributional regression models using TMB.
   Gaussian location formula. Random intercepts in the residual `sigma` formula
   are also implemented. Random-effect scale formulae are implemented for one or
   more distinct unlabelled Gaussian `mu` random intercepts, such as
-  `sd(id) ~ x_group` and `sd(site) ~ site_type`.
+  `sd(id) ~ x_group` and `sd(site) ~ site_type`. The bivariate Gaussian path
+  now fits matched labelled `mu1`/`mu2` random intercept covariance blocks.
 - Add cross-formula or cross-parameter covariance sharing for labelled blocks,
   following `docs/design/17-correlated-random-effect-blocks.md`.
 - Use `docs/design/18-random-effect-scale-models.md` as the design contract:
@@ -152,9 +164,9 @@ distributional regression models using TMB.
   double-hierarchical covariance blocks; pair outputs should identify the
   level, group, block, distributional parameters, responses, and coefficients.
 - The first `corpairs()` extractor is implemented for currently fitted
-  correlations only: residual `rho12` and ordinary group-level `mu`
-  random-effect correlations. Extend this table as new correlation likelihoods
-  are added.
+  correlations only: residual `rho12`, ordinary group-level `mu` random-effect
+  correlations, and the bivariate `mu1`/`mu2` random-intercept correlation.
+  Extend this table as new correlation likelihoods are added.
 - Stage structured phylogenetic and spatial slopes conservatively:
   intercept-only structured effects first, then one `mu` slope, then only small
   slope sets or interaction slopes after simulation recovery.
@@ -332,9 +344,11 @@ remain blocked by future covariance or non-Gaussian random-effect work.
 
 ## Phase 11: Bivariate Random Effects and Correlation Pairs
 
-- Status: planned.
-- Add bivariate ordinary group-level random effects after the fixed-effect
-  bivariate Gaussian location-coscale model is stable.
+- Status: first slice implemented.
+- Matching labelled random intercepts in bivariate `mu1` and `mu2` are
+  implemented after the fixed-effect bivariate Gaussian location-coscale model
+  stabilized. Random slopes, residual-scale bivariate random effects, and
+  structured covariance remain planned.
 - Use labelled group-level covariance blocks so residual `rho12`, ordinary
   group-level correlations, phylogenetic correlations, spatial field
   correlations, and mean-scale correlations stay in separate namespaces.

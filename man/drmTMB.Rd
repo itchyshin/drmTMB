@@ -65,7 +65,9 @@ known sampling covariance through \code{meta_known_V(V = V)}, residual-scale
 random intercepts in the scale formula, and one or more group-level
 random-effect scale formulae such as \code{sd(id) ~ x_group}, plus
 intercept-only phylogenetic random effects in the univariate Gaussian
-location formula, and fixed-effect bivariate Gaussian distributional models.
+location formula, fixed-effect bivariate Gaussian distributional models, and
+matched labelled bivariate Gaussian \code{mu1}/\code{mu2} random-intercept covariance
+blocks.
 Bivariate Gaussian location formulas may be written explicitly as
 \code{mu1 = y1 ~ ...}, \code{mu2 = y2 ~ ...}, or with \code{mvbind(y1, y2) ~ ...} shorthand
 when both responses share the same location predictors.

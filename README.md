@@ -146,7 +146,9 @@ head(sigma(fit)^2) # fitted residual variances
   [reference index](https://itchyshin.github.io/drmTMB/reference/index.html).
 - **Two Gaussian responses with changing residual correlation.** Use bivariate
   Gaussian location-coscale regression with `mu1`, `mu2`, `sigma1`,
-  `sigma2`, and `rho12`. Read
+  `sigma2`, and `rho12`. Matching labelled random intercepts in `mu1` and
+  `mu2`, such as `(1 | p | id)` in both formulas, fit the first bivariate
+  group-level covariance block. Read
   [Changing residual coupling with `rho12`](https://itchyshin.github.io/drmTMB/articles/bivariate-coscale.html).
 - **Known sampling variance or covariance.** Use Gaussian meta-analysis with
   `meta_known_V(V = V)`. Read
@@ -167,7 +169,9 @@ planned after the fixed-effect likelihoods and simulations are stable.
 
 Residual `rho12` is a within-observation bivariate Gaussian correlation. It is
 not the same as a group-level correlation among individual intercepts, slopes,
-or residual-scale random effects.
+or residual-scale random effects. The first bivariate group-level correlation
+now fitted by `drmTMB` is the labelled `mu1`/`mu2` random-intercept correlation
+from matching terms such as `(1 | p | id)`.
 
 Full double-hierarchical individual-difference models are planned work. These
 models would jointly describe individual differences in average behaviour,
