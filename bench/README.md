@@ -44,6 +44,8 @@ larger values when the fit is intended as a real timing result.
 | `run_started_utc` | UTC timestamp when the benchmark run started. |
 | `r_version`, `platform`, `os`, `machine` | R and platform metadata for interpreting local timing and memory results. |
 | `drmTMB_version`, `TMB_version` | Package versions used by the benchmark. For a development checkout, `drmTMB_version` comes from the local `DESCRIPTION`. |
+| `git_sha`, `git_dirty` | Local Git commit and whether the checkout had uncommitted changes when the row was generated. |
+| `benchmark_command` | Reconstructed command with all benchmark settings needed to rerun the scenario from the package root. |
 | `rows`, `species` | Requested observation rows and species count. |
 | `tree` | Synthetic tree shape: `balanced` or `star`. |
 | `factor_heavy` | Whether the `mu` formula includes a 40-level factor. |
@@ -115,6 +117,6 @@ evidence.
 ## What Not To Claim
 
 Do not claim million-row readiness from one small benchmark. A credible claim
-needs repeated runs, the command used, machine details, convergence code,
-optimizer message, object sizes, and peak-memory evidence from the operating
-system.
+needs repeated runs, the recorded `benchmark_command`, machine details, local
+Git state, convergence code, optimizer message, object sizes, and peak-memory
+evidence from the operating system.
