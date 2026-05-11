@@ -2,6 +2,52 @@
 
 Record meaningful development checks here.
 
+## 2026-05-11 -- Mammal location-coscale route
+
+Scope:
+
+- added `docs/design/29-mammal-location-coscale-route.md` to map the mammal
+  body mass and litter-size protocol onto current `drmTMB` capabilities and
+  planned covariance milestones;
+- linked the new route note from
+  `docs/design/15-location-coscale-phylogenetic-extension.md`;
+- linked Phase 11 bivariate covariance work in `ROADMAP.md` to the concrete
+  mammal route;
+- recorded an after-task report at
+  `docs/dev-log/after-task/2026-05-11-mammal-location-coscale-route.md`.
+
+Checks:
+
+- `pdftotext /Users/z3437171/Downloads/Mammalian_location_co_scale_trade_offs.pdf - | rg -n "Objective|Model|Stage|location-scale|phylogenetic|non-phylogenetic|rho|correlation|lifestyle|sigma|residual|MCMCglmm|Stan|Upham|50|posterior|H\\^?2|heritability|scale" -C 2`:
+  confirmed the three protocol objectives, structured covariance targets,
+  lifestyle-specific covariance model, and 50-tree posterior-pooling plan.
+- `gh issue view 5 --repo itchyshin/drmTMB --json number,title,body,comments,url`:
+  confirmed issue #5 already covers covariance blocks as the long-term
+  individual-difference endpoint and that PR #11 is only a documentation
+  clarity slice.
+- `rg -n "docs/design|design/28|design/20|location-coscale|double-hierarchical" README.md ROADMAP.md _pkgdown.yml docs vignettes`:
+  checked existing design-link patterns before adding the new route reference.
+- `rg -n "phylo\\(" R/drmTMB.R R/parse-formula.R tests/testthat/test-phylo-gaussian.R vignettes/phylogenetic-spatial.Rmd docs/design/01-formula-grammar.md`:
+  confirmed the current `phylo(1 | species, tree = tree)` boundary for
+  univariate Gaussian `mu` and planned structured extensions.
+- `air format ROADMAP.md docs/design/15-location-coscale-phylogenetic-extension.md docs/design/29-mammal-location-coscale-route.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-11-mammal-location-coscale-route.md`:
+  completed.
+- `git diff --check`: clean.
+- `Rscript -e "devtools::test(filter = 'biv-gaussian|phylo-gaussian|corpairs')"`:
+  168 passed, 0 failed, 0 warnings, 0 skips.
+- `Rscript -e "pkgdown::check_pkgdown()"`: no problems found.
+- `rg -n "Mammal Location-Coscale Route|29-mammal-location-coscale-route|mammal body mass|body mass-litter size route|tree-loop|posterior pooling|full model is runnable|full protocol" README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes R tests _pkgdown.yml --glob '!docs/dev-log/after-task/**'`:
+  confirmed the new route is linked only from the roadmap and the existing
+  location-coscale design note, and that the new note keeps posterior pooling
+  outside the implemented maximum-likelihood surface.
+- `rg -n "rho ~|meta_gaussian\\(|tau ~|meta_known_V\\([^V]|rho12.*phylogenetic|phylogenetic.*rho12" README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes R tests _pkgdown.yml --glob '!docs/dev-log/after-task/**'`:
+  found only intentional guardrails and existing statements that residual
+  `rho12` remains separate from phylogenetic, spatial, or species-level
+  correlations.
+- `rg -n "Objective 1|Objective 2|Objective 3|implemented|planned|rho12|rho_a|rho_e|Sigma_a|Sigma_e|sigma1|sigma2" docs/design/29-mammal-location-coscale-route.md`:
+  checked that the new equations, R syntax, status table, and naming rules
+  preserve the implemented-versus-planned boundary.
+
 ## 2026-05-11 -- Tweedie likelihood gate
 
 Scope:
