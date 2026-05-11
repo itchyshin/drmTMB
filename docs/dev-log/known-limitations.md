@@ -22,6 +22,11 @@
   residual bivariate `rho12` summaries and ordinary univariate Gaussian `mu`
   random-effect correlations. It does not yet report bivariate group-level,
   phylogenetic, spatial, study-level, or cross-parameter correlation pairs.
+- `summary()`, `predict_parameters()`, and `marginal_parameters()` expose
+  fitted response-scale parameter summaries for interpretation, but the first
+  marginal helper computes unweighted plug-in means only. It does not yet
+  compute uncertainty, standard errors, contrasts, plots, or full
+  `emmeans`-style marginalisation.
 - Fixed-effect univariate lognormal location-scale models are implemented for
   positive finite responses. `mu` and `sigma` are on the log-response scale;
   random effects, known sampling covariance, phylogenetic terms, and bivariate

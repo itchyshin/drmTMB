@@ -7,12 +7,13 @@
 #'
 #' The current checks cover optimizer convergence, finite objective values,
 #' optimizer evaluation counts, fixed-parameter gradients, Hessian status from
-#' [TMB::sdreport()], dropped rows, positive scale parameters, bivariate
-#' residual-correlation `rho12` values near the boundary, Student-t `nu`
-#' boundary behaviour, known sampling covariance summaries, dense fixed-effect
-#' design size, random-effect replication, and random-slope design variation. If
-#' the fit was stored with `drm_control(keep_tmb_object = FALSE)`, the
-#' fixed-gradient check is reported as a note because the TMB
+#' [TMB::sdreport()], finite fixed-effect standard errors, dropped rows,
+#' positive scale parameters, random-effect standard deviations near the lower
+#' boundary, bivariate residual-correlation `rho12` values near the boundary,
+#' Student-t `nu` boundary behaviour, known sampling covariance summaries, dense
+#' fixed-effect design size, random-effect replication, and random-slope design
+#' variation. If the fit was stored with `drm_control(keep_tmb_object = FALSE)`,
+#' the fixed-gradient check is reported as a note because the TMB
 #' automatic-differentiation object is not available.
 #'
 #' Use `check_drm()` before interpreting coefficients, fitted values, or
@@ -28,6 +29,9 @@
 #'   as acceptable.
 #' @param rho_boundary Absolute residual correlation value above which a
 #'   bivariate Gaussian fit receives a warning.
+#' @param sd_boundary Random-effect standard deviation below which a fit
+#'   receives a warning that the variance component is near the lower
+#'   boundary.
 #' @param ... Reserved for future diagnostic options.
 #'
 #' @return A data frame of checks with columns `check`, `status`, `value`, and
@@ -49,6 +53,7 @@ check_drm.drmTMB <- function(
   object,
   gradient_tolerance = 1e-3,
   rho_boundary = 0.98,
+  sd_boundary = 1e-4,
   ...
 ) {
   dots <- list(...)
@@ -59,6 +64,7 @@ check_drm.drmTMB <- function(
   }
   validate_check_scalar(gradient_tolerance, "gradient_tolerance", lower = 0)
   validate_check_scalar(rho_boundary, "rho_boundary", lower = 0, upper = 1)
+  validate_check_scalar(sd_boundary, "sd_boundary", lower = 0)
 
   rows <- list(
     check_optimizer_convergence(object),
@@ -66,8 +72,10 @@ check_drm.drmTMB <- function(
     check_finite_objective(object),
     check_fixed_gradient(object, gradient_tolerance = gradient_tolerance),
     check_hessian(object),
+    check_standard_errors_finite(object),
     check_dropped_rows(object),
     check_scale_positive(object),
+    check_random_effect_sd_boundary(object, sd_boundary = sd_boundary),
     check_rho12_boundary(object, rho_boundary = rho_boundary),
     check_student_nu(object),
     check_known_v(object),
@@ -298,6 +306,52 @@ check_hessian <- function(object) {
   )
 }
 
+check_standard_errors_finite <- function(object) {
+  vcov <- tryCatch(stats::vcov(object), error = function(e) e)
+  if (inherits(vcov, "error")) {
+    return(check_row(
+      "standard_errors_finite",
+      "warning",
+      NA_character_,
+      paste(
+        "Could not extract fixed-effect standard errors:",
+        conditionMessage(vcov)
+      )
+    ))
+  }
+
+  variances <- diag(vcov)
+  standard_errors <- rep(NA_real_, length(variances))
+  non_negative <- is.finite(variances) & variances >= 0
+  standard_errors[non_negative] <- sqrt(variances[non_negative])
+  ok <- length(standard_errors) > 0L &&
+    all(is.finite(standard_errors)) &&
+    all(variances >= 0)
+  finite_standard_errors <- standard_errors[is.finite(standard_errors)]
+  value <- if (length(finite_standard_errors) == 0L) {
+    NA_character_
+  } else {
+    paste0(
+      "range=[",
+      format_check_number(min(finite_standard_errors)),
+      ",",
+      format_check_number(max(finite_standard_errors)),
+      "]"
+    )
+  }
+
+  check_row(
+    "standard_errors_finite",
+    if (ok) "ok" else "warning",
+    value,
+    if (ok) {
+      "All fixed-effect standard errors are finite."
+    } else {
+      "At least one fixed-effect standard error is non-finite; inspect Hessian status, identifiability, and model scaling."
+    }
+  )
+}
+
 check_dropped_rows <- function(object) {
   keep <- object$model$keep
   if (is.null(keep)) {
@@ -343,6 +397,51 @@ check_scale_positive <- function(object) {
       "All fitted scale values are finite and positive."
     } else {
       "At least one fitted scale value is non-positive or non-finite."
+    }
+  )
+}
+
+check_random_effect_sd_boundary <- function(object, sd_boundary) {
+  sd_values <- unlist(object$sdpars, use.names = TRUE)
+  if (length(sd_values) == 0L) {
+    return(NULL)
+  }
+  if (is.null(names(sd_values))) {
+    names(sd_values) <- paste0("sd", seq_along(sd_values))
+  }
+  missing_names <- !nzchar(names(sd_values)) | is.na(names(sd_values))
+  names(sd_values)[missing_names] <- paste0("sd", which(missing_names))
+
+  ok <- all(is.finite(sd_values)) && all(sd_values > 0)
+  if (!ok) {
+    return(check_row(
+      "random_effect_sd_boundary",
+      "error",
+      NA_character_,
+      "At least one fitted random-effect standard deviation is non-positive or non-finite."
+    ))
+  }
+
+  min_index <- which.min(sd_values)
+  min_value <- sd_values[[min_index]]
+  min_name <- names(sd_values)[[min_index]]
+  near_boundary <- min_value < sd_boundary
+
+  check_row(
+    "random_effect_sd_boundary",
+    if (near_boundary) "warning" else "ok",
+    paste0(
+      "min=",
+      format_check_number(min_value),
+      "; boundary=",
+      format_check_number(sd_boundary),
+      "; term=",
+      min_name
+    ),
+    if (near_boundary) {
+      "At least one fitted random-effect standard deviation is near the lower boundary at zero."
+    } else {
+      "All fitted random-effect standard deviations are finite, positive, and above the requested lower-boundary warning threshold."
     }
   )
 }

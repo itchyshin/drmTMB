@@ -1,0 +1,6 @@
+"case","comparison_status","comparator","blocked_by","scale_note","max_abs_mu_coef_diff","max_abs_sigma_coef_diff","max_abs_mu_sd_diff","abs_loglik_diff","passed"
+"fixed_location_scale","implemented","glmmTMB",NA,"drmTMB sigma coefficients match glmmTMB dispersion coefficients on the log-SD scale; variance-facing summaries should square response-scale sigma.",1.37266492006294e-06,1.99908289355566e-06,NA,3.96426003135275e-10,TRUE
+"random_intercept_location_scale","implemented","glmmTMB",NA,"drmTMB sigma coefficients match glmmTMB dispersion coefficients on the log-SD scale; variance-facing summaries should square response-scale sigma.",6.22618084034077e-08,6.67770803716716e-06,6.81064283081234e-07,2.11721840059909e-09,TRUE
+"shared_mu_sigma_covariance_block","blocked",NA,"cross-formula labelled covariance blocks are planned in issue #5","would compare correlations among individual mean and residual-scale effects",NA,NA,NA,NA,NA
+"bivariate_group_level_covariance_block","blocked",NA,"bivariate group-level random effects are planned in issue #5","would compare group-level correlations separately from residual rho12",NA,NA,NA,NA,NA
+"non_gaussian_location_scale_random_effects","blocked",NA,"non-Gaussian random-effect location-scale paths are not implemented yet","would require family-specific random-effect likelihoods before comparators",NA,NA,NA,NA,NA

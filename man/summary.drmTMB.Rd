@@ -4,20 +4,49 @@
 \alias{summary.drmTMB}
 \title{Summarize a fitted model}
 \usage{
-\method{summary}{drmTMB}(object, ...)
+\method{summary}{drmTMB}(
+  object,
+  conf.int = FALSE,
+  level = 0.95,
+  method = c("wald", "profile"),
+  ci_parm = NULL,
+  trace = FALSE,
+  ...
+)
 }
 \arguments{
 \item{object}{A \code{drmTMB} fit.}
 
-\item{...}{Reserved for future summary options.}
+\item{conf.int}{Logical; include confidence intervals when \code{TRUE}.}
+
+\item{level}{Confidence level for intervals.}
+
+\item{method}{Interval method used when \code{conf.int = TRUE}: \code{"wald"} for
+fixed-effect intervals or \code{"profile"} for profile-likelihood intervals on
+selected direct targets.}
+
+\item{ci_parm}{Optional character or integer vector selecting confidence
+interval targets. For \code{method = "wald"}, targets must be fixed effects. For
+\code{method = "profile"}, targets use the \code{\link[=profile_targets]{profile_targets()}} namespace, such
+as \code{"sigma"}, \code{"rho12"}, \code{"sd:mu:(1 | id)"}, or
+\code{"cor:mu:cor((Intercept),x | id)"}. \code{NULL} selects all fixed effects for
+Wald intervals and all currently ready direct targets for profile
+intervals.}
+
+\item{trace}{Logical; passed to \code{\link[TMB:tmbprofile]{TMB::tmbprofile()}} for profile intervals.}
+
+\item{...}{Additional arguments passed to \code{\link[TMB:tmbprofile]{TMB::tmbprofile()}} when
+\code{conf.int = TRUE} and \code{method = "profile"}.}
 }
 \value{
 An object of class \code{summary.drmTMB}.
 }
 \description{
-\code{summary()} returns a compact summary of fixed-effect estimates, fitted
-random-effect standard deviations and correlations, ordinal cutpoints when
-present, log-likelihood, and optimizer convergence code.
+\code{summary()} returns a compact summary of fixed-effect estimates and
+response-scale distributional, scale, shape, random-effect SD, and correlation
+quantities when they are present. Confidence intervals are opt-in: fast Wald
+intervals are available for fixed effects, and slower profile-likelihood
+intervals are available for selected direct profile targets.
 }
 \examples{
 dat <- data.frame(y = c(0.2, 0.5, 1.1, 1.4), x = c(-1, 0, 1, 2))
