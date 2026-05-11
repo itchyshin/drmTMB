@@ -187,10 +187,13 @@ distributional regression models using TMB.
 
 ## Phase 6: Profile-Likelihood Inference
 
-- Status: planned.
-- Add the first profile-likelihood confidence intervals for direct TMB
-  parameters such as fixed effects, log SDs, residual-scale parameters,
-  `rho12` link-scale coefficients, and ordinal cutpoints.
+- Status: partly implemented.
+- `confint(fit)` now returns Wald fixed-effect intervals, and
+  `confint(fit, parm = "fixef:mu:x", method = "profile")` profiles explicit
+  fixed-effect targets.
+- Extend profile-likelihood confidence intervals to additional direct TMB
+  parameters such as log SDs, residual-scale parameters, `rho12` link-scale
+  coefficients, and ordinal cutpoints.
 - Use user-facing target names from the fitted object, for example
   `sd:mu:(1 | id)`, `sd:mu:phylo(1 | species)`,
   `cor:mu:cor((Intercept),x | id)`, and `fixef:rho12:(Intercept)`.

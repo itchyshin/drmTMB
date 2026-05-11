@@ -93,6 +93,7 @@ reference:
       - starts_with("drmTMB")
       - drm_control
       - check_drm
+      - confint.drmTMB
       - corpairs
       - fitted.drmTMB
       - fixef

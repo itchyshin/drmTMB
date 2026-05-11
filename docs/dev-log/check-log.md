@@ -8852,3 +8852,59 @@ Known limitations:
 - only direct fixed-effect targets are accepted;
 - SD, correlation, transformed ordinal-cutpoint, and derived-summary targets
   still need separate boundary and interpretation work before profiling.
+
+## 2026-05-10 -- Public fixed-effect confidence intervals
+
+Goal:
+
+- expose the first public `confint.drmTMB()` method while keeping the expensive
+  profile path explicit and fixed-effect only.
+
+Implemented:
+
+- added `confint.drmTMB()`;
+- made `confint(fit)` return Wald fixed-effect intervals by default;
+- made `confint(fit, parm = "fixef:mu:x", method = "profile")` call the
+  internal fixed-effect profile engine;
+- accepted compact labels such as `"mu:x"` as aliases for full fixed-effect
+  target names such as `"fixef:mu:x"`;
+- rejected unsupported profile target classes, missing profile target names,
+  unknown target names, invalid confidence levels, unused Wald `...`, and
+  profile requests after `keep_tmb_object = FALSE`;
+- updated `NEWS.md`, `ROADMAP.md`, `_pkgdown.yml`, the profile design note, and
+  the after-task report.
+
+Checks run:
+
+- `air format R/profile.R tests/testthat/test-profile-targets.R docs/design/12-profile-likelihood-cis.md NEWS.md _pkgdown.yml`:
+  passed.
+- `Rscript -e "devtools::document()"`: passed and wrote `NAMESPACE` plus
+  `man/confint.drmTMB.Rd`.
+- `Rscript -e "devtools::test(filter = 'profile-targets')"`: first run failed
+  because the new Wald test compared unnamed data-frame columns to named
+  expected vectors; after fixing the test it passed with 0 failures, 0 warnings,
+  0 skips, and 67 passing expectations.
+- `Rscript -e "devtools::test()"`: passed with 0 failures, 0 warnings, 0 skips,
+  and 1547 passing expectations.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed and rendered
+  `reference/confint.drmTMB.html`.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with no problems found.
+- `Rscript -e "devtools::check(document = FALSE, manual = FALSE)"`: passed with
+  0 errors, 0 warnings, and 0 notes.
+- `git diff --check`: passed.
+- `rg -n 'not a public `confint\(\)`|no `confint\.drmTMB|confint\.drmTMB\(method = "profile"\).*not implemented|public `confint\(\)` API\s*closed' R tests/testthat docs/design vignettes README.md ROADMAP.md NEWS.md`:
+  passed with no matches after updating the design note and roadmap.
+- `rg -n "O.Dea/Nakagawa|O.Dea-style" R/profile.R tests/testthat/test-profile-targets.R docs/design/12-profile-likelihood-cis.md ROADMAP.md NEWS.md _pkgdown.yml man/confint.drmTMB.Rd pkgdown-site/reference/confint.drmTMB.html --glob '!pkgdown-site/search.json'`:
+  passed with no matches.
+- `rg -n "confint|profile-likelihood|profile likelihood" README.md ROADMAP.md docs/dev-log/known-limitations.md docs/design/12-profile-likelihood-cis.md vignettes/model-workflow.Rmd vignettes/which-scale.Rmd NEWS.md`:
+  confirmed `NEWS.md`, `ROADMAP.md`, and the profile design note now describe
+  the same partial Phase 6 status.
+
+Known limitations:
+
+- profile intervals are fixed-effect only;
+- random-effect SDs, random-effect correlations, residual-scale parameters,
+  transformed ordinal cutpoints, and derived summaries still need
+  boundary-aware profile paths;
+- profile intervals require `fit$obj`, so they are unavailable after fitting
+  with `drm_control(keep_tmb_object = FALSE)`.

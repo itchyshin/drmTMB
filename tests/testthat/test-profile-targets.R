@@ -113,7 +113,56 @@ test_that("profile target inventory lists fixed effects", {
   expect_true(all(targets$target_type == "direct"))
 })
 
-test_that("profile confidence intervals wrap direct fixed-effect profiles", {
+test_that("confint returns Wald fixed-effect intervals", {
+  set.seed(20260597)
+  n <- 70
+  x <- stats::rnorm(n)
+  dat <- data.frame(
+    y = 0.2 + 0.5 * x + stats::rnorm(n, sd = exp(-0.3 + 0.1 * x)),
+    x = x
+  )
+  fit <- drmTMB(bf(y ~ x, sigma ~ x), family = gaussian(), data = dat)
+
+  ci <- stats::confint(fit, level = 0.90)
+  selected <- stats::confint(fit, parm = c("mu:x", "fixef:sigma:(Intercept)"))
+
+  se <- sqrt(diag(stats::vcov(fit)))
+  estimate <- unlist(coef(fit), use.names = FALSE)
+  z <- stats::qnorm(0.95)
+
+  expect_named(
+    ci,
+    c(
+      "parm",
+      "level",
+      "lower",
+      "upper",
+      "scale",
+      "transformation",
+      "tmb_parameter",
+      "index",
+      "method"
+    )
+  )
+  expect_equal(
+    ci$parm,
+    c(
+      "fixef:mu:(Intercept)",
+      "fixef:mu:x",
+      "fixef:sigma:(Intercept)",
+      "fixef:sigma:x"
+    )
+  )
+  expect_equal(ci$lower, unname(estimate - z * se), tolerance = 1e-12)
+  expect_equal(ci$upper, unname(estimate + z * se), tolerance = 1e-12)
+  expect_equal(ci$method, rep("wald", 4))
+  expect_equal(
+    selected$parm,
+    c("fixef:mu:x", "fixef:sigma:(Intercept)")
+  )
+})
+
+test_that("confint profile intervals wrap direct fixed-effect profiles", {
   set.seed(20260595)
   n <- 55
   x <- stats::rnorm(n)
@@ -123,10 +172,11 @@ test_that("profile confidence intervals wrap direct fixed-effect profiles", {
   )
   fit <- drmTMB(bf(y ~ x, sigma ~ 1), family = gaussian(), data = dat)
 
-  ci <- drmTMB:::drm_profile_confint(
+  ci <- stats::confint(
     fit,
-    parm = "fixef:mu:x",
+    parm = "mu:x",
     level = 0.90,
+    method = "profile",
     trace = FALSE,
     ystep = 0.25
   )
@@ -176,20 +226,37 @@ test_that("profile confidence intervals reject unsupported targets clearly", {
   )
 
   expect_error(
-    drmTMB:::drm_profile_confint(
+    stats::confint(
       fit,
       parm = "sd:mu:(1 + x | p | ID):x",
+      method = "profile",
       trace = FALSE
     ),
     "Only fixed-effect profile targets"
   )
   expect_error(
-    drmTMB:::drm_profile_confint(fit, parm = "missing-target"),
-    "Unknown profile target"
+    stats::confint(fit, method = "profile"),
+    "explicit target names"
   )
   expect_error(
-    drmTMB:::drm_profile_confint(fit, parm = "fixef:mu:x", level = 1),
+    stats::confint(fit, parm = "missing-target"),
+    "Unknown confidence-interval target"
+  )
+  expect_error(
+    stats::confint(fit, parm = "fixef:mu:x", level = 1),
     "between 0 and 1"
+  )
+
+  missing_obj <- fit
+  missing_obj$obj <- NULL
+  expect_error(
+    stats::confint(
+      missing_obj,
+      parm = "fixef:mu:x",
+      method = "profile",
+      trace = FALSE
+    ),
+    "TMB object retained"
   )
 })
 

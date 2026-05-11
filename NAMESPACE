@@ -2,6 +2,7 @@
 
 S3method(check_drm,drmTMB)
 S3method(coef,drmTMB)
+S3method(confint,drmTMB)
 S3method(corpairs,drmTMB)
 S3method(deviance,drmTMB)
 S3method(df.residual,drmTMB)

@@ -7,11 +7,11 @@ variance and correlation quantities.
 
 ## Current Status
 
-Profile-likelihood confidence intervals are a design target, not an implemented
-API. `drmTMB` currently exposes Wald-style fixed-effect covariance through
-`vcov()`, transformed scale summaries through `sdpars`, and group-level
-correlation summaries through `corpars`, but there is no
-`confint.drmTMB(method = "profile")` method yet.
+Profile-likelihood confidence intervals are partly implemented. `confint(fit)`
+returns Wald fixed-effect intervals by default, and
+`confint(fit, parm = "fixef:mu:x", method = "profile")` profiles explicit
+fixed-effect targets. Variance-component, correlation, transformed ordinal, and
+derived-summary profile intervals remain planned.
 
 The first implementation must therefore start from a stable target inventory,
 not from ad hoc parameter names in the C++ template. Public targets should be
@@ -220,25 +220,27 @@ internal target inventory first:
 drmTMB:::drm_profile_targets(fit)
 ```
 
-This internal helper is now the seed for a later public profile/confidence
+This internal helper is the target table behind the public profile/confidence
 interval API. It returns target names, target classes, internal TMB parameter
 names, current estimates, transformation labels, whether the target is direct or
 derived, and a short note explaining whether the target is ready for direct
-profiling. `confint.drmTMB(method = "profile")` should later accept only
-targets listed by this inventory. Unsupported targets should fail with a
-message that points to the available target table.
+profiling. `confint(fit, method = "profile")` accepts targets from this
+inventory. Unsupported targets fail before expensive optimization.
 
 A second internal helper now profiles direct fixed-effect targets from this
-inventory:
+inventory, and the public `confint()` method exposes the first user-facing
+slice:
 
 ```r
-drmTMB:::drm_profile_confint(fit, parm = "fixef:mu:x")
+confint(fit, parm = "fixef:mu:x", method = "profile")
 ```
 
-This is deliberately not a public `confint()` method yet. It wraps
-`TMB::tmbprofile()` for ready fixed-effect target rows only, so unsupported
-variance, correlation, ordinal-transform, and derived-summary targets still
-fail before doing expensive optimization.
+By default, `confint(fit)` returns fast Wald intervals for fixed-effect
+coefficients on their link scales. Profile intervals must be requested by name
+because they can be slow. The profile path wraps `TMB::tmbprofile()` for ready
+fixed-effect target rows only, so unsupported variance, correlation,
+ordinal-transform, and derived-summary targets still fail before doing
+expensive optimization.
 
 The first fitted targets should be direct parameters in this order:
 
@@ -259,7 +261,8 @@ profiles are stable and the derived quantity has a named extractor.
 
 ## Implementation Stage
 
-Do not make profile CIs part of the Gaussian MVP. Add them after:
+Do not treat profile CIs as complete for the Gaussian random-effect and
+correlation phases. Add broader profile support after:
 
 1. random-effect variance components are represented cleanly in fitted objects;
 2. profile targets can be named consistently;
