@@ -242,6 +242,44 @@ test_that("confint profile intervals wrap direct fixed-effect profiles", {
   expect_gt(ci$upper, unname(coef(fit, "mu")[["x"]]))
 })
 
+test_that("confint profile intervals cover residual rho12 coefficients on link scale", {
+  dat <- new_profile_biv_data(n = 120, seed = 20260600)
+  fit <- drmTMB(
+    bf(mu1 = y1 ~ x, mu2 = y2 ~ x, rho12 = ~w),
+    family = c(gaussian(), gaussian()),
+    data = dat
+  )
+
+  ci <- stats::confint(
+    fit,
+    parm = "fixef:rho12:w",
+    level = 0.80,
+    method = "profile",
+    trace = FALSE,
+    ystep = 0.30
+  )
+  manual_lincomb <- rep(0, length(fit$opt$par))
+  manual_lincomb[which(names(fit$opt$par) == "beta_rho12")[[2L]]] <- 1
+  manual_profile <- TMB::tmbprofile(
+    fit$obj,
+    name = "fixef:rho12:w",
+    lincomb = manual_lincomb,
+    trace = FALSE,
+    ystep = 0.30
+  )
+  manual_ci <- stats::confint(manual_profile, level = 0.80)
+
+  expect_equal(ci$parm, "fixef:rho12:w")
+  expect_equal(ci$scale, "link")
+  expect_equal(ci$transformation, "linear_predictor")
+  expect_equal(ci$tmb_parameter, "beta_rho12")
+  expect_equal(ci$index, 2L)
+  expect_equal(ci$lower, unname(manual_ci[1L, "lower"]), tolerance = 1e-12)
+  expect_equal(ci$upper, unname(manual_ci[1L, "upper"]), tolerance = 1e-12)
+  expect_lt(ci$lower, unname(coef(fit, "rho12")[["w"]]))
+  expect_gt(ci$upper, unname(coef(fit, "rho12")[["w"]]))
+})
+
 test_that("confint profile intervals transform SD and correlation targets", {
   dat <- new_profile_group_data(n_id = 24, n_each = 6, seed = 20260598)
   fit <- drmTMB(

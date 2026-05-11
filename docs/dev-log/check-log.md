@@ -9017,3 +9017,41 @@ Known limitations:
 - residual response-scale `rho12`, phylogenetic SD, transformed ordinal, and
   derived-summary intervals still need focused tests and implementation before
   being claimed.
+
+## 2026-05-11 -- Residual rho12 profile coverage
+
+Goal:
+
+- add explicit test coverage that residual `rho12` fixed-effect profile
+  intervals are coefficient-scale intervals for `beta_rho12`, not row-level
+  response-scale residual-correlation intervals.
+
+Implemented:
+
+- added a bivariate Gaussian profile test for
+  `confint(fit, parm = "fixef:rho12:w", method = "profile")`;
+- compared the public `confint()` output to a manual `TMB::tmbprofile()` call
+  using the one-hot linear combination for `beta_rho12[2]`;
+- asserted that the returned target is on `scale = "link"` with
+  `transformation = "linear_predictor"`.
+
+Checks run:
+
+- Exploratory R snippet first failed because it loaded the installed package
+  rather than the worktree; rerunning with `devtools::load_all()` confirmed
+  `profile_targets()` and `fixef:rho12:w` behaviour in the current checkout.
+- `air format tests/testthat/test-profile-targets.R`: passed.
+- `Rscript -e "devtools::test(filter = 'profile-targets')"`: passed with 0
+  failures, 0 warnings, 0 skips, and 98 passing expectations.
+- `Rscript -e "devtools::test()"`: passed with 0 failures, 0 warnings, 0 skips,
+  and 1578 passing expectations.
+- `git diff --check`: passed.
+- `LC_ALL=C rg -n "[^\x00-\x7F]" tests/testthat/test-profile-targets.R`:
+  passed with no matches.
+
+Known limitations:
+
+- response-scale residual `rho12_i` intervals remain planned derived-target
+  work;
+- phylogenetic and non-phylogenetic correlation modelling remain future
+  structured-covariance work, distinct from residual `rho12`.
