@@ -9350,6 +9350,37 @@ Known limitations:
 - Tweedie, COM-Poisson, ordinal scale/discrimination, and skew-normal scale or
   shape conventions still need their own design rows before implementation.
 
+## 2026-05-11 -- Explicit `rho12` in `corpairs()` example
+
+Goal:
+
+- make the `corpairs()` help example name the residual correlation formula it
+  is summarising.
+
+Implemented:
+
+- updated the `corpairs()` roxygen example in `R/methods.R` to include
+  `rho12 = ~ 1` explicitly;
+- regenerated `man/corpairs.Rd`;
+- created
+  `docs/dev-log/after-task/2026-05-11-corpairs-example-rho12.md`.
+
+Checks run:
+
+- `air format R/methods.R docs/dev-log/after-task/2026-05-11-corpairs-example-rho12.md docs/dev-log/check-log.md`:
+  passed.
+- `Rscript -e "devtools::document()"`: passed and regenerated
+  `man/corpairs.Rd`.
+- `Rscript -e "devtools::test(filter = 'corpairs')"`: passed.
+- `rg -n "rho12 = ~ 1|corpairs\\(fit\\)|issue #5|Explicit" R/methods.R man/corpairs.Rd docs/dev-log/after-task/2026-05-11-corpairs-example-rho12.md docs/dev-log/check-log.md`:
+  confirmed source, generated docs, and dev-log wording.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- this is documentation clarity only; it does not add new covariance-block
+  likelihoods or extend `corpairs()` to planned issue #5 pair classes.
+
 ## 2026-05-11 -- Benchmark reproducibility metadata
 
 Goal:
