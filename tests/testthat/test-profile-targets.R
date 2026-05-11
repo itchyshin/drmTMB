@@ -337,6 +337,71 @@ test_that("confint profile intervals cover residual rho12 coefficients on link s
   expect_gt(ci$upper, unname(coef(fit, "rho12")[["w"]]))
 })
 
+test_that("confint profile intervals transform constant residual rho12 targets", {
+  dat <- new_profile_biv_data(
+    n = 130,
+    beta_rho12 = c(0.35, 0),
+    seed = 20260604
+  )
+  fit <- drmTMB(
+    bf(mu1 = y1 ~ x, mu2 = y2 ~ x, rho12 = ~1),
+    family = c(gaussian(), gaussian()),
+    data = dat
+  )
+
+  targets <- profile_targets(fit)
+  rho_target <- targets[targets$parm == "rho12", , drop = FALSE]
+  expect_equal(nrow(rho_target), 1L)
+  expect_equal(rho_target$target_class, "residual-correlation")
+  expect_equal(rho_target$scale, "response")
+  expect_equal(rho_target$transformation, "rho12_tanh")
+  expect_true(rho_target$profile_ready)
+  expect_equal(
+    rho_target$estimate,
+    mean(rho12(fit)),
+    tolerance = 1e-12
+  )
+
+  ci <- stats::confint(
+    fit,
+    parm = "rho12",
+    level = 0.80,
+    method = "profile",
+    trace = FALSE,
+    ystep = 0.30
+  )
+  manual_lincomb <- rep(0, length(fit$opt$par))
+  manual_lincomb[which(names(fit$opt$par) == "beta_rho12")[[1L]]] <- 1
+  manual_profile <- TMB::tmbprofile(
+    fit$obj,
+    name = "rho12",
+    lincomb = manual_lincomb,
+    trace = FALSE,
+    ystep = 0.30
+  )
+  manual_ci <- stats::confint(manual_profile, level = 0.80)
+
+  expect_equal(ci$parm, "rho12")
+  expect_equal(ci$scale, "response")
+  expect_equal(ci$transformation, "rho12_tanh")
+  expect_equal(ci$tmb_parameter, "beta_rho12")
+  expect_equal(ci$index, 1L)
+  expect_equal(
+    ci$lower,
+    drmTMB:::rho_response(unname(manual_ci[1L, "lower"])),
+    tolerance = 1e-12
+  )
+  expect_equal(
+    ci$upper,
+    drmTMB:::rho_response(unname(manual_ci[1L, "upper"])),
+    tolerance = 1e-12
+  )
+  expect_true(abs(ci$lower) < 1)
+  expect_true(abs(ci$upper) < 1)
+  expect_lt(ci$lower, mean(rho12(fit)))
+  expect_gt(ci$upper, mean(rho12(fit)))
+})
+
 test_that("confint profile intervals transform SD and correlation targets", {
   dat <- new_profile_group_data(n_id = 24, n_each = 6, seed = 20260598)
   fit <- drmTMB(
@@ -482,7 +547,7 @@ test_that("profile confidence intervals reject unsupported targets clearly", {
       method = "profile",
       trace = FALSE
     ),
-    "direct fixed-effect, random-effect SD, and random-effect correlation"
+    "ordinal-cutpoint-internal"
   )
   expect_error(
     stats::confint(fit, method = "profile"),
@@ -610,6 +675,7 @@ test_that("profile target inventory lists residual rho12 and ordinal internals",
   expect_equal(rho_rows$index, c(1L, 2L))
   expect_true(all(rho_rows$profile_ready))
   expect_equal(rho_rows$profile_note, rep("ready", 2))
+  expect_false("rho12" %in% biv_targets$parm)
 
   ordinal_dat <- data.frame(
     y = ordered(rep(1:3, each = 15)),

@@ -9132,3 +9132,59 @@ Known limitations:
 - this adds a direct phylogenetic SD interval test only;
 - phylogenetic correlation, non-phylogenetic species covariance, phylogenetic
   signal, and derived variance-ratio intervals remain planned.
+
+## 2026-05-11 -- Constant residual rho12 profile interval
+
+Goal:
+
+- add a direct response-scale profile-likelihood interval for constant residual
+  `rho12` in bivariate Gaussian models.
+
+Implemented:
+
+- added a `rho12` profile target for fits with `rho12 = ~ 1`;
+- mapped the target to `beta_rho12[1]` and transformed profile endpoints with
+  `rho_response()`;
+- kept predictor-dependent `rho12` response-scale profiles as planned
+  `newdata` or contrast work;
+- updated `NEWS.md`, `ROADMAP.md`,
+  `docs/design/12-profile-likelihood-cis.md`,
+  `man/confint.drmTMB.Rd`, and
+  `docs/dev-log/after-task/2026-05-11-constant-rho12-profile-interval.md`.
+
+Checks run:
+
+- `air format R/profile.R tests/testthat/test-profile-targets.R NEWS.md ROADMAP.md docs/design/12-profile-likelihood-cis.md`:
+  passed.
+- first `Rscript -e "devtools::test(filter = 'profile-targets')"`: failed
+  because an unsupported-ordinal-target test matched old error wording after
+  the implemented target list changed.
+- `air format tests/testthat/test-profile-targets.R`: passed after updating
+  the test to match `ordinal-cutpoint-internal`.
+- second `Rscript -e "devtools::test(filter = 'profile-targets')"`: passed
+  with 0 failures, 0 warnings, 0 skips, and 124 passing expectations.
+- `Rscript -e "devtools::document()"`: passed and regenerated
+  `man/confint.drmTMB.Rd`.
+- `Rscript -e "devtools::test()"`: passed with 0 failures, 0 warnings, 0
+  skips, and 1604 passing expectations.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed and rendered
+  `reference/confint.drmTMB.html` and `ROADMAP.html`.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with no problems found.
+- `_R_CHECK_SYSTEM_CLOCK_=FALSE Rscript -e "devtools::check(document = FALSE, manual = FALSE, args = '--no-tests')"`:
+  passed with 0 errors, 0 warnings, and 0 notes.
+- `git diff --check`: passed.
+- `LC_ALL=C rg -n "[^\x00-\x7F]" R/profile.R tests/testthat/test-profile-targets.R NEWS.md ROADMAP.md docs/design/12-profile-likelihood-cis.md man/confint.drmTMB.Rd`:
+  passed with no matches.
+- `git diff --unified=0 -- R/profile.R tests/testthat/test-profile-targets.R NEWS.md ROADMAP.md docs/design/12-profile-likelihood-cis.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-11-constant-rho12-profile-interval.md man/confint.drmTMB.Rd | LC_ALL=C rg -n '^\+.*[^\x00-\x7F]'`:
+  passed with no matches.
+- `rg -n 'O.Dea/Nakagawa|O.Dea-style' R/profile.R tests/testthat/test-profile-targets.R NEWS.md ROADMAP.md docs/design/12-profile-likelihood-cis.md man/confint.drmTMB.Rd pkgdown-site/reference/confint.drmTMB.html pkgdown-site/ROADMAP.html --glob '!pkgdown-site/search.json'`:
+  passed with no matches.
+- `rg -n 'constant residual|parm = "rho12"|rho12_tanh|predictor-dependent .* response-scale' R/profile.R tests/testthat/test-profile-targets.R NEWS.md ROADMAP.md docs/design/12-profile-likelihood-cis.md man/confint.drmTMB.Rd pkgdown-site/reference/confint.drmTMB.html pkgdown-site/ROADMAP.html --glob '!pkgdown-site/search.json'`:
+  confirmed source and generated-site wording.
+
+Known limitations:
+
+- predictor-dependent `rho12` response-scale intervals still need an explicit
+  `newdata` or contrast API;
+- derived residual covariance, repeatability, phylogenetic signal, and
+  double-hierarchical correlation-pair intervals remain planned.

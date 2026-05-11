@@ -12,9 +12,11 @@ returns Wald fixed-effect intervals by default, and
 `confint(fit, parm = "fixef:mu:x", method = "profile")` profiles explicit
 direct targets. Direct ordinary random-effect SD, ordinary random-effect
 correlation, and phylogenetic `mu` SD targets are transformed back to the
-response scale. `profile_targets(fit)` lists the target names and readiness
-notes for a fitted model. Transformed ordinal, modelled group-SD, and
-derived-summary profile intervals remain planned.
+response scale. Constant residual `rho12` can also be profiled as a direct
+response-scale correlation target with `parm = "rho12"`. `profile_targets(fit)`
+lists the target names and readiness notes for a fitted model. Transformed
+ordinal, modelled group-SD, predictor-dependent `rho12` response-scale
+contrasts, and derived-summary profile intervals remain planned.
 
 The first implementation must therefore start from a stable target inventory,
 not from ad hoc parameter names in the C++ template. Public targets should be
@@ -28,6 +30,7 @@ sd:sigma:(1 | id)
 sd:mu:phylo(1 | species)
 cor:mu:cor((Intercept),x | id)
 fixef:rho12:(Intercept)
+rho12
 ```
 
 These targets use labels stored in the fitted object, such as `sdpars` and
@@ -38,7 +41,10 @@ syntax such as `phylo(1 | species, tree = tree)`.
 
 Those names can then map internally to TMB parameters such as `beta_mu`,
 `beta_sigma`, `log_sd_mu`, `log_sd_sigma`, `log_sd_phylo`, `eta_cor_mu`,
-`beta_sd_mu`, and `beta_rho12`.
+`beta_sd_mu`, and `beta_rho12`. The `rho12` target is available only when the
+residual correlation is constant; predictor-dependent residual correlations
+still expose their link-scale coefficients until the API has a `newdata` or
+contrast design for response-scale intervals.
 
 ## Core Definition
 
@@ -242,14 +248,16 @@ By default, `confint(fit)` returns fast Wald intervals for fixed-effect
 coefficients on their link scales. Profile intervals must be requested by name
 because they can be slow. The profile path wraps `TMB::tmbprofile()` for ready
 fixed-effect, ordinary random-effect SD, ordinary random-effect correlation,
-and phylogenetic `mu` SD target rows. Unsupported ordinal-transform, modelled
-group-SD, and derived-summary targets still fail before doing expensive
-optimization.
+phylogenetic `mu` SD, and constant residual `rho12` target rows. Unsupported
+ordinal-transform, modelled group-SD, predictor-dependent `rho12`
+response-scale contrast, and derived-summary targets still fail before doing
+expensive optimization.
 
 The first fitted targets should be direct parameters in this order:
 
 1. fixed-effect coefficients for `mu`, `sigma`, `nu`, `zi`, `hu`, and `rho12`;
-2. residual-scale parameters where they are direct TMB parameters;
+2. constant residual `rho12` and residual-scale parameters where they are
+   direct TMB parameters;
 3. ordinary Gaussian random-effect SDs in `sdpars$mu`;
 4. ordinary Gaussian random-effect correlations in `corpars$mu`;
 5. phylogenetic `mu` SDs;

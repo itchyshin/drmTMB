@@ -4,14 +4,17 @@
 #' intervals are fast and are returned for fixed-effect coefficients by default.
 #' Profile-likelihood intervals are slower because nuisance parameters are
 #' re-optimized; this first public profile path supports explicit fixed-effect,
-#' random-effect standard-deviation, and random-effect correlation targets.
+#' random-effect standard-deviation, random-effect correlation, and constant
+#' residual-correlation targets.
 #'
 #' Target names follow the profile target namespace. For fixed effects, use
 #' names such as `"fixef:mu:x"`, `"fixef:sigma:(Intercept)"`, or
 #' `"fixef:rho12:w"`. Compact coefficient labels from `summary(fit)`, such as
 #' `"mu:x"`, are also accepted. Random-effect SD intervals are reported on the
 #' SD scale, and random-effect correlation intervals are reported on the
-#' correlation scale.
+#' correlation scale. For bivariate Gaussian fits with constant residual
+#' correlation, `parm = "rho12"` profiles the residual correlation and reports
+#' the interval on the response correlation scale.
 #'
 #' @param object A `drmTMB` fit.
 #' @param parm Optional character or integer vector selecting interval targets.
@@ -167,6 +170,28 @@ drm_profile_targets <- function(object) {
         profile_note = profile_ready_note(profile_ready)
       )
     }))
+  }
+
+  if ("rho12" %in% names(object$coefficients)) {
+    beta <- object$coefficients$rho12
+    if (length(beta) == 1L && identical(names(beta), "(Intercept)")) {
+      profile_ready <- profile_internal_is_active(object, "beta_rho12", 1L)
+      add_rows(list(new_profile_target_row(
+        parm = "rho12",
+        target_class = "residual-correlation",
+        dpar = "rho12",
+        term = "(constant)",
+        tmb_parameter = "beta_rho12",
+        index = 1L,
+        estimate = rho_response(unname(beta[[1L]])),
+        link_estimate = unname(beta[[1L]]),
+        scale = "response",
+        transformation = "rho12_tanh",
+        target_type = "direct",
+        profile_ready = profile_ready,
+        profile_note = profile_ready_note(profile_ready)
+      )))
+    }
   }
 
   for (dpar in names(object$sdpars)) {
@@ -343,11 +368,12 @@ drm_profile_target_confint <- function(
   implemented_classes <- c(
     "fixed-effect",
     "random-effect-sd",
-    "random-effect-correlation"
+    "random-effect-correlation",
+    "residual-correlation"
   )
   if (!target$target_class %in% implemented_classes) {
     cli::cli_abort(c(
-      "Profile intervals are implemented for direct fixed-effect, random-effect SD, and random-effect correlation targets.",
+      "Profile intervals are implemented for direct fixed-effect, random-effect SD, random-effect correlation, and constant residual-correlation targets.",
       i = "Requested {.val {target$parm}} has target class {.val {target$target_class}}."
     ))
   }
@@ -392,6 +418,7 @@ profile_transform_interval <- function(interval, target) {
     linear_predictor = interval,
     exp = exp(interval),
     tanh = 0.999999 * tanh(interval),
+    rho12_tanh = rho_response(interval),
     interval
   )
 }
