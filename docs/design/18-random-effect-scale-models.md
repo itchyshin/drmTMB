@@ -14,7 +14,7 @@ word.
 | Quantity | Meaning | Example syntax | Implementation status |
 |---|---|---|---|
 | `sigma_i` | residual or within-observation standard deviation | `sigma ~ x1` | implemented for Gaussian |
-| `a_g` | residual-scale random effect added to `log(sigma_i)` | `sigma ~ x1 + (1 | id)` | implemented for univariate Gaussian random intercepts |
+| `a_g` | residual-scale random effect added to `log(sigma_i)` | `sigma ~ x1 + (1 | id)` or `sigma ~ x1 + (0 + w | id)` | implemented for univariate Gaussian random intercepts and independent random slopes |
 | `sd_mu_id` | standard deviation of a `mu` random effect | `sd(id) ~ x_group` | implemented for one or more distinct unlabelled Gaussian `mu` random intercepts |
 | `rho_re` | group-level random-effect correlation | `(1 + x1 | id)` | implemented for one `mu` slope |
 | `rho12_i` | residual correlation between two responses | `rho12 ~ x1` | implemented for fixed-effect bivariate Gaussian |
@@ -93,7 +93,7 @@ Matching R syntax:
 
 ```r
 drmTMB(
-  bf(y ~ x1 + (1 | id), sigma ~ x2 + (1 | id)),
+  bf(y ~ x1 + (1 | id), sigma ~ x2 + (1 | id) + (0 + w | id)),
   family = gaussian(),
   data = dat
 )

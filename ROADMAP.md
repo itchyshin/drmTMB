@@ -42,8 +42,9 @@ distributional regression models using TMB.
 - Status: initial MVP implemented.
 - `bf()` and `drmTMB()` support Gaussian location-scale models with fixed
   effects, `mu` random intercepts, simple numeric `mu` random slopes, and
-  residual-scale random intercepts in `sigma`.
-- Supported syntax: `bf(y ~ x1 + (1 | id) + (0 + x1 | id), sigma ~ x1)`.
+  residual-scale random intercepts plus independent random slopes in `sigma`.
+- Supported syntax:
+  `bf(y ~ x1 + (1 | id) + (0 + x1 | id), sigma ~ x2 + (1 | id) + (0 + w | id))`.
 - Keep parser support for `sd(group) ~`, `meta_known_V(V = V)`, `phylo()`,
   and `spatial()` terms from the start.
 - Prediction for `mu` and `sigma` is implemented.
@@ -123,8 +124,9 @@ distributional regression models using TMB.
   `(0 + x | id)`, and ordinary correlated intercept-slope blocks written as
   `(1 + x | id)` or `(1 + x | p | id)` are implemented for the univariate
   Gaussian location formula. Random intercepts in the residual `sigma` formula
-  are also implemented, and matching labelled `mu`/`sigma` random intercepts
-  now fit the first univariate mean-scale covariance block. Random-effect scale
+  and independent residual-scale random slopes written as `(0 + x | id)` are
+  also implemented, and matching labelled `mu`/`sigma` random intercepts now
+  fit the first univariate mean-scale covariance block. Random-effect scale
   formulae are implemented for one or more distinct unlabelled Gaussian `mu`
   random intercepts, such as `sd(id) ~ x_group` and `sd(site) ~ site_type`.
   The bivariate Gaussian path now fits matched labelled `mu1`/`mu2` random

@@ -153,7 +153,8 @@ head(sigma(fit)^2) # fitted residual variances
 - **Known sampling variance or covariance.** Use Gaussian meta-analysis with
   `meta_known_V(V = V)`. Read
   [Mean effects and residual heterogeneity](https://itchyshin.github.io/drmTMB/articles/meta-analysis.html).
-- **Structured Gaussian location effects.** Use ordinary random effects,
+- **Structured Gaussian effects.** Use ordinary random effects,
+  residual-scale random intercepts or independent random slopes in `sigma`,
   `sd(group) ~ x`, or the implemented intercept-only phylogenetic path
   `phylo(1 | species, tree = tree)`. Read
   [Phylogenetic and spatial structured effects](https://itchyshin.github.io/drmTMB/articles/phylogenetic-spatial.html).
@@ -169,11 +170,12 @@ planned after the fixed-effect likelihoods and simulations are stable.
 
 Residual `rho12` is a within-observation bivariate Gaussian correlation. It is
 not the same as a group-level correlation among individual intercepts, slopes,
-or residual-scale random effects. `drmTMB` now fits two first group-level
-covariance slices: a univariate labelled `mu`/`sigma` random-intercept
-correlation from matching `(1 | p | id)` terms, and a bivariate labelled
-`mu1`/`mu2` random-intercept correlation from matching terms such as
-`(1 | p | id)`.
+or residual-scale random effects. Univariate Gaussian `sigma` formulas now
+fit residual-scale random intercepts and independent random slopes, while
+`drmTMB` fits two first group-level covariance slices: a univariate labelled
+`mu`/`sigma` random-intercept correlation from matching `(1 | p | id)` terms,
+and a bivariate labelled `mu1`/`mu2` random-intercept correlation from matching
+terms such as `(1 | p | id)`.
 
 Full double-hierarchical individual-difference models are planned work. These
 models would jointly describe individual differences in average behaviour,

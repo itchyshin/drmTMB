@@ -115,9 +115,10 @@ joint multivariate block rather than a sum of independent row contributions.
 Gaussian location-scale is implemented for fixed-effect models and for
 univariate Gaussian location random intercepts, labelled random intercepts,
 independent numeric random slopes, and labelled or unlabelled ordinary
-correlated random intercept-slope blocks, residual-scale random intercepts in
-the univariate Gaussian `sigma` formula, and random-effect scale models for
-one or more distinct unlabelled `mu` random intercepts:
+correlated random intercept-slope blocks, residual-scale random intercepts and
+independent numeric random slopes in the univariate Gaussian `sigma` formula,
+and random-effect scale models for one or more distinct unlabelled `mu` random
+intercepts:
 
 ```text
 y_i | mu_i, sigma_i ~ Normal(mu_i, sigma_i^2)
@@ -203,20 +204,21 @@ implementation, the middle label `p` is retained for naming and future
 cross-formula covariance matching; the likelihood is otherwise the same as the
 unlabelled `(1 + x1 | id)` block.
 
-Residual-scale random intercepts are implemented on the log-`sigma` scale:
+Residual-scale random intercepts and independent numeric random slopes are
+implemented on the log-`sigma` scale:
 
 ```text
-log(sigma_i) = X_sigma[i, ] beta_sigma + a_{g[i]}
-a_g = sd_sigma_group * v_g
-v_g ~ Normal(0, 1)
-sd_sigma_group = exp(theta_sigma_group)
+log(sigma_i) = X_sigma[i, ] beta_sigma + sum_j z_j[i] a_{j, g_j[i]}
+a_jg = sd_sigma_j * v_jg
+v_jg ~ Normal(0, 1)
+sd_sigma_j = exp(theta_sigma_j)
 ```
 
 Matching R syntax:
 
 ```r
 drmTMB(
-  bf(y ~ x1 + (1 | id), sigma ~ x2 + (1 | id)),
+  bf(y ~ x1 + (1 | id), sigma ~ x2 + (1 | id) + (0 + w | id)),
   family = gaussian(),
   data = dat
 )

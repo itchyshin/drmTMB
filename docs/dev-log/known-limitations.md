@@ -5,8 +5,9 @@
   predictor per random-slope term. Multiple separate independent slope terms
   are allowed, and one-slope correlated random intercept-slope blocks are
   implemented as `(1 + x | id)` or `(1 + x | p | id)`.
-- Residual-scale random intercepts are implemented in the `sigma` formula as
-  `sigma ~ x + (1 | id)`.
+- Residual-scale random intercepts and independent numeric random slopes are
+  implemented in the `sigma` formula as `sigma ~ x + (1 | id)` and
+  `sigma ~ x + (0 + w | id)`.
 - The first univariate Gaussian cross-formula covariance block is implemented
   for matching labelled `mu` and `sigma` random intercepts, such as
   `y ~ x + (1 | p | id)` with `sigma ~ z + (1 | p | id)`.
@@ -96,7 +97,8 @@
 - The TMB template currently supports fixed effects, univariate Gaussian `mu`
   random intercepts, numeric random-slope terms, ordinary correlated
   intercept-slope blocks with optional covariance-block labels, and univariate
-  Gaussian residual-scale random intercepts in `sigma`, the first labelled
+  Gaussian residual-scale random intercepts and independent random slopes in
+  `sigma`, the first labelled
   univariate `mu`/`sigma` random-intercept covariance block, intercept-only
   phylogenetic location effects, plus one or more unlabelled Gaussian `mu`
   random-intercept scale formulae through `sd(group) ~ x_group`, matched
@@ -112,8 +114,8 @@
   fixed-effect univariate cumulative-logit ordinal path, and a fixed-effect
   univariate beta-binomial path.
 - Cross-formula labelled covariance sharing beyond the first univariate
-  intercept-only `mu`/`sigma` block, residual-scale random slopes,
-  slope-specific random-effect scale targets, labelled-block random-effect
+  intercept-only `mu`/`sigma` block, correlated residual-scale random-slope
+  blocks, slope-specific random-effect scale targets, labelled-block random-effect
   scale targets, bivariate random-effect scale targets, Student-t random
   effects, Student-t known-covariance models, Student-t phylogenetic models,
   bivariate Student-t models, lognormal random-effect and structured-effect

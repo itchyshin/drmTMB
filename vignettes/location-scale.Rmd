@@ -28,10 +28,11 @@ return to the syntax overview below when you want to adapt the formula.
 
 The first implemented `drmTMB` model class is Gaussian location-scale
 regression with fixed effects, optional random effects in the location formula,
-residual-scale random intercepts in the `sigma` formula, and random-effect
-scale formulas such as `sd(id) ~ x_group`. The same pattern will be used
-throughout the documentation: write the model symbolically first, then show the
-matching R syntax, fit the model, and interpret the fitted output.
+residual-scale random intercepts and independent random slopes in the `sigma`
+formula, and random-effect scale formulas such as `sd(id) ~ x_group`. The same
+pattern will be used throughout the documentation: write the model symbolically
+first, then show the matching R syntax, fit the model, and interpret the fitted
+output.
 
 Current syntax:
 
@@ -63,18 +64,19 @@ drmTMB(
 )
 ```
 
-Residual-scale random-intercept syntax:
+Residual-scale random-effect syntax:
 
 ```r
 drmTMB(
-  bf(y ~ x1 + (1 | id), sigma ~ x2 + (1 | id)),
+  bf(y ~ x1 + (1 | id), sigma ~ x2 + (1 | id) + (0 + w | id)),
   family = gaussian(),
   data = dat
 )
 ```
 
 The companion article "Which scale are you modelling?" gives a side-by-side
-guide to `sigma ~ x`, `sigma ~ x + (1 | id)`, `sd(id) ~ x_group`,
+guide to `sigma ~ x`, `sigma ~ x + (1 | id)`,
+`sigma ~ x + (0 + w | id)`, `sd(id) ~ x_group`,
 random-slope correlations, and bivariate residual `rho12`.
 
 ## Model equations and matching R syntax
@@ -192,7 +194,7 @@ The matching syntax is:
 
 ```r
 drmTMB(
-  bf(y ~ x1 + (1 | id), sigma ~ x2 + (1 | id)),
+  bf(y ~ x1 + (1 | id), sigma ~ x2 + (1 | id) + (0 + w | id)),
   family = gaussian(),
   data = dat
 )
@@ -663,8 +665,9 @@ y \mid \mu, \sigma, V
   `mu` and `sigma`, plus random intercepts, independent numeric random slopes,
   and labelled or unlabelled ordinary correlated intercept-slope blocks in
   `mu`.
-- Residual-scale random intercepts in `sigma`, such as `sigma ~ x2 + (1 | id)`,
-  are implemented for univariate Gaussian models.
+- Residual-scale random intercepts and independent random slopes in `sigma`,
+  such as `sigma ~ x2 + (1 | id)` and `sigma ~ x2 + (0 + w | id)`, are
+  implemented for univariate Gaussian models.
 - The `sigma` formula is the observation-level residual standard deviation. It
   is not a random-effect scale component.
 - Missing rows are dropped when they are incomplete for variables used by
@@ -676,10 +679,11 @@ y \mid \mu, \sigma, V
 - `sd(group)` random-effect scale formulae are implemented for one or more
   distinct unlabelled Gaussian `mu` random intercepts, with group-level
   predictors that are constant within the named grouping variable.
-- Residual-scale random slopes, slope-specific `sd()` targets, labelled-block
-  `sd()` targets, cross-formula labelled covariance sharing, phylogenetic
-  slopes, phylogenetic `sigma` terms, spatial terms, and non-Gaussian random
-  effects are planned but not implemented in this Gaussian tutorial.
+- Correlated residual-scale slope blocks, slope-specific `sd()` targets,
+  labelled-block `sd()` targets, cross-formula labelled covariance sharing
+  beyond the first random-intercept slice, phylogenetic slopes, phylogenetic
+  `sigma` terms, spatial terms, and non-Gaussian random effects are planned but
+  not implemented in this Gaussian tutorial.
 - Intercept-only phylogenetic random effects are implemented in univariate
   Gaussian `mu` formulas as `phylo(1 | species, tree = tree)`.
 

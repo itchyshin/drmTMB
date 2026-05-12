@@ -305,10 +305,10 @@ drmTMB(
 This is partly implemented. Current code supports dense known sampling
 covariance through `meta_known_V(V = V)`, univariate Gaussian `mu` random
 intercepts, independent numeric `mu` random slopes, one-slope correlated `mu`
-blocks, univariate Gaussian residual-scale random intercepts in `sigma`, and
-intercept-only `phylo(1 | species, tree = tree)` in `mu`. Spatial structured
-effects, phylogenetic slopes, and phylogenetic effects in `sigma` are still
-planned.
+blocks, univariate Gaussian residual-scale random intercepts and independent
+random slopes in `sigma`, and intercept-only `phylo(1 | species, tree = tree)`
+in `mu`. Spatial structured effects, phylogenetic slopes, and phylogenetic
+effects in `sigma` are still planned.
 
 ## Identifiability Rule
 

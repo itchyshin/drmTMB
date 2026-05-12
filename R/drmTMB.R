@@ -17,7 +17,8 @@
 #' and labelled or unlabelled correlated numeric random intercept-slope blocks
 #' in the location formula,
 #' known sampling covariance through `meta_known_V(V = V)`, residual-scale
-#' random intercepts in the scale formula, labelled `mu`/`sigma`
+#' random intercepts and independent numeric random slopes in the scale formula,
+#' labelled `mu`/`sigma`
 #' random-intercept covariance blocks, and one or more group-level
 #' random-effect scale formulae such as `sd(id) ~ x_group`, plus
 #' intercept-only phylogenetic random effects in the univariate Gaussian
@@ -2526,23 +2527,43 @@ parse_random_sigma_term <- function(expr, dpar) {
   }
 
   lhs <- strip_parens(lhs)
-  if (!is_intercept_one(lhs)) {
-    cli::cli_abort(c(
-      "Only random intercepts are implemented for residual {.code sigma} random effects.",
-      "x" = "Use {.code sigma ~ z + (1 | id)}.",
-      "i" = "Residual-scale random slopes are planned for a later phase."
+  if (is_intercept_one(lhs)) {
+    group_name <- as.character(group)
+    return(list(
+      type = "intercept",
+      variable = NA_character_,
+      variables = NA_character_,
+      coef_names = "(Intercept)",
+      label = format_random_mu_label("1", group_name, covariance_label),
+      group = group_name,
+      covariance_label = covariance_label
     ))
   }
 
-  group_name <- as.character(group)
-  list(
-    type = "intercept",
-    variable = NA_character_,
-    variables = NA_character_,
-    coef_names = "(Intercept)",
-    label = format_random_mu_label("1", group_name, covariance_label),
-    group = group_name,
+  coef <- parse_random_mu_lhs(
+    lhs,
+    dpar = dpar,
+    group = as.character(group),
     covariance_label = covariance_label
+  )
+  if (!identical(coef$type, "slope")) {
+    cli::cli_abort(c(
+      "Only independent residual-scale random slopes are implemented for {.code sigma}.",
+      "x" = "Use {.code sigma ~ z + (1 | id)} for a random intercept or {.code sigma ~ z + (0 + x | id)} for an independent random slope.",
+      "i" = "Correlated residual-scale intercept-slope blocks such as {.code sigma ~ z + (1 + x | id)} are planned for a later phase."
+    ))
+  }
+  if (!is.null(covariance_label)) {
+    cli::cli_abort(c(
+      "Labelled residual-scale random-slope covariance blocks are not implemented yet.",
+      "x" = "Use an unlabelled independent slope such as {.code sigma ~ z + (0 + x | id)}.",
+      "i" = "Shared labelled {.code mu}/{.code sigma} slope covariance will follow after the independent residual-scale slope path is stable."
+    ))
+  }
+
+  c(
+    coef,
+    list(group = as.character(group), covariance_label = covariance_label)
   )
 }
 

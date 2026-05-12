@@ -46,6 +46,7 @@ Implemented one-response surfaces include:
 | Do predictors change the mean and residual SD? | `drm_formula(y ~ x, sigma ~ z)` | [When variance carries signal](location-scale.html) |
 | Do groups differ in expected response? | ordinary `mu` random intercepts and one-slope blocks | [When variance carries signal](location-scale.html) |
 | Do groups differ in residual SD? | `sigma ~ x + (1 | group)` | [Which scale are you modelling?](which-scale.html) |
+| Do groups differ in residual-scale slopes? | `sigma ~ x + (0 + w | group)` for independent Gaussian residual-scale slopes | [Which scale are you modelling?](which-scale.html) |
 | Does a group-level predictor change among-group SD in the mean model? | `sd(group) ~ x_group` for unlabelled Gaussian `mu` random intercepts | [Which scale are you modelling?](which-scale.html) |
 | Is the response continuous, count, bounded, robust, or zero-inflated? | fixed-effect non-Gaussian families | [Choosing response families](distribution-families.html) |
 | Does the response have known sampling variance or covariance? | Gaussian `meta_known_V(V = V)` | [Mean effects and residual heterogeneity](meta-analysis.html) |
@@ -129,7 +130,7 @@ These surfaces are roadmap items, not syntax to rely on in analyses yet:
 
 | Planned surface | Why it is separate |
 |---|---|
-| residual-scale random slopes in `sigma` | needs simulation recovery for scale slopes before public use |
+| correlated residual-scale slope blocks in `sigma` | needs covariance recovery for scale intercept-slope blocks before public use |
 | cross-formula labelled covariance blocks linking `mu` and `sigma` | estimates group-level mean-scale correlations, not residual `rho12` |
 | bivariate random slopes and bivariate residual-scale random effects | expands group-level covariance blocks beyond the first random-intercept slice |
 | phylogenetic slopes, phylogenetic `sigma`, and bivariate phylogenetic effects | adds structured covariance layers that must stay separate from residual `rho12` |
