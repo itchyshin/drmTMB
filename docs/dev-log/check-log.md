@@ -2,6 +2,28 @@
 
 Record meaningful development checks here.
 
+## 2026-05-12 -- Mu/sigma joint objective comparator
+
+Scope:
+
+- added a hand-coded R joint negative log-likelihood comparator for the
+  univariate Gaussian `mu`/`sigma` covariance path;
+- compared TMB's full fixed-plus-random objective at `last.par.best` with the
+  independent R calculation for a model containing both a matched labelled
+  `mu`/`sigma` block and an independent unlabelled `sigma` block;
+- kept this as test-only hardening without changing likelihood or parser code.
+
+Checks:
+
+- First attempt with a tiny 5-group fixture did not converge reliably and used
+  the wrong full-vector parameter extraction path; revised to a 12-group
+  deterministic fixture and split `last.par.best` by TMB parameter names.
+- `air format tests/testthat/test-gaussian-random-intercepts.R`: passed.
+- `Rscript -e "devtools::test(filter = 'gaussian-random-intercepts')"`:
+  passed with 212 expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript -e "devtools::test(filter = 'gaussian-random-intercepts|check-drm|profile-targets|summary|phylo-utils')"`:
+  passed with 627 expectations, 0 failures, 0 warnings, and 0 skips.
+
 ## 2026-05-12 -- Mu/sigma sigma-effect transform regression test
 
 Scope:

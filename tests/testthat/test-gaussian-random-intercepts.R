@@ -207,6 +207,52 @@ new_gaussian_mu_sigma_cov_data <- function(
   )
 }
 
+gaussian_mu_sigma_joint_nll <- function(fit, par) {
+  spec <- fit$model
+  re_mu <- spec$random$mu
+  re_sigma <- spec$random$sigma
+  re_mu_sigma <- spec$random$mu_sigma
+  mu <- as.vector(spec$tmb_data$X_mu %*% par$beta_mu)
+  log_sigma <- as.vector(spec$tmb_data$X_sigma %*% par$beta_sigma)
+
+  if (re_mu$n_re > 0L) {
+    sd_mu <- exp(par$log_sd_mu)
+    for (i in seq_len(length(spec$data$y))) {
+      for (j in seq_len(re_mu$n_terms)) {
+        idx <- re_mu$index[[i, j]]
+        term <- re_mu$term_id0[[idx]] + 1L
+        mu[[i]] <- mu[[i]] +
+          re_mu$value[[i, j]] * sd_mu[[term]] * par$u_mu[[idx]]
+      }
+    }
+  }
+
+  if (re_sigma$n_re > 0L) {
+    sd_sigma <- exp(par$log_sd_sigma)
+    rho <- 0.999999 * tanh(par$eta_cor_mu_sigma)
+    for (i in seq_len(length(spec$data$y))) {
+      for (j in seq_len(re_sigma$n_terms)) {
+        idx <- re_sigma$index[[i, j]]
+        term <- re_sigma$term_id0[[idx]] + 1L
+        u_cond <- par$u_sigma[[idx]]
+        cross_cor <- re_mu_sigma$sigma_cross_cor_id0[[idx]] + 1L
+        if (cross_cor > 0L) {
+          mu_idx <- re_mu_sigma$sigma_cross_mu_index0[[idx]] + 1L
+          u_cond <- rho[[cross_cor]] *
+            par$u_mu[[mu_idx]] +
+            sqrt(1 - rho[[cross_cor]]^2) * par$u_sigma[[idx]]
+        }
+        log_sigma[[i]] <- log_sigma[[i]] +
+          re_sigma$value[[i, j]] * sd_sigma[[term]] * u_cond
+      }
+    }
+  }
+
+  -sum(stats::dnorm(par$u_mu, log = TRUE)) -
+    sum(stats::dnorm(par$u_sigma, log = TRUE)) -
+    sum(stats::dnorm(spec$data$y, mu, exp(log_sigma), log = TRUE))
+}
+
 test_that("Gaussian location models support random intercepts in mu", {
   sim <- new_gaussian_ri_data()
 
@@ -794,6 +840,29 @@ test_that("Gaussian mu/sigma covariance transforms only matched sigma effects", 
   expect_equal(
     actual[unmatched],
     sigma_sd[unmatched] * par$u_sigma[unmatched]
+  )
+})
+
+test_that("Gaussian mu/sigma covariance joint objective matches R nll", {
+  sim <- new_gaussian_mu_sigma_cov_data(n_id = 12, n_each = 5, seed = 20260631)
+  dat <- sim$data
+  dat$site <- factor(rep(seq_len(6), length.out = nrow(dat)))
+  fit <- drmTMB(
+    bf(y ~ x + (1 | p | id), sigma ~ z + (1 | site) + (1 | p | id)),
+    family = gaussian(),
+    data = dat,
+    control = list(eval.max = 500, iter.max = 500)
+  )
+  par <- split(
+    unname(fit$obj$env$last.par.best),
+    names(fit$obj$env$last.par.best)
+  )
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(
+    fit$obj$env$f(fit$obj$env$last.par.best),
+    gaussian_mu_sigma_joint_nll(fit, par),
+    tolerance = 1e-8
   )
 })
 

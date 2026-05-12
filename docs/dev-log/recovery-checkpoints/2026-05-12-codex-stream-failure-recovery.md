@@ -1,9 +1,9 @@
 # Codex Recovery Checkpoint
 
-Generated: 2026-05-12 14:56:18 MDT
+Generated: 2026-05-12 15:03:12 MDT
 Repository: `/Users/z3437171/Dropbox/Github Local/drmTMB`
 Goal: Recover from repeated Codex compaction or stream failures during the current covariance-profile branch
-Suggested next step: Review this checkpoint, rerun git status and git diff, then prepare the PR or continue with a small comparator slice
+Suggested next step: Review this checkpoint, rerun git status and git diff, then prepare the PR or stop before adding broader covariance work
 
 ## Purpose
 
@@ -18,11 +18,10 @@ editing, testing, committing, or summarizing the package state.
 `git status --short --branch`
 
 ```text
-## codex/biv-profile-next-slice...origin/main [ahead 1]
+## codex/biv-profile-next-slice...origin/main [ahead 2]
  M docs/dev-log/check-log.md
- M docs/dev-log/recovery-checkpoints/2026-05-12-codex-stream-failure-recovery.md
  M tests/testthat/test-gaussian-random-intercepts.R
-?? docs/dev-log/after-task/2026-05-12-mu-sigma-transform-regression-test.md
+?? docs/dev-log/after-task/2026-05-12-mu-sigma-joint-objective-comparator.md
 ```
 
 ### Changed Files
@@ -31,14 +30,13 @@ editing, testing, committing, or summarizing the package state.
 
 ```text
 M	docs/dev-log/check-log.md
-M	docs/dev-log/recovery-checkpoints/2026-05-12-codex-stream-failure-recovery.md
 M	tests/testthat/test-gaussian-random-intercepts.R
 ```
 
 `git ls-files --others --exclude-standard`
 
 ```text
-docs/dev-log/after-task/2026-05-12-mu-sigma-transform-regression-test.md
+docs/dev-log/after-task/2026-05-12-mu-sigma-joint-objective-comparator.md
 ```
 
 ### Diff Stat
@@ -46,10 +44,9 @@ docs/dev-log/after-task/2026-05-12-mu-sigma-transform-regression-test.md
 `git diff --stat`
 
 ```text
- docs/dev-log/check-log.md                          | 20 ++++++++++
- .../2026-05-12-codex-stream-failure-recovery.md    | 38 +++++++++++++++----
- tests/testthat/test-gaussian-random-intercepts.R   | 44 ++++++++++++++++++++++
- 3 files changed, 94 insertions(+), 8 deletions(-)
+ docs/dev-log/check-log.md                        | 22 ++++++++
+ tests/testthat/test-gaussian-random-intercepts.R | 69 ++++++++++++++++++++++++
+ 2 files changed, 91 insertions(+)
 ```
 
 ### Current Head
@@ -57,16 +54,38 @@ docs/dev-log/after-task/2026-05-12-mu-sigma-transform-regression-test.md
 `git log -1 --oneline`
 
 ```text
-5580b59 Checkpoint covariance profile recovery work
+638478a Test mu sigma covariance transform mapping
 ```
 
 ## Recent Project Evidence
 
-### Newest `docs/dev-log/check-log.md` Entries (6 sections)
+### Newest `docs/dev-log/check-log.md` Entries (7 sections)
 
 # Check Log
 
 Record meaningful development checks here.
+
+## 2026-05-12 -- Mu/sigma joint objective comparator
+
+Scope:
+
+- added a hand-coded R joint negative log-likelihood comparator for the
+  univariate Gaussian `mu`/`sigma` covariance path;
+- compared TMB's full fixed-plus-random objective at `last.par.best` with the
+  independent R calculation for a model containing both a matched labelled
+  `mu`/`sigma` block and an independent unlabelled `sigma` block;
+- kept this as test-only hardening without changing likelihood or parser code.
+
+Checks:
+
+- First attempt with a tiny 5-group fixture did not converge reliably and used
+  the wrong full-vector parameter extraction path; revised to a 12-group
+  deterministic fixture and split `last.par.best` by TMB parameter names.
+- `air format tests/testthat/test-gaussian-random-intercepts.R`: passed.
+- `Rscript -e "devtools::test(filter = 'gaussian-random-intercepts')"`:
+  passed with 212 expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript -e "devtools::test(filter = 'gaussian-random-intercepts|check-drm|profile-targets|summary|phylo-utils')"`:
+  passed with 627 expectations, 0 failures, 0 warnings, and 0 skips.
 
 ## 2026-05-12 -- Mu/sigma sigma-effect transform regression test
 
@@ -228,6 +247,7 @@ Checks:
 
 ### Newest After-Task Reports
 
+- `docs/dev-log/after-task/2026-05-12-mu-sigma-joint-objective-comparator.md` (2026-05-12 15:03): # After Task: Mu/Sigma Joint Objective Comparator
 - `docs/dev-log/after-task/2026-05-12-mu-sigma-transform-regression-test.md` (2026-05-12 14:56): # After Task: Mu/Sigma Transform Regression Test
 - `docs/dev-log/after-task/2026-05-12-univariate-mu-sigma-covariance-bridge.md` (2026-05-12 14:02): # After Task: Univariate Mu/Sigma Covariance Bridge
 - `docs/dev-log/after-task/2026-05-12-mu-sigma-summary-covariance-rows.md` (2026-05-12 14:02): # After Task: Mu/Sigma Summary Covariance Rows
@@ -235,7 +255,6 @@ Checks:
 - `docs/dev-log/after-task/2026-05-12-mu-sigma-check-drm-diagnostic.md` (2026-05-12 14:02): # After Task: Mu/Sigma check_drm Diagnostic
 - `docs/dev-log/after-task/2026-05-12-codex-recovery-checkpoint-tool.md` (2026-05-12 13:51): # After Task: Codex Recovery Checkpoint Tool
 - `docs/dev-log/after-task/2026-05-12-profile-covariance-status-docs.md` (2026-05-12 13:32): # After Task: Profile Covariance Status Docs
-- `docs/dev-log/after-task/2026-05-12-covariance-profile-intervals-in-summary.md` (2026-05-12 13:22): # After Task: Covariance Profile Intervals In Summary
 
 ## Recovery Commands
 
