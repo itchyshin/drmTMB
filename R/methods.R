@@ -157,7 +157,7 @@ rho12.drmTMB <- function(
 #' already fitted elsewhere: residual bivariate `rho12`, ordinary univariate
 #' group-level `mu` random-effect correlations, matched univariate `mu`/`sigma`
 #' random-intercept covariance blocks, and matched bivariate `mu1`/`mu2`
-#' random-intercept covariance blocks from `corpars`.
+#' and `sigma1`/`sigma2` random-intercept covariance blocks from `corpars`.
 #'
 #' The table is intentionally more explicit than `rho12()` or `corpars`
 #' because future double-hierarchical, phylogenetic, spatial, and study-level
@@ -658,8 +658,9 @@ deviance.drmTMB <- function(object, ...) {
 #'
 #' When `newdata = NULL`, predictions are for the fitted rows and include
 #' currently implemented conditional random-effect contributions for `mu`,
-#' bivariate `mu1`/`mu2`, phylogenetic `mu`, and residual-scale `sigma`. When
-#' `newdata` is supplied, predictions are fixed-effect, population-level
+#' bivariate `mu1`/`mu2`, phylogenetic `mu`, and residual-scale `sigma`
+#' including bivariate `sigma1`/`sigma2` blocks. When `newdata` is supplied,
+#' predictions are fixed-effect, population-level
 #' predictions for the supplied rows.
 #'
 #' @param object A `drmTMB` fit.
@@ -717,8 +718,12 @@ predict.drmTMB <- function(
   if (is.null(newdata) && dpar == "mu" && has_phylo_mu_effect(object)) {
     eta <- eta + phylo_mu_contribution(object)
   }
-  if (is.null(newdata) && dpar == "sigma" && has_sigma_random_effects(object)) {
-    eta <- eta + sigma_random_effect_contribution(object)
+  if (
+    is.null(newdata) &&
+      dpar %in% sigma_random_effect_dpars(object) &&
+      has_sigma_random_effects(object)
+  ) {
+    eta <- eta + sigma_random_effect_contribution(object, dpar = dpar)
   }
 
   if (type == "link") {
@@ -2027,8 +2032,18 @@ n_mu_random_effect_terms <- function(object) {
 }
 
 has_sigma_random_effects <- function(object) {
-  identical(object$model$model_type, "gaussian") &&
+  object$model$model_type %in%
+    c("gaussian", "biv_gaussian") &&
     length(object$random_effects$sigma$values) > 0L
+}
+
+sigma_random_effect_dpars <- function(object) {
+  dpars <- object$model$random$sigma$dpars
+  if (length(dpars) == 0L) {
+    character()
+  } else {
+    unique(dpars)
+  }
 }
 
 mu_random_effect_dpars <- function(object) {
@@ -2095,9 +2110,14 @@ phylo_mu_contribution <- function(object) {
   unname(values[index])
 }
 
-sigma_random_effect_contribution <- function(object) {
+sigma_random_effect_contribution <- function(object, dpar = NULL) {
   values <- object$random_effects$sigma$values
   index <- object$model$random$sigma$index
   design_value <- object$model$random$sigma$value
+  if (!is.null(dpar)) {
+    terms <- which(object$model$random$sigma$dpars %in% dpar)
+    index <- index[, terms, drop = FALSE]
+    design_value <- design_value[, terms, drop = FALSE]
+  }
   rowSums(matrix(values[index], nrow = nrow(index)) * design_value)
 }

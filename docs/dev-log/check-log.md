@@ -2,6 +2,53 @@
 
 Record meaningful development checks here.
 
+## 2026-05-12 -- Bivariate sigma1/sigma2 random-intercept covariance
+
+Scope:
+
+- implemented the first bivariate residual-scale covariance slice for
+  matching labelled `(1 | p | id)` random intercepts in both `sigma1` and
+  `sigma2`;
+- wired the scale block through bivariate model specification, TMB data,
+  `eta_cor_sigma`, conditional random-effect prediction, `sdpars$sigma`,
+  `corpars$sigma`, `corpairs()`, `summary()`, `profile_targets()`, and
+  `check_drm()`;
+- kept the slice narrow: labelled intercepts only, no bivariate scale slopes,
+  no cross-parameter bivariate covariance block, no `rho12` random effects,
+  and no combination with bivariate `meta_known_V(V = V)`.
+
+Checks:
+
+- Initial recovered implementation produced `NA/NaN gradient evaluation`
+  because `random_names` included `u_sigma` while the bivariate TMB data block
+  still sent `n_sigma_re_terms = 0L`; fixed by sending the bivariate
+  `sigma1`/`sigma2` random-effect structure into `make_tmb_data()`.
+- `air format R/drmTMB.R R/methods.R R/check.R tests/testthat/test-biv-gaussian.R`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'biv-gaussian')"`:
+  passed with 182 expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript -e "devtools::test(filter = 'biv-gaussian|check-drm')"`:
+  passed with 282 expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript -e "devtools::document()"`: passed; regenerated
+  `man/check_drm.Rd`, `man/drmTMB.Rd`, `man/corpairs.Rd`, and
+  `man/predict.drmTMB.Rd`.
+- `Rscript -e "devtools::test(filter = 'biv-gaussian|check-drm|profile-targets|summary')"`:
+  passed with 556 expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with no problems found.
+- `git diff --check`: passed.
+- `rg -n 'sigma1`/`sigma2` random effects|Bivariate random slopes, `sigma1`|residual-scale bivariate random effects|bivariate random slopes and residual-scale random effects|random effects in `sigma1`, `sigma2`, or `rho12`|bivariate `mu1`/`mu2` random-intercept correlation' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes R man tests/testthat/test-biv-gaussian.R`:
+  reviewed current status wording; only the intentionally superseded
+  `docs/design/12-profile-likelihood-cis.md` line mentioning `mu1`/`mu2`
+  remains because the following line now adds `sigma1`/`sigma2`.
+- `rg -n 'rho12|sigma1|sigma2|sd\(' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes R tests/testthat/test-biv-gaussian.R | head -n 220`:
+  reviewed the high-density correlation and scale vocabulary touched by this
+  feature.
+- `rg -n 'meta_gaussian|tau ~|rho ~|meta_known_V\([^V]' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes R tests/testthat/test-biv-gaussian.R`:
+  reviewed scope-guard wording; hits were expected design/tutorial warnings,
+  not new grammar drift.
+- `rg -n 'biv_sigma_random_effect_covariance|eta_cor_sigma|corpars\$sigma|sdpars\$sigma|scale-scale' R src tests/testthat/test-biv-gaussian.R docs/design vignettes README.md ROADMAP.md NEWS.md`:
+  reviewed implementation, tests, and docs for the new scale-scale surface.
+
 ## 2026-05-12 -- Mu/sigma sigma prediction contribution test
 
 Scope:

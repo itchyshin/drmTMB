@@ -65,6 +65,7 @@ In this table, "coscale" means a model for residual correlation, currently
 | `meta_known_V(V = V)` | Implemented | Known diagonal, block-diagonal, or dense sampling covariance with `family = gaussian()`; bivariate Gaussian known `V` uses a complete-row `2n` by `2n` row-paired matrix. |
 | `mu1`, `mu2`, `sigma1`, `sigma2`, `rho12` | Implemented for fixed effects | Bivariate Gaussian location-coscale model with predictor-dependent residual correlation. |
 | `(1 | p | id)` in both bivariate `mu1` and `mu2` | Implemented | First bivariate group-level covariance slice: matching labelled random intercepts create `mu1`/`mu2` random-intercept SDs and one group-level correlation. |
+| `(1 | p | id)` in both bivariate `sigma1` and `sigma2` | Implemented | First bivariate residual-scale covariance slice: matching labelled random intercepts enter `log(sigma1)` and `log(sigma2)` and create one scale-scale group-level correlation. |
 | `family = c(gaussian(), gaussian())` | Implemented | Public bivariate Gaussian family direction; mixed composed families are planned. |
 | `mvbind(y1, y2) ~ x1` | Implemented | Shorthand for identical bivariate location formulas; explicit `mu1`/`mu2` remains preferred for different predictors. |
 | `phylo(1 | species, tree = tree)` in `mu` | Implemented | Intercept-only univariate Gaussian phylogenetic location effect; requires an ultrametric tree with branch lengths. |
@@ -73,7 +74,7 @@ In this table, "coscale" means a model for residual correlation, currently
 | `cbind(successes, failures) ~ x1`, `family = beta_binomial()` | Implemented | Fixed-effect denominator-aware model for success counts with known trial totals; `sigma` is extra-binomial variation. |
 | `phylo(1 + x1 | species, tree = tree)` | Planned | Structured slopes come after the intercept-only path is hardened. |
 | `spatial(1 | site, coords = coords)` and `spatial(1 | site, mesh = mesh)` | Planned | Spatial SPDE/GMRF terms are part of the design but not fitted yet. |
-| Bivariate random slopes, `sigma1`/`sigma2` random effects, or `rho12` random effects | Planned | Requires a larger covariance parameterization, simulation recovery, and naming checks. |
+| Bivariate random slopes, cross-parameter covariance blocks, or `rho12` random effects | Planned | Requires a larger covariance parameterization, simulation recovery, and naming checks. |
 
 ## Univariate Syntax
 
@@ -142,24 +143,26 @@ bf(
 )
 ```
 
-The first bivariate group-level covariance slice uses separate response
+The first bivariate group-level covariance slices use separate response
 formulas and matching labelled random intercepts:
 
 ```r
 bf(
   mu1 = y1 ~ x1 + x2 + (1 | p | id),
   mu2 = y2 ~ x1      + (1 | p | id),
-  sigma1 = ~ x1 + x2,
-  sigma2 = ~ x1,
+  sigma1 = ~ x1 + x2 + (1 | q | id),
+  sigma2 = ~ x1      + (1 | q | id),
   rho12 = ~ x1 + x2
 )
 ```
 
-The shared `p` label requests one group-level covariance block for the
-`mu1` and `mu2` random intercepts. This is not residual `rho12`; it describes
-between-group association in the two response means after the fixed effects are
-included. Bivariate random slopes and residual-scale random effects remain
-planned.
+The shared `p` label requests one group-level covariance block for the `mu1`
+and `mu2` random intercepts. The shared `q` label requests a separate
+scale-scale block for the `sigma1` and `sigma2` random intercepts on the
+log-`sigma` scale. Neither block is residual `rho12`: they describe
+between-group associations after the fixed effects are included. Bivariate
+random slopes, cross-parameter covariance blocks, and `rho12` random effects
+remain planned.
 
 The `mvbind()` form is implemented as shorthand for identical location
 formulas:
@@ -500,7 +503,7 @@ Not every parameter should accept random effects at the same development stage.
 | Parameter class | Random effects policy |
 |---|---|
 | `mu`, `mu1`, `mu2` | Yes for univariate Gaussian `mu`; random intercepts, independent numeric random slopes, and labelled or unlabelled ordinary correlated intercept-slope blocks are implemented. For bivariate Gaussian models, matching labelled random intercepts in `mu1` and `mu2`, such as `(1 | p | id)` in both formulas, are implemented. Bivariate random slopes are later. |
-| `sigma`, `sigma1`, `sigma2` | Yes for univariate Gaussian `sigma` random intercepts. Unlabelled terms such as `sigma ~ x + (1 | id)` are independent scale effects; matching labelled `mu` and `sigma` intercepts such as `(1 | p | id)` fit the first mean-scale covariance block. Residual-scale random slopes, bivariate `sigma1`/`sigma2` random effects, and non-Gaussian scale random effects are later. |
+| `sigma`, `sigma1`, `sigma2` | Yes for univariate Gaussian `sigma` random intercepts. Unlabelled terms such as `sigma ~ x + (1 | id)` are independent scale effects; matching labelled `mu` and `sigma` intercepts such as `(1 | p | id)` fit the first mean-scale covariance block. For bivariate Gaussian models, matching labelled random intercepts in `sigma1` and `sigma2` are implemented as a scale-scale block. Residual-scale random slopes and non-Gaussian scale random effects are later. |
 | `sd(group)` | Implemented for one or more distinct unlabelled univariate Gaussian `mu` random intercepts, such as `sd(id) ~ x_group` and `sd(site) ~ site_type`; predictors must be constant within group after missing-row filtering. Labelled scale targets, slopes, `sigma` random-effect scales, bivariate models, and non-Gaussian models are later. |
 | `rho12` | No random effects initially; predictor-dependent fixed effects only. |
 | `nu`; future `tau` | Fixed effects first; random effects only after simulations show identifiability. `tau` is reserved for a possible second shape parameter and is not current syntax. |

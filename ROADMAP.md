@@ -108,14 +108,15 @@ distributional regression models using TMB.
   or `family = list(gaussian(), gaussian())` for the implemented all-Gaussian
   likelihood. Mixed composed families such as `family = c(gaussian(), poisson())`
   remain future work where the joint likelihood is defined.
-- Matching labelled random intercepts in `mu1` and `mu2`, such as
-  `(1 | p | id)` in both location formulas, now fit one group-level
-  covariance block. The two group-level SDs are reported in `sdpars$mu`, the
-  group-level `mu1`/`mu2` correlation is reported in `corpars$mu` and
-  `corpairs()`, and residual `rho12` remains separate.
-- Bivariate random slopes, random effects in `sigma1`/`sigma2` or `rho12`,
-  bivariate `meta_known_V()` plus random effects, and structured bivariate
-  covariance remain future work and are rejected before optimization.
+- Matching labelled random intercepts in `mu1`/`mu2` and `sigma1`/`sigma2`,
+  such as `(1 | p | id)` in both same-parameter formulas, now fit group-level
+  covariance blocks. The group-level SDs are reported in `sdpars$mu` or
+  `sdpars$sigma`, the group-level correlations are reported in `corpars$mu` or
+  `corpars$sigma` and `corpairs()`, and residual `rho12` remains separate.
+- Bivariate random slopes, random effects in `rho12`, bivariate
+  `meta_known_V()` plus random effects, cross-parameter bivariate covariance,
+  and structured bivariate covariance remain future work and are rejected
+  before optimization.
 
 ## Phase 4: Mixed and Double-Hierarchical Models
 
@@ -168,7 +169,8 @@ distributional regression models using TMB.
 - The first `corpairs()` extractor is implemented for currently fitted
   correlations only: residual `rho12`, ordinary group-level `mu` random-effect
   correlations, the univariate `mu`/`sigma` mean-scale random-intercept
-  correlation, and the bivariate `mu1`/`mu2` random-intercept correlation.
+  correlation, and the bivariate `mu1`/`mu2` and `sigma1`/`sigma2`
+  random-intercept correlations.
   Extend this table as new correlation likelihoods are added.
 - Stage structured phylogenetic and spatial slopes conservatively:
   intercept-only structured effects first, then one `mu` slope, then only small
@@ -355,10 +357,10 @@ remain blocked by future covariance or non-Gaussian random-effect work.
 ## Phase 11: Bivariate Random Effects and Correlation Pairs
 
 - Status: first slice implemented.
-- Matching labelled random intercepts in bivariate `mu1` and `mu2` are
-  implemented after the fixed-effect bivariate Gaussian location-coscale model
-  stabilized. Random slopes, residual-scale bivariate random effects, and
-  structured covariance remain planned.
+- Matching labelled random intercepts in bivariate `mu1`/`mu2` and
+  `sigma1`/`sigma2` are implemented after the fixed-effect bivariate Gaussian
+  location-coscale model stabilized. Random slopes, cross-parameter bivariate
+  covariance blocks, and structured covariance remain planned.
 - Use labelled group-level covariance blocks so residual `rho12`, ordinary
   group-level correlations, phylogenetic correlations, spatial field
   correlations, and mean-scale correlations stay in separate namespaces.
