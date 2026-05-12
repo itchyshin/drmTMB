@@ -44,6 +44,33 @@ new_profile_biv_group_data <- function(
   )
 }
 
+new_profile_mu_sigma_group_data <- function(
+  n_id = 18L,
+  n_each = 5L,
+  rho_group = 0.4,
+  seed = 20260612
+) {
+  set.seed(seed)
+  id <- factor(rep(seq_len(n_id), each = n_each))
+  n <- length(id)
+  x <- stats::rnorm(n)
+  z <- stats::rnorm(n)
+  z_mu <- stats::rnorm(n_id)
+  z_sigma <- stats::rnorm(n_id)
+  b_mu <- 0.45 * z_mu
+  b_sigma <- 0.25 * (rho_group * z_mu + sqrt(1 - rho_group^2) * z_sigma)
+  data.frame(
+    y = stats::rnorm(
+      n,
+      mean = 0.2 + 0.5 * x + b_mu[id],
+      sd = exp(log(0.55) + 0.18 * z + b_sigma[id])
+    ),
+    x = x,
+    z = z,
+    id = id
+  )
+}
+
 new_profile_group_data <- function(n_id = 18, n_each = 5, seed = 20260591) {
   set.seed(seed)
   n <- n_id * n_each
@@ -834,6 +861,83 @@ test_that("profile target inventory separates random-effect SDs and correlations
   )
 })
 
+test_that("profile target inventory covers univariate mu/sigma covariance labels", {
+  dat <- new_profile_mu_sigma_group_data()
+  fit <- drmTMB(
+    bf(y ~ x + (1 | p | id), sigma ~ z + (1 | p | id)),
+    family = gaussian(),
+    data = dat,
+    control = list(eval.max = 250, iter.max = 250)
+  )
+
+  targets <- profile_targets(fit)
+  ready_targets <- profile_targets(fit, ready_only = TRUE)
+  mu_sigma_parms <- c(
+    "sd:mu:(1 | p | id)",
+    "sd:sigma:(1 | p | id)",
+    "cor:mu_sigma:cor(mu:(Intercept),sigma:(Intercept) | p | id)"
+  )
+  mu_sigma_targets <- targets[match(mu_sigma_parms, targets$parm), ]
+
+  expect_equal(mu_sigma_targets$parm, mu_sigma_parms)
+  expect_equal(
+    mu_sigma_targets$target_class,
+    c(
+      "random-effect-sd",
+      "random-effect-sd",
+      "random-effect-correlation"
+    )
+  )
+  expect_equal(mu_sigma_targets$dpar, c("mu", "sigma", "mu_sigma"))
+  expect_equal(
+    mu_sigma_targets$tmb_parameter,
+    c("log_sd_mu", "log_sd_sigma", "eta_cor_mu_sigma")
+  )
+  expect_equal(mu_sigma_targets$index, c(1L, 1L, 1L))
+  expect_equal(mu_sigma_targets$transformation, c("exp", "exp", "tanh"))
+  expect_equal(mu_sigma_targets$target_type, rep("direct", 3))
+  expect_true(all(mu_sigma_targets$profile_ready))
+  expect_equal(mu_sigma_targets$profile_note, rep("ready", 3))
+  expect_true(all(mu_sigma_parms %in% ready_targets$parm))
+  expect_false(any(targets$dpar == "rho12"))
+})
+
+test_that("confint profile intervals transform mu/sigma covariance targets", {
+  dat <- new_profile_mu_sigma_group_data(
+    n_id = 24L,
+    n_each = 8L,
+    rho_group = 0.2
+  )
+  fit <- drmTMB(
+    bf(y ~ x + (1 | p | id), sigma ~ z + (1 | p | id)),
+    family = gaussian(),
+    data = dat,
+    control = list(eval.max = 300, iter.max = 300)
+  )
+
+  cor_parm <- "cor:mu_sigma:cor(mu:(Intercept),sigma:(Intercept) | p | id)"
+  ci <- stats::confint(
+    fit,
+    parm = cor_parm,
+    level = 0.80,
+    method = "profile",
+    trace = FALSE,
+    ystep = 0.35
+  )
+  cor_hat <- unname(fit$corpars$mu_sigma[[1L]])
+
+  expect_equal(ci$parm, cor_parm)
+  expect_equal(ci$scale, "response")
+  expect_equal(ci$transformation, "tanh")
+  expect_equal(ci$tmb_parameter, "eta_cor_mu_sigma")
+  expect_equal(ci$index, 1L)
+  expect_equal(ci$method, "profile")
+  expect_true(all(is.finite(c(ci$lower, ci$upper))))
+  expect_true(all(abs(c(ci$lower, ci$upper)) < 1))
+  expect_lt(ci$lower, cor_hat)
+  expect_gt(ci$upper, cor_hat)
+})
+
 test_that("profile target inventory covers bivariate mu covariance labels", {
   dat <- new_profile_biv_group_data()
   fit <- drmTMB(
@@ -885,6 +989,43 @@ test_that("profile target inventory covers bivariate mu covariance labels", {
     "residual-correlation"
   )
   expect_false(any(rho12_targets$parm %in% biv_parms))
+})
+
+test_that("confint profile intervals transform bivariate mu covariance targets", {
+  dat <- new_profile_biv_group_data()
+  fit <- drmTMB(
+    bf(
+      mu1 = y1 ~ x + (1 | p | id),
+      mu2 = y2 ~ x + (1 | p | id),
+      sigma1 = ~1,
+      sigma2 = ~1,
+      rho12 = ~1
+    ),
+    family = biv_gaussian(),
+    data = dat
+  )
+
+  cor_parm <- "cor:mu:cor(mu1:(Intercept),mu2:(Intercept) | p | id)"
+  ci <- stats::confint(
+    fit,
+    parm = cor_parm,
+    level = 0.80,
+    method = "profile",
+    trace = FALSE,
+    ystep = 0.35
+  )
+  cor_hat <- unname(fit$corpars$mu[[1L]])
+
+  expect_equal(ci$parm, cor_parm)
+  expect_equal(ci$scale, "response")
+  expect_equal(ci$transformation, "tanh")
+  expect_equal(ci$tmb_parameter, "eta_cor_mu")
+  expect_equal(ci$index, 1L)
+  expect_equal(ci$method, "profile")
+  expect_true(all(is.finite(c(ci$lower, ci$upper))))
+  expect_true(all(abs(c(ci$lower, ci$upper)) < 1))
+  expect_lt(ci$lower, cor_hat)
+  expect_gt(ci$upper, cor_hat)
 })
 
 test_that("profile target inventory marks modelled group scales as derived", {

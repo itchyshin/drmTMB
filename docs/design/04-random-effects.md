@@ -15,8 +15,11 @@ the grammar must support them from the start.
    `sigma`.
 6. Random-effect scale formulae such as `sd(id) ~ x_group`. Implemented for
    one or more distinct unlabelled univariate Gaussian `mu` random intercepts.
-7. Slope-specific random-effect scale models, labelled-block scales, and
-   correlations among location and scale random effects when identifiable.
+7. Labelled location-scale random-intercept covariance blocks. Implemented for
+   matching univariate Gaussian `mu` and `sigma` intercept terms.
+8. Slope-specific random-effect scale models, labelled-block scale models, and
+   larger correlations among location and scale random effects when
+   identifiable.
 
 ## Initial Syntax
 
@@ -113,6 +116,32 @@ v_id ~ Normal(0, 1)
 It models residual-scale heterogeneity. It does not model the standard
 deviation of the `mu` random intercept.
 
+The first cross-formula covariance block is also implemented for matching
+labelled random intercepts:
+
+```r
+bf(
+  y ~ x1 + (1 | p | id),
+  sigma ~ x1 + (1 | p | id)
+)
+```
+
+This means:
+
+```text
+mu_i = X_mu[i, ] beta_mu + b_{id[i]}
+log(sigma_i) = X_sigma[i, ] beta_sigma + a_{id[i]}
+
+[b_j, a_j]' =
+  diag(sd_mu_id, sd_sigma_id) L_p [u_j, v_j]'
+[u_j, v_j]' ~ Normal([0, 0]', I)
+cor(b_j, a_j) = rho_mu_sigma
+```
+
+The fitted correlation is reported under `corpars$mu_sigma` and `corpairs()`
+as `mean-scale`. It is a group-level association between individual average
+response and individual residual scale, not residual `rho12`.
+
 Random-effect scale formulae are implemented for the first simple case:
 
 ```r
@@ -155,11 +184,11 @@ Current implementation details:
   predictor, for independent slope terms;
 - ordinary correlated intercept-slope blocks are written as `(1 + x | id)` or
   `(1 + x | p | id)` and currently support one numeric slope;
-- labelled blocks are implemented only within univariate Gaussian `mu`; using
-  the same label for cross-formula or cross-parameter covariance-block support
-  is reserved for later;
-- residual `sigma` random effects are limited to unlabelled random intercepts
-  such as `(1 | id)`;
+- labelled blocks are implemented within univariate Gaussian `mu`, and the
+  first matching labelled `mu`/`sigma` random-intercept covariance block is
+  implemented for syntax such as `(1 | p | id)` in both formulas;
+- residual `sigma` random effects are limited to random intercepts; labelled
+  `sigma` intercepts require a matching labelled `mu` intercept in this phase;
 - random-effect scale formulae are implemented for one or more distinct
   unlabelled Gaussian `mu` random intercepts, such as `sd(id) ~ x_group` and
   `sd(site) ~ site_type`;

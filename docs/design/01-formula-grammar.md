@@ -60,6 +60,7 @@ In this table, "coscale" means a model for residual correlation, currently
 | `y ~ x1`, `sigma ~ x2`, `hu ~ x3`, `family = truncated_nbinom2()` | Implemented | Fixed-effect hurdle NB2 model; `hu` is the hurdle-zero probability and nonzero counts come from the zero-truncated NB2 component. |
 | `(1 | id)`, `(0 + x1 | id)`, `(1 + x1 | id)` in `mu` | Implemented | Ordinary Gaussian location random effects; one-slope correlated blocks may be labelled as `(1 + x1 | p | id)`. |
 | `(1 | id)` in `sigma` | Implemented | Residual-scale random intercept. |
+| `(1 | p | id)` in both `mu` and `sigma` | Implemented | First univariate location-scale covariance slice: matching labelled random intercepts create one mean-scale group-level correlation. |
 | `sd(id) ~ x_group` | Implemented | Random-effect scale model for one or more distinct unlabelled Gaussian `mu` random intercepts. |
 | `meta_known_V(V = V)` | Implemented | Known diagonal, block-diagonal, or dense sampling covariance with `family = gaussian()`; bivariate Gaussian known `V` uses a complete-row `2n` by `2n` row-paired matrix. |
 | `mu1`, `mu2`, `sigma1`, `sigma2`, `rho12` | Implemented for fixed effects | Bivariate Gaussian location-coscale model with predictor-dependent residual correlation. |
@@ -235,9 +236,10 @@ The same one-slope block may carry a covariance-block label:
 bf(y ~ x1 + (1 + x1 | p | id), sigma ~ x1)
 ```
 
-For this first labelled implementation, `p` is metadata for naming and future
-covariance-block matching. It is not looked up in `data`, and it does not yet
-share covariance across `mu`, `sigma`, `mu1`, or `mu2` formulas.
+For labelled `mu` intercept-slope blocks, `p` is metadata for naming and
+future covariance-block matching. It is not looked up in `data`. Matching
+labelled `mu` and `sigma` random intercepts use the same label to fit the
+first cross-formula mean-scale covariance block.
 
 The group-level intercept-slope correlation is extracted as `corpars$mu`, not
 as residual `rho12`.
@@ -254,6 +256,17 @@ bf(y ~ x1 + (1 | id), sigma ~ x1 + (1 | id))
 
 This models group-to-group variation in residual `sigma_i`. It is not a
 random-effect scale formula such as `sd(id) ~ x1`.
+
+Matching labelled random intercepts in `mu` and `sigma` fit one group-level
+mean-scale covariance block:
+
+```r
+bf(y ~ x1 + (1 | p | id), sigma ~ x1 + (1 | p | id))
+```
+
+The fitted correlation is reported under `corpars$mu_sigma` and in
+`corpairs()` as a `mean-scale` row. It describes whether group deviations in
+the mean and residual scale are associated.
 
 The distinction is:
 
@@ -487,8 +500,8 @@ Not every parameter should accept random effects at the same development stage.
 | Parameter class | Random effects policy |
 |---|---|
 | `mu`, `mu1`, `mu2` | Yes for univariate Gaussian `mu`; random intercepts, independent numeric random slopes, and labelled or unlabelled ordinary correlated intercept-slope blocks are implemented. For bivariate Gaussian models, matching labelled random intercepts in `mu1` and `mu2`, such as `(1 | p | id)` in both formulas, are implemented. Bivariate random slopes are later. |
-| `sigma`, `sigma1`, `sigma2` | Yes for univariate Gaussian `sigma` random intercepts only, written as `sigma ~ x + (1 | id)`. Residual-scale random slopes, labelled `sigma` blocks, bivariate `sigma1`/`sigma2` random effects, and non-Gaussian scale random effects are later. |
-| `sd(group)` | Implemented for one or more distinct unlabelled univariate Gaussian `mu` random intercepts, such as `sd(id) ~ x_group` and `sd(site) ~ site_type`; predictors must be constant within group after missing-row filtering. Labelled blocks, slopes, `sigma` random-effect scales, bivariate models, and non-Gaussian models are later. |
+| `sigma`, `sigma1`, `sigma2` | Yes for univariate Gaussian `sigma` random intercepts. Unlabelled terms such as `sigma ~ x + (1 | id)` are independent scale effects; matching labelled `mu` and `sigma` intercepts such as `(1 | p | id)` fit the first mean-scale covariance block. Residual-scale random slopes, bivariate `sigma1`/`sigma2` random effects, and non-Gaussian scale random effects are later. |
+| `sd(group)` | Implemented for one or more distinct unlabelled univariate Gaussian `mu` random intercepts, such as `sd(id) ~ x_group` and `sd(site) ~ site_type`; predictors must be constant within group after missing-row filtering. Labelled scale targets, slopes, `sigma` random-effect scales, bivariate models, and non-Gaussian models are later. |
 | `rho12` | No random effects initially; predictor-dependent fixed effects only. |
 | `nu`; future `tau` | Fixed effects first; random effects only after simulations show identifiability. `tau` is reserved for a possible second shape parameter and is not current syntax. |
 | `zi`, `hu`, `zoi`, `coi` | Fixed effects first; random effects later only for high-value use cases. |

@@ -2,6 +2,359 @@
 
 Record meaningful development checks here.
 
+## 2026-05-12 -- Mu/sigma sigma prediction contribution test
+
+Scope:
+
+- added a deterministic fitted-data prediction regression test for univariate
+  Gaussian `mu`/`sigma` covariance models with both a matched labelled
+  `mu`/`sigma` random-intercept block and an independent unlabelled `sigma`
+  random-intercept block;
+- checked that `sigma_random_effect_contribution()` equals the manual row-wise
+  contribution from fitted `sigma` random effects and random-effect design
+  values;
+- checked that `predict(fit, dpar = "sigma", type = "link")` equals the fixed
+  sigma linear predictor plus that random-effect contribution, and that
+  `stats::sigma(fit)` is its response-scale exponentiation.
+
+Checks:
+
+- `air format tests/testthat/test-gaussian-random-intercepts.R`: passed.
+- `Rscript -e "devtools::test(filter = 'gaussian-random-intercepts')"`:
+  passed with 216 expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript -e "devtools::test(filter = 'gaussian-random-intercepts|check-drm|profile-targets|summary|phylo-utils')"`:
+  passed with 631 expectations, 0 failures, 0 warnings, and 0 skips.
+- `rg -n 'sigma_random_effect_contribution|predict\([^\n]*dpar = "sigma"|mu/sigma covariance|mu/sigma' R tests README.md ROADMAP.md NEWS.md docs vignettes`:
+  reviewed prediction and covariance wording touched by the claim; no
+  source-doc changes needed for this test-only guard.
+- `rg -n 'rho12|sigma1|sigma2|sd\(' README.md ROADMAP.md docs/design docs/dev-log/known-limitations.md vignettes R tests/testthat/test-gaussian-random-intercepts.R`:
+  reviewed correlation terminology around `rho12` and group-level covariance;
+  no stale wording introduced.
+
+## 2026-05-12 -- Mu/sigma joint objective comparator
+
+Scope:
+
+- added a hand-coded R joint negative log-likelihood comparator for the
+  univariate Gaussian `mu`/`sigma` covariance path;
+- compared TMB's full fixed-plus-random objective at `last.par.best` with the
+  independent R calculation for a model containing both a matched labelled
+  `mu`/`sigma` block and an independent unlabelled `sigma` block;
+- kept this as test-only hardening without changing likelihood or parser code.
+
+Checks:
+
+- First attempt with a tiny 5-group fixture did not converge reliably and used
+  the wrong full-vector parameter extraction path; revised to a 12-group
+  deterministic fixture and split `last.par.best` by TMB parameter names.
+- `air format tests/testthat/test-gaussian-random-intercepts.R`: passed.
+- `Rscript -e "devtools::test(filter = 'gaussian-random-intercepts')"`:
+  passed with 212 expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript -e "devtools::test(filter = 'gaussian-random-intercepts|check-drm|profile-targets|summary|phylo-utils')"`:
+  passed with 627 expectations, 0 failures, 0 warnings, and 0 skips.
+
+## 2026-05-12 -- Mu/sigma sigma-effect transform regression test
+
+Scope:
+
+- added a deterministic regression test for the internal
+  `transform_sigma_random_effects()` path used by fitted univariate
+  `mu`/`sigma` covariance blocks;
+- checked that only matched labelled `sigma` random-effect rows use
+  `rho * u_mu + sqrt(1 - rho^2) * u_sigma`;
+- checked that an independent unlabelled `sigma` random-intercept block remains
+  independent in the same model specification.
+
+Checks:
+
+- `air format tests/testthat/test-gaussian-random-intercepts.R`: passed.
+- `Rscript -e "devtools::test(filter = 'gaussian-random-intercepts')"`:
+  passed with 210 expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript -e "devtools::test(filter = 'gaussian-random-intercepts|check-drm|profile-targets|summary|phylo-utils')"`:
+  passed with 625 expectations, 0 failures, 0 warnings, and 0 skips.
+
+## 2026-05-12 -- Focused covariance branch recovery validation
+
+Scope:
+
+- reran the focused validation surface for the current univariate `mu`/`sigma`
+  covariance and covariance-profile branch after adding the recovery checkpoint
+  tool;
+- covered fit/parser behaviour, `check_drm()` diagnostics, manual phylogenetic
+  TMB fixture compatibility, profile target rows, direct profile intervals, and
+  summary covariance rows;
+- did not change package implementation code.
+
+Checks:
+
+- `Rscript -e "devtools::test(filter = 'gaussian-random-intercepts|check-drm|profile-targets|summary|phylo-utils')"`:
+  passed with 621 expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript -e "devtools::test()"`: passed with 1899 expectations, 0 failures,
+  0 warnings, and 0 skips.
+
+## 2026-05-12 -- Codex recovery checkpoint tool
+
+Scope:
+
+- added `tools/codex-checkpoint.R`, a base-R recovery helper that captures
+  branch/status, changed tracked files, untracked files, diff stat, current
+  `HEAD`, newest check-log entries, newest after-task reports, and restart
+  commands in one compact Markdown file;
+- documented the recovery command in `AGENTS.md` so future long Codex runs can
+  checkpoint before fragile handoffs or after stream failures;
+- wrote a current durable checkpoint to
+  `docs/dev-log/recovery-checkpoints/2026-05-12-codex-stream-failure-recovery.md`;
+- kept the current covariance/profile implementation untouched.
+
+Checks:
+
+- First smoke run of `Rscript tools/codex-checkpoint.R --stdout --goal "Smoke test recovery checkpoint" --next "Inspect git status" --sections 2`:
+  failed with an invalid regular expression in the path-shortening helper.
+  Replaced the regex trim with a simpler `startsWith()`-based path trim.
+- `Rscript tools/codex-checkpoint.R --stdout --goal "Smoke test recovery checkpoint" --next "Inspect git status" --sections 2`:
+  passed and printed the expected branch/status, changed files, diff stat,
+  newest check-log entries, newest after-task reports, and recovery commands.
+- `Rscript tools/codex-checkpoint.R --output docs/dev-log/recovery-checkpoints/2026-05-12-codex-stream-failure-recovery.md --goal "Recover from repeated Codex compaction or stream failures during the current covariance-profile branch" --next "Review this checkpoint, rerun git status and git diff, then preserve a commit boundary or run focused validation" --sections 4`:
+  passed and wrote the checkpoint file.
+- `air format tools/codex-checkpoint.R`: passed.
+- `Rscript -e "invisible(parse(file = 'tools/codex-checkpoint.R')); cat('parse ok\\n')"`:
+  passed.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- no package tests were rerun for this process-only tool;
+- the checkpoint records compact git/log evidence, not the full patch.
+
+## 2026-05-12 -- Profile covariance status docs alignment
+
+Scope:
+
+- aligned `docs/design/12-profile-likelihood-cis.md` with the implemented
+  direct covariance profile interval surface for the first univariate
+  `mu`/`sigma` and bivariate `mu1`/`mu2` random-intercept correlations;
+- updated `docs/design/28-double-hierarchical-endpoint.md` so direct covariance
+  profile intervals are partly implemented while derived covariance summaries
+  remain planned;
+- updated `ROADMAP.md`, `NEWS.md`, and `docs/dev-log/known-limitations.md` to
+  name direct covariance intervals through `confint(..., method = "profile")`
+  and `summary(conf.int = TRUE, method = "profile", ci_parm = ...)`;
+- kept residual `rho12`, group-level `mu_sigma`, and bivariate group-level `mu`
+  namespaces separate.
+
+Checks:
+
+- `air format docs/design/12-profile-likelihood-cis.md docs/design/28-double-hierarchical-endpoint.md ROADMAP.md NEWS.md docs/dev-log/known-limitations.md`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'summary|profile-targets')"`: passed
+  with 274 expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with no problems found.
+- `rg -n 'summary profile intervals remain planned|Profile-likelihood intervals for covariance summaries \| Planned|covariance summaries \| Planned|profile.*covariance.*Planned' docs/design/12-profile-likelihood-cis.md docs/design/28-double-hierarchical-endpoint.md ROADMAP.md NEWS.md docs/dev-log/known-limitations.md`:
+  found only the intentional derived-summary interval limitation in
+  `docs/design/12-profile-likelihood-cis.md`.
+- `rg -n 'direct covariance profile intervals|corpars\$mu_sigma|eta_cor_mu_sigma|summary\(conf.int = TRUE|Profile-likelihood intervals for covariance summaries \| Partly implemented|first fitted group-level covariance rows|derived summary profile intervals remain planned' docs/design/12-profile-likelihood-cis.md docs/design/28-double-hierarchical-endpoint.md ROADMAP.md NEWS.md docs/dev-log/known-limitations.md tests/testthat/test-summary.R tests/testthat/test-profile-targets.R`:
+  confirmed implemented-status wording, target parameter names, summary profile
+  path, and the remaining derived-summary boundary.
+- `LC_ALL=C rg -n '[^\x00-\x7F]' docs/design/12-profile-likelihood-cis.md docs/design/28-double-hierarchical-endpoint.md ROADMAP.md NEWS.md docs/dev-log/known-limitations.md`:
+  no matches.
+- `git diff --check`: passed.
+
+## 2026-05-12 -- Covariance profile intervals in summary
+
+Scope:
+
+- added focused `summary(conf.int = TRUE, method = "profile")` checks for the
+  implemented covariance rows already shown in `summary(fit)$parameters`;
+- checked that the univariate
+  `cor:mu_sigma:cor(mu:(Intercept),sigma:(Intercept) | p | id)` row receives
+  finite profile bounds around the fitted `corpars$mu_sigma` estimate;
+- checked that the bivariate
+  `cor:mu:cor(mu1:(Intercept),mu2:(Intercept) | p | id)` row receives finite
+  profile bounds around the fitted `corpars$mu` estimate;
+- kept the checks scoped to existing direct profile targets and left residual
+  `rho12` as a separate residual-correlation row.
+
+Checks:
+
+- `air format tests/testthat/test-summary.R`: passed.
+- `Rscript -e "devtools::test(filter = 'summary')"`: passed with 63
+  expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript -e "devtools::test(filter = 'summary|profile-targets')"`: passed
+  with 274 expectations, 0 failures, 0 warnings, and 0 skips.
+- `rg -n 'summary\(conf.int = TRUE|corpars\$mu_sigma|corpars\$mu|residual rho12|profile bounds|method = "profile"' tests/testthat/test-summary.R docs/dev-log/after-task/2026-05-12-covariance-profile-intervals-in-summary.md docs/dev-log/check-log.md`:
+  confirmed the summary profile path, covariance row estimates, residual-`rho12`
+  boundary wording, and check-log entry.
+- `git diff --check`: passed.
+
+## 2026-05-12 -- Bivariate mu covariance profile interval
+
+Scope:
+
+- added a focused `confint(..., method = "profile")` regression test for the
+  implemented bivariate `mu1`/`mu2` random-intercept covariance slice;
+- checked that
+  `cor:mu:cor(mu1:(Intercept),mu2:(Intercept) | p | id)` profiles on
+  `eta_cor_mu`, reports a response-scale `tanh` interval, and keeps the
+  interval finite, bounded inside `(-1, 1)`, and surrounding the fitted
+  `corpars$mu` estimate;
+- kept this separate from residual `rho12`, which remains a residual
+  bivariate correlation target.
+
+Checks:
+
+- `air format tests/testthat/test-profile-targets.R`: passed.
+- `Rscript -e "devtools::test(filter = 'profile-targets')"`: passed with 211
+  expectations, 0 failures, 0 warnings, and 0 skips.
+- `rg -n 'confint profile intervals transform bivariate mu|eta_cor_mu|corpars\$mu|residual rho12' tests/testthat/test-profile-targets.R docs/dev-log/after-task/2026-05-12-bivariate-mu-profile-interval.md docs/dev-log/check-log.md`:
+  confirmed the new bivariate interval test, optimized TMB parameter name,
+  fitted `corpars$mu` check, and residual-`rho12` boundary wording.
+- `git diff --check`: passed.
+
+## 2026-05-12 -- Mu/sigma covariance profile interval
+
+Scope:
+
+- added a focused `confint(..., method = "profile")` regression test for the
+  implemented univariate `mu`/`sigma` random-intercept covariance slice;
+- checked that
+  `cor:mu_sigma:cor(mu:(Intercept),sigma:(Intercept) | p | id)` profiles on
+  `eta_cor_mu_sigma`, reports a response-scale `tanh` interval, and keeps the
+  interval finite, bounded inside `(-1, 1)`, and surrounding the fitted
+  `corpars$mu_sigma` estimate;
+- kept this as test-only coverage of the existing direct profile target rather
+  than changing profiling code.
+
+Checks:
+
+- `air format tests/testthat/test-profile-targets.R`: passed.
+- `Rscript -e "devtools::test(filter = 'profile-targets')"`: passed with 201
+  expectations, 0 failures, 0 warnings, and 0 skips.
+- `rg -n 'confint profile intervals transform mu/sigma|eta_cor_mu_sigma|corpars\$mu_sigma|residual rho12' tests/testthat/test-profile-targets.R docs/dev-log/after-task/2026-05-12-mu-sigma-profile-interval.md docs/dev-log/check-log.md`:
+  confirmed the new interval test, optimized TMB parameter name, fitted
+  `corpars$mu_sigma` check, and residual-`rho12` boundary wording.
+- `git diff --check`: passed.
+
+## 2026-05-12 -- Mu/sigma covariance profile-target rows
+
+Scope:
+
+- added a focused `profile_targets()` regression test for the implemented
+  univariate `mu`/`sigma` random-intercept covariance slice;
+- checked direct targets for `sd:mu:(1 | p | id)`,
+  `sd:sigma:(1 | p | id)`, and
+  `cor:mu_sigma:cor(mu:(Intercept),sigma:(Intercept) | p | id)`;
+- checked TMB parameter names, target indices, transformations, target type,
+  profile readiness, and absence of residual `rho12` targets in the
+  one-response model.
+
+Checks:
+
+- `air format tests/testthat/test-profile-targets.R`: passed.
+- `Rscript -e "devtools::test(filter = 'profile-targets')"`: passed with 191
+  expectations, 0 failures, 0 warnings, and 0 skips.
+
+## 2026-05-12 -- Mu/sigma covariance rows in summary
+
+Scope:
+
+- added a focused `summary()` regression test for the implemented univariate
+  `mu`/`sigma` random-intercept covariance slice;
+- checked that `summary(fit)$parameters` reports `sd:mu:(1 | p | id)`,
+  `sd:sigma:(1 | p | id)`, and
+  `cor:mu_sigma:cor(mu:(Intercept),sigma:(Intercept) | p | id)` as
+  random-effect rows;
+- checked that the group-level `mu`/`sigma` correlation stays separate from
+  residual `rho12`.
+
+Checks:
+
+- `air format tests/testthat/test-summary.R`: passed.
+- `Rscript -e "devtools::test(filter = 'summary')"`: passed with 53
+  expectations, 0 failures, 0 warnings, and 0 skips.
+
+## 2026-05-12 -- Mu/sigma covariance check_drm diagnostic
+
+Scope:
+
+- added a `mu_sigma_random_effect_covariance` row to `check_drm()` for
+  univariate Gaussian fits with the labelled `mu`/`sigma` random-intercept
+  covariance block;
+- the diagnostic reports group count, minimum fitted group replication,
+  singleton-group count, fitted `mu` SD relative to mean residual `sigma`, and
+  fitted `sigma` random-effect SD on the log-scale;
+- the diagnostic returns `note` when any group has fewer than two fitted
+  observations or either component SD is tiny on its interpretation scale;
+- updated `NEWS.md`, `R/check.R`, `man/check_drm.Rd`,
+  `tests/testthat/test-check-drm.R`, and
+  `docs/design/16-phylo-spatial-common-math.md`.
+
+Checks:
+
+- `air format R/check.R tests/testthat/test-check-drm.R NEWS.md docs/design/16-phylo-spatial-common-math.md`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'check-drm')"`: passed with 96
+  expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript -e "devtools::document()"`: passed and regenerated
+  `man/check_drm.Rd`.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with no problems found.
+- `rg -n 'mu_sigma_random_effect_covariance|mu/sigma.*diagnostic|mean-scale covariance diagnostics|bivariate `mu1`/`mu2` random-intercept covariance diagnostics|check_drm\(\).*mu.*sigma' R/check.R tests/testthat/test-check-drm.R NEWS.md docs/design docs/dev-log/known-limitations.md vignettes README.md ROADMAP.md man/check_drm.Rd`:
+  confirmed the new diagnostic row, tests, NEWS, and generated reference docs.
+- `rg -n 'component SD|interpretation scale|univariate .*mu.*sigma|mean-scale covariance block|mu/sigma group-level covariance|mu/sigma covariance' R/check.R man/check_drm.Rd docs/design/16-phylo-spatial-common-math.md tests/testthat/test-check-drm.R NEWS.md`:
+  confirmed the diagnostic wording and design note describe the same
+  intercept-only mean-scale covariance slice.
+
+## 2026-05-12 -- Univariate mu/sigma covariance bridge
+
+Scope:
+
+- implemented the first univariate Gaussian cross-formula covariance block for
+  matching labelled `mu` and `sigma` random intercepts such as
+  `bf(y ~ x + (1 | p | id), sigma ~ z + (1 | p | id))`;
+- added `eta_cor_mu_sigma` plus explicit TMB data vectors that map only the
+  matched labelled `sigma` latent rows to their corresponding `mu` latent rows;
+- exposed the fitted mean-scale correlation in `corpars$mu_sigma`,
+  `corpairs()` rows with `class = "mean-scale"`, and `profile_targets()`;
+- added simulation-style recovery checks, malformed-input checks, and a
+  regression test where an independent unlabelled `sigma` random intercept
+  coexists with the labelled `mu`/`sigma` covariance block;
+- updated README, roadmap, formula-grammar, random-effect, coscale, endpoint,
+  known-limitations, and generated Rd docs to describe the implemented
+  intercept-only slice without claiming general covariance support;
+- fixed the hand-built phylogenetic-prior TMB test fixture so it supplies the
+  new dummy `n_mu_sigma_re_cors`, `sigma_re_cross_cor`,
+  `sigma_re_cross_mu`, and `eta_cor_mu_sigma` fields.
+
+Checks:
+
+- `Rscript -e "devtools::document()"`: passed and regenerated
+  `man/drmTMB.Rd` and `man/corpairs.Rd`.
+- `air format R/drmTMB.R R/methods.R tests/testthat/test-gaussian-random-intercepts.R src/drmTMB.cpp NEWS.md README.md ROADMAP.md docs/design/01-formula-grammar.md docs/design/04-random-effects.md docs/design/17-correlated-random-effect-blocks.md docs/design/20-coscale-correlation-pairs.md docs/design/28-double-hierarchical-endpoint.md docs/dev-log/known-limitations.md vignettes/formula-grammar.Rmd`:
+  passed.
+- `air format docs/design/01-formula-grammar.md vignettes/location-scale.Rmd`:
+  passed after stale-wording cleanup.
+- `air format tests/testthat/test-phylo-utils.R`: passed after updating the
+  manual TMB fixture.
+- `Rscript -e "devtools::test(filter = 'gaussian-random-intercepts')"`:
+  passed with 206 expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript -e "devtools::test(filter = 'gaussian-random-intercepts|corpairs|profile-targets')"`:
+  passed with 427 expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript -e "devtools::test(filter = 'phylo-utils')"`: passed with 45
+  expectations, 0 failures, 0 warnings, and 0 skips after the full-suite
+  fixture failure exposed the missing dummy TMB fields.
+- `Rscript -e "devtools::test()"`: first run failed in
+  `test-phylo-utils.R` because the hand-built TMB data fixture did not include
+  the new `n_mu_sigma_re_cors` field; after the fixture update, the rerun
+  passed with 1835 expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with no problems found.
+- `Rscript -e "for (x in c('formula-grammar', 'location-scale')) pkgdown::build_article(x)"`:
+  passed and wrote `articles/formula-grammar.html` and
+  `articles/location-scale.html`.
+- `rg -n 'labelled `sigma` blocks|sigma random intercepts only|share covariance across `mu`, `sigma`|Matching labelled.*future|Cross-formula covariance blocks \| Planned' README.md ROADMAP.md docs/design docs/dev-log/known-limitations.md vignettes man`:
+  no matches after cleanup.
+- `rg -n 'Labelled covariance blocks are not implemented|cross-formula covariance blocks \| Planned|cross-formula.*future work|same label.*future|mu/sigma.*planned|mean-scale.*planned|residual-scale random-effect covariance blocks\. Started|corpars\$mu_sigma|rho ~|meta_gaussian\(|tau ~|meta_known_V\([^V]' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes R tests man`:
+  found only intentional current-status strings and established guardrails for
+  `rho ~`, `meta_gaussian()`, `tau ~`, and `meta_known_V()`.
+
 ## 2026-05-12 -- Bivariate covariance rows in summary
 
 Scope:

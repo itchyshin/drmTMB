@@ -85,9 +85,12 @@ Type objective_function<Type>::operator()()
   DATA_IVECTOR(mu_re_pair_index);
   DATA_IVECTOR(mu_re_sd_row);
   DATA_INTEGER(n_sigma_re_terms);
+  DATA_INTEGER(n_mu_sigma_re_cors);
   DATA_IMATRIX(sigma_re_index);
   DATA_MATRIX(sigma_re_value);
   DATA_IVECTOR(sigma_re_term);
+  DATA_IVECTOR(sigma_re_cross_cor);
+  DATA_IVECTOR(sigma_re_cross_mu);
   DATA_INTEGER(has_phylo_mu);
   DATA_IVECTOR(phylo_mu_node_index);
   DATA_SPARSE_MATRIX(Q_phylo);
@@ -107,6 +110,7 @@ Type objective_function<Type>::operator()()
   PARAMETER_VECTOR(u_mu);
   PARAMETER_VECTOR(log_sd_mu);
   PARAMETER_VECTOR(eta_cor_mu);
+  PARAMETER_VECTOR(eta_cor_mu_sigma);
   PARAMETER_VECTOR(u_sigma);
   PARAMETER_VECTOR(log_sd_sigma);
   PARAMETER_VECTOR(u_phylo);
@@ -173,10 +177,21 @@ Type objective_function<Type>::operator()()
 
     if (n_sigma_re_terms > 0) {
       vector<Type> sd_sigma_re = exp(log_sd_sigma);
+      vector<Type> rho_mu_sigma_re(n_mu_sigma_re_cors);
+      for (int j = 0; j < n_mu_sigma_re_cors; ++j) {
+        rho_mu_sigma_re(j) = Type(0.999999) * tanh(eta_cor_mu_sigma(j));
+      }
       for (int i = 0; i < y.size(); ++i) {
         for (int j = 0; j < n_sigma_re_terms; ++j) {
           int idx = sigma_re_index(i, j);
-          log_sigma(i) += sigma_re_value(i, j) * sd_sigma_re(sigma_re_term(idx)) * u_sigma(idx);
+          Type u_cond = u_sigma(idx);
+          int cross_cor_id = sigma_re_cross_cor(idx);
+          if (cross_cor_id >= 0) {
+            Type rho = rho_mu_sigma_re(cross_cor_id);
+            int mu_idx = sigma_re_cross_mu(idx);
+            u_cond = rho * u_mu(mu_idx) + sqrt(Type(1.0) - rho * rho) * u_sigma(idx);
+          }
+          log_sigma(i) += sigma_re_value(i, j) * sd_sigma_re(sigma_re_term(idx)) * u_cond;
         }
       }
       for (int j = 0; j < u_sigma.size(); ++j) {
@@ -280,6 +295,16 @@ Type objective_function<Type>::operator()()
       REPORT(sd_sigma_re);
       ADREPORT(log_sd_sigma);
       ADREPORT(sd_sigma_re);
+      if (n_mu_sigma_re_cors > 0) {
+        vector<Type> rho_mu_sigma_re(n_mu_sigma_re_cors);
+        for (int j = 0; j < n_mu_sigma_re_cors; ++j) {
+          rho_mu_sigma_re(j) = Type(0.999999) * tanh(eta_cor_mu_sigma(j));
+        }
+        REPORT(eta_cor_mu_sigma);
+        REPORT(rho_mu_sigma_re);
+        ADREPORT(eta_cor_mu_sigma);
+        ADREPORT(rho_mu_sigma_re);
+      }
     }
   } else if (model_type == 3) {
     vector<Type> mu = X_mu * beta_mu;

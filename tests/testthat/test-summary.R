@@ -80,6 +80,81 @@ test_that("summary() reports residual rho12 on the response scale", {
   expect_equal(smry$parameters["rho12", "estimate"], unique(rho12(fit)))
 })
 
+test_that("summary() reports univariate mu/sigma covariance separately", {
+  set.seed(20260517)
+  n_id <- 22
+  n_each <- 6
+  id <- factor(rep(seq_len(n_id), each = n_each))
+  n <- length(id)
+  x <- stats::rnorm(n)
+  z <- stats::rnorm(n)
+  z_mu <- stats::rnorm(n_id)
+  z_sigma <- stats::rnorm(n_id)
+  rho_group <- 0.35
+  b_mu <- 0.5 * z_mu
+  b_sigma <- 0.25 * (rho_group * z_mu + sqrt(1 - rho_group^2) * z_sigma)
+  dat <- data.frame(id = id, x = x, z = z)
+  dat$y <- stats::rnorm(
+    n,
+    mean = 0.2 + 0.45 * x + b_mu[id],
+    sd = exp(log(0.55) + 0.18 * z + b_sigma[id])
+  )
+
+  fit <- drmTMB(
+    bf(y ~ x + (1 | p | id), sigma ~ z + (1 | p | id)),
+    family = gaussian(),
+    data = dat,
+    control = list(eval.max = 250, iter.max = 250)
+  )
+  smry <- summary(fit)
+
+  sd_mu <- "sd:mu:(1 | p | id)"
+  sd_sigma <- "sd:sigma:(1 | p | id)"
+  cor_mu_sigma <- "cor:mu_sigma:cor(mu:(Intercept),sigma:(Intercept) | p | id)"
+  expect_true(all(
+    c(sd_mu, sd_sigma, cor_mu_sigma) %in% rownames(smry$parameters)
+  ))
+  expect_false("rho12" %in% rownames(smry$parameters))
+  expect_equal(smry$parameters[sd_mu, "component"], "random-effect-sd")
+  expect_equal(smry$parameters[sd_sigma, "component"], "random-effect-sd")
+  expect_equal(
+    smry$parameters[cor_mu_sigma, "component"],
+    "random-effect-correlation"
+  )
+  expect_equal(smry$parameters[sd_mu, "estimate"], unname(fit$sdpars$mu[[1L]]))
+  expect_equal(
+    smry$parameters[sd_sigma, "estimate"],
+    unname(fit$sdpars$sigma[[1L]])
+  )
+  expect_equal(
+    smry$parameters[cor_mu_sigma, "estimate"],
+    unname(fit$corpars$mu_sigma[[1L]])
+  )
+  expect_equal(
+    smry$parameters[cor_mu_sigma, "term"],
+    names(fit$corpars$mu_sigma)[[1L]]
+  )
+  expect_false(grepl(
+    "rho12",
+    smry$parameters[cor_mu_sigma, "term"],
+    fixed = TRUE
+  ))
+
+  profiled <- summary(
+    fit,
+    conf.int = TRUE,
+    method = "profile",
+    ci_parm = cor_mu_sigma,
+    ystep = 0.35
+  )
+  cor_row <- profiled$parameters[cor_mu_sigma, ]
+  expect_equal(profiled$conf.method, "profile")
+  expect_true(is.finite(cor_row$conf.low))
+  expect_true(is.finite(cor_row$conf.high))
+  expect_lt(cor_row$conf.low, smry$parameters[cor_mu_sigma, "estimate"])
+  expect_gt(cor_row$conf.high, smry$parameters[cor_mu_sigma, "estimate"])
+})
+
 test_that("summary() separates bivariate group covariance from residual rho12", {
   set.seed(20260516)
   n_id <- 16
@@ -133,6 +208,20 @@ test_that("summary() separates bivariate group covariance from residual rho12", 
   expect_equal(smry$parameters["rho12", "estimate"], unique(rho12(fit)))
   expect_equal(smry$parameters[cor_mu, "term"], names(fit$corpars$mu)[[1L]])
   expect_false(grepl("rho12", smry$parameters[cor_mu, "term"], fixed = TRUE))
+
+  profiled <- summary(
+    fit,
+    conf.int = TRUE,
+    method = "profile",
+    ci_parm = cor_mu,
+    ystep = 0.35
+  )
+  cor_row <- profiled$parameters[cor_mu, ]
+  expect_equal(profiled$conf.method, "profile")
+  expect_true(is.finite(cor_row$conf.low))
+  expect_true(is.finite(cor_row$conf.high))
+  expect_lt(cor_row$conf.low, smry$parameters[cor_mu, "estimate"])
+  expect_gt(cor_row$conf.high, smry$parameters[cor_mu, "estimate"])
 })
 
 test_that("summary() reports fitted shape ranges", {

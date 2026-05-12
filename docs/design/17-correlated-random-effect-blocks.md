@@ -4,8 +4,9 @@ This note records the implemented design for ordinary correlated Gaussian `mu`
 random-effect blocks. The current implementation supports independent
 random-effect terms such as `(1 | id)` and `(0 + x | id)`, labelled random
 intercepts such as `(1 | p | id)`, one-slope ordinary correlated blocks such as
-`(1 + x | id)` or `(1 + x | p | id)`, and the first bivariate labelled
-`mu1`/`mu2` random-intercept covariance block.
+`(1 + x | id)` or `(1 + x | p | id)`, the first univariate labelled
+`mu`/`sigma` random-intercept covariance block, and the first bivariate
+labelled `mu1`/`mu2` random-intercept covariance block.
 
 ## User Grammar
 
@@ -57,7 +58,21 @@ This fits a group-level random-intercept correlation between the two response
 means. It is separate from residual `rho12`, which remains an
 observation-level response-response correlation.
 
-Later, the same label should support cross-formula or cross-parameter
+The same label now supports the first univariate cross-formula covariance
+slice when both formulas use matching random intercepts:
+
+```r
+bf(
+  mu = y ~ x + (1 | p | id),
+  sigma = ~ z + (1 | p | id)
+)
+```
+
+This fits a group-level mean-scale random-intercept correlation. It says
+whether groups with higher mean-model deviations also tend to have higher or
+lower residual scale.
+
+Later, the same label should support larger cross-formula or cross-parameter
 covariance:
 
 ```r
@@ -68,7 +83,7 @@ bf(
 ```
 
 In that later model, matching `p` labels will request a shared group-level
-covariance block.
+covariance block with slopes as well as intercepts.
 
 ## Symbolic Model
 
@@ -180,7 +195,8 @@ Still deferred:
 
 - `q > 2` blocks;
 - factor or multi-column random slopes;
-- correlated blocks spanning `mu` and `sigma`;
+- correlated blocks spanning `mu` and `sigma` beyond matching random
+  intercepts;
 - bivariate `mu1`/`mu2` random-slope covariance blocks;
 - bivariate `sigma1`/`sigma2` and cross-parameter covariance blocks;
 - phylogenetic and spatial correlated slope blocks.

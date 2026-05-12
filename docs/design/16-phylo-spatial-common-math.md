@@ -338,10 +338,12 @@ scale values, random-effect standard deviations near zero, `rho12` boundary
 warnings, Student-t `nu` boundary behaviour, known sampling covariance summaries
 including dense-matrix rank/conditioning, dense fixed-effect design size,
 ordinary random-effect replication, ordinary random-slope design variation, and
-phylogenetic species replication. For the first bivariate `mu1`/`mu2`
-random-intercept covariance block, it also reports group replication and
-whether either fitted group-level SD is tiny relative to the matching residual
-scale.
+phylogenetic species replication. For the first univariate `mu`/`sigma`
+mean-scale covariance block, it also reports group replication and whether
+either component SD is tiny on its interpretation scale. For the first
+bivariate `mu1`/`mu2` random-intercept covariance block, it reports group
+replication and whether either fitted group-level SD is tiny relative to the
+matching residual scale.
 Future structured-effect phases still need separability diagnostics for
 phylogenetic plus non-phylogenetic species effects and spatial field plus site
 or study effects.

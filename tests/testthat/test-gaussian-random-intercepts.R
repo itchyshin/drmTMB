@@ -168,6 +168,91 @@ new_gaussian_sigma_ri_data <- function(
   )
 }
 
+new_gaussian_mu_sigma_cov_data <- function(
+  n_id = 56,
+  n_each = 8,
+  sd_mu_id = 0.55,
+  sd_sigma_id = 0.32,
+  rho_mu_sigma = 0.45,
+  seed = 20260630
+) {
+  set.seed(seed)
+  n <- n_id * n_each
+  id <- factor(rep(seq_len(n_id), each = n_each))
+  x <- stats::rnorm(n)
+  z <- stats::rnorm(n)
+  u_mu_raw <- stats::rnorm(n_id)
+  u_sigma_raw <- rho_mu_sigma *
+    u_mu_raw +
+    sqrt(1 - rho_mu_sigma^2) * stats::rnorm(n_id)
+  b_mu <- sd_mu_id * u_mu_raw
+  b_sigma <- sd_sigma_id * u_sigma_raw
+  beta_mu <- c(`(Intercept)` = 0.25, x = 0.55)
+  beta_sigma <- c(`(Intercept)` = log(0.55), z = 0.22)
+  mu <- beta_mu[[1L]] + beta_mu[[2L]] * x + b_mu[id]
+  sigma <- exp(beta_sigma[[1L]] + beta_sigma[[2L]] * z + b_sigma[id])
+
+  list(
+    data = data.frame(
+      y = stats::rnorm(n, mean = mu, sd = sigma),
+      x = x,
+      z = z,
+      id = id
+    ),
+    beta_mu = beta_mu,
+    beta_sigma = beta_sigma,
+    sd_mu_id = sd_mu_id,
+    sd_sigma_id = sd_sigma_id,
+    rho_mu_sigma = rho_mu_sigma
+  )
+}
+
+gaussian_mu_sigma_joint_nll <- function(fit, par) {
+  spec <- fit$model
+  re_mu <- spec$random$mu
+  re_sigma <- spec$random$sigma
+  re_mu_sigma <- spec$random$mu_sigma
+  mu <- as.vector(spec$tmb_data$X_mu %*% par$beta_mu)
+  log_sigma <- as.vector(spec$tmb_data$X_sigma %*% par$beta_sigma)
+
+  if (re_mu$n_re > 0L) {
+    sd_mu <- exp(par$log_sd_mu)
+    for (i in seq_len(length(spec$data$y))) {
+      for (j in seq_len(re_mu$n_terms)) {
+        idx <- re_mu$index[[i, j]]
+        term <- re_mu$term_id0[[idx]] + 1L
+        mu[[i]] <- mu[[i]] +
+          re_mu$value[[i, j]] * sd_mu[[term]] * par$u_mu[[idx]]
+      }
+    }
+  }
+
+  if (re_sigma$n_re > 0L) {
+    sd_sigma <- exp(par$log_sd_sigma)
+    rho <- 0.999999 * tanh(par$eta_cor_mu_sigma)
+    for (i in seq_len(length(spec$data$y))) {
+      for (j in seq_len(re_sigma$n_terms)) {
+        idx <- re_sigma$index[[i, j]]
+        term <- re_sigma$term_id0[[idx]] + 1L
+        u_cond <- par$u_sigma[[idx]]
+        cross_cor <- re_mu_sigma$sigma_cross_cor_id0[[idx]] + 1L
+        if (cross_cor > 0L) {
+          mu_idx <- re_mu_sigma$sigma_cross_mu_index0[[idx]] + 1L
+          u_cond <- rho[[cross_cor]] *
+            par$u_mu[[mu_idx]] +
+            sqrt(1 - rho[[cross_cor]]^2) * par$u_sigma[[idx]]
+        }
+        log_sigma[[i]] <- log_sigma[[i]] +
+          re_sigma$value[[i, j]] * sd_sigma[[term]] * u_cond
+      }
+    }
+  }
+
+  -sum(stats::dnorm(par$u_mu, log = TRUE)) -
+    sum(stats::dnorm(par$u_sigma, log = TRUE)) -
+    sum(stats::dnorm(spec$data$y, mu, exp(log_sigma), log = TRUE))
+}
+
 test_that("Gaussian location models support random intercepts in mu", {
   sim <- new_gaussian_ri_data()
 
@@ -622,6 +707,217 @@ test_that("Gaussian mu and sigma random intercepts can coexist independently", {
   expect_true(all(stats::sigma(fit) > 0))
 })
 
+test_that("Gaussian mu/sigma labelled random-intercept covariance is fitted", {
+  sim <- new_gaussian_mu_sigma_cov_data()
+
+  fit <- drmTMB(
+    bf(y ~ x + (1 | p | id), sigma ~ z + (1 | p | id)),
+    family = gaussian(),
+    data = sim$data
+  )
+  pairs <- corpairs(fit)
+  targets <- profile_targets(fit)
+  mean_scale <- pairs[pairs$class == "mean-scale", , drop = FALSE]
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_named(fit$sdpars$mu, "(1 | p | id)")
+  expect_named(fit$sdpars$sigma, "(1 | p | id)")
+  expect_named(
+    fit$corpars$mu_sigma,
+    "cor(mu:(Intercept),sigma:(Intercept) | p | id)"
+  )
+  expect_lt(abs(unname(fit$sdpars$mu) - sim$sd_mu_id), 0.25)
+  expect_lt(abs(unname(fit$sdpars$sigma) - sim$sd_sigma_id), 0.22)
+  expect_lt(abs(unname(fit$corpars$mu_sigma) - sim$rho_mu_sigma), 0.35)
+  expect_equal(length(fit$random_effects$mu$values), nlevels(sim$data$id))
+  expect_equal(length(fit$random_effects$sigma$values), nlevels(sim$data$id))
+  expect_gt(
+    stats::sd(
+      predict(fit, dpar = "sigma", type = "link") -
+        as.vector(stats::model.matrix(~z, sim$data) %*% coef(fit, "sigma"))
+    ),
+    0.03
+  )
+  expect_equal(nrow(mean_scale), 1L)
+  expect_equal(mean_scale$level, "group")
+  expect_equal(mean_scale$group, "id")
+  expect_equal(mean_scale$block, "p")
+  expect_equal(mean_scale$from_dpar, "mu")
+  expect_equal(mean_scale$to_dpar, "sigma")
+  expect_equal(mean_scale$from_response, "y")
+  expect_equal(mean_scale$to_response, "y")
+  expect_equal(
+    mean_scale$estimate,
+    unname(fit$corpars$mu_sigma),
+    tolerance = 1e-12
+  )
+  expect_true(
+    "cor:mu_sigma:cor(mu:(Intercept),sigma:(Intercept) | p | id)" %in%
+      targets$parm
+  )
+})
+
+test_that("Gaussian mu/sigma covariance maps only the labelled sigma block", {
+  sim <- new_gaussian_mu_sigma_cov_data(n_id = 14, n_each = 5)
+  dat <- sim$data
+  dat$site <- factor(rep(seq_len(7), length.out = nrow(dat)))
+
+  spec <- drmTMB:::drm_build_gaussian_ls_spec(
+    bf(y ~ x + (1 | p | id), sigma ~ z + (1 | site) + (1 | p | id)),
+    data = dat,
+    env = environment(),
+    weights = NULL
+  )
+  sigma_labels <- spec$random$sigma$labels[spec$random$sigma$term_id0 + 1L]
+  labelled <- sigma_labels == "(1 | p | id)"
+
+  expect_true(any(labelled))
+  expect_true(any(!labelled))
+  expect_true(all(spec$random$mu_sigma$sigma_cross_cor_id0[!labelled] == -1L))
+  expect_true(all(spec$random$mu_sigma$sigma_cross_mu_index0[!labelled] == -1L))
+  expect_equal(unique(spec$random$mu_sigma$sigma_cross_cor_id0[labelled]), 0L)
+  expect_equal(
+    spec$tmb_data$sigma_re_cross_cor,
+    spec$random$mu_sigma$sigma_cross_cor_id0
+  )
+  expect_equal(
+    spec$tmb_data$sigma_re_cross_mu,
+    spec$random$mu_sigma$sigma_cross_mu_index0
+  )
+
+  fit <- drmTMB(
+    bf(y ~ x + (1 | p | id), sigma ~ z + (1 | site) + (1 | p | id)),
+    family = gaussian(),
+    data = dat
+  )
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_named(
+    fit$corpars$mu_sigma,
+    "cor(mu:(Intercept),sigma:(Intercept) | p | id)"
+  )
+  expect_equal(length(fit$sdpars$sigma), 2L)
+})
+
+test_that("Gaussian mu/sigma covariance transforms only matched sigma effects", {
+  sim <- new_gaussian_mu_sigma_cov_data(n_id = 4, n_each = 3)
+  dat <- sim$data
+  dat$site <- factor(rep(seq_len(3), length.out = nrow(dat)))
+  spec <- drmTMB:::drm_build_gaussian_ls_spec(
+    bf(y ~ x + (1 | p | id), sigma ~ z + (1 | site) + (1 | p | id)),
+    data = dat,
+    env = environment(),
+    weights = NULL
+  )
+
+  re_sigma <- spec$random$sigma
+  re_mu_sigma <- spec$random$mu_sigma
+  rho <- 0.4
+  par <- list(
+    u_mu = seq(-0.8, 0.7, length.out = spec$random$mu$n_re),
+    u_sigma = seq(0.9, -0.6, length.out = re_sigma$n_re),
+    log_sd_sigma = log(c(0.25, 0.55)),
+    eta_cor_mu_sigma = atanh(rho / 0.999999)
+  )
+
+  actual <- drmTMB:::transform_sigma_random_effects(
+    latent = par$u_sigma,
+    par = par,
+    re_sigma = re_sigma,
+    re_mu_sigma = re_mu_sigma
+  )
+  sigma_sd <- exp(par$log_sd_sigma[re_sigma$term_id0 + 1L])
+  expected <- sigma_sd * par$u_sigma
+  matched <- which(re_mu_sigma$sigma_cross_cor_id0 >= 0L)
+  unmatched <- which(re_mu_sigma$sigma_cross_cor_id0 < 0L)
+  mu_idx <- re_mu_sigma$sigma_cross_mu_index0[matched] + 1L
+  expected[matched] <- sigma_sd[matched] *
+    (rho * par$u_mu[mu_idx] + sqrt(1 - rho^2) * par$u_sigma[matched])
+
+  expect_length(matched, nlevels(dat$id))
+  expect_length(unmatched, nlevels(dat$site))
+  expect_equal(actual, expected)
+  expect_equal(
+    actual[unmatched],
+    sigma_sd[unmatched] * par$u_sigma[unmatched]
+  )
+})
+
+test_that("Gaussian mu/sigma covariance joint objective matches R nll", {
+  sim <- new_gaussian_mu_sigma_cov_data(n_id = 12, n_each = 5, seed = 20260631)
+  dat <- sim$data
+  dat$site <- factor(rep(seq_len(6), length.out = nrow(dat)))
+  fit <- drmTMB(
+    bf(y ~ x + (1 | p | id), sigma ~ z + (1 | site) + (1 | p | id)),
+    family = gaussian(),
+    data = dat,
+    control = list(eval.max = 500, iter.max = 500)
+  )
+  par <- split(
+    unname(fit$obj$env$last.par.best),
+    names(fit$obj$env$last.par.best)
+  )
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(
+    fit$obj$env$f(fit$obj$env$last.par.best),
+    gaussian_mu_sigma_joint_nll(fit, par),
+    tolerance = 1e-8
+  )
+})
+
+test_that("Gaussian mu/sigma covariance contributes to sigma predictions", {
+  sim <- new_gaussian_mu_sigma_cov_data(n_id = 12, n_each = 5, seed = 20260632)
+  dat <- sim$data
+  dat$site <- factor(rep(seq_len(6), length.out = nrow(dat)))
+  fit <- drmTMB(
+    bf(y ~ x + (1 | p | id), sigma ~ z + (1 | site) + (1 | p | id)),
+    family = gaussian(),
+    data = dat,
+    control = list(eval.max = 500, iter.max = 500)
+  )
+  re_sigma <- fit$model$random$sigma
+  contribution <- drmTMB:::sigma_random_effect_contribution(fit)
+  manual <- rowSums(
+    matrix(
+      fit$random_effects$sigma$values[re_sigma$index],
+      nrow = nrow(re_sigma$index)
+    ) *
+      re_sigma$value
+  )
+  fixed_sigma <- as.vector(
+    fit$model$tmb_data$X_sigma %*% coef(fit, "sigma")
+  )
+  sigma_link <- predict(fit, dpar = "sigma", type = "link")
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(contribution, manual)
+  expect_equal(sigma_link, fixed_sigma + contribution, tolerance = 1e-10)
+  expect_equal(stats::sigma(fit), exp(sigma_link), tolerance = 1e-10)
+})
+
+test_that("labelled sigma covariance needs a matching labelled mu intercept", {
+  sim <- new_gaussian_mu_sigma_cov_data(n_id = 8, n_each = 3)
+
+  expect_error(
+    drmTMB(
+      bf(y ~ x, sigma ~ z + (1 | p | id)),
+      family = gaussian(),
+      data = sim$data
+    ),
+    "matching labelled"
+  )
+
+  expect_error(
+    drmTMB(
+      bf(y ~ x + (1 + x | p | id), sigma ~ z + (1 | p | id)),
+      family = gaussian(),
+      data = sim$data
+    ),
+    "intercept-only"
+  )
+})
+
 test_that("Gaussian mu correlated blocks handle near-zero and negative correlations", {
   cases <- list(
     near_zero = list(rho = 0.02, seed = 20260516),
@@ -878,6 +1174,6 @@ test_that("unsupported random-effect cases fail clearly", {
   )
   expect_error(
     drmTMB(bf(y ~ x, sigma ~ (1 | p | id)), family = gaussian(), data = dat),
-    "Labelled covariance blocks"
+    "matching labelled"
   )
 })

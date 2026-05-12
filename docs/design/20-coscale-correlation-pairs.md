@@ -40,11 +40,12 @@ group-level random-effect correlation.
 
 The helper `corpairs(fit)` is implemented for fitted correlations that already
 exist: residual bivariate `rho12` summaries, ordinary univariate Gaussian `mu`
-random-effect correlations from `corpars$mu`, and the first bivariate
-`mu1`/`mu2` labelled random-intercept correlation. It is intentionally a
-reporting helper, not a new likelihood. Future rows can be added as
-phylogenetic, spatial, study-level, and richer double-hierarchical correlation
-likelihoods become implemented.
+random-effect correlations from `corpars$mu`, the first univariate labelled
+`mu`/`sigma` random-intercept covariance from `corpars$mu_sigma`, and the first
+bivariate `mu1`/`mu2` labelled random-intercept correlation. It is
+intentionally a reporting helper, not a new likelihood. Future rows can be
+added as phylogenetic, spatial, study-level, and richer double-hierarchical
+correlation likelihoods become implemented.
 
 ## Why Named Correlation Pairs Are Needed
 
@@ -192,8 +193,11 @@ display preference, because each layer answers a different biological question.
 4. Add bivariate group-level random intercept covariance blocks. Done for
    matching labelled `mu1`/`mu2` random intercepts.
 5. Add bivariate random intercept-slope covariance blocks.
-6. Add residual-scale random-effect covariance blocks.
-7. Add cross-parameter mean-scale covariance blocks.
+6. Add residual-scale random-effect covariance blocks. Still planned for
+   `sigma`-`sigma` and bivariate scale blocks; the current slice only lets a
+   labelled `sigma` intercept join a `mu`/`sigma` mean-scale block.
+7. Add cross-parameter mean-scale covariance blocks. Started for the
+   one-response labelled `mu`/`sigma` random-intercept bridge.
 8. Add bivariate phylogenetic covariance blocks with matching non-phylogenetic
    species or individual covariance blocks.
 9. Add spatial bivariate covariance blocks.

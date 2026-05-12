@@ -44,6 +44,21 @@ devtools::check()
 pkgdown::check_pkgdown()
 ```
 
+## Recovery Checkpoints
+
+For long Codex runs, stream failures, or handoffs, create a compact recovery
+checkpoint before continuing:
+
+```sh
+Rscript tools/codex-checkpoint.R --goal "current task" --next "next command or edit"
+```
+
+The script writes a Markdown snapshot under
+`docs/dev-log/recovery-checkpoints/` with git status, changed files, diff stat,
+the newest check-log evidence, newest after-task reports, and exact commands for
+the next agent to rerun. A checkpoint is only a handoff aid: repository state is
+authoritative, so always rerun `git status` and `git diff` before editing.
+
 ## Definition of Done
 
 A feature is done only when implementation, tests, documentation, examples,

@@ -169,9 +169,11 @@ planned after the fixed-effect likelihoods and simulations are stable.
 
 Residual `rho12` is a within-observation bivariate Gaussian correlation. It is
 not the same as a group-level correlation among individual intercepts, slopes,
-or residual-scale random effects. The first bivariate group-level correlation
-now fitted by `drmTMB` is the labelled `mu1`/`mu2` random-intercept correlation
-from matching terms such as `(1 | p | id)`.
+or residual-scale random effects. `drmTMB` now fits two first group-level
+covariance slices: a univariate labelled `mu`/`sigma` random-intercept
+correlation from matching `(1 | p | id)` terms, and a bivariate labelled
+`mu1`/`mu2` random-intercept correlation from matching terms such as
+`(1 | p | id)`.
 
 Full double-hierarchical individual-difference models are planned work. These
 models would jointly describe individual differences in average behaviour,

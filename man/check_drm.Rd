@@ -48,9 +48,12 @@ positive scale parameters, random-effect standard deviations near the lower
 boundary, bivariate residual-correlation \code{rho12} values near the boundary,
 Student-t \code{nu} boundary behaviour, known sampling covariance summaries, dense
 fixed-effect design size, random-effect replication, and random-slope design
-variation. If a bivariate Gaussian fit includes a matched labelled \code{mu1}/\code{mu2}
-random-intercept covariance block, \code{check_drm()} also reports group
-replication and whether either group-level SD is tiny relative to the
+variation. If a univariate Gaussian fit includes a matched labelled
+\code{mu}/\code{sigma} random-intercept covariance block, \code{check_drm()} also reports
+group replication and whether either component is tiny relative to its
+interpretation scale. If a bivariate Gaussian fit includes a matched
+labelled \code{mu1}/\code{mu2} random-intercept covariance block, \code{check_drm()} reports
+group replication and whether either group-level SD is tiny relative to the
 matching residual scale. If the fit was stored with
 \code{drm_control(keep_tmb_object = FALSE)}, the fixed-gradient check is reported
 as a note because the TMB automatic-differentiation object is not available.

@@ -123,12 +123,14 @@ distributional regression models using TMB.
   `(0 + x | id)`, and ordinary correlated intercept-slope blocks written as
   `(1 + x | id)` or `(1 + x | p | id)` are implemented for the univariate
   Gaussian location formula. Random intercepts in the residual `sigma` formula
-  are also implemented. Random-effect scale formulae are implemented for one or
-  more distinct unlabelled Gaussian `mu` random intercepts, such as
-  `sd(id) ~ x_group` and `sd(site) ~ site_type`. The bivariate Gaussian path
-  now fits matched labelled `mu1`/`mu2` random intercept covariance blocks.
-- Add cross-formula or cross-parameter covariance sharing for labelled blocks,
-  following `docs/design/17-correlated-random-effect-blocks.md`.
+  are also implemented, and matching labelled `mu`/`sigma` random intercepts
+  now fit the first univariate mean-scale covariance block. Random-effect scale
+  formulae are implemented for one or more distinct unlabelled Gaussian `mu`
+  random intercepts, such as `sd(id) ~ x_group` and `sd(site) ~ site_type`.
+  The bivariate Gaussian path now fits matched labelled `mu1`/`mu2` random
+  intercept covariance blocks.
+- Add larger cross-formula or cross-parameter covariance sharing for labelled
+  blocks, following `docs/design/17-correlated-random-effect-blocks.md`.
 - Use `docs/design/18-random-effect-scale-models.md` as the design contract:
   the implemented MVP targets one or more distinct unlabelled univariate
   Gaussian `mu` random intercepts, with group-level predictors, simulation
@@ -165,7 +167,8 @@ distributional regression models using TMB.
   level, group, block, distributional parameters, responses, and coefficients.
 - The first `corpairs()` extractor is implemented for currently fitted
   correlations only: residual `rho12`, ordinary group-level `mu` random-effect
-  correlations, and the bivariate `mu1`/`mu2` random-intercept correlation.
+  correlations, the univariate `mu`/`sigma` mean-scale random-intercept
+  correlation, and the bivariate `mu1`/`mu2` random-intercept correlation.
   Extend this table as new correlation likelihoods are added.
 - Stage structured phylogenetic and spatial slopes conservatively:
   intercept-only structured effects first, then one `mu` slope, then only small
@@ -211,13 +214,20 @@ distributional regression models using TMB.
   `confint(fit, parm = "rho12", method = "profile", newdata = grid)` profile
   row-specific response-scale `sigma` and residual-correlation values by
   profiling the fixed-effect linear predictor for each supplied row.
+- Direct covariance profile intervals are implemented for the first univariate
+  `mu`/`sigma` random-intercept correlation target and the first bivariate
+  `mu1`/`mu2` random-intercept correlation target. These intervals are available
+  through both `confint(..., method = "profile")` and
+  `summary(conf.int = TRUE, method = "profile", ci_parm = ...)`.
 - Extend profile-likelihood confidence intervals to additional direct TMB
   parameters such as other residual-scale parameters, ordinal cutpoints, and
   multi-row or custom contrasts beyond one `newdata` row at a time.
 - Use user-facing target names from the fitted object, for example
   `sd:mu:(1 | id)`, `sd:mu:phylo(1 | species)`,
-  `cor:mu:cor((Intercept),x | id)`, `fixef:rho12:(Intercept)`, and
-  `sigma` or `rho12`.
+  `cor:mu:cor((Intercept),x | id)`,
+  `cor:mu_sigma:cor(mu:(Intercept),sigma:(Intercept) | p | id)`,
+  `cor:mu:cor(mu1:(Intercept),mu2:(Intercept) | p | id)`,
+  `fixef:rho12:(Intercept)`, and `sigma` or `rho12`.
 - Prefer `TMB::tmbprofile()` plus `uniroot()` for one-dimensional intervals,
   because it warm-starts constrained optimizations and avoids wasteful grids.
 - Support linear combinations through TMB's `lincomb` machinery where possible.
@@ -388,8 +398,8 @@ remain blocked by future covariance or non-Gaussian random-effect work.
 ## Phase 13: Double-Hierarchical Derived Inference
 
 - Status: planned.
-- Build on Phase 6 direct-parameter profile intervals and Phase 11
-  correlation-pair models.
+- Build on Phase 6 direct-parameter profile intervals, including the first
+  covariance-row profile intervals, and Phase 11 correlation-pair models.
 - Add uncertainty for derived quantities that matter in complete
   individual-difference location-scale models: repeatability, phylogenetic
   signal, total variance, and correlations among individual differences in

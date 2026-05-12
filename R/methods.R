@@ -155,8 +155,9 @@ rho12.drmTMB <- function(
 #' `corpairs()` returns a long table of fitted correlation pairs from a
 #' `drmTMB` model. The first implementation reports correlations that are
 #' already fitted elsewhere: residual bivariate `rho12`, ordinary univariate
-#' group-level `mu` random-effect correlations, and matched bivariate
-#' `mu1`/`mu2` random-intercept covariance blocks from `corpars$mu`.
+#' group-level `mu` random-effect correlations, matched univariate `mu`/`sigma`
+#' random-intercept covariance blocks, and matched bivariate `mu1`/`mu2`
+#' random-intercept covariance blocks from `corpars`.
 #'
 #' The table is intentionally more explicit than `rho12()` or `corpars`
 #' because future double-hierarchical, phylogenetic, spatial, and study-level
@@ -484,6 +485,21 @@ random_correlation_class <- function(dpar, from_coef, to_coef, to_dpar = dpar) {
     }
     return("scale-slope")
   }
+  if (
+    (identical(from_family, "mu") && identical(to_family, "sigma")) ||
+      (identical(from_family, "sigma") && identical(to_family, "mu"))
+  ) {
+    if (from_intercept && to_intercept) {
+      return("mean-scale")
+    }
+    if (identical(from_family, "mu") && !from_intercept && to_intercept) {
+      return("slope-scale")
+    }
+    if (identical(from_family, "sigma") && from_intercept && !to_intercept) {
+      return("slope-scale")
+    }
+    return("mean-scale-slope")
+  }
   paste0(dpar, "-", dpar)
 }
 
@@ -499,7 +515,7 @@ bivariate_response_names <- function(object) {
 }
 
 univariate_response_name <- function(object, dpar) {
-  response_name_from_model_frame(object, dpar, fallback = NA_character_)
+  response_name_from_model_frame(object, "mu", fallback = NA_character_)
 }
 
 random_effect_response_name <- function(object, dpar) {

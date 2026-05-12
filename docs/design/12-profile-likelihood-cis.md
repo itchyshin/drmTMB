@@ -18,10 +18,15 @@ also be profiled as direct response-scale targets with names such as
 `rho12` depends on predictors, use `confint()` with `method = "profile"` and
 `newdata` to profile each supplied row. The corresponding `rho12` call profiles
 the fixed-effect linear predictor for that row and transforms the interval to
-the response scale. `profile_targets(fit)` lists fitted-object target names and
-readiness notes; row-specific `newdata` targets are generated at call time.
-Transformed ordinal, modelled group-SD, custom multi-row contrasts, and derived
-summary profile intervals remain planned.
+the response scale. The first direct covariance rows are also profile-ready:
+the univariate `mu`/`sigma` random-intercept correlation in `corpars$mu_sigma`
+and the bivariate `mu1`/`mu2` random-intercept correlation in `corpars$mu`.
+`summary(conf.int = TRUE, method = "profile", ci_parm = ...)` can attach these
+direct profile intervals to the same parameter rows shown in
+`summary(fit)$parameters`. `profile_targets(fit)` lists fitted-object target
+names and readiness notes; row-specific `newdata` targets are generated at call
+time. Transformed ordinal, modelled group-SD, custom multi-row contrasts, and
+derived summary profile intervals remain planned.
 
 The first implementation must therefore start from a stable target inventory,
 not from ad hoc parameter names in the C++ template. Public targets should be
@@ -37,6 +42,8 @@ sd:mu:(1 | id)
 sd:sigma:(1 | id)
 sd:mu:phylo(1 | species)
 cor:mu:cor((Intercept),x | id)
+cor:mu_sigma:cor(mu:(Intercept),sigma:(Intercept) | p | id)
+cor:mu:cor(mu1:(Intercept),mu2:(Intercept) | p | id)
 fixef:rho12:(Intercept)
 rho12
 ```
@@ -49,12 +56,12 @@ syntax such as `phylo(1 | species, tree = tree)`.
 
 Those names can then map internally to TMB parameters such as `beta_mu`,
 `beta_sigma`, `log_sd_mu`, `log_sd_sigma`, `log_sd_phylo`, `eta_cor_mu`,
-`beta_sd_mu`, and `beta_rho12`. The short `sigma`, `sigma1`, `sigma2`, and
-`rho12` targets are available only when the corresponding model formula is
-constant. Predictor-dependent scale and residual-correlation models expose
-their link-scale coefficients in `profile_targets(fit)` and support
-row-specific response-scale profiles through `newdata`; arbitrary contrasts
-remain planned.
+`eta_cor_mu_sigma`, `beta_sd_mu`, and `beta_rho12`. The short `sigma`,
+`sigma1`, `sigma2`, and `rho12` targets are available only when the
+corresponding model formula is constant. Predictor-dependent scale and
+residual-correlation models expose their link-scale coefficients in
+`profile_targets(fit)` and support row-specific response-scale profiles through
+`newdata`; arbitrary contrasts remain planned.
 
 ## Core Definition
 
@@ -137,6 +144,7 @@ log_sd_mu          -> sdpars$mu
 log_sd_sigma       -> sdpars$sigma
 log_sd_phylo       -> sdpars$mu["phylo(1 | species)"]
 eta_cor_mu         -> corpars$mu
+eta_cor_mu_sigma   -> corpars$mu_sigma
 beta_rho12         -> fixed effects in residual correlation formulae
 ```
 
@@ -259,11 +267,14 @@ coefficients on their link scales. Profile intervals must be requested by name
 because they can be slow. The profile path wraps `TMB::tmbprofile()` for ready
 fixed-effect, constant distributional-scale, ordinary random-effect SD,
 ordinary random-effect correlation, phylogenetic `mu` SD, constant residual
-`rho12`, bivariate Gaussian group-level `mu1`/`mu2` random-intercept SD and
-correlation target rows, and row-specific `newdata` profiles for
-predictor-dependent `sigma`, `sigma1`, `sigma2`, and `rho12`. Unsupported
-ordinal-transform, modelled group-SD, custom multi-row contrast, and
-derived-summary targets still fail before doing expensive optimization.
+`rho12`, univariate `mu`/`sigma` random-intercept covariance target rows,
+bivariate Gaussian group-level `mu1`/`mu2` random-intercept SD and correlation
+target rows, and row-specific `newdata` profiles for predictor-dependent
+`sigma`, `sigma1`, `sigma2`, and `rho12`. `summary(conf.int = TRUE, method =
+"profile")` reuses the same direct target table when `ci_parm` names one of
+these rows. Unsupported ordinal-transform, modelled group-SD, custom multi-row
+contrast, and derived-summary targets still fail before doing expensive
+optimization.
 
 The first fitted targets should be direct parameters in this order:
 
@@ -273,10 +284,12 @@ The first fitted targets should be direct parameters in this order:
    values;
 3. ordinary Gaussian random-effect SDs in `sdpars$mu`;
 4. ordinary Gaussian random-effect correlations in `corpars$mu`;
-5. bivariate Gaussian group-level `mu1`/`mu2` random-intercept SDs and
+5. univariate `mu`/`sigma` random-intercept SD and correlation rows, with the
+   fitted correlation in `corpars$mu_sigma`;
+6. bivariate Gaussian group-level `mu1`/`mu2` random-intercept SDs and
    correlations, still under the `mu` random-effect target namespace;
-6. phylogenetic `mu` SDs;
-7. ordinal cutpoints.
+7. phylogenetic `mu` SDs;
+8. ordinal cutpoints.
 
 Ordinal rows in the internal inventory currently refer to raw `theta_ord`
 parameters. A later user-facing interval table can add transformed cutpoint
@@ -302,6 +315,11 @@ the fitted object:
 ```r
 confint(fit, parm = "sd:mu:(1 | id)", method = "profile")
 confint(fit, parm = "sd:mu:(1 + x | p | id):x", method = "profile")
+confint(
+  fit,
+  parm = "cor:mu_sigma:cor(mu:(Intercept),sigma:(Intercept) | p | id)",
+  method = "profile"
+)
 confint(fit, parm = "sd:mu:mu1:(1 | p | id)", method = "profile")
 confint(
   fit,
@@ -334,6 +352,10 @@ Profile-likelihood support is done only when these checks exist:
 - `log_sd_phylo` profile intervals work for the implemented
   `phylo(1 | species, tree = tree)` path;
 - `eta_cor_mu` profile intervals transform to bounded group-level correlations;
+- `eta_cor_mu_sigma` profile intervals transform to bounded `mu`/`sigma`
+  group-level correlations;
+- `summary(conf.int = TRUE, method = "profile")` attaches finite bounds to
+  profile-ready direct covariance rows;
 - boundary SDs return one-sided intervals with `boundary = TRUE`;
 - a small diagnostic grid agrees with the `uniroot()` bounds in at least one
   simple model;

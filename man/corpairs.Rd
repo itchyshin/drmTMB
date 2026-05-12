@@ -37,8 +37,9 @@ and maximum over the fitted rows.
 \code{corpairs()} returns a long table of fitted correlation pairs from a
 \code{drmTMB} model. The first implementation reports correlations that are
 already fitted elsewhere: residual bivariate \code{rho12}, ordinary univariate
-group-level \code{mu} random-effect correlations, and matched bivariate
-\code{mu1}/\code{mu2} random-intercept covariance blocks from \code{corpars$mu}.
+group-level \code{mu} random-effect correlations, matched univariate \code{mu}/\code{sigma}
+random-intercept covariance blocks, and matched bivariate \code{mu1}/\code{mu2}
+random-intercept covariance blocks from \code{corpars}.
 }
 \details{
 The table is intentionally more explicit than \code{rho12()} or \code{corpars}
