@@ -2,6 +2,36 @@
 
 Record meaningful development checks here.
 
+## 2026-05-12 -- Bivariate group covariance bridge hygiene
+
+Scope:
+
+- added `group` and `block` filters to `corpairs()` for fitted group-level
+  covariance rows;
+- tightened the bivariate Gaussian `corpairs()` test so one fitted model must
+  expose residual `rho12` and group-level `mu1`/`mu2` correlation rows under
+  separate `level`, `group`, `block`, and `class` filters;
+- corrected the correlation-pair design note so the implemented extractor
+  example uses `level = "group"` and `class = "mean-mean"` rather than an
+  unimplemented `level = "ID"` filter;
+- added a bivariate-coscale tutorial snippet showing how to request residual
+  and group-level `corpairs()` rows separately;
+- kept this branch on the ordinary grouped bivariate covariance bridge, without
+  adding phylogenetic, spatial, or residual-scale bivariate covariance code.
+
+Checks:
+
+- `air format R/methods.R tests/testthat/test-biv-gaussian.R docs/design/20-coscale-correlation-pairs.md vignettes/bivariate-coscale.Rmd NEWS.md man/corpairs.Rd`:
+  passed.
+- `Rscript -e "devtools::document()"`: passed and regenerated
+  `man/corpairs.Rd`.
+- `Rscript -e "devtools::test(filter = 'biv-gaussian|corpairs')"`:
+  passed with 180 expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with no problems found.
+- `Rscript -e "pkgdown::build_article('bivariate-coscale')"`: passed.
+- `rg -n "level = \"ID\"|class = \"mean-scale\"|corpairs\\(fit, level|corpairs\\(fit, class" docs/design vignettes README.md ROADMAP.md tests/testthat`:
+  found only the corrected implemented examples and tests.
+
 ## 2026-05-11 -- Mammal location-coscale route
 
 Scope:

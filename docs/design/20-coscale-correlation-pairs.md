@@ -92,8 +92,10 @@ Implemented extractor:
 
 ```r
 corpairs(fit)
-corpairs(fit, level = "ID")
-corpairs(fit, class = "mean-scale")
+corpairs(fit, level = "group")
+corpairs(fit, group = "ID")
+corpairs(fit, block = "p")
+corpairs(fit, class = "mean-mean")
 ```
 
 The existing `rho12(fit)` helper should remain a narrow convenience extractor

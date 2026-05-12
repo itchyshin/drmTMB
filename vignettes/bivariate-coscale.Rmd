@@ -460,6 +460,17 @@ groups with higher average activity also tend to have higher average boldness.
 It is not `rho12_i`. The parameter `rho12_i` remains the observation-level
 residual correlation in `Omega_i`.
 
+After fitting this grouped model, `corpairs()` keeps the two correlation levels
+separate:
+
+```r
+corpairs(fit_group, level = "residual")
+corpairs(fit_group, level = "group", group = "ID", block = "p")
+```
+
+The first call returns the residual `rho12` row. The second returns the
+group-level mean-mean row for the labelled `mu1`/`mu2` random-intercept block.
+
 For this fitted block, `check_drm()` reports whether group levels are
 replicated and whether either group-level SD is tiny relative to the matching
 residual scale. A note there is not a proof that the model is wrong; it tells

@@ -199,6 +199,7 @@ test_that("bivariate Gaussian supports labelled mu1/mu2 random-intercept covaria
   )
   pairs <- corpairs(fit)
   group_pair <- pairs[pairs$level == "group", , drop = FALSE]
+  residual_pair <- pairs[pairs$level == "residual", , drop = FALSE]
 
   expect_s3_class(fit, "drmTMB")
   expect_equal(fit$opt$convergence, 0)
@@ -226,10 +227,26 @@ test_that("bivariate Gaussian supports labelled mu1/mu2 random-intercept covaria
   )
   expect_equal(group_pair$from_dpar, "mu1")
   expect_equal(group_pair$to_dpar, "mu2")
+  expect_equal(group_pair$group, "id")
+  expect_equal(group_pair$block, "p")
   expect_equal(group_pair$from_response, "y1")
   expect_equal(group_pair$to_response, "y2")
   expect_equal(group_pair$class, "mean-mean")
   expect_equal(group_pair$estimate, unname(fit$corpars$mu), tolerance = 1e-12)
+  expect_equal(residual_pair$from_dpar, "residual")
+  expect_equal(residual_pair$to_dpar, "residual")
+  expect_equal(residual_pair$parameter, "rho12")
+  expect_equal(residual_pair$class, "residual")
+  expect_equal(residual_pair$from_response, "y1")
+  expect_equal(residual_pair$to_response, "y2")
+  expect_equal(nrow(corpairs(fit, level = "group")), 1L)
+  expect_equal(nrow(corpairs(fit, level = "residual")), 1L)
+  expect_equal(nrow(corpairs(fit, class = "mean-mean")), 1L)
+  expect_equal(nrow(corpairs(fit, class = "residual")), 1L)
+  expect_equal(nrow(corpairs(fit, group = "id")), 1L)
+  expect_equal(nrow(corpairs(fit, block = "p")), 1L)
+  expect_equal(nrow(corpairs(fit, group = "missing")), 0L)
+  expect_equal(nrow(corpairs(fit, block = "missing")), 0L)
 })
 
 test_that("composed Gaussian family syntax routes to bivariate Gaussian", {
