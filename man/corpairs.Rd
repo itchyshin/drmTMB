@@ -7,7 +7,7 @@
 \usage{
 corpairs(object, ...)
 
-\method{corpairs}{drmTMB}(object, level = NULL, class = NULL, ...)
+\method{corpairs}{drmTMB}(object, level = NULL, group = NULL, block = NULL, class = NULL, ...)
 }
 \arguments{
 \item{object}{A \code{drmTMB} fit.}
@@ -16,6 +16,14 @@ corpairs(object, ...)
 
 \item{level}{Optional character vector of correlation levels to keep, such
 as \code{"residual"} or \code{"group"}.}
+
+\item{group}{Optional character vector of grouping factors to keep, such as
+\code{"id"}. Residual rows have no grouping factor and are removed by this
+filter.}
+
+\item{block}{Optional character vector of covariance-block labels to keep,
+such as \code{"p"}. Residual rows have no block label and are removed by this
+filter.}
 
 \item{class}{Optional character vector of pair classes to keep, such as
 \code{"residual"} or \code{"mean-slope"}.}

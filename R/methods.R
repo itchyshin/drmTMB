@@ -165,6 +165,12 @@ rho12.drmTMB <- function(
 #' @param object A `drmTMB` fit.
 #' @param level Optional character vector of correlation levels to keep, such
 #'   as `"residual"` or `"group"`.
+#' @param group Optional character vector of grouping factors to keep, such as
+#'   `"id"`. Residual rows have no grouping factor and are removed by this
+#'   filter.
+#' @param block Optional character vector of covariance-block labels to keep,
+#'   such as `"p"`. Residual rows have no block label and are removed by this
+#'   filter.
 #' @param class Optional character vector of pair classes to keep, such as
 #'   `"residual"` or `"mean-slope"`.
 #' @param ... Reserved for future extractor options.
@@ -212,7 +218,14 @@ corpairs <- function(object, ...) {
 
 #' @rdname corpairs
 #' @export
-corpairs.drmTMB <- function(object, level = NULL, class = NULL, ...) {
+corpairs.drmTMB <- function(
+  object,
+  level = NULL,
+  group = NULL,
+  block = NULL,
+  class = NULL,
+  ...
+) {
   rows <- list()
 
   if ("rho12" %in% names(object$coefficients)) {
@@ -241,6 +254,12 @@ corpairs.drmTMB <- function(object, level = NULL, class = NULL, ...) {
 
   if (!is.null(level)) {
     out <- out[out$level %in% level, , drop = FALSE]
+  }
+  if (!is.null(group)) {
+    out <- out[out$group %in% group, , drop = FALSE]
+  }
+  if (!is.null(block)) {
+    out <- out[out$block %in% block, , drop = FALSE]
   }
   if (!is.null(class)) {
     out <- out[out$class %in% class, , drop = FALSE]
