@@ -11,8 +11,8 @@ the grammar must support them from the start.
    Gaussian `mu` as separate uncorrelated terms.
 4. Ordinary correlated random intercept-slope blocks in location. Implemented
    for univariate Gaussian `mu`, with optional covariance-block labels.
-5. Random intercepts in residual scale. Implemented for univariate Gaussian
-   `sigma`.
+5. Random intercepts and independent numeric random slopes in residual scale.
+   Implemented for univariate Gaussian `sigma`.
 6. Random-effect scale formulae such as `sd(id) ~ x_group`. Implemented for
    one or more distinct unlabelled univariate Gaussian `mu` random intercepts.
 7. Labelled location-scale random-intercept covariance blocks. Implemented for
@@ -96,21 +96,23 @@ In the current univariate Gaussian `mu` implementation, `p` is retained in
 output names and future design metadata. It does not yet create covariance
 sharing across `mu`, `sigma`, `mu1`, or `mu2` formulas.
 
-Residual-scale random intercepts are implemented in `sigma`:
+Residual-scale random intercepts and independent numeric random slopes are
+implemented in `sigma`:
 
 ```r
 bf(
   y ~ x1 + (1 | id),
-  sigma ~ x1 + (1 | id)
+  sigma ~ x1 + (1 | id) + (0 + w | id)
 )
 ```
 
 This means:
 
 ```text
-log(sigma_i) = X_sigma[i, ] beta_sigma + a_{id[i]}
+log(sigma_i) = X_sigma[i, ] beta_sigma + a_{id[i]} + w_i c_{id[i]}
 a_id = sd_sigma_id * v_id
-v_id ~ Normal(0, 1)
+c_id = sd_sigma_w * q_id
+v_id, q_id ~ Normal(0, 1)
 ```
 
 It models residual-scale heterogeneity. It does not model the standard
@@ -187,8 +189,9 @@ Current implementation details:
 - labelled blocks are implemented within univariate Gaussian `mu`, and the
   first matching labelled `mu`/`sigma` random-intercept covariance block is
   implemented for syntax such as `(1 | p | id)` in both formulas;
-- residual `sigma` random effects are limited to random intercepts; labelled
-  `sigma` intercepts require a matching labelled `mu` intercept in this phase;
+- residual `sigma` random effects support random intercepts and independent
+  numeric random slopes; labelled `sigma` intercepts require a matching
+  labelled `mu` intercept in this phase;
 - random-effect scale formulae are implemented for one or more distinct
   unlabelled Gaussian `mu` random intercepts, such as `sd(id) ~ x_group` and
   `sd(site) ~ site_type`;

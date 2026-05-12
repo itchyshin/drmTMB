@@ -544,6 +544,7 @@ coupled after their means and residual SDs have been modelled.
 |---|---|---|
 | `sigma ~ x` | `log(sigma_i) = X_sigma[i, ] beta_sigma` | Does `x` change residual SD? |
 | `sigma ~ x + (1 | id)` | `log(sigma_i) = X_sigma[i, ] beta_sigma + a_id[i]` | Do groups differ in residual SD? |
+| `sigma ~ x + (0 + w | id)` | `log(sigma_i) = X_sigma[i, ] beta_sigma + w_i a_id[i]` | Do groups differ in how `w` changes residual SD? |
 | `y ~ x + (1 | id)` | `mu_i = X_mu[i, ] beta_mu + b_id[i]` | Do groups differ in mean response? |
 | `sd(id) ~ x_group` | `log(sd_mu_id,j) = W_id[j, ] alpha_id` | Does `x_group` change among-group SD in the mean model? |
 | `weights = w` | `logLik = sum_i w_i log f(y_i | theta_i)` | Should row `i` contribute more or less to the likelihood? |
@@ -654,6 +655,7 @@ Current implemented Gaussian syntax covers:
 - `y ~ x + (1 + x | id)` and `(1 + x | p | id)` for one-slope correlated
   `mu` blocks;
 - `sigma ~ x + (1 | id)` for residual-scale random intercepts;
+- `sigma ~ x + (0 + w | id)` for independent residual-scale random slopes;
 - `sd(id) ~ x_group` and multiple distinct `sd(group) ~ x_group` formulas for
   standard deviations of unlabelled Gaussian `mu` random intercepts;
 - bivariate fixed-effect `rho12 ~ x` with `family = c(gaussian(), gaussian())`;
@@ -663,7 +665,7 @@ Current implemented Gaussian syntax covers:
 Current planned but not implemented syntax includes:
 
 - slope-specific and labelled-block random-effect scale models;
-- residual-scale random slopes in `sigma`;
+- correlated residual-scale slope blocks in `sigma`;
 - bivariate random slopes and residual-scale random effects;
 - cross-formula covariance sharing from repeated labels such as
   `(1 + x | p | id)`;

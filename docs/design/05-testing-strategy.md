@@ -120,10 +120,11 @@ Recovery tests should show that fitted `rho12` targets the residual covariance
 component after the known sampling covariance has been added, not the sampling
 correlation supplied in `V`.
 
-Residual-scale random intercept tests stay separate from random-effect scale
+Residual-scale random-effect tests stay separate from random-effect scale
 tests. `sigma ~ z + (1 | id)` checks group-to-group variation in residual
-scale, whereas `sd(id) ~ z_group` checks predictors of a `mu` random-effect
-standard deviation.
+scale, `sigma ~ z + (0 + w | id)` checks group-specific residual-scale slopes,
+whereas `sd(id) ~ z_group` checks predictors of a `mu` random-effect standard
+deviation.
 
 ## Random-Effect Scale Formula Tests
 

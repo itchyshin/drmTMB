@@ -14,7 +14,7 @@ it does not yet fit the complete double-hierarchical covariance model.
 |---|---|---|
 | Univariate Gaussian location-scale fixed effects | Implemented | `bf(y ~ x, sigma ~ z)` |
 | Univariate Gaussian `mu` random intercepts and simple slopes | Implemented | `(1 | id)`, `(0 + x | id)`, `(1 + x | id)` |
-| Residual-scale random intercepts | Implemented | `sigma ~ x + (1 | id)` |
+| Residual-scale random intercepts and independent slopes | Implemented | `sigma ~ x + (1 | id) + (0 + w | id)` |
 | Random-effect scale models for `mu` intercept SDs | Implemented | `sd(id) ~ x_group` |
 | Bivariate Gaussian residual coscale | Implemented | `rho12 ~ x` |
 | `corpairs()` for fitted correlations | Partly implemented | residual `rho12`, ordinary `mu` intercept-slope correlations, first `mu`/`sigma` mean-scale row |

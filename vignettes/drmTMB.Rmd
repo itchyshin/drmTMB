@@ -17,8 +17,9 @@ if (!"package:drmTMB" %in% search()) {
 `drmTMB` is being developed as a model-first package: the documentation should
 pair symbolic equations with the R syntax that fits them. The current
 implementation includes Gaussian location-scale models with fixed effects,
-location random effects, residual-scale random intercepts, and group-level
-random-effect scale formulae such as `sd(id) ~ x_group`. It also includes
+location random effects, residual-scale random intercepts and independent
+random slopes, and group-level random-effect scale formulae such as
+`sd(id) ~ x_group`. It also includes
 fixed-effect Student-t, lognormal, Gamma, beta, Poisson, zero-inflated Poisson,
 NB2, and zero-inflated NB2 models, known-covariance Gaussian meta-analysis,
 intercept-only phylogenetic Gaussian location effects, and fixed-effect
@@ -145,7 +146,7 @@ At a high level, the current public surface is:
 | --- | --- | --- |
 | Gaussian location-scale fixed effects | implemented | "When variance carries signal" |
 | Gaussian `mu` random intercepts and one-slope blocks | implemented | "When variance carries signal" |
-| residual-scale random intercepts | implemented | "Which scale are you modelling?" |
+| residual-scale random intercepts and independent slopes | implemented | "Which scale are you modelling?" |
 | unlabelled Gaussian `mu` random-intercept SD formulas | implemented | "Which scale are you modelling?" |
 | fixed-effect non-Gaussian families | implemented | "Choosing response families" |
 | Gaussian meta-analysis with known sampling covariance | implemented | "Mean effects and residual heterogeneity in meta-analysis" |

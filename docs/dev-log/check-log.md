@@ -10408,3 +10408,53 @@ Known limitations:
 - this slice covers the target inventory and direct target mapping, not a
   separate long-running profile-interval simulation study for the bivariate
   group-level covariance parameters.
+
+## 2026-05-12 -- Independent residual-scale sigma random slopes
+
+Goal:
+
+- add the next small double-hierarchical Gaussian slice by allowing univariate
+  Gaussian `sigma` formulas to include independent numeric random slopes such
+  as `sigma ~ z + (0 + w | id)`.
+
+Implemented:
+
+- extended `parse_random_sigma_term()` so unlabelled `(0 + w | id)` terms are
+  accepted and routed through the existing independent sigma random-effect
+  design path;
+- kept correlated residual-scale slope blocks such as `(1 + w | id)` and
+  labelled sigma slope covariance blocks such as `(0 + w | p | id)` rejected
+  with phase-specific errors;
+- added a deterministic Gaussian simulation test that checks optimizer
+  convergence, fitted sigma SD naming, random-effect contribution variation,
+  `predict(..., dpar = "sigma", type = "link")`, and `sigma(fit)`;
+- updated formula grammar, likelihood, random-effect, Gaussian math, roadmap,
+  known-limitations, README, NEWS, and vignette status text to describe the new
+  implemented boundary.
+
+Checks run:
+
+- `air format R/drmTMB.R tests/testthat/test-gaussian-random-intercepts.R NEWS.md README.md ROADMAP.md docs/design/01-formula-grammar.md docs/design/02-family-registry.md docs/design/03-likelihoods.md docs/design/04-random-effects.md docs/design/05-testing-strategy.md docs/design/13-gaussian-location-scale-math.md docs/design/16-phylo-spatial-common-math.md docs/design/18-random-effect-scale-models.md docs/design/28-double-hierarchical-endpoint.md docs/dev-log/known-limitations.md vignettes/drmTMB.Rmd vignettes/formula-grammar.Rmd vignettes/location-scale.Rmd vignettes/model-map.Rmd vignettes/which-scale.Rmd`:
+  passed.
+- `Rscript -e "devtools::document()"`: passed and regenerated
+  `man/drmTMB.Rd`.
+- `Rscript -e "devtools::test(filter = 'gaussian-random-intercepts')"`:
+  passed with 225 expectations.
+- `Rscript -e "devtools::test(filter = 'gaussian-random-intercepts|check-drm|profile-targets|summary|phylo-utils')"`:
+  passed with 640 expectations.
+- `Rscript -e "devtools::test()"`: passed with 1918 expectations.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with no problems found.
+- `git diff --check`: passed.
+
+Consistency searches:
+
+- `rg -n "Only random intercepts|only random intercepts|random slopes are planned|Residual-scale random slopes are planned|limited to random intercepts|sigma random effects are limited|residual-scale random effects are limited" README.md ROADMAP.md NEWS.md docs vignettes R tests man`
+- `rg -n "residual-scale random intercepts|independent.*random slopes|labelled residual-scale random-slope|correlated residual-scale" README.md ROADMAP.md NEWS.md docs vignettes R tests man`
+- `rg -n "sigma ~[^\\n]*(0 \\+|1 \\|)|rho12|sd\\(" README.md ROADMAP.md docs vignettes R tests`
+
+Known limitations:
+
+- sigma slope terms are independent residual-scale effects only;
+- correlated residual-scale intercept-slope blocks remain planned;
+- labelled `mu`/`sigma` slope covariance remains planned;
+- bivariate `sigma1`/`sigma2` random effects remain planned.

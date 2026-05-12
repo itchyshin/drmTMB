@@ -121,25 +121,25 @@ mu_i = X_mu[i, ] beta_mu + sum_j z_j[i] sd_j u_{j, g_j[i]}
 where `z_j[i] = 1` for `(1 | group)` and `z_j[i] = x_i` for
 `(0 + x | group)`.
 
-## Residual-Scale Random Intercepts
+## Residual-Scale Random Effects
 
-For observation `i` in group `g[i]`, residual-scale random intercepts enter the
-log residual standard deviation:
+For observation `i` in group `g[i]`, residual-scale random intercepts and
+independent numeric random slopes enter the log residual standard deviation:
 
 ```text
 y_i | mu_i, sigma_i, a_g[i] ~ Normal(mu_i, sigma_i^2)
 mu_i = X_mu[i, ] beta_mu
-log(sigma_i) = X_sigma[i, ] beta_sigma + a_g[i]
-a_g = sd_sigma_group * v_g
-v_g ~ Normal(0, 1)
-sd_sigma_group = exp(theta_sigma_group)
+log(sigma_i) = X_sigma[i, ] beta_sigma + sum_j z_j[i] a_{j, g_j[i]}
+a_jg = sd_sigma_j * v_jg
+v_jg ~ Normal(0, 1)
+sd_sigma_j = exp(theta_sigma_j)
 ```
 
 Matching R syntax:
 
 ```r
 drmTMB(
-  bf(y ~ x1 + (1 | id), sigma ~ x2 + (1 | id)),
+  bf(y ~ x1 + (1 | id), sigma ~ x2 + (1 | id) + (0 + w | id)),
   family = gaussian(),
   data = dat
 )
@@ -322,9 +322,9 @@ Current R-side objects:
 - `random_effects$mu` maps to the location random-effect design.
 - `model$random$mu$value` maps to the random-effect design value `z_j[i]`.
 - `random_effects$sigma` maps to residual-scale random-effect conditional
-  modes when the `sigma` formula contains `(1 | group)`.
-- `model$random$sigma$value` is currently `1` for implemented residual-scale
-  random intercepts.
+  modes when the `sigma` formula contains `(1 | group)` or `(0 + w | group)`.
+- `model$random$sigma$value` maps to the residual-scale random-effect design
+  value, such as `1` for intercepts or `w_i` for independent slopes.
 - `model$random_scale$mu$X` maps to the group-level `W_group` matrix for
   implemented `sd(group)` formulas.
 - `sdpars` reports group-level standard deviations. For `sd(id) ~ x_group`,
@@ -341,7 +341,7 @@ Current TMB-side objects:
 - `beta_sd_mu` estimates `alpha_group` for implemented `sd(group)` formulas.
 - `u_mu` is integrated by the Laplace approximation.
 - `log_sd_sigma` estimates `log(sd_sigma_group)` for each implemented
-  residual-scale random-intercept term.
+  residual-scale random-intercept or independent random-slope term.
 - `u_sigma` is integrated by the Laplace approximation and added to
   `log(sigma_i)`.
 

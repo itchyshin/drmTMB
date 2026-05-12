@@ -168,6 +168,40 @@ new_gaussian_sigma_ri_data <- function(
   )
 }
 
+new_gaussian_sigma_rs_data <- function(
+  n_id = 42,
+  n_each = 8,
+  sd_sigma_slope = 0.38,
+  seed = 20260633
+) {
+  set.seed(seed)
+  n <- n_id * n_each
+  id <- factor(rep(seq_len(n_id), each = n_each))
+  x <- stats::rnorm(n)
+  z <- stats::rnorm(n)
+  w <- rep(seq(-1, 1, length.out = n_each), n_id) +
+    stats::rnorm(n, sd = 0.08)
+  a_slope <- stats::rnorm(n_id, sd = sd_sigma_slope)
+  a_slope <- a_slope - mean(a_slope)
+  beta_mu <- c(`(Intercept)` = 0.2, x = 0.6)
+  beta_sigma <- c(`(Intercept)` = log(0.55), z = 0.24)
+  mu <- beta_mu[[1L]] + beta_mu[[2L]] * x
+  sigma <- exp(beta_sigma[[1L]] + beta_sigma[[2L]] * z + a_slope[id] * w)
+
+  list(
+    data = data.frame(
+      y = stats::rnorm(n, mean = mu, sd = sigma),
+      x = x,
+      z = z,
+      w = w,
+      id = id
+    ),
+    beta_mu = beta_mu,
+    beta_sigma = beta_sigma,
+    sd_sigma_slope = sd_sigma_slope
+  )
+}
+
 new_gaussian_mu_sigma_cov_data <- function(
   n_id = 56,
   n_each = 8,
@@ -617,6 +651,29 @@ test_that("Gaussian sigma supports residual-scale random intercepts", {
   expect_lt(abs(unname(fit$sdpars$sigma) - sim$sd_sigma_id), 0.30)
   expect_true(all(stats::sigma(fit) > 0))
   expect_false(any(grepl("rho12", names(fit$sdpars$sigma), fixed = TRUE)))
+})
+
+test_that("Gaussian sigma supports independent residual-scale random slopes", {
+  sim <- new_gaussian_sigma_rs_data()
+
+  fit <- drmTMB(
+    bf(y ~ x, sigma ~ z + (0 + w | id)),
+    family = gaussian(),
+    data = sim$data,
+    control = list(eval.max = 500, iter.max = 500)
+  )
+  fixed_sigma <- as.vector(
+    fit$model$tmb_data$X_sigma %*% coef(fit, "sigma")
+  )
+  sigma_link <- predict(fit, dpar = "sigma", type = "link")
+  contribution <- drmTMB:::sigma_random_effect_contribution(fit)
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_named(fit$sdpars$sigma, "(0 + w | id)")
+  expect_equal(length(fit$random_effects$sigma$values), nlevels(sim$data$id))
+  expect_gt(stats::sd(contribution), 0.03)
+  expect_equal(sigma_link, fixed_sigma + contribution, tolerance = 1e-10)
+  expect_equal(stats::sigma(fit), exp(sigma_link), tolerance = 1e-10)
 })
 
 test_that("Gaussian sigma random intercepts handle boundary and large scale heterogeneity", {
@@ -1168,9 +1225,28 @@ test_that("unsupported random-effect cases fail clearly", {
     drmTMB(bf(y ~ x + (1 + x | rho12 | id)), family = gaussian(), data = dat),
     "reserved distributional parameter"
   )
+  expect_no_error(
+    drmTMB(bf(y ~ x, sigma ~ (0 + x | id)), family = gaussian(), data = dat)
+  )
   expect_error(
-    drmTMB(bf(y ~ x, sigma ~ (0 + x | id)), family = gaussian(), data = dat),
-    "Only random intercepts"
+    drmTMB(bf(y ~ x, sigma ~ (1 + x | id)), family = gaussian(), data = dat),
+    "Only independent residual-scale random slopes"
+  )
+  expect_error(
+    drmTMB(
+      bf(y ~ x, sigma ~ (0 + x | p | id)),
+      family = gaussian(),
+      data = dat
+    ),
+    "Labelled residual-scale random-slope covariance blocks"
+  )
+  expect_error(
+    drmTMB(
+      bf(y ~ x, sigma ~ (0 + group_label | id)),
+      family = gaussian(),
+      data = dat
+    ),
+    "must be numeric"
   )
   expect_error(
     drmTMB(bf(y ~ x, sigma ~ (1 | p | id)), family = gaussian(), data = dat),
