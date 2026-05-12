@@ -28,6 +28,28 @@ Each major tutorial should include:
    coefficients.
 7. A short note on what the model does not estimate.
 
+## Guide Versus Tutorial Split
+
+The pkgdown site should keep orientation guides separate from worked
+tutorials. A guide helps the reader decide what model surface is implemented,
+which parameter name to use, and which article to read next. A tutorial fits a
+model from data, prints output, and interprets the result.
+
+The current top-level article groups are:
+
+- Getting Started: installation, first model, and the learning path.
+- Model Guides: status maps, parameter-scale vocabulary, family choice,
+  post-fit workflow, and large-data advice.
+- Tutorials: worked analyses for location-scale, robust continuous responses,
+  bivariate residual `rho12`, meta-analysis, and structured dependence.
+- Developer Notes: formula grammar, family implementation, likelihood testing,
+  and source-map material.
+
+This split keeps "Tutorials" from becoming a mixed drawer of status maps,
+reference pages, and worked examples. When a page mostly answers "can I fit
+this and what should I read next?", put it under Model Guides. When it answers
+"how do I fit and interpret this analysis?", put it under Tutorials.
+
 ## Immediate Tutorial Priorities
 
 - Location-scale Gaussian: variance as biological signal, not nuisance.
@@ -38,6 +60,25 @@ Each major tutorial should include:
   diagonal, block-diagonal, and dense row-paired covariance examples.
 - Phylogenetic location effects: ultrametric tree input, sparse A-inverse route,
   and the distinction between residual and structured correlations.
+
+## Candidate Worked Tutorials
+
+Future tutorials should start from a biological question and then write the
+symbolic model with meaningful variable names. Do not add all of these at once.
+Pick the next one only when the implemented surface, example data, diagnostics,
+and interpretation can be kept concrete.
+
+| Candidate | Biological question | Model sketch |
+|---|---|---|
+| Count abundance and extra zeros | Do restoration plots differ in expected species counts, and are some zeros from a separate absence process? | `count ~ habitat + effort`, `sigma ~ habitat`, optional `zi ~ habitat` with `family = nbinom2()` |
+| Positive counts after conditional sampling | When zeros are absent by design, do traps or survey units differ in positive abundance? | `count ~ habitat`, `sigma ~ habitat` with `family = truncated_nbinom2()`; add `hu ~ habitat` only for hurdle zeros |
+| Continuous proportions | Does leaf damage proportion change with treatment, and does among-leaf variability also change? | `damage ~ treatment`, `sigma ~ treatment` with `family = beta()` for values strictly between 0 and 1 |
+| Successes out of trials | Does germination probability vary by treatment beyond binomial sampling error? | `cbind(germinated, not_germinated) ~ treatment`, `sigma ~ treatment` with `family = beta_binomial()` |
+| Ordered severity scores | Does disease severity shift along an ordered scale? | `severity ~ treatment` with `family = cumulative_logit()`; keep scale effects planned until implemented |
+
+Each candidate needs the same teaching arc: question, data, symbolic equations,
+matching R syntax, fitted output, a table or plot on the response scale,
+diagnostics, and a short unsupported-syntax note.
 
 ## Style Lessons From Existing Tutorials
 

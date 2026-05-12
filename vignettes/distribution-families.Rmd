@@ -52,11 +52,8 @@ because `gamma()` already names the base R gamma function.
 `drmTMB` uses `sigma` as the public variability-facing scale slot. This does
 not mean every likelihood is written internally with a standard deviation.
 Instead, the package keeps the modelling grammar stable and records the
-family-specific conversion. The rule is simple:
-
-```text
-larger fitted sigma -> larger modelled variability
-```
+family-specific conversion. The rule is simple: larger fitted `sigma` should
+mean larger modelled variability.
 
 That rule is different from some comparator packages. For example,
 [glmmTMB's `sigma()` documentation](https://glmmtmb.github.io/glmmTMB/reference/sigma.glmmTMB.html)
@@ -108,11 +105,16 @@ models without the family-specific transformation.
 
 Gaussian location-scale models use `mu` and `sigma`:
 
-```text
-y_i | mu_i, sigma_i ~ Normal(mu_i, sigma_i^2)
-mu_i = beta_0 + beta_1 temperature_i
-log(sigma_i) = gamma_0 + gamma_1 treatment_i
-```
+\[
+\begin{aligned}
+y_i \mid \mu_i, \sigma_i
+  &\sim \operatorname{Normal}(\mu_i, \sigma_i^2),\\
+\mu_i
+  &= \beta_0 + \beta_1 \text{temperature}_i,\\
+\log(\sigma_i)
+  &= \gamma_0 + \gamma_1 \text{treatment}_i.
+\end{aligned}
+\]
 
 ```r
 drmTMB(
@@ -125,12 +127,18 @@ drmTMB(
 Student-t location-scale-shape models add `nu`, the degrees-of-freedom or
 tail-shape parameter:
 
-```text
-y_i | mu_i, sigma_i, nu_i ~ Student-t(mu_i, sigma_i, nu_i)
-mu_i = beta_0 + beta_1 temperature_i
-log(sigma_i) = gamma_0 + gamma_1 treatment_i
-nu_i = 2 + exp(delta_0)
-```
+\[
+\begin{aligned}
+y_i \mid \mu_i, \sigma_i, \nu_i
+  &\sim \operatorname{Student\text{-}t}(\mu_i, \sigma_i, \nu_i),\\
+\mu_i
+  &= \beta_0 + \beta_1 \text{temperature}_i,\\
+\log(\sigma_i)
+  &= \gamma_0 + \gamma_1 \text{treatment}_i,\\
+\nu_i
+  &= 2 + \exp(\delta_0).
+\end{aligned}
+\]
 
 ```r
 drmTMB(
@@ -152,12 +160,18 @@ family.
 Lognormal location-scale models are implemented for positive continuous
 responses such as biomass, body mass, concentration, time, and area:
 
-```text
-log(y_i) | mu_i, sigma_i ~ Normal(mu_i, sigma_i^2)
-mu_i = beta_0 + beta_1 habitat_i
-log(sigma_i) = gamma_0 + gamma_1 treatment_i
-E[y_i] = exp(mu_i + sigma_i^2 / 2)
-```
+\[
+\begin{aligned}
+\log(y_i) \mid \mu_i, \sigma_i
+  &\sim \operatorname{Normal}(\mu_i, \sigma_i^2),\\
+\mu_i
+  &= \beta_0 + \beta_1 \text{habitat}_i,\\
+\log(\sigma_i)
+  &= \gamma_0 + \gamma_1 \text{treatment}_i,\\
+E[y_i]
+  &= \exp(\mu_i + \sigma_i^2 / 2).
+\end{aligned}
+\]
 
 ```r
 drmTMB(
@@ -177,15 +191,24 @@ bivariate lognormal models are planned later.
 Gamma mean-CV models are implemented for positive continuous responses where
 relative variability is the scale target:
 
-```text
-y_i | mu_i, sigma_i ~ Gamma(shape_i, scale_i)
-log(mu_i) = beta_0 + beta_1 habitat_i
-log(sigma_i) = gamma_0 + gamma_1 treatment_i
-shape_i = 1 / sigma_i^2
-scale_i = mu_i * sigma_i^2
-E[y_i] = mu_i
-Var[y_i] = mu_i^2 sigma_i^2
-```
+\[
+\begin{aligned}
+y_i \mid \mu_i, \sigma_i
+  &\sim \operatorname{Gamma}(\text{shape}_i, \text{scale}_i),\\
+\log(\mu_i)
+  &= \beta_0 + \beta_1 \text{habitat}_i,\\
+\log(\sigma_i)
+  &= \gamma_0 + \gamma_1 \text{treatment}_i,\\
+\text{shape}_i
+  &= 1 / \sigma_i^2,\\
+\text{scale}_i
+  &= \mu_i \sigma_i^2,\\
+E[y_i]
+  &= \mu_i,\\
+\operatorname{Var}(y_i)
+  &= \mu_i^2\sigma_i^2.
+\end{aligned}
+\]
 
 ```r
 drmTMB(
@@ -208,16 +231,26 @@ Beta mean-scale models are implemented for continuous responses strictly
 inside `(0, 1)`, such as continuously measured cover proportions or rates that
 are not generated as successes out of known trials:
 
-```text
-y_i | mu_i, sigma_i ~ Beta(alpha_i, beta_i)
-logit(mu_i) = beta_0 + beta_1 habitat_i
-log(sigma_i) = gamma_0 + gamma_1 treatment_i
-phi_i = 1 / sigma_i^2
-alpha_i = mu_i phi_i
-beta_i = (1 - mu_i) phi_i
-E[y_i] = mu_i
-Var[y_i] = mu_i (1 - mu_i) sigma_i^2 / (1 + sigma_i^2)
-```
+\[
+\begin{aligned}
+y_i \mid \mu_i, \sigma_i
+  &\sim \operatorname{Beta}(\alpha_i, \beta_i),\\
+\operatorname{logit}(\mu_i)
+  &= \beta_0 + \beta_1 \text{habitat}_i,\\
+\log(\sigma_i)
+  &= \gamma_0 + \gamma_1 \text{treatment}_i,\\
+\phi_i
+  &= 1 / \sigma_i^2,\\
+\alpha_i
+  &= \mu_i\phi_i,\\
+\beta_i
+  &= (1 - \mu_i)\phi_i,\\
+E[y_i]
+  &= \mu_i,\\
+\operatorname{Var}(y_i)
+  &= \frac{\mu_i(1 - \mu_i)\sigma_i^2}{1 + \sigma_i^2}.
+\end{aligned}
+\]
 
 ```r
 drmTMB(
@@ -236,11 +269,15 @@ should wait for `beta_binomial()` so the denominator remains part of the data.
 
 Poisson mean models are implemented for count responses:
 
-```text
-y_i | mu_i ~ Poisson(mu_i)
-log(mu_i) = log(trap_nights_i) + beta_0 + beta_1 habitat_i
-E[y_i] = Var[y_i] = mu_i
-```
+\[
+\begin{aligned}
+y_i \mid \mu_i
+  &\sim \operatorname{Poisson}(\mu_i),\\
+\log(\mu_i)
+  &= \log(\text{trap\_nights}_i) + \beta_0 + \beta_1 \text{habitat}_i,\\
+E[y_i] &= \operatorname{Var}(y_i) = \mu_i.
+\end{aligned}
+\]
 
 ```r
 drmTMB(
@@ -263,12 +300,18 @@ underdispersion or dispersion patterns that NB2 does not describe well.
 
 Zero-inflated Poisson models are implemented by adding a `zi` formula:
 
-```text
-y_i | mu_i, zi_i ~ ZIP(mu_i, zi_i)
-log(mu_i) = log(trap_nights_i) + beta_0 + beta_1 habitat_i
-logit(zi_i) = gamma_0 + gamma_1 survey_method_i
-E[y_i] = (1 - zi_i) mu_i
-```
+\[
+\begin{aligned}
+y_i \mid \mu_i, zi_i
+  &\sim \operatorname{ZIP}(\mu_i, zi_i),\\
+\log(\mu_i)
+  &= \log(\text{trap\_nights}_i) + \beta_0 + \beta_1 \text{habitat}_i,\\
+\operatorname{logit}(zi_i)
+  &= \gamma_0 + \gamma_1 \text{survey\_method}_i,\\
+E[y_i]
+  &= (1 - zi_i)\mu_i.
+\end{aligned}
+\]
 
 ```r
 drmTMB(
@@ -286,14 +329,22 @@ constructor in the current public API.
 Negative-binomial 2 mean-dispersion models are implemented for overdispersed
 count responses:
 
-```text
-y_i | mu_i, sigma_i ~ NB2(mu_i, size_i)
-log(mu_i) = log(trap_nights_i) + beta_0 + beta_1 habitat_i
-log(sigma_i) = gamma_0 + gamma_1 treatment_i
-size_i = 1 / sigma_i^2
-E[y_i] = mu_i
-Var[y_i] = mu_i + sigma_i^2 * mu_i^2
-```
+\[
+\begin{aligned}
+y_i \mid \mu_i, \sigma_i
+  &\sim \operatorname{NB2}(\mu_i, \text{size}_i),\\
+\log(\mu_i)
+  &= \log(\text{trap\_nights}_i) + \beta_0 + \beta_1 \text{habitat}_i,\\
+\log(\sigma_i)
+  &= \gamma_0 + \gamma_1 \text{treatment}_i,\\
+\text{size}_i
+  &= 1 / \sigma_i^2,\\
+E[y_i]
+  &= \mu_i,\\
+\operatorname{Var}(y_i)
+  &= \mu_i + \sigma_i^2\mu_i^2.
+\end{aligned}
+\]
 
 ```r
 drmTMB(
@@ -312,15 +363,24 @@ extra-Poisson variation. The implementation uses the equivalent
 Zero-inflated NB2 models use the same `nbinom2()` family and add a `zi`
 formula for structural zeros:
 
-```text
-y_i | mu_i, sigma_i, zi_i ~ ZINB2(mu_i, sigma_i, zi_i)
-log(mu_i) = log(trap_nights_i) + beta_0 + beta_1 habitat_i
-log(sigma_i) = gamma_0 + gamma_1 treatment_i
-logit(zi_i) = delta_0 + delta_1 survey_method_i
-size_i = 1 / sigma_i^2
-E[y_i] = (1 - zi_i) mu_i
-Var[y_i | count component] = mu_i + sigma_i^2 * mu_i^2
-```
+\[
+\begin{aligned}
+y_i \mid \mu_i, \sigma_i, zi_i
+  &\sim \operatorname{ZINB2}(\mu_i, \sigma_i, zi_i),\\
+\log(\mu_i)
+  &= \log(\text{trap\_nights}_i) + \beta_0 + \beta_1 \text{habitat}_i,\\
+\log(\sigma_i)
+  &= \gamma_0 + \gamma_1 \text{treatment}_i,\\
+\operatorname{logit}(zi_i)
+  &= \delta_0 + \delta_1 \text{survey\_method}_i,\\
+\text{size}_i
+  &= 1 / \sigma_i^2,\\
+E[y_i]
+  &= (1 - zi_i)\mu_i,\\
+\operatorname{Var}(y_i \mid \text{count component})
+  &= \mu_i + \sigma_i^2\mu_i^2.
+\end{aligned}
+\]
 
 ```r
 drmTMB(
@@ -340,17 +400,28 @@ Zero-truncated NB2 models are implemented for positive counts where zeros are
 absent by design, such as clutch size among breeding individuals or parasite
 load among infected hosts:
 
-```text
-y_i | y_i > 0, mu_i, sigma_i ~ truncated NB2(mu_i, sigma_i)
-log(mu_i) = beta_0 + beta_1 habitat_i
-log(sigma_i) = gamma_0 + gamma_1 treatment_i
-size_i = 1 / sigma_i^2
-Pr_trunc(y_i) = Pr_NB2(y_i) / (1 - Pr_NB2(0))
-E[y_i | y_i > 0] = mu_i / (1 - Pr_NB2(0))
-q_i = 1 - Pr_NB2(0)
-Var[y_i | y_i > 0] =
-  (mu_i + (1 + sigma_i^2) * mu_i^2) / q_i - (mu_i / q_i)^2
-```
+\[
+\begin{aligned}
+y_i \mid y_i > 0, \mu_i, \sigma_i
+  &\sim \operatorname{NB2}_{+}(\mu_i, \sigma_i),\\
+\log(\mu_i)
+  &= \beta_0 + \beta_1 \text{habitat}_i,\\
+\log(\sigma_i)
+  &= \gamma_0 + \gamma_1 \text{treatment}_i,\\
+\text{size}_i
+  &= 1 / \sigma_i^2,\\
+\Pr_{+}(y_i)
+  &= \Pr_{\operatorname{NB2}}(y_i) /
+     \left(1 - \Pr_{\operatorname{NB2}}(0)\right),\\
+E[y_i \mid y_i > 0]
+  &= \mu_i / \left(1 - \Pr_{\operatorname{NB2}}(0)\right),\\
+q_i
+  &= 1 - \Pr_{\operatorname{NB2}}(0),\\
+\operatorname{Var}(y_i \mid y_i > 0)
+  &= \frac{\mu_i + (1 + \sigma_i^2)\mu_i^2}{q_i}
+     - \left(\frac{\mu_i}{q_i}\right)^2.
+\end{aligned}
+\]
 
 ```r
 drmTMB(
@@ -370,13 +441,22 @@ Hurdle NB2 models are implemented by adding `hu ~ predictors` to the same
 family route. Use this when zeros are modelled by a separate process and all
 nonzero counts come from a zero-truncated count distribution:
 
-```text
-logit(hu_i) = delta_0 + delta_1 survey_method_i
-Pr(y_i = 0) = hu_i
-Pr(y_i = k > 0) = (1 - hu_i) Pr_trunc(k | mu_i, sigma_i)
-E[y_i] = (1 - hu_i) mu_i / (1 - Pr_NB2(0))
-Var[y_i] = (1 - hu_i) Var_trunc_i + hu_i * (1 - hu_i) * E_trunc_i^2
-```
+\[
+\begin{aligned}
+\operatorname{logit}(hu_i)
+  &= \delta_0 + \delta_1 \text{survey\_method}_i,\\
+\Pr(y_i = 0)
+  &= hu_i,\\
+\Pr(y_i = k > 0)
+  &= (1 - hu_i)\Pr_{+}(k \mid \mu_i, \sigma_i),\\
+E[y_i]
+  &= (1 - hu_i)\mu_i /
+     \left(1 - \Pr_{\operatorname{NB2}}(0)\right),\\
+\operatorname{Var}(y_i)
+  &= (1 - hu_i)\operatorname{Var}_{+i}
+     + hu_i(1 - hu_i)E_{+i}^2.
+\end{aligned}
+\]
 
 ```r
 drmTMB(
@@ -406,6 +486,30 @@ rather than a continuous percentage. Write the response as
 `trials_i = successes_i + failures_i`; do not use
 `cbind(successes, trials)`.
 
+\[
+\begin{aligned}
+y_i \mid n_i, p_i
+  &\sim \operatorname{Binomial}(n_i, p_i),\\
+p_i \mid \mu_i, \sigma_i
+  &\sim \operatorname{Beta}(\alpha_i, \beta_i),\\
+\operatorname{logit}(\mu_i)
+  &= \beta_0 + \beta_1 \text{habitat}_i,\\
+\log(\sigma_i)
+  &= \gamma_0 + \gamma_1 \text{treatment}_i,\\
+\phi_i
+  &= 1 / \sigma_i^2,\\
+\alpha_i
+  &= \mu_i\phi_i,\\
+\beta_i
+  &= (1 - \mu_i)\phi_i,\\
+E[y_i / n_i]
+  &= \mu_i,\\
+\operatorname{Var}(y_i / n_i)
+  &= \frac{\mu_i(1 - \mu_i)(1 + n_i\sigma_i^2)}
+          {n_i(1 + \sigma_i^2)}.
+\end{aligned}
+\]
+
 ```r
 drmTMB(
   bf(cbind(successes, failures) ~ habitat, sigma ~ treatment),
@@ -423,11 +527,16 @@ of successes.
 Ordinal models are implemented first as fixed-effect univariate models with
 ordered cutpoints and a fixed latent logistic scale:
 
-```text
-Pr(y_i <= k) = logit^{-1}(theta_k - mu_i)
-mu_i = beta_1 habitat_i
-theta_1 < theta_2 < ... < theta_{K-1}
-```
+\[
+\begin{aligned}
+\Pr(y_i \le k)
+  &= \operatorname{logit}^{-1}(\theta_k - \mu_i),\\
+\mu_i
+  &= \beta_1 \text{habitat}_i,\\
+\theta_1
+  &< \theta_2 < \cdots < \theta_{K-1}.
+\end{aligned}
+\]
 
 Although the R formula below is `bf(score ~ habitat)`, the cumulative-logit fit
 drops the location intercept internally because a free location intercept and

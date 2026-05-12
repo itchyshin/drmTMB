@@ -1,0 +1,170 @@
+---
+title: "What can I fit today?"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{What can I fit today?}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+This guide is the user-facing status map for `drmTMB`. It is not a worked
+tutorial. Use it when you want to know whether a model is implemented, which
+article to read next, and which syntax belongs to the current package rather
+than the roadmap.
+
+The main design rule is one formula per distributional parameter. For one
+response, the most common parameters are the location `mu`, the residual scale
+`sigma`, and family-specific shape or zero-inflation parameters. For two
+responses, `mu1`, `mu2`, `sigma1`, `sigma2`, and `rho12` describe the two
+means, two residual scales, and residual response-response correlation.
+
+## One response
+
+The most mature path is Gaussian location-scale regression. Use it when the
+question is about the expected response and residual predictability:
+
+```r
+drmTMB(
+  drm_formula(y ~ x1, sigma ~ x2),
+  family = gaussian(),
+  data = dat
+)
+```
+
+Here `y ~ x1` models the conditional mean `mu`, while `sigma ~ x2` models the
+residual standard deviation. In Gaussian models, `sigma` coefficients are on a
+log-SD scale, so exponentiating a coefficient gives a residual SD ratio.
+
+Implemented one-response surfaces include:
+
+| Question | Implemented surface | Read next |
+|---|---|---|
+| Do predictors change the mean and residual SD? | `drm_formula(y ~ x, sigma ~ z)` | [When variance carries signal](location-scale.html) |
+| Do groups differ in expected response? | ordinary `mu` random intercepts and one-slope blocks | [When variance carries signal](location-scale.html) |
+| Do groups differ in residual SD? | `sigma ~ x + (1 | group)` | [Which scale are you modelling?](which-scale.html) |
+| Does a group-level predictor change among-group SD in the mean model? | `sd(group) ~ x_group` for unlabelled Gaussian `mu` random intercepts | [Which scale are you modelling?](which-scale.html) |
+| Is the response continuous, count, bounded, robust, or zero-inflated? | fixed-effect non-Gaussian families | [Choosing response families](distribution-families.html) |
+| Does the response have known sampling variance or covariance? | Gaussian `meta_known_V(V = V)` | [Mean effects and residual heterogeneity](meta-analysis.html) |
+| Do species means remain similar after shared ancestry is included? | `phylo(1 | species, tree = tree)` in univariate Gaussian `mu` | [Structured dependence](phylogenetic-spatial.html) |
+
+The random-effect scale terms are deliberately separate. `sigma ~ x` models
+within-observation residual SD. `sd(group) ~ x_group` models the standard
+deviation of a group-level mean effect. Those two scales can answer different
+biological questions even when they use similar predictors.
+
+## Two responses
+
+The implemented bivariate Gaussian path estimates response-specific means,
+response-specific residual SDs, and residual coupling `rho12`:
+
+```r
+drmTMB(
+  drm_formula(
+    mu1 = y1 ~ x1 + x2,
+    mu2 = y2 ~ x1,
+    sigma1 = ~ x1 + x2,
+    sigma2 = ~ x1,
+    rho12 = ~ x1 + x2
+  ),
+  family = c(gaussian(), gaussian()),
+  data = dat
+)
+```
+
+`rho12` is the residual correlation between the two responses after the model
+has already accounted for the predictors in `mu1`, `mu2`, `sigma1`, and
+`sigma2`. Extract fitted response-scale residual correlations with
+`rho12(fit)`, and use `corpairs(fit)` when you want a long table that keeps
+residual correlations distinct from group-level correlations.
+
+The first bivariate group-level covariance slice is also implemented for
+matching labelled random intercepts in the two location formulas:
+
+```r
+drmTMB(
+  drm_formula(
+    mu1 = y1 ~ x1 + (1 | p | id),
+    mu2 = y2 ~ x1 + (1 | p | id),
+    sigma1 = ~ x1,
+    sigma2 = ~ x1,
+    rho12 = ~ x1
+  ),
+  family = c(gaussian(), gaussian()),
+  data = dat
+)
+```
+
+The `p` label creates a group-level covariance block for the `mu1` and `mu2`
+random intercepts. That group-level correlation is not `rho12`: it asks
+whether groups with higher average response 1 also tend to have higher average
+response 2. `rho12` still describes within-observation residual coupling.
+
+## Structured dependence
+
+The implemented structured-effect path is intentionally narrow:
+
+```r
+drmTMB(
+  drm_formula(
+    y ~ x1 + phylo(1 | species, tree = tree),
+    sigma ~ x1
+  ),
+  family = gaussian(),
+  data = dat
+)
+```
+
+This adds an intercept-only phylogenetic random effect to the univariate
+Gaussian `mu` predictor. The residual `sigma` remains the within-observation
+SD. Phylogenetic slopes, phylogenetic scale terms, bivariate phylogenetic
+covariance blocks, and spatial fields remain planned extensions.
+
+## Planned, not implemented
+
+These surfaces are roadmap items, not syntax to rely on in analyses yet:
+
+| Planned surface | Why it is separate |
+|---|---|
+| residual-scale random slopes in `sigma` | needs simulation recovery for scale slopes before public use |
+| cross-formula labelled covariance blocks linking `mu` and `sigma` | estimates group-level mean-scale correlations, not residual `rho12` |
+| bivariate random slopes and bivariate residual-scale random effects | expands group-level covariance blocks beyond the first random-intercept slice |
+| phylogenetic slopes, phylogenetic `sigma`, and bivariate phylogenetic effects | adds structured covariance layers that must stay separate from residual `rho12` |
+| spatial random effects | planned parallel to `phylo()`, but the spatial likelihood is not implemented |
+| higher-dimensional multivariate models | belong in `gllvmTMB`, not `drmTMB` |
+
+When unsupported syntax fails, the right next step is usually to fit the
+nearest implemented fixed-effect or univariate model, then check the roadmap
+or design notes before interpreting a richer covariance structure as available.
+
+## Correlation layers
+
+Several model components can be called correlations, but they answer different
+questions:
+
+| Layer | Example extractor or surface | Interpretation |
+|---|---|---|
+| residual | `rho12(fit)` or residual rows from `corpairs(fit)` | within-observation coupling between two responses |
+| ordinary group-level | `corpars$mu` or group-level rows from `corpairs(fit)` | correlation among random intercepts or slopes |
+| phylogenetic or spatial | planned structured covariance summaries | correlation among structured species or spatial effects |
+
+Keep these layers separate in writing. A residual `rho12` result is not a
+phylogenetic correlation, a spatial correlation, or a personality/plasticity
+correlation unless the fitted model actually contains that higher-level
+covariance block.
+
+## Where to go next
+
+| If you need... | Start with... |
+|---|---|
+| a first fitted model | [Getting started](drmTMB.html) |
+| a worked Gaussian mean-variance analysis | [When variance carries signal](location-scale.html) |
+| a scale vocabulary check | [Which scale are you modelling?](which-scale.html) |
+| a robust continuous-response example | [Robust continuous responses](robust-student.html) |
+| a two-response residual-correlation example | [Changing residual coupling with rho12](bivariate-coscale.html) |
+| known sampling variances or covariance | [Mean effects and residual heterogeneity](meta-analysis.html) |
+| implemented phylogenetic random intercepts | [Structured dependence](phylogenetic-spatial.html) |
+| post-fit checks, predictions, residuals, and simulation | [Checking and using fitted models](model-workflow.html) |

@@ -43,12 +43,18 @@ drmTMB(
 
 Symbolically:
 
-```text
-growth_i | mu_i, sigma_i ~ Normal(mu_i, sigma_i^2)
-mu_i = beta_0 + beta_1 temperature_i
-log(sigma_i) = gamma_0 + gamma_1 temperature_i
-sigma_i = exp(gamma_0 + gamma_1 temperature_i)
-```
+\[
+\begin{aligned}
+\text{growth}_i \mid \mu_i, \sigma_i
+  &\sim \operatorname{Normal}(\mu_i, \sigma_i^2),\\
+\mu_i
+  &= \beta_0 + \beta_1 \text{temperature}_i,\\
+\log(\sigma_i)
+  &= \gamma_0 + \gamma_1 \text{temperature}_i,\\
+\sigma_i
+  &= \exp(\gamma_0 + \gamma_1 \text{temperature}_i).
+\end{aligned}
+\]
 
 The `sigma` formula models the residual standard deviation. If `gamma_1` is
 positive, warmer observations have a larger residual SD around their fitted
@@ -69,13 +75,20 @@ drmTMB(
 
 Symbolically:
 
-```text
-growth_ij | mu_ij, sigma_ij, b_j ~ Normal(mu_ij, sigma_ij^2)
-mu_ij = beta_0 + beta_1 temperature_ij + b_j
-log(sigma_ij) = gamma_0 + gamma_1 temperature_ij
-b_j = sd_mu_population u_j
-u_j ~ Normal(0, 1)
-```
+\[
+\begin{aligned}
+\text{growth}_{ij} \mid \mu_{ij}, \sigma_{ij}, b_j
+  &\sim \operatorname{Normal}(\mu_{ij}, \sigma_{ij}^2),\\
+\mu_{ij}
+  &= \beta_0 + \beta_1 \text{temperature}_{ij} + b_j,\\
+\log(\sigma_{ij})
+  &= \gamma_0 + \gamma_1 \text{temperature}_{ij},\\
+b_j
+  &= sd_{\mu,population} u_j,\\
+u_j
+  &\sim \operatorname{Normal}(0, 1).
+\end{aligned}
+\]
 
 Here `sd_mu_population` is the among-population SD in expected growth. It is a
 group-level scale parameter for the mean model. It is not the residual
@@ -98,17 +111,24 @@ drmTMB(
 
 Symbolically:
 
-```text
-growth_ij | mu_ij, sigma_ij, b_j, a_j ~ Normal(mu_ij, sigma_ij^2)
-mu_ij = beta_0 + beta_1 temperature_ij + b_j
-log(sigma_ij) = gamma_0 + gamma_1 temperature_ij + a_j
-
-b_j = sd_mu_population u_j
-u_j ~ Normal(0, 1)
-
-a_j = sd_sigma_population v_j
-v_j ~ Normal(0, 1)
-```
+\[
+\begin{aligned}
+\text{growth}_{ij} \mid \mu_{ij}, \sigma_{ij}, b_j, a_j
+  &\sim \operatorname{Normal}(\mu_{ij}, \sigma_{ij}^2),\\
+\mu_{ij}
+  &= \beta_0 + \beta_1 \text{temperature}_{ij} + b_j,\\
+\log(\sigma_{ij})
+  &= \gamma_0 + \gamma_1 \text{temperature}_{ij} + a_j,\\
+b_j
+  &= sd_{\mu,population} u_j,\\
+u_j
+  &\sim \operatorname{Normal}(0, 1),\\
+a_j
+  &= sd_{\sigma,population} v_j,\\
+v_j
+  &\sim \operatorname{Normal}(0, 1).
+\end{aligned}
+\]
 
 This asks whether populations differ in their residual variability after the
 fixed effects in the `sigma` formula have been accounted for. It is
@@ -136,15 +156,22 @@ drmTMB(
 
 Symbolically:
 
-```text
-growth_ij | mu_ij, sigma_ij, b_j ~ Normal(mu_ij, sigma_ij^2)
-mu_ij = beta_0 + beta_1 temperature_ij + b_j
-log(sigma_ij) = gamma_0 + gamma_1 temperature_ij
-
-b_j = sd_mu_population,j u_j
-u_j ~ Normal(0, 1)
-log(sd_mu_population,j) = alpha_0 + alpha_1 habitat_j
-```
+\[
+\begin{aligned}
+\text{growth}_{ij} \mid \mu_{ij}, \sigma_{ij}, b_j
+  &\sim \operatorname{Normal}(\mu_{ij}, \sigma_{ij}^2),\\
+\mu_{ij}
+  &= \beta_0 + \beta_1 \text{temperature}_{ij} + b_j,\\
+\log(\sigma_{ij})
+  &= \gamma_0 + \gamma_1 \text{temperature}_{ij},\\
+b_j
+  &= sd_{\mu,population,j} u_j,\\
+u_j
+  &\sim \operatorname{Normal}(0, 1),\\
+\log(sd_{\mu,population,j})
+  &= \alpha_0 + \alpha_1 \text{habitat}_j.
+\end{aligned}
+\]
 
 The right-hand side of `sd(population) ~ habitat` is group-level. `habitat_j`
 must be constant within each population after missing rows are removed.
@@ -212,19 +239,28 @@ drmTMB(
 
 The matching symbolic model is:
 
-```text
-growth_i | mu_i, sigma_i, b_j[i], c_k[i] ~ Normal(mu_i, sigma_i^2)
-mu_i = beta_0 + beta_1 temperature_i + b_j[i] + c_k[i]
-log(sigma_i) = gamma_0 + gamma_1 temperature_i
-
-b_j = sd_mu_population,j u_j
-u_j ~ Normal(0, 1)
-log(sd_mu_population,j) = alpha_0 + alpha_1 habitat_j
-
-c_k = sd_mu_site,k r_k
-r_k ~ Normal(0, 1)
-log(sd_mu_site,k) = kappa_0 + kappa_1 site_area_k
-```
+\[
+\begin{aligned}
+\text{growth}_i \mid \mu_i, \sigma_i, b_{j[i]}, c_{k[i]}
+  &\sim \operatorname{Normal}(\mu_i, \sigma_i^2),\\
+\mu_i
+  &= \beta_0 + \beta_1 \text{temperature}_i + b_{j[i]} + c_{k[i]},\\
+\log(\sigma_i)
+  &= \gamma_0 + \gamma_1 \text{temperature}_i,\\
+b_j
+  &= sd_{\mu,population,j} u_j,\\
+u_j
+  &\sim \operatorname{Normal}(0, 1),\\
+\log(sd_{\mu,population,j})
+  &= \alpha_0 + \alpha_1 \text{habitat}_j,\\
+c_k
+  &= sd_{\mu,site,k} r_k,\\
+r_k
+  &\sim \operatorname{Normal}(0, 1),\\
+\log(sd_{\mu,site,k})
+  &= \kappa_0 + \kappa_1 \text{site\_area}_k.
+\end{aligned}
+\]
 
 This has three scale quantities:
 
@@ -276,9 +312,9 @@ The model
 
 \[
 \begin{aligned}
-growth_i &\sim \mathrm{Normal}(\mu_i, \sigma_i^2),\\
-\mu_i &= \beta_0 + \beta_1 temperature_i,\\
-\log(\sigma_i) &= \gamma_0 + \gamma_1 temperature_i
+\text{growth}_i &\sim \operatorname{Normal}(\mu_i, \sigma_i^2),\\
+\mu_i &= \beta_0 + \beta_1 \text{temperature}_i,\\
+\log(\sigma_i) &= \gamma_0 + \gamma_1 \text{temperature}_i
 \end{aligned}
 \]
 
@@ -332,16 +368,16 @@ At present, dense full known-covariance models reject non-unit likelihood
 weights; keep row weighting and known sampling covariance as separate modelling
 decisions unless the fitted model explicitly supports their combination.
 
-### Known sampling variance: `meta_known_V(V = vi)`
+### Known sampling variance: `meta_known_V(V = V)`
 
 For meta-analysis, the known sampling variance is part of the observation
 model. In a diagonal Gaussian meta-analysis:
 
 \[
 \begin{aligned}
-y_i &\sim \mathrm{Normal}(\mu_i, v_i + \sigma_i^2),\\
-\mu_i &= \beta_0 + \beta_1 treatment_i,\\
-\log(\sigma_i) &= \gamma_0 + \gamma_1 treatment_i .
+y_i &\sim \operatorname{Normal}(\mu_i, v_i + \sigma_i^2),\\
+\mu_i &= \beta_0 + \beta_1 \text{treatment}_i,\\
+\log(\sigma_i) &= \gamma_0 + \gamma_1 \text{treatment}_i .
 \end{aligned}
 \]
 
@@ -403,10 +439,11 @@ Now the question changes again. The model
 
 \[
 \begin{aligned}
-growth_{ij} &\sim \mathrm{Normal}(\mu_{ij}, \sigma_{ij}^2),\\
-\mu_{ij} &= \beta_0 + \beta_1 temperature_{ij} + b_j,\\
-b_j &= sd_{population,j} u_j,\quad u_j \sim \mathrm{Normal}(0, 1),\\
-\log(sd_{population,j}) &= \alpha_0 + \alpha_1 habitat_j
+\text{growth}_{ij} &\sim \operatorname{Normal}(\mu_{ij}, \sigma_{ij}^2),\\
+\mu_{ij} &= \beta_0 + \beta_1 \text{temperature}_{ij} + b_j,\\
+b_j &= sd_{\mu,population,j} u_j,\quad
+  u_j \sim \operatorname{Normal}(0, 1),\\
+\log(sd_{\mu,population,j}) &= \alpha_0 + \alpha_1 \text{habitat}_j
 \end{aligned}
 \]
 
@@ -534,13 +571,24 @@ drmTMB(
 
 Symbolically:
 
-```text
-mu_ij = beta_0 + beta_1 temperature_ij + b_0j + temperature_ij b_1j
-[b_0j, b_1j]' ~ MVN(0, Sigma_population)
-Sigma_population =
-  [sd0^2,          rho_re sd0 sd1;
-   rho_re sd0 sd1, sd1^2]
-```
+\[
+\begin{aligned}
+\mu_{ij}
+  &= \beta_0 + \beta_1 \text{temperature}_{ij}
+     + b_{0j} + \text{temperature}_{ij} b_{1j},\\
+\begin{bmatrix}
+b_{0j}\\
+b_{1j}
+\end{bmatrix}
+  &\sim \operatorname{MVN}(\mathbf{0}, \Sigma_{population}),\\
+\Sigma_{population}
+  &=
+  \begin{bmatrix}
+    sd_0^2 & \rho_{re} sd_0 sd_1\\
+    \rho_{re} sd_0 sd_1 & sd_1^2
+  \end{bmatrix}.
+\end{aligned}
+\]
 
 This `rho_re` is a group-level random-effect correlation. It is reported under
 `corpars$mu`.
@@ -563,12 +611,29 @@ drmTMB(
 
 Symbolically:
 
-```text
-[activity_i, boldness_i]' ~ MVN([mu1_i, mu2_i]', Omega_i)
-Omega_i[1, 2] = rho12_i sigma1_i sigma2_i
-eta_rho12_i = delta_0 + delta_1 treatment_i
-rho12_i = tanh(eta_rho12_i)
-```
+\[
+\begin{aligned}
+\begin{bmatrix}
+\text{activity}_i\\
+\text{boldness}_i
+\end{bmatrix}
+  &\sim
+  \operatorname{MVN}
+  \left(
+    \begin{bmatrix}
+    \mu_{1i}\\
+    \mu_{2i}
+    \end{bmatrix},
+    \Omega_i
+  \right),\\
+\Omega_i[1, 2]
+  &= \rho_{12i}\sigma_{1i}\sigma_{2i},\\
+\eta_{\rho12,i}
+  &= \delta_0 + \delta_1 \text{treatment}_i,\\
+\rho_{12i}
+  &= \tanh(\eta_{\rho12,i}).
+\end{aligned}
+\]
 
 Here `rho12_i` is residual response-response correlation within an observation
 after the response-specific means and residual SDs have been modelled. If the

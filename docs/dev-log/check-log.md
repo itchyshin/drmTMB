@@ -2,6 +2,82 @@
 
 Record meaningful development checks here.
 
+## 2026-05-12 -- Tutorial map, model guides, and equation style
+
+Scope:
+
+- added `vignettes/model-map.Rmd` as the user-facing "What can I fit today?"
+  status map for implemented versus planned model surfaces;
+- shortened `vignettes/drmTMB.Rmd` so Getting Started keeps installation,
+  the first fitted model, the learning path, and a compact implementation
+  table instead of carrying the full status map;
+- split pkgdown navigation into Model Guides and Tutorials in `_pkgdown.yml`;
+- documented the guide-versus-tutorial distinction in
+  `docs/design/21-tutorial-style.md`;
+- normalized core symbolic model blocks in `vignettes/location-scale.Rmd`,
+  `vignettes/which-scale.Rmd`, `vignettes/bivariate-coscale.Rmd`,
+  `vignettes/phylogenetic-spatial.Rmd`, and `vignettes/robust-student.Rmd`
+  from fenced plain text to rendered LaTeX with reader-facing variable names;
+- normalized the implemented-family contracts in
+  `vignettes/distribution-families.Rmd`, including Gaussian, Student-t,
+  lognormal, Gamma, beta, Poisson, zero-inflated Poisson, NB2,
+  zero-inflated NB2, zero-truncated NB2, hurdle NB2, beta-binomial, and
+  cumulative-logit equations;
+- added a candidate worked-tutorial table to
+  `docs/design/21-tutorial-style.md` for count abundance, positive counts,
+  continuous proportions, successes out of trials, and ordered severity
+  scores;
+- applied bounded Pat, Grace, Noether, and Rose review findings by standardizing
+  the structured-dependence label, adding model-map links, narrowing the
+  unlabelled Gaussian `mu` random-intercept SD claim, future-marking
+  phylogenetic location-scale correlation prose, and aligning rendered `rho12`
+  subscripts with the public API name;
+- rebased the worktree onto `origin/main` after PR #15 landed and resolved the
+  append-only `docs/dev-log/check-log.md` overlap by keeping both entries;
+- recorded an after-task report at
+  `docs/dev-log/after-task/2026-05-12-tutorial-map-model-guides.md`.
+
+Checks:
+
+- `ruby -e 'require "yaml"; YAML.load_file("_pkgdown.yml"); puts "ok _pkgdown.yml"'`:
+  passed.
+- `air format _pkgdown.yml vignettes/drmTMB.Rmd vignettes/model-map.Rmd docs/design/21-tutorial-style.md`:
+  completed.
+- `air format vignettes/location-scale.Rmd vignettes/which-scale.Rmd vignettes/bivariate-coscale.Rmd vignettes/phylogenetic-spatial.Rmd vignettes/robust-student.Rmd docs/design/21-tutorial-style.md`:
+  completed after equation-style edits.
+- `Rscript -e "pkgdown::build_article('model-map')"`: passed and wrote
+  `articles/model-map.html`; pkgdown emitted only pre-existing-directory
+  warnings from the local `pkgdown-site/deps` cache.
+- `Rscript -e "pkgdown::build_article('drmTMB')"`: passed and wrote
+  `articles/drmTMB.html`; pkgdown emitted only a pre-existing-directory
+  warning from the local `pkgdown-site/deps` cache.
+- `Rscript -e "for (x in c('location-scale','which-scale','bivariate-coscale','phylogenetic-spatial','robust-student','drmTMB','model-map')) pkgdown::build_article(x)"`:
+  passed for all listed articles.
+- `Rscript -e "pkgdown::build_article('distribution-families')"`:
+  passed and wrote `articles/distribution-families.html`.
+- `Rscript -e "pkgdown::check_pkgdown()"`: no problems found.
+- `air format _pkgdown.yml vignettes/drmTMB.Rmd vignettes/model-map.Rmd vignettes/phylogenetic-spatial.Rmd`:
+  completed after Pat's navigation review fixes.
+- `air format vignettes/bivariate-coscale.Rmd vignettes/which-scale.Rmd vignettes/location-scale.Rmd vignettes/drmTMB.Rmd`:
+  completed after Noether/Rose terminology fixes.
+- `rg -n 'rho 12|In phylogenetic location-scale models|random-effect scale formulas for `mu`|Known sampling variance: `meta_known_V\\(V = vi\\)`|Structured dependence: implemented|Implemented phylogeny and planned space' vignettes _pkgdown.yml`:
+  no matches after the reviewer cleanup.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed after the final
+  navigation and terminology edits.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with no problems found after
+  the final site build.
+- `rg -n '```text|\\mathrm\\{Normal\\}|temperature_|growth_|x1_|x2_|yi_i' vignettes/location-scale.Rmd vignettes/which-scale.Rmd vignettes/robust-student.Rmd vignettes/bivariate-coscale.Rmd vignettes/phylogenetic-spatial.Rmd`:
+  confirmed only intentional code-like or R-object leftovers remained.
+- `rg -n '```text|temperature_i|treatment_i|habitat_i|trap_nights_i|survey_method_i|larger fitted sigma|^(<<<<<<<|=======|>>>>>>>)' vignettes/distribution-families.Rmd`:
+  no matches.
+- `rg -n '<<<<<<<|=======|>>>>>>>' docs/dev-log/check-log.md _pkgdown.yml vignettes/drmTMB.Rmd vignettes/model-map.Rmd docs/design/21-tutorial-style.md docs/dev-log/after-task/2026-05-12-tutorial-map-model-guides.md`:
+  no conflict markers found.
+- `rg -n "What can I fit today\\?|Model Guides|Guide Versus Tutorial Split|model-map|rho ~|meta_gaussian\\(|tau ~|meta_known_V\\([^V]" _pkgdown.yml vignettes docs/design README.md ROADMAP.md NEWS.md docs/dev-log/known-limitations.md`:
+  confirmed the new guide/nav/style strings and found only intentional
+  guardrail references for `rho ~`, `meta_gaussian()`, `tau ~`, and
+  `meta_known_V()`.
+- `git diff --check`: clean.
+
 ## 2026-05-12 -- Bivariate group covariance bridge hygiene
 
 Scope:

@@ -76,8 +76,8 @@ The five distributional predictors are:
 \mu_{2i} &= X_{\mu 2,i}\beta_{\mu 2}, \\
 \log(\sigma_{1i}) &= X_{\sigma 1,i}\beta_{\sigma 1}, \\
 \log(\sigma_{2i}) &= X_{\sigma 2,i}\beta_{\sigma 2}, \\
-\eta_{\rho 12,i} &= X_{\rho 12,i}\beta_{\rho 12}, \\
-\rho_{12i} &= \tanh(\eta_{\rho 12,i}).
+\eta_{\rho12,i} &= X_{\rho12,i}\beta_{\rho12}, \\
+\rho_{12i} &= \tanh(\eta_{\rho12,i}).
 \end{aligned}
 \]
 
@@ -186,20 +186,30 @@ For this example, the fitted biological model is:
 
 \[
 \begin{aligned}
-\begin{bmatrix} activity_i \\ boldness_i \end{bmatrix}
+\begin{bmatrix}
+\text{activity}_i\\
+\text{boldness}_i
+\end{bmatrix}
 &\sim
 \operatorname{MVN}
 \left(
-\begin{bmatrix} \mu_{activity,i} \\ \mu_{boldness,i} \end{bmatrix},
+\begin{bmatrix}
+\mu_{\text{activity},i}\\
+\mu_{\text{boldness},i}
+\end{bmatrix},
 \Omega_i
 \right),\\
-\mu_{activity,i} &= \beta_{a0} + \beta_{a1} food_i +
-                  \beta_{a2} temperature_i,\\
-\mu_{boldness,i} &= \beta_{b0} + \beta_{b1} food_i,\\
-\log(\sigma_{activity,i}) &= \gamma_{a0} + \gamma_{a1} food_i +
-                            \gamma_{a2} temperature_i,\\
-\log(\sigma_{boldness,i}) &= \gamma_{b0} + \gamma_{b1} food_i,\\
-\eta_{\rho12,i} &= \delta_0 + \delta_1 disturbance_i,\\
+\mu_{\text{activity},i}
+  &= \beta_{a0} + \beta_{a1}\text{food}_i +
+     \beta_{a2}\text{temperature}_i,\\
+\mu_{\text{boldness},i}
+  &= \beta_{b0} + \beta_{b1}\text{food}_i,\\
+\log(\sigma_{\text{activity},i})
+  &= \gamma_{a0} + \gamma_{a1}\text{food}_i +
+     \gamma_{a2}\text{temperature}_i,\\
+\log(\sigma_{\text{boldness},i})
+  &= \gamma_{b0} + \gamma_{b1}\text{food}_i,\\
+\eta_{\rho12,i} &= \delta_0 + \delta_1\text{disturbance}_i,\\
 \rho_{12,i} &= \tanh(\eta_{\rho12,i}).
 \end{aligned}
 \]
@@ -447,12 +457,19 @@ parameters; fitted random-intercept SDs are group-level standard deviations in
 
 Symbolically, the implemented random-intercept mean part is:
 
-```text
-mu1_ij = X_mu1[ij, ] beta_mu1 + b_0_1j
-mu2_ij = X_mu2[ij, ] beta_mu2 + b_0_2j
-
-[b_0_1j, b_0_2j]' ~ MVN(0, Sigma_mu_ID)
-```
+\[
+\begin{aligned}
+\mu_{1ij}
+  &= X_{\mu 1}[ij, ]\beta_{\mu 1} + b_{0,1j},\\
+\mu_{2ij}
+  &= X_{\mu 2}[ij, ]\beta_{\mu 2} + b_{0,2j},\\
+\begin{bmatrix}
+b_{0,1j}\\
+b_{0,2j}
+\end{bmatrix}
+  &\sim \operatorname{MVN}(\mathbf{0}, \Sigma_{\mu,ID}).
+\end{aligned}
+\]
 
 The covariance matrix `Sigma_mu_ID` would contain group-level standard
 deviations and one group-level correlation. That correlation answers whether
@@ -488,11 +505,11 @@ correlated group-level effects. Labelled one-slope blocks are implemented for
 univariate Gaussian `mu`; bivariate random slopes remain future work. This
 syntax is distinct from residual `rho12`.
 
-In phylogenetic location-scale models, correlations among phylogenetic mean and
-scale effects answer different questions: mean-mean coevolution, scale-scale
-co-divergence, and mean-scale evolutionary constraints. Those are group-level
-covariance summaries. Residual `rho12` is the observation-level trait coupling
-after those structured effects have been accounted for.
+In future phylogenetic location-scale models, correlations among phylogenetic
+mean and scale effects will answer different questions: mean-mean coevolution,
+scale-scale co-divergence, and mean-scale evolutionary constraints. Those will
+be group-level covariance summaries. Residual `rho12` is the observation-level
+trait coupling after fitted structured effects have been accounted for.
 
 The long-term package should therefore support several correlation levels, not
 only residual correlation. For example, a comparative model could estimate a

@@ -1,8 +1,8 @@
 ---
-title: "Structured dependence: implemented phylogeny and planned spatial models"
+title: "Structured dependence"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Structured dependence: implemented phylogeny and planned spatial models}
+  %\VignetteIndexEntry{Structured dependence}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -270,11 +270,19 @@ models are identifiable.
 In meta-analysis, the separation among known sampling covariance,
 phylogenetic dependence, and spatial dependence is especially transparent:
 
-```text
-e ~ MVN(0, V)                         # known sampling covariance
-p_species ~ MVN(0, sigma_phylo^2 A)   # phylogenetic structure
-l_location ~ MVN(0, sigma_space^2 M)  # spatial structure
-```
+\[
+\begin{aligned}
+e
+  &\sim \operatorname{MVN}(\mathbf{0}, V)
+  &&\text{known sampling covariance},\\
+p_{species}
+  &\sim \operatorname{MVN}(\mathbf{0}, \sigma_{phylo}^2 A)
+  &&\text{phylogenetic structure},\\
+\ell_{location}
+  &\sim \operatorname{MVN}(\mathbf{0}, \sigma_{space}^2 M)
+  &&\text{spatial structure}.
+\end{aligned}
+\]
 
 The known matrix `V` handles sampling uncertainty. The phylogenetic and spatial
 terms add extra biological or environmental dependence after that known

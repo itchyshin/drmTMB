@@ -89,11 +89,16 @@ and standard deviation `sigma_i`.
 
 For the fixed-effect Gaussian location-scale model, the symbolic model is:
 
-```text
-y_i | mu_i, sigma_i ~ Normal(mu_i, sigma_i^2)
-mu_i = beta_0 + beta_1 x1_i
-log(sigma_i) = gamma_0 + gamma_1 x2_i
-```
+\[
+\begin{aligned}
+y_i \mid \mu_i, \sigma_i
+  &\sim \operatorname{Normal}(\mu_i, \sigma_i^2),\\
+\mu_i
+  &= \beta_0 + \beta_1 x_{1i},\\
+\log(\sigma_i)
+  &= \gamma_0 + \gamma_1 x_{2i}.
+\end{aligned}
+\]
 
 The matching `drmTMB` syntax is:
 
@@ -109,18 +114,20 @@ The location formula `y ~ x1` defines the design matrix for the `beta`
 coefficients. The scale formula `sigma ~ x2` defines the design matrix for the
 `gamma` coefficients. The log link makes `sigma_i` positive:
 
-```text
-sigma_i = exp(gamma_0 + gamma_1 x2_i)
-```
+\[
+\sigma_i = \exp(\gamma_0 + \gamma_1 x_{2i}).
+\]
 
 The same model can be written more compactly as:
 
-```text
-eta_mu_i = X_mu[i, ] beta_mu
-eta_sigma_i = X_sigma[i, ] beta_sigma
-mu_i = eta_mu_i
-sigma_i = exp(eta_sigma_i)
-```
+\[
+\begin{aligned}
+\eta_{\mu i} &= X_{\mu}[i, ]\beta_{\mu},\\
+\eta_{\sigma i} &= X_{\sigma}[i, ]\beta_{\sigma},\\
+\mu_i &= \eta_{\mu i},\\
+\sigma_i &= \exp(\eta_{\sigma i}).
+\end{aligned}
+\]
 
 The mapping is:
 
@@ -136,12 +143,18 @@ The mapping is:
 
 With a random intercept in the location part, the model becomes:
 
-```text
-y_ij | mu_ij, sigma_ij ~ Normal(mu_ij, sigma_ij^2)
-mu_ij = beta_0 + beta_1 x1_ij + b_j
-log(sigma_ij) = gamma_0 + gamma_1 x2_ij
-b_j ~ Normal(0, sd_mu_id^2)
-```
+\[
+\begin{aligned}
+y_{ij} \mid \mu_{ij}, \sigma_{ij}
+  &\sim \operatorname{Normal}(\mu_{ij}, \sigma_{ij}^2),\\
+\mu_{ij}
+  &= \beta_0 + \beta_1 x_{1ij} + b_j,\\
+\log(\sigma_{ij})
+  &= \gamma_0 + \gamma_1 x_{2ij},\\
+b_j
+  &\sim \operatorname{Normal}(0, sd_{\mu,id}^2).
+\end{aligned}
+\]
 
 and the matching syntax is:
 
@@ -160,13 +173,20 @@ scale component by name; it should not be confused with residual `sigma`.
 
 Residual-scale random intercepts enter a different part of the model:
 
-```text
-y_ij | mu_ij, sigma_ij ~ Normal(mu_ij, sigma_ij^2)
-mu_ij = X_mu[ij, ] beta_mu + b_j
-log(sigma_ij) = X_sigma[ij, ] beta_sigma + a_j
-b_j ~ Normal(0, sd_mu_id^2)
-a_j ~ Normal(0, sd_sigma_id^2)
-```
+\[
+\begin{aligned}
+y_{ij} \mid \mu_{ij}, \sigma_{ij}
+  &\sim \operatorname{Normal}(\mu_{ij}, \sigma_{ij}^2),\\
+\mu_{ij}
+  &= X_{\mu}[ij, ]\beta_{\mu} + b_j,\\
+\log(\sigma_{ij})
+  &= X_{\sigma}[ij, ]\beta_{\sigma} + a_j,\\
+b_j
+  &\sim \operatorname{Normal}(0, sd_{\mu,id}^2),\\
+a_j
+  &\sim \operatorname{Normal}(0, sd_{\sigma,id}^2).
+\end{aligned}
+\]
 
 The matching syntax is:
 
@@ -185,15 +205,22 @@ standard deviation of the `mu` random intercepts.
 A double-hierarchical scale formula targets the random-effect standard
 deviation itself. For example:
 
-```text
-y_ij | mu_ij, sigma_ij, b_j ~ Normal(mu_ij, sigma_ij^2)
-mu_ij = beta_0 + beta_1 x1_ij + b_j
-log(sigma_ij) = gamma_0 + gamma_1 x2_ij
-
-b_j = sd_mu_id,j u_j
-u_j ~ Normal(0, 1)
-log(sd_mu_id,j) = alpha_0 + alpha_1 x_group_j
-```
+\[
+\begin{aligned}
+y_{ij} \mid \mu_{ij}, \sigma_{ij}, b_j
+  &\sim \operatorname{Normal}(\mu_{ij}, \sigma_{ij}^2),\\
+\mu_{ij}
+  &= \beta_0 + \beta_1 x_{1ij} + b_j,\\
+\log(\sigma_{ij})
+  &= \gamma_0 + \gamma_1 x_{2ij},\\
+b_j
+  &= sd_{\mu,id,j} u_j,\\
+u_j
+  &\sim \operatorname{Normal}(0, 1),\\
+\log(sd_{\mu,id,j})
+  &= \alpha_0 + \alpha_1 x_{\text{group},j}.
+\end{aligned}
+\]
 
 The matching syntax is:
 
@@ -218,13 +245,22 @@ types of groups.
 With two additive random intercepts, the equation has two group-level scale
 components:
 
-```text
-y_i | mu_i, sigma_i ~ Normal(mu_i, sigma_i^2)
-mu_i = X_mu[i, ] beta_mu + b_site[site_i] + b_observer[observer_i]
-log(sigma_i) = X_sigma[i, ] beta_sigma
-b_site[k] ~ Normal(0, sd_mu_site^2)
-b_observer[l] ~ Normal(0, sd_mu_observer^2)
-```
+\[
+\begin{aligned}
+y_i \mid \mu_i, \sigma_i
+  &\sim \operatorname{Normal}(\mu_i, \sigma_i^2),\\
+\mu_i
+  &= X_{\mu}[i, ]\beta_{\mu}
+     + b_{\text{site}[i]}
+     + b_{\text{observer}[i]},\\
+\log(\sigma_i)
+  &= X_{\sigma}[i, ]\beta_{\sigma},\\
+b_{\text{site},k}
+  &\sim \operatorname{Normal}(0, sd_{\mu,site}^2),\\
+b_{\text{observer},l}
+  &\sim \operatorname{Normal}(0, sd_{\mu,observer}^2).
+\end{aligned}
+\]
 
 and the matching syntax is:
 
@@ -238,12 +274,18 @@ drmTMB(
 
 With a simple random slope, the random effect multiplies the predictor value:
 
-```text
-y_ij | mu_ij, sigma_ij ~ Normal(mu_ij, sigma_ij^2)
-mu_ij = beta_0 + beta_1 x1_ij + x1_ij b_j
-log(sigma_ij) = gamma_0 + gamma_1 x2_ij
-b_j ~ Normal(0, sd_mu_x_id^2)
-```
+\[
+\begin{aligned}
+y_{ij} \mid \mu_{ij}, \sigma_{ij}
+  &\sim \operatorname{Normal}(\mu_{ij}, \sigma_{ij}^2),\\
+\mu_{ij}
+  &= \beta_0 + \beta_1 x_{1ij} + x_{1ij} b_j,\\
+\log(\sigma_{ij})
+  &= \gamma_0 + \gamma_1 x_{2ij},\\
+b_j
+  &\sim \operatorname{Normal}(0, sd_{\mu,x,id}^2).
+\end{aligned}
+\]
 
 and the matching syntax is:
 
@@ -313,13 +355,20 @@ The location formula models the conditional mean, `mu`, on the identity scale.
 The scale formula models the residual standard deviation, `sigma`, on the log
 scale:
 
-```text
-y_i | mu_i, sigma_i ~ Normal(mu_i, sigma_i^2)
-mu_i = X_mu beta_mu + b_group[i]
-log(sigma_i) = X_sigma beta_sigma
-b_group = sd_group * u_group
-u_group ~ Normal(0, 1)
-```
+\[
+\begin{aligned}
+y_i \mid \mu_i, \sigma_i
+  &\sim \operatorname{Normal}(\mu_i, \sigma_i^2),\\
+\mu_i
+  &= X_{\mu}\beta_{\mu} + b_{group[i]},\\
+\log(\sigma_i)
+  &= X_{\sigma}\beta_{\sigma},\\
+b_{\text{group}}
+  &= sd_{\text{group}} u_{\text{group}},\\
+u_{\text{group}}
+  &\sim \operatorname{Normal}(0, 1).
+\end{aligned}
+\]
 
 This means coefficients returned by `coef(fit, "sigma")` are log-standard
 deviation effects. Exponentiating a `sigma` coefficient gives the multiplicative
@@ -339,11 +388,12 @@ For this example, the fitted model is:
 
 \[
 \begin{aligned}
-growth_i &\sim \operatorname{Normal}(\mu_i, \sigma_i^2), \\
-\mu_i &= \beta_0 + \beta_1 I(habitat_i = grassland) +
-        \beta_2 temperature_i, \\
+\text{growth}_i &\sim \operatorname{Normal}(\mu_i, \sigma_i^2), \\
+\mu_i &= \beta_0 +
+        \beta_1 \mathbb{1}(\text{habitat}_i = \text{grassland}) +
+        \beta_2 \text{temperature}_i, \\
 \log(\sigma_i) &= \gamma_0 +
-        \gamma_1 I(habitat_i = grassland).
+        \gamma_1 \mathbb{1}(\text{habitat}_i = \text{grassland}).
 \end{aligned}
 \]
 
@@ -461,12 +511,13 @@ asks whether residual variability changes along the same temperature gradient:
 
 \[
 \begin{aligned}
-growth_i &\sim \operatorname{Normal}(\mu_i, \sigma_i^2), \\
-\mu_i &= \beta_0 + \beta_1 temperature_i +
-        \beta_2 temperature_i^2 +
-        \beta_3 I(habitat_i = grassland) +
-        \beta_4 temperature_i I(habitat_i = grassland), \\
-\log(\sigma_i) &= \gamma_0 + \gamma_1 temperature_i^2.
+\text{growth}_i &\sim \operatorname{Normal}(\mu_i, \sigma_i^2), \\
+\mu_i &= \beta_0 + \beta_1 \text{temperature}_i +
+        \beta_2 \text{temperature}_i^2 +
+        \beta_3 \mathbb{1}(\text{habitat}_i = \text{grassland}) +
+        \beta_4 \text{temperature}_i
+          \mathbb{1}(\text{habitat}_i = \text{grassland}), \\
+\log(\sigma_i) &= \gamma_0 + \gamma_1 \text{temperature}_i^2.
 \end{aligned}
 \]
 
@@ -569,11 +620,16 @@ growth, but it assumes one residual SD for all observations.
 Meta-analysis is the same Gaussian regression idea with known sampling
 covariance added to the likelihood. For diagonal known sampling variance:
 
-```text
-yi_i | mu_i, sigma_i, v_i ~ Normal(mu_i, v_i + sigma_i^2)
-mu_i = X_mu[i, ] beta_mu
-sigma_i = exp(X_sigma[i, ] beta_sigma)
-```
+\[
+\begin{aligned}
+y_i \mid \mu_i, \sigma_i, v_i
+  &\sim \operatorname{Normal}(\mu_i, v_i + \sigma_i^2),\\
+\mu_i
+  &= X_{\mu}[i, ]\beta_{\mu},\\
+\sigma_i
+  &= \exp(X_{\sigma}[i, ]\beta_{\sigma}).
+\end{aligned}
+\]
 
 with matching syntax:
 
@@ -585,17 +641,19 @@ drmTMB(
 )
 ```
 
-Here `vi` is known sampling variance. The estimated `sigma_i` is the additional
-heterogeneity standard deviation after known sampling error has been included.
-In meta-analysis prose this quantity is often called `tau`, but the `drmTMB`
-API keeps the name `sigma` because it is still the residual scale parameter of
-the Gaussian regression.
+The canonical marker is `meta_known_V(V = V)`; in concrete code, `V` can be a
+vector such as `vi`. Here `vi` is known sampling variance. The estimated
+`sigma_i` is the additional heterogeneity standard deviation after known
+sampling error has been included. In meta-analysis prose this quantity is often
+called `tau`, but the `drmTMB` API keeps the name `sigma` because it is still
+the residual scale parameter of the Gaussian regression.
 
 When `V` is a full known covariance matrix, the same model is:
 
-```text
-y | mu, sigma, V ~ MVN(mu, V + diag(sigma_i^2))
-```
+\[
+y \mid \mu, \sigma, V
+  \sim \operatorname{MVN}\left(\mu, V + \operatorname{diag}(\sigma_i^2)\right).
+\]
 
 ## Current implementation caveats
 
