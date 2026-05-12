@@ -19,9 +19,22 @@ development:
 
 navbar:
   structure:
-    left: [intro, reference, articles, tutorials, developer, news]
+    left: [intro, reference, model_guides, tutorials, developer, news]
     right: [search, github]
   components:
+    model_guides:
+      text: Model Guides
+      menu:
+        - text: What can I fit today?
+          href: articles/model-map.html
+        - text: Which scale are you modelling?
+          href: articles/which-scale.html
+        - text: Choosing response families
+          href: articles/distribution-families.html
+        - text: Checking and using fitted models
+          href: articles/model-workflow.html
+        - text: Working with large data
+          href: articles/large-data.html
     tutorials:
       text: Tutorials
       menu:
@@ -29,22 +42,14 @@ navbar:
           href: articles/drmTMB.html
         - text: When variance carries signal
           href: articles/location-scale.html
-        - text: Which scale are you modelling?
-          href: articles/which-scale.html
-        - text: Checking and using fitted models
-          href: articles/model-workflow.html
         - text: Robust continuous responses
           href: articles/robust-student.html
         - text: Changing residual coupling with rho12
           href: articles/bivariate-coscale.html
         - text: Mean effects and residual heterogeneity
           href: articles/meta-analysis.html
-        - text: Implemented phylogeny and planned space
+        - text: Structured dependence
           href: articles/phylogenetic-spatial.html
-        - text: Working with large data
-          href: articles/large-data.html
-        - text: Choosing response families
-          href: articles/distribution-families.html
     developer:
       text: Developer Notes
       menu:
@@ -114,17 +119,20 @@ articles:
   - title: Getting Started
     contents:
       - drmTMB
+  - title: Model Guides
+    contents:
+      - model-map
+      - which-scale
+      - distribution-families
+      - model-workflow
+      - large-data
   - title: Tutorials
     contents:
       - location-scale
-      - which-scale
-      - model-workflow
       - robust-student
       - meta-analysis
       - bivariate-coscale
       - phylogenetic-spatial
-      - large-data
-      - distribution-families
   - title: Developer Notes
     contents:
       - formula-grammar
