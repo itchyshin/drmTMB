@@ -2,6 +2,25 @@
 
 Record meaningful development checks here.
 
+## 2026-05-12 -- Bivariate covariance rows in summary
+
+Scope:
+
+- added a focused `summary()` regression test for the implemented bivariate
+  `mu1`/`mu2` random-intercept covariance slice;
+- checked that `summary(fit)$parameters` reports `sd:mu:mu1:(1 | p | id)`,
+  `sd:mu:mu2:(1 | p | id)`, and
+  `cor:mu:cor(mu1:(Intercept),mu2:(Intercept) | p | id)` as group-level
+  random-effect rows;
+- checked that the group-level `mu1`/`mu2` correlation stays separate from the
+  residual `rho12` row in the summary table.
+
+Checks:
+
+- `air format tests/testthat/test-summary.R`: passed.
+- `Rscript -e "devtools::test(filter = 'summary')"`: passed with 43
+  expectations, 0 failures, 0 warnings, and 0 skips.
+
 ## 2026-05-12 -- Tutorial map, model guides, and equation style
 
 Scope:
