@@ -753,6 +753,50 @@ test_that("Gaussian mu/sigma covariance maps only the labelled sigma block", {
   expect_equal(length(fit$sdpars$sigma), 2L)
 })
 
+test_that("Gaussian mu/sigma covariance transforms only matched sigma effects", {
+  sim <- new_gaussian_mu_sigma_cov_data(n_id = 4, n_each = 3)
+  dat <- sim$data
+  dat$site <- factor(rep(seq_len(3), length.out = nrow(dat)))
+  spec <- drmTMB:::drm_build_gaussian_ls_spec(
+    bf(y ~ x + (1 | p | id), sigma ~ z + (1 | site) + (1 | p | id)),
+    data = dat,
+    env = environment(),
+    weights = NULL
+  )
+
+  re_sigma <- spec$random$sigma
+  re_mu_sigma <- spec$random$mu_sigma
+  rho <- 0.4
+  par <- list(
+    u_mu = seq(-0.8, 0.7, length.out = spec$random$mu$n_re),
+    u_sigma = seq(0.9, -0.6, length.out = re_sigma$n_re),
+    log_sd_sigma = log(c(0.25, 0.55)),
+    eta_cor_mu_sigma = atanh(rho / 0.999999)
+  )
+
+  actual <- drmTMB:::transform_sigma_random_effects(
+    latent = par$u_sigma,
+    par = par,
+    re_sigma = re_sigma,
+    re_mu_sigma = re_mu_sigma
+  )
+  sigma_sd <- exp(par$log_sd_sigma[re_sigma$term_id0 + 1L])
+  expected <- sigma_sd * par$u_sigma
+  matched <- which(re_mu_sigma$sigma_cross_cor_id0 >= 0L)
+  unmatched <- which(re_mu_sigma$sigma_cross_cor_id0 < 0L)
+  mu_idx <- re_mu_sigma$sigma_cross_mu_index0[matched] + 1L
+  expected[matched] <- sigma_sd[matched] *
+    (rho * par$u_mu[mu_idx] + sqrt(1 - rho^2) * par$u_sigma[matched])
+
+  expect_length(matched, nlevels(dat$id))
+  expect_length(unmatched, nlevels(dat$site))
+  expect_equal(actual, expected)
+  expect_equal(
+    actual[unmatched],
+    sigma_sd[unmatched] * par$u_sigma[unmatched]
+  )
+})
+
 test_that("labelled sigma covariance needs a matching labelled mu intercept", {
   sim <- new_gaussian_mu_sigma_cov_data(n_id = 8, n_each = 3)
 

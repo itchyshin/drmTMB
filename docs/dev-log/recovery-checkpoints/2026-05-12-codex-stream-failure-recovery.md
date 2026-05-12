@@ -1,9 +1,9 @@
 # Codex Recovery Checkpoint
 
-Generated: 2026-05-12 14:04:45 MDT
+Generated: 2026-05-12 14:56:18 MDT
 Repository: `/Users/z3437171/Dropbox/Github Local/drmTMB`
 Goal: Recover from repeated Codex compaction or stream failures during the current covariance-profile branch
-Suggested next step: Review this checkpoint, rerun git status and git diff, then preserve a commit boundary or prepare the PR
+Suggested next step: Review this checkpoint, rerun git status and git diff, then prepare the PR or continue with a small comparator slice
 
 ## Purpose
 
@@ -20,6 +20,9 @@ editing, testing, committing, or summarizing the package state.
 ```text
 ## codex/biv-profile-next-slice...origin/main [ahead 1]
  M docs/dev-log/check-log.md
+ M docs/dev-log/recovery-checkpoints/2026-05-12-codex-stream-failure-recovery.md
+ M tests/testthat/test-gaussian-random-intercepts.R
+?? docs/dev-log/after-task/2026-05-12-mu-sigma-transform-regression-test.md
 ```
 
 ### Changed Files
@@ -28,12 +31,14 @@ editing, testing, committing, or summarizing the package state.
 
 ```text
 M	docs/dev-log/check-log.md
+M	docs/dev-log/recovery-checkpoints/2026-05-12-codex-stream-failure-recovery.md
+M	tests/testthat/test-gaussian-random-intercepts.R
 ```
 
 `git ls-files --others --exclude-standard`
 
 ```text
-(no output)
+docs/dev-log/after-task/2026-05-12-mu-sigma-transform-regression-test.md
 ```
 
 ### Diff Stat
@@ -41,8 +46,10 @@ M	docs/dev-log/check-log.md
 `git diff --stat`
 
 ```text
- docs/dev-log/check-log.md | 2 ++
- 1 file changed, 2 insertions(+)
+ docs/dev-log/check-log.md                          | 20 ++++++++++
+ .../2026-05-12-codex-stream-failure-recovery.md    | 38 +++++++++++++++----
+ tests/testthat/test-gaussian-random-intercepts.R   | 44 ++++++++++++++++++++++
+ 3 files changed, 94 insertions(+), 8 deletions(-)
 ```
 
 ### Current Head
@@ -50,16 +57,36 @@ M	docs/dev-log/check-log.md
 `git log -1 --oneline`
 
 ```text
-1321816 Checkpoint covariance profile recovery work
+5580b59 Checkpoint covariance profile recovery work
 ```
 
 ## Recent Project Evidence
 
-### Newest `docs/dev-log/check-log.md` Entries (5 sections)
+### Newest `docs/dev-log/check-log.md` Entries (6 sections)
 
 # Check Log
 
 Record meaningful development checks here.
+
+## 2026-05-12 -- Mu/sigma sigma-effect transform regression test
+
+Scope:
+
+- added a deterministic regression test for the internal
+  `transform_sigma_random_effects()` path used by fitted univariate
+  `mu`/`sigma` covariance blocks;
+- checked that only matched labelled `sigma` random-effect rows use
+  `rho * u_mu + sqrt(1 - rho^2) * u_sigma`;
+- checked that an independent unlabelled `sigma` random-intercept block remains
+  independent in the same model specification.
+
+Checks:
+
+- `air format tests/testthat/test-gaussian-random-intercepts.R`: passed.
+- `Rscript -e "devtools::test(filter = 'gaussian-random-intercepts')"`:
+  passed with 210 expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript -e "devtools::test(filter = 'gaussian-random-intercepts|check-drm|profile-targets|summary|phylo-utils')"`:
+  passed with 625 expectations, 0 failures, 0 warnings, and 0 skips.
 
 ## 2026-05-12 -- Focused covariance branch recovery validation
 
@@ -201,6 +228,7 @@ Checks:
 
 ### Newest After-Task Reports
 
+- `docs/dev-log/after-task/2026-05-12-mu-sigma-transform-regression-test.md` (2026-05-12 14:56): # After Task: Mu/Sigma Transform Regression Test
 - `docs/dev-log/after-task/2026-05-12-univariate-mu-sigma-covariance-bridge.md` (2026-05-12 14:02): # After Task: Univariate Mu/Sigma Covariance Bridge
 - `docs/dev-log/after-task/2026-05-12-mu-sigma-summary-covariance-rows.md` (2026-05-12 14:02): # After Task: Mu/Sigma Summary Covariance Rows
 - `docs/dev-log/after-task/2026-05-12-mu-sigma-profile-target-rows.md` (2026-05-12 14:02): # After Task: Mu/Sigma Profile-Target Rows
@@ -208,7 +236,6 @@ Checks:
 - `docs/dev-log/after-task/2026-05-12-codex-recovery-checkpoint-tool.md` (2026-05-12 13:51): # After Task: Codex Recovery Checkpoint Tool
 - `docs/dev-log/after-task/2026-05-12-profile-covariance-status-docs.md` (2026-05-12 13:32): # After Task: Profile Covariance Status Docs
 - `docs/dev-log/after-task/2026-05-12-covariance-profile-intervals-in-summary.md` (2026-05-12 13:22): # After Task: Covariance Profile Intervals In Summary
-- `docs/dev-log/after-task/2026-05-12-mu-sigma-profile-interval.md` (2026-05-12 13:14): # After Task: Mu/Sigma Profile Interval
 
 ## Recovery Commands
 

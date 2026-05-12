@@ -2,6 +2,26 @@
 
 Record meaningful development checks here.
 
+## 2026-05-12 -- Mu/sigma sigma-effect transform regression test
+
+Scope:
+
+- added a deterministic regression test for the internal
+  `transform_sigma_random_effects()` path used by fitted univariate
+  `mu`/`sigma` covariance blocks;
+- checked that only matched labelled `sigma` random-effect rows use
+  `rho * u_mu + sqrt(1 - rho^2) * u_sigma`;
+- checked that an independent unlabelled `sigma` random-intercept block remains
+  independent in the same model specification.
+
+Checks:
+
+- `air format tests/testthat/test-gaussian-random-intercepts.R`: passed.
+- `Rscript -e "devtools::test(filter = 'gaussian-random-intercepts')"`:
+  passed with 210 expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript -e "devtools::test(filter = 'gaussian-random-intercepts|check-drm|profile-targets|summary|phylo-utils')"`:
+  passed with 625 expectations, 0 failures, 0 warnings, and 0 skips.
+
 ## 2026-05-12 -- Focused covariance branch recovery validation
 
 Scope:
