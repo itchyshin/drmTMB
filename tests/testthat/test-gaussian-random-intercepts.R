@@ -866,6 +866,36 @@ test_that("Gaussian mu/sigma covariance joint objective matches R nll", {
   )
 })
 
+test_that("Gaussian mu/sigma covariance contributes to sigma predictions", {
+  sim <- new_gaussian_mu_sigma_cov_data(n_id = 12, n_each = 5, seed = 20260632)
+  dat <- sim$data
+  dat$site <- factor(rep(seq_len(6), length.out = nrow(dat)))
+  fit <- drmTMB(
+    bf(y ~ x + (1 | p | id), sigma ~ z + (1 | site) + (1 | p | id)),
+    family = gaussian(),
+    data = dat,
+    control = list(eval.max = 500, iter.max = 500)
+  )
+  re_sigma <- fit$model$random$sigma
+  contribution <- drmTMB:::sigma_random_effect_contribution(fit)
+  manual <- rowSums(
+    matrix(
+      fit$random_effects$sigma$values[re_sigma$index],
+      nrow = nrow(re_sigma$index)
+    ) *
+      re_sigma$value
+  )
+  fixed_sigma <- as.vector(
+    fit$model$tmb_data$X_sigma %*% coef(fit, "sigma")
+  )
+  sigma_link <- predict(fit, dpar = "sigma", type = "link")
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(contribution, manual)
+  expect_equal(sigma_link, fixed_sigma + contribution, tolerance = 1e-10)
+  expect_equal(stats::sigma(fit), exp(sigma_link), tolerance = 1e-10)
+})
+
 test_that("labelled sigma covariance needs a matching labelled mu intercept", {
   sim <- new_gaussian_mu_sigma_cov_data(n_id = 8, n_each = 3)
 

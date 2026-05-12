@@ -2,6 +2,35 @@
 
 Record meaningful development checks here.
 
+## 2026-05-12 -- Mu/sigma sigma prediction contribution test
+
+Scope:
+
+- added a deterministic fitted-data prediction regression test for univariate
+  Gaussian `mu`/`sigma` covariance models with both a matched labelled
+  `mu`/`sigma` random-intercept block and an independent unlabelled `sigma`
+  random-intercept block;
+- checked that `sigma_random_effect_contribution()` equals the manual row-wise
+  contribution from fitted `sigma` random effects and random-effect design
+  values;
+- checked that `predict(fit, dpar = "sigma", type = "link")` equals the fixed
+  sigma linear predictor plus that random-effect contribution, and that
+  `stats::sigma(fit)` is its response-scale exponentiation.
+
+Checks:
+
+- `air format tests/testthat/test-gaussian-random-intercepts.R`: passed.
+- `Rscript -e "devtools::test(filter = 'gaussian-random-intercepts')"`:
+  passed with 216 expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript -e "devtools::test(filter = 'gaussian-random-intercepts|check-drm|profile-targets|summary|phylo-utils')"`:
+  passed with 631 expectations, 0 failures, 0 warnings, and 0 skips.
+- `rg -n 'sigma_random_effect_contribution|predict\([^\n]*dpar = "sigma"|mu/sigma covariance|mu/sigma' R tests README.md ROADMAP.md NEWS.md docs vignettes`:
+  reviewed prediction and covariance wording touched by the claim; no
+  source-doc changes needed for this test-only guard.
+- `rg -n 'rho12|sigma1|sigma2|sd\(' README.md ROADMAP.md docs/design docs/dev-log/known-limitations.md vignettes R tests/testthat/test-gaussian-random-intercepts.R`:
+  reviewed correlation terminology around `rho12` and group-level covariance;
+  no stale wording introduced.
+
 ## 2026-05-12 -- Mu/sigma joint objective comparator
 
 Scope:
