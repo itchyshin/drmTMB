@@ -74,9 +74,9 @@ It asks:
 - Does dispersion covary across traits?
 
 In `drmTMB`, the bivariate location-coscale part should eventually target
-questions like the following. This syntax is aspirational: the implemented seed
-is fixed-effect `family = c(gaussian(), gaussian())` with
-`rho12 ~ predictors`.
+questions like the following. The implemented seed now covers fixed-effect
+`rho12 ~ predictors`, optional matching ordinary random-intercept covariance
+blocks, and matching intercept-only phylogenetic `mu1`/`mu2` covariance.
 
 ```r
 drmTMB(
@@ -101,16 +101,16 @@ visible:
 | Level | Symbolic target | Scientific question | Status |
 |---|---|---|---|
 | Residual | `rho12_i` in `Omega_i` | Are the two responses coupled within an observation after means and scales are modelled? | implemented for fixed-effect bivariate Gaussian |
-| Phylogenetic mean | `cor(a_mu1, a_mu2)` where `[a_mu1, a_mu2] ~ MVN(0, Sigma_phylo)` | Do species with high phylogenetic deviation in trait 1 also have high phylogenetic deviation in trait 2? | planned |
-| Non-phylogenetic mean | `cor(c_mu1, c_mu2)` where `[c_mu1, c_mu2] ~ MVN(0, Sigma_species)` | Is there a residual among-species association beyond shared ancestry? | planned |
+| Phylogenetic mean | `cor(a_mu1, a_mu2)` where `[a_mu1, a_mu2] ~ MVN(0, Sigma_phylo)` | Do species with high phylogenetic deviation in trait 1 also have high phylogenetic deviation in trait 2? | implemented for matching intercept-only `phylo()` terms in `mu1` and `mu2` |
+| Non-phylogenetic mean | `cor(c_mu1, c_mu2)` where `[c_mu1, c_mu2] ~ MVN(0, Sigma_species)` | Is there a residual among-species association beyond shared ancestry? | implemented for matching labelled ordinary random intercepts |
 | Phylogenetic scale | `cor(a_sigma1, a_sigma2)` | Do lineages that are more dispersed for one trait tend to be more dispersed for the other? | planned |
 | Mean-scale | `cor(a_mu1, a_sigma2)` or analogous terms | Do high trait means covary with dispersion in the same or another trait? | planned |
 | Spatial or site-level | `cor(z_mu1, z_mu2)` or covariance-block correlations | Do places, sites, studies, or other groups show coupled deviations across responses? | planned |
 
-The first implemented bivariate `rho12 ~ predictors` model covers only the
-residual row of this table. The long-term location-coscale programme should
-also estimate structured phylogenetic, non-phylogenetic, and spatial
-correlations when the data and simulations support them.
+The implemented bivariate model now covers the residual row and the first
+mean-mean phylogenetic and ordinary group-level rows of this table. The
+long-term location-coscale programme should also estimate scale, mean-scale,
+and spatial correlations when the data and simulations support them.
 
 Extractor names should therefore be level-specific, for example
 `corpars$phylo`, `corpars$species`, `corpars$spatial`, or labelled
@@ -125,6 +125,8 @@ The general long-format pair plan is in
 3. Sparse phylogenetic `phylo(1 | species, tree = tree)` in univariate `mu`
    using the Hadfield and Nakagawa A-inverse path.
 4. Bivariate Gaussian with phylogenetic and non-phylogenetic mean covariance.
+   Done for matching intercept-only `phylo()` terms and matching labelled
+   ordinary random intercepts.
 5. Bivariate location-scale with phylogenetic scale effects.
 6. Bivariate location-coscale with fixed-effect `rho12 ~ predictors` plus
    phylogenetic mean and scale structure.

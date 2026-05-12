@@ -5,8 +5,11 @@
   predictor per random-slope term. Multiple separate independent slope terms
   are allowed, and one-slope correlated random intercept-slope blocks are
   implemented as `(1 + x | id)` or `(1 + x | p | id)`.
-- Residual-scale random intercepts are implemented in the `sigma` formula as
-  `sigma ~ x + (1 | id)`.
+- Residual-scale random intercepts and slopes are implemented in the `sigma`
+  formula, including `sigma ~ x + (1 | id)`, `sigma ~ x + (0 + x | id)`, and
+  `sigma ~ x + (1 + x | id)`. Matching labelled univariate `mu` and `sigma`
+  random intercepts or one-slope blocks, such as `(1 + x | p | id)` in both
+  formulas, estimate one positive-definite group-level covariance block.
 - Random-effect scale formulae are implemented for one or more distinct
   unlabelled Gaussian `mu` random intercepts, such as `sd(id) ~ x_group` and
   `sd(site) ~ site_type`; predictors must be constant within the named grouping
@@ -17,15 +20,22 @@
   `mu2`, `sigma1`, `sigma2`, and `rho12` formulas. The first group-level
   bivariate covariance slice is implemented for matching labelled
   random-intercept terms in `mu1` and `mu2`, such as `(1 | p | id)` in both
-  response formulas. Bivariate random slopes, residual-scale random effects,
-  and double-hierarchical cross-parameter covariance are still planned;
-  residual `rho12` should not be interpreted as a phylogenetic, spatial, or
-  group-level covariance parameter.
+  response formulas, and for matching labelled random-intercept terms in
+  `sigma1` and `sigma2`, such as `(1 | q | id)` in both scale formulas.
+  Matching intercept-only `phylo(1 | species, tree = tree)` terms in `mu1`
+  and `mu2` estimate a bivariate phylogenetic mean covariance block. Bivariate
+  random slopes, `rho12` random effects, phylogenetic scale effects, spatial
+  covariance, and richer double-hierarchical cross-parameter covariance are
+  still planned; residual `rho12` should not be interpreted as a phylogenetic,
+  spatial, or group-level covariance parameter.
 - `corpairs()` currently reports only correlations that are already fitted:
-  residual bivariate `rho12` summaries and ordinary univariate Gaussian `mu`
-  random-effect correlations, plus the implemented bivariate `mu1`/`mu2`
-  random-intercept correlation. It does not yet report phylogenetic, spatial,
-  study-level, or cross-parameter correlation pairs.
+  residual bivariate `rho12` summaries, ordinary univariate Gaussian `mu`
+  and `sigma` random-effect correlations, the implemented univariate
+  `mu`/`sigma` labelled double-hierarchical covariance block, the implemented
+  bivariate `mu1`/`mu2` and `sigma1`/`sigma2` random-intercept correlations,
+  and the implemented bivariate phylogenetic `mu1`/`mu2` correlation. It does
+  not yet report spatial, study-level, phylogenetic scale, or bivariate
+  residual-scale correlation pairs.
 - `summary()`, `predict_parameters()`, and `marginal_parameters()` expose
   fitted response-scale parameter summaries for interpretation, but the first
   marginal helper computes unweighted plug-in means only. It does not yet
@@ -90,11 +100,15 @@
 - The TMB template currently supports fixed effects, univariate Gaussian `mu`
   random intercepts, numeric random-slope terms, ordinary correlated
   intercept-slope blocks with optional covariance-block labels, and univariate
-  Gaussian residual-scale random intercepts in `sigma`, intercept-only
-  phylogenetic location effects, plus one or more unlabelled Gaussian `mu`
-  random-intercept scale formulae through `sd(group) ~ x_group`, matched
-  labelled bivariate Gaussian `mu1`/`mu2` random-intercept covariance blocks,
-  and fixed-effect univariate Student-t models with `mu`, `sigma`, and `nu`.
+  Gaussian residual-scale random intercepts, random slopes, and unlabelled
+  ordinary scale-slope covariance blocks in `sigma`, labelled univariate
+  `mu`/`sigma` intercept and one-slope covariance blocks, intercept-only
+  univariate phylogenetic location effects, plus one or more unlabelled
+  Gaussian `mu` random-intercept scale formulae through `sd(group) ~ x_group`,
+  matched labelled bivariate Gaussian `mu1`/`mu2` random-intercept covariance
+  blocks, matching bivariate Gaussian `mu1`/`mu2` phylogenetic covariance
+  blocks, and fixed-effect univariate Student-t models with `mu`, `sigma`, and
+  `nu`.
   It also supports fixed-effect univariate lognormal models with `mu` and
   `sigma` on the log-response scale, fixed-effect univariate Gamma mean-CV
   models with positive response mean `mu` and coefficient of variation
@@ -104,8 +118,8 @@
   positive counts, a hurdle NB2 path through `hu ~ predictors`, a
   fixed-effect univariate cumulative-logit ordinal path, and a fixed-effect
   univariate beta-binomial path.
-- Cross-formula labelled covariance sharing, residual-scale random slopes,
-  slope-specific random-effect scale targets, labelled-block random-effect
+- Bivariate cross-formula labelled covariance sharing, slope-specific
+  random-effect scale targets, labelled-block random-effect
   scale targets, bivariate random-effect scale targets, Student-t random
   effects, Student-t known-covariance models, Student-t phylogenetic models,
   bivariate Student-t models, lognormal random-effect and structured-effect
@@ -117,12 +131,13 @@
   the first Student-t, lognormal, Gamma, beta, beta-binomial, Poisson,
   negative-binomial, zero-inflated, zero-truncated, and hurdle paths are
   planned but not yet implemented.
-- Users should not substitute `sigma ~ x + (1 | id)` for `sd(id) ~ x_group`
-  unless their scientific question is residual variability rather than
-  among-group variation in the mean model.
+- Users should not substitute `sigma ~ x + (1 + x | id)` for
+  `sd(id) ~ x_group` unless their scientific question is residual variability
+  rather than among-group variation in the mean model.
 - Sparse known sampling covariance for large meta-analysis and spatial
   workloads is planned but not yet implemented. The first sparse phylogenetic
-  route is implemented for univariate Gaussian `mu` random intercepts only.
+  routes are implemented for univariate Gaussian `mu` random intercepts and
+  matching bivariate Gaussian `mu1`/`mu2` random intercepts only.
 - `weights =` is implemented as ordinary likelihood weights: one
   non-negative finite weight per observation for univariate models, and one
   weight per complete response pair for bivariate models. Known sampling

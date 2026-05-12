@@ -28,8 +28,8 @@ return to the syntax overview below when you want to adapt the formula.
 
 The first implemented `drmTMB` model class is Gaussian location-scale
 regression with fixed effects, optional random effects in the location formula,
-residual-scale random intercepts in the `sigma` formula, and random-effect
-scale formulas such as `sd(id) ~ x_group`. The same pattern will be used
+residual-scale random intercepts and slopes in the `sigma` formula, and
+random-effect scale formulas such as `sd(id) ~ x_group`. The same pattern will be used
 throughout the documentation: write the model symbolically first, then show the
 matching R syntax, fit the model, and interpret the fitted output.
 
@@ -63,7 +63,7 @@ drmTMB(
 )
 ```
 
-Residual-scale random-intercept syntax:
+Residual-scale random-effect syntax:
 
 ```r
 drmTMB(
@@ -73,9 +73,18 @@ drmTMB(
 )
 ```
 
+```r
+drmTMB(
+  bf(y ~ x1, sigma ~ x2 + (1 + x2 | id)),
+  family = gaussian(),
+  data = dat
+)
+```
+
 The companion article "Which scale are you modelling?" gives a side-by-side
-guide to `sigma ~ x`, `sigma ~ x + (1 | id)`, `sd(id) ~ x_group`,
-random-slope correlations, and bivariate residual `rho12`.
+guide to `sigma ~ x`, `sigma ~ x + (1 | id)`,
+`sigma ~ x + (1 + x | id)`, `sd(id) ~ x_group`, random-slope correlations,
+and bivariate residual `rho12`.
 
 ## Model equations and matching R syntax
 
@@ -89,11 +98,17 @@ and standard deviation `sigma_i`.
 
 For the fixed-effect Gaussian location-scale model, the symbolic model is:
 
-```text
-y_i | mu_i, sigma_i ~ Normal(mu_i, sigma_i^2)
-mu_i = beta_0 + beta_1 x1_i
-log(sigma_i) = gamma_0 + gamma_1 x2_i
-```
+$$
+y_i \mid \mu_i, \sigma_i \sim \operatorname{Normal}(\mu_i, \sigma_i^2)
+$$
+
+$$
+\mu_i = \beta_0 + \beta_1 x1_i
+$$
+
+$$
+\log(\sigma_i) = \gamma_0 + \gamma_1 x2_i
+$$
 
 The matching `drmTMB` syntax is:
 
@@ -109,18 +124,27 @@ The location formula `y ~ x1` defines the design matrix for the `beta`
 coefficients. The scale formula `sigma ~ x2` defines the design matrix for the
 `gamma` coefficients. The log link makes `sigma_i` positive:
 
-```text
-sigma_i = exp(gamma_0 + gamma_1 x2_i)
-```
+$$
+\sigma_i = \exp(\gamma_0 + \gamma_1 x2_i)
+$$
 
 The same model can be written more compactly as:
 
-```text
-eta_mu_i = X_mu[i, ] beta_mu
-eta_sigma_i = X_sigma[i, ] beta_sigma
-mu_i = eta_mu_i
-sigma_i = exp(eta_sigma_i)
-```
+$$
+\eta_{\mu i} = X_{\mu}[i, ] \beta_{\mu}
+$$
+
+$$
+\eta_{\sigma i} = X_{\sigma}[i, ] \beta_{\sigma}
+$$
+
+$$
+\mu_i = \eta_{\mu i}
+$$
+
+$$
+\sigma_i = \exp(\eta_{\sigma i})
+$$
 
 The mapping is:
 
@@ -136,12 +160,21 @@ The mapping is:
 
 With a random intercept in the location part, the model becomes:
 
-```text
-y_ij | mu_ij, sigma_ij ~ Normal(mu_ij, sigma_ij^2)
-mu_ij = beta_0 + beta_1 x1_ij + b_j
-log(sigma_ij) = gamma_0 + gamma_1 x2_ij
-b_j ~ Normal(0, sd_mu_id^2)
-```
+$$
+y_{ij} \mid \mu_{ij}, \sigma_{ij} \sim \operatorname{Normal}(\mu_{ij}, \sigma_{ij}^2)
+$$
+
+$$
+\mu_{ij} = \beta_0 + \beta_1 x1_{ij} + b_j
+$$
+
+$$
+\log(\sigma_{ij}) = \gamma_0 + \gamma_1 x2_{ij}
+$$
+
+$$
+b_j \sim \operatorname{Normal}(0, sd_{\mu,\mathrm{id}}^2)
+$$
 
 and the matching syntax is:
 
@@ -158,15 +191,27 @@ Here `sigma_ij` is the residual standard deviation. The random-intercept scale
 double-hierarchical scale models, `sd(id) ~ x_group` exposes this group-level
 scale component by name; it should not be confused with residual `sigma`.
 
-Residual-scale random intercepts enter a different part of the model:
+Residual-scale random effects enter a different part of the model:
 
-```text
-y_ij | mu_ij, sigma_ij ~ Normal(mu_ij, sigma_ij^2)
-mu_ij = X_mu[ij, ] beta_mu + b_j
-log(sigma_ij) = X_sigma[ij, ] beta_sigma + a_j
-b_j ~ Normal(0, sd_mu_id^2)
-a_j ~ Normal(0, sd_sigma_id^2)
-```
+$$
+y_{ij} \mid \mu_{ij}, \sigma_{ij} \sim \operatorname{Normal}(\mu_{ij}, \sigma_{ij}^2)
+$$
+
+$$
+\mu_{ij} = X_{\mu}[ij, ] \beta_{\mu} + b_j
+$$
+
+$$
+\log(\sigma_{ij}) = X_{\sigma}[ij, ] \beta_{\sigma} + a_j
+$$
+
+$$
+b_j \sim \operatorname{Normal}(0, sd_{\mu,\mathrm{id}}^2)
+$$
+
+$$
+a_j \sim \operatorname{Normal}(0, sd_{\sigma,\mathrm{id}}^2)
+$$
 
 The matching syntax is:
 
@@ -182,18 +227,32 @@ Here `a_j` is residual-scale heterogeneity, or group-to-group variation in
 within-group variability. It is still not the same quantity as `sd_mu_id`, the
 standard deviation of the `mu` random intercepts.
 
+Residual-scale random slopes use the same log-`sigma` predictor:
+
+\[
+\log(\sigma_{ij}) =
+  X_{\sigma}[ij,]\beta_{\sigma} + a_{0j} + x_{ij}a_{1j}.
+\]
+
+The matching syntax is `sigma ~ x + (1 + x | id)`. The fitted scale-slope
+correlation is reported in `corpars$sigma` and
+`corpairs(class = "scale-slope")`.
+
 A double-hierarchical scale formula targets the random-effect standard
 deviation itself. For example:
 
-```text
-y_ij | mu_ij, sigma_ij, b_j ~ Normal(mu_ij, sigma_ij^2)
-mu_ij = beta_0 + beta_1 x1_ij + b_j
-log(sigma_ij) = gamma_0 + gamma_1 x2_ij
-
-b_j = sd_mu_id,j u_j
-u_j ~ Normal(0, 1)
-log(sd_mu_id,j) = alpha_0 + alpha_1 x_group_j
-```
+\[
+\begin{aligned}
+y_{ij} \mid \mu_{ij}, \sigma_{ij}, b_j
+  &\sim \operatorname{Normal}(\mu_{ij}, \sigma_{ij}^2), \\
+\mu_{ij} &= \beta_0 + \beta_1 x_{1ij} + b_j, \\
+\log(\sigma_{ij}) &= \gamma_0 + \gamma_1 x_{2ij}, \\
+b_j &= \operatorname{sd}_{\mu,\mathrm{id},j} u_j, \\
+u_j &\sim \operatorname{Normal}(0, 1), \\
+\log(\operatorname{sd}_{\mu,\mathrm{id},j})
+  &= \alpha_0 + \alpha_1 x_{\mathrm{group},j}.
+\end{aligned}
+\]
 
 The matching syntax is:
 
@@ -218,13 +277,21 @@ types of groups.
 With two additive random intercepts, the equation has two group-level scale
 components:
 
-```text
-y_i | mu_i, sigma_i ~ Normal(mu_i, sigma_i^2)
-mu_i = X_mu[i, ] beta_mu + b_site[site_i] + b_observer[observer_i]
-log(sigma_i) = X_sigma[i, ] beta_sigma
-b_site[k] ~ Normal(0, sd_mu_site^2)
-b_observer[l] ~ Normal(0, sd_mu_observer^2)
-```
+\[
+\begin{aligned}
+y_i \mid \mu_i, \sigma_i
+  &\sim \operatorname{Normal}(\mu_i, \sigma_i^2), \\
+\mu_i &=
+  X_{\mu}[i,]\beta_{\mu} +
+  b_{\mathrm{site}}[\mathrm{site}_i] +
+  b_{\mathrm{observer}}[\mathrm{observer}_i], \\
+\log(\sigma_i) &= X_{\sigma}[i,]\beta_{\sigma}, \\
+b_{\mathrm{site},k}
+  &\sim \operatorname{Normal}(0, \operatorname{sd}_{\mu,\mathrm{site}}^2), \\
+b_{\mathrm{observer},\ell}
+  &\sim \operatorname{Normal}(0, \operatorname{sd}_{\mu,\mathrm{observer}}^2).
+\end{aligned}
+\]
 
 and the matching syntax is:
 
@@ -238,12 +305,15 @@ drmTMB(
 
 With a simple random slope, the random effect multiplies the predictor value:
 
-```text
-y_ij | mu_ij, sigma_ij ~ Normal(mu_ij, sigma_ij^2)
-mu_ij = beta_0 + beta_1 x1_ij + x1_ij b_j
-log(sigma_ij) = gamma_0 + gamma_1 x2_ij
-b_j ~ Normal(0, sd_mu_x_id^2)
-```
+\[
+\begin{aligned}
+y_{ij} \mid \mu_{ij}, \sigma_{ij}
+  &\sim \operatorname{Normal}(\mu_{ij}, \sigma_{ij}^2), \\
+\mu_{ij} &= \beta_0 + \beta_1 x_{1ij} + x_{1ij}b_j, \\
+\log(\sigma_{ij}) &= \gamma_0 + \gamma_1 x_{2ij}, \\
+b_j &\sim \operatorname{Normal}(0, \operatorname{sd}_{\mu,x,\mathrm{id}}^2).
+\end{aligned}
+\]
 
 and the matching syntax is:
 
@@ -278,8 +348,8 @@ drmTMB(
 ```
 
 The intercept-slope correlation from `(1 + x1 | id)` is a group-level
-correlation reported under `corpars$mu`. A labelled version is also
-implemented for univariate Gaussian `mu`:
+correlation reported under `corpars$mu`. A labelled version is also implemented
+for univariate Gaussian `mu`:
 
 ```r
 drmTMB(
@@ -289,8 +359,72 @@ drmTMB(
 )
 ```
 
-Here `p` is retained as a group-level covariance-block label. It does not yet
-share covariance across `mu`, `sigma`, `mu1`, or `mu2` formulas.
+Here `p` is retained as a group-level covariance-block label.
+
+### Mean-scale and slope-scale covariance
+
+When the same labelled random intercept or one-slope block appears in `mu` and
+`sigma`, `drmTMB` fits one group-level covariance block. This answers a
+different question from `sigma ~ x`: it asks whether groups with higher
+conditional means, stronger mean-model slopes, higher residual scale, or
+stronger scale-model slopes tend to occur together.
+
+\[
+\begin{aligned}
+y_{ij} \mid \mu_{ij}, \sigma_{ij}
+  &\sim \operatorname{Normal}(\mu_{ij}, \sigma_{ij}^2), \\
+\mu_{ij} &= X_{\mu}[ij,]\beta_{\mu} + b_j, \\
+\log(\sigma_{ij}) &= X_{\sigma}[ij,]\beta_{\sigma} + a_j, \\
+\begin{bmatrix} b_j \\ a_j \end{bmatrix}
+  &\sim \operatorname{MVN}
+  \left(
+    \begin{bmatrix} 0 \\ 0 \end{bmatrix},
+    \Sigma_{\mathrm{id}}
+  \right), \\
+\Sigma_{\mathrm{id}} &=
+  \begin{bmatrix}
+    \operatorname{sd}_{\mu}^2 &
+      \rho_{\mu,\sigma}\operatorname{sd}_{\mu}\operatorname{sd}_{\sigma} \\
+    \rho_{\mu,\sigma}\operatorname{sd}_{\mu}\operatorname{sd}_{\sigma} &
+      \operatorname{sd}_{\sigma}^2
+  \end{bmatrix}.
+\end{aligned}
+\]
+
+The intercept-only syntax is:
+
+```r
+drmTMB(
+  bf(y ~ x1 + (1 | p | id), sigma ~ x2 + (1 | p | id)),
+  family = gaussian(),
+  data = dat
+)
+```
+
+The fitted `sdpars$mu` value is the between-group SD in the conditional mean.
+The fitted `sdpars$sigma` value is the between-group SD on the log residual-SD
+scale. The fitted `corpars$mu_sigma` value is the group-level mean-scale
+correlation. Positive values mean groups with higher conditional means also
+tend to have higher residual SD; negative values mean groups with higher
+conditional means tend to be more predictable. Use
+`corpairs(fit, class = "mean-scale")` for a labelled table that keeps this
+group-level correlation separate from residual `rho12`.
+
+The one-slope double-hierarchical block uses the same label in both formulas:
+
+```r
+drmTMB(
+  bf(y ~ x1 + (1 + x1 | p | id), sigma ~ x1 + (1 + x1 | p | id)),
+  family = gaussian(),
+  data = dat
+)
+```
+
+This adds six group-level correlation rows to `corpairs(fit)`: mean-slope,
+mean-scale, slope-scale, and scale-slope pairs. Internally the four-dimensional
+correlation matrix is built with a positive-definite Cholesky parameterization,
+so `profile_targets(fit)` lists these full-block correlations as derived
+summaries rather than direct profile-likelihood targets.
 
 This is where ordinary language can become slippery: the model may contain
 several scale quantities, but only one of them is the residual `sigma`. The
@@ -305,6 +439,9 @@ others should be named by what they scale:
   `(0 + x1 | id)`;
 - ID random intercept-slope correlation in `mu`: `corpars$mu`, from a
   correlated block such as `(1 + x1 | id)`;
+- ID `mu`/`sigma` covariance block: `corpars$mu_sigma`, from matching labelled
+  random intercepts or one-slope blocks such as `(1 + x1 | p | id)` in both
+  `mu` and `sigma`;
 - random-effect scale model: `sd(site)_k`, from syntax such as
   `sd(site) ~ x_group` when the target is an unlabelled Gaussian `mu` random
   intercept.
@@ -313,13 +450,16 @@ The location formula models the conditional mean, `mu`, on the identity scale.
 The scale formula models the residual standard deviation, `sigma`, on the log
 scale:
 
-```text
-y_i | mu_i, sigma_i ~ Normal(mu_i, sigma_i^2)
-mu_i = X_mu beta_mu + b_group[i]
-log(sigma_i) = X_sigma beta_sigma
-b_group = sd_group * u_group
-u_group ~ Normal(0, 1)
-```
+\[
+\begin{aligned}
+y_i \mid \mu_i, \sigma_i
+  &\sim \operatorname{Normal}(\mu_i, \sigma_i^2), \\
+\mu_i &= X_{\mu}\beta_{\mu} + b_{\mathrm{group}}[i], \\
+\log(\sigma_i) &= X_{\sigma}\beta_{\sigma}, \\
+b_{\mathrm{group}} &= \operatorname{sd}_{\mathrm{group}} u_{\mathrm{group}}, \\
+u_{\mathrm{group}} &\sim \operatorname{Normal}(0, 1).
+\end{aligned}
+\]
 
 This means coefficients returned by `coef(fit, "sigma")` are log-standard
 deviation effects. Exponentiating a `sigma` coefficient gives the multiplicative
@@ -569,11 +709,14 @@ growth, but it assumes one residual SD for all observations.
 Meta-analysis is the same Gaussian regression idea with known sampling
 covariance added to the likelihood. For diagonal known sampling variance:
 
-```text
-yi_i | mu_i, sigma_i, v_i ~ Normal(mu_i, v_i + sigma_i^2)
-mu_i = X_mu[i, ] beta_mu
-sigma_i = exp(X_sigma[i, ] beta_sigma)
-```
+\[
+\begin{aligned}
+y_i \mid \mu_i, \sigma_i, v_i
+  &\sim \operatorname{Normal}(\mu_i, v_i + \sigma_i^2), \\
+\mu_i &= X_{\mu}[i,]\beta_{\mu}, \\
+\sigma_i &= \exp(X_{\sigma}[i,]\beta_{\sigma}).
+\end{aligned}
+\]
 
 with matching syntax:
 
@@ -593,9 +736,10 @@ the Gaussian regression.
 
 When `V` is a full known covariance matrix, the same model is:
 
-```text
-y | mu, sigma, V ~ MVN(mu, V + diag(sigma_i^2))
-```
+\[
+y \mid \mu, \sigma, V
+  \sim \operatorname{MVN}\{\mu, V + \operatorname{diag}(\sigma_i^2)\}.
+\]
 
 ## Current implementation caveats
 
@@ -603,8 +747,11 @@ y | mu, sigma, V ~ MVN(mu, V + diag(sigma_i^2))
   `mu` and `sigma`, plus random intercepts, independent numeric random slopes,
   and labelled or unlabelled ordinary correlated intercept-slope blocks in
   `mu`.
-- Residual-scale random intercepts in `sigma`, such as `sigma ~ x2 + (1 | id)`,
-  are implemented for univariate Gaussian models.
+- Residual-scale random intercepts and slopes in `sigma`, such as
+  `sigma ~ x2 + (1 + x2 | id)`, are implemented for univariate Gaussian
+  models. Matching labelled random intercepts or one-slope blocks in `mu` and
+  `sigma`, such as `(1 + x2 | p | id)` in both formulas, estimate one
+  positive-definite group-level covariance block.
 - The `sigma` formula is the observation-level residual standard deviation. It
   is not a random-effect scale component.
 - Missing rows are dropped when they are incomplete for variables used by
@@ -616,10 +763,11 @@ y | mu, sigma, V ~ MVN(mu, V + diag(sigma_i^2))
 - `sd(group)` random-effect scale formulae are implemented for one or more
   distinct unlabelled Gaussian `mu` random intercepts, with group-level
   predictors that are constant within the named grouping variable.
-- Residual-scale random slopes, slope-specific `sd()` targets, labelled-block
-  `sd()` targets, cross-formula labelled covariance sharing, phylogenetic
-  slopes, phylogenetic `sigma` terms, spatial terms, and non-Gaussian random
-  effects are planned but not implemented in this Gaussian tutorial.
+- Slope-specific `sd()` targets, labelled-block `sd()` targets, bivariate
+  random slopes, richer bivariate cross-formula covariance sharing,
+  phylogenetic slopes, phylogenetic `sigma` terms, spatial terms, and
+  non-Gaussian random effects are planned but not implemented in this Gaussian
+  tutorial.
 - Intercept-only phylogenetic random effects are implemented in univariate
   Gaussian `mu` formulas as `phylo(1 | species, tree = tree)`.
 

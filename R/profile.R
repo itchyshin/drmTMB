@@ -293,6 +293,32 @@ drm_profile_targets <- function(object) {
 
   for (dpar in names(object$corpars)) {
     values <- object$corpars[[dpar]]
+    is_derived_mu_sigma <- identical(dpar, "mu_sigma") &&
+      !is.null(object$model$random$mu_sigma) &&
+      object$model$random$mu_sigma$block_dim > 2L
+    if (is_derived_mu_sigma) {
+      add_rows(lapply(seq_along(values), function(i) {
+        new_profile_target_row(
+          parm = paste0("cor:", dpar, ":", names(values)[[i]]),
+          target_class = "random-effect-correlation",
+          dpar = dpar,
+          term = names(values)[[i]],
+          tmb_parameter = NA_character_,
+          index = NA_integer_,
+          estimate = unname(values[[i]]),
+          link_estimate = guarded_correlation_link(
+            unname(values[[i]]),
+            guard = 0.999999
+          ),
+          scale = "response",
+          transformation = "cor_cholesky",
+          target_type = "derived",
+          profile_ready = FALSE,
+          profile_note = "derived_target"
+        )
+      }))
+      next
+    }
     internal <- profile_cor_internal(dpar)
     indices <- next_indices(internal, length(values))
     add_rows(lapply(seq_along(values), function(i) {
@@ -655,7 +681,7 @@ profile_fixef_internal <- function(dpar) {
 }
 
 profile_sd_internal <- function(dpar, term) {
-  if (identical(dpar, "mu") && startsWith(term, "phylo(")) {
+  if (identical(dpar, "mu") && grepl("(^|:)phylo\\(", term)) {
     return("log_sd_phylo")
   }
   if (dpar %in% c("mu", "sigma")) {
@@ -667,6 +693,9 @@ profile_sd_internal <- function(dpar, term) {
 profile_cor_internal <- function(dpar) {
   if (identical(dpar, "mu")) {
     return("eta_cor_mu")
+  }
+  if (identical(dpar, "phylo")) {
+    return("eta_cor_phylo_mu")
   }
   paste0("eta_cor_", dpar)
 }

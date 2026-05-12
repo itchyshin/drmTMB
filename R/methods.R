@@ -155,8 +155,11 @@ rho12.drmTMB <- function(
 #' `corpairs()` returns a long table of fitted correlation pairs from a
 #' `drmTMB` model. The first implementation reports correlations that are
 #' already fitted elsewhere: residual bivariate `rho12`, ordinary univariate
-#' group-level `mu` random-effect correlations, and matched bivariate
-#' `mu1`/`mu2` random-intercept covariance blocks from `corpars$mu`.
+#' group-level `mu` and `sigma` random-effect correlations, matched univariate
+#' `mu`/`sigma` random-intercept or one-slope covariance blocks, and matched
+#' bivariate `mu1`/`mu2` and `sigma1`/`sigma2` random-intercept covariance
+#' blocks, plus the implemented bivariate phylogenetic `mu1`/`mu2`
+#' correlation.
 #'
 #' The table is intentionally more explicit than `rho12()` or `corpars`
 #' because future double-hierarchical, phylogenetic, spatial, and study-level
@@ -223,12 +226,20 @@ corpairs.drmTMB <- function(object, level = NULL, class = NULL, ...) {
     for (dpar in names(object$corpars)) {
       cor_values <- object$corpars[[dpar]]
       for (i in seq_along(cor_values)) {
-        rows[[length(rows) + 1L]] <- random_effect_corpair(
-          object = object,
-          dpar = dpar,
-          label = names(cor_values)[[i]],
-          estimate = unname(cor_values[[i]])
-        )
+        rows[[length(rows) + 1L]] <- if (identical(dpar, "phylo")) {
+          phylo_mu_corpair(
+            object = object,
+            label = names(cor_values)[[i]],
+            estimate = unname(cor_values[[i]])
+          )
+        } else {
+          random_effect_corpair(
+            object = object,
+            dpar = dpar,
+            label = names(cor_values)[[i]],
+            estimate = unname(cor_values[[i]])
+          )
+        }
       }
     }
   }
@@ -333,6 +344,33 @@ random_effect_corpair <- function(object, dpar, label, estimate) {
     modelled = FALSE
   )
 }
+
+phylo_mu_corpair <- function(object, label, estimate) {
+  phylo_mu <- object$model$structured$phylo_mu
+  response_names <- bivariate_response_names(object)
+  new_corpair_row(
+    level = "phylogenetic",
+    group = phylo_mu$group,
+    block = NA_character_,
+    from_dpar = "mu1",
+    to_dpar = "mu2",
+    from_coef = "phylo(1)",
+    to_coef = "phylo(1)",
+    from_response = response_names[[1L]],
+    to_response = response_names[[2L]],
+    class = "mean-mean",
+    parameter = label,
+    estimate = estimate,
+    min = estimate,
+    max = estimate,
+    n_values = 1L,
+    link_estimate = guarded_correlation_link(estimate, guard = 0.999999),
+    link_min = guarded_correlation_link(estimate, guard = 0.999999),
+    link_max = guarded_correlation_link(estimate, guard = 0.999999),
+    modelled = FALSE
+  )
+}
+
 
 parse_random_correlation_endpoint <- function(value, default_dpar) {
   parts <- strsplit(value, ":", fixed = TRUE)[[1L]]
@@ -465,7 +503,16 @@ random_correlation_class <- function(dpar, from_coef, to_coef, to_dpar = dpar) {
     }
     return("scale-slope")
   }
-  paste0(dpar, "-", dpar)
+  if (
+    all(c(from_family, to_family) %in% c("mu", "sigma")) &&
+      !identical(from_family, to_family)
+  ) {
+    if (from_intercept && to_intercept) {
+      return("mean-scale")
+    }
+    return("slope-scale")
+  }
+  paste0(from_family, "-", to_family)
 }
 
 guarded_correlation_link <- function(x, guard) {
@@ -492,6 +539,13 @@ random_effect_response_name <- function(object, dpar) {
     if (dpar %in% c("mu2", "sigma2")) {
       return(response_names[[2L]])
     }
+  }
+  if (dpar %in% c("mu", "sigma")) {
+    return(response_name_from_model_frame(
+      object,
+      "mu",
+      fallback = NA_character_
+    ))
   }
   univariate_response_name(object, dpar)
 }
@@ -623,9 +677,9 @@ deviance.drmTMB <- function(object, ...) {
 #'
 #' When `newdata = NULL`, predictions are for the fitted rows and include
 #' currently implemented conditional random-effect contributions for `mu`,
-#' bivariate `mu1`/`mu2`, phylogenetic `mu`, and residual-scale `sigma`. When
-#' `newdata` is supplied, predictions are fixed-effect, population-level
-#' predictions for the supplied rows.
+#' bivariate `mu1`/`mu2`, phylogenetic `mu`/`mu1`/`mu2`, and residual-scale
+#' `sigma`. When `newdata` is supplied, predictions are fixed-effect,
+#' population-level predictions for the supplied rows.
 #'
 #' @param object A `drmTMB` fit.
 #' @param newdata Optional data frame for prediction. If omitted, fitted rows
@@ -679,8 +733,12 @@ predict.drmTMB <- function(
   ) {
     eta <- eta + mu_random_effect_contribution(object, dpar = dpar)
   }
-  if (is.null(newdata) && dpar == "mu" && has_phylo_mu_effect(object)) {
-    eta <- eta + phylo_mu_contribution(object)
+  if (
+    is.null(newdata) &&
+      dpar %in% phylo_mu_dpars(object) &&
+      has_phylo_mu_effect(object)
+  ) {
+    eta <- eta + phylo_mu_contribution(object, dpar = dpar)
   }
   if (is.null(newdata) && dpar == "sigma" && has_sigma_random_effects(object)) {
     eta <- eta + sigma_random_effect_contribution(object)
@@ -1982,13 +2040,18 @@ has_ordinary_mu_random_effects <- function(object) {
 has_mu_random_intercepts <- has_mu_random_effects
 
 has_phylo_mu_effect <- function(object) {
-  identical(object$model$model_type, "gaussian") &&
+  object$model$model_type %in%
+    c("gaussian", "biv_gaussian") &&
     isTRUE(object$model$structured$phylo_mu$has)
 }
 
 n_mu_random_effect_terms <- function(object) {
-  length(object$model$random$mu$labels) +
-    as.integer(has_phylo_mu_effect(object))
+  phylo_n <- if (has_phylo_mu_effect(object)) {
+    length(object$model$structured$phylo_mu$labels)
+  } else {
+    0L
+  }
+  length(object$model$random$mu$labels) + phylo_n
 }
 
 has_sigma_random_effects <- function(object) {
@@ -2003,6 +2066,13 @@ mu_random_effect_dpars <- function(object) {
   } else {
     unique(dpars)
   }
+}
+
+phylo_mu_dpars <- function(object) {
+  if (!has_phylo_mu_effect(object)) {
+    return(character())
+  }
+  object$model$structured$phylo_mu$dpars
 }
 
 is_random_scale_dpar <- function(object, dpar) {
@@ -2054,8 +2124,11 @@ mu_random_effect_contribution <- function(object, dpar = NULL) {
 
 mu_random_intercept_contribution <- mu_random_effect_contribution
 
-phylo_mu_contribution <- function(object) {
-  values <- object$random_effects$phylo_mu$values
+phylo_mu_contribution <- function(object, dpar = "mu") {
+  values <- object$random_effects$phylo_mu$by_dpar[[dpar]]
+  if (is.null(values)) {
+    values <- object$random_effects$phylo_mu$values
+  }
   index <- object$model$structured$phylo_mu$observation_node_index
   unname(values[index])
 }

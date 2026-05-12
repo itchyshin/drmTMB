@@ -410,12 +410,15 @@ were also more bold than expected under higher disturbance.
 
 This fitted model has no group-level personality or plasticity correlations, no
 phylogenetic correlation, and no spatial field correlation. The first
-bivariate group-level covariance slice is implemented for matching labelled
-random intercepts, such as `(1 | p | ID)` in both `mu1` and `mu2`. If you need
-random slopes, residual-scale random effects, phylogenetic covariance, or
+bivariate group-level covariance slices are implemented for matching labelled
+random intercepts, such as `(1 | p | ID)` in both `mu1` and `mu2`, and
+`(1 | q | ID)` in both `sigma1` and `sigma2`. The first bivariate
+phylogenetic mean covariance slice is also implemented for matching
+`phylo(1 | species, tree = tree)` terms in `mu1` and `mu2`. If you need
+bivariate random slopes, phylogenetic scale covariance, structured `rho12`, or
 spatial covariance, fit the fixed-effect bivariate model shown here or use the
-implemented univariate Gaussian random-effect models until those covariance
-blocks are added.
+implemented Gaussian random-effect models until those covariance blocks are
+added.
 
 For ecological and evolutionary examples, residual `rho12` can represent
 changing residual coupling between traits such as activity and boldness, body
@@ -441,18 +444,37 @@ drmTMB(
 ```
 
 The shared `p` label creates one group-level covariance block for the
-`mu1` and `mu2` random intercepts. `sigma1` and `sigma2` are residual scale
-parameters; fitted random-intercept SDs are group-level standard deviations in
-`sdpars$mu`, not residual `sigma`.
+`mu1` and `mu2` random intercepts. A matching scale block uses a separate label,
+for example `sigma1 = ~ food + (1 | q | ID)` and
+`sigma2 = ~ food + (1 | q | ID)`. The fitted scale random-intercept SDs are
+group-level standard deviations in `sdpars$sigma`, and the scale-scale
+correlation appears in `corpars$sigma` and `corpairs()`.
 
 Symbolically, the implemented random-intercept mean part is:
 
-```text
-mu1_ij = X_mu1[ij, ] beta_mu1 + b_0_1j
-mu2_ij = X_mu2[ij, ] beta_mu2 + b_0_2j
+\[
+\mu_{1ij} = X_{\mu 1}[ij,]\beta_{\mu 1} + b_{0,1j}
+\]
 
-[b_0_1j, b_0_2j]' ~ MVN(0, Sigma_mu_ID)
-```
+\[
+\mu_{2ij} = X_{\mu 2}[ij,]\beta_{\mu 2} + b_{0,2j}
+\]
+
+\[
+\begin{bmatrix}
+b_{0,1j} \\
+b_{0,2j}
+\end{bmatrix}
+\sim
+\operatorname{MVN}
+\left(
+\begin{bmatrix}
+0 \\
+0
+\end{bmatrix},
+\Sigma_{\mu,\mathrm{ID}}
+\right)
+\]
 
 The covariance matrix `Sigma_mu_ID` would contain group-level standard
 deviations and one group-level correlation. That correlation answers whether
@@ -472,10 +494,10 @@ The group-level SD targets are named like `sd:mu:mu1:(1 | p | id)` and
 like `cor:mu:cor(mu1:(Intercept),mu2:(Intercept) | p | id)`. These are
 separate from the residual-correlation target `rho12`.
 
-The middle `p` in `(1 | p | id)` follows grouped covariance-block syntax for
-correlated group-level effects. Labelled one-slope blocks are implemented for
-univariate Gaussian `mu`; bivariate random slopes remain future work. This
-syntax is distinct from residual `rho12`.
+The middle `p` or `q` in `(1 | p | id)` follows grouped covariance-block syntax
+for correlated group-level effects. Labelled one-slope blocks are implemented
+for univariate Gaussian `mu` and `sigma`; bivariate random slopes remain future
+work. This syntax is distinct from residual `rho12`.
 
 In phylogenetic location-scale models, correlations among phylogenetic mean and
 scale effects answer different questions: mean-mean coevolution, scale-scale
@@ -483,10 +505,11 @@ co-divergence, and mean-scale evolutionary constraints. Those are group-level
 covariance summaries. Residual `rho12` is the observation-level trait coupling
 after those structured effects have been accounted for.
 
-The long-term package should therefore support several correlation levels, not
-only residual correlation. For example, a comparative model could estimate a
-phylogenetic correlation between response-specific evolutionary deviations, a
-non-phylogenetic species correlation after shared ancestry is accounted for,
-and a residual `rho12` within observations. Those quantities should be named
-and extracted separately, for example as `corpars$phylo`,
-`corpars$species`, and `rho12(fit)`.
+The package therefore supports several correlation levels, not only residual
+correlation. For example, a comparative model can now estimate a phylogenetic
+correlation between response-specific evolutionary deviations and a residual
+`rho12` within observations. Future slices should add non-phylogenetic species
+correlation after shared ancestry is accounted for, phylogenetic scale
+correlations, and spatial correlations. Those quantities should be named and
+extracted separately, for example as `corpars$phylo`, `corpars$species`, and
+`rho12(fit)`.

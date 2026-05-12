@@ -52,6 +52,40 @@ Type drm_log_inv_logit_diff(Type upper, Type lower)
 }
 
 template<class Type>
+matrix<Type> drm_corr_cholesky_from_partial(vector<Type> eta, int dim)
+{
+  matrix<Type> L(dim, dim);
+  for (int i = 0; i < dim; ++i) {
+    for (int j = 0; j < dim; ++j) {
+      L(i, j) = Type(0.0);
+    }
+  }
+  L(0, 0) = Type(1.0);
+  int pos = 0;
+  for (int i = 1; i < dim; ++i) {
+    Type product = Type(1.0);
+    for (int j = 0; j < i; ++j) {
+      Type rho_partial = Type(0.999999) * tanh(eta(pos));
+      L(i, j) = rho_partial * sqrt(product);
+      product *= Type(1.0) - rho_partial * rho_partial;
+      ++pos;
+    }
+    L(i, i) = sqrt(product);
+  }
+  return L;
+}
+
+template<class Type>
+Type drm_corr_from_cholesky(matrix<Type> L, int row, int col)
+{
+  Type out = Type(0.0);
+  for (int k = 0; k <= col; ++k) {
+    out += L(row, k) * L(col, k);
+  }
+  return out;
+}
+
+template<class Type>
 Type objective_function<Type>::operator()()
 {
   DATA_VECTOR(y);
@@ -107,14 +141,18 @@ Type objective_function<Type>::operator()()
   PARAMETER_VECTOR(u_mu);
   PARAMETER_VECTOR(log_sd_mu);
   PARAMETER_VECTOR(eta_cor_mu);
+  PARAMETER_VECTOR(eta_cor_sigma);
+  PARAMETER_VECTOR(eta_cor_mu_sigma);
+  PARAMETER_VECTOR(eta_cor_phylo_mu);
   PARAMETER_VECTOR(u_sigma);
   PARAMETER_VECTOR(log_sd_sigma);
   PARAMETER_VECTOR(u_phylo);
-  PARAMETER(log_sd_phylo);
+  PARAMETER_VECTOR(log_sd_phylo);
 
   Type nll = 0;
   if (model_type == 99) {
     int n_phylo = u_phylo.size();
+    Type log_sd_phylo0 = log_sd_phylo(0);
     vector<Type> Q_u = Q_phylo * u_phylo;
     Type quadratic = Type(0.0);
     for (int i = 0; i < n_phylo; ++i) {
@@ -122,15 +160,76 @@ Type objective_function<Type>::operator()()
     }
     nll += Type(0.5) * (
       Type(n_phylo) * log(Type(2.0) * M_PI) +
-      Type(2.0) * Type(n_phylo) * log_sd_phylo -
+      Type(2.0) * Type(n_phylo) * log_sd_phylo0 -
       log_det_Q_phylo +
-      exp(Type(-2.0) * log_sd_phylo) * quadratic
+      exp(Type(-2.0) * log_sd_phylo0) * quadratic
     );
     REPORT(quadratic);
     REPORT(log_det_Q_phylo);
   } else if (model_type == 1) {
+    DATA_INTEGER(n_sigma_re_cors);
+    DATA_IVECTOR(sigma_re_pos);
+    DATA_IVECTOR(sigma_re_cor_id);
+    DATA_IVECTOR(sigma_re_pair_index);
+    DATA_INTEGER(n_mu_sigma_re_cors);
+    DATA_IVECTOR(sigma_re_cross_cor_id);
+    DATA_IVECTOR(sigma_re_cross_pair_index);
+    DATA_INTEGER(n_mu_sigma_re_blocks);
+    DATA_INTEGER(mu_sigma_block_dim);
+    DATA_INTEGER(mu_sigma_block_n_groups);
+    DATA_INTEGER(mu_sigma_block_q_mu);
+    DATA_INTEGER(mu_sigma_block_q_sigma);
+    DATA_IMATRIX(mu_sigma_block_mu_re_index);
+    DATA_IMATRIX(mu_sigma_block_sigma_re_index);
+    DATA_IVECTOR(mu_re_shared_block);
+    DATA_IVECTOR(sigma_re_shared_block);
     vector<Type> mu = X_mu * beta_mu;
     vector<Type> log_sigma = X_sigma * beta_sigma;
+    vector<Type> u_mu_shared = u_mu;
+    vector<Type> u_sigma_shared = u_sigma;
+    vector<Type> rho_mu_sigma_re(n_mu_sigma_re_cors);
+
+    if (n_mu_sigma_re_blocks > 0) {
+      matrix<Type> L = drm_corr_cholesky_from_partial(
+        eta_cor_mu_sigma,
+        mu_sigma_block_dim
+      );
+      int rho_pos = 0;
+      for (int i = 1; i < mu_sigma_block_dim; ++i) {
+        for (int j = 0; j < i; ++j) {
+          rho_mu_sigma_re(rho_pos) = drm_corr_from_cholesky(L, i, j);
+          ++rho_pos;
+        }
+      }
+      for (int g = 0; g < mu_sigma_block_n_groups; ++g) {
+        vector<Type> z(mu_sigma_block_dim);
+        for (int j = 0; j < mu_sigma_block_q_mu; ++j) {
+          z(j) = u_mu(mu_sigma_block_mu_re_index(g, j));
+        }
+        for (int j = 0; j < mu_sigma_block_q_sigma; ++j) {
+          z(mu_sigma_block_q_mu + j) =
+            u_sigma(mu_sigma_block_sigma_re_index(g, j));
+        }
+        vector<Type> w(mu_sigma_block_dim);
+        for (int i = 0; i < mu_sigma_block_dim; ++i) {
+          w(i) = Type(0.0);
+          for (int j = 0; j <= i; ++j) {
+            w(i) += L(i, j) * z(j);
+          }
+        }
+        for (int j = 0; j < mu_sigma_block_q_mu; ++j) {
+          u_mu_shared(mu_sigma_block_mu_re_index(g, j)) = w(j);
+        }
+        for (int j = 0; j < mu_sigma_block_q_sigma; ++j) {
+          u_sigma_shared(mu_sigma_block_sigma_re_index(g, j)) =
+            w(mu_sigma_block_q_mu + j);
+        }
+      }
+    } else {
+      for (int j = 0; j < n_mu_sigma_re_cors; ++j) {
+        rho_mu_sigma_re(j) = Type(0.999999) * tanh(eta_cor_mu_sigma(j));
+      }
+    }
 
     if (n_mu_re_terms > 0) {
       vector<Type> sd_mu_re = exp(log_sd_mu);
@@ -158,7 +257,9 @@ Type objective_function<Type>::operator()()
             sd_current = sd_mu_group(sd_row);
           }
           Type u_cond = u_mu(idx);
-          if (cor_id >= 0 && mu_re_pos(idx) == 1) {
+          if (mu_re_shared_block(idx) == 1) {
+            u_cond = u_mu_shared(idx);
+          } else if (cor_id >= 0 && mu_re_pos(idx) == 1) {
             Type rho = rho_mu_re(cor_id);
             int pair_idx = mu_re_pair_index(idx);
             u_cond = rho * u_mu(pair_idx) + sqrt(Type(1.0) - rho * rho) * u_mu(idx);
@@ -173,10 +274,28 @@ Type objective_function<Type>::operator()()
 
     if (n_sigma_re_terms > 0) {
       vector<Type> sd_sigma_re = exp(log_sd_sigma);
+      vector<Type> rho_sigma_re(n_sigma_re_cors);
+      for (int j = 0; j < n_sigma_re_cors; ++j) {
+        rho_sigma_re(j) = Type(0.999999) * tanh(eta_cor_sigma(j));
+      }
       for (int i = 0; i < y.size(); ++i) {
         for (int j = 0; j < n_sigma_re_terms; ++j) {
           int idx = sigma_re_index(i, j);
-          log_sigma(i) += sigma_re_value(i, j) * sd_sigma_re(sigma_re_term(idx)) * u_sigma(idx);
+          Type u_cond = u_sigma(idx);
+          int cor_id = sigma_re_cor_id(idx);
+          if (sigma_re_shared_block(idx) == 1) {
+            u_cond = u_sigma_shared(idx);
+          } else if (cor_id >= 0 && sigma_re_pos(idx) == 1) {
+            Type rho = rho_sigma_re(cor_id);
+            int pair_idx = sigma_re_pair_index(idx);
+            u_cond = rho * u_sigma(pair_idx) + sqrt(Type(1.0) - rho * rho) * u_sigma(idx);
+          } else if (sigma_re_cross_cor_id(idx) >= 0) {
+            int cross_cor_id = sigma_re_cross_cor_id(idx);
+            Type rho = rho_mu_sigma_re(cross_cor_id);
+            int pair_idx = sigma_re_cross_pair_index(idx);
+            u_cond = rho * u_mu(pair_idx) + sqrt(Type(1.0) - rho * rho) * u_sigma(idx);
+          }
+          log_sigma(i) += sigma_re_value(i, j) * sd_sigma_re(sigma_re_term(idx)) * u_cond;
         }
       }
       for (int j = 0; j < u_sigma.size(); ++j) {
@@ -189,6 +308,7 @@ Type objective_function<Type>::operator()()
         mu(i) += u_phylo(phylo_mu_node_index(i));
       }
       int n_phylo = u_phylo.size();
+      Type log_sd_phylo0 = log_sd_phylo(0);
       vector<Type> Q_u = Q_phylo * u_phylo;
       Type quadratic = Type(0.0);
       for (int j = 0; j < n_phylo; ++j) {
@@ -196,15 +316,15 @@ Type objective_function<Type>::operator()()
       }
       nll += Type(0.5) * (
         Type(n_phylo) * log(Type(2.0) * M_PI) +
-        Type(2.0) * Type(n_phylo) * log_sd_phylo -
+        Type(2.0) * Type(n_phylo) * log_sd_phylo0 -
         log_det_Q_phylo +
-        exp(Type(-2.0) * log_sd_phylo) * quadratic
+        exp(Type(-2.0) * log_sd_phylo0) * quadratic
       );
       REPORT(u_phylo);
       REPORT(log_sd_phylo);
       REPORT(quadratic);
       ADREPORT(log_sd_phylo);
-      Type sd_phylo = exp(log_sd_phylo);
+      vector<Type> sd_phylo = exp(log_sd_phylo);
       REPORT(sd_phylo);
       ADREPORT(sd_phylo);
     }
@@ -280,6 +400,22 @@ Type objective_function<Type>::operator()()
       REPORT(sd_sigma_re);
       ADREPORT(log_sd_sigma);
       ADREPORT(sd_sigma_re);
+      if (n_sigma_re_cors > 0) {
+        vector<Type> rho_sigma_re(n_sigma_re_cors);
+        for (int j = 0; j < n_sigma_re_cors; ++j) {
+          rho_sigma_re(j) = Type(0.999999) * tanh(eta_cor_sigma(j));
+        }
+        REPORT(eta_cor_sigma);
+        REPORT(rho_sigma_re);
+        ADREPORT(eta_cor_sigma);
+        ADREPORT(rho_sigma_re);
+      }
+      if (n_mu_sigma_re_cors > 0) {
+        REPORT(eta_cor_mu_sigma);
+        REPORT(rho_mu_sigma_re);
+        ADREPORT(eta_cor_mu_sigma);
+        ADREPORT(rho_mu_sigma_re);
+      }
     }
   } else if (model_type == 3) {
     vector<Type> mu = X_mu * beta_mu;
@@ -603,12 +739,14 @@ Type objective_function<Type>::operator()()
     ADREPORT(beta_sigma);
     ADREPORT(beta_zi);
   } else if (model_type == 2) {
+    DATA_INTEGER(n_sigma_re_cors);
+    DATA_IVECTOR(sigma_re_pos);
+    DATA_IVECTOR(sigma_re_cor_id);
+    DATA_IVECTOR(sigma_re_pair_index);
     vector<Type> mu1 = X_mu1 * beta_mu1;
     vector<Type> mu2 = X_mu2 * beta_mu2;
     vector<Type> log_sigma1 = X_sigma1 * beta_sigma1;
     vector<Type> log_sigma2 = X_sigma2 * beta_sigma2;
-    vector<Type> sigma1 = exp(log_sigma1);
-    vector<Type> sigma2 = exp(log_sigma2);
     vector<Type> eta_rho12 = X_rho12 * beta_rho12;
     vector<Type> rho12 = Type(0.99999999) * tanh(eta_rho12);
 
@@ -654,6 +792,102 @@ Type objective_function<Type>::operator()()
         nll -= dnorm(u_mu(j), Type(0.0), Type(1.0), true);
       }
     }
+
+    if (n_sigma_re_terms > 0) {
+      vector<Type> sd_sigma_re = exp(log_sd_sigma);
+      vector<Type> rho_sigma_re(n_sigma_re_cors);
+      for (int j = 0; j < n_sigma_re_cors; ++j) {
+        rho_sigma_re(j) = Type(0.999999) * tanh(eta_cor_sigma(j));
+      }
+      for (int i = 0; i < y1.size(); ++i) {
+        for (int j = 0; j < n_sigma_re_terms; ++j) {
+          int idx = sigma_re_index(i, j);
+          int cor_id = sigma_re_cor_id(idx);
+          Type u_cond = u_sigma(idx);
+          if (cor_id >= 0 && sigma_re_pos(idx) == 1) {
+            Type rho = rho_sigma_re(cor_id);
+            int pair_idx = sigma_re_pair_index(idx);
+            u_cond = rho * u_sigma(pair_idx) + sqrt(Type(1.0) - rho * rho) * u_sigma(idx);
+          }
+          if (j == 0) {
+            log_sigma1(i) += sigma_re_value(i, j) *
+              sd_sigma_re(sigma_re_term(idx)) * u_cond;
+          } else if (j == 1) {
+            log_sigma2(i) += sigma_re_value(i, j) *
+              sd_sigma_re(sigma_re_term(idx)) * u_cond;
+          }
+        }
+      }
+      for (int j = 0; j < u_sigma.size(); ++j) {
+        nll -= dnorm(u_sigma(j), Type(0.0), Type(1.0), true);
+      }
+    }
+
+    if (has_phylo_mu == 1) {
+      int n_phylo_traits = log_sd_phylo.size();
+      int n_phylo = u_phylo.size() / n_phylo_traits;
+      for (int i = 0; i < y1.size(); ++i) {
+        int node = phylo_mu_node_index(i);
+        mu1(i) += u_phylo(node);
+        mu2(i) += u_phylo(n_phylo + node);
+      }
+
+      vector<Type> u_phylo1(n_phylo);
+      vector<Type> u_phylo2(n_phylo);
+      for (int j = 0; j < n_phylo; ++j) {
+        u_phylo1(j) = u_phylo(j);
+        u_phylo2(j) = u_phylo(n_phylo + j);
+      }
+      vector<Type> Q_u1 = Q_phylo * u_phylo1;
+      vector<Type> Q_u2 = Q_phylo * u_phylo2;
+      Type quadratic1 = Type(0.0);
+      Type quadratic2 = Type(0.0);
+      Type cross_quadratic = Type(0.0);
+      for (int j = 0; j < n_phylo; ++j) {
+        quadratic1 += u_phylo1(j) * Q_u1(j);
+        quadratic2 += u_phylo2(j) * Q_u2(j);
+        cross_quadratic += u_phylo1(j) * Q_u2(j);
+      }
+
+      Type rho_phylo_mu = Type(0.999999) * tanh(eta_cor_phylo_mu(0));
+      Type one_minus_rho2 = Type(1.0) - rho_phylo_mu * rho_phylo_mu;
+      Type log_sd_phylo1 = log_sd_phylo(0);
+      Type log_sd_phylo2 = log_sd_phylo(1);
+      Type scaled_quadratic =
+        exp(Type(-2.0) * log_sd_phylo1) * quadratic1 -
+        Type(2.0) * rho_phylo_mu *
+          exp(-log_sd_phylo1 - log_sd_phylo2) * cross_quadratic +
+        exp(Type(-2.0) * log_sd_phylo2) * quadratic2;
+      scaled_quadratic /= one_minus_rho2;
+
+      nll += Type(0.5) * (
+        Type(2.0) * Type(n_phylo) * log(Type(2.0) * M_PI) +
+        Type(n_phylo) * (
+          Type(2.0) * log_sd_phylo1 +
+          Type(2.0) * log_sd_phylo2 +
+          log(one_minus_rho2)
+        ) -
+        Type(2.0) * log_det_Q_phylo +
+        scaled_quadratic
+      );
+
+      vector<Type> sd_phylo = exp(log_sd_phylo);
+      REPORT(u_phylo);
+      REPORT(log_sd_phylo);
+      REPORT(sd_phylo);
+      REPORT(eta_cor_phylo_mu);
+      REPORT(rho_phylo_mu);
+      REPORT(quadratic1);
+      REPORT(quadratic2);
+      REPORT(cross_quadratic);
+      ADREPORT(log_sd_phylo);
+      ADREPORT(sd_phylo);
+      ADREPORT(eta_cor_phylo_mu);
+      ADREPORT(rho_phylo_mu);
+    }
+
+    vector<Type> sigma1 = exp(log_sigma1);
+    vector<Type> sigma2 = exp(log_sigma2);
 
     if (V_known_type == 2) {
       int n = y1.size();
@@ -743,6 +977,24 @@ Type objective_function<Type>::operator()()
         REPORT(rho_mu_re);
         ADREPORT(eta_cor_mu);
         ADREPORT(rho_mu_re);
+      }
+    }
+    if (n_sigma_re_terms > 0) {
+      vector<Type> sd_sigma_re = exp(log_sd_sigma);
+      vector<Type> rho_sigma_re(n_sigma_re_cors);
+      for (int j = 0; j < n_sigma_re_cors; ++j) {
+        rho_sigma_re(j) = Type(0.999999) * tanh(eta_cor_sigma(j));
+      }
+      REPORT(u_sigma);
+      REPORT(log_sd_sigma);
+      REPORT(sd_sigma_re);
+      ADREPORT(log_sd_sigma);
+      ADREPORT(sd_sigma_re);
+      if (n_sigma_re_cors > 0) {
+        REPORT(eta_cor_sigma);
+        REPORT(rho_sigma_re);
+        ADREPORT(eta_cor_sigma);
+        ADREPORT(rho_sigma_re);
       }
     }
   }

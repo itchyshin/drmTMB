@@ -1,11 +1,13 @@
 # Correlated Random-Effect Blocks
 
-This note records the implemented design for ordinary correlated Gaussian `mu`
+This note records the implemented design for ordinary correlated Gaussian
 random-effect blocks. The current implementation supports independent
 random-effect terms such as `(1 | id)` and `(0 + x | id)`, labelled random
-intercepts such as `(1 | p | id)`, one-slope ordinary correlated blocks such as
-`(1 + x | id)` or `(1 + x | p | id)`, and the first bivariate labelled
-`mu1`/`mu2` random-intercept covariance block.
+intercepts such as `(1 | p | id)`, one-slope ordinary correlated `mu` blocks
+such as `(1 + x | id)` or `(1 + x | p | id)`, unlabelled one-slope ordinary
+correlated `sigma` blocks such as `sigma ~ z + (1 + z | id)`, labelled
+univariate `mu`/`sigma` intercept and one-slope covariance blocks, and the
+first bivariate labelled `mu1`/`mu2` random-intercept covariance block.
 
 ## User Grammar
 
@@ -57,18 +59,34 @@ This fits a group-level random-intercept correlation between the two response
 means. It is separate from residual `rho12`, which remains an
 observation-level response-response correlation.
 
-Later, the same label should support cross-formula or cross-parameter
-covariance:
+The same label also supports the first univariate cross-formula covariance
+slice, including the one-slope double-hierarchical block:
 
 ```r
 bf(
-  mu = y ~ x + (1 + x | p | id),
-  sigma = ~ z + (1 | p | id)
+  y ~ x + (1 + x | p | id),
+  sigma ~ x + (1 + x | p | id)
 )
 ```
 
-In that later model, matching `p` labels will request a shared group-level
-covariance block.
+Here the shared `p` label estimates one positive-definite group-level
+covariance block for the mean and residual-scale random intercepts and slopes
+for the same grouping factor. These mean-slope, mean-scale, slope-scale, and
+scale-slope correlations are still separate from observation-level residual
+correlation `rho12`.
+
+Unlabelled residual-scale random intercept-slope blocks are implemented in the
+univariate Gaussian `sigma` formula:
+
+```r
+bf(y ~ x, sigma ~ z + (1 + z | id))
+```
+
+This estimates a group-level scale-slope correlation between baseline residual
+scale and the residual-scale slope for `z`. The fitted correlation appears in
+`corpars$sigma` and `corpairs(class = "scale-slope")`. When the same labelled
+one-slope block appears in both `mu` and `sigma`, the fitted correlations move
+to `corpars$mu_sigma` because the block spans distributional parameters.
 
 ## Symbolic Model
 
@@ -113,6 +131,21 @@ Then:
 b_0j = sd0 * u_0j
 b_1j = sd1 * (rho_re u_0j + sqrt(1 - rho_re^2) u_1j)
 ```
+
+For the labelled univariate `mu`/`sigma` one-slope block, the standardized
+random-effect vector is ordered as:
+
+```text
+u_j = [mu:(Intercept), mu:x, sigma:(Intercept), sigma:x]'
+u_j = L_corr z_j
+z_j ~ Normal(0, I)
+```
+
+`L_corr` is built from six unconstrained partial correlations, each mapped
+through `0.999999 * tanh(eta)`. This guarantees a positive-definite
+four-dimensional correlation matrix. The reported rows in `corpars$mu_sigma`
+and `corpairs()` are the ordinary pairwise correlations implied by
+`L_corr %*% t(L_corr)`, not six independent pairwise optimizer parameters.
 
 The random-effect likelihood contribution remains:
 
@@ -169,18 +202,28 @@ Do not place group-level correlations under `rho12`.
 ## Implemented Boundary
 
 The current implementation supports ordinary labelled or unlabelled `q = 2`
-Gaussian `mu` blocks:
+Gaussian `mu` blocks, ordinary unlabelled `q = 2` Gaussian `sigma` blocks, the
+labelled univariate `mu`/`sigma` intercept and one-slope covariance blocks, and
+the first bivariate labelled random-intercept covariance slice:
 
 ```r
 bf(y ~ x + (1 + x | id), sigma ~ z)
 bf(y ~ x + (1 + x | p | id), sigma ~ z)
+bf(y ~ x, sigma ~ z + (1 + z | id))
+bf(y ~ x + (1 | p | id), sigma ~ z + (1 | p | id))
+bf(y ~ x + (1 + x | p | id), sigma ~ x + (1 + x | p | id))
+bf(
+  mu1 = y1 ~ x + (1 | p | id),
+  mu2 = y2 ~ x + (1 | p | id),
+  rho12 = ~ x
+)
 ```
 
 Still deferred:
 
 - `q > 2` blocks;
 - factor or multi-column random slopes;
-- correlated blocks spanning `mu` and `sigma`;
+- labelled `mu`/`sigma` blocks with more than one random slope per formula;
 - bivariate `mu1`/`mu2` random-slope covariance blocks;
 - bivariate `sigma1`/`sigma2` and cross-parameter covariance blocks;
 - phylogenetic and spatial correlated slope blocks.

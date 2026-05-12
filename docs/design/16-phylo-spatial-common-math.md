@@ -108,8 +108,8 @@ spatial(1 | site, coords = coords)
 ```
 
 but the TMB likelihood should see the same kind of structured-effect block.
-The first fitted instance is univariate Gaussian `mu` with
-`phylo(1 | species, tree = tree)`.
+The first fitted instances are univariate Gaussian `mu` and matching bivariate
+Gaussian `mu1`/`mu2` with `phylo(1 | species, tree = tree)`.
 
 The mature phylogenetic grammar should probably look like structured
 random-effect syntax rather than a bare marker:
@@ -305,10 +305,11 @@ drmTMB(
 This is partly implemented. Current code supports dense known sampling
 covariance through `meta_known_V(V = V)`, univariate Gaussian `mu` random
 intercepts, independent numeric `mu` random slopes, one-slope correlated `mu`
-blocks, univariate Gaussian residual-scale random intercepts in `sigma`, and
-intercept-only `phylo(1 | species, tree = tree)` in `mu`. Spatial structured
-effects, phylogenetic slopes, and phylogenetic effects in `sigma` are still
-planned.
+blocks, univariate Gaussian residual-scale random intercepts and slopes in
+`sigma`, intercept-only `phylo(1 | species, tree = tree)` in `mu`, and
+matching bivariate Gaussian `mu1`/`mu2` phylogenetic intercept covariance.
+Spatial structured effects, phylogenetic slopes, and phylogenetic effects in
+`sigma` are still planned.
 
 ## Identifiability Rule
 
@@ -341,7 +342,9 @@ ordinary random-effect replication, ordinary random-slope design variation, and
 phylogenetic species replication. For the first bivariate `mu1`/`mu2`
 random-intercept covariance block, it also reports group replication and
 whether either fitted group-level SD is tiny relative to the matching residual
-scale.
+scale. For the matching bivariate phylogenetic `mu1`/`mu2` block, it reports
+observed species replication and whether either fitted phylogenetic location SD
+is tiny relative to the matching residual scale.
 Future structured-effect phases still need separability diagnostics for
 phylogenetic plus non-phylogenetic species effects and spatial field plus site
 or study effects.
@@ -389,7 +392,8 @@ In bivariate phylogenetic or spatial models, there may eventually be many
 correlations:
 
 - residual correlation `rho12`;
-- phylogenetic mean-mean correlations;
+- phylogenetic mean-mean correlations, with the first intercept-only
+  `mu1`/`mu2` block implemented;
 - non-phylogenetic species or group-level mean-mean correlations;
 - structured or unstructured scale-scale correlations;
 - structured or unstructured mean-scale correlations;
@@ -405,17 +409,95 @@ Future extractors should therefore use level-specific containers such as
 blocks, rather than treating every cross-response correlation as residual
 `rho12`.
 
+Non-phylogenetic species covariance should use the ordinary labelled
+group-level path unless the user supplies a tree. For example, repeated species
+measurements without a phylogeny can use matching terms such as
+`mu1 = y1 ~ x + (1 | species_block | species)` and
+`mu2 = y2 ~ x + (1 | species_block | species)`, which report a group-level
+mean-mean correlation through `corpars$mu` and `corpairs(level = "group")`.
+The `phylo()` path should stay reserved for tree-structured covariance through
+`corpars$phylo`; phylogenetic scale effects remain out of the fitted surface
+until the location block has longer simulation evidence.
+
 ## Implementation Order
 
 1. Keep the current Gaussian location-scale and bivariate `rho12` MVP stable.
 2. Extend `meta_known_V(V = V)` from dense known covariance to sparse storage.
 3. Keep the first `phylo(1 | species, tree = tree)` univariate Gaussian `mu`
    path under simulation and comparator tests.
-4. Add spatial SPDE fields using the same structured-effect TMB block.
-5. Add one phylogenetic or spatial structured slope in `mu`.
-6. Only then allow structured effects in `sigma`.
-7. Treat structured effects in `rho12` as experimental until simulation
+4. Keep the first matching bivariate Gaussian `mu1`/`mu2` phylogenetic block
+   under simulation and dense marginal-likelihood comparator tests.
+5. Add spatial SPDE fields using the same structured-effect TMB block.
+6. Add one phylogenetic or spatial structured slope in `mu`.
+7. Only then allow structured effects in `sigma`.
+8. Treat structured effects in `rho12` as experimental until simulation
    evidence shows identifiability.
+
+## External Numerical Scout, 2026-05-12
+
+A web and literature scan supports keeping `drmTMB` on the exact sparse
+precision path for the first bivariate phylogenetic models. The current tree
+block follows the same family of ideas as `MCMCglmm::inverseA()`, which
+documents sparse inverse relatedness and phylogenetic covariance construction
+from Henderson, Meuwissen-Luo, and Hadfield-Nakagawa algorithms
+([MCMCglmm inverseA](https://rdrr.io/cran/MCMCglmm/man/inverseA.html);
+[Hadfield and Nakagawa 2010](https://pubmed.ncbi.nlm.nih.gov/20070460/)).
+For bivariate Gaussian `mu1`/`mu2`, the implemented `A %x% Sigma_phylo`
+structure is therefore the right default: it is exact for the stated Brownian
+tree model, uses sparse matrix algebra, and keeps the biological correlation
+layer interpretable.
+
+For maximum-likelihood random-effect fitting in R, TMB remains the best local
+engine for this package's scope. Kristensen et al. (2016) describe automatic
+differentiation plus Laplace approximation for complex latent-variable models,
+including large spatial Gaussian random fields
+([TMB JSS](https://www.jstatsoft.org/article/view/v070i05)). This supports the
+current choice to keep latent phylogenetic effects in TMB rather than switching
+to hand-coded dense likelihoods or a separate Bayesian engine.
+
+For spatial fields, the next serious implementation path should not be dense
+Gaussian covariance. Lindgren, Rue, and Lindstrom's SPDE construction turns
+continuous Gaussian fields into sparse GMRFs
+([SPDE paper record](https://lup.lub.lu.se/record/2065439)), and multivariate
+SPDE systems extend that idea while preserving sparse precision structure
+([Hu et al.](https://arxiv.org/abs/1307.1379)). The practical R/TMB reference
+point is `sdmTMB`, which combines TMB, fmesher, and GMRFs for spatial and
+spatiotemporal GLMMs ([sdmTMB](https://sdmtmb.github.io/sdmTMB/)). That argues
+for a univariate `spatial(1 | site, coords = coords)` MVP before any bivariate
+spatial covariance.
+
+For very large spatial Gaussian processes, Vecchia and nearest-neighbour
+approximations are a major modern direction. Katzfuss and Guinness frame
+general Vecchia approximations as a sparse framework for scalable GP inference
+([general Vecchia](https://arxiv.org/abs/1708.06302)), and variational nearest
+neighbour GPs push sparse precision approximations further for large data
+([VNNGP](https://arxiv.org/abs/2202.01694)). These are good future scouting
+targets, but they should not replace exact tree precision for the current
+phylogenetic block. They would be approximate spatial engines, not a first
+`phylo()` implementation.
+
+For high-dimensional multivariate random effects, reduced-rank/factor-analytic
+methods are the active direction. Recent glmmTMB work fits large multivariate
+random effects by writing a high-dimensional covariance through fewer latent
+variables ([reduced-rank glmmTMB](https://arxiv.org/abs/2411.04411)), and
+`gllvm` uses Laplace or variational approximations for multivariate ecological
+latent-variable models ([gllvm docs](https://rdrr.io/cran/gllvm/man/gllvm.html);
+[Niku et al. 2019](https://journals.plos.org/plosone/article?id=10.1371%2Fjournal.pone.0216129)).
+This is important for `gllvmTMB`, but `drmTMB` should keep its one-response and
+two-response scope. If `drmTMB` later needs a four-effect bivariate
+location-scale block, a small Cholesky or partial-correlation parameterization
+is more appropriate than a reduced-rank latent-factor interface.
+
+Two newer phylogenetic directions are worth watching but are not immediate
+implementation targets. PCMBase emphasizes fast likelihood evaluation for
+multivariate phylogenetic comparative models, including nonultrametric trees,
+polytomies, missing measurements, and measurement error
+([PCMBase](https://arxiv.org/abs/1809.09014)); it is useful as a comparator
+mindset. Recent algorithmic work on sparsifying phylogenetic covariance
+matrices with Haar-like tree wavelets is mathematically interesting
+([Svihla and Lladser 2024](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.AofA.2024.4)),
+but it should remain research-watch rather than package surface until it has a
+clear applied mixed-model workflow.
 
 ## Current Implementation Gate
 
@@ -425,6 +507,18 @@ The current fitted slice is deliberately small:
 drmTMB(
   bf(y ~ x + phylo(1 | species, tree = tree), sigma ~ z),
   family = gaussian(),
+  data = dat
+)
+
+drmTMB(
+  bf(
+    mu1 = y1 ~ x + phylo(1 | species, tree = tree),
+    mu2 = y2 ~ x + phylo(1 | species, tree = tree),
+    sigma1 = ~ z1,
+    sigma2 = ~ z2,
+    rho12 = ~ 1
+  ),
+  family = biv_gaussian(),
   data = dat
 )
 ```
@@ -452,17 +546,36 @@ For internal comparator tests, the same model can be validated against a dense
 tip covariance implied by the tree on small examples. That dense matrix should
 not be the main public input for `phylo()`.
 
-The first implementation attaches the structured effect only to univariate
-Gaussian `mu`. It does not yet add bivariate covariance, structured scale
-effects, structured `rho12`, or random slopes.
+The bivariate phylogenetic mean block is:
+
+```text
+mu1_i = X_mu1[i, ] beta_mu1 + a_1[species_i]
+mu2_i = X_mu2[i, ] beta_mu2 + a_2[species_i]
+[a_1, a_2] ~ MVN(0, A %x% Sigma_phylo)
+```
+
+`Sigma_phylo` has two positive SDs and one bounded correlation:
+
+```text
+sd_phylo1 = exp(log_sd_phylo[1])
+sd_phylo2 = exp(log_sd_phylo[2])
+rho_phylo = 0.999999 * tanh(eta_cor_phylo_mu)
+```
+
+The fitted SDs are reported in `sdpars$mu` with names such as
+`mu1:phylo(1 | species)`, and the fitted phylogenetic mean-mean correlation is
+reported in `corpars$phylo` and `corpairs(level = "phylogenetic")`. The current
+implementation does not yet add structured scale effects, structured `rho12`,
+spatial effects, or random slopes.
 
 Testing should be staged:
 
 - parser and fitted-model tests for `phylo(1 | species, tree = tree)` in `mu`
-  and clear rejection in unsupported parameters such as `sigma` and `rho12`;
+  and matching bivariate `mu1`/`mu2`, plus clear rejection in unsupported
+  parameters such as `sigma` and `rho12`;
 - deterministic algebra tests comparing sparse A-inverse prior calculations
   with a small dense covariance calculation;
-- one CRAN-safe simulation recovery test with a hand-built ultrametric tree and
+- CRAN-safe simulation recovery tests with a hand-built ultrametric tree and
   its implied phylogenetic correlation matrix;
 - optional long simulations for many species, near-zero phylogenetic SD,
   large residual noise, and simultaneous phylogenetic plus non-phylogenetic

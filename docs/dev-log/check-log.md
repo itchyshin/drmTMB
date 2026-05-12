@@ -2,6 +2,251 @@
 
 Record meaningful development checks here.
 
+## 2026-05-12 -- Bivariate phylogenetic check_drm diagnostics
+
+Scope:
+
+- added a `biv_phylo_mu_covariance` row to `check_drm()` for matching
+  bivariate `mu1`/`mu2` `phylo(1 | species, tree = tree)` fits;
+- the new row reports observed species count, minimum fitted observations per
+  species, singleton species count, and the minimum ratio of fitted
+  phylogenetic location SD to the matching residual scale;
+- kept the diagnostic as a `note`, matching the ordinary bivariate
+  group-covariance diagnostic, because weak replication or tiny fitted SDs
+  mean "inspect before interpreting" rather than "the fit is automatically
+  invalid";
+- recorded the design decision that non-phylogenetic species covariance should
+  use the existing labelled group-level path, while `phylo()` remains reserved
+  for tree-structured covariance;
+- left phylogenetic `sigma1`/`sigma2`, structured `rho12`, and phylogenetic
+  scale effects out of the fitted surface.
+
+Checks:
+
+- `air format R/check.R tests/testthat/test-check-drm.R NEWS.md docs/design/16-phylo-spatial-common-math.md docs/dev-log/known-limitations.md vignettes/phylogenetic-spatial.Rmd`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'check-drm|phylo')"`: passed with
+  187 expectations.
+- final `Rscript -e "devtools::test(filter = 'check-drm')"`: passed with
+  95 expectations.
+- `Rscript -e "devtools::test()"`: passed with 1980 expectations.
+- `Rscript -e "devtools::document()"`: passed and regenerated
+  `man/check_drm.Rd`.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with no problems found.
+
+## 2026-05-12 -- Longer tutorial model-statement equations
+
+Scope:
+
+- converted remaining reader-facing model statements in
+  `vignettes/location-scale.Rmd` from fenced text blocks to LaTeX display math,
+  including residual-scale random slopes, double-hierarchical `sd(id)` models,
+  multiple random intercepts, simple random slopes, labelled mean-scale
+  covariance, the residual-`sigma` versus group-level-scale reminder, and the
+  Gaussian meta-analysis equations;
+- converted the model-statement and likelihood equations in
+  `vignettes/adding-families.Rmd` from fenced text blocks to LaTeX display
+  math, leaving its remaining fenced text blocks as field, prediction, and file
+  checklists;
+- reviewed `vignettes/bivariate-coscale.Rmd` and left its remaining fenced text
+  block unchanged because the page explicitly labels it as an implementation
+  cross-check, while the main fixed-effect, worked-example, and group-level
+  model statements are already rendered equations;
+- did not add biological case-study pages; this pass stayed on model-class
+  tutorial stability.
+
+Checks:
+
+- `air format vignettes/location-scale.Rmd`: passed.
+- `rg -n '```text' vignettes/location-scale.Rmd vignettes/bivariate-coscale.Rmd`:
+  found no `location-scale` matches and one intentional implementation
+  cross-check block in `bivariate-coscale`.
+- `rg -n '```text' vignettes/adding-families.Rmd vignettes/location-scale.Rmd vignettes/bivariate-coscale.Rmd`:
+  found only the `adding-families` checklist blocks and one intentional
+  implementation cross-check block in `bivariate-coscale`.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed and rebuilt the
+  affected articles.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with no problems found.
+- `git diff --check`: passed.
+
+## 2026-05-12 -- Post-fit and robust tutorial equations
+
+Scope:
+
+- converted the introductory Gaussian model in `vignettes/model-workflow.Rmd`
+  from a fenced text block to LaTeX display math;
+- converted the Student-t model and `nu` link in
+  `vignettes/robust-student.Rmd` from fenced text blocks to LaTeX display math;
+- kept the exact `drmTMB(...)` syntax blocks, coefficient interpretation, and
+  current Student-t boundary wording unchanged.
+
+Checks:
+
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed before this
+  slice, closing the previous full-site freshness gap.
+- `air format vignettes/model-workflow.Rmd vignettes/robust-student.Rmd`:
+  passed.
+- `rg -n '```text' vignettes/model-workflow.Rmd vignettes/robust-student.Rmd`:
+  returned no matches.
+- direct `rmarkdown::render()` and `pkgdown::build_article()` attempts for the
+  affected articles failed in the standalone environment because the installed
+  `drmTMB` package lacked `predict_parameters()`; this was superseded by the
+  full pkgdown build from the working tree.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed after the
+  tutorial edits and wrote the updated `model-workflow` and `robust-student`
+  articles.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with no problems found.
+- `git diff --check`: passed.
+
+## 2026-05-12 -- Distribution-family model-guide equations
+
+Scope:
+
+- converted the compact model contracts in
+  `vignettes/distribution-families.Rmd` from fenced text blocks to LaTeX
+  display math;
+- kept the matching R syntax blocks and family-specific caveats unchanged;
+- preserved `sigma` as the public variability-facing scale and `rho12` as the
+  bivariate residual-correlation term.
+
+Checks:
+
+- `air format vignettes/distribution-families.Rmd`: passed.
+- `rg -n '```text' vignettes/distribution-families.Rmd`: returned no matches.
+- `Rscript -e "rmarkdown::render('vignettes/distribution-families.Rmd', output_format = 'html_document', output_dir = tempfile(), quiet = TRUE)"`:
+  passed.
+- `Rscript -e "pkgdown::build_article('distribution-families', pkg = '.', lazy = FALSE, quiet = TRUE)"`:
+  passed and wrote `pkgdown-site/articles/distribution-families.html`.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with no problems found.
+- `git diff --check`: passed.
+
+## 2026-05-12 -- Tutorial map and equation consistency
+
+Scope:
+
+- expanded the getting-started learning path into a question-first route map;
+- added an article-architecture rule to `docs/design/21-tutorial-style.md`;
+- converted high-visibility symbolic model blocks from text form to LaTeX in
+  `vignettes/drmTMB.Rmd`, `vignettes/which-scale.Rmd`,
+  `vignettes/bivariate-coscale.Rmd`, `vignettes/phylogenetic-spatial.Rmd`, and
+  `docs/design/28-double-hierarchical-endpoint.md`;
+- recorded the after-task report at
+  `docs/dev-log/after-task/2026-05-12-tutorial-map-equation-consistency.md`.
+
+Checks:
+
+- `air format vignettes/drmTMB.Rmd vignettes/bivariate-coscale.Rmd vignettes/phylogenetic-spatial.Rmd vignettes/which-scale.Rmd docs/design/21-tutorial-style.md docs/design/28-double-hierarchical-endpoint.md`:
+  passed.
+- `rg -n "format|air|styler|lintr|prettier" .github .pre-commit-config.yaml .lintr .Rbuildignore DESCRIPTION 2>/dev/null`:
+  found no separate formatting GitHub Actions workflow.
+- `find .github/workflows -maxdepth 1 -type f -print -exec sed -n '1,80p' {} \; 2>/dev/null`:
+  confirmed the current workflows are `R-CMD-check` and `pkgdown`.
+- `git diff --check`: passed.
+
+## 2026-05-12 -- Low-budget article-map and equation audit
+
+Scope:
+
+- reviewed the current tutorial/article map against `_pkgdown.yml` and the
+  vignette titles;
+- checked the long-form tutorial surfaces for the remaining plain-text math
+  hotspots and confirmed they are still concentrated in the longer
+  overview/tutorial pages rather than the front-door examples;
+- kept the article structure unchanged because the current split pages still
+  match the question-first tutorial contract better than a merged landing page;
+- did not find a small, safe code or docs change that would materially improve
+  the double-hierarchical Gaussian follow-through without broadening scope.
+
+Checks:
+
+- `rg -n '^title:|^# ' vignettes/*.Rmd docs/design/28-double-hierarchical-endpoint.md`:
+  inventoried the tutorial and design-note titles.
+- `sed -n '1,220p' _pkgdown.yml`:
+  confirmed the current tutorial grouping and landing-page labels.
+- `sed -n '1,220p' vignettes/drmTMB.Rmd vignettes/location-scale.Rmd vignettes/which-scale.Rmd vignettes/bivariate-coscale.Rmd vignettes/phylogenetic-spatial.Rmd docs/design/28-double-hierarchical-endpoint.md`:
+  reviewed the main equation, syntax, and interpretation surfaces.
+- `git diff --check`: passed.
+
+## 2026-05-11 -- Front-door LaTeX cleanup
+
+Scope:
+
+- normalized the main symbolic equations in `vignettes/location-scale.Rmd`
+  and the first model blocks in `vignettes/which-scale.Rmd` so the prose now
+  reads as LaTeX display math followed by fenced R syntax;
+- kept the broader tutorial/article structure unchanged: separate articles
+  still make sense, and the handoff remains a landing-page map proposal rather
+  than a large reorganization.
+
+Checks:
+
+- `git diff --check`: passed.
+- `rg -n '```text' vignettes/location-scale.Rmd vignettes/which-scale.Rmd`:
+  confirmed that the remaining plain-text equation blocks are later, lower
+  priority sections rather than the front-door examples.
+
+## 2026-05-11 -- Overnight double-hierarchical follow-through audit
+
+Scope:
+
+- reviewed the current double-hierarchical Gaussian phase map and the article
+  inventory without making a broad reorganization;
+- checked the tutorial and design-doc style contract for equation/syntax
+  consistency and noted the remaining plain-text math hotspots;
+- prepared a concrete tutorial/article-structure proposal for the handoff:
+  keep the current split articles, but add a clearer landing-page map rather
+  than merging Gaussian, non-Gaussian, univariate, bivariate, phylogenetic, or
+  spatial material into one page;
+- added the after-task report
+  `docs/dev-log/after-task/2026-05-11-overnight-double-hierarchical-follow-through.md`.
+
+Checks:
+
+- `rg -n '^title:|^#|^## ' vignettes/*.Rmd docs/design/21-tutorial-style.md README.md ROADMAP.md _pkgdown.yml`:
+  inventoried the current tutorial/article layout.
+- `rg -n '```text|u_j =|y_ij ~|log\\(sigma|rho12|Normal\\(|MVN\\(|sigma \\^2|sigma\\^2|LaTeX|plain text|equation' docs/design vignettes README.md ROADMAP.md`:
+  confirmed that the main prose hotspots still rely on fenced text blocks for
+  symbolic equations.
+- `git diff --check`: passed after the new handoff note and check-log entry were
+  staged in the working tree.
+
+## 2026-05-11 -- Univariate labelled double-hierarchical one-slope block
+
+Scope:
+
+- added matching labelled univariate Gaussian `mu`/`sigma` one-slope covariance
+  support for syntax such as
+  `bf(y ~ x + (1 + x | p | id), sigma ~ x + (1 + x | p | id))`;
+- kept matching labelled random-intercept covariance support;
+- parameterized the full `mu`/`sigma` block with a positive-definite
+  partial-correlation Cholesky factor;
+- reported derived pairwise correlations through `corpars$mu_sigma`,
+  `corpairs()`, and derived `profile_targets()` metadata;
+- updated README, NEWS, roadmap, design notes, vignettes, known limitations,
+  generated reference docs, and the after-task report at
+  `docs/dev-log/after-task/2026-05-11-univariate-double-hierarchical-one-slope.md`.
+
+Checks:
+
+- `air format R/drmTMB.R R/methods.R R/profile.R src/drmTMB.cpp tests/testthat/test-gaussian-random-intercepts.R NEWS.md README.md ROADMAP.md docs/design/01-formula-grammar.md docs/design/03-likelihoods.md docs/design/04-random-effects.md docs/design/12-profile-likelihood-cis.md docs/design/13-gaussian-location-scale-math.md docs/design/17-correlated-random-effect-blocks.md docs/design/20-coscale-correlation-pairs.md docs/design/28-double-hierarchical-endpoint.md docs/dev-log/known-limitations.md vignettes/drmTMB.Rmd vignettes/formula-grammar.Rmd vignettes/location-scale.Rmd vignettes/which-scale.Rmd`:
+  passed.
+- `air format docs/design/04-random-effects.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-11-univariate-double-hierarchical-one-slope.md vignettes/drmTMB.Rmd vignettes/source-map.Rmd vignettes/which-scale.Rmd`:
+  passed after the final stale-wording cleanup.
+- `Rscript -e "devtools::document()"`: passed and regenerated
+  `man/drmTMB.Rd` and `man/corpairs.Rd`.
+- `Rscript -e "devtools::test(filter = 'gaussian-random-intercepts|corpairs|profile-targets')"`:
+  passed with 545 expectations.
+- `Rscript -e "devtools::test()"`: passed with 1926 expectations.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with no problems found.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed.
+- `_R_CHECK_SYSTEM_CLOCK_=FALSE Rscript -e "devtools::check(document = FALSE, manual = FALSE, args = '--no-tests')"`:
+  passed with 0 errors, 0 warnings, and 0 notes.
+- `git diff --check`: passed.
+- `rg -n 'labelled residual-scale random slopes remain planned|Slope-level cross-formula covariance remains planned|matching labelled random intercepts in `mu` and `sigma`|first fitted mean-scale covariance slice|matching labelled `mu` and `sigma` random intercepts such as' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes R tests man --glob '!docs/dev-log/after-task/**'`:
+  returned no matches after final prose cleanup.
+- `rg -n 'rho ~|meta_gaussian|tau ~|meta_known_V\([^V]|planned.*implemented|implemented.*planned' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes R tests man _pkgdown.yml --glob '!docs/dev-log/after-task/**'`:
+  found only intentional guardrails and planned-feature boundaries.
+
 ## 2026-05-11 -- Mammal location-coscale route
 
 Scope:
@@ -9930,3 +10175,319 @@ Known limitations:
 - this slice covers the target inventory and direct target mapping, not a
   separate long-running profile-interval simulation study for the bivariate
   group-level covariance parameters.
+
+## 2026-05-11 -- Bivariate mu profile-interval coverage
+
+Goal:
+
+- verify that the implemented bivariate Gaussian `mu1`/`mu2` random-intercept
+  covariance targets from `profile_targets()` also work through
+  `confint(method = "profile")`.
+
+Implemented:
+
+- added a `confint()` profile test for `sd:mu:mu1:(1 | p | id)`,
+  `sd:mu:mu2:(1 | p | id)`, and
+  `cor:mu:cor(mu1:(Intercept),mu2:(Intercept) | p | id)`;
+- checked response-scale interval metadata, internal TMB parameters,
+  target indices, positive SD bounds, bounded correlation bounds, and that the
+  tested target names do not mix in residual `rho12`;
+- updated `NEWS.md` so the `confint()` release note explicitly names the
+  bivariate covariance SD and correlation target forms;
+- updated `docs/design/12-profile-likelihood-cis.md` so the profile-CI test
+  checklist includes bivariate `mu1`/`mu2` covariance-block intervals;
+- added the after-task report
+  `docs/dev-log/after-task/2026-05-11-bivariate-mu-profile-intervals.md`.
+
+Checks run:
+
+- `air format tests/testthat/test-profile-targets.R NEWS.md docs/design/12-profile-likelihood-cis.md`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'profile-targets')"`: passed with 193
+  expectations.
+- `Rscript -e "devtools::test(filter = 'profile-targets|biv-gaussian')"`:
+  passed with 316 expectations.
+- `Rscript -e "devtools::test()"`: passed with 1789 expectations.
+- `Rscript -e "devtools::document()"`: passed; no generated documentation
+  changes were left in the working tree.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with no problems found.
+- `git diff --check`: passed.
+- `rg -n 'sd:mu:mu1:\(1 \| p \| id\)|cor:mu:cor\(mu1:\(Intercept\),mu2:\(Intercept\) \| p \| id\)|residual `rho12`|residual rho12' NEWS.md README.md ROADMAP.md docs/design docs/dev-log/known-limitations.md vignettes tests/testthat/test-profile-targets.R`:
+  confirmed the new target names and residual-`rho12` separation appear in the
+  intended files.
+- `rg -n 'rho ~|meta_gaussian|tau ~|meta_known_V\([^V]|profile.*bivariate|bivariate.*profile|planned.*implemented|implemented.*planned' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes R tests _pkgdown.yml`:
+  found only intentional guardrails, planned-feature wording, and the new
+  bivariate profile coverage.
+
+Known limitations:
+
+- this adds direct profile-interval coverage for the bivariate covariance
+  target plumbing, not a long-running coverage simulation for bivariate
+  group-level covariance intervals;
+- derived double-hierarchical intervals such as repeatability, total variance,
+  and structured covariance-layer summaries remain planned.
+
+## 2026-05-11 -- Univariate mu/sigma mean-scale covariance
+
+Goal:
+
+- implement the first univariate cross-formula covariance block: matching
+  labelled Gaussian random intercepts in `mu` and `sigma`, such as
+  `bf(y ~ x + (1 | p | id), sigma ~ z + (1 | p | id))`, estimate one
+  group-level mean-scale correlation.
+
+Implemented:
+
+- added R-side matching for labelled `mu` and `sigma` random intercepts with
+  the same block label and grouping factor;
+- added the TMB parameter `eta_cor_mu_sigma` and bounded correlation transform;
+- exposed the fitted mean-scale correlation in `corpars$mu_sigma`,
+  `corpairs(class = "mean-scale")`, and `profile_targets()`;
+- added direct profile-likelihood interval coverage for `sd:mu:(1 | p | id)`,
+  `sd:sigma:(1 | p | id)`, and
+  `cor:mu_sigma:cor(mu:(Intercept),sigma:(Intercept) | p | id)`;
+- fixed `corpairs()` response labels for univariate `sigma` endpoints so the
+  mean-scale row reports response `y`, not the first `sigma` predictor;
+- updated user-facing tutorials and status inventories so matching random
+  intercepts are implemented while random slopes and richer cross-formula
+  blocks remain planned;
+- added the after-task report
+  `docs/dev-log/after-task/2026-05-11-mu-sigma-mean-scale-covariance.md`.
+
+Checks run:
+
+- `air format R/methods.R tests/testthat/test-gaussian-random-intercepts.R tests/testthat/test-profile-targets.R NEWS.md vignettes/location-scale.Rmd vignettes/which-scale.Rmd vignettes/formula-grammar.Rmd`:
+  passed.
+- `air format tests/testthat/test-corpairs.R`: passed.
+- `air format docs/design/12-profile-likelihood-cis.md`: passed.
+- `Rscript -e "devtools::test(filter = 'gaussian-random-intercepts')"`:
+  passed with 204 expectations.
+- `Rscript -e "devtools::test(filter = 'profile-targets')"`: passed with 206
+  expectations.
+- `Rscript -e "devtools::test(filter = 'corpairs')"`: passed with 59
+  expectations.
+- `Rscript -e "devtools::test(filter = 'gaussian-random-intercepts|profile-targets|corpairs')"`:
+  passed with 469 expectations.
+- `Rscript -e "devtools::test()"`: passed with 1850 expectations.
+- `Rscript -e "devtools::document()"`: passed and regenerated
+  `man/corpairs.Rd`.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with no problems found.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed.
+- `_R_CHECK_SYSTEM_CLOCK_=FALSE Rscript -e "devtools::check(document = FALSE, manual = FALSE, args = '--no-tests')"`:
+  passed with 0 errors, 0 warnings, and 0 notes.
+- `git diff --check`: passed.
+- `rg -n 'does not yet share covariance|cross-formula.*future|cross-formula.*planned|mu.*sigma.*planned|planned.*mu.*/sigma|mu1.*/mu2.*only|corpairs.*ordinary univariate Gaussian `mu` random-effect correlations' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes R tests man _pkgdown.yml`:
+  found only intentional boundaries for random slopes, richer labelled
+  covariance blocks, phylogenetic/spatial layers, and richer bivariate
+  covariance.
+- `rg -n 'mean-scale|mu_sigma|eta_cor_mu_sigma|cor:mu_sigma|sd:sigma:\(1 \| p \| id\)|residual `rho12`|residual rho12' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes R tests man`:
+  confirmed the implemented mean-scale target names and residual-`rho12`
+  separation are visible in source, tests, docs, tutorials, and generated help.
+- `rg -n 'rho ~|meta_gaussian|tau ~|meta_known_V\([^V]|planned.*implemented|implemented.*planned' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes R tests man _pkgdown.yml`:
+  found only intentional guardrails, planned-feature wording, and meta-analysis
+  design notes.
+
+Known limitations:
+
+- only matching labelled random intercepts are implemented for univariate
+  `mu`/`sigma` covariance;
+- random slopes, full four-effect double-hierarchical blocks, bivariate
+  residual-scale random effects, and structured phylogenetic/spatial covariance
+  layers remain planned;
+- the tests check recovery and profile-interval plumbing for moderate simulated
+  data, not long-run coverage of the profile intervals.
+
+## 2026-05-11 -- Gaussian sigma random slopes
+
+Goal:
+
+- implement ordinary unlabelled Gaussian residual-scale random slopes in
+  `sigma`, while keeping labelled cross-formula `mu`/`sigma` random slopes
+  planned.
+
+Implemented:
+
+- allowed `sigma` random slopes such as `sigma ~ z + (0 + z | id)`;
+- allowed ordinary unlabelled residual-scale intercept-slope covariance blocks
+  such as `sigma ~ z + (1 + z | id)`;
+- added `eta_cor_sigma` to the R start/map path and to `src/drmTMB.cpp` with a
+  guarded `0.999999 * tanh()` transform;
+- exposed residual-scale SDs in `sdpars$sigma`, correlations in
+  `corpars$sigma`, and `scale-slope` rows in `corpairs()`;
+- kept labelled residual-scale random slopes rejected with an explicit message;
+- updated README, NEWS, roadmap, design docs, known limitations, and tutorials
+  so ordinary unlabelled `sigma` slopes are implemented and labelled
+  cross-formula slope covariance remains planned;
+- added the after-task report
+  `docs/dev-log/after-task/2026-05-11-sigma-random-slopes.md`.
+
+Checks run:
+
+- `Rscript -e "devtools::test(filter = 'gaussian-random-intercepts')"`:
+  passed with 240 expectations.
+- `Rscript -e "devtools::test(filter = 'corpairs|profile-targets')"`:
+  passed with 282 expectations.
+- `air format R/drmTMB.R R/methods.R src/drmTMB.cpp tests/testthat/test-gaussian-random-intercepts.R tests/testthat/test-corpairs.R tests/testthat/test-phylo-utils.R NEWS.md README.md ROADMAP.md docs/design/01-formula-grammar.md docs/design/02-family-registry.md docs/design/03-likelihoods.md docs/design/04-random-effects.md docs/design/12-profile-likelihood-cis.md docs/design/13-gaussian-location-scale-math.md docs/design/16-phylo-spatial-common-math.md docs/design/17-correlated-random-effect-blocks.md docs/design/18-random-effect-scale-models.md docs/design/20-coscale-correlation-pairs.md docs/design/28-double-hierarchical-endpoint.md docs/dev-log/known-limitations.md vignettes/drmTMB.Rmd vignettes/formula-grammar.Rmd vignettes/location-scale.Rmd vignettes/source-map.Rmd vignettes/which-scale.Rmd`:
+  passed.
+- `Rscript -e "devtools::document()"`: passed and regenerated
+  `man/drmTMB.Rd` and `man/corpairs.Rd`.
+- `Rscript -e "devtools::test()"`: passed with 1903 expectations.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with no problems found.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed.
+- `_R_CHECK_SYSTEM_CLOCK_=FALSE Rscript -e "devtools::check(document = FALSE, manual = FALSE, args = '--no-tests')"`:
+  passed with 0 errors, 0 warnings, and 0 notes.
+- `git diff --check`: passed.
+- `rg -n 'Only random intercepts|residual-scale random slopes are planned|residual-scale random slopes in sigma|sigma random intercepts only|random intercepts in residual scale|residual-scale covariance.*planned|corpairs.*ordinary univariate Gaussian mu random-effect correlations|eta_cor_sigma|scale-slope|corpars\$sigma' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes R tests man pkgdown-site`:
+  confirmed the intended `eta_cor_sigma`, `scale-slope`, and `corpars$sigma`
+  references; remaining "Only random intercepts" hits are malformed-input
+  tests for other unsupported paths.
+- `rg -n 'rho ~|meta_gaussian|tau ~|meta_known_V\([^V]|planned.*implemented|implemented.*planned' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes R tests man pkgdown-site _pkgdown.yml`:
+  found only intentional guardrails, planned-feature wording, and generated
+  pkgdown copies.
+
+Known limitations:
+
+- labelled residual-scale random slopes are still planned;
+- the full labelled univariate four-effect double-hierarchical block remains
+  planned;
+- bivariate residual-scale random effects and structured covariance layers
+  remain planned;
+- the new tests check deterministic recovery and extractor/profile-target
+  plumbing, not long-run profile-interval coverage for `eta_cor_sigma`.
+
+## 2026-05-12 -- Bivariate scale covariance integration
+
+Goal:
+
+- finish the broken bivariate covariance lane by making matching labelled
+  `sigma1`/`sigma2` random-intercept covariance work together with existing
+  bivariate `mu1`/`mu2` covariance and residual `rho12`.
+
+Implemented:
+
+- added parsing for matching labelled random-intercept terms in bivariate
+  `sigma1` and `sigma2`, such as
+  `sigma1 = ~ z1 + (1 | q | id)` and
+  `sigma2 = ~ z2 + (1 | q | id)`;
+- added the model-type 2 TMB path that applies `u_sigma`, `log_sd_sigma`, and
+  `eta_cor_sigma` to `log_sigma1` and `log_sigma2`;
+- exposed bivariate scale SDs in `sdpars$sigma`, the scale-scale group
+  correlation in `corpars$sigma`, and a `corpairs()` row with class
+  `scale-scale`;
+- added a combined bivariate test fitting `mu1`/`mu2` group covariance,
+  `sigma1`/`sigma2` group covariance, and residual `rho12` in one model;
+- fixed stale one-sided bivariate `phylo()` rejection expectations to match the
+  new matching-term error contract;
+- synchronized README, NEWS, roadmap, formula grammar, likelihood design,
+  correlation-pair design, known limitations, bivariate tutorial wording,
+  source map, generated Rd files, and the family table;
+- added the after-task report
+  `docs/dev-log/after-task/2026-05-12-bivariate-scale-covariance-integration.md`.
+
+Checks run:
+
+- `Rscript -e "devtools::load_all()"`: passed after recompiling
+  `src/drmTMB.cpp`.
+- `Rscript -e "devtools::test(filter = 'biv-gaussian')"`: passed with
+  144 expectations.
+- `Rscript -e "devtools::test(filter = 'gaussian-random-intercepts|corpairs|profile-targets|biv-gaussian|phylo')"`:
+  passed with 760 expectations.
+- `Rscript -e "devtools::document()"`: passed and regenerated
+  `man/drmTMB.Rd` and `man/corpairs.Rd`.
+- `Rscript -e "devtools::test(filter = 'gaussian-location-scale')"`:
+  passed with 78 expectations after stale rejection wording was fixed.
+- `Rscript -e "devtools::test()"`: passed with 1947 expectations.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with no problems found.
+- `_R_CHECK_SYSTEM_CLOCK_=FALSE Rscript -e "devtools::check(document = FALSE, manual = FALSE, args = '--no-tests')"`:
+  passed with 0 errors, 0 warnings, and 0 notes.
+- `git diff --check`: passed.
+- `rg -n 'bivariate random slopes, `sigma1`/`sigma2` random effects|random effects in `sigma1`, `sigma2`|residual-scale bivariate random effects|residual-scale random effects remain planned|bivariate residual-scale pair classes remain planned|bivariate `sigma1`/`sigma2` random effects.*later|sigma1.*sigma2.*remain future|random effects in `sigma1`/`sigma2` or `rho12`' README.md NEWS.md ROADMAP.md docs/design docs/dev-log/known-limitations.md vignettes R tests man --glob '!docs/dev-log/after-task/**' --glob '!docs/dev-log/after-phase/**'`:
+  found no stale source or generated-help claims that bivariate
+  `sigma1`/`sigma2` random intercepts remain planned.
+- `rg -n 'sigma1.*sigma2|eta_cor_sigma|cor:sigma|scale-scale|rho12|matching phylogenetic terms' R src tests README.md NEWS.md ROADMAP.md docs/design docs/dev-log/known-limitations.md vignettes man`:
+  confirmed the new scale-scale path, residual-`rho12` separation, and updated
+  bivariate `phylo()` rejection contract are visible in code, tests, docs, and
+  generated help.
+
+Known limitations:
+
+- bivariate random slopes remain planned for both mean and scale formulas;
+- `rho12` random effects remain planned;
+- bivariate random effects still cannot be combined with dense
+  `meta_known_V(V = V)`;
+- bivariate phylogenetic covariance needs separate simulation recovery and docs
+  before it should be treated as a completed feature;
+- `pkgdown::build_site()` was not rerun in this pass, although
+  `pkgdown::check_pkgdown()` passed.
+
+## 2026-05-12 -- Bivariate phylogenetic mean covariance closure
+
+Goal:
+
+- close the partial bivariate phylogenetic covariance lane by making matching
+  intercept-only `phylo()` terms in `mu1` and `mu2` a tested and documented
+  feature, separate from residual `rho12` and ordinary group-level covariance.
+
+Implemented:
+
+- fixed the profile-target mapper so bivariate phylogenetic SD targets such as
+  `sd:mu:mu1:phylo(1 | species)` map to `log_sd_phylo`, and the phylogenetic
+  mean-mean correlation target maps to `eta_cor_phylo_mu`;
+- added a CRAN-safe bivariate phylogenetic Gaussian test with a hand-built
+  ultrametric tree, known phylogenetic SDs and correlation, residual `rho12`,
+  extractor checks, `corpairs(level = "phylogenetic")`, profile-target
+  readiness, and a dense marginal-likelihood comparator;
+- updated `corpairs()` and prediction documentation so bivariate phylogenetic
+  `mu1`/`mu2` effects are listed as implemented fitted-row contributions and
+  correlation pairs;
+- added a resumed prediction-path assertion that fitted-row `mu1` and `mu2`
+  predictions include the matching phylogenetic effects, while `newdata`
+  predictions remain fixed-effect population-level predictions;
+- synchronized README, NEWS, roadmap, formula grammar, likelihood design,
+  random-effect design, profile-target design, phylogenetic/spatial design,
+  correlation-pair design, mammal route, known limitations, bivariate tutorial,
+  phylogenetic/spatial tutorial, source map, and generated Rd files;
+- recorded the external numerical scout in
+  `docs/design/16-phylo-spatial-common-math.md`: exact sparse tree precision
+  remains the first phylogenetic path, while SPDE/GMRF and Vecchia-style
+  methods remain future spatial/scalability routes;
+- added the after-task report
+  `docs/dev-log/after-task/2026-05-12-bivariate-phylogenetic-covariance-integration.md`.
+
+Checks run:
+
+- `air format R/profile.R R/methods.R tests/testthat/test-phylo-gaussian.R`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'phylo|profile-targets')"`:
+  passed with 295 expectations.
+- `Rscript -e "devtools::test(filter = 'phylo|profile-targets|biv-gaussian|corpairs')"`:
+  passed with 515 expectations.
+- resumed rerun of
+  `Rscript -e "devtools::test(filter = 'phylo|profile-targets|biv-gaussian|corpairs')"`:
+  passed with 518 expectations after the fitted-row prediction assertion.
+- `Rscript -e "devtools::document()"`: passed and regenerated
+  `man/corpairs.Rd` and `man/predict.drmTMB.Rd`.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with no problems found.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: completed
+  successfully.
+- `git diff --check`: passed.
+- `Rscript -e "devtools::test()"`: passed with 1968 expectations after the
+  resumed fitted-row prediction assertion.
+- `_R_CHECK_SYSTEM_CLOCK_=FALSE Rscript -e "devtools::check(document = FALSE, manual = FALSE, args = '--no-tests')"`:
+  passed with 0 errors, 0 warnings, and 0 notes.
+- `rg -n "bivariate phylogenetic.*planned|phylogenetic covariance.*planned|bivariate structured effects remain planned|bivariate phylogenetic effects|phylogenetic covariance, or spatial|does not estimate a bivariate phylogenetic|only the.*univariate.*phylo|only univariate.*phylo|future phylogenetic" README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes R/methods.R man --glob '!docs/dev-log/after-task/**' --glob '!docs/dev-log/after-phase/**'`:
+  found only intentional univariate `phylo()` rows and current future-boundary
+  wording for spatial and bivariate slope pair classes.
+
+Known limitations:
+
+- bivariate phylogenetic covariance is implemented only for matching
+  intercept-only `mu1`/`mu2` terms using the same tree object and grouping
+  variable;
+- phylogenetic slopes, phylogenetic `sigma1`/`sigma2` effects, structured
+  `rho12`, spatial effects, and lifestyle-specific phylogenetic covariance
+  matrices remain planned;
+- bivariate random effects still cannot be combined with dense
+  `meta_known_V(V = V)`;
+- external numerical-method notes steer future spatial/scalability choices, not
+  additional fitted behaviour in this bivariate phylogenetic slice.

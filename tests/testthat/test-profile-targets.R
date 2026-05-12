@@ -60,6 +60,33 @@ new_profile_group_data <- function(n_id = 18, n_each = 5, seed = 20260591) {
   data.frame(y = y, x = x, ID = ID)
 }
 
+new_profile_mu_sigma_group_data <- function(
+  n_id = 18L,
+  n_each = 6L,
+  rho_group = 0.45,
+  seed = 20260641
+) {
+  set.seed(seed)
+  id <- factor(rep(seq_len(n_id), each = n_each))
+  n <- length(id)
+  x <- stats::rnorm(n)
+  z <- stats::rnorm(n)
+  z_mu <- stats::rnorm(n_id)
+  z_sigma <- stats::rnorm(n_id)
+  sd_mu <- 0.55
+  sd_sigma <- 0.35
+  b_mu <- sd_mu * z_mu
+  a_sigma <- sd_sigma *
+    (rho_group * z_mu + sqrt(1 - rho_group^2) * z_sigma)
+  sigma <- exp(-0.7 + 0.2 * z + a_sigma[id])
+  data.frame(
+    y = stats::rnorm(n, mean = 0.2 + 0.5 * x + b_mu[id], sd = sigma),
+    x = x,
+    z = z,
+    id = id
+  )
+}
+
 new_profile_balanced_tree <- function(n_tip = 16L) {
   stopifnot(n_tip >= 2L, log2(n_tip) == floor(log2(n_tip)))
   edges <- matrix(integer(), ncol = 2L)
@@ -658,6 +685,94 @@ test_that("confint profile intervals transform SD and correlation targets", {
   )
   expect_true(abs(cor_ci$lower) < 1)
   expect_true(abs(cor_ci$upper) < 1)
+})
+
+test_that("confint profile intervals transform mean-scale covariance targets", {
+  dat <- new_profile_mu_sigma_group_data()
+  fit <- drmTMB(
+    bf(y ~ x + (1 | p | id), sigma ~ z + (1 | p | id)),
+    family = gaussian(),
+    data = dat,
+    control = list(eval.max = 300, iter.max = 300)
+  )
+  parms <- c(
+    "sd:mu:(1 | p | id)",
+    "sd:sigma:(1 | p | id)",
+    "cor:mu_sigma:cor(mu:(Intercept),sigma:(Intercept) | p | id)"
+  )
+
+  ci <- stats::confint(
+    fit,
+    parm = parms,
+    level = 0.80,
+    method = "profile",
+    trace = FALSE,
+    ystep = 0.45
+  )
+  targets <- profile_targets(fit)
+  matched <- targets[match(parms, targets$parm), ]
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(ci$parm, parms)
+  expect_equal(ci$scale, rep("response", 3L))
+  expect_equal(ci$transformation, c("exp", "exp", "tanh"))
+  expect_equal(
+    ci$tmb_parameter,
+    c("log_sd_mu", "log_sd_sigma", "eta_cor_mu_sigma")
+  )
+  expect_equal(ci$index, c(1L, 1L, 1L))
+  expect_equal(ci$upper > ci$lower, rep(TRUE, 3L))
+  expect_equal(ci$lower[1:2] > 0, rep(TRUE, 2L))
+  expect_equal(ci$lower < matched$estimate, rep(TRUE, 3L))
+  expect_equal(ci$upper > matched$estimate, rep(TRUE, 3L))
+  expect_lt(abs(ci$lower[[3L]]), 1)
+  expect_lt(abs(ci$upper[[3L]]), 1)
+  expect_false(any(grepl("rho12", ci$parm, fixed = TRUE)))
+})
+
+test_that("confint profile intervals transform bivariate mu covariance targets", {
+  dat <- new_profile_biv_group_data(n_id = 12L, n_each = 5L, seed = 20260621)
+  fit <- drmTMB(
+    bf(
+      mu1 = y1 ~ x + (1 | p | id),
+      mu2 = y2 ~ x + (1 | p | id),
+      sigma1 = ~1,
+      sigma2 = ~1,
+      rho12 = ~1
+    ),
+    family = biv_gaussian(),
+    data = dat
+  )
+  parms <- c(
+    "sd:mu:mu1:(1 | p | id)",
+    "sd:mu:mu2:(1 | p | id)",
+    "cor:mu:cor(mu1:(Intercept),mu2:(Intercept) | p | id)"
+  )
+
+  ci <- stats::confint(
+    fit,
+    parm = parms,
+    level = 0.80,
+    method = "profile",
+    trace = FALSE,
+    ystep = 0.45
+  )
+  targets <- profile_targets(fit)
+  matched <- targets[match(parms, targets$parm), ]
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(ci$parm, parms)
+  expect_equal(ci$scale, rep("response", 3L))
+  expect_equal(ci$transformation, c("exp", "exp", "tanh"))
+  expect_equal(ci$tmb_parameter, c("log_sd_mu", "log_sd_mu", "eta_cor_mu"))
+  expect_equal(ci$index, c(1L, 2L, 1L))
+  expect_equal(ci$upper > ci$lower, rep(TRUE, 3L))
+  expect_equal(ci$lower[1:2] > 0, rep(TRUE, 2L))
+  expect_equal(ci$lower < matched$estimate, rep(TRUE, 3L))
+  expect_equal(ci$upper > matched$estimate, rep(TRUE, 3L))
+  expect_lt(abs(ci$lower[[3L]]), 1)
+  expect_lt(abs(ci$upper[[3L]]), 1)
+  expect_false(any(grepl("rho12", ci$parm, fixed = TRUE)))
 })
 
 test_that("confint profile intervals transform phylogenetic SD targets", {

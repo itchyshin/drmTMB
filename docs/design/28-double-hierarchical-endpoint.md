@@ -14,11 +14,11 @@ it does not yet fit the complete double-hierarchical covariance model.
 |---|---|---|
 | Univariate Gaussian location-scale fixed effects | Implemented | `bf(y ~ x, sigma ~ z)` |
 | Univariate Gaussian `mu` random intercepts and simple slopes | Implemented | `(1 | id)`, `(0 + x | id)`, `(1 + x | id)` |
-| Residual-scale random intercepts | Implemented | `sigma ~ x + (1 | id)` |
+| Residual-scale random intercepts and slopes | Implemented ordinary unlabelled blocks | `sigma ~ x + (1 | id)`, `sigma ~ x + (1 + x | id)` |
 | Random-effect scale models for `mu` intercept SDs | Implemented | `sd(id) ~ x_group` |
 | Bivariate Gaussian residual coscale | Implemented | `rho12 ~ x` |
-| `corpairs()` for fitted correlations | Partly implemented | residual `rho12`, ordinary `mu` intercept-slope correlations |
-| Cross-formula covariance blocks | Planned | shared labelled blocks across `mu` and `sigma` |
+| `corpairs()` for fitted correlations | Partly implemented | residual `rho12`, ordinary `mu` and `sigma` intercept-slope correlations, univariate labelled `mu`/`sigma` intercept and one-slope covariance blocks, first bivariate `mu1`/`mu2` correlation |
+| Cross-formula covariance blocks | Implemented univariate one-slope slice | shared labelled random intercepts or one-slope blocks across univariate `mu` and `sigma` |
 | Bivariate `mu1`/`mu2` random-intercept covariance blocks | Implemented first slice | matching labelled `(1 | p | id)` terms in both location formulas |
 | Bivariate random-slope, residual-scale, and cross-parameter covariance blocks | Planned | shared labelled blocks across `mu1`, `mu2`, `sigma1`, and `sigma2` |
 | Profile-likelihood intervals for covariance summaries | Planned | see `docs/design/12-profile-likelihood-cis.md` |
@@ -28,16 +28,30 @@ it does not yet fit the complete double-hierarchical covariance model.
 For one response measured repeatedly on individuals, a complete
 double-hierarchical Gaussian location-scale model can be written as:
 
-```text
-y_ij ~ Normal(mu_ij, sigma_ij^2)
+\[
+y_{ij} \sim \operatorname{Normal}(\mu_{ij}, \sigma_{ij}^2)
+\]
 
-mu_ij = X_mu[ij, ] beta_mu + b_0j + x_ij b_1j
+\[
+\mu_{ij} = X_{\mu}[ij,]\beta_{\mu} + b_{0j} + x_{ij}b_{1j}
+\]
 
-log(sigma_ij) = X_sigma[ij, ] beta_sigma + a_0j + x_ij a_1j
+\[
+\log(\sigma_{ij}) =
+X_{\sigma}[ij,]\beta_{\sigma} + a_{0j} + x_{ij}a_{1j}
+\]
 
-u_j = [b_0j, b_1j, a_0j, a_1j]'
-u_j ~ MVN(0, Sigma_ID)
-```
+\[
+u_j =
+\begin{bmatrix}
+b_{0j} \\
+b_{1j} \\
+a_{0j} \\
+a_{1j}
+\end{bmatrix},
+\qquad
+u_j \sim \operatorname{MVN}(0, \Sigma_{\mathrm{ID}})
+\]
 
 Matching future R syntax should use one formula per distributional parameter:
 
@@ -56,20 +70,32 @@ residual `rho12`.
 
 For two responses, the endpoint extends the same idea:
 
-```text
+\[
 u_j =
-  [b_mu1_0j, b_mu1_1j, b_mu2_0j, b_mu2_1j,
-   a_sigma1_0j, a_sigma1_1j, a_sigma2_0j, a_sigma2_1j]'
-
-u_j ~ MVN(0, Sigma_ID)
-```
+\begin{bmatrix}
+b_{\mu1,0j} \\
+b_{\mu1,1j} \\
+b_{\mu2,0j} \\
+b_{\mu2,1j} \\
+a_{\sigma1,0j} \\
+a_{\sigma1,1j} \\
+a_{\sigma2,0j} \\
+a_{\sigma2,1j}
+\end{bmatrix},
+\qquad
+u_j \sim \operatorname{MVN}(0, \Sigma_{\mathrm{ID}})
+\]
 
 and the residual covariance still has its own row-level term:
 
-```text
-Omega_ij[1,2] = rho12_ij sigma1_ij sigma2_ij
-rho12_ij = 0.99999999 * tanh(X_rho12[ij, ] beta_rho12)
-```
+\[
+\Omega_{ij}[1,2] = \rho_{12,ij}\sigma_{1,ij}\sigma_{2,ij}
+\]
+
+\[
+\rho_{12,ij} =
+\tanh\left(X_{\rho12}[ij,]\beta_{\rho12}\right)
+\]
 
 This separation is the core design rule: group-level covariance blocks answer
 questions about persistent individual differences, while residual `rho12`
@@ -84,7 +110,7 @@ table that says what each correlation means:
 | Example pair | Formal class | Reader-facing interpretation |
 |---|---|---|
 | `cor(mu:(Intercept), mu:x | id)` | mean-slope | average response versus mean-model slope |
-| `cor(sigma:(Intercept), sigma:x | id)` | scale-scale | baseline residual scale versus change in residual scale |
+| `cor(sigma:(Intercept), sigma:x | id)` | scale-slope | baseline residual scale versus change in residual scale |
 | `cor(mu:(Intercept), sigma:(Intercept) | id)` | mean-scale | average response versus residual scale |
 | `cor(mu:x, sigma:(Intercept) | id)` | slope-scale | mean-model slope versus residual scale |
 | `cor(mu1:(Intercept), mu2:(Intercept) | id)` | cross-response mean-mean | individual averages for response 1 versus response 2 |
@@ -102,21 +128,34 @@ meaning of the row.
    `mu` covariance blocks green in CI.
 2. Add the first cross-formula univariate block:
    `bf(y ~ x + (1 | p | id), sigma ~ x + (1 | p | id))`.
-3. Add the univariate four-effect block:
-   `bf(y ~ x + (1 + x | p | id), sigma ~ x + (1 + x | p | id))`.
-4. Extend `corpairs()` to report each fitted group-level pair from the shared
-   block and keep those rows distinct from residual `rho12`.
-5. Add bivariate `mu1`/`mu2` group-level blocks without scale random effects.
    Done for matching labelled random intercepts.
-6. Add bivariate `sigma1`/`sigma2` group-level blocks only after the univariate
-   scale-block recovery tests are stable.
-7. Combine bivariate group-level covariance blocks with residual `rho12 ~ x`.
-8. Add bivariate phylogenetic and non-phylogenetic species covariance blocks
-   only after ordinary grouped models have recovery evidence and clear
-   diagnostics. These blocks should report phylogenetic correlation,
-   non-phylogenetic species correlation, and residual `rho12` as separate
-   layers.
-9. Add spatial double-hierarchical blocks only after the phylogenetic and
+3. Add ordinary unlabelled residual-scale random slopes:
+   `bf(y ~ x, sigma ~ z + (1 + z | id))`.
+   Done for unlabelled Gaussian `sigma` intercept-slope blocks.
+4. Add the univariate four-effect labelled cross-formula block:
+   `bf(y ~ x + (1 + x | p | id), sigma ~ x + (1 + x | p | id))`.
+   Done for one-slope labelled Gaussian blocks using a positive-definite
+   partial-correlation Cholesky parameterization.
+5. Extend `corpairs()` to report each fitted group-level pair from the shared
+   block and keep those rows distinct from residual `rho12`. Done for the first
+   `mu`/`sigma` mean-scale random-intercept pair, ordinary unlabelled
+   `sigma` scale-slope pairs, the six correlations in the univariate labelled
+   `mu`/`sigma` one-slope block, bivariate `mu1`/`mu2` and `sigma1`/`sigma2`
+   random-intercept pairs, and the first bivariate phylogenetic mean-mean pair.
+6. Add bivariate `mu1`/`mu2` group-level blocks without scale random effects.
+   Done for matching labelled random intercepts.
+7. Add bivariate `sigma1`/`sigma2` group-level blocks only after the univariate
+   scale-block recovery tests are stable. Done for matching labelled random
+   intercepts.
+8. Combine bivariate group-level covariance blocks with residual `rho12 ~ x`.
+   Done for matching `mu1`/`mu2` and `sigma1`/`sigma2` random intercepts.
+9. Add bivariate phylogenetic and non-phylogenetic species covariance blocks.
+   Done for matching intercept-only phylogenetic `mu1`/`mu2` terms and
+   matching labelled ordinary random intercepts; phylogenetic scale, mean-scale,
+   and spatial layers remain planned. These blocks should report phylogenetic
+   correlation, non-phylogenetic species correlation, and residual `rho12` as
+   separate layers.
+10. Add spatial double-hierarchical blocks only after the phylogenetic and
    ordinary grouped covariance paths have clear diagnostics.
 
 Each step should add only one covariance expansion. If a step cannot recover
@@ -149,11 +188,13 @@ observation after those higher-level effects have been accounted for.
 
 ## Reporting And Inference
 
-Point estimates should land before profile-likelihood intervals. Once a
-correlation or variance component is fitted and named consistently, Phase 6 can
-profile direct internal parameters, and Phase 13 can add derived intervals for
-quantities such as repeatability, total variance, and correlation-pair
-summaries.
+Point estimates should land before profile-likelihood intervals. Direct
+two-dimensional correlations can use direct profile targets. The univariate
+four-effect block reports ordinary pairwise correlations derived from a
+positive-definite partial-correlation Cholesky parameterization, so those
+correlation rows are point-estimate summaries until derived profile intervals
+are designed. Phase 13 can then add intervals for quantities such as
+repeatability, total variance, and correlation-pair summaries.
 
 For variance-facing science summaries, keep the public model parameter as
 `sigma` and report `sigma^2` only as a derived quantity when the interpretation

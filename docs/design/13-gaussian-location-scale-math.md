@@ -121,7 +121,7 @@ mu_i = X_mu[i, ] beta_mu + sum_j z_j[i] sd_j u_{j, g_j[i]}
 where `z_j[i] = 1` for `(1 | group)` and `z_j[i] = x_i` for
 `(0 + x | group)`.
 
-## Residual-Scale Random Intercepts
+## Residual-Scale Random Effects
 
 For observation `i` in group `g[i]`, residual-scale random intercepts enter the
 log residual standard deviation:
@@ -148,6 +148,30 @@ drmTMB(
 This is residual-scale heterogeneity. It should not be confused with
 `sd(id) ~ x2`, which models the standard deviation of a group-level random
 effect in the location model.
+
+Residual-scale random slopes use the same log-`sigma` predictor. For a
+one-slope ordinary correlated block:
+
+```text
+log(sigma_i) = X_sigma[i, ] beta_sigma + a_0,g[i] + x_i a_1,g[i]
+a_0,g = sd_sigma0 * v_0,g
+a_1,g = sd_sigma1 * (rho_sigma v_0,g +
+        sqrt(1 - rho_sigma^2) v_1,g)
+rho_sigma = 0.999999 * tanh(eta_cor_sigma)
+```
+
+Matching R syntax:
+
+```r
+drmTMB(
+  bf(y ~ x1, sigma ~ x2 + (1 + x2 | id)),
+  family = gaussian(),
+  data = dat
+)
+```
+
+This reports SDs in `sdpars$sigma` and the scale-slope correlation in
+`corpars$sigma`.
 
 ## Random-Effect Scale Formula
 
@@ -276,9 +300,12 @@ drmTMB(
 )
 ```
 
-In the current implementation, the label `p` does not change the univariate
-Gaussian likelihood. It names the group-level covariance block and prepares the
-grammar for later cross-formula covariance.
+In the current implementation, the label `p` names the group-level covariance
+block. For `(1 + x1 | p | id)` inside `mu`, it fits the same likelihood as the
+unlabelled intercept-slope block while preserving the block label. For matching
+labelled `mu` and `sigma` random intercepts or one-slope blocks, it estimates a
+group-level covariance block and reports the implied correlations through
+`corpars$mu_sigma` and `corpairs()`.
 
 ## Scale Names
 
@@ -322,9 +349,9 @@ Current R-side objects:
 - `random_effects$mu` maps to the location random-effect design.
 - `model$random$mu$value` maps to the random-effect design value `z_j[i]`.
 - `random_effects$sigma` maps to residual-scale random-effect conditional
-  modes when the `sigma` formula contains `(1 | group)`.
-- `model$random$sigma$value` is currently `1` for implemented residual-scale
-  random intercepts.
+  modes when the `sigma` formula contains ordinary random-effect terms.
+- `model$random$sigma$value` maps the residual-scale random-effect design
+  value, with `1` for intercepts and the predictor value for random slopes.
 - `model$random_scale$mu$X` maps to the group-level `W_group` matrix for
   implemented `sd(group)` formulas.
 - `sdpars` reports group-level standard deviations. For `sd(id) ~ x_group`,
@@ -341,7 +368,9 @@ Current TMB-side objects:
 - `beta_sd_mu` estimates `alpha_group` for implemented `sd(group)` formulas.
 - `u_mu` is integrated by the Laplace approximation.
 - `log_sd_sigma` estimates `log(sd_sigma_group)` for each implemented
-  residual-scale random-intercept term.
+  residual-scale random-effect coefficient.
+- `eta_cor_sigma` estimates ordinary residual-scale intercept-slope
+  correlations on the guarded tanh scale.
 - `u_sigma` is integrated by the Laplace approximation and added to
   `log(sigma_i)`.
 

@@ -66,8 +66,8 @@ is the current routing contract:
 
 | TMB `model_type` | User-facing route | R builder | TMB branch purpose |
 |---:|---|---|---|
-| `1` | `family = gaussian()` | `drm_build_gaussian_ls_spec()` | Univariate Gaussian location-scale models, including ordinary `mu` random effects, residual-scale `sigma` random effects, `sd(group) ~ ...` random-effect scale models, `meta_known_V(V = V)`, and the implemented intercept-only `phylo()` location effect. |
-| `2` | `family = biv_gaussian()`, `family = c(gaussian(), gaussian())`, or `family = list(gaussian(), gaussian())` | `drm_build_biv_gaussian_spec()` | Bivariate Gaussian location-scale-coscale models with `mu1`, `mu2`, `sigma1`, `sigma2`, and residual `rho12`, including complete-row dense known sampling covariance and matching labelled `mu1`/`mu2` random-intercept covariance blocks. |
+| `1` | `family = gaussian()` | `drm_build_gaussian_ls_spec()` | Univariate Gaussian location-scale models, including ordinary `mu` random effects, residual-scale `sigma` random effects, matching labelled `mu`/`sigma` intercept or one-slope covariance blocks, `sd(group) ~ ...` random-effect scale models, `meta_known_V(V = V)`, and the implemented intercept-only `phylo()` location effect. |
+| `2` | `family = biv_gaussian()`, `family = c(gaussian(), gaussian())`, or `family = list(gaussian(), gaussian())` | `drm_build_biv_gaussian_spec()` | Bivariate Gaussian location-scale-coscale models with `mu1`, `mu2`, `sigma1`, `sigma2`, and residual `rho12`, including complete-row dense known sampling covariance, matching labelled `mu1`/`mu2` random-intercept covariance blocks, matching labelled `sigma1`/`sigma2` random-intercept covariance blocks, and matching intercept-only phylogenetic `mu1`/`mu2` covariance blocks. |
 | `3` | `family = student()` | `drm_build_student_ls_spec()` | Univariate Student-t location-scale-shape models with `mu`, `sigma`, and `nu = 2 + exp(eta_nu)`. |
 | `4` | `family = lognormal()` | `drm_build_lognormal_ls_spec()` | Univariate fixed-effect lognormal location-scale models for positive responses, with `mu` and `sigma` defined on the log-response scale. |
 | `5` | `family = Gamma(link = "log")` | `drm_build_gamma_ls_spec()` | Univariate fixed-effect Gamma mean-CV models for positive responses, with `mu` as the response mean and `sigma` as the coefficient of variation. |
@@ -115,9 +115,11 @@ joint multivariate block rather than a sum of independent row contributions.
 Gaussian location-scale is implemented for fixed-effect models and for
 univariate Gaussian location random intercepts, labelled random intercepts,
 independent numeric random slopes, and labelled or unlabelled ordinary
-correlated random intercept-slope blocks, residual-scale random intercepts in
-the univariate Gaussian `sigma` formula, and random-effect scale models for
-one or more distinct unlabelled `mu` random intercepts:
+correlated random intercept-slope blocks in the univariate Gaussian `mu`
+formula, residual-scale random intercepts, slopes, and ordinary
+intercept-slope covariance blocks in the univariate Gaussian `sigma` formula,
+and random-effect scale models for one or more distinct unlabelled `mu` random
+intercepts:
 
 ```text
 y_i | mu_i, sigma_i ~ Normal(mu_i, sigma_i^2)
@@ -198,12 +200,13 @@ drmTMB(
 ```
 
 Here `rho_re` is a group-level random-effect correlation. It is extracted via
-`corpars$mu` and is not residual `rho12`. In the current univariate Gaussian
-implementation, the middle label `p` is retained for naming and future
-cross-formula covariance matching; the likelihood is otherwise the same as the
-unlabelled `(1 + x1 | id)` block.
+`corpars$mu` and is not residual `rho12`. For `(1 + x1 | p | id)`, the middle
+label `p` is retained for naming; the likelihood is otherwise the same as the
+unlabelled `(1 + x1 | id)` block. The same label namespace is used by the first
+matching `mu`/`sigma` covariance block below.
 
-Residual-scale random intercepts are implemented on the log-`sigma` scale:
+Residual-scale random intercepts and slopes are implemented on the
+log-`sigma` scale. For an intercept-only term:
 
 ```text
 log(sigma_i) = X_sigma[i, ] beta_sigma + a_{g[i]}
@@ -224,6 +227,83 @@ drmTMB(
 
 This is residual-scale heterogeneity. It is distinct from random-effect scale
 models such as `sd(id) ~ x_group`.
+
+For an ordinary residual-scale intercept-slope block:
+
+```text
+log(sigma_i) = X_sigma[i, ] beta_sigma + a_0,g[i] + x_i a_1,g[i]
+
+[a_0,g, a_1,g]' ~ MVN(0, Sigma_sigma)
+Sigma_sigma =
+  [sd_sigma0^2,                      rho_sigma sd_sigma0 sd_sigma1;
+   rho_sigma sd_sigma0 sd_sigma1,    sd_sigma1^2]
+
+v_g ~ Normal([0, 0]', I)
+a_0,g = sd_sigma0 * v_0,g
+a_1,g = sd_sigma1 * (rho_sigma * v_0,g +
+        sqrt(1 - rho_sigma^2) * v_1,g)
+rho_sigma = 0.999999 * tanh(eta_cor_sigma)
+```
+
+Matching R syntax:
+
+```r
+drmTMB(
+  bf(y ~ x1, sigma ~ x2 + (1 + x2 | id)),
+  family = gaussian(),
+  data = dat
+)
+```
+
+The fitted SDs are reported as `sdpars$sigma`. The fitted residual-scale
+intercept-slope correlation is reported as `corpars$sigma` and in
+`corpairs(class = "scale-slope")`. If the same labelled one-slope block appears
+in both `mu` and `sigma`, the correlations are reported under
+`corpars$mu_sigma` because the block spans distributional parameters.
+
+When matching labelled random intercepts or one-slope blocks appear in both the
+univariate `mu` and `sigma` formulas, they form one cross-formula group-level
+covariance block. For the intercept-only case:
+
+```text
+mu_i = X_mu[i, ] beta_mu + b_g[i]
+log(sigma_i) = X_sigma[i, ] beta_sigma + a_g[i]
+
+b_g = sd_mu * u_g
+a_g = sd_sigma * (rho_mu_sigma * u_g +
+      sqrt(1 - rho_mu_sigma^2) * v_g)
+u_g, v_g ~ Normal(0, 1)
+rho_mu_sigma = 0.999999 * tanh(eta_cor_mu_sigma)
+```
+
+Matching R syntax:
+
+```r
+drmTMB(
+  bf(y ~ x1 + (1 | p | id), sigma ~ x2 + (1 | p | id)),
+  family = gaussian(),
+  data = dat
+)
+```
+
+The fitted SDs are reported as `sdpars$mu` and `sdpars$sigma`. The fitted
+group-level mean-scale correlation is reported as `corpars$mu_sigma` and in
+`corpairs(class = "mean-scale")`.
+
+For a one-slope shared block, the standardized random-effect vector is:
+
+```text
+u_j = [mu:(Intercept), mu:x, sigma:(Intercept), sigma:x]'
+u_j = L_corr z_j
+z_j ~ Normal(0, I)
+```
+
+`L_corr` is built from six partial correlations, each mapped with
+`0.999999 * tanh(eta)`, so the four-dimensional correlation matrix is always
+positive definite. `corpars$mu_sigma` and `corpairs()` report the ordinary
+pairwise correlations implied by `L_corr %*% t(L_corr)`. Those full-block
+correlations are derived point estimates, not direct profile-likelihood
+targets yet.
 
 The implemented random-effect scale grammar can target one or more distinct
 unlabelled univariate Gaussian `mu` random intercepts. For one target:
@@ -1123,6 +1203,19 @@ random effects. They are not residual `rho12`, and the first implementation
 should estimate them as constant covariance-block quantities rather than
 predictor-dependent `rho12` formulae.
 
+The implemented bivariate residual-scale random-intercept slice uses the same
+group-level idea on the log residual SDs:
+
+```text
+log(sigma1_ij) = X_sigma1[ij, ] beta_sigma1 + a_1j
+log(sigma2_ij) = X_sigma2[ij, ] beta_sigma2 + a_2j
+[a_1j, a_2j]' ~ MVN(0, Sigma_sigma_ID)
+```
+
+`Sigma_sigma_ID` contains the `sigma1` and `sigma2` random-intercept SDs plus one
+scale-scale group-level correlation. This correlation is reported through
+`corpars$sigma` and `corpairs()`, not through residual `rho12`.
+
 Implementation notes:
 
 - TMB template: `src/drmTMB.cpp`.
@@ -1137,11 +1230,11 @@ Implementation notes:
 - Dense known sampling covariance is implemented for complete-row bivariate
   Gaussian models through `meta_known_V(V = V)`, where `V` is a row-paired
   `2n` by `2n` matrix added to the fitted residual covariance.
-- Matching labelled random intercepts in `mu1` and `mu2` are implemented as one
-  group-level covariance block. They cannot yet be combined with
-  `meta_known_V(V = V)`.
-- Bivariate random slopes, `sigma1`/`sigma2` random effects, and
-  cross-parameter covariance blocks remain planned.
+- Matching labelled random intercepts in `mu1` and `mu2`, and separately in
+  `sigma1` and `sigma2`, are implemented as group-level covariance blocks. They
+  cannot yet be combined with `meta_known_V(V = V)`.
+- Bivariate random slopes, `rho12` random effects, and cross-parameter
+  covariance blocks remain planned.
 
 ## Review Requirements
 

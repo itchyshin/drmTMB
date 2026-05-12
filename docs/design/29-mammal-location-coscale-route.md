@@ -67,8 +67,8 @@ implemented:
 | One-trait phylogenetic mean structure | Implemented for univariate Gaussian `mu` with `phylo(1 | species, tree = tree)` | Fit separate log body mass and log litter size models. |
 | One-trait residual scale predictors | Implemented for Gaussian `sigma ~ predictors` | Explore lifestyle or data-quality effects on observation-level residual SD. |
 | Two-trait residual coupling | Implemented for fixed-effect bivariate Gaussian `rho12 ~ predictors` | Scout whether residual coupling changes with lifestyle after fixed-effect means and scales. |
-| Bivariate phylogenetic mean covariance | Planned | Needed for Objective 1. |
-| Bivariate non-phylogenetic species covariance | Planned | Needed for Objectives 1 and 3. |
+| Bivariate phylogenetic mean covariance | Implemented for matching `phylo(1 | species, tree = tree)` terms in bivariate Gaussian `mu1` and `mu2` | Fit the first Objective 1 analogue for one tree at a time. |
+| Bivariate non-phylogenetic species covariance | Implemented for matching labelled ordinary random intercepts in bivariate Gaussian `mu1` and `mu2` | Needed alongside the phylogenetic layer for Objectives 1 and 3. |
 | Phylogenetic scale effects and 4 by 4 location-scale covariance | Planned | Needed for Objective 2. |
 | Lifestyle-specific structured covariance matrices | Planned | Needed for Objective 3. |
 | Posterior pooling across many trees | Outside the current maximum-likelihood surface | Use tree-loop sensitivity summaries first; Bayesian posterior pooling needs a separate implementation path. |
@@ -114,8 +114,10 @@ drmTMB(
 )
 ```
 
-These can assess one-trait phylogenetic signal and residual SD structure, but
-they do not estimate a bivariate phylogenetic correlation.
+These can assess one-trait phylogenetic signal and residual SD structure. For a
+two-trait phylogenetic mean correlation, fit matching `phylo()` terms in
+`mu1` and `mu2`; this estimates the common phylogenetic mean-mean correlation
+but not phylogenetic scale effects or lifestyle-specific covariance matrices.
 
 ## Correlation Names
 
@@ -141,9 +143,9 @@ The route should be pushed, but in small covariance slices.
 2. Add bivariate Gaussian `mu1` and `mu2` ordinary species covariance blocks
    with simulation recovery and `corpairs()` rows. This is the ordinary-group
    rehearsal for the non-phylogenetic species layer.
-3. Add bivariate Gaussian phylogenetic `mu1` and `mu2` covariance blocks using
-   the existing sparse A-inverse path. This unlocks a maximum-likelihood
-   analogue of Objective 1 for one tree at a time.
+3. Keep bivariate Gaussian phylogenetic `mu1` and `mu2` covariance blocks
+   green using the existing sparse A-inverse path. This unlocks a
+   maximum-likelihood analogue of Objective 1 for one tree at a time.
 4. Add a tree-loop workflow that refits the Objective 1 analogue across a small
    tree set and reports sensitivity of `rho_a(l1,l2)` and `rho_e(l1,l2)`.
 5. Add phylogenetic scale effects only after the bivariate location covariance

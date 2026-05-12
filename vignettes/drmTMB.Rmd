@@ -17,8 +17,8 @@ if (!"package:drmTMB" %in% search()) {
 `drmTMB` is being developed as a model-first package: the documentation should
 pair symbolic equations with the R syntax that fits them. The current
 implementation includes Gaussian location-scale models with fixed effects,
-location random effects, residual-scale random intercepts, and group-level
-random-effect scale formulae such as `sd(id) ~ x_group`. It also includes
+location random effects, residual-scale random intercepts and slopes, and
+group-level random-effect scale formulae such as `sd(id) ~ x_group`. It also includes
 fixed-effect Student-t, lognormal, Gamma, beta, Poisson, zero-inflated Poisson,
 NB2, and zero-inflated NB2 models, known-covariance Gaussian meta-analysis,
 intercept-only phylogenetic Gaussian location effects, and fixed-effect
@@ -111,16 +111,19 @@ variances, read "When variance carries signal".
 
 Start with the question you want to answer, not with the full list of features.
 The tutorials are arranged so that each article pairs symbolic equations, R
-syntax, fitted output, and interpretation.
+syntax, fitted output, and interpretation. The first route is usually a model
+class. Biological case studies should become separate articles when they need
+their own data preparation, figures, or multi-model narrative.
 
-| If your question is... | Read this first | Main parameter |
-| --- | --- | --- |
-| Do predictors change the mean and residual variability of one response? | "When variance carries signal" | `mu`, `sigma` |
-| Am I modelling residual variation, group-level variation, or likelihood weights? | "Which scale are you modelling?" | `sigma`, `sd(group)`, `weights` |
-| Which continuous, count, proportion, or robust family should I use? | "Choosing response families" | family-specific `mu`, `sigma`, `nu`, `zi`, `hu` |
-| Does a predictor change residual coupling between two responses? | "Changing residual coupling with rho12" | `rho12` |
-| Do effect sizes have known sampling variances or covariance? | "Mean effects and residual heterogeneity in meta-analysis" | `meta_known_V(V = V)`, `sigma` |
-| Do species trait means remain similar after accounting for shared ancestry? | "Structured dependence: implemented phylogeny and planned spatial models" | `phylo()`, `sigma_phylo` |
+| Route | Start when your question is... | Read this first | Main parameters |
+| --- | --- | --- | --- |
+| One-response Gaussian | Do predictors change the mean and residual variability of one response? | "When variance carries signal" | `mu`, `sigma` |
+| Scale audit | Am I modelling residual variation, group-level variation, or likelihood weights? | "Which scale are you modelling?" | `sigma`, `sd(group)`, `weights` |
+| Response family choice | Which continuous, count, proportion, or robust family should I use? | "Choosing response families" | family-specific `mu`, `sigma`, `nu`, `zi`, `hu` |
+| Two-response residual coupling | Does a predictor change residual coupling between two responses? | "Changing residual coupling with rho12" | `rho12` |
+| Evidence synthesis | Do effect sizes have known sampling variances or covariance? | "Mean effects and residual heterogeneity in meta-analysis" | `meta_known_V(V = V)`, `sigma` |
+| Structured dependence | Do species trait means remain similar after accounting for shared ancestry? | "Structured dependence: implemented phylogeny and planned spatial models" | `phylo()`, `sigma_phylo` |
+| Post-fit workflow | How should I check, predict, simulate, and report a fitted model? | "Checking and using fitted models" | `check_drm()`, `predict()`, `simulate()` |
 
 For a first applied analysis, fit the simplest model that answers the question,
 run `check_drm()`, and then read the coefficient table on the parameter scale
@@ -132,11 +135,18 @@ correlations on the response scale.
 
 For a fixed-effect Gaussian location-scale model:
 
-```text
-y_i | mu_i, sigma_i ~ Normal(mu_i, sigma_i^2)
-mu_i = beta_0 + beta_1 x1_i
-log(sigma_i) = gamma_0 + gamma_1 x1_i
-```
+\[
+y_i \mid \mu_i, \sigma_i \sim
+\operatorname{Normal}(\mu_i, \sigma_i^2)
+\]
+
+\[
+\mu_i = \beta_0 + \beta_1 x1_i
+\]
+
+\[
+\log(\sigma_i) = \gamma_0 + \gamma_1 x1_i
+\]
 
 the matching syntax is:
 
@@ -152,13 +162,27 @@ Here `sigma_i` is the residual or within-observation standard deviation. The
 location formula may also include ordinary grouped random effects. Adding an
 independent random intercept and random slope for `id` gives:
 
-```text
-y_ij | mu_ij, sigma_ij ~ Normal(mu_ij, sigma_ij^2)
-mu_ij = beta_0 + beta_1 x1_ij + b_{0j} + b_{1j} x1_ij
-log(sigma_ij) = gamma_0 + gamma_1 x1_ij
-b_{0j} ~ Normal(0, sd_mu_id_intercept^2)
-b_{1j} ~ Normal(0, sd_mu_id_x1^2)
-```
+\[
+y_{ij} \mid \mu_{ij}, \sigma_{ij} \sim
+\operatorname{Normal}(\mu_{ij}, \sigma_{ij}^2)
+\]
+
+\[
+\mu_{ij} =
+\beta_0 + \beta_1 x1_{ij} + b_{0j} + b_{1j}x1_{ij}
+\]
+
+\[
+\log(\sigma_{ij}) = \gamma_0 + \gamma_1 x1_{ij}
+\]
+
+\[
+b_{0j} \sim
+\operatorname{Normal}(0, sd_{\mu,\mathrm{id},0}^2),
+\qquad
+b_{1j} \sim
+\operatorname{Normal}(0, sd_{\mu,\mathrm{id},1}^2)
+\]
 
 with matching syntax:
 
@@ -176,10 +200,26 @@ current implementation.
 The ordinary correlated random intercept-slope form is also implemented for
 univariate Gaussian `mu`:
 
-```text
-mu_ij = beta_0 + beta_1 x1_ij + b_{0j} + b_{1j} x1_ij
-[b_{0j}, b_{1j}]' ~ MVN(0, Sigma_mu_id)
-```
+\[
+\mu_{ij} =
+\beta_0 + \beta_1 x1_{ij} + b_{0j} + b_{1j}x1_{ij}
+\]
+
+\[
+\begin{bmatrix}
+b_{0j} \\
+b_{1j}
+\end{bmatrix}
+\sim
+\operatorname{MVN}
+\left(
+\begin{bmatrix}
+0 \\
+0
+\end{bmatrix},
+\Sigma_{\mu,\mathrm{id}}
+\right)
+\]
 
 ```r
 drmTMB(
@@ -203,15 +243,25 @@ drmTMB(
 ```
 
 The middle label `p` is retained in group-level SD and correlation names. In
-the bivariate Gaussian path, matching `(1 | p | id)` terms in `mu1` and `mu2`
-now fit one cross-response random-intercept covariance block; sharing across
-`sigma` formulas remains planned.
+one-response Gaussian models, the same label can span matching `mu` and
+`sigma` intercept or one-slope blocks. In the bivariate Gaussian path, matching
+`(1 | p | id)` terms in `mu1` and `mu2` now fit one cross-response
+random-intercept covariance block; bivariate sharing across `sigma` formulas
+remains planned.
 
-Residual-scale random intercepts in `sigma` are also implemented:
+Residual-scale random intercepts and slopes in `sigma` are also implemented:
 
 ```r
 drmTMB(
   drm_formula(y ~ x1 + (1 | id), sigma ~ x1 + (1 | id)),
+  family = gaussian(),
+  data = dat
+)
+```
+
+```r
+drmTMB(
+  drm_formula(y ~ x1, sigma ~ x1 + (1 + x1 | id)),
   family = gaussian(),
   data = dat
 )
@@ -223,29 +273,43 @@ group-level `mu` random intercept.
 
 Symbolically, those two scale models target different quantities:
 
-```text
-sigma formula:
-  log(sigma_ij) = X_sigma[ij, ] beta_sigma + a_j
-  a_j ~ Normal(0, sd_sigma_id^2)
+\[
+\log(\sigma_{ij}) =
+X_{\sigma}[ij,]\beta_{\sigma} + a_j,
+\qquad
+a_j \sim \operatorname{Normal}(0, sd_{\sigma,\mathrm{id}}^2)
+\]
 
-sd(id) formula:
-  b_j = sd_mu_id,j u_j
-  u_j ~ Normal(0, 1)
-  log(sd_mu_id,j) = W_id[j, ] alpha_id
-```
+\[
+b_j = sd_{\mu,\mathrm{id},j}u_j,
+\qquad
+u_j \sim \operatorname{Normal}(0, 1),
+\qquad
+\log(sd_{\mu,\mathrm{id},j}) = W_{\mathrm{id}}[j,]\alpha_{\mathrm{id}}
+\]
 
 So `sigma ~ x + (1 | id)` models residual-scale heterogeneity, whereas
-`sd(id) ~ x_group` models among-`id` heterogeneity in the mean.
+`sigma ~ x + (1 + x | id)` additionally models group-to-group differences in
+how `x` changes residual scale. `sd(id) ~ x_group` models among-`id`
+heterogeneity in the mean.
 
 The first fitted phylogenetic path attaches a tree-structured random intercept
 to the location model:
 
-```text
-y_i | mu_i, sigma_i ~ Normal(mu_i, sigma_i^2)
-mu_i = X_mu[i, ] beta_mu + a_species[i]
-log(sigma_i) = X_sigma[i, ] beta_sigma
-a ~ MVN(0, sigma_phylo^2 A)
-```
+\[
+y_i \mid \mu_i, \sigma_i \sim
+\operatorname{Normal}(\mu_i, \sigma_i^2)
+\]
+
+\[
+\mu_i = X_{\mu}[i,]\beta_{\mu} + a_{\mathrm{species}[i]},
+\qquad
+\log(\sigma_i) = X_{\sigma}[i,]\beta_{\sigma}
+\]
+
+\[
+a \sim \operatorname{MVN}(0, \sigma_{\mathrm{phylo}}^2 A)
+\]
 
 with matching syntax:
 
@@ -286,19 +350,40 @@ drmTMB(
 
 The matching symbolic model is:
 
-```text
-[y1_i, y2_i]' ~ MVN([mu1_i, mu2_i]', Omega_i)
-mu1_i = X_mu1[i, ] beta_mu1
-mu2_i = X_mu2[i, ] beta_mu2
-log(sigma1_i) = X_sigma1[i, ] beta_sigma1
-log(sigma2_i) = X_sigma2[i, ] beta_sigma2
-eta_rho12_i = X_rho12[i, ] beta_rho12
-rho12_i = tanh(eta_rho12_i)
+\[
+\begin{bmatrix}
+y_{1i} \\
+y_{2i}
+\end{bmatrix}
+\sim
+\operatorname{MVN}
+\left(
+\begin{bmatrix}
+\mu_{1i} \\
+\mu_{2i}
+\end{bmatrix},
+\Omega_i
+\right)
+\]
 
-Omega_i[1, 1] = sigma1_i^2
-Omega_i[2, 2] = sigma2_i^2
-Omega_i[1, 2] = rho12_i sigma1_i sigma2_i
-```
+\[
+\begin{aligned}
+\mu_{1i} &= X_{\mu 1}[i,]\beta_{\mu 1}, \\
+\mu_{2i} &= X_{\mu 2}[i,]\beta_{\mu 2}, \\
+\log(\sigma_{1i}) &= X_{\sigma 1}[i,]\beta_{\sigma 1}, \\
+\log(\sigma_{2i}) &= X_{\sigma 2}[i,]\beta_{\sigma 2}, \\
+\eta_{\rho 12,i} &= X_{\rho 12}[i,]\beta_{\rho 12}, \\
+\rho_{12i} &= \tanh(\eta_{\rho 12,i})
+\end{aligned}
+\]
+
+\[
+\Omega_i =
+\begin{bmatrix}
+\sigma_{1i}^2 & \rho_{12i}\sigma_{1i}\sigma_{2i} \\
+\rho_{12i}\sigma_{1i}\sigma_{2i} & \sigma_{2i}^2
+\end{bmatrix}
+\]
 
 The fitted response-scale residual correlations are available with
 `rho12(fit)`. Internally, the TMB likelihood applies a tiny numerical guard to
@@ -343,27 +428,38 @@ covariance; the fitted `sigma` remains the extra heterogeneity SD.
 
 For diagonal known sampling variances `vi`, this is:
 
-```text
-yi_i | mu_i, sigma_i, vi_i ~ Normal(mu_i, vi_i + sigma_i^2)
-```
+\[
+yi_i \mid \mu_i, \sigma_i, vi_i \sim
+\operatorname{Normal}(\mu_i, vi_i + \sigma_i^2)
+\]
 
 For a dense or block-diagonal known covariance matrix `V`, it is:
 
-```text
-y | mu, sigma, V ~ MVN(mu, V + diag(sigma_i^2))
-```
+\[
+y \mid \mu, \sigma, V \sim
+\operatorname{MVN}\left(\mu, V + \operatorname{diag}(\sigma_i^2)\right)
+\]
 
 Bivariate Gaussian meta-analysis uses the same idea, but the known sampling
 covariance is row-paired so each study contributes both responses:
 
-```text
-y_stack = (y1_1, y2_1, ..., y1_n, y2_n)'
-y_stack ~ MVN(mu_stack, V + Omega_stack)
+\[
+y_{\mathrm{stack}} =
+(y_{11}, y_{21}, \ldots, y_{1n}, y_{2n})'
+\]
 
-Omega_i =
-  [sigma1_i^2,                 rho12_i sigma1_i sigma2_i;
-   rho12_i sigma1_i sigma2_i,  sigma2_i^2]
-```
+\[
+y_{\mathrm{stack}} \sim
+\operatorname{MVN}(\mu_{\mathrm{stack}}, V + \Omega_{\mathrm{stack}})
+\]
+
+\[
+\Omega_i =
+\begin{bmatrix}
+\sigma_{1i}^2 & \rho_{12i}\sigma_{1i}\sigma_{2i} \\
+\rho_{12i}\sigma_{1i}\sigma_{2i} & \sigma_{2i}^2
+\end{bmatrix}
+\]
 
 The matching syntax is:
 
@@ -388,11 +484,33 @@ describes the residual covariance component after that known uncertainty has
 been included. It should only be called a study-level correlation when a
 separate study-level random effect is part of the model.
 
+For one Gaussian response, the fitted double-hierarchical covariance block uses
+the same label in the `mu` and `sigma` formulas. The block can be intercept-only
+or can include one numeric slope:
+
+```r
+drmTMB(
+  formula = drm_formula(
+    y ~ x + (1 + x | p | ID),
+    sigma ~ x + (1 + x | p | ID)
+  ),
+  family = gaussian(),
+  data = dat
+)
+```
+
+This asks whether groups with higher expected response, or steeper response
+slopes, also tend to have higher residual SD or steeper residual-SD slopes. The
+fitted pairwise correlations are group-level mean-scale, slope-scale, and
+scale-slope quantities in `corpars$mu_sigma` and `corpairs(fit)`, not residual
+`rho12`.
+
 ## Next covariance steps
 
 The first bivariate group-level covariance slice adds matching labelled random
-intercepts to each mean formula. The planned double-hierarchical version adds
-random slopes and residual-scale random effects, following the
+intercepts to each mean formula. The bivariate double-hierarchical version
+remains planned: it will add random slopes and residual-scale random effects,
+following the
 individual-differences literature on personality, plasticity, predictability,
 and malleability:
 

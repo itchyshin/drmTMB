@@ -14,9 +14,9 @@ word.
 | Quantity | Meaning | Example syntax | Implementation status |
 |---|---|---|---|
 | `sigma_i` | residual or within-observation standard deviation | `sigma ~ x1` | implemented for Gaussian |
-| `a_g` | residual-scale random effect added to `log(sigma_i)` | `sigma ~ x1 + (1 | id)` | implemented for univariate Gaussian random intercepts |
+| `a_g` | residual-scale random effect added to `log(sigma_i)` | `sigma ~ x1 + (1 + x1 | id)` | implemented for univariate Gaussian random intercepts and slopes |
 | `sd_mu_id` | standard deviation of a `mu` random effect | `sd(id) ~ x_group` | implemented for one or more distinct unlabelled Gaussian `mu` random intercepts |
-| `rho_re` | group-level random-effect correlation | `(1 + x1 | id)` | implemented for one `mu` slope |
+| `rho_re` | group-level random-effect correlation | `(1 + x1 | id)` | implemented for one `mu` slope and one unlabelled `sigma` slope |
 | `rho12_i` | residual correlation between two responses | `rho12 ~ x1` | implemented for fixed-effect bivariate Gaussian |
 
 ## Sigma And Variance Reporting
@@ -73,9 +73,10 @@ The `sigma` formula always targets residual or within-observation scale. If
 treatment have larger residual standard deviation after accounting for the
 mean model.
 
-## Implemented Residual-Scale Random Intercepts
+## Implemented Residual-Scale Random Effects
 
-Residual-scale random intercepts enter the log residual standard deviation:
+Residual-scale random intercepts and slopes enter the log residual standard
+deviation:
 
 ```text
 y_ij | mu_ij, sigma_ij, a_j ~ Normal(mu_ij, sigma_ij^2)
@@ -98,6 +99,20 @@ drmTMB(
   data = dat
 )
 ```
+
+An ordinary residual-scale random slope uses the same `sigma` formula:
+
+```r
+drmTMB(
+  bf(y ~ x1, sigma ~ x2 + (1 + x2 | id)),
+  family = gaussian(),
+  data = dat
+)
+```
+
+Its SDs are reported in `sdpars$sigma`, and its intercept-slope correlation is
+reported in `corpars$sigma`. This is still residual-scale heterogeneity, not
+an `sd(id) ~` random-effect scale model.
 
 Here `sd_sigma_id` is the standard deviation of group-to-group deviations on
 the log residual SD scale. It answers a residual-scale heterogeneity question:

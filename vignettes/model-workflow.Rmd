@@ -27,11 +27,17 @@ whether temperature also changes residual variability.
 
 Symbolically:
 
-```text
-growth_i | mu_i, sigma_i ~ Normal(mu_i, sigma_i^2)
-mu_i = beta_0 + beta_1 temperature_i + beta_2 habitat_i
-log(sigma_i) = gamma_0 + gamma_1 temperature_i
-```
+\[
+\begin{aligned}
+\operatorname{growth}_i \mid \mu_i, \sigma_i
+  &\sim \operatorname{Normal}(\mu_i, \sigma_i^2), \\
+\mu_i &=
+  \beta_0 + \beta_1 \operatorname{temperature}_i +
+  \beta_2 \operatorname{habitat}_i, \\
+\log(\sigma_i) &=
+  \gamma_0 + \gamma_1 \operatorname{temperature}_i .
+\end{aligned}
+\]
 
 Matching R syntax:
 

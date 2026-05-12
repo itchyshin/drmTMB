@@ -11,8 +11,8 @@ the grammar must support them from the start.
    Gaussian `mu` as separate uncorrelated terms.
 4. Ordinary correlated random intercept-slope blocks in location. Implemented
    for univariate Gaussian `mu`, with optional covariance-block labels.
-5. Random intercepts in residual scale. Implemented for univariate Gaussian
-   `sigma`.
+5. Random intercepts and slopes in residual scale. Implemented for univariate
+   Gaussian `sigma`, with ordinary unlabelled intercept-slope covariance.
 6. Random-effect scale formulae such as `sd(id) ~ x_group`. Implemented for
    one or more distinct unlabelled univariate Gaussian `mu` random intercepts.
 7. Slope-specific random-effect scale models, labelled-block scales, and
@@ -89,16 +89,25 @@ bf(
 )
 ```
 
-In the current univariate Gaussian `mu` implementation, `p` is retained in
-output names and future design metadata. It does not yet create covariance
-sharing across `mu`, `sigma`, `mu1`, or `mu2` formulas.
+In the univariate Gaussian `mu` implementation, `p` is retained in output names
+and can match a labelled residual-scale random intercept or one-slope block in
+`sigma`. Matching `(1 | p | id)` terms in `mu` and `sigma` estimate one
+group-level mean-scale correlation. Matching `(1 + x | p | id)` terms estimate
+one positive-definite four-effect block spanning the `mu` intercept, `mu`
+slope, `sigma` intercept, and `sigma` slope. The pairwise correlations from
+that shared block are reported under `corpars$mu_sigma` and `corpairs()`.
 
-Residual-scale random intercepts are implemented in `sigma`:
+Residual-scale random intercepts and slopes are implemented in `sigma`:
 
 ```r
 bf(
   y ~ x1 + (1 | id),
   sigma ~ x1 + (1 | id)
+)
+
+bf(
+  y ~ x1,
+  sigma ~ x1 + (1 + x1 | id)
 )
 ```
 
@@ -112,6 +121,26 @@ v_id ~ Normal(0, 1)
 
 It models residual-scale heterogeneity. It does not model the standard
 deviation of the `mu` random intercept.
+
+For `sigma ~ x1 + (1 + x1 | id)`, the residual-scale random intercept and
+random slope share one ordinary group-level covariance block. The fitted SDs
+are reported in `sdpars$sigma`, and the scale-slope correlation is reported in
+`corpars$sigma` and `corpairs(class = "scale-slope")`.
+
+The first cross-formula covariance path matches labelled random intercepts or
+one-slope blocks in `mu` and `sigma`:
+
+```r
+bf(
+  y ~ x1 + (1 + x1 | p | id),
+  sigma ~ x1 + (1 + x1 | p | id)
+)
+```
+
+This reports the group-level mean-slope, mean-scale, slope-scale, and
+scale-slope correlations in `corpars$mu_sigma` and `corpairs()`. The block is
+positive definite because the likelihood uses a Cholesky construction from
+partial correlations rather than independent pairwise `tanh()` parameters.
 
 Random-effect scale formulae are implemented for the first simple case:
 
@@ -153,13 +182,16 @@ Current implementation details:
   `sigma`;
 - random-slope terms must be written as `0 + x`, with a single numeric
   predictor, for independent slope terms;
-- ordinary correlated intercept-slope blocks are written as `(1 + x | id)` or
-  `(1 + x | p | id)` and currently support one numeric slope;
-- labelled blocks are implemented only within univariate Gaussian `mu`; using
-  the same label for cross-formula or cross-parameter covariance-block support
-  is reserved for later;
-- residual `sigma` random effects are limited to unlabelled random intercepts
-  such as `(1 | id)`;
+- ordinary correlated intercept-slope blocks are written as `(1 + x | id)` or,
+  for `mu`, `(1 + x | p | id)`, and currently support one numeric slope;
+- labelled blocks are implemented within univariate Gaussian `mu`; matching
+  labelled `mu` and `sigma` random intercepts or one-slope blocks are
+  implemented as shared cross-formula covariance blocks; the one-slope case
+  reports derived pairwise correlations from a positive-definite Cholesky
+  parameterization;
+- residual `sigma` random effects support unlabelled random intercepts,
+  independent numeric slopes, and ordinary unlabelled correlated
+  intercept-slope blocks;
 - random-effect scale formulae are implemented for one or more distinct
   unlabelled Gaussian `mu` random intercepts, such as `sd(id) ~ x_group` and
   `sd(site) ~ site_type`;
@@ -233,14 +265,16 @@ does not put random effects inside the residual `sigma` model.
 ```
 
 The middle label `p` identifies a group-level covariance block. In the
-univariate Gaussian `mu` implementation, the label is retained in output names.
-In the first bivariate Gaussian covariance slice, matching `(1 | p | id)` terms
-in `mu1` and `mu2` estimate one constant group-level random-intercept
-correlation. Later implementations should allow the same label in more
-parameter formulas, for example in `mu` and `sigma`, to estimate constant
-correlations among those group-level effects. These are the correlations used
-in double-hierarchical models of individual averages, mean-model slopes,
-residual scale, and scale-model slopes.
+univariate cross-formula path, matching `(1 | p | id)` or
+`(1 + x1 | p | id)` terms in `mu` and `sigma` estimate correlations among
+individual averages, mean-model slopes, residual scale, and scale-model slopes.
+In the first bivariate Gaussian covariance slices, matching `(1 | p | id)`
+terms in `mu1` and `mu2` estimate one constant group-level random-intercept
+correlation, and matching `(1 | q | id)` terms in `sigma1` and `sigma2`
+estimate one constant scale-scale random-intercept correlation. Matching
+`phylo(1 | species, tree = tree)` terms in `mu1` and `mu2` estimate a separate
+phylogenetic mean-mean correlation. Later implementations should allow the same
+label for bivariate random slopes and richer cross-parameter blocks.
 
 Residual `rho12 ~` is separate and belongs to bivariate response likelihoods.
 It models the residual coupling between two responses after their location and

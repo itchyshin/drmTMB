@@ -168,6 +168,171 @@ new_gaussian_sigma_ri_data <- function(
   )
 }
 
+new_gaussian_sigma_rs_data <- function(
+  n_id = 40,
+  n_each = 9,
+  sd_slope = 0.35,
+  seed = 20260651
+) {
+  set.seed(seed)
+  n <- n_id * n_each
+  id <- factor(rep(seq_len(n_id), each = n_each))
+  x <- stats::rnorm(n)
+  z <- stats::rnorm(n)
+  a_slope <- stats::rnorm(n_id, sd = sd_slope)
+  a_slope <- a_slope - mean(a_slope)
+  beta_mu <- c(`(Intercept)` = 0.2, x = 0.5)
+  beta_sigma <- c(`(Intercept)` = log(0.5), z = 0.25)
+  mu <- beta_mu[[1L]] + beta_mu[[2L]] * x
+  sigma <- exp(beta_sigma[[1L]] + beta_sigma[[2L]] * z + a_slope[id] * z)
+
+  list(
+    data = data.frame(
+      y = stats::rnorm(n, mean = mu, sd = sigma),
+      x = x,
+      z = z,
+      id = id
+    ),
+    beta_mu = beta_mu,
+    beta_sigma = beta_sigma,
+    sd_slope = sd_slope
+  )
+}
+
+new_gaussian_sigma_corr_rs_data <- function(
+  n_id = 60,
+  n_each = 12,
+  sd0 = 0.55,
+  sd1 = 0.35,
+  rho_re = 0.55,
+  seed = 20260650
+) {
+  set.seed(seed)
+  n <- n_id * n_each
+  id <- factor(rep(seq_len(n_id), each = n_each))
+  x <- stats::rnorm(n)
+  z <- stats::rnorm(n)
+  z0 <- stats::rnorm(n_id)
+  z1 <- stats::rnorm(n_id)
+  a0 <- sd0 * z0
+  a1 <- sd1 * (rho_re * z0 + sqrt(1 - rho_re^2) * z1)
+  beta_mu <- c(`(Intercept)` = 0.2, x = 0.5)
+  beta_sigma <- c(`(Intercept)` = log(0.45), z = 0.25)
+  mu <- beta_mu[[1L]] + beta_mu[[2L]] * x
+  sigma <- exp(beta_sigma[[1L]] + beta_sigma[[2L]] * z + a0[id] + a1[id] * z)
+
+  list(
+    data = data.frame(
+      y = stats::rnorm(n, mean = mu, sd = sigma),
+      x = x,
+      z = z,
+      id = id
+    ),
+    beta_mu = beta_mu,
+    beta_sigma = beta_sigma,
+    sd = c(`(Intercept)` = sd0, z = sd1),
+    rho_re = rho_re
+  )
+}
+
+new_gaussian_mu_sigma_corr_ri_data <- function(
+  n_id = 42,
+  n_each = 12,
+  sd_mu_id = 0.65,
+  sd_sigma_id = 0.45,
+  rho_mu_sigma = 0.55,
+  seed = 20260640
+) {
+  set.seed(seed)
+  n <- n_id * n_each
+  id <- factor(rep(seq_len(n_id), each = n_each))
+  x <- stats::rnorm(n)
+  z <- stats::rnorm(n)
+  z_mu <- stats::rnorm(n_id)
+  z_sigma <- stats::rnorm(n_id)
+  b_mu <- sd_mu_id * z_mu
+  a_sigma <- sd_sigma_id *
+    (rho_mu_sigma * z_mu + sqrt(1 - rho_mu_sigma^2) * z_sigma)
+  beta_mu <- c(`(Intercept)` = 0.25, x = 0.55)
+  beta_sigma <- c(`(Intercept)` = log(0.45), z = 0.22)
+  mu <- beta_mu[[1L]] + beta_mu[[2L]] * x + b_mu[id]
+  sigma <- exp(beta_sigma[[1L]] + beta_sigma[[2L]] * z + a_sigma[id])
+
+  list(
+    data = data.frame(
+      y = stats::rnorm(n, mean = mu, sd = sigma),
+      x = x,
+      z = z,
+      id = id
+    ),
+    beta_mu = beta_mu,
+    beta_sigma = beta_sigma,
+    sd_mu_id = sd_mu_id,
+    sd_sigma_id = sd_sigma_id,
+    rho_mu_sigma = rho_mu_sigma
+  )
+}
+
+new_gaussian_mu_sigma_corr_rs_data <- function(
+  n_id = 56,
+  n_each = 10,
+  seed = 20260641
+) {
+  set.seed(seed)
+  n <- n_id * n_each
+  id <- factor(rep(seq_len(n_id), each = n_each))
+  x <- stats::rnorm(n)
+  sd <- c(
+    `mu:(Intercept)` = 0.65,
+    `mu:x` = 0.35,
+    `sigma:(Intercept)` = 0.45,
+    `sigma:x` = 0.28
+  )
+  correlation <- matrix(
+    c(
+      1.00,
+      0.30,
+      0.35,
+      -0.25,
+      0.30,
+      1.00,
+      0.15,
+      0.25,
+      0.35,
+      0.15,
+      1.00,
+      0.40,
+      -0.25,
+      0.25,
+      0.40,
+      1.00
+    ),
+    nrow = 4L,
+    byrow = TRUE
+  )
+  z <- matrix(stats::rnorm(n_id * 4L), ncol = 4L) %*% chol(correlation)
+  u <- sweep(z, 2L, sd, `*`)
+  index <- as.integer(id)
+  beta_mu <- c(`(Intercept)` = 0.2, x = 0.6)
+  beta_sigma <- c(`(Intercept)` = log(0.45), x = 0.12)
+  mu <- beta_mu[[1L]] + beta_mu[[2L]] * x + u[index, 1L] + u[index, 2L] * x
+  sigma <- exp(
+    beta_sigma[[1L]] + beta_sigma[[2L]] * x + u[index, 3L] + u[index, 4L] * x
+  )
+
+  list(
+    data = data.frame(
+      y = stats::rnorm(n, mean = mu, sd = sigma),
+      x = x,
+      id = id
+    ),
+    beta_mu = beta_mu,
+    beta_sigma = beta_sigma,
+    sd = sd,
+    correlation = correlation
+  )
+}
+
 test_that("Gaussian location models support random intercepts in mu", {
   sim <- new_gaussian_ri_data()
 
@@ -534,6 +699,78 @@ test_that("Gaussian sigma supports residual-scale random intercepts", {
   expect_false(any(grepl("rho12", names(fit$sdpars$sigma), fixed = TRUE)))
 })
 
+test_that("Gaussian sigma supports residual-scale random slopes", {
+  sim <- new_gaussian_sigma_rs_data()
+
+  fit <- drmTMB(
+    bf(y ~ x, sigma ~ z + (0 + z | id)),
+    family = gaussian(),
+    data = sim$data,
+    control = list(eval.max = 300, iter.max = 300)
+  )
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_named(fit$sdpars$sigma, "(0 + z | id)")
+  expect_equal(length(fit$random_effects$sigma$values), nlevels(sim$data$id))
+  expect_equal(fit$corpars, list())
+  expect_lt(max(abs(unname(coef(fit, "mu")) - unname(sim$beta_mu))), 0.18)
+  expect_lt(max(abs(unname(coef(fit, "sigma")) - unname(sim$beta_sigma))), 0.22)
+  expect_lt(abs(unname(fit$sdpars$sigma) - sim$sd_slope), 0.25)
+  expect_true(all(stats::sigma(fit) > 0))
+})
+
+test_that("Gaussian sigma supports correlated residual-scale intercept-slope blocks", {
+  sim <- new_gaussian_sigma_corr_rs_data()
+
+  fit <- drmTMB(
+    bf(y ~ x, sigma ~ z + (1 + z | id)),
+    family = gaussian(),
+    data = sim$data,
+    control = list(eval.max = 400, iter.max = 400)
+  )
+  cor_label <- "cor((Intercept),z | id)"
+  cor_target <- paste0("cor:sigma:", cor_label)
+  targets <- profile_targets(fit)
+  target <- targets[targets$parm == cor_target, ]
+  pairs <- corpairs(fit)
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_named(
+    fit$sdpars$sigma,
+    c("(1 + z | id):(Intercept)", "(1 + z | id):z")
+  )
+  expect_named(fit$corpars, "sigma")
+  expect_named(fit$corpars$sigma, cor_label)
+  expect_lt(max(abs(unname(coef(fit, "mu")) - unname(sim$beta_mu))), 0.18)
+  expect_lt(max(abs(unname(coef(fit, "sigma")) - unname(sim$beta_sigma))), 0.22)
+  expect_lt(max(abs(unname(fit$sdpars$sigma) - unname(sim$sd))), 0.35)
+  expect_equal(sign(unname(fit$corpars$sigma)), sign(sim$rho_re))
+  expect_lt(abs(unname(fit$corpars$sigma) - sim$rho_re), 0.50)
+  expect_equal(
+    length(fit$random_effects$sigma$values),
+    2 * nlevels(sim$data$id)
+  )
+  expect_true(all(stats::sigma(fit) > 0))
+
+  expect_equal(nrow(pairs), 1L)
+  expect_equal(pairs$level, "group")
+  expect_equal(pairs$group, "id")
+  expect_equal(pairs$block, NA_character_)
+  expect_equal(pairs$from_dpar, "sigma")
+  expect_equal(pairs$to_dpar, "sigma")
+  expect_equal(pairs$from_coef, "(Intercept)")
+  expect_equal(pairs$to_coef, "z")
+  expect_equal(pairs$from_response, "y")
+  expect_equal(pairs$to_response, "y")
+  expect_equal(pairs$class, "scale-slope")
+  expect_equal(pairs$parameter, cor_label)
+  expect_equal(corpairs(fit, class = "scale-slope"), pairs)
+  expect_equal(target$tmb_parameter, "eta_cor_sigma")
+  expect_equal(target$index, 1L)
+  expect_equal(target$transformation, "tanh")
+  expect_true(target$profile_ready)
+})
+
 test_that("Gaussian sigma random intercepts handle boundary and large scale heterogeneity", {
   cases <- list(
     near_zero = list(sd_sigma_id = 0.06, max_est = 0.30, seed = 20260540),
@@ -620,6 +857,126 @@ test_that("Gaussian mu and sigma random intercepts can coexist independently", {
   expect_equal(length(fit$random_effects$sigma$values), nlevels(dat$id))
   expect_equal(ranef(fit, "sigma"), fit$random_effects$sigma)
   expect_true(all(stats::sigma(fit) > 0))
+})
+
+test_that("labelled Gaussian mu and sigma random intercepts share covariance", {
+  sim <- new_gaussian_mu_sigma_corr_ri_data()
+
+  fit <- drmTMB(
+    bf(y ~ x + (1 | p | id), sigma ~ z + (1 | p | id)),
+    family = gaussian(),
+    data = sim$data,
+    control = list(eval.max = 300, iter.max = 300)
+  )
+  cor_label <- "cor(mu:(Intercept),sigma:(Intercept) | p | id)"
+  cor_target <- paste0("cor:mu_sigma:", cor_label)
+  targets <- profile_targets(fit)
+  target <- targets[targets$parm == cor_target, ]
+  pairs <- corpairs(fit)
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_named(fit$sdpars, c("mu", "sigma"))
+  expect_named(fit$sdpars$mu, "(1 | p | id)")
+  expect_named(fit$sdpars$sigma, "(1 | p | id)")
+  expect_named(fit$corpars, "mu_sigma")
+  expect_named(fit$corpars$mu_sigma, cor_label)
+  expect_lt(abs(unname(fit$sdpars$mu) - sim$sd_mu_id), 0.35)
+  expect_lt(abs(unname(fit$sdpars$sigma) - sim$sd_sigma_id), 0.35)
+  expect_equal(sign(unname(fit$corpars$mu_sigma)), sign(sim$rho_mu_sigma))
+  expect_lt(abs(unname(fit$corpars$mu_sigma) - sim$rho_mu_sigma), 0.50)
+  expect_equal(length(fit$random_effects$mu$values), nlevels(sim$data$id))
+  expect_equal(length(fit$random_effects$sigma$values), nlevels(sim$data$id))
+  expect_true(all(stats::sigma(fit) > 0))
+
+  expect_equal(nrow(pairs), 1L)
+  expect_equal(pairs$level, "group")
+  expect_equal(pairs$group, "id")
+  expect_equal(pairs$block, "p")
+  expect_equal(pairs$from_dpar, "mu")
+  expect_equal(pairs$to_dpar, "sigma")
+  expect_equal(pairs$from_response, "y")
+  expect_equal(pairs$to_response, "y")
+  expect_equal(pairs$class, "mean-scale")
+  expect_equal(pairs$parameter, cor_label)
+  expect_equal(corpairs(fit, class = "mean-scale"), pairs)
+  expect_equal(target$tmb_parameter, "eta_cor_mu_sigma")
+  expect_equal(target$index, 1L)
+  expect_equal(target$transformation, "tanh")
+  expect_true(target$profile_ready)
+})
+
+test_that("labelled Gaussian mu and sigma random slopes share one covariance block", {
+  sim <- new_gaussian_mu_sigma_corr_rs_data()
+
+  fit <- drmTMB(
+    bf(y ~ x + (1 + x | p | id), sigma ~ x + (1 + x | p | id)),
+    family = gaussian(),
+    data = sim$data,
+    control = list(eval.max = 800, iter.max = 800)
+  )
+  pairs <- corpairs(fit)
+  targets <- profile_targets(fit)
+  mu_sigma_targets <- targets[targets$dpar == "mu_sigma", ]
+
+  expected_sd_mu <- c(
+    "(1 + x | p | id):(Intercept)",
+    "(1 + x | p | id):x"
+  )
+  expected_pairs <- c(
+    "cor(mu:(Intercept),mu:x | p | id)",
+    "cor(mu:(Intercept),sigma:(Intercept) | p | id)",
+    "cor(mu:x,sigma:(Intercept) | p | id)",
+    "cor(mu:(Intercept),sigma:x | p | id)",
+    "cor(mu:x,sigma:x | p | id)",
+    "cor(sigma:(Intercept),sigma:x | p | id)"
+  )
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_named(fit$sdpars$mu, expected_sd_mu)
+  expect_named(fit$sdpars$sigma, expected_sd_mu)
+  expect_named(fit$corpars, "mu_sigma")
+  expect_named(fit$corpars$mu_sigma, expected_pairs)
+  expect_equal(length(fit$random_effects$mu$values), 2 * nlevels(sim$data$id))
+  expect_equal(
+    length(fit$random_effects$sigma$values),
+    2 * nlevels(sim$data$id)
+  )
+  expect_lt(max(abs(unname(fit$sdpars$mu) - unname(sim$sd[1:2]))), 0.40)
+  expect_lt(max(abs(unname(fit$sdpars$sigma) - unname(sim$sd[3:4]))), 0.35)
+  expect_equal(
+    sign(unname(fit$corpars$mu_sigma[c(1, 2, 4, 6)])),
+    sign(sim$correlation[cbind(c(2, 3, 4, 4), c(1, 1, 1, 3))])
+  )
+  expect_true(all(stats::sigma(fit) > 0))
+
+  expect_equal(nrow(pairs), 6L)
+  expect_equal(pairs$level, rep("group", 6L))
+  expect_equal(pairs$group, rep("id", 6L))
+  expect_equal(pairs$block, rep("p", 6L))
+  expect_equal(pairs$from_response, rep("y", 6L))
+  expect_equal(pairs$to_response, rep("y", 6L))
+  expect_equal(
+    pairs$class,
+    c(
+      "mean-slope",
+      "mean-scale",
+      "slope-scale",
+      "slope-scale",
+      "slope-scale",
+      "scale-slope"
+    )
+  )
+  expect_equal(
+    corpairs(fit, class = "mean-scale")$parameter,
+    expected_pairs[[2L]]
+  )
+  expect_equal(
+    corpairs(fit, class = "scale-slope")$parameter,
+    expected_pairs[[6L]]
+  )
+  expect_equal(mu_sigma_targets$transformation, rep("cor_cholesky", 6L))
+  expect_equal(mu_sigma_targets$target_type, rep("derived", 6L))
+  expect_equal(mu_sigma_targets$profile_ready, rep(FALSE, 6L))
 })
 
 test_that("Gaussian mu correlated blocks handle near-zero and negative correlations", {
@@ -873,11 +1230,31 @@ test_that("unsupported random-effect cases fail clearly", {
     "reserved distributional parameter"
   )
   expect_error(
-    drmTMB(bf(y ~ x, sigma ~ (0 + x | id)), family = gaussian(), data = dat),
-    "Only random intercepts"
+    drmTMB(bf(y ~ x, sigma ~ (1 | p | id)), family = gaussian(), data = dat),
+    "matching labelled"
   )
   expect_error(
-    drmTMB(bf(y ~ x, sigma ~ (1 | p | id)), family = gaussian(), data = dat),
-    "Labelled covariance blocks"
+    drmTMB(
+      bf(y ~ x + (1 | p | id), sigma ~ (1 + x | p | id)),
+      family = gaussian(),
+      data = dat
+    ),
+    "matching dimensions"
+  )
+  expect_error(
+    drmTMB(
+      bf(y ~ x + (1 | q | id), sigma ~ (1 | p | id)),
+      family = gaussian(),
+      data = dat
+    ),
+    "matching labelled"
+  )
+  expect_error(
+    drmTMB(
+      bf(y ~ x + (1 + x | p | id), sigma ~ (1 | p | id)),
+      family = gaussian(),
+      data = dat
+    ),
+    "matching dimensions"
   )
 })

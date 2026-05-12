@@ -135,6 +135,15 @@ head(sigma(fit)^2) # fitted residual variances
   Gaussian, Student-t, lognormal, Gamma, or beta location-scale regression with
   `drm_formula(y ~ x, sigma ~ x)`. Read
   [Which scale are you modelling?](https://itchyshin.github.io/drmTMB/articles/which-scale.html).
+- **One Gaussian response with correlated individual mean and scale.** Use
+  matching labelled random intercepts or one-slope blocks such as
+  `bf(y ~ x + (1 + x | p | id), sigma ~ x + (1 + x | p | id))`.
+  The group-level mean-slope, mean-scale, slope-scale, and scale-slope
+  correlations appear in `corpars$mu_sigma` and `corpairs()`.
+- **One Gaussian response with individual differences in residual variation.**
+  Use residual-scale random intercepts or slopes in `sigma`, such as
+  `bf(y ~ x, sigma ~ z + (1 + z | id))`. Scale-slope correlations appear in
+  `corpars$sigma` and `corpairs(class = "scale-slope")`.
 - **Successes out of known trials.** Use `beta_binomial()` with
   `cbind(successes, failures)`. Read
   [Choosing response families](https://itchyshin.github.io/drmTMB/articles/distribution-families.html).
@@ -147,15 +156,18 @@ head(sigma(fit)^2) # fitted residual variances
 - **Two Gaussian responses with changing residual correlation.** Use bivariate
   Gaussian location-coscale regression with `mu1`, `mu2`, `sigma1`,
   `sigma2`, and `rho12`. Matching labelled random intercepts in `mu1` and
-  `mu2`, such as `(1 | p | id)` in both formulas, fit the first bivariate
-  group-level covariance block. Read
+  `mu2`, or in `sigma1` and `sigma2`, fit bivariate group-level covariance
+  blocks. Matching `phylo(1 | species, tree = tree)` terms in `mu1` and `mu2`
+  fit a bivariate phylogenetic mean covariance block. Residual `rho12` stays
+  within-observation. Read
   [Changing residual coupling with `rho12`](https://itchyshin.github.io/drmTMB/articles/bivariate-coscale.html).
 - **Known sampling variance or covariance.** Use Gaussian meta-analysis with
   `meta_known_V(V = V)`. Read
   [Mean effects and residual heterogeneity](https://itchyshin.github.io/drmTMB/articles/meta-analysis.html).
 - **Structured Gaussian location effects.** Use ordinary random effects,
   `sd(group) ~ x`, or the implemented intercept-only phylogenetic path
-  `phylo(1 | species, tree = tree)`. Read
+  `phylo(1 | species, tree = tree)` in one Gaussian `mu` formula or matching
+  bivariate Gaussian `mu1`/`mu2` formulas. Read
   [Phylogenetic and spatial structured effects](https://itchyshin.github.io/drmTMB/articles/phylogenetic-spatial.html).
 
 ## Current boundaries
@@ -169,16 +181,24 @@ planned after the fixed-effect likelihoods and simulations are stable.
 
 Residual `rho12` is a within-observation bivariate Gaussian correlation. It is
 not the same as a group-level correlation among individual intercepts, slopes,
-or residual-scale random effects. The first bivariate group-level correlation
-now fitted by `drmTMB` is the labelled `mu1`/`mu2` random-intercept correlation
-from matching terms such as `(1 | p | id)`.
+or residual-scale random effects. For one-response Gaussian models,
+ordinary residual-scale random slopes in `sigma` are fitted as group-level
+scale correlations. Matching labelled univariate `mu` and `sigma`
+intercept-slope blocks are fitted as one positive-definite group-level
+covariance block. The first bivariate group-level correlation now fitted by
+`drmTMB` is the labelled `mu1`/`mu2` random-intercept correlation from matching
+terms such as `(1 | p | id)`. The matching `sigma1`/`sigma2` block reports the
+scale-scale group correlation from terms such as `sigma1 = ~ z1 + (1 | q | id)`
+and `sigma2 = ~ z2 + (1 | q | id)`.
 
-Full double-hierarchical individual-difference models are planned work. These
-models would jointly describe individual differences in average behaviour,
-plasticity, predictability, and malleability. The package direction is to keep
-the public `sigma` grammar, report variance-facing summaries as `sigma^2`, and
-eventually expose both group-level individual-difference correlations and
-residual `rho12`.
+The first univariate double-hierarchical individual-difference block is
+implemented for one Gaussian response, and the first bivariate mean-mean and
+scale-scale random-intercept covariance blocks are implemented for two Gaussian
+responses. Bivariate random slopes, phylogenetic double-hierarchical blocks, and
+spatial double-hierarchical blocks remain planned work. The package direction is to
+keep the public `sigma` grammar, report variance-facing summaries as
+`sigma^2`, and keep residual `rho12` separate from group-level covariance
+parameters.
 
 Spatial syntax is part of the structured-effect design, but routine spatial
 model fitting is still planned rather than a first landing-page workflow.

@@ -383,6 +383,71 @@ test_that("check_drm() reports bivariate mu random-effect covariance diagnostics
   expect_true(attr(weak_chk, "ok"))
 })
 
+test_that("check_drm() reports bivariate phylogenetic covariance diagnostics", {
+  set.seed(2026051204)
+  tree <- check_drm_test_tree()
+  species <- factor(rep(tree$tip.label, each = 6L), levels = tree$tip.label)
+  n <- length(species)
+  x <- stats::rnorm(n)
+  z1 <- stats::rnorm(4L)
+  z2 <- 0.3 * z1 + sqrt(1 - 0.3^2) * stats::rnorm(4L)
+  names(z1) <- names(z2) <- tree$tip.label
+  dat <- data.frame(species = species, x = x)
+  dat$y1 <- 0.2 + 0.4 * x + 0.45 * z1[species] + stats::rnorm(n, sd = 0.25)
+  dat$y2 <- -0.1 - 0.3 * x + 0.5 * z2[species] + stats::rnorm(n, sd = 0.30)
+
+  fit <- drmTMB(
+    bf(
+      mu1 = y1 ~ x + phylo(1 | species, tree = tree),
+      mu2 = y2 ~ x + phylo(1 | species, tree = tree),
+      sigma1 = ~1,
+      sigma2 = ~1,
+      rho12 = ~1
+    ),
+    family = biv_gaussian(),
+    data = dat,
+    control = list(eval.max = 350, iter.max = 350)
+  )
+
+  stable <- fit
+  stable$sdpars$mu[] <- c(0.45, 0.5)
+  chk <- check_drm(stable)
+  phylo_cov <- chk[chk$check == "biv_phylo_mu_covariance", ]
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(phylo_cov$status, "ok")
+  expect_match(phylo_cov$value, "n_species=4")
+  expect_match(phylo_cov$value, "min_species_n=6")
+  expect_match(phylo_cov$message, "non-negligible")
+
+  singleton <- stable
+  phylo_index <- singleton$model$structured$phylo_mu$observation_node_index
+  singleton_rows <- which(
+    phylo_index == phylo_index[[1L]]
+  )[-1L]
+  replacement_index <- unique(phylo_index)[[2L]]
+  singleton$model$structured$phylo_mu$observation_node_index[singleton_rows] <-
+    replacement_index
+  singleton_chk <- check_drm(singleton)
+  singleton_cov <- singleton_chk[
+    singleton_chk$check == "biv_phylo_mu_covariance",
+  ]
+
+  expect_equal(singleton_cov$status, "note")
+  expect_match(singleton_cov$value, "singleton_species=1")
+  expect_match(singleton_cov$message, "fewer than two")
+  expect_true(attr(singleton_chk, "ok"))
+
+  weak_sd <- stable
+  weak_sd$sdpars$mu[[1L]] <- mean(stats::sigma(fit)$sigma1) * 0.01
+  weak_chk <- check_drm(weak_sd)
+  weak_cov <- weak_chk[weak_chk$check == "biv_phylo_mu_covariance", ]
+
+  expect_equal(weak_cov$status, "note")
+  expect_match(weak_cov$message, "tiny relative")
+  expect_true(attr(weak_chk, "ok"))
+})
+
 test_that("check_drm() reports mutated diagnostic failure branches", {
   dat <- data.frame(y = stats::rnorm(24), x = stats::rnorm(24))
   fit <- drmTMB(bf(y ~ x, sigma ~ 1), family = gaussian(), data = dat)

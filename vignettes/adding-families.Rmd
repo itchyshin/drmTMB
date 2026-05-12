@@ -46,12 +46,15 @@ a distributional-regression question that `drmTMB` can answer clearly.
 Before touching code, write the model as equations. The implemented Student-t
 family is the simplest current example of a location-scale-shape family:
 
-```text
-y_i | mu_i, sigma_i, nu_i ~ Student-t(mu_i, sigma_i, nu_i)
-mu_i = X_mu[i, ] beta_mu
-log(sigma_i) = X_sigma[i, ] beta_sigma
-nu_i = 2 + exp(X_nu[i, ] beta_nu)
-```
+\[
+\begin{aligned}
+y_i \mid \mu_i, \sigma_i, \nu_i
+  &\sim t_{\nu_i}(\mu_i, \sigma_i), \\
+\mu_i &= X_{\mu}[i,]\beta_{\mu}, \\
+\log(\sigma_i) &= X_{\sigma}[i,]\beta_{\sigma}, \\
+\nu_i &= 2 + \exp\{X_{\nu}[i,]\beta_{\nu}\}.
+\end{aligned}
+\]
 
 The matching R syntax is:
 
@@ -75,20 +78,42 @@ the tests what data-generating process to simulate.
 For a two-response family, also define what any residual coupling parameter
 means. The implemented all-Gaussian composed family uses:
 
-```text
-[y1_i, y2_i]' ~ MVN([mu1_i, mu2_i]', Omega_i)
-Omega_i =
-  [ sigma1_i^2                         rho12_i sigma1_i sigma2_i ]
-  [ rho12_i sigma1_i sigma2_i          sigma2_i^2                ]
-rho12_i = tanh(eta_rho12_i)
-```
+\[
+\begin{bmatrix}
+y_{1i} \\
+y_{2i}
+\end{bmatrix}
+\mid
+\mu_{1i}, \mu_{2i}, \sigma_{1i}, \sigma_{2i}, \rho_{12i}
+\sim
+\operatorname{MVN}
+\left(
+\begin{bmatrix}
+\mu_{1i} \\
+\mu_{2i}
+\end{bmatrix},
+\Omega_i
+\right)
+\]
+
+\[
+\Omega_i =
+\begin{bmatrix}
+\sigma_{1i}^2 & \rho_{12i}\sigma_{1i}\sigma_{2i} \\
+\rho_{12i}\sigma_{1i}\sigma_{2i} & \sigma_{2i}^2
+\end{bmatrix}
+\]
+
+\[
+\rho_{12i} = \tanh(\eta_{\rho 12,i})
+\]
 
 The TMB likelihood can still add a tiny numerical guard to this transform when
 needed for positive-definite covariance matrices. Keep the family-facing model
 equation readable, then document numerical guards in the likelihood
 implementation notes and tests.
 
-with:
+The matching R syntax is:
 
 ```{r bivariate-family-syntax, eval = FALSE}
 fit <- drmTMB(
@@ -165,10 +190,13 @@ That is true for Gaussian models, but it is not a general rule.
 
 For the implemented lognormal family:
 
-```text
-log(y_i) | mu_i, sigma_i ~ Normal(mu_i, sigma_i^2)
-E[y_i] = exp(mu_i + sigma_i^2 / 2)
-```
+\[
+\begin{aligned}
+\log(y_i) \mid \mu_i, \sigma_i
+  &\sim \operatorname{Normal}(\mu_i, \sigma_i^2), \\
+E[y_i] &= \exp(\mu_i + \sigma_i^2 / 2).
+\end{aligned}
+\]
 
 `predict(fit, dpar = "mu")` returns the mean of `log(y)`, while `fitted(fit)`
 returns the arithmetic mean of `y`. The implemented Gamma mean-CV route uses
@@ -213,22 +241,27 @@ The likelihood should be written on stable transformed scales. For the
 implemented Student-t family, TMB receives unconstrained linear predictors and
 uses:
 
-```text
-sigma_i = exp(eta_sigma_i)
-nu_i = 2 + exp(eta_nu_i)
-z_i = (y_i - mu_i) / sigma_i
-```
+\[
+\begin{aligned}
+\sigma_i &= \exp(\eta_{\sigma,i}), \\
+\nu_i &= 2 + \exp(\eta_{\nu,i}), \\
+z_i &= \frac{y_i - \mu_i}{\sigma_i}.
+\end{aligned}
+\]
 
 The log density is:
 
-```text
-log f(y_i) =
-  lgamma((nu_i + 1) / 2) -
-  lgamma(nu_i / 2) -
-  0.5 log(nu_i pi) -
-  log(sigma_i) -
-  0.5 (nu_i + 1) log(1 + z_i^2 / nu_i)
-```
+\[
+\begin{aligned}
+\log f(y_i)
+  &= \operatorname{lgamma}\left(\frac{\nu_i + 1}{2}\right)
+   - \operatorname{lgamma}\left(\frac{\nu_i}{2}\right)
+   - \frac{1}{2}\log(\nu_i \pi) \\
+  &\quad - \log(\sigma_i)
+   - \frac{1}{2}(\nu_i + 1)
+     \log\left(1 + \frac{z_i^2}{\nu_i}\right).
+\end{aligned}
+\]
 
 The `-log(sigma_i)` term is part of the scaled Student-t density. Likelihood
 constants matter because `logLik()`, AIC, BIC, comparator tests, and profile

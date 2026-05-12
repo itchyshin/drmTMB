@@ -42,6 +42,59 @@ new_corpairs_group_data <- function(n_id = 24, n_each = 6, seed = 20260575) {
   data.frame(y = y, x = x, ID = ID)
 }
 
+new_corpairs_mu_sigma_data <- function(
+  n_id = 18L,
+  n_each = 6L,
+  rho_group = 0.45,
+  seed = 20260642
+) {
+  set.seed(seed)
+  id <- factor(rep(seq_len(n_id), each = n_each))
+  n <- length(id)
+  x <- stats::rnorm(n)
+  z <- stats::rnorm(n)
+  z_mu <- stats::rnorm(n_id)
+  z_sigma <- stats::rnorm(n_id)
+  sd_mu <- 0.55
+  sd_sigma <- 0.35
+  b_mu <- sd_mu * z_mu
+  a_sigma <- sd_sigma *
+    (rho_group * z_mu + sqrt(1 - rho_group^2) * z_sigma)
+  sigma <- exp(-0.7 + 0.2 * z + a_sigma[id])
+  data.frame(
+    y = stats::rnorm(n, mean = 0.2 + 0.5 * x + b_mu[id], sd = sigma),
+    x = x,
+    z = z,
+    id = id
+  )
+}
+
+new_corpairs_sigma_group_data <- function(
+  n_id = 30L,
+  n_each = 8L,
+  seed = 20260652
+) {
+  set.seed(seed)
+  id <- factor(rep(seq_len(n_id), each = n_each))
+  n <- length(id)
+  x <- stats::rnorm(n)
+  z <- stats::rnorm(n)
+  z0 <- stats::rnorm(n_id)
+  z1 <- stats::rnorm(n_id)
+  sd0 <- 0.45
+  sd1 <- 0.30
+  rho <- 0.45
+  a0 <- sd0 * z0
+  a1 <- sd1 * (rho * z0 + sqrt(1 - rho^2) * z1)
+  sigma <- exp(log(0.5) + 0.2 * z + a0[id] + a1[id] * z)
+  data.frame(
+    y = stats::rnorm(n, mean = 0.2 + 0.5 * x, sd = sigma),
+    x = x,
+    z = z,
+    id = id
+  )
+}
+
 test_that("corpairs summarizes predictor-dependent residual rho12", {
   dat <- new_corpairs_biv_data()
   fit <- drmTMB(
@@ -141,6 +194,85 @@ test_that("corpairs reports ordinary group-level correlation labels", {
   )
   expect_false(grepl("rho12", pairs$parameter, fixed = TRUE))
   expect_equal(corpairs(fit, class = "mean-slope"), pairs)
+
+  fit_no_frame <- fit
+  fit_no_frame$model$model_frame <- NULL
+  pairs_no_frame <- corpairs(fit_no_frame)
+  expect_equal(pairs_no_frame$from_response, "y")
+  expect_equal(pairs_no_frame$to_response, "y")
+})
+
+test_that("corpairs reports residual-scale random-slope correlations", {
+  dat <- new_corpairs_sigma_group_data()
+  fit <- drmTMB(
+    bf(y ~ x, sigma ~ z + (1 + z | id)),
+    family = gaussian(),
+    data = dat,
+    control = list(eval.max = 300, iter.max = 300)
+  )
+
+  pairs <- corpairs(fit)
+  scale_slope <- corpairs(fit, class = "scale-slope")
+  cor_label <- "cor((Intercept),z | id)"
+  cor_estimate <- unname(fit$corpars$sigma[[cor_label]])
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(nrow(pairs), 1L)
+  expect_equal(pairs, scale_slope)
+  expect_equal(pairs$level, "group")
+  expect_equal(pairs$group, "id")
+  expect_equal(pairs$block, NA_character_)
+  expect_equal(pairs$from_dpar, "sigma")
+  expect_equal(pairs$to_dpar, "sigma")
+  expect_equal(pairs$from_response, "y")
+  expect_equal(pairs$to_response, "y")
+  expect_equal(pairs$from_coef, "(Intercept)")
+  expect_equal(pairs$to_coef, "z")
+  expect_equal(pairs$class, "scale-slope")
+  expect_equal(pairs$parameter, cor_label)
+  expect_equal(pairs$estimate, cor_estimate, tolerance = 1e-12)
+  expect_equal(
+    pairs$link_estimate,
+    atanh(cor_estimate / 0.999999),
+    tolerance = 1e-12
+  )
+  expect_false(grepl("rho12", pairs$parameter, fixed = TRUE))
+})
+
+test_that("corpairs reports mean-scale random-intercept correlations", {
+  dat <- new_corpairs_mu_sigma_data()
+  fit <- drmTMB(
+    bf(y ~ x + (1 | p | id), sigma ~ z + (1 | p | id)),
+    family = gaussian(),
+    data = dat,
+    control = list(eval.max = 300, iter.max = 300)
+  )
+
+  pairs <- corpairs(fit)
+  mean_scale <- corpairs(fit, class = "mean-scale")
+  cor_label <- "cor(mu:(Intercept),sigma:(Intercept) | p | id)"
+  cor_estimate <- unname(fit$corpars$mu_sigma[[cor_label]])
+
+  expect_equal(nrow(pairs), 1L)
+  expect_equal(pairs, mean_scale)
+  expect_equal(pairs$level, "group")
+  expect_equal(pairs$group, "id")
+  expect_equal(pairs$block, "p")
+  expect_equal(pairs$from_dpar, "mu")
+  expect_equal(pairs$to_dpar, "sigma")
+  expect_equal(pairs$from_response, "y")
+  expect_equal(pairs$to_response, "y")
+  expect_equal(pairs$from_coef, "(Intercept)")
+  expect_equal(pairs$to_coef, "(Intercept)")
+  expect_equal(pairs$class, "mean-scale")
+  expect_equal(pairs$parameter, cor_label)
+  expect_equal(pairs$estimate, cor_estimate, tolerance = 1e-12)
+  expect_equal(
+    pairs$link_estimate,
+    atanh(cor_estimate / 0.999999),
+    tolerance = 1e-12
+  )
+  expect_false(grepl("rho12", pairs$parameter, fixed = TRUE))
 
   fit_no_frame <- fit
   fit_no_frame$model$model_frame <- NULL

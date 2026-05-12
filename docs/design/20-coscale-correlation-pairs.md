@@ -40,11 +40,16 @@ group-level random-effect correlation.
 
 The helper `corpairs(fit)` is implemented for fitted correlations that already
 exist: residual bivariate `rho12` summaries, ordinary univariate Gaussian `mu`
-random-effect correlations from `corpars$mu`, and the first bivariate
-`mu1`/`mu2` labelled random-intercept correlation. It is intentionally a
-reporting helper, not a new likelihood. Future rows can be added as
-phylogenetic, spatial, study-level, and richer double-hierarchical correlation
-likelihoods become implemented.
+random-effect correlations from `corpars$mu`, ordinary univariate Gaussian
+`sigma` random-effect correlations from `corpars$sigma`, the first univariate
+`mu`/`sigma` mean-scale random-intercept correlation from
+`corpars$mu_sigma`, the univariate labelled `mu`/`sigma` one-slope
+double-hierarchical block, and the first bivariate `mu1`/`mu2` labelled
+random-intercept correlation plus the first bivariate `sigma1`/`sigma2`
+labelled random-intercept correlation. It is intentionally a reporting helper,
+not a new likelihood. Future rows can be added as phylogenetic, spatial,
+study-level, and bivariate slope correlation likelihoods become
+implemented.
 
 ## Why Named Correlation Pairs Are Needed
 
@@ -113,6 +118,7 @@ can teach common interpretations:
 | mean-slope | `cor(mu1:(Intercept), mu1:x | ID)` | individual average response versus mean-model slope |
 | mean-scale | `cor(mu1:(Intercept), sigma1:(Intercept) | ID)` | individual average response versus residual scale |
 | slope-scale | `cor(mu1:x, sigma1:(Intercept) | ID)` | mean-model slope versus residual scale |
+| scale-slope | `cor(sigma:(Intercept), sigma:x | ID)` | individual baseline residual scale versus change in residual scale |
 
 These names are interpretation aids. The extractor should always report the
 formal pair so users can interpret other designs without guessing.
@@ -136,7 +142,9 @@ drmTMB(
 ```
 
 In a later double-hierarchical model, the same block label could span location
-and residual-scale formulas:
+and residual-scale formulas. The univariate version of this syntax is
+implemented for one response; the bivariate version shown here remains
+planned:
 
 ```r
 drm_formula(
@@ -148,9 +156,9 @@ drm_formula(
 )
 ```
 
-This syntax is not implemented. The current `drmTMB()` path must reject it
-clearly until the likelihood, positive-definite covariance parameterization,
-simulation recovery, and extractor tests are implemented.
+The current `drmTMB()` path must reject the bivariate version clearly until the
+likelihood, positive-definite covariance parameterization, simulation recovery,
+and extractor tests are implemented.
 
 The full endpoint and its staged implementation map are recorded in
 `docs/design/28-double-hierarchical-endpoint.md`.
@@ -185,17 +193,22 @@ display preference, because each layer answers a different biological question.
 1. Keep fixed-effect residual `rho12 ~ predictors` stable.
 2. Keep univariate ordinary random-effect correlations under `corpars$mu`.
 3. Add a `corpairs()` design table for existing fitted correlations, including
-   residual `rho12` and univariate `mu` intercept-slope correlations. Done for
-   the currently fitted correlation classes.
-4. Add bivariate group-level random intercept covariance blocks. Done for
-   matching labelled `mu1`/`mu2` random intercepts.
-5. Add bivariate random intercept-slope covariance blocks.
-6. Add residual-scale random-effect covariance blocks.
-7. Add cross-parameter mean-scale covariance blocks.
-8. Add bivariate phylogenetic covariance blocks with matching non-phylogenetic
-   species or individual covariance blocks.
-9. Add spatial bivariate covariance blocks.
-10. Only after simulation evidence: consider predictor-dependent group-level or
+   residual `rho12`, univariate `mu` intercept-slope correlations, and
+   univariate `sigma` intercept-slope correlations. Done for the currently
+   fitted correlation classes.
+4. Add cross-parameter mean-scale covariance blocks. Done for matching
+   univariate labelled `mu`/`sigma` random intercepts and one-slope blocks.
+5. Add bivariate group-level random intercept covariance blocks. Done for
+   matching labelled `mu1`/`mu2` and `sigma1`/`sigma2` random intercepts.
+6. Add bivariate phylogenetic mean covariance blocks. Done for matching
+   intercept-only `phylo()` terms in `mu1` and `mu2`.
+7. Add bivariate random intercept-slope covariance blocks.
+8. Extend residual-scale random-effect covariance blocks beyond the current
+   univariate ordinary `sigma` intercept-slope block.
+9. Add bivariate phylogenetic scale covariance blocks with matching
+   non-phylogenetic species or individual covariance blocks.
+10. Add spatial bivariate covariance blocks.
+11. Only after simulation evidence: consider predictor-dependent group-level or
    structured-effect correlation formulas.
 
 For covariance blocks with more than two random-effect coefficients, use a

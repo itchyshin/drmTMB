@@ -121,10 +121,10 @@ test_that("predict() uses newdata for Gaussian location-scale fits", {
   )
 
   expected_mu <- as.vector(
-    stats::model.matrix(~ x, newdata) %*% coef(fit, "mu")
+    stats::model.matrix(~x, newdata) %*% coef(fit, "mu")
   )
   expected_sigma_link <- as.vector(
-    stats::model.matrix(~ z, newdata) %*% coef(fit, "sigma")
+    stats::model.matrix(~z, newdata) %*% coef(fit, "sigma")
   )
 
   expect_equal(fit$opt$convergence, 0)
@@ -159,8 +159,11 @@ test_that("fixed-effect formulas support standard R transformations and interact
     x3 = stats::rnorm(n),
     z = stats::runif(n, -1, 1)
   )
-  dat$y <- 0.2 + 0.3 * dat$x + 0.2 * dat$x^2 +
-    0.1 * dat$x1 * dat$x2 + stats::rnorm(n, sd = 0.5)
+  dat$y <- 0.2 +
+    0.3 * dat$x +
+    0.2 * dat$x^2 +
+    0.1 * dat$x1 * dat$x2 +
+    stats::rnorm(n, sd = 0.5)
 
   fit <- drmTMB(
     drm_formula(
@@ -175,8 +178,16 @@ test_that("fixed-effect formulas support standard R transformations and interact
   expect_equal(
     names(coef(fit, "mu")),
     c(
-      "(Intercept)", "poly(x, 2)1", "poly(x, 2)2", "I(x^2)",
-      "x1", "x2", "x3", "x1:x2", "x1:x3", "x2:x3"
+      "(Intercept)",
+      "poly(x, 2)1",
+      "poly(x, 2)2",
+      "I(x^2)",
+      "x1",
+      "x2",
+      "x3",
+      "x1:x2",
+      "x1:x3",
+      "x2:x3"
     )
   )
   expect_equal(
@@ -276,7 +287,11 @@ test_that("Gaussian likelihood weights match row duplication and zero-row droppi
   )
 
   expect_equal(stats::weights(fit_weighted), w)
-  expect_equal(coef(fit_weighted, "mu"), coef(fit_expanded, "mu"), tolerance = 1e-5)
+  expect_equal(
+    coef(fit_weighted, "mu"),
+    coef(fit_expanded, "mu"),
+    tolerance = 1e-5
+  )
   expect_equal(
     coef(fit_weighted, "sigma"),
     coef(fit_expanded, "sigma"),
@@ -386,7 +401,7 @@ test_that("Phase 1 rejects unsupported model syntax clearly", {
     "Only random intercepts"
   )
   expect_error(
-    drmTMB(bf(y ~ x, rho12 = ~ x), family = gaussian(), data = dat),
+    drmTMB(bf(y ~ x, rho12 = ~x), family = gaussian(), data = dat),
     "only support"
   )
   expect_error(
@@ -426,9 +441,9 @@ test_that("Phase 1 rejects unsupported model syntax clearly", {
       bf(
         mu1 = y ~ x + spatial(1 | id, coords = coords),
         mu2 = y2 ~ x,
-        sigma1 = ~ 1,
-        sigma2 = ~ 1,
-        rho12 = ~ 1
+        sigma1 = ~1,
+        sigma2 = ~1,
+        rho12 = ~1
       ),
       family = c(gaussian(), gaussian()),
       data = dat
@@ -440,14 +455,14 @@ test_that("Phase 1 rejects unsupported model syntax clearly", {
       bf(
         mu1 = y ~ x + phylo(1 | id, tree = tree),
         mu2 = y2 ~ x,
-        sigma1 = ~ 1,
-        sigma2 = ~ 1,
-        rho12 = ~ 1
+        sigma1 = ~1,
+        sigma2 = ~1,
+        rho12 = ~1
       ),
       family = c(gaussian(), gaussian()),
       data = dat
     ),
-    "planned, not implemented"
+    "matching phylogenetic terms"
   )
   expect_error(
     drmTMB(

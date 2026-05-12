@@ -36,6 +36,8 @@ sigma2
 sd:mu:(1 | id)
 sd:sigma:(1 | id)
 sd:mu:phylo(1 | species)
+sd:mu:mu1:phylo(1 | species)
+cor:phylo:cor(mu1:phylo(1),mu2:phylo(1) | species)
 cor:mu:cor((Intercept),x | id)
 fixef:rho12:(Intercept)
 rho12
@@ -49,7 +51,8 @@ syntax such as `phylo(1 | species, tree = tree)`.
 
 Those names can then map internally to TMB parameters such as `beta_mu`,
 `beta_sigma`, `log_sd_mu`, `log_sd_sigma`, `log_sd_phylo`, `eta_cor_mu`,
-`beta_sd_mu`, and `beta_rho12`. The short `sigma`, `sigma1`, `sigma2`, and
+`eta_cor_phylo_mu`, `beta_sd_mu`, and `beta_rho12`. The short `sigma`,
+`sigma1`, `sigma2`, and
 `rho12` targets are available only when the corresponding model formula is
 constant. Predictor-dependent scale and residual-correlation models expose
 their link-scale coefficients in `profile_targets(fit)` and support
@@ -136,6 +139,7 @@ Current high-value direct targets are:
 log_sd_mu          -> sdpars$mu
 log_sd_sigma       -> sdpars$sigma
 log_sd_phylo       -> sdpars$mu["phylo(1 | species)"]
+eta_cor_phylo_mu   -> corpars$phylo
 eta_cor_mu         -> corpars$mu
 beta_rho12         -> fixed effects in residual correlation formulae
 ```
@@ -331,6 +335,16 @@ Profile-likelihood support is done only when these checks exist:
 
 - direct `log_sd_mu` and `log_sd_sigma` intervals recover the simulated SD on
   the response scale;
+- univariate intercept-only `mu`/`sigma` mean-scale covariance intervals
+  transform `log_sd_mu`, `log_sd_sigma`, and `eta_cor_mu_sigma` to response SDs
+  and a bounded group-level correlation;
+- full univariate `mu`/`sigma` one-slope covariance-block correlations are
+  currently derived Cholesky summaries in `profile_targets()`, not direct
+  profile-likelihood targets;
+- univariate residual-scale random-slope intervals transform `log_sd_sigma`
+  and `eta_cor_sigma` to response SDs and bounded scale-slope correlations;
+- bivariate `mu1`/`mu2` covariance-block SD and correlation intervals transform
+  to the response SD and bounded correlation scales;
 - `log_sd_phylo` profile intervals work for the implemented
   `phylo(1 | species, tree = tree)` path;
 - `eta_cor_mu` profile intervals transform to bounded group-level correlations;

@@ -15,7 +15,10 @@
 #' variation. If a bivariate Gaussian fit includes a matched labelled `mu1`/`mu2`
 #' random-intercept covariance block, `check_drm()` also reports group
 #' replication and whether either group-level SD is tiny relative to the
-#' matching residual scale. If the fit was stored with
+#' matching residual scale. If it includes matching bivariate phylogenetic
+#' `mu1`/`mu2` terms, `check_drm()` reports observed species replication and
+#' whether either phylogenetic location SD is tiny relative to the matching
+#' residual scale. If the fit was stored with
 #' `drm_control(keep_tmb_object = FALSE)`, the fixed-gradient check is reported
 #' as a note because the TMB automatic-differentiation object is not available.
 #'
@@ -88,6 +91,7 @@ check_drm.drmTMB <- function(
     check_random_effect_design(object, "mu"),
     check_random_effect_design(object, "sigma"),
     check_biv_mu_random_effect_covariance(object),
+    check_biv_phylo_mu_covariance(object),
     check_phylo_replication(object)
   )
   rows <- Filter(Negate(is.null), rows)
@@ -838,6 +842,91 @@ bivariate_mu_re_diagnostic_message <- function(weak_replication, weak_sd) {
     ))
   }
   "Bivariate group-level covariance has replicated groups and non-negligible fitted SDs relative to residual scales."
+}
+
+check_biv_phylo_mu_covariance <- function(object) {
+  if (!identical(object$model$model_type, "biv_gaussian")) {
+    return(NULL)
+  }
+  if (!has_phylo_mu_effect(object)) {
+    return(NULL)
+  }
+  phylo_mu <- object$model$structured$phylo_mu
+  if (!identical(phylo_mu$dpars, c("mu1", "mu2"))) {
+    return(NULL)
+  }
+
+  index <- phylo_mu$observation_node_index
+  species_counts <- tabulate(match(index, unique(index)))
+  min_count <- min(species_counts)
+  singleton_species <- sum(species_counts < 2L)
+  sd_ratios <- bivariate_phylo_mu_sd_ratios(object, phylo_mu)
+  finite_sd_ratios <- sd_ratios[is.finite(sd_ratios)]
+  min_sd_ratio <- if (length(finite_sd_ratios) > 0L) {
+    min(finite_sd_ratios)
+  } else {
+    NA_real_
+  }
+  weak_sd <- any(finite_sd_ratios < 0.05)
+  weak_replication <- min_count < 2L
+
+  check_row(
+    "biv_phylo_mu_covariance",
+    if (weak_replication || weak_sd) "note" else "ok",
+    paste0(
+      "n_species=",
+      length(species_counts),
+      "; min_species_n=",
+      min_count,
+      "; singleton_species=",
+      singleton_species,
+      "; min_sd_ratio=",
+      format_check_number(min_sd_ratio)
+    ),
+    bivariate_phylo_mu_diagnostic_message(weak_replication, weak_sd)
+  )
+}
+
+bivariate_phylo_mu_sd_ratios <- function(object, phylo_mu) {
+  sdpars <- object$sdpars$mu
+  if (is.null(sdpars) || length(sdpars) == 0L) {
+    return(numeric())
+  }
+  sigma_values <- tryCatch(stats::sigma(object), error = function(e) e)
+  if (inherits(sigma_values, "error") || !is.list(sigma_values)) {
+    return(numeric())
+  }
+  residual_scale <- c(
+    mu1 = mean(sigma_values$sigma1, na.rm = TRUE),
+    mu2 = mean(sigma_values$sigma2, na.rm = TRUE)
+  )
+  sd_values <- unname(sdpars[match(phylo_mu$labels, names(sdpars))])
+  sd_values / residual_scale[phylo_mu$dpars]
+}
+
+bivariate_phylo_mu_diagnostic_message <- function(weak_replication, weak_sd) {
+  if (weak_replication && weak_sd) {
+    return(paste(
+      "At least one species has fewer than two fitted observations and at",
+      "least one phylogenetic location SD is tiny relative to the matching",
+      "residual scale; interpret bivariate phylogenetic SDs and correlations",
+      "cautiously."
+    ))
+  }
+  if (weak_replication) {
+    return(paste(
+      "At least one species has fewer than two fitted observations;",
+      "interpret bivariate phylogenetic SDs and correlations cautiously."
+    ))
+  }
+  if (weak_sd) {
+    return(paste(
+      "At least one phylogenetic location SD is tiny relative to the matching",
+      "residual scale; the bivariate phylogenetic correlation may be weakly",
+      "identified."
+    ))
+  }
+  "Bivariate phylogenetic covariance has replicated observed species and non-negligible fitted SDs relative to residual scales."
 }
 
 random_effect_label_is_intercept <- function(label) {

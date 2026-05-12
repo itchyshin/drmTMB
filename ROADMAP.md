@@ -11,10 +11,11 @@ distributional regression models using TMB.
   double-hierarchical individual-difference endpoint.
 - Release boundary: Phase 9 is closed at the implemented ordinal and
   denominator-aware MVPs. The first Phase 11 bivariate `mu1`/`mu2`
-  random-intercept covariance slice is now implemented, while richer
-  bivariate random slopes, residual-scale covariance, structured covariance,
-  and the full double-hierarchical endpoint remain roadmap work for later
-  releases.
+  random-intercept covariance slice is now implemented. Ordinary univariate
+  Gaussian residual-scale random-slope covariance and the univariate labelled
+  `mu`/`sigma` one-slope double-hierarchical block are implemented, while
+  bivariate random slopes, structured covariance, and bivariate or structured
+  double-hierarchical endpoints remain roadmap work for later releases.
 - Completed before bumping the version:
   - `devtools::check()` passes with 0 errors, 0 warnings, and 0 notes;
   - `devtools::test()` and `pkgdown::check_pkgdown()` pass;
@@ -42,8 +43,8 @@ distributional regression models using TMB.
 - Status: initial MVP implemented.
 - `bf()` and `drmTMB()` support Gaussian location-scale models with fixed
   effects, `mu` random intercepts, simple numeric `mu` random slopes, and
-  residual-scale random intercepts in `sigma`.
-- Supported syntax: `bf(y ~ x1 + (1 | id) + (0 + x1 | id), sigma ~ x1)`.
+  residual-scale random intercepts and slopes in `sigma`.
+- Supported syntax: `bf(y ~ x1 + (1 | id) + (0 + x1 | id), sigma ~ x1 + (1 + x1 | id))`.
 - Keep parser support for `sd(group) ~`, `meta_known_V(V = V)`, `phylo()`,
   and `spatial()` terms from the start.
 - Prediction for `mu` and `sigma` is implemented.
@@ -113,22 +114,31 @@ distributional regression models using TMB.
   covariance block. The two group-level SDs are reported in `sdpars$mu`, the
   group-level `mu1`/`mu2` correlation is reported in `corpars$mu` and
   `corpairs()`, and residual `rho12` remains separate.
-- Bivariate random slopes, random effects in `sigma1`/`sigma2` or `rho12`,
-  bivariate `meta_known_V()` plus random effects, and structured bivariate
-  covariance remain future work and are rejected before optimization.
+- Matching labelled random intercepts in `sigma1` and `sigma2`, such as
+  `(1 | q | id)` in both scale formulas, now fit one group-level scale-scale
+  covariance block. The two scale random-intercept SDs are reported in
+  `sdpars$sigma`, and the `sigma1`/`sigma2` group-level correlation is reported
+  in `corpars$sigma` and `corpairs()`.
+- Bivariate random slopes, random effects in `rho12`, bivariate
+  `meta_known_V()` plus random effects, and structured bivariate covariance
+  remain future work and are rejected before optimization.
 
 ## Phase 4: Mixed and Double-Hierarchical Models
 
 - Status: random intercepts, independent numeric random slopes written as
   `(0 + x | id)`, and ordinary correlated intercept-slope blocks written as
   `(1 + x | id)` or `(1 + x | p | id)` are implemented for the univariate
-  Gaussian location formula. Random intercepts in the residual `sigma` formula
-  are also implemented. Random-effect scale formulae are implemented for one or
-  more distinct unlabelled Gaussian `mu` random intercepts, such as
-  `sd(id) ~ x_group` and `sd(site) ~ site_type`. The bivariate Gaussian path
-  now fits matched labelled `mu1`/`mu2` random intercept covariance blocks.
-- Add cross-formula or cross-parameter covariance sharing for labelled blocks,
-  following `docs/design/17-correlated-random-effect-blocks.md`.
+  Gaussian location formula. Random intercepts, independent numeric slopes,
+  and ordinary intercept-slope covariance blocks are implemented for the
+  univariate Gaussian residual `sigma` formula. Matching labelled univariate
+  `mu` and `sigma` random intercepts or one-slope blocks are implemented as one
+  group-level covariance block. Random-effect scale formulae are implemented
+  for one or more distinct unlabelled Gaussian `mu` random
+  intercepts, such as `sd(id) ~ x_group` and `sd(site) ~ site_type`. The
+  bivariate Gaussian path now fits matched labelled `mu1`/`mu2` random intercept
+  covariance blocks.
+- Extend bivariate cross-formula or cross-parameter covariance sharing after
+  the univariate one-slope block stays green.
 - Use `docs/design/18-random-effect-scale-models.md` as the design contract:
   the implemented MVP targets one or more distinct unlabelled univariate
   Gaussian `mu` random intercepts, with group-level predictors, simulation
@@ -165,8 +175,10 @@ distributional regression models using TMB.
   level, group, block, distributional parameters, responses, and coefficients.
 - The first `corpairs()` extractor is implemented for currently fitted
   correlations only: residual `rho12`, ordinary group-level `mu` random-effect
-  correlations, and the bivariate `mu1`/`mu2` random-intercept correlation.
-  Extend this table as new correlation likelihoods are added.
+  correlations, ordinary group-level `sigma` random-effect correlations, the
+  univariate labelled `mu`/`sigma` double-hierarchical covariance block, and
+  the bivariate `mu1`/`mu2` random-intercept correlation. Extend this table as
+  new correlation likelihoods are added.
 - Stage structured phylogenetic and spatial slopes conservatively:
   intercept-only structured effects first, then one `mu` slope, then only small
   slope sets or interaction slopes after simulation recovery.
@@ -347,32 +359,41 @@ remain blocked by future covariance or non-Gaussian random-effect work.
 - Status: first slice implemented.
 - Matching labelled random intercepts in bivariate `mu1` and `mu2` are
   implemented after the fixed-effect bivariate Gaussian location-coscale model
-  stabilized. Random slopes, residual-scale bivariate random effects, and
-  structured covariance remain planned.
+  stabilized. Matching labelled random intercepts in bivariate `sigma1` and
+  `sigma2` are also implemented. Matching intercept-only phylogenetic terms in
+  bivariate `mu1` and `mu2` are implemented as the first structured covariance
+  slice. Random slopes, `rho12` random effects, phylogenetic scale effects, and
+  spatial covariance remain planned.
 - Use labelled group-level covariance blocks so residual `rho12`, ordinary
   group-level correlations, phylogenetic correlations, spatial field
   correlations, and mean-scale correlations stay in separate namespaces.
-- Keep the first individual-difference covariance target focused on ordinary
-  grouped personality and plasticity terms before adding structured
-  phylogenetic or non-phylogenetic species correlation layers.
+- Keep individual-difference covariance targets focused on one layer at a time:
+  ordinary grouped personality and plasticity terms, bivariate phylogenetic
+  mean covariance, non-phylogenetic species covariance, and later scale or
+  spatial layers should each have their own tests and `corpairs()` rows.
 - Extend `corpairs()` before adding complex covariance blocks, so users can see
   the level, group, block, responses, distributional parameters, coefficients,
   estimates, and uncertainty source.
-- Start with small ordinary grouped models before adding phylogenetic or spatial
-  bivariate covariance structures.
+- Keep spatial bivariate covariance structures planned until the univariate
+  spatial path exists and has recovery evidence.
 - Use `docs/design/28-double-hierarchical-endpoint.md` as the endpoint map for
   full individual-difference location-scale covariance models. Use
   `docs/design/29-mammal-location-coscale-route.md` as the concrete mammal
   body mass-litter size route for the phylogenetic bivariate covariance
-  endpoint. The first
-  double-hierarchical slices should add one covariance block at a time, with
-  `corpairs()` output and simulation recovery before the next block is added.
+  endpoint. The first univariate one-slope block is implemented; the next
+  double-hierarchical slices should still add one covariance block at a time,
+  with `corpairs()` output and simulation recovery before the next block is
+  added.
 
 ## Phase 12: Phylogenetic Location-Scale Extensions
 
-- Status: planned.
-- Extend the implemented `phylo(1 | species, tree = tree)` Gaussian `mu` path to
-  one structured `mu` slope, then only later to small structured slope sets.
+- Status: first bivariate location slice implemented.
+- The implemented structured paths are intercept-only `phylo()` terms in a
+  univariate Gaussian `mu` formula, and matching intercept-only `phylo()` terms
+  in bivariate Gaussian `mu1` and `mu2` formulas.
+- Extend the implemented `phylo(1 | species, tree = tree)` Gaussian location
+  path to one structured `mu` slope only after the intercept-only univariate and
+  bivariate paths stay stable under simulation and comparator tests.
 - Add phylogenetic terms in `sigma` only after the location path has larger
   simulation evidence and clear identifiability diagnostics.
 - Keep phylogenetic location-scale-shape models as a research target, not an
@@ -380,10 +401,11 @@ remain blocked by future covariance or non-Gaussian random-effect work.
 - Add long optional simulations for many species, near-zero phylogenetic SD,
   high residual noise, and combined phylogenetic plus non-phylogenetic species
   effects.
-- For future two-response or two-trait structured models, estimate and report
+- For two-response or two-trait structured models, estimate and report
   phylogenetic correlation, non-phylogenetic species correlation, and residual
-  `rho12` as separate layers. Residual `rho12` is not a substitute for
-  phylogenetic or species-level covariance.
+  `rho12` as separate layers. The first phylogenetic mean-mean layer is
+  implemented; residual `rho12` is not a substitute for phylogenetic or
+  species-level covariance.
 
 ## Phase 13: Double-Hierarchical Derived Inference
 

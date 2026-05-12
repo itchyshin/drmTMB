@@ -45,10 +45,10 @@ balanced_ultrametric_tree <- function(n_tip = 16L) {
 ```
 
 Phylogenetic and spatial dependence are structured random effects. The first
-implemented path in `drmTMB` is an intercept-only phylogenetic effect in the
-univariate Gaussian location formula. Spatial fields, phylogenetic slopes,
-phylogenetic scale terms, and bivariate structured covariance blocks remain
-planned extensions.
+implemented paths in `drmTMB` are intercept-only phylogenetic effects in a
+univariate Gaussian location formula and matching bivariate Gaussian `mu1` and
+`mu2` location formulas. Spatial fields, phylogenetic slopes, phylogenetic scale
+terms, and structured effects in `rho12` remain planned extensions.
 
 The scientific question for the implemented path is simple:
 
@@ -208,11 +208,12 @@ If a phylogenetic fit fails before optimization, check these points first:
   data and tree;
 - the tree has finite positive branch lengths and is ultrametric;
 - the model uses the implemented syntax
-  `phylo(1 | species, tree = tree)` in a univariate Gaussian `mu` formula.
+  `phylo(1 | species, tree = tree)` in a univariate Gaussian `mu` formula, or
+  matching `phylo()` terms in bivariate Gaussian `mu1` and `mu2` formulas.
 
-Phylogenetic slopes, phylogenetic terms in `sigma`, and bivariate phylogenetic
-covariance blocks are planned. They should error clearly rather than silently
-fitting a different model.
+Phylogenetic slopes, phylogenetic terms in `sigma`, and structured effects in
+`rho12` are planned. They should error clearly rather than silently fitting a
+different model.
 
 ## Planned, not implemented: spatial random intercepts
 
@@ -243,7 +244,7 @@ the spatial surface.
 The spatial term is deliberately parallel to the phylogenetic term:
 
 ```r
-phylo(1 | species, tree = tree)     # implemented for univariate Gaussian mu
+phylo(1 | species, tree = tree)     # implemented for Gaussian mu and bivariate mu1/mu2
 spatial(1 | site, coords = coords)  # planned
 spatial(1 | site, mesh = mesh)      # planned
 ```
@@ -270,11 +271,22 @@ models are identifiable.
 In meta-analysis, the separation among known sampling covariance,
 phylogenetic dependence, and spatial dependence is especially transparent:
 
-```text
-e ~ MVN(0, V)                         # known sampling covariance
-p_species ~ MVN(0, sigma_phylo^2 A)   # phylogenetic structure
-l_location ~ MVN(0, sigma_space^2 M)  # spatial structure
-```
+\[
+e \sim \operatorname{MVN}(0, V)
+\]
+
+\[
+p_{\mathrm{species}} \sim
+\operatorname{MVN}(0, \sigma_{\mathrm{phylo}}^2 A)
+\]
+
+\[
+\ell_{\mathrm{location}} \sim
+\operatorname{MVN}(0, \sigma_{\mathrm{space}}^2 M)
+\]
+
+Here `e` is known sampling covariance, `p_species` is phylogenetic structure,
+and `l_location` is planned spatial structure.
 
 The known matrix `V` handles sampling uncertainty. The phylogenetic and spatial
 terms add extra biological or environmental dependence after that known
@@ -284,11 +296,12 @@ meta-analyses readable.
 
 The first phylogenetic target is the location-scale model: trait means are the
 first implemented target, and residual SDs are a planned target once the
-location path has enough simulation and comparator coverage. In future
-bivariate models this could allow several structured correlations, including
-mean-mean, scale-scale, and mean-scale phylogenetic correlations.
+location path has enough simulation and comparator coverage. The first
+bivariate structured target is now the mean-mean phylogenetic correlation
+between `mu1` and `mu2`; scale-scale and mean-scale phylogenetic correlations
+remain planned.
 
-Planned bivariate phylogenetic location-coscale syntax looks like this:
+Implemented bivariate phylogenetic location-coscale syntax looks like this:
 
 ```r
 drmTMB(
@@ -304,16 +317,43 @@ drmTMB(
 )
 ```
 
-This syntax is planned, not implemented. It captures the intended extension of
-phylogenetic location-scale models: after modelling mean and variance, test
-whether the residual association between two traits changes with ecological
-predictors such as lifestyle.
+This model estimates two phylogenetic location SDs in `sdpars$mu`, a
+phylogenetic mean-mean correlation in `corpars$phylo`, and a separate residual
+within-observation correlation through `rho12`. It does not yet fit
+phylogenetic effects in `sigma1`, `sigma2`, or `rho12`, and it does not fit
+lifestyle-specific phylogenetic covariance matrices.
+
+Run `check_drm()` before interpreting the phylogenetic correlation. For
+bivariate phylogenetic fits it reports whether observed species are replicated
+and whether either phylogenetic location SD is tiny relative to the matching
+residual scale. A note there means the mean-mean phylogenetic correlation may
+be weakly identified in the fitted data.
+
+If the scientific question is a non-phylogenetic species covariance, use the
+ordinary labelled group-level block instead:
+
+```r
+drmTMB(
+  formula = drm_formula(
+    mu1 = log_body_mass ~ lifestyle + (1 | species_block | species),
+    mu2 = log_litter_size ~ lifestyle + (1 | species_block | species),
+    sigma1 = ~ lifestyle,
+    sigma2 = ~ lifestyle,
+    rho12 = ~ lifestyle
+  ),
+  family = c(gaussian(), gaussian()),
+  data = mammals
+)
+```
+
+That model reports a species-level group correlation through `corpars$mu` and
+`corpairs(level = "group")`; it does not use the tree-derived phylogenetic
+correlation matrix.
 
 The residual `rho12` term remains distinct from the phylogenetic or spatial
 correlation matrices. `rho12` is the residual coupling between two responses at
 the observation level; `A` and `M` describe dependence among species or places.
-In future bivariate structured models, `drmTMB` should also estimate
-level-specific correlations such as phylogenetic mean-mean correlations,
-non-phylogenetic species correlations, spatial field correlations, and
+Future bivariate structured slices should add more level-specific correlations
+such as non-phylogenetic species correlations, spatial field correlations, and
 mean-scale correlations. These are not residual `rho12`; they should be
 reported as structured or group-level covariance summaries.

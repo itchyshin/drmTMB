@@ -39,6 +39,26 @@ Each major tutorial should include:
 - Phylogenetic location effects: ultrametric tree input, sparse A-inverse route,
   and the distinction between residual and structured correlations.
 
+## Article Architecture
+
+Keep the main tutorials organized by model question rather than by every
+implementation milestone. A first-time user should be able to choose among
+one-response Gaussian scale models, scale-audit questions, response-family
+choice, bivariate residual coupling, meta-analysis, structured dependence, and
+post-fit workflow without reading the whole site.
+
+Biological case-study articles should split away from model-class tutorials
+when the example needs its own data preparation, domain figures, or sequence of
+models. Until then, biological examples can live inside the relevant model
+tutorial, but the article should still begin with the scientific question and
+then show the LaTeX model, matching R syntax, fitted output, interpretation,
+diagnostics, and current limitation.
+
+`phylogenetic-spatial` can remain one article while only the phylogenetic path
+is implemented and spatial syntax is a planned boundary. Split it only when
+spatial models have implementation, recovery tests, reader-facing examples,
+and pkgdown reference coverage.
+
 ## Style Lessons From Existing Tutorials
 
 The location-scale meta-analysis, phylogenetic location-scale, ecology

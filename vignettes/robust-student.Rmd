@@ -26,12 +26,15 @@ This article introduces the first implemented robust continuous family in
 
 The Student-t model has three distributional parameters:
 
-```text
-growth_i | mu_i, sigma_i, nu_i ~ Student-t(mu_i, sigma_i, nu_i)
-mu_i = beta_0 + beta_1 dry_i
-log(sigma_i) = gamma_0 + gamma_1 dry_i
-nu_i = 2 + exp(delta_0)
-```
+\[
+\begin{aligned}
+\operatorname{growth}_i \mid \mu_i, \sigma_i, \nu_i
+  &\sim t_{\nu_i}(\mu_i, \sigma_i), \\
+\mu_i &= \beta_0 + \beta_1 \operatorname{dry}_i, \\
+\log(\sigma_i) &= \gamma_0 + \gamma_1 \operatorname{dry}_i, \\
+\nu_i &= 2 + \exp(\delta_0) .
+\end{aligned}
+\]
 
 The matching `drmTMB` syntax is:
 
@@ -49,9 +52,9 @@ deviation is `sigma * sqrt(nu / (nu - 2))`, so `sigma` should not be read as
 the exact residual SD unless `nu` is large. Smaller `nu` means heavier tails.
 Large `nu` means the Student-t likelihood is close to Gaussian. In `drmTMB`,
 
-```text
-nu_i = 2 + exp(eta_nu_i)
-```
+\[
+\nu_i = 2 + \exp(\eta_{\nu,i})
+\]
 
 so fitted `nu` values stay above 2. This keeps the fitted Student-t
 distribution in the finite-variance region.

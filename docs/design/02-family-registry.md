@@ -89,12 +89,14 @@ drm_family(
 This is implemented for fixed-effect models, univariate Gaussian `mu` random
 intercepts, independent numeric `mu` random slopes, one-slope correlated `mu`
 random intercept-slope blocks with optional covariance-block labels,
-univariate Gaussian residual-scale random intercepts in `sigma`, and optional
-known sampling covariance through `meta_known_V(V = V)`. Random-effect scale
-formulae such as `sd(id) ~ x_group` and `sd(site) ~ site_type` are implemented
-for distinct unlabelled Gaussian `mu` random intercepts. Sparse known
-covariance, residual-scale random slopes, slope-specific or labelled
-random-effect scale formulae, and additional families are later phases.
+univariate Gaussian residual-scale random intercepts, random slopes, and
+ordinary residual-scale intercept-slope covariance blocks in `sigma`, and
+optional known sampling covariance through `meta_known_V(V = V)`.
+Random-effect scale formulae such as `sd(id) ~ x_group` and
+`sd(site) ~ site_type` are implemented for distinct unlabelled Gaussian `mu`
+random intercepts. Sparse known covariance, labelled residual-scale random
+slopes, slope-specific or labelled random-effect scale formulae, and
+additional families are later phases.
 
 ## Implemented: Student-t Location-Scale-Shape
 

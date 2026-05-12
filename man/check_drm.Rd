@@ -51,7 +51,10 @@ fixed-effect design size, random-effect replication, and random-slope design
 variation. If a bivariate Gaussian fit includes a matched labelled \code{mu1}/\code{mu2}
 random-intercept covariance block, \code{check_drm()} also reports group
 replication and whether either group-level SD is tiny relative to the
-matching residual scale. If the fit was stored with
+matching residual scale. If it includes matching bivariate phylogenetic
+\code{mu1}/\code{mu2} terms, \code{check_drm()} reports observed species replication and
+whether either phylogenetic location SD is tiny relative to the matching
+residual scale. If the fit was stored with
 \code{drm_control(keep_tmb_object = FALSE)}, the fixed-gradient check is reported
 as a note because the TMB automatic-differentiation object is not available.
 
