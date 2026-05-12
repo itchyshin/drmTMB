@@ -80,6 +80,61 @@ test_that("summary() reports residual rho12 on the response scale", {
   expect_equal(smry$parameters["rho12", "estimate"], unique(rho12(fit)))
 })
 
+test_that("summary() separates bivariate group covariance from residual rho12", {
+  set.seed(20260516)
+  n_id <- 16
+  n_each <- 5
+  id <- factor(rep(seq_len(n_id), each = n_each))
+  n <- length(id)
+  x <- stats::rnorm(n)
+  z1 <- stats::rnorm(n_id)
+  z2 <- stats::rnorm(n_id)
+  rho_group <- 0.35
+  b1 <- 0.45 * z1
+  b2 <- 0.50 * (rho_group * z1 + sqrt(1 - rho_group^2) * z2)
+  e1 <- stats::rnorm(n)
+  e2 <- 0.20 * e1 + sqrt(1 - 0.20^2) * stats::rnorm(n)
+  dat <- data.frame(id = id, x = x)
+  dat$y1 <- 0.2 + 0.45 * x + b1[id] + 0.35 * e1
+  dat$y2 <- -0.1 - 0.30 * x + b2[id] + 0.45 * e2
+
+  fit <- drmTMB(
+    bf(
+      mu1 = y1 ~ x + (1 | p | id),
+      mu2 = y2 ~ x + (1 | p | id),
+      sigma1 = ~1,
+      sigma2 = ~1,
+      rho12 = ~1
+    ),
+    family = biv_gaussian(),
+    data = dat
+  )
+  smry <- summary(fit)
+
+  sd_mu1 <- "sd:mu:mu1:(1 | p | id)"
+  sd_mu2 <- "sd:mu:mu2:(1 | p | id)"
+  cor_mu <- "cor:mu:cor(mu1:(Intercept),mu2:(Intercept) | p | id)"
+  expect_true(all(
+    c(sd_mu1, sd_mu2, cor_mu, "rho12") %in% rownames(smry$parameters)
+  ))
+  expect_equal(smry$parameters[sd_mu1, "component"], "random-effect-sd")
+  expect_equal(smry$parameters[sd_mu2, "component"], "random-effect-sd")
+  expect_equal(
+    smry$parameters[cor_mu, "component"],
+    "random-effect-correlation"
+  )
+  expect_equal(smry$parameters["rho12", "component"], "residual-correlation")
+  expect_equal(smry$parameters[sd_mu1, "estimate"], unname(fit$sdpars$mu[[1L]]))
+  expect_equal(smry$parameters[sd_mu2, "estimate"], unname(fit$sdpars$mu[[2L]]))
+  expect_equal(
+    smry$parameters[cor_mu, "estimate"],
+    unname(fit$corpars$mu[[1L]])
+  )
+  expect_equal(smry$parameters["rho12", "estimate"], unique(rho12(fit)))
+  expect_equal(smry$parameters[cor_mu, "term"], names(fit$corpars$mu)[[1L]])
+  expect_false(grepl("rho12", smry$parameters[cor_mu, "term"], fixed = TRUE))
+})
+
 test_that("summary() reports fitted shape ranges", {
   set.seed(20260515)
   n <- 90
