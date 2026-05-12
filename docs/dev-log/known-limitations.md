@@ -7,6 +7,9 @@
   implemented as `(1 + x | id)` or `(1 + x | p | id)`.
 - Residual-scale random intercepts are implemented in the `sigma` formula as
   `sigma ~ x + (1 | id)`.
+- The first univariate Gaussian cross-formula covariance block is implemented
+  for matching labelled `mu` and `sigma` random intercepts, such as
+  `y ~ x + (1 | p | id)` with `sigma ~ z + (1 | p | id)`.
 - Random-effect scale formulae are implemented for one or more distinct
   unlabelled Gaussian `mu` random intercepts, such as `sd(id) ~ x_group` and
   `sd(site) ~ site_type`; predictors must be constant within the named grouping
@@ -23,14 +26,17 @@
   group-level covariance parameter.
 - `corpairs()` currently reports only correlations that are already fitted:
   residual bivariate `rho12` summaries and ordinary univariate Gaussian `mu`
-  random-effect correlations, plus the implemented bivariate `mu1`/`mu2`
+  random-effect correlations, plus the implemented univariate `mu`/`sigma`
+  mean-scale random-intercept correlation and bivariate `mu1`/`mu2`
   random-intercept correlation. It does not yet report phylogenetic, spatial,
-  study-level, or cross-parameter correlation pairs.
+  or study-level correlation pairs.
 - `summary()`, `predict_parameters()`, and `marginal_parameters()` expose
-  fitted response-scale parameter summaries for interpretation, but the first
-  marginal helper computes unweighted plug-in means only. It does not yet
-  compute uncertainty, standard errors, contrasts, plots, or full
-  `emmeans`-style marginalisation.
+  fitted response-scale parameter summaries for interpretation. `summary()` can
+  attach opt-in Wald intervals and direct profile intervals for profile-ready
+  rows, including the first `mu`/`sigma` and bivariate `mu1`/`mu2`
+  random-intercept correlations. The first marginal helper computes unweighted
+  plug-in means only; it does not yet compute uncertainty, standard errors,
+  contrasts, plots, or full `emmeans`-style marginalisation.
 - Fixed-effect univariate lognormal location-scale models are implemented for
   positive finite responses. `mu` and `sigma` are on the log-response scale;
   random effects, known sampling covariance, phylogenetic terms, and bivariate
@@ -90,7 +96,8 @@
 - The TMB template currently supports fixed effects, univariate Gaussian `mu`
   random intercepts, numeric random-slope terms, ordinary correlated
   intercept-slope blocks with optional covariance-block labels, and univariate
-  Gaussian residual-scale random intercepts in `sigma`, intercept-only
+  Gaussian residual-scale random intercepts in `sigma`, the first labelled
+  univariate `mu`/`sigma` random-intercept covariance block, intercept-only
   phylogenetic location effects, plus one or more unlabelled Gaussian `mu`
   random-intercept scale formulae through `sd(group) ~ x_group`, matched
   labelled bivariate Gaussian `mu1`/`mu2` random-intercept covariance blocks,
@@ -104,7 +111,8 @@
   positive counts, a hurdle NB2 path through `hu ~ predictors`, a
   fixed-effect univariate cumulative-logit ordinal path, and a fixed-effect
   univariate beta-binomial path.
-- Cross-formula labelled covariance sharing, residual-scale random slopes,
+- Cross-formula labelled covariance sharing beyond the first univariate
+  intercept-only `mu`/`sigma` block, residual-scale random slopes,
   slope-specific random-effect scale targets, labelled-block random-effect
   scale targets, bivariate random-effect scale targets, Student-t random
   effects, Student-t known-covariance models, Student-t phylogenetic models,

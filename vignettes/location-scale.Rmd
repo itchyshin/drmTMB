@@ -331,8 +331,10 @@ drmTMB(
 )
 ```
 
-Here `p` is retained as a group-level covariance-block label. It does not yet
-share covariance across `mu`, `sigma`, `mu1`, or `mu2` formulas.
+Here `p` is retained as a group-level covariance-block label. Matching
+intercept-only `mu` and `sigma` terms can now use the same label for the first
+mean-scale covariance block; larger cross-formula and bivariate blocks remain
+future work.
 
 This is where ordinary language can become slippery: the model may contain
 several scale quantities, but only one of them is the residual `sigma`. The

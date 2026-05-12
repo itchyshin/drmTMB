@@ -17,11 +17,11 @@ it does not yet fit the complete double-hierarchical covariance model.
 | Residual-scale random intercepts | Implemented | `sigma ~ x + (1 | id)` |
 | Random-effect scale models for `mu` intercept SDs | Implemented | `sd(id) ~ x_group` |
 | Bivariate Gaussian residual coscale | Implemented | `rho12 ~ x` |
-| `corpairs()` for fitted correlations | Partly implemented | residual `rho12`, ordinary `mu` intercept-slope correlations |
-| Cross-formula covariance blocks | Planned | shared labelled blocks across `mu` and `sigma` |
+| `corpairs()` for fitted correlations | Partly implemented | residual `rho12`, ordinary `mu` intercept-slope correlations, first `mu`/`sigma` mean-scale row |
+| Cross-formula covariance blocks | Implemented first slice | matching labelled univariate `(1 | p | id)` terms across `mu` and `sigma` |
 | Bivariate `mu1`/`mu2` random-intercept covariance blocks | Implemented first slice | matching labelled `(1 | p | id)` terms in both location formulas |
 | Bivariate random-slope, residual-scale, and cross-parameter covariance blocks | Planned | shared labelled blocks across `mu1`, `mu2`, `sigma1`, and `sigma2` |
-| Profile-likelihood intervals for covariance summaries | Planned | see `docs/design/12-profile-likelihood-cis.md` |
+| Profile-likelihood intervals for covariance summaries | Partly implemented | direct profile intervals for first `mu`/`sigma` and bivariate `mu1`/`mu2` covariance rows; derived summaries planned |
 
 ## Target Model
 
@@ -92,9 +92,11 @@ table that says what each correlation means:
 
 The table returned by `corpairs()` should always keep `level`, `group`, `block`,
 `from_dpar`, `to_dpar`, `from_coef`, `to_coef`, `from_response`,
-`to_response`, `class`, `estimate`, and `link_estimate` separate. A future
-confidence-interval column can then attach uncertainty without changing the
-meaning of the row.
+`to_response`, `class`, `estimate`, and `link_estimate` separate. Direct
+profile intervals already work for the first fitted `mu`/`sigma` and
+`mu1`/`mu2` covariance parameters through the `profile_targets()` namespace, but
+future `corpairs()` interval columns should keep the same row meaning and mark
+derived intervals separately.
 
 ## Implementation Order
 
@@ -102,6 +104,7 @@ meaning of the row.
    `mu` covariance blocks green in CI.
 2. Add the first cross-formula univariate block:
    `bf(y ~ x + (1 | p | id), sigma ~ x + (1 | p | id))`.
+   Done for matching labelled random intercepts.
 3. Add the univariate four-effect block:
    `bf(y ~ x + (1 + x | p | id), sigma ~ x + (1 + x | p | id))`.
 4. Extend `corpairs()` to report each fitted group-level pair from the shared
@@ -149,11 +152,11 @@ observation after those higher-level effects have been accounted for.
 
 ## Reporting And Inference
 
-Point estimates should land before profile-likelihood intervals. Once a
-correlation or variance component is fitted and named consistently, Phase 6 can
-profile direct internal parameters, and Phase 13 can add derived intervals for
-quantities such as repeatability, total variance, and correlation-pair
-summaries.
+Point estimates should land before profile-likelihood intervals. For the first
+implemented `mu`/`sigma` and bivariate `mu1`/`mu2` random-intercept covariance
+rows, Phase 6 can now profile the direct internal correlation parameters.
+Phase 13 is still the place for derived intervals for quantities such as
+repeatability, total variance, and correlation-pair summaries.
 
 For variance-facing science summaries, keep the public model parameter as
 `sigma` and report `sigma^2` only as a derived quantity when the interpretation

@@ -27,6 +27,32 @@ check_drm_test_tree <- function() {
   )
 }
 
+check_drm_mu_sigma_cov_data <- function(
+  n_id = 28,
+  n_each = 6,
+  sd_mu_id = 0.55,
+  sd_sigma_id = 0.28,
+  rho_mu_sigma = 0.4,
+  seed = 2026051201
+) {
+  set.seed(seed)
+  n <- n_id * n_each
+  id <- factor(rep(seq_len(n_id), each = n_each))
+  x <- stats::rnorm(n)
+  z <- stats::rnorm(n)
+  u_mu <- stats::rnorm(n_id)
+  u_sigma <- rho_mu_sigma * u_mu + sqrt(1 - rho_mu_sigma^2) * stats::rnorm(n_id)
+  mu <- 0.2 + 0.45 * x + sd_mu_id * u_mu[id]
+  sigma <- exp(log(0.55) + 0.18 * z + sd_sigma_id * u_sigma[id])
+
+  data.frame(
+    y = stats::rnorm(n, mean = mu, sd = sigma),
+    x = x,
+    z = z,
+    id = id
+  )
+}
+
 test_that("check_drm() reports core diagnostics for Gaussian fits", {
   set.seed(20260508)
   dat <- data.frame(
@@ -313,6 +339,47 @@ test_that("check_drm() records phylogenetic replication notes", {
   expect_equal(phylo$status, "note")
   expect_match(phylo$value, "min_species_n=1")
   expect_true(attr(chk, "ok"))
+})
+
+test_that("check_drm() reports univariate mu/sigma covariance diagnostics", {
+  dat <- check_drm_mu_sigma_cov_data()
+  fit <- drmTMB(
+    bf(y ~ x + (1 | p | id), sigma ~ z + (1 | p | id)),
+    family = gaussian(),
+    data = dat,
+    control = list(eval.max = 250, iter.max = 250)
+  )
+  chk <- check_drm(fit)
+  group_cov <- chk[chk$check == "mu_sigma_random_effect_covariance", ]
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(group_cov$status, "ok")
+  expect_match(group_cov$value, "term=\\(1 \\| p \\| id\\)")
+  expect_match(group_cov$value, "n_groups=28")
+  expect_match(group_cov$value, "min_group_n=6")
+  expect_match(group_cov$message, "non-negligible")
+
+  singleton <- fit
+  singleton_rows <- which(singleton$model$random$sigma$index[, 1L] == 1L)[-1L]
+  singleton$model$random$sigma$index[singleton_rows, 1L] <- 2L
+  singleton_chk <- check_drm(singleton)
+  singleton_cov <- singleton_chk[
+    singleton_chk$check == "mu_sigma_random_effect_covariance",
+  ]
+
+  expect_equal(singleton_cov$status, "note")
+  expect_match(singleton_cov$value, "singleton_groups=1")
+  expect_match(singleton_cov$message, "fewer than two")
+  expect_true(attr(singleton_chk, "ok"))
+
+  weak_sd <- fit
+  weak_sd$sdpars$sigma[[1L]] <- 0.001
+  weak_chk <- check_drm(weak_sd)
+  weak_cov <- weak_chk[weak_chk$check == "mu_sigma_random_effect_covariance", ]
+
+  expect_equal(weak_cov$status, "note")
+  expect_match(weak_cov$message, "tiny")
+  expect_true(attr(weak_chk, "ok"))
 })
 
 test_that("check_drm() reports bivariate mu random-effect covariance diagnostics", {

@@ -62,7 +62,8 @@ Gaussian random intercepts, independent numeric random slopes,
 and labelled or unlabelled correlated numeric random intercept-slope blocks
 in the location formula,
 known sampling covariance through \code{meta_known_V(V = V)}, residual-scale
-random intercepts in the scale formula, and one or more group-level
+random intercepts in the scale formula, labelled \code{mu}/\code{sigma}
+random-intercept covariance blocks, and one or more group-level
 random-effect scale formulae such as \code{sd(id) ~ x_group}, plus
 intercept-only phylogenetic random effects in the univariate Gaussian
 location formula, fixed-effect bivariate Gaussian distributional models, and
