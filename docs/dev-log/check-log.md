@@ -2,6 +2,101 @@
 
 Record meaningful development checks here.
 
+## 2026-05-12 -- Bivariate sigma1/sigma2 random-intercept covariance
+
+Scope:
+
+- implemented the first bivariate residual-scale covariance slice for
+  matching labelled `(1 | p | id)` random intercepts in both `sigma1` and
+  `sigma2`;
+- wired the scale block through bivariate model specification, TMB data,
+  `eta_cor_sigma`, conditional random-effect prediction, `sdpars$sigma`,
+  `corpars$sigma`, `corpairs()`, `summary()`, `profile_targets()`, and
+  `check_drm()`;
+- kept the slice narrow: labelled intercepts only, no bivariate scale slopes,
+  no cross-parameter bivariate covariance block, no `rho12` random effects,
+  and no combination with bivariate `meta_known_V(V = V)`.
+
+Checks:
+
+- Initial recovered implementation produced `NA/NaN gradient evaluation`
+  because `random_names` included `u_sigma` while the bivariate TMB data block
+  still sent `n_sigma_re_terms = 0L`; fixed by sending the bivariate
+  `sigma1`/`sigma2` random-effect structure into `make_tmb_data()`.
+- `air format R/drmTMB.R R/methods.R R/check.R tests/testthat/test-biv-gaussian.R`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'biv-gaussian')"`:
+  passed with 182 expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript -e "devtools::test(filter = 'biv-gaussian|check-drm')"`:
+  passed with 282 expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript -e "devtools::document()"`: passed; regenerated
+  `man/check_drm.Rd`, `man/drmTMB.Rd`, `man/corpairs.Rd`, and
+  `man/predict.drmTMB.Rd`.
+- `Rscript -e "devtools::test(filter = 'biv-gaussian|check-drm|profile-targets|summary')"`:
+  passed with 556 expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with no problems found.
+- `git diff --check`: passed.
+- `rg -n 'sigma1`/`sigma2` random effects|Bivariate random slopes, `sigma1`|residual-scale bivariate random effects|bivariate random slopes and residual-scale random effects|random effects in `sigma1`, `sigma2`, or `rho12`|bivariate `mu1`/`mu2` random-intercept correlation' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes R man tests/testthat/test-biv-gaussian.R`:
+  reviewed current status wording; only the intentionally superseded
+  `docs/design/12-profile-likelihood-cis.md` line mentioning `mu1`/`mu2`
+  remains because the following line now adds `sigma1`/`sigma2`.
+- `rg -n 'rho12|sigma1|sigma2|sd\(' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes R tests/testthat/test-biv-gaussian.R | head -n 220`:
+  reviewed the high-density correlation and scale vocabulary touched by this
+  feature.
+- `rg -n 'meta_gaussian|tau ~|rho ~|meta_known_V\([^V]' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes R tests/testthat/test-biv-gaussian.R`:
+  reviewed scope-guard wording; hits were expected design/tutorial warnings,
+  not new grammar drift.
+- `rg -n 'biv_sigma_random_effect_covariance|eta_cor_sigma|corpars\$sigma|sdpars\$sigma|scale-scale' R src tests/testthat/test-biv-gaussian.R docs/design vignettes README.md ROADMAP.md NEWS.md`:
+  reviewed implementation, tests, and docs for the new scale-scale surface.
+- After PR #19 merged into `origin/main` as `98e9e31`, fast-forwarded this
+  branch over #19 and reapplied the current bivariate `sigma1`/`sigma2` patch;
+  resolved overlaps in `R/drmTMB.R`, `README.md`,
+  `docs/design/01-formula-grammar.md`, `docs/dev-log/known-limitations.md`,
+  and `vignettes/which-scale.Rmd` by keeping #19's independent univariate
+  `sigma` slope support and layering the new bivariate scale-scale intercept
+  slice beside it.
+- `air format R/drmTMB.R R/methods.R R/check.R tests/testthat/test-biv-gaussian.R`
+  after rebasing over PR #19: passed.
+- `Rscript -e "devtools::test(filter = 'biv-gaussian|gaussian-random-intercepts|check-drm|profile-targets|summary')"`
+  after rebasing over PR #19: passed with 781 expectations, 0 failures,
+  0 warnings, and 0 skips.
+- `Rscript -e "devtools::document()"` after rebasing over PR #19: passed.
+- `Rscript -e "pkgdown::check_pkgdown()"` after rebasing over PR #19: passed
+  with no problems found.
+- `git diff --check` after rebasing over PR #19: passed.
+- Updated the remaining generic parser message that said bivariate
+  random-effect syntax was planned, so it now names the implemented labelled
+  bivariate `mu1`/`mu2` and `sigma1`/`sigma2` intercept paths.
+- `rg -n "Bivariate random-effect syntax is planned|Use fixed-effect bivariate formulas|Future bivariate double-hierarchical" R tests README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes`:
+  no current non-historical hits.
+- `Rscript -e "devtools::test(filter = 'biv-gaussian')"` after the parser
+  message cleanup: passed with 186 expectations, 0 failures, 0 warnings, and
+  0 skips.
+- Added a source-map section to
+  `docs/design/20-coscale-correlation-pairs.md` connecting Martin's covariance
+  reaction norm paper to `drmTMB`'s separate `sigma` and `rho12` formula
+  surfaces, and connecting the EGA+GNM paper to the sister-package
+  `gllvmTMB` boundary.
+- The source-map note records the `gllvmTMB` algorithmic guardrail
+  `Sigma = Lambda Lambda' + S`: correlations should be computed from a
+  covariance matrix with a complete diagonal, while many-trait latent/unique
+  decomposition remains `gllvmTMB` scope rather than `drmTMB` scope.
+- `LC_ALL=C rg -n '[^\x00-\x7F]' docs/design/20-coscale-correlation-pairs.md`:
+  no matches after the source-map addition.
+- First full `Rscript -e "devtools::test()"` run failed in
+  `tests/testthat/test-phylo-utils.R` because the hand-built direct
+  `TMB::MakeADFun()` parameter list did not include the new global
+  `eta_cor_sigma` parameter stub. Added `eta_cor_sigma = 0` to the fixture.
+- `air format tests/testthat/test-phylo-utils.R`: passed.
+- `Rscript -e "devtools::test(filter = 'phylo-utils|biv-gaussian')"` after
+  fixing the direct TMB fixture: passed with 231 expectations, 0 failures,
+  0 warnings, and 0 skips.
+- `Rscript -e "devtools::test()"`: passed with 1965 expectations, 0 failures,
+  0 warnings, and 0 skips.
+- `Rscript -e "devtools::check()"`: passed with 0 errors, 0 warnings, and
+  1 note. The note was `checking for future file timestamps ... unable to
+  verify current time`.
+
 ## 2026-05-12 -- Mu/sigma sigma prediction contribution test
 
 Scope:

@@ -17,11 +17,12 @@ it does not yet fit the complete double-hierarchical covariance model.
 | Residual-scale random intercepts and independent slopes | Implemented | `sigma ~ x + (1 | id) + (0 + w | id)` |
 | Random-effect scale models for `mu` intercept SDs | Implemented | `sd(id) ~ x_group` |
 | Bivariate Gaussian residual coscale | Implemented | `rho12 ~ x` |
-| `corpairs()` for fitted correlations | Partly implemented | residual `rho12`, ordinary `mu` intercept-slope correlations, first `mu`/`sigma` mean-scale row |
+| `corpairs()` for fitted correlations | Partly implemented | residual `rho12`, ordinary `mu` intercept-slope correlations, first `mu`/`sigma` mean-scale row, and bivariate `mu1`/`mu2` and `sigma1`/`sigma2` intercept rows |
 | Cross-formula covariance blocks | Implemented first slice | matching labelled univariate `(1 | p | id)` terms across `mu` and `sigma` |
 | Bivariate `mu1`/`mu2` random-intercept covariance blocks | Implemented first slice | matching labelled `(1 | p | id)` terms in both location formulas |
-| Bivariate random-slope, residual-scale, and cross-parameter covariance blocks | Planned | shared labelled blocks across `mu1`, `mu2`, `sigma1`, and `sigma2` |
-| Profile-likelihood intervals for covariance summaries | Partly implemented | direct profile intervals for first `mu`/`sigma` and bivariate `mu1`/`mu2` covariance rows; derived summaries planned |
+| Bivariate `sigma1`/`sigma2` random-intercept covariance blocks | Implemented first slice | matching labelled `(1 | p | id)` terms in both scale formulas |
+| Bivariate random-slope and cross-parameter covariance blocks | Planned | richer shared labelled blocks across `mu1`, `mu2`, `sigma1`, and `sigma2` |
+| Profile-likelihood intervals for covariance summaries | Partly implemented | direct profile intervals for first `mu`/`sigma`, bivariate `mu1`/`mu2`, and bivariate `sigma1`/`sigma2` covariance rows; derived summaries planned |
 
 ## Target Model
 
@@ -93,10 +94,10 @@ table that says what each correlation means:
 The table returned by `corpairs()` should always keep `level`, `group`, `block`,
 `from_dpar`, `to_dpar`, `from_coef`, `to_coef`, `from_response`,
 `to_response`, `class`, `estimate`, and `link_estimate` separate. Direct
-profile intervals already work for the first fitted `mu`/`sigma` and
-`mu1`/`mu2` covariance parameters through the `profile_targets()` namespace, but
-future `corpairs()` interval columns should keep the same row meaning and mark
-derived intervals separately.
+profile intervals already work for the first fitted `mu`/`sigma`,
+`mu1`/`mu2`, and `sigma1`/`sigma2` covariance parameters through the
+`profile_targets()` namespace, but future `corpairs()` interval columns should
+keep the same row meaning and mark derived intervals separately.
 
 ## Implementation Order
 
@@ -113,6 +114,7 @@ derived intervals separately.
    Done for matching labelled random intercepts.
 6. Add bivariate `sigma1`/`sigma2` group-level blocks only after the univariate
    scale-block recovery tests are stable.
+   Done for matching labelled random intercepts.
 7. Combine bivariate group-level covariance blocks with residual `rho12 ~ x`.
 8. Add bivariate phylogenetic and non-phylogenetic species covariance blocks
    only after ordinary grouped models have recovery evidence and clear

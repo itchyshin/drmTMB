@@ -67,7 +67,7 @@ is the current routing contract:
 | TMB `model_type` | User-facing route | R builder | TMB branch purpose |
 |---:|---|---|---|
 | `1` | `family = gaussian()` | `drm_build_gaussian_ls_spec()` | Univariate Gaussian location-scale models, including ordinary `mu` random effects, residual-scale `sigma` random effects, `sd(group) ~ ...` random-effect scale models, `meta_known_V(V = V)`, and the implemented intercept-only `phylo()` location effect. |
-| `2` | `family = biv_gaussian()`, `family = c(gaussian(), gaussian())`, or `family = list(gaussian(), gaussian())` | `drm_build_biv_gaussian_spec()` | Bivariate Gaussian location-scale-coscale models with `mu1`, `mu2`, `sigma1`, `sigma2`, and residual `rho12`, including complete-row dense known sampling covariance and matching labelled `mu1`/`mu2` random-intercept covariance blocks. |
+| `2` | `family = biv_gaussian()`, `family = c(gaussian(), gaussian())`, or `family = list(gaussian(), gaussian())` | `drm_build_biv_gaussian_spec()` | Bivariate Gaussian location-scale-coscale models with `mu1`, `mu2`, `sigma1`, `sigma2`, and residual `rho12`, including complete-row dense known sampling covariance and matching labelled `mu1`/`mu2` and `sigma1`/`sigma2` random-intercept covariance blocks. |
 | `3` | `family = student()` | `drm_build_student_ls_spec()` | Univariate Student-t location-scale-shape models with `mu`, `sigma`, and `nu = 2 + exp(eta_nu)`. |
 | `4` | `family = lognormal()` | `drm_build_lognormal_ls_spec()` | Univariate fixed-effect lognormal location-scale models for positive responses, with `mu` and `sigma` defined on the log-response scale. |
 | `5` | `family = Gamma(link = "log")` | `drm_build_gamma_ls_spec()` | Univariate fixed-effect Gamma mean-CV models for positive responses, with `mu` as the response mean and `sigma` as the coefficient of variation. |
@@ -1139,11 +1139,11 @@ Implementation notes:
 - Dense known sampling covariance is implemented for complete-row bivariate
   Gaussian models through `meta_known_V(V = V)`, where `V` is a row-paired
   `2n` by `2n` matrix added to the fitted residual covariance.
-- Matching labelled random intercepts in `mu1` and `mu2` are implemented as one
-  group-level covariance block. They cannot yet be combined with
-  `meta_known_V(V = V)`.
-- Bivariate random slopes, `sigma1`/`sigma2` random effects, and
-  cross-parameter covariance blocks remain planned.
+- Matching labelled random intercepts in `mu1`/`mu2` and `sigma1`/`sigma2` are
+  implemented as same-parameter group-level covariance blocks. They cannot yet
+  be combined with `meta_known_V(V = V)`.
+- Bivariate random slopes, `rho12` random effects, and cross-parameter
+  covariance blocks remain planned.
 
 ## Review Requirements
 

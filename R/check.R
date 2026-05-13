@@ -18,9 +18,11 @@
 #' interpretation scale. If a bivariate Gaussian fit includes a matched
 #' labelled `mu1`/`mu2` random-intercept covariance block, `check_drm()` reports
 #' group replication and whether either group-level SD is tiny relative to the
-#' matching residual scale. If the fit was stored with
-#' `drm_control(keep_tmb_object = FALSE)`, the fixed-gradient check is reported
-#' as a note because the TMB automatic-differentiation object is not available.
+#' matching residual scale. For a matched labelled `sigma1`/`sigma2` block, it
+#' reports group replication and whether either log-`sigma` random-effect SD is
+#' tiny. If the fit was stored with `drm_control(keep_tmb_object = FALSE)`, the
+#' fixed-gradient check is reported as a note because the TMB
+#' automatic-differentiation object is not available.
 #'
 #' Use `check_drm()` before interpreting coefficients, fitted values, or
 #' response-scale quantities. A `note` records something to inspect, such as
@@ -92,6 +94,7 @@ check_drm.drmTMB <- function(
     check_random_effect_design(object, "sigma"),
     check_mu_sigma_random_effect_covariance(object),
     check_biv_mu_random_effect_covariance(object),
+    check_biv_sigma_random_effect_covariance(object),
     check_phylo_replication(object)
   )
   rows <- Filter(Negate(is.null), rows)
@@ -931,6 +934,73 @@ bivariate_mu_re_diagnostic_message <- function(weak_replication, weak_sd) {
     ))
   }
   "Bivariate group-level covariance has replicated groups and non-negligible fitted SDs relative to residual scales."
+}
+
+check_biv_sigma_random_effect_covariance <- function(object) {
+  if (!identical(object$model$model_type, "biv_gaussian")) {
+    return(NULL)
+  }
+  re <- object$model$random$sigma
+  if (is.null(re) || re$n_re == 0L || re$n_terms == 0L) {
+    return(NULL)
+  }
+  if (!setequal(re$dpars, c("sigma1", "sigma2"))) {
+    return(NULL)
+  }
+
+  n_group <- as.integer(re$n_re / re$n_terms)
+  group_counts <- tabulate(re$index[, 1L], nbins = n_group)
+  min_count <- min(group_counts)
+  singleton_groups <- sum(group_counts < 2L)
+  sdpars <- object$sdpars$sigma
+  sd_values <- unname(sdpars[match(re$labels, names(sdpars))])
+  finite_sd_values <- sd_values[is.finite(sd_values)]
+  min_sd <- if (length(finite_sd_values) > 0L) {
+    min(finite_sd_values)
+  } else {
+    NA_real_
+  }
+  weak_sd <- any(finite_sd_values < 0.05)
+  weak_replication <- min_count < 2L
+
+  check_row(
+    "biv_sigma_random_effect_covariance",
+    if (weak_replication || weak_sd) "note" else "ok",
+    paste0(
+      "n_groups=",
+      n_group,
+      "; min_group_n=",
+      min_count,
+      "; singleton_groups=",
+      singleton_groups,
+      "; min_log_sigma_sd=",
+      format_check_number(min_sd)
+    ),
+    bivariate_sigma_re_diagnostic_message(weak_replication, weak_sd)
+  )
+}
+
+bivariate_sigma_re_diagnostic_message <- function(weak_replication, weak_sd) {
+  if (weak_replication && weak_sd) {
+    return(paste(
+      "At least one group has fewer than two fitted observations and at least",
+      "one residual-scale random-effect SD is tiny; interpret the bivariate",
+      "scale-scale group-level correlation cautiously."
+    ))
+  }
+  if (weak_replication) {
+    return(paste(
+      "At least one group has fewer than two fitted observations;",
+      "interpret the bivariate scale-scale group-level correlation cautiously."
+    ))
+  }
+  if (weak_sd) {
+    return(paste(
+      "At least one residual-scale random-effect SD is tiny;",
+      "the bivariate scale-scale group-level correlation may be weakly identified."
+    ))
+  }
+  "Bivariate scale-scale covariance has replicated groups and non-negligible log-scale SDs."
 }
 
 random_effect_label_is_intercept <- function(label) {

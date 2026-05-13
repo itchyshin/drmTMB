@@ -140,6 +140,49 @@ new_biv_gaussian_mu_re_data <- function(
   )
 }
 
+new_biv_gaussian_sigma_re_data <- function(
+  n_id = 48,
+  n_each = 8,
+  rho_scale = 0.45,
+  residual_rho = 0.20,
+  seed = 2026051201
+) {
+  set.seed(seed)
+  id <- factor(rep(seq_len(n_id), each = n_each))
+  n <- length(id)
+  x <- stats::rnorm(n)
+  z1 <- stats::rnorm(n_id)
+  z2 <- stats::rnorm(n_id)
+  beta_mu1 <- c(0.2, 0.45)
+  beta_mu2 <- c(-0.1, -0.35)
+  beta_sigma1 <- log(0.38)
+  beta_sigma2 <- log(0.52)
+  sd_sigma1 <- 0.28
+  sd_sigma2 <- 0.34
+
+  b1 <- sd_sigma1 * z1
+  b2 <- sd_sigma2 * (rho_scale * z1 + sqrt(1 - rho_scale^2) * z2)
+  e1 <- stats::rnorm(n)
+  e2 <- residual_rho * e1 + sqrt(1 - residual_rho^2) * stats::rnorm(n)
+
+  dat <- data.frame(id = id, x = x)
+  dat$y1 <- beta_mu1[[1L]] + beta_mu1[[2L]] * x + exp(beta_sigma1 + b1[id]) * e1
+  dat$y2 <- beta_mu2[[1L]] + beta_mu2[[2L]] * x + exp(beta_sigma2 + b2[id]) * e2
+
+  list(
+    data = dat,
+    beta_mu1 = beta_mu1,
+    beta_mu2 = beta_mu2,
+    beta_sigma = c(beta_sigma1, beta_sigma2),
+    sd_sigma = c(
+      "sigma1:(1 | p | id)" = sd_sigma1,
+      "sigma2:(1 | p | id)" = sd_sigma2
+    ),
+    rho_scale = rho_scale,
+    residual_rho = residual_rho
+  )
+}
+
 expect_abs_error_below <- function(actual, expected, tolerance) {
   expect_lt(max(abs(unname(actual) - unname(expected))), tolerance)
 }
@@ -247,6 +290,128 @@ test_that("bivariate Gaussian supports labelled mu1/mu2 random-intercept covaria
   expect_equal(nrow(corpairs(fit, block = "p")), 1L)
   expect_equal(nrow(corpairs(fit, group = "missing")), 0L)
   expect_equal(nrow(corpairs(fit, block = "missing")), 0L)
+})
+
+test_that("bivariate Gaussian supports labelled sigma1/sigma2 random-intercept covariance blocks", {
+  sim <- new_biv_gaussian_sigma_re_data()
+
+  fit <- drmTMB(
+    bf(
+      mu1 = y1 ~ x,
+      mu2 = y2 ~ x,
+      sigma1 = ~ 1 + (1 | p | id),
+      sigma2 = ~ 1 + (1 | p | id),
+      rho12 = ~1
+    ),
+    family = biv_gaussian(),
+    data = sim$data,
+    control = list(eval.max = 300, iter.max = 300)
+  )
+
+  fixed_sigma1 <- as.vector(
+    stats::model.matrix(~1, sim$data) %*% coef(fit, "sigma1")
+  )
+  fixed_sigma2 <- as.vector(
+    stats::model.matrix(~1, sim$data) %*% coef(fit, "sigma2")
+  )
+  sigma1_link <- predict(fit, dpar = "sigma1", type = "link")
+  sigma2_link <- predict(fit, dpar = "sigma2", type = "link")
+  pairs <- corpairs(fit)
+  group_pair <- pairs[pairs$level == "group", , drop = FALSE]
+  residual_pair <- pairs[pairs$level == "residual", , drop = FALSE]
+  smry <- summary(fit)
+  targets <- profile_targets(fit)
+  chk <- check_drm(fit)
+  scale_cov <- chk[chk$check == "biv_sigma_random_effect_covariance", ]
+
+  sd_sigma1 <- "sd:sigma:sigma1:(1 | p | id)"
+  sd_sigma2 <- "sd:sigma:sigma2:(1 | p | id)"
+  cor_sigma <- "cor:sigma:cor(sigma1:(Intercept),sigma2:(Intercept) | p | id)"
+  sigma_targets <- targets[
+    match(c(sd_sigma1, sd_sigma2, cor_sigma), targets$parm),
+  ]
+
+  expect_s3_class(fit, "drmTMB")
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(fit$sdr$pdHess, TRUE)
+  expect_abs_error_below(coef(fit, "mu1"), sim$beta_mu1, 0.18)
+  expect_abs_error_below(coef(fit, "mu2"), sim$beta_mu2, 0.18)
+  expect_abs_error_below(coef(fit, "sigma1"), sim$beta_sigma[[1L]], 0.25)
+  expect_abs_error_below(coef(fit, "sigma2"), sim$beta_sigma[[2L]], 0.25)
+  expect_abs_error_below(fit$sdpars$sigma, sim$sd_sigma, 0.22)
+  expect_lt(abs(unname(fit$corpars$sigma) - sim$rho_scale), 0.35)
+  expect_lt(abs(tanh(unname(coef(fit, "rho12"))) - sim$residual_rho), 0.15)
+  expect_named(
+    fit$corpars$sigma,
+    "cor(sigma1:(Intercept),sigma2:(Intercept) | p | id)"
+  )
+  expect_equal(
+    length(fit$random_effects$sigma$values),
+    2 * nlevels(sim$data$id)
+  )
+  expect_gt(stats::sd(sigma1_link - fixed_sigma1), 0.03)
+  expect_gt(stats::sd(sigma2_link - fixed_sigma2), 0.03)
+  expect_equal(stats::sigma(fit)$sigma1, exp(sigma1_link), tolerance = 1e-12)
+  expect_equal(stats::sigma(fit)$sigma2, exp(sigma2_link), tolerance = 1e-12)
+  expect_equal(
+    predict(fit, newdata = sim$data[1:3, ], dpar = "sigma1", type = "link"),
+    fixed_sigma1[1:3],
+    tolerance = 1e-12
+  )
+  expect_equal(
+    predict(fit, newdata = sim$data[1:3, ], dpar = "sigma2", type = "link"),
+    fixed_sigma2[1:3],
+    tolerance = 1e-12
+  )
+
+  expect_equal(group_pair$from_dpar, "sigma1")
+  expect_equal(group_pair$to_dpar, "sigma2")
+  expect_equal(group_pair$group, "id")
+  expect_equal(group_pair$block, "p")
+  expect_equal(group_pair$class, "scale-scale")
+  expect_equal(
+    group_pair$estimate,
+    unname(fit$corpars$sigma),
+    tolerance = 1e-12
+  )
+  expect_equal(residual_pair$parameter, "rho12")
+  expect_equal(residual_pair$class, "residual")
+  expect_equal(nrow(corpairs(fit, level = "group")), 1L)
+  expect_equal(nrow(corpairs(fit, class = "scale-scale")), 1L)
+  expect_equal(nrow(corpairs(fit, class = "mean-mean")), 0L)
+  expect_equal(nrow(corpairs(fit, block = "p")), 1L)
+
+  expect_true(all(
+    c(sd_sigma1, sd_sigma2, cor_sigma) %in% rownames(smry$parameters)
+  ))
+  expect_equal(smry$parameters[sd_sigma1, "component"], "random-effect-sd")
+  expect_equal(smry$parameters[sd_sigma2, "component"], "random-effect-sd")
+  expect_equal(
+    smry$parameters[cor_sigma, "component"],
+    "random-effect-correlation"
+  )
+  expect_equal(
+    smry$parameters[cor_sigma, "estimate"],
+    unname(fit$corpars$sigma)
+  )
+  expect_equal(
+    sigma_targets$tmb_parameter,
+    c("log_sd_sigma", "log_sd_sigma", "eta_cor_sigma")
+  )
+  expect_equal(
+    sigma_targets$target_class,
+    c(
+      "random-effect-sd",
+      "random-effect-sd",
+      "random-effect-correlation"
+    )
+  )
+  expect_equal(sigma_targets$index, c(1L, 2L, 1L))
+  expect_true(all(sigma_targets$profile_ready))
+  expect_equal(scale_cov$status, "ok")
+  expect_match(scale_cov$value, "n_groups=48")
+  expect_match(scale_cov$value, "min_group_n=8")
+  expect_match(scale_cov$message, "scale-scale")
 })
 
 test_that("composed Gaussian family syntax routes to bivariate Gaussian", {
@@ -751,7 +916,59 @@ test_that("bivariate Gaussian rejects unsupported Phase 3 syntax clearly", {
   )
   expect_error(
     drmTMB(
+      bf(
+        mu1 = y1 ~ x,
+        mu2 = y2 ~ x,
+        sigma1 = ~ 1 + (1 | p | id),
+        sigma2 = ~1
+      ),
+      family = biv_gaussian(),
+      data = dat
+    ),
+    "one matching random-intercept"
+  )
+  expect_error(
+    drmTMB(
+      bf(
+        mu1 = y1 ~ x,
+        mu2 = y2 ~ x,
+        sigma1 = ~ 1 + (1 | id),
+        sigma2 = ~ 1 + (1 | id)
+      ),
+      family = biv_gaussian(),
+      data = dat
+    ),
+    "shared covariance-block label"
+  )
+  expect_error(
+    drmTMB(
+      bf(
+        mu1 = y1 ~ x,
+        mu2 = y2 ~ x,
+        sigma1 = ~ 1 + (1 | p | id),
+        sigma2 = ~ 1 + (1 | q | id)
+      ),
+      family = biv_gaussian(),
+      data = dat
+    ),
+    "same covariance-block label"
+  )
+  expect_error(
+    drmTMB(
       bf(mu1 = y1 ~ x + meta_known_V(V = V), mu2 = y2 ~ x + (1 | p | id)),
+      family = biv_gaussian(),
+      data = dat
+    ),
+    "cannot yet be combined"
+  )
+  expect_error(
+    drmTMB(
+      bf(
+        mu1 = y1 ~ x + meta_known_V(V = V),
+        mu2 = y2 ~ x,
+        sigma1 = ~ 1 + (1 | p | id),
+        sigma2 = ~ 1 + (1 | p | id)
+      ),
       family = biv_gaussian(),
       data = dat
     ),

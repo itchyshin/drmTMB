@@ -643,7 +643,8 @@ covariance parameter. If the correlation is between the two residual responses
 in one row, it is `rho12`. Extract fitted response-scale residual correlations
 with `rho12(fit)`. Use `corpairs(fit)` when you want a table that keeps
 residual `rho12` separate from ordinary group-level random-effect correlations,
-including the implemented bivariate `mu1`/`mu2` random-intercept correlation.
+including the implemented bivariate `mu1`/`mu2` and `sigma1`/`sigma2`
+random-intercept correlations.
 
 ## Current boundary
 
@@ -660,13 +661,16 @@ Current implemented Gaussian syntax covers:
   standard deviations of unlabelled Gaussian `mu` random intercepts;
 - bivariate fixed-effect `rho12 ~ x` with `family = c(gaussian(), gaussian())`;
 - matching labelled `(1 | p | id)` random intercepts in bivariate `mu1` and
-  `mu2`.
+  `mu2`;
+- matching labelled `(1 | p | id)` random intercepts in bivariate `sigma1` and
+  `sigma2`.
 
 Current planned but not implemented syntax includes:
 
 - slope-specific and labelled-block random-effect scale models;
-- correlated residual-scale slope blocks in `sigma`;
-- bivariate random slopes and residual-scale random effects;
+- correlated residual-scale slope blocks in `sigma` and labelled `mu`/`sigma`
+  random-slope covariance;
+- bivariate random slopes and cross-parameter covariance blocks;
 - cross-formula covariance sharing from repeated labels such as
   `(1 + x | p | id)`;
 - phylogenetic slopes, phylogenetic `sigma` terms, bivariate phylogenetic
