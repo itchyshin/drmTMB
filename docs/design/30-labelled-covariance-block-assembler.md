@@ -1,0 +1,188 @@
+# Labelled Covariance Block Assembler
+
+This note defines slice 4 of the double-hierarchical covariance roadmap. The
+reader is the package contributor who has to replace the current pairwise
+bridges with one positive-definite block representation without changing the
+public formula grammar.
+
+## Purpose
+
+The current code can fit several useful two-term covariance slices: ordinary
+`mu` intercept-slope blocks, univariate `mu`/`sigma` random-intercept blocks,
+bivariate `mu1`/`mu2` and `sigma1`/`sigma2` random-intercept blocks, and one
+same-response bivariate `mu`/`sigma` random-intercept block. Those are correct
+as disjoint pairwise bridges.
+
+They are not the right abstraction once a shared label spans three or more
+random-effect coefficients. A model such as:
+
+```r
+drm_formula(
+  mu1 = y1 ~ x + (1 + x | p | id),
+  mu2 = y2 ~ x + (1 | p | id),
+  sigma1 = ~ z + (1 | p | id),
+  rho12 = ~ x
+)
+```
+
+does not ask for a sequence of unrelated bivariate conditionals. The label
+`p` asks for one group-level covariance block for `id`, with members drawn
+from the labelled random-effect terms. Slice 4 should therefore build a
+labelled block assembler before adding bivariate random slopes or claiming the
+full double-hierarchical endpoint.
+
+## Scope
+
+The first assembler should stay inside the existing `drmTMB` boundary:
+
+- one-response and two-response models only;
+- ordinary grouped random effects first, not `phylo()`, `spatial()`, or
+  residual `rho12`;
+- Gaussian likelihoods first;
+- no formula grammar change beyond the existing `(terms | label | group)`
+  syntax;
+- no predictor-dependent group-level correlations.
+
+Residual `rho12` remains a row-level residual correlation. The labelled block
+contains group-level effects such as mean intercepts, mean slopes, residual
+scale intercepts, and residual scale slopes.
+
+## Block Registry
+
+The R side should first create a registry of labelled block members. A block is
+defined by the tuple:
+
+```text
+level = "group"
+group = grouping variable, for example id
+block = covariance label, for example p
+```
+
+Each member records:
+
+```text
+block_id
+dpar            # mu, sigma, mu1, mu2, sigma1, or sigma2
+response        # NA, 1, or 2
+coef            # (Intercept), x, z, ...
+term_index      # existing random-effect term index
+coef_index      # existing coefficient index within that term
+group_index     # 0-based group index vector used by TMB
+design_value    # random-effect design value for each observation
+```
+
+The assembler should reject a shared label when members do not share the same
+grouping factor or when the requested distributional-parameter combination is
+outside the current slice. The rejection should tell the user which labelled
+block was too large or unsupported, and what smaller model to try next.
+
+## TMB Contract
+
+For each assembled block `b` with `q_b` members and `G_b` groups, TMB should
+work with standardized random effects:
+
+```text
+z_bj ~ Normal(0, I_q)
+r_bj = diag(sd_b) L_corr_b z_bj
+```
+
+where `L_corr_b L_corr_b'` is a valid correlation matrix. The negative
+log-likelihood contribution is the standard-normal density for `z_bj`; the
+transformed effects `r_bj` enter the `mu`, `sigma`, `mu1`, `mu2`, `sigma1`,
+or `sigma2` linear predictors.
+
+Local TMB 1.9.21 exposes `UNSTRUCTURED_CORR_t` and `VECSCALE_t` for an
+unstructured correlation density with scaled standard deviations. Slice 4
+should prototype that helper before adding a local correlation transform. If
+the helper is unsuitable for the existing non-centered parameterization, the
+fallback should still use one positive-definite Cholesky-style parameterization
+for the whole block, not separate unconstrained pairwise `tanh()` correlations.
+
+The flattened data contract should be block-oriented rather than pair-oriented:
+
+```text
+n_re_cov_blocks
+re_cov_block_size[B]
+re_cov_block_group_count[B]
+re_cov_block_member_start[B]
+re_cov_block_theta_start[B]
+re_cov_member_dpar[M]
+re_cov_member_response[M]
+re_cov_member_coef[M]
+re_cov_member_term[M]
+re_cov_member_group_index[M, n]
+re_cov_member_design_value[M, n]
+```
+
+Names can change during implementation, but the invariant should not: the
+likelihood sees one block, its members, its standard deviations, its
+correlation parameters, and its standardized random effects.
+
+## Pair Reporting
+
+`corpairs()` should report pairs derived from the fitted block. It should not
+store a separate likelihood object for each pair.
+
+For a block with `q` members, there are `q * (q - 1) / 2` reportable pairs.
+Each row should keep the existing long-table fields:
+
+```text
+level, group, block, from_dpar, to_dpar, from_coef, to_coef,
+from_response, to_response, class, estimate, link_estimate
+```
+
+Classes such as `mean-mean`, `scale-scale`, `mean-scale`, `mean-slope`, and
+`slope-scale` are interpretation aids. The formal columns must be sufficient
+for users to identify the pair even when no short class name is available.
+
+## Scale Convention
+
+The public distributional parameter remains `sigma`, and the fitted linear
+predictor remains `log(sigma)`. When documentation compares to papers that
+report `log(sigma^2)` or individual residual variance, it must state the
+conversion:
+
+```text
+effect on log(sigma^2) = 2 * effect on log(sigma)
+```
+
+Derived summaries may report `sigma^2` or IGV when the scientific target is
+variance, predictability, or malleability. The fitted package parameter should
+still be named `sigma`.
+
+## Implementation Order
+
+1. Build the R-side block registry without changing accepted syntax.
+2. Keep all current pairwise bridges green by translating the existing
+   two-member cases through the registry.
+3. Add the TMB block data contract and a two-member compatibility path.
+4. Prototype `UNSTRUCTURED_CORR_t` plus scaled standard deviations for `q > 2`.
+5. Add one simulation recovery test for a three-member block before exposing a
+   four-formula bivariate block.
+6. Update `corpairs()`, `profile_targets()`, and `check_drm()` to derive rows
+   and diagnostics from block members.
+7. Only then enable bivariate random slopes or the full shared
+   `mu1`/`mu2`/`sigma1`/`sigma2` label pattern.
+
+## Diagnostics
+
+The assembler should make weak identification visible before users interpret
+mean-scale or slope-scale correlations. `check_drm()` should warn when:
+
+- the number of groups is small for the block dimension;
+- many groups have little within-group replication;
+- one fitted component SD is close to zero;
+- the fitted Hessian or standard errors suggest a correlation is weakly
+  identified.
+
+Simulation tests should use enough groups and repeated observations for the
+target. Tiny toy fits are useful for parser tests, but they are not persuasive
+recovery evidence for dispersion random effects or slope-scale correlations.
+
+## Non-Goals
+
+Slice 4 does not implement phylogenetic, spatial, or residual-correlation
+blocks. It creates the ordinary grouped block abstraction those later layers
+can reuse. Structured covariance work must still report phylogenetic,
+non-phylogenetic species or individual, and residual `rho12` correlations as
+separate layers.

@@ -85,6 +85,12 @@ bf(
 In that later model, matching `p` labels will request a shared group-level
 covariance block with slopes as well as intercepts.
 
+Slice 4 should implement that larger surface through the labelled block
+assembler described in `docs/design/30-labelled-covariance-block-assembler.md`.
+The current pairwise `mu`/`sigma`, `mu1`/`mu2`, `sigma1`/`sigma2`, and
+same-response bivariate `mu`/`sigma` paths remain compatibility bridges until
+they are represented as ordinary two-member blocks.
+
 ## Symbolic Model
 
 For the first correlated block:
@@ -202,9 +208,10 @@ Still deferred:
   blocks beyond the same-response random-intercept pair;
 - phylogenetic and spatial correlated slope blocks.
 
-For `q > 2`, use a positive-definite Cholesky or partial-correlation
-parameterization. Do not use unconstrained pairwise `tanh()` correlations
-directly because they do not guarantee a valid correlation matrix.
+For `q > 2`, use the labelled covariance block assembler and a
+positive-definite Cholesky or partial-correlation parameterization. Do not use
+unconstrained pairwise `tanh()` correlations directly because they do not
+guarantee a valid correlation matrix.
 
 ## Comparator Tests
 

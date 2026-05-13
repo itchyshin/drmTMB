@@ -243,10 +243,13 @@ display preference, because each layer answers a different biological question.
 7. Add cross-parameter mean-scale covariance blocks. Started for the
    one-response labelled `mu`/`sigma` random-intercept bridge and one
    same-response bivariate `mu`/`sigma` random-intercept bridge.
-8. Add bivariate phylogenetic covariance blocks with matching non-phylogenetic
+8. Route labelled group-level covariance through the block assembler in
+   `docs/design/30-labelled-covariance-block-assembler.md` before exposing
+   bivariate random slopes or any shared label with more than two members.
+9. Add bivariate phylogenetic covariance blocks with matching non-phylogenetic
    species or individual covariance blocks.
-9. Add spatial bivariate covariance blocks.
-10. Only after simulation evidence: consider predictor-dependent group-level or
+10. Add spatial bivariate covariance blocks.
+11. Only after simulation evidence: consider predictor-dependent group-level or
    structured-effect correlation formulas.
 
 For covariance blocks with more than two random-effect coefficients, use a

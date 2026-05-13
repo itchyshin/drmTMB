@@ -2,6 +2,50 @@
 
 Record meaningful development checks here.
 
+## 2026-05-13 -- Slice 4 labelled covariance block design start
+
+Scope:
+
+- froze the completed slice-3 patch in commit `533790c` before starting
+  slice 4;
+- created the `codex/labelled-covariance-block-design` branch from that
+  commit;
+- added `docs/design/30-labelled-covariance-block-assembler.md` as the
+  design-first contract for replacing pairwise covariance bridges with a
+  labelled positive-definite block registry;
+- updated the roadmap and related covariance design notes to point larger
+  shared-label work at the new block assembler before bivariate random slopes
+  or full double-hierarchical covariance are exposed.
+
+Checks:
+
+- `git status --short --branch`, `git diff --stat`, and the slice-3
+  after-task report were inspected before committing the slice-3 freeze point.
+- `git diff --check`: passed before the slice-3 commit and again after the
+  slice-4 design edits.
+- `rg -n '^(<<<<<<<|=======|>>>>>>>)' . --glob
+  '!docs/dev-log/recovery-checkpoints/**'`: no conflict markers found before
+  the slice-3 commit.
+- `Rscript -e "cat(as.character(packageVersion('TMB')), '\\n');
+  cat(system.file('include', package = 'TMB'), '\\n')"`: local TMB version
+  `1.9.21`; include path inspected.
+- `rg -n "UNSTRUCTURED_CORR|VECSCALE|SCALE"
+  "$(Rscript -e 'cat(system.file(\"include\", package = \"TMB\"))')"`:
+  confirmed local TMB headers expose `UNSTRUCTURED_CORR_t` and `VECSCALE_t`.
+- `rg -n '30-labelled-covariance-block-assembler|labelled covariance block
+  assembler|block assembler|UNSTRUCTURED_CORR|pairwise bridges|shared labels'
+  ROADMAP.md docs/design/17-correlated-random-effect-blocks.md
+  docs/design/20-coscale-correlation-pairs.md
+  docs/design/28-double-hierarchical-endpoint.md
+  docs/design/30-labelled-covariance-block-assembler.md`: confirmed the new
+  design note is referenced from the roadmap and older covariance notes.
+- `rg -n 'meta_gaussian|tau ~|rho ~|meta_known_V\\([^V]' ROADMAP.md
+  docs/design/17-correlated-random-effect-blocks.md
+  docs/design/20-coscale-correlation-pairs.md
+  docs/design/28-double-hierarchical-endpoint.md
+  docs/design/30-labelled-covariance-block-assembler.md`: remaining hits are
+  existing `meta_known_V()` roadmap guardrails; no new syntax drift was added.
+
 ## 2026-05-13 -- Bivariate same-response mu/sigma covariance
 
 Scope:

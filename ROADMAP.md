@@ -139,8 +139,11 @@ distributional regression models using TMB.
   The bivariate Gaussian path now fits matched labelled `mu1`/`mu2`,
   `sigma1`/`sigma2`, and same-response `mu`/`sigma` random-intercept
   covariance blocks.
-- Add larger cross-formula or cross-parameter covariance sharing for labelled
-  blocks, following `docs/design/17-correlated-random-effect-blocks.md`.
+- Add the labelled covariance block assembler before larger cross-formula or
+  cross-parameter covariance sharing. The design contract is
+  `docs/design/30-labelled-covariance-block-assembler.md`; the older pairwise
+  bridges in `docs/design/17-correlated-random-effect-blocks.md` remain
+  compatibility slices until they are routed through the block registry.
 - Use `docs/design/18-random-effect-scale-models.md` as the design contract:
   the implemented MVP targets one or more distinct unlabelled univariate
   Gaussian `mu` random intercepts, with group-level predictors, simulation
