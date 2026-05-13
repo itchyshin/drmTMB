@@ -12070,3 +12070,55 @@ Known limitations:
 - correlated residual-scale intercept-slope blocks remain planned;
 - labelled `mu`/`sigma` slope covariance remains planned;
 - bivariate `sigma1`/`sigma2` random effects remain planned.
+
+## 2026-05-13 -- Bivariate direct location random-effect SD formulas
+
+Goal:
+
+- implement the first Family B bivariate direct-SD slice without mixing it with
+  Family A scale-formula random effects.
+
+Implemented:
+
+- added parser support for `sd1(group)` and `sd2(group)` left-hand sides;
+- routed `sd1(id) ~ x_group` to the labelled `mu1` location random-intercept
+  SD and `sd2(id) ~ x_group` to the labelled `mu2` location random-intercept
+  SD in `biv_gaussian()` models;
+- passed the group-level SD design matrix through the existing TMB
+  `beta_sd_mu`, `X_sd_mu`, and `mu_re_sd_row` path for bivariate Gaussian
+  likelihoods;
+- exposed `coef()`, `predict()`, `sdpars`, summaries, and coefficient labels
+  for fitted `sd1()` / `sd2()` models through the existing random-effect scale
+  surfaces;
+- rejected planned-but-unimplemented `sd_phylo*()` / `sd_spatial*()` names and
+  unsupported `sd_sigma1()` / `sd_sigma2()` names at formula parse time;
+- updated the formula grammar, likelihood, random-effect scale model note,
+  known limitations, NEWS, and after-task report.
+
+Checks run:
+
+- `Rscript -e 'devtools::load_all(quiet = TRUE)'`: passed.
+- `Rscript -e 'devtools::test(filter = "biv-gaussian", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'devtools::test(filter = "biv-gaussian|gaussian-random-effect-scale", reporter = "summary")'`:
+  passed.
+- `air format R/parse-formula.R R/drmTMB.R R/methods.R
+  tests/testthat/test-biv-gaussian.R NEWS.md
+  docs/design/01-formula-grammar.md docs/design/03-likelihoods.md
+  docs/design/18-random-effect-scale-models.md
+  docs/dev-log/known-limitations.md docs/dev-log/check-log.md
+  docs/dev-log/after-task/2026-05-13-bivariate-direct-location-sd-formulas.md`:
+  passed.
+- `Rscript -e 'devtools::test(filter = "package-skeleton|biv-gaussian|gaussian-random-effect-scale", reporter = "summary")'`:
+  passed.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- this slice implements bivariate direct SD models for ordinary labelled
+  location random intercepts only;
+- `sd1()` and `sd2()` do not target residual `sigma1` or `sigma2`;
+- `sd_phylo()`, `sd_phylo1()`, `sd_phylo2()`, and spatial direct-SD variants
+  remain planned;
+- full q4 Family A location-scale covariance blocks and predictor-dependent
+  `corpair()` models remain planned.

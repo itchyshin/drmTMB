@@ -13,8 +13,13 @@
   `y ~ x + (1 | p | id)` with `sigma ~ z + (1 | p | id)`.
 - Random-effect scale formulae are implemented for one or more distinct
   unlabelled Gaussian `mu` random intercepts, such as `sd(id) ~ x_group` and
-  `sd(site) ~ site_type`; predictors must be constant within the named grouping
-  variable after missing-row filtering.
+  `sd(site) ~ site_type`, and for bivariate Gaussian location random
+  intercepts as `sd1(id) ~ x_group` and `sd2(id) ~ x_group`; predictors must be
+  constant within the named grouping variable after missing-row filtering.
+  These direct-SD formulae target location random effects only. Names such as
+  `sd_sigma1()` and `sd_sigma2()` are rejected because residual scale should be
+  modelled through `sigma1` / `sigma2` formulas or through Family A scale
+  random effects, not by mixing both formulations for the same latent layer.
 - Diagonal and dense full known-covariance Gaussian meta-analysis is
   implemented.
 - Bivariate Gaussian location-scale-coscale models are implemented with `mu1`,

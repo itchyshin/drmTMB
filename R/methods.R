@@ -2657,7 +2657,8 @@ mu_random_effect_dpars <- function(object) {
 }
 
 is_random_scale_dpar <- function(object, dpar) {
-  identical(object$model$model_type, "gaussian") &&
+  object$model$model_type %in%
+    c("gaussian", "biv_gaussian") &&
     object$model$random_scale$mu$n_models > 0L &&
     dpar %in% object$model$random_scale$mu$dpars
 }

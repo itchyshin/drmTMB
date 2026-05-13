@@ -19,16 +19,16 @@ parse_drm_formula_entry <- function(expr, name, position) {
   has_name <- nzchar(name)
   has_lhs <- !is.null(lhs)
 
-  if (has_name && has_lhs && is_sd_lhs(lhs)) {
+  if (has_name && has_lhs && is_random_scale_lhs(lhs)) {
     cli::cli_abort(
-      "{.fn sd} random-effect scale formulas should be unnamed, for example {.code sd(id) ~ x}."
+      "Random-effect scale formulas should be unnamed, for example {.code sd(id) ~ x}."
     )
   }
 
   if (has_name) {
     dpar <- name
     response <- if (has_lhs) deparse1(lhs) else NA_character_
-  } else if (has_lhs && is_sd_lhs(lhs)) {
+  } else if (has_lhs && is_random_scale_lhs(lhs)) {
     sd_lhs <- parse_sd_lhs(lhs)
     dpar <- sd_lhs$dpar
     response <- NA_character_
@@ -73,25 +73,88 @@ formula_rhs <- function(expr) {
 
 is_dpar_lhs <- function(lhs) {
   lhs_text <- deparse1(lhs)
-  lhs_text %in% drm_known_dpars() || is_sd_lhs(lhs)
+  lhs_text %in% drm_known_dpars() || is_random_scale_lhs(lhs)
 }
 
 drm_known_dpars <- function() {
   c(
-    "mu", "mu1", "mu2",
-    "sigma", "sigma1", "sigma2",
-    "shape", "skew", "nu",
-    "zi", "zoi", "coi", "hu",
+    "mu",
+    "mu1",
+    "mu2",
+    "sigma",
+    "sigma1",
+    "sigma2",
+    "shape",
+    "skew",
+    "nu",
+    "zi",
+    "zoi",
+    "coi",
+    "hu",
     "rho12"
   )
 }
 
+is_random_scale_lhs <- function(lhs) {
+  is.call(lhs) &&
+    random_scale_lhs_function(lhs) %in% random_scale_lhs_functions()
+}
+
 is_sd_lhs <- function(lhs) {
-  is.call(lhs) && identical(lhs[[1L]], as.name("sd"))
+  is_random_scale_lhs(lhs)
+}
+
+random_scale_lhs_function <- function(lhs) {
+  fun <- lhs[[1L]]
+  if (is.symbol(fun)) {
+    return(as.character(fun))
+  }
+  deparse1(fun)
+}
+
+random_scale_lhs_functions <- function() {
+  c(
+    "sd",
+    "sd1",
+    "sd2",
+    "sd_phylo",
+    "sd_phylo1",
+    "sd_phylo2",
+    "sd_spatial",
+    "sd_spatial1",
+    "sd_spatial2",
+    "sd_sigma1",
+    "sd_sigma2"
+  )
 }
 
 parse_sd_lhs <- function(lhs) {
   lhs <- strip_parens(lhs)
+  fun <- random_scale_lhs_function(lhs)
+  if (
+    fun %in%
+      c(
+        "sd_phylo",
+        "sd_phylo1",
+        "sd_phylo2",
+        "sd_spatial",
+        "sd_spatial1",
+        "sd_spatial2"
+      )
+  ) {
+    cli::cli_abort(c(
+      "{.fn {fun}} random-effect SD models are planned but not implemented yet.",
+      "i" = "This implementation currently supports {.code sd(group)} for univariate Gaussian location random effects and {.code sd1(group)} / {.code sd2(group)} for bivariate Gaussian location random effects."
+    ))
+  }
+  if (fun %in% c("sd_sigma1", "sd_sigma2")) {
+    cli::cli_abort(c(
+      "{.fn {fun}} is not a supported drmTMB random-effect scale target.",
+      "x" = "Direct {.fn sd} models target location random-effect SDs only.",
+      "i" = "Use {.code sigma1 ~ ...} / {.code sigma2 ~ ...} for residual scale predictors, or use scale random effects inside the Family A formulation without a matching {.fn sd_sigma} target."
+    ))
+  }
+
   args <- as.list(lhs)[-1L]
   arg_names <- names(args)
   if (is.null(arg_names)) {
@@ -101,22 +164,23 @@ parse_sd_lhs <- function(lhs) {
 
   if (length(args) != 1L || nzchar(arg_names[[1L]])) {
     cli::cli_abort(c(
-      "Random-effect scale formulas currently support only {.code sd(group)} on the left-hand side.",
-      "x" = "Use syntax like {.code sd(id) ~ x_group}.",
+      "Random-effect scale formulas currently support only {.code sd(group)}, {.code sd1(group)}, or {.code sd2(group)} on the left-hand side.",
+      "x" = "Use syntax like {.code sd(id) ~ x_group} or {.code sd1(id) ~ x_group}.",
       "i" = "Explicit targets such as {.code sd(id, dpar = \"mu\", coef = \"(Intercept)\")} are planned for a later phase."
     ))
   }
   if (!is.symbol(args[[1L]])) {
     cli::cli_abort(c(
-      "The {.fn sd} target must be a simple grouping variable.",
-      "x" = "Use syntax like {.code sd(id) ~ x_group}."
+      "The {.fn {fun}} target must be a simple grouping variable.",
+      "x" = "Use syntax like {.code {fun}(id) ~ x_group}."
     ))
   }
 
   group <- as.character(args[[1L]])
   list(
     group = group,
-    dpar = paste0("sd(", group, ")")
+    fun = fun,
+    dpar = paste0(fun, "(", group, ")")
   )
 }
 
@@ -126,11 +190,19 @@ collect_structured_effects <- function(rhs, dpar) {
   for (term in terms) {
     term <- strip_parens(term)
     if (is_structured_marker_call(term, "phylo")) {
-      structured[[length(structured) + 1L]] <- parse_structured_marker_call(term, "phylo", dpar)
+      structured[[length(structured) + 1L]] <- parse_structured_marker_call(
+        term,
+        "phylo",
+        dpar
+      )
       next
     }
     if (is_structured_marker_call(term, "spatial")) {
-      structured[[length(structured) + 1L]] <- parse_structured_marker_call(term, "spatial", dpar)
+      structured[[length(structured) + 1L]] <- parse_structured_marker_call(
+        term,
+        "spatial",
+        dpar
+      )
       next
     }
     nested <- c("phylo", "spatial")[vapply(
@@ -175,7 +247,11 @@ parse_structured_marker_call <- function(expr, marker, dpar) {
   marker_arg_names <- arg_names[-term_pos]
   if (identical(marker, "phylo")) {
     extra <- setdiff(marker_arg_names, "tree")
-    if (length(marker_args) != 1L || !identical(marker_arg_names, "tree") || length(extra) > 0L) {
+    if (
+      length(marker_args) != 1L ||
+        !identical(marker_arg_names, "tree") ||
+        length(extra) > 0L
+    ) {
       cli::cli_abort(c(
         "{.fn phylo} requires a single named {.arg tree} argument.",
         "x" = "Use syntax like {.code phylo(1 | species, tree = tree)}.",
@@ -204,7 +280,9 @@ parse_structured_marker_call <- function(expr, marker, dpar) {
       "x" = "Use syntax like {.code spatial(1 | site, coords = coords)} or {.code spatial(1 | site, mesh = mesh)}."
     ))
   }
-  structure_arg <- marker_args[[which(marker_arg_names %in% c("coords", "mesh"))]]
+  structure_arg <- marker_args[[which(
+    marker_arg_names %in% c("coords", "mesh")
+  )]]
   if (!is.symbol(structure_arg)) {
     cli::cli_abort(c(
       "{.arg coords} and {.arg mesh} must name objects.",
@@ -215,7 +293,9 @@ parse_structured_marker_call <- function(expr, marker, dpar) {
     list(type = "spatial", dpar = dpar),
     term,
     list(
-      structure = marker_arg_names[[which(marker_arg_names %in% c("coords", "mesh"))]],
+      structure = marker_arg_names[[which(
+        marker_arg_names %in% c("coords", "mesh")
+      )]],
       object = as.character(structure_arg)
     )
   )
@@ -251,9 +331,12 @@ parse_structured_bar_term <- function(expr, marker) {
   pieces <- flatten_plus_terms(lhs)
   one <- vapply(pieces, is_intercept_one, logical(1))
   symbol <- vapply(pieces, is.symbol, logical(1))
-  if (!any(vapply(pieces, is_zero_term, logical(1))) &&
-      sum(one) == 1L && sum(symbol) == 1L &&
-      length(pieces) == sum(one) + sum(symbol)) {
+  if (
+    !any(vapply(pieces, is_zero_term, logical(1))) &&
+      sum(one) == 1L &&
+      sum(symbol) == 1L &&
+      length(pieces) == sum(one) + sum(symbol)
+  ) {
     variable <- as.character(pieces[[which(symbol)]])
     return(list(
       group = group_name,

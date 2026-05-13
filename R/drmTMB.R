@@ -2123,11 +2123,12 @@ drm_build_biv_gaussian_spec <- function(
 ) {
   entries <- expand_biv_mvbind_entries(formula$entries)
   dpars <- vapply(entries, `[[`, character(1), "dpar")
+  is_sd_mu_dpar <- startsWith(dpars, "sd1(") | startsWith(dpars, "sd2(")
   allowed <- c("mu1", "mu2", "sigma1", "sigma2", "rho12")
-  unsupported <- setdiff(dpars, allowed)
+  unsupported <- setdiff(dpars[!is_sd_mu_dpar], allowed)
   if (length(unsupported) > 0L) {
     cli::cli_abort(c(
-      "{.fn biv_gaussian} models only support {.code mu1}, {.code mu2}, {.code sigma1}, {.code sigma2}, and {.code rho12}.",
+      "{.fn biv_gaussian} models only support {.code mu1}, {.code mu2}, {.code sigma1}, {.code sigma2}, {.code rho12}, and bivariate location random-effect SD formulas {.code sd1(group)} / {.code sd2(group)}.",
       "x" = "Unsupported parameter{?s}: {.val {unsupported}}."
     ))
   }
@@ -2144,6 +2145,11 @@ drm_build_biv_gaussian_spec <- function(
         "{.fn biv_gaussian} can have at most one {.code {optional}} formula."
       )
     }
+  }
+  sd_mu_entries <- if (any(is_sd_mu_dpar)) {
+    entries[is_sd_mu_dpar]
+  } else {
+    list()
   }
 
   mu1_entry <- entries[[which(dpars == "mu1")]]
@@ -2223,12 +2229,21 @@ drm_build_biv_gaussian_spec <- function(
   )) {
     drm_reject_phase1_terms(entry$rhs, entry$dpar)
   }
+  for (sd_mu_entry in sd_mu_entries) {
+    drm_reject_phase1_terms(sd_mu_entry$rhs, sd_mu_entry$dpar)
+  }
 
   f_mu1 <- drm_entry_formula(mu1_entry, response = TRUE)
   f_mu2 <- drm_entry_formula(mu2_entry, response = TRUE)
   f_sigma1 <- drm_entry_formula(sigma1_entry, response = FALSE)
   f_sigma2 <- drm_entry_formula(sigma2_entry, response = FALSE)
   f_rho12 <- drm_entry_formula(rho12_entry, response = FALSE)
+  f_sd_mu <- lapply(sd_mu_entries, drm_entry_formula, response = FALSE)
+  sd_mu_groups <- vapply(
+    sd_mu_entries,
+    function(entry) parse_sd_lhs(entry$lhs)$group,
+    character(1L)
+  )
 
   vars <- unique(c(
     all.vars(f_mu1),
@@ -2236,7 +2251,9 @@ drm_build_biv_gaussian_spec <- function(
     all.vars(f_sigma1),
     all.vars(f_sigma2),
     all.vars(f_rho12),
+    unlist(lapply(f_sd_mu, all.vars), use.names = FALSE),
     phylo_mu_vars(phylo_mu_terms$term),
+    sd_mu_groups,
     random_effect_vars(mu1_re$terms),
     random_effect_vars(mu2_re$terms),
     random_effect_vars(sigma1_re$terms),
@@ -2297,9 +2314,16 @@ drm_build_biv_gaussian_spec <- function(
     mu2_re$terms,
     data_model
   )
+  sd_mu_targets <- parse_biv_sd_mu_entries(sd_mu_entries, re_mu)
   re_sigma <- build_biv_sigma_random_structure(
     sigma1_re$terms,
     sigma2_re$terms,
+    data_model
+  )
+  sd_mu <- build_sd_mu_structure(
+    sd_mu_entries,
+    sd_mu_targets,
+    re_mu,
     data_model
   )
   re_mu_sigma <- build_mu_sigma_random_covariance(re_mu, re_sigma)
@@ -2333,7 +2357,8 @@ drm_build_biv_gaussian_spec <- function(
     re_mu = re_mu,
     re_sigma = re_sigma,
     re_mu_sigma = re_mu_sigma,
-    phylo_mu = phylo_mu
+    phylo_mu = phylo_mu,
+    sd_mu = sd_mu
   )
 
   spec <- list(
@@ -2345,26 +2370,35 @@ drm_build_biv_gaussian_spec <- function(
     V_known_diag = V_known$diag,
     V_known_type = V_known$type,
     has_known_v = !is.null(meta$V),
-    X = list(
-      mu1 = X_mu1,
-      mu2 = X_mu2,
-      sigma1 = X_sigma1,
-      sigma2 = X_sigma2,
-      rho12 = X_rho12
+    X = c(
+      list(
+        mu1 = X_mu1,
+        mu2 = X_mu2,
+        sigma1 = X_sigma1,
+        sigma2 = X_sigma2,
+        rho12 = X_rho12
+      ),
+      sd_mu$X_list
     ),
-    terms = list(
-      mu1 = stats::delete.response(stats::terms(mf_mu1)),
-      mu2 = stats::delete.response(stats::terms(mf_mu2)),
-      sigma1 = stats::terms(mf_sigma1),
-      sigma2 = stats::terms(mf_sigma2),
-      rho12 = stats::terms(mf_rho12)
+    terms = c(
+      list(
+        mu1 = stats::delete.response(stats::terms(mf_mu1)),
+        mu2 = stats::delete.response(stats::terms(mf_mu2)),
+        sigma1 = stats::terms(mf_sigma1),
+        sigma2 = stats::terms(mf_sigma2),
+        rho12 = stats::terms(mf_rho12)
+      ),
+      sd_mu$terms_list
     ),
-    model_frame = list(
-      mu1 = mf_mu1,
-      mu2 = mf_mu2,
-      sigma1 = mf_sigma1,
-      sigma2 = mf_sigma2,
-      rho12 = mf_rho12
+    model_frame = c(
+      list(
+        mu1 = mf_mu1,
+        mu2 = mf_mu2,
+        sigma1 = mf_sigma1,
+        sigma2 = mf_sigma2,
+        rho12 = mf_rho12
+      ),
+      sd_mu$model_frame_list
     ),
     data = data_model,
     random = list(
@@ -2373,13 +2407,13 @@ drm_build_biv_gaussian_spec <- function(
       mu_sigma = re_mu_sigma,
       covariance_blocks = re_cov_blocks
     ),
-    random_scale = list(mu = empty_sd_mu_structure(re_mu$n_re)),
+    random_scale = list(mu = sd_mu),
     structured = list(phylo_mu = phylo_mu),
     variables = vars,
     keep = keep,
-    dpars = c("mu1", "mu2", "sigma1", "sigma2", "rho12"),
+    dpars = c("mu1", "mu2", "sigma1", "sigma2", "rho12", sd_mu$dpars),
     start = start,
-    map = biv_gaussian_map(re_mu, re_sigma, re_mu_sigma, phylo_mu),
+    map = biv_gaussian_map(re_mu, re_sigma, re_mu_sigma, phylo_mu, sd_mu),
     random_names = c(
       if (re_mu$n_re > 0L) "u_mu",
       if (re_sigma$n_re > 0L) "u_sigma",
@@ -3110,6 +3144,76 @@ parse_sd_mu_entries <- function(entries, mu_terms) {
     cli::cli_abort(c(
       "Duplicate random-effect scale target {.code {duplicate}}.",
       "x" = "Each {.code mu} random-effect coefficient can have only one scale formula."
+    ))
+  }
+  targets
+}
+
+parse_biv_sd_mu_entry <- function(entry, re_mu) {
+  target <- parse_sd_lhs(entry$lhs)
+  if (!target$fun %in% c("sd1", "sd2")) {
+    cli::cli_abort(
+      "Internal error: bivariate random-effect scale target {.code {entry$dpar}} is not an {.fn sd1} or {.fn sd2} target."
+    )
+  }
+
+  target_dpar <- if (identical(target$fun, "sd1")) "mu1" else "mu2"
+  target_group <- target$group
+  matches <- which(
+    re_mu$dpars == target_dpar &
+      re_mu$group_names == target_group
+  )
+
+  if (length(matches) == 0L) {
+    cli::cli_abort(c(
+      "No bivariate location random-effect term matches {.code {entry$dpar}}.",
+      "x" = "Add a labelled random intercept such as {.code (1 | p | {target_group})} to the {.code {target_dpar}} formula or remove the {.code {entry$dpar}} formula.",
+      "i" = "{.fn sd1} targets {.code mu1} location random-effect SDs; {.fn sd2} targets {.code mu2} location random-effect SDs."
+    ))
+  }
+  if (length(matches) > 1L) {
+    cli::cli_abort(c(
+      "Ambiguous bivariate random-effect scale target {.code {entry$dpar}}.",
+      "x" = "Group {.field {target_group}} has multiple {.code {target_dpar}} random-effect coefficients.",
+      "i" = "Random-slope and coefficient-specific bivariate {.fn sd1} / {.fn sd2} targets are planned for a later phase."
+    ))
+  }
+  if (!identical(re_mu$coef_names[[matches]], "(Intercept)")) {
+    cli::cli_abort(c(
+      "Ambiguous bivariate random-effect scale target {.code {entry$dpar}}.",
+      "x" = "This phase supports only bivariate Gaussian location random intercepts.",
+      "i" = "Random-slope bivariate random-effect SD models are planned for a later phase."
+    ))
+  }
+
+  list(
+    dpar = entry$dpar,
+    group = target_group,
+    target_term = matches,
+    target_coef = matches,
+    label = re_mu$labels[[matches]]
+  )
+}
+
+parse_biv_sd_mu_entries <- function(entries, re_mu) {
+  if (length(entries) == 0L) {
+    return(list())
+  }
+  targets <- lapply(entries, parse_biv_sd_mu_entry, re_mu = re_mu)
+  dpars <- vapply(targets, `[[`, character(1), "dpar")
+  if (anyDuplicated(dpars)) {
+    duplicate <- dpars[duplicated(dpars)][[1L]]
+    cli::cli_abort(c(
+      "Duplicate bivariate random-effect scale formula {.code {duplicate}}.",
+      "x" = "Each {.fn sd1} or {.fn sd2} target can have only one scale formula."
+    ))
+  }
+  target_coef <- vapply(targets, `[[`, integer(1), "target_coef")
+  if (anyDuplicated(target_coef)) {
+    duplicate <- dpars[duplicated(target_coef)][[1L]]
+    cli::cli_abort(c(
+      "Duplicate bivariate random-effect scale target {.code {duplicate}}.",
+      "x" = "Each bivariate location random-effect coefficient can have only one scale formula."
     ))
   }
   targets
@@ -5523,7 +5627,8 @@ biv_gaussian_start <- function(
   re_mu = empty_random_mu_structure(length(y1)),
   re_sigma = empty_random_sigma_structure(length(y1)),
   re_mu_sigma = empty_mu_sigma_random_covariance(re_sigma$n_re),
-  phylo_mu = empty_phylo_mu_structure()
+  phylo_mu = empty_phylo_mu_structure(),
+  sd_mu = empty_sd_mu_structure(re_mu$n_re)
 ) {
   fit1 <- stats::lm.fit(x = X_mu1, y = y1)
   fit2 <- stats::lm.fit(x = X_mu2, y = y2)
@@ -5586,6 +5691,7 @@ biv_gaussian_start <- function(
     y2_scale <- 1
   }
   mu_re_start <- biv_gaussian_mu_re_start(re_mu, c(y1_scale, y2_scale))
+  beta_sd_mu <- gaussian_sd_mu_start(mu_re_start, sd_mu)
   sigma_re_start <- gaussian_sigma_re_start(re_sigma)
   phylo_start <- biv_gaussian_phylo_start(phylo_mu, c(y1_scale, y2_scale))
 
@@ -5596,7 +5702,7 @@ biv_gaussian_start <- function(
       beta_nu = 0,
       beta_zi = 0,
       theta_ord = 0,
-      beta_sd_mu = 0,
+      beta_sd_mu = beta_sd_mu,
       u_mu = mu_re_start$u_mu,
       log_sd_mu = mu_re_start$log_sd_mu,
       eta_cor_mu = mu_re_start$eta_cor_mu,
@@ -5710,15 +5816,15 @@ biv_gaussian_map <- function(
   re_mu = empty_random_mu_structure(1L),
   re_sigma = empty_random_sigma_structure(1L),
   re_mu_sigma = empty_mu_sigma_random_covariance(re_sigma$n_re),
-  phylo_mu = empty_phylo_mu_structure()
+  phylo_mu = empty_phylo_mu_structure(),
+  sd_mu = empty_sd_mu_structure(re_mu$n_re)
 ) {
   out <- list(
     beta_mu = factor(NA),
     beta_sigma = factor(NA),
     beta_nu = factor(NA),
     beta_zi = factor(NA),
-    theta_ord = factor(NA),
-    beta_sd_mu = factor(NA)
+    theta_ord = factor(NA)
   )
   if (!isTRUE(phylo_mu$has)) {
     out$u_phylo <- factor(NA)
@@ -5728,6 +5834,11 @@ biv_gaussian_map <- function(
   if (re_mu$n_re == 0L) {
     out$u_mu <- factor(NA)
     out$log_sd_mu <- factor(NA)
+  }
+  if (re_mu$n_re > 0L && sd_mu$n_models > 0L) {
+    log_sd_map <- seq_len(re_mu$n_terms)
+    log_sd_map[unname(sd_mu$target_coef)] <- NA_integer_
+    out$log_sd_mu <- factor(log_sd_map)
   }
   if (re_mu$n_cors == 0L) {
     out$eta_cor_mu <- factor(NA)
@@ -5741,6 +5852,9 @@ biv_gaussian_map <- function(
   }
   if (re_sigma$n_cors == 0L) {
     out$eta_cor_sigma <- factor(NA)
+  }
+  if (sd_mu$n_models == 0L) {
+    out$beta_sd_mu <- factor(NA)
   }
   out
 }
@@ -6478,8 +6592,8 @@ make_tmb_data <- function(spec) {
       X_sigma = dummy_matrix,
       X_nu = dummy_matrix,
       X_zi = dummy_matrix,
-      X_sd_mu = dummy_matrix,
-      has_sd_mu_model = 0L,
+      X_sd_mu = spec$random_scale$mu$X,
+      has_sd_mu_model = as.integer(spec$random_scale$mu$n_models > 0L),
       X_mu1 = spec$X$mu1,
       X_mu2 = spec$X$mu2,
       X_sigma1 = spec$X$sigma1,
@@ -6618,13 +6732,25 @@ split_tmb_parameters <- function(par, spec) {
   names(beta_sigma2) <- colnames(spec$X$sigma2)
   names(beta_rho12) <- colnames(spec$X$rho12)
 
-  list(
+  out <- list(
     mu1 = beta_mu1,
     mu2 = beta_mu2,
     sigma1 = beta_sigma1,
     sigma2 = beta_sigma2,
     rho12 = beta_rho12
   )
+  if (spec$random_scale$mu$n_models > 0L) {
+    beta_sd_mu <- unname(par$beta_sd_mu[seq_len(ncol(
+      spec$random_scale$mu$X
+    ))])
+    for (dpar in spec$random_scale$mu$dpars) {
+      coef_index <- spec$random_scale$mu$coef_index[[dpar]]
+      beta_sd_mu_dpar <- beta_sd_mu[coef_index]
+      names(beta_sd_mu_dpar) <- spec$random_scale$mu$coef_names_list[[dpar]]
+      out[[dpar]] <- beta_sd_mu_dpar
+    }
+  }
+  out
 }
 
 ordinal_fit_info <- function(par, spec) {

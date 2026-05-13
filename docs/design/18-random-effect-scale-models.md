@@ -16,6 +16,7 @@ word.
 | `sigma_i` | residual or within-observation standard deviation | `sigma ~ x1` | implemented for Gaussian |
 | `a_g` | residual-scale random effect added to `log(sigma_i)` | `sigma ~ x1 + (1 | id)` or `sigma ~ x1 + (0 + w | id)` | implemented for univariate Gaussian random intercepts and independent random slopes |
 | `sd_mu_id` | standard deviation of a `mu` random effect | `sd(id) ~ x_group` | implemented for one or more distinct unlabelled Gaussian `mu` random intercepts |
+| `sd_mu1_id`, `sd_mu2_id` | response-specific standard deviations of bivariate location random effects | `sd1(id) ~ x_group`, `sd2(id) ~ x_group` | implemented for labelled bivariate Gaussian `mu1`/`mu2` location random intercepts |
 | `rho_re` | group-level random-effect correlation | `(1 + x1 | id)` | implemented for one `mu` slope |
 | `rho12_i` | residual correlation between two responses | `rho12 ~ x1` | implemented for fixed-effect bivariate Gaussian |
 
@@ -182,6 +183,14 @@ future `drmTMB` work: separate scale equations can be written for different
 random factors, such as phylogenetic and non-phylogenetic species effects,
 without treating all of them as residual `sigma`.
 
+That bridge defines a second model family. In Family A, random effects may
+enter `sigma` formulas directly, and future `corpair()` work will describe
+correlations among latent location and scale effects. In Family B,
+`sd(group)`, `sd1(group)`, and `sd2(group)` model the SD of location random
+effects directly. Do not combine both ideas for the same latent layer; for
+example, `sigma1 = ~ z + (1 | p | id)` and `sd_sigma1(id) ~ w` are not a valid
+first target.
+
 ## Multiple Random-Effect Scale Components
 
 When there are several random-effect components, each scale formula must name
@@ -291,22 +300,61 @@ drmTMB(
 between random intercepts, random slopes, or random scale effects. Those
 belong to group-level covariance blocks and should be extracted separately.
 
+The implemented bivariate direct-SD syntax targets location random effects
+only:
+
+```text
+mu1_i = X_mu1[i, ] beta_mu1 + b1[id_i]
+mu2_i = X_mu2[i, ] beta_mu2 + b2[id_i]
+[u1_j, u2_j]' ~ Normal([0, 0]', R_group)
+b1_j = sd_mu1_id,j u1_j
+b2_j = sd_mu2_id,j u2_j
+log(sd_mu1_id,j) = W1_id[j, ] alpha1
+log(sd_mu2_id,j) = W2_id[j, ] alpha2
+```
+
+Matching implemented R syntax:
+
+```r
+drmTMB(
+  bf(
+    mu1 = y1 ~ x + (1 | p | id),
+    mu2 = y2 ~ x + (1 | p | id),
+    sigma1 = ~ z1,
+    sigma2 = ~ z2,
+    rho12 = ~ w,
+    sd1(id) ~ x_group1,
+    sd2(id) ~ x_group2
+  ),
+  family = biv_gaussian(),
+  data = dat
+)
+```
+
+`sd1(id)` targets the `mu1` location random-intercept SD and `sd2(id)` targets
+the `mu2` location random-intercept SD. Their predictors must be constant
+within `id`, just like univariate `sd(id)`. They do not target residual
+`sigma1`, residual `sigma2`, or random effects inside the scale formulas.
+
 ## Implementation Rules
 
-The implemented `sd(group) ~ x` path should:
+The implemented `sd(group) ~ x` and bivariate `sd1(group) ~ x` / `sd2(group) ~
+x` paths should:
 
-1. support only univariate Gaussian models;
-2. target one or more distinct unlabelled `mu` random intercepts such as
-   `(1 | id)` and `(1 | site)`;
-3. reject bivariate models, random slopes, labelled blocks, duplicate targets,
-   and mismatched grouping factors;
-4. require right-hand-side predictors to be constant within target groups;
-5. use a non-centered TMB parameterization with standardized `u_j`;
-6. replace each targeted scalar `log_sd_mu` with a group-level linear
+1. support Gaussian models first;
+2. target one or more distinct unlabelled univariate `mu` random intercepts
+   such as `(1 | id)` and `(1 | site)`;
+3. target labelled bivariate Gaussian location random intercepts through
+   `sd1(group)` for `mu1` and `sd2(group)` for `mu2`;
+4. reject random slopes, duplicate targets, mismatched grouping factors, and
+   names such as `sd_sigma1()` / `sd_sigma2()`;
+5. require right-hand-side predictors to be constant within target groups;
+6. use a non-centered TMB parameterization with standardized `u_j`;
+7. replace each targeted scalar `log_sd_mu` with a group-level linear
    predictor such as `W_id alpha_id`;
-7. keep residual `sigma` and residual-scale random effects independent of the
+8. keep residual `sigma` and residual-scale random effects independent of the
    `sd(group)` scale model;
-8. add simulation recovery and malformed-input tests before user docs call the
+9. add simulation recovery and malformed-input tests before user docs call the
    syntax implemented.
 
 ## Test Contract

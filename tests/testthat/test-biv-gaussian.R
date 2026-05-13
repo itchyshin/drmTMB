@@ -419,6 +419,55 @@ new_biv_gaussian_mu_sigma_re_data <- function(
   )
 }
 
+new_biv_gaussian_location_sd_data <- function(
+  n_id = 42,
+  n_each = 7,
+  rho_group = 0.35,
+  residual_rho = 0.10,
+  seed = 2026051306
+) {
+  set.seed(seed)
+  id <- factor(rep(seq_len(n_id), each = n_each))
+  n <- length(id)
+  x <- stats::rnorm(n)
+  w1_group <- stats::rnorm(n_id)
+  w2_group <- stats::rnorm(n_id)
+  w1 <- w1_group[id]
+  w2 <- w2_group[id]
+  beta_mu1 <- c(0.15, 0.35)
+  beta_mu2 <- c(-0.10, -0.30)
+  beta_sigma1 <- log(0.42)
+  beta_sigma2 <- log(0.48)
+  alpha1 <- c(`(Intercept)` = log(0.38), w1 = 0.45)
+  alpha2 <- c(`(Intercept)` = log(0.52), w2 = -0.35)
+
+  tau1 <- exp(alpha1[[1L]] + alpha1[[2L]] * w1_group)
+  tau2 <- exp(alpha2[[1L]] + alpha2[[2L]] * w2_group)
+  z1 <- stats::rnorm(n_id)
+  z2 <- rho_group * z1 + sqrt(1 - rho_group^2) * stats::rnorm(n_id)
+  b1 <- tau1 * z1
+  b2 <- tau2 * z2
+  e1 <- stats::rnorm(n)
+  e2 <- residual_rho * e1 + sqrt(1 - residual_rho^2) * stats::rnorm(n)
+
+  dat <- data.frame(id = id, x = x, w1 = w1, w2 = w2)
+  dat$y1 <- beta_mu1[[1L]] + beta_mu1[[2L]] * x + b1[id] + exp(beta_sigma1) * e1
+  dat$y2 <- beta_mu2[[1L]] + beta_mu2[[2L]] * x + b2[id] + exp(beta_sigma2) * e2
+
+  list(
+    data = dat,
+    beta_mu1 = beta_mu1,
+    beta_mu2 = beta_mu2,
+    beta_sigma = c(beta_sigma1, beta_sigma2),
+    alpha1 = alpha1,
+    alpha2 = alpha2,
+    tau1 = tau1,
+    tau2 = tau2,
+    rho_group = rho_group,
+    residual_rho = residual_rho
+  )
+}
+
 expect_abs_error_below <- function(actual, expected, tolerance) {
   expect_lt(max(abs(unname(actual) - unname(expected))), tolerance)
 }
@@ -537,6 +586,115 @@ test_that("bivariate Gaussian supports labelled mu1/mu2 random-intercept covaria
   expect_equal(nrow(corpairs(fit, block = "p")), 1L)
   expect_equal(nrow(corpairs(fit, group = "missing")), 0L)
   expect_equal(nrow(corpairs(fit, block = "missing")), 0L)
+})
+
+test_that("bivariate Gaussian supports sd1(id) and sd2(id) location random-effect SD models", {
+  sim <- new_biv_gaussian_location_sd_data()
+
+  fit <- drmTMB(
+    bf(
+      mu1 = y1 ~ x + (1 | p | id),
+      mu2 = y2 ~ x + (1 | p | id),
+      sigma1 = ~1,
+      sigma2 = ~1,
+      rho12 = ~1,
+      sd1(id) ~ w1,
+      sd2(id) ~ w2
+    ),
+    family = biv_gaussian(),
+    data = sim$data,
+    control = list(eval.max = 350, iter.max = 350)
+  )
+
+  sd1_hat <- predict(fit, dpar = "sd1(id)")
+  sd2_hat <- predict(fit, dpar = "sd2(id)")
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_true(fit$sdr$pdHess)
+  expect_named(
+    fit$coefficients,
+    c("mu1", "mu2", "sigma1", "sigma2", "rho12", "sd1(id)", "sd2(id)")
+  )
+  expect_named(fit$sdpars, c("sd1(id)", "sd2(id)"))
+  expect_false("mu" %in% names(fit$sdpars))
+  expect_equal(unname(fit$model$random_scale$mu$target_coef), c(1L, 2L))
+  expect_true(all(fit$model$random_scale$mu$re_sd_row0 >= 0L))
+  expect_true(all(sd1_hat > 0))
+  expect_true(all(sd2_hat > 0))
+  expect_equal(length(sd1_hat), nlevels(sim$data$id))
+  expect_equal(length(sd2_hat), nlevels(sim$data$id))
+  expect_gt(stats::cor(log(sd1_hat), log(sim$tau1)), 0.35)
+  expect_gt(stats::cor(log(sd2_hat), log(sim$tau2)), 0.35)
+  expect_lt(max(abs(unname(coef(fit, "sd1(id)")) - unname(sim$alpha1))), 0.55)
+  expect_lt(max(abs(unname(coef(fit, "sd2(id)")) - unname(sim$alpha2))), 0.65)
+  expect_equal(nrow(corpairs(fit, level = "group")), 1L)
+})
+
+test_that("bivariate Gaussian sd1(id) and sd2(id) reject non-location and observation-level targets", {
+  sim <- new_biv_gaussian_location_sd_data(n_id = 16, n_each = 4)
+  dat <- sim$data
+  dat$site <- dat$id
+
+  expect_error(
+    drmTMB(
+      bf(
+        mu1 = y1 ~ x,
+        mu2 = y2 ~ x + (1 | p | id),
+        sigma1 = ~1,
+        sigma2 = ~1,
+        sd1(id) ~ w1
+      ),
+      family = biv_gaussian(),
+      data = dat
+    ),
+    "No bivariate location random-effect term matches"
+  )
+  expect_error(
+    drmTMB(
+      bf(
+        mu1 = y1 ~ x + (1 | p | id),
+        mu2 = y2 ~ x + (1 | p | id),
+        sigma1 = ~1,
+        sigma2 = ~1,
+        sd2(site) ~ w2
+      ),
+      family = biv_gaussian(),
+      data = dat
+    ),
+    "No bivariate location random-effect term matches"
+  )
+
+  dat$w_obs <- stats::rnorm(nrow(dat))
+  expect_error(
+    drmTMB(
+      bf(
+        mu1 = y1 ~ x + (1 | p | id),
+        mu2 = y2 ~ x + (1 | p | id),
+        sigma1 = ~1,
+        sigma2 = ~1,
+        sd1(id) ~ w_obs
+      ),
+      family = biv_gaussian(),
+      data = dat
+    ),
+    "varies within"
+  )
+  expect_error(
+    bf(
+      mu1 = y1 ~ x + (1 | p | id),
+      mu2 = y2 ~ x + (1 | p | id),
+      sd_sigma1(id) ~ w1
+    ),
+    "not a supported"
+  )
+  expect_error(
+    bf(
+      mu1 = y1 ~ x + (1 | p | id),
+      mu2 = y2 ~ x + (1 | p | id),
+      sd_phylo(id) ~ w1
+    ),
+    "planned but not implemented"
+  )
 })
 
 test_that("bivariate Gaussian supports labelled sigma1/sigma2 random-intercept covariance blocks", {

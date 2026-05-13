@@ -67,7 +67,7 @@ is the current routing contract:
 | TMB `model_type` | User-facing route | R builder | TMB branch purpose |
 |---:|---|---|---|
 | `1` | `family = gaussian()` | `drm_build_gaussian_ls_spec()` | Univariate Gaussian location-scale models, including ordinary `mu` random effects, residual-scale `sigma` random effects, `sd(group) ~ ...` random-effect scale models, `meta_known_V(V = V)`, and the implemented intercept-only `phylo()` location effect. |
-| `2` | `family = biv_gaussian()`, `family = c(gaussian(), gaussian())`, or `family = list(gaussian(), gaussian())` | `drm_build_biv_gaussian_spec()` | Bivariate Gaussian location-scale-coscale models with `mu1`, `mu2`, `sigma1`, `sigma2`, and residual `rho12`, including complete-row dense known sampling covariance, matching labelled `mu1`/`mu2` and `sigma1`/`sigma2` random-intercept covariance blocks, one same-response `mu`/`sigma` random-intercept covariance pair, and matching intercept-only phylogenetic random intercepts in `mu1` and `mu2`. |
+| `2` | `family = biv_gaussian()`, `family = c(gaussian(), gaussian())`, or `family = list(gaussian(), gaussian())` | `drm_build_biv_gaussian_spec()` | Bivariate Gaussian location-scale-coscale models with `mu1`, `mu2`, `sigma1`, `sigma2`, and residual `rho12`, including complete-row dense known sampling covariance, matching labelled `mu1`/`mu2` and `sigma1`/`sigma2` random-intercept covariance blocks, one same-response `mu`/`sigma` random-intercept covariance pair, bivariate location random-effect SD formulas `sd1(group)` / `sd2(group)`, and matching intercept-only phylogenetic random intercepts in `mu1` and `mu2`. |
 | `3` | `family = student()` | `drm_build_student_ls_spec()` | Univariate Student-t location-scale-shape models with `mu`, `sigma`, and `nu = 2 + exp(eta_nu)`. |
 | `4` | `family = lognormal()` | `drm_build_lognormal_ls_spec()` | Univariate fixed-effect lognormal location-scale models for positive responses, with `mu` and `sigma` defined on the log-response scale. |
 | `5` | `family = Gamma(link = "log")` | `drm_build_gamma_ls_spec()` | Univariate fixed-effect Gamma mean-CV models for positive responses, with `mu` as the response mean and `sigma` as the coefficient of variation. |
@@ -257,6 +257,43 @@ The right-hand side of `sd(id) ~ x_group` is evaluated once per `id` level.
 Predictors must be constant within `id` after missing-row filtering. This
 models among-group variation in the location random intercept; it is not a
 residual-scale model and it is not a second `sigma` formula.
+
+The implemented bivariate Gaussian direct-SD model uses response-specific
+location random-effect SD formulas:
+
+```text
+[y1_i, y2_i]' ~ MVN([mu1_i, mu2_i]', Omega_i)
+mu1_i = X_mu1[i, ] beta_mu1 + b1[id_i]
+mu2_i = X_mu2[i, ] beta_mu2 + b2[id_i]
+[u1_j, u2_j]' ~ Normal([0, 0]', R_group)
+b1_j = sd_mu1_id,j u1_j
+b2_j = sd_mu2_id,j u2_j
+log(sd_mu1_id,j) = W1_id[j, ] alpha1
+log(sd_mu2_id,j) = W2_id[j, ] alpha2
+```
+
+Matching R syntax:
+
+```r
+drmTMB(
+  bf(
+    mu1 = y1 ~ x + (1 | p | id),
+    mu2 = y2 ~ x + (1 | p | id),
+    sigma1 = ~ z1,
+    sigma2 = ~ z2,
+    rho12 = ~ w,
+    sd1(id) ~ x_group1,
+    sd2(id) ~ x_group2
+  ),
+  family = biv_gaussian(),
+  data = dat
+)
+```
+
+`sd1(id)` targets the `mu1` location random-effect SD and `sd2(id)` targets
+the `mu2` location random-effect SD. These are Family B direct
+variance-component scale models, not residual `sigma1` / `sigma2` models and
+not SD regressions for random effects inside the scale formulas.
 
 For several distinct random-intercept targets, the likelihood uses the same
 non-centered construction for each component:

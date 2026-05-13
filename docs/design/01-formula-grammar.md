@@ -351,6 +351,27 @@ x_id` and `sd(site) ~ x_site`. The syntax models the standard deviation of a
 `mu` random effect, not residual `sigma`. Detailed rules are in
 `docs/design/18-random-effect-scale-models.md`.
 
+For bivariate Gaussian location random effects, the implemented direct-SD
+syntax uses response-specific names:
+
+```r
+bf(
+  mu1 = y1 ~ x + (1 | p | id),
+  mu2 = y2 ~ x + (1 | p | id),
+  sigma1 = ~ 1,
+  sigma2 = ~ 1,
+  rho12 = ~ 1,
+  sd1(id) ~ z1,
+  sd2(id) ~ z2
+)
+```
+
+Here `sd1(id)` models the SD of the `mu1` location random intercept and
+`sd2(id)` models the SD of the `mu2` location random intercept. These are
+Family B direct variance-component scale models. They are not residual
+`sigma1` or `sigma2` models, and they do not target random effects inside the
+`sigma1` or `sigma2` formulas.
+
 Future correlated multi-slope syntax should allow larger model-matrix terms
 such as:
 
@@ -368,8 +389,10 @@ A block with `q` random coefficients has `q * (q + 1) / 2` covariance
 parameters, so large random-slope blocks need simulation checks and clear user
 warnings.
 
-Random-effect scale components use `sd(group) ~`. The implemented Gaussian
-path supports one or more distinct unlabelled `mu` random-intercept targets:
+Random-effect scale components use `sd(group) ~` in univariate Gaussian models
+and `sd1(group) ~` / `sd2(group) ~` in bivariate Gaussian models. The
+implemented univariate Gaussian path supports one or more distinct unlabelled
+`mu` random-intercept targets:
 
 ```r
 bf(
@@ -379,6 +402,12 @@ bf(
   sd(id2) ~ x1 + x2
 )
 ```
+
+The implemented bivariate Gaussian path supports labelled location
+random-intercept targets in `mu1` and `mu2`, for example `sd1(id) ~ x_id` and
+`sd2(id) ~ x_id`. Names such as `sd_sigma1()` and `sd_sigma2()` are rejected
+because they invite the unsupported mixture of a scale-formula random effect
+and a direct SD model for the same latent layer.
 
 ## Structured Phylogenetic and Spatial Markers
 
