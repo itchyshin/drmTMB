@@ -2,6 +2,34 @@
 
 Record meaningful development checks here.
 
+## 2026-05-13 -- Slice 4 `check_drm()` registry diagnostics
+
+Scope:
+
+- routed the existing covariance diagnostics in `check_drm()` through
+  `object$model$random$covariance_blocks` when covered two-member registry
+  pairs are available;
+- preserved current diagnostic row names, values, statuses, and messages for
+  univariate `mu`/`sigma`, bivariate `mu1`/`mu2`, bivariate
+  `sigma1`/`sigma2`, and same-response bivariate `mu`/`sigma` covariance
+  blocks;
+- kept fallback logic for older objects without a registry;
+- changed no accepted syntax, likelihood code, TMB data passed to C++, or
+  fitted parameter estimates.
+
+Checks:
+
+- Mill/Curie-copy mapped the existing `check_drm()` helper contracts and test
+  expectations before editing.
+- `air format R/check.R tests/testthat/test-check-drm.R
+  tests/testthat/test-biv-gaussian.R`: passed.
+- `Rscript -e 'devtools::test(filter = "check-drm")'`: passed with 96
+  expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript -e 'devtools::test(filter =
+  "check-drm|biv-gaussian|gaussian-random-intercepts|corpairs|profile-targets")'`:
+  passed with 1153 expectations, 0 failures, 0 warnings, and 0 skips.
+- `git diff --check`: passed.
+
 ## 2026-05-13 -- Slice 4 `corpairs()` registry extraction
 
 Scope:

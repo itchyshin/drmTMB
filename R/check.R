@@ -765,10 +765,141 @@ check_random_effect_design <- function(object, block) {
   )
 }
 
+registry_covariance_pair <- function(
+  object,
+  class,
+  from_dpar = NULL,
+  to_dpar = NULL
+) {
+  registry <- object$model$random$covariance_blocks
+  if (
+    !is.list(registry) ||
+      is.null(registry$pairs) ||
+      nrow(registry$pairs) == 0L
+  ) {
+    return(NULL)
+  }
+
+  pairs <- registry$pairs
+  keep <- pairs$class == class
+  if (!is.null(from_dpar)) {
+    keep <- keep & pairs$from_dpar %in% from_dpar
+  }
+  if (!is.null(to_dpar)) {
+    keep <- keep & pairs$to_dpar %in% to_dpar
+  }
+  pairs <- pairs[keep, , drop = FALSE]
+  if (nrow(pairs) == 0L) {
+    return(NULL)
+  }
+  if (nrow(pairs) != 1L) {
+    return(list(complex = TRUE, n_pairs = nrow(pairs)))
+  }
+
+  pair <- pairs[1L, , drop = FALSE]
+  registry <- object$model$random$covariance_blocks
+  block <- registry$blocks[
+    registry$blocks$block_id0 == pair$block_id0[[1L]],
+    ,
+    drop = FALSE
+  ]
+  members <- registry$members[
+    registry$members$block_id0 == pair$block_id0[[1L]],
+    ,
+    drop = FALSE
+  ]
+  if (nrow(block) != 1L || nrow(members) == 0L) {
+    return(list(complex = TRUE, n_pairs = nrow(pairs)))
+  }
+
+  list(
+    complex = FALSE,
+    pair = pair,
+    block = block,
+    members = members
+  )
+}
+
+registry_covariance_member <- function(info, dpar) {
+  member <- info$members[info$members$dpar == dpar, , drop = FALSE]
+  if (nrow(member) != 1L) {
+    return(NULL)
+  }
+  member
+}
+
+registry_member_group_counts <- function(member, n_groups) {
+  if (!is.finite(n_groups) || n_groups < 1L) {
+    return(integer())
+  }
+  index <- member$latent_index0[[1L]]
+  index <- index[!is.na(index) & index >= 0L]
+  tabulate((index %% n_groups) + 1L, nbins = n_groups)
+}
+
 check_mu_sigma_random_effect_covariance <- function(object) {
   if (!identical(object$model$model_type, "gaussian")) {
     return(NULL)
   }
+  registry_pair <- registry_covariance_pair(
+    object,
+    class = "mean-scale",
+    from_dpar = "mu",
+    to_dpar = "sigma"
+  )
+  if (!is.null(registry_pair)) {
+    if (isTRUE(registry_pair$complex)) {
+      return(check_row(
+        "mu_sigma_random_effect_covariance",
+        "note",
+        paste0("n_pairs=", registry_pair$n_pairs),
+        "The fitted mu/sigma covariance block is more complex than the current diagnostic summary."
+      ))
+    }
+
+    mu_member <- registry_covariance_member(registry_pair, "mu")
+    sigma_member <- registry_covariance_member(registry_pair, "sigma")
+    if (is.null(mu_member) || is.null(sigma_member)) {
+      return(NULL)
+    }
+
+    group_counts <- registry_member_group_counts(
+      sigma_member,
+      registry_pair$block$n_groups[[1L]]
+    )
+    min_count <- min(group_counts)
+    singleton_groups <- sum(group_counts < 2L)
+    sd_mu <- unname(object$sdpars$mu[[mu_member$label[[1L]]]])
+    sd_sigma <- unname(object$sdpars$sigma[[sigma_member$label[[1L]]]])
+    residual_scale <- mean(stats::sigma(object), na.rm = TRUE)
+    mu_sd_ratio <- sd_mu / residual_scale
+    weak_replication <- min_count < 2L
+    weak_sd <- !is.finite(mu_sd_ratio) ||
+      !is.finite(sd_sigma) ||
+      mu_sd_ratio < 0.05 ||
+      sd_sigma < 0.05
+
+    return(check_row(
+      "mu_sigma_random_effect_covariance",
+      if (weak_replication || weak_sd) "note" else "ok",
+      paste0(
+        "term=",
+        sigma_member$label[[1L]],
+        "; n_groups=",
+        registry_pair$block$n_groups[[1L]],
+        "; min_group_n=",
+        min_count,
+        "; singleton_groups=",
+        singleton_groups,
+        "; mu_sd_ratio=",
+        format_check_number(mu_sd_ratio),
+        "; sigma_log_sd=",
+        format_check_number(sd_sigma)
+      ),
+      mu_sigma_re_diagnostic_message(weak_replication, weak_sd)
+    ))
+  }
+
   re_mu_sigma <- object$model$random$mu_sigma
   if (is.null(re_mu_sigma) || re_mu_sigma$n_cors == 0L) {
     return(NULL)
@@ -858,6 +989,60 @@ check_biv_mu_random_effect_covariance <- function(object) {
   if (!identical(object$model$model_type, "biv_gaussian")) {
     return(NULL)
   }
+  registry_pair <- registry_covariance_pair(
+    object,
+    class = "mean-mean",
+    from_dpar = "mu1",
+    to_dpar = "mu2"
+  )
+  if (!is.null(registry_pair)) {
+    if (isTRUE(registry_pair$complex)) {
+      return(check_row(
+        "biv_mu_random_effect_covariance",
+        "note",
+        paste0("n_pairs=", registry_pair$n_pairs),
+        "The fitted bivariate mu covariance block is more complex than the current diagnostic summary."
+      ))
+    }
+
+    first_member <- registry_covariance_member(registry_pair, "mu1")
+    if (is.null(first_member)) {
+      return(NULL)
+    }
+    n_group <- registry_pair$block$n_groups[[1L]]
+    group_counts <- registry_member_group_counts(first_member, n_group)
+    min_count <- min(group_counts)
+    singleton_groups <- sum(group_counts < 2L)
+    sd_ratios <- bivariate_mu_registry_sd_ratios(
+      object,
+      registry_pair$members
+    )
+    finite_sd_ratios <- sd_ratios[is.finite(sd_ratios)]
+    min_sd_ratio <- if (length(finite_sd_ratios) > 0L) {
+      min(finite_sd_ratios)
+    } else {
+      NA_real_
+    }
+    weak_sd <- any(finite_sd_ratios < 0.05)
+    weak_replication <- min_count < 2L
+
+    return(check_row(
+      "biv_mu_random_effect_covariance",
+      if (weak_replication || weak_sd) "note" else "ok",
+      paste0(
+        "n_groups=",
+        n_group,
+        "; min_group_n=",
+        min_count,
+        "; singleton_groups=",
+        singleton_groups,
+        "; min_sd_ratio=",
+        format_check_number(min_sd_ratio)
+      ),
+      bivariate_mu_re_diagnostic_message(weak_replication, weak_sd)
+    ))
+  }
+
   re <- object$model$random$mu
   if (is.null(re) || re$n_re == 0L || re$n_terms == 0L) {
     return(NULL)
@@ -895,6 +1080,23 @@ check_biv_mu_random_effect_covariance <- function(object) {
     ),
     bivariate_mu_re_diagnostic_message(weak_replication, weak_sd)
   )
+}
+
+bivariate_mu_registry_sd_ratios <- function(object, members) {
+  sdpars <- object$sdpars$mu
+  if (is.null(sdpars) || length(sdpars) == 0L) {
+    return(numeric())
+  }
+  sigma_values <- tryCatch(stats::sigma(object), error = function(e) e)
+  if (inherits(sigma_values, "error") || !is.list(sigma_values)) {
+    return(numeric())
+  }
+  residual_scale <- c(
+    mu1 = mean(sigma_values$sigma1, na.rm = TRUE),
+    mu2 = mean(sigma_values$sigma2, na.rm = TRUE)
+  )
+  sd_values <- unname(sdpars[match(members$label, names(sdpars))])
+  sd_values / residual_scale[members$dpar]
 }
 
 bivariate_mu_re_sd_ratios <- function(object, re) {
@@ -941,6 +1143,79 @@ check_biv_mu_sigma_random_effect_covariance <- function(object) {
   if (!identical(object$model$model_type, "biv_gaussian")) {
     return(NULL)
   }
+  registry_pair <- registry_covariance_pair(
+    object,
+    class = "mean-scale",
+    from_dpar = c("mu1", "mu2"),
+    to_dpar = c("sigma1", "sigma2")
+  )
+  if (!is.null(registry_pair)) {
+    if (isTRUE(registry_pair$complex)) {
+      return(check_row(
+        "biv_mu_sigma_random_effect_covariance",
+        "note",
+        paste0("n_pairs=", registry_pair$n_pairs),
+        "The fitted bivariate mu/sigma covariance block is more complex than the current diagnostic summary."
+      ))
+    }
+
+    mu_member <- registry_covariance_member(
+      registry_pair,
+      registry_pair$pair$from_dpar[[1L]]
+    )
+    sigma_member <- registry_covariance_member(
+      registry_pair,
+      registry_pair$pair$to_dpar[[1L]]
+    )
+    if (is.null(mu_member) || is.null(sigma_member)) {
+      return(NULL)
+    }
+
+    group_counts <- registry_member_group_counts(
+      sigma_member,
+      registry_pair$block$n_groups[[1L]]
+    )
+    min_count <- min(group_counts)
+    singleton_groups <- sum(group_counts < 2L)
+    sd_mu <- unname(object$sdpars$mu[[mu_member$label[[1L]]]])
+    sd_sigma <- unname(object$sdpars$sigma[[sigma_member$label[[1L]]]])
+    sigma_values <- tryCatch(stats::sigma(object), error = function(e) e)
+    sigma_dpar <- sigma_member$dpar[[1L]]
+    residual_scale <- if (
+      inherits(sigma_values, "error") || !is.list(sigma_values)
+    ) {
+      NA_real_
+    } else {
+      mean(sigma_values[[sigma_dpar]], na.rm = TRUE)
+    }
+    mu_sd_ratio <- sd_mu / residual_scale
+    weak_replication <- min_count < 2L
+    weak_sd <- !is.finite(mu_sd_ratio) ||
+      !is.finite(sd_sigma) ||
+      mu_sd_ratio < 0.05 ||
+      sd_sigma < 0.05
+
+    return(check_row(
+      "biv_mu_sigma_random_effect_covariance",
+      if (weak_replication || weak_sd) "note" else "ok",
+      paste0(
+        "term=",
+        sigma_member$label[[1L]],
+        "; n_groups=",
+        registry_pair$block$n_groups[[1L]],
+        "; min_group_n=",
+        min_count,
+        "; singleton_groups=",
+        singleton_groups,
+        "; mu_sd_ratio=",
+        format_check_number(mu_sd_ratio),
+        "; sigma_log_sd=",
+        format_check_number(sd_sigma)
+      ),
+      bivariate_mu_sigma_re_diagnostic_message(weak_replication, weak_sd)
+    ))
+  }
+
   re_mu_sigma <- object$model$random$mu_sigma
   if (is.null(re_mu_sigma) || re_mu_sigma$n_cors == 0L) {
     return(NULL)
@@ -1044,6 +1319,61 @@ check_biv_sigma_random_effect_covariance <- function(object) {
   if (!identical(object$model$model_type, "biv_gaussian")) {
     return(NULL)
   }
+  registry_pair <- registry_covariance_pair(
+    object,
+    class = "scale-scale",
+    from_dpar = "sigma1",
+    to_dpar = "sigma2"
+  )
+  if (!is.null(registry_pair)) {
+    if (isTRUE(registry_pair$complex)) {
+      return(check_row(
+        "biv_sigma_random_effect_covariance",
+        "note",
+        paste0("n_pairs=", registry_pair$n_pairs),
+        "The fitted bivariate sigma covariance block is more complex than the current diagnostic summary."
+      ))
+    }
+
+    first_member <- registry_covariance_member(registry_pair, "sigma1")
+    if (is.null(first_member)) {
+      return(NULL)
+    }
+    n_group <- registry_pair$block$n_groups[[1L]]
+    group_counts <- registry_member_group_counts(first_member, n_group)
+    min_count <- min(group_counts)
+    singleton_groups <- sum(group_counts < 2L)
+    sdpars <- object$sdpars$sigma
+    sd_values <- unname(sdpars[match(
+      registry_pair$members$label,
+      names(sdpars)
+    )])
+    finite_sd_values <- sd_values[is.finite(sd_values)]
+    min_sd <- if (length(finite_sd_values) > 0L) {
+      min(finite_sd_values)
+    } else {
+      NA_real_
+    }
+    weak_sd <- any(finite_sd_values < 0.05)
+    weak_replication <- min_count < 2L
+
+    return(check_row(
+      "biv_sigma_random_effect_covariance",
+      if (weak_replication || weak_sd) "note" else "ok",
+      paste0(
+        "n_groups=",
+        n_group,
+        "; min_group_n=",
+        min_count,
+        "; singleton_groups=",
+        singleton_groups,
+        "; min_log_sigma_sd=",
+        format_check_number(min_sd)
+      ),
+      bivariate_sigma_re_diagnostic_message(weak_replication, weak_sd)
+    ))
+  }
+
   re <- object$model$random$sigma
   if (is.null(re) || re$n_re == 0L || re$n_terms == 0L) {
     return(NULL)

@@ -682,6 +682,27 @@ test_that("bivariate Gaussian supports labelled sigma1/sigma2 random-intercept c
   expect_match(scale_cov$value, "n_groups=48")
   expect_match(scale_cov$value, "min_group_n=8")
   expect_match(scale_cov$message, "scale-scale")
+
+  singleton_registry <- fit
+  member_row <- which(
+    singleton_registry$model$random$covariance_blocks$members$dpar == "sigma1"
+  )[[1L]]
+  member_index <-
+    singleton_registry$model$random$covariance_blocks$members$latent_index0[[
+      member_row
+    ]]
+  first_group <- min(member_index[member_index >= 0L])
+  member_index[which(member_index == first_group)[-1L]] <- first_group + 1L
+  singleton_registry$model$random$covariance_blocks$members$latent_index0[[
+    member_row
+  ]] <- member_index
+  singleton_cov <- check_drm(singleton_registry)
+  singleton_scale <- singleton_cov[
+    singleton_cov$check == "biv_sigma_random_effect_covariance",
+  ]
+  expect_equal(singleton_scale$status, "note")
+  expect_match(singleton_scale$value, "singleton_groups=1")
+  expect_match(singleton_scale$message, "fewer than two")
 })
 
 test_that("bivariate Gaussian keeps mu and sigma covariance blocks distinct", {

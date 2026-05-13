@@ -172,8 +172,9 @@ still be named `sigma`.
 4. Update `corpairs()`, `profile_targets()`, and `check_drm()` to derive rows
    and diagnostics from block members. `corpairs()` now uses registry pairs for
    covered two-member blocks and falls back to legacy label parsing for any
-   uncovered fitted `corpars` rows; `profile_targets()` and `check_drm()`
-   remain next.
+   uncovered fitted `corpars` rows. `check_drm()` now derives the covered
+   two-member covariance diagnostics from registry members while preserving the
+   existing row names and messages. `profile_targets()` remains next.
 5. Pass the two-member dormant contract through the C++ boundary as a no-op
    visibility check before using it for likelihood evaluation.
 6. Add one simulation scaffold for a three-member block before exposing a
