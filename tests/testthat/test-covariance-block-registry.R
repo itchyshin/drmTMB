@@ -712,6 +712,197 @@ test_that("hidden q=4 bivariate likelihood can use TMB random effects", {
   expect_true(all(is.finite(grad)))
 })
 
+test_that("hidden q=4 bivariate likelihood recovers endpoint predictor signal", {
+  n_groups <- 10L
+  n_each <- 16L
+  group_index0 <- rep(seq_len(n_groups) - 1L, each = n_each)
+  value <- matrix(1, nrow = length(group_index0), ncol = 4L)
+  theta <- c(0.22, -0.15, 0.10, 0.18, -0.12, 0.24)
+  sd <- c(0.55, 0.50, 0.32, 0.35)
+  z <- c(
+    -0.8,
+    0.4,
+    0.9,
+    -0.3,
+    0.7,
+    -0.5,
+    -0.4,
+    0.6,
+    -0.2,
+    -0.9,
+    0.5,
+    0.8,
+    0.9,
+    0.2,
+    -0.7,
+    -0.4,
+    -0.6,
+    0.8,
+    0.3,
+    -0.9,
+    0.4,
+    -0.2,
+    -0.8,
+    0.7,
+    -0.9,
+    -0.6,
+    0.6,
+    0.2,
+    0.3,
+    0.9,
+    -0.5,
+    -0.7,
+    -0.4,
+    0.6,
+    0.8,
+    -0.2,
+    0.8,
+    -0.7,
+    -0.3,
+    0.5
+  )
+  latent <- t(apply(
+    matrix(z, ncol = 4L, byrow = TRUE),
+    1L,
+    tmb_vecscale_sqrt_cov_scale,
+    theta = theta,
+    sd = sd
+  ))
+  group <- group_index0 + 1L
+  beta_mu1 <- 0.20
+  beta_mu2 <- -0.15
+  beta_sigma1 <- log(0.18)
+  beta_sigma2 <- log(0.22)
+  beta_rho12 <- atanh(0.18)
+  true_mu1 <- beta_mu1 + latent[group, 1L]
+  true_mu2 <- beta_mu2 + latent[group, 2L]
+  true_log_sigma1 <- beta_sigma1 + latent[group, 3L]
+  true_log_sigma2 <- beta_sigma2 + latent[group, 4L]
+  eps1 <- c(
+    -1.6,
+    -1.2,
+    -0.9,
+    -0.6,
+    -0.3,
+    -0.1,
+    0.1,
+    0.3,
+    0.6,
+    0.9,
+    1.2,
+    1.6,
+    -0.45,
+    0.45,
+    -1.05,
+    1.05
+  )
+  eps2_raw <- c(
+    0.7,
+    -0.8,
+    0.2,
+    -0.1,
+    1.0,
+    -1.1,
+    0.5,
+    -0.5,
+    1.3,
+    -1.4,
+    0.9,
+    -0.9,
+    0.1,
+    -0.2,
+    1.5,
+    -1.6
+  )
+  eps1 <- as.numeric(scale(eps1, center = TRUE, scale = stats::sd(eps1)))
+  eps2_raw <- as.numeric(
+    scale(eps2_raw, center = TRUE, scale = stats::sd(eps2_raw))
+  )
+  eps2_raw <- eps2_raw - sum(eps1 * eps2_raw) / sum(eps1^2) * eps1
+  eps2_raw <- as.numeric(
+    scale(eps2_raw, center = TRUE, scale = stats::sd(eps2_raw))
+  )
+  rho <- tanh(beta_rho12)
+  eps1 <- rep(eps1, times = n_groups)
+  eps2 <- rho * eps1 + sqrt(1 - rho^2) * rep(eps2_raw, times = n_groups)
+  expect_equal(unname(stats::cor(eps1, eps2)), rho, tolerance = 1e-12)
+  dat <- data.frame(
+    y1 = true_mu1 + exp(true_log_sigma1) * eps1,
+    y2 = true_mu2 + exp(true_log_sigma2) * eps2
+  )
+  form <- bf(
+    mu1 = y1 ~ 1,
+    mu2 = y2 ~ 1,
+    sigma1 = ~1,
+    sigma2 = ~1,
+    rho12 = ~1
+  )
+  spec <- drmTMB:::drm_build_biv_gaussian_spec(
+    form,
+    data = dat,
+    env = environment(),
+    weights = NULL
+  )
+  registry <- new_four_member_covariance_registry(
+    group_index0 = group_index0,
+    group_levels = paste0("g", seq_len(n_groups)),
+    value = value
+  )
+  cov_tmb <- drmTMB:::labelled_covariance_block_tmb_data(
+    registry,
+    allow_unimplemented = TRUE
+  )
+  tmb_data <- spec$tmb_data
+  tmb_data[names(cov_tmb)] <- cov_tmb
+  tmb_data$model_type <- 95L
+  tmb_data$re_cov_probe_theta <- theta
+  tmb_data$re_cov_probe_sd <- sd
+  tmb_data$re_cov_probe_z <- numeric(0)
+  parameters <- spec$start
+  parameters$u_re_cov_probe <- rep(0, length(z))
+  map <- spec$map
+  map$u_re_cov_probe <- NULL
+
+  obj <- TMB::MakeADFun(
+    data = tmb_data,
+    parameters = parameters,
+    map = map,
+    random = c(spec$random_names, "u_re_cov_probe"),
+    DLL = "drmTMB",
+    silent = TRUE
+  )
+  opt <- stats::nlminb(
+    obj$par,
+    obj$fn,
+    obj$gr,
+    control = list(iter.max = 120, eval.max = 180)
+  )
+  obj$fn(opt$par)
+  report <- obj$report()
+  baseline_mu1 <- rep(mean(dat$y1), nrow(dat))
+  baseline_mu2 <- rep(mean(dat$y2), nrow(dat))
+  baseline_log_sigma1 <- rep(log(stats::sd(dat$y1)), nrow(dat))
+  baseline_log_sigma2 <- rep(log(stats::sd(dat$y2)), nrow(dat))
+
+  expect_equal(opt$convergence, 0)
+  expect_lt(rmse(report$mu1, true_mu1), 0.55 * rmse(baseline_mu1, true_mu1))
+  expect_lt(rmse(report$mu2, true_mu2), 0.60 * rmse(baseline_mu2, true_mu2))
+  expect_lt(
+    rmse(report$log_sigma1, true_log_sigma1),
+    0.80 * rmse(baseline_log_sigma1, true_log_sigma1)
+  )
+  expect_lt(
+    rmse(report$log_sigma2, true_log_sigma2),
+    0.80 * rmse(baseline_log_sigma2, true_log_sigma2)
+  )
+  expect_gt(stats::cor(report$mu1, true_mu1), 0.90)
+  expect_gt(stats::cor(report$mu2, true_mu2), 0.90)
+  expect_gt(stats::cor(report$log_sigma1, true_log_sigma1), 0.55)
+  expect_gt(stats::cor(report$log_sigma2, true_log_sigma2), 0.55)
+  expect_true(is.finite(obj$fn(opt$par)))
+  expect_true(all(is.finite(obj$gr(opt$par))))
+})
+
 test_that("hidden q=3 registry probe can use TMB random effects", {
   dat <- data.frame(y = c(-0.3, 0.2, 0.8, -0.1, 0.4, 0.9))
   fit <- drmTMB(bf(y ~ 1, sigma ~ 1), family = gaussian(), data = dat)

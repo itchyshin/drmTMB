@@ -148,6 +148,14 @@ TMB find the random-effect mode, and reconstructs the reported q=4 contribution
 matrix plus `mu1`, `mu2`, `log(sigma1)`, and `log(sigma2)` from that mode. This
 is a Laplace boundary check, not recovery evidence and not public q=4 syntax.
 
+A deterministic hidden q=4 recovery-style test then simulates bivariate
+Gaussian responses from intercept-level `mu1`, `mu2`, `sigma1`, and `sigma2`
+endpoint contributions. It fits the same hidden Laplace branch and checks that
+the recovered endpoint predictor signals improve over no-random-effect
+baselines. This is evidence for the hidden q=4 machinery only; public support
+still needs broader recovery coverage, extractor rows, examples, and syntax
+review.
+
 The flattened data contract should be block-oriented rather than pair-oriented:
 
 ```text
@@ -254,9 +262,10 @@ still be named `sigma`.
    contribution map. Done for a hidden bivariate Gaussian likelihood probe that
    injects those four intercept-level contributions into the bivariate
    predictors and verifies the objective. Done for the same hidden branch with
-   `u_re_cov_probe` registered as a TMB random-effect vector. Production q=4
-   support still needs recovery evidence, extractor rows, examples, and public
-   syntax review.
+   `u_re_cov_probe` registered as a TMB random-effect vector. Done for a
+   deterministic hidden q=4 recovery-style check against no-random-effect
+   baselines. Production q=4 support still needs broader recovery coverage,
+   extractor rows, examples, and public syntax review.
 8. Enable the full shared `mu1`/`mu2`/`sigma1`/`sigma2` label pattern only after
    the hidden q=4 bridge has fitted likelihood and recovery evidence.
 

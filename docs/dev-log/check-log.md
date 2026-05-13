@@ -2,6 +2,41 @@
 
 Record meaningful development checks here.
 
+## 2026-05-13 -- Slice 8D hidden q=4 bivariate recovery-style check
+
+Scope:
+
+- added a deterministic hidden q=4 bivariate Gaussian recovery-style test using
+  intercept-level endpoint contributions for `mu1`, `mu2`, `sigma1`, and
+  `sigma2`;
+- simulated paired Gaussian responses from the q=4 endpoint predictors with an
+  orthogonal deterministic residual basis and fixed residual `rho12`, then fit
+  the hidden `model_type == 95` Laplace branch with `u_re_cov_probe` as a TMB
+  random effect;
+- checked that the recovered `mu1`, `mu2`, `log(sigma1)`, and `log(sigma2)`
+  predictor signals improve over no-random-effect baselines and have positive
+  correlation with the simulated signals;
+- kept this as hidden recovery-style evidence only: no public q > 2 syntax, no
+  q4 `corpairs()` rows, no examples, and no q6/q8 random-slope claim;
+- Ada integrated the slice, Gauss checked the bivariate covariance scale, Curie
+  checked deterministic recovery tolerances, and Rose checked the public-support
+  boundary.
+
+Checks:
+
+- `Rscript -e 'devtools::test(filter = "covariance-block-registry")'`: passed
+  with 139 expectations, 0 failures, 0 warnings, and 0 skips.
+- `air format tests/testthat/test-covariance-block-registry.R ROADMAP.md
+  docs/design/28-double-hierarchical-endpoint.md
+  docs/design/30-labelled-covariance-block-assembler.md
+  docs/dev-log/check-log.md
+  docs/dev-log/after-task/2026-05-13-slice-8d-hidden-q4-bivariate-recovery-style-check.md`:
+  passed.
+- `Rscript -e 'devtools::test(filter =
+  "covariance-block-registry|biv-gaussian")'`: passed with 623 expectations, 0
+  failures, 0 warnings, and 0 skips.
+- `git diff --check`: passed.
+
 ## 2026-05-13 -- Slice 8C hidden q=4 bivariate random-effect boundary
 
 Scope:

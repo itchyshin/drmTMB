@@ -132,9 +132,11 @@ keep the same row meaning and mark derived intervals separately.
    checks the likelihood against an R-side reconstruction. The hidden q=4
    likelihood branch can also pass `u_re_cov_probe` through TMB's `random`
    argument and reconstruct predictors from the optimized random-effect mode.
-   User-facing q > 2 support remains closed until recovery evidence, extractor
-   rows, examples, and public syntax review exist; random-slope q=6 or q=8
-   endpoint blocks remain later extensions.
+   A deterministic hidden recovery-style check now recovers the simulated q=4
+   endpoint predictor signals better than no-random-effect baselines.
+   User-facing q > 2 support remains closed until broader recovery evidence,
+   extractor rows, examples, and public syntax review exist; random-slope q=6
+   or q=8 endpoint blocks remain later extensions.
 5. Add the univariate four-effect block:
    `bf(y ~ x + (1 + x | p | id), sigma ~ x + (1 + x | p | id))`.
 6. Extend `corpairs()` to report each fitted group-level pair from the shared
