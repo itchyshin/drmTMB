@@ -121,12 +121,18 @@ drmTMB(
 
 This adds an intercept-only phylogenetic random effect to the univariate
 Gaussian `mu` predictor. The residual `sigma` remains the within-observation
-SD. Phylogenetic slopes, phylogenetic scale terms, bivariate phylogenetic
-covariance blocks, and spatial fields remain planned extensions.
+SD. Matching intercept-only `phylo()` terms in bivariate `mu1` and `mu2`
+formulas fit the first phylogenetic mean-mean correlation slice. Phylogenetic
+slopes, phylogenetic scale terms, full bivariate phylogenetic location-scale
+blocks, and spatial fields remain planned extensions.
+Run `check_drm()` before interpreting that fitted phylogenetic correlation; it
+now flags near-boundary `corpars$phylo` values and tiny phylogenetic location
+SDs relative to the matching residual scales.
 
 The q=4 phylogenetic scaffolds in the developer notes are internal contracts for
-the future state across `mu1`, `mu2`, `sigma1`, and `sigma2`. They are not
-accepted user syntax and do not make bivariate `phylo()` models fitted models.
+the future state across `mu1`, `mu2`, `sigma1`, and `sigma2`. The `mu1`/`mu2`
+part is now fitted for matching intercept-only `phylo()` terms; the complete
+q=4 location-scale endpoint remains planned.
 
 ## Planned, not implemented
 
@@ -137,7 +143,7 @@ These surfaces are roadmap items, not syntax to rely on in analyses yet:
 | correlated residual-scale slope blocks in `sigma` | needs covariance recovery for scale intercept-slope blocks before public use |
 | larger cross-formula labelled covariance blocks linking `mu` and `sigma` | extends beyond the first fitted random-intercept mean-scale correlations |
 | bivariate random slopes and full cross-parameter covariance blocks | expands group-level covariance blocks beyond the first same-parameter and same-response random-intercept slices |
-| phylogenetic slopes, phylogenetic `sigma`, and bivariate phylogenetic effects | internal q4 scaffolds exist, but fitted structured covariance layers remain separate from residual `rho12` and are not yet user-facing |
+| phylogenetic slopes, phylogenetic `sigma`, and full bivariate phylogenetic location-scale effects | the first bivariate `mu1`/`mu2` phylogenetic location slice is fitted, but the full q=4 endpoint remains planned |
 | spatial random effects | planned parallel to `phylo()`, but the spatial likelihood is not implemented |
 | higher-dimensional multivariate models | belong in `gllvmTMB`, not `drmTMB` |
 
@@ -154,7 +160,8 @@ questions:
 |---|---|---|
 | residual | `rho12(fit)` or residual rows from `corpairs(fit)` | within-observation coupling between two responses |
 | ordinary group-level | `corpars$mu` or group-level rows from `corpairs(fit)` | correlation among random intercepts or slopes |
-| phylogenetic or spatial | planned structured covariance summaries | correlation among structured species or spatial effects |
+| phylogenetic | `corpars$phylo` for the first bivariate `mu1`/`mu2` phylogenetic slice | correlation among tree-structured species mean deviations |
+| spatial | planned structured covariance summaries | correlation among spatial effects |
 
 Keep these layers separate in writing. A residual `rho12` result is not a
 phylogenetic correlation, a spatial correlation, or a personality/plasticity
@@ -168,7 +175,9 @@ two residual SDs, residual trait coupling, individual or species differences,
 and shared ancestry. That is the right scientific direction, but the fully
 combined bivariate phylogenetic double-hierarchical model is still a roadmap
 target. Today, fit the pieces that are implemented and report them as separate
-answers.
+answers. The first bivariate phylogenetic location block can now join that
+staged protocol when both trait means use matching intercept-only `phylo()`
+terms.
 
 For two traits without phylogeny, use the bivariate Gaussian path:
 
@@ -210,13 +219,70 @@ ancestry is included. It does not estimate bivariate residual `rho12`, and it
 does not estimate phylogenetic correlations among `mu1`, `mu2`, `sigma1`, and
 `sigma2`.
 
-Use this staged interpretation until the combined model is implemented:
+For shared ancestry in two trait means, use matching bivariate `phylo()` terms:
+
+```r
+fit_biv_phylo <- drmTMB(
+  drm_formula(
+    mu1 = log_body_mass ~ diet + body_size + phylo(1 | species, tree = tree),
+    mu2 = log_litter_size ~ diet + body_size + phylo(1 | species, tree = tree),
+    sigma1 = ~ diet,
+    sigma2 = ~ diet,
+    rho12 = ~ diet
+  ),
+  family = c(gaussian(), gaussian()),
+  data = mammals
+)
+```
+
+This model can ask whether phylogenetic deviations in one trait mean are
+associated with phylogenetic deviations in the other trait mean. The residual
+`rho12` term still answers a separate within-observation question after those
+mean deviations are included. Read the fitted phylogenetic layer with
+`corpairs(fit_biv_phylo, level = "phylogenetic")` or
+`summary(fit_biv_phylo)$covariance`; use `confint()` on the explicit
+`cor:phylo:` target when a direct profile interval is worth the extra compute.
+
+If the scientific question separates shared ancestry from a remaining
+species-level association, add an ordinary labelled species block as a second
+layer:
+
+```r
+fit_biv_phylo_species <- drmTMB(
+  drm_formula(
+    mu1 = log_body_mass ~ diet + body_size +
+      (1 | species_residual | species) +
+      phylo(1 | species, tree = tree),
+    mu2 = log_litter_size ~ diet + body_size +
+      (1 | species_residual | species) +
+      phylo(1 | species, tree = tree),
+    sigma1 = ~ diet,
+    sigma2 = ~ diet,
+    rho12 = ~ diet
+  ),
+  family = c(gaussian(), gaussian()),
+  data = mammals
+)
+```
+
+This keeps three correlation layers separate in the fitted object:
+`rho12(fit_biv_phylo_species)`,
+`corpairs(fit_biv_phylo_species, level = "phylogenetic")`, and
+`corpairs(fit_biv_phylo_species, level = "group")`. When the ordinary group
+block and the phylogenetic block both use `species`, `check_drm()` notes the
+overlap so you compare simpler models or profile intervals before treating the
+two species-level correlations as cleanly separated.
+
+Use this staged interpretation until the full combined location-scale model is
+implemented:
 
 | Fitted piece | What it answers today | What it does not answer yet |
 |---|---|---|
 | `rho12(fit_biv)` | within-observation residual coupling between two traits | phylogenetic or species-level correlation |
 | `corpairs(fit_biv, level = "group")` | ordinary species or individual random-intercept correlation | residual trait coupling or shared-ancestry correlation |
 | `fit_phylo` with `phylo(1 | species, tree = tree)` | one-trait shared-ancestry mean structure | bivariate phylogenetic covariance |
+| `corpairs(fit_biv_phylo, level = "phylogenetic")` | bivariate phylogenetic mean-mean correlation | phylogenetic scale or mean-scale covariance |
+| `summary(fit_biv_phylo)$covariance` | variance and covariance point summaries for the fitted phylogenetic mean-mean layer | derived covariance intervals or q=4 location-scale covariance |
 
 In developer shorthand, the planned q=4 phylogenetic endpoint means four
 distributional endpoints: `mu1`, `mu2`, `sigma1`, and `sigma2`. It does not mean

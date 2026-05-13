@@ -66,10 +66,11 @@ random intercepts and independent numeric random slopes in the scale formula,
 labelled \code{mu}/\code{sigma}
 random-intercept covariance blocks, and one or more group-level
 random-effect scale formulae such as \code{sd(id) ~ x_group}, plus
-intercept-only phylogenetic random effects in the univariate Gaussian
-location formula, fixed-effect bivariate Gaussian distributional models, and
-matched labelled bivariate Gaussian \code{mu1}/\code{mu2}, \code{sigma1}/\code{sigma2}, and
-same-response \code{mu}/\code{sigma} random-intercept covariance blocks.
+intercept-only phylogenetic random effects in univariate Gaussian location
+formulas and matching bivariate Gaussian \code{mu1}/\code{mu2} location formulas,
+fixed-effect bivariate Gaussian distributional models, and matched labelled
+bivariate Gaussian \code{mu1}/\code{mu2}, \code{sigma1}/\code{sigma2}, and same-response
+\code{mu}/\code{sigma} random-intercept covariance blocks.
 Bivariate Gaussian location formulas may be written explicitly as
 \code{mu1 = y1 ~ ...}, \code{mu2 = y2 ~ ...}, or with \code{mvbind(y1, y2) ~ ...} shorthand
 when both responses share the same location predictors.

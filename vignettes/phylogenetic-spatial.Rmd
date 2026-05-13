@@ -208,16 +208,17 @@ If a phylogenetic fit fails before optimization, check these points first:
   data and tree;
 - the tree has finite positive branch lengths and is ultrametric;
 - the model uses the implemented syntax
-  `phylo(1 | species, tree = tree)` in a univariate Gaussian `mu` formula.
+  `phylo(1 | species, tree = tree)` in a univariate Gaussian `mu` formula, or
+  matching terms in bivariate Gaussian `mu1` and `mu2` formulas.
 
-Phylogenetic slopes, phylogenetic terms in `sigma`, and bivariate phylogenetic
-covariance blocks are planned. They should error clearly rather than silently
-fitting a different model.
+Phylogenetic slopes, phylogenetic terms in `sigma`, structured effects in
+`rho12`, and the full bivariate phylogenetic location-scale block are planned.
+They should error clearly rather than silently fitting a different model.
 
 Developer scaffolds now name and test the future q=4 phylogenetic endpoint
-state across `mu1`, `mu2`, `sigma1`, and `sigma2`, but those scaffolds are not
-fitted bivariate phylogenetic models. They do not change the accepted formula
-syntax, and they do not add `corpairs()` rows for phylogenetic correlations.
+state across `mu1`, `mu2`, `sigma1`, and `sigma2`. The first fitted bivariate
+slice uses matching intercept-only `mu1`/`mu2` `phylo()` terms, but the full
+q=4 endpoint and reporting rows beyond the fitted mean-mean pair remain planned.
 
 ## Planned, not implemented: spatial random intercepts
 
@@ -248,7 +249,7 @@ the spatial surface.
 The spatial term is deliberately parallel to the phylogenetic term:
 
 ```r
-phylo(1 | species, tree = tree)     # implemented for univariate Gaussian mu
+phylo(1 | species, tree = tree)     # implemented for mu and matching mu1/mu2
 spatial(1 | site, coords = coords)  # planned
 spatial(1 | site, mesh = mesh)      # planned
 ```
@@ -297,14 +298,16 @@ meta-analyses readable.
 
 The first phylogenetic target is the location-scale model: trait means are the
 first implemented target, and residual SDs are a planned target once the
-location path has enough simulation and comparator coverage. In future
-bivariate models this could allow several structured correlations, including
-mean-mean, scale-scale, and mean-scale phylogenetic correlations.
+location path has enough simulation and comparator coverage. In bivariate
+Gaussian models, matching `mu1`/`mu2` phylogenetic location terms now estimate
+the first mean-mean phylogenetic correlation. Scale-scale and mean-scale
+phylogenetic correlations remain planned.
 
-Planned bivariate phylogenetic location-coscale syntax looks like this:
+The first fitted bivariate phylogenetic location-coscale syntax looks like
+this:
 
 ```r
-drmTMB(
+fit_biv_phylo <- drmTMB(
   formula = drm_formula(
     mu1 = log_body_mass ~ lifestyle + phylo(1 | species, tree = tree),
     mu2 = log_litter_size ~ lifestyle + phylo(1 | species, tree = tree),
@@ -317,16 +320,58 @@ drmTMB(
 )
 ```
 
-This syntax is planned, not implemented. It captures the intended extension of
-phylogenetic location-scale models: after modelling mean and variance, test
-whether the residual association between two traits changes with ecological
-predictors such as lifestyle.
+This syntax fits correlated phylogenetic random intercepts in `mu1` and `mu2`.
+It estimates two phylogenetic location SDs and one phylogenetic mean-mean
+correlation. The `sigma1`, `sigma2`, and residual `rho12` formulas remain
+ordinary fixed-effect distributional parameters in this first slice.
 
 Current internal q=4 scaffolds only protect the algebra and endpoint names for
-future contributors. Applied users should still fit the implemented univariate
-phylogenetic Gaussian model, or a non-phylogenetic bivariate Gaussian model,
-until a fitted bivariate phylogenetic likelihood, simulation recovery tests, and
-reporting rows are present.
+future contributors. Applied users who need phylogenetic scale or mean-scale
+correlations should still treat those as planned until fitted likelihoods,
+simulation recovery tests, and reporting rows are present. For the first fitted
+mean-mean phylogenetic correlation, use `corpars$phylo`,
+`corpairs(fit_biv_phylo, level = "phylogenetic")`, or
+`summary(fit_biv_phylo)$covariance`. Run `check_drm(fit_biv_phylo)` before
+interpreting that row: the current diagnostic flags phylogenetic correlations
+near the boundary and phylogenetic location SDs that are tiny relative to the
+matching residual scales. If `check_drm(fit_biv_phylo)` does not warn and the
+fitted object kept its TMB object, a direct profile interval is available for
+the phylogenetic correlation target:
+
+```r
+phylo_target <- "cor:phylo:cor(mu1:(Intercept),mu2:(Intercept) | phylo | species)"
+
+corpairs(fit_biv_phylo, level = "phylogenetic")
+summary(fit_biv_phylo)$covariance
+confint(fit_biv_phylo, parm = phylo_target, method = "profile")
+```
+
+For a staged phylogenetic versus non-phylogenetic species comparison, add an
+ordinary labelled species block beside the fitted phylogenetic layer:
+
+```r
+fit_biv_phylo_species <- drmTMB(
+  formula = drm_formula(
+    mu1 = log_body_mass ~ lifestyle +
+      (1 | species_residual | species) +
+      phylo(1 | species, tree = tree),
+    mu2 = log_litter_size ~ lifestyle +
+      (1 | species_residual | species) +
+      phylo(1 | species, tree = tree),
+    sigma1 = ~ lifestyle,
+    sigma2 = ~ lifestyle,
+    rho12 = ~ lifestyle
+  ),
+  family = c(gaussian(), gaussian()),
+  data = mammals
+)
+```
+
+That fit has an ordinary group-level species correlation, a phylogenetic
+mean-mean correlation, and residual `rho12`. `corpairs()` keeps those layers in
+separate rows. Because the ordinary group block and the phylogenetic block use
+the same species factor, `check_drm()` records a note rather than letting the
+two species-level correlations look automatically identifiable.
 
 The residual `rho12` term remains distinct from the phylogenetic or spatial
 correlation matrices. `rho12` is the residual coupling between two responses at

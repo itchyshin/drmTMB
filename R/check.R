@@ -20,7 +20,12 @@
 #' group replication and whether either group-level SD is tiny relative to the
 #' matching residual scale. For a matched labelled `sigma1`/`sigma2` block, it
 #' reports group replication and whether either log-`sigma` random-effect SD is
-#' tiny. If the fit was stored with `drm_control(keep_tmb_object = FALSE)`, the
+#' tiny. If a bivariate Gaussian fit includes matching `mu1`/`mu2`
+#' phylogenetic location effects, `check_drm()` also reports whether the fitted
+#' phylogenetic mean-mean correlation is near the boundary, whether either
+#' phylogenetic SD is tiny relative to the matching residual scale, and whether
+#' an ordinary group-level covariance block uses the same grouping factor. If a
+#' fit was stored with `drm_control(keep_tmb_object = FALSE)`, the
 #' fixed-gradient check is reported as a note because the TMB
 #' automatic-differentiation object is not available.
 #'
@@ -35,8 +40,8 @@
 #' @param object A `drmTMB` fit.
 #' @param gradient_tolerance Maximum absolute fixed-parameter gradient treated
 #'   as acceptable.
-#' @param rho_boundary Absolute residual correlation value above which a
-#'   bivariate Gaussian fit receives a warning.
+#' @param rho_boundary Absolute residual or structured correlation value above
+#'   which a bivariate Gaussian fit receives a warning.
 #' @param sd_boundary Random-effect standard deviation below which a fit
 #'   receives a warning that the variance component is near the lower
 #'   boundary.
@@ -96,7 +101,8 @@ check_drm.drmTMB <- function(
     check_biv_mu_sigma_random_effect_covariance(object),
     check_biv_mu_random_effect_covariance(object),
     check_biv_sigma_random_effect_covariance(object),
-    check_phylo_replication(object)
+    check_phylo_replication(object),
+    check_biv_phylo_mu_covariance(object, rho_boundary = rho_boundary)
   )
   rows <- Filter(Negate(is.null), rows)
   out <- do.call(rbind, rows)
@@ -1492,6 +1498,199 @@ check_phylo_replication <- function(object) {
       "Every observed species has at least two fitted observations."
     }
   )
+}
+
+check_biv_phylo_mu_covariance <- function(object, rho_boundary) {
+  if (
+    !identical(object$model$model_type, "biv_gaussian") ||
+      !has_phylo_mu_effect(object)
+  ) {
+    return(NULL)
+  }
+
+  rho <- object$corpars$phylo
+  rho_finite <- length(rho) > 0L && all(is.finite(rho))
+  rho_abs <- if (rho_finite) {
+    max(abs(rho))
+  } else {
+    NA_real_
+  }
+  near_rho_boundary <- !rho_finite || rho_abs > rho_boundary
+
+  phylo_mu <- object$model$structured$phylo_mu
+  index <- phylo_mu$observation_node_index
+  counts <- tabulate(match(index, unique(index)))
+  min_count <- if (length(counts) > 0L) {
+    min(counts)
+  } else {
+    NA_integer_
+  }
+  n_species <- length(counts)
+  weak_replication <- is.finite(min_count) && min_count < 2L
+
+  sd_ratios <- bivariate_phylo_mu_sd_ratios(object)
+  finite_sd_ratios <- sd_ratios[is.finite(sd_ratios)]
+  min_sd_ratio <- if (length(finite_sd_ratios) > 0L) {
+    min(finite_sd_ratios)
+  } else {
+    NA_real_
+  }
+  weak_sd <- length(sd_ratios) == 0L ||
+    length(finite_sd_ratios) != length(sd_ratios) ||
+    any(finite_sd_ratios < 0.05)
+  same_group_covariance <- bivariate_phylo_mu_has_same_group_covariance(object)
+
+  check_row(
+    "biv_phylo_mu_covariance",
+    if (near_rho_boundary) {
+      "warning"
+    } else if (weak_replication || weak_sd || same_group_covariance) {
+      "note"
+    } else {
+      "ok"
+    },
+    paste0(
+      "group=",
+      phylo_mu$group,
+      "; rho_abs=",
+      format_check_number(rho_abs),
+      "; boundary=",
+      format_check_number(rho_boundary),
+      "; n_species=",
+      n_species,
+      "; min_species_n=",
+      min_count,
+      "; min_sd_ratio=",
+      format_check_number(min_sd_ratio),
+      "; same_group_covariance=",
+      tolower(as.character(same_group_covariance))
+    ),
+    bivariate_phylo_mu_diagnostic_message(
+      near_rho_boundary,
+      weak_replication,
+      weak_sd,
+      same_group_covariance
+    )
+  )
+}
+
+bivariate_phylo_mu_has_same_group_covariance <- function(object) {
+  blocks <- object$model$random$covariance_blocks
+  if (
+    is.null(blocks) ||
+      is.null(blocks$blocks) ||
+      is.null(blocks$members) ||
+      nrow(blocks$blocks) == 0L ||
+      nrow(blocks$members) == 0L
+  ) {
+    return(FALSE)
+  }
+  phylo_group <- object$model$structured$phylo_mu$group
+  candidate_blocks <- blocks$blocks$block_id0[
+    blocks$blocks$level == "group" &
+      blocks$blocks$group == phylo_group &
+      blocks$blocks$implemented
+  ]
+  if (length(candidate_blocks) == 0L) {
+    return(FALSE)
+  }
+  any(vapply(
+    candidate_blocks,
+    function(block_id) {
+      members <- blocks$members[blocks$members$block_id0 == block_id, ]
+      all(c("mu1", "mu2") %in% members$dpar)
+    },
+    logical(1L)
+  ))
+}
+
+bivariate_phylo_mu_sd_ratios <- function(object) {
+  sdpars <- object$sdpars$mu
+  if (is.null(sdpars) || length(sdpars) == 0L) {
+    return(numeric())
+  }
+  phylo_label <- object$model$structured$phylo_mu$label
+  phylo_names <- paste0(c("mu1:", "mu2:"), phylo_label)
+  sd_values <- unname(sdpars[phylo_names])
+  sigma_values <- tryCatch(stats::sigma(object), error = function(e) e)
+  if (inherits(sigma_values, "error") || !is.list(sigma_values)) {
+    return(rep(NA_real_, length(sd_values)))
+  }
+  residual_scale <- c(
+    mu1 = mean(sigma_values$sigma1, na.rm = TRUE),
+    mu2 = mean(sigma_values$sigma2, na.rm = TRUE)
+  )
+  sd_values / residual_scale
+}
+
+bivariate_phylo_mu_diagnostic_message <- function(
+  near_rho_boundary,
+  weak_replication,
+  weak_sd,
+  same_group_covariance = FALSE
+) {
+  if (near_rho_boundary && same_group_covariance) {
+    return(paste(
+      "The fitted phylogenetic mean-mean correlation is close to +/-1, and",
+      "the model also includes an ordinary group-level covariance for the",
+      "same grouping factor; compare simpler structured-effect models before",
+      "interpreting separate phylogenetic and non-phylogenetic correlations."
+    ))
+  }
+  if (near_rho_boundary && (weak_replication || weak_sd)) {
+    return(paste(
+      "The fitted phylogenetic mean-mean correlation is close to +/-1 and",
+      "replication or phylogenetic SD evidence is weak; inspect profiles,",
+      "species replication, or a simpler structured-effect model before",
+      "interpreting this correlation."
+    ))
+  }
+  if (near_rho_boundary) {
+    return(paste(
+      "The fitted phylogenetic mean-mean correlation is close to +/-1;",
+      "inspect likelihood profiles or compare against a model without the",
+      "bivariate phylogenetic covariance before interpreting it."
+    ))
+  }
+  if (same_group_covariance && (weak_replication || weak_sd)) {
+    return(paste(
+      "The model also includes an ordinary group-level covariance for the same",
+      "grouping factor, and replication or phylogenetic SD evidence is weak;",
+      "inspect profiles or simpler comparison models before interpreting",
+      "phylogenetic and non-phylogenetic species correlations as cleanly",
+      "separated."
+    ))
+  }
+  if (weak_replication && weak_sd) {
+    return(paste(
+      "At least one observed species has fewer than two fitted observations",
+      "and at least one phylogenetic location SD is tiny relative to its",
+      "matching residual scale; interpret the phylogenetic correlation",
+      "cautiously."
+    ))
+  }
+  if (weak_replication) {
+    return(paste(
+      "At least one observed species has fewer than two fitted observations;",
+      "interpret the phylogenetic mean-mean correlation cautiously."
+    ))
+  }
+  if (weak_sd) {
+    return(paste(
+      "At least one phylogenetic location SD is tiny relative to its matching",
+      "residual scale; the phylogenetic mean-mean correlation may be weakly",
+      "identified."
+    ))
+  }
+  if (same_group_covariance) {
+    return(paste(
+      "The model also includes an ordinary group-level covariance for the same",
+      "grouping factor; inspect profiles or simpler comparison models before",
+      "interpreting phylogenetic and non-phylogenetic species correlations as",
+      "cleanly separated."
+    ))
+  }
+  "Bivariate phylogenetic location covariance has replicated species and non-negligible fitted SDs relative to residual scales."
 }
 
 format_check_number <- function(x) {

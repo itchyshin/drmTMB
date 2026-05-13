@@ -2,6 +2,369 @@
 
 Record meaningful development checks here.
 
+## 2026-05-13 -- Slice 13B phylo and species reader path
+
+Scope:
+
+- updated `vignettes/model-map.Rmd` and `vignettes/phylogenetic-spatial.Rmd`
+  with syntax for fitting an ordinary labelled species covariance block beside
+  matching bivariate `phylo()` terms;
+- kept the three correlation layers separate in prose: residual `rho12`,
+  ordinary group-level species covariance, and phylogenetic mean-mean
+  covariance;
+- rebuilt the two local pkgdown article pages for user review.
+
+Checks:
+
+- `Rscript -e 'pkgdown::build_article("model-map"); pkgdown::build_article("phylogenetic-spatial")'`:
+  passed and wrote `pkgdown-site/articles/model-map.html` and
+  `pkgdown-site/articles/phylogenetic-spatial.html`.
+- `Rscript -e 'pkgdown::check_pkgdown()'`: passed with no problems found.
+- `rg -n 'spatial.*implemented|spatial.*now fits|spatial likelihood is implemented|full q=4.*implemented|q=4.*now fits' NEWS.md README.md ROADMAP.md docs vignettes man R tests`:
+  found only planned-boundary wording, historical notes, and explicit
+  not-implemented text.
+- `rg -n 'future .*non-phylogenetic species|Non-phylogenetic species covariance.*future|Add bivariate Gaussian \`mu1\` and \`mu2\` ordinary species|Add bivariate Gaussian phylogenetic \`mu1\`' docs/design/29-mammal-location-coscale-route.md ROADMAP.md docs/design vignettes`:
+  no matches.
+- `Rscript -e 'devtools::test()'`: passed with 2,772 expectations.
+
+## 2026-05-13 -- Slice 12B phylo and ordinary species layer diagnostic
+
+Scope:
+
+- extended `check_drm()` so the `biv_phylo_mu_covariance` diagnostic reports
+  `same_group_covariance=true` when an ordinary labelled `mu1`/`mu2`
+  group-level covariance block uses the same grouping factor as the fitted
+  bivariate phylogenetic layer;
+- changed that row to `note` when the same-group overlap is present, unless a
+  stronger boundary warning applies;
+- updated the roadmap and design notes to say this is an identifiability guard,
+  not evidence that same-species phylogenetic and non-phylogenetic layers are
+  always cleanly separated.
+
+Checks:
+
+- `Rscript -e 'devtools::document()'`: passed and regenerated
+  `man/check_drm.Rd`.
+- `Rscript -e 'devtools::test(filter = "check-drm")'`: passed with 119
+  expectations.
+- `Rscript -e 'devtools::test(filter = "phylo-gaussian|check-drm|corpairs|summary|profile-targets")'`:
+  passed with 620 expectations.
+- `Rscript -e 'devtools::test()'`: passed with 2,772 expectations.
+
+## 2026-05-13 -- Slice 11B bivariate phylogenetic simulation recovery
+
+Scope:
+
+- added a CRAN-safe deterministic recovery test for the first fitted
+  bivariate phylogenetic `mu1`/`mu2` mean-mean correlation;
+- checked optimizer convergence, positive correlation recovery, phylogenetic
+  SD recovery, residual scale recovery, residual `rho12`, and `corpairs()`
+  reporting;
+- updated roadmap and common-math design wording so the fitted bivariate
+  phylogenetic mean-mean layer now has direct simulation evidence.
+
+Checks:
+
+- `air format R/check.R tests/testthat/test-phylo-gaussian.R tests/testthat/test-check-drm.R ROADMAP.md docs/design/15-location-coscale-phylogenetic-extension.md docs/design/16-phylo-spatial-common-math.md docs/design/29-mammal-location-coscale-route.md vignettes/model-map.Rmd vignettes/phylogenetic-spatial.Rmd`:
+  passed.
+- `Rscript -e 'devtools::test(filter = "phylo-gaussian|check-drm")'`: passed
+  with 165 expectations.
+- `Rscript -e 'devtools::test(filter = "phylo-gaussian|check-drm|corpairs|summary|profile-targets")'`:
+  passed with 620 expectations.
+- `Rscript -e 'devtools::test()'`: passed with 2,772 expectations.
+
+## 2026-05-13 -- Slice 10 phylo-only batch audit
+
+Scope:
+
+- audited the post-crash phylo-only batch after slices 6--9;
+- confirmed fitted bivariate phylogenetic `mu1`/`mu2` support is represented
+  consistently across target inventory, direct profile smoke, `corpairs()`,
+  `summary(fit)$covariance`, `check_drm()`, vignettes, NEWS, roadmap, and known
+  limitations;
+- confirmed deferred work remains explicit: spatial models, phylogenetic
+  slopes, phylogenetic scale terms, structured effects in `rho12`, full q=4
+  location-scale covariance, non-phylogenetic species covariance, and derived
+  covariance intervals.
+
+Checks:
+
+- `Rscript -e 'devtools::test(filter = "profile-targets|summary|corpairs|check-drm|phylo-gaussian")'`:
+  passed with 606 expectations.
+- `Rscript -e 'devtools::test()'`: last run after code/profile changes passed
+  with 2,758 expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript -e 'for (f in c("vignettes/model-map.Rmd", "vignettes/phylogenetic-spatial.Rmd")) rmarkdown::render(f, output_file = tempfile(fileext = ".html"), quiet = TRUE)'`:
+  passed after the reader-path edits.
+- `Rscript -e 'pkgdown::check_pkgdown()'`: passed with no problems found after
+  the reader-path edits.
+- `rg -n 'spatial.*implemented|spatial.*now fits|bivariate phylogenetic.*planned|bivariate phylo\(\) syntax remains planned|q=4.*implemented|full q=4.*implemented' NEWS.md README.md ROADMAP.md docs vignettes man R tests`:
+  found expected planned-boundary and historical-note wording only.
+- `rg -n 'corpars\$phylo|cor:phylo|summary\(fit.*\)\$covariance|biv_phylo_mu_covariance|phylogenetic.*mean-mean' NEWS.md README.md ROADMAP.md docs vignettes man R tests`:
+  confirmed the implemented bivariate phylogenetic mean-mean surfaces.
+- `git diff --check`: passed.
+
+## 2026-05-13 -- Slice 9 bivariate phylogenetic reader path
+
+Scope:
+
+- updated `vignettes/phylogenetic-spatial.Rmd` so the bivariate phylogenetic
+  section shows the fitted `fit_biv_phylo` syntax, `corpairs()` reading path,
+  `summary(fit)$covariance`, `check_drm()`, and the explicit `cor:phylo:`
+  profile target;
+- updated `vignettes/model-map.Rmd` so the practical trait protocol includes
+  matching bivariate `phylo()` terms as the first fitted phylogenetic
+  mean-mean slice;
+- kept phylogenetic slopes, phylogenetic `sigma`, q=4 location-scale
+  covariance, structured effects in `rho12`, and spatial terms planned;
+- updated NEWS to describe the tutorial reading guidance.
+
+Checks:
+
+- `air format NEWS.md vignettes/phylogenetic-spatial.Rmd vignettes/model-map.Rmd`:
+  passed.
+- `Rscript -e 'for (f in c("vignettes/model-map.Rmd", "vignettes/phylogenetic-spatial.Rmd")) rmarkdown::render(f, output_file = tempfile(fileext = ".html"), quiet = TRUE)'`:
+  passed.
+- `Rscript -e 'pkgdown::check_pkgdown()'`: passed with no problems found.
+- `rg -n 'fit_biv_phylo|cor:phylo|summary\(fit_biv_phylo\)\$covariance|corpairs\(fit_biv_phylo|confint\(fit_biv_phylo|spatial.*implemented|spatial.*planned|rho12.*phylogenetic' vignettes/phylogenetic-spatial.Rmd vignettes/model-map.Rmd NEWS.md`:
+  confirmed the new reader path and spatial planned boundary.
+- `rg -n 'bivariate phylogenetic.*planned|corpairs\(\).*remain planned|q=4 endpoint|spatial likelihood is not implemented' vignettes/phylogenetic-spatial.Rmd vignettes/model-map.Rmd NEWS.md`:
+  confirmed q=4 and spatial limitations remain explicit without hiding the
+  fitted `mu1`/`mu2` phylogenetic slice.
+- `git diff --check`: passed.
+
+## 2026-05-13 -- Slice 8 bivariate phylogenetic profile smoke
+
+Scope:
+
+- added a focused `confint(..., method = "profile")` smoke test for the direct
+  bivariate phylogenetic `mu1`/`mu2` mean-mean correlation target;
+- used a stronger deterministic fixture than the small target-inventory fixture
+  so the profile has finite lower and upper endpoints without warnings;
+- compared the public `confint()` output to an independent
+  `TMB::tmbprofile()` call on `eta_cor_phylo`;
+- updated NEWS, roadmap, profile design notes, and generated `confint()`
+  reference docs to include the phylogenetic correlation target.
+
+Checks:
+
+- `air format tests/testthat/test-profile-targets.R NEWS.md ROADMAP.md docs/design/12-profile-likelihood-cis.md R/profile.R`:
+  passed.
+- `Rscript -e 'devtools::document()'`: passed and regenerated
+  `man/confint.drmTMB.Rd`.
+- `Rscript -e 'devtools::test(filter = "profile-targets|phylo-gaussian")'`:
+  passed with 292 expectations.
+- `Rscript -e 'devtools::test()'`: passed with 2,758 expectations, 0 failures,
+  0 warnings, and 0 skips.
+- `Rscript -e 'pkgdown::check_pkgdown()'`: passed with no problems found.
+- `rg -n 'eta_cor_phylo|bivariate phylogenetic.*profile|confint\(\).*phylogenetic|phylogenetic.*confint|rho12.*phylogenetic|spatial.*implemented' NEWS.md ROADMAP.md docs/design/12-profile-likelihood-cis.md docs/dev-log/known-limitations.md R/profile.R tests/testthat/test-profile-targets.R man/confint.drmTMB.Rd`:
+  confirmed the profile target, residual-`rho12` separation, and spatial
+  planned boundary.
+- `rg -n 'profile.*bivariate phylogenetic|bivariate phylogenetic.*planned|spatial.*implemented' NEWS.md ROADMAP.md docs vignettes man`:
+  found expected current and historical planned-boundary wording only.
+- `git diff --check`: passed.
+
+## 2026-05-13 -- Slice 7 phylogenetic `summary()` covariance row
+
+Scope:
+
+- added a `summary(fit)$covariance` row for fitted bivariate phylogenetic
+  `mu1`/`mu2` mean-mean covariance;
+- kept the row on the same covariance-summary surface used by fitted
+  registry-backed covariance blocks, with `level = "phylogenetic"`,
+  `block = "phylo"`, `class = "mean-mean"`, identity scales, component SD
+  targets, and the `cor:phylo:` target name;
+- kept residual `rho12` in `summary(fit)$parameters`, not in the random-effect
+  covariance table;
+- updated NEWS, roadmap, known limitations, the double-hierarchical endpoint
+  note, and the `summary()` reference documentation.
+
+Checks:
+
+- `air format R/methods.R tests/testthat/test-summary.R NEWS.md ROADMAP.md docs/design/28-double-hierarchical-endpoint.md docs/dev-log/known-limitations.md`:
+  passed.
+- `Rscript -e 'devtools::document()'`: passed and regenerated
+  `man/summary.drmTMB.Rd`.
+- `Rscript -e 'devtools::test(filter = "summary|phylo-gaussian|corpairs|profile-targets")'`:
+  passed with 484 expectations.
+- `Rscript -e 'devtools::test()'`: passed with 2,749 expectations, 0 failures,
+  0 warnings, and 0 skips.
+- `Rscript -e 'pkgdown::check_pkgdown()'`: passed with no problems found.
+- `rg -n 'summary\(fit\)\$covariance|summary\(\).*phylogenetic|bivariate phylogenetic.*covariance|rho12.*summary|spatial.*implemented' NEWS.md ROADMAP.md docs/design/28-double-hierarchical-endpoint.md docs/dev-log/known-limitations.md vignettes/model-map.Rmd vignettes/phylogenetic-spatial.Rmd R/methods.R tests/testthat/test-summary.R man/summary.drmTMB.Rd`:
+  confirmed the new summary surface and residual/spatial boundaries.
+- `rg -n 'summary\(fit\)\$covariance.*registry-backed|registry-backed.*summary\(fit\)\$covariance|covariance component.*registry-backed|spatial.*implemented' NEWS.md ROADMAP.md docs/design docs/dev-log/known-limitations.md vignettes man/summary.drmTMB.Rd`:
+  confirmed the registry-backed wording now has the phylogenetic exception where
+  needed and no current spatial-implemented claim.
+- `git diff --check`: passed.
+
+## 2026-05-13 -- Slice 6 phylogenetic `profile_targets()` labels
+
+Scope:
+
+- added focused coverage that `profile_targets()` lists fitted bivariate
+  phylogenetic `mu1`/`mu2` location SDs and the phylogenetic mean-mean
+  correlation;
+- checked the exact public target names:
+  `sd:mu:mu1:phylo(1 | species)`,
+  `sd:mu:mu2:phylo(1 | species)`, and
+  `cor:phylo:cor(mu1:(Intercept),mu2:(Intercept) | phylo | species)`;
+- checked TMB mapping to `log_sd_phylo` indices 1 and 2 and
+  `eta_cor_phylo` index 1, with `exp`/`tanh` transformations and direct
+  profile readiness;
+- confirmed residual `rho12` remains a separate residual-correlation target;
+- synchronized NEWS, roadmap, and profile/double-hierarchical design notes
+  without changing spatial implementation status.
+
+Checks:
+
+- `air format tests/testthat/test-profile-targets.R NEWS.md ROADMAP.md docs/design/12-profile-likelihood-cis.md docs/design/28-double-hierarchical-endpoint.md`:
+  passed.
+- `Rscript -e 'devtools::test(filter = "profile-targets|phylo-gaussian")'`:
+  passed with 283 expectations.
+- `Rscript -e 'devtools::test()'`: passed with 2,716 expectations, 0 failures,
+  0 warnings, and 0 skips.
+- `Rscript -e 'pkgdown::check_pkgdown()'`: passed with no problems found.
+- `rg -n 'bivariate phylogenetic|cor:phylo|rho12|spatial' NEWS.md ROADMAP.md docs/design/12-profile-likelihood-cis.md docs/design/28-double-hierarchical-endpoint.md docs/dev-log/known-limitations.md vignettes/model-map.Rmd vignettes/phylogenetic-spatial.Rmd`:
+  confirmed fitted phylogenetic target wording, residual-`rho12` separation, and
+  spatial planned wording.
+- `rg -n 'profile intervals already work|profile-likelihood intervals.*phylogenetic|derived.*phylo|spatial.*implemented|bivariate phylo\(\) syntax remains planned|bivariate phylogenetic.*planned' NEWS.md ROADMAP.md docs vignettes`:
+  found only expected planned-boundary and historical-note wording; no current
+  claim that spatial is implemented.
+- `git diff --check`: passed.
+
+## 2026-05-13 -- Slice 5 phylogenetic `check_drm()` diagnostics
+
+Scope:
+
+- added a `biv_phylo_mu_covariance` row to `check_drm()` for fitted bivariate
+  Gaussian models with matching `mu1`/`mu2` phylogenetic location effects;
+- reused the existing `rho_boundary` threshold to warn when fitted
+  `corpars$phylo` is near the correlation boundary;
+- added a weak-identification note when species replication is thin or either
+  fitted phylogenetic location SD is tiny relative to the matching residual
+  scale;
+- kept residual `rho12`, phylogenetic mean-mean correlation, ordinary
+  group-level covariance, and planned spatial covariance as separate diagnostic
+  stories;
+- updated `check_drm()` reference docs, NEWS, roadmap/status notes, known
+  limitations, and phylogenetic/model-map tutorial wording.
+
+Checks:
+
+- `air format R/check.R tests/testthat/test-check-drm.R NEWS.md ROADMAP.md docs/dev-log/known-limitations.md docs/design/16-phylo-spatial-common-math.md vignettes/model-map.Rmd vignettes/phylogenetic-spatial.Rmd`:
+  passed.
+- `Rscript -e 'devtools::document()'`: passed and regenerated
+  `man/check_drm.Rd`.
+- `Rscript -e 'devtools::test(filter = "check-drm|phylo-gaussian|corpairs")'`:
+  passed with 228 expectations.
+- `Rscript -e 'devtools::test()'`: passed with 2,703 expectations, 0 failures,
+  0 warnings, and 0 skips.
+- `Rscript -e 'for (f in c("vignettes/model-map.Rmd", "vignettes/phylogenetic-spatial.Rmd")) rmarkdown::render(f, output_file = tempfile(fileext = ".html"), quiet = TRUE)'`:
+  passed.
+- `Rscript -e 'pkgdown::check_pkgdown()'`: passed with no problems found.
+- `rg -n 'biv_phylo_mu_covariance|corpars\$phylo|phylogenetic.*diagnostic|near-boundary.*phylo|tiny phylogenetic|spatial.*implemented|spatial.*planned|rho12.*phylogenetic|rho12.*spatial' R/check.R tests/testthat/test-check-drm.R NEWS.md ROADMAP.md docs/design docs/dev-log/known-limitations.md vignettes/model-map.Rmd vignettes/phylogenetic-spatial.Rmd man/check_drm.Rd`:
+  confirmed the new diagnostic row, fitted phylogenetic wording, spatial
+  planned boundary, and residual-`rho12` separation.
+- `rg -n 'check_drm\(\).*phylo|phylo.*check_drm|bivariate phylogenetic.*check_drm|corpars\$phylo.*check_drm' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes man/check_drm.Rd`:
+  confirmed the user-facing diagnostic references.
+- `Rscript tools/codex-checkpoint.R --goal "slice 5 phylogenetic check_drm diagnostics closeout" --next "review diff, then preserve branch state or plan the spatial sibling lane"`:
+  passed and wrote
+  `docs/dev-log/recovery-checkpoints/2026-05-13-150118-codex-checkpoint.md`.
+- `git diff --check`: passed.
+
+## 2026-05-13 -- Slice 4 phylogenetic `corpairs()` row
+
+Scope:
+
+- added a `corpairs()` row for fitted bivariate phylogenetic mean-mean
+  correlations exposed in `corpars$phylo`;
+- used `level = "phylogenetic"`, `block = "phylo"`, `class = "mean-mean"`,
+  and the matched `mu1`/`mu2` response labels so residual `rho12`, ordinary
+  group-level covariance, and phylogenetic covariance stay separate;
+- kept full q=4 phylogenetic location-scale rows planned: this slice reports
+  only the fitted `mu1`/`mu2` phylogenetic location correlation;
+- updated `corpairs()` docs, NEWS, correlation-pair design notes, known
+  limitations, and the phylogenetic/model-map tutorial references.
+
+Checks:
+
+- `air format R/methods.R tests/testthat/test-corpairs.R NEWS.md docs/dev-log/known-limitations.md docs/design/20-coscale-correlation-pairs.md docs/design/29-mammal-location-coscale-route.md vignettes/model-map.Rmd vignettes/phylogenetic-spatial.Rmd`:
+  passed.
+- `Rscript -e 'devtools::test(filter = "corpairs|phylo-gaussian|biv-gaussian")'`:
+  passed with 616 expectations after normalizing the expected filtered-row name
+  in the new `corpairs()` regression test.
+- `Rscript -e 'devtools::document()'`: passed and regenerated
+  `man/corpairs.Rd`.
+- `Rscript -e 'devtools::test()'`: passed with 2,686 expectations, 0 failures,
+  0 warnings, and 0 skips.
+- `Rscript -e 'for (f in c("vignettes/model-map.Rmd", "vignettes/phylogenetic-spatial.Rmd")) rmarkdown::render(f, output_file = tempfile(fileext = ".html"), quiet = TRUE)'`:
+  passed.
+- `Rscript -e 'pkgdown::check_pkgdown()'`: passed with no problems found.
+- `Rscript tools/codex-checkpoint.R --goal "slice 4 phylogenetic corpairs row closeout" --next "review diff, then start slice 5 check_drm diagnostics for fitted bivariate phylogenetic correlations"`:
+  passed and wrote
+  `docs/dev-log/recovery-checkpoints/2026-05-13-144557-codex-checkpoint.md`.
+- `git diff --check`: passed.
+
+## 2026-05-13 -- Fitted bivariate phylogenetic location slice
+
+Scope:
+
+- replaced the previous matched-term guard with a fitted bivariate Gaussian
+  `mu1`/`mu2` phylogenetic location slice for matching intercept-only
+  `phylo(1 | species, tree = tree)` terms;
+- added the TMB parameterization for two phylogenetic location SDs and one
+  phylogenetic mean-mean correlation while keeping `sigma1`, `sigma2`, and
+  residual `rho12` as ordinary fixed-effect distributional parameters;
+- exposed the fitted phylogenetic SDs through `sdpars$mu`, the mean-mean
+  correlation through `corpars$phylo`, and fitted-row `predict(..., dpar =
+  "mu1")` / `predict(..., dpar = "mu2")` contributions;
+- updated README, NEWS, roadmap, design notes, known limitations, reference
+  docs, and tutorials to mark only this first bivariate phylogenetic location
+  slice as fitted while leaving the full q=4 location-scale endpoint and
+  `corpairs()` rows planned.
+
+Checks:
+
+- `air format R/drmTMB.R R/formula-markers.R R/methods.R R/profile.R tests/testthat/test-biv-gaussian.R tests/testthat/test-phylo-gaussian.R tests/testthat/test-phylo-utils.R README.md NEWS.md ROADMAP.md docs/design/01-formula-grammar.md docs/design/03-likelihoods.md docs/design/09-phylogenetic-and-spatial-speed.md docs/design/15-location-coscale-phylogenetic-extension.md docs/design/16-phylo-spatial-common-math.md docs/design/20-coscale-correlation-pairs.md docs/design/28-double-hierarchical-endpoint.md docs/design/29-mammal-location-coscale-route.md docs/dev-log/known-limitations.md vignettes/formula-grammar.Rmd vignettes/model-map.Rmd vignettes/phylogenetic-spatial.Rmd vignettes/which-scale.Rmd`:
+  passed.
+- `air format tests/testthat/test-gaussian-location-scale.R`: passed.
+- `air format docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-13-fitted-bivariate-phylogenetic-location.md`:
+  passed.
+- `Rscript -e 'devtools::document()'`: passed and regenerated `man/drmTMB.Rd`
+  and `man/phylo.Rd`.
+- `Rscript -e 'devtools::test(filter = "phylo|biv-gaussian|profile-targets")'`:
+  passed with 838 expectations.
+- `Rscript -e 'devtools::test(filter = "gaussian-location-scale|phylo|biv-gaussian|profile-targets")'`:
+  passed with 916 expectations after updating a stale one-sided bivariate
+  `phylo()` error-message expectation.
+- `Rscript -e 'devtools::test()'`: passed with 2,657 expectations, 0 failures,
+  0 warnings, and 0 skips.
+- `Rscript -e 'for (f in c("vignettes/formula-grammar.Rmd", "vignettes/model-map.Rmd", "vignettes/phylogenetic-spatial.Rmd", "vignettes/which-scale.Rmd")) rmarkdown::render(f, output_file = tempfile(fileext = ".html"), quiet = TRUE)'`:
+  passed.
+- `Rscript -e 'pkgdown::check_pkgdown()'`: passed with no problems found.
+- `Rscript tools/codex-checkpoint.R --goal "fitted bivariate phylogenetic location closeout" --next "review diff, then add corpairs rows for fitted phylogenetic mean-mean correlations or commit this slice"`:
+  passed and wrote
+  `docs/dev-log/recovery-checkpoints/2026-05-13-135745-codex-checkpoint.md`.
+- `git diff --check`: passed.
+
+## 2026-05-13 -- Bivariate phylogenetic location syntax guard
+
+Scope:
+
+- added a narrow bivariate Gaussian guard for the next fitted phylogenetic
+  location path;
+- made unmatched `phylo()` terms in `mu1` or `mu2` fail with a matched-term
+  message;
+- made mismatched bivariate `phylo()` group/tree combinations fail explicitly;
+- made matched `mu1`/`mu2` phylogenetic location syntax report that it is
+  recognized but not fitted yet, with `sigma1`, `sigma2`, and residual `rho12`
+  still ordinary fixed-effect distributional parameters.
+
+Checks:
+
+- `air format R/drmTMB.R tests/testthat/test-biv-gaussian.R`: passed.
+- `Rscript -e 'devtools::test(filter = "biv-gaussian")'`: passed with 501
+  expectations, 0 failures, 0 warnings, and 0 skips.
+
 ## 2026-05-13 -- pkgdown feature-branch build workflow guard
 
 Scope:

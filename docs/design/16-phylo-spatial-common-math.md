@@ -343,6 +343,9 @@ mean-scale covariance block, it also reports group replication and whether
 either component SD is tiny on its interpretation scale. For the first
 bivariate `mu1`/`mu2` random-intercept covariance block, it reports group
 replication and whether either fitted group-level SD is tiny relative to the
+matching residual scale. For the first fitted bivariate phylogenetic `mu1`/`mu2`
+location slice, it reports whether `corpars$phylo` is near the correlation
+boundary and whether either phylogenetic location SD is tiny relative to the
 matching residual scale.
 Future structured-effect phases still need separability diagnostics for
 phylogenetic plus non-phylogenetic species effects and spatial field plus site
@@ -413,15 +416,17 @@ blocks, rather than treating every cross-response correlation as residual
 2. Extend `meta_known_V(V = V)` from dense known covariance to sparse storage.
 3. Keep the first `phylo(1 | species, tree = tree)` univariate Gaussian `mu`
    path under simulation and comparator tests.
-4. Add spatial SPDE fields using the same structured-effect TMB block.
-5. Add one phylogenetic or spatial structured slope in `mu`.
-6. Only then allow structured effects in `sigma`.
-7. Treat structured effects in `rho12` as experimental until simulation
+4. Add matching bivariate `mu1`/`mu2` phylogenetic location effects with one
+   mean-mean correlation.
+5. Add spatial SPDE fields using the same structured-effect TMB block.
+6. Add one phylogenetic or spatial structured slope in `mu`.
+7. Only then allow structured effects in `sigma`.
+8. Treat structured effects in `rho12` as experimental until simulation
    evidence shows identifiability.
 
 ## Current Implementation Gate
 
-The current fitted slice is deliberately small:
+The first fitted univariate slice is deliberately small:
 
 ```r
 drmTMB(
@@ -454,18 +459,31 @@ For internal comparator tests, the same model can be validated against a dense
 tip covariance implied by the tree on small examples. That dense matrix should
 not be the main public input for `phylo()`.
 
-The first implementation attaches the structured effect only to univariate
-Gaussian `mu`. It does not yet add bivariate covariance, structured scale
-effects, structured `rho12`, or random slopes.
+The first fitted bivariate slice uses the same sparse augmented precision for
+matching intercept-only `phylo()` terms in `mu1` and `mu2`:
+
+```text
+[a_mu1, a_mu2] ~ MatrixNormal(0, Q_aug^{-1}, Sigma_phylo)
+mu1_i = X_mu1[i, ] beta_mu1 + a_mu1[species_i]
+mu2_i = X_mu2[i, ] beta_mu2 + a_mu2[species_i]
+```
+
+This estimates `sd_phylo_mu1`, `sd_phylo_mu2`, and one phylogenetic mean-mean
+correlation. It does not yet add phylogenetic `sigma` terms, structured
+`rho12`, or random slopes.
 
 Testing should be staged:
 
 - parser and fitted-model tests for `phylo(1 | species, tree = tree)` in `mu`
-  and clear rejection in unsupported parameters such as `sigma` and `rho12`;
+  and matching bivariate `mu1`/`mu2`, plus clear rejection in unsupported
+  parameters such as `sigma` and `rho12`;
 - deterministic algebra tests comparing sparse A-inverse prior calculations
   with a small dense covariance calculation;
-- one CRAN-safe simulation recovery test with a hand-built ultrametric tree and
-  its implied phylogenetic correlation matrix;
+- CRAN-safe simulation recovery tests with hand-built ultrametric trees and
+  their implied phylogenetic correlation matrices, including the first positive
+  bivariate mean-mean phylogenetic correlation;
+- diagnostics for simultaneous phylogenetic plus ordinary same-species
+  covariance, because those two layers can be weakly separated in finite data;
 - optional long simulations for many species, near-zero phylogenetic SD,
   large residual noise, and simultaneous phylogenetic plus non-phylogenetic
   species effects.

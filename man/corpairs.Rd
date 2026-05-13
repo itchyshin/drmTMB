@@ -15,7 +15,7 @@ corpairs(object, ...)
 \item{...}{Reserved for future extractor options.}
 
 \item{level}{Optional character vector of correlation levels to keep, such
-as \code{"residual"} or \code{"group"}.}
+as \code{"residual"}, \code{"group"}, or \code{"phylogenetic"}.}
 
 \item{group}{Optional character vector of grouping factors to keep, such as
 \code{"id"}. Residual rows have no grouping factor and are removed by this
@@ -40,7 +40,8 @@ already fitted elsewhere: residual bivariate \code{rho12}, ordinary univariate
 group-level \code{mu} random-effect correlations, matched univariate and
 same-response bivariate \code{mu}/\code{sigma} random-intercept covariance blocks, and
 matched bivariate \code{mu1}/\code{mu2} and \code{sigma1}/\code{sigma2} random-intercept
-covariance blocks from \code{corpars}.
+covariance blocks from \code{corpars}, plus the first fitted bivariate
+phylogenetic \code{mu1}/\code{mu2} mean-mean correlation.
 }
 \details{
 The table is intentionally more explicit than \code{rho12()} or \code{corpars}

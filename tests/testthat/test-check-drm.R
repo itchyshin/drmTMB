@@ -53,6 +53,38 @@ check_drm_mu_sigma_cov_data <- function(
   )
 }
 
+check_drm_biv_phylo_data <- function(
+  seed = 2026051305,
+  n_each = 5L,
+  rho_phylo = 0.25,
+  rho12 = -0.10
+) {
+  set.seed(seed)
+  tree <- check_drm_test_tree()
+  A <- drmTMB:::drm_phylo_tip_covariance(tree)
+  n_tip <- length(tree$tip.label)
+  z1 <- stats::rnorm(n_tip)
+  z2 <- rho_phylo * z1 + sqrt(1 - rho_phylo^2) * stats::rnorm(n_tip)
+  phylo1 <- as.vector(t(chol(A)) %*% z1) * 0.45
+  phylo2 <- as.vector(t(chol(A)) %*% z2) * 0.40
+  names(phylo1) <- tree$tip.label
+  names(phylo2) <- tree$tip.label
+
+  species <- rep(tree$tip.label, each = n_each)
+  x <- stats::rnorm(length(species))
+  e1 <- stats::rnorm(length(species))
+  e2 <- rho12 * e1 + sqrt(1 - rho12^2) * stats::rnorm(length(species))
+  list(
+    data = data.frame(
+      y1 = 0.25 + 0.30 * x + phylo1[species] + 0.25 * e1,
+      y2 = -0.15 - 0.25 * x + phylo2[species] + 0.30 * e2,
+      x = x,
+      species = species
+    ),
+    tree = tree
+  )
+}
+
 check_drm_registry_singleton <- function(fit, dpar) {
   member_row <- which(
     fit$model$random$covariance_blocks$members$dpar == dpar
@@ -355,6 +387,101 @@ test_that("check_drm() records phylogenetic replication notes", {
   expect_equal(phylo$status, "note")
   expect_match(phylo$value, "min_species_n=1")
   expect_true(attr(chk, "ok"))
+})
+
+test_that("check_drm() reports bivariate phylogenetic covariance diagnostics", {
+  sim <- check_drm_biv_phylo_data()
+  dat <- sim$data
+  tree <- sim$tree
+  fit <- drmTMB(
+    bf(
+      mu1 = y1 ~ x + phylo(1 | species, tree = tree),
+      mu2 = y2 ~ x + phylo(1 | species, tree = tree),
+      sigma1 = ~1,
+      sigma2 = ~1,
+      rho12 = ~1
+    ),
+    family = biv_gaussian(),
+    data = dat,
+    control = list(eval.max = 300, iter.max = 300)
+  )
+
+  stable <- fit
+  phylo_names <- paste0(c("mu1:", "mu2:"), fit$model$structured$phylo_mu$label)
+  stable$sdpars$mu[phylo_names] <- c(0.45, 0.40)
+  stable$corpars$phylo[] <- 0.25
+  chk <- check_drm(stable)
+  phylo <- chk[chk$check == "biv_phylo_mu_covariance", ]
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(nrow(phylo), 1L)
+  expect_equal(phylo$status, "ok")
+  expect_match(phylo$value, "group=species")
+  expect_match(phylo$value, "rho_abs=0.2500")
+  expect_match(phylo$value, "n_species=4")
+  expect_match(phylo$value, "min_species_n=5")
+  expect_match(phylo$value, "min_sd_ratio=")
+  expect_match(phylo$message, "non-negligible")
+  expect_true(attr(chk, "ok"))
+
+  near_boundary <- stable
+  near_boundary$corpars$phylo[] <- 0.995
+  near_boundary_chk <- check_drm(near_boundary, rho_boundary = 0.98)
+  near_boundary_phylo <- near_boundary_chk[
+    near_boundary_chk$check == "biv_phylo_mu_covariance",
+  ]
+
+  expect_equal(near_boundary_phylo$status, "warning")
+  expect_match(near_boundary_phylo$value, "boundary=0.9800")
+  expect_match(near_boundary_phylo$message, "close to \\+/-1")
+  expect_false(attr(near_boundary_chk, "ok"))
+
+  weak_sd <- stable
+  weak_sd$sdpars$mu[phylo_names[[1L]]] <- 0.005
+  weak_sd_chk <- check_drm(weak_sd)
+  weak_sd_phylo <- weak_sd_chk[
+    weak_sd_chk$check == "biv_phylo_mu_covariance",
+  ]
+
+  expect_equal(weak_sd_phylo$status, "note")
+  expect_match(weak_sd_phylo$message, "tiny relative")
+  expect_true(attr(weak_sd_chk, "ok"))
+})
+
+test_that("check_drm() notes ordinary species covariance beside phylogenetic covariance", {
+  sim <- check_drm_biv_phylo_data(seed = 2026051306, n_each = 6L)
+  dat <- sim$data
+  tree <- sim$tree
+  fit <- drmTMB(
+    bf(
+      mu1 = y1 ~ x +
+        (1 | species_residual | species) +
+        phylo(1 | species, tree = tree),
+      mu2 = y2 ~ x +
+        (1 | species_residual | species) +
+        phylo(1 | species, tree = tree),
+      sigma1 = ~1,
+      sigma2 = ~1,
+      rho12 = ~1
+    ),
+    family = biv_gaussian(),
+    data = dat,
+    control = list(eval.max = 400, iter.max = 400)
+  )
+
+  stable <- fit
+  phylo_names <- paste0(c("mu1:", "mu2:"), fit$model$structured$phylo_mu$label)
+  stable$sdpars$mu[phylo_names] <- c(0.45, 0.40)
+  stable$corpars$phylo[] <- 0.25
+  chk <- check_drm(stable)
+  phylo <- chk[chk$check == "biv_phylo_mu_covariance", ]
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(nrow(phylo), 1L)
+  expect_equal(phylo$status, "note")
+  expect_match(phylo$value, "same_group_covariance=true")
+  expect_match(phylo$message, "ordinary group-level covariance")
+  expect_match(phylo$message, "non-phylogenetic species correlations")
 })
 
 test_that("check_drm() reports univariate mu/sigma covariance diagnostics", {

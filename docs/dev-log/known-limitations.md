@@ -26,26 +26,38 @@
   cross-parameter covariance blocks are still planned;
   residual `rho12` should not be interpreted as a phylogenetic, spatial, or
   group-level covariance parameter.
+- Matching intercept-only `phylo(1 | species, tree = tree)` terms are fitted
+  in bivariate Gaussian `mu1` and `mu2` formulas. This first phylogenetic
+  bivariate slice estimates two phylogenetic location SDs and one phylogenetic
+  mean-mean correlation while keeping `sigma1`, `sigma2`, and residual `rho12`
+  as fixed-effect distributional parameters. `summary(fit)$covariance` reports
+  the fitted phylogenetic variance and covariance point summaries, and
+  `check_drm()` reports a bivariate phylogenetic covariance diagnostic for
+  near-boundary `corpars$phylo` values, weak species replication, and
+  phylogenetic location SDs that are tiny relative to the matching residual
+  scales.
 - `corpairs()` currently reports only correlations that are already fitted:
   residual bivariate `rho12` summaries and ordinary univariate Gaussian `mu`
   random-effect correlations, plus the implemented univariate `mu`/`sigma`
   mean-scale random-intercept correlation and bivariate `mu1`/`mu2`
   random-intercept, `sigma1`/`sigma2` random-intercept, and same-response
-  bivariate `mu`/`sigma` random-intercept correlations. It does not yet report
-  phylogenetic, spatial, or study-level correlation pairs.
+  bivariate `mu`/`sigma` random-intercept correlations. It also reports the
+  fitted bivariate phylogenetic mean-mean correlation. Spatial and study-level
+  correlation pairs remain planned.
 - Internal q4 phylogenetic algebra, hidden TMB-prior, and planned-pair
-  scaffolds exist for the future `mu1`, `mu2`, `sigma1`, and `sigma2` endpoint,
-  but they do not change accepted formulas or fitted output. Bivariate
-  `phylo()` remains planned until a fitted likelihood, recovery tests, and
-  reporting rows are present.
+  scaffolds exist for the future `mu1`, `mu2`, `sigma1`, and `sigma2` endpoint.
+  The `mu1`/`mu2` phylogenetic location slice is now fitted, but the full q4
+  location-scale block, recovery tests for all six q4 pairs, and reporting rows
+  beyond the fitted mean-mean pair remain planned.
 - `summary()`, `predict_parameters()`, and `marginal_parameters()` expose
   fitted response-scale parameter summaries for interpretation. `summary()` can
   attach opt-in Wald intervals and direct profile intervals for profile-ready
   rows, including the first univariate and same-response bivariate `mu`/`sigma`,
   bivariate `mu1`/`mu2`, and bivariate `sigma1`/`sigma2` random-intercept
-  correlations. The first marginal helper computes unweighted plug-in means
-  only; it does not yet compute uncertainty, standard errors, contrasts, plots,
-  or full `emmeans`-style marginalisation.
+  correlations, plus the first bivariate phylogenetic `mu1`/`mu2` mean-mean
+  correlation. The first marginal helper computes unweighted plug-in means only;
+  it does not yet compute uncertainty, standard errors, contrasts, plots, or
+  full `emmeans`-style marginalisation.
 - Fixed-effect univariate lognormal location-scale models are implemented for
   positive finite responses. `mu` and `sigma` are on the log-response scale;
   random effects, known sampling covariance, phylogenetic terms, and bivariate
@@ -91,9 +103,10 @@
   known sampling covariance, phylogenetic terms, bivariate or mixed
   beta-binomial models, or successes/trials response alias.
 - Intercept-only phylogenetic random effects are implemented in univariate
-  Gaussian location formulas as `phylo(1 | species, tree = tree)`. The tree
-  must be an ultrametric `phylo` object with positive branch lengths, and every
-  observed species must match a tip label.
+  Gaussian `mu` formulas and matching bivariate Gaussian `mu1`/`mu2` formulas
+  as `phylo(1 | species, tree = tree)`. The tree must be an ultrametric
+  `phylo` object with positive branch lengths, and every observed species must
+  match a tip label.
 - Structured-effect markers outside that first path, such as
   `phylo(1 + x | species, tree = tree)`, phylogenetic terms in `sigma`, and
   `spatial(1 | site, coords = coords)`, are parsed and rejected clearly, but
@@ -143,7 +156,8 @@
   among-group variation in the mean model.
 - Sparse known sampling covariance for large meta-analysis and spatial
   workloads is planned but not yet implemented. The first sparse phylogenetic
-  route is implemented for univariate Gaussian `mu` random intercepts only.
+  routes are implemented for univariate Gaussian `mu` random intercepts and
+  matching bivariate Gaussian `mu1`/`mu2` random intercepts.
 - `weights =` is implemented as ordinary likelihood weights: one
   non-negative finite weight per observation for univariate models, and one
   weight per complete response pair for bivariate models. Known sampling

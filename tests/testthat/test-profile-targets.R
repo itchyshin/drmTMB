@@ -159,6 +159,42 @@ new_profile_phylo_data <- function(
   )
 }
 
+new_profile_biv_phylo_data <- function(
+  seed = 20260621,
+  n_tip = 4L,
+  n_each = 5L,
+  rho_phylo = 0.25,
+  rho12 = -0.10,
+  sd_phylo1 = 0.45,
+  sd_phylo2 = 0.40,
+  sigma1 = 0.25,
+  sigma2 = 0.30
+) {
+  set.seed(seed)
+  tree <- new_profile_balanced_tree(n_tip)
+  A <- drmTMB:::drm_phylo_tip_covariance(tree)
+  z1 <- stats::rnorm(n_tip)
+  z2 <- rho_phylo * z1 + sqrt(1 - rho_phylo^2) * stats::rnorm(n_tip)
+  phylo1 <- as.vector(t(chol(A)) %*% z1) * sd_phylo1
+  phylo2 <- as.vector(t(chol(A)) %*% z2) * sd_phylo2
+  names(phylo1) <- tree$tip.label
+  names(phylo2) <- tree$tip.label
+
+  species <- rep(tree$tip.label, each = n_each)
+  x <- stats::rnorm(length(species))
+  e1 <- stats::rnorm(length(species))
+  e2 <- rho12 * e1 + sqrt(1 - rho12^2) * stats::rnorm(length(species))
+  list(
+    data = data.frame(
+      y1 = 0.25 + 0.30 * x + phylo1[species] + sigma1 * e1,
+      y2 = -0.15 - 0.25 * x + phylo2[species] + sigma2 * e2,
+      x = x,
+      species = species
+    ),
+    tree = tree
+  )
+}
+
 new_profile_hurdle_data <- function(n = 360, seed = 20260594) {
   set.seed(seed)
   dat <- data.frame(
@@ -740,6 +776,125 @@ test_that("confint profile intervals transform phylogenetic SD targets", {
   expect_equal(ci$lower, exp(unname(manual_ci[1L, "lower"])), tolerance = 1e-12)
   expect_equal(ci$upper, exp(unname(manual_ci[1L, "upper"])), tolerance = 1e-12)
   expect_gt(ci$lower, 0)
+})
+
+test_that("profile target inventory covers bivariate phylogenetic covariance labels", {
+  sim <- new_profile_biv_phylo_data()
+  dat <- sim$data
+  tree <- sim$tree
+  fit <- drmTMB(
+    bf(
+      mu1 = y1 ~ x + phylo(1 | species, tree = tree),
+      mu2 = y2 ~ x + phylo(1 | species, tree = tree),
+      sigma1 = ~1,
+      sigma2 = ~1,
+      rho12 = ~1
+    ),
+    family = biv_gaussian(),
+    data = dat,
+    control = list(eval.max = 300, iter.max = 300)
+  )
+
+  targets <- profile_targets(fit)
+  ready_targets <- profile_targets(fit, ready_only = TRUE)
+  phylo_parms <- c(
+    "sd:mu:mu1:phylo(1 | species)",
+    "sd:mu:mu2:phylo(1 | species)",
+    "cor:phylo:cor(mu1:(Intercept),mu2:(Intercept) | phylo | species)"
+  )
+  phylo_targets <- targets[match(phylo_parms, targets$parm), ]
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(phylo_targets$parm, phylo_parms)
+  expect_equal(
+    phylo_targets$target_class,
+    c(
+      "random-effect-sd",
+      "random-effect-sd",
+      "random-effect-correlation"
+    )
+  )
+  expect_equal(phylo_targets$dpar, c("mu", "mu", "phylo"))
+  expect_equal(
+    phylo_targets$tmb_parameter,
+    c("log_sd_phylo", "log_sd_phylo", "eta_cor_phylo")
+  )
+  expect_equal(phylo_targets$index, c(1L, 2L, 1L))
+  expect_equal(phylo_targets$transformation, c("exp", "exp", "tanh"))
+  expect_equal(phylo_targets$target_type, rep("direct", 3))
+  expect_true(all(phylo_targets$profile_ready))
+  expect_equal(phylo_targets$profile_note, rep("ready", 3))
+  expect_true(all(phylo_parms %in% ready_targets$parm))
+
+  rho12_targets <- targets[targets$dpar == "rho12", ]
+  expect_true("rho12" %in% rho12_targets$parm)
+  expect_false(any(rho12_targets$parm %in% phylo_parms))
+})
+
+test_that("confint profile intervals transform bivariate phylogenetic correlations", {
+  sim <- new_profile_biv_phylo_data(
+    seed = 20260701,
+    n_tip = 8L,
+    n_each = 8L,
+    rho_phylo = 0.35,
+    rho12 = 0.05,
+    sd_phylo1 = 0.80,
+    sd_phylo2 = 0.75,
+    sigma1 = 0.20,
+    sigma2 = 0.22
+  )
+  dat <- sim$data
+  tree <- sim$tree
+  fit <- drmTMB(
+    bf(
+      mu1 = y1 ~ x + phylo(1 | species, tree = tree),
+      mu2 = y2 ~ x + phylo(1 | species, tree = tree),
+      sigma1 = ~1,
+      sigma2 = ~1,
+      rho12 = ~1
+    ),
+    family = biv_gaussian(),
+    data = dat,
+    control = list(eval.max = 300, iter.max = 300)
+  )
+
+  phylo_cor <- "cor:phylo:cor(mu1:(Intercept),mu2:(Intercept) | phylo | species)"
+  ci <- stats::confint(
+    fit,
+    parm = phylo_cor,
+    level = 0.80,
+    method = "profile",
+    trace = FALSE,
+    ystep = 0.30
+  )
+  manual_lincomb <- rep(0, length(fit$opt$par))
+  manual_lincomb[which(names(fit$opt$par) == "eta_cor_phylo")[[1L]]] <- 1
+  manual_profile <- TMB::tmbprofile(
+    fit$obj,
+    name = phylo_cor,
+    lincomb = manual_lincomb,
+    trace = FALSE,
+    ystep = 0.30
+  )
+  manual_ci <- stats::confint(manual_profile, level = 0.80)
+
+  expect_equal(ci$parm, phylo_cor)
+  expect_equal(ci$scale, "response")
+  expect_equal(ci$transformation, "tanh")
+  expect_equal(ci$tmb_parameter, "eta_cor_phylo")
+  expect_equal(ci$index, 1L)
+  expect_equal(
+    ci$lower,
+    0.999999 * tanh(unname(manual_ci[1L, "lower"])),
+    tolerance = 1e-12
+  )
+  expect_equal(
+    ci$upper,
+    0.999999 * tanh(unname(manual_ci[1L, "upper"])),
+    tolerance = 1e-12
+  )
+  expect_true(abs(ci$lower) < 1)
+  expect_true(abs(ci$upper) < 1)
 })
 
 test_that("profile confidence intervals reject unsupported targets clearly", {

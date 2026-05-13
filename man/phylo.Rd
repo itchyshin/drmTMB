@@ -16,11 +16,12 @@ A formula marker; never evaluated by users.
 }
 \description{
 \code{phylo()} marks user-facing syntax for phylogenetic dependence. The current
-fitted path supports intercept-only univariate Gaussian location effects,
-\code{phylo(1 | species, tree = tree)}. Later phases will add structured slopes
-such as \code{phylo(1 + x | species, tree = tree)}. The public \code{phylo()} API
-requires an ultrametric tree with branch lengths and uses the Hadfield and
-Nakagawa A-inverse sparse-precision path internally.
+fitted paths support intercept-only Gaussian location effects:
+\code{phylo(1 | species, tree = tree)} in univariate \code{mu}, or matching terms in
+bivariate \code{mu1} and \code{mu2}. Later phases will add structured slopes such as
+\code{phylo(1 + x | species, tree = tree)}. The public \code{phylo()} API requires an
+ultrametric tree with branch lengths and uses the Hadfield and Nakagawa
+A-inverse sparse-precision path internally.
 }
 \examples{
 bf(y ~ x + phylo(1 | species, tree = tree), sigma ~ z)

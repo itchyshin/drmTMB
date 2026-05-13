@@ -1,3 +1,67 @@
+new_summary_balanced_tree <- function(n_tip = 4L) {
+  stopifnot(n_tip >= 2L, log2(n_tip) == floor(log2(n_tip)))
+  edges <- matrix(integer(), ncol = 2L)
+  edge_lengths <- numeric()
+  next_node <- n_tip + 1L
+
+  build <- function(tips) {
+    if (length(tips) == 1L) {
+      return(tips)
+    }
+    node <- next_node
+    next_node <<- next_node + 1L
+    mid <- length(tips) / 2L
+    left <- build(tips[seq_len(mid)])
+    right <- build(tips[seq.int(mid + 1L, length(tips))])
+    edges <<- rbind(edges, c(node, left), c(node, right))
+    edge_lengths <<- c(edge_lengths, 1, 1)
+    node
+  }
+
+  build(seq_len(n_tip))
+  structure(
+    list(
+      edge = edges,
+      edge.length = edge_lengths,
+      tip.label = paste0("sp_", seq_len(n_tip)),
+      Nnode = n_tip - 1L
+    ),
+    class = "phylo"
+  )
+}
+
+new_summary_biv_phylo_data <- function(
+  seed = 20260622,
+  n_tip = 4L,
+  n_each = 5L,
+  rho_phylo = 0.30,
+  rho12 = 0.15
+) {
+  set.seed(seed)
+  tree <- new_summary_balanced_tree(n_tip)
+  A <- drmTMB:::drm_phylo_tip_covariance(tree)
+  z1 <- stats::rnorm(n_tip)
+  z2 <- rho_phylo * z1 + sqrt(1 - rho_phylo^2) * stats::rnorm(n_tip)
+  phylo1 <- as.vector(t(chol(A)) %*% z1) * 0.45
+  phylo2 <- as.vector(t(chol(A)) %*% z2) * 0.40
+  names(phylo1) <- tree$tip.label
+  names(phylo2) <- tree$tip.label
+
+  species <- rep(tree$tip.label, each = n_each)
+  x <- stats::rnorm(length(species))
+  e1 <- stats::rnorm(length(species))
+  e2 <- rho12 * e1 + sqrt(1 - rho12^2) * stats::rnorm(length(species))
+  list(
+    data = data.frame(
+      y1 = 0.25 + 0.30 * x + phylo1[species] + 0.25 * e1,
+      y2 = -0.15 - 0.25 * x + phylo2[species] + 0.30 * e2,
+      x = x,
+      species = species
+    ),
+    tree = tree
+  )
+}
+
 test_that("summary() reports fitted response-scale parameter ranges", {
   set.seed(20260511)
   n <- 80
@@ -272,6 +336,90 @@ test_that("summary() separates bivariate group covariance from residual rho12", 
     profiled$covariance$covariance_conf.status,
     "derived_interval_unavailable"
   )
+})
+
+test_that("summary() reports bivariate phylogenetic covariance separately", {
+  sim <- new_summary_biv_phylo_data()
+  dat <- sim$data
+  tree <- sim$tree
+  fit <- drmTMB(
+    bf(
+      mu1 = y1 ~ x + phylo(1 | species, tree = tree),
+      mu2 = y2 ~ x + phylo(1 | species, tree = tree),
+      sigma1 = ~1,
+      sigma2 = ~1,
+      rho12 = ~1
+    ),
+    family = biv_gaussian(),
+    data = dat,
+    control = list(eval.max = 300, iter.max = 300)
+  )
+  smry <- summary(fit)
+
+  sd_mu1 <- "sd:mu:mu1:phylo(1 | species)"
+  sd_mu2 <- "sd:mu:mu2:phylo(1 | species)"
+  cor_phylo <- "cor:phylo:cor(mu1:(Intercept),mu2:(Intercept) | phylo | species)"
+  expect_true(all(
+    c(sd_mu1, sd_mu2, cor_phylo, "rho12") %in% rownames(smry$parameters)
+  ))
+  expect_equal(smry$parameters[sd_mu1, "component"], "random-effect-sd")
+  expect_equal(smry$parameters[sd_mu2, "component"], "random-effect-sd")
+  expect_equal(
+    smry$parameters[cor_phylo, "component"],
+    "random-effect-correlation"
+  )
+  expect_equal(smry$parameters["rho12", "component"], "residual-correlation")
+  expect_equal(
+    smry$parameters[sd_mu1, "estimate"],
+    unname(fit$sdpars$mu[["mu1:phylo(1 | species)"]])
+  )
+  expect_equal(
+    smry$parameters[sd_mu2, "estimate"],
+    unname(fit$sdpars$mu[["mu2:phylo(1 | species)"]])
+  )
+  expect_equal(
+    smry$parameters[cor_phylo, "estimate"],
+    unname(fit$corpars$phylo[[1L]])
+  )
+  expect_equal(smry$parameters["rho12", "estimate"], unique(rho12(fit)))
+  expect_equal(nrow(smry$covariance), 1L)
+  expect_equal(smry$covariance$level, "phylogenetic")
+  expect_equal(smry$covariance$group, "species")
+  expect_equal(smry$covariance$block, "phylo")
+  expect_equal(smry$covariance$class, "mean-mean")
+  expect_equal(smry$covariance$from_dpar, "mu1")
+  expect_equal(smry$covariance$to_dpar, "mu2")
+  expect_equal(smry$covariance$from_coef, "(Intercept)")
+  expect_equal(smry$covariance$to_coef, "(Intercept)")
+  expect_equal(smry$covariance$from_response, "y1")
+  expect_equal(smry$covariance$to_response, "y2")
+  expect_equal(smry$covariance$parameter, names(fit$corpars$phylo))
+  expect_equal(smry$covariance$correlation_target, cor_phylo)
+  expect_equal(smry$covariance$from_sd_target, sd_mu1)
+  expect_equal(smry$covariance$to_sd_target, sd_mu2)
+  expect_equal(smry$covariance$from_sd_parameter, "mu1:phylo(1 | species)")
+  expect_equal(smry$covariance$to_sd_parameter, "mu2:phylo(1 | species)")
+  expect_equal(smry$covariance$from_scale, "identity")
+  expect_equal(smry$covariance$to_scale, "identity")
+  expect_equal(
+    smry$covariance$correlation,
+    unname(fit$corpars$phylo[[1L]]),
+    tolerance = 1e-12
+  )
+  expect_equal(
+    smry$covariance$covariance,
+    unname(fit$sdpars$mu[["mu1:phylo(1 | species)"]]) *
+      unname(fit$sdpars$mu[["mu2:phylo(1 | species)"]]) *
+      unname(fit$corpars$phylo[[1L]]),
+    tolerance = 1e-12
+  )
+  expect_equal(smry$covariance$covariance_conf.status, "not_requested")
+  expect_false(any(grepl("rho12", smry$covariance$parameter, fixed = TRUE)))
+  expect_false(any(grepl(
+    "rho12",
+    smry$covariance$correlation_target,
+    fixed = TRUE
+  )))
 })
 
 test_that("summary() reports fitted shape ranges", {

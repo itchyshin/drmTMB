@@ -22,7 +22,10 @@ the response scale. The first direct covariance rows are also profile-ready:
 the univariate and same-response bivariate `mu`/`sigma` random-intercept
 correlations in `corpars$mu_sigma`, the bivariate `mu1`/`mu2` random-intercept
 correlation in `corpars$mu`, and the bivariate `sigma1`/`sigma2`
-random-intercept correlation in `corpars$sigma`.
+random-intercept correlation in `corpars$sigma`. The fitted bivariate
+phylogenetic `mu1`/`mu2` SDs and mean-mean correlation are also profile-ready
+direct targets, and the first smoke test verifies that the phylogenetic
+correlation interval is transformed back to the bounded correlation scale.
 `summary(conf.int = TRUE, method = "profile", ci_parm = ...)` can attach these
 direct profile intervals to the same parameter rows shown in
 `summary(fit)$parameters`. `profile_targets(fit)` lists fitted-object target
@@ -43,6 +46,8 @@ sigma2
 sd:mu:(1 | id)
 sd:sigma:(1 | id)
 sd:mu:phylo(1 | species)
+sd:mu:mu1:phylo(1 | species)
+cor:phylo:cor(mu1:(Intercept),mu2:(Intercept) | phylo | species)
 cor:mu:cor((Intercept),x | id)
 cor:mu_sigma:cor(mu:(Intercept),sigma:(Intercept) | p | id)
 cor:mu:cor(mu1:(Intercept),mu2:(Intercept) | p | id)
@@ -55,6 +60,12 @@ These targets use labels stored in the fitted object, such as `sdpars` and
 `sd:mu:phylo(1 | species)` identifies the fitted phylogenetic standard
 deviation even though the original formula must provide the tree object through
 syntax such as `phylo(1 | species, tree = tree)`.
+For the first bivariate phylogenetic location slice,
+`sd:mu:mu1:phylo(1 | species)` and `sd:mu:mu2:phylo(1 | species)` identify the
+two fitted phylogenetic location SDs, while
+`cor:phylo:cor(mu1:(Intercept),mu2:(Intercept) | phylo | species)` identifies
+the phylogenetic mean-mean correlation. These names remain separate from the
+residual target `rho12`.
 
 Those names can then map internally to TMB parameters such as `beta_mu`,
 `beta_sigma`, `log_sd_mu`, `log_sd_sigma`, `log_sd_phylo`, `eta_cor_mu`,
@@ -329,6 +340,7 @@ confint(
   method = "profile"
 )
 confint(fit, parm = "sd:mu:phylo(1 | species)", method = "profile")
+confint(fit, parm = "cor:phylo:cor(mu1:(Intercept),mu2:(Intercept) | phylo | species)", method = "profile")
 confint(fit, parm = "cor:mu:cor((Intercept),x | id)", method = "profile")
 confint(fit, parm = "sigma", method = "profile", newdata = data.frame(x = 0))
 confint(fit, parm = "rho12", method = "profile", newdata = data.frame(w = 0))
@@ -353,6 +365,10 @@ Profile-likelihood support is done only when these checks exist:
   the response scale;
 - `log_sd_phylo` profile intervals work for the implemented
   `phylo(1 | species, tree = tree)` path;
+- `profile_targets()` lists the fitted bivariate phylogenetic `mu1`/`mu2` SDs
+  and mean-mean correlation separately from residual `rho12`;
+- `eta_cor_phylo` profile intervals transform to bounded bivariate
+  phylogenetic `mu1`/`mu2` correlations;
 - `eta_cor_mu` profile intervals transform to bounded group-level correlations;
 - `eta_cor_mu_sigma` profile intervals transform to bounded `mu`/`sigma`
   group-level correlations;

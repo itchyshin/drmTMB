@@ -70,6 +70,7 @@ In this table, "coscale" means a model for residual correlation, currently
 | `family = c(gaussian(), gaussian())` | Implemented | Public bivariate Gaussian family direction; mixed composed families are planned. |
 | `mvbind(y1, y2) ~ x1` | Implemented | Shorthand for identical bivariate location formulas; explicit `mu1`/`mu2` remains preferred for different predictors. |
 | `phylo(1 | species, tree = tree)` in `mu` | Implemented | Intercept-only univariate Gaussian phylogenetic location effect; requires an ultrametric tree with branch lengths. |
+| matching `phylo(1 | species, tree = tree)` in bivariate `mu1` and `mu2` | Implemented first slice | Correlated phylogenetic random intercepts enter the two response means; `sigma1`, `sigma2`, and residual `rho12` remain ordinary fixed-effect distributional parameters. |
 | `weights = w` | Implemented | Top-level likelihood weights, not formula syntax. Known sampling covariance remains `meta_known_V(V = V)`. |
 | `y ~ x1`, `family = cumulative_logit()` | Implemented | Fixed-effect univariate ordinal model for ordered scores with cutpoints; `mu` is a latent location and ordinal scale formulas are planned. |
 | `cbind(successes, failures) ~ x1`, `family = beta_binomial()` | Implemented | Fixed-effect denominator-aware model for success counts with known trial totals; `sigma` is extra-binomial variation. |
@@ -165,6 +166,27 @@ between-group associations after the fixed effects are included. One
 same-response `mu`/`sigma` random-intercept pair is also implemented; bivariate
 random slopes, full cross-parameter covariance blocks spanning more than one
 pair, and `rho12` random effects remain planned.
+
+The first fitted bivariate phylogenetic location slice uses matching
+intercept-only `phylo()` terms in the two location formulas:
+
+```r
+bf(
+  mu1 = y1 ~ x1 + phylo(1 | species, tree = tree),
+  mu2 = y2 ~ x1 + phylo(1 | species, tree = tree),
+  sigma1 = ~ 1,
+  sigma2 = ~ 1,
+  rho12 = ~ x1
+)
+```
+
+Both `phylo()` terms must use the same grouping variable and the same tree.
+The fitted block estimates `sd_phylo_mu1`, `sd_phylo_mu2`, and one
+phylogenetic mean-mean correlation. This correlation is separate from
+residual `rho12`, which still describes within-observation response coupling
+after fixed effects, residual scales, and phylogenetic mean deviations are
+included. Bivariate phylogenetic scale effects, mean-scale phylogenetic
+correlations, and structured effects in `rho12` remain planned.
 
 Do not reuse the same label and grouping variable across all bivariate location
 and scale formulas. For example, putting `(1 | p | id)` in all four formulas is
