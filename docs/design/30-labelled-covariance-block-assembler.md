@@ -130,8 +130,17 @@ registry pair rows, and routes four member contributions through hidden
 `model_type == 97`. This also fixes the R-side test helper to mirror TMB's
 row-wise strict-lower-triangle `UNSTRUCTURED_CORR_t` theta order for q > 3. The
 test proves that the block data contract and positive-definite transform extend
-to the full endpoint dimension; it does not route q=4 effects into a bivariate
-Gaussian likelihood yet.
+to the full intercept-level endpoint dimension.
+
+The next hidden q=4 bridge adds `model_type == 95` as a bivariate Gaussian
+likelihood probe. It uses the same registry-shaped contribution map, adds
+`mu1`, `mu2`, `sigma1`, and `sigma2` member contributions to the existing
+`mu1`, `mu2`, `log(sigma1)`, and `log(sigma2)` predictors, and checks the
+objective against an independent R-side bivariate Gaussian reconstruction plus
+the standard-normal latent prior. This keeps q as the TMB block dimension; the
+set of user-facing correlations that may eventually be modelled can be a masked
+subset of the full six q=4 pair rows. Random-slope q=6 and q=8 endpoint blocks
+remain later extensions.
 
 The flattened data contract should be block-oriented rather than pair-oriented:
 
@@ -236,8 +245,11 @@ still be named `sigma`.
    the simulated q=3 predictor signal better than a no-random-effect baseline.
    Started for a q=4 hidden registry/contribution bridge across `mu1`, `mu2`,
    `sigma1`, and `sigma2`, with all six pair rows and a positive-definite hidden
-   contribution map. Production q=4 support still needs fitted likelihood code,
-   extractor rows, examples, and public syntax review.
+   contribution map. Done for a hidden bivariate Gaussian likelihood probe that
+   injects those four intercept-level contributions into the bivariate
+   predictors and verifies the objective. Production q=4 support still needs
+   fitted random-effect likelihood code, extractor rows, examples, and public
+   syntax review.
 8. Enable the full shared `mu1`/`mu2`/`sigma1`/`sigma2` label pattern only after
    the hidden q=4 bridge has fitted likelihood and recovery evidence.
 

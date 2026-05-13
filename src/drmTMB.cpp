@@ -160,7 +160,7 @@ Type objective_function<Type>::operator()()
   (void)re_cov_pair_to_member;
   (void)re_cov_pair_parameter;
   (void)re_cov_pair_parameter_index;
-  if (model_type == 96 || model_type == 97) {
+  if (model_type == 95 || model_type == 96 || model_type == 97) {
     density::UNSTRUCTURED_CORR_t<Type> re_cov_probe_density(re_cov_probe_theta);
     matrix<Type> re_cov_probe_corr = re_cov_probe_density.cov();
     matrix<Type> re_cov_probe_contribution(
@@ -206,7 +206,50 @@ Type objective_function<Type>::operator()()
     for (int j = 0; j < u_re_cov_probe.size(); ++j) {
       nll -= dnorm(u_re_cov_probe(j), Type(0.0), Type(1.0), true);
     }
-    if (model_type == 96) {
+    if (model_type == 95) {
+      vector<Type> mu1 = X_mu1 * beta_mu1;
+      vector<Type> mu2 = X_mu2 * beta_mu2;
+      vector<Type> log_sigma1 = X_sigma1 * beta_sigma1;
+      vector<Type> log_sigma2 = X_sigma2 * beta_sigma2;
+      vector<Type> eta_rho12 = X_rho12 * beta_rho12;
+      vector<Type> rho12 = Type(0.99999999) * tanh(eta_rho12);
+      for (int i = 0; i < y1.size(); ++i) {
+        if (i < re_cov_probe_contribution.rows()) {
+          for (int m = 0; m < re_cov_probe_contribution.cols(); ++m) {
+            int dpar_code = re_cov_member_dpar(m);
+            if (dpar_code == 2) {
+              mu1(i) += re_cov_probe_contribution(i, m);
+            } else if (dpar_code == 3) {
+              mu2(i) += re_cov_probe_contribution(i, m);
+            } else if (dpar_code == 4) {
+              log_sigma1(i) += re_cov_probe_contribution(i, m);
+            } else if (dpar_code == 5) {
+              log_sigma2(i) += re_cov_probe_contribution(i, m);
+            }
+          }
+        }
+      }
+      vector<Type> sigma1 = exp(log_sigma1);
+      vector<Type> sigma2 = exp(log_sigma2);
+      Type log2pi = log(Type(2.0) * M_PI);
+      for (int i = 0; i < y1.size(); ++i) {
+        Type z1 = (y1(i) - mu1(i)) / sigma1(i);
+        Type z2 = (y2(i) - mu2(i)) / sigma2(i);
+        Type one_minus_rho2 = Type(1.0) - rho12(i) * rho12(i);
+        Type row_nll = log2pi + log_sigma1(i) + log_sigma2(i);
+        row_nll += Type(0.5) * log(one_minus_rho2);
+        row_nll += Type(0.5) * (z1 * z1 - Type(2.0) * rho12(i) * z1 * z2 + z2 * z2) / one_minus_rho2;
+        nll += weights(i) * row_nll;
+      }
+      REPORT(mu1);
+      REPORT(mu2);
+      REPORT(log_sigma1);
+      REPORT(log_sigma2);
+      REPORT(sigma1);
+      REPORT(sigma2);
+      REPORT(eta_rho12);
+      REPORT(rho12);
+    } else if (model_type == 96) {
       vector<Type> mu = X_mu * beta_mu;
       vector<Type> log_sigma = X_sigma * beta_sigma;
       for (int i = 0; i < y.size(); ++i) {

@@ -143,6 +143,29 @@ tmb_vecscale_sqrt_cov_scale <- function(theta, sd, z) {
   as.vector(sd * (t(chol(corr)) %*% z))
 }
 
+biv_gaussian_nll <- function(
+  y1,
+  y2,
+  mu1,
+  mu2,
+  log_sigma1,
+  log_sigma2,
+  rho12,
+  weights = rep(1, length(y1))
+) {
+  sigma1 <- exp(log_sigma1)
+  sigma2 <- exp(log_sigma2)
+  z1 <- (y1 - mu1) / sigma1
+  z2 <- (y2 - mu2) / sigma2
+  one_minus_rho2 <- 1 - rho12^2
+  row_nll <- log(2 * pi) +
+    log_sigma1 +
+    log_sigma2 +
+    0.5 * log(one_minus_rho2) +
+    0.5 * (z1^2 - 2 * rho12 * z1 * z2 + z2^2) / one_minus_rho2
+  sum(weights * row_nll)
+}
+
 rmse <- function(x, y) sqrt(mean((x - y)^2))
 
 test_that("internal covariance registry can describe a guarded q=3 block", {
@@ -412,6 +435,132 @@ test_that("hidden q=4 registry probe maps full endpoint block by group", {
     sum(-stats::dnorm(z, log = TRUE)),
     tolerance = 1e-10
   )
+  expect_true(is.finite(obj$fn(obj$par)))
+  expect_true(all(is.finite(obj$gr(obj$par))))
+})
+
+test_that("hidden q=4 registry bridge feeds bivariate Gaussian likelihood", {
+  dat <- data.frame(
+    y1 = c(-0.25, 0.15, 0.65, -0.35, 0.45, 0.85),
+    y2 = c(0.10, -0.20, 0.40, 0.30, -0.15, 0.55)
+  )
+  group_index0 <- c(0L, 0L, 1L, 1L, 2L, 2L)
+  value <- cbind(
+    1,
+    c(-0.30, 0.45, -0.10, 0.55, -0.40, 0.25),
+    1,
+    c(0.35, -0.25, 0.50, -0.20, 0.15, -0.45)
+  )
+  form <- bf(
+    mu1 = y1 ~ 1,
+    mu2 = y2 ~ 1,
+    sigma1 = ~1,
+    sigma2 = ~1,
+    rho12 = ~1
+  )
+  spec <- drmTMB:::drm_build_biv_gaussian_spec(
+    form,
+    data = dat,
+    env = environment(),
+    weights = NULL
+  )
+  registry <- new_four_member_covariance_registry(
+    group_index0 = group_index0,
+    group_levels = paste0("g", 1:3),
+    value = value
+  )
+  cov_tmb <- drmTMB:::labelled_covariance_block_tmb_data(
+    registry,
+    allow_unimplemented = TRUE
+  )
+  tmb_data <- spec$tmb_data
+  tmb_data[names(cov_tmb)] <- cov_tmb
+  theta <- c(0.12, -0.20, 0.08, 0.18, -0.14, 0.26)
+  sd <- c(0.50, 0.35, 0.25, 0.30)
+  z <- c(
+    -0.70,
+    0.40,
+    1.10,
+    -0.20,
+    0.20,
+    -1.00,
+    0.50,
+    0.80,
+    -0.40,
+    0.90,
+    -0.60,
+    0.30
+  )
+  parameters <- spec$start
+  parameters$beta_mu1 <- 0.15
+  parameters$beta_mu2 <- -0.10
+  parameters$beta_sigma1 <- log(0.55)
+  parameters$beta_sigma2 <- log(0.70)
+  parameters$beta_rho12 <- atanh(0.18)
+  parameters$u_re_cov_probe <- z
+  map <- spec$map
+  map$u_re_cov_probe <- NULL
+  tmb_data$model_type <- 95L
+  tmb_data$re_cov_probe_theta <- theta
+  tmb_data$re_cov_probe_sd <- sd
+  tmb_data$re_cov_probe_z <- numeric(0)
+
+  obj <- TMB::MakeADFun(
+    data = tmb_data,
+    parameters = parameters,
+    map = map,
+    random = spec$random_names,
+    DLL = "drmTMB",
+    silent = TRUE
+  )
+
+  z_by_group <- matrix(z, ncol = 4L, byrow = TRUE)
+  latent <- t(apply(
+    z_by_group,
+    1L,
+    tmb_vecscale_sqrt_cov_scale,
+    theta = theta,
+    sd = sd
+  ))
+  contribution <- value * latent[group_index0 + 1L, ]
+  mu1 <- as.vector(tmb_data$X_mu1 %*% parameters$beta_mu1) +
+    contribution[, 1L]
+  mu2 <- as.vector(tmb_data$X_mu2 %*% parameters$beta_mu2) +
+    contribution[, 2L]
+  log_sigma1 <- as.vector(tmb_data$X_sigma1 %*% parameters$beta_sigma1) +
+    contribution[, 3L]
+  log_sigma2 <- as.vector(tmb_data$X_sigma2 %*% parameters$beta_sigma2) +
+    contribution[, 4L]
+  rho12 <- 0.99999999 *
+    tanh(
+      as.vector(tmb_data$X_rho12 %*% parameters$beta_rho12)
+    )
+  expected_nll <- sum(-stats::dnorm(z, log = TRUE)) +
+    biv_gaussian_nll(
+      y1 = dat$y1,
+      y2 = dat$y2,
+      mu1 = mu1,
+      mu2 = mu2,
+      log_sigma1 = log_sigma1,
+      log_sigma2 = log_sigma2,
+      rho12 = rho12,
+      weights = tmb_data$weights
+    )
+  report <- obj$report()
+
+  expect_equal(
+    report$re_cov_probe_contribution,
+    contribution,
+    tolerance = 1e-12
+  )
+  expect_equal(report$mu1, mu1, tolerance = 1e-12)
+  expect_equal(report$mu2, mu2, tolerance = 1e-12)
+  expect_equal(report$log_sigma1, log_sigma1, tolerance = 1e-12)
+  expect_equal(report$log_sigma2, log_sigma2, tolerance = 1e-12)
+  expect_equal(report$sigma1, exp(log_sigma1), tolerance = 1e-12)
+  expect_equal(report$sigma2, exp(log_sigma2), tolerance = 1e-12)
+  expect_equal(report$rho12, rho12, tolerance = 1e-12)
+  expect_equal(obj$fn(obj$par), expected_nll, tolerance = 1e-10)
   expect_true(is.finite(obj$fn(obj$par)))
   expect_true(all(is.finite(obj$gr(obj$par))))
 })

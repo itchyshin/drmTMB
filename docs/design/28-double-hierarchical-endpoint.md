@@ -126,9 +126,13 @@ keep the same row meaning and mark derived intervals separately.
    simulation-style check now shows that the Laplace path recovers the simulated
    q=3 predictor signal better than a no-random-effect baseline. The q=4
    `mu1`/`mu2`/`sigma1`/`sigma2` bridge has started as a hidden deterministic
-   registry and contribution-map probe with all six pair rows. User-facing
-   q > 2 support remains closed until fitted q=4 code, extractor rows,
-   examples, and broader recovery tests exist.
+   registry and contribution-map probe with all six pair rows. The next hidden
+   q=4 probe routes those intercept-level contributions into the bivariate
+   Gaussian `mu1`, `mu2`, `log(sigma1)`, and `log(sigma2)` predictors and
+   checks the likelihood against an R-side reconstruction. User-facing q > 2
+   support remains closed until fitted q=4 code, extractor rows, examples, and
+   broader recovery tests exist; random-slope q=6 or q=8 endpoint blocks remain
+   later extensions.
 5. Add the univariate four-effect block:
    `bf(y ~ x + (1 + x | p | id), sigma ~ x + (1 + x | p | id))`.
 6. Extend `corpairs()` to report each fitted group-level pair from the shared
@@ -149,7 +153,9 @@ keep the same row meaning and mark derived intervals separately.
    only after ordinary grouped models have recovery evidence and clear
    diagnostics. These blocks should report phylogenetic correlation,
    non-phylogenetic species correlation, and residual `rho12` as separate
-   layers.
+   layers. The first phylogenetic target should be the q=4 intercept-level
+   endpoint state across `mu1`, `mu2`, `sigma1`, and `sigma2`; random-slope
+   q=6 and q=8 endpoint blocks can wait until that protocol is usable.
 12. Add spatial double-hierarchical blocks only after the phylogenetic and
    ordinary grouped covariance paths have clear diagnostics.
 

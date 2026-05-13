@@ -2,6 +2,42 @@
 
 Record meaningful development checks here.
 
+## 2026-05-13 -- Slice 8B hidden q=4 bivariate likelihood bridge
+
+Scope:
+
+- added hidden `model_type == 95` as a bivariate Gaussian likelihood probe for
+  the guarded q=4 `mu1`/`mu2`/`sigma1`/`sigma2` intercept-level block;
+- routed registry-shaped q=4 member contributions into `mu1`, `mu2`,
+  `log(sigma1)`, and `log(sigma2)` while leaving ordinary fitted likelihood
+  paths unchanged;
+- added an independent R-side likelihood check that reconstructs the q=4
+  contribution matrix, transformed predictors, bivariate Gaussian objective,
+  and standard-normal latent prior;
+- kept the public boundary explicit: q is the TMB block dimension here, not the
+  number of user-modelled correlations, and random-slope q=6 or q=8 endpoint
+  blocks remain later work;
+- recorded the next strategic milestone as phylogenetic q=4 endpoint support
+  for the mammalian and avian protocol use case before q=6/q=8 random-slope
+  extensions;
+- Ada integrated the slice, Gauss/Curie/Rose reviewed the likelihood, tests,
+  and overclaiming boundary.
+
+Checks:
+
+- `Rscript -e 'devtools::test(filter = "covariance-block-registry")'`: passed
+  with 115 expectations, 0 failures, 0 warnings, and 0 skips.
+- `air format src/drmTMB.cpp tests/testthat/test-covariance-block-registry.R`:
+  passed.
+- `Rscript -e 'devtools::test(filter =
+  "covariance-block-registry|biv-gaussian")'`: passed with 599 expectations, 0
+  failures, 0 warnings, and 0 skips.
+- `air format ROADMAP.md docs/design/28-double-hierarchical-endpoint.md
+  docs/dev-log/check-log.md
+  docs/dev-log/after-task/2026-05-13-slice-8b-hidden-q4-bivariate-likelihood-bridge.md`:
+  passed.
+- `git diff --check`: passed.
+
 ## 2026-05-13 -- Slice 8A hidden q=4 registry contribution bridge
 
 Scope:

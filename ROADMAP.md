@@ -165,8 +165,14 @@ distributional regression models using TMB.
   simulated q=3 predictor signal better than a no-random-effect baseline. The
   first q=4 bridge now confirms that one guarded block can enumerate
   `mu1`/`mu2`/`sigma1`/`sigma2` members, all six pair rows, and a hidden
-  positive-definite contribution map; these probes are not user-facing
-  fitted-model support yet.
+  positive-definite contribution map. A hidden bivariate Gaussian probe now
+  routes those four intercept-level member contributions into `mu1`, `mu2`,
+  `log(sigma1)`, and `log(sigma2)` and checks the resulting likelihood against
+  an R-side reconstruction. These probes are not user-facing fitted-model
+  support yet and do not cover random-slope q=6 or q=8 endpoint blocks.
+  The next strategic milestone after the non-phylogenetic q=4 endpoint path is
+  the corresponding phylogenetic q=4 state for the mammalian and avian protocol
+  use case; q=6 and q=8 random-slope endpoint blocks can wait.
 - Use `docs/design/18-random-effect-scale-models.md` as the design contract:
   the implemented MVP targets one or more distinct unlabelled univariate
   Gaussian `mu` random intercepts, with group-level predictors, simulation
