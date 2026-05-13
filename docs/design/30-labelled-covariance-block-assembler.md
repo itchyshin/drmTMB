@@ -285,11 +285,13 @@ still be named `sigma`.
    deterministic hidden q=4 recovery-style check against no-random-effect
    baselines. Done for an internal q=4 `corpairs()` scaffold that formats all
    six endpoint rows from fitted-like registry metadata. Done for the matching
-   internal q=4 `profile_targets()` scaffold. Production q=4 support still needs
-   the ordinary fitted likelihood path to populate those registry fields,
-   broader recovery coverage, examples, and public syntax review.
-8. Enable the full shared `mu1`/`mu2`/`sigma1`/`sigma2` label pattern only after
-   the hidden q=4 bridge has fitted likelihood and recovery evidence.
+   internal q=4 `profile_targets()` scaffold. Started for production q=4 support:
+   the ordinary intercept-only all-four fitted likelihood path now populates
+   registry fields and `corpairs()` rows. Broader recovery coverage, examples,
+   diagnostics, direct profile intervals, and structured phylogenetic/spatial
+   q=4 variants remain later slices.
+8. Keep the full shared `mu1`/`mu2`/`sigma1`/`sigma2` label pattern
+   intercept-only until the fitted q=4 path has broader recovery evidence.
 
 ## Diagnostics
 

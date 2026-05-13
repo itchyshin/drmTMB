@@ -2200,6 +2200,12 @@ drm_build_biv_gaussian_spec <- function(
   sigma1_entry$rhs <- sigma1_re$rhs
   sigma2_re <- extract_random_sigma_terms(sigma2_entry$rhs, "sigma2")
   sigma2_entry$rhs <- sigma2_re$rhs
+  q4_covariance_blocks <- detect_biv_q4_covariance_blocks(
+    mu1_re$terms,
+    mu2_re$terms,
+    sigma1_re$terms,
+    sigma2_re$terms
+  )
   if (
     !is.null(meta$V) &&
       (length(mu1_re$terms) > 0L ||
@@ -2213,11 +2219,23 @@ drm_build_biv_gaussian_spec <- function(
       "i" = "Fit bivariate group-level covariance blocks without known sampling covariance first."
     ))
   }
-  reject_biv_cross_parameter_label_reuse(
-    mu1_re$terms,
-    mu2_re$terms,
+  if (length(q4_covariance_blocks) == 0L) {
+    reject_biv_cross_parameter_label_reuse(
+      mu1_re$terms,
+      mu2_re$terms,
+      sigma1_re$terms,
+      sigma2_re$terms
+    )
+  }
+  active_mu1_terms <- remove_biv_q4_terms(mu1_re$terms, q4_covariance_blocks)
+  active_mu2_terms <- remove_biv_q4_terms(mu2_re$terms, q4_covariance_blocks)
+  active_sigma1_terms <- remove_biv_q4_terms(
     sigma1_re$terms,
-    sigma2_re$terms
+    q4_covariance_blocks
+  )
+  active_sigma2_terms <- remove_biv_q4_terms(
+    sigma2_re$terms,
+    q4_covariance_blocks
   )
 
   for (entry in list(
@@ -2309,15 +2327,25 @@ drm_build_biv_gaussian_spec <- function(
   X_sigma1 <- stats::model.matrix(stats::terms(mf_sigma1), mf_sigma1)
   X_sigma2 <- stats::model.matrix(stats::terms(mf_sigma2), mf_sigma2)
   X_rho12 <- stats::model.matrix(stats::terms(mf_rho12), mf_rho12)
-  re_mu <- build_biv_mu_random_structure(
+  re_mu_registry <- build_biv_mu_random_structure(
     mu1_re$terms,
     mu2_re$terms,
     data_model
   )
-  sd_mu_targets <- parse_biv_sd_mu_entries(sd_mu_entries, re_mu)
-  re_sigma <- build_biv_sigma_random_structure(
+  re_sigma_registry <- build_biv_sigma_random_structure(
     sigma1_re$terms,
     sigma2_re$terms,
+    data_model
+  )
+  re_mu <- build_biv_mu_random_structure(
+    active_mu1_terms,
+    active_mu2_terms,
+    data_model
+  )
+  sd_mu_targets <- parse_biv_sd_mu_entries(sd_mu_entries, re_mu)
+  re_sigma <- build_biv_sigma_random_structure(
+    active_sigma1_terms,
+    active_sigma2_terms,
     data_model
   )
   sd_mu <- build_sd_mu_structure(
@@ -2331,7 +2359,10 @@ drm_build_biv_gaussian_spec <- function(
   re_cov_blocks <- build_labelled_covariance_block_registry(
     re_mu,
     re_sigma,
-    re_mu_sigma
+    re_mu_sigma,
+    q4_blocks = q4_covariance_blocks,
+    re_mu_full = re_mu_registry,
+    re_sigma_full = re_sigma_registry
   )
   phylo_mu <- build_phylo_mu_structure(phylo_mu_terms$term, data_model, env)
 
@@ -2358,7 +2389,8 @@ drm_build_biv_gaussian_spec <- function(
     re_sigma = re_sigma,
     re_mu_sigma = re_mu_sigma,
     phylo_mu = phylo_mu,
-    sd_mu = sd_mu
+    sd_mu = sd_mu,
+    re_cov_blocks = re_cov_blocks
   )
 
   spec <- list(
@@ -2417,6 +2449,7 @@ drm_build_biv_gaussian_spec <- function(
     random_names = c(
       if (re_mu$n_re > 0L) "u_mu",
       if (re_sigma$n_re > 0L) "u_sigma",
+      if (re_cov_blocks$n_qgt2_re > 0L) "u_re_cov",
       if (isTRUE(phylo_mu$has)) "u_phylo"
     )
   )
@@ -3528,9 +3561,88 @@ build_mu_sigma_random_covariance <- function(re_mu, re_sigma) {
   )
 }
 
+detect_biv_q4_covariance_blocks <- function(
+  mu1_terms,
+  mu2_terms,
+  sigma1_terms,
+  sigma2_terms
+) {
+  terms_by_dpar <- list(
+    mu1 = mu1_terms,
+    mu2 = mu2_terms,
+    sigma1 = sigma1_terms,
+    sigma2 = sigma2_terms
+  )
+  if (!all(lengths(terms_by_dpar) == 1L)) {
+    return(list())
+  }
+  terms <- lapply(terms_by_dpar, function(x) x[[1L]])
+  labels <- vapply(
+    terms,
+    function(term) {
+      if (is.null(term$covariance_label)) {
+        NA_character_
+      } else {
+        term$covariance_label
+      }
+    },
+    character(1L)
+  )
+  groups <- vapply(terms, `[[`, character(1L), "group")
+  if (
+    anyNA(labels) ||
+      length(unique(labels)) != 1L ||
+      length(unique(groups)) != 1L
+  ) {
+    return(list())
+  }
+  is_intercept <- vapply(
+    terms,
+    function(term) {
+      identical(term$type, "intercept") &&
+        identical(term$coef_names, "(Intercept)")
+    },
+    logical(1L)
+  )
+  if (!all(is_intercept)) {
+    cli::cli_abort(c(
+      "Full bivariate location-scale covariance blocks are intercept-only in this phase.",
+      "x" = "Block {.code {labels[[1L]]}} on group {.field {groups[[1L]]}} includes random slopes.",
+      "i" = "Fit {.code (1 | p | group)} across {.code mu1}, {.code mu2}, {.code sigma1}, and {.code sigma2} first."
+    ))
+  }
+
+  list(list(block_label = labels[[1L]], group = groups[[1L]]))
+}
+
+remove_biv_q4_terms <- function(terms, q4_blocks) {
+  if (length(terms) == 0L || length(q4_blocks) == 0L) {
+    return(terms)
+  }
+  keep <- vapply(
+    terms,
+    function(term) {
+      !any(vapply(
+        q4_blocks,
+        function(block) {
+          identical(term$covariance_label, block$block_label) &&
+            identical(term$group, block$group)
+        },
+        logical(1L)
+      ))
+    },
+    logical(1L)
+  )
+  terms[keep]
+}
+
 empty_labelled_covariance_block_registry <- function() {
   list(
     n_blocks = 0L,
+    n_qgt2_blocks = 0L,
+    n_qgt2_re = 0L,
+    n_qgt2_sd = 0L,
+    n_qgt2_theta = 0L,
     blocks = data.frame(
       block_id0 = integer(),
       level = character(),
@@ -3585,9 +3697,18 @@ empty_labelled_covariance_block_registry <- function() {
 build_labelled_covariance_block_registry <- function(
   re_mu,
   re_sigma,
-  re_mu_sigma = empty_mu_sigma_random_covariance(re_sigma$n_re)
+  re_mu_sigma = empty_mu_sigma_random_covariance(re_sigma$n_re),
+  q4_blocks = list(),
+  re_mu_full = re_mu,
+  re_sigma_full = re_sigma
 ) {
   registry <- empty_labelled_covariance_block_registry()
+  registry <- add_q4_covariance_blocks(
+    registry,
+    re_mu_full,
+    re_sigma_full,
+    q4_blocks
+  )
   registry <- add_same_parameter_covariance_blocks(
     registry,
     re_mu,
@@ -3605,8 +3726,122 @@ build_labelled_covariance_block_registry <- function(
     re_mu_sigma
   )
   registry$n_blocks <- nrow(registry$blocks)
+  registry <- update_qgt2_covariance_counts(registry)
   registry$tmb_data <- labelled_covariance_block_tmb_data(registry)
   registry
+}
+
+add_q4_covariance_blocks <- function(
+  registry,
+  re_mu,
+  re_sigma,
+  q4_blocks
+) {
+  if (length(q4_blocks) == 0L) {
+    return(registry)
+  }
+
+  theta_offset <- 0L
+  for (block in q4_blocks) {
+    mu_terms <- which(
+      re_mu$covariance_labels == block$block_label &
+        re_mu$group_names == block$group
+    )
+    sigma_terms <- which(
+      re_sigma$covariance_labels == block$block_label &
+        re_sigma$group_names == block$group
+    )
+    if (length(mu_terms) != 2L || length(sigma_terms) != 2L) {
+      cli::cli_abort(
+        "Internal error: q4 covariance block metadata did not find two location and two scale members."
+      )
+    }
+    member_dpars <- c(re_mu$dpars[mu_terms], re_sigma$dpars[sigma_terms])
+    if (!identical(member_dpars, c("mu1", "mu2", "sigma1", "sigma2"))) {
+      cli::cli_abort(c(
+        "Internal error: q4 covariance block members are not in endpoint order.",
+        "x" = "Found members: {.val {member_dpars}}."
+      ))
+    }
+    pair_dpars <- utils::combn(member_dpars, 2L)
+    pair_labels <- mapply(
+      format_cross_dpar_cor_label,
+      pair_dpars[1L, ],
+      pair_dpars[2L, ],
+      MoreArgs = list(
+        group = block$group,
+        covariance_label = block$block_label
+      ),
+      USE.NAMES = FALSE
+    )
+    registry <- append_covariance_registry_block(
+      registry,
+      re_list = list(re_mu, re_sigma),
+      member_terms = list(mu_terms, sigma_terms),
+      parameter = pair_labels,
+      tmb_parameter = rep("theta_re_cov", length(pair_labels)),
+      tmb_index = theta_offset + seq_along(pair_labels),
+      implemented = TRUE
+    )
+    theta_offset <- theta_offset + length(pair_labels)
+  }
+  registry
+}
+
+update_qgt2_covariance_counts <- function(registry) {
+  if (registry$n_blocks == 0L) {
+    registry$n_qgt2_blocks <- 0L
+    registry$n_qgt2_re <- 0L
+    registry$n_qgt2_sd <- 0L
+    registry$n_qgt2_theta <- 0L
+    return(registry)
+  }
+  qgt2 <- registry$blocks$n_members > 2L & registry$blocks$implemented
+  registry$n_qgt2_blocks <- sum(qgt2)
+  registry$n_qgt2_re <- sum(
+    registry$blocks$n_members[qgt2] *
+      registry$blocks$n_groups[qgt2]
+  )
+  registry$n_qgt2_sd <- sum(registry$blocks$n_members[qgt2])
+  registry$n_qgt2_theta <- sum(registry$blocks$n_pairs[qgt2])
+  registry
+}
+
+qgt2_covariance_blocks <- function(registry) {
+  if (!is.list(registry) || registry$n_blocks == 0L) {
+    return(registry$blocks[0L, , drop = FALSE])
+  }
+  registry$blocks[
+    registry$blocks$n_members > 2L & registry$blocks$implemented,
+    ,
+    drop = FALSE
+  ]
+}
+
+qgt2_covariance_members <- function(registry) {
+  blocks <- qgt2_covariance_blocks(registry)
+  if (nrow(blocks) == 0L) {
+    return(registry$members[0L, , drop = FALSE])
+  }
+  out <- registry$members[
+    registry$members$block_id0 %in% blocks$block_id0,
+    ,
+    drop = FALSE
+  ]
+  out[order(out$block_id0, out$member_id0), , drop = FALSE]
+}
+
+qgt2_covariance_pairs <- function(registry) {
+  blocks <- qgt2_covariance_blocks(registry)
+  if (nrow(blocks) == 0L) {
+    return(registry$pairs[0L, , drop = FALSE])
+  }
+  out <- registry$pairs[
+    registry$pairs$block_id0 %in% blocks$block_id0,
+    ,
+    drop = FALSE
+  ]
+  out[order(out$block_id0, out$pair_id0), , drop = FALSE]
 }
 
 add_same_parameter_covariance_blocks <- function(
@@ -3875,7 +4110,8 @@ labelled_covariance_block_tmb_data <- function(
   blocks <- registry$blocks
   members <- registry$members
   pairs <- registry$pairs
-  if (any(blocks$n_members != 2L) && !allow_unimplemented) {
+  unimplemented_large <- blocks$n_members != 2L & !blocks$implemented
+  if (any(unimplemented_large) && !allow_unimplemented) {
     cli::cli_abort(c(
       "Internal error: dormant covariance-block TMB data only supports implemented two-member blocks.",
       "x" = "Found block size{?s}: {.val {unique(blocks$n_members)}}.",
@@ -3937,7 +4173,11 @@ covariance_dpar_code <- function(dpar) {
 
 covariance_parameter_code <- function(parameter) {
   unname(
-    match(parameter, c("eta_cor_mu", "eta_cor_mu_sigma", "eta_cor_sigma")) - 1L
+    match(
+      parameter,
+      c("eta_cor_mu", "eta_cor_mu_sigma", "eta_cor_sigma", "theta_re_cov")
+    ) -
+      1L
   )
 }
 
@@ -5628,7 +5868,8 @@ biv_gaussian_start <- function(
   re_sigma = empty_random_sigma_structure(length(y1)),
   re_mu_sigma = empty_mu_sigma_random_covariance(re_sigma$n_re),
   phylo_mu = empty_phylo_mu_structure(),
-  sd_mu = empty_sd_mu_structure(re_mu$n_re)
+  sd_mu = empty_sd_mu_structure(re_mu$n_re),
+  re_cov_blocks = empty_labelled_covariance_block_registry()
 ) {
   fit1 <- stats::lm.fit(x = X_mu1, y = y1)
   fit2 <- stats::lm.fit(x = X_mu2, y = y2)
@@ -5693,6 +5934,10 @@ biv_gaussian_start <- function(
   mu_re_start <- biv_gaussian_mu_re_start(re_mu, c(y1_scale, y2_scale))
   beta_sd_mu <- gaussian_sd_mu_start(mu_re_start, sd_mu)
   sigma_re_start <- gaussian_sigma_re_start(re_sigma)
+  re_cov_start <- covariance_block_re_start(
+    re_cov_blocks,
+    c(y1_scale, y2_scale)
+  )
   phylo_start <- biv_gaussian_phylo_start(phylo_mu, c(y1_scale, y2_scale))
 
   c(
@@ -5709,7 +5954,10 @@ biv_gaussian_start <- function(
       eta_cor_mu_sigma = rep(0, max(1L, re_mu_sigma$n_cors)),
       eta_cor_sigma = sigma_re_start$eta_cor_sigma,
       u_sigma = sigma_re_start$u_sigma,
-      log_sd_sigma = sigma_re_start$log_sd_sigma
+      log_sd_sigma = sigma_re_start$log_sd_sigma,
+      u_re_cov = re_cov_start$u_re_cov,
+      log_sd_re_cov = re_cov_start$log_sd_re_cov,
+      theta_re_cov = re_cov_start$theta_re_cov
     ),
     list(
       beta_mu1 = beta_mu1,
@@ -5812,6 +6060,38 @@ student_ls_map <- function() {
   )
 }
 
+covariance_block_re_start <- function(registry, y_scale = c(1, 1)) {
+  if (
+    !is.list(registry) ||
+      is.null(registry$n_qgt2_re) ||
+      registry$n_qgt2_re == 0L
+  ) {
+    return(list(
+      u_re_cov = 0,
+      log_sd_re_cov = 0,
+      theta_re_cov = 0
+    ))
+  }
+
+  member_rows <- qgt2_covariance_members(registry)
+  sd0 <- vapply(
+    member_rows$dpar,
+    function(dpar) {
+      if (grepl("^mu", dpar)) {
+        response <- covariance_member_response_index(dpar)
+        return(pmax(0.25 * y_scale[[response]], 1e-4))
+      }
+      0.2
+    },
+    numeric(1L)
+  )
+  list(
+    u_re_cov = rep(0, registry$n_qgt2_re),
+    log_sd_re_cov = log(sd0),
+    theta_re_cov = rep(0, registry$n_qgt2_theta)
+  )
+}
+
 biv_gaussian_map <- function(
   re_mu = empty_random_mu_structure(1L),
   re_sigma = empty_random_sigma_structure(1L),
@@ -5874,11 +6154,32 @@ add_covariance_block_tmb_data <- function(tmb_data, spec) {
 }
 
 add_covariance_probe_parameter <- function(spec) {
-  if (is.null(spec$start$u_re_cov_probe)) {
-    spec$start$u_re_cov_probe <- 0
+  has_qgt2_re_cov <- is.list(spec$random) &&
+    is.list(spec$random$covariance_blocks) &&
+    isTRUE(spec$random$covariance_blocks$n_qgt2_re > 0L)
+  if (is.null(spec$start$u_re_cov)) {
+    spec$start$u_re_cov <- 0
+  }
+  if (is.null(spec$start$log_sd_re_cov)) {
+    spec$start$log_sd_re_cov <- 0
+  }
+  if (is.null(spec$start$theta_re_cov)) {
+    spec$start$theta_re_cov <- 0
   }
   if (is.null(spec$map)) {
     spec$map <- list()
+  }
+  if (is.null(spec$map$u_re_cov) && !has_qgt2_re_cov) {
+    spec$map$u_re_cov <- factor(NA)
+  }
+  if (is.null(spec$map$log_sd_re_cov) && !has_qgt2_re_cov) {
+    spec$map$log_sd_re_cov <- factor(NA)
+  }
+  if (is.null(spec$map$theta_re_cov) && !has_qgt2_re_cov) {
+    spec$map$theta_re_cov <- factor(NA)
+  }
+  if (is.null(spec$start$u_re_cov_probe)) {
+    spec$start$u_re_cov_probe <- 0
   }
   if (is.null(spec$map$u_re_cov_probe)) {
     spec$map$u_re_cov_probe <- factor(NA)
@@ -6807,6 +7108,17 @@ split_tmb_sdpars <- function(par, spec) {
     names(sd_sigma) <- spec$random$sigma$labels
     out$sigma <- sd_sigma
   }
+  qgt2_members <- qgt2_covariance_members(spec$random$covariance_blocks)
+  if (nrow(qgt2_members) > 0L) {
+    sd_re_cov <- exp(unname(par$log_sd_re_cov[seq_len(nrow(qgt2_members))]))
+    for (i in seq_len(nrow(qgt2_members))) {
+      key <- covariance_registry_member_sd_key(qgt2_members[i, , drop = FALSE])
+      out[[key]] <- c(
+        out[[key]],
+        stats::setNames(sd_re_cov[[i]], qgt2_members$label[[i]])
+      )
+    }
+  }
   if (isTRUE(spec$structured$phylo_mu$has)) {
     phylo_names <- if (identical(spec$model_type, "biv_gaussian")) {
       paste0(c("mu1:", "mu2:"), spec$structured$phylo_mu$label)
@@ -6851,6 +7163,13 @@ split_tmb_corpars <- function(par, spec) {
     names(rho_sigma) <- spec$random$sigma$cor_labels
     out$sigma <- rho_sigma
   }
+  rho_re_cov <- covariance_block_correlations_from_par(
+    par,
+    spec$random$covariance_blocks
+  )
+  if (length(rho_re_cov) > 0L) {
+    out$re_cov <- rho_re_cov
+  }
   if (
     identical(spec$model_type, "biv_gaussian") &&
       isTRUE(spec$structured$phylo_mu$has)
@@ -6865,6 +7184,61 @@ split_tmb_corpars <- function(par, spec) {
   }
 
   out
+}
+
+covariance_block_correlations_from_par <- function(par, registry) {
+  pairs <- qgt2_covariance_pairs(registry)
+  blocks <- qgt2_covariance_blocks(registry)
+  if (nrow(pairs) == 0L) {
+    return(numeric())
+  }
+
+  theta <- unname(par$theta_re_cov[seq_len(registry$n_qgt2_theta)])
+  out <- numeric(nrow(pairs))
+  names(out) <- pairs$parameter
+  theta_offset <- 0L
+  for (block_i in seq_len(nrow(blocks))) {
+    block <- blocks[block_i, , drop = FALSE]
+    q <- block$n_members[[1L]]
+    n_theta <- choose(q, 2L)
+    theta_block <- theta[seq.int(theta_offset + 1L, length.out = n_theta)]
+    corr <- tmb_unstructured_corr_matrix(theta_block)
+    block_pairs <- pairs[
+      pairs$block_id0 == block$block_id0[[1L]],
+      ,
+      drop = FALSE
+    ]
+    for (j in seq_len(nrow(block_pairs))) {
+      row <- which(
+        pairs$block_id0 == block_pairs$block_id0[[j]] &
+          pairs$pair_id0 == block_pairs$pair_id0[[j]]
+      )
+      from <- block_pairs$from_member_id0[[j]] + 1L
+      to <- block_pairs$to_member_id0[[j]] + 1L
+      out[[row]] <- corr[from, to]
+    }
+    theta_offset <- theta_offset + n_theta
+  }
+  out
+}
+
+tmb_unstructured_corr_matrix <- function(theta) {
+  q <- (1 + sqrt(1 + 8 * length(theta))) / 2
+  if (!isTRUE(all.equal(q, as.integer(q)))) {
+    cli::cli_abort(
+      "Internal error: unstructured correlation parameter vector has invalid length."
+    )
+  }
+  L <- diag(as.integer(q))
+  lower <- which(lower.tri(L), arr.ind = TRUE)
+  lower <- lower[order(lower[, "row"], lower[, "col"]), , drop = FALSE]
+  L[lower] <- theta
+  stats::cov2cor(L %*% t(L))
+}
+
+tmb_vecscale_sqrt_cov_scale <- function(theta, sd, z) {
+  corr <- tmb_unstructured_corr_matrix(theta)
+  as.vector(sd * (t(chol(corr)) %*% z))
 }
 
 split_tmb_random_effects <- function(par, spec) {
@@ -6906,6 +7280,13 @@ split_tmb_random_effects <- function(par, spec) {
     }
     out$sigma <- format_random_effect_values(latent, values, spec$random$sigma)
   }
+  qgt2_re <- transform_covariance_block_random_effects(
+    par,
+    spec$random$covariance_blocks
+  )
+  if (!is.null(qgt2_re)) {
+    out$covariance_blocks <- qgt2_re
+  }
   if (isTRUE(spec$structured$phylo_mu$has)) {
     n_phylo <- spec$structured$phylo_mu$n_re
     if (identical(spec$model_type, "biv_gaussian")) {
@@ -6936,6 +7317,76 @@ split_tmb_random_effects <- function(par, spec) {
     }
   }
   out
+}
+
+transform_covariance_block_random_effects <- function(par, registry) {
+  blocks <- qgt2_covariance_blocks(registry)
+  members <- qgt2_covariance_members(registry)
+  if (nrow(blocks) == 0L) {
+    return(NULL)
+  }
+
+  theta <- unname(par$theta_re_cov[seq_len(registry$n_qgt2_theta)])
+  log_sd <- unname(par$log_sd_re_cov[seq_len(registry$n_qgt2_sd)])
+  latent_standard <- unname(par$u_re_cov[seq_len(registry$n_qgt2_re)])
+  values <- numeric(registry$n_qgt2_re)
+  value_names <- character(registry$n_qgt2_re)
+  contribution <- matrix(
+    0,
+    nrow = nrow(registry$tmb_data$re_cov_member_design_value),
+    ncol = nrow(members)
+  )
+  colnames(contribution) <- members$label
+
+  theta_offset <- 0L
+  sd_offset <- 0L
+  u_offset <- 0L
+  member_offset <- 0L
+  for (block_i in seq_len(nrow(blocks))) {
+    block <- blocks[block_i, , drop = FALSE]
+    q <- block$n_members[[1L]]
+    n_groups <- block$n_groups[[1L]]
+    n_theta <- choose(q, 2L)
+    theta_block <- theta[seq.int(theta_offset + 1L, length.out = n_theta)]
+    sd_block <- exp(log_sd[seq.int(sd_offset + 1L, length.out = q)])
+    member_cols <- seq.int(member_offset + 1L, length.out = q)
+    for (g in seq_len(n_groups)) {
+      z_index <- seq.int(u_offset + (g - 1L) * q + 1L, length.out = q)
+      latent <- tmb_vecscale_sqrt_cov_scale(
+        theta_block,
+        sd_block,
+        latent_standard[z_index]
+      )
+      values[z_index] <- latent
+      value_names[z_index] <- paste0(
+        members$label[member_cols],
+        ":",
+        block$group_levels[[1L]][[g]]
+      )
+      for (m in seq_len(q)) {
+        member <- members[member_cols[[m]], , drop = FALSE]
+        obs <- registry$tmb_data$re_cov_member_latent_index[, member_cols[[
+          m
+        ]]] ==
+          g - 1L
+        contribution[obs, member_cols[[m]]] <-
+          registry$tmb_data$re_cov_member_design_value[obs, member_cols[[m]]] *
+          latent[[m]]
+      }
+    }
+    theta_offset <- theta_offset + n_theta
+    sd_offset <- sd_offset + q
+    u_offset <- u_offset + n_groups * q
+    member_offset <- member_offset + q
+  }
+  names(values) <- value_names
+  names(latent_standard) <- value_names
+  list(
+    values = values,
+    latent = latent_standard,
+    members = members,
+    contribution = contribution
+  )
 }
 
 transform_mu_random_effects <- function(

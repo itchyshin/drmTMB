@@ -141,6 +141,9 @@ Type objective_function<Type>::operator()()
   PARAMETER_VECTOR(u_sigma);
   PARAMETER_VECTOR(log_sd_sigma);
   PARAMETER_VECTOR(u_phylo);
+  PARAMETER_VECTOR(u_re_cov);
+  PARAMETER_VECTOR(log_sd_re_cov);
+  PARAMETER_VECTOR(theta_re_cov);
   PARAMETER_VECTOR(u_re_cov_probe);
   PARAMETER_VECTOR(log_sd_phylo);
   PARAMETER(eta_cor_phylo);
@@ -861,6 +864,109 @@ Type objective_function<Type>::operator()()
     vector<Type> log_sigma2 = X_sigma2 * beta_sigma2;
     vector<Type> eta_rho12 = X_rho12 * beta_rho12;
     vector<Type> rho12 = Type(0.99999999) * tanh(eta_rho12);
+
+    if (n_re_cov_blocks > 0) {
+      int n_re_cov_qgt2_blocks = 0;
+      for (int b = 0; b < n_re_cov_blocks; ++b) {
+        if (re_cov_block_size(b) > 2) {
+          n_re_cov_qgt2_blocks += 1;
+        }
+      }
+      if (n_re_cov_qgt2_blocks > 0) {
+        int theta_offset = 0;
+        int sd_offset = 0;
+        int u_offset = 0;
+        int rho_offset = 0;
+        vector<Type> sd_re_cov(log_sd_re_cov.size());
+        for (int j = 0; j < log_sd_re_cov.size(); ++j) {
+          sd_re_cov(j) = exp(log_sd_re_cov(j));
+        }
+        vector<Type> rho_re_cov(theta_re_cov.size());
+        matrix<Type> re_cov_contribution(
+          re_cov_member_design_value.rows(),
+          re_cov_member_design_value.cols()
+        );
+        re_cov_contribution.setZero();
+
+        for (int b = 0; b < n_re_cov_blocks; ++b) {
+          int block_size = re_cov_block_size(b);
+          int n_groups = re_cov_block_group_count(b);
+          int member_start = re_cov_block_member_start(b);
+          int pair_start = re_cov_block_pair_start(b);
+          int n_pairs = block_size * (block_size - 1) / 2;
+          if (block_size <= 2) {
+            continue;
+          }
+
+          vector<Type> theta_block(n_pairs);
+          for (int p = 0; p < n_pairs; ++p) {
+            theta_block(p) = theta_re_cov(theta_offset + p);
+          }
+          density::UNSTRUCTURED_CORR_t<Type> re_cov_density(theta_block);
+          matrix<Type> re_cov_corr = re_cov_density.cov();
+          vector<Type> sd_block(block_size);
+          for (int m = 0; m < block_size; ++m) {
+            sd_block(m) = sd_re_cov(sd_offset + m);
+          }
+          for (int p = 0; p < n_pairs; ++p) {
+            int from = re_cov_pair_from_member(pair_start + p);
+            int to = re_cov_pair_to_member(pair_start + p);
+            rho_re_cov(rho_offset + p) = re_cov_corr(from, to);
+          }
+
+          for (int g = 0; g < n_groups; ++g) {
+            vector<Type> z(block_size);
+            for (int m = 0; m < block_size; ++m) {
+              z(m) = u_re_cov(u_offset + g * block_size + m);
+            }
+            vector<Type> latent = density::VECSCALE(
+              re_cov_density,
+              sd_block
+            ).sqrt_cov_scale(z);
+            for (int m = 0; m < block_size; ++m) {
+              int member_col = member_start + m;
+              for (int i = 0; i < y1.size(); ++i) {
+                if (re_cov_member_latent_index(i, member_col) == g) {
+                  Type contribution =
+                    re_cov_member_design_value(i, member_col) * latent(m);
+                  re_cov_contribution(i, member_col) = contribution;
+                  int dpar_code = re_cov_member_dpar(member_col);
+                  if (dpar_code == 2) {
+                    mu1(i) += contribution;
+                  } else if (dpar_code == 3) {
+                    mu2(i) += contribution;
+                  } else if (dpar_code == 4) {
+                    log_sigma1(i) += contribution;
+                  } else if (dpar_code == 5) {
+                    log_sigma2(i) += contribution;
+                  }
+                }
+              }
+            }
+          }
+
+          theta_offset += n_pairs;
+          sd_offset += block_size;
+          u_offset += n_groups * block_size;
+          rho_offset += n_pairs;
+        }
+        for (int j = 0; j < u_re_cov.size(); ++j) {
+          nll -= dnorm(u_re_cov(j), Type(0.0), Type(1.0), true);
+        }
+        if (theta_re_cov.size() > 0) {
+          REPORT(u_re_cov);
+          REPORT(log_sd_re_cov);
+          REPORT(sd_re_cov);
+          REPORT(theta_re_cov);
+          REPORT(rho_re_cov);
+          REPORT(re_cov_contribution);
+          ADREPORT(log_sd_re_cov);
+          ADREPORT(sd_re_cov);
+          ADREPORT(theta_re_cov);
+          ADREPORT(rho_re_cov);
+        }
+      }
+    }
 
     if (n_mu_re_terms > 0) {
       vector<Type> sd_mu_re = exp(log_sd_mu);

@@ -814,6 +814,7 @@ covariance_block_corpars_key <- function(tmb_parameter) {
     eta_cor_mu = "mu",
     eta_cor_sigma = "sigma",
     eta_cor_mu_sigma = "mu_sigma",
+    theta_re_cov = "re_cov",
     NA_character_
   )
   if (is.na(key)) {
@@ -1265,6 +1266,17 @@ predict.drmTMB <- function(
   }
   if (
     is.null(newdata) &&
+      dpar %in% c("mu1", "mu2") &&
+      has_covariance_block_random_effects(object)
+  ) {
+    eta <- eta +
+      covariance_block_random_effect_contribution(
+        object,
+        dpar = dpar
+      )
+  }
+  if (
+    is.null(newdata) &&
       dpar %in% c("mu", "mu1", "mu2") &&
       has_phylo_mu_effect(object)
   ) {
@@ -1276,6 +1288,17 @@ predict.drmTMB <- function(
       has_sigma_random_effects(object)
   ) {
     eta <- eta + sigma_random_effect_contribution(object, dpar = dpar)
+  }
+  if (
+    is.null(newdata) &&
+      dpar %in% c("sigma1", "sigma2") &&
+      has_covariance_block_random_effects(object)
+  ) {
+    eta <- eta +
+      covariance_block_random_effect_contribution(
+        object,
+        dpar = dpar
+      )
   }
 
   if (type == "link") {
@@ -2638,6 +2661,12 @@ has_sigma_random_effects <- function(object) {
     length(object$random_effects$sigma$values) > 0L
 }
 
+has_covariance_block_random_effects <- function(object) {
+  is.list(object$random_effects$covariance_blocks) &&
+    !is.null(object$random_effects$covariance_blocks$contribution) &&
+    ncol(object$random_effects$covariance_blocks$contribution) > 0L
+}
+
 sigma_random_effect_dpars <- function(object) {
   dpars <- object$model$random$sigma$dpars
   if (length(dpars) == 0L) {
@@ -2731,4 +2760,14 @@ sigma_random_effect_contribution <- function(object, dpar = NULL) {
     design_value <- design_value[, terms, drop = FALSE]
   }
   rowSums(matrix(values[index], nrow = nrow(index)) * design_value)
+}
+
+covariance_block_random_effect_contribution <- function(object, dpar) {
+  block_re <- object$random_effects$covariance_blocks
+  members <- block_re$members
+  cols <- which(members$dpar == dpar)
+  if (length(cols) == 0L) {
+    return(rep(0, object$nobs))
+  }
+  rowSums(block_re$contribution[, cols, drop = FALSE])
 }

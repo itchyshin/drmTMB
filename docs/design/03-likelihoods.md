@@ -67,7 +67,7 @@ is the current routing contract:
 | TMB `model_type` | User-facing route | R builder | TMB branch purpose |
 |---:|---|---|---|
 | `1` | `family = gaussian()` | `drm_build_gaussian_ls_spec()` | Univariate Gaussian location-scale models, including ordinary `mu` random effects, residual-scale `sigma` random effects, `sd(group) ~ ...` random-effect scale models, `meta_known_V(V = V)`, and the implemented intercept-only `phylo()` location effect. |
-| `2` | `family = biv_gaussian()`, `family = c(gaussian(), gaussian())`, or `family = list(gaussian(), gaussian())` | `drm_build_biv_gaussian_spec()` | Bivariate Gaussian location-scale-coscale models with `mu1`, `mu2`, `sigma1`, `sigma2`, and residual `rho12`, including complete-row dense known sampling covariance, matching labelled `mu1`/`mu2` and `sigma1`/`sigma2` random-intercept covariance blocks, one same-response `mu`/`sigma` random-intercept covariance pair, bivariate location random-effect SD formulas `sd1(group)` / `sd2(group)`, and matching intercept-only phylogenetic random intercepts in `mu1` and `mu2`. |
+| `2` | `family = biv_gaussian()`, `family = c(gaussian(), gaussian())`, or `family = list(gaussian(), gaussian())` | `drm_build_biv_gaussian_spec()` | Bivariate Gaussian location-scale-coscale models with `mu1`, `mu2`, `sigma1`, `sigma2`, and residual `rho12`, including complete-row dense known sampling covariance, matching labelled `mu1`/`mu2` and `sigma1`/`sigma2` random-intercept covariance blocks, one same-response `mu`/`sigma` random-intercept covariance pair, intercept-only ordinary q=4 covariance blocks across all four bivariate distributional parameters, bivariate location random-effect SD formulas `sd1(group)` / `sd2(group)`, and matching intercept-only phylogenetic random intercepts in `mu1` and `mu2`. |
 | `3` | `family = student()` | `drm_build_student_ls_spec()` | Univariate Student-t location-scale-shape models with `mu`, `sigma`, and `nu = 2 + exp(eta_nu)`. |
 | `4` | `family = lognormal()` | `drm_build_lognormal_ls_spec()` | Univariate fixed-effect lognormal location-scale models for positive responses, with `mu` and `sigma` defined on the log-response scale. |
 | `5` | `family = Gamma(link = "log")` | `drm_build_gamma_ls_spec()` | Univariate fixed-effect Gamma mean-CV models for positive responses, with `mu` as the response mean and `sigma` as the coefficient of variation. |
@@ -1203,8 +1203,20 @@ Implementation notes:
   be combined with `meta_known_V(V = V)`.
 - One same-response `mu`/`sigma` random-intercept covariance pair is implemented
   for `mu1` with `sigma1` or `mu2` with `sigma2`.
-- Bivariate random slopes, `rho12` random effects, and full cross-parameter
-  covariance blocks spanning more than one pair remain planned.
+- Reusing the same label in all four `mu1`, `mu2`, `sigma1`, and `sigma2`
+  random-intercept formulas fits one ordinary q=4 latent covariance block:
+
+  ```text
+  u_j = [b_mu1_j, b_mu2_j, a_sigma1_j, a_sigma2_j]'
+  u_j ~ MVN(0, Sigma_id)
+  ```
+
+  The `a_sigma*` entries enter `log(sigma*)`, so their SDs and correlations
+  live on the residual-scale linear-predictor scale. The six correlations in
+  `Sigma_id` are group-level latent correlations and remain separate from
+  residual `rho12`.
+- Bivariate random slopes, `rho12` random effects, phylogenetic q=4 blocks, and
+  spatial q=4 blocks remain planned.
 
 ## Review Requirements
 

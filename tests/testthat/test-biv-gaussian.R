@@ -468,6 +468,70 @@ new_biv_gaussian_location_sd_data <- function(
   )
 }
 
+new_biv_gaussian_q4_re_data <- function(
+  n_id = 36,
+  n_each = 6,
+  seed = 2026051307
+) {
+  set.seed(seed)
+  id <- factor(rep(seq_len(n_id), each = n_each))
+  n <- length(id)
+  x <- stats::rnorm(n)
+  beta_mu1 <- c(0.15, 0.35)
+  beta_mu2 <- c(-0.20, -0.28)
+  beta_sigma1 <- log(0.42)
+  beta_sigma2 <- log(0.55)
+  beta_rho12 <- atanh(0.10)
+  sd <- c(0.45, 0.50, 0.24, 0.28)
+  corr <- matrix(
+    c(
+      1.00,
+      0.25,
+      0.12,
+      -0.08,
+      0.25,
+      1.00,
+      0.05,
+      0.16,
+      0.12,
+      0.05,
+      1.00,
+      0.20,
+      -0.08,
+      0.16,
+      0.20,
+      1.00
+    ),
+    nrow = 4L,
+    byrow = TRUE
+  )
+  z <- matrix(stats::rnorm(n_id * 4L), n_id, 4L)
+  b <- sweep(z %*% chol(corr), 2L, sd, `*`)
+  rho12 <- tanh(beta_rho12)
+  e1 <- stats::rnorm(n)
+  e2 <- rho12 * e1 + sqrt(1 - rho12^2) * stats::rnorm(n)
+
+  dat <- data.frame(id = id, x = x)
+  dat$y1 <- beta_mu1[[1L]] +
+    beta_mu1[[2L]] * x +
+    b[id, 1L] +
+    exp(beta_sigma1 + b[id, 3L]) * e1
+  dat$y2 <- beta_mu2[[1L]] +
+    beta_mu2[[2L]] * x +
+    b[id, 2L] +
+    exp(beta_sigma2 + b[id, 4L]) * e2
+
+  list(
+    data = dat,
+    beta_mu1 = beta_mu1,
+    beta_mu2 = beta_mu2,
+    beta_sigma = c(beta_sigma1, beta_sigma2),
+    beta_rho12 = beta_rho12,
+    sd = sd,
+    corr = corr
+  )
+}
+
 expect_abs_error_below <- function(actual, expected, tolerance) {
   expect_lt(max(abs(unname(actual) - unname(expected))), tolerance)
 }
@@ -695,6 +759,76 @@ test_that("bivariate Gaussian sd1(id) and sd2(id) reject non-location and observ
     ),
     "planned but not implemented"
   )
+})
+
+test_that("bivariate Gaussian supports full q4 labelled location-scale covariance blocks", {
+  sim <- new_biv_gaussian_q4_re_data()
+
+  fit <- drmTMB(
+    bf(
+      mu1 = y1 ~ x + (1 | p | id),
+      mu2 = y2 ~ x + (1 | p | id),
+      sigma1 = ~ 1 + (1 | p | id),
+      sigma2 = ~ 1 + (1 | p | id),
+      rho12 = ~1
+    ),
+    family = biv_gaussian(),
+    data = sim$data,
+    control = list(eval.max = 500, iter.max = 500)
+  )
+
+  pairs <- corpairs(fit, level = "group", block = "p")
+  fixed_mu1 <- as.vector(
+    stats::model.matrix(~x, sim$data) %*% coef(fit, "mu1")
+  )
+  fixed_sigma1 <- as.vector(
+    stats::model.matrix(~1, sim$data) %*% coef(fit, "sigma1")
+  )
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(fit$model$random$mu$n_re, 0L)
+  expect_equal(fit$model$random$sigma$n_re, 0L)
+  expect_equal(fit$model$random$covariance_blocks$n_qgt2_blocks, 1L)
+  expect_equal(
+    fit$model$random$covariance_blocks$n_qgt2_re,
+    4L * nlevels(sim$data$id)
+  )
+  expect_equal(fit$model$random$covariance_blocks$n_qgt2_sd, 4L)
+  expect_equal(fit$model$random$covariance_blocks$n_qgt2_theta, 6L)
+  expect_equal(fit$model$random_names, "u_re_cov")
+  expect_named(fit$sdpars, c("mu", "sigma"))
+  expect_equal(length(fit$sdpars$mu), 2L)
+  expect_equal(length(fit$sdpars$sigma), 2L)
+  expect_named(fit$corpars, "re_cov")
+  expect_equal(length(fit$corpars$re_cov), 6L)
+  expect_equal(nrow(pairs), 6L)
+  expect_equal(
+    pairs$class,
+    c(
+      "mean-mean",
+      "mean-scale",
+      "mean-scale",
+      "mean-scale",
+      "mean-scale",
+      "scale-scale"
+    )
+  )
+  expect_equal(pairs$from_dpar, c("mu1", "mu1", "mu1", "mu2", "mu2", "sigma1"))
+  expect_equal(
+    pairs$to_dpar,
+    c("mu2", "sigma1", "sigma2", "sigma1", "sigma2", "sigma2")
+  )
+  expect_equal(nrow(corpairs(fit, class = "mean-scale")), 4L)
+  expect_equal(nrow(corpairs(fit, class = "mean-mean")), 1L)
+  expect_equal(nrow(corpairs(fit, class = "scale-scale")), 1L)
+  expect_equal(nrow(corpairs(fit, level = "residual")), 1L)
+  expect_lt(max(abs(pairs$estimate)), 1)
+  expect_gt(stats::sd(predict(fit, dpar = "mu1") - fixed_mu1), 0)
+  expect_gt(
+    stats::sd(predict(fit, dpar = "sigma1", type = "link") - fixed_sigma1),
+    0
+  )
+  expect_equal(nrow(summary(fit)$covariance), 6L)
 })
 
 test_that("bivariate Gaussian supports labelled sigma1/sigma2 random-intercept covariance blocks", {
@@ -1743,20 +1877,6 @@ test_that("bivariate Gaussian rejects unsupported Phase 3 syntax clearly", {
         mu1 = y1 ~ x + (1 | p | id),
         mu2 = y2 ~ x + (1 | p | id),
         sigma1 = ~ 1 + (1 | p | id),
-        sigma2 = ~ 1 + (1 | p | id),
-        rho12 = ~x
-      ),
-      family = biv_gaussian(),
-      data = dat
-    ),
-    "Reusing one bivariate covariance-block label"
-  )
-  expect_error(
-    drmTMB(
-      bf(
-        mu1 = y1 ~ x + (1 | p | id),
-        mu2 = y2 ~ x + (1 | p | id),
-        sigma1 = ~ 1 + (1 | p | id),
         sigma2 = ~1,
         rho12 = ~x
       ),
@@ -1764,6 +1884,20 @@ test_that("bivariate Gaussian rejects unsupported Phase 3 syntax clearly", {
       data = dat
     ),
     "Larger labelled covariance blocks"
+  )
+  expect_error(
+    drmTMB(
+      bf(
+        mu1 = y1 ~ x + (1 + x | p | id),
+        mu2 = y2 ~ x + (1 + x | p | id),
+        sigma1 = ~ 1 + (1 + x | p | id),
+        sigma2 = ~ 1 + (1 + x | p | id),
+        rho12 = ~x
+      ),
+      family = biv_gaussian(),
+      data = dat
+    ),
+    "random slopes in bivariate models remain planned"
   )
   expect_error(
     drmTMB(

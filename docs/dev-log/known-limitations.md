@@ -26,9 +26,11 @@
   `mu2`, `sigma1`, `sigma2`, and `rho12` formulas. The first group-level
   bivariate covariance slices are implemented for matching labelled
   random-intercept terms in `mu1`/`mu2`, `sigma1`/`sigma2`, and one
-  same-response `mu`/`sigma` pair such as `mu1` with `sigma1`. Bivariate random
-  slopes, random effects in `rho12`, and full double-hierarchical
-  cross-parameter covariance blocks are still planned;
+  same-response `mu`/`sigma` pair such as `mu1` with `sigma1`. The same labelled
+  random-intercept term can also be used in all four bivariate formulas to fit
+  one ordinary q=4 location-scale covariance block with all six latent
+  correlations. Bivariate random slopes, random effects in `rho12`,
+  phylogenetic q=4 blocks, and spatial q=4 blocks are still planned;
   residual `rho12` should not be interpreted as a phylogenetic, spatial, or
   group-level covariance parameter.
 - Matching intercept-only `phylo(1 | species, tree = tree)` terms are fitted
@@ -46,14 +48,16 @@
   random-effect correlations, plus the implemented univariate `mu`/`sigma`
   mean-scale random-intercept correlation and bivariate `mu1`/`mu2`
   random-intercept, `sigma1`/`sigma2` random-intercept, and same-response
-  bivariate `mu`/`sigma` random-intercept correlations. It also reports the
-  fitted bivariate phylogenetic mean-mean correlation. Spatial and study-level
-  correlation pairs remain planned.
+  bivariate `mu`/`sigma` random-intercept correlations. It reports all six
+  ordinary q=4 all-four bivariate random-intercept correlations when that block
+  is fitted, and it also reports the fitted bivariate phylogenetic mean-mean
+  correlation. Spatial and study-level correlation pairs remain planned.
 - Internal q4 phylogenetic algebra, hidden TMB-prior, and planned-pair
   scaffolds exist for the future `mu1`, `mu2`, `sigma1`, and `sigma2` endpoint.
-  The `mu1`/`mu2` phylogenetic location slice is now fitted, but the full q4
-  location-scale block, recovery tests for all six q4 pairs, and reporting rows
-  beyond the fitted mean-mean pair remain planned.
+  The ordinary grouped q4 location-scale block and `mu1`/`mu2` phylogenetic
+  location slice are now fitted, but the full phylogenetic q4 location-scale
+  block, recovery tests for all six structured q4 pairs, and structured
+  reporting rows beyond the fitted phylogenetic mean-mean pair remain planned.
 - `summary()`, `predict_parameters()`, and `marginal_parameters()` expose
   fitted response-scale parameter summaries for interpretation. `summary()` can
   attach opt-in Wald intervals and direct profile intervals for profile-ready
@@ -141,10 +145,11 @@
   fixed-effect univariate cumulative-logit ordinal path, and a fixed-effect
   univariate beta-binomial path.
 - Cross-formula labelled covariance sharing beyond the first univariate
-  intercept-only `mu`/`sigma` block and the first same-parameter bivariate
-  intercept blocks, correlated residual-scale random-slope blocks, labelled
-  `mu`/`sigma` random-slope covariance, slope-specific random-effect scale
-  targets, labelled-block random-effect
+  intercept-only `mu`/`sigma` block, the first same-parameter bivariate
+  intercept blocks, same-response bivariate `mu`/`sigma` pairs, and the ordinary
+  all-four bivariate q4 intercept block, correlated residual-scale random-slope
+  blocks, labelled `mu`/`sigma` random-slope covariance, slope-specific
+  random-effect scale targets, labelled-block random-effect
   scale targets, bivariate random-effect scale targets, Student-t random
   effects, Student-t known-covariance models, Student-t phylogenetic models,
   bivariate Student-t models, lognormal random-effect and structured-effect

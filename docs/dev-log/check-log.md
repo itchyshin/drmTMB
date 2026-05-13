@@ -2,6 +2,29 @@
 
 Record meaningful development checks here.
 
+## 2026-05-13 -- Slice 14 ordinary q4 location-scale covariance block
+
+Scope:
+
+- enabled the all-four ordinary labelled random-intercept pattern
+  `(1 | p | id)` across bivariate `mu1`, `mu2`, `sigma1`, and `sigma2`;
+- added TMB q > 2 covariance-block plumbing for the bivariate Gaussian path,
+  with one non-centred latent vector, four SDs, six correlations, fitted
+  random-effect contributions, and `corpairs()` / `summary()` reporting;
+- updated formula grammar, likelihood, endpoint, assembler, known-limitations,
+  and NEWS wording so ordinary q4 is fitted while phylogenetic q4, spatial q4,
+  random-slope endpoint blocks, and `rho12` random effects remain planned.
+
+Checks:
+
+- `Rscript -e 'devtools::load_all(quiet = TRUE)'`: passed.
+- `Rscript -e 'devtools::test(filter = "biv-gaussian|covariance-block-registry|summary|corpairs", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'devtools::test(filter = "biv-gaussian|covariance-block-registry|summary|corpairs|profile-targets|check-drm", reporter = "summary")'`:
+  passed.
+- `rg -n 'full.*remain planned|full.*rejected|all four.*rejected|Reusing one bivariate covariance-block label|q=4.*remains planned|q4.*remain planned|ambiguous same-label|larger block remains planned' NEWS.md docs/design/01-formula-grammar.md docs/design/03-likelihoods.md docs/design/28-double-hierarchical-endpoint.md docs/design/30-labelled-covariance-block-assembler.md docs/dev-log/known-limitations.md`:
+  no stale q4-rejection matches in the synchronized status docs.
+
 ## 2026-05-13 -- Slice 13B phylo and species reader path
 
 Scope:

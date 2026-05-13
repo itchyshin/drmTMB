@@ -67,6 +67,7 @@ In this table, "coscale" means a model for residual correlation, currently
 | `(1 | p | id)` in both bivariate `mu1` and `mu2` | Implemented | First bivariate group-level covariance slice: matching labelled random intercepts create `mu1`/`mu2` random-intercept SDs and one group-level correlation. |
 | `(1 | p | id)` in both bivariate `sigma1` and `sigma2` | Implemented | First bivariate residual-scale covariance slice: matching labelled random intercepts enter `log(sigma1)` and `log(sigma2)` and create one scale-scale group-level correlation. |
 | `(1 | p | id)` in same-response bivariate `mu1` and `sigma1`, or in `mu2` and `sigma2` | Implemented first slice | One matching labelled random-intercept pair creates a mean-scale group-level correlation for that response. |
+| `(1 | p | id)` in all four bivariate `mu1`, `mu2`, `sigma1`, and `sigma2` formulas | Implemented first slice | One ordinary q=4 random-intercept covariance block reports all six latent location-location, location-scale, and scale-scale correlations. |
 | `family = c(gaussian(), gaussian())` | Implemented | Public bivariate Gaussian family direction; mixed composed families are planned. |
 | `mvbind(y1, y2) ~ x1` | Implemented | Shorthand for identical bivariate location formulas; explicit `mu1`/`mu2` remains preferred for different predictors. |
 | `phylo(1 | species, tree = tree)` in `mu` | Implemented | Intercept-only univariate Gaussian phylogenetic location effect; requires an ultrametric tree with branch lengths. |
@@ -163,9 +164,11 @@ and `mu2` random intercepts. The shared `q` label requests a separate
 scale-scale block for the `sigma1` and `sigma2` random intercepts on the
 log-`sigma` scale. Neither block is residual `rho12`: they describe
 between-group associations after the fixed effects are included. One
-same-response `mu`/`sigma` random-intercept pair is also implemented; bivariate
-random slopes, full cross-parameter covariance blocks spanning more than one
-pair, and `rho12` random effects remain planned.
+same-response `mu`/`sigma` random-intercept pair is also implemented. Reusing
+the same label and group in all four `mu1`, `mu2`, `sigma1`, and `sigma2`
+formulas requests one ordinary q=4 random-intercept block with all six latent
+correlations. Bivariate random slopes and `rho12` random effects remain
+planned.
 
 The first fitted bivariate phylogenetic location slice uses matching
 intercept-only `phylo()` terms in the two location formulas:
@@ -188,12 +191,12 @@ after fixed effects, residual scales, and phylogenetic mean deviations are
 included. Bivariate phylogenetic scale effects, mean-scale phylogenetic
 correlations, and structured effects in `rho12` remain planned.
 
-Do not reuse the same label and grouping variable across all bivariate location
-and scale formulas. For example, putting `(1 | p | id)` in all four formulas is
-rejected because it would imply a full cross-parameter bivariate covariance
+Use the same label and grouping variable across all four bivariate location and
+scale formulas only when the target is one full ordinary q=4 random-intercept
 block across `mu1`, `mu2`, `sigma1`, and `sigma2`. Use distinct labels, such as
-`p` and `q`, for separate mean-mean and scale-scale blocks until that larger
-covariance block is implemented and tested.
+`p` and `q`, when the target is two separate mean-mean and scale-scale blocks.
+The q=4 path is currently intercept-only; random-slope endpoint blocks remain
+planned.
 
 The `mvbind()` form is implemented as shorthand for identical location
 formulas:
@@ -319,8 +322,10 @@ bf(
 Here the shared `p` label fits a group-level mean-scale correlation for response
 1, reported as `corpars$mu_sigma` and a `corpairs()` `mean-scale` row with
 `from_dpar = "mu1"` and `to_dpar = "sigma1"`. A matching `mu2`/`sigma2` pair is
-also supported. This is not the full labelled covariance block across `mu1`,
-`mu2`, `sigma1`, and `sigma2`; that larger block remains planned.
+also supported. The larger all-four labelled block is also supported for
+intercept-only terms when the same label appears in `mu1`, `mu2`, `sigma1`, and
+`sigma2`; it reports one location-location row, four location-scale rows, and
+one scale-scale row.
 
 The distinction is:
 
