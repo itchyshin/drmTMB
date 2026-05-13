@@ -115,7 +115,9 @@ user-facing fits. A follow-up hidden test also passes `u_re_cov_probe` through
 TMB's `random` argument, proving the internal Laplace random-effect boundary
 before any ordinary likelihood branch uses it. The first hidden likelihood
 prototype routes q=3 transformed member contributions into a Gaussian `mu` and
-`log_sigma` likelihood branch, without opening q > 2 syntax.
+`log_sigma` likelihood branch, without opening q > 2 syntax. The follow-up
+hidden likelihood test passes `u_re_cov_probe` through TMB's `random` argument
+and reconstructs the Gaussian predictors from the optimized random-effect mode.
 
 The flattened data contract should be block-oriented rather than pair-oriented:
 
@@ -214,9 +216,10 @@ still be named `sigma`.
    registry-shaped member/group contribution probe using a dormant TMB
    parameter. A hidden random-effect boundary test now registers that parameter
    through TMB's `random` argument, and a hidden likelihood prototype routes q=3
-   member contributions into one Gaussian `mu`/`log_sigma` branch. Production
-   support still needs simulation recovery, extractor rows, and public syntax
-   review.
+   member contributions into one Gaussian `mu`/`log_sigma` branch. Done for the
+   same hidden likelihood branch with `u_re_cov_probe` registered as a TMB random
+   effect. Production support still needs simulation recovery, extractor rows,
+   and public syntax review.
 8. Only then enable bivariate random slopes or the full shared
    `mu1`/`mu2`/`sigma1`/`sigma2` label pattern.
 

@@ -2,6 +2,31 @@
 
 Record meaningful development checks here.
 
+## 2026-05-13 -- Slice 7C hidden q=3 random-effect likelihood prototype
+
+Scope:
+
+- added a deterministic hidden test for `model_type == 96` with
+  `u_re_cov_probe` passed through TMB's `random` argument;
+- checked that `u_re_cov_probe` drops out of the fixed optimizer parameter
+  vector, is identified as the random-effect block, has a nonzero optimized
+  random-effect mode under the Gaussian likelihood, and reconstructs the
+  reported contribution matrix, `mu`, `log_sigma`, and `obs_sigma` from that
+  mode;
+- updated the roadmap and q > 2 design notes to record the internal Laplace
+  likelihood prototype while keeping simulation recovery, extractor rows,
+  examples, and public q > 2 syntax out of scope.
+
+Checks:
+
+- `air format tests/testthat/test-covariance-block-registry.R`: passed.
+- `Rscript -e 'devtools::test(filter = "covariance-block-registry")'`: passed
+  with 66 expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript -e 'devtools::test(filter =
+  "covariance-block-registry|biv-gaussian|gaussian-random-intercepts|phylo-utils|package-skeleton")'`:
+  passed with 964 expectations, 0 failures, 0 warnings, and 0 skips.
+- `git diff --check`: passed.
+
 ## 2026-05-13 -- Slice 7B hidden q=3 Gaussian likelihood prototype
 
 Scope:

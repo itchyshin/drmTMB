@@ -158,9 +158,10 @@ distributional regression models using TMB.
   positive-definite q=3 correlation, finite objective/gradient, a non-centered
   `sqrt_cov_scale()` transform, a hidden registry-shaped member/group
   contribution map using a dormant TMB parameter, an internal Laplace
-  random-effect boundary for that probe parameter, and a hidden Gaussian
-  likelihood prototype that routes q=3 member contributions into `mu` and
-  `log_sigma`; these probes are not user-facing fitted-model support yet.
+  random-effect boundary for that probe parameter, a hidden Gaussian likelihood
+  prototype that routes q=3 member contributions into `mu` and `log_sigma`, and
+  a hidden Laplace version of that likelihood prototype; these probes are not
+  user-facing fitted-model support yet.
 - Use `docs/design/18-random-effect-scale-models.md` as the design contract:
   the implemented MVP targets one or more distinct unlabelled univariate
   Gaussian `mu` random intercepts, with group-level predictors, simulation
