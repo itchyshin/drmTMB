@@ -101,8 +101,8 @@ The direct phylogenetic prior fixture was an easy path to miss because it calls
 the new data contract universal.
 
 The first test assertion only proved that one fitted object carried the new
-data. Curie-copy/Euler recommended the stronger helper plus no-op objective
-check, which is now the acceptance test for this slice.
+data. Curie recommended the stronger helper plus no-op objective check, which
+is now the acceptance test for this slice.
 
 ## Team Learning
 

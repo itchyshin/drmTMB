@@ -61,10 +61,10 @@ Scope:
 
 Checks:
 
-- Nietzsche/Boole-copy inspected the parser and registry boundary and
-  recommended a registry-only q=3 scaffold with parser and TMB gates closed.
-- Chandrasekhar/Curie-copy inspected the tests and recommended deterministic
-  internal q=3 pair-row assertions plus a TMB-export guard assertion.
+- Boole inspected the parser and registry boundary and recommended a
+  registry-only q=3 scaffold with parser and TMB gates closed.
+- Curie inspected the tests and recommended deterministic internal q=3 pair-row
+  assertions plus a TMB-export guard assertion.
 - `air format R/drmTMB.R tests/testthat/test-covariance-block-registry.R
   tests/testthat/test-biv-gaussian.R`: passed.
 - `Rscript -e 'devtools::test(filter = "covariance-block-registry")'`: passed
@@ -96,10 +96,10 @@ Scope:
 
 Checks:
 
-- Dewey/Gauss-copy reviewed the C++ boundary risk before validation and
-  recommended declaring the fields with `(void)` casts.
-- Euler/Curie-copy reviewed the test surface and recommended the exported-data
-  assertion plus one no-op objective/gradient assertion.
+- Gauss reviewed the C++ boundary risk before validation and recommended
+  declaring the fields with `(void)` casts.
+- Curie reviewed the test surface and recommended the exported-data assertion
+  plus one no-op objective/gradient assertion.
 - `air format R/drmTMB.R tests/testthat/helper-covariance-blocks.R
   tests/testthat/test-biv-gaussian.R
   tests/testthat/test-gaussian-random-intercepts.R
