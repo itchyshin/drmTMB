@@ -122,8 +122,12 @@ keep the same row meaning and mark derived intervals separately.
    design columns, the hidden probe can register that parameter as a TMB random
    effect, a hidden Gaussian prototype can route q=3 transformed member
    contributions into `mu` and `log_sigma`, and the same hidden likelihood path
-   can run with `u_re_cov_probe` as a TMB random effect. Simulation recovery and
-   user-facing q > 2 support remain next.
+   can run with `u_re_cov_probe` as a TMB random effect. A deterministic hidden
+   simulation-style check now shows that the Laplace path recovers the simulated
+   q=3 predictor signal better than a no-random-effect baseline. The next
+   implementation step is the q=4 `mu1`/`mu2`/`sigma1`/`sigma2` bridge;
+   user-facing q > 2 support remains closed until fitted q=4 code, extractor
+   rows, examples, and broader recovery tests exist.
 5. Add the univariate four-effect block:
    `bf(y ~ x + (1 + x | p | id), sigma ~ x + (1 + x | p | id))`.
 6. Extend `corpairs()` to report each fitted group-level pair from the shared

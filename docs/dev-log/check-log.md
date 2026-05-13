@@ -2,6 +2,37 @@
 
 Record meaningful development checks here.
 
+## 2026-05-13 -- Slice 7D hidden q=3 simulation-style recovery check
+
+Scope:
+
+- generalized the hidden covariance-block registry test helper so q=3 probes
+  can use more groups, replicated observations, and member-specific design
+  values without changing ordinary fitted syntax;
+- added a deterministic hidden `model_type == 96` recovery test that generates
+  q=3 latent contributions for replicated groups, runs the Gaussian likelihood
+  with `u_re_cov_probe` as a TMB random-effect vector, and checks that the
+  fitted `mu` and `log_sigma` predictors recover the simulated signal better
+  than a no-random-effect baseline;
+- updated the roadmap and q > 2 design notes to close the hidden q=3 prototype
+  phase and make the q=4 `mu1`/`mu2`/`sigma1`/`sigma2` bridge the next
+  implementation step, while keeping user-facing q > 2 support closed.
+
+Checks:
+
+- `air format tests/testthat/test-covariance-block-registry.R ROADMAP.md
+  docs/design/28-double-hierarchical-endpoint.md
+  docs/design/30-labelled-covariance-block-assembler.md
+  docs/dev-log/check-log.md
+  docs/dev-log/after-task/2026-05-13-slice-7d-hidden-q3-simulation-style-recovery.md`:
+  passed.
+- `Rscript -e 'devtools::test(filter = "covariance-block-registry")'`: passed
+  with 73 expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript -e 'devtools::test(filter =
+  "covariance-block-registry|biv-gaussian|gaussian-random-intercepts|phylo-utils|package-skeleton")'`:
+  passed with 971 expectations, 0 failures, 0 warnings, and 0 skips.
+- `git diff --check`: passed.
+
 ## 2026-05-13 -- Slice 7C hidden q=3 random-effect likelihood prototype
 
 Scope:

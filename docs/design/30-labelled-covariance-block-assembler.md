@@ -118,6 +118,11 @@ prototype routes q=3 transformed member contributions into a Gaussian `mu` and
 `log_sigma` likelihood branch, without opening q > 2 syntax. The follow-up
 hidden likelihood test passes `u_re_cov_probe` through TMB's `random` argument
 and reconstructs the Gaussian predictors from the optimized random-effect mode.
+A deterministic hidden simulation-style test then generates q=3 latent
+contributions for replicated groups and checks that the Laplace fit recovers
+the simulated `mu` and `log_sigma` predictor signal better than a
+no-random-effect baseline. This is recovery evidence for the hidden q=3
+prototype, not public q > 2 support.
 
 The flattened data contract should be block-oriented rather than pair-oriented:
 
@@ -218,8 +223,10 @@ still be named `sigma`.
    through TMB's `random` argument, and a hidden likelihood prototype routes q=3
    member contributions into one Gaussian `mu`/`log_sigma` branch. Done for the
    same hidden likelihood branch with `u_re_cov_probe` registered as a TMB random
-   effect. Production support still needs simulation recovery, extractor rows,
-   and public syntax review.
+   effect, and for a deterministic hidden simulation-style check that recovers
+   the simulated q=3 predictor signal better than a no-random-effect baseline.
+   Production q=4 support still needs fitted likelihood code, extractor rows,
+   examples, and public syntax review.
 8. Only then enable bivariate random slopes or the full shared
    `mu1`/`mu2`/`sigma1`/`sigma2` label pattern.
 

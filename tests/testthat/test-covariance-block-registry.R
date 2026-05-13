@@ -1,9 +1,23 @@
-new_covariance_registry_re <- function(dpars, labels) {
-  n_obs <- 4L
-  group_levels <- c("g1", "g2")
+new_covariance_registry_re <- function(
+  dpars,
+  labels,
+  group_index0 = c(0L, 0L, 1L, 1L),
+  group_levels = NULL,
+  value = NULL,
+  coef_names = NULL
+) {
+  n_obs <- length(group_index0)
+  if (is.null(group_levels)) {
+    group_levels <- paste0("g", seq_len(max(group_index0) + 1L))
+  }
   n_groups <- length(group_levels)
   n_terms <- length(dpars)
-  group_index0 <- c(0L, 0L, 1L, 1L)
+  if (is.null(value)) {
+    value <- matrix(1, nrow = n_obs, ncol = n_terms)
+  }
+  if (is.null(coef_names)) {
+    coef_names <- rep("(Intercept)", n_terms)
+  }
 
   groups <- rep(list(group_levels), n_terms)
   names(groups) <- labels
@@ -12,7 +26,7 @@ new_covariance_registry_re <- function(dpars, labels) {
     n_terms = n_terms,
     n_re = n_terms * n_groups,
     index0 = matrix(rep(group_index0, n_terms), nrow = n_obs),
-    value = matrix(1, nrow = n_obs, ncol = n_terms),
+    value = value,
     term_id0 = rep(seq_len(n_terms) - 1L, each = n_groups),
     dpar_id0 = rep(seq_len(n_terms) - 1L, each = n_groups),
     re_pos0 = rep(0L, n_terms * n_groups),
@@ -20,21 +34,41 @@ new_covariance_registry_re <- function(dpars, labels) {
     re_pair_index0 = rep(-1L, n_terms * n_groups),
     labels = labels,
     dpars = dpars,
-    coef_names = rep("(Intercept)", n_terms),
+    coef_names = coef_names,
     group_names = rep("id", n_terms),
     covariance_labels = rep("p", n_terms),
     groups = groups
   )
 }
 
-new_three_member_covariance_registry <- function() {
+new_three_member_covariance_registry <- function(
+  group_index0 = c(0L, 0L, 1L, 1L),
+  group_levels = NULL,
+  value = NULL,
+  coef_names = NULL
+) {
+  n_obs <- length(group_index0)
+  if (is.null(value)) {
+    value <- matrix(1, nrow = n_obs, ncol = 3L)
+  }
+  if (is.null(coef_names)) {
+    coef_names <- rep("(Intercept)", 3L)
+  }
   re_mu <- new_covariance_registry_re(
     dpars = c("mu1", "mu2"),
-    labels = c("mu1:(1 | p | id)", "mu2:(1 | p | id)")
+    labels = c("mu1:(1 | p | id)", "mu2:(1 | p | id)"),
+    group_index0 = group_index0,
+    group_levels = group_levels,
+    value = value[, 1:2, drop = FALSE],
+    coef_names = coef_names[1:2]
   )
   re_sigma <- new_covariance_registry_re(
     dpars = "sigma1",
-    labels = "sigma1:(1 | p | id)"
+    labels = "sigma1:(1 | p | id)",
+    group_index0 = group_index0,
+    group_levels = group_levels,
+    value = value[, 3, drop = FALSE],
+    coef_names = coef_names[3]
   )
   registry <- drmTMB:::empty_labelled_covariance_block_registry()
   registry <- drmTMB:::append_covariance_registry_block(
@@ -62,6 +96,8 @@ tmb_vecscale_sqrt_cov_scale <- function(theta, sd, z) {
   corr <- tmb_unstructured_corr_matrix(theta)
   as.vector(sd * (t(chol(corr)) %*% z))
 }
+
+rmse <- function(x, y) sqrt(mean((x - y)^2))
 
 test_that("internal covariance registry can describe a guarded q=3 block", {
   registry <- new_three_member_covariance_registry()
@@ -355,6 +391,111 @@ test_that("hidden q=3 Gaussian likelihood can use TMB random effects", {
   expect_equal(report$obs_sigma, obs_sigma, tolerance = 1e-8)
   expect_true(is.finite(nll))
   expect_true(all(is.finite(grad)))
+})
+
+test_that("hidden q=3 Gaussian likelihood recovers simulated predictor signal", {
+  n_groups <- 8L
+  n_each <- 12L
+  group_index0 <- rep(seq_len(n_groups) - 1L, each = n_each)
+  group_levels <- paste0("g", seq_len(n_groups))
+  x <- rep(seq(-1.15, 1.15, length.out = n_each), times = n_groups)
+  value <- cbind(1, x, 1)
+  registry <- new_three_member_covariance_registry(
+    group_index0 = group_index0,
+    group_levels = group_levels,
+    value = value,
+    coef_names = c("(Intercept)", "x", "(Intercept)")
+  )
+  cov_tmb <- drmTMB:::labelled_covariance_block_tmb_data(
+    registry,
+    allow_unimplemented = TRUE
+  )
+  theta <- c(0.25, -0.15, 0.20)
+  sd <- c(0.45, 0.35, 0.28)
+  z <- c(
+    -0.8,
+    0.4,
+    0.6,
+    0.7,
+    -0.5,
+    -0.4,
+    -0.3,
+    -0.9,
+    0.5,
+    0.9,
+    0.3,
+    -0.7,
+    -0.6,
+    0.8,
+    -0.2,
+    0.4,
+    -0.2,
+    0.9,
+    0.2,
+    0.7,
+    -0.6,
+    -0.9,
+    -0.4,
+    0.3
+  )
+  z_by_group <- matrix(z, ncol = 3L, byrow = TRUE)
+  latent <- t(apply(
+    z_by_group,
+    1L,
+    tmb_vecscale_sqrt_cov_scale,
+    theta = theta,
+    sd = sd
+  ))
+  group <- group_index0 + 1L
+  beta_mu <- 0.35
+  beta_sigma <- log(0.22)
+  true_mu <- beta_mu + latent[group, 1L] + x * latent[group, 2L]
+  true_log_sigma <- beta_sigma + latent[group, 3L]
+  eps <- c(-1.4, 0.2, 1.0, -0.8, 1.4, -0.2, -1.0, 0.8, -1.2, 0.4, 1.2, -0.4)
+  eps <- as.numeric(scale(eps, center = TRUE, scale = stats::sd(eps)))
+  dat <- data.frame(y = true_mu + exp(true_log_sigma) * rep(eps, n_groups))
+  fit <- drmTMB(bf(y ~ 1, sigma ~ 1), family = gaussian(), data = dat)
+
+  tmb_data <- fit$model$tmb_data
+  tmb_data[names(cov_tmb)] <- cov_tmb
+  tmb_data$model_type <- 96L
+  tmb_data$re_cov_probe_theta <- theta
+  tmb_data$re_cov_probe_sd <- sd
+  tmb_data$re_cov_probe_z <- numeric(0)
+  parameters <- fit$model$start
+  parameters$u_re_cov_probe <- rep(0, length(z))
+  map <- fit$model$map
+  map$u_re_cov_probe <- NULL
+
+  obj <- TMB::MakeADFun(
+    data = tmb_data,
+    parameters = parameters,
+    map = map,
+    random = c(fit$model$random_names, "u_re_cov_probe"),
+    DLL = "drmTMB",
+    silent = TRUE
+  )
+  opt <- stats::nlminb(
+    obj$par,
+    obj$fn,
+    obj$gr,
+    control = list(iter.max = 100, eval.max = 150)
+  )
+  obj$fn(opt$par)
+  report <- obj$report()
+  baseline_mu <- rep(mean(dat$y), nrow(dat))
+  baseline_log_sigma <- rep(log(stats::sd(dat$y)), nrow(dat))
+
+  expect_equal(opt$convergence, 0)
+  expect_lt(rmse(report$mu, true_mu), 0.55 * rmse(baseline_mu, true_mu))
+  expect_lt(
+    rmse(report$log_sigma, true_log_sigma),
+    0.80 * rmse(baseline_log_sigma, true_log_sigma)
+  )
+  expect_gt(stats::cor(report$mu, true_mu), 0.90)
+  expect_gt(stats::cor(report$log_sigma, true_log_sigma), 0.55)
+  expect_true(is.finite(obj$fn(opt$par)))
+  expect_true(all(is.finite(obj$gr(opt$par))))
 })
 
 test_that("TMB q=3 covariance prototype produces positive-definite correlations", {
