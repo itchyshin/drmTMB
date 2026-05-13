@@ -22,6 +22,21 @@ new_profile_biv_data <- function(
   )
 }
 
+new_profile_q4_pair_registry <- function(
+  parameter = paste0("scaffold:", c("12", "13", "14", "23", "24", "34")),
+  tmb_parameter = rep(NA_character_, 6L),
+  tmb_index = rep(NA_integer_, 6L)
+) {
+  list(
+    pairs = data.frame(
+      parameter = parameter,
+      tmb_parameter = tmb_parameter,
+      tmb_index = tmb_index,
+      stringsAsFactors = FALSE
+    )
+  )
+}
+
 new_profile_biv_group_data <- function(
   n_id = 14L,
   n_each = 5L,
@@ -1008,6 +1023,105 @@ test_that("profile target inventory covers bivariate mu covariance labels", {
   names(fit_registry$corpars$mu) <- "cor(bad,bad | wrong | wrong)"
   registry_targets <- profile_targets(fit_registry)
   expect_true(biv_parms[[3L]] %in% registry_targets$parm)
+})
+
+test_that("profile targets can format fitted-like q=4 endpoint registry rows", {
+  dat <- data.frame(
+    y1 = c(-0.3, 0.1, 0.4, 0.8, -0.1, 0.6),
+    y2 = c(0.2, -0.2, 0.5, 0.7, 0.1, 0.4)
+  )
+  fit <- drmTMB(
+    bf(
+      mu1 = y1 ~ 1,
+      mu2 = y2 ~ 1,
+      sigma1 = ~1,
+      sigma2 = ~1,
+      rho12 = ~1
+    ),
+    family = biv_gaussian(),
+    data = dat
+  )
+  pair_labels <- c(
+    "cor(mu1:(Intercept),mu2:(Intercept) | p | id)",
+    "cor(mu1:(Intercept),sigma1:(Intercept) | p | id)",
+    "cor(mu1:(Intercept),sigma2:(Intercept) | p | id)",
+    "cor(mu2:(Intercept),sigma1:(Intercept) | p | id)",
+    "cor(mu2:(Intercept),sigma2:(Intercept) | p | id)",
+    "cor(sigma1:(Intercept),sigma2:(Intercept) | p | id)"
+  )
+  cor_dpars <- c("mu", rep("mu_sigma", 4L), "sigma")
+  estimates <- c(0.12, -0.21, 0.16, 0.08, -0.14, 0.27)
+  tmb_parameters <- c(
+    "eta_cor_mu",
+    rep("eta_cor_mu_sigma", 4L),
+    "eta_cor_sigma"
+  )
+  registry <- new_profile_q4_pair_registry(
+    parameter = pair_labels,
+    tmb_parameter = tmb_parameters,
+    tmb_index = c(1L, 1L, 2L, 3L, 4L, 1L)
+  )
+  fit_q4 <- fit
+  fit_q4$model$random$covariance_blocks <- registry
+  fit_q4$corpars <- list(
+    mu = stats::setNames(estimates[[1L]], pair_labels[[1L]]),
+    mu_sigma = stats::setNames(estimates[2:5], pair_labels[2:5]),
+    sigma = stats::setNames(estimates[[6L]], pair_labels[[6L]])
+  )
+  fit_q4$opt$par <- c(
+    fit_q4$opt$par,
+    stats::setNames(rep(0, length(tmb_parameters)), tmb_parameters)
+  )
+  q4_parms <- paste0("cor:", cor_dpars, ":", pair_labels)
+
+  targets <- profile_targets(fit_q4)
+  ready_targets <- profile_targets(fit_q4, ready_only = TRUE)
+  q4_targets <- targets[match(q4_parms, targets$parm), ]
+
+  expect_false(anyNA(q4_targets$parm))
+  expect_equal(q4_targets$parm, q4_parms)
+  expect_equal(
+    q4_targets$target_class,
+    rep("random-effect-correlation", 6L)
+  )
+  expect_equal(q4_targets$dpar, cor_dpars)
+  expect_equal(q4_targets$term, pair_labels)
+  expect_equal(q4_targets$tmb_parameter, tmb_parameters)
+  expect_equal(q4_targets$index, c(1L, 1L, 2L, 3L, 4L, 1L))
+  expect_equal(q4_targets$estimate, estimates, tolerance = 1e-12)
+  expect_equal(
+    q4_targets$link_estimate,
+    atanh(estimates / 0.999999),
+    tolerance = 1e-12
+  )
+  expect_equal(q4_targets$transformation, rep("tanh", 6L))
+  expect_equal(q4_targets$target_type, rep("direct", 6L))
+  expect_true(all(q4_targets$profile_ready))
+  expect_equal(q4_targets$profile_note, rep("ready", 6L))
+  expect_true(all(q4_parms %in% ready_targets$parm))
+
+  fit_dormant <- fit
+  fit_dormant$model$random$covariance_blocks <-
+    new_profile_q4_pair_registry()
+  dormant_targets <- profile_targets(fit_dormant)
+  expect_false(any(grepl("scaffold:", dormant_targets$parm, fixed = TRUE)))
+
+  registry_mixed <- new_profile_q4_pair_registry()
+  registry_mixed$pairs$parameter[[1L]] <- pair_labels[[1L]]
+  registry_mixed$pairs$tmb_parameter[[1L]] <- "eta_cor_mu"
+  registry_mixed$pairs$tmb_index[[1L]] <- 1L
+  fit_mixed <- fit
+  fit_mixed$model$random$covariance_blocks <- registry_mixed
+  fit_mixed$corpars <- list(
+    mu = stats::setNames(estimates[[1L]], pair_labels[[1L]])
+  )
+  fit_mixed$opt$par <- c(
+    fit_mixed$opt$par,
+    stats::setNames(0, "eta_cor_mu")
+  )
+  mixed_targets <- profile_targets(fit_mixed)
+  expect_equal(sum(mixed_targets$parm == q4_parms[[1L]]), 1L)
+  expect_false(any(grepl("scaffold:", mixed_targets$parm, fixed = TRUE)))
 })
 
 test_that("confint profile intervals transform bivariate mu covariance targets", {

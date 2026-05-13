@@ -346,6 +346,21 @@ test_that("corpairs can format fitted-like q=4 endpoint registry rows", {
   fit_dormant$model$random$covariance_blocks <-
     new_four_member_covariance_registry()
   expect_equal(nrow(corpairs(fit_dormant, level = "group")), 0L)
+
+  registry_mixed <- new_four_member_covariance_registry()
+  registry_mixed$blocks$implemented <- TRUE
+  registry_mixed$pairs$parameter[[1L]] <- pair_labels[[1L]]
+  registry_mixed$pairs$tmb_parameter[[1L]] <- "eta_cor_mu"
+  registry_mixed$pairs$tmb_index[[1L]] <- 1L
+  fit_mixed <- fit
+  fit_mixed$model$random$covariance_blocks <- registry_mixed
+  fit_mixed$corpars <- list(
+    mu = stats::setNames(estimates[[1L]], pair_labels[[1L]])
+  )
+  mixed_pairs <- corpairs(fit_mixed, level = "group")
+  expect_equal(nrow(mixed_pairs), 1L)
+  expect_equal(mixed_pairs$parameter, pair_labels[[1L]])
+  expect_equal(mixed_pairs$estimate, estimates[[1L]], tolerance = 1e-12)
 })
 
 test_that("q=3 block TMB data remains guarded until parameterization exists", {

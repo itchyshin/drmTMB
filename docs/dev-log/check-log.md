@@ -2,6 +2,38 @@
 
 Record meaningful development checks here.
 
+## 2026-05-13 -- Slice 8F hidden q=4 profile-target scaffold
+
+Scope:
+
+- made registry-backed `profile_targets()` skip dormant covariance-block pair
+  rows that have no fitted TMB parameter/index metadata;
+- added an internal fitted-like q=4 endpoint scaffold that formats the six
+  corresponding random-effect correlation targets from registry metadata and
+  `corpars`;
+- checked target names, target class, correlation namespace, TMB parameter,
+  index, estimate, guarded link estimate, transformation, readiness, and
+  `ready_only` filtering for the fitted-like q=4 targets;
+- added mixed-registry coverage so a partly fitted q4 registry reports only the
+  fitted pair and skips still-dormant scaffold rows;
+- kept this as profile-target contract evidence only: ordinary fitted q4 models
+  do not yet populate these rows, and there is no public q > 2 syntax or
+  example.
+
+Checks:
+
+- `Rscript -e 'devtools::test(filter =
+  "profile-targets|covariance-block-registry")'`: passed with 388
+  expectations, 0 failures, 0 warnings, and 0 skips.
+- `air format R/profile.R tests/testthat/test-profile-targets.R
+  tests/testthat/test-covariance-block-registry.R ROADMAP.md
+  docs/design/28-double-hierarchical-endpoint.md
+  docs/design/30-labelled-covariance-block-assembler.md
+  docs/dev-log/check-log.md
+  docs/dev-log/after-task/2026-05-13-slice-8f-hidden-q4-profile-target-scaffold.md`:
+  passed.
+- `git diff --check`: passed.
+
 ## 2026-05-13 -- Slice 8E hidden q=4 corpairs scaffold
 
 Scope:

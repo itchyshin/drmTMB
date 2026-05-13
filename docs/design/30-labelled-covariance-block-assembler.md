@@ -164,6 +164,13 @@ This is extractor-contract evidence only. Ordinary fitted q=4 models still need
 to populate those registry pair fields from the likelihood path before the rows
 become user-facing support.
 
+The matching hidden `profile_targets()` scaffold uses the same fitted-row rule.
+It skips dormant q > 2 registry pairs, formats the six q=4 endpoint correlation
+targets from fitted-like registry metadata, and handles mixed registries where
+some pairs are fitted and other pairs remain dormant. This keeps pair reporting
+and profile target naming aligned before the ordinary q4 likelihood path writes
+those fields itself.
+
 The flattened data contract should be block-oriented rather than pair-oriented:
 
 ```text
@@ -245,7 +252,9 @@ still be named `sigma`.
    now derives the covered two-member covariance diagnostics from registry
    members while preserving the existing row names and messages.
    `profile_targets()` now derives covered random-effect correlation targets
-   from registry pairs while preserving target names, indices, and readiness.
+   from registry pairs while preserving target names, indices, and readiness; it
+   also skips dormant q > 2 registry pairs and can format the six q=4 endpoint
+   correlation targets from fitted-like registry metadata.
 5. Pass the two-member dormant contract through the C++ boundary as a no-op
    visibility check before using it for likelihood evaluation. Done by
    appending empty or registry block data to every TMB data list, declaring
@@ -275,9 +284,10 @@ still be named `sigma`.
    `u_re_cov_probe` registered as a TMB random-effect vector. Done for a
    deterministic hidden q=4 recovery-style check against no-random-effect
    baselines. Done for an internal q=4 `corpairs()` scaffold that formats all
-   six endpoint rows from fitted-like registry metadata. Production q=4 support
-   still needs the ordinary fitted likelihood path to populate those registry
-   fields, broader recovery coverage, examples, and public syntax review.
+   six endpoint rows from fitted-like registry metadata. Done for the matching
+   internal q=4 `profile_targets()` scaffold. Production q=4 support still needs
+   the ordinary fitted likelihood path to populate those registry fields,
+   broader recovery coverage, examples, and public syntax review.
 8. Enable the full shared `mu1`/`mu2`/`sigma1`/`sigma2` label pattern only after
    the hidden q=4 bridge has fitted likelihood and recovery evidence.
 

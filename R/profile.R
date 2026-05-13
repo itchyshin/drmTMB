@@ -610,8 +610,15 @@ profile_registry_cor_targets <- function(object) {
     return(list())
   }
 
-  lapply(seq_len(nrow(registry$pairs)), function(i) {
-    pair <- registry$pairs[i, , drop = FALSE]
+  pairs <- registry$pairs
+  pair_is_fitted <- !is.na(pairs$tmb_parameter) & !is.na(pairs$tmb_index)
+  pairs <- pairs[pair_is_fitted, , drop = FALSE]
+  if (nrow(pairs) == 0L) {
+    return(list())
+  }
+
+  lapply(seq_len(nrow(pairs)), function(i) {
+    pair <- pairs[i, , drop = FALSE]
     dpar <- covariance_block_corpars_key(pair$tmb_parameter[[1L]])
     values <- object$corpars[[dpar]]
     index <- pair$tmb_index[[1L]]
