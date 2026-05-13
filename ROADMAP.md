@@ -114,6 +114,8 @@ distributional regression models using TMB.
   covariance blocks. The group-level SDs are reported in `sdpars$mu` or
   `sdpars$sigma`, the group-level correlations are reported in `corpars$mu` or
   `corpars$sigma` and `corpairs()`, and residual `rho12` remains separate.
+  Targeted simulation coverage now fits both bivariate group-level covariance
+  blocks in the same model with predictor-dependent residual `rho12 ~ x`.
 - Bivariate random slopes, random effects in `rho12`, bivariate
   `meta_known_V()` plus random effects, cross-parameter bivariate covariance,
   and structured bivariate covariance remain future work and are rejected
