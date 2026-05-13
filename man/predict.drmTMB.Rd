@@ -35,8 +35,9 @@ predictor instead.
 
 When \code{newdata = NULL}, predictions are for the fitted rows and include
 currently implemented conditional random-effect contributions for \code{mu},
-bivariate \code{mu1}/\code{mu2}, phylogenetic \code{mu}, and residual-scale \code{sigma}. When
-\code{newdata} is supplied, predictions are fixed-effect, population-level
+bivariate \code{mu1}/\code{mu2}, phylogenetic \code{mu}, and residual-scale \code{sigma}
+including bivariate \code{sigma1}/\code{sigma2} blocks. When \code{newdata} is supplied,
+predictions are fixed-effect, population-level
 predictions for the supplied rows.
 }
 \examples{

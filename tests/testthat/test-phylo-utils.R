@@ -87,6 +87,7 @@ phylo_prior_tmb_parameters <- function(effect, log_sd) {
     log_sd_mu = 0,
     eta_cor_mu = 0,
     eta_cor_mu_sigma = 0,
+    eta_cor_sigma = 0,
     u_sigma = 0,
     log_sd_sigma = 0,
     u_phylo = unname(effect),

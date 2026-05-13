@@ -132,7 +132,7 @@ These surfaces are roadmap items, not syntax to rely on in analyses yet:
 |---|---|
 | correlated residual-scale slope blocks in `sigma` | needs covariance recovery for scale intercept-slope blocks before public use |
 | cross-formula labelled covariance blocks linking `mu` and `sigma` | estimates group-level mean-scale correlations, not residual `rho12` |
-| bivariate random slopes and bivariate residual-scale random effects | expands group-level covariance blocks beyond the first random-intercept slice |
+| bivariate random slopes and cross-parameter covariance blocks | expands group-level covariance blocks beyond the first same-parameter random-intercept slices |
 | phylogenetic slopes, phylogenetic `sigma`, and bivariate phylogenetic effects | adds structured covariance layers that must stay separate from residual `rho12` |
 | spatial random effects | planned parallel to `phylo()`, but the spatial likelihood is not implemented |
 | higher-dimensional multivariate models | belong in `gllvmTMB`, not `drmTMB` |

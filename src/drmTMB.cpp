@@ -111,6 +111,7 @@ Type objective_function<Type>::operator()()
   PARAMETER_VECTOR(log_sd_mu);
   PARAMETER_VECTOR(eta_cor_mu);
   PARAMETER_VECTOR(eta_cor_mu_sigma);
+  PARAMETER_VECTOR(eta_cor_sigma);
   PARAMETER_VECTOR(u_sigma);
   PARAMETER_VECTOR(log_sd_sigma);
   PARAMETER_VECTOR(u_phylo);
@@ -632,8 +633,6 @@ Type objective_function<Type>::operator()()
     vector<Type> mu2 = X_mu2 * beta_mu2;
     vector<Type> log_sigma1 = X_sigma1 * beta_sigma1;
     vector<Type> log_sigma2 = X_sigma2 * beta_sigma2;
-    vector<Type> sigma1 = exp(log_sigma1);
-    vector<Type> sigma2 = exp(log_sigma2);
     vector<Type> eta_rho12 = X_rho12 * beta_rho12;
     vector<Type> rho12 = Type(0.99999999) * tanh(eta_rho12);
 
@@ -679,6 +678,37 @@ Type objective_function<Type>::operator()()
         nll -= dnorm(u_mu(j), Type(0.0), Type(1.0), true);
       }
     }
+
+    if (n_sigma_re_terms > 0) {
+      vector<Type> sd_sigma_re = exp(log_sd_sigma);
+      vector<Type> rho_sigma_re(n_mu_sigma_re_cors);
+      for (int j = 0; j < n_mu_sigma_re_cors; ++j) {
+        rho_sigma_re(j) = Type(0.999999) * tanh(eta_cor_sigma(j));
+      }
+      for (int i = 0; i < y1.size(); ++i) {
+        for (int j = 0; j < n_sigma_re_terms; ++j) {
+          int idx = sigma_re_index(i, j);
+          Type u_cond = u_sigma(idx);
+          int cor_id = sigma_re_cross_cor(idx);
+          if (cor_id >= 0) {
+            Type rho = rho_sigma_re(cor_id);
+            int pair_idx = sigma_re_cross_mu(idx);
+            u_cond = rho * u_sigma(pair_idx) + sqrt(Type(1.0) - rho * rho) * u_sigma(idx);
+          }
+          if (j == 0) {
+            log_sigma1(i) += sigma_re_value(i, j) * sd_sigma_re(sigma_re_term(idx)) * u_cond;
+          } else if (j == 1) {
+            log_sigma2(i) += sigma_re_value(i, j) * sd_sigma_re(sigma_re_term(idx)) * u_cond;
+          }
+        }
+      }
+      for (int j = 0; j < u_sigma.size(); ++j) {
+        nll -= dnorm(u_sigma(j), Type(0.0), Type(1.0), true);
+      }
+    }
+
+    vector<Type> sigma1 = exp(log_sigma1);
+    vector<Type> sigma2 = exp(log_sigma2);
 
     if (V_known_type == 2) {
       int n = y1.size();
@@ -768,6 +798,24 @@ Type objective_function<Type>::operator()()
         REPORT(rho_mu_re);
         ADREPORT(eta_cor_mu);
         ADREPORT(rho_mu_re);
+      }
+    }
+    if (n_sigma_re_terms > 0) {
+      vector<Type> sd_sigma_re = exp(log_sd_sigma);
+      REPORT(u_sigma);
+      REPORT(log_sd_sigma);
+      REPORT(sd_sigma_re);
+      ADREPORT(log_sd_sigma);
+      ADREPORT(sd_sigma_re);
+      if (n_mu_sigma_re_cors > 0) {
+        vector<Type> rho_sigma_re(n_mu_sigma_re_cors);
+        for (int j = 0; j < n_mu_sigma_re_cors; ++j) {
+          rho_sigma_re(j) = Type(0.999999) * tanh(eta_cor_sigma(j));
+        }
+        REPORT(eta_cor_sigma);
+        REPORT(rho_sigma_re);
+        ADREPORT(eta_cor_sigma);
+        ADREPORT(rho_sigma_re);
       }
     }
   }

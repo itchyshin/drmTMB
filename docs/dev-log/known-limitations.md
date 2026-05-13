@@ -102,8 +102,9 @@
   univariate `mu`/`sigma` random-intercept covariance block, intercept-only
   phylogenetic location effects, plus one or more unlabelled Gaussian `mu`
   random-intercept scale formulae through `sd(group) ~ x_group`, matched
-  labelled bivariate Gaussian `mu1`/`mu2` random-intercept covariance blocks,
-  and fixed-effect univariate Student-t models with `mu`, `sigma`, and `nu`.
+  labelled bivariate Gaussian `mu1`/`mu2` and `sigma1`/`sigma2`
+  random-intercept covariance blocks, and fixed-effect univariate Student-t
+  models with `mu`, `sigma`, and `nu`.
   It also supports fixed-effect univariate lognormal models with `mu` and
   `sigma` on the log-response scale, fixed-effect univariate Gamma mean-CV
   models with positive response mean `mu` and coefficient of variation
@@ -114,8 +115,10 @@
   fixed-effect univariate cumulative-logit ordinal path, and a fixed-effect
   univariate beta-binomial path.
 - Cross-formula labelled covariance sharing beyond the first univariate
-  intercept-only `mu`/`sigma` block, correlated residual-scale random-slope
-  blocks, slope-specific random-effect scale targets, labelled-block random-effect
+  intercept-only `mu`/`sigma` block and the first same-parameter bivariate
+  intercept blocks, correlated residual-scale random-slope blocks, labelled
+  `mu`/`sigma` random-slope covariance, slope-specific random-effect scale
+  targets, labelled-block random-effect
   scale targets, bivariate random-effect scale targets, Student-t random
   effects, Student-t known-covariance models, Student-t phylogenetic models,
   bivariate Student-t models, lognormal random-effect and structured-effect

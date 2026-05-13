@@ -54,9 +54,11 @@ group replication and whether either component is tiny relative to its
 interpretation scale. If a bivariate Gaussian fit includes a matched
 labelled \code{mu1}/\code{mu2} random-intercept covariance block, \code{check_drm()} reports
 group replication and whether either group-level SD is tiny relative to the
-matching residual scale. If the fit was stored with
-\code{drm_control(keep_tmb_object = FALSE)}, the fixed-gradient check is reported
-as a note because the TMB automatic-differentiation object is not available.
+matching residual scale. For a matched labelled \code{sigma1}/\code{sigma2} block, it
+reports group replication and whether either log-\code{sigma} random-effect SD is
+tiny. If the fit was stored with \code{drm_control(keep_tmb_object = FALSE)}, the
+fixed-gradient check is reported as a note because the TMB
+automatic-differentiation object is not available.
 
 Use \code{check_drm()} before interpreting coefficients, fitted values, or
 response-scale quantities. A \code{note} records something to inspect, such as

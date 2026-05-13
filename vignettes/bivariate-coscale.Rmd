@@ -420,11 +420,11 @@ were also more bold than expected under higher disturbance.
 
 This fitted model has no group-level personality or plasticity correlations, no
 phylogenetic correlation, and no spatial field correlation. The first
-bivariate group-level covariance slice is implemented for matching labelled
-random intercepts, such as `(1 | p | ID)` in both `mu1` and `mu2`. If you need
-random slopes, residual-scale random effects, phylogenetic covariance, or
-spatial covariance, fit the fixed-effect bivariate model shown here or use the
-implemented univariate Gaussian random-effect models until those covariance
+bivariate group-level covariance slices are implemented for matching labelled
+random intercepts, such as `(1 | p | ID)` in both `mu1` and `mu2`, or in both
+`sigma1` and `sigma2`. If you need random slopes, cross-parameter covariance,
+phylogenetic covariance, or spatial covariance, fit the nearest implemented
+bivariate or univariate Gaussian random-effect model until those covariance
 blocks are added.
 
 For ecological and evolutionary examples, residual `rho12` can represent
