@@ -39,6 +39,37 @@ Checks:
   passed with 1032 expectations, 0 failures, 0 warnings, and 0 skips.
 - `git diff --check`: passed.
 
+## 2026-05-13 -- Slice 4 dormant TMB block contract
+
+Scope:
+
+- added a dormant `random$covariance_blocks$tmb_data` contract derived from the
+  R-side block registry;
+- encoded block sizes, group counts, member starts, pair starts, component
+  codes, distributional-parameter codes, response indexes, source term and
+  coefficient positions, latent indexes, design values, pair member indexes,
+  pair parameter codes, and pair parameter indexes;
+- kept the dormant contract explicitly two-member-only after Gauss-copy found
+  that advertising `choose(q, 2)` pairs without generating all pair rows would
+  be incoherent for future `q > 2` blocks;
+- kept the contract out of `spec$tmb_data`, `start`, `map`, `random_names`,
+  and C++ likelihood code for this pass.
+
+Checks:
+
+- `air format R/drmTMB.R tests/testthat/test-biv-gaussian.R
+  tests/testthat/test-gaussian-random-intercepts.R`: passed.
+- `Rscript -e 'devtools::test(filter =
+  "gaussian-random-intercepts|biv-gaussian")'`: passed with 768 expectations,
+  0 failures, 0 warnings, and 0 skips.
+- `Rscript -e 'devtools::test(filter =
+  "gaussian-random-intercepts|biv-gaussian|corpairs|profile-targets|check-drm")'`:
+  passed with 1128 expectations, 0 failures, 0 warnings, and 0 skips.
+- Gauss-copy reviewed the dormant contract and blocked a premature `q > 2`
+  claim; fixed by adding two-member-only internal checks plus invariant tests
+  that pair arrays match advertised block pair counts.
+- `git diff --check`: passed.
+
 ## 2026-05-13 -- Slice 4 labelled covariance block design start
 
 Scope:

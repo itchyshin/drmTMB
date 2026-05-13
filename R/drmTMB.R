@@ -3385,7 +3385,8 @@ empty_labelled_covariance_block_registry <- function() {
       tmb_parameter = character(),
       tmb_index = integer(),
       stringsAsFactors = FALSE
-    )
+    ),
+    tmb_data = empty_labelled_covariance_block_tmb_data()
   )
 }
 
@@ -3412,6 +3413,7 @@ build_labelled_covariance_block_registry <- function(
     re_mu_sigma
   )
   registry$n_blocks <- nrow(registry$blocks)
+  registry$tmb_data <- labelled_covariance_block_tmb_data(registry)
   registry
 }
 
@@ -3527,7 +3529,7 @@ append_covariance_registry_block <- function(
       n_members = nrow(member_rows),
       n_groups = n_groups[[1L]],
       group_levels = I(list(group_levels)),
-      n_pairs = choose(nrow(member_rows), 2L),
+      n_pairs = as.integer(choose(nrow(member_rows), 2L)),
       implemented = TRUE,
       stringsAsFactors = FALSE
     )
@@ -3596,6 +3598,92 @@ covariance_registry_member_row <- function(term, re, component) {
 
 covariance_registry_component <- function(re) {
   sub("[0-9]+$", "", re$dpars[[1L]])
+}
+
+empty_labelled_covariance_block_tmb_data <- function() {
+  list(
+    n_re_cov_blocks = 0L,
+    re_cov_block_size = 0L,
+    re_cov_block_group_count = 0L,
+    re_cov_block_member_start = 0L,
+    re_cov_block_pair_start = 0L,
+    re_cov_member_component = 0L,
+    re_cov_member_dpar = 0L,
+    re_cov_member_response = -1L,
+    re_cov_member_source_term = 0L,
+    re_cov_member_coef_pos = 0L,
+    re_cov_member_latent_index = matrix(0L, nrow = 1L, ncol = 1L),
+    re_cov_member_design_value = matrix(0, nrow = 1L, ncol = 1L),
+    re_cov_pair_from_member = 0L,
+    re_cov_pair_to_member = 0L,
+    re_cov_pair_parameter = 0L,
+    re_cov_pair_parameter_index = 0L
+  )
+}
+
+labelled_covariance_block_tmb_data <- function(registry) {
+  if (registry$n_blocks == 0L) {
+    return(empty_labelled_covariance_block_tmb_data())
+  }
+
+  blocks <- registry$blocks
+  members <- registry$members
+  pairs <- registry$pairs
+  if (any(blocks$n_members != 2L)) {
+    cli::cli_abort(c(
+      "Internal error: dormant covariance-block TMB data only supports two-member blocks.",
+      "x" = "Found block size{?s}: {.val {unique(blocks$n_members)}}.",
+      "i" = "Generate all pair rows before enabling q > 2 covariance blocks."
+    ))
+  }
+  member_counts <- as.integer(blocks$n_members)
+  pair_counts <- as.integer(blocks$n_pairs)
+  if (nrow(pairs) != sum(pair_counts)) {
+    cli::cli_abort(c(
+      "Internal error: covariance-block pair table is incomplete.",
+      "x" = "Block metadata advertises {sum(pair_counts)} pair{?s}, but the pair table has {nrow(pairs)} row{?s}."
+    ))
+  }
+  member_start <- as.integer(c(
+    0L,
+    cumsum(member_counts)[-length(member_counts)]
+  ))
+  pair_start <- as.integer(c(0L, cumsum(pair_counts)[-length(pair_counts)]))
+  member_response <- members$response_index
+  member_response[is.na(member_response)] <- 0L
+
+  list(
+    n_re_cov_blocks = registry$n_blocks,
+    re_cov_block_size = member_counts,
+    re_cov_block_group_count = blocks$n_groups,
+    re_cov_block_member_start = member_start,
+    re_cov_block_pair_start = pair_start,
+    re_cov_member_component = covariance_component_code(members$component),
+    re_cov_member_dpar = covariance_dpar_code(members$dpar),
+    re_cov_member_response = member_response - 1L,
+    re_cov_member_source_term = members$source_term_id0,
+    re_cov_member_coef_pos = members$coef_pos0,
+    re_cov_member_latent_index = do.call(cbind, members$latent_index0),
+    re_cov_member_design_value = do.call(cbind, members$design_value),
+    re_cov_pair_from_member = pairs$from_member_id0,
+    re_cov_pair_to_member = pairs$to_member_id0,
+    re_cov_pair_parameter = covariance_parameter_code(pairs$tmb_parameter),
+    re_cov_pair_parameter_index = pairs$tmb_index - 1L
+  )
+}
+
+covariance_component_code <- function(component) {
+  unname(match(component, c("mu", "sigma")) - 1L)
+}
+
+covariance_dpar_code <- function(dpar) {
+  unname(match(dpar, c("mu", "sigma", "mu1", "mu2", "sigma1", "sigma2")) - 1L)
+}
+
+covariance_parameter_code <- function(parameter) {
+  unname(
+    match(parameter, c("eta_cor_mu", "eta_cor_mu_sigma", "eta_cor_sigma")) - 1L
+  )
 }
 
 covariance_member_response_index <- function(dpar) {

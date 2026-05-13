@@ -105,18 +105,27 @@ n_re_cov_blocks
 re_cov_block_size[B]
 re_cov_block_group_count[B]
 re_cov_block_member_start[B]
-re_cov_block_theta_start[B]
+re_cov_block_pair_start[B]
+re_cov_member_component[M]
 re_cov_member_dpar[M]
 re_cov_member_response[M]
-re_cov_member_coef[M]
-re_cov_member_term[M]
-re_cov_member_group_index[M, n]
-re_cov_member_design_value[M, n]
+re_cov_member_source_term[M]
+re_cov_member_coef_pos[M]
+re_cov_member_latent_index[n, M]
+re_cov_member_design_value[n, M]
+re_cov_pair_from_member[P]
+re_cov_pair_to_member[P]
+re_cov_pair_parameter[P]
+re_cov_pair_parameter_index[P]
 ```
 
-Names can change during implementation, but the invariant should not: the
-likelihood sees one block, its members, its standard deviations, its
-correlation parameters, and its standardized random effects.
+The dormant 4C contract is intentionally limited to currently implemented
+two-member blocks. Before a `q > 2` block is enabled, the contract must generate
+all `q * (q - 1) / 2` pair rows or replace the pair table with a Cholesky
+parameter-index layout that gives C++ the same complete information. Names can
+change during implementation, but the invariant should not: the likelihood sees
+one block, its members, its standard deviations, its correlation parameters,
+and its standardized random effects.
 
 ## Pair Reporting
 
@@ -157,7 +166,9 @@ still be named `sigma`.
 2. Keep all current pairwise bridges green by translating the existing
    two-member cases through the registry. Done as metadata-only compatibility;
    the TMB likelihood still uses the existing pairwise fields.
-3. Add the TMB block data contract and a two-member compatibility path.
+3. Add the TMB block data contract and a two-member compatibility path. Done
+   as dormant two-member-only `random$covariance_blocks$tmb_data`; it is not
+   passed to `TMB::MakeADFun()` yet.
 4. Prototype `UNSTRUCTURED_CORR_t` plus scaled standard deviations for `q > 2`.
 5. Add one simulation recovery test for a three-member block before exposing a
    four-formula bivariate block.

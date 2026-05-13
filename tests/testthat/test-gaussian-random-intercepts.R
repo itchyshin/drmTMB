@@ -360,6 +360,58 @@ expect_gaussian_covariance_block_registry <- function(
   expect_equal(pairs$from_coef, coefs[[1L]])
   expect_equal(pairs$to_coef, coefs[[2L]])
   expect_equal(pairs$class, class)
+
+  tmb <- registry$tmb_data
+  block_pos <- block_row$block_id0[[1L]] + 1L
+  member_start <- tmb$re_cov_block_member_start[[block_pos]]
+  member_idx <- seq.int(member_start + 1L, length.out = length(dpars))
+  pair_start <- tmb$re_cov_block_pair_start[[block_pos]]
+  pair_idx <- pair_start + 1L
+
+  expect_equal(tmb$n_re_cov_blocks, registry$n_blocks)
+  expect_true(all(tmb$re_cov_block_size == 2L))
+  expect_equal(
+    length(tmb$re_cov_pair_from_member),
+    sum(tmb$re_cov_block_size * (tmb$re_cov_block_size - 1L) / 2L)
+  )
+  expect_equal(tmb$re_cov_block_size[[block_pos]], length(dpars))
+  expect_equal(tmb$re_cov_block_group_count[[block_pos]], block_row$n_groups)
+  expect_equal(
+    tmb$re_cov_member_component[member_idx],
+    match(dpars, c("mu", "sigma")) - 1L
+  )
+  expect_equal(
+    tmb$re_cov_member_dpar[member_idx],
+    match(dpars, c("mu", "sigma", "mu1", "mu2", "sigma1", "sigma2")) - 1L
+  )
+  expect_equal(tmb$re_cov_member_response[member_idx], rep(-1L, length(dpars)))
+  expect_equal(
+    tmb$re_cov_member_source_term[member_idx],
+    members$source_term_id0
+  )
+  expect_equal(tmb$re_cov_member_coef_pos[member_idx], members$coef_pos0)
+  expect_equal(
+    dim(tmb$re_cov_member_latent_index),
+    c(n_obs, nrow(registry$members))
+  )
+  expect_equal(
+    dim(tmb$re_cov_member_design_value),
+    c(n_obs, nrow(registry$members))
+  )
+  expect_equal(tmb$re_cov_pair_from_member[[pair_idx]], pairs$from_member_id0)
+  expect_equal(tmb$re_cov_pair_to_member[[pair_idx]], pairs$to_member_id0)
+  expect_equal(
+    tmb$re_cov_pair_parameter[[pair_idx]],
+    match(
+      pairs$tmb_parameter,
+      c("eta_cor_mu", "eta_cor_mu_sigma", "eta_cor_sigma")
+    ) -
+      1L
+  )
+  expect_equal(
+    tmb$re_cov_pair_parameter_index[[pair_idx]],
+    pairs$tmb_index - 1L
+  )
 }
 
 test_that("Gaussian location models support random intercepts in mu", {
