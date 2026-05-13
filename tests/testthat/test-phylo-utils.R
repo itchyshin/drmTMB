@@ -104,6 +104,16 @@ phylo_prior_tmb_parameters <- function(effect, log_sd) {
   )
 }
 
+dense_zero_mvn_nll <- function(values, covariance) {
+  chol_covariance <- chol(covariance)
+  standardized <- backsolve(chol_covariance, values, transpose = TRUE)
+  0.5 *
+    (length(values) *
+      log(2 * pi) +
+      2 * sum(log(diag(chol_covariance))) +
+      sum(standardized^2))
+}
+
 test_that("validate_phylo_tree checks ultrametric trees and observed species", {
   tree <- tiny_ultrametric_tree()
 
@@ -327,6 +337,109 @@ test_that("drm_phylo_precision_nll matches the augmented Gaussian density", {
   expect_error(
     drmTMB:::drm_phylo_precision_nll(effect, precision, log_sd = NA_real_),
     "finite numeric scalar"
+  )
+})
+
+test_that("correlated phylogenetic precision algebra handles q=4 states", {
+  tree <- tiny_ultrametric_tree()
+  precision <- drmTMB:::drm_phylo_augmented_precision(tree)
+  effect <- matrix(
+    c(
+      0.20,
+      -0.10,
+      0.35,
+      0.05,
+      -0.15,
+      0.12,
+      0.28,
+      -0.04,
+      0.05,
+      0.18,
+      -0.08,
+      0.09,
+      0.11,
+      -0.07,
+      0.16,
+      -0.02
+    ),
+    nrow = nrow(precision$precision),
+    dimnames = list(
+      rownames(precision$precision),
+      c("mu1", "mu2", "sigma1", "sigma2")
+    )
+  )
+  sd_state <- c(0.65, 0.45, 0.30, 0.25)
+  correlation <- matrix(
+    c(
+      1.00,
+      0.20,
+      -0.10,
+      0.12,
+      0.20,
+      1.00,
+      0.15,
+      -0.08,
+      -0.10,
+      0.15,
+      1.00,
+      0.22,
+      0.12,
+      -0.08,
+      0.22,
+      1.00
+    ),
+    nrow = 4L
+  )
+  covariance <- diag(sd_state) %*% correlation %*% diag(sd_state)
+  dense_covariance <- kronecker(
+    covariance,
+    solve(as.matrix(precision$precision))
+  )
+
+  expect_equal(
+    drmTMB:::drm_phylo_correlated_precision_nll(
+      effect,
+      precision,
+      covariance
+    ),
+    dense_zero_mvn_nll(as.numeric(effect), dense_covariance),
+    tolerance = 1e-10
+  )
+
+  independent_covariance <- diag(sd_state[1:2]^2)
+  expect_equal(
+    drmTMB:::drm_phylo_correlated_precision_nll(
+      effect[, 1:2],
+      precision,
+      independent_covariance
+    ),
+    drmTMB:::drm_phylo_precision_nll(
+      effect[, 1],
+      precision,
+      log_sd = log(sd_state[[1L]])
+    ) +
+      drmTMB:::drm_phylo_precision_nll(
+        effect[, 2],
+        precision,
+        log_sd = log(sd_state[[2L]])
+      ),
+    tolerance = 1e-10
+  )
+  expect_error(
+    drmTMB:::drm_phylo_correlated_precision_nll(
+      effect[, 1:2],
+      precision,
+      covariance
+    ),
+    "matching"
+  )
+  expect_error(
+    drmTMB:::drm_phylo_correlated_precision_nll(
+      effect,
+      precision,
+      diag(c(1, -1, 1, 1))
+    ),
+    "positive definite"
   )
 })
 

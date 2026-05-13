@@ -1,5 +1,8 @@
-validate_phylo_tree <- function(tree, species = NULL,
-                                tolerance = sqrt(.Machine$double.eps)) {
+validate_phylo_tree <- function(
+  tree,
+  species = NULL,
+  tolerance = sqrt(.Machine$double.eps)
+) {
   if (!inherits(tree, "phylo")) {
     cli::cli_abort(c(
       "{.arg tree} must be a phylogeny object.",
@@ -15,9 +18,15 @@ validate_phylo_tree <- function(tree, species = NULL,
   tip_label <- tree$tip.label
   n_node <- tree$Nnode
 
-  if (!is.character(tip_label) || length(tip_label) < 2L ||
-      anyNA(tip_label) || any(!nzchar(tip_label))) {
-    cli::cli_abort("{.arg tree} must contain at least two non-missing tip labels.")
+  if (
+    !is.character(tip_label) ||
+      length(tip_label) < 2L ||
+      anyNA(tip_label) ||
+      any(!nzchar(tip_label))
+  ) {
+    cli::cli_abort(
+      "{.arg tree} must contain at least two non-missing tip labels."
+    )
   }
   if (anyDuplicated(tip_label)) {
     duplicate <- tip_label[duplicated(tip_label)][[1L]]
@@ -28,15 +37,27 @@ validate_phylo_tree <- function(tree, species = NULL,
   }
   n_tip <- length(tip_label)
 
-  if (!is.numeric(n_node) || length(n_node) != 1L ||
-      is.na(n_node) || n_node < 1L || n_node != as.integer(n_node)) {
-    cli::cli_abort("{.arg tree} must contain a scalar positive integer {.field Nnode}.")
+  if (
+    !is.numeric(n_node) ||
+      length(n_node) != 1L ||
+      is.na(n_node) ||
+      n_node < 1L ||
+      n_node != as.integer(n_node)
+  ) {
+    cli::cli_abort(
+      "{.arg tree} must contain a scalar positive integer {.field Nnode}."
+    )
   }
   n_node <- as.integer(n_node)
   n_total <- n_tip + n_node
 
-  if (!is.matrix(edge) || ncol(edge) != 2L || nrow(edge) < 2L ||
-      !is.numeric(edge) || anyNA(edge)) {
+  if (
+    !is.matrix(edge) ||
+      ncol(edge) != 2L ||
+      nrow(edge) < 2L ||
+      !is.numeric(edge) ||
+      anyNA(edge)
+  ) {
     cli::cli_abort("{.arg tree$edge} must be a two-column numeric matrix.")
   }
   if (any(edge != as.integer(edge)) || any(edge < 1L) || any(edge > n_total)) {
@@ -44,9 +65,15 @@ validate_phylo_tree <- function(tree, species = NULL,
   }
   edge <- matrix(as.integer(edge), ncol = 2L)
 
-  if (!is.numeric(edge_length) || length(edge_length) != nrow(edge) ||
-      anyNA(edge_length) || any(!is.finite(edge_length))) {
-    cli::cli_abort("{.arg tree} must contain finite branch lengths for every edge.")
+  if (
+    !is.numeric(edge_length) ||
+      length(edge_length) != nrow(edge) ||
+      anyNA(edge_length) ||
+      any(!is.finite(edge_length))
+  ) {
+    cli::cli_abort(
+      "{.arg tree} must contain finite branch lengths for every edge."
+    )
   }
   if (any(edge_length < 0)) {
     cli::cli_abort("{.arg tree} branch lengths must be non-negative.")
@@ -58,7 +85,9 @@ validate_phylo_tree <- function(tree, species = NULL,
     cli::cli_abort("{.arg tree} is invalid: tip nodes cannot be parent nodes.")
   }
   if (anyDuplicated(child)) {
-    cli::cli_abort("{.arg tree} is invalid: at least one node has more than one parent.")
+    cli::cli_abort(
+      "{.arg tree} is invalid: at least one node has more than one parent."
+    )
   }
 
   root <- setdiff(unique(parent), child)
@@ -161,9 +190,12 @@ phylo_node_depths <- function(edge, edge_length, n_total, root) {
   depths
 }
 
-drm_phylo_tip_covariance <- function(tree, species = NULL,
-                                     correlation = TRUE,
-                                     tolerance = sqrt(.Machine$double.eps)) {
+drm_phylo_tip_covariance <- function(
+  tree,
+  species = NULL,
+  correlation = TRUE,
+  tolerance = sqrt(.Machine$double.eps)
+) {
   info <- validate_phylo_tree(tree, species = species, tolerance = tolerance)
   edge <- matrix(as.integer(tree$edge), ncol = 2L)
   parent <- integer(info$n_tip + info$n_node)
@@ -195,11 +227,15 @@ drm_phylo_tip_covariance <- function(tree, species = NULL,
   covariance
 }
 
-drm_phylo_augmented_precision <- function(tree, species = NULL,
-                                          correlation = TRUE,
-                                          tolerance = sqrt(.Machine$double.eps)) {
-  if (!is.logical(correlation) || length(correlation) != 1L ||
-      is.na(correlation)) {
+drm_phylo_augmented_precision <- function(
+  tree,
+  species = NULL,
+  correlation = TRUE,
+  tolerance = sqrt(.Machine$double.eps)
+) {
+  if (
+    !is.logical(correlation) || length(correlation) != 1L || is.na(correlation)
+  ) {
     cli::cli_abort("{.arg correlation} must be {.code TRUE} or {.code FALSE}.")
   }
   info <- validate_phylo_tree(tree, species = species, tolerance = tolerance)
@@ -285,28 +321,93 @@ drm_phylo_augmented_precision <- function(tree, species = NULL,
 
 drm_phylo_precision_nll <- function(effect, precision, log_sd = 0) {
   if (!inherits(precision, "drm_phylo_precision")) {
-    cli::cli_abort("{.arg precision} must come from {.fn drm_phylo_augmented_precision}.")
+    cli::cli_abort(
+      "{.arg precision} must come from {.fn drm_phylo_augmented_precision}."
+    )
   }
   effect <- as.numeric(effect)
   n_effect <- length(effect)
-  if (n_effect != nrow(precision$precision) || anyNA(effect) ||
-      any(!is.finite(effect))) {
+  if (
+    n_effect != nrow(precision$precision) ||
+      anyNA(effect) ||
+      any(!is.finite(effect))
+  ) {
     cli::cli_abort(
       "{.arg effect} must be a finite numeric vector matching the precision size."
     )
   }
-  if (!is.numeric(log_sd) || length(log_sd) != 1L ||
-      is.na(log_sd) || !is.finite(log_sd)) {
+  if (
+    !is.numeric(log_sd) ||
+      length(log_sd) != 1L ||
+      is.na(log_sd) ||
+      !is.finite(log_sd)
+  ) {
     cli::cli_abort("{.arg log_sd} must be a finite numeric scalar.")
   }
 
   quadratic <- sum(effect * as.numeric(precision$precision %*% effect))
-  0.5 * (
-    n_effect * log(2 * pi) +
+  0.5 *
+    (n_effect *
+      log(2 * pi) +
       2 * n_effect * log_sd -
       precision$log_det_precision +
-      exp(-2 * log_sd) * quadratic
+      exp(-2 * log_sd) * quadratic)
+}
+
+drm_phylo_correlated_precision_nll <- function(effect, precision, covariance) {
+  if (!inherits(precision, "drm_phylo_precision")) {
+    cli::cli_abort(
+      "{.arg precision} must come from {.fn drm_phylo_augmented_precision}."
+    )
+  }
+  if (
+    !is.matrix(effect) ||
+      !is.numeric(effect) ||
+      nrow(effect) != nrow(precision$precision) ||
+      anyNA(effect) ||
+      any(!is.finite(effect))
+  ) {
+    cli::cli_abort(
+      "{.arg effect} must be a finite numeric matrix with one row per phylogenetic precision node."
+    )
+  }
+  if (
+    !is.matrix(covariance) ||
+      !is.numeric(covariance) ||
+      nrow(covariance) != ncol(covariance) ||
+      nrow(covariance) != ncol(effect) ||
+      anyNA(covariance) ||
+      any(!is.finite(covariance))
+  ) {
+    cli::cli_abort(
+      "{.arg covariance} must be a finite square numeric matrix matching the effect columns."
+    )
+  }
+  covariance_chol <- tryCatch(
+    chol(covariance),
+    error = function(e) NULL
   )
+  if (is.null(covariance_chol)) {
+    cli::cli_abort("{.arg covariance} must be positive definite.")
+  }
+
+  n_node <- nrow(effect)
+  q <- ncol(effect)
+  covariance_inverse <- chol2inv(covariance_chol)
+  quadratic_matrix <- crossprod(
+    effect,
+    as.matrix(precision$precision %*% effect)
+  )
+  quadratic <- sum(covariance_inverse * quadratic_matrix)
+  log_det_covariance <- 2 * sum(log(diag(covariance_chol)))
+
+  0.5 *
+    (n_node *
+      q *
+      log(2 * pi) +
+      n_node * log_det_covariance -
+      q * precision$log_det_precision +
+      quadratic)
 }
 
 phylo_augmented_node_labels <- function(node_id, tip_label) {

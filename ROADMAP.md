@@ -213,6 +213,10 @@ distributional regression models using TMB.
   correlations separately: residual `rho12`, phylogenetic correlations,
   non-phylogenetic species correlations, spatial field correlations, and
   ordinary grouped random-effect correlations should not share one namespace.
+- The first internal q=4 phylogenetic state scaffold checks the R-side
+  matrix-normal prior algebra for `mu1`, `mu2`, `sigma1`, and `sigma2` effects
+  against a dense Kronecker covariance comparator. This is algebra evidence
+  only; bivariate `phylo()` syntax remains planned.
 - Use the correlation-pair design in
   `docs/design/20-coscale-correlation-pairs.md` before implementing bivariate
   double-hierarchical covariance blocks; pair outputs should identify the

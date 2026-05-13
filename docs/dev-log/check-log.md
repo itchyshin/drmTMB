@@ -2,6 +2,31 @@
 
 Record meaningful development checks here.
 
+## 2026-05-13 -- Slice 11 phylogenetic q4 prior algebra scaffold
+
+Scope:
+
+- added an internal matrix-normal phylogenetic prior helper for correlated
+  state vectors over the existing augmented tree precision;
+- checked a q=4 state named `mu1`, `mu2`, `sigma1`, and `sigma2` against a
+  dense Kronecker covariance comparator;
+- checked that a diagonal two-state covariance matches the existing
+  independent phylogenetic precision helper;
+- kept this as algebra evidence only, with no public bivariate `phylo()`
+  syntax or TMB likelihood wiring.
+
+Checks:
+
+- `air format R/phylo-utils.R tests/testthat/test-phylo-utils.R ROADMAP.md
+  docs/design/09-phylogenetic-and-spatial-speed.md
+  docs/design/15-location-coscale-phylogenetic-extension.md
+  docs/dev-log/check-log.md
+  docs/dev-log/after-task/2026-05-13-slice-11-phylogenetic-q4-prior-algebra-scaffold.md`:
+  passed.
+- `Rscript -e 'devtools::test(filter = "phylo-utils")'`: passed with 49
+  expectations, 0 failures, 0 warnings, and 0 skips.
+- `git diff --check`: passed.
+
 ## 2026-05-13 -- Slice 10 combined group and residual correlation summary guard
 
 Scope:

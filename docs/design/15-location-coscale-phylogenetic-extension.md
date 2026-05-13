@@ -112,6 +112,11 @@ residual row of this table. The long-term location-coscale programme should
 also estimate structured phylogenetic, non-phylogenetic, and spatial
 correlations when the data and simulations support them.
 
+The first internal phylogenetic covariance scaffold covers the q=4 prior
+algebra for `a_mu1`, `a_mu2`, `a_sigma1`, and `a_sigma2` on the augmented tree
+nodes. It checks the sparse precision form against a dense Kronecker covariance
+calculation but does not change user-facing model syntax.
+
 Extractor names should therefore be level-specific, for example
 `corpars$phylo`, `corpars$species`, `corpars$spatial`, or labelled
 group-level covariance blocks. Do not use bare `rho12` for these quantities.
