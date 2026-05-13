@@ -108,7 +108,9 @@ pairwise `tanh()` correlations.
 The current registry-shaped probe keeps `u_re_cov_probe` mapped off for all
 ordinary models. Hidden tests explicitly unmap it for `model_type == 97`, which
 proves that a TMB parameter can feed the q=3 block transform without changing
-user-facing fits.
+user-facing fits. A follow-up hidden test also passes `u_re_cov_probe` through
+TMB's `random` argument, proving the internal Laplace random-effect boundary
+before any ordinary likelihood branch uses it.
 
 The flattened data contract should be block-oriented rather than pair-oriented:
 
@@ -205,8 +207,9 @@ still be named `sigma`.
    objective/gradient under `VECSCALE_t`, and the non-centered
    `sqrt_cov_scale()` latent transform. Also done for a hidden
    registry-shaped member/group contribution probe using a dormant TMB
-   parameter; the production likelihood still needs real q=3 random-effect
-   parameters and likelihood wiring.
+   parameter. A hidden random-effect boundary test now registers that parameter
+   through TMB's `random` argument; the production likelihood still needs real
+   q=3 likelihood wiring.
 8. Only then enable bivariate random slopes or the full shared
    `mu1`/`mu2`/`sigma1`/`sigma2` label pattern.
 

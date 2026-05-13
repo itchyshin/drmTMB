@@ -2,6 +2,30 @@
 
 Record meaningful development checks here.
 
+## 2026-05-13 -- Slice 7A hidden q=3 random-effect boundary
+
+Scope:
+
+- added a hidden registry test that registers `u_re_cov_probe` through TMB's
+  `random` argument for `model_type == 97`;
+- checked that `u_re_cov_probe` drops out of the fixed optimizer parameter
+  vector, is identified as the random-effect block, optimizes to the zero mode
+  under the hidden standard-normal branch, and leaves finite marginalized
+  objective/gradient values;
+- updated the roadmap and q > 2 design notes to record the internal
+  random-effect boundary while keeping production likelihood wiring,
+  simulation recovery, `corpairs()` rows, and public syntax out of scope.
+
+Checks:
+
+- `air format tests/testthat/test-covariance-block-registry.R`: passed.
+- `Rscript -e 'devtools::test(filter = "covariance-block-registry")'`: passed
+  with 50 expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript -e 'devtools::test(filter =
+  "covariance-block-registry|biv-gaussian|gaussian-random-intercepts|phylo-utils|package-skeleton")'`:
+  passed with 948 expectations, 0 failures, 0 warnings, and 0 skips.
+- `git diff --check`: passed.
+
 ## 2026-05-13 -- Slice 6E mapped-off q=3 probe no-op guard
 
 Scope:

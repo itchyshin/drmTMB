@@ -153,12 +153,13 @@ distributional regression models using TMB.
   The registry can internally enumerate all pair rows for a guarded
   three-member block, but marks that scaffold unimplemented and still blocks
   TMB export for `q > 2`. Larger shared labels still need simulation recovery
-  and a positive-definite `q > 2` likelihood path before exposure. An internal
-  TMB algebra probes now confirm that `UNSTRUCTURED_CORR_t` plus `VECSCALE_t`
-  can produce a positive-definite q=3 correlation, finite objective/gradient,
-  a non-centered `sqrt_cov_scale()` transform, and a hidden registry-shaped
-  member/group contribution map using a dormant TMB parameter; these probes are
-  not connected to the fitted model likelihood yet.
+  and a positive-definite `q > 2` likelihood path before exposure. Internal TMB
+  probes now confirm that `UNSTRUCTURED_CORR_t` plus `VECSCALE_t` can produce a
+  positive-definite q=3 correlation, finite objective/gradient, a non-centered
+  `sqrt_cov_scale()` transform, a hidden registry-shaped member/group
+  contribution map using a dormant TMB parameter, and an internal Laplace
+  random-effect boundary for that probe parameter; these probes are not
+  connected to the fitted model likelihood yet.
 - Use `docs/design/18-random-effect-scale-models.md` as the design contract:
   the implemented MVP targets one or more distinct unlabelled univariate
   Gaussian `mu` random intercepts, with group-level predictors, simulation

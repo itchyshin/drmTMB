@@ -119,8 +119,9 @@ keep the same row meaning and mark derived intervals separately.
    positive-definite correlations plus a non-centered `sqrt_cov_scale()`
    transform. A hidden registry-shaped contribution probe now maps q=3
    group-level latent vectors from a dormant TMB parameter back through member
-   design columns; the production likelihood path and simulation recovery
-   remain next.
+   design columns, and the hidden probe can register that parameter as a TMB
+   random effect. The production likelihood path and simulation recovery remain
+   next.
 5. Add the univariate four-effect block:
    `bf(y ~ x + (1 + x | p | id), sigma ~ x + (1 + x | p | id))`.
 6. Extend `corpairs()` to report each fitted group-level pair from the shared

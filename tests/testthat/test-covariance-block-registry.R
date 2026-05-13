@@ -193,6 +193,50 @@ test_that("hidden q=3 registry probe maps non-centered blocks by group", {
   expect_true(all(is.finite(obj$gr(obj$par))))
 })
 
+test_that("hidden q=3 registry probe can use TMB random effects", {
+  dat <- data.frame(y = c(-0.3, 0.2, 0.8, -0.1, 0.4, 0.9))
+  fit <- drmTMB(bf(y ~ 1, sigma ~ 1), family = gaussian(), data = dat)
+  registry <- new_three_member_covariance_registry()
+  cov_tmb <- drmTMB:::labelled_covariance_block_tmb_data(
+    registry,
+    allow_unimplemented = TRUE
+  )
+  tmb_data <- fit$model$tmb_data
+  tmb_data[names(cov_tmb)] <- cov_tmb
+  z <- c(-0.7, 0.4, 1.1, 0.2, -1.0, 0.5)
+  tmb_data$model_type <- 97L
+  tmb_data$re_cov_probe_theta <- c(0.2, -0.4, 0.3)
+  tmb_data$re_cov_probe_sd <- c(1.2, 0.8, 1.5)
+  tmb_data$re_cov_probe_z <- numeric(0)
+  parameters <- fit$model$start
+  parameters$u_re_cov_probe <- z
+  map <- fit$model$map
+  map$u_re_cov_probe <- NULL
+
+  obj <- TMB::MakeADFun(
+    data = tmb_data,
+    parameters = parameters,
+    map = map,
+    random = c(fit$model$random_names, "u_re_cov_probe"),
+    DLL = "drmTMB",
+    silent = TRUE
+  )
+  nll <- as.numeric(obj$fn(obj$par))
+  grad <- obj$gr(obj$par)
+  random <- obj$env$random
+
+  expect_equal(names(obj$par), names(fit$opt$par))
+  expect_equal(names(obj$env$par)[random], rep("u_re_cov_probe", length(z)))
+  expect_equal(unname(obj$env$last.par.best[random]), rep(0, length(z)))
+  expect_equal(
+    obj$report()$re_cov_probe_contribution,
+    matrix(0, nrow = 4, ncol = 3),
+    tolerance = 1e-12
+  )
+  expect_equal(nll, 0, tolerance = 1e-8)
+  expect_equal(grad, rep(0, length(obj$par)), tolerance = 1e-8)
+})
+
 test_that("TMB q=3 covariance prototype produces positive-definite correlations", {
   dat <- data.frame(y = c(-0.3, 0.2, 0.8, -0.1, 0.4, 0.9))
   fit <- drmTMB(bf(y ~ 1, sigma ~ 1), family = gaussian(), data = dat)
