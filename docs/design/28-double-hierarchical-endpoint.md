@@ -100,6 +100,13 @@ profile intervals already work for the first fitted `mu`/`sigma`,
 `profile_targets()` namespace, but future `corpairs()` interval columns should
 keep the same row meaning and mark derived intervals separately.
 
+The first derived-summary scaffold is internal and point-estimate only. It
+matches fitted registry-backed group-level correlation rows with their fitted
+random-effect SDs, then reports the corresponding variances and covariance on
+the fitted random-effect scale. For `sigma`, `sigma1`, and `sigma2` random
+effects, that scale is `log(sigma)`, not residual variance. Interval support is
+the next layer and should remain separate from these point estimates.
+
 ## Implementation Order
 
 1. Keep the current fixed-effect bivariate `rho12` path and ordinary univariate

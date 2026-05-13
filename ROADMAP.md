@@ -456,6 +456,9 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   individual-difference location-scale models: repeatability, phylogenetic
   signal, total variance, and correlations among individual differences in
   average response, mean-model slopes, residual scale, and scale-model slopes.
+- Started the derived-summary path with an internal registry-backed table that
+  transforms fitted random-effect SDs and correlations into variance and
+  covariance point estimates on the fitted random-effect scale.
 - Use fix-and-refit profiles or carefully parameterized direct targets for
   nonlinear quantities; do not treat Wald intervals as the default for boundary
   variance components or correlations.

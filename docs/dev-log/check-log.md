@@ -2,6 +2,33 @@
 
 Record meaningful development checks here.
 
+## 2026-05-13 -- Slice 9A internal covariance-summary scaffold
+
+Scope:
+
+- added an internal registry-backed random-effect covariance summary table;
+- transformed fitted random-effect SDs and correlations into variance and
+  covariance point estimates on the fitted random-effect scale;
+- checked the hidden q=4 endpoint scaffold for all six covariance rows, the
+  fully dormant no-row path, and the mixed fitted/dormant path;
+- kept this as point-estimate infrastructure only: no public extractor, no
+  interval columns, no residual `rho12` covariance summaries, and no ordinary
+  fitted q4 support claim.
+
+Checks:
+
+- `Rscript -e 'devtools::test(filter = "covariance-block-registry")'`: passed
+  with 170 expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript -e 'devtools::test(filter =
+  "covariance-block-registry|corpairs")'`: passed with 218 expectations, 0
+  failures, 0 warnings, and 0 skips.
+- `air format R/methods.R tests/testthat/test-covariance-block-registry.R
+  ROADMAP.md docs/design/28-double-hierarchical-endpoint.md
+  docs/dev-log/check-log.md
+  docs/dev-log/after-task/2026-05-13-slice-9a-internal-covariance-summary-scaffold.md`:
+  passed.
+- `git diff --check`: passed.
+
 ## 2026-05-13 -- Slice 8F hidden q=4 profile-target scaffold
 
 Scope:

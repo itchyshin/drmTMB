@@ -387,6 +387,168 @@ random_effect_registry_corpairs <- function(object) {
   })
 }
 
+random_effect_covariance_summaries <- function(object) {
+  registry <- object$model$random$covariance_blocks
+  if (
+    !is.list(registry) ||
+      is.null(registry$pairs) ||
+      is.null(registry$members) ||
+      is.null(registry$blocks) ||
+      nrow(registry$pairs) == 0L
+  ) {
+    return(empty_random_effect_covariance_summaries())
+  }
+
+  pairs <- registry$pairs
+  pair_is_fitted <- !is.na(pairs$tmb_parameter) & !is.na(pairs$tmb_index)
+  pairs <- pairs[pair_is_fitted, , drop = FALSE]
+  if (nrow(pairs) == 0L) {
+    return(empty_random_effect_covariance_summaries())
+  }
+
+  rows <- lapply(seq_len(nrow(pairs)), function(i) {
+    pair <- pairs[i, , drop = FALSE]
+    block <- registry$blocks[
+      registry$blocks$block_id0 == pair$block_id0[[1L]],
+      ,
+      drop = FALSE
+    ]
+    from_member <- covariance_registry_member_by_id(
+      registry,
+      block_id0 = pair$block_id0[[1L]],
+      member_id0 = pair$from_member_id0[[1L]]
+    )
+    to_member <- covariance_registry_member_by_id(
+      registry,
+      block_id0 = pair$block_id0[[1L]],
+      member_id0 = pair$to_member_id0[[1L]]
+    )
+    if (
+      nrow(block) != 1L ||
+        nrow(from_member) != 1L ||
+        nrow(to_member) != 1L
+    ) {
+      cli::cli_abort(
+        "Internal error: covariance-block registry pair has incomplete summary metadata."
+      )
+    }
+
+    cor_key <- covariance_block_corpars_key(pair$tmb_parameter[[1L]])
+    cor_values <- object$corpars[[cor_key]]
+    cor_index <- pair$tmb_index[[1L]]
+    correlation <- if (
+      is.null(cor_values) || cor_index < 1L || cor_index > length(cor_values)
+    ) {
+      NA_real_
+    } else {
+      unname(cor_values[[cor_index]])
+    }
+    from_sd <- covariance_registry_member_sd(object, from_member)
+    to_sd <- covariance_registry_member_sd(object, to_member)
+    from_variance <- from_sd^2
+    to_variance <- to_sd^2
+    covariance <- correlation * from_sd * to_sd
+
+    data.frame(
+      level = block$level[[1L]],
+      group = block$group[[1L]],
+      block = block$block_label[[1L]],
+      from_dpar = pair$from_dpar[[1L]],
+      to_dpar = pair$to_dpar[[1L]],
+      from_coef = pair$from_coef[[1L]],
+      to_coef = pair$to_coef[[1L]],
+      from_response = random_effect_response_name(object, pair$from_dpar[[1L]]),
+      to_response = random_effect_response_name(object, pair$to_dpar[[1L]]),
+      class = pair$class[[1L]],
+      parameter = pair$parameter[[1L]],
+      correlation = correlation,
+      from_sd_parameter = from_member$label[[1L]],
+      to_sd_parameter = to_member$label[[1L]],
+      from_sd = from_sd,
+      to_sd = to_sd,
+      from_variance = from_variance,
+      to_variance = to_variance,
+      covariance = covariance,
+      from_scale = covariance_registry_member_scale(from_member),
+      to_scale = covariance_registry_member_scale(to_member),
+      stringsAsFactors = FALSE
+    )
+  })
+
+  out <- do.call(rbind, rows)
+  row.names(out) <- NULL
+  out
+}
+
+empty_random_effect_covariance_summaries <- function() {
+  data.frame(
+    level = character(),
+    group = character(),
+    block = character(),
+    from_dpar = character(),
+    to_dpar = character(),
+    from_coef = character(),
+    to_coef = character(),
+    from_response = character(),
+    to_response = character(),
+    class = character(),
+    parameter = character(),
+    correlation = numeric(),
+    from_sd_parameter = character(),
+    to_sd_parameter = character(),
+    from_sd = numeric(),
+    to_sd = numeric(),
+    from_variance = numeric(),
+    to_variance = numeric(),
+    covariance = numeric(),
+    from_scale = character(),
+    to_scale = character(),
+    stringsAsFactors = FALSE
+  )
+}
+
+covariance_registry_member_by_id <- function(registry, block_id0, member_id0) {
+  registry$members[
+    registry$members$block_id0 == block_id0 &
+      registry$members$member_id0 == member_id0,
+    ,
+    drop = FALSE
+  ]
+}
+
+covariance_registry_member_sd <- function(object, member) {
+  sd_key <- covariance_registry_member_sd_key(member)
+  sd_values <- object$sdpars[[sd_key]]
+  if (is.null(sd_values)) {
+    return(NA_real_)
+  }
+  value <- sd_values[[member$label[[1L]]]]
+  if (is.null(value)) {
+    return(NA_real_)
+  }
+  unname(value)
+}
+
+covariance_registry_member_sd_key <- function(member) {
+  dpar_family <- sub("[0-9]+$", "", member$dpar[[1L]])
+  switch(
+    dpar_family,
+    mu = "mu",
+    sigma = "sigma",
+    dpar_family
+  )
+}
+
+covariance_registry_member_scale <- function(member) {
+  dpar_family <- sub("[0-9]+$", "", member$dpar[[1L]])
+  switch(
+    dpar_family,
+    mu = "identity",
+    sigma = "log",
+    "link"
+  )
+}
+
 covariance_block_corpars_key <- function(tmb_parameter) {
   key <- switch(
     tmb_parameter,

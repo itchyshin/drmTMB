@@ -305,8 +305,20 @@ test_that("corpairs can format fitted-like q=4 endpoint registry rows", {
     mu_sigma = stats::setNames(estimates[2:5], pair_labels[2:5]),
     sigma = stats::setNames(estimates[[6L]], pair_labels[[6L]])
   )
+  sd_values <- c(mu1 = 0.4, mu2 = 0.5, sigma1 = 0.2, sigma2 = 0.3)
+  fit_q4$sdpars <- list(
+    mu = stats::setNames(
+      sd_values[c("mu1", "mu2")],
+      registry$members$label[registry$members$component == "mu"]
+    ),
+    sigma = stats::setNames(
+      sd_values[c("sigma1", "sigma2")],
+      registry$members$label[registry$members$component == "sigma"]
+    )
+  )
 
   pairs <- corpairs(fit_q4, level = "group")
+  covariance_summaries <- drmTMB:::random_effect_covariance_summaries(fit_q4)
 
   expect_equal(nrow(pairs), 6L)
   expect_equal(pairs$group, rep("id", 6L))
@@ -341,11 +353,60 @@ test_that("corpairs can format fitted-like q=4 endpoint registry rows", {
   expect_equal(nrow(corpairs(fit_q4, class = "mean-mean")), 1L)
   expect_equal(nrow(corpairs(fit_q4, class = "scale-scale")), 1L)
   expect_equal(nrow(corpairs(fit_q4, group = "missing")), 0L)
+  expect_equal(nrow(covariance_summaries), 6L)
+  expect_equal(covariance_summaries$parameter, pair_labels)
+  expect_equal(covariance_summaries$correlation, estimates, tolerance = 1e-12)
+  expect_equal(
+    covariance_summaries$from_sd,
+    unname(sd_values[c("mu1", "mu1", "mu1", "mu2", "mu2", "sigma1")]),
+    tolerance = 1e-12
+  )
+  expect_equal(
+    covariance_summaries$to_sd,
+    unname(sd_values[c(
+      "mu2",
+      "sigma1",
+      "sigma2",
+      "sigma1",
+      "sigma2",
+      "sigma2"
+    )]),
+    tolerance = 1e-12
+  )
+  expect_equal(
+    covariance_summaries$from_variance,
+    covariance_summaries$from_sd^2,
+    tolerance = 1e-12
+  )
+  expect_equal(
+    covariance_summaries$to_variance,
+    covariance_summaries$to_sd^2,
+    tolerance = 1e-12
+  )
+  expect_equal(
+    covariance_summaries$covariance,
+    covariance_summaries$correlation *
+      covariance_summaries$from_sd *
+      covariance_summaries$to_sd,
+    tolerance = 1e-12
+  )
+  expect_equal(
+    covariance_summaries$from_scale,
+    c("identity", "identity", "identity", "identity", "identity", "log")
+  )
+  expect_equal(
+    covariance_summaries$to_scale,
+    c("identity", "log", "log", "log", "log", "log")
+  )
 
   fit_dormant <- fit
   fit_dormant$model$random$covariance_blocks <-
     new_four_member_covariance_registry()
   expect_equal(nrow(corpairs(fit_dormant, level = "group")), 0L)
+  expect_equal(
+    nrow(drmTMB:::random_effect_covariance_summaries(fit_dormant)),
+    0L
+  )
 
   registry_mixed <- new_four_member_covariance_registry()
   registry_mixed$blocks$implemented <- TRUE
@@ -357,10 +418,15 @@ test_that("corpairs can format fitted-like q=4 endpoint registry rows", {
   fit_mixed$corpars <- list(
     mu = stats::setNames(estimates[[1L]], pair_labels[[1L]])
   )
+  fit_mixed$sdpars <- fit_q4$sdpars
   mixed_pairs <- corpairs(fit_mixed, level = "group")
+  mixed_summaries <- drmTMB:::random_effect_covariance_summaries(fit_mixed)
   expect_equal(nrow(mixed_pairs), 1L)
   expect_equal(mixed_pairs$parameter, pair_labels[[1L]])
   expect_equal(mixed_pairs$estimate, estimates[[1L]], tolerance = 1e-12)
+  expect_equal(nrow(mixed_summaries), 1L)
+  expect_equal(mixed_summaries$parameter, pair_labels[[1L]])
+  expect_equal(mixed_summaries$covariance, 0.12 * 0.4 * 0.5, tolerance = 1e-12)
 })
 
 test_that("q=3 block TMB data remains guarded until parameterization exists", {
