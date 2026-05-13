@@ -44,9 +44,11 @@ random-effect correlations from `corpars$mu`, the first univariate labelled
 `mu`/`sigma` random-intercept covariance from `corpars$mu_sigma`, the first
 bivariate `mu1`/`mu2` and `sigma1`/`sigma2` labelled random-intercept
 correlations, and one same-response bivariate `mu`/`sigma` random-intercept
-covariance row. It is intentionally a reporting helper, not a new likelihood.
-Future rows can be added as phylogenetic, spatial, study-level, and richer
-double-hierarchical correlation likelihoods become implemented.
+covariance row, plus the first bivariate phylogenetic `mu1`/`mu2` mean-mean
+correlation from `corpars$phylo`. It is intentionally a reporting helper, not
+a new likelihood. Future rows can be added as phylogenetic scale, phylogenetic
+mean-scale, spatial, study-level, and richer double-hierarchical correlation
+likelihoods become implemented.
 
 ## Why Named Correlation Pairs Are Needed
 
@@ -98,6 +100,7 @@ corpairs(fit, level = "group")
 corpairs(fit, group = "ID")
 corpairs(fit, block = "p")
 corpairs(fit, class = "mean-mean")
+corpairs(fit, level = "phylogenetic")
 ```
 
 The existing `rho12(fit)` helper should remain a narrow convenience extractor
@@ -246,7 +249,8 @@ display preference, because each layer answers a different biological question.
 8. Route labelled group-level covariance through the block assembler in
    `docs/design/30-labelled-covariance-block-assembler.md` before exposing
    bivariate random slopes or any shared label with more than two members.
-9. Add bivariate phylogenetic covariance blocks with matching non-phylogenetic
+9. Extend the first bivariate phylogenetic mean-mean block toward full
+   phylogenetic location-scale covariance, with matching non-phylogenetic
    species or individual covariance blocks.
 10. Add spatial bivariate covariance blocks.
 11. Only after simulation evidence: consider predictor-dependent group-level or

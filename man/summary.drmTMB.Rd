@@ -45,6 +45,8 @@ An object of class \code{summary.drmTMB}.
 \code{summary()} returns a compact summary of fixed-effect estimates,
 response-scale distributional, scale, shape, random-effect SD, correlation,
 and fitted random-effect covariance quantities when they are present.
+The covariance component reports currently fitted registry-backed rows and
+the first fitted bivariate phylogenetic \code{mu1}/\code{mu2} mean-mean row.
 Confidence intervals are opt-in: fast Wald intervals are available for fixed
 effects, and slower profile-likelihood intervals are available for selected
 direct profile targets.

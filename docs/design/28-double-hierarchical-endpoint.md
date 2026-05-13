@@ -17,13 +17,13 @@ it does not yet fit the complete double-hierarchical covariance model.
 | Residual-scale random intercepts and independent slopes | Implemented | `sigma ~ x + (1 | id) + (0 + w | id)` |
 | Random-effect scale models for `mu` intercept SDs | Implemented | `sd(id) ~ x_group` |
 | Bivariate Gaussian residual coscale | Implemented | `rho12 ~ x` |
-| `corpairs()` for fitted correlations | Partly implemented | residual `rho12`, ordinary `mu` intercept-slope correlations, first univariate and same-response bivariate `mu`/`sigma` mean-scale rows, and bivariate `mu1`/`mu2` and `sigma1`/`sigma2` intercept rows |
+| `corpairs()` for fitted correlations | Partly implemented | residual `rho12`, ordinary `mu` intercept-slope correlations, first univariate and same-response bivariate `mu`/`sigma` mean-scale rows, bivariate `mu1`/`mu2` and `sigma1`/`sigma2` intercept rows, and the first bivariate phylogenetic `mu1`/`mu2` mean-mean row |
 | Cross-formula covariance blocks | Implemented first slice | matching labelled univariate `(1 | p | id)` terms across `mu` and `sigma` |
 | Bivariate `mu1`/`mu2` random-intercept covariance blocks | Implemented first slice | matching labelled `(1 | p | id)` terms in both location formulas |
 | Bivariate `sigma1`/`sigma2` random-intercept covariance blocks | Implemented first slice | matching labelled `(1 | p | id)` terms in both scale formulas |
 | Same-response bivariate `mu`/`sigma` random-intercept covariance blocks | Implemented first slice | one matching labelled pair in `mu1`/`sigma1` or `mu2`/`sigma2` |
 | Bivariate random-slope and full cross-parameter covariance blocks | Planned | richer shared labelled blocks across `mu1`, `mu2`, `sigma1`, and `sigma2` |
-| Profile-likelihood intervals for covariance summaries | Partly implemented | direct profile intervals for first univariate and same-response bivariate `mu`/`sigma`, bivariate `mu1`/`mu2`, and bivariate `sigma1`/`sigma2` covariance rows; derived summaries planned |
+| Profile-likelihood intervals for covariance summaries | Partly implemented | direct profile targets for first univariate and same-response bivariate `mu`/`sigma`, ordinary bivariate `mu1`/`mu2`, ordinary bivariate `sigma1`/`sigma2`, and bivariate phylogenetic `mu1`/`mu2` covariance parameters; derived summaries planned |
 
 ## Target Model
 
@@ -95,10 +95,11 @@ table that says what each correlation means:
 The table returned by `corpairs()` should always keep `level`, `group`, `block`,
 `from_dpar`, `to_dpar`, `from_coef`, `to_coef`, `from_response`,
 `to_response`, `class`, `estimate`, and `link_estimate` separate. Direct
-profile intervals already work for the first fitted `mu`/`sigma`,
-`mu1`/`mu2`, and `sigma1`/`sigma2` covariance parameters through the
-`profile_targets()` namespace, but future `corpairs()` interval columns should
-keep the same row meaning and mark derived intervals separately.
+profile targets already exist for the first fitted `mu`/`sigma`, ordinary
+bivariate `mu1`/`mu2`, ordinary bivariate `sigma1`/`sigma2`, and bivariate
+phylogenetic `mu1`/`mu2` covariance parameters through the `profile_targets()`
+namespace, but future `corpairs()` interval columns should keep the same row
+meaning and mark derived intervals separately.
 
 The first derived-summary scaffold is internal and point-estimate only. It
 matches fitted registry-backed group-level correlation rows with their fitted
@@ -118,12 +119,13 @@ profile-interval summaries use
 interval columns remain `NA`.
 
 The first public reporting surface is `summary(fit)$covariance`. It returns
-the registry-backed variance and covariance point summaries for currently
-fitted covariance blocks and prints a compact table when rows are present. This
-does not expose q > 2 syntax or derived covariance intervals; it only reports
-blocks that the fitted model already populated. When profile intervals are
-requested, the printed covariance table includes the unavailable-status marker
-for the derived covariance interval.
+the registry-backed variance and covariance point summaries for currently fitted
+covariance blocks, plus the first fitted bivariate phylogenetic `mu1`/`mu2`
+mean-mean row, and prints a compact table when rows are present. This does not
+expose q > 2 syntax or derived covariance intervals; it only reports blocks that
+the fitted model already populated. When profile intervals are requested, the
+printed covariance table includes the unavailable-status marker for the derived
+covariance interval.
 
 ## Implementation Order
 
@@ -187,13 +189,15 @@ for the derived covariance interval.
    pair, such as `mu1` with `sigma1`. Done for one matching labelled pair; the
    full shared block across `mu1`, `mu2`, `sigma1`, and `sigma2` remains
    planned.
-11. Add bivariate phylogenetic and non-phylogenetic species covariance blocks
-   only after ordinary grouped models have recovery evidence and clear
-   diagnostics. These blocks should report phylogenetic correlation,
+11. Extend bivariate phylogenetic and non-phylogenetic species covariance
+   blocks after ordinary grouped models have recovery evidence and clear
+   diagnostics. The first fitted phylogenetic slice covers matching
+   intercept-only `mu1`/`mu2` `phylo()` terms. The full q=4 intercept-level
+   endpoint state across `mu1`, `mu2`, `sigma1`, and `sigma2`, matching
+   non-phylogenetic species covariance, and random-slope q=6 and q=8 endpoint
+   blocks remain planned. These blocks should report phylogenetic correlation,
    non-phylogenetic species correlation, and residual `rho12` as separate
-   layers. The first phylogenetic target should be the q=4 intercept-level
-   endpoint state across `mu1`, `mu2`, `sigma1`, and `sigma2`; random-slope
-   q=6 and q=8 endpoint blocks can wait until that protocol is usable.
+   layers.
 12. Add spatial double-hierarchical blocks only after the phylogenetic and
    ordinary grouped covariance paths have clear diagnostics.
 

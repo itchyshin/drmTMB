@@ -35,11 +35,12 @@ gr <- function(group, cov) {
 #' Phylogenetic structured-effect marker
 #'
 #' `phylo()` marks user-facing syntax for phylogenetic dependence. The current
-#' fitted path supports intercept-only univariate Gaussian location effects,
-#' `phylo(1 | species, tree = tree)`. Later phases will add structured slopes
-#' such as `phylo(1 + x | species, tree = tree)`. The public `phylo()` API
-#' requires an ultrametric tree with branch lengths and uses the Hadfield and
-#' Nakagawa A-inverse sparse-precision path internally.
+#' fitted paths support intercept-only Gaussian location effects:
+#' `phylo(1 | species, tree = tree)` in univariate `mu`, or matching terms in
+#' bivariate `mu1` and `mu2`. Later phases will add structured slopes such as
+#' `phylo(1 + x | species, tree = tree)`. The public `phylo()` API requires an
+#' ultrametric tree with branch lengths and uses the Hadfield and Nakagawa
+#' A-inverse sparse-precision path internally.
 #'
 #' @param term Structured random-effect term, currently `1 | species`.
 #' @param tree Ultrametric phylogeny input with branch lengths.

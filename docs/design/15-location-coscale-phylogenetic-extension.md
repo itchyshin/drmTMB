@@ -101,16 +101,28 @@ visible:
 | Level | Symbolic target | Scientific question | Status |
 |---|---|---|---|
 | Residual | `rho12_i` in `Omega_i` | Are the two responses coupled within an observation after means and scales are modelled? | implemented for fixed-effect bivariate Gaussian |
-| Phylogenetic mean | `cor(a_mu1, a_mu2)` where `[a_mu1, a_mu2] ~ MVN(0, Sigma_phylo)` | Do species with high phylogenetic deviation in trait 1 also have high phylogenetic deviation in trait 2? | planned |
+| Phylogenetic mean | `cor(a_mu1, a_mu2)` where `[a_mu1, a_mu2] ~ MVN(0, Sigma_phylo)` | Do species with high phylogenetic deviation in trait 1 also have high phylogenetic deviation in trait 2? | implemented first fitted slice for matching intercept-only `mu1`/`mu2` `phylo()` terms |
 | Non-phylogenetic mean | `cor(c_mu1, c_mu2)` where `[c_mu1, c_mu2] ~ MVN(0, Sigma_species)` | Is there a residual among-species association beyond shared ancestry? | planned |
 | Phylogenetic scale | `cor(a_sigma1, a_sigma2)` | Do lineages that are more dispersed for one trait tend to be more dispersed for the other? | planned |
 | Mean-scale | `cor(a_mu1, a_sigma2)` or analogous terms | Do high trait means covary with dispersion in the same or another trait? | planned |
 | Spatial or site-level | `cor(z_mu1, z_mu2)` or covariance-block correlations | Do places, sites, studies, or other groups show coupled deviations across responses? | planned |
 
-The first implemented bivariate `rho12 ~ predictors` model covers only the
-residual row of this table. The long-term location-coscale programme should
-also estimate structured phylogenetic, non-phylogenetic, and spatial
-correlations when the data and simulations support them.
+The first implemented bivariate `rho12 ~ predictors` model covers the residual
+row of this table. The first fitted bivariate phylogenetic location slice now
+covers the phylogenetic mean row for matching intercept-only `mu1`/`mu2`
+`phylo()` terms, while `sigma1`, `sigma2`, and residual `rho12` stay as
+ordinary fixed-effect distributional parameters. The long-term
+location-coscale programme should also estimate structured phylogenetic scale,
+mean-scale, non-phylogenetic, and spatial correlations when the data and
+simulations support them.
+
+Ordinary labelled group covariance can be fitted beside the first bivariate
+phylogenetic mean layer when users need a staged phylogenetic versus
+non-phylogenetic species comparison. This is useful for syntax and reporting
+separation, but not automatic evidence that the two species-level layers are
+well identified. `check_drm()` notes the same-group overlap so users compare
+profiles or simpler models before interpreting the two correlations as cleanly
+separated.
 
 The first internal phylogenetic covariance scaffold covers the q=4 prior
 algebra for `a_mu1`, `a_mu2`, `a_sigma1`, and `a_sigma2` on the augmented tree
@@ -132,7 +144,8 @@ The general long-format pair plan is in
 2. Univariate Gaussian simple random intercepts and random slopes in `mu`.
 3. Sparse phylogenetic `phylo(1 | species, tree = tree)` in univariate `mu`
    using the Hadfield and Nakagawa A-inverse path.
-4. Bivariate Gaussian with phylogenetic and non-phylogenetic mean covariance.
+4. Bivariate Gaussian with phylogenetic mean covariance; non-phylogenetic mean
+   covariance remains a separate grouped-random-effect layer.
 5. Bivariate location-scale with phylogenetic scale effects.
 6. Bivariate location-coscale with fixed-effect `rho12 ~ predictors` plus
    phylogenetic mean and scale structure.

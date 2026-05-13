@@ -195,8 +195,9 @@ distributional regression models using TMB.
 
 ## Phase 5: Phylogenetic and Spatial Dependence
 
-- Status: first univariate Gaussian phylogenetic location path implemented and
-  Phase 5 closure-audited.
+- Status: first univariate Gaussian phylogenetic location path implemented;
+  first matching bivariate `mu1`/`mu2` phylogenetic location slice implemented;
+  spatial paths remain planned.
 - Treat phylogenetic and spatial terms as one structured-effect module:
   `z ~ MVN(0, sigma_z^2 K)`, with `K = A` for phylogeny and `K = M` for
   spatial dependence.
@@ -207,6 +208,16 @@ distributional regression models using TMB.
   using an ultrametric branch-length tree, the sparse augmented A-inverse path,
   one CRAN-safe simulation recovery test, and dense marginal likelihood
   comparator tests.
+- Implemented matching intercept-only `phylo(1 | species, tree = tree)` terms
+  in bivariate Gaussian `mu1` and `mu2`, estimating two phylogenetic location
+  SDs and one phylogenetic mean-mean correlation while leaving `sigma1`,
+  `sigma2`, and residual `rho12` as ordinary fixed-effect distributional
+  parameters. `corpairs()` reports that first fitted phylogenetic mean-mean
+  row, `summary(fit)$covariance` reports the matching variance and covariance
+  point summaries, and `check_drm()` reports near-boundary `corpars$phylo`,
+  weak phylogenetic-SD diagnostics, and ordinary same-species covariance
+  overlap for that fitted slice. A CRAN-safe deterministic simulation now
+  recovers a positive bivariate phylogenetic mean-mean correlation.
 - Add spatial SPDE/GMRF fields after the core Gaussian and known-covariance
   path is reliable.
 - For bivariate structured models, estimate and report level-specific
@@ -215,11 +226,11 @@ distributional regression models using TMB.
   ordinary grouped random-effect correlations should not share one namespace.
 - The first internal q=4 phylogenetic state scaffold checks the R-side
   matrix-normal prior algebra for `mu1`, `mu2`, `sigma1`, and `sigma2` effects
-  against a dense Kronecker covariance comparator. This is algebra evidence
-  only; bivariate `phylo()` syntax remains planned. The matching hidden TMB
-  prior branch now evaluates the same q=4 state against the R algebra helper.
-  A planned-pair scaffold now records the six future phylogenetic endpoint rows
-  without emitting them from fitted-model extractors.
+  against a dense Kronecker covariance comparator. This is still algebra
+  evidence for the full location-scale endpoint, not a fitted q=4 model. The
+  matching hidden TMB prior branch evaluates the same q=4 state against the R
+  algebra helper. A planned-pair scaffold records the six future phylogenetic
+  endpoint rows without emitting them from fitted-model extractors.
 - Use the correlation-pair design in
   `docs/design/20-coscale-correlation-pairs.md` before implementing bivariate
   double-hierarchical covariance blocks; pair outputs should identify the
@@ -228,7 +239,8 @@ distributional regression models using TMB.
   correlations only: residual `rho12`, ordinary group-level `mu` random-effect
   correlations, the univariate `mu`/`sigma` mean-scale random-intercept
   correlation, and the bivariate `mu1`/`mu2` and `sigma1`/`sigma2`
-  random-intercept correlations.
+  random-intercept correlations, plus the first fitted bivariate phylogenetic
+  mean-mean correlation.
   Extend this table as new correlation likelihoods are added.
 - Stage structured phylogenetic and spatial slopes conservatively:
   intercept-only structured effects first, then one `mu` slope, then only small
@@ -264,26 +276,31 @@ distributional regression models using TMB.
 
 - Status: partly implemented.
 - `profile_targets(fit)` lists the current target names and readiness notes for
-  confidence-interval and profile-likelihood work.
+  confidence-interval and profile-likelihood work, including the first
+  bivariate phylogenetic `mu1`/`mu2` SD and correlation targets.
 - `confint(fit)` now returns Wald fixed-effect intervals, and
   `confint(fit, parm = "fixef:mu:x", method = "profile")` profiles explicit
   direct fixed-effect, constant `sigma`/`sigma1`/`sigma2`, ordinary
   random-effect SD, ordinary random-effect correlation, phylogenetic `mu` SD,
-  and constant residual `rho12` targets.
+  bivariate phylogenetic `mu1`/`mu2` correlation, and constant residual `rho12`
+  targets.
 - `confint(fit, parm = "sigma", method = "profile", newdata = grid)` and
   `confint(fit, parm = "rho12", method = "profile", newdata = grid)` profile
   row-specific response-scale `sigma` and residual-correlation values by
   profiling the fixed-effect linear predictor for each supplied row.
 - Direct covariance profile intervals are implemented for the first univariate
-  `mu`/`sigma` random-intercept correlation target and the first bivariate
-  `mu1`/`mu2` random-intercept correlation target. These intervals are available
-  through both `confint(..., method = "profile")` and
+  `mu`/`sigma` random-intercept correlation target, the first bivariate
+  `mu1`/`mu2` random-intercept correlation target, and the first bivariate
+  phylogenetic `mu1`/`mu2` mean-mean correlation target. These intervals are
+  available through both `confint(..., method = "profile")` and
   `summary(conf.int = TRUE, method = "profile", ci_parm = ...)`.
 - Extend profile-likelihood confidence intervals to additional direct TMB
   parameters such as other residual-scale parameters, ordinal cutpoints, and
   multi-row or custom contrasts beyond one `newdata` row at a time.
 - Use user-facing target names from the fitted object, for example
   `sd:mu:(1 | id)`, `sd:mu:phylo(1 | species)`,
+  `sd:mu:mu1:phylo(1 | species)`,
+  `cor:phylo:cor(mu1:(Intercept),mu2:(Intercept) | phylo | species)`,
   `cor:mu:cor((Intercept),x | id)`,
   `cor:mu_sigma:cor(mu:(Intercept),sigma:(Intercept) | p | id)`,
   `cor:mu:cor(mu1:(Intercept),mu2:(Intercept) | p | id)`,
@@ -441,7 +458,8 @@ remain blocked by future covariance or non-Gaussian random-effect work.
 
 ## Phase 12: Phylogenetic Location-Scale Extensions
 
-- Status: planned.
+- Status: planned beyond the first fitted bivariate `mu1`/`mu2` phylogenetic
+  location slice.
 - Extend the implemented `phylo(1 | species, tree = tree)` Gaussian `mu` path to
   one structured `mu` slope, then only later to small structured slope sets.
 - Add phylogenetic terms in `sigma` only after the location path has larger
@@ -453,8 +471,12 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   effects.
 - For future two-response or two-trait structured models, estimate and report
   phylogenetic correlation, non-phylogenetic species correlation, and residual
-  `rho12` as separate layers. Residual `rho12` is not a substitute for
-  phylogenetic or species-level covariance.
+  `rho12` as separate layers. The first bivariate phylogenetic mean-mean
+  correlation is implemented; residual `rho12` is not a substitute for
+  phylogenetic or species-level covariance. Ordinary species covariance can be
+  combined with the fitted bivariate phylogenetic mean layer, but
+  `check_drm()` notes the identifiability risk when both layers use the same
+  grouping factor.
 
 ## Phase 13: Double-Hierarchical Derived Inference
 
@@ -473,9 +495,10 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   intervals unfilled until a valid nonlinear interval method is implemented.
 - `summary(fit)$covariance` now provides the first public surface for the
   currently fitted registry-backed variance and covariance point summaries,
-  without exposing q > 2 syntax or derived covariance intervals. Its covariance
-  interval columns also include an explicit status so unavailable derived
-  intervals are not mistaken for silently omitted support.
+  plus the first bivariate phylogenetic `mu1`/`mu2` mean-mean row, without
+  exposing q > 2 syntax or derived covariance intervals. Its covariance interval
+  columns also include an explicit status so unavailable derived intervals are
+  not mistaken for silently omitted support.
 - Use fix-and-refit profiles or carefully parameterized direct targets for
   nonlinear quantities; do not treat Wald intervals as the default for boundary
   variance components or correlations.

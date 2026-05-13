@@ -23,8 +23,8 @@ check_drm(object, ...)
 \item{gradient_tolerance}{Maximum absolute fixed-parameter gradient treated
 as acceptable.}
 
-\item{rho_boundary}{Absolute residual correlation value above which a
-bivariate Gaussian fit receives a warning.}
+\item{rho_boundary}{Absolute residual or structured correlation value above
+which a bivariate Gaussian fit receives a warning.}
 
 \item{sd_boundary}{Random-effect standard deviation below which a fit
 receives a warning that the variance component is near the lower
@@ -56,7 +56,12 @@ labelled \code{mu1}/\code{mu2} random-intercept covariance block, \code{check_dr
 group replication and whether either group-level SD is tiny relative to the
 matching residual scale. For a matched labelled \code{sigma1}/\code{sigma2} block, it
 reports group replication and whether either log-\code{sigma} random-effect SD is
-tiny. If the fit was stored with \code{drm_control(keep_tmb_object = FALSE)}, the
+tiny. If a bivariate Gaussian fit includes matching \code{mu1}/\code{mu2}
+phylogenetic location effects, \code{check_drm()} also reports whether the fitted
+phylogenetic mean-mean correlation is near the boundary, whether either
+phylogenetic SD is tiny relative to the matching residual scale, and whether
+an ordinary group-level covariance block uses the same grouping factor. If a
+fit was stored with \code{drm_control(keep_tmb_object = FALSE)}, the
 fixed-gradient check is reported as a note because the TMB
 automatic-differentiation object is not available.
 

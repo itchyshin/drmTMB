@@ -177,8 +177,22 @@ drm_formula(y ~ x + phylo(1 | species, tree = tree), sigma ~ z)
 ```
 
 `phylo()` uses an ultrametric branch-length tree and adds a tree-structured
-Gaussian random intercept to the `mu` predictor. Phylogenetic random slopes,
-phylogenetic scale terms, and spatial terms are still planned:
+Gaussian random intercept to the `mu` predictor. Matching intercept-only
+`phylo()` terms in bivariate `mu1` and `mu2` formulas fit the first
+phylogenetic mean-mean correlation slice:
+
+```r
+drm_formula(
+  mu1 = y1 ~ x + phylo(1 | species, tree = tree),
+  mu2 = y2 ~ x + phylo(1 | species, tree = tree),
+  sigma1 = ~ 1,
+  sigma2 = ~ 1,
+  rho12 = ~ 1
+)
+```
+
+Phylogenetic random slopes, phylogenetic scale terms, structured effects in
+`rho12`, and spatial terms are still planned:
 
 ```r
 # planned; drmTMB() will currently reject these

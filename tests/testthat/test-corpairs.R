@@ -42,6 +42,70 @@ new_corpairs_group_data <- function(n_id = 24, n_each = 6, seed = 20260575) {
   data.frame(y = y, x = x, ID = ID)
 }
 
+corpairs_balanced_ultrametric_tree <- function(n_tip = 8L) {
+  stopifnot(n_tip >= 2L, log2(n_tip) == floor(log2(n_tip)))
+  edges <- matrix(integer(), ncol = 2L)
+  edge_lengths <- numeric()
+  next_node <- n_tip + 1L
+
+  build <- function(tips) {
+    if (length(tips) == 1L) {
+      return(tips)
+    }
+    node <- next_node
+    next_node <<- next_node + 1L
+    mid <- length(tips) / 2L
+    left <- build(tips[seq_len(mid)])
+    right <- build(tips[seq.int(mid + 1L, length(tips))])
+    edges <<- rbind(edges, c(node, left), c(node, right))
+    edge_lengths <<- c(edge_lengths, 1, 1)
+    node
+  }
+
+  build(seq_len(n_tip))
+  structure(
+    list(
+      edge = edges,
+      edge.length = edge_lengths,
+      tip.label = paste0("sp_", seq_len(n_tip)),
+      Nnode = n_tip - 1L
+    ),
+    class = "phylo"
+  )
+}
+
+new_corpairs_biv_phylo_data <- function(
+  seed = 20260581,
+  n_tip = 8L,
+  n_each = 5L,
+  rho_phylo = 0.30,
+  rho12 = -0.15
+) {
+  set.seed(seed)
+  tree <- corpairs_balanced_ultrametric_tree(n_tip)
+  A <- drmTMB:::drm_phylo_tip_covariance(tree)
+  z1 <- stats::rnorm(n_tip)
+  z2 <- rho_phylo * z1 + sqrt(1 - rho_phylo^2) * stats::rnorm(n_tip)
+  phylo1 <- as.vector(t(chol(A)) %*% z1) * 0.50
+  phylo2 <- as.vector(t(chol(A)) %*% z2) * 0.42
+  names(phylo1) <- tree$tip.label
+  names(phylo2) <- tree$tip.label
+
+  species <- rep(tree$tip.label, each = n_each)
+  x <- stats::rnorm(length(species))
+  e1 <- stats::rnorm(length(species))
+  e2 <- rho12 * e1 + sqrt(1 - rho12^2) * stats::rnorm(length(species))
+  list(
+    data = data.frame(
+      y1 = 0.25 + 0.35 * x + phylo1[species] + 0.25 * e1,
+      y2 = -0.15 - 0.25 * x + phylo2[species] + 0.30 * e2,
+      x = x,
+      species = species
+    ),
+    tree = tree
+  )
+}
+
 test_that("corpairs summarizes predictor-dependent residual rho12", {
   dat <- new_corpairs_biv_data()
   fit <- drmTMB(
@@ -161,6 +225,68 @@ test_that("corpairs reports ordinary group-level correlation labels", {
   pairs_no_frame <- corpairs(fit_no_frame)
   expect_equal(pairs_no_frame$from_response, "y")
   expect_equal(pairs_no_frame$to_response, "y")
+})
+
+test_that("corpairs reports fitted bivariate phylogenetic mean correlation", {
+  sim <- new_corpairs_biv_phylo_data()
+  dat <- sim$data
+  tree <- sim$tree
+  fit <- drmTMB(
+    bf(
+      mu1 = y1 ~ x + phylo(1 | species, tree = tree),
+      mu2 = y2 ~ x + phylo(1 | species, tree = tree),
+      sigma1 = ~1,
+      sigma2 = ~1,
+      rho12 = ~1
+    ),
+    family = biv_gaussian(),
+    data = dat,
+    control = list(eval.max = 300, iter.max = 300)
+  )
+
+  pairs <- corpairs(fit)
+  phylo_pair <- pairs[pairs$level == "phylogenetic", , drop = FALSE]
+  row.names(phylo_pair) <- NULL
+  residual_pair <- pairs[pairs$level == "residual", , drop = FALSE]
+  phylo_link <- atanh(unname(fit$corpars$phylo) / 0.999999)
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(nrow(pairs), 2L)
+  expect_equal(nrow(phylo_pair), 1L)
+  expect_equal(nrow(residual_pair), 1L)
+  expect_equal(phylo_pair$group, "species")
+  expect_equal(phylo_pair$block, "phylo")
+  expect_equal(phylo_pair$from_dpar, "mu1")
+  expect_equal(phylo_pair$to_dpar, "mu2")
+  expect_equal(phylo_pair$from_coef, "(Intercept)")
+  expect_equal(phylo_pair$to_coef, "(Intercept)")
+  expect_equal(phylo_pair$from_response, "y1")
+  expect_equal(phylo_pair$to_response, "y2")
+  expect_equal(phylo_pair$class, "mean-mean")
+  expect_equal(phylo_pair$parameter, names(fit$corpars$phylo))
+  expect_equal(
+    phylo_pair$estimate,
+    unname(fit$corpars$phylo),
+    tolerance = 1e-12
+  )
+  expect_equal(phylo_pair$min, phylo_pair$estimate)
+  expect_equal(phylo_pair$max, phylo_pair$estimate)
+  expect_equal(phylo_pair$n_values, 1L)
+  expect_equal(phylo_pair$link_estimate, phylo_link, tolerance = 1e-12)
+  expect_equal(phylo_pair$link_min, phylo_link, tolerance = 1e-12)
+  expect_equal(phylo_pair$link_max, phylo_link, tolerance = 1e-12)
+  expect_false(phylo_pair$modelled)
+  expect_equal(corpairs(fit, level = "phylogenetic"), phylo_pair)
+  expect_equal(corpairs(fit, group = "species"), phylo_pair)
+  expect_equal(corpairs(fit, block = "phylo"), phylo_pair)
+  expect_equal(corpairs(fit, class = "mean-mean"), phylo_pair)
+  expect_equal(nrow(corpairs(fit, level = "group")), 0L)
+
+  fit_no_frame <- fit
+  fit_no_frame$model$model_frame <- NULL
+  pairs_no_frame <- corpairs(fit_no_frame, level = "phylogenetic")
+  expect_equal(pairs_no_frame$from_response, "y1")
+  expect_equal(pairs_no_frame$to_response, "y2")
 })
 
 test_that("corpairs returns an empty table when no correlations are fitted", {

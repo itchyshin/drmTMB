@@ -67,7 +67,7 @@ is the current routing contract:
 | TMB `model_type` | User-facing route | R builder | TMB branch purpose |
 |---:|---|---|---|
 | `1` | `family = gaussian()` | `drm_build_gaussian_ls_spec()` | Univariate Gaussian location-scale models, including ordinary `mu` random effects, residual-scale `sigma` random effects, `sd(group) ~ ...` random-effect scale models, `meta_known_V(V = V)`, and the implemented intercept-only `phylo()` location effect. |
-| `2` | `family = biv_gaussian()`, `family = c(gaussian(), gaussian())`, or `family = list(gaussian(), gaussian())` | `drm_build_biv_gaussian_spec()` | Bivariate Gaussian location-scale-coscale models with `mu1`, `mu2`, `sigma1`, `sigma2`, and residual `rho12`, including complete-row dense known sampling covariance, matching labelled `mu1`/`mu2` and `sigma1`/`sigma2` random-intercept covariance blocks, and one same-response `mu`/`sigma` random-intercept covariance pair. |
+| `2` | `family = biv_gaussian()`, `family = c(gaussian(), gaussian())`, or `family = list(gaussian(), gaussian())` | `drm_build_biv_gaussian_spec()` | Bivariate Gaussian location-scale-coscale models with `mu1`, `mu2`, `sigma1`, `sigma2`, and residual `rho12`, including complete-row dense known sampling covariance, matching labelled `mu1`/`mu2` and `sigma1`/`sigma2` random-intercept covariance blocks, one same-response `mu`/`sigma` random-intercept covariance pair, and matching intercept-only phylogenetic random intercepts in `mu1` and `mu2`. |
 | `3` | `family = student()` | `drm_build_student_ls_spec()` | Univariate Student-t location-scale-shape models with `mu`, `sigma`, and `nu = 2 + exp(eta_nu)`. |
 | `4` | `family = lognormal()` | `drm_build_lognormal_ls_spec()` | Univariate fixed-effect lognormal location-scale models for positive responses, with `mu` and `sigma` defined on the log-response scale. |
 | `5` | `family = Gamma(link = "log")` | `drm_build_gamma_ls_spec()` | Univariate fixed-effect Gamma mean-CV models for positive responses, with `mu` as the response mean and `sigma` as the coefficient of variation. |
@@ -80,12 +80,14 @@ is the current routing contract:
 | `12` | `family = truncated_nbinom2()` plus `hu ~ ...` | `drm_build_truncated_nbinom2_spec()` | Univariate fixed-effect hurdle negative-binomial 2 models, with `hu` as the hurdle-zero probability and nonzero counts drawn from the zero-truncated NB2 component. |
 | `13` | `family = cumulative_logit()` | `drm_build_cumulative_logit_spec()` | Univariate fixed-effect cumulative-logit ordinal location models, with ordered cutpoints and fixed latent logistic scale. |
 | `14` | `family = beta_binomial()` | `drm_build_beta_binomial_spec()` | Univariate fixed-effect beta-binomial models for counted successes out of known trials, with `mu` as success probability and `sigma` as extra-binomial variation. |
+| `94` | no public route | direct test construction only | Hidden q=4 correlated phylogenetic precision-prior parity branch used to test the matrix-normal sparse augmented A-inverse objective in isolation. |
 | `99` | no public route | direct test construction only | Hidden phylogenetic precision-prior parity branch used to test the sparse augmented A-inverse objective in isolation. |
 
-The hidden `model_type = 99` branch is not a family and should not appear in
-user examples. Public phylogenetic Gaussian fits stay on `model_type = 1`; the
-hidden branch exists only so tests can compare the isolated TMB prior objective
-against the R algebra helper.
+The hidden `model_type = 94` and `model_type = 99` branches are not families
+and should not appear in user examples. Public phylogenetic Gaussian fits stay
+on `model_type = 1` or `model_type = 2`; the hidden branches exist only so
+tests can compare isolated sparse phylogenetic prior objectives against the R
+algebra helpers.
 
 ## Likelihood Weights
 
@@ -1046,6 +1048,26 @@ L_group =
    rho_group, sqrt(1 - rho_group^2)]
 rho_group = 0.999999 * tanh(eta_cor_mu)
 ```
+
+With matching `phylo(1 | species, tree = tree)` terms in `mu1` and `mu2`,
+the two phylogenetic mean deviations use the same augmented tree precision and
+a two-state covariance matrix:
+
+```text
+a = [a_mu1, a_mu2]
+a ~ MatrixNormal(0, Q_A^{-1}, Sigma_phylo)
+Sigma_phylo =
+  [sd_phylo_mu1^2, rho_phylo * sd_phylo_mu1 * sd_phylo_mu2;
+   rho_phylo * sd_phylo_mu1 * sd_phylo_mu2, sd_phylo_mu2^2]
+rho_phylo = 0.999999 * tanh(eta_cor_phylo)
+
+mu1_i = X_mu1[i, ] beta_mu1 + a_mu1[species_i]
+mu2_i = X_mu2[i, ] beta_mu2 + a_mu2[species_i]
+```
+
+Here `rho_phylo` is a phylogenetic mean-mean correlation, not residual
+`rho12`. In this first fitted slice, `sigma1`, `sigma2`, and `rho12` remain
+ordinary fixed-effect distributional parameters.
 
 The TMB implementation uses tiny boundary guards around `tanh()` for numerical
 positive definiteness; the clean transforms above are the statistical model.

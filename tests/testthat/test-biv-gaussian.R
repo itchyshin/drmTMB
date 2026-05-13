@@ -1678,7 +1678,7 @@ test_that("bivariate Gaussian rejects unsupported Phase 3 syntax clearly", {
   expect_error(
     drmTMB(
       bf(
-        mu1 = y1 ~ x + phylo(1 | id, tree = tree),
+        mu1 = y1 ~ x + meta_known_V(V = V) + phylo(1 | id, tree = tree),
         mu2 = y2 ~ x + phylo(1 | id, tree = tree),
         sigma1 = ~1,
         sigma2 = ~1,
@@ -1687,7 +1687,7 @@ test_that("bivariate Gaussian rejects unsupported Phase 3 syntax clearly", {
       family = biv_gaussian(),
       data = dat
     ),
-    "recognized but not fitted yet"
+    "cannot yet be combined"
   )
   expect_error(
     drmTMB(

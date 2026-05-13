@@ -447,7 +447,7 @@ test_that("Phase 1 rejects unsupported model syntax clearly", {
       family = c(gaussian(), gaussian()),
       data = dat
     ),
-    "planned, not implemented"
+    "must be matched"
   )
   expect_error(
     drmTMB(

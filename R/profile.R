@@ -5,7 +5,8 @@
 #' Profile-likelihood intervals are slower because nuisance parameters are
 #' re-optimized; this first public profile path supports explicit fixed-effect,
 #' constant distributional-scale, random-effect standard-deviation,
-#' random-effect correlation, and constant residual-correlation targets.
+#' random-effect correlation, the first bivariate phylogenetic mean-mean
+#' correlation, and constant residual-correlation targets.
 #' For predictor-dependent scale or residual-correlation formulae, supply
 #' `newdata` with `parm = "sigma"` or `parm = "rho12"` to profile the fitted
 #' response-scale value for each supplied row.
@@ -714,7 +715,7 @@ profile_fixef_internal <- function(dpar) {
 }
 
 profile_sd_internal <- function(dpar, term) {
-  if (identical(dpar, "mu") && startsWith(term, "phylo(")) {
+  if (identical(dpar, "mu") && grepl("phylo\\(", term)) {
     return("log_sd_phylo")
   }
   if (dpar %in% c("mu", "sigma")) {
