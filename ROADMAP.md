@@ -464,7 +464,9 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   intervals unfilled until a valid nonlinear interval method is implemented.
 - `summary(fit)$covariance` now provides the first public surface for the
   currently fitted registry-backed variance and covariance point summaries,
-  without exposing q > 2 syntax or derived covariance intervals.
+  without exposing q > 2 syntax or derived covariance intervals. Its covariance
+  interval columns also include an explicit status so unavailable derived
+  intervals are not mistaken for silently omitted support.
 - Use fix-and-refit profiles or carefully parameterized direct targets for
   nonlinear quantities; do not treat Wald intervals as the default for boundary
   variance components or correlations.

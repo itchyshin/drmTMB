@@ -155,6 +155,7 @@ test_that("summary() reports univariate mu/sigma covariance separately", {
     tolerance = 1e-12
   )
   expect_true(all(is.na(smry$covariance$covariance_conf.low)))
+  expect_equal(smry$covariance$covariance_conf.status, "not_requested")
   expect_false(grepl(
     "rho12",
     smry$parameters[cor_mu_sigma, "term"],
@@ -178,6 +179,10 @@ test_that("summary() reports univariate mu/sigma covariance separately", {
   expect_true(is.finite(profiled$covariance$correlation_conf.high))
   expect_true(all(is.na(profiled$covariance$from_sd_conf.low)))
   expect_true(all(is.na(profiled$covariance$covariance_conf.low)))
+  expect_equal(
+    profiled$covariance$covariance_conf.status,
+    "derived_interval_unavailable"
+  )
 })
 
 test_that("summary() separates bivariate group covariance from residual rho12", {
@@ -247,6 +252,7 @@ test_that("summary() separates bivariate group covariance from residual rho12", 
       unname(fit$corpars$mu[[1L]]),
     tolerance = 1e-12
   )
+  expect_equal(smry$covariance$covariance_conf.status, "not_requested")
   expect_false(any(grepl("rho12", smry$covariance$parameter, fixed = TRUE)))
 
   profiled <- summary(
@@ -262,6 +268,10 @@ test_that("summary() separates bivariate group covariance from residual rho12", 
   expect_true(is.finite(cor_row$conf.high))
   expect_lt(cor_row$conf.low, smry$parameters[cor_mu, "estimate"])
   expect_gt(cor_row$conf.high, smry$parameters[cor_mu, "estimate"])
+  expect_equal(
+    profiled$covariance$covariance_conf.status,
+    "derived_interval_unavailable"
+  )
 })
 
 test_that("summary() reports fitted shape ranges", {

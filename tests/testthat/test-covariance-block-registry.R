@@ -427,6 +427,10 @@ test_that("corpairs can format fitted-like q=4 endpoint registry rows", {
   )
   expect_equal(covariance_summaries$correlation_target, correlation_targets)
   expect_equal(
+    covariance_summaries$covariance_conf.status,
+    rep("not_requested", 6L)
+  )
+  expect_equal(
     covariance_summaries$from_sd_target,
     sd_targets[c(1L, 1L, 1L, 2L, 2L, 3L)]
   )
@@ -462,6 +466,10 @@ test_that("corpairs can format fitted-like q=4 endpoint registry rows", {
   )
   expect_true(all(is.na(covariance_summaries_ci$covariance_conf.low)))
   expect_true(all(is.na(covariance_summaries_ci$covariance_conf.method)))
+  expect_equal(
+    covariance_summaries_ci$covariance_conf.status,
+    rep("derived_interval_unavailable", 6L)
+  )
 
   fit_dormant <- fit
   fit_dormant$model$random$covariance_blocks <-
@@ -491,6 +499,7 @@ test_that("corpairs can format fitted-like q=4 endpoint registry rows", {
   expect_equal(nrow(mixed_summaries), 1L)
   expect_equal(mixed_summaries$parameter, pair_labels[[1L]])
   expect_equal(mixed_summaries$covariance, 0.12 * 0.4 * 0.5, tolerance = 1e-12)
+  expect_equal(mixed_summaries$covariance_conf.status, "not_requested")
 })
 
 test_that("q=3 block TMB data remains guarded until parameterization exists", {

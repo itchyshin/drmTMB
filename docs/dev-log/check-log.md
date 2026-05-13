@@ -2,6 +2,30 @@
 
 Record meaningful development checks here.
 
+## 2026-05-13 -- Slice 9D derived covariance interval status guard
+
+Scope:
+
+- added `covariance_conf.status` to the random-effect covariance summary table;
+- marked ordinary summaries as `not_requested` and profiled summaries as
+  `derived_interval_unavailable` while keeping derived covariance interval
+  values `NA`;
+- made `print(summary(fit))` show the unavailable-status marker when profile
+  intervals are requested for covariance rows;
+- documented that this is a reporting guard only, not a new derived covariance
+  interval method or q > 2 fitted-model claim.
+
+Checks:
+
+- `air format R/methods.R tests/testthat/test-summary.R
+  tests/testthat/test-covariance-block-registry.R NEWS.md ROADMAP.md
+  docs/design/28-double-hierarchical-endpoint.md docs/dev-log/check-log.md
+  docs/dev-log/after-task/2026-05-13-slice-9d-derived-covariance-interval-status-guard.md`:
+  passed.
+- `Rscript -e 'devtools::test(filter = "summary|covariance-block-registry|corpairs")'`:
+  passed with 322 expectations, 0 failures, 0 warnings, and 0 skips.
+- `git diff --check`: passed.
+
 ## 2026-05-13 -- Slice 9C summary covariance reporting surface
 
 Scope:

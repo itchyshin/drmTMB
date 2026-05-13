@@ -457,6 +457,7 @@ random_effect_covariance_summaries <- function(object, intervals = NULL) {
     )
     from_sd_interval <- covariance_summary_interval(intervals, from_sd_target)
     to_sd_interval <- covariance_summary_interval(intervals, to_sd_target)
+    covariance_interval_status <- covariance_summary_interval_status(intervals)
 
     data.frame(
       level = block$level[[1L]],
@@ -495,6 +496,7 @@ random_effect_covariance_summaries <- function(object, intervals = NULL) {
       covariance_conf.low = NA_real_,
       covariance_conf.high = NA_real_,
       covariance_conf.method = NA_character_,
+      covariance_conf.status = covariance_interval_status,
       stringsAsFactors = FALSE
     )
   })
@@ -542,6 +544,7 @@ empty_random_effect_covariance_summaries <- function() {
     covariance_conf.low = numeric(),
     covariance_conf.high = numeric(),
     covariance_conf.method = character(),
+    covariance_conf.status = character(),
     stringsAsFactors = FALSE
   )
 }
@@ -621,6 +624,13 @@ covariance_summary_interval <- function(intervals, parm) {
 
 covariance_summary_empty_interval <- function() {
   list(lower = NA_real_, upper = NA_real_, method = NA_character_)
+}
+
+covariance_summary_interval_status <- function(intervals) {
+  if (is.null(intervals)) {
+    return("not_requested")
+  }
+  "derived_interval_unavailable"
 }
 
 covariance_registry_member_scale <- function(member) {
@@ -2076,6 +2086,16 @@ drm_summary_print_covariance <- function(covariance) {
   ) {
     out$correlation_conf.low <- covariance$correlation_conf.low
     out$correlation_conf.high <- covariance$correlation_conf.high
+  }
+  if (
+    "covariance_conf.status" %in%
+      names(covariance) &&
+      any(
+        covariance$covariance_conf.status == "derived_interval_unavailable",
+        na.rm = TRUE
+      )
+  ) {
+    out$covariance_conf.status <- covariance$covariance_conf.status
   }
   out
 }
