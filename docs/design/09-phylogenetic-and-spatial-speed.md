@@ -93,7 +93,10 @@ evaluates the matrix-normal prior for augmented phylogenetic effects across
 and a small dense Kronecker comparator in tests. This proves the covariance
 algebra before exposing bivariate `phylo()` syntax or adding TMB likelihood
 wiring. A matching hidden TMB prior branch mirrors this q=4 algebra contract
-without attaching it to any user-facing bivariate model.
+without attaching it to any user-facing bivariate model. The companion planned
+pair scaffold names the future `mean-mean`, four `mean-scale`, and
+`scale-scale` phylogenetic endpoint rows while keeping them out of
+`corpairs()` until fitted support exists.
 
 ### gllvmTMB Source Map
 

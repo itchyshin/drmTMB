@@ -536,6 +536,77 @@ test_that("TMB correlated phylogenetic prior branch matches q=4 R algebra", {
   )
 })
 
+test_that("phylogenetic q=4 endpoint pair scaffold stays planned", {
+  pairs <- drmTMB:::drm_phylo_q4_endpoint_pairs(
+    group = "species",
+    responses = c("body_mass", "litter_size")
+  )
+
+  expect_equal(nrow(pairs), 6L)
+  expect_equal(pairs$level, rep("phylogenetic", 6L))
+  expect_equal(pairs$group, rep("species", 6L))
+  expect_equal(pairs$block, rep("phylo", 6L))
+  expect_equal(
+    pairs$from_dpar,
+    c("mu1", "mu1", "mu1", "mu2", "mu2", "sigma1")
+  )
+  expect_equal(
+    pairs$to_dpar,
+    c("mu2", "sigma1", "sigma2", "sigma1", "sigma2", "sigma2")
+  )
+  expect_equal(
+    pairs$class,
+    c(
+      "mean-mean",
+      "mean-scale",
+      "mean-scale",
+      "mean-scale",
+      "mean-scale",
+      "scale-scale"
+    )
+  )
+  expect_equal(
+    pairs$from_response,
+    c(
+      "body_mass",
+      "body_mass",
+      "body_mass",
+      "litter_size",
+      "litter_size",
+      "body_mass"
+    )
+  )
+  expect_equal(
+    pairs$to_response,
+    c(
+      "litter_size",
+      "body_mass",
+      "litter_size",
+      "body_mass",
+      "litter_size",
+      "litter_size"
+    )
+  )
+  expect_equal(pairs$modelled, rep(FALSE, 6L))
+  expect_equal(pairs$status, rep("planned", 6L))
+  expect_equal(
+    pairs$support_note,
+    rep("planned_bivariate_phylogenetic_q4", 6L)
+  )
+  expect_false(any(grepl("rho12", pairs$parameter, fixed = TRUE)))
+  expect_error(
+    drmTMB:::drm_phylo_q4_endpoint_pairs(group = ""),
+    "non-empty"
+  )
+  expect_error(
+    drmTMB:::drm_phylo_q4_endpoint_pairs(
+      group = "species",
+      responses = "body_mass"
+    ),
+    "two"
+  )
+})
+
 test_that("TMB phylogenetic prior branch matches the R algebra helper", {
   tree <- tiny_ultrametric_tree()
   precision <- drmTMB:::drm_phylo_augmented_precision(tree)

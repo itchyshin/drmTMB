@@ -116,7 +116,9 @@ The first internal phylogenetic covariance scaffold covers the q=4 prior
 algebra for `a_mu1`, `a_mu2`, `a_sigma1`, and `a_sigma2` on the augmented tree
 nodes. It checks the sparse precision form against a dense Kronecker covariance
 calculation and a hidden TMB prior branch but does not change user-facing model
-syntax.
+syntax. A planned-pair scaffold records the six future row meanings so the
+eventual extractor can keep phylogenetic correlations separate from residual
+`rho12`.
 
 Extractor names should therefore be level-specific, for example
 `corpars$phylo`, `corpars$species`, `corpars$spatial`, or labelled

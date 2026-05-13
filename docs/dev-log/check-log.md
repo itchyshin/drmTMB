@@ -2,6 +2,30 @@
 
 Record meaningful development checks here.
 
+## 2026-05-13 -- Slice 13 phylogenetic q4 planned-pair scaffold
+
+Scope:
+
+- added an internal planned-pair scaffold for the future q=4 phylogenetic
+  endpoint across `mu1`, `mu2`, `sigma1`, and `sigma2`;
+- recorded one `mean-mean`, four `mean-scale`, and one `scale-scale`
+  phylogenetic row with response labels and planned status;
+- checked that the scaffold does not use residual `rho12` names and remains
+  `modelled = FALSE`;
+- kept fitted-model extractors unchanged.
+
+Checks:
+
+- `air format R/phylo-utils.R tests/testthat/test-phylo-utils.R ROADMAP.md
+  docs/design/09-phylogenetic-and-spatial-speed.md
+  docs/design/15-location-coscale-phylogenetic-extension.md
+  docs/dev-log/check-log.md
+  docs/dev-log/after-task/2026-05-13-slice-13-phylogenetic-q4-planned-pair-scaffold.md`:
+  passed.
+- `Rscript -e 'devtools::test(filter = "phylo-utils")'`: passed with 67
+  expectations, 0 failures, 0 warnings, and 0 skips.
+- `git diff --check`: passed.
+
 ## 2026-05-13 -- Slice 12 hidden phylogenetic q4 TMB prior branch
 
 Scope:

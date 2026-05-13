@@ -410,6 +410,89 @@ drm_phylo_correlated_precision_nll <- function(effect, precision, covariance) {
       quadratic)
 }
 
+drm_phylo_q4_endpoint_pairs <- function(
+  group,
+  responses = c("y1", "y2"),
+  block = "phylo"
+) {
+  if (
+    !is.character(group) ||
+      length(group) != 1L ||
+      is.na(group) ||
+      !nzchar(group)
+  ) {
+    cli::cli_abort("{.arg group} must be a single non-empty string.")
+  }
+  if (
+    !is.character(responses) ||
+      length(responses) != 2L ||
+      anyNA(responses) ||
+      any(!nzchar(responses))
+  ) {
+    cli::cli_abort(
+      "{.arg responses} must contain two non-empty response names."
+    )
+  }
+  if (
+    !is.character(block) ||
+      length(block) != 1L ||
+      is.na(block) ||
+      !nzchar(block)
+  ) {
+    cli::cli_abort("{.arg block} must be a single non-empty string.")
+  }
+
+  from_dpar <- c("mu1", "mu1", "mu1", "mu2", "mu2", "sigma1")
+  to_dpar <- c("mu2", "sigma1", "sigma2", "sigma1", "sigma2", "sigma2")
+  from_response <- phylo_endpoint_response(from_dpar, responses)
+  to_response <- phylo_endpoint_response(to_dpar, responses)
+  data.frame(
+    level = "phylogenetic",
+    group = group,
+    block = block,
+    from_dpar = from_dpar,
+    to_dpar = to_dpar,
+    from_coef = "(Intercept)",
+    to_coef = "(Intercept)",
+    from_response = from_response,
+    to_response = to_response,
+    class = c(
+      "mean-mean",
+      "mean-scale",
+      "mean-scale",
+      "mean-scale",
+      "mean-scale",
+      "scale-scale"
+    ),
+    parameter = paste0(
+      "cor(",
+      from_dpar,
+      ":(Intercept),",
+      to_dpar,
+      ":(Intercept) | ",
+      block,
+      " | ",
+      group,
+      ")"
+    ),
+    estimate = NA_real_,
+    min = NA_real_,
+    max = NA_real_,
+    n_values = 0L,
+    link_estimate = NA_real_,
+    link_min = NA_real_,
+    link_max = NA_real_,
+    modelled = FALSE,
+    status = "planned",
+    support_note = "planned_bivariate_phylogenetic_q4",
+    stringsAsFactors = FALSE
+  )
+}
+
+phylo_endpoint_response <- function(dpar, responses) {
+  ifelse(grepl("1$", dpar), responses[[1L]], responses[[2L]])
+}
+
 phylo_augmented_node_labels <- function(node_id, tip_label) {
   labels <- paste0("node", node_id)
   tip <- node_id <= length(tip_label)

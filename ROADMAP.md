@@ -218,6 +218,8 @@ distributional regression models using TMB.
   against a dense Kronecker covariance comparator. This is algebra evidence
   only; bivariate `phylo()` syntax remains planned. The matching hidden TMB
   prior branch now evaluates the same q=4 state against the R algebra helper.
+  A planned-pair scaffold now records the six future phylogenetic endpoint rows
+  without emitting them from fitted-model extractors.
 - Use the correlation-pair design in
   `docs/design/20-coscale-correlation-pairs.md` before implementing bivariate
   double-hierarchical covariance blocks; pair outputs should identify the
