@@ -116,6 +116,9 @@ keep the same row meaning and mark derived intervals separately.
    scale-block recovery tests are stable.
    Done for matching labelled random intercepts.
 7. Combine bivariate group-level covariance blocks with residual `rho12 ~ x`.
+   Done for matching labelled random intercepts in both `mu1`/`mu2` and
+   `sigma1`/`sigma2`; bivariate random slopes and cross-parameter bivariate
+   covariance blocks remain planned.
 8. Add bivariate phylogenetic and non-phylogenetic species covariance blocks
    only after ordinary grouped models have recovery evidence and clear
    diagnostics. These blocks should report phylogenetic correlation,
