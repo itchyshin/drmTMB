@@ -84,11 +84,57 @@ new_three_member_covariance_registry <- function(
   registry
 }
 
+new_four_member_covariance_registry <- function(
+  group_index0 = c(0L, 0L, 1L, 1L),
+  group_levels = NULL,
+  value = NULL,
+  coef_names = NULL
+) {
+  n_obs <- length(group_index0)
+  if (is.null(value)) {
+    value <- matrix(1, nrow = n_obs, ncol = 4L)
+  }
+  if (is.null(coef_names)) {
+    coef_names <- rep("(Intercept)", 4L)
+  }
+  re_mu <- new_covariance_registry_re(
+    dpars = c("mu1", "mu2"),
+    labels = c("mu1:(1 | p | id)", "mu2:(1 | p | id)"),
+    group_index0 = group_index0,
+    group_levels = group_levels,
+    value = value[, 1:2, drop = FALSE],
+    coef_names = coef_names[1:2]
+  )
+  re_sigma <- new_covariance_registry_re(
+    dpars = c("sigma1", "sigma2"),
+    labels = c("sigma1:(1 | p | id)", "sigma2:(1 | p | id)"),
+    group_index0 = group_index0,
+    group_levels = group_levels,
+    value = value[, 3:4, drop = FALSE],
+    coef_names = coef_names[3:4]
+  )
+  registry <- drmTMB:::empty_labelled_covariance_block_registry()
+  registry <- drmTMB:::append_covariance_registry_block(
+    registry,
+    re_list = list(re_mu, re_sigma),
+    member_terms = list(seq_len(re_mu$n_terms), seq_len(re_sigma$n_terms)),
+    parameter = paste0("scaffold:", c("12", "13", "14", "23", "24", "34")),
+    tmb_parameter = rep(NA_character_, 6L),
+    tmb_index = rep(NA_integer_, 6L),
+    implemented = FALSE
+  )
+  registry$n_blocks <- nrow(registry$blocks)
+  registry
+}
+
 tmb_unstructured_corr_matrix <- function(theta) {
   q <- (1 + sqrt(1 + 8 * length(theta))) / 2
   stopifnot(q == as.integer(q))
   L <- diag(as.integer(q))
-  L[lower.tri(L)] <- theta
+  # TMB fills the strict lower triangle row-wise for q > 3.
+  lower <- which(lower.tri(L), arr.ind = TRUE)
+  lower <- lower[order(lower[, "row"], lower[, "col"]), , drop = FALSE]
+  L[lower] <- theta
   stats::cov2cor(L %*% t(L))
 }
 
@@ -135,6 +181,59 @@ test_that("internal covariance registry can describe a guarded q=3 block", {
   expect_equal(pairs$to_dpar, c("mu2", "sigma1", "sigma1"))
   expect_equal(pairs$class, c("mean-mean", "mean-scale", "mean-scale"))
   expect_equal(pairs$parameter, c("scaffold:12", "scaffold:13", "scaffold:23"))
+  expect_true(all(is.na(pairs$tmb_parameter)))
+  expect_true(all(is.na(pairs$tmb_index)))
+})
+
+test_that("internal covariance registry can describe a guarded q=4 endpoint block", {
+  registry <- new_four_member_covariance_registry()
+  block <- registry$blocks[1L, , drop = FALSE]
+  members <- registry$members[
+    order(registry$members$member_id0),
+    ,
+    drop = FALSE
+  ]
+  pairs <- registry$pairs[order(registry$pairs$pair_id0), , drop = FALSE]
+
+  expect_equal(registry$n_blocks, 1L)
+  expect_equal(block$n_members, 4L)
+  expect_equal(block$n_pairs, 6L)
+  expect_false(block$implemented)
+  expect_equal(block$group, "id")
+  expect_equal(block$block_label, "p")
+  expect_equal(block$group_levels[[1L]], c("g1", "g2"))
+  expect_equal(members$member_id0, 0:3)
+  expect_equal(members$dpar, c("mu1", "mu2", "sigma1", "sigma2"))
+  expect_equal(members$component, c("mu", "mu", "sigma", "sigma"))
+  expect_equal(members$response_index, c(1L, 2L, 1L, 2L))
+  expect_equal(members$coef, rep("(Intercept)", 4L))
+
+  expect_equal(pairs$pair_id0, 0:5)
+  expect_equal(pairs$from_member_id0, c(0L, 0L, 0L, 1L, 1L, 2L))
+  expect_equal(pairs$to_member_id0, c(1L, 2L, 3L, 2L, 3L, 3L))
+  expect_equal(
+    pairs$from_dpar,
+    c("mu1", "mu1", "mu1", "mu2", "mu2", "sigma1")
+  )
+  expect_equal(
+    pairs$to_dpar,
+    c("mu2", "sigma1", "sigma2", "sigma1", "sigma2", "sigma2")
+  )
+  expect_equal(
+    pairs$class,
+    c(
+      "mean-mean",
+      "mean-scale",
+      "mean-scale",
+      "mean-scale",
+      "mean-scale",
+      "scale-scale"
+    )
+  )
+  expect_equal(
+    pairs$parameter,
+    paste0("scaffold:", c("12", "13", "14", "23", "24", "34"))
+  )
   expect_true(all(is.na(pairs$tmb_parameter)))
   expect_true(all(is.na(pairs$tmb_index)))
 })
@@ -215,6 +314,94 @@ test_that("hidden q=3 registry probe maps non-centered blocks by group", {
   expect_equal(cov_tmb$re_cov_block_size, 3L)
   expect_equal(cov_tmb$re_cov_pair_parameter, rep(-1L, 3))
   expect_equal(cov_tmb$re_cov_pair_parameter_index, rep(-1L, 3))
+  expect_equal(
+    obj$report()$re_cov_probe_contribution,
+    expected,
+    tolerance = 1e-12
+  )
+  expect_equal(
+    obj$fn(obj$par),
+    sum(-stats::dnorm(z, log = TRUE)),
+    tolerance = 1e-10
+  )
+  expect_true(is.finite(obj$fn(obj$par)))
+  expect_true(all(is.finite(obj$gr(obj$par))))
+})
+
+test_that("hidden q=4 registry probe maps full endpoint block by group", {
+  dat <- data.frame(y = c(-0.3, 0.2, 0.8, -0.1, 0.4, 0.9))
+  fit <- drmTMB(bf(y ~ 1, sigma ~ 1), family = gaussian(), data = dat)
+  group_index0 <- c(0L, 0L, 1L, 1L, 2L, 2L)
+  value <- cbind(
+    1,
+    c(-0.4, 0.6, -0.2, 0.8, -0.7, 0.3),
+    1,
+    c(0.5, -0.5, 0.7, -0.3, 0.2, -0.8)
+  )
+  registry <- new_four_member_covariance_registry(
+    group_index0 = group_index0,
+    group_levels = paste0("g", 1:3),
+    value = value,
+    coef_names = c("(Intercept)", "x", "(Intercept)", "z")
+  )
+  cov_tmb <- drmTMB:::labelled_covariance_block_tmb_data(
+    registry,
+    allow_unimplemented = TRUE
+  )
+  tmb_data <- fit$model$tmb_data
+  tmb_data[names(cov_tmb)] <- cov_tmb
+  theta <- c(0.15, -0.25, 0.10, 0.20, -0.15, 0.30)
+  sd <- c(1.1, 0.7, 1.3, 0.9)
+  z <- c(
+    -0.7,
+    0.4,
+    1.1,
+    -0.2,
+    0.2,
+    -1.0,
+    0.5,
+    0.8,
+    -0.4,
+    0.9,
+    -0.6,
+    0.3
+  )
+  tmb_data$model_type <- 97L
+  tmb_data$re_cov_probe_theta <- theta
+  tmb_data$re_cov_probe_sd <- sd
+  tmb_data$re_cov_probe_z <- numeric(0)
+  parameters <- fit$model$start
+  parameters$u_re_cov_probe <- z
+  map <- fit$model$map
+  map$u_re_cov_probe <- NULL
+
+  obj <- TMB::MakeADFun(
+    data = tmb_data,
+    parameters = parameters,
+    map = map,
+    random = fit$model$random_names,
+    DLL = "drmTMB",
+    silent = TRUE
+  )
+
+  z_by_group <- matrix(z, ncol = 4L, byrow = TRUE)
+  latent <- t(apply(
+    z_by_group,
+    1L,
+    tmb_vecscale_sqrt_cov_scale,
+    theta = theta,
+    sd = sd
+  ))
+  expected <- value * latent[group_index0 + 1L, ]
+  corr <- obj$report()$re_cov_probe_corr
+  eig <- eigen(corr, symmetric = TRUE, only.values = TRUE)$values
+
+  expect_equal(cov_tmb$re_cov_block_size, 4L)
+  expect_equal(cov_tmb$re_cov_pair_parameter, rep(-1L, 6))
+  expect_equal(cov_tmb$re_cov_pair_parameter_index, rep(-1L, 6))
+  expect_equal(corr, t(corr), tolerance = 1e-12)
+  expect_equal(diag(corr), rep(1, 4), tolerance = 1e-12)
+  expect_true(all(eig > 0))
   expect_equal(
     obj$report()$re_cov_probe_contribution,
     expected,

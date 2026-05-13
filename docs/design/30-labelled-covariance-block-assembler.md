@@ -124,6 +124,15 @@ the simulated `mu` and `log_sigma` predictor signal better than a
 no-random-effect baseline. This is recovery evidence for the hidden q=3
 prototype, not public q > 2 support.
 
+The first q=4 bridge keeps the same boundary. A hidden deterministic test builds
+one guarded block across `mu1`, `mu2`, `sigma1`, and `sigma2`, checks all six
+registry pair rows, and routes four member contributions through hidden
+`model_type == 97`. This also fixes the R-side test helper to mirror TMB's
+row-wise strict-lower-triangle `UNSTRUCTURED_CORR_t` theta order for q > 3. The
+test proves that the block data contract and positive-definite transform extend
+to the full endpoint dimension; it does not route q=4 effects into a bivariate
+Gaussian likelihood yet.
+
 The flattened data contract should be block-oriented rather than pair-oriented:
 
 ```text
@@ -225,10 +234,12 @@ still be named `sigma`.
    same hidden likelihood branch with `u_re_cov_probe` registered as a TMB random
    effect, and for a deterministic hidden simulation-style check that recovers
    the simulated q=3 predictor signal better than a no-random-effect baseline.
-   Production q=4 support still needs fitted likelihood code, extractor rows,
-   examples, and public syntax review.
-8. Only then enable bivariate random slopes or the full shared
-   `mu1`/`mu2`/`sigma1`/`sigma2` label pattern.
+   Started for a q=4 hidden registry/contribution bridge across `mu1`, `mu2`,
+   `sigma1`, and `sigma2`, with all six pair rows and a positive-definite hidden
+   contribution map. Production q=4 support still needs fitted likelihood code,
+   extractor rows, examples, and public syntax review.
+8. Enable the full shared `mu1`/`mu2`/`sigma1`/`sigma2` label pattern only after
+   the hidden q=4 bridge has fitted likelihood and recovery evidence.
 
 ## Diagnostics
 

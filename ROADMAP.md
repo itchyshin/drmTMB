@@ -162,8 +162,11 @@ distributional regression models using TMB.
   prototype that routes q=3 member contributions into `mu` and `log_sigma`, and
   a hidden Laplace version of that likelihood prototype. A deterministic
   hidden simulation-style check now verifies that this path can recover the
-  simulated q=3 predictor signal better than a no-random-effect baseline; these
-  probes are not user-facing fitted-model support yet.
+  simulated q=3 predictor signal better than a no-random-effect baseline. The
+  first q=4 bridge now confirms that one guarded block can enumerate
+  `mu1`/`mu2`/`sigma1`/`sigma2` members, all six pair rows, and a hidden
+  positive-definite contribution map; these probes are not user-facing
+  fitted-model support yet.
 - Use `docs/design/18-random-effect-scale-models.md` as the design contract:
   the implemented MVP targets one or more distinct unlabelled univariate
   Gaussian `mu` random intercepts, with group-level predictors, simulation

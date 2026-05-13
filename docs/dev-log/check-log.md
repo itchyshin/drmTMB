@@ -2,6 +2,38 @@
 
 Record meaningful development checks here.
 
+## 2026-05-13 -- Slice 8A hidden q=4 registry contribution bridge
+
+Scope:
+
+- added a guarded four-member covariance-block registry helper for one hidden
+  block across `mu1`, `mu2`, `sigma1`, and `sigma2`;
+- added a registry test proving the q=4 block carries four members and all six
+  pair rows, with `mean-mean`, four `mean-scale`, and `scale-scale` classes;
+- added a hidden `model_type == 97` TMB contribution-map test proving the q=4
+  block can map standardized group-level latent vectors through
+  `UNSTRUCTURED_CORR_t` plus `VECSCALE_t` into member-specific design columns;
+- corrected the R-side test helper for TMB's row-wise strict-lower-triangle
+  theta order, which q=3 could not distinguish from the old column-wise helper;
+- updated roadmap and q > 2 design notes to record this as the first q=4
+  bridge while keeping fitted q=4 likelihood, extractor rows, examples, and
+  public syntax out of scope.
+
+Checks:
+
+- `air format tests/testthat/test-covariance-block-registry.R ROADMAP.md
+  docs/design/28-double-hierarchical-endpoint.md
+  docs/design/30-labelled-covariance-block-assembler.md
+  docs/dev-log/check-log.md
+  docs/dev-log/after-task/2026-05-13-slice-8a-hidden-q4-registry-contribution-bridge.md`:
+  passed.
+- `Rscript -e 'devtools::test(filter = "covariance-block-registry")'`: passed
+  with 104 expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript -e 'devtools::test(filter =
+  "covariance-block-registry|biv-gaussian|gaussian-random-intercepts|phylo-utils|package-skeleton")'`:
+  passed with 1002 expectations, 0 failures, 0 warnings, and 0 skips.
+- `git diff --check`: passed.
+
 ## 2026-05-13 -- Slice 7D hidden q=3 simulation-style recovery check
 
 Scope:
