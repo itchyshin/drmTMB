@@ -387,7 +387,7 @@ random_effect_registry_corpairs <- function(object) {
   })
 }
 
-random_effect_covariance_summaries <- function(object) {
+random_effect_covariance_summaries <- function(object, intervals = NULL) {
   registry <- object$model$random$covariance_blocks
   if (
     !is.list(registry) ||
@@ -434,6 +434,9 @@ random_effect_covariance_summaries <- function(object) {
     }
 
     cor_key <- covariance_block_corpars_key(pair$tmb_parameter[[1L]])
+    correlation_target <- paste0("cor:", cor_key, ":", pair$parameter[[1L]])
+    from_sd_target <- covariance_registry_member_sd_target(from_member)
+    to_sd_target <- covariance_registry_member_sd_target(to_member)
     cor_values <- object$corpars[[cor_key]]
     cor_index <- pair$tmb_index[[1L]]
     correlation <- if (
@@ -448,6 +451,12 @@ random_effect_covariance_summaries <- function(object) {
     from_variance <- from_sd^2
     to_variance <- to_sd^2
     covariance <- correlation * from_sd * to_sd
+    correlation_interval <- covariance_summary_interval(
+      intervals,
+      correlation_target
+    )
+    from_sd_interval <- covariance_summary_interval(intervals, from_sd_target)
+    to_sd_interval <- covariance_summary_interval(intervals, to_sd_target)
 
     data.frame(
       level = block$level[[1L]],
@@ -461,6 +470,9 @@ random_effect_covariance_summaries <- function(object) {
       to_response = random_effect_response_name(object, pair$to_dpar[[1L]]),
       class = pair$class[[1L]],
       parameter = pair$parameter[[1L]],
+      correlation_target = correlation_target,
+      from_sd_target = from_sd_target,
+      to_sd_target = to_sd_target,
       correlation = correlation,
       from_sd_parameter = from_member$label[[1L]],
       to_sd_parameter = to_member$label[[1L]],
@@ -471,6 +483,18 @@ random_effect_covariance_summaries <- function(object) {
       covariance = covariance,
       from_scale = covariance_registry_member_scale(from_member),
       to_scale = covariance_registry_member_scale(to_member),
+      correlation_conf.low = correlation_interval$lower,
+      correlation_conf.high = correlation_interval$upper,
+      correlation_conf.method = correlation_interval$method,
+      from_sd_conf.low = from_sd_interval$lower,
+      from_sd_conf.high = from_sd_interval$upper,
+      from_sd_conf.method = from_sd_interval$method,
+      to_sd_conf.low = to_sd_interval$lower,
+      to_sd_conf.high = to_sd_interval$upper,
+      to_sd_conf.method = to_sd_interval$method,
+      covariance_conf.low = NA_real_,
+      covariance_conf.high = NA_real_,
+      covariance_conf.method = NA_character_,
       stringsAsFactors = FALSE
     )
   })
@@ -493,6 +517,9 @@ empty_random_effect_covariance_summaries <- function() {
     to_response = character(),
     class = character(),
     parameter = character(),
+    correlation_target = character(),
+    from_sd_target = character(),
+    to_sd_target = character(),
     correlation = numeric(),
     from_sd_parameter = character(),
     to_sd_parameter = character(),
@@ -503,6 +530,18 @@ empty_random_effect_covariance_summaries <- function() {
     covariance = numeric(),
     from_scale = character(),
     to_scale = character(),
+    correlation_conf.low = numeric(),
+    correlation_conf.high = numeric(),
+    correlation_conf.method = character(),
+    from_sd_conf.low = numeric(),
+    from_sd_conf.high = numeric(),
+    from_sd_conf.method = character(),
+    to_sd_conf.low = numeric(),
+    to_sd_conf.high = numeric(),
+    to_sd_conf.method = character(),
+    covariance_conf.low = numeric(),
+    covariance_conf.high = numeric(),
+    covariance_conf.method = character(),
     stringsAsFactors = FALSE
   )
 }
@@ -529,6 +568,15 @@ covariance_registry_member_sd <- function(object, member) {
   unname(value)
 }
 
+covariance_registry_member_sd_target <- function(member) {
+  paste0(
+    "sd:",
+    covariance_registry_member_sd_key(member),
+    ":",
+    member$label[[1L]]
+  )
+}
+
 covariance_registry_member_sd_key <- function(member) {
   dpar_family <- sub("[0-9]+$", "", member$dpar[[1L]])
   switch(
@@ -537,6 +585,42 @@ covariance_registry_member_sd_key <- function(member) {
     sigma = "sigma",
     dpar_family
   )
+}
+
+covariance_summary_interval <- function(intervals, parm) {
+  if (is.null(intervals)) {
+    return(covariance_summary_empty_interval())
+  }
+  if (!is.data.frame(intervals) || !"parm" %in% names(intervals)) {
+    cli::cli_abort(
+      "Internal error: covariance summary intervals must be a profile interval table."
+    )
+  }
+  if (nrow(intervals) == 0L) {
+    return(covariance_summary_empty_interval())
+  }
+  row <- intervals[intervals$parm == parm, , drop = FALSE]
+  if (nrow(row) == 0L) {
+    return(covariance_summary_empty_interval())
+  }
+  if (nrow(row) > 1L) {
+    cli::cli_abort(
+      "Internal error: covariance summary intervals contain duplicate targets."
+    )
+  }
+  list(
+    lower = if ("lower" %in% names(row)) row$lower[[1L]] else NA_real_,
+    upper = if ("upper" %in% names(row)) row$upper[[1L]] else NA_real_,
+    method = if ("method" %in% names(row)) {
+      as.character(row$method[[1L]])
+    } else {
+      NA_character_
+    }
+  )
+}
+
+covariance_summary_empty_interval <- function() {
+  list(lower = NA_real_, upper = NA_real_, method = NA_character_)
 }
 
 covariance_registry_member_scale <- function(member) {

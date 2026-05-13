@@ -107,6 +107,12 @@ the fitted random-effect scale. For `sigma`, `sigma1`, and `sigma2` random
 effects, that scale is `log(sigma)`, not residual variance. Interval support is
 the next layer and should remain separate from these point estimates.
 
+The second scaffold can attach direct profile intervals for the SD and
+correlation targets that define each covariance row. The covariance interval
+itself remains unfilled until a fix-and-refit or other valid derived-interval
+method is available; it should not be approximated by stitching together
+component Wald intervals.
+
 ## Implementation Order
 
 1. Keep the current fixed-effect bivariate `rho12` path and ordinary univariate

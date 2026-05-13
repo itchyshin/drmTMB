@@ -319,6 +319,33 @@ test_that("corpairs can format fitted-like q=4 endpoint registry rows", {
 
   pairs <- corpairs(fit_q4, level = "group")
   covariance_summaries <- drmTMB:::random_effect_covariance_summaries(fit_q4)
+  correlation_targets <- paste0(
+    "cor:",
+    c("mu", rep("mu_sigma", 4L), "sigma"),
+    ":",
+    pair_labels
+  )
+  sd_targets <- c(
+    paste0("sd:mu:", names(fit_q4$sdpars$mu)),
+    paste0("sd:sigma:", names(fit_q4$sdpars$sigma))
+  )
+  interval_table <- data.frame(
+    parm = c(correlation_targets, sd_targets),
+    lower = c(
+      estimates - 0.05,
+      unname(c(fit_q4$sdpars$mu, fit_q4$sdpars$sigma)) - 0.02
+    ),
+    upper = c(
+      estimates + 0.05,
+      unname(c(fit_q4$sdpars$mu, fit_q4$sdpars$sigma)) + 0.02
+    ),
+    method = "profile",
+    stringsAsFactors = FALSE
+  )
+  covariance_summaries_ci <- drmTMB:::random_effect_covariance_summaries(
+    fit_q4,
+    intervals = interval_table
+  )
 
   expect_equal(nrow(pairs), 6L)
   expect_equal(pairs$group, rep("id", 6L))
@@ -398,6 +425,43 @@ test_that("corpairs can format fitted-like q=4 endpoint registry rows", {
     covariance_summaries$to_scale,
     c("identity", "log", "log", "log", "log", "log")
   )
+  expect_equal(covariance_summaries$correlation_target, correlation_targets)
+  expect_equal(
+    covariance_summaries$from_sd_target,
+    sd_targets[c(1L, 1L, 1L, 2L, 2L, 3L)]
+  )
+  expect_equal(
+    covariance_summaries$to_sd_target,
+    sd_targets[c(2L, 3L, 4L, 3L, 4L, 4L)]
+  )
+  expect_true(all(is.na(covariance_summaries$correlation_conf.low)))
+  expect_equal(
+    covariance_summaries_ci$correlation_conf.low,
+    estimates - 0.05,
+    tolerance = 1e-12
+  )
+  expect_equal(
+    covariance_summaries_ci$from_sd_conf.low,
+    interval_table$lower[match(
+      covariance_summaries_ci$from_sd_target,
+      interval_table$parm
+    )],
+    tolerance = 1e-12
+  )
+  expect_equal(
+    covariance_summaries_ci$to_sd_conf.high,
+    interval_table$upper[match(
+      covariance_summaries_ci$to_sd_target,
+      interval_table$parm
+    )],
+    tolerance = 1e-12
+  )
+  expect_equal(
+    covariance_summaries_ci$correlation_conf.method,
+    rep("profile", 6L)
+  )
+  expect_true(all(is.na(covariance_summaries_ci$covariance_conf.low)))
+  expect_true(all(is.na(covariance_summaries_ci$covariance_conf.method)))
 
   fit_dormant <- fit
   fit_dormant$model$random$covariance_blocks <-

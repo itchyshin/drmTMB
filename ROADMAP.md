@@ -459,6 +459,9 @@ remain blocked by future covariance or non-Gaussian random-effect work.
 - Started the derived-summary path with an internal registry-backed table that
   transforms fitted random-effect SDs and correlations into variance and
   covariance point estimates on the fitted random-effect scale.
+- The internal derived-summary table can also attach direct profile intervals
+  for its component SD and correlation targets, while leaving derived covariance
+  intervals unfilled until a valid nonlinear interval method is implemented.
 - Use fix-and-refit profiles or carefully parameterized direct targets for
   nonlinear quantities; do not treat Wald intervals as the default for boundary
   variance components or correlations.
