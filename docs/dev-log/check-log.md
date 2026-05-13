@@ -2,6 +2,28 @@
 
 Record meaningful development checks here.
 
+## 2026-05-13 -- pkgdown feature-branch build workflow guard
+
+Scope:
+
+- split the pkgdown workflow so manual feature-branch dispatches build and
+  upload the site artifact without entering the protected GitHub Pages deploy
+  environment;
+- kept deploys restricted to main/master dispatches or successful main/master
+  `R-CMD-check` workflow-run completions;
+- responded to failed pkgdown run `25817629476`, which was rejected by
+  GitHub Pages environment protection before build steps started.
+
+Checks:
+
+- `air format .github/workflows/pkgdown.yaml docs/dev-log/check-log.md
+  docs/dev-log/after-task/2026-05-13-pkgdown-feature-branch-build-workflow-guard.md`:
+  passed.
+- `ruby -e 'require "yaml"; data = YAML.load_file(".github/workflows/pkgdown.yaml");
+  abort("missing jobs") unless data["jobs"] || data[true] || data[:jobs]; puts
+  "yaml parsed"'`: passed.
+- `git diff --check`: passed.
+
 ## 2026-05-13 -- Slice 15 staged trait protocol guide
 
 Scope:
