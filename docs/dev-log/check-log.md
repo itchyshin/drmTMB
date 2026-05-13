@@ -2,6 +2,33 @@
 
 Record meaningful development checks here.
 
+## 2026-05-13 -- Slice 7B hidden q=3 Gaussian likelihood prototype
+
+Scope:
+
+- added hidden `model_type == 96`, which reuses the q=3 registry contribution
+  map and injects `mu`-component members into the Gaussian location predictor
+  and `sigma`-component members into the log-scale predictor;
+- added a deterministic registry test that reconstructs the q=3 latent
+  transform in R and checks the reported contribution matrix, `mu`,
+  `log_sigma`, `obs_sigma`, objective, and gradient;
+- clarified in the q > 2 design note that q is the number of covariance-block
+  members: q=3 has three members and three correlations, while the full
+  `mu1`/`mu2`/`sigma1`/`sigma2` endpoint is q=4 with six correlations;
+- changed no formula grammar, no ordinary model type, no extractor rows, and no
+  public q > 2 covariance support.
+
+Checks:
+
+- `air format src/drmTMB.cpp tests/testthat/test-covariance-block-registry.R`:
+  passed.
+- `Rscript -e 'devtools::test(filter = "covariance-block-registry")'`: passed
+  with 57 expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript -e 'devtools::test(filter =
+  "covariance-block-registry|biv-gaussian|gaussian-random-intercepts|phylo-utils|package-skeleton")'`:
+  passed with 955 expectations, 0 failures, 0 warnings, and 0 skips.
+- `git diff --check`: passed.
+
 ## 2026-05-13 -- Slice 7A hidden q=3 random-effect boundary
 
 Scope:

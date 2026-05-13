@@ -237,6 +237,66 @@ test_that("hidden q=3 registry probe can use TMB random effects", {
   expect_equal(grad, rep(0, length(obj$par)), tolerance = 1e-8)
 })
 
+test_that("hidden q=3 registry probe can enter Gaussian likelihood", {
+  dat <- data.frame(y = c(-0.3, 0.2, 0.8, -0.1))
+  fit <- drmTMB(bf(y ~ 1, sigma ~ 1), family = gaussian(), data = dat)
+  registry <- new_three_member_covariance_registry()
+  cov_tmb <- drmTMB:::labelled_covariance_block_tmb_data(
+    registry,
+    allow_unimplemented = TRUE
+  )
+  tmb_data <- fit$model$tmb_data
+  tmb_data[names(cov_tmb)] <- cov_tmb
+  theta <- c(0.2, -0.4, 0.3)
+  sd <- c(1.2, 0.8, 1.5)
+  z <- c(-0.7, 0.4, 1.1, 0.2, -1.0, 0.5)
+  tmb_data$model_type <- 96L
+  tmb_data$re_cov_probe_theta <- theta
+  tmb_data$re_cov_probe_sd <- sd
+  tmb_data$re_cov_probe_z <- numeric(0)
+  parameters <- fit$model$start
+  parameters$u_re_cov_probe <- z
+  map <- fit$model$map
+  map$u_re_cov_probe <- NULL
+
+  obj <- TMB::MakeADFun(
+    data = tmb_data,
+    parameters = parameters,
+    map = map,
+    random = fit$model$random_names,
+    DLL = "drmTMB",
+    silent = TRUE
+  )
+
+  latent_g1 <- tmb_vecscale_sqrt_cov_scale(theta, sd, z[1:3])
+  latent_g2 <- tmb_vecscale_sqrt_cov_scale(theta, sd, z[4:6])
+  contribution <- unname(rbind(latent_g1, latent_g1, latent_g2, latent_g2))
+  mu <- unname(
+    drop(tmb_data$X_mu %*% parameters$beta_mu) +
+      contribution[, 1] +
+      contribution[, 2]
+  )
+  log_sigma <- unname(
+    drop(tmb_data$X_sigma %*% parameters$beta_sigma) + contribution[, 3]
+  )
+  obs_sigma <- sqrt(tmb_data$V_known + exp(log_sigma)^2)
+  expected_nll <- sum(-stats::dnorm(z, log = TRUE)) +
+    sum(-tmb_data$weights * stats::dnorm(dat$y, mu, obs_sigma, log = TRUE))
+
+  report <- obj$report()
+  expect_equal(
+    report$re_cov_probe_contribution,
+    contribution,
+    tolerance = 1e-12
+  )
+  expect_equal(report$mu, mu, tolerance = 1e-12)
+  expect_equal(report$log_sigma, log_sigma, tolerance = 1e-12)
+  expect_equal(report$obs_sigma, obs_sigma, tolerance = 1e-12)
+  expect_equal(obj$fn(obj$par), expected_nll, tolerance = 1e-10)
+  expect_true(is.finite(obj$fn(obj$par)))
+  expect_true(all(is.finite(obj$gr(obj$par))))
+})
+
 test_that("TMB q=3 covariance prototype produces positive-definite correlations", {
   dat <- data.frame(y = c(-0.3, 0.2, 0.8, -0.1, 0.4, 0.9))
   fit <- drmTMB(bf(y ~ 1, sigma ~ 1), family = gaussian(), data = dat)

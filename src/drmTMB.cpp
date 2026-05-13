@@ -160,7 +160,7 @@ Type objective_function<Type>::operator()()
   (void)re_cov_pair_to_member;
   (void)re_cov_pair_parameter;
   (void)re_cov_pair_parameter_index;
-  if (model_type == 97) {
+  if (model_type == 96 || model_type == 97) {
     density::UNSTRUCTURED_CORR_t<Type> re_cov_probe_density(re_cov_probe_theta);
     matrix<Type> re_cov_probe_corr = re_cov_probe_density.cov();
     matrix<Type> re_cov_probe_contribution(
@@ -205,6 +205,30 @@ Type objective_function<Type>::operator()()
     }
     for (int j = 0; j < u_re_cov_probe.size(); ++j) {
       nll -= dnorm(u_re_cov_probe(j), Type(0.0), Type(1.0), true);
+    }
+    if (model_type == 96) {
+      vector<Type> mu = X_mu * beta_mu;
+      vector<Type> log_sigma = X_sigma * beta_sigma;
+      for (int i = 0; i < y.size(); ++i) {
+        if (i < re_cov_probe_contribution.rows()) {
+          for (int m = 0; m < re_cov_probe_contribution.cols(); ++m) {
+            if (re_cov_member_component(m) == 0) {
+              mu(i) += re_cov_probe_contribution(i, m);
+            } else if (re_cov_member_component(m) == 1) {
+              log_sigma(i) += re_cov_probe_contribution(i, m);
+            }
+          }
+        }
+      }
+      vector<Type> sigma = exp(log_sigma);
+      vector<Type> obs_sigma = sqrt(V_known + sigma * sigma);
+      for (int i = 0; i < y.size(); ++i) {
+        nll -= weights(i) * dnorm(y(i), mu(i), obs_sigma(i), true);
+      }
+      REPORT(mu);
+      REPORT(log_sigma);
+      REPORT(sigma);
+      REPORT(obs_sigma);
     }
     REPORT(re_cov_probe_corr);
     REPORT(re_cov_probe_contribution);

@@ -79,7 +79,10 @@ block was too large or unsupported, and what smaller model to try next.
 ## TMB Contract
 
 For each assembled block `b` with `q_b` members and `G_b` groups, TMB should
-work with standardized random effects:
+work with standardized random effects. Here `q_b` is the number of
+random-effect members in the shared block, not the number of pairwise
+correlations. A q=3 block has three members and three correlations; the full
+`mu1`/`mu2`/`sigma1`/`sigma2` endpoint is q=4 and has six correlations.
 
 ```text
 z_bj ~ Normal(0, I_q)
@@ -110,7 +113,9 @@ ordinary models. Hidden tests explicitly unmap it for `model_type == 97`, which
 proves that a TMB parameter can feed the q=3 block transform without changing
 user-facing fits. A follow-up hidden test also passes `u_re_cov_probe` through
 TMB's `random` argument, proving the internal Laplace random-effect boundary
-before any ordinary likelihood branch uses it.
+before any ordinary likelihood branch uses it. The first hidden likelihood
+prototype routes q=3 transformed member contributions into a Gaussian `mu` and
+`log_sigma` likelihood branch, without opening q > 2 syntax.
 
 The flattened data contract should be block-oriented rather than pair-oriented:
 
@@ -208,8 +213,10 @@ still be named `sigma`.
    `sqrt_cov_scale()` latent transform. Also done for a hidden
    registry-shaped member/group contribution probe using a dormant TMB
    parameter. A hidden random-effect boundary test now registers that parameter
-   through TMB's `random` argument; the production likelihood still needs real
-   q=3 likelihood wiring.
+   through TMB's `random` argument, and a hidden likelihood prototype routes q=3
+   member contributions into one Gaussian `mu`/`log_sigma` branch. Production
+   support still needs simulation recovery, extractor rows, and public syntax
+   review.
 8. Only then enable bivariate random slopes or the full shared
    `mu1`/`mu2`/`sigma1`/`sigma2` label pattern.
 
