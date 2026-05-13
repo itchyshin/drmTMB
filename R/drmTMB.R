@@ -3356,6 +3356,9 @@ build_biv_mu_random_structure <- function(mu1_terms, mu2_terms, data) {
     cor_labels = format_biv_mu_cor_label(group_name, block_label),
     labels = labels,
     dpars = c("mu1", "mu2"),
+    coef_names = c("(Intercept)", "(Intercept)"),
+    group_names = c(group_name, group_name),
+    covariance_labels = rep(block_label, 2L),
     groups = groups,
     value_names = c(
       paste0(labels[[1L]], ":", levels_group),
