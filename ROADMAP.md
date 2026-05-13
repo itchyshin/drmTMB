@@ -150,8 +150,10 @@ distributional regression models using TMB.
   preserving target names and indices. The design contract remains
   `docs/design/30-labelled-covariance-block-assembler.md`; the two-member
   dormant contract now crosses the C++ boundary as a no-op visibility check.
-  Larger shared labels still need simulation recovery and a
-  positive-definite `q > 2` likelihood path before exposure.
+  The registry can internally enumerate all pair rows for a guarded
+  three-member block, but marks that scaffold unimplemented and still blocks
+  TMB export for `q > 2`. Larger shared labels still need simulation recovery
+  and a positive-definite `q > 2` likelihood path before exposure.
 - Use `docs/design/18-random-effect-scale-models.md` as the design contract:
   the implemented MVP targets one or more distinct unlabelled univariate
   Gaussian `mu` random intercepts, with group-level predictors, simulation

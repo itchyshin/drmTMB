@@ -92,11 +92,12 @@ transformed effects `r_bj` enter the `mu`, `sigma`, `mu1`, `mu2`, `sigma1`,
 or `sigma2` linear predictors.
 
 Local TMB 1.9.21 exposes `UNSTRUCTURED_CORR_t` and `VECSCALE_t` for an
-unstructured correlation density with scaled standard deviations. Slice 4
-should prototype that helper before adding a local correlation transform. If
-the helper is unsuitable for the existing non-centered parameterization, the
-fallback should still use one positive-definite Cholesky-style parameterization
-for the whole block, not separate unconstrained pairwise `tanh()` correlations.
+unstructured correlation density with scaled standard deviations. The `q > 2`
+likelihood slice should prototype that helper before adding a local correlation
+transform. If the helper is unsuitable for the existing non-centered
+parameterization, the fallback should still use one positive-definite
+Cholesky-style parameterization for the whole block, not separate
+unconstrained pairwise `tanh()` correlations.
 
 The flattened data contract should be block-oriented rather than pair-oriented:
 
@@ -119,13 +120,14 @@ re_cov_pair_parameter[P]
 re_cov_pair_parameter_index[P]
 ```
 
-The dormant 4C contract is intentionally limited to currently implemented
-two-member blocks. Before a `q > 2` block is enabled, the contract must generate
-all `q * (q - 1) / 2` pair rows or replace the pair table with a Cholesky
-parameter-index layout that gives C++ the same complete information. Names can
-change during implementation, but the invariant should not: the likelihood sees
-one block, its members, its standard deviations, its correlation parameters,
-and its standardized random effects.
+The dormant TMB export contract is intentionally limited to currently
+implemented two-member blocks. The internal registry scaffold can now generate
+all `q * (q - 1) / 2` pair rows for a guarded three-member block, but
+`labelled_covariance_block_tmb_data()` still blocks `q > 2` export until a
+positive-definite likelihood parameterization exists. Names can change during
+implementation, but the invariant should not: the likelihood sees one block,
+its members, its standard deviations, its correlation parameters, and its
+standardized random effects.
 
 ## Pair Reporting
 
@@ -182,8 +184,10 @@ still be named `sigma`.
    appending empty or registry block data to every TMB data list, declaring
    the `re_cov_*` fields in C++, and checking that scrambling those fields
    leaves the objective and gradient unchanged.
-6. Add one simulation scaffold for a three-member block before exposing a
-   four-formula bivariate block.
+6. Add one guarded three-member scaffold before exposing a four-formula
+   bivariate block. Done for internal registry pair enumeration: a q=3 block
+   can carry three members and all three pair rows while marked
+   `implemented = FALSE`, and TMB export still aborts for `q > 2`.
 7. Prototype `UNSTRUCTURED_CORR_t` plus scaled standard deviations or an
    equivalent positive-definite Cholesky path for `q > 2`.
 8. Only then enable bivariate random slopes or the full shared

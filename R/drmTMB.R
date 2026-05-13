@@ -3314,6 +3314,13 @@ build_mu_sigma_random_covariance <- function(re_mu, re_sigma) {
       "i" = "Use matching labels such as {.code y ~ x + (1 | {block_label} | {group_name})} and {.code sigma ~ z + (1 | {block_label} | {group_name})}."
     ))
   }
+  if (length(unique(re_mu$dpars[matching_mu])) > 1L) {
+    cli::cli_abort(c(
+      "Larger labelled covariance blocks are not implemented yet.",
+      "x" = "Block {.code {block_label}} on group {.field {group_name}} would connect {.code {re_mu$dpars[matching_mu]}} with {.code {re_sigma$dpars[[labelled_sigma]]}}.",
+      "i" = "Use one same-response pair such as {.code mu1} with {.code sigma1}, or wait for the positive-definite q > 2 block parameterization."
+    ))
+  }
   if (
     length(matching_mu) > 1L ||
       !identical(re_mu$coef_names[[matching_mu]], "(Intercept)")
@@ -3513,7 +3520,8 @@ append_covariance_registry_block <- function(
   member_terms,
   parameter,
   tmb_parameter,
-  tmb_index
+  tmb_index,
+  implemented = TRUE
 ) {
   block_id0 <- nrow(registry$blocks)
   member_rows <- do.call(
@@ -3563,7 +3571,7 @@ append_covariance_registry_block <- function(
       n_groups = n_groups[[1L]],
       group_levels = I(list(group_levels)),
       n_pairs = as.integer(choose(nrow(member_rows), 2L)),
-      implemented = TRUE,
+      implemented = implemented,
       stringsAsFactors = FALSE
     )
   )
@@ -3573,32 +3581,77 @@ append_covariance_registry_block <- function(
     member_rows[, names(registry$members), drop = FALSE]
   )
 
-  if (nrow(member_rows) == 2L) {
-    registry$pairs <- rbind(
-      registry$pairs,
-      data.frame(
-        block_id0 = block_id0,
-        pair_id0 = 0L,
-        from_member_id0 = 0L,
-        to_member_id0 = 1L,
-        from_dpar = member_rows$dpar[[1L]],
-        to_dpar = member_rows$dpar[[2L]],
-        from_coef = member_rows$coef[[1L]],
-        to_coef = member_rows$coef[[2L]],
-        class = covariance_block_pair_class(
-          member_rows$dpar[[1L]],
-          member_rows$coef[[1L]],
-          member_rows$dpar[[2L]],
-          member_rows$coef[[2L]]
-        ),
-        parameter = parameter,
-        tmb_parameter = tmb_parameter,
-        tmb_index = tmb_index,
-        stringsAsFactors = FALSE
-      )
+  registry$pairs <- rbind(
+    registry$pairs,
+    covariance_registry_pair_rows(
+      block_id0,
+      member_rows,
+      parameter,
+      tmb_parameter,
+      tmb_index
     )
-  }
+  )
   registry
+}
+
+covariance_registry_pair_rows <- function(
+  block_id0,
+  member_rows,
+  parameter,
+  tmb_parameter,
+  tmb_index
+) {
+  if (nrow(member_rows) < 2L) {
+    return(empty_labelled_covariance_block_registry()$pairs)
+  }
+
+  pair_members <- utils::combn(seq_len(nrow(member_rows)), 2L)
+  n_pairs <- ncol(pair_members)
+  parameter <- recycle_covariance_pair_field(parameter, n_pairs, "parameter")
+  tmb_parameter <- recycle_covariance_pair_field(
+    tmb_parameter,
+    n_pairs,
+    "tmb_parameter"
+  )
+  tmb_index <- recycle_covariance_pair_field(tmb_index, n_pairs, "tmb_index")
+  from <- pair_members[1L, ]
+  to <- pair_members[2L, ]
+
+  data.frame(
+    block_id0 = block_id0,
+    pair_id0 = seq_len(n_pairs) - 1L,
+    from_member_id0 = member_rows$member_id0[from],
+    to_member_id0 = member_rows$member_id0[to],
+    from_dpar = member_rows$dpar[from],
+    to_dpar = member_rows$dpar[to],
+    from_coef = member_rows$coef[from],
+    to_coef = member_rows$coef[to],
+    class = mapply(
+      covariance_block_pair_class,
+      member_rows$dpar[from],
+      member_rows$coef[from],
+      member_rows$dpar[to],
+      member_rows$coef[to],
+      USE.NAMES = FALSE
+    ),
+    parameter = parameter,
+    tmb_parameter = tmb_parameter,
+    tmb_index = tmb_index,
+    stringsAsFactors = FALSE
+  )
+}
+
+recycle_covariance_pair_field <- function(x, n, field) {
+  if (length(x) == 1L) {
+    return(rep(x, n))
+  }
+  if (length(x) == n) {
+    return(x)
+  }
+  cli::cli_abort(c(
+    "Internal error: covariance-block pair field {.field {field}} has incompatible length.",
+    "x" = "Expected length 1 or {n}, but found {length(x)}."
+  ))
 }
 
 covariance_registry_member_row <- function(term, re, component) {
@@ -3664,9 +3717,9 @@ labelled_covariance_block_tmb_data <- function(registry) {
   pairs <- registry$pairs
   if (any(blocks$n_members != 2L)) {
     cli::cli_abort(c(
-      "Internal error: dormant covariance-block TMB data only supports two-member blocks.",
+      "Internal error: dormant covariance-block TMB data only supports implemented two-member blocks.",
       "x" = "Found block size{?s}: {.val {unique(blocks$n_members)}}.",
-      "i" = "Generate all pair rows before enabling q > 2 covariance blocks."
+      "i" = "Add a positive-definite q > 2 parameterization before exporting larger blocks to TMB."
     ))
   }
   member_counts <- as.integer(blocks$n_members)

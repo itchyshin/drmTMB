@@ -2,6 +2,42 @@
 
 Record meaningful development checks here.
 
+## 2026-05-13 -- Slice 5 guarded q=3 registry scaffold
+
+Scope:
+
+- changed `append_covariance_registry_block()` to enumerate all
+  `q * (q - 1) / 2` member pairs through a private
+  `covariance_registry_pair_rows()` helper;
+- kept current fitted q=2 block behaviour unchanged while allowing internal
+  q=3 scaffold registries to carry three members and three stable pair rows;
+- added an `implemented` flag argument so internal q=3 scaffolds can be marked
+  `FALSE`;
+- kept `labelled_covariance_block_tmb_data()` guarded for implemented
+  two-member blocks only, so no q > 2 registry can be exported to TMB yet;
+- added a public bivariate guard test for the three-member shared-label route,
+  which still errors before fitting;
+- changed no accepted syntax, likelihood code, C++ code, fitted parameter
+  estimates, or user-facing q > 2 support.
+
+Checks:
+
+- Nietzsche/Boole-copy inspected the parser and registry boundary and
+  recommended a registry-only q=3 scaffold with parser and TMB gates closed.
+- Chandrasekhar/Curie-copy inspected the tests and recommended deterministic
+  internal q=3 pair-row assertions plus a TMB-export guard assertion.
+- `air format R/drmTMB.R tests/testthat/test-covariance-block-registry.R
+  tests/testthat/test-biv-gaussian.R`: passed.
+- `Rscript -e 'devtools::test(filter = "covariance-block-registry")'`: passed
+  with 24 expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript -e 'devtools::test(filter =
+  "biv-gaussian|gaussian-random-intercepts|covariance-block-registry")'`:
+  passed with 837 expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript -e 'devtools::test(filter =
+  "covariance-block-registry|corpairs|check-drm|profile-targets|biv-gaussian|gaussian-random-intercepts")'`:
+  passed with 1196 expectations, 0 failures, 0 warnings, and 0 skips.
+- `git diff --check`: passed.
+
 ## 2026-05-13 -- Slice 4 C++ visibility for dormant block contract
 
 Scope:
