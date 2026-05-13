@@ -131,8 +131,8 @@ These surfaces are roadmap items, not syntax to rely on in analyses yet:
 | Planned surface | Why it is separate |
 |---|---|
 | correlated residual-scale slope blocks in `sigma` | needs covariance recovery for scale intercept-slope blocks before public use |
-| cross-formula labelled covariance blocks linking `mu` and `sigma` | estimates group-level mean-scale correlations, not residual `rho12` |
-| bivariate random slopes and cross-parameter covariance blocks | expands group-level covariance blocks beyond the first same-parameter random-intercept slices |
+| larger cross-formula labelled covariance blocks linking `mu` and `sigma` | extends beyond the first fitted random-intercept mean-scale correlations |
+| bivariate random slopes and full cross-parameter covariance blocks | expands group-level covariance blocks beyond the first same-parameter and same-response random-intercept slices |
 | phylogenetic slopes, phylogenetic `sigma`, and bivariate phylogenetic effects | adds structured covariance layers that must stay separate from residual `rho12` |
 | spatial random effects | planned parallel to `phylo()`, but the spatial likelihood is not implemented |
 | higher-dimensional multivariate models | belong in `gllvmTMB`, not `drmTMB` |

@@ -198,7 +198,8 @@ Still deferred:
 - correlated blocks spanning `mu` and `sigma` beyond matching random
   intercepts;
 - bivariate `mu1`/`mu2` random-slope covariance blocks;
-- bivariate `sigma1`/`sigma2` and cross-parameter covariance blocks;
+- bivariate random-slope covariance blocks and full cross-parameter covariance
+  blocks beyond the same-response random-intercept pair;
 - phylogenetic and spatial correlated slope blocks.
 
 For `q > 2`, use a positive-definite Cholesky or partial-correlation

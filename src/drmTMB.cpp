@@ -80,15 +80,20 @@ Type objective_function<Type>::operator()()
   DATA_IMATRIX(mu_re_index);
   DATA_MATRIX(mu_re_value);
   DATA_IVECTOR(mu_re_term);
+  DATA_IVECTOR(mu_re_dpar);
   DATA_IVECTOR(mu_re_pos);
   DATA_IVECTOR(mu_re_cor_id);
   DATA_IVECTOR(mu_re_pair_index);
   DATA_IVECTOR(mu_re_sd_row);
   DATA_INTEGER(n_sigma_re_terms);
+  DATA_INTEGER(n_sigma_re_cors);
   DATA_INTEGER(n_mu_sigma_re_cors);
   DATA_IMATRIX(sigma_re_index);
   DATA_MATRIX(sigma_re_value);
   DATA_IVECTOR(sigma_re_term);
+  DATA_IVECTOR(sigma_re_dpar);
+  DATA_IVECTOR(sigma_re_cor_id);
+  DATA_IVECTOR(sigma_re_pair_index);
   DATA_IVECTOR(sigma_re_cross_cor);
   DATA_IVECTOR(sigma_re_cross_mu);
   DATA_INTEGER(has_phylo_mu);
@@ -667,9 +672,10 @@ Type objective_function<Type>::operator()()
             int pair_idx = mu_re_pair_index(idx);
             u_cond = rho * u_mu(pair_idx) + sqrt(Type(1.0) - rho * rho) * u_mu(idx);
           }
-          if (j == 0) {
+          int dpar_id = mu_re_dpar(idx);
+          if (dpar_id == 0) {
             mu1(i) += mu_re_value(i, j) * sd_current * u_cond;
-          } else if (j == 1) {
+          } else if (dpar_id == 1) {
             mu2(i) += mu_re_value(i, j) * sd_current * u_cond;
           }
         }
@@ -681,23 +687,34 @@ Type objective_function<Type>::operator()()
 
     if (n_sigma_re_terms > 0) {
       vector<Type> sd_sigma_re = exp(log_sd_sigma);
-      vector<Type> rho_sigma_re(n_mu_sigma_re_cors);
-      for (int j = 0; j < n_mu_sigma_re_cors; ++j) {
+      vector<Type> rho_sigma_re(n_sigma_re_cors);
+      for (int j = 0; j < n_sigma_re_cors; ++j) {
         rho_sigma_re(j) = Type(0.999999) * tanh(eta_cor_sigma(j));
+      }
+      vector<Type> rho_mu_sigma_re(n_mu_sigma_re_cors);
+      for (int j = 0; j < n_mu_sigma_re_cors; ++j) {
+        rho_mu_sigma_re(j) = Type(0.999999) * tanh(eta_cor_mu_sigma(j));
       }
       for (int i = 0; i < y1.size(); ++i) {
         for (int j = 0; j < n_sigma_re_terms; ++j) {
           int idx = sigma_re_index(i, j);
           Type u_cond = u_sigma(idx);
-          int cor_id = sigma_re_cross_cor(idx);
+          int cor_id = sigma_re_cor_id(idx);
           if (cor_id >= 0) {
             Type rho = rho_sigma_re(cor_id);
-            int pair_idx = sigma_re_cross_mu(idx);
+            int pair_idx = sigma_re_pair_index(idx);
             u_cond = rho * u_sigma(pair_idx) + sqrt(Type(1.0) - rho * rho) * u_sigma(idx);
           }
-          if (j == 0) {
+          int cross_cor_id = sigma_re_cross_cor(idx);
+          if (cross_cor_id >= 0) {
+            Type rho = rho_mu_sigma_re(cross_cor_id);
+            int mu_idx = sigma_re_cross_mu(idx);
+            u_cond = rho * u_mu(mu_idx) + sqrt(Type(1.0) - rho * rho) * u_cond;
+          }
+          int dpar_id = sigma_re_dpar(idx);
+          if (dpar_id == 0) {
             log_sigma1(i) += sigma_re_value(i, j) * sd_sigma_re(sigma_re_term(idx)) * u_cond;
-          } else if (j == 1) {
+          } else if (dpar_id == 1) {
             log_sigma2(i) += sigma_re_value(i, j) * sd_sigma_re(sigma_re_term(idx)) * u_cond;
           }
         }
@@ -807,15 +824,25 @@ Type objective_function<Type>::operator()()
       REPORT(sd_sigma_re);
       ADREPORT(log_sd_sigma);
       ADREPORT(sd_sigma_re);
-      if (n_mu_sigma_re_cors > 0) {
-        vector<Type> rho_sigma_re(n_mu_sigma_re_cors);
-        for (int j = 0; j < n_mu_sigma_re_cors; ++j) {
+      if (n_sigma_re_cors > 0) {
+        vector<Type> rho_sigma_re(n_sigma_re_cors);
+        for (int j = 0; j < n_sigma_re_cors; ++j) {
           rho_sigma_re(j) = Type(0.999999) * tanh(eta_cor_sigma(j));
         }
         REPORT(eta_cor_sigma);
         REPORT(rho_sigma_re);
         ADREPORT(eta_cor_sigma);
         ADREPORT(rho_sigma_re);
+      }
+      if (n_mu_sigma_re_cors > 0) {
+        vector<Type> rho_mu_sigma_re(n_mu_sigma_re_cors);
+        for (int j = 0; j < n_mu_sigma_re_cors; ++j) {
+          rho_mu_sigma_re(j) = Type(0.999999) * tanh(eta_cor_mu_sigma(j));
+        }
+        REPORT(eta_cor_mu_sigma);
+        REPORT(rho_mu_sigma_re);
+        ADREPORT(eta_cor_mu_sigma);
+        ADREPORT(rho_mu_sigma_re);
       }
     }
   }

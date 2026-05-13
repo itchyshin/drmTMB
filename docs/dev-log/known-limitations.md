@@ -19,25 +19,28 @@
   implemented.
 - Bivariate Gaussian location-scale-coscale models are implemented with `mu1`,
   `mu2`, `sigma1`, `sigma2`, and `rho12` formulas. The first group-level
-  bivariate covariance slice is implemented for matching labelled
-  random-intercept terms in `mu1` and `mu2`, such as `(1 | p | id)` in both
-  response formulas. Bivariate random slopes, residual-scale random effects,
-  and double-hierarchical cross-parameter covariance are still planned;
+  bivariate covariance slices are implemented for matching labelled
+  random-intercept terms in `mu1`/`mu2`, `sigma1`/`sigma2`, and one
+  same-response `mu`/`sigma` pair such as `mu1` with `sigma1`. Bivariate random
+  slopes, random effects in `rho12`, and full double-hierarchical
+  cross-parameter covariance blocks are still planned;
   residual `rho12` should not be interpreted as a phylogenetic, spatial, or
   group-level covariance parameter.
 - `corpairs()` currently reports only correlations that are already fitted:
   residual bivariate `rho12` summaries and ordinary univariate Gaussian `mu`
   random-effect correlations, plus the implemented univariate `mu`/`sigma`
   mean-scale random-intercept correlation and bivariate `mu1`/`mu2`
-  random-intercept correlation. It does not yet report phylogenetic, spatial,
-  or study-level correlation pairs.
+  random-intercept, `sigma1`/`sigma2` random-intercept, and same-response
+  bivariate `mu`/`sigma` random-intercept correlations. It does not yet report
+  phylogenetic, spatial, or study-level correlation pairs.
 - `summary()`, `predict_parameters()`, and `marginal_parameters()` expose
   fitted response-scale parameter summaries for interpretation. `summary()` can
   attach opt-in Wald intervals and direct profile intervals for profile-ready
-  rows, including the first `mu`/`sigma` and bivariate `mu1`/`mu2`
-  random-intercept correlations. The first marginal helper computes unweighted
-  plug-in means only; it does not yet compute uncertainty, standard errors,
-  contrasts, plots, or full `emmeans`-style marginalisation.
+  rows, including the first univariate and same-response bivariate `mu`/`sigma`,
+  bivariate `mu1`/`mu2`, and bivariate `sigma1`/`sigma2` random-intercept
+  correlations. The first marginal helper computes unweighted plug-in means
+  only; it does not yet compute uncertainty, standard errors, contrasts, plots,
+  or full `emmeans`-style marginalisation.
 - Fixed-effect univariate lognormal location-scale models are implemented for
   positive finite responses. `mu` and `sigma` are on the log-response scale;
   random effects, known sampling covariance, phylogenetic terms, and bivariate
@@ -102,9 +105,9 @@
   univariate `mu`/`sigma` random-intercept covariance block, intercept-only
   phylogenetic location effects, plus one or more unlabelled Gaussian `mu`
   random-intercept scale formulae through `sd(group) ~ x_group`, matched
-  labelled bivariate Gaussian `mu1`/`mu2` and `sigma1`/`sigma2`
-  random-intercept covariance blocks, and fixed-effect univariate Student-t
-  models with `mu`, `sigma`, and `nu`.
+  labelled bivariate Gaussian `mu1`/`mu2`, `sigma1`/`sigma2`, and same-response
+  `mu`/`sigma` random-intercept covariance blocks, and fixed-effect univariate
+  Student-t models with `mu`, `sigma`, and `nu`.
   It also supports fixed-effect univariate lognormal models with `mu` and
   `sigma` on the log-response scale, fixed-effect univariate Gamma mean-CV
   models with positive response mean `mu` and coefficient of variation

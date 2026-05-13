@@ -155,9 +155,10 @@ rho12.drmTMB <- function(
 #' `corpairs()` returns a long table of fitted correlation pairs from a
 #' `drmTMB` model. The first implementation reports correlations that are
 #' already fitted elsewhere: residual bivariate `rho12`, ordinary univariate
-#' group-level `mu` random-effect correlations, matched univariate `mu`/`sigma`
-#' random-intercept covariance blocks, and matched bivariate `mu1`/`mu2`
-#' and `sigma1`/`sigma2` random-intercept covariance blocks from `corpars`.
+#' group-level `mu` random-effect correlations, matched univariate and
+#' same-response bivariate `mu`/`sigma` random-intercept covariance blocks, and
+#' matched bivariate `mu1`/`mu2` and `sigma1`/`sigma2` random-intercept
+#' covariance blocks from `corpars`.
 #'
 #' The table is intentionally more explicit than `rho12()` or `corpars`
 #' because future double-hierarchical, phylogenetic, spatial, and study-level

@@ -172,11 +172,11 @@ Residual `rho12` is a within-observation bivariate Gaussian correlation. It is
 not the same as a group-level correlation among individual intercepts, slopes,
 or residual-scale random effects. Univariate Gaussian `sigma` formulas now
 fit residual-scale random intercepts and independent random slopes, while
-`drmTMB` fits three first group-level covariance slices: a univariate labelled
+`drmTMB` fits four first group-level covariance slices: a univariate labelled
 `mu`/`sigma` random-intercept correlation from matching `(1 | p | id)` terms,
-plus bivariate labelled `mu1`/`mu2` and `sigma1`/`sigma2` random-intercept
-correlations from matching
-terms such as `(1 | p | id)`.
+bivariate labelled `mu1`/`mu2` and `sigma1`/`sigma2` random-intercept
+correlations, and one same-response bivariate `mu`/`sigma` random-intercept
+correlation such as `mu1` with `sigma1`.
 
 Full double-hierarchical individual-difference models are planned work. These
 models would jointly describe individual differences in average behaviour,

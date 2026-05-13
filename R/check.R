@@ -93,6 +93,7 @@ check_drm.drmTMB <- function(
     check_random_effect_design(object, "mu"),
     check_random_effect_design(object, "sigma"),
     check_mu_sigma_random_effect_covariance(object),
+    check_biv_mu_sigma_random_effect_covariance(object),
     check_biv_mu_random_effect_covariance(object),
     check_biv_sigma_random_effect_covariance(object),
     check_phylo_replication(object)
@@ -934,6 +935,109 @@ bivariate_mu_re_diagnostic_message <- function(weak_replication, weak_sd) {
     ))
   }
   "Bivariate group-level covariance has replicated groups and non-negligible fitted SDs relative to residual scales."
+}
+
+check_biv_mu_sigma_random_effect_covariance <- function(object) {
+  if (!identical(object$model$model_type, "biv_gaussian")) {
+    return(NULL)
+  }
+  re_mu_sigma <- object$model$random$mu_sigma
+  if (is.null(re_mu_sigma) || re_mu_sigma$n_cors == 0L) {
+    return(NULL)
+  }
+
+  re_mu <- object$model$random$mu
+  re_sigma <- object$model$random$sigma
+  sigma_rows <- which(re_mu_sigma$sigma_cross_cor_id0 >= 0L)
+  if (length(sigma_rows) == 0L) {
+    return(NULL)
+  }
+
+  sigma_terms <- unique(re_sigma$term_id0[sigma_rows] + 1L)
+  mu_rows <- re_mu_sigma$sigma_cross_mu_index0[sigma_rows] + 1L
+  mu_terms <- unique(re_mu$term_id0[mu_rows] + 1L)
+  if (length(sigma_terms) != 1L || length(mu_terms) != 1L) {
+    return(check_row(
+      "biv_mu_sigma_random_effect_covariance",
+      "note",
+      paste0("n_cors=", re_mu_sigma$n_cors),
+      "The fitted bivariate mu/sigma covariance block is more complex than the current diagnostic summary."
+    ))
+  }
+
+  sigma_term <- sigma_terms[[1L]]
+  mu_term <- mu_terms[[1L]]
+  group_counts <- tabulate(
+    re_sigma$index[, sigma_term],
+    nbins = re_sigma$n_re
+  )[sigma_rows]
+  min_count <- min(group_counts)
+  singleton_groups <- sum(group_counts < 2L)
+
+  sd_mu <- unname(object$sdpars$mu[[re_mu$labels[[mu_term]]]])
+  sd_sigma <- unname(object$sdpars$sigma[[re_sigma$labels[[sigma_term]]]])
+  sigma_values <- tryCatch(stats::sigma(object), error = function(e) e)
+  response_id <- sub("^mu", "", re_mu$dpars[[mu_term]])
+  sigma_dpar <- paste0("sigma", response_id)
+  residual_scale <- if (
+    inherits(sigma_values, "error") || !is.list(sigma_values)
+  ) {
+    NA_real_
+  } else {
+    mean(sigma_values[[sigma_dpar]], na.rm = TRUE)
+  }
+  mu_sd_ratio <- sd_mu / residual_scale
+  weak_replication <- min_count < 2L
+  weak_sd <- !is.finite(mu_sd_ratio) ||
+    !is.finite(sd_sigma) ||
+    mu_sd_ratio < 0.05 ||
+    sd_sigma < 0.05
+
+  check_row(
+    "biv_mu_sigma_random_effect_covariance",
+    if (weak_replication || weak_sd) "note" else "ok",
+    paste0(
+      "term=",
+      re_sigma$labels[[sigma_term]],
+      "; n_groups=",
+      length(sigma_rows),
+      "; min_group_n=",
+      min_count,
+      "; singleton_groups=",
+      singleton_groups,
+      "; mu_sd_ratio=",
+      format_check_number(mu_sd_ratio),
+      "; sigma_log_sd=",
+      format_check_number(sd_sigma)
+    ),
+    bivariate_mu_sigma_re_diagnostic_message(weak_replication, weak_sd)
+  )
+}
+
+bivariate_mu_sigma_re_diagnostic_message <- function(
+  weak_replication,
+  weak_sd
+) {
+  if (weak_replication && weak_sd) {
+    return(paste(
+      "At least one group has fewer than two fitted observations and one",
+      "component SD is tiny; interpret the bivariate mu/sigma group-level",
+      "correlation cautiously."
+    ))
+  }
+  if (weak_replication) {
+    return(paste(
+      "At least one group has fewer than two fitted observations;",
+      "interpret the bivariate mu/sigma group-level correlation cautiously."
+    ))
+  }
+  if (weak_sd) {
+    return(paste(
+      "At least one component SD is tiny; the bivariate mu/sigma group-level",
+      "correlation may be weakly identified."
+    ))
+  }
+  "Bivariate mu/sigma group-level covariance has replicated groups and non-negligible fitted SDs."
 }
 
 check_biv_sigma_random_effect_covariance <- function(object) {

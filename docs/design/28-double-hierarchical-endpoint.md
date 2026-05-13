@@ -17,12 +17,13 @@ it does not yet fit the complete double-hierarchical covariance model.
 | Residual-scale random intercepts and independent slopes | Implemented | `sigma ~ x + (1 | id) + (0 + w | id)` |
 | Random-effect scale models for `mu` intercept SDs | Implemented | `sd(id) ~ x_group` |
 | Bivariate Gaussian residual coscale | Implemented | `rho12 ~ x` |
-| `corpairs()` for fitted correlations | Partly implemented | residual `rho12`, ordinary `mu` intercept-slope correlations, first `mu`/`sigma` mean-scale row, and bivariate `mu1`/`mu2` and `sigma1`/`sigma2` intercept rows |
+| `corpairs()` for fitted correlations | Partly implemented | residual `rho12`, ordinary `mu` intercept-slope correlations, first univariate and same-response bivariate `mu`/`sigma` mean-scale rows, and bivariate `mu1`/`mu2` and `sigma1`/`sigma2` intercept rows |
 | Cross-formula covariance blocks | Implemented first slice | matching labelled univariate `(1 | p | id)` terms across `mu` and `sigma` |
 | Bivariate `mu1`/`mu2` random-intercept covariance blocks | Implemented first slice | matching labelled `(1 | p | id)` terms in both location formulas |
 | Bivariate `sigma1`/`sigma2` random-intercept covariance blocks | Implemented first slice | matching labelled `(1 | p | id)` terms in both scale formulas |
-| Bivariate random-slope and cross-parameter covariance blocks | Planned | richer shared labelled blocks across `mu1`, `mu2`, `sigma1`, and `sigma2` |
-| Profile-likelihood intervals for covariance summaries | Partly implemented | direct profile intervals for first `mu`/`sigma`, bivariate `mu1`/`mu2`, and bivariate `sigma1`/`sigma2` covariance rows; derived summaries planned |
+| Same-response bivariate `mu`/`sigma` random-intercept covariance blocks | Implemented first slice | one matching labelled pair in `mu1`/`sigma1` or `mu2`/`sigma2` |
+| Bivariate random-slope and full cross-parameter covariance blocks | Planned | richer shared labelled blocks across `mu1`, `mu2`, `sigma1`, and `sigma2` |
+| Profile-likelihood intervals for covariance summaries | Partly implemented | direct profile intervals for first univariate and same-response bivariate `mu`/`sigma`, bivariate `mu1`/`mu2`, and bivariate `sigma1`/`sigma2` covariance rows; derived summaries planned |
 
 ## Target Model
 
@@ -117,14 +118,17 @@ keep the same row meaning and mark derived intervals separately.
    Done for matching labelled random intercepts.
 7. Combine bivariate group-level covariance blocks with residual `rho12 ~ x`.
    Done for matching labelled random intercepts in both `mu1`/`mu2` and
-   `sigma1`/`sigma2`; bivariate random slopes and cross-parameter bivariate
-   covariance blocks remain planned.
-8. Add bivariate phylogenetic and non-phylogenetic species covariance blocks
+   `sigma1`/`sigma2`.
+8. Add one same-response bivariate `mu`/`sigma` random-intercept covariance
+   pair, such as `mu1` with `sigma1`. Done for one matching labelled pair; the
+   full shared block across `mu1`, `mu2`, `sigma1`, and `sigma2` remains
+   planned.
+9. Add bivariate phylogenetic and non-phylogenetic species covariance blocks
    only after ordinary grouped models have recovery evidence and clear
    diagnostics. These blocks should report phylogenetic correlation,
    non-phylogenetic species correlation, and residual `rho12` as separate
    layers.
-9. Add spatial double-hierarchical blocks only after the phylogenetic and
+10. Add spatial double-hierarchical blocks only after the phylogenetic and
    ordinary grouped covariance paths have clear diagnostics.
 
 Each step should add only one covariance expansion. If a step cannot recover

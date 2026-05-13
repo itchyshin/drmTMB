@@ -23,8 +23,8 @@
 #' random-effect scale formulae such as `sd(id) ~ x_group`, plus
 #' intercept-only phylogenetic random effects in the univariate Gaussian
 #' location formula, fixed-effect bivariate Gaussian distributional models, and
-#' matched labelled bivariate Gaussian `mu1`/`mu2` and `sigma1`/`sigma2`
-#' random-intercept covariance blocks.
+#' matched labelled bivariate Gaussian `mu1`/`mu2`, `sigma1`/`sigma2`, and
+#' same-response `mu`/`sigma` random-intercept covariance blocks.
 #' Bivariate Gaussian location formulas may be written explicitly as
 #' `mu1 = y1 ~ ...`, `mu2 = y2 ~ ...`, or with `mvbind(y1, y2) ~ ...` shorthand
 #' when both responses share the same location predictors.
@@ -2254,6 +2254,8 @@ drm_build_biv_gaussian_spec <- function(
     sigma2_re$terms,
     data_model
   )
+  re_mu_sigma <- build_mu_sigma_random_covariance(re_mu, re_sigma)
+  validate_biv_random_covariance_surface(re_mu, re_sigma, re_mu_sigma)
 
   n <- length(y1)
   if (n == 0L) {
@@ -2275,7 +2277,8 @@ drm_build_biv_gaussian_spec <- function(
     X_rho12,
     V_known_diag = V_known$diag,
     re_mu = re_mu,
-    re_sigma = re_sigma
+    re_sigma = re_sigma,
+    re_mu_sigma = re_mu_sigma
   )
 
   spec <- list(
@@ -2311,7 +2314,8 @@ drm_build_biv_gaussian_spec <- function(
     data = data_model,
     random = list(
       mu = re_mu,
-      sigma = re_sigma
+      sigma = re_sigma,
+      mu_sigma = re_mu_sigma
     ),
     random_scale = list(mu = empty_sd_mu_structure(re_mu$n_re)),
     structured = list(phylo_mu = empty_phylo_mu_structure()),
@@ -2319,7 +2323,7 @@ drm_build_biv_gaussian_spec <- function(
     keep = keep,
     dpars = c("mu1", "mu2", "sigma1", "sigma2", "rho12"),
     start = start,
-    map = biv_gaussian_map(re_mu, re_sigma),
+    map = biv_gaussian_map(re_mu, re_sigma, re_mu_sigma),
     random_names = c(
       if (re_mu$n_re > 0L) "u_mu",
       if (re_sigma$n_re > 0L) "u_sigma"
@@ -2776,8 +2780,21 @@ format_biv_sigma_cor_label <- function(group, covariance_label) {
 }
 
 format_mu_sigma_cor_label <- function(group, covariance_label) {
+  format_cross_dpar_cor_label("mu", "sigma", group, covariance_label)
+}
+
+format_cross_dpar_cor_label <- function(
+  from_dpar,
+  to_dpar,
+  group,
+  covariance_label
+) {
   paste0(
-    "cor(mu:(Intercept),sigma:(Intercept) | ",
+    "cor(",
+    from_dpar,
+    ":(Intercept),",
+    to_dpar,
+    ":(Intercept) | ",
     covariance_label,
     " | ",
     group,
@@ -3009,6 +3026,7 @@ empty_random_mu_structure <- function(n) {
     index0 = matrix(0L, nrow = n, ncol = 1L),
     value = matrix(1, nrow = n, ncol = 1L),
     term_id0 = 0L,
+    dpar_id0 = 0L,
     re_pos0 = 0L,
     re_cor_id0 = -1L,
     re_pair_index0 = -1L,
@@ -3069,6 +3087,7 @@ build_random_mu_structure <- function(terms, data) {
   index <- matrix(NA_integer_, nrow = nrow(data), ncol = length(labels))
   value <- matrix(1, nrow = nrow(data), ncol = length(labels))
   term_id0 <- integer()
+  dpar_id0 <- integer()
   re_pos0 <- integer()
   re_cor_id0 <- integer()
   re_pair_index0 <- integer()
@@ -3132,6 +3151,7 @@ build_random_mu_structure <- function(terms, data) {
         value[, coef_id] <- as.numeric(data[[variable]])
       }
       term_id0 <- c(term_id0, rep.int(coef_id - 1L, length(levels_k)))
+      dpar_id0 <- c(dpar_id0, rep.int(0L, length(levels_k)))
       re_pos0 <- c(re_pos0, rep.int(p - 1L, length(levels_k)))
       re_cor_id0 <- c(re_cor_id0, rep.int(cor_id0, length(levels_k)))
       if (q == 2L && p == 2L) {
@@ -3166,6 +3186,7 @@ build_random_mu_structure <- function(terms, data) {
     index0 = index - 1L,
     value = value,
     term_id0 = term_id0,
+    dpar_id0 = dpar_id0,
     re_pos0 = re_pos0,
     re_cor_id0 = re_cor_id0,
     re_pair_index0 = re_pair_index0,
@@ -3210,13 +3231,27 @@ build_mu_sigma_random_covariance <- function(re_mu, re_sigma) {
   if (length(labelled_sigma) == 0L) {
     return(empty_mu_sigma_random_covariance(re_sigma$n_re))
   }
-  if (length(labelled_sigma) > 1L) {
+
+  sigma_keys <- paste(
+    re_sigma$covariance_labels[labelled_sigma],
+    re_sigma$group_names[labelled_sigma],
+    sep = "\r"
+  )
+  sigma_key_counts <- table(sigma_keys)
+  cross_sigma <- labelled_sigma[
+    sigma_key_counts[sigma_keys] == 1L
+  ]
+  if (length(cross_sigma) == 0L) {
+    return(empty_mu_sigma_random_covariance(re_sigma$n_re))
+  }
+  if (length(cross_sigma) > 1L) {
     cli::cli_abort(c(
       "Only one labelled {.code mu}/{.code sigma} covariance block is implemented in this phase.",
-      "i" = "Start with matching random intercepts such as {.code y ~ x + (1 | p | id)} and {.code sigma ~ z + (1 | p | id)}."
+      "i" = "Start with one matching random-intercept pair such as {.code mu1 = y1 ~ x + (1 | p | id)} and {.code sigma1 = ~ z + (1 | p | id)}."
     ))
   }
 
+  labelled_sigma <- cross_sigma
   block_label <- re_sigma$covariance_labels[[labelled_sigma]]
   group_name <- re_sigma$group_names[[labelled_sigma]]
   matching_mu <- which(
@@ -3246,6 +3281,18 @@ build_mu_sigma_random_covariance <- function(re_mu, re_sigma) {
     )
   }
   if (
+    !same_response_mu_sigma_dpars(
+      re_mu$dpars[[matching_mu]],
+      re_sigma$dpars[[labelled_sigma]]
+    )
+  ) {
+    cli::cli_abort(c(
+      "Bivariate cross-parameter covariance blocks are same-response only in this phase.",
+      "x" = "Block {.code {block_label}} pairs {.code {re_mu$dpars[[matching_mu]]}} with {.code {re_sigma$dpars[[labelled_sigma]]}}.",
+      "i" = "Use matching response terms such as {.code mu1} with {.code sigma1}, or {.code mu2} with {.code sigma2}."
+    ))
+  }
+  if (
     !identical(re_mu$groups[[matching_mu]], re_sigma$groups[[labelled_sigma]])
   ) {
     cli::cli_abort(c(
@@ -3262,58 +3309,170 @@ build_mu_sigma_random_covariance <- function(re_mu, re_sigma) {
   sigma_cross_mu_index0[sigma_rows] <- mu_rows - 1L
   list(
     n_cors = 1L,
-    cor_labels = format_mu_sigma_cor_label(group_name, block_label),
+    cor_labels = format_cross_dpar_cor_label(
+      re_mu$dpars[[matching_mu]],
+      re_sigma$dpars[[labelled_sigma]],
+      group_name,
+      block_label
+    ),
     sigma_cross_cor_id0 = sigma_cross_cor_id0,
     sigma_cross_mu_index0 = sigma_cross_mu_index0
   )
 }
 
+same_response_mu_sigma_dpars <- function(mu_dpar, sigma_dpar) {
+  mu_suffix <- sub("^mu", "", mu_dpar)
+  sigma_suffix <- sub("^sigma", "", sigma_dpar)
+  identical(mu_suffix, sigma_suffix)
+}
+
+validate_biv_random_covariance_surface <- function(
+  re_mu,
+  re_sigma,
+  re_mu_sigma
+) {
+  mu_cross_terms <- integer()
+  if (re_mu_sigma$n_cors > 0L) {
+    mu_rows <- unique(
+      re_mu_sigma$sigma_cross_mu_index0[
+        re_mu_sigma$sigma_cross_mu_index0 >= 0L
+      ] +
+        1L
+    )
+    mu_cross_terms <- unique(re_mu$term_id0[mu_rows] + 1L)
+  }
+  sigma_cross_terms <- unique(which(
+    re_mu_sigma$sigma_cross_cor_id0 >= 0L
+  ))
+  if (length(sigma_cross_terms) > 0L) {
+    sigma_cross_terms <- unique(re_sigma$term_id0[sigma_cross_terms] + 1L)
+  }
+
+  mu_same_terms <- if (re_mu$n_cors > 0L) seq_len(re_mu$n_terms) else integer()
+  sigma_same_terms <- if (re_sigma$n_cors > 0L) {
+    seq_len(re_sigma$n_terms)
+  } else {
+    integer()
+  }
+  labelled_mu <- which(!is.na(re_mu$covariance_labels))
+  labelled_sigma <- which(!is.na(re_sigma$covariance_labels))
+  unpaired_mu <- setdiff(labelled_mu, c(mu_same_terms, mu_cross_terms))
+  unpaired_sigma <- setdiff(
+    labelled_sigma,
+    c(sigma_same_terms, sigma_cross_terms)
+  )
+
+  if (length(unpaired_mu) > 0L) {
+    i <- unpaired_mu[[1L]]
+    cli::cli_abort(c(
+      "Bivariate labelled {.code mu} random effects must be part of an implemented covariance block.",
+      "x" = "{.code {re_mu$dpars[[i]]}} uses block {.code {re_mu$covariance_labels[[i]]}} on group {.field {re_mu$group_names[[i]]}} without a supported partner.",
+      "i" = "Use matching {.code mu1}/{.code mu2} terms for a mean-mean block or a same-response {.code mu}/ {.code sigma} pair for the first mean-scale block."
+    ))
+  }
+  if (length(unpaired_sigma) > 0L) {
+    i <- unpaired_sigma[[1L]]
+    cli::cli_abort(c(
+      "Bivariate labelled {.code sigma} random effects must be part of an implemented covariance block.",
+      "x" = "{.code {re_sigma$dpars[[i]]}} uses block {.code {re_sigma$covariance_labels[[i]]}} on group {.field {re_sigma$group_names[[i]]}} without a supported partner.",
+      "i" = "Use matching {.code sigma1}/{.code sigma2} terms for a scale-scale block or a same-response {.code mu}/ {.code sigma} pair for the first mean-scale block."
+    ))
+  }
+  invisible(TRUE)
+}
+
 build_biv_mu_random_structure <- function(mu1_terms, mu2_terms, data) {
-  n_terms <- c(mu1 = length(mu1_terms), mu2 = length(mu2_terms))
+  build_biv_parameter_random_structure(
+    mu1_terms,
+    mu2_terms,
+    data,
+    dpars = c("mu1", "mu2"),
+    pair = "mu1/mu2",
+    cor_label = format_biv_mu_cor_label
+  )
+}
+
+build_biv_sigma_random_structure <- function(sigma1_terms, sigma2_terms, data) {
+  build_biv_parameter_random_structure(
+    sigma1_terms,
+    sigma2_terms,
+    data,
+    dpars = c("sigma1", "sigma2"),
+    pair = "sigma1/sigma2",
+    cor_label = format_biv_sigma_cor_label
+  )
+}
+
+build_biv_parameter_random_structure <- function(
+  terms1,
+  terms2,
+  data,
+  dpars,
+  pair,
+  cor_label
+) {
+  n_terms <- stats::setNames(c(length(terms1), length(terms2)), dpars)
   if (sum(n_terms) == 0L) {
     return(empty_random_mu_structure(nrow(data)))
   }
-  if (!identical(n_terms, c(mu1 = 1L, mu2 = 1L))) {
+  if (any(n_terms > 1L)) {
     cli::cli_abort(c(
-      "Bivariate {.code mu} random effects currently require one matching random-intercept term in both response formulas.",
-      "x" = "Found {n_terms[['mu1']]} term{?s} in {.code mu1} and {n_terms[['mu2']]} term{?s} in {.code mu2}.",
-      "i" = "Use syntax like {.code mu1 = y1 ~ x + (1 | p | species)} and {.code mu2 = y2 ~ x + (1 | p | species)}."
+      "Bivariate {.code {pair}} random effects currently allow at most one random-intercept term per formula.",
+      "x" = "Found {n_terms[[1L]]} term{?s} in {.code {dpars[[1L]]}} and {n_terms[[2L]]} term{?s} in {.code {dpars[[2L]]}}."
     ))
   }
 
-  mu1 <- mu1_terms[[1L]]
-  mu2 <- mu2_terms[[1L]]
+  terms <- list(terms1, terms2)
+  present <- which(n_terms == 1L)
+  terms <- lapply(present, function(i) terms[[i]][[1L]])
+  term_dpars <- unname(dpars[present])
   if (
-    !identical(mu1$type, "intercept") ||
-      !identical(mu2$type, "intercept")
+    any(vapply(
+      terms,
+      function(term) !identical(term$type, "intercept"),
+      logical(1L)
+    ))
   ) {
     cli::cli_abort(c(
-      "Only bivariate random intercepts are implemented for {.code mu1}/{.code mu2} covariance blocks.",
-      "x" = "Random slopes and residual-scale random effects in bivariate models remain planned.",
-      "i" = "Use matching terms such as {.code (1 | p | species)} in both {.code mu1} and {.code mu2}."
+      "Only bivariate random intercepts are implemented for {.code {pair}} covariance blocks.",
+      "x" = "Random slopes and broader bivariate covariance blocks remain planned.",
+      "i" = "Use labelled random-intercept terms such as {.code (1 | p | id)}."
     ))
   }
-  if (!identical(mu1$group, mu2$group)) {
+  labels <- unname(vapply(
+    terms,
+    function(term) {
+      if (is.null(term$covariance_label)) {
+        NA_character_
+      } else {
+        term$covariance_label
+      }
+    },
+    character(1L)
+  ))
+  if (anyNA(labels)) {
     cli::cli_abort(c(
-      "Bivariate {.code mu1}/{.code mu2} random effects must use the same grouping variable.",
-      "x" = "{.code mu1} uses {.field {mu1$group}} but {.code mu2} uses {.field {mu2$group}}."
+      "Bivariate random-effect covariance blocks require covariance-block labels.",
+      "i" = "Use syntax like {.code (1 | p | id)} rather than unlabelled {.code (1 | id)}."
     ))
   }
-  if (!identical(mu1$covariance_label, mu2$covariance_label)) {
-    cli::cli_abort(c(
-      "Bivariate {.code mu1}/{.code mu2} random effects must use the same covariance-block label.",
-      "x" = "Use matching labels such as {.code (1 | p | {mu1$group})} in both response formulas."
-    ))
-  }
-  if (is.null(mu1$covariance_label)) {
-    cli::cli_abort(c(
-      "Bivariate {.code mu1}/{.code mu2} random effects require a shared covariance-block label.",
-      "i" = "Use syntax like {.code mu1 = y1 ~ x + (1 | p | {mu1$group})} and {.code mu2 = y2 ~ x + (1 | p | {mu1$group})}.",
-      "i" = "Unlabelled terms such as {.code (1 | {mu1$group})} remain univariate-only for now."
-    ))
+  groups_present <- vapply(terms, `[[`, character(1L), "group")
+  if (length(terms) == 2L) {
+    if (!identical(groups_present[[1L]], groups_present[[2L]])) {
+      cli::cli_abort(c(
+        "Bivariate {.code {pair}} random effects must use the same grouping variable.",
+        "x" = "{.code {term_dpars[[1L]]}} uses {.field {groups_present[[1L]]}} but {.code {term_dpars[[2L]]}} uses {.field {groups_present[[2L]]}}."
+      ))
+    }
+    if (!identical(labels[[1L]], labels[[2L]])) {
+      cli::cli_abort(c(
+        "Bivariate {.code {pair}} same-parameter covariance blocks must use the same covariance-block label.",
+        "x" = "Use one response-specific {.code mu}/ {.code sigma} cross-parameter block at a time, or matching labels in both {.code {dpars[[1L]]}} and {.code {dpars[[2L]]}} for a same-parameter block."
+      ))
+    }
   }
 
-  group_name <- mu1$group
+  group_name <- groups_present[[1L]]
   group <- factor(data[[group_name]])
   levels_group <- levels(group)
   if (length(levels_group) < 2L) {
@@ -3325,144 +3484,70 @@ build_biv_mu_random_structure <- function(mu1_terms, mu2_terms, data) {
   if (all(tabulate(as.integer(group)) == 1L)) {
     cli::cli_abort(c(
       "Random-effect grouping variable {.field {group_name}} has only singleton groups.",
-      "x" = "At least one group must have repeated observations in this initial bivariate random-effect implementation."
+      "x" = "At least one group must have repeated observations in this bivariate random-effect implementation."
     ))
   }
 
   n_group <- length(levels_group)
   group_index <- as.integer(group)
-  index <- cbind(group_index, n_group + group_index)
-  value <- matrix(1, nrow = nrow(data), ncol = 2L)
-  block_label <- mu1$covariance_label
-  base_label <- format_random_mu_label("1", group_name, block_label)
-  labels <- paste0(c("mu1", "mu2"), ":", base_label)
-  groups <- list(levels_group, levels_group)
-  names(groups) <- labels
+  n_cols <- length(terms)
+  index <- matrix(NA_integer_, nrow = nrow(data), ncol = n_cols)
+  value <- matrix(1, nrow = nrow(data), ncol = n_cols)
+  base_labels <- unname(vapply(
+    labels,
+    function(block_label) format_random_mu_label("1", group_name, block_label),
+    character(1L)
+  ))
+  labels_out <- paste0(term_dpars, ":", base_labels)
+  groups <- rep(list(levels_group), n_cols)
+  names(groups) <- labels_out
+
+  term_id0 <- integer()
+  dpar_id0 <- integer()
+  re_pos0 <- integer()
+  re_cor_id0 <- integer()
+  re_pair_index0 <- integer()
+  value_names <- character()
+  for (j in seq_len(n_cols)) {
+    offset <- (j - 1L) * n_group
+    index[, j] <- offset + group_index
+    term_id0 <- c(term_id0, rep.int(j - 1L, n_group))
+    dpar_id0 <- c(dpar_id0, rep.int(present[[j]] - 1L, n_group))
+    re_pos0 <- c(re_pos0, rep.int(j - 1L, n_group))
+    if (n_cols == 2L && j == 2L) {
+      re_cor_id0 <- c(re_cor_id0, rep.int(0L, n_group))
+      re_pair_index0 <- c(re_pair_index0, seq_len(n_group) - 1L)
+    } else {
+      re_cor_id0 <- c(re_cor_id0, rep.int(-1L, n_group))
+      re_pair_index0 <- c(re_pair_index0, rep.int(-1L, n_group))
+    }
+    value_names <- c(value_names, paste0(labels_out[[j]], ":", levels_group))
+  }
 
   list(
-    n_terms = 2L,
-    n_re = 2L * n_group,
+    n_terms = n_cols,
+    n_re = n_cols * n_group,
     index = index,
     index0 = index - 1L,
     value = value,
-    term_id0 = c(rep.int(0L, n_group), rep.int(1L, n_group)),
-    re_pos0 = c(rep.int(0L, n_group), rep.int(1L, n_group)),
-    re_cor_id0 = rep.int(0L, 2L * n_group),
-    re_pair_index0 = c(
-      rep.int(-1L, n_group),
-      seq_len(n_group) - 1L
-    ),
-    n_cors = 1L,
-    cor_labels = format_biv_mu_cor_label(group_name, block_label),
-    labels = labels,
-    dpars = c("mu1", "mu2"),
-    coef_names = c("(Intercept)", "(Intercept)"),
-    group_names = c(group_name, group_name),
-    covariance_labels = rep(block_label, 2L),
+    term_id0 = term_id0,
+    dpar_id0 = dpar_id0,
+    re_pos0 = re_pos0,
+    re_cor_id0 = re_cor_id0,
+    re_pair_index0 = re_pair_index0,
+    n_cors = if (n_cols == 2L) 1L else 0L,
+    cor_labels = if (n_cols == 2L) {
+      cor_label(group_name, labels[[1L]])
+    } else {
+      character()
+    },
+    labels = labels_out,
+    dpars = term_dpars,
+    coef_names = rep("(Intercept)", n_cols),
+    group_names = rep(group_name, n_cols),
+    covariance_labels = labels,
     groups = groups,
-    value_names = c(
-      paste0(labels[[1L]], ":", levels_group),
-      paste0(labels[[2L]], ":", levels_group)
-    )
-  )
-}
-
-build_biv_sigma_random_structure <- function(sigma1_terms, sigma2_terms, data) {
-  n_terms <- c(sigma1 = length(sigma1_terms), sigma2 = length(sigma2_terms))
-  if (sum(n_terms) == 0L) {
-    return(empty_random_sigma_structure(nrow(data)))
-  }
-  if (!identical(n_terms, c(sigma1 = 1L, sigma2 = 1L))) {
-    cli::cli_abort(c(
-      "Bivariate {.code sigma1}/{.code sigma2} random effects currently require one matching random-intercept term in both scale formulas.",
-      "x" = "Found {n_terms[['sigma1']]} term{?s} in {.code sigma1} and {n_terms[['sigma2']]} term{?s} in {.code sigma2}.",
-      "i" = "Use syntax like {.code sigma1 = ~ z1 + (1 | p | species)} and {.code sigma2 = ~ z2 + (1 | p | species)}."
-    ))
-  }
-
-  sigma1 <- sigma1_terms[[1L]]
-  sigma2 <- sigma2_terms[[1L]]
-  if (
-    !identical(sigma1$type, "intercept") ||
-      !identical(sigma2$type, "intercept")
-  ) {
-    cli::cli_abort(c(
-      "Only bivariate residual-scale random intercepts are implemented for {.code sigma1}/{.code sigma2} covariance blocks.",
-      "x" = "Residual-scale random slopes in bivariate models remain planned.",
-      "i" = "Use matching terms such as {.code (1 | p | species)} in both {.code sigma1} and {.code sigma2}."
-    ))
-  }
-  if (!identical(sigma1$group, sigma2$group)) {
-    cli::cli_abort(c(
-      "Bivariate {.code sigma1}/{.code sigma2} random effects must use the same grouping variable.",
-      "x" = "{.code sigma1} uses {.field {sigma1$group}} but {.code sigma2} uses {.field {sigma2$group}}."
-    ))
-  }
-  if (!identical(sigma1$covariance_label, sigma2$covariance_label)) {
-    cli::cli_abort(c(
-      "Bivariate {.code sigma1}/{.code sigma2} random effects must use the same covariance-block label.",
-      "x" = "Use matching labels such as {.code (1 | p | {sigma1$group})} in both scale formulas."
-    ))
-  }
-  if (is.null(sigma1$covariance_label)) {
-    cli::cli_abort(c(
-      "Bivariate {.code sigma1}/{.code sigma2} random effects require a shared covariance-block label.",
-      "i" = "Use syntax like {.code sigma1 = ~ z1 + (1 | p | {sigma1$group})} and {.code sigma2 = ~ z2 + (1 | p | {sigma1$group})}.",
-      "i" = "Unlabelled terms such as {.code (1 | {sigma1$group})} remain univariate-only for now."
-    ))
-  }
-
-  group_name <- sigma1$group
-  group <- factor(data[[group_name]])
-  levels_group <- levels(group)
-  if (length(levels_group) < 2L) {
-    cli::cli_abort(c(
-      "Random-effect grouping variable {.field {group_name}} has fewer than two levels.",
-      "x" = "At least two groups are needed to estimate a bivariate residual-scale covariance."
-    ))
-  }
-  if (all(tabulate(as.integer(group)) == 1L)) {
-    cli::cli_abort(c(
-      "Random-effect grouping variable {.field {group_name}} has only singleton groups.",
-      "x" = "At least one group must have repeated observations in this bivariate residual-scale random-effect implementation."
-    ))
-  }
-
-  n_group <- length(levels_group)
-  group_index <- as.integer(group)
-  index <- cbind(group_index, n_group + group_index)
-  value <- matrix(1, nrow = nrow(data), ncol = 2L)
-  block_label <- sigma1$covariance_label
-  base_label <- format_random_mu_label("1", group_name, block_label)
-  labels <- paste0(c("sigma1", "sigma2"), ":", base_label)
-  groups <- list(levels_group, levels_group)
-  names(groups) <- labels
-
-  list(
-    n_terms = 2L,
-    n_re = 2L * n_group,
-    index = index,
-    index0 = index - 1L,
-    value = value,
-    term_id0 = c(rep.int(0L, n_group), rep.int(1L, n_group)),
-    re_pos0 = c(rep.int(0L, n_group), rep.int(1L, n_group)),
-    re_cor_id0 = c(rep.int(-1L, n_group), rep.int(0L, n_group)),
-    re_pair_index0 = c(
-      rep.int(-1L, n_group),
-      seq_len(n_group) - 1L
-    ),
-    n_cors = 1L,
-    cor_labels = format_biv_sigma_cor_label(group_name, block_label),
-    labels = labels,
-    dpars = c("sigma1", "sigma2"),
-    coef_names = c("(Intercept)", "(Intercept)"),
-    group_names = c(group_name, group_name),
-    covariance_labels = rep(block_label, 2L),
-    groups = groups,
-    value_names = c(
-      paste0(labels[[1L]], ":", levels_group),
-      paste0(labels[[2L]], ":", levels_group)
-    )
+    value_names = value_names
   )
 }
 
@@ -3515,9 +3600,9 @@ reject_biv_cross_parameter_label_reuse <- function(
   group_name <- groups[[1L]]
   cli::cli_abort(c(
     "Reusing one bivariate covariance-block label across {.code mu1}/{.code mu2} and {.code sigma1}/{.code sigma2} is not implemented.",
-    "x" = "Block {.code {block_label}} on group {.field {group_name}} would imply a cross-parameter bivariate covariance block.",
+    "x" = "Block {.code {block_label}} on group {.field {group_name}} would imply a full cross-parameter bivariate covariance block.",
     "i" = "Use distinct labels such as {.code (1 | pm | {group_name})} for {.code mu1}/{.code mu2} and {.code (1 | ps | {group_name})} for {.code sigma1}/{.code sigma2}.",
-    "i" = "Cross-parameter bivariate covariance across {.code mu1}, {.code mu2}, {.code sigma1}, and {.code sigma2} remains planned."
+    "i" = "Full cross-parameter bivariate covariance across {.code mu1}, {.code mu2}, {.code sigma1}, and {.code sigma2} remains planned."
   ))
 }
 
@@ -4842,7 +4927,8 @@ biv_gaussian_start <- function(
   X_rho12,
   V_known_diag = rep(0, 2L * length(y1)),
   re_mu = empty_random_mu_structure(length(y1)),
-  re_sigma = empty_random_sigma_structure(length(y1))
+  re_sigma = empty_random_sigma_structure(length(y1)),
+  re_mu_sigma = empty_mu_sigma_random_covariance(re_sigma$n_re)
 ) {
   fit1 <- stats::lm.fit(x = X_mu1, y = y1)
   fit2 <- stats::lm.fit(x = X_mu2, y = y2)
@@ -4918,7 +5004,7 @@ biv_gaussian_start <- function(
       u_mu = mu_re_start$u_mu,
       log_sd_mu = mu_re_start$log_sd_mu,
       eta_cor_mu = mu_re_start$eta_cor_mu,
-      eta_cor_mu_sigma = 0,
+      eta_cor_mu_sigma = rep(0, max(1L, re_mu_sigma$n_cors)),
       eta_cor_sigma = sigma_re_start$eta_cor_sigma,
       u_sigma = sigma_re_start$u_sigma,
       log_sd_sigma = sigma_re_start$log_sd_sigma
@@ -4941,7 +5027,8 @@ biv_gaussian_mu_re_start <- function(re_mu, y_scale) {
   if (re_mu$n_re == 0L) {
     return(list(u_mu = 0, log_sd_mu = 0, eta_cor_mu = 0))
   }
-  log_sd_mu <- log(pmax(0.25 * y_scale[seq_len(re_mu$n_terms)], 1e-4))
+  dpar_index <- match(re_mu$dpars, c("mu1", "mu2"))
+  log_sd_mu <- log(pmax(0.25 * y_scale[dpar_index], 1e-4))
   list(
     u_mu = rep(0, re_mu$n_re),
     log_sd_mu = log_sd_mu,
@@ -5022,7 +5109,8 @@ student_ls_map <- function() {
 
 biv_gaussian_map <- function(
   re_mu = empty_random_mu_structure(1L),
-  re_sigma = empty_random_sigma_structure(1L)
+  re_sigma = empty_random_sigma_structure(1L),
+  re_mu_sigma = empty_mu_sigma_random_covariance(re_sigma$n_re)
 ) {
   out <- list(
     beta_mu = factor(NA),
@@ -5031,7 +5119,6 @@ biv_gaussian_map <- function(
     beta_zi = factor(NA),
     theta_ord = factor(NA),
     beta_sd_mu = factor(NA),
-    eta_cor_mu_sigma = factor(NA),
     u_phylo = factor(NA),
     log_sd_phylo = factor(NA)
   )
@@ -5041,6 +5128,9 @@ biv_gaussian_map <- function(
   }
   if (re_mu$n_cors == 0L) {
     out$eta_cor_mu <- factor(NA)
+  }
+  if (re_mu_sigma$n_cors == 0L) {
+    out$eta_cor_mu_sigma <- factor(NA)
   }
   if (re_sigma$n_re == 0L) {
     out$u_sigma <- factor(NA)
@@ -5101,15 +5191,20 @@ make_tmb_data <- function(spec) {
       mu_re_index = spec$random$mu$index0,
       mu_re_value = spec$random$mu$value,
       mu_re_term = spec$random$mu$term_id0,
+      mu_re_dpar = spec$random$mu$dpar_id0,
       mu_re_pos = spec$random$mu$re_pos0,
       mu_re_cor_id = spec$random$mu$re_cor_id0,
       mu_re_pair_index = spec$random$mu$re_pair_index0,
       mu_re_sd_row = spec$random_scale$mu$re_sd_row0,
       n_sigma_re_terms = spec$random$sigma$n_terms,
+      n_sigma_re_cors = spec$random$sigma$n_cors,
       n_mu_sigma_re_cors = spec$random$mu_sigma$n_cors,
       sigma_re_index = spec$random$sigma$index0,
       sigma_re_value = spec$random$sigma$value,
       sigma_re_term = spec$random$sigma$term_id0,
+      sigma_re_dpar = spec$random$sigma$dpar_id0,
+      sigma_re_cor_id = spec$random$sigma$re_cor_id0,
+      sigma_re_pair_index = spec$random$sigma$re_pair_index0,
       sigma_re_cross_cor = spec$random$mu_sigma$sigma_cross_cor_id0,
       sigma_re_cross_mu = spec$random$mu_sigma$sigma_cross_mu_index0,
       has_phylo_mu = as.integer(isTRUE(phylo_mu$has)),
@@ -5158,15 +5253,20 @@ make_tmb_data <- function(spec) {
       mu_re_index = matrix(0L, nrow = 1L, ncol = 1L),
       mu_re_value = dummy_matrix,
       mu_re_term = 0L,
+      mu_re_dpar = 0L,
       mu_re_pos = 0L,
       mu_re_cor_id = -1L,
       mu_re_pair_index = -1L,
       mu_re_sd_row = -1L,
       n_sigma_re_terms = 0L,
+      n_sigma_re_cors = 0L,
       n_mu_sigma_re_cors = 0L,
       sigma_re_index = matrix(0L, nrow = 1L, ncol = 1L),
       sigma_re_value = dummy_matrix,
       sigma_re_term = 0L,
+      sigma_re_dpar = 0L,
+      sigma_re_cor_id = -1L,
+      sigma_re_pair_index = -1L,
       sigma_re_cross_cor = 0L,
       sigma_re_cross_mu = 0L,
       has_phylo_mu = 0L,
@@ -5203,15 +5303,20 @@ make_tmb_data <- function(spec) {
       mu_re_index = matrix(0L, nrow = 1L, ncol = 1L),
       mu_re_value = dummy_matrix,
       mu_re_term = 0L,
+      mu_re_dpar = 0L,
       mu_re_pos = 0L,
       mu_re_cor_id = -1L,
       mu_re_pair_index = -1L,
       mu_re_sd_row = -1L,
       n_sigma_re_terms = 0L,
+      n_sigma_re_cors = 0L,
       n_mu_sigma_re_cors = 0L,
       sigma_re_index = matrix(0L, nrow = 1L, ncol = 1L),
       sigma_re_value = dummy_matrix,
       sigma_re_term = 0L,
+      sigma_re_dpar = 0L,
+      sigma_re_cor_id = -1L,
+      sigma_re_pair_index = -1L,
       sigma_re_cross_cor = 0L,
       sigma_re_cross_mu = 0L,
       has_phylo_mu = 0L,
@@ -5248,15 +5353,20 @@ make_tmb_data <- function(spec) {
       mu_re_index = matrix(0L, nrow = 1L, ncol = 1L),
       mu_re_value = dummy_matrix,
       mu_re_term = 0L,
+      mu_re_dpar = 0L,
       mu_re_pos = 0L,
       mu_re_cor_id = -1L,
       mu_re_pair_index = -1L,
       mu_re_sd_row = -1L,
       n_sigma_re_terms = 0L,
+      n_sigma_re_cors = 0L,
       n_mu_sigma_re_cors = 0L,
       sigma_re_index = matrix(0L, nrow = 1L, ncol = 1L),
       sigma_re_value = dummy_matrix,
       sigma_re_term = 0L,
+      sigma_re_dpar = 0L,
+      sigma_re_cor_id = -1L,
+      sigma_re_pair_index = -1L,
       sigma_re_cross_cor = 0L,
       sigma_re_cross_mu = 0L,
       has_phylo_mu = 0L,
@@ -5293,15 +5403,20 @@ make_tmb_data <- function(spec) {
       mu_re_index = matrix(0L, nrow = 1L, ncol = 1L),
       mu_re_value = dummy_matrix,
       mu_re_term = 0L,
+      mu_re_dpar = 0L,
       mu_re_pos = 0L,
       mu_re_cor_id = -1L,
       mu_re_pair_index = -1L,
       mu_re_sd_row = -1L,
       n_sigma_re_terms = 0L,
+      n_sigma_re_cors = 0L,
       n_mu_sigma_re_cors = 0L,
       sigma_re_index = matrix(0L, nrow = 1L, ncol = 1L),
       sigma_re_value = dummy_matrix,
       sigma_re_term = 0L,
+      sigma_re_dpar = 0L,
+      sigma_re_cor_id = -1L,
+      sigma_re_pair_index = -1L,
       sigma_re_cross_cor = 0L,
       sigma_re_cross_mu = 0L,
       has_phylo_mu = 0L,
@@ -5338,15 +5453,20 @@ make_tmb_data <- function(spec) {
       mu_re_index = matrix(0L, nrow = 1L, ncol = 1L),
       mu_re_value = dummy_matrix,
       mu_re_term = 0L,
+      mu_re_dpar = 0L,
       mu_re_pos = 0L,
       mu_re_cor_id = -1L,
       mu_re_pair_index = -1L,
       mu_re_sd_row = -1L,
       n_sigma_re_terms = 0L,
+      n_sigma_re_cors = 0L,
       n_mu_sigma_re_cors = 0L,
       sigma_re_index = matrix(0L, nrow = 1L, ncol = 1L),
       sigma_re_value = dummy_matrix,
       sigma_re_term = 0L,
+      sigma_re_dpar = 0L,
+      sigma_re_cor_id = -1L,
+      sigma_re_pair_index = -1L,
       sigma_re_cross_cor = 0L,
       sigma_re_cross_mu = 0L,
       has_phylo_mu = 0L,
@@ -5383,15 +5503,20 @@ make_tmb_data <- function(spec) {
       mu_re_index = matrix(0L, nrow = 1L, ncol = 1L),
       mu_re_value = dummy_matrix,
       mu_re_term = 0L,
+      mu_re_dpar = 0L,
       mu_re_pos = 0L,
       mu_re_cor_id = -1L,
       mu_re_pair_index = -1L,
       mu_re_sd_row = -1L,
       n_sigma_re_terms = 0L,
+      n_sigma_re_cors = 0L,
       n_mu_sigma_re_cors = 0L,
       sigma_re_index = matrix(0L, nrow = 1L, ncol = 1L),
       sigma_re_value = dummy_matrix,
       sigma_re_term = 0L,
+      sigma_re_dpar = 0L,
+      sigma_re_cor_id = -1L,
+      sigma_re_pair_index = -1L,
       sigma_re_cross_cor = 0L,
       sigma_re_cross_mu = 0L,
       has_phylo_mu = 0L,
@@ -5428,15 +5553,20 @@ make_tmb_data <- function(spec) {
       mu_re_index = matrix(0L, nrow = 1L, ncol = 1L),
       mu_re_value = dummy_matrix,
       mu_re_term = 0L,
+      mu_re_dpar = 0L,
       mu_re_pos = 0L,
       mu_re_cor_id = -1L,
       mu_re_pair_index = -1L,
       mu_re_sd_row = -1L,
       n_sigma_re_terms = 0L,
+      n_sigma_re_cors = 0L,
       n_mu_sigma_re_cors = 0L,
       sigma_re_index = matrix(0L, nrow = 1L, ncol = 1L),
       sigma_re_value = dummy_matrix,
       sigma_re_term = 0L,
+      sigma_re_dpar = 0L,
+      sigma_re_cor_id = -1L,
+      sigma_re_pair_index = -1L,
       sigma_re_cross_cor = 0L,
       sigma_re_cross_mu = 0L,
       has_phylo_mu = 0L,
@@ -5473,15 +5603,20 @@ make_tmb_data <- function(spec) {
       mu_re_index = matrix(0L, nrow = 1L, ncol = 1L),
       mu_re_value = dummy_matrix,
       mu_re_term = 0L,
+      mu_re_dpar = 0L,
       mu_re_pos = 0L,
       mu_re_cor_id = -1L,
       mu_re_pair_index = -1L,
       mu_re_sd_row = -1L,
       n_sigma_re_terms = 0L,
+      n_sigma_re_cors = 0L,
       n_mu_sigma_re_cors = 0L,
       sigma_re_index = matrix(0L, nrow = 1L, ncol = 1L),
       sigma_re_value = dummy_matrix,
       sigma_re_term = 0L,
+      sigma_re_dpar = 0L,
+      sigma_re_cor_id = -1L,
+      sigma_re_pair_index = -1L,
       sigma_re_cross_cor = 0L,
       sigma_re_cross_mu = 0L,
       has_phylo_mu = 0L,
@@ -5518,15 +5653,20 @@ make_tmb_data <- function(spec) {
       mu_re_index = matrix(0L, nrow = 1L, ncol = 1L),
       mu_re_value = dummy_matrix,
       mu_re_term = 0L,
+      mu_re_dpar = 0L,
       mu_re_pos = 0L,
       mu_re_cor_id = -1L,
       mu_re_pair_index = -1L,
       mu_re_sd_row = -1L,
       n_sigma_re_terms = 0L,
+      n_sigma_re_cors = 0L,
       n_mu_sigma_re_cors = 0L,
       sigma_re_index = matrix(0L, nrow = 1L, ncol = 1L),
       sigma_re_value = dummy_matrix,
       sigma_re_term = 0L,
+      sigma_re_dpar = 0L,
+      sigma_re_cor_id = -1L,
+      sigma_re_pair_index = -1L,
       sigma_re_cross_cor = 0L,
       sigma_re_cross_mu = 0L,
       has_phylo_mu = 0L,
@@ -5563,15 +5703,20 @@ make_tmb_data <- function(spec) {
       mu_re_index = matrix(0L, nrow = 1L, ncol = 1L),
       mu_re_value = dummy_matrix,
       mu_re_term = 0L,
+      mu_re_dpar = 0L,
       mu_re_pos = 0L,
       mu_re_cor_id = -1L,
       mu_re_pair_index = -1L,
       mu_re_sd_row = -1L,
       n_sigma_re_terms = 0L,
+      n_sigma_re_cors = 0L,
       n_mu_sigma_re_cors = 0L,
       sigma_re_index = matrix(0L, nrow = 1L, ncol = 1L),
       sigma_re_value = dummy_matrix,
       sigma_re_term = 0L,
+      sigma_re_dpar = 0L,
+      sigma_re_cor_id = -1L,
+      sigma_re_pair_index = -1L,
       sigma_re_cross_cor = 0L,
       sigma_re_cross_mu = 0L,
       has_phylo_mu = 0L,
@@ -5608,15 +5753,20 @@ make_tmb_data <- function(spec) {
       mu_re_index = matrix(0L, nrow = 1L, ncol = 1L),
       mu_re_value = dummy_matrix,
       mu_re_term = 0L,
+      mu_re_dpar = 0L,
       mu_re_pos = 0L,
       mu_re_cor_id = -1L,
       mu_re_pair_index = -1L,
       mu_re_sd_row = -1L,
       n_sigma_re_terms = 0L,
+      n_sigma_re_cors = 0L,
       n_mu_sigma_re_cors = 0L,
       sigma_re_index = matrix(0L, nrow = 1L, ncol = 1L),
       sigma_re_value = dummy_matrix,
       sigma_re_term = 0L,
+      sigma_re_dpar = 0L,
+      sigma_re_cor_id = -1L,
+      sigma_re_pair_index = -1L,
       sigma_re_cross_cor = 0L,
       sigma_re_cross_mu = 0L,
       has_phylo_mu = 0L,
@@ -5653,15 +5803,20 @@ make_tmb_data <- function(spec) {
       mu_re_index = matrix(0L, nrow = 1L, ncol = 1L),
       mu_re_value = dummy_matrix,
       mu_re_term = 0L,
+      mu_re_dpar = 0L,
       mu_re_pos = 0L,
       mu_re_cor_id = -1L,
       mu_re_pair_index = -1L,
       mu_re_sd_row = -1L,
       n_sigma_re_terms = 0L,
+      n_sigma_re_cors = 0L,
       n_mu_sigma_re_cors = 0L,
       sigma_re_index = matrix(0L, nrow = 1L, ncol = 1L),
       sigma_re_value = dummy_matrix,
       sigma_re_term = 0L,
+      sigma_re_dpar = 0L,
+      sigma_re_cor_id = -1L,
+      sigma_re_pair_index = -1L,
       sigma_re_cross_cor = 0L,
       sigma_re_cross_mu = 0L,
       has_phylo_mu = 0L,
@@ -5704,17 +5859,22 @@ make_tmb_data <- function(spec) {
       mu_re_index = spec$random$mu$index0,
       mu_re_value = spec$random$mu$value,
       mu_re_term = spec$random$mu$term_id0,
+      mu_re_dpar = spec$random$mu$dpar_id0,
       mu_re_pos = spec$random$mu$re_pos0,
       mu_re_cor_id = spec$random$mu$re_cor_id0,
       mu_re_pair_index = spec$random$mu$re_pair_index0,
       mu_re_sd_row = spec$random_scale$mu$re_sd_row0,
       n_sigma_re_terms = spec$random$sigma$n_terms,
-      n_mu_sigma_re_cors = spec$random$sigma$n_cors,
+      n_sigma_re_cors = spec$random$sigma$n_cors,
+      n_mu_sigma_re_cors = spec$random$mu_sigma$n_cors,
       sigma_re_index = spec$random$sigma$index0,
       sigma_re_value = spec$random$sigma$value,
       sigma_re_term = spec$random$sigma$term_id0,
-      sigma_re_cross_cor = spec$random$sigma$re_cor_id0,
-      sigma_re_cross_mu = spec$random$sigma$re_pair_index0,
+      sigma_re_dpar = spec$random$sigma$dpar_id0,
+      sigma_re_cor_id = spec$random$sigma$re_cor_id0,
+      sigma_re_pair_index = spec$random$sigma$re_pair_index0,
+      sigma_re_cross_cor = spec$random$mu_sigma$sigma_cross_cor_id0,
+      sigma_re_cross_mu = spec$random$mu_sigma$sigma_cross_mu_index0,
       has_phylo_mu = 0L,
       phylo_mu_node_index = 0L,
       Q_phylo = dummy_sparse,
@@ -5944,7 +6104,12 @@ split_tmb_random_effects <- function(par, spec) {
   if (spec$random$sigma$n_re > 0L) {
     latent <- unname(par$u_sigma[seq_len(spec$random$sigma$n_re)])
     values <- if (identical(spec$model_type, "biv_gaussian")) {
-      transform_biv_sigma_random_effects(latent, par, spec$random$sigma)
+      transform_biv_sigma_random_effects(
+        latent,
+        par,
+        spec$random$sigma,
+        re_mu_sigma
+      )
     } else {
       transform_sigma_random_effects(
         latent,
@@ -6061,13 +6226,24 @@ transform_sigma_random_effects <- function(
   values
 }
 
-transform_biv_sigma_random_effects <- function(latent, par, re_sigma) {
+transform_biv_sigma_random_effects <- function(
+  latent,
+  par,
+  re_sigma,
+  re_mu_sigma = empty_mu_sigma_random_covariance(re_sigma$n_re)
+) {
   sd_by_term <- exp(unname(par$log_sd_sigma[seq_len(re_sigma$n_terms)]))
   rho_sigma <- if (re_sigma$n_cors > 0L) {
     0.999999 * tanh(unname(par$eta_cor_sigma[seq_len(re_sigma$n_cors)]))
   } else {
     numeric()
   }
+  rho_mu_sigma <- if (re_mu_sigma$n_cors > 0L) {
+    0.999999 * tanh(unname(par$eta_cor_mu_sigma[seq_len(re_mu_sigma$n_cors)]))
+  } else {
+    numeric()
+  }
+  mu_latent <- unname(par$u_mu)
 
   values <- numeric(re_sigma$n_re)
   for (idx in seq_len(re_sigma$n_re)) {
@@ -6078,6 +6254,12 @@ transform_biv_sigma_random_effects <- function(latent, par, re_sigma) {
       rho_i <- rho_sigma[[cor_id]]
       pair <- re_sigma$re_pair_index0[[idx]] + 1L
       u_cond <- rho_i * latent[[pair]] + sqrt(1 - rho_i^2) * latent[[idx]]
+    }
+    cross_cor_id <- re_mu_sigma$sigma_cross_cor_id0[[idx]] + 1L
+    if (cross_cor_id > 0L) {
+      rho_i <- rho_mu_sigma[[cross_cor_id]]
+      mu_idx <- re_mu_sigma$sigma_cross_mu_index0[[idx]] + 1L
+      u_cond <- rho_i * mu_latent[[mu_idx]] + sqrt(1 - rho_i^2) * u_cond
     }
     values[[idx]] <- sd_by_term[[term]] * u_cond
   }

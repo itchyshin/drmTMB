@@ -1170,7 +1170,7 @@ test_that("unsupported random-effect cases fail clearly", {
       family = biv_gaussian(),
       data = dat
     ),
-    "one matching random-intercept"
+    "covariance-block labels"
   )
   expect_error(
     drmTMB(bf(y ~ x + (1 + x + y2 | id)), family = gaussian(), data = dat),

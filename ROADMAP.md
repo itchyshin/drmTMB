@@ -116,10 +116,14 @@ distributional regression models using TMB.
   `corpars$sigma` and `corpairs()`, and residual `rho12` remains separate.
   Targeted simulation coverage now fits both bivariate group-level covariance
   blocks in the same model with predictor-dependent residual `rho12 ~ x`.
+- One same-response bivariate `mu`/`sigma` random-intercept covariance block is
+  implemented, such as matching `(1 | p | id)` terms in `mu1` and `sigma1` or
+  in `mu2` and `sigma2`. This is still a pairwise bridge, not the full shared
+  labelled block across `mu1`, `mu2`, `sigma1`, and `sigma2`.
 - Bivariate random slopes, random effects in `rho12`, bivariate
-  `meta_known_V()` plus random effects, cross-parameter bivariate covariance,
-  and structured bivariate covariance remain future work and are rejected
-  before optimization.
+  `meta_known_V()` plus random effects, multi-term cross-parameter bivariate
+  covariance, and structured bivariate covariance remain future work and are
+  rejected before optimization.
 
 ## Phase 4: Mixed and Double-Hierarchical Models
 
@@ -132,8 +136,9 @@ distributional regression models using TMB.
   fit the first univariate mean-scale covariance block. Random-effect scale
   formulae are implemented for one or more distinct unlabelled Gaussian `mu`
   random intercepts, such as `sd(id) ~ x_group` and `sd(site) ~ site_type`.
-  The bivariate Gaussian path now fits matched labelled `mu1`/`mu2` random
-  intercept covariance blocks.
+  The bivariate Gaussian path now fits matched labelled `mu1`/`mu2`,
+  `sigma1`/`sigma2`, and same-response `mu`/`sigma` random-intercept
+  covariance blocks.
 - Add larger cross-formula or cross-parameter covariance sharing for labelled
   blocks, following `docs/design/17-correlated-random-effect-blocks.md`.
 - Use `docs/design/18-random-effect-scale-models.md` as the design contract:
@@ -361,10 +366,11 @@ remain blocked by future covariance or non-Gaussian random-effect work.
 ## Phase 11: Bivariate Random Effects and Correlation Pairs
 
 - Status: first slice implemented.
-- Matching labelled random intercepts in bivariate `mu1`/`mu2` and
-  `sigma1`/`sigma2` are implemented after the fixed-effect bivariate Gaussian
-  location-coscale model stabilized. Random slopes, cross-parameter bivariate
-  covariance blocks, and structured covariance remain planned.
+- Matching labelled random intercepts in bivariate `mu1`/`mu2`,
+  `sigma1`/`sigma2`, and one same-response `mu`/`sigma` pair are implemented
+  after the fixed-effect bivariate Gaussian location-coscale model stabilized.
+  Random slopes, full cross-parameter bivariate covariance blocks, and
+  structured covariance remain planned.
 - Use labelled group-level covariance blocks so residual `rho12`, ordinary
   group-level correlations, phylogenetic correlations, spatial field
   correlations, and mean-scale correlations stay in separate namespaces.

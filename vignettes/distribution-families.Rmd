@@ -40,7 +40,7 @@ quantity each `sigma` formula models.
 | Positive count, zeros absent by design | `truncated_nbinom2()` | `mu`, `sigma` | NB2 dispersion for the untruncated component | fixed effects only |
 | Count with a separate zero process | `truncated_nbinom2()` plus `hu ~` | `mu`, `sigma`, `hu` | NB2 dispersion for nonzero counts | fixed effects only |
 | Ordered categories | `cumulative_logit()` | `mu`, cutpoints | fixed latent logistic scale | location-only; ordinal scale planned |
-| Two continuous Gaussian responses | `c(gaussian(), gaussian())` | `mu1`, `mu2`, `sigma1`, `sigma2`, `rho12` | residual SDs for each response | matching labelled `mu1`/`mu2` and `sigma1`/`sigma2` random intercepts implemented; richer covariance planned |
+| Two continuous Gaussian responses | `c(gaussian(), gaussian())` | `mu1`, `mu2`, `sigma1`, `sigma2`, `rho12` | residual SDs for each response | matching labelled `mu1`/`mu2`, `sigma1`/`sigma2`, and one same-response `mu`/`sigma` random-intercept pair implemented; richer covariance planned |
 
 The current design keeps constructor names close to base R where possible. For
 example, exposure in count models is written with the standard formula term

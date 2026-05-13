@@ -2,6 +2,63 @@
 
 Record meaningful development checks here.
 
+## 2026-05-13 -- Bivariate same-response mu/sigma covariance
+
+Scope:
+
+- finished the same-response bivariate `mu`/`sigma` random-intercept covariance
+  slice, allowing one matching labelled pair such as `mu1` with `sigma1` or
+  `mu2` with `sigma2`;
+- wired the bivariate TMB data list, C++ likelihood branch, fitted random-effect
+  extraction, `corpars$mu_sigma`, `corpairs()`, `profile_targets()`, and
+  `check_drm()` to keep this mean-scale pair separate from `mu1`/`mu2`,
+  `sigma1`/`sigma2`, and residual `rho12`;
+- updated formula grammar, likelihood, profile, roadmap, known-limitations,
+  README, NEWS, and vignette status surfaces so the implemented pairwise bridge
+  is not confused with the still-planned full labelled covariance block across
+  `mu1`, `mu2`, `sigma1`, and `sigma2`.
+
+Checks:
+
+- recovery rehydration: inspected `git status --short --branch`, `git diff
+  --stat`, `git diff -- R/drmTMB.R`, `git diff -- src/drmTMB.cpp`, and
+  `docs/dev-log/recovery-checkpoints/2026-05-13-040434-codex-checkpoint.md`
+  before editing.
+- `air format R/drmTMB.R R/check.R R/methods.R
+  tests/testthat/test-biv-gaussian.R`: passed.
+- `air format tests/testthat/test-gaussian-random-intercepts.R
+  tests/testthat/test-phylo-utils.R`: passed.
+- `Rscript -e "devtools::document()"`: passed and regenerated
+  `man/drmTMB.Rd` and `man/corpairs.Rd`.
+- `Rscript -e "devtools::test(filter = 'biv-gaussian|check-drm')"`: passed
+  with 369 expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript -e "devtools::test(filter =
+  'gaussian-random-intercepts|phylo-utils|biv-gaussian|check-drm')"`: passed
+  with 639 expectations, 0 failures, 0 warnings, and 0 skips after updating
+  stale unsupported-message expectations and the hand-built phylo TMB data
+  fixture for the new random-effect metadata fields.
+- `Rscript -e "devtools::test()"`: passed with 2052 expectations, 0 failures,
+  0 warnings, and 0 skips.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with no problems found.
+- `git diff --check`: passed.
+- `rg -n 'bivariate random slopes, cross-parameter|cross-parameter covariance
+  blocks, and `rho12`|cross-parameter bivariate covariance blocks remain
+  planned|double-hierarchical cross-parameter covariance|bivariate
+  `sigma1`/`sigma2` and cross-parameter' README.md ROADMAP.md NEWS.md docs
+  vignettes --glob '!docs/dev-log/after-task/**' --glob
+  '!docs/dev-log/recovery-checkpoints/**'`: no active stale broad-planned
+  wording found.
+- `rg -n 'same-response|full cross-parameter|biv_mu_sigma_random_effect_covariance|corpars\\$mu_sigma|eta_cor_mu_sigma'
+  README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md
+  vignettes R tests/testthat/test-biv-gaussian.R
+  tests/testthat/test-check-drm.R`: checked that code, tests, and docs name the
+  implemented pairwise bridge and the still-planned full block separately.
+- `rg -n 'meta_gaussian|tau ~|rho ~|meta_known_V\\([^V]' README.md ROADMAP.md
+  NEWS.md docs/design docs/dev-log/known-limitations.md vignettes R
+  tests/testthat/test-biv-gaussian.R`: remaining hits are intentional
+  meta-analysis and residual-correlation guardrails; no new syntax was
+  introduced.
+
 ## 2026-05-12 -- Bivariate random-structure metadata parity
 
 Scope:
