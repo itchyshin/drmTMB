@@ -2,6 +2,31 @@
 
 Record meaningful development checks here.
 
+## 2026-05-13 -- Slice 14 phylogenetic q4 status wording guard
+
+Scope:
+
+- clarified in user-facing phylogenetic and model-map prose that q4
+  phylogenetic scaffolds are internal developer contracts only;
+- stated that bivariate `phylo()` remains planned until fitted likelihood,
+  simulation recovery, and reporting rows are present;
+- kept residual `rho12`, ordinary group-level covariance, and future
+  phylogenetic covariance layers separate in the public status map.
+
+Checks:
+
+- `air format vignettes/phylogenetic-spatial.Rmd vignettes/model-map.Rmd
+  docs/dev-log/known-limitations.md docs/dev-log/check-log.md
+  docs/dev-log/after-task/2026-05-13-slice-14-phylogenetic-q4-status-wording-guard.md`:
+  passed.
+- `rg -n 'q=4|q4|bivariate \`phylo|fitted likelihood|corpairs\\(\\)|planned,
+  not implemented|residual \`rho12' vignettes/phylogenetic-spatial.Rmd
+  vignettes/model-map.Rmd docs/dev-log/known-limitations.md
+  docs/dev-log/after-task/2026-05-13-slice-14-phylogenetic-q4-status-wording-guard.md`:
+  passed and confirmed public wording says q4 phylogenetic scaffolds are
+  internal only.
+- `git diff --check`: passed.
+
 ## 2026-05-13 -- Slice 13 phylogenetic q4 planned-pair scaffold
 
 Scope:

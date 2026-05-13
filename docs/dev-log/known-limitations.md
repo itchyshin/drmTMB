@@ -33,6 +33,11 @@
   random-intercept, `sigma1`/`sigma2` random-intercept, and same-response
   bivariate `mu`/`sigma` random-intercept correlations. It does not yet report
   phylogenetic, spatial, or study-level correlation pairs.
+- Internal q4 phylogenetic algebra, hidden TMB-prior, and planned-pair
+  scaffolds exist for the future `mu1`, `mu2`, `sigma1`, and `sigma2` endpoint,
+  but they do not change accepted formulas or fitted output. Bivariate
+  `phylo()` remains planned until a fitted likelihood, recovery tests, and
+  reporting rows are present.
 - `summary()`, `predict_parameters()`, and `marginal_parameters()` expose
   fitted response-scale parameter summaries for interpretation. `summary()` can
   attach opt-in Wald intervals and direct profile intervals for profile-ready

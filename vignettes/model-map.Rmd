@@ -124,6 +124,10 @@ Gaussian `mu` predictor. The residual `sigma` remains the within-observation
 SD. Phylogenetic slopes, phylogenetic scale terms, bivariate phylogenetic
 covariance blocks, and spatial fields remain planned extensions.
 
+The q=4 phylogenetic scaffolds in the developer notes are internal contracts for
+the future state across `mu1`, `mu2`, `sigma1`, and `sigma2`. They are not
+accepted user syntax and do not make bivariate `phylo()` models fitted models.
+
 ## Planned, not implemented
 
 These surfaces are roadmap items, not syntax to rely on in analyses yet:
@@ -133,7 +137,7 @@ These surfaces are roadmap items, not syntax to rely on in analyses yet:
 | correlated residual-scale slope blocks in `sigma` | needs covariance recovery for scale intercept-slope blocks before public use |
 | larger cross-formula labelled covariance blocks linking `mu` and `sigma` | extends beyond the first fitted random-intercept mean-scale correlations |
 | bivariate random slopes and full cross-parameter covariance blocks | expands group-level covariance blocks beyond the first same-parameter and same-response random-intercept slices |
-| phylogenetic slopes, phylogenetic `sigma`, and bivariate phylogenetic effects | adds structured covariance layers that must stay separate from residual `rho12` |
+| phylogenetic slopes, phylogenetic `sigma`, and bivariate phylogenetic effects | internal q4 scaffolds exist, but fitted structured covariance layers remain separate from residual `rho12` and are not yet user-facing |
 | spatial random effects | planned parallel to `phylo()`, but the spatial likelihood is not implemented |
 | higher-dimensional multivariate models | belong in `gllvmTMB`, not `drmTMB` |
 
