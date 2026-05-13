@@ -154,6 +154,7 @@ drmTMB <- function(
   )
 
   spec$response_names <- drm_spec_response_names(spec)
+  spec <- add_covariance_probe_parameter(spec)
 
   obj <- TMB::MakeADFun(
     data = spec$tmb_data,
@@ -5675,6 +5676,19 @@ add_covariance_block_tmb_data <- function(tmb_data, spec) {
     empty_labelled_covariance_block_tmb_data()
   }
   c(tmb_data, cov_tmb_data)
+}
+
+add_covariance_probe_parameter <- function(spec) {
+  if (is.null(spec$start$u_re_cov_probe)) {
+    spec$start$u_re_cov_probe <- 0
+  }
+  if (is.null(spec$map)) {
+    spec$map <- list()
+  }
+  if (is.null(spec$map$u_re_cov_probe)) {
+    spec$map$u_re_cov_probe <- factor(NA)
+  }
+  spec
 }
 
 make_tmb_data <- function(spec) {

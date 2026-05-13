@@ -112,6 +112,15 @@ test_that("q=3 block TMB data remains guarded until parameterization exists", {
   )
 })
 
+test_that("ordinary fits keep hidden q=3 probe parameter mapped off", {
+  dat <- data.frame(y = c(-0.3, 0.2, 0.8, -0.1, 0.4, 0.9))
+  fit <- drmTMB(bf(y ~ 1, sigma ~ 1), family = gaussian(), data = dat)
+
+  expect_equal(fit$model$start$u_re_cov_probe, 0)
+  expect_true(all(is.na(fit$model$map$u_re_cov_probe)))
+  expect_false("u_re_cov_probe" %in% names(fit$opt$par))
+})
+
 test_that("hidden q=3 registry probe maps non-centered blocks by group", {
   dat <- data.frame(y = c(-0.3, 0.2, 0.8, -0.1, 0.4, 0.9))
   fit <- drmTMB(bf(y ~ 1, sigma ~ 1), family = gaussian(), data = dat)
@@ -128,12 +137,16 @@ test_that("hidden q=3 registry probe maps non-centered blocks by group", {
   tmb_data$model_type <- 97L
   tmb_data$re_cov_probe_theta <- theta
   tmb_data$re_cov_probe_sd <- sd
-  tmb_data$re_cov_probe_z <- z
+  tmb_data$re_cov_probe_z <- numeric(0)
+  parameters <- fit$model$start
+  parameters$u_re_cov_probe <- z
+  map <- fit$model$map
+  map$u_re_cov_probe <- NULL
 
   obj <- TMB::MakeADFun(
     data = tmb_data,
-    parameters = fit$model$start,
-    map = fit$model$map,
+    parameters = parameters,
+    map = map,
     random = fit$model$random_names,
     DLL = "drmTMB",
     silent = TRUE
@@ -150,6 +163,11 @@ test_that("hidden q=3 registry probe maps non-centered blocks by group", {
     obj$report()$re_cov_probe_contribution,
     expected,
     tolerance = 1e-12
+  )
+  expect_equal(
+    obj$fn(obj$par),
+    sum(-stats::dnorm(z, log = TRUE)),
+    tolerance = 1e-10
   )
   expect_true(is.finite(obj$fn(obj$par)))
   expect_true(all(is.finite(obj$gr(obj$par))))

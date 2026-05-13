@@ -2,6 +2,34 @@
 
 Record meaningful development checks here.
 
+## 2026-05-13 -- Slice 6D hidden q=3 probe parameter plumbing
+
+Scope:
+
+- added hidden TMB parameter vector `u_re_cov_probe`;
+- added `add_covariance_probe_parameter()` so ordinary `drmTMB()` fits include
+  `u_re_cov_probe = 0` in the start list while mapping it off by default;
+- changed hidden `model_type == 97` to prefer `u_re_cov_probe` over
+  data-supplied `re_cov_probe_z`, and to add the standard normal contribution
+  for that probe parameter;
+- updated the direct phylogenetic TMB fixture so hand-built `MakeADFun()` calls
+  still match the full C++ template parameter contract;
+- changed no user-facing syntax, no fitted-model likelihood branch, no
+  optimizer-visible parameter in ordinary fits, and no public q > 2 covariance
+  support.
+
+Checks:
+
+- `air format R/drmTMB.R tests/testthat/test-covariance-block-registry.R
+  tests/testthat/test-phylo-utils.R`: passed.
+- `Rscript -e 'devtools::test(filter =
+  "covariance-block-registry|phylo-utils")'`: passed with 86 expectations, 0
+  failures, 0 warnings, and 0 skips.
+- `Rscript -e 'devtools::test(filter =
+  "covariance-block-registry|biv-gaussian|gaussian-random-intercepts|phylo-utils|package-skeleton")'`:
+  passed with 939 expectations, 0 failures, 0 warnings, and 0 skips.
+- `git diff --check`: passed.
+
 ## 2026-05-13 -- Slice 6C hidden q=3 registry contribution probe
 
 Scope:

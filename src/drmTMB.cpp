@@ -140,6 +140,7 @@ Type objective_function<Type>::operator()()
   PARAMETER_VECTOR(u_sigma);
   PARAMETER_VECTOR(log_sd_sigma);
   PARAMETER_VECTOR(u_phylo);
+  PARAMETER_VECTOR(u_re_cov_probe);
   PARAMETER(log_sd_phylo);
 
   Type nll = 0;
@@ -176,7 +177,9 @@ Type objective_function<Type>::operator()()
         for (int m = 0; m < block_size; ++m) {
           int z_pos = g * block_size + m;
           z(m) = Type(0.0);
-          if (z_pos < re_cov_probe_z.size()) {
+          if (z_pos < u_re_cov_probe.size()) {
+            z(m) = u_re_cov_probe(z_pos);
+          } else if (z_pos < re_cov_probe_z.size()) {
             z(m) = re_cov_probe_z(z_pos);
           }
         }
@@ -199,6 +202,9 @@ Type objective_function<Type>::operator()()
           }
         }
       }
+    }
+    for (int j = 0; j < u_re_cov_probe.size(); ++j) {
+      nll -= dnorm(u_re_cov_probe(j), Type(0.0), Type(1.0), true);
     }
     REPORT(re_cov_probe_corr);
     REPORT(re_cov_probe_contribution);

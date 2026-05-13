@@ -105,6 +105,11 @@ registry path, the fallback should still use one positive-definite
 Cholesky-style parameterization for the whole block, not separate unconstrained
 pairwise `tanh()` correlations.
 
+The current registry-shaped probe keeps `u_re_cov_probe` mapped off for all
+ordinary models. Hidden tests explicitly unmap it for `model_type == 97`, which
+proves that a TMB parameter can feed the q=3 block transform without changing
+user-facing fits.
+
 The flattened data contract should be block-oriented rather than pair-oriented:
 
 ```text
@@ -199,8 +204,9 @@ still be named `sigma`.
    probes that report a positive-definite q=3 correlation matrix, finite
    objective/gradient under `VECSCALE_t`, and the non-centered
    `sqrt_cov_scale()` latent transform. Also done for a hidden
-   registry-shaped member/group contribution probe; the production likelihood
-   still needs real q=3 random-effect parameters and likelihood wiring.
+   registry-shaped member/group contribution probe using a dormant TMB
+   parameter; the production likelihood still needs real q=3 random-effect
+   parameters and likelihood wiring.
 8. Only then enable bivariate random slopes or the full shared
    `mu1`/`mu2`/`sigma1`/`sigma2` label pattern.
 
