@@ -2,6 +2,25 @@
 
 Record meaningful development checks here.
 
+## 2026-05-13 -- Bivariate phylogenetic location syntax guard
+
+Scope:
+
+- added a narrow bivariate Gaussian guard for the next fitted phylogenetic
+  location path;
+- made unmatched `phylo()` terms in `mu1` or `mu2` fail with a matched-term
+  message;
+- made mismatched bivariate `phylo()` group/tree combinations fail explicitly;
+- made matched `mu1`/`mu2` phylogenetic location syntax report that it is
+  recognized but not fitted yet, with `sigma1`, `sigma2`, and residual `rho12`
+  still ordinary fixed-effect distributional parameters.
+
+Checks:
+
+- `air format R/drmTMB.R tests/testthat/test-biv-gaussian.R`: passed.
+- `Rscript -e 'devtools::test(filter = "biv-gaussian")'`: passed with 501
+  expectations, 0 failures, 0 warnings, and 0 skips.
+
 ## 2026-05-13 -- pkgdown feature-branch build workflow guard
 
 Scope:

@@ -2181,6 +2181,8 @@ drm_build_biv_gaussian_spec <- function(
   mu2_entry$rhs <- meta_mu2$rhs
   meta <- if (!is.null(meta_mu1$V)) meta_mu1 else meta_mu2
 
+  guard_biv_phylo_mu_terms(mu1_entry, mu2_entry)
+
   mu1_re <- extract_random_mu_terms(mu1_entry$rhs, "mu1")
   mu1_entry$rhs <- mu1_re$rhs
   mu2_re <- extract_random_mu_terms(mu2_entry$rhs, "mu2")
@@ -2900,6 +2902,47 @@ extract_gaussian_mu_phylo_term <- function(entry) {
   }
 
   list(rhs = rebuild_plus_terms(terms[!is_phylo]), term = phylo_term)
+}
+
+guard_biv_phylo_mu_terms <- function(mu1_entry, mu2_entry) {
+  mu1_phylo <- extract_gaussian_mu_phylo_term(mu1_entry)
+  mu2_phylo <- extract_gaussian_mu_phylo_term(mu2_entry)
+  has_phylo <- c(
+    mu1 = !is.null(mu1_phylo$term),
+    mu2 = !is.null(mu2_phylo$term)
+  )
+  if (!any(has_phylo)) {
+    return(invisible(FALSE))
+  }
+  if (!all(has_phylo)) {
+    missing <- names(has_phylo)[!has_phylo]
+    present <- names(has_phylo)[has_phylo]
+    cli::cli_abort(c(
+      "Bivariate phylogenetic location terms must be matched in {.code mu1} and {.code mu2}.",
+      "x" = "{.code {present}} contains {.fn phylo}, but {.code {missing}} does not.",
+      "i" = "Use matching terms such as {.code mu1 = y1 ~ x + phylo(1 | species, tree = tree)} and {.code mu2 = y2 ~ x + phylo(1 | species, tree = tree)}."
+    ))
+  }
+
+  term1 <- mu1_phylo$term
+  term2 <- mu2_phylo$term
+  if (
+    !identical(term1$group, term2$group) ||
+      !identical(term1$tree, term2$tree)
+  ) {
+    cli::cli_abort(c(
+      "Matched bivariate phylogenetic location terms must use the same grouping variable and tree.",
+      "x" = "{.code mu1} uses {.code phylo(1 | {term1$group}, tree = {term1$tree})}.",
+      "x" = "{.code mu2} uses {.code phylo(1 | {term2$group}, tree = {term2$tree})}.",
+      "i" = "The first fitted bivariate phylogenetic path will use one shared tree-derived precision for {.code mu1} and {.code mu2}."
+    ))
+  }
+
+  cli::cli_abort(c(
+    "Bivariate phylogenetic location terms are recognized but not fitted yet.",
+    "x" = "Requested matching {.code phylo(1 | {term1$group}, tree = {term1$tree})} terms in {.code mu1} and {.code mu2}.",
+    "i" = "This is the next fitted slice: correlated phylogenetic random intercepts for {.code mu1}/{.code mu2}, with {.code sigma1}, {.code sigma2}, and residual {.code rho12} kept as ordinary fixed-effect distributional parameters."
+  ))
 }
 
 phylo_mu_vars <- function(term) {
