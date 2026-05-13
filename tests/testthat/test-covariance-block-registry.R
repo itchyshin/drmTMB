@@ -50,6 +50,14 @@ new_three_member_covariance_registry <- function() {
   registry
 }
 
+tmb_unstructured_corr_matrix <- function(theta) {
+  q <- (1 + sqrt(1 + 8 * length(theta))) / 2
+  stopifnot(q == as.integer(q))
+  L <- diag(as.integer(q))
+  L[lower.tri(L)] <- theta
+  stats::cov2cor(L %*% t(L))
+}
+
 test_that("internal covariance registry can describe a guarded q=3 block", {
   registry <- new_three_member_covariance_registry()
   block <- registry$blocks[1L, , drop = FALSE]
@@ -97,4 +105,34 @@ test_that("q=3 block TMB data remains guarded until parameterization exists", {
     drmTMB:::labelled_covariance_block_tmb_data(registry),
     "two-member|q > 2"
   )
+})
+
+test_that("TMB q=3 covariance prototype produces positive-definite correlations", {
+  dat <- data.frame(y = c(-0.3, 0.2, 0.8, -0.1, 0.4, 0.9))
+  fit <- drmTMB(bf(y ~ 1, sigma ~ 1), family = gaussian(), data = dat)
+  tmb_data <- fit$model$tmb_data
+  theta <- c(0.2, -0.4, 0.3)
+  tmb_data$model_type <- 98L
+  tmb_data$re_cov_probe_theta <- theta
+  tmb_data$re_cov_probe_sd <- c(1.2, 0.8, 1.5)
+  tmb_data$re_cov_probe_x <- c(0.1, -0.2, 0.3)
+
+  obj <- TMB::MakeADFun(
+    data = tmb_data,
+    parameters = fit$model$start,
+    map = fit$model$map,
+    random = fit$model$random_names,
+    DLL = "drmTMB",
+    silent = TRUE
+  )
+
+  corr <- obj$report()$re_cov_probe_corr
+  eig <- eigen(corr, symmetric = TRUE, only.values = TRUE)$values
+
+  expect_equal(corr, t(corr), tolerance = 1e-12)
+  expect_equal(diag(corr), rep(1, 3), tolerance = 1e-12)
+  expect_equal(corr, tmb_unstructured_corr_matrix(theta), tolerance = 1e-12)
+  expect_true(all(eig > 0))
+  expect_true(is.finite(obj$fn(obj$par)))
+  expect_true(all(is.finite(obj$gr(obj$par))))
 })

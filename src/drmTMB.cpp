@@ -116,6 +116,9 @@ Type objective_function<Type>::operator()()
   DATA_IVECTOR(re_cov_pair_to_member);
   DATA_IVECTOR(re_cov_pair_parameter);
   DATA_IVECTOR(re_cov_pair_parameter_index);
+  DATA_VECTOR(re_cov_probe_theta);
+  DATA_VECTOR(re_cov_probe_sd);
+  DATA_VECTOR(re_cov_probe_x);
 
   PARAMETER_VECTOR(beta_mu);
   PARAMETER_VECTOR(beta_sigma);
@@ -155,7 +158,21 @@ Type objective_function<Type>::operator()()
   (void)re_cov_pair_to_member;
   (void)re_cov_pair_parameter;
   (void)re_cov_pair_parameter_index;
-  if (model_type == 99) {
+  if (model_type == 98) {
+    density::UNSTRUCTURED_CORR_t<Type> re_cov_probe_density(re_cov_probe_theta);
+    matrix<Type> re_cov_probe_corr = re_cov_probe_density.cov();
+    if (re_cov_probe_x.size() > 0) {
+      if (re_cov_probe_sd.size() == re_cov_probe_x.size()) {
+        nll += density::VECSCALE(
+          re_cov_probe_density,
+          re_cov_probe_sd
+        )(re_cov_probe_x);
+      } else {
+        nll += re_cov_probe_density(re_cov_probe_x);
+      }
+    }
+    REPORT(re_cov_probe_corr);
+  } else if (model_type == 99) {
     int n_phylo = u_phylo.size();
     vector<Type> Q_u = Q_phylo * u_phylo;
     Type quadratic = Type(0.0);

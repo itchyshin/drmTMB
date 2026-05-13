@@ -2,6 +2,45 @@
 
 Record meaningful development checks here.
 
+## 2026-05-13 -- Slice 6 q=3 TMB algebra probe
+
+Scope:
+
+- added internal-only TMB data fields `re_cov_probe_theta`,
+  `re_cov_probe_sd`, and `re_cov_probe_x` to the dormant covariance-block data
+  contract;
+- added a hidden `model_type == 98` branch that constructs
+  `density::UNSTRUCTURED_CORR_t`, reports its correlation matrix, and evaluates
+  either the unscaled density or a `density::VECSCALE()` density for a supplied
+  q=3 probe vector;
+- added a deterministic test asserting that the reported q=3 correlation
+  matrix is symmetric, has unit diagonal, matches TMB's documented lower-triangle
+  normalization, has positive eigenvalues, and yields finite objective and
+  gradient;
+- changed no user-facing syntax, no fitted-model likelihood branch, no real
+  random-effect parameters, and no public q > 2 covariance support.
+
+Checks:
+
+- Jason inspected local TMB 1.9.21 headers and confirmed that
+  `UNSTRUCTURED_CORR_t` plus `VECSCALE_t` is the right local primitive.
+- Gauss reviewed the numerical plan and recommended the next slice use
+  `sqrt_cov_scale()` for a non-centered prototype.
+- `air format R/drmTMB.R tests/testthat/test-covariance-block-registry.R`:
+  passed.
+- `Rscript -e 'devtools::load_all()'`: passed and recompiled `drmTMB`; the
+  compiler emitted three existing Eigen/TMB header warnings, with no new
+  `drmTMB.cpp` warnings.
+- `Rscript -e 'devtools::test(filter = "covariance-block-registry")'`: passed
+  with 30 expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript -e 'devtools::test(filter =
+  "covariance-block-registry|biv-gaussian|gaussian-random-intercepts|phylo-utils")'`:
+  passed with 888 expectations, 0 failures, 0 warnings, and 0 skips.
+- `git diff --check`: passed.
+- Post-crash recovery rerun on the same checkout: `git diff --check`,
+  `Rscript -e 'devtools::test(filter = "covariance-block-registry")'`, and the
+  four-context targeted test above all passed again.
+
 ## 2026-05-13 -- Slice 5 guarded q=3 registry scaffold
 
 Scope:

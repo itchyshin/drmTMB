@@ -92,12 +92,14 @@ transformed effects `r_bj` enter the `mu`, `sigma`, `mu1`, `mu2`, `sigma1`,
 or `sigma2` linear predictors.
 
 Local TMB 1.9.21 exposes `UNSTRUCTURED_CORR_t` and `VECSCALE_t` for an
-unstructured correlation density with scaled standard deviations. The `q > 2`
-likelihood slice should prototype that helper before adding a local correlation
-transform. If the helper is unsuitable for the existing non-centered
-parameterization, the fallback should still use one positive-definite
-Cholesky-style parameterization for the whole block, not separate
-unconstrained pairwise `tanh()` correlations.
+unstructured correlation density with scaled standard deviations. The first
+TMB algebra probe confirms that a q=3 `UNSTRUCTURED_CORR_t` object reports a
+positive-definite correlation matrix and can be evaluated through `VECSCALE_t`.
+The next likelihood slice should use that helper through `sqrt_cov_scale()` so
+the implementation stays non-centered. If the helper is unsuitable for the
+existing non-centered parameterization, the fallback should still use one
+positive-definite Cholesky-style parameterization for the whole block, not
+separate unconstrained pairwise `tanh()` correlations.
 
 The flattened data contract should be block-oriented rather than pair-oriented:
 
@@ -189,7 +191,10 @@ still be named `sigma`.
    can carry three members and all three pair rows while marked
    `implemented = FALSE`, and TMB export still aborts for `q > 2`.
 7. Prototype `UNSTRUCTURED_CORR_t` plus scaled standard deviations or an
-   equivalent positive-definite Cholesky path for `q > 2`.
+   equivalent positive-definite Cholesky path for `q > 2`. Started with an
+   internal TMB algebra probe that reports a positive-definite q=3 correlation
+   matrix and finite objective/gradient under `VECSCALE_t`; the production
+   likelihood still needs the non-centered `sqrt_cov_scale()` path.
 8. Only then enable bivariate random slopes or the full shared
    `mu1`/`mu2`/`sigma1`/`sigma2` label pattern.
 
