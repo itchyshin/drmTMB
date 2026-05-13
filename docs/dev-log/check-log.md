@@ -2,6 +2,39 @@
 
 Record meaningful development checks here.
 
+## 2026-05-12 -- Bivariate covariance block label guard
+
+Scope:
+
+- rejected the ambiguous same-label bivariate pattern where `(1 | p | id)`
+  appears in all four `mu1`, `mu2`, `sigma1`, and `sigma2` formulas;
+- kept the implemented bivariate covariance surface limited to two separate
+  same-parameter blocks: a mean-mean `mu1`/`mu2` block and a scale-scale
+  `sigma1`/`sigma2` block;
+- added negative tests for the same-label cross-parameter pattern and for
+  random-effect syntax in residual `rho12`.
+
+Checks:
+
+- live pre-edit probe confirmed that the same-label all-four-formula pattern
+  was previously accepted and reported two separate group-level `corpairs()`
+  rows with the same `block` label.
+- `air format R/drmTMB.R tests/testthat/test-biv-gaussian.R`: passed.
+- `Rscript -e "devtools::test(filter = 'biv-gaussian')"`: passed with
+  229 expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript -e "devtools::test()"`: passed with 2008 expectations,
+  0 failures, 0 warnings, and 0 skips.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with no problems found.
+- `git diff --check`: passed.
+- `rg -n "Reusing one bivariate|same-label pattern|same label and grouping variable|cross-parameter bivariate covariance|rho12.*within-observation" R/drmTMB.R tests/testthat/test-biv-gaussian.R NEWS.md docs/design/01-formula-grammar.md docs/design/28-double-hierarchical-endpoint.md ROADMAP.md docs/dev-log/known-limitations.md vignettes`:
+  checked the new guard, NEWS note, and formula-grammar wording.
+- `rg -n "meta_gaussian|tau ~|rho ~|meta_known_V\\([^V]" README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes R tests/testthat/test-biv-gaussian.R`:
+  checked scope guardrails; hits were existing meta-analysis and design-rule
+  references, not new grammar.
+- `rg -n "rho12|sigma1|sigma2|sd\\(" README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes R tests/testthat/test-biv-gaussian.R`:
+  reviewed the high-density scale and residual-correlation wording touched by
+  this guard.
+
 ## 2026-05-12 -- Joint bivariate mean-scale covariance regression
 
 Scope:

@@ -2160,6 +2160,12 @@ drm_build_biv_gaussian_spec <- function(
       "i" = "Fit bivariate group-level covariance blocks without known sampling covariance first."
     ))
   }
+  reject_biv_cross_parameter_label_reuse(
+    mu1_re$terms,
+    mu2_re$terms,
+    sigma1_re$terms,
+    sigma2_re$terms
+  )
 
   for (entry in list(
     mu1_entry,
@@ -3455,6 +3461,61 @@ build_biv_sigma_random_structure <- function(sigma1_terms, sigma2_terms, data) {
       paste0(labels[[2L]], ":", levels_group)
     )
   )
+}
+
+reject_biv_cross_parameter_label_reuse <- function(
+  mu1_terms,
+  mu2_terms,
+  sigma1_terms,
+  sigma2_terms
+) {
+  terms <- list(
+    mu1 = mu1_terms,
+    mu2 = mu2_terms,
+    sigma1 = sigma1_terms,
+    sigma2 = sigma2_terms
+  )
+  if (!all(lengths(terms) == 1L)) {
+    return(invisible(FALSE))
+  }
+
+  terms <- lapply(terms, function(term) term[[1L]])
+  is_intercept <- vapply(
+    terms,
+    function(term) identical(term$type, "intercept"),
+    logical(1L)
+  )
+  if (!all(is_intercept)) {
+    return(invisible(FALSE))
+  }
+
+  labels <- vapply(
+    terms,
+    function(term) {
+      if (is.null(term$covariance_label)) {
+        NA_character_
+      } else {
+        term$covariance_label
+      }
+    },
+    character(1L)
+  )
+  groups <- vapply(terms, function(term) term$group, character(1L))
+  if (anyNA(labels) || length(unique(labels)) != 1L) {
+    return(invisible(FALSE))
+  }
+  if (length(unique(groups)) != 1L) {
+    return(invisible(FALSE))
+  }
+
+  block_label <- labels[[1L]]
+  group_name <- groups[[1L]]
+  cli::cli_abort(c(
+    "Reusing one bivariate covariance-block label across {.code mu1}/{.code mu2} and {.code sigma1}/{.code sigma2} is not implemented.",
+    "x" = "Block {.code {block_label}} on group {.field {group_name}} would imply a cross-parameter bivariate covariance block.",
+    "i" = "Use distinct labels such as {.code (1 | pm | {group_name})} for {.code mu1}/{.code mu2} and {.code (1 | ps | {group_name})} for {.code sigma1}/{.code sigma2}.",
+    "i" = "Cross-parameter bivariate covariance across {.code mu1}, {.code mu2}, {.code sigma1}, and {.code sigma2} remains planned."
+  ))
 }
 
 build_sd_mu_structure <- function(entries, targets, re_mu, data) {
