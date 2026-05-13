@@ -291,23 +291,31 @@ drm_profile_targets <- function(object) {
     }
   }
 
+  registry_cor_rows <- profile_registry_cor_targets(object)
+  add_rows(registry_cor_rows)
+  registry_cor_keys <- covariance_block_corpars_keys(
+    object$model$random$covariance_blocks
+  )
   for (dpar in names(object$corpars)) {
     values <- object$corpars[[dpar]]
     internal <- profile_cor_internal(dpar)
-    indices <- next_indices(internal, length(values))
-    add_rows(lapply(seq_along(values), function(i) {
+    for (i in seq_along(values)) {
+      if (paste(dpar, i, sep = ":") %in% registry_cor_keys) {
+        next
+      }
+      index <- i
       profile_ready <- profile_internal_is_active(
         object,
         internal,
-        indices[[i]]
+        index
       )
-      new_profile_target_row(
+      add_rows(list(new_profile_target_row(
         parm = paste0("cor:", dpar, ":", names(values)[[i]]),
         target_class = "random-effect-correlation",
         dpar = dpar,
         term = names(values)[[i]],
         tmb_parameter = internal,
-        index = indices[[i]],
+        index = index,
         estimate = unname(values[[i]]),
         link_estimate = guarded_correlation_link(
           unname(values[[i]]),
@@ -318,8 +326,8 @@ drm_profile_targets <- function(object) {
         target_type = "direct",
         profile_ready = profile_ready,
         profile_note = profile_ready_note(profile_ready)
-      )
-    }))
+      )))
+    }
   }
 
   if (!is.null(object$ordinal)) {
@@ -590,6 +598,57 @@ profile_newdata_transformation <- function(object, dpar) {
     atanh_guarded = "rho12_tanh",
     "unknown"
   )
+}
+
+profile_registry_cor_targets <- function(object) {
+  registry <- object$model$random$covariance_blocks
+  if (
+    !is.list(registry) ||
+      is.null(registry$pairs) ||
+      nrow(registry$pairs) == 0L
+  ) {
+    return(list())
+  }
+
+  pairs <- registry$pairs
+  pair_is_fitted <- !is.na(pairs$tmb_parameter) & !is.na(pairs$tmb_index)
+  pairs <- pairs[pair_is_fitted, , drop = FALSE]
+  if (nrow(pairs) == 0L) {
+    return(list())
+  }
+
+  lapply(seq_len(nrow(pairs)), function(i) {
+    pair <- pairs[i, , drop = FALSE]
+    dpar <- covariance_block_corpars_key(pair$tmb_parameter[[1L]])
+    values <- object$corpars[[dpar]]
+    index <- pair$tmb_index[[1L]]
+    if (is.null(values) || index < 1L || index > length(values)) {
+      cli::cli_abort(
+        "Internal error: covariance-block registry pair has no profile target correlation."
+      )
+    }
+    estimate <- unname(values[[index]])
+    profile_ready <- profile_internal_is_active(
+      object,
+      pair$tmb_parameter[[1L]],
+      index
+    )
+    new_profile_target_row(
+      parm = paste0("cor:", dpar, ":", pair$parameter[[1L]]),
+      target_class = "random-effect-correlation",
+      dpar = dpar,
+      term = pair$parameter[[1L]],
+      tmb_parameter = pair$tmb_parameter[[1L]],
+      index = index,
+      estimate = estimate,
+      link_estimate = guarded_correlation_link(estimate, guard = 0.999999),
+      scale = "response",
+      transformation = "tanh",
+      target_type = "direct",
+      profile_ready = profile_ready,
+      profile_note = profile_ready_note(profile_ready)
+    )
+  })
 }
 
 new_profile_target_row <- function(

@@ -80,21 +80,47 @@ Type objective_function<Type>::operator()()
   DATA_IMATRIX(mu_re_index);
   DATA_MATRIX(mu_re_value);
   DATA_IVECTOR(mu_re_term);
+  DATA_IVECTOR(mu_re_dpar);
   DATA_IVECTOR(mu_re_pos);
   DATA_IVECTOR(mu_re_cor_id);
   DATA_IVECTOR(mu_re_pair_index);
   DATA_IVECTOR(mu_re_sd_row);
   DATA_INTEGER(n_sigma_re_terms);
+  DATA_INTEGER(n_sigma_re_cors);
   DATA_INTEGER(n_mu_sigma_re_cors);
   DATA_IMATRIX(sigma_re_index);
   DATA_MATRIX(sigma_re_value);
   DATA_IVECTOR(sigma_re_term);
+  DATA_IVECTOR(sigma_re_dpar);
+  DATA_IVECTOR(sigma_re_cor_id);
+  DATA_IVECTOR(sigma_re_pair_index);
   DATA_IVECTOR(sigma_re_cross_cor);
   DATA_IVECTOR(sigma_re_cross_mu);
   DATA_INTEGER(has_phylo_mu);
   DATA_IVECTOR(phylo_mu_node_index);
   DATA_SPARSE_MATRIX(Q_phylo);
   DATA_SCALAR(log_det_Q_phylo);
+  DATA_INTEGER(n_re_cov_blocks);
+  DATA_IVECTOR(re_cov_block_size);
+  DATA_IVECTOR(re_cov_block_group_count);
+  DATA_IVECTOR(re_cov_block_member_start);
+  DATA_IVECTOR(re_cov_block_pair_start);
+  DATA_IVECTOR(re_cov_member_component);
+  DATA_IVECTOR(re_cov_member_dpar);
+  DATA_IVECTOR(re_cov_member_response);
+  DATA_IVECTOR(re_cov_member_source_term);
+  DATA_IVECTOR(re_cov_member_coef_pos);
+  DATA_IMATRIX(re_cov_member_latent_index);
+  DATA_MATRIX(re_cov_member_design_value);
+  DATA_IVECTOR(re_cov_pair_from_member);
+  DATA_IVECTOR(re_cov_pair_to_member);
+  DATA_IVECTOR(re_cov_pair_parameter);
+  DATA_IVECTOR(re_cov_pair_parameter_index);
+  DATA_VECTOR(re_cov_probe_theta);
+  DATA_VECTOR(re_cov_probe_sd);
+  DATA_VECTOR(re_cov_probe_x);
+  DATA_VECTOR(re_cov_probe_z);
+  DATA_MATRIX(re_cov_probe_covariance);
 
   PARAMETER_VECTOR(beta_mu);
   PARAMETER_VECTOR(beta_sigma);
@@ -115,10 +141,209 @@ Type objective_function<Type>::operator()()
   PARAMETER_VECTOR(u_sigma);
   PARAMETER_VECTOR(log_sd_sigma);
   PARAMETER_VECTOR(u_phylo);
+  PARAMETER_VECTOR(u_re_cov_probe);
   PARAMETER(log_sd_phylo);
 
   Type nll = 0;
-  if (model_type == 99) {
+  (void)n_re_cov_blocks;
+  (void)re_cov_block_size;
+  (void)re_cov_block_group_count;
+  (void)re_cov_block_member_start;
+  (void)re_cov_block_pair_start;
+  (void)re_cov_member_component;
+  (void)re_cov_member_dpar;
+  (void)re_cov_member_response;
+  (void)re_cov_member_source_term;
+  (void)re_cov_member_coef_pos;
+  (void)re_cov_member_latent_index;
+  (void)re_cov_member_design_value;
+  (void)re_cov_pair_from_member;
+  (void)re_cov_pair_to_member;
+  (void)re_cov_pair_parameter;
+  (void)re_cov_pair_parameter_index;
+  if (model_type == 94) {
+    int n_phylo = Q_phylo.rows();
+    int q = re_cov_probe_covariance.rows();
+    matrix<Type> effect(n_phylo, q);
+    for (int j = 0; j < q; ++j) {
+      for (int i = 0; i < n_phylo; ++i) {
+        int pos = j * n_phylo + i;
+        effect(i, j) = u_re_cov_probe(pos);
+      }
+    }
+    matrix<Type> covariance_inverse = re_cov_probe_covariance.inverse();
+    Type log_det_covariance = log(re_cov_probe_covariance.determinant());
+    matrix<Type> quadratic_matrix(q, q);
+    quadratic_matrix.setZero();
+    for (int b = 0; b < q; ++b) {
+      vector<Type> effect_b(n_phylo);
+      for (int i = 0; i < n_phylo; ++i) {
+        effect_b(i) = effect(i, b);
+      }
+      vector<Type> Q_effect_b = Q_phylo * effect_b;
+      for (int a = 0; a < q; ++a) {
+        for (int i = 0; i < n_phylo; ++i) {
+          quadratic_matrix(a, b) += effect(i, a) * Q_effect_b(i);
+        }
+      }
+    }
+    Type quadratic = Type(0.0);
+    for (int a = 0; a < q; ++a) {
+      for (int b = 0; b < q; ++b) {
+        quadratic += covariance_inverse(a, b) * quadratic_matrix(a, b);
+      }
+    }
+    nll += Type(0.5) * (
+      Type(n_phylo * q) * log(Type(2.0) * M_PI) +
+      Type(n_phylo) * log_det_covariance -
+      Type(q) * log_det_Q_phylo +
+      quadratic
+    );
+    REPORT(quadratic);
+    REPORT(log_det_covariance);
+    REPORT(quadratic_matrix);
+  } else if (model_type == 95 || model_type == 96 || model_type == 97) {
+    density::UNSTRUCTURED_CORR_t<Type> re_cov_probe_density(re_cov_probe_theta);
+    matrix<Type> re_cov_probe_corr = re_cov_probe_density.cov();
+    matrix<Type> re_cov_probe_contribution(
+      re_cov_member_design_value.rows(),
+      re_cov_member_design_value.cols()
+    );
+    re_cov_probe_contribution.setZero();
+    for (int b = 0; b < n_re_cov_blocks; ++b) {
+      int block_size = re_cov_block_size(b);
+      int n_groups = re_cov_block_group_count(b);
+      int member_start = re_cov_block_member_start(b);
+      for (int g = 0; g < n_groups; ++g) {
+        vector<Type> z(block_size);
+        for (int m = 0; m < block_size; ++m) {
+          int z_pos = g * block_size + m;
+          z(m) = Type(0.0);
+          if (z_pos < u_re_cov_probe.size()) {
+            z(m) = u_re_cov_probe(z_pos);
+          } else if (z_pos < re_cov_probe_z.size()) {
+            z(m) = re_cov_probe_z(z_pos);
+          }
+        }
+        vector<Type> latent(block_size);
+        if (re_cov_probe_sd.size() == block_size) {
+          latent = density::VECSCALE(
+            re_cov_probe_density,
+            re_cov_probe_sd
+          ).sqrt_cov_scale(z);
+        } else {
+          latent = re_cov_probe_density.sqrt_cov_scale(z);
+        }
+        for (int m = 0; m < block_size; ++m) {
+          int member_col = member_start + m;
+          for (int i = 0; i < re_cov_member_design_value.rows(); ++i) {
+            if (re_cov_member_latent_index(i, member_col) == g) {
+              re_cov_probe_contribution(i, member_col) =
+                re_cov_member_design_value(i, member_col) * latent(m);
+            }
+          }
+        }
+      }
+    }
+    for (int j = 0; j < u_re_cov_probe.size(); ++j) {
+      nll -= dnorm(u_re_cov_probe(j), Type(0.0), Type(1.0), true);
+    }
+    if (model_type == 95) {
+      vector<Type> mu1 = X_mu1 * beta_mu1;
+      vector<Type> mu2 = X_mu2 * beta_mu2;
+      vector<Type> log_sigma1 = X_sigma1 * beta_sigma1;
+      vector<Type> log_sigma2 = X_sigma2 * beta_sigma2;
+      vector<Type> eta_rho12 = X_rho12 * beta_rho12;
+      vector<Type> rho12 = Type(0.99999999) * tanh(eta_rho12);
+      for (int i = 0; i < y1.size(); ++i) {
+        if (i < re_cov_probe_contribution.rows()) {
+          for (int m = 0; m < re_cov_probe_contribution.cols(); ++m) {
+            int dpar_code = re_cov_member_dpar(m);
+            if (dpar_code == 2) {
+              mu1(i) += re_cov_probe_contribution(i, m);
+            } else if (dpar_code == 3) {
+              mu2(i) += re_cov_probe_contribution(i, m);
+            } else if (dpar_code == 4) {
+              log_sigma1(i) += re_cov_probe_contribution(i, m);
+            } else if (dpar_code == 5) {
+              log_sigma2(i) += re_cov_probe_contribution(i, m);
+            }
+          }
+        }
+      }
+      vector<Type> sigma1 = exp(log_sigma1);
+      vector<Type> sigma2 = exp(log_sigma2);
+      Type log2pi = log(Type(2.0) * M_PI);
+      for (int i = 0; i < y1.size(); ++i) {
+        Type z1 = (y1(i) - mu1(i)) / sigma1(i);
+        Type z2 = (y2(i) - mu2(i)) / sigma2(i);
+        Type one_minus_rho2 = Type(1.0) - rho12(i) * rho12(i);
+        Type row_nll = log2pi + log_sigma1(i) + log_sigma2(i);
+        row_nll += Type(0.5) * log(one_minus_rho2);
+        row_nll += Type(0.5) * (z1 * z1 - Type(2.0) * rho12(i) * z1 * z2 + z2 * z2) / one_minus_rho2;
+        nll += weights(i) * row_nll;
+      }
+      REPORT(mu1);
+      REPORT(mu2);
+      REPORT(log_sigma1);
+      REPORT(log_sigma2);
+      REPORT(sigma1);
+      REPORT(sigma2);
+      REPORT(eta_rho12);
+      REPORT(rho12);
+    } else if (model_type == 96) {
+      vector<Type> mu = X_mu * beta_mu;
+      vector<Type> log_sigma = X_sigma * beta_sigma;
+      for (int i = 0; i < y.size(); ++i) {
+        if (i < re_cov_probe_contribution.rows()) {
+          for (int m = 0; m < re_cov_probe_contribution.cols(); ++m) {
+            if (re_cov_member_component(m) == 0) {
+              mu(i) += re_cov_probe_contribution(i, m);
+            } else if (re_cov_member_component(m) == 1) {
+              log_sigma(i) += re_cov_probe_contribution(i, m);
+            }
+          }
+        }
+      }
+      vector<Type> sigma = exp(log_sigma);
+      vector<Type> obs_sigma = sqrt(V_known + sigma * sigma);
+      for (int i = 0; i < y.size(); ++i) {
+        nll -= weights(i) * dnorm(y(i), mu(i), obs_sigma(i), true);
+      }
+      REPORT(mu);
+      REPORT(log_sigma);
+      REPORT(sigma);
+      REPORT(obs_sigma);
+    }
+    REPORT(re_cov_probe_corr);
+    REPORT(re_cov_probe_contribution);
+  } else if (model_type == 98) {
+    density::UNSTRUCTURED_CORR_t<Type> re_cov_probe_density(re_cov_probe_theta);
+    matrix<Type> re_cov_probe_corr = re_cov_probe_density.cov();
+    vector<Type> re_cov_probe_latent(re_cov_probe_z.size());
+    if (re_cov_probe_z.size() > 0) {
+      if (re_cov_probe_sd.size() == re_cov_probe_z.size()) {
+        re_cov_probe_latent = density::VECSCALE(
+          re_cov_probe_density,
+          re_cov_probe_sd
+        ).sqrt_cov_scale(re_cov_probe_z);
+      } else {
+        re_cov_probe_latent = re_cov_probe_density.sqrt_cov_scale(re_cov_probe_z);
+      }
+    }
+    if (re_cov_probe_x.size() > 0) {
+      if (re_cov_probe_sd.size() == re_cov_probe_x.size()) {
+        nll += density::VECSCALE(
+          re_cov_probe_density,
+          re_cov_probe_sd
+        )(re_cov_probe_x);
+      } else {
+        nll += re_cov_probe_density(re_cov_probe_x);
+      }
+    }
+    REPORT(re_cov_probe_corr);
+    REPORT(re_cov_probe_latent);
+  } else if (model_type == 99) {
     int n_phylo = u_phylo.size();
     vector<Type> Q_u = Q_phylo * u_phylo;
     Type quadratic = Type(0.0);
@@ -667,9 +892,10 @@ Type objective_function<Type>::operator()()
             int pair_idx = mu_re_pair_index(idx);
             u_cond = rho * u_mu(pair_idx) + sqrt(Type(1.0) - rho * rho) * u_mu(idx);
           }
-          if (j == 0) {
+          int dpar_id = mu_re_dpar(idx);
+          if (dpar_id == 0) {
             mu1(i) += mu_re_value(i, j) * sd_current * u_cond;
-          } else if (j == 1) {
+          } else if (dpar_id == 1) {
             mu2(i) += mu_re_value(i, j) * sd_current * u_cond;
           }
         }
@@ -681,23 +907,34 @@ Type objective_function<Type>::operator()()
 
     if (n_sigma_re_terms > 0) {
       vector<Type> sd_sigma_re = exp(log_sd_sigma);
-      vector<Type> rho_sigma_re(n_mu_sigma_re_cors);
-      for (int j = 0; j < n_mu_sigma_re_cors; ++j) {
+      vector<Type> rho_sigma_re(n_sigma_re_cors);
+      for (int j = 0; j < n_sigma_re_cors; ++j) {
         rho_sigma_re(j) = Type(0.999999) * tanh(eta_cor_sigma(j));
+      }
+      vector<Type> rho_mu_sigma_re(n_mu_sigma_re_cors);
+      for (int j = 0; j < n_mu_sigma_re_cors; ++j) {
+        rho_mu_sigma_re(j) = Type(0.999999) * tanh(eta_cor_mu_sigma(j));
       }
       for (int i = 0; i < y1.size(); ++i) {
         for (int j = 0; j < n_sigma_re_terms; ++j) {
           int idx = sigma_re_index(i, j);
           Type u_cond = u_sigma(idx);
-          int cor_id = sigma_re_cross_cor(idx);
+          int cor_id = sigma_re_cor_id(idx);
           if (cor_id >= 0) {
             Type rho = rho_sigma_re(cor_id);
-            int pair_idx = sigma_re_cross_mu(idx);
+            int pair_idx = sigma_re_pair_index(idx);
             u_cond = rho * u_sigma(pair_idx) + sqrt(Type(1.0) - rho * rho) * u_sigma(idx);
           }
-          if (j == 0) {
+          int cross_cor_id = sigma_re_cross_cor(idx);
+          if (cross_cor_id >= 0) {
+            Type rho = rho_mu_sigma_re(cross_cor_id);
+            int mu_idx = sigma_re_cross_mu(idx);
+            u_cond = rho * u_mu(mu_idx) + sqrt(Type(1.0) - rho * rho) * u_cond;
+          }
+          int dpar_id = sigma_re_dpar(idx);
+          if (dpar_id == 0) {
             log_sigma1(i) += sigma_re_value(i, j) * sd_sigma_re(sigma_re_term(idx)) * u_cond;
-          } else if (j == 1) {
+          } else if (dpar_id == 1) {
             log_sigma2(i) += sigma_re_value(i, j) * sd_sigma_re(sigma_re_term(idx)) * u_cond;
           }
         }
@@ -807,15 +1044,25 @@ Type objective_function<Type>::operator()()
       REPORT(sd_sigma_re);
       ADREPORT(log_sd_sigma);
       ADREPORT(sd_sigma_re);
-      if (n_mu_sigma_re_cors > 0) {
-        vector<Type> rho_sigma_re(n_mu_sigma_re_cors);
-        for (int j = 0; j < n_mu_sigma_re_cors; ++j) {
+      if (n_sigma_re_cors > 0) {
+        vector<Type> rho_sigma_re(n_sigma_re_cors);
+        for (int j = 0; j < n_sigma_re_cors; ++j) {
           rho_sigma_re(j) = Type(0.999999) * tanh(eta_cor_sigma(j));
         }
         REPORT(eta_cor_sigma);
         REPORT(rho_sigma_re);
         ADREPORT(eta_cor_sigma);
         ADREPORT(rho_sigma_re);
+      }
+      if (n_mu_sigma_re_cors > 0) {
+        vector<Type> rho_mu_sigma_re(n_mu_sigma_re_cors);
+        for (int j = 0; j < n_mu_sigma_re_cors; ++j) {
+          rho_mu_sigma_re(j) = Type(0.999999) * tanh(eta_cor_mu_sigma(j));
+        }
+        REPORT(eta_cor_mu_sigma);
+        REPORT(rho_mu_sigma_re);
+        ADREPORT(eta_cor_mu_sigma);
+        ADREPORT(rho_mu_sigma_re);
       }
     }
   }

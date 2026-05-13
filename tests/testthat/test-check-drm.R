@@ -53,6 +53,22 @@ check_drm_mu_sigma_cov_data <- function(
   )
 }
 
+check_drm_registry_singleton <- function(fit, dpar) {
+  member_row <- which(
+    fit$model$random$covariance_blocks$members$dpar == dpar
+  )[[1L]]
+  index <- fit$model$random$covariance_blocks$members$latent_index0[[
+    member_row
+  ]]
+  first_group <- min(index[index >= 0L])
+  singleton_rows <- which(index == first_group)[-1L]
+  index[singleton_rows] <- first_group + 1L
+  fit$model$random$covariance_blocks$members$latent_index0[[
+    member_row
+  ]] <- index
+  fit
+}
+
 test_that("check_drm() reports core diagnostics for Gaussian fits", {
   set.seed(20260508)
   dat <- data.frame(
@@ -359,9 +375,7 @@ test_that("check_drm() reports univariate mu/sigma covariance diagnostics", {
   expect_match(group_cov$value, "min_group_n=6")
   expect_match(group_cov$message, "non-negligible")
 
-  singleton <- fit
-  singleton_rows <- which(singleton$model$random$sigma$index[, 1L] == 1L)[-1L]
-  singleton$model$random$sigma$index[singleton_rows, 1L] <- 2L
+  singleton <- check_drm_registry_singleton(fit, "sigma")
   singleton_chk <- check_drm(singleton)
   singleton_cov <- singleton_chk[
     singleton_chk$check == "mu_sigma_random_effect_covariance",
@@ -425,11 +439,7 @@ test_that("check_drm() reports bivariate mu random-effect covariance diagnostics
   expect_match(group_cov$value, "min_group_n=5")
   expect_match(group_cov$message, "non-negligible")
 
-  singleton <- fit
-  n_group <- singleton$model$random$mu$n_re / singleton$model$random$mu$n_terms
-  singleton_rows <- which(singleton$model$random$mu$index[, 1L] == 1L)[-1L]
-  singleton$model$random$mu$index[singleton_rows, 1L] <- 2L
-  singleton$model$random$mu$index[singleton_rows, 2L] <- n_group + 2L
+  singleton <- check_drm_registry_singleton(fit, "mu1")
   singleton_chk <- check_drm(singleton)
   singleton_cov <- singleton_chk[
     singleton_chk$check == "biv_mu_random_effect_covariance",

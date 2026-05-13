@@ -48,6 +48,132 @@ mvn_loglik_biv <- function(y, mu, Sigma) {
   -0.5 * (length(y) * log(2 * pi) + 2 * sum(log(diag(U))) + sum(z^2))
 }
 
+expect_biv_covariance_block_registry <- function(
+  registry,
+  dpars,
+  responses,
+  group,
+  block,
+  n_obs,
+  class
+) {
+  expect_type(registry, "list")
+  expect_equal(registry$n_blocks, length(unique(registry$blocks$block_id0)))
+  expect_s3_class(registry$blocks, "data.frame")
+  expect_s3_class(registry$members, "data.frame")
+  expect_s3_class(registry$pairs, "data.frame")
+
+  block_row <- registry$blocks[
+    registry$blocks$group == group &
+      registry$blocks$block_label == block,
+    ,
+    drop = FALSE
+  ]
+  expect_equal(nrow(block_row), 1L)
+  expect_equal(block_row$level, "group")
+  expect_equal(block_row$n_members, length(dpars))
+  expect_equal(block_row$n_pairs, 1L)
+  expect_true(block_row$implemented)
+
+  members <- registry$members[
+    registry$members$block_id0 == block_row$block_id0,
+    ,
+    drop = FALSE
+  ]
+  members <- members[order(members$member_id0), , drop = FALSE]
+  expect_equal(nrow(members), length(dpars))
+  expect_equal(members$component, sub("[0-9]+$", "", dpars))
+  expect_equal(members$dpar, dpars)
+  expect_equal(members$response_index, responses)
+  expect_equal(members$coef, rep("(Intercept)", length(dpars)))
+  expect_equal(members$group, rep(group, length(dpars)))
+  expect_equal(members$block_label, rep(block, length(dpars)))
+  expect_false(anyNA(members$source_term_id0))
+  expect_false(anyNA(members$coef_pos0))
+  expect_true(is.list(members$latent_index0))
+  expect_true(is.list(members$design_value))
+  expect_true(all(
+    vapply(members$latent_index0, length, integer(1L)) == n_obs
+  ))
+  expect_true(all(
+    vapply(members$design_value, length, integer(1L)) == n_obs
+  ))
+  expect_true(all(vapply(
+    members$latent_index0,
+    function(x) all(x >= 0L),
+    logical(1L)
+  )))
+  expect_true(all(vapply(
+    members$design_value,
+    function(x) all(is.finite(x)),
+    logical(1L)
+  )))
+
+  pairs <- registry$pairs[
+    registry$pairs$block_id0 == block_row$block_id0,
+    ,
+    drop = FALSE
+  ]
+  expect_equal(nrow(pairs), 1L)
+  expect_equal(pairs$from_dpar, dpars[[1L]])
+  expect_equal(pairs$to_dpar, dpars[[2L]])
+  expect_equal(pairs$from_coef, "(Intercept)")
+  expect_equal(pairs$to_coef, "(Intercept)")
+  expect_equal(pairs$class, class)
+
+  tmb <- registry$tmb_data
+  block_pos <- block_row$block_id0[[1L]] + 1L
+  member_start <- tmb$re_cov_block_member_start[[block_pos]]
+  member_idx <- seq.int(member_start + 1L, length.out = length(dpars))
+  pair_start <- tmb$re_cov_block_pair_start[[block_pos]]
+  pair_idx <- pair_start + 1L
+
+  expect_equal(tmb$n_re_cov_blocks, registry$n_blocks)
+  expect_true(all(tmb$re_cov_block_size == 2L))
+  expect_equal(
+    length(tmb$re_cov_pair_from_member),
+    sum(tmb$re_cov_block_size * (tmb$re_cov_block_size - 1L) / 2L)
+  )
+  expect_equal(tmb$re_cov_block_size[[block_pos]], length(dpars))
+  expect_equal(tmb$re_cov_block_group_count[[block_pos]], block_row$n_groups)
+  expect_equal(
+    tmb$re_cov_member_component[member_idx],
+    match(sub("[0-9]+$", "", dpars), c("mu", "sigma")) - 1L
+  )
+  expect_equal(
+    tmb$re_cov_member_dpar[member_idx],
+    match(dpars, c("mu", "sigma", "mu1", "mu2", "sigma1", "sigma2")) - 1L
+  )
+  expect_equal(tmb$re_cov_member_response[member_idx], responses - 1L)
+  expect_equal(
+    tmb$re_cov_member_source_term[member_idx],
+    members$source_term_id0
+  )
+  expect_equal(tmb$re_cov_member_coef_pos[member_idx], members$coef_pos0)
+  expect_equal(
+    dim(tmb$re_cov_member_latent_index),
+    c(n_obs, nrow(registry$members))
+  )
+  expect_equal(
+    dim(tmb$re_cov_member_design_value),
+    c(n_obs, nrow(registry$members))
+  )
+  expect_equal(tmb$re_cov_pair_from_member[[pair_idx]], pairs$from_member_id0)
+  expect_equal(tmb$re_cov_pair_to_member[[pair_idx]], pairs$to_member_id0)
+  expect_equal(
+    tmb$re_cov_pair_parameter[[pair_idx]],
+    match(
+      pairs$tmb_parameter,
+      c("eta_cor_mu", "eta_cor_mu_sigma", "eta_cor_sigma")
+    ) -
+      1L
+  )
+  expect_equal(
+    tmb$re_cov_pair_parameter_index[[pair_idx]],
+    pairs$tmb_index - 1L
+  )
+}
+
 new_biv_gaussian_known_v_data <- function(
   n = 160,
   residual_rho = -0.35,
@@ -245,6 +371,54 @@ new_biv_gaussian_joint_re_data <- function(
   )
 }
 
+new_biv_gaussian_mu_sigma_re_data <- function(
+  n_id = 64,
+  n_each = 8,
+  rho_mu_sigma = 0.45,
+  residual_rho = 0.20,
+  seed = 2026051305
+) {
+  set.seed(seed)
+  id <- factor(rep(seq_len(n_id), each = n_each))
+  n <- length(id)
+  x <- stats::rnorm(n)
+  beta_mu1 <- c(0.20, 0.40)
+  beta_mu2 <- c(-0.15, -0.30)
+  beta_sigma1 <- log(0.42)
+  beta_sigma2 <- log(0.55)
+  sd_mu1 <- 0.55
+  sd_sigma1 <- 0.34
+
+  z_mu1 <- stats::rnorm(n_id)
+  z_sigma1 <- rho_mu_sigma *
+    z_mu1 +
+    sqrt(1 - rho_mu_sigma^2) * stats::rnorm(n_id)
+  b_mu1 <- sd_mu1 * z_mu1
+  b_sigma1 <- sd_sigma1 * z_sigma1
+  e1 <- stats::rnorm(n)
+  e2 <- residual_rho * e1 + sqrt(1 - residual_rho^2) * stats::rnorm(n)
+
+  dat <- data.frame(id = id, x = x)
+  dat$y1 <- beta_mu1[[1L]] +
+    beta_mu1[[2L]] * x +
+    b_mu1[id] +
+    exp(beta_sigma1 + b_sigma1[id]) * e1
+  dat$y2 <- beta_mu2[[1L]] +
+    beta_mu2[[2L]] * x +
+    exp(beta_sigma2) * e2
+
+  list(
+    data = dat,
+    beta_mu1 = beta_mu1,
+    beta_mu2 = beta_mu2,
+    beta_sigma = c(beta_sigma1, beta_sigma2),
+    sd_mu = c("mu1:(1 | p | id)" = sd_mu1),
+    sd_sigma = c("sigma1:(1 | p | id)" = sd_sigma1),
+    rho_mu_sigma = rho_mu_sigma,
+    residual_rho = residual_rho
+  )
+}
+
 expect_abs_error_below <- function(actual, expected, tolerance) {
   expect_lt(max(abs(unname(actual) - unname(expected))), tolerance)
 }
@@ -323,6 +497,17 @@ test_that("bivariate Gaussian supports labelled mu1/mu2 random-intercept covaria
     "cor(mu1:(Intercept),mu2:(Intercept) | p | id)"
   )
   expect_equal(length(fit$random_effects$mu$values), 2 * nlevels(sim$data$id))
+  expect_biv_covariance_block_registry(
+    fit$model$random$covariance_blocks,
+    dpars = c("mu1", "mu2"),
+    responses = c(1L, 2L),
+    group = "id",
+    block = "p",
+    n_obs = fit$nobs,
+    class = "mean-mean"
+  )
+  expect_covariance_block_tmb_data_exported(fit)
+  expect_covariance_block_tmb_data_noop(fit)
   expect_gt(stats::sd(predict(fit, dpar = "mu1") - fixed_mu1), 0.05)
   expect_gt(stats::sd(predict(fit, dpar = "mu2") - fixed_mu2), 0.05)
   expect_equal(
@@ -411,6 +596,16 @@ test_that("bivariate Gaussian supports labelled sigma1/sigma2 random-intercept c
     length(fit$random_effects$sigma$values),
     2 * nlevels(sim$data$id)
   )
+  expect_biv_covariance_block_registry(
+    fit$model$random$covariance_blocks,
+    dpars = c("sigma1", "sigma2"),
+    responses = c(1L, 2L),
+    group = "id",
+    block = "p",
+    n_obs = fit$nobs,
+    class = "scale-scale"
+  )
+  expect_covariance_block_tmb_data_exported(fit)
   expect_gt(stats::sd(sigma1_link - fixed_sigma1), 0.03)
   expect_gt(stats::sd(sigma2_link - fixed_sigma2), 0.03)
   expect_equal(stats::sigma(fit)$sigma1, exp(sigma1_link), tolerance = 1e-12)
@@ -433,6 +628,22 @@ test_that("bivariate Gaussian supports labelled sigma1/sigma2 random-intercept c
   expect_equal(group_pair$class, "scale-scale")
   expect_equal(
     group_pair$estimate,
+    unname(fit$corpars$sigma),
+    tolerance = 1e-12
+  )
+  fit_registry <- fit
+  names(fit_registry$corpars$sigma) <- "cor(bad,bad | wrong | wrong)"
+  registry_scale <- corpairs(fit_registry, class = "scale-scale")
+  expect_equal(registry_scale$group, "id")
+  expect_equal(registry_scale$block, "p")
+  expect_equal(registry_scale$from_dpar, "sigma1")
+  expect_equal(registry_scale$to_dpar, "sigma2")
+  expect_equal(
+    registry_scale$parameter,
+    "cor(sigma1:(Intercept),sigma2:(Intercept) | p | id)"
+  )
+  expect_equal(
+    registry_scale$estimate,
     unname(fit$corpars$sigma),
     tolerance = 1e-12
   )
@@ -470,10 +681,35 @@ test_that("bivariate Gaussian supports labelled sigma1/sigma2 random-intercept c
   )
   expect_equal(sigma_targets$index, c(1L, 2L, 1L))
   expect_true(all(sigma_targets$profile_ready))
+  fit_target_registry <- fit
+  names(fit_target_registry$corpars$sigma) <- "cor(bad,bad | wrong | wrong)"
+  registry_sigma_targets <- profile_targets(fit_target_registry)
+  expect_true(cor_sigma %in% registry_sigma_targets$parm)
   expect_equal(scale_cov$status, "ok")
   expect_match(scale_cov$value, "n_groups=48")
   expect_match(scale_cov$value, "min_group_n=8")
   expect_match(scale_cov$message, "scale-scale")
+
+  singleton_registry <- fit
+  member_row <- which(
+    singleton_registry$model$random$covariance_blocks$members$dpar == "sigma1"
+  )[[1L]]
+  member_index <-
+    singleton_registry$model$random$covariance_blocks$members$latent_index0[[
+      member_row
+    ]]
+  first_group <- min(member_index[member_index >= 0L])
+  member_index[which(member_index == first_group)[-1L]] <- first_group + 1L
+  singleton_registry$model$random$covariance_blocks$members$latent_index0[[
+    member_row
+  ]] <- member_index
+  singleton_cov <- check_drm(singleton_registry)
+  singleton_scale <- singleton_cov[
+    singleton_cov$check == "biv_sigma_random_effect_covariance",
+  ]
+  expect_equal(singleton_scale$status, "note")
+  expect_match(singleton_scale$value, "singleton_groups=1")
+  expect_match(singleton_scale$message, "fewer than two")
 })
 
 test_that("bivariate Gaussian keeps mu and sigma covariance blocks distinct", {
@@ -498,6 +734,17 @@ test_that("bivariate Gaussian keeps mu and sigma covariance blocks distinct", {
   scale_pair <- pairs[pairs$class == "scale-scale", , drop = FALSE]
   residual_pair <- pairs[pairs$class == "residual", , drop = FALSE]
   smry <- summary(fit)
+  summary_covariance <- smry$covariance
+  summary_mean_covariance <- summary_covariance[
+    summary_covariance$class == "mean-mean",
+    ,
+    drop = FALSE
+  ]
+  summary_scale_covariance <- summary_covariance[
+    summary_covariance$class == "scale-scale",
+    ,
+    drop = FALSE
+  ]
   targets <- profile_targets(fit)
   chk <- check_drm(fit)
   cov_checks <- chk[
@@ -542,6 +789,25 @@ test_that("bivariate Gaussian keeps mu and sigma covariance blocks distinct", {
   )
   expect_equal(fit$model$random$sigma$group_names, c("id", "id"))
   expect_equal(fit$model$random$sigma$covariance_labels, c("ps", "ps"))
+  expect_biv_covariance_block_registry(
+    fit$model$random$covariance_blocks,
+    dpars = c("mu1", "mu2"),
+    responses = c(1L, 2L),
+    group = "id",
+    block = "pm",
+    n_obs = fit$nobs,
+    class = "mean-mean"
+  )
+  expect_biv_covariance_block_registry(
+    fit$model$random$covariance_blocks,
+    dpars = c("sigma1", "sigma2"),
+    responses = c(1L, 2L),
+    group = "id",
+    block = "ps",
+    n_obs = fit$nobs,
+    class = "scale-scale"
+  )
+  expect_covariance_block_tmb_data_exported(fit)
 
   expect_equal(nrow(pairs), 3L)
   expect_equal(nrow(group_pairs), 2L)
@@ -562,6 +828,51 @@ test_that("bivariate Gaussian keeps mu and sigma covariance blocks distinct", {
     scale_pair$estimate,
     unname(fit$corpars$sigma),
     tolerance = 1e-12
+  )
+  expect_equal(nrow(summary_covariance), 2L)
+  expect_setequal(summary_covariance$block, c("pm", "ps"))
+  expect_setequal(summary_covariance$class, c("mean-mean", "scale-scale"))
+  expect_false(any(grepl("rho12", summary_covariance$parameter, fixed = TRUE)))
+  expect_equal(
+    summary_covariance$covariance_conf.status,
+    rep("not_requested", 2L)
+  )
+  expect_equal(summary_mean_covariance$from_dpar, "mu1")
+  expect_equal(summary_mean_covariance$to_dpar, "mu2")
+  expect_equal(summary_mean_covariance$from_scale, "identity")
+  expect_equal(summary_mean_covariance$to_scale, "identity")
+  expect_equal(
+    summary_mean_covariance$covariance,
+    unname(fit$sdpars$mu[[1L]]) *
+      unname(fit$sdpars$mu[[2L]]) *
+      unname(fit$corpars$mu[[1L]]),
+    tolerance = 1e-12
+  )
+  expect_equal(summary_scale_covariance$from_dpar, "sigma1")
+  expect_equal(summary_scale_covariance$to_dpar, "sigma2")
+  expect_equal(summary_scale_covariance$from_scale, "log")
+  expect_equal(summary_scale_covariance$to_scale, "log")
+  expect_equal(
+    summary_scale_covariance$covariance,
+    unname(fit$sdpars$sigma[[1L]]) *
+      unname(fit$sdpars$sigma[[2L]]) *
+      unname(fit$corpars$sigma[[1L]]),
+    tolerance = 1e-12
+  )
+  fit_partial_registry <- fit
+  fit_partial_registry$model$random$covariance_blocks$pairs <-
+    fit_partial_registry$model$random$covariance_blocks$pairs[
+      fit_partial_registry$model$random$covariance_blocks$pairs$tmb_parameter ==
+        "eta_cor_mu",
+      ,
+      drop = FALSE
+    ]
+  partial_group_pairs <- corpairs(fit_partial_registry, level = "group")
+  expect_equal(nrow(partial_group_pairs), 2L)
+  expect_setequal(partial_group_pairs$block, c("pm", "ps"))
+  expect_equal(
+    partial_group_pairs$parameter[partial_group_pairs$block == "ps"],
+    names(fit$corpars$sigma)
   )
   expect_equal(residual_pair$parameter, "rho12")
   expect_equal(residual_pair$modelled, TRUE)
@@ -593,6 +904,124 @@ test_that("bivariate Gaussian keeps mu and sigma covariance blocks distinct", {
   expect_match(cov_checks$value, "n_groups=70", all = FALSE)
   expect_match(cov_checks$message, "covariance", all = FALSE)
   expect_match(cov_checks$message, "scale-scale", all = FALSE)
+})
+
+test_that("bivariate Gaussian fits same-response mu/sigma covariance", {
+  sim <- new_biv_gaussian_mu_sigma_re_data()
+  form <- bf(
+    mu1 = y1 ~ x + (1 | p | id),
+    mu2 = y2 ~ x,
+    sigma1 = ~ 1 + (1 | p | id),
+    sigma2 = ~1,
+    rho12 = ~1
+  )
+  spec <- drmTMB:::drm_build_biv_gaussian_spec(
+    form,
+    data = sim$data,
+    env = environment(),
+    weights = NULL
+  )
+  re_sigma <- spec$random$sigma
+  re_mu_sigma <- spec$random$mu_sigma
+  rho_transform <- 0.4
+  transform_par <- list(
+    u_mu = seq(-0.8, 0.7, length.out = spec$random$mu$n_re),
+    u_sigma = seq(0.9, -0.6, length.out = re_sigma$n_re),
+    log_sd_sigma = log(sim$sd_sigma),
+    eta_cor_sigma = 0,
+    eta_cor_mu_sigma = atanh(rho_transform / 0.999999)
+  )
+
+  transformed <- drmTMB:::transform_biv_sigma_random_effects(
+    latent = transform_par$u_sigma,
+    par = transform_par,
+    re_sigma = re_sigma,
+    re_mu_sigma = re_mu_sigma
+  )
+  matched <- which(re_mu_sigma$sigma_cross_cor_id0 >= 0L)
+  mu_idx <- re_mu_sigma$sigma_cross_mu_index0[matched] + 1L
+  expected_transform <- unname(sim$sd_sigma) *
+    (rho_transform *
+      transform_par$u_mu[mu_idx] +
+      sqrt(1 - rho_transform^2) * transform_par$u_sigma[matched])
+
+  fit <- drmTMB(
+    form,
+    family = biv_gaussian(),
+    data = sim$data,
+    control = list(eval.max = 500, iter.max = 500)
+  )
+
+  pairs <- corpairs(fit)
+  mean_scale <- pairs[pairs$class == "mean-scale", , drop = FALSE]
+  residual_pair <- pairs[pairs$class == "residual", , drop = FALSE]
+  targets <- profile_targets(fit)
+  target_names <- c(
+    "sd:mu:mu1:(1 | p | id)",
+    "sd:sigma:sigma1:(1 | p | id)",
+    "cor:mu_sigma:cor(mu1:(Intercept),sigma1:(Intercept) | p | id)"
+  )
+  cross_targets <- targets[match(target_names, targets$parm), ]
+  chk <- check_drm(fit)
+  cov_check <- chk[chk$check == "biv_mu_sigma_random_effect_covariance", ]
+
+  expect_equal(spec$tmb_data$n_sigma_re_cors, 0L)
+  expect_equal(spec$tmb_data$n_mu_sigma_re_cors, 1L)
+  expect_equal(re_mu_sigma$n_cors, 1L)
+  expect_equal(unique(re_mu_sigma$sigma_cross_cor_id0[matched]), 0L)
+  expect_equal(
+    spec$tmb_data$sigma_re_cross_cor,
+    re_mu_sigma$sigma_cross_cor_id0
+  )
+  expect_equal(
+    spec$tmb_data$sigma_re_cross_mu,
+    re_mu_sigma$sigma_cross_mu_index0
+  )
+  expect_length(matched, nlevels(sim$data$id))
+  expect_equal(transformed[matched], expected_transform)
+
+  expect_s3_class(fit, "drmTMB")
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(fit$sdr$pdHess, TRUE)
+  expect_abs_error_below(coef(fit, "mu1"), sim$beta_mu1, 0.15)
+  expect_abs_error_below(coef(fit, "mu2"), sim$beta_mu2, 0.15)
+  expect_abs_error_below(coef(fit, "sigma1"), sim$beta_sigma[[1L]], 0.20)
+  expect_abs_error_below(coef(fit, "sigma2"), sim$beta_sigma[[2L]], 0.14)
+  expect_lt(abs(unname(fit$sdpars$mu) - sim$sd_mu), 0.25)
+  expect_lt(abs(unname(fit$sdpars$sigma) - sim$sd_sigma), 0.22)
+  expect_named(
+    fit$corpars$mu_sigma,
+    "cor(mu1:(Intercept),sigma1:(Intercept) | p | id)"
+  )
+  expect_lt(abs(unname(fit$corpars$mu_sigma) - sim$rho_mu_sigma), 0.35)
+  expect_equal(nrow(pairs), 2L)
+  expect_equal(nrow(mean_scale), 1L)
+  expect_equal(nrow(residual_pair), 1L)
+  expect_equal(mean_scale$level, "group")
+  expect_equal(mean_scale$group, "id")
+  expect_equal(mean_scale$block, "p")
+  expect_equal(mean_scale$from_dpar, "mu1")
+  expect_equal(mean_scale$to_dpar, "sigma1")
+  expect_equal(mean_scale$from_response, "y1")
+  expect_equal(mean_scale$to_response, "y1")
+  expect_equal(
+    mean_scale$estimate,
+    unname(fit$corpars$mu_sigma),
+    tolerance = 1e-12
+  )
+  expect_equal(
+    cross_targets$tmb_parameter,
+    c("log_sd_mu", "log_sd_sigma", "eta_cor_mu_sigma")
+  )
+  expect_equal(cross_targets$index, c(1L, 1L, 1L))
+  expect_true(all(cross_targets$profile_ready))
+  fit_target_registry <- fit
+  names(fit_target_registry$corpars$mu_sigma) <- "cor(bad,bad | wrong | wrong)"
+  registry_cross_targets <- profile_targets(fit_target_registry)
+  expect_true(target_names[[3L]] %in% registry_cross_targets$parm)
+  expect_equal(cov_check$status, "ok")
+  expect_match(cov_check$value, "n_groups=64")
+  expect_match(cov_check$message, "mu/sigma")
 })
 
 test_that("composed Gaussian family syntax routes to bivariate Gaussian", {
@@ -1085,7 +1514,15 @@ test_that("bivariate Gaussian rejects unsupported Phase 3 syntax clearly", {
       family = biv_gaussian(),
       data = dat
     ),
-    "one matching random-intercept"
+    "covariance-block labels"
+  )
+  expect_error(
+    drmTMB(
+      bf(mu1 = y1 ~ x + (1 | p | id), mu2 = y2 ~ x),
+      family = biv_gaussian(),
+      data = dat
+    ),
+    "implemented covariance block"
   )
   expect_error(
     drmTMB(
@@ -1093,7 +1530,7 @@ test_that("bivariate Gaussian rejects unsupported Phase 3 syntax clearly", {
       family = biv_gaussian(),
       data = dat
     ),
-    "shared covariance-block label"
+    "covariance-block labels"
   )
   expect_error(
     drmTMB(
@@ -1114,7 +1551,7 @@ test_that("bivariate Gaussian rejects unsupported Phase 3 syntax clearly", {
       family = biv_gaussian(),
       data = dat
     ),
-    "one matching random-intercept"
+    "matching labelled.*mu"
   )
   expect_error(
     drmTMB(
@@ -1127,7 +1564,7 @@ test_that("bivariate Gaussian rejects unsupported Phase 3 syntax clearly", {
       family = biv_gaussian(),
       data = dat
     ),
-    "shared covariance-block label"
+    "covariance-block labels"
   )
   expect_error(
     drmTMB(
@@ -1155,6 +1592,34 @@ test_that("bivariate Gaussian rejects unsupported Phase 3 syntax clearly", {
       data = dat
     ),
     "Reusing one bivariate covariance-block label"
+  )
+  expect_error(
+    drmTMB(
+      bf(
+        mu1 = y1 ~ x + (1 | p | id),
+        mu2 = y2 ~ x + (1 | p | id),
+        sigma1 = ~ 1 + (1 | p | id),
+        sigma2 = ~1,
+        rho12 = ~x
+      ),
+      family = biv_gaussian(),
+      data = dat
+    ),
+    "Larger labelled covariance blocks"
+  )
+  expect_error(
+    drmTMB(
+      bf(
+        mu1 = y1 ~ x + (1 | p | id),
+        mu2 = y2 ~ x,
+        sigma1 = ~1,
+        sigma2 = ~ 1 + (1 | p | id),
+        rho12 = ~x
+      ),
+      family = biv_gaussian(),
+      data = dat
+    ),
+    "same-response only"
   )
   expect_error(
     drmTMB(

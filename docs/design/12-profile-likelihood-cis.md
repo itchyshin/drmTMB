@@ -19,9 +19,10 @@ also be profiled as direct response-scale targets with names such as
 `newdata` to profile each supplied row. The corresponding `rho12` call profiles
 the fixed-effect linear predictor for that row and transforms the interval to
 the response scale. The first direct covariance rows are also profile-ready:
-the univariate `mu`/`sigma` random-intercept correlation in `corpars$mu_sigma`
-the bivariate `mu1`/`mu2` random-intercept correlation in `corpars$mu`, and the
-bivariate `sigma1`/`sigma2` random-intercept correlation in `corpars$sigma`.
+the univariate and same-response bivariate `mu`/`sigma` random-intercept
+correlations in `corpars$mu_sigma`, the bivariate `mu1`/`mu2` random-intercept
+correlation in `corpars$mu`, and the bivariate `sigma1`/`sigma2`
+random-intercept correlation in `corpars$sigma`.
 `summary(conf.int = TRUE, method = "profile", ci_parm = ...)` can attach these
 direct profile intervals to the same parameter rows shown in
 `summary(fit)$parameters`. `profile_targets(fit)` lists fitted-object target

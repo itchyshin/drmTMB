@@ -25,49 +25,64 @@ tiny_ultrametric_tree <- function() {
 
 phylo_prior_tmb_data <- function(precision) {
   dummy_matrix <- matrix(0, nrow = 1, ncol = 1)
-  list(
-    model_type = 99L,
-    y = numeric(1),
-    trials = numeric(1),
-    weights = 1,
-    offset_mu = numeric(1),
-    V_known = numeric(1),
-    V_known_matrix = dummy_matrix,
-    V_known_type = 0L,
-    y1 = numeric(1),
-    y2 = numeric(1),
-    X_mu = dummy_matrix,
-    X_sigma = dummy_matrix,
-    X_nu = dummy_matrix,
-    X_zi = dummy_matrix,
-    X_sd_mu = dummy_matrix,
-    has_sd_mu_model = 0L,
-    X_mu1 = dummy_matrix,
-    X_mu2 = dummy_matrix,
-    X_sigma1 = dummy_matrix,
-    X_sigma2 = dummy_matrix,
-    X_rho12 = dummy_matrix,
-    n_mu_re_terms = 0L,
-    n_mu_re_cors = 0L,
-    mu_re_index = matrix(0L, nrow = 1L, ncol = 1L),
-    mu_re_value = dummy_matrix,
-    mu_re_term = 0L,
-    mu_re_pos = 0L,
-    mu_re_cor_id = -1L,
-    mu_re_pair_index = -1L,
-    mu_re_sd_row = -1L,
-    n_sigma_re_terms = 0L,
-    n_mu_sigma_re_cors = 0L,
-    sigma_re_index = matrix(0L, nrow = 1L, ncol = 1L),
-    sigma_re_value = dummy_matrix,
-    sigma_re_term = 0L,
-    sigma_re_cross_cor = 0L,
-    sigma_re_cross_mu = 0L,
-    has_phylo_mu = 0L,
-    phylo_mu_node_index = 0L,
-    Q_phylo = precision$precision,
-    log_det_Q_phylo = precision$log_det_precision
+  c(
+    list(
+      model_type = 99L,
+      y = numeric(1),
+      trials = numeric(1),
+      weights = 1,
+      offset_mu = numeric(1),
+      V_known = numeric(1),
+      V_known_matrix = dummy_matrix,
+      V_known_type = 0L,
+      y1 = numeric(1),
+      y2 = numeric(1),
+      X_mu = dummy_matrix,
+      X_sigma = dummy_matrix,
+      X_nu = dummy_matrix,
+      X_zi = dummy_matrix,
+      X_sd_mu = dummy_matrix,
+      has_sd_mu_model = 0L,
+      X_mu1 = dummy_matrix,
+      X_mu2 = dummy_matrix,
+      X_sigma1 = dummy_matrix,
+      X_sigma2 = dummy_matrix,
+      X_rho12 = dummy_matrix,
+      n_mu_re_terms = 0L,
+      n_mu_re_cors = 0L,
+      mu_re_index = matrix(0L, nrow = 1L, ncol = 1L),
+      mu_re_value = dummy_matrix,
+      mu_re_term = 0L,
+      mu_re_dpar = 0L,
+      mu_re_pos = 0L,
+      mu_re_cor_id = -1L,
+      mu_re_pair_index = -1L,
+      mu_re_sd_row = -1L,
+      n_sigma_re_terms = 0L,
+      n_sigma_re_cors = 0L,
+      n_mu_sigma_re_cors = 0L,
+      sigma_re_index = matrix(0L, nrow = 1L, ncol = 1L),
+      sigma_re_value = dummy_matrix,
+      sigma_re_term = 0L,
+      sigma_re_dpar = 0L,
+      sigma_re_cor_id = -1L,
+      sigma_re_pair_index = -1L,
+      sigma_re_cross_cor = 0L,
+      sigma_re_cross_mu = 0L,
+      has_phylo_mu = 0L,
+      phylo_mu_node_index = 0L,
+      Q_phylo = precision$precision,
+      log_det_Q_phylo = precision$log_det_precision
+    ),
+    drmTMB:::empty_labelled_covariance_block_tmb_data()
   )
+}
+
+phylo_correlated_prior_tmb_data <- function(precision, covariance) {
+  data <- phylo_prior_tmb_data(precision)
+  data$model_type <- 94L
+  data$re_cov_probe_covariance <- covariance
+  data
 }
 
 phylo_prior_tmb_parameters <- function(effect, log_sd) {
@@ -91,8 +106,28 @@ phylo_prior_tmb_parameters <- function(effect, log_sd) {
     u_sigma = 0,
     log_sd_sigma = 0,
     u_phylo = unname(effect),
+    u_re_cov_probe = 0,
     log_sd_phylo = log_sd
   )
+}
+
+phylo_correlated_prior_tmb_parameters <- function(effect) {
+  parameters <- phylo_prior_tmb_parameters(
+    rep(0, nrow(effect)),
+    log_sd = 0
+  )
+  parameters$u_re_cov_probe <- as.numeric(effect)
+  parameters
+}
+
+dense_zero_mvn_nll <- function(values, covariance) {
+  chol_covariance <- chol(covariance)
+  standardized <- backsolve(chol_covariance, values, transpose = TRUE)
+  0.5 *
+    (length(values) *
+      log(2 * pi) +
+      2 * sum(log(diag(chol_covariance))) +
+      sum(standardized^2))
 }
 
 test_that("validate_phylo_tree checks ultrametric trees and observed species", {
@@ -318,6 +353,257 @@ test_that("drm_phylo_precision_nll matches the augmented Gaussian density", {
   expect_error(
     drmTMB:::drm_phylo_precision_nll(effect, precision, log_sd = NA_real_),
     "finite numeric scalar"
+  )
+})
+
+test_that("correlated phylogenetic precision algebra handles q=4 states", {
+  tree <- tiny_ultrametric_tree()
+  precision <- drmTMB:::drm_phylo_augmented_precision(tree)
+  effect <- matrix(
+    c(
+      0.20,
+      -0.10,
+      0.35,
+      0.05,
+      -0.15,
+      0.12,
+      0.28,
+      -0.04,
+      0.05,
+      0.18,
+      -0.08,
+      0.09,
+      0.11,
+      -0.07,
+      0.16,
+      -0.02
+    ),
+    nrow = nrow(precision$precision),
+    dimnames = list(
+      rownames(precision$precision),
+      c("mu1", "mu2", "sigma1", "sigma2")
+    )
+  )
+  sd_state <- c(0.65, 0.45, 0.30, 0.25)
+  correlation <- matrix(
+    c(
+      1.00,
+      0.20,
+      -0.10,
+      0.12,
+      0.20,
+      1.00,
+      0.15,
+      -0.08,
+      -0.10,
+      0.15,
+      1.00,
+      0.22,
+      0.12,
+      -0.08,
+      0.22,
+      1.00
+    ),
+    nrow = 4L
+  )
+  covariance <- diag(sd_state) %*% correlation %*% diag(sd_state)
+  dense_covariance <- kronecker(
+    covariance,
+    solve(as.matrix(precision$precision))
+  )
+
+  expect_equal(
+    drmTMB:::drm_phylo_correlated_precision_nll(
+      effect,
+      precision,
+      covariance
+    ),
+    dense_zero_mvn_nll(as.numeric(effect), dense_covariance),
+    tolerance = 1e-10
+  )
+
+  independent_covariance <- diag(sd_state[1:2]^2)
+  expect_equal(
+    drmTMB:::drm_phylo_correlated_precision_nll(
+      effect[, 1:2],
+      precision,
+      independent_covariance
+    ),
+    drmTMB:::drm_phylo_precision_nll(
+      effect[, 1],
+      precision,
+      log_sd = log(sd_state[[1L]])
+    ) +
+      drmTMB:::drm_phylo_precision_nll(
+        effect[, 2],
+        precision,
+        log_sd = log(sd_state[[2L]])
+      ),
+    tolerance = 1e-10
+  )
+  expect_error(
+    drmTMB:::drm_phylo_correlated_precision_nll(
+      effect[, 1:2],
+      precision,
+      covariance
+    ),
+    "matching"
+  )
+  expect_error(
+    drmTMB:::drm_phylo_correlated_precision_nll(
+      effect,
+      precision,
+      diag(c(1, -1, 1, 1))
+    ),
+    "positive definite"
+  )
+})
+
+test_that("TMB correlated phylogenetic prior branch matches q=4 R algebra", {
+  tree <- tiny_ultrametric_tree()
+  precision <- drmTMB:::drm_phylo_augmented_precision(tree)
+  effect <- matrix(
+    c(
+      0.20,
+      -0.10,
+      0.35,
+      0.05,
+      -0.15,
+      0.12,
+      0.28,
+      -0.04,
+      0.05,
+      0.18,
+      -0.08,
+      0.09,
+      0.11,
+      -0.07,
+      0.16,
+      -0.02
+    ),
+    nrow = nrow(precision$precision),
+    dimnames = list(
+      rownames(precision$precision),
+      c("mu1", "mu2", "sigma1", "sigma2")
+    )
+  )
+  sd_state <- c(0.65, 0.45, 0.30, 0.25)
+  correlation <- matrix(
+    c(
+      1.00,
+      0.20,
+      -0.10,
+      0.12,
+      0.20,
+      1.00,
+      0.15,
+      -0.08,
+      -0.10,
+      0.15,
+      1.00,
+      0.22,
+      0.12,
+      -0.08,
+      0.22,
+      1.00
+    ),
+    nrow = 4L
+  )
+  covariance <- diag(sd_state) %*% correlation %*% diag(sd_state)
+
+  obj <- TMB::MakeADFun(
+    data = phylo_correlated_prior_tmb_data(precision, covariance),
+    parameters = phylo_correlated_prior_tmb_parameters(effect),
+    DLL = "drmTMB",
+    silent = TRUE
+  )
+  report <- obj$report()
+
+  expect_equal(
+    obj$fn(obj$par),
+    drmTMB:::drm_phylo_correlated_precision_nll(
+      effect,
+      precision,
+      covariance
+    ),
+    tolerance = 1e-10
+  )
+  expect_true(all(is.finite(obj$gr(obj$par))))
+  expect_equal(
+    report$quadratic_matrix,
+    unname(crossprod(effect, as.matrix(precision$precision %*% effect))),
+    tolerance = 1e-10
+  )
+})
+
+test_that("phylogenetic q=4 endpoint pair scaffold stays planned", {
+  pairs <- drmTMB:::drm_phylo_q4_endpoint_pairs(
+    group = "species",
+    responses = c("body_mass", "litter_size")
+  )
+
+  expect_equal(nrow(pairs), 6L)
+  expect_equal(pairs$level, rep("phylogenetic", 6L))
+  expect_equal(pairs$group, rep("species", 6L))
+  expect_equal(pairs$block, rep("phylo", 6L))
+  expect_equal(
+    pairs$from_dpar,
+    c("mu1", "mu1", "mu1", "mu2", "mu2", "sigma1")
+  )
+  expect_equal(
+    pairs$to_dpar,
+    c("mu2", "sigma1", "sigma2", "sigma1", "sigma2", "sigma2")
+  )
+  expect_equal(
+    pairs$class,
+    c(
+      "mean-mean",
+      "mean-scale",
+      "mean-scale",
+      "mean-scale",
+      "mean-scale",
+      "scale-scale"
+    )
+  )
+  expect_equal(
+    pairs$from_response,
+    c(
+      "body_mass",
+      "body_mass",
+      "body_mass",
+      "litter_size",
+      "litter_size",
+      "body_mass"
+    )
+  )
+  expect_equal(
+    pairs$to_response,
+    c(
+      "litter_size",
+      "body_mass",
+      "litter_size",
+      "body_mass",
+      "litter_size",
+      "litter_size"
+    )
+  )
+  expect_equal(pairs$modelled, rep(FALSE, 6L))
+  expect_equal(pairs$status, rep("planned", 6L))
+  expect_equal(
+    pairs$support_note,
+    rep("planned_bivariate_phylogenetic_q4", 6L)
+  )
+  expect_false(any(grepl("rho12", pairs$parameter, fixed = TRUE)))
+  expect_error(
+    drmTMB:::drm_phylo_q4_endpoint_pairs(group = ""),
+    "non-empty"
+  )
+  expect_error(
+    drmTMB:::drm_phylo_q4_endpoint_pairs(
+      group = "species",
+      responses = "body_mass"
+    ),
+    "two"
   )
 })
 

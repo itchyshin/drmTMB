@@ -66,6 +66,7 @@ In this table, "coscale" means a model for residual correlation, currently
 | `mu1`, `mu2`, `sigma1`, `sigma2`, `rho12` | Implemented for fixed effects | Bivariate Gaussian location-coscale model with predictor-dependent residual correlation. |
 | `(1 | p | id)` in both bivariate `mu1` and `mu2` | Implemented | First bivariate group-level covariance slice: matching labelled random intercepts create `mu1`/`mu2` random-intercept SDs and one group-level correlation. |
 | `(1 | p | id)` in both bivariate `sigma1` and `sigma2` | Implemented | First bivariate residual-scale covariance slice: matching labelled random intercepts enter `log(sigma1)` and `log(sigma2)` and create one scale-scale group-level correlation. |
+| `(1 | p | id)` in same-response bivariate `mu1` and `sigma1`, or in `mu2` and `sigma2` | Implemented first slice | One matching labelled random-intercept pair creates a mean-scale group-level correlation for that response. |
 | `family = c(gaussian(), gaussian())` | Implemented | Public bivariate Gaussian family direction; mixed composed families are planned. |
 | `mvbind(y1, y2) ~ x1` | Implemented | Shorthand for identical bivariate location formulas; explicit `mu1`/`mu2` remains preferred for different predictors. |
 | `phylo(1 | species, tree = tree)` in `mu` | Implemented | Intercept-only univariate Gaussian phylogenetic location effect; requires an ultrametric tree with branch lengths. |
@@ -74,7 +75,7 @@ In this table, "coscale" means a model for residual correlation, currently
 | `cbind(successes, failures) ~ x1`, `family = beta_binomial()` | Implemented | Fixed-effect denominator-aware model for success counts with known trial totals; `sigma` is extra-binomial variation. |
 | `phylo(1 + x1 | species, tree = tree)` | Planned | Structured slopes come after the intercept-only path is hardened. |
 | `spatial(1 | site, coords = coords)` and `spatial(1 | site, mesh = mesh)` | Planned | Spatial SPDE/GMRF terms are part of the design but not fitted yet. |
-| Bivariate random slopes, cross-parameter covariance blocks, or `rho12` random effects | Planned | Requires a larger covariance parameterization, simulation recovery, and naming checks. |
+| Bivariate random slopes, full cross-parameter covariance blocks spanning more than one pair, or `rho12` random effects | Planned | Requires a larger covariance parameterization, simulation recovery, and naming checks. |
 
 ## Univariate Syntax
 
@@ -160,16 +161,17 @@ The shared `p` label requests one group-level covariance block for the `mu1`
 and `mu2` random intercepts. The shared `q` label requests a separate
 scale-scale block for the `sigma1` and `sigma2` random intercepts on the
 log-`sigma` scale. Neither block is residual `rho12`: they describe
-between-group associations after the fixed effects are included. Bivariate
-random slopes, cross-parameter covariance blocks, and `rho12` random effects
-remain planned.
+between-group associations after the fixed effects are included. One
+same-response `mu`/`sigma` random-intercept pair is also implemented; bivariate
+random slopes, full cross-parameter covariance blocks spanning more than one
+pair, and `rho12` random effects remain planned.
 
-Do not reuse the same label and grouping variable across the bivariate location
-and scale pairs in this first slice. For example, putting `(1 | p | id)` in all
-four formulas is rejected because it would imply a cross-parameter bivariate
-covariance block across `mu1`, `mu2`, `sigma1`, and `sigma2`. Use distinct
-labels, such as `p` and `q`, until that larger covariance block is implemented
-and tested.
+Do not reuse the same label and grouping variable across all bivariate location
+and scale formulas. For example, putting `(1 | p | id)` in all four formulas is
+rejected because it would imply a full cross-parameter bivariate covariance
+block across `mu1`, `mu2`, `sigma1`, and `sigma2`. Use distinct labels, such as
+`p` and `q`, for separate mean-mean and scale-scale blocks until that larger
+covariance block is implemented and tested.
 
 The `mvbind()` form is implemented as shorthand for identical location
 formulas:
@@ -278,6 +280,25 @@ bf(y ~ x1 + (1 | p | id), sigma ~ x1 + (1 | p | id))
 The fitted correlation is reported under `corpars$mu_sigma` and in
 `corpairs()` as a `mean-scale` row. It describes whether group deviations in
 the mean and residual scale are associated.
+
+The same pairwise bridge is implemented for one response in a bivariate
+Gaussian model:
+
+```r
+bf(
+  mu1 = y1 ~ x1 + (1 | p | id),
+  mu2 = y2 ~ x1,
+  sigma1 = ~ x1 + (1 | p | id),
+  sigma2 = ~ x1,
+  rho12 = ~ x1
+)
+```
+
+Here the shared `p` label fits a group-level mean-scale correlation for response
+1, reported as `corpars$mu_sigma` and a `corpairs()` `mean-scale` row with
+`from_dpar = "mu1"` and `to_dpar = "sigma1"`. A matching `mu2`/`sigma2` pair is
+also supported. This is not the full labelled covariance block across `mu1`,
+`mu2`, `sigma1`, and `sigma2`; that larger block remains planned.
 
 The distinction is:
 

@@ -2,6 +2,1060 @@
 
 Record meaningful development checks here.
 
+## 2026-05-13 -- pkgdown feature-branch build workflow guard
+
+Scope:
+
+- split the pkgdown workflow so manual feature-branch dispatches build and
+  upload the site artifact without entering the protected GitHub Pages deploy
+  environment;
+- kept deploys restricted to main/master dispatches or successful main/master
+  `R-CMD-check` workflow-run completions;
+- responded to failed pkgdown run `25817629476`, which was rejected by
+  GitHub Pages environment protection before build steps started.
+
+Checks:
+
+- `air format .github/workflows/pkgdown.yaml docs/dev-log/check-log.md
+  docs/dev-log/after-task/2026-05-13-pkgdown-feature-branch-build-workflow-guard.md`:
+  passed.
+- `ruby -e 'require "yaml"; data = YAML.load_file(".github/workflows/pkgdown.yaml");
+  abort("missing jobs") unless data["jobs"] || data[true] || data[:jobs]; puts
+  "yaml parsed"'`: passed.
+- `git diff --check`: passed.
+
+## 2026-05-13 -- Slice 15 staged trait protocol guide
+
+Scope:
+
+- added a plain model-map protocol for mammal, bird, or other comparative trait
+  analyses that need residual coupling, ordinary group-level covariance, and
+  phylogenetic structure;
+- showed the implemented bivariate Gaussian path and implemented univariate
+  phylogenetic path as separate fitted models;
+- clarified that developer q=4 shorthand means four distributional endpoints,
+  not four fitted correlations, and that a q4 covariance would require six
+  pairwise reporting rows before public support is claimed.
+
+Checks:
+
+- `air format vignettes/model-map.Rmd README.md docs/dev-log/check-log.md
+  docs/dev-log/after-task/2026-05-13-slice-15-staged-trait-protocol-guide.md`:
+  passed.
+- `Rscript -e 'rmarkdown::render("vignettes/model-map.Rmd", output_file =
+  tempfile(fileext = ".html"), quiet = TRUE)'`: passed.
+- `rg -n 'practical trait protocol|q=4|four distributional endpoints|six
+  pairwise|mammal|bird|rho12\\(fit_biv\\)|phylo\\(1 \\| species|combined
+  phylogenetic' vignettes/model-map.Rmd README.md docs/dev-log/check-log.md
+  docs/dev-log/after-task/2026-05-13-slice-15-staged-trait-protocol-guide.md`:
+  passed.
+- `git diff --check`: passed.
+
+## 2026-05-13 -- Slice 14 phylogenetic q4 status wording guard
+
+Scope:
+
+- clarified in user-facing phylogenetic and model-map prose that q4
+  phylogenetic scaffolds are internal developer contracts only;
+- stated that bivariate `phylo()` remains planned until fitted likelihood,
+  simulation recovery, and reporting rows are present;
+- kept residual `rho12`, ordinary group-level covariance, and future
+  phylogenetic covariance layers separate in the public status map.
+
+Checks:
+
+- `air format vignettes/phylogenetic-spatial.Rmd vignettes/model-map.Rmd
+  docs/dev-log/known-limitations.md docs/dev-log/check-log.md
+  docs/dev-log/after-task/2026-05-13-slice-14-phylogenetic-q4-status-wording-guard.md`:
+  passed.
+- `rg -n 'q=4|q4|bivariate \`phylo|fitted likelihood|corpairs\\(\\)|planned,
+  not implemented|residual \`rho12' vignettes/phylogenetic-spatial.Rmd
+  vignettes/model-map.Rmd docs/dev-log/known-limitations.md
+  docs/dev-log/after-task/2026-05-13-slice-14-phylogenetic-q4-status-wording-guard.md`:
+  passed and confirmed public wording says q4 phylogenetic scaffolds are
+  internal only.
+- `git diff --check`: passed.
+
+## 2026-05-13 -- Slice 13 phylogenetic q4 planned-pair scaffold
+
+Scope:
+
+- added an internal planned-pair scaffold for the future q=4 phylogenetic
+  endpoint across `mu1`, `mu2`, `sigma1`, and `sigma2`;
+- recorded one `mean-mean`, four `mean-scale`, and one `scale-scale`
+  phylogenetic row with response labels and planned status;
+- checked that the scaffold does not use residual `rho12` names and remains
+  `modelled = FALSE`;
+- kept fitted-model extractors unchanged.
+
+Checks:
+
+- `air format R/phylo-utils.R tests/testthat/test-phylo-utils.R ROADMAP.md
+  docs/design/09-phylogenetic-and-spatial-speed.md
+  docs/design/15-location-coscale-phylogenetic-extension.md
+  docs/dev-log/check-log.md
+  docs/dev-log/after-task/2026-05-13-slice-13-phylogenetic-q4-planned-pair-scaffold.md`:
+  passed.
+- `Rscript -e 'devtools::test(filter = "phylo-utils")'`: passed with 67
+  expectations, 0 failures, 0 warnings, and 0 skips.
+- `git diff --check`: passed.
+
+## 2026-05-13 -- Slice 12 hidden phylogenetic q4 TMB prior branch
+
+Scope:
+
+- added hidden `model_type == 94` as a prior-only TMB branch for a q=4
+  phylogenetic state over the augmented tree precision;
+- added `re_cov_probe_covariance` to the hidden probe data contract while
+  keeping ordinary model data unchanged through dummy values;
+- compared the hidden TMB objective with the R
+  `drm_phylo_correlated_precision_nll()` helper;
+- kept public bivariate `phylo()` syntax and fitted model reporting closed.
+
+Checks:
+
+- `air format R/drmTMB.R tests/testthat/test-phylo-utils.R ROADMAP.md
+  docs/design/09-phylogenetic-and-spatial-speed.md
+  docs/design/15-location-coscale-phylogenetic-extension.md
+  docs/dev-log/check-log.md
+  docs/dev-log/after-task/2026-05-13-slice-12-hidden-phylogenetic-q4-tmb-prior-branch.md`:
+  passed.
+- `Rscript -e 'devtools::test(filter = "phylo-utils")'`: passed with 52
+  expectations, 0 failures, 0 warnings, and 0 skips.
+- `git diff --check`: passed.
+
+## 2026-05-13 -- Slice 11 phylogenetic q4 prior algebra scaffold
+
+Scope:
+
+- added an internal matrix-normal phylogenetic prior helper for correlated
+  state vectors over the existing augmented tree precision;
+- checked a q=4 state named `mu1`, `mu2`, `sigma1`, and `sigma2` against a
+  dense Kronecker covariance comparator;
+- checked that a diagonal two-state covariance matches the existing
+  independent phylogenetic precision helper;
+- kept this as algebra evidence only, with no public bivariate `phylo()`
+  syntax or TMB likelihood wiring.
+
+Checks:
+
+- `air format R/phylo-utils.R tests/testthat/test-phylo-utils.R ROADMAP.md
+  docs/design/09-phylogenetic-and-spatial-speed.md
+  docs/design/15-location-coscale-phylogenetic-extension.md
+  docs/dev-log/check-log.md
+  docs/dev-log/after-task/2026-05-13-slice-11-phylogenetic-q4-prior-algebra-scaffold.md`:
+  passed.
+- `Rscript -e 'devtools::test(filter = "phylo-utils")'`: passed with 49
+  expectations, 0 failures, 0 warnings, and 0 skips.
+- `git diff --check`: passed.
+
+## 2026-05-13 -- Slice 10 combined group and residual correlation summary guard
+
+Scope:
+
+- strengthened the existing combined bivariate Gaussian regression with
+  matching labelled `mu1`/`mu2` and `sigma1`/`sigma2` random-intercept
+  covariance blocks plus predictor-dependent residual `rho12 ~ x`;
+- checked that `summary(fit)$covariance` reports exactly the two group-level
+  covariance rows, with one `mean-mean` row and one `scale-scale` row;
+- checked fitted random-effect scales and covariance point estimates for both
+  rows;
+- kept residual `rho12` out of `summary(fit)$covariance` while leaving it in
+  `corpairs()` as a separate residual row;
+- documented that this is a pairwise public-support guard, not q > 2 public
+  support or a new likelihood path.
+
+Checks:
+
+- `air format tests/testthat/test-biv-gaussian.R ROADMAP.md
+  docs/design/28-double-hierarchical-endpoint.md docs/dev-log/check-log.md
+  docs/dev-log/after-task/2026-05-13-slice-10-combined-group-and-residual-correlation-summary-guard.md`:
+  passed.
+- `Rscript -e 'devtools::test(filter = "biv-gaussian|summary|corpairs")'`:
+  passed with 638 expectations, 0 failures, 0 warnings, and 0 skips.
+- `git diff --check`: passed.
+
+## 2026-05-13 -- Slice 9D derived covariance interval status guard
+
+Scope:
+
+- added `covariance_conf.status` to the random-effect covariance summary table;
+- marked ordinary summaries as `not_requested` and profiled summaries as
+  `derived_interval_unavailable` while keeping derived covariance interval
+  values `NA`;
+- made `print(summary(fit))` show the unavailable-status marker when profile
+  intervals are requested for covariance rows;
+- documented that this is a reporting guard only, not a new derived covariance
+  interval method or q > 2 fitted-model claim.
+
+Checks:
+
+- `air format R/methods.R tests/testthat/test-summary.R
+  tests/testthat/test-covariance-block-registry.R NEWS.md ROADMAP.md
+  docs/design/28-double-hierarchical-endpoint.md docs/dev-log/check-log.md
+  docs/dev-log/after-task/2026-05-13-slice-9d-derived-covariance-interval-status-guard.md`:
+  passed.
+- `Rscript -e 'devtools::test(filter = "summary|covariance-block-registry|corpairs")'`:
+  passed with 322 expectations, 0 failures, 0 warnings, and 0 skips.
+- `git diff --check`: passed.
+
+## 2026-05-13 -- Slice 9C summary covariance reporting surface
+
+Scope:
+
+- added `summary(fit)$covariance` as the first public surface for fitted
+  registry-backed random-effect variance and covariance point summaries;
+- made `print(summary(fit))` show a compact covariance table only when fitted
+  covariance rows exist;
+- kept residual `rho12` out of the covariance table and kept derived covariance
+  intervals empty even when component profile intervals are present;
+- documented the scope boundary in NEWS, roadmap, and the double-hierarchical
+  endpoint design note.
+
+Checks:
+
+- `Rscript -e 'devtools::test(filter = "summary")'`: passed with 87
+  expectations, 0 failures, 0 warnings, and 0 skips.
+- `devtools::document()`: passed.
+- `air format R/methods.R tests/testthat/test-summary.R NEWS.md ROADMAP.md
+  docs/design/28-double-hierarchical-endpoint.md docs/dev-log/check-log.md
+  docs/dev-log/after-task/2026-05-13-slice-9c-summary-covariance-reporting-surface.md`:
+  passed.
+- `Rscript -e 'devtools::test(filter = "summary|covariance-block-registry|corpairs")'`:
+  passed with 315 expectations, 0 failures, 0 warnings, and 0 skips.
+- `git diff --check`: passed.
+
+## 2026-05-13 -- Slice 9B covariance-summary component intervals
+
+Scope:
+
+- added target-name columns to the internal random-effect covariance summary
+  table for the defining SD and correlation profile targets;
+- allowed the internal table to attach direct profile intervals for those
+  component SD and correlation targets;
+- kept derived covariance interval columns present but empty until a valid
+  nonlinear derived-interval method exists;
+- checked the hidden q=4 endpoint scaffold with synthetic profile rows for all
+  six correlations and four SD targets.
+
+Checks:
+
+- `Rscript -e 'devtools::test(filter = "covariance-block-registry")'`: passed
+  with 180 expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript -e 'devtools::test(filter =
+  "covariance-block-registry|corpairs")'`: passed with 228 expectations, 0
+  failures, 0 warnings, and 0 skips.
+- `air format R/methods.R tests/testthat/test-covariance-block-registry.R
+  ROADMAP.md docs/design/28-double-hierarchical-endpoint.md
+  docs/dev-log/check-log.md
+  docs/dev-log/after-task/2026-05-13-slice-9b-covariance-summary-component-intervals.md`:
+  passed.
+- `git diff --check`: passed.
+
+## 2026-05-13 -- Slice 9A internal covariance-summary scaffold
+
+Scope:
+
+- added an internal registry-backed random-effect covariance summary table;
+- transformed fitted random-effect SDs and correlations into variance and
+  covariance point estimates on the fitted random-effect scale;
+- checked the hidden q=4 endpoint scaffold for all six covariance rows, the
+  fully dormant no-row path, and the mixed fitted/dormant path;
+- kept this as point-estimate infrastructure only: no public extractor, no
+  interval columns, no residual `rho12` covariance summaries, and no ordinary
+  fitted q4 support claim.
+
+Checks:
+
+- `Rscript -e 'devtools::test(filter = "covariance-block-registry")'`: passed
+  with 170 expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript -e 'devtools::test(filter =
+  "covariance-block-registry|corpairs")'`: passed with 218 expectations, 0
+  failures, 0 warnings, and 0 skips.
+- `air format R/methods.R tests/testthat/test-covariance-block-registry.R
+  ROADMAP.md docs/design/28-double-hierarchical-endpoint.md
+  docs/dev-log/check-log.md
+  docs/dev-log/after-task/2026-05-13-slice-9a-internal-covariance-summary-scaffold.md`:
+  passed.
+- `git diff --check`: passed.
+
+## 2026-05-13 -- Slice 8F hidden q=4 profile-target scaffold
+
+Scope:
+
+- made registry-backed `profile_targets()` skip dormant covariance-block pair
+  rows that have no fitted TMB parameter/index metadata;
+- added an internal fitted-like q=4 endpoint scaffold that formats the six
+  corresponding random-effect correlation targets from registry metadata and
+  `corpars`;
+- checked target names, target class, correlation namespace, TMB parameter,
+  index, estimate, guarded link estimate, transformation, readiness, and
+  `ready_only` filtering for the fitted-like q=4 targets;
+- added mixed-registry coverage so a partly fitted q4 registry reports only the
+  fitted pair and skips still-dormant scaffold rows;
+- kept this as profile-target contract evidence only: ordinary fitted q4 models
+  do not yet populate these rows, and there is no public q > 2 syntax or
+  example.
+
+Checks:
+
+- `Rscript -e 'devtools::test(filter =
+  "profile-targets|covariance-block-registry")'`: passed with 388
+  expectations, 0 failures, 0 warnings, and 0 skips.
+- `air format R/profile.R tests/testthat/test-profile-targets.R
+  tests/testthat/test-covariance-block-registry.R ROADMAP.md
+  docs/design/28-double-hierarchical-endpoint.md
+  docs/design/30-labelled-covariance-block-assembler.md
+  docs/dev-log/check-log.md
+  docs/dev-log/after-task/2026-05-13-slice-8f-hidden-q4-profile-target-scaffold.md`:
+  passed.
+- `git diff --check`: passed.
+
+## 2026-05-13 -- Slice 8E hidden q=4 corpairs scaffold
+
+Scope:
+
+- made registry-backed `corpairs()` skip dormant covariance-block pair rows that
+  have no fitted TMB parameter/index metadata;
+- added an internal fitted-like q=4 endpoint scaffold that formats all six
+  group-level rows from registry metadata and `corpars`: one `mean-mean`, four
+  `mean-scale`, and one `scale-scale`;
+- checked class, group, parameter, response-scale estimate, link-scale estimate,
+  and filtering behavior for the fitted-like q=4 rows;
+- checked that a dormant q=4 registry remains invisible to group-level
+  `corpairs()` output instead of producing an internal-error abort;
+- kept this as extractor-contract evidence only: ordinary fitted q4 models do
+  not yet populate these rows, and there is no public q > 2 syntax or example.
+
+Checks:
+
+- `Rscript -e 'devtools::test(filter = "covariance-block-registry")'`: passed
+  with 153 expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript -e 'devtools::test(filter =
+  "covariance-block-registry|corpairs|biv-gaussian")'`: passed with 685
+  expectations, 0 failures, 0 warnings, and 0 skips.
+- `air format R/methods.R tests/testthat/test-covariance-block-registry.R
+  ROADMAP.md docs/design/28-double-hierarchical-endpoint.md
+  docs/design/30-labelled-covariance-block-assembler.md
+  docs/dev-log/check-log.md
+  docs/dev-log/after-task/2026-05-13-slice-8e-hidden-q4-corpairs-scaffold.md`:
+  passed.
+- `git diff --check`: passed.
+
+## 2026-05-13 -- Slice 8D hidden q=4 bivariate recovery-style check
+
+Scope:
+
+- added a deterministic hidden q=4 bivariate Gaussian recovery-style test using
+  intercept-level endpoint contributions for `mu1`, `mu2`, `sigma1`, and
+  `sigma2`;
+- simulated paired Gaussian responses from the q=4 endpoint predictors with an
+  orthogonal deterministic residual basis and fixed residual `rho12`, then fit
+  the hidden `model_type == 95` Laplace branch with `u_re_cov_probe` as a TMB
+  random effect;
+- checked that the recovered `mu1`, `mu2`, `log(sigma1)`, and `log(sigma2)`
+  predictor signals improve over no-random-effect baselines and have positive
+  correlation with the simulated signals;
+- kept this as hidden recovery-style evidence only: no public q > 2 syntax, no
+  q4 `corpairs()` rows, no examples, and no q6/q8 random-slope claim;
+- Ada integrated the slice, Gauss checked the bivariate covariance scale, Curie
+  checked deterministic recovery tolerances, and Rose checked the public-support
+  boundary.
+
+Checks:
+
+- `Rscript -e 'devtools::test(filter = "covariance-block-registry")'`: passed
+  with 139 expectations, 0 failures, 0 warnings, and 0 skips.
+- `air format tests/testthat/test-covariance-block-registry.R ROADMAP.md
+  docs/design/28-double-hierarchical-endpoint.md
+  docs/design/30-labelled-covariance-block-assembler.md
+  docs/dev-log/check-log.md
+  docs/dev-log/after-task/2026-05-13-slice-8d-hidden-q4-bivariate-recovery-style-check.md`:
+  passed.
+- `Rscript -e 'devtools::test(filter =
+  "covariance-block-registry|biv-gaussian")'`: passed with 623 expectations, 0
+  failures, 0 warnings, and 0 skips.
+- `git diff --check`: passed.
+
+## 2026-05-13 -- Slice 8C hidden q=4 bivariate random-effect boundary
+
+Scope:
+
+- added a hidden q=4 bivariate Gaussian test with `u_re_cov_probe` passed
+  through TMB's `random` argument;
+- checked that `u_re_cov_probe` drops out of the fixed optimizer parameter
+  vector, is registered as the random-effect block, and has a nonzero optimized
+  random-effect mode under the bivariate likelihood;
+- reconstructed the q=4 contribution matrix and the reported `mu1`, `mu2`,
+  `log(sigma1)`, and `log(sigma2)` predictors from the optimized mode;
+- kept this as a Laplace boundary check only: no public q > 2 syntax, no
+  `corpairs()` rows, and no q4 recovery claim yet;
+- Ada integrated the slice, Gauss checked the random-effect likelihood boundary,
+  Curie checked the focused test, and Rose checked the public-support wording.
+
+Checks:
+
+- `Rscript -e 'devtools::test(filter = "covariance-block-registry")'`: passed
+  with 127 expectations, 0 failures, 0 warnings, and 0 skips.
+- `air format tests/testthat/test-covariance-block-registry.R ROADMAP.md
+  docs/design/28-double-hierarchical-endpoint.md
+  docs/design/30-labelled-covariance-block-assembler.md
+  docs/dev-log/check-log.md
+  docs/dev-log/after-task/2026-05-13-slice-8c-hidden-q4-bivariate-random-effect-boundary.md`:
+  passed.
+- `Rscript -e 'devtools::test(filter =
+  "covariance-block-registry|biv-gaussian")'`: passed with 611 expectations, 0
+  failures, 0 warnings, and 0 skips.
+- `git diff --check`: passed.
+
+## 2026-05-13 -- Slice 8B hidden q=4 bivariate likelihood bridge
+
+Scope:
+
+- added hidden `model_type == 95` as a bivariate Gaussian likelihood probe for
+  the guarded q=4 `mu1`/`mu2`/`sigma1`/`sigma2` intercept-level block;
+- routed registry-shaped q=4 member contributions into `mu1`, `mu2`,
+  `log(sigma1)`, and `log(sigma2)` while leaving ordinary fitted likelihood
+  paths unchanged;
+- added an independent R-side likelihood check that reconstructs the q=4
+  contribution matrix, transformed predictors, bivariate Gaussian objective,
+  and standard-normal latent prior;
+- kept the public boundary explicit: q is the TMB block dimension here, not the
+  number of user-modelled correlations, and random-slope q=6 or q=8 endpoint
+  blocks remain later work;
+- recorded the next strategic milestone as phylogenetic q=4 endpoint support
+  for the mammalian and avian protocol use case before q=6/q=8 random-slope
+  extensions;
+- Ada integrated the slice, Gauss/Curie/Rose reviewed the likelihood, tests,
+  and overclaiming boundary.
+
+Checks:
+
+- `Rscript -e 'devtools::test(filter = "covariance-block-registry")'`: passed
+  with 115 expectations, 0 failures, 0 warnings, and 0 skips.
+- `air format src/drmTMB.cpp tests/testthat/test-covariance-block-registry.R`:
+  passed.
+- `Rscript -e 'devtools::test(filter =
+  "covariance-block-registry|biv-gaussian")'`: passed with 599 expectations, 0
+  failures, 0 warnings, and 0 skips.
+- `air format ROADMAP.md docs/design/28-double-hierarchical-endpoint.md
+  docs/dev-log/check-log.md
+  docs/dev-log/after-task/2026-05-13-slice-8b-hidden-q4-bivariate-likelihood-bridge.md`:
+  passed.
+- `git diff --check`: passed.
+
+## 2026-05-13 -- Slice 8A hidden q=4 registry contribution bridge
+
+Scope:
+
+- added a guarded four-member covariance-block registry helper for one hidden
+  block across `mu1`, `mu2`, `sigma1`, and `sigma2`;
+- added a registry test proving the q=4 block carries four members and all six
+  pair rows, with `mean-mean`, four `mean-scale`, and `scale-scale` classes;
+- added a hidden `model_type == 97` TMB contribution-map test proving the q=4
+  block can map standardized group-level latent vectors through
+  `UNSTRUCTURED_CORR_t` plus `VECSCALE_t` into member-specific design columns;
+- corrected the R-side test helper for TMB's row-wise strict-lower-triangle
+  theta order, which q=3 could not distinguish from the old column-wise helper;
+- updated roadmap and q > 2 design notes to record this as the first q=4
+  bridge while keeping fitted q=4 likelihood, extractor rows, examples, and
+  public syntax out of scope.
+
+Checks:
+
+- `air format tests/testthat/test-covariance-block-registry.R ROADMAP.md
+  docs/design/28-double-hierarchical-endpoint.md
+  docs/design/30-labelled-covariance-block-assembler.md
+  docs/dev-log/check-log.md
+  docs/dev-log/after-task/2026-05-13-slice-8a-hidden-q4-registry-contribution-bridge.md`:
+  passed.
+- `Rscript -e 'devtools::test(filter = "covariance-block-registry")'`: passed
+  with 104 expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript -e 'devtools::test(filter =
+  "covariance-block-registry|biv-gaussian|gaussian-random-intercepts|phylo-utils|package-skeleton")'`:
+  passed with 1002 expectations, 0 failures, 0 warnings, and 0 skips.
+- `git diff --check`: passed.
+
+## 2026-05-13 -- Slice 7D hidden q=3 simulation-style recovery check
+
+Scope:
+
+- generalized the hidden covariance-block registry test helper so q=3 probes
+  can use more groups, replicated observations, and member-specific design
+  values without changing ordinary fitted syntax;
+- added a deterministic hidden `model_type == 96` recovery test that generates
+  q=3 latent contributions for replicated groups, runs the Gaussian likelihood
+  with `u_re_cov_probe` as a TMB random-effect vector, and checks that the
+  fitted `mu` and `log_sigma` predictors recover the simulated signal better
+  than a no-random-effect baseline;
+- updated the roadmap and q > 2 design notes to close the hidden q=3 prototype
+  phase and make the q=4 `mu1`/`mu2`/`sigma1`/`sigma2` bridge the next
+  implementation step, while keeping user-facing q > 2 support closed.
+
+Checks:
+
+- `air format tests/testthat/test-covariance-block-registry.R ROADMAP.md
+  docs/design/28-double-hierarchical-endpoint.md
+  docs/design/30-labelled-covariance-block-assembler.md
+  docs/dev-log/check-log.md
+  docs/dev-log/after-task/2026-05-13-slice-7d-hidden-q3-simulation-style-recovery.md`:
+  passed.
+- `Rscript -e 'devtools::test(filter = "covariance-block-registry")'`: passed
+  with 73 expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript -e 'devtools::test(filter =
+  "covariance-block-registry|biv-gaussian|gaussian-random-intercepts|phylo-utils|package-skeleton")'`:
+  passed with 971 expectations, 0 failures, 0 warnings, and 0 skips.
+- `git diff --check`: passed.
+
+## 2026-05-13 -- Slice 7C hidden q=3 random-effect likelihood prototype
+
+Scope:
+
+- added a deterministic hidden test for `model_type == 96` with
+  `u_re_cov_probe` passed through TMB's `random` argument;
+- checked that `u_re_cov_probe` drops out of the fixed optimizer parameter
+  vector, is identified as the random-effect block, has a nonzero optimized
+  random-effect mode under the Gaussian likelihood, and reconstructs the
+  reported contribution matrix, `mu`, `log_sigma`, and `obs_sigma` from that
+  mode;
+- updated the roadmap and q > 2 design notes to record the internal Laplace
+  likelihood prototype while keeping simulation recovery, extractor rows,
+  examples, and public q > 2 syntax out of scope.
+
+Checks:
+
+- `air format tests/testthat/test-covariance-block-registry.R`: passed.
+- `Rscript -e 'devtools::test(filter = "covariance-block-registry")'`: passed
+  with 66 expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript -e 'devtools::test(filter =
+  "covariance-block-registry|biv-gaussian|gaussian-random-intercepts|phylo-utils|package-skeleton")'`:
+  passed with 964 expectations, 0 failures, 0 warnings, and 0 skips.
+- `git diff --check`: passed.
+
+## 2026-05-13 -- Slice 7B hidden q=3 Gaussian likelihood prototype
+
+Scope:
+
+- added hidden `model_type == 96`, which reuses the q=3 registry contribution
+  map and injects `mu`-component members into the Gaussian location predictor
+  and `sigma`-component members into the log-scale predictor;
+- added a deterministic registry test that reconstructs the q=3 latent
+  transform in R and checks the reported contribution matrix, `mu`,
+  `log_sigma`, `obs_sigma`, objective, and gradient;
+- clarified in the q > 2 design note that q is the number of covariance-block
+  members: q=3 has three members and three correlations, while the full
+  `mu1`/`mu2`/`sigma1`/`sigma2` endpoint is q=4 with six correlations;
+- changed no formula grammar, no ordinary model type, no extractor rows, and no
+  public q > 2 covariance support.
+
+Checks:
+
+- `air format src/drmTMB.cpp tests/testthat/test-covariance-block-registry.R`:
+  passed.
+- `Rscript -e 'devtools::test(filter = "covariance-block-registry")'`: passed
+  with 57 expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript -e 'devtools::test(filter =
+  "covariance-block-registry|biv-gaussian|gaussian-random-intercepts|phylo-utils|package-skeleton")'`:
+  passed with 955 expectations, 0 failures, 0 warnings, and 0 skips.
+- `git diff --check`: passed.
+
+## 2026-05-13 -- Slice 7A hidden q=3 random-effect boundary
+
+Scope:
+
+- added a hidden registry test that registers `u_re_cov_probe` through TMB's
+  `random` argument for `model_type == 97`;
+- checked that `u_re_cov_probe` drops out of the fixed optimizer parameter
+  vector, is identified as the random-effect block, optimizes to the zero mode
+  under the hidden standard-normal branch, and leaves finite marginalized
+  objective/gradient values;
+- updated the roadmap and q > 2 design notes to record the internal
+  random-effect boundary while keeping production likelihood wiring,
+  simulation recovery, `corpairs()` rows, and public syntax out of scope.
+
+Checks:
+
+- `air format tests/testthat/test-covariance-block-registry.R`: passed.
+- `Rscript -e 'devtools::test(filter = "covariance-block-registry")'`: passed
+  with 50 expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript -e 'devtools::test(filter =
+  "covariance-block-registry|biv-gaussian|gaussian-random-intercepts|phylo-utils|package-skeleton")'`:
+  passed with 948 expectations, 0 failures, 0 warnings, and 0 skips.
+- `git diff --check`: passed.
+
+## 2026-05-13 -- Slice 6E mapped-off q=3 probe no-op guard
+
+Scope:
+
+- added a regression test proving that the dormant `u_re_cov_probe` parameter
+  does not affect ordinary Gaussian likelihoods while it remains mapped off;
+- rebuilt a TMB object with `u_re_cov_probe = 7`, kept the ordinary
+  `factor(NA)` map, and compared the optimizer parameter names, objective, and
+  gradient against the fitted object;
+- changed no C++ likelihood branch, no R parser syntax, no user-facing
+  covariance support, and no documentation claims about fitted q > 2 blocks.
+
+Checks:
+
+- `air format tests/testthat/test-covariance-block-registry.R`: passed.
+- `Rscript -e 'devtools::test(filter = "covariance-block-registry")'`: passed
+  with 44 expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript -e 'devtools::test(filter =
+  "covariance-block-registry|biv-gaussian|gaussian-random-intercepts|phylo-utils|package-skeleton")'`:
+  passed with 942 expectations, 0 failures, 0 warnings, and 0 skips.
+
+## 2026-05-13 -- Slice 6D hidden q=3 probe parameter plumbing
+
+Scope:
+
+- added hidden TMB parameter vector `u_re_cov_probe`;
+- added `add_covariance_probe_parameter()` so ordinary `drmTMB()` fits include
+  `u_re_cov_probe = 0` in the start list while mapping it off by default;
+- changed hidden `model_type == 97` to prefer `u_re_cov_probe` over
+  data-supplied `re_cov_probe_z`, and to add the standard normal contribution
+  for that probe parameter;
+- updated the direct phylogenetic TMB fixture so hand-built `MakeADFun()` calls
+  still match the full C++ template parameter contract;
+- changed no user-facing syntax, no fitted-model likelihood branch, no
+  optimizer-visible parameter in ordinary fits, and no public q > 2 covariance
+  support.
+
+Checks:
+
+- `air format R/drmTMB.R tests/testthat/test-covariance-block-registry.R
+  tests/testthat/test-phylo-utils.R`: passed.
+- `Rscript -e 'devtools::test(filter =
+  "covariance-block-registry|phylo-utils")'`: passed with 86 expectations, 0
+  failures, 0 warnings, and 0 skips.
+- `Rscript -e 'devtools::test(filter =
+  "covariance-block-registry|biv-gaussian|gaussian-random-intercepts|phylo-utils|package-skeleton")'`:
+  passed with 939 expectations, 0 failures, 0 warnings, and 0 skips.
+- `git diff --check`: passed.
+
+## 2026-05-13 -- Slice 6C hidden q=3 registry contribution probe
+
+Scope:
+
+- added an explicit internal-only `allow_unimplemented = TRUE` override to
+  `labelled_covariance_block_tmb_data()`, leaving the default q > 2 export
+  guard closed;
+- added hidden `model_type == 97`, which uses the q=3 registry block/member
+  metadata to map group-major standardized latent vectors through
+  `VECSCALE(UNSTRUCTURED_CORR(theta), s).sqrt_cov_scale(z)` and back to
+  design-scaled member contributions;
+- added a deterministic test proving the hidden q=3 registry scaffold exports
+  with inert pair-parameter codes and produces the expected per-observation
+  member contribution matrix;
+- changed no user-facing syntax, no fitted-model likelihood branch, no real
+  q=3 random-effect parameters, and no public q > 2 covariance support.
+
+Checks:
+
+- `air format R/drmTMB.R tests/testthat/test-covariance-block-registry.R`:
+  passed.
+- `Rscript -e 'devtools::test(filter = "covariance-block-registry")'`: passed
+  with 37 expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript -e 'devtools::test(filter =
+  "covariance-block-registry|biv-gaussian|gaussian-random-intercepts|phylo-utils")'`:
+  passed with 895 expectations, 0 failures, 0 warnings, and 0 skips.
+- `git diff --check`: passed.
+
+## 2026-05-13 -- Slice 6B q=3 non-centered TMB probe
+
+Scope:
+
+- added internal-only TMB data field `re_cov_probe_z` to the dormant
+  covariance-block data contract;
+- extended hidden `model_type == 98` to report `re_cov_probe_latent`, the q=3
+  latent vector produced by `VECSCALE(UNSTRUCTURED_CORR(theta), s)
+  .sqrt_cov_scale(z)`;
+- added an R-side check reconstructing the same transform as
+  `s * t(chol(R)) %*% z`, where `R` is TMB's reported q=3 correlation matrix;
+- changed no user-facing syntax, no fitted-model likelihood branch, no real
+  random-effect parameters, and no public q > 2 covariance support.
+
+Checks:
+
+- `air format R/drmTMB.R tests/testthat/test-covariance-block-registry.R`:
+  passed.
+- `Rscript -e 'devtools::test(filter = "covariance-block-registry")'`: passed
+  with 31 expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript -e 'devtools::test(filter =
+  "covariance-block-registry|biv-gaussian|gaussian-random-intercepts|phylo-utils")'`:
+  passed with 889 expectations, 0 failures, 0 warnings, and 0 skips.
+- `git diff --check`: passed.
+
+## 2026-05-13 -- Slice 6 q=3 TMB algebra probe
+
+Scope:
+
+- added internal-only TMB data fields `re_cov_probe_theta`,
+  `re_cov_probe_sd`, and `re_cov_probe_x` to the dormant covariance-block data
+  contract;
+- added a hidden `model_type == 98` branch that constructs
+  `density::UNSTRUCTURED_CORR_t`, reports its correlation matrix, and evaluates
+  either the unscaled density or a `density::VECSCALE()` density for a supplied
+  q=3 probe vector;
+- added a deterministic test asserting that the reported q=3 correlation
+  matrix is symmetric, has unit diagonal, matches TMB's documented lower-triangle
+  normalization, has positive eigenvalues, and yields finite objective and
+  gradient;
+- changed no user-facing syntax, no fitted-model likelihood branch, no real
+  random-effect parameters, and no public q > 2 covariance support.
+
+Checks:
+
+- Jason inspected local TMB 1.9.21 headers and confirmed that
+  `UNSTRUCTURED_CORR_t` plus `VECSCALE_t` is the right local primitive.
+- Gauss reviewed the numerical plan and recommended the next slice use
+  `sqrt_cov_scale()` for a non-centered prototype.
+- `air format R/drmTMB.R tests/testthat/test-covariance-block-registry.R`:
+  passed.
+- `Rscript -e 'devtools::load_all()'`: passed and recompiled `drmTMB`; the
+  compiler emitted three existing Eigen/TMB header warnings, with no new
+  `drmTMB.cpp` warnings.
+- `Rscript -e 'devtools::test(filter = "covariance-block-registry")'`: passed
+  with 30 expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript -e 'devtools::test(filter =
+  "covariance-block-registry|biv-gaussian|gaussian-random-intercepts|phylo-utils")'`:
+  passed with 888 expectations, 0 failures, 0 warnings, and 0 skips.
+- `git diff --check`: passed.
+- Post-crash recovery rerun on the same checkout: `git diff --check`,
+  `Rscript -e 'devtools::test(filter = "covariance-block-registry")'`, and the
+  four-context targeted test above all passed again.
+
+## 2026-05-13 -- Slice 5 guarded q=3 registry scaffold
+
+Scope:
+
+- changed `append_covariance_registry_block()` to enumerate all
+  `q * (q - 1) / 2` member pairs through a private
+  `covariance_registry_pair_rows()` helper;
+- kept current fitted q=2 block behaviour unchanged while allowing internal
+  q=3 scaffold registries to carry three members and three stable pair rows;
+- added an `implemented` flag argument so internal q=3 scaffolds can be marked
+  `FALSE`;
+- kept `labelled_covariance_block_tmb_data()` guarded for implemented
+  two-member blocks only, so no q > 2 registry can be exported to TMB yet;
+- added a public bivariate guard test for the three-member shared-label route,
+  which still errors before fitting;
+- changed no accepted syntax, likelihood code, C++ code, fitted parameter
+  estimates, or user-facing q > 2 support.
+
+Checks:
+
+- Boole inspected the parser and registry boundary and recommended a
+  registry-only q=3 scaffold with parser and TMB gates closed.
+- Curie inspected the tests and recommended deterministic internal q=3 pair-row
+  assertions plus a TMB-export guard assertion.
+- `air format R/drmTMB.R tests/testthat/test-covariance-block-registry.R
+  tests/testthat/test-biv-gaussian.R`: passed.
+- `Rscript -e 'devtools::test(filter = "covariance-block-registry")'`: passed
+  with 24 expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript -e 'devtools::test(filter =
+  "biv-gaussian|gaussian-random-intercepts|covariance-block-registry")'`:
+  passed with 837 expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript -e 'devtools::test(filter =
+  "covariance-block-registry|corpairs|check-drm|profile-targets|biv-gaussian|gaussian-random-intercepts")'`:
+  passed with 1196 expectations, 0 failures, 0 warnings, and 0 skips.
+- `git diff --check`: passed.
+
+## 2026-05-13 -- Slice 4 C++ visibility for dormant block contract
+
+Scope:
+
+- appended the labelled covariance block `tmb_data` contract to every
+  `spec$tmb_data` list before `TMB::MakeADFun()`;
+- declared the dormant `re_cov_*` fields in `src/drmTMB.cpp` and cast them to
+  `void`, so the C++ template sees the contract without using it in the
+  likelihood;
+- added test helpers proving fitted registry `tmb_data` is present in
+  `fit$model$tmb_data` and that scrambling the dormant fields leaves the
+  objective and gradient unchanged for a representative labelled bivariate
+  block;
+- updated the direct phylogenetic TMB fixture with the empty block contract;
+- changed no accepted syntax, optimized parameters, likelihood contribution,
+  `corpairs()` rows, `check_drm()` diagnostics, or `profile_targets()` rows.
+
+Checks:
+
+- Gauss reviewed the C++ boundary risk before validation and recommended
+  declaring the fields with `(void)` casts.
+- Curie reviewed the test surface and recommended the exported-data assertion
+  plus one no-op objective/gradient assertion.
+- `air format R/drmTMB.R tests/testthat/helper-covariance-blocks.R
+  tests/testthat/test-biv-gaussian.R
+  tests/testthat/test-gaussian-random-intercepts.R
+  tests/testthat/test-phylo-utils.R`: passed.
+- `Rscript -e 'devtools::load_all()'`: passed and recompiled `drmTMB`; the
+  compiler emitted three existing Eigen/TMB header warnings, with no new
+  `drmTMB.cpp` warnings.
+- `Rscript -e 'devtools::test(filter =
+  "biv-gaussian|gaussian-random-intercepts|phylo-utils")'`: passed with 857
+  expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript -e 'devtools::test(filter =
+  "corpairs|check-drm|profile-targets|biv-gaussian|gaussian-random-intercepts|phylo-utils")'`:
+  passed with 1216 expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript -e 'devtools::test(filter = "package-skeleton")'`: passed with 40
+  expectations, 0 failures, 0 warnings, and 0 skips.
+- `git diff --check`: passed.
+
+## 2026-05-13 -- Slice 4 `profile_targets()` registry inventory
+
+Scope:
+
+- routed random-effect correlation rows in `profile_targets()` through
+  `object$model$random$covariance_blocks` when covered two-member registry
+  pairs are available;
+- preserved target names, target classes, `dpar`, `term`, `tmb_parameter`,
+  index, transformation, target type, readiness, and estimates for current
+  covariance targets;
+- kept fallback logic for old or partial objects by parsing any fitted
+  `corpars` row not covered by the registry;
+- changed no SD target rows, fixed-effect target rows, residual `rho12` target
+  rows, likelihood code, or accepted syntax.
+
+Checks:
+
+- Meitner/Emmy-copy was asked to map the target inventory contracts before the
+  closeout.
+- `air format R/profile.R tests/testthat/test-profile-targets.R
+  tests/testthat/test-biv-gaussian.R`: passed.
+- `Rscript -e 'devtools::test(filter = "profile-targets")'`: passed with 215
+  expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript -e 'devtools::test(filter =
+  "profile-targets|biv-gaussian|gaussian-random-intercepts|corpairs|check-drm")'`:
+  passed with 1159 expectations, 0 failures, 0 warnings, and 0 skips.
+- `git diff --check`: passed.
+
+## 2026-05-13 -- Slice 4 `check_drm()` registry diagnostics
+
+Scope:
+
+- routed the existing covariance diagnostics in `check_drm()` through
+  `object$model$random$covariance_blocks` when covered two-member registry
+  pairs are available;
+- preserved current diagnostic row names, values, statuses, and messages for
+  univariate `mu`/`sigma`, bivariate `mu1`/`mu2`, bivariate
+  `sigma1`/`sigma2`, and same-response bivariate `mu`/`sigma` covariance
+  blocks;
+- kept fallback logic for older objects without a registry;
+- changed no accepted syntax, likelihood code, TMB data passed to C++, or
+  fitted parameter estimates.
+
+Checks:
+
+- Mill/Curie-copy mapped the existing `check_drm()` helper contracts and test
+  expectations before editing.
+- `air format R/check.R tests/testthat/test-check-drm.R
+  tests/testthat/test-biv-gaussian.R`: passed.
+- `Rscript -e 'devtools::test(filter = "check-drm")'`: passed with 96
+  expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript -e 'devtools::test(filter =
+  "check-drm|biv-gaussian|gaussian-random-intercepts|corpairs|profile-targets")'`:
+  passed with 1153 expectations, 0 failures, 0 warnings, and 0 skips.
+- `git diff --check`: passed.
+
+## 2026-05-13 -- Slice 4 `corpairs()` registry extraction
+
+Scope:
+
+- routed group-level `corpairs()` rows through
+  `object$model$random$covariance_blocks` when registry pairs are available;
+- kept fitted estimates in the existing `object$corpars` surface by mapping
+  registry `tmb_parameter` and `tmb_index` fields to `corpars$mu`,
+  `corpars$sigma`, and `corpars$mu_sigma`;
+- preserved legacy label parsing for old or partial objects by falling back for
+  any fitted correlation not covered by the registry;
+- kept residual `rho12` reporting separate and changed no formula grammar, TMB
+  likelihood, `start`, `map`, `random_names`, or accepted syntax.
+
+Checks:
+
+- Mendel/Rose-copy reviewed the current slice-4 order and recommended
+  registry-derived public extractors before no-op C++ visibility and before any
+  `q > 2` Cholesky likelihood work.
+- Turing/Boole-copy identified a partial-registry compatibility trap; fixed by
+  adding a parsed fallback for uncovered `corpars` rows.
+- `air format R/methods.R tests/testthat/test-biv-gaussian.R
+  tests/testthat/test-corpairs.R
+  tests/testthat/test-gaussian-random-intercepts.R`: passed.
+- `Rscript -e 'devtools::test(filter = "corpairs")'`: passed with 48
+  expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript -e 'devtools::test(filter =
+  "corpairs|biv-gaussian|gaussian-random-intercepts|profile-targets|check-drm")'`:
+  passed with 1150 expectations, 0 failures, 0 warnings, and 0 skips.
+- `git diff --check`: passed.
+
+## 2026-05-13 -- Slice 4 labelled block registry compatibility
+
+Scope:
+
+- added an internal `random$covariance_blocks` registry for currently
+  implemented ordinary grouped two-member covariance bridges;
+- covered ordinary labelled `mu` intercept-slope blocks, univariate
+  `mu`/`sigma` random-intercept covariance, bivariate `mu1`/`mu2`,
+  bivariate `sigma1`/`sigma2`, and same-response bivariate `mu`/`sigma`
+  random-intercept covariance;
+- kept the change metadata-only: no new accepted syntax, no TMB data contract
+  change, no C++ likelihood change, no `start`/`map`/`random_names` change,
+  and no `corpairs()`, `profile_targets()`, or `check_drm()` derivation change.
+
+Checks:
+
+- Halley source map confirmed the registry insertion points after
+  `re_mu`, `re_sigma`, and `re_mu_sigma` are built.
+- Boole API review confirmed the `level`/`group`/`block_label` direction and
+  prompted the internal names `block_id0`, `member_id0`,
+  `response_index`, `source_term_id0`, and `coef_pos0`.
+- Gauss TMB review confirmed the metadata-only registry is safe as long as it
+  stays out of `spec$tmb_data`, `start`, `map`, and `random_names`.
+- Curie added focused registry expectations in
+  `tests/testthat/test-biv-gaussian.R` and
+  `tests/testthat/test-gaussian-random-intercepts.R`.
+- `air format R/drmTMB.R`: passed.
+- `air format tests/testthat/test-biv-gaussian.R
+  tests/testthat/test-gaussian-random-intercepts.R`: passed in Curie's lane.
+- `Rscript -e 'devtools::test(filter =
+  "gaussian-random-intercepts|biv-gaussian")'`: passed with 684 expectations,
+  0 failures, 0 warnings, and 0 skips.
+- `Rscript -e 'devtools::test(filter =
+  "gaussian-random-intercepts|biv-gaussian|corpairs|profile-targets|check-drm")'`:
+  passed with 1032 expectations, 0 failures, 0 warnings, and 0 skips.
+- `git diff --check`: passed.
+
+## 2026-05-13 -- Slice 4 dormant TMB block contract
+
+Scope:
+
+- added a dormant `random$covariance_blocks$tmb_data` contract derived from the
+  R-side block registry;
+- encoded block sizes, group counts, member starts, pair starts, component
+  codes, distributional-parameter codes, response indexes, source term and
+  coefficient positions, latent indexes, design values, pair member indexes,
+  pair parameter codes, and pair parameter indexes;
+- kept the dormant contract explicitly two-member-only after Gauss-copy found
+  that advertising `choose(q, 2)` pairs without generating all pair rows would
+  be incoherent for future `q > 2` blocks;
+- kept the contract out of `spec$tmb_data`, `start`, `map`, `random_names`,
+  and C++ likelihood code for this pass.
+
+Checks:
+
+- `air format R/drmTMB.R tests/testthat/test-biv-gaussian.R
+  tests/testthat/test-gaussian-random-intercepts.R`: passed.
+- `Rscript -e 'devtools::test(filter =
+  "gaussian-random-intercepts|biv-gaussian")'`: passed with 768 expectations,
+  0 failures, 0 warnings, and 0 skips.
+- `Rscript -e 'devtools::test(filter =
+  "gaussian-random-intercepts|biv-gaussian|corpairs|profile-targets|check-drm")'`:
+  passed with 1128 expectations, 0 failures, 0 warnings, and 0 skips.
+- Gauss-copy reviewed the dormant contract and blocked a premature `q > 2`
+  claim; fixed by adding two-member-only internal checks plus invariant tests
+  that pair arrays match advertised block pair counts.
+- `git diff --check`: passed.
+
+## 2026-05-13 -- Slice 4 labelled covariance block design start
+
+Scope:
+
+- froze the completed slice-3 patch in commit `533790c` before starting
+  slice 4;
+- created the `codex/labelled-covariance-block-design` branch from that
+  commit;
+- added `docs/design/30-labelled-covariance-block-assembler.md` as the
+  design-first contract for replacing pairwise covariance bridges with a
+  labelled positive-definite block registry;
+- updated the roadmap and related covariance design notes to point larger
+  shared-label work at the new block assembler before bivariate random slopes
+  or full double-hierarchical covariance are exposed.
+
+Checks:
+
+- `git status --short --branch`, `git diff --stat`, and the slice-3
+  after-task report were inspected before committing the slice-3 freeze point.
+- `git diff --check`: passed before the slice-3 commit and again after the
+  slice-4 design edits.
+- `rg -n '^(<<<<<<<|=======|>>>>>>>)' . --glob
+  '!docs/dev-log/recovery-checkpoints/**'`: no conflict markers found before
+  the slice-3 commit.
+- `Rscript -e "cat(as.character(packageVersion('TMB')), '\\n');
+  cat(system.file('include', package = 'TMB'), '\\n')"`: local TMB version
+  `1.9.21`; include path inspected.
+- `rg -n "UNSTRUCTURED_CORR|VECSCALE|SCALE"
+  "$(Rscript -e 'cat(system.file(\"include\", package = \"TMB\"))')"`:
+  confirmed local TMB headers expose `UNSTRUCTURED_CORR_t` and `VECSCALE_t`.
+- `rg -n '30-labelled-covariance-block-assembler|labelled covariance block
+  assembler|block assembler|UNSTRUCTURED_CORR|pairwise bridges|shared labels'
+  ROADMAP.md docs/design/17-correlated-random-effect-blocks.md
+  docs/design/20-coscale-correlation-pairs.md
+  docs/design/28-double-hierarchical-endpoint.md
+  docs/design/30-labelled-covariance-block-assembler.md`: confirmed the new
+  design note is referenced from the roadmap and older covariance notes.
+- `rg -n 'meta_gaussian|tau ~|rho ~|meta_known_V\\([^V]' ROADMAP.md
+  docs/design/17-correlated-random-effect-blocks.md
+  docs/design/20-coscale-correlation-pairs.md
+  docs/design/28-double-hierarchical-endpoint.md
+  docs/design/30-labelled-covariance-block-assembler.md`: remaining hits are
+  existing `meta_known_V()` roadmap guardrails; no new syntax drift was added.
+
+## 2026-05-13 -- Bivariate same-response mu/sigma covariance
+
+Scope:
+
+- finished the same-response bivariate `mu`/`sigma` random-intercept covariance
+  slice, allowing one matching labelled pair such as `mu1` with `sigma1` or
+  `mu2` with `sigma2`;
+- wired the bivariate TMB data list, C++ likelihood branch, fitted random-effect
+  extraction, `corpars$mu_sigma`, `corpairs()`, `profile_targets()`, and
+  `check_drm()` to keep this mean-scale pair separate from `mu1`/`mu2`,
+  `sigma1`/`sigma2`, and residual `rho12`;
+- updated formula grammar, likelihood, profile, roadmap, known-limitations,
+  README, NEWS, and vignette status surfaces so the implemented pairwise bridge
+  is not confused with the still-planned full labelled covariance block across
+  `mu1`, `mu2`, `sigma1`, and `sigma2`.
+
+Checks:
+
+- recovery rehydration: inspected `git status --short --branch`, `git diff
+  --stat`, `git diff -- R/drmTMB.R`, `git diff -- src/drmTMB.cpp`, and
+  `docs/dev-log/recovery-checkpoints/2026-05-13-040434-codex-checkpoint.md`
+  before editing.
+- `air format R/drmTMB.R R/check.R R/methods.R
+  tests/testthat/test-biv-gaussian.R`: passed.
+- `air format tests/testthat/test-gaussian-random-intercepts.R
+  tests/testthat/test-phylo-utils.R`: passed.
+- `Rscript -e "devtools::document()"`: passed and regenerated
+  `man/drmTMB.Rd` and `man/corpairs.Rd`.
+- `Rscript -e "devtools::test(filter = 'biv-gaussian|check-drm')"`: passed
+  with 369 expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript -e "devtools::test(filter =
+  'gaussian-random-intercepts|phylo-utils|biv-gaussian|check-drm')"`: passed
+  with 639 expectations, 0 failures, 0 warnings, and 0 skips after updating
+  stale unsupported-message expectations and the hand-built phylo TMB data
+  fixture for the new random-effect metadata fields.
+- `Rscript -e "devtools::test()"`: passed with 2052 expectations, 0 failures,
+  0 warnings, and 0 skips.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with no problems found.
+- `git diff --check`: passed.
+- `rg -n 'bivariate random slopes, cross-parameter|cross-parameter covariance
+  blocks, and `rho12`|cross-parameter bivariate covariance blocks remain
+  planned|double-hierarchical cross-parameter covariance|bivariate
+  `sigma1`/`sigma2` and cross-parameter' README.md ROADMAP.md NEWS.md docs
+  vignettes --glob '!docs/dev-log/after-task/**' --glob
+  '!docs/dev-log/recovery-checkpoints/**'`: no active stale broad-planned
+  wording found.
+- `rg -n 'same-response|full cross-parameter|biv_mu_sigma_random_effect_covariance|corpars\\$mu_sigma|eta_cor_mu_sigma'
+  README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md
+  vignettes R tests/testthat/test-biv-gaussian.R
+  tests/testthat/test-check-drm.R`: checked that code, tests, and docs name the
+  implemented pairwise bridge and the still-planned full block separately.
+- `rg -n 'meta_gaussian|tau ~|rho ~|meta_known_V\\([^V]' README.md ROADMAP.md
+  NEWS.md docs/design docs/dev-log/known-limitations.md vignettes R
+  tests/testthat/test-biv-gaussian.R`: remaining hits are intentional
+  meta-analysis and residual-correlation guardrails; no new syntax was
+  introduced.
+
 ## 2026-05-12 -- Bivariate random-structure metadata parity
 
 Scope:

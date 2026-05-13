@@ -172,11 +172,11 @@ Residual `rho12` is a within-observation bivariate Gaussian correlation. It is
 not the same as a group-level correlation among individual intercepts, slopes,
 or residual-scale random effects. Univariate Gaussian `sigma` formulas now
 fit residual-scale random intercepts and independent random slopes, while
-`drmTMB` fits three first group-level covariance slices: a univariate labelled
+`drmTMB` fits four first group-level covariance slices: a univariate labelled
 `mu`/`sigma` random-intercept correlation from matching `(1 | p | id)` terms,
-plus bivariate labelled `mu1`/`mu2` and `sigma1`/`sigma2` random-intercept
-correlations from matching
-terms such as `(1 | p | id)`.
+bivariate labelled `mu1`/`mu2` and `sigma1`/`sigma2` random-intercept
+correlations, and one same-response bivariate `mu`/`sigma` random-intercept
+correlation such as `mu1` with `sigma1`.
 
 Full double-hierarchical individual-difference models are planned work. These
 models would jointly describe individual differences in average behaviour,
@@ -184,6 +184,14 @@ plasticity, predictability, and malleability. The package direction is to keep
 the public `sigma` grammar, report variance-facing summaries as `sigma^2`, and
 eventually expose both group-level individual-difference correlations and
 residual `rho12`.
+
+For comparative mammal, bird, or other trait protocols, the current practical
+path is staged: fit bivariate residual coupling, ordinary group-level
+correlations, and univariate phylogenetic structure as separate implemented
+models. The
+[model map](https://itchyshin.github.io/drmTMB/articles/model-map.html) shows
+how to keep those answers separate until the combined phylogenetic
+double-hierarchical endpoint is implemented.
 
 Spatial syntax is part of the structured-effect design, but routine spatial
 model fitting is still planned rather than a first landing-page workflow.

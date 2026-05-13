@@ -214,6 +214,11 @@ Phylogenetic slopes, phylogenetic terms in `sigma`, and bivariate phylogenetic
 covariance blocks are planned. They should error clearly rather than silently
 fitting a different model.
 
+Developer scaffolds now name and test the future q=4 phylogenetic endpoint
+state across `mu1`, `mu2`, `sigma1`, and `sigma2`, but those scaffolds are not
+fitted bivariate phylogenetic models. They do not change the accepted formula
+syntax, and they do not add `corpairs()` rows for phylogenetic correlations.
+
 ## Planned, not implemented: spatial random intercepts
 
 Spatial fields are deliberately planned to look parallel to phylogenetic
@@ -316,6 +321,12 @@ This syntax is planned, not implemented. It captures the intended extension of
 phylogenetic location-scale models: after modelling mean and variance, test
 whether the residual association between two traits changes with ecological
 predictors such as lifestyle.
+
+Current internal q=4 scaffolds only protect the algebra and endpoint names for
+future contributors. Applied users should still fit the implemented univariate
+phylogenetic Gaussian model, or a non-phylogenetic bivariate Gaussian model,
+until a fitted bivariate phylogenetic likelihood, simulation recovery tests, and
+reporting rows are present.
 
 The residual `rho12` term remains distinct from the phylogenetic or spatial
 correlation matrices. `rho12` is the residual coupling between two responses at

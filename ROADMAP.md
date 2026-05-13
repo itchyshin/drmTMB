@@ -115,11 +115,17 @@ distributional regression models using TMB.
   `sdpars$sigma`, the group-level correlations are reported in `corpars$mu` or
   `corpars$sigma` and `corpairs()`, and residual `rho12` remains separate.
   Targeted simulation coverage now fits both bivariate group-level covariance
-  blocks in the same model with predictor-dependent residual `rho12 ~ x`.
+  blocks in the same model with predictor-dependent residual `rho12 ~ x`; the
+  same regression now checks that `summary(fit)$covariance` reports the two
+  group-level covariance rows and omits residual `rho12`.
+- One same-response bivariate `mu`/`sigma` random-intercept covariance block is
+  implemented, such as matching `(1 | p | id)` terms in `mu1` and `sigma1` or
+  in `mu2` and `sigma2`. This is still a pairwise bridge, not the full shared
+  labelled block across `mu1`, `mu2`, `sigma1`, and `sigma2`.
 - Bivariate random slopes, random effects in `rho12`, bivariate
-  `meta_known_V()` plus random effects, cross-parameter bivariate covariance,
-  and structured bivariate covariance remain future work and are rejected
-  before optimization.
+  `meta_known_V()` plus random effects, multi-term cross-parameter bivariate
+  covariance, and structured bivariate covariance remain future work and are
+  rejected before optimization.
 
 ## Phase 4: Mixed and Double-Hierarchical Models
 
@@ -132,10 +138,51 @@ distributional regression models using TMB.
   fit the first univariate mean-scale covariance block. Random-effect scale
   formulae are implemented for one or more distinct unlabelled Gaussian `mu`
   random intercepts, such as `sd(id) ~ x_group` and `sd(site) ~ site_type`.
-  The bivariate Gaussian path now fits matched labelled `mu1`/`mu2` random
-  intercept covariance blocks.
-- Add larger cross-formula or cross-parameter covariance sharing for labelled
-  blocks, following `docs/design/17-correlated-random-effect-blocks.md`.
+  The bivariate Gaussian path now fits matched labelled `mu1`/`mu2`,
+  `sigma1`/`sigma2`, and same-response `mu`/`sigma` random-intercept
+  covariance blocks.
+- The R-side labelled covariance block registry now records the implemented
+  two-member `mu`, `sigma`, and `mu`/`sigma` bridges without changing accepted
+  syntax or fitted behaviour. It also carries a dormant TMB-shaped block data
+  contract for those bridges. `corpairs()` now derives covered group-level
+  rows from the registry, with legacy label parsing as a compatibility
+  fallback, and `check_drm()` derives covered covariance diagnostics from
+  registry members while preserving current diagnostic rows. `profile_targets()`
+  derives covered random-effect correlation targets from registry pairs while
+  preserving target names and indices. The design contract remains
+  `docs/design/30-labelled-covariance-block-assembler.md`; the two-member
+  dormant contract now crosses the C++ boundary as a no-op visibility check.
+  The registry can internally enumerate all pair rows for a guarded
+  three-member block, but marks that scaffold unimplemented and still blocks
+  TMB export for `q > 2`. Larger shared labels still need simulation recovery
+  and a positive-definite `q > 2` likelihood path before exposure. Internal TMB
+  probes now confirm that `UNSTRUCTURED_CORR_t` plus `VECSCALE_t` can produce a
+  positive-definite q=3 correlation, finite objective/gradient, a non-centered
+  `sqrt_cov_scale()` transform, a hidden registry-shaped member/group
+  contribution map using a dormant TMB parameter, an internal Laplace
+  random-effect boundary for that probe parameter, a hidden Gaussian likelihood
+  prototype that routes q=3 member contributions into `mu` and `log_sigma`, and
+  a hidden Laplace version of that likelihood prototype. A deterministic
+  hidden simulation-style check now verifies that this path can recover the
+  simulated q=3 predictor signal better than a no-random-effect baseline. The
+  first q=4 bridge now confirms that one guarded block can enumerate
+  `mu1`/`mu2`/`sigma1`/`sigma2` members, all six pair rows, and a hidden
+  positive-definite contribution map. A hidden bivariate Gaussian probe now
+  routes those four intercept-level member contributions into `mu1`, `mu2`,
+  `log(sigma1)`, and `log(sigma2)` and checks the resulting likelihood against
+  an R-side reconstruction. The same hidden branch can now pass the q=4 latent
+  vector through TMB's `random` argument and reconstruct the predictors from the
+  optimized random-effect mode. A deterministic hidden recovery-style check now
+  shows that this bivariate q=4 Laplace path recovers the simulated endpoint
+  predictor signals better than no-random-effect baselines. An internal
+  `corpairs()` scaffold can now format all six q=4 endpoint rows from
+  fitted-like registry metadata, and `profile_targets()` can format the matching
+  six endpoint correlation targets. Dormant q > 2 rows remain invisible to
+  ordinary extractor/profile output. These probes are not user-facing
+  fitted-model support yet and do not cover random-slope q=6 or q=8 endpoint
+  blocks. The next strategic milestone after the non-phylogenetic q=4 endpoint
+  path is the corresponding phylogenetic q=4 state for the mammalian and avian
+  protocol use case; q=6 and q=8 random-slope endpoint blocks can wait.
 - Use `docs/design/18-random-effect-scale-models.md` as the design contract:
   the implemented MVP targets one or more distinct unlabelled univariate
   Gaussian `mu` random intercepts, with group-level predictors, simulation
@@ -166,6 +213,13 @@ distributional regression models using TMB.
   correlations separately: residual `rho12`, phylogenetic correlations,
   non-phylogenetic species correlations, spatial field correlations, and
   ordinary grouped random-effect correlations should not share one namespace.
+- The first internal q=4 phylogenetic state scaffold checks the R-side
+  matrix-normal prior algebra for `mu1`, `mu2`, `sigma1`, and `sigma2` effects
+  against a dense Kronecker covariance comparator. This is algebra evidence
+  only; bivariate `phylo()` syntax remains planned. The matching hidden TMB
+  prior branch now evaluates the same q=4 state against the R algebra helper.
+  A planned-pair scaffold now records the six future phylogenetic endpoint rows
+  without emitting them from fitted-model extractors.
 - Use the correlation-pair design in
   `docs/design/20-coscale-correlation-pairs.md` before implementing bivariate
   double-hierarchical covariance blocks; pair outputs should identify the
@@ -361,10 +415,11 @@ remain blocked by future covariance or non-Gaussian random-effect work.
 ## Phase 11: Bivariate Random Effects and Correlation Pairs
 
 - Status: first slice implemented.
-- Matching labelled random intercepts in bivariate `mu1`/`mu2` and
-  `sigma1`/`sigma2` are implemented after the fixed-effect bivariate Gaussian
-  location-coscale model stabilized. Random slopes, cross-parameter bivariate
-  covariance blocks, and structured covariance remain planned.
+- Matching labelled random intercepts in bivariate `mu1`/`mu2`,
+  `sigma1`/`sigma2`, and one same-response `mu`/`sigma` pair are implemented
+  after the fixed-effect bivariate Gaussian location-coscale model stabilized.
+  Random slopes, full cross-parameter bivariate covariance blocks, and
+  structured covariance remain planned.
 - Use labelled group-level covariance blocks so residual `rho12`, ordinary
   group-level correlations, phylogenetic correlations, spatial field
   correlations, and mean-scale correlations stay in separate namespaces.
@@ -410,6 +465,17 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   individual-difference location-scale models: repeatability, phylogenetic
   signal, total variance, and correlations among individual differences in
   average response, mean-model slopes, residual scale, and scale-model slopes.
+- Started the derived-summary path with an internal registry-backed table that
+  transforms fitted random-effect SDs and correlations into variance and
+  covariance point estimates on the fitted random-effect scale.
+- The internal derived-summary table can also attach direct profile intervals
+  for its component SD and correlation targets, while leaving derived covariance
+  intervals unfilled until a valid nonlinear interval method is implemented.
+- `summary(fit)$covariance` now provides the first public surface for the
+  currently fitted registry-backed variance and covariance point summaries,
+  without exposing q > 2 syntax or derived covariance intervals. Its covariance
+  interval columns also include an explicit status so unavailable derived
+  intervals are not mistaken for silently omitted support.
 - Use fix-and-refit profiles or carefully parameterized direct targets for
   nonlinear quantities; do not treat Wald intervals as the default for boundary
   variance components or correlations.

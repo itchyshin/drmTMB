@@ -17,12 +17,13 @@ it does not yet fit the complete double-hierarchical covariance model.
 | Residual-scale random intercepts and independent slopes | Implemented | `sigma ~ x + (1 | id) + (0 + w | id)` |
 | Random-effect scale models for `mu` intercept SDs | Implemented | `sd(id) ~ x_group` |
 | Bivariate Gaussian residual coscale | Implemented | `rho12 ~ x` |
-| `corpairs()` for fitted correlations | Partly implemented | residual `rho12`, ordinary `mu` intercept-slope correlations, first `mu`/`sigma` mean-scale row, and bivariate `mu1`/`mu2` and `sigma1`/`sigma2` intercept rows |
+| `corpairs()` for fitted correlations | Partly implemented | residual `rho12`, ordinary `mu` intercept-slope correlations, first univariate and same-response bivariate `mu`/`sigma` mean-scale rows, and bivariate `mu1`/`mu2` and `sigma1`/`sigma2` intercept rows |
 | Cross-formula covariance blocks | Implemented first slice | matching labelled univariate `(1 | p | id)` terms across `mu` and `sigma` |
 | Bivariate `mu1`/`mu2` random-intercept covariance blocks | Implemented first slice | matching labelled `(1 | p | id)` terms in both location formulas |
 | Bivariate `sigma1`/`sigma2` random-intercept covariance blocks | Implemented first slice | matching labelled `(1 | p | id)` terms in both scale formulas |
-| Bivariate random-slope and cross-parameter covariance blocks | Planned | richer shared labelled blocks across `mu1`, `mu2`, `sigma1`, and `sigma2` |
-| Profile-likelihood intervals for covariance summaries | Partly implemented | direct profile intervals for first `mu`/`sigma`, bivariate `mu1`/`mu2`, and bivariate `sigma1`/`sigma2` covariance rows; derived summaries planned |
+| Same-response bivariate `mu`/`sigma` random-intercept covariance blocks | Implemented first slice | one matching labelled pair in `mu1`/`sigma1` or `mu2`/`sigma2` |
+| Bivariate random-slope and full cross-parameter covariance blocks | Planned | richer shared labelled blocks across `mu1`, `mu2`, `sigma1`, and `sigma2` |
+| Profile-likelihood intervals for covariance summaries | Partly implemented | direct profile intervals for first univariate and same-response bivariate `mu`/`sigma`, bivariate `mu1`/`mu2`, and bivariate `sigma1`/`sigma2` covariance rows; derived summaries planned |
 
 ## Target Model
 
@@ -99,6 +100,31 @@ profile intervals already work for the first fitted `mu`/`sigma`,
 `profile_targets()` namespace, but future `corpairs()` interval columns should
 keep the same row meaning and mark derived intervals separately.
 
+The first derived-summary scaffold is internal and point-estimate only. It
+matches fitted registry-backed group-level correlation rows with their fitted
+random-effect SDs, then reports the corresponding variances and covariance on
+the fitted random-effect scale. For `sigma`, `sigma1`, and `sigma2` random
+effects, that scale is `log(sigma)`, not residual variance. Interval support is
+the next layer and should remain separate from these point estimates.
+
+The second scaffold can attach direct profile intervals for the SD and
+correlation targets that define each covariance row. The covariance interval
+itself remains unfilled until a fix-and-refit or other valid derived-interval
+method is available; it should not be approximated by stitching together
+component Wald intervals. The summary table marks this boundary explicitly:
+ordinary summaries use `covariance_conf.status = "not_requested"`, and
+profile-interval summaries use
+`covariance_conf.status = "derived_interval_unavailable"` while the covariance
+interval columns remain `NA`.
+
+The first public reporting surface is `summary(fit)$covariance`. It returns
+the registry-backed variance and covariance point summaries for currently
+fitted covariance blocks and prints a compact table when rows are present. This
+does not expose q > 2 syntax or derived covariance intervals; it only reports
+blocks that the fitted model already populated. When profile intervals are
+requested, the printed covariance table includes the unavailable-status marker
+for the derived covariance interval.
+
 ## Implementation Order
 
 1. Keep the current fixed-effect bivariate `rho12` path and ordinary univariate
@@ -106,25 +132,69 @@ keep the same row meaning and mark derived intervals separately.
 2. Add the first cross-formula univariate block:
    `bf(y ~ x + (1 | p | id), sigma ~ x + (1 | p | id))`.
    Done for matching labelled random intercepts.
-3. Add the univariate four-effect block:
+3. Add the labelled covariance block assembler in
+   `docs/design/30-labelled-covariance-block-assembler.md`, and route the
+   current pairwise bridges through that registry before exposing larger
+   shared labels. Done for current two-member pairwise bridges, including
+   registry-backed `corpairs()`, `check_drm()`, `profile_targets()`, and a
+   no-op C++ visibility path for the dormant block data contract.
+4. Add a guarded three-member scaffold and a positive-definite `q > 2`
+   parameterization before exposing larger shared labels. Done for internal
+   registry pair enumeration and hidden TMB algebra probes for q=3
+   positive-definite correlations plus a non-centered `sqrt_cov_scale()`
+   transform. A hidden registry-shaped contribution probe now maps q=3
+   group-level latent vectors from a dormant TMB parameter back through member
+   design columns, the hidden probe can register that parameter as a TMB random
+   effect, a hidden Gaussian prototype can route q=3 transformed member
+   contributions into `mu` and `log_sigma`, and the same hidden likelihood path
+   can run with `u_re_cov_probe` as a TMB random effect. A deterministic hidden
+   simulation-style check now shows that the Laplace path recovers the simulated
+   q=3 predictor signal better than a no-random-effect baseline. The q=4
+   `mu1`/`mu2`/`sigma1`/`sigma2` bridge has started as a hidden deterministic
+   registry and contribution-map probe with all six pair rows. The next hidden
+   q=4 probe routes those intercept-level contributions into the bivariate
+   Gaussian `mu1`, `mu2`, `log(sigma1)`, and `log(sigma2)` predictors and
+   checks the likelihood against an R-side reconstruction. The hidden q=4
+   likelihood branch can also pass `u_re_cov_probe` through TMB's `random`
+   argument and reconstruct predictors from the optimized random-effect mode.
+   A deterministic hidden recovery-style check now recovers the simulated q=4
+   endpoint predictor signals better than no-random-effect baselines.
+   An internal `corpairs()` scaffold can format all six q=4 endpoint pair rows
+   from fitted-like registry metadata while skipping dormant rows that have no
+   fitted TMB metadata. A matching internal `profile_targets()` scaffold can
+   format the six q=4 endpoint correlation targets and skip fully or partly
+   dormant q > 2 registries. User-facing q > 2 support remains closed until
+   ordinary fitted models populate those rows, broader recovery evidence,
+   examples, and public syntax review exist; random-slope q=6 or q=8 endpoint
+   blocks remain later extensions.
+5. Add the univariate four-effect block:
    `bf(y ~ x + (1 + x | p | id), sigma ~ x + (1 + x | p | id))`.
-4. Extend `corpairs()` to report each fitted group-level pair from the shared
-   block and keep those rows distinct from residual `rho12`.
-5. Add bivariate `mu1`/`mu2` group-level blocks without scale random effects.
+6. Extend `corpairs()` to report each fitted group-level pair from the shared
+   block and keep those rows distinct from residual `rho12`. Done as an
+   internal q=4 fitted-like scaffold, with matching `profile_targets()` names;
+   not yet done for ordinary fitted q=4 models.
+7. Add bivariate `mu1`/`mu2` group-level blocks without scale random effects.
    Done for matching labelled random intercepts.
-6. Add bivariate `sigma1`/`sigma2` group-level blocks only after the univariate
+8. Add bivariate `sigma1`/`sigma2` group-level blocks only after the univariate
    scale-block recovery tests are stable.
    Done for matching labelled random intercepts.
-7. Combine bivariate group-level covariance blocks with residual `rho12 ~ x`.
+9. Combine bivariate group-level covariance blocks with residual `rho12 ~ x`.
    Done for matching labelled random intercepts in both `mu1`/`mu2` and
-   `sigma1`/`sigma2`; bivariate random slopes and cross-parameter bivariate
-   covariance blocks remain planned.
-8. Add bivariate phylogenetic and non-phylogenetic species covariance blocks
+   `sigma1`/`sigma2`. The combined regression checks `corpairs()`,
+   `profile_targets()`, `check_drm()`, and `summary(fit)$covariance` while
+   keeping residual `rho12` separate from group-level covariance rows.
+10. Add one same-response bivariate `mu`/`sigma` random-intercept covariance
+   pair, such as `mu1` with `sigma1`. Done for one matching labelled pair; the
+   full shared block across `mu1`, `mu2`, `sigma1`, and `sigma2` remains
+   planned.
+11. Add bivariate phylogenetic and non-phylogenetic species covariance blocks
    only after ordinary grouped models have recovery evidence and clear
    diagnostics. These blocks should report phylogenetic correlation,
    non-phylogenetic species correlation, and residual `rho12` as separate
-   layers.
-9. Add spatial double-hierarchical blocks only after the phylogenetic and
+   layers. The first phylogenetic target should be the q=4 intercept-level
+   endpoint state across `mu1`, `mu2`, `sigma1`, and `sigma2`; random-slope
+   q=6 and q=8 endpoint blocks can wait until that protocol is usable.
+12. Add spatial double-hierarchical blocks only after the phylogenetic and
    ordinary grouped covariance paths have clear diagnostics.
 
 Each step should add only one covariance expansion. If a step cannot recover

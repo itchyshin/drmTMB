@@ -155,9 +155,10 @@ rho12.drmTMB <- function(
 #' `corpairs()` returns a long table of fitted correlation pairs from a
 #' `drmTMB` model. The first implementation reports correlations that are
 #' already fitted elsewhere: residual bivariate `rho12`, ordinary univariate
-#' group-level `mu` random-effect correlations, matched univariate `mu`/`sigma`
-#' random-intercept covariance blocks, and matched bivariate `mu1`/`mu2`
-#' and `sigma1`/`sigma2` random-intercept covariance blocks from `corpars`.
+#' group-level `mu` random-effect correlations, matched univariate and
+#' same-response bivariate `mu`/`sigma` random-intercept covariance blocks, and
+#' matched bivariate `mu1`/`mu2` and `sigma1`/`sigma2` random-intercept
+#' covariance blocks from `corpars`.
 #'
 #' The table is intentionally more explicit than `rho12()` or `corpars`
 #' because future double-hierarchical, phylogenetic, spatial, and study-level
@@ -233,18 +234,18 @@ corpairs.drmTMB <- function(
     rows[[length(rows) + 1L]] <- residual_rho12_corpair(object)
   }
 
-  if (length(object$corpars) > 0L) {
-    for (dpar in names(object$corpars)) {
-      cor_values <- object$corpars[[dpar]]
-      for (i in seq_along(cor_values)) {
-        rows[[length(rows) + 1L]] <- random_effect_corpair(
-          object = object,
-          dpar = dpar,
-          label = names(cor_values)[[i]],
-          estimate = unname(cor_values[[i]])
-        )
-      }
-    }
+  registry_rows <- random_effect_registry_corpairs(object)
+  if (length(registry_rows) > 0L) {
+    rows <- c(rows, registry_rows)
+  }
+  label_rows <- random_effect_label_corpairs(
+    object,
+    exclude = covariance_block_corpars_keys(
+      object$model$random$covariance_blocks
+    )
+  )
+  if (length(label_rows) > 0L) {
+    rows <- c(rows, label_rows)
   }
 
   out <- if (length(rows) == 0L) {
@@ -320,6 +321,385 @@ residual_rho12_corpair <- function(object) {
     link_max = max(eta),
     modelled = n_coef > 1L
   )
+}
+
+random_effect_registry_corpairs <- function(object) {
+  registry <- object$model$random$covariance_blocks
+  if (
+    !is.list(registry) ||
+      is.null(registry$pairs) ||
+      nrow(registry$pairs) == 0L
+  ) {
+    return(list())
+  }
+
+  pairs <- registry$pairs
+  pair_is_fitted <- !is.na(pairs$tmb_parameter) & !is.na(pairs$tmb_index)
+  pairs <- pairs[pair_is_fitted, , drop = FALSE]
+  if (nrow(pairs) == 0L) {
+    return(list())
+  }
+
+  lapply(seq_len(nrow(pairs)), function(i) {
+    pair <- pairs[i, , drop = FALSE]
+    block <- registry$blocks[
+      registry$blocks$block_id0 == pair$block_id0[[1L]],
+      ,
+      drop = FALSE
+    ]
+    if (nrow(block) != 1L) {
+      cli::cli_abort(
+        "Internal error: covariance-block registry pair has no matching block."
+      )
+    }
+    cor_key <- covariance_block_corpars_key(pair$tmb_parameter[[1L]])
+    cor_values <- object$corpars[[cor_key]]
+    cor_index <- pair$tmb_index[[1L]]
+    if (
+      is.null(cor_values) || cor_index < 1L || cor_index > length(cor_values)
+    ) {
+      cli::cli_abort(
+        "Internal error: covariance-block registry pair has no fitted correlation."
+      )
+    }
+    estimate <- unname(cor_values[[cor_index]])
+    new_corpair_row(
+      level = block$level[[1L]],
+      group = block$group[[1L]],
+      block = block$block_label[[1L]],
+      from_dpar = pair$from_dpar[[1L]],
+      to_dpar = pair$to_dpar[[1L]],
+      from_coef = pair$from_coef[[1L]],
+      to_coef = pair$to_coef[[1L]],
+      from_response = random_effect_response_name(object, pair$from_dpar[[1L]]),
+      to_response = random_effect_response_name(object, pair$to_dpar[[1L]]),
+      class = pair$class[[1L]],
+      parameter = pair$parameter[[1L]],
+      estimate = estimate,
+      min = estimate,
+      max = estimate,
+      n_values = 1L,
+      link_estimate = guarded_correlation_link(estimate, guard = 0.999999),
+      link_min = guarded_correlation_link(estimate, guard = 0.999999),
+      link_max = guarded_correlation_link(estimate, guard = 0.999999),
+      modelled = FALSE
+    )
+  })
+}
+
+random_effect_covariance_summaries <- function(object, intervals = NULL) {
+  registry <- object$model$random$covariance_blocks
+  if (
+    !is.list(registry) ||
+      is.null(registry$pairs) ||
+      is.null(registry$members) ||
+      is.null(registry$blocks) ||
+      nrow(registry$pairs) == 0L
+  ) {
+    return(empty_random_effect_covariance_summaries())
+  }
+
+  pairs <- registry$pairs
+  pair_is_fitted <- !is.na(pairs$tmb_parameter) & !is.na(pairs$tmb_index)
+  pairs <- pairs[pair_is_fitted, , drop = FALSE]
+  if (nrow(pairs) == 0L) {
+    return(empty_random_effect_covariance_summaries())
+  }
+
+  rows <- lapply(seq_len(nrow(pairs)), function(i) {
+    pair <- pairs[i, , drop = FALSE]
+    block <- registry$blocks[
+      registry$blocks$block_id0 == pair$block_id0[[1L]],
+      ,
+      drop = FALSE
+    ]
+    from_member <- covariance_registry_member_by_id(
+      registry,
+      block_id0 = pair$block_id0[[1L]],
+      member_id0 = pair$from_member_id0[[1L]]
+    )
+    to_member <- covariance_registry_member_by_id(
+      registry,
+      block_id0 = pair$block_id0[[1L]],
+      member_id0 = pair$to_member_id0[[1L]]
+    )
+    if (
+      nrow(block) != 1L ||
+        nrow(from_member) != 1L ||
+        nrow(to_member) != 1L
+    ) {
+      cli::cli_abort(
+        "Internal error: covariance-block registry pair has incomplete summary metadata."
+      )
+    }
+
+    cor_key <- covariance_block_corpars_key(pair$tmb_parameter[[1L]])
+    correlation_target <- paste0("cor:", cor_key, ":", pair$parameter[[1L]])
+    from_sd_target <- covariance_registry_member_sd_target(from_member)
+    to_sd_target <- covariance_registry_member_sd_target(to_member)
+    cor_values <- object$corpars[[cor_key]]
+    cor_index <- pair$tmb_index[[1L]]
+    correlation <- if (
+      is.null(cor_values) || cor_index < 1L || cor_index > length(cor_values)
+    ) {
+      NA_real_
+    } else {
+      unname(cor_values[[cor_index]])
+    }
+    from_sd <- covariance_registry_member_sd(object, from_member)
+    to_sd <- covariance_registry_member_sd(object, to_member)
+    from_variance <- from_sd^2
+    to_variance <- to_sd^2
+    covariance <- correlation * from_sd * to_sd
+    correlation_interval <- covariance_summary_interval(
+      intervals,
+      correlation_target
+    )
+    from_sd_interval <- covariance_summary_interval(intervals, from_sd_target)
+    to_sd_interval <- covariance_summary_interval(intervals, to_sd_target)
+    covariance_interval_status <- covariance_summary_interval_status(intervals)
+
+    data.frame(
+      level = block$level[[1L]],
+      group = block$group[[1L]],
+      block = block$block_label[[1L]],
+      from_dpar = pair$from_dpar[[1L]],
+      to_dpar = pair$to_dpar[[1L]],
+      from_coef = pair$from_coef[[1L]],
+      to_coef = pair$to_coef[[1L]],
+      from_response = random_effect_response_name(object, pair$from_dpar[[1L]]),
+      to_response = random_effect_response_name(object, pair$to_dpar[[1L]]),
+      class = pair$class[[1L]],
+      parameter = pair$parameter[[1L]],
+      correlation_target = correlation_target,
+      from_sd_target = from_sd_target,
+      to_sd_target = to_sd_target,
+      correlation = correlation,
+      from_sd_parameter = from_member$label[[1L]],
+      to_sd_parameter = to_member$label[[1L]],
+      from_sd = from_sd,
+      to_sd = to_sd,
+      from_variance = from_variance,
+      to_variance = to_variance,
+      covariance = covariance,
+      from_scale = covariance_registry_member_scale(from_member),
+      to_scale = covariance_registry_member_scale(to_member),
+      correlation_conf.low = correlation_interval$lower,
+      correlation_conf.high = correlation_interval$upper,
+      correlation_conf.method = correlation_interval$method,
+      from_sd_conf.low = from_sd_interval$lower,
+      from_sd_conf.high = from_sd_interval$upper,
+      from_sd_conf.method = from_sd_interval$method,
+      to_sd_conf.low = to_sd_interval$lower,
+      to_sd_conf.high = to_sd_interval$upper,
+      to_sd_conf.method = to_sd_interval$method,
+      covariance_conf.low = NA_real_,
+      covariance_conf.high = NA_real_,
+      covariance_conf.method = NA_character_,
+      covariance_conf.status = covariance_interval_status,
+      stringsAsFactors = FALSE
+    )
+  })
+
+  out <- do.call(rbind, rows)
+  row.names(out) <- NULL
+  out
+}
+
+empty_random_effect_covariance_summaries <- function() {
+  data.frame(
+    level = character(),
+    group = character(),
+    block = character(),
+    from_dpar = character(),
+    to_dpar = character(),
+    from_coef = character(),
+    to_coef = character(),
+    from_response = character(),
+    to_response = character(),
+    class = character(),
+    parameter = character(),
+    correlation_target = character(),
+    from_sd_target = character(),
+    to_sd_target = character(),
+    correlation = numeric(),
+    from_sd_parameter = character(),
+    to_sd_parameter = character(),
+    from_sd = numeric(),
+    to_sd = numeric(),
+    from_variance = numeric(),
+    to_variance = numeric(),
+    covariance = numeric(),
+    from_scale = character(),
+    to_scale = character(),
+    correlation_conf.low = numeric(),
+    correlation_conf.high = numeric(),
+    correlation_conf.method = character(),
+    from_sd_conf.low = numeric(),
+    from_sd_conf.high = numeric(),
+    from_sd_conf.method = character(),
+    to_sd_conf.low = numeric(),
+    to_sd_conf.high = numeric(),
+    to_sd_conf.method = character(),
+    covariance_conf.low = numeric(),
+    covariance_conf.high = numeric(),
+    covariance_conf.method = character(),
+    covariance_conf.status = character(),
+    stringsAsFactors = FALSE
+  )
+}
+
+covariance_registry_member_by_id <- function(registry, block_id0, member_id0) {
+  registry$members[
+    registry$members$block_id0 == block_id0 &
+      registry$members$member_id0 == member_id0,
+    ,
+    drop = FALSE
+  ]
+}
+
+covariance_registry_member_sd <- function(object, member) {
+  sd_key <- covariance_registry_member_sd_key(member)
+  sd_values <- object$sdpars[[sd_key]]
+  if (is.null(sd_values)) {
+    return(NA_real_)
+  }
+  value <- sd_values[[member$label[[1L]]]]
+  if (is.null(value)) {
+    return(NA_real_)
+  }
+  unname(value)
+}
+
+covariance_registry_member_sd_target <- function(member) {
+  paste0(
+    "sd:",
+    covariance_registry_member_sd_key(member),
+    ":",
+    member$label[[1L]]
+  )
+}
+
+covariance_registry_member_sd_key <- function(member) {
+  dpar_family <- sub("[0-9]+$", "", member$dpar[[1L]])
+  switch(
+    dpar_family,
+    mu = "mu",
+    sigma = "sigma",
+    dpar_family
+  )
+}
+
+covariance_summary_interval <- function(intervals, parm) {
+  if (is.null(intervals)) {
+    return(covariance_summary_empty_interval())
+  }
+  if (!is.data.frame(intervals) || !"parm" %in% names(intervals)) {
+    cli::cli_abort(
+      "Internal error: covariance summary intervals must be a profile interval table."
+    )
+  }
+  if (nrow(intervals) == 0L) {
+    return(covariance_summary_empty_interval())
+  }
+  row <- intervals[intervals$parm == parm, , drop = FALSE]
+  if (nrow(row) == 0L) {
+    return(covariance_summary_empty_interval())
+  }
+  if (nrow(row) > 1L) {
+    cli::cli_abort(
+      "Internal error: covariance summary intervals contain duplicate targets."
+    )
+  }
+  list(
+    lower = if ("lower" %in% names(row)) row$lower[[1L]] else NA_real_,
+    upper = if ("upper" %in% names(row)) row$upper[[1L]] else NA_real_,
+    method = if ("method" %in% names(row)) {
+      as.character(row$method[[1L]])
+    } else {
+      NA_character_
+    }
+  )
+}
+
+covariance_summary_empty_interval <- function() {
+  list(lower = NA_real_, upper = NA_real_, method = NA_character_)
+}
+
+covariance_summary_interval_status <- function(intervals) {
+  if (is.null(intervals)) {
+    return("not_requested")
+  }
+  "derived_interval_unavailable"
+}
+
+covariance_registry_member_scale <- function(member) {
+  dpar_family <- sub("[0-9]+$", "", member$dpar[[1L]])
+  switch(
+    dpar_family,
+    mu = "identity",
+    sigma = "log",
+    "link"
+  )
+}
+
+covariance_block_corpars_key <- function(tmb_parameter) {
+  key <- switch(
+    tmb_parameter,
+    eta_cor_mu = "mu",
+    eta_cor_sigma = "sigma",
+    eta_cor_mu_sigma = "mu_sigma",
+    NA_character_
+  )
+  if (is.na(key)) {
+    cli::cli_abort(
+      "Internal error: covariance-block registry pair uses an unknown correlation parameter."
+    )
+  }
+  key
+}
+
+covariance_block_corpars_keys <- function(registry) {
+  if (
+    !is.list(registry) ||
+      is.null(registry$pairs) ||
+      nrow(registry$pairs) == 0L
+  ) {
+    return(character())
+  }
+
+  pairs <- registry$pairs
+  pair_is_fitted <- !is.na(pairs$tmb_parameter) & !is.na(pairs$tmb_index)
+  pairs <- pairs[pair_is_fitted, , drop = FALSE]
+  if (nrow(pairs) == 0L) {
+    return(character())
+  }
+
+  cor_keys <- vapply(
+    pairs$tmb_parameter,
+    covariance_block_corpars_key,
+    character(1L)
+  )
+  paste(cor_keys, pairs$tmb_index, sep = ":")
+}
+
+random_effect_label_corpairs <- function(object, exclude = character()) {
+  rows <- list()
+  for (dpar in names(object$corpars)) {
+    cor_values <- object$corpars[[dpar]]
+    for (i in seq_along(cor_values)) {
+      if (paste(dpar, i, sep = ":") %in% exclude) {
+        next
+      }
+      rows[[length(rows) + 1L]] <- random_effect_corpair(
+        object = object,
+        dpar = dpar,
+        label = names(cor_values)[[i]],
+        estimate = unname(cor_values[[i]])
+      )
+    }
+  }
+  rows
 }
 
 random_effect_corpair <- function(object, dpar, label, estimate) {
@@ -1299,11 +1679,12 @@ sigma.drmTMB <- function(object, ...) {
 
 #' Summarize a fitted model
 #'
-#' `summary()` returns a compact summary of fixed-effect estimates and
-#' response-scale distributional, scale, shape, random-effect SD, and correlation
-#' quantities when they are present. Confidence intervals are opt-in: fast Wald
-#' intervals are available for fixed effects, and slower profile-likelihood
-#' intervals are available for selected direct profile targets.
+#' `summary()` returns a compact summary of fixed-effect estimates,
+#' response-scale distributional, scale, shape, random-effect SD, correlation,
+#' and fitted random-effect covariance quantities when they are present.
+#' Confidence intervals are opt-in: fast Wald intervals are available for fixed
+#' effects, and slower profile-likelihood intervals are available for selected
+#' direct profile targets.
 #'
 #' @param object A `drmTMB` fit.
 #' @param conf.int Logical; include confidence intervals when `TRUE`.
@@ -1387,10 +1768,16 @@ summary.drmTMB <- function(
     )
   }
 
+  covariance <- random_effect_covariance_summaries(
+    object,
+    intervals = if (conf.int && identical(method, "profile")) ci else NULL
+  )
+
   out <- list(
     call = object$call,
     coefficients = coefficients,
     parameters = parameters,
+    covariance = covariance,
     sdpars = object$sdpars,
     corpars = object$corpars,
     ordinal = object$ordinal,
@@ -1417,6 +1804,10 @@ print.summary.drmTMB <- function(x, ...) {
   if (nrow(x$parameters) > 0L) {
     cli::cli_text("Distributional, scale, and correlation parameters:")
     print(drm_summary_print_parameters(x$parameters))
+  }
+  if (is.data.frame(x$covariance) && nrow(x$covariance) > 0L) {
+    cli::cli_text("Random-effect covariance summaries:")
+    print(drm_summary_print_covariance(x$covariance))
   }
   if (!is.null(x$ordinal)) {
     cli::cli_text("Ordinal cutpoints:")
@@ -1671,6 +2062,41 @@ drm_summary_print_parameters <- function(parameters) {
   }
   out <- parameters[, keep, drop = FALSE]
   row.names(out) <- row.names(parameters)
+  out
+}
+
+drm_summary_print_covariance <- function(covariance) {
+  keep <- c(
+    "level",
+    "group",
+    "block",
+    "from_dpar",
+    "to_dpar",
+    "class",
+    "correlation",
+    "from_sd",
+    "to_sd",
+    "covariance"
+  )
+  out <- covariance[, keep, drop = FALSE]
+  if (
+    "correlation_conf.low" %in%
+      names(covariance) &&
+      any(is.finite(covariance$correlation_conf.low))
+  ) {
+    out$correlation_conf.low <- covariance$correlation_conf.low
+    out$correlation_conf.high <- covariance$correlation_conf.high
+  }
+  if (
+    "covariance_conf.status" %in%
+      names(covariance) &&
+      any(
+        covariance$covariance_conf.status == "derived_interval_unavailable",
+        na.rm = TRUE
+      )
+  ) {
+    out$covariance_conf.status <- covariance$covariance_conf.status
+  }
   out
 }
 
