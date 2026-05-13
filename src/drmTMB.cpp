@@ -100,6 +100,22 @@ Type objective_function<Type>::operator()()
   DATA_IVECTOR(phylo_mu_node_index);
   DATA_SPARSE_MATRIX(Q_phylo);
   DATA_SCALAR(log_det_Q_phylo);
+  DATA_INTEGER(n_re_cov_blocks);
+  DATA_IVECTOR(re_cov_block_size);
+  DATA_IVECTOR(re_cov_block_group_count);
+  DATA_IVECTOR(re_cov_block_member_start);
+  DATA_IVECTOR(re_cov_block_pair_start);
+  DATA_IVECTOR(re_cov_member_component);
+  DATA_IVECTOR(re_cov_member_dpar);
+  DATA_IVECTOR(re_cov_member_response);
+  DATA_IVECTOR(re_cov_member_source_term);
+  DATA_IVECTOR(re_cov_member_coef_pos);
+  DATA_IMATRIX(re_cov_member_latent_index);
+  DATA_MATRIX(re_cov_member_design_value);
+  DATA_IVECTOR(re_cov_pair_from_member);
+  DATA_IVECTOR(re_cov_pair_to_member);
+  DATA_IVECTOR(re_cov_pair_parameter);
+  DATA_IVECTOR(re_cov_pair_parameter_index);
 
   PARAMETER_VECTOR(beta_mu);
   PARAMETER_VECTOR(beta_sigma);
@@ -123,6 +139,22 @@ Type objective_function<Type>::operator()()
   PARAMETER(log_sd_phylo);
 
   Type nll = 0;
+  (void)n_re_cov_blocks;
+  (void)re_cov_block_size;
+  (void)re_cov_block_group_count;
+  (void)re_cov_block_member_start;
+  (void)re_cov_block_pair_start;
+  (void)re_cov_member_component;
+  (void)re_cov_member_dpar;
+  (void)re_cov_member_response;
+  (void)re_cov_member_source_term;
+  (void)re_cov_member_coef_pos;
+  (void)re_cov_member_latent_index;
+  (void)re_cov_member_design_value;
+  (void)re_cov_pair_from_member;
+  (void)re_cov_pair_to_member;
+  (void)re_cov_pair_parameter;
+  (void)re_cov_pair_parameter_index;
   if (model_type == 99) {
     int n_phylo = u_phylo.size();
     vector<Type> Q_u = Q_phylo * u_phylo;

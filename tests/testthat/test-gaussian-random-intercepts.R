@@ -653,6 +653,7 @@ test_that("labelled Gaussian mu correlated blocks match unlabelled block semanti
     n_obs = fit_labelled$nobs,
     class = "mean-slope"
   )
+  expect_covariance_block_tmb_data_exported(fit_labelled)
   expect_false(any(grepl(
     "rho12",
     names(fit_labelled$corpars$mu),
@@ -970,6 +971,7 @@ test_that("Gaussian mu/sigma labelled random-intercept covariance is fitted", {
     coef_index = c(0L, 0L),
     class = "mean-scale"
   )
+  expect_covariance_block_tmb_data_exported(fit)
   expect_true(
     "cor:mu_sigma:cor(mu:(Intercept),sigma:(Intercept) | p | id)" %in%
       targets$parm

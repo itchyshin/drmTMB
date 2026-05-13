@@ -110,29 +110,33 @@ keep the same row meaning and mark derived intervals separately.
 3. Add the labelled covariance block assembler in
    `docs/design/30-labelled-covariance-block-assembler.md`, and route the
    current pairwise bridges through that registry before exposing larger
-   shared labels.
-4. Add the univariate four-effect block:
+   shared labels. Done for current two-member pairwise bridges, including
+   registry-backed `corpairs()`, `check_drm()`, `profile_targets()`, and a
+   no-op C++ visibility path for the dormant block data contract.
+4. Add a guarded three-member simulation scaffold and a positive-definite
+   `q > 2` parameterization before exposing larger shared labels.
+5. Add the univariate four-effect block:
    `bf(y ~ x + (1 + x | p | id), sigma ~ x + (1 + x | p | id))`.
-5. Extend `corpairs()` to report each fitted group-level pair from the shared
+6. Extend `corpairs()` to report each fitted group-level pair from the shared
    block and keep those rows distinct from residual `rho12`.
-6. Add bivariate `mu1`/`mu2` group-level blocks without scale random effects.
+7. Add bivariate `mu1`/`mu2` group-level blocks without scale random effects.
    Done for matching labelled random intercepts.
-7. Add bivariate `sigma1`/`sigma2` group-level blocks only after the univariate
+8. Add bivariate `sigma1`/`sigma2` group-level blocks only after the univariate
    scale-block recovery tests are stable.
    Done for matching labelled random intercepts.
-8. Combine bivariate group-level covariance blocks with residual `rho12 ~ x`.
+9. Combine bivariate group-level covariance blocks with residual `rho12 ~ x`.
    Done for matching labelled random intercepts in both `mu1`/`mu2` and
    `sigma1`/`sigma2`.
-9. Add one same-response bivariate `mu`/`sigma` random-intercept covariance
+10. Add one same-response bivariate `mu`/`sigma` random-intercept covariance
    pair, such as `mu1` with `sigma1`. Done for one matching labelled pair; the
    full shared block across `mu1`, `mu2`, `sigma1`, and `sigma2` remains
    planned.
-10. Add bivariate phylogenetic and non-phylogenetic species covariance blocks
+11. Add bivariate phylogenetic and non-phylogenetic species covariance blocks
    only after ordinary grouped models have recovery evidence and clear
    diagnostics. These blocks should report phylogenetic correlation,
    non-phylogenetic species correlation, and residual `rho12` as separate
    layers.
-11. Add spatial double-hierarchical blocks only after the phylogenetic and
+12. Add spatial double-hierarchical blocks only after the phylogenetic and
    ordinary grouped covariance paths have clear diagnostics.
 
 Each step should add only one covariance expansion. If a step cannot recover

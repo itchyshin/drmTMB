@@ -506,6 +506,8 @@ test_that("bivariate Gaussian supports labelled mu1/mu2 random-intercept covaria
     n_obs = fit$nobs,
     class = "mean-mean"
   )
+  expect_covariance_block_tmb_data_exported(fit)
+  expect_covariance_block_tmb_data_noop(fit)
   expect_gt(stats::sd(predict(fit, dpar = "mu1") - fixed_mu1), 0.05)
   expect_gt(stats::sd(predict(fit, dpar = "mu2") - fixed_mu2), 0.05)
   expect_equal(
@@ -603,6 +605,7 @@ test_that("bivariate Gaussian supports labelled sigma1/sigma2 random-intercept c
     n_obs = fit$nobs,
     class = "scale-scale"
   )
+  expect_covariance_block_tmb_data_exported(fit)
   expect_gt(stats::sd(sigma1_link - fixed_sigma1), 0.03)
   expect_gt(stats::sd(sigma2_link - fixed_sigma2), 0.03)
   expect_equal(stats::sigma(fit)$sigma1, exp(sigma1_link), tolerance = 1e-12)
@@ -793,6 +796,7 @@ test_that("bivariate Gaussian keeps mu and sigma covariance blocks distinct", {
     n_obs = fit$nobs,
     class = "scale-scale"
   )
+  expect_covariance_block_tmb_data_exported(fit)
 
   expect_equal(nrow(pairs), 3L)
   expect_equal(nrow(group_pairs), 2L)

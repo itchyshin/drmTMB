@@ -534,7 +534,10 @@ drm_build_gaussian_ls_spec <- function(
     )
   )
   check_weights_known_covariance(spec)
-  spec$tmb_data <- make_tmb_data(spec)
+  spec$tmb_data <- add_covariance_block_tmb_data(
+    make_tmb_data(spec),
+    spec
+  )
   spec$nobs <- length(spec$y)
   spec
 }
@@ -690,7 +693,10 @@ drm_build_student_ls_spec <- function(
     map = student_ls_map(),
     random_names = NULL
   )
-  spec$tmb_data <- make_tmb_data(spec)
+  spec$tmb_data <- add_covariance_block_tmb_data(
+    make_tmb_data(spec),
+    spec
+  )
   spec$nobs <- length(spec$y)
   spec
 }
@@ -838,7 +844,10 @@ drm_build_lognormal_ls_spec <- function(
     map = lognormal_ls_map(),
     random_names = NULL
   )
-  spec$tmb_data <- make_tmb_data(spec)
+  spec$tmb_data <- add_covariance_block_tmb_data(
+    make_tmb_data(spec),
+    spec
+  )
   spec$nobs <- length(spec$y)
   spec
 }
@@ -986,7 +995,10 @@ drm_build_gamma_ls_spec <- function(
     map = gamma_ls_map(),
     random_names = NULL
   )
-  spec$tmb_data <- make_tmb_data(spec)
+  spec$tmb_data <- add_covariance_block_tmb_data(
+    make_tmb_data(spec),
+    spec
+  )
   spec$nobs <- length(spec$y)
   spec
 }
@@ -1146,7 +1158,10 @@ drm_build_beta_ls_spec <- function(
     map = beta_ls_map(),
     random_names = NULL
   )
-  spec$tmb_data <- make_tmb_data(spec)
+  spec$tmb_data <- add_covariance_block_tmb_data(
+    make_tmb_data(spec),
+    spec
+  )
   spec$nobs <- length(spec$y)
   spec
 }
@@ -1301,7 +1316,10 @@ drm_build_beta_binomial_spec <- function(
     map = beta_binomial_map(),
     random_names = NULL
   )
-  spec$tmb_data <- make_tmb_data(spec)
+  spec$tmb_data <- add_covariance_block_tmb_data(
+    make_tmb_data(spec),
+    spec
+  )
   spec$nobs <- length(spec$y)
   spec
 }
@@ -1426,7 +1444,10 @@ drm_build_cumulative_logit_spec <- function(
     map = cumulative_logit_map(),
     random_names = NULL
   )
-  spec$tmb_data <- make_tmb_data(spec)
+  spec$tmb_data <- add_covariance_block_tmb_data(
+    make_tmb_data(spec),
+    spec
+  )
   spec$nobs <- length(spec$y)
   spec
 }
@@ -1610,7 +1631,10 @@ drm_build_poisson_spec <- function(
     map = if (has_zi) zi_poisson_map() else poisson_map(),
     random_names = NULL
   )
-  spec$tmb_data <- make_tmb_data(spec)
+  spec$tmb_data <- add_covariance_block_tmb_data(
+    make_tmb_data(spec),
+    spec
+  )
   spec$nobs <- length(spec$y)
   spec
 }
@@ -1837,7 +1861,10 @@ drm_build_nbinom2_spec <- function(
     map = if (has_zi) zi_nbinom2_map() else nbinom2_map(),
     random_names = NULL
   )
-  spec$tmb_data <- make_tmb_data(spec)
+  spec$tmb_data <- add_covariance_block_tmb_data(
+    make_tmb_data(spec),
+    spec
+  )
   spec$nobs <- length(spec$y)
   spec
 }
@@ -2077,7 +2104,10 @@ drm_build_truncated_nbinom2_spec <- function(
     map = if (has_hu) hurdle_nbinom2_map() else truncated_nbinom2_map(),
     random_names = NULL
   )
-  spec$tmb_data <- make_tmb_data(spec)
+  spec$tmb_data <- add_covariance_block_tmb_data(
+    make_tmb_data(spec),
+    spec
+  )
   spec$nobs <- length(spec$y)
   spec
 }
@@ -2346,7 +2376,10 @@ drm_build_biv_gaussian_spec <- function(
     )
   )
   check_weights_known_covariance(spec)
-  spec$tmb_data <- make_tmb_data(spec)
+  spec$tmb_data <- add_covariance_block_tmb_data(
+    make_tmb_data(spec),
+    spec
+  )
   spec$nobs <- length(spec$y1)
   spec
 }
@@ -5560,6 +5593,20 @@ biv_gaussian_map <- function(
     out$eta_cor_sigma <- factor(NA)
   }
   out
+}
+
+add_covariance_block_tmb_data <- function(tmb_data, spec) {
+  cov_blocks <- if (is.list(spec$random)) {
+    spec$random$covariance_blocks
+  } else {
+    NULL
+  }
+  cov_tmb_data <- if (is.list(cov_blocks) && !is.null(cov_blocks$tmb_data)) {
+    cov_blocks$tmb_data
+  } else {
+    empty_labelled_covariance_block_tmb_data()
+  }
+  c(tmb_data, cov_tmb_data)
 }
 
 make_tmb_data <- function(spec) {

@@ -2,6 +2,46 @@
 
 Record meaningful development checks here.
 
+## 2026-05-13 -- Slice 4 C++ visibility for dormant block contract
+
+Scope:
+
+- appended the labelled covariance block `tmb_data` contract to every
+  `spec$tmb_data` list before `TMB::MakeADFun()`;
+- declared the dormant `re_cov_*` fields in `src/drmTMB.cpp` and cast them to
+  `void`, so the C++ template sees the contract without using it in the
+  likelihood;
+- added test helpers proving fitted registry `tmb_data` is present in
+  `fit$model$tmb_data` and that scrambling the dormant fields leaves the
+  objective and gradient unchanged for a representative labelled bivariate
+  block;
+- updated the direct phylogenetic TMB fixture with the empty block contract;
+- changed no accepted syntax, optimized parameters, likelihood contribution,
+  `corpairs()` rows, `check_drm()` diagnostics, or `profile_targets()` rows.
+
+Checks:
+
+- Dewey/Gauss-copy reviewed the C++ boundary risk before validation and
+  recommended declaring the fields with `(void)` casts.
+- Euler/Curie-copy reviewed the test surface and recommended the exported-data
+  assertion plus one no-op objective/gradient assertion.
+- `air format R/drmTMB.R tests/testthat/helper-covariance-blocks.R
+  tests/testthat/test-biv-gaussian.R
+  tests/testthat/test-gaussian-random-intercepts.R
+  tests/testthat/test-phylo-utils.R`: passed.
+- `Rscript -e 'devtools::load_all()'`: passed and recompiled `drmTMB`; the
+  compiler emitted three existing Eigen/TMB header warnings, with no new
+  `drmTMB.cpp` warnings.
+- `Rscript -e 'devtools::test(filter =
+  "biv-gaussian|gaussian-random-intercepts|phylo-utils")'`: passed with 857
+  expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript -e 'devtools::test(filter =
+  "corpairs|check-drm|profile-targets|biv-gaussian|gaussian-random-intercepts|phylo-utils")'`:
+  passed with 1216 expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript -e 'devtools::test(filter = "package-skeleton")'`: passed with 40
+  expectations, 0 failures, 0 warnings, and 0 skips.
+- `git diff --check`: passed.
+
 ## 2026-05-13 -- Slice 4 `profile_targets()` registry inventory
 
 Scope:

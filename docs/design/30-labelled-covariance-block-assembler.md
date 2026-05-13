@@ -167,8 +167,8 @@ still be named `sigma`.
    two-member cases through the registry. Done as metadata-only compatibility;
    the TMB likelihood still uses the existing pairwise fields.
 3. Add the TMB block data contract and a two-member compatibility path. Done
-   as dormant two-member-only `random$covariance_blocks$tmb_data`; it is not
-   passed to `TMB::MakeADFun()` yet.
+   as dormant two-member-only `random$covariance_blocks$tmb_data`; the
+   likelihood still uses the existing pairwise fields.
 4. Update `corpairs()`, `profile_targets()`, and `check_drm()` to derive rows
    and diagnostics from block members. `corpairs()` now uses registry pairs for
    covered two-member blocks and falls back to legacy label parsing for any
@@ -178,7 +178,10 @@ still be named `sigma`.
    random-effect correlation targets from registry pairs while preserving
    target names, indices, and readiness.
 5. Pass the two-member dormant contract through the C++ boundary as a no-op
-   visibility check before using it for likelihood evaluation.
+   visibility check before using it for likelihood evaluation. Done by
+   appending empty or registry block data to every TMB data list, declaring
+   the `re_cov_*` fields in C++, and checking that scrambling those fields
+   leaves the objective and gradient unchanged.
 6. Add one simulation scaffold for a three-member block before exposing a
    four-formula bivariate block.
 7. Prototype `UNSTRUCTURED_CORR_t` plus scaled standard deviations or an

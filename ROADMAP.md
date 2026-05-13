@@ -148,9 +148,10 @@ distributional regression models using TMB.
   registry members while preserving current diagnostic rows. `profile_targets()`
   derives covered random-effect correlation targets from registry pairs while
   preserving target names and indices. The design contract remains
-  `docs/design/30-labelled-covariance-block-assembler.md`; larger shared
-  labels still need C++ contract visibility and simulation recovery before
-  exposure.
+  `docs/design/30-labelled-covariance-block-assembler.md`; the two-member
+  dormant contract now crosses the C++ boundary as a no-op visibility check.
+  Larger shared labels still need simulation recovery and a
+  positive-definite `q > 2` likelihood path before exposure.
 - Use `docs/design/18-random-effect-scale-models.md` as the design contract:
   the implemented MVP targets one or more distinct unlabelled univariate
   Gaussian `mu` random intercepts, with group-level predictors, simulation
