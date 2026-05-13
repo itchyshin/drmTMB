@@ -152,9 +152,11 @@ still be named `sigma`.
 
 ## Implementation Order
 
-1. Build the R-side block registry without changing accepted syntax.
+1. Build the R-side block registry without changing accepted syntax. Done for
+   currently implemented ordinary grouped two-member covariance bridges.
 2. Keep all current pairwise bridges green by translating the existing
-   two-member cases through the registry.
+   two-member cases through the registry. Done as metadata-only compatibility;
+   the TMB likelihood still uses the existing pairwise fields.
 3. Add the TMB block data contract and a two-member compatibility path.
 4. Prototype `UNSTRUCTURED_CORR_t` plus scaled standard deviations for `q > 2`.
 5. Add one simulation recovery test for a three-member block before exposing a

@@ -2,6 +2,43 @@
 
 Record meaningful development checks here.
 
+## 2026-05-13 -- Slice 4 labelled block registry compatibility
+
+Scope:
+
+- added an internal `random$covariance_blocks` registry for currently
+  implemented ordinary grouped two-member covariance bridges;
+- covered ordinary labelled `mu` intercept-slope blocks, univariate
+  `mu`/`sigma` random-intercept covariance, bivariate `mu1`/`mu2`,
+  bivariate `sigma1`/`sigma2`, and same-response bivariate `mu`/`sigma`
+  random-intercept covariance;
+- kept the change metadata-only: no new accepted syntax, no TMB data contract
+  change, no C++ likelihood change, no `start`/`map`/`random_names` change,
+  and no `corpairs()`, `profile_targets()`, or `check_drm()` derivation change.
+
+Checks:
+
+- Halley source map confirmed the registry insertion points after
+  `re_mu`, `re_sigma`, and `re_mu_sigma` are built.
+- Boole API review confirmed the `level`/`group`/`block_label` direction and
+  prompted the internal names `block_id0`, `member_id0`,
+  `response_index`, `source_term_id0`, and `coef_pos0`.
+- Gauss TMB review confirmed the metadata-only registry is safe as long as it
+  stays out of `spec$tmb_data`, `start`, `map`, and `random_names`.
+- Curie added focused registry expectations in
+  `tests/testthat/test-biv-gaussian.R` and
+  `tests/testthat/test-gaussian-random-intercepts.R`.
+- `air format R/drmTMB.R`: passed.
+- `air format tests/testthat/test-biv-gaussian.R
+  tests/testthat/test-gaussian-random-intercepts.R`: passed in Curie's lane.
+- `Rscript -e 'devtools::test(filter =
+  "gaussian-random-intercepts|biv-gaussian")'`: passed with 684 expectations,
+  0 failures, 0 warnings, and 0 skips.
+- `Rscript -e 'devtools::test(filter =
+  "gaussian-random-intercepts|biv-gaussian|corpairs|profile-targets|check-drm")'`:
+  passed with 1032 expectations, 0 failures, 0 warnings, and 0 skips.
+- `git diff --check`: passed.
+
 ## 2026-05-13 -- Slice 4 labelled covariance block design start
 
 Scope:

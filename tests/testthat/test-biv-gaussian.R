@@ -48,6 +48,80 @@ mvn_loglik_biv <- function(y, mu, Sigma) {
   -0.5 * (length(y) * log(2 * pi) + 2 * sum(log(diag(U))) + sum(z^2))
 }
 
+expect_biv_covariance_block_registry <- function(
+  registry,
+  dpars,
+  responses,
+  group,
+  block,
+  n_obs,
+  class
+) {
+  expect_type(registry, "list")
+  expect_equal(registry$n_blocks, length(unique(registry$blocks$block_id0)))
+  expect_s3_class(registry$blocks, "data.frame")
+  expect_s3_class(registry$members, "data.frame")
+  expect_s3_class(registry$pairs, "data.frame")
+
+  block_row <- registry$blocks[
+    registry$blocks$group == group &
+      registry$blocks$block_label == block,
+    ,
+    drop = FALSE
+  ]
+  expect_equal(nrow(block_row), 1L)
+  expect_equal(block_row$level, "group")
+  expect_equal(block_row$n_members, length(dpars))
+  expect_equal(block_row$n_pairs, 1L)
+  expect_true(block_row$implemented)
+
+  members <- registry$members[
+    registry$members$block_id0 == block_row$block_id0,
+    ,
+    drop = FALSE
+  ]
+  members <- members[order(members$member_id0), , drop = FALSE]
+  expect_equal(nrow(members), length(dpars))
+  expect_equal(members$component, sub("[0-9]+$", "", dpars))
+  expect_equal(members$dpar, dpars)
+  expect_equal(members$response_index, responses)
+  expect_equal(members$coef, rep("(Intercept)", length(dpars)))
+  expect_equal(members$group, rep(group, length(dpars)))
+  expect_equal(members$block_label, rep(block, length(dpars)))
+  expect_false(anyNA(members$source_term_id0))
+  expect_false(anyNA(members$coef_pos0))
+  expect_true(is.list(members$latent_index0))
+  expect_true(is.list(members$design_value))
+  expect_true(all(
+    vapply(members$latent_index0, length, integer(1L)) == n_obs
+  ))
+  expect_true(all(
+    vapply(members$design_value, length, integer(1L)) == n_obs
+  ))
+  expect_true(all(vapply(
+    members$latent_index0,
+    function(x) all(x >= 0L),
+    logical(1L)
+  )))
+  expect_true(all(vapply(
+    members$design_value,
+    function(x) all(is.finite(x)),
+    logical(1L)
+  )))
+
+  pairs <- registry$pairs[
+    registry$pairs$block_id0 == block_row$block_id0,
+    ,
+    drop = FALSE
+  ]
+  expect_equal(nrow(pairs), 1L)
+  expect_equal(pairs$from_dpar, dpars[[1L]])
+  expect_equal(pairs$to_dpar, dpars[[2L]])
+  expect_equal(pairs$from_coef, "(Intercept)")
+  expect_equal(pairs$to_coef, "(Intercept)")
+  expect_equal(pairs$class, class)
+}
+
 new_biv_gaussian_known_v_data <- function(
   n = 160,
   residual_rho = -0.35,
@@ -371,6 +445,15 @@ test_that("bivariate Gaussian supports labelled mu1/mu2 random-intercept covaria
     "cor(mu1:(Intercept),mu2:(Intercept) | p | id)"
   )
   expect_equal(length(fit$random_effects$mu$values), 2 * nlevels(sim$data$id))
+  expect_biv_covariance_block_registry(
+    fit$model$random$covariance_blocks,
+    dpars = c("mu1", "mu2"),
+    responses = c(1L, 2L),
+    group = "id",
+    block = "p",
+    n_obs = fit$nobs,
+    class = "mean-mean"
+  )
   expect_gt(stats::sd(predict(fit, dpar = "mu1") - fixed_mu1), 0.05)
   expect_gt(stats::sd(predict(fit, dpar = "mu2") - fixed_mu2), 0.05)
   expect_equal(
@@ -458,6 +541,15 @@ test_that("bivariate Gaussian supports labelled sigma1/sigma2 random-intercept c
   expect_equal(
     length(fit$random_effects$sigma$values),
     2 * nlevels(sim$data$id)
+  )
+  expect_biv_covariance_block_registry(
+    fit$model$random$covariance_blocks,
+    dpars = c("sigma1", "sigma2"),
+    responses = c(1L, 2L),
+    group = "id",
+    block = "p",
+    n_obs = fit$nobs,
+    class = "scale-scale"
   )
   expect_gt(stats::sd(sigma1_link - fixed_sigma1), 0.03)
   expect_gt(stats::sd(sigma2_link - fixed_sigma2), 0.03)
@@ -590,6 +682,24 @@ test_that("bivariate Gaussian keeps mu and sigma covariance blocks distinct", {
   )
   expect_equal(fit$model$random$sigma$group_names, c("id", "id"))
   expect_equal(fit$model$random$sigma$covariance_labels, c("ps", "ps"))
+  expect_biv_covariance_block_registry(
+    fit$model$random$covariance_blocks,
+    dpars = c("mu1", "mu2"),
+    responses = c(1L, 2L),
+    group = "id",
+    block = "pm",
+    n_obs = fit$nobs,
+    class = "mean-mean"
+  )
+  expect_biv_covariance_block_registry(
+    fit$model$random$covariance_blocks,
+    dpars = c("sigma1", "sigma2"),
+    responses = c(1L, 2L),
+    group = "id",
+    block = "ps",
+    n_obs = fit$nobs,
+    class = "scale-scale"
+  )
 
   expect_equal(nrow(pairs), 3L)
   expect_equal(nrow(group_pairs), 2L)

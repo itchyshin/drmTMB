@@ -459,6 +459,11 @@ drm_build_gaussian_ls_spec <- function(
   re_mu <- build_random_mu_structure(mu_re$terms, data_model)
   re_sigma <- build_random_sigma_structure(sigma_re$terms, data_model)
   re_mu_sigma <- build_mu_sigma_random_covariance(re_mu, re_sigma)
+  re_cov_blocks <- build_labelled_covariance_block_registry(
+    re_mu,
+    re_sigma,
+    re_mu_sigma
+  )
   sd_mu <- build_sd_mu_structure(
     sd_mu_entries,
     sd_mu_targets,
@@ -508,7 +513,12 @@ drm_build_gaussian_ls_spec <- function(
       sd_mu$terms_list
     ),
     model_frame = c(list(mu = mf_mu, sigma = mf_sigma), sd_mu$model_frame_list),
-    random = list(mu = re_mu, sigma = re_sigma, mu_sigma = re_mu_sigma),
+    random = list(
+      mu = re_mu,
+      sigma = re_sigma,
+      mu_sigma = re_mu_sigma,
+      covariance_blocks = re_cov_blocks
+    ),
     random_scale = list(mu = sd_mu),
     structured = list(phylo_mu = phylo_mu),
     data = data_model,
@@ -2256,6 +2266,11 @@ drm_build_biv_gaussian_spec <- function(
   )
   re_mu_sigma <- build_mu_sigma_random_covariance(re_mu, re_sigma)
   validate_biv_random_covariance_surface(re_mu, re_sigma, re_mu_sigma)
+  re_cov_blocks <- build_labelled_covariance_block_registry(
+    re_mu,
+    re_sigma,
+    re_mu_sigma
+  )
 
   n <- length(y1)
   if (n == 0L) {
@@ -2315,7 +2330,8 @@ drm_build_biv_gaussian_spec <- function(
     random = list(
       mu = re_mu,
       sigma = re_sigma,
-      mu_sigma = re_mu_sigma
+      mu_sigma = re_mu_sigma,
+      covariance_blocks = re_cov_blocks
     ),
     random_scale = list(mu = empty_sd_mu_structure(re_mu$n_re)),
     structured = list(phylo_mu = empty_phylo_mu_structure()),
@@ -3318,6 +3334,322 @@ build_mu_sigma_random_covariance <- function(re_mu, re_sigma) {
     sigma_cross_cor_id0 = sigma_cross_cor_id0,
     sigma_cross_mu_index0 = sigma_cross_mu_index0
   )
+}
+
+empty_labelled_covariance_block_registry <- function() {
+  list(
+    n_blocks = 0L,
+    blocks = data.frame(
+      block_id0 = integer(),
+      level = character(),
+      group = character(),
+      block_label = character(),
+      n_members = integer(),
+      n_groups = integer(),
+      group_levels = I(list()),
+      n_pairs = integer(),
+      implemented = logical(),
+      stringsAsFactors = FALSE
+    ),
+    members = data.frame(
+      block_id0 = integer(),
+      member_id0 = integer(),
+      component = character(),
+      dpar = character(),
+      response_index = integer(),
+      coef = character(),
+      source_term_id0 = integer(),
+      coef_pos0 = integer(),
+      group = character(),
+      block_label = character(),
+      label = character(),
+      n_groups = integer(),
+      group_levels = I(list()),
+      latent_index0 = I(list()),
+      design_value = I(list()),
+      cor_id0 = I(list()),
+      pair_index0 = I(list()),
+      stringsAsFactors = FALSE
+    ),
+    pairs = data.frame(
+      block_id0 = integer(),
+      pair_id0 = integer(),
+      from_member_id0 = integer(),
+      to_member_id0 = integer(),
+      from_dpar = character(),
+      to_dpar = character(),
+      from_coef = character(),
+      to_coef = character(),
+      class = character(),
+      parameter = character(),
+      tmb_parameter = character(),
+      tmb_index = integer(),
+      stringsAsFactors = FALSE
+    )
+  )
+}
+
+build_labelled_covariance_block_registry <- function(
+  re_mu,
+  re_sigma,
+  re_mu_sigma = empty_mu_sigma_random_covariance(re_sigma$n_re)
+) {
+  registry <- empty_labelled_covariance_block_registry()
+  registry <- add_same_parameter_covariance_blocks(
+    registry,
+    re_mu,
+    tmb_parameter = "eta_cor_mu"
+  )
+  registry <- add_same_parameter_covariance_blocks(
+    registry,
+    re_sigma,
+    tmb_parameter = "eta_cor_sigma"
+  )
+  registry <- add_mu_sigma_covariance_blocks(
+    registry,
+    re_mu,
+    re_sigma,
+    re_mu_sigma
+  )
+  registry$n_blocks <- nrow(registry$blocks)
+  registry
+}
+
+add_same_parameter_covariance_blocks <- function(
+  registry,
+  re,
+  tmb_parameter
+) {
+  if (re$n_cors == 0L) {
+    return(registry)
+  }
+
+  for (cor_id in seq_len(re$n_cors)) {
+    right_rows <- which(re$re_cor_id0 == cor_id - 1L)
+    left_rows <- re$re_pair_index0[right_rows] + 1L
+    left_rows <- left_rows[left_rows > 0L]
+    member_terms <- unique(c(
+      re$term_id0[left_rows] + 1L,
+      re$term_id0[right_rows] + 1L
+    ))
+    registry <- append_covariance_registry_block(
+      registry,
+      re_list = list(re),
+      member_terms = list(member_terms),
+      parameter = re$cor_labels[[cor_id]],
+      tmb_parameter = tmb_parameter,
+      tmb_index = cor_id
+    )
+  }
+  registry
+}
+
+add_mu_sigma_covariance_blocks <- function(
+  registry,
+  re_mu,
+  re_sigma,
+  re_mu_sigma
+) {
+  if (re_mu_sigma$n_cors == 0L) {
+    return(registry)
+  }
+
+  for (cor_id in seq_len(re_mu_sigma$n_cors)) {
+    sigma_rows <- which(re_mu_sigma$sigma_cross_cor_id0 == cor_id - 1L)
+    mu_rows <- re_mu_sigma$sigma_cross_mu_index0[sigma_rows] + 1L
+    mu_rows <- mu_rows[mu_rows > 0L]
+    mu_terms <- unique(re_mu$term_id0[mu_rows] + 1L)
+    sigma_terms <- unique(re_sigma$term_id0[sigma_rows] + 1L)
+    registry <- append_covariance_registry_block(
+      registry,
+      re_list = list(re_mu, re_sigma),
+      member_terms = list(mu_terms, sigma_terms),
+      parameter = re_mu_sigma$cor_labels[[cor_id]],
+      tmb_parameter = "eta_cor_mu_sigma",
+      tmb_index = cor_id
+    )
+  }
+  registry
+}
+
+append_covariance_registry_block <- function(
+  registry,
+  re_list,
+  member_terms,
+  parameter,
+  tmb_parameter,
+  tmb_index
+) {
+  block_id0 <- nrow(registry$blocks)
+  member_rows <- do.call(
+    rbind,
+    Map(
+      function(re, terms, component) {
+        do.call(
+          rbind,
+          lapply(
+            terms,
+            covariance_registry_member_row,
+            re = re,
+            component = component
+          )
+        )
+      },
+      re_list,
+      member_terms,
+      vapply(re_list, covariance_registry_component, character(1L))
+    )
+  )
+  member_rows$block_id0 <- block_id0
+  member_rows$member_id0 <- seq_len(nrow(member_rows)) - 1L
+
+  block_groups <- unique(member_rows$group)
+  block_labels <- unique(member_rows$block_label)
+  block_label <- block_labels[!is.na(block_labels)]
+  if (length(block_label) == 0L) {
+    block_label <- NA_character_
+  } else {
+    block_label <- block_label[[1L]]
+  }
+  n_groups <- unique(member_rows$n_groups)
+  if (length(n_groups) != 1L) {
+    n_groups <- NA_integer_
+  }
+  group_levels <- member_rows$group_levels[[1L]]
+
+  registry$blocks <- rbind(
+    registry$blocks,
+    data.frame(
+      block_id0 = block_id0,
+      level = "group",
+      group = block_groups[[1L]],
+      block_label = block_label,
+      n_members = nrow(member_rows),
+      n_groups = n_groups[[1L]],
+      group_levels = I(list(group_levels)),
+      n_pairs = choose(nrow(member_rows), 2L),
+      implemented = TRUE,
+      stringsAsFactors = FALSE
+    )
+  )
+
+  registry$members <- rbind(
+    registry$members,
+    member_rows[, names(registry$members), drop = FALSE]
+  )
+
+  if (nrow(member_rows) == 2L) {
+    registry$pairs <- rbind(
+      registry$pairs,
+      data.frame(
+        block_id0 = block_id0,
+        pair_id0 = 0L,
+        from_member_id0 = 0L,
+        to_member_id0 = 1L,
+        from_dpar = member_rows$dpar[[1L]],
+        to_dpar = member_rows$dpar[[2L]],
+        from_coef = member_rows$coef[[1L]],
+        to_coef = member_rows$coef[[2L]],
+        class = covariance_block_pair_class(
+          member_rows$dpar[[1L]],
+          member_rows$coef[[1L]],
+          member_rows$dpar[[2L]],
+          member_rows$coef[[2L]]
+        ),
+        parameter = parameter,
+        tmb_parameter = tmb_parameter,
+        tmb_index = tmb_index,
+        stringsAsFactors = FALSE
+      )
+    )
+  }
+  registry
+}
+
+covariance_registry_member_row <- function(term, re, component) {
+  term_rows <- which(re$term_id0 == term - 1L)
+  coef_index <- unique(re$re_pos0[term_rows] + 1L)
+  if (length(coef_index) != 1L) {
+    coef_index <- NA_integer_
+  }
+  data.frame(
+    block_id0 = NA_integer_,
+    member_id0 = NA_integer_,
+    component = component,
+    dpar = re$dpars[[term]],
+    response_index = covariance_member_response_index(re$dpars[[term]]),
+    coef = re$coef_names[[term]],
+    source_term_id0 = term - 1L,
+    coef_pos0 = coef_index - 1L,
+    group = re$group_names[[term]],
+    block_label = re$covariance_labels[[term]],
+    label = re$labels[[term]],
+    n_groups = length(re$groups[[term]]),
+    group_levels = I(list(re$groups[[term]])),
+    latent_index0 = I(list(re$index0[, term])),
+    design_value = I(list(re$value[, term])),
+    cor_id0 = I(list(re$re_cor_id0[term_rows])),
+    pair_index0 = I(list(re$re_pair_index0[term_rows])),
+    stringsAsFactors = FALSE
+  )
+}
+
+covariance_registry_component <- function(re) {
+  sub("[0-9]+$", "", re$dpars[[1L]])
+}
+
+covariance_member_response_index <- function(dpar) {
+  suffix <- sub("^(mu|sigma)", "", dpar)
+  if (suffix %in% c("1", "2")) {
+    return(as.integer(suffix))
+  }
+  NA_integer_
+}
+
+covariance_block_pair_class <- function(
+  from_dpar,
+  from_coef,
+  to_dpar,
+  to_coef
+) {
+  from_family <- sub("[0-9]+$", "", from_dpar)
+  to_family <- sub("[0-9]+$", "", to_dpar)
+  from_intercept <- identical(from_coef, "(Intercept)")
+  to_intercept <- identical(to_coef, "(Intercept)")
+  if (identical(from_family, "mu") && identical(to_family, "mu")) {
+    if (from_intercept && to_intercept) {
+      return("mean-mean")
+    }
+    if (!from_intercept && !to_intercept) {
+      return("slope-slope")
+    }
+    return("mean-slope")
+  }
+  if (identical(from_family, "sigma") && identical(to_family, "sigma")) {
+    if (from_intercept && to_intercept) {
+      return("scale-scale")
+    }
+    if (!from_intercept && !to_intercept) {
+      return("malleability")
+    }
+    return("scale-slope")
+  }
+  if (
+    (identical(from_family, "mu") && identical(to_family, "sigma")) ||
+      (identical(from_family, "sigma") && identical(to_family, "mu"))
+  ) {
+    if (from_intercept && to_intercept) {
+      return("mean-scale")
+    }
+    if (identical(from_family, "mu") && !from_intercept && to_intercept) {
+      return("slope-scale")
+    }
+    if (identical(from_family, "sigma") && from_intercept && !to_intercept) {
+      return("slope-scale")
+    }
+    return("mean-scale-slope")
+  }
+  paste0(from_dpar, "-", to_dpar)
 }
 
 same_response_mu_sigma_dpars <- function(mu_dpar, sigma_dpar) {

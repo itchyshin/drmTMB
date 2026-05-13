@@ -287,6 +287,81 @@ gaussian_mu_sigma_joint_nll <- function(fit, par) {
     sum(stats::dnorm(spec$data$y, mu, exp(log_sigma), log = TRUE))
 }
 
+expect_gaussian_covariance_block_registry <- function(
+  registry,
+  dpars,
+  group,
+  block,
+  coefs,
+  n_obs,
+  coef_index = seq_along(coefs) - 1L,
+  class
+) {
+  expect_type(registry, "list")
+  expect_equal(registry$n_blocks, length(unique(registry$blocks$block_id0)))
+  expect_s3_class(registry$blocks, "data.frame")
+  expect_s3_class(registry$members, "data.frame")
+  expect_s3_class(registry$pairs, "data.frame")
+
+  block_row <- registry$blocks[
+    registry$blocks$group == group &
+      registry$blocks$block_label == block,
+    ,
+    drop = FALSE
+  ]
+  expect_equal(nrow(block_row), 1L)
+  expect_equal(block_row$level, "group")
+  expect_equal(block_row$n_members, length(dpars))
+  expect_equal(block_row$n_pairs, 1L)
+  expect_true(block_row$implemented)
+
+  members <- registry$members[
+    registry$members$block_id0 == block_row$block_id0,
+    ,
+    drop = FALSE
+  ]
+  members <- members[order(members$member_id0), , drop = FALSE]
+  expect_equal(nrow(members), length(dpars))
+  expect_equal(members$component, dpars)
+  expect_equal(members$dpar, dpars)
+  expect_true(all(is.na(members$response_index)))
+  expect_equal(members$coef, coefs)
+  expect_equal(members$group, rep(group, length(dpars)))
+  expect_equal(members$block_label, rep(block, length(dpars)))
+  expect_false(anyNA(members$source_term_id0))
+  expect_equal(members$coef_pos0, coef_index)
+  expect_true(is.list(members$latent_index0))
+  expect_true(is.list(members$design_value))
+  expect_true(all(
+    vapply(members$latent_index0, length, integer(1L)) == n_obs
+  ))
+  expect_true(all(
+    vapply(members$design_value, length, integer(1L)) == n_obs
+  ))
+  expect_true(all(vapply(
+    members$latent_index0,
+    function(x) all(x >= 0L),
+    logical(1L)
+  )))
+  expect_true(all(vapply(
+    members$design_value,
+    function(x) all(is.finite(x)),
+    logical(1L)
+  )))
+
+  pairs <- registry$pairs[
+    registry$pairs$block_id0 == block_row$block_id0,
+    ,
+    drop = FALSE
+  ]
+  expect_equal(nrow(pairs), 1L)
+  expect_equal(pairs$from_dpar, dpars[[1L]])
+  expect_equal(pairs$to_dpar, dpars[[2L]])
+  expect_equal(pairs$from_coef, coefs[[1L]])
+  expect_equal(pairs$to_coef, coefs[[2L]])
+  expect_equal(pairs$class, class)
+}
+
 test_that("Gaussian location models support random intercepts in mu", {
   sim <- new_gaussian_ri_data()
 
@@ -517,6 +592,15 @@ test_that("labelled Gaussian mu correlated blocks match unlabelled block semanti
     c("(1 + x | p | ID):(Intercept)", "(1 + x | p | ID):x")
   )
   expect_named(fit_labelled$corpars$mu, "cor((Intercept),x | p | ID)")
+  expect_gaussian_covariance_block_registry(
+    fit_labelled$model$random$covariance_blocks,
+    dpars = c("mu", "mu"),
+    group = "ID",
+    block = "p",
+    coefs = c("(Intercept)", "x"),
+    n_obs = fit_labelled$nobs,
+    class = "mean-slope"
+  )
   expect_false(any(grepl(
     "rho12",
     names(fit_labelled$corpars$mu),
@@ -807,6 +891,16 @@ test_that("Gaussian mu/sigma labelled random-intercept covariance is fitted", {
     mean_scale$estimate,
     unname(fit$corpars$mu_sigma),
     tolerance = 1e-12
+  )
+  expect_gaussian_covariance_block_registry(
+    fit$model$random$covariance_blocks,
+    dpars = c("mu", "sigma"),
+    group = "id",
+    block = "p",
+    coefs = c("(Intercept)", "(Intercept)"),
+    n_obs = fit$nobs,
+    coef_index = c(0L, 0L),
+    class = "mean-scale"
   )
   expect_true(
     "cor:mu_sigma:cor(mu:(Intercept),sigma:(Intercept) | p | id)" %in%
