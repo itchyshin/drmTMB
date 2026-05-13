@@ -734,6 +734,17 @@ test_that("bivariate Gaussian keeps mu and sigma covariance blocks distinct", {
   scale_pair <- pairs[pairs$class == "scale-scale", , drop = FALSE]
   residual_pair <- pairs[pairs$class == "residual", , drop = FALSE]
   smry <- summary(fit)
+  summary_covariance <- smry$covariance
+  summary_mean_covariance <- summary_covariance[
+    summary_covariance$class == "mean-mean",
+    ,
+    drop = FALSE
+  ]
+  summary_scale_covariance <- summary_covariance[
+    summary_covariance$class == "scale-scale",
+    ,
+    drop = FALSE
+  ]
   targets <- profile_targets(fit)
   chk <- check_drm(fit)
   cov_checks <- chk[
@@ -816,6 +827,36 @@ test_that("bivariate Gaussian keeps mu and sigma covariance blocks distinct", {
   expect_equal(
     scale_pair$estimate,
     unname(fit$corpars$sigma),
+    tolerance = 1e-12
+  )
+  expect_equal(nrow(summary_covariance), 2L)
+  expect_setequal(summary_covariance$block, c("pm", "ps"))
+  expect_setequal(summary_covariance$class, c("mean-mean", "scale-scale"))
+  expect_false(any(grepl("rho12", summary_covariance$parameter, fixed = TRUE)))
+  expect_equal(
+    summary_covariance$covariance_conf.status,
+    rep("not_requested", 2L)
+  )
+  expect_equal(summary_mean_covariance$from_dpar, "mu1")
+  expect_equal(summary_mean_covariance$to_dpar, "mu2")
+  expect_equal(summary_mean_covariance$from_scale, "identity")
+  expect_equal(summary_mean_covariance$to_scale, "identity")
+  expect_equal(
+    summary_mean_covariance$covariance,
+    unname(fit$sdpars$mu[[1L]]) *
+      unname(fit$sdpars$mu[[2L]]) *
+      unname(fit$corpars$mu[[1L]]),
+    tolerance = 1e-12
+  )
+  expect_equal(summary_scale_covariance$from_dpar, "sigma1")
+  expect_equal(summary_scale_covariance$to_dpar, "sigma2")
+  expect_equal(summary_scale_covariance$from_scale, "log")
+  expect_equal(summary_scale_covariance$to_scale, "log")
+  expect_equal(
+    summary_scale_covariance$covariance,
+    unname(fit$sdpars$sigma[[1L]]) *
+      unname(fit$sdpars$sigma[[2L]]) *
+      unname(fit$corpars$sigma[[1L]]),
     tolerance = 1e-12
   )
   fit_partial_registry <- fit

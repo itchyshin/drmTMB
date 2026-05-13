@@ -2,6 +2,32 @@
 
 Record meaningful development checks here.
 
+## 2026-05-13 -- Slice 10 combined group and residual correlation summary guard
+
+Scope:
+
+- strengthened the existing combined bivariate Gaussian regression with
+  matching labelled `mu1`/`mu2` and `sigma1`/`sigma2` random-intercept
+  covariance blocks plus predictor-dependent residual `rho12 ~ x`;
+- checked that `summary(fit)$covariance` reports exactly the two group-level
+  covariance rows, with one `mean-mean` row and one `scale-scale` row;
+- checked fitted random-effect scales and covariance point estimates for both
+  rows;
+- kept residual `rho12` out of `summary(fit)$covariance` while leaving it in
+  `corpairs()` as a separate residual row;
+- documented that this is a pairwise public-support guard, not q > 2 public
+  support or a new likelihood path.
+
+Checks:
+
+- `air format tests/testthat/test-biv-gaussian.R ROADMAP.md
+  docs/design/28-double-hierarchical-endpoint.md docs/dev-log/check-log.md
+  docs/dev-log/after-task/2026-05-13-slice-10-combined-group-and-residual-correlation-summary-guard.md`:
+  passed.
+- `Rscript -e 'devtools::test(filter = "biv-gaussian|summary|corpairs")'`:
+  passed with 638 expectations, 0 failures, 0 warnings, and 0 skips.
+- `git diff --check`: passed.
+
 ## 2026-05-13 -- Slice 9D derived covariance interval status guard
 
 Scope:

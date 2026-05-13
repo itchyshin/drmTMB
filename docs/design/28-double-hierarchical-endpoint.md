@@ -180,7 +180,9 @@ for the derived covariance interval.
    Done for matching labelled random intercepts.
 9. Combine bivariate group-level covariance blocks with residual `rho12 ~ x`.
    Done for matching labelled random intercepts in both `mu1`/`mu2` and
-   `sigma1`/`sigma2`.
+   `sigma1`/`sigma2`. The combined regression checks `corpairs()`,
+   `profile_targets()`, `check_drm()`, and `summary(fit)$covariance` while
+   keeping residual `rho12` separate from group-level covariance rows.
 10. Add one same-response bivariate `mu`/`sigma` random-intercept covariance
    pair, such as `mu1` with `sigma1`. Done for one matching labelled pair; the
    full shared block across `mu1`, `mu2`, `sigma1`, and `sigma2` remains

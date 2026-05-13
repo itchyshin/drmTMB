@@ -115,7 +115,9 @@ distributional regression models using TMB.
   `sdpars$sigma`, the group-level correlations are reported in `corpars$mu` or
   `corpars$sigma` and `corpairs()`, and residual `rho12` remains separate.
   Targeted simulation coverage now fits both bivariate group-level covariance
-  blocks in the same model with predictor-dependent residual `rho12 ~ x`.
+  blocks in the same model with predictor-dependent residual `rho12 ~ x`; the
+  same regression now checks that `summary(fit)$covariance` reports the two
+  group-level covariance rows and omits residual `rho12`.
 - One same-response bivariate `mu`/`sigma` random-intercept covariance block is
   implemented, such as matching `(1 | p | id)` terms in `mu1` and `sigma1` or
   in `mu2` and `sigma2`. This is still a pairwise bridge, not the full shared
