@@ -3711,7 +3711,10 @@ empty_labelled_covariance_block_tmb_data <- function() {
   )
 }
 
-labelled_covariance_block_tmb_data <- function(registry) {
+labelled_covariance_block_tmb_data <- function(
+  registry,
+  allow_unimplemented = FALSE
+) {
   if (registry$n_blocks == 0L) {
     return(empty_labelled_covariance_block_tmb_data())
   }
@@ -3719,7 +3722,7 @@ labelled_covariance_block_tmb_data <- function(registry) {
   blocks <- registry$blocks
   members <- registry$members
   pairs <- registry$pairs
-  if (any(blocks$n_members != 2L)) {
+  if (any(blocks$n_members != 2L) && !allow_unimplemented) {
     cli::cli_abort(c(
       "Internal error: dormant covariance-block TMB data only supports implemented two-member blocks.",
       "x" = "Found block size{?s}: {.val {unique(blocks$n_members)}}.",
@@ -3741,6 +3744,10 @@ labelled_covariance_block_tmb_data <- function(registry) {
   pair_start <- as.integer(c(0L, cumsum(pair_counts)[-length(pair_counts)]))
   member_response <- members$response_index
   member_response[is.na(member_response)] <- 0L
+  pair_parameter <- covariance_parameter_code(pairs$tmb_parameter)
+  pair_parameter[is.na(pair_parameter)] <- -1L
+  pair_parameter_index <- pairs$tmb_index - 1L
+  pair_parameter_index[is.na(pair_parameter_index)] <- -1L
 
   list(
     n_re_cov_blocks = registry$n_blocks,
@@ -3757,8 +3764,8 @@ labelled_covariance_block_tmb_data <- function(registry) {
     re_cov_member_design_value = do.call(cbind, members$design_value),
     re_cov_pair_from_member = pairs$from_member_id0,
     re_cov_pair_to_member = pairs$to_member_id0,
-    re_cov_pair_parameter = covariance_parameter_code(pairs$tmb_parameter),
-    re_cov_pair_parameter_index = pairs$tmb_index - 1L,
+    re_cov_pair_parameter = as.integer(pair_parameter),
+    re_cov_pair_parameter_index = as.integer(pair_parameter_index),
     re_cov_probe_theta = numeric(0),
     re_cov_probe_sd = numeric(0),
     re_cov_probe_x = numeric(0),

@@ -98,10 +98,12 @@ positive-definite correlation matrix and can be evaluated through `VECSCALE_t`.
 The follow-up probe confirms that `VECSCALE(UNSTRUCTURED_CORR(theta), s)` can
 map standardized q=3 latent vectors through `sqrt_cov_scale()`. The production
 likelihood slice should reuse that non-centered contract while pulling vectors
-from the labelled covariance-block registry. If the helper is unsuitable for
-the full registry path, the fallback should still use one positive-definite
-Cholesky-style parameterization for the whole block, not separate
-unconstrained pairwise `tanh()` correlations.
+from the labelled covariance-block registry. A hidden registry-shaped probe now
+checks that block/member metadata can map group-level transformed vectors back
+to design-scaled member contributions. If the helper is unsuitable for the full
+registry path, the fallback should still use one positive-definite
+Cholesky-style parameterization for the whole block, not separate unconstrained
+pairwise `tanh()` correlations.
 
 The flattened data contract should be block-oriented rather than pair-oriented:
 
@@ -196,8 +198,9 @@ still be named `sigma`.
    equivalent positive-definite Cholesky path for `q > 2`. Done for hidden TMB
    probes that report a positive-definite q=3 correlation matrix, finite
    objective/gradient under `VECSCALE_t`, and the non-centered
-   `sqrt_cov_scale()` latent transform; the production likelihood still needs
-   the registry-backed path.
+   `sqrt_cov_scale()` latent transform. Also done for a hidden
+   registry-shaped member/group contribution probe; the production likelihood
+   still needs real q=3 random-effect parameters and likelihood wiring.
 8. Only then enable bivariate random slopes or the full shared
    `mu1`/`mu2`/`sigma1`/`sigma2` label pattern.
 

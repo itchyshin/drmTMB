@@ -112,6 +112,49 @@ test_that("q=3 block TMB data remains guarded until parameterization exists", {
   )
 })
 
+test_that("hidden q=3 registry probe maps non-centered blocks by group", {
+  dat <- data.frame(y = c(-0.3, 0.2, 0.8, -0.1, 0.4, 0.9))
+  fit <- drmTMB(bf(y ~ 1, sigma ~ 1), family = gaussian(), data = dat)
+  registry <- new_three_member_covariance_registry()
+  cov_tmb <- drmTMB:::labelled_covariance_block_tmb_data(
+    registry,
+    allow_unimplemented = TRUE
+  )
+  tmb_data <- fit$model$tmb_data
+  tmb_data[names(cov_tmb)] <- cov_tmb
+  theta <- c(0.2, -0.4, 0.3)
+  sd <- c(1.2, 0.8, 1.5)
+  z <- c(-0.7, 0.4, 1.1, 0.2, -1.0, 0.5)
+  tmb_data$model_type <- 97L
+  tmb_data$re_cov_probe_theta <- theta
+  tmb_data$re_cov_probe_sd <- sd
+  tmb_data$re_cov_probe_z <- z
+
+  obj <- TMB::MakeADFun(
+    data = tmb_data,
+    parameters = fit$model$start,
+    map = fit$model$map,
+    random = fit$model$random_names,
+    DLL = "drmTMB",
+    silent = TRUE
+  )
+
+  latent_g1 <- tmb_vecscale_sqrt_cov_scale(theta, sd, z[1:3])
+  latent_g2 <- tmb_vecscale_sqrt_cov_scale(theta, sd, z[4:6])
+  expected <- unname(rbind(latent_g1, latent_g1, latent_g2, latent_g2))
+
+  expect_equal(cov_tmb$re_cov_block_size, 3L)
+  expect_equal(cov_tmb$re_cov_pair_parameter, rep(-1L, 3))
+  expect_equal(cov_tmb$re_cov_pair_parameter_index, rep(-1L, 3))
+  expect_equal(
+    obj$report()$re_cov_probe_contribution,
+    expected,
+    tolerance = 1e-12
+  )
+  expect_true(is.finite(obj$fn(obj$par)))
+  expect_true(all(is.finite(obj$gr(obj$par))))
+})
+
 test_that("TMB q=3 covariance prototype produces positive-definite correlations", {
   dat <- data.frame(y = c(-0.3, 0.2, 0.8, -0.1, 0.4, 0.9))
   fit <- drmTMB(bf(y ~ 1, sigma ~ 1), family = gaussian(), data = dat)

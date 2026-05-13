@@ -156,8 +156,9 @@ distributional regression models using TMB.
   and a positive-definite `q > 2` likelihood path before exposure. An internal
   TMB algebra probes now confirm that `UNSTRUCTURED_CORR_t` plus `VECSCALE_t`
   can produce a positive-definite q=3 correlation, finite objective/gradient,
-  and a non-centered `sqrt_cov_scale()` transform; these probes are not
-  connected to the fitted model likelihood yet.
+  a non-centered `sqrt_cov_scale()` transform, and a hidden registry-shaped
+  member/group contribution map; these probes are not connected to the fitted
+  model likelihood yet.
 - Use `docs/design/18-random-effect-scale-models.md` as the design contract:
   the implemented MVP targets one or more distinct unlabelled univariate
   Gaussian `mu` random intercepts, with group-level predictors, simulation

@@ -159,7 +159,50 @@ Type objective_function<Type>::operator()()
   (void)re_cov_pair_to_member;
   (void)re_cov_pair_parameter;
   (void)re_cov_pair_parameter_index;
-  if (model_type == 98) {
+  if (model_type == 97) {
+    density::UNSTRUCTURED_CORR_t<Type> re_cov_probe_density(re_cov_probe_theta);
+    matrix<Type> re_cov_probe_corr = re_cov_probe_density.cov();
+    matrix<Type> re_cov_probe_contribution(
+      re_cov_member_design_value.rows(),
+      re_cov_member_design_value.cols()
+    );
+    re_cov_probe_contribution.setZero();
+    for (int b = 0; b < n_re_cov_blocks; ++b) {
+      int block_size = re_cov_block_size(b);
+      int n_groups = re_cov_block_group_count(b);
+      int member_start = re_cov_block_member_start(b);
+      for (int g = 0; g < n_groups; ++g) {
+        vector<Type> z(block_size);
+        for (int m = 0; m < block_size; ++m) {
+          int z_pos = g * block_size + m;
+          z(m) = Type(0.0);
+          if (z_pos < re_cov_probe_z.size()) {
+            z(m) = re_cov_probe_z(z_pos);
+          }
+        }
+        vector<Type> latent(block_size);
+        if (re_cov_probe_sd.size() == block_size) {
+          latent = density::VECSCALE(
+            re_cov_probe_density,
+            re_cov_probe_sd
+          ).sqrt_cov_scale(z);
+        } else {
+          latent = re_cov_probe_density.sqrt_cov_scale(z);
+        }
+        for (int m = 0; m < block_size; ++m) {
+          int member_col = member_start + m;
+          for (int i = 0; i < re_cov_member_design_value.rows(); ++i) {
+            if (re_cov_member_latent_index(i, member_col) == g) {
+              re_cov_probe_contribution(i, member_col) =
+                re_cov_member_design_value(i, member_col) * latent(m);
+            }
+          }
+        }
+      }
+    }
+    REPORT(re_cov_probe_corr);
+    REPORT(re_cov_probe_contribution);
+  } else if (model_type == 98) {
     density::UNSTRUCTURED_CORR_t<Type> re_cov_probe_density(re_cov_probe_theta);
     matrix<Type> re_cov_probe_corr = re_cov_probe_density.cov();
     vector<Type> re_cov_probe_latent(re_cov_probe_z.size());

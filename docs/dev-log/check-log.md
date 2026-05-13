@@ -2,6 +2,34 @@
 
 Record meaningful development checks here.
 
+## 2026-05-13 -- Slice 6C hidden q=3 registry contribution probe
+
+Scope:
+
+- added an explicit internal-only `allow_unimplemented = TRUE` override to
+  `labelled_covariance_block_tmb_data()`, leaving the default q > 2 export
+  guard closed;
+- added hidden `model_type == 97`, which uses the q=3 registry block/member
+  metadata to map group-major standardized latent vectors through
+  `VECSCALE(UNSTRUCTURED_CORR(theta), s).sqrt_cov_scale(z)` and back to
+  design-scaled member contributions;
+- added a deterministic test proving the hidden q=3 registry scaffold exports
+  with inert pair-parameter codes and produces the expected per-observation
+  member contribution matrix;
+- changed no user-facing syntax, no fitted-model likelihood branch, no real
+  q=3 random-effect parameters, and no public q > 2 covariance support.
+
+Checks:
+
+- `air format R/drmTMB.R tests/testthat/test-covariance-block-registry.R`:
+  passed.
+- `Rscript -e 'devtools::test(filter = "covariance-block-registry")'`: passed
+  with 37 expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript -e 'devtools::test(filter =
+  "covariance-block-registry|biv-gaussian|gaussian-random-intercepts|phylo-utils")'`:
+  passed with 895 expectations, 0 failures, 0 warnings, and 0 skips.
+- `git diff --check`: passed.
+
 ## 2026-05-13 -- Slice 6B q=3 non-centered TMB probe
 
 Scope:
