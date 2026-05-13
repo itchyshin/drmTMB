@@ -185,6 +185,14 @@ the public `sigma` grammar, report variance-facing summaries as `sigma^2`, and
 eventually expose both group-level individual-difference correlations and
 residual `rho12`.
 
+For comparative mammal, bird, or other trait protocols, the current practical
+path is staged: fit bivariate residual coupling, ordinary group-level
+correlations, and univariate phylogenetic structure as separate implemented
+models. The
+[model map](https://itchyshin.github.io/drmTMB/articles/model-map.html) shows
+how to keep those answers separate until the combined phylogenetic
+double-hierarchical endpoint is implemented.
+
 Spatial syntax is part of the structured-effect design, but routine spatial
 model fitting is still planned rather than a first landing-page workflow.
 

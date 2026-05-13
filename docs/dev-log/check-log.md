@@ -2,6 +2,33 @@
 
 Record meaningful development checks here.
 
+## 2026-05-13 -- Slice 15 staged trait protocol guide
+
+Scope:
+
+- added a plain model-map protocol for mammal, bird, or other comparative trait
+  analyses that need residual coupling, ordinary group-level covariance, and
+  phylogenetic structure;
+- showed the implemented bivariate Gaussian path and implemented univariate
+  phylogenetic path as separate fitted models;
+- clarified that developer q=4 shorthand means four distributional endpoints,
+  not four fitted correlations, and that a q4 covariance would require six
+  pairwise reporting rows before public support is claimed.
+
+Checks:
+
+- `air format vignettes/model-map.Rmd README.md docs/dev-log/check-log.md
+  docs/dev-log/after-task/2026-05-13-slice-15-staged-trait-protocol-guide.md`:
+  passed.
+- `Rscript -e 'rmarkdown::render("vignettes/model-map.Rmd", output_file =
+  tempfile(fileext = ".html"), quiet = TRUE)'`: passed.
+- `rg -n 'practical trait protocol|q=4|four distributional endpoints|six
+  pairwise|mammal|bird|rho12\\(fit_biv\\)|phylo\\(1 \\| species|combined
+  phylogenetic' vignettes/model-map.Rmd README.md docs/dev-log/check-log.md
+  docs/dev-log/after-task/2026-05-13-slice-15-staged-trait-protocol-guide.md`:
+  passed.
+- `git diff --check`: passed.
+
 ## 2026-05-13 -- Slice 14 phylogenetic q4 status wording guard
 
 Scope:

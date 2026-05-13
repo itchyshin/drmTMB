@@ -161,6 +161,69 @@ phylogenetic correlation, a spatial correlation, or a personality/plasticity
 correlation unless the fitted model actually contains that higher-level
 covariance block.
 
+## A practical trait protocol
+
+Comparative trait studies often want one model that combines two trait means,
+two residual SDs, residual trait coupling, individual or species differences,
+and shared ancestry. That is the right scientific direction, but the fully
+combined bivariate phylogenetic double-hierarchical model is still a roadmap
+target. Today, fit the pieces that are implemented and report them as separate
+answers.
+
+For two traits without phylogeny, use the bivariate Gaussian path:
+
+```r
+fit_biv <- drmTMB(
+  drm_formula(
+    mu1 = log_body_mass ~ diet + body_size + (1 | p | species),
+    mu2 = log_litter_size ~ diet + body_size + (1 | p | species),
+    sigma1 = ~ diet,
+    sigma2 = ~ diet,
+    rho12 = ~ diet
+  ),
+  family = c(gaussian(), gaussian()),
+  data = mammals
+)
+```
+
+This model can ask whether `diet` changes each trait mean, each residual SD, and
+the residual association between the two traits. The shared `p` label adds the
+implemented group-level `mu1`/`mu2` random-intercept covariance for `species`.
+It is an ordinary species-level grouping term, not a phylogenetic covariance.
+
+For shared ancestry in one trait, use the implemented univariate phylogenetic
+path:
+
+```r
+fit_phylo <- drmTMB(
+  drm_formula(
+    log_body_mass ~ diet + body_size + phylo(1 | species, tree = tree),
+    sigma ~ diet
+  ),
+  family = gaussian(),
+  data = mammals
+)
+```
+
+This model can ask whether species trait means remain similar after shared
+ancestry is included. It does not estimate bivariate residual `rho12`, and it
+does not estimate phylogenetic correlations among `mu1`, `mu2`, `sigma1`, and
+`sigma2`.
+
+Use this staged interpretation until the combined model is implemented:
+
+| Fitted piece | What it answers today | What it does not answer yet |
+|---|---|---|
+| `rho12(fit_biv)` | within-observation residual coupling between two traits | phylogenetic or species-level correlation |
+| `corpairs(fit_biv, level = "group")` | ordinary species or individual random-intercept correlation | residual trait coupling or shared-ancestry correlation |
+| `fit_phylo` with `phylo(1 | species, tree = tree)` | one-trait shared-ancestry mean structure | bivariate phylogenetic covariance |
+
+In developer shorthand, the planned q=4 phylogenetic endpoint means four
+distributional endpoints: `mu1`, `mu2`, `sigma1`, and `sigma2`. It does not mean
+four fitted correlations. A four-endpoint covariance has six pairwise
+correlations, so public support should wait for fitted likelihoods, recovery
+tests, and `corpairs()` rows for those pairs.
+
 ## Where to go next
 
 | If you need... | Start with... |
