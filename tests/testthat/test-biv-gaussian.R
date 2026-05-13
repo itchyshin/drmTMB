@@ -530,6 +530,18 @@ test_that("bivariate Gaussian keeps mu and sigma covariance blocks distinct", {
   expect_lt(abs(unname(fit$corpars$mu) - sim$rho_mu), 0.25)
   expect_lt(abs(unname(fit$corpars$sigma) - sim$rho_scale), 0.18)
   expect_abs_error_below(coef(fit, "rho12"), sim$beta_rho12, 0.12)
+  expect_equal(
+    fit$model$random$mu$coef_names,
+    c("(Intercept)", "(Intercept)")
+  )
+  expect_equal(fit$model$random$mu$group_names, c("id", "id"))
+  expect_equal(fit$model$random$mu$covariance_labels, c("pm", "pm"))
+  expect_equal(
+    fit$model$random$sigma$coef_names,
+    c("(Intercept)", "(Intercept)")
+  )
+  expect_equal(fit$model$random$sigma$group_names, c("id", "id"))
+  expect_equal(fit$model$random$sigma$covariance_labels, c("ps", "ps"))
 
   expect_equal(nrow(pairs), 3L)
   expect_equal(nrow(group_pairs), 2L)

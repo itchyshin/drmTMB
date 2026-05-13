@@ -2,6 +2,30 @@
 
 Record meaningful development checks here.
 
+## 2026-05-12 -- Bivariate random-structure metadata parity
+
+Scope:
+
+- added `coef_names`, `group_names`, and `covariance_labels` fields to the
+  bivariate `mu1`/`mu2` random-effect structure so it matches the existing
+  bivariate `sigma1`/`sigma2` structure shape;
+- added assertions to the combined bivariate covariance regression so future
+  covariance code can rely on those metadata fields being present for both
+  same-parameter blocks.
+
+Checks:
+
+- inspected `build_biv_mu_random_structure()` and
+  `build_biv_sigma_random_structure()`; the `sigma` path already returned the
+  metadata fields, while the `mu` path did not.
+- `air format R/drmTMB.R tests/testthat/test-biv-gaussian.R`: passed.
+- `Rscript -e "devtools::test(filter = 'biv-gaussian')"`: passed with
+  235 expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript -e "devtools::test()"`: passed with 2014 expectations,
+  0 failures, 0 warnings, and 0 skips.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with no problems found.
+- `git diff --check`: passed.
+
 ## 2026-05-12 -- Bivariate covariance block label guard
 
 Scope:
