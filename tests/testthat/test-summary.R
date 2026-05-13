@@ -15,6 +15,7 @@ test_that("summary() reports fitted response-scale parameter ranges", {
 
   expect_s3_class(smry, "summary.drmTMB")
   expect_named(smry$coefficients, c("estimate", "std_error"))
+  expect_equal(nrow(smry$covariance), 0L)
   expect_true("fitted:sigma" %in% rownames(smry$parameters))
   sigma_row <- smry$parameters["fitted:sigma", ]
   expect_equal(sigma_row$component, "distributional-scale")
@@ -134,6 +135,26 @@ test_that("summary() reports univariate mu/sigma covariance separately", {
     smry$parameters[cor_mu_sigma, "term"],
     names(fit$corpars$mu_sigma)[[1L]]
   )
+  expect_equal(nrow(smry$covariance), 1L)
+  expect_equal(smry$covariance$level, "group")
+  expect_equal(smry$covariance$group, "id")
+  expect_equal(smry$covariance$block, "p")
+  expect_equal(smry$covariance$class, "mean-scale")
+  expect_equal(smry$covariance$from_scale, "identity")
+  expect_equal(smry$covariance$to_scale, "log")
+  expect_equal(
+    smry$covariance$correlation,
+    unname(fit$corpars$mu_sigma[[1L]]),
+    tolerance = 1e-12
+  )
+  expect_equal(
+    smry$covariance$covariance,
+    unname(fit$sdpars$mu[[1L]]) *
+      unname(fit$sdpars$sigma[[1L]]) *
+      unname(fit$corpars$mu_sigma[[1L]]),
+    tolerance = 1e-12
+  )
+  expect_true(all(is.na(smry$covariance$covariance_conf.low)))
   expect_false(grepl(
     "rho12",
     smry$parameters[cor_mu_sigma, "term"],
@@ -153,6 +174,10 @@ test_that("summary() reports univariate mu/sigma covariance separately", {
   expect_true(is.finite(cor_row$conf.high))
   expect_lt(cor_row$conf.low, smry$parameters[cor_mu_sigma, "estimate"])
   expect_gt(cor_row$conf.high, smry$parameters[cor_mu_sigma, "estimate"])
+  expect_true(is.finite(profiled$covariance$correlation_conf.low))
+  expect_true(is.finite(profiled$covariance$correlation_conf.high))
+  expect_true(all(is.na(profiled$covariance$from_sd_conf.low)))
+  expect_true(all(is.na(profiled$covariance$covariance_conf.low)))
 })
 
 test_that("summary() separates bivariate group covariance from residual rho12", {
@@ -208,6 +233,21 @@ test_that("summary() separates bivariate group covariance from residual rho12", 
   expect_equal(smry$parameters["rho12", "estimate"], unique(rho12(fit)))
   expect_equal(smry$parameters[cor_mu, "term"], names(fit$corpars$mu)[[1L]])
   expect_false(grepl("rho12", smry$parameters[cor_mu, "term"], fixed = TRUE))
+  expect_equal(nrow(smry$covariance), 1L)
+  expect_equal(smry$covariance$class, "mean-mean")
+  expect_equal(smry$covariance$from_dpar, "mu1")
+  expect_equal(smry$covariance$to_dpar, "mu2")
+  expect_equal(smry$covariance$from_scale, "identity")
+  expect_equal(smry$covariance$to_scale, "identity")
+  expect_equal(smry$covariance$correlation, unname(fit$corpars$mu[[1L]]))
+  expect_equal(
+    smry$covariance$covariance,
+    unname(fit$sdpars$mu[[1L]]) *
+      unname(fit$sdpars$mu[[2L]]) *
+      unname(fit$corpars$mu[[1L]]),
+    tolerance = 1e-12
+  )
+  expect_false(any(grepl("rho12", smry$covariance$parameter, fixed = TRUE)))
 
   profiled <- summary(
     fit,

@@ -2,6 +2,32 @@
 
 Record meaningful development checks here.
 
+## 2026-05-13 -- Slice 9C summary covariance reporting surface
+
+Scope:
+
+- added `summary(fit)$covariance` as the first public surface for fitted
+  registry-backed random-effect variance and covariance point summaries;
+- made `print(summary(fit))` show a compact covariance table only when fitted
+  covariance rows exist;
+- kept residual `rho12` out of the covariance table and kept derived covariance
+  intervals empty even when component profile intervals are present;
+- documented the scope boundary in NEWS, roadmap, and the double-hierarchical
+  endpoint design note.
+
+Checks:
+
+- `Rscript -e 'devtools::test(filter = "summary")'`: passed with 87
+  expectations, 0 failures, 0 warnings, and 0 skips.
+- `devtools::document()`: passed.
+- `air format R/methods.R tests/testthat/test-summary.R NEWS.md ROADMAP.md
+  docs/design/28-double-hierarchical-endpoint.md docs/dev-log/check-log.md
+  docs/dev-log/after-task/2026-05-13-slice-9c-summary-covariance-reporting-surface.md`:
+  passed.
+- `Rscript -e 'devtools::test(filter = "summary|covariance-block-registry|corpairs")'`:
+  passed with 315 expectations, 0 failures, 0 warnings, and 0 skips.
+- `git diff --check`: passed.
+
 ## 2026-05-13 -- Slice 9B covariance-summary component intervals
 
 Scope:

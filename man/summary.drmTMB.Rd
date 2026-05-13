@@ -42,11 +42,12 @@ intervals.}
 An object of class \code{summary.drmTMB}.
 }
 \description{
-\code{summary()} returns a compact summary of fixed-effect estimates and
-response-scale distributional, scale, shape, random-effect SD, and correlation
-quantities when they are present. Confidence intervals are opt-in: fast Wald
-intervals are available for fixed effects, and slower profile-likelihood
-intervals are available for selected direct profile targets.
+\code{summary()} returns a compact summary of fixed-effect estimates,
+response-scale distributional, scale, shape, random-effect SD, correlation,
+and fitted random-effect covariance quantities when they are present.
+Confidence intervals are opt-in: fast Wald intervals are available for fixed
+effects, and slower profile-likelihood intervals are available for selected
+direct profile targets.
 }
 \examples{
 dat <- data.frame(y = c(0.2, 0.5, 1.1, 1.4), x = c(-1, 0, 1, 2))

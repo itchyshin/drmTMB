@@ -113,6 +113,12 @@ itself remains unfilled until a fix-and-refit or other valid derived-interval
 method is available; it should not be approximated by stitching together
 component Wald intervals.
 
+The first public reporting surface is `summary(fit)$covariance`. It returns
+the registry-backed variance and covariance point summaries for currently
+fitted covariance blocks and prints a compact table when rows are present. This
+does not expose q > 2 syntax or derived covariance intervals; it only reports
+blocks that the fitted model already populated.
+
 ## Implementation Order
 
 1. Keep the current fixed-effect bivariate `rho12` path and ordinary univariate

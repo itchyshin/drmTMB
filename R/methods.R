@@ -1669,11 +1669,12 @@ sigma.drmTMB <- function(object, ...) {
 
 #' Summarize a fitted model
 #'
-#' `summary()` returns a compact summary of fixed-effect estimates and
-#' response-scale distributional, scale, shape, random-effect SD, and correlation
-#' quantities when they are present. Confidence intervals are opt-in: fast Wald
-#' intervals are available for fixed effects, and slower profile-likelihood
-#' intervals are available for selected direct profile targets.
+#' `summary()` returns a compact summary of fixed-effect estimates,
+#' response-scale distributional, scale, shape, random-effect SD, correlation,
+#' and fitted random-effect covariance quantities when they are present.
+#' Confidence intervals are opt-in: fast Wald intervals are available for fixed
+#' effects, and slower profile-likelihood intervals are available for selected
+#' direct profile targets.
 #'
 #' @param object A `drmTMB` fit.
 #' @param conf.int Logical; include confidence intervals when `TRUE`.
@@ -1757,10 +1758,16 @@ summary.drmTMB <- function(
     )
   }
 
+  covariance <- random_effect_covariance_summaries(
+    object,
+    intervals = if (conf.int && identical(method, "profile")) ci else NULL
+  )
+
   out <- list(
     call = object$call,
     coefficients = coefficients,
     parameters = parameters,
+    covariance = covariance,
     sdpars = object$sdpars,
     corpars = object$corpars,
     ordinal = object$ordinal,
@@ -1787,6 +1794,10 @@ print.summary.drmTMB <- function(x, ...) {
   if (nrow(x$parameters) > 0L) {
     cli::cli_text("Distributional, scale, and correlation parameters:")
     print(drm_summary_print_parameters(x$parameters))
+  }
+  if (is.data.frame(x$covariance) && nrow(x$covariance) > 0L) {
+    cli::cli_text("Random-effect covariance summaries:")
+    print(drm_summary_print_covariance(x$covariance))
   }
   if (!is.null(x$ordinal)) {
     cli::cli_text("Ordinal cutpoints:")
@@ -2041,6 +2052,31 @@ drm_summary_print_parameters <- function(parameters) {
   }
   out <- parameters[, keep, drop = FALSE]
   row.names(out) <- row.names(parameters)
+  out
+}
+
+drm_summary_print_covariance <- function(covariance) {
+  keep <- c(
+    "level",
+    "group",
+    "block",
+    "from_dpar",
+    "to_dpar",
+    "class",
+    "correlation",
+    "from_sd",
+    "to_sd",
+    "covariance"
+  )
+  out <- covariance[, keep, drop = FALSE]
+  if (
+    "correlation_conf.low" %in%
+      names(covariance) &&
+      any(is.finite(covariance$correlation_conf.low))
+  ) {
+    out$correlation_conf.low <- covariance$correlation_conf.low
+    out$correlation_conf.high <- covariance$correlation_conf.high
+  }
   out
 }
 
