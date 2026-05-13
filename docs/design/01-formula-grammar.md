@@ -164,6 +164,13 @@ between-group associations after the fixed effects are included. Bivariate
 random slopes, cross-parameter covariance blocks, and `rho12` random effects
 remain planned.
 
+Do not reuse the same label and grouping variable across the bivariate location
+and scale pairs in this first slice. For example, putting `(1 | p | id)` in all
+four formulas is rejected because it would imply a cross-parameter bivariate
+covariance block across `mu1`, `mu2`, `sigma1`, and `sigma2`. Use distinct
+labels, such as `p` and `q`, until that larger covariance block is implemented
+and tested.
+
 The `mvbind()` form is implemented as shorthand for identical location
 formulas:
 

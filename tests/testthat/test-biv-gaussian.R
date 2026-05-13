@@ -1032,6 +1032,14 @@ test_that("bivariate Gaussian rejects unsupported Phase 3 syntax clearly", {
   )
   expect_error(
     drmTMB(
+      bf(mu1 = y1 ~ x, mu2 = y2 ~ x, rho12 = ~ x + (1 | p | id)),
+      family = biv_gaussian(),
+      data = dat
+    ),
+    "within-observation"
+  )
+  expect_error(
+    drmTMB(
       bf(mu1 = y1 ~ x + meta_known_V(V = vi), mu2 = y2 ~ x),
       family = biv_gaussian(),
       data = dat
@@ -1121,6 +1129,20 @@ test_that("bivariate Gaussian rejects unsupported Phase 3 syntax clearly", {
       data = dat
     ),
     "same covariance-block label"
+  )
+  expect_error(
+    drmTMB(
+      bf(
+        mu1 = y1 ~ x + (1 | p | id),
+        mu2 = y2 ~ x + (1 | p | id),
+        sigma1 = ~ 1 + (1 | p | id),
+        sigma2 = ~ 1 + (1 | p | id),
+        rho12 = ~x
+      ),
+      family = biv_gaussian(),
+      data = dat
+    ),
+    "Reusing one bivariate covariance-block label"
   )
   expect_error(
     drmTMB(
