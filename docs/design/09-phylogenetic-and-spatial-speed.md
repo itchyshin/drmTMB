@@ -92,7 +92,8 @@ evaluates the matrix-normal prior for augmented phylogenetic effects across
 `mu1`, `mu2`, `sigma1`, and `sigma2` using the existing sparse tree precision
 and a small dense Kronecker comparator in tests. This proves the covariance
 algebra before exposing bivariate `phylo()` syntax or adding TMB likelihood
-wiring.
+wiring. A matching hidden TMB prior branch mirrors this q=4 algebra contract
+without attaching it to any user-facing bivariate model.
 
 ### gllvmTMB Source Map
 

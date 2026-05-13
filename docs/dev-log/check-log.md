@@ -2,6 +2,30 @@
 
 Record meaningful development checks here.
 
+## 2026-05-13 -- Slice 12 hidden phylogenetic q4 TMB prior branch
+
+Scope:
+
+- added hidden `model_type == 94` as a prior-only TMB branch for a q=4
+  phylogenetic state over the augmented tree precision;
+- added `re_cov_probe_covariance` to the hidden probe data contract while
+  keeping ordinary model data unchanged through dummy values;
+- compared the hidden TMB objective with the R
+  `drm_phylo_correlated_precision_nll()` helper;
+- kept public bivariate `phylo()` syntax and fitted model reporting closed.
+
+Checks:
+
+- `air format R/drmTMB.R tests/testthat/test-phylo-utils.R ROADMAP.md
+  docs/design/09-phylogenetic-and-spatial-speed.md
+  docs/design/15-location-coscale-phylogenetic-extension.md
+  docs/dev-log/check-log.md
+  docs/dev-log/after-task/2026-05-13-slice-12-hidden-phylogenetic-q4-tmb-prior-branch.md`:
+  passed.
+- `Rscript -e 'devtools::test(filter = "phylo-utils")'`: passed with 52
+  expectations, 0 failures, 0 warnings, and 0 skips.
+- `git diff --check`: passed.
+
 ## 2026-05-13 -- Slice 11 phylogenetic q4 prior algebra scaffold
 
 Scope:

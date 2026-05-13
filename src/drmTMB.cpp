@@ -120,6 +120,7 @@ Type objective_function<Type>::operator()()
   DATA_VECTOR(re_cov_probe_sd);
   DATA_VECTOR(re_cov_probe_x);
   DATA_VECTOR(re_cov_probe_z);
+  DATA_MATRIX(re_cov_probe_covariance);
 
   PARAMETER_VECTOR(beta_mu);
   PARAMETER_VECTOR(beta_sigma);
@@ -160,7 +161,48 @@ Type objective_function<Type>::operator()()
   (void)re_cov_pair_to_member;
   (void)re_cov_pair_parameter;
   (void)re_cov_pair_parameter_index;
-  if (model_type == 95 || model_type == 96 || model_type == 97) {
+  if (model_type == 94) {
+    int n_phylo = Q_phylo.rows();
+    int q = re_cov_probe_covariance.rows();
+    matrix<Type> effect(n_phylo, q);
+    for (int j = 0; j < q; ++j) {
+      for (int i = 0; i < n_phylo; ++i) {
+        int pos = j * n_phylo + i;
+        effect(i, j) = u_re_cov_probe(pos);
+      }
+    }
+    matrix<Type> covariance_inverse = re_cov_probe_covariance.inverse();
+    Type log_det_covariance = log(re_cov_probe_covariance.determinant());
+    matrix<Type> quadratic_matrix(q, q);
+    quadratic_matrix.setZero();
+    for (int b = 0; b < q; ++b) {
+      vector<Type> effect_b(n_phylo);
+      for (int i = 0; i < n_phylo; ++i) {
+        effect_b(i) = effect(i, b);
+      }
+      vector<Type> Q_effect_b = Q_phylo * effect_b;
+      for (int a = 0; a < q; ++a) {
+        for (int i = 0; i < n_phylo; ++i) {
+          quadratic_matrix(a, b) += effect(i, a) * Q_effect_b(i);
+        }
+      }
+    }
+    Type quadratic = Type(0.0);
+    for (int a = 0; a < q; ++a) {
+      for (int b = 0; b < q; ++b) {
+        quadratic += covariance_inverse(a, b) * quadratic_matrix(a, b);
+      }
+    }
+    nll += Type(0.5) * (
+      Type(n_phylo * q) * log(Type(2.0) * M_PI) +
+      Type(n_phylo) * log_det_covariance -
+      Type(q) * log_det_Q_phylo +
+      quadratic
+    );
+    REPORT(quadratic);
+    REPORT(log_det_covariance);
+    REPORT(quadratic_matrix);
+  } else if (model_type == 95 || model_type == 96 || model_type == 97) {
     density::UNSTRUCTURED_CORR_t<Type> re_cov_probe_density(re_cov_probe_theta);
     matrix<Type> re_cov_probe_corr = re_cov_probe_density.cov();
     matrix<Type> re_cov_probe_contribution(

@@ -78,6 +78,13 @@ phylo_prior_tmb_data <- function(precision) {
   )
 }
 
+phylo_correlated_prior_tmb_data <- function(precision, covariance) {
+  data <- phylo_prior_tmb_data(precision)
+  data$model_type <- 94L
+  data$re_cov_probe_covariance <- covariance
+  data
+}
+
 phylo_prior_tmb_parameters <- function(effect, log_sd) {
   list(
     beta_mu = 0,
@@ -102,6 +109,15 @@ phylo_prior_tmb_parameters <- function(effect, log_sd) {
     u_re_cov_probe = 0,
     log_sd_phylo = log_sd
   )
+}
+
+phylo_correlated_prior_tmb_parameters <- function(effect) {
+  parameters <- phylo_prior_tmb_parameters(
+    rep(0, nrow(effect)),
+    log_sd = 0
+  )
+  parameters$u_re_cov_probe <- as.numeric(effect)
+  parameters
 }
 
 dense_zero_mvn_nll <- function(values, covariance) {
@@ -440,6 +456,83 @@ test_that("correlated phylogenetic precision algebra handles q=4 states", {
       diag(c(1, -1, 1, 1))
     ),
     "positive definite"
+  )
+})
+
+test_that("TMB correlated phylogenetic prior branch matches q=4 R algebra", {
+  tree <- tiny_ultrametric_tree()
+  precision <- drmTMB:::drm_phylo_augmented_precision(tree)
+  effect <- matrix(
+    c(
+      0.20,
+      -0.10,
+      0.35,
+      0.05,
+      -0.15,
+      0.12,
+      0.28,
+      -0.04,
+      0.05,
+      0.18,
+      -0.08,
+      0.09,
+      0.11,
+      -0.07,
+      0.16,
+      -0.02
+    ),
+    nrow = nrow(precision$precision),
+    dimnames = list(
+      rownames(precision$precision),
+      c("mu1", "mu2", "sigma1", "sigma2")
+    )
+  )
+  sd_state <- c(0.65, 0.45, 0.30, 0.25)
+  correlation <- matrix(
+    c(
+      1.00,
+      0.20,
+      -0.10,
+      0.12,
+      0.20,
+      1.00,
+      0.15,
+      -0.08,
+      -0.10,
+      0.15,
+      1.00,
+      0.22,
+      0.12,
+      -0.08,
+      0.22,
+      1.00
+    ),
+    nrow = 4L
+  )
+  covariance <- diag(sd_state) %*% correlation %*% diag(sd_state)
+
+  obj <- TMB::MakeADFun(
+    data = phylo_correlated_prior_tmb_data(precision, covariance),
+    parameters = phylo_correlated_prior_tmb_parameters(effect),
+    DLL = "drmTMB",
+    silent = TRUE
+  )
+  report <- obj$report()
+
+  expect_equal(
+    obj$fn(obj$par),
+    drmTMB:::drm_phylo_correlated_precision_nll(
+      effect,
+      precision,
+      covariance
+    ),
+    tolerance = 1e-10
+  )
+  expect_true(all(is.finite(obj$gr(obj$par))))
+  expect_equal(
+    report$quadratic_matrix,
+    unname(crossprod(effect, as.matrix(precision$precision %*% effect))),
+    tolerance = 1e-10
   )
 })
 

@@ -3708,7 +3708,8 @@ empty_labelled_covariance_block_tmb_data <- function() {
     re_cov_probe_theta = numeric(0),
     re_cov_probe_sd = numeric(0),
     re_cov_probe_x = numeric(0),
-    re_cov_probe_z = numeric(0)
+    re_cov_probe_z = numeric(0),
+    re_cov_probe_covariance = matrix(0, nrow = 1L, ncol = 1L)
   )
 }
 
@@ -3770,7 +3771,8 @@ labelled_covariance_block_tmb_data <- function(
     re_cov_probe_theta = numeric(0),
     re_cov_probe_sd = numeric(0),
     re_cov_probe_x = numeric(0),
-    re_cov_probe_z = numeric(0)
+    re_cov_probe_z = numeric(0),
+    re_cov_probe_covariance = matrix(0, nrow = 1L, ncol = 1L)
   )
 }
 
