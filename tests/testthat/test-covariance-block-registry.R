@@ -121,6 +121,26 @@ test_that("ordinary fits keep hidden q=3 probe parameter mapped off", {
   expect_false("u_re_cov_probe" %in% names(fit$opt$par))
 })
 
+test_that("mapped-off q=3 probe parameter is a no-op for ordinary fits", {
+  dat <- data.frame(y = c(-0.3, 0.2, 0.8, -0.1, 0.4, 0.9))
+  fit <- drmTMB(bf(y ~ 1, sigma ~ 1), family = gaussian(), data = dat)
+  parameters <- fit$model$start
+  parameters$u_re_cov_probe <- 7
+
+  obj <- TMB::MakeADFun(
+    data = fit$model$tmb_data,
+    parameters = parameters,
+    map = fit$model$map,
+    random = fit$model$random_names,
+    DLL = "drmTMB",
+    silent = TRUE
+  )
+
+  expect_equal(names(obj$par), names(fit$opt$par))
+  expect_equal(obj$fn(fit$opt$par), fit$obj$fn(fit$opt$par), tolerance = 1e-12)
+  expect_equal(obj$gr(fit$opt$par), fit$obj$gr(fit$opt$par), tolerance = 1e-12)
+})
+
 test_that("hidden q=3 registry probe maps non-centered blocks by group", {
   dat <- data.frame(y = c(-0.3, 0.2, 0.8, -0.1, 0.4, 0.9))
   fit <- drmTMB(bf(y ~ 1, sigma ~ 1), family = gaussian(), data = dat)

@@ -2,6 +2,27 @@
 
 Record meaningful development checks here.
 
+## 2026-05-13 -- Slice 6E mapped-off q=3 probe no-op guard
+
+Scope:
+
+- added a regression test proving that the dormant `u_re_cov_probe` parameter
+  does not affect ordinary Gaussian likelihoods while it remains mapped off;
+- rebuilt a TMB object with `u_re_cov_probe = 7`, kept the ordinary
+  `factor(NA)` map, and compared the optimizer parameter names, objective, and
+  gradient against the fitted object;
+- changed no C++ likelihood branch, no R parser syntax, no user-facing
+  covariance support, and no documentation claims about fitted q > 2 blocks.
+
+Checks:
+
+- `air format tests/testthat/test-covariance-block-registry.R`: passed.
+- `Rscript -e 'devtools::test(filter = "covariance-block-registry")'`: passed
+  with 44 expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript -e 'devtools::test(filter =
+  "covariance-block-registry|biv-gaussian|gaussian-random-intercepts|phylo-utils|package-skeleton")'`:
+  passed with 942 expectations, 0 failures, 0 warnings, and 0 skips.
+
 ## 2026-05-13 -- Slice 6D hidden q=3 probe parameter plumbing
 
 Scope:
