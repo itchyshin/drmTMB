@@ -3706,7 +3706,8 @@ empty_labelled_covariance_block_tmb_data <- function() {
     re_cov_pair_parameter_index = 0L,
     re_cov_probe_theta = numeric(0),
     re_cov_probe_sd = numeric(0),
-    re_cov_probe_x = numeric(0)
+    re_cov_probe_x = numeric(0),
+    re_cov_probe_z = numeric(0)
   )
 }
 
@@ -3760,7 +3761,8 @@ labelled_covariance_block_tmb_data <- function(registry) {
     re_cov_pair_parameter_index = pairs$tmb_index - 1L,
     re_cov_probe_theta = numeric(0),
     re_cov_probe_sd = numeric(0),
-    re_cov_probe_x = numeric(0)
+    re_cov_probe_x = numeric(0),
+    re_cov_probe_z = numeric(0)
   )
 }
 

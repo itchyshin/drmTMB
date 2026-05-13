@@ -154,9 +154,10 @@ distributional regression models using TMB.
   three-member block, but marks that scaffold unimplemented and still blocks
   TMB export for `q > 2`. Larger shared labels still need simulation recovery
   and a positive-definite `q > 2` likelihood path before exposure. An internal
-  TMB algebra probe now confirms that `UNSTRUCTURED_CORR_t` plus `VECSCALE_t`
-  can produce a positive-definite q=3 correlation and finite objective/gradient;
-  it is not connected to the fitted model likelihood yet.
+  TMB algebra probes now confirm that `UNSTRUCTURED_CORR_t` plus `VECSCALE_t`
+  can produce a positive-definite q=3 correlation, finite objective/gradient,
+  and a non-centered `sqrt_cov_scale()` transform; these probes are not
+  connected to the fitted model likelihood yet.
 - Use `docs/design/18-random-effect-scale-models.md` as the design contract:
   the implemented MVP targets one or more distinct unlabelled univariate
   Gaussian `mu` random intercepts, with group-level predictors, simulation

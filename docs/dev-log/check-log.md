@@ -2,6 +2,31 @@
 
 Record meaningful development checks here.
 
+## 2026-05-13 -- Slice 6B q=3 non-centered TMB probe
+
+Scope:
+
+- added internal-only TMB data field `re_cov_probe_z` to the dormant
+  covariance-block data contract;
+- extended hidden `model_type == 98` to report `re_cov_probe_latent`, the q=3
+  latent vector produced by `VECSCALE(UNSTRUCTURED_CORR(theta), s)
+  .sqrt_cov_scale(z)`;
+- added an R-side check reconstructing the same transform as
+  `s * t(chol(R)) %*% z`, where `R` is TMB's reported q=3 correlation matrix;
+- changed no user-facing syntax, no fitted-model likelihood branch, no real
+  random-effect parameters, and no public q > 2 covariance support.
+
+Checks:
+
+- `air format R/drmTMB.R tests/testthat/test-covariance-block-registry.R`:
+  passed.
+- `Rscript -e 'devtools::test(filter = "covariance-block-registry")'`: passed
+  with 31 expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript -e 'devtools::test(filter =
+  "covariance-block-registry|biv-gaussian|gaussian-random-intercepts|phylo-utils")'`:
+  passed with 889 expectations, 0 failures, 0 warnings, and 0 skips.
+- `git diff --check`: passed.
+
 ## 2026-05-13 -- Slice 6 q=3 TMB algebra probe
 
 Scope:

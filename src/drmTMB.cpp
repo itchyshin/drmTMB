@@ -119,6 +119,7 @@ Type objective_function<Type>::operator()()
   DATA_VECTOR(re_cov_probe_theta);
   DATA_VECTOR(re_cov_probe_sd);
   DATA_VECTOR(re_cov_probe_x);
+  DATA_VECTOR(re_cov_probe_z);
 
   PARAMETER_VECTOR(beta_mu);
   PARAMETER_VECTOR(beta_sigma);
@@ -161,6 +162,17 @@ Type objective_function<Type>::operator()()
   if (model_type == 98) {
     density::UNSTRUCTURED_CORR_t<Type> re_cov_probe_density(re_cov_probe_theta);
     matrix<Type> re_cov_probe_corr = re_cov_probe_density.cov();
+    vector<Type> re_cov_probe_latent(re_cov_probe_z.size());
+    if (re_cov_probe_z.size() > 0) {
+      if (re_cov_probe_sd.size() == re_cov_probe_z.size()) {
+        re_cov_probe_latent = density::VECSCALE(
+          re_cov_probe_density,
+          re_cov_probe_sd
+        ).sqrt_cov_scale(re_cov_probe_z);
+      } else {
+        re_cov_probe_latent = re_cov_probe_density.sqrt_cov_scale(re_cov_probe_z);
+      }
+    }
     if (re_cov_probe_x.size() > 0) {
       if (re_cov_probe_sd.size() == re_cov_probe_x.size()) {
         nll += density::VECSCALE(
@@ -172,6 +184,7 @@ Type objective_function<Type>::operator()()
       }
     }
     REPORT(re_cov_probe_corr);
+    REPORT(re_cov_probe_latent);
   } else if (model_type == 99) {
     int n_phylo = u_phylo.size();
     vector<Type> Q_u = Q_phylo * u_phylo;

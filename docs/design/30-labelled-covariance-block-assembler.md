@@ -95,11 +95,13 @@ Local TMB 1.9.21 exposes `UNSTRUCTURED_CORR_t` and `VECSCALE_t` for an
 unstructured correlation density with scaled standard deviations. The first
 TMB algebra probe confirms that a q=3 `UNSTRUCTURED_CORR_t` object reports a
 positive-definite correlation matrix and can be evaluated through `VECSCALE_t`.
-The next likelihood slice should use that helper through `sqrt_cov_scale()` so
-the implementation stays non-centered. If the helper is unsuitable for the
-existing non-centered parameterization, the fallback should still use one
-positive-definite Cholesky-style parameterization for the whole block, not
-separate unconstrained pairwise `tanh()` correlations.
+The follow-up probe confirms that `VECSCALE(UNSTRUCTURED_CORR(theta), s)` can
+map standardized q=3 latent vectors through `sqrt_cov_scale()`. The production
+likelihood slice should reuse that non-centered contract while pulling vectors
+from the labelled covariance-block registry. If the helper is unsuitable for
+the full registry path, the fallback should still use one positive-definite
+Cholesky-style parameterization for the whole block, not separate
+unconstrained pairwise `tanh()` correlations.
 
 The flattened data contract should be block-oriented rather than pair-oriented:
 
@@ -191,10 +193,11 @@ still be named `sigma`.
    can carry three members and all three pair rows while marked
    `implemented = FALSE`, and TMB export still aborts for `q > 2`.
 7. Prototype `UNSTRUCTURED_CORR_t` plus scaled standard deviations or an
-   equivalent positive-definite Cholesky path for `q > 2`. Started with an
-   internal TMB algebra probe that reports a positive-definite q=3 correlation
-   matrix and finite objective/gradient under `VECSCALE_t`; the production
-   likelihood still needs the non-centered `sqrt_cov_scale()` path.
+   equivalent positive-definite Cholesky path for `q > 2`. Done for hidden TMB
+   probes that report a positive-definite q=3 correlation matrix, finite
+   objective/gradient under `VECSCALE_t`, and the non-centered
+   `sqrt_cov_scale()` latent transform; the production likelihood still needs
+   the registry-backed path.
 8. Only then enable bivariate random slopes or the full shared
    `mu1`/`mu2`/`sigma1`/`sigma2` label pattern.
 

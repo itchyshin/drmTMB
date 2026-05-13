@@ -115,9 +115,10 @@ keep the same row meaning and mark derived intervals separately.
    no-op C++ visibility path for the dormant block data contract.
 4. Add a guarded three-member scaffold and a positive-definite `q > 2`
    parameterization before exposing larger shared labels. Done for internal
-   registry pair enumeration and started with a TMB algebra probe for q=3
-   positive-definite correlations; the non-centered likelihood path and
-   simulation recovery remain next.
+   registry pair enumeration and hidden TMB algebra probes for q=3
+   positive-definite correlations plus a non-centered `sqrt_cov_scale()`
+   transform; the production likelihood path and simulation recovery remain
+   next.
 5. Add the univariate four-effect block:
    `bf(y ~ x + (1 + x | p | id), sigma ~ x + (1 + x | p | id))`.
 6. Extend `corpairs()` to report each fitted group-level pair from the shared

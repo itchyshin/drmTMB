@@ -58,6 +58,11 @@ tmb_unstructured_corr_matrix <- function(theta) {
   stats::cov2cor(L %*% t(L))
 }
 
+tmb_vecscale_sqrt_cov_scale <- function(theta, sd, z) {
+  corr <- tmb_unstructured_corr_matrix(theta)
+  as.vector(sd * (t(chol(corr)) %*% z))
+}
+
 test_that("internal covariance registry can describe a guarded q=3 block", {
   registry <- new_three_member_covariance_registry()
   block <- registry$blocks[1L, , drop = FALSE]
@@ -116,6 +121,7 @@ test_that("TMB q=3 covariance prototype produces positive-definite correlations"
   tmb_data$re_cov_probe_theta <- theta
   tmb_data$re_cov_probe_sd <- c(1.2, 0.8, 1.5)
   tmb_data$re_cov_probe_x <- c(0.1, -0.2, 0.3)
+  tmb_data$re_cov_probe_z <- c(-0.7, 0.4, 1.1)
 
   obj <- TMB::MakeADFun(
     data = tmb_data,
@@ -127,11 +133,21 @@ test_that("TMB q=3 covariance prototype produces positive-definite correlations"
   )
 
   corr <- obj$report()$re_cov_probe_corr
+  latent <- obj$report()$re_cov_probe_latent
   eig <- eigen(corr, symmetric = TRUE, only.values = TRUE)$values
 
   expect_equal(corr, t(corr), tolerance = 1e-12)
   expect_equal(diag(corr), rep(1, 3), tolerance = 1e-12)
   expect_equal(corr, tmb_unstructured_corr_matrix(theta), tolerance = 1e-12)
+  expect_equal(
+    latent,
+    tmb_vecscale_sqrt_cov_scale(
+      theta,
+      tmb_data$re_cov_probe_sd,
+      tmb_data$re_cov_probe_z
+    ),
+    tolerance = 1e-12
+  )
   expect_true(all(eig > 0))
   expect_true(is.finite(obj$fn(obj$par)))
   expect_true(all(is.finite(obj$gr(obj$par))))
