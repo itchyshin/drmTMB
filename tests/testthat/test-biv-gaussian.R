@@ -678,6 +678,10 @@ test_that("bivariate Gaussian supports labelled sigma1/sigma2 random-intercept c
   )
   expect_equal(sigma_targets$index, c(1L, 2L, 1L))
   expect_true(all(sigma_targets$profile_ready))
+  fit_target_registry <- fit
+  names(fit_target_registry$corpars$sigma) <- "cor(bad,bad | wrong | wrong)"
+  registry_sigma_targets <- profile_targets(fit_target_registry)
+  expect_true(cor_sigma %in% registry_sigma_targets$parm)
   expect_equal(scale_cov$status, "ok")
   expect_match(scale_cov$value, "n_groups=48")
   expect_match(scale_cov$value, "min_group_n=8")
@@ -966,6 +970,10 @@ test_that("bivariate Gaussian fits same-response mu/sigma covariance", {
   )
   expect_equal(cross_targets$index, c(1L, 1L, 1L))
   expect_true(all(cross_targets$profile_ready))
+  fit_target_registry <- fit
+  names(fit_target_registry$corpars$mu_sigma) <- "cor(bad,bad | wrong | wrong)"
+  registry_cross_targets <- profile_targets(fit_target_registry)
+  expect_true(target_names[[3L]] %in% registry_cross_targets$parm)
   expect_equal(cov_check$status, "ok")
   expect_match(cov_check$value, "n_groups=64")
   expect_match(cov_check$message, "mu/sigma")

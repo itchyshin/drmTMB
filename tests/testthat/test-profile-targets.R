@@ -859,6 +859,15 @@ test_that("profile target inventory separates random-effect SDs and correlations
     drmTMB:::guarded_correlation_link(cor_target$estimate, guard = 0.999999),
     tolerance = 1e-12
   )
+
+  fit_registry <- fit
+  names(fit_registry$corpars$mu) <- "cor(bad,bad | wrong | wrong)"
+  registry_targets <- profile_targets(fit_registry)
+  expect_true("cor:mu:cor((Intercept),x | p | ID)" %in% registry_targets$parm)
+
+  fit_compat <- fit
+  fit_compat$model$random$covariance_blocks <- NULL
+  expect_equal(profile_targets(fit_compat), profile_targets(fit))
 })
 
 test_that("profile target inventory covers univariate mu/sigma covariance labels", {
@@ -900,6 +909,11 @@ test_that("profile target inventory covers univariate mu/sigma covariance labels
   expect_equal(mu_sigma_targets$profile_note, rep("ready", 3))
   expect_true(all(mu_sigma_parms %in% ready_targets$parm))
   expect_false(any(targets$dpar == "rho12"))
+
+  fit_registry <- fit
+  names(fit_registry$corpars$mu_sigma) <- "cor(bad,bad | wrong | wrong)"
+  registry_targets <- profile_targets(fit_registry)
+  expect_true(mu_sigma_parms[[3L]] %in% registry_targets$parm)
 })
 
 test_that("confint profile intervals transform mu/sigma covariance targets", {
@@ -989,6 +1003,11 @@ test_that("profile target inventory covers bivariate mu covariance labels", {
     "residual-correlation"
   )
   expect_false(any(rho12_targets$parm %in% biv_parms))
+
+  fit_registry <- fit
+  names(fit_registry$corpars$mu) <- "cor(bad,bad | wrong | wrong)"
+  registry_targets <- profile_targets(fit_registry)
+  expect_true(biv_parms[[3L]] %in% registry_targets$parm)
 })
 
 test_that("confint profile intervals transform bivariate mu covariance targets", {

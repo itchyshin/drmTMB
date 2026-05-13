@@ -2,6 +2,34 @@
 
 Record meaningful development checks here.
 
+## 2026-05-13 -- Slice 4 `profile_targets()` registry inventory
+
+Scope:
+
+- routed random-effect correlation rows in `profile_targets()` through
+  `object$model$random$covariance_blocks` when covered two-member registry
+  pairs are available;
+- preserved target names, target classes, `dpar`, `term`, `tmb_parameter`,
+  index, transformation, target type, readiness, and estimates for current
+  covariance targets;
+- kept fallback logic for old or partial objects by parsing any fitted
+  `corpars` row not covered by the registry;
+- changed no SD target rows, fixed-effect target rows, residual `rho12` target
+  rows, likelihood code, or accepted syntax.
+
+Checks:
+
+- Meitner/Emmy-copy was asked to map the target inventory contracts before the
+  closeout.
+- `air format R/profile.R tests/testthat/test-profile-targets.R
+  tests/testthat/test-biv-gaussian.R`: passed.
+- `Rscript -e 'devtools::test(filter = "profile-targets")'`: passed with 215
+  expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript -e 'devtools::test(filter =
+  "profile-targets|biv-gaussian|gaussian-random-intercepts|corpairs|check-drm")'`:
+  passed with 1159 expectations, 0 failures, 0 warnings, and 0 skips.
+- `git diff --check`: passed.
+
 ## 2026-05-13 -- Slice 4 `check_drm()` registry diagnostics
 
 Scope:

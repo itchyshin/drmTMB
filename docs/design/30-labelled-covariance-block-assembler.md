@@ -174,7 +174,9 @@ still be named `sigma`.
    covered two-member blocks and falls back to legacy label parsing for any
    uncovered fitted `corpars` rows. `check_drm()` now derives the covered
    two-member covariance diagnostics from registry members while preserving the
-   existing row names and messages. `profile_targets()` remains next.
+   existing row names and messages. `profile_targets()` now derives covered
+   random-effect correlation targets from registry pairs while preserving
+   target names, indices, and readiness.
 5. Pass the two-member dormant contract through the C++ boundary as a no-op
    visibility check before using it for likelihood evaluation.
 6. Add one simulation scaffold for a three-member block before exposing a
