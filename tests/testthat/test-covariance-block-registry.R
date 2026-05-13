@@ -261,6 +261,93 @@ test_that("internal covariance registry can describe a guarded q=4 endpoint bloc
   expect_true(all(is.na(pairs$tmb_index)))
 })
 
+test_that("corpairs can format fitted-like q=4 endpoint registry rows", {
+  dat <- data.frame(
+    y1 = c(-0.3, 0.1, 0.4, 0.8, -0.1, 0.6),
+    y2 = c(0.2, -0.2, 0.5, 0.7, 0.1, 0.4)
+  )
+  fit <- drmTMB(
+    bf(
+      mu1 = y1 ~ 1,
+      mu2 = y2 ~ 1,
+      sigma1 = ~1,
+      sigma2 = ~1,
+      rho12 = ~1
+    ),
+    family = biv_gaussian(),
+    data = dat
+  )
+  registry <- new_four_member_covariance_registry(
+    group_index0 = c(0L, 0L, 1L, 1L, 2L, 2L),
+    group_levels = paste0("g", 1:3)
+  )
+  pair_labels <- c(
+    "cor(mu1:(Intercept),mu2:(Intercept) | p | id)",
+    "cor(mu1:(Intercept),sigma1:(Intercept) | p | id)",
+    "cor(mu1:(Intercept),sigma2:(Intercept) | p | id)",
+    "cor(mu2:(Intercept),sigma1:(Intercept) | p | id)",
+    "cor(mu2:(Intercept),sigma2:(Intercept) | p | id)",
+    "cor(sigma1:(Intercept),sigma2:(Intercept) | p | id)"
+  )
+  estimates <- c(0.12, -0.21, 0.16, 0.08, -0.14, 0.27)
+  registry$blocks$implemented <- TRUE
+  registry$pairs$parameter <- pair_labels
+  registry$pairs$tmb_parameter <- c(
+    "eta_cor_mu",
+    rep("eta_cor_mu_sigma", 4L),
+    "eta_cor_sigma"
+  )
+  registry$pairs$tmb_index <- c(1L, 1L, 2L, 3L, 4L, 1L)
+  fit_q4 <- fit
+  fit_q4$model$random$covariance_blocks <- registry
+  fit_q4$corpars <- list(
+    mu = stats::setNames(estimates[[1L]], pair_labels[[1L]]),
+    mu_sigma = stats::setNames(estimates[2:5], pair_labels[2:5]),
+    sigma = stats::setNames(estimates[[6L]], pair_labels[[6L]])
+  )
+
+  pairs <- corpairs(fit_q4, level = "group")
+
+  expect_equal(nrow(pairs), 6L)
+  expect_equal(pairs$group, rep("id", 6L))
+  expect_equal(pairs$block, rep("p", 6L))
+  expect_equal(
+    pairs$from_dpar,
+    c("mu1", "mu1", "mu1", "mu2", "mu2", "sigma1")
+  )
+  expect_equal(
+    pairs$to_dpar,
+    c("mu2", "sigma1", "sigma2", "sigma1", "sigma2", "sigma2")
+  )
+  expect_equal(
+    pairs$class,
+    c(
+      "mean-mean",
+      "mean-scale",
+      "mean-scale",
+      "mean-scale",
+      "mean-scale",
+      "scale-scale"
+    )
+  )
+  expect_equal(pairs$parameter, pair_labels)
+  expect_equal(pairs$estimate, estimates, tolerance = 1e-12)
+  expect_equal(
+    pairs$link_estimate,
+    atanh(estimates / 0.999999),
+    tolerance = 1e-12
+  )
+  expect_equal(nrow(corpairs(fit_q4, class = "mean-scale")), 4L)
+  expect_equal(nrow(corpairs(fit_q4, class = "mean-mean")), 1L)
+  expect_equal(nrow(corpairs(fit_q4, class = "scale-scale")), 1L)
+  expect_equal(nrow(corpairs(fit_q4, group = "missing")), 0L)
+
+  fit_dormant <- fit
+  fit_dormant$model$random$covariance_blocks <-
+    new_four_member_covariance_registry()
+  expect_equal(nrow(corpairs(fit_dormant, level = "group")), 0L)
+})
+
 test_that("q=3 block TMB data remains guarded until parameterization exists", {
   registry <- new_three_member_covariance_registry()
 

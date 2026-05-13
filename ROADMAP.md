@@ -172,12 +172,14 @@ distributional regression models using TMB.
   vector through TMB's `random` argument and reconstruct the predictors from the
   optimized random-effect mode. A deterministic hidden recovery-style check now
   shows that this bivariate q=4 Laplace path recovers the simulated endpoint
-  predictor signals better than no-random-effect baselines. These probes are
-  not user-facing fitted-model support yet and do not cover random-slope q=6 or
-  q=8 endpoint blocks. The next strategic milestone after the non-phylogenetic
-  q=4 endpoint path is the corresponding phylogenetic q=4 state for the
-  mammalian and avian protocol use case; q=6 and q=8 random-slope endpoint
-  blocks can wait.
+  predictor signals better than no-random-effect baselines. An internal
+  `corpairs()` scaffold can now format all six q=4 endpoint rows from
+  fitted-like registry metadata, while dormant q > 2 rows remain invisible to
+  ordinary extractor output. These probes are not user-facing fitted-model
+  support yet and do not cover random-slope q=6 or q=8 endpoint blocks. The
+  next strategic milestone after the non-phylogenetic q=4 endpoint path is the
+  corresponding phylogenetic q=4 state for the mammalian and avian protocol use
+  case; q=6 and q=8 random-slope endpoint blocks can wait.
 - Use `docs/design/18-random-effect-scale-models.md` as the design contract:
   the implemented MVP targets one or more distinct unlabelled univariate
   Gaussian `mu` random intercepts, with group-level predictors, simulation

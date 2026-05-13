@@ -134,13 +134,18 @@ keep the same row meaning and mark derived intervals separately.
    argument and reconstruct predictors from the optimized random-effect mode.
    A deterministic hidden recovery-style check now recovers the simulated q=4
    endpoint predictor signals better than no-random-effect baselines.
-   User-facing q > 2 support remains closed until broader recovery evidence,
-   extractor rows, examples, and public syntax review exist; random-slope q=6
-   or q=8 endpoint blocks remain later extensions.
+   An internal `corpairs()` scaffold can format all six q=4 endpoint pair rows
+   from fitted-like registry metadata while skipping dormant rows that have no
+   fitted TMB metadata. User-facing q > 2 support remains closed until ordinary
+   fitted models populate those rows, broader recovery evidence, examples, and
+   public syntax review exist; random-slope q=6 or q=8 endpoint blocks remain
+   later extensions.
 5. Add the univariate four-effect block:
    `bf(y ~ x + (1 + x | p | id), sigma ~ x + (1 + x | p | id))`.
 6. Extend `corpairs()` to report each fitted group-level pair from the shared
-   block and keep those rows distinct from residual `rho12`.
+   block and keep those rows distinct from residual `rho12`. Done as an
+   internal q=4 fitted-like scaffold; not yet done for ordinary fitted q=4
+   models.
 7. Add bivariate `mu1`/`mu2` group-level blocks without scale random effects.
    Done for matching labelled random intercepts.
 8. Add bivariate `sigma1`/`sigma2` group-level blocks only after the univariate

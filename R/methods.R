@@ -333,8 +333,15 @@ random_effect_registry_corpairs <- function(object) {
     return(list())
   }
 
-  lapply(seq_len(nrow(registry$pairs)), function(i) {
-    pair <- registry$pairs[i, , drop = FALSE]
+  pairs <- registry$pairs
+  pair_is_fitted <- !is.na(pairs$tmb_parameter) & !is.na(pairs$tmb_index)
+  pairs <- pairs[pair_is_fitted, , drop = FALSE]
+  if (nrow(pairs) == 0L) {
+    return(list())
+  }
+
+  lapply(seq_len(nrow(pairs)), function(i) {
+    pair <- pairs[i, , drop = FALSE]
     block <- registry$blocks[
       registry$blocks$block_id0 == pair$block_id0[[1L]],
       ,
@@ -405,12 +412,19 @@ covariance_block_corpars_keys <- function(registry) {
     return(character())
   }
 
+  pairs <- registry$pairs
+  pair_is_fitted <- !is.na(pairs$tmb_parameter) & !is.na(pairs$tmb_index)
+  pairs <- pairs[pair_is_fitted, , drop = FALSE]
+  if (nrow(pairs) == 0L) {
+    return(character())
+  }
+
   cor_keys <- vapply(
-    registry$pairs$tmb_parameter,
+    pairs$tmb_parameter,
     covariance_block_corpars_key,
     character(1L)
   )
-  paste(cor_keys, registry$pairs$tmb_index, sep = ":")
+  paste(cor_keys, pairs$tmb_index, sep = ":")
 }
 
 random_effect_label_corpairs <- function(object, exclude = character()) {

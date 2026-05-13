@@ -153,8 +153,16 @@ Gaussian responses from intercept-level `mu1`, `mu2`, `sigma1`, and `sigma2`
 endpoint contributions. It fits the same hidden Laplace branch and checks that
 the recovered endpoint predictor signals improve over no-random-effect
 baselines. This is evidence for the hidden q=4 machinery only; public support
-still needs broader recovery coverage, extractor rows, examples, and syntax
-review.
+still needs broader recovery coverage, production extractor wiring, examples,
+and syntax review.
+
+The next hidden q=4 reporting scaffold exercises `corpairs()` with a fitted-like
+registry and `corpars` object. It checks that all six endpoint pairs can be
+formatted as one `mean-mean` row, four `mean-scale` rows, and one `scale-scale`
+row, while dormant q > 2 registry rows with no fitted TMB metadata are skipped.
+This is extractor-contract evidence only. Ordinary fitted q=4 models still need
+to populate those registry pair fields from the likelihood path before the rows
+become user-facing support.
 
 The flattened data contract should be block-oriented rather than pair-oriented:
 
@@ -231,11 +239,13 @@ still be named `sigma`.
 4. Update `corpairs()`, `profile_targets()`, and `check_drm()` to derive rows
    and diagnostics from block members. `corpairs()` now uses registry pairs for
    covered two-member blocks and falls back to legacy label parsing for any
-   uncovered fitted `corpars` rows. `check_drm()` now derives the covered
-   two-member covariance diagnostics from registry members while preserving the
-   existing row names and messages. `profile_targets()` now derives covered
-   random-effect correlation targets from registry pairs while preserving
-   target names, indices, and readiness.
+   uncovered fitted `corpars` rows. It also skips dormant registry pairs that
+   have no fitted TMB parameter/index metadata, and an internal q=4 scaffold can
+   format all six endpoint rows from fitted-like registry metadata. `check_drm()`
+   now derives the covered two-member covariance diagnostics from registry
+   members while preserving the existing row names and messages.
+   `profile_targets()` now derives covered random-effect correlation targets
+   from registry pairs while preserving target names, indices, and readiness.
 5. Pass the two-member dormant contract through the C++ boundary as a no-op
    visibility check before using it for likelihood evaluation. Done by
    appending empty or registry block data to every TMB data list, declaring
@@ -264,8 +274,10 @@ still be named `sigma`.
    predictors and verifies the objective. Done for the same hidden branch with
    `u_re_cov_probe` registered as a TMB random-effect vector. Done for a
    deterministic hidden q=4 recovery-style check against no-random-effect
-   baselines. Production q=4 support still needs broader recovery coverage,
-   extractor rows, examples, and public syntax review.
+   baselines. Done for an internal q=4 `corpairs()` scaffold that formats all
+   six endpoint rows from fitted-like registry metadata. Production q=4 support
+   still needs the ordinary fitted likelihood path to populate those registry
+   fields, broader recovery coverage, examples, and public syntax review.
 8. Enable the full shared `mu1`/`mu2`/`sigma1`/`sigma2` label pattern only after
    the hidden q=4 bridge has fitted likelihood and recovery evidence.
 

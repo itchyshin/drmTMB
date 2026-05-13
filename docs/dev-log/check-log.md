@@ -2,6 +2,37 @@
 
 Record meaningful development checks here.
 
+## 2026-05-13 -- Slice 8E hidden q=4 corpairs scaffold
+
+Scope:
+
+- made registry-backed `corpairs()` skip dormant covariance-block pair rows that
+  have no fitted TMB parameter/index metadata;
+- added an internal fitted-like q=4 endpoint scaffold that formats all six
+  group-level rows from registry metadata and `corpars`: one `mean-mean`, four
+  `mean-scale`, and one `scale-scale`;
+- checked class, group, parameter, response-scale estimate, link-scale estimate,
+  and filtering behavior for the fitted-like q=4 rows;
+- checked that a dormant q=4 registry remains invisible to group-level
+  `corpairs()` output instead of producing an internal-error abort;
+- kept this as extractor-contract evidence only: ordinary fitted q4 models do
+  not yet populate these rows, and there is no public q > 2 syntax or example.
+
+Checks:
+
+- `Rscript -e 'devtools::test(filter = "covariance-block-registry")'`: passed
+  with 153 expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript -e 'devtools::test(filter =
+  "covariance-block-registry|corpairs|biv-gaussian")'`: passed with 685
+  expectations, 0 failures, 0 warnings, and 0 skips.
+- `air format R/methods.R tests/testthat/test-covariance-block-registry.R
+  ROADMAP.md docs/design/28-double-hierarchical-endpoint.md
+  docs/design/30-labelled-covariance-block-assembler.md
+  docs/dev-log/check-log.md
+  docs/dev-log/after-task/2026-05-13-slice-8e-hidden-q4-corpairs-scaffold.md`:
+  passed.
+- `git diff --check`: passed.
+
 ## 2026-05-13 -- Slice 8D hidden q=4 bivariate recovery-style check
 
 Scope:
