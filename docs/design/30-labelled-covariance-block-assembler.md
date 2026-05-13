@@ -142,6 +142,12 @@ set of user-facing correlations that may eventually be modelled can be a masked
 subset of the full six q=4 pair rows. Random-slope q=6 and q=8 endpoint blocks
 remain later extensions.
 
+The next hidden q=4 test passes `u_re_cov_probe` through TMB's `random`
+argument for the same bivariate branch. It starts the q=4 vector at zero, lets
+TMB find the random-effect mode, and reconstructs the reported q=4 contribution
+matrix plus `mu1`, `mu2`, `log(sigma1)`, and `log(sigma2)` from that mode. This
+is a Laplace boundary check, not recovery evidence and not public q=4 syntax.
+
 The flattened data contract should be block-oriented rather than pair-oriented:
 
 ```text
@@ -247,8 +253,9 @@ still be named `sigma`.
    `sigma1`, and `sigma2`, with all six pair rows and a positive-definite hidden
    contribution map. Done for a hidden bivariate Gaussian likelihood probe that
    injects those four intercept-level contributions into the bivariate
-   predictors and verifies the objective. Production q=4 support still needs
-   fitted random-effect likelihood code, extractor rows, examples, and public
+   predictors and verifies the objective. Done for the same hidden branch with
+   `u_re_cov_probe` registered as a TMB random-effect vector. Production q=4
+   support still needs recovery evidence, extractor rows, examples, and public
    syntax review.
 8. Enable the full shared `mu1`/`mu2`/`sigma1`/`sigma2` label pattern only after
    the hidden q=4 bridge has fitted likelihood and recovery evidence.

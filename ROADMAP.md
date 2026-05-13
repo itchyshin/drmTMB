@@ -168,11 +168,13 @@ distributional regression models using TMB.
   positive-definite contribution map. A hidden bivariate Gaussian probe now
   routes those four intercept-level member contributions into `mu1`, `mu2`,
   `log(sigma1)`, and `log(sigma2)` and checks the resulting likelihood against
-  an R-side reconstruction. These probes are not user-facing fitted-model
-  support yet and do not cover random-slope q=6 or q=8 endpoint blocks.
-  The next strategic milestone after the non-phylogenetic q=4 endpoint path is
-  the corresponding phylogenetic q=4 state for the mammalian and avian protocol
-  use case; q=6 and q=8 random-slope endpoint blocks can wait.
+  an R-side reconstruction. The same hidden branch can now pass the q=4 latent
+  vector through TMB's `random` argument and reconstruct the predictors from the
+  optimized random-effect mode. These probes are not user-facing fitted-model
+  support yet and do not cover random-slope q=6 or q=8 endpoint blocks. The next
+  strategic milestone after the non-phylogenetic q=4 endpoint path is the
+  corresponding phylogenetic q=4 state for the mammalian and avian protocol use
+  case; q=6 and q=8 random-slope endpoint blocks can wait.
 - Use `docs/design/18-random-effect-scale-models.md` as the design contract:
   the implemented MVP targets one or more distinct unlabelled univariate
   Gaussian `mu` random intercepts, with group-level predictors, simulation

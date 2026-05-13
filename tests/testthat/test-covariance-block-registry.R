@@ -565,6 +565,153 @@ test_that("hidden q=4 registry bridge feeds bivariate Gaussian likelihood", {
   expect_true(all(is.finite(obj$gr(obj$par))))
 })
 
+test_that("hidden q=4 bivariate likelihood can use TMB random effects", {
+  n_groups <- 3L
+  n_each <- 5L
+  group_index0 <- rep(seq_len(n_groups) - 1L, each = n_each)
+  x <- rep(seq(-0.8, 0.8, length.out = n_each), times = n_groups)
+  z_sigma <- rep(c(-0.6, -0.2, 0.2, 0.6, 0.0), times = n_groups)
+  value <- cbind(1, x, 1, z_sigma)
+  theta <- c(0.12, -0.20, 0.08, 0.18, -0.14, 0.26)
+  sd <- c(0.55, 0.40, 0.30, 0.35)
+  true_z <- c(
+    -0.70,
+    0.40,
+    1.10,
+    -0.20,
+    0.20,
+    -1.00,
+    0.50,
+    0.80,
+    -0.40,
+    0.90,
+    -0.60,
+    0.30
+  )
+  latent <- t(apply(
+    matrix(true_z, ncol = 4L, byrow = TRUE),
+    1L,
+    tmb_vecscale_sqrt_cov_scale,
+    theta = theta,
+    sd = sd
+  ))
+  group <- group_index0 + 1L
+  contribution <- value * latent[group, ]
+  beta_mu1 <- 0.10
+  beta_mu2 <- -0.05
+  beta_sigma1 <- log(0.20)
+  beta_sigma2 <- log(0.24)
+  beta_rho12 <- atanh(0.16)
+  mu1 <- beta_mu1 + contribution[, 1L]
+  mu2 <- beta_mu2 + contribution[, 2L]
+  log_sigma1 <- beta_sigma1 + contribution[, 3L]
+  log_sigma2 <- beta_sigma2 + contribution[, 4L]
+  eps1 <- rep(c(-1.2, -0.3, 0.4, 1.1, 0.0), times = n_groups)
+  eps2_raw <- rep(c(0.7, -0.8, 0.2, -0.1, 1.0), times = n_groups)
+  rho <- tanh(beta_rho12)
+  eps2 <- rho * eps1 + sqrt(1 - rho^2) * eps2_raw
+  dat <- data.frame(
+    y1 = mu1 + exp(log_sigma1) * eps1,
+    y2 = mu2 + exp(log_sigma2) * eps2
+  )
+  form <- bf(
+    mu1 = y1 ~ 1,
+    mu2 = y2 ~ 1,
+    sigma1 = ~1,
+    sigma2 = ~1,
+    rho12 = ~1
+  )
+  spec <- drmTMB:::drm_build_biv_gaussian_spec(
+    form,
+    data = dat,
+    env = environment(),
+    weights = NULL
+  )
+  registry <- new_four_member_covariance_registry(
+    group_index0 = group_index0,
+    group_levels = paste0("g", seq_len(n_groups)),
+    value = value,
+    coef_names = c("(Intercept)", "x", "(Intercept)", "z_sigma")
+  )
+  cov_tmb <- drmTMB:::labelled_covariance_block_tmb_data(
+    registry,
+    allow_unimplemented = TRUE
+  )
+  tmb_data <- spec$tmb_data
+  tmb_data[names(cov_tmb)] <- cov_tmb
+  tmb_data$model_type <- 95L
+  tmb_data$re_cov_probe_theta <- theta
+  tmb_data$re_cov_probe_sd <- sd
+  tmb_data$re_cov_probe_z <- numeric(0)
+  parameters <- spec$start
+  parameters$beta_mu1 <- beta_mu1
+  parameters$beta_mu2 <- beta_mu2
+  parameters$beta_sigma1 <- beta_sigma1
+  parameters$beta_sigma2 <- beta_sigma2
+  parameters$beta_rho12 <- beta_rho12
+  parameters$u_re_cov_probe <- rep(0, length(true_z))
+  map <- spec$map
+  map$u_re_cov_probe <- NULL
+
+  obj <- TMB::MakeADFun(
+    data = tmb_data,
+    parameters = parameters,
+    map = map,
+    random = c(spec$random_names, "u_re_cov_probe"),
+    DLL = "drmTMB",
+    silent = TRUE
+  )
+  nll <- as.numeric(obj$fn(obj$par))
+  grad <- obj$gr(obj$par)
+  random <- obj$env$random
+  mode <- unname(obj$env$last.par.best[random])
+  mode_latent <- t(apply(
+    matrix(mode, ncol = 4L, byrow = TRUE),
+    1L,
+    tmb_vecscale_sqrt_cov_scale,
+    theta = theta,
+    sd = sd
+  ))
+  mode_contribution <- unname(value * mode_latent[group, ])
+  mode_mu1 <- unname(
+    as.vector(tmb_data$X_mu1 %*% parameters$beta_mu1) +
+      mode_contribution[, 1L]
+  )
+  mode_mu2 <- unname(
+    as.vector(tmb_data$X_mu2 %*% parameters$beta_mu2) +
+      mode_contribution[, 2L]
+  )
+  mode_log_sigma1 <- unname(
+    as.vector(tmb_data$X_sigma1 %*% parameters$beta_sigma1) +
+      mode_contribution[, 3L]
+  )
+  mode_log_sigma2 <- unname(
+    as.vector(tmb_data$X_sigma2 %*% parameters$beta_sigma2) +
+      mode_contribution[, 4L]
+  )
+  report <- obj$report()
+
+  expect_false("u_re_cov_probe" %in% names(obj$par))
+  expect_equal(
+    names(obj$env$par)[random],
+    rep("u_re_cov_probe", length(true_z))
+  )
+  expect_gt(max(abs(mode)), 1e-4)
+  expect_equal(
+    report$re_cov_probe_contribution,
+    mode_contribution,
+    tolerance = 1e-8
+  )
+  expect_equal(report$mu1, mode_mu1, tolerance = 1e-8)
+  expect_equal(report$mu2, mode_mu2, tolerance = 1e-8)
+  expect_equal(report$log_sigma1, mode_log_sigma1, tolerance = 1e-8)
+  expect_equal(report$log_sigma2, mode_log_sigma2, tolerance = 1e-8)
+  expect_equal(report$sigma1, exp(mode_log_sigma1), tolerance = 1e-8)
+  expect_equal(report$sigma2, exp(mode_log_sigma2), tolerance = 1e-8)
+  expect_true(is.finite(nll))
+  expect_true(all(is.finite(grad)))
+})
+
 test_that("hidden q=3 registry probe can use TMB random effects", {
   dat <- data.frame(y = c(-0.3, 0.2, 0.8, -0.1, 0.4, 0.9))
   fit <- drmTMB(bf(y ~ 1, sigma ~ 1), family = gaussian(), data = dat)

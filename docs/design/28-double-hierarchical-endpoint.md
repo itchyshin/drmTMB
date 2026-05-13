@@ -129,10 +129,12 @@ keep the same row meaning and mark derived intervals separately.
    registry and contribution-map probe with all six pair rows. The next hidden
    q=4 probe routes those intercept-level contributions into the bivariate
    Gaussian `mu1`, `mu2`, `log(sigma1)`, and `log(sigma2)` predictors and
-   checks the likelihood against an R-side reconstruction. User-facing q > 2
-   support remains closed until fitted q=4 code, extractor rows, examples, and
-   broader recovery tests exist; random-slope q=6 or q=8 endpoint blocks remain
-   later extensions.
+   checks the likelihood against an R-side reconstruction. The hidden q=4
+   likelihood branch can also pass `u_re_cov_probe` through TMB's `random`
+   argument and reconstruct predictors from the optimized random-effect mode.
+   User-facing q > 2 support remains closed until recovery evidence, extractor
+   rows, examples, and public syntax review exist; random-slope q=6 or q=8
+   endpoint blocks remain later extensions.
 5. Add the univariate four-effect block:
    `bf(y ~ x + (1 + x | p | id), sigma ~ x + (1 + x | p | id))`.
 6. Extend `corpairs()` to report each fitted group-level pair from the shared

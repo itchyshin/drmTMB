@@ -2,6 +2,37 @@
 
 Record meaningful development checks here.
 
+## 2026-05-13 -- Slice 8C hidden q=4 bivariate random-effect boundary
+
+Scope:
+
+- added a hidden q=4 bivariate Gaussian test with `u_re_cov_probe` passed
+  through TMB's `random` argument;
+- checked that `u_re_cov_probe` drops out of the fixed optimizer parameter
+  vector, is registered as the random-effect block, and has a nonzero optimized
+  random-effect mode under the bivariate likelihood;
+- reconstructed the q=4 contribution matrix and the reported `mu1`, `mu2`,
+  `log(sigma1)`, and `log(sigma2)` predictors from the optimized mode;
+- kept this as a Laplace boundary check only: no public q > 2 syntax, no
+  `corpairs()` rows, and no q4 recovery claim yet;
+- Ada integrated the slice, Gauss checked the random-effect likelihood boundary,
+  Curie checked the focused test, and Rose checked the public-support wording.
+
+Checks:
+
+- `Rscript -e 'devtools::test(filter = "covariance-block-registry")'`: passed
+  with 127 expectations, 0 failures, 0 warnings, and 0 skips.
+- `air format tests/testthat/test-covariance-block-registry.R ROADMAP.md
+  docs/design/28-double-hierarchical-endpoint.md
+  docs/design/30-labelled-covariance-block-assembler.md
+  docs/dev-log/check-log.md
+  docs/dev-log/after-task/2026-05-13-slice-8c-hidden-q4-bivariate-random-effect-boundary.md`:
+  passed.
+- `Rscript -e 'devtools::test(filter =
+  "covariance-block-registry|biv-gaussian")'`: passed with 611 expectations, 0
+  failures, 0 warnings, and 0 skips.
+- `git diff --check`: passed.
+
 ## 2026-05-13 -- Slice 8B hidden q=4 bivariate likelihood bridge
 
 Scope:
