@@ -628,6 +628,22 @@ test_that("bivariate Gaussian supports labelled sigma1/sigma2 random-intercept c
     unname(fit$corpars$sigma),
     tolerance = 1e-12
   )
+  fit_registry <- fit
+  names(fit_registry$corpars$sigma) <- "cor(bad,bad | wrong | wrong)"
+  registry_scale <- corpairs(fit_registry, class = "scale-scale")
+  expect_equal(registry_scale$group, "id")
+  expect_equal(registry_scale$block, "p")
+  expect_equal(registry_scale$from_dpar, "sigma1")
+  expect_equal(registry_scale$to_dpar, "sigma2")
+  expect_equal(
+    registry_scale$parameter,
+    "cor(sigma1:(Intercept),sigma2:(Intercept) | p | id)"
+  )
+  expect_equal(
+    registry_scale$estimate,
+    unname(fit$corpars$sigma),
+    tolerance = 1e-12
+  )
   expect_equal(residual_pair$parameter, "rho12")
   expect_equal(residual_pair$class, "residual")
   expect_equal(nrow(corpairs(fit, level = "group")), 1L)
@@ -772,6 +788,21 @@ test_that("bivariate Gaussian keeps mu and sigma covariance blocks distinct", {
     scale_pair$estimate,
     unname(fit$corpars$sigma),
     tolerance = 1e-12
+  )
+  fit_partial_registry <- fit
+  fit_partial_registry$model$random$covariance_blocks$pairs <-
+    fit_partial_registry$model$random$covariance_blocks$pairs[
+      fit_partial_registry$model$random$covariance_blocks$pairs$tmb_parameter ==
+        "eta_cor_mu",
+      ,
+      drop = FALSE
+    ]
+  partial_group_pairs <- corpairs(fit_partial_registry, level = "group")
+  expect_equal(nrow(partial_group_pairs), 2L)
+  expect_setequal(partial_group_pairs$block, c("pm", "ps"))
+  expect_equal(
+    partial_group_pairs$parameter[partial_group_pairs$block == "ps"],
+    names(fit$corpars$sigma)
   )
   expect_equal(residual_pair$parameter, "rho12")
   expect_equal(residual_pair$modelled, TRUE)

@@ -234,18 +234,18 @@ corpairs.drmTMB <- function(
     rows[[length(rows) + 1L]] <- residual_rho12_corpair(object)
   }
 
-  if (length(object$corpars) > 0L) {
-    for (dpar in names(object$corpars)) {
-      cor_values <- object$corpars[[dpar]]
-      for (i in seq_along(cor_values)) {
-        rows[[length(rows) + 1L]] <- random_effect_corpair(
-          object = object,
-          dpar = dpar,
-          label = names(cor_values)[[i]],
-          estimate = unname(cor_values[[i]])
-        )
-      }
-    }
+  registry_rows <- random_effect_registry_corpairs(object)
+  if (length(registry_rows) > 0L) {
+    rows <- c(rows, registry_rows)
+  }
+  label_rows <- random_effect_label_corpairs(
+    object,
+    exclude = covariance_block_corpars_keys(
+      object$model$random$covariance_blocks
+    )
+  )
+  if (length(label_rows) > 0L) {
+    rows <- c(rows, label_rows)
   }
 
   out <- if (length(rows) == 0L) {
@@ -321,6 +321,115 @@ residual_rho12_corpair <- function(object) {
     link_max = max(eta),
     modelled = n_coef > 1L
   )
+}
+
+random_effect_registry_corpairs <- function(object) {
+  registry <- object$model$random$covariance_blocks
+  if (
+    !is.list(registry) ||
+      is.null(registry$pairs) ||
+      nrow(registry$pairs) == 0L
+  ) {
+    return(list())
+  }
+
+  lapply(seq_len(nrow(registry$pairs)), function(i) {
+    pair <- registry$pairs[i, , drop = FALSE]
+    block <- registry$blocks[
+      registry$blocks$block_id0 == pair$block_id0[[1L]],
+      ,
+      drop = FALSE
+    ]
+    if (nrow(block) != 1L) {
+      cli::cli_abort(
+        "Internal error: covariance-block registry pair has no matching block."
+      )
+    }
+    cor_key <- covariance_block_corpars_key(pair$tmb_parameter[[1L]])
+    cor_values <- object$corpars[[cor_key]]
+    cor_index <- pair$tmb_index[[1L]]
+    if (
+      is.null(cor_values) || cor_index < 1L || cor_index > length(cor_values)
+    ) {
+      cli::cli_abort(
+        "Internal error: covariance-block registry pair has no fitted correlation."
+      )
+    }
+    estimate <- unname(cor_values[[cor_index]])
+    new_corpair_row(
+      level = block$level[[1L]],
+      group = block$group[[1L]],
+      block = block$block_label[[1L]],
+      from_dpar = pair$from_dpar[[1L]],
+      to_dpar = pair$to_dpar[[1L]],
+      from_coef = pair$from_coef[[1L]],
+      to_coef = pair$to_coef[[1L]],
+      from_response = random_effect_response_name(object, pair$from_dpar[[1L]]),
+      to_response = random_effect_response_name(object, pair$to_dpar[[1L]]),
+      class = pair$class[[1L]],
+      parameter = pair$parameter[[1L]],
+      estimate = estimate,
+      min = estimate,
+      max = estimate,
+      n_values = 1L,
+      link_estimate = guarded_correlation_link(estimate, guard = 0.999999),
+      link_min = guarded_correlation_link(estimate, guard = 0.999999),
+      link_max = guarded_correlation_link(estimate, guard = 0.999999),
+      modelled = FALSE
+    )
+  })
+}
+
+covariance_block_corpars_key <- function(tmb_parameter) {
+  key <- switch(
+    tmb_parameter,
+    eta_cor_mu = "mu",
+    eta_cor_sigma = "sigma",
+    eta_cor_mu_sigma = "mu_sigma",
+    NA_character_
+  )
+  if (is.na(key)) {
+    cli::cli_abort(
+      "Internal error: covariance-block registry pair uses an unknown correlation parameter."
+    )
+  }
+  key
+}
+
+covariance_block_corpars_keys <- function(registry) {
+  if (
+    !is.list(registry) ||
+      is.null(registry$pairs) ||
+      nrow(registry$pairs) == 0L
+  ) {
+    return(character())
+  }
+
+  cor_keys <- vapply(
+    registry$pairs$tmb_parameter,
+    covariance_block_corpars_key,
+    character(1L)
+  )
+  paste(cor_keys, registry$pairs$tmb_index, sep = ":")
+}
+
+random_effect_label_corpairs <- function(object, exclude = character()) {
+  rows <- list()
+  for (dpar in names(object$corpars)) {
+    cor_values <- object$corpars[[dpar]]
+    for (i in seq_along(cor_values)) {
+      if (paste(dpar, i, sep = ":") %in% exclude) {
+        next
+      }
+      rows[[length(rows) + 1L]] <- random_effect_corpair(
+        object = object,
+        dpar = dpar,
+        label = names(cor_values)[[i]],
+        estimate = unname(cor_values[[i]])
+      )
+    }
+  }
+  rows
 }
 
 random_effect_corpair <- function(object, dpar, label, estimate) {

@@ -142,6 +142,20 @@ test_that("corpairs reports ordinary group-level correlation labels", {
   expect_false(grepl("rho12", pairs$parameter, fixed = TRUE))
   expect_equal(corpairs(fit, class = "mean-slope"), pairs)
 
+  fit_registry <- fit
+  names(fit_registry$corpars$mu) <- "cor(bad,bad | wrong | wrong)"
+  registry_pairs <- corpairs(fit_registry)
+  expect_equal(registry_pairs$group, "ID")
+  expect_equal(registry_pairs$block, "p")
+  expect_equal(registry_pairs$from_coef, "(Intercept)")
+  expect_equal(registry_pairs$to_coef, "x")
+  expect_equal(registry_pairs$parameter, "cor((Intercept),x | p | ID)")
+  expect_equal(registry_pairs$estimate, cor_estimate, tolerance = 1e-12)
+
+  fit_compat <- fit
+  fit_compat$model$random$covariance_blocks <- NULL
+  expect_equal(corpairs(fit_compat), pairs)
+
   fit_no_frame <- fit
   fit_no_frame$model$model_frame <- NULL
   pairs_no_frame <- corpairs(fit_no_frame)

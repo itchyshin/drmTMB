@@ -142,10 +142,12 @@ distributional regression models using TMB.
 - The R-side labelled covariance block registry now records the implemented
   two-member `mu`, `sigma`, and `mu`/`sigma` bridges without changing accepted
   syntax or fitted behaviour. It also carries a dormant TMB-shaped block data
-  contract for those bridges. The design contract remains
+  contract for those bridges. `corpairs()` now derives covered group-level
+  rows from the registry, with legacy label parsing as a compatibility
+  fallback. The design contract remains
   `docs/design/30-labelled-covariance-block-assembler.md`; larger shared
-  labels still need C++ consumption, block-derived extractors, and simulation
-  recovery before exposure.
+  labels still need `profile_targets()` and `check_drm()` registry derivation,
+  C++ contract visibility, and simulation recovery before exposure.
 - Use `docs/design/18-random-effect-scale-models.md` as the design contract:
   the implemented MVP targets one or more distinct unlabelled univariate
   Gaussian `mu` random intercepts, with group-level predictors, simulation

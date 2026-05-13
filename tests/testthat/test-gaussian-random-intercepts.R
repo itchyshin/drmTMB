@@ -944,6 +944,22 @@ test_that("Gaussian mu/sigma labelled random-intercept covariance is fitted", {
     unname(fit$corpars$mu_sigma),
     tolerance = 1e-12
   )
+  fit_registry <- fit
+  names(fit_registry$corpars$mu_sigma) <- "cor(bad,bad | wrong | wrong)"
+  registry_mean_scale <- corpairs(fit_registry)
+  expect_equal(registry_mean_scale$group, "id")
+  expect_equal(registry_mean_scale$block, "p")
+  expect_equal(registry_mean_scale$from_dpar, "mu")
+  expect_equal(registry_mean_scale$to_dpar, "sigma")
+  expect_equal(
+    registry_mean_scale$parameter,
+    "cor(mu:(Intercept),sigma:(Intercept) | p | id)"
+  )
+  expect_equal(
+    registry_mean_scale$estimate,
+    unname(fit$corpars$mu_sigma),
+    tolerance = 1e-12
+  )
   expect_gaussian_covariance_block_registry(
     fit$model$random$covariance_blocks,
     dpars = c("mu", "sigma"),

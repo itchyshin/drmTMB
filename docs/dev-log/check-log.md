@@ -2,6 +2,37 @@
 
 Record meaningful development checks here.
 
+## 2026-05-13 -- Slice 4 `corpairs()` registry extraction
+
+Scope:
+
+- routed group-level `corpairs()` rows through
+  `object$model$random$covariance_blocks` when registry pairs are available;
+- kept fitted estimates in the existing `object$corpars` surface by mapping
+  registry `tmb_parameter` and `tmb_index` fields to `corpars$mu`,
+  `corpars$sigma`, and `corpars$mu_sigma`;
+- preserved legacy label parsing for old or partial objects by falling back for
+  any fitted correlation not covered by the registry;
+- kept residual `rho12` reporting separate and changed no formula grammar, TMB
+  likelihood, `start`, `map`, `random_names`, or accepted syntax.
+
+Checks:
+
+- Mendel/Rose-copy reviewed the current slice-4 order and recommended
+  registry-derived public extractors before no-op C++ visibility and before any
+  `q > 2` Cholesky likelihood work.
+- Turing/Boole-copy identified a partial-registry compatibility trap; fixed by
+  adding a parsed fallback for uncovered `corpars` rows.
+- `air format R/methods.R tests/testthat/test-biv-gaussian.R
+  tests/testthat/test-corpairs.R
+  tests/testthat/test-gaussian-random-intercepts.R`: passed.
+- `Rscript -e 'devtools::test(filter = "corpairs")'`: passed with 48
+  expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript -e 'devtools::test(filter =
+  "corpairs|biv-gaussian|gaussian-random-intercepts|profile-targets|check-drm")'`:
+  passed with 1150 expectations, 0 failures, 0 warnings, and 0 skips.
+- `git diff --check`: passed.
+
 ## 2026-05-13 -- Slice 4 labelled block registry compatibility
 
 Scope:

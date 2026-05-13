@@ -169,12 +169,18 @@ still be named `sigma`.
 3. Add the TMB block data contract and a two-member compatibility path. Done
    as dormant two-member-only `random$covariance_blocks$tmb_data`; it is not
    passed to `TMB::MakeADFun()` yet.
-4. Prototype `UNSTRUCTURED_CORR_t` plus scaled standard deviations for `q > 2`.
-5. Add one simulation recovery test for a three-member block before exposing a
+4. Update `corpairs()`, `profile_targets()`, and `check_drm()` to derive rows
+   and diagnostics from block members. `corpairs()` now uses registry pairs for
+   covered two-member blocks and falls back to legacy label parsing for any
+   uncovered fitted `corpars` rows; `profile_targets()` and `check_drm()`
+   remain next.
+5. Pass the two-member dormant contract through the C++ boundary as a no-op
+   visibility check before using it for likelihood evaluation.
+6. Add one simulation scaffold for a three-member block before exposing a
    four-formula bivariate block.
-6. Update `corpairs()`, `profile_targets()`, and `check_drm()` to derive rows
-   and diagnostics from block members.
-7. Only then enable bivariate random slopes or the full shared
+7. Prototype `UNSTRUCTURED_CORR_t` plus scaled standard deviations or an
+   equivalent positive-definite Cholesky path for `q > 2`.
+8. Only then enable bivariate random slopes or the full shared
    `mu1`/`mu2`/`sigma1`/`sigma2` label pattern.
 
 ## Diagnostics
