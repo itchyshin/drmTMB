@@ -607,6 +607,12 @@ Implementation should be staged:
 The first implementation should not combine this Family A q=4 block with
 Family B `sd_phylo()` direct-SD regression for the same species level.
 
+Slice 15 adds only a hidden TMB parameterization probe for this contract. That
+probe uses endpoint-major q=4 `u_phylo` storage, four `log_sd_phylo` values,
+and six unstructured-correlation parameters, then compares the TMB
+matrix-normal prior against the R algebra helper. It does not yet make
+`phylo()` terms in `sigma1` or `sigma2` fit from public model formulas.
+
 Family B structured direct-SD syntax such as `sd_phylo(species) ~ z_species`
 is a separate design problem. The scalar `sigma_phylo^2 A` covariance above is
 straightforward, but predictor-dependent species SDs imply a covariance such as

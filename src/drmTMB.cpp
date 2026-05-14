@@ -146,6 +146,7 @@ Type objective_function<Type>::operator()()
   PARAMETER_VECTOR(theta_re_cov);
   PARAMETER_VECTOR(u_re_cov_probe);
   PARAMETER_VECTOR(log_sd_phylo);
+  PARAMETER_VECTOR(theta_phylo);
   PARAMETER(eta_cor_phylo);
 
   Type nll = 0;
@@ -165,7 +166,62 @@ Type objective_function<Type>::operator()()
   (void)re_cov_pair_to_member;
   (void)re_cov_pair_parameter;
   (void)re_cov_pair_parameter_index;
-  if (model_type == 94) {
+  if (model_type == 93) {
+    int n_phylo = Q_phylo.rows();
+    int q = log_sd_phylo.size();
+    matrix<Type> effect(n_phylo, q);
+    for (int j = 0; j < q; ++j) {
+      for (int i = 0; i < n_phylo; ++i) {
+        int pos = j * n_phylo + i;
+        effect(i, j) = u_re_cov_probe(pos);
+      }
+    }
+    density::UNSTRUCTURED_CORR_t<Type> phylo_q4_density(theta_phylo);
+    matrix<Type> phylo_q4_corr = phylo_q4_density.cov();
+    vector<Type> sd_phylo = exp(log_sd_phylo);
+    matrix<Type> phylo_q4_covariance(q, q);
+    for (int a = 0; a < q; ++a) {
+      for (int b = 0; b < q; ++b) {
+        phylo_q4_covariance(a, b) =
+          sd_phylo(a) * phylo_q4_corr(a, b) * sd_phylo(b);
+      }
+    }
+    matrix<Type> covariance_inverse = phylo_q4_covariance.inverse();
+    Type log_det_covariance = log(phylo_q4_covariance.determinant());
+    matrix<Type> quadratic_matrix(q, q);
+    quadratic_matrix.setZero();
+    for (int b = 0; b < q; ++b) {
+      vector<Type> effect_b(n_phylo);
+      for (int i = 0; i < n_phylo; ++i) {
+        effect_b(i) = effect(i, b);
+      }
+      vector<Type> Q_effect_b = Q_phylo * effect_b;
+      for (int a = 0; a < q; ++a) {
+        for (int i = 0; i < n_phylo; ++i) {
+          quadratic_matrix(a, b) += effect(i, a) * Q_effect_b(i);
+        }
+      }
+    }
+    Type quadratic = Type(0.0);
+    for (int a = 0; a < q; ++a) {
+      for (int b = 0; b < q; ++b) {
+        quadratic += covariance_inverse(a, b) * quadratic_matrix(a, b);
+      }
+    }
+    nll += Type(0.5) * (
+      Type(n_phylo * q) * log(Type(2.0) * M_PI) +
+      Type(n_phylo) * log_det_covariance -
+      Type(q) * log_det_Q_phylo +
+      quadratic
+    );
+    REPORT(quadratic);
+    REPORT(log_det_covariance);
+    REPORT(quadratic_matrix);
+    REPORT(sd_phylo);
+    REPORT(theta_phylo);
+    REPORT(phylo_q4_corr);
+    REPORT(phylo_q4_covariance);
+  } else if (model_type == 94) {
     int n_phylo = Q_phylo.rows();
     int q = re_cov_probe_covariance.rows();
     matrix<Type> effect(n_phylo, q);

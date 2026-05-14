@@ -705,6 +705,7 @@ test_that("hidden q=4 registry bridge feeds bivariate Gaussian likelihood", {
     env = environment(),
     weights = NULL
   )
+  spec <- drmTMB:::add_covariance_probe_parameter(spec)
   registry <- new_four_member_covariance_registry(
     group_index0 = group_index0,
     group_levels = paste0("g", 1:3),
@@ -868,6 +869,7 @@ test_that("hidden q=4 bivariate likelihood can use TMB random effects", {
     env = environment(),
     weights = NULL
   )
+  spec <- drmTMB:::add_covariance_probe_parameter(spec)
   registry <- new_four_member_covariance_registry(
     group_index0 = group_index0,
     group_levels = paste0("g", seq_len(n_groups)),
@@ -1084,6 +1086,7 @@ test_that("hidden q=4 bivariate likelihood recovers endpoint predictor signal", 
     env = environment(),
     weights = NULL
   )
+  spec <- drmTMB:::add_covariance_probe_parameter(spec)
   registry <- new_four_member_covariance_registry(
     group_index0 = group_index0,
     group_levels = paste0("g", seq_len(n_groups)),

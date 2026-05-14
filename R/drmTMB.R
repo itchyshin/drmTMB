@@ -6242,6 +6242,12 @@ add_covariance_probe_parameter <- function(spec) {
   if (is.null(spec$map$u_re_cov_probe)) {
     spec$map$u_re_cov_probe <- factor(NA)
   }
+  if (is.null(spec$start$theta_phylo)) {
+    spec$start$theta_phylo <- 0
+  }
+  if (is.null(spec$map$theta_phylo)) {
+    spec$map$theta_phylo <- factor(NA)
+  }
   spec
 }
 

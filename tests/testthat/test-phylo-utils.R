@@ -111,6 +111,7 @@ phylo_prior_tmb_parameters <- function(effect, log_sd) {
     theta_re_cov = 0,
     u_re_cov_probe = 0,
     log_sd_phylo = log_sd,
+    theta_phylo = 0,
     eta_cor_phylo = 0
   )
 }
@@ -122,6 +123,26 @@ phylo_correlated_prior_tmb_parameters <- function(effect) {
   )
   parameters$u_re_cov_probe <- as.numeric(effect)
   parameters
+}
+
+phylo_q4_parameterized_prior_tmb_parameters <- function(effect, log_sd, theta) {
+  parameters <- phylo_prior_tmb_parameters(
+    rep(0, nrow(effect)),
+    log_sd = log_sd
+  )
+  parameters$u_re_cov_probe <- as.numeric(effect)
+  parameters$theta_phylo <- theta
+  parameters
+}
+
+tmb_unstructured_corr_matrix <- function(theta) {
+  q <- (1 + sqrt(1 + 8 * length(theta))) / 2
+  stopifnot(q == as.integer(q))
+  L <- diag(as.integer(q))
+  lower <- which(lower.tri(L), arr.ind = TRUE)
+  lower <- lower[order(lower[, "row"], lower[, "col"]), , drop = FALSE]
+  L[lower] <- theta
+  stats::cov2cor(L %*% t(L))
 }
 
 dense_zero_mvn_nll <- function(values, covariance) {
@@ -533,6 +554,74 @@ test_that("TMB correlated phylogenetic prior branch matches q=4 R algebra", {
     tolerance = 1e-10
   )
   expect_true(all(is.finite(obj$gr(obj$par))))
+  expect_equal(
+    report$quadratic_matrix,
+    unname(crossprod(effect, as.matrix(precision$precision %*% effect))),
+    tolerance = 1e-10
+  )
+})
+
+test_that("TMB phylogenetic q4 parameter scaffold matches q=4 R algebra", {
+  tree <- tiny_ultrametric_tree()
+  precision <- drmTMB:::drm_phylo_augmented_precision(tree)
+  effect <- matrix(
+    c(
+      0.20,
+      -0.10,
+      0.35,
+      0.05,
+      -0.30,
+      0.15,
+      0.10,
+      -0.20,
+      0.08,
+      -0.04,
+      0.12,
+      0.02,
+      0.11,
+      -0.07,
+      0.16,
+      -0.02
+    ),
+    nrow = nrow(precision$precision),
+    dimnames = list(
+      rownames(precision$precision),
+      c("mu1", "mu2", "sigma1", "sigma2")
+    )
+  )
+  log_sd <- log(c(0.65, 0.45, 0.30, 0.25))
+  theta <- c(0.20, -0.10, 0.12, 0.15, -0.08, 0.22)
+  corr <- tmb_unstructured_corr_matrix(theta)
+  covariance <- diag(exp(log_sd)) %*% corr %*% diag(exp(log_sd))
+
+  data <- phylo_prior_tmb_data(precision)
+  data$model_type <- 93L
+  obj <- TMB::MakeADFun(
+    data = data,
+    parameters = phylo_q4_parameterized_prior_tmb_parameters(
+      effect,
+      log_sd,
+      theta
+    ),
+    DLL = "drmTMB",
+    silent = TRUE
+  )
+  report <- obj$report()
+
+  expect_equal(
+    obj$fn(obj$par),
+    drmTMB:::drm_phylo_correlated_precision_nll(
+      effect,
+      precision,
+      covariance
+    ),
+    tolerance = 1e-10
+  )
+  expect_true(all(is.finite(obj$gr(obj$par))))
+  expect_equal(report$sd_phylo, exp(log_sd), tolerance = 1e-12)
+  expect_equal(report$theta_phylo, theta, tolerance = 1e-12)
+  expect_equal(report$phylo_q4_corr, corr, tolerance = 1e-12)
+  expect_equal(report$phylo_q4_covariance, covariance, tolerance = 1e-12)
   expect_equal(
     report$quadratic_matrix,
     unname(crossprod(effect, as.matrix(precision$precision %*% effect))),

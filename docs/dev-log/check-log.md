@@ -12507,3 +12507,44 @@ Known limitations:
 - no fitted `phylo()` terms in `sigma1` or `sigma2` exist yet;
 - no q=4 phylogenetic `corpairs()` rows, simulation recovery, or user tutorial
   example exists yet.
+
+## 2026-05-14 -- 35-map Slice 15: phylogenetic q4 TMB parameterization probe
+
+Goal:
+
+- add a hidden TMB parameterization scaffold for the constant bivariate
+  phylogenetic q=4 prior before exposing fitted `sigma1`/`sigma2` phylogenetic
+  terms.
+
+Implemented:
+
+- added `theta_phylo` as a mapped-off TMB parameter by default;
+- added hidden `model_type == 93` that reconstructs endpoint-major q=4
+  `u_phylo` values from `u_re_cov_probe`, builds `Sigma_phylo = D R D` from
+  four `log_sd_phylo` entries and six unstructured-correlation parameters, and
+  evaluates the matrix-normal prior against `Q_phylo`;
+- added a q=4 TMB-vs-R algebra test that checks the objective value, finite
+  gradient, SD report, correlation matrix, covariance matrix, and quadratic
+  matrix;
+- updated neighboring hidden covariance-block tests to call
+  `add_covariance_probe_parameter()` before manual TMB probes so the new
+  mapped-off `theta_phylo` parameter is present.
+
+Checks run:
+
+- `air format R/drmTMB.R tests/testthat/test-phylo-utils.R tests/testthat/test-covariance-block-registry.R`:
+  passed.
+- `Rscript -e 'devtools::load_all(quiet = TRUE)'`: passed.
+- `Rscript -e 'devtools::test(filter = "phylo-utils|phylo-gaussian|package-skeleton", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'devtools::test(filter = "covariance-block-registry|phylo-utils|biv-gaussian|profile-targets", reporter = "summary")'`:
+  passed.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- this is still a hidden parameterization probe, not a fitted user-facing
+  phylogenetic q=4 model;
+- `phylo()` terms in `sigma1` or `sigma2` still reject before optimization;
+- `corpairs(level = "phylogenetic")` still reports only the fitted
+  `mu1`/`mu2` mean-mean phylogenetic row.
