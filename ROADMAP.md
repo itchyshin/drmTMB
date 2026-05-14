@@ -234,6 +234,11 @@ distributional regression models using TMB.
   targets rather than direct profile-ready atanh targets. A CRAN-safe recovery
   test now checks broad fixed-effect, SD, residual-correlation, finite-gradient,
   and q=4 diagnostic behavior.
+- The planned univariate Family B `sd_phylo(species) ~ x_species` path now has
+  a design contract: use a non-centred unit tree effect, multiply only observed
+  tip contributions by species-level `tau_l = exp(W_l alpha)`, and interpret
+  the marginal tip covariance as `D_tip A_tip D_tip`. Fitting, recovery tests,
+  and bivariate `sd_phylo1()` / `sd_phylo2()` extensions remain planned.
 - Use the correlation-pair design in
   `docs/design/20-coscale-correlation-pairs.md` before implementing bivariate
   double-hierarchical covariance blocks; pair outputs should identify the

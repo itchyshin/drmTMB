@@ -2,6 +2,30 @@
 
 Record meaningful development checks here.
 
+## 2026-05-14 -- Map Slice 20 sd_phylo direct-SD design
+
+Scope:
+
+- defined the univariate Family B `sd_phylo(species) ~ x_species` contract as a
+  non-centred unit tree effect with observed-tip SD scaling;
+- recorded that the implied covariance is `D_tip A_tip D_tip`, while internal
+  nodes remain computational base-tree coordinates without user-facing SD
+  predictors;
+- synchronized the formula grammar, likelihood, phylogenetic math, random-effect
+  scale design, roadmap, NEWS, and known-limitations wording without claiming
+  fitted support.
+
+Checks:
+
+- `air format docs/design/18-random-effect-scale-models.md docs/design/16-phylo-spatial-common-math.md docs/design/01-formula-grammar.md docs/design/03-likelihoods.md docs/dev-log/known-limitations.md ROADMAP.md NEWS.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-14-map-slice-20-sd-phylo-design.md`:
+  passed.
+- `Rscript -e 'devtools::test(filter = "package-skeleton|biv-gaussian|phylo-gaussian", reporter = "summary")'`:
+  passed.
+- `rg -n 'tip/internal-node contract is explicit and tested|tip/internal-node covariance contract is explicit and tested|tip/internal-node scaling rule and simulation evidence|contract is still missing|sd_phylo\(species\).*Implemented' README.md ROADMAP.md NEWS.md docs vignettes pkgdown-site/articles/phylogenetic-spatial.html`:
+  no hits.
+- `Rscript -e 'pkgdown::check_pkgdown()'`: passed with no problems found.
+- `git diff --check`: passed.
+
 ## 2026-05-13 -- Slice 17 q4 profile-target status guard
 
 Scope:

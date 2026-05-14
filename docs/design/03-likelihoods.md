@@ -1219,6 +1219,14 @@ Implementation notes:
   `sd2(id) ~ x_group` are rejected for the same group when this q=4 block is
   present. Combining them would require a predictor-dependent q=4 covariance
   model, not the current constant q=4 block.
+- The planned univariate Family B `sd_phylo(species) ~ x_species` model uses a
+  non-centred tip-scaling contract. A unit phylogenetic base effect `v_aug`
+  follows the sparse augmented tree precision, while the observed tip
+  contribution is multiplied by `tau_l = exp(W_l alpha)`. The implied tip
+  covariance is `D_tip A_tip D_tip`; internal nodes do not receive
+  user-facing SD predictors. When implemented, this direct-SD formula replaces
+  the scalar `log_sd_phylo` target for the univariate location `phylo()` effect
+  rather than adding a second SD layer.
 - Bivariate random slopes, `rho12` random effects, phylogenetic random slopes,
   predictor-dependent phylogenetic correlations, and spatial q=4 blocks remain
   planned. The first constant intercept-only bivariate phylogenetic q=4 block is

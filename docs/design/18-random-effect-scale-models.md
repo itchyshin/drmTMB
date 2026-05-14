@@ -211,22 +211,53 @@ a Brownian-motion tree precision:
 a ~ MVN(0, sigma_phylo^2 A)
 ```
 
-For a predictor-dependent structured SD, the design must first choose the
-covariance being modelled. A candidate construction is:
+Slice 20 fixes the univariate `sd_phylo()` contract. The fitted quantity is the
+tip-level SD of the phylogenetic location effect:
 
 ```text
-a = D(z) v
-v ~ MVN(0, A)
-Cov(a) = D(z) A D(z)
+tau_l = exp(W_l alpha_phylo)
+v_aug ~ MVN(0, A_aug)
+a_l = tau_l v_tip,l
+Cov(a_tip) = D_tip A_tip D_tip
 ```
 
-where `D(z)` is a diagonal matrix of species-level SDs. That construction has
-different determinant and quadratic terms from the current scalar
-`sigma_phylo^2 A` model, and it raises a practical question for sparse
-augmented A-inverse implementations: predictors are observed at tips, whereas
-the computational latent state also includes internal nodes. Until that
-tip/internal-node contract is explicit and tested, `sd_phylo()` remains a
-planned syntax rather than fitted code.
+Here `W_l` is the species-level design matrix from
+`sd_phylo(species) ~ z_species`, `D_tip = diag(tau_l)`, and `A_tip` is the
+phylogenetic relationship matrix among observed tree tips. The implementation
+should use a non-centred base tree effect: the sparse augmented precision still
+defines `v_aug`, while only the observed tip contribution is multiplied by the
+species-specific `tau_l`. Internal nodes do not receive user-facing SD
+predictors. This avoids inventing ancestral covariates and still gives the
+intended marginal tip covariance `D_tip A_tip D_tip`.
+
+The right-hand side of `sd_phylo(species) ~ z_species` must be constant within
+species after the model's complete-case filtering, just like ordinary
+`sd(id) ~ z_group`. When the formula is present, it replaces the scalar
+`log_sd_phylo` parameter for that target; it does not add a second phylogenetic
+SD layer. The intercept-only case `sd_phylo(species) ~ 1` should be equivalent
+in marginal covariance to the current constant-SD phylogenetic location model,
+but with a non-centred TMB parameterization.
+
+This Family B direct-SD model stays separate from Family A q=4 models. Do not
+combine `sd_phylo(species) ~ z_species` with a matching labelled q=4
+`phylo(1 | p | species, tree = tree)` block across `mu1`, `mu2`, `sigma1`, and
+`sigma2`. That q=4 block estimates a constant joint covariance among latent
+location and scale effects; `sd_phylo()` models predictor-dependent location
+random-effect SDs.
+
+Implementation should be staged:
+
+1. accept univariate `sd_phylo(species) ~ z_species` only when the `mu` formula
+   contains one intercept-only `phylo(1 | species, tree = tree)` term;
+2. build a species-level model matrix with one row per observed tree tip and
+   reject predictors that vary within species;
+3. replace the scalar `log_sd_phylo` parameter with `beta_sd_phylo` for that
+   target and multiply the observed tip effect by `tau_l = exp(W_l alpha)`;
+4. compare `sd_phylo(species) ~ 1` against the current scalar-SD likelihood on
+   small trees before adding predictor recovery tests;
+5. report fitted `sd_phylo(species)` values through the same `sdpars`,
+   `coef()`, `predict()`, `summary()`, and `profile_targets()` surfaces used
+   for ordinary `sd(group)` models.
 
 ## Multiple Random-Effect Scale Components
 

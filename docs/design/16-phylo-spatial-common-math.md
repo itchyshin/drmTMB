@@ -633,13 +633,23 @@ and verifies that `check_drm()` reports a q=4 phylogenetic covariance diagnostic
 instead of reusing the older mean-mean q=2 wording.
 
 Family B structured direct-SD syntax such as `sd_phylo(species) ~ z_species`
-is a separate design problem. The scalar `sigma_phylo^2 A` covariance above is
-straightforward, but predictor-dependent species SDs imply a covariance such as
-`D(z) A D(z)` and a matching sparse-precision determinant/quadratic form. The
-public predictor is defined at species tips, while the sparse A-inverse
-implementation also contains internal nodes. Until the package has a precise
-tip/internal-node scaling rule and simulation evidence, `sd_phylo()` remains
-planned rather than fitted.
+uses a separate non-centred tip-scaling contract. Let `v_aug` follow the unit
+augmented tree covariance implied by the sparse precision, and let the
+species-level scale predictor define `tau_l = exp(W_l alpha)` for observed
+tips. The location contribution is:
+
+```text
+a_l = tau_l v_tip,l
+Cov(a_tip) = D_tip A_tip D_tip
+```
+
+Internal nodes remain part of the computational base tree effect `v_aug`, but
+they do not receive user-facing SD predictors. The predictor lives at observed
+tips and must be constant within species. This keeps `sd_phylo()` in the Box 1
+Family B lane: it replaces the scalar `log_sd_phylo` target for a univariate
+location `phylo()` effect rather than adding another layer to the q=4 Family A
+location-scale covariance block. The contract is now explicit; fitting,
+simulation recovery, and reporting remain Slice 21-22 work.
 
 Testing should be staged:
 
