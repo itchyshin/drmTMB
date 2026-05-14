@@ -4,10 +4,20 @@
 \alias{corpair}
 \title{Planned latent random-effect correlation formula marker}
 \usage{
-corpair(group, block = NULL, class = NULL, from = NULL, to = NULL)
+corpair(
+  group,
+  level = NULL,
+  block = NULL,
+  class = NULL,
+  from = NULL,
+  to = NULL
+)
 }
 \arguments{
 \item{group}{Grouping factor for the latent covariance block.}
+
+\item{level}{Optional latent correlation level, such as \code{"group"},
+\code{"phylogenetic"}, or \code{"spatial"}.}
 
 \item{block}{Optional covariance-block label, such as \code{"p"}.}
 
@@ -30,5 +40,6 @@ predictor-dependent latent correlations have likelihood and recovery tests.
 }
 \examples{
 # planned only; drmTMB() will currently reject corpair() formulas
-bf(corpair(id, block = "p", from = "mu1", to = "sigma2") ~ x)
+bf(corpair(species, level = "phylogenetic", block = "p",
+  from = "mu1", to = "mu2") ~ ecology)
 }

@@ -27,7 +27,7 @@ parse_drm_formula_entry <- function(expr, name, position) {
   }
   if (has_name && has_lhs && is_corpair_lhs(lhs)) {
     cli::cli_abort(
-      "Correlation-pair formulas should be unnamed, for example {.code corpair(id, block = \"p\", class = \"location-scale\") ~ x}."
+      "Correlation-pair formulas should be unnamed, for example {.code corpair(species, level = \"phylogenetic\", block = \"p\", from = \"mu1\", to = \"mu2\") ~ x}."
     )
   }
 
@@ -157,24 +157,24 @@ parse_corpair_lhs <- function(lhs) {
   if (length(target_pos) != 1L) {
     cli::cli_abort(c(
       "{.fn corpair} requires exactly one grouping variable.",
-      "x" = "Use syntax like {.code corpair(id, block = \"p\", from = \"mu1\", to = \"sigma2\") ~ x}."
+      "x" = "Use syntax like {.code corpair(species, level = \"phylogenetic\", block = \"p\", from = \"mu1\", to = \"mu2\") ~ x}."
     ))
   }
   group_arg <- args[[target_pos]]
   if (!is.symbol(group_arg)) {
     cli::cli_abort(c(
       "The {.fn corpair} target must be a simple grouping variable.",
-      "x" = "Use syntax like {.code corpair(id, block = \"p\", from = \"mu1\", to = \"sigma2\") ~ x}."
+      "x" = "Use syntax like {.code corpair(species, level = \"phylogenetic\", block = \"p\", from = \"mu1\", to = \"mu2\") ~ x}."
     ))
   }
 
   optional_names <- arg_names[-target_pos]
   optional_args <- args[-target_pos]
-  bad <- setdiff(optional_names, c("block", "class", "from", "to"))
+  bad <- setdiff(optional_names, c("level", "block", "class", "from", "to"))
   if (length(bad) > 0L || any(!nzchar(optional_names))) {
     cli::cli_abort(c(
-      "{.fn corpair} currently accepts only {.arg block}, {.arg class}, {.arg from}, and {.arg to} options.",
-      "x" = "Use syntax like {.code corpair(id, block = \"p\", from = \"mu1\", to = \"sigma2\") ~ x}."
+      "{.fn corpair} currently accepts only {.arg level}, {.arg block}, {.arg class}, {.arg from}, and {.arg to} options.",
+      "x" = "Use syntax like {.code corpair(species, level = \"phylogenetic\", block = \"p\", from = \"mu1\", to = \"mu2\") ~ x}."
     ))
   }
   if (any(duplicated(optional_names))) {
@@ -184,10 +184,18 @@ parse_corpair_lhs <- function(lhs) {
   }
 
   group <- as.character(group_arg)
+  level <- parse_corpair_string_arg(optional_args, optional_names, "level")
   block <- parse_corpair_string_arg(optional_args, optional_names, "block")
   class <- parse_corpair_string_arg(optional_args, optional_names, "class")
   from <- parse_corpair_string_arg(optional_args, optional_names, "from")
   to <- parse_corpair_string_arg(optional_args, optional_names, "to")
+  allowed_levels <- c("group", "phylogenetic", "spatial")
+  if (!is.na(level) && !level %in% allowed_levels) {
+    cli::cli_abort(c(
+      "{.arg level} must name a latent random-effect correlation level.",
+      "x" = "Supported planned levels are {.val {allowed_levels}}."
+    ))
+  }
   allowed_classes <- c("location-location", "location-scale", "scale-scale")
   if (!is.na(class) && !class %in% allowed_classes) {
     cli::cli_abort(c(
@@ -198,7 +206,7 @@ parse_corpair_lhs <- function(lhs) {
   if (xor(is.na(from), is.na(to))) {
     cli::cli_abort(c(
       "{.arg from} and {.arg to} in {.fn corpair} must be supplied together.",
-      "x" = "Use syntax like {.code corpair(id, block = \"p\", from = \"mu1\", to = \"sigma2\") ~ x}."
+      "x" = "Use syntax like {.code corpair(species, level = \"phylogenetic\", block = \"p\", from = \"mu1\", to = \"mu2\") ~ x}."
     ))
   }
   if (!is.na(class) && !is.na(from)) {
@@ -221,13 +229,14 @@ parse_corpair_lhs <- function(lhs) {
   if (!is.na(from) && identical(from, to)) {
     cli::cli_abort(c(
       "{.arg from} and {.arg to} in {.fn corpair} must name two different endpoints.",
-      "x" = "Use syntax like {.code corpair(id, block = \"p\", from = \"mu1\", to = \"sigma2\") ~ x}."
+      "x" = "Use syntax like {.code corpair(species, level = \"phylogenetic\", block = \"p\", from = \"mu1\", to = \"mu2\") ~ x}."
     ))
   }
 
   dpar <- paste0(
     "corpair(",
     group,
+    if (!is.na(level)) paste0(", level = \"", level, "\"") else "",
     if (!is.na(block)) paste0(", block = \"", block, "\"") else "",
     if (!is.na(class)) paste0(", class = \"", class, "\"") else "",
     if (!is.na(from)) paste0(", from = \"", from, "\"") else "",
@@ -236,6 +245,7 @@ parse_corpair_lhs <- function(lhs) {
   )
   list(
     group = group,
+    level = level,
     block = block,
     class = class,
     from = from,

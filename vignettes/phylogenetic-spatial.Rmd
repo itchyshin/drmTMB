@@ -262,17 +262,23 @@ The natural next syntax is reserved but not fitted yet:
 
 ```r
 # Planned, not fitted yet:
-corpair(species, block = "p", from = "mu1", to = "mu2") ~ assay_context
-corpair(species, block = "p", from = "mu1", to = "sigma2") ~ assay_context
-corpair(species, block = "p", from = "sigma1", to = "sigma2") ~ assay_context
+corpair(species, level = "phylogenetic", block = "p",
+        from = "mu1", to = "mu2") ~ ecology
+corpair(species, level = "phylogenetic", block = "p",
+        from = "mu1", to = "sigma2") ~ ecology
+corpair(species, level = "phylogenetic", block = "p",
+        from = "sigma1", to = "sigma2") ~ ecology
 ```
 
 That future layer would make phylogenetic random-effect correlations vary with
-a predictor, analogous in spirit to `rho12 = ~ assay_context` for residual
-correlation. Endpoint-specific `from` / `to` syntax avoids treating all four
-location-scale pairs as if they had the same biological meaning. Today, use
-`corpairs()` for fitted constant latent phylogenetic correlations and `rho12()`
-for fitted residual correlations.
+a species-level or clade-level ecological predictor, analogous in spirit to
+`rho12 = ~ assay_context` for residual
+correlation. The explicit `level = "phylogenetic"` keeps this layer separate
+from ordinary species effects and future spatial effects. Endpoint-specific
+`from` / `to` syntax avoids treating all four location-scale pairs as if they
+had the same biological meaning. Today, use `corpairs()` for fitted constant
+latent phylogenetic correlations and `rho12()` for fitted residual
+correlations.
 
 ## What should get 95% intervals?
 
@@ -556,8 +562,8 @@ phylogenetic correlations when the matching `phylo()` terms define a shared
 covariance block. It cannot yet fit a separate predictor formula for those
 latent correlations. In other words, `rho12 = ~ assay_context` is implemented
 for residual correlation regression, but
-`corpair(species, block = "p", from = "mu1", to = "mu2") ~ assay_context` is
-still planned.
+`corpair(species, level = "phylogenetic", block = "p", from = "mu1", to = "mu2") ~ ecology`
+is still planned.
 
 The q=4 phylogenetic location-scale block extends the same idea to four
 endpoints:
@@ -715,12 +721,18 @@ extractor is `corpairs()`, but the planned formula syntax should be singular:
 
 ```r
 # Planned, not fitted yet:
-corpair(species, block = "p", from = "mu1", to = "mu2") ~ w
-corpair(species, block = "p", from = "mu1", to = "sigma1") ~ w
-corpair(species, block = "p", from = "mu1", to = "sigma2") ~ w
-corpair(species, block = "p", from = "mu2", to = "sigma1") ~ w
-corpair(species, block = "p", from = "mu2", to = "sigma2") ~ w
-corpair(species, block = "p", from = "sigma1", to = "sigma2") ~ w
+corpair(species, level = "phylogenetic", block = "p",
+        from = "mu1", to = "mu2") ~ w
+corpair(species, level = "phylogenetic", block = "p",
+        from = "mu1", to = "sigma1") ~ w
+corpair(species, level = "phylogenetic", block = "p",
+        from = "mu1", to = "sigma2") ~ w
+corpair(species, level = "phylogenetic", block = "p",
+        from = "mu2", to = "sigma1") ~ w
+corpair(species, level = "phylogenetic", block = "p",
+        from = "mu2", to = "sigma2") ~ w
+corpair(species, level = "phylogenetic", block = "p",
+        from = "sigma1", to = "sigma2") ~ w
 ```
 
 This endpoint naming matters because the cross-trait mean-scale pairs can be

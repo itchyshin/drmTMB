@@ -125,6 +125,31 @@ test_that("drm_formula() captures planned corpair formula syntax", {
     list(group = "id", block = "p", from = "mu1", to = "sigma2")
   )
 
+  phylo_form <- drm_formula(
+    corpair(
+      species,
+      level = "phylogenetic",
+      block = "p",
+      from = "mu1",
+      to = "mu2"
+    ) ~ ecology
+  )
+  phylo_entry <- phylo_form$entries[[1L]]
+  expect_equal(
+    phylo_entry$dpar,
+    'corpair(species, level = "phylogenetic", block = "p", from = "mu1", to = "mu2")'
+  )
+  expect_equal(
+    phylo_entry$corpair[c("group", "level", "block", "from", "to")],
+    list(
+      group = "species",
+      level = "phylogenetic",
+      block = "p",
+      from = "mu1",
+      to = "mu2"
+    )
+  )
+
   class_form <- drm_formula(
     corpair(id, block = "p", class = "location-scale") ~ z
   )
@@ -209,6 +234,13 @@ test_that("formula markers are no-op placeholders", {
   expect_null(spatial(1 | site, mesh = mesh))
   expect_null(corpair(id, block = "p", class = "location-scale"))
   expect_null(corpair(id, block = "p", from = "mu1", to = "sigma2"))
+  expect_null(corpair(
+    species,
+    level = "phylogenetic",
+    block = "p",
+    from = "mu1",
+    to = "mu2"
+  ))
 })
 
 test_that("planned structured-effect markers validate their grammar", {
@@ -266,6 +298,10 @@ test_that("planned corpair formulas validate grammar and reject fitting clearly"
   expect_error(
     drm_formula(corpair(id, class = "residual") ~ z),
     "latent random-effect correlation class"
+  )
+  expect_error(
+    drm_formula(corpair(id, level = "residual", from = "mu1", to = "mu2") ~ z),
+    "latent random-effect correlation level"
   )
   expect_error(
     drm_formula(corpair(id, from = "mu1") ~ z),

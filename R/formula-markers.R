@@ -87,6 +87,8 @@ spatial <- function(term, coords = NULL, mesh = NULL) {
 #' predictor-dependent latent correlations have likelihood and recovery tests.
 #'
 #' @param group Grouping factor for the latent covariance block.
+#' @param level Optional latent correlation level, such as `"group"`,
+#'   `"phylogenetic"`, or `"spatial"`.
 #' @param block Optional covariance-block label, such as `"p"`.
 #' @param class Optional latent correlation class: `"location-location"`,
 #'   `"location-scale"`, or `"scale-scale"`. This is an extraction-oriented
@@ -99,7 +101,15 @@ spatial <- function(term, coords = NULL, mesh = NULL) {
 #'
 #' @examples
 #' # planned only; drmTMB() will currently reject corpair() formulas
-#' bf(corpair(id, block = "p", from = "mu1", to = "sigma2") ~ x)
-corpair <- function(group, block = NULL, class = NULL, from = NULL, to = NULL) {
+#' bf(corpair(species, level = "phylogenetic", block = "p",
+#'   from = "mu1", to = "mu2") ~ ecology)
+corpair <- function(
+  group,
+  level = NULL,
+  block = NULL,
+  class = NULL,
+  from = NULL,
+  to = NULL
+) {
   invisible(NULL)
 }

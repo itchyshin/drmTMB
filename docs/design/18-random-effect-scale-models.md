@@ -207,6 +207,14 @@ structured Family B direct-SD model. Bivariate `sd_phylo1(species)` and
 in `mu1` and `mu2`. Names such as `sd_spatial(site)` remain planned. These
 direct-SD models are not scalar replacements for every fitted `log_sd_phylo`
 parameter.
+
+A future generic alias could spell the same target as
+`sd(species, level = "phylogenetic") ~ z_species`. The current implemented
+`sd_phylo()` name is deliberately explicit: it tells users that the SD surface
+scales a tree-induced covariance, not an ordinary independent grouping factor.
+This mirrors the future `corpair(..., level = "phylogenetic", ...)` grammar
+without requiring a breaking rename now.
+
 In the scalar phylogenetic likelihood, the latent species effects are coupled
 by a Brownian-motion tree precision:
 

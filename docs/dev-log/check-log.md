@@ -13073,19 +13073,25 @@ Goal:
 
 Implemented:
 
-- chose endpoint-specific `corpair()` syntax for the first ordinary
-  predictor-dependent route, for example
-  `corpair(id, block = "p", from = "mu1", to = "sigma2") ~ w`;
+- chose endpoint-specific `corpair()` syntax with an explicit optional
+  covariance level, for example
+  `corpair(id, level = "group", block = "p", from = "mu1", to = "sigma2") ~ w`
+  and
+  `corpair(species, level = "phylogenetic", block = "p", from = "mu1", to = "mu2") ~ ecology`;
 - kept `corpair()` singular for formula targets and `corpairs()` plural for the
   fitted extractor;
 - retained `class = "location-scale"` as a reserved shorthand and extraction
   concept, but not as the first fitted q=4 correlation-regression target;
-- taught the parser to store `from` and `to`, reject half-specified endpoints,
-  reject `class` mixed with endpoints, reject residual `rho12` as a latent
-  endpoint, and reject self-correlations such as `from = "mu1", to = "mu1"`;
+- taught the parser to store `level`, `from`, and `to`, reject unsupported
+  levels, reject half-specified endpoints, reject `class` mixed with endpoints,
+  reject residual `rho12` as a latent endpoint, and reject self-correlations
+  such as `from = "mu1", to = "mu1"`;
 - updated `NEWS.md`, formula grammar, the correlation-pair design note,
-  known limitations, and the formula-grammar, model-map, and
-  phylogenetic-spatial articles.
+  random-effect scale design note, known limitations, and the formula-grammar,
+  model-map, and phylogenetic-spatial articles;
+- recorded `sd(species, level = "phylogenetic") ~ z` as a possible future
+  generic alias while keeping implemented `sd_phylo()` as the stable explicit
+  path for now.
 
 Checks run:
 

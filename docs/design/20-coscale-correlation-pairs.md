@@ -52,8 +52,8 @@ spatial, study-level, and richer double-hierarchical correlation likelihoods
 become implemented.
 
 The singular formula marker
-`corpair(group, block = "...", from = "mu1", to = "sigma2") ~ x` is reserved
-for future predictor-dependent latent random-effect correlations.
+`corpair(group, level = "phylogenetic", block = "...", from = "mu1", to = "mu2") ~ x`
+is reserved for future predictor-dependent latent random-effect correlations.
 `drm_formula()` parses it, but `drmTMB()` rejects it until the likelihood,
 diagnostics, and recovery tests exist. Use `rho12 = ~ x` for residual
 within-observation correlation, and use `corpairs(fit)` to extract fitted
@@ -69,13 +69,26 @@ than the residual two-response parameter `rho12`.
 The planned endpoint-specific syntax is:
 
 ```r
-corpair(id, block = "p", from = "mu1", to = "mu2") ~ w
-corpair(id, block = "p", from = "mu1", to = "sigma1") ~ w
-corpair(id, block = "p", from = "mu1", to = "sigma2") ~ w
-corpair(id, block = "p", from = "mu2", to = "sigma1") ~ w
-corpair(id, block = "p", from = "mu2", to = "sigma2") ~ w
-corpair(id, block = "p", from = "sigma1", to = "sigma2") ~ w
+corpair(id, level = "group", block = "p", from = "mu1", to = "mu2") ~ w
+corpair(id, level = "group", block = "p", from = "mu1", to = "sigma1") ~ w
+corpair(id, level = "group", block = "p", from = "mu1", to = "sigma2") ~ w
+corpair(id, level = "group", block = "p", from = "mu2", to = "sigma1") ~ w
+corpair(id, level = "group", block = "p", from = "mu2", to = "sigma2") ~ w
+corpair(id, level = "group", block = "p", from = "sigma1", to = "sigma2") ~ w
 ```
+
+The same grammar extends to future structured levels:
+
+```r
+corpair(species, level = "phylogenetic", block = "p",
+        from = "mu1", to = "mu2") ~ ecology
+corpair(site, level = "spatial", block = "p",
+        from = "mu1", to = "mu2") ~ habitat
+```
+
+This keeps one `corpair()` function family while making the covariance level
+explicit. Do not introduce `corpair_phylo()` unless this grammar proves too
+awkward in use.
 
 The `class` argument remains useful for extraction and for future shorthand
 when a class maps to one unique pair. It should not be the first fitted q=4
@@ -151,13 +164,14 @@ corpairs(fit, level = "phylogenetic")
 
 The fitted table currently reports `mean-mean` and `mean-scale` because that
 vocabulary is already used in older random-effect summaries. The endpoint-
-specific formula syntax uses distributional-parameter names such as
-`corpair(id, block = "p", from = "mu1", to = "sigma2") ~ z`. To keep those two
-surfaces compatible while avoiding a broad output rename, `corpairs()` accepts
-`location-location`, `location-scale`, `location-slope`, and `slope-location`
-as filter aliases for the existing `mean-*` rows. The older `class` argument
-remains a planned shorthand, but it is not the first fitted q=4 modelling
-target.
+specific formula syntax uses distributional-parameter names and a covariance
+level, such as
+`corpair(species, level = "phylogenetic", block = "p", from = "mu1", to = "mu2") ~ z`.
+To keep those two surfaces compatible while avoiding a broad output rename,
+`corpairs()` accepts `location-location`, `location-scale`, `location-slope`,
+and `slope-location` as filter aliases for the existing `mean-*` rows. The
+older `class` argument remains a planned shorthand, but it is not the first
+fitted q=4 modelling target.
 
 The existing `rho12(fit)` helper should remain a narrow convenience extractor
 for residual response-response correlation only.
@@ -315,9 +329,10 @@ display preference, because each layer answers a different biological question.
 10. Add spatial bivariate covariance blocks.
 11. Reserve `corpair()` formula syntax, but keep fitting disabled. Done for
     parser and error messaging.
-12. Add the endpoint-specific `from` / `to` grammar for predictor-dependent
-    ordinary `corpair()` formulas, while still rejecting fitting until the
-    likelihood and tests exist.
+12. Add the endpoint-specific `level` plus `from` / `to` grammar for
+    predictor-dependent ordinary, phylogenetic, and spatial `corpair()`
+    formulas, while still rejecting fitting until the likelihood and tests
+    exist.
 13. Fit predictor-dependent ordinary q=2 `corpair()` formulas first. The q=2
     restriction keeps the correlation matrix positive definite through a single
     Fisher-z regression.

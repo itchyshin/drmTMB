@@ -83,7 +83,7 @@ In this table, "coscale" means a model for residual correlation, currently
 | `cbind(successes, failures) ~ x1`, `family = beta_binomial()` | Implemented | Fixed-effect denominator-aware model for success counts with known trial totals; `sigma` is extra-binomial variation. |
 | `phylo(1 + x1 | species, tree = tree)` | Planned | Structured slopes come after the intercept-only path is hardened. |
 | `spatial(1 | site, coords = coords)` and `spatial(1 | site, mesh = mesh)` | Planned | Spatial SPDE/GMRF terms are part of the design but not fitted yet. |
-| `corpair(id, block = "p", from = "mu1", to = "sigma2") ~ x` | Reserved | Planned endpoint-specific syntax for predictor-dependent latent random-effect correlations; `drmTMB()` currently rejects it clearly. |
+| `corpair(id, level = "group", block = "p", from = "mu1", to = "sigma2") ~ x` | Reserved | Planned endpoint-specific syntax for predictor-dependent latent random-effect correlations; `level = "phylogenetic"` and `level = "spatial"` are reserved sibling targets. `drmTMB()` currently rejects it clearly. |
 | Bivariate random slopes, spatial q4 covariance blocks, predictor-dependent phylogenetic/spatial correlations, or `rho12` random effects | Planned | Requires larger structured covariance parameterizations, simulation recovery, and naming checks. |
 
 ## Univariate Syntax
@@ -234,7 +234,7 @@ bf(
   sigma1 = ~ z + (1 | p | id),
   sigma2 = ~ z + (1 | p | id),
   rho12 = ~ w,
-  corpair(id, block = "p", from = "mu1", to = "sigma2") ~ w
+  corpair(id, level = "group", block = "p", from = "mu1", to = "sigma2") ~ w
 )
 ```
 
@@ -254,12 +254,15 @@ predictor-dependent route. The next grammar extension should therefore identify
 the exact endpoints:
 
 ```r
-corpair(id, block = "p", from = "mu1", to = "sigma2") ~ w
+corpair(id, level = "group", block = "p", from = "mu1", to = "sigma2") ~ w
+corpair(species, level = "phylogenetic", block = "p", from = "mu1", to = "mu2") ~ ecology
 ```
 
 The older `class = "location-scale"` spelling remains useful as an extraction
 filter and as a possible later shared-class model, but it should not be the
-first fitted q=4 correlation-regression target.
+first fitted q=4 correlation-regression target. The `level` argument keeps
+ordinary, phylogenetic, and spatial latent-correlation targets in one grammar
+without adding `corpair_phylo()` or `corpair_spatial()` function families.
 
 This is not fitted yet. Use `rho12 = ~ w` for residual within-observation
 correlation, and use `corpairs(fit)` to extract fitted constant latent
@@ -478,6 +481,12 @@ constant latent phylogenetic location-location correlation, reported by
 `corpairs()`, and keeps residual `rho12` as the within-observation coscale
 parameter. It is not syntax for phylogenetic residual-scale SDs or q=4
 location-scale endpoint SDs.
+
+Future generic aliases can use `level` in the same spirit as `corpair()`, for
+example `sd(species, level = "phylogenetic") ~ z`. The implemented
+`sd_phylo()` names remain the stable public path for now because they make the
+tree-scaled `D_tip A_tip D_tip` contract explicit and avoid confusing
+phylogenetic species effects with ordinary independent species effects.
 
 Reserved explicit random-effect scale targets use `dpar`, `coef`, and optional
 `block` arguments:
