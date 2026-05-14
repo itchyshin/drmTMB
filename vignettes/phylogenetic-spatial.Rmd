@@ -105,7 +105,8 @@ phylogenetic location SDs and their mean-mean correlation. Matching labelled
 `phylo()` terms across `mu1`, `mu2`, `sigma1`, and `sigma2` now fit the first
 constant bivariate phylogenetic location-scale block. Spatial fields,
 phylogenetic slopes, and predictor-dependent latent phylogenetic correlations
-remain planned extensions.
+remain planned extensions; the planned `corpair(..., level = "phylogenetic")`
+syntax is shown below, but it is not a fitted model yet.
 
 The scientific question for the implemented path is simple:
 
@@ -134,7 +135,26 @@ location-scale-coscale model.
 | Matching labelled `phylo()` terms in all four bivariate `mu1`, `mu2`, `sigma1`, and `sigma2` formulas | Implemented first slice | One constant q=4 phylogenetic block estimates four endpoint SDs and six latent correlations: one location-location, four location-scale, and one scale-scale. Partial, unlabelled, mismatched, and slope forms remain rejected. |
 | `sd_phylo(species) ~ z` | Implemented for univariate Gaussian `mu` | This is the separate Box 1 direct-SD family: species-level predictors model the SD of a phylogenetic location random effect at observed tips. |
 | `sd_phylo1(species) ~ z1` / `sd_phylo2(species) ~ z2` | Implemented for bivariate `mu1`/`mu2` | Response-specific species-level predictors model the SD surfaces of the two phylogenetic location random effects. This remains a Family B direct-SD model, not a residual `sigma1`/`sigma2` model and not a q=4 location-scale block. |
+| Phylogenetic `corpair() ~ ecology` | Planned | This would model how species-level or clade-level predictors change latent phylogenetic random-effect correlations. Today, matching `phylo()` terms fit constant phylogenetic correlations and `corpairs(level = "phylogenetic")` extracts them. |
 | `spatial(1 | site, coords = coords)` or `spatial(1 | site, mesh = mesh)` | Planned | Spatial will mirror the phylogenetic API after the phylogenetic structured-effect path is stable. |
+
+The planned phylogenetic correlation-regression syntax is:
+
+```r
+# Planned, not fitted yet:
+corpair(species, level = "phylogenetic", block = "p",
+        from = "mu1", to = "mu2") ~ ecology
+corpair(species, level = "phylogenetic", block = "p",
+        from = "mu1", to = "sigma2") ~ ecology
+corpair(species, level = "phylogenetic", block = "p",
+        from = "mu2", to = "sigma1") ~ ecology
+corpair(species, level = "phylogenetic", block = "p",
+        from = "sigma1", to = "sigma2") ~ ecology
+```
+
+Those formulae are not examples to run today. They mark the intended next layer
+after constant phylogenetic `corpairs()` rows: location-location, both
+cross-trait location-scale pairs, and scale-scale correlation regression.
 
 ## A model ladder for two traits
 
@@ -499,62 +519,57 @@ error clearly rather than silently fitting a different model.
 ## Bivariate phylogenetic correlations: model layer by layer
 
 For two Gaussian responses, `drmTMB` separates the residual correlation from
-the phylogenetic random-effect correlation. A bivariate phylogenetic location
+the phylogenetic random-effect correlation. Let
+\(\mathbf{y}_i = (y_{1i}, y_{2i})^\top\). A bivariate phylogenetic location
 model can be written as:
 
 \[
-\begin{pmatrix}
-y_{1i} \\
-y_{2i}
-\end{pmatrix}
-\mid \boldsymbol{\mu}_i, \boldsymbol{\Omega}_i
+\mathbf{y}_i
+  \mid \boldsymbol{\mu}_i, \boldsymbol{\Omega}_i
   \sim \operatorname{MVN}(\boldsymbol{\mu}_i, \boldsymbol{\Omega}_i),
 \]
 
 \[
-\mu_{1i} =
-  \mathbf{x}_{1i}^{\top}\boldsymbol{\beta}_1 + a_{1,s[i]},
-\qquad
-\mu_{2i} =
-  \mathbf{x}_{2i}^{\top}\boldsymbol{\beta}_2 + a_{2,s[i]},
+\begin{aligned}
+\mu_{1i} &=
+  \mathbf{x}_{1i}^{\top}\boldsymbol{\beta}_1 + a_{1,s[i]},\\
+\mu_{2i} &=
+  \mathbf{x}_{2i}^{\top}\boldsymbol{\beta}_2 + a_{2,s[i]}.
+\end{aligned}
 \]
 
 \[
-\boldsymbol{\Omega}_i =
-\begin{pmatrix}
-\sigma_{1i}^2 &
-\rho_{12,i}\sigma_{1i}\sigma_{2i} \\
-\rho_{12,i}\sigma_{1i}\sigma_{2i} &
-\sigma_{2i}^2
-\end{pmatrix}.
+\begin{aligned}
+\Omega_{11,i} &= \sigma_{1i}^2,\\
+\Omega_{22,i} &= \sigma_{2i}^2,\\
+\Omega_{12,i} &= \Omega_{21,i}
+  = \rho_{12,i}\sigma_{1i}\sigma_{2i}.
+\end{aligned}
 \]
 
 The residual coscale formula, `rho12 = ~ assay_context`, models
 \(\rho_{12,i}\) in \(\boldsymbol{\Omega}_i\). This is an observation-level
 residual correlation.
 
-The phylogenetic location effects are a separate latent layer. If
-\(\mathbf{A}\) is the tree-derived species correlation matrix, then:
+The phylogenetic location effects are a separate latent layer. Let
+\(\mathbf{a}_1\) and \(\mathbf{a}_2\) collect the species-level phylogenetic
+location effects for responses 1 and 2. If \(\mathbf{A}\) is the tree-derived
+species correlation matrix, then:
 
 \[
-\begin{pmatrix}
-\mathbf{a}_1 \\
-\mathbf{a}_2
-\end{pmatrix}
-  \sim
-  \operatorname{MVN}\left[
-    \mathbf{0},
-    \begin{pmatrix}
-      \tau_1^2 \mathbf{A} &
-      r_{\mu_1,\mu_2}^{phylo}\tau_1\tau_2\mathbf{A} \\
-      r_{\mu_1,\mu_2}^{phylo}\tau_1\tau_2\mathbf{A} &
-      \tau_2^2 \mathbf{A}
-    \end{pmatrix}
-  \right].
+\begin{aligned}
+\operatorname{Var}(\mathbf{a}_1) &=
+  \tau_1^2 \mathbf{A},\\
+\operatorname{Var}(\mathbf{a}_2) &=
+  \tau_2^2 \mathbf{A},\\
+\operatorname{Cov}(\mathbf{a}_1, \mathbf{a}_2) &=
+  r_{\mu_1,\mu_2}^{\mathrm{phylo}}\tau_1\tau_2\mathbf{A}.
+\end{aligned}
 \]
 
-Here \(r_{\mu_1,\mu_2}^{phylo}\) is the phylogenetic mean-mean correlation. It
-is reported by `corpairs(fit, level = "phylogenetic")`, not by `rho12()`.
+Here \(r_{\mu_1,\mu_2}^{\mathrm{phylo}}\) is the phylogenetic mean-mean
+correlation. It is reported by `corpairs(fit, level = "phylogenetic")`, not by
+`rho12()`.
 
 The matching R syntax is:
 
@@ -589,19 +604,15 @@ for residual correlation regression, but
 is still planned.
 
 The q=4 phylogenetic location-scale block extends the same idea to four
-endpoints:
+endpoints. For endpoint \(d \in \{\mu_1, \mu_2, \sigma_1, \sigma_2\}\), let
+\(u_{d,s}\) be the phylogenetic effect for species \(s\). The covariance
+contract is:
 
 \[
-\boldsymbol{u}_s =
-\begin{pmatrix}
-u_{\mu_1,s} \\
-u_{\mu_2,s} \\
-u_{\sigma_1,s} \\
-u_{\sigma_2,s}
-\end{pmatrix},
-\qquad
 \operatorname{Cov}(u_{d,s}, u_{e,t}) =
-\Sigma_{de}^{phylo} A_{st}.
+\Sigma_{de}^{\mathrm{phylo}} A_{st},
+\qquad
+d,e \in \{\mu_1, \mu_2, \sigma_1, \sigma_2\}.
 \]
 
 The four linear predictors then contain one endpoint-specific phylogenetic

@@ -13231,3 +13231,38 @@ Known limitations:
   summary rows if we want intervals for averages or extrema over groups;
 - q=4, phylogenetic, and spatial predictor-dependent `corpair()` intervals
   remain blocked by their not-yet-fitted likelihoods.
+
+## 2026-05-14 -- Phylogenetic-spatial article rendering polish
+
+Goal:
+
+- make the phylogenetic correlation article render cleanly in pkgdown and make
+  the planned phylogenetic `corpair()` syntax visible near the status table.
+
+Implemented:
+
+- replaced bracket-heavy bivariate and q=4 phylogenetic covariance displays
+  with scalar variance/covariance equations that render more cleanly in HTML;
+- added a planned, not-fitted-yet
+  `corpair(species, level = "phylogenetic", block = "p", ...) ~ ecology`
+  example near the current implementation status table;
+- kept the fitted/planned boundary explicit: constant phylogenetic correlations
+  are fitted through matching `phylo()` terms and extracted with
+  `corpairs(level = "phylogenetic")`, while predictor-dependent phylogenetic
+  `corpair()` formulas remain planned.
+
+Checks run:
+
+- `/opt/homebrew/bin/air format vignettes/phylogenetic-spatial.Rmd`: passed.
+- `PATH=/opt/homebrew/bin:$PATH /Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::load_all(quiet = TRUE); pkgdown::build_article("phylogenetic-spatial", new_process = FALSE, quiet = TRUE)'`:
+  passed and refreshed `pkgdown-site/articles/phylogenetic-spatial.html`.
+- `PATH=/opt/homebrew/bin:$PATH /Library/Frameworks/R.framework/Resources/bin/Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed.
+- `rg -n '\\begin\{p?matrix\}|\\begin\{bmatrix\}|\\left|\\right|\\begin\{array\}' vignettes/phylogenetic-spatial.Rmd pkgdown-site/articles/phylogenetic-spatial.html`:
+  returned no matches.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- this is documentation/rendering polish only; it does not implement
+  predictor-dependent phylogenetic `corpair()` likelihoods.
