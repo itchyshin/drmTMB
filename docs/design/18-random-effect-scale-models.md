@@ -252,7 +252,11 @@ when the `mu` formula contains one intercept-only
 with one row per observed tree tip, rejects predictors that vary within
 species, maps the scalar `log_sd_phylo` parameter out for that target, and
 reports fitted values through `coef()`, `predict()`, `sdpars`, `summary()`, and
-`profile_targets()`.
+`profile_targets()`. `check_drm()` reports a `phylo_direct_sd_model` diagnostic
+row for these fits, including species replication, fitted SD range, and the
+maximum fitted species-SD ratio, because weak replication or a numerically
+invalid SD surface can make direct-SD interpretation misleading even when fixed
+effects are available.
 
 ## Multiple Random-Effect Scale Components
 

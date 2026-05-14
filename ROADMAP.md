@@ -238,7 +238,9 @@ distributional regression models using TMB.
   it uses a non-centred unit tree effect, multiplies only observed tip
   contributions by species-level `tau_l = exp(W_l alpha)`, and interprets the
   marginal tip covariance as `D_tip A_tip D_tip`. Bivariate `sd_phylo1()` /
-  `sd_phylo2()` extensions remain planned.
+  `sd_phylo2()` extensions remain planned. `check_drm()` now reports a
+  univariate `sd_phylo()` direct-SD diagnostic row covering species replication
+  and the fitted species-level SD surface range.
 - Use the correlation-pair design in
   `docs/design/20-coscale-correlation-pairs.md` before implementing bivariate
   double-hierarchical covariance blocks; pair outputs should identify the

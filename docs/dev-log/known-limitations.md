@@ -61,7 +61,10 @@
     structured-SD formulas such as
   `sd_phylo(species) ~ x_species` are implemented for univariate phylogenetic
   location models; bivariate `sd_phylo1()` / `sd_phylo2()` and spatial
-  direct-SD siblings remain planned.
+  direct-SD siblings remain planned. `check_drm()` reports species replication
+  and the fitted species-level SD range for the univariate `sd_phylo()` path,
+  but broad recovery grids across tree shape, predictor strength, and weak SD
+  surfaces remain future validation work.
 - `corpairs()` currently reports only correlations that are already fitted:
   residual bivariate `rho12` summaries and ordinary univariate Gaussian `mu`
   random-effect correlations, plus the implemented univariate `mu`/`sigma`

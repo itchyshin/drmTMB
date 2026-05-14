@@ -85,6 +85,36 @@ check_drm_biv_phylo_data <- function(
   )
 }
 
+check_drm_sd_phylo_data <- function(seed = 2026051401, n_each = 4L) {
+  set.seed(seed)
+  tree <- check_drm_test_tree()
+  A <- drmTMB:::drm_phylo_tip_covariance(tree)
+  species_z <- stats::setNames(
+    seq(-0.9, 0.9, length.out = length(tree$tip.label)),
+    tree$tip.label
+  )
+  tau <- exp(-0.55 + 0.55 * species_z)
+  base_effect <- as.vector(t(chol(A)) %*% stats::rnorm(length(tree$tip.label)))
+  names(base_effect) <- tree$tip.label
+  phylo_effect <- tau * base_effect
+  species <- factor(
+    rep(tree$tip.label, each = n_each),
+    levels = tree$tip.label
+  )
+  x <- stats::rnorm(length(species))
+  data <- data.frame(
+    y = 0.25 +
+      0.35 * x +
+      phylo_effect[as.character(species)] +
+      stats::rnorm(length(species), sd = 0.20),
+    x = x,
+    z_species = species_z[as.character(species)],
+    species = species
+  )
+
+  list(data = data, tree = tree)
+}
+
 check_drm_biv_q4_data <- function(
   n_id = 36L,
   n_each = 6L,
@@ -441,6 +471,58 @@ test_that("check_drm() records phylogenetic replication notes", {
   expect_equal(phylo$status, "note")
   expect_match(phylo$value, "min_species_n=1")
   expect_true(attr(chk, "ok"))
+})
+
+test_that("check_drm() records sd_phylo direct-SD diagnostics", {
+  sim <- check_drm_sd_phylo_data()
+  tree <- sim$tree
+  fit <- drmTMB(
+    bf(
+      y ~ x + phylo(1 | species, tree = tree),
+      sigma ~ 1,
+      sd_phylo(species) ~ z_species
+    ),
+    family = gaussian(),
+    data = sim$data,
+    control = list(eval.max = 500, iter.max = 500)
+  )
+  chk <- check_drm(fit)
+  direct_sd <- chk[chk$check == "phylo_direct_sd_model", ]
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(nrow(direct_sd), 1L)
+  expect_equal(direct_sd$status, "ok")
+  expect_match(direct_sd$value, "dpar=sd_phylo\\(species\\)")
+  expect_match(direct_sd$value, "group=species")
+  expect_match(direct_sd$value, "min_species_n=4")
+  expect_match(direct_sd$value, "sd_range=\\[")
+  expect_match(direct_sd$value, "max_sd_ratio=")
+  expect_match(direct_sd$message, "finite positive")
+
+  singleton <- fit
+  singleton$model$random_scale$phylo$observation_sd_row0 <- c(
+    0L,
+    rep.int(1L, 4L),
+    rep.int(2L, 4L),
+    rep.int(3L, length(sim$data$species) - 9L)
+  )
+  singleton_chk <- check_drm(singleton)
+  singleton_sd <- singleton_chk[
+    singleton_chk$check == "phylo_direct_sd_model",
+  ]
+
+  expect_equal(singleton_sd$status, "note")
+  expect_match(singleton_sd$value, "min_species_n=1")
+  expect_match(singleton_sd$message, "recovery can be weak")
+
+  bad_sd <- fit
+  bad_sd$sdpars[["sd_phylo(species)"]][[1L]] <- NA_real_
+  bad_chk <- check_drm(bad_sd)
+  bad_direct_sd <- bad_chk[bad_chk$check == "phylo_direct_sd_model", ]
+
+  expect_equal(bad_direct_sd$status, "error")
+  expect_match(bad_direct_sd$message, "non-finite")
+  expect_false(attr(bad_chk, "ok"))
 })
 
 test_that("check_drm() reports bivariate phylogenetic covariance diagnostics", {

@@ -2,6 +2,52 @@
 
 Record meaningful development checks here.
 
+## 2026-05-14 -- Map Slice 22 sd_phylo recovery diagnostics
+
+Scope:
+
+- added a `check_drm()` diagnostic row for univariate
+  `sd_phylo(species) ~ x_species` fits;
+- report the target, species group, number of species, minimum fitted
+  observations per species, fitted direct-SD range, and maximum species-SD
+  ratio;
+- added a focused test covering the ordinary ok row, a single-species
+  replication note, and a non-finite fitted-SD error branch;
+- synchronized NEWS, roadmap, the random-effect scale design note, known
+  limitations, roxygen, and generated `man/check_drm.Rd`.
+
+Checks:
+
+- `air format R/check.R tests/testthat/test-check-drm.R NEWS.md ROADMAP.md docs/design/18-random-effect-scale-models.md docs/dev-log/known-limitations.md`:
+  passed.
+- `Rscript -e 'devtools::document()'`: passed and updated
+  `man/check_drm.Rd`.
+- First focused check
+  `Rscript -e 'devtools::test(filter = "check-drm|phylo-gaussian", reporter = "summary")'`:
+  failed because the new test used `tree = sim$tree`, which the formula parser
+  correctly rejects; fixed by binding `tree <- sim$tree` before the formula.
+- Second focused check
+  `Rscript -e 'devtools::test(filter = "check-drm|phylo-gaussian", reporter = "summary")'`:
+  failed because the mutated singleton diagnostic object inherited another
+  warning row, so the test now checks the targeted diagnostic row rather than
+  global `attr(x, "ok")`.
+- Third focused check
+  `Rscript -e 'devtools::test(filter = "check-drm|phylo-gaussian", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'devtools::test(reporter = "summary")'`: passed.
+- `Rscript -e 'pkgdown::check_pkgdown()'`: passed with no problems found.
+- `rg -n 'sd_phylo\(species\).*not implemented|sd_phylo\(species\).*unsupported|phylo_direct_sd_model.*planned|direct-SD surface diagnostics.*planned|check_drm\(\).*sd_phylo.*planned|univariate `sd_phylo\(\)`.*remain planned' README.md ROADMAP.md NEWS.md docs vignettes man pkgdown-site/articles/phylogenetic-spatial.html`:
+  no hits.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- Slice 22 hardens recovery diagnostics for the univariate `sd_phylo()` path;
+  it does not add a broad recovery grid across tree shape, predictor strength,
+  weak SD surfaces, or low species counts.
+- Bivariate `sd_phylo1()` / `sd_phylo2()` and spatial direct-SD diagnostics
+  remain planned.
+
 ## 2026-05-14 -- Map Slice 21 univariate sd_phylo implementation
 
 Scope:

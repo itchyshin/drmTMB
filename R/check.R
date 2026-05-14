@@ -31,7 +31,9 @@
 #' grouping factor. If a bivariate Gaussian fit includes a phylogenetic q=4
 #' `mu1`/`mu2`/`sigma1`/`sigma2` block, it reports species replication,
 #' location SDs relative to residual scales, log-`sigma` SDs, and whether any
-#' latent phylogenetic correlation is near the boundary. If a fit was stored with
+#' latent phylogenetic correlation is near the boundary. If a univariate
+#' Gaussian fit includes `sd_phylo(species) ~ x_species`, it reports species
+#' replication and the fitted direct-SD surface range. If a fit was stored with
 #' `drm_control(keep_tmb_object = FALSE)`, the
 #' fixed-gradient check is reported as a note because the TMB
 #' automatic-differentiation object is not available.
@@ -113,6 +115,7 @@ check_drm.drmTMB <- function(
       rho_boundary = rho_boundary
     ),
     check_phylo_replication(object),
+    check_phylo_direct_sd_model(object),
     check_biv_phylo_mu_covariance(object, rho_boundary = rho_boundary),
     check_biv_phylo_q4_covariance(object, rho_boundary = rho_boundary)
   )
@@ -1636,6 +1639,14 @@ min_finite_or_na <- function(x) {
   min(x)
 }
 
+max_finite_or_na <- function(x) {
+  x <- x[is.finite(x)]
+  if (length(x) == 0L) {
+    return(NA_real_)
+  }
+  max(x)
+}
+
 max_abs_finite_or_na <- function(x) {
   x <- x[is.finite(x)]
   if (length(x) == 0L) {
@@ -1731,6 +1742,96 @@ check_phylo_replication <- function(object) {
     } else {
       "Every observed species has at least two fitted observations."
     }
+  )
+}
+
+check_phylo_direct_sd_model <- function(object) {
+  if (!identical(object$model$model_type, "gaussian")) {
+    return(NULL)
+  }
+  sd_phylo <- object$model$random_scale$phylo
+  if (
+    !is.list(sd_phylo) ||
+      is.null(sd_phylo$n_models) ||
+      sd_phylo$n_models == 0L
+  ) {
+    return(NULL)
+  }
+
+  dpar <- sd_phylo$dpar[[1L]]
+  group <- unname(sd_phylo$group[[1L]])
+  target <- unname(sd_phylo$target_label[[1L]])
+  group_levels <- sd_phylo$group_levels
+  counts <- tabulate(
+    sd_phylo$observation_sd_row0 + 1L,
+    nbins = length(group_levels)
+  )
+  min_count <- if (length(counts) > 0L) min(counts) else NA_integer_
+  n_species <- length(group_levels)
+
+  sd_values <- object$sdpars[[dpar]]
+  finite_sd <- sd_values[is.finite(sd_values)]
+  sd_min <- min_finite_or_na(finite_sd)
+  sd_max <- max_finite_or_na(finite_sd)
+  positive_sd <- finite_sd[finite_sd > 0]
+  max_sd_ratio <- if (length(positive_sd) > 0L) {
+    max(positive_sd) / min(positive_sd)
+  } else {
+    NA_real_
+  }
+
+  invalid_sd <- length(sd_values) == 0L ||
+    length(finite_sd) != length(sd_values) ||
+    any(sd_values <= 0, na.rm = TRUE)
+  weak_replication <- is.finite(min_count) && min_count < 2L
+
+  check_row(
+    "phylo_direct_sd_model",
+    if (invalid_sd) {
+      "error"
+    } else if (weak_replication) {
+      "note"
+    } else {
+      "ok"
+    },
+    paste0(
+      "dpar=",
+      dpar,
+      "; target=",
+      target,
+      "; group=",
+      group,
+      "; n_species=",
+      n_species,
+      "; min_species_n=",
+      min_count,
+      "; sd_range=[",
+      format_check_number(sd_min),
+      ",",
+      format_check_number(sd_max),
+      "]",
+      "; max_sd_ratio=",
+      format_check_number(max_sd_ratio)
+    ),
+    phylo_direct_sd_message(invalid_sd, weak_replication)
+  )
+}
+
+phylo_direct_sd_message <- function(invalid_sd, weak_replication) {
+  if (invalid_sd) {
+    return(
+      "The fitted sd_phylo() surface contains non-finite or non-positive values."
+    )
+  }
+  if (weak_replication) {
+    return(paste(
+      "At least one observed species has fewer than two fitted observations;",
+      "sd_phylo() recovery can be weak even when the fitted model converges."
+    ))
+  }
+  paste(
+    "The sd_phylo() direct-SD model has replicated species and a finite",
+    "positive fitted species-level SD surface."
   )
 }
 
