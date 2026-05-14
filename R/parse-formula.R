@@ -225,8 +225,6 @@ parse_sd_lhs <- function(lhs) {
   if (
     fun %in%
       c(
-        "sd_phylo1",
-        "sd_phylo2",
         "sd_spatial",
         "sd_spatial1",
         "sd_spatial2"
@@ -234,7 +232,7 @@ parse_sd_lhs <- function(lhs) {
   ) {
     cli::cli_abort(c(
       "{.fn {fun}} random-effect SD models are planned but not implemented yet.",
-      "i" = "This implementation currently supports {.code sd(group)} for univariate Gaussian location random effects, {.code sd1(group)} / {.code sd2(group)} for bivariate Gaussian location random effects, and {.code sd_phylo(species)} for univariate phylogenetic location random effects."
+      "i" = "This implementation currently supports {.code sd(group)} for univariate Gaussian location random effects, {.code sd1(group)} / {.code sd2(group)} for bivariate Gaussian location random effects, {.code sd_phylo(species)} for univariate phylogenetic location random effects, and {.code sd_phylo1(species)} / {.code sd_phylo2(species)} for bivariate phylogenetic location random effects."
     ))
   }
   if (fun %in% c("sd_sigma1", "sd_sigma2")) {

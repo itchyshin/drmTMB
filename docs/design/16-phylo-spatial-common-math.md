@@ -649,10 +649,11 @@ tips and must be constant within species. This keeps `sd_phylo()` in the Box 1
 Family B lane: it replaces the scalar `log_sd_phylo` target for a univariate
 location `phylo()` effect rather than adding another layer to the q=4 Family A
 location-scale covariance block. The univariate fitting and first recovery
-tests are implemented; bivariate `sd_phylo1()` / `sd_phylo2()` and spatial
-direct-SD siblings remain planned.
+tests are implemented; bivariate `sd_phylo1()` / `sd_phylo2()` is implemented
+as the next location-only direct-SD slice, while spatial direct-SD siblings
+remain planned.
 
-The planned bivariate direct-SD extension keeps the same Family B lane. It
+The bivariate direct-SD extension keeps the same Family B lane. It
 targets only the phylogenetic location effects in matching `mu1` and `mu2`
 formulas:
 
@@ -678,6 +679,12 @@ correlations, scale-scale correlations, or residual `rho12`. They must be
 rejected with the all-four q=4 phylogenetic block for the same species level,
 because that block is the Family A constant covariance model across location
 and scale effects.
+
+When a direct-SD surface is fitted, `summary(fit)$covariance` cannot report one
+literal endpoint SD because the covariance is species-pair specific. The compact
+summary row uses the median fitted species SD for each direct endpoint and
+leaves species-specific SD surfaces available through `sdpars`, `coef()`, and
+`predict()`.
 
 Testing should be staged:
 

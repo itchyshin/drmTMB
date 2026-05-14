@@ -202,9 +202,11 @@ the builder rejects it before fitting.
 ## Structured Direct-SD Targets
 
 The univariate `sd_phylo(species)` target is implemented as the first
-structured Family B direct-SD model. Names such as `sd_phylo1(species)`,
-`sd_phylo2(species)`, and `sd_spatial(site)` remain planned. These direct-SD
-models are not scalar replacements for every fitted `log_sd_phylo` parameter.
+structured Family B direct-SD model. Bivariate `sd_phylo1(species)` and
+`sd_phylo2(species)` are implemented for matching phylogenetic location effects
+in `mu1` and `mu2`. Names such as `sd_spatial(site)` remain planned. These
+direct-SD models are not scalar replacements for every fitted `log_sd_phylo`
+parameter.
 In the scalar phylogenetic likelihood, the latent species effects are coupled
 by a Brownian-motion tree precision:
 
@@ -258,7 +260,8 @@ maximum fitted species-SD ratio, because weak replication or a numerically
 invalid SD surface can make direct-SD interpretation misleading even when fixed
 effects are available.
 
-Bivariate phylogenetic direct-SD syntax is planned with response-specific names:
+Bivariate phylogenetic direct-SD syntax is implemented with response-specific
+names:
 
 ```r
 bf(
@@ -296,9 +299,12 @@ Cov(a1_l, a2_m) = rho_phylo tau1_l A_lm tau2_m
 This means `sd_phylo1()` and `sd_phylo2()` replace the scalar phylogenetic SD
 parameters for their matching location endpoints, while `rho_phylo` remains a
 latent phylogenetic location-location correlation reported by `corpairs()`.
-Residual `rho12` remains the within-observation coscale parameter. The first
-implementation may allow one or both response-specific direct-SD formulas; if
-only one is supplied, the other endpoint can keep its scalar phylogenetic SD.
+Residual `rho12` remains the within-observation coscale parameter. The
+implementation allows one or both response-specific direct-SD formulas; if only
+one is supplied, the other endpoint keeps its scalar phylogenetic SD.
+For `summary(fit)$covariance`, a direct-SD endpoint is summarized by the median
+fitted species SD because the true phylogenetic covariance varies across
+species pairs as `rho_phylo tau1_l A_lm tau2_m`.
 
 Unsupported combinations should fail before optimization:
 

@@ -742,7 +742,12 @@ empty_profile_targets <- function() {
 }
 
 profile_fixef_internal <- function(dpar) {
-  if (startsWith(dpar, "sd(") || startsWith(dpar, "sd_phylo(")) {
+  if (
+    any(startsWith(
+      dpar,
+      c("sd(", "sd1(", "sd2(", "sd_phylo(", "sd_phylo1(", "sd_phylo2(")
+    ))
+  ) {
     return("beta_sd_mu")
   }
   if (identical(dpar, "hu")) {

@@ -506,10 +506,22 @@ phylo_mu_covariance_summaries <- function(object, intervals = NULL) {
     correlation_target <- paste0("cor:phylo:", parameter)
     from_sd_parameter <- sd_parameters[[pair$from_index[[1L]]]]
     to_sd_parameter <- sd_parameters[[pair$to_index[[1L]]]]
-    from_sd_target <- paste0("sd:mu:", from_sd_parameter)
-    to_sd_target <- paste0("sd:mu:", to_sd_parameter)
-    from_sd <- phylo_mu_sd_value(object, from_sd_parameter)
-    to_sd <- phylo_mu_sd_value(object, to_sd_parameter)
+    from_sd_summary <- phylo_mu_sd_summary(
+      object,
+      endpoint_index = pair$from_index[[1L]],
+      scalar_parameter = from_sd_parameter
+    )
+    to_sd_summary <- phylo_mu_sd_summary(
+      object,
+      endpoint_index = pair$to_index[[1L]],
+      scalar_parameter = to_sd_parameter
+    )
+    from_sd_parameter <- from_sd_summary$parameter
+    to_sd_parameter <- to_sd_summary$parameter
+    from_sd_target <- from_sd_summary$target
+    to_sd_target <- to_sd_summary$target
+    from_sd <- from_sd_summary$value
+    to_sd <- to_sd_summary$value
     correlation <- unname(object$corpars$phylo[[i]])
     correlation_interval <- covariance_summary_interval(
       intervals,
@@ -580,6 +592,42 @@ phylo_mu_sd_value <- function(object, parameter) {
     return(NA_real_)
   }
   unname(value)
+}
+
+phylo_mu_sd_summary <- function(object, endpoint_index, scalar_parameter) {
+  direct_dpar <- phylo_mu_direct_sd_dpar(object, endpoint_index)
+  if (!is.na(direct_dpar)) {
+    values <- unname(object$sdpars[[direct_dpar]])
+    values <- values[is.finite(values)]
+    value <- if (length(values) > 0L) stats::median(values) else NA_real_
+    return(list(
+      parameter = paste0(direct_dpar, ":median"),
+      target = paste0("sd:", direct_dpar, ":(median)"),
+      value = value
+    ))
+  }
+
+  list(
+    parameter = scalar_parameter,
+    target = paste0("sd:mu:", scalar_parameter),
+    value = phylo_mu_sd_value(object, scalar_parameter)
+  )
+}
+
+phylo_mu_direct_sd_dpar <- function(object, endpoint_index) {
+  sd_phylo <- object$model$random_scale$phylo
+  if (
+    !is.list(sd_phylo) ||
+      is.null(sd_phylo$n_models) ||
+      sd_phylo$n_models == 0L
+  ) {
+    return(NA_character_)
+  }
+  hit <- which(unname(sd_phylo$target_endpoint) == endpoint_index)
+  if (length(hit) == 0L) {
+    return(NA_character_)
+  }
+  sd_phylo$dpars[[hit[[1L]]]]
 }
 
 registry_random_effect_covariance_summaries <- function(
@@ -2728,8 +2776,7 @@ is_random_scale_dpar <- function(object, dpar) {
   ) {
     return(TRUE)
   }
-  identical(object$model$model_type, "gaussian") &&
-    is.list(object$model$random_scale$phylo) &&
+  is.list(object$model$random_scale$phylo) &&
     object$model$random_scale$phylo$n_models > 0L &&
     dpar %in% object$model$random_scale$phylo$dpars
 }

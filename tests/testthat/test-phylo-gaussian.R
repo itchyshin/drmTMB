@@ -155,6 +155,67 @@ new_biv_phylo_gaussian_data <- function(
   )
 }
 
+new_biv_sd_phylo_gaussian_data <- function(
+  seed = 20260823,
+  n_tip = 16L,
+  n_each = 8L,
+  alpha1 = c(`(Intercept)` = log(0.55), z_species = 0.60),
+  alpha2 = c(`(Intercept)` = log(0.45), z_species = -0.50),
+  rho_phylo = 0.30,
+  sigma = c(0.20, 0.22),
+  rho12 = 0.05
+) {
+  set.seed(seed)
+  tree <- balanced_ultrametric_tree(n_tip)
+  A <- drmTMB:::drm_phylo_tip_covariance(tree)
+  z_species <- seq(-1, 1, length.out = n_tip)
+  tau1 <- exp(alpha1[["(Intercept)"]] + alpha1[["z_species"]] * z_species)
+  tau2 <- exp(alpha2[["(Intercept)"]] + alpha2[["z_species"]] * z_species)
+  names(tau1) <- tree$tip.label
+  names(tau2) <- tree$tip.label
+  z1 <- stats::rnorm(n_tip)
+  z2 <- rho_phylo * z1 + sqrt(1 - rho_phylo^2) * stats::rnorm(n_tip)
+  base1 <- as.vector(t(chol(A)) %*% z1)
+  base2 <- as.vector(t(chol(A)) %*% z2)
+  names(base1) <- tree$tip.label
+  names(base2) <- tree$tip.label
+  phylo1 <- tau1 * base1
+  phylo2 <- tau2 * base2
+
+  species <- rep(tree$tip.label, each = n_each)
+  x <- stats::rnorm(length(species))
+  beta_mu1 <- c(`(Intercept)` = 0.25, x = 0.30)
+  beta_mu2 <- c(`(Intercept)` = -0.15, x = -0.25)
+  e1 <- stats::rnorm(length(species))
+  e2 <- rho12 * e1 + sqrt(1 - rho12^2) * stats::rnorm(length(species))
+
+  list(
+    data = data.frame(
+      y1 = beta_mu1[[1L]] +
+        beta_mu1[[2L]] * x +
+        phylo1[species] +
+        sigma[[1L]] * e1,
+      y2 = beta_mu2[[1L]] +
+        beta_mu2[[2L]] * x +
+        phylo2[species] +
+        sigma[[2L]] * e2,
+      x = x,
+      species = species,
+      z_species = z_species[match(species, tree$tip.label)]
+    ),
+    tree = tree,
+    beta_mu1 = beta_mu1,
+    beta_mu2 = beta_mu2,
+    alpha1 = alpha1,
+    alpha2 = alpha2,
+    tau1 = tau1,
+    tau2 = tau2,
+    rho_phylo = rho_phylo,
+    sigma = sigma,
+    rho12 = rho12
+  )
+}
+
 new_biv_phylo_q4_gaussian_data <- function(
   seed = 20260802,
   n_tip = 32L,
@@ -463,6 +524,7 @@ test_that("bivariate Gaussian mu supports correlated phylogenetic random interce
     fit$model$structured$phylo_mu$n_re +
       fit$model$structured$phylo_mu$observation_node_index
   ]
+  covariance <- summary(fit)$covariance
 
   expect_equal(fit$opt$convergence, 0)
   expect_named(
@@ -564,6 +626,137 @@ test_that("bivariate phylogenetic mean correlation recovers simulated signal", {
   expect_equal(phylo_pair$estimate, unname(fit$corpars$phylo))
 })
 
+test_that("bivariate phylogenetic location supports sd_phylo1 and sd_phylo2", {
+  sim <- new_biv_sd_phylo_gaussian_data()
+  dat <- sim$data
+  tree <- sim$tree
+
+  fit <- drmTMB(
+    bf(
+      mu1 = y1 ~ x + phylo(1 | p | species, tree = tree),
+      mu2 = y2 ~ x + phylo(1 | p | species, tree = tree),
+      sigma1 = ~1,
+      sigma2 = ~1,
+      rho12 = ~1,
+      sd_phylo1(species) ~ z_species,
+      sd_phylo2(species) ~ z_species
+    ),
+    family = biv_gaussian(),
+    data = dat,
+    control = list(eval.max = 700, iter.max = 700)
+  )
+
+  sd1_hat <- predict(fit, dpar = "sd_phylo1(species)")
+  sd2_hat <- predict(fit, dpar = "sd_phylo2(species)")
+  fixed_mu1 <- as.vector(stats::model.matrix(~x, dat) %*% coef(fit, "mu1"))
+  fixed_mu2 <- as.vector(stats::model.matrix(~x, dat) %*% coef(fit, "mu2"))
+  phylo_mu1 <- fit$random_effects$phylo_mu$values[
+    fit$model$structured$phylo_mu$observation_node_index
+  ]
+  phylo_mu2 <- fit$random_effects$phylo_mu$values[
+    fit$model$structured$phylo_mu$n_re +
+      fit$model$structured$phylo_mu$observation_node_index
+  ]
+  covariance <- summary(fit)$covariance
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_named(
+    fit$coefficients,
+    c(
+      "mu1",
+      "mu2",
+      "sigma1",
+      "sigma2",
+      "rho12",
+      "sd_phylo1(species)",
+      "sd_phylo2(species)"
+    )
+  )
+  expect_named(
+    fit$sdpars,
+    c("sd_phylo1(species)", "sd_phylo2(species)")
+  )
+  expect_true(all(sd1_hat > 0))
+  expect_true(all(sd2_hat > 0))
+  expect_gt(stats::cor(log(sd1_hat), log(sim$tau1[names(sd1_hat)])), 0.40)
+  expect_gt(stats::cor(log(sd2_hat), log(sim$tau2[names(sd2_hat)])), 0.40)
+  expect_true(is.finite(unname(fit$corpars$phylo)))
+  expect_lt(abs(unname(fit$corpars$phylo)), 1)
+  expect_equal(
+    predict(fit, dpar = "mu1"),
+    fixed_mu1 + unname(phylo_mu1),
+    tolerance = 1e-10
+  )
+  expect_equal(
+    predict(fit, dpar = "mu2"),
+    fixed_mu2 + unname(phylo_mu2),
+    tolerance = 1e-10
+  )
+  expect_true(all(fit$model$random_scale$phylo$node_sd_row0 >= -1L))
+  expect_equal(covariance$from_sd_parameter, "sd_phylo1(species):median")
+  expect_equal(covariance$to_sd_parameter, "sd_phylo2(species):median")
+  expect_equal(
+    covariance$from_sd,
+    stats::median(unname(fit$sdpars[["sd_phylo1(species)"]])),
+    tolerance = 1e-12
+  )
+  expect_equal(
+    covariance$to_sd,
+    stats::median(unname(fit$sdpars[["sd_phylo2(species)"]])),
+    tolerance = 1e-12
+  )
+  expect_true(all(is.finite(covariance$covariance)))
+  expect_equal(nrow(corpairs(fit, level = "phylogenetic")), 1L)
+})
+
+test_that("bivariate phylogenetic location allows one-sided sd_phylo direct SD", {
+  sim <- new_biv_sd_phylo_gaussian_data(n_tip = 8L, n_each = 5L)
+  dat <- sim$data
+  tree <- sim$tree
+
+  fit_sd1 <- drmTMB(
+    bf(
+      mu1 = y1 ~ x + phylo(1 | p | species, tree = tree),
+      mu2 = y2 ~ x + phylo(1 | p | species, tree = tree),
+      sigma1 = ~1,
+      sigma2 = ~1,
+      rho12 = ~1,
+      sd_phylo1(species) ~ z_species
+    ),
+    family = biv_gaussian(),
+    data = dat,
+    control = list(eval.max = 600, iter.max = 600)
+  )
+  fit_sd2 <- drmTMB(
+    bf(
+      mu1 = y1 ~ x + phylo(1 | p | species, tree = tree),
+      mu2 = y2 ~ x + phylo(1 | p | species, tree = tree),
+      sigma1 = ~1,
+      sigma2 = ~1,
+      rho12 = ~1,
+      sd_phylo2(species) ~ z_species
+    ),
+    family = biv_gaussian(),
+    data = dat,
+    control = list(eval.max = 600, iter.max = 600)
+  )
+
+  cov_sd1 <- summary(fit_sd1)$covariance
+  cov_sd2 <- summary(fit_sd2)$covariance
+
+  expect_equal(fit_sd1$opt$convergence, 0)
+  expect_equal(fit_sd2$opt$convergence, 0)
+  expect_named(fit_sd1$sdpars, c("sd_phylo1(species)", "mu"))
+  expect_named(fit_sd2$sdpars, c("sd_phylo2(species)", "mu"))
+  expect_true(all(predict(fit_sd1, dpar = "sd_phylo1(species)") > 0))
+  expect_true(all(predict(fit_sd2, dpar = "sd_phylo2(species)") > 0))
+  expect_equal(cov_sd1$from_sd_parameter, "sd_phylo1(species):median")
+  expect_equal(cov_sd1$to_sd_parameter, "mu2:phylo(1 | p | species)")
+  expect_equal(cov_sd2$from_sd_parameter, "mu1:phylo(1 | p | species)")
+  expect_equal(cov_sd2$to_sd_parameter, "sd_phylo2(species):median")
+  expect_true(all(is.finite(c(cov_sd1$covariance, cov_sd2$covariance))))
+})
+
 test_that("bivariate phylogenetic q4 block is fitted with clear boundaries", {
   tree <- balanced_ultrametric_tree(n_tip = 4L)
   dat <- data.frame(
@@ -572,6 +765,22 @@ test_that("bivariate phylogenetic q4 block is fitted with clear boundaries", {
     x = rep(c(-1, 1), 4L),
     z = rep(c(0, 1), each = 4L),
     species = rep(tree$tip.label, each = 2L)
+  )
+
+  expect_error(
+    drmTMB(
+      bf(
+        mu1 = y1 ~ x + phylo(1 | p | species, tree = tree),
+        mu2 = y2 ~ x + phylo(1 | p | species, tree = tree),
+        sigma1 = ~ z + phylo(1 | p | species, tree = tree),
+        sigma2 = ~ z + phylo(1 | p | species, tree = tree),
+        rho12 = ~1,
+        sd_phylo1(species) ~ z
+      ),
+      family = c(gaussian(), gaussian()),
+      data = dat
+    ),
+    "Do not combine bivariate"
   )
 
   fit_q4 <- suppressWarnings(

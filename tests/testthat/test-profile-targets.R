@@ -831,6 +831,57 @@ test_that("profile target inventory covers bivariate phylogenetic covariance lab
   expect_false(any(rho12_targets$parm %in% phylo_parms))
 })
 
+test_that("profile target inventory covers bivariate sd_phylo coefficients", {
+  sim <- new_profile_biv_phylo_data(n_tip = 8L, n_each = 5L)
+  dat <- sim$data
+  tree <- sim$tree
+  z_species <- seq(-1, 1, length.out = length(tree$tip.label))
+  names(z_species) <- tree$tip.label
+  dat$z_species <- z_species[dat$species]
+  fit <- drmTMB(
+    bf(
+      mu1 = y1 ~ x + phylo(1 | species, tree = tree),
+      mu2 = y2 ~ x + phylo(1 | species, tree = tree),
+      sigma1 = ~1,
+      sigma2 = ~1,
+      rho12 = ~1,
+      sd_phylo1(species) ~ z_species,
+      sd_phylo2(species) ~ z_species
+    ),
+    family = biv_gaussian(),
+    data = dat,
+    control = list(eval.max = 600, iter.max = 600)
+  )
+
+  targets <- profile_targets(fit)
+  direct_parms <- c(
+    "fixef:sd_phylo1(species):(Intercept)",
+    "fixef:sd_phylo1(species):z_species",
+    "fixef:sd_phylo2(species):(Intercept)",
+    "fixef:sd_phylo2(species):z_species"
+  )
+  direct_targets <- targets[match(direct_parms, targets$parm), ]
+  surface_targets <- targets[
+    targets$dpar %in%
+      c("sd_phylo1(species)", "sd_phylo2(species)") &
+      targets$target_class == "random-effect-sd",
+  ]
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(direct_targets$parm, direct_parms)
+  expect_equal(direct_targets$tmb_parameter, rep("beta_sd_mu", 4L))
+  expect_equal(direct_targets$index, seq_len(4L))
+  expect_true(all(direct_targets$profile_ready))
+  expect_equal(direct_targets$profile_note, rep("ready", 4L))
+  expect_true(nrow(surface_targets) > 0L)
+  expect_true(all(surface_targets$target_type == "derived"))
+  expect_false(any(surface_targets$profile_ready))
+  expect_equal(
+    unique(surface_targets$transformation),
+    "derived_group_scale"
+  )
+})
+
 test_that("confint profile intervals transform bivariate phylogenetic correlations", {
   sim <- new_profile_biv_phylo_data(
     seed = 20260701,

@@ -60,14 +60,15 @@
     scales, and tiny log-`sigma` endpoint SDs in q=4 models. Family B direct
     structured-SD formulas such as
   `sd_phylo(species) ~ x_species` are implemented for univariate phylogenetic
-  location models; bivariate `sd_phylo1()` / `sd_phylo2()` and spatial
-  direct-SD siblings remain planned. `check_drm()` reports species replication
+  location models, and `sd_phylo1()` / `sd_phylo2()` are implemented for
+  matching bivariate phylogenetic location models. Spatial direct-SD siblings
+  remain planned. `check_drm()` reports species replication
   and the fitted species-level SD range for the univariate `sd_phylo()` path,
   but broad recovery grids across tree shape, predictor strength, and weak SD
-  surfaces remain future validation work. The planned bivariate
-  `sd_phylo1()` / `sd_phylo2()` path is location-only and response-specific; it
-  is not a way to model residual `sigma1` / `sigma2` random-effect SDs or q=4
-  phylogenetic location-scale endpoint SDs.
+  surfaces remain future validation work. The bivariate `sd_phylo1()` /
+  `sd_phylo2()` path is now implemented as a location-only response-specific
+  direct-SD model; it is not a way to model residual `sigma1` / `sigma2`
+  random-effect SDs or q=4 phylogenetic location-scale endpoint SDs.
 - `corpairs()` currently reports only correlations that are already fitted:
   residual bivariate `rho12` summaries and ordinary univariate Gaussian `mu`
   random-effect correlations, plus the implemented univariate `mu`/`sigma`

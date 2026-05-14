@@ -2,6 +2,52 @@
 
 Record meaningful development checks here.
 
+## 2026-05-14 -- Map Slice 24 bivariate sd_phylo implementation
+
+Scope:
+
+- implemented bivariate Family B direct-SD formulas
+  `sd_phylo1(species) ~ z1` and `sd_phylo2(species) ~ z2` for matching
+  bivariate phylogenetic location random effects;
+- generalized the direct phylogenetic SD parser, model-frame construction,
+  TMB data, start/map plumbing, coefficient splitting, prediction, `sdpars`,
+  random-effect transforms, `summary()$covariance`, and `profile_targets()`;
+- kept the latent phylogenetic location-location correlation constant and
+  separate from residual `rho12`;
+- rejected mixtures with all-four q=4 phylogenetic location-scale blocks;
+- documented that `summary(fit)$covariance` uses a median fitted species-SD
+  summary for direct-SD endpoints because the true covariance is
+  species-pair specific.
+
+Checks:
+
+- `air format R/drmTMB.R R/parse-formula.R R/methods.R R/profile.R tests/testthat/test-phylo-gaussian.R tests/testthat/test-biv-gaussian.R tests/testthat/test-profile-targets.R src/drmTMB.cpp docs/design/01-formula-grammar.md docs/design/16-phylo-spatial-common-math.md docs/design/18-random-effect-scale-models.md`:
+  passed.
+- `Rscript -e 'devtools::load_all(quiet = TRUE)'`: passed.
+- Initial focused
+  `Rscript -e 'devtools::test(filter = "phylo-gaussian|biv-gaussian|profile-targets|summary", reporter = "summary")'`:
+  failed after Franklin's sidecar review because `summary()$covariance` still
+  assumed scalar phylogenetic SDs and `profile_targets()` routed
+  `sd_phylo1()` / `sd_phylo2()` coefficients to non-existent internal
+  parameters; both were fixed before closing the slice.
+- Final focused
+  `Rscript -e 'devtools::test(filter = "phylo-gaussian|profile-targets|summary|biv-gaussian", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'devtools::test(reporter = "summary")'`: passed.
+- `Rscript -e 'pkgdown::check_pkgdown()'`: passed with no problems found.
+- `rg -n 'beta_sd_phylo1|beta_sd_phylo2|sd_phylo1\(species\).*planned|sd_phylo2\(species\).*planned|sd_phylo1\(species\).*not implemented|sd_phylo2\(species\).*not implemented' R tests docs NEWS.md ROADMAP.md vignettes`:
+  no hits.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- This slice implements the fitted bivariate direct-SD path and focused tests,
+  but it does not add a `check_drm()` diagnostic row for bivariate
+  `sd_phylo1()` / `sd_phylo2()` surfaces.
+- Broad recovery grids across tree size, predictor strength, weak direct-SD
+  surfaces, and one-sided direct-SD models remain Slice 25 work.
+- Spatial `sd_spatial*()` siblings remain planned.
+
 ## 2026-05-14 -- Map Slice 23 bivariate sd_phylo direct-SD design
 
 Scope:

@@ -2190,11 +2190,14 @@ drm_build_biv_gaussian_spec <- function(
   entries <- expand_biv_mvbind_entries(formula$entries)
   dpars <- vapply(entries, `[[`, character(1), "dpar")
   is_sd_mu_dpar <- startsWith(dpars, "sd1(") | startsWith(dpars, "sd2(")
+  is_sd_phylo_dpar <- startsWith(dpars, "sd_phylo1(") |
+    startsWith(dpars, "sd_phylo2(")
+  is_sd_dpar <- is_sd_mu_dpar | is_sd_phylo_dpar
   allowed <- c("mu1", "mu2", "sigma1", "sigma2", "rho12")
-  unsupported <- setdiff(dpars[!is_sd_mu_dpar], allowed)
+  unsupported <- setdiff(dpars[!is_sd_dpar], allowed)
   if (length(unsupported) > 0L) {
     cli::cli_abort(c(
-      "{.fn biv_gaussian} models only support {.code mu1}, {.code mu2}, {.code sigma1}, {.code sigma2}, {.code rho12}, and bivariate location random-effect SD formulas {.code sd1(group)} / {.code sd2(group)}.",
+      "{.fn biv_gaussian} models only support {.code mu1}, {.code mu2}, {.code sigma1}, {.code sigma2}, {.code rho12}, bivariate ordinary location random-effect SD formulas {.code sd1(group)} / {.code sd2(group)}, and bivariate phylogenetic location random-effect SD formulas {.code sd_phylo1(group)} / {.code sd_phylo2(group)}.",
       "x" = "Unsupported parameter{?s}: {.val {unsupported}}."
     ))
   }
@@ -2214,6 +2217,11 @@ drm_build_biv_gaussian_spec <- function(
   }
   sd_mu_entries <- if (any(is_sd_mu_dpar)) {
     entries[is_sd_mu_dpar]
+  } else {
+    list()
+  }
+  sd_phylo_entries <- if (any(is_sd_phylo_dpar)) {
+    entries[is_sd_phylo_dpar]
   } else {
     list()
   }
@@ -2261,6 +2269,13 @@ drm_build_biv_gaussian_spec <- function(
     sigma2_entry
   )
   if (isTRUE(phylo_q4_terms$has)) {
+    if (length(sd_phylo_entries) > 0L) {
+      cli::cli_abort(c(
+        "Do not combine bivariate {.fn sd_phylo1} / {.fn sd_phylo2} formulas with a phylogenetic q=4 location-scale block.",
+        "x" = "The matching labelled {.fn phylo} terms across {.code mu1}, {.code mu2}, {.code sigma1}, and {.code sigma2} already define a Family A q=4 covariance block.",
+        "i" = "Use bivariate {.fn sd_phylo1} / {.fn sd_phylo2} only with matching phylogenetic location terms in {.code mu1} and {.code mu2}."
+      ))
+    }
     mu1_entry$rhs <- remove_structured_marker_terms(mu1_entry$rhs, "phylo")
     mu2_entry$rhs <- remove_structured_marker_terms(mu2_entry$rhs, "phylo")
     sigma1_entry$rhs <- remove_structured_marker_terms(
@@ -2341,6 +2356,9 @@ drm_build_biv_gaussian_spec <- function(
   for (sd_mu_entry in sd_mu_entries) {
     drm_reject_phase1_terms(sd_mu_entry$rhs, sd_mu_entry$dpar)
   }
+  for (sd_phylo_entry in sd_phylo_entries) {
+    drm_reject_phase1_terms(sd_phylo_entry$rhs, sd_phylo_entry$dpar)
+  }
 
   f_mu1 <- drm_entry_formula(mu1_entry, response = TRUE)
   f_mu2 <- drm_entry_formula(mu2_entry, response = TRUE)
@@ -2348,8 +2366,14 @@ drm_build_biv_gaussian_spec <- function(
   f_sigma2 <- drm_entry_formula(sigma2_entry, response = FALSE)
   f_rho12 <- drm_entry_formula(rho12_entry, response = FALSE)
   f_sd_mu <- lapply(sd_mu_entries, drm_entry_formula, response = FALSE)
+  f_sd_phylo <- lapply(sd_phylo_entries, drm_entry_formula, response = FALSE)
   sd_mu_groups <- vapply(
     sd_mu_entries,
+    function(entry) parse_sd_lhs(entry$lhs)$group,
+    character(1L)
+  )
+  sd_phylo_groups <- vapply(
+    sd_phylo_entries,
     function(entry) parse_sd_lhs(entry$lhs)$group,
     character(1L)
   )
@@ -2361,8 +2385,10 @@ drm_build_biv_gaussian_spec <- function(
     all.vars(f_sigma2),
     all.vars(f_rho12),
     unlist(lapply(f_sd_mu, all.vars), use.names = FALSE),
+    unlist(lapply(f_sd_phylo, all.vars), use.names = FALSE),
     phylo_mu_vars(phylo_mu_terms$term),
     sd_mu_groups,
+    sd_phylo_groups,
     random_effect_vars(mu1_re$terms),
     random_effect_vars(mu2_re$terms),
     random_effect_vars(sigma1_re$terms),
@@ -2445,6 +2471,17 @@ drm_build_biv_gaussian_spec <- function(
     re_mu,
     data_model
   )
+  phylo_mu <- build_phylo_mu_structure(phylo_mu_terms$term, data_model, env)
+  sd_phylo_targets <- parse_biv_sd_phylo_entries(
+    sd_phylo_entries,
+    phylo_mu
+  )
+  sd_phylo <- build_sd_phylo_structure(
+    sd_phylo_entries,
+    sd_phylo_targets,
+    phylo_mu,
+    data_model
+  )
   re_mu_sigma <- build_mu_sigma_random_covariance(re_mu, re_sigma)
   validate_biv_random_covariance_surface(re_mu, re_sigma, re_mu_sigma)
   re_cov_blocks <- build_labelled_covariance_block_registry(
@@ -2455,7 +2492,6 @@ drm_build_biv_gaussian_spec <- function(
     re_mu_full = re_mu_registry,
     re_sigma_full = re_sigma_registry
   )
-  phylo_mu <- build_phylo_mu_structure(phylo_mu_terms$term, data_model, env)
 
   n <- length(y1)
   if (n == 0L) {
@@ -2481,6 +2517,7 @@ drm_build_biv_gaussian_spec <- function(
     re_mu_sigma = re_mu_sigma,
     phylo_mu = phylo_mu,
     sd_mu = sd_mu,
+    sd_phylo = sd_phylo,
     re_cov_blocks = re_cov_blocks
   )
 
@@ -2501,7 +2538,8 @@ drm_build_biv_gaussian_spec <- function(
         sigma2 = X_sigma2,
         rho12 = X_rho12
       ),
-      sd_mu$X_list
+      sd_mu$X_list,
+      sd_phylo$X_list
     ),
     terms = c(
       list(
@@ -2511,7 +2549,8 @@ drm_build_biv_gaussian_spec <- function(
         sigma2 = stats::terms(mf_sigma2),
         rho12 = stats::terms(mf_rho12)
       ),
-      sd_mu$terms_list
+      sd_mu$terms_list,
+      sd_phylo$terms_list
     ),
     model_frame = c(
       list(
@@ -2521,7 +2560,8 @@ drm_build_biv_gaussian_spec <- function(
         sigma2 = mf_sigma2,
         rho12 = mf_rho12
       ),
-      sd_mu$model_frame_list
+      sd_mu$model_frame_list,
+      sd_phylo$model_frame_list
     ),
     data = data_model,
     random = list(
@@ -2530,13 +2570,28 @@ drm_build_biv_gaussian_spec <- function(
       mu_sigma = re_mu_sigma,
       covariance_blocks = re_cov_blocks
     ),
-    random_scale = list(mu = sd_mu),
+    random_scale = list(mu = sd_mu, phylo = sd_phylo),
     structured = list(phylo_mu = phylo_mu),
     variables = vars,
     keep = keep,
-    dpars = c("mu1", "mu2", "sigma1", "sigma2", "rho12", sd_mu$dpars),
+    dpars = c(
+      "mu1",
+      "mu2",
+      "sigma1",
+      "sigma2",
+      "rho12",
+      sd_mu$dpars,
+      sd_phylo$dpars
+    ),
     start = start,
-    map = biv_gaussian_map(re_mu, re_sigma, re_mu_sigma, phylo_mu, sd_mu),
+    map = biv_gaussian_map(
+      re_mu,
+      re_sigma,
+      re_mu_sigma,
+      phylo_mu,
+      sd_mu,
+      sd_phylo
+    ),
     random_names = c(
       if (re_mu$n_re > 0L) "u_mu",
       if (re_sigma$n_re > 0L) "u_sigma",
@@ -3557,6 +3612,71 @@ parse_sd_phylo_entries <- function(entries, phylo_term) {
   targets
 }
 
+parse_biv_sd_phylo_entry <- function(entry, phylo_mu) {
+  target <- parse_sd_lhs(entry$lhs)
+  if (!target$fun %in% c("sd_phylo1", "sd_phylo2")) {
+    cli::cli_abort(
+      "Internal error: bivariate phylogenetic random-effect scale target {.code {entry$dpar}} is not an {.fn sd_phylo1} or {.fn sd_phylo2} target."
+    )
+  }
+  if (isTRUE(target$explicit)) {
+    cli::cli_abort(c(
+      "Explicit bivariate phylogenetic random-effect SD targets are not implemented yet.",
+      "x" = "{.code {entry$dpar}} names a target distributional parameter, coefficient, or block.",
+      "i" = "Use {.code sd_phylo1(species) ~ x_species} for {.code mu1} or {.code sd_phylo2(species) ~ x_species} for {.code mu2}."
+    ))
+  }
+  target_dpar <- if (identical(target$fun, "sd_phylo1")) "mu1" else "mu2"
+  if (!isTRUE(phylo_mu$has) || !identical(as.integer(phylo_mu$q), 2L)) {
+    cli::cli_abort(c(
+      "No bivariate phylogenetic location random-effect term matches {.code {entry$dpar}}.",
+      "x" = "Add matching {.code phylo(1 | {target$group}, tree = tree)} terms to {.code mu1} and {.code mu2}, or remove {.code {entry$dpar}}.",
+      "i" = "{.fn sd_phylo1} targets {.code mu1} phylogenetic location SDs; {.fn sd_phylo2} targets {.code mu2} phylogenetic location SDs."
+    ))
+  }
+  if (!identical(target$group, phylo_mu$group)) {
+    cli::cli_abort(c(
+      "Bivariate phylogenetic random-effect scale target {.code {entry$dpar}} does not match the {.fn phylo} grouping variable.",
+      "x" = "{.fn {target$fun}} targets group {.field {target$group}}, but {.fn phylo} uses group {.field {phylo_mu$group}}.",
+      "i" = "Use the same species column in matching {.fn phylo} terms and {.code {target$fun}(species) ~ x_species}."
+    ))
+  }
+
+  list(
+    dpar = entry$dpar,
+    group = target$group,
+    target_dpar = target_dpar,
+    target_endpoint = match(target_dpar, phylo_mu_dpars(phylo_mu)),
+    target_term = match(target_dpar, phylo_mu_dpars(phylo_mu)),
+    target_coef = match(target_dpar, phylo_mu_dpars(phylo_mu)),
+    label = phylo_mu$label
+  )
+}
+
+parse_biv_sd_phylo_entries <- function(entries, phylo_mu) {
+  if (length(entries) == 0L) {
+    return(list())
+  }
+  targets <- lapply(entries, parse_biv_sd_phylo_entry, phylo_mu = phylo_mu)
+  dpars <- vapply(targets, `[[`, character(1), "dpar")
+  if (anyDuplicated(dpars)) {
+    duplicate <- dpars[duplicated(dpars)][[1L]]
+    cli::cli_abort(c(
+      "Duplicate bivariate phylogenetic random-effect scale formula {.code {duplicate}}.",
+      "x" = "Each {.fn sd_phylo1} or {.fn sd_phylo2} target can have only one scale formula."
+    ))
+  }
+  target_endpoint <- vapply(targets, `[[`, integer(1), "target_endpoint")
+  if (anyDuplicated(target_endpoint)) {
+    duplicate <- dpars[duplicated(target_endpoint)][[1L]]
+    cli::cli_abort(c(
+      "Duplicate bivariate phylogenetic random-effect scale target {.code {duplicate}}.",
+      "x" = "Each bivariate phylogenetic location endpoint can have only one direct-SD formula."
+    ))
+  }
+  targets
+}
+
 parse_biv_sd_mu_entry <- function(entry, re_mu) {
   target <- parse_sd_lhs(entry$lhs)
   if (!target$fun %in% c("sd1", "sd2")) {
@@ -3686,6 +3806,8 @@ empty_sd_phylo_structure <- function(n_re = 1L) {
     dpars = character(),
     dpar = NA_character_,
     group = NA_character_,
+    target_dpar = NA_character_,
+    target_endpoint = NA_integer_,
     target_label = NA_character_,
     X = matrix(0, nrow = 1L, ncol = 1L),
     X_list = list(),
@@ -5071,64 +5193,146 @@ build_sd_phylo_structure <- function(entries, targets, phylo_mu, data) {
     )
   }
 
-  entry <- entries[[1L]]
-  target <- targets[[1L]]
-  dpar <- entry$dpar
-  f_sd <- drm_entry_formula(entry, response = FALSE)
-  mf_sd <- stats::model.frame(f_sd, data = data, na.action = stats::na.omit)
-  group <- factor(data[[target$group]], levels = phylo_mu$species_levels)
-  validate_sd_mu_group_constant(mf_sd, group, entry$dpar, target$group)
+  dpars <- vapply(entries, `[[`, character(1), "dpar")
+  target_dpar <- vapply(
+    targets,
+    function(target) {
+      value <- target$target_dpar
+      if (is.null(value) || is.na(value)) "mu" else value
+    },
+    character(1L)
+  )
+  target_endpoint <- vapply(
+    seq_along(targets),
+    function(i) {
+      target <- targets[[i]]
+      value <- target$target_endpoint
+      if (is.null(value) || is.na(value)) {
+        match(target_dpar[[i]], phylo_mu_dpars(phylo_mu))
+      } else {
+        as.integer(value)
+      }
+    },
+    integer(1L)
+  )
 
-  group_first <- match(levels(group), as.character(group))
-  if (anyNA(group_first)) {
-    cli::cli_abort(
-      "Internal error: failed to align {.code sd_phylo()} scale rows with phylogenetic species."
-    )
-  }
-  mf_group <- mf_sd[group_first, , drop = FALSE]
-  X <- stats::model.matrix(stats::terms(mf_sd), mf_group)
-  rownames(X) <- levels(group)
+  X_list <- list()
+  terms_list <- list()
+  model_frame_list <- list()
+  coef_names_list <- list()
+  group_levels_list <- list()
+  row_index <- list()
+  coef_index <- list()
+  observation_sd_row0_list <- list()
+  node_sd_row0 <- rep.int(
+    -1L,
+    length(phylo_mu_dpars(phylo_mu)) * phylo_mu$n_re
+  )
+  col_offset <- 0L
+  row_offset <- 0L
 
-  observation_sd_row0 <- match(
-    as.character(data[[target$group]]),
-    rownames(X)
-  ) -
-    1L
-  if (anyNA(observation_sd_row0)) {
-    cli::cli_abort(
-      "Internal error: failed to align observations with {.code sd_phylo()} species rows."
-    )
+  for (i in seq_along(entries)) {
+    entry <- entries[[i]]
+    target <- targets[[i]]
+    dpar <- entry$dpar
+    f_sd <- drm_entry_formula(entry, response = FALSE)
+    mf_sd <- stats::model.frame(f_sd, data = data, na.action = stats::na.omit)
+    group <- factor(data[[target$group]], levels = phylo_mu$species_levels)
+    validate_sd_mu_group_constant(mf_sd, group, entry$dpar, target$group)
+
+    group_first <- match(levels(group), as.character(group))
+    if (anyNA(group_first)) {
+      cli::cli_abort(
+        "Internal error: failed to align {.code sd_phylo()} scale rows with phylogenetic species."
+      )
+    }
+    mf_group <- mf_sd[group_first, , drop = FALSE]
+    X_i <- stats::model.matrix(stats::terms(mf_sd), mf_group)
+    rownames(X_i) <- levels(group)
+
+    observation_sd_row0 <- match(
+      as.character(data[[target$group]]),
+      rownames(X_i)
+    ) -
+      1L
+    if (anyNA(observation_sd_row0)) {
+      cli::cli_abort(
+        "Internal error: failed to align observations with {.code sd_phylo()} species rows."
+      )
+    }
+
+    tip_nodes <- match(rownames(X_i), phylo_mu$node_labels)
+    if (anyNA(tip_nodes)) {
+      cli::cli_abort(
+        "Internal error: failed to align {.code sd_phylo()} species rows with phylogenetic tip nodes."
+      )
+    }
+    endpoint_offset <- (target_endpoint[[i]] - 1L) * phylo_mu$n_re
+    node_sd_row0[endpoint_offset + tip_nodes] <-
+      row_offset + seq_len(nrow(X_i)) - 1L
+
+    X_list[[dpar]] <- X_i
+    terms_list[[dpar]] <- stats::terms(mf_sd)
+    model_frame_list[[dpar]] <- mf_group
+    coef_names_list[[dpar]] <- colnames(X_i)
+    group_levels_list[[dpar]] <- rownames(X_i)
+    row_index[[dpar]] <- row_offset + seq_len(nrow(X_i))
+    coef_index[[dpar]] <- col_offset + seq_len(ncol(X_i))
+    observation_sd_row0_list[[dpar]] <- unname(as.integer(observation_sd_row0))
+    row_offset <- row_offset + nrow(X_i)
+    col_offset <- col_offset + ncol(X_i)
   }
 
-  node_sd_row0 <- rep.int(-1L, phylo_mu$n_re)
-  tip_nodes <- match(rownames(X), phylo_mu$node_labels)
-  if (anyNA(tip_nodes)) {
-    cli::cli_abort(
-      "Internal error: failed to align {.code sd_phylo()} species rows with phylogenetic tip nodes."
-    )
+  X <- if (length(X_list) == 1L) {
+    X_list[[1L]]
+  } else {
+    block_diagonal_matrices(X_list, names = names(X_list))
   }
-  node_sd_row0[tip_nodes] <- seq_len(nrow(X)) - 1L
 
   structure(
     list(
-      n_models = 1L,
-      dpars = dpar,
-      dpar = dpar,
-      group = stats::setNames(target$group, dpar),
-      target_label = stats::setNames(target$label, dpar),
+      n_models = length(entries),
+      dpars = dpars,
+      dpar = if (length(dpars) == 1L) dpars else NA_character_,
+      group = stats::setNames(
+        vapply(targets, `[[`, character(1), "group"),
+        dpars
+      ),
+      target_dpar = stats::setNames(target_dpar, dpars),
+      target_endpoint = stats::setNames(target_endpoint, dpars),
+      target_label = stats::setNames(
+        vapply(targets, `[[`, character(1), "label"),
+        dpars
+      ),
       X = X,
-      X_list = stats::setNames(list(X), dpar),
-      coef_index = stats::setNames(list(seq_len(ncol(X))), dpar),
-      row_index = stats::setNames(list(seq_len(nrow(X))), dpar),
-      terms = stats::terms(mf_sd),
-      terms_list = stats::setNames(list(stats::terms(mf_sd)), dpar),
-      model_frame = mf_group,
-      model_frame_list = stats::setNames(list(mf_group), dpar),
-      coef_names = colnames(X),
-      coef_names_list = stats::setNames(list(colnames(X)), dpar),
-      group_levels = rownames(X),
-      group_levels_list = stats::setNames(list(rownames(X)), dpar),
-      observation_sd_row0 = unname(as.integer(observation_sd_row0)),
+      X_list = X_list,
+      coef_index = coef_index,
+      row_index = row_index,
+      terms = if (length(entries) == 1L) terms_list[[1L]] else NULL,
+      terms_list = terms_list,
+      model_frame = if (length(entries) == 1L) {
+        model_frame_list[[1L]]
+      } else {
+        NULL
+      },
+      model_frame_list = model_frame_list,
+      coef_names = if (length(entries) == 1L) {
+        coef_names_list[[1L]]
+      } else {
+        colnames(X)
+      },
+      coef_names_list = coef_names_list,
+      group_levels = if (length(entries) == 1L) {
+        group_levels_list[[1L]]
+      } else {
+        rownames(X)
+      },
+      group_levels_list = group_levels_list,
+      observation_sd_row0 = if (length(entries) == 1L) {
+        observation_sd_row0_list[[1L]]
+      } else {
+        unlist(observation_sd_row0_list, use.names = FALSE)
+      },
       node_sd_row0 = unname(as.integer(node_sd_row0))
     ),
     class = "drm_sd_phylo_structure"
@@ -5675,9 +5879,14 @@ gaussian_ls_start <- function(
   mu_re_start <- gaussian_mu_re_start(resid, re_mu, y_scale)
   sigma_re_start <- gaussian_sigma_re_start(re_sigma)
   beta_sd_mu <- c(
-    gaussian_sd_mu_start(mu_re_start, sd_mu),
+    if (sd_mu$n_models > 0L) {
+      gaussian_sd_mu_start(mu_re_start, sd_mu)
+    },
     gaussian_sd_phylo_start(y_scale, sd_phylo)
   )
+  if (length(beta_sd_mu) == 0L) {
+    beta_sd_mu <- 0
+  }
 
   list(
     beta_mu = beta_mu,
@@ -6281,13 +6490,26 @@ gaussian_sd_phylo_start <- function(y_scale, sd_phylo) {
   if (sd_phylo$n_models == 0L) {
     return(numeric())
   }
-  if (!is.finite(y_scale) || y_scale <= 0) {
-    y_scale <- 1
-  }
   out <- numeric(ncol(sd_phylo$X))
-  intercept <- match("(Intercept)", colnames(sd_phylo$X), nomatch = 0L)
-  if (intercept > 0L) {
-    out[[intercept]] <- log(max(0.25 * y_scale, 1e-4))
+  for (dpar in sd_phylo$dpars) {
+    target <- sd_phylo$target_dpar[[dpar]]
+    scale <- if (!is.null(names(y_scale)) && target %in% names(y_scale)) {
+      y_scale[[target]]
+    } else {
+      y_scale[[1L]]
+    }
+    if (!is.finite(scale) || scale <= 0) {
+      scale <- 1
+    }
+    coef_index <- sd_phylo$coef_index[[dpar]]
+    intercept <- match(
+      "(Intercept)",
+      sd_phylo$coef_names_list[[dpar]],
+      nomatch = 0L
+    )
+    if (intercept > 0L) {
+      out[[coef_index[[intercept]]]] <- log(max(0.25 * scale, 1e-4))
+    }
   }
   names(out) <- colnames(sd_phylo$X)
   out
@@ -6402,6 +6624,7 @@ biv_gaussian_start <- function(
   re_mu_sigma = empty_mu_sigma_random_covariance(re_sigma$n_re),
   phylo_mu = empty_phylo_mu_structure(),
   sd_mu = empty_sd_mu_structure(re_mu$n_re),
+  sd_phylo = empty_sd_phylo_structure(),
   re_cov_blocks = empty_labelled_covariance_block_registry()
 ) {
   fit1 <- stats::lm.fit(x = X_mu1, y = y1)
@@ -6465,7 +6688,15 @@ biv_gaussian_start <- function(
     y2_scale <- 1
   }
   mu_re_start <- biv_gaussian_mu_re_start(re_mu, c(y1_scale, y2_scale))
-  beta_sd_mu <- gaussian_sd_mu_start(mu_re_start, sd_mu)
+  beta_sd_mu <- c(
+    if (sd_mu$n_models > 0L) {
+      gaussian_sd_mu_start(mu_re_start, sd_mu)
+    },
+    gaussian_sd_phylo_start(c(mu1 = y1_scale, mu2 = y2_scale), sd_phylo)
+  )
+  if (length(beta_sd_mu) == 0L) {
+    beta_sd_mu <- 0
+  }
   sigma_re_start <- gaussian_sigma_re_start(re_sigma)
   re_cov_start <- covariance_block_re_start(
     re_cov_blocks,
@@ -6635,7 +6866,8 @@ biv_gaussian_map <- function(
   re_sigma = empty_random_sigma_structure(1L),
   re_mu_sigma = empty_mu_sigma_random_covariance(re_sigma$n_re),
   phylo_mu = empty_phylo_mu_structure(),
-  sd_mu = empty_sd_mu_structure(re_mu$n_re)
+  sd_mu = empty_sd_mu_structure(re_mu$n_re),
+  sd_phylo = empty_sd_phylo_structure()
 ) {
   out <- list(
     beta_mu = factor(NA),
@@ -6651,6 +6883,11 @@ biv_gaussian_map <- function(
     out$theta_phylo <- factor(NA)
   } else if (phylo_mu$q > 2L) {
     out$eta_cor_phylo <- factor(NA)
+  } else if (sd_phylo$n_models > 0L) {
+    out$theta_phylo <- factor(NA)
+    log_sd_map <- seq_len(length(phylo_mu_dpars(phylo_mu)))
+    log_sd_map[unname(sd_phylo$target_endpoint)] <- NA_integer_
+    out$log_sd_phylo <- factor(log_sd_map)
   } else {
     out$theta_phylo <- factor(NA)
   }
@@ -6676,7 +6913,7 @@ biv_gaussian_map <- function(
   if (re_sigma$n_cors == 0L) {
     out$eta_cor_sigma <- factor(NA)
   }
-  if (sd_mu$n_models == 0L) {
+  if (sd_mu$n_models == 0L && sd_phylo$n_models == 0L) {
     out$beta_sd_mu <- factor(NA)
   }
   out
@@ -7510,9 +7747,15 @@ make_tmb_data <- function(spec) {
       X_zi = dummy_matrix,
       X_sd_mu = spec$random_scale$mu$X,
       has_sd_mu_model = as.integer(spec$random_scale$mu$n_models > 0L),
-      X_sd_phylo = dummy_matrix,
-      has_sd_phylo_model = 0L,
-      sd_phylo_beta_offset = 0L,
+      X_sd_phylo = if (spec$random_scale$phylo$n_models > 0L) {
+        spec$random_scale$phylo$X
+      } else {
+        dummy_matrix
+      },
+      has_sd_phylo_model = as.integer(
+        spec$random_scale$phylo$n_models > 0L
+      ),
+      sd_phylo_beta_offset = sd_phylo_beta_offset(spec),
       X_mu1 = spec$X$mu1,
       X_mu2 = spec$X$mu2,
       X_sigma1 = spec$X$sigma1,
@@ -7540,7 +7783,11 @@ make_tmb_data <- function(spec) {
       sigma_re_cross_cor = spec$random$mu_sigma$sigma_cross_cor_id0,
       sigma_re_cross_mu = spec$random$mu_sigma$sigma_cross_mu_index0,
       has_phylo_mu = as.integer(isTRUE(phylo_mu$has)),
-      phylo_mu_sd_row = 0L,
+      phylo_mu_sd_row = if (spec$random_scale$phylo$n_models > 0L) {
+        spec$random_scale$phylo$node_sd_row0
+      } else {
+        0L
+      },
       phylo_mu_node_index = if (isTRUE(phylo_mu$has)) {
         phylo_mu$observation_node_index0
       } else {
@@ -7686,6 +7933,22 @@ split_tmb_parameters <- function(par, spec) {
       out[[dpar]] <- beta_sd_mu_dpar
     }
   }
+  if (
+    is.list(spec$random_scale$phylo) &&
+      spec$random_scale$phylo$n_models > 0L
+  ) {
+    offset <- sd_phylo_beta_offset(spec)
+    beta_sd_phylo <- unname(par$beta_sd_mu[
+      offset + seq_len(ncol(spec$random_scale$phylo$X))
+    ])
+    for (dpar in spec$random_scale$phylo$dpars) {
+      coef_index <- spec$random_scale$phylo$coef_index[[dpar]]
+      beta_sd_phylo_dpar <- beta_sd_phylo[coef_index]
+      names(beta_sd_phylo_dpar) <-
+        spec$random_scale$phylo$coef_names_list[[dpar]]
+      out[[dpar]] <- beta_sd_phylo_dpar
+    }
+  }
   out
 }
 
@@ -7771,8 +8034,7 @@ split_tmb_sdpars <- function(par, spec) {
       spec$model_type
     )
     if (
-      identical(spec$model_type, "gaussian") &&
-        is.list(spec$random_scale$phylo) &&
+      is.list(spec$random_scale$phylo) &&
         spec$random_scale$phylo$n_models > 0L
     ) {
       for (dpar in spec$random_scale$phylo$dpars) {
@@ -7783,6 +8045,17 @@ split_tmb_sdpars <- function(par, spec) {
           spec$random_scale$phylo$group_levels_list[[dpar]]
         )
         out[[dpar]] <- sd_group
+      }
+      unmodelled <- setdiff(
+        seq_along(phylo_names),
+        unname(spec$random_scale$phylo$target_endpoint)
+      )
+      if (length(unmodelled) > 0L) {
+        sd_phylo <- stats::setNames(
+          exp(unname(par$log_sd_phylo[unmodelled])),
+          phylo_names[unmodelled]
+        )
+        out$mu <- c(out$mu, sd_phylo)
       }
     } else {
       sd_phylo <- stats::setNames(
@@ -7969,16 +8242,23 @@ split_tmb_random_effects <- function(par, spec) {
         },
         character(n_phylo)
       ))
+      values <- latent
+      if (
+        is.list(spec$random_scale$phylo) &&
+          spec$random_scale$phylo$n_models > 0L
+      ) {
+        values <- latent * biv_phylo_node_sd_values(par, spec)
+      }
       terms <- lapply(seq_along(dpars), function(i) {
         idx <- (i - 1L) * n_phylo + seq_len(n_phylo)
-        latent[idx]
+        values[idx]
       })
       names(terms) <- phylo_mu_sd_labels(
         spec$structured$phylo_mu,
         spec$model_type
       )
       out$phylo_mu <- list(
-        values = latent,
+        values = values,
         latent = latent,
         terms = terms
       )
@@ -8148,6 +8428,22 @@ sd_phylo_group_values <- function(par, spec, dpar = NULL) {
     out <- out[row_index]
     names(out) <- sd_phylo$group_levels_list[[dpar]]
   }
+  out
+}
+
+biv_phylo_node_sd_values <- function(par, spec) {
+  phylo_mu <- spec$structured$phylo_mu
+  sd_phylo <- spec$random_scale$phylo
+  dpars <- phylo_mu_dpars(phylo_mu)
+  n_phylo <- phylo_mu$n_re
+  scalar_sd <- exp(unname(par$log_sd_phylo[seq_along(dpars)]))
+  out <- rep(scalar_sd, each = n_phylo)
+  sd_group <- sd_phylo_group_values(par, spec)
+  node_row <- sd_phylo$node_sd_row0
+  direct <- node_row >= 0L
+  out[direct] <- sd_group[node_row[direct] + 1L]
+  endpoint <- rep(seq_along(dpars), each = n_phylo)
+  out[!direct & endpoint %in% unname(sd_phylo$target_endpoint)] <- NA_real_
   out
 }
 
