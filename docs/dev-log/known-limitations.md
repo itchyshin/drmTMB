@@ -63,12 +63,13 @@
   location models, and `sd_phylo1()` / `sd_phylo2()` are implemented for
   matching bivariate phylogenetic location models. Spatial direct-SD siblings
   remain planned. `check_drm()` reports species replication
-  and the fitted species-level SD range for the univariate `sd_phylo()` path,
-  but broad recovery grids across tree shape, predictor strength, and weak SD
-  surfaces remain future validation work. The bivariate `sd_phylo1()` /
-  `sd_phylo2()` path is now implemented as a location-only response-specific
-  direct-SD model; it is not a way to model residual `sigma1` / `sigma2`
-  random-effect SDs or q=4 phylogenetic location-scale endpoint SDs.
+  and the fitted species-level SD range for each univariate or bivariate
+  `sd_phylo*()` direct-SD endpoint, but broad recovery grids across tree shape,
+  predictor strength, and weak SD surfaces remain future validation work. The
+  bivariate `sd_phylo1()` / `sd_phylo2()` path is implemented as a
+  location-only response-specific direct-SD model; it is not a way to model
+  residual `sigma1` / `sigma2` random-effect SDs or q=4 phylogenetic
+  location-scale endpoint SDs.
 - `corpairs()` currently reports only correlations that are already fitted:
   residual bivariate `rho12` summaries and ordinary univariate Gaussian `mu`
   random-effect correlations, plus the implemented univariate `mu`/`sigma`

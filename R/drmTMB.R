@@ -3822,6 +3822,7 @@ empty_sd_phylo_structure <- function(n_re = 1L) {
     group_levels = character(),
     group_levels_list = list(),
     observation_sd_row0 = 0L,
+    observation_sd_row0_list = list(),
     node_sd_row0 = rep.int(-1L, n_re)
   )
 }
@@ -5333,6 +5334,7 @@ build_sd_phylo_structure <- function(entries, targets, phylo_mu, data) {
       } else {
         unlist(observation_sd_row0_list, use.names = FALSE)
       },
+      observation_sd_row0_list = observation_sd_row0_list,
       node_sd_row0 = unname(as.integer(node_sd_row0))
     ),
     class = "drm_sd_phylo_structure"

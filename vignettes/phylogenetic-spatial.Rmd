@@ -133,6 +133,7 @@ location-scale-coscale model.
 | Ordinary `(1 | p | id)` terms in all four bivariate `mu1`, `mu2`, `sigma1`, and `sigma2` formulas | Implemented first slice | One ordinary q=4 group block estimates six latent location-location, location-scale, and scale-scale correlations. |
 | Matching labelled `phylo()` terms in all four bivariate `mu1`, `mu2`, `sigma1`, and `sigma2` formulas | Implemented first slice | One constant q=4 phylogenetic block estimates four endpoint SDs and six latent location-scale correlations. Partial, unlabelled, mismatched, and slope forms remain rejected. |
 | `sd_phylo(species) ~ z` | Implemented for univariate Gaussian `mu` | This is the separate Box 1 direct-SD family: species-level predictors model the SD of a phylogenetic location random effect at observed tips. |
+| `sd_phylo1(species) ~ z1` / `sd_phylo2(species) ~ z2` | Implemented for bivariate `mu1`/`mu2` | Response-specific species-level predictors model the SD surfaces of the two phylogenetic location random effects. This remains a Family B direct-SD model, not a residual `sigma1`/`sigma2` model and not a q=4 location-scale block. |
 | `spatial(1 | site, coords = coords)` or `spatial(1 | site, mesh = mesh)` | Planned | Spatial will mirror the phylogenetic API after the phylogenetic structured-effect path is stable. |
 
 ## Mathematical contract
@@ -511,6 +512,37 @@ correlation. The `sigma1`, `sigma2`, and residual `rho12` formulas remain
 ordinary fixed-effect distributional parameters in this first slice.
 Use `phylo(1 | p | species, tree = tree)` in both location formulas when you
 want the fitted phylogenetic mean-mean row to use a block label such as `p`.
+
+The Box 1 direct-SD alternative for two responses keeps the phylogenetic
+effects in the location formulas, but lets species-level predictors explain the
+magnitude of each response's phylogenetic location variation:
+
+```r
+fit_biv_sd_phylo <- drmTMB(
+  formula = drm_formula(
+    mu1 = heat_tolerance ~ climate +
+      phylo(1 | species, tree = tree),
+    mu2 = desiccation_tolerance ~ climate +
+      phylo(1 | species, tree = tree),
+    sigma1 = ~ habitat_variability,
+    sigma2 = ~ habitat_variability,
+    rho12 = ~ assay_context,
+    sd_phylo1(species) ~ habitat_variability_species,
+    sd_phylo2(species) ~ habitat_variability_species
+  ),
+  family = c(gaussian(), gaussian()),
+  data = tolerance
+)
+```
+
+Here `sd_phylo1(species)` targets the `mu1` phylogenetic location SD surface and
+`sd_phylo2(species)` targets the `mu2` surface. The right-hand-side predictors
+must be constant within species after model-row filtering. The latent
+phylogenetic mean-mean correlation remains a constant fitted correlation, and
+`rho12` remains the within-observation residual correlation. Run
+`check_drm(fit_biv_sd_phylo)` before interpreting the direct-SD slopes; the
+diagnostic reports species replication, each fitted species-SD range, and
+whether any fitted direct-SD surface is non-positive or non-finite.
 
 The full constant q=4 location-scale form uses an explicit covariance-block
 label:

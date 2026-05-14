@@ -85,6 +85,42 @@ check_drm_biv_phylo_data <- function(
   )
 }
 
+check_drm_biv_sd_phylo_data <- function(seed = 2026051402, n_each = 5L) {
+  set.seed(seed)
+  tree <- check_drm_test_tree()
+  A <- drmTMB:::drm_phylo_tip_covariance(tree)
+  n_tip <- length(tree$tip.label)
+  z_species <- stats::setNames(
+    seq(-0.8, 0.8, length.out = n_tip),
+    tree$tip.label
+  )
+  tau1 <- exp(-0.55 + 0.45 * z_species)
+  tau2 <- exp(-0.65 - 0.35 * z_species)
+  z1 <- stats::rnorm(n_tip)
+  z2 <- 0.25 * z1 + sqrt(1 - 0.25^2) * stats::rnorm(n_tip)
+  base1 <- as.vector(t(chol(A)) %*% z1)
+  base2 <- as.vector(t(chol(A)) %*% z2)
+  names(base1) <- tree$tip.label
+  names(base2) <- tree$tip.label
+  phylo1 <- tau1 * base1
+  phylo2 <- tau2 * base2
+
+  species <- rep(tree$tip.label, each = n_each)
+  x <- stats::rnorm(length(species))
+  e1 <- stats::rnorm(length(species))
+  e2 <- 0.05 * e1 + sqrt(1 - 0.05^2) * stats::rnorm(length(species))
+  list(
+    data = data.frame(
+      y1 = 0.25 + 0.30 * x + phylo1[species] + 0.22 * e1,
+      y2 = -0.15 - 0.25 * x + phylo2[species] + 0.24 * e2,
+      x = x,
+      z_species = z_species[species],
+      species = species
+    ),
+    tree = tree
+  )
+}
+
 check_drm_sd_phylo_data <- function(seed = 2026051401, n_each = 4L) {
   set.seed(seed)
   tree <- check_drm_test_tree()
@@ -506,6 +542,9 @@ test_that("check_drm() records sd_phylo direct-SD diagnostics", {
     rep.int(2L, 4L),
     rep.int(3L, length(sim$data$species) - 9L)
   )
+  singleton$model$random_scale$phylo$observation_sd_row0_list[
+    "sd_phylo(species)"
+  ] <- list(singleton$model$random_scale$phylo$observation_sd_row0)
   singleton_chk <- check_drm(singleton)
   singleton_sd <- singleton_chk[
     singleton_chk$check == "phylo_direct_sd_model",
@@ -523,6 +562,64 @@ test_that("check_drm() records sd_phylo direct-SD diagnostics", {
   expect_equal(bad_direct_sd$status, "error")
   expect_match(bad_direct_sd$message, "non-finite")
   expect_false(attr(bad_chk, "ok"))
+})
+
+test_that("check_drm() records bivariate sd_phylo direct-SD diagnostics", {
+  sim <- check_drm_biv_sd_phylo_data()
+  dat <- sim$data
+  tree <- sim$tree
+  fit <- drmTMB(
+    bf(
+      mu1 = y1 ~ x + phylo(1 | species, tree = tree),
+      mu2 = y2 ~ x + phylo(1 | species, tree = tree),
+      sigma1 = ~1,
+      sigma2 = ~1,
+      rho12 = ~1,
+      sd_phylo1(species) ~ z_species,
+      sd_phylo2(species) ~ z_species
+    ),
+    family = biv_gaussian(),
+    data = dat,
+    control = list(eval.max = 600, iter.max = 600)
+  )
+  chk <- check_drm(fit)
+  direct_sd <- chk[chk$check == "phylo_direct_sd_model", ]
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(nrow(direct_sd), 2L)
+  expect_equal(direct_sd$status, c("ok", "ok"))
+  expect_match(direct_sd$value[[1L]], "dpar=sd_phylo1\\(species\\)")
+  expect_match(direct_sd$value[[1L]], "target=mu1")
+  expect_match(direct_sd$value[[2L]], "dpar=sd_phylo2\\(species\\)")
+  expect_match(direct_sd$value[[2L]], "target=mu2")
+  expect_true(all(grepl("min_species_n=5", direct_sd$value, fixed = TRUE)))
+  expect_true(all(grepl("sd_range=[", direct_sd$value, fixed = TRUE)))
+  expect_true(all(grepl("max_sd_ratio=", direct_sd$value, fixed = TRUE)))
+  expect_true(all(grepl("finite positive", direct_sd$message, fixed = TRUE)))
+  expect_false(any(direct_sd$status %in% c("warning", "error")))
+
+  one_sided <- drmTMB(
+    bf(
+      mu1 = y1 ~ x + phylo(1 | species, tree = tree),
+      mu2 = y2 ~ x + phylo(1 | species, tree = tree),
+      sigma1 = ~1,
+      sigma2 = ~1,
+      rho12 = ~1,
+      sd_phylo1(species) ~ z_species
+    ),
+    family = biv_gaussian(),
+    data = dat,
+    control = list(eval.max = 600, iter.max = 600)
+  )
+  one_sided_sd <- check_drm(one_sided)
+  one_sided_direct <- one_sided_sd[
+    one_sided_sd$check == "phylo_direct_sd_model",
+  ]
+
+  expect_equal(one_sided$opt$convergence, 0)
+  expect_equal(nrow(one_sided_direct), 1L)
+  expect_match(one_sided_direct$value, "dpar=sd_phylo1\\(species\\)")
+  expect_match(one_sided_direct$value, "target=mu1")
 })
 
 test_that("check_drm() reports bivariate phylogenetic covariance diagnostics", {

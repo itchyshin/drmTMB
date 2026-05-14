@@ -2,6 +2,54 @@
 
 Record meaningful development checks here.
 
+## 2026-05-14 -- Map Slice 25 bivariate sd_phylo diagnostics and docs
+
+Scope:
+
+- extended `check_drm()` direct-SD diagnostics from univariate
+  `sd_phylo(species)` to bivariate `sd_phylo1(species)` /
+  `sd_phylo2(species)`;
+- added per-endpoint diagnostic rows with target endpoint, species group,
+  species replication, fitted SD range, and maximum fitted species-SD ratio;
+- added tests for both-endpoint and one-sided bivariate direct-SD diagnostics;
+- updated the structured-dependence article with the bivariate Box 1
+  direct-SD syntax and interpretation;
+- regenerated `man/check_drm.Rd` and rebuilt the local
+  `phylogenetic-spatial` pkgdown article.
+
+Checks:
+
+- `air format NEWS.md ROADMAP.md docs/dev-log/known-limitations.md docs/design/18-random-effect-scale-models.md vignettes/phylogenetic-spatial.Rmd R/check.R R/drmTMB.R tests/testthat/test-check-drm.R`:
+  passed.
+- `Rscript -e 'devtools::document()'`: passed and updated
+  `man/check_drm.Rd`.
+- Initial focused
+  `Rscript -e 'devtools::test(filter = "check-drm|phylo-gaussian|profile-targets|summary", reporter = "summary")'`:
+  failed because the old singleton test mutated the legacy flat
+  `observation_sd_row0` field instead of the new per-dpar row-index list, and
+  because the small bivariate fit could have unrelated diagnostics. The test
+  now mutates the per-dpar list and asserts the direct-SD rows directly.
+- Final focused
+  `Rscript -e 'devtools::test(filter = "check-drm|phylo-gaussian|profile-targets|summary", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'devtools::test(reporter = "summary")'`: passed.
+- `Rscript -e 'devtools::load_all(quiet = TRUE); pkgdown::build_article("phylogenetic-spatial", new_process = FALSE, quiet = TRUE)'`:
+  passed and wrote `pkgdown-site/articles/phylogenetic-spatial.html`.
+- `Rscript -e 'pkgdown::check_pkgdown()'`: passed with no problems found.
+- `rg -n 'sd_phylo1\(species\).*planned|sd_phylo2\(species\).*planned|sd_phylo1\(species\).*not implemented|sd_phylo2\(species\).*not implemented|bivariate `sd_phylo1\(\)`.*planned|bivariate `sd_phylo2\(\)`.*planned|univariate `sd_phylo\(\)` direct-SD diagnostic row|univariate `sd_phylo\(\)` path' README.md ROADMAP.md NEWS.md docs vignettes man pkgdown-site/articles/phylogenetic-spatial.html R tests`:
+  only historical Slice 22 check-log wording remains.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- Bivariate `sd_phylo1()` / `sd_phylo2()` diagnostics are still compact
+  first-pass checks; they do not replace broad simulation grids across tree
+  size, predictor strength, weak SD surfaces, or alternative tree shapes.
+- `summary(fit)$covariance` uses median fitted species SDs for direct-SD
+  endpoints because the true covariance is species-pair specific.
+- Spatial `sd_spatial*()` siblings begin in Slice 26 and remain planned in this
+  slice.
+
 ## 2026-05-14 -- Map Slice 24 bivariate sd_phylo implementation
 
 Scope:

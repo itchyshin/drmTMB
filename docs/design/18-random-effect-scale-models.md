@@ -255,10 +255,10 @@ with one row per observed tree tip, rejects predictors that vary within
 species, maps the scalar `log_sd_phylo` parameter out for that target, and
 reports fitted values through `coef()`, `predict()`, `sdpars`, `summary()`, and
 `profile_targets()`. `check_drm()` reports a `phylo_direct_sd_model` diagnostic
-row for these fits, including species replication, fitted SD range, and the
-maximum fitted species-SD ratio, because weak replication or a numerically
-invalid SD surface can make direct-SD interpretation misleading even when fixed
-effects are available.
+row for each univariate or bivariate `sd_phylo*()` endpoint, including species
+replication, fitted SD range, and the maximum fitted species-SD ratio, because
+weak replication or a numerically invalid SD surface can make direct-SD
+interpretation misleading even when fixed effects are available.
 
 Bivariate phylogenetic direct-SD syntax is implemented with response-specific
 names:
