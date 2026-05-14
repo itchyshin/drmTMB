@@ -56,12 +56,16 @@ labelled \code{mu1}/\code{mu2} random-intercept covariance block, \code{check_dr
 group replication and whether either group-level SD is tiny relative to the
 matching residual scale. For a matched labelled \code{sigma1}/\code{sigma2} block, it
 reports group replication and whether either log-\code{sigma} random-effect SD is
-tiny. If a bivariate Gaussian fit includes matching \code{mu1}/\code{mu2}
-phylogenetic location effects, \code{check_drm()} also reports whether the fitted
-phylogenetic mean-mean correlation is near the boundary, whether either
-phylogenetic SD is tiny relative to the matching residual scale, and whether
-an ordinary group-level covariance block uses the same grouping factor. If a
-fit was stored with \code{drm_control(keep_tmb_object = FALSE)}, the
+tiny. If a bivariate Gaussian fit includes an ordinary all-four q=4
+\code{mu1}/\code{mu2}/\code{sigma1}/\code{sigma2} block, it reports group replication, location
+SDs relative to residual scales, log-\code{sigma} SDs, and whether any latent
+correlation is near the boundary. If a bivariate Gaussian fit includes
+matching \code{mu1}/\code{mu2} phylogenetic location effects, \code{check_drm()} also reports
+whether the fitted phylogenetic mean-mean correlation is near the boundary,
+whether either phylogenetic SD is tiny relative to the matching residual
+scale, and whether an ordinary group-level covariance block uses the same
+grouping factor. If a fit was stored with
+\code{drm_control(keep_tmb_object = FALSE)}, the
 fixed-gradient check is reported as a note because the TMB
 automatic-differentiation object is not available.
 

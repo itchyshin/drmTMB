@@ -29,10 +29,11 @@
   same-response `mu`/`sigma` pair such as `mu1` with `sigma1`. The same labelled
   random-intercept term can also be used in all four bivariate formulas to fit
   one ordinary q=4 location-scale covariance block with all six latent
-  correlations. Bivariate random slopes, random effects in `rho12`,
-  phylogenetic q=4 blocks, and spatial q=4 blocks are still planned;
-  residual `rho12` should not be interpreted as a phylogenetic, spatial, or
-  group-level covariance parameter.
+  correlations. `check_drm()` reports a first q4 diagnostic for group
+  replication, tiny component SDs, and near-boundary latent correlations.
+  Bivariate random slopes, random effects in `rho12`, phylogenetic q=4 blocks,
+  and spatial q=4 blocks are still planned; residual `rho12` should not be
+  interpreted as a phylogenetic, spatial, or group-level covariance parameter.
 - Matching intercept-only `phylo(1 | species, tree = tree)` terms are fitted
   in bivariate Gaussian `mu1` and `mu2` formulas. This first phylogenetic
   bivariate slice estimates two phylogenetic location SDs and one phylogenetic

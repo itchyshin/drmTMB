@@ -20,12 +20,16 @@
 #' group replication and whether either group-level SD is tiny relative to the
 #' matching residual scale. For a matched labelled `sigma1`/`sigma2` block, it
 #' reports group replication and whether either log-`sigma` random-effect SD is
-#' tiny. If a bivariate Gaussian fit includes matching `mu1`/`mu2`
-#' phylogenetic location effects, `check_drm()` also reports whether the fitted
-#' phylogenetic mean-mean correlation is near the boundary, whether either
-#' phylogenetic SD is tiny relative to the matching residual scale, and whether
-#' an ordinary group-level covariance block uses the same grouping factor. If a
-#' fit was stored with `drm_control(keep_tmb_object = FALSE)`, the
+#' tiny. If a bivariate Gaussian fit includes an ordinary all-four q=4
+#' `mu1`/`mu2`/`sigma1`/`sigma2` block, it reports group replication, location
+#' SDs relative to residual scales, log-`sigma` SDs, and whether any latent
+#' correlation is near the boundary. If a bivariate Gaussian fit includes
+#' matching `mu1`/`mu2` phylogenetic location effects, `check_drm()` also reports
+#' whether the fitted phylogenetic mean-mean correlation is near the boundary,
+#' whether either phylogenetic SD is tiny relative to the matching residual
+#' scale, and whether an ordinary group-level covariance block uses the same
+#' grouping factor. If a fit was stored with
+#' `drm_control(keep_tmb_object = FALSE)`, the
 #' fixed-gradient check is reported as a note because the TMB
 #' automatic-differentiation object is not available.
 #'
@@ -101,6 +105,10 @@ check_drm.drmTMB <- function(
     check_biv_mu_sigma_random_effect_covariance(object),
     check_biv_mu_random_effect_covariance(object),
     check_biv_sigma_random_effect_covariance(object),
+    check_biv_q4_random_effect_covariance(
+      object,
+      rho_boundary = rho_boundary
+    ),
     check_phylo_replication(object),
     check_biv_phylo_mu_covariance(object, rho_boundary = rho_boundary)
   )
@@ -1441,6 +1449,228 @@ bivariate_sigma_re_diagnostic_message <- function(weak_replication, weak_sd) {
     ))
   }
   "Bivariate scale-scale covariance has replicated groups and non-negligible log-scale SDs."
+}
+
+check_biv_q4_random_effect_covariance <- function(object, rho_boundary) {
+  if (!identical(object$model$model_type, "biv_gaussian")) {
+    return(NULL)
+  }
+  registry <- object$model$random$covariance_blocks
+  if (
+    !is.list(registry) ||
+      is.null(registry$blocks) ||
+      nrow(registry$blocks) == 0L
+  ) {
+    return(NULL)
+  }
+
+  blocks <- registry$blocks[
+    registry$blocks$implemented &
+      registry$blocks$n_members == 4L &
+      registry$blocks$level == "group",
+    ,
+    drop = FALSE
+  ]
+  if (nrow(blocks) == 0L) {
+    return(NULL)
+  }
+
+  block_summaries <- lapply(seq_len(nrow(blocks)), function(i) {
+    block <- blocks[i, , drop = FALSE]
+    members <- registry$members[
+      registry$members$block_id0 == block$block_id0[[1L]],
+      ,
+      drop = FALSE
+    ]
+    pairs <- registry$pairs[
+      registry$pairs$block_id0 == block$block_id0[[1L]],
+      ,
+      drop = FALSE
+    ]
+    first_member <- members[order(members$member_id0), , drop = FALSE][1L, ]
+    group_counts <- registry_member_group_counts(
+      first_member,
+      block$n_groups[[1L]]
+    )
+    location_sd_ratios <- bivariate_q4_location_sd_ratios(object, members)
+    scale_sd_values <- bivariate_q4_scale_sd_values(object, members)
+    correlations <- bivariate_q4_correlations(object, pairs)
+
+    list(
+      n_groups = block$n_groups[[1L]],
+      min_group_n = min(group_counts),
+      singleton_groups = sum(group_counts < 2L),
+      min_location_sd_ratio = min_finite_or_na(location_sd_ratios),
+      min_log_sigma_sd = min_finite_or_na(scale_sd_values),
+      max_abs_cor = max_abs_finite_or_na(correlations)
+    )
+  })
+
+  min_groups <- min(vapply(block_summaries, `[[`, numeric(1L), "n_groups"))
+  min_group_n <- min(vapply(block_summaries, `[[`, numeric(1L), "min_group_n"))
+  singleton_groups <- sum(vapply(
+    block_summaries,
+    `[[`,
+    numeric(1L),
+    "singleton_groups"
+  ))
+  min_location_sd_ratio <- min(vapply(
+    block_summaries,
+    `[[`,
+    numeric(1L),
+    "min_location_sd_ratio"
+  ))
+  min_log_sigma_sd <- min(vapply(
+    block_summaries,
+    `[[`,
+    numeric(1L),
+    "min_log_sigma_sd"
+  ))
+  max_abs_cor <- max(vapply(block_summaries, `[[`, numeric(1L), "max_abs_cor"))
+
+  weak_group_count <- min_groups < 8L
+  weak_replication <- min_group_n < 2L
+  weak_location_sd <- is.finite(min_location_sd_ratio) &&
+    min_location_sd_ratio < 0.05
+  weak_scale_sd <- is.finite(min_log_sigma_sd) && min_log_sigma_sd < 0.05
+  near_rho_boundary <- !is.finite(max_abs_cor) || max_abs_cor > rho_boundary
+
+  check_row(
+    "biv_q4_random_effect_covariance",
+    if (near_rho_boundary) {
+      "warning"
+    } else if (
+      weak_group_count ||
+        weak_replication ||
+        weak_location_sd ||
+        weak_scale_sd
+    ) {
+      "note"
+    } else {
+      "ok"
+    },
+    paste0(
+      "n_blocks=",
+      nrow(blocks),
+      "; min_groups=",
+      min_groups,
+      "; min_group_n=",
+      min_group_n,
+      "; singleton_groups=",
+      singleton_groups,
+      "; min_location_sd_ratio=",
+      format_check_number(min_location_sd_ratio),
+      "; min_log_sigma_sd=",
+      format_check_number(min_log_sigma_sd),
+      "; max_abs_cor=",
+      format_check_number(max_abs_cor),
+      "; boundary=",
+      format_check_number(rho_boundary)
+    ),
+    bivariate_q4_re_diagnostic_message(
+      near_rho_boundary,
+      weak_group_count,
+      weak_replication,
+      weak_location_sd,
+      weak_scale_sd
+    )
+  )
+}
+
+bivariate_q4_location_sd_ratios <- function(object, members) {
+  location_members <- members[members$dpar %in% c("mu1", "mu2"), , drop = FALSE]
+  if (nrow(location_members) == 0L) {
+    return(NA_real_)
+  }
+  sdpars <- object$sdpars$mu
+  sigma_values <- tryCatch(stats::sigma(object), error = function(e) e)
+  if (
+    is.null(sdpars) ||
+      length(sdpars) == 0L ||
+      inherits(sigma_values, "error") ||
+      !is.list(sigma_values)
+  ) {
+    return(NA_real_)
+  }
+  residual_scale <- c(
+    mu1 = mean(sigma_values$sigma1, na.rm = TRUE),
+    mu2 = mean(sigma_values$sigma2, na.rm = TRUE)
+  )
+  sd_values <- unname(sdpars[match(location_members$label, names(sdpars))])
+  sd_values / residual_scale[location_members$dpar]
+}
+
+bivariate_q4_scale_sd_values <- function(object, members) {
+  scale_members <- members[
+    members$dpar %in% c("sigma1", "sigma2"),
+    ,
+    drop = FALSE
+  ]
+  if (nrow(scale_members) == 0L) {
+    return(NA_real_)
+  }
+  sdpars <- object$sdpars$sigma
+  if (is.null(sdpars) || length(sdpars) == 0L) {
+    return(NA_real_)
+  }
+  unname(sdpars[match(scale_members$label, names(sdpars))])
+}
+
+bivariate_q4_correlations <- function(object, pairs) {
+  corpars <- object$corpars$re_cov
+  if (is.null(corpars) || length(corpars) == 0L || nrow(pairs) == 0L) {
+    return(NA_real_)
+  }
+  unname(corpars[match(pairs$parameter, names(corpars))])
+}
+
+min_finite_or_na <- function(x) {
+  x <- x[is.finite(x)]
+  if (length(x) == 0L) {
+    return(NA_real_)
+  }
+  min(x)
+}
+
+max_abs_finite_or_na <- function(x) {
+  x <- x[is.finite(x)]
+  if (length(x) == 0L) {
+    return(NA_real_)
+  }
+  max(abs(x))
+}
+
+bivariate_q4_re_diagnostic_message <- function(
+  near_rho_boundary,
+  weak_group_count,
+  weak_replication,
+  weak_location_sd,
+  weak_scale_sd
+) {
+  if (near_rho_boundary) {
+    return(paste(
+      "At least one latent q4 group-level correlation is close to +/-1;",
+      "profile, simulate, or simplify before interpreting all six correlations."
+    ))
+  }
+  weak <- c(
+    if (weak_group_count) "few groups for a four-member covariance block",
+    if (weak_replication) {
+      "at least one group has fewer than two fitted observations"
+    },
+    if (weak_location_sd) {
+      "at least one location SD is tiny relative to residual scale"
+    },
+    if (weak_scale_sd) "at least one log-sigma random-effect SD is tiny"
+  )
+  if (length(weak) > 0L) {
+    return(paste(
+      "Ordinary q4 location-scale covariance is fitted, but",
+      paste(weak, collapse = "; "),
+      "so interpret all six latent correlations cautiously."
+    ))
+  }
+  "Ordinary q4 location-scale covariance has replicated groups, non-negligible fitted component SDs, and latent correlations away from the boundary."
 }
 
 random_effect_label_is_intercept <- function(label) {

@@ -85,6 +85,60 @@ check_drm_biv_phylo_data <- function(
   )
 }
 
+check_drm_biv_q4_data <- function(
+  n_id = 36L,
+  n_each = 6L,
+  seed = 2026051307
+) {
+  set.seed(seed)
+  id <- factor(rep(seq_len(n_id), each = n_each))
+  n <- length(id)
+  x <- stats::rnorm(n)
+  beta_mu1 <- c(0.10, 0.30)
+  beta_mu2 <- c(-0.15, -0.25)
+  log_sigma1 <- log(0.42)
+  log_sigma2 <- log(0.50)
+  rho12 <- 0.08
+  sd <- c(0.48, 0.52, 0.26, 0.30)
+  corr <- matrix(
+    c(
+      1.00,
+      0.22,
+      0.10,
+      -0.06,
+      0.22,
+      1.00,
+      0.08,
+      0.14,
+      0.10,
+      0.08,
+      1.00,
+      0.18,
+      -0.06,
+      0.14,
+      0.18,
+      1.00
+    ),
+    nrow = 4L,
+    byrow = TRUE
+  )
+  z <- matrix(stats::rnorm(n_id * 4L), n_id, 4L)
+  b <- sweep(z %*% chol(corr), 2L, sd, `*`)
+  e1 <- stats::rnorm(n)
+  e2 <- rho12 * e1 + sqrt(1 - rho12^2) * stats::rnorm(n)
+
+  dat <- data.frame(id = id, x = x)
+  dat$y1 <- beta_mu1[[1L]] +
+    beta_mu1[[2L]] * x +
+    b[id, 1L] +
+    exp(log_sigma1 + b[id, 3L]) * e1
+  dat$y2 <- beta_mu2[[1L]] +
+    beta_mu2[[2L]] * x +
+    b[id, 2L] +
+    exp(log_sigma2 + b[id, 4L]) * e2
+  dat
+}
+
 check_drm_registry_singleton <- function(fit, dpar) {
   member_row <- which(
     fit$model$random$covariance_blocks$members$dpar == dpar
@@ -585,6 +639,54 @@ test_that("check_drm() reports bivariate mu random-effect covariance diagnostics
   expect_equal(weak_cov$status, "note")
   expect_match(weak_cov$message, "tiny relative")
   expect_true(attr(weak_chk, "ok"))
+})
+
+test_that("check_drm() reports ordinary q4 bivariate covariance diagnostics", {
+  dat <- check_drm_biv_q4_data()
+  fit <- drmTMB(
+    bf(
+      mu1 = y1 ~ x + (1 | p | id),
+      mu2 = y2 ~ x + (1 | p | id),
+      sigma1 = ~ 1 + (1 | p | id),
+      sigma2 = ~ 1 + (1 | p | id),
+      rho12 = ~1
+    ),
+    family = biv_gaussian(),
+    data = dat,
+    control = list(eval.max = 500, iter.max = 500)
+  )
+  chk <- check_drm(fit)
+  q4 <- chk[chk$check == "biv_q4_random_effect_covariance", ]
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(nrow(q4), 1L)
+  expect_match(q4$value, "n_blocks=1")
+  expect_match(q4$value, "min_group_n=6")
+  expect_match(q4$value, "max_abs_cor=")
+  expect_match(q4$message, "Ordinary q4 location-scale covariance")
+
+  near_boundary <- fit
+  near_boundary$corpars$re_cov[] <- 0.995
+  near_boundary_chk <- check_drm(near_boundary, rho_boundary = 0.98)
+  near_boundary_q4 <- near_boundary_chk[
+    near_boundary_chk$check == "biv_q4_random_effect_covariance",
+  ]
+
+  expect_equal(near_boundary_q4$status, "warning")
+  expect_match(near_boundary_q4$value, "boundary=0.9800")
+  expect_match(near_boundary_q4$message, "close to \\+/-1")
+  expect_false(attr(near_boundary_chk, "ok"))
+
+  weak_scale <- fit
+  weak_scale$corpars$re_cov[] <- 0
+  weak_scale$sdpars$sigma[] <- 0.01
+  weak_scale_chk <- check_drm(weak_scale)
+  weak_scale_q4 <- weak_scale_chk[
+    weak_scale_chk$check == "biv_q4_random_effect_covariance",
+  ]
+
+  expect_equal(weak_scale_q4$status, "note")
+  expect_match(weak_scale_q4$message, "log-sigma random-effect SD is tiny")
 })
 
 test_that("check_drm() reports mutated diagnostic failure branches", {

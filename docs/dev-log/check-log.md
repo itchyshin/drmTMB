@@ -2,6 +2,28 @@
 
 Record meaningful development checks here.
 
+## 2026-05-13 -- Slice 16 ordinary q4 check_drm diagnostic
+
+Scope:
+
+- added a `biv_q4_random_effect_covariance` row to `check_drm()` for ordinary
+  all-four bivariate q4 covariance blocks;
+- reports q4 block count, group count, minimum group replication, singleton
+  groups, location SD ratio, log-`sigma` SD, maximum absolute latent
+  correlation, and the active correlation boundary;
+- added tests for the normal diagnostic row, near-boundary latent correlations,
+  and tiny log-`sigma` component SDs.
+
+Checks:
+
+- `Rscript -e 'devtools::test(filter = "check-drm", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'devtools::document()'`: passed and regenerated
+  `man/check_drm.Rd`.
+- `Rscript -e 'devtools::test(filter = "check-drm|biv-gaussian|summary|corpairs", reporter = "summary")'`:
+  passed.
+- `git diff --check`: passed.
+
 ## 2026-05-13 -- Slice 15 corpair formula reservation
 
 Scope:

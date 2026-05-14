@@ -343,10 +343,12 @@ mean-scale covariance block, it also reports group replication and whether
 either component SD is tiny on its interpretation scale. For the first
 bivariate `mu1`/`mu2` random-intercept covariance block, it reports group
 replication and whether either fitted group-level SD is tiny relative to the
-matching residual scale. For the first fitted bivariate phylogenetic `mu1`/`mu2`
-location slice, it reports whether `corpars$phylo` is near the correlation
-boundary and whether either phylogenetic location SD is tiny relative to the
-matching residual scale.
+matching residual scale. For the ordinary q=4 all-four bivariate
+location-scale block, it reports group replication, location SDs relative to
+residual scales, log-`sigma` SDs, and the maximum absolute latent correlation.
+For the first fitted bivariate phylogenetic `mu1`/`mu2` location slice, it
+reports whether `corpars$phylo` is near the correlation boundary and whether
+either phylogenetic location SD is tiny relative to the matching residual scale.
 Future structured-effect phases still need separability diagnostics for
 phylogenetic plus non-phylogenetic species effects and spatial field plus site
 or study effects.
