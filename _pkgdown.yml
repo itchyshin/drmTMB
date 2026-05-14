@@ -87,6 +87,7 @@ reference:
       - gr
       - phylo
       - spatial
+      - corpair
   - title: Family internals
     desc: Family constructor helpers.
     contents:

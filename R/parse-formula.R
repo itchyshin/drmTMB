@@ -18,10 +18,16 @@ parse_drm_formula_entry <- function(expr, name, position) {
   rhs <- formula_rhs(expr)
   has_name <- nzchar(name)
   has_lhs <- !is.null(lhs)
+  corpair_lhs <- NULL
 
   if (has_name && has_lhs && is_random_scale_lhs(lhs)) {
     cli::cli_abort(
       "Random-effect scale formulas should be unnamed, for example {.code sd(id) ~ x}."
+    )
+  }
+  if (has_name && has_lhs && is_corpair_lhs(lhs)) {
+    cli::cli_abort(
+      "Correlation-pair formulas should be unnamed, for example {.code corpair(id, block = \"p\", class = \"location-scale\") ~ x}."
     )
   }
 
@@ -31,6 +37,10 @@ parse_drm_formula_entry <- function(expr, name, position) {
   } else if (has_lhs && is_random_scale_lhs(lhs)) {
     sd_lhs <- parse_sd_lhs(lhs)
     dpar <- sd_lhs$dpar
+    response <- NA_character_
+  } else if (has_lhs && is_corpair_lhs(lhs)) {
+    corpair_lhs <- parse_corpair_lhs(lhs)
+    dpar <- corpair_lhs$dpar
     response <- NA_character_
   } else if (has_lhs && is_dpar_lhs(lhs)) {
     dpar <- deparse1(lhs)
@@ -52,6 +62,7 @@ parse_drm_formula_entry <- function(expr, name, position) {
     rhs = rhs,
     expr = expr,
     source_name = name,
+    corpair = corpair_lhs,
     structured = collect_structured_effects(rhs, dpar)
   )
 }
@@ -104,6 +115,11 @@ is_sd_lhs <- function(lhs) {
   is_random_scale_lhs(lhs)
 }
 
+is_corpair_lhs <- function(lhs) {
+  lhs <- strip_parens(lhs)
+  is.call(lhs) && identical(lhs[[1L]], as.name("corpair"))
+}
+
 random_scale_lhs_function <- function(lhs) {
   fun <- lhs[[1L]]
   if (is.symbol(fun)) {
@@ -126,6 +142,81 @@ random_scale_lhs_functions <- function() {
     "sd_sigma1",
     "sd_sigma2"
   )
+}
+
+parse_corpair_lhs <- function(lhs) {
+  lhs <- strip_parens(lhs)
+  args <- as.list(lhs)[-1L]
+  arg_names <- names(args)
+  if (is.null(arg_names)) {
+    arg_names <- rep("", length(args))
+  }
+  arg_names[is.na(arg_names)] <- ""
+
+  target_pos <- which(arg_names %in% c("", "group"))
+  if (length(target_pos) != 1L) {
+    cli::cli_abort(c(
+      "{.fn corpair} requires exactly one grouping variable.",
+      "x" = "Use syntax like {.code corpair(id, block = \"p\", class = \"location-scale\") ~ x}."
+    ))
+  }
+  group_arg <- args[[target_pos]]
+  if (!is.symbol(group_arg)) {
+    cli::cli_abort(c(
+      "The {.fn corpair} target must be a simple grouping variable.",
+      "x" = "Use syntax like {.code corpair(id, block = \"p\", class = \"location-scale\") ~ x}."
+    ))
+  }
+
+  optional_names <- arg_names[-target_pos]
+  optional_args <- args[-target_pos]
+  bad <- setdiff(optional_names, c("block", "class"))
+  if (length(bad) > 0L || any(!nzchar(optional_names))) {
+    cli::cli_abort(c(
+      "{.fn corpair} currently accepts only {.arg block} and {.arg class} options.",
+      "x" = "Use syntax like {.code corpair(id, block = \"p\", class = \"scale-scale\") ~ x}."
+    ))
+  }
+  if (any(duplicated(optional_names))) {
+    cli::cli_abort(
+      "{.fn corpair} options cannot be repeated: {.val {unique(optional_names[duplicated(optional_names)])}}."
+    )
+  }
+
+  group <- as.character(group_arg)
+  block <- parse_corpair_string_arg(optional_args, optional_names, "block")
+  class <- parse_corpair_string_arg(optional_args, optional_names, "class")
+  allowed_classes <- c("location-location", "location-scale", "scale-scale")
+  if (!is.na(class) && !class %in% allowed_classes) {
+    cli::cli_abort(c(
+      "{.arg class} must name a latent random-effect correlation class.",
+      "x" = "Supported planned classes are {.val {allowed_classes}}."
+    ))
+  }
+
+  dpar <- paste0(
+    "corpair(",
+    group,
+    if (!is.na(block)) paste0(", block = \"", block, "\"") else "",
+    if (!is.na(class)) paste0(", class = \"", class, "\"") else "",
+    ")"
+  )
+  list(group = group, block = block, class = class, dpar = dpar)
+}
+
+parse_corpair_string_arg <- function(args, arg_names, name) {
+  pos <- which(arg_names == name)
+  if (length(pos) == 0L) {
+    return(NA_character_)
+  }
+  value <- args[[pos]]
+  if (!is.character(value) || length(value) != 1L || is.na(value)) {
+    cli::cli_abort(c(
+      "{.arg {name}} in {.fn corpair} must be a single string.",
+      "x" = "Use syntax like {.code corpair(id, {name} = \"p\") ~ x}."
+    ))
+  }
+  value
 }
 
 parse_sd_lhs <- function(lhs) {

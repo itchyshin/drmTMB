@@ -6,23 +6,29 @@ test_that("drm_formula() captures distributional formulas", {
   form <- drm_formula(
     mu1 = y1 ~ x1 + (1 | p | id),
     mu2 = y2 ~ x2 + (1 | p | id),
-    sigma1 = ~ x1,
-    sigma2 = ~ x2,
+    sigma1 = ~x1,
+    sigma2 = ~x2,
     rho12 = ~ x1 + x2
   )
 
   expect_s3_class(form, "drm_formula")
   expect_equal(names(form$calls), c("mu1", "mu2", "sigma1", "sigma2", "rho12"))
-  expect_equal(vapply(form$entries, `[[`, character(1), "dpar"), names(form$calls))
-  expect_equal(vapply(form$entries[1:2], `[[`, character(1), "response"), c("y1", "y2"))
+  expect_equal(
+    vapply(form$entries, `[[`, character(1), "dpar"),
+    names(form$calls)
+  )
+  expect_equal(
+    vapply(form$entries[1:2], `[[`, character(1), "response"),
+    c("y1", "y2")
+  )
   expect_equal(form$entries[[5]]$dpar, "rho12")
 })
 
 test_that("drm_formula() captures mvbind shorthand as a location formula", {
   form <- drm_formula(
     mvbind(y1, y2) ~ x1 + x2,
-    sigma1 = ~ x1,
-    sigma2 = ~ x2,
+    sigma1 = ~x1,
+    sigma2 = ~x2,
     rho12 = ~ x1 + x2
   )
 
@@ -37,7 +43,10 @@ test_that("bf() remains a short alias for drm_formula()", {
 
   expect_s3_class(form, "drm_formula")
   expect_length(form$calls, 2)
-  expect_equal(vapply(form$entries, `[[`, character(1), "dpar"), c("mu", "sigma"))
+  expect_equal(
+    vapply(form$entries, `[[`, character(1), "dpar"),
+    c("mu", "sigma")
+  )
 })
 
 test_that("internal TMB data routing rejects unknown model labels", {
@@ -67,10 +76,31 @@ test_that("drm_formula() captures meta-analysis and random-effect scale syntax",
   expect_match(deparse1(form$calls[[4]]), "sd\\(species\\)")
 })
 
+test_that("drm_formula() captures planned corpair formula syntax", {
+  form <- drm_formula(
+    mu1 = y1 ~ x + (1 | p | id),
+    mu2 = y2 ~ x + (1 | p | id),
+    sigma1 = ~1,
+    sigma2 = ~1,
+    rho12 = ~1,
+    corpair(id, block = "p", class = "location-scale") ~ z
+  )
+
+  entry <- form$entries[[6L]]
+  expect_s3_class(form, "drm_formula")
+  expect_equal(
+    entry$dpar,
+    'corpair(id, block = "p", class = "location-scale")'
+  )
+  expect_equal(
+    entry$corpair[c("group", "block", "class")],
+    list(group = "id", block = "p", class = "location-scale")
+  )
+})
+
 test_that("drm_formula() captures planned structured-effect syntax", {
   form <- drm_formula(
-    y ~ x + phylo(1 | species, tree = tree) +
-      spatial(1 | site, coords = coords)
+    y ~ x + phylo(1 | species, tree = tree) + spatial(1 | site, coords = coords)
   )
 
   expect_s3_class(form, "drm_formula")
@@ -81,18 +111,36 @@ test_that("drm_formula() captures planned structured-effect syntax", {
     list(type = "phylo", group = "species", tree = "tree")
   )
   expect_equal(
-    form$entries[[1]]$structured[[2]][c("type", "group", "structure", "object")],
-    list(type = "spatial", group = "site", structure = "coords", object = "coords")
+    form$entries[[1]]$structured[[2]][c(
+      "type",
+      "group",
+      "structure",
+      "object"
+    )],
+    list(
+      type = "spatial",
+      group = "site",
+      structure = "coords",
+      object = "coords"
+    )
   )
 
   mesh_form <- drm_formula(y ~ spatial(1 | site, mesh = mesh))
   expect_equal(
-    mesh_form$entries[[1]]$structured[[1]][c("type", "group", "structure", "object")],
+    mesh_form$entries[[1]]$structured[[1]][c(
+      "type",
+      "group",
+      "structure",
+      "object"
+    )],
     list(type = "spatial", group = "site", structure = "mesh", object = "mesh")
   )
 
   slope_form <- drm_formula(y ~ phylo(1 + depth | species, tree = tree))
-  expect_equal(slope_form$entries[[1]]$structured[[1]]$coef_names, c("(Intercept)", "depth"))
+  expect_equal(
+    slope_form$entries[[1]]$structured[[1]]$coef_names,
+    c("(Intercept)", "depth")
+  )
   expect_equal(slope_form$entries[[1]]$structured[[1]]$variables, "depth")
 })
 
@@ -102,6 +150,7 @@ test_that("formula markers are no-op placeholders", {
   expect_null(phylo(1 | species, tree = tree))
   expect_null(spatial(1 | site, coords = coords))
   expect_null(spatial(1 | site, mesh = mesh))
+  expect_null(corpair(id, block = "p", class = "location-scale"))
 })
 
 test_that("planned structured-effect markers validate their grammar", {
@@ -128,5 +177,40 @@ test_that("planned structured-effect markers validate their grammar", {
   expect_error(
     drm_formula(y ~ x + log(phylo(1 | species, tree = tree))),
     "additive formula terms"
+  )
+})
+
+test_that("planned corpair formulas validate grammar and reject fitting clearly", {
+  dat <- data.frame(
+    y1 = c(0.1, 0.3, -0.2, 0.4),
+    y2 = c(-0.1, 0.2, 0.0, 0.5),
+    x = c(0, 1, 0, 1),
+    z = c(1, 1, 2, 2),
+    id = factor(c(1, 1, 2, 2))
+  )
+  form <- drm_formula(
+    mu1 = y1 ~ x + (1 | p | id),
+    mu2 = y2 ~ x + (1 | p | id),
+    sigma1 = ~1,
+    sigma2 = ~1,
+    rho12 = ~1,
+    corpair(id, block = "p", class = "location-location") ~ z
+  )
+
+  expect_error(
+    drm_formula(corpair(id, block = p) ~ z),
+    "single string"
+  )
+  expect_error(
+    drm_formula(corpair(id, class = "residual") ~ z),
+    "latent random-effect correlation class"
+  )
+  expect_error(
+    drm_formula(target = corpair(id, block = "p") ~ z),
+    "should be unnamed"
+  )
+  expect_error(
+    drmTMB(form, family = biv_gaussian(), data = dat),
+    "reserved but not implemented"
   )
 })

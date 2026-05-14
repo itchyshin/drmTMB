@@ -44,11 +44,19 @@ random-effect correlations from `corpars$mu`, the first univariate labelled
 `mu`/`sigma` random-intercept covariance from `corpars$mu_sigma`, the first
 bivariate `mu1`/`mu2` and `sigma1`/`sigma2` labelled random-intercept
 correlations, and one same-response bivariate `mu`/`sigma` random-intercept
-covariance row, plus the first bivariate phylogenetic `mu1`/`mu2` mean-mean
-correlation from `corpars$phylo`. It is intentionally a reporting helper, not
-a new likelihood. Future rows can be added as phylogenetic scale, phylogenetic
-mean-scale, spatial, study-level, and richer double-hierarchical correlation
-likelihoods become implemented.
+covariance row, the ordinary q=4 all-four bivariate random-intercept block,
+plus the first bivariate phylogenetic `mu1`/`mu2` mean-mean correlation from
+`corpars$phylo`. It is intentionally a reporting helper, not a new likelihood.
+Future rows can be added as phylogenetic scale, phylogenetic mean-scale,
+spatial, study-level, and richer double-hierarchical correlation likelihoods
+become implemented.
+
+The singular formula marker `corpair(group, block = "...", class = "...") ~ x`
+is reserved for future predictor-dependent latent random-effect correlations.
+`drm_formula()` parses it, but `drmTMB()` rejects it until the likelihood,
+diagnostics, and recovery tests exist. Use `rho12 = ~ x` for residual
+within-observation correlation, and use `corpairs(fit)` to extract fitted
+constant latent correlations.
 
 ## Why Named Correlation Pairs Are Needed
 
@@ -248,12 +256,15 @@ display preference, because each layer answers a different biological question.
    same-response bivariate `mu`/`sigma` random-intercept bridge.
 8. Route labelled group-level covariance through the block assembler in
    `docs/design/30-labelled-covariance-block-assembler.md` before exposing
-   bivariate random slopes or any shared label with more than two members.
+   bivariate random slopes. Done for the ordinary q=4 all-four bivariate
+   random-intercept block.
 9. Extend the first bivariate phylogenetic mean-mean block toward full
    phylogenetic location-scale covariance, with matching non-phylogenetic
    species or individual covariance blocks.
 10. Add spatial bivariate covariance blocks.
-11. Only after simulation evidence: consider predictor-dependent group-level or
+11. Reserve `corpair()` formula syntax, but keep fitting disabled. Done for
+   parser and error messaging.
+12. Only after simulation evidence: fit predictor-dependent group-level or
    structured-effect correlation formulas.
 
 For covariance blocks with more than two random-effect coefficients, use a

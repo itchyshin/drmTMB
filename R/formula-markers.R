@@ -77,3 +77,26 @@ phylo <- function(term, tree) {
 spatial <- function(term, coords = NULL, mesh = NULL) {
   invisible(NULL)
 }
+
+#' Planned latent random-effect correlation formula marker
+#'
+#' `corpair()` reserves formula syntax for predictor-dependent latent
+#' random-effect correlations. It is distinct from residual `rho12` and from the
+#' [corpairs()] extractor. Current fitted models estimate constant latent
+#' covariance-block correlations; `drmTMB()` rejects `corpair()` formulas until
+#' predictor-dependent latent correlations have likelihood and recovery tests.
+#'
+#' @param group Grouping factor for the latent covariance block.
+#' @param block Optional covariance-block label, such as `"p"`.
+#' @param class Optional latent correlation class: `"location-location"`,
+#'   `"location-scale"`, or `"scale-scale"`.
+#'
+#' @return A formula marker; never evaluated by users.
+#' @export
+#'
+#' @examples
+#' # planned only; drmTMB() will currently reject corpair() formulas
+#' bf(corpair(id, block = "p", class = "location-scale") ~ x)
+corpair <- function(group, block = NULL, class = NULL) {
+  invisible(NULL)
+}

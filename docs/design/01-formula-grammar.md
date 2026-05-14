@@ -77,7 +77,8 @@ In this table, "coscale" means a model for residual correlation, currently
 | `cbind(successes, failures) ~ x1`, `family = beta_binomial()` | Implemented | Fixed-effect denominator-aware model for success counts with known trial totals; `sigma` is extra-binomial variation. |
 | `phylo(1 + x1 | species, tree = tree)` | Planned | Structured slopes come after the intercept-only path is hardened. |
 | `spatial(1 | site, coords = coords)` and `spatial(1 | site, mesh = mesh)` | Planned | Spatial SPDE/GMRF terms are part of the design but not fitted yet. |
-| Bivariate random slopes, full cross-parameter covariance blocks spanning more than one pair, or `rho12` random effects | Planned | Requires a larger covariance parameterization, simulation recovery, and naming checks. |
+| `corpair(id, block = "p", class = "location-scale") ~ x` | Reserved | Planned syntax for predictor-dependent latent random-effect correlations; `drmTMB()` currently rejects it clearly. |
+| Bivariate random slopes, phylogenetic/spatial q4 covariance blocks, or `rho12` random effects | Planned | Requires larger structured covariance parameterizations, simulation recovery, and naming checks. |
 
 ## Univariate Syntax
 
@@ -197,6 +198,25 @@ block across `mu1`, `mu2`, `sigma1`, and `sigma2`. Use distinct labels, such as
 `p` and `q`, when the target is two separate mean-mean and scale-scale blocks.
 The q=4 path is currently intercept-only; random-slope endpoint blocks remain
 planned.
+
+The singular `corpair()` formula marker is reserved for later
+predictor-dependent latent random-effect correlations:
+
+```r
+bf(
+  mu1 = y1 ~ x + (1 | p | id),
+  mu2 = y2 ~ x + (1 | p | id),
+  sigma1 = ~ z + (1 | p | id),
+  sigma2 = ~ z + (1 | p | id),
+  rho12 = ~ w,
+  corpair(id, block = "p", class = "location-scale") ~ w
+)
+```
+
+This is not fitted yet. Use `rho12 = ~ w` for residual within-observation
+correlation, and use `corpairs(fit)` to extract fitted constant latent
+random-effect correlations. Predictor-dependent `corpair()` models should come
+after constant q4 diagnostics, profiles, and recovery evidence are stable.
 
 The `mvbind()` form is implemented as shorthand for identical location
 formulas:

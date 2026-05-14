@@ -52,6 +52,11 @@
   ordinary q=4 all-four bivariate random-intercept correlations when that block
   is fitted, and it also reports the fitted bivariate phylogenetic mean-mean
   correlation. Spatial and study-level correlation pairs remain planned.
+- Singular `corpair(group, block = "...", class = "...") ~ x` formula syntax is
+  reserved for future predictor-dependent latent random-effect correlations.
+  `drmTMB()` rejects it clearly for now. Use `rho12 = ~ x` for residual
+  within-observation correlation, and use `corpairs()` to extract fitted
+  constant latent correlations.
 - Internal q4 phylogenetic algebra, hidden TMB-prior, and planned-pair
   scaffolds exist for the future `mu1`, `mu2`, `sigma1`, and `sigma2` endpoint.
   The ordinary grouped q4 location-scale block and `mu1`/`mu2` phylogenetic

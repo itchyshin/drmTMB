@@ -75,6 +75,7 @@ drmTMB <- function(
     cli::cli_abort("{.arg data} must be a data frame.")
   }
   control <- drm_parse_control(control)
+  reject_corpair_formula_entries(formula$entries)
 
   weights_expr <- if (missing(weights)) NULL else substitute(weights)
   weights_full <- evaluate_likelihood_weights_arg(
@@ -198,6 +199,28 @@ drmTMB <- function(
   )
   class(fit) <- "drmTMB"
   drm_apply_storage_control(fit, control)
+}
+
+reject_corpair_formula_entries <- function(entries) {
+  is_corpair <- vapply(
+    entries,
+    function(entry) is.list(entry$corpair),
+    logical(1L)
+  )
+  if (!any(is_corpair)) {
+    return(invisible(NULL))
+  }
+  labels <- vapply(
+    entries[is_corpair],
+    function(entry) entry$dpar,
+    character(1L)
+  )
+  cli::cli_abort(c(
+    "{.fn corpair} formula syntax is reserved but not implemented yet.",
+    "x" = "Unsupported formula{?s}: {.val {labels}}.",
+    "i" = "{.code rho12 = ~ x} models residual within-observation correlation; {.fn corpairs} extracts fitted latent random-effect correlations.",
+    "i" = "Predictor-dependent latent random-effect correlations will come after constant ordinary q4 diagnostics are stable."
+  ))
 }
 
 drm_spec_response_names <- function(spec) {

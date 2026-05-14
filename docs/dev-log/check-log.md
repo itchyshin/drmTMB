@@ -2,6 +2,28 @@
 
 Record meaningful development checks here.
 
+## 2026-05-13 -- Slice 15 corpair formula reservation
+
+Scope:
+
+- added exported `corpair()` formula marker documentation and pkgdown reference
+  indexing;
+- taught `drm_formula()` to parse
+  `corpair(group, block = "...", class = "...") ~ x` as planned latent
+  random-effect correlation syntax;
+- made `drmTMB()` reject parsed `corpair()` formulas clearly, separating future
+  predictor-dependent latent correlations from residual `rho12` and the
+  `corpairs()` extractor.
+
+Checks:
+
+- `Rscript -e 'devtools::document()'`: passed and wrote `man/corpair.Rd` plus
+  the `NAMESPACE` export.
+- `Rscript -e 'devtools::test(filter = "package-skeleton|biv-gaussian", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'pkgdown::check_pkgdown()'`: passed with no problems found.
+- `git diff --check`: passed.
+
 ## 2026-05-13 -- Slice 14 ordinary q4 location-scale covariance block
 
 Scope:
