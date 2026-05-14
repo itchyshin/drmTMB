@@ -224,6 +224,12 @@ Because older fitted rows currently report `mean-mean` and `mean-scale`,
 `corpairs()` accepts `location-location` and `location-scale` as class filter
 aliases while the output naming remains stable.
 
+For the current 35-slice covariance route, predictor-dependent ordinary
+`corpair()` fitting is deferred even though the formula marker is parsed. In a
+q=4 block, `class = "location-scale"` can refer to four different endpoint
+pairs, so a fitted formula needs either a class-wide shared-correlation
+contract or endpoint-specific syntax before it can be statistically clear.
+
 The `mvbind()` form is implemented as shorthand for identical location
 formulas:
 

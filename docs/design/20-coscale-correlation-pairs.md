@@ -58,6 +58,31 @@ diagnostics, and recovery tests exist. Use `rho12 = ~ x` for residual
 within-observation correlation, and use `corpairs(fit)` to extract fitted
 constant latent correlations.
 
+## Route Decision: Predictor-Dependent `corpair()`
+
+For the 35-slice structured-covariance route, predictor-dependent ordinary
+`corpair()` models stay deferred after the parser/error slice. The reason is
+not only implementation cost. In an ordinary q=4 block,
+`class = "location-scale"` names four distinct latent correlations:
+`mu1`-`sigma1`, `mu1`-`sigma2`, `mu2`-`sigma1`, and `mu2`-`sigma2`. A formula
+such as `corpair(id, block = "p", class = "location-scale") ~ w` therefore has
+an unresolved statistical meaning unless the package also records whether the
+same predictor model is shared across all four pairs, or whether the user must
+target one endpoint pair explicitly.
+
+The safe next implementation step is to keep fitted `corpairs()` extraction
+stable for constant covariance blocks and move the modelling work to the
+constant phylogenetic q=4 block. Predictor-dependent ordinary `corpair()` can
+return later with one of two explicit contracts:
+
+- class-wide shared model: one predictor formula controls all pairwise
+  correlations in the class, with a clear positive-definite parameterization;
+- endpoint-specific model: syntax is extended to identify the exact endpoints,
+  for example the equivalent of `corpair(mu1, sigma1 | id, block = "p") ~ w`.
+
+Until one of those contracts is chosen and tested, `corpair()` remains a
+reserved formula marker and not a fitted likelihood feature.
+
 ## Why Named Correlation Pairs Are Needed
 
 Double-hierarchical and structured bivariate models can contain several
@@ -274,8 +299,11 @@ display preference, because each layer answers a different biological question.
 10. Add spatial bivariate covariance blocks.
 11. Reserve `corpair()` formula syntax, but keep fitting disabled. Done for
    parser and error messaging.
-12. Only after simulation evidence: fit predictor-dependent group-level or
-   structured-effect correlation formulas.
+12. Only after simulation evidence and an endpoint-selection contract: fit
+   predictor-dependent group-level or structured-effect correlation formulas.
+   The 35-slice route defers this item and moves next to constant
+   phylogenetic q=4 covariance, because class-wide `corpair()` syntax is
+   ambiguous for location-scale q=4 blocks.
 
 For covariance blocks with more than two random-effect coefficients, use a
 positive-definite Cholesky or partial-correlation parameterization. Do not fit

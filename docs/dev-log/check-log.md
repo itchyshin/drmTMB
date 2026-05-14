@@ -12430,3 +12430,38 @@ Known limitations:
 - this slice changes only the source vignette and regenerated local article;
 - it does not implement phylogenetic scale terms, phylogenetic q=4 covariance,
   direct structured-SD regression, or spatial effects.
+
+## 2026-05-14 -- 35-map Slice 11: predictor-dependent corpair decision
+
+Goal:
+
+- decide whether to continue immediately from reserved `corpair()` syntax into
+  predictor-dependent ordinary latent-correlation fitting.
+
+Implemented:
+
+- recorded a route decision in the correlation-pair design note: keep
+  predictor-dependent ordinary `corpair()` models deferred after the parser and
+  clear-error slice;
+- explained the key ambiguity for q=4 blocks: `class = "location-scale"`
+  denotes four endpoint pairs, so a fitted formula needs either a class-wide
+  shared-correlation contract or endpoint-specific syntax before the likelihood
+  is statistically clear;
+- added the same deferral rationale to the formula-grammar design note.
+
+Checks run:
+
+- `air format docs/design/20-coscale-correlation-pairs.md docs/design/01-formula-grammar.md`:
+  passed.
+- `Rscript -e 'devtools::test(filter = "package-skeleton|corpairs|biv-gaussian", reporter = "summary")'`:
+  passed.
+- `rg -n 'Route Decision: Predictor-Dependent|endpoint-selection contract|class-wide shared|endpoint-specific|q=4 block, `class = "location-scale"`' docs/design/20-coscale-correlation-pairs.md docs/design/01-formula-grammar.md`:
+  confirmed the decision text.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- map slices 12 and 13 are intentionally deferred by this decision rather than
+  implemented now;
+- the next implementation-oriented slice should be map slice 14, the
+  phylogenetic q=4 design against the tree precision.
