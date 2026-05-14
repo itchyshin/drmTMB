@@ -179,7 +179,19 @@ rho12.drmTMB <- function(
 #'   `"residual"` or `"mean-slope"`. Location aliases such as
 #'   `"location-location"` and `"location-scale"` are accepted as filters for
 #'   the current `"mean-mean"` and `"mean-scale"` rows.
-#' @param ... Reserved for future extractor options.
+#' @param conf.int Logical; include profile-likelihood confidence intervals
+#'   where the correlation target is currently profile-ready. Unsupported
+#'   derived targets receive an explicit interval status instead of silent
+#'   missing bounds.
+#' @param conf.level Confidence level used when `conf.int = TRUE`. This is
+#'   named separately from the `level` filter to avoid ambiguity with
+#'   correlation levels such as `"phylogenetic"`.
+#' @param method Interval method used when `conf.int = TRUE`. Only
+#'   `"profile"` is currently supported for correlation-pair intervals.
+#' @param trace Logical; passed to [TMB::tmbprofile()] when profile intervals
+#'   are requested.
+#' @param ... Additional arguments passed to [TMB::tmbprofile()] when
+#'   `conf.int = TRUE`.
 #'
 #' @return A data frame with one row per fitted correlation pair or pair
 #'   summary. Predictor-dependent `rho12` is summarized by its mean, minimum,
@@ -230,8 +242,24 @@ corpairs.drmTMB <- function(
   group = NULL,
   block = NULL,
   class = NULL,
+  conf.int = FALSE,
+  conf.level = 0.95,
+  method = "profile",
+  trace = FALSE,
   ...
 ) {
+  validate_summary_conf_int(conf.int)
+  if (!identical(method, "profile")) {
+    cli::cli_abort(
+      "{.arg method} must be {.val profile} for {.fn corpairs} intervals."
+    )
+  }
+  if (!conf.int && length(list(...)) > 0L) {
+    cli::cli_abort(
+      "Additional arguments in {.arg ...} are only used when {.code conf.int = TRUE}."
+    )
+  }
+
   rows <- list()
 
   if ("rho12" %in% names(object$coefficients)) {
@@ -277,7 +305,146 @@ corpairs.drmTMB <- function(
     out <- out[out$class %in% class, , drop = FALSE]
   }
   row.names(out) <- NULL
+  if (conf.int) {
+    out <- corpairs_add_confint(
+      object,
+      out,
+      level = conf.level,
+      trace = trace,
+      ...
+    )
+  }
   out
+}
+
+corpairs_add_confint <- function(object, pairs, level, trace, ...) {
+  validate_profile_level(level)
+  if (nrow(pairs) == 0L) {
+    pairs$profile_target <- character()
+    pairs$conf.low <- numeric()
+    pairs$conf.high <- numeric()
+    pairs$conf.level <- numeric()
+    pairs$conf.method <- character()
+    pairs$conf.status <- character()
+    return(pairs)
+  }
+
+  targets <- drm_profile_targets(object)
+  target_index <- corpairs_match_profile_targets(pairs, targets)
+  target_rows <- targets[target_index, , drop = FALSE]
+
+  profile_targets <- rep(NA_character_, nrow(pairs))
+  has_target <- !is.na(target_index)
+  profile_targets[has_target] <- target_rows$parm[has_target]
+  profile_ready <- rep(FALSE, nrow(pairs))
+  profile_ready[has_target] <- target_rows$profile_ready[has_target]
+  ready_parms <- unique(profile_targets[profile_ready])
+
+  ci <- empty_summary_confint()
+  if (length(ready_parms) > 0L) {
+    ci <- drm_profile_confint(
+      object,
+      parm = ready_parms,
+      level = level,
+      trace = trace,
+      ...
+    )
+  }
+
+  pairs$profile_target <- profile_targets
+  pairs$conf.low <- NA_real_
+  pairs$conf.high <- NA_real_
+  pairs$conf.level <- level
+  pairs$conf.method <- NA_character_
+  pairs$conf.status <- corpairs_conf_status(pairs, target_rows, target_index)
+
+  if (nrow(ci) > 0L) {
+    matched <- match(pairs$profile_target, ci$parm)
+    has_ci <- !is.na(matched)
+    pairs$conf.low[has_ci] <- ci$lower[matched[has_ci]]
+    pairs$conf.high[has_ci] <- ci$upper[matched[has_ci]]
+    pairs$conf.method[has_ci] <- ci$method[matched[has_ci]]
+    pairs$conf.status[has_ci] <- "profile"
+  }
+
+  pairs
+}
+
+corpairs_match_profile_targets <- function(pairs, targets) {
+  if (nrow(pairs) == 0L) {
+    return(integer())
+  }
+  if (nrow(targets) == 0L) {
+    return(rep(NA_integer_, nrow(pairs)))
+  }
+
+  vapply(
+    seq_len(nrow(pairs)),
+    function(i) {
+      pair <- pairs[i, , drop = FALSE]
+      if (
+        identical(pair$level[[1L]], "residual") &&
+          identical(pair$parameter[[1L]], "rho12") &&
+          !isTRUE(pair$modelled[[1L]])
+      ) {
+        hit <- which(targets$parm == "rho12")
+        return(if (length(hit) == 1L) hit[[1L]] else NA_integer_)
+      }
+
+      if (
+        identical(pair$level[[1L]], "residual") &&
+          identical(pair$parameter[[1L]], "rho12")
+      ) {
+        return(NA_integer_)
+      }
+
+      hit <- which(
+        targets$target_class == "random-effect-correlation" &
+          targets$term == pair$parameter[[1L]]
+      )
+      if (identical(pair$level[[1L]], "phylogenetic")) {
+        hit <- hit[startsWith(targets$parm[hit], "cor:phylo:")]
+      } else if (identical(pair$level[[1L]], "group")) {
+        hit <- hit[!startsWith(targets$parm[hit], "cor:phylo:")]
+      }
+      if (length(hit) == 1L) {
+        return(hit[[1L]])
+      }
+      NA_integer_
+    },
+    integer(1L)
+  )
+}
+
+corpairs_conf_status <- function(pairs, target_rows, target_index) {
+  vapply(
+    seq_len(nrow(pairs)),
+    function(i) {
+      if (is.na(target_index[[i]])) {
+        if (
+          identical(pairs$level[[i]], "residual") &&
+            identical(pairs$parameter[[i]], "rho12") &&
+            isTRUE(pairs$modelled[[i]])
+        ) {
+          return("newdata_required")
+        }
+        return("target_unavailable")
+      }
+      target <- target_rows[i, , drop = FALSE]
+      if (isTRUE(target$profile_ready[[1L]])) {
+        return("profile_ready")
+      }
+      if (identical(target$target_type[[1L]], "derived")) {
+        return("derived_interval_unavailable")
+      }
+      note <- target$profile_note[[1L]]
+      if (is.na(note) || !nzchar(note)) {
+        return("profile_unavailable")
+      }
+      note
+    },
+    character(1L)
+  )
 }
 
 normalize_corpairs_class_filter <- function(class) {

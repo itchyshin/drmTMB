@@ -121,6 +121,7 @@ test_that("corpairs summarizes predictor-dependent residual rho12", {
   )
 
   pairs <- corpairs(fit)
+  pairs_ci <- corpairs(fit, conf.int = TRUE)
 
   expect_equal(nrow(pairs), 1L)
   expect_equal(pairs$level, "residual")
@@ -138,6 +139,9 @@ test_that("corpairs summarizes predictor-dependent residual rho12", {
   expect_lt(pairs$min, pairs$max)
   expect_equal(pairs$modelled, TRUE)
   expect_equal(nrow(corpairs(fit, level = "group")), 0L)
+  expect_equal(pairs_ci$conf.status, "newdata_required")
+  expect_true(is.na(pairs_ci$profile_target))
+  expect_true(is.na(pairs_ci$conf.low))
 
   fit_no_frame <- fit
   fit_no_frame$model$model_frame <- NULL

@@ -798,6 +798,7 @@ test_that("bivariate phylogenetic q4 block is fitted with clear boundaries", {
     )
   )
   q4_pairs <- corpairs(fit_q4, level = "phylogenetic")
+  q4_pairs_ci <- corpairs(fit_q4, level = "phylogenetic", conf.int = TRUE)
   q4_cov <- summary(fit_q4)$covariance
   q4_targets <- profile_targets(fit_q4)
   q4_cor_targets <- q4_targets[
@@ -818,6 +819,7 @@ test_that("bivariate phylogenetic q4 block is fitted with clear boundaries", {
   )
   expect_equal(sum(names(fit_q4$opt$par) == "theta_phylo"), 6L)
   expect_equal(nrow(q4_pairs), 6L)
+  expect_equal(nrow(q4_pairs_ci), 6L)
   expect_equal(nrow(q4_cov), 6L)
   q4_class_counts <- table(q4_pairs$class)
   expect_equal(
@@ -840,6 +842,12 @@ test_that("bivariate phylogenetic q4 block is fitted with clear boundaries", {
     q4_cor_targets$profile_note,
     rep("derived_unstructured_correlation", 6L)
   )
+  expect_equal(q4_pairs_ci$profile_target, q4_cor_targets$parm)
+  expect_equal(
+    q4_pairs_ci$conf.status,
+    rep("derived_interval_unavailable", 6L)
+  )
+  expect_true(all(is.na(q4_pairs_ci$conf.low)))
 
   expect_error(
     drmTMB(

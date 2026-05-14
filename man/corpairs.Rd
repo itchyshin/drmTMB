@@ -7,12 +7,24 @@
 \usage{
 corpairs(object, ...)
 
-\method{corpairs}{drmTMB}(object, level = NULL, group = NULL, block = NULL, class = NULL, ...)
+\method{corpairs}{drmTMB}(
+  object,
+  level = NULL,
+  group = NULL,
+  block = NULL,
+  class = NULL,
+  conf.int = FALSE,
+  conf.level = 0.95,
+  method = "profile",
+  trace = FALSE,
+  ...
+)
 }
 \arguments{
 \item{object}{A \code{drmTMB} fit.}
 
-\item{...}{Reserved for future extractor options.}
+\item{...}{Additional arguments passed to \code{\link[TMB:tmbprofile]{TMB::tmbprofile()}} when
+\code{conf.int = TRUE}.}
 
 \item{level}{Optional character vector of correlation levels to keep, such
 as \code{"residual"}, \code{"group"}, or \code{"phylogenetic"}.}
@@ -29,6 +41,21 @@ filter.}
 \code{"residual"} or \code{"mean-slope"}. Location aliases such as
 \code{"location-location"} and \code{"location-scale"} are accepted as filters for
 the current \code{"mean-mean"} and \code{"mean-scale"} rows.}
+
+\item{conf.int}{Logical; include profile-likelihood confidence intervals
+where the correlation target is currently profile-ready. Unsupported
+derived targets receive an explicit interval status instead of silent
+missing bounds.}
+
+\item{conf.level}{Confidence level used when \code{conf.int = TRUE}. This is
+named separately from the \code{level} filter to avoid ambiguity with
+correlation levels such as \code{"phylogenetic"}.}
+
+\item{method}{Interval method used when \code{conf.int = TRUE}. Only
+\code{"profile"} is currently supported for correlation-pair intervals.}
+
+\item{trace}{Logical; passed to \code{\link[TMB:tmbprofile]{TMB::tmbprofile()}} when profile intervals
+are requested.}
 }
 \value{
 A data frame with one row per fitted correlation pair or pair

@@ -136,6 +136,179 @@ location-scale-coscale model.
 | `sd_phylo1(species) ~ z1` / `sd_phylo2(species) ~ z2` | Implemented for bivariate `mu1`/`mu2` | Response-specific species-level predictors model the SD surfaces of the two phylogenetic location random effects. This remains a Family B direct-SD model, not a residual `sigma1`/`sigma2` model and not a q=4 location-scale block. |
 | `spatial(1 | site, coords = coords)` or `spatial(1 | site, mesh = mesh)` | Planned | Spatial will mirror the phylogenetic API after the phylogenetic structured-effect path is stable. |
 
+## A model ladder for two traits
+
+The safest way to read the bivariate syntax is to build the model in layers.
+Each layer answers a different biological or statistical question.
+
+### 1. Residual correlation only
+
+Start here when the question is whether two measured traits remain correlated
+within the same observation after fixed effects:
+
+```r
+fit_resid <- drmTMB(
+  drm_formula(
+    mu1 = heat_tolerance ~ climate,
+    mu2 = desiccation_tolerance ~ climate,
+    sigma1 = ~ habitat_variability,
+    sigma2 = ~ habitat_variability,
+    rho12 = ~ assay_context
+  ),
+  family = c(gaussian(), gaussian()),
+  data = tolerance
+)
+
+rho12(fit_resid)
+```
+
+This model has no phylogenetic random effects. The `rho12()` output is the
+residual within-observation correlation between heat tolerance and desiccation
+tolerance.
+
+### 2. Add phylogenetic mean-mean correlation
+
+Add matching `phylo()` terms to `mu1` and `mu2` when the question is whether
+related species share deviations in the two trait means:
+
+```r
+fit_phylo_mean <- drmTMB(
+  drm_formula(
+    mu1 = heat_tolerance ~ climate + phylo(1 | p | species, tree = tree),
+    mu2 = desiccation_tolerance ~ climate +
+      phylo(1 | p | species, tree = tree),
+    sigma1 = ~ habitat_variability,
+    sigma2 = ~ habitat_variability,
+    rho12 = ~ assay_context
+  ),
+  family = c(gaussian(), gaussian()),
+  data = tolerance
+)
+
+corpairs(fit_phylo_mean, level = "phylogenetic", conf.int = TRUE)
+rho12(fit_phylo_mean)
+```
+
+This model estimates one latent phylogenetic mean-mean correlation and one
+residual `rho12` surface. `corpairs()` and `rho12()` answer different
+questions.
+
+### 3. Let species-level predictors change phylogenetic mean SDs
+
+Use the Box 1 direct-SD family when the question is whether species-level
+predictors explain the magnitude of phylogenetic mean variation:
+
+```r
+fit_phylo_sd <- drmTMB(
+  drm_formula(
+    mu1 = heat_tolerance ~ climate + phylo(1 | species, tree = tree),
+    mu2 = desiccation_tolerance ~ climate +
+      phylo(1 | species, tree = tree),
+    sigma1 = ~ habitat_variability,
+    sigma2 = ~ habitat_variability,
+    rho12 = ~ assay_context,
+    sd_phylo1(species) ~ habitat_variability_species,
+    sd_phylo2(species) ~ habitat_variability_species
+  ),
+  family = c(gaussian(), gaussian()),
+  data = tolerance
+)
+
+coef(fit_phylo_sd, "sd_phylo1(species)")
+coef(fit_phylo_sd, "sd_phylo2(species)")
+corpairs(fit_phylo_sd, level = "phylogenetic", conf.int = TRUE)
+```
+
+This is not a residual scale model. `sd_phylo1()` and `sd_phylo2()` model the
+phylogenetic location SD surfaces for the two responses. The cross-response
+phylogenetic mean-mean correlation remains constant.
+
+### 4. Move to a q=4 phylogenetic location-scale block
+
+Use the q=4 block when the question is whether phylogenetic deviations in
+means and residual log-SDs move together:
+
+```r
+fit_phylo_q4 <- drmTMB(
+  drm_formula(
+    mu1 = heat_tolerance ~ climate + phylo(1 | p | species, tree = tree),
+    mu2 = desiccation_tolerance ~ climate +
+      phylo(1 | p | species, tree = tree),
+    sigma1 = ~ habitat_variability +
+      phylo(1 | p | species, tree = tree),
+    sigma2 = ~ habitat_variability +
+      phylo(1 | p | species, tree = tree),
+    rho12 = ~ assay_context
+  ),
+  family = c(gaussian(), gaussian()),
+  data = tolerance
+)
+
+corpairs(fit_phylo_q4, level = "phylogenetic", conf.int = TRUE)
+rho12(fit_phylo_q4)
+```
+
+This model estimates six latent phylogenetic correlations: one
+location-location, four location-scale, and one scale-scale. These are constant
+correlations in the phylogenetic random-effect covariance block. They are not
+the residual `rho12` surface.
+
+### 5. Predictor-dependent latent phylogenetic correlations are planned
+
+The natural next syntax is reserved but not fitted yet:
+
+```r
+# Planned, not fitted yet:
+corpair(species, block = "p", class = "location-location") ~ assay_context
+corpair(species, block = "p", class = "location-scale") ~ assay_context
+corpair(species, block = "p", class = "scale-scale") ~ assay_context
+```
+
+That future layer would make phylogenetic random-effect correlations vary with
+a predictor, analogous in spirit to `rho12 = ~ assay_context` for residual
+correlation. Today, use `corpairs()` for fitted constant latent phylogenetic
+correlations and `rho12()` for fitted residual correlations.
+
+## What should get 95% intervals?
+
+There are two different kinds of "random-effect" uncertainty.
+
+The first kind is uncertainty in the covariance parameters: random-effect SDs
+and correlations. These are the quantities shown by `sdpars`, `corpars`,
+`corpairs()`, and `summary(fit)$covariance`. For these parameters, 95%
+profile-likelihood intervals are preferable to symmetric Wald intervals because
+SDs are positive, correlations are bounded, and intervals can be asymmetric or
+one-sided near a boundary.
+
+For implemented direct targets, use `profile_targets()` to find the target name
+and `confint(..., method = "profile")` to request the interval:
+
+```r
+profile_targets(fit_phylo_mean, ready_only = TRUE)
+
+phylo_cor <- "cor:phylo:cor(mu1:(Intercept),mu2:(Intercept) | phylo | species)"
+confint(fit_phylo_mean, parm = phylo_cor, method = "profile")
+```
+
+The second kind is uncertainty in conditional random-effect modes, such as the
+species-specific fitted deviations. Those intervals are useful for caterpillar
+plots and diagnostics, but they are not the same as intervals for
+phylogenetic SDs or correlations. The current priority is covariance-parameter
+intervals first, then conditional-mode uncertainty once the covariance
+interfaces are stable.
+
+For q=4 ordinary or phylogenetic blocks, `profile_targets()` lists the six
+correlations as derived unstructured-correlation targets. They are reported as
+point estimates today, but direct profile intervals for all six rows are not
+claimed yet. The implementation target for the ordinary `corpair() ~ w` slice
+is therefore:
+
+- point estimates through `corpairs()`;
+- profile-ready 95% intervals for direct ordinary correlation-regression
+  parameters when the parameterization supports them;
+- clear `profile_targets()` notes for derived q=4 rows that still need a
+  fix-and-refit or reparameterized profile.
+
 ## Mathematical contract
 
 The general structured-effect bridge is:
@@ -289,6 +462,139 @@ Phylogenetic slopes and structured effects in `rho12` are planned. Partial,
 unlabelled, mismatched, and slope q=4 phylogenetic location-scale forms should
 error clearly rather than silently fitting a different model.
 
+## Bivariate phylogenetic correlations: model layer by layer
+
+For two Gaussian responses, `drmTMB` separates the residual correlation from
+the phylogenetic random-effect correlation. A bivariate phylogenetic location
+model can be written as:
+
+\[
+\begin{pmatrix}
+y_{1i} \\
+y_{2i}
+\end{pmatrix}
+\mid \boldsymbol{\mu}_i, \boldsymbol{\Omega}_i
+  \sim \operatorname{MVN}(\boldsymbol{\mu}_i, \boldsymbol{\Omega}_i),
+\]
+
+\[
+\mu_{1i} =
+  \mathbf{x}_{1i}^{\top}\boldsymbol{\beta}_1 + a_{1,s[i]},
+\qquad
+\mu_{2i} =
+  \mathbf{x}_{2i}^{\top}\boldsymbol{\beta}_2 + a_{2,s[i]},
+\]
+
+\[
+\boldsymbol{\Omega}_i =
+\begin{pmatrix}
+\sigma_{1i}^2 &
+\rho_{12,i}\sigma_{1i}\sigma_{2i} \\
+\rho_{12,i}\sigma_{1i}\sigma_{2i} &
+\sigma_{2i}^2
+\end{pmatrix}.
+\]
+
+The residual coscale formula, `rho12 = ~ assay_context`, models
+\(\rho_{12,i}\) in \(\boldsymbol{\Omega}_i\). This is an observation-level
+residual correlation.
+
+The phylogenetic location effects are a separate latent layer. If
+\(\mathbf{A}\) is the tree-derived species correlation matrix, then:
+
+\[
+\begin{pmatrix}
+\mathbf{a}_1 \\
+\mathbf{a}_2
+\end{pmatrix}
+  \sim
+  \operatorname{MVN}\left[
+    \mathbf{0},
+    \begin{pmatrix}
+      \tau_1^2 \mathbf{A} &
+      r_{\mu_1,\mu_2}^{phylo}\tau_1\tau_2\mathbf{A} \\
+      r_{\mu_1,\mu_2}^{phylo}\tau_1\tau_2\mathbf{A} &
+      \tau_2^2 \mathbf{A}
+    \end{pmatrix}
+  \right].
+\]
+
+Here \(r_{\mu_1,\mu_2}^{phylo}\) is the phylogenetic mean-mean correlation. It
+is reported by `corpairs(fit, level = "phylogenetic")`, not by `rho12()`.
+
+The matching R syntax is:
+
+```r
+fit_biv_phylo <- drmTMB(
+  drm_formula(
+    mu1 = heat_tolerance ~ climate + phylo(1 | p | species, tree = tree),
+    mu2 = desiccation_tolerance ~ climate +
+      phylo(1 | p | species, tree = tree),
+    sigma1 = ~ habitat_variability,
+    sigma2 = ~ habitat_variability,
+    rho12 = ~ assay_context
+  ),
+  family = c(gaussian(), gaussian()),
+  data = tolerance
+)
+
+corpairs(fit_biv_phylo, level = "phylogenetic", conf.int = TRUE)
+rho12(fit_biv_phylo)
+```
+
+In that output, `corpairs()` gives the constant phylogenetic correlation among
+species-level mean deviations. `rho12()` gives the fitted residual correlation
+for each observation, which can vary with `assay_context`.
+
+This is the key implementation boundary. `drmTMB` can estimate latent
+phylogenetic correlations when the matching `phylo()` terms define a shared
+covariance block. It cannot yet fit a separate predictor formula for those
+latent correlations. In other words, `rho12 = ~ assay_context` is implemented
+for residual correlation regression, but
+`corpair(species, block = "p", class = "location-location") ~ assay_context`
+is still planned.
+
+The q=4 phylogenetic location-scale block extends the same idea to four
+endpoints:
+
+\[
+\boldsymbol{u}_s =
+\begin{pmatrix}
+u_{\mu_1,s} \\
+u_{\mu_2,s} \\
+u_{\sigma_1,s} \\
+u_{\sigma_2,s}
+\end{pmatrix},
+\qquad
+\operatorname{Cov}(u_{d,s}, u_{e,t}) =
+\Sigma_{de}^{phylo} A_{st}.
+\]
+
+The four linear predictors then contain one endpoint-specific phylogenetic
+effect:
+
+\[
+\mu_{1i} = \mathbf{x}_{1i}^{\top}\boldsymbol{\beta}_1
+  + u_{\mu_1,s[i]},
+\qquad
+\mu_{2i} = \mathbf{x}_{2i}^{\top}\boldsymbol{\beta}_2
+  + u_{\mu_2,s[i]},
+\]
+
+\[
+\log\sigma_{1i} = \mathbf{z}_{1i}^{\top}\boldsymbol{\gamma}_1
+  + u_{\sigma_1,s[i]},
+\qquad
+\log\sigma_{2i} = \mathbf{z}_{2i}^{\top}\boldsymbol{\gamma}_2
+  + u_{\sigma_2,s[i]}.
+\]
+
+The fitted \(\boldsymbol{\Sigma}^{phylo}\) is written as
+\(\mathbf{D}\mathbf{R}\mathbf{D}\), where \(\mathbf{D}\) contains four
+phylogenetic SDs and \(\mathbf{R}\) contains six latent correlations. Those six
+correlations are the `corpairs(fit, level = "phylogenetic")` rows: one
+location-location row, four location-scale rows, and one scale-scale row.
+
 ## Worked example: two traits with phylogenetic location-scale covariance
 
 Now suppose the scientific question is about two tolerance traits measured
@@ -345,7 +651,7 @@ The phylogenetic q=4 block is a different layer. Use `corpairs()` to read the
 latent species-level correlations:
 
 ```{r}
-corpairs(fit_phylo_q4, level = "phylogenetic")
+corpairs(fit_phylo_q4, level = "phylogenetic", conf.int = TRUE)
 ```
 
 Those six rows are not residual correlations. The `mean-mean` row asks whether
@@ -353,7 +659,10 @@ species that are phylogenetically high for heat tolerance also tend to be high
 for desiccation tolerance. The four `mean-scale` rows ask whether evolutionary
 deviations in means are associated with evolutionary deviations in variability.
 The `scale-scale` row asks whether the two traits' phylogenetic log-SD
-deviations move together.
+deviations move together. The `conf.status` column is part of the inference
+contract: profile-ready correlations receive 95% bounds, while the current q=4
+rows are marked as derived targets until a direct or fix-and-refit profile is
+implemented.
 
 For a compact scalar view of the residual layer, use `rho12()`:
 
@@ -539,10 +848,46 @@ Here `sd_phylo1(species)` targets the `mu1` phylogenetic location SD surface and
 `sd_phylo2(species)` targets the `mu2` surface. The right-hand-side predictors
 must be constant within species after model-row filtering. The latent
 phylogenetic mean-mean correlation remains a constant fitted correlation, and
-`rho12` remains the within-observation residual correlation. Run
+`rho12` remains the within-observation residual correlation:
+
+```r
+corpairs(fit_biv_sd_phylo, level = "phylogenetic", conf.int = TRUE)
+rho12(fit_biv_sd_phylo)
+```
+
+The `corpairs()` row is the fitted phylogenetic correlation between the two
+location random effects. The `rho12()` values are residual correlations between
+the two responses after the fitted fixed effects and phylogenetic effects have
+been included. Run
 `check_drm(fit_biv_sd_phylo)` before interpreting the direct-SD slopes; the
 diagnostic reports species replication, each fitted species-SD range, and
 whether any fitted direct-SD surface is non-positive or non-finite.
+
+Mathematically, the direct-SD model replaces constant phylogenetic location SDs
+with species-level SD surfaces. For response \(k \in \{1,2\}\):
+
+\[
+\operatorname{Var}(\mathbf{a}_k)
+  = \mathbf{D}_k(\mathbf{z})\,\mathbf{A}\,\mathbf{D}_k(\mathbf{z}),
+\qquad
+\log D_{k,ss}(\mathbf{z}) =
+  \mathbf{z}_s^{\top}\boldsymbol{\alpha}_k.
+\]
+
+The current bivariate direct-SD path keeps the cross-response phylogenetic
+location correlation constant:
+
+\[
+\operatorname{Cov}(\mathbf{a}_1, \mathbf{a}_2)
+  = r_{\mu_1,\mu_2}^{phylo}
+    \mathbf{D}_1(\mathbf{z})\,\mathbf{A}\,\mathbf{D}_2(\mathbf{z}).
+\]
+
+This is why `sd_phylo1(species) ~ habitat_variability_species` and
+`sd_phylo2(species) ~ habitat_variability_species` answer a different question
+from the q=4 location-scale block. They ask whether species-level predictors
+change the magnitude of phylogenetic mean variation for each response. They do
+not put random effects into `sigma1` or `sigma2`.
 
 The full constant q=4 location-scale form uses an explicit covariance-block
 label:
@@ -550,23 +895,33 @@ label:
 ```r
 fit_biv_phylo_q4 <- drmTMB(
   formula = drm_formula(
-    mu1 = log_body_mass ~ lifestyle + phylo(1 | p | species, tree = tree),
-    mu2 = log_litter_size ~ lifestyle + phylo(1 | p | species, tree = tree),
-    sigma1 = ~ lifestyle + phylo(1 | p | species, tree = tree),
-    sigma2 = ~ lifestyle + phylo(1 | p | species, tree = tree),
-    rho12 = ~ lifestyle
+    mu1 = heat_tolerance ~ climate + phylo(1 | p | species, tree = tree),
+    mu2 = desiccation_tolerance ~ climate +
+      phylo(1 | p | species, tree = tree),
+    sigma1 = ~ habitat_variability +
+      phylo(1 | p | species, tree = tree),
+    sigma2 = ~ habitat_variability +
+      phylo(1 | p | species, tree = tree),
+    rho12 = ~ assay_context
   ),
   family = c(gaussian(), gaussian()),
-  data = mammals
+  data = tolerance
 )
 
-corpairs(fit_biv_phylo_q4, level = "phylogenetic")
+corpairs(fit_biv_phylo_q4, level = "phylogenetic", conf.int = TRUE)
+rho12(fit_biv_phylo_q4)
 ```
 
 Partial q=4 syntax, unlabelled all-four syntax, random slopes, and multiple
-phylogenetic blocks remain outside this first fitted path. For the first fitted
-mean-mean phylogenetic correlation, use `corpars$phylo`,
-`corpairs(fit_biv_phylo, level = "phylogenetic")`, or
+phylogenetic blocks remain outside this first fitted path. The q=4
+`corpairs()` output has six phylogenetic rows: one location-location row,
+four location-scale rows, and one scale-scale row. These rows are the latent
+phylogenetic correlations among species-level effects. They are not the
+residual `rho12` curve, which is why the example shows `corpairs()` and
+`rho12()` separately.
+
+For the simpler fitted mean-mean phylogenetic correlation, use `corpars$phylo`,
+`corpairs(fit_biv_phylo, level = "phylogenetic", conf.int = TRUE)`, or
 `summary(fit_biv_phylo)$covariance`. Run `check_drm(fit_biv_phylo)` before
 interpreting that row: the current diagnostic flags phylogenetic correlations
 near the boundary and phylogenetic location SDs that are tiny relative to the
@@ -579,7 +934,7 @@ claimed:
 ```r
 phylo_target <- "cor:phylo:cor(mu1:(Intercept),mu2:(Intercept) | phylo | species)"
 
-corpairs(fit_biv_phylo, level = "phylogenetic")
+corpairs(fit_biv_phylo, level = "phylogenetic", conf.int = TRUE)
 summary(fit_biv_phylo)$covariance
 confint(fit_biv_phylo, parm = phylo_target, method = "profile")
 ```

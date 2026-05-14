@@ -12984,3 +12984,47 @@ Known limitations:
   diagnostics before inference;
 - predictor-dependent latent `corpair()` syntax and q=4 derived-correlation
   profile intervals remain planned.
+
+## 2026-05-14 -- correlation-pair CI/status output clarification
+
+Goal:
+
+- make random-effect correlation output tell users whether 95% profile
+  intervals are available, instead of leaving missing intervals ambiguous.
+
+Implemented:
+
+- added `conf.int`, `conf.level`, `method`, and `trace` arguments to
+  `corpairs.drmTMB()`;
+- when `conf.int = TRUE`, profile-ready direct correlation rows receive
+  `conf.low`, `conf.high`, `conf.method`, and `conf.status = "profile"`;
+- predictor-dependent residual `rho12` summaries that require row-specific
+  `newdata` now report `conf.status = "newdata_required"`;
+- q=4 ordinary or phylogenetic derived unstructured-correlation rows now report
+  `conf.status = "derived_interval_unavailable"` rather than silently lacking
+  bounds;
+- updated the phylogenetic-spatial article with a model ladder, math for
+  residual versus phylogenetic correlation layers, and output examples that use
+  `corpairs(..., conf.int = TRUE)`;
+- updated NEWS, roxygen, and the profile-CI design note.
+
+Checks run:
+
+- `air format R/methods.R tests/testthat/test-corpairs.R tests/testthat/test-phylo-gaussian.R vignettes/phylogenetic-spatial.Rmd`:
+  passed.
+- `Rscript -e 'devtools::document()'`: passed and refreshed
+  `man/corpairs.Rd`.
+- `Rscript -e 'devtools::test(filter = "corpairs|phylo-gaussian|summary|profile-targets", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'devtools::test(reporter = "summary")'`: passed.
+- `Rscript -e 'devtools::load_all(quiet = TRUE); pkgdown::build_article("phylogenetic-spatial", new_process = FALSE, quiet = TRUE)'`:
+  passed and refreshed `pkgdown-site/articles/phylogenetic-spatial.html`.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- q=4 covariance correlations are still point estimates plus explicit interval
+  status; their derived 95% intervals need a fix-and-refit or reparameterized
+  profile design;
+- conditional random-effect mode intervals are still planned separately from
+  covariance-parameter intervals.

@@ -28,10 +28,14 @@ direct targets, and the first smoke test verifies that the phylogenetic
 correlation interval is transformed back to the bounded correlation scale.
 `summary(conf.int = TRUE, method = "profile", ci_parm = ...)` can attach these
 direct profile intervals to the same parameter rows shown in
-`summary(fit)$parameters`. `profile_targets(fit)` lists fitted-object target
-names and readiness notes; row-specific `newdata` targets are generated at call
-time. Transformed ordinal, modelled group-SD, custom multi-row contrasts, and
-derived summary profile intervals remain planned.
+`summary(fit)$parameters`. `corpairs(conf.int = TRUE)` can attach
+profile-likelihood intervals to fitted correlation-pair rows when their target
+is profile-ready, and it records explicit status values for rows that are not
+ready yet. `profile_targets(fit)` lists fitted-object target names and
+readiness notes; row-specific `newdata` targets are generated at call time.
+Transformed ordinal, modelled group-SD, custom multi-row contrasts, conditional
+random-effect mode intervals, and derived summary profile intervals remain
+planned.
 
 The first implementation must therefore start from a stable target inventory,
 not from ad hoc parameter names in the C++ template. Public targets should be
