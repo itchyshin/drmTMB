@@ -12352,3 +12352,39 @@ Known limitations:
 
 - output rows still report `mean-mean`, `mean-scale`, and `mean-slope`;
 - this slice is a compatibility bridge, not a broad class-name migration.
+
+## 2026-05-13 -- Slice 22: formula grammar article status refresh
+
+Goal:
+
+- bring the user-facing formula grammar article into line with the implemented
+  q4, direct-SD, bivariate phylogenetic, and `corpair()` reservation slices.
+
+Implemented:
+
+- updated `vignettes/formula-grammar.Rmd` status rows for the ordinary all-four
+  q4 covariance block, `sd1()` / `sd2()` direct bivariate location SD formulas,
+  matching bivariate `mu1`/`mu2` phylogenetic location terms, and reserved
+  `corpair()` formulas;
+- refreshed the bivariate covariance section to show the all-four q4 syntax
+  and explain the `location-*` `corpairs()` filter aliases;
+- rebuilt the local pkgdown formula-grammar article for visual/browser review.
+
+Checks run:
+
+- `air format vignettes/formula-grammar.Rmd`: passed.
+- `Rscript -e "pkgdown::build_article('formula-grammar')"`: passed and wrote
+  `pkgdown-site/articles/formula-grammar.html`.
+- `Rscript -e 'devtools::test(filter = "package-skeleton|biv-gaussian|corpairs", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'pkgdown::check_pkgdown()'`: passed.
+- `rg -n 'future phylogenetic and spatial pair classes remain planned|full cross-parameter covariance blocks spanning more than one pair|ordinary q=4|sd1\\(id\\)|location-location|corpair\\(id' vignettes/formula-grammar.Rmd pkgdown-site/articles/formula-grammar.html`:
+  confirmed the new article text is present and stale phrases are absent.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- this slice refreshes the formula-grammar article only;
+- the generated `pkgdown-site/articles/formula-grammar.html` was rebuilt for
+  local review but remains a generated site artifact rather than the source of
+  truth.

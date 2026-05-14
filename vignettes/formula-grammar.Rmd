@@ -63,16 +63,20 @@ In this table, "coscale" means a model for residual correlation, currently
 | `(1 | p | id)` in both bivariate `mu1` and `mu2` | Implemented | First bivariate group-level covariance slice; `p` labels a `mu1`/`mu2` random-intercept covariance block. |
 | `(1 | p | id)` in both bivariate `sigma1` and `sigma2` | Implemented | First bivariate residual-scale covariance slice; `p` labels a `sigma1`/`sigma2` random-intercept covariance block on the log-`sigma` scale. |
 | `(1 | p | id)` in same-response bivariate `mu1` and `sigma1`, or in `mu2` and `sigma2` | Implemented first slice | One labelled random-intercept pair creates a response-specific mean-scale covariance block. |
+| `(1 | p | id)` in all four bivariate `mu1`, `mu2`, `sigma1`, and `sigma2` formulas | Implemented first slice | One ordinary q=4 location-scale covariance block reports all six latent random-effect correlations. |
+| `sd1(id) ~ x_group`, `sd2(id) ~ x_group` | Implemented | Family B direct SD formulas for labelled bivariate location random intercepts; not for residual-scale random effects. |
 | `family = c(gaussian(), gaussian())` | Implemented | Routes to the bivariate Gaussian engine; mixed composed families are planned. |
 | `biv_gaussian()` | Implemented legacy helper | Kept for compatibility while composed families become the public direction. |
 | `mvbind(y1, y2) ~ x1` | Implemented | Shorthand for identical bivariate location formulas; explicit `mu1`/`mu2` remains preferred for different predictors. |
 | `phylo(1 | species, tree = tree)` in `mu` | Implemented | Intercept-only univariate Gaussian phylogenetic location effect; requires an ultrametric tree with branch lengths. |
+| matching `phylo(1 | species, tree = tree)` in bivariate `mu1` and `mu2` | Implemented first slice | Estimates two phylogenetic location SDs and one phylogenetic mean-mean correlation; phylogenetic scale and location-scale blocks remain planned. |
 | `y ~ x1 + x2`, `family = cumulative_logit()` | Implemented | Fixed-effect univariate ordinal model for ordered scores with cutpoints; ordinal scale formulas are planned. |
 | `cbind(successes, failures) ~ x1`, `family = beta_binomial()` | Implemented | Fixed-effect denominator-aware model for success counts with known trial totals; `sigma` is extra-binomial variation. |
 | `phylo(1 + x1 | species, tree = tree)` | Planned | Structured slopes come after the intercept-only path is fully hardened. |
 | `spatial(1 | site, coords = coords)` | Planned | Spatial SPDE/GMRF terms are part of the design but not fitted yet. |
-| Bivariate random slopes, full cross-parameter covariance blocks spanning more than one pair, or `rho12` random effects | Planned | These need a larger covariance parameterization, simulation, and naming checks before fitting. |
-| `corpairs(fit)` | Implemented for current fitted correlations | Reports residual `rho12`, ordinary univariate Gaussian `mu` random-effect correlations, the first univariate and same-response bivariate `mu`/`sigma` mean-scale covariance rows, and the implemented bivariate `mu1`/`mu2` and `sigma1`/`sigma2` random-intercept correlations in a long table; future phylogenetic and spatial pair classes remain planned. |
+| `corpair(id, block = "p", class = "location-scale") ~ x` | Reserved | Planned predictor-dependent latent random-effect correlation syntax; `drmTMB()` rejects it until the likelihood and tests exist. |
+| Bivariate random slopes, phylogenetic/spatial q=4 blocks, or `rho12` random effects | Planned | These need a larger covariance parameterization, simulation, and naming checks before fitting. |
+| `corpairs(fit)` | Implemented for current fitted correlations | Reports residual `rho12`, ordinary and bivariate group-level covariance rows including ordinary q=4 blocks, and the first bivariate phylogenetic mean-mean row; spatial pair classes remain planned. |
 
 Current implemented univariate Gaussian random-effect forms include:
 
@@ -221,8 +225,26 @@ The shared `p` label fits a group-level random-intercept covariance block for
 the two response means. The shared `q` label fits a separate scale-scale block
 for the two residual-scale random intercepts on the log-`sigma` scale. The
 first same-response mean-scale bridge is also implemented, using a shared label
-in `mu1` and `sigma1`, or in `mu2` and `sigma2`. Larger cross-parameter blocks,
-bivariate random slopes, and `rho12` random effects remain planned.
+in `mu1` and `sigma1`, or in `mu2` and `sigma2`. Reusing the same label and
+group in all four bivariate formulas fits the first ordinary q=4
+location-scale block:
+
+```r
+drm_formula(
+  mu1 = y1 ~ x + (1 | p | ID),
+  mu2 = y2 ~ x + (1 | p | ID),
+  sigma1 = ~ z + (1 | p | ID),
+  sigma2 = ~ z + (1 | p | ID),
+  rho12 = ~ w
+)
+```
+
+That q=4 block reports one location-location row, four location-scale rows,
+and one scale-scale row in `corpairs()`. Fitted rows still use the older
+`mean-mean` and `mean-scale` class names, but `corpairs()` accepts
+`location-location` and `location-scale` as filter aliases to match the
+reserved `corpair()` formula wording. Bivariate random slopes, phylogenetic
+q=4 blocks, spatial q=4 blocks, and `rho12` random effects remain planned.
 Double-hierarchical bivariate fits should continue to report correlation pairs
 in a long table, not just as unlabeled matrices. The design note
 `docs/design/20-coscale-correlation-pairs.md` records the planned labels:
@@ -230,5 +252,5 @@ correlation level, group, covariance block, distributional parameters,
 responses, and random-effect coefficients. The current `corpairs(fit)` helper
 already uses this table shape for residual `rho12`, ordinary univariate
 Gaussian `mu` random-effect correlations, and the implemented bivariate
-mean-mean, scale-scale, and same-response mean-scale random-intercept
-correlations.
+mean-mean, scale-scale, same-response mean-scale, ordinary q=4, and
+phylogenetic mean-mean random-intercept correlations.
