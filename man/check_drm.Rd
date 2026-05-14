@@ -64,7 +64,10 @@ matching \code{mu1}/\code{mu2} phylogenetic location effects, \code{check_drm()}
 whether the fitted phylogenetic mean-mean correlation is near the boundary,
 whether either phylogenetic SD is tiny relative to the matching residual
 scale, and whether an ordinary group-level covariance block uses the same
-grouping factor. If a fit was stored with
+grouping factor. If a bivariate Gaussian fit includes a phylogenetic q=4
+\code{mu1}/\code{mu2}/\code{sigma1}/\code{sigma2} block, it reports species replication,
+location SDs relative to residual scales, log-\code{sigma} SDs, and whether any
+latent phylogenetic correlation is near the boundary. If a fit was stored with
 \code{drm_control(keep_tmb_object = FALSE)}, the
 fixed-gradient check is reported as a note because the TMB
 automatic-differentiation object is not available.

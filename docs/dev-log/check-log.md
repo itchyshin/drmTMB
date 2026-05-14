@@ -12653,3 +12653,55 @@ Known limitations:
 - `check_drm()` still uses the existing bivariate phylogenetic covariance check
   wording, so q=4-specific diagnostic refinement remains for the next slice;
 - spatial remains planned as the sibling structured-effect lane.
+
+## 2026-05-14 -- 35-map Slice 18: phylogenetic q4 recovery and diagnostics
+
+Goal:
+
+- add the first CRAN-safe simulation recovery evidence for the fitted
+  phylogenetic q=4 location-scale block and give `check_drm()` q=4-specific
+  diagnostic wording.
+
+Implemented:
+
+- added `new_biv_phylo_q4_gaussian_data()` with a balanced ultrametric tree,
+  four endpoint latent phylogenetic effects, fixed effects in `mu1`, `mu2`,
+  `sigma1`, and `sigma2`, and a separate residual `rho12`;
+- added a broad q=4 recovery test that checks finite fixed-parameter gradients,
+  six `corpairs(level = "phylogenetic")` rows, fixed-effect recovery,
+  endpoint-SD recovery on the log scale, residual `rho12`, and positive
+  phylogenetic mean-mean and scale-scale signals;
+- split `check_drm()` phylogenetic diagnostics so the older
+  `biv_phylo_mu_covariance` row is q=2-only and q=4 models receive
+  `biv_phylo_q4_covariance` with species replication, location SD ratios,
+  log-`sigma` SDs, max absolute latent correlation, and boundary status;
+- updated NEWS, roadmap, known limitations, roxygen, and the shared
+  phylogenetic/spatial math note so current docs no longer describe fitted q=4
+  phylogenetic blocks as only future scaffolding;
+- checked the local `gllvmTMB` and `gllvmTMB-legacy` profile-CI machinery for
+  future inference planning: direct `TMB::tmbprofile()` targets are promising
+  for fixed effects and simple SD/correlation coordinates, while q=4 derived
+  latent correlations need a separate target-function/refit design.
+
+Checks run:
+
+- `air format R/check.R tests/testthat/test-phylo-gaussian.R NEWS.md ROADMAP.md docs/design/16-phylo-spatial-common-math.md docs/dev-log/known-limitations.md`:
+  passed.
+- `Rscript -e 'devtools::load_all(quiet = TRUE)'`: passed.
+- `Rscript -e 'devtools::document()'`: passed and refreshed
+  `man/check_drm.Rd`.
+- `Rscript -e 'devtools::test(filter = "phylo-gaussian|check-drm|profile-targets", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'devtools::test(reporter = "summary")'`: passed.
+- `Rscript -e 'pkgdown::check_pkgdown()'`: passed.
+- `rg -n 'full phylogenetic q4.*planned|future `mu1`, `mu2`, `sigma1`, and `sigma2` endpoint|planned-pair scaffold records the six future|fitted phylogenetic mean-mean pair remain planned|not a fitted q=4 model|q=4 phylogenetic.*future' NEWS.md ROADMAP.md docs/design docs/dev-log/known-limitations.md vignettes pkgdown-site/articles`:
+  returned no current-status stale hits.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- q=4 phylogenetic recovery is broad evidence from one CRAN-safe simulation, not
+  a full grid across weak SDs, near-boundary correlations, or low replication;
+- q=4 phylogenetic correlation intervals remain derived targets and are not
+  direct profile-ready intervals;
+- spatial remains planned as the sibling structured-effect lane.

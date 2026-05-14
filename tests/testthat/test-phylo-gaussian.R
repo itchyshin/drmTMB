@@ -112,6 +112,87 @@ new_biv_phylo_gaussian_data <- function(
   )
 }
 
+new_biv_phylo_q4_gaussian_data <- function(
+  seed = 20260802,
+  n_tip = 32L,
+  n_each = 6L,
+  sd_phylo = c(mu1 = 0.60, mu2 = 0.50, sigma1 = 0.18, sigma2 = 0.16),
+  rho12 = 0.15
+) {
+  set.seed(seed)
+  tree <- balanced_ultrametric_tree(n_tip)
+  A <- drmTMB:::drm_phylo_tip_covariance(tree)
+  corr <- matrix(
+    c(
+      1.00,
+      0.50,
+      0.10,
+      0.05,
+      0.50,
+      1.00,
+      0.05,
+      0.10,
+      0.10,
+      0.05,
+      1.00,
+      0.25,
+      0.05,
+      0.10,
+      0.25,
+      1.00
+    ),
+    nrow = 4L,
+    byrow = TRUE,
+    dimnames = list(names(sd_phylo), names(sd_phylo))
+  )
+  covariance <- diag(sd_phylo) %*% corr %*% diag(sd_phylo)
+  z_phylo <- matrix(stats::rnorm(n_tip * 4L), n_tip, 4L)
+  phylo_effect <- t(chol(A)) %*% z_phylo %*% chol(covariance)
+  dimnames(phylo_effect) <- list(tree$tip.label, names(sd_phylo))
+
+  species <- rep(tree$tip.label, each = n_each)
+  n <- length(species)
+  x <- stats::rnorm(n)
+  z <- stats::rnorm(n)
+  beta_mu1 <- c(`(Intercept)` = 0.35, x = 0.30)
+  beta_mu2 <- c(`(Intercept)` = -0.20, x = -0.25)
+  beta_sigma1 <- c(`(Intercept)` = -1.15, z = 0.20)
+  beta_sigma2 <- c(`(Intercept)` = -1.05, z = -0.15)
+
+  eta_mu1 <- beta_mu1[[1L]] +
+    beta_mu1[[2L]] * x +
+    phylo_effect[species, "mu1"]
+  eta_mu2 <- beta_mu2[[1L]] +
+    beta_mu2[[2L]] * x +
+    phylo_effect[species, "mu2"]
+  log_sigma1 <- beta_sigma1[[1L]] +
+    beta_sigma1[[2L]] * z +
+    phylo_effect[species, "sigma1"]
+  log_sigma2 <- beta_sigma2[[1L]] +
+    beta_sigma2[[2L]] * z +
+    phylo_effect[species, "sigma2"]
+  e1 <- stats::rnorm(n)
+  e2 <- rho12 * e1 + sqrt(1 - rho12^2) * stats::rnorm(n)
+
+  list(
+    data = data.frame(
+      y1 = eta_mu1 + exp(log_sigma1) * e1,
+      y2 = eta_mu2 + exp(log_sigma2) * e2,
+      x = x,
+      z = z,
+      species = species
+    ),
+    tree = tree,
+    beta_mu1 = beta_mu1,
+    beta_mu2 = beta_mu2,
+    beta_sigma1 = beta_sigma1,
+    beta_sigma2 = beta_sigma2,
+    sd_phylo = sd_phylo,
+    corr_phylo = corr,
+    rho12 = rho12
+  )
+}
+
 dense_gaussian_nll <- function(y, mu, covariance) {
   chol_covariance <- chol(covariance)
   residual <- y - mu
@@ -469,6 +550,73 @@ test_that("bivariate phylogenetic q4 block is fitted with clear boundaries", {
       data = dat
     ),
     "same covariance-block label"
+  )
+})
+
+test_that("bivariate phylogenetic q4 recovers broad simulation targets", {
+  sim <- new_biv_phylo_q4_gaussian_data()
+  dat <- sim$data
+  tree <- sim$tree
+
+  fit <- suppressWarnings(
+    drmTMB(
+      bf(
+        mu1 = y1 ~ x + phylo(1 | p | species, tree = tree),
+        mu2 = y2 ~ x + phylo(1 | p | species, tree = tree),
+        sigma1 = ~ z + phylo(1 | p | species, tree = tree),
+        sigma2 = ~ z + phylo(1 | p | species, tree = tree),
+        rho12 = ~1
+      ),
+      family = c(gaussian(), gaussian()),
+      data = dat,
+      control = list(eval.max = 1000, iter.max = 1000)
+    )
+  )
+
+  phylo_sd <- fit$sdpars$mu[
+    c(
+      "mu1:phylo(1 | p | species)",
+      "mu2:phylo(1 | p | species)",
+      "sigma1:phylo(1 | p | species)",
+      "sigma2:phylo(1 | p | species)"
+    )
+  ]
+  phylo_pairs <- corpairs(fit, level = "phylogenetic")
+  phylo_cor <- fit$corpars$phylo
+  diagnostics <- check_drm(fit)
+  q4_diagnostic <- diagnostics[
+    diagnostics$check == "biv_phylo_q4_covariance",
+  ]
+  max_gradient <- max(abs(fit$obj$gr(fit$opt$par)))
+
+  expect_lt(max_gradient, 1e-3)
+  expect_equal(nrow(phylo_pairs), 6L)
+  expect_equal(nrow(q4_diagnostic), 1L)
+  expect_equal(
+    nrow(diagnostics[diagnostics$check == "biv_phylo_mu_covariance", ]),
+    0L
+  )
+  expect_match(q4_diagnostic$value, "q=4")
+  expect_match(q4_diagnostic$value, "max_abs_cor=")
+  expect_match(q4_diagnostic$message, "Phylogenetic q4 location-scale")
+  expect_lt(max(abs(coef(fit, "mu1") - sim$beta_mu1)), 0.35)
+  expect_lt(max(abs(coef(fit, "mu2") - sim$beta_mu2)), 0.35)
+  expect_lt(max(abs(coef(fit, "sigma1") - sim$beta_sigma1)), 0.35)
+  expect_lt(max(abs(coef(fit, "sigma2") - sim$beta_sigma2)), 0.35)
+  expect_lt(abs(unique(rho12(fit)) - sim$rho12), 0.25)
+  expect_lt(
+    max(abs(log(unname(phylo_sd)) - log(unname(sim$sd_phylo)))),
+    log(3)
+  )
+  expect_gt(
+    unname(phylo_cor["cor(mu1:(Intercept),mu2:(Intercept) | p | species)"]),
+    0.25
+  )
+  expect_gt(
+    unname(phylo_cor[
+      "cor(sigma1:(Intercept),sigma2:(Intercept) | p | species)"
+    ]),
+    0
   )
 })
 

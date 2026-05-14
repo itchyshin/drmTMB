@@ -47,15 +47,18 @@
   bivariate slice estimates two phylogenetic location SDs and one phylogenetic
   mean-mean correlation while keeping `sigma1`, `sigma2`, and residual `rho12`
   as fixed-effect distributional parameters. Matching labelled phylogenetic
-  terms across `mu1`, `mu2`, `sigma1`, and `sigma2` fit the first constant q=4
-  location-scale block, but the six q=4 correlation intervals are currently
-  derived targets rather than direct profile-ready targets.
+    terms across `mu1`, `mu2`, `sigma1`, and `sigma2` fit the first constant q=4
+    location-scale block. A CRAN-safe recovery test checks broad fixed-effect,
+    SD, residual-correlation, finite-gradient, and q=4 diagnostic behavior, but
+    the six q=4 correlation intervals are currently derived targets rather than
+    direct profile-ready targets.
   `summary(fit)$covariance` reports
   the fitted phylogenetic variance and covariance point summaries, and
-  `check_drm()` reports a bivariate phylogenetic covariance diagnostic for
-  near-boundary `corpars$phylo` values, weak species replication, and
-  phylogenetic location SDs that are tiny relative to the matching residual
-  scales. Family B direct structured-SD formulas such as
+    `check_drm()` reports separate bivariate phylogenetic q=2 and q=4 covariance
+    diagnostics for near-boundary `corpars$phylo` values, weak species
+    replication, location SDs that are tiny relative to matching residual
+    scales, and tiny log-`sigma` endpoint SDs in q=4 models. Family B direct
+    structured-SD formulas such as
   `sd_phylo(species) ~ x_species` remain planned until the tip/internal-node
   covariance contract is explicit and tested.
 - `corpairs()` currently reports only correlations that are already fitted:
@@ -66,18 +69,20 @@
   bivariate `mu`/`sigma` random-intercept correlations. It reports all six
   ordinary q=4 all-four bivariate random-intercept correlations when that block
   is fitted, and it also reports the fitted bivariate phylogenetic mean-mean
-  correlation. Spatial and study-level correlation pairs remain planned.
+    correlation and the six phylogenetic q=4 endpoint correlations when that
+    block is fitted. Spatial and study-level correlation pairs remain planned.
 - Singular `corpair(group, block = "...", class = "...") ~ x` formula syntax is
   reserved for future predictor-dependent latent random-effect correlations.
   `drmTMB()` rejects it clearly for now. Use `rho12 = ~ x` for residual
   within-observation correlation, and use `corpairs()` to extract fitted
   constant latent correlations.
-- Internal q4 phylogenetic algebra, hidden TMB-prior, and planned-pair
-  scaffolds exist for the future `mu1`, `mu2`, `sigma1`, and `sigma2` endpoint.
-  The ordinary grouped q4 location-scale block and `mu1`/`mu2` phylogenetic
-  location slice are now fitted, but the full phylogenetic q4 location-scale
-  block, recovery tests for all six structured q4 pairs, and structured
-  reporting rows beyond the fitted phylogenetic mean-mean pair remain planned.
+  - Internal q4 phylogenetic algebra, the hidden TMB prior probe, and the public
+    bivariate Gaussian q=4 phylogenetic location-scale endpoint now use the same
+    endpoint order. The ordinary grouped q4 location-scale block,
+    `mu1`/`mu2` phylogenetic location slice, and constant phylogenetic q4
+    location-scale block are fitted. Predictor-dependent structured
+    correlations, spatial q=4 blocks, and direct profile intervals for q4
+    derived correlations remain planned.
 - `summary()`, `predict_parameters()`, and `marginal_parameters()` expose
   fitted response-scale parameter summaries for interpretation. `summary()` can
   attach opt-in Wald intervals and direct profile intervals for profile-ready

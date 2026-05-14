@@ -225,13 +225,15 @@ distributional regression models using TMB.
   correlations separately: residual `rho12`, phylogenetic correlations,
   non-phylogenetic species correlations, spatial field correlations, and
   ordinary grouped random-effect correlations should not share one namespace.
-- The first internal q=4 phylogenetic state scaffold checks the R-side
-  matrix-normal prior algebra for `mu1`, `mu2`, `sigma1`, and `sigma2` effects
-  against a dense Kronecker covariance comparator. This is still algebra
-  evidence for the full location-scale endpoint, not a fitted q=4 model. The
-  matching hidden TMB prior branch evaluates the same q=4 state against the R
-  algebra helper. A planned-pair scaffold records the six future phylogenetic
-  endpoint rows without emitting them from fitted-model extractors.
+- The first fitted phylogenetic q=4 location-scale block now shares the same
+  matrix-normal prior algebra used by the hidden q=4 scaffold: `mu1`, `mu2`,
+  `sigma1`, and `sigma2` effects are stored endpoint-major, with four
+  phylogenetic SDs and six unstructured latent correlations. `corpairs()` and
+  `summary(fit)$covariance` report all six phylogenetic endpoint rows, while
+  `profile_targets()` marks those q=4 correlations as derived `theta_phylo`
+  targets rather than direct profile-ready atanh targets. A CRAN-safe recovery
+  test now checks broad fixed-effect, SD, residual-correlation, finite-gradient,
+  and q=4 diagnostic behavior.
 - Use the correlation-pair design in
   `docs/design/20-coscale-correlation-pairs.md` before implementing bivariate
   double-hierarchical covariance blocks; pair outputs should identify the
@@ -240,8 +242,9 @@ distributional regression models using TMB.
   correlations only: residual `rho12`, ordinary group-level `mu` random-effect
   correlations, the univariate `mu`/`sigma` mean-scale random-intercept
   correlation, and the bivariate `mu1`/`mu2` and `sigma1`/`sigma2`
-  random-intercept correlations, plus the first fitted bivariate phylogenetic
-  mean-mean correlation.
+  random-intercept correlations, plus the fitted bivariate phylogenetic
+  mean-mean correlation and all six fitted phylogenetic q=4 endpoint
+  correlations when that block is present.
   Extend this table as new correlation likelihoods are added.
 - Stage structured phylogenetic and spatial slopes conservatively:
   intercept-only structured effects first, then one `mu` slope, then only small

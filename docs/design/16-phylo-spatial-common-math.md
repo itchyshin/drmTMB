@@ -625,6 +625,13 @@ six `corpairs(level = "phylogenetic")` rows, includes the six rows in
 phylogenetic effects, and lists the six q=4 correlations as derived
 `theta_phylo` targets rather than direct profile-ready atanh targets.
 
+Slice 18 adds the first CRAN-safe q=4 recovery and diagnostic evidence. The
+test simulates `mu1`, `mu2`, `log(sigma1)`, and `log(sigma2)` tip effects from a
+four-endpoint phylogenetic covariance, fits the public all-four syntax, checks
+broad fixed-effect, endpoint-SD, residual `rho12`, and finite-gradient targets,
+and verifies that `check_drm()` reports a q=4 phylogenetic covariance diagnostic
+instead of reusing the older mean-mean q=2 wording.
+
 Family B structured direct-SD syntax such as `sd_phylo(species) ~ z_species`
 is a separate design problem. The scalar `sigma_phylo^2 A` covariance above is
 straightforward, but predictor-dependent species SDs imply a covariance such as
