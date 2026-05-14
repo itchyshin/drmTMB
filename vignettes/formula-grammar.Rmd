@@ -70,6 +70,8 @@ In this table, "coscale" means a model for residual correlation, currently
 | `mvbind(y1, y2) ~ x1` | Implemented | Shorthand for identical bivariate location formulas; explicit `mu1`/`mu2` remains preferred for different predictors. |
 | `phylo(1 | species, tree = tree)` in `mu` | Implemented | Intercept-only univariate Gaussian phylogenetic location effect; requires an ultrametric tree with branch lengths. |
 | matching `phylo(1 | species, tree = tree)` in bivariate `mu1` and `mu2` | Implemented first slice | Estimates two phylogenetic location SDs and one phylogenetic mean-mean correlation; phylogenetic scale and location-scale blocks remain planned. |
+| labelled `phylo(1 | p | species, tree = tree)` in matching bivariate `mu1` and `mu2` | Implemented as metadata | The label is preserved in SD, correlation, `corpairs()`, and profile-target names for the current phylogenetic mean-mean path. |
+| labelled `phylo(1 | p | species, tree = tree)` in bivariate `sigma1` or `sigma2` | Guarded planned q4 | The parser records the label, but `drmTMB()` rejects partial, unlabelled, or matched all-four phylogenetic location-scale blocks before optimization. |
 | `y ~ x1 + x2`, `family = cumulative_logit()` | Implemented | Fixed-effect univariate ordinal model for ordered scores with cutpoints; ordinal scale formulas are planned. |
 | `cbind(successes, failures) ~ x1`, `family = beta_binomial()` | Implemented | Fixed-effect denominator-aware model for success counts with known trial totals; `sigma` is extra-binomial variation. |
 | `phylo(1 + x1 | species, tree = tree)` | Planned | Structured slopes come after the intercept-only path is fully hardened. |

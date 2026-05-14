@@ -361,7 +361,7 @@ phylo_mu_corpairs <- function(object) {
     new_corpair_row(
       level = "phylogenetic",
       group = object$model$structured$phylo_mu$group,
-      block = "phylo",
+      block = phylo_mu_block(object$model$structured$phylo_mu),
       from_dpar = "mu1",
       to_dpar = "mu2",
       from_coef = "(Intercept)",
@@ -390,8 +390,11 @@ phylo_mu_correlation_parameter <- function(object, i = 1L) {
     phylo_names[[i]]
   }
   if (is.null(parameter) || is.na(parameter) || !nzchar(parameter)) {
+    block <- phylo_mu_block(object$model$structured$phylo_mu)
     parameter <- paste0(
-      "cor(mu1:(Intercept),mu2:(Intercept) | phylo | ",
+      "cor(mu1:(Intercept),mu2:(Intercept) | ",
+      block,
+      " | ",
       object$model$structured$phylo_mu$group,
       ")"
     )

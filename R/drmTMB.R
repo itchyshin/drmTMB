@@ -2211,6 +2211,12 @@ drm_build_biv_gaussian_spec <- function(
   mu2_entry$rhs <- meta_mu2$rhs
   meta <- if (!is.null(meta_mu1$V)) meta_mu1 else meta_mu2
 
+  guard_biv_phylo_q4_boundary(
+    mu1_entry,
+    mu2_entry,
+    sigma1_entry,
+    sigma2_entry
+  )
   phylo_mu_terms <- guard_biv_phylo_mu_terms(mu1_entry, mu2_entry)
   mu1_entry$rhs <- phylo_mu_terms$mu1$rhs
   mu2_entry$rhs <- phylo_mu_terms$mu2$rhs
@@ -3003,6 +3009,131 @@ extract_gaussian_mu_phylo_term <- function(entry) {
   list(rhs = rebuild_plus_terms(terms[!is_phylo]), term = phylo_term)
 }
 
+entry_phylo_structured_terms <- function(entry) {
+  Filter(
+    function(term) identical(term$type, "phylo"),
+    entry$structured
+  )
+}
+
+single_entry_phylo_structured_term <- function(entry) {
+  terms <- entry_phylo_structured_terms(entry)
+  if (length(terms) == 0L) {
+    return(NULL)
+  }
+  if (length(terms) > 1L) {
+    cli::cli_abort(c(
+      "Only one phylogenetic structured effect is allowed per distributional formula.",
+      "x" = "{.code {entry$dpar}} contains {length(terms)} {.fn phylo} terms.",
+      "i" = "The planned q=4 phylogenetic block uses one intercept-only term per endpoint."
+    ))
+  }
+  terms[[1L]]
+}
+
+phylo_term_block <- function(term) {
+  if (is.null(term) || is.null(term$covariance_label)) {
+    return("phylo")
+  }
+  term$covariance_label
+}
+
+phylo_mu_block <- function(phylo_mu) {
+  if (
+    !is.list(phylo_mu) ||
+      is.null(phylo_mu$block) ||
+      is.na(phylo_mu$block) ||
+      !nzchar(phylo_mu$block)
+  ) {
+    return("phylo")
+  }
+  phylo_mu$block
+}
+
+guard_biv_phylo_q4_boundary <- function(
+  mu1_entry,
+  mu2_entry,
+  sigma1_entry,
+  sigma2_entry
+) {
+  entries <- list(
+    mu1 = mu1_entry,
+    mu2 = mu2_entry,
+    sigma1 = sigma1_entry,
+    sigma2 = sigma2_entry
+  )
+  terms <- lapply(entries, single_entry_phylo_structured_term)
+  has_phylo <- !vapply(terms, is.null, logical(1L))
+  if (!any(has_phylo[c("sigma1", "sigma2")])) {
+    return(invisible(FALSE))
+  }
+
+  if (!all(has_phylo)) {
+    present <- names(has_phylo)[has_phylo]
+    missing <- names(has_phylo)[!has_phylo]
+    cli::cli_abort(c(
+      "Partial phylogenetic location-scale blocks are not implemented.",
+      "x" = "{.code {present}} contain{?s} {.fn phylo}, but {.code {missing}} do{?es} not.",
+      "i" = "The current fitted bivariate phylogenetic path supports matching {.code mu1}/{.code mu2} location terms only.",
+      "i" = "For the planned Family A q=4 path, use matching labelled intercepts in {.code mu1}, {.code mu2}, {.code sigma1}, and {.code sigma2}, such as {.code phylo(1 | p | species, tree = tree)}."
+    ))
+  }
+
+  labels <- vapply(terms, phylo_term_block, character(1L))
+  explicit_labels <- vapply(
+    terms,
+    function(term) !is.null(term$covariance_label),
+    logical(1L)
+  )
+  groups <- vapply(terms, `[[`, character(1L), "group")
+  trees <- vapply(terms, `[[`, character(1L), "tree")
+  intercept_only <- vapply(
+    terms,
+    function(term) {
+      identical(term$coef_names, "(Intercept)") &&
+        identical(term$variables, NA_character_)
+    },
+    logical(1L)
+  )
+
+  if (!all(intercept_only)) {
+    bad <- names(intercept_only)[!intercept_only]
+    cli::cli_abort(c(
+      "Phylogenetic q=4 location-scale blocks are intercept-only in this phase.",
+      "x" = "{.code {bad}} include{?s} structured slope terms.",
+      "i" = "Use {.code phylo(1 | p | species, tree = tree)} in all four endpoints first."
+    ))
+  }
+  if (!all(explicit_labels)) {
+    unlabeled <- names(explicit_labels)[!explicit_labels]
+    cli::cli_abort(c(
+      "Phylogenetic q=4 location-scale blocks require an explicit covariance-block label.",
+      "x" = "{.code {unlabeled}} use{?s} unlabelled {.fn phylo} syntax.",
+      "i" = "Use one shared label, for example {.code phylo(1 | p | species, tree = tree)}, across {.code mu1}, {.code mu2}, {.code sigma1}, and {.code sigma2}."
+    ))
+  }
+  if (
+    length(unique(labels)) != 1L ||
+      length(unique(groups)) != 1L ||
+      length(unique(trees)) != 1L
+  ) {
+    cli::cli_abort(c(
+      "Matched phylogenetic q=4 location-scale terms need the same block, group, and tree.",
+      "x" = "Blocks: {.val {labels}}.",
+      "x" = "Groups: {.val {groups}}.",
+      "x" = "Trees: {.val {trees}}.",
+      "i" = "Use the same term, such as {.code phylo(1 | p | species, tree = tree)}, in all four endpoints."
+    ))
+  }
+
+  cli::cli_abort(c(
+    "Matched phylogenetic q=4 location-scale covariance blocks are planned but not implemented yet.",
+    "x" = "Detected block {.code {labels[[1L]]}} on group {.field {groups[[1L]]}} in {.code mu1}, {.code mu2}, {.code sigma1}, and {.code sigma2}.",
+    "i" = "Residual {.code rho12} remains a within-observation coscale parameter, separate from latent phylogenetic correlations.",
+    "i" = "The current fitted bivariate phylogenetic path supports matching {.code mu1}/{.code mu2} location terms only."
+  ))
+}
+
 guard_biv_phylo_mu_terms <- function(mu1_entry, mu2_entry) {
   mu1_phylo <- extract_gaussian_mu_phylo_term(mu1_entry)
   mu2_phylo <- extract_gaussian_mu_phylo_term(mu2_entry)
@@ -3036,6 +3167,16 @@ guard_biv_phylo_mu_terms <- function(mu1_entry, mu2_entry) {
       "i" = "The first fitted bivariate phylogenetic path will use one shared tree-derived precision for {.code mu1} and {.code mu2}."
     ))
   }
+  if (!identical(term1$covariance_label, term2$covariance_label)) {
+    block1 <- phylo_term_block(term1)
+    block2 <- phylo_term_block(term2)
+    cli::cli_abort(c(
+      "Matched bivariate phylogenetic location terms must use the same covariance-block label.",
+      "x" = "{.code mu1} uses block {.code {block1}}.",
+      "x" = "{.code mu2} uses block {.code {block2}}.",
+      "i" = "Use matching terms such as {.code phylo(1 | p | {term1$group}, tree = {term1$tree})} in both formulas, or leave both terms unlabelled."
+    ))
+  }
 
   list(mu1 = mu1_phylo, mu2 = mu2_phylo, term = term1)
 }
@@ -3052,6 +3193,8 @@ empty_phylo_mu_structure <- function() {
     has = FALSE,
     label = character(),
     group = NA_character_,
+    block = "phylo",
+    covariance_label = NULL,
     tree = NA_character_,
     n_re = 0L,
     precision = NULL,
@@ -3095,8 +3238,10 @@ build_phylo_mu_structure <- function(term, data, env) {
 
   list(
     has = TRUE,
-    label = paste0("phylo(1 | ", group, ")"),
+    label = term$label,
     group = group,
+    block = phylo_term_block(term),
+    covariance_label = term$covariance_label,
     tree = term$tree,
     n_re = nrow(precision$precision),
     precision = precision,
@@ -7239,8 +7384,11 @@ split_tmb_corpars <- function(par, spec) {
       isTRUE(spec$structured$phylo_mu$has)
   ) {
     rho_phylo <- 0.999999 * tanh(unname(par$eta_cor_phylo))
+    block <- phylo_mu_block(spec$structured$phylo_mu)
     names(rho_phylo) <- paste0(
-      "cor(mu1:(Intercept),mu2:(Intercept) | phylo | ",
+      "cor(mu1:(Intercept),mu2:(Intercept) | ",
+      block,
+      " | ",
       spec$structured$phylo_mu$group,
       ")"
     )

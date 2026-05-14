@@ -170,6 +170,26 @@ test_that("drm_formula() captures planned structured-effect syntax", {
     c("(Intercept)", "depth")
   )
   expect_equal(slope_form$entries[[1]]$structured[[1]]$variables, "depth")
+
+  labelled_phylo <- drm_formula(
+    y ~ x + phylo(1 | p | species, tree = tree)
+  )
+  expect_equal(
+    labelled_phylo$entries[[1]]$structured[[1]][c(
+      "type",
+      "group",
+      "tree",
+      "label",
+      "covariance_label"
+    )],
+    list(
+      type = "phylo",
+      group = "species",
+      tree = "tree",
+      label = "phylo(1 | p | species)",
+      covariance_label = "p"
+    )
+  )
 })
 
 test_that("formula markers are no-op placeholders", {
@@ -193,6 +213,10 @@ test_that("planned structured-effect markers validate their grammar", {
   expect_error(
     drm_formula(y ~ x + phylo(1 + x + z | species, tree = tree)),
     "one-slope structured terms"
+  )
+  expect_error(
+    drm_formula(y ~ x + phylo(1 | "p" | species, tree = tree)),
+    "labels must be simple names"
   )
   expect_error(
     drm_formula(y ~ x + spatial(1 | site)),

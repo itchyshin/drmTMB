@@ -74,7 +74,8 @@ In this table, "coscale" means a model for residual correlation, currently
 | `mvbind(y1, y2) ~ x1` | Implemented | Shorthand for identical bivariate location formulas; explicit `mu1`/`mu2` remains preferred for different predictors. |
 | `phylo(1 | species, tree = tree)` in `mu` | Implemented | Intercept-only univariate Gaussian phylogenetic location effect; requires an ultrametric tree with branch lengths. |
 | matching `phylo(1 | species, tree = tree)` in bivariate `mu1` and `mu2` | Implemented first slice | Correlated phylogenetic random intercepts enter the two response means; `sigma1`, `sigma2`, and residual `rho12` remain ordinary fixed-effect distributional parameters. |
-| labelled `phylo(1 | p | species, tree = tree)` | Planned | Reserved label form for future phylogenetic q=4 covariance blocks; the fitted q=4 path will require matching labels, groups, and trees across `mu1`, `mu2`, `sigma1`, and `sigma2`. |
+| labelled `phylo(1 | p | species, tree = tree)` in matching bivariate `mu1` and `mu2` | Implemented as metadata | The label is preserved in SD, correlation, `corpairs()`, and profile-target names for the current phylogenetic mean-mean path. |
+| labelled `phylo(1 | p | species, tree = tree)` in bivariate `sigma1` or `sigma2` | Guarded planned q4 | The parser records the label, but `drmTMB()` rejects partial, unlabelled, or matched all-four phylogenetic location-scale blocks before optimization. |
 | `sd_phylo(species) ~ x_species` and bivariate `sd_phylo1()` / `sd_phylo2()` | Planned | Family B structured direct-SD targets need an explicit tip/internal-node covariance contract before fitting. |
 | `weights = w` | Implemented | Top-level likelihood weights, not formula syntax. Known sampling covariance remains `meta_known_V(V = V)`. |
 | `y ~ x1`, `family = cumulative_logit()` | Implemented | Fixed-effect univariate ordinal model for ordered scores with cutpoints; `mu` is a latent location and ordinal scale formulas are planned. |
@@ -654,7 +655,7 @@ Not every parameter should accept random effects at the same development stage.
 | `zi`, `hu`, `zoi`, `coi` | Fixed effects first; random effects later only for high-value use cases. |
 | `meta_known_V()` | Never; it is known sampling covariance, not an estimated parameter. |
 | `phylo(1 | species, tree = tree)` | Implemented structured random intercept for univariate Gaussian `mu`; `tree` must be an ultrametric phylogeny with branch lengths. |
-| `phylo(1 | p | species, tree = tree)` | Planned labelled structured random intercept form for future phylogenetic q=4 covariance blocks. |
+| `phylo(1 | p | species, tree = tree)` | Implemented as a label for matching bivariate `mu1`/`mu2` phylogenetic location terms. When it appears in `sigma1` or `sigma2`, it is guarded as the future phylogenetic q=4 location-scale form and rejected before fitting. |
 | `phylo(1 + x | species, tree = tree)` | Planned structured random slope syntax after intercept-only phylogeny is tested. |
 | `spatial(1 | site, coords = coords)` | Planned structured spatial random intercept for univariate Gaussian `mu`; coordinates or a mesh must define the SPDE/GMRF structure. |
 | `spatial(1 + x | site, coords = coords)` | Planned structured spatial random slope syntax after intercept-only spatial fields are tested. |

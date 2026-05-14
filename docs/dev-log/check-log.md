@@ -12548,3 +12548,50 @@ Known limitations:
 - `phylo()` terms in `sigma1` or `sigma2` still reject before optimization;
 - `corpairs(level = "phylogenetic")` still reports only the fitted
   `mu1`/`mu2` mean-mean phylogenetic row.
+
+## 2026-05-14 -- 35-map Slice 16: phylogenetic q4 R plumbing and guards
+
+Goal:
+
+- add R-side parser and boundary plumbing for the planned all-four bivariate
+  phylogenetic q=4 location-scale block without claiming the fitted q4
+  likelihood.
+
+Implemented:
+
+- extended structured-effect parsing so `phylo(1 | p | species, tree = tree)`
+  stores a covariance-block label;
+- allowed matching labelled bivariate `mu1`/`mu2` phylogenetic location terms
+  to use that label in `sdpars`, `corpars`, `corpairs()`, and
+  `profile_targets()`;
+- added a pre-optimization bivariate guard for `phylo()` in `sigma1` or
+  `sigma2`, with separate messages for partial q4 blocks, unlabelled q4
+  syntax, mismatched labels/groups/trees, structured slopes, and matched
+  all-four q4 syntax that is still planned;
+- updated formula grammar, structured-effect design notes, NEWS, and the
+  relevant pkgdown article sources to keep labelled phylogenetic mean-mean
+  support separate from planned phylogenetic location-scale q4 support.
+
+Checks run:
+
+- `air format R/parse-formula.R R/drmTMB.R R/methods.R tests/testthat/test-package-skeleton.R tests/testthat/test-phylo-gaussian.R docs/design/01-formula-grammar.md docs/design/16-phylo-spatial-common-math.md vignettes/formula-grammar.Rmd vignettes/phylogenetic-spatial.Rmd NEWS.md`:
+  passed.
+- `Rscript -e 'devtools::load_all(quiet = TRUE)'`: passed.
+- `Rscript -e 'devtools::test(filter = "package-skeleton|phylo-gaussian", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'devtools::test(filter = "biv-gaussian|corpairs|profile-targets|phylo-gaussian|package-skeleton", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'pkgdown::build_article("phylogenetic-spatial", quiet = TRUE); pkgdown::build_article("formula-grammar", quiet = TRUE)'`:
+  passed and refreshed local HTML pages.
+- `Rscript -e 'pkgdown::check_pkgdown()'`: passed.
+- `rg -n 'phylo\\(1 \\| p \\| species|Guarded planned q4|Partial phylogenetic|matched all-four' docs/design/01-formula-grammar.md docs/design/16-phylo-spatial-common-math.md vignettes/formula-grammar.Rmd vignettes/phylogenetic-spatial.Rmd NEWS.md pkgdown-site/articles/formula-grammar.html pkgdown-site/articles/phylogenetic-spatial.html`:
+  confirmed the source and local pkgdown status wording.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- this still does not fit q=4 phylogenetic location-scale covariance models;
+- no four-endpoint phylogenetic SD reports, six q4 phylogenetic `corpairs()`
+  rows, recovery tests, or fitted q4 tutorial examples exist yet;
+- spatial remains the sibling lane after the phylogenetic structured-effect
+  contract is stable.

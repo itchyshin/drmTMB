@@ -225,8 +225,8 @@ test_that("bivariate Gaussian mu supports correlated phylogenetic random interce
 
   fit <- drmTMB(
     bf(
-      mu1 = y1 ~ x + phylo(1 | species, tree = tree),
-      mu2 = y2 ~ x + phylo(1 | species, tree = tree),
+      mu1 = y1 ~ x + phylo(1 | p | species, tree = tree),
+      mu2 = y2 ~ x + phylo(1 | p | species, tree = tree),
       sigma1 = ~1,
       sigma2 = ~1,
       rho12 = ~1
@@ -263,17 +263,17 @@ test_that("bivariate Gaussian mu supports correlated phylogenetic random interce
   expect_equal(fit$opt$convergence, 0)
   expect_named(
     fit$sdpars$mu,
-    c("mu1:phylo(1 | species)", "mu2:phylo(1 | species)")
+    c("mu1:phylo(1 | p | species)", "mu2:phylo(1 | p | species)")
   )
   expect_named(
     fit$corpars$phylo,
-    "cor(mu1:(Intercept),mu2:(Intercept) | phylo | species)"
+    "cor(mu1:(Intercept),mu2:(Intercept) | p | species)"
   )
   targets <- profile_targets(fit)
   phylo_profile_names <- c(
-    "sd:mu:mu1:phylo(1 | species)",
-    "sd:mu:mu2:phylo(1 | species)",
-    "cor:phylo:cor(mu1:(Intercept),mu2:(Intercept) | phylo | species)"
+    "sd:mu:mu1:phylo(1 | p | species)",
+    "sd:mu:mu2:phylo(1 | p | species)",
+    "cor:phylo:cor(mu1:(Intercept),mu2:(Intercept) | p | species)"
   )
   phylo_profile <- targets[
     match(phylo_profile_names, targets$parm),
@@ -358,6 +358,74 @@ test_that("bivariate phylogenetic mean correlation recovers simulated signal", {
   expect_lt(abs(unique(rho12(fit)) - sim$rho12), 0.20)
   expect_equal(nrow(phylo_pair), 1L)
   expect_equal(phylo_pair$estimate, unname(fit$corpars$phylo))
+})
+
+test_that("bivariate phylogenetic q4 boundary is checked before fitting", {
+  tree <- balanced_ultrametric_tree(n_tip = 4L)
+  dat <- data.frame(
+    y1 = seq(-0.2, 0.5, length.out = 8L),
+    y2 = seq(0.3, -0.4, length.out = 8L),
+    x = rep(c(-1, 1), 4L),
+    z = rep(c(0, 1), each = 4L),
+    species = rep(tree$tip.label, each = 2L)
+  )
+
+  expect_error(
+    drmTMB(
+      bf(
+        mu1 = y1 ~ x + phylo(1 | p | species, tree = tree),
+        mu2 = y2 ~ x + phylo(1 | p | species, tree = tree),
+        sigma1 = ~ z + phylo(1 | p | species, tree = tree),
+        sigma2 = ~ z + phylo(1 | p | species, tree = tree),
+        rho12 = ~1
+      ),
+      family = c(gaussian(), gaussian()),
+      data = dat
+    ),
+    "planned but not implemented"
+  )
+  expect_error(
+    drmTMB(
+      bf(
+        mu1 = y1 ~ x + phylo(1 | p | species, tree = tree),
+        mu2 = y2 ~ x + phylo(1 | p | species, tree = tree),
+        sigma1 = ~ z + phylo(1 | p | species, tree = tree),
+        sigma2 = ~z,
+        rho12 = ~1
+      ),
+      family = c(gaussian(), gaussian()),
+      data = dat
+    ),
+    "Partial phylogenetic location-scale blocks"
+  )
+  expect_error(
+    drmTMB(
+      bf(
+        mu1 = y1 ~ x + phylo(1 | species, tree = tree),
+        mu2 = y2 ~ x + phylo(1 | species, tree = tree),
+        sigma1 = ~ z + phylo(1 | species, tree = tree),
+        sigma2 = ~ z + phylo(1 | species, tree = tree),
+        rho12 = ~1
+      ),
+      family = c(gaussian(), gaussian()),
+      data = dat
+    ),
+    "require an explicit covariance-block label"
+  )
+  expect_error(
+    drmTMB(
+      bf(
+        mu1 = y1 ~ x + phylo(1 | p | species, tree = tree),
+        mu2 = y2 ~ x + phylo(1 | q | species, tree = tree),
+        sigma1 = ~z,
+        sigma2 = ~z,
+        rho12 = ~1
+      ),
+      family = c(gaussian(), gaussian()),
+      data = dat
+    ),
+    "same covariance-block label"
+  )
 })
 
 test_that("ordinary and phylogenetic species intercepts match dense marginal likelihood", {

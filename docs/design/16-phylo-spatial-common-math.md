@@ -484,10 +484,10 @@ responses:
 ```r
 drmTMB(
   bf(
-    mu1 = y1 ~ x + phylo(1 | species, tree = tree),
-    mu2 = y2 ~ x + phylo(1 | species, tree = tree),
-    sigma1 = ~ z + phylo(1 | species, tree = tree),
-    sigma2 = ~ z + phylo(1 | species, tree = tree),
+    mu1 = y1 ~ x + phylo(1 | p | species, tree = tree),
+    mu2 = y2 ~ x + phylo(1 | p | species, tree = tree),
+    sigma1 = ~ z + phylo(1 | p | species, tree = tree),
+    sigma2 = ~ z + phylo(1 | p | species, tree = tree),
     rho12 = ~ w
   ),
   family = c(gaussian(), gaussian()),
@@ -495,7 +495,8 @@ drmTMB(
 )
 ```
 
-The labelled form should be accepted before the fitted q=4 path is advertised:
+The labelled form is accepted by the formula parser and is usable as metadata
+for the existing bivariate phylogenetic `mu1`/`mu2` mean-mean path:
 
 ```r
 phylo(1 | p | species, tree = tree)
@@ -504,9 +505,12 @@ phylo(1 | p | species, tree = tree)
 The two-bar form remains valid and maps internally to `block = "phylo"`. The
 three-bar form records the user-facing covariance-block label, such as `p`,
 and all four distributional formulas must use the same group, tree, and block.
-The first q=4 implementation should allow exactly one intercept-only
-phylogenetic block. Phylogenetic random slopes, multiple phylogenetic blocks,
-and structured `rho12` effects remain planned.
+The fitted q=4 path is still guarded: using `phylo()` in `sigma1` or `sigma2`
+now fails before optimization with messages that distinguish partial,
+unlabelled, and matched-but-not-yet-implemented all-four blocks. The first q=4
+implementation should allow exactly one intercept-only phylogenetic block.
+Phylogenetic random slopes, multiple phylogenetic blocks, and structured
+`rho12` effects remain planned.
 
 This section supersedes the older local ordering that placed spatial fields
 before structured effects in `sigma`. The current 35-slice route implements
@@ -612,6 +616,12 @@ probe uses endpoint-major q=4 `u_phylo` storage, four `log_sd_phylo` values,
 and six unstructured-correlation parameters, then compares the TMB
 matrix-normal prior against the R algebra helper. It does not yet make
 `phylo()` terms in `sigma1` or `sigma2` fit from public model formulas.
+
+Slice 16 adds the parser and R-boundary plumbing around this contract. It
+preserves the optional `phylo()` covariance-block label, requires matching
+labels for bivariate phylogenetic location terms, and rejects phylogenetic
+scale endpoints before model-frame construction. It still does not make the
+public all-four q=4 likelihood fit.
 
 Family B structured direct-SD syntax such as `sd_phylo(species) ~ z_species`
 is a separate design problem. The scalar `sigma_phylo^2 A` covariance above is

@@ -473,6 +473,21 @@ parse_structured_bar_term <- function(expr, marker) {
   }
   lhs <- strip_parens(expr[[2L]])
   group <- expr[[3L]]
+  covariance_label <- NULL
+
+  if (is_random_bar_call(lhs)) {
+    nested <- strip_parens(lhs)
+    lhs <- strip_parens(nested[[2L]])
+    covariance_label_expr <- nested[[3L]]
+    if (!is.symbol(covariance_label_expr)) {
+      cli::cli_abort(c(
+        "{.fn {marker}} covariance-block labels must be simple names.",
+        "x" = "Use syntax like {.code {marker}(1 | p | group, ...)}."
+      ))
+    }
+    covariance_label <- as.character(covariance_label_expr)
+    validate_random_mu_covariance_label(covariance_label)
+  }
   if (!is.symbol(group)) {
     cli::cli_abort(c(
       "{.fn {marker}} grouping terms must be simple variables.",
@@ -486,7 +501,13 @@ parse_structured_bar_term <- function(expr, marker) {
       group = group_name,
       variables = NA_character_,
       coef_names = "(Intercept)",
-      label = paste0(marker, "(1 | ", group_name, ")")
+      label = format_structured_label(
+        marker,
+        "1",
+        group_name,
+        covariance_label
+      ),
+      covariance_label = covariance_label
     ))
   }
 
@@ -504,7 +525,13 @@ parse_structured_bar_term <- function(expr, marker) {
       group = group_name,
       variables = variable,
       coef_names = c("(Intercept)", variable),
-      label = paste0(marker, "(1 + ", variable, " | ", group_name, ")")
+      label = format_structured_label(
+        marker,
+        paste0("1 + ", variable),
+        group_name,
+        covariance_label
+      ),
+      covariance_label = covariance_label
     ))
   }
 
@@ -513,4 +540,18 @@ parse_structured_bar_term <- function(expr, marker) {
     "x" = "Use {.code {marker}(1 | group, ...)} or {.code {marker}(1 + x | group, ...)}.",
     "i" = "Multiple structured slopes and interactions are planned only after intercept-only structured effects are tested."
   ))
+}
+
+format_structured_label <- function(
+  marker,
+  lhs_label,
+  group,
+  covariance_label = NULL
+) {
+  group_label <- if (is.null(covariance_label)) {
+    group
+  } else {
+    paste0(covariance_label, " | ", group)
+  }
+  paste0(marker, "(", lhs_label, " | ", group_label, ")")
 }
