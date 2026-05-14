@@ -42,15 +42,70 @@ balanced_ultrametric_tree <- function(n_tip = 16L) {
     class = "phylo"
   )
 }
+
+simulate_phylo_q4_traits <- function(seed = 20260802) {
+  set.seed(seed)
+  tree <- balanced_ultrametric_tree(32)
+  A_tip <- drmTMB:::drm_phylo_tip_covariance(tree)
+  sd_phylo <- c(mu1 = 0.60, mu2 = 0.50, sigma1 = 0.18, sigma2 = 0.16)
+  corr_phylo <- matrix(
+    c(
+      1.00, 0.50, 0.10, 0.05,
+      0.50, 1.00, 0.05, 0.10,
+      0.10, 0.05, 1.00, 0.25,
+      0.05, 0.10, 0.25, 1.00
+    ),
+    nrow = 4,
+    byrow = TRUE,
+    dimnames = list(names(sd_phylo), names(sd_phylo))
+  )
+  z_phylo <- matrix(rnorm(length(tree$tip.label) * 4), ncol = 4)
+  phylo_effect <- t(chol(A_tip)) %*%
+    z_phylo %*%
+    chol(diag(sd_phylo) %*% corr_phylo %*% diag(sd_phylo))
+  dimnames(phylo_effect) <- list(tree$tip.label, names(sd_phylo))
+
+  n_each <- 6
+  species <- rep(tree$tip.label, each = n_each)
+  n <- length(species)
+  climate <- rnorm(n)
+  habitat_variability <- rnorm(n)
+  assay_context <- rep(rep(c(-0.5, 0.5), each = n_each / 2), length(tree$tip.label))
+
+  eta_heat <- 0.35 + 0.30 * climate + phylo_effect[species, "mu1"]
+  eta_desiccation <- -0.20 - 0.25 * climate + phylo_effect[species, "mu2"]
+  log_sigma_heat <- -1.15 + 0.20 * habitat_variability +
+    phylo_effect[species, "sigma1"]
+  log_sigma_desiccation <- -1.05 - 0.15 * habitat_variability +
+    phylo_effect[species, "sigma2"]
+  rho12 <- 0.15
+  e_heat <- rnorm(n)
+  e_desiccation <- rho12 * e_heat + sqrt(1 - rho12^2) * rnorm(n)
+
+  list(
+    tree = tree,
+    data = data.frame(
+      species = species,
+      climate = climate,
+      habitat_variability = habitat_variability,
+      assay_context = assay_context,
+      heat_tolerance = eta_heat + exp(log_sigma_heat) * e_heat,
+      desiccation_tolerance = eta_desiccation +
+        exp(log_sigma_desiccation) * e_desiccation
+    )
+  )
+}
 ```
 
 Phylogenetic and spatial dependence are structured random effects. The first
 implemented `drmTMB` path is an intercept-only phylogenetic effect in the
 univariate Gaussian location formula. A first bivariate path also fits matching
 intercept-only `phylo()` terms in `mu1` and `mu2`, estimating the two
-phylogenetic location SDs and their mean-mean correlation. Spatial fields,
-phylogenetic slopes, phylogenetic scale terms, and the full bivariate
-phylogenetic location-scale block remain planned extensions.
+phylogenetic location SDs and their mean-mean correlation. Matching labelled
+`phylo()` terms across `mu1`, `mu2`, `sigma1`, and `sigma2` now fit the first
+constant bivariate phylogenetic location-scale block. Spatial fields,
+phylogenetic slopes, and predictor-dependent latent phylogenetic correlations
+remain planned extensions.
 
 The scientific question for the implemented path is simple:
 
@@ -229,14 +284,123 @@ If a phylogenetic fit fails before optimization, check these points first:
   `phylo(1 | species, tree = tree)` in a univariate Gaussian `mu` formula, or
   matching terms in bivariate Gaussian `mu1` and `mu2` formulas.
 
-Phylogenetic slopes, phylogenetic terms in `sigma`, structured effects in
-`rho12`, and the full bivariate phylogenetic location-scale block are planned.
-They should error clearly rather than silently fitting a different model.
+Phylogenetic slopes and structured effects in `rho12` are planned. Partial,
+unlabelled, mismatched, and slope q=4 phylogenetic location-scale forms should
+error clearly rather than silently fitting a different model.
 
-Developer scaffolds now name and test the future q=4 phylogenetic endpoint
-state across `mu1`, `mu2`, `sigma1`, and `sigma2`. The first fitted bivariate
-slice uses matching intercept-only `mu1`/`mu2` `phylo()` terms, but the full
-q=4 endpoint and reporting rows beyond the fitted mean-mean pair remain planned.
+## Worked example: two traits with phylogenetic location-scale covariance
+
+Now suppose the scientific question is about two tolerance traits measured
+repeatedly for the same species. We want climate to explain each trait mean,
+habitat variability to explain each residual SD, and assay context to explain
+the residual within-observation correlation. We also want the species-level
+phylogenetic deviations in both means and both log-SDs to share one latent q=4
+covariance block.
+
+The simulated data below are deliberately small enough for the article to run.
+The hidden setup creates the tree and species-level phylogenetic effects; the
+fitted model uses only public `drmTMB()` syntax.
+
+```{r}
+sim_q4 <- simulate_phylo_q4_traits()
+tree <- sim_q4$tree
+tol_dat <- sim_q4$data
+
+head(tol_dat)
+```
+
+The model uses the same labelled `phylo()` term in all four endpoints:
+
+```{r}
+fit_phylo_q4 <- suppressWarnings(
+  drmTMB(
+    drm_formula(
+      mu1 = heat_tolerance ~ climate + phylo(1 | p | species, tree = tree),
+      mu2 = desiccation_tolerance ~ climate +
+        phylo(1 | p | species, tree = tree),
+      sigma1 = ~ habitat_variability +
+        phylo(1 | p | species, tree = tree),
+      sigma2 = ~ habitat_variability +
+        phylo(1 | p | species, tree = tree),
+      rho12 = ~ assay_context
+    ),
+    family = c(gaussian(), gaussian()),
+    data = tol_dat,
+    control = list(eval.max = 1000, iter.max = 1000)
+  )
+)
+
+summary(fit_phylo_q4)
+```
+
+The fixed-effect rows answer the distributional-regression questions. The
+`mu1:climate` and `mu2:climate` rows are mean effects. The
+`sigma1:habitat_variability` and `sigma2:habitat_variability` rows are effects
+on log residual SD. The `rho12:assay_context` row is the residual coscale effect:
+it changes the residual correlation between the two traits within the same
+observation.
+
+The phylogenetic q=4 block is a different layer. Use `corpairs()` to read the
+latent species-level correlations:
+
+```{r}
+corpairs(fit_phylo_q4, level = "phylogenetic")
+```
+
+Those six rows are not residual correlations. The `mean-mean` row asks whether
+species that are phylogenetically high for heat tolerance also tend to be high
+for desiccation tolerance. The four `mean-scale` rows ask whether evolutionary
+deviations in means are associated with evolutionary deviations in variability.
+The `scale-scale` row asks whether the two traits' phylogenetic log-SD
+deviations move together.
+
+For a compact scalar view of the residual layer, use `rho12()`:
+
+```{r}
+range(rho12(fit_phylo_q4))
+```
+
+`check_drm()` keeps these layers separate. In small examples, q=4 models can
+warn about optimizer convergence even when gradients, Hessian status, and q=4
+covariance diagnostics are acceptable. Treat this article fit as an output
+map; for scientific inference, inspect the full diagnostic table and use larger
+datasets or simpler covariance structure when needed.
+
+```{r}
+q4_check <- check_drm(fit_phylo_q4)
+q4_check[q4_check$check %in% c(
+  "optimizer_convergence",
+  "fixed_gradient",
+  "hessian_positive_definite",
+  "biv_phylo_q4_covariance"
+), ]
+```
+
+The fitted q=4 correlations are point summaries. They are listed in
+`profile_targets()` as derived `theta_phylo` targets, not as direct
+profile-ready intervals:
+
+```{r}
+subset(
+  profile_targets(fit_phylo_q4),
+  startsWith(parm, "cor:phylo:"),
+  select = c(parm, target_type, profile_ready, profile_note)
+)
+```
+
+Predictor-dependent latent phylogenetic correlations are a future layer. The
+extractor is `corpairs()`, but the planned formula syntax should be singular:
+
+```r
+# Planned, not fitted yet:
+corpair(species, block = "p", class = "location-location") ~ w
+corpair(species, block = "p", class = "location-scale") ~ w
+corpair(species, block = "p", class = "scale-scale") ~ w
+```
+
+Use `rho12 = ~ assay_context` for residual correlation predictors today. Use
+`corpairs(fit, level = "phylogenetic")` to extract the fitted constant latent
+phylogenetic correlations today.
 
 ## Planned, not implemented: spatial random intercepts
 

@@ -12705,3 +12705,48 @@ Known limitations:
 - q=4 phylogenetic correlation intervals remain derived targets and are not
   direct profile-ready intervals;
 - spatial remains planned as the sibling structured-effect lane.
+
+## 2026-05-14 -- 35-map Slice 19: phylogenetic q4 tutorial example
+
+Goal:
+
+- add a reader-facing fitted q=4 phylogenetic location-scale example to the
+  structured-dependence article, without claiming predictor-dependent latent
+  `corpair()` models or q=4 profile intervals.
+
+Implemented:
+
+- added a self-contained simulated two-trait tolerance example to
+  `vignettes/phylogenetic-spatial.Rmd`;
+- fitted `heat_tolerance` and `desiccation_tolerance` with matching labelled
+  `phylo(1 | p | species, tree = tree)` terms in `mu1`, `mu2`, `sigma1`, and
+  `sigma2`;
+- included `rho12 = ~ assay_context` as the residual coscale predictor in the
+  live fitted example;
+- showed `corpairs(fit_phylo_q4, level = "phylogenetic")`, `rho12()`,
+  q=4-specific `check_drm()` rows, and `profile_targets()` rows for derived
+  q=4 phylogenetic correlations;
+- added a clearly marked planned, not fitted, singular `corpair(...) ~ w`
+  sketch for predictor-dependent latent phylogenetic correlations.
+
+Checks run:
+
+- `air format vignettes/phylogenetic-spatial.Rmd`: passed.
+- `Rscript -e 'devtools::load_all(quiet = TRUE); pkgdown::build_article("phylogenetic-spatial", new_process = FALSE, quiet = TRUE)'`:
+  passed and refreshed `pkgdown-site/articles/phylogenetic-spatial.html`.
+- `Rscript -e 'devtools::test(filter = "phylo-gaussian|check-drm", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'pkgdown::check_pkgdown()'`: passed.
+- `rg -n 'full bivariate phylogenetic location-scale block remain planned|full q=4 endpoint.*remain planned|future q=4 phylogenetic endpoint|not a fitted q=4 model|corpairs\\(\\.\\.\\) ~ w|corpairs\\(.*~' vignettes/phylogenetic-spatial.Rmd pkgdown-site/articles/phylogenetic-spatial.html docs/design docs/dev-log/known-limitations.md ROADMAP.md NEWS.md`:
+  returned no stale current-status hits.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- the article example is simulated for reproducibility and output reading, not a
+  real empirical case study;
+- the compact q=4 example can still show an optimizer-convergence warning, so
+  the article teaches readers to inspect gradient, Hessian, and q=4 covariance
+  diagnostics before inference;
+- predictor-dependent latent `corpair()` syntax and q=4 derived-correlation
+  profile intervals remain planned.
