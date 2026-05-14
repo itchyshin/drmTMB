@@ -2,6 +2,40 @@
 
 Record meaningful development checks here.
 
+## 2026-05-14 -- Map Slice 23 bivariate sd_phylo direct-SD design
+
+Scope:
+
+- documented the planned bivariate `sd_phylo1(species) ~ z1` /
+  `sd_phylo2(species) ~ z2` Family B contract;
+- specified that the targets are response-specific phylogenetic location
+  random-effect SD surfaces for `mu1` and `mu2`, not residual `sigma1`,
+  residual `sigma2`, or q=4 location-scale endpoint SDs;
+- recorded the intended covariance algebra
+  `Cov(a1_l, a2_m) = rho_phylo tau1_l A_lm tau2_m`, with residual `rho12`
+  remaining separate;
+- updated the formula grammar, likelihood design, shared phylo/spatial math,
+  random-effect scale design, roadmap, known limitations, and the parser hint
+  for planned `sd_phylo1()` / `sd_phylo2()` errors.
+
+Checks:
+
+- `air format R/parse-formula.R ROADMAP.md docs/design/01-formula-grammar.md docs/design/03-likelihoods.md docs/design/16-phylo-spatial-common-math.md docs/design/18-random-effect-scale-models.md docs/dev-log/known-limitations.md`:
+  passed.
+- `Rscript -e 'devtools::test(filter = "biv-gaussian|phylo-gaussian|package-skeleton", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'pkgdown::check_pkgdown()'`: passed with no problems found.
+- `rg -n 'sd_phylo1\(species\).*Implemented|sd_phylo2\(species\).*Implemented|sd_phylo1\(species\).*fits|sd_phylo2\(species\).*fits|bivariate `sd_phylo1\(\)`.*implemented|bivariate `sd_phylo2\(\)`.*implemented' README.md ROADMAP.md NEWS.md docs vignettes man pkgdown-site/articles/phylogenetic-spatial.html R tests`:
+  no hits.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- Slice 23 is design-only; `sd_phylo1()` / `sd_phylo2()` still error as planned
+  syntax.
+- The implementation, recovery tests, summary/predict methods, and diagnostics
+  are Slice 24/25 work.
+
 ## 2026-05-14 -- Map Slice 22 sd_phylo recovery diagnostics
 
 Scope:

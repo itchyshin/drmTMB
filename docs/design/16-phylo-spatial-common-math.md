@@ -652,6 +652,33 @@ location-scale covariance block. The univariate fitting and first recovery
 tests are implemented; bivariate `sd_phylo1()` / `sd_phylo2()` and spatial
 direct-SD siblings remain planned.
 
+The planned bivariate direct-SD extension keeps the same Family B lane. It
+targets only the phylogenetic location effects in matching `mu1` and `mu2`
+formulas:
+
+```text
+mu1_i = X1_i beta1 + a1_species[i]
+mu2_i = X2_i beta2 + a2_species[i]
+tau1_l = exp(W1_l alpha1)
+tau2_l = exp(W2_l alpha2)
+a1_l = tau1_l v1_tip,l
+a2_l = tau2_l v2_tip,l
+```
+
+The base effects `v1_aug` and `v2_aug` use the shared augmented tree precision
+and one constant phylogenetic location-location correlation. Therefore
+
+```text
+Cov(a1_l, a2_m) = rho_phylo tau1_l A_lm tau2_m
+```
+
+`sd_phylo1(species) ~ z1` and `sd_phylo2(species) ~ z2` replace endpoint
+phylogenetic location SDs; they do not model `sigma1`, `sigma2`, location-scale
+correlations, scale-scale correlations, or residual `rho12`. They must be
+rejected with the all-four q=4 phylogenetic block for the same species level,
+because that block is the Family A constant covariance model across location
+and scale effects.
+
 Testing should be staged:
 
 - parser and fitted-model tests for `phylo(1 | species, tree = tree)` in `mu`

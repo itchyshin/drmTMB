@@ -258,6 +258,57 @@ maximum fitted species-SD ratio, because weak replication or a numerically
 invalid SD surface can make direct-SD interpretation misleading even when fixed
 effects are available.
 
+Bivariate phylogenetic direct-SD syntax is planned with response-specific names:
+
+```r
+bf(
+  mu1 = y1 ~ x + phylo(1 | p | species, tree = tree),
+  mu2 = y2 ~ x + phylo(1 | p | species, tree = tree),
+  sigma1 = ~ w1,
+  sigma2 = ~ w2,
+  rho12 = ~ context,
+  sd_phylo1(species) ~ z1,
+  sd_phylo2(species) ~ z2
+)
+```
+
+The design target is still Family B and still location-only. `sd_phylo1()`
+models the SD surface of the `mu1` phylogenetic location effect and
+`sd_phylo2()` models the SD surface of the `mu2` phylogenetic location effect.
+They do not target residual `sigma1`, residual `sigma2`, phylogenetic
+random effects inside scale formulas, or q=4 location-scale endpoint SDs.
+
+The bivariate base effect should use one shared tree and one constant
+phylogenetic location-location correlation. With species-level design matrices
+`W1` and `W2`,
+
+```text
+tau1_l = exp(W1_l alpha_1)
+tau2_l = exp(W2_l alpha_2)
+[v1_aug, v2_aug] ~ tree-correlated unit base effect with corr rho_phylo
+a1_l = tau1_l v1_tip,l
+a2_l = tau2_l v2_tip,l
+Cov(a1_l, a1_m) = tau1_l A_lm tau1_m
+Cov(a2_l, a2_m) = tau2_l A_lm tau2_m
+Cov(a1_l, a2_m) = rho_phylo tau1_l A_lm tau2_m
+```
+
+This means `sd_phylo1()` and `sd_phylo2()` replace the scalar phylogenetic SD
+parameters for their matching location endpoints, while `rho_phylo` remains a
+latent phylogenetic location-location correlation reported by `corpairs()`.
+Residual `rho12` remains the within-observation coscale parameter. The first
+implementation may allow one or both response-specific direct-SD formulas; if
+only one is supplied, the other endpoint can keep its scalar phylogenetic SD.
+
+Unsupported combinations should fail before optimization:
+
+- `sd_phylo1()` or `sd_phylo2()` without matching bivariate `mu1`/`mu2`
+  phylogenetic location terms;
+- group or tree mismatches between `mu1`, `mu2`, and the direct-SD target;
+- use beside an all-four q=4 `mu1`/`mu2`/`sigma1`/`sigma2` phylogenetic block
+  for the same species level;
+- any `sd_sigma1()`, `sd_sigma2()`, or scale-random-effect SD target.
+
 ## Multiple Random-Effect Scale Components
 
 When there are several random-effect components, each scale formula must name

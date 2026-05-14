@@ -1227,6 +1227,14 @@ Implementation notes:
   user-facing SD predictors. This direct-SD formula replaces the scalar
   `log_sd_phylo` target for the univariate location `phylo()` effect rather
   than adding a second SD layer.
+- The planned bivariate Family B direct-SD extension uses
+  `sd_phylo1(species) ~ z1` for the `mu1` phylogenetic location-effect SD and
+  `sd_phylo2(species) ~ z2` for the `mu2` phylogenetic location-effect SD. With
+  a constant latent phylogenetic location-location correlation `rho_phylo`, the
+  cross-response tip covariance is
+  `Cov(a1_l, a2_m) = rho_phylo tau1_l A_lm tau2_m`. These formulas replace
+  endpoint location SD parameters only; they do not target residual `sigma1`,
+  residual `sigma2`, q=4 location-scale endpoint SDs, or residual `rho12`.
 - Bivariate random slopes, `rho12` random effects, phylogenetic random slopes,
   predictor-dependent phylogenetic correlations, and spatial q=4 blocks remain
   planned. The first constant intercept-only bivariate phylogenetic q=4 block is

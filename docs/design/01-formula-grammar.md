@@ -77,7 +77,7 @@ In this table, "coscale" means a model for residual correlation, currently
 | labelled `phylo(1 | p | species, tree = tree)` in matching bivariate `mu1` and `mu2` | Implemented | The label is preserved in SD, correlation, `corpairs()`, and profile-target names for the phylogenetic mean-mean path. |
 | labelled `phylo(1 | p | species, tree = tree)` in all four bivariate `mu1`, `mu2`, `sigma1`, and `sigma2` formulas | Implemented first slice | One constant q=4 phylogenetic location-scale block estimates four endpoint SDs and six latent phylogenetic correlations. Partial, unlabelled, mismatched, and slope forms remain rejected. |
 | `sd_phylo(species) ~ x_species` | Implemented | Family B direct-SD model for a univariate Gaussian phylogenetic location random effect; predictors must be constant within species and scale observed tips through the `D_tip A_tip D_tip` contract. |
-| bivariate `sd_phylo1(species) ~ x_species` / `sd_phylo2(species) ~ x_species` | Planned | Response-specific bivariate phylogenetic location direct-SD models come after the univariate `sd_phylo()` path has recovery and reporting evidence. |
+| bivariate `sd_phylo1(species) ~ x_species` / `sd_phylo2(species) ~ x_species` | Planned | Response-specific bivariate phylogenetic location direct-SD models. They target only `mu1` and `mu2` phylogenetic location SDs, keep the latent phylogenetic location-location correlation separate, and must not be combined with q=4 phylogenetic location-scale blocks. |
 | `weights = w` | Implemented | Top-level likelihood weights, not formula syntax. Known sampling covariance remains `meta_known_V(V = V)`. |
 | `y ~ x1`, `family = cumulative_logit()` | Implemented | Fixed-effect univariate ordinal model for ordered scores with cutpoints; `mu` is a latent location and ordinal scale formulas are planned. |
 | `cbind(successes, failures) ~ x1`, `family = beta_binomial()` | Implemented | Fixed-effect denominator-aware model for success counts with known trial totals; `sigma` is extra-binomial variation. |
@@ -430,6 +430,28 @@ Here `sd1(id)` models the SD of the `mu1` location random intercept and
 Family B direct variance-component scale models. They are not residual
 `sigma1` or `sigma2` models, and they do not target random effects inside the
 `sigma1` or `sigma2` formulas.
+
+The planned phylogenetic bivariate sibling uses the same response-specific
+idea:
+
+```r
+bf(
+  mu1 = y1 ~ x + phylo(1 | p | species, tree = tree),
+  mu2 = y2 ~ x + phylo(1 | p | species, tree = tree),
+  sigma1 = ~ w1,
+  sigma2 = ~ w2,
+  rho12 = ~ context,
+  sd_phylo1(species) ~ z1,
+  sd_phylo2(species) ~ z2
+)
+```
+
+`sd_phylo1(species)` targets the `mu1` phylogenetic location-effect SD surface
+and `sd_phylo2(species)` targets the `mu2` surface. The bivariate design keeps a
+constant latent phylogenetic location-location correlation, reported by
+`corpairs()`, and keeps residual `rho12` as the within-observation coscale
+parameter. It is not syntax for phylogenetic residual-scale SDs or q=4
+location-scale endpoint SDs.
 
 Reserved explicit random-effect scale targets use `dpar`, `coef`, and optional
 `block` arguments:

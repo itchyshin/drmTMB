@@ -240,7 +240,11 @@ distributional regression models using TMB.
   marginal tip covariance as `D_tip A_tip D_tip`. Bivariate `sd_phylo1()` /
   `sd_phylo2()` extensions remain planned. `check_drm()` now reports a
   univariate `sd_phylo()` direct-SD diagnostic row covering species replication
-  and the fitted species-level SD surface range.
+  and the fitted species-level SD surface range. The bivariate design target is
+  response-specific location-only direct-SD regression: `sd_phylo1()` for the
+  `mu1` phylogenetic location effect, `sd_phylo2()` for the `mu2` effect, a
+  constant latent phylogenetic location-location correlation, and no mixing with
+  all-four q=4 phylogenetic location-scale blocks.
 - Use the correlation-pair design in
   `docs/design/20-coscale-correlation-pairs.md` before implementing bivariate
   double-hierarchical covariance blocks; pair outputs should identify the
