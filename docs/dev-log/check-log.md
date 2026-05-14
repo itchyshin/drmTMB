@@ -13429,3 +13429,35 @@ Known limitations:
 - q=4 phylogenetic location-scale and scale-scale `corpair()` regressions still
   need a positive-definite q=4 covariance-regression contract;
 - spatial `corpair()` siblings and spatial random effects remain planned.
+
+## 2026-05-14 -- Slice 31 q2 phylogenetic corpair recovery evidence
+
+Goal:
+
+- add CRAN-safe recovery evidence for the first fitted q=2 phylogenetic
+  `corpair()` regression without overclaiming exact coefficient recovery.
+
+Implemented:
+
+- added a deterministic 16-species, 10-observation-per-species bivariate
+  Gaussian phylogenetic simulation with a positive species-level correlation
+  predictor;
+- checked optimizer convergence, finite modelled correlation values away from
+  the guard, positive fitted `z_species` coefficient, and strong rank agreement
+  between fitted response-scale correlations and the simulated correlation
+  surface;
+- updated `NEWS.md` and `ROADMAP.md` to say the q=2 fitted route now has
+  broad-trend recovery evidence, while q=4 and spatial correlation regressions
+  remain planned.
+
+Checks run:
+
+- `/Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::test(filter = "phylo-gaussian", reporter = "summary")'`:
+  passed.
+
+Known limitations:
+
+- the test checks broad trend recovery, not exact `alpha_cor` coefficient
+  recovery or coverage;
+- the q=4 phylogenetic and spatial correlation-regression lanes still need
+  their own designs, recovery tests, and reporting before they can be claimed.

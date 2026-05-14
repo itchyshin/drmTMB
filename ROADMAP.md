@@ -498,9 +498,11 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   pair. The design uses two independent unit phylogenetic fields and
   species-specific loadings, giving a positive-definite nonstationary covariance
   that reduces to the existing constant bivariate phylogenetic covariance when
-  the correlation predictor is constant. Phylogenetic location-scale and
-  scale-scale correlation regressions require a q=4 contract and remain
-  deferred; spatial siblings remain planned.
+  the correlation predictor is constant. A CRAN-safe broad-trend recovery test
+  checks that a positive species-level predictor recovers the fitted
+  phylogenetic correlation ordering without hitting the correlation guard.
+  Phylogenetic location-scale and scale-scale correlation regressions require a
+  q=4 contract and remain deferred; spatial siblings remain planned.
 
 ## Phase 13: Double-Hierarchical Derived Inference
 

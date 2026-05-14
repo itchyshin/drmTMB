@@ -743,6 +743,48 @@ test_that("bivariate phylogenetic corpair regression reports q2 location correla
   ))
 })
 
+test_that("bivariate phylogenetic corpair regression recovers broad correlation trend", {
+  sim <- new_biv_phylo_corpair_gaussian_data(
+    seed = 20260931,
+    n_tip = 16L,
+    n_each = 10L,
+    sd_phylo = c(0.80, 0.75),
+    sigma = c(0.12, 0.12),
+    alpha_cor = c(`(Intercept)` = 0, z_species = 0.40)
+  )
+  dat <- sim$data
+  tree <- sim$tree
+
+  fit <- drmTMB(
+    bf(
+      mu1 = y1 ~ x + phylo(1 | p | species, tree = tree),
+      mu2 = y2 ~ x + phylo(1 | p | species, tree = tree),
+      sigma1 = ~1,
+      sigma2 = ~1,
+      rho12 = ~1,
+      corpair(
+        species,
+        level = "phylogenetic",
+        block = "p",
+        from = "mu1",
+        to = "mu2"
+      ) ~ z_species
+    ),
+    family = c(gaussian(), gaussian()),
+    data = dat,
+    control = list(eval.max = 800, iter.max = 800)
+  )
+  cor_dpar <- grep("^corpair\\(", names(fit$coefficients), value = TRUE)
+  rho_hat <- predict(fit, dpar = cor_dpar, type = "response")
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(length(rho_hat), length(sim$rho_phylo))
+  expect_gt(fit$coefficients[[cor_dpar]][["z_species"]], 0.10)
+  expect_lt(fit$coefficients[[cor_dpar]][["z_species"]], 1.25)
+  expect_gt(stats::cor(rho_hat, sim$rho_phylo), 0.95)
+  expect_lt(max(abs(rho_hat)), 0.85)
+})
+
 test_that("bivariate phylogenetic location supports sd_phylo1 and sd_phylo2", {
   sim <- new_biv_sd_phylo_gaussian_data()
   dat <- sim$data
