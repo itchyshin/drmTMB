@@ -89,14 +89,17 @@ spatial <- function(term, coords = NULL, mesh = NULL) {
 #' @param group Grouping factor for the latent covariance block.
 #' @param block Optional covariance-block label, such as `"p"`.
 #' @param class Optional latent correlation class: `"location-location"`,
-#'   `"location-scale"`, or `"scale-scale"`.
+#'   `"location-scale"`, or `"scale-scale"`. This is an extraction-oriented
+#'   shorthand and is not the first fitted q=4 correlation-regression target.
+#' @param from,to Optional endpoint-specific distributional parameters, such as
+#'   `"mu1"` and `"sigma2"`, for planned fitted correlation-regression targets.
 #'
 #' @return A formula marker; never evaluated by users.
 #' @export
 #'
 #' @examples
 #' # planned only; drmTMB() will currently reject corpair() formulas
-#' bf(corpair(id, block = "p", class = "location-scale") ~ x)
-corpair <- function(group, block = NULL, class = NULL) {
+#' bf(corpair(id, block = "p", from = "mu1", to = "sigma2") ~ x)
+corpair <- function(group, block = NULL, class = NULL, from = NULL, to = NULL) {
   invisible(NULL)
 }

@@ -244,34 +244,14 @@ mean deviations are included. Read the fitted phylogenetic layer with
 `cor:phylo:` target when a direct profile interval is worth the extra compute.
 
 If the scientific question separates shared ancestry from a remaining
-species-level association, add an ordinary labelled species block as a second
-layer:
-
-```r
-fit_biv_phylo_species <- drmTMB(
-  drm_formula(
-    mu1 = log_body_mass ~ diet + body_size +
-      (1 | species_residual | species) +
-      phylo(1 | species, tree = tree),
-    mu2 = log_litter_size ~ diet + body_size +
-      (1 | species_residual | species) +
-      phylo(1 | species, tree = tree),
-    sigma1 = ~ diet,
-    sigma2 = ~ diet,
-    rho12 = ~ diet
-  ),
-  family = c(gaussian(), gaussian()),
-  data = mammals
-)
-```
-
-This keeps three correlation layers separate in the fitted object:
-`rho12(fit_biv_phylo_species)`,
-`corpairs(fit_biv_phylo_species, level = "phylogenetic")`, and
-`corpairs(fit_biv_phylo_species, level = "group")`. When the ordinary group
-block and the phylogenetic block both use `species`, `check_drm()` notes the
-overlap so you compare simpler models or profile intervals before treating the
-two species-level correlations as cleanly separated.
+species-level association, that is an advanced identifiability comparison, not
+the introductory path. A phylogenetic species effect is species-level structure
+induced by the tree; it is not a residual observation-level correlation.
+Adding a non-phylogenetic species block beside `phylo()` asks the model to split
+two species-level covariance layers that share the same grouping factor. That
+comparison should live in a dedicated identifiability example with
+`check_drm()`, profile intervals, and simpler-model comparisons, rather than in
+the main model map.
 
 Use this staged interpretation until the full combined location-scale model is
 implemented:

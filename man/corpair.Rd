@@ -4,7 +4,7 @@
 \alias{corpair}
 \title{Planned latent random-effect correlation formula marker}
 \usage{
-corpair(group, block = NULL, class = NULL)
+corpair(group, block = NULL, class = NULL, from = NULL, to = NULL)
 }
 \arguments{
 \item{group}{Grouping factor for the latent covariance block.}
@@ -12,7 +12,11 @@ corpair(group, block = NULL, class = NULL)
 \item{block}{Optional covariance-block label, such as \code{"p"}.}
 
 \item{class}{Optional latent correlation class: \code{"location-location"},
-\code{"location-scale"}, or \code{"scale-scale"}.}
+\code{"location-scale"}, or \code{"scale-scale"}. This is an extraction-oriented
+shorthand and is not the first fitted q=4 correlation-regression target.}
+
+\item{from, to}{Optional endpoint-specific distributional parameters, such as
+\code{"mu1"} and \code{"sigma2"}, for planned fitted correlation-regression targets.}
 }
 \value{
 A formula marker; never evaluated by users.
@@ -26,5 +30,5 @@ predictor-dependent latent correlations have likelihood and recovery tests.
 }
 \examples{
 # planned only; drmTMB() will currently reject corpair() formulas
-bf(corpair(id, block = "p", class = "location-scale") ~ x)
+bf(corpair(id, block = "p", from = "mu1", to = "sigma2") ~ x)
 }

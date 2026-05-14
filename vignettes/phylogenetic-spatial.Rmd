@@ -262,15 +262,17 @@ The natural next syntax is reserved but not fitted yet:
 
 ```r
 # Planned, not fitted yet:
-corpair(species, block = "p", class = "location-location") ~ assay_context
-corpair(species, block = "p", class = "location-scale") ~ assay_context
-corpair(species, block = "p", class = "scale-scale") ~ assay_context
+corpair(species, block = "p", from = "mu1", to = "mu2") ~ assay_context
+corpair(species, block = "p", from = "mu1", to = "sigma2") ~ assay_context
+corpair(species, block = "p", from = "sigma1", to = "sigma2") ~ assay_context
 ```
 
 That future layer would make phylogenetic random-effect correlations vary with
 a predictor, analogous in spirit to `rho12 = ~ assay_context` for residual
-correlation. Today, use `corpairs()` for fitted constant latent phylogenetic
-correlations and `rho12()` for fitted residual correlations.
+correlation. Endpoint-specific `from` / `to` syntax avoids treating all four
+location-scale pairs as if they had the same biological meaning. Today, use
+`corpairs()` for fitted constant latent phylogenetic correlations and `rho12()`
+for fitted residual correlations.
 
 ## What should get 95% intervals?
 
@@ -554,8 +556,8 @@ phylogenetic correlations when the matching `phylo()` terms define a shared
 covariance block. It cannot yet fit a separate predictor formula for those
 latent correlations. In other words, `rho12 = ~ assay_context` is implemented
 for residual correlation regression, but
-`corpair(species, block = "p", class = "location-location") ~ assay_context`
-is still planned.
+`corpair(species, block = "p", from = "mu1", to = "mu2") ~ assay_context` is
+still planned.
 
 The q=4 phylogenetic location-scale block extends the same idea to four
 endpoints:
@@ -713,12 +715,17 @@ extractor is `corpairs()`, but the planned formula syntax should be singular:
 
 ```r
 # Planned, not fitted yet:
-corpair(species, block = "p", class = "location-location") ~ w
-corpair(species, block = "p", class = "location-scale") ~ w
-corpair(species, block = "p", class = "scale-scale") ~ w
+corpair(species, block = "p", from = "mu1", to = "mu2") ~ w
+corpair(species, block = "p", from = "mu1", to = "sigma1") ~ w
+corpair(species, block = "p", from = "mu1", to = "sigma2") ~ w
+corpair(species, block = "p", from = "mu2", to = "sigma1") ~ w
+corpair(species, block = "p", from = "mu2", to = "sigma2") ~ w
+corpair(species, block = "p", from = "sigma1", to = "sigma2") ~ w
 ```
 
-Use `rho12 = ~ assay_context` for residual correlation predictors today. Use
+This endpoint naming matters because the cross-trait mean-scale pairs can be
+biologically harder to interpret than same-trait pairs. Use
+`rho12 = ~ assay_context` for residual correlation predictors today. Use
 `corpairs(fit, level = "phylogenetic")` to extract the fitted constant latent
 phylogenetic correlations today.
 

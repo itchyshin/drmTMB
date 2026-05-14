@@ -83,7 +83,7 @@ In this table, "coscale" means a model for residual correlation, currently
 | `cbind(successes, failures) ~ x1`, `family = beta_binomial()` | Implemented | Fixed-effect denominator-aware model for success counts with known trial totals; `sigma` is extra-binomial variation. |
 | `phylo(1 + x1 | species, tree = tree)` | Planned | Structured slopes come after the intercept-only path is hardened. |
 | `spatial(1 | site, coords = coords)` and `spatial(1 | site, mesh = mesh)` | Planned | Spatial SPDE/GMRF terms are part of the design but not fitted yet. |
-| `corpair(id, block = "p", class = "location-scale") ~ x` | Reserved | Planned syntax for predictor-dependent latent random-effect correlations; `drmTMB()` currently rejects it clearly. |
+| `corpair(id, block = "p", from = "mu1", to = "sigma2") ~ x` | Reserved | Planned endpoint-specific syntax for predictor-dependent latent random-effect correlations; `drmTMB()` currently rejects it clearly. |
 | Bivariate random slopes, spatial q4 covariance blocks, predictor-dependent phylogenetic/spatial correlations, or `rho12` random effects | Planned | Requires larger structured covariance parameterizations, simulation recovery, and naming checks. |
 
 ## Univariate Syntax
@@ -234,7 +234,7 @@ bf(
   sigma1 = ~ z + (1 | p | id),
   sigma2 = ~ z + (1 | p | id),
   rho12 = ~ w,
-  corpair(id, block = "p", class = "location-scale") ~ w
+  corpair(id, block = "p", from = "mu1", to = "sigma2") ~ w
 )
 ```
 
@@ -249,6 +249,18 @@ interpretation. A `cor12()` formula would make location-scale and scale-scale
 targets look like residual response correlations, which is exactly the
 ambiguity this grammar is trying to avoid.
 
+Slice 11 chooses endpoint-specific `corpair()` modelling as the first ordinary
+predictor-dependent route. The next grammar extension should therefore identify
+the exact endpoints:
+
+```r
+corpair(id, block = "p", from = "mu1", to = "sigma2") ~ w
+```
+
+The older `class = "location-scale"` spelling remains useful as an extraction
+filter and as a possible later shared-class model, but it should not be the
+first fitted q=4 correlation-regression target.
+
 This is not fitted yet. Use `rho12 = ~ w` for residual within-observation
 correlation, and use `corpairs(fit)` to extract fitted constant latent
 random-effect correlations. Predictor-dependent `corpair()` models should come
@@ -261,7 +273,10 @@ For the current 35-slice covariance route, predictor-dependent ordinary
 `corpair()` fitting is deferred even though the formula marker is parsed. In a
 q=4 block, `class = "location-scale"` can refer to four different endpoint
 pairs, so a fitted formula needs either a class-wide shared-correlation
-contract or endpoint-specific syntax before it can be statistically clear.
+contract or endpoint-specific syntax before it can be statistically clear. The
+first fitted ordinary route should be endpoint-specific and q=2 only; full q=4
+correlation regression needs a positive-definite matrix parameterization rather
+than independent pairwise `tanh()` regressions.
 
 The `mvbind()` form is implemented as shorthand for identical location
 formulas:

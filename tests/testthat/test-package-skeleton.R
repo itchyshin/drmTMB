@@ -111,17 +111,26 @@ test_that("drm_formula() captures planned corpair formula syntax", {
     sigma1 = ~1,
     sigma2 = ~1,
     rho12 = ~1,
-    corpair(id, block = "p", class = "location-scale") ~ z
+    corpair(id, block = "p", from = "mu1", to = "sigma2") ~ z
   )
 
   entry <- form$entries[[6L]]
   expect_s3_class(form, "drm_formula")
   expect_equal(
     entry$dpar,
-    'corpair(id, block = "p", class = "location-scale")'
+    'corpair(id, block = "p", from = "mu1", to = "sigma2")'
   )
   expect_equal(
-    entry$corpair[c("group", "block", "class")],
+    entry$corpair[c("group", "block", "from", "to")],
+    list(group = "id", block = "p", from = "mu1", to = "sigma2")
+  )
+
+  class_form <- drm_formula(
+    corpair(id, block = "p", class = "location-scale") ~ z
+  )
+  class_entry <- class_form$entries[[1L]]
+  expect_equal(
+    class_entry$corpair[c("group", "block", "class")],
     list(group = "id", block = "p", class = "location-scale")
   )
 })
@@ -199,6 +208,7 @@ test_that("formula markers are no-op placeholders", {
   expect_null(spatial(1 | site, coords = coords))
   expect_null(spatial(1 | site, mesh = mesh))
   expect_null(corpair(id, block = "p", class = "location-scale"))
+  expect_null(corpair(id, block = "p", from = "mu1", to = "sigma2"))
 })
 
 test_that("planned structured-effect markers validate their grammar", {
@@ -246,7 +256,7 @@ test_that("planned corpair formulas validate grammar and reject fitting clearly"
     sigma1 = ~1,
     sigma2 = ~1,
     rho12 = ~1,
-    corpair(id, block = "p", class = "location-location") ~ z
+    corpair(id, block = "p", from = "mu1", to = "mu2") ~ z
   )
 
   expect_error(
@@ -256,6 +266,24 @@ test_that("planned corpair formulas validate grammar and reject fitting clearly"
   expect_error(
     drm_formula(corpair(id, class = "residual") ~ z),
     "latent random-effect correlation class"
+  )
+  expect_error(
+    drm_formula(corpair(id, from = "mu1") ~ z),
+    "must be supplied together"
+  )
+  expect_error(
+    drm_formula(
+      corpair(id, class = "location-scale", from = "mu1", to = "sigma2") ~ z
+    ),
+    "either .*class.* or endpoint-specific"
+  )
+  expect_error(
+    drm_formula(corpair(id, from = "rho12", to = "sigma2") ~ z),
+    "distributional-parameter endpoints"
+  )
+  expect_error(
+    drm_formula(corpair(id, from = "mu1", to = "mu1") ~ z),
+    "two different endpoints"
   )
   expect_error(
     drm_formula(target = corpair(id, block = "p") ~ z),

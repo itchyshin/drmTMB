@@ -13063,3 +13063,50 @@ Known limitations:
 
 - this was a documentation and interpretation correction only; no new
   predictor-dependent latent `corpair()` model was fitted in this patch.
+
+## 2026-05-14 -- Slice 11 endpoint-specific corpair grammar
+
+Goal:
+
+- reserve the ordinary predictor-dependent latent-correlation formula grammar
+  without fitting a new likelihood.
+
+Implemented:
+
+- chose endpoint-specific `corpair()` syntax for the first ordinary
+  predictor-dependent route, for example
+  `corpair(id, block = "p", from = "mu1", to = "sigma2") ~ w`;
+- kept `corpair()` singular for formula targets and `corpairs()` plural for the
+  fitted extractor;
+- retained `class = "location-scale"` as a reserved shorthand and extraction
+  concept, but not as the first fitted q=4 correlation-regression target;
+- taught the parser to store `from` and `to`, reject half-specified endpoints,
+  reject `class` mixed with endpoints, reject residual `rho12` as a latent
+  endpoint, and reject self-correlations such as `from = "mu1", to = "mu1"`;
+- updated `NEWS.md`, formula grammar, the correlation-pair design note,
+  known limitations, and the formula-grammar, model-map, and
+  phylogenetic-spatial articles.
+
+Checks run:
+
+- `air format R/parse-formula.R R/formula-markers.R tests/testthat/test-package-skeleton.R docs/design/01-formula-grammar.md docs/design/20-coscale-correlation-pairs.md docs/dev-log/known-limitations.md vignettes/phylogenetic-spatial.Rmd vignettes/formula-grammar.Rmd vignettes/model-map.Rmd NEWS.md`:
+  passed.
+- `git diff --check`: passed.
+- `Rscript -e 'devtools::test(filter = "package-skeleton", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'devtools::document()'`: passed and refreshed
+  `man/corpair.Rd`.
+- `Rscript -e 'devtools::load_all(quiet = TRUE); pkgdown::build_article("phylogenetic-spatial", new_process = FALSE, quiet = TRUE); pkgdown::build_article("formula-grammar", new_process = FALSE, quiet = TRUE)'`:
+  passed and refreshed both local articles.
+- `Rscript -e 'devtools::load_all(quiet = TRUE); pkgdown::build_article("model-map", new_process = FALSE, quiet = TRUE)'`:
+  passed and refreshed the local model-map article.
+- `Rscript -e 'pkgdown::check_pkgdown()'`: passed.
+- `rg -n 'corpair\([^\n]*class = "location-(location|scale|scale-scale)"|cor12\(|corpairs\([^\n]*~|corpairs\(\.\.\.\) ~ w|species_residual|fit_biv_phylo_species' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes pkgdown-site/articles`:
+  returned only intentional `cor12()` rejection wording and one design note
+  explaining why class-wide `location-scale` syntax is deferred.
+
+Known limitations:
+
+- Slice 11 still does not fit predictor-dependent latent random-effect
+  correlations. The first fitted ordinary route should be q=2; q=4
+  correlation regression needs a positive-definite matrix parameterization.

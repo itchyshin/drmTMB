@@ -51,8 +51,9 @@ Future rows can be added as phylogenetic scale, phylogenetic mean-scale,
 spatial, study-level, and richer double-hierarchical correlation likelihoods
 become implemented.
 
-The singular formula marker `corpair(group, block = "...", class = "...") ~ x`
-is reserved for future predictor-dependent latent random-effect correlations.
+The singular formula marker
+`corpair(group, block = "...", from = "mu1", to = "sigma2") ~ x` is reserved
+for future predictor-dependent latent random-effect correlations.
 `drm_formula()` parses it, but `drmTMB()` rejects it until the likelihood,
 diagnostics, and recovery tests exist. Use `rho12 = ~ x` for residual
 within-observation correlation, and use `corpairs(fit)` to extract fitted
@@ -60,28 +61,38 @@ constant latent correlations.
 
 ## Route Decision: Predictor-Dependent `corpair()`
 
-For the 35-slice structured-covariance route, predictor-dependent ordinary
-`corpair()` models stay deferred after the parser/error slice. The reason is
-not only implementation cost. In an ordinary q=4 block,
-`class = "location-scale"` names four distinct latent correlations:
-`mu1`-`sigma1`, `mu1`-`sigma2`, `mu2`-`sigma1`, and `mu2`-`sigma2`. A formula
-such as `corpair(id, block = "p", class = "location-scale") ~ w` therefore has
-an unresolved statistical meaning unless the package also records whether the
-same predictor model is shared across all four pairs, or whether the user must
-target one endpoint pair explicitly.
+Slice 11 chooses an endpoint-specific design for predictor-dependent ordinary
+`corpair()` models. The singular formula marker remains `corpair()`, not
+`cor12()`, because this layer is a latent random-effect covariance layer rather
+than the residual two-response parameter `rho12`.
 
-The safe next implementation step is to keep fitted `corpairs()` extraction
-stable for constant covariance blocks and move the modelling work to the
-constant phylogenetic q=4 block. Predictor-dependent ordinary `corpair()` can
-return later with one of two explicit contracts:
+The planned endpoint-specific syntax is:
 
-- class-wide shared model: one predictor formula controls all pairwise
-  correlations in the class, with a clear positive-definite parameterization;
-- endpoint-specific model: syntax is extended to identify the exact endpoints,
-  for example the equivalent of `corpair(mu1, sigma1 | id, block = "p") ~ w`.
+```r
+corpair(id, block = "p", from = "mu1", to = "mu2") ~ w
+corpair(id, block = "p", from = "mu1", to = "sigma1") ~ w
+corpair(id, block = "p", from = "mu1", to = "sigma2") ~ w
+corpair(id, block = "p", from = "mu2", to = "sigma1") ~ w
+corpair(id, block = "p", from = "mu2", to = "sigma2") ~ w
+corpair(id, block = "p", from = "sigma1", to = "sigma2") ~ w
+```
 
-Until one of those contracts is chosen and tested, `corpair()` remains a
-reserved formula marker and not a fitted likelihood feature.
+The `class` argument remains useful for extraction and for future shorthand
+when a class maps to one unique pair. It should not be the first fitted q=4
+modelling target. In an ordinary q=4 block, `class = "location-scale"` names
+four distinct latent correlations: `mu1`-`sigma1`, `mu1`-`sigma2`,
+`mu2`-`sigma1`, and `mu2`-`sigma2`. A class-wide formula such as
+`corpair(id, block = "p", class = "location-scale") ~ w` would therefore mean
+"share one predictor model across all four pairs", which is a different model
+from choosing one endpoint pair. That shared-class model stays later.
+
+The first fitted ordinary implementation should be q=2 only: one selected
+latent pair in a covariance block whose dimension is exactly two. That keeps
+the likelihood on the familiar Fisher-z scale,
+`rho_j = tanh(eta_j)`, while preserving positive definiteness. Full q=4
+predictor-dependent correlations need a separate positive-definite correlation
+matrix parameterization; fitting six independent `tanh()` regressions would not
+guarantee a valid q=4 correlation matrix.
 
 ## Why Named Correlation Pairs Are Needed
 
@@ -139,12 +150,14 @@ corpairs(fit, level = "phylogenetic")
 ```
 
 The fitted table currently reports `mean-mean` and `mean-scale` because that
-vocabulary is already used in older random-effect summaries. The singular
-reserved formula syntax uses the more general location terminology:
-`corpair(id, block = "p", class = "location-scale") ~ z`. To keep those two
+vocabulary is already used in older random-effect summaries. The endpoint-
+specific formula syntax uses distributional-parameter names such as
+`corpair(id, block = "p", from = "mu1", to = "sigma2") ~ z`. To keep those two
 surfaces compatible while avoiding a broad output rename, `corpairs()` accepts
 `location-location`, `location-scale`, `location-slope`, and `slope-location`
-as filter aliases for the existing `mean-*` rows.
+as filter aliases for the existing `mean-*` rows. The older `class` argument
+remains a planned shorthand, but it is not the first fitted q=4 modelling
+target.
 
 The existing `rho12(fit)` helper should remain a narrow convenience extractor
 for residual response-response correlation only.
@@ -301,12 +314,15 @@ display preference, because each layer answers a different biological question.
    species or individual covariance blocks.
 10. Add spatial bivariate covariance blocks.
 11. Reserve `corpair()` formula syntax, but keep fitting disabled. Done for
-   parser and error messaging.
-12. Only after simulation evidence and an endpoint-selection contract: fit
-   predictor-dependent group-level or structured-effect correlation formulas.
-   The 35-slice route defers this item and moves next to constant
-   phylogenetic q=4 covariance, because class-wide `corpair()` syntax is
-   ambiguous for location-scale q=4 blocks.
+    parser and error messaging.
+12. Add the endpoint-specific `from` / `to` grammar for predictor-dependent
+    ordinary `corpair()` formulas, while still rejecting fitting until the
+    likelihood and tests exist.
+13. Fit predictor-dependent ordinary q=2 `corpair()` formulas first. The q=2
+    restriction keeps the correlation matrix positive definite through a single
+    Fisher-z regression.
+14. Design a full q=4 positive-definite correlation-regression parameterization
+    before fitting endpoint-specific or class-wide q=4 `corpair()` formulas.
 
 For covariance blocks with more than two random-effect coefficients, use a
 positive-definite Cholesky or partial-correlation parameterization. Do not fit
