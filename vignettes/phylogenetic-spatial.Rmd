@@ -45,10 +45,12 @@ balanced_ultrametric_tree <- function(n_tip = 16L) {
 ```
 
 Phylogenetic and spatial dependence are structured random effects. The first
-implemented path in `drmTMB` is an intercept-only phylogenetic effect in the
-univariate Gaussian location formula. Spatial fields, phylogenetic slopes,
-phylogenetic scale terms, and bivariate structured covariance blocks remain
-planned extensions.
+implemented `drmTMB` path is an intercept-only phylogenetic effect in the
+univariate Gaussian location formula. A first bivariate path also fits matching
+intercept-only `phylo()` terms in `mu1` and `mu2`, estimating the two
+phylogenetic location SDs and their mean-mean correlation. Spatial fields,
+phylogenetic slopes, phylogenetic scale terms, and the full bivariate
+phylogenetic location-scale block remain planned extensions.
 
 The scientific question for the implemented path is simple:
 
@@ -61,6 +63,21 @@ phylogenetic deviation in the location parameter `mu` for each species.
 
 Throughout this article, `Normal(a, b)` and `MVN(a, B)` use variance or
 covariance as the second argument.
+
+## Current implementation status
+
+This page separates the fitted paths from the roadmap. The fitted phylogenetic
+pieces are useful, but they are not yet the full phylogenetic
+location-scale-coscale model.
+
+| Model piece | Status | What it means |
+| --- | --- | --- |
+| `phylo(1 | species, tree = tree)` in univariate `mu` | Implemented | One trait has a phylogenetic random intercept in the location predictor. |
+| Matching `phylo(1 | species, tree = tree)` terms in bivariate `mu1` and `mu2` | Implemented first slice | Two traits have correlated phylogenetic location deviations; `corpairs(level = "phylogenetic")` reports the mean-mean row separately from residual `rho12`. |
+| Ordinary `(1 | p | id)` terms in all four bivariate `mu1`, `mu2`, `sigma1`, and `sigma2` formulas | Implemented first slice | One ordinary q=4 group block estimates six latent location-location, location-scale, and scale-scale correlations. |
+| `phylo()` terms in bivariate `sigma1` and `sigma2` | Planned | This is the next phylogenetic PLSM path: a q=4 phylogenetic block spanning `mu1`, `mu2`, `sigma1`, and `sigma2`. |
+| `sd_phylo(species) ~ z` | Planned | This is the separate Box 1 direct-SD family, not a scale formula with a matching random effect. |
+| `spatial(1 | site, coords = coords)` or `spatial(1 | site, mesh = mesh)` | Planned | Spatial will mirror the phylogenetic API after the phylogenetic structured-effect path is stable. |
 
 ## Mathematical contract
 

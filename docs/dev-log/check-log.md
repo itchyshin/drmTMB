@@ -12388,3 +12388,45 @@ Known limitations:
 - the generated `pkgdown-site/articles/formula-grammar.html` was rebuilt for
   local review but remains a generated site artifact rather than the source of
   truth.
+
+## 2026-05-14 -- Slice 23: structured-dependence article status refresh
+
+Goal:
+
+- update the reader-facing structured-dependence article so it separates the
+  implemented univariate and bivariate phylogenetic location paths from the
+  planned phylogenetic q=4, direct-SD, and spatial paths.
+
+Implemented:
+
+- revised the article opening so it no longer implies that only univariate
+  phylogenetic location effects are implemented;
+- added a compact current-status table for univariate `phylo()` in `mu`,
+  matching bivariate `mu1`/`mu2` phylogenetic location covariance, ordinary q=4
+  grouped covariance, planned phylogenetic scale/q=4, planned `sd_phylo()`,
+  and planned spatial effects;
+- rebuilt the local pkgdown `phylogenetic-spatial` article for browser review.
+
+Checks run:
+
+- `air format vignettes/phylogenetic-spatial.Rmd`: passed.
+- `Rscript -e "pkgdown::build_article('phylogenetic-spatial')"`: passed and
+  wrote `pkgdown-site/articles/phylogenetic-spatial.html`.
+- `Rscript -e 'devtools::test(filter = "phylo-gaussian|corpairs|summary|check-drm", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'pkgdown::check_pkgdown()'`: passed.
+- `git diff --check`: passed.
+- `rg -n 'Current implementation status|full phylogenetic PLSM|sd_phylo\\(species\\)|Matching .*mu1.*mu2' vignettes/phylogenetic-spatial.Rmd pkgdown-site/articles/phylogenetic-spatial.html`:
+  confirmed the new source and generated article text.
+- `rg -n 'first implemented path|bivariate structured covariance blocks remain planned|only.*univariate Gaussian location|full bivariate phylogenetic location-scale block|sd_phylo\\(species\\) ~ z|location-scale-coscale' README.md ROADMAP.md NEWS.md docs vignettes _pkgdown.yml pkgdown-site/articles/phylogenetic-spatial.html`:
+  confirmed the old stale article opening was gone and the remaining matches
+  were current docs or historical dev-log entries.
+- `rg -n 'phylo\\(1 \\| species, tree = tree\\)|corpairs\\(.*phylogenetic|rho12|spatial\\(1 \\| site|sd_phylo' README.md ROADMAP.md docs/dev-log/known-limitations.md docs/design/01-formula-grammar.md vignettes/formula-grammar.Rmd vignettes/phylogenetic-spatial.Rmd _pkgdown.yml`:
+  checked the status inventory for phylogenetic, residual-correlation, direct
+  SD, and spatial wording.
+
+Known limitations:
+
+- this slice changes only the source vignette and regenerated local article;
+- it does not implement phylogenetic scale terms, phylogenetic q=4 covariance,
+  direct structured-SD regression, or spatial effects.
