@@ -220,6 +220,9 @@ This is not fitted yet. Use `rho12 = ~ w` for residual within-observation
 correlation, and use `corpairs(fit)` to extract fitted constant latent
 random-effect correlations. Predictor-dependent `corpair()` models should come
 after constant q4 diagnostics, profiles, and recovery evidence are stable.
+Because older fitted rows currently report `mean-mean` and `mean-scale`,
+`corpairs()` accepts `location-location` and `location-scale` as class filter
+aliases while the output naming remains stable.
 
 The `mvbind()` form is implemented as shorthand for identical location
 formulas:

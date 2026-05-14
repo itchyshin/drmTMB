@@ -12316,3 +12316,39 @@ Known limitations:
 - these are smoke tests for conditional response simulation from fitted models;
 - they do not simulate new random-effect draws from the fitted q4 or
   phylogenetic covariance distributions.
+
+## 2026-05-13 -- Slice 21: corpairs location-class filter aliases
+
+Goal:
+
+- align fitted `corpairs()` filtering with the reserved `corpair()` class
+  vocabulary without renaming existing output classes.
+
+Implemented:
+
+- added `corpairs(class = "location-location")` as a filter alias for existing
+  `mean-mean` rows;
+- added `corpairs(class = "location-scale")` as a filter alias for existing
+  `mean-scale` rows;
+- added `location-slope` / `slope-location` aliases for the existing
+  `mean-slope` row class;
+- documented the alias bridge in roxygen, formula grammar, and the coscale
+  correlation-pairs design note;
+- added q4 regression checks for `location-location` and `location-scale`
+  class filters.
+
+Checks run:
+
+- `air format R/methods.R tests/testthat/test-biv-gaussian.R`: passed.
+- `Rscript -e 'devtools::document()'`: passed and regenerated
+  `man/corpairs.Rd`.
+- `Rscript -e 'devtools::test(filter = "biv-gaussian|corpairs|package-skeleton", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'devtools::load_all(quiet = TRUE)'`: passed.
+- `Rscript -e 'pkgdown::check_pkgdown()'`: passed.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- output rows still report `mean-mean`, `mean-scale`, and `mean-slope`;
+- this slice is a compatibility bridge, not a broad class-name migration.

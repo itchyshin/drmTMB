@@ -175,7 +175,9 @@ rho12.drmTMB <- function(
 #'   such as `"p"`. Residual rows have no block label and are removed by this
 #'   filter.
 #' @param class Optional character vector of pair classes to keep, such as
-#'   `"residual"` or `"mean-slope"`.
+#'   `"residual"` or `"mean-slope"`. Location aliases such as
+#'   `"location-location"` and `"location-scale"` are accepted as filters for
+#'   the current `"mean-mean"` and `"mean-scale"` rows.
 #' @param ... Reserved for future extractor options.
 #'
 #' @return A data frame with one row per fitted correlation pair or pair
@@ -270,10 +272,23 @@ corpairs.drmTMB <- function(
     out <- out[out$block %in% block, , drop = FALSE]
   }
   if (!is.null(class)) {
+    class <- normalize_corpairs_class_filter(class)
     out <- out[out$class %in% class, , drop = FALSE]
   }
   row.names(out) <- NULL
   out
+}
+
+normalize_corpairs_class_filter <- function(class) {
+  aliases <- c(
+    "location-location" = "mean-mean",
+    "location-scale" = "mean-scale",
+    "location-slope" = "mean-slope",
+    "slope-location" = "mean-slope"
+  )
+  mapped <- unname(aliases[class])
+  class[!is.na(mapped)] <- mapped[!is.na(mapped)]
+  unique(class)
 }
 
 empty_corpairs <- function() {

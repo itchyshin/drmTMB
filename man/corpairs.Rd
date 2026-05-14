@@ -26,7 +26,9 @@ such as \code{"p"}. Residual rows have no block label and are removed by this
 filter.}
 
 \item{class}{Optional character vector of pair classes to keep, such as
-\code{"residual"} or \code{"mean-slope"}.}
+\code{"residual"} or \code{"mean-slope"}. Location aliases such as
+\code{"location-location"} and \code{"location-scale"} are accepted as filters for
+the current \code{"mean-mean"} and \code{"mean-scale"} rows.}
 }
 \value{
 A data frame with one row per fitted correlation pair or pair

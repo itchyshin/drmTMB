@@ -108,8 +108,18 @@ corpairs(fit, level = "group")
 corpairs(fit, group = "ID")
 corpairs(fit, block = "p")
 corpairs(fit, class = "mean-mean")
+corpairs(fit, class = "location-location")
+corpairs(fit, class = "location-scale")
 corpairs(fit, level = "phylogenetic")
 ```
+
+The fitted table currently reports `mean-mean` and `mean-scale` because that
+vocabulary is already used in older random-effect summaries. The singular
+reserved formula syntax uses the more general location terminology:
+`corpair(id, block = "p", class = "location-scale") ~ z`. To keep those two
+surfaces compatible while avoiding a broad output rename, `corpairs()` accepts
+`location-location`, `location-scale`, `location-slope`, and `slope-location`
+as filter aliases for the existing `mean-*` rows.
 
 The existing `rho12(fit)` helper should remain a narrow convenience extractor
 for residual response-response correlation only.

@@ -835,6 +835,8 @@ test_that("bivariate Gaussian supports full q4 labelled location-scale covarianc
   expect_equal(nrow(corpairs(fit, class = "mean-scale")), 4L)
   expect_equal(nrow(corpairs(fit, class = "mean-mean")), 1L)
   expect_equal(nrow(corpairs(fit, class = "scale-scale")), 1L)
+  expect_equal(nrow(corpairs(fit, class = "location-scale")), 4L)
+  expect_equal(nrow(corpairs(fit, class = "location-location")), 1L)
   expect_equal(nrow(corpairs(fit, level = "residual")), 1L)
   expect_lt(max(abs(pairs$estimate)), 1)
   expect_gt(stats::sd(predict(fit, dpar = "mu1") - fixed_mu1), 0)
