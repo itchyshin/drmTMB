@@ -74,9 +74,9 @@ location-scale-coscale model.
 | --- | --- | --- |
 | `phylo(1 | species, tree = tree)` in univariate `mu` | Implemented | One trait has a phylogenetic random intercept in the location predictor. |
 | Matching `phylo(1 | species, tree = tree)` terms in bivariate `mu1` and `mu2` | Implemented first slice | Two traits have correlated phylogenetic location deviations; `corpairs(level = "phylogenetic")` reports the mean-mean row separately from residual `rho12`. |
-| Matching labelled `phylo(1 | p | species, tree = tree)` terms in bivariate `mu1` and `mu2` | Implemented as metadata | The label is preserved in SD names, the fitted mean-mean correlation, `corpairs(block = "p")`, and profile-target names. |
+| Matching labelled `phylo(1 | p | species, tree = tree)` terms in bivariate `mu1` and `mu2` | Implemented | The label is preserved in SD names, the fitted mean-mean correlation, `corpairs(block = "p")`, and profile-target names. |
 | Ordinary `(1 | p | id)` terms in all four bivariate `mu1`, `mu2`, `sigma1`, and `sigma2` formulas | Implemented first slice | One ordinary q=4 group block estimates six latent location-location, location-scale, and scale-scale correlations. |
-| `phylo()` terms in bivariate `sigma1` and `sigma2` | Guarded planned q4 | This is the next phylogenetic PLSM path. `drmTMB()` now rejects partial, unlabelled, or matched all-four phylogenetic location-scale blocks before optimization. |
+| Matching labelled `phylo()` terms in all four bivariate `mu1`, `mu2`, `sigma1`, and `sigma2` formulas | Implemented first slice | One constant q=4 phylogenetic block estimates four endpoint SDs and six latent location-scale correlations. Partial, unlabelled, mismatched, and slope forms remain rejected. |
 | `sd_phylo(species) ~ z` | Planned | This is the separate Box 1 direct-SD family, not a scale formula with a matching random effect. |
 | `spatial(1 | site, coords = coords)` or `spatial(1 | site, mesh = mesh)` | Planned | Spatial will mirror the phylogenetic API after the phylogenetic structured-effect path is stable. |
 
@@ -268,6 +268,7 @@ The spatial term is deliberately parallel to the phylogenetic term:
 
 ```r
 phylo(1 | species, tree = tree)     # implemented for mu and matching mu1/mu2
+phylo(1 | p | species, tree = tree) # implemented for labelled q4 bivariate blocks
 spatial(1 | site, coords = coords)  # planned
 spatial(1 | site, mesh = mesh)      # planned
 ```
@@ -314,12 +315,14 @@ uncertainty has been included. The same design will let `drmTMB` support
 structured Gaussian meta-analysis while keeping ecological and evolutionary
 meta-analyses readable.
 
-The first phylogenetic target is the location-scale model: trait means are the
-first implemented target, and residual SDs are a planned target once the
-location path has enough simulation and comparator coverage. In bivariate
-Gaussian models, matching `mu1`/`mu2` phylogenetic location terms now estimate
-the first mean-mean phylogenetic correlation. Scale-scale and mean-scale
-phylogenetic correlations remain planned.
+The first phylogenetic target is the location-scale model. In bivariate
+Gaussian models, matching `mu1`/`mu2` phylogenetic location terms estimate the
+mean-mean phylogenetic correlation. Matching labelled `phylo()` terms across
+`mu1`, `mu2`, `sigma1`, and `sigma2` now fit the first constant q=4
+phylogenetic location-scale block: one location-location row, four
+location-scale rows, and one scale-scale row in `corpairs(level =
+"phylogenetic")`. The six q=4 correlations are latent phylogenetic
+random-effect correlations, not residual `rho12`.
 
 The first fitted bivariate phylogenetic location-coscale syntax looks like
 this:
@@ -345,11 +348,27 @@ ordinary fixed-effect distributional parameters in this first slice.
 Use `phylo(1 | p | species, tree = tree)` in both location formulas when you
 want the fitted phylogenetic mean-mean row to use a block label such as `p`.
 
-Current internal q=4 scaffolds only protect the algebra and endpoint names for
-future contributors. Applied users who need phylogenetic scale or mean-scale
-correlations should still treat those as planned: `phylo()` in `sigma1` or
-`sigma2` is rejected before optimization until fitted likelihoods, simulation
-recovery tests, and reporting rows are present. For the first fitted
+The full constant q=4 location-scale form uses an explicit covariance-block
+label:
+
+```r
+fit_biv_phylo_q4 <- drmTMB(
+  formula = drm_formula(
+    mu1 = log_body_mass ~ lifestyle + phylo(1 | p | species, tree = tree),
+    mu2 = log_litter_size ~ lifestyle + phylo(1 | p | species, tree = tree),
+    sigma1 = ~ lifestyle + phylo(1 | p | species, tree = tree),
+    sigma2 = ~ lifestyle + phylo(1 | p | species, tree = tree),
+    rho12 = ~ lifestyle
+  ),
+  family = c(gaussian(), gaussian()),
+  data = mammals
+)
+
+corpairs(fit_biv_phylo_q4, level = "phylogenetic")
+```
+
+Partial q=4 syntax, unlabelled all-four syntax, random slopes, and multiple
+phylogenetic blocks remain outside this first fitted path. For the first fitted
 mean-mean phylogenetic correlation, use `corpars$phylo`,
 `corpairs(fit_biv_phylo, level = "phylogenetic")`, or
 `summary(fit_biv_phylo)$covariance`. Run `check_drm(fit_biv_phylo)` before
@@ -357,7 +376,9 @@ interpreting that row: the current diagnostic flags phylogenetic correlations
 near the boundary and phylogenetic location SDs that are tiny relative to the
 matching residual scales. If `check_drm(fit_biv_phylo)` does not warn and the
 fitted object kept its TMB object, a direct profile interval is available for
-the phylogenetic correlation target:
+the phylogenetic mean-mean correlation target. The q=4 correlations are derived
+from `theta_phylo`, so direct profile intervals for those six rows are not yet
+claimed:
 
 ```r
 phylo_target <- "cor:phylo:cor(mu1:(Intercept),mu2:(Intercept) | phylo | species)"

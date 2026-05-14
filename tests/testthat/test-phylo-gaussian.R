@@ -360,7 +360,7 @@ test_that("bivariate phylogenetic mean correlation recovers simulated signal", {
   expect_equal(phylo_pair$estimate, unname(fit$corpars$phylo))
 })
 
-test_that("bivariate phylogenetic q4 boundary is checked before fitting", {
+test_that("bivariate phylogenetic q4 block is fitted with clear boundaries", {
   tree <- balanced_ultrametric_tree(n_tip = 4L)
   dat <- data.frame(
     y1 = seq(-0.2, 0.5, length.out = 8L),
@@ -370,7 +370,7 @@ test_that("bivariate phylogenetic q4 boundary is checked before fitting", {
     species = rep(tree$tip.label, each = 2L)
   )
 
-  expect_error(
+  fit_q4 <- suppressWarnings(
     drmTMB(
       bf(
         mu1 = y1 ~ x + phylo(1 | p | species, tree = tree),
@@ -380,10 +380,54 @@ test_that("bivariate phylogenetic q4 boundary is checked before fitting", {
         rho12 = ~1
       ),
       family = c(gaussian(), gaussian()),
-      data = dat
-    ),
-    "planned but not implemented"
+      data = dat,
+      control = list(eval.max = 100, iter.max = 100)
+    )
   )
+  q4_pairs <- corpairs(fit_q4, level = "phylogenetic")
+  q4_cov <- summary(fit_q4)$covariance
+  q4_targets <- profile_targets(fit_q4)
+  q4_cor_targets <- q4_targets[
+    startsWith(q4_targets$parm, "cor:phylo:"),
+    ,
+    drop = FALSE
+  ]
+
+  expect_true(is.finite(fit_q4$opt$objective))
+  expect_named(
+    fit_q4$sdpars$mu,
+    c(
+      "mu1:phylo(1 | p | species)",
+      "mu2:phylo(1 | p | species)",
+      "sigma1:phylo(1 | p | species)",
+      "sigma2:phylo(1 | p | species)"
+    )
+  )
+  expect_equal(sum(names(fit_q4$opt$par) == "theta_phylo"), 6L)
+  expect_equal(nrow(q4_pairs), 6L)
+  expect_equal(nrow(q4_cov), 6L)
+  q4_class_counts <- table(q4_pairs$class)
+  expect_equal(
+    as.integer(q4_class_counts[c("mean-mean", "mean-scale", "scale-scale")]),
+    c(1L, 4L, 1L)
+  )
+  expect_equal(
+    q4_pairs$parameter,
+    names(fit_q4$corpars$phylo)
+  )
+  expect_equal(nrow(corpairs(fit_q4, class = "location-scale")), 4L)
+  expect_equal(nrow(corpairs(fit_q4, block = "p")), 6L)
+  expect_equal(q4_cov$parameter, q4_pairs$parameter)
+  expect_true(all(is.finite(predict(fit_q4, dpar = "sigma1", type = "link"))))
+  expect_equal(nrow(q4_cor_targets), 6L)
+  expect_equal(q4_cor_targets$tmb_parameter, rep("theta_phylo", 6L))
+  expect_equal(q4_cor_targets$target_type, rep("derived", 6L))
+  expect_false(any(q4_cor_targets$profile_ready))
+  expect_equal(
+    q4_cor_targets$profile_note,
+    rep("derived_unstructured_correlation", 6L)
+  )
+
   expect_error(
     drmTMB(
       bf(

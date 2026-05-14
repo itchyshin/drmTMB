@@ -17,13 +17,13 @@ it does not yet fit the complete double-hierarchical covariance model.
 | Residual-scale random intercepts and independent slopes | Implemented | `sigma ~ x + (1 | id) + (0 + w | id)` |
 | Random-effect scale models for `mu` intercept SDs | Implemented | `sd(id) ~ x_group` |
 | Bivariate Gaussian residual coscale | Implemented | `rho12 ~ x` |
-| `corpairs()` for fitted correlations | Partly implemented | residual `rho12`, ordinary `mu` intercept-slope correlations, first univariate and same-response bivariate `mu`/`sigma` mean-scale rows, bivariate `mu1`/`mu2` and `sigma1`/`sigma2` intercept rows, ordinary q=4 all-four location-scale rows, and the first bivariate phylogenetic `mu1`/`mu2` mean-mean row |
+| `corpairs()` for fitted correlations | Partly implemented | residual `rho12`, ordinary `mu` intercept-slope correlations, first univariate and same-response bivariate `mu`/`sigma` mean-scale rows, bivariate `mu1`/`mu2` and `sigma1`/`sigma2` intercept rows, ordinary q=4 all-four location-scale rows, bivariate phylogenetic `mu1`/`mu2` mean-mean rows, and the first bivariate phylogenetic q=4 all-four location-scale rows |
 | Cross-formula covariance blocks | Implemented first slice | matching labelled univariate `(1 | p | id)` terms across `mu` and `sigma` |
 | Bivariate `mu1`/`mu2` random-intercept covariance blocks | Implemented first slice | matching labelled `(1 | p | id)` terms in both location formulas |
 | Bivariate `sigma1`/`sigma2` random-intercept covariance blocks | Implemented first slice | matching labelled `(1 | p | id)` terms in both scale formulas |
 | Same-response bivariate `mu`/`sigma` random-intercept covariance blocks | Implemented first slice | one matching labelled pair in `mu1`/`sigma1` or `mu2`/`sigma2` |
-| Bivariate random-slope covariance blocks and structured q=4 blocks | Planned | random-slope q=6/q=8 endpoint blocks, phylogenetic q=4, and spatial q=4 |
-| Profile-likelihood intervals for covariance summaries | Partly implemented | direct profile targets for first univariate and same-response bivariate `mu`/`sigma`, ordinary bivariate `mu1`/`mu2`, ordinary bivariate `sigma1`/`sigma2`, and bivariate phylogenetic `mu1`/`mu2` covariance parameters; ordinary q4 correlations are listed as derived unstructured-correlation targets, and derived intervals remain planned |
+| Bivariate random-slope covariance blocks and structured spatial q=4 blocks | Planned | random-slope q=6/q=8 endpoint blocks and spatial q=4 |
+| Profile-likelihood intervals for covariance summaries | Partly implemented | direct profile targets for first univariate and same-response bivariate `mu`/`sigma`, ordinary bivariate `mu1`/`mu2`, ordinary bivariate `sigma1`/`sigma2`, and bivariate phylogenetic `mu1`/`mu2` covariance parameters; ordinary q4 and phylogenetic q4 correlations are listed as derived unstructured-correlation targets, and derived intervals remain planned |
 
 ## Target Model
 
@@ -188,10 +188,10 @@ covariance interval.
    `mu1`, `mu2`, `sigma1`, and `sigma2`.
 11. Extend bivariate phylogenetic and non-phylogenetic species covariance
    blocks after ordinary grouped models have recovery evidence and clear
-   diagnostics. The first fitted phylogenetic slice covers matching
-   intercept-only `mu1`/`mu2` `phylo()` terms. The full q=4 intercept-level
-   endpoint state across `mu1`, `mu2`, `sigma1`, and `sigma2`, matching
-   non-phylogenetic species covariance, and random-slope q=6 and q=8 endpoint
+   diagnostics. The first fitted phylogenetic slices cover matching
+   intercept-only `mu1`/`mu2` `phylo()` terms and the constant all-four q=4
+   endpoint state across `mu1`, `mu2`, `sigma1`, and `sigma2`. Matching
+   non-phylogenetic species covariance and random-slope q=6 and q=8 endpoint
    blocks remain planned. These blocks should report phylogenetic correlation,
    non-phylogenetic species correlation, and residual `rho12` as separate
    layers.

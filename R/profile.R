@@ -300,16 +300,24 @@ drm_profile_targets <- function(object) {
   for (dpar in names(object$corpars)) {
     values <- object$corpars[[dpar]]
     internal <- profile_cor_internal(dpar)
+    is_phylo_unstructured <- identical(dpar, "phylo") &&
+      isTRUE(object$model$structured$phylo_mu$has) &&
+      isTRUE(object$model$structured$phylo_mu$q > 2L)
     for (i in seq_along(values)) {
       if (paste(dpar, i, sep = ":") %in% registry_cor_keys) {
         next
       }
       index <- i
-      profile_ready <- profile_internal_is_active(
-        object,
-        internal,
-        index
-      )
+      if (is_phylo_unstructured) {
+        internal <- "theta_phylo"
+        profile_ready <- FALSE
+      } else {
+        profile_ready <- profile_internal_is_active(
+          object,
+          internal,
+          index
+        )
+      }
       add_rows(list(new_profile_target_row(
         parm = paste0("cor:", dpar, ":", names(values)[[i]]),
         target_class = "random-effect-correlation",
@@ -318,15 +326,27 @@ drm_profile_targets <- function(object) {
         tmb_parameter = internal,
         index = index,
         estimate = unname(values[[i]]),
-        link_estimate = guarded_correlation_link(
-          unname(values[[i]]),
-          guard = 0.999999
-        ),
+        link_estimate = if (is_phylo_unstructured) {
+          NA_real_
+        } else {
+          guarded_correlation_link(
+            unname(values[[i]]),
+            guard = 0.999999
+          )
+        },
         scale = "response",
-        transformation = "tanh",
-        target_type = "direct",
+        transformation = if (is_phylo_unstructured) {
+          "unstructured_corr"
+        } else {
+          "tanh"
+        },
+        target_type = if (is_phylo_unstructured) "derived" else "direct",
         profile_ready = profile_ready,
-        profile_note = profile_ready_note(profile_ready)
+        profile_note = if (is_phylo_unstructured) {
+          "derived_unstructured_correlation"
+        } else {
+          profile_ready_note(profile_ready)
+        }
       )))
     }
   }

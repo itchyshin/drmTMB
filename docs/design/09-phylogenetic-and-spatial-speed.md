@@ -87,16 +87,13 @@ For example, the body mass-litter size relationship in mammals can be asked at
 three levels: phylogenetic correlation, non-phylogenetic among-species
 correlation, and residual coscale `rho12 ~ lifestyle`.
 
-The first q=4 phylogenetic endpoint scaffold is deliberately internal. It
-evaluates the matrix-normal prior for augmented phylogenetic effects across
-`mu1`, `mu2`, `sigma1`, and `sigma2` using the existing sparse tree precision
-and a small dense Kronecker comparator in tests. The fitted bivariate slice now
-uses the `mu1`/`mu2` part of that contract for matching intercept-only
-`phylo()` terms. The full q=4 location-scale endpoint is still planned: the
-hidden TMB prior branch mirrors the complete q=4 algebra contract, and the
-companion planned-pair scaffold names the future `mean-mean`, four
-`mean-scale`, and `scale-scale` phylogenetic endpoint rows while keeping the
-unfitted rows out of `corpairs()`.
+The q=4 phylogenetic endpoint path evaluates the matrix-normal prior for
+augmented phylogenetic effects across `mu1`, `mu2`, `sigma1`, and `sigma2` using
+the existing sparse tree precision and a small dense Kronecker comparator in
+tests. The first public fitted path now accepts matching labelled all-four
+`phylo()` terms, reports the `mean-mean`, four `mean-scale`, and `scale-scale`
+phylogenetic endpoint rows through `corpairs()`, and keeps these latent
+correlations separate from residual `rho12`.
 
 ### gllvmTMB Source Map
 

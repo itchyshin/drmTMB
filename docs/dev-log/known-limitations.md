@@ -38,14 +38,19 @@
   one ordinary q=4 location-scale covariance block with all six latent
   correlations. `check_drm()` reports a first q4 diagnostic for group
   replication, tiny component SDs, and near-boundary latent correlations.
-  Bivariate random slopes, random effects in `rho12`, phylogenetic q=4 blocks,
-  and spatial q=4 blocks are still planned; residual `rho12` should not be
-  interpreted as a phylogenetic, spatial, or group-level covariance parameter.
+  Bivariate random slopes, random effects in `rho12`, predictor-dependent
+  phylogenetic correlations, and spatial q=4 blocks are still planned;
+  residual `rho12` should not be interpreted as a phylogenetic, spatial, or
+  group-level covariance parameter.
 - Matching intercept-only `phylo(1 | species, tree = tree)` terms are fitted
   in bivariate Gaussian `mu1` and `mu2` formulas. This first phylogenetic
   bivariate slice estimates two phylogenetic location SDs and one phylogenetic
   mean-mean correlation while keeping `sigma1`, `sigma2`, and residual `rho12`
-  as fixed-effect distributional parameters. `summary(fit)$covariance` reports
+  as fixed-effect distributional parameters. Matching labelled phylogenetic
+  terms across `mu1`, `mu2`, `sigma1`, and `sigma2` fit the first constant q=4
+  location-scale block, but the six q=4 correlation intervals are currently
+  derived targets rather than direct profile-ready targets.
+  `summary(fit)$covariance` reports
   the fitted phylogenetic variance and covariance point summaries, and
   `check_drm()` reports a bivariate phylogenetic covariance diagnostic for
   near-boundary `corpars$phylo` values, weak species replication, and

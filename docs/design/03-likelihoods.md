@@ -1219,8 +1219,11 @@ Implementation notes:
   `sd2(id) ~ x_group` are rejected for the same group when this q=4 block is
   present. Combining them would require a predictor-dependent q=4 covariance
   model, not the current constant q=4 block.
-- Bivariate random slopes, `rho12` random effects, phylogenetic q=4 blocks, and
-  spatial q=4 blocks remain planned.
+- Bivariate random slopes, `rho12` random effects, phylogenetic random slopes,
+  predictor-dependent phylogenetic correlations, and spatial q=4 blocks remain
+  planned. The first constant intercept-only bivariate phylogenetic q=4 block is
+  implemented for matching labelled `phylo()` terms in `mu1`, `mu2`, `sigma1`,
+  and `sigma2`.
 
 ## Review Requirements
 

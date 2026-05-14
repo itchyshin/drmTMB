@@ -12595,3 +12595,61 @@ Known limitations:
   rows, recovery tests, or fitted q4 tutorial examples exist yet;
 - spatial remains the sibling lane after the phylogenetic structured-effect
   contract is stable.
+
+## 2026-05-14 -- 35-map Slice 17: first fitted phylogenetic q4 block
+
+Goal:
+
+- fit the first constant labelled bivariate phylogenetic q=4 location-scale
+  block and expose point-estimate reporting without claiming direct profile
+  intervals or recovery evidence yet.
+
+Implemented:
+
+- routed matching labelled `phylo(1 | p | species, tree = tree)` terms in
+  `mu1`, `mu2`, `sigma1`, and `sigma2` into one endpoint-major q=4
+  phylogenetic latent state;
+- added four active `log_sd_phylo` parameters and six active `theta_phylo`
+  unstructured-correlation parameters for the public bivariate Gaussian path;
+- added the q=4 matrix-normal phylogenetic prior contribution in
+  `src/drmTMB.cpp`, while preserving the existing two-endpoint
+  `eta_cor_phylo` path for matching `mu1`/`mu2`;
+- extended `sdpars`, `corpars`, `ranef()`, `predict()`, `corpairs()`,
+  `summary(fit)$covariance`, and `profile_targets()` to use one endpoint order:
+  `mu1`, `mu2`, `sigma1`, `sigma2`;
+- marked the six q=4 phylogenetic correlations as
+  `derived_unstructured_correlation` targets on `theta_phylo` rather than
+  direct profile-ready atanh targets;
+- updated formula grammar, likelihood, phylo/spatial math, mammal route,
+  roadmap, known limitations, NEWS, roxygen, and local pkgdown article sources;
+- checked the local `gllvmTMB` profile-CI machinery for future inference:
+  direct `TMB::tmbprofile()`/linear-combination targets are the useful pattern,
+  while nonlinear derived q=4 correlations should wait for a centralized
+  target-function/refit design.
+
+Checks run:
+
+- `air format R/drmTMB.R R/methods.R R/profile.R tests/testthat/test-phylo-gaussian.R`:
+  passed.
+- `Rscript -e 'devtools::load_all(quiet = TRUE)'`: passed.
+- `Rscript -e 'devtools::document()'`: passed and refreshed `man/drmTMB.Rd`.
+- `Rscript -e 'devtools::test(filter = "phylo-gaussian|corpairs|profile-targets|check-drm|biv-gaussian|covariance-block-registry", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'devtools::test(reporter = "summary")'`: passed.
+- `Rscript -e 'pkgdown::build_article("phylogenetic-spatial", quiet = TRUE); pkgdown::build_article("formula-grammar", quiet = TRUE); pkgdown::build_article("model-map", quiet = TRUE)'`:
+  passed and refreshed local HTML pages.
+- `Rscript -e 'pkgdown::check_pkgdown()'`: passed.
+- `rg -n 'phylogenetic q=4 blocks|q=4 location-scale endpoint is still planned|matched-but-not-yet|full q=4 endpoint remains planned|rejected before optimization until fitted|Guarded planned q4|phylogenetic scale and mean-scale correlations remain planned' NEWS.md ROADMAP.md docs/design docs/dev-log/known-limitations.md vignettes pkgdown-site/articles | head -n 120`:
+  returned no stale current-status hits.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- this is point-estimate support with targeted smoke and reporting tests, not
+  full simulation recovery evidence;
+- direct profile intervals are still available for the two-endpoint
+  phylogenetic mean-mean `eta_cor_phylo` path, but the six q=4 correlations are
+  derived `theta_phylo` targets and not profile-ready;
+- `check_drm()` still uses the existing bivariate phylogenetic covariance check
+  wording, so q=4-specific diagnostic refinement remains for the next slice;
+- spatial remains planned as the sibling structured-effect lane.

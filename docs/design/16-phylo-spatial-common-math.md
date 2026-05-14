@@ -477,7 +477,7 @@ correlation. It does not yet add phylogenetic `sigma` terms, structured
 
 ## Map Slice 14: Constant Bivariate Phylogenetic q=4 Design
 
-The next phylogenetic PLSM target is a constant q=4 phylogenetic covariance
+The current phylogenetic PLSM target is a constant q=4 phylogenetic covariance
 block spanning location and residual-scale predictors for two Gaussian
 responses:
 
@@ -495,22 +495,19 @@ drmTMB(
 )
 ```
 
-The labelled form is accepted by the formula parser and is usable as metadata
-for the existing bivariate phylogenetic `mu1`/`mu2` mean-mean path:
+The labelled form is accepted by the formula parser and is also usable for the
+bivariate phylogenetic `mu1`/`mu2` mean-mean path:
 
 ```r
 phylo(1 | p | species, tree = tree)
 ```
 
-The two-bar form remains valid and maps internally to `block = "phylo"`. The
-three-bar form records the user-facing covariance-block label, such as `p`,
-and all four distributional formulas must use the same group, tree, and block.
-The fitted q=4 path is still guarded: using `phylo()` in `sigma1` or `sigma2`
-now fails before optimization with messages that distinguish partial,
-unlabelled, and matched-but-not-yet-implemented all-four blocks. The first q=4
-implementation should allow exactly one intercept-only phylogenetic block.
-Phylogenetic random slopes, multiple phylogenetic blocks, and structured
-`rho12` effects remain planned.
+The two-bar form remains valid for the mean-mean path and maps internally to
+`block = "phylo"`. The three-bar form records the user-facing covariance-block
+label, such as `p`, and all four distributional formulas must use the same
+group, tree, and block. The fitted q=4 path allows exactly one intercept-only
+phylogenetic block. Partial, unlabelled, mismatched, random-slope, multiple
+phylogenetic-block, and structured `rho12` forms remain planned or rejected.
 
 This section supersedes the older local ordering that placed spatial fields
 before structured effects in `sigma`. The current 35-slice route implements
@@ -594,7 +591,7 @@ Reporting should mirror ordinary q=4 blocks:
   phylogenetic endpoint SDs, low species replication, and simultaneous ordinary
   same-species covariance.
 
-Implementation should be staged:
+Implementation is staged:
 
 1. extend structured-term parsing to preserve an optional phylogenetic block
    label while keeping `phylo(1 | species, tree = tree)` backward compatible;
@@ -611,17 +608,22 @@ Implementation should be staged:
 The first implementation should not combine this Family A q=4 block with
 Family B `sd_phylo()` direct-SD regression for the same species level.
 
-Slice 15 adds only a hidden TMB parameterization probe for this contract. That
+Slice 15 added a hidden TMB parameterization probe for this contract. That
 probe uses endpoint-major q=4 `u_phylo` storage, four `log_sd_phylo` values,
 and six unstructured-correlation parameters, then compares the TMB
-matrix-normal prior against the R algebra helper. It does not yet make
-`phylo()` terms in `sigma1` or `sigma2` fit from public model formulas.
+matrix-normal prior against the R algebra helper.
 
-Slice 16 adds the parser and R-boundary plumbing around this contract. It
+Slice 16 added the parser and R-boundary plumbing around this contract. It
 preserves the optional `phylo()` covariance-block label, requires matching
-labels for bivariate phylogenetic location terms, and rejects phylogenetic
-scale endpoints before model-frame construction. It still does not make the
-public all-four q=4 likelihood fit.
+labels for bivariate phylogenetic location terms, and rejects partial or
+ambiguous phylogenetic scale endpoints before model-frame construction.
+
+Slice 17 adds the first public all-four q=4 likelihood and reporting path. It
+uses the same endpoint-major storage, reports four phylogenetic endpoint SDs and
+six `corpairs(level = "phylogenetic")` rows, includes the six rows in
+`summary(fit)$covariance`, routes scale-endpoint predictions through the fitted
+phylogenetic effects, and lists the six q=4 correlations as derived
+`theta_phylo` targets rather than direct profile-ready atanh targets.
 
 Family B structured direct-SD syntax such as `sd_phylo(species) ~ z_species`
 is a separate design problem. The scalar `sigma_phylo^2 A` covariance above is

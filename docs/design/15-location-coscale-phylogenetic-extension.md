@@ -103,18 +103,17 @@ visible:
 | Residual | `rho12_i` in `Omega_i` | Are the two responses coupled within an observation after means and scales are modelled? | implemented for fixed-effect bivariate Gaussian |
 | Phylogenetic mean | `cor(a_mu1, a_mu2)` where `[a_mu1, a_mu2] ~ MVN(0, Sigma_phylo)` | Do species with high phylogenetic deviation in trait 1 also have high phylogenetic deviation in trait 2? | implemented first fitted slice for matching intercept-only `mu1`/`mu2` `phylo()` terms |
 | Non-phylogenetic mean | `cor(c_mu1, c_mu2)` where `[c_mu1, c_mu2] ~ MVN(0, Sigma_species)` | Is there a residual among-species association beyond shared ancestry? | planned |
-| Phylogenetic scale | `cor(a_sigma1, a_sigma2)` | Do lineages that are more dispersed for one trait tend to be more dispersed for the other? | planned |
-| Mean-scale | `cor(a_mu1, a_sigma2)` or analogous terms | Do high trait means covary with dispersion in the same or another trait? | planned |
+| Phylogenetic scale | `cor(a_sigma1, a_sigma2)` | Do lineages that are more dispersed for one trait tend to be more dispersed for the other? | implemented first constant q=4 fitted slice |
+| Mean-scale | `cor(a_mu1, a_sigma2)` or analogous terms | Do high trait means covary with dispersion in the same or another trait? | implemented first constant q=4 fitted slice |
 | Spatial or site-level | `cor(z_mu1, z_mu2)` or covariance-block correlations | Do places, sites, studies, or other groups show coupled deviations across responses? | planned |
 
 The first implemented bivariate `rho12 ~ predictors` model covers the residual
-row of this table. The first fitted bivariate phylogenetic location slice now
-covers the phylogenetic mean row for matching intercept-only `mu1`/`mu2`
-`phylo()` terms, while `sigma1`, `sigma2`, and residual `rho12` stay as
-ordinary fixed-effect distributional parameters. The long-term
-location-coscale programme should also estimate structured phylogenetic scale,
-mean-scale, non-phylogenetic, and spatial correlations when the data and
-simulations support them.
+row of this table. The first fitted bivariate phylogenetic location slice covers
+the phylogenetic mean row for matching intercept-only `mu1`/`mu2` `phylo()`
+terms. Matching labelled all-four `phylo()` terms now cover the first constant
+q=4 phylogenetic location-scale block. Predictor-dependent phylogenetic
+correlations, non-phylogenetic species correlations, and spatial correlations
+remain later stages when the data and simulations support them.
 
 Ordinary labelled group covariance can be fitted beside the first bivariate
 phylogenetic mean layer when users need a staged phylogenetic versus
@@ -124,12 +123,11 @@ well identified. `check_drm()` notes the same-group overlap so users compare
 profiles or simpler models before interpreting the two correlations as cleanly
 separated.
 
-The first internal phylogenetic covariance scaffold covers the q=4 prior
-algebra for `a_mu1`, `a_mu2`, `a_sigma1`, and `a_sigma2` on the augmented tree
-nodes. It checks the sparse precision form against a dense Kronecker covariance
-calculation and a hidden TMB prior branch but does not change user-facing model
-syntax. A planned-pair scaffold records the six future row meanings so the
-eventual extractor can keep phylogenetic correlations separate from residual
+The first fitted phylogenetic q=4 path uses the prior algebra for `a_mu1`,
+`a_mu2`, `a_sigma1`, and `a_sigma2` on the augmented tree nodes. It checks the
+sparse precision form against a dense Kronecker covariance calculation and
+reports the six row meanings through `corpairs()` so the extractor can keep
+phylogenetic correlations separate from residual
 `rho12`.
 
 Extractor names should therefore be level-specific, for example
@@ -146,7 +144,7 @@ The general long-format pair plan is in
    using the Hadfield and Nakagawa A-inverse path.
 4. Bivariate Gaussian with phylogenetic mean covariance; non-phylogenetic mean
    covariance remains a separate grouped-random-effect layer.
-5. Bivariate location-scale with phylogenetic scale effects.
+5. Bivariate location-scale with constant phylogenetic scale and mean-scale effects.
 6. Bivariate location-coscale with fixed-effect `rho12 ~ predictors` plus
    phylogenetic mean and scale structure.
 7. Later only: phylogenetic effects in the `rho12` linear predictor itself.

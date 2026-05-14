@@ -143,7 +143,7 @@ These surfaces are roadmap items, not syntax to rely on in analyses yet:
 | correlated residual-scale slope blocks in `sigma` | needs covariance recovery for scale intercept-slope blocks before public use |
 | larger cross-formula labelled covariance blocks linking `mu` and `sigma` | extends beyond the first fitted random-intercept mean-scale correlations |
 | bivariate random slopes and full cross-parameter covariance blocks | expands group-level covariance blocks beyond the first same-parameter and same-response random-intercept slices |
-| phylogenetic slopes, phylogenetic `sigma`, and full bivariate phylogenetic location-scale effects | the first bivariate `mu1`/`mu2` phylogenetic location slice is fitted, but the full q=4 endpoint remains planned |
+| phylogenetic slopes, predictor-dependent phylogenetic correlations, and richer phylogenetic covariance blocks | the first bivariate `mu1`/`mu2` phylogenetic location slice and the first constant q=4 phylogenetic location-scale block are fitted |
 | spatial random effects | planned parallel to `phylo()`, but the spatial likelihood is not implemented |
 | higher-dimensional multivariate models | belong in `gllvmTMB`, not `drmTMB` |
 
@@ -281,14 +281,14 @@ implemented:
 | `rho12(fit_biv)` | within-observation residual coupling between two traits | phylogenetic or species-level correlation |
 | `corpairs(fit_biv, level = "group")` | ordinary species or individual random-intercept correlation | residual trait coupling or shared-ancestry correlation |
 | `fit_phylo` with `phylo(1 | species, tree = tree)` | one-trait shared-ancestry mean structure | bivariate phylogenetic covariance |
-| `corpairs(fit_biv_phylo, level = "phylogenetic")` | bivariate phylogenetic mean-mean correlation | phylogenetic scale or mean-scale covariance |
-| `summary(fit_biv_phylo)$covariance` | variance and covariance point summaries for the fitted phylogenetic mean-mean layer | derived covariance intervals or q=4 location-scale covariance |
+| `corpairs(fit_biv_phylo, level = "phylogenetic")` | bivariate phylogenetic mean-mean correlation, or six q=4 rows when the all-four labelled block is fitted | predictor-dependent phylogenetic correlations |
+| `summary(fit_biv_phylo)$covariance` | variance and covariance point summaries for the fitted phylogenetic mean-mean or q=4 layer | direct profile intervals for derived q=4 correlations |
 
-In developer shorthand, the planned q=4 phylogenetic endpoint means four
-distributional endpoints: `mu1`, `mu2`, `sigma1`, and `sigma2`. It does not mean
-four fitted correlations. A four-endpoint covariance has six pairwise
-correlations, so public support should wait for fitted likelihoods, recovery
-tests, and `corpairs()` rows for those pairs.
+In developer shorthand, the q=4 phylogenetic endpoint means four distributional
+endpoints: `mu1`, `mu2`, `sigma1`, and `sigma2`. It does not mean four fitted
+correlations. A four-endpoint covariance has six pairwise correlations; q=4
+fits should therefore be read through the six `corpairs()` rows and treated as
+a larger covariance model than the mean-mean path.
 
 ## Where to go next
 

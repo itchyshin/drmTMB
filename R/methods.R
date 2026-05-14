@@ -354,21 +354,28 @@ phylo_mu_corpairs <- function(object) {
     return(list())
   }
 
-  response_names <- bivariate_response_names(object)
+  phylo_mu <- object$model$structured$phylo_mu
+  pair_table <- phylo_mu_pair_table(phylo_mu)
   lapply(seq_along(object$corpars$phylo), function(i) {
     estimate <- unname(object$corpars$phylo[[i]])
     parameter <- phylo_mu_correlation_parameter(object, i)
+    pair <- pair_table[i, , drop = FALSE]
     new_corpair_row(
       level = "phylogenetic",
-      group = object$model$structured$phylo_mu$group,
-      block = phylo_mu_block(object$model$structured$phylo_mu),
-      from_dpar = "mu1",
-      to_dpar = "mu2",
+      group = phylo_mu$group,
+      block = phylo_mu_block(phylo_mu),
+      from_dpar = pair$from_dpar[[1L]],
+      to_dpar = pair$to_dpar[[1L]],
       from_coef = "(Intercept)",
       to_coef = "(Intercept)",
-      from_response = response_names[[1L]],
-      to_response = response_names[[2L]],
-      class = "mean-mean",
+      from_response = random_effect_response_name(object, pair$from_dpar[[1L]]),
+      to_response = random_effect_response_name(object, pair$to_dpar[[1L]]),
+      class = random_correlation_class(
+        pair$from_dpar[[1L]],
+        "(Intercept)",
+        "(Intercept)",
+        to_dpar = pair$to_dpar[[1L]]
+      ),
       parameter = parameter,
       estimate = estimate,
       min = estimate,
@@ -390,14 +397,8 @@ phylo_mu_correlation_parameter <- function(object, i = 1L) {
     phylo_names[[i]]
   }
   if (is.null(parameter) || is.na(parameter) || !nzchar(parameter)) {
-    block <- phylo_mu_block(object$model$structured$phylo_mu)
-    parameter <- paste0(
-      "cor(mu1:(Intercept),mu2:(Intercept) | ",
-      block,
-      " | ",
-      object$model$structured$phylo_mu$group,
-      ")"
-    )
+    pair_table <- phylo_mu_pair_table(object$model$structured$phylo_mu)
+    parameter <- pair_table$parameter[[i]]
   }
   parameter
 }
@@ -486,73 +487,86 @@ phylo_mu_covariance_summaries <- function(object, intervals = NULL) {
     !identical(object$model$model_type, "biv_gaussian") ||
       !isTRUE(object$model$structured$phylo_mu$has) ||
       is.null(object$corpars$phylo) ||
-      length(object$corpars$phylo) != 1L
+      length(object$corpars$phylo) == 0L
   ) {
     return(empty_random_effect_covariance_summaries())
   }
 
-  group <- object$model$structured$phylo_mu$group
-  parameter <- phylo_mu_correlation_parameter(object, 1L)
-  correlation_target <- paste0("cor:phylo:", parameter)
-  from_sd_parameter <- phylo_mu_sd_parameter("mu1", group)
-  to_sd_parameter <- phylo_mu_sd_parameter("mu2", group)
-  from_sd_target <- paste0("sd:mu:", from_sd_parameter)
-  to_sd_target <- paste0("sd:mu:", to_sd_parameter)
-  from_sd <- phylo_mu_sd_value(object, from_sd_parameter)
-  to_sd <- phylo_mu_sd_value(object, to_sd_parameter)
-  from_variance <- from_sd^2
-  to_variance <- to_sd^2
-  correlation <- unname(object$corpars$phylo[[1L]])
-  covariance <- correlation * from_sd * to_sd
-  correlation_interval <- covariance_summary_interval(
-    intervals,
-    correlation_target
-  )
-  from_sd_interval <- covariance_summary_interval(intervals, from_sd_target)
-  to_sd_interval <- covariance_summary_interval(intervals, to_sd_target)
+  phylo_mu <- object$model$structured$phylo_mu
+  group <- phylo_mu$group
+  block <- phylo_mu_block(phylo_mu)
+  pair_table <- phylo_mu_pair_table(phylo_mu)
+  sd_parameters <- phylo_mu_sd_labels(phylo_mu, object$model$model_type)
   covariance_interval_status <- covariance_summary_interval_status(intervals)
-  response_names <- bivariate_response_names(object)
 
-  data.frame(
-    level = "phylogenetic",
-    group = group,
-    block = "phylo",
-    from_dpar = "mu1",
-    to_dpar = "mu2",
-    from_coef = "(Intercept)",
-    to_coef = "(Intercept)",
-    from_response = response_names[[1L]],
-    to_response = response_names[[2L]],
-    class = "mean-mean",
-    parameter = parameter,
-    correlation_target = correlation_target,
-    from_sd_target = from_sd_target,
-    to_sd_target = to_sd_target,
-    correlation = correlation,
-    from_sd_parameter = from_sd_parameter,
-    to_sd_parameter = to_sd_parameter,
-    from_sd = from_sd,
-    to_sd = to_sd,
-    from_variance = from_variance,
-    to_variance = to_variance,
-    covariance = covariance,
-    from_scale = "identity",
-    to_scale = "identity",
-    correlation_conf.low = correlation_interval$lower,
-    correlation_conf.high = correlation_interval$upper,
-    correlation_conf.method = correlation_interval$method,
-    from_sd_conf.low = from_sd_interval$lower,
-    from_sd_conf.high = from_sd_interval$upper,
-    from_sd_conf.method = from_sd_interval$method,
-    to_sd_conf.low = to_sd_interval$lower,
-    to_sd_conf.high = to_sd_interval$upper,
-    to_sd_conf.method = to_sd_interval$method,
-    covariance_conf.low = NA_real_,
-    covariance_conf.high = NA_real_,
-    covariance_conf.method = NA_character_,
-    covariance_conf.status = covariance_interval_status,
-    stringsAsFactors = FALSE
-  )
+  rows <- lapply(seq_len(nrow(pair_table)), function(i) {
+    pair <- pair_table[i, , drop = FALSE]
+    parameter <- phylo_mu_correlation_parameter(object, i)
+    correlation_target <- paste0("cor:phylo:", parameter)
+    from_sd_parameter <- sd_parameters[[pair$from_index[[1L]]]]
+    to_sd_parameter <- sd_parameters[[pair$to_index[[1L]]]]
+    from_sd_target <- paste0("sd:mu:", from_sd_parameter)
+    to_sd_target <- paste0("sd:mu:", to_sd_parameter)
+    from_sd <- phylo_mu_sd_value(object, from_sd_parameter)
+    to_sd <- phylo_mu_sd_value(object, to_sd_parameter)
+    correlation <- unname(object$corpars$phylo[[i]])
+    correlation_interval <- covariance_summary_interval(
+      intervals,
+      correlation_target
+    )
+    from_sd_interval <- covariance_summary_interval(intervals, from_sd_target)
+    to_sd_interval <- covariance_summary_interval(intervals, to_sd_target)
+    data.frame(
+      level = "phylogenetic",
+      group = group,
+      block = block,
+      from_dpar = pair$from_dpar[[1L]],
+      to_dpar = pair$to_dpar[[1L]],
+      from_coef = "(Intercept)",
+      to_coef = "(Intercept)",
+      from_response = random_effect_response_name(object, pair$from_dpar[[1L]]),
+      to_response = random_effect_response_name(object, pair$to_dpar[[1L]]),
+      class = random_correlation_class(
+        pair$from_dpar[[1L]],
+        "(Intercept)",
+        "(Intercept)",
+        to_dpar = pair$to_dpar[[1L]]
+      ),
+      parameter = parameter,
+      correlation_target = correlation_target,
+      from_sd_target = from_sd_target,
+      to_sd_target = to_sd_target,
+      correlation = correlation,
+      from_sd_parameter = from_sd_parameter,
+      to_sd_parameter = to_sd_parameter,
+      from_sd = from_sd,
+      to_sd = to_sd,
+      from_variance = from_sd^2,
+      to_variance = to_sd^2,
+      covariance = correlation * from_sd * to_sd,
+      from_scale = covariance_registry_member_scale(data.frame(
+        dpar = pair$from_dpar[[1L]]
+      )),
+      to_scale = covariance_registry_member_scale(data.frame(
+        dpar = pair$to_dpar[[1L]]
+      )),
+      correlation_conf.low = correlation_interval$lower,
+      correlation_conf.high = correlation_interval$upper,
+      correlation_conf.method = correlation_interval$method,
+      from_sd_conf.low = from_sd_interval$lower,
+      from_sd_conf.high = from_sd_interval$upper,
+      from_sd_conf.method = from_sd_interval$method,
+      to_sd_conf.low = to_sd_interval$lower,
+      to_sd_conf.high = to_sd_interval$upper,
+      to_sd_conf.method = to_sd_interval$method,
+      covariance_conf.low = NA_real_,
+      covariance_conf.high = NA_real_,
+      covariance_conf.method = NA_character_,
+      covariance_conf.status = covariance_interval_status,
+      stringsAsFactors = FALSE
+    )
+  })
+  do.call(rbind, rows)
 }
 
 phylo_mu_sd_parameter <- function(dpar, group) {
@@ -1295,7 +1309,7 @@ predict.drmTMB <- function(
   }
   if (
     is.null(newdata) &&
-      dpar %in% c("mu", "mu1", "mu2") &&
+      dpar %in% phylo_mu_dpars(object$model$structured$phylo_mu) &&
       has_phylo_mu_effect(object)
   ) {
     eta <- eta + phylo_mu_contribution(object, dpar = dpar)
@@ -2757,12 +2771,10 @@ phylo_mu_contribution <- function(object, dpar = NULL) {
   values <- object$random_effects$phylo_mu$values
   index <- object$model$structured$phylo_mu$observation_node_index
   if (identical(object$model$model_type, "biv_gaussian")) {
-    dpar <- match.arg(dpar, c("mu1", "mu2"))
-    offset <- if (identical(dpar, "mu2")) {
+    dpars <- phylo_mu_dpars(object$model$structured$phylo_mu)
+    dpar <- match.arg(dpar, dpars)
+    offset <- (match(dpar, dpars) - 1L) *
       object$model$structured$phylo_mu$n_re
-    } else {
-      0L
-    }
     index <- index + offset
   }
   unname(values[index])

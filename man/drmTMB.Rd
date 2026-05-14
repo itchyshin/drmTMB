@@ -67,7 +67,9 @@ labelled \code{mu}/\code{sigma}
 random-intercept covariance blocks, and one or more group-level
 random-effect scale formulae such as \code{sd(id) ~ x_group}, plus
 intercept-only phylogenetic random effects in univariate Gaussian location
-formulas and matching bivariate Gaussian \code{mu1}/\code{mu2} location formulas,
+formulas, matching bivariate Gaussian \code{mu1}/\code{mu2} location formulas, and
+matching labelled bivariate Gaussian \code{mu1}/\code{mu2}/\code{sigma1}/\code{sigma2}
+phylogenetic location-scale blocks,
 fixed-effect bivariate Gaussian distributional models, and matched labelled
 bivariate Gaussian \code{mu1}/\code{mu2}, \code{sigma1}/\code{sigma2}, and same-response
 \code{mu}/\code{sigma} random-intercept covariance blocks.

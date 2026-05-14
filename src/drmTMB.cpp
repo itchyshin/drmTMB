@@ -1109,55 +1109,111 @@ Type objective_function<Type>::operator()()
 
     if (has_phylo_mu == 1) {
       int n_phylo = Q_phylo.rows();
+      int q_phylo = log_sd_phylo.size();
       for (int i = 0; i < y1.size(); ++i) {
         int node = phylo_mu_node_index(i);
         mu1(i) += u_phylo(node);
         mu2(i) += u_phylo(n_phylo + node);
+        if (q_phylo > 2) {
+          log_sigma1(i) += u_phylo(2 * n_phylo + node);
+          log_sigma2(i) += u_phylo(3 * n_phylo + node);
+        }
       }
-      Type rho_phylo = Type(0.999999) * tanh(eta_cor_phylo);
-      Type sd1 = exp(log_sd_phylo(0));
-      Type sd2 = exp(log_sd_phylo(1));
-      vector<Type> u1(n_phylo);
-      vector<Type> u2(n_phylo);
-      for (int j = 0; j < n_phylo; ++j) {
-        u1(j) = u_phylo(j);
-        u2(j) = u_phylo(n_phylo + j);
-      }
-      vector<Type> Q_u1 = Q_phylo * u1;
-      vector<Type> Q_u2 = Q_phylo * u2;
-      Type q11 = Type(0.0);
-      Type q12 = Type(0.0);
-      Type q22 = Type(0.0);
-      for (int j = 0; j < n_phylo; ++j) {
-        q11 += u1(j) * Q_u1(j);
-        q12 += u1(j) * Q_u2(j);
-        q22 += u2(j) * Q_u2(j);
-      }
-      Type one_minus_rho2 = Type(1.0) - rho_phylo * rho_phylo;
-      Type inv11 = Type(1.0) / (sd1 * sd1 * one_minus_rho2);
-      Type inv22 = Type(1.0) / (sd2 * sd2 * one_minus_rho2);
-      Type inv12 = -rho_phylo / (sd1 * sd2 * one_minus_rho2);
-      Type log_det_cov = Type(2.0) * log_sd_phylo(0) +
-        Type(2.0) * log_sd_phylo(1) +
-        log(one_minus_rho2);
-      Type quadratic_phylo = inv11 * q11 + Type(2.0) * inv12 * q12 + inv22 * q22;
-      nll += Type(0.5) * (
-        Type(2 * n_phylo) * log(Type(2.0) * M_PI) +
-        Type(n_phylo) * log_det_cov -
-        Type(2.0) * log_det_Q_phylo +
-        quadratic_phylo
-      );
       vector<Type> sd_phylo = exp(log_sd_phylo);
+      if (q_phylo == 2) {
+        Type rho_phylo = Type(0.999999) * tanh(eta_cor_phylo);
+        Type sd1 = sd_phylo(0);
+        Type sd2 = sd_phylo(1);
+        vector<Type> u1(n_phylo);
+        vector<Type> u2(n_phylo);
+        for (int j = 0; j < n_phylo; ++j) {
+          u1(j) = u_phylo(j);
+          u2(j) = u_phylo(n_phylo + j);
+        }
+        vector<Type> Q_u1 = Q_phylo * u1;
+        vector<Type> Q_u2 = Q_phylo * u2;
+        Type q11 = Type(0.0);
+        Type q12 = Type(0.0);
+        Type q22 = Type(0.0);
+        for (int j = 0; j < n_phylo; ++j) {
+          q11 += u1(j) * Q_u1(j);
+          q12 += u1(j) * Q_u2(j);
+          q22 += u2(j) * Q_u2(j);
+        }
+        Type one_minus_rho2 = Type(1.0) - rho_phylo * rho_phylo;
+        Type inv11 = Type(1.0) / (sd1 * sd1 * one_minus_rho2);
+        Type inv22 = Type(1.0) / (sd2 * sd2 * one_minus_rho2);
+        Type inv12 = -rho_phylo / (sd1 * sd2 * one_minus_rho2);
+        Type log_det_cov = Type(2.0) * log_sd_phylo(0) +
+          Type(2.0) * log_sd_phylo(1) +
+          log(one_minus_rho2);
+        Type quadratic_phylo = inv11 * q11 + Type(2.0) * inv12 * q12 + inv22 * q22;
+        nll += Type(0.5) * (
+          Type(2 * n_phylo) * log(Type(2.0) * M_PI) +
+          Type(n_phylo) * log_det_cov -
+          Type(2.0) * log_det_Q_phylo +
+          quadratic_phylo
+        );
+        REPORT(eta_cor_phylo);
+        REPORT(rho_phylo);
+        REPORT(quadratic_phylo);
+        ADREPORT(eta_cor_phylo);
+        ADREPORT(rho_phylo);
+      } else {
+        matrix<Type> effect(n_phylo, q_phylo);
+        for (int j = 0; j < q_phylo; ++j) {
+          for (int i = 0; i < n_phylo; ++i) {
+            effect(i, j) = u_phylo(j * n_phylo + i);
+          }
+        }
+        density::UNSTRUCTURED_CORR_t<Type> phylo_q4_density(theta_phylo);
+        matrix<Type> phylo_q4_corr = phylo_q4_density.cov();
+        matrix<Type> phylo_q4_covariance(q_phylo, q_phylo);
+        for (int a = 0; a < q_phylo; ++a) {
+          for (int b = 0; b < q_phylo; ++b) {
+            phylo_q4_covariance(a, b) =
+              sd_phylo(a) * phylo_q4_corr(a, b) * sd_phylo(b);
+          }
+        }
+        matrix<Type> covariance_inverse = phylo_q4_covariance.inverse();
+        Type log_det_covariance = log(phylo_q4_covariance.determinant());
+        matrix<Type> quadratic_matrix(q_phylo, q_phylo);
+        quadratic_matrix.setZero();
+        for (int b = 0; b < q_phylo; ++b) {
+          vector<Type> effect_b(n_phylo);
+          for (int i = 0; i < n_phylo; ++i) {
+            effect_b(i) = effect(i, b);
+          }
+          vector<Type> Q_effect_b = Q_phylo * effect_b;
+          for (int a = 0; a < q_phylo; ++a) {
+            for (int i = 0; i < n_phylo; ++i) {
+              quadratic_matrix(a, b) += effect(i, a) * Q_effect_b(i);
+            }
+          }
+        }
+        Type quadratic_phylo = Type(0.0);
+        for (int a = 0; a < q_phylo; ++a) {
+          for (int b = 0; b < q_phylo; ++b) {
+            quadratic_phylo += covariance_inverse(a, b) * quadratic_matrix(a, b);
+          }
+        }
+        nll += Type(0.5) * (
+          Type(n_phylo * q_phylo) * log(Type(2.0) * M_PI) +
+          Type(n_phylo) * log_det_covariance -
+          Type(q_phylo) * log_det_Q_phylo +
+          quadratic_phylo
+        );
+        REPORT(theta_phylo);
+        REPORT(phylo_q4_corr);
+        REPORT(phylo_q4_covariance);
+        REPORT(quadratic_phylo);
+        ADREPORT(theta_phylo);
+      }
       REPORT(u_phylo);
       REPORT(log_sd_phylo);
       REPORT(sd_phylo);
-      REPORT(eta_cor_phylo);
-      REPORT(rho_phylo);
-      REPORT(quadratic_phylo);
       ADREPORT(log_sd_phylo);
       ADREPORT(sd_phylo);
-      ADREPORT(eta_cor_phylo);
-      ADREPORT(rho_phylo);
     }
 
     vector<Type> sigma1 = exp(log_sigma1);
