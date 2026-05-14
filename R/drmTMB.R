@@ -2229,6 +2229,7 @@ drm_build_biv_gaussian_spec <- function(
     sigma1_re$terms,
     sigma2_re$terms
   )
+  reject_biv_sd_mu_q4_mixture(sd_mu_entries, q4_covariance_blocks)
   if (
     !is.null(meta$V) &&
       (length(mu1_re$terms) > 0L ||
@@ -3636,6 +3637,33 @@ detect_biv_q4_covariance_blocks <- function(
   }
 
   list(list(block_label = labels[[1L]], group = groups[[1L]]))
+}
+
+reject_biv_sd_mu_q4_mixture <- function(entries, q4_blocks) {
+  if (length(entries) == 0L || length(q4_blocks) == 0L) {
+    return(invisible(FALSE))
+  }
+
+  q4_groups <- vapply(q4_blocks, `[[`, character(1L), "group")
+  q4_labels <- vapply(q4_blocks, `[[`, character(1L), "block_label")
+  target_groups <- vapply(
+    entries,
+    function(entry) parse_sd_lhs(entry$lhs)$group,
+    character(1L)
+  )
+  mixed <- which(target_groups %in% q4_groups)
+  if (length(mixed) == 0L) {
+    return(invisible(FALSE))
+  }
+
+  entry <- entries[[mixed[[1L]]]]
+  target <- parse_sd_lhs(entry$lhs)
+  block_pos <- match(target$group, q4_groups)
+  cli::cli_abort(c(
+    "Do not combine Family A location-scale covariance blocks with Family B direct SD formulas for the same group.",
+    "x" = "{.code {entry$dpar}} targets the {.code {if (identical(target$fun, \"sd1\")) \"mu1\" else \"mu2\"}} location random-effect SD for group {.field {target$group}}, but block {.code {q4_labels[[block_pos]]}} already estimates the joint {.code mu1}/{.code mu2}/{.code sigma1}/{.code sigma2} random-effect covariance for that group.",
+    "i" = "Remove {.code {entry$dpar}}, or fit a location-only block if you want direct {.fn sd1} / {.fn sd2} scale regression."
+  ))
 }
 
 remove_biv_q4_terms <- function(terms, q4_blocks) {

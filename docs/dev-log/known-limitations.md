@@ -20,6 +20,9 @@
   `sd_sigma1()` and `sd_sigma2()` are rejected because residual scale should be
   modelled through `sigma1` / `sigma2` formulas or through Family A scale
   random effects, not by mixing both formulations for the same latent layer.
+  The same direct-SD syntax is rejected for a group that is already using the
+  all-four ordinary q=4 Family A covariance block, because that would require a
+  predictor-dependent four-dimensional covariance model.
 - Diagonal and dense full known-covariance Gaussian meta-analysis is
   implemented.
 - Bivariate Gaussian location-scale-coscale models are implemented with `mu1`,
@@ -43,7 +46,9 @@
   `check_drm()` reports a bivariate phylogenetic covariance diagnostic for
   near-boundary `corpars$phylo` values, weak species replication, and
   phylogenetic location SDs that are tiny relative to the matching residual
-  scales.
+  scales. Family B direct structured-SD formulas such as
+  `sd_phylo(species) ~ x_species` remain planned until the tip/internal-node
+  covariance contract is explicit and tested.
 - `corpairs()` currently reports only correlations that are already fitted:
   residual bivariate `rho12` summaries and ordinary univariate Gaussian `mu`
   random-effect correlations, plus the implemented univariate `mu`/`sigma`

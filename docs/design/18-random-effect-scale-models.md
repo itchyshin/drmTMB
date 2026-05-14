@@ -191,6 +191,43 @@ effects directly. Do not combine both ideas for the same latent layer; for
 example, `sigma1 = ~ z + (1 | p | id)` and `sd_sigma1(id) ~ w` are not a valid
 first target.
 
+For bivariate Gaussian models, the same boundary also applies to ordinary q=4
+Family A blocks. If `(1 | p | id)` is present in `mu1`, `mu2`, `sigma1`, and
+`sigma2`, the likelihood already estimates one joint covariance matrix for
+the four latent effects. Adding `sd1(id) ~ z` or `sd2(id) ~ z` would try to
+make the location-effect SDs predictor-dependent while keeping the four-way
+covariance block constant. That hybrid is not an implemented model family, so
+the builder rejects it before fitting.
+
+## Structured Direct-SD Targets
+
+Names such as `sd_phylo(species)`, `sd_phylo1(species)`,
+`sd_phylo2(species)`, and `sd_spatial(site)` are planned Family B targets, but
+they are not scalar replacements for the fitted `log_sd_phylo` parameters. In
+the current phylogenetic likelihood, the latent species effects are coupled by
+a Brownian-motion tree precision:
+
+```text
+a ~ MVN(0, sigma_phylo^2 A)
+```
+
+For a predictor-dependent structured SD, the design must first choose the
+covariance being modelled. A candidate construction is:
+
+```text
+a = D(z) v
+v ~ MVN(0, A)
+Cov(a) = D(z) A D(z)
+```
+
+where `D(z)` is a diagonal matrix of species-level SDs. That construction has
+different determinant and quadratic terms from the current scalar
+`sigma_phylo^2 A` model, and it raises a practical question for sparse
+augmented A-inverse implementations: predictors are observed at tips, whereas
+the computational latent state also includes internal nodes. Until that
+tip/internal-node contract is explicit and tested, `sd_phylo()` remains a
+planned syntax rather than fitted code.
+
 ## Multiple Random-Effect Scale Components
 
 When there are several random-effect components, each scale formula must name

@@ -12206,3 +12206,40 @@ Known limitations:
   remain planned;
 - full q4 Family A location-scale covariance blocks and predictor-dependent
   `corpair()` models remain planned.
+
+## 2026-05-13 -- Slice 18: direct-SD family boundary guard
+
+Goal:
+
+- keep the new bivariate direct-SD path from being accidentally mixed with the
+  all-four ordinary q=4 Family A covariance block, and record why
+  `sd_phylo()` still needs design before implementation.
+
+Implemented:
+
+- added an explicit `biv_gaussian()` guard that rejects `sd1(group)` /
+  `sd2(group)` formulas when the same group is already represented by the
+  all-four q=4 `mu1`/`mu2`/`sigma1`/`sigma2` covariance block;
+- added a bivariate regression test that exercises the clear Family A versus
+  Family B error instead of relying on an indirect missing-target failure;
+- updated the formula grammar, likelihood, random-effect scale design note,
+  phylo/spatial common-math note, known limitations, and NEWS;
+- documented that structured direct-SD targets such as `sd_phylo(species) ~ z`
+  require a tip/internal-node covariance contract before fitting.
+
+Checks run:
+
+- `air format R/drmTMB.R tests/testthat/test-biv-gaussian.R`: passed.
+- `Rscript -e 'devtools::test(filter = "biv-gaussian", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'devtools::load_all(quiet = TRUE)'`: passed.
+- `git diff --check`: passed.
+- `rg -n 'bivariate structured effects remain planned|only the intercept-only phylogenetic .* form is fitted|sd_phylo\\(species\\).*Implemented|sd1\\(id\\).*q=4.*Implemented' docs NEWS.md R tests`:
+  no matches.
+
+Known limitations:
+
+- this slice does not implement `sd_phylo()`;
+- it does not implement predictor-dependent q=4 covariance blocks;
+- `sd1()` / `sd2()` remain valid for location-only labelled bivariate random
+  intercepts, but not for the same group as an all-four Family A block.

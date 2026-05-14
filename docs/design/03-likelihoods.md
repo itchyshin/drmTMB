@@ -1215,6 +1215,10 @@ Implementation notes:
   live on the residual-scale linear-predictor scale. The six correlations in
   `Sigma_id` are group-level latent correlations and remain separate from
   residual `rho12`.
+- Family B direct location-SD formulas such as `sd1(id) ~ x_group` and
+  `sd2(id) ~ x_group` are rejected for the same group when this q=4 block is
+  present. Combining them would require a predictor-dependent q=4 covariance
+  model, not the current constant q=4 block.
 - Bivariate random slopes, `rho12` random effects, phylogenetic q=4 blocks, and
   spatial q=4 blocks remain planned.
 

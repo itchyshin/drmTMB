@@ -68,10 +68,12 @@ In this table, "coscale" means a model for residual correlation, currently
 | `(1 | p | id)` in both bivariate `sigma1` and `sigma2` | Implemented | First bivariate residual-scale covariance slice: matching labelled random intercepts enter `log(sigma1)` and `log(sigma2)` and create one scale-scale group-level correlation. |
 | `(1 | p | id)` in same-response bivariate `mu1` and `sigma1`, or in `mu2` and `sigma2` | Implemented first slice | One matching labelled random-intercept pair creates a mean-scale group-level correlation for that response. |
 | `(1 | p | id)` in all four bivariate `mu1`, `mu2`, `sigma1`, and `sigma2` formulas | Implemented first slice | One ordinary q=4 random-intercept covariance block reports all six latent location-location, location-scale, and scale-scale correlations. |
+| `sd1(id) ~ x_group` or `sd2(id) ~ x_group` with the same all-four q=4 block | Rejected | This would mix the Family A joint location-scale covariance block with Family B direct location-SD regression for the same group. |
 | `family = c(gaussian(), gaussian())` | Implemented | Public bivariate Gaussian family direction; mixed composed families are planned. |
 | `mvbind(y1, y2) ~ x1` | Implemented | Shorthand for identical bivariate location formulas; explicit `mu1`/`mu2` remains preferred for different predictors. |
 | `phylo(1 | species, tree = tree)` in `mu` | Implemented | Intercept-only univariate Gaussian phylogenetic location effect; requires an ultrametric tree with branch lengths. |
 | matching `phylo(1 | species, tree = tree)` in bivariate `mu1` and `mu2` | Implemented first slice | Correlated phylogenetic random intercepts enter the two response means; `sigma1`, `sigma2`, and residual `rho12` remain ordinary fixed-effect distributional parameters. |
+| `sd_phylo(species) ~ x_species` and bivariate `sd_phylo1()` / `sd_phylo2()` | Planned | Family B structured direct-SD targets need an explicit tip/internal-node covariance contract before fitting. |
 | `weights = w` | Implemented | Top-level likelihood weights, not formula syntax. Known sampling covariance remains `meta_known_V(V = V)`. |
 | `y ~ x1`, `family = cumulative_logit()` | Implemented | Fixed-effect univariate ordinal model for ordered scores with cutpoints; `mu` is a latent location and ordinal scale formulas are planned. |
 | `cbind(successes, failures) ~ x1`, `family = beta_binomial()` | Implemented | Fixed-effect denominator-aware model for success counts with known trial totals; `sigma` is extra-binomial variation. |
@@ -434,12 +436,19 @@ random-intercept targets in `mu1` and `mu2`, for example `sd1(id) ~ x_id` and
 because they invite the unsupported mixture of a scale-formula random effect
 and a direct SD model for the same latent layer.
 
+The same guard applies to all-four ordinary q=4 blocks. A model with matching
+`(1 | p | id)` terms in `mu1`, `mu2`, `sigma1`, and `sigma2` already estimates
+one joint latent covariance matrix for `id`. `sd1(id) ~ x_id` or
+`sd2(id) ~ x_id` is therefore rejected for that same group until a future
+heterogeneous covariance-block model is designed and tested.
+
 ## Structured Phylogenetic and Spatial Markers
 
 `drm_formula()` parses structured-effect markers and stores them as structured
-metadata. The first fitted path is intercept-only phylogenetic structure in the
-univariate Gaussian `mu` formula. Spatial terms, phylogenetic slopes,
-phylogenetic `sigma` terms, and bivariate structured effects remain planned.
+metadata. The first fitted paths are intercept-only phylogenetic structure in
+the univariate Gaussian `mu` formula and matching bivariate `mu1`/`mu2`
+formulas. Spatial terms, phylogenetic slopes, phylogenetic `sigma` terms, and
+structured q=4 blocks remain planned.
 
 The canonical phylogenetic syntax is:
 
@@ -474,9 +483,9 @@ spatial(1 + depth | site, coords = coords)
 ```
 
 Multiple structured slopes, interaction slopes, structured `sigma` effects,
-structured `rho12` effects, and bivariate structured effects remain planned
-until intercept-only univariate Gaussian `mu` models have simulation and
-comparator coverage.
+structured `rho12` effects, bivariate structured effects beyond matching
+`mu1`/`mu2`, and structured q=4 blocks remain planned until the intercept-only
+phylogenetic paths have simulation and comparator coverage.
 
 Future cross-formula correlated random-effect blocks should use ID labels:
 

@@ -474,6 +474,15 @@ This estimates `sd_phylo_mu1`, `sd_phylo_mu2`, and one phylogenetic mean-mean
 correlation. It does not yet add phylogenetic `sigma` terms, structured
 `rho12`, or random slopes.
 
+Family B structured direct-SD syntax such as `sd_phylo(species) ~ z_species`
+is a separate design problem. The scalar `sigma_phylo^2 A` covariance above is
+straightforward, but predictor-dependent species SDs imply a covariance such as
+`D(z) A D(z)` and a matching sparse-precision determinant/quadratic form. The
+public predictor is defined at species tips, while the sparse A-inverse
+implementation also contains internal nodes. Until the package has a precise
+tip/internal-node scaling rule and simulation evidence, `sd_phylo()` remains
+planned rather than fitted.
+
 Testing should be staged:
 
 - parser and fitted-model tests for `phylo(1 | species, tree = tree)` in `mu`
