@@ -304,6 +304,13 @@ test_that("bivariate Gaussian mu supports correlated phylogenetic random interce
     fixed_mu1[1:3],
     tolerance = 1e-10
   )
+
+  sims <- simulate(fit, nsim = 2, seed = 20260631)
+  expect_named(sims, c("sim_1_y1", "sim_1_y2", "sim_2_y1", "sim_2_y2"))
+  expect_equal(nrow(sims), nrow(dat))
+  expect_true(all(vapply(sims, is.numeric, logical(1L))))
+  expect_true(all(is.finite(as.matrix(sims))))
+  expect_equal(sims, simulate(fit, nsim = 2, seed = 20260631))
 })
 
 test_that("bivariate phylogenetic mean correlation recovers simulated signal", {

@@ -843,6 +843,13 @@ test_that("bivariate Gaussian supports full q4 labelled location-scale covarianc
     0
   )
   expect_equal(nrow(summary(fit)$covariance), 6L)
+
+  sims <- simulate(fit, nsim = 2, seed = 20260630)
+  expect_named(sims, c("sim_1_y1", "sim_1_y2", "sim_2_y1", "sim_2_y2"))
+  expect_equal(nrow(sims), nrow(sim$data))
+  expect_true(all(vapply(sims, is.numeric, logical(1L))))
+  expect_true(all(is.finite(as.matrix(sims))))
+  expect_equal(sims, simulate(fit, nsim = 2, seed = 20260630))
 })
 
 test_that("bivariate Gaussian supports labelled sigma1/sigma2 random-intercept covariance blocks", {

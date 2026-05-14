@@ -12285,3 +12285,34 @@ Known limitations:
   group-varying intercept and slope SDs and their correlations;
 - bivariate direct-SD models still use `sd1(group)` / `sd2(group)` without
   explicit `dpar` or `coef` arguments.
+
+## 2026-05-13 -- Slice 20: bivariate q4 and phylo simulate smoke tests
+
+Goal:
+
+- make sure the new fitted bivariate covariance surfaces still work with the
+  public `simulate()` method.
+
+Implemented:
+
+- added conditional simulation smoke checks to the existing ordinary q=4
+  bivariate Gaussian test;
+- added conditional simulation smoke checks to the existing bivariate
+  phylogenetic `mu1`/`mu2` test;
+- checked simulation column names, row counts, numeric finite output, and
+  seed reproducibility without adding extra optimization cost.
+
+Checks run:
+
+- `air format tests/testthat/test-biv-gaussian.R tests/testthat/test-phylo-gaussian.R`:
+  passed.
+- `Rscript -e 'devtools::test(filter = "biv-gaussian|phylo-gaussian", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'devtools::load_all(quiet = TRUE)'`: passed.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- these are smoke tests for conditional response simulation from fitted models;
+- they do not simulate new random-effect draws from the fitted q4 or
+  phylogenetic covariance distributions.
