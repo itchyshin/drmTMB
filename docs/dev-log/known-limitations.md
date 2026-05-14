@@ -78,14 +78,17 @@
   bivariate `mu`/`sigma` random-intercept correlations. It reports all six
   ordinary q=4 all-four bivariate random-intercept correlations when that block
   is fitted, and it also reports the fitted bivariate phylogenetic mean-mean
-    correlation and the six phylogenetic q=4 endpoint correlations when that
-    block is fitted. Spatial and study-level correlation pairs remain planned.
-- Singular endpoint-specific
-  `corpair(group, level = "phylogenetic", block = "...", from = "mu1", to = "mu2") ~ x`
-  formula syntax is reserved for future predictor-dependent latent
-  random-effect correlations. `drmTMB()` rejects it clearly for now. Use
-  `rho12 = ~ x` for residual within-observation correlation, and use
-  `corpairs()` to extract fitted constant latent correlations.
+  correlation and the six phylogenetic q=4 endpoint correlations when that
+  block is fitted. For the first ordinary q=2 predictor-dependent
+  `corpair(id, level = "group", block = "p", from = "mu1", to = "mu2") ~ x`
+  route, `corpairs()` reports the fitted mean, range, and number of group-level
+  latent correlation values. Spatial and study-level correlation pairs remain
+  planned.
+- Singular endpoint-specific `corpair()` formula syntax is fitted only for the
+  ordinary q=2 `mu1`/`mu2` location-location route. Phylogenetic, spatial,
+  location-scale, scale-scale, and q=4 predictor-dependent latent correlation
+  regressions remain planned. Use `rho12 = ~ x` for residual
+  within-observation correlation.
   - Internal q4 phylogenetic algebra, the hidden TMB prior probe, and the public
     bivariate Gaussian q=4 phylogenetic location-scale endpoint now use the same
     endpoint order. The ordinary grouped q4 location-scale block,

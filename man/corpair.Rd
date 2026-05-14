@@ -2,7 +2,7 @@
 % Please edit documentation in R/formula-markers.R
 \name{corpair}
 \alias{corpair}
-\title{Planned latent random-effect correlation formula marker}
+\title{Latent random-effect correlation formula marker}
 \usage{
 corpair(
   group,
@@ -26,20 +26,27 @@ corpair(
 shorthand and is not the first fitted q=4 correlation-regression target.}
 
 \item{from, to}{Optional endpoint-specific distributional parameters, such as
-\code{"mu1"} and \code{"sigma2"}, for planned fitted correlation-regression targets.}
+\code{"mu1"} and \code{"mu2"} for the first fitted ordinary q=2 target, or
+\code{"mu1"} and \code{"sigma2"} for later location-scale targets.}
 }
 \value{
 A formula marker; never evaluated by users.
 }
 \description{
-\code{corpair()} reserves formula syntax for predictor-dependent latent
-random-effect correlations. It is distinct from residual \code{rho12} and from the
-\code{\link[=corpairs]{corpairs()}} extractor. Current fitted models estimate constant latent
-covariance-block correlations; \code{drmTMB()} rejects \code{corpair()} formulas until
-predictor-dependent latent correlations have likelihood and recovery tests.
+\code{corpair()} marks predictor-dependent latent random-effect correlations. It
+is distinct from residual \code{rho12} and from the \code{\link[=corpairs]{corpairs()}} extractor. The
+first fitted path is the ordinary q=2 location-location case for matching
+labelled \code{mu1}/\code{mu2} random intercepts:
+\code{corpair(id, level = "group", block = "p", from = "mu1", to = "mu2") ~ x}.
+Predictors must be constant within the grouping factor. Phylogenetic,
+spatial, location-scale, scale-scale, and q=4 \code{corpair()} regressions remain
+planned.
 }
 \examples{
-# planned only; drmTMB() will currently reject corpair() formulas
+bf(corpair(id, level = "group", block = "p",
+  from = "mu1", to = "mu2") ~ ecology)
+
+# planned structured sibling
 bf(corpair(species, level = "phylogenetic", block = "p",
   from = "mu1", to = "mu2") ~ ecology)
 }

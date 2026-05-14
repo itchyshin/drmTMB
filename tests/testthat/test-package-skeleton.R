@@ -274,7 +274,7 @@ test_that("planned structured-effect markers validate their grammar", {
   )
 })
 
-test_that("planned corpair formulas validate grammar and reject fitting clearly", {
+test_that("corpair formulas validate grammar and unsupported fits clearly", {
   dat <- data.frame(
     y1 = c(0.1, 0.3, -0.2, 0.4),
     y2 = c(-0.1, 0.2, 0.0, 0.5),
@@ -325,8 +325,16 @@ test_that("planned corpair formulas validate grammar and reject fitting clearly"
     drm_formula(target = corpair(id, block = "p") ~ z),
     "should be unnamed"
   )
+  bad_fit_form <- drm_formula(
+    mu1 = y1 ~ x + (1 | p | id),
+    mu2 = y2 ~ x + (1 | p | id),
+    sigma1 = ~1,
+    sigma2 = ~1,
+    rho12 = ~1,
+    corpair(id, block = "p", from = "mu1", to = "sigma2") ~ z
+  )
   expect_error(
-    drmTMB(form, family = biv_gaussian(), data = dat),
-    "reserved but not implemented"
+    drmTMB(bad_fit_form, family = biv_gaussian(), data = dat),
+    "location-location only"
   )
 })

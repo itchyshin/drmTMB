@@ -422,9 +422,9 @@ corpairs_conf_status <- function(pairs, target_rows, target_index) {
     function(i) {
       if (is.na(target_index[[i]])) {
         if (
-          identical(pairs$level[[i]], "residual") &&
-            identical(pairs$parameter[[i]], "rho12") &&
-            isTRUE(pairs$modelled[[i]])
+          isTRUE(pairs$modelled[[i]]) &&
+            (identical(pairs$level[[i]], "residual") ||
+              identical(pairs$level[[i]], "group"))
         ) {
           return("newdata_required")
         }
@@ -611,6 +611,31 @@ random_effect_registry_corpairs <- function(object) {
       )
     }
     estimate <- unname(cor_values[[cor_index]])
+    model_dpar <- random_effect_correlation_model_dpar(
+      object,
+      cor_key,
+      cor_index
+    )
+    if (!is.na(model_dpar)) {
+      rho <- predict(object, dpar = model_dpar, type = "response")
+      eta <- predict(object, dpar = model_dpar, type = "link")
+      estimate <- mean(rho)
+      min_value <- min(rho)
+      max_value <- max(rho)
+      n_values <- length(rho)
+      link_estimate <- mean(eta)
+      link_min <- min(eta)
+      link_max <- max(eta)
+      modelled <- TRUE
+    } else {
+      min_value <- estimate
+      max_value <- estimate
+      n_values <- 1L
+      link_estimate <- guarded_correlation_link(estimate, guard = 0.999999)
+      link_min <- guarded_correlation_link(estimate, guard = 0.999999)
+      link_max <- guarded_correlation_link(estimate, guard = 0.999999)
+      modelled <- FALSE
+    }
     new_corpair_row(
       level = block$level[[1L]],
       group = block$group[[1L]],
@@ -624,13 +649,13 @@ random_effect_registry_corpairs <- function(object) {
       class = pair$class[[1L]],
       parameter = pair$parameter[[1L]],
       estimate = estimate,
-      min = estimate,
-      max = estimate,
-      n_values = 1L,
-      link_estimate = guarded_correlation_link(estimate, guard = 0.999999),
-      link_min = guarded_correlation_link(estimate, guard = 0.999999),
-      link_max = guarded_correlation_link(estimate, guard = 0.999999),
-      modelled = FALSE
+      min = min_value,
+      max = max_value,
+      n_values = n_values,
+      link_estimate = link_estimate,
+      link_min = link_min,
+      link_max = link_max,
+      modelled = modelled
     )
   })
 }
@@ -1112,17 +1137,45 @@ random_effect_label_corpairs <- function(object, exclude = character()) {
         object = object,
         dpar = dpar,
         label = names(cor_values)[[i]],
-        estimate = unname(cor_values[[i]])
+        estimate = unname(cor_values[[i]]),
+        index = i
       )
     }
   }
   rows
 }
 
-random_effect_corpair <- function(object, dpar, label, estimate) {
+random_effect_corpair <- function(
+  object,
+  dpar,
+  label,
+  estimate,
+  index = NA_integer_
+) {
   parsed <- parse_random_correlation_label(label)
   from <- parse_random_correlation_endpoint(parsed$from_coef, dpar)
   to <- parse_random_correlation_endpoint(parsed$to_coef, dpar)
+  model_dpar <- random_effect_correlation_model_dpar(object, dpar, index)
+  if (!is.na(model_dpar)) {
+    rho <- predict(object, dpar = model_dpar, type = "response")
+    eta <- predict(object, dpar = model_dpar, type = "link")
+    estimate <- mean(rho)
+    min_value <- min(rho)
+    max_value <- max(rho)
+    n_values <- length(rho)
+    link_estimate <- mean(eta)
+    link_min <- min(eta)
+    link_max <- max(eta)
+    modelled <- TRUE
+  } else {
+    min_value <- estimate
+    max_value <- estimate
+    n_values <- 1L
+    link_estimate <- guarded_correlation_link(estimate, guard = 0.999999)
+    link_min <- guarded_correlation_link(estimate, guard = 0.999999)
+    link_max <- guarded_correlation_link(estimate, guard = 0.999999)
+    modelled <- FALSE
+  }
   new_corpair_row(
     level = "group",
     group = parsed$group,
@@ -1141,14 +1194,32 @@ random_effect_corpair <- function(object, dpar, label, estimate) {
     ),
     parameter = label,
     estimate = estimate,
-    min = estimate,
-    max = estimate,
-    n_values = 1L,
-    link_estimate = guarded_correlation_link(estimate, guard = 0.999999),
-    link_min = guarded_correlation_link(estimate, guard = 0.999999),
-    link_max = guarded_correlation_link(estimate, guard = 0.999999),
-    modelled = FALSE
+    min = min_value,
+    max = max_value,
+    n_values = n_values,
+    link_estimate = link_estimate,
+    link_min = link_min,
+    link_max = link_max,
+    modelled = modelled
   )
+}
+
+random_effect_correlation_model_dpar <- function(object, dpar, index) {
+  if (!identical(dpar, "mu") || is.na(index)) {
+    return(NA_character_)
+  }
+  model <- object$model$random$mu$cor_model
+  if (!is.list(model) || model$n_models == 0L) {
+    return(NA_character_)
+  }
+  if (index %in% model$target_cor) {
+    return(model$dpar)
+  }
+  NA_character_
+}
+
+random_effect_correlation_is_modelled <- function(object, dpar, index) {
+  !is.na(random_effect_correlation_model_dpar(object, dpar, index))
 }
 
 parse_random_correlation_endpoint <- function(value, default_dpar) {
@@ -1387,12 +1458,31 @@ coef.drmTMB <- function(object, dpar = NULL, ...) {
 
 #' @export
 vcov.drmTMB <- function(object, ...) {
-  n_coef <- length(unlist(object$coefficients, use.names = FALSE))
-  out <- object$sdr$cov.fixed[seq_len(n_coef), seq_len(n_coef), drop = FALSE]
   labels <- coefficient_labels(object)
-  if (length(labels) == nrow(out)) {
-    dimnames(out) <- list(labels, labels)
+  targets <- drm_profile_targets(object)
+  targets <- targets[targets$target_class == "fixed-effect", , drop = FALSE]
+  matched <- match(paste0("fixef:", labels), targets$parm)
+  positions <- rep(NA_integer_, length(labels))
+  opt_names <- names(object$opt$par)
+  for (i in seq_along(labels)) {
+    row <- matched[[i]]
+    if (is.na(row)) {
+      next
+    }
+    hits <- which(opt_names == targets$tmb_parameter[[row]])
+    index <- targets$index[[row]]
+    if (!is.na(index) && index >= 1L && index <= length(hits)) {
+      positions[[i]] <- hits[[index]]
+    }
   }
+  out <- matrix(NA_real_, nrow = length(labels), ncol = length(labels))
+  ok <- !is.na(positions)
+  out[ok, ok] <- object$sdr$cov.fixed[
+    positions[ok],
+    positions[ok],
+    drop = FALSE
+  ]
+  dimnames(out) <- list(labels, labels)
   out
 }
 
@@ -2825,11 +2915,15 @@ drm_inverse_link <- function(object, dpar, eta) {
     logit = stats::plogis(eta),
     logm2 = 2 + exp(eta),
     atanh_guarded = rho_response(eta),
+    atanh_re_guarded = rho_response(eta, guard = 0.999999),
     cli::cli_abort("Internal error: unknown inverse link {.val {link}}.")
   )
 }
 
 drm_dpar_link <- function(object, dpar) {
+  if (startsWith(dpar, "corpair(")) {
+    return("atanh_re_guarded")
+  }
   links <- switch(
     object$model$model_type,
     gaussian = c(mu = "identity", sigma = "log"),
@@ -2867,8 +2961,8 @@ drm_dpar_link <- function(object, dpar) {
   unname(links[[dpar]])
 }
 
-rho_response <- function(eta) {
-  0.99999999 * tanh(eta)
+rho_response <- function(eta, guard = 0.99999999) {
+  guard * tanh(eta)
 }
 
 coefficient_labels <- function(object) {

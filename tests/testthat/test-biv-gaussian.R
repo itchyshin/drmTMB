@@ -266,6 +266,51 @@ new_biv_gaussian_mu_re_data <- function(
   )
 }
 
+new_biv_gaussian_corpair_data <- function(
+  n_id = 42,
+  n_each = 5,
+  beta_cor = c(-0.2, 0.9),
+  residual_rho = 0.05,
+  seed = 2026051401
+) {
+  set.seed(seed)
+  id <- factor(rep(seq_len(n_id), each = n_each))
+  n <- length(id)
+  x <- stats::rnorm(n)
+  ecology_id <- stats::rnorm(n_id)
+  ecology <- ecology_id[id]
+  rho_group <- 0.999999 * tanh(beta_cor[[1L]] + beta_cor[[2L]] * ecology_id)
+  beta_mu1 <- c(0.2, 0.45)
+  beta_mu2 <- c(-0.15, -0.35)
+  sigma1 <- 0.35
+  sigma2 <- 0.42
+  sd_mu1 <- 0.6
+  sd_mu2 <- 0.7
+
+  u1 <- stats::rnorm(n_id)
+  u2 <- rho_group * u1 + sqrt(1 - rho_group^2) * stats::rnorm(n_id)
+  e1 <- stats::rnorm(n)
+  e2 <- residual_rho * e1 + sqrt(1 - residual_rho^2) * stats::rnorm(n)
+
+  dat <- data.frame(id = id, x = x, ecology = ecology)
+  dat$y1 <- beta_mu1[[1L]] + beta_mu1[[2L]] * x + sd_mu1 * u1[id] + sigma1 * e1
+  dat$y2 <- beta_mu2[[1L]] + beta_mu2[[2L]] * x + sd_mu2 * u2[id] + sigma2 * e2
+
+  list(
+    data = dat,
+    ecology_id = ecology_id,
+    beta_cor = stats::setNames(beta_cor, c("(Intercept)", "ecology")),
+    rho_group = rho_group,
+    beta_mu1 = beta_mu1,
+    beta_mu2 = beta_mu2,
+    sigma = c(sigma1, sigma2),
+    sd_mu = c(
+      "mu1:(1 | p | id)" = sd_mu1,
+      "mu2:(1 | p | id)" = sd_mu2
+    )
+  )
+}
+
 new_biv_gaussian_sigma_re_data <- function(
   n_id = 48,
   n_each = 8,
@@ -650,6 +695,55 @@ test_that("bivariate Gaussian supports labelled mu1/mu2 random-intercept covaria
   expect_equal(nrow(corpairs(fit, block = "p")), 1L)
   expect_equal(nrow(corpairs(fit, group = "missing")), 0L)
   expect_equal(nrow(corpairs(fit, block = "missing")), 0L)
+})
+
+test_that("bivariate Gaussian fits ordinary q2 corpair regression for mu1/mu2 blocks", {
+  sim <- new_biv_gaussian_corpair_data()
+  dpar <- 'corpair(id, level = "group", block = "p", from = "mu1", to = "mu2")'
+
+  fit <- drmTMB(
+    bf(
+      mu1 = y1 ~ x + (1 | p | id),
+      mu2 = y2 ~ x + (1 | p | id),
+      sigma1 = ~1,
+      sigma2 = ~1,
+      rho12 = ~1,
+      corpair(id, level = "group", block = "p", from = "mu1", to = "mu2") ~
+        ecology
+    ),
+    family = biv_gaussian(),
+    data = sim$data,
+    control = list(eval.max = 300, iter.max = 300)
+  )
+
+  pair <- corpairs(fit, level = "group")
+  pair_ci <- corpairs(fit, level = "group", conf.int = TRUE)
+  cor_hat <- predict(fit, dpar = dpar)
+  cor_link <- predict(fit, dpar = dpar, type = "link")
+  targets <- profile_targets(fit)
+  cor_targets <- targets[startsWith(targets$parm, paste0("fixef:", dpar)), ]
+  cor_rows <- grepl(dpar, row.names(summary(fit)$coefficients), fixed = TRUE)
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_true(fit$sdr$pdHess)
+  expect_named(coef(fit, dpar), names(sim$beta_cor))
+  expect_gt(coef(fit, dpar)[["ecology"]], 0)
+  expect_gt(stats::cor(cor_hat, sim$rho_group), 0.45)
+  expect_equal(length(cor_hat), nlevels(sim$data$id))
+  expect_equal(length(cor_link), nlevels(sim$data$id))
+  expect_equal(pair$modelled, TRUE)
+  expect_equal(pair$n_values, nlevels(sim$data$id))
+  expect_equal(pair$estimate, mean(cor_hat), tolerance = 1e-12)
+  expect_equal(pair$min, min(cor_hat), tolerance = 1e-12)
+  expect_equal(pair$max, max(cor_hat), tolerance = 1e-12)
+  expect_equal(pair$link_estimate, mean(cor_link), tolerance = 1e-12)
+  expect_equal(pair_ci$conf.status, "newdata_required")
+  expect_equal(nrow(cor_targets), 2L)
+  expect_equal(cor_targets$tmb_parameter, rep("beta_cor_mu", 2L))
+  expect_true(all(cor_targets$profile_ready))
+  expect_false(any(startsWith(targets$parm, "cor:mu:")))
+  expect_equal(sum(cor_rows), 2L)
+  expect_true(all(is.finite(summary(fit)$coefficients$std_error[cor_rows])))
 })
 
 test_that("bivariate Gaussian supports sd1(id) and sd2(id) location random-effect SD models", {
@@ -1874,6 +1968,38 @@ test_that("bivariate Gaussian rejects unsupported Phase 3 syntax clearly", {
       data = dat
     ),
     "same covariance-block label"
+  )
+  expect_error(
+    drmTMB(
+      bf(
+        mu1 = y1 ~ x + (1 | p | id),
+        mu2 = y2 ~ x + (1 | p | id),
+        sigma1 = ~1,
+        sigma2 = ~1,
+        rho12 = ~1,
+        corpair(id, level = "group", block = "q", from = "mu1", to = "mu2") ~
+          1
+      ),
+      family = biv_gaussian(),
+      data = dat
+    ),
+    "block does not match"
+  )
+  expect_error(
+    drmTMB(
+      bf(
+        mu1 = y1 ~ x + (1 | p | id),
+        mu2 = y2 ~ x + (1 | p | id),
+        sigma1 = ~1,
+        sigma2 = ~1,
+        rho12 = ~1,
+        corpair(id, level = "group", block = "p", from = "mu1", to = "mu2") ~
+          x
+      ),
+      family = biv_gaussian(),
+      data = dat
+    ),
+    "constant within"
   )
   expect_error(
     drmTMB(

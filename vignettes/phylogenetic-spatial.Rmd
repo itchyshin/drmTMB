@@ -265,7 +265,13 @@ The natural next syntax is reserved but not fitted yet:
 corpair(species, level = "phylogenetic", block = "p",
         from = "mu1", to = "mu2") ~ ecology
 corpair(species, level = "phylogenetic", block = "p",
+        from = "mu1", to = "sigma1") ~ ecology
+corpair(species, level = "phylogenetic", block = "p",
         from = "mu1", to = "sigma2") ~ ecology
+corpair(species, level = "phylogenetic", block = "p",
+        from = "mu2", to = "sigma1") ~ ecology
+corpair(species, level = "phylogenetic", block = "p",
+        from = "mu2", to = "sigma2") ~ ecology
 corpair(species, level = "phylogenetic", block = "p",
         from = "sigma1", to = "sigma2") ~ ecology
 ```
@@ -278,7 +284,10 @@ from ordinary species effects and future spatial effects. Endpoint-specific
 `from` / `to` syntax avoids treating all four location-scale pairs as if they
 had the same biological meaning. Today, use `corpairs()` for fitted constant
 latent phylogenetic correlations and `rho12()` for fitted residual
-correlations.
+correlations. The ordinary group-level q=2 analogue is implemented first:
+`corpair(id, level = "group", block = "p", from = "mu1", to = "mu2") ~ w`
+models the correlation between two labelled ordinary location random
+intercepts.
 
 ## What should get 95% intervals?
 
@@ -311,14 +320,14 @@ interfaces are stable.
 For q=4 ordinary or phylogenetic blocks, `profile_targets()` lists the six
 correlations as derived unstructured-correlation targets. They are reported as
 point estimates today, but direct profile intervals for all six rows are not
-claimed yet. The implementation target for the ordinary `corpair() ~ w` slice
-is therefore:
-
-- point estimates through `corpairs()`;
-- profile-ready 95% intervals for direct ordinary correlation-regression
-  parameters when the parameterization supports them;
-- clear `profile_targets()` notes for derived q=4 rows that still need a
-  fix-and-refit or reparameterized profile.
+claimed yet. The first ordinary `corpair() ~ w` implementation is narrower:
+it fits only the q=2 `mu1`-`mu2` location-location pair for matching labelled
+ordinary random intercepts. That direct correlation-regression path exposes
+link-scale fixed-effect coefficients through `coef()`, `summary()`, `vcov()`,
+and `profile_targets()`, while `corpairs()` reports the response-scale mean,
+minimum, maximum, and number of group-level correlation values. q=4 rows still
+need a fix-and-refit or reparameterized profile before 95% intervals are
+claimed for all six derived correlations.
 
 ## Mathematical contract
 

@@ -61,15 +61,21 @@ constant latent correlations.
 
 ## Route Decision: Predictor-Dependent `corpair()`
 
-Slice 11 chooses an endpoint-specific design for predictor-dependent ordinary
-`corpair()` models. The singular formula marker remains `corpair()`, not
+Slice 11 chose an endpoint-specific design for predictor-dependent ordinary
+`corpair()` models, and Slice 12 implements the first ordinary q=2
+location-location case. The singular formula marker remains `corpair()`, not
 `cor12()`, because this layer is a latent random-effect covariance layer rather
 than the residual two-response parameter `rho12`.
 
-The planned endpoint-specific syntax is:
+The implemented first fitted syntax is:
 
 ```r
 corpair(id, level = "group", block = "p", from = "mu1", to = "mu2") ~ w
+```
+
+The same endpoint-specific grammar is reserved for later ordinary pairs:
+
+```r
 corpair(id, level = "group", block = "p", from = "mu1", to = "sigma1") ~ w
 corpair(id, level = "group", block = "p", from = "mu1", to = "sigma2") ~ w
 corpair(id, level = "group", block = "p", from = "mu2", to = "sigma1") ~ w
@@ -99,12 +105,14 @@ four distinct latent correlations: `mu1`-`sigma1`, `mu1`-`sigma2`,
 "share one predictor model across all four pairs", which is a different model
 from choosing one endpoint pair. That shared-class model stays later.
 
-The first fitted ordinary implementation should be q=2 only: one selected
-latent pair in a covariance block whose dimension is exactly two. That keeps
-the likelihood on the familiar Fisher-z scale,
-`rho_j = tanh(eta_j)`, while preserving positive definiteness. Full q=4
-predictor-dependent correlations need a separate positive-definite correlation
-matrix parameterization; fitting six independent `tanh()` regressions would not
+The first fitted ordinary implementation is q=2 only: one selected latent pair
+in a covariance block whose dimension is exactly two. The likelihood uses the
+familiar Fisher-z scale,
+`rho_g = tanh(x_g^T beta_cor)`, while preserving positive definiteness.
+Predictors are evaluated once per random-effect group and must be constant
+within that group after complete-case filtering. Full q=4 predictor-dependent
+correlations need a separate positive-definite correlation matrix
+parameterization; fitting six independent `tanh()` regressions would not
 guarantee a valid q=4 correlation matrix.
 
 ## Why Named Correlation Pairs Are Needed
@@ -327,16 +335,17 @@ display preference, because each layer answers a different biological question.
    phylogenetic location-scale covariance, with matching non-phylogenetic
    species or individual covariance blocks.
 10. Add spatial bivariate covariance blocks.
-11. Reserve `corpair()` formula syntax, but keep fitting disabled. Done for
-    parser and error messaging.
+11. Reserve `corpair()` formula syntax. Done for parser and error messaging.
 12. Add the endpoint-specific `level` plus `from` / `to` grammar for
     predictor-dependent ordinary, phylogenetic, and spatial `corpair()`
-    formulas, while still rejecting fitting until the likelihood and tests
-    exist.
-13. Fit predictor-dependent ordinary q=2 `corpair()` formulas first. The q=2
-    restriction keeps the correlation matrix positive definite through a single
-    Fisher-z regression.
-14. Design a full q=4 positive-definite correlation-regression parameterization
+    formulas. Done.
+13. Fit predictor-dependent ordinary q=2 `corpair()` formulas first. Done for
+    matching labelled `mu1`/`mu2` random intercepts with
+    `level = "group"` and group-level predictors.
+14. Extend ordinary q=2 `corpair()` beyond location-location only after the
+    same-response location-scale and scale-scale identifiability checks are
+    designed.
+15. Design a full q=4 positive-definite correlation-regression parameterization
     before fitting endpoint-specific or class-wide q=4 `corpair()` formulas.
 
 For covariance blocks with more than two random-effect coefficients, use a

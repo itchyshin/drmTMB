@@ -307,6 +307,9 @@ drm_profile_targets <- function(object) {
       if (paste(dpar, i, sep = ":") %in% registry_cor_keys) {
         next
       }
+      if (random_effect_correlation_is_modelled(object, dpar, i)) {
+        next
+      }
       index <- i
       if (is_phylo_unstructured) {
         internal <- "theta_phylo"
@@ -606,6 +609,7 @@ profile_transform_newdata_interval <- function(interval, object, dpar, offset) {
     drm_dpar_link(object, dpar),
     log = exp(eta_interval),
     atanh_guarded = rho_response(eta_interval),
+    atanh_re_guarded = rho_response(eta_interval, guard = 0.999999),
     cli::cli_abort(
       "Internal error: no response-scale profile transformation for {.val {dpar}}."
     )
@@ -617,6 +621,7 @@ profile_newdata_transformation <- function(object, dpar) {
     drm_dpar_link(object, dpar),
     log = "exp",
     atanh_guarded = "rho12_tanh",
+    atanh_re_guarded = "random_effect_correlation_tanh",
     "unknown"
   )
 }
@@ -638,11 +643,14 @@ profile_registry_cor_targets <- function(object) {
     return(list())
   }
 
-  lapply(seq_len(nrow(pairs)), function(i) {
+  out <- lapply(seq_len(nrow(pairs)), function(i) {
     pair <- pairs[i, , drop = FALSE]
     dpar <- covariance_block_corpars_key(pair$tmb_parameter[[1L]])
     values <- object$corpars[[dpar]]
     index <- pair$tmb_index[[1L]]
+    if (random_effect_correlation_is_modelled(object, dpar, index)) {
+      return(NULL)
+    }
     if (is.null(values) || index < 1L || index > length(values)) {
       cli::cli_abort(
         "Internal error: covariance-block registry pair has no profile target correlation."
@@ -687,6 +695,7 @@ profile_registry_cor_targets <- function(object) {
       }
     )
   })
+  out[!vapply(out, is.null, logical(1L))]
 }
 
 new_profile_target_row <- function(
@@ -752,6 +761,9 @@ profile_fixef_internal <- function(dpar) {
   }
   if (identical(dpar, "hu")) {
     return("beta_zi")
+  }
+  if (startsWith(dpar, "corpair(")) {
+    return("beta_cor_mu")
   }
   paste0("beta_", dpar)
 }

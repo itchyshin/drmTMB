@@ -13116,3 +13116,61 @@ Known limitations:
 - Slice 11 still does not fit predictor-dependent latent random-effect
   correlations. The first fitted ordinary route should be q=2; q=4
   correlation regression needs a positive-definite matrix parameterization.
+
+## 2026-05-14 -- Slice 12 ordinary q2 corpair regression
+
+Goal:
+
+- fit the first predictor-dependent latent random-effect correlation model for
+  ordinary q=2 bivariate Gaussian location blocks.
+
+Implemented:
+
+- added fitted syntax
+  `corpair(id, level = "group", block = "p", from = "mu1", to = "mu2") ~ x`
+  for matching labelled `(1 | p | id)` random intercepts in `mu1` and `mu2`;
+- constrained the new route to ordinary group-level q=2 location-location
+  blocks, with clear errors for phylogenetic, spatial, location-scale,
+  scale-scale, q=4, mismatched blocks, and within-group-varying predictors;
+- added a TMB Fisher-z regression for group-level latent correlations,
+  `rho_g = 0.999999 * tanh(X_g beta_cor)`, while keeping residual `rho12`
+  separate;
+- exposed link-scale `corpair()` coefficients through `coef()`, `summary()`,
+  `vcov()`, and `profile_targets()`;
+- updated `corpairs()` so the modelled group row reports mean, min, max, and
+  `n_values` over fitted group-level correlations with
+  `conf.status = "newdata_required"` for row-level intervals;
+- refreshed NEWS, formula grammar, the correlation-pair design note, known
+  limitations, roxygen/reference docs, and the formula-grammar and
+  phylogenetic-spatial articles.
+
+Checks run:
+
+- `air format R/drmTMB.R R/methods.R R/profile.R src/drmTMB.cpp tests/testthat/test-biv-gaussian.R tests/testthat/test-package-skeleton.R NEWS.md docs/design/01-formula-grammar.md docs/design/20-coscale-correlation-pairs.md docs/dev-log/known-limitations.md vignettes/formula-grammar.Rmd vignettes/phylogenetic-spatial.Rmd`:
+  passed.
+- `Rscript -e 'devtools::load_all(quiet = TRUE)'`: passed.
+- `Rscript -e 'devtools::test(filter = "package-skeleton|biv-gaussian", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'devtools::test(filter = "package-skeleton|biv-gaussian|gaussian-random-intercepts|gaussian-random-effect-scale|corpairs|comparators|check-drm", reporter = "summary")'`:
+  passed after fixing cross-family metadata guards.
+- `Rscript -e 'devtools::test(filter = "phylo-utils", reporter = "summary")'`:
+  passed after syncing manual TMB test fixtures with the new data and
+  parameter fields.
+- `Rscript -e 'devtools::test(reporter = "summary")'`: passed.
+- `Rscript -e 'devtools::document()'`: passed and refreshed `man/corpair.Rd`.
+- `Rscript -e 'devtools::load_all(quiet = TRUE); pkgdown::build_article("formula-grammar", new_process = FALSE, quiet = TRUE); pkgdown::build_article("phylogenetic-spatial", new_process = FALSE, quiet = TRUE); pkgdown::build_reference()'`:
+  passed and refreshed the local articles plus reference pages.
+- `Rscript -e 'pkgdown::check_pkgdown()'`: passed.
+- `rg -n 'corpair\(id, level = "group", block = "p", from = "mu1", to = "sigma2"\).*Reserved|reserved.*corpair|drmTMB\(\).*rejects.*corpair|corpair.*not fitted|ordinary `corpair\(\) ~ w` slice|first planned fitted `corpair\(\)`|implementation target for the ordinary `corpair\(\) ~ w`' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes man R tests`:
+  returned only intentional wording about reserved aliases or fitted
+  phylogenetic mean-mean labels.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- only ordinary group-level q=2 `mu1`-`mu2` latent correlation regression is
+  fitted in this slice;
+- q=4, location-scale, scale-scale, phylogenetic, and spatial
+  predictor-dependent `corpair()` regressions remain planned;
+- response-scale confidence intervals for group-specific fitted correlations
+  require a later newdata-aware interval design.
