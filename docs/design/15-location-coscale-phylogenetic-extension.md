@@ -25,10 +25,14 @@ rho_a(l1,l2)  mean-mean phylogenetic correlation
 rho_a(s1,s2)  scale-scale phylogenetic correlation
 rho_a(l1,s1)  within-trait mean-scale correlation
 rho_a(l1,s2)  cross-trait mean-scale correlation
+rho_a(l2,s1)  cross-trait mean-scale correlation
+rho_a(l2,s2)  within-trait mean-scale correlation
 ```
 
 These are not residual `rho12`. They are correlations among phylogenetic or
-group-level effects.
+group-level effects. The two cross-trait mean-scale rows are biologically more
+awkward than the within-trait rows, but they are statistically part of the same
+q=4 covariance block.
 
 ## Extension: Location-Coscale Models
 

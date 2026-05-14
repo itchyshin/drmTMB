@@ -238,6 +238,17 @@ bf(
 )
 ```
 
+Naming rule: keep `corpair()` for the formula target and `corpairs()` for the
+extractor. Do not introduce `cor12()` for this layer. The suffix `12` belongs
+to the residual two-response parameter `rho12`, while latent random-effect
+correlations can be `mu1`-`mu2`, the four location-scale pairs
+`mu1`-`sigma1`, `mu1`-`sigma2`, `mu2`-`sigma1`, and `mu2`-`sigma2`,
+`sigma1`-`sigma2`, and later slope pairs. The cross-trait location-scale pairs
+are statistically part of the q=4 block even when they need careful biological
+interpretation. A `cor12()` formula would make location-scale and scale-scale
+targets look like residual response correlations, which is exactly the
+ambiguity this grammar is trying to avoid.
+
 This is not fitted yet. Use `rho12 = ~ w` for residual within-observation
 correlation, and use `corpairs(fit)` to extract fitted constant latent
 random-effect correlations. Predictor-dependent `corpair()` models should come

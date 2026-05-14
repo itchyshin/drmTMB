@@ -131,7 +131,7 @@ location-scale-coscale model.
 | Matching `phylo(1 | species, tree = tree)` terms in bivariate `mu1` and `mu2` | Implemented first slice | Two traits have correlated phylogenetic location deviations; `corpairs(level = "phylogenetic")` reports the mean-mean row separately from residual `rho12`. |
 | Matching labelled `phylo(1 | p | species, tree = tree)` terms in bivariate `mu1` and `mu2` | Implemented | The label is preserved in SD names, the fitted mean-mean correlation, `corpairs(block = "p")`, and profile-target names. |
 | Ordinary `(1 | p | id)` terms in all four bivariate `mu1`, `mu2`, `sigma1`, and `sigma2` formulas | Implemented first slice | One ordinary q=4 group block estimates six latent location-location, location-scale, and scale-scale correlations. |
-| Matching labelled `phylo()` terms in all four bivariate `mu1`, `mu2`, `sigma1`, and `sigma2` formulas | Implemented first slice | One constant q=4 phylogenetic block estimates four endpoint SDs and six latent location-scale correlations. Partial, unlabelled, mismatched, and slope forms remain rejected. |
+| Matching labelled `phylo()` terms in all four bivariate `mu1`, `mu2`, `sigma1`, and `sigma2` formulas | Implemented first slice | One constant q=4 phylogenetic block estimates four endpoint SDs and six latent correlations: one location-location, four location-scale, and one scale-scale. Partial, unlabelled, mismatched, and slope forms remain rejected. |
 | `sd_phylo(species) ~ z` | Implemented for univariate Gaussian `mu` | This is the separate Box 1 direct-SD family: species-level predictors model the SD of a phylogenetic location random effect at observed tips. |
 | `sd_phylo1(species) ~ z1` / `sd_phylo2(species) ~ z2` | Implemented for bivariate `mu1`/`mu2` | Response-specific species-level predictors model the SD surfaces of the two phylogenetic location random effects. This remains a Family B direct-SD model, not a residual `sigma1`/`sigma2` model and not a q=4 location-scale block. |
 | `spatial(1 | site, coords = coords)` or `spatial(1 | site, mesh = mesh)` | Planned | Spatial will mirror the phylogenetic API after the phylogenetic structured-effect path is stable. |
@@ -250,8 +250,11 @@ rho12(fit_phylo_q4)
 
 This model estimates six latent phylogenetic correlations: one
 location-location, four location-scale, and one scale-scale. These are constant
-correlations in the phylogenetic random-effect covariance block. They are not
-the residual `rho12` surface.
+correlations in the phylogenetic random-effect covariance block. The four
+location-scale rows are `mu1`-`sigma1`, `mu1`-`sigma2`, `mu2`-`sigma1`, and
+`mu2`-`sigma2`; the two cross-trait rows can be biologically harder to explain,
+but they are statistically part of the same q=4 block. They are not the
+residual `rho12` surface.
 
 ### 5. Predictor-dependent latent phylogenetic correlations are planned
 
@@ -593,7 +596,10 @@ The fitted \(\boldsymbol{\Sigma}^{phylo}\) is written as
 \(\mathbf{D}\mathbf{R}\mathbf{D}\), where \(\mathbf{D}\) contains four
 phylogenetic SDs and \(\mathbf{R}\) contains six latent correlations. Those six
 correlations are the `corpairs(fit, level = "phylogenetic")` rows: one
-location-location row, four location-scale rows, and one scale-scale row.
+location-location row, four location-scale rows, and one scale-scale row. The
+four location-scale rows are \(u_{\mu_1}\)-\(u_{\sigma_1}\),
+\(u_{\mu_1}\)-\(u_{\sigma_2}\), \(u_{\mu_2}\)-\(u_{\sigma_1}\), and
+\(u_{\mu_2}\)-\(u_{\sigma_2}\).
 
 ## Worked example: two traits with phylogenetic location-scale covariance
 
@@ -657,7 +663,11 @@ corpairs(fit_phylo_q4, level = "phylogenetic", conf.int = TRUE)
 Those six rows are not residual correlations. The `mean-mean` row asks whether
 species that are phylogenetically high for heat tolerance also tend to be high
 for desiccation tolerance. The four `mean-scale` rows ask whether evolutionary
-deviations in means are associated with evolutionary deviations in variability.
+deviations in means are associated with evolutionary deviations in variability:
+same-trait pairs (`mu1`-`sigma1`, `mu2`-`sigma2`) and cross-trait pairs
+(`mu1`-`sigma2`, `mu2`-`sigma1`). The cross-trait rows are statistically valid
+q=4 covariance rows, but their biological interpretation should be written
+with extra care.
 The `scale-scale` row asks whether the two traits' phylogenetic log-SD
 deviations move together. The `conf.status` column is part of the inference
 contract: profile-ready correlations receive 95% bounds, while the current q=4
@@ -915,8 +925,9 @@ rho12(fit_biv_phylo_q4)
 Partial q=4 syntax, unlabelled all-four syntax, random slopes, and multiple
 phylogenetic blocks remain outside this first fitted path. The q=4
 `corpairs()` output has six phylogenetic rows: one location-location row,
-four location-scale rows, and one scale-scale row. These rows are the latent
-phylogenetic correlations among species-level effects. They are not the
+four location-scale rows, and one scale-scale row. The four location-scale rows
+include both same-trait and cross-trait mean-scale pairs. These rows are the
+latent phylogenetic correlations among species-level effects. They are not the
 residual `rho12` curve, which is why the example shows `corpairs()` and
 `rho12()` separately.
 
@@ -939,32 +950,14 @@ summary(fit_biv_phylo)$covariance
 confint(fit_biv_phylo, parm = phylo_target, method = "profile")
 ```
 
-For a staged phylogenetic versus non-phylogenetic species comparison, add an
-ordinary labelled species block beside the fitted phylogenetic layer:
-
-```r
-fit_biv_phylo_species <- drmTMB(
-  formula = drm_formula(
-    mu1 = log_body_mass ~ lifestyle +
-      (1 | species_residual | species) +
-      phylo(1 | species, tree = tree),
-    mu2 = log_litter_size ~ lifestyle +
-      (1 | species_residual | species) +
-      phylo(1 | species, tree = tree),
-    sigma1 = ~ lifestyle,
-    sigma2 = ~ lifestyle,
-    rho12 = ~ lifestyle
-  ),
-  family = c(gaussian(), gaussian()),
-  data = mammals
-)
-```
-
-That fit has an ordinary group-level species correlation, a phylogenetic
-mean-mean correlation, and residual `rho12`. `corpairs()` keeps those layers in
-separate rows. Because the ordinary group block and the phylogenetic block use
-the same species factor, `check_drm()` records a note rather than letting the
-two species-level correlations look automatically identifiable.
+Do not read a phylogenetic species effect as a residual observation-level
+correlation. The `phylo()` layer is species-level structure induced by the
+tree; residual `rho12` is within-observation coupling between the two measured
+responses. A separate non-phylogenetic species-level block can be useful in a
+specialized model, but it is an advanced comparison because it tries to
+separate two species-level covariance layers that use the same grouping factor.
+That comparison should live in a dedicated identifiability example, not in this
+introductory ladder.
 
 The residual `rho12` term remains distinct from the phylogenetic or spatial
 correlation matrices. `rho12` is the residual coupling between two responses at

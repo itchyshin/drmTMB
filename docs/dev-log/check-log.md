@@ -13028,3 +13028,38 @@ Known limitations:
   profile design;
 - conditional random-effect mode intervals are still planned separately from
   covariance-parameter intervals.
+
+## 2026-05-14 -- q4 cross-trait location-scale wording correction
+
+Goal:
+
+- correct the phylogenetic q=4 article and design wording so all four
+  location-scale correlation rows are explicit.
+
+Implemented:
+
+- kept `corpair()` as the reserved formula marker and `corpairs()` as the
+  extractor, while recording why `cor12()` would blur the residual `rho12`
+  layer with latent random-effect correlations;
+- updated the phylogenetic-spatial article to list the four q=4
+  location-scale pairs: `mu1`-`sigma1`, `mu1`-`sigma2`, `mu2`-`sigma1`, and
+  `mu2`-`sigma2`;
+- removed the introductory ordinary-plus-phylogenetic same-species comparison
+  example that made the species-level phylogenetic layer look like a residual
+  layer;
+- synchronized the q=4 cross-trait mean-scale wording in the formula grammar,
+  phylogenetic extension note, and `corpair()` design note.
+
+Checks run:
+
+- `air format docs/design/01-formula-grammar.md docs/design/15-location-coscale-phylogenetic-extension.md docs/design/20-coscale-correlation-pairs.md vignettes/phylogenetic-spatial.Rmd`:
+  passed.
+- `git diff --check`: passed.
+- `Rscript -e 'devtools::load_all(quiet = TRUE); pkgdown::build_article("phylogenetic-spatial", new_process = FALSE, quiet = TRUE)'`:
+  passed and refreshed `pkgdown-site/articles/phylogenetic-spatial.html`.
+- `Rscript -e 'pkgdown::check_pkgdown()'`: passed.
+
+Known limitations:
+
+- this was a documentation and interpretation correction only; no new
+  predictor-dependent latent `corpair()` model was fitted in this patch.

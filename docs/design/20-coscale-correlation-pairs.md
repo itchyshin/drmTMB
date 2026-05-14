@@ -261,7 +261,10 @@ This can yield:
 ```text
 cor(a_mu1, a_mu2)       phylogenetic mean-mean correlation
 cor(a_sigma1, a_sigma2) phylogenetic scale-scale correlation
+cor(a_mu1, a_sigma1)    phylogenetic within-trait mean-scale correlation
 cor(a_mu1, a_sigma2)    phylogenetic cross-trait mean-scale correlation
+cor(a_mu2, a_sigma1)    phylogenetic cross-trait mean-scale correlation
+cor(a_mu2, a_sigma2)    phylogenetic within-trait mean-scale correlation
 ```
 
 Analogous non-phylogenetic species, site, study, and spatial field
