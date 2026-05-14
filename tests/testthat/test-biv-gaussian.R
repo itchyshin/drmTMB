@@ -1910,7 +1910,9 @@ test_that("bivariate Gaussian rejects unsupported Phase 3 syntax clearly", {
     y2 = stats::rnorm(20),
     x = stats::rnorm(20),
     vi = rep(0.02, 20),
-    id = rep(1:4, each = 5)
+    id = rep(1:4, each = 5),
+    species = factor(rep(paste0("sp", 1:4), each = 5)),
+    ecology = rep(seq(-0.6, 0.6, length.out = 4), each = 5)
   )
 
   expect_error(
@@ -2026,6 +2028,35 @@ test_that("bivariate Gaussian rejects unsupported Phase 3 syntax clearly", {
     ),
     "constant within"
   )
+  phylo_corpair_err <- tryCatch(
+    drmTMB(
+      bf(
+        mu1 = y1 ~ x,
+        mu2 = y2 ~ x,
+        sigma1 = ~1,
+        sigma2 = ~1,
+        rho12 = ~1,
+        corpair(
+          species,
+          level = "phylogenetic",
+          block = "p",
+          from = "mu1",
+          to = "mu2"
+        ) ~ ecology
+      ),
+      family = biv_gaussian(),
+      data = dat
+    ),
+    error = identity
+  )
+  expect_s3_class(phylo_corpair_err, "rlang_error")
+  expect_match(conditionMessage(phylo_corpair_err), "planned but not fitted")
+  expect_match(
+    conditionMessage(phylo_corpair_err),
+    'corpairs(fit, level = "phylogenetic")',
+    fixed = TRUE
+  )
+  expect_match(conditionMessage(phylo_corpair_err), "positive-definite")
   expect_error(
     drmTMB(
       bf(

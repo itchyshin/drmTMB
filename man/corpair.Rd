@@ -40,7 +40,9 @@ labelled \code{mu1}/\code{mu2} random intercepts:
 \code{corpair(id, level = "group", block = "p", from = "mu1", to = "mu2") ~ x}.
 Predictors must be constant within the grouping factor. Phylogenetic,
 spatial, location-scale, scale-scale, and q=4 \code{corpair()} regressions remain
-planned.
+planned. In particular, predictor-dependent phylogenetic \code{corpair()} formulas
+need a positive-definite covariance contract for the whole tree-coupled
+species block before they can be fitted.
 }
 \examples{
 bf(corpair(id, level = "group", block = "p",

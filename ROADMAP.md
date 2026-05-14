@@ -493,6 +493,13 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   combined with the fitted bivariate phylogenetic mean layer, but
   `check_drm()` notes the identifiability risk when both layers use the same
   grouping factor.
+- Predictor-dependent phylogenetic `corpair(species, level = "phylogenetic",
+  ...) ~ w` is the next correlation-regression target, but it has a design gate
+  before likelihood work: varying a tree-coupled latent correlation by species
+  must still yield one positive-definite covariance matrix for the full species
+  block. The parser accepts the reserved syntax and `drmTMB()` rejects it with a
+  message pointing users to constant fitted `corpairs(level = "phylogenetic")`
+  rows until that covariance contract is chosen.
 
 ## Phase 13: Double-Hierarchical Derived Inference
 

@@ -263,6 +263,11 @@ The same grammar is reserved for later structured levels:
 corpair(species, level = "phylogenetic", block = "p", from = "mu1", to = "mu2") ~ ecology
 ```
 
+This phylogenetic formula is parsed but not fitted yet. Unlike the ordinary
+grouped q=2 route, a predictor-dependent phylogenetic correlation must produce
+one positive-definite covariance matrix for all species coupled by the tree, so
+it needs its own covariance contract before optimization.
+
 The older `class = "location-scale"` spelling remains useful as an extraction
 filter and as a possible later shared-class model, but it should not be the
 first fitted q=4 correlation-regression target. The `level` argument keeps

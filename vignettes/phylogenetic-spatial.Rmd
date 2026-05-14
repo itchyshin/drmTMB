@@ -135,7 +135,7 @@ location-scale-coscale model.
 | Matching labelled `phylo()` terms in all four bivariate `mu1`, `mu2`, `sigma1`, and `sigma2` formulas | Implemented first slice | One constant q=4 phylogenetic block estimates four endpoint SDs and six latent correlations: one location-location, four location-scale, and one scale-scale. Partial, unlabelled, mismatched, and slope forms remain rejected. |
 | `sd_phylo(species) ~ z` | Implemented for univariate Gaussian `mu` | This is the separate Box 1 direct-SD family: species-level predictors model the SD of a phylogenetic location random effect at observed tips. |
 | `sd_phylo1(species) ~ z1` / `sd_phylo2(species) ~ z2` | Implemented for bivariate `mu1`/`mu2` | Response-specific species-level predictors model the SD surfaces of the two phylogenetic location random effects. This remains a Family B direct-SD model, not a residual `sigma1`/`sigma2` model and not a q=4 location-scale block. |
-| Phylogenetic `corpair() ~ ecology` | Planned | This would model how species-level or clade-level predictors change latent phylogenetic random-effect correlations. Today, matching `phylo()` terms fit constant phylogenetic correlations and `corpairs(level = "phylogenetic")` extracts them. |
+| Phylogenetic `corpair() ~ ecology` | Planned design gate | This would model how predictors change latent phylogenetic random-effect correlations. Today, matching `phylo()` terms fit constant phylogenetic correlations and `corpairs(level = "phylogenetic")` extracts them. A fitted regression needs a positive-definite covariance contract for the whole tree-coupled species block. |
 | `spatial(1 | site, coords = coords)` or `spatial(1 | site, mesh = mesh)` | Planned | Spatial will mirror the phylogenetic API after the phylogenetic structured-effect path is stable. |
 
 The planned phylogenetic correlation-regression syntax is:
@@ -154,7 +154,10 @@ corpair(species, level = "phylogenetic", block = "p",
 
 Those formulae are not examples to run today. They mark the intended next layer
 after constant phylogenetic `corpairs()` rows: location-location, both
-cross-trait location-scale pairs, and scale-scale correlation regression.
+cross-trait location-scale pairs, and scale-scale correlation regression. The
+ordinary grouped `corpair()` implementation cannot simply be copied here,
+because phylogenetic effects share one tree-coupled covariance matrix rather
+than independent per-species 2 by 2 blocks.
 
 ## A model ladder for two traits
 
@@ -297,9 +300,11 @@ corpair(species, level = "phylogenetic", block = "p",
 ```
 
 That future layer would make phylogenetic random-effect correlations vary with
-a species-level or clade-level ecological predictor, analogous in spirit to
-`rho12 = ~ assay_context` for residual
-correlation. The explicit `level = "phylogenetic"` keeps this layer separate
+a species-level ecological predictor, analogous in spirit to
+`rho12 = ~ assay_context` for residual correlation. The implementation is not
+identical to residual `rho12` regression: the phylogenetic likelihood must still
+build one positive-definite covariance matrix for all species tied together by
+the tree. The explicit `level = "phylogenetic"` keeps this layer separate
 from ordinary species effects and future spatial effects. Endpoint-specific
 `from` / `to` syntax avoids treating all four location-scale pairs as if they
 had the same biological meaning. Today, use `corpairs()` for fitted constant

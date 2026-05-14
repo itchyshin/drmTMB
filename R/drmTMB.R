@@ -4914,6 +4914,30 @@ build_biv_sigma_random_structure <- function(sigma1_terms, sigma2_terms, data) {
   )
 }
 
+abort_unsupported_corpair_level <- function(entry, level) {
+  if (identical(level, "phylogenetic")) {
+    cli::cli_abort(c(
+      "Predictor-dependent phylogenetic {.fn corpair} regression is planned but not fitted yet.",
+      "x" = "{.code {entry$dpar}} targets a tree-coupled latent correlation.",
+      "i" = "Today, fit matching {.fn phylo} terms and extract constant fitted correlations with {.code corpairs(fit, level = \"phylogenetic\")}.",
+      "i" = "A future implementation must choose a positive-definite covariance contract for all tree-coupled species before this formula can be optimized."
+    ))
+  }
+  if (identical(level, "spatial")) {
+    cli::cli_abort(c(
+      "Predictor-dependent spatial {.fn corpair} regression is planned but not fitted yet.",
+      "x" = "{.code {entry$dpar}} targets a spatial latent correlation.",
+      "i" = "Fit spatial random effects only after the constant spatial covariance block is implemented and reported by {.fn corpairs}.",
+      "i" = "A future implementation must choose a positive-definite spatial covariance contract before this formula can be optimized."
+    ))
+  }
+  cli::cli_abort(c(
+    "Only ordinary group-level {.fn corpair} regression is implemented in this slice.",
+    "x" = "{.code {entry$dpar}} targets level {.val {level}}.",
+    "i" = "Use {.code level = \"group\"}; structured latent correlation regressions are later slices."
+  ))
+}
+
 build_biv_mu_corpair_model <- function(entries, formulas, re_mu, data) {
   if (length(entries) == 0L) {
     return(empty_corpair_model())
@@ -4931,11 +4955,7 @@ build_biv_mu_corpair_model <- function(entries, formulas, re_mu, data) {
   target <- entry$corpair
   level <- if (is.na(target$level)) "group" else target$level
   if (!identical(level, "group")) {
-    cli::cli_abort(c(
-      "Only ordinary group-level {.fn corpair} regression is implemented in this slice.",
-      "x" = "{.code {entry$dpar}} targets level {.val {level}}.",
-      "i" = "Use {.code level = \"group\"}; phylogenetic and spatial latent correlation regressions are later slices."
-    ))
+    abort_unsupported_corpair_level(entry, level)
   }
   if (is.na(target$from) || is.na(target$to)) {
     cli::cli_abort(c(

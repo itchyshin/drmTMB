@@ -13266,3 +13266,57 @@ Known limitations:
 
 - this is documentation/rendering polish only; it does not implement
   predictor-dependent phylogenetic `corpair()` likelihoods.
+
+## 2026-05-14 -- Slice 26 phylogenetic corpair design gate
+
+Goal:
+
+- make the reserved
+  `corpair(species, level = "phylogenetic", block = "p", ...) ~ w` route
+  explicit and honest before likelihood implementation.
+
+Implemented:
+
+- added a phylogenetic-specific `drmTMB()` guard for predictor-dependent
+  `corpair()` regression, pointing users to the currently fitted constant
+  `corpairs(fit, level = "phylogenetic")` route;
+- added a spatial-specific planned-feature guard for future spatial
+  `corpair()` regression;
+- added a focused bivariate Gaussian failure-path test for the reserved
+  phylogenetic syntax;
+- updated the correlation-pair design note, formula grammar, formula-grammar
+  article, phylogenetic-spatial article, known limitations, NEWS, ROADMAP, and
+  `corpair()` reference page;
+- recorded the positive-definite design gate: a predictor-dependent
+  tree-coupled latent correlation must define one valid covariance matrix
+  across all species, not independent per-species `tanh()` correlations.
+
+Checks run:
+
+- `/opt/homebrew/bin/air format R/drmTMB.R R/formula-markers.R tests/testthat/test-biv-gaussian.R docs/design/20-coscale-correlation-pairs.md docs/design/01-formula-grammar.md vignettes/formula-grammar.Rmd vignettes/phylogenetic-spatial.Rmd docs/dev-log/known-limitations.md ROADMAP.md NEWS.md`:
+  passed.
+- `/Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::document()'`:
+  passed and refreshed `man/corpair.Rd`.
+- `/Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::load_all(quiet = TRUE); devtools::test(filter = "biv-gaussian", reporter = "summary")'`:
+  passed.
+- `/Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::load_all(quiet = TRUE); devtools::test(filter = "package-skeleton", reporter = "summary")'`:
+  passed.
+- `PATH=/opt/homebrew/bin:$PATH /Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::load_all(quiet = TRUE); pkgdown::build_article("phylogenetic-spatial", new_process = FALSE, quiet = TRUE); pkgdown::build_article("formula-grammar", new_process = FALSE, quiet = TRUE); pkgdown::build_reference()'`:
+  passed.
+- `PATH=/opt/homebrew/bin:$PATH /Library/Frameworks/R.framework/Resources/bin/Rscript -e 'pkgdown::build_site()'`:
+  passed and refreshed the local articles, reference pages, NEWS, and ROADMAP.
+- `PATH=/opt/homebrew/bin:$PATH /Library/Frameworks/R.framework/Resources/bin/Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed.
+- `/Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::test(reporter = "summary")'`:
+  passed.
+- `rg -n "Only ordinary group-level .*corpair|phylogenetic and spatial latent correlation regressions are later slices|clade-level|copy.*ordinary|planned design gate|positive-definite covariance contract|tree-coupled" R man docs vignettes pkgdown-site NEWS.md ROADMAP.md tests --glob '!pkgdown-site/search.json'`:
+  returned only intentional guardrail, documentation, and generated-site hits.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- this slice does not fit phylogenetic `corpair()` regression; it makes the
+  design gate explicit and prevents a misleading residual-style implementation;
+- the next implementation slice needs a positive-definite covariance contract
+  for tree-coupled predictor-dependent correlations before TMB parameters are
+  added.

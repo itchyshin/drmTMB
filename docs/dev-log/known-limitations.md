@@ -87,7 +87,11 @@
 - Singular endpoint-specific `corpair()` formula syntax is fitted only for the
   ordinary q=2 `mu1`/`mu2` location-location route. Phylogenetic, spatial,
   location-scale, scale-scale, and q=4 predictor-dependent latent correlation
-  regressions remain planned. Use `rho12 = ~ x` for residual
+  regressions remain planned. The phylogenetic `corpair(..., level =
+  "phylogenetic") ~ w` syntax is parsed but deliberately rejected because a
+  predictor-dependent tree-coupled correlation must define one
+  positive-definite covariance matrix across all species, not independent
+  per-species `tanh()` correlations. Use `rho12 = ~ x` for residual
   within-observation correlation. For the fitted ordinary q=2 route,
   `confint(fit, parm = "corpair(...)", newdata = ...)` can profile
   response-scale latent correlations at supplied group-level predictor rows,

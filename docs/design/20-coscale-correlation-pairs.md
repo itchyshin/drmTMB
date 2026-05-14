@@ -55,9 +55,11 @@ The singular formula marker
 `corpair(group, level = "phylogenetic", block = "...", from = "mu1", to = "mu2") ~ x`
 is reserved for future predictor-dependent latent random-effect correlations.
 `drm_formula()` parses it, but `drmTMB()` rejects it until the likelihood,
-diagnostics, and recovery tests exist. Use `rho12 = ~ x` for residual
-within-observation correlation, and use `corpairs(fit)` to extract fitted
-constant latent correlations.
+diagnostics, and recovery tests exist. For `level = "phylogenetic"`, this is a
+positive-definite covariance-design gate: a species-varying correlation must
+still define one valid covariance matrix for all species coupled by the tree.
+Use `rho12 = ~ x` for residual within-observation correlation, and use
+`corpairs(fit)` to extract fitted constant latent correlations.
 
 ## Route Decision: Predictor-Dependent `corpair()`
 
@@ -114,6 +116,38 @@ within that group after complete-case filtering. Full q=4 predictor-dependent
 correlations need a separate positive-definite correlation matrix
 parameterization; fitting six independent `tanh()` regressions would not
 guarantee a valid q=4 correlation matrix.
+
+### Slice 26: Phylogenetic `corpair()` Design Gate
+
+The planned q=2 phylogenetic syntax is endpoint-specific:
+
+```r
+corpair(species, level = "phylogenetic", block = "p",
+        from = "mu1", to = "mu2") ~ ecology
+```
+
+This is not a drop-in copy of the ordinary grouped implementation. In the
+ordinary q=2 route, each `id` has an independent 2 by 2 latent covariance
+matrix, so a group-level model
+`rho_id = tanh(x_id^T beta_cor)` preserves positive definiteness one group at a
+time. In the phylogenetic route, the latent vectors for all species are tied
+together by the tree-derived covariance matrix `A`. A predictor-dependent
+phylogenetic correlation must therefore create one positive-definite
+`2n_species` by `2n_species` covariance matrix, not a set of independent
+per-species correlations.
+
+The first fitted phylogenetic `corpair()` likelihood should not be implemented
+until that covariance contract is explicit. Candidate contracts include a
+positive-definite nonstationary cross-covariance, a loading or latent-factor
+parameterization, or a narrower scientifically motivated model in which the
+predictor changes a small number of globally valid covariance components. Until
+that decision is made, `drmTMB()` should reject
+`corpair(..., level = "phylogenetic") ~ w` with a message pointing users to the
+already fitted constant phylogenetic correlations:
+
+```r
+corpairs(fit, level = "phylogenetic")
+```
 
 ## Why Named Correlation Pairs Are Needed
 
@@ -347,6 +381,12 @@ display preference, because each layer answers a different biological question.
     designed.
 15. Design a full q=4 positive-definite correlation-regression parameterization
     before fitting endpoint-specific or class-wide q=4 `corpair()` formulas.
+16. Design the positive-definite covariance contract for
+    `corpair(..., level = "phylogenetic") ~ w` before fitting phylogenetic
+    predictor-dependent correlations. Done for the guardrail: the parser
+    accepts the syntax, `drmTMB()` rejects it clearly, and the design note
+    records why ordinary group-level `tanh()` regression cannot be copied
+    directly to tree-coupled latent effects.
 
 For covariance blocks with more than two random-effect coefficients, use a
 positive-definite Cholesky or partial-correlation parameterization. Do not fit
