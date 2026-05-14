@@ -908,7 +908,7 @@ profile_newdata_dpar <- function(object, parm) {
       "none for this fitted model"
     }
     cli::cli_abort(c(
-      "Response-scale profile intervals with {.arg newdata} are implemented for fitted scale, residual-correlation, and ordinary q2 {.fn corpair} parameters.",
+      "Response-scale profile intervals with {.arg newdata} are implemented for fitted scale, residual-correlation, and q2 ordinary or phylogenetic {.fn corpair} parameters.",
       i = "Requested {.val {parm}}; available for this fit: {available}."
     ))
   }

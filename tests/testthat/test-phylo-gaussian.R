@@ -155,6 +155,62 @@ new_biv_phylo_gaussian_data <- function(
   )
 }
 
+new_biv_phylo_corpair_gaussian_data <- function(
+  seed = 20260903,
+  n_tip = 8L,
+  n_each = 8L,
+  sd_phylo = c(0.60, 0.50),
+  alpha_cor = c(`(Intercept)` = 0.05, z_species = 0.65),
+  sigma = c(0.18, 0.20),
+  rho12 = 0.05
+) {
+  set.seed(seed)
+  tree <- balanced_ultrametric_tree(n_tip)
+  A <- drmTMB:::drm_phylo_tip_covariance(tree)
+  z_species <- seq(-1, 1, length.out = n_tip)
+  eta_cor <- alpha_cor[["(Intercept)"]] +
+    alpha_cor[["z_species"]] * z_species
+  rho_phylo <- 0.999999 * tanh(eta_cor)
+  c_load <- sqrt((1 + rho_phylo) / 2)
+  d_load <- sqrt((1 - rho_phylo) / 2)
+  z1 <- as.vector(t(chol(A)) %*% stats::rnorm(n_tip))
+  z2 <- as.vector(t(chol(A)) %*% stats::rnorm(n_tip))
+  phylo1 <- sd_phylo[[1L]] * (c_load * z1 + d_load * z2)
+  phylo2 <- sd_phylo[[2L]] * (c_load * z1 - d_load * z2)
+  names(phylo1) <- tree$tip.label
+  names(phylo2) <- tree$tip.label
+  names(z_species) <- tree$tip.label
+
+  species <- rep(tree$tip.label, each = n_each)
+  x <- stats::rnorm(length(species))
+  beta_mu1 <- c(`(Intercept)` = 0.20, x = 0.25)
+  beta_mu2 <- c(`(Intercept)` = -0.15, x = -0.20)
+  e1 <- stats::rnorm(length(species))
+  e2 <- rho12 * e1 + sqrt(1 - rho12^2) * stats::rnorm(length(species))
+
+  list(
+    data = data.frame(
+      y1 = beta_mu1[[1L]] +
+        beta_mu1[[2L]] * x +
+        phylo1[species] +
+        sigma[[1L]] * e1,
+      y2 = beta_mu2[[1L]] +
+        beta_mu2[[2L]] * x +
+        phylo2[species] +
+        sigma[[2L]] * e2,
+      x = x,
+      species = species,
+      z_species = z_species[species]
+    ),
+    tree = tree,
+    alpha_cor = alpha_cor,
+    rho_phylo = rho_phylo,
+    sd_phylo = sd_phylo,
+    sigma = sigma,
+    rho12 = rho12
+  )
+}
+
 new_biv_sd_phylo_gaussian_data <- function(
   seed = 20260823,
   n_tip = 16L,
@@ -624,6 +680,67 @@ test_that("bivariate phylogenetic mean correlation recovers simulated signal", {
   expect_lt(abs(unique(rho12(fit)) - sim$rho12), 0.20)
   expect_equal(nrow(phylo_pair), 1L)
   expect_equal(phylo_pair$estimate, unname(fit$corpars$phylo))
+})
+
+test_that("bivariate phylogenetic corpair regression reports q2 location correlation", {
+  sim <- new_biv_phylo_corpair_gaussian_data()
+  dat <- sim$data
+  tree <- sim$tree
+
+  # CRAN-safe smoke check for plumbing and reporting; broader recovery belongs
+  # in a larger non-CRAN Slice 31 simulation because this tiny design is weak.
+  fit <- drmTMB(
+    bf(
+      mu1 = y1 ~ x + phylo(1 | p | species, tree = tree),
+      mu2 = y2 ~ x + phylo(1 | p | species, tree = tree),
+      sigma1 = ~1,
+      sigma2 = ~1,
+      rho12 = ~1,
+      corpair(
+        species,
+        level = "phylogenetic",
+        block = "p",
+        from = "mu1",
+        to = "mu2"
+      ) ~ z_species
+    ),
+    family = c(gaussian(), gaussian()),
+    data = dat,
+    control = list(eval.max = 300, iter.max = 300)
+  )
+  cor_dpar <- grep("^corpair\\(", names(fit$coefficients), value = TRUE)
+  pair <- corpairs(fit, level = "phylogenetic")
+  pair_ci <- corpairs(fit, level = "phylogenetic", conf.int = TRUE)
+  targets <- profile_targets(fit)
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_true(is.finite(fit$opt$objective))
+  expect_length(cor_dpar, 1L)
+  expect_named(fit$coefficients[[cor_dpar]], c("(Intercept)", "z_species"))
+  expect_true(all(is.finite(fit$coefficients[[cor_dpar]])))
+  expect_equal(sum(names(fit$opt$par) == "beta_cor_mu"), 2L)
+  expect_false("eta_cor_phylo" %in% names(fit$opt$par))
+  expect_equal(nrow(pair), 1L)
+  expect_true(pair$modelled)
+  expect_equal(pair$n_values, length(unique(dat$species)))
+  expect_lt(pair$min, pair$max)
+  expect_equal(
+    pair$estimate,
+    mean(predict(fit, dpar = cor_dpar, type = "response"))
+  )
+  expect_equal(
+    predict(fit, dpar = cor_dpar, type = "response"),
+    drmTMB:::rho_response(
+      predict(fit, dpar = cor_dpar, type = "link"),
+      guard = 0.999999
+    )
+  )
+  expect_equal(pair_ci$conf.status, "newdata_required")
+  expect_true(any(
+    targets$parm == paste0("fixef:", cor_dpar, ":z_species") &
+      targets$tmb_parameter == "beta_cor_mu" &
+      targets$profile_ready
+  ))
 })
 
 test_that("bivariate phylogenetic location supports sd_phylo1 and sd_phylo2", {

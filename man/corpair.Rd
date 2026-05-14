@@ -26,7 +26,7 @@ corpair(
 shorthand and is not the first fitted q=4 correlation-regression target.}
 
 \item{from, to}{Optional endpoint-specific distributional parameters, such as
-\code{"mu1"} and \code{"mu2"} for the first fitted ordinary q=2 target, or
+\code{"mu1"} and \code{"mu2"} for the first fitted q=2 targets, or
 \code{"mu1"} and \code{"sigma2"} for later location-scale targets.}
 }
 \value{
@@ -35,21 +35,21 @@ A formula marker; never evaluated by users.
 \description{
 \code{corpair()} marks predictor-dependent latent random-effect correlations. It
 is distinct from residual \code{rho12} and from the \code{\link[=corpairs]{corpairs()}} extractor. The
-first fitted path is the ordinary q=2 location-location case for matching
-labelled \code{mu1}/\code{mu2} random intercepts:
+first fitted paths are q=2 location-location cases for matching labelled
+\code{mu1}/\code{mu2} random intercepts:
 \code{corpair(id, level = "group", block = "p", from = "mu1", to = "mu2") ~ x}.
-Predictors must be constant within the grouping factor. Phylogenetic,
-spatial, location-scale, scale-scale, and q=4 \code{corpair()} regressions remain
-planned. In particular, predictor-dependent phylogenetic \code{corpair()} formulas
-have a positive-definite loading contract for the whole tree-coupled species
-block, but still need likelihood, diagnostic, and recovery-test support
-before they can be fitted.
+and
+\code{corpair(species, level = "phylogenetic", block = "p", from = "mu1", to = "mu2") ~ ecology}.
+Predictors must be constant within the grouping factor. Spatial,
+location-scale, scale-scale, and q=4 \code{corpair()} regressions remain planned.
+The phylogenetic q=2 route uses a positive-definite two-field loading
+contract for the whole tree-coupled species block.
 }
 \examples{
 bf(corpair(id, level = "group", block = "p",
   from = "mu1", to = "mu2") ~ ecology)
 
-# planned structured sibling
+# fitted q=2 phylogenetic sibling
 bf(corpair(species, level = "phylogenetic", block = "p",
   from = "mu1", to = "mu2") ~ ecology)
 }

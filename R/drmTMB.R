@@ -2207,7 +2207,7 @@ drm_build_biv_gaussian_spec <- function(
   unsupported <- setdiff(dpars[!is_sd_dpar], allowed)
   if (length(unsupported) > 0L) {
     cli::cli_abort(c(
-      "{.fn biv_gaussian} models only support {.code mu1}, {.code mu2}, {.code sigma1}, {.code sigma2}, {.code rho12}, bivariate ordinary location random-effect SD formulas {.code sd1(group)} / {.code sd2(group)}, bivariate phylogenetic location random-effect SD formulas {.code sd_phylo1(group)} / {.code sd_phylo2(group)}, and the first ordinary location-location {.fn corpair} formula.",
+      "{.fn biv_gaussian} models only support {.code mu1}, {.code mu2}, {.code sigma1}, {.code sigma2}, {.code rho12}, bivariate ordinary location random-effect SD formulas {.code sd1(group)} / {.code sd2(group)}, bivariate phylogenetic location random-effect SD formulas {.code sd_phylo1(group)} / {.code sd_phylo2(group)}, and the first ordinary or phylogenetic location-location {.fn corpair} formulas.",
       "x" = "Unsupported parameter{?s}: {.val {unsupported}}."
     ))
   }
@@ -2477,10 +2477,12 @@ drm_build_biv_gaussian_spec <- function(
     active_mu2_terms,
     data_model
   )
+  phylo_mu <- build_phylo_mu_structure(phylo_mu_terms$term, data_model, env)
   re_mu$cor_model <- build_biv_mu_corpair_model(
     corpair_entries,
     f_corpair,
     re_mu,
+    phylo_mu,
     data_model
   )
   sd_mu_targets <- parse_biv_sd_mu_entries(sd_mu_entries, re_mu)
@@ -2495,11 +2497,20 @@ drm_build_biv_gaussian_spec <- function(
     re_mu,
     data_model
   )
-  phylo_mu <- build_phylo_mu_structure(phylo_mu_terms$term, data_model, env)
   sd_phylo_targets <- parse_biv_sd_phylo_entries(
     sd_phylo_entries,
     phylo_mu
   )
+  if (
+    isTRUE(corpair_model_is_phylogenetic(re_mu$cor_model)) &&
+      length(sd_phylo_entries) > 0L
+  ) {
+    cli::cli_abort(c(
+      "Do not combine phylogenetic {.fn corpair} regression with bivariate {.fn sd_phylo1} / {.fn sd_phylo2} formulas in this phase.",
+      "x" = "{.fn corpair} changes the phylogenetic location-location correlation surface, while {.fn sd_phylo1} / {.fn sd_phylo2} model direct location random-effect SD surfaces.",
+      "i" = "Fit the predictor-dependent phylogenetic correlation route first with constant phylogenetic SDs."
+    ))
+  }
   sd_phylo <- build_sd_phylo_structure(
     sd_phylo_entries,
     sd_phylo_targets,
@@ -3811,6 +3822,7 @@ empty_corpair_model <- function() {
     dpar = NA_character_,
     target_cor = integer(),
     X = matrix(0, nrow = 1L, ncol = 1L),
+    X_tmb = matrix(0, nrow = 1L, ncol = 1L),
     X_list = list(),
     terms_list = list(),
     model_frame_list = list(),
@@ -4917,10 +4929,10 @@ build_biv_sigma_random_structure <- function(sigma1_terms, sigma2_terms, data) {
 abort_unsupported_corpair_level <- function(entry, level) {
   if (identical(level, "phylogenetic")) {
     cli::cli_abort(c(
-      "Predictor-dependent phylogenetic {.fn corpair} regression is planned but not fitted yet.",
+      "Predictor-dependent phylogenetic {.fn corpair} regression is implemented only for q=2 location-location blocks.",
       "x" = "{.code {entry$dpar}} targets a tree-coupled latent correlation.",
-      "i" = "Today, fit matching {.fn phylo} terms and extract constant fitted correlations with {.code corpairs(fit, level = \"phylogenetic\")}.",
-      "i" = "A future implementation must choose a positive-definite covariance contract for all tree-coupled species before this formula can be optimized."
+      "i" = "Use matching {.code mu1}/{.code mu2} {.fn phylo} terms and endpoint syntax {.code from = \"mu1\", to = \"mu2\"}.",
+      "i" = "Phylogenetic location-scale and scale-scale correlation regressions are q=4 extensions."
     ))
   }
   if (identical(level, "spatial")) {
@@ -4938,7 +4950,13 @@ abort_unsupported_corpair_level <- function(entry, level) {
   ))
 }
 
-build_biv_mu_corpair_model <- function(entries, formulas, re_mu, data) {
+build_biv_mu_corpair_model <- function(
+  entries,
+  formulas,
+  re_mu,
+  phylo_mu,
+  data
+) {
   if (length(entries) == 0L) {
     return(empty_corpair_model())
   }
@@ -4954,6 +4972,14 @@ build_biv_mu_corpair_model <- function(entries, formulas, re_mu, data) {
   entry <- entries[[1L]]
   target <- entry$corpair
   level <- if (is.na(target$level)) "group" else target$level
+  if (identical(level, "phylogenetic")) {
+    return(build_biv_phylo_corpair_model(
+      entry,
+      formulas[[1L]],
+      phylo_mu,
+      data
+    ))
+  }
   if (!identical(level, "group")) {
     abort_unsupported_corpair_level(entry, level)
   }
@@ -5045,6 +5071,7 @@ build_biv_mu_corpair_model <- function(entries, formulas, re_mu, data) {
       dpar = entry$dpar,
       target_cor = 1L,
       X = X_group,
+      X_tmb = X_group,
       X_list = stats::setNames(list(X_group), entry$dpar),
       terms_list = stats::setNames(list(stats::terms(mf)), entry$dpar),
       model_frame_list = stats::setNames(
@@ -5063,6 +5090,142 @@ build_biv_mu_corpair_model <- function(entries, formulas, re_mu, data) {
       "dpar",
       "target_cor",
       "X",
+      "X_tmb",
+      "X_list",
+      "terms_list",
+      "model_frame_list",
+      "group",
+      "block",
+      "level",
+      "from",
+      "to"
+    )
+  )
+}
+
+build_biv_phylo_corpair_model <- function(entry, formula, phylo_mu, data) {
+  target <- entry$corpair
+  level <- if (is.na(target$level)) "group" else target$level
+  if (!identical(level, "phylogenetic")) {
+    abort_unsupported_corpair_level(entry, level)
+  }
+  if (is.na(target$from) || is.na(target$to)) {
+    cli::cli_abort(c(
+      "Fitted phylogenetic {.fn corpair} formulas must use endpoint-specific {.arg from} and {.arg to}.",
+      "i" = "Use syntax such as {.code corpair(species, level = \"phylogenetic\", block = \"p\", from = \"mu1\", to = \"mu2\") ~ ecology}."
+    ))
+  }
+  if (!setequal(c(target$from, target$to), c("mu1", "mu2"))) {
+    cli::cli_abort(c(
+      "The first fitted phylogenetic {.fn corpair} route is location-location only.",
+      "x" = "{.code {entry$dpar}} targets {.code {target$from}} and {.code {target$to}}.",
+      "i" = "Use {.code from = \"mu1\", to = \"mu2\"}; phylogenetic location-scale and scale-scale correlation regressions are q=4 extensions."
+    ))
+  }
+  if (is.na(target$block)) {
+    cli::cli_abort(c(
+      "Fitted phylogenetic {.fn corpair} formulas require a covariance-block label.",
+      "i" = "Use the same label as the {.fn phylo} terms, for example {.code phylo(1 | p | species, tree = tree)} and {.code corpair(species, level = \"phylogenetic\", block = \"p\", from = \"mu1\", to = \"mu2\") ~ ecology}."
+    ))
+  }
+  if (!isTRUE(phylo_mu$has) || !identical(as.integer(phylo_mu$q), 2L)) {
+    cli::cli_abort(c(
+      "Fitted phylogenetic {.fn corpair} regression requires matching bivariate phylogenetic location terms.",
+      "i" = "Use matching terms such as {.code mu1 = y1 ~ x + phylo(1 | p | species, tree = tree)} and {.code mu2 = y2 ~ x + phylo(1 | p | species, tree = tree)}."
+    ))
+  }
+  if (!identical(target$group, phylo_mu$group)) {
+    cli::cli_abort(c(
+      "{.fn corpair} group does not match the fitted phylogenetic location block.",
+      "x" = "{.fn corpair} targets group {.field {target$group}}, but the fitted phylogenetic block uses {.field {phylo_mu$group}}."
+    ))
+  }
+  if (!identical(target$block, phylo_mu_block(phylo_mu))) {
+    cli::cli_abort(c(
+      "{.fn corpair} block does not match the fitted phylogenetic location block.",
+      "x" = "{.fn corpair} targets block {.code {target$block}}, but the fitted phylogenetic block uses {.code {phylo_mu_block(phylo_mu)}}."
+    ))
+  }
+
+  mf <- stats::model.frame(formula, data = data, na.action = stats::na.omit)
+  X_full <- stats::model.matrix(stats::terms(mf), mf)
+  if (nrow(X_full) != nrow(data)) {
+    cli::cli_abort(
+      "Internal error: {.fn corpair} model frame did not match filtered model rows."
+    )
+  }
+
+  group <- factor(data[[target$group]], levels = phylo_mu$species_levels)
+  group_rows <- split(seq_len(nrow(data)), group)
+  bad <- vapply(
+    seq_len(ncol(X_full)),
+    function(j) {
+      values <- X_full[, j]
+      any(vapply(
+        group_rows,
+        function(rows) {
+          max(abs(values[rows] - values[rows[[1L]]])) >
+            sqrt(.Machine$double.eps)
+        },
+        logical(1L)
+      ))
+    },
+    logical(1L)
+  )
+  if (any(bad)) {
+    cli::cli_abort(c(
+      "{.fn corpair} predictors must be constant within each phylogenetic species.",
+      "x" = "Non-constant model-matrix column{?s}: {.val {colnames(X_full)[bad]}}.",
+      "i" = "Use species-level predictors, such as ecological or life-history summaries, for phylogenetic latent correlation regression."
+    ))
+  }
+
+  first_rows <- match(phylo_mu$species_levels, as.character(group))
+  if (anyNA(first_rows)) {
+    cli::cli_abort(
+      "Internal error: failed to align {.fn corpair} rows with phylogenetic species."
+    )
+  }
+  X_group <- X_full[first_rows, , drop = FALSE]
+  row.names(X_group) <- phylo_mu$species_levels
+
+  tip_nodes <- match(rownames(X_group), phylo_mu$node_labels)
+  if (anyNA(tip_nodes)) {
+    cli::cli_abort(
+      "Internal error: failed to align {.fn corpair} species rows with phylogenetic tip nodes."
+    )
+  }
+  X_tmb <- matrix(0, nrow = phylo_mu$n_re, ncol = ncol(X_group))
+  dimnames(X_tmb) <- list(phylo_mu$node_labels, colnames(X_group))
+  X_tmb[tip_nodes, ] <- X_group
+
+  stats::setNames(
+    list(
+      n_models = 1L,
+      dpars = entry$dpar,
+      dpar = entry$dpar,
+      target_cor = 1L,
+      X = X_group,
+      X_tmb = X_tmb,
+      X_list = stats::setNames(list(X_group), entry$dpar),
+      terms_list = stats::setNames(list(stats::terms(mf)), entry$dpar),
+      model_frame_list = stats::setNames(
+        list(mf[first_rows, , drop = FALSE]),
+        entry$dpar
+      ),
+      group = target$group,
+      block = target$block,
+      level = level,
+      from = target$from,
+      to = target$to
+    ),
+    c(
+      "n_models",
+      "dpars",
+      "dpar",
+      "target_cor",
+      "X",
+      "X_tmb",
       "X_list",
       "terms_list",
       "model_frame_list",
@@ -7097,6 +7260,9 @@ biv_gaussian_map <- function(
     out$log_sd_phylo <- factor(NA)
     out$eta_cor_phylo <- factor(NA)
     out$theta_phylo <- factor(NA)
+  } else if (corpair_model_is_phylogenetic(re_mu$cor_model)) {
+    out$eta_cor_phylo <- factor(NA)
+    out$theta_phylo <- factor(NA)
   } else if (phylo_mu$q > 2L) {
     out$eta_cor_phylo <- factor(NA)
   } else if (sd_phylo$n_models > 0L) {
@@ -7206,6 +7372,28 @@ add_covariance_probe_parameter <- function(spec) {
     spec$map$theta_phylo <- factor(NA)
   }
   spec
+}
+
+corpair_model_is_group <- function(model) {
+  is.list(model) &&
+    isTRUE(model$n_models > 0L) &&
+    identical(model$level, "group")
+}
+
+corpair_model_is_phylogenetic <- function(model) {
+  is.list(model) &&
+    isTRUE(model$n_models > 0L) &&
+    identical(model$level, "phylogenetic")
+}
+
+corpair_model_level_id <- function(model) {
+  if (corpair_model_is_group(model)) {
+    return(1L)
+  }
+  if (corpair_model_is_phylogenetic(model)) {
+    return(2L)
+  }
+  0L
 }
 
 make_tmb_data <- function(spec) {
@@ -8028,8 +8216,8 @@ make_tmb_data <- function(spec) {
       mu_re_cor_id = spec$random$mu$re_cor_id0,
       mu_re_pair_index = spec$random$mu$re_pair_index0,
       mu_re_sd_row = spec$random_scale$mu$re_sd_row0,
-      X_cor_mu = spec$random$mu$cor_model$X,
-      has_cor_mu_model = as.integer(spec$random$mu$cor_model$n_models > 0L),
+      X_cor_mu = spec$random$mu$cor_model$X_tmb,
+      has_cor_mu_model = corpair_model_level_id(spec$random$mu$cor_model),
       n_sigma_re_terms = spec$random$sigma$n_terms,
       n_sigma_re_cors = spec$random$sigma$n_cors,
       n_mu_sigma_re_cors = spec$random$mu_sigma$n_cors,
@@ -8181,7 +8369,7 @@ split_tmb_parameters <- function(par, spec) {
     sigma2 = beta_sigma2,
     rho12 = beta_rho12
   )
-  if (has_modelled_mu_correlation(spec)) {
+  if (has_modelled_corpair_model(spec)) {
     beta_cor_mu <- unname(par$beta_cor_mu[seq_len(ncol(
       spec$random$mu$cor_model$X
     ))])
@@ -8342,7 +8530,7 @@ split_tmb_corpars <- function(par, spec) {
   out <- list()
   if (spec$random$mu$n_cors > 0L) {
     rho_mu <- if (has_modelled_mu_correlation(spec)) {
-      mean(modelled_mu_correlation_values(par, spec))
+      mean(modelled_corpair_values(par, spec))
     } else {
       0.999999 *
         tanh(unname(par$eta_cor_mu[seq_len(spec$random$mu$n_cors)]))
@@ -8389,6 +8577,8 @@ split_tmb_corpars <- function(par, spec) {
           phylo_pairs$to_index[[i]]
         ]
       }
+    } else if (has_modelled_phylo_correlation(spec)) {
+      rho_phylo <- mean(modelled_corpair_values(par, spec))
     } else {
       rho_phylo <- 0.999999 * tanh(unname(par$eta_cor_phylo))
     }
@@ -8399,21 +8589,31 @@ split_tmb_corpars <- function(par, spec) {
   out
 }
 
-modelled_mu_correlation_values <- function(par, spec) {
+modelled_corpair_values <- function(par, spec) {
   model <- spec$random$mu$cor_model
-  if (!has_modelled_mu_correlation(spec)) {
+  if (!has_modelled_corpair_model(spec)) {
     return(numeric())
   }
   eta <- as.vector(model$X %*% unname(par$beta_cor_mu[seq_len(ncol(model$X))]))
   0.999999 * tanh(eta)
 }
 
-has_modelled_mu_correlation <- function(spec) {
+has_modelled_corpair_model <- function(spec) {
   is.list(spec$random) &&
     is.list(spec$random$mu) &&
     is.list(spec$random$mu$cor_model) &&
     length(spec$random$mu$cor_model$n_models) == 1L &&
     isTRUE(spec$random$mu$cor_model$n_models > 0L)
+}
+
+has_modelled_mu_correlation <- function(spec) {
+  has_modelled_corpair_model(spec) &&
+    corpair_model_is_group(spec$random$mu$cor_model)
+}
+
+has_modelled_phylo_correlation <- function(spec) {
+  has_modelled_corpair_model(spec) &&
+    corpair_model_is_phylogenetic(spec$random$mu$cor_model)
 }
 
 covariance_block_correlations_from_par <- function(par, registry) {

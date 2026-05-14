@@ -38,7 +38,7 @@
   one ordinary q=4 location-scale covariance block with all six latent
   correlations. `check_drm()` reports a first q4 diagnostic for group
   replication, tiny component SDs, and near-boundary latent correlations.
-  Bivariate random slopes, random effects in `rho12`, predictor-dependent
+  Bivariate random slopes, random effects in `rho12`, predictor-dependent q=4
   phylogenetic correlations, and spatial q=4 blocks are still planned;
   residual `rho12` should not be interpreted as a phylogenetic, spatial, or
   group-level covariance parameter.
@@ -84,21 +84,17 @@
   route, `corpairs()` reports the fitted mean, range, and number of group-level
   latent correlation values. Spatial and study-level correlation pairs remain
   planned.
-- Singular endpoint-specific `corpair()` formula syntax is fitted only for the
-  ordinary q=2 `mu1`/`mu2` location-location route. Phylogenetic, spatial,
+- Singular endpoint-specific `corpair()` formula syntax is fitted for ordinary
+  q=2 and phylogenetic q=2 `mu1`/`mu2` location-location routes. Spatial,
   location-scale, scale-scale, and q=4 predictor-dependent latent correlation
-  regressions remain planned. The phylogenetic `corpair(..., level =
-  "phylogenetic") ~ w` syntax is parsed but deliberately rejected because a
-  predictor-dependent tree-coupled correlation must define one
-  positive-definite covariance matrix across all species, not independent
-  per-species `tanh()` correlations. The selected q=2 design contract uses two
-  independent unit phylogenetic fields and species-specific loadings, but the
-  TMB likelihood, diagnostics, and recovery tests are not implemented yet. It
-  targets only the phylogenetic `mu1`-`mu2` location-location row; phylogenetic
-  location-scale and scale-scale correlation regressions require a q=4 contract
-  and remain deferred. Use `rho12 = ~ x` for residual within-observation
-  correlation. For the fitted
-  ordinary q=2 route,
+  regressions remain planned. The fitted phylogenetic
+  `corpair(..., level = "phylogenetic") ~ w` route uses two independent unit
+  phylogenetic fields and species-specific loadings, targets only the
+  phylogenetic `mu1`-`mu2` location-location row, and reports modelled mean,
+  range, and species counts through `corpairs()`. Phylogenetic location-scale
+  and scale-scale correlation regressions require a q=4 contract and remain
+  deferred. Use `rho12 = ~ x` for residual within-observation correlation. For
+  fitted q=2 `corpair()` routes,
   `confint(fit, parm = "corpair(...)", newdata = ...)` can profile
   response-scale latent correlations at supplied group-level predictor rows,
   but `corpairs(conf.int = TRUE)` still marks the summary row as

@@ -117,9 +117,9 @@ correlations need a separate positive-definite correlation matrix
 parameterization; fitting six independent `tanh()` regressions would not
 guarantee a valid q=4 correlation matrix.
 
-### Slice 26: Phylogenetic `corpair()` Design Gate
+### Slice 26-30: Phylogenetic q=2 `corpair()` Route
 
-The planned q=2 phylogenetic syntax is endpoint-specific:
+The fitted q=2 phylogenetic syntax is endpoint-specific:
 
 ```r
 corpair(species, level = "phylogenetic", block = "p",
@@ -136,14 +136,11 @@ phylogenetic correlation must therefore create one positive-definite
 `2n_species` by `2n_species` covariance matrix, not a set of independent
 per-species correlations.
 
-The first fitted phylogenetic `corpair()` likelihood should not be implemented
-until that covariance contract is explicit. Candidate contracts include a
-positive-definite nonstationary cross-covariance, a loading or latent-factor
-parameterization, or a narrower scientifically motivated model in which the
-predictor changes a small number of globally valid covariance components. Until
-that decision is made, `drmTMB()` should reject
-`corpair(..., level = "phylogenetic") ~ w` with a message pointing users to the
-already fitted constant phylogenetic correlations:
+The first fitted phylogenetic `corpair()` likelihood uses a positive-definite
+two-field loading parameterization. It is deliberately narrower than the full
+q=4 location-scale-coscale target: it fits only the `mu1`-`mu2`
+location-location endpoint pair. Constant phylogenetic correlations remain
+available through matching `phylo()` terms and the extractor:
 
 ```r
 corpairs(fit, level = "phylogenetic")
@@ -151,7 +148,7 @@ corpairs(fit, level = "phylogenetic")
 
 ### Slice 27: Selected q=2 Phylogenetic Loading Contract
 
-The first implementable phylogenetic `corpair()` contract is a two-field
+The first implemented phylogenetic `corpair()` contract is a two-field
 loading model. Let `A` be the tree-derived species correlation matrix and let
 `z1` and `z2` be independent unit phylogenetic fields:
 
@@ -198,13 +195,13 @@ needed for the first public model:
   similarity of their loading vectors.
 
 The nonstationary property is a feature, not a bug, but it must be named in
-the user-facing documentation. The first implementation should therefore be
-limited to the q=2 location-location endpoint pair and should reject q=4
-location-scale pairs, random slopes, direct-SD mixtures, and spatial siblings
-until this q=2 route has recovery evidence. Phylogenetic location-scale rows
-(`mu1`-`sigma1`, `mu1`-`sigma2`, `mu2`-`sigma1`, `mu2`-`sigma2`) and the
-scale-scale row (`sigma1`-`sigma2`) require a q=4 loading or Cholesky-style
-correlation-regression contract and are not part of the first implementation.
+the user-facing documentation. The first implementation is therefore limited
+to the q=2 location-location endpoint pair and rejects q=4 location-scale
+pairs, random slopes, direct-SD mixtures, and spatial siblings. Phylogenetic
+location-scale rows (`mu1`-`sigma1`, `mu1`-`sigma2`, `mu2`-`sigma1`,
+`mu2`-`sigma2`) and the scale-scale row (`sigma1`-`sigma2`) require a q=4
+loading or Cholesky-style correlation-regression contract and are not part of
+the first implementation.
 
 ## Why Named Correlation Pairs Are Needed
 
@@ -448,6 +445,11 @@ display preference, because each layer answers a different biological question.
     design: use the two-field loading construction above, add algebra tests for
     positive definiteness and constant-correlation equivalence, and keep q=4,
     direct-SD mixtures, and spatial siblings planned.
+18. Fit the first q=2 phylogenetic `corpair()` route. Done for
+    `from = "mu1", to = "mu2"`: apply species-specific loadings to two
+    independent unit tree fields, report the modelled row through `corpairs()`,
+    expose `beta_cor_mu` fixed effects, and keep q=4 location-scale,
+    scale-scale, direct-SD mixtures, and spatial siblings planned.
 
 For covariance blocks with more than two random-effect coefficients, use a
 positive-definite Cholesky or partial-correlation parameterization. Do not fit

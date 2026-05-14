@@ -83,8 +83,9 @@ In this table, "coscale" means a model for residual correlation, currently
 | `cbind(successes, failures) ~ x1`, `family = beta_binomial()` | Implemented | Fixed-effect denominator-aware model for success counts with known trial totals; `sigma` is extra-binomial variation. |
 | `phylo(1 + x1 | species, tree = tree)` | Planned | Structured slopes come after the intercept-only path is hardened. |
 | `spatial(1 | site, coords = coords)` and `spatial(1 | site, mesh = mesh)` | Planned | Spatial SPDE/GMRF terms are part of the design but not fitted yet. |
-| `corpair(id, level = "group", block = "p", from = "mu1", to = "mu2") ~ x_group` | Implemented first slice | Predictor-dependent ordinary q=2 location-location latent random-effect correlation regression for matching labelled `mu1`/`mu2` random intercepts. Predictors must be constant within `id`. Location-scale, scale-scale, q=4, phylogenetic, and spatial `corpair()` regressions remain planned. |
-| Bivariate random slopes, spatial q4 covariance blocks, predictor-dependent phylogenetic/spatial correlations, or `rho12` random effects | Planned | Requires larger structured covariance parameterizations, simulation recovery, and naming checks. |
+| `corpair(id, level = "group", block = "p", from = "mu1", to = "mu2") ~ x_group` | Implemented | Predictor-dependent ordinary q=2 location-location latent random-effect correlation regression for matching labelled `mu1`/`mu2` random intercepts. Predictors must be constant within `id`. |
+| `corpair(species, level = "phylogenetic", block = "p", from = "mu1", to = "mu2") ~ ecology` | Implemented | Predictor-dependent phylogenetic q=2 location-location latent random-effect correlation regression for matching labelled `mu1`/`mu2` `phylo()` terms. Predictors must be constant within `species`. Location-scale, scale-scale, q=4, and spatial `corpair()` regressions remain planned. |
+| Bivariate random slopes, spatial q4 covariance blocks, predictor-dependent phylogenetic/spatial q4 correlations, or `rho12` random effects | Planned | Requires larger structured covariance parameterizations, simulation recovery, and naming checks. |
 
 ## Univariate Syntax
 
@@ -257,21 +258,21 @@ latent endpoints and covariance level:
 corpair(id, level = "group", block = "p", from = "mu1", to = "mu2") ~ w
 ```
 
-The same grammar is reserved for later structured levels:
+The same grammar is implemented for the q=2 phylogenetic location-location
+level:
 
 ```r
 corpair(species, level = "phylogenetic", block = "p", from = "mu1", to = "mu2") ~ ecology
 ```
 
-This phylogenetic formula is parsed but not fitted yet. Unlike the ordinary
-grouped q=2 route, a predictor-dependent phylogenetic correlation must produce
-one positive-definite covariance matrix for all species coupled by the tree. The
-selected design contract is a two-field loading model: a species predictor
-changes the local same-species phylogenetic correlation while preserving a
-valid full covariance matrix. Fitting remains planned until the TMB likelihood,
-diagnostics, and recovery tests are added. This selected contract covers only
-`from = "mu1", to = "mu2"`; phylogenetic location-scale and scale-scale
-correlation regressions need a q=4 contract and remain deferred.
+Unlike the ordinary grouped q=2 route, a predictor-dependent phylogenetic
+correlation must produce one positive-definite covariance matrix for all
+species coupled by the tree. The fitted design contract is a two-field loading
+model: a species predictor changes the local same-species phylogenetic
+correlation while preserving a valid full covariance matrix. This selected
+contract covers only `from = "mu1", to = "mu2"`; phylogenetic location-scale
+and scale-scale correlation regressions need a q=4 contract and remain
+deferred.
 
 The older `class = "location-scale"` spelling remains useful as an extraction
 filter and as a possible later shared-class model, but it should not be the

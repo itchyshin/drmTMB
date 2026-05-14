@@ -103,10 +103,11 @@ univariate Gaussian location formula. A first bivariate path also fits matching
 intercept-only `phylo()` terms in `mu1` and `mu2`, estimating the two
 phylogenetic location SDs and their mean-mean correlation. Matching labelled
 `phylo()` terms across `mu1`, `mu2`, `sigma1`, and `sigma2` now fit the first
-constant bivariate phylogenetic location-scale block. Spatial fields,
-phylogenetic slopes, and predictor-dependent latent phylogenetic correlations
-remain planned extensions; the planned `corpair(..., level = "phylogenetic")`
-syntax is shown below, but it is not a fitted model yet.
+constant bivariate phylogenetic location-scale block. The first
+predictor-dependent phylogenetic correlation regression is also fitted for the
+q=2 `mu1`-`mu2` location-location row. Spatial fields, phylogenetic slopes, and
+predictor-dependent q=4 location-scale or scale-scale phylogenetic correlations
+remain planned extensions.
 
 The scientific question for the implemented path is simple:
 
@@ -135,19 +136,28 @@ location-scale-coscale model.
 | Matching labelled `phylo()` terms in all four bivariate `mu1`, `mu2`, `sigma1`, and `sigma2` formulas | Implemented first slice | One constant q=4 phylogenetic block estimates four endpoint SDs and six latent correlations: one location-location, four location-scale, and one scale-scale. Partial, unlabelled, mismatched, and slope forms remain rejected. |
 | `sd_phylo(species) ~ z` | Implemented for univariate Gaussian `mu` | This is the separate Box 1 direct-SD family: species-level predictors model the SD of a phylogenetic location random effect at observed tips. |
 | `sd_phylo1(species) ~ z1` / `sd_phylo2(species) ~ z2` | Implemented for bivariate `mu1`/`mu2` | Response-specific species-level predictors model the SD surfaces of the two phylogenetic location random effects. This remains a Family B direct-SD model, not a residual `sigma1`/`sigma2` model and not a q=4 location-scale block. |
-| Phylogenetic `corpair() ~ ecology` | Planned design gate | This would model how predictors change latent phylogenetic random-effect correlations. Today, matching `phylo()` terms fit constant phylogenetic correlations and `corpairs(level = "phylogenetic")` extracts them. A fitted regression needs a positive-definite covariance contract for the whole tree-coupled species block. |
+| `corpair(species, level = "phylogenetic", block = "p", from = "mu1", to = "mu2") ~ ecology` | Implemented for q=2 `mu1`/`mu2` | Species-level predictors model the same-species latent phylogenetic location-location correlation through a positive-definite two-field loading contract. `corpairs(level = "phylogenetic")` reports the modelled response-scale mean, range, and number of species values. |
 | `spatial(1 | site, coords = coords)` or `spatial(1 | site, mesh = mesh)` | Planned | Spatial will mirror the phylogenetic API after the phylogenetic structured-effect path is stable. |
 
-The planned phylogenetic correlation-regression syntax is:
+The fitted q=2 phylogenetic correlation-regression syntax is:
 
 ```r
-# Planned, not fitted yet:
 corpair(species, level = "phylogenetic", block = "p",
         from = "mu1", to = "mu2") ~ ecology
+```
+
+The q=4 extensions remain planned:
+
+```r
+# Planned q=4 extensions:
+corpair(species, level = "phylogenetic", block = "p",
+        from = "mu1", to = "sigma1") ~ ecology
 corpair(species, level = "phylogenetic", block = "p",
         from = "mu1", to = "sigma2") ~ ecology
 corpair(species, level = "phylogenetic", block = "p",
         from = "mu2", to = "sigma1") ~ ecology
+corpair(species, level = "phylogenetic", block = "p",
+        from = "mu2", to = "sigma2") ~ ecology
 corpair(species, level = "phylogenetic", block = "p",
         from = "sigma1", to = "sigma2") ~ ecology
 ```
@@ -299,14 +309,19 @@ location-scale rows are `mu1`-`sigma1`, `mu1`-`sigma2`, `mu2`-`sigma1`, and
 but they are statistically part of the same q=4 block. They are not the
 residual `rho12` surface.
 
-### 5. Predictor-dependent latent phylogenetic correlations are planned
+### 5. Predictor-dependent latent phylogenetic correlations
 
-The natural next syntax is reserved but not fitted yet:
+The q=2 location-location route is fitted:
 
 ```r
-# Planned, not fitted yet:
 corpair(species, level = "phylogenetic", block = "p",
         from = "mu1", to = "mu2") ~ ecology
+```
+
+The q=4 endpoint-specific extensions are still planned:
+
+```r
+# Planned q=4 extensions:
 corpair(species, level = "phylogenetic", block = "p",
         from = "mu1", to = "sigma1") ~ ecology
 corpair(species, level = "phylogenetic", block = "p",
@@ -319,8 +334,9 @@ corpair(species, level = "phylogenetic", block = "p",
         from = "sigma1", to = "sigma2") ~ ecology
 ```
 
-That future layer would make phylogenetic random-effect correlations vary with
-a species-level ecological predictor, analogous in spirit to
+The fitted q=2 layer makes the phylogenetic location-location random-effect
+correlation vary with a species-level ecological predictor, analogous in
+spirit to
 `rho12 = ~ assay_context` for residual correlation. The implementation is not
 identical to residual `rho12` regression: the phylogenetic likelihood must still
 build one positive-definite covariance matrix for all species tied together by
@@ -329,12 +345,13 @@ modelled `rho_l` is the same-species phylogenetic correlation while
 between-species covariances remain tied to the tree and become nonstationary
 when `rho_l` varies. This first implementation target is only the
 location-location row; location-scale and scale-scale correlation regressions
-are q=4 extensions and remain deferred. The explicit `level = "phylogenetic"` keeps this layer separate
+are q=4 extensions and remain deferred. The explicit `level = "phylogenetic"`
+keeps this layer separate
 from ordinary species effects and future spatial effects. Endpoint-specific
 `from` / `to` syntax avoids treating all four location-scale pairs as if they
-had the same biological meaning. Today, use `corpairs()` for fitted constant
-latent phylogenetic correlations and `rho12()` for fitted residual
-correlations. The ordinary group-level q=2 analogue is implemented first:
+had the same biological meaning. Use `corpairs()` for fitted constant or
+modelled latent phylogenetic correlations and `rho12()` for fitted residual
+correlations. The ordinary group-level q=2 analogue is:
 `corpair(id, level = "group", block = "p", from = "mu1", to = "mu2") ~ w`
 models the correlation between two labelled ordinary location random
 intercepts.
@@ -370,14 +387,14 @@ interfaces are stable.
 For q=4 ordinary or phylogenetic blocks, `profile_targets()` lists the six
 correlations as derived unstructured-correlation targets. They are reported as
 point estimates today, but direct profile intervals for all six rows are not
-claimed yet. The first ordinary `corpair() ~ w` implementation is narrower:
-it fits only the q=2 `mu1`-`mu2` location-location pair for matching labelled
-ordinary random intercepts. That direct correlation-regression path exposes
-link-scale fixed-effect coefficients through `coef()`, `summary()`, `vcov()`,
-and `profile_targets()`, while `corpairs()` reports the response-scale mean,
-minimum, maximum, and number of group-level correlation values. For a 95%
-interval at a chosen group-level predictor value, profile the fitted
-`corpair()` dpar with `newdata`:
+claimed yet. The first ordinary and phylogenetic `corpair() ~ w` implementations
+are narrower: they fit only the q=2 `mu1`-`mu2` location-location pair for
+matching labelled ordinary or phylogenetic random intercepts. Those direct
+correlation-regression paths expose link-scale fixed-effect coefficients through
+`coef()`, `summary()`, `vcov()`, and `profile_targets()`, while `corpairs()`
+reports the response-scale mean, minimum, maximum, and number of group-level or
+species-level correlation values. For a 95% interval at a chosen group-level
+predictor value, profile the fitted `corpair()` dpar with `newdata`:
 
 ```r
 confint(
@@ -388,10 +405,26 @@ confint(
 )
 ```
 
+The phylogenetic q=2 path uses the same profiling interface, but the `parm`
+names the phylogenetic level:
+
+```r
+confint(
+  fit_phylo_corpair,
+  parm = paste0(
+    'corpair(species, level = "phylogenetic", block = "p", ',
+    'from = "mu1", to = "mu2")'
+  ),
+  method = "profile",
+  newdata = data.frame(ecology = 0)
+)
+```
+
 `corpairs(conf.int = TRUE)` still reports `newdata_required` for the modelled
-summary row because that row averages and ranges over group-level correlation
-values. q=4 rows still need a fix-and-refit or reparameterized profile before
-95% intervals are claimed for all six derived correlations.
+summary row because that row averages and ranges over group-level or
+species-level correlation values. q=4 rows still need a fix-and-refit or
+reparameterized profile before 95% intervals are claimed for all six derived
+correlations.
 
 ## Mathematical contract
 
@@ -627,11 +660,14 @@ for each observation, which can vary with `assay_context`.
 
 This is the key implementation boundary. `drmTMB` can estimate latent
 phylogenetic correlations when the matching `phylo()` terms define a shared
-covariance block. It cannot yet fit a separate predictor formula for those
-latent correlations. In other words, `rho12 = ~ assay_context` is implemented
-for residual correlation regression, but
+covariance block. It can also fit the first predictor-dependent latent
+phylogenetic correlation formula for the q=2 location-location row. In other
+words, `rho12 = ~ assay_context` is implemented for residual correlation
+regression, and
 `corpair(species, level = "phylogenetic", block = "p", from = "mu1", to = "mu2") ~ ecology`
-is still planned.
+is implemented for species-level predictors beside matching labelled `mu1` and
+`mu2` `phylo()` terms. The q=4 location-scale and scale-scale correlation
+regressions remain planned.
 
 The q=4 phylogenetic location-scale block extends the same idea to four
 endpoints. For endpoint \(d \in \{\mu_1, \mu_2, \sigma_1, \sigma_2\}\), let
@@ -780,13 +816,19 @@ subset(
 )
 ```
 
-Predictor-dependent latent phylogenetic correlations are a future layer. The
-extractor is `corpairs()`, but the planned formula syntax should be singular:
+The q=2 predictor-dependent latent phylogenetic correlation is fitted for the
+location-location row. The extractor is `corpairs()`, and the formula syntax is
+singular:
 
 ```r
-# Planned, not fitted yet:
 corpair(species, level = "phylogenetic", block = "p",
         from = "mu1", to = "mu2") ~ w
+```
+
+The q=4 extensions remain planned:
+
+```r
+# Planned q=4 extensions:
 corpair(species, level = "phylogenetic", block = "p",
         from = "mu1", to = "sigma1") ~ w
 corpair(species, level = "phylogenetic", block = "p",
@@ -801,9 +843,9 @@ corpair(species, level = "phylogenetic", block = "p",
 
 This endpoint naming matters because the cross-trait mean-scale pairs can be
 biologically harder to interpret than same-trait pairs. Use
-`rho12 = ~ assay_context` for residual correlation predictors today. Use
-`corpairs(fit, level = "phylogenetic")` to extract the fitted constant latent
-phylogenetic correlations today.
+`rho12 = ~ assay_context` for residual correlation predictors. Use
+`corpairs(fit, level = "phylogenetic")` to extract fitted constant or modelled
+latent phylogenetic correlations.
 
 ## Planned, not implemented: spatial random intercepts
 

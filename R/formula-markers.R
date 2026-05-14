@@ -82,15 +82,15 @@ spatial <- function(term, coords = NULL, mesh = NULL) {
 #'
 #' `corpair()` marks predictor-dependent latent random-effect correlations. It
 #' is distinct from residual `rho12` and from the [corpairs()] extractor. The
-#' first fitted path is the ordinary q=2 location-location case for matching
-#' labelled `mu1`/`mu2` random intercepts:
+#' first fitted paths are q=2 location-location cases for matching labelled
+#' `mu1`/`mu2` random intercepts:
 #' `corpair(id, level = "group", block = "p", from = "mu1", to = "mu2") ~ x`.
-#' Predictors must be constant within the grouping factor. Phylogenetic,
-#' spatial, location-scale, scale-scale, and q=4 `corpair()` regressions remain
-#' planned. In particular, predictor-dependent phylogenetic `corpair()` formulas
-#' have a positive-definite loading contract for the whole tree-coupled species
-#' block, but still need likelihood, diagnostic, and recovery-test support
-#' before they can be fitted.
+#' and
+#' `corpair(species, level = "phylogenetic", block = "p", from = "mu1", to = "mu2") ~ ecology`.
+#' Predictors must be constant within the grouping factor. Spatial,
+#' location-scale, scale-scale, and q=4 `corpair()` regressions remain planned.
+#' The phylogenetic q=2 route uses a positive-definite two-field loading
+#' contract for the whole tree-coupled species block.
 #'
 #' @param group Grouping factor for the latent covariance block.
 #' @param level Optional latent correlation level, such as `"group"`,
@@ -100,7 +100,7 @@ spatial <- function(term, coords = NULL, mesh = NULL) {
 #'   `"location-scale"`, or `"scale-scale"`. This is an extraction-oriented
 #'   shorthand and is not the first fitted q=4 correlation-regression target.
 #' @param from,to Optional endpoint-specific distributional parameters, such as
-#'   `"mu1"` and `"mu2"` for the first fitted ordinary q=2 target, or
+#'   `"mu1"` and `"mu2"` for the first fitted q=2 targets, or
 #'   `"mu1"` and `"sigma2"` for later location-scale targets.
 #'
 #' @return A formula marker; never evaluated by users.
@@ -110,7 +110,7 @@ spatial <- function(term, coords = NULL, mesh = NULL) {
 #' bf(corpair(id, level = "group", block = "p",
 #'   from = "mu1", to = "mu2") ~ ecology)
 #'
-#' # planned structured sibling
+#' # fitted q=2 phylogenetic sibling
 #' bf(corpair(species, level = "phylogenetic", block = "p",
 #'   from = "mu1", to = "mu2") ~ ecology)
 corpair <- function(

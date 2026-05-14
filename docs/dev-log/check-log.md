@@ -13371,3 +13371,61 @@ Known limitations:
 - the selected contract covers q=2 location-location only;
 - q=4 location-scale and scale-scale phylogenetic `corpair()` regression,
   direct-SD mixtures, random slopes, and spatial equivalents remain later work.
+
+## 2026-05-14 -- Slices 28-30 q2 phylogenetic corpair implementation
+
+Goal:
+
+- fit, report, and document the first predictor-dependent phylogenetic
+  `corpair()` model:
+  `corpair(species, level = "phylogenetic", block = "p", from = "mu1", to = "mu2") ~ w`.
+
+Implemented:
+
+- added R plumbing for endpoint-specific q=2 phylogenetic `corpair()` formulas
+  beside matching labelled `mu1` and `mu2` `phylo()` terms;
+- added the TMB likelihood branch using two independent unit phylogenetic fields
+  with species-level loadings from `rho_l = tanh(W_l alpha)`;
+- kept constant phylogenetic q=2/q=4 covariance paths, residual `rho12`, and
+  direct-SD `sd_phylo*()` paths separate;
+- reported fitted q=2 phylogenetic correlation-regression rows through
+  `corpairs(level = "phylogenetic")`, with modelled mean, range, and species
+  count;
+- exposed link-scale `beta_cor_mu` coefficients through `coef()`, `summary()`,
+  `vcov()`, and `profile_targets()`;
+- documented that q=4 phylogenetic location-scale and scale-scale correlation
+  regressions, spatial siblings, random slopes, and direct-SD mixtures remain
+  deferred.
+
+Checks run:
+
+- `/opt/homebrew/bin/air format R/drmTMB.R R/formula-markers.R R/methods.R R/profile.R src/drmTMB.cpp tests/testthat/test-phylo-gaussian.R tests/testthat/test-biv-gaussian.R tests/testthat/test-profile-targets.R vignettes/phylogenetic-spatial.Rmd vignettes/formula-grammar.Rmd vignettes/bivariate-coscale.Rmd docs/design/01-formula-grammar.md docs/design/03-likelihoods.md docs/design/16-phylo-spatial-common-math.md docs/design/20-coscale-correlation-pairs.md docs/dev-log/known-limitations.md ROADMAP.md NEWS.md`:
+  passed.
+- `/Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::document()'`:
+  passed and refreshed `man/corpair.Rd`.
+- `/Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::test(filter = "phylo-gaussian", reporter = "summary")'`:
+  passed after removing a warning-suppressed fit and adding a convergence
+  assertion to the new q=2 phylogenetic `corpair()` smoke test.
+- `/Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::load_all(quiet = TRUE); devtools::test(filter = "phylo-gaussian|biv-gaussian|profile-targets", reporter = "summary")'`:
+  passed.
+- `/Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::test(reporter = "summary")'`:
+  passed.
+- `PATH=/opt/homebrew/bin:$PATH /Library/Frameworks/R.framework/Resources/bin/Rscript -e 'pkgdown::build_site()'`:
+  passed and refreshed local `pkgdown-site` pages, including
+  `articles/phylogenetic-spatial.html`, `articles/formula-grammar.html`,
+  `reference/corpair.html`, `news/index.html`, and `ROADMAP.html`.
+- `PATH=/opt/homebrew/bin:$PATH /Library/Frameworks/R.framework/Resources/bin/Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed.
+- `rg -n "future phylogenetic|is still planned|cannot yet fit a separate predictor formula|predictor-dependent phylogenetic correlations.*remain planned|fitted constant latent phylogenetic correlations today|phylogenetic.*corpair.*planned|planned q=2|q2.*planned|planned structured sibling|future phylogenetic location-scale" R man vignettes docs/design docs/dev-log/known-limitations.md ROADMAP.md NEWS.md pkgdown-site --glob '!pkgdown-site/search.json'`:
+  returned only intentional q=4/spatial planned-boundary hits and generated
+  pages that agree with the new fitted q=2 status.
+- `git diff --check`: passed before closeout note edits.
+
+Known limitations:
+
+- this is a fitted/reporting q=2 smoke-test slice, not the broad recovery slice;
+- the tiny CRAN-safe test can saturate the modelled correlation surface and is
+  not used as recovery evidence for `alpha_cor`;
+- q=4 phylogenetic location-scale and scale-scale `corpair()` regressions still
+  need a positive-definite q=4 covariance-regression contract;
+- spatial `corpair()` siblings and spatial random effects remain planned.

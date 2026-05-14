@@ -1236,10 +1236,10 @@ Implementation notes:
   endpoint location SD parameters only; they do not target residual `sigma1`,
   residual `sigma2`, q=4 location-scale endpoint SDs, or residual `rho12`.
 - Bivariate random slopes, `rho12` random effects, phylogenetic random slopes,
-  predictor-dependent phylogenetic correlations, and spatial q=4 blocks remain
-  planned. The first constant intercept-only bivariate phylogenetic q=4 block is
-  implemented for matching labelled `phylo()` terms in `mu1`, `mu2`, `sigma1`,
-  and `sigma2`.
+  predictor-dependent q=4 phylogenetic correlations, and spatial q=4 blocks
+  remain planned. The first constant intercept-only bivariate phylogenetic q=4
+  block is implemented for matching labelled `phylo()` terms in `mu1`, `mu2`,
+  `sigma1`, and `sigma2`.
 - The selected q=2 predictor-dependent phylogenetic `corpair()` contract uses
   two independent unit tree fields and species-specific loadings. For each
   species `l`, `rho_l = tanh_guard(W_l alpha)`,
@@ -1248,11 +1248,11 @@ Implementation notes:
   `a1_l = tau1(c_l z1_l + d_l z2_l)` and
   `a2_l = tau2(c_l z1_l - d_l z2_l)`. This guarantees a positive-definite
   full phylogenetic covariance and reduces to the implemented constant
-  bivariate phylogenetic covariance when `rho_l` is constant. Fitting remains
-  planned until TMB parameters, recovery tests, diagnostics, and reporting are
-  added. This contract targets `mu1`-`mu2` only; predictor-dependent
-  phylogenetic location-scale and scale-scale correlations require a q=4
-  contract.
+  bivariate phylogenetic covariance when `rho_l` is constant. The fitted
+  implementation uses two independent unit augmented-tree effects and applies
+  the loading transformation at observed tip nodes. This contract targets
+  `mu1`-`mu2` only; predictor-dependent phylogenetic location-scale and
+  scale-scale correlations require a q=4 contract.
 
 ## Review Requirements
 

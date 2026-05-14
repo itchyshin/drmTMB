@@ -424,7 +424,8 @@ corpairs_conf_status <- function(pairs, target_rows, target_index) {
         if (
           isTRUE(pairs$modelled[[i]]) &&
             (identical(pairs$level[[i]], "residual") ||
-              identical(pairs$level[[i]], "group"))
+              identical(pairs$level[[i]], "group") ||
+              identical(pairs$level[[i]], "phylogenetic"))
         ) {
           return("newdata_required")
         }
@@ -528,6 +529,27 @@ phylo_mu_corpairs <- function(object) {
     estimate <- unname(object$corpars$phylo[[i]])
     parameter <- phylo_mu_correlation_parameter(object, i)
     pair <- pair_table[i, , drop = FALSE]
+    model_dpar <- random_effect_correlation_model_dpar(object, "phylo", i)
+    if (!is.na(model_dpar)) {
+      rho <- predict(object, dpar = model_dpar, type = "response")
+      eta <- predict(object, dpar = model_dpar, type = "link")
+      estimate <- mean(rho)
+      min_value <- min(rho)
+      max_value <- max(rho)
+      n_values <- length(rho)
+      link_estimate <- mean(eta)
+      link_min <- min(eta)
+      link_max <- max(eta)
+      modelled <- TRUE
+    } else {
+      min_value <- estimate
+      max_value <- estimate
+      n_values <- 1L
+      link_estimate <- guarded_correlation_link(estimate, guard = 0.999999)
+      link_min <- guarded_correlation_link(estimate, guard = 0.999999)
+      link_max <- guarded_correlation_link(estimate, guard = 0.999999)
+      modelled <- FALSE
+    }
     new_corpair_row(
       level = "phylogenetic",
       group = phylo_mu$group,
@@ -546,13 +568,13 @@ phylo_mu_corpairs <- function(object) {
       ),
       parameter = parameter,
       estimate = estimate,
-      min = estimate,
-      max = estimate,
-      n_values = 1L,
-      link_estimate = guarded_correlation_link(estimate, guard = 0.999999),
-      link_min = guarded_correlation_link(estimate, guard = 0.999999),
-      link_max = guarded_correlation_link(estimate, guard = 0.999999),
-      modelled = FALSE
+      min = min_value,
+      max = max_value,
+      n_values = n_values,
+      link_estimate = link_estimate,
+      link_min = link_min,
+      link_max = link_max,
+      modelled = modelled
     )
   })
 }
@@ -1205,11 +1227,20 @@ random_effect_corpair <- function(
 }
 
 random_effect_correlation_model_dpar <- function(object, dpar, index) {
-  if (!identical(dpar, "mu") || is.na(index)) {
+  if (is.na(index)) {
     return(NA_character_)
   }
   model <- object$model$random$mu$cor_model
   if (!is.list(model) || model$n_models == 0L) {
+    return(NA_character_)
+  }
+  if (identical(dpar, "mu") && !corpair_model_is_group(model)) {
+    return(NA_character_)
+  }
+  if (identical(dpar, "phylo") && !corpair_model_is_phylogenetic(model)) {
+    return(NA_character_)
+  }
+  if (!dpar %in% c("mu", "phylo")) {
     return(NA_character_)
   }
   if (index %in% model$target_cor) {

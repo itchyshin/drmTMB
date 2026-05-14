@@ -2050,13 +2050,12 @@ test_that("bivariate Gaussian rejects unsupported Phase 3 syntax clearly", {
     error = identity
   )
   expect_s3_class(phylo_corpair_err, "rlang_error")
-  expect_match(conditionMessage(phylo_corpair_err), "planned but not fitted")
+  expect_match(conditionMessage(phylo_corpair_err), "requires matching")
   expect_match(
     conditionMessage(phylo_corpair_err),
-    'corpairs(fit, level = "phylogenetic")',
+    "phylo(1 | p | species, tree = tree)",
     fixed = TRUE
   )
-  expect_match(conditionMessage(phylo_corpair_err), "positive-definite")
   expect_error(
     drmTMB(
       bf(

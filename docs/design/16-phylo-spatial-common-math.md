@@ -692,15 +692,15 @@ not exactly `tau^2 A` off the diagonal unless the correlation predictor is
 constant. That is the price of a species-specific phylogenetic correlation that
 stays positive definite.
 
-The first TMB implementation should use two independent unit augmented-tree
-effects and apply this loading transformation in the `mu1` and `mu2` linear
-predictors. It should start with constant `tau1` and `tau2`, require the
-endpoint pair `from = "mu1", to = "mu2"`, and reject q=4 location-scale
-endpoints, direct-SD mixtures, random slopes, and spatial siblings until the
-q=2 recovery and diagnostics are stable. Predictor-dependent phylogenetic
-location-scale pairs and the scale-scale pair are q=4 models because their
-latent state includes `mu1`, `mu2`, `sigma1`, and `sigma2`; they need a separate
-positive-definite q=4 correlation-regression contract.
+The first TMB implementation uses two independent unit augmented-tree effects
+and applies this loading transformation in the `mu1` and `mu2` linear
+predictors at observed tip nodes. It starts with constant `tau1` and `tau2`,
+requires the endpoint pair `from = "mu1", to = "mu2"`, and rejects q=4
+location-scale endpoints, direct-SD mixtures, random slopes, and spatial
+siblings. Predictor-dependent phylogenetic location-scale pairs and the
+scale-scale pair are q=4 models because their latent state includes `mu1`,
+`mu2`, `sigma1`, and `sigma2`; they need a separate positive-definite q=4
+correlation-regression contract.
 
 Family B structured direct-SD syntax such as `sd_phylo(species) ~ z_species`
 uses a separate non-centred tip-scaling contract. Let `v_aug` follow the unit
