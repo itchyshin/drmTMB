@@ -12465,3 +12465,45 @@ Known limitations:
   implemented now;
 - the next implementation-oriented slice should be map slice 14, the
   phylogenetic q=4 design against the tree precision.
+
+## 2026-05-14 -- 35-map Slice 14: phylogenetic q4 tree-precision design
+
+Goal:
+
+- close the design contract for the constant bivariate phylogenetic q=4
+  Family A block before changing the fitted likelihood.
+
+Implemented:
+
+- added the q=4 matrix-normal contract to the phylogenetic/spatial common math
+  note: endpoint-major `u_phylo`, four endpoint SDs, six positive-definite
+  endpoint correlations, and the sparse augmented tree precision term;
+- recorded that the current 35-slice route implements phylogenetic q=4 before
+  spatial, while keeping spatial as a sibling structured-effect lane;
+- synced formula grammar for planned labelled `phylo(1 | p | species, tree =
+  tree)` syntax before fitting it;
+- switched the future-facing bivariate q4 design example to
+  `family = c(gaussian(), gaussian())`;
+- repaired stale phylogenetic TMB probe test scaffolding so the existing
+  sparse-vs-R-algebra tests supply all currently declared TMB parameters.
+
+Checks run:
+
+- `air format docs/design/16-phylo-spatial-common-math.md docs/design/01-formula-grammar.md`:
+  passed.
+- `air format tests/testthat/test-phylo-utils.R`: passed.
+- `Rscript -e 'devtools::test(filter = "phylo-utils|phylo-gaussian|package-skeleton", reporter = "summary")'`:
+  passed after repairing the stale TMB probe parameters.
+- `Rscript -e 'pkgdown::check_pkgdown()'`: passed.
+- `git diff --check`: passed.
+- `rg -n 'phylo\\(1 \\| p \\| species|35-slice route|family = c\\(gaussian\\(\\), gaussian\\(\\)\\)|spatial.*precedes|constant bivariate phylogenetic q=4' docs/design/16-phylo-spatial-common-math.md docs/design/01-formula-grammar.md`:
+  confirmed the synchronized design and grammar text.
+- `rg -n 'phylogenetic q=4.*Implemented|phylo\\(1 \\| p \\| species.*Implemented|six `corpairs\\(level = "phylogenetic"\\)` rows.*Implemented|sd_phylo\\(species\\).*Implemented' README.md ROADMAP.md NEWS.md docs vignettes R tests`:
+  returned no matches, confirming this slice still reports q4 as planned.
+
+Known limitations:
+
+- this is a design and test-scaffold slice only;
+- no fitted `phylo()` terms in `sigma1` or `sigma2` exist yet;
+- no q=4 phylogenetic `corpairs()` rows, simulation recovery, or user tutorial
+  example exists yet.

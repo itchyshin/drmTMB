@@ -420,9 +420,10 @@ blocks, rather than treating every cross-response correlation as residual
    path under simulation and comparator tests.
 4. Add matching bivariate `mu1`/`mu2` phylogenetic location effects with one
    mean-mean correlation.
-5. Add spatial SPDE fields using the same structured-effect TMB block.
-6. Add one phylogenetic or spatial structured slope in `mu`.
-7. Only then allow structured effects in `sigma`.
+5. Add the constant bivariate phylogenetic q=4 block spanning `mu1`, `mu2`,
+   `sigma1`, and `sigma2`; this 35-slice route now precedes spatial.
+6. Add spatial SPDE/GMRF fields using the same structured-effect principle.
+7. Add one phylogenetic or spatial structured slope in `mu`.
 8. Treat structured effects in `rho12` as experimental until simulation
    evidence shows identifiability.
 
@@ -473,6 +474,138 @@ mu2_i = X_mu2[i, ] beta_mu2 + a_mu2[species_i]
 This estimates `sd_phylo_mu1`, `sd_phylo_mu2`, and one phylogenetic mean-mean
 correlation. It does not yet add phylogenetic `sigma` terms, structured
 `rho12`, or random slopes.
+
+## Map Slice 14: Constant Bivariate Phylogenetic q=4 Design
+
+The next phylogenetic PLSM target is a constant q=4 phylogenetic covariance
+block spanning location and residual-scale predictors for two Gaussian
+responses:
+
+```r
+drmTMB(
+  bf(
+    mu1 = y1 ~ x + phylo(1 | species, tree = tree),
+    mu2 = y2 ~ x + phylo(1 | species, tree = tree),
+    sigma1 = ~ z + phylo(1 | species, tree = tree),
+    sigma2 = ~ z + phylo(1 | species, tree = tree),
+    rho12 = ~ w
+  ),
+  family = c(gaussian(), gaussian()),
+  data = dat
+)
+```
+
+The labelled form should be accepted before the fitted q=4 path is advertised:
+
+```r
+phylo(1 | p | species, tree = tree)
+```
+
+The two-bar form remains valid and maps internally to `block = "phylo"`. The
+three-bar form records the user-facing covariance-block label, such as `p`,
+and all four distributional formulas must use the same group, tree, and block.
+The first q=4 implementation should allow exactly one intercept-only
+phylogenetic block. Phylogenetic random slopes, multiple phylogenetic blocks,
+and structured `rho12` effects remain planned.
+
+This section supersedes the older local ordering that placed spatial fields
+before structured effects in `sigma`. The current 35-slice route implements
+constant phylogenetic q=4 first because the tree-precision algebra is already
+validated for univariate `mu` and bivariate `mu1`/`mu2`. Spatial remains the
+parallel sibling lane after the phylogenetic structured-effect contract is
+stable; it is not folded into residual `rho12` and not treated as an
+afterthought.
+
+Let
+
+```text
+U = [a_mu1, a_mu2, a_sigma1, a_sigma2]
+```
+
+be an `n_node` by `q` matrix of augmented-tree latent effects, with `q = 4`.
+Rows follow the sparse augmented tree precision `Q_aug`, including tips and
+internal nodes. Columns follow the endpoint order:
+
+```text
+1 mu1:(Intercept)
+2 mu2:(Intercept)
+3 sigma1:(Intercept)
+4 sigma2:(Intercept)
+```
+
+The prior is a matrix-normal distribution:
+
+```text
+U ~ MatrixNormal(0, Q_aug^{-1}, Sigma_phylo)
+```
+
+where `Sigma_phylo = D R D`, `D = diag(sd_phylo_mu1, sd_phylo_mu2,
+sd_phylo_sigma1, sd_phylo_sigma2)`, and `R` is a 4 by 4 positive-definite
+correlation matrix. In expanded scalar form:
+
+```text
+vec(U) ~ MVN(0, Sigma_phylo %x% Q_aug^{-1})
+```
+
+using endpoint-major storage to match the existing bivariate `mu1`/`mu2`
+`u_phylo` layout. The negative log prior is:
+
+```text
+nll_phylo_q4 =
+  0.5 * [
+    n_node * q * log(2*pi)
+    + n_node * log|Sigma_phylo|
+    - q * log|Q_aug|
+    + tr(Sigma_phylo^{-1} U' Q_aug U)
+  ].
+```
+
+This is the same algebra already exercised by the internal q-probe helper and
+`drm_phylo_correlated_precision_nll()`: the tree precision controls dependence
+among species, while `Sigma_phylo` controls covariance among distributional
+endpoints.
+
+The linear predictors use observed tip rows selected from `U`:
+
+```text
+mu1_i = X_mu1[i, ] beta_mu1 + U[node_i, mu1]
+mu2_i = X_mu2[i, ] beta_mu2 + U[node_i, mu2]
+log(sigma1_i) = X_sigma1[i, ] beta_sigma1 + U[node_i, sigma1]
+log(sigma2_i) = X_sigma2[i, ] beta_sigma2 + U[node_i, sigma2]
+rho12_i = tanh_guard(X_rho12[i, ] beta_rho12)
+```
+
+The residual correlation `rho12` remains a within-observation coscale
+parameter. It is not part of `Sigma_phylo`.
+
+Reporting should mirror ordinary q=4 blocks:
+
+- four phylogenetic SDs, labelled by endpoint and group;
+- six `corpairs(level = "phylogenetic")` rows;
+- classes `mean-mean`, four `mean-scale` rows, and `scale-scale`, with
+  `location-location` and `location-scale` accepted as filter aliases;
+- `summary(fit)$covariance` rows that include the covariance estimate
+  `sd_from * sd_to * correlation`;
+- `check_drm()` diagnostics for near-boundary phylogenetic correlations, tiny
+  phylogenetic endpoint SDs, low species replication, and simultaneous ordinary
+  same-species covariance.
+
+Implementation should be staged:
+
+1. extend structured-term parsing to preserve an optional phylogenetic block
+   label while keeping `phylo(1 | species, tree = tree)` backward compatible;
+2. detect the matched all-four phylogenetic block in `mu1`, `mu2`, `sigma1`,
+   and `sigma2`, and reject partial `sigma1`/`sigma2` phylogenetic use before
+   optimization;
+3. add q=4 starts, maps, TMB data, and transformed reports for `log_sd_phylo`
+   and the six unstructured-correlation parameters;
+4. add the q=4 prior contribution using the matrix-normal expression above;
+5. route prediction, `ranef()`, `sdpars`, `corpars`, `corpairs()`,
+   `summary()`, `profile_targets()`, `simulate()`, and `check_drm()` through
+   the same endpoint order.
+
+The first implementation should not combine this Family A q=4 block with
+Family B `sd_phylo()` direct-SD regression for the same species level.
 
 Family B structured direct-SD syntax such as `sd_phylo(species) ~ z_species`
 is a separate design problem. The scalar `sigma_phylo^2 A` covariance above is
