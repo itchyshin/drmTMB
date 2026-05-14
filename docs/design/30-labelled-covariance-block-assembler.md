@@ -253,8 +253,9 @@ still be named `sigma`.
    members while preserving the existing row names and messages.
    `profile_targets()` now derives covered random-effect correlation targets
    from registry pairs while preserving target names, indices, and readiness; it
-   also skips dormant q > 2 registry pairs and can format the six q=4 endpoint
-   correlation targets from fitted-like registry metadata.
+   also skips dormant q > 2 registry pairs and marks ordinary `theta_re_cov`
+   q=4 endpoint correlation targets as derived unstructured-correlation rows
+   rather than direct profile-ready atanh targets.
 5. Pass the two-member dormant contract through the C++ boundary as a no-op
    visibility check before using it for likelihood evaluation. Done by
    appending empty or registry block data to every TMB data list, declaring

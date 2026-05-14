@@ -23,7 +23,7 @@ it does not yet fit the complete double-hierarchical covariance model.
 | Bivariate `sigma1`/`sigma2` random-intercept covariance blocks | Implemented first slice | matching labelled `(1 | p | id)` terms in both scale formulas |
 | Same-response bivariate `mu`/`sigma` random-intercept covariance blocks | Implemented first slice | one matching labelled pair in `mu1`/`sigma1` or `mu2`/`sigma2` |
 | Bivariate random-slope covariance blocks and structured q=4 blocks | Planned | random-slope q=6/q=8 endpoint blocks, phylogenetic q=4, and spatial q=4 |
-| Profile-likelihood intervals for covariance summaries | Partly implemented | direct profile targets for first univariate and same-response bivariate `mu`/`sigma`, ordinary bivariate `mu1`/`mu2`, ordinary bivariate `sigma1`/`sigma2`, and bivariate phylogenetic `mu1`/`mu2` covariance parameters; derived summaries planned |
+| Profile-likelihood intervals for covariance summaries | Partly implemented | direct profile targets for first univariate and same-response bivariate `mu`/`sigma`, ordinary bivariate `mu1`/`mu2`, ordinary bivariate `sigma1`/`sigma2`, and bivariate phylogenetic `mu1`/`mu2` covariance parameters; ordinary q4 correlations are listed as derived unstructured-correlation targets, and derived intervals remain planned |
 
 ## Target Model
 

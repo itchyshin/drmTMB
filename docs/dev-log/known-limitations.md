@@ -70,9 +70,12 @@
   rows, including the first univariate and same-response bivariate `mu`/`sigma`,
   bivariate `mu1`/`mu2`, and bivariate `sigma1`/`sigma2` random-intercept
   correlations, plus the first bivariate phylogenetic `mu1`/`mu2` mean-mean
-  correlation. The first marginal helper computes unweighted plug-in means only;
-  it does not yet compute uncertainty, standard errors, contrasts, plots, or
-  full `emmeans`-style marginalisation.
+  correlation. Ordinary q4 unstructured-correlation rows are listed by
+  `profile_targets()` but are not direct profile-ready targets yet because the
+  optimized `theta_re_cov` coordinates are not pairwise atanh correlations. The
+  first marginal helper computes unweighted plug-in means only; it does not yet
+  compute uncertainty, standard errors, contrasts, plots, or full
+  `emmeans`-style marginalisation.
 - Fixed-effect univariate lognormal location-scale models are implemented for
   positive finite responses. `mu` and `sigma` are on the log-response scale;
   random effects, known sampling covariance, phylogenetic terms, and bivariate

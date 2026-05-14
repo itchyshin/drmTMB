@@ -629,11 +629,16 @@ profile_registry_cor_targets <- function(object) {
       )
     }
     estimate <- unname(values[[index]])
-    profile_ready <- profile_internal_is_active(
-      object,
-      pair$tmb_parameter[[1L]],
-      index
-    )
+    is_unstructured_corr <- identical(pair$tmb_parameter[[1L]], "theta_re_cov")
+    profile_ready <- if (is_unstructured_corr) {
+      FALSE
+    } else {
+      profile_internal_is_active(
+        object,
+        pair$tmb_parameter[[1L]],
+        index
+      )
+    }
     new_profile_target_row(
       parm = paste0("cor:", dpar, ":", pair$parameter[[1L]]),
       target_class = "random-effect-correlation",
@@ -642,12 +647,24 @@ profile_registry_cor_targets <- function(object) {
       tmb_parameter = pair$tmb_parameter[[1L]],
       index = index,
       estimate = estimate,
-      link_estimate = guarded_correlation_link(estimate, guard = 0.999999),
+      link_estimate = if (is_unstructured_corr) {
+        NA_real_
+      } else {
+        guarded_correlation_link(estimate, guard = 0.999999)
+      },
       scale = "response",
-      transformation = "tanh",
-      target_type = "direct",
+      transformation = if (is_unstructured_corr) {
+        "unstructured_corr"
+      } else {
+        "tanh"
+      },
+      target_type = if (is_unstructured_corr) "derived" else "direct",
       profile_ready = profile_ready,
-      profile_note = profile_ready_note(profile_ready)
+      profile_note = if (is_unstructured_corr) {
+        "derived_unstructured_correlation"
+      } else {
+        profile_ready_note(profile_ready)
+      }
     )
   })
 }

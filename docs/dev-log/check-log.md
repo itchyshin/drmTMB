@@ -2,6 +2,23 @@
 
 Record meaningful development checks here.
 
+## 2026-05-13 -- Slice 17 q4 profile-target status guard
+
+Scope:
+
+- changed ordinary q4 `theta_re_cov` correlation rows in `profile_targets()` to
+  `target_type = "derived"` and `profile_ready = FALSE`;
+- kept q4 rows visible for inventory and summaries, but stopped them from being
+  treated as simple direct atanh-correlation targets;
+- updated the endpoint, assembler, known-limitations, and NEWS wording to say
+  ordinary q4 direct profile intervals remain planned.
+
+Checks:
+
+- `Rscript -e 'devtools::test(filter = "profile-targets|biv-gaussian|summary", reporter = "summary")'`:
+  passed.
+- `git diff --check`: passed.
+
 ## 2026-05-13 -- Slice 16 ordinary q4 check_drm diagnostic
 
 Scope:
