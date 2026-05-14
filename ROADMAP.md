@@ -259,8 +259,12 @@ distributional regression models using TMB.
   correlations when that block is present.
   Extend this table as new correlation likelihoods are added.
 - Stage structured phylogenetic and spatial slopes conservatively:
-  intercept-only structured effects first, then one `mu` slope, then only small
-  slope sets or interaction slopes after simulation recovery.
+  intercept-only structured effects first, then one `mu` slope, then at most two
+  structured `mu` slopes as an advanced path after simulation recovery. Multiple
+  random factors should enter as separate additive blocks. Intercept-slope
+  `corpair()` rows are distant-future; the more biologically interesting later
+  target is a bivariate slope1-slope2 correlation for the same covariate, a
+  plasticity-syndrome style model.
 - Add identifiability diagnostics for replication by study, species, location,
   and effect-size levels before complex structured models are promoted.
 - Selectively reuse GPL-compatible ideas or modules from `gllvmTMB` with
@@ -440,6 +444,15 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   `spatial(1 | site, mesh = mesh)` only after the data contract is documented:
   `coords` identify observation or site locations, while `mesh` is the SPDE/GMRF
   computational scaffold.
+- Treat `coords` as the friendly public input and `mesh` as optional expert
+  control. A dense coordinate-only Gaussian-process path would not require a
+  mesh, but it is not the scalable route. The planned SPDE/GMRF route needs a
+  mesh-like finite-element scaffold internally, even if `drmTMB` builds it from
+  coordinates for the user.
+- Cite the SPDE/GMRF method literature and any software used for mesh or
+  precision construction. If code is ported or closely adapted from `sdmTMB`,
+  `fmesher`, INLA-related sources, `gllvmTMB`, or another project, record
+  provenance in `inst/COPYRIGHTS` before calling the spatial slice complete.
 - Use a small comparator or simulation recovery test before exposing spatial
   effects beyond `mu`.
 - Do not add spatial terms in `sigma`, `rho12`, or bivariate structured
@@ -459,6 +472,11 @@ remain blocked by future covariance or non-Gaussian random-effect work.
 - Keep the first individual-difference covariance target focused on ordinary
   grouped personality and plasticity terms before adding structured
   phylogenetic or non-phylogenetic species correlation layers.
+- For future random slopes, start with one slope and allow at most two slopes in
+  the near-term advanced path. Do not estimate intercept-slope correlations at
+  first. A later coefficient-aware `corpair()` design can target the bivariate
+  slope1-slope2 plasticity-syndrome case, but that belongs after intercept-only
+  covariance blocks and current `corpair()` rows are stable.
 - Extend `corpairs()` before adding complex covariance blocks, so users can see
   the level, group, block, responses, distributional parameters, coefficients,
   estimates, and uncertainty source.
@@ -477,7 +495,9 @@ remain blocked by future covariance or non-Gaussian random-effect work.
 - Status: planned beyond the first fitted bivariate `mu1`/`mu2` phylogenetic
   location slice.
 - Extend the implemented `phylo(1 | species, tree = tree)` Gaussian `mu` path to
-  one structured `mu` slope, then only later to small structured slope sets.
+  one structured `mu` slope, then only later to at most two structured `mu`
+  slopes. Three or more structured slopes, intercept-slope correlations, and
+  slope-slope `corpair()` regression are distant-future research targets.
 - Add phylogenetic terms in `sigma` only after the location path has larger
   simulation evidence and clear identifiability diagnostics.
 - Keep phylogenetic location-scale-shape models as a research target, not an

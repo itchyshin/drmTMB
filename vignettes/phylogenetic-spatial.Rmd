@@ -871,7 +871,13 @@ latitude. A `mesh` is the computational scaffold for an SPDE/GMRF field: a
 triangular network of vertices where the latent spatial field is represented
 and then projected back to observations. Users should not interpret mesh
 vertices as biological sampling units; they are numerical support points for
-the spatial surface.
+the spatial surface. In other words, a mesh is not required by the idea of
+spatial dependence itself. It is required by the scalable SPDE/GMRF
+approximation. A dense coordinate covariance could be fitted directly from
+pairwise distances for small data, but the spatial lane in `drmTMB` is planned
+around sparse precision matrices. The friendly API should let users start with
+`coords = coords`; `mesh = mesh` is the expert route for reproducible control
+over boundaries, barriers, coastlines, or uneven sampling.
 
 The spatial term is deliberately parallel to the phylogenetic term:
 
@@ -889,15 +895,30 @@ tree-derived precision. `spatial()` will start from coordinates or a mesh and
 build an SPDE/GMRF precision.
 
 The computational plan is to keep using sparse A-inverse ideas for phylogeny
-and add SPDE/GMRF structure for spatial fields, with provenance notes for any
-code selectively ported from `gllvmTMB`.
+and add SPDE/GMRF structure for spatial fields. The spatial route should cite
+the SPDE/GMRF method literature and the software it builds on. The key
+methodological reference is Lindgren, Rue, and Lindstrom (2011), who connected
+Gaussian fields to sparse GMRFs through the SPDE approach
+(`doi:10.1111/j.1467-9868.2011.00777.x`). The ecological TMB precedent is
+`sdmTMB`, described in its
+[Journal of Statistical Software paper](https://www.jstatsoft.org/article/view/v115i02)
+as a package for spatial and spatiotemporal GLMMs using TMB, `fmesher`, latent
+GMRFs, and the SPDE approach. If `drmTMB` imports `fmesher` or asks users to
+pass `fmesher` mesh objects, the website and paper should also tell users to
+cite `fmesher` as software. Any code selectively ported from `gllvmTMB`,
+`sdmTMB`, `fmesher`, or INLA-related sources must be recorded in
+`inst/COPYRIGHTS` before the spatial feature is called complete.
 
 Structured phylogenetic and spatial random slopes will be staged more
 conservatively than ordinary grouped random slopes. The first structured-effect
 target is intercept-only `mu`; the next should be one structured `mu` slope.
-Small sets of structured slopes, interaction slopes, and structured effects in
-`sigma` or `rho12` should wait until simulation recovery shows that the simpler
-models are identifiable.
+Two structured `mu` slopes can be an advanced path when replication and design
+variation are strong, but three or more should stay experimental. Multiple
+random factors should be separate additive blocks rather than one large
+cross-factor covariance model. The first slope models should not estimate
+intercept-slope `corpair()` rows. A more interesting future two-response target
+is the slope1-slope2 correlation for the same covariate across traits, the
+plasticity-syndrome question described by O'Dea, Noble, and Nakagawa (2021).
 
 ## Meta-analysis and future bivariate structure
 

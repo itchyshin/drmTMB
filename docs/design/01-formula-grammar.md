@@ -81,11 +81,11 @@ In this table, "coscale" means a model for residual correlation, currently
 | `weights = w` | Implemented | Top-level likelihood weights, not formula syntax. Known sampling covariance remains `meta_known_V(V = V)`. |
 | `y ~ x1`, `family = cumulative_logit()` | Implemented | Fixed-effect univariate ordinal model for ordered scores with cutpoints; `mu` is a latent location and ordinal scale formulas are planned. |
 | `cbind(successes, failures) ~ x1`, `family = beta_binomial()` | Implemented | Fixed-effect denominator-aware model for success counts with known trial totals; `sigma` is extra-binomial variation. |
-| `phylo(1 + x1 | species, tree = tree)` | Planned | Structured slopes come after the intercept-only path is hardened. |
+| `phylo(1 + x1 | species, tree = tree)` | Planned | Structured slopes come after the intercept-only path is hardened. The first path should fit one structured `mu` slope; two slopes are the near-term upper bound. |
 | `spatial(1 | site, coords = coords)` and `spatial(1 | site, mesh = mesh)` | Planned | Spatial SPDE/GMRF terms are part of the design but not fitted yet. |
 | `corpair(id, level = "group", block = "p", from = "mu1", to = "mu2") ~ x_group` | Implemented | Predictor-dependent ordinary q=2 location-location latent random-effect correlation regression for matching labelled `mu1`/`mu2` random intercepts. Predictors must be constant within `id`. |
 | `corpair(species, level = "phylogenetic", block = "p", from = "mu1", to = "mu2") ~ ecology` | Implemented | Predictor-dependent phylogenetic q=2 location-location latent random-effect correlation regression for matching labelled `mu1`/`mu2` `phylo()` terms. Predictors must be constant within `species`. Location-scale, scale-scale, q=4, and spatial `corpair()` regressions remain planned. |
-| Bivariate random slopes, spatial q4 covariance blocks, predictor-dependent phylogenetic/spatial q4 correlations, or `rho12` random effects | Planned | Requires larger structured covariance parameterizations, simulation recovery, and naming checks. |
+| Bivariate random slopes, spatial q4 covariance blocks, predictor-dependent phylogenetic/spatial q4 correlations, or `rho12` random effects | Planned | Requires larger structured covariance parameterizations, simulation recovery, and naming checks. Do not treat intercept-slope `corpair()` rows as a near-term target; a later slope1-slope2 bivariate plasticity-syndrome target needs coefficient-aware syntax. |
 
 ## Univariate Syntax
 
@@ -596,6 +596,13 @@ bf(y ~ x1 + spatial(1 | site, mesh = mesh), sigma ~ x2)
 These calls are part of the formula grammar design but are not fitted yet.
 Here `coords` or `mesh` names the object that will be used to build an
 SPDE/GMRF precision. Exactly one of `coords` or `mesh` should be supplied.
+`coords` is the friendly data-level input: observed or site coordinates, from
+which `drmTMB` can build or validate a mesh-like scaffold. `mesh` is the
+expert-control input for users who already built the finite-element scaffold.
+Mesh is not a biological sampling level; it is the numerical support needed for
+the scalable SPDE/GMRF route. A dense distance covariance could use only
+`coords`, but that would be a small-data comparator rather than the planned
+spatial default.
 
 The parser currently reserves intercept-only and one-slope forms, but only the
 intercept-only phylogenetic `mu` form is fitted:
@@ -610,7 +617,11 @@ spatial(1 + depth | site, coords = coords)
 Multiple structured slopes, interaction slopes, structured `sigma` effects,
 structured `rho12` effects, bivariate structured effects beyond matching
 `mu1`/`mu2`, and structured q=4 blocks remain planned until the intercept-only
-phylogenetic paths have simulation and comparator coverage.
+phylogenetic paths have simulation and comparator coverage. When structured
+slopes are added, the first target is one `mu` slope and the near-term ceiling
+is two `mu` slopes. Intercept-slope `corpair()` rows stay distant-future; a
+later coefficient-aware design can target a bivariate slope1-slope2
+plasticity-syndrome correlation for the same covariate across responses.
 
 Future cross-formula correlated random-effect blocks should use ID labels:
 
@@ -751,9 +762,9 @@ Not every parameter should accept random effects at the same development stage.
 | `meta_known_V()` | Never; it is known sampling covariance, not an estimated parameter. |
 | `phylo(1 | species, tree = tree)` | Implemented structured random intercept for univariate Gaussian `mu`; `tree` must be an ultrametric phylogeny with branch lengths. |
 | `phylo(1 | p | species, tree = tree)` | Implemented as a label for matching bivariate `mu1`/`mu2` phylogenetic location terms and for the matching all-four q=4 bivariate phylogenetic location-scale block. Partial, unlabelled, mismatched, and slope forms remain rejected. |
-| `phylo(1 + x | species, tree = tree)` | Planned structured random slope syntax after intercept-only phylogeny is tested. |
+| `phylo(1 + x | species, tree = tree)` | Planned structured random slope syntax after intercept-only phylogeny is tested; one slope first, two slopes as the near-term advanced path. |
 | `spatial(1 | site, coords = coords)` | Planned structured spatial random intercept for univariate Gaussian `mu`; coordinates or a mesh must define the SPDE/GMRF structure. |
-| `spatial(1 + x | site, coords = coords)` | Planned structured spatial random slope syntax after intercept-only spatial fields are tested. |
+| `spatial(1 + x | site, coords = coords)` | Planned structured spatial random slope syntax after intercept-only spatial fields are tested; one slope first, two slopes as the near-term advanced path. |
 
 ## Rules
 

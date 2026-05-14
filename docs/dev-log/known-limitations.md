@@ -42,6 +42,13 @@
   phylogenetic correlations, and spatial q=4 blocks are still planned;
   residual `rho12` should not be interpreted as a phylogenetic, spatial, or
   group-level covariance parameter.
+- Future phylogenetic and spatial random slopes should be staged as one
+  structured `mu` slope first and at most two structured `mu` slopes as the
+  near-term advanced path. Multiple random factors should be separate additive
+  blocks, not one enlarged cross-factor covariance model. Intercept-slope
+  `corpair()` rows are not a near-term target; a later coefficient-aware
+  `corpair()` design may target the bivariate slope1-slope2
+  plasticity-syndrome case for the same covariate across responses.
 - Matching intercept-only `phylo(1 | species, tree = tree)` terms are fitted
   in bivariate Gaussian `mu1` and `mu2` formulas. This first phylogenetic
   bivariate slice estimates two phylogenetic location SDs and one phylogenetic
@@ -170,7 +177,9 @@
 - Structured-effect markers outside that first path, such as
   `phylo(1 + x | species, tree = tree)`, phylogenetic terms in `sigma`, and
   `spatial(1 | site, coords = coords)`, are parsed and rejected clearly, but
-  they are not yet routed into fitted likelihoods.
+  they are not yet routed into fitted likelihoods. The reserved slope path is
+  one structured `mu` slope first, then at most two structured `mu` slopes after
+  simulation recovery.
 - Internal phylogenetic tree validation, dense Brownian covariance comparators,
   sparse augmented Brownian precision helpers, pure-R prior checks, hidden TMB
   prior parity checks, and fitted univariate Gaussian `mu` simulation tests now

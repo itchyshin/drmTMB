@@ -74,11 +74,11 @@ In this table, "coscale" means a model for residual correlation, currently
 | labelled `phylo(1 | p | species, tree = tree)` in all four bivariate `mu1`, `mu2`, `sigma1`, and `sigma2` formulas | Implemented first slice | One constant q=4 phylogenetic location-scale block estimates four endpoint SDs and six latent phylogenetic correlations. Partial, unlabelled, mismatched, and slope forms remain rejected. |
 | `y ~ x1 + x2`, `family = cumulative_logit()` | Implemented | Fixed-effect univariate ordinal model for ordered scores with cutpoints; ordinal scale formulas are planned. |
 | `cbind(successes, failures) ~ x1`, `family = beta_binomial()` | Implemented | Fixed-effect denominator-aware model for success counts with known trial totals; `sigma` is extra-binomial variation. |
-| `phylo(1 + x1 | species, tree = tree)` | Planned | Structured slopes come after the intercept-only path is fully hardened. |
+| `phylo(1 + x1 | species, tree = tree)` | Planned | Structured slopes come after the intercept-only path is fully hardened. The first path should fit one structured `mu` slope; two slopes are the near-term upper bound. |
 | `spatial(1 | site, coords = coords)` | Planned | Spatial SPDE/GMRF terms are part of the design but not fitted yet. |
 | `corpair(id, level = "group", block = "p", from = "mu1", to = "mu2") ~ x_group` | Implemented | Predictor-dependent ordinary q=2 location-location latent random-effect correlation regression for matching labelled `mu1`/`mu2` random intercepts. Predictors must be constant within `id`. |
 | `corpair(species, level = "phylogenetic", block = "p", from = "mu1", to = "mu2") ~ ecology` | Implemented | Predictor-dependent phylogenetic q=2 location-location latent random-effect correlation regression for matching labelled `mu1`/`mu2` `phylo()` terms. Predictors must be constant within `species`. Location-scale, scale-scale, q=4, and spatial `corpair()` regressions remain planned. |
-| Bivariate random slopes, spatial q=4 blocks, predictor-dependent q=4 phylogenetic/spatial correlations, or `rho12` random effects | Planned | These need a larger covariance parameterization, simulation, and naming checks before fitting. |
+| Bivariate random slopes, spatial q=4 blocks, predictor-dependent q=4 phylogenetic/spatial correlations, or `rho12` random effects | Planned | These need a larger covariance parameterization, simulation, and naming checks before fitting. Intercept-slope `corpair()` rows are distant-future; a later slope1-slope2 bivariate plasticity-syndrome target needs coefficient-aware syntax. |
 | `corpairs(fit)` | Implemented for current fitted correlations | Reports residual `rho12`, ordinary and bivariate group-level covariance rows including ordinary q=4 blocks, and bivariate phylogenetic mean-mean or q=4 rows; spatial pair classes remain planned. |
 
 Current implemented univariate Gaussian random-effect forms include:
@@ -210,6 +210,17 @@ drm_formula(y ~ x + spatial(1 | site, mesh = mesh), sigma ~ z)
 
 `spatial()` will use coordinates or a precomputed mesh to build an SPDE/GMRF
 precision. These structured effects are separate from residual `rho12`.
+The planned default should be `coords = coords`, because coordinates are the
+data-level object users already have. A mesh is the computational scaffold for
+the scalable SPDE/GMRF approximation; it may be built internally from
+coordinates or supplied explicitly by advanced users who need boundary,
+barrier, or reproducibility control. A coordinate-only dense covariance is a
+possible small-data comparator, but not the planned scalable default.
+For structured slopes, the intended staged path is one `mu` slope first and at
+most two `mu` slopes as an advanced path. Multiple random factors should remain
+separate additive blocks. The first slope models should not estimate
+intercept-slope `corpair()` rows; the more interesting future bivariate target
+is a slope1-slope2 correlation for the same covariate across responses.
 
 The first bivariate group-level covariance syntax is explicit about the
 distinction between group-level covariance labels and residual `rho12`:

@@ -13461,3 +13461,60 @@ Known limitations:
   recovery or coverage;
 - the q=4 phylogenetic and spatial correlation-regression lanes still need
   their own designs, recovery tests, and reporting before they can be claimed.
+
+## 2026-05-14 -- Slice 32 spatial provenance and structured-slope policy
+
+Goal:
+
+- close a roadmap/design gap before spatial implementation by documenting
+  citation/provenance rules, the `coords` versus `mesh` contract, and the
+  staged policy for future structured random slopes.
+
+Implemented:
+
+- clarified that spatial terms should start from the friendly `coords = coords`
+  API, while `mesh = mesh` is optional expert control for the scalable
+  SPDE/GMRF route;
+- recorded that mesh is computational scaffolding, not a biological sampling
+  level, and that dense coordinate covariance is only a possible small-data
+  comparator;
+- added a spatial citation/provenance rule: cite the SPDE/GMRF method,
+  `sdmTMB`, and `fmesher` when relevant, and use `inst/COPYRIGHTS` only for
+  copied or closely adapted code;
+- updated the structured-slope policy to allow one structured `mu` slope first,
+  at most two structured `mu` slopes as an advanced path, and three or more
+  only as distant-future expert models;
+- recorded that multiple random factors should remain separate additive blocks
+  and that intercept-slope `corpair()` rows are not a near-term target;
+- recorded the future bivariate slope1-slope2 plasticity-syndrome target as a
+  coefficient-aware `corpair()` extension, not a current fitted claim.
+
+Checks run:
+
+- `/opt/homebrew/bin/air format ROADMAP.md docs/design/01-formula-grammar.md docs/design/09-phylogenetic-and-spatial-speed.md docs/design/16-phylo-spatial-common-math.md docs/dev-log/known-limitations.md vignettes/formula-grammar.Rmd vignettes/phylogenetic-spatial.Rmd inst/COPYRIGHTS`:
+  passed.
+- `/Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::test(filter = "package-skeleton", reporter = "summary")'`:
+  passed.
+- `PATH=/opt/homebrew/bin:$PATH /Library/Frameworks/R.framework/Resources/bin/Rscript -e 'pkgdown::build_site()'`:
+  passed and refreshed local `pkgdown-site` pages, including `ROADMAP.html`,
+  `articles/formula-grammar.html`, and `articles/phylogenetic-spatial.html`.
+- `PATH=/opt/homebrew/bin:$PATH /Library/Frameworks/R.framework/Resources/bin/Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed.
+- `rg -n 'friendly public input|friendly data-level input|scalable SPDE|dense coordinate|mesh is not|required by the scalable|expert-control|expert route|mesh-like' ROADMAP.md docs/design/01-formula-grammar.md docs/design/09-phylogenetic-and-spatial-speed.md docs/design/16-phylo-spatial-common-math.md vignettes/formula-grammar.Rmd vignettes/phylogenetic-spatial.Rmd`:
+  found the intended `coords` versus `mesh` wording in roadmap, design docs,
+  and tutorials.
+- `rg -n 'slope1-slope2|plasticity-syndrome|intercept-slope|two structured .*mu.* slopes|Multiple random factors|Spatial Citation|sdmTMB|fmesher|Lindgren' ROADMAP.md docs/design/01-formula-grammar.md docs/design/09-phylogenetic-and-spatial-speed.md docs/design/16-phylo-spatial-common-math.md docs/dev-log/known-limitations.md vignettes/formula-grammar.Rmd vignettes/phylogenetic-spatial.Rmd inst/COPYRIGHTS`:
+  found the intended future-slope and spatial-provenance wording.
+- `git diff --check`: passed.
+
+GitHub Actions:
+
+- Run 239 for commit `eb69c39` completed successfully before this docs-only
+  slice was committed.
+
+Known limitations:
+
+- this slice does not implement spatial effects, spatial meshes, or structured
+  slopes;
+- formal bibliography entries are still deferred because current docs use
+  prose citations and links rather than a site-wide bibliography.

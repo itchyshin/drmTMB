@@ -3,5 +3,16 @@ drmTMB copyright and provenance notes
 drmTMB is currently a clean package scaffold. No source code has been ported
 from gllvmTMB, glmmTMB, sdmTMB, brms, or other modelling packages.
 
-Future selective reuse of GPL-compatible A-inverse, SPDE, or TMB utility code
-must be recorded here before the reused code is treated as complete.
+Future selective reuse of GPL-compatible A-inverse, SPDE, mesh, projection, or
+TMB utility code must be recorded here before the reused code is treated as
+complete.
+
+Spatial citation policy:
+
+- If `drmTMB` implements SPDE/GMRF spatial fields from the published method but
+  writes independent code, cite the method and relevant software in
+  documentation, vignettes, and papers without listing a code provenance entry
+  here.
+- If `drmTMB` ports or closely adapts code from `gllvmTMB`, `sdmTMB`,
+  `fmesher`, INLA-related sources, or another project, record the source file,
+  license, and adaptation here in the same slice that introduces the code.

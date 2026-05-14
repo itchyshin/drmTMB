@@ -242,6 +242,13 @@ validate a mesh/projection object. `mesh = mesh` is the planned route for users
 who have already built an SPDE mesh. Structured spatial slopes should come
 after intercept-only spatial fields are tested.
 
+The mesh is not the ecological object of inference. It is a numerical scaffold
+for the sparse SPDE/GMRF approximation. A dense coordinate covariance could use
+`coords` without a mesh, but it would be a small-data comparator rather than the
+main scalable path. The public API should therefore make coordinates easy for
+ordinary users while preserving `mesh = mesh` for advanced users who need
+control over boundaries, barriers, or reproducibility.
+
 The sibling `gllvmTMB` implementation already follows this broad idea. The
 files to study when implementation begins are:
 
@@ -369,15 +376,31 @@ or an implicit SPDE covariance. Each additional structured slope adds another
 latent vector or field, and possibly cross-covariances with intercept fields in
 later models.
 
+Multiple random factors should be represented as separate additive blocks, not
+as one automatically enlarged covariance matrix. For example, an ordinary
+individual block, a phylogenetic species block, and a future spatial site block
+can all appear in the linear predictor, but the first fitted models should keep
+their variances and correlations block-specific. Cross-factor covariance is a
+separate research problem.
+
 Recommended staging:
 
 - implement intercept-only structured effects first;
 - then one structured slope in `mu`;
+- allow at most two structured `mu` slopes as the near-term advanced path;
 - delay interaction slopes until simulation studies show reliable recovery;
 - delay structured slopes in `sigma` and `rho12` until the location model is
   stable;
 - warn when the number of structured slopes is large relative to species,
   location, study, or within-group replication.
+
+The first structured-slope path should treat the slope field as independent of
+the intercept field, and should not estimate intercept-slope `corpair()` rows.
+For two-response models, the most interesting later slope correlation is a
+response-1 slope versus response-2 slope for the same covariate, matching the
+plasticity-syndrome idea in O'Dea, Noble, and Nakagawa (2021). That target needs
+a coefficient-aware `corpair()` syntax and `corpairs()` labels before it can be
+implemented safely.
 
 ## Boundary With rho12
 
@@ -423,7 +446,8 @@ blocks, rather than treating every cross-response correlation as residual
 5. Add the constant bivariate phylogenetic q=4 block spanning `mu1`, `mu2`,
    `sigma1`, and `sigma2`; this 35-slice route now precedes spatial.
 6. Add spatial SPDE/GMRF fields using the same structured-effect principle.
-7. Add one phylogenetic or spatial structured slope in `mu`.
+7. Add one phylogenetic or spatial structured slope in `mu`; then, only after
+   recovery evidence, allow a maximum of two structured `mu` slopes.
 8. Treat structured effects in `rho12` as experimental until simulation
    evidence shows identifiability.
 

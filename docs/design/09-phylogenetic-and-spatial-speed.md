@@ -138,6 +138,16 @@ vertices back to observations. In both cases, the fitted quantity is a
 structured spatial random effect; the mesh itself is a computational support,
 not a response, predictor, or sampling level to interpret biologically.
 
+Mesh is therefore not required by the scientific idea of spatial dependence.
+It is required by the scalable SPDE/GMRF approximation. A dense Gaussian-process
+covariance built directly from pairwise distances among `coords` could be a
+small-data comparator, but it forms dense matrices and does not share the
+large-data path with the phylogenetic sparse-precision work. The default user
+experience should be `coords = coords`; the R layer can build or validate a
+mesh-like object internally. The explicit `mesh = mesh` form is for users who
+need reproducible control over boundaries, coastlines, barriers, or highly
+uneven sampling.
+
 Planned mesh-explicit syntax:
 
 ```r
@@ -172,6 +182,27 @@ with a sparse precision and a design/projection map. Phylogeny supplies
 `K = A_phy` and the fast path evaluates with sparse `A_phy^{-1}`. Space makes
 `K` implicit through `Q_spde`, with mesh-node fields projected to observations.
 The public terms can be different, but the TMB block should be shared.
+
+### Spatial Citation And Provenance Policy
+
+If the first spatial implementation only follows the published SPDE/GMRF idea,
+the user-facing docs should cite the methodological and software sources that
+made the route practical. At minimum, cite Lindgren, Rue, and Lindstrom (2011)
+for the SPDE link between Gaussian fields and GMRFs
+(`doi:10.1111/j.1467-9868.2011.00777.x`), and cite the `sdmTMB`
+[Journal of Statistical Software paper](https://www.jstatsoft.org/article/view/v115i02)
+when explaining the ecological TMB-plus-SPDE precedent. If `drmTMB` asks users
+to pass meshes or if it imports `fmesher`, also cite `fmesher` as software and
+ask users to cite it via `citation("fmesher")`.
+
+Citation and provenance have different jobs. Citations acknowledge method and
+software debts. `inst/COPYRIGHTS` records copied or closely adapted code. If a
+future slice ports mesh helpers, SPDE matrix construction, TMB template code, or
+test fixtures from `sdmTMB`, `fmesher`, `INLA`, `gllvmTMB`, or another project,
+the slice is not complete until `inst/COPYRIGHTS` names the source file, license,
+and adaptation. If the implementation only uses the same published mathematical
+idea and independent code, record citations in docs but do not imply code was
+ported.
 
 For phylogeny, the large-tree implementation should work with the expanded
 tree precision described by Hadfield and Nakagawa: include internal nodes,
@@ -215,20 +246,35 @@ group-level coefficient per group. A phylogenetic or spatial slope adds another
 structured latent vector or field, which is harder to separate from ordinary
 random effects, residual scale, and fixed effects.
 
+Multiple random factors are not unusual and should not be treated as a
+scientific error. The conservative rule is to keep them as separate additive
+blocks. For example, an ordinary individual block, a phylogenetic species block,
+and a later spatial site block can coexist, but `drmTMB` should not collapse
+them into one giant covariance matrix or estimate cross-factor `corpair()` rows
+before the simpler block-specific models are stable.
+
 Implementation should therefore proceed in this order:
 
 1. intercept-only phylogenetic or spatial structured effects in `mu`;
 2. one structured random slope in `mu`, with strong simulation recovery;
-3. at most a small number of structured slopes after diagnostics show the data
-   have enough replication and design variation;
+3. at most two structured `mu` slopes as an advanced path, after diagnostics
+   show enough replication and design variation;
 4. interaction slopes only as experimental models with explicit warnings;
 5. structured slopes in `sigma` or `rho12` only after the `mu` path is stable.
 
 The number of possible slopes is not a hard mathematical limit, but the package
-should impose conservative defaults and diagnostics. For spatially varying
-coefficients or phylogenetic slope variation, the user-facing syntax can be
-generous later; the first implementation should be sparse, staged, and easy to
-validate.
+should impose conservative defaults and diagnostics. Three or more structured
+slopes should remain a distant-future expert mode, not a near-term advertised
+feature.
+
+The first slope implementation should not estimate intercept-slope or
+slope-slope correlations. Those correlations multiply quickly and are usually
+less interpretable than the main structured location effect. A scientifically
+interesting later exception is the bivariate slope1-slope2 correlation for the
+same covariate across two responses, the kind of plasticity-syndrome question
+discussed by O'Dea, Noble, and Nakagawa (2021). That future model would require a
+coefficient-aware `corpair()` design, clear `corpairs()` labels, and recovery
+tests before it is documented as fitted support.
 
 ## Reuse Policy
 
