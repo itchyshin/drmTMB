@@ -149,6 +149,63 @@ already fitted constant phylogenetic correlations:
 corpairs(fit, level = "phylogenetic")
 ```
 
+### Slice 27: Selected q=2 Phylogenetic Loading Contract
+
+The first implementable phylogenetic `corpair()` contract is a two-field
+loading model. Let `A` be the tree-derived species correlation matrix and let
+`z1` and `z2` be independent unit phylogenetic fields:
+
+```text
+z1 ~ MVN(0, A)
+z2 ~ MVN(0, A)
+```
+
+For species `l`, the correlation predictor defines
+
+```text
+rho_l = tanh_guard(w_l^T alpha)
+c_l = sqrt((1 + rho_l) / 2)
+d_l = sqrt((1 - rho_l) / 2).
+```
+
+The two phylogenetic location effects are
+
+```text
+a1_l = tau1 ( c_l z1_l + d_l z2_l)
+a2_l = tau2 ( c_l z1_l - d_l z2_l).
+```
+
+Equivalently, each species has two unit-norm loading vectors,
+`lambda1_l = (c_l, d_l)` and `lambda2_l = (c_l, -d_l)`, whose dot product is
+`rho_l`. The covariance among any two species `l` and `m` is
+
+```text
+Cov(a_r_l, a_s_m) =
+  tau_r tau_s A_lm lambda_r_l' lambda_s_m.
+```
+
+This construction is positive definite because `[a1, a2]` is a linear
+transformation of two independent Gaussian fields. It also has the properties
+needed for the first public model:
+
+- the same-species phylogenetic correlation is `rho_l` when `A_ll = 1`;
+- the local variances remain `tau1^2` and `tau2^2`;
+- when all `rho_l` are equal, the contract reduces to the already implemented
+  constant bivariate phylogenetic covariance with cross-block
+  `tau1 tau2 rho A`;
+- when `rho_l` varies across species, the model is nonstationary: within-trait
+  and cross-trait covariances between different species are modulated by the
+  similarity of their loading vectors.
+
+The nonstationary property is a feature, not a bug, but it must be named in
+the user-facing documentation. The first implementation should therefore be
+limited to the q=2 location-location endpoint pair and should reject q=4
+location-scale pairs, random slopes, direct-SD mixtures, and spatial siblings
+until this q=2 route has recovery evidence. Phylogenetic location-scale rows
+(`mu1`-`sigma1`, `mu1`-`sigma2`, `mu2`-`sigma1`, `mu2`-`sigma2`) and the
+scale-scale row (`sigma1`-`sigma2`) require a q=4 loading or Cholesky-style
+correlation-regression contract and are not part of the first implementation.
+
 ## Why Named Correlation Pairs Are Needed
 
 Double-hierarchical and structured bivariate models can contain several
@@ -387,6 +444,10 @@ display preference, because each layer answers a different biological question.
     accepts the syntax, `drmTMB()` rejects it clearly, and the design note
     records why ordinary group-level `tanh()` regression cannot be copied
     directly to tree-coupled latent effects.
+17. Select the first q=2 phylogenetic `corpair()` covariance contract. Done for
+    design: use the two-field loading construction above, add algebra tests for
+    positive definiteness and constant-correlation equivalence, and keep q=4,
+    direct-SD mixtures, and spatial siblings planned.
 
 For covariance blocks with more than two random-effect coefficients, use a
 positive-definite Cholesky or partial-correlation parameterization. Do not fit

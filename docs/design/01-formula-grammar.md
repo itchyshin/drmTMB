@@ -265,8 +265,13 @@ corpair(species, level = "phylogenetic", block = "p", from = "mu1", to = "mu2") 
 
 This phylogenetic formula is parsed but not fitted yet. Unlike the ordinary
 grouped q=2 route, a predictor-dependent phylogenetic correlation must produce
-one positive-definite covariance matrix for all species coupled by the tree, so
-it needs its own covariance contract before optimization.
+one positive-definite covariance matrix for all species coupled by the tree. The
+selected design contract is a two-field loading model: a species predictor
+changes the local same-species phylogenetic correlation while preserving a
+valid full covariance matrix. Fitting remains planned until the TMB likelihood,
+diagnostics, and recovery tests are added. This selected contract covers only
+`from = "mu1", to = "mu2"`; phylogenetic location-scale and scale-scale
+correlation regressions need a q=4 contract and remain deferred.
 
 The older `class = "location-scale"` spelling remains useful as an extraction
 filter and as a possible later shared-class model, but it should not be the

@@ -91,8 +91,14 @@
   "phylogenetic") ~ w` syntax is parsed but deliberately rejected because a
   predictor-dependent tree-coupled correlation must define one
   positive-definite covariance matrix across all species, not independent
-  per-species `tanh()` correlations. Use `rho12 = ~ x` for residual
-  within-observation correlation. For the fitted ordinary q=2 route,
+  per-species `tanh()` correlations. The selected q=2 design contract uses two
+  independent unit phylogenetic fields and species-specific loadings, but the
+  TMB likelihood, diagnostics, and recovery tests are not implemented yet. It
+  targets only the phylogenetic `mu1`-`mu2` location-location row; phylogenetic
+  location-scale and scale-scale correlation regressions require a q=4 contract
+  and remain deferred. Use `rho12 = ~ x` for residual within-observation
+  correlation. For the fitted
+  ordinary q=2 route,
   `confint(fit, parm = "corpair(...)", newdata = ...)` can profile
   response-scale latent correlations at supplied group-level predictor rows,
   but `corpairs(conf.int = TRUE)` still marks the summary row as

@@ -494,12 +494,16 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   `check_drm()` notes the identifiability risk when both layers use the same
   grouping factor.
 - Predictor-dependent phylogenetic `corpair(species, level = "phylogenetic",
-  ...) ~ w` is the next correlation-regression target, but it has a design gate
-  before likelihood work: varying a tree-coupled latent correlation by species
-  must still yield one positive-definite covariance matrix for the full species
-  block. The parser accepts the reserved syntax and `drmTMB()` rejects it with a
-  message pointing users to constant fitted `corpairs(level = "phylogenetic")`
-  rows until that covariance contract is chosen.
+  ...) ~ w` is the next correlation-regression target. The selected q=2
+  location-location design uses two independent unit phylogenetic fields and
+  species-specific loadings, giving a positive-definite nonstationary covariance
+  that reduces to the existing constant bivariate phylogenetic covariance when
+  the correlation predictor is constant. This first target is `mu1`-`mu2` only;
+  phylogenetic location-scale and scale-scale correlation regressions require a
+  q=4 contract and remain deferred. The parser accepts the reserved syntax and
+  `drmTMB()` rejects it with a message pointing users to constant fitted
+  `corpairs(level = "phylogenetic")` rows until the TMB likelihood, diagnostics,
+  recovery tests, and reporting are added.
 
 ## Phase 13: Double-Hierarchical Derived Inference
 

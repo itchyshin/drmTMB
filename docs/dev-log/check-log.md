@@ -13324,3 +13324,50 @@ Known limitations:
 - the next implementation slice needs a positive-definite covariance contract
   for tree-coupled predictor-dependent correlations before TMB parameters are
   added.
+
+## 2026-05-14 -- Slice 27 phylogenetic corpair loading contract
+
+Goal:
+
+- choose the first positive-definite covariance contract for future
+  predictor-dependent phylogenetic `corpair()` regression.
+
+Implemented:
+
+- selected a q=2 location-location loading contract for
+  `corpair(species, level = "phylogenetic", block = "p", from = "mu1", to = "mu2") ~ w`;
+- documented the two-field construction using independent unit tree fields,
+  species-specific loadings, and `rho_l = tanh_guard(W_l alpha)`;
+- recorded that a constant `rho_l` reduces exactly to the existing constant
+  bivariate phylogenetic covariance;
+- explicitly deferred phylogenetic location-scale and scale-scale correlation
+  regression to later q=4 extensions;
+- added an algebra test for positive definiteness, local correlation recovery,
+  constant-correlation equivalence, and the nonstationary effect when `rho_l`
+  varies.
+
+Checks run:
+
+- `/opt/homebrew/bin/air format R/formula-markers.R tests/testthat/test-phylo-utils.R docs/design/20-coscale-correlation-pairs.md docs/design/16-phylo-spatial-common-math.md docs/design/03-likelihoods.md docs/design/01-formula-grammar.md vignettes/phylogenetic-spatial.Rmd vignettes/formula-grammar.Rmd docs/dev-log/known-limitations.md ROADMAP.md NEWS.md`:
+  passed.
+- `/Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::document()'`:
+  passed and refreshed `man/corpair.Rd`.
+- `/Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::load_all(quiet = TRUE); devtools::test(filter = "phylo-utils", reporter = "summary")'`:
+  passed after fixing a dimname-only comparison in the new algebra test.
+- `/Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::test(reporter = "summary")'`:
+  passed.
+- `PATH=/opt/homebrew/bin:$PATH /Library/Frameworks/R.framework/Resources/bin/Rscript -e 'pkgdown::build_site()'`:
+  passed and refreshed local docs.
+- `PATH=/opt/homebrew/bin:$PATH /Library/Frameworks/R.framework/Resources/bin/Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed.
+- `rg -n "selected q=2|two-field loading|nonstationary|positive-definite loading|rho_l|c_l|d_l|phylo.*corpair.*contract|location-scale.*defer|scale-scale.*defer|q=4 extensions" docs/design vignettes pkgdown-site/articles/phylogenetic-spatial.html pkgdown-site/articles/formula-grammar.html pkgdown-site/ROADMAP.html pkgdown-site/news/index.html NEWS.md ROADMAP.md tests R man docs/dev-log --glob '!pkgdown-site/search.json'`:
+  returned expected design, test, generated-site, documentation, and
+  after-task hits.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- no phylogenetic `corpair()` likelihood is fitted yet;
+- the selected contract covers q=2 location-location only;
+- q=4 location-scale and scale-scale phylogenetic `corpair()` regression,
+  direct-SD mixtures, random slopes, and spatial equivalents remain later work.

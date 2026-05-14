@@ -632,6 +632,76 @@ broad fixed-effect, endpoint-SD, residual `rho12`, and finite-gradient targets,
 and verifies that `check_drm()` reports a q=4 phylogenetic covariance diagnostic
 instead of reusing the older mean-mean q=2 wording.
 
+## Predictor-Dependent q=2 Phylogenetic Corpair Contract
+
+The planned formula
+
+```r
+corpair(species, level = "phylogenetic", block = "p",
+        from = "mu1", to = "mu2") ~ ecology
+```
+
+uses a positive-definite loading contract rather than independent per-species
+2 by 2 covariance matrices. Let `A` be the standardized tip correlation matrix
+from the tree. Let `z1` and `z2` be two independent unit phylogenetic fields:
+
+```text
+z1 ~ MVN(0, A)
+z2 ~ MVN(0, A).
+```
+
+For species `l`,
+
+```text
+rho_l = tanh_guard(W_l alpha)
+c_l = sqrt((1 + rho_l) / 2)
+d_l = sqrt((1 - rho_l) / 2).
+```
+
+The first q=2 location-location model defines
+
+```text
+a1_l = tau1 (c_l z1_l + d_l z2_l)
+a2_l = tau2 (c_l z1_l - d_l z2_l).
+```
+
+The same statement in matrix form is
+
+```text
+[a1, a2]' = L(rho, tau1, tau2) [z1, z2]'
+```
+
+where each species row of `L` contains the loading vectors
+`(c_l, d_l)` and `(c_l, -d_l)`. Because the base covariance of `[z1, z2]` is
+block diagonal with `A` in both blocks, the induced covariance of `[a1, a2]` is
+positive definite whenever `A` is positive definite, `tau1 > 0`, `tau2 > 0`,
+and `|rho_l| < 1`.
+
+This contract has three useful checks:
+
+```text
+Cor(a1_l, a2_l) = rho_l                 when A_ll = 1
+Var(a1_l) = tau1^2, Var(a2_l) = tau2^2  when A_ll = 1
+Cov(a1, a2) = tau1 tau2 rho A           when rho_l is constant
+```
+
+When `rho_l` varies across species, the model is nonstationary. The
+between-species covariance is multiplied by dot products of species-specific
+loading vectors, so the marginal within-trait covariance for each endpoint is
+not exactly `tau^2 A` off the diagonal unless the correlation predictor is
+constant. That is the price of a species-specific phylogenetic correlation that
+stays positive definite.
+
+The first TMB implementation should use two independent unit augmented-tree
+effects and apply this loading transformation in the `mu1` and `mu2` linear
+predictors. It should start with constant `tau1` and `tau2`, require the
+endpoint pair `from = "mu1", to = "mu2"`, and reject q=4 location-scale
+endpoints, direct-SD mixtures, random slopes, and spatial siblings until the
+q=2 recovery and diagnostics are stable. Predictor-dependent phylogenetic
+location-scale pairs and the scale-scale pair are q=4 models because their
+latent state includes `mu1`, `mu2`, `sigma1`, and `sigma2`; they need a separate
+positive-definite q=4 correlation-regression contract.
+
 Family B structured direct-SD syntax such as `sd_phylo(species) ~ z_species`
 uses a separate non-centred tip-scaling contract. Let `v_aug` follow the unit
 augmented tree covariance implied by the sparse precision, and let the

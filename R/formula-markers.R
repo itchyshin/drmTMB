@@ -88,8 +88,9 @@ spatial <- function(term, coords = NULL, mesh = NULL) {
 #' Predictors must be constant within the grouping factor. Phylogenetic,
 #' spatial, location-scale, scale-scale, and q=4 `corpair()` regressions remain
 #' planned. In particular, predictor-dependent phylogenetic `corpair()` formulas
-#' need a positive-definite covariance contract for the whole tree-coupled
-#' species block before they can be fitted.
+#' have a positive-definite loading contract for the whole tree-coupled species
+#' block, but still need likelihood, diagnostic, and recovery-test support
+#' before they can be fitted.
 #'
 #' @param group Grouping factor for the latent covariance block.
 #' @param level Optional latent correlation level, such as `"group"`,

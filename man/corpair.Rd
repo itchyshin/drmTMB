@@ -41,8 +41,9 @@ labelled \code{mu1}/\code{mu2} random intercepts:
 Predictors must be constant within the grouping factor. Phylogenetic,
 spatial, location-scale, scale-scale, and q=4 \code{corpair()} regressions remain
 planned. In particular, predictor-dependent phylogenetic \code{corpair()} formulas
-need a positive-definite covariance contract for the whole tree-coupled
-species block before they can be fitted.
+have a positive-definite loading contract for the whole tree-coupled species
+block, but still need likelihood, diagnostic, and recovery-test support
+before they can be fitted.
 }
 \examples{
 bf(corpair(id, level = "group", block = "p",

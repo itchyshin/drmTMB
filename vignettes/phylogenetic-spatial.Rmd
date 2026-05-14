@@ -159,6 +159,26 @@ ordinary grouped `corpair()` implementation cannot simply be copied here,
 because phylogenetic effects share one tree-coupled covariance matrix rather
 than independent per-species 2 by 2 blocks.
 
+The first design contract for the location-location row uses two independent
+unit phylogenetic fields. For species `l`, the ecological predictor would define
+`rho_l = tanh(w_l^T alpha)`, then
+`c_l = sqrt((1 + rho_l) / 2)` and `d_l = sqrt((1 - rho_l) / 2)`. The two
+location effects would be
+
+```text
+a1_l = tau1 (c_l z1_l + d_l z2_l)
+a2_l = tau2 (c_l z1_l - d_l z2_l).
+```
+
+This q=2 contract is for the location-location row only: `mu1`-`mu2`.
+Location-scale rows such as `mu1`-`sigma2` and scale-scale rows such as
+`sigma1`-`sigma2` remain deferred until the q=4 version of this
+positive-definite construction is designed. This q=2 contract keeps the full
+covariance matrix positive definite and reduces to the current constant
+bivariate phylogenetic covariance when all `rho_l` are equal. When `rho_l`
+varies by species, the model is nonstationary: it changes the tree-coupled
+latent covariance surface, not just a residual correlation row.
+
 ## A model ladder for two traits
 
 The safest way to read the bivariate syntax is to build the model in layers.
@@ -304,7 +324,12 @@ a species-level ecological predictor, analogous in spirit to
 `rho12 = ~ assay_context` for residual correlation. The implementation is not
 identical to residual `rho12` regression: the phylogenetic likelihood must still
 build one positive-definite covariance matrix for all species tied together by
-the tree. The explicit `level = "phylogenetic"` keeps this layer separate
+the tree. The selected q=2 design uses a two-field loading construction, so the
+modelled `rho_l` is the same-species phylogenetic correlation while
+between-species covariances remain tied to the tree and become nonstationary
+when `rho_l` varies. This first implementation target is only the
+location-location row; location-scale and scale-scale correlation regressions
+are q=4 extensions and remain deferred. The explicit `level = "phylogenetic"` keeps this layer separate
 from ordinary species effects and future spatial effects. Endpoint-specific
 `from` / `to` syntax avoids treating all four location-scale pairs as if they
 had the same biological meaning. Today, use `corpairs()` for fitted constant

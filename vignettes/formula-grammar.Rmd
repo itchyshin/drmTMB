@@ -259,7 +259,11 @@ grammar should say
 That future phylogenetic formula has an extra design gate: because the tree
 couples all species, `drmTMB` needs a positive-definite covariance contract for
 the full species block before a species-level predictor can change the latent
-phylogenetic correlation. Bivariate random slopes, spatial q=4 blocks,
+phylogenetic correlation. The selected q=2 contract uses two independent unit
+phylogenetic fields and species-specific loadings, so variable `rho_l` is a
+nonstationary phylogenetic covariance model rather than a residual-style
+correlation row. It covers `mu1`-`mu2` only; phylogenetic location-scale and
+scale-scale correlation regressions remain q=4 extensions. Bivariate random slopes, spatial q=4 blocks,
 predictor-dependent phylogenetic correlations, and `rho12` random effects remain
 planned.
 Double-hierarchical bivariate fits should continue to report correlation pairs

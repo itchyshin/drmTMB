@@ -1240,6 +1240,19 @@ Implementation notes:
   planned. The first constant intercept-only bivariate phylogenetic q=4 block is
   implemented for matching labelled `phylo()` terms in `mu1`, `mu2`, `sigma1`,
   and `sigma2`.
+- The selected q=2 predictor-dependent phylogenetic `corpair()` contract uses
+  two independent unit tree fields and species-specific loadings. For each
+  species `l`, `rho_l = tanh_guard(W_l alpha)`,
+  `c_l = sqrt((1 + rho_l) / 2)`, and
+  `d_l = sqrt((1 - rho_l) / 2)`, with
+  `a1_l = tau1(c_l z1_l + d_l z2_l)` and
+  `a2_l = tau2(c_l z1_l - d_l z2_l)`. This guarantees a positive-definite
+  full phylogenetic covariance and reduces to the implemented constant
+  bivariate phylogenetic covariance when `rho_l` is constant. Fitting remains
+  planned until TMB parameters, recovery tests, diagnostics, and reporting are
+  added. This contract targets `mu1`-`mu2` only; predictor-dependent
+  phylogenetic location-scale and scale-scale correlations require a q=4
+  contract.
 
 ## Review Requirements
 

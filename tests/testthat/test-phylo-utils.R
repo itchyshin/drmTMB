@@ -162,6 +162,18 @@ dense_zero_mvn_nll <- function(values, covariance) {
       sum(standardized^2))
 }
 
+phylo_corpair_loading_covariance <- function(A, rho, sd1 = 1, sd2 = 1) {
+  n <- nrow(A)
+  stopifnot(length(rho) == n)
+  c_load <- sqrt((1 + rho) / 2)
+  d_load <- sqrt((1 - rho) / 2)
+  loading <- rbind(
+    cbind(sd1 * diag(c_load), sd1 * diag(d_load)),
+    cbind(sd2 * diag(c_load), -sd2 * diag(d_load))
+  )
+  loading %*% kronecker(diag(2), A) %*% t(loading)
+}
+
 test_that("validate_phylo_tree checks ultrametric trees and observed species", {
   tree <- tiny_ultrametric_tree()
 
@@ -634,6 +646,48 @@ test_that("TMB phylogenetic q4 parameter scaffold matches q=4 R algebra", {
     unname(crossprod(effect, as.matrix(precision$precision %*% effect))),
     tolerance = 1e-10
   )
+})
+
+test_that("planned phylogenetic corpair loading contract is positive definite", {
+  A <- drmTMB:::drm_phylo_tip_covariance(tiny_ultrametric_tree())
+  rho <- c(sp_a = -0.65, sp_b = 0.10, sp_c = 0.70)
+  sd1 <- 0.8
+  sd2 <- 0.45
+  covariance <- phylo_corpair_loading_covariance(A, rho, sd1 = sd1, sd2 = sd2)
+  n <- nrow(A)
+
+  local_cor <- diag(covariance[seq_len(n), n + seq_len(n), drop = FALSE]) /
+    sqrt(
+      diag(covariance[seq_len(n), seq_len(n), drop = FALSE]) *
+        diag(covariance[n + seq_len(n), n + seq_len(n), drop = FALSE])
+    )
+  constant_rho <- rep(0.35, n)
+  constant_covariance <- phylo_corpair_loading_covariance(
+    A,
+    constant_rho,
+    sd1 = sd1,
+    sd2 = sd2
+  )
+  expected_constant <- rbind(
+    cbind(sd1^2 * A, sd1 * sd2 * constant_rho[[1L]] * A),
+    cbind(sd1 * sd2 * constant_rho[[1L]] * A, sd2^2 * A)
+  )
+
+  expect_true(isSymmetric(covariance))
+  expect_gt(
+    min(eigen(covariance, symmetric = TRUE, only.values = TRUE)$values),
+    0
+  )
+  expect_equal(local_cor, unname(rho), tolerance = 1e-12)
+  expect_equal(
+    unname(constant_covariance),
+    unname(expected_constant),
+    tolerance = 1e-12
+  )
+  expect_false(isTRUE(all.equal(
+    covariance[seq_len(n), seq_len(n), drop = FALSE],
+    sd1^2 * A
+  )))
 })
 
 test_that("phylogenetic q=4 endpoint pair scaffold stays planned", {
