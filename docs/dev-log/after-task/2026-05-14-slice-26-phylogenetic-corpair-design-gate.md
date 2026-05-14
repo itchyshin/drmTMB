@@ -49,6 +49,7 @@ gate rather than a fitted likelihood.
 - `R/formula-markers.R`
 - `man/corpair.Rd`
 - `tests/testthat/test-biv-gaussian.R`
+- `tests/testthat/test-check-drm.R`
 - `docs/design/01-formula-grammar.md`
 - `docs/design/20-coscale-correlation-pairs.md`
 - `docs/dev-log/known-limitations.md`
@@ -68,6 +69,10 @@ gate rather than a fitted likelihood.
   passed.
 - `/Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::load_all(quiet = TRUE); devtools::test(filter = "package-skeleton", reporter = "summary")'`:
   passed.
+- `/Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::load_all(quiet = TRUE); devtools::test(filter = "check-drm", reporter = "summary")'`:
+  passed after narrowing an older bivariate phylogenetic diagnostic test that
+  failed on Ubuntu CI because unrelated `sdreport()` NaN warnings made the
+  whole diagnostic table non-ok.
 - `PATH=/opt/homebrew/bin:$PATH /Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::load_all(quiet = TRUE); pkgdown::build_article("phylogenetic-spatial", new_process = FALSE, quiet = TRUE); pkgdown::build_article("formula-grammar", new_process = FALSE, quiet = TRUE); pkgdown::build_reference()'`:
   passed.
 - `PATH=/opt/homebrew/bin:$PATH /Library/Frameworks/R.framework/Resources/bin/Rscript -e 'pkgdown::build_site()'`:
@@ -109,6 +114,11 @@ The first instinct was to treat phylogenetic `corpair()` like ordinary
 group-level `corpair()`. Gauss and Noether caught the real issue: the tree
 couples all species, so the model needs a positive-definite full covariance
 construction before a species-level predictor can vary the latent correlation.
+The first CI attempt also exposed a stale test expectation in `test-check-drm.R`:
+that test was meant to verify the phylogenetic covariance diagnostic row, but it
+also asserted that every other fit diagnostic was globally ok. Ubuntu-devel
+surfaced unrelated `sdreport()` NaN warnings, so Curie narrowed the assertion to
+the row under test.
 
 ## Team Learning
 

@@ -13301,6 +13301,10 @@ Checks run:
   passed.
 - `/Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::load_all(quiet = TRUE); devtools::test(filter = "package-skeleton", reporter = "summary")'`:
   passed.
+- `/Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::load_all(quiet = TRUE); devtools::test(filter = "check-drm", reporter = "summary")'`:
+  passed after narrowing an older bivariate phylogenetic diagnostic test that
+  failed on Ubuntu CI because unrelated `sdreport()` NaN warnings made the
+  whole diagnostic table non-ok.
 - `PATH=/opt/homebrew/bin:$PATH /Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::load_all(quiet = TRUE); pkgdown::build_article("phylogenetic-spatial", new_process = FALSE, quiet = TRUE); pkgdown::build_article("formula-grammar", new_process = FALSE, quiet = TRUE); pkgdown::build_reference()'`:
   passed.
 - `PATH=/opt/homebrew/bin:$PATH /Library/Frameworks/R.framework/Resources/bin/Rscript -e 'pkgdown::build_site()'`:

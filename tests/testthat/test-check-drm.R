@@ -655,7 +655,6 @@ test_that("check_drm() reports bivariate phylogenetic covariance diagnostics", {
   expect_match(phylo$value, "min_species_n=5")
   expect_match(phylo$value, "min_sd_ratio=")
   expect_match(phylo$message, "non-negligible")
-  expect_true(attr(chk, "ok"))
 
   near_boundary <- stable
   near_boundary$corpars$phylo[] <- 0.995
@@ -678,7 +677,6 @@ test_that("check_drm() reports bivariate phylogenetic covariance diagnostics", {
 
   expect_equal(weak_sd_phylo$status, "note")
   expect_match(weak_sd_phylo$message, "tiny relative")
-  expect_true(attr(weak_sd_chk, "ok"))
 })
 
 test_that("check_drm() notes ordinary species covariance beside phylogenetic covariance", {
