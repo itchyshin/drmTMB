@@ -82,7 +82,8 @@ In this table, "coscale" means a model for residual correlation, currently
 | `y ~ x1`, `family = cumulative_logit()` | Implemented | Fixed-effect univariate ordinal model for ordered scores with cutpoints; `mu` is a latent location and ordinal scale formulas are planned. |
 | `cbind(successes, failures) ~ x1`, `family = beta_binomial()` | Implemented | Fixed-effect denominator-aware model for success counts with known trial totals; `sigma` is extra-binomial variation. |
 | `phylo(1 + x1 | species, tree = tree)` | Planned | Structured slopes come after the intercept-only path is hardened. The first path should fit one structured `mu` slope; two slopes are the near-term upper bound. |
-| `spatial(1 | site, coords = coords)` and `spatial(1 | site, mesh = mesh)` | Planned | Spatial SPDE/GMRF terms are part of the design but not fitted yet. |
+| `spatial(1 | site, coords = coords)` | Implemented first slice | Univariate Gaussian `mu` spatial random intercept using a fixed coordinate covariance foundation. |
+| `spatial(1 | site, mesh = mesh)` | Planned | Mesh/SPDE spatial fitting remains planned after the coordinate foundation. |
 | `corpair(id, level = "group", block = "p", from = "mu1", to = "mu2") ~ x_group` | Implemented | Predictor-dependent ordinary q=2 location-location latent random-effect correlation regression for matching labelled `mu1`/`mu2` random intercepts. Predictors must be constant within `id`. |
 | `corpair(species, level = "phylogenetic", block = "p", from = "mu1", to = "mu2") ~ ecology` | Implemented | Predictor-dependent phylogenetic q=2 location-location latent random-effect correlation regression for matching labelled `mu1`/`mu2` `phylo()` terms. Predictors must be constant within `species`. Location-scale, scale-scale, q=4, and spatial `corpair()` regressions remain planned. |
 | Bivariate random slopes, spatial q4 covariance blocks, predictor-dependent phylogenetic/spatial q4 correlations, or `rho12` random effects | Planned | Requires larger structured covariance parameterizations, simulation recovery, and naming checks. Do not treat intercept-slope `corpair()` rows as a near-term target; a later slope1-slope2 bivariate plasticity-syndrome target needs coefficient-aware syntax. |
@@ -763,7 +764,7 @@ Not every parameter should accept random effects at the same development stage.
 | `phylo(1 | species, tree = tree)` | Implemented structured random intercept for univariate Gaussian `mu`; `tree` must be an ultrametric phylogeny with branch lengths. |
 | `phylo(1 | p | species, tree = tree)` | Implemented as a label for matching bivariate `mu1`/`mu2` phylogenetic location terms and for the matching all-four q=4 bivariate phylogenetic location-scale block. Partial, unlabelled, mismatched, and slope forms remain rejected. |
 | `phylo(1 + x | species, tree = tree)` | Planned structured random slope syntax after intercept-only phylogeny is tested; one slope first, two slopes as the near-term advanced path. |
-| `spatial(1 | site, coords = coords)` | Planned structured spatial random intercept for univariate Gaussian `mu`; coordinates or a mesh must define the SPDE/GMRF structure. |
+| `spatial(1 | site, coords = coords)` | Implemented first structured spatial random intercept for univariate Gaussian `mu`; coordinates define a fixed coordinate covariance foundation. Mesh/SPDE fitting remains planned. |
 | `spatial(1 + x | site, coords = coords)` | Planned structured spatial random slope syntax after intercept-only spatial fields are tested; one slope first, two slopes as the near-term advanced path. |
 
 ## Rules
@@ -789,15 +790,18 @@ Not every parameter should accept random effects at the same development stage.
   `sd(group) ~ x_group` for one or more distinct unlabelled univariate Gaussian
   `mu` random intercepts.
 - Phylogenetic and spatial terms are structured random effects. The first
-  fitted path is `phylo(1 | species, tree = tree)` in univariate Gaussian
-  `mu`; later paths should support `phylo(1 + x | species, tree = tree)` and
-  spatial analogues. Public `phylo()` should require an ultrametric tree with
-  branch lengths; dense covariance matrices belong to lower-level comparators
-  or `gr()`-style structured covariance inputs, not the main phylogeny API.
-- Spatial syntax should mirror this pattern with terms such as
+  fitted phylogenetic path is `phylo(1 | species, tree = tree)` in univariate
+  Gaussian `mu`; the first fitted spatial path is
+  `spatial(1 | site, coords = coords)` in univariate Gaussian `mu`. Later paths
+  should support `phylo(1 + x | species, tree = tree)` and spatial analogues.
+  Public `phylo()` should require an ultrametric tree with branch lengths;
+  dense covariance matrices belong to lower-level comparators or `gr()`-style
+  structured covariance inputs, not the main phylogeny API.
+- Spatial syntax mirrors this pattern with terms such as
   `spatial(1 | site, coords = coords)` and later
-  `spatial(1 + x | site, coords = coords)`, using coordinates or mesh objects
-  to build SPDE/GMRF precision matrices.
+  `spatial(1 + x | site, coords = coords)`. The first fitted path uses
+  coordinates directly; mesh objects and scalable SPDE/GMRF precision matrices
+  remain planned.
 - The parser should reject unsupported formulae early with clear errors.
 
 ## Not in the MVP

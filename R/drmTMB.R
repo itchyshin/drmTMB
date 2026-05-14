@@ -432,6 +432,15 @@ drm_build_gaussian_ls_spec <- function(
   mu_entry$rhs <- meta$rhs
   mu_phylo <- extract_gaussian_mu_phylo_term(mu_entry)
   mu_entry$rhs <- mu_phylo$rhs
+  mu_spatial <- extract_gaussian_mu_spatial_term(mu_entry)
+  mu_entry$rhs <- mu_spatial$rhs
+  if (!is.null(mu_phylo$term) && !is.null(mu_spatial$term)) {
+    cli::cli_abort(c(
+      "Only one structured {.code mu} effect is implemented per model.",
+      "x" = "{.code mu} contains both {.fn phylo} and {.fn spatial}.",
+      "i" = "Fit the phylogenetic and spatial structured effects separately until multiple structured layers have their own identifiability checks."
+    ))
+  }
   mu_re <- extract_random_mu_terms(mu_entry$rhs, "mu")
   mu_entry$rhs <- mu_re$rhs
   sigma_re <- extract_random_sigma_terms(sigma_entry$rhs, "sigma")
@@ -462,6 +471,7 @@ drm_build_gaussian_ls_spec <- function(
     unlist(lapply(f_sd_mu, all.vars), use.names = FALSE),
     unlist(lapply(f_sd_phylo, all.vars), use.names = FALSE),
     phylo_mu_vars(mu_phylo$term),
+    spatial_mu_vars(mu_spatial$term),
     vapply(sd_mu_targets, `[[`, character(1), "group"),
     vapply(sd_phylo_targets, `[[`, character(1), "group"),
     random_effect_vars(mu_re$terms),
@@ -517,7 +527,11 @@ drm_build_gaussian_ls_spec <- function(
     re_mu,
     data_model
   )
-  phylo_mu <- build_phylo_mu_structure(mu_phylo$term, data_model, env)
+  phylo_mu <- if (!is.null(mu_spatial$term)) {
+    build_spatial_mu_structure(mu_spatial$term, data_model, env)
+  } else {
+    build_phylo_mu_structure(mu_phylo$term, data_model, env)
+  }
   sd_phylo <- build_sd_phylo_structure(
     sd_phylo_entries,
     sd_phylo_targets,
@@ -3164,6 +3178,52 @@ extract_gaussian_mu_phylo_term <- function(entry) {
   list(rhs = rebuild_plus_terms(terms[!is_phylo]), term = phylo_term)
 }
 
+extract_gaussian_mu_spatial_term <- function(entry) {
+  terms <- flatten_plus_terms(entry$rhs)
+  is_spatial <- vapply(
+    terms,
+    is_structured_marker_call,
+    logical(1),
+    name = "spatial"
+  )
+  if (!any(is_spatial)) {
+    return(list(rhs = entry$rhs, term = NULL))
+  }
+  if (sum(is_spatial) > 1L) {
+    cli::cli_abort(c(
+      "Only one spatial structured effect is implemented in {.code mu}.",
+      "x" = "Use one term such as {.code spatial(1 | site, coords = coords)}."
+    ))
+  }
+
+  spatial_terms <- Filter(
+    function(term) identical(term$type, "spatial"),
+    entry$structured
+  )
+  if (length(spatial_terms) != 1L) {
+    cli::cli_abort(
+      "Internal formula parser error while extracting {.fn spatial}."
+    )
+  }
+  spatial_term <- spatial_terms[[1L]]
+  if (!identical(spatial_term$coef_names, "(Intercept)")) {
+    cli::cli_abort(c(
+      "Only intercept-only spatial {.code mu} effects are implemented.",
+      "x" = "Requested structured coefficient{?s}: {.val {spatial_term$coef_names}}.",
+      "i" = "Use {.code spatial(1 | site, coords = coords)}. Spatial random slopes are planned after intercept-only spatial recovery tests."
+    ))
+  }
+  if (!identical(spatial_term$structure, "coords")) {
+    cli::cli_abort(c(
+      "Precomputed spatial mesh fitting is planned but not implemented yet.",
+      "x" = "Requested {.code spatial(1 | {spatial_term$group}, mesh = {spatial_term$object})}.",
+      "i" = "Use {.code spatial(1 | {spatial_term$group}, coords = coords)} for the first fitted coordinate-based spatial path."
+    ))
+  }
+
+  list(rhs = rebuild_plus_terms(terms[!is_spatial]), term = spatial_term)
+}
+
 entry_phylo_structured_terms <- function(entry) {
   Filter(
     function(term) identical(term$type, "phylo"),
@@ -3216,6 +3276,22 @@ phylo_mu_block <- function(phylo_mu) {
   phylo_mu$block
 }
 
+structured_mu_type <- function(phylo_mu) {
+  type <- phylo_mu$type
+  if (is.character(type) && length(type) == 1L && nzchar(type)) {
+    return(type)
+  }
+  "phylo"
+}
+
+structured_mu_random_effect_key <- function(phylo_mu) {
+  switch(
+    structured_mu_type(phylo_mu),
+    spatial = "spatial_mu",
+    "phylo_mu"
+  )
+}
+
 phylo_mu_dpars <- function(phylo_mu) {
   dpars <- phylo_mu$dpars
   if (is.character(dpars) && length(dpars) > 0L) {
@@ -3230,7 +3306,12 @@ phylo_mu_dpars <- function(phylo_mu) {
 phylo_mu_sd_labels <- function(phylo_mu, model_type) {
   label <- phylo_mu$label
   if (!is.character(label) || length(label) != 1L || !nzchar(label)) {
-    label <- format_structured_label("phylo", "1", phylo_mu$group, NULL)
+    label <- format_structured_label(
+      structured_mu_type(phylo_mu),
+      "1",
+      phylo_mu$group,
+      NULL
+    )
   }
   if (identical(model_type, "biv_gaussian")) {
     return(paste0(phylo_mu_dpars(phylo_mu), ":", label))
@@ -3413,9 +3494,17 @@ phylo_mu_vars <- function(term) {
   term$group
 }
 
+spatial_mu_vars <- function(term) {
+  if (is.null(term)) {
+    return(character())
+  }
+  term$group
+}
+
 empty_phylo_mu_structure <- function() {
   list(
     has = FALSE,
+    type = "phylo",
     label = character(),
     group = NA_character_,
     block = "phylo",
@@ -3428,7 +3517,8 @@ empty_phylo_mu_structure <- function() {
     observation_node_index = integer(),
     observation_node_index0 = 0L,
     node_labels = character(),
-    species_levels = character()
+    species_levels = character(),
+    group_levels = character()
   )
 }
 
@@ -3470,6 +3560,7 @@ build_phylo_mu_structure <- function(term, data, env) {
 
   list(
     has = TRUE,
+    type = "phylo",
     label = term$label,
     group = group,
     block = phylo_term_block(term),
@@ -3482,8 +3573,183 @@ build_phylo_mu_structure <- function(term, data, env) {
     observation_node_index = unname(as.integer(observation_node_index)),
     observation_node_index0 = unname(as.integer(observation_node_index - 1L)),
     node_labels = precision$node_labels,
-    species_levels = precision$species_levels
+    species_levels = precision$species_levels,
+    group_levels = precision$species_levels
   )
+}
+
+build_spatial_mu_structure <- function(term, data, env) {
+  if (is.null(term)) {
+    return(empty_phylo_mu_structure())
+  }
+  if (!identical(term$structure, "coords")) {
+    cli::cli_abort(c(
+      "Precomputed spatial mesh fitting is planned but not implemented yet.",
+      "x" = "Requested {.code spatial(1 | {term$group}, mesh = {term$object})}.",
+      "i" = "Use {.code spatial(1 | {term$group}, coords = coords)} for the first fitted coordinate-based spatial path."
+    ))
+  }
+
+  group <- term$group
+  if (!group %in% names(data)) {
+    cli::cli_abort(c(
+      "Spatial grouping variable {.field {group}} was not found in {.arg data}.",
+      "x" = "Use syntax like {.code spatial(1 | site, coords = coords)} where {.field site} is a column in {.arg data}."
+    ))
+  }
+  site <- as.character(data[[group]])
+  if (length(unique(site)) < 2L) {
+    cli::cli_abort(c(
+      "Spatial grouping variable {.field {group}} has fewer than two observed sites.",
+      "x" = "At least two sites are needed to estimate a spatial SD."
+    ))
+  }
+
+  coords <- evaluate_spatial_coords(term$object, env)
+  precision <- drm_spatial_coords_precision(coords, site = site, group = group)
+  observation_node_index <- match(site, precision$site_levels)
+  if (anyNA(observation_node_index)) {
+    cli::cli_abort(
+      "Internal error: failed to align observations with spatial coordinate nodes."
+    )
+  }
+
+  list(
+    has = TRUE,
+    type = "spatial",
+    label = term$label,
+    group = group,
+    block = if (is.null(term$covariance_label)) {
+      "spatial"
+    } else {
+      term$covariance_label
+    },
+    covariance_label = term$covariance_label,
+    dpars = "mu",
+    q = 1L,
+    tree = NA_character_,
+    structure = term$structure,
+    object = term$object,
+    n_re = nrow(precision$precision),
+    precision = precision,
+    observation_node_index = unname(as.integer(observation_node_index)),
+    observation_node_index0 = unname(as.integer(observation_node_index - 1L)),
+    node_labels = precision$site_levels,
+    species_levels = character(),
+    group_levels = precision$site_levels
+  )
+}
+
+evaluate_spatial_coords <- function(name, env) {
+  if (!exists(name, envir = env, inherits = TRUE)) {
+    cli::cli_abort(c(
+      "Could not find spatial coordinate object {.field {name}}.",
+      "x" = "{.fn spatial} terms use coordinate objects from the calling environment, for example {.code spatial(1 | site, coords = coords)}."
+    ))
+  }
+  get(name, envir = env, inherits = TRUE)
+}
+
+drm_spatial_coords_precision <- function(
+  coords,
+  site,
+  group = "site",
+  jitter = 1e-6
+) {
+  coords <- standardize_spatial_coords(coords, site = site, group = group)
+  distances <- stats::dist(coords)
+  positive_distances <- as.numeric(distances)[as.numeric(distances) > 0]
+  if (length(positive_distances) == 0L) {
+    cli::cli_abort(c(
+      "Spatial coordinates for {.field {group}} contain no positive distances.",
+      "x" = "At least two sites must have distinct coordinates."
+    ))
+  }
+  range <- stats::median(positive_distances)
+  if (!is.finite(range) || range <= 0) {
+    range <- max(positive_distances)
+  }
+  cov <- exp(-as.matrix(distances) / range)
+  diag(cov) <- diag(cov) + jitter
+  chol_cov <- tryCatch(
+    chol(cov),
+    error = function(e) NULL
+  )
+  if (is.null(chol_cov)) {
+    diag(cov) <- diag(cov) + sqrt(jitter)
+    chol_cov <- tryCatch(
+      chol(cov),
+      error = function(e) NULL
+    )
+  }
+  if (is.null(chol_cov)) {
+    cli::cli_abort(c(
+      "Spatial coordinate covariance was not positive definite.",
+      "x" = "Check for duplicated or nearly duplicated coordinates."
+    ))
+  }
+  precision <- chol2inv(chol_cov)
+  dimnames(precision) <- dimnames(cov)
+  list(
+    precision = Matrix::Matrix(precision, sparse = TRUE),
+    log_det_precision = -2 * sum(log(diag(chol_cov))),
+    site_levels = rownames(coords),
+    coords = coords,
+    range = range
+  )
+}
+
+standardize_spatial_coords <- function(coords, site, group = "site") {
+  if (is.data.frame(coords)) {
+    coords <- as.matrix(coords)
+  }
+  if (!is.matrix(coords) || ncol(coords) < 2L) {
+    cli::cli_abort(c(
+      "{.arg coords} must be a matrix or data frame with at least two columns.",
+      "x" = "Use one row per {.field {group}} level, or one row per observation with constant coordinates within each level."
+    ))
+  }
+  coords <- coords[, seq_len(2L), drop = FALSE]
+  coord_df <- as.data.frame(coords)
+  if (!all(vapply(coord_df, is.numeric, logical(1)))) {
+    cli::cli_abort("{.arg coords} must contain numeric coordinate columns.")
+  }
+  coords <- as.matrix(coord_df)
+  if (anyNA(coords) || any(!is.finite(coords))) {
+    cli::cli_abort("{.arg coords} must contain finite numeric values.")
+  }
+
+  site_levels <- unique(as.character(site))
+  if (nrow(coords) == length(site_levels)) {
+    if (!is.null(rownames(coords)) && all(site_levels %in% rownames(coords))) {
+      coords <- coords[site_levels, , drop = FALSE]
+    } else {
+      rownames(coords) <- site_levels
+    }
+    return(coords)
+  }
+
+  if (nrow(coords) != length(site)) {
+    cli::cli_abort(c(
+      "{.arg coords} must have one row per {.field {group}} level or one row per observation.",
+      "x" = "{.field {group}} has {length(site_levels)} observed levels and {length(site)} observations, but {.arg coords} has {nrow(coords)} rows."
+    ))
+  }
+
+  out <- matrix(NA_real_, nrow = length(site_levels), ncol = ncol(coords))
+  dimnames(out) <- list(site_levels, colnames(coords))
+  for (level in site_levels) {
+    rows <- which(site == level)
+    level_coords <- unique(coords[rows, , drop = FALSE])
+    if (nrow(level_coords) != 1L) {
+      cli::cli_abort(c(
+        "{.arg coords} vary within spatial group {.val {level}}.",
+        "x" = "The first fitted {.fn spatial} path requires one coordinate pair per {.field {group}} level."
+      ))
+    }
+    out[level, ] <- level_coords[1L, ]
+  }
+  out
 }
 
 evaluate_phylo_tree <- function(name, env) {
@@ -8719,6 +8985,9 @@ split_tmb_random_effects <- function(par, spec) {
   }
   if (isTRUE(spec$structured$phylo_mu$has)) {
     n_phylo <- spec$structured$phylo_mu$n_re
+    random_effect_key <- structured_mu_random_effect_key(
+      spec$structured$phylo_mu
+    )
     if (identical(spec$model_type, "biv_gaussian")) {
       dpars <- phylo_mu_dpars(spec$structured$phylo_mu)
       latent <- unname(par$u_phylo[seq_len(length(dpars) * n_phylo)])
@@ -8744,7 +9013,7 @@ split_tmb_random_effects <- function(par, spec) {
         spec$structured$phylo_mu,
         spec$model_type
       )
-      out$phylo_mu <- list(
+      out[[random_effect_key]] <- list(
         values = values,
         latent = latent,
         terms = terms
@@ -8766,7 +9035,7 @@ split_tmb_random_effects <- function(par, spec) {
         values <- latent * sd_node
       }
       names(values) <- names(latent)
-      out$phylo_mu <- list(
+      out[[random_effect_key]] <- list(
         values = values,
         latent = latent,
         terms = stats::setNames(

@@ -194,8 +194,11 @@ phylogenetic `mu1`/`mu2` location block as separate implemented models. The
 how to keep those answers separate until the full phylogenetic
 location-scale double-hierarchical endpoint is implemented.
 
-Spatial syntax is part of the structured-effect design, but routine spatial
-model fitting is still planned rather than a first landing-page workflow.
+Spatial syntax is part of the structured-effect design. The first fitted path
+is a univariate Gaussian coordinate-based location random intercept,
+`spatial(1 | site, coords = coords)`. Mesh/SPDE fields, spatial slopes, spatial
+scale terms, and bivariate spatial covariance blocks are still planned rather
+than landing-page workflows.
 
 ## Project status
 

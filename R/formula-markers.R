@@ -54,25 +54,27 @@ phylo <- function(term, tree) {
   invisible(NULL)
 }
 
-#' Planned spatial structured-effect marker
+#' Spatial structured-effect marker
 #'
-#' `spatial()` reserves user-facing syntax for spatial dependence. The planned
-#' grammar is structured random-effect syntax such as
-#' `spatial(1 | site, coords = coords)` and, later,
-#' `spatial(1 + depth | site, coords = coords)`. Future implementations will
-#' use an SPDE/GMRF representation built from coordinates or a mesh.
+#' `spatial()` marks structured spatial dependence. The first fitted path is
+#' the univariate Gaussian location random intercept
+#' `spatial(1 | site, coords = coords)`, where `coords` is a matrix or data
+#' frame with one row per site or one row per observation. Mesh inputs,
+#' structured slopes, scale formulas, and bivariate spatial blocks remain
+#' planned.
 #'
-#' @param term Planned structured random-effect term, such as `1 | site`.
-#' @param coords Planned coordinate object, such as a data frame or matrix of
-#'   spatial coordinates.
+#' @param term Structured random-effect term, such as `1 | site`.
+#' @param coords Coordinate object, such as a data frame or matrix of spatial
+#'   coordinates.
 #' @param mesh Planned precomputed mesh object.
 #'
 #' @return A formula marker; never evaluated by users.
 #' @export
 #'
 #' @examples
-#' # planned only; drmTMB() will currently reject spatial terms
+#' # Fitted for univariate Gaussian mu with coords:
 #' bf(y ~ x + spatial(1 | site, coords = coords), sigma ~ z)
+#' # Planned:
 #' bf(y ~ x + spatial(1 | site, mesh = mesh), sigma ~ z)
 spatial <- function(term, coords = NULL, mesh = NULL) {
   invisible(NULL)

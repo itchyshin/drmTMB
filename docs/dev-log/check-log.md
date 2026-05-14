@@ -2,6 +2,65 @@
 
 Record meaningful development checks here.
 
+## 2026-05-14 -- Slice 33 coordinate spatial random intercept foundation
+
+Scope:
+
+- implemented the first fitted spatial path:
+  `spatial(1 | site, coords = coords)` in univariate Gaussian `mu`;
+- accepted coordinates with one row per site or one row per observation, with a
+  guard that coordinates are constant within site;
+- used a fixed exponential coordinate covariance, inverted to a precision, and
+  reused the single structured-effect TMB prior path for the first spatial SD;
+- exposed `sdpars$mu["spatial(1 | site)"]`, `ranef(fit, "spatial_mu")`,
+  conditional `predict()` contributions, and a direct profile target
+  `sd:mu:spatial(1 | site)`;
+- kept `mesh`, spatial slopes, spatial `sigma`, bivariate spatial q=4 blocks,
+  spatial direct-SD models, and spatial `corpair()` regressions planned;
+- added a Phase 18 roadmap item for visualization, marginal effects,
+  `emmeans`-style compatibility, and ggplot-oriented helpers across all
+  `drmTMB` models.
+
+Checks:
+
+- `air format NEWS.md R/drmTMB.R R/formula-markers.R R/methods.R R/profile.R README.md ROADMAP.md docs/design/01-formula-grammar.md docs/design/03-likelihoods.md docs/design/09-phylogenetic-and-spatial-speed.md docs/design/12-profile-likelihood-cis.md docs/design/16-phylo-spatial-common-math.md docs/dev-log/known-limitations.md tests/testthat/test-gaussian-location-scale.R tests/testthat/test-spatial-gaussian.R vignettes/formula-grammar.Rmd vignettes/phylogenetic-spatial.Rmd vignettes/source-map.Rmd`:
+  passed.
+- `Rscript -e 'devtools::document()'`: passed and regenerated
+  `man/spatial.Rd` and `man/ranef.Rd`.
+- Initial focused
+  `Rscript -e 'devtools::test(filter = "spatial-gaussian|gaussian-location-scale|package-skeleton|profile-targets", reporter = "summary")'`:
+  failed once because the old mesh-error expectation still searched for
+  "planned, not implemented" and one new test used `coords = coords` without
+  binding a local `coords` object. Both were fixed.
+- Second focused
+  `Rscript -e 'devtools::test(filter = "spatial-gaussian|gaussian-location-scale|package-skeleton|profile-targets", reporter = "summary")'`:
+  passed.
+- Smoke output check
+  `Rscript -e 'devtools::load_all(quiet = TRUE); ...; fit <- drmTMB(... spatial(1 | site, coords = coords) ...); print(fit$sdpars); print(names(ranef(fit))); print(profile_targets(fit)[...])'`:
+  showed `spatial(1 | site)`, `spatial_mu`, and profile-ready
+  `sd:mu:spatial(1 | site)`.
+- `Rscript -e 'devtools::test(reporter = "summary")'`: passed.
+- `Rscript -e 'pkgdown::build_site()'`: passed and rebuilt `ROADMAP.html`,
+  `index.html`, `articles/formula-grammar.html`, `articles/model-map.html`,
+  `articles/phylogenetic-spatial.html`, `articles/source-map.html`,
+  `reference/spatial.html`, `reference/ranef.html`, and `news/index.html`.
+- `Rscript -e 'pkgdown::check_pkgdown()'`: passed with no problems found.
+- `rg -n 'spatial\(1 \| site, coords = coords\).*Planned|spatial terms are still planned|spatial likelihood is not implemented|routine spatial model fitting is still planned|will currently reject spatial|coords = coords\).*not implemented|spatial.*parsed and rejected' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes R tests man`:
+  only found correct mesh-specific planned wording.
+- `rg -n 'spatial_mu|spatial\(1 \| site\)|mesh fitting is planned|Visualization|marginal_effects|emmeans|ggplot' README.md ROADMAP.md NEWS.md docs vignettes R tests man`:
+  confirmed the fitted spatial labels and the new visualization roadmap phase.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- This is a coordinate-covariance foundation, not the scalable mesh/SPDE
+  implementation.
+- The internal TMB parameter names still use `u_phylo` and `log_sd_phylo` for
+  the single structured-effect backend; R-facing labels use `spatial_mu` and
+  `spatial(1 | site)`.
+- No spatial terms are fitted in `sigma`, bivariate models, q=4 blocks,
+  direct-SD models, or `corpair()` regression yet.
+
 ## 2026-05-14 -- Map Slice 25 bivariate sd_phylo diagnostics and docs
 
 Scope:

@@ -15,7 +15,7 @@ ranef(object, ...)
 \item{...}{Reserved for future extractor options.}
 
 \item{dpar}{Optional random-effect block name, such as \code{"mu"}, \code{"sigma"},
-or \code{"phylo_mu"}.}
+\code{"phylo_mu"}, or \code{"spatial_mu"}.}
 }
 \value{
 A named list of random-effect blocks when \code{dpar = NULL}, otherwise

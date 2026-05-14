@@ -198,7 +198,7 @@ distributional regression models using TMB.
 
 - Status: first univariate Gaussian phylogenetic location path implemented;
   first matching bivariate `mu1`/`mu2` phylogenetic location slice implemented;
-  spatial paths remain planned.
+  first univariate Gaussian coordinate-based spatial location path implemented.
 - Treat phylogenetic and spatial terms as one structured-effect module:
   `z ~ MVN(0, sigma_z^2 K)`, with `K = A` for phylogeny and `K = M` for
   spatial dependence.
@@ -219,8 +219,12 @@ distributional regression models using TMB.
   weak phylogenetic-SD diagnostics, and ordinary same-species covariance
   overlap for that fitted slice. A CRAN-safe deterministic simulation now
   recovers a positive bivariate phylogenetic mean-mean correlation.
-- Add spatial SPDE/GMRF fields after the core Gaussian and known-covariance
-  path is reliable.
+- The first spatial fitted path is now `spatial(1 | site, coords = coords)` in
+  univariate Gaussian `mu`. It uses a fixed exponential coordinate covariance
+  as a small-data foundation and reports `sdpars$mu["spatial(1 | site)"]` plus
+  a `spatial_mu` conditional random-effect block. Mesh/SPDE, spatial slopes,
+  spatial q=4, spatial `sd(...)`, and spatial `corpair()` regressions remain
+  planned.
 - For bivariate structured models, estimate and report level-specific
   correlations separately: residual `rho12`, phylogenetic correlations,
   non-phylogenetic species correlations, spatial field correlations, and
@@ -437,13 +441,14 @@ remain blocked by future covariance or non-Gaussian random-effect work.
 
 ## Phase 10: Spatial Structured Effects
 
-- Status: planned.
-- Implement the first fitted spatial model as an intercept-only univariate
-  Gaussian `mu` structured effect, parallel to the implemented phylogenetic path.
-- Support either `spatial(1 | site, coords = coords)` or
-  `spatial(1 | site, mesh = mesh)` only after the data contract is documented:
-  `coords` identify observation or site locations, while `mesh` is the SPDE/GMRF
-  computational scaffold.
+- Status: first coordinate-based univariate Gaussian `mu` path implemented;
+  mesh/SPDE and bivariate spatial paths planned.
+- The first fitted spatial model is an intercept-only univariate Gaussian `mu`
+  structured effect, parallel to the implemented phylogenetic path:
+  `spatial(1 | site, coords = coords)`.
+- Support `spatial(1 | site, mesh = mesh)` only after the mesh data contract and
+  provenance policy are implemented. `coords` identify observation or site
+  locations, while `mesh` is the SPDE/GMRF computational scaffold.
 - Treat `coords` as the friendly public input and `mesh` as optional expert
   control. A dense coordinate-only Gaussian-process path would not require a
   mesh, but it is not the scalable route. The planned SPDE/GMRF route needs a
@@ -601,3 +606,30 @@ remain blocked by future covariance or non-Gaussian random-effect work.
 - Draft methods papers around the package-defining pieces: fast
   location-scale regression, modelled residual `rho12`, and structured
   phylogenetic/spatial distributional regression.
+
+## Phase 18: Visualization, Marginal Effects, and Reader-Facing Inference
+
+- Status: planned; initial long-format prediction surfaces exist through
+  `predict_parameters()` and `marginal_parameters()`.
+- Build a coherent visualization layer across all implemented `drmTMB` model
+  families rather than one-off plotting functions. The target reader is an
+  applied ecology, evolution, or environmental-science user who needs to see
+  fitted location, scale, shape, coscale, random-effect SD, and latent
+  correlation patterns without rebuilding prediction grids by hand.
+- Start with data helpers before plotting helpers:
+  `prediction_grid()` or equivalent grid builders, `marginal_effects()` for
+  averaging over nuisance covariates or groups, and compatibility checks for
+  `emmeans` where the fitted parameter and link scale have a clean contract.
+- Add ggplot-oriented helpers only after the data contract is stable:
+  location curves, scale/variance curves, residual `rho12` curves,
+  `sd(group)` or `sd_phylo()` surfaces, `corpairs()` summaries, and eventually
+  spatial fields or maps.
+- Every visual interval must state its inference source: Wald fixed-effect
+  interval, direct profile-likelihood interval, derived nonlinear interval,
+  conditional random-effect uncertainty, or parametric-bootstrap interval.
+  Fisher's default is to avoid implying full uncertainty when only fixed-effect
+  uncertainty is present.
+- Pat's usability gate: examples should show the biological question, the
+  fitted model, the visualization call, and the interpretation in one path.
+  Rose's audit gate: plotting docs must not overclaim support for parameters or
+  interval types that the model object cannot yet supply.

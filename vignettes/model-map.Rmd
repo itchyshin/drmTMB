@@ -144,7 +144,7 @@ These surfaces are roadmap items, not syntax to rely on in analyses yet:
 | larger cross-formula labelled covariance blocks linking `mu` and `sigma` | extends beyond the first fitted random-intercept mean-scale correlations |
 | bivariate random slopes and full cross-parameter covariance blocks | expands group-level covariance blocks beyond the first same-parameter and same-response random-intercept slices |
 | phylogenetic slopes, predictor-dependent phylogenetic correlations, and richer phylogenetic covariance blocks | the first bivariate `mu1`/`mu2` phylogenetic location slice and the first constant q=4 phylogenetic location-scale block are fitted |
-| spatial random effects | planned parallel to `phylo()`, but the spatial likelihood is not implemented |
+| spatial random effects | first univariate Gaussian coordinate-based `mu` path implemented; mesh/SPDE, spatial scale, bivariate spatial covariance, and spatial `corpair()` paths remain planned |
 | higher-dimensional multivariate models | belong in `gllvmTMB`, not `drmTMB` |
 
 When unsupported syntax fails, the right next step is usually to fit the

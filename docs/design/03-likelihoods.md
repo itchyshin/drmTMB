@@ -66,7 +66,7 @@ is the current routing contract:
 
 | TMB `model_type` | User-facing route | R builder | TMB branch purpose |
 |---:|---|---|---|
-| `1` | `family = gaussian()` | `drm_build_gaussian_ls_spec()` | Univariate Gaussian location-scale models, including ordinary `mu` random effects, residual-scale `sigma` random effects, `sd(group) ~ ...` random-effect scale models, `meta_known_V(V = V)`, and the implemented intercept-only `phylo()` location effect. |
+| `1` | `family = gaussian()` | `drm_build_gaussian_ls_spec()` | Univariate Gaussian location-scale models, including ordinary `mu` random effects, residual-scale `sigma` random effects, `sd(group) ~ ...` random-effect scale models, `meta_known_V(V = V)`, the implemented intercept-only `phylo()` location effect, and the first coordinate-based `spatial()` location effect. |
 | `2` | `family = biv_gaussian()`, `family = c(gaussian(), gaussian())`, or `family = list(gaussian(), gaussian())` | `drm_build_biv_gaussian_spec()` | Bivariate Gaussian location-scale-coscale models with `mu1`, `mu2`, `sigma1`, `sigma2`, and residual `rho12`, including complete-row dense known sampling covariance, matching labelled `mu1`/`mu2` and `sigma1`/`sigma2` random-intercept covariance blocks, one same-response `mu`/`sigma` random-intercept covariance pair, intercept-only ordinary q=4 covariance blocks across all four bivariate distributional parameters, bivariate location random-effect SD formulas `sd1(group)` / `sd2(group)`, and matching intercept-only phylogenetic random intercepts in `mu1` and `mu2`. |
 | `3` | `family = student()` | `drm_build_student_ls_spec()` | Univariate Student-t location-scale-shape models with `mu`, `sigma`, and `nu = 2 + exp(eta_nu)`. |
 | `4` | `family = lognormal()` | `drm_build_lognormal_ls_spec()` | Univariate fixed-effect lognormal location-scale models for positive responses, with `mu` and `sigma` defined on the log-response scale. |
@@ -205,6 +205,34 @@ Here `rho_re` is a group-level random-effect correlation. It is extracted via
 implementation, the middle label `p` is retained for naming and future
 cross-formula covariance matching; the likelihood is otherwise the same as the
 unlabelled `(1 + x1 | id)` block.
+
+For the first coordinate-based spatial location model:
+
+```text
+mu_i = X_mu[i, ] beta_mu + s_site[i]
+s ~ Normal(0, sd_spatial^2 K_coords)
+K_coords[l, m] = exp(-d_lm / r)
+r = median positive pairwise site distance
+Q_coords = K_coords^{-1}
+```
+
+The TMB likelihood uses the same sparse-precision prior shape as the
+phylogenetic random intercept path, with `Q_coords` replacing the tree-derived
+precision and `log_sd_phylo` internally holding the spatial SD for this first
+single-field implementation. The public output labels the term as
+`spatial(1 | site)` and returns conditional effects in the `spatial_mu`
+`ranef()` block. This is a small-data coordinate covariance foundation, not the
+planned scalable SPDE/GMRF mesh implementation.
+
+Matching R syntax:
+
+```r
+drmTMB(
+  bf(y ~ x1 + spatial(1 | site, coords = coords), sigma ~ x2),
+  family = gaussian(),
+  data = dat
+)
+```
 
 Residual-scale random intercepts and independent numeric random slopes are
 implemented on the log-`sigma` scale:

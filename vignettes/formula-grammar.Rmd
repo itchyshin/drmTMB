@@ -75,7 +75,7 @@ In this table, "coscale" means a model for residual correlation, currently
 | `y ~ x1 + x2`, `family = cumulative_logit()` | Implemented | Fixed-effect univariate ordinal model for ordered scores with cutpoints; ordinal scale formulas are planned. |
 | `cbind(successes, failures) ~ x1`, `family = beta_binomial()` | Implemented | Fixed-effect denominator-aware model for success counts with known trial totals; `sigma` is extra-binomial variation. |
 | `phylo(1 + x1 | species, tree = tree)` | Planned | Structured slopes come after the intercept-only path is fully hardened. The first path should fit one structured `mu` slope; two slopes are the near-term upper bound. |
-| `spatial(1 | site, coords = coords)` | Planned | Spatial SPDE/GMRF terms are part of the design but not fitted yet. |
+| `spatial(1 | site, coords = coords)` | Implemented first slice | Univariate Gaussian `mu` spatial random intercept using a fixed coordinate covariance foundation; mesh/SPDE paths remain planned. |
 | `corpair(id, level = "group", block = "p", from = "mu1", to = "mu2") ~ x_group` | Implemented | Predictor-dependent ordinary q=2 location-location latent random-effect correlation regression for matching labelled `mu1`/`mu2` random intercepts. Predictors must be constant within `id`. |
 | `corpair(species, level = "phylogenetic", block = "p", from = "mu1", to = "mu2") ~ ecology` | Implemented | Predictor-dependent phylogenetic q=2 location-location latent random-effect correlation regression for matching labelled `mu1`/`mu2` `phylo()` terms. Predictors must be constant within `species`. Location-scale, scale-scale, q=4, and spatial `corpair()` regressions remain planned. |
 | Bivariate random slopes, spatial q=4 blocks, predictor-dependent q=4 phylogenetic/spatial correlations, or `rho12` random effects | Planned | These need a larger covariance parameterization, simulation, and naming checks before fitting. Intercept-slope `corpair()` rows are distant-future; a later slope1-slope2 bivariate plasticity-syndrome target needs coefficient-aware syntax. |
@@ -199,23 +199,30 @@ drm_formula(
 ```
 
 Phylogenetic random slopes, phylogenetic scale terms, structured effects in
-`rho12`, and spatial terms are still planned:
+`rho12`, and mesh-based spatial terms are still planned:
 
 ```r
 # planned; drmTMB() will currently reject these
 drm_formula(y ~ x + phylo(1 + x | species, tree = tree), sigma ~ z)
-drm_formula(y ~ x + spatial(1 | site, coords = coords), sigma ~ z)
 drm_formula(y ~ x + spatial(1 | site, mesh = mesh), sigma ~ z)
 ```
 
-`spatial()` will use coordinates or a precomputed mesh to build an SPDE/GMRF
-precision. These structured effects are separate from residual `rho12`.
-The planned default should be `coords = coords`, because coordinates are the
-data-level object users already have. A mesh is the computational scaffold for
-the scalable SPDE/GMRF approximation; it may be built internally from
-coordinates or supplied explicitly by advanced users who need boundary,
-barrier, or reproducibility control. A coordinate-only dense covariance is a
-possible small-data comparator, but not the planned scalable default.
+The first fitted `spatial()` path uses coordinates directly for a univariate
+Gaussian `mu` random intercept:
+
+```r
+drmTMB(
+  bf(y ~ x + spatial(1 | site, coords = coords), sigma ~ z),
+  family = gaussian(),
+  data = dat
+)
+```
+
+`coords` can have one row per site or one row per observation, but coordinates
+must be constant within each site. A precomputed `mesh` remains planned. Mesh is
+not the scientific sampling level. It is the computational scaffold that will
+keep a future SPDE/GMRF spatial field scalable. These structured effects are
+separate from residual `rho12`.
 For structured slopes, the intended staged path is one `mu` slope first and at
 most two `mu` slopes as an advanced path. Multiple random factors should remain
 separate additive blocks. The first slope models should not estimate

@@ -121,7 +121,7 @@ Primary speed path:
 - use structured random-effect syntax such as
   `spatial(1 | site, coords = coords)` or `spatial(1 | site, mesh = mesh)`.
 
-Planned syntax:
+First fitted coordinate syntax:
 
 ```r
 bf(
@@ -131,22 +131,24 @@ bf(
 ```
 
 `coords` and `mesh` should be treated as two entry points to the same spatial
-field, not as two biological model types. `coords` identifies the observation
-or site coordinates used to build a mesh. `mesh` supplies an already-built
-finite-element scaffold plus the projection information needed to map mesh
-vertices back to observations. In both cases, the fitted quantity is a
-structured spatial random effect; the mesh itself is a computational support,
-not a response, predictor, or sampling level to interpret biologically.
+field, not as two biological model types. The first fitted coordinate path uses
+pairwise site distances to build a fixed exponential covariance, then inverts
+that covariance to a precision matrix. `mesh` remains the scalable SPDE/GMRF
+path: it supplies an already-built finite-element scaffold plus projection
+information needed to map mesh vertices back to observations. In both cases,
+the fitted quantity is a structured spatial random effect; the mesh itself is a
+computational support, not a response, predictor, or sampling level to
+interpret biologically.
 
 Mesh is therefore not required by the scientific idea of spatial dependence.
-It is required by the scalable SPDE/GMRF approximation. A dense Gaussian-process
-covariance built directly from pairwise distances among `coords` could be a
-small-data comparator, but it forms dense matrices and does not share the
-large-data path with the phylogenetic sparse-precision work. The default user
-experience should be `coords = coords`; the R layer can build or validate a
-mesh-like object internally. The explicit `mesh = mesh` form is for users who
-need reproducible control over boundaries, coastlines, barriers, or highly
-uneven sampling.
+It is required by the scalable SPDE/GMRF approximation. The current
+coordinate-covariance implementation is a small-data foundation and recovery
+target; it forms dense matrices before converting to a precision and does not
+yet share the large-data path with future sparse mesh work. The default user
+experience should remain `coords = coords`; the R layer can later build or
+validate a mesh-like object internally. The explicit `mesh = mesh` form is for
+users who need reproducible control over boundaries, coastlines, barriers, or
+highly uneven sampling.
 
 Planned mesh-explicit syntax:
 

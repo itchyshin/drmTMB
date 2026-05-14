@@ -176,9 +176,13 @@
   match a tip label.
 - Structured-effect markers outside that first path, such as
   `phylo(1 + x | species, tree = tree)`, phylogenetic terms in `sigma`, and
-  `spatial(1 | site, coords = coords)`, are parsed and rejected clearly, but
-  they are not yet routed into fitted likelihoods. The reserved slope path is
-  one structured `mu` slope first, then at most two structured `mu` slopes after
+  `spatial(1 | site, mesh = mesh)`, are parsed and rejected clearly, but they
+  are not yet routed into fitted likelihoods. The first coordinate-based
+  spatial path, `spatial(1 | site, coords = coords)`, is fitted only for
+  univariate Gaussian `mu` and uses a fixed coordinate covariance foundation.
+  Spatial slopes, spatial `sigma`, bivariate spatial q=4 blocks, and spatial
+  `corpair()` regressions remain planned. The reserved slope path is one
+  structured `mu` slope first, then at most two structured `mu` slopes after
   simulation recovery.
 - Internal phylogenetic tree validation, dense Brownian covariance comparators,
   sparse augmented Brownian precision helpers, pure-R prior checks, hidden TMB

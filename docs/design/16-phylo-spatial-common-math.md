@@ -108,8 +108,11 @@ spatial(1 | site, coords = coords)
 ```
 
 but the TMB likelihood should see the same kind of structured-effect block.
-The first fitted instance is univariate Gaussian `mu` with
-`phylo(1 | species, tree = tree)`.
+The first fitted phylogenetic instance is univariate Gaussian `mu` with
+`phylo(1 | species, tree = tree)`. The first fitted spatial instance is
+univariate Gaussian `mu` with `spatial(1 | site, coords = coords)`, using a
+fixed coordinate covariance as the small-data foundation before the scalable
+mesh/SPDE route.
 
 The mature phylogenetic grammar should probably look like structured
 random-effect syntax rather than a bare marker:
@@ -224,9 +227,11 @@ prior with the sparse augmented precision. Dense tip-only covariance is useful
 for teaching, small comparators, and fallback inputs, but it should not be the
 large-tree computational path.
 
-The same idea can later extend to spatial terms, but the first spatial
-implementation should use mesh/projection objects rather than dense distance
-matrices.
+The same idea now extends to the first spatial term through a coordinate-based
+foundation. This is intentionally narrower than the final mesh/projection
+SPDE/GMRF route: it is a small-data implementation and recovery target that
+keeps the public `spatial(1 | site, coords = coords)` API real while preserving
+mesh work for the scalable path.
 
 The spatial grammar should mirror the phylogenetic grammar:
 
@@ -236,18 +241,18 @@ spatial(1 + depth | site, coords = coords)
 spatial(1 | site, mesh = mesh)
 ```
 
-Here `spatial(1 | site, coords = coords)` is a spatial random intercept.
-`coords` supplies observed coordinates that the R layer can use to build or
-validate a mesh/projection object. `mesh = mesh` is the planned route for users
-who have already built an SPDE mesh. Structured spatial slopes should come
-after intercept-only spatial fields are tested.
+Here `spatial(1 | site, coords = coords)` is a fitted spatial random intercept
+for univariate Gaussian `mu`. `coords` supplies observed coordinates with one
+row per site or one row per observation. `mesh = mesh` is the planned route for
+users who have already built an SPDE mesh. Structured spatial slopes should
+come after intercept-only spatial fields are tested.
 
 The mesh is not the ecological object of inference. It is a numerical scaffold
-for the sparse SPDE/GMRF approximation. A dense coordinate covariance could use
-`coords` without a mesh, but it would be a small-data comparator rather than the
-main scalable path. The public API should therefore make coordinates easy for
-ordinary users while preserving `mesh = mesh` for advanced users who need
-control over boundaries, barriers, or reproducibility.
+for the sparse SPDE/GMRF approximation. The current coordinate covariance path
+uses `coords` without a mesh and should be treated as a small-data foundation
+rather than the main scalable path. The public API should therefore make
+coordinates easy for ordinary users while preserving `mesh = mesh` for advanced
+users who need control over boundaries, barriers, or reproducibility.
 
 The sibling `gllvmTMB` implementation already follows this broad idea. The
 files to study when implementation begins are:

@@ -160,6 +160,7 @@ Current high-value direct targets are:
 log_sd_mu          -> sdpars$mu
 log_sd_sigma       -> sdpars$sigma
 log_sd_phylo       -> sdpars$mu["phylo(1 | species)"]
+log_sd_phylo       -> sdpars$mu["spatial(1 | site)"] in the first spatial slice
 eta_cor_mu         -> corpars$mu
 eta_cor_mu_sigma   -> corpars$mu_sigma
 beta_rho12         -> fixed effects in residual correlation formulae
@@ -382,7 +383,9 @@ Profile-likelihood support is done only when these checks exist:
 - direct `log_sd_mu` and `log_sd_sigma` intervals recover the simulated SD on
   the response scale;
 - `log_sd_phylo` profile intervals work for the implemented
-  `phylo(1 | species, tree = tree)` path;
+  `phylo(1 | species, tree = tree)` path and for the first fitted
+  `spatial(1 | site, coords = coords)` path, where the same internal TMB
+  parameter stores the single structured-effect SD;
 - `profile_targets()` lists the fitted bivariate phylogenetic `mu1`/`mu2` SDs
   and mean-mean correlation separately from residual `rho12`;
 - `eta_cor_phylo` profile intervals transform to bounded bivariate

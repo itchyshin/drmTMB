@@ -771,7 +771,7 @@ profile_fixef_internal <- function(dpar) {
 }
 
 profile_sd_internal <- function(dpar, term) {
-  if (identical(dpar, "mu") && grepl("phylo\\(", term)) {
+  if (identical(dpar, "mu") && grepl("phylo\\(|spatial\\(", term)) {
     return("log_sd_phylo")
   }
   if (dpar %in% c("mu", "sigma")) {

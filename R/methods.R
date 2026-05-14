@@ -67,7 +67,7 @@ fixef.drmTMB <- function(object, dpar = NULL, ...) {
 #'
 #' @param object A `drmTMB` fit.
 #' @param dpar Optional random-effect block name, such as `"mu"`, `"sigma"`,
-#'   or `"phylo_mu"`.
+#'   `"phylo_mu"`, or `"spatial_mu"`.
 #' @param ... Reserved for future extractor options.
 #'
 #' @return A named list of random-effect blocks when `dpar = NULL`, otherwise
@@ -1647,7 +1647,7 @@ predict.drmTMB <- function(
   if (
     is.null(newdata) &&
       dpar %in% phylo_mu_dpars(object$model$structured$phylo_mu) &&
-      has_phylo_mu_effect(object)
+      has_structured_mu_effect(object)
   ) {
     eta <- eta + phylo_mu_contribution(object, dpar = dpar)
   }
@@ -3010,7 +3010,7 @@ coefficient_labels <- function(object) {
 }
 
 has_mu_random_effects <- function(object) {
-  has_ordinary_mu_random_effects(object) || has_phylo_mu_effect(object)
+  has_ordinary_mu_random_effects(object) || has_structured_mu_effect(object)
 }
 
 has_ordinary_mu_random_effects <- function(object) {
@@ -3024,12 +3024,26 @@ has_mu_random_intercepts <- has_mu_random_effects
 has_phylo_mu_effect <- function(object) {
   object$model$model_type %in%
     c("gaussian", "biv_gaussian") &&
+    isTRUE(object$model$structured$phylo_mu$has) &&
+    identical(structured_mu_type(object$model$structured$phylo_mu), "phylo")
+}
+
+has_spatial_mu_effect <- function(object) {
+  object$model$model_type %in%
+    c("gaussian", "biv_gaussian") &&
+    isTRUE(object$model$structured$phylo_mu$has) &&
+    identical(structured_mu_type(object$model$structured$phylo_mu), "spatial")
+}
+
+has_structured_mu_effect <- function(object) {
+  object$model$model_type %in%
+    c("gaussian", "biv_gaussian") &&
     isTRUE(object$model$structured$phylo_mu$has)
 }
 
 n_mu_random_effect_terms <- function(object) {
   length(object$model$random$mu$labels) +
-    as.integer(has_phylo_mu_effect(object))
+    as.integer(has_structured_mu_effect(object))
 }
 
 has_sigma_random_effects <- function(object) {
@@ -3130,7 +3144,8 @@ mu_random_effect_contribution <- function(object, dpar = NULL) {
 mu_random_intercept_contribution <- mu_random_effect_contribution
 
 phylo_mu_contribution <- function(object, dpar = NULL) {
-  values <- object$random_effects$phylo_mu$values
+  key <- structured_mu_random_effect_key(object$model$structured$phylo_mu)
+  values <- object$random_effects[[key]]$values
   index <- object$model$structured$phylo_mu$observation_node_index
   if (identical(object$model$model_type, "biv_gaussian")) {
     dpars <- phylo_mu_dpars(object$model$structured$phylo_mu)
