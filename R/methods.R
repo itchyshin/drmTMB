@@ -39,7 +39,8 @@ print.drmTMB <- function(x, ...) {
 #'
 #' @param object A `drmTMB` fit.
 #' @param dpar Optional distributional parameter name, such as `"mu"`,
-#'   `"sigma"`, `"hu"`, `"rho12"`, or `"sd(id)"`.
+#'   `"sigma"`, `"hu"`, `"rho12"`, `"sd(id)"`, or
+#'   `"sd_phylo(species)"`.
 #' @param ... Reserved for future extractor options.
 #'
 #' @return A named numeric vector when `dpar` is supplied, otherwise a named
@@ -2718,10 +2719,19 @@ mu_random_effect_dpars <- function(object) {
 }
 
 is_random_scale_dpar <- function(object, dpar) {
-  object$model$model_type %in%
-    c("gaussian", "biv_gaussian") &&
+  if (!object$model$model_type %in% c("gaussian", "biv_gaussian")) {
+    return(FALSE)
+  }
+  if (
     object$model$random_scale$mu$n_models > 0L &&
-    dpar %in% object$model$random_scale$mu$dpars
+      dpar %in% object$model$random_scale$mu$dpars
+  ) {
+    return(TRUE)
+  }
+  identical(object$model$model_type, "gaussian") &&
+    is.list(object$model$random_scale$phylo) &&
+    object$model$random_scale$phylo$n_models > 0L &&
+    dpar %in% object$model$random_scale$phylo$dpars
 }
 
 predict_random_scale_dpar <- function(
@@ -2731,18 +2741,27 @@ predict_random_scale_dpar <- function(
   type = c("response", "link")
 ) {
   type <- match.arg(type)
-  sd_mu <- object$model$random_scale$mu
-  if (!dpar %in% sd_mu$dpars) {
+  sd_target <- if (dpar %in% object$model$random_scale$mu$dpars) {
+    object$model$random_scale$mu
+  } else if (
+    is.list(object$model$random_scale$phylo) &&
+      dpar %in% object$model$random_scale$phylo$dpars
+  ) {
+    object$model$random_scale$phylo
+  } else {
+    NULL
+  }
+  if (is.null(sd_target)) {
     cli::cli_abort("Unknown random-effect scale parameter {.val {dpar}}.")
   }
   if (is.null(newdata)) {
-    X <- sd_mu$X_list[[dpar]]
-    names_out <- sd_mu$group_levels_list[[dpar]]
+    X <- sd_target$X_list[[dpar]]
+    names_out <- sd_target$group_levels_list[[dpar]]
   } else {
     if (!is.data.frame(newdata)) {
       cli::cli_abort("{.arg newdata} must be a data frame.")
     }
-    X <- stats::model.matrix(sd_mu$terms_list[[dpar]], data = newdata)
+    X <- stats::model.matrix(sd_target$terms_list[[dpar]], data = newdata)
     names_out <- rownames(newdata)
   }
   eta <- as.vector(X %*% object$coefficients[[dpar]])

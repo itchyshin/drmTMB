@@ -201,18 +201,19 @@ the builder rejects it before fitting.
 
 ## Structured Direct-SD Targets
 
-Names such as `sd_phylo(species)`, `sd_phylo1(species)`,
-`sd_phylo2(species)`, and `sd_spatial(site)` are planned Family B targets, but
-they are not scalar replacements for the fitted `log_sd_phylo` parameters. In
-the current phylogenetic likelihood, the latent species effects are coupled by
-a Brownian-motion tree precision:
+The univariate `sd_phylo(species)` target is implemented as the first
+structured Family B direct-SD model. Names such as `sd_phylo1(species)`,
+`sd_phylo2(species)`, and `sd_spatial(site)` remain planned. These direct-SD
+models are not scalar replacements for every fitted `log_sd_phylo` parameter.
+In the scalar phylogenetic likelihood, the latent species effects are coupled
+by a Brownian-motion tree precision:
 
 ```text
 a ~ MVN(0, sigma_phylo^2 A)
 ```
 
-Slice 20 fixes the univariate `sd_phylo()` contract. The fitted quantity is the
-tip-level SD of the phylogenetic location effect:
+The fitted `sd_phylo()` quantity is the tip-level SD of the phylogenetic
+location effect:
 
 ```text
 tau_l = exp(W_l alpha_phylo)
@@ -234,9 +235,9 @@ The right-hand side of `sd_phylo(species) ~ z_species` must be constant within
 species after the model's complete-case filtering, just like ordinary
 `sd(id) ~ z_group`. When the formula is present, it replaces the scalar
 `log_sd_phylo` parameter for that target; it does not add a second phylogenetic
-SD layer. The intercept-only case `sd_phylo(species) ~ 1` should be equivalent
-in marginal covariance to the current constant-SD phylogenetic location model,
-but with a non-centred TMB parameterization.
+SD layer. The intercept-only case `sd_phylo(species) ~ 1` is tested against the
+current constant-SD phylogenetic location model and gives the same marginal
+likelihood with a non-centred TMB parameterization.
 
 This Family B direct-SD model stays separate from Family A q=4 models. Do not
 combine `sd_phylo(species) ~ z_species` with a matching labelled q=4
@@ -245,19 +246,13 @@ combine `sd_phylo(species) ~ z_species` with a matching labelled q=4
 location and scale effects; `sd_phylo()` models predictor-dependent location
 random-effect SDs.
 
-Implementation should be staged:
-
-1. accept univariate `sd_phylo(species) ~ z_species` only when the `mu` formula
-   contains one intercept-only `phylo(1 | species, tree = tree)` term;
-2. build a species-level model matrix with one row per observed tree tip and
-   reject predictors that vary within species;
-3. replace the scalar `log_sd_phylo` parameter with `beta_sd_phylo` for that
-   target and multiply the observed tip effect by `tau_l = exp(W_l alpha)`;
-4. compare `sd_phylo(species) ~ 1` against the current scalar-SD likelihood on
-   small trees before adding predictor recovery tests;
-5. report fitted `sd_phylo(species)` values through the same `sdpars`,
-   `coef()`, `predict()`, `summary()`, and `profile_targets()` surfaces used
-   for ordinary `sd(group)` models.
+The implementation accepts univariate `sd_phylo(species) ~ z_species` only
+when the `mu` formula contains one intercept-only
+`phylo(1 | species, tree = tree)` term. It builds a species-level model matrix
+with one row per observed tree tip, rejects predictors that vary within
+species, maps the scalar `log_sd_phylo` parameter out for that target, and
+reports fitted values through `coef()`, `predict()`, `sdpars`, `summary()`, and
+`profile_targets()`.
 
 ## Multiple Random-Effect Scale Components
 

@@ -2,6 +2,42 @@
 
 Record meaningful development checks here.
 
+## 2026-05-14 -- Map Slice 21 univariate sd_phylo implementation
+
+Scope:
+
+- implemented univariate Gaussian `sd_phylo(species) ~ x_species` for
+  phylogenetic location random effects;
+- used a non-centred unit tree effect and observed-tip SD scaling so the
+  marginal tip covariance is `D_tip A_tip D_tip`;
+- exposed the fitted SD surface through `coef()`, `predict()`, `sdpars`,
+  `summary()`, and `profile_targets()`;
+- added recovery, intercept-only equivalence, bivariate rejection, and direct
+  TMB probe updates;
+- updated formula grammar, likelihood, phylogenetic math, random-effect scale
+  design, known limitations, NEWS, roadmap, roxygen docs, and the
+  phylogenetic-spatial article status table.
+
+Checks:
+
+- `Rscript -e 'devtools::load_all(quiet = TRUE)'`: passed.
+- `Rscript -e 'devtools::document()'`: passed and updated `man/drmTMB.Rd` and
+  `man/fixef.Rd`.
+- `Rscript -e 'devtools::test(filter = "phylo-gaussian|biv-gaussian|package-skeleton|profile-targets|summary", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'devtools::test(filter = "beta-binomial|beta-location-scale|phylo-gaussian|biv-gaussian|profile-targets", reporter = "summary")'`:
+  passed after tightening the non-Gaussian coefficient-splitter guard.
+- `Rscript -e 'devtools::test(filter = "phylo-utils|phylo-gaussian", reporter = "summary")'`:
+  passed after adding the new dummy TMB data fields to direct phylo-prior
+  probes.
+- `Rscript -e 'devtools::test(reporter = "summary")'`: passed.
+- `Rscript -e 'devtools::load_all(quiet = TRUE); pkgdown::build_article("phylogenetic-spatial", new_process = FALSE, quiet = TRUE)'`:
+  passed and refreshed `pkgdown-site/articles/phylogenetic-spatial.html`.
+- `Rscript -e 'pkgdown::check_pkgdown()'`: passed with no problems found.
+- `rg -n 'sd_phylo\(species\).*Planned|sd_phylo\(species\).*remain planned|Fitting, recovery tests, and reporting for this syntax remain planned|tip/internal-node.*remain planned|sd_phylo\(species\).*not implemented|sd_phylo1\(.*Implemented|sd_phylo2\(.*Implemented' README.md ROADMAP.md docs vignettes man pkgdown-site/articles/phylogenetic-spatial.html`:
+  no hits.
+- `git diff --check`: passed.
+
 ## 2026-05-14 -- Map Slice 20 sd_phylo direct-SD design
 
 Scope:

@@ -752,10 +752,24 @@ test_that("bivariate Gaussian sd1(id) and sd2(id) reject non-location and observ
     "not a supported"
   )
   expect_error(
+    drmTMB(
+      bf(
+        mu1 = y1 ~ x + (1 | p | id),
+        mu2 = y2 ~ x + (1 | p | id),
+        sigma1 = ~1,
+        sigma2 = ~1,
+        sd_phylo(id) ~ w1
+      ),
+      family = biv_gaussian(),
+      data = dat
+    ),
+    "only support"
+  )
+  expect_error(
     bf(
       mu1 = y1 ~ x + (1 | p | id),
       mu2 = y2 ~ x + (1 | p | id),
-      sd_phylo(id) ~ w1
+      sd_phylo1(id) ~ w1
     ),
     "planned but not implemented"
   )

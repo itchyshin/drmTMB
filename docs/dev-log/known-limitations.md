@@ -59,8 +59,9 @@
     replication, location SDs that are tiny relative to matching residual
     scales, and tiny log-`sigma` endpoint SDs in q=4 models. Family B direct
     structured-SD formulas such as
-  `sd_phylo(species) ~ x_species` now have a univariate tip-scaling design
-  contract, but fitting, recovery tests, and reporting remain planned.
+  `sd_phylo(species) ~ x_species` are implemented for univariate phylogenetic
+  location models; bivariate `sd_phylo1()` / `sd_phylo2()` and spatial
+  direct-SD siblings remain planned.
 - `corpairs()` currently reports only correlations that are already fitted:
   residual bivariate `rho12` summaries and ordinary univariate Gaussian `mu`
   random-effect correlations, plus the implemented univariate `mu`/`sigma`

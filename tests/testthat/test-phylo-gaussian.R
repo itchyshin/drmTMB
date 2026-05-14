@@ -63,6 +63,49 @@ new_phylo_gaussian_data <- function(
   )
 }
 
+new_sd_phylo_gaussian_data <- function(
+  seed = 20260821,
+  n_tip = 16L,
+  n_each = 10L,
+  alpha_sd_phylo = c(`(Intercept)` = log(0.55), z_species = 0.70),
+  sigma = 0.22
+) {
+  set.seed(seed)
+  tree <- balanced_ultrametric_tree(n_tip)
+  A <- drmTMB:::drm_phylo_tip_covariance(tree)
+  z_species <- seq(-1, 1, length.out = n_tip)
+  tau <- exp(
+    alpha_sd_phylo[["(Intercept)"]] +
+      alpha_sd_phylo[["z_species"]] * z_species
+  )
+  names(tau) <- tree$tip.label
+  base_phylo <- as.vector(t(chol(A)) %*% stats::rnorm(n_tip))
+  names(base_phylo) <- tree$tip.label
+  phylo_effect <- tau * base_phylo
+
+  species <- rep(tree$tip.label, each = n_each)
+  x <- stats::rnorm(length(species))
+  beta_mu <- c(`(Intercept)` = 0.4, x = -0.25)
+  y <- beta_mu[[1L]] +
+    beta_mu[[2L]] * x +
+    phylo_effect[species] +
+    stats::rnorm(length(species), sd = sigma)
+
+  list(
+    data = data.frame(
+      y = unname(y),
+      x = x,
+      species = species,
+      z_species = z_species[match(species, tree$tip.label)]
+    ),
+    tree = tree,
+    beta_mu = beta_mu,
+    alpha_sd_phylo = alpha_sd_phylo,
+    tau = tau,
+    sigma = sigma
+  )
+}
+
 new_biv_phylo_gaussian_data <- function(
   seed = 20260550,
   n_tip = 8L,
@@ -261,6 +304,86 @@ test_that("Gaussian mu supports phylogenetic random intercepts", {
   expect_lt(max(abs(unname(coef(fit, "mu")) - unname(sim$beta_mu))), 0.35)
   expect_lt(abs(unname(fit$sdpars$mu) - sim$sd_phylo), 0.45)
   expect_lt(abs(stats::sigma(fit)[[1L]] - sim$sigma), 0.10)
+})
+
+test_that("Gaussian mu supports sd_phylo(species) direct-SD models", {
+  sim <- new_sd_phylo_gaussian_data()
+  dat <- sim$data
+  tree <- sim$tree
+
+  fit <- drmTMB(
+    bf(
+      y ~ x + phylo(1 | species, tree = tree),
+      sigma ~ 1,
+      sd_phylo(species) ~ z_species
+    ),
+    family = gaussian(),
+    data = dat,
+    control = list(eval.max = 1000, iter.max = 1000)
+  )
+
+  sd_hat <- predict(fit, dpar = "sd_phylo(species)")
+  sd_link <- predict(fit, dpar = "sd_phylo(species)", type = "link")
+  profile <- profile_targets(fit)
+  sd_coef_rows <- profile[
+    grepl("^fixef:sd_phylo\\(species\\):", profile$parm),
+    ,
+    drop = FALSE
+  ]
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_named(coef(fit, "sd_phylo(species)"), names(sim$alpha_sd_phylo))
+  expect_named(fit$sdpars, "sd_phylo(species)")
+  expect_equal(exp(sd_link), sd_hat, tolerance = 1e-10)
+  expect_gt(
+    stats::cor(log(sd_hat), log(sim$tau[names(sd_hat)])),
+    0.90
+  )
+  expect_gt(coef(fit, "sd_phylo(species)")[["z_species"]], 0)
+  expect_lt(
+    max(abs(coef(fit, "mu") - sim$beta_mu)),
+    0.35
+  )
+  expect_lt(abs(stats::sigma(fit)[[1L]] - sim$sigma), 0.15)
+  expect_equal(sd_coef_rows$tmb_parameter, rep("beta_sd_mu", 2L))
+  expect_equal(sd_coef_rows$index, c(1L, 2L))
+  expect_true(all(sd_coef_rows$profile_ready))
+})
+
+test_that("sd_phylo(species) intercept-only matches scalar phylo SD likelihood", {
+  sim <- new_phylo_gaussian_data(seed = 20260822, n_tip = 8L, n_each = 6L)
+  dat <- sim$data
+  tree <- sim$tree
+
+  fit_scalar <- drmTMB(
+    bf(y ~ x + phylo(1 | species, tree = tree), sigma ~ 1),
+    family = gaussian(),
+    data = dat,
+    control = list(eval.max = 500, iter.max = 500)
+  )
+  fit_sd_phylo <- drmTMB(
+    bf(
+      y ~ x + phylo(1 | species, tree = tree),
+      sigma ~ 1,
+      sd_phylo(species) ~ 1
+    ),
+    family = gaussian(),
+    data = dat,
+    control = list(eval.max = 500, iter.max = 500)
+  )
+
+  expect_equal(fit_scalar$opt$convergence, 0)
+  expect_equal(fit_sd_phylo$opt$convergence, 0)
+  expect_equal(
+    as.numeric(stats::logLik(fit_sd_phylo)),
+    as.numeric(stats::logLik(fit_scalar)),
+    tolerance = 1e-5
+  )
+  expect_equal(
+    unname(coef(fit_sd_phylo, "sd_phylo(species)")[[1L]]),
+    log(unname(fit_scalar$sdpars$mu[["phylo(1 | species)"]])),
+    tolerance = 1e-5
+  )
 })
 
 test_that("fitted phylogenetic mu objective matches dense marginal likelihood", {

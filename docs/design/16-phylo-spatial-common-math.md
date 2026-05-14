@@ -648,8 +648,9 @@ they do not receive user-facing SD predictors. The predictor lives at observed
 tips and must be constant within species. This keeps `sd_phylo()` in the Box 1
 Family B lane: it replaces the scalar `log_sd_phylo` target for a univariate
 location `phylo()` effect rather than adding another layer to the q=4 Family A
-location-scale covariance block. The contract is now explicit; fitting,
-simulation recovery, and reporting remain Slice 21-22 work.
+location-scale covariance block. The univariate fitting and first recovery
+tests are implemented; bivariate `sd_phylo1()` / `sd_phylo2()` and spatial
+direct-SD siblings remain planned.
 
 Testing should be staged:
 

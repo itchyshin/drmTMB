@@ -225,7 +225,6 @@ parse_sd_lhs <- function(lhs) {
   if (
     fun %in%
       c(
-        "sd_phylo",
         "sd_phylo1",
         "sd_phylo2",
         "sd_spatial",
@@ -288,9 +287,16 @@ parse_sd_lhs <- function(lhs) {
   target_block <- parse_sd_string_arg(optional_args, optional_names, "block")
   explicit <- any(!is.na(c(target_dpar, target_coef, target_block)))
   if (explicit && !identical(fun, "sd")) {
+    hint <- if (fun %in% c("sd1", "sd2")) {
+      "Use {.code sd1(id) ~ x_group} or {.code sd2(id) ~ x_group} for implemented bivariate location random-effect SD models."
+    } else if (identical(fun, "sd_phylo")) {
+      "Use {.code sd_phylo(species) ~ x_species} for the univariate phylogenetic direct-SD model."
+    } else {
+      "Use the shorthand form without explicit target options."
+    }
     cli::cli_abort(c(
       "{.fn {fun}} does not accept explicit target options yet.",
-      "i" = "Use {.code {fun}(id) ~ x_group} for implemented bivariate location random-effect SD models."
+      "i" = hint
     ))
   }
   if (!is.na(target_dpar) && !identical(target_dpar, "mu")) {

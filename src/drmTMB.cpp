@@ -70,6 +70,9 @@ Type objective_function<Type>::operator()()
   DATA_MATRIX(X_zi);
   DATA_MATRIX(X_sd_mu);
   DATA_INTEGER(has_sd_mu_model);
+  DATA_MATRIX(X_sd_phylo);
+  DATA_INTEGER(has_sd_phylo_model);
+  DATA_INTEGER(sd_phylo_beta_offset);
   DATA_MATRIX(X_mu1);
   DATA_MATRIX(X_mu2);
   DATA_MATRIX(X_sigma1);
@@ -97,6 +100,7 @@ Type objective_function<Type>::operator()()
   DATA_IVECTOR(sigma_re_cross_cor);
   DATA_IVECTOR(sigma_re_cross_mu);
   DATA_INTEGER(has_phylo_mu);
+  DATA_IVECTOR(phylo_mu_sd_row);
   DATA_IVECTOR(phylo_mu_node_index);
   DATA_SPARSE_MATRIX(Q_phylo);
   DATA_SCALAR(log_det_Q_phylo);
@@ -486,8 +490,25 @@ Type objective_function<Type>::operator()()
     }
 
     if (has_phylo_mu == 1) {
+      vector<Type> sd_phylo_group(X_sd_phylo.rows());
+      vector<Type> log_sd_phylo_group(X_sd_phylo.rows());
+      if (has_sd_phylo_model == 1) {
+        for (int g = 0; g < X_sd_phylo.rows(); ++g) {
+          Type eta_sd = Type(0.0);
+          for (int k = 0; k < X_sd_phylo.cols(); ++k) {
+            eta_sd += X_sd_phylo(g, k) *
+              beta_sd_mu(sd_phylo_beta_offset + k);
+          }
+          log_sd_phylo_group(g) = eta_sd;
+          sd_phylo_group(g) = exp(eta_sd);
+        }
+      }
       for (int i = 0; i < y.size(); ++i) {
-        mu(i) += u_phylo(phylo_mu_node_index(i));
+        Type phylo_effect = u_phylo(phylo_mu_node_index(i));
+        if (has_sd_phylo_model == 1) {
+          phylo_effect *= sd_phylo_group(phylo_mu_sd_row(i));
+        }
+        mu(i) += phylo_effect;
       }
       int n_phylo = u_phylo.size();
       vector<Type> Q_u = Q_phylo * u_phylo;
@@ -495,19 +516,34 @@ Type objective_function<Type>::operator()()
       for (int j = 0; j < n_phylo; ++j) {
         quadratic += u_phylo(j) * Q_u(j);
       }
-      nll += Type(0.5) * (
-        Type(n_phylo) * log(Type(2.0) * M_PI) +
-        Type(2.0) * Type(n_phylo) * log_sd_phylo(0) -
-        log_det_Q_phylo +
-        exp(Type(-2.0) * log_sd_phylo(0)) * quadratic
-      );
+      if (has_sd_phylo_model == 1) {
+        nll += Type(0.5) * (
+          Type(n_phylo) * log(Type(2.0) * M_PI) -
+          log_det_Q_phylo +
+          quadratic
+        );
+      } else {
+        nll += Type(0.5) * (
+          Type(n_phylo) * log(Type(2.0) * M_PI) +
+          Type(2.0) * Type(n_phylo) * log_sd_phylo(0) -
+          log_det_Q_phylo +
+          exp(Type(-2.0) * log_sd_phylo(0)) * quadratic
+        );
+      }
       REPORT(u_phylo);
       REPORT(log_sd_phylo);
       REPORT(quadratic);
-      ADREPORT(log_sd_phylo);
-      vector<Type> sd_phylo = exp(log_sd_phylo);
-      REPORT(sd_phylo);
-      ADREPORT(sd_phylo);
+      if (has_sd_phylo_model == 1) {
+        REPORT(log_sd_phylo_group);
+        REPORT(sd_phylo_group);
+        ADREPORT(log_sd_phylo_group);
+        ADREPORT(sd_phylo_group);
+      } else {
+        ADREPORT(log_sd_phylo);
+        vector<Type> sd_phylo = exp(log_sd_phylo);
+        REPORT(sd_phylo);
+        ADREPORT(sd_phylo);
+      }
     }
 
     vector<Type> sigma = exp(log_sigma);

@@ -43,6 +43,9 @@ phylo_prior_tmb_data <- function(precision) {
       X_zi = dummy_matrix,
       X_sd_mu = dummy_matrix,
       has_sd_mu_model = 0L,
+      X_sd_phylo = dummy_matrix,
+      has_sd_phylo_model = 0L,
+      sd_phylo_beta_offset = 0L,
       X_mu1 = dummy_matrix,
       X_mu2 = dummy_matrix,
       X_sigma1 = dummy_matrix,
@@ -70,6 +73,7 @@ phylo_prior_tmb_data <- function(precision) {
       sigma_re_cross_cor = 0L,
       sigma_re_cross_mu = 0L,
       has_phylo_mu = 0L,
+      phylo_mu_sd_row = 0L,
       phylo_mu_node_index = 0L,
       Q_phylo = precision$precision,
       log_det_Q_phylo = precision$log_det_precision

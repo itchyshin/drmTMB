@@ -132,7 +132,7 @@ location-scale-coscale model.
 | Matching labelled `phylo(1 | p | species, tree = tree)` terms in bivariate `mu1` and `mu2` | Implemented | The label is preserved in SD names, the fitted mean-mean correlation, `corpairs(block = "p")`, and profile-target names. |
 | Ordinary `(1 | p | id)` terms in all four bivariate `mu1`, `mu2`, `sigma1`, and `sigma2` formulas | Implemented first slice | One ordinary q=4 group block estimates six latent location-location, location-scale, and scale-scale correlations. |
 | Matching labelled `phylo()` terms in all four bivariate `mu1`, `mu2`, `sigma1`, and `sigma2` formulas | Implemented first slice | One constant q=4 phylogenetic block estimates four endpoint SDs and six latent location-scale correlations. Partial, unlabelled, mismatched, and slope forms remain rejected. |
-| `sd_phylo(species) ~ z` | Planned | This is the separate Box 1 direct-SD family, not a scale formula with a matching random effect. |
+| `sd_phylo(species) ~ z` | Implemented for univariate Gaussian `mu` | This is the separate Box 1 direct-SD family: species-level predictors model the SD of a phylogenetic location random effect at observed tips. |
 | `spatial(1 | site, coords = coords)` or `spatial(1 | site, mesh = mesh)` | Planned | Spatial will mirror the phylogenetic API after the phylogenetic structured-effect path is stable. |
 
 ## Mathematical contract
