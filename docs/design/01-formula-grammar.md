@@ -572,9 +572,11 @@ heterogeneous covariance-block model is designed and tested.
 `drm_formula()` parses structured-effect markers and stores them as structured
 metadata. The first fitted paths are intercept-only phylogenetic structure in
 the univariate Gaussian `mu` formula, matching bivariate `mu1`/`mu2`
-formulas, and matching labelled bivariate q=4 `mu1`/`mu2`/`sigma1`/`sigma2`
-blocks. Spatial terms, phylogenetic slopes, univariate phylogenetic `sigma`
-terms, and structured `rho12` effects remain planned.
+formulas, matching labelled bivariate q=4
+`mu1`/`mu2`/`sigma1`/`sigma2` phylogenetic blocks, and one coordinate-based
+univariate Gaussian spatial `mu` random intercept. Mesh/SPDE spatial fields,
+structured slopes, univariate phylogenetic `sigma` terms, spatial bivariate
+blocks, and structured `rho12` effects remain planned.
 
 The canonical phylogenetic syntax is:
 
@@ -587,26 +589,32 @@ The fitted implementation builds the sparse augmented A-inverse internally
 using the Hadfield and Nakagawa route. Dense covariance matrices are lower-level
 comparator or `gr()` inputs, not the main public phylogeny API.
 
-Reserved planned spatial syntax is:
+The first implemented spatial syntax is:
 
 ```r
 bf(y ~ x1 + spatial(1 | site, coords = coords), sigma ~ x2)
+```
+
+This fitted `coords` path builds a fixed coordinate covariance from the
+observed sites and estimates one structured spatial SD in the Gaussian `mu`
+formula. `coords` may contain one row per site or one row per observation,
+provided coordinates are constant within site after model-row filtering.
+
+The planned mesh/SPDE syntax is:
+
+```r
 bf(y ~ x1 + spatial(1 | site, mesh = mesh), sigma ~ x2)
 ```
 
-These calls are part of the formula grammar design but are not fitted yet.
-Here `coords` or `mesh` names the object that will be used to build an
-SPDE/GMRF precision. Exactly one of `coords` or `mesh` should be supplied.
-`coords` is the friendly data-level input: observed or site coordinates, from
-which `drmTMB` can build or validate a mesh-like scaffold. `mesh` is the
+Here `mesh` names the object that will be used to build an SPDE/GMRF
+precision. Exactly one of `coords` or `mesh` should be supplied. `coords` is
+the friendly data-level input: observed or site coordinates. `mesh` is the
 expert-control input for users who already built the finite-element scaffold.
 Mesh is not a biological sampling level; it is the numerical support needed for
-the scalable SPDE/GMRF route. A dense distance covariance could use only
-`coords`, but that would be a small-data comparator rather than the planned
-spatial default.
+the scalable SPDE/GMRF route.
 
 The parser currently reserves intercept-only and one-slope forms, but only the
-intercept-only phylogenetic `mu` form is fitted:
+intercept-only phylogenetic and coordinate-spatial `mu` forms are fitted:
 
 ```r
 phylo(1 | species, tree = tree)

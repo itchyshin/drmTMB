@@ -155,9 +155,11 @@ head(sigma(fit)^2) # fitted residual variances
   [Mean effects and residual heterogeneity](https://itchyshin.github.io/drmTMB/articles/meta-analysis.html).
 - **Structured Gaussian effects.** Use ordinary random effects,
   residual-scale random intercepts or independent random slopes in `sigma`,
-  `sd(group) ~ x`, or the implemented intercept-only phylogenetic path
-  `phylo(1 | species, tree = tree)`. Matching `phylo()` terms in bivariate
-  `mu1` and `mu2` fit the first phylogenetic mean-mean correlation slice. Read
+  `sd(group) ~ x`, the implemented intercept-only phylogenetic path
+  `phylo(1 | species, tree = tree)`, or the first coordinate-spatial path
+  `spatial(1 | site, coords = coords)` for univariate Gaussian `mu`. Matching
+  `phylo()` terms in bivariate `mu1` and `mu2` fit the first phylogenetic
+  mean-mean correlation slice. Read
   [Phylogenetic and spatial structured effects](https://itchyshin.github.io/drmTMB/articles/phylogenetic-spatial.html).
 
 ## Current boundaries

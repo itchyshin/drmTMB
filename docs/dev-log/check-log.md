@@ -2,6 +2,54 @@
 
 Record meaningful development checks here.
 
+## 2026-05-14 -- Slice 34 structured-dependence productization pass
+
+Scope:
+
+- refreshed the structured-dependence article so the first coordinate-spatial
+  path is shown as a fitted model, not only as a design note;
+- added a runnable small spatial example with `spatial(1 | site, coords =
+  coords)`, followed by `sdpars$mu`, `ranef(fit, "spatial_mu")`, and
+  `profile_targets()` output;
+- updated the model map so the first-page "what can I fit?" table includes the
+  coordinate-spatial path and the correlation-layer table separates fitted
+  spatial random effects from planned spatial correlations;
+- updated formula grammar, README, and ROADMAP wording so `coords` is fitted,
+  `mesh` remains the planned scalable SPDE/GMRF route, and Phase 18 is visible
+  in the release-boundary summary;
+- rebuilt local pkgdown pages so `pkgdown-site/ROADMAP.html` contains both the
+  early Phase 18 pointer and the Phase 18 heading.
+
+Checks:
+
+- `PATH=/opt/homebrew/bin:$PATH air format README.md ROADMAP.md docs/design/01-formula-grammar.md vignettes/model-map.Rmd vignettes/phylogenetic-spatial.Rmd`:
+  passed.
+- `git diff --check`: passed.
+- Spatial example smoke check through `Rscript - <<'RS' ... RS`: passed and
+  printed `spatial(1 | site)`, `spatial_mu` conditional effects, and
+  profile-ready `sd:mu:spatial(1 | site)`.
+- `Rscript -e 'devtools::test(filter = "spatial-gaussian|package-skeleton", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'devtools::load_all(quiet = TRUE); pkgdown::build_article("phylogenetic-spatial", new_process = FALSE, quiet = TRUE); pkgdown::build_article("model-map", new_process = FALSE, quiet = TRUE)'`:
+  passed and refreshed the two affected local articles.
+- `PATH=/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::build_site()'`: passed
+  and refreshed local `pkgdown-site` pages, including `ROADMAP.html`,
+  `articles/model-map.html`, and `articles/phylogenetic-spatial.html`.
+- `PATH=/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed with no problems found.
+- `rg -n "Phase 18 records|phase-18-visualization|Do nearby sites|fit_spatial <-|spatial\\(1 \\| site, coords = coords\\).*implemented|profile_targets\\(fit_spatial" pkgdown-site/ROADMAP.html pkgdown-site/articles/model-map.html pkgdown-site/articles/phylogenetic-spatial.html pkgdown-site/index.html --glob '!pkgdown-site/search.json'`:
+  confirmed the local rendered Phase 18 and spatial-example outputs.
+- `rg -n "spatial fields remain planned|Reserved planned spatial syntax|These calls are part of the formula grammar design but are not fitted yet|spatial terms.*remain planned|spatial.*not fitted yet|will currently reject spatial|coords = coords\\).*not implemented" README.md ROADMAP.md docs/design docs/dev-log/known-limitations.md vignettes pkgdown-site --glob '!pkgdown-site/search.json'`:
+  returned no stale fitted-versus-planned contradictions.
+
+Known limitations:
+
+- This is a docs/productization slice only; it does not add spatial mesh/SPDE,
+  spatial q=4, spatial direct-SD, or spatial `corpair()` fitting.
+- `pkgdown-site/` is local build output and ignored by git; the public website
+  will show the updates after the branch is pushed and the pkgdown workflow
+  deploys from source.
+
 ## 2026-05-14 -- Slice 33 coordinate spatial random intercept foundation
 
 Scope:

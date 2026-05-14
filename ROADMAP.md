@@ -11,10 +11,12 @@ distributional regression models using TMB.
   double-hierarchical individual-difference endpoint.
 - Release boundary: Phase 9 is closed at the implemented ordinal and
   denominator-aware MVPs. The first Phase 11 bivariate `mu1`/`mu2`
-  random-intercept covariance slice is now implemented, while richer
-  bivariate random slopes, residual-scale covariance, structured covariance,
-  and the full double-hierarchical endpoint remain roadmap work for later
-  releases.
+  random-intercept covariance slice is now implemented. Phase 18 records the
+  visualization and marginal-effects layer that should make fitted location,
+  scale, coscale, random-effect SD, and latent correlation results easier to
+  inspect across model families. Richer bivariate random slopes,
+  residual-scale covariance, structured covariance, and the full
+  double-hierarchical endpoint remain roadmap work for later releases.
 - Completed before bumping the version:
   - `devtools::check()` passes with 0 errors, 0 warnings, and 0 notes;
   - `devtools::test()` and `pkgdown::check_pkgdown()` pass;

@@ -95,6 +95,35 @@ simulate_phylo_q4_traits <- function(seed = 20260802) {
     )
   )
 }
+
+simulate_spatial_location_data <- function(seed = 20260534) {
+  set.seed(seed)
+  sites <- paste0("site_", seq_len(12))
+  theta <- seq(0, 1.8 * pi, length.out = length(sites))
+  coords <- data.frame(
+    x = cos(theta) + seq_along(sites) / 30,
+    y = sin(theta)
+  )
+  rownames(coords) <- sites
+
+  distance <- as.matrix(dist(coords))
+  range <- stats::median(distance[distance > 0])
+  spatial_cov <- exp(-distance / range)
+  diag(spatial_cov) <- diag(spatial_cov) + 1e-6
+  spatial_effect <- as.vector(t(chol(spatial_cov)) %*% rnorm(length(sites), sd = 0.45))
+  names(spatial_effect) <- sites
+
+  site <- rep(sites, each = 6)
+  temp <- rnorm(length(site))
+  depth <- rnorm(length(site))
+  sigma <- exp(-1.25 + 0.15 * depth)
+  y <- 0.4 + 0.35 * temp + spatial_effect[site] + rnorm(length(site), sd = sigma)
+
+  list(
+    data = data.frame(y = y, temp = temp, depth = depth, site = site),
+    coords = coords
+  )
+}
 ```
 
 Phylogenetic and spatial dependence are structured random effects. The first
@@ -105,18 +134,24 @@ phylogenetic location SDs and their mean-mean correlation. Matching labelled
 `phylo()` terms across `mu1`, `mu2`, `sigma1`, and `sigma2` now fit the first
 constant bivariate phylogenetic location-scale block. The first
 predictor-dependent phylogenetic correlation regression is also fitted for the
-q=2 `mu1`-`mu2` location-location row. Spatial fields, phylogenetic slopes, and
+q=2 `mu1`-`mu2` location-location row. The first coordinate-based spatial path,
+`spatial(1 | site, coords = coords)`, is fitted for univariate Gaussian
+location models. Mesh/SPDE spatial fields, structured random slopes, and
 predictor-dependent q=4 location-scale or scale-scale phylogenetic correlations
 remain planned extensions.
 
-The scientific question for the implemented path is simple:
+The scientific questions for the implemented structured paths are simple:
 
 > Do predictors explain species trait means after accounting for similarity
-> among related species?
+> among related species? Do predictors explain a response after accounting for
+> smooth coordinate-based site deviations?
 
-In the first fitted path, `species` indexes the rows in the data and `tree`
-supplies the relatedness among those species. The model estimates a
-phylogenetic deviation in the location parameter `mu` for each species.
+For phylogenetic models, `species` indexes the rows in the data and `tree`
+supplies the relatedness among those species. For spatial models, `site`
+indexes the rows in the data and `coords` supplies one coordinate pair per
+site, or one row per observation when coordinates are constant within site. In
+both cases, the first fitted spatial or phylogenetic term is a structured
+Gaussian deviation in the location parameter `mu`.
 
 Throughout this article, `Normal(a, b)` and `MVN(a, B)` use variance or
 covariance as the second argument.
@@ -851,26 +886,45 @@ latent phylogenetic correlations.
 ## Implemented first slice: spatial random intercepts
 
 Spatial fields are deliberately shaped to look parallel to phylogenetic
-effects. The first fitted path is a coordinate-based univariate Gaussian
-location random intercept:
+effects. The first fitted path is a coordinate-based univariate Gaussian `mu`
+random intercept. The example below keeps the data deliberately small so the
+model can be rebuilt inside the article:
 
-```r
-drmTMB(
+```{r}
+spatial_example <- simulate_spatial_location_data()
+spatial_dat <- spatial_example$data
+coords <- spatial_example$coords
+
+fit_spatial <- drmTMB(
   drm_formula(
     y ~ depth + temp + spatial(1 | site, coords = coords),
-    sigma ~ temp
+    sigma ~ depth
   ),
   family = gaussian(),
-  data = dat
+  data = spatial_dat
 )
+```
+
+The fitted spatial SD is a structured location-scale component, not the
+residual `sigma`:
+
+```{r}
+fit_spatial$sdpars$mu
+head(ranef(fit_spatial, "spatial_mu")$terms[[1]])
+profile_targets(fit_spatial, ready_only = TRUE)[
+  grep("spatial", profile_targets(fit_spatial, ready_only = TRUE)$parm),
+  c("parm", "estimate", "profile_ready")
+]
 ```
 
 The fitted `coords` path accepts either one row per site or one row per
 observation, provided coordinates are constant within each site. Internally,
-the current slice builds a fixed exponential covariance from pairwise site
+this first slice builds a fixed exponential covariance from pairwise site
 distances, inverts it to a precision matrix, and estimates one spatial SD. This
 is a small-data foundation and recovery target, not the scalable mesh/SPDE
-implementation.
+implementation. The conditional spatial effects from `ranef()` are shrunken
+site deviations in the location predictor after the fixed effects and the
+spatial covariance have been estimated.
 
 The planned `mesh` argument plays a different role. A `mesh` is the
 computational scaffold for an SPDE/GMRF field: a triangular network of vertices
