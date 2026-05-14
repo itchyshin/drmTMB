@@ -720,9 +720,26 @@ test_that("bivariate Gaussian fits ordinary q2 corpair regression for mu1/mu2 bl
   pair_ci <- corpairs(fit, level = "group", conf.int = TRUE)
   cor_hat <- predict(fit, dpar = dpar)
   cor_link <- predict(fit, dpar = dpar, type = "link")
+  ci_newdata <- data.frame(ecology = 0.15)
+  row.names(ci_newdata) <- "ecology_mid"
+  cor_ci <- confint(
+    fit,
+    parm = dpar,
+    level = 0.70,
+    method = "profile",
+    newdata = ci_newdata,
+    trace = FALSE,
+    ystep = 0.45
+  )
+  cor_at_newdata <- predict(fit, newdata = ci_newdata, dpar = dpar)
   targets <- profile_targets(fit)
   cor_targets <- targets[startsWith(targets$parm, paste0("fixef:", dpar)), ]
   cor_rows <- grepl(dpar, row.names(summary(fit)$coefficients), fixed = TRUE)
+  parameter_row <- summary(fit)$parameters[
+    summary(fit)$parameters$dpar == dpar,
+    ,
+    drop = FALSE
+  ]
 
   expect_equal(fit$opt$convergence, 0)
   expect_true(fit$sdr$pdHess)
@@ -738,6 +755,14 @@ test_that("bivariate Gaussian fits ordinary q2 corpair regression for mu1/mu2 bl
   expect_equal(pair$max, max(cor_hat), tolerance = 1e-12)
   expect_equal(pair$link_estimate, mean(cor_link), tolerance = 1e-12)
   expect_equal(pair_ci$conf.status, "newdata_required")
+  expect_equal(cor_ci$parm, paste0(dpar, "[ecology_mid]"))
+  expect_equal(cor_ci$scale, "response")
+  expect_equal(cor_ci$transformation, "random_effect_correlation_tanh")
+  expect_equal(cor_ci$tmb_parameter, "beta_cor_mu")
+  expect_true(is.na(cor_ci$index))
+  expect_lt(cor_ci$lower, cor_at_newdata)
+  expect_gt(cor_ci$upper, cor_at_newdata)
+  expect_equal(parameter_row$profile_note, "use_confint_newdata")
   expect_equal(nrow(cor_targets), 2L)
   expect_equal(cor_targets$tmb_parameter, rep("beta_cor_mu", 2L))
   expect_true(all(cor_targets$profile_ready))

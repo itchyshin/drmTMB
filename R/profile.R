@@ -7,8 +7,9 @@
 #' constant distributional-scale, random-effect standard-deviation,
 #' random-effect correlation, the first bivariate phylogenetic mean-mean
 #' correlation, and constant residual-correlation targets.
-#' For predictor-dependent scale or residual-correlation formulae, supply
-#' `newdata` with `parm = "sigma"` or `parm = "rho12"` to profile the fitted
+#' For predictor-dependent scale, residual-correlation, or currently supported
+#' `corpair()` formulae, supply `newdata` with `parm = "sigma"`,
+#' `parm = "rho12"`, or the fitted `corpair(...)` dpar to profile the fitted
 #' response-scale value for each supplied row.
 #'
 #' Target names follow the profile target namespace. For fixed effects, use
@@ -30,9 +31,10 @@
 #' @param method Interval method: `"wald"` or `"profile"`. If `newdata` is
 #'   supplied and `method` is omitted, `method = "profile"` is used.
 #' @param newdata Optional data frame for response-scale profile intervals for
-#'   predictor-dependent `sigma`, `sigma1`, `sigma2`, or `rho12` values. Each
-#'   row is profiled separately by profiling its fixed-effect linear predictor
-#'   and then transforming the interval to the response scale.
+#'   predictor-dependent `sigma`, `sigma1`, `sigma2`, `rho12`, or fitted
+#'   `corpair()` values. Each row is profiled separately by profiling its
+#'   fixed-effect linear predictor and then transforming the interval to the
+#'   response scale.
 #' @param trace Logical; passed to [TMB::tmbprofile()] for profile intervals.
 #' @param ... Additional arguments passed to [TMB::tmbprofile()] when
 #'   `method = "profile"`.
@@ -872,7 +874,7 @@ profile_newdata_dpar <- function(object, parm) {
   if (is.null(parm)) {
     cli::cli_abort(c(
       "{.arg parm} must name one distributional parameter when {.arg newdata} is supplied.",
-      i = "Use {.val sigma}, {.val sigma1}, {.val sigma2}, or {.val rho12}."
+      i = "Use {.val sigma}, {.val sigma1}, {.val sigma2}, {.val rho12}, or a fitted {.fn corpair} dpar."
     ))
   }
   if (!is.character(parm) || length(parm) != 1L || is.na(parm)) {
@@ -881,15 +883,24 @@ profile_newdata_dpar <- function(object, parm) {
     )
   }
 
-  supported <- intersect(
+  scale_or_residual <- intersect(
     c("sigma", "sigma1", "sigma2", "rho12"),
     names(object$coefficients)
   )
-  supported <- supported[vapply(
-    supported,
+  scale_or_residual <- scale_or_residual[vapply(
+    scale_or_residual,
     function(dpar) drm_dpar_link(object, dpar) %in% c("log", "atanh_guarded"),
     logical(1)
   )]
+  corpair <- names(object$coefficients)[
+    startsWith(names(object$coefficients), "corpair(")
+  ]
+  corpair <- corpair[vapply(
+    corpair,
+    function(dpar) identical(drm_dpar_link(object, dpar), "atanh_re_guarded"),
+    logical(1)
+  )]
+  supported <- c(scale_or_residual, corpair)
   if (!parm %in% supported) {
     available <- if (length(supported)) {
       paste(supported, collapse = ", ")
@@ -897,7 +908,7 @@ profile_newdata_dpar <- function(object, parm) {
       "none for this fitted model"
     }
     cli::cli_abort(c(
-      "Response-scale profile intervals with {.arg newdata} are implemented for fitted scale and residual-correlation parameters.",
+      "Response-scale profile intervals with {.arg newdata} are implemented for fitted scale, residual-correlation, and ordinary q2 {.fn corpair} parameters.",
       i = "Requested {.val {parm}}; available for this fit: {available}."
     ))
   }

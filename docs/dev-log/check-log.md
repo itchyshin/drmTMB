@@ -13174,3 +13174,60 @@ Known limitations:
   predictor-dependent `corpair()` regressions remain planned;
 - response-scale confidence intervals for group-specific fitted correlations
   require a later newdata-aware interval design.
+
+## 2026-05-14 -- Slice 13 ordinary q2 corpair profile intervals
+
+Goal:
+
+- add response-scale profile-likelihood intervals for the fitted ordinary q=2
+  `corpair()` regression at user-supplied group-level predictor rows.
+
+Implemented:
+
+- extended `confint(..., method = "profile", newdata = ...)` so `parm` can be a
+  fitted `corpair(...)` distributional-parameter name;
+- transformed profiled ordinary q=2 `corpair()` linear predictors through the
+  guarded random-effect correlation link, `0.999999 * tanh(eta)`;
+- updated `predict()` and `confint()` documentation so fitted `corpair()`
+  values are described as correlation-scale response predictions;
+- updated summary parameter notes so fitted `corpair()` ranges say
+  `use_confint_newdata`;
+- left `corpairs(conf.int = TRUE)` on `conf.status = "newdata_required"` for
+  modelled rows, because that table row is a mean and range over groups rather
+  than one profile target;
+- updated NEWS, profile-CI design, known limitations, and the
+  phylogenetic-spatial interval guidance.
+
+Checks run:
+
+- `/opt/homebrew/bin/air format R/profile.R R/methods.R tests/testthat/test-biv-gaussian.R tests/testthat/test-profile-targets.R NEWS.md docs/design/12-profile-likelihood-cis.md docs/dev-log/known-limitations.md vignettes/phylogenetic-spatial.Rmd docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-14-slice-13-ordinary-q2-corpair-profile-intervals.md`:
+  passed.
+- `/Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::document()'`:
+  passed and refreshed `man/confint.drmTMB.Rd` and `man/predict.drmTMB.Rd`.
+- `/Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::load_all(quiet = TRUE); devtools::test(filter = "biv-gaussian", reporter = "summary")'`:
+  passed.
+- `/Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::test(filter = "profile-targets", reporter = "summary")'`:
+  passed after updating the expanded newdata error message expectation.
+- `/Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::load_all(quiet = TRUE); devtools::test(filter = "biv-gaussian|profile-targets", reporter = "summary")'`:
+  passed after roxygen regeneration.
+- `PATH=/opt/homebrew/bin:$PATH /Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::load_all(quiet = TRUE); pkgdown::build_article("phylogenetic-spatial", new_process = FALSE, quiet = TRUE); pkgdown::build_reference()'`:
+  passed and refreshed the local phylogenetic-spatial article plus
+  `confint()`/`predict()` reference pages. The first attempt without
+  `/opt/homebrew/bin` on `PATH` failed because pandoc was unavailable to R.
+- `PATH=/opt/homebrew/bin:$PATH /Library/Frameworks/R.framework/Resources/bin/Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed.
+- `/Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::test(reporter = "summary")'`:
+  passed.
+- `rg -n 'scale and residual-correlation|row-specific response-scale `sigma`, `sigma1`, `sigma2`, and `rho12`|fitted_range_only|newdata_required|corpair\(\)' NEWS.md R man docs/design docs/dev-log/known-limitations.md vignettes pkgdown-site/reference pkgdown-site/articles/phylogenetic-spatial.html tests`:
+  returned intentional `corpair()`, `newdata_required`, and
+  `fitted_range_only` hits; the stale profile-target wording was updated.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- only the already-fitted ordinary q=2 `mu1`-`mu2` `corpair()` route receives
+  newdata profile intervals;
+- `corpairs()` interval columns still require a future design for modelled
+  summary rows if we want intervals for averages or extrema over groups;
+- q=4, phylogenetic, and spatial predictor-dependent `corpair()` intervals
+  remain blocked by their not-yet-fitted likelihoods.

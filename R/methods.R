@@ -1539,9 +1539,9 @@ deviance.drmTMB <- function(object, ...) {
 #'
 #' By default, predictions are returned on the distributional parameter's
 #' response scale. For positive scale parameters such as `sigma`, this means
-#' the exponentiated value. For bivariate residual correlation `rho12`, this
-#' means the correlation scale. Use `type = "link"` to return the linear
-#' predictor instead.
+#' the exponentiated value. For bivariate residual correlation `rho12` or a
+#' fitted `corpair()` model, this means the correlation scale. Use
+#' `type = "link"` to return the linear predictor instead.
 #'
 #' When `newdata = NULL`, predictions are for the fitted rows and include
 #' currently implemented conditional random-effect contributions for `mu`,
@@ -2481,7 +2481,11 @@ drm_summary_fitted_range_parameters <- function(object) {
 }
 
 drm_summary_range_profile_note <- function(dpar) {
-  if (dpar %in% c("sigma", "sigma1", "sigma2", "rho12")) {
+  if (
+    dpar %in%
+      c("sigma", "sigma1", "sigma2", "rho12") ||
+      startsWith(dpar, "corpair(")
+  ) {
     return("use_confint_newdata")
   }
   "fitted_range_only"

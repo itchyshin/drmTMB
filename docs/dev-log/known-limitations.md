@@ -88,7 +88,11 @@
   ordinary q=2 `mu1`/`mu2` location-location route. Phylogenetic, spatial,
   location-scale, scale-scale, and q=4 predictor-dependent latent correlation
   regressions remain planned. Use `rho12 = ~ x` for residual
-  within-observation correlation.
+  within-observation correlation. For the fitted ordinary q=2 route,
+  `confint(fit, parm = "corpair(...)", newdata = ...)` can profile
+  response-scale latent correlations at supplied group-level predictor rows,
+  but `corpairs(conf.int = TRUE)` still marks the summary row as
+  `newdata_required` because it reports a mean and range over groups.
   - Internal q4 phylogenetic algebra, the hidden TMB prior probe, and the public
     bivariate Gaussian q=4 phylogenetic location-scale endpoint now use the same
     endpoint order. The ordinary grouped q4 location-scale block,

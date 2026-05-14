@@ -1014,7 +1014,7 @@ test_that("profile confidence intervals reject unsupported targets clearly", {
       newdata = data.frame(x = 0),
       trace = FALSE
     ),
-    "scale and residual-correlation"
+    "scale, residual-correlation, and ordinary q2"
   )
 
   missing_obj <- fit

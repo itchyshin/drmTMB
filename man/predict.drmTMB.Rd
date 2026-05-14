@@ -29,9 +29,9 @@ parameter of a \code{drmTMB} fit.
 \details{
 By default, predictions are returned on the distributional parameter's
 response scale. For positive scale parameters such as \code{sigma}, this means
-the exponentiated value. For bivariate residual correlation \code{rho12}, this
-means the correlation scale. Use \code{type = "link"} to return the linear
-predictor instead.
+the exponentiated value. For bivariate residual correlation \code{rho12} or a
+fitted \code{corpair()} model, this means the correlation scale. Use
+\code{type = "link"} to return the linear predictor instead.
 
 When \code{newdata = NULL}, predictions are for the fitted rows and include
 currently implemented conditional random-effect contributions for \code{mu},
