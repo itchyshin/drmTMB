@@ -33,9 +33,13 @@ test_that("Gaussian sd(id) coefficients have aligned summary and vcov entries", 
   smry <- summary(fit)
 
   expect_true(all(c("sd(id):(Intercept)", "sd(id):w") %in% rownames(vc)))
-  expect_true(all(c("sd(id):(Intercept)", "sd(id):w") %in% rownames(smry$coefficients)))
+  expect_true(all(
+    c("sd(id):(Intercept)", "sd(id):w") %in% rownames(smry$coefficients)
+  ))
   expect_true(all(is.finite(diag(vc)[c("sd(id):(Intercept)", "sd(id):w")])))
-  expect_true(all(smry$coefficients[c("sd(id):(Intercept)", "sd(id):w"), "std_error"] > 0))
+  expect_true(all(
+    smry$coefficients[c("sd(id):(Intercept)", "sd(id):w"), "std_error"] > 0
+  ))
   expect_equal(
     smry$coefficients[c("sd(id):(Intercept)", "sd(id):w"), "estimate"],
     unname(coef(fit, "sd(id)")),
@@ -99,7 +103,10 @@ test_that("Gaussian supports multiple random-effect scale formulas", {
   expect_gt(stats::cor(log(sd_id), log(sim$tau_id)), 0.45)
   expect_gt(stats::cor(log(sd_site), log(sim$tau_site)), 0.35)
   expect_lt(max(abs(unname(coef(fit, "sd(id)")) - unname(sim$alpha_id))), 0.45)
-  expect_lt(max(abs(unname(coef(fit, "sd(site)")) - unname(sim$alpha_site))), 0.55)
+  expect_lt(
+    max(abs(unname(coef(fit, "sd(site)")) - unname(sim$alpha_site))),
+    0.55
+  )
 })
 
 test_that("Gaussian sd(id) reduces to constant random-intercept scale when slope is zero", {
@@ -183,19 +190,35 @@ test_that("Gaussian sd(id) rejects unsupported and ambiguous targets", {
     "No random-effect term matches"
   )
   expect_error(
-    drmTMB(bf(y ~ x + (1 | id), sigma ~ z, sd(site) ~ w), family = gaussian(), data = dat),
+    drmTMB(
+      bf(y ~ x + (1 | id), sigma ~ z, sd(site) ~ w),
+      family = gaussian(),
+      data = dat
+    ),
     "No random-effect term matches"
   )
   expect_error(
-    drmTMB(bf(y ~ x + (1 + x | id), sigma ~ z, sd(id) ~ w), family = gaussian(), data = dat),
+    drmTMB(
+      bf(y ~ x + (1 + x | id), sigma ~ z, sd(id) ~ w),
+      family = gaussian(),
+      data = dat
+    ),
     "Ambiguous random-effect scale target"
   )
   expect_error(
-    drmTMB(bf(y ~ x + (1 | id) + (0 + x | id), sigma ~ z, sd(id) ~ w), family = gaussian(), data = dat),
+    drmTMB(
+      bf(y ~ x + (1 | id) + (0 + x | id), sigma ~ z, sd(id) ~ w),
+      family = gaussian(),
+      data = dat
+    ),
     "Ambiguous random-effect scale target"
   )
   expect_error(
-    drmTMB(bf(y ~ x + (1 | p | id), sigma ~ z, sd(id) ~ w), family = gaussian(), data = dat),
+    drmTMB(
+      bf(y ~ x + (1 | p | id), sigma ~ z, sd(id) ~ w),
+      family = gaussian(),
+      data = dat
+    ),
     "Labelled random-effect scale targets"
   )
   expect_error(
@@ -209,12 +232,24 @@ test_that("Gaussian sd(id) rejects unsupported and ambiguous targets", {
 
   dat$w_obs <- stats::rnorm(nrow(dat))
   expect_error(
-    drmTMB(bf(y ~ x + (1 | id), sigma ~ z, sd(id) ~ w_obs), family = gaussian(), data = dat),
+    drmTMB(
+      bf(y ~ x + (1 | id), sigma ~ z, sd(id) ~ w_obs),
+      family = gaussian(),
+      data = dat
+    ),
     "varies within"
   )
   expect_error(
-    bf(y ~ x + (1 | id), sd(id, dpar = "mu") ~ w),
-    "support only"
+    drmTMB(
+      bf(
+        y ~ x + (1 | id),
+        sigma ~ z,
+        sd(id, dpar = "mu", coef = "(Intercept)") ~ w
+      ),
+      family = gaussian(),
+      data = dat
+    ),
+    "reserved but not implemented"
   )
   expect_error(
     bf(y ~ x + (1 | id), sd(id + site) ~ w),
@@ -222,14 +257,25 @@ test_that("Gaussian sd(id) rejects unsupported and ambiguous targets", {
   )
   expect_error(
     drmTMB(
-      bf(mu1 = y ~ x, mu2 = z ~ x, sigma1 = ~ 1, sigma2 = ~ 1, rho12 = ~ 1, sd(id) ~ w),
+      bf(
+        mu1 = y ~ x,
+        mu2 = z ~ x,
+        sigma1 = ~1,
+        sigma2 = ~1,
+        rho12 = ~1,
+        sd(id) ~ w
+      ),
       family = biv_gaussian(),
       data = dat
     ),
     "only support"
   )
   expect_error(
-    drmTMB(bf(y ~ x + (1 | id), sd(id) ~ w), family = stats::poisson(), data = dat),
+    drmTMB(
+      bf(y ~ x + (1 | id), sd(id) ~ w),
+      family = stats::poisson(),
+      data = dat
+    ),
     "Random-effect scale"
   )
 })

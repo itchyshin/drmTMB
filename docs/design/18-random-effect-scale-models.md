@@ -260,12 +260,17 @@ The parser must reject ambiguous shorthand. For example, if `id` has both a
 random intercept and a random slope, then `sd(id) ~ x1` is ambiguous because it
 does not say whether the intercept SD or slope SD is being modelled.
 
-Future explicit syntax should be considered:
+Explicit coefficient-specific syntax is now reserved but not fitted:
 
 ```r
 sd(id, dpar = "mu", coef = "(Intercept)") ~ x1
 sd(id, dpar = "mu", coef = "x1") ~ x2
 ```
+
+`drm_formula()` parses that grammar and stores the target, but `drmTMB()`
+rejects it before fitting. The likelihood still needs a covariance contract for
+predictor-dependent intercept and slope SDs, and tests must cover how constant
+or predictor-dependent correlations are handled when the SDs vary by group.
 
 The current implementation accepts `sd(id) ~ x1` only when there is exactly one
 matching univariate Gaussian `mu` random-intercept term for `id`, but it can

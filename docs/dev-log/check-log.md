@@ -12243,3 +12243,45 @@ Known limitations:
 - it does not implement predictor-dependent q=4 covariance blocks;
 - `sd1()` / `sd2()` remain valid for location-only labelled bivariate random
   intercepts, but not for the same group as an all-four Family A block.
+
+## 2026-05-13 -- Slice 19: explicit random-slope SD target reservation
+
+Goal:
+
+- reserve one unambiguous syntax for future coefficient-specific
+  random-effect SD models without fitting multi-random-slope scale regression
+  prematurely.
+
+Implemented:
+
+- extended `parse_sd_lhs()` so `drm_formula()` can parse
+  `sd(id, dpar = "mu", coef = "x", block = "p") ~ z`;
+- kept fitting explicitly out of scope: `drmTMB()` now rejects explicit
+  `sd()` targets with a message saying the grammar is reserved but not
+  implemented;
+- validated that explicit `sd()` targets are currently location-only
+  (`dpar = "mu"`) and that `sd1()` / `sd2()` do not accept explicit target
+  options;
+- updated formula grammar, random-effect scale design notes, known
+  limitations, and NEWS.
+
+Checks run:
+
+- `air format R/parse-formula.R R/drmTMB.R tests/testthat/test-package-skeleton.R tests/testthat/test-gaussian-random-effect-scale.R`:
+  passed.
+- `Rscript -e 'devtools::test(filter = "package-skeleton|gaussian-random-effect-scale", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'devtools::load_all(quiet = TRUE)'`: passed.
+- `Rscript -e 'devtools::test(filter = "package-skeleton|gaussian-random-effect-scale|biv-gaussian", reporter = "summary")'`:
+  passed.
+- `git diff --check`: passed.
+- `rg -n 'Future explicit syntax should be considered|sd\\(id, dpar = "mu"\\).*support only|Explicit coefficient-specific .* implemented|sd\\(id, dpar = "sigma"\\).*Reserved' R tests docs NEWS.md`:
+  no matches.
+
+Known limitations:
+
+- the reserved explicit syntax is not fitted;
+- random-slope SD regression still needs a covariance contract for
+  group-varying intercept and slope SDs and their correlations;
+- bivariate direct-SD models still use `sd1(group)` / `sd2(group)` without
+  explicit `dpar` or `coef` arguments.

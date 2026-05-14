@@ -76,6 +76,34 @@ test_that("drm_formula() captures meta-analysis and random-effect scale syntax",
   expect_match(deparse1(form$calls[[4]]), "sd\\(species\\)")
 })
 
+test_that("drm_formula() reserves explicit random-effect scale targets", {
+  form <- drm_formula(
+    y ~ x + (1 + x | id),
+    sd(id, dpar = "mu", coef = "x", block = "p") ~ z
+  )
+
+  entry <- form$entries[[2L]]
+  expect_equal(
+    entry$dpar,
+    'sd(id, dpar = "mu", coef = "x", block = "p")'
+  )
+  target <- drmTMB:::parse_sd_lhs(entry$lhs)
+  expect_equal(target$group, "id")
+  expect_equal(target$target_dpar, "mu")
+  expect_equal(target$target_coef, "x")
+  expect_equal(target$target_block, "p")
+  expect_equal(target$explicit, TRUE)
+
+  expect_error(
+    drm_formula(sd(id, dpar = "sigma") ~ z),
+    "reserved for location"
+  )
+  expect_error(
+    drm_formula(sd1(id, dpar = "mu1") ~ z),
+    "does not accept explicit target"
+  )
+})
+
 test_that("drm_formula() captures planned corpair formula syntax", {
   form <- drm_formula(
     mu1 = y1 ~ x + (1 | p | id),

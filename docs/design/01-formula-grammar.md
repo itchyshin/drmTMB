@@ -62,6 +62,7 @@ In this table, "coscale" means a model for residual correlation, currently
 | `(1 | id)` and `(0 + x1 | id)` in `sigma` | Implemented | Residual-scale random intercepts and independent numeric random slopes. |
 | `(1 | p | id)` in both `mu` and `sigma` | Implemented | First univariate location-scale covariance slice: matching labelled random intercepts create one mean-scale group-level correlation. |
 | `sd(id) ~ x_group` | Implemented | Random-effect scale model for one or more distinct unlabelled Gaussian `mu` random intercepts. |
+| `sd(id, dpar = "mu", coef = "x1") ~ x_group` | Reserved | Planned explicit coefficient-specific random-effect SD syntax for random slopes; `drmTMB()` rejects it until the covariance model and tests exist. |
 | `meta_known_V(V = V)` | Implemented | Known diagonal, block-diagonal, or dense sampling covariance with `family = gaussian()`; bivariate Gaussian known `V` uses a complete-row `2n` by `2n` row-paired matrix. |
 | `mu1`, `mu2`, `sigma1`, `sigma2`, `rho12` | Implemented for fixed effects | Bivariate Gaussian location-coscale model with predictor-dependent residual correlation. |
 | `(1 | p | id)` in both bivariate `mu1` and `mu2` | Implemented | First bivariate group-level covariance slice: matching labelled random intercepts create `mu1`/`mu2` random-intercept SDs and one group-level correlation. |
@@ -398,6 +399,24 @@ Here `sd1(id)` models the SD of the `mu1` location random intercept and
 Family B direct variance-component scale models. They are not residual
 `sigma1` or `sigma2` models, and they do not target random effects inside the
 `sigma1` or `sigma2` formulas.
+
+Reserved explicit random-effect scale targets use `dpar`, `coef`, and optional
+`block` arguments:
+
+```r
+bf(
+  y ~ x1 + (1 + x1 | id),
+  sigma ~ x2,
+  sd(id, dpar = "mu", coef = "(Intercept)") ~ x_group,
+  sd(id, dpar = "mu", coef = "x1") ~ x_group
+)
+```
+
+`drm_formula()` parses this grammar so future examples have one spelling, but
+`drmTMB()` rejects it until random-slope SD regression has a fitted covariance
+model and simulation tests. The implemented shorthand `sd(id) ~ x_group`
+remains limited to the unambiguous case with exactly one unlabelled Gaussian
+`mu` random intercept for `id`.
 
 Future correlated multi-slope syntax should allow larger model-matrix terms
 such as:

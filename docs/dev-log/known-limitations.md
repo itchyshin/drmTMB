@@ -23,6 +23,10 @@
   The same direct-SD syntax is rejected for a group that is already using the
   all-four ordinary q=4 Family A covariance block, because that would require a
   predictor-dependent four-dimensional covariance model.
+  Explicit coefficient-specific targets such as
+  `sd(id, dpar = "mu", coef = "x1") ~ x_group` are parsed as reserved grammar
+  but rejected by `drmTMB()` until random-slope SD regression has a covariance
+  model and tests.
 - Diagonal and dense full known-covariance Gaussian meta-analysis is
   implemented.
 - Bivariate Gaussian location-scale-coscale models are implemented with `mu1`,

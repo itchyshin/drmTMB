@@ -253,25 +253,96 @@ parse_sd_lhs <- function(lhs) {
   }
   arg_names[is.na(arg_names)] <- ""
 
-  if (length(args) != 1L || nzchar(arg_names[[1L]])) {
+  target_pos <- which(arg_names %in% c("", "group"))
+  if (length(target_pos) != 1L) {
     cli::cli_abort(c(
-      "Random-effect scale formulas currently support only {.code sd(group)}, {.code sd1(group)}, or {.code sd2(group)} on the left-hand side.",
+      "Random-effect scale formulas require exactly one grouping variable.",
       "x" = "Use syntax like {.code sd(id) ~ x_group} or {.code sd1(id) ~ x_group}.",
       "i" = "Explicit targets such as {.code sd(id, dpar = \"mu\", coef = \"(Intercept)\")} are planned for a later phase."
     ))
   }
-  if (!is.symbol(args[[1L]])) {
+  if (!is.symbol(args[[target_pos]])) {
     cli::cli_abort(c(
       "The {.fn {fun}} target must be a simple grouping variable.",
       "x" = "Use syntax like {.code {fun}(id) ~ x_group}."
     ))
   }
 
-  group <- as.character(args[[1L]])
+  optional_names <- arg_names[-target_pos]
+  optional_args <- args[-target_pos]
+  bad <- setdiff(optional_names, c("dpar", "coef", "block"))
+  if (length(bad) > 0L || any(!nzchar(optional_names))) {
+    cli::cli_abort(c(
+      "{.fn {fun}} currently accepts only {.arg dpar}, {.arg coef}, and {.arg block} options.",
+      "x" = "Use syntax like {.code sd(id, dpar = \"mu\", coef = \"(Intercept)\") ~ x_group}."
+    ))
+  }
+  if (any(duplicated(optional_names))) {
+    cli::cli_abort(
+      "{.fn {fun}} options cannot be repeated: {.val {unique(optional_names[duplicated(optional_names)])}}."
+    )
+  }
+
+  target_dpar <- parse_sd_string_arg(optional_args, optional_names, "dpar")
+  target_coef <- parse_sd_string_arg(optional_args, optional_names, "coef")
+  target_block <- parse_sd_string_arg(optional_args, optional_names, "block")
+  explicit <- any(!is.na(c(target_dpar, target_coef, target_block)))
+  if (explicit && !identical(fun, "sd")) {
+    cli::cli_abort(c(
+      "{.fn {fun}} does not accept explicit target options yet.",
+      "i" = "Use {.code {fun}(id) ~ x_group} for implemented bivariate location random-effect SD models."
+    ))
+  }
+  if (!is.na(target_dpar) && !identical(target_dpar, "mu")) {
+    cli::cli_abort(c(
+      "{.arg dpar} in explicit {.fn sd} targets is reserved for location random effects.",
+      "x" = "The supported planned value is {.val mu}, not {.val {target_dpar}}.",
+      "i" = "Use residual-scale formulas such as {.code sigma ~ ...} for residual variation."
+    ))
+  }
+
+  group <- as.character(args[[target_pos]])
   list(
     group = group,
     fun = fun,
-    dpar = paste0(fun, "(", group, ")")
+    dpar = format_sd_lhs_dpar(
+      fun,
+      group,
+      target_dpar,
+      target_coef,
+      target_block
+    ),
+    target_dpar = target_dpar,
+    target_coef = target_coef,
+    target_block = target_block,
+    explicit = explicit
+  )
+}
+
+parse_sd_string_arg <- function(args, arg_names, name) {
+  pos <- which(arg_names == name)
+  if (length(pos) == 0L) {
+    return(NA_character_)
+  }
+  value <- args[[pos]]
+  if (!is.character(value) || length(value) != 1L || is.na(value)) {
+    cli::cli_abort(c(
+      "{.arg {name}} in {.fn sd} must be a single string.",
+      "x" = "Use syntax like {.code sd(id, {name} = \"mu\") ~ x_group}."
+    ))
+  }
+  value
+}
+
+format_sd_lhs_dpar <- function(fun, group, dpar, coef, block) {
+  paste0(
+    fun,
+    "(",
+    group,
+    if (!is.na(dpar)) paste0(", dpar = \"", dpar, "\"") else "",
+    if (!is.na(coef)) paste0(", coef = \"", coef, "\"") else "",
+    if (!is.na(block)) paste0(", block = \"", block, "\"") else "",
+    ")"
   )
 }
 

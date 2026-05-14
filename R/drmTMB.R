@@ -3122,6 +3122,13 @@ parse_sd_mu_entry <- function(entry, mu_terms) {
     return(NULL)
   }
   target <- parse_sd_lhs(entry$lhs)
+  if (isTRUE(target$explicit)) {
+    cli::cli_abort(c(
+      "Explicit random-effect scale targets are reserved but not implemented yet.",
+      "x" = "{.code {entry$dpar}} names a target distributional parameter, coefficient, or block.",
+      "i" = "This implementation supports implicit {.code sd(group)} targets only when there is exactly one unlabelled Gaussian {.code mu} random intercept for the group."
+    ))
+  }
   target_group <- target$group
   matches <- which(vapply(
     mu_terms,
