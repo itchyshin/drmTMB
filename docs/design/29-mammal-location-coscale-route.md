@@ -116,9 +116,10 @@ drmTMB(
 
 These can assess one-trait phylogenetic signal and residual SD structure, but
 they do not estimate a bivariate phylogenetic correlation. The first fitted
-bivariate phylogenetic location slice can now estimate the mean-mean
-phylogenetic correlation with matching intercept-only `mu1`/`mu2` `phylo()`
-terms; phylogenetic scale and mean-scale correlations remain planned.
+bivariate phylogenetic location slice can estimate the mean-mean phylogenetic
+correlation with matching intercept-only `mu1`/`mu2` `phylo()` terms. Matching
+labelled all-four `phylo()` terms can now estimate the first constant q=4
+phylogenetic scale and mean-scale correlations.
 
 ## Correlation Names
 

@@ -87,16 +87,13 @@ For example, the body mass-litter size relationship in mammals can be asked at
 three levels: phylogenetic correlation, non-phylogenetic among-species
 correlation, and residual coscale `rho12 ~ lifestyle`.
 
-The first q=4 phylogenetic endpoint scaffold is deliberately internal. It
-evaluates the matrix-normal prior for augmented phylogenetic effects across
-`mu1`, `mu2`, `sigma1`, and `sigma2` using the existing sparse tree precision
-and a small dense Kronecker comparator in tests. The fitted bivariate slice now
-uses the `mu1`/`mu2` part of that contract for matching intercept-only
-`phylo()` terms. The full q=4 location-scale endpoint is still planned: the
-hidden TMB prior branch mirrors the complete q=4 algebra contract, and the
-companion planned-pair scaffold names the future `mean-mean`, four
-`mean-scale`, and `scale-scale` phylogenetic endpoint rows while keeping the
-unfitted rows out of `corpairs()`.
+The q=4 phylogenetic endpoint path evaluates the matrix-normal prior for
+augmented phylogenetic effects across `mu1`, `mu2`, `sigma1`, and `sigma2` using
+the existing sparse tree precision and a small dense Kronecker comparator in
+tests. The first public fitted path now accepts matching labelled all-four
+`phylo()` terms, reports the `mean-mean`, four `mean-scale`, and `scale-scale`
+phylogenetic endpoint rows through `corpairs()`, and keeps these latent
+correlations separate from residual `rho12`.
 
 ### gllvmTMB Source Map
 
@@ -124,7 +121,7 @@ Primary speed path:
 - use structured random-effect syntax such as
   `spatial(1 | site, coords = coords)` or `spatial(1 | site, mesh = mesh)`.
 
-Planned syntax:
+First fitted coordinate syntax:
 
 ```r
 bf(
@@ -134,12 +131,24 @@ bf(
 ```
 
 `coords` and `mesh` should be treated as two entry points to the same spatial
-field, not as two biological model types. `coords` identifies the observation
-or site coordinates used to build a mesh. `mesh` supplies an already-built
-finite-element scaffold plus the projection information needed to map mesh
-vertices back to observations. In both cases, the fitted quantity is a
-structured spatial random effect; the mesh itself is a computational support,
-not a response, predictor, or sampling level to interpret biologically.
+field, not as two biological model types. The first fitted coordinate path uses
+pairwise site distances to build a fixed exponential covariance, then inverts
+that covariance to a precision matrix. `mesh` remains the scalable SPDE/GMRF
+path: it supplies an already-built finite-element scaffold plus projection
+information needed to map mesh vertices back to observations. In both cases,
+the fitted quantity is a structured spatial random effect; the mesh itself is a
+computational support, not a response, predictor, or sampling level to
+interpret biologically.
+
+Mesh is therefore not required by the scientific idea of spatial dependence.
+It is required by the scalable SPDE/GMRF approximation. The current
+coordinate-covariance implementation is a small-data foundation and recovery
+target; it forms dense matrices before converting to a precision and does not
+yet share the large-data path with future sparse mesh work. The default user
+experience should remain `coords = coords`; the R layer can later build or
+validate a mesh-like object internally. The explicit `mesh = mesh` form is for
+users who need reproducible control over boundaries, coastlines, barriers, or
+highly uneven sampling.
 
 Planned mesh-explicit syntax:
 
@@ -149,6 +158,50 @@ bf(
   sigma ~ temp
 )
 ```
+
+### Mesh/SPDE Implementation Gate
+
+Do not turn `mesh = mesh` into fitted syntax until the mesh object contract is
+explicit. The first acceptable contract should name:
+
+- the mesh vertices and triangle topology;
+- the observation-to-mesh projection matrix or enough information to build it;
+- the spatial precision recipe, either a ready sparse precision matrix or the
+  Matérn/SPDE ingredients needed to construct one;
+- the coordinate reference system or a clear statement that coordinates are
+  already projected into a distance-preserving working scale;
+- the mapping from data rows to site levels and from site levels to projected
+  mesh rows;
+- the fitted parameters that belong to the spatial field, starting with one
+  field SD and only then adding range, anisotropy, barriers, or replicate
+  fields.
+
+The first mesh implementation should still fit only a univariate Gaussian `mu`
+random intercept. That keeps the comparator close to the current
+`coords = coords` path: both estimate one structured spatial SD, but the mesh
+route should use a sparse SPDE/GMRF precision and a projection matrix rather
+than a dense coordinate covariance. Spatial `sigma`, bivariate spatial q=4,
+spatial direct-SD models, and spatial `corpair()` regressions should wait until
+the mesh intercept has recovery evidence and diagnostics.
+
+Dependency and citation decisions are part of the gate. If `drmTMB` accepts
+`fmesher` objects or uses `fmesher` to build meshes, the package website,
+article, and manuscript should tell users to cite `fmesher` in addition to the
+SPDE method literature and `sdmTMB` precedent. If `fmesher` is optional, start
+with `Suggests` and clear errors when it is missing; do not make it a hard
+dependency until ordinary coordinate users need it. If any mesh helper, SPDE
+matrix builder, projection code, or test fixture is copied or closely adapted
+from another package, the same slice must update `inst/COPYRIGHTS`.
+
+Grace's minimum check gate for `mesh = mesh` is:
+
+- parser tests that unsupported mesh shapes fail with actionable messages;
+- a sparse-vs-dense or small-mesh comparator for one `mu` field;
+- a CRAN-safe recovery smoke test for the spatial SD;
+- `ranef()`, `sdpars`, `profile_targets()`, and `check_drm()` rows that use
+  spatial names, not phylogenetic names;
+- pkgdown documentation that separates `coords`, mesh, residual `rho12`, and
+  future spatial correlations.
 
 Later spatial random slopes should follow the same pattern:
 
@@ -175,6 +228,27 @@ with a sparse precision and a design/projection map. Phylogeny supplies
 `K = A_phy` and the fast path evaluates with sparse `A_phy^{-1}`. Space makes
 `K` implicit through `Q_spde`, with mesh-node fields projected to observations.
 The public terms can be different, but the TMB block should be shared.
+
+### Spatial Citation And Provenance Policy
+
+If the first spatial implementation only follows the published SPDE/GMRF idea,
+the user-facing docs should cite the methodological and software sources that
+made the route practical. At minimum, cite Lindgren, Rue, and Lindstrom (2011)
+for the SPDE link between Gaussian fields and GMRFs
+(`doi:10.1111/j.1467-9868.2011.00777.x`), and cite the `sdmTMB`
+[Journal of Statistical Software paper](https://www.jstatsoft.org/article/view/v115i02)
+when explaining the ecological TMB-plus-SPDE precedent. If `drmTMB` asks users
+to pass meshes or if it imports `fmesher`, also cite `fmesher` as software and
+ask users to cite it via `citation("fmesher")`.
+
+Citation and provenance have different jobs. Citations acknowledge method and
+software debts. `inst/COPYRIGHTS` records copied or closely adapted code. If a
+future slice ports mesh helpers, SPDE matrix construction, TMB template code, or
+test fixtures from `sdmTMB`, `fmesher`, `INLA`, `gllvmTMB`, or another project,
+the slice is not complete until `inst/COPYRIGHTS` names the source file, license,
+and adaptation. If the implementation only uses the same published mathematical
+idea and independent code, record citations in docs but do not imply code was
+ported.
 
 For phylogeny, the large-tree implementation should work with the expanded
 tree precision described by Hadfield and Nakagawa: include internal nodes,
@@ -218,20 +292,35 @@ group-level coefficient per group. A phylogenetic or spatial slope adds another
 structured latent vector or field, which is harder to separate from ordinary
 random effects, residual scale, and fixed effects.
 
+Multiple random factors are not unusual and should not be treated as a
+scientific error. The conservative rule is to keep them as separate additive
+blocks. For example, an ordinary individual block, a phylogenetic species block,
+and a later spatial site block can coexist, but `drmTMB` should not collapse
+them into one giant covariance matrix or estimate cross-factor `corpair()` rows
+before the simpler block-specific models are stable.
+
 Implementation should therefore proceed in this order:
 
 1. intercept-only phylogenetic or spatial structured effects in `mu`;
 2. one structured random slope in `mu`, with strong simulation recovery;
-3. at most a small number of structured slopes after diagnostics show the data
-   have enough replication and design variation;
+3. at most two structured `mu` slopes as an advanced path, after diagnostics
+   show enough replication and design variation;
 4. interaction slopes only as experimental models with explicit warnings;
 5. structured slopes in `sigma` or `rho12` only after the `mu` path is stable.
 
 The number of possible slopes is not a hard mathematical limit, but the package
-should impose conservative defaults and diagnostics. For spatially varying
-coefficients or phylogenetic slope variation, the user-facing syntax can be
-generous later; the first implementation should be sparse, staged, and easy to
-validate.
+should impose conservative defaults and diagnostics. Three or more structured
+slopes should remain a distant-future expert mode, not a near-term advertised
+feature.
+
+The first slope implementation should not estimate intercept-slope or
+slope-slope correlations. Those correlations multiply quickly and are usually
+less interpretable than the main structured location effect. A scientifically
+interesting later exception is the bivariate slope1-slope2 correlation for the
+same covariate across two responses, the kind of plasticity-syndrome question
+discussed by O'Dea, Noble, and Nakagawa (2021). That future model would require a
+coefficient-aware `corpair()` design, clear `corpairs()` labels, and recovery
+tests before it is documented as fitted support.
 
 ## Reuse Policy
 

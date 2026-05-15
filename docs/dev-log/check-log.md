@@ -2,6 +2,570 @@
 
 Record meaningful development checks here.
 
+## 2026-05-14 -- Slice 40 final local gate before merge
+
+Scope:
+
+- ran the final local gate for Slices 36-40 before committing and pushing;
+- included format, full test suite, pkgdown check, and full `devtools::check()`.
+
+Checks:
+
+- `PATH=/opt/homebrew/bin:$PATH air format NEWS.md R/check.R README.md ROADMAP.md docs/design/09-phylogenetic-and-spatial-speed.md docs/dev-log/check-log.md docs/dev-log/known-limitations.md docs/dev-log/after-task/2026-05-14-slice-36-spatial-check-drm-diagnostics.md docs/dev-log/after-task/2026-05-14-slice-37-spatial-tutorial-diagnostic-polish.md docs/dev-log/after-task/2026-05-14-slice-38-mesh-spde-design-gate.md docs/dev-log/after-task/2026-05-14-slice-39-phase-5-synthesis.md tests/testthat/test-check-drm.R vignettes/model-map.Rmd vignettes/phylogenetic-spatial.Rmd`:
+  passed.
+- `git diff --check`: passed.
+- `Rscript -e 'devtools::test(reporter = "summary")'`: passed.
+- `PATH=/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed with no problems found.
+- `Rscript -e 'devtools::check()'`: passed with 0 errors, 0 warnings, and
+  0 notes in 2m 23.6s.
+
+Known limitations:
+
+- GitHub Actions and public pkgdown deployment still need to run after push and
+  merge.
+
+## 2026-05-14 -- Slice 39 Phase 5 synthesis and local site rebuild
+
+Scope:
+
+- added a Phase 5 closure-boundary table to `ROADMAP.md`, separating
+  implemented univariate phylogenetic, bivariate phylogenetic, coordinate
+  spatial, and inference/output pieces from planned extensions;
+- updated `README.md` so the landing page names fitted phylogenetic
+  `corpairs()`, q=4 phylogenetic location-scale covariance, and the
+  coordinate-spatial `check_drm()` row;
+- rebuilt the local pkgdown site so `ROADMAP.html`, `index.html`, the
+  structured-dependence article, the model-map article, and the
+  `check_drm()` reference all reflect Slices 36-39.
+
+Checks:
+
+- `PATH=/opt/homebrew/bin:$PATH air format README.md ROADMAP.md docs/design/09-phylogenetic-and-spatial-speed.md docs/dev-log/known-limitations.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-14-slice-37-spatial-tutorial-diagnostic-polish.md docs/dev-log/after-task/2026-05-14-slice-38-mesh-spde-design-gate.md`:
+  passed.
+- `rg -n 'Phase 5 closure boundary|spatial_mu_diagnostics|Phase 18|Visualization, Marginal Effects|fitted phylogenetic `corpairs\(\)`|check_drm\(\) spatial diagnostic' README.md ROADMAP.md docs/design/09-phylogenetic-and-spatial-speed.md docs/dev-log/known-limitations.md vignettes/model-map.Rmd vignettes/phylogenetic-spatial.Rmd`:
+  confirmed the source synthesis.
+- `PATH=/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::build_site()'`: passed.
+- `rg -n 'Phase 5 closure boundary|Phase 18: Visualization|spatial_mu_diagnostics|Mesh/SPDE Implementation Gate|coordinate-spatial `mu` diagnostics|spatial diagnostic row' pkgdown-site/ROADMAP.html pkgdown-site/index.html pkgdown-site/articles/phylogenetic-spatial.html pkgdown-site/articles/model-map.html pkgdown-site/reference/check_drm.html --glob '!pkgdown-site/search.json'`:
+  confirmed rendered local site output.
+- `rg -n 'spatial fields remain planned|coords = coords\).*not implemented|spatial likelihood is not implemented|will currently reject spatial\(1 \| site, coords|Phase 18.*planned only|public site.*Phase 18.*done' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes pkgdown-site --glob '!pkgdown-site/search.json'`:
+  returned no stale fitted-versus-planned contradictions.
+
+Known limitations:
+
+- Local `pkgdown-site/` is ignored build output. The public website will update
+  after merge to the deployment branch and GitHub Actions completes the pkgdown
+  workflow.
+
+## 2026-05-14 -- Slice 38 mesh/SPDE design gate
+
+Scope:
+
+- added an explicit mesh/SPDE implementation gate to
+  `docs/design/09-phylogenetic-and-spatial-speed.md`;
+- named the minimum mesh object contract: vertices, topology, projection,
+  precision recipe, coordinate scale, row/site mapping, and fitted spatial
+  parameters;
+- recorded that `fmesher`/`sdmTMB`/SPDE citation guidance and `inst/COPYRIGHTS`
+  provenance updates are part of the gate before mesh support can be called
+  complete;
+- updated ROADMAP and known limitations to say the design contract is recorded
+  while the coded mesh schema, projection path, recovery tests, and mesh
+  fitting remain future work.
+
+Checks:
+
+- `PATH=/opt/homebrew/bin:$PATH air format docs/design/09-phylogenetic-and-spatial-speed.md ROADMAP.md docs/dev-log/known-limitations.md`:
+  passed.
+- `rg -n 'Mesh/SPDE Implementation Gate|coded mesh object schema|fmesher|inst/COPYRIGHTS|not the scalable mesh/SPDE route' docs/design/09-phylogenetic-and-spatial-speed.md ROADMAP.md docs/dev-log/known-limitations.md inst/COPYRIGHTS`:
+  confirmed the design gate, citation/provenance policy, and limitations
+  wording.
+
+Known limitations:
+
+- This is a design-gate slice. It does not fit `spatial(..., mesh = mesh)`, add
+  `fmesher`, or add SPDE matrices to TMB.
+
+## 2026-05-14 -- Slice 37 spatial tutorial diagnostic polish
+
+Scope:
+
+- updated the structured-dependence article so the coordinate-spatial example
+  shows `check_drm(fit_spatial)` immediately after `sdpars`, `ranef()`, and
+  `profile_targets()`;
+- explained that `spatial_mu_diagnostics` is separate from
+  `phylo_mu_replication` because the fitted layer is a coordinate site field;
+- updated the model-map correlation layer table so the first spatial slice
+  points readers to `check_drm()` as well as `ranef()` and `sdpars`.
+
+Checks:
+
+- `PATH=/opt/homebrew/bin:$PATH air format vignettes/phylogenetic-spatial.Rmd vignettes/model-map.Rmd docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-14-slice-36-spatial-check-drm-diagnostics.md`:
+  passed.
+- `Rscript -e 'devtools::load_all(quiet = TRUE); pkgdown::build_article("phylogenetic-spatial", new_process = FALSE, quiet = TRUE); pkgdown::build_article("model-map", new_process = FALSE, quiet = TRUE)'`:
+  passed and refreshed local rendered articles.
+- `rg -n 'spatial_mu_diagnostics|coordinate site field|minimum number of observations per site|check_drm\(\)' vignettes/phylogenetic-spatial.Rmd pkgdown-site/articles/phylogenetic-spatial.html vignettes/model-map.Rmd pkgdown-site/articles/model-map.html`:
+  confirmed source and rendered article wording.
+
+Known limitations:
+
+- This is a tutorial polish slice. It does not add new spatial likelihoods,
+  spatial maps, or mesh/SPDE support.
+
+## 2026-05-14 -- Slice 36 spatial check_drm diagnostics
+
+Scope:
+
+- added a `spatial_mu_diagnostics` row to `check_drm()` for the first fitted
+  coordinate-spatial Gaussian `mu` random intercept;
+- kept spatial diagnostics separate from `phylo_mu_replication`, so a site
+  coordinate field is no longer described as a phylogenetic species check;
+- reported site replication, fitted coordinate range, fitted spatial SD, and
+  the spatial-SD-to-residual-scale ratio;
+- added tests for the ok path, singleton-site note, tiny-spatial-SD note, and
+  non-finite spatial SD error.
+
+Checks:
+
+- `PATH=/opt/homebrew/bin:$PATH air format R/check.R tests/testthat/test-check-drm.R NEWS.md`:
+  passed.
+- `Rscript -e 'devtools::test(filter = "check-drm|spatial-gaussian", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'devtools::document()'`: passed and regenerated
+  `man/check_drm.Rd`.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- This diagnostic covers the fitted univariate coordinate-spatial `mu` path
+  only. Spatial q=4, spatial direct-SD, mesh/SPDE, and spatial `corpair()`
+  diagnostics remain future paths.
+
+## 2026-05-14 -- Slice 34 structured-dependence productization pass
+
+Scope:
+
+- refreshed the structured-dependence article so the first coordinate-spatial
+  path is shown as a fitted model, not only as a design note;
+- added a runnable small spatial example with `spatial(1 | site, coords =
+  coords)`, followed by `sdpars$mu`, `ranef(fit, "spatial_mu")`, and
+  `profile_targets()` output;
+- updated the model map so the first-page "what can I fit?" table includes the
+  coordinate-spatial path and the correlation-layer table separates fitted
+  spatial random effects from planned spatial correlations;
+- updated formula grammar, README, and ROADMAP wording so `coords` is fitted,
+  `mesh` remains the planned scalable SPDE/GMRF route, and Phase 18 is visible
+  in the release-boundary summary;
+- rebuilt local pkgdown pages so `pkgdown-site/ROADMAP.html` contains both the
+  early Phase 18 pointer and the Phase 18 heading.
+
+Checks:
+
+- `PATH=/opt/homebrew/bin:$PATH air format README.md ROADMAP.md docs/design/01-formula-grammar.md vignettes/model-map.Rmd vignettes/phylogenetic-spatial.Rmd`:
+  passed.
+- `git diff --check`: passed.
+- Spatial example smoke check through `Rscript - <<'RS' ... RS`: passed and
+  printed `spatial(1 | site)`, `spatial_mu` conditional effects, and
+  profile-ready `sd:mu:spatial(1 | site)`.
+- `Rscript -e 'devtools::test(filter = "spatial-gaussian|package-skeleton", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'devtools::load_all(quiet = TRUE); pkgdown::build_article("phylogenetic-spatial", new_process = FALSE, quiet = TRUE); pkgdown::build_article("model-map", new_process = FALSE, quiet = TRUE)'`:
+  passed and refreshed the two affected local articles.
+- `PATH=/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::build_site()'`: passed
+  and refreshed local `pkgdown-site` pages, including `ROADMAP.html`,
+  `articles/model-map.html`, and `articles/phylogenetic-spatial.html`.
+- `PATH=/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed with no problems found.
+- `rg -n "Phase 18 records|phase-18-visualization|Do nearby sites|fit_spatial <-|spatial\\(1 \\| site, coords = coords\\).*implemented|profile_targets\\(fit_spatial" pkgdown-site/ROADMAP.html pkgdown-site/articles/model-map.html pkgdown-site/articles/phylogenetic-spatial.html pkgdown-site/index.html --glob '!pkgdown-site/search.json'`:
+  confirmed the local rendered Phase 18 and spatial-example outputs.
+- `rg -n "spatial fields remain planned|Reserved planned spatial syntax|These calls are part of the formula grammar design but are not fitted yet|spatial terms.*remain planned|spatial.*not fitted yet|will currently reject spatial|coords = coords\\).*not implemented" README.md ROADMAP.md docs/design docs/dev-log/known-limitations.md vignettes pkgdown-site --glob '!pkgdown-site/search.json'`:
+  returned no stale fitted-versus-planned contradictions.
+
+Known limitations:
+
+- This is a docs/productization slice only; it does not add spatial mesh/SPDE,
+  spatial q=4, spatial direct-SD, or spatial `corpair()` fitting.
+- `pkgdown-site/` is local build output and ignored by git; the public website
+  will show the updates after the branch is pushed and the pkgdown workflow
+  deploys from source.
+
+## 2026-05-14 -- Slice 33 coordinate spatial random intercept foundation
+
+Scope:
+
+- implemented the first fitted spatial path:
+  `spatial(1 | site, coords = coords)` in univariate Gaussian `mu`;
+- accepted coordinates with one row per site or one row per observation, with a
+  guard that coordinates are constant within site;
+- used a fixed exponential coordinate covariance, inverted to a precision, and
+  reused the single structured-effect TMB prior path for the first spatial SD;
+- exposed `sdpars$mu["spatial(1 | site)"]`, `ranef(fit, "spatial_mu")`,
+  conditional `predict()` contributions, and a direct profile target
+  `sd:mu:spatial(1 | site)`;
+- kept `mesh`, spatial slopes, spatial `sigma`, bivariate spatial q=4 blocks,
+  spatial direct-SD models, and spatial `corpair()` regressions planned;
+- added a Phase 18 roadmap item for visualization, marginal effects,
+  `emmeans`-style compatibility, and ggplot-oriented helpers across all
+  `drmTMB` models.
+
+Checks:
+
+- `air format NEWS.md R/drmTMB.R R/formula-markers.R R/methods.R R/profile.R README.md ROADMAP.md docs/design/01-formula-grammar.md docs/design/03-likelihoods.md docs/design/09-phylogenetic-and-spatial-speed.md docs/design/12-profile-likelihood-cis.md docs/design/16-phylo-spatial-common-math.md docs/dev-log/known-limitations.md tests/testthat/test-gaussian-location-scale.R tests/testthat/test-spatial-gaussian.R vignettes/formula-grammar.Rmd vignettes/phylogenetic-spatial.Rmd vignettes/source-map.Rmd`:
+  passed.
+- `Rscript -e 'devtools::document()'`: passed and regenerated
+  `man/spatial.Rd` and `man/ranef.Rd`.
+- Initial focused
+  `Rscript -e 'devtools::test(filter = "spatial-gaussian|gaussian-location-scale|package-skeleton|profile-targets", reporter = "summary")'`:
+  failed once because the old mesh-error expectation still searched for
+  "planned, not implemented" and one new test used `coords = coords` without
+  binding a local `coords` object. Both were fixed.
+- Second focused
+  `Rscript -e 'devtools::test(filter = "spatial-gaussian|gaussian-location-scale|package-skeleton|profile-targets", reporter = "summary")'`:
+  passed.
+- Smoke output check
+  `Rscript -e 'devtools::load_all(quiet = TRUE); ...; fit <- drmTMB(... spatial(1 | site, coords = coords) ...); print(fit$sdpars); print(names(ranef(fit))); print(profile_targets(fit)[...])'`:
+  showed `spatial(1 | site)`, `spatial_mu`, and profile-ready
+  `sd:mu:spatial(1 | site)`.
+- `Rscript -e 'devtools::test(reporter = "summary")'`: passed.
+- `Rscript -e 'pkgdown::build_site()'`: passed and rebuilt `ROADMAP.html`,
+  `index.html`, `articles/formula-grammar.html`, `articles/model-map.html`,
+  `articles/phylogenetic-spatial.html`, `articles/source-map.html`,
+  `reference/spatial.html`, `reference/ranef.html`, and `news/index.html`.
+- `Rscript -e 'pkgdown::check_pkgdown()'`: passed with no problems found.
+- `rg -n 'spatial\(1 \| site, coords = coords\).*Planned|spatial terms are still planned|spatial likelihood is not implemented|routine spatial model fitting is still planned|will currently reject spatial|coords = coords\).*not implemented|spatial.*parsed and rejected' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes R tests man`:
+  only found correct mesh-specific planned wording.
+- `rg -n 'spatial_mu|spatial\(1 \| site\)|mesh fitting is planned|Visualization|marginal_effects|emmeans|ggplot' README.md ROADMAP.md NEWS.md docs vignettes R tests man`:
+  confirmed the fitted spatial labels and the new visualization roadmap phase.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- This is a coordinate-covariance foundation, not the scalable mesh/SPDE
+  implementation.
+- The internal TMB parameter names still use `u_phylo` and `log_sd_phylo` for
+  the single structured-effect backend; R-facing labels use `spatial_mu` and
+  `spatial(1 | site)`.
+- No spatial terms are fitted in `sigma`, bivariate models, q=4 blocks,
+  direct-SD models, or `corpair()` regression yet.
+
+## 2026-05-14 -- Map Slice 25 bivariate sd_phylo diagnostics and docs
+
+Scope:
+
+- extended `check_drm()` direct-SD diagnostics from univariate
+  `sd_phylo(species)` to bivariate `sd_phylo1(species)` /
+  `sd_phylo2(species)`;
+- added per-endpoint diagnostic rows with target endpoint, species group,
+  species replication, fitted SD range, and maximum fitted species-SD ratio;
+- added tests for both-endpoint and one-sided bivariate direct-SD diagnostics;
+- updated the structured-dependence article with the bivariate Box 1
+  direct-SD syntax and interpretation;
+- regenerated `man/check_drm.Rd` and rebuilt the local
+  `phylogenetic-spatial` pkgdown article.
+
+Checks:
+
+- `air format NEWS.md ROADMAP.md docs/dev-log/known-limitations.md docs/design/18-random-effect-scale-models.md vignettes/phylogenetic-spatial.Rmd R/check.R R/drmTMB.R tests/testthat/test-check-drm.R`:
+  passed.
+- `Rscript -e 'devtools::document()'`: passed and updated
+  `man/check_drm.Rd`.
+- Initial focused
+  `Rscript -e 'devtools::test(filter = "check-drm|phylo-gaussian|profile-targets|summary", reporter = "summary")'`:
+  failed because the old singleton test mutated the legacy flat
+  `observation_sd_row0` field instead of the new per-dpar row-index list, and
+  because the small bivariate fit could have unrelated diagnostics. The test
+  now mutates the per-dpar list and asserts the direct-SD rows directly.
+- Final focused
+  `Rscript -e 'devtools::test(filter = "check-drm|phylo-gaussian|profile-targets|summary", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'devtools::test(reporter = "summary")'`: passed.
+- `Rscript -e 'devtools::load_all(quiet = TRUE); pkgdown::build_article("phylogenetic-spatial", new_process = FALSE, quiet = TRUE)'`:
+  passed and wrote `pkgdown-site/articles/phylogenetic-spatial.html`.
+- `Rscript -e 'pkgdown::check_pkgdown()'`: passed with no problems found.
+- `rg -n 'sd_phylo1\(species\).*planned|sd_phylo2\(species\).*planned|sd_phylo1\(species\).*not implemented|sd_phylo2\(species\).*not implemented|bivariate `sd_phylo1\(\)`.*planned|bivariate `sd_phylo2\(\)`.*planned|univariate `sd_phylo\(\)` direct-SD diagnostic row|univariate `sd_phylo\(\)` path' README.md ROADMAP.md NEWS.md docs vignettes man pkgdown-site/articles/phylogenetic-spatial.html R tests`:
+  only historical Slice 22 check-log wording remains.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- Bivariate `sd_phylo1()` / `sd_phylo2()` diagnostics are still compact
+  first-pass checks; they do not replace broad simulation grids across tree
+  size, predictor strength, weak SD surfaces, or alternative tree shapes.
+- `summary(fit)$covariance` uses median fitted species SDs for direct-SD
+  endpoints because the true covariance is species-pair specific.
+- Spatial `sd_spatial*()` siblings begin in Slice 26 and remain planned in this
+  slice.
+
+## 2026-05-14 -- Map Slice 24 bivariate sd_phylo implementation
+
+Scope:
+
+- implemented bivariate Family B direct-SD formulas
+  `sd_phylo1(species) ~ z1` and `sd_phylo2(species) ~ z2` for matching
+  bivariate phylogenetic location random effects;
+- generalized the direct phylogenetic SD parser, model-frame construction,
+  TMB data, start/map plumbing, coefficient splitting, prediction, `sdpars`,
+  random-effect transforms, `summary()$covariance`, and `profile_targets()`;
+- kept the latent phylogenetic location-location correlation constant and
+  separate from residual `rho12`;
+- rejected mixtures with all-four q=4 phylogenetic location-scale blocks;
+- documented that `summary(fit)$covariance` uses a median fitted species-SD
+  summary for direct-SD endpoints because the true covariance is
+  species-pair specific.
+
+Checks:
+
+- `air format R/drmTMB.R R/parse-formula.R R/methods.R R/profile.R tests/testthat/test-phylo-gaussian.R tests/testthat/test-biv-gaussian.R tests/testthat/test-profile-targets.R src/drmTMB.cpp docs/design/01-formula-grammar.md docs/design/16-phylo-spatial-common-math.md docs/design/18-random-effect-scale-models.md`:
+  passed.
+- `Rscript -e 'devtools::load_all(quiet = TRUE)'`: passed.
+- Initial focused
+  `Rscript -e 'devtools::test(filter = "phylo-gaussian|biv-gaussian|profile-targets|summary", reporter = "summary")'`:
+  failed after Franklin's sidecar review because `summary()$covariance` still
+  assumed scalar phylogenetic SDs and `profile_targets()` routed
+  `sd_phylo1()` / `sd_phylo2()` coefficients to non-existent internal
+  parameters; both were fixed before closing the slice.
+- Final focused
+  `Rscript -e 'devtools::test(filter = "phylo-gaussian|profile-targets|summary|biv-gaussian", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'devtools::test(reporter = "summary")'`: passed.
+- `Rscript -e 'pkgdown::check_pkgdown()'`: passed with no problems found.
+- `rg -n 'beta_sd_phylo1|beta_sd_phylo2|sd_phylo1\(species\).*planned|sd_phylo2\(species\).*planned|sd_phylo1\(species\).*not implemented|sd_phylo2\(species\).*not implemented' R tests docs NEWS.md ROADMAP.md vignettes`:
+  no hits.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- This slice implements the fitted bivariate direct-SD path and focused tests,
+  but it does not add a `check_drm()` diagnostic row for bivariate
+  `sd_phylo1()` / `sd_phylo2()` surfaces.
+- Broad recovery grids across tree size, predictor strength, weak direct-SD
+  surfaces, and one-sided direct-SD models remain Slice 25 work.
+- Spatial `sd_spatial*()` siblings remain planned.
+
+## 2026-05-14 -- Map Slice 23 bivariate sd_phylo direct-SD design
+
+Scope:
+
+- documented the planned bivariate `sd_phylo1(species) ~ z1` /
+  `sd_phylo2(species) ~ z2` Family B contract;
+- specified that the targets are response-specific phylogenetic location
+  random-effect SD surfaces for `mu1` and `mu2`, not residual `sigma1`,
+  residual `sigma2`, or q=4 location-scale endpoint SDs;
+- recorded the intended covariance algebra
+  `Cov(a1_l, a2_m) = rho_phylo tau1_l A_lm tau2_m`, with residual `rho12`
+  remaining separate;
+- updated the formula grammar, likelihood design, shared phylo/spatial math,
+  random-effect scale design, roadmap, known limitations, and the parser hint
+  for planned `sd_phylo1()` / `sd_phylo2()` errors.
+
+Checks:
+
+- `air format R/parse-formula.R ROADMAP.md docs/design/01-formula-grammar.md docs/design/03-likelihoods.md docs/design/16-phylo-spatial-common-math.md docs/design/18-random-effect-scale-models.md docs/dev-log/known-limitations.md`:
+  passed.
+- `Rscript -e 'devtools::test(filter = "biv-gaussian|phylo-gaussian|package-skeleton", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'pkgdown::check_pkgdown()'`: passed with no problems found.
+- `rg -n 'sd_phylo1\(species\).*Implemented|sd_phylo2\(species\).*Implemented|sd_phylo1\(species\).*fits|sd_phylo2\(species\).*fits|bivariate `sd_phylo1\(\)`.*implemented|bivariate `sd_phylo2\(\)`.*implemented' README.md ROADMAP.md NEWS.md docs vignettes man pkgdown-site/articles/phylogenetic-spatial.html R tests`:
+  no hits.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- Slice 23 is design-only; `sd_phylo1()` / `sd_phylo2()` still error as planned
+  syntax.
+- The implementation, recovery tests, summary/predict methods, and diagnostics
+  are Slice 24/25 work.
+
+## 2026-05-14 -- Map Slice 22 sd_phylo recovery diagnostics
+
+Scope:
+
+- added a `check_drm()` diagnostic row for univariate
+  `sd_phylo(species) ~ x_species` fits;
+- report the target, species group, number of species, minimum fitted
+  observations per species, fitted direct-SD range, and maximum species-SD
+  ratio;
+- added a focused test covering the ordinary ok row, a single-species
+  replication note, and a non-finite fitted-SD error branch;
+- synchronized NEWS, roadmap, the random-effect scale design note, known
+  limitations, roxygen, and generated `man/check_drm.Rd`.
+
+Checks:
+
+- `air format R/check.R tests/testthat/test-check-drm.R NEWS.md ROADMAP.md docs/design/18-random-effect-scale-models.md docs/dev-log/known-limitations.md`:
+  passed.
+- `Rscript -e 'devtools::document()'`: passed and updated
+  `man/check_drm.Rd`.
+- First focused check
+  `Rscript -e 'devtools::test(filter = "check-drm|phylo-gaussian", reporter = "summary")'`:
+  failed because the new test used `tree = sim$tree`, which the formula parser
+  correctly rejects; fixed by binding `tree <- sim$tree` before the formula.
+- Second focused check
+  `Rscript -e 'devtools::test(filter = "check-drm|phylo-gaussian", reporter = "summary")'`:
+  failed because the mutated singleton diagnostic object inherited another
+  warning row, so the test now checks the targeted diagnostic row rather than
+  global `attr(x, "ok")`.
+- Third focused check
+  `Rscript -e 'devtools::test(filter = "check-drm|phylo-gaussian", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'devtools::test(reporter = "summary")'`: passed.
+- `Rscript -e 'pkgdown::check_pkgdown()'`: passed with no problems found.
+- `rg -n 'sd_phylo\(species\).*not implemented|sd_phylo\(species\).*unsupported|phylo_direct_sd_model.*planned|direct-SD surface diagnostics.*planned|check_drm\(\).*sd_phylo.*planned|univariate `sd_phylo\(\)`.*remain planned' README.md ROADMAP.md NEWS.md docs vignettes man pkgdown-site/articles/phylogenetic-spatial.html`:
+  no hits.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- Slice 22 hardens recovery diagnostics for the univariate `sd_phylo()` path;
+  it does not add a broad recovery grid across tree shape, predictor strength,
+  weak SD surfaces, or low species counts.
+- Bivariate `sd_phylo1()` / `sd_phylo2()` and spatial direct-SD diagnostics
+  remain planned.
+
+## 2026-05-14 -- Map Slice 21 univariate sd_phylo implementation
+
+Scope:
+
+- implemented univariate Gaussian `sd_phylo(species) ~ x_species` for
+  phylogenetic location random effects;
+- used a non-centred unit tree effect and observed-tip SD scaling so the
+  marginal tip covariance is `D_tip A_tip D_tip`;
+- exposed the fitted SD surface through `coef()`, `predict()`, `sdpars`,
+  `summary()`, and `profile_targets()`;
+- added recovery, intercept-only equivalence, bivariate rejection, and direct
+  TMB probe updates;
+- updated formula grammar, likelihood, phylogenetic math, random-effect scale
+  design, known limitations, NEWS, roadmap, roxygen docs, and the
+  phylogenetic-spatial article status table.
+
+Checks:
+
+- `Rscript -e 'devtools::load_all(quiet = TRUE)'`: passed.
+- `Rscript -e 'devtools::document()'`: passed and updated `man/drmTMB.Rd` and
+  `man/fixef.Rd`.
+- `Rscript -e 'devtools::test(filter = "phylo-gaussian|biv-gaussian|package-skeleton|profile-targets|summary", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'devtools::test(filter = "beta-binomial|beta-location-scale|phylo-gaussian|biv-gaussian|profile-targets", reporter = "summary")'`:
+  passed after tightening the non-Gaussian coefficient-splitter guard.
+- `Rscript -e 'devtools::test(filter = "phylo-utils|phylo-gaussian", reporter = "summary")'`:
+  passed after adding the new dummy TMB data fields to direct phylo-prior
+  probes.
+- `Rscript -e 'devtools::test(reporter = "summary")'`: passed.
+- `Rscript -e 'devtools::load_all(quiet = TRUE); pkgdown::build_article("phylogenetic-spatial", new_process = FALSE, quiet = TRUE)'`:
+  passed and refreshed `pkgdown-site/articles/phylogenetic-spatial.html`.
+- `Rscript -e 'pkgdown::check_pkgdown()'`: passed with no problems found.
+- `rg -n 'sd_phylo\(species\).*Planned|sd_phylo\(species\).*remain planned|Fitting, recovery tests, and reporting for this syntax remain planned|tip/internal-node.*remain planned|sd_phylo\(species\).*not implemented|sd_phylo1\(.*Implemented|sd_phylo2\(.*Implemented' README.md ROADMAP.md docs vignettes man pkgdown-site/articles/phylogenetic-spatial.html`:
+  no hits.
+- `git diff --check`: passed.
+
+## 2026-05-14 -- Map Slice 20 sd_phylo direct-SD design
+
+Scope:
+
+- defined the univariate Family B `sd_phylo(species) ~ x_species` contract as a
+  non-centred unit tree effect with observed-tip SD scaling;
+- recorded that the implied covariance is `D_tip A_tip D_tip`, while internal
+  nodes remain computational base-tree coordinates without user-facing SD
+  predictors;
+- synchronized the formula grammar, likelihood, phylogenetic math, random-effect
+  scale design, roadmap, NEWS, and known-limitations wording without claiming
+  fitted support.
+
+Checks:
+
+- `air format docs/design/18-random-effect-scale-models.md docs/design/16-phylo-spatial-common-math.md docs/design/01-formula-grammar.md docs/design/03-likelihoods.md docs/dev-log/known-limitations.md ROADMAP.md NEWS.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-14-map-slice-20-sd-phylo-design.md`:
+  passed.
+- `Rscript -e 'devtools::test(filter = "package-skeleton|biv-gaussian|phylo-gaussian", reporter = "summary")'`:
+  passed.
+- `rg -n 'tip/internal-node contract is explicit and tested|tip/internal-node covariance contract is explicit and tested|tip/internal-node scaling rule and simulation evidence|contract is still missing|sd_phylo\(species\).*Implemented' README.md ROADMAP.md NEWS.md docs vignettes pkgdown-site/articles/phylogenetic-spatial.html`:
+  no hits.
+- `Rscript -e 'pkgdown::check_pkgdown()'`: passed with no problems found.
+- `git diff --check`: passed.
+
+## 2026-05-13 -- Slice 17 q4 profile-target status guard
+
+Scope:
+
+- changed ordinary q4 `theta_re_cov` correlation rows in `profile_targets()` to
+  `target_type = "derived"` and `profile_ready = FALSE`;
+- kept q4 rows visible for inventory and summaries, but stopped them from being
+  treated as simple direct atanh-correlation targets;
+- updated the endpoint, assembler, known-limitations, and NEWS wording to say
+  ordinary q4 direct profile intervals remain planned.
+
+Checks:
+
+- `Rscript -e 'devtools::test(filter = "profile-targets|biv-gaussian|summary", reporter = "summary")'`:
+  passed.
+- `git diff --check`: passed.
+
+## 2026-05-13 -- Slice 16 ordinary q4 check_drm diagnostic
+
+Scope:
+
+- added a `biv_q4_random_effect_covariance` row to `check_drm()` for ordinary
+  all-four bivariate q4 covariance blocks;
+- reports q4 block count, group count, minimum group replication, singleton
+  groups, location SD ratio, log-`sigma` SD, maximum absolute latent
+  correlation, and the active correlation boundary;
+- added tests for the normal diagnostic row, near-boundary latent correlations,
+  and tiny log-`sigma` component SDs.
+
+Checks:
+
+- `Rscript -e 'devtools::test(filter = "check-drm", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'devtools::document()'`: passed and regenerated
+  `man/check_drm.Rd`.
+- `Rscript -e 'devtools::test(filter = "check-drm|biv-gaussian|summary|corpairs", reporter = "summary")'`:
+  passed.
+- `git diff --check`: passed.
+
+## 2026-05-13 -- Slice 15 corpair formula reservation
+
+Scope:
+
+- added exported `corpair()` formula marker documentation and pkgdown reference
+  indexing;
+- taught `drm_formula()` to parse
+  `corpair(group, block = "...", class = "...") ~ x` as planned latent
+  random-effect correlation syntax;
+- made `drmTMB()` reject parsed `corpair()` formulas clearly, separating future
+  predictor-dependent latent correlations from residual `rho12` and the
+  `corpairs()` extractor.
+
+Checks:
+
+- `Rscript -e 'devtools::document()'`: passed and wrote `man/corpair.Rd` plus
+  the `NAMESPACE` export.
+- `Rscript -e 'devtools::test(filter = "package-skeleton|biv-gaussian", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'pkgdown::check_pkgdown()'`: passed with no problems found.
+- `git diff --check`: passed.
+
+## 2026-05-13 -- Slice 14 ordinary q4 location-scale covariance block
+
+Scope:
+
+- enabled the all-four ordinary labelled random-intercept pattern
+  `(1 | p | id)` across bivariate `mu1`, `mu2`, `sigma1`, and `sigma2`;
+- added TMB q > 2 covariance-block plumbing for the bivariate Gaussian path,
+  with one non-centred latent vector, four SDs, six correlations, fitted
+  random-effect contributions, and `corpairs()` / `summary()` reporting;
+- updated formula grammar, likelihood, endpoint, assembler, known-limitations,
+  and NEWS wording so ordinary q4 is fitted while phylogenetic q4, spatial q4,
+  random-slope endpoint blocks, and `rho12` random effects remain planned.
+
+Checks:
+
+- `Rscript -e 'devtools::load_all(quiet = TRUE)'`: passed.
+- `Rscript -e 'devtools::test(filter = "biv-gaussian|covariance-block-registry|summary|corpairs", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'devtools::test(filter = "biv-gaussian|covariance-block-registry|summary|corpairs|profile-targets|check-drm", reporter = "summary")'`:
+  passed.
+- `rg -n 'full.*remain planned|full.*rejected|all four.*rejected|Reusing one bivariate covariance-block label|q=4.*remains planned|q4.*remain planned|ambiguous same-label|larger block remains planned' NEWS.md docs/design/01-formula-grammar.md docs/design/03-likelihoods.md docs/design/28-double-hierarchical-endpoint.md docs/design/30-labelled-covariance-block-assembler.md docs/dev-log/known-limitations.md`:
+  no stale q4-rejection matches in the synchronized status docs.
+
 ## 2026-05-13 -- Slice 13B phylo and species reader path
 
 Scope:
@@ -12070,3 +12634,1133 @@ Known limitations:
 - correlated residual-scale intercept-slope blocks remain planned;
 - labelled `mu`/`sigma` slope covariance remains planned;
 - bivariate `sigma1`/`sigma2` random effects remain planned.
+
+## 2026-05-13 -- Bivariate direct location random-effect SD formulas
+
+Goal:
+
+- implement the first Family B bivariate direct-SD slice without mixing it with
+  Family A scale-formula random effects.
+
+Implemented:
+
+- added parser support for `sd1(group)` and `sd2(group)` left-hand sides;
+- routed `sd1(id) ~ x_group` to the labelled `mu1` location random-intercept
+  SD and `sd2(id) ~ x_group` to the labelled `mu2` location random-intercept
+  SD in `biv_gaussian()` models;
+- passed the group-level SD design matrix through the existing TMB
+  `beta_sd_mu`, `X_sd_mu`, and `mu_re_sd_row` path for bivariate Gaussian
+  likelihoods;
+- exposed `coef()`, `predict()`, `sdpars`, summaries, and coefficient labels
+  for fitted `sd1()` / `sd2()` models through the existing random-effect scale
+  surfaces;
+- rejected planned-but-unimplemented `sd_phylo*()` / `sd_spatial*()` names and
+  unsupported `sd_sigma1()` / `sd_sigma2()` names at formula parse time;
+- updated the formula grammar, likelihood, random-effect scale model note,
+  known limitations, NEWS, and after-task report.
+
+Checks run:
+
+- `Rscript -e 'devtools::load_all(quiet = TRUE)'`: passed.
+- `Rscript -e 'devtools::test(filter = "biv-gaussian", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'devtools::test(filter = "biv-gaussian|gaussian-random-effect-scale", reporter = "summary")'`:
+  passed.
+- `air format R/parse-formula.R R/drmTMB.R R/methods.R
+  tests/testthat/test-biv-gaussian.R NEWS.md
+  docs/design/01-formula-grammar.md docs/design/03-likelihoods.md
+  docs/design/18-random-effect-scale-models.md
+  docs/dev-log/known-limitations.md docs/dev-log/check-log.md
+  docs/dev-log/after-task/2026-05-13-bivariate-direct-location-sd-formulas.md`:
+  passed.
+- `Rscript -e 'devtools::test(filter = "package-skeleton|biv-gaussian|gaussian-random-effect-scale", reporter = "summary")'`:
+  passed.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- this slice implements bivariate direct SD models for ordinary labelled
+  location random intercepts only;
+- `sd1()` and `sd2()` do not target residual `sigma1` or `sigma2`;
+- `sd_phylo()`, `sd_phylo1()`, `sd_phylo2()`, and spatial direct-SD variants
+  remain planned;
+- full q4 Family A location-scale covariance blocks and predictor-dependent
+  `corpair()` models remain planned.
+
+## 2026-05-13 -- Slice 18: direct-SD family boundary guard
+
+Goal:
+
+- keep the new bivariate direct-SD path from being accidentally mixed with the
+  all-four ordinary q=4 Family A covariance block, and record why
+  `sd_phylo()` still needs design before implementation.
+
+Implemented:
+
+- added an explicit `biv_gaussian()` guard that rejects `sd1(group)` /
+  `sd2(group)` formulas when the same group is already represented by the
+  all-four q=4 `mu1`/`mu2`/`sigma1`/`sigma2` covariance block;
+- added a bivariate regression test that exercises the clear Family A versus
+  Family B error instead of relying on an indirect missing-target failure;
+- updated the formula grammar, likelihood, random-effect scale design note,
+  phylo/spatial common-math note, known limitations, and NEWS;
+- documented that structured direct-SD targets such as `sd_phylo(species) ~ z`
+  require a tip/internal-node covariance contract before fitting.
+
+Checks run:
+
+- `air format R/drmTMB.R tests/testthat/test-biv-gaussian.R`: passed.
+- `Rscript -e 'devtools::test(filter = "biv-gaussian", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'devtools::load_all(quiet = TRUE)'`: passed.
+- `git diff --check`: passed.
+- `rg -n 'bivariate structured effects remain planned|only the intercept-only phylogenetic .* form is fitted|sd_phylo\\(species\\).*Implemented|sd1\\(id\\).*q=4.*Implemented' docs NEWS.md R tests`:
+  no matches.
+
+Known limitations:
+
+- this slice does not implement `sd_phylo()`;
+- it does not implement predictor-dependent q=4 covariance blocks;
+- `sd1()` / `sd2()` remain valid for location-only labelled bivariate random
+  intercepts, but not for the same group as an all-four Family A block.
+
+## 2026-05-13 -- Slice 19: explicit random-slope SD target reservation
+
+Goal:
+
+- reserve one unambiguous syntax for future coefficient-specific
+  random-effect SD models without fitting multi-random-slope scale regression
+  prematurely.
+
+Implemented:
+
+- extended `parse_sd_lhs()` so `drm_formula()` can parse
+  `sd(id, dpar = "mu", coef = "x", block = "p") ~ z`;
+- kept fitting explicitly out of scope: `drmTMB()` now rejects explicit
+  `sd()` targets with a message saying the grammar is reserved but not
+  implemented;
+- validated that explicit `sd()` targets are currently location-only
+  (`dpar = "mu"`) and that `sd1()` / `sd2()` do not accept explicit target
+  options;
+- updated formula grammar, random-effect scale design notes, known
+  limitations, and NEWS.
+
+Checks run:
+
+- `air format R/parse-formula.R R/drmTMB.R tests/testthat/test-package-skeleton.R tests/testthat/test-gaussian-random-effect-scale.R`:
+  passed.
+- `Rscript -e 'devtools::test(filter = "package-skeleton|gaussian-random-effect-scale", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'devtools::load_all(quiet = TRUE)'`: passed.
+- `Rscript -e 'devtools::test(filter = "package-skeleton|gaussian-random-effect-scale|biv-gaussian", reporter = "summary")'`:
+  passed.
+- `git diff --check`: passed.
+- `rg -n 'Future explicit syntax should be considered|sd\\(id, dpar = "mu"\\).*support only|Explicit coefficient-specific .* implemented|sd\\(id, dpar = "sigma"\\).*Reserved' R tests docs NEWS.md`:
+  no matches.
+
+Known limitations:
+
+- the reserved explicit syntax is not fitted;
+- random-slope SD regression still needs a covariance contract for
+  group-varying intercept and slope SDs and their correlations;
+- bivariate direct-SD models still use `sd1(group)` / `sd2(group)` without
+  explicit `dpar` or `coef` arguments.
+
+## 2026-05-13 -- Slice 20: bivariate q4 and phylo simulate smoke tests
+
+Goal:
+
+- make sure the new fitted bivariate covariance surfaces still work with the
+  public `simulate()` method.
+
+Implemented:
+
+- added conditional simulation smoke checks to the existing ordinary q=4
+  bivariate Gaussian test;
+- added conditional simulation smoke checks to the existing bivariate
+  phylogenetic `mu1`/`mu2` test;
+- checked simulation column names, row counts, numeric finite output, and
+  seed reproducibility without adding extra optimization cost.
+
+Checks run:
+
+- `air format tests/testthat/test-biv-gaussian.R tests/testthat/test-phylo-gaussian.R`:
+  passed.
+- `Rscript -e 'devtools::test(filter = "biv-gaussian|phylo-gaussian", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'devtools::load_all(quiet = TRUE)'`: passed.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- these are smoke tests for conditional response simulation from fitted models;
+- they do not simulate new random-effect draws from the fitted q4 or
+  phylogenetic covariance distributions.
+
+## 2026-05-13 -- Slice 21: corpairs location-class filter aliases
+
+Goal:
+
+- align fitted `corpairs()` filtering with the reserved `corpair()` class
+  vocabulary without renaming existing output classes.
+
+Implemented:
+
+- added `corpairs(class = "location-location")` as a filter alias for existing
+  `mean-mean` rows;
+- added `corpairs(class = "location-scale")` as a filter alias for existing
+  `mean-scale` rows;
+- added `location-slope` / `slope-location` aliases for the existing
+  `mean-slope` row class;
+- documented the alias bridge in roxygen, formula grammar, and the coscale
+  correlation-pairs design note;
+- added q4 regression checks for `location-location` and `location-scale`
+  class filters.
+
+Checks run:
+
+- `air format R/methods.R tests/testthat/test-biv-gaussian.R`: passed.
+- `Rscript -e 'devtools::document()'`: passed and regenerated
+  `man/corpairs.Rd`.
+- `Rscript -e 'devtools::test(filter = "biv-gaussian|corpairs|package-skeleton", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'devtools::load_all(quiet = TRUE)'`: passed.
+- `Rscript -e 'pkgdown::check_pkgdown()'`: passed.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- output rows still report `mean-mean`, `mean-scale`, and `mean-slope`;
+- this slice is a compatibility bridge, not a broad class-name migration.
+
+## 2026-05-13 -- Slice 22: formula grammar article status refresh
+
+Goal:
+
+- bring the user-facing formula grammar article into line with the implemented
+  q4, direct-SD, bivariate phylogenetic, and `corpair()` reservation slices.
+
+Implemented:
+
+- updated `vignettes/formula-grammar.Rmd` status rows for the ordinary all-four
+  q4 covariance block, `sd1()` / `sd2()` direct bivariate location SD formulas,
+  matching bivariate `mu1`/`mu2` phylogenetic location terms, and reserved
+  `corpair()` formulas;
+- refreshed the bivariate covariance section to show the all-four q4 syntax
+  and explain the `location-*` `corpairs()` filter aliases;
+- rebuilt the local pkgdown formula-grammar article for visual/browser review.
+
+Checks run:
+
+- `air format vignettes/formula-grammar.Rmd`: passed.
+- `Rscript -e "pkgdown::build_article('formula-grammar')"`: passed and wrote
+  `pkgdown-site/articles/formula-grammar.html`.
+- `Rscript -e 'devtools::test(filter = "package-skeleton|biv-gaussian|corpairs", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'pkgdown::check_pkgdown()'`: passed.
+- `rg -n 'future phylogenetic and spatial pair classes remain planned|full cross-parameter covariance blocks spanning more than one pair|ordinary q=4|sd1\\(id\\)|location-location|corpair\\(id' vignettes/formula-grammar.Rmd pkgdown-site/articles/formula-grammar.html`:
+  confirmed the new article text is present and stale phrases are absent.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- this slice refreshes the formula-grammar article only;
+- the generated `pkgdown-site/articles/formula-grammar.html` was rebuilt for
+  local review but remains a generated site artifact rather than the source of
+  truth.
+
+## 2026-05-14 -- Slice 23: structured-dependence article status refresh
+
+Goal:
+
+- update the reader-facing structured-dependence article so it separates the
+  implemented univariate and bivariate phylogenetic location paths from the
+  planned phylogenetic q=4, direct-SD, and spatial paths.
+
+Implemented:
+
+- revised the article opening so it no longer implies that only univariate
+  phylogenetic location effects are implemented;
+- added a compact current-status table for univariate `phylo()` in `mu`,
+  matching bivariate `mu1`/`mu2` phylogenetic location covariance, ordinary q=4
+  grouped covariance, planned phylogenetic scale/q=4, planned `sd_phylo()`,
+  and planned spatial effects;
+- rebuilt the local pkgdown `phylogenetic-spatial` article for browser review.
+
+Checks run:
+
+- `air format vignettes/phylogenetic-spatial.Rmd`: passed.
+- `Rscript -e "pkgdown::build_article('phylogenetic-spatial')"`: passed and
+  wrote `pkgdown-site/articles/phylogenetic-spatial.html`.
+- `Rscript -e 'devtools::test(filter = "phylo-gaussian|corpairs|summary|check-drm", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'pkgdown::check_pkgdown()'`: passed.
+- `git diff --check`: passed.
+- `rg -n 'Current implementation status|full phylogenetic PLSM|sd_phylo\\(species\\)|Matching .*mu1.*mu2' vignettes/phylogenetic-spatial.Rmd pkgdown-site/articles/phylogenetic-spatial.html`:
+  confirmed the new source and generated article text.
+- `rg -n 'first implemented path|bivariate structured covariance blocks remain planned|only.*univariate Gaussian location|full bivariate phylogenetic location-scale block|sd_phylo\\(species\\) ~ z|location-scale-coscale' README.md ROADMAP.md NEWS.md docs vignettes _pkgdown.yml pkgdown-site/articles/phylogenetic-spatial.html`:
+  confirmed the old stale article opening was gone and the remaining matches
+  were current docs or historical dev-log entries.
+- `rg -n 'phylo\\(1 \\| species, tree = tree\\)|corpairs\\(.*phylogenetic|rho12|spatial\\(1 \\| site|sd_phylo' README.md ROADMAP.md docs/dev-log/known-limitations.md docs/design/01-formula-grammar.md vignettes/formula-grammar.Rmd vignettes/phylogenetic-spatial.Rmd _pkgdown.yml`:
+  checked the status inventory for phylogenetic, residual-correlation, direct
+  SD, and spatial wording.
+
+Known limitations:
+
+- this slice changes only the source vignette and regenerated local article;
+- it does not implement phylogenetic scale terms, phylogenetic q=4 covariance,
+  direct structured-SD regression, or spatial effects.
+
+## 2026-05-14 -- 35-map Slice 11: predictor-dependent corpair decision
+
+Goal:
+
+- decide whether to continue immediately from reserved `corpair()` syntax into
+  predictor-dependent ordinary latent-correlation fitting.
+
+Implemented:
+
+- recorded a route decision in the correlation-pair design note: keep
+  predictor-dependent ordinary `corpair()` models deferred after the parser and
+  clear-error slice;
+- explained the key ambiguity for q=4 blocks: `class = "location-scale"`
+  denotes four endpoint pairs, so a fitted formula needs either a class-wide
+  shared-correlation contract or endpoint-specific syntax before the likelihood
+  is statistically clear;
+- added the same deferral rationale to the formula-grammar design note.
+
+Checks run:
+
+- `air format docs/design/20-coscale-correlation-pairs.md docs/design/01-formula-grammar.md`:
+  passed.
+- `Rscript -e 'devtools::test(filter = "package-skeleton|corpairs|biv-gaussian", reporter = "summary")'`:
+  passed.
+- `rg -n 'Route Decision: Predictor-Dependent|endpoint-selection contract|class-wide shared|endpoint-specific|q=4 block, `class = "location-scale"`' docs/design/20-coscale-correlation-pairs.md docs/design/01-formula-grammar.md`:
+  confirmed the decision text.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- map slices 12 and 13 are intentionally deferred by this decision rather than
+  implemented now;
+- the next implementation-oriented slice should be map slice 14, the
+  phylogenetic q=4 design against the tree precision.
+
+## 2026-05-14 -- 35-map Slice 14: phylogenetic q4 tree-precision design
+
+Goal:
+
+- close the design contract for the constant bivariate phylogenetic q=4
+  Family A block before changing the fitted likelihood.
+
+Implemented:
+
+- added the q=4 matrix-normal contract to the phylogenetic/spatial common math
+  note: endpoint-major `u_phylo`, four endpoint SDs, six positive-definite
+  endpoint correlations, and the sparse augmented tree precision term;
+- recorded that the current 35-slice route implements phylogenetic q=4 before
+  spatial, while keeping spatial as a sibling structured-effect lane;
+- synced formula grammar for planned labelled `phylo(1 | p | species, tree =
+  tree)` syntax before fitting it;
+- switched the future-facing bivariate q4 design example to
+  `family = c(gaussian(), gaussian())`;
+- repaired stale phylogenetic TMB probe test scaffolding so the existing
+  sparse-vs-R-algebra tests supply all currently declared TMB parameters.
+
+Checks run:
+
+- `air format docs/design/16-phylo-spatial-common-math.md docs/design/01-formula-grammar.md`:
+  passed.
+- `air format tests/testthat/test-phylo-utils.R`: passed.
+- `Rscript -e 'devtools::test(filter = "phylo-utils|phylo-gaussian|package-skeleton", reporter = "summary")'`:
+  passed after repairing the stale TMB probe parameters.
+- `Rscript -e 'pkgdown::check_pkgdown()'`: passed.
+- `git diff --check`: passed.
+- `rg -n 'phylo\\(1 \\| p \\| species|35-slice route|family = c\\(gaussian\\(\\), gaussian\\(\\)\\)|spatial.*precedes|constant bivariate phylogenetic q=4' docs/design/16-phylo-spatial-common-math.md docs/design/01-formula-grammar.md`:
+  confirmed the synchronized design and grammar text.
+- `rg -n 'phylogenetic q=4.*Implemented|phylo\\(1 \\| p \\| species.*Implemented|six `corpairs\\(level = "phylogenetic"\\)` rows.*Implemented|sd_phylo\\(species\\).*Implemented' README.md ROADMAP.md NEWS.md docs vignettes R tests`:
+  returned no matches, confirming this slice still reports q4 as planned.
+
+Known limitations:
+
+- this is a design and test-scaffold slice only;
+- no fitted `phylo()` terms in `sigma1` or `sigma2` exist yet;
+- no q=4 phylogenetic `corpairs()` rows, simulation recovery, or user tutorial
+  example exists yet.
+
+## 2026-05-14 -- 35-map Slice 15: phylogenetic q4 TMB parameterization probe
+
+Goal:
+
+- add a hidden TMB parameterization scaffold for the constant bivariate
+  phylogenetic q=4 prior before exposing fitted `sigma1`/`sigma2` phylogenetic
+  terms.
+
+Implemented:
+
+- added `theta_phylo` as a mapped-off TMB parameter by default;
+- added hidden `model_type == 93` that reconstructs endpoint-major q=4
+  `u_phylo` values from `u_re_cov_probe`, builds `Sigma_phylo = D R D` from
+  four `log_sd_phylo` entries and six unstructured-correlation parameters, and
+  evaluates the matrix-normal prior against `Q_phylo`;
+- added a q=4 TMB-vs-R algebra test that checks the objective value, finite
+  gradient, SD report, correlation matrix, covariance matrix, and quadratic
+  matrix;
+- updated neighboring hidden covariance-block tests to call
+  `add_covariance_probe_parameter()` before manual TMB probes so the new
+  mapped-off `theta_phylo` parameter is present.
+
+Checks run:
+
+- `air format R/drmTMB.R tests/testthat/test-phylo-utils.R tests/testthat/test-covariance-block-registry.R`:
+  passed.
+- `Rscript -e 'devtools::load_all(quiet = TRUE)'`: passed.
+- `Rscript -e 'devtools::test(filter = "phylo-utils|phylo-gaussian|package-skeleton", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'devtools::test(filter = "covariance-block-registry|phylo-utils|biv-gaussian|profile-targets", reporter = "summary")'`:
+  passed.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- this is still a hidden parameterization probe, not a fitted user-facing
+  phylogenetic q=4 model;
+- `phylo()` terms in `sigma1` or `sigma2` still reject before optimization;
+- `corpairs(level = "phylogenetic")` still reports only the fitted
+  `mu1`/`mu2` mean-mean phylogenetic row.
+
+## 2026-05-14 -- 35-map Slice 16: phylogenetic q4 R plumbing and guards
+
+Goal:
+
+- add R-side parser and boundary plumbing for the planned all-four bivariate
+  phylogenetic q=4 location-scale block without claiming the fitted q4
+  likelihood.
+
+Implemented:
+
+- extended structured-effect parsing so `phylo(1 | p | species, tree = tree)`
+  stores a covariance-block label;
+- allowed matching labelled bivariate `mu1`/`mu2` phylogenetic location terms
+  to use that label in `sdpars`, `corpars`, `corpairs()`, and
+  `profile_targets()`;
+- added a pre-optimization bivariate guard for `phylo()` in `sigma1` or
+  `sigma2`, with separate messages for partial q4 blocks, unlabelled q4
+  syntax, mismatched labels/groups/trees, structured slopes, and matched
+  all-four q4 syntax that is still planned;
+- updated formula grammar, structured-effect design notes, NEWS, and the
+  relevant pkgdown article sources to keep labelled phylogenetic mean-mean
+  support separate from planned phylogenetic location-scale q4 support.
+
+Checks run:
+
+- `air format R/parse-formula.R R/drmTMB.R R/methods.R tests/testthat/test-package-skeleton.R tests/testthat/test-phylo-gaussian.R docs/design/01-formula-grammar.md docs/design/16-phylo-spatial-common-math.md vignettes/formula-grammar.Rmd vignettes/phylogenetic-spatial.Rmd NEWS.md`:
+  passed.
+- `Rscript -e 'devtools::load_all(quiet = TRUE)'`: passed.
+- `Rscript -e 'devtools::test(filter = "package-skeleton|phylo-gaussian", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'devtools::test(filter = "biv-gaussian|corpairs|profile-targets|phylo-gaussian|package-skeleton", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'pkgdown::build_article("phylogenetic-spatial", quiet = TRUE); pkgdown::build_article("formula-grammar", quiet = TRUE)'`:
+  passed and refreshed local HTML pages.
+- `Rscript -e 'pkgdown::check_pkgdown()'`: passed.
+- `rg -n 'phylo\\(1 \\| p \\| species|Guarded planned q4|Partial phylogenetic|matched all-four' docs/design/01-formula-grammar.md docs/design/16-phylo-spatial-common-math.md vignettes/formula-grammar.Rmd vignettes/phylogenetic-spatial.Rmd NEWS.md pkgdown-site/articles/formula-grammar.html pkgdown-site/articles/phylogenetic-spatial.html`:
+  confirmed the source and local pkgdown status wording.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- this still does not fit q=4 phylogenetic location-scale covariance models;
+- no four-endpoint phylogenetic SD reports, six q4 phylogenetic `corpairs()`
+  rows, recovery tests, or fitted q4 tutorial examples exist yet;
+- spatial remains the sibling lane after the phylogenetic structured-effect
+  contract is stable.
+
+## 2026-05-14 -- 35-map Slice 17: first fitted phylogenetic q4 block
+
+Goal:
+
+- fit the first constant labelled bivariate phylogenetic q=4 location-scale
+  block and expose point-estimate reporting without claiming direct profile
+  intervals or recovery evidence yet.
+
+Implemented:
+
+- routed matching labelled `phylo(1 | p | species, tree = tree)` terms in
+  `mu1`, `mu2`, `sigma1`, and `sigma2` into one endpoint-major q=4
+  phylogenetic latent state;
+- added four active `log_sd_phylo` parameters and six active `theta_phylo`
+  unstructured-correlation parameters for the public bivariate Gaussian path;
+- added the q=4 matrix-normal phylogenetic prior contribution in
+  `src/drmTMB.cpp`, while preserving the existing two-endpoint
+  `eta_cor_phylo` path for matching `mu1`/`mu2`;
+- extended `sdpars`, `corpars`, `ranef()`, `predict()`, `corpairs()`,
+  `summary(fit)$covariance`, and `profile_targets()` to use one endpoint order:
+  `mu1`, `mu2`, `sigma1`, `sigma2`;
+- marked the six q=4 phylogenetic correlations as
+  `derived_unstructured_correlation` targets on `theta_phylo` rather than
+  direct profile-ready atanh targets;
+- updated formula grammar, likelihood, phylo/spatial math, mammal route,
+  roadmap, known limitations, NEWS, roxygen, and local pkgdown article sources;
+- checked the local `gllvmTMB` profile-CI machinery for future inference:
+  direct `TMB::tmbprofile()`/linear-combination targets are the useful pattern,
+  while nonlinear derived q=4 correlations should wait for a centralized
+  target-function/refit design.
+
+Checks run:
+
+- `air format R/drmTMB.R R/methods.R R/profile.R tests/testthat/test-phylo-gaussian.R`:
+  passed.
+- `Rscript -e 'devtools::load_all(quiet = TRUE)'`: passed.
+- `Rscript -e 'devtools::document()'`: passed and refreshed `man/drmTMB.Rd`.
+- `Rscript -e 'devtools::test(filter = "phylo-gaussian|corpairs|profile-targets|check-drm|biv-gaussian|covariance-block-registry", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'devtools::test(reporter = "summary")'`: passed.
+- `Rscript -e 'pkgdown::build_article("phylogenetic-spatial", quiet = TRUE); pkgdown::build_article("formula-grammar", quiet = TRUE); pkgdown::build_article("model-map", quiet = TRUE)'`:
+  passed and refreshed local HTML pages.
+- `Rscript -e 'pkgdown::check_pkgdown()'`: passed.
+- `rg -n 'phylogenetic q=4 blocks|q=4 location-scale endpoint is still planned|matched-but-not-yet|full q=4 endpoint remains planned|rejected before optimization until fitted|Guarded planned q4|phylogenetic scale and mean-scale correlations remain planned' NEWS.md ROADMAP.md docs/design docs/dev-log/known-limitations.md vignettes pkgdown-site/articles | head -n 120`:
+  returned no stale current-status hits.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- this is point-estimate support with targeted smoke and reporting tests, not
+  full simulation recovery evidence;
+- direct profile intervals are still available for the two-endpoint
+  phylogenetic mean-mean `eta_cor_phylo` path, but the six q=4 correlations are
+  derived `theta_phylo` targets and not profile-ready;
+- `check_drm()` still uses the existing bivariate phylogenetic covariance check
+  wording, so q=4-specific diagnostic refinement remains for the next slice;
+- spatial remains planned as the sibling structured-effect lane.
+
+## 2026-05-14 -- 35-map Slice 18: phylogenetic q4 recovery and diagnostics
+
+Goal:
+
+- add the first CRAN-safe simulation recovery evidence for the fitted
+  phylogenetic q=4 location-scale block and give `check_drm()` q=4-specific
+  diagnostic wording.
+
+Implemented:
+
+- added `new_biv_phylo_q4_gaussian_data()` with a balanced ultrametric tree,
+  four endpoint latent phylogenetic effects, fixed effects in `mu1`, `mu2`,
+  `sigma1`, and `sigma2`, and a separate residual `rho12`;
+- added a broad q=4 recovery test that checks finite fixed-parameter gradients,
+  six `corpairs(level = "phylogenetic")` rows, fixed-effect recovery,
+  endpoint-SD recovery on the log scale, residual `rho12`, and positive
+  phylogenetic mean-mean and scale-scale signals;
+- split `check_drm()` phylogenetic diagnostics so the older
+  `biv_phylo_mu_covariance` row is q=2-only and q=4 models receive
+  `biv_phylo_q4_covariance` with species replication, location SD ratios,
+  log-`sigma` SDs, max absolute latent correlation, and boundary status;
+- updated NEWS, roadmap, known limitations, roxygen, and the shared
+  phylogenetic/spatial math note so current docs no longer describe fitted q=4
+  phylogenetic blocks as only future scaffolding;
+- checked the local `gllvmTMB` and `gllvmTMB-legacy` profile-CI machinery for
+  future inference planning: direct `TMB::tmbprofile()` targets are promising
+  for fixed effects and simple SD/correlation coordinates, while q=4 derived
+  latent correlations need a separate target-function/refit design.
+
+Checks run:
+
+- `air format R/check.R tests/testthat/test-phylo-gaussian.R NEWS.md ROADMAP.md docs/design/16-phylo-spatial-common-math.md docs/dev-log/known-limitations.md`:
+  passed.
+- `Rscript -e 'devtools::load_all(quiet = TRUE)'`: passed.
+- `Rscript -e 'devtools::document()'`: passed and refreshed
+  `man/check_drm.Rd`.
+- `Rscript -e 'devtools::test(filter = "phylo-gaussian|check-drm|profile-targets", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'devtools::test(reporter = "summary")'`: passed.
+- `Rscript -e 'pkgdown::check_pkgdown()'`: passed.
+- `rg -n 'full phylogenetic q4.*planned|future `mu1`, `mu2`, `sigma1`, and `sigma2` endpoint|planned-pair scaffold records the six future|fitted phylogenetic mean-mean pair remain planned|not a fitted q=4 model|q=4 phylogenetic.*future' NEWS.md ROADMAP.md docs/design docs/dev-log/known-limitations.md vignettes pkgdown-site/articles`:
+  returned no current-status stale hits.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- q=4 phylogenetic recovery is broad evidence from one CRAN-safe simulation, not
+  a full grid across weak SDs, near-boundary correlations, or low replication;
+- q=4 phylogenetic correlation intervals remain derived targets and are not
+  direct profile-ready intervals;
+- spatial remains planned as the sibling structured-effect lane.
+
+## 2026-05-14 -- 35-map Slice 19: phylogenetic q4 tutorial example
+
+Goal:
+
+- add a reader-facing fitted q=4 phylogenetic location-scale example to the
+  structured-dependence article, without claiming predictor-dependent latent
+  `corpair()` models or q=4 profile intervals.
+
+Implemented:
+
+- added a self-contained simulated two-trait tolerance example to
+  `vignettes/phylogenetic-spatial.Rmd`;
+- fitted `heat_tolerance` and `desiccation_tolerance` with matching labelled
+  `phylo(1 | p | species, tree = tree)` terms in `mu1`, `mu2`, `sigma1`, and
+  `sigma2`;
+- included `rho12 = ~ assay_context` as the residual coscale predictor in the
+  live fitted example;
+- showed `corpairs(fit_phylo_q4, level = "phylogenetic")`, `rho12()`,
+  q=4-specific `check_drm()` rows, and `profile_targets()` rows for derived
+  q=4 phylogenetic correlations;
+- added a clearly marked planned, not fitted, singular `corpair(...) ~ w`
+  sketch for predictor-dependent latent phylogenetic correlations.
+
+Checks run:
+
+- `air format vignettes/phylogenetic-spatial.Rmd`: passed.
+- `Rscript -e 'devtools::load_all(quiet = TRUE); pkgdown::build_article("phylogenetic-spatial", new_process = FALSE, quiet = TRUE)'`:
+  passed and refreshed `pkgdown-site/articles/phylogenetic-spatial.html`.
+- `Rscript -e 'devtools::test(filter = "phylo-gaussian|check-drm", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'pkgdown::check_pkgdown()'`: passed.
+- `rg -n 'full bivariate phylogenetic location-scale block remain planned|full q=4 endpoint.*remain planned|future q=4 phylogenetic endpoint|not a fitted q=4 model|corpairs\\(\\.\\.\\) ~ w|corpairs\\(.*~' vignettes/phylogenetic-spatial.Rmd pkgdown-site/articles/phylogenetic-spatial.html docs/design docs/dev-log/known-limitations.md ROADMAP.md NEWS.md`:
+  returned no stale current-status hits.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- the article example is simulated for reproducibility and output reading, not a
+  real empirical case study;
+- the compact q=4 example can still show an optimizer-convergence warning, so
+  the article teaches readers to inspect gradient, Hessian, and q=4 covariance
+  diagnostics before inference;
+- predictor-dependent latent `corpair()` syntax and q=4 derived-correlation
+  profile intervals remain planned.
+
+## 2026-05-14 -- correlation-pair CI/status output clarification
+
+Goal:
+
+- make random-effect correlation output tell users whether 95% profile
+  intervals are available, instead of leaving missing intervals ambiguous.
+
+Implemented:
+
+- added `conf.int`, `conf.level`, `method`, and `trace` arguments to
+  `corpairs.drmTMB()`;
+- when `conf.int = TRUE`, profile-ready direct correlation rows receive
+  `conf.low`, `conf.high`, `conf.method`, and `conf.status = "profile"`;
+- predictor-dependent residual `rho12` summaries that require row-specific
+  `newdata` now report `conf.status = "newdata_required"`;
+- q=4 ordinary or phylogenetic derived unstructured-correlation rows now report
+  `conf.status = "derived_interval_unavailable"` rather than silently lacking
+  bounds;
+- updated the phylogenetic-spatial article with a model ladder, math for
+  residual versus phylogenetic correlation layers, and output examples that use
+  `corpairs(..., conf.int = TRUE)`;
+- updated NEWS, roxygen, and the profile-CI design note.
+
+Checks run:
+
+- `air format R/methods.R tests/testthat/test-corpairs.R tests/testthat/test-phylo-gaussian.R vignettes/phylogenetic-spatial.Rmd`:
+  passed.
+- `Rscript -e 'devtools::document()'`: passed and refreshed
+  `man/corpairs.Rd`.
+- `Rscript -e 'devtools::test(filter = "corpairs|phylo-gaussian|summary|profile-targets", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'devtools::test(reporter = "summary")'`: passed.
+- `Rscript -e 'devtools::load_all(quiet = TRUE); pkgdown::build_article("phylogenetic-spatial", new_process = FALSE, quiet = TRUE)'`:
+  passed and refreshed `pkgdown-site/articles/phylogenetic-spatial.html`.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- q=4 covariance correlations are still point estimates plus explicit interval
+  status; their derived 95% intervals need a fix-and-refit or reparameterized
+  profile design;
+- conditional random-effect mode intervals are still planned separately from
+  covariance-parameter intervals.
+
+## 2026-05-14 -- q4 cross-trait location-scale wording correction
+
+Goal:
+
+- correct the phylogenetic q=4 article and design wording so all four
+  location-scale correlation rows are explicit.
+
+Implemented:
+
+- kept `corpair()` as the reserved formula marker and `corpairs()` as the
+  extractor, while recording why `cor12()` would blur the residual `rho12`
+  layer with latent random-effect correlations;
+- updated the phylogenetic-spatial article to list the four q=4
+  location-scale pairs: `mu1`-`sigma1`, `mu1`-`sigma2`, `mu2`-`sigma1`, and
+  `mu2`-`sigma2`;
+- removed the introductory ordinary-plus-phylogenetic same-species comparison
+  example that made the species-level phylogenetic layer look like a residual
+  layer;
+- synchronized the q=4 cross-trait mean-scale wording in the formula grammar,
+  phylogenetic extension note, and `corpair()` design note.
+
+Checks run:
+
+- `air format docs/design/01-formula-grammar.md docs/design/15-location-coscale-phylogenetic-extension.md docs/design/20-coscale-correlation-pairs.md vignettes/phylogenetic-spatial.Rmd`:
+  passed.
+- `git diff --check`: passed.
+- `Rscript -e 'devtools::load_all(quiet = TRUE); pkgdown::build_article("phylogenetic-spatial", new_process = FALSE, quiet = TRUE)'`:
+  passed and refreshed `pkgdown-site/articles/phylogenetic-spatial.html`.
+- `Rscript -e 'pkgdown::check_pkgdown()'`: passed.
+
+Known limitations:
+
+- this was a documentation and interpretation correction only; no new
+  predictor-dependent latent `corpair()` model was fitted in this patch.
+
+## 2026-05-14 -- Slice 11 endpoint-specific corpair grammar
+
+Goal:
+
+- reserve the ordinary predictor-dependent latent-correlation formula grammar
+  without fitting a new likelihood.
+
+Implemented:
+
+- chose endpoint-specific `corpair()` syntax with an explicit optional
+  covariance level, for example
+  `corpair(id, level = "group", block = "p", from = "mu1", to = "sigma2") ~ w`
+  and
+  `corpair(species, level = "phylogenetic", block = "p", from = "mu1", to = "mu2") ~ ecology`;
+- kept `corpair()` singular for formula targets and `corpairs()` plural for the
+  fitted extractor;
+- retained `class = "location-scale"` as a reserved shorthand and extraction
+  concept, but not as the first fitted q=4 correlation-regression target;
+- taught the parser to store `level`, `from`, and `to`, reject unsupported
+  levels, reject half-specified endpoints, reject `class` mixed with endpoints,
+  reject residual `rho12` as a latent endpoint, and reject self-correlations
+  such as `from = "mu1", to = "mu1"`;
+- updated `NEWS.md`, formula grammar, the correlation-pair design note,
+  random-effect scale design note, known limitations, and the formula-grammar,
+  model-map, and phylogenetic-spatial articles;
+- recorded `sd(species, level = "phylogenetic") ~ z` as a possible future
+  generic alias while keeping implemented `sd_phylo()` as the stable explicit
+  path for now.
+
+Checks run:
+
+- `air format R/parse-formula.R R/formula-markers.R tests/testthat/test-package-skeleton.R docs/design/01-formula-grammar.md docs/design/20-coscale-correlation-pairs.md docs/dev-log/known-limitations.md vignettes/phylogenetic-spatial.Rmd vignettes/formula-grammar.Rmd vignettes/model-map.Rmd NEWS.md`:
+  passed.
+- `git diff --check`: passed.
+- `Rscript -e 'devtools::test(filter = "package-skeleton", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'devtools::document()'`: passed and refreshed
+  `man/corpair.Rd`.
+- `Rscript -e 'devtools::load_all(quiet = TRUE); pkgdown::build_article("phylogenetic-spatial", new_process = FALSE, quiet = TRUE); pkgdown::build_article("formula-grammar", new_process = FALSE, quiet = TRUE)'`:
+  passed and refreshed both local articles.
+- `Rscript -e 'devtools::load_all(quiet = TRUE); pkgdown::build_article("model-map", new_process = FALSE, quiet = TRUE)'`:
+  passed and refreshed the local model-map article.
+- `Rscript -e 'pkgdown::check_pkgdown()'`: passed.
+- `rg -n 'corpair\([^\n]*class = "location-(location|scale|scale-scale)"|cor12\(|corpairs\([^\n]*~|corpairs\(\.\.\.\) ~ w|species_residual|fit_biv_phylo_species' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes pkgdown-site/articles`:
+  returned only intentional `cor12()` rejection wording and one design note
+  explaining why class-wide `location-scale` syntax is deferred.
+
+Known limitations:
+
+- Slice 11 still does not fit predictor-dependent latent random-effect
+  correlations. The first fitted ordinary route should be q=2; q=4
+  correlation regression needs a positive-definite matrix parameterization.
+
+## 2026-05-14 -- Slice 12 ordinary q2 corpair regression
+
+Goal:
+
+- fit the first predictor-dependent latent random-effect correlation model for
+  ordinary q=2 bivariate Gaussian location blocks.
+
+Implemented:
+
+- added fitted syntax
+  `corpair(id, level = "group", block = "p", from = "mu1", to = "mu2") ~ x`
+  for matching labelled `(1 | p | id)` random intercepts in `mu1` and `mu2`;
+- constrained the new route to ordinary group-level q=2 location-location
+  blocks, with clear errors for phylogenetic, spatial, location-scale,
+  scale-scale, q=4, mismatched blocks, and within-group-varying predictors;
+- added a TMB Fisher-z regression for group-level latent correlations,
+  `rho_g = 0.999999 * tanh(X_g beta_cor)`, while keeping residual `rho12`
+  separate;
+- exposed link-scale `corpair()` coefficients through `coef()`, `summary()`,
+  `vcov()`, and `profile_targets()`;
+- updated `corpairs()` so the modelled group row reports mean, min, max, and
+  `n_values` over fitted group-level correlations with
+  `conf.status = "newdata_required"` for row-level intervals;
+- refreshed NEWS, formula grammar, the correlation-pair design note, known
+  limitations, roxygen/reference docs, and the formula-grammar and
+  phylogenetic-spatial articles.
+
+Checks run:
+
+- `air format R/drmTMB.R R/methods.R R/profile.R src/drmTMB.cpp tests/testthat/test-biv-gaussian.R tests/testthat/test-package-skeleton.R NEWS.md docs/design/01-formula-grammar.md docs/design/20-coscale-correlation-pairs.md docs/dev-log/known-limitations.md vignettes/formula-grammar.Rmd vignettes/phylogenetic-spatial.Rmd`:
+  passed.
+- `Rscript -e 'devtools::load_all(quiet = TRUE)'`: passed.
+- `Rscript -e 'devtools::test(filter = "package-skeleton|biv-gaussian", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'devtools::test(filter = "package-skeleton|biv-gaussian|gaussian-random-intercepts|gaussian-random-effect-scale|corpairs|comparators|check-drm", reporter = "summary")'`:
+  passed after fixing cross-family metadata guards.
+- `Rscript -e 'devtools::test(filter = "phylo-utils", reporter = "summary")'`:
+  passed after syncing manual TMB test fixtures with the new data and
+  parameter fields.
+- `Rscript -e 'devtools::test(reporter = "summary")'`: passed.
+- `Rscript -e 'devtools::document()'`: passed and refreshed `man/corpair.Rd`.
+- `Rscript -e 'devtools::load_all(quiet = TRUE); pkgdown::build_article("formula-grammar", new_process = FALSE, quiet = TRUE); pkgdown::build_article("phylogenetic-spatial", new_process = FALSE, quiet = TRUE); pkgdown::build_reference()'`:
+  passed and refreshed the local articles plus reference pages.
+- `Rscript -e 'pkgdown::check_pkgdown()'`: passed.
+- `rg -n 'corpair\(id, level = "group", block = "p", from = "mu1", to = "sigma2"\).*Reserved|reserved.*corpair|drmTMB\(\).*rejects.*corpair|corpair.*not fitted|ordinary `corpair\(\) ~ w` slice|first planned fitted `corpair\(\)`|implementation target for the ordinary `corpair\(\) ~ w`' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes man R tests`:
+  returned only intentional wording about reserved aliases or fitted
+  phylogenetic mean-mean labels.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- only ordinary group-level q=2 `mu1`-`mu2` latent correlation regression is
+  fitted in this slice;
+- q=4, location-scale, scale-scale, phylogenetic, and spatial
+  predictor-dependent `corpair()` regressions remain planned;
+- response-scale confidence intervals for group-specific fitted correlations
+  require a later newdata-aware interval design.
+
+## 2026-05-14 -- Slice 13 ordinary q2 corpair profile intervals
+
+Goal:
+
+- add response-scale profile-likelihood intervals for the fitted ordinary q=2
+  `corpair()` regression at user-supplied group-level predictor rows.
+
+Implemented:
+
+- extended `confint(..., method = "profile", newdata = ...)` so `parm` can be a
+  fitted `corpair(...)` distributional-parameter name;
+- transformed profiled ordinary q=2 `corpair()` linear predictors through the
+  guarded random-effect correlation link, `0.999999 * tanh(eta)`;
+- updated `predict()` and `confint()` documentation so fitted `corpair()`
+  values are described as correlation-scale response predictions;
+- updated summary parameter notes so fitted `corpair()` ranges say
+  `use_confint_newdata`;
+- left `corpairs(conf.int = TRUE)` on `conf.status = "newdata_required"` for
+  modelled rows, because that table row is a mean and range over groups rather
+  than one profile target;
+- updated NEWS, profile-CI design, known limitations, and the
+  phylogenetic-spatial interval guidance.
+
+Checks run:
+
+- `/opt/homebrew/bin/air format R/profile.R R/methods.R tests/testthat/test-biv-gaussian.R tests/testthat/test-profile-targets.R NEWS.md docs/design/12-profile-likelihood-cis.md docs/dev-log/known-limitations.md vignettes/phylogenetic-spatial.Rmd docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-14-slice-13-ordinary-q2-corpair-profile-intervals.md`:
+  passed.
+- `/Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::document()'`:
+  passed and refreshed `man/confint.drmTMB.Rd` and `man/predict.drmTMB.Rd`.
+- `/Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::load_all(quiet = TRUE); devtools::test(filter = "biv-gaussian", reporter = "summary")'`:
+  passed.
+- `/Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::test(filter = "profile-targets", reporter = "summary")'`:
+  passed after updating the expanded newdata error message expectation.
+- `/Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::load_all(quiet = TRUE); devtools::test(filter = "biv-gaussian|profile-targets", reporter = "summary")'`:
+  passed after roxygen regeneration.
+- `PATH=/opt/homebrew/bin:$PATH /Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::load_all(quiet = TRUE); pkgdown::build_article("phylogenetic-spatial", new_process = FALSE, quiet = TRUE); pkgdown::build_reference()'`:
+  passed and refreshed the local phylogenetic-spatial article plus
+  `confint()`/`predict()` reference pages. The first attempt without
+  `/opt/homebrew/bin` on `PATH` failed because pandoc was unavailable to R.
+- `PATH=/opt/homebrew/bin:$PATH /Library/Frameworks/R.framework/Resources/bin/Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed.
+- `/Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::test(reporter = "summary")'`:
+  passed.
+- `rg -n 'scale and residual-correlation|row-specific response-scale `sigma`, `sigma1`, `sigma2`, and `rho12`|fitted_range_only|newdata_required|corpair\(\)' NEWS.md R man docs/design docs/dev-log/known-limitations.md vignettes pkgdown-site/reference pkgdown-site/articles/phylogenetic-spatial.html tests`:
+  returned intentional `corpair()`, `newdata_required`, and
+  `fitted_range_only` hits; the stale profile-target wording was updated.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- only the already-fitted ordinary q=2 `mu1`-`mu2` `corpair()` route receives
+  newdata profile intervals;
+- `corpairs()` interval columns still require a future design for modelled
+  summary rows if we want intervals for averages or extrema over groups;
+- q=4, phylogenetic, and spatial predictor-dependent `corpair()` intervals
+  remain blocked by their not-yet-fitted likelihoods.
+
+## 2026-05-14 -- Phylogenetic-spatial article rendering polish
+
+Goal:
+
+- make the phylogenetic correlation article render cleanly in pkgdown and make
+  the planned phylogenetic `corpair()` syntax visible near the status table.
+
+Implemented:
+
+- replaced bracket-heavy bivariate and q=4 phylogenetic covariance displays
+  with scalar variance/covariance equations that render more cleanly in HTML;
+- added a planned, not-fitted-yet
+  `corpair(species, level = "phylogenetic", block = "p", ...) ~ ecology`
+  example near the current implementation status table;
+- kept the fitted/planned boundary explicit: constant phylogenetic correlations
+  are fitted through matching `phylo()` terms and extracted with
+  `corpairs(level = "phylogenetic")`, while predictor-dependent phylogenetic
+  `corpair()` formulas remain planned.
+
+Checks run:
+
+- `/opt/homebrew/bin/air format vignettes/phylogenetic-spatial.Rmd`: passed.
+- `PATH=/opt/homebrew/bin:$PATH /Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::load_all(quiet = TRUE); pkgdown::build_article("phylogenetic-spatial", new_process = FALSE, quiet = TRUE)'`:
+  passed and refreshed `pkgdown-site/articles/phylogenetic-spatial.html`.
+- `PATH=/opt/homebrew/bin:$PATH /Library/Frameworks/R.framework/Resources/bin/Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed.
+- `rg -n '\\begin\{p?matrix\}|\\begin\{bmatrix\}|\\left|\\right|\\begin\{array\}' vignettes/phylogenetic-spatial.Rmd pkgdown-site/articles/phylogenetic-spatial.html`:
+  returned no matches.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- this is documentation/rendering polish only; it does not implement
+  predictor-dependent phylogenetic `corpair()` likelihoods.
+
+## 2026-05-14 -- Slice 26 phylogenetic corpair design gate
+
+Goal:
+
+- make the reserved
+  `corpair(species, level = "phylogenetic", block = "p", ...) ~ w` route
+  explicit and honest before likelihood implementation.
+
+Implemented:
+
+- added a phylogenetic-specific `drmTMB()` guard for predictor-dependent
+  `corpair()` regression, pointing users to the currently fitted constant
+  `corpairs(fit, level = "phylogenetic")` route;
+- added a spatial-specific planned-feature guard for future spatial
+  `corpair()` regression;
+- added a focused bivariate Gaussian failure-path test for the reserved
+  phylogenetic syntax;
+- updated the correlation-pair design note, formula grammar, formula-grammar
+  article, phylogenetic-spatial article, known limitations, NEWS, ROADMAP, and
+  `corpair()` reference page;
+- recorded the positive-definite design gate: a predictor-dependent
+  tree-coupled latent correlation must define one valid covariance matrix
+  across all species, not independent per-species `tanh()` correlations.
+
+Checks run:
+
+- `/opt/homebrew/bin/air format R/drmTMB.R R/formula-markers.R tests/testthat/test-biv-gaussian.R docs/design/20-coscale-correlation-pairs.md docs/design/01-formula-grammar.md vignettes/formula-grammar.Rmd vignettes/phylogenetic-spatial.Rmd docs/dev-log/known-limitations.md ROADMAP.md NEWS.md`:
+  passed.
+- `/Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::document()'`:
+  passed and refreshed `man/corpair.Rd`.
+- `/Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::load_all(quiet = TRUE); devtools::test(filter = "biv-gaussian", reporter = "summary")'`:
+  passed.
+- `/Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::load_all(quiet = TRUE); devtools::test(filter = "package-skeleton", reporter = "summary")'`:
+  passed.
+- `/Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::load_all(quiet = TRUE); devtools::test(filter = "check-drm", reporter = "summary")'`:
+  passed after narrowing an older bivariate phylogenetic diagnostic test that
+  failed on Ubuntu CI because unrelated `sdreport()` NaN warnings made the
+  whole diagnostic table non-ok.
+- `PATH=/opt/homebrew/bin:$PATH /Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::load_all(quiet = TRUE); pkgdown::build_article("phylogenetic-spatial", new_process = FALSE, quiet = TRUE); pkgdown::build_article("formula-grammar", new_process = FALSE, quiet = TRUE); pkgdown::build_reference()'`:
+  passed.
+- `PATH=/opt/homebrew/bin:$PATH /Library/Frameworks/R.framework/Resources/bin/Rscript -e 'pkgdown::build_site()'`:
+  passed and refreshed the local articles, reference pages, NEWS, and ROADMAP.
+- `PATH=/opt/homebrew/bin:$PATH /Library/Frameworks/R.framework/Resources/bin/Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed.
+- `/Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::test(reporter = "summary")'`:
+  passed.
+- `rg -n "Only ordinary group-level .*corpair|phylogenetic and spatial latent correlation regressions are later slices|clade-level|copy.*ordinary|planned design gate|positive-definite covariance contract|tree-coupled" R man docs vignettes pkgdown-site NEWS.md ROADMAP.md tests --glob '!pkgdown-site/search.json'`:
+  returned only intentional guardrail, documentation, and generated-site hits.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- this slice does not fit phylogenetic `corpair()` regression; it makes the
+  design gate explicit and prevents a misleading residual-style implementation;
+- the next implementation slice needs a positive-definite covariance contract
+  for tree-coupled predictor-dependent correlations before TMB parameters are
+  added.
+
+## 2026-05-14 -- Slice 27 phylogenetic corpair loading contract
+
+Goal:
+
+- choose the first positive-definite covariance contract for future
+  predictor-dependent phylogenetic `corpair()` regression.
+
+Implemented:
+
+- selected a q=2 location-location loading contract for
+  `corpair(species, level = "phylogenetic", block = "p", from = "mu1", to = "mu2") ~ w`;
+- documented the two-field construction using independent unit tree fields,
+  species-specific loadings, and `rho_l = tanh_guard(W_l alpha)`;
+- recorded that a constant `rho_l` reduces exactly to the existing constant
+  bivariate phylogenetic covariance;
+- explicitly deferred phylogenetic location-scale and scale-scale correlation
+  regression to later q=4 extensions;
+- added an algebra test for positive definiteness, local correlation recovery,
+  constant-correlation equivalence, and the nonstationary effect when `rho_l`
+  varies.
+
+Checks run:
+
+- `/opt/homebrew/bin/air format R/formula-markers.R tests/testthat/test-phylo-utils.R docs/design/20-coscale-correlation-pairs.md docs/design/16-phylo-spatial-common-math.md docs/design/03-likelihoods.md docs/design/01-formula-grammar.md vignettes/phylogenetic-spatial.Rmd vignettes/formula-grammar.Rmd docs/dev-log/known-limitations.md ROADMAP.md NEWS.md`:
+  passed.
+- `/Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::document()'`:
+  passed and refreshed `man/corpair.Rd`.
+- `/Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::load_all(quiet = TRUE); devtools::test(filter = "phylo-utils", reporter = "summary")'`:
+  passed after fixing a dimname-only comparison in the new algebra test.
+- `/Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::test(reporter = "summary")'`:
+  passed.
+- `PATH=/opt/homebrew/bin:$PATH /Library/Frameworks/R.framework/Resources/bin/Rscript -e 'pkgdown::build_site()'`:
+  passed and refreshed local docs.
+- `PATH=/opt/homebrew/bin:$PATH /Library/Frameworks/R.framework/Resources/bin/Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed.
+- `rg -n "selected q=2|two-field loading|nonstationary|positive-definite loading|rho_l|c_l|d_l|phylo.*corpair.*contract|location-scale.*defer|scale-scale.*defer|q=4 extensions" docs/design vignettes pkgdown-site/articles/phylogenetic-spatial.html pkgdown-site/articles/formula-grammar.html pkgdown-site/ROADMAP.html pkgdown-site/news/index.html NEWS.md ROADMAP.md tests R man docs/dev-log --glob '!pkgdown-site/search.json'`:
+  returned expected design, test, generated-site, documentation, and
+  after-task hits.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- no phylogenetic `corpair()` likelihood is fitted yet;
+- the selected contract covers q=2 location-location only;
+- q=4 location-scale and scale-scale phylogenetic `corpair()` regression,
+  direct-SD mixtures, random slopes, and spatial equivalents remain later work.
+
+## 2026-05-14 -- Slices 28-30 q2 phylogenetic corpair implementation
+
+Goal:
+
+- fit, report, and document the first predictor-dependent phylogenetic
+  `corpair()` model:
+  `corpair(species, level = "phylogenetic", block = "p", from = "mu1", to = "mu2") ~ w`.
+
+Implemented:
+
+- added R plumbing for endpoint-specific q=2 phylogenetic `corpair()` formulas
+  beside matching labelled `mu1` and `mu2` `phylo()` terms;
+- added the TMB likelihood branch using two independent unit phylogenetic fields
+  with species-level loadings from `rho_l = tanh(W_l alpha)`;
+- kept constant phylogenetic q=2/q=4 covariance paths, residual `rho12`, and
+  direct-SD `sd_phylo*()` paths separate;
+- reported fitted q=2 phylogenetic correlation-regression rows through
+  `corpairs(level = "phylogenetic")`, with modelled mean, range, and species
+  count;
+- exposed link-scale `beta_cor_mu` coefficients through `coef()`, `summary()`,
+  `vcov()`, and `profile_targets()`;
+- documented that q=4 phylogenetic location-scale and scale-scale correlation
+  regressions, spatial siblings, random slopes, and direct-SD mixtures remain
+  deferred.
+
+Checks run:
+
+- `/opt/homebrew/bin/air format R/drmTMB.R R/formula-markers.R R/methods.R R/profile.R src/drmTMB.cpp tests/testthat/test-phylo-gaussian.R tests/testthat/test-biv-gaussian.R tests/testthat/test-profile-targets.R vignettes/phylogenetic-spatial.Rmd vignettes/formula-grammar.Rmd vignettes/bivariate-coscale.Rmd docs/design/01-formula-grammar.md docs/design/03-likelihoods.md docs/design/16-phylo-spatial-common-math.md docs/design/20-coscale-correlation-pairs.md docs/dev-log/known-limitations.md ROADMAP.md NEWS.md`:
+  passed.
+- `/Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::document()'`:
+  passed and refreshed `man/corpair.Rd`.
+- `/Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::test(filter = "phylo-gaussian", reporter = "summary")'`:
+  passed after removing a warning-suppressed fit and adding a convergence
+  assertion to the new q=2 phylogenetic `corpair()` smoke test.
+- `/Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::load_all(quiet = TRUE); devtools::test(filter = "phylo-gaussian|biv-gaussian|profile-targets", reporter = "summary")'`:
+  passed.
+- `/Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::test(reporter = "summary")'`:
+  passed.
+- `PATH=/opt/homebrew/bin:$PATH /Library/Frameworks/R.framework/Resources/bin/Rscript -e 'pkgdown::build_site()'`:
+  passed and refreshed local `pkgdown-site` pages, including
+  `articles/phylogenetic-spatial.html`, `articles/formula-grammar.html`,
+  `reference/corpair.html`, `news/index.html`, and `ROADMAP.html`.
+- `PATH=/opt/homebrew/bin:$PATH /Library/Frameworks/R.framework/Resources/bin/Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed.
+- `rg -n "future phylogenetic|is still planned|cannot yet fit a separate predictor formula|predictor-dependent phylogenetic correlations.*remain planned|fitted constant latent phylogenetic correlations today|phylogenetic.*corpair.*planned|planned q=2|q2.*planned|planned structured sibling|future phylogenetic location-scale" R man vignettes docs/design docs/dev-log/known-limitations.md ROADMAP.md NEWS.md pkgdown-site --glob '!pkgdown-site/search.json'`:
+  returned only intentional q=4/spatial planned-boundary hits and generated
+  pages that agree with the new fitted q=2 status.
+- `git diff --check`: passed before closeout note edits.
+
+Known limitations:
+
+- this is a fitted/reporting q=2 smoke-test slice, not the broad recovery slice;
+- the tiny CRAN-safe test can saturate the modelled correlation surface and is
+  not used as recovery evidence for `alpha_cor`;
+- q=4 phylogenetic location-scale and scale-scale `corpair()` regressions still
+  need a positive-definite q=4 covariance-regression contract;
+- spatial `corpair()` siblings and spatial random effects remain planned.
+
+## 2026-05-14 -- Slice 31 q2 phylogenetic corpair recovery evidence
+
+Goal:
+
+- add CRAN-safe recovery evidence for the first fitted q=2 phylogenetic
+  `corpair()` regression without overclaiming exact coefficient recovery.
+
+Implemented:
+
+- added a deterministic 16-species, 10-observation-per-species bivariate
+  Gaussian phylogenetic simulation with a positive species-level correlation
+  predictor;
+- checked optimizer convergence, finite modelled correlation values away from
+  the guard, positive fitted `z_species` coefficient, and strong rank agreement
+  between fitted response-scale correlations and the simulated correlation
+  surface;
+- updated `NEWS.md` and `ROADMAP.md` to say the q=2 fitted route now has
+  broad-trend recovery evidence, while q=4 and spatial correlation regressions
+  remain planned.
+
+Checks run:
+
+- `/Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::test(filter = "phylo-gaussian", reporter = "summary")'`:
+  passed.
+
+Known limitations:
+
+- the test checks broad trend recovery, not exact `alpha_cor` coefficient
+  recovery or coverage;
+- the q=4 phylogenetic and spatial correlation-regression lanes still need
+  their own designs, recovery tests, and reporting before they can be claimed.
+
+## 2026-05-14 -- Slice 32 spatial provenance and structured-slope policy
+
+Goal:
+
+- close a roadmap/design gap before spatial implementation by documenting
+  citation/provenance rules, the `coords` versus `mesh` contract, and the
+  staged policy for future structured random slopes.
+
+Implemented:
+
+- clarified that spatial terms should start from the friendly `coords = coords`
+  API, while `mesh = mesh` is optional expert control for the scalable
+  SPDE/GMRF route;
+- recorded that mesh is computational scaffolding, not a biological sampling
+  level, and that dense coordinate covariance is only a possible small-data
+  comparator;
+- added a spatial citation/provenance rule: cite the SPDE/GMRF method,
+  `sdmTMB`, and `fmesher` when relevant, and use `inst/COPYRIGHTS` only for
+  copied or closely adapted code;
+- updated the structured-slope policy to allow one structured `mu` slope first,
+  at most two structured `mu` slopes as an advanced path, and three or more
+  only as distant-future expert models;
+- recorded that multiple random factors should remain separate additive blocks
+  and that intercept-slope `corpair()` rows are not a near-term target;
+- recorded the future bivariate slope1-slope2 plasticity-syndrome target as a
+  coefficient-aware `corpair()` extension, not a current fitted claim.
+
+Checks run:
+
+- `/opt/homebrew/bin/air format ROADMAP.md docs/design/01-formula-grammar.md docs/design/09-phylogenetic-and-spatial-speed.md docs/design/16-phylo-spatial-common-math.md docs/dev-log/known-limitations.md vignettes/formula-grammar.Rmd vignettes/phylogenetic-spatial.Rmd inst/COPYRIGHTS`:
+  passed.
+- `/Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::test(filter = "package-skeleton", reporter = "summary")'`:
+  passed.
+- `PATH=/opt/homebrew/bin:$PATH /Library/Frameworks/R.framework/Resources/bin/Rscript -e 'pkgdown::build_site()'`:
+  passed and refreshed local `pkgdown-site` pages, including `ROADMAP.html`,
+  `articles/formula-grammar.html`, and `articles/phylogenetic-spatial.html`.
+- `PATH=/opt/homebrew/bin:$PATH /Library/Frameworks/R.framework/Resources/bin/Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed.
+- `rg -n 'friendly public input|friendly data-level input|scalable SPDE|dense coordinate|mesh is not|required by the scalable|expert-control|expert route|mesh-like' ROADMAP.md docs/design/01-formula-grammar.md docs/design/09-phylogenetic-and-spatial-speed.md docs/design/16-phylo-spatial-common-math.md vignettes/formula-grammar.Rmd vignettes/phylogenetic-spatial.Rmd`:
+  found the intended `coords` versus `mesh` wording in roadmap, design docs,
+  and tutorials.
+- `rg -n 'slope1-slope2|plasticity-syndrome|intercept-slope|two structured .*mu.* slopes|Multiple random factors|Spatial Citation|sdmTMB|fmesher|Lindgren' ROADMAP.md docs/design/01-formula-grammar.md docs/design/09-phylogenetic-and-spatial-speed.md docs/design/16-phylo-spatial-common-math.md docs/dev-log/known-limitations.md vignettes/formula-grammar.Rmd vignettes/phylogenetic-spatial.Rmd inst/COPYRIGHTS`:
+  found the intended future-slope and spatial-provenance wording.
+- `git diff --check`: passed.
+
+GitHub Actions:
+
+- Run 239 for commit `eb69c39` completed successfully before this docs-only
+  slice was committed.
+
+Known limitations:
+
+- this slice does not implement spatial effects, spatial meshes, or structured
+  slopes;
+- formal bibliography entries are still deferred because current docs use
+  prose citations and links rather than a site-wide bibliography.

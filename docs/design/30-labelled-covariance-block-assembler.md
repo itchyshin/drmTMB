@@ -253,8 +253,9 @@ still be named `sigma`.
    members while preserving the existing row names and messages.
    `profile_targets()` now derives covered random-effect correlation targets
    from registry pairs while preserving target names, indices, and readiness; it
-   also skips dormant q > 2 registry pairs and can format the six q=4 endpoint
-   correlation targets from fitted-like registry metadata.
+   also skips dormant q > 2 registry pairs and marks ordinary `theta_re_cov`
+   q=4 endpoint correlation targets as derived unstructured-correlation rows
+   rather than direct profile-ready atanh targets.
 5. Pass the two-member dormant contract through the C++ boundary as a no-op
    visibility check before using it for likelihood evaluation. Done by
    appending empty or registry block data to every TMB data list, declaring
@@ -285,11 +286,13 @@ still be named `sigma`.
    deterministic hidden q=4 recovery-style check against no-random-effect
    baselines. Done for an internal q=4 `corpairs()` scaffold that formats all
    six endpoint rows from fitted-like registry metadata. Done for the matching
-   internal q=4 `profile_targets()` scaffold. Production q=4 support still needs
-   the ordinary fitted likelihood path to populate those registry fields,
-   broader recovery coverage, examples, and public syntax review.
-8. Enable the full shared `mu1`/`mu2`/`sigma1`/`sigma2` label pattern only after
-   the hidden q=4 bridge has fitted likelihood and recovery evidence.
+   internal q=4 `profile_targets()` scaffold. Started for production q=4 support:
+   the ordinary intercept-only all-four fitted likelihood path now populates
+   registry fields and `corpairs()` rows. Broader recovery coverage, examples,
+   diagnostics, direct profile intervals, and structured phylogenetic/spatial
+   q=4 variants remain later slices.
+8. Keep the full shared `mu1`/`mu2`/`sigma1`/`sigma2` label pattern
+   intercept-only until the fitted q=4 path has broader recovery evidence.
 
 ## Diagnostics
 

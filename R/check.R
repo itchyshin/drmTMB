@@ -20,12 +20,26 @@
 #' group replication and whether either group-level SD is tiny relative to the
 #' matching residual scale. For a matched labelled `sigma1`/`sigma2` block, it
 #' reports group replication and whether either log-`sigma` random-effect SD is
-#' tiny. If a bivariate Gaussian fit includes matching `mu1`/`mu2`
-#' phylogenetic location effects, `check_drm()` also reports whether the fitted
-#' phylogenetic mean-mean correlation is near the boundary, whether either
-#' phylogenetic SD is tiny relative to the matching residual scale, and whether
-#' an ordinary group-level covariance block uses the same grouping factor. If a
-#' fit was stored with `drm_control(keep_tmb_object = FALSE)`, the
+#' tiny. If a bivariate Gaussian fit includes an ordinary all-four q=4
+#' `mu1`/`mu2`/`sigma1`/`sigma2` block, it reports group replication, location
+#' SDs relative to residual scales, log-`sigma` SDs, and whether any latent
+#' correlation is near the boundary. If a bivariate Gaussian fit includes
+#' matching `mu1`/`mu2` phylogenetic location effects, `check_drm()` also reports
+#' whether the fitted phylogenetic mean-mean correlation is near the boundary,
+#' whether either phylogenetic SD is tiny relative to the matching residual
+#' scale, and whether an ordinary group-level covariance block uses the same
+#' grouping factor. If a bivariate Gaussian fit includes a phylogenetic q=4
+#' `mu1`/`mu2`/`sigma1`/`sigma2` block, it reports species replication,
+#' location SDs relative to residual scales, log-`sigma` SDs, and whether any
+#' latent phylogenetic correlation is near the boundary. If a univariate
+#' Gaussian fit includes `spatial(1 | site, coords = coords)` in `mu`, it
+#' reports site replication, fitted coordinate range, the spatial SD, and
+#' whether the spatial SD is tiny relative to the residual scale. If a Gaussian
+#' fit includes `sd_phylo(species) ~ x_species`,
+#' `sd_phylo1(species) ~ x_species`, or
+#' `sd_phylo2(species) ~ x_species`, it reports species replication and the
+#' fitted direct-SD surface range. If a fit was stored with
+#' `drm_control(keep_tmb_object = FALSE)`, the
 #' fixed-gradient check is reported as a note because the TMB
 #' automatic-differentiation object is not available.
 #'
@@ -101,8 +115,15 @@ check_drm.drmTMB <- function(
     check_biv_mu_sigma_random_effect_covariance(object),
     check_biv_mu_random_effect_covariance(object),
     check_biv_sigma_random_effect_covariance(object),
+    check_biv_q4_random_effect_covariance(
+      object,
+      rho_boundary = rho_boundary
+    ),
     check_phylo_replication(object),
-    check_biv_phylo_mu_covariance(object, rho_boundary = rho_boundary)
+    check_spatial_mu_diagnostics(object),
+    check_phylo_direct_sd_model(object),
+    check_biv_phylo_mu_covariance(object, rho_boundary = rho_boundary),
+    check_biv_phylo_q4_covariance(object, rho_boundary = rho_boundary)
   )
   rows <- Filter(Negate(is.null), rows)
   out <- do.call(rbind, rows)
@@ -1443,6 +1464,236 @@ bivariate_sigma_re_diagnostic_message <- function(weak_replication, weak_sd) {
   "Bivariate scale-scale covariance has replicated groups and non-negligible log-scale SDs."
 }
 
+check_biv_q4_random_effect_covariance <- function(object, rho_boundary) {
+  if (!identical(object$model$model_type, "biv_gaussian")) {
+    return(NULL)
+  }
+  registry <- object$model$random$covariance_blocks
+  if (
+    !is.list(registry) ||
+      is.null(registry$blocks) ||
+      nrow(registry$blocks) == 0L
+  ) {
+    return(NULL)
+  }
+
+  blocks <- registry$blocks[
+    registry$blocks$implemented &
+      registry$blocks$n_members == 4L &
+      registry$blocks$level == "group",
+    ,
+    drop = FALSE
+  ]
+  if (nrow(blocks) == 0L) {
+    return(NULL)
+  }
+
+  block_summaries <- lapply(seq_len(nrow(blocks)), function(i) {
+    block <- blocks[i, , drop = FALSE]
+    members <- registry$members[
+      registry$members$block_id0 == block$block_id0[[1L]],
+      ,
+      drop = FALSE
+    ]
+    pairs <- registry$pairs[
+      registry$pairs$block_id0 == block$block_id0[[1L]],
+      ,
+      drop = FALSE
+    ]
+    first_member <- members[order(members$member_id0), , drop = FALSE][1L, ]
+    group_counts <- registry_member_group_counts(
+      first_member,
+      block$n_groups[[1L]]
+    )
+    location_sd_ratios <- bivariate_q4_location_sd_ratios(object, members)
+    scale_sd_values <- bivariate_q4_scale_sd_values(object, members)
+    correlations <- bivariate_q4_correlations(object, pairs)
+
+    list(
+      n_groups = block$n_groups[[1L]],
+      min_group_n = min(group_counts),
+      singleton_groups = sum(group_counts < 2L),
+      min_location_sd_ratio = min_finite_or_na(location_sd_ratios),
+      min_log_sigma_sd = min_finite_or_na(scale_sd_values),
+      max_abs_cor = max_abs_finite_or_na(correlations)
+    )
+  })
+
+  min_groups <- min(vapply(block_summaries, `[[`, numeric(1L), "n_groups"))
+  min_group_n <- min(vapply(block_summaries, `[[`, numeric(1L), "min_group_n"))
+  singleton_groups <- sum(vapply(
+    block_summaries,
+    `[[`,
+    numeric(1L),
+    "singleton_groups"
+  ))
+  min_location_sd_ratio <- min(vapply(
+    block_summaries,
+    `[[`,
+    numeric(1L),
+    "min_location_sd_ratio"
+  ))
+  min_log_sigma_sd <- min(vapply(
+    block_summaries,
+    `[[`,
+    numeric(1L),
+    "min_log_sigma_sd"
+  ))
+  max_abs_cor <- max(vapply(block_summaries, `[[`, numeric(1L), "max_abs_cor"))
+
+  weak_group_count <- min_groups < 8L
+  weak_replication <- min_group_n < 2L
+  weak_location_sd <- is.finite(min_location_sd_ratio) &&
+    min_location_sd_ratio < 0.05
+  weak_scale_sd <- is.finite(min_log_sigma_sd) && min_log_sigma_sd < 0.05
+  near_rho_boundary <- !is.finite(max_abs_cor) || max_abs_cor > rho_boundary
+
+  check_row(
+    "biv_q4_random_effect_covariance",
+    if (near_rho_boundary) {
+      "warning"
+    } else if (
+      weak_group_count ||
+        weak_replication ||
+        weak_location_sd ||
+        weak_scale_sd
+    ) {
+      "note"
+    } else {
+      "ok"
+    },
+    paste0(
+      "n_blocks=",
+      nrow(blocks),
+      "; min_groups=",
+      min_groups,
+      "; min_group_n=",
+      min_group_n,
+      "; singleton_groups=",
+      singleton_groups,
+      "; min_location_sd_ratio=",
+      format_check_number(min_location_sd_ratio),
+      "; min_log_sigma_sd=",
+      format_check_number(min_log_sigma_sd),
+      "; max_abs_cor=",
+      format_check_number(max_abs_cor),
+      "; boundary=",
+      format_check_number(rho_boundary)
+    ),
+    bivariate_q4_re_diagnostic_message(
+      near_rho_boundary,
+      weak_group_count,
+      weak_replication,
+      weak_location_sd,
+      weak_scale_sd
+    )
+  )
+}
+
+bivariate_q4_location_sd_ratios <- function(object, members) {
+  location_members <- members[members$dpar %in% c("mu1", "mu2"), , drop = FALSE]
+  if (nrow(location_members) == 0L) {
+    return(NA_real_)
+  }
+  sdpars <- object$sdpars$mu
+  sigma_values <- tryCatch(stats::sigma(object), error = function(e) e)
+  if (
+    is.null(sdpars) ||
+      length(sdpars) == 0L ||
+      inherits(sigma_values, "error") ||
+      !is.list(sigma_values)
+  ) {
+    return(NA_real_)
+  }
+  residual_scale <- c(
+    mu1 = mean(sigma_values$sigma1, na.rm = TRUE),
+    mu2 = mean(sigma_values$sigma2, na.rm = TRUE)
+  )
+  sd_values <- unname(sdpars[match(location_members$label, names(sdpars))])
+  sd_values / residual_scale[location_members$dpar]
+}
+
+bivariate_q4_scale_sd_values <- function(object, members) {
+  scale_members <- members[
+    members$dpar %in% c("sigma1", "sigma2"),
+    ,
+    drop = FALSE
+  ]
+  if (nrow(scale_members) == 0L) {
+    return(NA_real_)
+  }
+  sdpars <- object$sdpars$sigma
+  if (is.null(sdpars) || length(sdpars) == 0L) {
+    return(NA_real_)
+  }
+  unname(sdpars[match(scale_members$label, names(sdpars))])
+}
+
+bivariate_q4_correlations <- function(object, pairs) {
+  corpars <- object$corpars$re_cov
+  if (is.null(corpars) || length(corpars) == 0L || nrow(pairs) == 0L) {
+    return(NA_real_)
+  }
+  unname(corpars[match(pairs$parameter, names(corpars))])
+}
+
+min_finite_or_na <- function(x) {
+  x <- x[is.finite(x)]
+  if (length(x) == 0L) {
+    return(NA_real_)
+  }
+  min(x)
+}
+
+max_finite_or_na <- function(x) {
+  x <- x[is.finite(x)]
+  if (length(x) == 0L) {
+    return(NA_real_)
+  }
+  max(x)
+}
+
+max_abs_finite_or_na <- function(x) {
+  x <- x[is.finite(x)]
+  if (length(x) == 0L) {
+    return(NA_real_)
+  }
+  max(abs(x))
+}
+
+bivariate_q4_re_diagnostic_message <- function(
+  near_rho_boundary,
+  weak_group_count,
+  weak_replication,
+  weak_location_sd,
+  weak_scale_sd
+) {
+  if (near_rho_boundary) {
+    return(paste(
+      "At least one latent q4 group-level correlation is close to +/-1;",
+      "profile, simulate, or simplify before interpreting all six correlations."
+    ))
+  }
+  weak <- c(
+    if (weak_group_count) "few groups for a four-member covariance block",
+    if (weak_replication) {
+      "at least one group has fewer than two fitted observations"
+    },
+    if (weak_location_sd) {
+      "at least one location SD is tiny relative to residual scale"
+    },
+    if (weak_scale_sd) "at least one log-sigma random-effect SD is tiny"
+  )
+  if (length(weak) > 0L) {
+    return(paste(
+      "Ordinary q4 location-scale covariance is fitted, but",
+      paste(weak, collapse = "; "),
+      "so interpret all six latent correlations cautiously."
+    ))
+  }
+  "Ordinary q4 location-scale covariance has replicated groups, non-negligible fitted component SDs, and latent correlations away from the boundary."
+}
+
 random_effect_label_is_intercept <- function(label) {
   grepl("^\\(1 \\| [^)]+\\)$", label) || grepl(":(Intercept)$", label)
 }
@@ -1500,11 +1751,223 @@ check_phylo_replication <- function(object) {
   )
 }
 
+check_spatial_mu_diagnostics <- function(object) {
+  if (!has_spatial_mu_effect(object)) {
+    return(NULL)
+  }
+
+  spatial_mu <- object$model$structured$phylo_mu
+  index <- spatial_mu$observation_node_index
+  counts <- tabulate(match(index, unique(index)))
+  min_count <- if (length(counts) > 0L) min(counts) else NA_integer_
+  n_sites <- length(counts)
+  weak_replication <- is.finite(min_count) && min_count < 2L
+
+  sd_label <- phylo_mu_sd_labels(spatial_mu, object$model$model_type)
+  sd_value <- unname(object$sdpars$mu[match(sd_label, names(object$sdpars$mu))])
+  finite_positive_sd <- length(sd_value) == 1L &&
+    is.finite(sd_value) &&
+    sd_value > 0
+
+  residual_scale <- spatial_mu_residual_scale(object)
+  sd_ratio <- if (finite_positive_sd && is.finite(residual_scale)) {
+    sd_value / residual_scale
+  } else {
+    NA_real_
+  }
+  weak_sd <- !finite_positive_sd || (is.finite(sd_ratio) && sd_ratio < 0.05)
+
+  coord_range <- spatial_mu$precision$range
+  check_row(
+    "spatial_mu_diagnostics",
+    if (!finite_positive_sd) {
+      "error"
+    } else if (weak_replication || weak_sd) {
+      "note"
+    } else {
+      "ok"
+    },
+    paste0(
+      "group=",
+      spatial_mu$group,
+      "; n_sites=",
+      n_sites,
+      "; min_site_n=",
+      min_count,
+      "; coord_range=",
+      format_check_number(coord_range),
+      "; spatial_sd=",
+      format_check_number(sd_value),
+      "; sd_ratio=",
+      format_check_number(sd_ratio)
+    ),
+    spatial_mu_diagnostic_message(
+      finite_positive_sd,
+      weak_replication,
+      weak_sd
+    )
+  )
+}
+
+spatial_mu_residual_scale <- function(object) {
+  sigma_values <- tryCatch(stats::sigma(object), error = function(e) e)
+  if (inherits(sigma_values, "error")) {
+    return(NA_real_)
+  }
+  if (is.list(sigma_values)) {
+    sigma_values <- unlist(sigma_values, use.names = FALSE)
+  }
+  mean(sigma_values, na.rm = TRUE)
+}
+
+spatial_mu_diagnostic_message <- function(
+  finite_positive_sd,
+  weak_replication,
+  weak_sd
+) {
+  if (!finite_positive_sd) {
+    return(paste(
+      "The fitted spatial SD is non-positive or non-finite;",
+      "inspect convergence, coordinate input, and the fitted structured effect."
+    ))
+  }
+  if (weak_replication && weak_sd) {
+    return(paste(
+      "At least one spatial site has fewer than two fitted observations and",
+      "the spatial SD is tiny relative to the residual scale; interpret the",
+      "coordinate spatial field cautiously."
+    ))
+  }
+  if (weak_replication) {
+    return(paste(
+      "At least one spatial site has fewer than two fitted observations;",
+      "interpret conditional spatial effects and the spatial SD cautiously."
+    ))
+  }
+  if (weak_sd) {
+    return(paste(
+      "The spatial SD is tiny relative to the residual scale; the coordinate",
+      "spatial field may be weakly identified."
+    ))
+  }
+  paste(
+    "The coordinate spatial random intercept has replicated sites and a",
+    "non-negligible fitted SD relative to the residual scale."
+  )
+}
+
+check_phylo_direct_sd_model <- function(object) {
+  sd_phylo <- object$model$random_scale$phylo
+  if (
+    !is.list(sd_phylo) ||
+      is.null(sd_phylo$n_models) ||
+      sd_phylo$n_models == 0L
+  ) {
+    return(NULL)
+  }
+
+  rows <- lapply(sd_phylo$dpars, function(dpar) {
+    group <- unname(sd_phylo$group[[dpar]])
+    target <- unname(sd_phylo$target_dpar[[dpar]])
+    if (is.null(target) || is.na(target)) {
+      target <- "mu"
+    }
+    group_levels <- sd_phylo$group_levels_list[[dpar]]
+    observation_sd_row0 <- sd_phylo$observation_sd_row0_list[[dpar]]
+    if (is.null(observation_sd_row0)) {
+      observation_sd_row0 <- sd_phylo$observation_sd_row0
+    }
+    counts <- tabulate(
+      observation_sd_row0 + 1L,
+      nbins = length(group_levels)
+    )
+    min_count <- if (length(counts) > 0L) min(counts) else NA_integer_
+    n_species <- length(group_levels)
+
+    sd_values <- object$sdpars[[dpar]]
+    finite_sd <- sd_values[is.finite(sd_values)]
+    sd_min <- min_finite_or_na(finite_sd)
+    sd_max <- max_finite_or_na(finite_sd)
+    positive_sd <- finite_sd[finite_sd > 0]
+    max_sd_ratio <- if (length(positive_sd) > 0L) {
+      max(positive_sd) / min(positive_sd)
+    } else {
+      NA_real_
+    }
+
+    invalid_sd <- length(sd_values) == 0L ||
+      length(finite_sd) != length(sd_values) ||
+      any(sd_values <= 0, na.rm = TRUE)
+    weak_replication <- is.finite(min_count) && min_count < 2L
+
+    check_row(
+      "phylo_direct_sd_model",
+      if (invalid_sd) {
+        "error"
+      } else if (weak_replication) {
+        "note"
+      } else {
+        "ok"
+      },
+      paste0(
+        "dpar=",
+        dpar,
+        "; target=",
+        target,
+        "; group=",
+        group,
+        "; n_species=",
+        n_species,
+        "; min_species_n=",
+        min_count,
+        "; sd_range=[",
+        format_check_number(sd_min),
+        ",",
+        format_check_number(sd_max),
+        "]",
+        "; max_sd_ratio=",
+        format_check_number(max_sd_ratio)
+      ),
+      phylo_direct_sd_message(dpar, invalid_sd, weak_replication)
+    )
+  })
+
+  do.call(rbind, rows)
+}
+
+phylo_direct_sd_message <- function(dpar, invalid_sd, weak_replication) {
+  if (invalid_sd) {
+    return(paste0(
+      "The fitted ",
+      dpar,
+      " surface contains non-finite or non-positive values."
+    ))
+  }
+  if (weak_replication) {
+    return(paste(
+      "At least one observed species has fewer than two fitted observations;",
+      dpar,
+      "recovery can be weak even when the fitted model converges."
+    ))
+  }
+  paste(
+    "The",
+    dpar,
+    "direct-SD model has replicated species and a finite",
+    "positive fitted species-level SD surface."
+  )
+}
+
 check_biv_phylo_mu_covariance <- function(object, rho_boundary) {
   if (
     !identical(object$model$model_type, "biv_gaussian") ||
       !has_phylo_mu_effect(object)
   ) {
+    return(NULL)
+  }
+
+  phylo_mu <- object$model$structured$phylo_mu
+  if (!identical(as.integer(phylo_mu$q), 2L)) {
     return(NULL)
   }
 
@@ -1517,7 +1980,6 @@ check_biv_phylo_mu_covariance <- function(object, rho_boundary) {
   }
   near_rho_boundary <- !rho_finite || rho_abs > rho_boundary
 
-  phylo_mu <- object$model$structured$phylo_mu
   index <- phylo_mu$observation_node_index
   counts <- tabulate(match(index, unique(index)))
   min_count <- if (length(counts) > 0L) {
@@ -1572,6 +2034,139 @@ check_biv_phylo_mu_covariance <- function(object, rho_boundary) {
       same_group_covariance
     )
   )
+}
+
+check_biv_phylo_q4_covariance <- function(object, rho_boundary) {
+  if (
+    !identical(object$model$model_type, "biv_gaussian") ||
+      !has_phylo_mu_effect(object)
+  ) {
+    return(NULL)
+  }
+
+  phylo_mu <- object$model$structured$phylo_mu
+  if (!identical(as.integer(phylo_mu$q), 4L)) {
+    return(NULL)
+  }
+
+  index <- phylo_mu$observation_node_index
+  counts <- tabulate(match(index, unique(index)))
+  min_count <- if (length(counts) > 0L) min(counts) else NA_integer_
+  n_species <- length(counts)
+  weak_species_count <- n_species < 8L
+  weak_replication <- is.finite(min_count) && min_count < 2L
+
+  sd_summaries <- bivariate_phylo_q4_sd_summaries(object, phylo_mu)
+  correlations <- object$corpars$phylo
+  max_abs_cor <- max_abs_finite_or_na(correlations)
+
+  weak_location_sd <- is.finite(sd_summaries$min_location_sd_ratio) &&
+    sd_summaries$min_location_sd_ratio < 0.05
+  weak_scale_sd <- is.finite(sd_summaries$min_log_sigma_sd) &&
+    sd_summaries$min_log_sigma_sd < 0.05
+  near_rho_boundary <- !is.finite(max_abs_cor) || max_abs_cor > rho_boundary
+
+  check_row(
+    "biv_phylo_q4_covariance",
+    if (near_rho_boundary) {
+      "warning"
+    } else if (
+      weak_species_count ||
+        weak_replication ||
+        weak_location_sd ||
+        weak_scale_sd
+    ) {
+      "note"
+    } else {
+      "ok"
+    },
+    paste0(
+      "group=",
+      phylo_mu$group,
+      "; block=",
+      phylo_mu_block(phylo_mu),
+      "; q=4",
+      "; n_species=",
+      n_species,
+      "; min_species_n=",
+      min_count,
+      "; min_location_sd_ratio=",
+      format_check_number(sd_summaries$min_location_sd_ratio),
+      "; min_log_sigma_sd=",
+      format_check_number(sd_summaries$min_log_sigma_sd),
+      "; max_abs_cor=",
+      format_check_number(max_abs_cor),
+      "; boundary=",
+      format_check_number(rho_boundary)
+    ),
+    bivariate_phylo_q4_diagnostic_message(
+      near_rho_boundary,
+      weak_species_count,
+      weak_replication,
+      weak_location_sd,
+      weak_scale_sd
+    )
+  )
+}
+
+bivariate_phylo_q4_sd_summaries <- function(object, phylo_mu) {
+  sdpars <- object$sdpars$mu
+  labels <- phylo_mu_sd_labels(phylo_mu, object$model$model_type)
+  dpars <- phylo_mu_dpars(phylo_mu)
+  sd_values <- unname(sdpars[match(labels, names(sdpars))])
+
+  location <- dpars %in% c("mu1", "mu2")
+  scale <- dpars %in% c("sigma1", "sigma2")
+  sigma_values <- tryCatch(stats::sigma(object), error = function(e) e)
+  if (!inherits(sigma_values, "error") && is.list(sigma_values)) {
+    residual_scale <- c(
+      mu1 = mean(sigma_values$sigma1, na.rm = TRUE),
+      mu2 = mean(sigma_values$sigma2, na.rm = TRUE)
+    )
+    location_ratios <- sd_values[location] / residual_scale[dpars[location]]
+  } else {
+    location_ratios <- rep(NA_real_, sum(location))
+  }
+
+  list(
+    min_location_sd_ratio = min_finite_or_na(location_ratios),
+    min_log_sigma_sd = min_finite_or_na(sd_values[scale])
+  )
+}
+
+bivariate_phylo_q4_diagnostic_message <- function(
+  near_rho_boundary,
+  weak_species_count,
+  weak_replication,
+  weak_location_sd,
+  weak_scale_sd
+) {
+  if (near_rho_boundary) {
+    return(paste(
+      "At least one latent phylogenetic q4 correlation is close to +/-1;",
+      "profile, simulate, or simplify before interpreting all six phylogenetic correlations."
+    ))
+  }
+  weak <- c(
+    if (weak_species_count) {
+      "few species for a four-endpoint phylogenetic block"
+    },
+    if (weak_replication) {
+      "at least one observed species has fewer than two fitted observations"
+    },
+    if (weak_location_sd) {
+      "at least one phylogenetic location SD is tiny relative to residual scale"
+    },
+    if (weak_scale_sd) "at least one phylogenetic log-sigma SD is tiny"
+  )
+  if (length(weak) > 0L) {
+    return(paste(
+      "Phylogenetic q4 location-scale covariance is fitted, but",
+      paste(weak, collapse = "; "),
+      "so interpret all six latent phylogenetic correlations cautiously."
+    ))
+  }
+  "Phylogenetic q4 location-scale covariance has replicated species, non-negligible fitted component SDs, and latent correlations away from the boundary."
 }
 
 bivariate_phylo_mu_has_same_group_covariance <- function(object) {

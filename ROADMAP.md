@@ -11,10 +11,12 @@ distributional regression models using TMB.
   double-hierarchical individual-difference endpoint.
 - Release boundary: Phase 9 is closed at the implemented ordinal and
   denominator-aware MVPs. The first Phase 11 bivariate `mu1`/`mu2`
-  random-intercept covariance slice is now implemented, while richer
-  bivariate random slopes, residual-scale covariance, structured covariance,
-  and the full double-hierarchical endpoint remain roadmap work for later
-  releases.
+  random-intercept covariance slice is now implemented. Phase 18 records the
+  visualization and marginal-effects layer that should make fitted location,
+  scale, coscale, random-effect SD, and latent correlation results easier to
+  inspect across model families. Richer bivariate random slopes,
+  residual-scale covariance, structured covariance, and the full
+  double-hierarchical endpoint remain roadmap work for later releases.
 - Completed before bumping the version:
   - `devtools::check()` passes with 0 errors, 0 warnings, and 0 notes;
   - `devtools::test()` and `pkgdown::check_pkgdown()` pass;
@@ -180,9 +182,10 @@ distributional regression models using TMB.
   six endpoint correlation targets. Dormant q > 2 rows remain invisible to
   ordinary extractor/profile output. These probes are not user-facing
   fitted-model support yet and do not cover random-slope q=6 or q=8 endpoint
-  blocks. The next strategic milestone after the non-phylogenetic q=4 endpoint
-  path is the corresponding phylogenetic q=4 state for the mammalian and avian
-  protocol use case; q=6 and q=8 random-slope endpoint blocks can wait.
+  blocks. The corresponding constant phylogenetic q=4 state is now fitted for
+  matching labelled all-four `phylo()` terms; the next phylogenetic work is
+  recovery evidence, diagnostics, and tutorial hardening. q=6 and q=8
+  random-slope endpoint blocks can wait.
 - Use `docs/design/18-random-effect-scale-models.md` as the design contract:
   the implemented MVP targets one or more distinct unlabelled univariate
   Gaussian `mu` random intercepts, with group-level predictors, simulation
@@ -197,7 +200,7 @@ distributional regression models using TMB.
 
 - Status: first univariate Gaussian phylogenetic location path implemented;
   first matching bivariate `mu1`/`mu2` phylogenetic location slice implemented;
-  spatial paths remain planned.
+  first univariate Gaussian coordinate-based spatial location path implemented.
 - Treat phylogenetic and spatial terms as one structured-effect module:
   `z ~ MVN(0, sigma_z^2 K)`, with `K = A` for phylogeny and `K = M` for
   spatial dependence.
@@ -218,19 +221,39 @@ distributional regression models using TMB.
   weak phylogenetic-SD diagnostics, and ordinary same-species covariance
   overlap for that fitted slice. A CRAN-safe deterministic simulation now
   recovers a positive bivariate phylogenetic mean-mean correlation.
-- Add spatial SPDE/GMRF fields after the core Gaussian and known-covariance
-  path is reliable.
+- The first spatial fitted path is now `spatial(1 | site, coords = coords)` in
+  univariate Gaussian `mu`. It uses a fixed exponential coordinate covariance
+  as a small-data foundation and reports `sdpars$mu["spatial(1 | site)"]` plus
+  a `spatial_mu` conditional random-effect block. `check_drm()` reports the
+  `spatial_mu_diagnostics` row for site replication, coordinate range, spatial
+  SD, and spatial-SD-to-residual-scale ratio. Mesh/SPDE, spatial slopes,
+  spatial q=4, spatial `sd(...)`, and spatial `corpair()` regressions remain
+  planned.
 - For bivariate structured models, estimate and report level-specific
   correlations separately: residual `rho12`, phylogenetic correlations,
   non-phylogenetic species correlations, spatial field correlations, and
   ordinary grouped random-effect correlations should not share one namespace.
-- The first internal q=4 phylogenetic state scaffold checks the R-side
-  matrix-normal prior algebra for `mu1`, `mu2`, `sigma1`, and `sigma2` effects
-  against a dense Kronecker covariance comparator. This is still algebra
-  evidence for the full location-scale endpoint, not a fitted q=4 model. The
-  matching hidden TMB prior branch evaluates the same q=4 state against the R
-  algebra helper. A planned-pair scaffold records the six future phylogenetic
-  endpoint rows without emitting them from fitted-model extractors.
+- The first fitted phylogenetic q=4 location-scale block now shares the same
+  matrix-normal prior algebra used by the hidden q=4 scaffold: `mu1`, `mu2`,
+  `sigma1`, and `sigma2` effects are stored endpoint-major, with four
+  phylogenetic SDs and six unstructured latent correlations. `corpairs()` and
+  `summary(fit)$covariance` report all six phylogenetic endpoint rows, while
+  `profile_targets()` marks those q=4 correlations as derived `theta_phylo`
+  targets rather than direct profile-ready atanh targets. A CRAN-safe recovery
+  test now checks broad fixed-effect, SD, residual-correlation, finite-gradient,
+  and q=4 diagnostic behavior.
+- The univariate Family B `sd_phylo(species) ~ x_species` path is implemented:
+  it uses a non-centred unit tree effect, multiplies only observed tip
+  contributions by species-level `tau_l = exp(W_l alpha)`, and interprets the
+  marginal tip covariance as `D_tip A_tip D_tip`. `check_drm()` now reports
+  direct-SD diagnostic rows covering species replication and the fitted
+  species-level SD surface range. The bivariate design target is
+  now implemented as response-specific location-only direct-SD regression:
+  `sd_phylo1()` for the `mu1` phylogenetic location effect, `sd_phylo2()` for
+  the `mu2` effect, a constant latent phylogenetic location-location
+  correlation, and no mixing with all-four q=4 phylogenetic location-scale
+  blocks. `check_drm()` now reports the fitted direct-SD surface range and
+  species replication for each univariate or bivariate `sd_phylo*()` endpoint.
 - Use the correlation-pair design in
   `docs/design/20-coscale-correlation-pairs.md` before implementing bivariate
   double-hierarchical covariance blocks; pair outputs should identify the
@@ -239,16 +262,32 @@ distributional regression models using TMB.
   correlations only: residual `rho12`, ordinary group-level `mu` random-effect
   correlations, the univariate `mu`/`sigma` mean-scale random-intercept
   correlation, and the bivariate `mu1`/`mu2` and `sigma1`/`sigma2`
-  random-intercept correlations, plus the first fitted bivariate phylogenetic
-  mean-mean correlation.
+  random-intercept correlations, plus the fitted bivariate phylogenetic
+  mean-mean correlation and all six fitted phylogenetic q=4 endpoint
+  correlations when that block is present.
   Extend this table as new correlation likelihoods are added.
 - Stage structured phylogenetic and spatial slopes conservatively:
-  intercept-only structured effects first, then one `mu` slope, then only small
-  slope sets or interaction slopes after simulation recovery.
-- Add identifiability diagnostics for replication by study, species, location,
-  and effect-size levels before complex structured models are promoted.
+  intercept-only structured effects first, then one `mu` slope, then at most two
+  structured `mu` slopes as an advanced path after simulation recovery. Multiple
+  random factors should enter as separate additive blocks. Intercept-slope
+  `corpair()` rows are distant-future; the more biologically interesting later
+  target is a bivariate slope1-slope2 correlation for the same covariate, a
+  plasticity-syndrome style model.
+- Continue adding identifiability diagnostics for replication by study,
+  species, location, and effect-size levels before complex structured models
+  are promoted. The first spatial `mu` diagnostic is implemented for the
+  coordinate path; mesh/SPDE diagnostics remain tied to the future mesh gate.
 - Selectively reuse GPL-compatible ideas or modules from `gllvmTMB` with
   provenance notes and tests.
+
+Phase 5 closure boundary:
+
+| Layer | Implemented before spatial expansion | Still planned |
+| --- | --- | --- |
+| univariate phylogenetic | `phylo(1 | species, tree = tree)` in Gaussian `mu`, `sd_phylo(species) ~ z`, profile targets and diagnostics | phylogenetic slopes, richer tree-shape recovery grids |
+| bivariate phylogenetic | matching `mu1`/`mu2` phylogenetic location correlation, constant q=4 location-scale block, q=2 predictor-dependent `corpair(..., level = "phylogenetic") ~ w`, bivariate `sd_phylo1()` / `sd_phylo2()` | q=4 predictor-dependent location-scale and scale-scale `corpair()` regressions |
+| coordinate spatial | `spatial(1 | site, coords = coords)` in univariate Gaussian `mu`, `sdpars`, `ranef("spatial_mu")`, profile target, and `check_drm()` row | mesh/SPDE, spatial slopes, spatial scale, bivariate spatial q=4, spatial direct-SD, spatial `corpair()` |
+| inference/output | fixed-effect SEs, direct profile-ready targets where implemented, `corpairs(conf.int = TRUE)` with explicit interval status | direct profile intervals for derived q=4 correlations and richer marginal-effect/visualization helpers |
 
 ## Phase 5b: Large-Data Memory Strategy
 
@@ -417,13 +456,26 @@ remain blocked by future covariance or non-Gaussian random-effect work.
 
 ## Phase 10: Spatial Structured Effects
 
-- Status: planned.
-- Implement the first fitted spatial model as an intercept-only univariate
-  Gaussian `mu` structured effect, parallel to the implemented phylogenetic path.
-- Support either `spatial(1 | site, coords = coords)` or
-  `spatial(1 | site, mesh = mesh)` only after the data contract is documented:
-  `coords` identify observation or site locations, while `mesh` is the SPDE/GMRF
-  computational scaffold.
+- Status: first coordinate-based univariate Gaussian `mu` path implemented;
+  mesh/SPDE and bivariate spatial paths planned.
+- The first fitted spatial model is an intercept-only univariate Gaussian `mu`
+  structured effect, parallel to the implemented phylogenetic path:
+  `spatial(1 | site, coords = coords)`.
+- Support `spatial(1 | site, mesh = mesh)` only after the coded mesh object
+  schema, projection path, and recovery tests are implemented. The design
+  contract and provenance policy are recorded in
+  `docs/design/09-phylogenetic-and-spatial-speed.md`. `coords` identify
+  observation or site locations, while `mesh` is the SPDE/GMRF computational
+  scaffold.
+- Treat `coords` as the friendly public input and `mesh` as optional expert
+  control. A dense coordinate-only Gaussian-process path would not require a
+  mesh, but it is not the scalable route. The planned SPDE/GMRF route needs a
+  mesh-like finite-element scaffold internally, even if `drmTMB` builds it from
+  coordinates for the user.
+- Cite the SPDE/GMRF method literature and any software used for mesh or
+  precision construction. If code is ported or closely adapted from `sdmTMB`,
+  `fmesher`, INLA-related sources, `gllvmTMB`, or another project, record
+  provenance in `inst/COPYRIGHTS` before calling the spatial slice complete.
 - Use a small comparator or simulation recovery test before exposing spatial
   effects beyond `mu`.
 - Do not add spatial terms in `sigma`, `rho12`, or bivariate structured
@@ -443,6 +495,11 @@ remain blocked by future covariance or non-Gaussian random-effect work.
 - Keep the first individual-difference covariance target focused on ordinary
   grouped personality and plasticity terms before adding structured
   phylogenetic or non-phylogenetic species correlation layers.
+- For future random slopes, start with one slope and allow at most two slopes in
+  the near-term advanced path. Do not estimate intercept-slope correlations at
+  first. A later coefficient-aware `corpair()` design can target the bivariate
+  slope1-slope2 plasticity-syndrome case, but that belongs after intercept-only
+  covariance blocks and current `corpair()` rows are stable.
 - Extend `corpairs()` before adding complex covariance blocks, so users can see
   the level, group, block, responses, distributional parameters, coefficients,
   estimates, and uncertainty source.
@@ -461,7 +518,9 @@ remain blocked by future covariance or non-Gaussian random-effect work.
 - Status: planned beyond the first fitted bivariate `mu1`/`mu2` phylogenetic
   location slice.
 - Extend the implemented `phylo(1 | species, tree = tree)` Gaussian `mu` path to
-  one structured `mu` slope, then only later to small structured slope sets.
+  one structured `mu` slope, then only later to at most two structured `mu`
+  slopes. Three or more structured slopes, intercept-slope correlations, and
+  slope-slope `corpair()` regression are distant-future research targets.
 - Add phylogenetic terms in `sigma` only after the location path has larger
   simulation evidence and clear identifiability diagnostics.
 - Keep phylogenetic location-scale-shape models as a research target, not an
@@ -477,6 +536,16 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   combined with the fitted bivariate phylogenetic mean layer, but
   `check_drm()` notes the identifiability risk when both layers use the same
   grouping factor.
+- Predictor-dependent phylogenetic `corpair(species, level = "phylogenetic",
+  ...) ~ w` is implemented for the q=2 `mu1`-`mu2` location-location endpoint
+  pair. The design uses two independent unit phylogenetic fields and
+  species-specific loadings, giving a positive-definite nonstationary covariance
+  that reduces to the existing constant bivariate phylogenetic covariance when
+  the correlation predictor is constant. A CRAN-safe broad-trend recovery test
+  checks that a positive species-level predictor recovers the fitted
+  phylogenetic correlation ordering without hitting the correlation guard.
+  Phylogenetic location-scale and scale-scale correlation regressions require a
+  q=4 contract and remain deferred; spatial siblings remain planned.
 
 ## Phase 13: Double-Hierarchical Derived Inference
 
@@ -555,3 +624,30 @@ remain blocked by future covariance or non-Gaussian random-effect work.
 - Draft methods papers around the package-defining pieces: fast
   location-scale regression, modelled residual `rho12`, and structured
   phylogenetic/spatial distributional regression.
+
+## Phase 18: Visualization, Marginal Effects, and Reader-Facing Inference
+
+- Status: planned; initial long-format prediction surfaces exist through
+  `predict_parameters()` and `marginal_parameters()`.
+- Build a coherent visualization layer across all implemented `drmTMB` model
+  families rather than one-off plotting functions. The target reader is an
+  applied ecology, evolution, or environmental-science user who needs to see
+  fitted location, scale, shape, coscale, random-effect SD, and latent
+  correlation patterns without rebuilding prediction grids by hand.
+- Start with data helpers before plotting helpers:
+  `prediction_grid()` or equivalent grid builders, `marginal_effects()` for
+  averaging over nuisance covariates or groups, and compatibility checks for
+  `emmeans` where the fitted parameter and link scale have a clean contract.
+- Add ggplot-oriented helpers only after the data contract is stable:
+  location curves, scale/variance curves, residual `rho12` curves,
+  `sd(group)` or `sd_phylo()` surfaces, `corpairs()` summaries, and eventually
+  spatial fields or maps.
+- Every visual interval must state its inference source: Wald fixed-effect
+  interval, direct profile-likelihood interval, derived nonlinear interval,
+  conditional random-effect uncertainty, or parametric-bootstrap interval.
+  Fisher's default is to avoid implying full uncertainty when only fixed-effect
+  uncertainty is present.
+- Pat's usability gate: examples should show the biological question, the
+  fitted model, the visualization call, and the interpretation in one path.
+  Rose's audit gate: plotting docs must not overclaim support for parameters or
+  interval types that the model object cannot yet supply.

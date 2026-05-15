@@ -266,6 +266,51 @@ new_biv_gaussian_mu_re_data <- function(
   )
 }
 
+new_biv_gaussian_corpair_data <- function(
+  n_id = 42,
+  n_each = 5,
+  beta_cor = c(-0.2, 0.9),
+  residual_rho = 0.05,
+  seed = 2026051401
+) {
+  set.seed(seed)
+  id <- factor(rep(seq_len(n_id), each = n_each))
+  n <- length(id)
+  x <- stats::rnorm(n)
+  ecology_id <- stats::rnorm(n_id)
+  ecology <- ecology_id[id]
+  rho_group <- 0.999999 * tanh(beta_cor[[1L]] + beta_cor[[2L]] * ecology_id)
+  beta_mu1 <- c(0.2, 0.45)
+  beta_mu2 <- c(-0.15, -0.35)
+  sigma1 <- 0.35
+  sigma2 <- 0.42
+  sd_mu1 <- 0.6
+  sd_mu2 <- 0.7
+
+  u1 <- stats::rnorm(n_id)
+  u2 <- rho_group * u1 + sqrt(1 - rho_group^2) * stats::rnorm(n_id)
+  e1 <- stats::rnorm(n)
+  e2 <- residual_rho * e1 + sqrt(1 - residual_rho^2) * stats::rnorm(n)
+
+  dat <- data.frame(id = id, x = x, ecology = ecology)
+  dat$y1 <- beta_mu1[[1L]] + beta_mu1[[2L]] * x + sd_mu1 * u1[id] + sigma1 * e1
+  dat$y2 <- beta_mu2[[1L]] + beta_mu2[[2L]] * x + sd_mu2 * u2[id] + sigma2 * e2
+
+  list(
+    data = dat,
+    ecology_id = ecology_id,
+    beta_cor = stats::setNames(beta_cor, c("(Intercept)", "ecology")),
+    rho_group = rho_group,
+    beta_mu1 = beta_mu1,
+    beta_mu2 = beta_mu2,
+    sigma = c(sigma1, sigma2),
+    sd_mu = c(
+      "mu1:(1 | p | id)" = sd_mu1,
+      "mu2:(1 | p | id)" = sd_mu2
+    )
+  )
+}
+
 new_biv_gaussian_sigma_re_data <- function(
   n_id = 48,
   n_each = 8,
@@ -419,6 +464,119 @@ new_biv_gaussian_mu_sigma_re_data <- function(
   )
 }
 
+new_biv_gaussian_location_sd_data <- function(
+  n_id = 42,
+  n_each = 7,
+  rho_group = 0.35,
+  residual_rho = 0.10,
+  seed = 2026051306
+) {
+  set.seed(seed)
+  id <- factor(rep(seq_len(n_id), each = n_each))
+  n <- length(id)
+  x <- stats::rnorm(n)
+  w1_group <- stats::rnorm(n_id)
+  w2_group <- stats::rnorm(n_id)
+  w1 <- w1_group[id]
+  w2 <- w2_group[id]
+  beta_mu1 <- c(0.15, 0.35)
+  beta_mu2 <- c(-0.10, -0.30)
+  beta_sigma1 <- log(0.42)
+  beta_sigma2 <- log(0.48)
+  alpha1 <- c(`(Intercept)` = log(0.38), w1 = 0.45)
+  alpha2 <- c(`(Intercept)` = log(0.52), w2 = -0.35)
+
+  tau1 <- exp(alpha1[[1L]] + alpha1[[2L]] * w1_group)
+  tau2 <- exp(alpha2[[1L]] + alpha2[[2L]] * w2_group)
+  z1 <- stats::rnorm(n_id)
+  z2 <- rho_group * z1 + sqrt(1 - rho_group^2) * stats::rnorm(n_id)
+  b1 <- tau1 * z1
+  b2 <- tau2 * z2
+  e1 <- stats::rnorm(n)
+  e2 <- residual_rho * e1 + sqrt(1 - residual_rho^2) * stats::rnorm(n)
+
+  dat <- data.frame(id = id, x = x, w1 = w1, w2 = w2)
+  dat$y1 <- beta_mu1[[1L]] + beta_mu1[[2L]] * x + b1[id] + exp(beta_sigma1) * e1
+  dat$y2 <- beta_mu2[[1L]] + beta_mu2[[2L]] * x + b2[id] + exp(beta_sigma2) * e2
+
+  list(
+    data = dat,
+    beta_mu1 = beta_mu1,
+    beta_mu2 = beta_mu2,
+    beta_sigma = c(beta_sigma1, beta_sigma2),
+    alpha1 = alpha1,
+    alpha2 = alpha2,
+    tau1 = tau1,
+    tau2 = tau2,
+    rho_group = rho_group,
+    residual_rho = residual_rho
+  )
+}
+
+new_biv_gaussian_q4_re_data <- function(
+  n_id = 36,
+  n_each = 6,
+  seed = 2026051307
+) {
+  set.seed(seed)
+  id <- factor(rep(seq_len(n_id), each = n_each))
+  n <- length(id)
+  x <- stats::rnorm(n)
+  beta_mu1 <- c(0.15, 0.35)
+  beta_mu2 <- c(-0.20, -0.28)
+  beta_sigma1 <- log(0.42)
+  beta_sigma2 <- log(0.55)
+  beta_rho12 <- atanh(0.10)
+  sd <- c(0.45, 0.50, 0.24, 0.28)
+  corr <- matrix(
+    c(
+      1.00,
+      0.25,
+      0.12,
+      -0.08,
+      0.25,
+      1.00,
+      0.05,
+      0.16,
+      0.12,
+      0.05,
+      1.00,
+      0.20,
+      -0.08,
+      0.16,
+      0.20,
+      1.00
+    ),
+    nrow = 4L,
+    byrow = TRUE
+  )
+  z <- matrix(stats::rnorm(n_id * 4L), n_id, 4L)
+  b <- sweep(z %*% chol(corr), 2L, sd, `*`)
+  rho12 <- tanh(beta_rho12)
+  e1 <- stats::rnorm(n)
+  e2 <- rho12 * e1 + sqrt(1 - rho12^2) * stats::rnorm(n)
+
+  dat <- data.frame(id = id, x = x)
+  dat$y1 <- beta_mu1[[1L]] +
+    beta_mu1[[2L]] * x +
+    b[id, 1L] +
+    exp(beta_sigma1 + b[id, 3L]) * e1
+  dat$y2 <- beta_mu2[[1L]] +
+    beta_mu2[[2L]] * x +
+    b[id, 2L] +
+    exp(beta_sigma2 + b[id, 4L]) * e2
+
+  list(
+    data = dat,
+    beta_mu1 = beta_mu1,
+    beta_mu2 = beta_mu2,
+    beta_sigma = c(beta_sigma1, beta_sigma2),
+    beta_rho12 = beta_rho12,
+    sd = sd,
+    corr = corr
+  )
+}
+
 expect_abs_error_below <- function(actual, expected, tolerance) {
   expect_lt(max(abs(unname(actual) - unname(expected))), tolerance)
 }
@@ -537,6 +695,302 @@ test_that("bivariate Gaussian supports labelled mu1/mu2 random-intercept covaria
   expect_equal(nrow(corpairs(fit, block = "p")), 1L)
   expect_equal(nrow(corpairs(fit, group = "missing")), 0L)
   expect_equal(nrow(corpairs(fit, block = "missing")), 0L)
+})
+
+test_that("bivariate Gaussian fits ordinary q2 corpair regression for mu1/mu2 blocks", {
+  sim <- new_biv_gaussian_corpair_data()
+  dpar <- 'corpair(id, level = "group", block = "p", from = "mu1", to = "mu2")'
+
+  fit <- drmTMB(
+    bf(
+      mu1 = y1 ~ x + (1 | p | id),
+      mu2 = y2 ~ x + (1 | p | id),
+      sigma1 = ~1,
+      sigma2 = ~1,
+      rho12 = ~1,
+      corpair(id, level = "group", block = "p", from = "mu1", to = "mu2") ~
+        ecology
+    ),
+    family = biv_gaussian(),
+    data = sim$data,
+    control = list(eval.max = 300, iter.max = 300)
+  )
+
+  pair <- corpairs(fit, level = "group")
+  pair_ci <- corpairs(fit, level = "group", conf.int = TRUE)
+  cor_hat <- predict(fit, dpar = dpar)
+  cor_link <- predict(fit, dpar = dpar, type = "link")
+  ci_newdata <- data.frame(ecology = 0.15)
+  row.names(ci_newdata) <- "ecology_mid"
+  cor_ci <- confint(
+    fit,
+    parm = dpar,
+    level = 0.70,
+    method = "profile",
+    newdata = ci_newdata,
+    trace = FALSE,
+    ystep = 0.45
+  )
+  cor_at_newdata <- predict(fit, newdata = ci_newdata, dpar = dpar)
+  targets <- profile_targets(fit)
+  cor_targets <- targets[startsWith(targets$parm, paste0("fixef:", dpar)), ]
+  cor_rows <- grepl(dpar, row.names(summary(fit)$coefficients), fixed = TRUE)
+  parameter_row <- summary(fit)$parameters[
+    summary(fit)$parameters$dpar == dpar,
+    ,
+    drop = FALSE
+  ]
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_true(fit$sdr$pdHess)
+  expect_named(coef(fit, dpar), names(sim$beta_cor))
+  expect_gt(coef(fit, dpar)[["ecology"]], 0)
+  expect_gt(stats::cor(cor_hat, sim$rho_group), 0.45)
+  expect_equal(length(cor_hat), nlevels(sim$data$id))
+  expect_equal(length(cor_link), nlevels(sim$data$id))
+  expect_equal(pair$modelled, TRUE)
+  expect_equal(pair$n_values, nlevels(sim$data$id))
+  expect_equal(pair$estimate, mean(cor_hat), tolerance = 1e-12)
+  expect_equal(pair$min, min(cor_hat), tolerance = 1e-12)
+  expect_equal(pair$max, max(cor_hat), tolerance = 1e-12)
+  expect_equal(pair$link_estimate, mean(cor_link), tolerance = 1e-12)
+  expect_equal(pair_ci$conf.status, "newdata_required")
+  expect_equal(cor_ci$parm, paste0(dpar, "[ecology_mid]"))
+  expect_equal(cor_ci$scale, "response")
+  expect_equal(cor_ci$transformation, "random_effect_correlation_tanh")
+  expect_equal(cor_ci$tmb_parameter, "beta_cor_mu")
+  expect_true(is.na(cor_ci$index))
+  expect_lt(cor_ci$lower, cor_at_newdata)
+  expect_gt(cor_ci$upper, cor_at_newdata)
+  expect_equal(parameter_row$profile_note, "use_confint_newdata")
+  expect_equal(nrow(cor_targets), 2L)
+  expect_equal(cor_targets$tmb_parameter, rep("beta_cor_mu", 2L))
+  expect_true(all(cor_targets$profile_ready))
+  expect_false(any(startsWith(targets$parm, "cor:mu:")))
+  expect_equal(sum(cor_rows), 2L)
+  expect_true(all(is.finite(summary(fit)$coefficients$std_error[cor_rows])))
+})
+
+test_that("bivariate Gaussian supports sd1(id) and sd2(id) location random-effect SD models", {
+  sim <- new_biv_gaussian_location_sd_data()
+
+  fit <- drmTMB(
+    bf(
+      mu1 = y1 ~ x + (1 | p | id),
+      mu2 = y2 ~ x + (1 | p | id),
+      sigma1 = ~1,
+      sigma2 = ~1,
+      rho12 = ~1,
+      sd1(id) ~ w1,
+      sd2(id) ~ w2
+    ),
+    family = biv_gaussian(),
+    data = sim$data,
+    control = list(eval.max = 350, iter.max = 350)
+  )
+
+  sd1_hat <- predict(fit, dpar = "sd1(id)")
+  sd2_hat <- predict(fit, dpar = "sd2(id)")
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_true(fit$sdr$pdHess)
+  expect_named(
+    fit$coefficients,
+    c("mu1", "mu2", "sigma1", "sigma2", "rho12", "sd1(id)", "sd2(id)")
+  )
+  expect_named(fit$sdpars, c("sd1(id)", "sd2(id)"))
+  expect_false("mu" %in% names(fit$sdpars))
+  expect_equal(unname(fit$model$random_scale$mu$target_coef), c(1L, 2L))
+  expect_true(all(fit$model$random_scale$mu$re_sd_row0 >= 0L))
+  expect_true(all(sd1_hat > 0))
+  expect_true(all(sd2_hat > 0))
+  expect_equal(length(sd1_hat), nlevels(sim$data$id))
+  expect_equal(length(sd2_hat), nlevels(sim$data$id))
+  expect_gt(stats::cor(log(sd1_hat), log(sim$tau1)), 0.35)
+  expect_gt(stats::cor(log(sd2_hat), log(sim$tau2)), 0.35)
+  expect_lt(max(abs(unname(coef(fit, "sd1(id)")) - unname(sim$alpha1))), 0.55)
+  expect_lt(max(abs(unname(coef(fit, "sd2(id)")) - unname(sim$alpha2))), 0.65)
+  expect_equal(nrow(corpairs(fit, level = "group")), 1L)
+})
+
+test_that("bivariate Gaussian sd1(id) and sd2(id) reject non-location and observation-level targets", {
+  sim <- new_biv_gaussian_location_sd_data(n_id = 16, n_each = 4)
+  dat <- sim$data
+  dat$site <- dat$id
+
+  expect_error(
+    drmTMB(
+      bf(
+        mu1 = y1 ~ x,
+        mu2 = y2 ~ x + (1 | p | id),
+        sigma1 = ~1,
+        sigma2 = ~1,
+        sd1(id) ~ w1
+      ),
+      family = biv_gaussian(),
+      data = dat
+    ),
+    "No bivariate location random-effect term matches"
+  )
+  expect_error(
+    drmTMB(
+      bf(
+        mu1 = y1 ~ x + (1 | p | id),
+        mu2 = y2 ~ x + (1 | p | id),
+        sigma1 = ~1,
+        sigma2 = ~1,
+        sd2(site) ~ w2
+      ),
+      family = biv_gaussian(),
+      data = dat
+    ),
+    "No bivariate location random-effect term matches"
+  )
+
+  dat$w_obs <- stats::rnorm(nrow(dat))
+  expect_error(
+    drmTMB(
+      bf(
+        mu1 = y1 ~ x + (1 | p | id),
+        mu2 = y2 ~ x + (1 | p | id),
+        sigma1 = ~1,
+        sigma2 = ~1,
+        sd1(id) ~ w_obs
+      ),
+      family = biv_gaussian(),
+      data = dat
+    ),
+    "varies within"
+  )
+  expect_error(
+    bf(
+      mu1 = y1 ~ x + (1 | p | id),
+      mu2 = y2 ~ x + (1 | p | id),
+      sd_sigma1(id) ~ w1
+    ),
+    "not a supported"
+  )
+  expect_error(
+    drmTMB(
+      bf(
+        mu1 = y1 ~ x + (1 | p | id),
+        mu2 = y2 ~ x + (1 | p | id),
+        sigma1 = ~1,
+        sigma2 = ~1,
+        sd_phylo(id) ~ w1
+      ),
+      family = biv_gaussian(),
+      data = dat
+    ),
+    "only support"
+  )
+  expect_error(
+    drmTMB(
+      bf(
+        mu1 = y1 ~ x + (1 | p | id),
+        mu2 = y2 ~ x + (1 | p | id),
+        sigma1 = ~1,
+        sigma2 = ~1,
+        sd_phylo1(id) ~ w1
+      ),
+      family = biv_gaussian(),
+      data = dat
+    ),
+    "No bivariate phylogenetic location random-effect term matches"
+  )
+  expect_error(
+    drmTMB(
+      bf(
+        mu1 = y1 ~ x + (1 | p | id),
+        mu2 = y2 ~ x + (1 | p | id),
+        sigma1 = ~ 1 + (1 | p | id),
+        sigma2 = ~ 1 + (1 | p | id),
+        sd1(id) ~ w1
+      ),
+      family = biv_gaussian(),
+      data = dat
+    ),
+    "Do not combine Family A"
+  )
+})
+
+test_that("bivariate Gaussian supports full q4 labelled location-scale covariance blocks", {
+  sim <- new_biv_gaussian_q4_re_data()
+
+  fit <- drmTMB(
+    bf(
+      mu1 = y1 ~ x + (1 | p | id),
+      mu2 = y2 ~ x + (1 | p | id),
+      sigma1 = ~ 1 + (1 | p | id),
+      sigma2 = ~ 1 + (1 | p | id),
+      rho12 = ~1
+    ),
+    family = biv_gaussian(),
+    data = sim$data,
+    control = list(eval.max = 500, iter.max = 500)
+  )
+
+  pairs <- corpairs(fit, level = "group", block = "p")
+  fixed_mu1 <- as.vector(
+    stats::model.matrix(~x, sim$data) %*% coef(fit, "mu1")
+  )
+  fixed_sigma1 <- as.vector(
+    stats::model.matrix(~1, sim$data) %*% coef(fit, "sigma1")
+  )
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(fit$model$random$mu$n_re, 0L)
+  expect_equal(fit$model$random$sigma$n_re, 0L)
+  expect_equal(fit$model$random$covariance_blocks$n_qgt2_blocks, 1L)
+  expect_equal(
+    fit$model$random$covariance_blocks$n_qgt2_re,
+    4L * nlevels(sim$data$id)
+  )
+  expect_equal(fit$model$random$covariance_blocks$n_qgt2_sd, 4L)
+  expect_equal(fit$model$random$covariance_blocks$n_qgt2_theta, 6L)
+  expect_equal(fit$model$random_names, "u_re_cov")
+  expect_named(fit$sdpars, c("mu", "sigma"))
+  expect_equal(length(fit$sdpars$mu), 2L)
+  expect_equal(length(fit$sdpars$sigma), 2L)
+  expect_named(fit$corpars, "re_cov")
+  expect_equal(length(fit$corpars$re_cov), 6L)
+  expect_equal(nrow(pairs), 6L)
+  expect_equal(
+    pairs$class,
+    c(
+      "mean-mean",
+      "mean-scale",
+      "mean-scale",
+      "mean-scale",
+      "mean-scale",
+      "scale-scale"
+    )
+  )
+  expect_equal(pairs$from_dpar, c("mu1", "mu1", "mu1", "mu2", "mu2", "sigma1"))
+  expect_equal(
+    pairs$to_dpar,
+    c("mu2", "sigma1", "sigma2", "sigma1", "sigma2", "sigma2")
+  )
+  expect_equal(nrow(corpairs(fit, class = "mean-scale")), 4L)
+  expect_equal(nrow(corpairs(fit, class = "mean-mean")), 1L)
+  expect_equal(nrow(corpairs(fit, class = "scale-scale")), 1L)
+  expect_equal(nrow(corpairs(fit, class = "location-scale")), 4L)
+  expect_equal(nrow(corpairs(fit, class = "location-location")), 1L)
+  expect_equal(nrow(corpairs(fit, level = "residual")), 1L)
+  expect_lt(max(abs(pairs$estimate)), 1)
+  expect_gt(stats::sd(predict(fit, dpar = "mu1") - fixed_mu1), 0)
+  expect_gt(
+    stats::sd(predict(fit, dpar = "sigma1", type = "link") - fixed_sigma1),
+    0
+  )
+  expect_equal(nrow(summary(fit)$covariance), 6L)
+
+  sims <- simulate(fit, nsim = 2, seed = 20260630)
+  expect_named(sims, c("sim_1_y1", "sim_1_y2", "sim_2_y1", "sim_2_y2"))
+  expect_equal(nrow(sims), nrow(sim$data))
+  expect_true(all(vapply(sims, is.numeric, logical(1L))))
+  expect_true(all(is.finite(as.matrix(sims))))
+  expect_equal(sims, simulate(fit, nsim = 2, seed = 20260630))
 })
 
 test_that("bivariate Gaussian supports labelled sigma1/sigma2 random-intercept covariance blocks", {
@@ -1456,7 +1910,9 @@ test_that("bivariate Gaussian rejects unsupported Phase 3 syntax clearly", {
     y2 = stats::rnorm(20),
     x = stats::rnorm(20),
     vi = rep(0.02, 20),
-    id = rep(1:4, each = 5)
+    id = rep(1:4, each = 5),
+    species = factor(rep(paste0("sp", 1:4), each = 5)),
+    ecology = rep(seq(-0.6, 0.6, length.out = 4), each = 5)
   )
 
   expect_error(
@@ -1543,6 +1999,66 @@ test_that("bivariate Gaussian rejects unsupported Phase 3 syntax clearly", {
   expect_error(
     drmTMB(
       bf(
+        mu1 = y1 ~ x + (1 | p | id),
+        mu2 = y2 ~ x + (1 | p | id),
+        sigma1 = ~1,
+        sigma2 = ~1,
+        rho12 = ~1,
+        corpair(id, level = "group", block = "q", from = "mu1", to = "mu2") ~
+          1
+      ),
+      family = biv_gaussian(),
+      data = dat
+    ),
+    "block does not match"
+  )
+  expect_error(
+    drmTMB(
+      bf(
+        mu1 = y1 ~ x + (1 | p | id),
+        mu2 = y2 ~ x + (1 | p | id),
+        sigma1 = ~1,
+        sigma2 = ~1,
+        rho12 = ~1,
+        corpair(id, level = "group", block = "p", from = "mu1", to = "mu2") ~
+          x
+      ),
+      family = biv_gaussian(),
+      data = dat
+    ),
+    "constant within"
+  )
+  phylo_corpair_err <- tryCatch(
+    drmTMB(
+      bf(
+        mu1 = y1 ~ x,
+        mu2 = y2 ~ x,
+        sigma1 = ~1,
+        sigma2 = ~1,
+        rho12 = ~1,
+        corpair(
+          species,
+          level = "phylogenetic",
+          block = "p",
+          from = "mu1",
+          to = "mu2"
+        ) ~ ecology
+      ),
+      family = biv_gaussian(),
+      data = dat
+    ),
+    error = identity
+  )
+  expect_s3_class(phylo_corpair_err, "rlang_error")
+  expect_match(conditionMessage(phylo_corpair_err), "requires matching")
+  expect_match(
+    conditionMessage(phylo_corpair_err),
+    "phylo(1 | p | species, tree = tree)",
+    fixed = TRUE
+  )
+  expect_error(
+    drmTMB(
+      bf(
         mu1 = y1 ~ x,
         mu2 = y2 ~ x,
         sigma1 = ~ 1 + (1 | p | id),
@@ -1585,20 +2101,6 @@ test_that("bivariate Gaussian rejects unsupported Phase 3 syntax clearly", {
         mu1 = y1 ~ x + (1 | p | id),
         mu2 = y2 ~ x + (1 | p | id),
         sigma1 = ~ 1 + (1 | p | id),
-        sigma2 = ~ 1 + (1 | p | id),
-        rho12 = ~x
-      ),
-      family = biv_gaussian(),
-      data = dat
-    ),
-    "Reusing one bivariate covariance-block label"
-  )
-  expect_error(
-    drmTMB(
-      bf(
-        mu1 = y1 ~ x + (1 | p | id),
-        mu2 = y2 ~ x + (1 | p | id),
-        sigma1 = ~ 1 + (1 | p | id),
         sigma2 = ~1,
         rho12 = ~x
       ),
@@ -1606,6 +2108,20 @@ test_that("bivariate Gaussian rejects unsupported Phase 3 syntax clearly", {
       data = dat
     ),
     "Larger labelled covariance blocks"
+  )
+  expect_error(
+    drmTMB(
+      bf(
+        mu1 = y1 ~ x + (1 + x | p | id),
+        mu2 = y2 ~ x + (1 + x | p | id),
+        sigma1 = ~ 1 + (1 + x | p | id),
+        sigma2 = ~ 1 + (1 + x | p | id),
+        rho12 = ~x
+      ),
+      family = biv_gaussian(),
+      data = dat
+    ),
+    "random slopes in bivariate models remain planned"
   )
   expect_error(
     drmTMB(

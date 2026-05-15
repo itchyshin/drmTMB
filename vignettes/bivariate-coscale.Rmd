@@ -505,10 +505,10 @@ correlated group-level effects. Labelled one-slope blocks are implemented for
 univariate Gaussian `mu`; bivariate random slopes remain future work. This
 syntax is distinct from residual `rho12`.
 
-In future phylogenetic location-scale models, correlations among phylogenetic
-mean and scale effects will answer different questions: mean-mean coevolution,
-scale-scale co-divergence, and mean-scale evolutionary constraints. Those will
-be group-level covariance summaries. Residual `rho12` is the observation-level
+In phylogenetic location-scale models, correlations among phylogenetic mean and
+scale effects answer different questions: mean-mean coevolution, scale-scale
+co-divergence, and mean-scale evolutionary constraints. Those are group-level
+covariance summaries. Residual `rho12` is the observation-level
 trait coupling after fitted structured effects have been accounted for.
 
 The long-term package should therefore support several correlation levels, not

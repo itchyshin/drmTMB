@@ -7,8 +7,9 @@
 #' constant distributional-scale, random-effect standard-deviation,
 #' random-effect correlation, the first bivariate phylogenetic mean-mean
 #' correlation, and constant residual-correlation targets.
-#' For predictor-dependent scale or residual-correlation formulae, supply
-#' `newdata` with `parm = "sigma"` or `parm = "rho12"` to profile the fitted
+#' For predictor-dependent scale, residual-correlation, or currently supported
+#' `corpair()` formulae, supply `newdata` with `parm = "sigma"`,
+#' `parm = "rho12"`, or the fitted `corpair(...)` dpar to profile the fitted
 #' response-scale value for each supplied row.
 #'
 #' Target names follow the profile target namespace. For fixed effects, use
@@ -30,9 +31,10 @@
 #' @param method Interval method: `"wald"` or `"profile"`. If `newdata` is
 #'   supplied and `method` is omitted, `method = "profile"` is used.
 #' @param newdata Optional data frame for response-scale profile intervals for
-#'   predictor-dependent `sigma`, `sigma1`, `sigma2`, or `rho12` values. Each
-#'   row is profiled separately by profiling its fixed-effect linear predictor
-#'   and then transforming the interval to the response scale.
+#'   predictor-dependent `sigma`, `sigma1`, `sigma2`, `rho12`, or fitted
+#'   `corpair()` values. Each row is profiled separately by profiling its
+#'   fixed-effect linear predictor and then transforming the interval to the
+#'   response scale.
 #' @param trace Logical; passed to [TMB::tmbprofile()] for profile intervals.
 #' @param ... Additional arguments passed to [TMB::tmbprofile()] when
 #'   `method = "profile"`.
@@ -300,16 +302,27 @@ drm_profile_targets <- function(object) {
   for (dpar in names(object$corpars)) {
     values <- object$corpars[[dpar]]
     internal <- profile_cor_internal(dpar)
+    is_phylo_unstructured <- identical(dpar, "phylo") &&
+      isTRUE(object$model$structured$phylo_mu$has) &&
+      isTRUE(object$model$structured$phylo_mu$q > 2L)
     for (i in seq_along(values)) {
       if (paste(dpar, i, sep = ":") %in% registry_cor_keys) {
         next
       }
+      if (random_effect_correlation_is_modelled(object, dpar, i)) {
+        next
+      }
       index <- i
-      profile_ready <- profile_internal_is_active(
-        object,
-        internal,
-        index
-      )
+      if (is_phylo_unstructured) {
+        internal <- "theta_phylo"
+        profile_ready <- FALSE
+      } else {
+        profile_ready <- profile_internal_is_active(
+          object,
+          internal,
+          index
+        )
+      }
       add_rows(list(new_profile_target_row(
         parm = paste0("cor:", dpar, ":", names(values)[[i]]),
         target_class = "random-effect-correlation",
@@ -318,15 +331,27 @@ drm_profile_targets <- function(object) {
         tmb_parameter = internal,
         index = index,
         estimate = unname(values[[i]]),
-        link_estimate = guarded_correlation_link(
-          unname(values[[i]]),
-          guard = 0.999999
-        ),
+        link_estimate = if (is_phylo_unstructured) {
+          NA_real_
+        } else {
+          guarded_correlation_link(
+            unname(values[[i]]),
+            guard = 0.999999
+          )
+        },
         scale = "response",
-        transformation = "tanh",
-        target_type = "direct",
+        transformation = if (is_phylo_unstructured) {
+          "unstructured_corr"
+        } else {
+          "tanh"
+        },
+        target_type = if (is_phylo_unstructured) "derived" else "direct",
         profile_ready = profile_ready,
-        profile_note = profile_ready_note(profile_ready)
+        profile_note = if (is_phylo_unstructured) {
+          "derived_unstructured_correlation"
+        } else {
+          profile_ready_note(profile_ready)
+        }
       )))
     }
   }
@@ -586,6 +611,7 @@ profile_transform_newdata_interval <- function(interval, object, dpar, offset) {
     drm_dpar_link(object, dpar),
     log = exp(eta_interval),
     atanh_guarded = rho_response(eta_interval),
+    atanh_re_guarded = rho_response(eta_interval, guard = 0.999999),
     cli::cli_abort(
       "Internal error: no response-scale profile transformation for {.val {dpar}}."
     )
@@ -597,6 +623,7 @@ profile_newdata_transformation <- function(object, dpar) {
     drm_dpar_link(object, dpar),
     log = "exp",
     atanh_guarded = "rho12_tanh",
+    atanh_re_guarded = "random_effect_correlation_tanh",
     "unknown"
   )
 }
@@ -618,22 +645,30 @@ profile_registry_cor_targets <- function(object) {
     return(list())
   }
 
-  lapply(seq_len(nrow(pairs)), function(i) {
+  out <- lapply(seq_len(nrow(pairs)), function(i) {
     pair <- pairs[i, , drop = FALSE]
     dpar <- covariance_block_corpars_key(pair$tmb_parameter[[1L]])
     values <- object$corpars[[dpar]]
     index <- pair$tmb_index[[1L]]
+    if (random_effect_correlation_is_modelled(object, dpar, index)) {
+      return(NULL)
+    }
     if (is.null(values) || index < 1L || index > length(values)) {
       cli::cli_abort(
         "Internal error: covariance-block registry pair has no profile target correlation."
       )
     }
     estimate <- unname(values[[index]])
-    profile_ready <- profile_internal_is_active(
-      object,
-      pair$tmb_parameter[[1L]],
-      index
-    )
+    is_unstructured_corr <- identical(pair$tmb_parameter[[1L]], "theta_re_cov")
+    profile_ready <- if (is_unstructured_corr) {
+      FALSE
+    } else {
+      profile_internal_is_active(
+        object,
+        pair$tmb_parameter[[1L]],
+        index
+      )
+    }
     new_profile_target_row(
       parm = paste0("cor:", dpar, ":", pair$parameter[[1L]]),
       target_class = "random-effect-correlation",
@@ -642,14 +677,27 @@ profile_registry_cor_targets <- function(object) {
       tmb_parameter = pair$tmb_parameter[[1L]],
       index = index,
       estimate = estimate,
-      link_estimate = guarded_correlation_link(estimate, guard = 0.999999),
+      link_estimate = if (is_unstructured_corr) {
+        NA_real_
+      } else {
+        guarded_correlation_link(estimate, guard = 0.999999)
+      },
       scale = "response",
-      transformation = "tanh",
-      target_type = "direct",
+      transformation = if (is_unstructured_corr) {
+        "unstructured_corr"
+      } else {
+        "tanh"
+      },
+      target_type = if (is_unstructured_corr) "derived" else "direct",
       profile_ready = profile_ready,
-      profile_note = profile_ready_note(profile_ready)
+      profile_note = if (is_unstructured_corr) {
+        "derived_unstructured_correlation"
+      } else {
+        profile_ready_note(profile_ready)
+      }
     )
   })
+  out[!vapply(out, is.null, logical(1L))]
 }
 
 new_profile_target_row <- function(
@@ -705,17 +753,25 @@ empty_profile_targets <- function() {
 }
 
 profile_fixef_internal <- function(dpar) {
-  if (startsWith(dpar, "sd(")) {
+  if (
+    any(startsWith(
+      dpar,
+      c("sd(", "sd1(", "sd2(", "sd_phylo(", "sd_phylo1(", "sd_phylo2(")
+    ))
+  ) {
     return("beta_sd_mu")
   }
   if (identical(dpar, "hu")) {
     return("beta_zi")
   }
+  if (startsWith(dpar, "corpair(")) {
+    return("beta_cor_mu")
+  }
   paste0("beta_", dpar)
 }
 
 profile_sd_internal <- function(dpar, term) {
-  if (identical(dpar, "mu") && grepl("phylo\\(", term)) {
+  if (identical(dpar, "mu") && grepl("phylo\\(|spatial\\(", term)) {
     return("log_sd_phylo")
   }
   if (dpar %in% c("mu", "sigma")) {
@@ -818,7 +874,7 @@ profile_newdata_dpar <- function(object, parm) {
   if (is.null(parm)) {
     cli::cli_abort(c(
       "{.arg parm} must name one distributional parameter when {.arg newdata} is supplied.",
-      i = "Use {.val sigma}, {.val sigma1}, {.val sigma2}, or {.val rho12}."
+      i = "Use {.val sigma}, {.val sigma1}, {.val sigma2}, {.val rho12}, or a fitted {.fn corpair} dpar."
     ))
   }
   if (!is.character(parm) || length(parm) != 1L || is.na(parm)) {
@@ -827,15 +883,24 @@ profile_newdata_dpar <- function(object, parm) {
     )
   }
 
-  supported <- intersect(
+  scale_or_residual <- intersect(
     c("sigma", "sigma1", "sigma2", "rho12"),
     names(object$coefficients)
   )
-  supported <- supported[vapply(
-    supported,
+  scale_or_residual <- scale_or_residual[vapply(
+    scale_or_residual,
     function(dpar) drm_dpar_link(object, dpar) %in% c("log", "atanh_guarded"),
     logical(1)
   )]
+  corpair <- names(object$coefficients)[
+    startsWith(names(object$coefficients), "corpair(")
+  ]
+  corpair <- corpair[vapply(
+    corpair,
+    function(dpar) identical(drm_dpar_link(object, dpar), "atanh_re_guarded"),
+    logical(1)
+  )]
+  supported <- c(scale_or_residual, corpair)
   if (!parm %in% supported) {
     available <- if (length(supported)) {
       paste(supported, collapse = ", ")
@@ -843,7 +908,7 @@ profile_newdata_dpar <- function(object, parm) {
       "none for this fitted model"
     }
     cli::cli_abort(c(
-      "Response-scale profile intervals with {.arg newdata} are implemented for fitted scale and residual-correlation parameters.",
+      "Response-scale profile intervals with {.arg newdata} are implemented for fitted scale, residual-correlation, and q2 ordinary or phylogenetic {.fn corpair} parameters.",
       i = "Requested {.val {parm}}; available for this fit: {available}."
     ))
   }

@@ -155,9 +155,12 @@ head(sigma(fit)^2) # fitted residual variances
   [Mean effects and residual heterogeneity](https://itchyshin.github.io/drmTMB/articles/meta-analysis.html).
 - **Structured Gaussian effects.** Use ordinary random effects,
   residual-scale random intercepts or independent random slopes in `sigma`,
-  `sd(group) ~ x`, or the implemented intercept-only phylogenetic path
-  `phylo(1 | species, tree = tree)`. Matching `phylo()` terms in bivariate
-  `mu1` and `mu2` fit the first phylogenetic mean-mean correlation slice. Read
+  `sd(group) ~ x`, the implemented intercept-only phylogenetic path
+  `phylo(1 | species, tree = tree)`, or the first coordinate-spatial path
+  `spatial(1 | site, coords = coords)` for univariate Gaussian `mu`. Matching
+  `phylo()` terms in bivariate `mu1` and `mu2` fit the first phylogenetic
+  mean-mean correlation slice, and matching labelled all-four `phylo()` terms
+  fit the first constant q=4 phylogenetic location-scale covariance block. Read
   [Phylogenetic and spatial structured effects](https://itchyshin.github.io/drmTMB/articles/phylogenetic-spatial.html).
 
 ## Current boundaries
@@ -188,14 +191,19 @@ residual `rho12`.
 
 For comparative mammal, bird, or other trait protocols, the current practical
 path is staged: fit bivariate residual coupling, ordinary group-level
-correlations, univariate phylogenetic structure, and the first bivariate
-phylogenetic `mu1`/`mu2` location block as separate implemented models. The
+correlations, univariate phylogenetic structure, fitted phylogenetic
+`corpairs()`, and the first bivariate phylogenetic location-scale blocks as
+separate implemented models. The
 [model map](https://itchyshin.github.io/drmTMB/articles/model-map.html) shows
 how to keep those answers separate until the full phylogenetic
 location-scale double-hierarchical endpoint is implemented.
 
-Spatial syntax is part of the structured-effect design, but routine spatial
-model fitting is still planned rather than a first landing-page workflow.
+Spatial syntax is part of the structured-effect design. The first fitted path
+is a univariate Gaussian coordinate-based location random intercept,
+`spatial(1 | site, coords = coords)`, with `sdpars$mu`, `ranef("spatial_mu")`,
+profile targets, and a `check_drm()` spatial diagnostic row. Mesh/SPDE fields,
+spatial slopes, spatial scale terms, and bivariate spatial covariance blocks
+are still planned rather than landing-page workflows.
 
 ## Project status
 

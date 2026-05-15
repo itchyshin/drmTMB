@@ -39,7 +39,8 @@ print.drmTMB <- function(x, ...) {
 #'
 #' @param object A `drmTMB` fit.
 #' @param dpar Optional distributional parameter name, such as `"mu"`,
-#'   `"sigma"`, `"hu"`, `"rho12"`, or `"sd(id)"`.
+#'   `"sigma"`, `"hu"`, `"rho12"`, `"sd(id)"`, or
+#'   `"sd_phylo(species)"`.
 #' @param ... Reserved for future extractor options.
 #'
 #' @return A named numeric vector when `dpar` is supplied, otherwise a named
@@ -66,7 +67,7 @@ fixef.drmTMB <- function(object, dpar = NULL, ...) {
 #'
 #' @param object A `drmTMB` fit.
 #' @param dpar Optional random-effect block name, such as `"mu"`, `"sigma"`,
-#'   or `"phylo_mu"`.
+#'   `"phylo_mu"`, or `"spatial_mu"`.
 #' @param ... Reserved for future extractor options.
 #'
 #' @return A named list of random-effect blocks when `dpar = NULL`, otherwise
@@ -175,8 +176,22 @@ rho12.drmTMB <- function(
 #'   such as `"p"`. Residual rows have no block label and are removed by this
 #'   filter.
 #' @param class Optional character vector of pair classes to keep, such as
-#'   `"residual"` or `"mean-slope"`.
-#' @param ... Reserved for future extractor options.
+#'   `"residual"` or `"mean-slope"`. Location aliases such as
+#'   `"location-location"` and `"location-scale"` are accepted as filters for
+#'   the current `"mean-mean"` and `"mean-scale"` rows.
+#' @param conf.int Logical; include profile-likelihood confidence intervals
+#'   where the correlation target is currently profile-ready. Unsupported
+#'   derived targets receive an explicit interval status instead of silent
+#'   missing bounds.
+#' @param conf.level Confidence level used when `conf.int = TRUE`. This is
+#'   named separately from the `level` filter to avoid ambiguity with
+#'   correlation levels such as `"phylogenetic"`.
+#' @param method Interval method used when `conf.int = TRUE`. Only
+#'   `"profile"` is currently supported for correlation-pair intervals.
+#' @param trace Logical; passed to [TMB::tmbprofile()] when profile intervals
+#'   are requested.
+#' @param ... Additional arguments passed to [TMB::tmbprofile()] when
+#'   `conf.int = TRUE`.
 #'
 #' @return A data frame with one row per fitted correlation pair or pair
 #'   summary. Predictor-dependent `rho12` is summarized by its mean, minimum,
@@ -227,8 +242,24 @@ corpairs.drmTMB <- function(
   group = NULL,
   block = NULL,
   class = NULL,
+  conf.int = FALSE,
+  conf.level = 0.95,
+  method = "profile",
+  trace = FALSE,
   ...
 ) {
+  validate_summary_conf_int(conf.int)
+  if (!identical(method, "profile")) {
+    cli::cli_abort(
+      "{.arg method} must be {.val profile} for {.fn corpairs} intervals."
+    )
+  }
+  if (!conf.int && length(list(...)) > 0L) {
+    cli::cli_abort(
+      "Additional arguments in {.arg ...} are only used when {.code conf.int = TRUE}."
+    )
+  }
+
   rows <- list()
 
   if ("rho12" %in% names(object$coefficients)) {
@@ -270,10 +301,163 @@ corpairs.drmTMB <- function(
     out <- out[out$block %in% block, , drop = FALSE]
   }
   if (!is.null(class)) {
+    class <- normalize_corpairs_class_filter(class)
     out <- out[out$class %in% class, , drop = FALSE]
   }
   row.names(out) <- NULL
+  if (conf.int) {
+    out <- corpairs_add_confint(
+      object,
+      out,
+      level = conf.level,
+      trace = trace,
+      ...
+    )
+  }
   out
+}
+
+corpairs_add_confint <- function(object, pairs, level, trace, ...) {
+  validate_profile_level(level)
+  if (nrow(pairs) == 0L) {
+    pairs$profile_target <- character()
+    pairs$conf.low <- numeric()
+    pairs$conf.high <- numeric()
+    pairs$conf.level <- numeric()
+    pairs$conf.method <- character()
+    pairs$conf.status <- character()
+    return(pairs)
+  }
+
+  targets <- drm_profile_targets(object)
+  target_index <- corpairs_match_profile_targets(pairs, targets)
+  target_rows <- targets[target_index, , drop = FALSE]
+
+  profile_targets <- rep(NA_character_, nrow(pairs))
+  has_target <- !is.na(target_index)
+  profile_targets[has_target] <- target_rows$parm[has_target]
+  profile_ready <- rep(FALSE, nrow(pairs))
+  profile_ready[has_target] <- target_rows$profile_ready[has_target]
+  ready_parms <- unique(profile_targets[profile_ready])
+
+  ci <- empty_summary_confint()
+  if (length(ready_parms) > 0L) {
+    ci <- drm_profile_confint(
+      object,
+      parm = ready_parms,
+      level = level,
+      trace = trace,
+      ...
+    )
+  }
+
+  pairs$profile_target <- profile_targets
+  pairs$conf.low <- NA_real_
+  pairs$conf.high <- NA_real_
+  pairs$conf.level <- level
+  pairs$conf.method <- NA_character_
+  pairs$conf.status <- corpairs_conf_status(pairs, target_rows, target_index)
+
+  if (nrow(ci) > 0L) {
+    matched <- match(pairs$profile_target, ci$parm)
+    has_ci <- !is.na(matched)
+    pairs$conf.low[has_ci] <- ci$lower[matched[has_ci]]
+    pairs$conf.high[has_ci] <- ci$upper[matched[has_ci]]
+    pairs$conf.method[has_ci] <- ci$method[matched[has_ci]]
+    pairs$conf.status[has_ci] <- "profile"
+  }
+
+  pairs
+}
+
+corpairs_match_profile_targets <- function(pairs, targets) {
+  if (nrow(pairs) == 0L) {
+    return(integer())
+  }
+  if (nrow(targets) == 0L) {
+    return(rep(NA_integer_, nrow(pairs)))
+  }
+
+  vapply(
+    seq_len(nrow(pairs)),
+    function(i) {
+      pair <- pairs[i, , drop = FALSE]
+      if (
+        identical(pair$level[[1L]], "residual") &&
+          identical(pair$parameter[[1L]], "rho12") &&
+          !isTRUE(pair$modelled[[1L]])
+      ) {
+        hit <- which(targets$parm == "rho12")
+        return(if (length(hit) == 1L) hit[[1L]] else NA_integer_)
+      }
+
+      if (
+        identical(pair$level[[1L]], "residual") &&
+          identical(pair$parameter[[1L]], "rho12")
+      ) {
+        return(NA_integer_)
+      }
+
+      hit <- which(
+        targets$target_class == "random-effect-correlation" &
+          targets$term == pair$parameter[[1L]]
+      )
+      if (identical(pair$level[[1L]], "phylogenetic")) {
+        hit <- hit[startsWith(targets$parm[hit], "cor:phylo:")]
+      } else if (identical(pair$level[[1L]], "group")) {
+        hit <- hit[!startsWith(targets$parm[hit], "cor:phylo:")]
+      }
+      if (length(hit) == 1L) {
+        return(hit[[1L]])
+      }
+      NA_integer_
+    },
+    integer(1L)
+  )
+}
+
+corpairs_conf_status <- function(pairs, target_rows, target_index) {
+  vapply(
+    seq_len(nrow(pairs)),
+    function(i) {
+      if (is.na(target_index[[i]])) {
+        if (
+          isTRUE(pairs$modelled[[i]]) &&
+            (identical(pairs$level[[i]], "residual") ||
+              identical(pairs$level[[i]], "group") ||
+              identical(pairs$level[[i]], "phylogenetic"))
+        ) {
+          return("newdata_required")
+        }
+        return("target_unavailable")
+      }
+      target <- target_rows[i, , drop = FALSE]
+      if (isTRUE(target$profile_ready[[1L]])) {
+        return("profile_ready")
+      }
+      if (identical(target$target_type[[1L]], "derived")) {
+        return("derived_interval_unavailable")
+      }
+      note <- target$profile_note[[1L]]
+      if (is.na(note) || !nzchar(note)) {
+        return("profile_unavailable")
+      }
+      note
+    },
+    character(1L)
+  )
+}
+
+normalize_corpairs_class_filter <- function(class) {
+  aliases <- c(
+    "location-location" = "mean-mean",
+    "location-scale" = "mean-scale",
+    "location-slope" = "mean-slope",
+    "slope-location" = "mean-slope"
+  )
+  mapped <- unname(aliases[class])
+  class[!is.na(mapped)] <- mapped[!is.na(mapped)]
+  unique(class)
 }
 
 empty_corpairs <- function() {
@@ -339,30 +523,58 @@ phylo_mu_corpairs <- function(object) {
     return(list())
   }
 
-  response_names <- bivariate_response_names(object)
+  phylo_mu <- object$model$structured$phylo_mu
+  pair_table <- phylo_mu_pair_table(phylo_mu)
   lapply(seq_along(object$corpars$phylo), function(i) {
     estimate <- unname(object$corpars$phylo[[i]])
     parameter <- phylo_mu_correlation_parameter(object, i)
+    pair <- pair_table[i, , drop = FALSE]
+    model_dpar <- random_effect_correlation_model_dpar(object, "phylo", i)
+    if (!is.na(model_dpar)) {
+      rho <- predict(object, dpar = model_dpar, type = "response")
+      eta <- predict(object, dpar = model_dpar, type = "link")
+      estimate <- mean(rho)
+      min_value <- min(rho)
+      max_value <- max(rho)
+      n_values <- length(rho)
+      link_estimate <- mean(eta)
+      link_min <- min(eta)
+      link_max <- max(eta)
+      modelled <- TRUE
+    } else {
+      min_value <- estimate
+      max_value <- estimate
+      n_values <- 1L
+      link_estimate <- guarded_correlation_link(estimate, guard = 0.999999)
+      link_min <- guarded_correlation_link(estimate, guard = 0.999999)
+      link_max <- guarded_correlation_link(estimate, guard = 0.999999)
+      modelled <- FALSE
+    }
     new_corpair_row(
       level = "phylogenetic",
-      group = object$model$structured$phylo_mu$group,
-      block = "phylo",
-      from_dpar = "mu1",
-      to_dpar = "mu2",
+      group = phylo_mu$group,
+      block = phylo_mu_block(phylo_mu),
+      from_dpar = pair$from_dpar[[1L]],
+      to_dpar = pair$to_dpar[[1L]],
       from_coef = "(Intercept)",
       to_coef = "(Intercept)",
-      from_response = response_names[[1L]],
-      to_response = response_names[[2L]],
-      class = "mean-mean",
+      from_response = random_effect_response_name(object, pair$from_dpar[[1L]]),
+      to_response = random_effect_response_name(object, pair$to_dpar[[1L]]),
+      class = random_correlation_class(
+        pair$from_dpar[[1L]],
+        "(Intercept)",
+        "(Intercept)",
+        to_dpar = pair$to_dpar[[1L]]
+      ),
       parameter = parameter,
       estimate = estimate,
-      min = estimate,
-      max = estimate,
-      n_values = 1L,
-      link_estimate = guarded_correlation_link(estimate, guard = 0.999999),
-      link_min = guarded_correlation_link(estimate, guard = 0.999999),
-      link_max = guarded_correlation_link(estimate, guard = 0.999999),
-      modelled = FALSE
+      min = min_value,
+      max = max_value,
+      n_values = n_values,
+      link_estimate = link_estimate,
+      link_min = link_min,
+      link_max = link_max,
+      modelled = modelled
     )
   })
 }
@@ -375,11 +587,8 @@ phylo_mu_correlation_parameter <- function(object, i = 1L) {
     phylo_names[[i]]
   }
   if (is.null(parameter) || is.na(parameter) || !nzchar(parameter)) {
-    parameter <- paste0(
-      "cor(mu1:(Intercept),mu2:(Intercept) | phylo | ",
-      object$model$structured$phylo_mu$group,
-      ")"
-    )
+    pair_table <- phylo_mu_pair_table(object$model$structured$phylo_mu)
+    parameter <- pair_table$parameter[[i]]
   }
   parameter
 }
@@ -424,6 +633,31 @@ random_effect_registry_corpairs <- function(object) {
       )
     }
     estimate <- unname(cor_values[[cor_index]])
+    model_dpar <- random_effect_correlation_model_dpar(
+      object,
+      cor_key,
+      cor_index
+    )
+    if (!is.na(model_dpar)) {
+      rho <- predict(object, dpar = model_dpar, type = "response")
+      eta <- predict(object, dpar = model_dpar, type = "link")
+      estimate <- mean(rho)
+      min_value <- min(rho)
+      max_value <- max(rho)
+      n_values <- length(rho)
+      link_estimate <- mean(eta)
+      link_min <- min(eta)
+      link_max <- max(eta)
+      modelled <- TRUE
+    } else {
+      min_value <- estimate
+      max_value <- estimate
+      n_values <- 1L
+      link_estimate <- guarded_correlation_link(estimate, guard = 0.999999)
+      link_min <- guarded_correlation_link(estimate, guard = 0.999999)
+      link_max <- guarded_correlation_link(estimate, guard = 0.999999)
+      modelled <- FALSE
+    }
     new_corpair_row(
       level = block$level[[1L]],
       group = block$group[[1L]],
@@ -437,13 +671,13 @@ random_effect_registry_corpairs <- function(object) {
       class = pair$class[[1L]],
       parameter = pair$parameter[[1L]],
       estimate = estimate,
-      min = estimate,
-      max = estimate,
-      n_values = 1L,
-      link_estimate = guarded_correlation_link(estimate, guard = 0.999999),
-      link_min = guarded_correlation_link(estimate, guard = 0.999999),
-      link_max = guarded_correlation_link(estimate, guard = 0.999999),
-      modelled = FALSE
+      min = min_value,
+      max = max_value,
+      n_values = n_values,
+      link_estimate = link_estimate,
+      link_min = link_min,
+      link_max = link_max,
+      modelled = modelled
     )
   })
 }
@@ -468,73 +702,98 @@ phylo_mu_covariance_summaries <- function(object, intervals = NULL) {
     !identical(object$model$model_type, "biv_gaussian") ||
       !isTRUE(object$model$structured$phylo_mu$has) ||
       is.null(object$corpars$phylo) ||
-      length(object$corpars$phylo) != 1L
+      length(object$corpars$phylo) == 0L
   ) {
     return(empty_random_effect_covariance_summaries())
   }
 
-  group <- object$model$structured$phylo_mu$group
-  parameter <- phylo_mu_correlation_parameter(object, 1L)
-  correlation_target <- paste0("cor:phylo:", parameter)
-  from_sd_parameter <- phylo_mu_sd_parameter("mu1", group)
-  to_sd_parameter <- phylo_mu_sd_parameter("mu2", group)
-  from_sd_target <- paste0("sd:mu:", from_sd_parameter)
-  to_sd_target <- paste0("sd:mu:", to_sd_parameter)
-  from_sd <- phylo_mu_sd_value(object, from_sd_parameter)
-  to_sd <- phylo_mu_sd_value(object, to_sd_parameter)
-  from_variance <- from_sd^2
-  to_variance <- to_sd^2
-  correlation <- unname(object$corpars$phylo[[1L]])
-  covariance <- correlation * from_sd * to_sd
-  correlation_interval <- covariance_summary_interval(
-    intervals,
-    correlation_target
-  )
-  from_sd_interval <- covariance_summary_interval(intervals, from_sd_target)
-  to_sd_interval <- covariance_summary_interval(intervals, to_sd_target)
+  phylo_mu <- object$model$structured$phylo_mu
+  group <- phylo_mu$group
+  block <- phylo_mu_block(phylo_mu)
+  pair_table <- phylo_mu_pair_table(phylo_mu)
+  sd_parameters <- phylo_mu_sd_labels(phylo_mu, object$model$model_type)
   covariance_interval_status <- covariance_summary_interval_status(intervals)
-  response_names <- bivariate_response_names(object)
 
-  data.frame(
-    level = "phylogenetic",
-    group = group,
-    block = "phylo",
-    from_dpar = "mu1",
-    to_dpar = "mu2",
-    from_coef = "(Intercept)",
-    to_coef = "(Intercept)",
-    from_response = response_names[[1L]],
-    to_response = response_names[[2L]],
-    class = "mean-mean",
-    parameter = parameter,
-    correlation_target = correlation_target,
-    from_sd_target = from_sd_target,
-    to_sd_target = to_sd_target,
-    correlation = correlation,
-    from_sd_parameter = from_sd_parameter,
-    to_sd_parameter = to_sd_parameter,
-    from_sd = from_sd,
-    to_sd = to_sd,
-    from_variance = from_variance,
-    to_variance = to_variance,
-    covariance = covariance,
-    from_scale = "identity",
-    to_scale = "identity",
-    correlation_conf.low = correlation_interval$lower,
-    correlation_conf.high = correlation_interval$upper,
-    correlation_conf.method = correlation_interval$method,
-    from_sd_conf.low = from_sd_interval$lower,
-    from_sd_conf.high = from_sd_interval$upper,
-    from_sd_conf.method = from_sd_interval$method,
-    to_sd_conf.low = to_sd_interval$lower,
-    to_sd_conf.high = to_sd_interval$upper,
-    to_sd_conf.method = to_sd_interval$method,
-    covariance_conf.low = NA_real_,
-    covariance_conf.high = NA_real_,
-    covariance_conf.method = NA_character_,
-    covariance_conf.status = covariance_interval_status,
-    stringsAsFactors = FALSE
-  )
+  rows <- lapply(seq_len(nrow(pair_table)), function(i) {
+    pair <- pair_table[i, , drop = FALSE]
+    parameter <- phylo_mu_correlation_parameter(object, i)
+    correlation_target <- paste0("cor:phylo:", parameter)
+    from_sd_parameter <- sd_parameters[[pair$from_index[[1L]]]]
+    to_sd_parameter <- sd_parameters[[pair$to_index[[1L]]]]
+    from_sd_summary <- phylo_mu_sd_summary(
+      object,
+      endpoint_index = pair$from_index[[1L]],
+      scalar_parameter = from_sd_parameter
+    )
+    to_sd_summary <- phylo_mu_sd_summary(
+      object,
+      endpoint_index = pair$to_index[[1L]],
+      scalar_parameter = to_sd_parameter
+    )
+    from_sd_parameter <- from_sd_summary$parameter
+    to_sd_parameter <- to_sd_summary$parameter
+    from_sd_target <- from_sd_summary$target
+    to_sd_target <- to_sd_summary$target
+    from_sd <- from_sd_summary$value
+    to_sd <- to_sd_summary$value
+    correlation <- unname(object$corpars$phylo[[i]])
+    correlation_interval <- covariance_summary_interval(
+      intervals,
+      correlation_target
+    )
+    from_sd_interval <- covariance_summary_interval(intervals, from_sd_target)
+    to_sd_interval <- covariance_summary_interval(intervals, to_sd_target)
+    data.frame(
+      level = "phylogenetic",
+      group = group,
+      block = block,
+      from_dpar = pair$from_dpar[[1L]],
+      to_dpar = pair$to_dpar[[1L]],
+      from_coef = "(Intercept)",
+      to_coef = "(Intercept)",
+      from_response = random_effect_response_name(object, pair$from_dpar[[1L]]),
+      to_response = random_effect_response_name(object, pair$to_dpar[[1L]]),
+      class = random_correlation_class(
+        pair$from_dpar[[1L]],
+        "(Intercept)",
+        "(Intercept)",
+        to_dpar = pair$to_dpar[[1L]]
+      ),
+      parameter = parameter,
+      correlation_target = correlation_target,
+      from_sd_target = from_sd_target,
+      to_sd_target = to_sd_target,
+      correlation = correlation,
+      from_sd_parameter = from_sd_parameter,
+      to_sd_parameter = to_sd_parameter,
+      from_sd = from_sd,
+      to_sd = to_sd,
+      from_variance = from_sd^2,
+      to_variance = to_sd^2,
+      covariance = correlation * from_sd * to_sd,
+      from_scale = covariance_registry_member_scale(data.frame(
+        dpar = pair$from_dpar[[1L]]
+      )),
+      to_scale = covariance_registry_member_scale(data.frame(
+        dpar = pair$to_dpar[[1L]]
+      )),
+      correlation_conf.low = correlation_interval$lower,
+      correlation_conf.high = correlation_interval$upper,
+      correlation_conf.method = correlation_interval$method,
+      from_sd_conf.low = from_sd_interval$lower,
+      from_sd_conf.high = from_sd_interval$upper,
+      from_sd_conf.method = from_sd_interval$method,
+      to_sd_conf.low = to_sd_interval$lower,
+      to_sd_conf.high = to_sd_interval$upper,
+      to_sd_conf.method = to_sd_interval$method,
+      covariance_conf.low = NA_real_,
+      covariance_conf.high = NA_real_,
+      covariance_conf.method = NA_character_,
+      covariance_conf.status = covariance_interval_status,
+      stringsAsFactors = FALSE
+    )
+  })
+  do.call(rbind, rows)
 }
 
 phylo_mu_sd_parameter <- function(dpar, group) {
@@ -547,6 +806,42 @@ phylo_mu_sd_value <- function(object, parameter) {
     return(NA_real_)
   }
   unname(value)
+}
+
+phylo_mu_sd_summary <- function(object, endpoint_index, scalar_parameter) {
+  direct_dpar <- phylo_mu_direct_sd_dpar(object, endpoint_index)
+  if (!is.na(direct_dpar)) {
+    values <- unname(object$sdpars[[direct_dpar]])
+    values <- values[is.finite(values)]
+    value <- if (length(values) > 0L) stats::median(values) else NA_real_
+    return(list(
+      parameter = paste0(direct_dpar, ":median"),
+      target = paste0("sd:", direct_dpar, ":(median)"),
+      value = value
+    ))
+  }
+
+  list(
+    parameter = scalar_parameter,
+    target = paste0("sd:mu:", scalar_parameter),
+    value = phylo_mu_sd_value(object, scalar_parameter)
+  )
+}
+
+phylo_mu_direct_sd_dpar <- function(object, endpoint_index) {
+  sd_phylo <- object$model$random_scale$phylo
+  if (
+    !is.list(sd_phylo) ||
+      is.null(sd_phylo$n_models) ||
+      sd_phylo$n_models == 0L
+  ) {
+    return(NA_character_)
+  }
+  hit <- which(unname(sd_phylo$target_endpoint) == endpoint_index)
+  if (length(hit) == 0L) {
+    return(NA_character_)
+  }
+  sd_phylo$dpars[[hit[[1L]]]]
 }
 
 registry_random_effect_covariance_summaries <- function(
@@ -814,6 +1109,7 @@ covariance_block_corpars_key <- function(tmb_parameter) {
     eta_cor_mu = "mu",
     eta_cor_sigma = "sigma",
     eta_cor_mu_sigma = "mu_sigma",
+    theta_re_cov = "re_cov",
     NA_character_
   )
   if (is.na(key)) {
@@ -863,17 +1159,45 @@ random_effect_label_corpairs <- function(object, exclude = character()) {
         object = object,
         dpar = dpar,
         label = names(cor_values)[[i]],
-        estimate = unname(cor_values[[i]])
+        estimate = unname(cor_values[[i]]),
+        index = i
       )
     }
   }
   rows
 }
 
-random_effect_corpair <- function(object, dpar, label, estimate) {
+random_effect_corpair <- function(
+  object,
+  dpar,
+  label,
+  estimate,
+  index = NA_integer_
+) {
   parsed <- parse_random_correlation_label(label)
   from <- parse_random_correlation_endpoint(parsed$from_coef, dpar)
   to <- parse_random_correlation_endpoint(parsed$to_coef, dpar)
+  model_dpar <- random_effect_correlation_model_dpar(object, dpar, index)
+  if (!is.na(model_dpar)) {
+    rho <- predict(object, dpar = model_dpar, type = "response")
+    eta <- predict(object, dpar = model_dpar, type = "link")
+    estimate <- mean(rho)
+    min_value <- min(rho)
+    max_value <- max(rho)
+    n_values <- length(rho)
+    link_estimate <- mean(eta)
+    link_min <- min(eta)
+    link_max <- max(eta)
+    modelled <- TRUE
+  } else {
+    min_value <- estimate
+    max_value <- estimate
+    n_values <- 1L
+    link_estimate <- guarded_correlation_link(estimate, guard = 0.999999)
+    link_min <- guarded_correlation_link(estimate, guard = 0.999999)
+    link_max <- guarded_correlation_link(estimate, guard = 0.999999)
+    modelled <- FALSE
+  }
   new_corpair_row(
     level = "group",
     group = parsed$group,
@@ -892,14 +1216,41 @@ random_effect_corpair <- function(object, dpar, label, estimate) {
     ),
     parameter = label,
     estimate = estimate,
-    min = estimate,
-    max = estimate,
-    n_values = 1L,
-    link_estimate = guarded_correlation_link(estimate, guard = 0.999999),
-    link_min = guarded_correlation_link(estimate, guard = 0.999999),
-    link_max = guarded_correlation_link(estimate, guard = 0.999999),
-    modelled = FALSE
+    min = min_value,
+    max = max_value,
+    n_values = n_values,
+    link_estimate = link_estimate,
+    link_min = link_min,
+    link_max = link_max,
+    modelled = modelled
   )
+}
+
+random_effect_correlation_model_dpar <- function(object, dpar, index) {
+  if (is.na(index)) {
+    return(NA_character_)
+  }
+  model <- object$model$random$mu$cor_model
+  if (!is.list(model) || model$n_models == 0L) {
+    return(NA_character_)
+  }
+  if (identical(dpar, "mu") && !corpair_model_is_group(model)) {
+    return(NA_character_)
+  }
+  if (identical(dpar, "phylo") && !corpair_model_is_phylogenetic(model)) {
+    return(NA_character_)
+  }
+  if (!dpar %in% c("mu", "phylo")) {
+    return(NA_character_)
+  }
+  if (index %in% model$target_cor) {
+    return(model$dpar)
+  }
+  NA_character_
+}
+
+random_effect_correlation_is_modelled <- function(object, dpar, index) {
+  !is.na(random_effect_correlation_model_dpar(object, dpar, index))
 }
 
 parse_random_correlation_endpoint <- function(value, default_dpar) {
@@ -1138,12 +1489,31 @@ coef.drmTMB <- function(object, dpar = NULL, ...) {
 
 #' @export
 vcov.drmTMB <- function(object, ...) {
-  n_coef <- length(unlist(object$coefficients, use.names = FALSE))
-  out <- object$sdr$cov.fixed[seq_len(n_coef), seq_len(n_coef), drop = FALSE]
   labels <- coefficient_labels(object)
-  if (length(labels) == nrow(out)) {
-    dimnames(out) <- list(labels, labels)
+  targets <- drm_profile_targets(object)
+  targets <- targets[targets$target_class == "fixed-effect", , drop = FALSE]
+  matched <- match(paste0("fixef:", labels), targets$parm)
+  positions <- rep(NA_integer_, length(labels))
+  opt_names <- names(object$opt$par)
+  for (i in seq_along(labels)) {
+    row <- matched[[i]]
+    if (is.na(row)) {
+      next
+    }
+    hits <- which(opt_names == targets$tmb_parameter[[row]])
+    index <- targets$index[[row]]
+    if (!is.na(index) && index >= 1L && index <= length(hits)) {
+      positions[[i]] <- hits[[index]]
+    }
   }
+  out <- matrix(NA_real_, nrow = length(labels), ncol = length(labels))
+  ok <- !is.na(positions)
+  out[ok, ok] <- object$sdr$cov.fixed[
+    positions[ok],
+    positions[ok],
+    drop = FALSE
+  ]
+  dimnames(out) <- list(labels, labels)
   out
 }
 
@@ -1200,9 +1570,9 @@ deviance.drmTMB <- function(object, ...) {
 #'
 #' By default, predictions are returned on the distributional parameter's
 #' response scale. For positive scale parameters such as `sigma`, this means
-#' the exponentiated value. For bivariate residual correlation `rho12`, this
-#' means the correlation scale. Use `type = "link"` to return the linear
-#' predictor instead.
+#' the exponentiated value. For bivariate residual correlation `rho12` or a
+#' fitted `corpair()` model, this means the correlation scale. Use
+#' `type = "link"` to return the linear predictor instead.
 #'
 #' When `newdata = NULL`, predictions are for the fitted rows and include
 #' currently implemented conditional random-effect contributions for `mu`,
@@ -1265,8 +1635,19 @@ predict.drmTMB <- function(
   }
   if (
     is.null(newdata) &&
-      dpar %in% c("mu", "mu1", "mu2") &&
-      has_phylo_mu_effect(object)
+      dpar %in% c("mu1", "mu2") &&
+      has_covariance_block_random_effects(object)
+  ) {
+    eta <- eta +
+      covariance_block_random_effect_contribution(
+        object,
+        dpar = dpar
+      )
+  }
+  if (
+    is.null(newdata) &&
+      dpar %in% phylo_mu_dpars(object$model$structured$phylo_mu) &&
+      has_structured_mu_effect(object)
   ) {
     eta <- eta + phylo_mu_contribution(object, dpar = dpar)
   }
@@ -1276,6 +1657,17 @@ predict.drmTMB <- function(
       has_sigma_random_effects(object)
   ) {
     eta <- eta + sigma_random_effect_contribution(object, dpar = dpar)
+  }
+  if (
+    is.null(newdata) &&
+      dpar %in% c("sigma1", "sigma2") &&
+      has_covariance_block_random_effects(object)
+  ) {
+    eta <- eta +
+      covariance_block_random_effect_contribution(
+        object,
+        dpar = dpar
+      )
   }
 
   if (type == "link") {
@@ -2120,7 +2512,11 @@ drm_summary_fitted_range_parameters <- function(object) {
 }
 
 drm_summary_range_profile_note <- function(dpar) {
-  if (dpar %in% c("sigma", "sigma1", "sigma2", "rho12")) {
+  if (
+    dpar %in%
+      c("sigma", "sigma1", "sigma2", "rho12") ||
+      startsWith(dpar, "corpair(")
+  ) {
     return("use_confint_newdata")
   }
   "fitted_range_only"
@@ -2554,11 +2950,15 @@ drm_inverse_link <- function(object, dpar, eta) {
     logit = stats::plogis(eta),
     logm2 = 2 + exp(eta),
     atanh_guarded = rho_response(eta),
+    atanh_re_guarded = rho_response(eta, guard = 0.999999),
     cli::cli_abort("Internal error: unknown inverse link {.val {link}}.")
   )
 }
 
 drm_dpar_link <- function(object, dpar) {
+  if (startsWith(dpar, "corpair(")) {
+    return("atanh_re_guarded")
+  }
   links <- switch(
     object$model$model_type,
     gaussian = c(mu = "identity", sigma = "log"),
@@ -2596,8 +2996,8 @@ drm_dpar_link <- function(object, dpar) {
   unname(links[[dpar]])
 }
 
-rho_response <- function(eta) {
-  0.99999999 * tanh(eta)
+rho_response <- function(eta, guard = 0.99999999) {
+  guard * tanh(eta)
 }
 
 coefficient_labels <- function(object) {
@@ -2610,7 +3010,7 @@ coefficient_labels <- function(object) {
 }
 
 has_mu_random_effects <- function(object) {
-  has_ordinary_mu_random_effects(object) || has_phylo_mu_effect(object)
+  has_ordinary_mu_random_effects(object) || has_structured_mu_effect(object)
 }
 
 has_ordinary_mu_random_effects <- function(object) {
@@ -2624,18 +3024,38 @@ has_mu_random_intercepts <- has_mu_random_effects
 has_phylo_mu_effect <- function(object) {
   object$model$model_type %in%
     c("gaussian", "biv_gaussian") &&
+    isTRUE(object$model$structured$phylo_mu$has) &&
+    identical(structured_mu_type(object$model$structured$phylo_mu), "phylo")
+}
+
+has_spatial_mu_effect <- function(object) {
+  object$model$model_type %in%
+    c("gaussian", "biv_gaussian") &&
+    isTRUE(object$model$structured$phylo_mu$has) &&
+    identical(structured_mu_type(object$model$structured$phylo_mu), "spatial")
+}
+
+has_structured_mu_effect <- function(object) {
+  object$model$model_type %in%
+    c("gaussian", "biv_gaussian") &&
     isTRUE(object$model$structured$phylo_mu$has)
 }
 
 n_mu_random_effect_terms <- function(object) {
   length(object$model$random$mu$labels) +
-    as.integer(has_phylo_mu_effect(object))
+    as.integer(has_structured_mu_effect(object))
 }
 
 has_sigma_random_effects <- function(object) {
   object$model$model_type %in%
     c("gaussian", "biv_gaussian") &&
     length(object$random_effects$sigma$values) > 0L
+}
+
+has_covariance_block_random_effects <- function(object) {
+  is.list(object$random_effects$covariance_blocks) &&
+    !is.null(object$random_effects$covariance_blocks$contribution) &&
+    ncol(object$random_effects$covariance_blocks$contribution) > 0L
 }
 
 sigma_random_effect_dpars <- function(object) {
@@ -2657,9 +3077,18 @@ mu_random_effect_dpars <- function(object) {
 }
 
 is_random_scale_dpar <- function(object, dpar) {
-  identical(object$model$model_type, "gaussian") &&
+  if (!object$model$model_type %in% c("gaussian", "biv_gaussian")) {
+    return(FALSE)
+  }
+  if (
     object$model$random_scale$mu$n_models > 0L &&
-    dpar %in% object$model$random_scale$mu$dpars
+      dpar %in% object$model$random_scale$mu$dpars
+  ) {
+    return(TRUE)
+  }
+  is.list(object$model$random_scale$phylo) &&
+    object$model$random_scale$phylo$n_models > 0L &&
+    dpar %in% object$model$random_scale$phylo$dpars
 }
 
 predict_random_scale_dpar <- function(
@@ -2669,18 +3098,27 @@ predict_random_scale_dpar <- function(
   type = c("response", "link")
 ) {
   type <- match.arg(type)
-  sd_mu <- object$model$random_scale$mu
-  if (!dpar %in% sd_mu$dpars) {
+  sd_target <- if (dpar %in% object$model$random_scale$mu$dpars) {
+    object$model$random_scale$mu
+  } else if (
+    is.list(object$model$random_scale$phylo) &&
+      dpar %in% object$model$random_scale$phylo$dpars
+  ) {
+    object$model$random_scale$phylo
+  } else {
+    NULL
+  }
+  if (is.null(sd_target)) {
     cli::cli_abort("Unknown random-effect scale parameter {.val {dpar}}.")
   }
   if (is.null(newdata)) {
-    X <- sd_mu$X_list[[dpar]]
-    names_out <- sd_mu$group_levels_list[[dpar]]
+    X <- sd_target$X_list[[dpar]]
+    names_out <- sd_target$group_levels_list[[dpar]]
   } else {
     if (!is.data.frame(newdata)) {
       cli::cli_abort("{.arg newdata} must be a data frame.")
     }
-    X <- stats::model.matrix(sd_mu$terms_list[[dpar]], data = newdata)
+    X <- stats::model.matrix(sd_target$terms_list[[dpar]], data = newdata)
     names_out <- rownames(newdata)
   }
   eta <- as.vector(X %*% object$coefficients[[dpar]])
@@ -2706,15 +3144,14 @@ mu_random_effect_contribution <- function(object, dpar = NULL) {
 mu_random_intercept_contribution <- mu_random_effect_contribution
 
 phylo_mu_contribution <- function(object, dpar = NULL) {
-  values <- object$random_effects$phylo_mu$values
+  key <- structured_mu_random_effect_key(object$model$structured$phylo_mu)
+  values <- object$random_effects[[key]]$values
   index <- object$model$structured$phylo_mu$observation_node_index
   if (identical(object$model$model_type, "biv_gaussian")) {
-    dpar <- match.arg(dpar, c("mu1", "mu2"))
-    offset <- if (identical(dpar, "mu2")) {
+    dpars <- phylo_mu_dpars(object$model$structured$phylo_mu)
+    dpar <- match.arg(dpar, dpars)
+    offset <- (match(dpar, dpars) - 1L) *
       object$model$structured$phylo_mu$n_re
-    } else {
-      0L
-    }
     index <- index + offset
   }
   unname(values[index])
@@ -2730,4 +3167,14 @@ sigma_random_effect_contribution <- function(object, dpar = NULL) {
     design_value <- design_value[, terms, drop = FALSE]
   }
   rowSums(matrix(values[index], nrow = nrow(index)) * design_value)
+}
+
+covariance_block_random_effect_contribution <- function(object, dpar) {
+  block_re <- object$random_effects$covariance_blocks
+  members <- block_re$members
+  cols <- which(members$dpar == dpar)
+  if (length(cols) == 0L) {
+    return(rep(0, object$nobs))
+  }
+  rowSums(block_re$contribution[, cols, drop = FALSE])
 }

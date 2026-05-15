@@ -51,6 +51,7 @@ Implemented one-response surfaces include:
 | Is the response continuous, count, bounded, robust, or zero-inflated? | fixed-effect non-Gaussian families | [Choosing response families](distribution-families.html) |
 | Does the response have known sampling variance or covariance? | Gaussian `meta_known_V(V = V)` | [Mean effects and residual heterogeneity](meta-analysis.html) |
 | Do species means remain similar after shared ancestry is included? | `phylo(1 | species, tree = tree)` in univariate Gaussian `mu` | [Structured dependence](phylogenetic-spatial.html) |
+| Do nearby sites share smooth location deviations? | `spatial(1 | site, coords = coords)` in univariate Gaussian `mu` | [Structured dependence](phylogenetic-spatial.html) |
 
 The random-effect scale terms are deliberately separate. `sigma ~ x` models
 within-observation residual SD. `sd(group) ~ x_group` models the standard
@@ -106,7 +107,9 @@ response 2. `rho12` still describes within-observation residual coupling.
 
 ## Structured dependence
 
-The implemented structured-effect path is intentionally narrow:
+The implemented structured-effect path now has two one-response foundations:
+tree-structured phylogenetic location effects and coordinate-based spatial
+location effects.
 
 ```r
 drmTMB(
@@ -119,20 +122,34 @@ drmTMB(
 )
 ```
 
-This adds an intercept-only phylogenetic random effect to the univariate
+```r
+drmTMB(
+  drm_formula(
+    y ~ x1 + spatial(1 | site, coords = coords),
+    sigma ~ x1
+  ),
+  family = gaussian(),
+  data = dat
+)
+```
+
+Each term adds an intercept-only structured random effect to the univariate
 Gaussian `mu` predictor. The residual `sigma` remains the within-observation
 SD. Matching intercept-only `phylo()` terms in bivariate `mu1` and `mu2`
-formulas fit the first phylogenetic mean-mean correlation slice. Phylogenetic
-slopes, phylogenetic scale terms, full bivariate phylogenetic location-scale
-blocks, and spatial fields remain planned extensions.
+formulas fit the first phylogenetic mean-mean correlation slice. Matching
+labelled `phylo()` terms across `mu1`, `mu2`, `sigma1`, and `sigma2` also fit
+the first constant q=4 phylogenetic location-scale covariance block. The first
+coordinate-based `spatial()` slice is univariate only; mesh/SPDE spatial
+fields, spatial bivariate covariance blocks, spatial direct-SD models, and
+spatial `corpair()` regressions remain planned extensions.
 Run `check_drm()` before interpreting that fitted phylogenetic correlation; it
 now flags near-boundary `corpars$phylo` values and tiny phylogenetic location
 SDs relative to the matching residual scales.
 
-The q=4 phylogenetic scaffolds in the developer notes are internal contracts for
-the future state across `mu1`, `mu2`, `sigma1`, and `sigma2`. The `mu1`/`mu2`
-part is now fitted for matching intercept-only `phylo()` terms; the complete
-q=4 location-scale endpoint remains planned.
+For fitted q=4 phylogenetic blocks, read the six latent covariance rows with
+`corpairs(fit, level = "phylogenetic")` or
+`summary(fit)$covariance`. Those rows are not residual `rho12`, and
+predictor-dependent q=4 `corpair()` regressions remain planned.
 
 ## Planned, not implemented
 
@@ -143,8 +160,8 @@ These surfaces are roadmap items, not syntax to rely on in analyses yet:
 | correlated residual-scale slope blocks in `sigma` | needs covariance recovery for scale intercept-slope blocks before public use |
 | larger cross-formula labelled covariance blocks linking `mu` and `sigma` | extends beyond the first fitted random-intercept mean-scale correlations |
 | bivariate random slopes and full cross-parameter covariance blocks | expands group-level covariance blocks beyond the first same-parameter and same-response random-intercept slices |
-| phylogenetic slopes, phylogenetic `sigma`, and full bivariate phylogenetic location-scale effects | the first bivariate `mu1`/`mu2` phylogenetic location slice is fitted, but the full q=4 endpoint remains planned |
-| spatial random effects | planned parallel to `phylo()`, but the spatial likelihood is not implemented |
+| phylogenetic slopes, predictor-dependent q=4 phylogenetic correlations, and richer phylogenetic covariance blocks | the first bivariate `mu1`/`mu2` phylogenetic location slice, the q=2 predictor-dependent location-location slice, and the first constant q=4 phylogenetic location-scale block are fitted |
+| richer spatial random effects | first univariate Gaussian coordinate-based `mu` path implemented; mesh/SPDE, spatial scale, bivariate spatial covariance, and spatial `corpair()` paths remain planned |
 | higher-dimensional multivariate models | belong in `gllvmTMB`, not `drmTMB` |
 
 When unsupported syntax fails, the right next step is usually to fit the
@@ -160,8 +177,8 @@ questions:
 |---|---|---|
 | residual | `rho12(fit)` or residual rows from `corpairs(fit)` | within-observation coupling between two responses |
 | ordinary group-level | `corpars$mu` or group-level rows from `corpairs(fit)` | correlation among random intercepts or slopes |
-| phylogenetic | `corpars$phylo` for the first bivariate `mu1`/`mu2` phylogenetic slice | correlation among tree-structured species mean deviations |
-| spatial | planned structured covariance summaries | correlation among spatial effects |
+| phylogenetic | `corpairs(fit, level = "phylogenetic")` | correlation among tree-structured species mean, scale, or q=2 modelled location deviations, depending on the fitted block |
+| spatial | `ranef(fit, "spatial_mu")`, `sdpars$mu`, and `check_drm()` for the first univariate slice | coordinate-structured site deviations in one response; spatial correlations are planned |
 
 Keep these layers separate in writing. A residual `rho12` result is not a
 phylogenetic correlation, a spatial correlation, or a personality/plasticity
@@ -244,34 +261,14 @@ mean deviations are included. Read the fitted phylogenetic layer with
 `cor:phylo:` target when a direct profile interval is worth the extra compute.
 
 If the scientific question separates shared ancestry from a remaining
-species-level association, add an ordinary labelled species block as a second
-layer:
-
-```r
-fit_biv_phylo_species <- drmTMB(
-  drm_formula(
-    mu1 = log_body_mass ~ diet + body_size +
-      (1 | species_residual | species) +
-      phylo(1 | species, tree = tree),
-    mu2 = log_litter_size ~ diet + body_size +
-      (1 | species_residual | species) +
-      phylo(1 | species, tree = tree),
-    sigma1 = ~ diet,
-    sigma2 = ~ diet,
-    rho12 = ~ diet
-  ),
-  family = c(gaussian(), gaussian()),
-  data = mammals
-)
-```
-
-This keeps three correlation layers separate in the fitted object:
-`rho12(fit_biv_phylo_species)`,
-`corpairs(fit_biv_phylo_species, level = "phylogenetic")`, and
-`corpairs(fit_biv_phylo_species, level = "group")`. When the ordinary group
-block and the phylogenetic block both use `species`, `check_drm()` notes the
-overlap so you compare simpler models or profile intervals before treating the
-two species-level correlations as cleanly separated.
+species-level association, that is an advanced identifiability comparison, not
+the introductory path. A phylogenetic species effect is species-level structure
+induced by the tree; it is not a residual observation-level correlation.
+Adding a non-phylogenetic species block beside `phylo()` asks the model to split
+two species-level covariance layers that share the same grouping factor. That
+comparison should live in a dedicated identifiability example with
+`check_drm()`, profile intervals, and simpler-model comparisons, rather than in
+the main model map.
 
 Use this staged interpretation until the full combined location-scale model is
 implemented:
@@ -281,14 +278,14 @@ implemented:
 | `rho12(fit_biv)` | within-observation residual coupling between two traits | phylogenetic or species-level correlation |
 | `corpairs(fit_biv, level = "group")` | ordinary species or individual random-intercept correlation | residual trait coupling or shared-ancestry correlation |
 | `fit_phylo` with `phylo(1 | species, tree = tree)` | one-trait shared-ancestry mean structure | bivariate phylogenetic covariance |
-| `corpairs(fit_biv_phylo, level = "phylogenetic")` | bivariate phylogenetic mean-mean correlation | phylogenetic scale or mean-scale covariance |
-| `summary(fit_biv_phylo)$covariance` | variance and covariance point summaries for the fitted phylogenetic mean-mean layer | derived covariance intervals or q=4 location-scale covariance |
+| `corpairs(fit_biv_phylo, level = "phylogenetic")` | bivariate phylogenetic mean-mean correlation, or six q=4 rows when the all-four labelled block is fitted | predictor-dependent phylogenetic correlations |
+| `summary(fit_biv_phylo)$covariance` | variance and covariance point summaries for the fitted phylogenetic mean-mean or q=4 layer | direct profile intervals for derived q=4 correlations |
 
-In developer shorthand, the planned q=4 phylogenetic endpoint means four
-distributional endpoints: `mu1`, `mu2`, `sigma1`, and `sigma2`. It does not mean
-four fitted correlations. A four-endpoint covariance has six pairwise
-correlations, so public support should wait for fitted likelihoods, recovery
-tests, and `corpairs()` rows for those pairs.
+In developer shorthand, the q=4 phylogenetic endpoint means four distributional
+endpoints: `mu1`, `mu2`, `sigma1`, and `sigma2`. It does not mean four fitted
+correlations. A four-endpoint covariance has six pairwise correlations; q=4
+fits should therefore be read through the six `corpairs()` rows and treated as
+a larger covariance model than the mean-mean path.
 
 ## Where to go next
 
@@ -300,5 +297,5 @@ tests, and `corpairs()` rows for those pairs.
 | a robust continuous-response example | [Robust continuous responses](robust-student.html) |
 | a two-response residual-correlation example | [Changing residual coupling with rho12](bivariate-coscale.html) |
 | known sampling variances or covariance | [Mean effects and residual heterogeneity](meta-analysis.html) |
-| implemented phylogenetic random intercepts | [Structured dependence](phylogenetic-spatial.html) |
+| implemented phylogenetic or coordinate-spatial random intercepts | [Structured dependence](phylogenetic-spatial.html) |
 | post-fit checks, predictions, residuals, and simulation | [Checking and using fitted models](model-workflow.html) |

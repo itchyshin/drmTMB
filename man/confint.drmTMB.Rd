@@ -27,9 +27,10 @@ require explicit target names.}
 supplied and \code{method} is omitted, \code{method = "profile"} is used.}
 
 \item{newdata}{Optional data frame for response-scale profile intervals for
-predictor-dependent \code{sigma}, \code{sigma1}, \code{sigma2}, or \code{rho12} values. Each
-row is profiled separately by profiling its fixed-effect linear predictor
-and then transforming the interval to the response scale.}
+predictor-dependent \code{sigma}, \code{sigma1}, \code{sigma2}, \code{rho12}, or fitted
+\code{corpair()} values. Each row is profiled separately by profiling its
+fixed-effect linear predictor and then transforming the interval to the
+response scale.}
 
 \item{trace}{Logical; passed to \code{\link[TMB:tmbprofile]{TMB::tmbprofile()}} for profile intervals.}
 
@@ -48,8 +49,9 @@ re-optimized; this first public profile path supports explicit fixed-effect,
 constant distributional-scale, random-effect standard-deviation,
 random-effect correlation, the first bivariate phylogenetic mean-mean
 correlation, and constant residual-correlation targets.
-For predictor-dependent scale or residual-correlation formulae, supply
-\code{newdata} with \code{parm = "sigma"} or \code{parm = "rho12"} to profile the fitted
+For predictor-dependent scale, residual-correlation, or currently supported
+\code{corpair()} formulae, supply \code{newdata} with \code{parm = "sigma"},
+\code{parm = "rho12"}, or the fitted \code{corpair(...)} dpar to profile the fitted
 response-scale value for each supplied row.
 }
 \details{

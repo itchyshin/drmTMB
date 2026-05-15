@@ -66,8 +66,8 @@ is the current routing contract:
 
 | TMB `model_type` | User-facing route | R builder | TMB branch purpose |
 |---:|---|---|---|
-| `1` | `family = gaussian()` | `drm_build_gaussian_ls_spec()` | Univariate Gaussian location-scale models, including ordinary `mu` random effects, residual-scale `sigma` random effects, `sd(group) ~ ...` random-effect scale models, `meta_known_V(V = V)`, and the implemented intercept-only `phylo()` location effect. |
-| `2` | `family = biv_gaussian()`, `family = c(gaussian(), gaussian())`, or `family = list(gaussian(), gaussian())` | `drm_build_biv_gaussian_spec()` | Bivariate Gaussian location-scale-coscale models with `mu1`, `mu2`, `sigma1`, `sigma2`, and residual `rho12`, including complete-row dense known sampling covariance, matching labelled `mu1`/`mu2` and `sigma1`/`sigma2` random-intercept covariance blocks, one same-response `mu`/`sigma` random-intercept covariance pair, and matching intercept-only phylogenetic random intercepts in `mu1` and `mu2`. |
+| `1` | `family = gaussian()` | `drm_build_gaussian_ls_spec()` | Univariate Gaussian location-scale models, including ordinary `mu` random effects, residual-scale `sigma` random effects, `sd(group) ~ ...` random-effect scale models, `meta_known_V(V = V)`, the implemented intercept-only `phylo()` location effect, and the first coordinate-based `spatial()` location effect. |
+| `2` | `family = biv_gaussian()`, `family = c(gaussian(), gaussian())`, or `family = list(gaussian(), gaussian())` | `drm_build_biv_gaussian_spec()` | Bivariate Gaussian location-scale-coscale models with `mu1`, `mu2`, `sigma1`, `sigma2`, and residual `rho12`, including complete-row dense known sampling covariance, matching labelled `mu1`/`mu2` and `sigma1`/`sigma2` random-intercept covariance blocks, one same-response `mu`/`sigma` random-intercept covariance pair, intercept-only ordinary q=4 covariance blocks across all four bivariate distributional parameters, bivariate location random-effect SD formulas `sd1(group)` / `sd2(group)`, and matching intercept-only phylogenetic random intercepts in `mu1` and `mu2`. |
 | `3` | `family = student()` | `drm_build_student_ls_spec()` | Univariate Student-t location-scale-shape models with `mu`, `sigma`, and `nu = 2 + exp(eta_nu)`. |
 | `4` | `family = lognormal()` | `drm_build_lognormal_ls_spec()` | Univariate fixed-effect lognormal location-scale models for positive responses, with `mu` and `sigma` defined on the log-response scale. |
 | `5` | `family = Gamma(link = "log")` | `drm_build_gamma_ls_spec()` | Univariate fixed-effect Gamma mean-CV models for positive responses, with `mu` as the response mean and `sigma` as the coefficient of variation. |
@@ -206,6 +206,34 @@ implementation, the middle label `p` is retained for naming and future
 cross-formula covariance matching; the likelihood is otherwise the same as the
 unlabelled `(1 + x1 | id)` block.
 
+For the first coordinate-based spatial location model:
+
+```text
+mu_i = X_mu[i, ] beta_mu + s_site[i]
+s ~ Normal(0, sd_spatial^2 K_coords)
+K_coords[l, m] = exp(-d_lm / r)
+r = median positive pairwise site distance
+Q_coords = K_coords^{-1}
+```
+
+The TMB likelihood uses the same sparse-precision prior shape as the
+phylogenetic random intercept path, with `Q_coords` replacing the tree-derived
+precision and `log_sd_phylo` internally holding the spatial SD for this first
+single-field implementation. The public output labels the term as
+`spatial(1 | site)` and returns conditional effects in the `spatial_mu`
+`ranef()` block. This is a small-data coordinate covariance foundation, not the
+planned scalable SPDE/GMRF mesh implementation.
+
+Matching R syntax:
+
+```r
+drmTMB(
+  bf(y ~ x1 + spatial(1 | site, coords = coords), sigma ~ x2),
+  family = gaussian(),
+  data = dat
+)
+```
+
 Residual-scale random intercepts and independent numeric random slopes are
 implemented on the log-`sigma` scale:
 
@@ -257,6 +285,43 @@ The right-hand side of `sd(id) ~ x_group` is evaluated once per `id` level.
 Predictors must be constant within `id` after missing-row filtering. This
 models among-group variation in the location random intercept; it is not a
 residual-scale model and it is not a second `sigma` formula.
+
+The implemented bivariate Gaussian direct-SD model uses response-specific
+location random-effect SD formulas:
+
+```text
+[y1_i, y2_i]' ~ MVN([mu1_i, mu2_i]', Omega_i)
+mu1_i = X_mu1[i, ] beta_mu1 + b1[id_i]
+mu2_i = X_mu2[i, ] beta_mu2 + b2[id_i]
+[u1_j, u2_j]' ~ Normal([0, 0]', R_group)
+b1_j = sd_mu1_id,j u1_j
+b2_j = sd_mu2_id,j u2_j
+log(sd_mu1_id,j) = W1_id[j, ] alpha1
+log(sd_mu2_id,j) = W2_id[j, ] alpha2
+```
+
+Matching R syntax:
+
+```r
+drmTMB(
+  bf(
+    mu1 = y1 ~ x + (1 | p | id),
+    mu2 = y2 ~ x + (1 | p | id),
+    sigma1 = ~ z1,
+    sigma2 = ~ z2,
+    rho12 = ~ w,
+    sd1(id) ~ x_group1,
+    sd2(id) ~ x_group2
+  ),
+  family = biv_gaussian(),
+  data = dat
+)
+```
+
+`sd1(id)` targets the `mu1` location random-effect SD and `sd2(id)` targets
+the `mu2` location random-effect SD. These are Family B direct
+variance-component scale models, not residual `sigma1` / `sigma2` models and
+not SD regressions for random effects inside the scale formulas.
 
 For several distinct random-intercept targets, the likelihood uses the same
 non-centered construction for each component:
@@ -1166,8 +1231,56 @@ Implementation notes:
   be combined with `meta_known_V(V = V)`.
 - One same-response `mu`/`sigma` random-intercept covariance pair is implemented
   for `mu1` with `sigma1` or `mu2` with `sigma2`.
-- Bivariate random slopes, `rho12` random effects, and full cross-parameter
-  covariance blocks spanning more than one pair remain planned.
+- Reusing the same label in all four `mu1`, `mu2`, `sigma1`, and `sigma2`
+  random-intercept formulas fits one ordinary q=4 latent covariance block:
+
+  ```text
+  u_j = [b_mu1_j, b_mu2_j, a_sigma1_j, a_sigma2_j]'
+  u_j ~ MVN(0, Sigma_id)
+  ```
+
+  The `a_sigma*` entries enter `log(sigma*)`, so their SDs and correlations
+  live on the residual-scale linear-predictor scale. The six correlations in
+  `Sigma_id` are group-level latent correlations and remain separate from
+  residual `rho12`.
+- Family B direct location-SD formulas such as `sd1(id) ~ x_group` and
+  `sd2(id) ~ x_group` are rejected for the same group when this q=4 block is
+  present. Combining them would require a predictor-dependent q=4 covariance
+  model, not the current constant q=4 block.
+- The univariate Family B `sd_phylo(species) ~ x_species` model uses a
+  non-centred tip-scaling contract. A unit phylogenetic base effect `v_aug`
+  follows the sparse augmented tree precision, while the observed tip
+  contribution is multiplied by `tau_l = exp(W_l alpha)`. The implied tip
+  covariance is `D_tip A_tip D_tip`; internal nodes do not receive
+  user-facing SD predictors. This direct-SD formula replaces the scalar
+  `log_sd_phylo` target for the univariate location `phylo()` effect rather
+  than adding a second SD layer.
+- The implemented bivariate Family B direct-SD extension uses
+  `sd_phylo1(species) ~ z1` for the `mu1` phylogenetic location-effect SD and
+  `sd_phylo2(species) ~ z2` for the `mu2` phylogenetic location-effect SD. With
+  a constant latent phylogenetic location-location correlation `rho_phylo`, the
+  cross-response tip covariance is
+  `Cov(a1_l, a2_m) = rho_phylo tau1_l A_lm tau2_m`. These formulas replace
+  endpoint location SD parameters only; they do not target residual `sigma1`,
+  residual `sigma2`, q=4 location-scale endpoint SDs, or residual `rho12`.
+- Bivariate random slopes, `rho12` random effects, phylogenetic random slopes,
+  predictor-dependent q=4 phylogenetic correlations, and spatial q=4 blocks
+  remain planned. The first constant intercept-only bivariate phylogenetic q=4
+  block is implemented for matching labelled `phylo()` terms in `mu1`, `mu2`,
+  `sigma1`, and `sigma2`.
+- The selected q=2 predictor-dependent phylogenetic `corpair()` contract uses
+  two independent unit tree fields and species-specific loadings. For each
+  species `l`, `rho_l = tanh_guard(W_l alpha)`,
+  `c_l = sqrt((1 + rho_l) / 2)`, and
+  `d_l = sqrt((1 - rho_l) / 2)`, with
+  `a1_l = tau1(c_l z1_l + d_l z2_l)` and
+  `a2_l = tau2(c_l z1_l - d_l z2_l)`. This guarantees a positive-definite
+  full phylogenetic covariance and reduces to the implemented constant
+  bivariate phylogenetic covariance when `rho_l` is constant. The fitted
+  implementation uses two independent unit augmented-tree effects and applies
+  the loading transformation at observed tip nodes. This contract targets
+  `mu1`-`mu2` only; predictor-dependent phylogenetic location-scale and
+  scale-scale correlations require a q=4 contract.
 
 ## Review Requirements
 

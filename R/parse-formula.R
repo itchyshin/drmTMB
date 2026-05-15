@@ -18,19 +18,29 @@ parse_drm_formula_entry <- function(expr, name, position) {
   rhs <- formula_rhs(expr)
   has_name <- nzchar(name)
   has_lhs <- !is.null(lhs)
+  corpair_lhs <- NULL
 
-  if (has_name && has_lhs && is_sd_lhs(lhs)) {
+  if (has_name && has_lhs && is_random_scale_lhs(lhs)) {
     cli::cli_abort(
-      "{.fn sd} random-effect scale formulas should be unnamed, for example {.code sd(id) ~ x}."
+      "Random-effect scale formulas should be unnamed, for example {.code sd(id) ~ x}."
+    )
+  }
+  if (has_name && has_lhs && is_corpair_lhs(lhs)) {
+    cli::cli_abort(
+      "Correlation-pair formulas should be unnamed, for example {.code corpair(species, level = \"phylogenetic\", block = \"p\", from = \"mu1\", to = \"mu2\") ~ x}."
     )
   }
 
   if (has_name) {
     dpar <- name
     response <- if (has_lhs) deparse1(lhs) else NA_character_
-  } else if (has_lhs && is_sd_lhs(lhs)) {
+  } else if (has_lhs && is_random_scale_lhs(lhs)) {
     sd_lhs <- parse_sd_lhs(lhs)
     dpar <- sd_lhs$dpar
+    response <- NA_character_
+  } else if (has_lhs && is_corpair_lhs(lhs)) {
+    corpair_lhs <- parse_corpair_lhs(lhs)
+    dpar <- corpair_lhs$dpar
     response <- NA_character_
   } else if (has_lhs && is_dpar_lhs(lhs)) {
     dpar <- deparse1(lhs)
@@ -52,6 +62,7 @@ parse_drm_formula_entry <- function(expr, name, position) {
     rhs = rhs,
     expr = expr,
     source_name = name,
+    corpair = corpair_lhs,
     structured = collect_structured_effects(rhs, dpar)
   )
 }
@@ -73,24 +84,67 @@ formula_rhs <- function(expr) {
 
 is_dpar_lhs <- function(lhs) {
   lhs_text <- deparse1(lhs)
-  lhs_text %in% drm_known_dpars() || is_sd_lhs(lhs)
+  lhs_text %in% drm_known_dpars() || is_random_scale_lhs(lhs)
 }
 
 drm_known_dpars <- function() {
   c(
-    "mu", "mu1", "mu2",
-    "sigma", "sigma1", "sigma2",
-    "shape", "skew", "nu",
-    "zi", "zoi", "coi", "hu",
+    "mu",
+    "mu1",
+    "mu2",
+    "sigma",
+    "sigma1",
+    "sigma2",
+    "shape",
+    "skew",
+    "nu",
+    "zi",
+    "zoi",
+    "coi",
+    "hu",
     "rho12"
   )
 }
 
-is_sd_lhs <- function(lhs) {
-  is.call(lhs) && identical(lhs[[1L]], as.name("sd"))
+is_random_scale_lhs <- function(lhs) {
+  is.call(lhs) &&
+    random_scale_lhs_function(lhs) %in% random_scale_lhs_functions()
 }
 
-parse_sd_lhs <- function(lhs) {
+is_sd_lhs <- function(lhs) {
+  is_random_scale_lhs(lhs)
+}
+
+is_corpair_lhs <- function(lhs) {
+  lhs <- strip_parens(lhs)
+  is.call(lhs) && identical(lhs[[1L]], as.name("corpair"))
+}
+
+random_scale_lhs_function <- function(lhs) {
+  fun <- lhs[[1L]]
+  if (is.symbol(fun)) {
+    return(as.character(fun))
+  }
+  deparse1(fun)
+}
+
+random_scale_lhs_functions <- function() {
+  c(
+    "sd",
+    "sd1",
+    "sd2",
+    "sd_phylo",
+    "sd_phylo1",
+    "sd_phylo2",
+    "sd_spatial",
+    "sd_spatial1",
+    "sd_spatial2",
+    "sd_sigma1",
+    "sd_sigma2"
+  )
+}
+
+parse_corpair_lhs <- function(lhs) {
   lhs <- strip_parens(lhs)
   args <- as.list(lhs)[-1L]
   arg_names <- names(args)
@@ -99,24 +153,250 @@ parse_sd_lhs <- function(lhs) {
   }
   arg_names[is.na(arg_names)] <- ""
 
-  if (length(args) != 1L || nzchar(arg_names[[1L]])) {
+  target_pos <- which(arg_names %in% c("", "group"))
+  if (length(target_pos) != 1L) {
     cli::cli_abort(c(
-      "Random-effect scale formulas currently support only {.code sd(group)} on the left-hand side.",
-      "x" = "Use syntax like {.code sd(id) ~ x_group}.",
-      "i" = "Explicit targets such as {.code sd(id, dpar = \"mu\", coef = \"(Intercept)\")} are planned for a later phase."
+      "{.fn corpair} requires exactly one grouping variable.",
+      "x" = "Use syntax like {.code corpair(species, level = \"phylogenetic\", block = \"p\", from = \"mu1\", to = \"mu2\") ~ x}."
     ))
   }
-  if (!is.symbol(args[[1L]])) {
+  group_arg <- args[[target_pos]]
+  if (!is.symbol(group_arg)) {
     cli::cli_abort(c(
-      "The {.fn sd} target must be a simple grouping variable.",
-      "x" = "Use syntax like {.code sd(id) ~ x_group}."
+      "The {.fn corpair} target must be a simple grouping variable.",
+      "x" = "Use syntax like {.code corpair(species, level = \"phylogenetic\", block = \"p\", from = \"mu1\", to = \"mu2\") ~ x}."
     ))
   }
 
-  group <- as.character(args[[1L]])
+  optional_names <- arg_names[-target_pos]
+  optional_args <- args[-target_pos]
+  bad <- setdiff(optional_names, c("level", "block", "class", "from", "to"))
+  if (length(bad) > 0L || any(!nzchar(optional_names))) {
+    cli::cli_abort(c(
+      "{.fn corpair} currently accepts only {.arg level}, {.arg block}, {.arg class}, {.arg from}, and {.arg to} options.",
+      "x" = "Use syntax like {.code corpair(species, level = \"phylogenetic\", block = \"p\", from = \"mu1\", to = \"mu2\") ~ x}."
+    ))
+  }
+  if (any(duplicated(optional_names))) {
+    cli::cli_abort(
+      "{.fn corpair} options cannot be repeated: {.val {unique(optional_names[duplicated(optional_names)])}}."
+    )
+  }
+
+  group <- as.character(group_arg)
+  level <- parse_corpair_string_arg(optional_args, optional_names, "level")
+  block <- parse_corpair_string_arg(optional_args, optional_names, "block")
+  class <- parse_corpair_string_arg(optional_args, optional_names, "class")
+  from <- parse_corpair_string_arg(optional_args, optional_names, "from")
+  to <- parse_corpair_string_arg(optional_args, optional_names, "to")
+  allowed_levels <- c("group", "phylogenetic", "spatial")
+  if (!is.na(level) && !level %in% allowed_levels) {
+    cli::cli_abort(c(
+      "{.arg level} must name a latent random-effect correlation level.",
+      "x" = "Supported planned levels are {.val {allowed_levels}}."
+    ))
+  }
+  allowed_classes <- c("location-location", "location-scale", "scale-scale")
+  if (!is.na(class) && !class %in% allowed_classes) {
+    cli::cli_abort(c(
+      "{.arg class} must name a latent random-effect correlation class.",
+      "x" = "Supported planned classes are {.val {allowed_classes}}."
+    ))
+  }
+  if (xor(is.na(from), is.na(to))) {
+    cli::cli_abort(c(
+      "{.arg from} and {.arg to} in {.fn corpair} must be supplied together.",
+      "x" = "Use syntax like {.code corpair(species, level = \"phylogenetic\", block = \"p\", from = \"mu1\", to = \"mu2\") ~ x}."
+    ))
+  }
+  if (!is.na(class) && !is.na(from)) {
+    cli::cli_abort(c(
+      "{.fn corpair} accepts either {.arg class} or endpoint-specific {.arg from} / {.arg to}, not both.",
+      "x" = "Use endpoint-specific syntax for fitted correlation-regression targets."
+    ))
+  }
+  allowed_endpoints <- c("mu", "sigma", "mu1", "mu2", "sigma1", "sigma2")
+  endpoints <- c(from, to)
+  bad_endpoints <- endpoints[
+    !is.na(endpoints) & !endpoints %in% allowed_endpoints
+  ]
+  if (length(bad_endpoints) > 0L) {
+    cli::cli_abort(c(
+      "{.arg from} and {.arg to} must name distributional-parameter endpoints.",
+      "x" = "Supported planned endpoints are {.val {allowed_endpoints}}."
+    ))
+  }
+  if (!is.na(from) && identical(from, to)) {
+    cli::cli_abort(c(
+      "{.arg from} and {.arg to} in {.fn corpair} must name two different endpoints.",
+      "x" = "Use syntax like {.code corpair(species, level = \"phylogenetic\", block = \"p\", from = \"mu1\", to = \"mu2\") ~ x}."
+    ))
+  }
+
+  dpar <- paste0(
+    "corpair(",
+    group,
+    if (!is.na(level)) paste0(", level = \"", level, "\"") else "",
+    if (!is.na(block)) paste0(", block = \"", block, "\"") else "",
+    if (!is.na(class)) paste0(", class = \"", class, "\"") else "",
+    if (!is.na(from)) paste0(", from = \"", from, "\"") else "",
+    if (!is.na(to)) paste0(", to = \"", to, "\"") else "",
+    ")"
+  )
   list(
     group = group,
-    dpar = paste0("sd(", group, ")")
+    level = level,
+    block = block,
+    class = class,
+    from = from,
+    to = to,
+    dpar = dpar
+  )
+}
+
+parse_corpair_string_arg <- function(args, arg_names, name) {
+  pos <- which(arg_names == name)
+  if (length(pos) == 0L) {
+    return(NA_character_)
+  }
+  value <- args[[pos]]
+  if (!is.character(value) || length(value) != 1L || is.na(value)) {
+    cli::cli_abort(c(
+      "{.arg {name}} in {.fn corpair} must be a single string.",
+      "x" = "Use syntax like {.code corpair(id, {name} = \"p\") ~ x}."
+    ))
+  }
+  value
+}
+
+parse_sd_lhs <- function(lhs) {
+  lhs <- strip_parens(lhs)
+  fun <- random_scale_lhs_function(lhs)
+  if (
+    fun %in%
+      c(
+        "sd_spatial",
+        "sd_spatial1",
+        "sd_spatial2"
+      )
+  ) {
+    cli::cli_abort(c(
+      "{.fn {fun}} random-effect SD models are planned but not implemented yet.",
+      "i" = "This implementation currently supports {.code sd(group)} for univariate Gaussian location random effects, {.code sd1(group)} / {.code sd2(group)} for bivariate Gaussian location random effects, {.code sd_phylo(species)} for univariate phylogenetic location random effects, and {.code sd_phylo1(species)} / {.code sd_phylo2(species)} for bivariate phylogenetic location random effects."
+    ))
+  }
+  if (fun %in% c("sd_sigma1", "sd_sigma2")) {
+    cli::cli_abort(c(
+      "{.fn {fun}} is not a supported drmTMB random-effect scale target.",
+      "x" = "Direct {.fn sd} models target location random-effect SDs only.",
+      "i" = "Use {.code sigma1 ~ ...} / {.code sigma2 ~ ...} for residual scale predictors, or use scale random effects inside the Family A formulation without a matching {.fn sd_sigma} target."
+    ))
+  }
+
+  args <- as.list(lhs)[-1L]
+  arg_names <- names(args)
+  if (is.null(arg_names)) {
+    arg_names <- rep("", length(args))
+  }
+  arg_names[is.na(arg_names)] <- ""
+
+  target_pos <- which(arg_names %in% c("", "group"))
+  if (length(target_pos) != 1L) {
+    cli::cli_abort(c(
+      "Random-effect scale formulas require exactly one grouping variable.",
+      "x" = "Use syntax like {.code sd(id) ~ x_group} or {.code sd1(id) ~ x_group}.",
+      "i" = "Explicit targets such as {.code sd(id, dpar = \"mu\", coef = \"(Intercept)\")} are planned for a later phase."
+    ))
+  }
+  if (!is.symbol(args[[target_pos]])) {
+    cli::cli_abort(c(
+      "The {.fn {fun}} target must be a simple grouping variable.",
+      "x" = "Use syntax like {.code {fun}(id) ~ x_group}."
+    ))
+  }
+
+  optional_names <- arg_names[-target_pos]
+  optional_args <- args[-target_pos]
+  bad <- setdiff(optional_names, c("dpar", "coef", "block"))
+  if (length(bad) > 0L || any(!nzchar(optional_names))) {
+    cli::cli_abort(c(
+      "{.fn {fun}} currently accepts only {.arg dpar}, {.arg coef}, and {.arg block} options.",
+      "x" = "Use syntax like {.code sd(id, dpar = \"mu\", coef = \"(Intercept)\") ~ x_group}."
+    ))
+  }
+  if (any(duplicated(optional_names))) {
+    cli::cli_abort(
+      "{.fn {fun}} options cannot be repeated: {.val {unique(optional_names[duplicated(optional_names)])}}."
+    )
+  }
+
+  target_dpar <- parse_sd_string_arg(optional_args, optional_names, "dpar")
+  target_coef <- parse_sd_string_arg(optional_args, optional_names, "coef")
+  target_block <- parse_sd_string_arg(optional_args, optional_names, "block")
+  explicit <- any(!is.na(c(target_dpar, target_coef, target_block)))
+  if (explicit && !identical(fun, "sd")) {
+    hint <- if (fun %in% c("sd1", "sd2")) {
+      "Use {.code sd1(id) ~ x_group} or {.code sd2(id) ~ x_group} for implemented bivariate location random-effect SD models."
+    } else if (identical(fun, "sd_phylo")) {
+      "Use {.code sd_phylo(species) ~ x_species} for the univariate phylogenetic direct-SD model."
+    } else {
+      "Use the shorthand form without explicit target options."
+    }
+    cli::cli_abort(c(
+      "{.fn {fun}} does not accept explicit target options yet.",
+      "i" = hint
+    ))
+  }
+  if (!is.na(target_dpar) && !identical(target_dpar, "mu")) {
+    cli::cli_abort(c(
+      "{.arg dpar} in explicit {.fn sd} targets is reserved for location random effects.",
+      "x" = "The supported planned value is {.val mu}, not {.val {target_dpar}}.",
+      "i" = "Use residual-scale formulas such as {.code sigma ~ ...} for residual variation."
+    ))
+  }
+
+  group <- as.character(args[[target_pos]])
+  list(
+    group = group,
+    fun = fun,
+    dpar = format_sd_lhs_dpar(
+      fun,
+      group,
+      target_dpar,
+      target_coef,
+      target_block
+    ),
+    target_dpar = target_dpar,
+    target_coef = target_coef,
+    target_block = target_block,
+    explicit = explicit
+  )
+}
+
+parse_sd_string_arg <- function(args, arg_names, name) {
+  pos <- which(arg_names == name)
+  if (length(pos) == 0L) {
+    return(NA_character_)
+  }
+  value <- args[[pos]]
+  if (!is.character(value) || length(value) != 1L || is.na(value)) {
+    cli::cli_abort(c(
+      "{.arg {name}} in {.fn sd} must be a single string.",
+      "x" = "Use syntax like {.code sd(id, {name} = \"mu\") ~ x_group}."
+    ))
+  }
+  value
+}
+
+format_sd_lhs_dpar <- function(fun, group, dpar, coef, block) {
+  paste0(
+    fun,
+    "(",
+    group,
+    if (!is.na(dpar)) paste0(", dpar = \"", dpar, "\"") else "",
+    if (!is.na(coef)) paste0(", coef = \"", coef, "\"") else "",
+    if (!is.na(block)) paste0(", block = \"", block, "\"") else "",
+    ")"
   )
 }
 
@@ -126,11 +406,19 @@ collect_structured_effects <- function(rhs, dpar) {
   for (term in terms) {
     term <- strip_parens(term)
     if (is_structured_marker_call(term, "phylo")) {
-      structured[[length(structured) + 1L]] <- parse_structured_marker_call(term, "phylo", dpar)
+      structured[[length(structured) + 1L]] <- parse_structured_marker_call(
+        term,
+        "phylo",
+        dpar
+      )
       next
     }
     if (is_structured_marker_call(term, "spatial")) {
-      structured[[length(structured) + 1L]] <- parse_structured_marker_call(term, "spatial", dpar)
+      structured[[length(structured) + 1L]] <- parse_structured_marker_call(
+        term,
+        "spatial",
+        dpar
+      )
       next
     }
     nested <- c("phylo", "spatial")[vapply(
@@ -175,7 +463,11 @@ parse_structured_marker_call <- function(expr, marker, dpar) {
   marker_arg_names <- arg_names[-term_pos]
   if (identical(marker, "phylo")) {
     extra <- setdiff(marker_arg_names, "tree")
-    if (length(marker_args) != 1L || !identical(marker_arg_names, "tree") || length(extra) > 0L) {
+    if (
+      length(marker_args) != 1L ||
+        !identical(marker_arg_names, "tree") ||
+        length(extra) > 0L
+    ) {
       cli::cli_abort(c(
         "{.fn phylo} requires a single named {.arg tree} argument.",
         "x" = "Use syntax like {.code phylo(1 | species, tree = tree)}.",
@@ -204,7 +496,9 @@ parse_structured_marker_call <- function(expr, marker, dpar) {
       "x" = "Use syntax like {.code spatial(1 | site, coords = coords)} or {.code spatial(1 | site, mesh = mesh)}."
     ))
   }
-  structure_arg <- marker_args[[which(marker_arg_names %in% c("coords", "mesh"))]]
+  structure_arg <- marker_args[[which(
+    marker_arg_names %in% c("coords", "mesh")
+  )]]
   if (!is.symbol(structure_arg)) {
     cli::cli_abort(c(
       "{.arg coords} and {.arg mesh} must name objects.",
@@ -215,7 +509,9 @@ parse_structured_marker_call <- function(expr, marker, dpar) {
     list(type = "spatial", dpar = dpar),
     term,
     list(
-      structure = marker_arg_names[[which(marker_arg_names %in% c("coords", "mesh"))]],
+      structure = marker_arg_names[[which(
+        marker_arg_names %in% c("coords", "mesh")
+      )]],
       object = as.character(structure_arg)
     )
   )
@@ -231,6 +527,21 @@ parse_structured_bar_term <- function(expr, marker) {
   }
   lhs <- strip_parens(expr[[2L]])
   group <- expr[[3L]]
+  covariance_label <- NULL
+
+  if (is_random_bar_call(lhs)) {
+    nested <- strip_parens(lhs)
+    lhs <- strip_parens(nested[[2L]])
+    covariance_label_expr <- nested[[3L]]
+    if (!is.symbol(covariance_label_expr)) {
+      cli::cli_abort(c(
+        "{.fn {marker}} covariance-block labels must be simple names.",
+        "x" = "Use syntax like {.code {marker}(1 | p | group, ...)}."
+      ))
+    }
+    covariance_label <- as.character(covariance_label_expr)
+    validate_random_mu_covariance_label(covariance_label)
+  }
   if (!is.symbol(group)) {
     cli::cli_abort(c(
       "{.fn {marker}} grouping terms must be simple variables.",
@@ -244,22 +555,37 @@ parse_structured_bar_term <- function(expr, marker) {
       group = group_name,
       variables = NA_character_,
       coef_names = "(Intercept)",
-      label = paste0(marker, "(1 | ", group_name, ")")
+      label = format_structured_label(
+        marker,
+        "1",
+        group_name,
+        covariance_label
+      ),
+      covariance_label = covariance_label
     ))
   }
 
   pieces <- flatten_plus_terms(lhs)
   one <- vapply(pieces, is_intercept_one, logical(1))
   symbol <- vapply(pieces, is.symbol, logical(1))
-  if (!any(vapply(pieces, is_zero_term, logical(1))) &&
-      sum(one) == 1L && sum(symbol) == 1L &&
-      length(pieces) == sum(one) + sum(symbol)) {
+  if (
+    !any(vapply(pieces, is_zero_term, logical(1))) &&
+      sum(one) == 1L &&
+      sum(symbol) == 1L &&
+      length(pieces) == sum(one) + sum(symbol)
+  ) {
     variable <- as.character(pieces[[which(symbol)]])
     return(list(
       group = group_name,
       variables = variable,
       coef_names = c("(Intercept)", variable),
-      label = paste0(marker, "(1 + ", variable, " | ", group_name, ")")
+      label = format_structured_label(
+        marker,
+        paste0("1 + ", variable),
+        group_name,
+        covariance_label
+      ),
+      covariance_label = covariance_label
     ))
   }
 
@@ -268,4 +594,18 @@ parse_structured_bar_term <- function(expr, marker) {
     "x" = "Use {.code {marker}(1 | group, ...)} or {.code {marker}(1 + x | group, ...)}.",
     "i" = "Multiple structured slopes and interactions are planned only after intercept-only structured effects are tested."
   ))
+}
+
+format_structured_label <- function(
+  marker,
+  lhs_label,
+  group,
+  covariance_label = NULL
+) {
+  group_label <- if (is.null(covariance_label)) {
+    group
+  } else {
+    paste0(covariance_label, " | ", group)
+  }
+  paste0(marker, "(", lhs_label, " | ", group_label, ")")
 }

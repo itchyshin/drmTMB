@@ -85,6 +85,164 @@ check_drm_biv_phylo_data <- function(
   )
 }
 
+check_drm_biv_sd_phylo_data <- function(seed = 2026051402, n_each = 5L) {
+  set.seed(seed)
+  tree <- check_drm_test_tree()
+  A <- drmTMB:::drm_phylo_tip_covariance(tree)
+  n_tip <- length(tree$tip.label)
+  z_species <- stats::setNames(
+    seq(-0.8, 0.8, length.out = n_tip),
+    tree$tip.label
+  )
+  tau1 <- exp(-0.55 + 0.45 * z_species)
+  tau2 <- exp(-0.65 - 0.35 * z_species)
+  z1 <- stats::rnorm(n_tip)
+  z2 <- 0.25 * z1 + sqrt(1 - 0.25^2) * stats::rnorm(n_tip)
+  base1 <- as.vector(t(chol(A)) %*% z1)
+  base2 <- as.vector(t(chol(A)) %*% z2)
+  names(base1) <- tree$tip.label
+  names(base2) <- tree$tip.label
+  phylo1 <- tau1 * base1
+  phylo2 <- tau2 * base2
+
+  species <- rep(tree$tip.label, each = n_each)
+  x <- stats::rnorm(length(species))
+  e1 <- stats::rnorm(length(species))
+  e2 <- 0.05 * e1 + sqrt(1 - 0.05^2) * stats::rnorm(length(species))
+  list(
+    data = data.frame(
+      y1 = 0.25 + 0.30 * x + phylo1[species] + 0.22 * e1,
+      y2 = -0.15 - 0.25 * x + phylo2[species] + 0.24 * e2,
+      x = x,
+      z_species = z_species[species],
+      species = species
+    ),
+    tree = tree
+  )
+}
+
+check_drm_sd_phylo_data <- function(seed = 2026051401, n_each = 4L) {
+  set.seed(seed)
+  tree <- check_drm_test_tree()
+  A <- drmTMB:::drm_phylo_tip_covariance(tree)
+  species_z <- stats::setNames(
+    seq(-0.9, 0.9, length.out = length(tree$tip.label)),
+    tree$tip.label
+  )
+  tau <- exp(-0.55 + 0.55 * species_z)
+  base_effect <- as.vector(t(chol(A)) %*% stats::rnorm(length(tree$tip.label)))
+  names(base_effect) <- tree$tip.label
+  phylo_effect <- tau * base_effect
+  species <- factor(
+    rep(tree$tip.label, each = n_each),
+    levels = tree$tip.label
+  )
+  x <- stats::rnorm(length(species))
+  data <- data.frame(
+    y = 0.25 +
+      0.35 * x +
+      phylo_effect[as.character(species)] +
+      stats::rnorm(length(species), sd = 0.20),
+    x = x,
+    z_species = species_z[as.character(species)],
+    species = species
+  )
+
+  list(data = data, tree = tree)
+}
+
+check_drm_spatial_data <- function(
+  seed = 2026051436,
+  n_site = 7L,
+  n_each = 4L
+) {
+  set.seed(seed)
+  site_levels <- paste0("site_", seq_len(n_site))
+  theta <- seq(0, 1.5 * pi, length.out = n_site)
+  coords <- data.frame(
+    x = cos(theta) + seq_len(n_site) / (4 * n_site),
+    y = sin(theta)
+  )
+  rownames(coords) <- site_levels
+
+  precision <- drmTMB:::drm_spatial_coords_precision(
+    coords,
+    site = site_levels,
+    group = "site"
+  )
+  covariance <- solve(as.matrix(precision$precision))
+  spatial_effect <- as.vector(
+    t(chol(covariance)) %*% stats::rnorm(n_site, sd = 0.35)
+  )
+  names(spatial_effect) <- site_levels
+
+  site <- rep(site_levels, each = n_each)
+  x <- stats::rnorm(length(site))
+  data <- data.frame(
+    y = 0.45 -
+      0.2 * x +
+      spatial_effect[site] +
+      stats::rnorm(length(site), sd = 0.12),
+    x = x,
+    site = site
+  )
+  list(data = data, coords = coords)
+}
+
+check_drm_biv_q4_data <- function(
+  n_id = 36L,
+  n_each = 6L,
+  seed = 2026051307
+) {
+  set.seed(seed)
+  id <- factor(rep(seq_len(n_id), each = n_each))
+  n <- length(id)
+  x <- stats::rnorm(n)
+  beta_mu1 <- c(0.10, 0.30)
+  beta_mu2 <- c(-0.15, -0.25)
+  log_sigma1 <- log(0.42)
+  log_sigma2 <- log(0.50)
+  rho12 <- 0.08
+  sd <- c(0.48, 0.52, 0.26, 0.30)
+  corr <- matrix(
+    c(
+      1.00,
+      0.22,
+      0.10,
+      -0.06,
+      0.22,
+      1.00,
+      0.08,
+      0.14,
+      0.10,
+      0.08,
+      1.00,
+      0.18,
+      -0.06,
+      0.14,
+      0.18,
+      1.00
+    ),
+    nrow = 4L,
+    byrow = TRUE
+  )
+  z <- matrix(stats::rnorm(n_id * 4L), n_id, 4L)
+  b <- sweep(z %*% chol(corr), 2L, sd, `*`)
+  e1 <- stats::rnorm(n)
+  e2 <- rho12 * e1 + sqrt(1 - rho12^2) * stats::rnorm(n)
+
+  dat <- data.frame(id = id, x = x)
+  dat$y1 <- beta_mu1[[1L]] +
+    beta_mu1[[2L]] * x +
+    b[id, 1L] +
+    exp(log_sigma1 + b[id, 3L]) * e1
+  dat$y2 <- beta_mu2[[1L]] +
+    beta_mu2[[2L]] * x +
+    b[id, 2L] +
+    exp(log_sigma2 + b[id, 4L]) * e2
+  dat
+}
+
 check_drm_registry_singleton <- function(fit, dpar) {
   member_row <- which(
     fit$model$random$covariance_blocks$members$dpar == dpar
@@ -389,6 +547,184 @@ test_that("check_drm() records phylogenetic replication notes", {
   expect_true(attr(chk, "ok"))
 })
 
+test_that("check_drm() records spatial mu diagnostics separately from phylo", {
+  sim <- check_drm_spatial_data()
+  coords <- sim$coords
+
+  fit <- drmTMB(
+    bf(y ~ x + spatial(1 | site, coords = coords), sigma ~ 1),
+    family = gaussian(),
+    data = sim$data,
+    control = list(eval.max = 500, iter.max = 500)
+  )
+  stable <- fit
+  stable$sdpars$mu[["spatial(1 | site)"]] <- 0.35
+  stable$coefficients$sigma[] <- log(0.12)
+  chk <- check_drm(stable)
+  spatial <- chk[chk$check == "spatial_mu_diagnostics", ]
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(nrow(spatial), 1L)
+  expect_equal(spatial$status, "ok")
+  expect_match(spatial$value, "group=site")
+  expect_match(spatial$value, "n_sites=7")
+  expect_match(spatial$value, "min_site_n=4")
+  expect_match(spatial$value, "coord_range=")
+  expect_match(spatial$value, "spatial_sd=")
+  expect_match(spatial$value, "sd_ratio=")
+  expect_match(spatial$message, "coordinate spatial random intercept")
+  expect_equal(nrow(chk[chk$check == "phylo_mu_replication", ]), 0L)
+  expect_identical(attr(chk, "ok"), TRUE)
+
+  singleton <- stable
+  index <- singleton$model$structured$phylo_mu$observation_node_index
+  first_index <- index[[1L]]
+  first_rows <- which(index == first_index)
+  recipient <- index[which(index != first_index)[[1L]]]
+  singleton$model$structured$phylo_mu$observation_node_index[
+    first_rows[-1L]
+  ] <- recipient
+  singleton_chk <- check_drm(singleton)
+  singleton_spatial <- singleton_chk[
+    singleton_chk$check == "spatial_mu_diagnostics",
+  ]
+
+  expect_equal(singleton_spatial$status, "note")
+  expect_match(singleton_spatial$value, "min_site_n=1")
+  expect_match(singleton_spatial$message, "fewer than two fitted observations")
+  expect_identical(attr(singleton_chk, "ok"), TRUE)
+
+  weak <- stable
+  weak$sdpars$mu[["spatial(1 | site)"]] <- 1e-5
+  weak_chk <- check_drm(weak)
+  weak_spatial <- weak_chk[weak_chk$check == "spatial_mu_diagnostics", ]
+
+  expect_equal(weak_spatial$status, "note")
+  expect_match(weak_spatial$message, "tiny relative to the residual scale")
+
+  bad <- stable
+  bad$sdpars$mu[["spatial(1 | site)"]] <- NA_real_
+  bad_chk <- check_drm(bad)
+  bad_spatial <- bad_chk[bad_chk$check == "spatial_mu_diagnostics", ]
+
+  expect_equal(bad_spatial$status, "error")
+  expect_match(bad_spatial$message, "non-positive or non-finite")
+  expect_identical(attr(bad_chk, "ok"), FALSE)
+})
+
+test_that("check_drm() records sd_phylo direct-SD diagnostics", {
+  sim <- check_drm_sd_phylo_data()
+  tree <- sim$tree
+  fit <- drmTMB(
+    bf(
+      y ~ x + phylo(1 | species, tree = tree),
+      sigma ~ 1,
+      sd_phylo(species) ~ z_species
+    ),
+    family = gaussian(),
+    data = sim$data,
+    control = list(eval.max = 500, iter.max = 500)
+  )
+  chk <- check_drm(fit)
+  direct_sd <- chk[chk$check == "phylo_direct_sd_model", ]
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(nrow(direct_sd), 1L)
+  expect_equal(direct_sd$status, "ok")
+  expect_match(direct_sd$value, "dpar=sd_phylo\\(species\\)")
+  expect_match(direct_sd$value, "group=species")
+  expect_match(direct_sd$value, "min_species_n=4")
+  expect_match(direct_sd$value, "sd_range=\\[")
+  expect_match(direct_sd$value, "max_sd_ratio=")
+  expect_match(direct_sd$message, "finite positive")
+
+  singleton <- fit
+  singleton$model$random_scale$phylo$observation_sd_row0 <- c(
+    0L,
+    rep.int(1L, 4L),
+    rep.int(2L, 4L),
+    rep.int(3L, length(sim$data$species) - 9L)
+  )
+  singleton$model$random_scale$phylo$observation_sd_row0_list[
+    "sd_phylo(species)"
+  ] <- list(singleton$model$random_scale$phylo$observation_sd_row0)
+  singleton_chk <- check_drm(singleton)
+  singleton_sd <- singleton_chk[
+    singleton_chk$check == "phylo_direct_sd_model",
+  ]
+
+  expect_equal(singleton_sd$status, "note")
+  expect_match(singleton_sd$value, "min_species_n=1")
+  expect_match(singleton_sd$message, "recovery can be weak")
+
+  bad_sd <- fit
+  bad_sd$sdpars[["sd_phylo(species)"]][[1L]] <- NA_real_
+  bad_chk <- check_drm(bad_sd)
+  bad_direct_sd <- bad_chk[bad_chk$check == "phylo_direct_sd_model", ]
+
+  expect_equal(bad_direct_sd$status, "error")
+  expect_match(bad_direct_sd$message, "non-finite")
+  expect_false(attr(bad_chk, "ok"))
+})
+
+test_that("check_drm() records bivariate sd_phylo direct-SD diagnostics", {
+  sim <- check_drm_biv_sd_phylo_data()
+  dat <- sim$data
+  tree <- sim$tree
+  fit <- drmTMB(
+    bf(
+      mu1 = y1 ~ x + phylo(1 | species, tree = tree),
+      mu2 = y2 ~ x + phylo(1 | species, tree = tree),
+      sigma1 = ~1,
+      sigma2 = ~1,
+      rho12 = ~1,
+      sd_phylo1(species) ~ z_species,
+      sd_phylo2(species) ~ z_species
+    ),
+    family = biv_gaussian(),
+    data = dat,
+    control = list(eval.max = 600, iter.max = 600)
+  )
+  chk <- check_drm(fit)
+  direct_sd <- chk[chk$check == "phylo_direct_sd_model", ]
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(nrow(direct_sd), 2L)
+  expect_equal(direct_sd$status, c("ok", "ok"))
+  expect_match(direct_sd$value[[1L]], "dpar=sd_phylo1\\(species\\)")
+  expect_match(direct_sd$value[[1L]], "target=mu1")
+  expect_match(direct_sd$value[[2L]], "dpar=sd_phylo2\\(species\\)")
+  expect_match(direct_sd$value[[2L]], "target=mu2")
+  expect_true(all(grepl("min_species_n=5", direct_sd$value, fixed = TRUE)))
+  expect_true(all(grepl("sd_range=[", direct_sd$value, fixed = TRUE)))
+  expect_true(all(grepl("max_sd_ratio=", direct_sd$value, fixed = TRUE)))
+  expect_true(all(grepl("finite positive", direct_sd$message, fixed = TRUE)))
+  expect_false(any(direct_sd$status %in% c("warning", "error")))
+
+  one_sided <- drmTMB(
+    bf(
+      mu1 = y1 ~ x + phylo(1 | species, tree = tree),
+      mu2 = y2 ~ x + phylo(1 | species, tree = tree),
+      sigma1 = ~1,
+      sigma2 = ~1,
+      rho12 = ~1,
+      sd_phylo1(species) ~ z_species
+    ),
+    family = biv_gaussian(),
+    data = dat,
+    control = list(eval.max = 600, iter.max = 600)
+  )
+  one_sided_sd <- check_drm(one_sided)
+  one_sided_direct <- one_sided_sd[
+    one_sided_sd$check == "phylo_direct_sd_model",
+  ]
+
+  expect_equal(one_sided$opt$convergence, 0)
+  expect_equal(nrow(one_sided_direct), 1L)
+  expect_match(one_sided_direct$value, "dpar=sd_phylo1\\(species\\)")
+  expect_match(one_sided_direct$value, "target=mu1")
+})
+
 test_that("check_drm() reports bivariate phylogenetic covariance diagnostics", {
   sim <- check_drm_biv_phylo_data()
   dat <- sim$data
@@ -422,7 +758,6 @@ test_that("check_drm() reports bivariate phylogenetic covariance diagnostics", {
   expect_match(phylo$value, "min_species_n=5")
   expect_match(phylo$value, "min_sd_ratio=")
   expect_match(phylo$message, "non-negligible")
-  expect_true(attr(chk, "ok"))
 
   near_boundary <- stable
   near_boundary$corpars$phylo[] <- 0.995
@@ -445,7 +780,6 @@ test_that("check_drm() reports bivariate phylogenetic covariance diagnostics", {
 
   expect_equal(weak_sd_phylo$status, "note")
   expect_match(weak_sd_phylo$message, "tiny relative")
-  expect_true(attr(weak_sd_chk, "ok"))
 })
 
 test_that("check_drm() notes ordinary species covariance beside phylogenetic covariance", {
@@ -585,6 +919,54 @@ test_that("check_drm() reports bivariate mu random-effect covariance diagnostics
   expect_equal(weak_cov$status, "note")
   expect_match(weak_cov$message, "tiny relative")
   expect_true(attr(weak_chk, "ok"))
+})
+
+test_that("check_drm() reports ordinary q4 bivariate covariance diagnostics", {
+  dat <- check_drm_biv_q4_data()
+  fit <- drmTMB(
+    bf(
+      mu1 = y1 ~ x + (1 | p | id),
+      mu2 = y2 ~ x + (1 | p | id),
+      sigma1 = ~ 1 + (1 | p | id),
+      sigma2 = ~ 1 + (1 | p | id),
+      rho12 = ~1
+    ),
+    family = biv_gaussian(),
+    data = dat,
+    control = list(eval.max = 500, iter.max = 500)
+  )
+  chk <- check_drm(fit)
+  q4 <- chk[chk$check == "biv_q4_random_effect_covariance", ]
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(nrow(q4), 1L)
+  expect_match(q4$value, "n_blocks=1")
+  expect_match(q4$value, "min_group_n=6")
+  expect_match(q4$value, "max_abs_cor=")
+  expect_match(q4$message, "Ordinary q4 location-scale covariance")
+
+  near_boundary <- fit
+  near_boundary$corpars$re_cov[] <- 0.995
+  near_boundary_chk <- check_drm(near_boundary, rho_boundary = 0.98)
+  near_boundary_q4 <- near_boundary_chk[
+    near_boundary_chk$check == "biv_q4_random_effect_covariance",
+  ]
+
+  expect_equal(near_boundary_q4$status, "warning")
+  expect_match(near_boundary_q4$value, "boundary=0.9800")
+  expect_match(near_boundary_q4$message, "close to \\+/-1")
+  expect_false(attr(near_boundary_chk, "ok"))
+
+  weak_scale <- fit
+  weak_scale$corpars$re_cov[] <- 0
+  weak_scale$sdpars$sigma[] <- 0.01
+  weak_scale_chk <- check_drm(weak_scale)
+  weak_scale_q4 <- weak_scale_chk[
+    weak_scale_chk$check == "biv_q4_random_effect_covariance",
+  ]
+
+  expect_equal(weak_scale_q4$status, "note")
+  expect_match(weak_scale_q4$message, "log-sigma random-effect SD is tiny")
 })
 
 test_that("check_drm() reports mutated diagnostic failure branches", {

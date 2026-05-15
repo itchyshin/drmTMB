@@ -16,6 +16,7 @@ word.
 | `sigma_i` | residual or within-observation standard deviation | `sigma ~ x1` | implemented for Gaussian |
 | `a_g` | residual-scale random effect added to `log(sigma_i)` | `sigma ~ x1 + (1 | id)` or `sigma ~ x1 + (0 + w | id)` | implemented for univariate Gaussian random intercepts and independent random slopes |
 | `sd_mu_id` | standard deviation of a `mu` random effect | `sd(id) ~ x_group` | implemented for one or more distinct unlabelled Gaussian `mu` random intercepts |
+| `sd_mu1_id`, `sd_mu2_id` | response-specific standard deviations of bivariate location random effects | `sd1(id) ~ x_group`, `sd2(id) ~ x_group` | implemented for labelled bivariate Gaussian `mu1`/`mu2` location random intercepts |
 | `rho_re` | group-level random-effect correlation | `(1 + x1 | id)` | implemented for one `mu` slope |
 | `rho12_i` | residual correlation between two responses | `rho12 ~ x1` | implemented for fixed-effect bivariate Gaussian |
 
@@ -182,6 +183,146 @@ future `drmTMB` work: separate scale equations can be written for different
 random factors, such as phylogenetic and non-phylogenetic species effects,
 without treating all of them as residual `sigma`.
 
+That bridge defines a second model family. In Family A, random effects may
+enter `sigma` formulas directly, and future `corpair()` work will describe
+correlations among latent location and scale effects. In Family B,
+`sd(group)`, `sd1(group)`, and `sd2(group)` model the SD of location random
+effects directly. Do not combine both ideas for the same latent layer; for
+example, `sigma1 = ~ z + (1 | p | id)` and `sd_sigma1(id) ~ w` are not a valid
+first target.
+
+For bivariate Gaussian models, the same boundary also applies to ordinary q=4
+Family A blocks. If `(1 | p | id)` is present in `mu1`, `mu2`, `sigma1`, and
+`sigma2`, the likelihood already estimates one joint covariance matrix for
+the four latent effects. Adding `sd1(id) ~ z` or `sd2(id) ~ z` would try to
+make the location-effect SDs predictor-dependent while keeping the four-way
+covariance block constant. That hybrid is not an implemented model family, so
+the builder rejects it before fitting.
+
+## Structured Direct-SD Targets
+
+The univariate `sd_phylo(species)` target is implemented as the first
+structured Family B direct-SD model. Bivariate `sd_phylo1(species)` and
+`sd_phylo2(species)` are implemented for matching phylogenetic location effects
+in `mu1` and `mu2`. Names such as `sd_spatial(site)` remain planned. These
+direct-SD models are not scalar replacements for every fitted `log_sd_phylo`
+parameter.
+
+A future generic alias could spell the same target as
+`sd(species, level = "phylogenetic") ~ z_species`. The current implemented
+`sd_phylo()` name is deliberately explicit: it tells users that the SD surface
+scales a tree-induced covariance, not an ordinary independent grouping factor.
+This mirrors the future `corpair(..., level = "phylogenetic", ...)` grammar
+without requiring a breaking rename now.
+
+In the scalar phylogenetic likelihood, the latent species effects are coupled
+by a Brownian-motion tree precision:
+
+```text
+a ~ MVN(0, sigma_phylo^2 A)
+```
+
+The fitted `sd_phylo()` quantity is the tip-level SD of the phylogenetic
+location effect:
+
+```text
+tau_l = exp(W_l alpha_phylo)
+v_aug ~ MVN(0, A_aug)
+a_l = tau_l v_tip,l
+Cov(a_tip) = D_tip A_tip D_tip
+```
+
+Here `W_l` is the species-level design matrix from
+`sd_phylo(species) ~ z_species`, `D_tip = diag(tau_l)`, and `A_tip` is the
+phylogenetic relationship matrix among observed tree tips. The implementation
+should use a non-centred base tree effect: the sparse augmented precision still
+defines `v_aug`, while only the observed tip contribution is multiplied by the
+species-specific `tau_l`. Internal nodes do not receive user-facing SD
+predictors. This avoids inventing ancestral covariates and still gives the
+intended marginal tip covariance `D_tip A_tip D_tip`.
+
+The right-hand side of `sd_phylo(species) ~ z_species` must be constant within
+species after the model's complete-case filtering, just like ordinary
+`sd(id) ~ z_group`. When the formula is present, it replaces the scalar
+`log_sd_phylo` parameter for that target; it does not add a second phylogenetic
+SD layer. The intercept-only case `sd_phylo(species) ~ 1` is tested against the
+current constant-SD phylogenetic location model and gives the same marginal
+likelihood with a non-centred TMB parameterization.
+
+This Family B direct-SD model stays separate from Family A q=4 models. Do not
+combine `sd_phylo(species) ~ z_species` with a matching labelled q=4
+`phylo(1 | p | species, tree = tree)` block across `mu1`, `mu2`, `sigma1`, and
+`sigma2`. That q=4 block estimates a constant joint covariance among latent
+location and scale effects; `sd_phylo()` models predictor-dependent location
+random-effect SDs.
+
+The implementation accepts univariate `sd_phylo(species) ~ z_species` only
+when the `mu` formula contains one intercept-only
+`phylo(1 | species, tree = tree)` term. It builds a species-level model matrix
+with one row per observed tree tip, rejects predictors that vary within
+species, maps the scalar `log_sd_phylo` parameter out for that target, and
+reports fitted values through `coef()`, `predict()`, `sdpars`, `summary()`, and
+`profile_targets()`. `check_drm()` reports a `phylo_direct_sd_model` diagnostic
+row for each univariate or bivariate `sd_phylo*()` endpoint, including species
+replication, fitted SD range, and the maximum fitted species-SD ratio, because
+weak replication or a numerically invalid SD surface can make direct-SD
+interpretation misleading even when fixed effects are available.
+
+Bivariate phylogenetic direct-SD syntax is implemented with response-specific
+names:
+
+```r
+bf(
+  mu1 = y1 ~ x + phylo(1 | p | species, tree = tree),
+  mu2 = y2 ~ x + phylo(1 | p | species, tree = tree),
+  sigma1 = ~ w1,
+  sigma2 = ~ w2,
+  rho12 = ~ context,
+  sd_phylo1(species) ~ z1,
+  sd_phylo2(species) ~ z2
+)
+```
+
+The design target is still Family B and still location-only. `sd_phylo1()`
+models the SD surface of the `mu1` phylogenetic location effect and
+`sd_phylo2()` models the SD surface of the `mu2` phylogenetic location effect.
+They do not target residual `sigma1`, residual `sigma2`, phylogenetic
+random effects inside scale formulas, or q=4 location-scale endpoint SDs.
+
+The bivariate base effect should use one shared tree and one constant
+phylogenetic location-location correlation. With species-level design matrices
+`W1` and `W2`,
+
+```text
+tau1_l = exp(W1_l alpha_1)
+tau2_l = exp(W2_l alpha_2)
+[v1_aug, v2_aug] ~ tree-correlated unit base effect with corr rho_phylo
+a1_l = tau1_l v1_tip,l
+a2_l = tau2_l v2_tip,l
+Cov(a1_l, a1_m) = tau1_l A_lm tau1_m
+Cov(a2_l, a2_m) = tau2_l A_lm tau2_m
+Cov(a1_l, a2_m) = rho_phylo tau1_l A_lm tau2_m
+```
+
+This means `sd_phylo1()` and `sd_phylo2()` replace the scalar phylogenetic SD
+parameters for their matching location endpoints, while `rho_phylo` remains a
+latent phylogenetic location-location correlation reported by `corpairs()`.
+Residual `rho12` remains the within-observation coscale parameter. The
+implementation allows one or both response-specific direct-SD formulas; if only
+one is supplied, the other endpoint keeps its scalar phylogenetic SD.
+For `summary(fit)$covariance`, a direct-SD endpoint is summarized by the median
+fitted species SD because the true phylogenetic covariance varies across
+species pairs as `rho_phylo tau1_l A_lm tau2_m`.
+
+Unsupported combinations should fail before optimization:
+
+- `sd_phylo1()` or `sd_phylo2()` without matching bivariate `mu1`/`mu2`
+  phylogenetic location terms;
+- group or tree mismatches between `mu1`, `mu2`, and the direct-SD target;
+- use beside an all-four q=4 `mu1`/`mu2`/`sigma1`/`sigma2` phylogenetic block
+  for the same species level;
+- any `sd_sigma1()`, `sd_sigma2()`, or scale-random-effect SD target.
+
 ## Multiple Random-Effect Scale Components
 
 When there are several random-effect components, each scale formula must name
@@ -214,12 +355,17 @@ The parser must reject ambiguous shorthand. For example, if `id` has both a
 random intercept and a random slope, then `sd(id) ~ x1` is ambiguous because it
 does not say whether the intercept SD or slope SD is being modelled.
 
-Future explicit syntax should be considered:
+Explicit coefficient-specific syntax is now reserved but not fitted:
 
 ```r
 sd(id, dpar = "mu", coef = "(Intercept)") ~ x1
 sd(id, dpar = "mu", coef = "x1") ~ x2
 ```
+
+`drm_formula()` parses that grammar and stores the target, but `drmTMB()`
+rejects it before fitting. The likelihood still needs a covariance contract for
+predictor-dependent intercept and slope SDs, and tests must cover how constant
+or predictor-dependent correlations are handled when the SDs vary by group.
 
 The current implementation accepts `sd(id) ~ x1` only when there is exactly one
 matching univariate Gaussian `mu` random-intercept term for `id`, but it can
@@ -291,22 +437,61 @@ drmTMB(
 between random intercepts, random slopes, or random scale effects. Those
 belong to group-level covariance blocks and should be extracted separately.
 
+The implemented bivariate direct-SD syntax targets location random effects
+only:
+
+```text
+mu1_i = X_mu1[i, ] beta_mu1 + b1[id_i]
+mu2_i = X_mu2[i, ] beta_mu2 + b2[id_i]
+[u1_j, u2_j]' ~ Normal([0, 0]', R_group)
+b1_j = sd_mu1_id,j u1_j
+b2_j = sd_mu2_id,j u2_j
+log(sd_mu1_id,j) = W1_id[j, ] alpha1
+log(sd_mu2_id,j) = W2_id[j, ] alpha2
+```
+
+Matching implemented R syntax:
+
+```r
+drmTMB(
+  bf(
+    mu1 = y1 ~ x + (1 | p | id),
+    mu2 = y2 ~ x + (1 | p | id),
+    sigma1 = ~ z1,
+    sigma2 = ~ z2,
+    rho12 = ~ w,
+    sd1(id) ~ x_group1,
+    sd2(id) ~ x_group2
+  ),
+  family = biv_gaussian(),
+  data = dat
+)
+```
+
+`sd1(id)` targets the `mu1` location random-intercept SD and `sd2(id)` targets
+the `mu2` location random-intercept SD. Their predictors must be constant
+within `id`, just like univariate `sd(id)`. They do not target residual
+`sigma1`, residual `sigma2`, or random effects inside the scale formulas.
+
 ## Implementation Rules
 
-The implemented `sd(group) ~ x` path should:
+The implemented `sd(group) ~ x` and bivariate `sd1(group) ~ x` / `sd2(group) ~
+x` paths should:
 
-1. support only univariate Gaussian models;
-2. target one or more distinct unlabelled `mu` random intercepts such as
-   `(1 | id)` and `(1 | site)`;
-3. reject bivariate models, random slopes, labelled blocks, duplicate targets,
-   and mismatched grouping factors;
-4. require right-hand-side predictors to be constant within target groups;
-5. use a non-centered TMB parameterization with standardized `u_j`;
-6. replace each targeted scalar `log_sd_mu` with a group-level linear
+1. support Gaussian models first;
+2. target one or more distinct unlabelled univariate `mu` random intercepts
+   such as `(1 | id)` and `(1 | site)`;
+3. target labelled bivariate Gaussian location random intercepts through
+   `sd1(group)` for `mu1` and `sd2(group)` for `mu2`;
+4. reject random slopes, duplicate targets, mismatched grouping factors, and
+   names such as `sd_sigma1()` / `sd_sigma2()`;
+5. require right-hand-side predictors to be constant within target groups;
+6. use a non-centered TMB parameterization with standardized `u_j`;
+7. replace each targeted scalar `log_sd_mu` with a group-level linear
    predictor such as `W_id alpha_id`;
-7. keep residual `sigma` and residual-scale random effects independent of the
+8. keep residual `sigma` and residual-scale random effects independent of the
    `sd(group)` scale model;
-8. add simulation recovery and malformed-input tests before user docs call the
+9. add simulation recovery and malformed-input tests before user docs call the
    syntax implemented.
 
 ## Test Contract

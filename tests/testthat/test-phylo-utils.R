@@ -43,11 +43,16 @@ phylo_prior_tmb_data <- function(precision) {
       X_zi = dummy_matrix,
       X_sd_mu = dummy_matrix,
       has_sd_mu_model = 0L,
+      X_sd_phylo = dummy_matrix,
+      has_sd_phylo_model = 0L,
+      sd_phylo_beta_offset = 0L,
       X_mu1 = dummy_matrix,
       X_mu2 = dummy_matrix,
       X_sigma1 = dummy_matrix,
       X_sigma2 = dummy_matrix,
       X_rho12 = dummy_matrix,
+      X_cor_mu = dummy_matrix,
+      has_cor_mu_model = 0L,
       n_mu_re_terms = 0L,
       n_mu_re_cors = 0L,
       mu_re_index = matrix(0L, nrow = 1L, ncol = 1L),
@@ -70,6 +75,7 @@ phylo_prior_tmb_data <- function(precision) {
       sigma_re_cross_cor = 0L,
       sigma_re_cross_mu = 0L,
       has_phylo_mu = 0L,
+      phylo_mu_sd_row = 0L,
       phylo_mu_node_index = 0L,
       Q_phylo = precision$precision,
       log_det_Q_phylo = precision$log_det_precision
@@ -98,6 +104,7 @@ phylo_prior_tmb_parameters <- function(effect, log_sd) {
     beta_sigma1 = 0,
     beta_sigma2 = 0,
     beta_rho12 = 0,
+    beta_cor_mu = 0,
     u_mu = 0,
     log_sd_mu = 0,
     eta_cor_mu = 0,
@@ -106,8 +113,12 @@ phylo_prior_tmb_parameters <- function(effect, log_sd) {
     u_sigma = 0,
     log_sd_sigma = 0,
     u_phylo = unname(effect),
+    u_re_cov = 0,
+    log_sd_re_cov = 0,
+    theta_re_cov = 0,
     u_re_cov_probe = 0,
     log_sd_phylo = log_sd,
+    theta_phylo = 0,
     eta_cor_phylo = 0
   )
 }
@@ -121,6 +132,26 @@ phylo_correlated_prior_tmb_parameters <- function(effect) {
   parameters
 }
 
+phylo_q4_parameterized_prior_tmb_parameters <- function(effect, log_sd, theta) {
+  parameters <- phylo_prior_tmb_parameters(
+    rep(0, nrow(effect)),
+    log_sd = log_sd
+  )
+  parameters$u_re_cov_probe <- as.numeric(effect)
+  parameters$theta_phylo <- theta
+  parameters
+}
+
+tmb_unstructured_corr_matrix <- function(theta) {
+  q <- (1 + sqrt(1 + 8 * length(theta))) / 2
+  stopifnot(q == as.integer(q))
+  L <- diag(as.integer(q))
+  lower <- which(lower.tri(L), arr.ind = TRUE)
+  lower <- lower[order(lower[, "row"], lower[, "col"]), , drop = FALSE]
+  L[lower] <- theta
+  stats::cov2cor(L %*% t(L))
+}
+
 dense_zero_mvn_nll <- function(values, covariance) {
   chol_covariance <- chol(covariance)
   standardized <- backsolve(chol_covariance, values, transpose = TRUE)
@@ -129,6 +160,18 @@ dense_zero_mvn_nll <- function(values, covariance) {
       log(2 * pi) +
       2 * sum(log(diag(chol_covariance))) +
       sum(standardized^2))
+}
+
+phylo_corpair_loading_covariance <- function(A, rho, sd1 = 1, sd2 = 1) {
+  n <- nrow(A)
+  stopifnot(length(rho) == n)
+  c_load <- sqrt((1 + rho) / 2)
+  d_load <- sqrt((1 - rho) / 2)
+  loading <- rbind(
+    cbind(sd1 * diag(c_load), sd1 * diag(d_load)),
+    cbind(sd2 * diag(c_load), -sd2 * diag(d_load))
+  )
+  loading %*% kronecker(diag(2), A) %*% t(loading)
 }
 
 test_that("validate_phylo_tree checks ultrametric trees and observed species", {
@@ -535,6 +578,116 @@ test_that("TMB correlated phylogenetic prior branch matches q=4 R algebra", {
     unname(crossprod(effect, as.matrix(precision$precision %*% effect))),
     tolerance = 1e-10
   )
+})
+
+test_that("TMB phylogenetic q4 parameter scaffold matches q=4 R algebra", {
+  tree <- tiny_ultrametric_tree()
+  precision <- drmTMB:::drm_phylo_augmented_precision(tree)
+  effect <- matrix(
+    c(
+      0.20,
+      -0.10,
+      0.35,
+      0.05,
+      -0.30,
+      0.15,
+      0.10,
+      -0.20,
+      0.08,
+      -0.04,
+      0.12,
+      0.02,
+      0.11,
+      -0.07,
+      0.16,
+      -0.02
+    ),
+    nrow = nrow(precision$precision),
+    dimnames = list(
+      rownames(precision$precision),
+      c("mu1", "mu2", "sigma1", "sigma2")
+    )
+  )
+  log_sd <- log(c(0.65, 0.45, 0.30, 0.25))
+  theta <- c(0.20, -0.10, 0.12, 0.15, -0.08, 0.22)
+  corr <- tmb_unstructured_corr_matrix(theta)
+  covariance <- diag(exp(log_sd)) %*% corr %*% diag(exp(log_sd))
+
+  data <- phylo_prior_tmb_data(precision)
+  data$model_type <- 93L
+  obj <- TMB::MakeADFun(
+    data = data,
+    parameters = phylo_q4_parameterized_prior_tmb_parameters(
+      effect,
+      log_sd,
+      theta
+    ),
+    DLL = "drmTMB",
+    silent = TRUE
+  )
+  report <- obj$report()
+
+  expect_equal(
+    obj$fn(obj$par),
+    drmTMB:::drm_phylo_correlated_precision_nll(
+      effect,
+      precision,
+      covariance
+    ),
+    tolerance = 1e-10
+  )
+  expect_true(all(is.finite(obj$gr(obj$par))))
+  expect_equal(report$sd_phylo, exp(log_sd), tolerance = 1e-12)
+  expect_equal(report$theta_phylo, theta, tolerance = 1e-12)
+  expect_equal(report$phylo_q4_corr, corr, tolerance = 1e-12)
+  expect_equal(report$phylo_q4_covariance, covariance, tolerance = 1e-12)
+  expect_equal(
+    report$quadratic_matrix,
+    unname(crossprod(effect, as.matrix(precision$precision %*% effect))),
+    tolerance = 1e-10
+  )
+})
+
+test_that("planned phylogenetic corpair loading contract is positive definite", {
+  A <- drmTMB:::drm_phylo_tip_covariance(tiny_ultrametric_tree())
+  rho <- c(sp_a = -0.65, sp_b = 0.10, sp_c = 0.70)
+  sd1 <- 0.8
+  sd2 <- 0.45
+  covariance <- phylo_corpair_loading_covariance(A, rho, sd1 = sd1, sd2 = sd2)
+  n <- nrow(A)
+
+  local_cor <- diag(covariance[seq_len(n), n + seq_len(n), drop = FALSE]) /
+    sqrt(
+      diag(covariance[seq_len(n), seq_len(n), drop = FALSE]) *
+        diag(covariance[n + seq_len(n), n + seq_len(n), drop = FALSE])
+    )
+  constant_rho <- rep(0.35, n)
+  constant_covariance <- phylo_corpair_loading_covariance(
+    A,
+    constant_rho,
+    sd1 = sd1,
+    sd2 = sd2
+  )
+  expected_constant <- rbind(
+    cbind(sd1^2 * A, sd1 * sd2 * constant_rho[[1L]] * A),
+    cbind(sd1 * sd2 * constant_rho[[1L]] * A, sd2^2 * A)
+  )
+
+  expect_true(isSymmetric(covariance))
+  expect_gt(
+    min(eigen(covariance, symmetric = TRUE, only.values = TRUE)$values),
+    0
+  )
+  expect_equal(local_cor, unname(rho), tolerance = 1e-12)
+  expect_equal(
+    unname(constant_covariance),
+    unname(expected_constant),
+    tolerance = 1e-12
+  )
+  expect_false(isTRUE(all.equal(
+    covariance[seq_len(n), seq_len(n), drop = FALSE],
+    sd1^2 * A
+  )))
 })
 
 test_that("phylogenetic q=4 endpoint pair scaffold stays planned", {

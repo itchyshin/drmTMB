@@ -28,10 +28,14 @@ direct targets, and the first smoke test verifies that the phylogenetic
 correlation interval is transformed back to the bounded correlation scale.
 `summary(conf.int = TRUE, method = "profile", ci_parm = ...)` can attach these
 direct profile intervals to the same parameter rows shown in
-`summary(fit)$parameters`. `profile_targets(fit)` lists fitted-object target
-names and readiness notes; row-specific `newdata` targets are generated at call
-time. Transformed ordinal, modelled group-SD, custom multi-row contrasts, and
-derived summary profile intervals remain planned.
+`summary(fit)$parameters`. `corpairs(conf.int = TRUE)` can attach
+profile-likelihood intervals to fitted correlation-pair rows when their target
+is profile-ready, and it records explicit status values for rows that are not
+ready yet. `profile_targets(fit)` lists fitted-object target names and
+readiness notes; row-specific `newdata` targets are generated at call time.
+Transformed ordinal, modelled group-SD, custom multi-row contrasts, conditional
+random-effect mode intervals, and derived summary profile intervals remain
+planned.
 
 The first implementation must therefore start from a stable target inventory,
 not from ad hoc parameter names in the C++ template. Public targets should be
@@ -156,6 +160,7 @@ Current high-value direct targets are:
 log_sd_mu          -> sdpars$mu
 log_sd_sigma       -> sdpars$sigma
 log_sd_phylo       -> sdpars$mu["phylo(1 | species)"]
+log_sd_phylo       -> sdpars$mu["spatial(1 | site)"] in the first spatial slice
 eta_cor_mu         -> corpars$mu
 eta_cor_mu_sigma   -> corpars$mu_sigma
 beta_rho12         -> fixed effects in residual correlation formulae
@@ -283,18 +288,18 @@ ordinary random-effect correlation, phylogenetic `mu` SD, constant residual
 `rho12`, univariate `mu`/`sigma` random-intercept covariance target rows,
 bivariate Gaussian group-level `mu1`/`mu2` random-intercept SD and correlation
 target rows, and row-specific `newdata` profiles for predictor-dependent
-`sigma`, `sigma1`, `sigma2`, and `rho12`. `summary(conf.int = TRUE, method =
-"profile")` reuses the same direct target table when `ci_parm` names one of
-these rows. Unsupported ordinal-transform, modelled group-SD, custom multi-row
-contrast, and derived-summary targets still fail before doing expensive
-optimization.
+`sigma`, `sigma1`, `sigma2`, `rho12`, and fitted ordinary q=2 `corpair()`
+values. `summary(conf.int = TRUE, method = "profile")` reuses the same direct
+target table when `ci_parm` names one of these rows. Unsupported
+ordinal-transform, modelled group-SD, custom multi-row contrast, and
+derived-summary targets still fail before doing expensive optimization.
 
 The first fitted targets should be direct parameters in this order:
 
 1. fixed-effect coefficients for `mu`, `sigma`, `nu`, `zi`, `hu`, and `rho12`;
 2. constant `sigma`, `sigma1`, `sigma2`, residual `rho12`, and row-specific
-   `newdata` profiles for predictor-dependent scale and residual-correlation
-   values;
+   `newdata` profiles for predictor-dependent scale, residual-correlation, and
+   fitted ordinary q=2 `corpair()` values;
 3. ordinary Gaussian random-effect SDs in `sdpars$mu`;
 4. ordinary Gaussian random-effect correlations in `corpars$mu`;
 5. univariate `mu`/`sigma` random-intercept SD and correlation rows, with the
@@ -344,6 +349,12 @@ confint(fit, parm = "cor:phylo:cor(mu1:(Intercept),mu2:(Intercept) | phylo | spe
 confint(fit, parm = "cor:mu:cor((Intercept),x | id)", method = "profile")
 confint(fit, parm = "sigma", method = "profile", newdata = data.frame(x = 0))
 confint(fit, parm = "rho12", method = "profile", newdata = data.frame(w = 0))
+confint(
+  fit,
+  parm = 'corpair(id, level = "group", block = "p", from = "mu1", to = "mu2")',
+  method = "profile",
+  newdata = data.frame(w = 0)
+)
 confint(fit, parm = "derived:ICC(id)", method = "profile")
 ```
 
@@ -353,6 +364,14 @@ blocks can keep the shorter target name shown by `sdpars`.
 Bivariate `mu1`/`mu2` covariance blocks keep the response label in the term so
 users can tell group-level targets such as `sd:mu:mu1:(1 | p | id)` apart from
 the residual-correlation target `rho12`.
+
+For the first fitted ordinary q=2 `corpair()` regression, `newdata` must contain
+the group-level predictors used on the right-hand side of the `corpair()`
+formula. The interval is for the response-scale latent random-effect
+correlation at that supplied predictor row. The `corpairs(conf.int = TRUE)`
+extractor still reports `newdata_required` for modelled rows because its
+summary row is a mean and range over many fitted group-level correlations, not
+one profile target.
 
 The implementation should reject unsupported profile targets with a message
 that lists available targets from the fitted object.
@@ -364,7 +383,9 @@ Profile-likelihood support is done only when these checks exist:
 - direct `log_sd_mu` and `log_sd_sigma` intervals recover the simulated SD on
   the response scale;
 - `log_sd_phylo` profile intervals work for the implemented
-  `phylo(1 | species, tree = tree)` path;
+  `phylo(1 | species, tree = tree)` path and for the first fitted
+  `spatial(1 | site, coords = coords)` path, where the same internal TMB
+  parameter stores the single structured-effect SD;
 - `profile_targets()` lists the fitted bivariate phylogenetic `mu1`/`mu2` SDs
   and mean-mean correlation separately from residual `rho12`;
 - `eta_cor_phylo` profile intervals transform to bounded bivariate

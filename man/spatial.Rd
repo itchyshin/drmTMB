@@ -2,15 +2,15 @@
 % Please edit documentation in R/formula-markers.R
 \name{spatial}
 \alias{spatial}
-\title{Planned spatial structured-effect marker}
+\title{Spatial structured-effect marker}
 \usage{
 spatial(term, coords = NULL, mesh = NULL)
 }
 \arguments{
-\item{term}{Planned structured random-effect term, such as \code{1 | site}.}
+\item{term}{Structured random-effect term, such as \code{1 | site}.}
 
-\item{coords}{Planned coordinate object, such as a data frame or matrix of
-spatial coordinates.}
+\item{coords}{Coordinate object, such as a data frame or matrix of spatial
+coordinates.}
 
 \item{mesh}{Planned precomputed mesh object.}
 }
@@ -18,14 +18,16 @@ spatial coordinates.}
 A formula marker; never evaluated by users.
 }
 \description{
-\code{spatial()} reserves user-facing syntax for spatial dependence. The planned
-grammar is structured random-effect syntax such as
-\code{spatial(1 | site, coords = coords)} and, later,
-\code{spatial(1 + depth | site, coords = coords)}. Future implementations will
-use an SPDE/GMRF representation built from coordinates or a mesh.
+\code{spatial()} marks structured spatial dependence. The first fitted path is
+the univariate Gaussian location random intercept
+\code{spatial(1 | site, coords = coords)}, where \code{coords} is a matrix or data
+frame with one row per site or one row per observation. Mesh inputs,
+structured slopes, scale formulas, and bivariate spatial blocks remain
+planned.
 }
 \examples{
-# planned only; drmTMB() will currently reject spatial terms
+# Fitted for univariate Gaussian mu with coords:
 bf(y ~ x + spatial(1 | site, coords = coords), sigma ~ z)
+# Planned:
 bf(y ~ x + spatial(1 | site, mesh = mesh), sigma ~ z)
 }

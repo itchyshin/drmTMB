@@ -44,11 +44,164 @@ random-effect correlations from `corpars$mu`, the first univariate labelled
 `mu`/`sigma` random-intercept covariance from `corpars$mu_sigma`, the first
 bivariate `mu1`/`mu2` and `sigma1`/`sigma2` labelled random-intercept
 correlations, and one same-response bivariate `mu`/`sigma` random-intercept
-covariance row, plus the first bivariate phylogenetic `mu1`/`mu2` mean-mean
-correlation from `corpars$phylo`. It is intentionally a reporting helper, not
-a new likelihood. Future rows can be added as phylogenetic scale, phylogenetic
-mean-scale, spatial, study-level, and richer double-hierarchical correlation
-likelihoods become implemented.
+covariance row, the ordinary q=4 all-four bivariate random-intercept block,
+plus the first bivariate phylogenetic `mu1`/`mu2` mean-mean correlation from
+`corpars$phylo`. It is intentionally a reporting helper, not a new likelihood.
+Future rows can be added as phylogenetic scale, phylogenetic mean-scale,
+spatial, study-level, and richer double-hierarchical correlation likelihoods
+become implemented.
+
+The singular formula marker
+`corpair(group, level = "phylogenetic", block = "...", from = "mu1", to = "mu2") ~ x`
+is reserved for future predictor-dependent latent random-effect correlations.
+`drm_formula()` parses it, but `drmTMB()` rejects it until the likelihood,
+diagnostics, and recovery tests exist. For `level = "phylogenetic"`, this is a
+positive-definite covariance-design gate: a species-varying correlation must
+still define one valid covariance matrix for all species coupled by the tree.
+Use `rho12 = ~ x` for residual within-observation correlation, and use
+`corpairs(fit)` to extract fitted constant latent correlations.
+
+## Route Decision: Predictor-Dependent `corpair()`
+
+Slice 11 chose an endpoint-specific design for predictor-dependent ordinary
+`corpair()` models, and Slice 12 implements the first ordinary q=2
+location-location case. The singular formula marker remains `corpair()`, not
+`cor12()`, because this layer is a latent random-effect covariance layer rather
+than the residual two-response parameter `rho12`.
+
+The implemented first fitted syntax is:
+
+```r
+corpair(id, level = "group", block = "p", from = "mu1", to = "mu2") ~ w
+```
+
+The same endpoint-specific grammar is reserved for later ordinary pairs:
+
+```r
+corpair(id, level = "group", block = "p", from = "mu1", to = "sigma1") ~ w
+corpair(id, level = "group", block = "p", from = "mu1", to = "sigma2") ~ w
+corpair(id, level = "group", block = "p", from = "mu2", to = "sigma1") ~ w
+corpair(id, level = "group", block = "p", from = "mu2", to = "sigma2") ~ w
+corpair(id, level = "group", block = "p", from = "sigma1", to = "sigma2") ~ w
+```
+
+The same grammar extends to future structured levels:
+
+```r
+corpair(species, level = "phylogenetic", block = "p",
+        from = "mu1", to = "mu2") ~ ecology
+corpair(site, level = "spatial", block = "p",
+        from = "mu1", to = "mu2") ~ habitat
+```
+
+This keeps one `corpair()` function family while making the covariance level
+explicit. Do not introduce `corpair_phylo()` unless this grammar proves too
+awkward in use.
+
+The `class` argument remains useful for extraction and for future shorthand
+when a class maps to one unique pair. It should not be the first fitted q=4
+modelling target. In an ordinary q=4 block, `class = "location-scale"` names
+four distinct latent correlations: `mu1`-`sigma1`, `mu1`-`sigma2`,
+`mu2`-`sigma1`, and `mu2`-`sigma2`. A class-wide formula such as
+`corpair(id, block = "p", class = "location-scale") ~ w` would therefore mean
+"share one predictor model across all four pairs", which is a different model
+from choosing one endpoint pair. That shared-class model stays later.
+
+The first fitted ordinary implementation is q=2 only: one selected latent pair
+in a covariance block whose dimension is exactly two. The likelihood uses the
+familiar Fisher-z scale,
+`rho_g = tanh(x_g^T beta_cor)`, while preserving positive definiteness.
+Predictors are evaluated once per random-effect group and must be constant
+within that group after complete-case filtering. Full q=4 predictor-dependent
+correlations need a separate positive-definite correlation matrix
+parameterization; fitting six independent `tanh()` regressions would not
+guarantee a valid q=4 correlation matrix.
+
+### Slice 26-30: Phylogenetic q=2 `corpair()` Route
+
+The fitted q=2 phylogenetic syntax is endpoint-specific:
+
+```r
+corpair(species, level = "phylogenetic", block = "p",
+        from = "mu1", to = "mu2") ~ ecology
+```
+
+This is not a drop-in copy of the ordinary grouped implementation. In the
+ordinary q=2 route, each `id` has an independent 2 by 2 latent covariance
+matrix, so a group-level model
+`rho_id = tanh(x_id^T beta_cor)` preserves positive definiteness one group at a
+time. In the phylogenetic route, the latent vectors for all species are tied
+together by the tree-derived covariance matrix `A`. A predictor-dependent
+phylogenetic correlation must therefore create one positive-definite
+`2n_species` by `2n_species` covariance matrix, not a set of independent
+per-species correlations.
+
+The first fitted phylogenetic `corpair()` likelihood uses a positive-definite
+two-field loading parameterization. It is deliberately narrower than the full
+q=4 location-scale-coscale target: it fits only the `mu1`-`mu2`
+location-location endpoint pair. Constant phylogenetic correlations remain
+available through matching `phylo()` terms and the extractor:
+
+```r
+corpairs(fit, level = "phylogenetic")
+```
+
+### Slice 27: Selected q=2 Phylogenetic Loading Contract
+
+The first implemented phylogenetic `corpair()` contract is a two-field
+loading model. Let `A` be the tree-derived species correlation matrix and let
+`z1` and `z2` be independent unit phylogenetic fields:
+
+```text
+z1 ~ MVN(0, A)
+z2 ~ MVN(0, A)
+```
+
+For species `l`, the correlation predictor defines
+
+```text
+rho_l = tanh_guard(w_l^T alpha)
+c_l = sqrt((1 + rho_l) / 2)
+d_l = sqrt((1 - rho_l) / 2).
+```
+
+The two phylogenetic location effects are
+
+```text
+a1_l = tau1 ( c_l z1_l + d_l z2_l)
+a2_l = tau2 ( c_l z1_l - d_l z2_l).
+```
+
+Equivalently, each species has two unit-norm loading vectors,
+`lambda1_l = (c_l, d_l)` and `lambda2_l = (c_l, -d_l)`, whose dot product is
+`rho_l`. The covariance among any two species `l` and `m` is
+
+```text
+Cov(a_r_l, a_s_m) =
+  tau_r tau_s A_lm lambda_r_l' lambda_s_m.
+```
+
+This construction is positive definite because `[a1, a2]` is a linear
+transformation of two independent Gaussian fields. It also has the properties
+needed for the first public model:
+
+- the same-species phylogenetic correlation is `rho_l` when `A_ll = 1`;
+- the local variances remain `tau1^2` and `tau2^2`;
+- when all `rho_l` are equal, the contract reduces to the already implemented
+  constant bivariate phylogenetic covariance with cross-block
+  `tau1 tau2 rho A`;
+- when `rho_l` varies across species, the model is nonstationary: within-trait
+  and cross-trait covariances between different species are modulated by the
+  similarity of their loading vectors.
+
+The nonstationary property is a feature, not a bug, but it must be named in
+the user-facing documentation. The first implementation is therefore limited
+to the q=2 location-location endpoint pair and rejects q=4 location-scale
+pairs, random slopes, direct-SD mixtures, and spatial siblings. Phylogenetic
+location-scale rows (`mu1`-`sigma1`, `mu1`-`sigma2`, `mu2`-`sigma1`,
+`mu2`-`sigma2`) and the scale-scale row (`sigma1`-`sigma2`) require a q=4
+loading or Cholesky-style correlation-regression contract and are not part of
+the first implementation.
 
 ## Why Named Correlation Pairs Are Needed
 
@@ -100,8 +253,21 @@ corpairs(fit, level = "group")
 corpairs(fit, group = "ID")
 corpairs(fit, block = "p")
 corpairs(fit, class = "mean-mean")
+corpairs(fit, class = "location-location")
+corpairs(fit, class = "location-scale")
 corpairs(fit, level = "phylogenetic")
 ```
+
+The fitted table currently reports `mean-mean` and `mean-scale` because that
+vocabulary is already used in older random-effect summaries. The endpoint-
+specific formula syntax uses distributional-parameter names and a covariance
+level, such as
+`corpair(species, level = "phylogenetic", block = "p", from = "mu1", to = "mu2") ~ z`.
+To keep those two surfaces compatible while avoiding a broad output rename,
+`corpairs()` accepts `location-location`, `location-scale`, `location-slope`,
+and `slope-location` as filter aliases for the existing `mean-*` rows. The
+older `class` argument remains a planned shorthand, but it is not the first
+fitted q=4 modelling target.
 
 The existing `rho12(fit)` helper should remain a narrow convenience extractor
 for residual response-response correlation only.
@@ -218,7 +384,10 @@ This can yield:
 ```text
 cor(a_mu1, a_mu2)       phylogenetic mean-mean correlation
 cor(a_sigma1, a_sigma2) phylogenetic scale-scale correlation
+cor(a_mu1, a_sigma1)    phylogenetic within-trait mean-scale correlation
 cor(a_mu1, a_sigma2)    phylogenetic cross-trait mean-scale correlation
+cor(a_mu2, a_sigma1)    phylogenetic cross-trait mean-scale correlation
+cor(a_mu2, a_sigma2)    phylogenetic within-trait mean-scale correlation
 ```
 
 Analogous non-phylogenetic species, site, study, and spatial field
@@ -248,13 +417,39 @@ display preference, because each layer answers a different biological question.
    same-response bivariate `mu`/`sigma` random-intercept bridge.
 8. Route labelled group-level covariance through the block assembler in
    `docs/design/30-labelled-covariance-block-assembler.md` before exposing
-   bivariate random slopes or any shared label with more than two members.
+   bivariate random slopes. Done for the ordinary q=4 all-four bivariate
+   random-intercept block.
 9. Extend the first bivariate phylogenetic mean-mean block toward full
    phylogenetic location-scale covariance, with matching non-phylogenetic
    species or individual covariance blocks.
 10. Add spatial bivariate covariance blocks.
-11. Only after simulation evidence: consider predictor-dependent group-level or
-   structured-effect correlation formulas.
+11. Reserve `corpair()` formula syntax. Done for parser and error messaging.
+12. Add the endpoint-specific `level` plus `from` / `to` grammar for
+    predictor-dependent ordinary, phylogenetic, and spatial `corpair()`
+    formulas. Done.
+13. Fit predictor-dependent ordinary q=2 `corpair()` formulas first. Done for
+    matching labelled `mu1`/`mu2` random intercepts with
+    `level = "group"` and group-level predictors.
+14. Extend ordinary q=2 `corpair()` beyond location-location only after the
+    same-response location-scale and scale-scale identifiability checks are
+    designed.
+15. Design a full q=4 positive-definite correlation-regression parameterization
+    before fitting endpoint-specific or class-wide q=4 `corpair()` formulas.
+16. Design the positive-definite covariance contract for
+    `corpair(..., level = "phylogenetic") ~ w` before fitting phylogenetic
+    predictor-dependent correlations. Done for the guardrail: the parser
+    accepts the syntax, `drmTMB()` rejects it clearly, and the design note
+    records why ordinary group-level `tanh()` regression cannot be copied
+    directly to tree-coupled latent effects.
+17. Select the first q=2 phylogenetic `corpair()` covariance contract. Done for
+    design: use the two-field loading construction above, add algebra tests for
+    positive definiteness and constant-correlation equivalence, and keep q=4,
+    direct-SD mixtures, and spatial siblings planned.
+18. Fit the first q=2 phylogenetic `corpair()` route. Done for
+    `from = "mu1", to = "mu2"`: apply species-specific loadings to two
+    independent unit tree fields, report the modelled row through `corpairs()`,
+    expose `beta_cor_mu` fixed effects, and keep q=4 location-scale,
+    scale-scale, direct-SD mixtures, and spatial siblings planned.
 
 For covariance blocks with more than two random-effect coefficients, use a
 positive-definite Cholesky or partial-correlation parameterization. Do not fit
