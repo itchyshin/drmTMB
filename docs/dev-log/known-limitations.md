@@ -35,6 +35,14 @@
   ordinary random effects, no direct-SD formulas, and no phylogenetic or
   spatial structured effects. Sparse `sigma`, bivariate, non-Gaussian,
   random-effect, and structured-effect fixed-effect matrices remain planned.
+- Gaussian sufficient-statistic aggregation is designed but not implemented.
+  The first planned path is opt-in and limited to univariate Gaussian
+  fixed-effect models where repeated rows share the same `mu` and `sigma`
+  design state after row filtering. Random effects, direct-SD formulas,
+  phylogenetic or spatial structured effects, known sampling covariance,
+  bivariate models, non-Gaussian families, and ambiguous fitted-row prediction
+  or residual output remain out of scope until likelihood parity tests and
+  post-fit method policies exist.
 - Bivariate Gaussian location-scale-coscale models are implemented with `mu1`,
   `mu2`, `sigma1`, `sigma2`, and `rho12` formulas. The first group-level
   bivariate covariance slices are implemented for matching labelled
