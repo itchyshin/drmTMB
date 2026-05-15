@@ -46,6 +46,14 @@ Do not enable sparse fixed effects implicitly at first. Users should opt in
 until dense-versus-sparse parity tests cover all implemented families and
 prediction paths.
 
+The first internal scaffold is now in place. `drm_fixed_effect_matrix()` can
+construct either the existing dense `stats::model.matrix()` result or the
+matching `Matrix::sparse.model.matrix()` result, and
+`drm_sparse_fixed_parity()` checks shape, column names, matrix entries, and a
+test linear predictor. These helpers are not yet connected to `drmTMB()`
+fitting; they exist so the first sparse implementation can start from a tested
+dense-versus-sparse contract.
+
 ## First Supported Scope
 
 The first sparse target should be univariate Gaussian fixed-effect location

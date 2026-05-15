@@ -13863,3 +13863,43 @@ Known limitations:
   initial dense `model.matrix()` construction cost;
 - the next sparse implementation step still needs a dense-versus-sparse parity
   test before any user-facing control is added.
+
+## 2026-05-14 -- Phase 5b Slice 43 sparse fixed-effect parity scaffold
+
+Goal:
+
+- create a tested internal dense-versus-sparse fixed-effect matrix scaffold
+  before exposing a public `sparse_fixed` control or changing TMB inputs.
+
+Implemented:
+
+- added internal `drm_fixed_effect_matrix()` to construct either
+  `stats::model.matrix()` or `Matrix::sparse.model.matrix()` from the same
+  terms and data;
+- added internal `drm_sparse_fixed_parity()` to compare dense and sparse shape,
+  dimnames, entries, and a test linear predictor;
+- added tests with unused factor levels and sparse interactions to confirm
+  dense/sparse parity;
+- added a sparse-matrix summary test so the `fixed_effect_design_size`
+  diagnostic can already summarize future sparse matrices;
+- added a snapshot for the beta-length error path;
+- updated the sparse fixed-effect design note and Phase 5b roadmap status.
+
+Checks run:
+
+- `Rscript -e 'devtools::test(filter = "sparse-fixed-effects", reporter = "summary")'`:
+  passed on rerun after accepting the new snapshot.
+- `Rscript -e 'devtools::test(filter = "sparse-fixed-effects|check-drm", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'devtools::load_all(quiet = TRUE)'`:
+  passed.
+- `git diff --check`:
+  passed.
+
+Known limitations:
+
+- this is internal scaffolding only; `drmTMB()` still builds dense fixed-effect
+  matrices for fitting;
+- no `sparse_fixed` control is exposed;
+- no TMB `DATA_SPARSE_MATRIX` branch or sparse linear-predictor helper is
+  implemented yet.

@@ -304,6 +304,9 @@ Phase 5 closure boundary:
 - `check_drm()` now reports the density of the largest retained fixed-effect
   design block, giving users a concrete sparse-design signal before
   `sparse_fixed` is implemented.
+- Internal dense-versus-sparse fixed-effect matrix parity helpers now compare
+  `stats::model.matrix()` with `Matrix::sparse.model.matrix()` before any
+  sparse fit path is exposed.
 - Extend memory-light fit controls for large phylogenetic and spatial
   datasets with broader method-matrix coverage, sparse fixed-effect matrices,
   aggregation, and repeated large-row benchmarks.
