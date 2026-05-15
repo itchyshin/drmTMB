@@ -727,6 +727,82 @@ test_that("confint profile intervals transform newdata rho12 targets", {
   expect_gt(ci$upper, rho_hat)
 })
 
+test_that("confint profile intervals transform bivariate scale newdata rows", {
+  set.seed(20260608)
+  n <- 140
+  dat <- data.frame(
+    x = stats::rnorm(n),
+    z1 = stats::rnorm(n),
+    z2 = stats::rnorm(n),
+    w = stats::rnorm(n)
+  )
+  mu1 <- 0.2 + 0.45 * dat$x
+  mu2 <- -0.1 - 0.35 * dat$x
+  sigma1 <- exp(-0.35 + 0.20 * dat$z1)
+  sigma2 <- exp(0.10 - 0.18 * dat$z2)
+  rho <- drmTMB:::rho_response(0.10 + 0.22 * dat$w)
+  e1 <- stats::rnorm(n)
+  e2 <- rho * e1 + sqrt(1 - rho^2) * stats::rnorm(n)
+  dat$y1 <- mu1 + sigma1 * e1
+  dat$y2 <- mu2 + sigma2 * e2
+  fit <- drmTMB(
+    bf(
+      mu1 = y1 ~ x,
+      mu2 = y2 ~ x,
+      sigma1 = ~z1,
+      sigma2 = ~z2,
+      rho12 = ~w
+    ),
+    family = c(gaussian(), gaussian()),
+    data = dat
+  )
+  newdata <- data.frame(
+    x = c(-0.2, 0.3),
+    z1 = c(-0.5, 0.4),
+    z2 = c(0.2, -0.6),
+    w = c(0, 0)
+  )
+  row.names(newdata) <- c("cool", "warm")
+
+  ci_sigma1 <- stats::confint(
+    fit,
+    parm = "sigma1",
+    level = 0.70,
+    method = "profile",
+    newdata = newdata,
+    trace = FALSE,
+    ystep = 0.40
+  )
+  ci_sigma2 <- stats::confint(
+    fit,
+    parm = "sigma2",
+    level = 0.70,
+    method = "profile",
+    newdata = newdata,
+    trace = FALSE,
+    ystep = 0.40
+  )
+  sigma1_hat <- predict(fit, newdata = newdata, dpar = "sigma1")
+  sigma2_hat <- predict(fit, newdata = newdata, dpar = "sigma2")
+
+  expect_equal(ci_sigma1$parm, c("sigma1[cool]", "sigma1[warm]"))
+  expect_equal(ci_sigma2$parm, c("sigma2[cool]", "sigma2[warm]"))
+  expect_equal(ci_sigma1$scale, rep("response", 2L))
+  expect_equal(ci_sigma2$scale, rep("response", 2L))
+  expect_equal(ci_sigma1$transformation, rep("exp", 2L))
+  expect_equal(ci_sigma2$transformation, rep("exp", 2L))
+  expect_equal(ci_sigma1$tmb_parameter, rep("beta_sigma1", 2L))
+  expect_equal(ci_sigma2$tmb_parameter, rep("beta_sigma2", 2L))
+  expect_true(all(is.na(ci_sigma1$index)))
+  expect_true(all(is.na(ci_sigma2$index)))
+  expect_true(all(ci_sigma1$lower > 0))
+  expect_true(all(ci_sigma2$lower > 0))
+  expect_true(all(ci_sigma1$lower < sigma1_hat))
+  expect_true(all(ci_sigma1$upper > sigma1_hat))
+  expect_true(all(ci_sigma2$lower < sigma2_hat))
+  expect_true(all(ci_sigma2$upper > sigma2_hat))
+})
+
 test_that("confint profile intervals transform SD and correlation targets", {
   dat <- new_profile_group_data(n_id = 24, n_each = 6, seed = 20260598)
   fit <- drmTMB(
@@ -1075,6 +1151,36 @@ test_that("profile confidence intervals reject unsupported targets clearly", {
       trace = FALSE
     ),
     "must name one distributional parameter"
+  )
+  expect_error(
+    stats::confint(
+      fit,
+      parm = c("sigma", "rho12"),
+      method = "profile",
+      newdata = data.frame(x = 0),
+      trace = FALSE
+    ),
+    "must be one distributional-parameter name"
+  )
+  expect_error(
+    stats::confint(
+      fit,
+      parm = "sigma",
+      method = "profile",
+      newdata = list(x = 0),
+      trace = FALSE
+    ),
+    "must be a data frame"
+  )
+  expect_error(
+    stats::confint(
+      fit,
+      parm = "sigma",
+      method = "profile",
+      newdata = data.frame(x = numeric()),
+      trace = FALSE
+    ),
+    "at least one row"
   )
   expect_error(
     stats::confint(
