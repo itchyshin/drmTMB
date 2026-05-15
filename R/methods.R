@@ -2248,6 +2248,10 @@ sigma.drmTMB <- function(object, ...) {
 #' and fitted random-effect covariance quantities when they are present.
 #' The covariance component reports currently fitted registry-backed rows and
 #' the first fitted bivariate phylogenetic `mu1`/`mu2` mean-mean row.
+#' The derived component reports simple point-estimate variance ratios, such as
+#' Gaussian random-intercept repeatability and phylogenetic signal, when the
+#' ingredients are unambiguous. Derived confidence intervals are marked as
+#' unavailable until a nonlinear interval method is implemented.
 #' Confidence intervals are opt-in: fast Wald intervals are available for fixed
 #' effects, and slower profile-likelihood intervals are available for selected
 #' direct profile targets.
@@ -2338,12 +2342,17 @@ summary.drmTMB <- function(
     object,
     intervals = if (conf.int && identical(method, "profile")) ci else NULL
   )
+  derived <- drm_summary_derived_parameters(
+    object,
+    interval_requested = conf.int
+  )
 
   out <- list(
     call = object$call,
     coefficients = coefficients,
     parameters = parameters,
     covariance = covariance,
+    derived = derived,
     sdpars = object$sdpars,
     corpars = object$corpars,
     ordinal = object$ordinal,
@@ -2374,6 +2383,10 @@ print.summary.drmTMB <- function(x, ...) {
   if (is.data.frame(x$covariance) && nrow(x$covariance) > 0L) {
     cli::cli_text("Random-effect covariance summaries:")
     print(drm_summary_print_covariance(x$covariance))
+  }
+  if (is.data.frame(x$derived) && nrow(x$derived) > 0L) {
+    cli::cli_text("Derived summaries:")
+    print(drm_summary_print_derived(x$derived))
   }
   if (!is.null(x$ordinal)) {
     cli::cli_text("Ordinal cutpoints:")
@@ -2436,6 +2449,184 @@ drm_summary_parameters <- function(object) {
   out <- do.call(rbind, rows)
   row.names(out) <- out$parm
   out
+}
+
+drm_summary_derived_parameters <- function(
+  object,
+  interval_requested = FALSE
+) {
+  out <- drm_derived_summary_rows(object)
+  if (nrow(out) == 0L) {
+    return(out)
+  }
+  out$conf.low <- NA_real_
+  out$conf.high <- NA_real_
+  out$conf.method <- NA_character_
+  out$conf.status <- if (isTRUE(interval_requested)) {
+    "derived_interval_unavailable"
+  } else {
+    "not_requested"
+  }
+  row.names(out) <- out$parm
+  out
+}
+
+drm_derived_summary_rows <- function(object) {
+  if (!identical(object$model$model_type, "gaussian")) {
+    return(empty_derived_summary_parameters())
+  }
+  sigma <- drm_constant_residual_sigma(object)
+  if (!is.finite(sigma)) {
+    return(empty_derived_summary_parameters())
+  }
+  sd_values <- object$sdpars$mu
+  if (is.null(sd_values) || length(sd_values) == 0L) {
+    return(empty_derived_summary_parameters())
+  }
+
+  rows <- lapply(seq_along(sd_values), function(i) {
+    term <- names(sd_values)[[i]]
+    sd_value <- unname(sd_values[[i]])
+    if (!is.finite(sd_value) || sd_value < 0) {
+      return(NULL)
+    }
+    kind <- derived_summary_random_effect_kind(term)
+    if (is.null(kind)) {
+      return(NULL)
+    }
+    re_variance <- sd_value^2
+    residual_variance <- sigma^2
+    denominator <- re_variance + residual_variance
+    if (!is.finite(denominator) || denominator <= 0) {
+      return(NULL)
+    }
+    data.frame(
+      quantity = kind$quantity,
+      level = kind$level,
+      group = kind$group,
+      dpar = "mu",
+      term = term,
+      estimate = re_variance / denominator,
+      random_effect_sd = sd_value,
+      random_effect_variance = re_variance,
+      residual_sd = sigma,
+      residual_variance = residual_variance,
+      scale = "response",
+      parm = kind$parm,
+      target_type = "derived",
+      profile_ready = FALSE,
+      profile_note = "derived_target",
+      stringsAsFactors = FALSE,
+      check.names = FALSE
+    )
+  })
+  rows <- Filter(Negate(is.null), rows)
+  if (!length(rows)) {
+    return(empty_derived_summary_parameters())
+  }
+  out <- do.call(rbind, rows)
+  row.names(out) <- NULL
+  out
+}
+
+empty_derived_summary_parameters <- function() {
+  data.frame(
+    quantity = character(),
+    level = character(),
+    group = character(),
+    dpar = character(),
+    term = character(),
+    estimate = numeric(),
+    random_effect_sd = numeric(),
+    random_effect_variance = numeric(),
+    residual_sd = numeric(),
+    residual_variance = numeric(),
+    scale = character(),
+    parm = character(),
+    target_type = character(),
+    profile_ready = logical(),
+    profile_note = character(),
+    conf.low = numeric(),
+    conf.high = numeric(),
+    conf.method = character(),
+    conf.status = character(),
+    stringsAsFactors = FALSE,
+    check.names = FALSE
+  )
+}
+
+drm_constant_residual_sigma <- function(object) {
+  beta <- object$coefficients$sigma
+  if (
+    is.null(beta) ||
+      length(beta) != 1L ||
+      !identical(names(beta), "(Intercept)") ||
+      !identical(drm_dpar_link(object, "sigma"), "log")
+  ) {
+    return(NA_real_)
+  }
+  known_v <- known_v_diag(object)
+  if (
+    length(known_v) > 0L &&
+      any(is.finite(known_v) & abs(known_v) > sqrt(.Machine$double.eps))
+  ) {
+    return(NA_real_)
+  }
+  exp(unname(beta[[1L]]))
+}
+
+derived_summary_random_effect_kind <- function(term) {
+  if (startsWith(term, "phylo(")) {
+    group <- random_intercept_group_from_call(term, "phylo")
+    if (is.na(group)) {
+      return(NULL)
+    }
+    return(list(
+      quantity = "phylogenetic_signal",
+      level = "phylogenetic",
+      group = group,
+      parm = paste0("derived:phylogenetic_signal(", group, ")")
+    ))
+  }
+  group <- random_intercept_group_from_term(term)
+  if (is.na(group)) {
+    return(NULL)
+  }
+  list(
+    quantity = "repeatability",
+    level = "group",
+    group = group,
+    parm = paste0("derived:repeatability(", group, ")")
+  )
+}
+
+random_intercept_group_from_call <- function(term, fun) {
+  prefix <- paste0(fun, "(")
+  if (!startsWith(term, prefix) || !endsWith(term, ")")) {
+    return(NA_character_)
+  }
+  inner <- substr(term, nchar(prefix) + 1L, nchar(term) - 1L)
+  random_intercept_group_from_inner(inner)
+}
+
+random_intercept_group_from_term <- function(term) {
+  if (!startsWith(term, "(") || !endsWith(term, ")")) {
+    return(NA_character_)
+  }
+  inner <- substr(term, 2L, nchar(term) - 1L)
+  random_intercept_group_from_inner(inner)
+}
+
+random_intercept_group_from_inner <- function(inner) {
+  parts <- trimws(strsplit(inner, "\\|", fixed = FALSE)[[1L]])
+  if (length(parts) < 2L || !identical(parts[[1L]], "1")) {
+    return(NA_character_)
+  }
+  group <- parts[[length(parts)]]
+  if (!nzchar(group)) {
+    return(NA_character_)
+  }
+  group
 }
 
 drm_summary_direct_parameters <- function(object) {
@@ -2666,6 +2857,30 @@ drm_summary_print_covariance <- function(covariance) {
       )
   ) {
     out$covariance_conf.status <- covariance$covariance_conf.status
+  }
+  out
+}
+
+drm_summary_print_derived <- function(derived) {
+  keep <- c(
+    "quantity",
+    "level",
+    "group",
+    "term",
+    "estimate",
+    "random_effect_variance",
+    "residual_variance"
+  )
+  out <- derived[, keep, drop = FALSE]
+  if (
+    "conf.status" %in%
+      names(derived) &&
+      any(
+        derived$conf.status == "derived_interval_unavailable",
+        na.rm = TRUE
+      )
+  ) {
+    out$conf.status <- derived$conf.status
   }
   out
 }

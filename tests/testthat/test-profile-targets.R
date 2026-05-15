@@ -249,6 +249,7 @@ expect_profile_target_contract <- function(targets) {
         "exp",
         "rho12_tanh",
         "tanh",
+        "variance_ratio",
         "derived_group_scale",
         "unstructured_corr",
         "ordered_cutpoint"
@@ -1615,6 +1616,55 @@ test_that("profile target inventory marks modelled group scales as derived", {
   expect_false(any(derived_sd$profile_ready))
   expect_equal(derived_sd$transformation, rep("derived_group_scale", n_id))
   expect_equal(derived_sd$profile_note, rep("derived_target", n_id))
+})
+
+test_that("profile target inventory marks derived variance ratios as unavailable", {
+  dat <- new_profile_group_data(n_id = 12L, n_each = 4L)
+  fit <- drmTMB(
+    bf(y ~ x + (1 | ID), sigma ~ 1),
+    family = gaussian(),
+    data = dat
+  )
+
+  targets <- profile_targets(fit)
+  derived <- targets[targets$target_class == "derived-summary", ]
+  parm <- "derived:repeatability(ID)"
+  smry <- summary(fit)
+
+  expect_profile_target_contract(targets)
+  expect_equal(derived$parm, parm)
+  expect_equal(derived$transformation, "variance_ratio")
+  expect_equal(derived$target_type, "derived")
+  expect_false(derived$profile_ready)
+  expect_equal(derived$profile_note, "derived_target")
+  expect_equal(
+    derived$estimate,
+    smry$derived[parm, "estimate"],
+    tolerance = 1e-12
+  )
+  expect_false(parm %in% profile_targets(fit, ready_only = TRUE)$parm)
+  expect_error(
+    stats::confint(fit, parm = parm, method = "profile"),
+    "not ready for direct profiling"
+  )
+
+  sim <- new_profile_phylo_data(n_tip = 8L, n_each = 4L)
+  tree <- sim$tree
+  fit_phylo <- drmTMB(
+    bf(y ~ x + phylo(1 | species, tree = tree), sigma ~ 1),
+    family = gaussian(),
+    data = sim$data
+  )
+  phylo_derived <- profile_targets(fit_phylo)
+  phylo_derived <- phylo_derived[
+    phylo_derived$target_class == "derived-summary",
+    ,
+    drop = FALSE
+  ]
+
+  expect_equal(phylo_derived$parm, "derived:phylogenetic_signal(species)")
+  expect_equal(phylo_derived$transformation, "variance_ratio")
+  expect_false(phylo_derived$profile_ready)
 })
 
 test_that("profile target inventory lists residual rho12 and ordinal internals", {

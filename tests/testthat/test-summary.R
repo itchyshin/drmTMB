@@ -126,6 +126,43 @@ test_that("summary() reports random-effect and correlation parameter tables", {
   expect_true(all(is.na(profiled$coefficients$conf.low)))
 })
 
+test_that("summary() reports derived repeatability and interval status", {
+  set.seed(20260631)
+  n_id <- 18
+  n_each <- 5
+  id <- factor(rep(seq_len(n_id), each = n_each))
+  x <- stats::rnorm(n_id * n_each)
+  u <- stats::rnorm(n_id, sd = 0.45)
+  dat <- data.frame(id = id, x = x)
+  dat$y <- 0.2 + 0.35 * x + u[id] + stats::rnorm(nrow(dat), sd = 0.40)
+
+  fit <- drmTMB(
+    bf(y ~ x + (1 | id), sigma ~ 1),
+    family = gaussian(),
+    data = dat
+  )
+  smry <- summary(fit)
+  derived <- smry$derived
+  parm <- "derived:repeatability(id)"
+  sd_mu <- unname(fit$sdpars$mu[["(1 | id)"]])
+  sigma <- unique(stats::sigma(fit))
+  expected <- sd_mu^2 / (sd_mu^2 + sigma^2)
+
+  expect_true(parm %in% rownames(derived))
+  expect_equal(derived[parm, "quantity"], "repeatability")
+  expect_equal(derived[parm, "level"], "group")
+  expect_equal(derived[parm, "group"], "id")
+  expect_equal(derived[parm, "estimate"], expected, tolerance = 1e-12)
+  expect_equal(derived[parm, "conf.status"], "not_requested")
+
+  profiled <- summary(fit, conf.int = TRUE, method = "wald")
+  expect_equal(
+    profiled$derived[parm, "conf.status"],
+    "derived_interval_unavailable"
+  )
+  expect_true(is.na(profiled$derived[parm, "conf.low"]))
+})
+
 test_that("summary() reports residual rho12 on the response scale", {
   set.seed(20260513)
   n <- 120
@@ -345,6 +382,38 @@ test_that("summary() separates bivariate group covariance from residual rho12", 
   expect_true(is.finite(pair_ci$conf.high))
   expect_equal(
     profiled$covariance$covariance_conf.status,
+    "derived_interval_unavailable"
+  )
+})
+
+test_that("summary() reports univariate phylogenetic signal as derived", {
+  set.seed(20260632)
+  tree <- new_summary_balanced_tree(n_tip = 4L)
+  species <- rep(tree$tip.label, each = 5L)
+  phylo_effect <- stats::rnorm(length(tree$tip.label), sd = 0.5)
+  names(phylo_effect) <- tree$tip.label
+  dat <- data.frame(
+    y = 0.2 + phylo_effect[species] + stats::rnorm(length(species), sd = 0.3),
+    species = species
+  )
+
+  fit <- drmTMB(
+    bf(y ~ phylo(1 | species, tree = tree), sigma ~ 1),
+    family = gaussian(),
+    data = dat
+  )
+  profiled <- summary(fit, conf.int = TRUE, method = "wald")
+  parm <- "derived:phylogenetic_signal(species)"
+  sd_phylo <- unname(fit$sdpars$mu[["phylo(1 | species)"]])
+  sigma <- unique(stats::sigma(fit))
+  expected <- sd_phylo^2 / (sd_phylo^2 + sigma^2)
+
+  expect_true(parm %in% rownames(profiled$derived))
+  expect_equal(profiled$derived[parm, "quantity"], "phylogenetic_signal")
+  expect_equal(profiled$derived[parm, "level"], "phylogenetic")
+  expect_equal(profiled$derived[parm, "estimate"], expected, tolerance = 1e-12)
+  expect_equal(
+    profiled$derived[parm, "conf.status"],
     "derived_interval_unavailable"
   )
 })

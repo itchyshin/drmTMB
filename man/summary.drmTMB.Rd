@@ -47,6 +47,10 @@ response-scale distributional, scale, shape, random-effect SD, correlation,
 and fitted random-effect covariance quantities when they are present.
 The covariance component reports currently fitted registry-backed rows and
 the first fitted bivariate phylogenetic \code{mu1}/\code{mu2} mean-mean row.
+The derived component reports simple point-estimate variance ratios, such as
+Gaussian random-intercept repeatability and phylogenetic signal, when the
+ingredients are unambiguous. Derived confidence intervals are marked as
+unavailable until a nonlinear interval method is implemented.
 Confidence intervals are opt-in: fast Wald intervals are available for fixed
 effects, and slower profile-likelihood intervals are available for selected
 direct profile targets.
