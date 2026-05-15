@@ -52,6 +52,53 @@ Type drm_log_inv_logit_diff(Type upper, Type lower)
 }
 
 template<class Type>
+Type drm_nbinom2_log_count_product(Type y, Type alpha)
+{
+  Type y_minus_one = y - Type(1.0);
+  Type sum_j = y * y_minus_one / Type(2.0);
+  Type sum_j2 = y * y_minus_one * (Type(2.0) * y - Type(1.0)) / Type(6.0);
+  Type sum_j3 = sum_j * sum_j;
+  Type sum_j4 = y * y_minus_one * (Type(2.0) * y - Type(1.0)) *
+    (Type(3.0) * y * y - Type(3.0) * y - Type(1.0)) / Type(30.0);
+  Type sum_j5 = y * y * y_minus_one * y_minus_one *
+    (Type(2.0) * y * y - Type(2.0) * y - Type(1.0)) / Type(12.0);
+  Type alpha2 = alpha * alpha;
+  Type series =
+    alpha * sum_j -
+    alpha2 * sum_j2 / Type(2.0) +
+    alpha2 * alpha * sum_j3 / Type(3.0) -
+    alpha2 * alpha2 * sum_j4 / Type(4.0) +
+    alpha2 * alpha2 * alpha * sum_j5 / Type(5.0);
+  Type inv_alpha = Type(1.0) / alpha;
+  Type lgamma_ratio = lgamma(y + inv_alpha) - lgamma(inv_alpha) +
+    y * log(alpha);
+  return CppAD::CondExpLt(alpha * y, Type(1e-2), series, lgamma_ratio);
+}
+
+template<class Type>
+Type drm_nbinom2_log_density(Type y, Type eta_mu, Type log_sigma)
+{
+  Type alpha = exp(Type(2.0) * log_sigma) + Type(1e-300);
+  Type mu = exp(eta_mu);
+  Type log1p_alpha_mu = drm_log1p_pos(alpha * mu);
+  return
+    y * eta_mu -
+    lgamma(y + Type(1.0)) -
+    y * log1p_alpha_mu -
+    log1p_alpha_mu / alpha +
+    drm_nbinom2_log_count_product(y, alpha);
+}
+
+template<class Type>
+Type drm_nbinom2_log_p0(Type eta_mu, Type log_sigma)
+{
+  Type alpha = exp(Type(2.0) * log_sigma) + Type(1e-300);
+  Type mu = exp(eta_mu);
+  Type log1p_alpha_mu = drm_log1p_pos(alpha * mu);
+  return -log1p_alpha_mu / alpha;
+}
+
+template<class Type>
 Type objective_function<Type>::operator()()
 {
   DATA_VECTOR(y);
@@ -872,17 +919,7 @@ Type objective_function<Type>::operator()()
     vector<Type> mu = exp(eta_mu);
     vector<Type> sigma = exp(log_sigma);
     for (int i = 0; i < y.size(); ++i) {
-      Type alpha = exp(Type(2.0) * log_sigma(i)) + Type(1e-300);
-      Type log1p_alpha_mu = drm_log1p_pos(alpha * mu(i));
-      Type log_density =
-        y(i) * eta_mu(i) -
-        lgamma(y(i) + Type(1.0)) -
-        y(i) * log1p_alpha_mu -
-        log1p_alpha_mu / alpha;
-      int yi = (int) asDouble(y(i));
-      for (int j = 0; j < yi; ++j) {
-        log_density += drm_log1p_pos(alpha * Type(j));
-      }
+      Type log_density = drm_nbinom2_log_density(y(i), eta_mu(i), log_sigma(i));
       nll -= weights(i) * log_density;
     }
     REPORT(eta_mu);
@@ -899,18 +936,8 @@ Type objective_function<Type>::operator()()
     vector<Type> trunc_prob(y.size());
     vector<Type> positive_mean(y.size());
     for (int i = 0; i < y.size(); ++i) {
-      Type alpha = exp(Type(2.0) * log_sigma(i)) + Type(1e-300);
-      Type log1p_alpha_mu = drm_log1p_pos(alpha * mu(i));
-      Type log_density =
-        y(i) * eta_mu(i) -
-        lgamma(y(i) + Type(1.0)) -
-        y(i) * log1p_alpha_mu -
-        log1p_alpha_mu / alpha;
-      int yi = (int) asDouble(y(i));
-      for (int j = 0; j < yi; ++j) {
-        log_density += drm_log1p_pos(alpha * Type(j));
-      }
-      Type log_p0 = -log1p_alpha_mu / alpha;
+      Type log_density = drm_nbinom2_log_density(y(i), eta_mu(i), log_sigma(i));
+      Type log_p0 = drm_nbinom2_log_p0(eta_mu(i), log_sigma(i));
       Type log_trunc_prob = drm_log1mexp(log_p0);
       trunc_prob(i) = exp(log_trunc_prob);
       positive_mean(i) = mu(i) / trunc_prob(i);
@@ -937,18 +964,9 @@ Type objective_function<Type>::operator()()
     for (int i = 0; i < y.size(); ++i) {
       Type log_hu = -logspace_add(Type(0.0), -eta_hu(i));
       Type log_one_minus_hu = -logspace_add(Type(0.0), eta_hu(i));
-      Type alpha = exp(Type(2.0) * log_sigma(i)) + Type(1e-300);
-      Type log1p_alpha_mu = drm_log1p_pos(alpha * mu(i));
-      Type log_density =
-        y(i) * eta_mu(i) -
-        lgamma(y(i) + Type(1.0)) -
-        y(i) * log1p_alpha_mu -
-        log1p_alpha_mu / alpha;
+      Type log_density = drm_nbinom2_log_density(y(i), eta_mu(i), log_sigma(i));
       int yi = (int) asDouble(y(i));
-      for (int j = 0; j < yi; ++j) {
-        log_density += drm_log1p_pos(alpha * Type(j));
-      }
-      Type log_p0 = -log1p_alpha_mu / alpha;
+      Type log_p0 = drm_nbinom2_log_p0(eta_mu(i), log_sigma(i));
       Type log_trunc_prob = drm_log1mexp(log_p0);
       trunc_prob(i) = exp(log_trunc_prob);
       positive_mean(i) = mu(i) / trunc_prob(i);
@@ -979,17 +997,8 @@ Type objective_function<Type>::operator()()
     vector<Type> sigma = exp(log_sigma);
     vector<Type> zi = Type(1.0) / (Type(1.0) + exp(-eta_zi));
     for (int i = 0; i < y.size(); ++i) {
-      Type alpha = exp(Type(2.0) * log_sigma(i)) + Type(1e-300);
-      Type log1p_alpha_mu = drm_log1p_pos(alpha * mu(i));
-      Type log_density =
-        y(i) * eta_mu(i) -
-        lgamma(y(i) + Type(1.0)) -
-        y(i) * log1p_alpha_mu -
-        log1p_alpha_mu / alpha;
+      Type log_density = drm_nbinom2_log_density(y(i), eta_mu(i), log_sigma(i));
       int yi = (int) asDouble(y(i));
-      for (int j = 0; j < yi; ++j) {
-        log_density += drm_log1p_pos(alpha * Type(j));
-      }
       Type log_zi = -logspace_add(Type(0.0), -eta_zi(i));
       Type log_one_minus_zi = -logspace_add(Type(0.0), eta_zi(i));
       if (yi == 0) {

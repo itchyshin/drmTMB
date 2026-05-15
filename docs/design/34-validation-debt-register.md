@@ -44,6 +44,7 @@ Use these status labels:
   `tests/testthat/test-beta-binomial.R`,
   `tests/testthat/test-poisson-mean.R`,
   `tests/testthat/test-nbinom2-location-scale.R`,
+  `tests/testthat/test-count-kernels.R`,
   `tests/testthat/test-zi-poisson.R`,
   `tests/testthat/test-zi-nbinom2.R`,
   `tests/testthat/test-truncated-nbinom2-location-scale.R`,

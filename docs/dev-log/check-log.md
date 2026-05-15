@@ -15366,3 +15366,60 @@ Known limitations:
 - dense known-covariance diagnostics expose retained matrix storage, not peak
   memory;
 - GitHub Actions remains the PR-side gate after push.
+
+## 2026-05-15 -- Slice 82 count likelihood kernel audit
+
+Goal:
+
+- remove avoidable observed-count loops from NB2 likelihood routes without
+  changing the public family contract, formula grammar, or fitted
+  parameterization.
+
+Implemented:
+
+- added shared internal helpers for the NB2 count product, NB2 log density, and
+  NB2 zero mass in `src/drmTMB.cpp`;
+- routed ordinary NB2, zero-inflated NB2, zero-truncated NB2, and hurdle NB2
+  through the shared helpers;
+- kept `mu = exp(eta_mu)`, `sigma = exp(eta_sigma)`, and
+  `alpha = sigma^2`;
+- added deterministic high-count objective tests in
+  `tests/testthat/test-count-kernels.R`;
+- updated `docs/design/03-likelihoods.md`,
+  `docs/design/34-validation-debt-register.md`, `vignettes/source-map.Rmd`,
+  ROADMAP, NEWS, and generated pkgdown pages;
+- added after-task report
+  `docs/dev-log/after-task/2026-05-15-slice-82-count-kernel-audit.md`.
+
+Checks run:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH air format src/drmTMB.cpp tests/testthat/test-count-kernels.R`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::test(filter = "count-kernels|nbinom2|truncated-nbinom2|hurdle-nbinom2|zi-nbinom2", reporter = "summary")'`:
+  first failed because the initial helper used a parameter-dependent C++ branch
+  near the Poisson limit.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::test(filter = "count-kernels|nbinom2|truncated-nbinom2|hurdle-nbinom2|zi-nbinom2", reporter = "summary")'`:
+  passed after replacing the branch with `CppAD::CondExpLt()` and a
+  small-`alpha y` series.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::test(filter = "count-kernels|poisson|nbinom2|truncated-nbinom2|hurdle-nbinom2|family-link-contract|comparators", reporter = "summary")'`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::test(reporter = "summary")'`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::build_site()'`:
+  passed and refreshed ROADMAP, source-map, and NEWS pages.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed with no problems found.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::check(error_on = "never", env_vars = c("_R_CHECK_SYSTEM_CLOCK_" = "FALSE"))'`:
+  passed with 0 errors, 0 warnings, and 0 notes in 2m 22.2s.
+- `git diff --check`: passed.
+- `rg -n 'drm_nbinom2_log_count_product|drm_nbinom2_log_density|drm_nbinom2_log_p0|count-kernel|observed-count loop|lgamma ratio|Count likelihood kernel|Slice 82' src tests NEWS.md ROADMAP.md docs vignettes pkgdown-site --glob '!pkgdown-site/search.json'`:
+  confirmed source and rendered helper wording.
+- `rg -n 'for \(int j = 0; j < yi|observed-count loop|NB2.*loop over observed counts|dnbinom2.*loop' src tests NEWS.md ROADMAP.md docs vignettes pkgdown-site --glob '!pkgdown-site/search.json'`:
+  found no remaining C++ observed-count loop for NB2 likelihood evaluation.
+
+Known limitations:
+
+- this slice does not add a new approximation method or change the optimizer;
+- count-kernel tests are deterministic objective comparisons, not large
+  performance benchmarks;
+- GitHub Actions remains the PR-side gate after push.

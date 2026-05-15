@@ -939,13 +939,34 @@ unstable `size_i = 1 / sigma_i^2` terms. With
 ```text
 log f(y_i) =
   y_i eta_mu_i - log Gamma(y_i + 1)
-  + sum_{j = 0}^{y_i - 1} log(1 + alpha_i j)
+  + C(y_i, alpha_i)
   - y_i log(1 + alpha_i mu_i)
   - log(1 + alpha_i mu_i) / alpha_i
 ```
 
+where
+
+```text
+C(y_i, alpha_i) =
+  sum_{j = 0}^{y_i - 1} log(1 + alpha_i j)
+```
+
+The template evaluates `C(y_i, alpha_i)` without an observed-count loop. For
+ordinary count and overdispersion values it uses the closed form
+
+```text
+C(y_i, alpha_i) =
+  log Gamma(y_i + 1 / alpha_i) -
+  log Gamma(1 / alpha_i) +
+  y_i log(alpha_i).
+```
+
+When `alpha_i y_i` is very small, the template uses the matching power-sum
+series for `sum log(1 + alpha_i j)` to preserve the Poisson limit.
+
 This form has the correct Poisson limit as `alpha_i` approaches zero and avoids
-overflow from computing very large `size_i`.
+overflow from computing very large `size_i` or looping over very large observed
+counts.
 
 Matching R syntax:
 
