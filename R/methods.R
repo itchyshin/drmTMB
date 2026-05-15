@@ -438,11 +438,10 @@ corpairs_conf_status <- function(pairs, target_rows, target_index) {
       if (identical(target$target_type[[1L]], "derived")) {
         return("derived_interval_unavailable")
       }
-      note <- target$profile_note[[1L]]
-      if (is.na(note) || !nzchar(note)) {
-        return("profile_unavailable")
-      }
-      note
+      interval_status_from_profile_note(
+        profile_ready = target$profile_ready[[1L]],
+        profile_note = target$profile_note[[1L]]
+      )
     },
     character(1L)
   )
@@ -2254,7 +2253,9 @@ sigma.drmTMB <- function(object, ...) {
 #' unavailable until a nonlinear interval method is implemented.
 #' Confidence intervals are opt-in: fast Wald intervals are available for fixed
 #' effects, and slower profile-likelihood intervals are available for selected
-#' direct profile targets.
+#' direct profile targets. Interval-aware tables include `conf.status` so rows
+#' without intervals can say whether an interval was not requested, needs
+#' `newdata`, is ready but unselected, or is currently unavailable.
 #'
 #' @param object A `drmTMB` fit.
 #' @param conf.int Logical; include confidence intervals when `TRUE`.
@@ -2769,6 +2770,7 @@ empty_summary_confint <- function() {
     tmb_parameter = character(),
     index = integer(),
     method = character(),
+    conf.status = character(),
     stringsAsFactors = FALSE
   )
 }
@@ -2778,6 +2780,7 @@ drm_summary_add_coefficient_ci <- function(coefficients, ci, level, method) {
   coefficients$conf.high <- NA_real_
   coefficients$conf.level <- level
   coefficients$conf.method <- method
+  coefficients$conf.status <- "not_requested"
   if (is.null(ci) || nrow(ci) == 0L) {
     return(coefficients)
   }
@@ -2786,6 +2789,11 @@ drm_summary_add_coefficient_ci <- function(coefficients, ci, level, method) {
   has_ci <- !is.na(matched)
   coefficients$conf.low[has_ci] <- ci$lower[matched[has_ci]]
   coefficients$conf.high[has_ci] <- ci$upper[matched[has_ci]]
+  coefficients$conf.status[has_ci] <- summary_ci_status(
+    ci,
+    matched[has_ci],
+    method
+  )
   coefficients
 }
 
@@ -2794,6 +2802,10 @@ drm_summary_add_parameter_ci <- function(parameters, ci, level, method) {
   parameters$conf.high <- NA_real_
   parameters$conf.level <- level
   parameters$conf.method <- method
+  parameters$conf.status <- summary_parameter_conf_status(
+    parameters,
+    method = method
+  )
   if (nrow(parameters) == 0L || is.null(ci) || nrow(ci) == 0L) {
     return(parameters)
   }
@@ -2801,7 +2813,57 @@ drm_summary_add_parameter_ci <- function(parameters, ci, level, method) {
   has_ci <- !is.na(matched)
   parameters$conf.low[has_ci] <- ci$lower[matched[has_ci]]
   parameters$conf.high[has_ci] <- ci$upper[matched[has_ci]]
+  parameters$conf.status[has_ci] <- summary_ci_status(
+    ci,
+    matched[has_ci],
+    method
+  )
   parameters
+}
+
+summary_ci_status <- function(ci, matched, method) {
+  if ("conf.status" %in% names(ci)) {
+    return(ci$conf.status[matched])
+  }
+  rep(method, length(matched))
+}
+
+summary_parameter_conf_status <- function(parameters, method) {
+  if (nrow(parameters) == 0L) {
+    return(character())
+  }
+  if (identical(method, "wald")) {
+    return(rep("wald_unavailable", nrow(parameters)))
+  }
+  mapply(
+    function(profile_ready, profile_note) {
+      interval_status_from_profile_note(
+        profile_ready = profile_ready,
+        profile_note = profile_note
+      )
+    },
+    parameters$profile_ready,
+    parameters$profile_note,
+    USE.NAMES = FALSE
+  )
+}
+
+interval_status_from_profile_note <- function(profile_ready, profile_note) {
+  if (isTRUE(profile_ready)) {
+    return("profile_ready")
+  }
+  if (is.na(profile_note) || !nzchar(profile_note)) {
+    return("profile_unavailable")
+  }
+  switch(
+    profile_note,
+    ready = "profile_ready",
+    use_confint_newdata = "newdata_required",
+    derived_target = "derived_interval_unavailable",
+    derived_unstructured_correlation = "derived_interval_unavailable",
+    fitted_range_only = "target_unavailable",
+    profile_note
+  )
 }
 
 drm_summary_print_parameters <- function(parameters) {
@@ -2820,6 +2882,13 @@ drm_summary_print_parameters <- function(parameters) {
     if (has_interval) {
       keep <- c(keep, "conf.low", "conf.high")
     }
+  }
+  if (
+    "conf.status" %in%
+      names(parameters) &&
+      any(parameters$conf.status != "profile", na.rm = TRUE)
+  ) {
+    keep <- c(keep, "conf.status")
   }
   out <- parameters[, keep, drop = FALSE]
   row.names(out) <- row.names(parameters)

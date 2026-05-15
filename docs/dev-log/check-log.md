@@ -14610,3 +14610,55 @@ Known limitations:
   covariance products, repeatability, phylogenetic signal, or ICCs;
 - the new point-estimate rows are limited to simple univariate Gaussian models
   with constant residual `sigma` and no known sampling variance.
+
+## 2026-05-15 -- Slice 57 output integration
+
+Goal:
+
+- align confidence-interval status output across `confint()`, `summary()`,
+  `corpairs()`, and `profile_targets()` without changing likelihoods or
+  interval calculations.
+
+Implemented:
+
+- added `conf.status` to successful `confint()` rows, using `"wald"` for Wald
+  intervals and `"profile"` for profile-likelihood intervals;
+- added `conf.status` to interval-aware `summary()` coefficient and parameter
+  tables;
+- mapped non-interval parameter rows to explicit statuses such as
+  `"profile_ready"`, `"newdata_required"`, `"derived_interval_unavailable"`,
+  `"wald_unavailable"`, and `"target_unavailable"`;
+- reused the same profile-note-to-interval-status helper for `corpairs()`;
+- updated `docs/design/12-profile-likelihood-cis.md`, `ROADMAP.md`,
+  `NEWS.md`, and Rd documentation.
+
+Checks run:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::test(filter = "summary|profile-targets", reporter = "summary")'`:
+  first run identified test expectations that assumed only two fixed-effect
+  rows; tests were corrected to use the actual coefficient table length.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::test(filter = "summary|profile-targets", reporter = "summary")'`:
+  passed after the correction.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::document()'`:
+  passed and updated `man/confint.drmTMB.Rd` and `man/summary.drmTMB.Rd`.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::test(filter = "summary|profile-targets|corpairs|covariance-block-registry|phylo-gaussian|biv-gaussian", reporter = "summary")'`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::test(reporter = "summary")'`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::build_site()'`:
+  passed and rebuilt `ROADMAP.html`, `news/index.html`,
+  `reference/confint.drmTMB.html`, and `reference/summary.drmTMB.html`.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed with no problems found.
+- `git diff --check`:
+  passed.
+- `rg -n "Slice 57|conf\\.status|wald_unavailable|profile_ready|newdata_required|Output integration" NEWS.md ROADMAP.md docs/design/12-profile-likelihood-cis.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-15-slice-57-output-integration.md R/methods.R R/profile.R tests/testthat/test-summary.R tests/testthat/test-profile-targets.R man/confint.drmTMB.Rd man/summary.drmTMB.Rd pkgdown-site/ROADMAP.html pkgdown-site/news/index.html pkgdown-site/reference/confint.drmTMB.html pkgdown-site/reference/summary.drmTMB.html --glob '!pkgdown-site/search.json'`:
+  confirmed source, tests, Rd files, and rendered pkgdown wording for the
+  Slice 57 output-status contract.
+
+Known limitations:
+
+- this slice does not add new interval methods;
+- covariance-product intervals, q4 derived-correlation intervals, and derived
+  variance-ratio intervals remain unavailable until a derived-profile method is
+  implemented.

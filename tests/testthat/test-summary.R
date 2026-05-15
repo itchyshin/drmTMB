@@ -123,7 +123,18 @@ test_that("summary() reports random-effect and correlation parameter tables", {
   expect_true(is.finite(sd_row$conf.low))
   expect_true(is.finite(sd_row$conf.high))
   expect_lt(sd_row$conf.low, sd_row$conf.high)
+  expect_equal(sd_row$conf.status, "profile")
+  expect_equal(profiled$parameters["sigma", "conf.status"], "profile_ready")
   expect_true(all(is.na(profiled$coefficients$conf.low)))
+  expect_equal(
+    profiled$coefficients$conf.status,
+    rep("not_requested", nrow(profiled$coefficients))
+  )
+
+  printed_parameters <- drmTMB:::drm_summary_print_parameters(
+    profiled$parameters
+  )
+  expect_true("conf.status" %in% names(printed_parameters))
 })
 
 test_that("summary() reports derived repeatability and interval status", {
@@ -156,6 +167,7 @@ test_that("summary() reports derived repeatability and interval status", {
   expect_equal(derived[parm, "conf.status"], "not_requested")
 
   profiled <- summary(fit, conf.int = TRUE, method = "wald")
+  expect_equal(profiled$parameters["sigma", "conf.status"], "wald_unavailable")
   expect_equal(
     profiled$derived[parm, "conf.status"],
     "derived_interval_unavailable"
@@ -274,6 +286,8 @@ test_that("summary() reports univariate mu/sigma covariance separately", {
   expect_equal(profiled$conf.method, "profile")
   expect_true(is.finite(cor_row$conf.low))
   expect_true(is.finite(cor_row$conf.high))
+  expect_equal(cor_row$conf.status, "profile")
+  expect_equal(profiled$parameters[sd_mu, "conf.status"], "profile_ready")
   expect_lt(cor_row$conf.low, smry$parameters[cor_mu_sigma, "estimate"])
   expect_gt(cor_row$conf.high, smry$parameters[cor_mu_sigma, "estimate"])
   expect_true(is.finite(profiled$covariance$correlation_conf.low))
@@ -374,6 +388,8 @@ test_that("summary() separates bivariate group covariance from residual rho12", 
   expect_equal(profiled$conf.method, "profile")
   expect_true(is.finite(cor_row$conf.low))
   expect_true(is.finite(cor_row$conf.high))
+  expect_equal(cor_row$conf.status, "profile")
+  expect_equal(profiled$parameters[sd_mu1, "conf.status"], "profile_ready")
   expect_lt(cor_row$conf.low, smry$parameters[cor_mu, "estimate"])
   expect_gt(cor_row$conf.high, smry$parameters[cor_mu, "estimate"])
   expect_equal(pair_ci$profile_target, cor_mu)
@@ -412,6 +428,7 @@ test_that("summary() reports univariate phylogenetic signal as derived", {
   expect_equal(profiled$derived[parm, "quantity"], "phylogenetic_signal")
   expect_equal(profiled$derived[parm, "level"], "phylogenetic")
   expect_equal(profiled$derived[parm, "estimate"], expected, tolerance = 1e-12)
+  expect_equal(profiled$parameters["sigma", "conf.status"], "wald_unavailable")
   expect_equal(
     profiled$derived[parm, "conf.status"],
     "derived_interval_unavailable"
@@ -525,6 +542,9 @@ test_that("summary() reports bivariate phylogenetic covariance separately", {
   expect_true(is.finite(profiled$parameters[sd_mu1, "conf.high"]))
   expect_true(is.finite(profiled$parameters[cor_phylo, "conf.low"]))
   expect_true(is.finite(profiled$parameters[cor_phylo, "conf.high"]))
+  expect_equal(profiled$parameters[sd_mu1, "conf.status"], "profile")
+  expect_equal(profiled$parameters[cor_phylo, "conf.status"], "profile")
+  expect_equal(profiled$parameters[sd_mu2, "conf.status"], "profile_ready")
   expect_true(is.finite(profiled$covariance$correlation_conf.low))
   expect_true(is.finite(profiled$covariance$correlation_conf.high))
   expect_true(is.finite(profiled$covariance$from_sd_conf.low))
@@ -575,6 +595,11 @@ test_that("summary() adds Wald intervals to fixed effects only", {
   expect_true(all(is.finite(smry$coefficients$conf.high)))
   expect_true("conf.low" %in% names(smry$parameters))
   expect_true(all(is.na(smry$parameters$conf.low)))
+  expect_equal(
+    smry$coefficients$conf.status,
+    rep("wald", nrow(smry$coefficients))
+  )
+  expect_equal(smry$parameters$conf.status, "wald_unavailable")
   expect_equal(smry$conf.method, "wald")
 })
 

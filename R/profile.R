@@ -42,7 +42,9 @@
 #'   `parm`.
 #'
 #' @return A data frame with columns `parm`, `level`, `lower`, `upper`,
-#'   `scale`, `transformation`, `tmb_parameter`, `index`, and `method`.
+#'   `scale`, `transformation`, `tmb_parameter`, `index`, `method`, and
+#'   `conf.status`. Successful rows currently use `conf.status = "wald"` or
+#'   `conf.status = "profile"`.
 #'
 #' @examples
 #' dat <- data.frame(y = c(0.2, 0.5, 1.1, 1.4), x = c(-1, 0, 1, 2))
@@ -538,6 +540,7 @@ drm_profile_response_newdata_confint <- function(
       tmb_parameter = internal,
       index = NA_integer_,
       method = "profile",
+      conf.status = "profile",
       stringsAsFactors = FALSE
     )
   })
@@ -571,6 +574,7 @@ drm_wald_confint <- function(object, parm, level) {
     tmb_parameter = targets$tmb_parameter,
     index = targets$index,
     method = "wald",
+    conf.status = "wald",
     stringsAsFactors = FALSE
   )
   row.names(out) <- NULL
@@ -628,6 +632,7 @@ drm_profile_target_confint <- function(
     tmb_parameter = target$tmb_parameter,
     index = target$index,
     method = "profile",
+    conf.status = "profile",
     stringsAsFactors = FALSE
   )
 }
