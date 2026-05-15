@@ -223,7 +223,7 @@ Use these status labels:
 
 ### Profile intervals and diagnostics
 
-- Matrix status: first slice.
+- Matrix status: first slice locally closed.
 - Register status: partial.
 - Evidence: `tests/testthat/test-profile-targets.R`,
   `tests/testthat/test-summary.R`, `tests/testthat/test-check-drm.R`,
@@ -233,6 +233,8 @@ Use these status labels:
 - Diagnostics and intervals: `conf.status`, `profile.boundary`, and
   `profile.message` expose interval status; `profile_targets()` is the target
   namespace; q=4 derived rows use `derived_interval_unavailable`.
+- Phase gate: the derived-summary and interval-status foundation is recorded in
+  `docs/dev-log/after-phase/2026-05-15-phase-13-derived-inference-foundation-closure.md`.
 - User-facing docs: `vignettes/model-workflow.Rmd`,
   `vignettes/model-map.Rmd`, `docs/design/12-profile-likelihood-cis.md`, and
   `docs/design/28-double-hierarchical-endpoint.md`.

@@ -757,7 +757,8 @@ remain blocked by future covariance or non-Gaussian random-effect work.
 
 ## Phase 13: Double-Hierarchical Derived Inference
 
-- Status: planned.
+- Status: derived-summary and interval-status foundation locally closed. See
+  `docs/dev-log/after-phase/2026-05-15-phase-13-derived-inference-foundation-closure.md`.
 - Build on Phase 6 direct-parameter profile intervals, including the first
   covariance-row profile intervals, and Phase 11 correlation-pair models.
 - Add uncertainty for derived quantities that matter in complete

@@ -15673,3 +15673,50 @@ Known limitations:
   residual noise, and combined phylogenetic plus non-phylogenetic species
   effects remain planned;
 - GitHub Actions remains the PR-side gate.
+
+## 2026-05-15 -- Phase 13 derived inference foundation closure
+
+Goal:
+
+- close the local derived-summary and interval-status foundation without
+  claiming nonlinear derived confidence intervals.
+
+Implemented:
+
+- added after-phase report
+  `docs/dev-log/after-phase/2026-05-15-phase-13-derived-inference-foundation-closure.md`;
+- updated `ROADMAP.md` so Phase 13 is locally closed only for the
+  derived-summary and interval-status foundation;
+- updated `docs/design/34-validation-debt-register.md` so the profile
+  intervals and diagnostics row points to the Phase 13 closure report;
+- kept nonlinear derived intervals for covariance rows, q=4 unstructured
+  correlations, repeatability, phylogenetic signal, total variance, and
+  complete double-hierarchical slope-scale summaries as planned.
+
+Checks run:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH air format ROADMAP.md docs/design/34-validation-debt-register.md docs/dev-log/check-log.md docs/dev-log/after-phase/2026-05-15-phase-13-derived-inference-foundation-closure.md`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::test(filter = "profile-targets|summary|biv-gaussian|phylo-gaussian|spatial-gaussian|check-drm|gaussian-random-intercepts", reporter = "summary")'`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::build_site()'`:
+  passed and refreshed ROADMAP.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed with no problems found.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::check(error_on = "never", env_vars = c("_R_CHECK_SYSTEM_CLOCK_" = "FALSE"))'`:
+  passed with 0 errors, 0 warnings, and 0 notes in 2m 24s.
+- `git diff --check`: passed.
+- `rg -n 'Phase 13|phase-13-derived-inference-foundation-closure|derived-summary and interval-status foundation|derived_interval_unavailable|repeatability|phylogenetic_signal|covariance point summaries|nonlinear derived intervals' ROADMAP.md docs/design/34-validation-debt-register.md docs/dev-log/after-phase/2026-05-15-phase-13-derived-inference-foundation-closure.md pkgdown-site/ROADMAP.html --glob '!pkgdown-site/search.json'`:
+  confirmed source and rendered closure wording.
+- `rg -n 'derived intervals (are|now) implemented|derived confidence intervals (are|now) implemented|nonlinear derived intervals (are|now) implemented|q=4 .*intervals (are|now) implemented|q4 .*intervals (are|now) implemented|covariance intervals (are|now) implemented|repeatability intervals (are|now) implemented|phylogenetic signal intervals (are|now) implemented|total variance intervals (are|now) implemented' README.md ROADMAP.md NEWS.md docs/design vignettes R tests man pkgdown-site --glob '!docs/dev-log/**' --glob '!pkgdown-site/search.json' --glob '!pkgdown-site/deps/**'`:
+  returned no matches.
+
+Known limitations:
+
+- nonlinear derived intervals remain planned;
+- q=4 unstructured correlations remain derived targets and are not
+  profile-ready;
+- derived covariance intervals remain unavailable;
+- repeatability, phylogenetic signal, and total variance intervals need a
+  valid direct-target or fix-and-refit method;
+- GitHub Actions remains the PR-side gate.
