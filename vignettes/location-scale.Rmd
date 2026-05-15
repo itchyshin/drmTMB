@@ -362,6 +362,40 @@ groups with higher baseline `mu` also tend to have steeper or shallower
 mean-model slopes. It is not `rho12`, because `rho12` belongs only to
 bivariate residual response-response coupling.
 
+For a biological reaction-norm question, let `x1` be centred temperature and
+`id` be population. The fixed slope `beta_1` is the average temperature effect.
+The random-intercept SD asks how much populations differ at the centred
+temperature. The random-slope SD asks how much populations differ in thermal
+plasticity. The intercept-slope correlation asks whether populations with high
+baseline response tend to have steeper or shallower thermal slopes:
+
+\[
+\begin{aligned}
+\mu_{ij}
+  &= \beta_0 + \beta_1 temperature_{ij}
+     + b_{0j} + temperature_{ij} b_{1j},\\
+\begin{bmatrix}b_{0j}\\ b_{1j}\end{bmatrix}
+  &\sim \operatorname{Normal}\left(
+    \begin{bmatrix}0\\0\end{bmatrix},
+    \Sigma_{\text{population}}
+  \right).
+\end{aligned}
+\]
+
+The matching fitted ordinary syntax is:
+
+```r
+drmTMB(
+  bf(y ~ temperature + (1 + temperature | p | population), sigma ~ habitat),
+  family = gaussian(),
+  data = dat
+)
+```
+
+Read the fitted object as `sdpars$mu` for the baseline and slope SDs,
+`corpairs(fit, class = "mean-slope")` for the group-level intercept-slope
+correlation, and `profile_targets(fit)` for the direct interval target names.
+
 The location formula models the conditional mean, `mu`, on the identity scale.
 The scale formula models the residual standard deviation, `sigma`, on the log
 scale:

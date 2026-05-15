@@ -141,6 +141,54 @@ Those surfaces need storage-order documentation, simulation recovery, extractor
 names, `profile_targets()` rows, and reader-facing examples before they can be
 taught as fitted behaviour.
 
+## Structured-Slope Handoff
+
+The structured one-slope rows are design-complete enough to hand forward, but
+not fitted in this Phase 6c core closure.
+
+| Surface | Minimum next implementation contract | Destination |
+|---|---|---|
+| `phylo(1 + x | species, tree = tree)` | one structured `mu` slope, explicit intercept/slope storage order, simulation recovery for slope SD, `sdpars$mu` and `profile_targets()` names, and `check_drm()` replication diagnostics | Phase 12 |
+| `spatial(1 + x | site, coords = coords)` | one coordinate-spatial `mu` slope, separation from future mesh/SPDE path, simulation recovery for slope SD, `ranef()`/`sdpars` names, and coordinate diagnostics | Phase 10 |
+| bivariate slope1-slope2 correlation | coefficient-aware `corpair()` syntax, `corpairs()` rows with `from_coef` and `to_coef`, direct-target interval status, and recovery evidence | Phase 11 or later |
+| structured slope tutorials | fitted output, interval/status columns, and biological interpretation after the model surface is stable | final tutorial pass after Phases 10-13 |
+
+The first structured-slope implementation should not estimate
+intercept-slope correlations. It should fit one slope SD first, expose that SD
+through the same output path as ordinary random-effect SDs, and leave
+slope-correlation rows unavailable until a direct and identifiable target
+exists.
+
+## Biological Reading
+
+For a thermal reaction-norm example, let `x` be centred temperature and `id`
+be individual, population, or species:
+
+```text
+mu_ij = beta_0 + beta_1 temperature_ij + b_0j + temperature_ij b_1j
+```
+
+Then:
+
+- `beta_1` is the average temperature slope;
+- `sd_mu_id` is among-group variation in baseline response;
+- `sd_mu_temperature_id` is among-group variation in thermal plasticity;
+- `cor(b_0, b_1)` asks whether groups with high baseline response tend to have
+  steeper or shallower temperature slopes;
+- `sigma` remains residual within-observation variation around the fitted
+  reaction norm;
+- `rho12` is not part of this one-response model.
+
+For the fitted ordinary core, the matching syntax is:
+
+```r
+bf(y ~ temperature + (1 + temperature | p | id), sigma ~ habitat)
+```
+
+The matching output path is `sdpars$mu` for the two SDs, `corpars$mu` and
+`corpairs(fit, class = "mean-slope")` for the intercept-slope correlation, and
+`profile_targets(fit)` for the direct SD and correlation target names.
+
 ## Evidence Pointers
 
 The current core is covered by:

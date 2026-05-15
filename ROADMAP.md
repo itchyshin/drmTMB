@@ -486,17 +486,21 @@ Phase 6b should turn the implemented surfaces into a coherent reader path:
   unlabelled Gaussian `mu` random intercepts. Structured phylogenetic and
   spatial slopes remain later Phase 6c work that should be interleaved with
   Phases 10 and 12.
+- Closure boundary: Phase 6c closes the ordinary grouped foundation and hands
+  structured random slopes to Phases 10 and 12. It does not fit
+  `phylo(1 + x | species, tree = tree)` or
+  `spatial(1 + x | site, coords = coords)` yet.
 
 | Slice | Goal | Main work | Done when |
 | --- | --- | --- | --- |
 | 69 | Random-slope issue and math contract | Create/maintain the Phase 6c issue, write the ordinary/phylogenetic/spatial one-slope equations, and fix coefficient naming rules. | Done for the ordinary grouped core: `docs/design/33-phase-6c-core-random-effects.md` records the symbolic equations, syntax, output rows, and stable/planned boundary. |
 | 70 | Ordinary one-slope baseline | Stabilize ordinary grouped `mu` one-slope syntax, extractor labels, `corpairs()` coefficient columns, and profile-target names. | Done for the ordinary core: tests cover independent and correlated one-slope `mu` blocks, labelled `(1 + x | p | ID)` names, the `mean-slope` `corpairs()` row, and direct profile-target names. |
-| 71 | Phylogenetic one-slope design and fit | Extend `phylo()` from intercept-only `mu` to one structured `mu` slope after the algebra and storage order are explicit. | Planned: simulation recovery and diagnostics must support the fitted slope SD before this is implemented. |
-| 72 | Spatial one-slope design and fit | Extend `spatial()` from intercept-only `mu` to one structured `mu` slope after coordinate/mesh diagnostics are clear. | Planned: spatial slope tests must distinguish the coordinate foundation from the future mesh path. |
+| 71 | Phylogenetic one-slope design and fit | Extend `phylo()` from intercept-only `mu` to one structured `mu` slope after the algebra and storage order are explicit. | Design handoff done: `docs/design/33-phase-6c-core-random-effects.md` names the minimum Phase 12 implementation contract; fitting remains planned until simulation recovery and diagnostics support the slope SD. |
+| 72 | Spatial one-slope design and fit | Extend `spatial()` from intercept-only `mu` to one structured `mu` slope after coordinate/mesh diagnostics are clear. | Design handoff done: `docs/design/33-phase-6c-core-random-effects.md` names the minimum Phase 10 implementation contract; fitting remains planned and must stay distinct from the future mesh path. |
 | 73 | One-slope diagnostics and inference | Add replication, weak-SD, boundary, profile-target, and profile-likelihood CI diagnostics for fitted one-slope paths. | Done for the ordinary core: existing `check_drm()` and `profile_targets()` tests cover weak random-slope design, boundary SDs, random-slope SD targets, and intercept-slope correlation targets. Structured slope diagnostics remain planned with Slices 71-72. |
-| 74 | Slope-correlation advanced gate | Design two-slope models, intercept-slope correlations, and bivariate slope1-slope2 correlations without advertising them as routine. | The roadmap names required replication, simulation recovery, direct-target status, and CI evidence before fitting or teaching slope correlations. |
-| 75 | Biological examples | Add tutorial examples for reaction norms and bivariate plasticity-syndrome questions, including how to read slope SDs, slope correlations, and interval/status columns. | Deferred until the Phases 10-13 model surfaces settle; current tutorials include the ordinary one-slope output contract but not final structured-slope examples. |
-| 76 | Phase 6c gate | Run focused tests, pkgdown checks, after-phase audit, PR, and GitHub Actions. | Phase 6c closes only after CI and pkgdown are green. |
+| 74 | Slope-correlation advanced gate | Design two-slope models, intercept-slope correlations, and bivariate slope1-slope2 correlations without advertising them as routine. | Done for the ordinary core: the source map names the required coefficient-aware `corpair()` syntax, `corpairs()` rows, direct-target interval status, and recovery evidence before bivariate slope correlations are fitted or taught. |
+| 75 | Biological examples | Add tutorial examples for reaction norms and bivariate plasticity-syndrome questions, including how to read slope SDs, slope correlations, and interval/status columns. | Done for the ordinary core: the location-scale tutorial now gives a thermal reaction-norm example with fixed slope, random-intercept SD, random-slope SD, group-level intercept-slope correlation, and `profile_targets()` interpretation. Full structured-slope examples wait until Phases 10-13 settle. |
+| 76 | Phase 6c gate | Run focused tests, pkgdown checks, after-phase audit, PR, and GitHub Actions. | Done locally for the Phase 6c core: focused tests, pkgdown build/check, stale-claim scans, check-log entry, and after-phase report are complete. GitHub Actions remains the PR-side gate. |
 
 ## Phase 6d: Stable-Core Validation and Engine Hardening
 

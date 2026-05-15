@@ -14940,3 +14940,55 @@ Known limitations:
   or unsupported;
 - GitHub Actions and full `devtools::test()` remain PR-side or later gate
   evidence.
+
+## 2026-05-15 -- Phase 6c-core closure gate before Phases 10+
+
+Goal:
+
+- finish the Phase 6c-core section all the way through the local gate before
+  moving to Phases 10 and later.
+
+Implemented:
+
+- added a structured-slope handoff table to
+  `docs/design/33-phase-6c-core-random-effects.md`, naming the minimum Phase
+  10 spatial, Phase 12 phylogenetic, and later bivariate slope-correlation
+  implementation contracts;
+- added a thermal reaction-norm example to the location-scale tutorial, showing
+  how to read the fixed slope, random-intercept SD, random-slope SD,
+  group-level intercept-slope correlation, and `profile_targets()` rows;
+- updated `ROADMAP.md` so Slices 71-72 are design handoffs, Slices 74-75 are
+  done for the ordinary core, and Slice 76 is done locally for the Phase 6c
+  core;
+- added the after-phase report
+  `docs/dev-log/after-phase/2026-05-15-phase-6c-core-random-effect-closure.md`.
+
+Checks run:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH air format ROADMAP.md docs/design/33-phase-6c-core-random-effects.md docs/dev-log/after-phase/2026-05-15-phase-6c-core-random-effect-closure.md vignettes/location-scale.Rmd`:
+  passed.
+- `/usr/local/bin/Rscript -e 'devtools::test(filter = "gaussian-random-intercepts|profile-targets|check-drm", reporter = "summary")'`:
+  passed.
+- `git diff --check`: passed.
+- `PATH=/opt/homebrew/bin:/usr/local/bin:$PATH /usr/local/bin/Rscript -e 'pkgdown::build_site()'`:
+  passed.
+- `PATH=/opt/homebrew/bin:/usr/local/bin:$PATH /usr/local/bin/Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed with no problems found.
+- `rg -n 'Phase 6c closes|Closure boundary|Design handoff done|thermal reaction-norm|mean-slope|Move to Phases 10|Done locally for the Phase 6c core|structured-slope implementation problem' ROADMAP.md docs/design/33-phase-6c-core-random-effects.md docs/dev-log/after-phase/2026-05-15-phase-6c-core-random-effect-closure.md vignettes/location-scale.Rmd pkgdown-site/ROADMAP.html pkgdown-site/articles/location-scale.html --glob '!pkgdown-site/search.json'`:
+  confirmed source and rendered closure wording.
+- `rg -n 'phylo\\(1 \\+ x.*Implemented|spatial\\(1 \\+ x.*Implemented|structured random slopes.*implemented|bivariate random slopes.*implemented|random effects in .*rho12.*implemented|rho12 random effects.*Implemented|slope-specific .*sd\\(.*Implemented|full structured.*done|all Phase 6c.*implemented' ROADMAP.md docs/design vignettes README.md NEWS.md --glob '!docs/dev-log/**'`:
+  found one valid guardrail phrase saying bivariate random slopes are future.
+- `PATH=/opt/homebrew/bin:/usr/local/bin:$PATH /usr/local/bin/Rscript -e 'devtools::test(reporter = "summary")'`:
+  passed.
+- `PATH=/opt/homebrew/bin:/usr/local/bin:$PATH /usr/local/bin/Rscript -e 'devtools::check(error_on = "never", env_vars = c("_R_CHECK_SYSTEM_CLOCK_" = "FALSE"))'`:
+  passed with 0 errors, 0 warnings, and 0 notes in 2m 23.2s.
+
+Known limitations:
+
+- Phase 6c-core closes the ordinary grouped random-effect section, not full
+  structured random-slope fitting;
+- `phylo(1 + x | species, tree = tree)`,
+  `spatial(1 + x | site, coords = coords)`, bivariate random slopes,
+  slope-specific `sd()` targets, and random effects in `rho12` remain future
+  work for Phases 10+;
+- GitHub Actions remains the PR-side gate after push.
