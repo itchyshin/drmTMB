@@ -14215,3 +14215,54 @@ Known limitations:
   bivariate, non-Gaussian, or sparse-fixed-effect combination;
 - benchmark smoke evidence confirms the harness and compression fields, not
   million-row readiness.
+
+## 2026-05-15 -- Slice 51 Phase 6 profile-inference audit
+
+Goal:
+
+- start Phase 6 by turning the profile-likelihood and tutorial-quality work
+  into explicit GitHub tracking issues and a concrete slice table before
+  adding more interval code.
+
+Implemented:
+
+- created GitHub issue
+  <https://github.com/itchyshin/drmTMB/issues/30> for Phase 6 profile-likelihood
+  inference and interval reporting;
+- created GitHub issue
+  <https://github.com/itchyshin/drmTMB/issues/31> for Phase 6b tutorial quality
+  upgrades;
+- updated `ROADMAP.md` with Phase 6 Slices 51-60 and Phase 6b Slices 61-68;
+- added a Slice 51 target-audit table to
+  `docs/design/12-profile-likelihood-cis.md`;
+- added after-task report
+  `docs/dev-log/after-task/2026-05-15-slice-51-phase-6-profile-audit.md`.
+
+Checks run:
+
+- `gh issue list --repo itchyshin/drmTMB --state open --limit 100 --json number,title,labels,assignees,state,updatedAt,url`:
+  confirmed the live issue inventory before creating Phase 6/6b issues.
+- `gh issue view 5 --repo itchyshin/drmTMB --json number,title,body,labels,updatedAt,url`:
+  confirmed issue #5 remains the longer covariance-block programme, not the
+  Phase 6 profile-CI tracking issue.
+- `gh issue view 4 --repo itchyshin/drmTMB --json number,title,body,labels,updatedAt,url`:
+  confirmed issue #4 remains the large-data readiness programme after Slice 50.
+- `PATH=/opt/homebrew/bin:$PATH air format ROADMAP.md docs/design/12-profile-likelihood-cis.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-15-slice-51-phase-6-profile-audit.md`:
+  passed.
+- `git diff --check`:
+  passed.
+- `Rscript -e 'devtools::test(filter = "profile-targets|corpairs|summary", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'pkgdown::build_site()'`:
+  passed and rebuilt the local `ROADMAP.html`.
+- `Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed with no problems found.
+- `rg -n "issues/30|issues/31|Slice 51|Slices 51-60|Slices 61-68|q4 ordinary and phylogenetic correlations" ROADMAP.md docs/design/12-profile-likelihood-cis.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-15-slice-51-phase-6-profile-audit.md pkgdown-site/ROADMAP.html --glob '!pkgdown-site/search.json'`:
+  confirmed source and rendered roadmap issue links plus the target-audit
+  boundary.
+
+Known limitations:
+
+- this slice does not add new profile intervals;
+- Phase 6 still needs code hardening, focused tests, rendered examples, and
+  GitHub Actions before it can be closed.

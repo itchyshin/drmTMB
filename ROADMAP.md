@@ -345,6 +345,7 @@ Phase 5 closure boundary:
 ## Phase 6: Profile-Likelihood Inference
 
 - Status: partly implemented.
+- Tracking issue: [#30](https://github.com/itchyshin/drmTMB/issues/30).
 - `profile_targets(fit)` lists the current target names and readiness notes for
   confidence-interval and profile-likelihood work, including the first
   bivariate phylogenetic `mu1`/`mu2` SD and correlation targets.
@@ -384,8 +385,25 @@ Phase 5 closure boundary:
 - Keep parametric bootstrap as a fallback for boundary, non-monotone, or failed
   inner-optimization cases.
 
+Phase 6 should now be closed through small inference slices rather than one
+large confidence-interval rewrite:
+
+| Slice | Goal | Main work | Done when |
+| --- | --- | --- | --- |
+| 51 | Profile issue and target audit | Create the Phase 6 tracking issue, audit fitted `profile_targets()`, `confint()`, `summary(conf.int = TRUE)`, and `corpairs(conf.int = TRUE)` support, and record direct versus derived boundaries. | GitHub issue, design note, check-log, and after-task note agree. |
+| 52 | Target namespace cleanup | Stabilize user-facing target names, transformations, `target_type`, `profile_ready`, and unavailable-status wording. | Target inventory tests cover representative fitted classes. |
+| 53 | Direct profile robustness | Harden direct `TMB::tmbprofile()` wrappers, one-target-only errors, and failed-profile messages. | Direct profile tests cover success and clear failure paths. |
+| 54 | Response-scale row profiles | Extend and test `newdata` profile intervals for `sigma`, `sigma1`, `sigma2`, `rho12`, and fitted q2 `corpair()` rows. | Row-specific intervals transform back to response scales and reject ambiguous inputs. |
+| 55 | Random-effect SD and correlation intervals | Stabilize direct profile intervals for currently fitted ordinary, phylogenetic, and spatial random-effect SD/correlation targets. | `summary()` and `corpairs()` attach intervals only to profile-ready rows. |
+| 56 | Derived-target status | Make q4 correlations, ICCs, repeatability, phylogenetic signal, and other nonlinear summaries explicit point-estimate or unavailable-CI targets. | Derived rows report status without trying expensive unsupported profiles. |
+| 57 | Output integration | Align interval columns and status values across `summary()`, `corpairs()`, `confint()`, and `profile_targets()`. | Snapshot tests protect the printed and returned tables. |
+| 58 | Inference diagnostics | Add diagnostics for boundary, near-correlation-limit, non-monotone, and failed inner-optimization profiles. | Edge-case tests record status and messages. |
+| 59 | Profile inference docs | Update profile-CI design, known limitations, tutorials, and NEWS for any user-facing behavior changes. | Source docs and local pkgdown pages make the same claims. |
+| 60 | Phase 6 gate | Run focused tests, full package tests when practical, pkgdown checks, after-phase audit, PR, and GitHub Actions. | Phase 6 closes only after CI and pkgdown are green. |
+
 ## Phase 6b: Tutorial Quality Upgrade
 
+- Tracking issue: [#31](https://github.com/itchyshin/drmTMB/issues/31).
 - Use `docs/design/21-tutorial-style.md` as the tutorial contract.
 - Jason should source-map the tutorial examples the project owner provided,
   including location-scale meta-analysis, phylogenetic location-scale, ecology
@@ -397,6 +415,19 @@ Phase 5 closure boundary:
 - Upgrade the first tutorials in this order: Gaussian location-scale,
   bivariate location-coscale, meta-analysis, phylogenetic location effects,
   and random-effect scale models.
+
+Phase 6b should turn the implemented surfaces into a coherent reader path:
+
+| Slice | Goal | Main work | Done when |
+| --- | --- | --- | --- |
+| 61 | Tutorial issue and source map | Create the Phase 6b tracking issue and compare current tutorials with `docs/design/21-tutorial-style.md` and project-owner example priorities. | Source-map notes identify which tutorials need which fixes. |
+| 62 | Tutorial landing path | Improve pkgdown navigation from scientific question to tutorial to reference page. | The getting-started and model-map pages point to the same learning path. |
+| 63 | Gaussian location-scale polish | Tighten the question, equation, runnable model, fitted output, interpretation, diagnostics, and plot/table guidance. | Pat can follow the article without hidden terminology. |
+| 64 | Bivariate coscale polish | Make residual `rho12`, `sigma1`/`sigma2`, response-scale interpretation, and intervals easier to read. | The article separates residual coscale from latent random-effect correlations. |
+| 65 | Meta-analysis polish | Clarify `meta_known_V(V = V)`, ordinary weights, residual `sigma`, and unsupported combinations. | The article tells readers what to try when known covariance or weights do not fit. |
+| 66 | Structured-dependence polish | Refine phylogenetic and spatial examples, mesh/coords guidance, citation notes, and fitted-versus-planned status. | The article does not overclaim spatial or derived q4 interval support. |
+| 67 | Random-effect scale and covariance tutorial | Explain `sd(group)`, `sd(..., level = ...)`, Family A versus Family B, `corpairs()`, and invalid mixed formulations. | Readers can distinguish direct-SD regression from scale random effects. |
+| 68 | Phase 6b gate | Run Pat/Rose tutorial audit, pkgdown build/check, stale-wording scan, NEWS/roadmap updates, PR, and GitHub Actions. | Tutorials render cleanly and CI is green. |
 
 ## Phase 7: Robust and Positive Continuous Families
 
