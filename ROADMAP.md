@@ -434,7 +434,7 @@ Phase 6b should turn the implemented surfaces into a coherent reader path:
 
 | Slice | Goal | Main work | Done when |
 | --- | --- | --- | --- |
-| 61 | Tutorial issue and source map | Create the Phase 6b tracking issue and compare current tutorials with `docs/design/21-tutorial-style.md` and project-owner example priorities. | Source-map notes identify which tutorials need which fixes. |
+| 61 | Tutorial issue and source map | Create the Phase 6b tracking issue and compare current tutorials with `docs/design/21-tutorial-style.md` and project-owner example priorities. | Done: `docs/design/32-phase-6b-tutorial-source-map.md` maps the tutorial fixes and adds the biological and mathematical interpretation contract for slopes, variance components, `sd(group)`, `rho12`, and `corpairs()` rows. |
 | 62 | Tutorial landing path | Improve pkgdown navigation from scientific question to tutorial to reference page. | The getting-started and model-map pages point to the same learning path. |
 | 63 | Gaussian location-scale polish | Tighten the question, equation, runnable model, fitted output, interpretation, diagnostics, and plot/table guidance. | Pat can follow the article without hidden terminology. |
 | 64 | Bivariate coscale polish | Make residual `rho12`, `sigma1`/`sigma2`, response-scale interpretation, and intervals easier to read. | The article separates residual coscale from latent random-effect correlations. |

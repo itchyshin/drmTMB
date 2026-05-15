@@ -101,6 +101,12 @@ session/reproducibility conventions from each tutorial. Pat should then read
 the drafted `drmTMB` tutorials as a first-time applied user and flag anything
 that lacks output, interpretation, or recovery advice.
 
+The Phase 6b source map in
+`docs/design/32-phase-6b-tutorial-source-map.md` adds the required slope and
+variance-component interpretation layer. Use it when a tutorial explains fixed
+mean slopes, residual-scale slopes, mean random slopes, residual-scale random
+slopes, `sd(group)` models, residual `rho12`, or `corpairs()` rows.
+
 ## Numerical Guards
 
 Internal numerical guards should not dominate teaching tables. For example,

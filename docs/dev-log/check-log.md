@@ -14808,3 +14808,41 @@ Known limitations:
 - one-sided profile intervals, non-monotone-profile recovery, parametric
   bootstrap fallback, conditional random-effect mode intervals, and full
   marginal-effect uncertainty remain future phases.
+
+## 2026-05-15 -- Slice 61 tutorial source map
+
+Goal:
+
+- open Phase 6b with a source-map artifact that makes the tutorial upgrade
+  biological and mathematical, especially for slopes, variance components,
+  `sd(group)`, residual `rho12`, and group-level `corpairs()` rows.
+
+Implemented:
+
+- added `docs/design/32-phase-6b-tutorial-source-map.md`;
+- linked the source map from `docs/design/21-tutorial-style.md`;
+- marked Slice 61 done in `ROADMAP.md`;
+- kept the existing Phase 6b tracking issue #31 as the issue anchor.
+
+Checks run:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH air format ROADMAP.md docs/design/21-tutorial-style.md docs/design/32-phase-6b-tutorial-source-map.md`:
+  passed.
+- `git diff --check`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::build_site()'`:
+  passed and rendered the updated `ROADMAP.html`.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed with no problems found.
+- `rg -n "32-phase-6b|slopes, variance components|biological and mathematical interpretation|Slice 61|profile\\.boundary|profile\\.message" ROADMAP.md pkgdown-site/ROADMAP.html docs/design/21-tutorial-style.md docs/design/32-phase-6b-tutorial-source-map.md --glob '!pkgdown-site/search.json'`:
+  confirmed the source-map link, roadmap status, and rendered roadmap wording.
+- `rg -n "phylogenetic slopes.*implemented|spatial slopes.*implemented|q=4.*profile intervals|direct profile intervals for derived|rho ~|meta_gaussian\\(|tau ~" docs/design/32-phase-6b-tutorial-source-map.md ROADMAP.md docs/design/21-tutorial-style.md`:
+  found no unsupported syntax or stale implementation claim. The hits were
+  explicit planned-status guardrails.
+
+Known limitations:
+
+- this slice does not rewrite tutorials or change fitted-model behavior;
+- structured slopes, q=4 derived profile intervals, predictor-dependent
+  group-level correlations, and new slope-correlation machinery remain future
+  work.
