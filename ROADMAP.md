@@ -349,6 +349,10 @@ Phase 5 closure boundary:
 - `profile_targets(fit)` lists the current target names and readiness notes for
   confidence-interval and profile-likelihood work, including the first
   bivariate phylogenetic `mu1`/`mu2` SD and correlation targets.
+- The target inventory uses a controlled namespace for `target_type`,
+  `profile_ready`, `profile_note`, and `transformation`. A row is
+  `profile_ready` only when it is direct and the fitted object retained the TMB
+  object; memory-light fits report `profile_note = "tmb_object_required"`.
 - `confint(fit)` now returns Wald fixed-effect intervals, and
   `confint(fit, parm = "fixef:mu:x", method = "profile")` profiles explicit
   direct fixed-effect, constant `sigma`/`sigma1`/`sigma2`, ordinary

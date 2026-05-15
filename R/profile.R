@@ -124,6 +124,13 @@ confint.drmTMB <- function(
 #' @return A data frame with columns `parm`, `target_class`, `dpar`, `term`,
 #'   `tmb_parameter`, `index`, `estimate`, `link_estimate`, `scale`,
 #'   `transformation`, `target_type`, `profile_ready`, and `profile_note`.
+#'   `target_type` is either `"direct"` for a target that maps to a single
+#'   fitted TMB parameter or `"derived"` for a target that is reported from a
+#'   transformed or multi-parameter quantity. `profile_ready = TRUE` means the
+#'   target is direct and the fitted object retained the TMB object needed for
+#'   [confint.drmTMB()] with `method = "profile"`. Common `profile_note`
+#'   values are `"ready"`, `"tmb_object_required"`, `"missing_tmb_parameter"`,
+#'   `"derived_target"`, and `"derived_unstructured_correlation"`.
 #'
 #' @examples
 #' dat <- data.frame(y = c(0.2, 0.5, 1.1, 1.4), x = c(-1, 0, 1, 2))
@@ -183,7 +190,7 @@ drm_profile_targets <- function(object) {
     internal <- profile_fixef_internal(dpar)
     indices <- next_indices(internal, length(beta))
     add_rows(lapply(seq_along(beta), function(i) {
-      profile_ready <- profile_internal_is_active(
+      status <- profile_direct_target_status(
         object,
         internal,
         indices[[i]]
@@ -200,8 +207,8 @@ drm_profile_targets <- function(object) {
         scale = "link",
         transformation = "linear_predictor",
         target_type = "direct",
-        profile_ready = profile_ready,
-        profile_note = profile_ready_note(profile_ready)
+        profile_ready = status$profile_ready,
+        profile_note = status$profile_note
       )
     }))
   }
@@ -218,7 +225,7 @@ drm_profile_targets <- function(object) {
         identical(drm_dpar_link(object, dpar), "log")
     ) {
       internal <- profile_fixef_internal(dpar)
-      profile_ready <- profile_internal_is_active(object, internal, 1L)
+      status <- profile_direct_target_status(object, internal, 1L)
       add_rows(list(new_profile_target_row(
         parm = dpar,
         target_class = "distributional-scale",
@@ -231,8 +238,8 @@ drm_profile_targets <- function(object) {
         scale = "response",
         transformation = "exp",
         target_type = "direct",
-        profile_ready = profile_ready,
-        profile_note = profile_ready_note(profile_ready)
+        profile_ready = status$profile_ready,
+        profile_note = status$profile_note
       )))
     }
   }
@@ -240,7 +247,7 @@ drm_profile_targets <- function(object) {
   if ("rho12" %in% names(object$coefficients)) {
     beta <- object$coefficients$rho12
     if (length(beta) == 1L && identical(names(beta), "(Intercept)")) {
-      profile_ready <- profile_internal_is_active(object, "beta_rho12", 1L)
+      status <- profile_direct_target_status(object, "beta_rho12", 1L)
       add_rows(list(new_profile_target_row(
         parm = "rho12",
         target_class = "residual-correlation",
@@ -253,8 +260,8 @@ drm_profile_targets <- function(object) {
         scale = "response",
         transformation = "rho12_tanh",
         target_type = "direct",
-        profile_ready = profile_ready,
-        profile_note = profile_ready_note(profile_ready)
+        profile_ready = status$profile_ready,
+        profile_note = status$profile_note
       )))
     }
   }
@@ -270,8 +277,11 @@ drm_profile_targets <- function(object) {
       } else {
         NA_integer_
       }
-      profile_ready <- is_direct &&
-        profile_internal_is_active(object, internal, index)
+      status <- if (is_direct) {
+        profile_direct_target_status(object, internal, index)
+      } else {
+        list(profile_ready = FALSE, profile_note = "derived_target")
+      }
       add_rows(list(new_profile_target_row(
         parm = paste0("sd:", dpar, ":", term),
         target_class = "random-effect-sd",
@@ -284,12 +294,8 @@ drm_profile_targets <- function(object) {
         scale = "response",
         transformation = if (is_direct) "exp" else "derived_group_scale",
         target_type = if (is_direct) "direct" else "derived",
-        profile_ready = profile_ready,
-        profile_note = if (is_direct) {
-          profile_ready_note(profile_ready)
-        } else {
-          "derived_target"
-        }
+        profile_ready = status$profile_ready,
+        profile_note = status$profile_note
       )))
     }
   }
@@ -315,9 +321,12 @@ drm_profile_targets <- function(object) {
       index <- i
       if (is_phylo_unstructured) {
         internal <- "theta_phylo"
-        profile_ready <- FALSE
+        status <- list(
+          profile_ready = FALSE,
+          profile_note = "derived_unstructured_correlation"
+        )
       } else {
-        profile_ready <- profile_internal_is_active(
+        status <- profile_direct_target_status(
           object,
           internal,
           index
@@ -346,12 +355,8 @@ drm_profile_targets <- function(object) {
           "tanh"
         },
         target_type = if (is_phylo_unstructured) "derived" else "direct",
-        profile_ready = profile_ready,
-        profile_note = if (is_phylo_unstructured) {
-          "derived_unstructured_correlation"
-        } else {
-          profile_ready_note(profile_ready)
-        }
+        profile_ready = status$profile_ready,
+        profile_note = status$profile_note
       )))
     }
   }
@@ -361,7 +366,7 @@ drm_profile_targets <- function(object) {
     internal <- "theta_ord"
     indices <- next_indices(internal, length(theta))
     add_rows(lapply(seq_along(theta), function(i) {
-      profile_ready <- profile_internal_is_active(
+      status <- profile_direct_target_status(
         object,
         internal,
         indices[[i]]
@@ -378,8 +383,8 @@ drm_profile_targets <- function(object) {
         scale = "internal",
         transformation = "ordered_cutpoint",
         target_type = "direct",
-        profile_ready = profile_ready,
-        profile_note = profile_ready_note(profile_ready)
+        profile_ready = status$profile_ready,
+        profile_note = status$profile_note
       )
     }))
   }
@@ -390,7 +395,7 @@ drm_profile_targets <- function(object) {
     empty_profile_targets()
   }
   row.names(out) <- NULL
-  out
+  validate_profile_targets(out)
 }
 
 drm_profile_confint <- function(
@@ -660,10 +665,13 @@ profile_registry_cor_targets <- function(object) {
     }
     estimate <- unname(values[[index]])
     is_unstructured_corr <- identical(pair$tmb_parameter[[1L]], "theta_re_cov")
-    profile_ready <- if (is_unstructured_corr) {
-      FALSE
+    status <- if (is_unstructured_corr) {
+      list(
+        profile_ready = FALSE,
+        profile_note = "derived_unstructured_correlation"
+      )
     } else {
-      profile_internal_is_active(
+      profile_direct_target_status(
         object,
         pair$tmb_parameter[[1L]],
         index
@@ -689,12 +697,8 @@ profile_registry_cor_targets <- function(object) {
         "tanh"
       },
       target_type = if (is_unstructured_corr) "derived" else "direct",
-      profile_ready = profile_ready,
-      profile_note = if (is_unstructured_corr) {
-        "derived_unstructured_correlation"
-      } else {
-        profile_ready_note(profile_ready)
-      }
+      profile_ready = status$profile_ready,
+      profile_note = status$profile_note
     )
   })
   out[!vapply(out, is.null, logical(1L))]
@@ -752,6 +756,61 @@ empty_profile_targets <- function() {
   )
 }
 
+validate_profile_targets <- function(targets) {
+  expected <- names(empty_profile_targets())
+  if (!identical(names(targets), expected)) {
+    cli::cli_abort("Internal error: profile target columns are inconsistent.")
+  }
+  if (nrow(targets) == 0L) {
+    return(targets)
+  }
+  allowed_types <- c("direct", "derived")
+  bad_type <- !targets$target_type %in% allowed_types
+  if (any(bad_type)) {
+    cli::cli_abort(
+      "Internal error: profile target type {.val {targets$target_type[bad_type][[1L]]}} is not supported."
+    )
+  }
+  allowed_notes <- c(
+    "ready",
+    "tmb_object_required",
+    "missing_tmb_parameter",
+    "derived_target",
+    "derived_unstructured_correlation"
+  )
+  bad_note <- !targets$profile_note %in% allowed_notes
+  if (any(bad_note)) {
+    cli::cli_abort(
+      "Internal error: profile target note {.val {targets$profile_note[bad_note][[1L]]}} is not supported."
+    )
+  }
+  allowed_transformations <- c(
+    "linear_predictor",
+    "exp",
+    "rho12_tanh",
+    "tanh",
+    "derived_group_scale",
+    "unstructured_corr",
+    "ordered_cutpoint"
+  )
+  bad_transformation <- !targets$transformation %in% allowed_transformations
+  if (any(bad_transformation)) {
+    cli::cli_abort(
+      "Internal error: profile target transformation {.val {targets$transformation[bad_transformation][[1L]]}} is not supported."
+    )
+  }
+  if (any(targets$profile_ready & targets$target_type != "direct")) {
+    cli::cli_abort("Internal error: derived profile targets cannot be ready.")
+  }
+  duplicate <- duplicated(targets$parm)
+  if (any(duplicate)) {
+    cli::cli_abort(
+      "Internal error: duplicate profile target name {.val {targets$parm[duplicate][[1L]]}}."
+    )
+  }
+  targets
+}
+
 profile_fixef_internal <- function(dpar) {
   if (
     any(startsWith(
@@ -791,12 +850,36 @@ profile_internal_is_active <- function(object, internal, index) {
   if (is.na(internal) || is.na(index)) {
     return(FALSE)
   }
+  if (is.null(object$obj)) {
+    return(FALSE)
+  }
   sum(names(object$opt$par) == internal) >= index
 }
 
-profile_ready_note <- function(profile_ready) {
+profile_direct_target_status <- function(object, internal, index) {
+  ready <- profile_internal_is_active(object, internal, index)
+  list(
+    profile_ready = ready,
+    profile_note = profile_ready_note(
+      ready,
+      object = object,
+      internal = internal,
+      index = index
+    )
+  )
+}
+
+profile_ready_note <- function(
+  profile_ready,
+  object = NULL,
+  internal = NA,
+  index = NA
+) {
   if (isTRUE(profile_ready)) {
     return("ready")
+  }
+  if (!is.null(object) && is.null(object$obj)) {
+    return("tmb_object_required")
   }
   "missing_tmb_parameter"
 }
