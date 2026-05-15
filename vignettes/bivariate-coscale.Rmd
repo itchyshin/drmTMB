@@ -155,6 +155,20 @@ parameters. For example, `x1` can appear in all five formulae, while `x2` might
 appear only in `mu1`, `sigma1`, and `rho12`. Each parameter still gets its own
 coefficient vector.
 
+Read those coefficient vectors as separate biological statements:
+
+| Formula | Example coefficient | Interpretation |
+|---|---|---|
+| `mu1 = y1 ~ x` | `mu1:x` | predictor effect on the expected value of response 1 |
+| `mu2 = y2 ~ x` | `mu2:x` | predictor effect on the expected value of response 2 |
+| `sigma1 = ~ x` | `sigma1:x` | multiplicative change in residual SD for response 1 |
+| `sigma2 = ~ x` | `sigma2:x` | multiplicative change in residual SD for response 2 |
+| `rho12 = ~ x` | `rho12:x` | change in residual response-response coupling after both means and residual SDs are modelled |
+
+The `rho12` slope is not a slope for either response mean. It is a slope on the
+correlation-link scale. Use `rho12(fit, newdata = grid)` or a `rho12` curve
+when the reader needs the fitted residual correlation on the response scale.
+
 If both responses have the same location predictors, `mvbind()` is a shorthand
 for the two location formulas:
 

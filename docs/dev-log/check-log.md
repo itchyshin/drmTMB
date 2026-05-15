@@ -14846,3 +14846,48 @@ Known limitations:
 - structured slopes, q=4 derived profile intervals, predictor-dependent
   group-level correlations, and new slope-correlation machinery remain future
   work.
+
+## 2026-05-15 -- Phase 6b Slices 62-68 tutorial quality gate
+
+Goal:
+
+- carry the Phase 6b tutorial programme from the Slice 61 source map through
+  the landing path, major tutorial interpretation edits, random-effect scale
+  guardrails, and local gate.
+
+Implemented:
+
+- Slice 62: updated Getting Started and the model map so readers can move from
+  a scientific phrase to the relevant guide, tutorial, or post-fit workflow;
+- Slice 63: added a compact slope-interpretation table to the Gaussian
+  location-scale tutorial;
+- Slice 64: added a bivariate coefficient-reading table for `mu1`, `mu2`,
+  `sigma1`, `sigma2`, and `rho12` slopes;
+- Slice 65: added a meta-analysis report-scale table;
+- Slice 66: added a six-row q=4 phylogenetic covariance interpretation table,
+  including all four mean-scale pairs;
+- Slice 67: added a Family A versus Family B section to the scale guide;
+- Slice 68: ran the local docs gate and updated `ROADMAP.md` with the local
+  gate boundary.
+
+Checks run:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH air format ROADMAP.md vignettes/drmTMB.Rmd vignettes/model-map.Rmd vignettes/model-workflow.Rmd vignettes/location-scale.Rmd vignettes/which-scale.Rmd vignettes/bivariate-coscale.Rmd vignettes/meta-analysis.Rmd vignettes/phylogenetic-spatial.Rmd`:
+  passed.
+- `git diff --check`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::build_site()'`:
+  passed and rendered the touched articles plus `ROADMAP.html`.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed with no problems found.
+- `rg -n "Question-first|If the scientific phrase|slope-like quantities|Family A versus Family B|Choose the report scale deliberately|Read the six q=4 rows|Done: Getting Started|Done locally" ROADMAP.md pkgdown-site/ROADMAP.html pkgdown-site/articles/drmTMB.html pkgdown-site/articles/model-map.html pkgdown-site/articles/model-workflow.html pkgdown-site/articles/location-scale.html pkgdown-site/articles/which-scale.html pkgdown-site/articles/bivariate-coscale.html pkgdown-site/articles/meta-analysis.html pkgdown-site/articles/phylogenetic-spatial.html --glob '!pkgdown-site/search.json'`:
+  confirmed source and rendered tutorial updates.
+- `rg -n "phylogenetic slopes.*implemented|spatial slopes.*implemented|direct profile intervals for derived|q=4.*profile-ready|all six.*profile-ready|rho ~|meta_gaussian\\(|tau ~|Family A.*implemented.*Family B.*same" vignettes ROADMAP.md docs/design --glob '!docs/dev-log/**'`:
+  found only intentional guardrail references for unsupported `meta_gaussian()`,
+  `tau ~`, and planned structured-slope/status wording.
+
+Known limitations:
+
+- this task did not add new model behavior, tests, profile methods, visual
+  helpers, or real external datasets;
+- GitHub Actions and public pkgdown deployment remain PR-side gates.

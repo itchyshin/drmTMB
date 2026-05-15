@@ -380,6 +380,22 @@ change in residual standard deviation for a one-unit change in that predictor.
 For example, a `sigma` coefficient of `0.3` means `exp(0.3) = 1.35`, or about a
 35% higher residual standard deviation.
 
+For biological interpretation, keep the slope-like quantities separate:
+
+| Quantity | Model term | Biological claim |
+|---|---|---|
+| fixed mean slope | `y ~ temperature` | average growth changes with temperature |
+| fixed residual-scale slope | `sigma ~ temperature` | residual predictability changes with temperature |
+| mean random-slope SD | `(0 + temperature | population)` or `(1 + temperature | population)` | populations differ in thermal reaction norms |
+| residual-scale random-slope SD | `sigma ~ (0 + temperature | population)` | populations differ in how residual variability changes with temperature |
+| random-effect scale slope | `sd(population) ~ habitat` | the among-population SD in expected growth differs by habitat |
+
+The first two are fixed-effect slopes. The next two are variance components for
+group-specific slopes. The last is a direct model for a group-level SD. A
+single ecological phrase such as "temperature-dependent variability" can point
+to any of these, so the tutorial should name the model component before naming
+the biological conclusion.
+
 ## Worked example: growth mean and predictability
 
 Suppose an ecologist measures juvenile growth in two habitats and records the

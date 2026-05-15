@@ -27,11 +27,17 @@ whether temperature also changes residual variability.
 
 Symbolically:
 
-```text
-growth_i | mu_i, sigma_i ~ Normal(mu_i, sigma_i^2)
-mu_i = beta_0 + beta_1 temperature_i + beta_2 habitat_i
-log(sigma_i) = gamma_0 + gamma_1 temperature_i
-```
+\[
+\begin{aligned}
+\text{growth}_i \mid \mu_i, \sigma_i
+  &\sim \operatorname{Normal}(\mu_i, \sigma_i^2),\\
+\mu_i
+  &= \beta_0 + \beta_1 \text{temperature}_i
+     + \beta_2 \mathbb{1}(\text{habitat}_i = \text{kelp}),\\
+\log(\sigma_i)
+  &= \gamma_0 + \gamma_1 \text{temperature}_i .
+\end{aligned}
+\]
 
 Matching R syntax:
 
@@ -89,6 +95,17 @@ The `sigma` coefficients are on the log-standard-deviation scale. A positive
 temperature coefficient in `sigma` means that residual variability increases
 with temperature. Exponentiating the coefficient gives a multiplicative change
 in residual standard deviation for a one-unit temperature increase.
+
+Use the scale of the fitted parameter when deciding what to report:
+
+| Output | Fitted scale | Report when the question is... |
+| --- | --- | --- |
+| `coef(fit, "mu")` | response units | expected growth, treatment effects, or mean trait differences |
+| `coef(fit, "sigma")` | log residual SD | multiplicative residual-SD or residual-variance contrasts |
+| `sigma(fit)` | residual SD | fitted predictability or extra heterogeneity on the response scale |
+| `rho12(fit)` | residual correlation | residual coupling between two responses after means and residual SDs are modelled |
+| `corpairs(fit)` | fitted correlation rows | group-level, phylogenetic, or residual correlation layers, depending on `level` |
+| `profile_targets(fit)` | interval target inventory | whether a fitted SD or correlation target can receive a profile interval |
 
 `summary()` puts the fixed-effect estimates, response-scale scale, shape, and
 correlation summaries, log likelihood, and convergence code in one place:

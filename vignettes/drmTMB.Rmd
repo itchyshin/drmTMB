@@ -116,12 +116,12 @@ syntax, fitted output, and interpretation.
 
 | If your question is... | Read this first | Main parameter |
 | --- | --- | --- |
-| Do predictors change the mean and residual variability of one response? | "When variance carries signal" | `mu`, `sigma` |
-| Am I modelling residual variation, group-level variation, or likelihood weights? | "Which scale are you modelling?" | `sigma`, `sd(group)`, `weights` |
-| Which continuous, count, proportion, or robust family should I use? | "Choosing response families" | family-specific `mu`, `sigma`, `nu`, `zi`, `hu` |
-| Does a predictor change residual coupling between two responses? | "Changing residual coupling with rho12" | `rho12` |
-| Do effect sizes have known sampling variances or covariance? | "Mean effects and residual heterogeneity in meta-analysis" | `meta_known_V(V = V)`, `sigma` |
-| Do species trait means remain similar after accounting for shared ancestry? | "Structured dependence" | `phylo()`, `sigma_phylo` |
+| Do predictors change the mean and residual variability of one response? | [When variance carries signal](location-scale.html) | `mu`, `sigma` |
+| Am I modelling residual variation, group-level variation, or likelihood weights? | [Which scale are you modelling?](which-scale.html) | `sigma`, `sd(group)`, `weights` |
+| Which continuous, count, proportion, or robust family should I use? | [Choosing response families](distribution-families.html) | family-specific `mu`, `sigma`, `nu`, `zi`, `hu` |
+| Does a predictor change residual coupling between two responses? | [Changing residual coupling with rho12](bivariate-coscale.html) | `rho12` |
+| Do effect sizes have known sampling variances or covariance? | [Mean effects and residual heterogeneity in meta-analysis](meta-analysis.html) | `meta_known_V(V = V)`, `sigma` |
+| Do species trait means remain similar after accounting for shared ancestry? | [Structured dependence](phylogenetic-spatial.html) | `phylo()`, `sigma_phylo` |
 
 Here `nu` is a shape parameter, `zi` and `hu` are zero-process parameters, and
 `sd(group)` refers to a group-level random-effect standard deviation rather than
@@ -133,6 +133,13 @@ run `check_drm()`, and then read the coefficient table on the parameter scale
 used by the model. For example, `sigma` coefficients are on a log scale in
 Gaussian location-scale models, while `rho12(fit)` returns residual
 correlations on the response scale.
+
+For slope and variance-component questions, name the estimand before reporting
+the number. A `mu` slope is an expected-response effect, a `sigma` slope is a
+log residual-SD effect, a random-slope SD is among-group variation in a
+reaction norm, and `sd(group) ~ x_group` is a model for the SD of a group-level
+mean effect. Those four quantities can all involve a predictor, but they answer
+different biological questions.
 
 ## What can I fit today?
 

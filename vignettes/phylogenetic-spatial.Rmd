@@ -345,6 +345,21 @@ location-scale rows are `mu1`-`sigma1`, `mu1`-`sigma2`, `mu2`-`sigma1`, and
 but they are statistically part of the same q=4 block. They are not the
 residual `rho12` surface.
 
+Read the six q=4 rows as latent phylogenetic covariance summaries:
+
+| Pair | Biological reading | Common mistake |
+|---|---|---|
+| `mu1`-`mu2` | species with positive phylogenetic deviations in trait 1 also tend to have positive or negative deviations in trait 2 | treating it as residual trait coupling |
+| `mu1`-`sigma1` | the evolutionary deviation in trait 1's mean is associated with trait 1's residual log-SD | reporting it as a fixed `sigma1` slope |
+| `mu1`-`sigma2` | the evolutionary deviation in trait 1's mean is associated with trait 2's residual log-SD | dropping the cross-trait mean-scale row from the interpretation |
+| `mu2`-`sigma1` | the evolutionary deviation in trait 2's mean is associated with trait 1's residual log-SD | dropping the cross-trait mean-scale row from the interpretation |
+| `mu2`-`sigma2` | the evolutionary deviation in trait 2's mean is associated with trait 2's residual log-SD | treating it as the only mean-scale pair |
+| `sigma1`-`sigma2` | species-level residual-scale deviations co-vary across the two traits | treating it as residual `rho12` |
+
+The cross-trait rows are not optional bookkeeping. They are part of the fitted
+unstructured q=4 covariance block and should remain visible in examples even
+when the biological story is harder to tell.
+
 ### 5. Predictor-dependent latent phylogenetic correlations
 
 The q=2 location-location route is fitted:

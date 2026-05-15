@@ -22,6 +22,20 @@ response, the most common parameters are the location `mu`, the residual scale
 responses, `mu1`, `mu2`, `sigma1`, `sigma2`, and `rho12` describe the two
 means, two residual scales, and residual response-response correlation.
 
+Use this guide as the landing page when you are deciding which article to read
+next. The quick rule is: use the worked tutorials for a fitted analysis, use
+the model guides for vocabulary and implemented-versus-planned status, and use
+the reference pages when you already know the function name.
+
+| If the scientific phrase is... | It usually maps to... | Start here |
+| --- | --- | --- |
+| average response, expected trait value, or treatment effect | `mu` or `mu1` / `mu2` | [When variance carries signal](location-scale.html) |
+| residual variability, predictability, extra heterogeneity, or dispersion | `sigma` or `sigma1` / `sigma2` | [Which scale are you modelling?](which-scale.html) |
+| among-group variation in expected response | random-effect SDs or `sd(group)` | [Which scale are you modelling?](which-scale.html) |
+| residual trait coupling after the means and residual SDs are modelled | `rho12` | [Changing residual coupling with rho12](bivariate-coscale.html) |
+| tree- or coordinate-structured location deviations | `phylo()` or `spatial()` | [Structured dependence](phylogenetic-spatial.html) |
+| fitted interval status or boundary diagnostics | `profile_targets()`, `conf.status`, `profile.boundary`, `profile.message` | [Checking and using fitted models](model-workflow.html) |
+
 ## One response
 
 The most mature path is Gaussian location-scale regression. Use it when the
