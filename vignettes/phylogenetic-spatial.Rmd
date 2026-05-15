@@ -413,6 +413,11 @@ phylo_cor <- "cor:phylo:cor(mu1:(Intercept),mu2:(Intercept) | phylo | species)"
 confint(fit_phylo_mean, parm = phylo_cor, method = "profile")
 ```
 
+Profile interval rows include `conf.status = "profile"`. They also include
+`profile.boundary` and `profile.message`, so an interval that reaches a lower
+SD boundary or approaches a correlation boundary is marked before you treat it
+as a symmetric, well-behaved 95% interval.
+
 The second kind is uncertainty in conditional random-effect modes, such as the
 species-specific fitted deviations. Those intervals are useful for caterpillar
 plots and diagnostics, but they are not the same as intervals for
@@ -812,6 +817,7 @@ same-trait pairs (`mu1`-`sigma1`, `mu2`-`sigma2`) and cross-trait pairs
 (`mu1`-`sigma2`, `mu2`-`sigma1`). The cross-trait rows are statistically valid
 q=4 covariance rows, but their biological interpretation should be written
 with extra care.
+
 The `scale-scale` row asks whether the two traits' phylogenetic log-SD
 deviations move together. The `conf.status` column is part of the inference
 contract: profile-ready correlations receive 95% bounds, while the current q=4

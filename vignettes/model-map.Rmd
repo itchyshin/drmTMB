@@ -279,7 +279,15 @@ implemented:
 | `corpairs(fit_biv, level = "group")` | ordinary species or individual random-intercept correlation | residual trait coupling or shared-ancestry correlation |
 | `fit_phylo` with `phylo(1 | species, tree = tree)` | one-trait shared-ancestry mean structure | bivariate phylogenetic covariance |
 | `corpairs(fit_biv_phylo, level = "phylogenetic")` | bivariate phylogenetic mean-mean correlation, or six q=4 rows when the all-four labelled block is fitted | predictor-dependent phylogenetic correlations |
-| `summary(fit_biv_phylo)$covariance` | variance and covariance point summaries for the fitted phylogenetic mean-mean or q=4 layer | direct profile intervals for derived q=4 correlations |
+| `summary(fit_biv_phylo)$covariance` | variance and covariance point summaries for the fitted phylogenetic mean-mean or q=4 layer | derived-profile intervals for q=4 correlations |
+
+For intervals, read the status column before reading the bounds.
+`conf.status = "profile"` means a profile interval was returned;
+`newdata_required` means the fitted surface needs a row supplied to
+`confint(..., newdata = ...)`; and `derived_interval_unavailable` means the
+point estimate is not a one-parameter profile target yet. Profile rows also
+carry `profile.boundary` and `profile.message` so boundary-like intervals are
+not mistaken for ordinary symmetric intervals.
 
 In developer shorthand, the q=4 phylogenetic endpoint means four distributional
 endpoints: `mu1`, `mu2`, `sigma1`, and `sigma2`. It does not mean four fitted

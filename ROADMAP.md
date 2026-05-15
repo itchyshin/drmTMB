@@ -287,7 +287,7 @@ Phase 5 closure boundary:
 | univariate phylogenetic | `phylo(1 | species, tree = tree)` in Gaussian `mu`, `sd_phylo(species) ~ z`, profile targets and diagnostics | phylogenetic slopes, richer tree-shape recovery grids |
 | bivariate phylogenetic | matching `mu1`/`mu2` phylogenetic location correlation, constant q=4 location-scale block, q=2 predictor-dependent `corpair(..., level = "phylogenetic") ~ w`, bivariate `sd_phylo1()` / `sd_phylo2()` | q=4 predictor-dependent location-scale and scale-scale `corpair()` regressions |
 | coordinate spatial | `spatial(1 | site, coords = coords)` in univariate Gaussian `mu`, `sdpars`, `ranef("spatial_mu")`, profile target, and `check_drm()` row | mesh/SPDE, spatial slopes, spatial scale, bivariate spatial q=4, spatial direct-SD, spatial `corpair()` |
-| inference/output | fixed-effect SEs, direct profile-ready targets where implemented, `corpairs(conf.int = TRUE)` with explicit interval status | direct profile intervals for derived q=4 correlations and richer marginal-effect/visualization helpers |
+| inference/output | fixed-effect SEs, direct profile-ready targets where implemented, `corpairs(conf.int = TRUE)` with explicit interval status | derived-profile intervals for q=4 correlations and richer marginal-effect/visualization helpers |
 
 ## Phase 5b: Large-Data Memory Strategy
 
@@ -408,7 +408,7 @@ large confidence-interval rewrite:
 | 56 | Derived-target status | Make q4 correlations, ICCs, repeatability, phylogenetic signal, and other nonlinear summaries explicit point-estimate or unavailable-CI targets. | Done: simple Gaussian repeatability and phylogenetic-signal rows are reported as derived variance-ratio targets, and unsupported derived intervals fail or report unavailable status before expensive profiling. |
 | 57 | Output integration | Align interval columns and status values across `summary()`, `corpairs()`, `confint()`, and `profile_targets()`. | Done: `conf.status` is now part of successful `confint()` rows and interval-aware `summary()` tables, with contract tests for returned and printed parameter tables. |
 | 58 | Inference diagnostics | Add diagnostics for boundary, near-correlation-limit, non-monotone, and failed inner-optimization profiles. | Done: profile interval rows carry `profile.boundary` and `profile.message`, and failed profile errors name boundary, one-sided, non-monotone, and failed-inner-optimization possibilities. |
-| 59 | Profile inference docs | Update profile-CI design, known limitations, tutorials, and NEWS for any user-facing behavior changes. | Source docs and local pkgdown pages make the same claims. |
+| 59 | Profile inference docs | Update profile-CI design, known limitations, tutorials, and NEWS for any user-facing behavior changes. | Done: README, known limitations, model workflow, model map, bivariate, phylogenetic-spatial, and profile-CI design prose teach `conf.status`, `profile.boundary`, and `profile.message` without claiming derived q4 intervals. |
 | 60 | Phase 6 gate | Run focused tests, full package tests when practical, pkgdown checks, after-phase audit, PR, and GitHub Actions. | Phase 6 closes only after CI and pkgdown are green. |
 
 ## Phase 6b: Tutorial Quality Upgrade
