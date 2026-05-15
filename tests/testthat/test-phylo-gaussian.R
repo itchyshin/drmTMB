@@ -712,6 +712,18 @@ test_that("bivariate phylogenetic corpair regression reports q2 location correla
   pair <- corpairs(fit, level = "phylogenetic")
   pair_ci <- corpairs(fit, level = "phylogenetic", conf.int = TRUE)
   targets <- profile_targets(fit)
+  ci_newdata <- data.frame(z_species = 0.10)
+  row.names(ci_newdata) <- "typical_species"
+  cor_ci <- stats::confint(
+    fit,
+    parm = cor_dpar,
+    level = 0.70,
+    method = "profile",
+    newdata = ci_newdata,
+    trace = FALSE,
+    ystep = 0.45
+  )
+  cor_at_newdata <- predict(fit, newdata = ci_newdata, dpar = cor_dpar)
 
   expect_equal(fit$opt$convergence, 0)
   expect_true(is.finite(fit$opt$objective))
@@ -736,6 +748,13 @@ test_that("bivariate phylogenetic corpair regression reports q2 location correla
     )
   )
   expect_equal(pair_ci$conf.status, "newdata_required")
+  expect_equal(cor_ci$parm, paste0(cor_dpar, "[typical_species]"))
+  expect_equal(cor_ci$scale, "response")
+  expect_equal(cor_ci$transformation, "random_effect_correlation_tanh")
+  expect_equal(cor_ci$tmb_parameter, "beta_cor_mu")
+  expect_true(is.na(cor_ci$index))
+  expect_lt(cor_ci$lower, cor_at_newdata)
+  expect_gt(cor_ci$upper, cor_at_newdata)
   expect_true(any(
     targets$parm == paste0("fixef:", cor_dpar, ":z_species") &
       targets$tmb_parameter == "beta_cor_mu" &

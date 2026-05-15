@@ -14417,3 +14417,49 @@ Known limitations:
   summaries;
 - failed profiles still require user judgement about profile controls and model
   diagnostics; this slice only makes the failure message target-specific.
+
+## 2026-05-15 -- Slice 54 response-scale row profiles
+
+Goal:
+
+- close the tested `newdata` profile interval surface for current response
+  parameters: `sigma`, `sigma1`, `sigma2`, residual `rho12`, and fitted q=2
+  ordinary or phylogenetic `corpair()` rows.
+
+Implemented:
+
+- added a bivariate Gaussian test that profiles two supplied rows for
+  `sigma1` and `sigma2` and checks response-scale positivity and bracketing of
+  fitted row values;
+- added ambiguity tests for multiple `parm` values, non-data-frame `newdata`,
+  and empty `newdata`;
+- extended the fitted q=2 phylogenetic `corpair()` smoke test to run
+  `confint(..., newdata = ...)` and verify the response-scale latent
+  correlation interval;
+- updated `NEWS.md`, `ROADMAP.md`, `docs/design/12-profile-likelihood-cis.md`,
+  and the Slice 54 after-task note.
+
+Checks run:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::test(filter = "profile-targets|phylo-gaussian", reporter = "summary")'`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH air format tests/testthat/test-profile-targets.R tests/testthat/test-phylo-gaussian.R NEWS.md ROADMAP.md docs/design/12-profile-likelihood-cis.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-15-slice-54-response-scale-row-profiles.md`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::test(filter = "profile-targets|biv-gaussian|phylo-gaussian", reporter = "summary")'`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::build_site()'`:
+  passed and rebuilt local `ROADMAP.html` and `news/index.html`.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed with no problems found.
+- `git diff --check`:
+  passed.
+- `rg -n "Slice 54|Response-Scale Row Profiles|newdata_required|sigma1\\[cool\\]|typical_species|must be one distributional-parameter|ordinary or phylogenetic q=2|ambiguous newdata" NEWS.md ROADMAP.md docs/design/12-profile-likelihood-cis.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-15-slice-54-response-scale-row-profiles.md tests/testthat/test-profile-targets.R tests/testthat/test-phylo-gaussian.R pkgdown-site/ROADMAP.html pkgdown-site/news/index.html --glob '!pkgdown-site/search.json'`:
+  confirmed source, tests, and rendered pkgdown wording for the Slice 54 row
+  profile boundary.
+
+Known limitations:
+
+- this slice does not add new q=4, aggregate `corpairs()`, ICC, repeatability,
+  phylogenetic-signal, or arbitrary nonlinear profile intervals;
+- `newdata` profiles are still one scalar row target at a time and can be slow
+  over large grids.

@@ -362,7 +362,10 @@ Phase 5 closure boundary:
 - `confint(fit, parm = "sigma", method = "profile", newdata = grid)` and
   `confint(fit, parm = "rho12", method = "profile", newdata = grid)` profile
   row-specific response-scale `sigma` and residual-correlation values by
-  profiling the fixed-effect linear predictor for each supplied row.
+  profiling the fixed-effect linear predictor for each supplied row. The same
+  row-specific route is now covered for `sigma1`, `sigma2`, and fitted q=2
+  ordinary or phylogenetic `corpair()` values; ambiguous `newdata` requests are
+  rejected before profile optimization.
 - Direct covariance profile intervals are implemented for the first univariate
   `mu`/`sigma` random-intercept correlation target, the first bivariate
   `mu1`/`mu2` random-intercept correlation target, and the first bivariate
@@ -400,7 +403,7 @@ large confidence-interval rewrite:
 | 51 | Profile issue and target audit | Create the Phase 6 tracking issue, audit fitted `profile_targets()`, `confint()`, `summary(conf.int = TRUE)`, and `corpairs(conf.int = TRUE)` support, and record direct versus derived boundaries. | GitHub issue, design note, check-log, and after-task note agree. |
 | 52 | Target namespace cleanup | Stabilize user-facing target names, transformations, `target_type`, `profile_ready`, and unavailable-status wording. | Target inventory tests cover representative fitted classes. |
 | 53 | Direct profile robustness | Harden direct `TMB::tmbprofile()` wrappers, one-target-only errors, and failed-profile messages. | Direct profile tests cover success and clear failure paths. |
-| 54 | Response-scale row profiles | Extend and test `newdata` profile intervals for `sigma`, `sigma1`, `sigma2`, `rho12`, and fitted q2 `corpair()` rows. | Row-specific intervals transform back to response scales and reject ambiguous inputs. |
+| 54 | Response-scale row profiles | Extend and test `newdata` profile intervals for `sigma`, `sigma1`, `sigma2`, `rho12`, and fitted q2 `corpair()` rows. | Done: row-specific intervals transform back to response scales and ambiguous inputs are rejected. |
 | 55 | Random-effect SD and correlation intervals | Stabilize direct profile intervals for currently fitted ordinary, phylogenetic, and spatial random-effect SD/correlation targets. | `summary()` and `corpairs()` attach intervals only to profile-ready rows. |
 | 56 | Derived-target status | Make q4 correlations, ICCs, repeatability, phylogenetic signal, and other nonlinear summaries explicit point-estimate or unavailable-CI targets. | Derived rows report status without trying expensive unsupported profiles. |
 | 57 | Output integration | Align interval columns and status values across `summary()`, `corpairs()`, `confint()`, and `profile_targets()`. | Snapshot tests protect the printed and returned tables. |

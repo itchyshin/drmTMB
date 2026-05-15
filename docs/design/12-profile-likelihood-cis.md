@@ -48,7 +48,7 @@ paths.
 | --- | --- | --- |
 | Fixed-effect coefficients | Wald intervals by default; selected direct profile targets are available by explicit `fixef:<dpar>:<coef>` names. | Audit target names across families and improve failure messages for unsupported targets. |
 | Constant residual scale and residual `rho12` | Direct profile intervals are available for constant `sigma`, `sigma1`, `sigma2`, and `rho12`. | Keep response-scale transformations explicit and test boundary behavior. |
-| Predictor-dependent response-scale values | `confint(..., method = "profile", newdata = ...)` profiles supplied rows for scale, residual `rho12`, and fitted q2 `corpair()` values. | Broaden row-specific tests and reject ambiguous multi-parameter requests early. |
+| Predictor-dependent response-scale values | `confint(..., method = "profile", newdata = ...)` profiles supplied rows for scale, residual `rho12`, and fitted q2 `corpair()` values. | Slice 54 adds focused tests for bivariate `sigma1`/`sigma2`, q2 ordinary and phylogenetic `corpair()` rows, and ambiguous `newdata` requests. |
 | Ordinary random-effect SDs and correlations | Selected direct SD and correlation targets are profile-ready and appear in `profile_targets()`. | Align `summary()`, `corpairs()`, and target names for every fitted direct registry row. |
 | Phylogenetic SDs and q2 correlations | Implemented direct targets include the first bivariate phylogenetic `mu1`/`mu2` SD and mean-mean correlation path. | Keep phylogenetic targets separate from residual `rho12`; add clearer diagnostics for weak SDs and boundary correlations. |
 | Spatial SDs | The first univariate coordinate-spatial `mu` SD target is direct and profile-ready where the fitted object retained the TMB object. | Add coverage that spatial profile labels and diagnostics stay distinct from phylogenetic labels. |
@@ -198,6 +198,45 @@ wrapped separately, because a profile can be computed yet fail to cross the
 likelihood-ratio threshold on both sides. This slice does not change the
 likelihood, the target transformations, or which derived targets are
 profile-ready.
+
+## Phase 6 Slice 54 Response-Scale Row Profiles
+
+Slice 54 treats row-specific profile intervals as a tested response-scale
+contract. These calls profile a single fixed-effect linear predictor row and
+then transform the interval back to the public parameter scale:
+
+```r
+confint(fit, parm = "sigma", newdata = grid, method = "profile")
+confint(fit, parm = "sigma1", newdata = grid, method = "profile")
+confint(fit, parm = "sigma2", newdata = grid, method = "profile")
+confint(fit, parm = "rho12", newdata = grid, method = "profile")
+confint(
+  fit,
+  parm = 'corpair(id, level = "group", block = "p", from = "mu1", to = "mu2")',
+  newdata = grid,
+  method = "profile"
+)
+confint(
+  fit,
+  parm = 'corpair(species, level = "phylogenetic", block = "p", from = "mu1", to = "mu2")',
+  newdata = grid,
+  method = "profile"
+)
+```
+
+The `sigma*` rows use the exponential transformation, residual `rho12` uses the
+guarded residual-correlation transform, and q=2 `corpair()` rows use the
+guarded latent random-effect correlation transform. `newdata` targets are not
+listed in `profile_targets(fit)`, because they are generated from supplied rows
+at call time. `corpairs(conf.int = TRUE)` still reports `newdata_required` for
+modelled q=2 `corpair()` summary rows: that summary is a mean/range over fitted
+group or species correlations, whereas `confint(..., newdata = ...)` profiles
+one supplied predictor row.
+
+The row-profile path is intentionally single-target. It rejects missing
+`parm`, multiple `parm` values, non-data-frame `newdata`, and empty `newdata`
+before calling TMB. Arbitrary multi-row or multi-parameter contrasts remain a
+later design target.
 
 ## Core Definition
 
@@ -407,8 +446,8 @@ ordinary random-effect correlation, phylogenetic `mu` SD, constant residual
 `rho12`, univariate `mu`/`sigma` random-intercept covariance target rows,
 bivariate Gaussian group-level `mu1`/`mu2` random-intercept SD and correlation
 target rows, and row-specific `newdata` profiles for predictor-dependent
-`sigma`, `sigma1`, `sigma2`, `rho12`, and fitted ordinary q=2 `corpair()`
-values. `summary(conf.int = TRUE, method = "profile")` reuses the same direct
+`sigma`, `sigma1`, `sigma2`, `rho12`, and fitted ordinary or phylogenetic q=2
+`corpair()` values. `summary(conf.int = TRUE, method = "profile")` reuses the same direct
 target table when `ci_parm` names one of these rows. Unsupported
 ordinal-transform, modelled group-SD, custom multi-row contrast, and
 derived-summary targets still fail before doing expensive optimization.
