@@ -37,6 +37,30 @@ Transformed ordinal, modelled group-SD, custom multi-row contrasts, conditional
 random-effect mode intervals, and derived summary profile intervals remain
 planned.
 
+## Phase 6 Slice 51 Target Audit
+
+Slice 51 records the profile-inference boundary before adding more intervals.
+The package already has profile code, but the next work should harden the
+target inventory and output contracts rather than add undocumented profile
+paths.
+
+| Surface | Current interval status | Next Phase 6 work |
+| --- | --- | --- |
+| Fixed-effect coefficients | Wald intervals by default; selected direct profile targets are available by explicit `fixef:<dpar>:<coef>` names. | Audit target names across families and improve failure messages for unsupported targets. |
+| Constant residual scale and residual `rho12` | Direct profile intervals are available for constant `sigma`, `sigma1`, `sigma2`, and `rho12`. | Keep response-scale transformations explicit and test boundary behavior. |
+| Predictor-dependent response-scale values | `confint(..., method = "profile", newdata = ...)` profiles supplied rows for scale, residual `rho12`, and fitted q2 `corpair()` values. | Broaden row-specific tests and reject ambiguous multi-parameter requests early. |
+| Ordinary random-effect SDs and correlations | Selected direct SD and correlation targets are profile-ready and appear in `profile_targets()`. | Align `summary()`, `corpairs()`, and target names for every fitted direct registry row. |
+| Phylogenetic SDs and q2 correlations | Implemented direct targets include the first bivariate phylogenetic `mu1`/`mu2` SD and mean-mean correlation path. | Keep phylogenetic targets separate from residual `rho12`; add clearer diagnostics for weak SDs and boundary correlations. |
+| Spatial SDs | The first univariate coordinate-spatial `mu` SD target is direct and profile-ready where the fitted object retained the TMB object. | Add coverage that spatial profile labels and diagnostics stay distinct from phylogenetic labels. |
+| q4 ordinary and phylogenetic correlations | Point estimates are reported, but q4 unstructured-correlation rows are derived targets and not direct profile-ready. | Preserve explicit unavailable statuses until a direct or fix-and-refit derived method exists. |
+| ICCs, repeatability, phylogenetic signal, and other nonlinear summaries | Planned only. | Design a fix-and-refit or reparameterized profile path after extractors and diagnostics are stable. |
+
+The linked Phase 6 tracking issue is
+<https://github.com/itchyshin/drmTMB/issues/30>. The companion Phase 6b
+tutorial issue is <https://github.com/itchyshin/drmTMB/issues/31>, because
+profile intervals will need examples that show what is profile-ready and what
+is status-only.
+
 The first implementation must therefore start from a stable target inventory,
 not from ad hoc parameter names in the C++ template. Public targets should be
 named using user-facing quantities:
