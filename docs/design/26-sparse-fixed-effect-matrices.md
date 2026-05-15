@@ -122,10 +122,17 @@ any large benchmark claim:
 remain useful after sparse support lands:
 
 - dense fits should report dense fixed-effect matrix sizes;
+- dense fits should report nonzero counts or density so users can distinguish a
+  wide but genuinely dense design from a wide mostly-zero design;
 - sparse fits should report sparse fixed-effect matrix sizes and nonzero
   counts;
 - mixed dense/sparse fits should name which distributional-parameter block is
   largest.
+
+The current dense path already reports the density of the largest retained
+fixed-effect design block. A wide design with low density is not automatically
+an error, but it is a concrete signal that high-cardinality factors or sparse
+interactions may be better served by the future sparse fixed-effect path.
 
 The large-data vignette should continue to say that sparse fixed effects are
 planned until dense-versus-sparse parity tests and TMB branches are in place.

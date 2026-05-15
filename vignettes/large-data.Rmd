@@ -102,8 +102,9 @@ inspect convergence, gradients, and model structure before increasing the
 limits.
 
 Also inspect the `fixed_effect_design_size` row. It reports the retained dense
-fixed-effect design size and the widest design block. A note there means
-high-cardinality factors or interactions may be driving memory use before TMB
+fixed-effect design size, the widest design block, and the density of the
+largest retained block. A note with a low density means high-cardinality
+factors or sparse interactions may be driving memory use before TMB
 optimization. That is a sparse fixed-effect design problem; simplifying the
 formula or waiting for the future sparse path is more relevant than changing
 the phylogenetic tree.

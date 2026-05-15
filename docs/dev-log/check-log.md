@@ -13818,3 +13818,48 @@ Known limitations:
 - the q=2 `corpair()` storage test covers the ordinary group route. The same
   nested object path is used by phylogenetic q=2 `corpair()` regressions, which
   remain covered by the broader `phylo-gaussian` suite run above.
+
+## 2026-05-14 -- Phase 5b Slice 42 fixed-effect design density diagnostic
+
+Goal:
+
+- add a small diagnostic stepping stone toward sparse fixed-effect matrices
+  without changing the fitted likelihood or TMB data contract.
+
+Implemented:
+
+- refactored `check_fixed_effect_design_size()` around an internal
+  `fixed_effect_design_summary()` helper that records matrix class, rows,
+  columns, nonzero count, density, and object size for retained fixed-effect
+  design matrices;
+- extended the `fixed_effect_design_size` row to include
+  `largest_density=...` for the largest retained fixed-effect design block;
+- made the diagnostic message explicitly flag wide mostly-zero dense designs as
+  candidates for the future sparse fixed-effect path;
+- updated the sparse fixed-effect design note, large-data vignette,
+  `ROADMAP.md`, `NEWS.md`, and generated `man/check_drm.Rd`.
+
+Checks run:
+
+- `Rscript -e 'devtools::test(filter = "check-drm", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'devtools::document()'`:
+  passed and refreshed `man/check_drm.Rd`.
+- `PATH=/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::build_article("large-data")'`:
+  passed and refreshed `pkgdown-site/articles/large-data.html`.
+- `PATH=/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed.
+- `Rscript -e 'devtools::load_all(quiet = TRUE)'`:
+  passed.
+- `git diff --check`:
+  passed.
+- `rg -n "largest_density|mostly zero|sparse fixed-effect matrices|density of the largest" R/check.R tests/testthat/test-check-drm.R docs/design/26-sparse-fixed-effect-matrices.md vignettes/large-data.Rmd pkgdown-site/articles/large-data.html man/check_drm.Rd ROADMAP.md NEWS.md`:
+  found the intended diagnostic and documentation wording.
+
+Known limitations:
+
+- this slice still uses dense matrices and does not add `sparse_fixed`;
+- the diagnostic uses retained fitted-object matrices, so it cannot prevent the
+  initial dense `model.matrix()` construction cost;
+- the next sparse implementation step still needs a dense-versus-sparse parity
+  test before any user-facing control is added.

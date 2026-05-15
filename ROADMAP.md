@@ -301,6 +301,9 @@ Phase 5 closure boundary:
 - `keep_model_frame = FALSE` now also drops nested direct-SD and fitted
   `corpair()` model-frame caches after their model matrices and group metadata
   have been retained.
+- `check_drm()` now reports the density of the largest retained fixed-effect
+  design block, giving users a concrete sparse-design signal before
+  `sparse_fixed` is implemented.
 - Extend memory-light fit controls for large phylogenetic and spatial
   datasets with broader method-matrix coverage, sparse fixed-effect matrices,
   aggregation, and repeated large-row benchmarks.
