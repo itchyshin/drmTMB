@@ -133,9 +133,11 @@ from = "mu1", to = "mu2") ~ ecology` fit with all memory-light flags enabled.
 ## Aggregation Path
 
 For Gaussian location models, repeated rows can sometimes be collapsed. If a
-set of observations has the same species, same known covariance status, same
-fixed-effect row, and same distributional-parameter row, the likelihood can be
-rewritten using sufficient summaries.
+set of observations has the same fixed-effect row, offset state, and
+distributional-parameter row, the likelihood can be rewritten using sufficient
+summaries. This is separate from sparse fixed-effect matrices: sparse matrices
+reduce column-storage pressure, while aggregation reduces repeated-row
+likelihood pressure.
 
 For the simplest Gaussian case:
 
@@ -157,9 +159,18 @@ likelihood weights are still useful when one row is intended to represent
 multiple identical observations, but sufficient-statistic aggregation is the
 stronger special-case optimization.
 
-This path should be added only after the ordinary row-likelihood path is
-tested, because it changes internal data representation and needs independent
-likelihood-comparison tests.
+Slice 47 records the design gate in
+`docs/design/31-gaussian-aggregation-sufficient-statistics.md`. The first
+implementation should be opt-in and should start with univariate Gaussian
+fixed-effect models only. Random effects, direct-SD formulas, phylogenetic and
+spatial structured effects, known sampling covariance, bivariate Gaussian
+models, and non-Gaussian families should error until the full-row likelihood
+and aggregation-cell likelihood have independent parity tests.
+
+The first implementation also needs a clear post-fit output rule. If the fit
+does not retain an original-row expansion map, fitted-row predictions and
+residuals should require `newdata` or error clearly rather than returning
+aggregation-cell output as if it were row-level output.
 
 ## Sparse Design Matrices
 
@@ -226,8 +237,9 @@ cross-platform peak-memory measure.
 - Should `predict()` ever require `newdata` for future storage modes that drop
   response vectors, offsets, or design matrices, rather than only stored model
   frames?
-- Should sufficient-statistic aggregation be automatic or require an explicit
-  argument such as `aggregate = TRUE`?
+- Should sufficient-statistic aggregation use a control name such as
+  `aggregate_gaussian = TRUE`, or a more general future-proof name that still
+  rejects non-Gaussian models clearly?
 - `weights =` is now an ordinary likelihood multiplier. Aggregation should
   still have a separate Gaussian-only sufficient-statistics path when the
   within-cell squared residual term matters.

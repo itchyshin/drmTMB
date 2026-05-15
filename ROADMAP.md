@@ -292,9 +292,10 @@ Phase 5 closure boundary:
 ## Phase 5b: Large-Data Memory Strategy
 
 - Status: first storage controls and benchmark harness implemented; Phase 5b
-  now hardens those controls for newer structured-effect surfaces. Sparse
-  fixed-effect matrices, aggregation, and repeated million-row benchmarks
-  remain planned.
+  now hardens those controls for newer structured-effect surfaces. The first
+  sparse fixed-effect path is implemented, and the Gaussian aggregation design
+  gate is recorded. Broader sparse matrices, fitted aggregation, and repeated
+  million-row benchmarks remain planned.
 - `drm_control()` now supports optimizer settings plus the first memory-light
   fitted-object controls: `keep_data = FALSE`,
   `keep_model_frame = FALSE`, and `keep_tmb_object = FALSE`.
@@ -323,7 +324,9 @@ Phase 5 closure boundary:
 - Use `docs/design/26-sparse-fixed-effect-matrices.md` as the implementation
   contract for sparse fixed-effect matrices.
 - Add optional aggregation or sufficient-statistic paths for Gaussian models
-  where repeated rows can be collapsed without changing the likelihood.
+  where repeated rows can be collapsed without changing the likelihood. Slice
+  47 records the first fixed-effect Gaussian aggregation contract in
+  `docs/design/31-gaussian-aggregation-sufficient-statistics.md`.
 - An initial non-CRAN benchmark harness exists at
   `bench/large-phylo-location.R`; use it to record 100k, 500k, 1M, and 5M
   observation-row runs with 1k-10k species as the implementation matures.

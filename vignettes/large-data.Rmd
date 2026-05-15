@@ -89,7 +89,9 @@ These pieces remain planned:
 - sparse fixed-effect matrices for `sigma`, random-effect, phylogenetic,
   spatial, bivariate, and non-Gaussian models;
 - Gaussian sufficient-statistic aggregation when repeated rows can be collapsed
-  without changing the likelihood;
+  without changing the likelihood. The design gate is recorded for an opt-in
+  univariate Gaussian fixed-effect path, but no fitted aggregation control is
+  implemented yet;
 - memory-light modes that avoid constructing dense model frames or dense model
   matrices in the first place;
 - repeated benchmark runs for million-row, bivariate, factor-heavy,
@@ -98,6 +100,12 @@ These pieces remain planned:
 If a model has a high-cardinality factor in a fixed-effect formula, the dense
 `model.matrix()` step may dominate memory before TMB sees the data. Treat that
 as a sparse-design problem, not as a phylogenetic precision problem.
+
+If a model has many repeated Gaussian rows with the same `mu` and `sigma`
+design rows, aggregation is the separate future tool. In that case the
+likelihood can use cell summaries such as `n`, `sum(y)`, and `sum(y^2)`. That
+path is planned because `predict()`, `residuals()`, and fitted-row summaries
+need an explicit original-row versus aggregation-cell policy.
 
 ## Check the fit with the storage choice in mind
 

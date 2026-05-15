@@ -14095,3 +14095,51 @@ Known limitations:
 
 - this repair changes only test harness data for direct TMB prior probes; it
   does not broaden sparse fixed-effect model support.
+
+## 2026-05-15 -- Phase 5b Slice 47 Gaussian aggregation design gate
+
+Goal:
+
+- record the first sufficient-statistic aggregation contract for repeated
+  Gaussian rows before writing likelihood code.
+
+Implemented:
+
+- added `docs/design/31-gaussian-aggregation-sufficient-statistics.md`;
+- defined the first intended aggregation scope as opt-in univariate Gaussian
+  fixed-effect models, with random effects, direct-SD formulas, structured
+  effects, known covariance, bivariate Gaussian, and non-Gaussian families
+  rejected until parity tests exist;
+- recorded the Gaussian cell likelihood in terms of `n`, `sum_y`, and
+  `sum_y2`;
+- separated sparse fixed-effect matrix pressure from repeated-row aggregation
+  pressure;
+- updated the Phase 5b roadmap, large-data memory design note, large-data
+  article, and known limitations.
+
+Checks run:
+
+- `PATH=/opt/homebrew/bin:$PATH air format docs/design/31-gaussian-aggregation-sufficient-statistics.md docs/design/23-large-data-memory.md ROADMAP.md vignettes/large-data.Rmd docs/dev-log/known-limitations.md`:
+  passed.
+- `rg -n "aggregate_gaussian|Gaussian Aggregation|aggregation-cell|sufficient-statistic aggregation|Slice 47|repeated Gaussian rows|Gaussian likelihood cells" ROADMAP.md docs/design/23-large-data-memory.md docs/design/31-gaussian-aggregation-sufficient-statistics.md vignettes/large-data.Rmd docs/dev-log/known-limitations.md`:
+  found the intended design and user-facing wording.
+- `rg -n "aggregation.*implemented|aggregate_gaussian.*implemented|fitted aggregation control|automatic aggregation|Aggregation.*current guarantees" README.md ROADMAP.md NEWS.md docs vignettes --glob '!docs/dev-log/check-log.md'`:
+  returned only explicit design/not-implemented wording and one older historical
+  after-task note.
+- `git diff --check`:
+  passed.
+- `PATH=/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::build_article("large-data", new_process = FALSE)'`:
+  passed.
+- `PATH=/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::build_site()'`:
+  passed.
+- `PATH=/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed with no problems found.
+- `rg -n "Gaussian sufficient-statistic aggregation|aggregation-cell|aggregate_gaussian|Slice 47|fixed-effect Gaussian aggregation contract|repeated Gaussian rows" pkgdown-site/ROADMAP.html pkgdown-site/articles/large-data.html --glob '!pkgdown-site/search.json'`:
+  confirmed the rendered local roadmap and large-data article.
+
+Known limitations:
+
+- this is a design slice only; `drm_control(aggregate_gaussian = TRUE)` is a
+  reserved candidate name, not implemented;
+- no TMB likelihood branch, aggregation-key builder, or dense-versus-aggregated
+  parity test exists yet.
