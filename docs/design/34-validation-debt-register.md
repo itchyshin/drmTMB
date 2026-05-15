@@ -23,7 +23,7 @@ Use these status labels:
 | `fixed_one_response` | Fixed-effect one-response families | covered | low for listed fixed-effect paths; moderate for family expansion | Add one family at a time with likelihood tests, methods tests, docs, and family-specific diagnostics. |
 | `gaussian_ordinary_re` | Gaussian ordinary random effects | covered | low for listed Gaussian ordinary paths; moderate for residual-scale correlated slopes | Keep residual-scale correlation and coefficient-specific SD slopes blocked until direct tests and diagnostics exist. |
 | `re_scale_sd_group` | Random-effect scale models | partial | moderate | Add coefficient-specific random-slope scale likelihood, recovery tests, and diagnostics before widening `sd()` syntax. |
-| `known_sampling_covariance` | Known sampling covariance | covered/partial | moderate for dense scalability | Complete Slice 81 dense-covariance and sparse/block-sparse guardrails. |
+| `known_sampling_covariance` | Known sampling covariance | covered/partial | moderate for dense scalability | Keep dense full `V` labelled small-to-moderate until sparse/block-sparse storage has implementation, diagnostics, and benchmark evidence. |
 | `biv_residual_rho12` | Bivariate Gaussian residual `rho12` | covered | low for residual `rho12`; high if confused with latent covariance | Keep residual `rho12` separate from group, phylogenetic, and spatial correlations. |
 | `ordinary_biv_corpairs` | Ordinary bivariate covariance and `corpairs()` | partial | moderate | Add coefficient-aware bivariate slope covariance only after q=2/q=4 interval status and recovery evidence are explicit. |
 | `phylo_structured_effects` | Phylogenetic structured effects | partial | moderate | Add phylogenetic one-slope likelihood, diagnostics, and recovery evidence before teaching slopes. |
@@ -110,9 +110,11 @@ Use these status labels:
   `tests/testthat/test-meta-vcov.R`, `tests/testthat/test-biv-gaussian.R`,
   `tests/testthat/test-comparators.R`, and
   `tests/testthat/test-check-drm.R`.
-- Diagnostics and intervals: `check_drm()` reports known-covariance summaries;
-  fixed effects and response-scale residual summaries use the usual interval
-  routes.
+- Diagnostics and intervals: `check_drm()` reports known-covariance summaries.
+  Dense matrix `V` is reported as a note with dimension, storage, density,
+  size, rank, and conditioning so users see the small-to-moderate storage
+  boundary. Fixed effects and response-scale residual summaries use the usual
+  interval routes.
 - User-facing docs: `vignettes/meta-analysis.Rmd`,
   `vignettes/testing-likelihoods.Rmd`, `docs/design/08-meta-analysis.md`, and
   `docs/design/22-likelihood-weights.md`.
@@ -121,8 +123,8 @@ Use these status labels:
   evidence is summarized in `vignettes/source-map.Rmd`.
 - Debt: sparse known covariance, block-sparse known covariance, broad
   large-data claims, and dense full known covariance with non-unit likelihood
-  weights remain blocked. Slice 81 should add stronger dense-covariance and
-  large-data guardrails.
+  weights remain blocked. Slice 81 added dense-storage diagnostics and wording
+  guardrails, but did not implement sparse or block-sparse `V`.
 
 ### Bivariate Gaussian residual `rho12`
 
@@ -252,9 +254,9 @@ Use these status labels:
 - Check-log evidence: `docs/dev-log/check-log.md` records memory-light object,
   sparse fixed-effect matrix, and Gaussian aggregation slices.
 - Debt: broad scalability claims for random effects, structured effects,
-  non-Gaussian families, bivariate models, known covariance, and combined sparse
-  plus aggregation paths remain blocked until benchmarks and checks cover those
-  combinations.
+  non-Gaussian families, bivariate models, dense known covariance, and combined
+  sparse plus aggregation paths remain blocked until benchmarks and checks cover
+  those combinations.
 
 ### Reserved or planned neighbours
 
@@ -288,7 +290,7 @@ Use these status labels:
 | --- | --- | --- |
 | D78-01 | Non-Gaussian random effects | likelihood path, malformed-input tests, simulation recovery, and docs for each family rather than a blanket extension |
 | D78-02 | Ordinal scale/discrimination | formula grammar update, likelihood parameterization, ordered-cutpoint stability tests, and interpretation docs |
-| D78-03 | Dense known covariance scalability | Slice 81 diagnostics, small-to-moderate wording, sparse/block-sparse design, and guardrail tests |
+| D78-03 | Dense known covariance scalability | Sparse or block-sparse `V` implementation, tests, diagnostics, and benchmarks before any broad large-data claim |
 | D78-04 | q=4 derived intervals | direct nonlinear interval method or fix-and-refit profile path, plus boundary and convergence status columns |
 | D78-05 | Spatial expansion | mesh/SPDE schema, projection path, precision construction, provenance, recovery tests, and diagnostics |
 | D78-06 | Phylogenetic slopes | one-slope likelihood, storage order, recovery tests, direct SD targets, and `check_drm()` rows |

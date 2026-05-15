@@ -15310,3 +15310,59 @@ Known limitations:
   fixed effects;
 - the current implementation still uses one primary `nlminb()` optimization;
 - GitHub Actions remains the PR-side gate after push.
+
+## 2026-05-15 -- Slice 81 dense covariance and large-data guards
+
+Goal:
+
+- make dense known sampling covariance visibly small-to-moderate rather than an
+  implicit scalability promise.
+
+Implemented:
+
+- changed `check_drm()` so full-matrix `meta_known_V(V = V)` fits report the
+  `known_sampling_covariance` row as a note;
+- added dense known-covariance diagnostics for retained dimension, storage,
+  density, approximate R object size, rank, and conditioning;
+- kept the Gaussian known-covariance likelihood unchanged;
+- updated README, model-map, meta-analysis, large-data, source-map,
+  known-limitations, validation-debt, ROADMAP, NEWS, and generated Rd/pkgdown
+  output;
+- added after-task report
+  `docs/dev-log/after-task/2026-05-15-slice-81-dense-covariance-guards.md`.
+
+Checks run:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH air format R/check.R tests/testthat/test-check-drm.R tests/testthat/test-control.R README.md vignettes/model-map.Rmd vignettes/meta-analysis.Rmd vignettes/large-data.Rmd vignettes/source-map.Rmd docs/design/08-meta-analysis.md docs/design/23-large-data-memory.md docs/design/34-validation-debt-register.md docs/dev-log/known-limitations.md ROADMAP.md NEWS.md`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::test(filter = "check-drm|control|meta-known-v|biv-gaussian", reporter = "summary")'`:
+  first failed because the bivariate memory-light test asserted the whole
+  `check_drm()` result had no warning, even though that fixture has an
+  unrelated near-boundary residual `rho12` warning.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::test(filter = "check-drm|control|meta-known-v|biv-gaussian", reporter = "summary")'`:
+  passed after checking the intended dense known-covariance diagnostic row
+  directly.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::document()'`:
+  passed and updated `man/check_drm.Rd`.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::build_site()'`:
+  passed and refreshed README, ROADMAP, NEWS, reference, and changed articles.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed with no problems found.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::test(reporter = "summary")'`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::check(error_on = "never", env_vars = c("_R_CHECK_SYSTEM_CLOCK_" = "FALSE"))'`:
+  passed with 0 errors, 0 warnings, and 0 notes in 2m 15.9s.
+- `git diff --check`: passed.
+- ``rg -n 'small-to-moderate|storage=dense|block-sparse|full-matrix|known-covariance notes|dense full V as a note|dense `V` is reported|Dense matrix support' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes pkgdown-site/index.html pkgdown-site/ROADMAP.html pkgdown-site/articles/meta-analysis.html pkgdown-site/articles/large-data.html pkgdown-site/articles/model-map.html pkgdown-site/articles/source-map.html pkgdown-site/reference/check_drm.html pkgdown-site/news/index.html --glob '!pkgdown-site/search.json'``:
+  confirmed source and rendered guardrail wording.
+- `rg -n 'sparse known covariance.*implemented|block-sparse.*implemented|dense known covariance.*scalable|large-data route.*meta_known_V|broad.*known-covariance scalability|full matrix known covariance.*large-data' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes pkgdown-site --glob '!pkgdown-site/search.json'`:
+  found only valid boundary wording in the model-map large-data row.
+- `rg -n 'known_sampling_covariance|meta_known_V\(V = V\)|known covariance|dense matrix' R/check.R tests/testthat/test-check-drm.R tests/testthat/test-control.R man/check_drm.Rd README.md vignettes/model-map.Rmd vignettes/meta-analysis.Rmd vignettes/large-data.Rmd docs/design/08-meta-analysis.md docs/design/23-large-data-memory.md docs/design/34-validation-debt-register.md docs/dev-log/known-limitations.md NEWS.md ROADMAP.md`:
+  confirmed implementation, tests, docs, and roadmap/NEWS are synchronized.
+
+Known limitations:
+
+- sparse and block-sparse known sampling covariance remain planned;
+- dense known-covariance diagnostics expose retained matrix storage, not peak
+  memory;
+- GitHub Actions remains the PR-side gate after push.

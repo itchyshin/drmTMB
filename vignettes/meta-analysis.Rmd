@@ -77,6 +77,13 @@ The right-hand side of `meta_known_V(V = V)` may be a variance column, a vector,
 a diagonal matrix, a dense block-diagonal matrix, or a dense full covariance
 matrix.
 
+Dense means dense. If `V` is supplied as a full matrix, `drmTMB` stores the
+retained covariance as a dense R matrix. This is useful for small to moderate
+correlated-effect examples and for likelihood-comparator checks, but it is not
+the large-meta-analysis storage route. Large block-diagonal or sparse known
+covariance structures need a future sparse or block-sparse path before they
+should be treated as scalable.
+
 ## Worked example: restoration effects
 
 Suppose we are synthesising effect sizes from studies that compare ecological
@@ -200,6 +207,11 @@ known sampling covariance problems before interpretation:
 ```{r}
 check_drm(fit_meta)
 ```
+
+For full-matrix known covariance fits, the `known_sampling_covariance` row is a
+note rather than a problem by itself. It reports the retained matrix dimension,
+dense storage, density, size, rank, and conditioning so you can see whether the
+current dense route still matches the scale of the analysis.
 
 ## Weights are not sampling variances
 

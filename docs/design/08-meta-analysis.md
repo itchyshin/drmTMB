@@ -9,6 +9,11 @@ The current Gaussian location-scale MVP fits meta-analysis models with known
 sampling covariance supplied as a variance vector, diagonal matrix, dense
 block-diagonal matrix, or dense full covariance matrix. Sparse covariance
 storage remains planned for larger phylogenetic and spatial workloads.
+Dense matrix support is therefore a small-to-moderate data path, not evidence
+that `drmTMB` can already scale arbitrary full `V` matrices to large
+meta-analyses. `check_drm()` reports dense known-covariance fits as notes with
+matrix dimension, storage, density, size, rank, and conditioning so users see
+this boundary before interpretation.
 
 Williams et al. (2026) introduce `glmmTMB::equalto()` for meta-analysis with
 known sampling error variance-covariance matrices. That paper is an important
@@ -58,7 +63,14 @@ The fitting implementation supports:
 - a dense block-diagonal matrix;
 - a dense full covariance matrix for correlated sampling errors.
 
-Sparse matrix storage is not implemented yet.
+Sparse matrix storage is not implemented yet. This is especially important for
+large block-diagonal meta-analyses: those matrices may be mathematically
+block-sparse, but the current direct `meta_known_V(V = V)` matrix route stores
+them as dense R matrices after row filtering. Use dense full `V` for small to
+moderate fits, likelihood-comparator checks, and unusual dependence structures
+where the full covariance is scientifically required. Do not treat it as the
+large-data route until sparse or block-sparse storage has implementation,
+tests, diagnostics, and benchmark evidence.
 
 Known-covariance Gaussian models can also be combined with implemented
 ordinary `mu` random intercepts and the intercept-only phylogenetic `mu` path.
@@ -175,7 +187,9 @@ y_stack = [y1_1, y2_1, y1_2, y2_2, ..., y1_n, y2_n]'
 For the common study-level case, `V` will usually be block diagonal with one
 `2` by `2` block per study. Dense full matrices should remain possible for
 unusual dependence structures, but sparse block-diagonal storage should be the
-practical route for large meta-analyses.
+practical route for large meta-analyses. Until that route exists, bivariate
+known-`V` examples should stay small to moderate and should show
+`check_drm()` output before interpretation.
 
 The user-facing helper `meta_vcov_bivariate()` reduces user error when
 constructing the common block-diagonal, row-paired matrix:

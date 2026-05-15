@@ -11,9 +11,10 @@
 #' [TMB::sdreport()], finite fixed-effect standard errors, dropped rows,
 #' positive scale parameters, random-effect standard deviations near the lower
 #' boundary, bivariate residual-correlation `rho12` values near the boundary,
-#' Student-t `nu` boundary behaviour, known sampling covariance summaries, dense
-#' fixed-effect design size and density, random-effect replication, and
-#' random-slope design variation. If a univariate Gaussian fit includes a
+#' Student-t `nu` boundary behaviour, known sampling covariance summaries,
+#' dense known-covariance storage scale, dense fixed-effect design size and
+#' density, random-effect replication, and random-slope design variation. If a
+#' univariate Gaussian fit includes a
 #' matched labelled
 #' `mu`/`sigma` random-intercept covariance block, `check_drm()` also reports
 #' group replication and whether either component is tiny relative to its
@@ -645,8 +646,9 @@ check_known_v <- function(object) {
   known_diag <- known_v_diag(object)
   ok <- all(is.finite(known_diag)) && all(known_diag >= 0)
   if (identical(known_type, "matrix")) {
+    V <- object$model$V_known
     eig <- eigen(
-      (object$model$V_known + t(object$model$V_known)) / 2,
+      (V + t(V)) / 2,
       symmetric = TRUE,
       only.values = TRUE
     )$values
@@ -658,12 +660,11 @@ check_known_v <- function(object) {
     } else {
       max(positive_eig) / min(positive_eig)
     }
+    storage <- known_v_dense_storage_summary(V)
     status <- if (!ok) {
       "error"
-    } else if (rank < length(eig) || condition > 1e8) {
-      "note"
     } else {
-      "ok"
+      "note"
     }
     return(check_row(
       "known_sampling_covariance",
@@ -671,17 +672,32 @@ check_known_v <- function(object) {
       paste0(
         "type=matrix; n=",
         length(eig),
+        "; storage=dense; density=",
+        format_check_number(storage$density),
+        "; size_mb=",
+        format_check_number(storage$size_mb),
         "; rank=",
         rank,
         "; cond=",
         format_check_number(condition)
       ),
-      if (identical(status, "note")) {
-        "Known sampling covariance is recorded; inspect rank or conditioning if estimates are unstable."
-      } else if (identical(status, "ok")) {
-        "Known sampling covariance is recorded as a dense matrix with finite non-negative diagonal."
-      } else {
+      if (identical(status, "error")) {
         "Known sampling covariance has a non-finite or negative diagonal entry."
+      } else if (rank < length(eig) || condition > 1e8) {
+        paste(
+          "Known sampling covariance is recorded as a dense matrix;",
+          "inspect rank or conditioning if estimates are unstable, and treat dense V as small-to-moderate until sparse or block-sparse storage is implemented."
+        )
+      } else if (storage$density <= 0.25) {
+        paste(
+          "Known sampling covariance is recorded as a dense matrix with many zero entries;",
+          "large block-structured V will need sparse or block-sparse storage before being treated as scalable."
+        )
+      } else {
+        paste(
+          "Known sampling covariance is recorded as a dense matrix with finite non-negative diagonal;",
+          "treat this as a small-to-moderate path until sparse or block-sparse storage has benchmark evidence."
+        )
       }
     ))
   }
@@ -704,6 +720,16 @@ check_known_v <- function(object) {
     } else {
       "Known sampling variances contain non-finite or negative values."
     }
+  )
+}
+
+known_v_dense_storage_summary <- function(V) {
+  entries <- length(V)
+  nonzero <- sum(!is.na(V) & V != 0)
+  list(
+    nonzero = nonzero,
+    density = if (entries == 0L) NA_real_ else nonzero / entries,
+    size_mb = as.numeric(utils::object.size(V)) / 1024^2
   )
 }
 

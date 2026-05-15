@@ -28,7 +28,10 @@
   but rejected by `drmTMB()` until random-slope SD regression has a covariance
   model and tests.
 - Diagonal and dense full known-covariance Gaussian meta-analysis is
-  implemented.
+  implemented. Full-matrix `meta_known_V(V = V)` currently stores the retained
+  covariance as a dense R matrix; `check_drm()` reports that row as a note with
+  dimension, density, size, rank, and conditioning because dense `V` is a
+  small-to-moderate route until sparse or block-sparse storage exists.
 - Sparse fixed-effect matrices are implemented only for the first univariate
   Gaussian `mu` path through `drm_control(sparse_fixed = TRUE)`. The model must
   have fixed effects only, intercept-only `sigma`, no known covariance, no
@@ -247,10 +250,10 @@
 - Users should not substitute `sigma ~ x + (1 | id)` for `sd(id) ~ x_group`
   unless their scientific question is residual variability rather than
   among-group variation in the mean model.
-- Sparse known sampling covariance for large meta-analysis and spatial
-  workloads is planned but not yet implemented. The first sparse phylogenetic
-  routes are implemented for univariate Gaussian `mu` random intercepts and
-  matching bivariate Gaussian `mu1`/`mu2` random intercepts.
+- Sparse or block-sparse known sampling covariance for large meta-analysis and
+  spatial workloads is planned but not yet implemented. The first sparse
+  phylogenetic routes are implemented for univariate Gaussian `mu` random
+  intercepts and matching bivariate Gaussian `mu1`/`mu2` random intercepts.
 - `weights =` is implemented as ordinary likelihood weights: one
   non-negative finite weight per observation for univariate models, and one
   weight per complete response pair for bivariate models. Known sampling

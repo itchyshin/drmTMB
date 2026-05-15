@@ -40,6 +40,9 @@ of 5 million-row objects before TMB starts optimizing.
    observation scale unless the user asks for them.
 6. Benchmark scale-up explicitly; do not infer million-row performance from
    small simulation tests.
+7. Treat dense known sampling covariance as a small-to-moderate path until
+   sparse or block-sparse `V` storage has direct implementation and benchmark
+   evidence.
 
 ## User Controls
 
@@ -102,6 +105,14 @@ fixed-effect Gaussian location model with intercept-only `sigma`; random
 effects, direct-SD models, phylogenetic/spatial effects, known covariance,
 non-Gaussian families, bivariate models, and sparse scale formulas remain
 planned.
+
+Known sampling covariance is a separate memory concern. Diagonal
+`meta_known_V(V = vi)` inputs stay vector-like, but a full-matrix
+`meta_known_V(V = V)` fit stores the retained `V` as a dense R matrix.
+`check_drm()` reports that dense storage as a note with dimension, density,
+size, rank, and conditioning. Low density in that row is a design signal for a
+future sparse or block-sparse known-covariance path, not a current scalability
+claim.
 
 ## Model-Frame Dependency Map
 

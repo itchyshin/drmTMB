@@ -395,7 +395,9 @@ test_that("memory-light storage keeps bivariate known-V methods working", {
   chk <- check_drm(fit)
   known_v <- chk[chk$check == "known_sampling_covariance", ]
   fixed_gradient <- chk[chk$check == "fixed_gradient", ]
-  expect_equal(known_v$status, "ok")
+  expect_equal(known_v$status, "note")
+  expect_match(known_v$value, "storage=dense")
+  expect_match(known_v$message, "sparse or block-sparse")
   expect_equal(fixed_gradient$status, "note")
 })
 

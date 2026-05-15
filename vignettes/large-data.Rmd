@@ -116,6 +116,10 @@ These pieces remain planned:
   known sampling covariance, bivariate Gaussian models, non-Gaussian families,
   non-unit likelihood weights, and combined sparse fixed-effect matrices are
   still rejected;
+- sparse or block-sparse storage for full-matrix
+  `meta_known_V(V = V)`. The current full known-covariance route keeps the
+  retained `V` as a dense R matrix and is for small to moderate correlated
+  sampling-error fits;
 - memory-light modes that avoid constructing dense model frames or dense model
   matrices in the first place;
 - repeated benchmark runs for million-row, bivariate, factor-heavy,
@@ -162,6 +166,12 @@ before TMB optimization. That is a sparse fixed-effect design problem;
 simplifying the formula or using `drm_control(sparse_fixed = TRUE)` when the
 model is inside the implemented Gaussian `mu` scope is more relevant than
 changing the phylogenetic tree.
+
+For full-matrix `meta_known_V(V = V)` fits, also inspect the
+`known_sampling_covariance` row. It is a note for dense-matrix storage and
+reports dimension, density, size, rank, and conditioning. A low-density dense
+`V` often means the statistical structure is block-sparse, but the current fit
+has still paid dense R-matrix storage costs.
 
 For aggregated Gaussian fits, `check_drm()` also includes a
 `gaussian_aggregation` row. That row reports the number of original rows, the

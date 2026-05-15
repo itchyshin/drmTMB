@@ -47,9 +47,10 @@ optimizer evaluation counts, fixed-parameter gradients, whether
 \code{\link[TMB:sdreport]{TMB::sdreport()}}, finite fixed-effect standard errors, dropped rows,
 positive scale parameters, random-effect standard deviations near the lower
 boundary, bivariate residual-correlation \code{rho12} values near the boundary,
-Student-t \code{nu} boundary behaviour, known sampling covariance summaries, dense
-fixed-effect design size and density, random-effect replication, and
-random-slope design variation. If a univariate Gaussian fit includes a
+Student-t \code{nu} boundary behaviour, known sampling covariance summaries,
+dense known-covariance storage scale, dense fixed-effect design size and
+density, random-effect replication, and random-slope design variation. If a
+univariate Gaussian fit includes a
 matched labelled
 \code{mu}/\code{sigma} random-intercept covariance block, \code{check_drm()} also reports
 group replication and whether either component is tiny relative to its
