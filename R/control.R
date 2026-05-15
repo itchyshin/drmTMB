@@ -102,13 +102,31 @@ drm_apply_storage_control <- function(fit, control) {
 
 drm_drop_model_frames <- function(fit) {
   fit$model$model_frame <- NULL
-  if (!is.null(fit$model$random_scale$mu$model_frame)) {
-    fit$model$random_scale$mu$model_frame <- NULL
+  if (!is.null(fit$model$random_scale)) {
+    fit$model$random_scale <- lapply(
+      fit$model$random_scale,
+      drm_drop_model_frame_components
+    )
   }
-  if (!is.null(fit$model$random_scale$mu$model_frame_list)) {
-    fit$model$random_scale$mu$model_frame_list <- NULL
+  if (!is.null(fit$model$random$mu$cor_model)) {
+    fit$model$random$mu$cor_model <- drm_drop_model_frame_components(
+      fit$model$random$mu$cor_model
+    )
   }
   fit
+}
+
+drm_drop_model_frame_components <- function(x) {
+  if (!is.list(x)) {
+    return(x)
+  }
+  if (!is.null(x$model_frame)) {
+    x$model_frame <- NULL
+  }
+  if (!is.null(x$model_frame_list)) {
+    x$model_frame_list <- NULL
+  }
+  x
 }
 
 drm_control_flag <- function(x, name) {

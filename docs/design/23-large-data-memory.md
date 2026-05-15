@@ -69,7 +69,8 @@ The implemented first slice means:
 - `keep_model_frame = FALSE`: do not store model frames in the fit after TMB
   data has been built. Fitted-row prediction, new-data prediction, residuals,
   simulation, response names, and diagnostics use stored matrices, terms,
-  offsets, response vectors, response-name metadata, and diagnostic state;
+  offsets, response vectors, response-name metadata, random-effect scale
+  metadata, correlation-regression design matrices, and diagnostic state;
 - `keep_tmb_object = FALSE`: do not retain the TMB
   automatic-differentiation object after optimization; `check_drm()` then
   reports the fixed-gradient check as a note rather than re-evaluating it;
@@ -106,6 +107,15 @@ top-level model frames after fitting when requested. Regression tests currently
 cover Gaussian, Poisson offset prediction, beta-binomial trial storage,
 cumulative-logit ordinal metadata, and bivariate Gaussian two-response output
 after model frames are removed.
+
+The Phase 5b storage hardening extends that deletion to the nested model-frame
+caches created by direct random-effect SD models and latent-correlation
+regression models. In practice, `keep_model_frame = FALSE` now removes
+`sd(group)`, `sd_phylo(group)`, `sd_phylo1(group)`, `sd_phylo2(group)`, and
+fitted q=2 `corpair()` model-frame caches after their model matrices and group
+metadata have been stored. Tests cover an `sd_phylo(species) ~ z_species`
+fit and an ordinary q=2 `corpair(id, level = "group", block = "p",
+from = "mu1", to = "mu2") ~ ecology` fit with all memory-light flags enabled.
 
 ## Aggregation Path
 

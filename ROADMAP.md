@@ -291,12 +291,16 @@ Phase 5 closure boundary:
 
 ## Phase 5b: Large-Data Memory Strategy
 
-- Status: first storage controls and benchmark harness implemented; sparse and
-  aggregation paths
-  planned.
+- Status: first storage controls and benchmark harness implemented; Phase 5b
+  now hardens those controls for newer structured-effect surfaces. Sparse
+  fixed-effect matrices, aggregation, and repeated million-row benchmarks
+  remain planned.
 - `drm_control()` now supports optimizer settings plus the first memory-light
   fitted-object controls: `keep_data = FALSE`,
   `keep_model_frame = FALSE`, and `keep_tmb_object = FALSE`.
+- `keep_model_frame = FALSE` now also drops nested direct-SD and fitted
+  `corpair()` model-frame caches after their model matrices and group metadata
+  have been retained.
 - Extend memory-light fit controls for large phylogenetic and spatial
   datasets with broader method-matrix coverage, sparse fixed-effect matrices,
   aggregation, and repeated large-row benchmarks.

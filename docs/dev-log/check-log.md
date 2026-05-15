@@ -13764,3 +13764,57 @@ Known limitations:
   slopes;
 - formal bibliography entries are still deferred because current docs use
   prose citations and links rather than a site-wide bibliography.
+
+## 2026-05-14 -- Phase 5b Slice 41 memory-light structured surfaces
+
+Goal:
+
+- start Phase 5b after the Phase 5 merge by hardening the existing
+  memory-light fitted-object controls for the newer structured-effect surfaces.
+
+Implemented:
+
+- extended `drm_drop_model_frames()` so `keep_model_frame = FALSE` drops nested
+  model-frame caches from every `random_scale` component, including
+  `sd_phylo()` / `sd_phylo1()` / `sd_phylo2()`, not only ordinary `sd()`;
+- extended the same storage cleanup to fitted q=2 `corpair()` regression
+  model-frame caches under `model$random$mu$cor_model`;
+- added regression tests for an `sd_phylo(species) ~ z_species` fit and an
+  ordinary q=2
+  `corpair(id, level = "group", block = "p", from = "mu1", to = "mu2") ~ ecology`
+  fit with `keep_data = FALSE`, `keep_model_frame = FALSE`, and
+  `keep_tmb_object = FALSE`;
+- updated the large-data design note, large-data vignette, known limitations,
+  `ROADMAP.md`, and `NEWS.md` to say the storage controls cover the nested
+  structured-effect caches while still not avoiding initial model-frame or
+  dense fixed-effect matrix construction.
+
+Checks run:
+
+- `Rscript -e 'devtools::test(filter = "control", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'devtools::test(filter = "control|biv-gaussian|phylo-gaussian", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'devtools::load_all(quiet = TRUE)'`:
+  passed.
+- `PATH=/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::build_article("large-data")'`:
+  passed and refreshed `pkgdown-site/articles/large-data.html`.
+- `PATH=/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed.
+- `git diff --check`:
+  passed.
+- `rg -n "nested model-frame caches|direct-SD and fitted q=2|keep_model_frame = FALSE" docs/dev-log/known-limitations.md docs/design/23-large-data-memory.md ROADMAP.md vignettes/large-data.Rmd NEWS.md pkgdown-site/articles/large-data.html`:
+  found the intended implementation/status wording in source docs and the
+  rebuilt local article.
+- `rg -n "memory-light.*not implemented|Large-data memory controls are not implemented|keep_model_frame = FALSE.*only|does not.*sd_phylo|corpair.*model frame|model frames.*only" README.md ROADMAP.md NEWS.md docs vignettes pkgdown-site || true`:
+  did not find current-source stale claims. Historical check-log and
+  after-task lines remain as time-stamped records.
+
+Known limitations:
+
+- this slice reduces fitted-object storage after model construction; it does
+  not add sparse fixed-effect matrices, sufficient-statistic aggregation, or a
+  mode that avoids constructing dense model frames before optimization;
+- the q=2 `corpair()` storage test covers the ordinary group route. The same
+  nested object path is used by phylogenetic q=2 `corpair()` regressions, which
+  remain covered by the broader `phylo-gaussian` suite run above.

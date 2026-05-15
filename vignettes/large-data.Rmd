@@ -47,12 +47,14 @@ fit <- drmTMB(
 
 Here `keep_data = FALSE` removes the stored complete-case data frame from the
 fitted object after optimization. `keep_model_frame = FALSE` removes stored
-model frames after TMB data are built. `keep_tmb_object = FALSE` removes the
-TMB automatic-differentiation object after optimization. The fitted
-coefficients, standard errors, fitted values, residuals, simulation, and
-`sigma` extraction still use the stored model matrices, terms, offsets,
-response vectors, response-name metadata, optimized parameters, and `sdreport`
-object.
+model frames after TMB data are built, including nested model-frame caches for
+direct random-effect SD models such as `sd_phylo(species) ~ z_species` and
+fitted q=2 latent-correlation models such as `corpair(...) ~ ecology`.
+`keep_tmb_object = FALSE` removes the TMB automatic-differentiation object
+after optimization. The fitted coefficients, standard errors, fitted values,
+residuals, simulation, `sigma`, `rho12`, and `corpairs()` extraction still use
+the stored model matrices, terms, offsets, response vectors, response-name
+metadata, random-effect metadata, optimized parameters, and `sdreport` object.
 
 This control is useful when the fitted model is kept for interpretation,
 prediction, or plotting, but the original data frame and TMB object do not need
@@ -71,6 +73,8 @@ These pieces remain planned:
 - sparse fixed-effect matrices for factor-heavy models;
 - Gaussian sufficient-statistic aggregation when repeated rows can be collapsed
   without changing the likelihood;
+- memory-light modes that avoid constructing dense model frames or dense model
+  matrices in the first place;
 - repeated benchmark runs for million-row, bivariate, factor-heavy,
   non-Gaussian, and 10,000-species analyses.
 
