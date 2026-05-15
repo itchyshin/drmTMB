@@ -14312,3 +14312,57 @@ Known limitations:
 - this slice records the roadmap and issue only; it does not implement random
   slopes, two-slope covariance blocks, slope-correlation profile intervals, or
   slope-slope `corpair()` output.
+
+## 2026-05-15 -- Slice 52 profile target namespace cleanup
+
+Goal:
+
+- stabilize `profile_targets()` names, readiness flags, transformations, and
+  unavailable-status wording before adding more profile-likelihood interval
+  paths.
+
+Implemented:
+
+- added an internal `validate_profile_targets()` guard for the returned target
+  inventory columns, allowed `target_type` values, allowed `profile_note`
+  values, allowed transformations, duplicate `parm` names, and the rule that
+  derived targets cannot be profile-ready;
+- made direct targets require the retained TMB object before reporting
+  `profile_ready = TRUE`;
+- added `profile_note = "tmb_object_required"` for memory-light fits created
+  with `drm_control(keep_tmb_object = FALSE)`;
+- added a reusable test helper that checks the target-table contract across
+  fixed effects, distributional-scale targets, random-effect SDs,
+  random-effect correlations, residual `rho12`, ordinal cutpoints, modelled SD
+  surfaces, q4 derived unstructured correlations, and dropped-TMB-object fits;
+- updated `profile_targets()` documentation, `NEWS.md`, `ROADMAP.md`, and
+  `docs/design/12-profile-likelihood-cis.md`.
+
+Checks run:
+
+- `Rscript -e 'devtools::test(filter = "profile-targets", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'devtools::document()'`:
+  passed and regenerated `man/profile_targets.Rd`.
+- `PATH=/opt/homebrew/bin:$PATH air format R/profile.R tests/testthat/test-profile-targets.R NEWS.md ROADMAP.md docs/design/12-profile-likelihood-cis.md man/profile_targets.Rd`:
+  passed.
+- `Rscript -e 'devtools::test(filter = "profile-targets|corpairs|summary", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'devtools::test(reporter = "summary")'`:
+  passed.
+- `Rscript -e 'pkgdown::build_site()'`:
+  passed and rebuilt local `ROADMAP.html`, `reference/profile_targets.html`,
+  and `news/index.html`.
+- `Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed with no problems found.
+- `git diff --check`:
+  passed.
+- `rg -n "tmb_object_required|validate_profile_targets|Target Namespace Contract|keep_tmb_object = FALSE|profile_ready = TRUE|Slice 52" R/profile.R tests/testthat/test-profile-targets.R NEWS.md ROADMAP.md docs/design/12-profile-likelihood-cis.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-15-slice-52-profile-target-namespace.md man/profile_targets.Rd pkgdown-site/ROADMAP.html pkgdown-site/reference/profile_targets.html pkgdown-site/news/index.html --glob '!pkgdown-site/search.json'`:
+  confirmed source and rendered pkgdown wording for the Slice 52 contract.
+
+Known limitations:
+
+- this slice does not add new profile-likelihood intervals;
+- derived q4 correlations, ICCs, repeatability, phylogenetic signal, and other
+  nonlinear summaries remain point-estimate or unavailable-CI targets until a
+  direct or fix-and-refit interval method exists.

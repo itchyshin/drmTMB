@@ -219,6 +219,60 @@ new_profile_hurdle_data <- function(n = 360, seed = 20260594) {
   dat
 }
 
+expect_profile_target_contract <- function(targets) {
+  expected <- c(
+    "parm",
+    "target_class",
+    "dpar",
+    "term",
+    "tmb_parameter",
+    "index",
+    "estimate",
+    "link_estimate",
+    "scale",
+    "transformation",
+    "target_type",
+    "profile_ready",
+    "profile_note"
+  )
+  expect_s3_class(targets, "data.frame")
+  expect_named(targets, expected)
+  expect_type(targets$parm, "character")
+  expect_false(anyDuplicated(targets$parm) > 0L)
+  expect_type(targets$profile_ready, "logical")
+  expect_true(all(targets$target_type %in% c("direct", "derived")))
+  expect_true(all(targets$scale %in% c("link", "response", "internal")))
+  expect_true(all(
+    targets$transformation %in%
+      c(
+        "linear_predictor",
+        "exp",
+        "rho12_tanh",
+        "tanh",
+        "derived_group_scale",
+        "unstructured_corr",
+        "ordered_cutpoint"
+      )
+  ))
+  expect_true(all(
+    targets$profile_note %in%
+      c(
+        "ready",
+        "tmb_object_required",
+        "missing_tmb_parameter",
+        "derived_target",
+        "derived_unstructured_correlation"
+      )
+  ))
+  expect_false(any(targets$profile_ready & targets$target_type != "direct"))
+  expect_false(any(targets$profile_ready & targets$profile_note != "ready"))
+  expect_false(any(
+    targets$target_type == "derived" &
+      !targets$profile_note %in%
+        c("derived_target", "derived_unstructured_correlation")
+  ))
+}
+
 test_that("profile target inventory lists fixed effects", {
   set.seed(20260590)
   n <- 80
@@ -232,25 +286,7 @@ test_that("profile target inventory lists fixed effects", {
 
   targets <- drmTMB:::drm_profile_targets(fit)
 
-  expect_s3_class(targets, "data.frame")
-  expect_named(
-    targets,
-    c(
-      "parm",
-      "target_class",
-      "dpar",
-      "term",
-      "tmb_parameter",
-      "index",
-      "estimate",
-      "link_estimate",
-      "scale",
-      "transformation",
-      "target_type",
-      "profile_ready",
-      "profile_note"
-    )
-  )
+  expect_profile_target_contract(targets)
   expect_equal(
     targets$parm,
     c(
@@ -281,7 +317,7 @@ test_that("profile_targets exposes available confidence-interval targets", {
   targets <- profile_targets(fit)
   ready_targets <- profile_targets(fit, ready_only = TRUE)
 
-  expect_s3_class(targets, "data.frame")
+  expect_profile_target_contract(targets)
   expect_equal(targets, drmTMB:::drm_profile_targets(fit))
   expect_true("fixef:mu:x" %in% targets$parm)
   expect_true("sd:mu:(1 + x | p | ID):x" %in% targets$parm)
@@ -293,6 +329,39 @@ test_that("profile_targets exposes available confidence-interval targets", {
   )
   expect_error(profile_targets(list()), "drmTMB")
   expect_error(profile_targets(fit, ready_only = c(TRUE, FALSE)), "single")
+})
+
+test_that("profile_targets marks dropped TMB objects as unavailable", {
+  set.seed(20260652)
+  n <- 60
+  dat <- data.frame(
+    y = stats::rnorm(n),
+    x = stats::rnorm(n)
+  )
+  fit <- drmTMB(
+    bf(y ~ x, sigma ~ 1),
+    family = gaussian(),
+    data = dat,
+    control = drm_control(keep_tmb_object = FALSE)
+  )
+
+  targets <- profile_targets(fit)
+  ready_targets <- profile_targets(fit, ready_only = TRUE)
+
+  expect_null(fit$obj)
+  expect_profile_target_contract(targets)
+  expect_false(any(targets$profile_ready))
+  expect_equal(unique(targets$profile_note), "tmb_object_required")
+  expect_equal(nrow(ready_targets), 0L)
+  expect_error(
+    stats::confint(
+      fit,
+      parm = "fixef:mu:x",
+      method = "profile",
+      trace = FALSE
+    ),
+    "TMB object retained"
+  )
 })
 
 test_that("confint returns Wald fixed-effect intervals", {
@@ -804,6 +873,7 @@ test_that("profile target inventory covers bivariate phylogenetic covariance lab
   )
   phylo_targets <- targets[match(phylo_parms, targets$parm), ]
 
+  expect_profile_target_contract(targets)
   expect_equal(fit$opt$convergence, 0)
   expect_equal(phylo_targets$parm, phylo_parms)
   expect_equal(
@@ -1277,6 +1347,7 @@ test_that("profile targets can format fitted-like q=4 endpoint registry rows", {
   ready_targets <- profile_targets(fit_q4, ready_only = TRUE)
   q4_targets <- targets[match(q4_parms, targets$parm), ]
 
+  expect_profile_target_contract(targets)
   expect_false(anyNA(q4_targets$parm))
   expect_equal(q4_targets$parm, q4_parms)
   expect_equal(
@@ -1387,6 +1458,7 @@ test_that("profile target inventory marks modelled group scales as derived", {
 
   targets <- drmTMB:::drm_profile_targets(fit)
 
+  expect_profile_target_contract(targets)
   expect_true("fixef:sd(id):(Intercept)" %in% targets$parm)
   expect_true("fixef:sd(id):gx" %in% targets$parm)
   expect_true(any(
@@ -1411,6 +1483,7 @@ test_that("profile target inventory lists residual rho12 and ordinal internals",
 
   biv_targets <- drmTMB:::drm_profile_targets(fit_biv)
 
+  expect_profile_target_contract(biv_targets)
   rho_rows <- biv_targets[biv_targets$dpar == "rho12", ]
   expect_equal(rho_rows$parm, c("fixef:rho12:(Intercept)", "fixef:rho12:w"))
   expect_equal(rho_rows$tmb_parameter, c("beta_rho12", "beta_rho12"))
@@ -1430,6 +1503,7 @@ test_that("profile target inventory lists residual rho12 and ordinal internals",
   )
 
   ord_targets <- drmTMB:::drm_profile_targets(fit_ord)
+  expect_profile_target_contract(ord_targets)
   theta_rows <- ord_targets[
     ord_targets$target_class == "ordinal-cutpoint-internal",
   ]

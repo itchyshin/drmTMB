@@ -16,6 +16,13 @@ profile_targets(object, ready_only = FALSE)
 A data frame with columns \code{parm}, \code{target_class}, \code{dpar}, \code{term},
 \code{tmb_parameter}, \code{index}, \code{estimate}, \code{link_estimate}, \code{scale},
 \code{transformation}, \code{target_type}, \code{profile_ready}, and \code{profile_note}.
+\code{target_type} is either \code{"direct"} for a target that maps to a single
+fitted TMB parameter or \code{"derived"} for a target that is reported from a
+transformed or multi-parameter quantity. \code{profile_ready = TRUE} means the
+target is direct and the fitted object retained the TMB object needed for
+\code{\link[=confint.drmTMB]{confint.drmTMB()}} with \code{method = "profile"}. Common \code{profile_note}
+values are \code{"ready"}, \code{"tmb_object_required"}, \code{"missing_tmb_parameter"},
+\code{"derived_target"}, and \code{"derived_unstructured_correlation"}.
 }
 \description{
 \code{profile_targets()} shows the names that can be supplied to

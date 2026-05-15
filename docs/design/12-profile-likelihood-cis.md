@@ -104,6 +104,69 @@ residual-correlation models expose their link-scale coefficients in
 `profile_targets(fit)` and support row-specific response-scale profiles through
 `newdata`; arbitrary contrasts remain planned.
 
+## Phase 6 Slice 52 Target Namespace Contract
+
+Slice 52 turns the target inventory into a small tested contract. Every row in
+`profile_targets(fit)` must use these public columns:
+
+```text
+parm
+target_class
+dpar
+term
+tmb_parameter
+index
+estimate
+link_estimate
+scale
+transformation
+target_type
+profile_ready
+profile_note
+```
+
+The target name in `parm` is the string users pass to `confint()`. It should be
+stable, user-facing, and based on fitted-model labels, not on raw TMB storage
+details. `tmb_parameter` and `index` are allowed to expose the implementation
+mapping because they are diagnostic columns, but they are not the public target
+name.
+
+`target_type` has only two meanings:
+
+| Value | Meaning | Interval status |
+| --- | --- | --- |
+| `direct` | The row maps to one fitted TMB parameter or one TMB linear combination. | Can be profile-ready when the fitted object kept `fit$obj` and the internal parameter is present. |
+| `derived` | The row is a reported point estimate from a transformed, multi-parameter, or surface-level quantity. | Not directly profile-ready until a direct reparameterization or fix-and-refit method exists. |
+
+`profile_ready = TRUE` is deliberately stricter than "the optimizer vector has
+this parameter". It means a direct target is available and the fitted object
+retained the TMB automatic-differentiation object needed by
+`TMB::tmbprofile()`. Memory-light fits created with
+`drm_control(keep_tmb_object = FALSE)` still list their target names, but their
+direct rows use:
+
+```text
+profile_ready = FALSE
+profile_note = "tmb_object_required"
+```
+
+The currently allowed `profile_note` values are:
+
+| Value | Use |
+| --- | --- |
+| `ready` | The direct target can be sent to `confint(..., method = "profile")`. |
+| `tmb_object_required` | The target is otherwise direct, but the fit dropped `fit$obj`; refit with `drm_control(keep_tmb_object = TRUE)`. |
+| `missing_tmb_parameter` | The fitted object does not contain the internal parameter needed for that direct target. |
+| `derived_target` | The row is a derived SD or fitted surface, not a one-parameter profile target. |
+| `derived_unstructured_correlation` | The row is an unstructured q4 correlation derived from a Cholesky-style covariance parameterization. |
+
+The currently allowed `transformation` values are `linear_predictor`, `exp`,
+`rho12_tanh`, `tanh`, `derived_group_scale`, `unstructured_corr`, and
+`ordered_cutpoint`. Slice 52 tests representative fixed-effect,
+distributional-scale, random-effect SD, random-effect correlation, residual
+correlation, ordinal cutpoint, modelled-SD, q4 derived-correlation, and
+memory-light fitted-object rows against this contract.
+
 ## Core Definition
 
 For a single parameter `theta`, the likelihood-ratio statistic is:
