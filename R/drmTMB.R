@@ -87,6 +87,12 @@ drmTMB <- function(
   )
 
   family_type <- drm_family_type(family)
+  if (isTRUE(control$sparse_fixed) && !identical(family_type, "gaussian")) {
+    cli::cli_abort(c(
+      "Sparse fixed-effect matrices are implemented only for univariate Gaussian models in this phase.",
+      "i" = "Use {.code family = gaussian()} with a fixed-effect {.code mu} formula, or set {.code sparse_fixed = FALSE}."
+    ))
+  }
   if (!identical(family_type, "biv_gaussian")) {
     reject_corpair_formula_entries(formula$entries)
   }
@@ -96,7 +102,8 @@ drmTMB <- function(
       formula,
       data,
       env = parent.frame(),
-      weights = weights_full
+      weights = weights_full,
+      control = control
     ),
     student = drm_build_student_ls_spec(
       formula,
@@ -373,7 +380,8 @@ drm_build_gaussian_ls_spec <- function(
   formula,
   data,
   env = parent.frame(),
-  weights = NULL
+  weights = NULL,
+  control = drm_control()
 ) {
   entries <- formula$entries
   dpars <- vapply(entries, `[[`, character(1), "dpar")
@@ -450,6 +458,19 @@ drm_build_gaussian_ls_spec <- function(
     sd_phylo_entries,
     mu_phylo$term
   )
+  sparse_mu <- isTRUE(control$sparse_fixed)
+  if (sparse_mu) {
+    validate_sparse_fixed_gaussian(
+      meta = meta,
+      mu_phylo = mu_phylo,
+      mu_spatial = mu_spatial,
+      mu_re = mu_re,
+      sigma_re = sigma_re,
+      sd_mu_entries = sd_mu_entries,
+      sd_phylo_entries = sd_phylo_entries,
+      sigma_entry = sigma_entry
+    )
+  }
 
   drm_reject_phase1_terms(mu_entry$rhs, "mu")
   drm_reject_phase1_terms(sigma_entry$rhs, "sigma")
@@ -508,11 +529,12 @@ drm_build_gaussian_ls_spec <- function(
   )
   y <- stats::model.response(mf_mu)
 
-  X_mu <- stats::model.matrix(
-    stats::delete.response(stats::terms(mf_mu)),
-    mf_mu
-  )
+  terms_mu <- stats::delete.response(stats::terms(mf_mu))
+  X_mu <- drm_fixed_effect_matrix(terms_mu, mf_mu, sparse = sparse_mu)
   X_sigma <- stats::model.matrix(stats::terms(mf_sigma), mf_sigma)
+  if (sparse_mu) {
+    validate_sparse_fixed_gaussian_design(X_sigma)
+  }
   re_mu <- build_random_mu_structure(mu_re$terms, data_model)
   re_sigma <- build_random_sigma_structure(sigma_re$terms, data_model)
   re_mu_sigma <- build_mu_sigma_random_covariance(re_mu, re_sigma)
@@ -579,7 +601,7 @@ drm_build_gaussian_ls_spec <- function(
     ),
     terms = c(
       list(
-        mu = stats::delete.response(stats::terms(mf_mu)),
+        mu = terms_mu,
         sigma = stats::terms(mf_sigma)
       ),
       sd_mu$terms_list,
@@ -615,7 +637,8 @@ drm_build_gaussian_ls_spec <- function(
       if (re_mu$n_re > 0L) "u_mu",
       if (re_sigma$n_re > 0L) "u_sigma",
       if (isTRUE(phylo_mu$has)) "u_phylo"
-    )
+    ),
+    sparse_fixed = list(mu = sparse_mu)
   )
   check_weights_known_covariance(spec)
   spec$tmb_data <- add_covariance_block_tmb_data(
@@ -624,6 +647,57 @@ drm_build_gaussian_ls_spec <- function(
   )
   spec$nobs <- length(spec$y)
   spec
+}
+
+validate_sparse_fixed_gaussian <- function(
+  meta,
+  mu_phylo,
+  mu_spatial,
+  mu_re,
+  sigma_re,
+  sd_mu_entries,
+  sd_phylo_entries,
+  sigma_entry
+) {
+  if (!is.null(meta$V)) {
+    cli::cli_abort(c(
+      "Sparse fixed-effect matrices are not implemented with known sampling covariance yet.",
+      "i" = "Refit without {.code meta_known_V()} or set {.code sparse_fixed = FALSE}."
+    ))
+  }
+  if (!is.null(mu_phylo$term) || !is.null(mu_spatial$term)) {
+    cli::cli_abort(c(
+      "Sparse fixed-effect matrices are not implemented with structured random effects yet.",
+      "i" = "Fit the phylogenetic or spatial model with dense fixed-effect matrices in this phase."
+    ))
+  }
+  if (length(mu_re$terms) > 0L || length(sigma_re$terms) > 0L) {
+    cli::cli_abort(c(
+      "Sparse fixed-effect matrices are not implemented with ordinary random effects yet.",
+      "i" = "Use a fixed-effect Gaussian location model first, or set {.code sparse_fixed = FALSE}."
+    ))
+  }
+  if (length(sd_mu_entries) > 0L || length(sd_phylo_entries) > 0L) {
+    cli::cli_abort(c(
+      "Sparse fixed-effect matrices are not implemented with direct random-effect SD models yet.",
+      "i" = "Use the dense path for {.code sd()} and {.code sd_phylo()} models in this phase."
+    ))
+  }
+  if (!is_intercept_one(sigma_entry$rhs)) {
+    cli::cli_abort(c(
+      "Sparse fixed-effect matrices currently require intercept-only {.code sigma}.",
+      "i" = "Use {.code sigma = ~ 1} or set {.code sparse_fixed = FALSE}."
+    ))
+  }
+}
+
+validate_sparse_fixed_gaussian_design <- function(X_sigma) {
+  if (ncol(X_sigma) != 1L || !identical(colnames(X_sigma), "(Intercept)")) {
+    cli::cli_abort(c(
+      "Sparse fixed-effect matrices currently require intercept-only {.code sigma}.",
+      "i" = "Use {.code sigma = ~ 1} or set {.code sparse_fixed = FALSE}."
+    ))
+  }
 }
 
 drm_build_student_ls_spec <- function(
@@ -6492,9 +6566,18 @@ gaussian_ls_start <- function(
   re_mu_sigma = empty_mu_sigma_random_covariance(re_sigma$n_re),
   sd_phylo = empty_sd_phylo_structure()
 ) {
-  lm_start <- stats::lm.fit(x = X_mu, y = y)
-  beta_mu <- lm_start$coefficients
-  beta_mu[is.na(beta_mu)] <- 0
+  if (inherits(X_mu, "sparseMatrix")) {
+    beta_mu <- numeric(ncol(X_mu))
+    names(beta_mu) <- colnames(X_mu)
+    intercept <- match("(Intercept)", names(beta_mu), nomatch = 0L)
+    if (intercept > 0L) {
+      beta_mu[[intercept]] <- mean(y)
+    }
+  } else {
+    lm_start <- stats::lm.fit(x = X_mu, y = y)
+    beta_mu <- lm_start$coefficients
+    beta_mu[is.na(beta_mu)] <- 0
+  }
 
   resid <- y - as.vector(X_mu %*% beta_mu)
   resid_var <- stats::var(resid)
@@ -7583,7 +7666,7 @@ add_covariance_block_tmb_data <- function(tmb_data, spec) {
   } else {
     empty_labelled_covariance_block_tmb_data()
   }
-  c(tmb_data, cov_tmb_data)
+  c(tmb_data, drm_sparse_fixed_tmb_data(spec), cov_tmb_data)
 }
 
 add_covariance_probe_parameter <- function(spec) {
@@ -7695,7 +7778,11 @@ make_tmb_data <- function(spec) {
       ),
       y1 = numeric(1),
       y2 = numeric(1),
-      X_mu = spec$X$mu,
+      X_mu = if (isTRUE(spec$sparse_fixed$mu)) {
+        dummy_matrix
+      } else {
+        spec$X$mu
+      },
       X_sigma = spec$X$sigma,
       X_nu = dummy_matrix,
       X_zi = dummy_matrix,

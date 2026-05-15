@@ -4,7 +4,8 @@ This directory contains optional development benchmarks. These scripts are not
 part of the R package tarball and are not run by CRAN checks.
 
 The first harness focuses on the scaling question that matters for large
-phylogenetic data:
+phylogenetic data. It also has an explicit non-phylogenetic sparse fixed-effect
+scenario for the first `sparse_fixed` implementation:
 
 ```sh
 Rscript bench/large-phylo-location.R --rows 100000 --species 1000 \
@@ -30,6 +31,7 @@ reasonable.
 | Smoke | 10,000 | 100 | `--memory-light true` | Check the local toolchain and output file. |
 | First large run | 100,000 | 1,000 | `--memory-light true` | Measure ordinary large-data behaviour. |
 | Factor pressure | 100,000 | 1,000 | `--factor-heavy true --memory-light true` | Expose dense fixed-effect matrix cost. |
+| Sparse fixed smoke | 100,000 | 1,000 | `--structured none --factor-heavy true --sparse-fixed true --memory-light true` | Measure the first sparse Gaussian `mu` fixed-effect path without phylogenetic structure. |
 | Scale predictor | 100,000 | 1,000 | `--sigma-x true --memory-light true` | Add a distributional scale predictor. |
 | Species pressure | 100,000 | 5,000 | `--memory-light true` | Stress tree and species-index handling. |
 | Row pressure | 500,000+ | 1,000+ | `--memory-light true` | Move toward million-row readiness. |
@@ -47,9 +49,11 @@ larger values when the fit is intended as a real timing result.
 | `git_sha`, `git_dirty` | Local Git commit and whether the checkout had uncommitted changes when the row was generated. |
 | `benchmark_command` | Reconstructed command with all benchmark settings needed to rerun the scenario from the package root. |
 | `rows`, `species` | Requested observation rows and species count. |
+| `structured` | Fitted structured-effect route: `phylo` for the default phylogenetic benchmark or `none` for fixed-effect sparse smoke runs. |
 | `tree` | Synthetic tree shape: `balanced` or `star`. |
 | `factor_heavy` | Whether the `mu` formula includes a 40-level factor. |
 | `sigma_x` | Whether the scale model is `sigma ~ x1` instead of `sigma ~ 1`. |
+| `sparse_fixed` | Whether `drm_control(sparse_fixed = TRUE)` was used. This currently requires `--structured none --sigma-x false`. |
 | `memory_light` | Whether `keep_data = FALSE`, `keep_model_frame = FALSE`, and `keep_tmb_object = FALSE` were used. |
 | `convergence` | `stats::nlminb()` convergence code; `0` is the target. |
 | `convergence_message` | Optimizer message from `stats::nlminb()`, when available. |
@@ -63,6 +67,7 @@ larger values when the fit is intended as a real timing result.
 | `data_object_mb`, `tree_object_mb` | Base R object sizes for generated inputs. |
 | `fit_object_mb` | Base R object size for the fitted `drmTMB` object. |
 | `model_matrix_mb` | Base R object size for stored fixed-effect model matrices. |
+| `model_matrix_largest`, `model_matrix_largest_cols`, `model_matrix_largest_nonzero`, `model_matrix_largest_density` | The largest retained fixed-effect design block and its width, nonzero count, and density. A low density points to a future sparse fixed-effect matrix candidate. |
 | `tmb_data_mb` | Base R object size for the TMB data list stored in the fit. |
 | `gc_used_mb_before` | Approximate R heap use before data generation, calculated from `gc()` Ncells and Vcells counts. |
 | `gc_used_mb_pre_fit` | Approximate R heap use after data generation, calculated from `gc()` Ncells and Vcells counts. |

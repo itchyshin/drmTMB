@@ -69,16 +69,30 @@ The implemented first slice means:
 - `keep_model_frame = FALSE`: do not store model frames in the fit after TMB
   data has been built. Fitted-row prediction, new-data prediction, residuals,
   simulation, response names, and diagnostics use stored matrices, terms,
-  offsets, response vectors, response-name metadata, and diagnostic state;
+  offsets, response vectors, response-name metadata, random-effect scale
+  metadata, correlation-regression design matrices, and diagnostic state;
 - `keep_tmb_object = FALSE`: do not retain the TMB
   automatic-differentiation object after optimization; `check_drm()` then
   reports the fixed-gradient check as a note rather than re-evaluating it;
 - `optimizer = list(...)`: pass optimizer controls to `stats::nlminb()`.
 
-The next larger memory controls remain planned rather than implemented:
+The first sparse fixed-effect fit path is also explicit and narrow:
 
-- sparse fixed-effect matrices: use sparse design matrices when factors or
-  high-dimensional terms would make dense matrices costly.
+```r
+drmTMB(
+  bf(y ~ habitat + x1, sigma ~ 1),
+  family = gaussian(),
+  data = dat,
+  control = drm_control(sparse_fixed = TRUE)
+)
+```
+
+This stores the univariate Gaussian `mu` design as a `Matrix` sparse matrix and
+uses a sparse TMB multiply for the location predictor. It currently requires a
+fixed-effect Gaussian location model with intercept-only `sigma`; random
+effects, direct-SD models, phylogenetic/spatial effects, known covariance,
+non-Gaussian families, bivariate models, and sparse scale formulas remain
+planned.
 
 ## Model-Frame Dependency Map
 
@@ -106,6 +120,15 @@ top-level model frames after fitting when requested. Regression tests currently
 cover Gaussian, Poisson offset prediction, beta-binomial trial storage,
 cumulative-logit ordinal metadata, and bivariate Gaussian two-response output
 after model frames are removed.
+
+The Phase 5b storage hardening extends that deletion to the nested model-frame
+caches created by direct random-effect SD models and latent-correlation
+regression models. In practice, `keep_model_frame = FALSE` now removes
+`sd(group)`, `sd_phylo(group)`, `sd_phylo1(group)`, `sd_phylo2(group)`, and
+fitted q=2 `corpair()` model-frame caches after their model matrices and group
+metadata have been stored. Tests cover an `sd_phylo(species) ~ z_species`
+fit and an ordinary q=2 `corpair(id, level = "group", block = "p",
+from = "mu1", to = "mu2") ~ ecology` fit with all memory-light flags enabled.
 
 ## Aggregation Path
 
@@ -141,10 +164,11 @@ likelihood-comparison tests.
 ## Sparse Design Matrices
 
 Large fixed-effect designs can become memory-heavy when factors are expanded
-with dense `model.matrix()`. A future sparse path should use
-`Matrix::sparse.model.matrix()` and pass sparse matrices to TMB where possible.
+with dense `model.matrix()`. The first sparse path uses
+`Matrix::sparse.model.matrix()` and passes the univariate Gaussian `mu` design
+to TMB as a sparse matrix when `drm_control(sparse_fixed = TRUE)` is used.
 
-Candidate first targets:
+Next sparse targets:
 
 - large factor fixed effects;
 - interaction terms with many empty combinations;
@@ -186,6 +210,8 @@ command-line options for:
 - 100,000, 500,000, 1,000,000, and 5,000,000 rows through `--rows`;
 - few fixed effects first, then factor-heavy fixed effects through
   `--factor-heavy`;
+- the default phylogenetic route, or the first non-phylogenetic sparse
+  fixed-effect route through `--structured none --sparse-fixed true`;
 - `sigma ~ 1` first, then `sigma ~ x` through `--sigma-x`;
 - intercept-only `phylo(1 | species, tree = tree)`.
 

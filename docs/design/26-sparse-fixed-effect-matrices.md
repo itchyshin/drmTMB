@@ -26,30 +26,9 @@ matrix of about 45 MB and did not produce a clean optimizer convergence result
 under the benchmark settings. That row is diagnostic evidence, not a
 performance claim.
 
-## Proposed Sparse Path
+## Implemented First Path
 
-Add an internal construction path that can build selected fixed-effect design
-matrices with `Matrix::sparse.model.matrix()`. A future public control could be
-explicit, for example:
-
-```r
-drm_control(sparse_fixed = TRUE)
-```
-
-or parameter-specific if the first implementation needs tighter scope:
-
-```r
-drm_control(sparse_fixed = c(mu = TRUE, sigma = FALSE))
-```
-
-Do not enable sparse fixed effects implicitly at first. Users should opt in
-until dense-versus-sparse parity tests cover all implemented families and
-prediction paths.
-
-## First Supported Scope
-
-The first sparse target should be univariate Gaussian fixed-effect location
-models without random effects:
+The first fitted sparse path is opt-in and deliberately narrow:
 
 ```r
 drmTMB(
@@ -60,8 +39,45 @@ drmTMB(
 )
 ```
 
-After that path has likelihood, prediction, simulation, and diagnostic parity,
-extend in this order:
+This stores the `mu` fixed-effect design as a `Matrix` sparse matrix and routes
+the univariate Gaussian fixed-effect location predictor through a sparse TMB
+matrix multiply. It leaves `sigma` dense and intercept-only. The first path
+rejects ordinary random effects, direct random-effect SD models, phylogenetic
+and spatial structured effects, known sampling covariance, non-Gaussian
+families, bivariate Gaussian models, and non-intercept `sigma` formulas.
+
+The current public control is scalar. A later parameter-specific control could
+be added when more distributional parameters are covered:
+
+```r
+drm_control(sparse_fixed = c(mu = TRUE, sigma = FALSE))
+```
+
+Do not enable sparse fixed effects implicitly. Users should opt in until
+dense-versus-sparse parity tests cover all implemented families and prediction
+paths.
+
+The internal scaffold uses `drm_fixed_effect_matrix()` to construct either the
+existing dense `stats::model.matrix()` result or the matching
+`Matrix::sparse.model.matrix()` result. `drm_sparse_fixed_parity()` checks
+shape, column names, matrix entries, and a test linear predictor.
+
+## First Supported Scope
+
+The implemented first sparse target is univariate Gaussian fixed-effect
+location models without random effects:
+
+```r
+drmTMB(
+  bf(y ~ habitat + x1, sigma ~ 1),
+  family = gaussian(),
+  data = dat,
+  control = drm_control(sparse_fixed = TRUE)
+)
+```
+
+After this path has broader likelihood, prediction, simulation, and diagnostic
+parity, extend in this order:
 
 - Gaussian `sigma` fixed effects;
 - Poisson and negative-binomial `mu` fixed effects with offsets;
@@ -75,9 +91,9 @@ separate data structures and identifiability checks.
 
 ## TMB Data Contract
 
-The sparse path should not replace existing dense matrix names in one step.
-Use a parallel set of fields and flags so dense and sparse implementations can
-coexist during testing:
+The sparse path does not replace existing dense matrix names in one step. It
+uses a parallel field and flag so dense and sparse implementations can coexist
+during testing:
 
 ```text
 use_sparse_X_mu
@@ -85,7 +101,7 @@ X_mu
 X_mu_sparse
 ```
 
-The C++ template should route through a small helper for each linear predictor:
+The C++ template routes the first Gaussian `mu` predictor as:
 
 ```text
 eta_mu = X_mu * beta_mu              if dense
@@ -105,14 +121,17 @@ not change.
 ## Required Tests
 
 Each sparse phase needs dense-versus-sparse parity tests on small data before
-any large benchmark claim:
+any large benchmark claim. The first Gaussian `mu` path checks:
 
-- identical fixed-effect coefficient estimates within numerical tolerance;
-- identical `logLik()`, `fitted()`, `predict()`, `residuals()`, and
-  `simulate(seed = ...)` output where deterministic;
-- matching `check_drm()` status rows except for expected design-size messages;
+- fixed-effect coefficient estimates within numerical tolerance;
+- matching `logLik()`, `fitted()`, fitted-row `predict()`, new-data
+  `predict()`, `residuals()`, and seeded `simulate()` output within numerical
+  tolerance;
+- `check_drm()` design-size reporting for sparse retained matrices;
 - explicit tests for factors with unused levels and interactions with empty
   combinations;
+- rejection tests for random effects, non-intercept `sigma`, and non-Gaussian
+  families;
 - `keep_model_frame = FALSE` compatibility, because large sparse workflows
   should also support memory-light fitted objects.
 
@@ -122,13 +141,21 @@ any large benchmark claim:
 remain useful after sparse support lands:
 
 - dense fits should report dense fixed-effect matrix sizes;
+- dense fits should report nonzero counts or density so users can distinguish a
+  wide but genuinely dense design from a wide mostly-zero design;
 - sparse fits should report sparse fixed-effect matrix sizes and nonzero
   counts;
 - mixed dense/sparse fits should name which distributional-parameter block is
   largest.
 
-The large-data vignette should continue to say that sparse fixed effects are
-planned until dense-versus-sparse parity tests and TMB branches are in place.
+The current dense path reports the density of the largest retained fixed-effect
+design block. A wide design with low density is not automatically an error, but
+it is a concrete signal that high-cardinality factors or sparse interactions
+may be better served by the sparse fixed-effect path when the model is inside
+the implemented scope.
+
+The large-data vignette should continue to distinguish the implemented
+univariate Gaussian `mu` path from the broader sparse roadmap.
 
 ## Open Questions
 

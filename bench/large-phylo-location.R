@@ -28,9 +28,11 @@ parse_args <- function(args = commandArgs(trailingOnly = TRUE)) {
     rows = 5000L,
     species = 128L,
     seed = 20260510L,
+    structured = "phylo",
     tree = "balanced",
     factor_heavy = FALSE,
     sigma_x = FALSE,
+    sparse_fixed = FALSE,
     memory_light = TRUE,
     eval_max = 200L,
     iter_max = 200L,
@@ -94,9 +96,11 @@ print_usage <- function() {
     "  --rows N              Number of observation rows; default 5000\n",
     "  --species N           Number of species; default 128\n",
     "  --seed N              Random seed; default 20260510\n",
+    "  --structured phylo|none  Structured effect path; default phylo\n",
     "  --tree balanced|star  Synthetic ultrametric tree shape; default balanced\n",
     "  --factor-heavy bool   Add a 40-level habitat factor; default false\n",
     "  --sigma-x bool        Fit sigma ~ x1 instead of sigma ~ 1; default false\n",
+    "  --sparse-fixed bool   Use sparse Gaussian mu fixed effects; default false\n",
     "  --memory-light bool   Use all fitted-object storage controls; default true\n",
     "  --eval-max N          nlminb eval.max; default 200\n",
     "  --iter-max N          nlminb iter.max; default 200\n",
@@ -199,17 +203,28 @@ simulate_phylo_effect <- function(tree, sd_phylo) {
 
 simulate_benchmark_data <- function(args) {
   set.seed(args$seed)
-  tree <- switch(
-    args$tree,
-    balanced = balanced_ultrametric_tree(args$species),
-    star = star_ultrametric_tree(args$species),
-    stop("--tree must be balanced or star.", call. = FALSE)
-  )
-  species <- sample(tree$tip.label, args$rows, replace = TRUE)
+  if (!args$structured %in% c("phylo", "none")) {
+    stop("--structured must be phylo or none.", call. = FALSE)
+  }
+  tree <- NULL
+  species_levels <- paste0("sp_", seq_len(args$species))
+  if (identical(args$structured, "phylo")) {
+    tree <- switch(
+      args$tree,
+      balanced = balanced_ultrametric_tree(args$species),
+      star = star_ultrametric_tree(args$species),
+      stop("--tree must be balanced or star.", call. = FALSE)
+    )
+    species_levels <- tree$tip.label
+  }
+  species <- sample(species_levels, args$rows, replace = TRUE)
   x1 <- stats::rnorm(args$rows)
   x2 <- stats::runif(args$rows, -1, 1)
-  phylo_effect <- simulate_phylo_effect(tree, sd_phylo = 0.5)
-  eta_mu <- 0.2 + 0.35 * x1 - 0.15 * x2 + phylo_effect[species]
+  eta_mu <- 0.2 + 0.35 * x1 - 0.15 * x2
+  if (!is.null(tree)) {
+    phylo_effect <- simulate_phylo_effect(tree, sd_phylo = 0.5)
+    eta_mu <- eta_mu + phylo_effect[species]
+  }
   habitat <- NULL
   if (isTRUE(args$factor_heavy)) {
     habitat <- factor(sample(paste0("hab_", 1:40), args$rows, replace = TRUE))
@@ -234,6 +249,24 @@ simulate_benchmark_data <- function(args) {
 }
 
 fit_formula <- function(args) {
+  if (isTRUE(args$sparse_fixed) && !identical(args$structured, "none")) {
+    stop(
+      "--sparse-fixed true currently requires --structured none.",
+      call. = FALSE
+    )
+  }
+  if (isTRUE(args$sparse_fixed) && isTRUE(args$sigma_x)) {
+    stop(
+      "--sparse-fixed true currently requires --sigma-x false.",
+      call. = FALSE
+    )
+  }
+  if (identical(args$structured, "none")) {
+    if (isTRUE(args$factor_heavy)) {
+      return(bf(y ~ x1 + x2 + habitat, sigma ~ 1))
+    }
+    return(bf(y ~ x1 + x2, sigma ~ 1))
+  }
   if (isTRUE(args$factor_heavy) && isTRUE(args$sigma_x)) {
     return(bf(
       y ~ x1 + x2 + habitat + phylo(1 | species, tree = tree),
@@ -260,6 +293,37 @@ fit_formula <- function(args) {
 
 object_mb <- function(x) {
   as.numeric(utils::object.size(x)) / 1024^2
+}
+
+benchmark_design_summary <- function(fit) {
+  summary_fun <- get0(
+    "fixed_effect_design_summary",
+    envir = asNamespace("drmTMB"),
+    inherits = FALSE
+  )
+  if (is.null(summary_fun)) {
+    return(data.frame())
+  }
+  summary_fun(fit$model$X)
+}
+
+benchmark_largest_design <- function(fit) {
+  design <- benchmark_design_summary(fit)
+  if (nrow(design) == 0L) {
+    return(list(
+      name = NA_character_,
+      cols = NA_integer_,
+      nonzero = NA_real_,
+      density = NA_real_
+    ))
+  }
+  largest <- design[which.max(design$size_mb), , drop = FALSE]
+  list(
+    name = largest$dpar[[1L]],
+    cols = largest$n_cols[[1L]],
+    nonzero = largest$n_nonzero[[1L]],
+    density = largest$density[[1L]]
+  )
 }
 
 gc_used_mb <- function() {
@@ -296,9 +360,11 @@ benchmark_command <- function(args) {
     "rows",
     "species",
     "seed",
+    "structured",
     "tree",
     "factor_heavy",
     "sigma_x",
+    "sparse_fixed",
     "memory_light",
     "eval_max",
     "iter_max",
@@ -389,22 +455,24 @@ benchmark_environment <- function(args) {
 
 run_benchmark <- function(args) {
   load_drmTMB()
-  if (args$species < 2L) {
+  if (args$species < 2L && identical(args$structured, "phylo")) {
     stop("--species must be at least 2 for phylogenetic models.", call. = FALSE)
   }
+  fit_formula(args)
   env <- benchmark_environment(args)
   gc()
   before_mb <- gc_used_mb()
   data_time <- system.time(sim <- simulate_benchmark_data(args))
   data_mb <- object_mb(sim$data)
-  tree_mb <- object_mb(sim$tree)
+  tree_mb <- if (is.null(sim$tree)) 0 else object_mb(sim$tree)
   gc()
   pre_fit_mb <- gc_used_mb()
   control <- drm_control(
     optimizer = list(eval.max = args$eval_max, iter.max = args$iter_max),
     keep_data = !args$memory_light,
     keep_model_frame = !args$memory_light,
-    keep_tmb_object = !args$memory_light
+    keep_tmb_object = !args$memory_light,
+    sparse_fixed = args$sparse_fixed
   )
   fit_time <- system.time({
     tree <- sim$tree
@@ -423,15 +491,18 @@ run_benchmark <- function(args) {
   if (is.null(opt_message) || length(opt_message) == 0L) {
     opt_message <- NA_character_
   }
+  largest_design <- benchmark_largest_design(fit)
 
   cbind(
     as.data.frame(env, stringsAsFactors = FALSE),
     data.frame(
       rows = args$rows,
       species = args$species,
+      structured = args$structured,
       tree = args$tree,
       factor_heavy = args$factor_heavy,
       sigma_x = args$sigma_x,
+      sparse_fixed = args$sparse_fixed,
       memory_light = args$memory_light,
       convergence = fit$opt$convergence,
       convergence_message = opt_message[[1L]],
@@ -447,6 +518,10 @@ run_benchmark <- function(args) {
       tree_object_mb = tree_mb,
       fit_object_mb = object_mb(fit),
       model_matrix_mb = object_mb(fit$model$X),
+      model_matrix_largest = largest_design$name,
+      model_matrix_largest_cols = largest_design$cols,
+      model_matrix_largest_nonzero = largest_design$nonzero,
+      model_matrix_largest_density = largest_design$density,
       tmb_data_mb = object_mb(fit$model$tmb_data),
       gc_used_mb_before = before_mb,
       gc_used_mb_pre_fit = pre_fit_mb,
@@ -454,7 +529,11 @@ run_benchmark <- function(args) {
       mu_mean = mean(pred),
       residual_sd = stats::sd(res),
       sigma_hat = mean(stats::sigma(fit)),
-      sd_phylo_hat = unname(fit$sdpars$mu[[1L]]),
+      sd_phylo_hat = if (identical(args$structured, "phylo")) {
+        unname(fit$sdpars$mu[[1L]])
+      } else {
+        NA_real_
+      },
       stringsAsFactors = FALSE
     )
   )

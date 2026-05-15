@@ -13764,3 +13764,334 @@ Known limitations:
   slopes;
 - formal bibliography entries are still deferred because current docs use
   prose citations and links rather than a site-wide bibliography.
+
+## 2026-05-14 -- Phase 5b Slice 41 memory-light structured surfaces
+
+Goal:
+
+- start Phase 5b after the Phase 5 merge by hardening the existing
+  memory-light fitted-object controls for the newer structured-effect surfaces.
+
+Implemented:
+
+- extended `drm_drop_model_frames()` so `keep_model_frame = FALSE` drops nested
+  model-frame caches from every `random_scale` component, including
+  `sd_phylo()` / `sd_phylo1()` / `sd_phylo2()`, not only ordinary `sd()`;
+- extended the same storage cleanup to fitted q=2 `corpair()` regression
+  model-frame caches under `model$random$mu$cor_model`;
+- added regression tests for an `sd_phylo(species) ~ z_species` fit and an
+  ordinary q=2
+  `corpair(id, level = "group", block = "p", from = "mu1", to = "mu2") ~ ecology`
+  fit with `keep_data = FALSE`, `keep_model_frame = FALSE`, and
+  `keep_tmb_object = FALSE`;
+- updated the large-data design note, large-data vignette, known limitations,
+  `ROADMAP.md`, and `NEWS.md` to say the storage controls cover the nested
+  structured-effect caches while still not avoiding initial model-frame or
+  dense fixed-effect matrix construction.
+
+Checks run:
+
+- `Rscript -e 'devtools::test(filter = "control", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'devtools::test(filter = "control|biv-gaussian|phylo-gaussian", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'devtools::load_all(quiet = TRUE)'`:
+  passed.
+- `PATH=/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::build_article("large-data")'`:
+  passed and refreshed `pkgdown-site/articles/large-data.html`.
+- `PATH=/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed.
+- `git diff --check`:
+  passed.
+- `rg -n "nested model-frame caches|direct-SD and fitted q=2|keep_model_frame = FALSE" docs/dev-log/known-limitations.md docs/design/23-large-data-memory.md ROADMAP.md vignettes/large-data.Rmd NEWS.md pkgdown-site/articles/large-data.html`:
+  found the intended implementation/status wording in source docs and the
+  rebuilt local article.
+- `rg -n "memory-light.*not implemented|Large-data memory controls are not implemented|keep_model_frame = FALSE.*only|does not.*sd_phylo|corpair.*model frame|model frames.*only" README.md ROADMAP.md NEWS.md docs vignettes pkgdown-site || true`:
+  did not find current-source stale claims. Historical check-log and
+  after-task lines remain as time-stamped records.
+
+Known limitations:
+
+- this slice reduces fitted-object storage after model construction; it does
+  not add sparse fixed-effect matrices, sufficient-statistic aggregation, or a
+  mode that avoids constructing dense model frames before optimization;
+- the q=2 `corpair()` storage test covers the ordinary group route. The same
+  nested object path is used by phylogenetic q=2 `corpair()` regressions, which
+  remain covered by the broader `phylo-gaussian` suite run above.
+
+## 2026-05-14 -- Phase 5b Slice 42 fixed-effect design density diagnostic
+
+Goal:
+
+- add a small diagnostic stepping stone toward sparse fixed-effect matrices
+  without changing the fitted likelihood or TMB data contract.
+
+Implemented:
+
+- refactored `check_fixed_effect_design_size()` around an internal
+  `fixed_effect_design_summary()` helper that records matrix class, rows,
+  columns, nonzero count, density, and object size for retained fixed-effect
+  design matrices;
+- extended the `fixed_effect_design_size` row to include
+  `largest_density=...` for the largest retained fixed-effect design block;
+- made the diagnostic message explicitly flag wide mostly-zero dense designs as
+  candidates for the future sparse fixed-effect path;
+- updated the sparse fixed-effect design note, large-data vignette,
+  `ROADMAP.md`, `NEWS.md`, and generated `man/check_drm.Rd`.
+
+Checks run:
+
+- `Rscript -e 'devtools::test(filter = "check-drm", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'devtools::document()'`:
+  passed and refreshed `man/check_drm.Rd`.
+- `PATH=/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::build_article("large-data")'`:
+  passed and refreshed `pkgdown-site/articles/large-data.html`.
+- `PATH=/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed.
+- `Rscript -e 'devtools::load_all(quiet = TRUE)'`:
+  passed.
+- `git diff --check`:
+  passed.
+- `rg -n "largest_density|mostly zero|sparse fixed-effect matrices|density of the largest" R/check.R tests/testthat/test-check-drm.R docs/design/26-sparse-fixed-effect-matrices.md vignettes/large-data.Rmd pkgdown-site/articles/large-data.html man/check_drm.Rd ROADMAP.md NEWS.md`:
+  found the intended diagnostic and documentation wording.
+
+Known limitations:
+
+- this slice still uses dense matrices and does not add `sparse_fixed`;
+- the diagnostic uses retained fitted-object matrices, so it cannot prevent the
+  initial dense `model.matrix()` construction cost;
+- the next sparse implementation step still needs a dense-versus-sparse parity
+  test before any user-facing control is added.
+
+## 2026-05-14 -- Phase 5b Slice 43 sparse fixed-effect parity scaffold
+
+Goal:
+
+- create a tested internal dense-versus-sparse fixed-effect matrix scaffold
+  before exposing a public `sparse_fixed` control or changing TMB inputs.
+
+Implemented:
+
+- added internal `drm_fixed_effect_matrix()` to construct either
+  `stats::model.matrix()` or `Matrix::sparse.model.matrix()` from the same
+  terms and data;
+- added internal `drm_sparse_fixed_parity()` to compare dense and sparse shape,
+  dimnames, entries, and a test linear predictor;
+- added tests with unused factor levels and sparse interactions to confirm
+  dense/sparse parity;
+- added a sparse-matrix summary test so the `fixed_effect_design_size`
+  diagnostic can already summarize future sparse matrices;
+- added a snapshot for the beta-length error path;
+- updated the sparse fixed-effect design note and Phase 5b roadmap status.
+
+Checks run:
+
+- `Rscript -e 'devtools::test(filter = "sparse-fixed-effects", reporter = "summary")'`:
+  passed on rerun after accepting the new snapshot.
+- `Rscript -e 'devtools::test(filter = "sparse-fixed-effects|check-drm", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'devtools::load_all(quiet = TRUE)'`:
+  passed.
+- `git diff --check`:
+  passed.
+
+Known limitations:
+
+- this is internal scaffolding only; `drmTMB()` still builds dense fixed-effect
+  matrices for fitting;
+- no `sparse_fixed` control is exposed;
+- no TMB `DATA_SPARSE_MATRIX` branch or sparse linear-predictor helper is
+  implemented yet.
+
+## 2026-05-14 -- Phase 5b Slice 44 benchmark fixed-effect density fields
+
+Goal:
+
+- make the optional large-data benchmark record the same fixed-effect design
+  density signal now reported by `check_drm()`.
+
+Implemented:
+
+- added benchmark helpers that use the package's internal
+  `fixed_effect_design_summary()` when available;
+- added `model_matrix_largest`, `model_matrix_largest_cols`,
+  `model_matrix_largest_nonzero`, and `model_matrix_largest_density` columns to
+  `bench/large-phylo-location.R` output;
+- updated `bench/summarize-results.R` to include the largest-design name,
+  columns, and density when those optional columns are present;
+- updated `bench/README.md`, `vignettes/large-data.Rmd`, `ROADMAP.md`, and
+  `NEWS.md`.
+
+Checks run:
+
+- `Rscript bench/large-phylo-location.R --rows 80 --species 8 --eval-max 60 --iter-max 60 --memory-light true --output "$tmp_csv" && Rscript bench/summarize-results.R --input "$tmp_csv"`:
+  passed; summary included `model_matrix_largest = mu`,
+  `model_matrix_largest_cols = 3`, and `model_matrix_largest_density = 1`.
+- `Rscript bench/large-phylo-location.R --rows 120 --species 8 --factor-heavy true --eval-max 40 --iter-max 40 --memory-light true --output "$tmp_csv" && Rscript bench/summarize-results.R --input "$tmp_csv"`:
+  passed as diagnostic-only with nonzero convergence; summary included
+  `model_matrix_largest = mu`, `model_matrix_largest_cols = 38`, and
+  `model_matrix_largest_density = 0.1048`.
+- `PATH=/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::build_article("large-data")'`:
+  passed and refreshed `pkgdown-site/articles/large-data.html`.
+- `PATH=/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed.
+- `git diff --check`:
+  passed.
+- `rg -n "model_matrix_largest|largest fixed-effect design|largest retained fixed-effect design block|fixed-effect design block and density" bench/README.md bench/large-phylo-location.R bench/summarize-results.R vignettes/large-data.Rmd pkgdown-site/articles/large-data.html ROADMAP.md NEWS.md`:
+  found the intended benchmark and documentation wording.
+
+Known limitations:
+
+- these benchmark columns are post-fit diagnostics; they do not reduce memory;
+- existing benchmark CSV files with older schemas require a fresh output path
+  before appending new rows;
+- peak resident memory still needs `/usr/bin/time -l` on macOS or
+  `/usr/bin/time -v` on Linux.
+
+## 2026-05-14 -- Phase 5b Slice 45 first sparse fixed-effect fit path
+
+Goal:
+
+- connect the dense-versus-sparse fixed-effect scaffold to one fitted model
+  path without broadening the statistical claim.
+
+Implemented:
+
+- added `drm_control(sparse_fixed = TRUE)`;
+- limited the first fitted sparse path to univariate Gaussian `mu` fixed
+  effects with intercept-only `sigma`, no ordinary random effects, no direct-SD
+  models, no phylogenetic or spatial structured effects, no known covariance,
+  no bivariate model, and no non-Gaussian family;
+- routed sparse Gaussian `mu` designs through `Matrix::sparse.model.matrix()`,
+  `X_mu_sparse`, `use_sparse_X_mu`, and a sparse TMB matrix multiply;
+- kept dense `X_mu` for all other models and supplied a dummy sparse matrix to
+  TMB so the global template data declarations stay stable;
+- taught `predict(..., newdata = ...)` to rebuild sparse fixed-effect matrices
+  when the fitted distributional parameter used sparse storage;
+- updated `check_drm()` to identify sparse retained fixed-effect design
+  matrices rather than describing every fit as dense;
+- added dense-versus-sparse parity tests for `coef()`, `logLik()`, `fitted()`,
+  fitted-row and new-data `predict()`, `residuals()`, seeded `simulate()`,
+  `check_drm()`, and memory-light storage;
+- added snapshot tests for unsupported random-effect, non-intercept `sigma`,
+  and non-Gaussian sparse requests;
+- updated `docs/design/23-large-data-memory.md`,
+  `docs/design/26-sparse-fixed-effect-matrices.md`, `vignettes/large-data.Rmd`,
+  `ROADMAP.md`, `NEWS.md`, `docs/dev-log/known-limitations.md`, and
+  `man/drm_control.Rd`.
+
+Checks run:
+
+- `Rscript -e 'devtools::load_all(quiet = TRUE)'`:
+  passed after adding `DATA_SPARSE_MATRIX(X_mu_sparse)` and the Gaussian branch
+  sparse multiply.
+- manual dense/sparse Gaussian fit parity smoke:
+  passed; `fit_sparse$model$X$mu` was a `dgCMatrix`,
+  `fit_sparse$model$tmb_data$use_sparse_X_mu` was `1`, and dense/sparse
+  log-likelihoods matched to displayed precision.
+- `Rscript -e 'devtools::test(filter = "sparse-fixed-effects", reporter = "summary")'`:
+  passed on rerun after accepting the new unsupported-model snapshots.
+- `Rscript -e 'devtools::document()'`:
+  passed and refreshed `man/drm_control.Rd`.
+- `Rscript -e 'devtools::test(filter = "sparse-fixed-effects|control|check-drm", reporter = "summary")'`:
+  passed.
+- `PATH=/opt/homebrew/bin:$PATH Rscript -e 'devtools::load_all(quiet = TRUE); pkgdown::build_article("large-data", new_process = FALSE)'`:
+  passed and refreshed the local large-data article.
+- `PATH=/opt/homebrew/bin:$PATH Rscript -e 'devtools::load_all(quiet = TRUE); pkgdown::check_pkgdown()'`:
+  passed.
+- `rg -n 'sparse fixed-effect matrices remain planned|sparse fixed effects are planned|future sparse path|not yet connected to drmTMB\(\)|no sparse_fixed control|before any sparse fit path is exposed' docs/design docs/dev-log/known-limitations.md vignettes README.md ROADMAP.md NEWS.md man pkgdown-site --glob '!pkgdown-site/search.json'`:
+  returned no current-doc hits.
+- `git diff --check`:
+  passed.
+
+Known limitations:
+
+- this is not a general sparse fixed-effect engine yet;
+- sparse `sigma`, random-effect, direct-SD, known-covariance, phylogenetic,
+  spatial, bivariate, and non-Gaussian paths are deliberately rejected;
+- the sparse start value avoids dense `lm.fit()` and may be less polished than
+  dense-start fits for difficult models;
+- large benchmark evidence for `sparse_fixed = TRUE` is still a later Phase 5b
+  step.
+
+## 2026-05-14 -- Phase 5b Slice 46 sparse fixed-effect benchmark smoke
+
+Goal:
+
+- add benchmark coverage for the first sparse fixed-effect path without
+  pretending sparse phylogenetic fitting is implemented.
+
+Implemented:
+
+- added `--structured phylo|none` to `bench/large-phylo-location.R`, keeping
+  the existing phylogenetic route as the default;
+- added `--sparse-fixed true`, guarded so it currently requires
+  `--structured none --sigma-x false`;
+- made the benchmark output record `structured` and `sparse_fixed`;
+- kept `sd_phylo_hat` as `NA` for non-phylogenetic sparse fixed-effect smoke
+  rows;
+- updated `bench/summarize-results.R` so summary labels include the structured
+  route and sparse-fixed setting while remaining compatible with older CSVs;
+- updated `bench/README.md`, `vignettes/large-data.Rmd`,
+  `docs/design/23-large-data-memory.md`, `ROADMAP.md`, and `NEWS.md`.
+
+Checks run:
+
+- `Rscript bench/large-phylo-location.R --rows 80 --species 8 --eval-max 60 --iter-max 60 --memory-light true --output "$tmp_csv" && Rscript bench/summarize-results.R --input "$tmp_csv"`:
+  passed for the default phylogenetic route and printed
+  `structured=phylo`, `sparse_fixed=no`.
+- `Rscript bench/large-phylo-location.R --rows 100 --species 8 --structured none --factor-heavy true --sparse-fixed true --eval-max 80 --iter-max 80 --memory-light true --output "$tmp_sparse" && Rscript bench/summarize-results.R --input "$tmp_sparse"`:
+  passed as diagnostic-only with nonzero convergence and printed
+  `structured=none`, `sparse_fixed=yes`.
+- `Rscript bench/large-phylo-location.R --rows 100 --species 8 --structured none --factor-heavy true --sparse-fixed true --eval-max 240 --iter-max 240 --memory-light true --output "$tmp_sparse" && Rscript bench/summarize-results.R --input "$tmp_sparse"`:
+  passed with convergence code 0.
+- `Rscript bench/large-phylo-location.R --rows 20 --species 4 --sparse-fixed true --output /tmp/should-not-write.csv`:
+  failed as intended with `--sparse-fixed true currently requires --structured none`.
+- `PATH=/opt/homebrew/bin:$PATH Rscript -e 'devtools::load_all(quiet = TRUE); pkgdown::build_article("large-data", new_process = FALSE)'`:
+  passed and refreshed the local large-data article.
+- `PATH=/opt/homebrew/bin:$PATH Rscript -e 'devtools::load_all(quiet = TRUE); pkgdown::check_pkgdown()'`:
+  passed.
+- `rg -n -- '--structured none|--sparse-fixed|sparse_fixed|structured=none|structured = none|sparse phylogenetic' bench/README.md bench/large-phylo-location.R bench/summarize-results.R vignettes/large-data.Rmd pkgdown-site/articles/large-data.html docs/design/23-large-data-memory.md ROADMAP.md NEWS.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-14-phase-5b-slice-46-sparse-fixed-benchmark-smoke.md`:
+  found the intended benchmark scope and sparse-fixed wording.
+- `git diff --check`:
+  passed.
+
+Known limitations:
+
+- this benchmark smoke is not a large-data timing claim;
+- the first sparse benchmark route is non-phylogenetic because
+  `sparse_fixed = TRUE` still rejects phylogenetic and spatial structured
+  effects;
+- peak resident memory still needs operating-system tools.
+
+## 2026-05-14 -- Phase 5b full-test sparse TMB data repair
+
+Goal:
+
+- repair the raw phylogenetic TMB utility-test data after the sparse fixed-effect
+  declarations added in Slice 45.
+
+Implemented:
+
+- added a dummy `X_mu_sparse` and `use_sparse_X_mu = 0L` to
+  `phylo_prior_tmb_data()` in `tests/testthat/test-phylo-utils.R`;
+- kept the raw phylogenetic prior tests on the dense fixed-effect path while
+  satisfying the global TMB data contract.
+
+Checks run:
+
+- `Rscript -e 'devtools::test(reporter = "summary")'`:
+  initially failed in `test-phylo-utils.R` because raw `TMB::MakeADFun()` tests
+  bypassed the package data builder and did not provide `use_sparse_X_mu`.
+- `Rscript -e 'devtools::test(filter = "phylo-utils", reporter = "summary")'`:
+  passed after adding the dummy sparse fixed-effect fields.
+- `Rscript -e 'devtools::test(reporter = "summary")'`:
+  passed after the repair.
+- `git diff --check`:
+  passed after formatting the repair files.
+
+Known limitations:
+
+- this repair changes only test harness data for direct TMB prior probes; it
+  does not broaden sparse fixed-effect model support.

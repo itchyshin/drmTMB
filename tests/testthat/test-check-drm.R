@@ -517,7 +517,9 @@ test_that("check_drm() notes wide dense fixed-effect designs", {
 
   expect_equal(design$status, "note")
   expect_match(design$value, "max_cols=45")
-  expect_match(design$message, "high-cardinality factors")
+  expect_match(design$value, "largest_density=")
+  expect_match(design$message, "mostly zero")
+  expect_match(design$message, "sparse fixed-effect matrices")
   expect_true(attr(chk, "ok"))
 })
 

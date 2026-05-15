@@ -11,8 +11,9 @@
 #' positive scale parameters, random-effect standard deviations near the lower
 #' boundary, bivariate residual-correlation `rho12` values near the boundary,
 #' Student-t `nu` boundary behaviour, known sampling covariance summaries, dense
-#' fixed-effect design size, random-effect replication, and random-slope design
-#' variation. If a univariate Gaussian fit includes a matched labelled
+#' fixed-effect design size and density, random-effect replication, and
+#' random-slope design variation. If a univariate Gaussian fit includes a
+#' matched labelled
 #' `mu`/`sigma` random-intercept covariance block, `check_drm()` also reports
 #' group replication and whether either component is tiny relative to its
 #' interpretation scale. If a bivariate Gaussian fit includes a matched
@@ -642,29 +643,23 @@ check_fixed_effect_design_size <- function(object) {
   if (is.null(X) || length(X) == 0L) {
     return(NULL)
   }
-  sizes_mb <- vapply(
-    X,
-    function(x) {
-      as.numeric(utils::object.size(x)) / 1024^2
-    },
-    numeric(1)
-  )
-  cols <- vapply(
-    X,
-    function(x) {
-      if (is.null(dim(x))) {
-        return(0L)
-      }
-      ncol(x)
-    },
-    integer(1)
-  )
-  total_mb <- sum(sizes_mb)
-  max_cols <- max(cols, 0L)
-  largest <- names(sizes_mb)[[which.max(sizes_mb)]]
-  if (is.null(largest) || is.na(largest) || !nzchar(largest)) {
+  design <- fixed_effect_design_summary(X)
+  if (nrow(design) == 0L) {
+    return(NULL)
+  }
+  total_mb <- sum(design$size_mb)
+  max_cols <- max(design$n_cols, 0L)
+  largest_row <- design[which.max(design$size_mb), , drop = FALSE]
+  largest <- largest_row$dpar[[1L]]
+  if (is.na(largest) || !nzchar(largest)) {
     largest <- "unnamed"
   }
+  largest_density <- largest_row$density[[1L]]
+  largest_class <- largest_row$matrix_class[[1L]]
+  has_sparse <- any(vapply(X, inherits, logical(1), "sparseMatrix"))
+  sparse_candidate <- is.finite(largest_density) &&
+    max_cols >= 30L &&
+    largest_density <= 0.25
   note <- total_mb >= 25 || max_cols >= 30L
   value <- paste0(
     "total_mb=",
@@ -672,13 +667,24 @@ check_fixed_effect_design_size <- function(object) {
     "; max_cols=",
     max_cols,
     "; largest=",
-    largest
+    largest,
+    "; largest_class=",
+    largest_class,
+    "; largest_density=",
+    format_check_number(largest_density)
   )
   check_row(
     "fixed_effect_design_size",
     if (note) "note" else "ok",
     value,
-    if (note) {
+    if (has_sparse) {
+      "Sparse fixed-effect design matrices are enabled for at least one fixed-effect block."
+    } else if (sparse_candidate) {
+      paste(
+        "Dense fixed-effect design matrices are wide and mostly zero;",
+        "high-cardinality factors or sparse interactions may dominate memory before TMB optimization and are candidates for future sparse fixed-effect matrices."
+      )
+    } else if (note) {
       paste(
         "Dense fixed-effect design matrices are large enough to inspect;",
         "high-cardinality factors or interactions may dominate memory before TMB optimization."
@@ -687,6 +693,61 @@ check_fixed_effect_design_size <- function(object) {
       "Dense fixed-effect design matrices are modest for this fit."
     }
   )
+}
+
+fixed_effect_design_summary <- function(X) {
+  x_names <- names(X)
+  if (is.null(x_names)) {
+    x_names <- rep(NA_character_, length(X))
+  }
+  rows <- lapply(seq_along(X), function(i) {
+    name <- x_names[[i]]
+    if (is.na(name) || !nzchar(name)) {
+      name <- paste0("X", i)
+    }
+    x <- X[[i]]
+    dims <- dim(x)
+    if (is.null(dims) || length(dims) != 2L) {
+      return(NULL)
+    }
+    n_values <- prod(dims)
+    n_nonzero <- fixed_effect_design_nonzero(x)
+    density <- if (n_values == 0L) {
+      NA_real_
+    } else {
+      n_nonzero / n_values
+    }
+    data.frame(
+      dpar = name,
+      matrix_class = class(x)[[1L]],
+      n_rows = dims[[1L]],
+      n_cols = dims[[2L]],
+      n_nonzero = n_nonzero,
+      density = density,
+      size_mb = as.numeric(utils::object.size(x)) / 1024^2,
+      stringsAsFactors = FALSE
+    )
+  })
+  rows <- Filter(Negate(is.null), rows)
+  if (length(rows) == 0L) {
+    return(data.frame(
+      dpar = character(),
+      matrix_class = character(),
+      n_rows = integer(),
+      n_cols = integer(),
+      n_nonzero = numeric(),
+      density = numeric(),
+      size_mb = numeric()
+    ))
+  }
+  do.call(rbind, rows)
+}
+
+fixed_effect_design_nonzero <- function(x) {
+  if (inherits(x, "sparseMatrix")) {
+    return(Matrix::nnzero(x))
+  }
+  sum(x != 0, na.rm = TRUE)
 }
 
 check_random_effect_replication <- function(object, block) {

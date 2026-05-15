@@ -1,3 +1,35 @@
+control_balanced_ultrametric_tree <- function(n_tip = 8L) {
+  stopifnot(n_tip >= 2L, log2(n_tip) == floor(log2(n_tip)))
+  edges <- matrix(integer(), ncol = 2L)
+  edge_lengths <- numeric()
+  next_node <- n_tip + 1L
+
+  build <- function(tips) {
+    if (length(tips) == 1L) {
+      return(tips)
+    }
+    node <- next_node
+    next_node <<- next_node + 1L
+    mid <- length(tips) / 2L
+    left <- build(tips[seq_len(mid)])
+    right <- build(tips[seq.int(mid + 1L, length(tips))])
+    edges <<- rbind(edges, c(node, left), c(node, right))
+    edge_lengths <<- c(edge_lengths, 1, 1)
+    node
+  }
+
+  build(seq_len(n_tip))
+  structure(
+    list(
+      edge = edges,
+      edge.length = edge_lengths,
+      tip.label = paste0("sp_", seq_len(n_tip)),
+      Nnode = n_tip - 1L
+    ),
+    class = "phylo"
+  )
+}
+
 test_that("drm_control() validates optimizer and storage settings", {
   ctrl <- drm_control(
     optimizer = list(eval.max = 25),
@@ -69,6 +101,102 @@ test_that("memory-light storage keeps core post-fit methods working", {
   expect_true(attr(chk, "ok"))
   expect_equal(fixed_gradient$status, "note")
   expect_match(fixed_gradient$message, "not retained")
+})
+
+test_that("memory-light storage drops direct-SD phylogenetic model frames", {
+  n_tip <- 8L
+  n_each <- 4L
+  tree <- control_balanced_ultrametric_tree(n_tip)
+  species_values <- tree$tip.label
+  species <- rep(species_values, each = n_each)
+  z_species <- seq(-1, 1, length.out = n_tip)
+  x <- rep(seq(-0.5, 0.5, length.out = n_each), times = n_tip)
+  y <- 0.2 + 0.3 * x + rep(seq(-0.4, 0.4, length.out = n_tip), each = n_each)
+  y <- y + rep(c(-0.08, 0.05, -0.03, 0.04), times = n_tip)
+  dat <- data.frame(
+    y = y,
+    x = x,
+    species = species,
+    z_species = z_species[match(species, species_values)]
+  )
+
+  fit <- drmTMB(
+    bf(
+      y ~ x + phylo(1 | species, tree = tree),
+      sigma ~ 1,
+      sd_phylo(species) ~ z_species
+    ),
+    family = gaussian(),
+    data = dat,
+    control = drm_control(
+      optimizer = list(eval.max = 200, iter.max = 200),
+      keep_data = FALSE,
+      keep_model_frame = FALSE,
+      keep_tmb_object = FALSE
+    )
+  )
+
+  expect_null(fit$data)
+  expect_null(fit$model$model_frame)
+  expect_null(fit$model$random_scale$phylo$model_frame)
+  expect_null(fit$model$random_scale$phylo$model_frame_list)
+  expect_null(fit$obj)
+  expect_length(predict(fit, dpar = "sd_phylo(species)"), n_tip)
+  expect_length(stats::sigma(fit), nrow(dat))
+  expect_s3_class(check_drm(fit), "drm_check")
+})
+
+test_that("memory-light storage drops latent-correlation model frames", {
+  n_id <- 8L
+  n_each <- 5L
+  id_values <- paste0("id_", seq_len(n_id))
+  id <- rep(id_values, each = n_each)
+  ecology_group <- seq(-1, 1, length.out = n_id)
+  ecology <- ecology_group[match(id, id_values)]
+  x <- rep(seq(-0.75, 0.75, length.out = n_each), times = n_id)
+  u1 <- seq(-0.35, 0.35, length.out = n_id)
+  u2 <- 0.45 * u1 + seq(0.20, -0.20, length.out = n_id)
+  y1 <- 0.1 +
+    0.3 * x +
+    u1[match(id, id_values)] +
+    rep(c(-0.05, 0.04, -0.02, 0.03, 0.00), times = n_id)
+  y2 <- -0.2 -
+    0.2 * x +
+    u2[match(id, id_values)] +
+    rep(c(0.04, -0.03, 0.02, -0.01, 0.00), times = n_id)
+  dat <- data.frame(y1 = y1, y2 = y2, x = x, id = id, ecology = ecology)
+  cor_dpar <- paste0(
+    'corpair(id, level = "group", block = "p", ',
+    'from = "mu1", to = "mu2")'
+  )
+
+  fit <- drmTMB(
+    bf(
+      mu1 = y1 ~ x + (1 | p | id),
+      mu2 = y2 ~ x + (1 | p | id),
+      sigma1 = ~1,
+      sigma2 = ~1,
+      rho12 = ~1,
+      corpair(id, level = "group", block = "p", from = "mu1", to = "mu2") ~
+        ecology
+    ),
+    family = c(gaussian(), gaussian()),
+    data = dat,
+    control = drm_control(
+      optimizer = list(eval.max = 250, iter.max = 250),
+      keep_data = FALSE,
+      keep_model_frame = FALSE,
+      keep_tmb_object = FALSE
+    )
+  )
+
+  expect_null(fit$data)
+  expect_null(fit$model$model_frame)
+  expect_null(fit$model$random$mu$cor_model$model_frame_list)
+  expect_null(fit$obj)
+  expect_length(predict(fit, dpar = cor_dpar), n_id)
+  expect_equal(nrow(corpairs(fit, level = "group")), 1L)
+  expect_s3_class(check_drm(fit), "drm_check")
 })
 
 test_that("memory-light storage keeps bivariate known-V methods working", {

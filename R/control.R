@@ -25,6 +25,9 @@
 #'   in `fit$obj`. Set to `FALSE` to reduce fitted-object size after
 #'   optimization. `check_drm()` will then report the fixed-gradient check as a
 #'   note because it cannot re-evaluate the gradient without `fit$obj`.
+#' @param sparse_fixed Logical; experimental opt-in for sparse fixed-effect
+#'   design matrices. The first fitted path is limited to univariate Gaussian
+#'   `mu` fixed effects with no random effects and intercept-only `sigma`.
 #'
 #' @return A `drm_control` object.
 #' @export
@@ -45,7 +48,8 @@ drm_control <- function(
   optimizer = list(),
   keep_data = TRUE,
   keep_model_frame = TRUE,
-  keep_tmb_object = TRUE
+  keep_tmb_object = TRUE,
+  sparse_fixed = FALSE
 ) {
   if (
     !is.list(optimizer) ||
@@ -57,12 +61,14 @@ drm_control <- function(
   keep_data <- drm_control_flag(keep_data, "keep_data")
   keep_model_frame <- drm_control_flag(keep_model_frame, "keep_model_frame")
   keep_tmb_object <- drm_control_flag(keep_tmb_object, "keep_tmb_object")
+  sparse_fixed <- drm_control_flag(sparse_fixed, "sparse_fixed")
   structure(
     list(
       optimizer = optimizer,
       keep_data = keep_data,
       keep_model_frame = keep_model_frame,
-      keep_tmb_object = keep_tmb_object
+      keep_tmb_object = keep_tmb_object,
+      sparse_fixed = sparse_fixed
     ),
     class = "drm_control"
   )
@@ -102,13 +108,31 @@ drm_apply_storage_control <- function(fit, control) {
 
 drm_drop_model_frames <- function(fit) {
   fit$model$model_frame <- NULL
-  if (!is.null(fit$model$random_scale$mu$model_frame)) {
-    fit$model$random_scale$mu$model_frame <- NULL
+  if (!is.null(fit$model$random_scale)) {
+    fit$model$random_scale <- lapply(
+      fit$model$random_scale,
+      drm_drop_model_frame_components
+    )
   }
-  if (!is.null(fit$model$random_scale$mu$model_frame_list)) {
-    fit$model$random_scale$mu$model_frame_list <- NULL
+  if (!is.null(fit$model$random$mu$cor_model)) {
+    fit$model$random$mu$cor_model <- drm_drop_model_frame_components(
+      fit$model$random$mu$cor_model
+    )
   }
   fit
+}
+
+drm_drop_model_frame_components <- function(x) {
+  if (!is.list(x)) {
+    return(x)
+  }
+  if (!is.null(x$model_frame)) {
+    x$model_frame <- NULL
+  }
+  if (!is.null(x$model_frame_list)) {
+    x$model_frame_list <- NULL
+  }
+  x
 }
 
 drm_control_flag <- function(x, name) {

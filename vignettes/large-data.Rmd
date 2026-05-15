@@ -47,16 +47,34 @@ fit <- drmTMB(
 
 Here `keep_data = FALSE` removes the stored complete-case data frame from the
 fitted object after optimization. `keep_model_frame = FALSE` removes stored
-model frames after TMB data are built. `keep_tmb_object = FALSE` removes the
-TMB automatic-differentiation object after optimization. The fitted
-coefficients, standard errors, fitted values, residuals, simulation, and
-`sigma` extraction still use the stored model matrices, terms, offsets,
-response vectors, response-name metadata, optimized parameters, and `sdreport`
-object.
+model frames after TMB data are built, including nested model-frame caches for
+direct random-effect SD models such as `sd_phylo(species) ~ z_species` and
+fitted q=2 latent-correlation models such as `corpair(...) ~ ecology`.
+`keep_tmb_object = FALSE` removes the TMB automatic-differentiation object
+after optimization. The fitted coefficients, standard errors, fitted values,
+residuals, simulation, `sigma`, `rho12`, and `corpairs()` extraction still use
+the stored model matrices, terms, offsets, response vectors, response-name
+metadata, random-effect metadata, optimized parameters, and `sdreport` object.
 
 This control is useful when the fitted model is kept for interpretation,
 prediction, or plotting, but the original data frame and TMB object do not need
 to travel with it.
+
+For factor-heavy fixed-effect Gaussian location models, the first sparse
+fixed-effect path is also available:
+
+```{r}
+fit_sparse <- drmTMB(
+  bf(y ~ habitat + x1, sigma ~ 1),
+  family = gaussian(),
+  data = dat,
+  control = drm_control(sparse_fixed = TRUE)
+)
+```
+
+This path stores the `mu` fixed-effect design as a sparse `Matrix` object and
+uses a sparse TMB matrix multiply. It is intentionally limited to fixed-effect
+univariate Gaussian `mu` models with intercept-only `sigma`.
 
 ## What this does not solve yet
 
@@ -68,9 +86,12 @@ millions of rows.
 
 These pieces remain planned:
 
-- sparse fixed-effect matrices for factor-heavy models;
+- sparse fixed-effect matrices for `sigma`, random-effect, phylogenetic,
+  spatial, bivariate, and non-Gaussian models;
 - Gaussian sufficient-statistic aggregation when repeated rows can be collapsed
   without changing the likelihood;
+- memory-light modes that avoid constructing dense model frames or dense model
+  matrices in the first place;
 - repeated benchmark runs for million-row, bivariate, factor-heavy,
   non-Gaussian, and 10,000-species analyses.
 
@@ -97,12 +118,14 @@ evaluations with supplied `iter.max` and `eval.max`. If it is a note or warning,
 inspect convergence, gradients, and model structure before increasing the
 limits.
 
-Also inspect the `fixed_effect_design_size` row. It reports the retained dense
-fixed-effect design size and the widest design block. A note there means
-high-cardinality factors or interactions may be driving memory use before TMB
-optimization. That is a sparse fixed-effect design problem; simplifying the
-formula or waiting for the future sparse path is more relevant than changing
-the phylogenetic tree.
+Also inspect the `fixed_effect_design_size` row. It reports the retained
+fixed-effect design size, the widest design block, the matrix class, and the
+density of the largest retained block. A dense-fit note with a low density
+means high-cardinality factors or sparse interactions may be driving memory use
+before TMB optimization. That is a sparse fixed-effect design problem;
+simplifying the formula or using `drm_control(sparse_fixed = TRUE)` when the
+model is inside the implemented Gaussian `mu` scope is more relevant than
+changing the phylogenetic tree.
 
 ## Avoid accidental full-row output
 
@@ -143,9 +166,10 @@ sigma ~ 1
 ```
 
 and records elapsed time, fitted-object size, model-matrix size, TMB-data size,
-prediction time, residual time, convergence code, optimizer message, optimizer
-evaluation counts, and fitted scale summaries. Use it to learn how your
-machine behaves before running the full analysis.
+the largest retained fixed-effect design block and density, prediction time,
+residual time, convergence code, optimizer message, optimizer evaluation
+counts, and fitted scale summaries. Use it to learn how your machine behaves
+before running the full analysis.
 
 For factor-heavy designs, add:
 
@@ -153,6 +177,19 @@ For factor-heavy designs, add:
 Rscript bench/large-phylo-location.R --rows 100000 --species 1000 \
   --factor-heavy true --memory-light true --output bench/results.csv
 ```
+
+To benchmark the first sparse fixed-effect path, remove the phylogenetic
+structured effect explicitly:
+
+```sh
+Rscript bench/large-phylo-location.R --rows 100000 --species 1000 \
+  --structured none --factor-heavy true --sparse-fixed true \
+  --memory-light true --output bench/results.csv
+```
+
+That sparse smoke scenario fits a fixed-effect Gaussian location model, not a
+phylogenetic model, because `sparse_fixed = TRUE` is currently implemented only
+for univariate Gaussian `mu` fixed effects with intercept-only `sigma`.
 
 For a model with a scale predictor, add:
 
@@ -198,5 +235,6 @@ bivariate large-data readiness, or non-Gaussian large-data readiness.
 - Run the benchmark script at 100k rows before trying million-row analyses.
 - Treat a non-zero optimizer code as a diagnostic result, not as timing
   evidence.
-- Treat sparse fixed-effect matrices and data aggregation as future scaling
-  features, not current guarantees.
+- Treat sparse fixed-effect matrices outside fixed-effect Gaussian `mu` models,
+  and data aggregation in all models, as future scaling features rather than
+  current guarantees.

@@ -87,6 +87,17 @@ optional_diagnostic_columns <- c(
   "gradient_evaluations"
 )
 
+optional_design_columns <- c(
+  "model_matrix_largest",
+  "model_matrix_largest_cols",
+  "model_matrix_largest_density"
+)
+
+optional_scope_columns <- c(
+  "structured",
+  "sparse_fixed"
+)
+
 read_results <- function(path) {
   if (!file.exists(path)) {
     stop("Benchmark CSV not found: ", path, call. = FALSE)
@@ -108,16 +119,31 @@ flag <- function(x) {
 }
 
 scenario_label <- function(x) {
+  structured <- if ("structured" %in% names(x)) {
+    x$structured
+  } else {
+    rep("phylo", nrow(x))
+  }
+  sparse_fixed <- if ("sparse_fixed" %in% names(x)) {
+    flag(x$sparse_fixed)
+  } else {
+    rep("no", nrow(x))
+  }
   paste0(
     x$rows,
     " rows / ",
     x$species,
     " species / ",
+    "structured=",
+    structured,
+    " / ",
     x$tree,
     " / factor=",
     flag(x$factor_heavy),
     " / sigma_x=",
     flag(x$sigma_x),
+    " / sparse_fixed=",
+    sparse_fixed,
     " / memory_light=",
     flag(x$memory_light)
   )
@@ -172,6 +198,18 @@ summarise_results <- function(x, converged_only = FALSE) {
     out$convergence_message <- x$convergence_message
     out$iterations <- as.integer(x$iterations)
     out$function_evaluations <- as.integer(x$function_evaluations)
+  }
+  if (all(optional_design_columns %in% names(x))) {
+    out$model_matrix_largest <- x$model_matrix_largest
+    out$model_matrix_largest_cols <- as.integer(x$model_matrix_largest_cols)
+    out$model_matrix_largest_density <- round_numeric(
+      x$model_matrix_largest_density,
+      digits = 4L
+    )
+  }
+  if (all(optional_scope_columns %in% names(x))) {
+    out$structured <- x$structured
+    out$sparse_fixed <- flag(x$sparse_fixed)
   }
   out
 }

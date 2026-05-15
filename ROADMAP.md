@@ -291,16 +291,35 @@ Phase 5 closure boundary:
 
 ## Phase 5b: Large-Data Memory Strategy
 
-- Status: first storage controls and benchmark harness implemented; sparse and
-  aggregation paths
-  planned.
+- Status: first storage controls and benchmark harness implemented; Phase 5b
+  now hardens those controls for newer structured-effect surfaces. Sparse
+  fixed-effect matrices, aggregation, and repeated million-row benchmarks
+  remain planned.
 - `drm_control()` now supports optimizer settings plus the first memory-light
   fitted-object controls: `keep_data = FALSE`,
   `keep_model_frame = FALSE`, and `keep_tmb_object = FALSE`.
+- `keep_model_frame = FALSE` now also drops nested direct-SD and fitted
+  `corpair()` model-frame caches after their model matrices and group metadata
+  have been retained.
+- `check_drm()` now reports the density of the largest retained fixed-effect
+  design block, giving users a concrete sparse-design signal before
+  `sparse_fixed` is implemented.
+- Internal dense-versus-sparse fixed-effect matrix parity helpers now compare
+  `stats::model.matrix()` with `Matrix::sparse.model.matrix()` before any
+  sparse fit path is exposed.
+- `drm_control(sparse_fixed = TRUE)` now fits the first sparse fixed-effect
+  path for univariate Gaussian `mu` fixed effects with intercept-only `sigma`,
+  no random effects, no structured effects, and no known covariance.
+- The optional large-data benchmark now records the largest fixed-effect design
+  block, column count, nonzero count, and density.
+- The same benchmark harness now records `structured` and `sparse_fixed`
+  settings and can run a non-phylogenetic sparse fixed-effect smoke scenario
+  with `--structured none --factor-heavy true --sparse-fixed true`.
 - Extend memory-light fit controls for large phylogenetic and spatial
   datasets with broader method-matrix coverage, sparse fixed-effect matrices,
   aggregation, and repeated large-row benchmarks.
-- Add sparse fixed-effect matrix support before claiming million-row readiness.
+- Extend sparse fixed-effect matrix support beyond the first univariate
+  Gaussian `mu` path before claiming million-row readiness.
 - Use `docs/design/26-sparse-fixed-effect-matrices.md` as the implementation
   contract for sparse fixed-effect matrices.
 - Add optional aggregation or sufficient-statistic paths for Gaussian models
