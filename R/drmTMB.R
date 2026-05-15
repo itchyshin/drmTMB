@@ -194,6 +194,8 @@ drmTMB <- function(
     gradient = obj$gr,
     control = control$optimizer
   )
+  drm_pin_tmb_object_to_optimum(obj, opt)
+  tmb_state <- drm_tmb_selected_state(obj, opt)
 
   uncertainty <- drm_compute_uncertainty(obj, opt, control)
   sdr <- uncertainty$sdr
@@ -210,6 +212,7 @@ drmTMB <- function(
     opt = opt,
     sdr = sdr,
     uncertainty = uncertainty$state,
+    tmb_state = tmb_state,
     par = par,
     coefficients = par,
     sdpars = split_tmb_sdpars(par_list, spec),
@@ -277,6 +280,59 @@ drm_uncertainty_state <- function(
     message = message,
     sdr_error = sdr_error
   )
+}
+
+drm_tmb_selected_state <- function(obj, opt) {
+  list(
+    last.par = obj$env$last.par,
+    last.par.best = obj$env$last.par.best,
+    opt.par = opt$par
+  )
+}
+
+drm_pin_tmb_object_to_optimum <- function(obj, opt, state = NULL) {
+  if (
+    is.null(obj) ||
+      is.null(obj$env) ||
+      is.null(opt) ||
+      is.null(opt$par)
+  ) {
+    return(invisible(FALSE))
+  }
+  if (
+    is.list(state) &&
+      !is.null(state$last.par) &&
+      !is.null(state$last.par.best)
+  ) {
+    obj$env$last.par <- state$last.par
+    obj$env$last.par.best <- state$last.par.best
+    return(invisible(TRUE))
+  }
+  fixed <- obj$env$lfixed()
+  if (
+    is.logical(fixed) &&
+      length(fixed) == length(obj$env$last.par) &&
+      sum(fixed) == length(opt$par)
+  ) {
+    last_par <- obj$env$last.par
+    last_par[fixed] <- opt$par
+    obj$env$last.par <- last_par
+  } else if (length(obj$env$last.par) == length(opt$par)) {
+    obj$env$last.par <- opt$par
+  }
+
+  if (length(obj$env$last.par.best) == length(opt$par)) {
+    obj$env$last.par.best <- opt$par
+  } else if (
+    is.logical(fixed) &&
+      length(fixed) == length(obj$env$last.par.best) &&
+      sum(fixed) == length(opt$par)
+  ) {
+    last_par_best <- obj$env$last.par.best
+    last_par_best[fixed] <- opt$par
+    obj$env$last.par.best <- last_par_best
+  }
+  invisible(TRUE)
 }
 
 reject_corpair_formula_entries <- function(entries) {

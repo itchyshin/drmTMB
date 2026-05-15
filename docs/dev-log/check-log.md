@@ -15253,3 +15253,60 @@ Known limitations:
 - failed-`sdreport()` behavior is tested by deterministic mutation of a valid
   fit rather than a naturally failing TMB model;
 - GitHub Actions remains the PR-side gate after push.
+
+## 2026-05-15 -- Slice 80 optimizer/start/map contract
+
+Goal:
+
+- record the optimizer/start/map/multi-start contract and make current TMB
+  callbacks re-anchor to the selected optimizer result.
+
+Implemented:
+
+- added `docs/design/35-optimizer-start-map-multistart.md`;
+- reserved future names `start`, `starts`, `map`, `fixed`,
+  `fallback_optimizer`, `multi_start`, and `multistart` in plain optimizer
+  lists and inside `drm_control(optimizer = list(...))`;
+- added `fit$tmb_state` to store selected TMB `last.par` and `last.par.best`
+  state at the chosen optimum;
+- added `drm_pin_tmb_object_to_optimum()` before `sdreport()` and
+  profile-likelihood callbacks;
+- updated `drm_tmbprofile()` to re-pin the object before calling
+  `TMB::tmbprofile()`;
+- added `tests/testthat/test-optimizer-contract.R`;
+- updated ROADMAP and NEWS;
+- added after-task report
+  `docs/dev-log/after-task/2026-05-15-slice-80-optimizer-contract.md`.
+
+Checks run:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH air format R/control.R R/drmTMB.R R/profile.R tests/testthat/test-control.R tests/testthat/test-optimizer-contract.R docs/design/35-optimizer-start-map-multistart.md ROADMAP.md NEWS.md`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::test(filter = "optimizer-contract|control|profile-targets", reporter = "summary")'`:
+  first failed because the initial pinning helper overwrote TMB's full
+  fixed-plus-random `last.par` state with fixed-only `opt$par`.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::test(filter = "optimizer-contract|control|profile-targets", reporter = "summary")'`:
+  passed after storing and restoring `fit$tmb_state`.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::test(reporter = "summary")'`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::build_site()'`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed with no problems found.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::check(error_on = "never", env_vars = c("_R_CHECK_SYSTEM_CLOCK_" = "FALSE"))'`:
+  passed with 0 errors, 0 warnings, and 0 notes in 2m 23.8s.
+- `git diff --check`: passed.
+- `rg -n '35-optimizer-start-map-multistart|selected opt\$par|last\.par|last\.par\.best|fallback_optimizer|multi_start|multistart|reserved.*control|future start|fixed-parameter map|re-pin|re-pins|winning opt\$par' R tests NEWS.md ROADMAP.md docs/design/35-optimizer-start-map-multistart.md docs/dev-log/check-log.md pkgdown-site/ROADMAP.html pkgdown-site/news/index.html --glob '!pkgdown-site/search.json'`:
+  confirmed source and rendered contract wording.
+- `rg -n 'start support|map support|multistart support|multi-start support|fallback optimizer support|public starts|public maps|public multi-start|start = list|fixed = list|multi_start = list' README.md ROADMAP.md NEWS.md docs/design/35-optimizer-start-map-multistart.md vignettes pkgdown-site --glob '!pkgdown-site/search.json' --glob '!pkgdown-site/dev-log/**'`:
+  found only future-contract examples in the design doc and no README/model-map
+  claim that public start/map/multi-start support exists.
+
+Known limitations:
+
+- public `start`, `map`, `fixed`, fallback-optimizer, and multi-start controls
+  remain planned, not implemented;
+- the future `fixed` name means fixed or mapped TMB parameters, not regression
+  fixed effects;
+- the current implementation still uses one primary `nlminb()` optimization;
+- GitHub Actions remains the PR-side gate after push.

@@ -56,7 +56,7 @@ test_that("drm_control() validates optimizer and storage settings", {
       data = data.frame(y = 1:4),
       control = list(se = FALSE)
     ),
-    "drm_control"
+    "reserved"
   )
 })
 

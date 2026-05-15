@@ -71,6 +71,17 @@ drm_control <- function(
   ) {
     cli::cli_abort("{.arg optimizer} must be a named list.")
   }
+  optimizer_reserved <- intersect(
+    names(optimizer),
+    drm_control_reserved_names()
+  )
+  if (length(optimizer_reserved) > 0L) {
+    cli::cli_abort(c(
+      "{.arg optimizer} contains reserved {.pkg drmTMB} control name{?s}: {.arg {optimizer_reserved}}.",
+      "i" = "Use {.arg optimizer} only for {.fn stats::nlminb} control settings.",
+      "i" = "Future start, map, fixed-parameter, fallback-optimizer, and multi-start controls will use explicit {.pkg drmTMB} arguments after their contract is implemented."
+    ))
+  }
   se <- drm_control_flag(se, "se")
   keep_data <- drm_control_flag(keep_data, "keep_data")
   keep_model_frame <- drm_control_flag(keep_model_frame, "keep_model_frame")
@@ -108,16 +119,29 @@ drm_parse_control <- function(control) {
       "i" = "Use {.code control = drm_control(...)} for storage controls."
     ))
   }
-  storage_names <- setdiff(names(formals(drm_control)), "optimizer")
-  reserved <- intersect(names(control), storage_names)
+  reserved <- intersect(names(control), drm_control_reserved_names())
   if (length(reserved) > 0L) {
     cli::cli_abort(c(
-      "{.arg control} contains {.fn drm_control} setting{?s}: {.arg {reserved}}.",
-      "i" = "Use {.code control = drm_control(...)} for storage or standard-error controls.",
+      "{.arg control} contains reserved {.pkg drmTMB} control name{?s}: {.arg {reserved}}.",
+      "i" = "{.code control = list(...)} is only for {.fn stats::nlminb} optimizer settings.",
+      "i" = "Use {.code control = drm_control(...)} for implemented {.pkg drmTMB} controls such as {.arg se}, {.arg keep_data}, and {.arg keep_tmb_object}.",
       "i" = "Use {.code control = list(eval.max = 1000)} only for optimizer settings."
     ))
   }
   drm_control(optimizer = control)
+}
+
+drm_control_reserved_names <- function() {
+  unique(c(
+    setdiff(names(formals(drm_control)), "optimizer"),
+    "start",
+    "starts",
+    "map",
+    "fixed",
+    "fallback_optimizer",
+    "multi_start",
+    "multistart"
+  ))
 }
 
 drm_apply_storage_control <- function(fit, control) {
