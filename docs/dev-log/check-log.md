@@ -15105,3 +15105,47 @@ Known limitations:
 - full `devtools::check()` was not rerun for this prose-only follow-through
   slice because the immediately preceding implementation slice already passed
   with 0 errors, 0 warnings, and 0 notes.
+
+## 2026-05-15 -- Slice 77 stable-core feature matrix
+
+Goal:
+
+- add the Phase 6d stable-core matrix to the README and model-map so users can
+  tell stable fitted surfaces, first slices, opt-in controls, rejected syntax,
+  planned neighbours, and interval/diagnostic status apart before fitting.
+
+Implemented:
+
+- added a stable-core matrix to `README.md`;
+- added the same status contract to `vignettes/model-map.Rmd`;
+- updated `ROADMAP.md` so Slice 77 is closed and the Phase 6d prose uses
+  stable, first-slice, opt-in, and planned/rejected wording instead of a vague
+  experimental split;
+- updated `NEWS.md`;
+- added after-task report
+  `docs/dev-log/after-task/2026-05-15-slice-77-stable-core-feature-matrix.md`;
+- rebuilt local pkgdown output for the landing page, model-map article, roadmap,
+  and news page.
+
+Checks run:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH air format README.md vignettes/model-map.Rmd ROADMAP.md NEWS.md`:
+  passed.
+- `git diff --check`: passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::load_all(quiet = TRUE); rmarkdown::render("vignettes/model-map.Rmd", output_file = tempfile(fileext = ".html"), quiet = FALSE)'`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::build_site()'`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed with no problems found.
+- `rg -n 'Stable-core matrix|First slice fitted|First slices fitted|Opt-in controls|Reserved or planned neighbours|feature matrix|stable-core feature matrix|derived_interval_unavailable|Profile support is target-specific' pkgdown-site/index.html pkgdown-site/articles/model-map.html pkgdown-site/ROADMAP.html pkgdown-site/news/index.html --glob '!pkgdown-site/search.json'`:
+  confirmed rendered source.
+- `rg -n 'stable-core versus experimental|stable or experimental|experimental feature matrix|Fitted narrow slice|blanket.*profile|all.*profile|every.*profile|spatial.*corpair.*Stable|phylogenetic slopes.*Stable|mesh/SPDE.*Stable|random effects in `rho12`.*Stable|bivariate random slopes.*Stable|mixed composed.*Stable|sigma\\*' README.md ROADMAP.md NEWS.md vignettes/model-map.Rmd pkgdown-site/index.html pkgdown-site/articles/model-map.html pkgdown-site/ROADMAP.html pkgdown-site/news/index.html --glob '!pkgdown-site/search.json'`:
+  found no Slice 77 stale-status contradiction. It returned valid historical
+  profile wording and valid ordinary covariance row text.
+
+Known limitations:
+
+- this is a status/documentation slice, not new likelihood behavior;
+- the matrix does not yet contain the Slice 78 validation-debt links;
+- GitHub Actions remains the PR-side gate after push.

@@ -510,10 +510,11 @@ Phase 6b should turn the implemented surfaces into a coherent reader path:
   current profile-CI slices, but it records the cross-cutting work needed before
   `drmTMB` expands too far into new families, broad spatial claims, or
   high-dimensional random-effect structures.
-- Add a stable-core versus experimental feature matrix for the README,
-  model-map, and pkgdown site. The table should make clear which surfaces are
-  fitted, which are parsed but rejected, which are documentation-only roadmap
-  items, and which have profile-likelihood interval support.
+- Add a stable-core matrix for the README, model-map, and pkgdown site. The
+  table should make clear which surfaces are stable, which are fitted first
+  slices, which are opt-in controls, which are parsed but rejected, which are
+  documentation-only roadmap items, and which have profile-likelihood interval
+  support.
 - Maintain a validation-debt register that links each advertised model surface
   to simulation recovery, malformed-input tests, diagnostics, profile/CI status,
   documentation, and check-log evidence.
@@ -542,8 +543,8 @@ Phase 6d should be closed as small hardening slices:
 
 | Slice | Goal | Main work | Done when |
 | --- | --- | --- | --- |
-| 77 | Stable-core feature matrix | Add a README/model-map/pkgdown table for fixed effects, random effects, `sigma`, known covariance, phylogeny, spatial, bivariate `rho12`, latent `corpair()`, profile-CI support, and status. | Pat and Rose can tell stable, experimental, parsed-but-rejected, and planned surfaces apart without reading source. |
-| 78 | Validation-debt register | Create a design note or issue-backed register linking each stable or experimental surface to recovery tests, diagnostics, interval status, docs, and check-log evidence. | Every advertised surface has evidence or an explicit debt entry. |
+| 77 | Stable-core feature matrix | Add a README/model-map/pkgdown table for fixed effects, random effects, `sigma`, known covariance, phylogeny, spatial, bivariate `rho12`, latent `corpair()`, profile-CI support, and status. | Done: README and model-map now carry a stable-core matrix that separates stable surfaces, first slices, opt-in controls, and planned or rejected neighbours, with profile/diagnostic status attached to each row. |
+| 78 | Validation-debt register | Create a design note or issue-backed register linking each stable, first-slice, or opt-in surface to recovery tests, diagnostics, interval status, docs, and check-log evidence. | Every advertised surface has evidence or an explicit debt entry. |
 | 79 | Standard-error and `sdreport()` controls | Design and implement failure-safe uncertainty controls, including `se = FALSE` behavior if compatible with current APIs. | Fits can be kept when `sdreport()` is skipped or fails, and methods report the uncertainty state clearly. |
 | 80 | Optimizer, start, map, and multi-start design | Add the public contract for starts, fixed or mapped parameters, fallback optimizers, and cautious future multi-start support. | Design docs and tests prove reports and `sdreport()` use the selected optimum. |
 | 81 | Dense covariance and large-data guards | Add diagnostics and wording for dense known covariance, sparse/block-sparse expectations, and large-data claim boundaries. | `check_drm()` and docs warn before users treat dense covariance or large-row paths as scalable by default. |
