@@ -37,7 +37,9 @@
 #'   response scale.
 #' @param trace Logical; passed to [TMB::tmbprofile()] for profile intervals.
 #' @param ... Additional arguments passed to [TMB::tmbprofile()] when
-#'   `method = "profile"`.
+#'   `method = "profile"`. `drmTMB` supplies the profiled `obj`, `name`,
+#'   `lincomb`, and `trace` arguments internally; set the profile target with
+#'   `parm`.
 #'
 #' @return A data frame with columns `parm`, `level`, `lower`, `upper`,
 #'   `scale`, `transformation`, `tmb_parameter`, `index`, and `method`.
@@ -406,6 +408,7 @@ drm_profile_confint <- function(
   ...
 ) {
   validate_profile_level(level)
+  profile_check_tmbprofile_dots(...)
   if (is.null(object$obj)) {
     cli::cli_abort(c(
       "Profile confidence intervals require the TMB object retained in {.code fit$obj}.",
@@ -437,6 +440,7 @@ drm_profile_response_newdata_confint <- function(
   ...
 ) {
   validate_profile_level(level)
+  profile_check_tmbprofile_dots(...)
   if (is.null(object$obj)) {
     cli::cli_abort(c(
       "Profile confidence intervals require the TMB object retained in {.code fit$obj}.",
@@ -480,14 +484,14 @@ drm_profile_response_newdata_confint <- function(
   rows <- lapply(seq_len(nrow(X)), function(i) {
     lincomb <- rep(0, length(object$opt$par))
     lincomb[positions[seq_len(ncol(X))]] <- as.numeric(X[i, ])
-    prof <- TMB::tmbprofile(
-      obj = object$obj,
-      name = labels[[i]],
+    prof <- drm_tmbprofile(
+      object = object,
+      target_name = labels[[i]],
       lincomb = lincomb,
       trace = trace,
       ...
     )
-    ci <- stats::confint(prof, level = level)
+    ci <- drm_tmbprofile_confint(prof, target_name = labels[[i]], level = level)
     interval <- profile_transform_newdata_interval(
       c(unname(ci[1L, "lower"]), unname(ci[1L, "upper"])),
       object = object,
@@ -572,14 +576,14 @@ drm_profile_target_confint <- function(
   }
 
   lincomb <- profile_lincomb(object, target)
-  prof <- TMB::tmbprofile(
-    obj = object$obj,
-    name = target$parm,
+  prof <- drm_tmbprofile(
+    object = object,
+    target_name = target$parm,
     lincomb = lincomb,
     trace = trace,
     ...
   )
-  ci <- stats::confint(prof, level = level)
+  ci <- drm_tmbprofile_confint(prof, target_name = target$parm, level = level)
   interval <- profile_transform_interval(
     c(unname(ci[1L, "lower"]), unname(ci[1L, "upper"])),
     target
@@ -596,6 +600,69 @@ drm_profile_target_confint <- function(
     index = target$index,
     method = "profile",
     stringsAsFactors = FALSE
+  )
+}
+
+profile_check_tmbprofile_dots <- function(...) {
+  dots <- list(...)
+  if (!length(dots)) {
+    return(invisible(NULL))
+  }
+  dot_names <- names(dots)
+  if (is.null(dot_names)) {
+    return(invisible(NULL))
+  }
+  controlled <- intersect(
+    dot_names[nzchar(dot_names)],
+    c("obj", "name", "lincomb", "trace")
+  )
+  if (length(controlled)) {
+    cli::cli_abort(c(
+      "Profile target selection is controlled by {.arg parm}.",
+      x = "Do not pass {.arg {controlled}} through {.arg ...}.",
+      i = "{.pkg drmTMB} profiles one target at a time by supplying {.arg obj}, {.arg name}, {.arg lincomb}, and {.arg trace} to {.fun TMB::tmbprofile} internally."
+    ))
+  }
+  invisible(NULL)
+}
+
+drm_tmbprofile <- function(object, target_name, lincomb, trace, ...) {
+  tryCatch(
+    TMB::tmbprofile(
+      obj = object$obj,
+      name = target_name,
+      lincomb = lincomb,
+      trace = trace,
+      ...
+    ),
+    error = function(err) {
+      cli::cli_abort(
+        c(
+          "Profile likelihood failed while profiling target {.val {target_name}}.",
+          i = "Check {.code profile_targets(fit)} to confirm the target is profile-ready.",
+          i = "Try changing profile controls such as {.arg ystep}, {.arg ytol}, or {.arg parm.range}; then inspect {.code check_drm(fit)} if the profile still fails.",
+          x = "Original error: {conditionMessage(err)}"
+        ),
+        parent = err
+      )
+    }
+  )
+}
+
+drm_tmbprofile_confint <- function(profile, target_name, level) {
+  tryCatch(
+    stats::confint(profile, level = level),
+    error = function(err) {
+      cli::cli_abort(
+        c(
+          "Could not extract a profile confidence interval for target {.val {target_name}}.",
+          i = "The profile may not cross the likelihood-ratio threshold on both sides.",
+          i = "Try a wider {.arg parm.range}, a smaller {.arg ystep}, or inspect the profile object interactively.",
+          x = "Original error: {conditionMessage(err)}"
+        ),
+        parent = err
+      )
+    }
   )
 }
 
