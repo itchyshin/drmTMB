@@ -70,18 +70,16 @@
   bivariate slice estimates two phylogenetic location SDs and one phylogenetic
   mean-mean correlation while keeping `sigma1`, `sigma2`, and residual `rho12`
   as fixed-effect distributional parameters. Matching labelled phylogenetic
-    terms across `mu1`, `mu2`, `sigma1`, and `sigma2` fit the first constant q=4
-    location-scale block. A CRAN-safe recovery test checks broad fixed-effect,
-    SD, residual-correlation, finite-gradient, and q=4 diagnostic behavior, but
-    the six q=4 correlation intervals are currently derived targets rather than
-    direct profile-ready targets.
-  `summary(fit)$covariance` reports
-  the fitted phylogenetic variance and covariance point summaries, and
-    `check_drm()` reports separate bivariate phylogenetic q=2 and q=4 covariance
-    diagnostics for near-boundary `corpars$phylo` values, weak species
-    replication, location SDs that are tiny relative to matching residual
-    scales, and tiny log-`sigma` endpoint SDs in q=4 models. Family B direct
-    structured-SD formulas such as
+  terms across `mu1`, `mu2`, `sigma1`, and `sigma2` fit the first constant q=4
+  location-scale block. A CRAN-safe recovery test checks broad fixed-effect,
+  SD, residual-correlation, finite-gradient, and q=4 diagnostic behavior, but
+  the six q=4 correlation intervals are currently derived targets rather than
+  direct profile-ready targets. `summary(fit)$covariance` reports the fitted
+  phylogenetic variance and covariance point summaries, and `check_drm()`
+  reports separate bivariate phylogenetic q=2 and q=4 covariance diagnostics
+  for near-boundary `corpars$phylo` values, weak species replication, location
+  SDs that are tiny relative to matching residual scales, and tiny log-`sigma`
+  endpoint SDs in q=4 models. Family B direct structured-SD formulas such as
   `sd_phylo(species) ~ x_species` are implemented for univariate phylogenetic
   location models, and `sd_phylo1()` / `sd_phylo2()` are implemented for
   matching bivariate phylogenetic location models. Spatial direct-SD siblings
@@ -137,10 +135,14 @@
   correlations, plus the first bivariate phylogenetic `mu1`/`mu2` mean-mean
   correlation. Ordinary q4 unstructured-correlation rows are listed by
   `profile_targets()` but are not direct profile-ready targets yet because the
-  optimized `theta_re_cov` coordinates are not pairwise atanh correlations. The
-  first marginal helper computes unweighted plug-in means only; it does not yet
-  compute uncertainty, standard errors, contrasts, plots, or full
-  `emmeans`-style marginalisation.
+  optimized `theta_re_cov` coordinates are not pairwise atanh correlations.
+  Interval-aware summaries now carry explicit `conf.status` values, and profile
+  interval rows carry `profile.boundary` plus `profile.message`. The current
+  boundary diagnostics are endpoint flags, not a full profile-shape classifier:
+  one-sided intervals, automatic recovery from non-monotone profiles, and
+  bootstrap fallback remain planned. The first marginal helper computes
+  unweighted plug-in means only; it does not yet compute uncertainty, standard
+  errors, contrasts, plots, or full `emmeans`-style marginalisation.
 - Fixed-effect univariate lognormal location-scale models are implemented for
   positive finite responses. `mu` and `sigma` are on the log-response scale;
   random effects, known sampling covariance, phylogenetic terms, and bivariate

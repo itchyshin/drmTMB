@@ -112,6 +112,16 @@ Profile intervals are available for selected direct targets such as constant
 summary(fit, conf.int = TRUE, method = "profile", ci_parm = "sigma")
 ```
 
+Use `profile_targets(fit)` before asking for a profile interval. A row is
+profile-ready only when it maps to a direct TMB target and the fitted object
+kept its TMB object. Interval-aware output uses `conf.status` to explain rows
+without intervals: `newdata_required` means profile a supplied row with
+`confint(..., newdata = ...)`, while `derived_interval_unavailable` means the
+point estimate combines several quantities and needs a later derived-profile
+method. Successful profile rows also include `profile.boundary` and
+`profile.message`; values other than `"ok"` tell you to check boundary or
+near-correlation-limit behaviour before interpreting the interval.
+
 ## Predict distributional parameters
 
 `predict()` returns one distributional parameter at a time. For fitted rows,

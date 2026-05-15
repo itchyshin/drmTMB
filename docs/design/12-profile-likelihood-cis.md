@@ -214,6 +214,22 @@ failed-inner-optimization profile. This does not yet implement one-sided
 profile intervals or automatic recovery from non-monotone profiles; it only
 records the diagnostic pathway so later slices can add stronger recovery.
 
+## Phase 6 Slice 59 Reader-Facing Contract
+
+Slice 59 syncs public prose with the implemented output contract. Reader-facing
+pages should teach three rules:
+
+1. use `profile_targets(fit)` to find direct profile-ready targets;
+2. read `conf.status` before interpreting confidence limits;
+3. read `profile.boundary` and `profile.message` for profile intervals before
+   treating an interval as well behaved.
+
+The current documentation should not claim profile intervals for q=4 derived
+correlations, repeatability, phylogenetic signal, conditional random-effect
+modes, or marginal-effect helpers. Those rows may have point estimates and
+explicit unavailable statuses, but their intervals remain future derived-profile
+or bootstrap work.
+
 ## Phase 6 Slice 53 Direct Profile Robustness
 
 Slice 53 keeps the same statistical targets but hardens the failure boundary

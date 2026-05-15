@@ -498,7 +498,10 @@ Use `profile_targets(fit)` before requesting profile intervals for this block.
 The group-level SD targets are named like `sd:mu:mu1:(1 | p | id)` and
 `sd:mu:mu2:(1 | p | id)`, while the group-level correlation target is named
 like `cor:mu:cor(mu1:(Intercept),mu2:(Intercept) | p | id)`. These are
-separate from the residual-correlation target `rho12`.
+separate from the residual-correlation target `rho12`. Returned profile rows
+include `profile.boundary` and `profile.message`; a non-`"ok"` message is a
+prompt to inspect `check_drm(fit)` and the profile path before treating the
+interval as a stable biological estimate.
 
 The middle `p` in `(1 | p | id)` follows grouped covariance-block syntax for
 correlated group-level effects. Labelled one-slope blocks are implemented for

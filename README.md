@@ -205,6 +205,14 @@ profile targets, and a `check_drm()` spatial diagnostic row. Mesh/SPDE fields,
 spatial slopes, spatial scale terms, and bivariate spatial covariance blocks
 are still planned rather than landing-page workflows.
 
+For uncertainty, `confint()` returns Wald intervals for fixed effects by
+default and profile-likelihood intervals only for explicit direct targets.
+Use `profile_targets(fit)` to see which SD, correlation, scale, or `rho12`
+targets are ready. Interval-aware summaries use `conf.status` to separate
+returned intervals from rows that need `newdata` or derived-profile methods;
+profile rows also report `profile.boundary` and `profile.message` so boundary
+or near-correlation-limit intervals are visible before interpretation.
+
 ## Project status
 
 The package is under active development. See the

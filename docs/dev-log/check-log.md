@@ -14709,3 +14709,56 @@ Known limitations:
   recovery, non-monotone-profile plotting, or parametric-bootstrap fallback;
 - the boundary diagnostics are lightweight flags on transformed interval
   endpoints, not a full likelihood-shape classifier.
+
+## 2026-05-15 -- Slice 59 profile inference docs
+
+Goal:
+
+- sync reader-facing profile-likelihood confidence-interval prose with the
+  Slice 57-58 output contract.
+
+Implemented:
+
+- added a README boundary paragraph explaining Wald defaults, direct profile
+  targets, `conf.status`, `profile.boundary`, and `profile.message`;
+- updated `docs/dev-log/known-limitations.md` to separate profile-ready direct
+  targets from q=4 derived targets and to record the lightweight nature of
+  boundary diagnostics;
+- updated `vignettes/model-workflow.Rmd`, `vignettes/model-map.Rmd`,
+  `vignettes/bivariate-coscale.Rmd`, and
+  `vignettes/phylogenetic-spatial.Rmd` so tutorials tell readers to inspect
+  `profile_targets()`, `conf.status`, `profile.boundary`, and
+  `profile.message`;
+- updated `docs/design/12-profile-likelihood-cis.md` with the Slice 59
+  reader-facing contract;
+- marked Slice 59 done in `ROADMAP.md` and changed stale wording from "direct
+  profile intervals for derived q4 correlations" to "derived-profile intervals
+  for q=4 correlations".
+
+Checks run:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::test(filter = "profile-targets|summary", reporter = "summary")'`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::build_site()'`:
+  passed and rendered `index.html`, `ROADMAP.html`,
+  `articles/model-workflow.html`, `articles/model-map.html`,
+  `articles/bivariate-coscale.html`, and
+  `articles/phylogenetic-spatial.html`.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed with no problems found.
+- `git diff --check`:
+  passed.
+- `rg -n "profile\\.boundary|profile\\.message|conf\\.status|derived-profile intervals|derived_interval_unavailable|newdata_required" README.md ROADMAP.md docs/dev-log/known-limitations.md docs/design/12-profile-likelihood-cis.md vignettes/model-workflow.Rmd vignettes/phylogenetic-spatial.Rmd vignettes/model-map.Rmd vignettes/bivariate-coscale.Rmd pkgdown-site/index.html pkgdown-site/ROADMAP.html pkgdown-site/articles/model-workflow.html pkgdown-site/articles/phylogenetic-spatial.html pkgdown-site/articles/model-map.html pkgdown-site/articles/bivariate-coscale.html --glob '!pkgdown-site/search.json'`:
+  confirmed the source and rendered pages expose the same interval-status
+  vocabulary.
+- `rg -n "direct profile intervals for derived|full profile intervals|all six.*profile-ready|all parameters.*95|complete.*profile" README.md ROADMAP.md docs/design docs/dev-log/known-limitations.md vignettes --glob '!docs/dev-log/after-task/**'`:
+  found no stale implemented-scope claim; the remaining hit was the valid
+  phrase "completed TMB profile" in the profile failure section.
+
+Known limitations:
+
+- this is a prose-consistency slice only; it does not add new profile
+  likelihood machinery;
+- one-sided intervals, non-monotone-profile recovery, bootstrap fallback,
+  derived q=4 correlation intervals, and conditional random-effect mode
+  intervals remain future work.
