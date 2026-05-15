@@ -25,6 +25,12 @@ tiny_ultrametric_tree <- function() {
 
 phylo_prior_tmb_data <- function(precision) {
   dummy_matrix <- matrix(0, nrow = 1, ncol = 1)
+  dummy_sparse <- Matrix::sparseMatrix(
+    i = integer(0),
+    j = integer(0),
+    x = numeric(0),
+    dims = c(1L, 1L)
+  )
   c(
     list(
       model_type = 99L,
@@ -38,6 +44,8 @@ phylo_prior_tmb_data <- function(precision) {
       y1 = numeric(1),
       y2 = numeric(1),
       X_mu = dummy_matrix,
+      use_sparse_X_mu = 0L,
+      X_mu_sparse = dummy_sparse,
       X_sigma = dummy_matrix,
       X_nu = dummy_matrix,
       X_zi = dummy_matrix,

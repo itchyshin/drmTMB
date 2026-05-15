@@ -14064,3 +14064,34 @@ Known limitations:
   `sparse_fixed = TRUE` still rejects phylogenetic and spatial structured
   effects;
 - peak resident memory still needs operating-system tools.
+
+## 2026-05-14 -- Phase 5b full-test sparse TMB data repair
+
+Goal:
+
+- repair the raw phylogenetic TMB utility-test data after the sparse fixed-effect
+  declarations added in Slice 45.
+
+Implemented:
+
+- added a dummy `X_mu_sparse` and `use_sparse_X_mu = 0L` to
+  `phylo_prior_tmb_data()` in `tests/testthat/test-phylo-utils.R`;
+- kept the raw phylogenetic prior tests on the dense fixed-effect path while
+  satisfying the global TMB data contract.
+
+Checks run:
+
+- `Rscript -e 'devtools::test(reporter = "summary")'`:
+  initially failed in `test-phylo-utils.R` because raw `TMB::MakeADFun()` tests
+  bypassed the package data builder and did not provide `use_sparse_X_mu`.
+- `Rscript -e 'devtools::test(filter = "phylo-utils", reporter = "summary")'`:
+  passed after adding the dummy sparse fixed-effect fields.
+- `Rscript -e 'devtools::test(reporter = "summary")'`:
+  passed after the repair.
+- `git diff --check`:
+  passed after formatting the repair files.
+
+Known limitations:
+
+- this repair changes only test harness data for direct TMB prior probes; it
+  does not broaden sparse fixed-effect model support.
