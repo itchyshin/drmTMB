@@ -65,7 +65,7 @@ Implemented one-response surfaces include:
 | Is the response continuous, count, bounded, robust, or zero-inflated? | fixed-effect non-Gaussian families | [Choosing response families](distribution-families.html) |
 | Does the response have known sampling variance or covariance? | Gaussian `meta_known_V(V = V)` | [Mean effects and residual heterogeneity](meta-analysis.html) |
 | Do species means remain similar after shared ancestry is included? | `phylo(1 | species, tree = tree)` in univariate Gaussian `mu` | [Structured dependence](phylogenetic-spatial.html) |
-| Do nearby sites share smooth location deviations? | `spatial(1 | site, coords = coords)` in univariate Gaussian `mu` | [Structured dependence](phylogenetic-spatial.html) |
+| Do nearby sites share smooth location deviations or smooth slope differences? | `spatial(1 | site, coords = coords)` or one numeric `spatial(1 + x | site, coords = coords)` slope in univariate Gaussian `mu` | [Structured dependence](phylogenetic-spatial.html) |
 
 The random-effect scale terms are deliberately separate. `sigma ~ x` models
 within-observation residual SD. `sd(group) ~ x_group` models the standard
@@ -162,15 +162,18 @@ drmTMB(
 )
 ```
 
-Each term adds an intercept-only structured random effect to the univariate
-Gaussian `mu` predictor. The residual `sigma` remains the within-observation
-SD. Matching intercept-only `phylo()` terms in bivariate `mu1` and `mu2`
-formulas fit the first phylogenetic mean-mean correlation slice. Matching
-labelled `phylo()` terms across `mu1`, `mu2`, `sigma1`, and `sigma2` also fit
-the first constant q=4 phylogenetic location-scale covariance block. The first
-coordinate-based `spatial()` slice is univariate only; mesh/SPDE spatial
-fields, spatial bivariate covariance blocks, spatial direct-SD models, and
-spatial `corpair()` regressions remain planned extensions.
+Each term adds a structured random effect to the univariate Gaussian `mu`
+predictor. The residual `sigma` remains the within-observation SD. Matching
+intercept-only `phylo()` terms in bivariate `mu1` and `mu2` formulas fit the
+first phylogenetic mean-mean correlation slice. Matching labelled `phylo()`
+terms across `mu1`, `mu2`, `sigma1`, and `sigma2` also fit the first constant
+q=4 phylogenetic location-scale covariance block. The coordinate-based
+`spatial()` slice is univariate only: `spatial(1 | site, coords = coords)`
+fits a spatial location intercept, and
+`spatial(1 + x | site, coords = coords)` fits independent spatial intercept
+and numeric slope fields. Mesh/SPDE spatial fields, spatial bivariate
+covariance blocks, spatial direct-SD models, multiple spatial slopes, slope
+correlations, and spatial `corpair()` regressions remain planned extensions.
 Run `check_drm()` before interpreting that fitted phylogenetic correlation; it
 now flags near-boundary `corpars$phylo` values and tiny phylogenetic location
 SDs relative to the matching residual scales.
@@ -190,7 +193,7 @@ These surfaces are roadmap items, not syntax to rely on in analyses yet:
 | larger cross-formula labelled covariance blocks linking `mu` and `sigma` | extends beyond the first fitted random-intercept mean-scale correlations |
 | bivariate random slopes and full cross-parameter covariance blocks | expands group-level covariance blocks beyond the first same-parameter and same-response random-intercept slices |
 | phylogenetic slopes, predictor-dependent q=4 phylogenetic correlations, and richer phylogenetic covariance blocks | the first bivariate `mu1`/`mu2` phylogenetic location slice, the q=2 predictor-dependent location-location slice, and the first constant q=4 phylogenetic location-scale block are fitted |
-| richer spatial random effects | first univariate Gaussian coordinate-based `mu` path implemented; mesh/SPDE, spatial scale, bivariate spatial covariance, and spatial `corpair()` paths remain planned |
+| richer spatial random effects | first univariate Gaussian coordinate-based `mu` intercept and one-slope paths implemented; mesh/SPDE, spatial scale, multiple slopes, slope correlations, bivariate spatial covariance, and spatial `corpair()` paths remain planned |
 | higher-dimensional multivariate models | belong in `gllvmTMB`, not `drmTMB` |
 
 When unsupported syntax fails, the right next step is usually to fit the
@@ -207,7 +210,7 @@ questions:
 | residual | `rho12(fit)` or residual rows from `corpairs(fit)` | within-observation coupling between two responses |
 | ordinary group-level | `corpars$mu` or group-level rows from `corpairs(fit)` | correlation among random intercepts or slopes |
 | phylogenetic | `corpairs(fit, level = "phylogenetic")` | correlation among tree-structured species mean, scale, or q=2 modelled location deviations, depending on the fitted block |
-| spatial | `ranef(fit, "spatial_mu")`, `sdpars$mu`, and `check_drm()` for the first univariate slice | coordinate-structured site deviations in one response; spatial correlations are planned |
+| spatial | `ranef(fit, "spatial_mu")`, `sdpars$mu`, and `check_drm()` for the first univariate coordinate slice | coordinate-structured site intercept or one numeric slope deviations in one response; spatial correlations are planned |
 
 Keep these layers separate in writing. A residual `rho12` result is not a
 phylogenetic correlation, a spatial correlation, or a personality/plasticity
@@ -334,5 +337,5 @@ a larger covariance model than the mean-mean path.
 | a robust continuous-response example | [Robust continuous responses](robust-student.html) |
 | a two-response residual-correlation example | [Changing residual coupling with rho12](bivariate-coscale.html) |
 | known sampling variances or covariance | [Mean effects and residual heterogeneity](meta-analysis.html) |
-| implemented phylogenetic or coordinate-spatial random intercepts | [Structured dependence](phylogenetic-spatial.html) |
+| implemented phylogenetic random intercepts or coordinate-spatial intercept/slope terms | [Structured dependence](phylogenetic-spatial.html) |
 | post-fit checks, predictions, residuals, and simulation | [Checking and using fitted models](model-workflow.html) |

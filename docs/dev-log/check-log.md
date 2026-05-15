@@ -15054,3 +15054,54 @@ Known limitations:
 - mesh/SPDE, multiple spatial slopes, spatial `sigma`, bivariate spatial
   covariance, and spatial `corpair()` regressions remain planned;
 - GitHub Actions remains the PR-side gate after push.
+
+## 2026-05-15 -- Phase 10 spatial slope reader path
+
+Goal:
+
+- make the implemented coordinate-spatial one-slope path discoverable in the
+  tutorial, model map, formula grammar, source map, README, and historical
+  Phase 6c notes.
+
+Implemented:
+
+- updated the structured-dependence article to name and fit
+  `spatial(1 + depth | site, coords = coords)` as an evaluated example;
+- interpreted `spatial(1 | site)` and `spatial(0 + depth | site)` as separate
+  smooth intercept and slope SDs in the location predictor;
+- updated the model map, formula grammar, source map, README, and common-math
+  design note to stop underclaiming the spatial path as intercept-only;
+- added supersession wording to the Phase 6c design and after-phase notes so
+  historical closure text remains true after the Phase 10 implementation;
+- added after-task report
+  `docs/dev-log/after-task/2026-05-15-phase-10-spatial-slope-reader-path.md`.
+
+Checks run:
+
+- `PATH=/opt/homebrew/bin:/usr/local/bin:$PATH air format README.md vignettes/phylogenetic-spatial.Rmd vignettes/formula-grammar.Rmd vignettes/model-map.Rmd vignettes/source-map.Rmd docs/design/16-phylo-spatial-common-math.md docs/design/33-phase-6c-core-random-effects.md docs/dev-log/after-phase/2026-05-15-phase-6c-core-random-effect-closure.md`:
+  passed.
+- `PATH=/opt/homebrew/bin:/usr/local/bin:$PATH /usr/local/bin/Rscript -e 'devtools::load_all(quiet = TRUE); rmarkdown::render("vignettes/phylogenetic-spatial.Rmd", output_file = tempfile(fileext = ".html"), quiet = FALSE)'`:
+  passed and rendered the evaluated spatial-slope vignette example.
+- `PATH=/opt/homebrew/bin:/usr/local/bin:$PATH /usr/local/bin/Rscript -e 'devtools::test(filter = "spatial-gaussian", reporter = "summary")'`:
+  passed.
+- `PATH=/opt/homebrew/bin:/usr/local/bin:$PATH /usr/local/bin/Rscript -e 'pkgdown::build_site()'`:
+  passed.
+- `PATH=/opt/homebrew/bin:/usr/local/bin:$PATH /usr/local/bin/Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed with no problems found.
+- `git diff --check`:
+  passed.
+- `rg -n 'spatial random intercepts|intercept-only structured random effect|The first coordinate-based spatial path|first fitted spatial instance|structured random slopes,|spatial\\(1 \\+ x \\| site, coords = coords\\).*Planned|spatial\\(1 \\+ x \\| site, coords = coords\\).*planned|only the intercept|spatial random fields|profile-likelihood confidence intervals\\.' README.md ROADMAP.md NEWS.md docs/design vignettes pkgdown-site --glob '!pkgdown-site/search.json' --glob '!pkgdown-site/dev-log/**'`:
+  found only valid hits for intercept-only phylogenetic wording, plural first
+  spatial paths, the completed ROADMAP row, and planned mesh/multiple-slope
+  boundaries.
+
+Known limitations:
+
+- coordinate spatial slopes are still univariate Gaussian `mu` only;
+- one numeric spatial slope is fitted, with independent intercept and slope
+  fields and no intercept-slope `corpair()` row;
+- mesh/SPDE, multiple spatial slopes, spatial `sigma`, bivariate spatial
+  covariance, and spatial `corpair()` regressions remain planned;
+- full `devtools::check()` was not rerun for this prose-only follow-through
+  slice because the immediately preceding implementation slice already passed
+  with 0 errors, 0 warnings, and 0 notes.

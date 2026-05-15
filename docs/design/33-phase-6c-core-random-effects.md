@@ -127,29 +127,32 @@ This is group-to-group variation in residual scale. It is not the same as
 
 ## Deferred Surfaces
 
-The following remain planned or unsupported in the Phase 6c core:
+The following remained planned or unsupported when the Phase 6c core closed:
 
 - `phylo(1 + x | species, tree = tree)` fitting;
-- `spatial(1 + x | site, coords = coords)` fitting;
+- `spatial(1 + x | site, coords = coords)` fitting, later completed in
+  Phase 10 for one numeric univariate Gaussian `mu` slope;
 - bivariate random slopes in `mu1`, `mu2`, `sigma1`, or `sigma2`;
 - slope-specific `sd(id, dpar = "mu", coef = "x") ~ x_group`;
 - random effects in `rho12`;
 - intercept-slope `corpair()` formulae;
 - slope1-slope2 bivariate plasticity-syndrome correlations.
 
-Those surfaces need storage-order documentation, simulation recovery, extractor
-names, `profile_targets()` rows, and reader-facing examples before they can be
-taught as fitted behaviour.
+The surfaces that remain planned still need storage-order documentation,
+simulation recovery, extractor names, `profile_targets()` rows, and
+reader-facing examples before they can be taught as fitted behaviour.
 
 ## Structured-Slope Handoff
 
-The structured one-slope rows are design-complete enough to hand forward, but
-not fitted in this Phase 6c core closure.
+The structured one-slope rows were design-complete enough to hand forward, but
+not fitted in the Phase 6c core closure. Phase 10 later completed the
+coordinate-spatial row for one numeric univariate Gaussian `mu` slope; the
+other rows remain handoff items.
 
 | Surface | Minimum next implementation contract | Destination |
 |---|---|---|
 | `phylo(1 + x | species, tree = tree)` | one structured `mu` slope, explicit intercept/slope storage order, simulation recovery for slope SD, `sdpars$mu` and `profile_targets()` names, and `check_drm()` replication diagnostics | Phase 12 |
-| `spatial(1 + x | site, coords = coords)` | one coordinate-spatial `mu` slope, separation from future mesh/SPDE path, simulation recovery for slope SD, `ranef()`/`sdpars` names, and coordinate diagnostics | Phase 10 |
+| `spatial(1 + x | site, coords = coords)` | one coordinate-spatial `mu` slope, separation from future mesh/SPDE path, simulation recovery for slope SD, `ranef()`/`sdpars` names, and coordinate diagnostics | Phase 10, completed for one numeric coordinate slope |
 | bivariate slope1-slope2 correlation | coefficient-aware `corpair()` syntax, `corpairs()` rows with `from_coef` and `to_coef`, direct-target interval status, and recovery evidence | Phase 11 or later |
 | structured slope tutorials | fitted output, interval/status columns, and biological interpretation after the model surface is stable | final tutorial pass after Phases 10-13 |
 

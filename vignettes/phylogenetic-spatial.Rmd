@@ -110,14 +110,22 @@ simulate_spatial_location_data <- function(seed = 20260534) {
   range <- stats::median(distance[distance > 0])
   spatial_cov <- exp(-distance / range)
   diag(spatial_cov) <- diag(spatial_cov) + 1e-6
-  spatial_effect <- as.vector(t(chol(spatial_cov)) %*% rnorm(length(sites), sd = 0.45))
-  names(spatial_effect) <- sites
+  spatial_intercept <- as.vector(
+    t(chol(spatial_cov)) %*% rnorm(length(sites), sd = 0.45)
+  )
+  spatial_slope <- as.vector(
+    t(chol(spatial_cov)) %*% rnorm(length(sites), sd = 0.20)
+  )
+  names(spatial_intercept) <- sites
+  names(spatial_slope) <- sites
 
   site <- rep(sites, each = 6)
   temp <- rnorm(length(site))
   depth <- rnorm(length(site))
   sigma <- exp(-1.25 + 0.15 * depth)
-  y <- 0.4 + 0.35 * temp + spatial_effect[site] + rnorm(length(site), sd = sigma)
+  y <- 0.4 + 0.35 * temp + 0.20 * depth +
+    spatial_intercept[site] + spatial_slope[site] * depth +
+    rnorm(length(site), sd = sigma)
 
   list(
     data = data.frame(y = y, temp = temp, depth = depth, site = site),
@@ -134,24 +142,30 @@ phylogenetic location SDs and their mean-mean correlation. Matching labelled
 `phylo()` terms across `mu1`, `mu2`, `sigma1`, and `sigma2` now fit the first
 constant bivariate phylogenetic location-scale block. The first
 predictor-dependent phylogenetic correlation regression is also fitted for the
-q=2 `mu1`-`mu2` location-location row. The first coordinate-based spatial path,
-`spatial(1 | site, coords = coords)`, is fitted for univariate Gaussian
-location models. Mesh/SPDE spatial fields, structured random slopes, and
-predictor-dependent q=4 location-scale or scale-scale phylogenetic correlations
-remain planned extensions.
+q=2 `mu1`-`mu2` location-location row. The first coordinate-based spatial paths,
+`spatial(1 | site, coords = coords)` and
+`spatial(1 + x | site, coords = coords)`, are fitted for univariate Gaussian
+location models. The one-slope path estimates independent coordinate-spatial
+intercept and slope fields with separate SDs. Mesh/SPDE spatial fields,
+multiple spatial slopes, spatial slope correlations, and predictor-dependent
+q=4 location-scale or scale-scale phylogenetic correlations remain planned
+extensions.
 
 The scientific questions for the implemented structured paths are simple:
 
 > Do predictors explain species trait means after accounting for similarity
 > among related species? Do predictors explain a response after accounting for
-> smooth coordinate-based site deviations?
+> smooth coordinate-based site deviations, or does a predictor's slope vary
+> smoothly across sites?
 
 For phylogenetic models, `species` indexes the rows in the data and `tree`
 supplies the relatedness among those species. For spatial models, `site`
 indexes the rows in the data and `coords` supplies one coordinate pair per
 site, or one row per observation when coordinates are constant within site. In
-both cases, the first fitted spatial or phylogenetic term is a structured
-Gaussian deviation in the location parameter `mu`.
+both cases, the first fitted spatial or phylogenetic term adds structured
+Gaussian coefficients to the location parameter `mu`. The intercept path adds
+a site or species deviation in mean response. The coordinate-spatial one-slope
+path also lets the effect of one numeric predictor vary smoothly across sites.
 
 Throughout this article, `Normal(a, b)` and `MVN(a, B)` use variance or
 covariance as the second argument.
@@ -173,6 +187,7 @@ location-scale-coscale model.
 | `sd_phylo1(species) ~ z1` / `sd_phylo2(species) ~ z2` | Implemented for bivariate `mu1`/`mu2` | Response-specific species-level predictors model the SD surfaces of the two phylogenetic location random effects. This remains a Family B direct-SD model, not a residual `sigma1`/`sigma2` model and not a q=4 location-scale block. |
 | `corpair(species, level = "phylogenetic", block = "p", from = "mu1", to = "mu2") ~ ecology` | Implemented for q=2 `mu1`/`mu2` | Species-level predictors model the same-species latent phylogenetic location-location correlation through a positive-definite two-field loading contract. `corpairs(level = "phylogenetic")` reports the modelled response-scale mean, range, and number of species values. |
 | `spatial(1 | site, coords = coords)` | Implemented first slice | One trait has a coordinate-based spatial random intercept in the location predictor. This is a fixed coordinate covariance foundation, not the future mesh/SPDE path. |
+| `spatial(1 + x | site, coords = coords)` | Implemented first one-slope slice | One trait has independent coordinate-spatial intercept and numeric slope fields in the location predictor. The two fields share the same coordinate precision, have separate SDs, and do not estimate an intercept-slope correlation. |
 | `spatial(1 | site, mesh = mesh)` | Planned | Mesh inputs will provide expert control for the scalable SPDE/GMRF spatial path. |
 
 The fitted q=2 phylogenetic correlation-regression syntax is:
@@ -904,12 +919,13 @@ biologically harder to interpret than same-trait pairs. Use
 `corpairs(fit, level = "phylogenetic")` to extract fitted constant or modelled
 latent phylogenetic correlations.
 
-## Implemented first slice: spatial random intercepts
+## Implemented first slice: coordinate spatial intercepts and one slope
 
 Spatial fields are deliberately shaped to look parallel to phylogenetic
-effects. The first fitted path is a coordinate-based univariate Gaussian `mu`
-random intercept. The example below keeps the data deliberately small so the
-model can be rebuilt inside the article:
+effects. The first fitted paths are coordinate-based univariate Gaussian `mu`
+coefficient fields: a random intercept, and one independent random slope for a
+numeric predictor. The example below keeps the data deliberately small so the
+models can be rebuilt inside the article:
 
 ```{r}
 spatial_example <- simulate_spatial_location_data()
@@ -939,6 +955,31 @@ profile_targets(fit_spatial, ready_only = TRUE)[
   c("parm", "estimate", "profile_ready")
 ]
 ```
+
+When the biological question is whether a local environmental gradient has a
+different slope in different parts of the sampled landscape, add one numeric
+coefficient inside the `spatial()` term:
+
+```{r}
+fit_spatial_slope <- drmTMB(
+  drm_formula(
+    y ~ depth + temp + spatial(1 + depth | site, coords = coords),
+    sigma ~ depth
+  ),
+  family = gaussian(),
+  data = spatial_dat
+)
+
+fit_spatial_slope$sdpars$mu
+names(ranef(fit_spatial_slope, "spatial_mu")$terms)
+```
+
+The two SDs answer different biological questions. `spatial(1 | site)` is the
+amount of smooth site-to-site variation in the expected response after the
+fixed effects. `spatial(0 + depth | site)` is the amount of smooth site-to-site
+variation in the depth effect. Large slope SD means the fitted depth-response
+gradient changes across the coordinate surface; it is not a residual
+correlation and it is not the residual scale `sigma`.
 
 Before interpreting the spatial SD or mapped site effects, inspect the spatial
 diagnostic row. It is deliberately named `spatial_mu_diagnostics`, not
@@ -996,7 +1037,7 @@ spatial(1 + x | site, coords = coords) # implemented for one numeric mu slope
 spatial(1 | site, mesh = mesh)      # planned
 ```
 
-The mathematical role is the same: add a structured Gaussian random intercept
+The mathematical role is the same: add structured Gaussian coefficient fields
 to a distributional predictor. The computational route differs. `phylo()`
 starts from an ultrametric tree with branch lengths and builds a sparse
 tree-derived precision. The first `spatial()` slice starts from coordinates and

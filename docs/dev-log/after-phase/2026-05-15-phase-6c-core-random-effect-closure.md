@@ -9,19 +9,20 @@ random effects, direct `sd(group)` models, and the output/status contract.
 
 ## Scope Boundary
 
-This closure does not fit structured phylogenetic or spatial random slopes.
-`phylo(1 + x | species, tree = tree)` and
-`spatial(1 + x | site, coords = coords)` remain planned and should be handled
-inside the relevant Phase 12 and Phase 10 work, respectively. The Phase 6c
-core supplies the ordinary baseline and names the implementation contract those
-future slices must satisfy.
+At the time of this closure, Phase 6c did not fit structured phylogenetic or
+spatial random slopes. `phylo(1 + x | species, tree = tree)` and
+`spatial(1 + x | site, coords = coords)` were planned for the relevant Phase 12
+and Phase 10 work, respectively. Phase 10 later completed the coordinate
+spatial one-slope path for univariate Gaussian `mu`; this Phase 6c report
+remains the historical ordinary-core closure.
 
 ## Standing Review Closure
 
 - Ada: the section is ready to hand forward because the ordinary mixed-model
   baseline now has a source map, roadmap status, tests, and local docs gate.
-- Gauss: fitted claims are limited to existing Gaussian ordinary grouped
-  paths; structured slopes are not described as implemented.
+- Gauss: fitted claims at Phase 6c closure are limited to existing Gaussian
+  ordinary grouped paths; structured slopes are not described as implemented
+  in the Phase 6c core.
 - Noether: the equation, syntax, extractor, `corpairs()`, and
   `profile_targets()` path is explicit for the ordinary one-slope core.
 - Darwin: the thermal reaction-norm example gives a biological interpretation

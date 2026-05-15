@@ -109,9 +109,10 @@ spatial(1 | site, coords = coords)
 
 but the TMB likelihood should see the same kind of structured-effect block.
 The first fitted phylogenetic instance is univariate Gaussian `mu` with
-`phylo(1 | species, tree = tree)`. The first fitted spatial instance is
-univariate Gaussian `mu` with `spatial(1 | site, coords = coords)`, using a
-fixed coordinate covariance as the small-data foundation before the scalable
+`phylo(1 | species, tree = tree)`. The first fitted spatial instances are
+univariate Gaussian `mu` with `spatial(1 | site, coords = coords)` and one
+numeric `spatial(1 + x | site, coords = coords)` slope, using a fixed
+coordinate covariance as the small-data foundation before the scalable
 mesh/SPDE route.
 
 The mature phylogenetic grammar should probably look like structured
