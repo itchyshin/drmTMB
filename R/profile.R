@@ -43,8 +43,10 @@
 #'
 #' @return A data frame with columns `parm`, `level`, `lower`, `upper`,
 #'   `scale`, `transformation`, `tmb_parameter`, `index`, `method`, and
-#'   `conf.status`. Successful rows currently use `conf.status = "wald"` or
-#'   `conf.status = "profile"`.
+#'   `conf.status`, `profile.boundary`, and `profile.message`. Successful rows
+#'   currently use `conf.status = "wald"` or `conf.status = "profile"`;
+#'   profile rows mark intervals that land near a lower SD boundary or
+#'   correlation boundary.
 #'
 #' @examples
 #' dat <- data.frame(y = c(0.2, 0.5, 1.1, 1.4), x = c(-1, 0, 1, 2))
@@ -530,6 +532,11 @@ drm_profile_response_newdata_confint <- function(
       offset = offset[[i]]
     )
 
+    diagnostics <- profile_interval_diagnostics(
+      interval,
+      transformation = profile_newdata_transformation(object, dpar)
+    )
+
     data.frame(
       parm = labels[[i]],
       level = level,
@@ -541,6 +548,8 @@ drm_profile_response_newdata_confint <- function(
       index = NA_integer_,
       method = "profile",
       conf.status = "profile",
+      profile.boundary = diagnostics$boundary,
+      profile.message = diagnostics$message,
       stringsAsFactors = FALSE
     )
   })
@@ -575,6 +584,8 @@ drm_wald_confint <- function(object, parm, level) {
     index = targets$index,
     method = "wald",
     conf.status = "wald",
+    profile.boundary = NA,
+    profile.message = NA_character_,
     stringsAsFactors = FALSE
   )
   row.names(out) <- NULL
@@ -621,6 +632,10 @@ drm_profile_target_confint <- function(
     c(unname(ci[1L, "lower"]), unname(ci[1L, "upper"])),
     target
   )
+  diagnostics <- profile_interval_diagnostics(
+    interval,
+    transformation = target$transformation
+  )
 
   data.frame(
     parm = target$parm,
@@ -633,6 +648,8 @@ drm_profile_target_confint <- function(
     index = target$index,
     method = "profile",
     conf.status = "profile",
+    profile.boundary = diagnostics$boundary,
+    profile.message = diagnostics$message,
     stringsAsFactors = FALSE
   )
 }
@@ -675,6 +692,7 @@ drm_tmbprofile <- function(object, target_name, lincomb, trace, ...) {
           "Profile likelihood failed while profiling target {.val {target_name}}.",
           i = "Check {.code profile_targets(fit)} to confirm the target is profile-ready.",
           i = "Try changing profile controls such as {.arg ystep}, {.arg ytol}, or {.arg parm.range}; then inspect {.code check_drm(fit)} if the profile still fails.",
+          i = "This can indicate a boundary, one-sided, non-monotone, or failed-inner-optimization profile.",
           x = "Original error: {conditionMessage(err)}"
         ),
         parent = err
@@ -692,12 +710,40 @@ drm_tmbprofile_confint <- function(profile, target_name, level) {
           "Could not extract a profile confidence interval for target {.val {target_name}}.",
           i = "The profile may not cross the likelihood-ratio threshold on both sides.",
           i = "Try a wider {.arg parm.range}, a smaller {.arg ystep}, or inspect the profile object interactively.",
+          i = "This can indicate a boundary, one-sided, non-monotone, or failed-inner-optimization profile.",
           x = "Original error: {conditionMessage(err)}"
         ),
         parent = err
       )
     }
   )
+}
+
+profile_interval_diagnostics <- function(
+  interval,
+  transformation,
+  sd_boundary = sqrt(.Machine$double.eps),
+  correlation_boundary = 0.98
+) {
+  interval <- as.numeric(interval)
+  if (length(interval) != 2L || any(!is.finite(interval))) {
+    return(list(boundary = TRUE, message = "nonfinite_interval"))
+  }
+  if (
+    transformation %in%
+      c("exp", "derived_group_scale") &&
+      min(interval) <= sd_boundary
+  ) {
+    return(list(boundary = TRUE, message = "near_sd_boundary"))
+  }
+  if (
+    transformation %in%
+      c("tanh", "rho12_tanh", "unstructured_corr") &&
+      max(abs(interval)) >= correlation_boundary
+  ) {
+    return(list(boundary = TRUE, message = "near_correlation_boundary"))
+  }
+  list(boundary = FALSE, message = "ok")
 }
 
 profile_transform_interval <- function(interval, target) {

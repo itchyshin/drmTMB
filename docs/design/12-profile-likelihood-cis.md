@@ -191,6 +191,29 @@ absent. `profile_targets()` remains the inventory for deciding which direct
 targets can be passed to `confint(..., method = "profile")`; `corpairs()` keeps
 its existing `conf.status` column for latent and residual correlation-pair rows.
 
+## Phase 6 Slice 58 Profile Diagnostics
+
+Slice 58 adds lightweight diagnostics to successful profile-interval rows and
+clearer failure messages for profiles that cannot be constructed. Successful
+profile rows returned by `confint()` now include:
+
+```text
+profile.boundary
+profile.message
+```
+
+The current diagnostic is deliberately simple. It reports `profile.message =
+"ok"` for ordinary finite intervals, `"near_sd_boundary"` when a transformed SD
+interval reaches the lower boundary guard, and `"near_correlation_boundary"`
+when a transformed correlation interval approaches the correlation guard.
+`profile.boundary` is `TRUE` for those boundary-like cases.
+
+Failed `TMB::tmbprofile()` calls and failed interval extraction errors now say
+that the failure can reflect a boundary, one-sided, non-monotone, or
+failed-inner-optimization profile. This does not yet implement one-sided
+profile intervals or automatic recovery from non-monotone profiles; it only
+records the diagnostic pathway so later slices can add stronger recovery.
+
 ## Phase 6 Slice 53 Direct Profile Robustness
 
 Slice 53 keeps the same statistical targets but hardens the failure boundary
