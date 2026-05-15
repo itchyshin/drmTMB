@@ -53,7 +53,7 @@ paths.
 | Phylogenetic SDs and q2 correlations | Implemented direct targets include the first bivariate phylogenetic `mu1`/`mu2` SD and mean-mean correlation path. | Keep phylogenetic targets separate from residual `rho12`; add clearer diagnostics for weak SDs and boundary correlations. |
 | Spatial SDs | The first univariate coordinate-spatial `mu` SD target is direct and profile-ready where the fitted object retained the TMB object. | Add coverage that spatial profile labels and diagnostics stay distinct from phylogenetic labels. |
 | q4 ordinary and phylogenetic correlations | Point estimates are reported, but q4 unstructured-correlation rows are derived targets and not direct profile-ready. | Preserve explicit unavailable statuses until a direct or fix-and-refit derived method exists. |
-| ICCs, repeatability, phylogenetic signal, and other nonlinear summaries | Planned only. | Design a fix-and-refit or reparameterized profile path after extractors and diagnostics are stable. |
+| ICCs, repeatability, phylogenetic signal, and other nonlinear summaries | Slice 56 adds point-estimate derived-summary rows for simple Gaussian random-intercept repeatability and phylogenetic signal. | Design a fix-and-refit or reparameterized profile path before claiming derived confidence intervals. |
 
 The linked Phase 6 tracking issue is
 <https://github.com/itchyshin/drmTMB/issues/30>. The companion Phase 6b
@@ -161,8 +161,8 @@ The currently allowed `profile_note` values are:
 | `derived_unstructured_correlation` | The row is an unstructured q4 correlation derived from a Cholesky-style covariance parameterization. |
 
 The currently allowed `transformation` values are `linear_predictor`, `exp`,
-`rho12_tanh`, `tanh`, `derived_group_scale`, `unstructured_corr`, and
-`ordered_cutpoint`. Slice 52 tests representative fixed-effect,
+`rho12_tanh`, `tanh`, `variance_ratio`, `derived_group_scale`,
+`unstructured_corr`, and `ordered_cutpoint`. Slice 52 tests representative fixed-effect,
 distributional-scale, random-effect SD, random-effect correlation, residual
 correlation, ordinal cutpoint, modelled-SD, q4 derived-correlation, and
 memory-light fitted-object rows against this contract.
@@ -270,6 +270,41 @@ constant fitted correlation-pair rows whose `profile_targets()` row is
 `derived_interval_unavailable`. This keeps constant latent correlations,
 predictor-dependent latent correlations, residual `rho12`, and derived q4 rows
 separate in both output and inference claims.
+
+## Phase 6 Slice 56 Derived-Target Status
+
+Slice 56 makes the first nonlinear variance-ratio summaries explicit without
+pretending they are profile-ready. For a univariate Gaussian model with a
+constant residual `sigma` and an intercept-only group random effect,
+`summary(fit)$derived` reports:
+
+```text
+repeatability_group =
+  sigma_group^2 / (sigma_group^2 + sigma^2)
+```
+
+The same rule gives a phylogenetic-signal point estimate for a univariate
+Gaussian `phylo(1 | species, tree = tree)` location model:
+
+```text
+phylogenetic_signal =
+  sigma_phylo^2 / (sigma_phylo^2 + sigma^2)
+```
+
+These rows also appear in `profile_targets()` as `target_class =
+"derived-summary"`, `target_type = "derived"`, `transformation =
+"variance_ratio"`, and `profile_note = "derived_target"`. They are deliberately
+not profile-ready. If a user requests `conf.int = TRUE`, the summary marks the
+row with `conf.status = "derived_interval_unavailable"` and leaves interval
+bounds empty. If a user passes the derived target to `confint(..., method =
+"profile")`, the call fails before starting `TMB::tmbprofile()`.
+
+This is a status contract, not a derived-inference method. It tells readers
+where the point estimate comes from and why the 95% interval is not yet
+available. Future derived intervals for repeatability, ICCs, phylogenetic
+signal with additional variance components, total variance, covariance
+products, and q4 correlation functions should use a fix-and-refit or
+reparameterized profile method.
 
 ## Core Definition
 
@@ -504,9 +539,11 @@ Ordinal rows in the internal inventory currently refer to raw `theta_ord`
 parameters. A later user-facing interval table can add transformed cutpoint
 rows, but it should keep `theta_ord` visible as the profiled TMB parameter.
 
-Derived summaries such as repeatability, ICC, phylogenetic signal, and
-double-hierarchical correlation-pair summaries should wait until direct
-profiles are stable and the derived quantity has a named extractor.
+Derived summaries such as simple Gaussian repeatability and phylogenetic signal
+now have named point-estimate rows, but their profile intervals still wait for
+a derived-quantity method. More complex ICCs with known sampling variance,
+multiple variance components, double-hierarchical correlation-pair summaries,
+and q4 covariance functions should not be treated as interval-ready.
 
 ## Implementation Stage
 

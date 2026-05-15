@@ -23,6 +23,9 @@ target is direct and the fitted object retained the TMB object needed for
 \code{\link[=confint.drmTMB]{confint.drmTMB()}} with \code{method = "profile"}. Common \code{profile_note}
 values are \code{"ready"}, \code{"tmb_object_required"}, \code{"missing_tmb_parameter"},
 \code{"derived_target"}, and \code{"derived_unstructured_correlation"}.
+Derived variance-ratio summaries such as repeatability and phylogenetic
+signal are listed as point-estimate targets with
+\code{profile_ready = FALSE}.
 }
 \description{
 \code{profile_targets()} shows the names that can be supplied to

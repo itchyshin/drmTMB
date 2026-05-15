@@ -14557,3 +14557,56 @@ Known limitations:
   conditional random-effect modes, or modelled `corpair(...) ~ x` summary rows
   without `newdata`;
 - boundary and one-sided profile diagnostics remain a later Phase 6 slice.
+
+## 2026-05-15 -- Slice 56 derived-target status
+
+Goal:
+
+- make nonlinear derived summaries visible as point estimates while preserving
+  explicit unavailable interval status.
+
+Implemented:
+
+- added `summary(fit)$derived` rows for simple univariate Gaussian
+  random-intercept repeatability and phylogenetic signal;
+- added matching `profile_targets()` rows with `target_class =
+  "derived-summary"`, `target_type = "derived"`, `transformation =
+  "variance_ratio"`, and `profile_note = "derived_target"`;
+- updated `confint(..., method = "profile")` so unavailable derived targets
+  fail before starting an unsupported TMB profile;
+- updated `docs/design/12-profile-likelihood-cis.md`, `ROADMAP.md`,
+  `NEWS.md`, and
+  `docs/dev-log/after-task/2026-05-15-slice-56-derived-target-status.md`.
+
+Checks run:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::test(filter = "summary|profile-targets", reporter = "summary")'`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::document()'`:
+  passed and updated `man/summary.drmTMB.Rd` and
+  `man/profile_targets.Rd`.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::test(filter = "summary|profile-targets", reporter = "summary")'`:
+  passed after documentation and formatting.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::test(filter = "summary|profile-targets|phylo-gaussian|covariance-block-registry", reporter = "summary")'`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::test(reporter = "summary")'`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH air format R/methods.R R/profile.R tests/testthat/test-summary.R tests/testthat/test-profile-targets.R NEWS.md ROADMAP.md docs/design/12-profile-likelihood-cis.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-15-slice-56-derived-target-status.md man/summary.drmTMB.Rd man/profile_targets.Rd`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::build_site()'`:
+  passed and rebuilt `ROADMAP.html`, `news/index.html`,
+  `reference/summary.drmTMB.html`, and `reference/profile_targets.html`.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed with no problems found.
+- `git diff --check`:
+  passed.
+- `rg -n "Derived-target status|derived:repeatability|derived:phylogenetic_signal|variance_ratio|derived-summary|derived_interval_unavailable|unsupported derived intervals" NEWS.md ROADMAP.md docs/design/12-profile-likelihood-cis.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-15-slice-56-derived-target-status.md R/methods.R R/profile.R tests/testthat/test-summary.R tests/testthat/test-profile-targets.R man/summary.drmTMB.Rd man/profile_targets.Rd pkgdown-site/ROADMAP.html pkgdown-site/news/index.html pkgdown-site/reference/summary.drmTMB.html pkgdown-site/reference/profile_targets.html --glob '!pkgdown-site/search.json'`:
+  confirmed source, tests, Rd files, and rendered pkgdown wording for the
+  Slice 56 derived-target status contract.
+
+Known limitations:
+
+- this slice does not add derived confidence intervals for q4 correlations,
+  covariance products, repeatability, phylogenetic signal, or ICCs;
+- the new point-estimate rows are limited to simple univariate Gaussian models
+  with constant residual `sigma` and no known sampling variance.

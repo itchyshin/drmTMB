@@ -133,6 +133,9 @@ confint.drmTMB <- function(
 #'   [confint.drmTMB()] with `method = "profile"`. Common `profile_note`
 #'   values are `"ready"`, `"tmb_object_required"`, `"missing_tmb_parameter"`,
 #'   `"derived_target"`, and `"derived_unstructured_correlation"`.
+#'   Derived variance-ratio summaries such as repeatability and phylogenetic
+#'   signal are listed as point-estimate targets with
+#'   `profile_ready = FALSE`.
 #'
 #' @examples
 #' dat <- data.frame(y = c(0.2, 0.5, 1.1, 1.4), x = c(-1, 0, 1, 2))
@@ -304,6 +307,7 @@ drm_profile_targets <- function(object) {
 
   registry_cor_rows <- profile_registry_cor_targets(object)
   add_rows(registry_cor_rows)
+  add_rows(profile_derived_summary_targets(object))
   registry_cor_keys <- covariance_block_corpars_keys(
     object$model$random$covariance_blocks
   )
@@ -429,6 +433,31 @@ drm_profile_confint <- function(
   out <- do.call(rbind, rows)
   row.names(out) <- NULL
   out
+}
+
+profile_derived_summary_targets <- function(object) {
+  rows <- drm_derived_summary_rows(object)
+  if (nrow(rows) == 0L) {
+    return(list())
+  }
+  lapply(seq_len(nrow(rows)), function(i) {
+    row <- rows[i, , drop = FALSE]
+    new_profile_target_row(
+      parm = row$parm[[1L]],
+      target_class = "derived-summary",
+      dpar = row$dpar[[1L]],
+      term = row$term[[1L]],
+      tmb_parameter = NA_character_,
+      index = NA_integer_,
+      estimate = row$estimate[[1L]],
+      link_estimate = NA_real_,
+      scale = "response",
+      transformation = "variance_ratio",
+      target_type = "derived",
+      profile_ready = FALSE,
+      profile_note = "derived_target"
+    )
+  })
 }
 
 drm_profile_response_newdata_confint <- function(
@@ -562,16 +591,16 @@ drm_profile_target_confint <- function(
     "random-effect-correlation",
     "residual-correlation"
   )
-  if (!target$target_class %in% implemented_classes) {
-    cli::cli_abort(c(
-      "Profile intervals are implemented for direct fixed-effect, constant distributional-scale, random-effect SD, random-effect correlation, and constant residual-correlation targets.",
-      i = "Requested {.val {target$parm}} has target class {.val {target$target_class}}."
-    ))
-  }
   if (!isTRUE(target$profile_ready)) {
     cli::cli_abort(c(
       "Profile target {.val {target$parm}} is not ready for direct profiling.",
       i = "Inventory note: {.val {target$profile_note}}."
+    ))
+  }
+  if (!target$target_class %in% implemented_classes) {
+    cli::cli_abort(c(
+      "Profile intervals are implemented for direct fixed-effect, constant distributional-scale, random-effect SD, random-effect correlation, and constant residual-correlation targets.",
+      i = "Requested {.val {target$parm}} has target class {.val {target$target_class}}."
     ))
   }
 
@@ -856,6 +885,7 @@ validate_profile_targets <- function(targets) {
     "exp",
     "rho12_tanh",
     "tanh",
+    "variance_ratio",
     "derived_group_scale",
     "unstructured_corr",
     "ordered_cutpoint"
