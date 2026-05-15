@@ -14463,3 +14463,44 @@ Known limitations:
   phylogenetic-signal, or arbitrary nonlinear profile intervals;
 - `newdata` profiles are still one scalar row target at a time and can be slow
   over large grids.
+
+## 2026-05-15 -- Phase 6d stable-core validation roadmap insertion
+
+Goal:
+
+- record the audit-response lane as a concrete roadmap phase before continuing
+  the active Phase 6 profile-CI slices.
+
+Implemented:
+
+- created GitHub issue #38 for "Phase 6d: stable-core validation and engine
+  hardening";
+- added `ROADMAP.md` Phase 6d with Slices 77-84:
+  stable-core feature matrix, validation-debt register, failure-safe
+  `sdreport()` handling, optimizer/start/map design, dense-covariance and
+  large-data guards, count-kernel audit, C++ modularization source map, and a
+  Phase 6d gate;
+- added
+  `docs/dev-log/after-task/2026-05-15-phase-6d-stable-core-hardening-roadmap.md`;
+- added an explicit ad-hoc memory note so future drmTMB restarts preserve the
+  Phase 6d decision.
+
+Checks run:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH air format ROADMAP.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-15-phase-6d-stable-core-hardening-roadmap.md`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::build_site()'`:
+  passed and rebuilt `pkgdown-site/ROADMAP.html`.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed with no problems found.
+- `git diff --check`:
+  passed.
+- `rg -n "Phase 6d|Stable-Core Validation|Slice 77|Slice 84|issue #38|stable-core feature matrix|validation-debt register" ROADMAP.md pkgdown-site/ROADMAP.html docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-15-phase-6d-stable-core-hardening-roadmap.md --glob '!pkgdown-site/search.json'`:
+  confirmed source and rendered pkgdown wording for the Phase 6d insertion.
+
+Known limitations:
+
+- this is a roadmap and tracking insertion only; it does not implement
+  `sdreport()` controls, optimizer fallbacks, multi-starts, count-kernel
+  changes, or C++ modularization;
+- Slice 55 remains the next implementation slice in the active profile-CI lane.

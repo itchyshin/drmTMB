@@ -489,6 +489,54 @@ Phase 6b should turn the implemented surfaces into a coherent reader path:
 | 75 | Biological examples | Add tutorial examples for reaction norms and bivariate plasticity-syndrome questions, including how to read slope SDs, slope correlations, and interval/status columns. | Examples include equations, syntax, output, intervals or explicit unavailable statuses, and interpretation. |
 | 76 | Phase 6c gate | Run focused tests, pkgdown checks, after-phase audit, PR, and GitHub Actions. | Phase 6c closes only after CI and pkgdown are green. |
 
+## Phase 6d: Stable-Core Validation and Engine Hardening
+
+- Tracking issue: [#38](https://github.com/itchyshin/drmTMB/issues/38).
+- Treat Phase 6d as the audit-response lane. It should not distract from the
+  current profile-CI slices, but it records the cross-cutting work needed before
+  `drmTMB` expands too far into new families, broad spatial claims, or
+  high-dimensional random-effect structures.
+- Add a stable-core versus experimental feature matrix for the README,
+  model-map, and pkgdown site. The table should make clear which surfaces are
+  fitted, which are parsed but rejected, which are documentation-only roadmap
+  items, and which have profile-likelihood interval support.
+- Maintain a validation-debt register that links each advertised model surface
+  to simulation recovery, malformed-input tests, diagnostics, profile/CI status,
+  documentation, and check-log evidence.
+- Add failure-safe standard-error handling. A future `se = FALSE` or equivalent
+  control should let a useful fit exist without forcing `TMB::sdreport()`, and
+  failed standard-error calculations should store an `sdr_error` rather than
+  making the whole object unusable.
+- Design optimizer controls before importing multi-start behavior. The first
+  contract should expose starts, maps or fixed parameters, optimizer controls,
+  and a fallback optimizer. Any multi-start implementation must pin
+  `report()`, `sdreport()`, summaries, profiles, and extractors to the winning
+  `opt$par` rather than the TMB object's last evaluated parameter state.
+- Add diagnostics and wording guards for dense known covariance, large-data
+  claims, and spatial routes. Dense known covariance should be labelled
+  small-to-moderate unless sparse or block-sparse evidence exists.
+- Audit count likelihood kernels for avoidable loops over observed counts and
+  replace them with stable closed-form `lgamma` expressions where appropriate.
+- Plan C++ likelihood modularization before the single TMB template grows much
+  further. The first action should be a source map and refactor plan, not a
+  broad rewrite during fragile inference work.
+- Make `check_drm()` diagnostic status more visible in summaries, tutorials, or
+  workflow docs, so users see convergence, Hessian, boundary, and
+  near-correlation-limit warnings before interpreting complex fits.
+
+Phase 6d should be closed as small hardening slices:
+
+| Slice | Goal | Main work | Done when |
+| --- | --- | --- | --- |
+| 77 | Stable-core feature matrix | Add a README/model-map/pkgdown table for fixed effects, random effects, `sigma`, known covariance, phylogeny, spatial, bivariate `rho12`, latent `corpair()`, profile-CI support, and status. | Pat and Rose can tell stable, experimental, parsed-but-rejected, and planned surfaces apart without reading source. |
+| 78 | Validation-debt register | Create a design note or issue-backed register linking each stable or experimental surface to recovery tests, diagnostics, interval status, docs, and check-log evidence. | Every advertised surface has evidence or an explicit debt entry. |
+| 79 | Standard-error and `sdreport()` controls | Design and implement failure-safe uncertainty controls, including `se = FALSE` behavior if compatible with current APIs. | Fits can be kept when `sdreport()` is skipped or fails, and methods report the uncertainty state clearly. |
+| 80 | Optimizer, start, map, and multi-start design | Add the public contract for starts, fixed or mapped parameters, fallback optimizers, and cautious future multi-start support. | Design docs and tests prove reports and `sdreport()` use the selected optimum. |
+| 81 | Dense covariance and large-data guards | Add diagnostics and wording for dense known covariance, sparse/block-sparse expectations, and large-data claim boundaries. | `check_drm()` and docs warn before users treat dense covariance or large-row paths as scalable by default. |
+| 82 | Count likelihood kernel audit | Review count likelihood sections and replace slow count loops with closed-form expressions where practical. | Comparator tests confirm unchanged likelihood values for representative counts. |
+| 83 | C++ modularization source map | Write the refactor plan for splitting likelihood families, covariance blocks, structured effects, and numerical helpers without changing behavior. | The plan names file boundaries, test gates, and what should not move yet. |
+| 84 | Phase 6d gate | Run targeted tests, pkgdown checks, Rose audit, Grace CI gate, and update NEWS/check-log/roadmap. | Phase 6d closes only after user-facing claims, tests, docs, and GitHub Actions agree. |
+
 ## Phase 7: Robust and Positive Continuous Families
 
 - Status: fixed-effect univariate Student-t location-scale-shape, lognormal
