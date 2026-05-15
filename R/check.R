@@ -1862,20 +1862,48 @@ check_spatial_mu_diagnostics <- function(object) {
   weak_replication <- is.finite(min_count) && min_count < 2L
 
   sd_label <- phylo_mu_sd_labels(spatial_mu, object$model$model_type)
-  sd_value <- unname(object$sdpars$mu[match(sd_label, names(object$sdpars$mu))])
-  finite_positive_sd <- length(sd_value) == 1L &&
-    is.finite(sd_value) &&
-    sd_value > 0
+  sd_values <- unname(object$sdpars$mu[match(
+    sd_label,
+    names(object$sdpars$mu)
+  )])
+  finite_positive_sd <- length(sd_values) == length(sd_label) &&
+    all(is.finite(sd_values)) &&
+    all(sd_values > 0)
 
   residual_scale <- spatial_mu_residual_scale(object)
-  sd_ratio <- if (finite_positive_sd && is.finite(residual_scale)) {
-    sd_value / residual_scale
+  sd_ratios <- if (finite_positive_sd && is.finite(residual_scale)) {
+    sd_values / residual_scale
   } else {
     NA_real_
   }
-  weak_sd <- !finite_positive_sd || (is.finite(sd_ratio) && sd_ratio < 0.05)
+  finite_sd_ratios <- sd_ratios[is.finite(sd_ratios)]
+  min_sd <- if (finite_positive_sd) min(sd_values) else NA_real_
+  min_sd_ratio <- if (length(finite_sd_ratios) > 0L) {
+    min(finite_sd_ratios)
+  } else {
+    NA_real_
+  }
+  weak_sd <- !finite_positive_sd ||
+    any(finite_sd_ratios < 0.05)
 
   coord_range <- spatial_mu$precision$range
+  sd_text <- if (length(sd_label) == 1L) {
+    paste0(
+      "; spatial_sd=",
+      format_check_number(sd_values),
+      "; sd_ratio=",
+      format_check_number(sd_ratios)
+    )
+  } else {
+    paste0(
+      "; n_coef=",
+      length(sd_label),
+      "; min_spatial_sd=",
+      format_check_number(min_sd),
+      "; min_sd_ratio=",
+      format_check_number(min_sd_ratio)
+    )
+  }
   check_row(
     "spatial_mu_diagnostics",
     if (!finite_positive_sd) {
@@ -1894,10 +1922,7 @@ check_spatial_mu_diagnostics <- function(object) {
       min_count,
       "; coord_range=",
       format_check_number(coord_range),
-      "; spatial_sd=",
-      format_check_number(sd_value),
-      "; sd_ratio=",
-      format_check_number(sd_ratio)
+      sd_text
     ),
     spatial_mu_diagnostic_message(
       finite_positive_sd,

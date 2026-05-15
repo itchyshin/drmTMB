@@ -414,11 +414,11 @@ test_that("Phase 1 rejects unsupported model syntax clearly", {
   )
   expect_error(
     drmTMB(
-      bf(y ~ x + spatial(1 + x | id, coords = coords)),
+      bf(y ~ x + spatial(1 + x + z | id, coords = coords)),
       family = gaussian(),
       data = dat
     ),
-    "intercept-only spatial"
+    "intercept and one-slope structured terms"
   )
   expect_error(
     drmTMB(

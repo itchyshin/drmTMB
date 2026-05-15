@@ -198,12 +198,14 @@ separate implemented models. The
 how to keep those answers separate until the full phylogenetic
 location-scale double-hierarchical endpoint is implemented.
 
-Spatial syntax is part of the structured-effect design. The first fitted path
-is a univariate Gaussian coordinate-based location random intercept,
-`spatial(1 | site, coords = coords)`, with `sdpars$mu`, `ranef("spatial_mu")`,
-profile targets, and a `check_drm()` spatial diagnostic row. Mesh/SPDE fields,
-spatial slopes, spatial scale terms, and bivariate spatial covariance blocks
-are still planned rather than landing-page workflows.
+Spatial syntax is part of the structured-effect design. The fitted coordinate
+path supports a univariate Gaussian location random intercept,
+`spatial(1 | site, coords = coords)`, and one numeric location slope,
+`spatial(1 + x | site, coords = coords)`, with `sdpars$mu`,
+`ranef("spatial_mu")`, profile targets, and a `check_drm()` spatial diagnostic
+row. Mesh/SPDE fields, multiple spatial slopes, spatial slope correlations,
+spatial scale terms, and bivariate spatial covariance blocks are still planned
+rather than landing-page workflows.
 
 For uncertainty, `confint()` returns Wald intervals for fixed effects by
 default and profile-likelihood intervals only for explicit direct targets.

@@ -221,14 +221,15 @@ distributional regression models using TMB.
   weak phylogenetic-SD diagnostics, and ordinary same-species covariance
   overlap for that fitted slice. A CRAN-safe deterministic simulation now
   recovers a positive bivariate phylogenetic mean-mean correlation.
-- The first spatial fitted path is now `spatial(1 | site, coords = coords)` in
-  univariate Gaussian `mu`. It uses a fixed exponential coordinate covariance
-  as a small-data foundation and reports `sdpars$mu["spatial(1 | site)"]` plus
-  a `spatial_mu` conditional random-effect block. `check_drm()` reports the
-  `spatial_mu_diagnostics` row for site replication, coordinate range, spatial
-  SD, and spatial-SD-to-residual-scale ratio. Mesh/SPDE, spatial slopes,
-  spatial q=4, spatial `sd(...)`, and spatial `corpair()` regressions remain
-  planned.
+- The first spatial fitted paths are now `spatial(1 | site, coords = coords)`
+  and `spatial(1 + x | site, coords = coords)` in univariate Gaussian `mu`.
+  They use a fixed exponential coordinate covariance as a small-data foundation.
+  The one-slope path estimates independent intercept and slope fields that share
+  the coordinate precision, with separate SDs and no intercept-slope
+  correlation. `sdpars$mu`, `ranef("spatial_mu")`, `profile_targets()`, and
+  `check_drm()` expose those fields with spatial names. Mesh/SPDE, multiple
+  spatial slopes, spatial slope correlations, spatial q=4, spatial `sd(...)`,
+  and spatial `corpair()` regressions remain planned.
 - For bivariate structured models, estimate and report level-specific
   correlations separately: residual `rho12`, phylogenetic correlations,
   non-phylogenetic species correlations, spatial field correlations, and
@@ -286,7 +287,7 @@ Phase 5 closure boundary:
 | --- | --- | --- |
 | univariate phylogenetic | `phylo(1 | species, tree = tree)` in Gaussian `mu`, `sd_phylo(species) ~ z`, profile targets and diagnostics | phylogenetic slopes, richer tree-shape recovery grids |
 | bivariate phylogenetic | matching `mu1`/`mu2` phylogenetic location correlation, constant q=4 location-scale block, q=2 predictor-dependent `corpair(..., level = "phylogenetic") ~ w`, bivariate `sd_phylo1()` / `sd_phylo2()` | q=4 predictor-dependent location-scale and scale-scale `corpair()` regressions |
-| coordinate spatial | `spatial(1 | site, coords = coords)` in univariate Gaussian `mu`, `sdpars`, `ranef("spatial_mu")`, profile target, and `check_drm()` row | mesh/SPDE, spatial slopes, spatial scale, bivariate spatial q=4, spatial direct-SD, spatial `corpair()` |
+| coordinate spatial | `spatial(1 | site, coords = coords)` and one numeric `spatial(1 + x | site, coords = coords)` slope in univariate Gaussian `mu`, `sdpars`, `ranef("spatial_mu")`, direct profile targets, and `check_drm()` rows | mesh/SPDE, multiple spatial slopes, spatial slope correlations, spatial scale, bivariate spatial q=4, spatial direct-SD, spatial `corpair()` |
 | inference/output | fixed-effect SEs, direct profile-ready targets where implemented, `corpairs(conf.int = TRUE)` with explicit interval status | derived-profile intervals for q=4 correlations and richer marginal-effect/visualization helpers |
 
 ## Phase 5b: Large-Data Memory Strategy
@@ -439,7 +440,7 @@ Phase 6b should turn the implemented surfaces into a coherent reader path:
 | 63 | Gaussian location-scale polish | Tighten the question, equation, runnable model, fitted output, interpretation, diagnostics, and plot/table guidance. | Done: the Gaussian tutorial now separates fixed mean slopes, fixed residual-scale slopes, random-slope SDs, residual-scale random-slope SDs, and random-effect scale slopes. |
 | 64 | Bivariate coscale polish | Make residual `rho12`, `sigma1`/`sigma2`, response-scale interpretation, and intervals easier to read. | Done: the bivariate tutorial now reads `mu1`, `mu2`, `sigma1`, `sigma2`, and `rho12` slopes as separate biological claims and keeps residual `rho12` distinct from group-level `corpairs()` rows. |
 | 65 | Meta-analysis polish | Clarify `meta_known_V(V = V)`, ordinary weights, residual `sigma`, and unsupported combinations. | Done: the meta-analysis tutorial now names known sampling variance, fitted extra heterogeneity SD, heterogeneity variance, and total observation variance as different report scales. |
-| 66 | Structured-dependence polish | Refine phylogenetic and spatial examples, mesh/coords guidance, citation notes, and fitted-versus-planned status. | Done: the structured-dependence tutorial now gives a six-row q=4 phylogenetic interpretation table and keeps spatial slopes, q=4 extensions, and derived intervals visibly planned. |
+| 66 | Structured-dependence polish | Refine phylogenetic and spatial examples, mesh/coords guidance, citation notes, and fitted-versus-planned status. | Done: the structured-dependence tutorial now gives a six-row q=4 phylogenetic interpretation table and keeps mesh/SPDE, multiple spatial slopes, q=4 extensions, and derived intervals visibly planned. |
 | 67 | Random-effect scale and covariance tutorial | Explain `sd(group)`, `sd(..., level = ...)`, Family A versus Family B, `corpairs()`, and invalid mixed formulations. | Done: the scale guide now explains Family A versus Family B, current `sd_phylo()` naming, the future `sd(..., level = ...)` idea, and invalid mixed formulations. |
 | 68 | Phase 6b gate | Run Pat/Rose tutorial audit, pkgdown build/check, stale-wording scan, NEWS/roadmap updates, PR, and GitHub Actions. | Done locally: pkgdown build/check and stale-claim scans passed; GitHub Actions remains the PR-side gate after push. |
 
@@ -483,21 +484,21 @@ Phase 6b should turn the implemented surfaces into a coherent reader path:
   random slopes, ordinary correlated intercept-slope blocks, residual-scale
   random intercepts and independent residual-scale slopes, matching labelled
   `mu`/`sigma` random-intercept covariance, and direct `sd(group)` models for
-  unlabelled Gaussian `mu` random intercepts. Structured phylogenetic and
-  spatial slopes remain later Phase 6c work that should be interleaved with
-  Phases 10 and 12.
+  unlabelled Gaussian `mu` random intercepts. The first coordinate spatial
+  slope is now implemented in Phase 10; phylogenetic slopes and richer
+  structured-slope paths remain later work for Phases 10 and 12.
 - Closure boundary: Phase 6c closes the ordinary grouped foundation and hands
   structured random slopes to Phases 10 and 12. It does not fit
-  `phylo(1 + x | species, tree = tree)` or
-  `spatial(1 + x | site, coords = coords)` yet.
+  `phylo(1 + x | species, tree = tree)` yet; Phase 10 now fits the first
+  coordinate-spatial one-slope `mu` path.
 
 | Slice | Goal | Main work | Done when |
 | --- | --- | --- | --- |
 | 69 | Random-slope issue and math contract | Create/maintain the Phase 6c issue, write the ordinary/phylogenetic/spatial one-slope equations, and fix coefficient naming rules. | Done for the ordinary grouped core: `docs/design/33-phase-6c-core-random-effects.md` records the symbolic equations, syntax, output rows, and stable/planned boundary. |
 | 70 | Ordinary one-slope baseline | Stabilize ordinary grouped `mu` one-slope syntax, extractor labels, `corpairs()` coefficient columns, and profile-target names. | Done for the ordinary core: tests cover independent and correlated one-slope `mu` blocks, labelled `(1 + x | p | ID)` names, the `mean-slope` `corpairs()` row, and direct profile-target names. |
 | 71 | Phylogenetic one-slope design and fit | Extend `phylo()` from intercept-only `mu` to one structured `mu` slope after the algebra and storage order are explicit. | Design handoff done: `docs/design/33-phase-6c-core-random-effects.md` names the minimum Phase 12 implementation contract; fitting remains planned until simulation recovery and diagnostics support the slope SD. |
-| 72 | Spatial one-slope design and fit | Extend `spatial()` from intercept-only `mu` to one structured `mu` slope after coordinate/mesh diagnostics are clear. | Design handoff done: `docs/design/33-phase-6c-core-random-effects.md` names the minimum Phase 10 implementation contract; fitting remains planned and must stay distinct from the future mesh path. |
-| 73 | One-slope diagnostics and inference | Add replication, weak-SD, boundary, profile-target, and profile-likelihood CI diagnostics for fitted one-slope paths. | Done for the ordinary core: existing `check_drm()` and `profile_targets()` tests cover weak random-slope design, boundary SDs, random-slope SD targets, and intercept-slope correlation targets. Structured slope diagnostics remain planned with Slices 71-72. |
+| 72 | Spatial one-slope design and fit | Extend `spatial()` from intercept-only `mu` to one structured `mu` slope after coordinate/mesh diagnostics are clear. | Done for the coordinate path: Phase 10 fits `spatial(1 + x | site, coords = coords)` as independent intercept and slope fields with separate SDs, direct profile targets, `ranef()` terms, and simulation evidence. Mesh slopes remain planned. |
+| 73 | One-slope diagnostics and inference | Add replication, weak-SD, boundary, profile-target, and profile-likelihood CI diagnostics for fitted one-slope paths. | Done for the ordinary core and first coordinate-spatial slope: tests cover weak random-slope design, boundary SDs, ordinary random-slope SD targets, intercept-slope correlation targets where fitted, and spatial one-slope direct SD targets. Phylogenetic slope diagnostics remain planned with Slice 71. |
 | 74 | Slope-correlation advanced gate | Design two-slope models, intercept-slope correlations, and bivariate slope1-slope2 correlations without advertising them as routine. | Done for the ordinary core: the source map names the required coefficient-aware `corpair()` syntax, `corpairs()` rows, direct-target interval status, and recovery evidence before bivariate slope correlations are fitted or taught. |
 | 75 | Biological examples | Add tutorial examples for reaction norms and bivariate plasticity-syndrome questions, including how to read slope SDs, slope correlations, and interval/status columns. | Done for the ordinary core: the location-scale tutorial now gives a thermal reaction-norm example with fixed slope, random-intercept SD, random-slope SD, group-level intercept-slope correlation, and `profile_targets()` interpretation. Full structured-slope examples wait until Phases 10-13 settle. |
 | 76 | Phase 6c gate | Run focused tests, pkgdown checks, after-phase audit, PR, and GitHub Actions. | Done locally for the Phase 6c core: focused tests, pkgdown build/check, stale-claim scans, check-log entry, and after-phase report are complete. GitHub Actions remains the PR-side gate. |
@@ -639,11 +640,15 @@ remain blocked by future covariance or non-Gaussian random-effect work.
 
 ## Phase 10: Spatial Structured Effects
 
-- Status: first coordinate-based univariate Gaussian `mu` path implemented;
-  mesh/SPDE and bivariate spatial paths planned.
-- The first fitted spatial model is an intercept-only univariate Gaussian `mu`
-  structured effect, parallel to the implemented phylogenetic path:
-  `spatial(1 | site, coords = coords)`.
+- Status: coordinate-based univariate Gaussian `mu` intercepts and one numeric
+  spatial slope implemented; mesh/SPDE, multiple slopes, slope correlations, and
+  bivariate spatial paths planned.
+- The first fitted spatial models are univariate Gaussian `mu` structured
+  effects, parallel to the implemented phylogenetic path:
+  `spatial(1 | site, coords = coords)` and
+  `spatial(1 + x | site, coords = coords)`. The slope path uses two independent
+  spatial fields, one for the intercept and one for the slope, with no fitted
+  intercept-slope correlation.
 - Support `spatial(1 | site, mesh = mesh)` only after the coded mesh object
   schema, projection path, and recovery tests are implemented. The design
   contract and provenance policy are recorded in
@@ -660,9 +665,9 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   `fmesher`, INLA-related sources, `gllvmTMB`, or another project, record
   provenance in `inst/COPYRIGHTS` before calling the spatial slice complete.
 - Use a small comparator or simulation recovery test before exposing spatial
-  effects beyond `mu`.
-- Do not add spatial terms in `sigma`, `rho12`, or bivariate structured
-  covariance blocks until the intercept-only path is stable.
+  effects beyond univariate `mu` or beyond one numeric slope.
+- Do not add spatial terms in `sigma`, `rho12`, bivariate structured covariance
+  blocks, or spatial slope correlations until the one-slope path is stable.
 
 ## Phase 11: Bivariate Random Effects and Correlation Pairs
 

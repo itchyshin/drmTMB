@@ -963,12 +963,18 @@ unstructured residual variation.
 
 The fitted `coords` path accepts either one row per site or one row per
 observation, provided coordinates are constant within each site. Internally,
-this first slice builds a fixed exponential covariance from pairwise site
-distances, inverts it to a precision matrix, and estimates one spatial SD. This
-is a small-data foundation and recovery target, not the scalable mesh/SPDE
-implementation. The conditional spatial effects from `ranef()` are shrunken
-site deviations in the location predictor after the fixed effects and the
-spatial covariance have been estimated.
+the coordinate path builds a fixed exponential covariance from pairwise site
+distances, inverts it to a precision matrix, and estimates one spatial SD for
+each fitted spatial coefficient. The intercept model estimates one field. The
+one-slope model
+`spatial(1 + depth | site, coords = coords)` estimates two independent fields:
+`spatial(1 | site)` for site intercept deviations and
+`spatial(0 + depth | site)` for site-specific depth slopes. These two fields
+share the same coordinate precision but have separate SDs and no
+intercept-slope `corpair()` row. This is a small-data foundation and recovery
+target, not the scalable mesh/SPDE implementation. The conditional spatial
+effects from `ranef()` are shrunken site deviations in the location predictor
+after the fixed effects and the spatial covariance have been estimated.
 
 The planned `mesh` argument plays a different role. A `mesh` is the
 computational scaffold for an SPDE/GMRF field: a triangular network of vertices
@@ -986,6 +992,7 @@ The spatial term is deliberately parallel to the phylogenetic term:
 phylo(1 | species, tree = tree)     # implemented for mu and matching mu1/mu2
 phylo(1 | p | species, tree = tree) # implemented for labelled q4 bivariate blocks
 spatial(1 | site, coords = coords)  # implemented for univariate Gaussian mu
+spatial(1 + x | site, coords = coords) # implemented for one numeric mu slope
 spatial(1 | site, mesh = mesh)      # planned
 ```
 
@@ -1011,15 +1018,15 @@ cite `fmesher` as software. Any code selectively ported from `gllvmTMB`,
 `sdmTMB`, `fmesher`, or INLA-related sources must be recorded in
 `inst/COPYRIGHTS` before the spatial feature is called complete.
 
-Structured phylogenetic and spatial random slopes will be staged more
-conservatively than ordinary grouped random slopes. The first structured-effect
-target is intercept-only `mu`; the next should be one structured `mu` slope.
-Two structured `mu` slopes can be an advanced path when replication and design
-variation are strong, but three or more should stay experimental. Multiple
-random factors should be separate additive blocks rather than one large
-cross-factor covariance model. The first slope models should not estimate
-intercept-slope `corpair()` rows. A more interesting future two-response target
-is the slope1-slope2 correlation for the same covariate across traits, the
+Structured phylogenetic and spatial random slopes are staged more
+conservatively than ordinary grouped random slopes. Coordinate spatial `mu` now
+has the first one-slope path, but it is deliberately independent:
+`spatial(1 + x | site, coords = coords)` returns two SDs and no
+intercept-slope `corpair()` row. Phylogenetic slopes, mesh/SPDE slopes, two
+structured `mu` slopes, and spatial slope correlations remain later gates.
+Multiple random factors should be separate additive blocks rather than one large
+cross-factor covariance model. A more interesting future two-response target is
+the slope1-slope2 correlation for the same covariate across traits, the
 plasticity-syndrome question described by O'Dea, Noble, and Nakagawa (2021).
 
 ## Meta-analysis and future bivariate structure

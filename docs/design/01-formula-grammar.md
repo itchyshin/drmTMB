@@ -573,10 +573,11 @@ heterogeneous covariance-block model is designed and tested.
 metadata. The first fitted paths are intercept-only phylogenetic structure in
 the univariate Gaussian `mu` formula, matching bivariate `mu1`/`mu2`
 formulas, matching labelled bivariate q=4
-`mu1`/`mu2`/`sigma1`/`sigma2` phylogenetic blocks, and one coordinate-based
-univariate Gaussian spatial `mu` random intercept. Mesh/SPDE spatial fields,
-structured slopes, univariate phylogenetic `sigma` terms, spatial bivariate
-blocks, and structured `rho12` effects remain planned.
+`mu1`/`mu2`/`sigma1`/`sigma2` phylogenetic blocks, and coordinate-based
+univariate Gaussian spatial `mu` random intercept and one-slope terms.
+Mesh/SPDE spatial fields, phylogenetic slopes, multiple spatial slopes,
+univariate phylogenetic `sigma` terms, spatial bivariate blocks, and structured
+`rho12` effects remain planned.
 
 The canonical phylogenetic syntax is:
 
@@ -589,16 +590,20 @@ The fitted implementation builds the sparse augmented A-inverse internally
 using the Hadfield and Nakagawa route. Dense covariance matrices are lower-level
 comparator or `gr()` inputs, not the main public phylogeny API.
 
-The first implemented spatial syntax is:
+The implemented coordinate spatial syntax is:
 
 ```r
 bf(y ~ x1 + spatial(1 | site, coords = coords), sigma ~ x2)
+bf(y ~ x1 + spatial(1 + depth | site, coords = coords), sigma ~ x2)
 ```
 
 This fitted `coords` path builds a fixed coordinate covariance from the
-observed sites and estimates one structured spatial SD in the Gaussian `mu`
-formula. `coords` may contain one row per site or one row per observation,
-provided coordinates are constant within site after model-row filtering.
+observed sites and estimates one structured spatial SD per fitted spatial
+coefficient in the Gaussian `mu` formula. The slope path estimates independent
+intercept and slope fields, labelled `spatial(1 | site)` and
+`spatial(0 + depth | site)`, with no intercept-slope correlation. `coords` may
+contain one row per site or one row per observation, provided coordinates are
+constant within site after model-row filtering.
 
 The planned mesh/SPDE syntax is:
 
@@ -613,8 +618,9 @@ expert-control input for users who already built the finite-element scaffold.
 Mesh is not a biological sampling level; it is the numerical support needed for
 the scalable SPDE/GMRF route.
 
-The parser currently reserves intercept-only and one-slope forms, but only the
-intercept-only phylogenetic and coordinate-spatial `mu` forms are fitted:
+The parser currently reserves intercept-only and one-slope forms. Fitted forms
+are intercept-only phylogenetic `mu`, coordinate-spatial intercept `mu`, and one
+coordinate-spatial `mu` slope:
 
 ```r
 phylo(1 | species, tree = tree)
@@ -625,11 +631,10 @@ spatial(1 + depth | site, coords = coords)
 
 Multiple structured slopes, interaction slopes, structured `sigma` effects,
 structured `rho12` effects, bivariate structured effects beyond matching
-`mu1`/`mu2`, and structured q=4 blocks remain planned until the intercept-only
-phylogenetic paths have simulation and comparator coverage. When structured
-slopes are added, the first target is one `mu` slope and the near-term ceiling
-is two `mu` slopes. Intercept-slope `corpair()` rows stay distant-future; a
-later coefficient-aware design can target a bivariate slope1-slope2
+`mu1`/`mu2`, and richer structured q=4 blocks remain planned until the fitted
+paths have simulation and comparator coverage. The near-term ceiling remains two
+`mu` slopes. Intercept-slope `corpair()` rows stay distant-future; a later
+coefficient-aware design can target a bivariate slope1-slope2
 plasticity-syndrome correlation for the same covariate across responses.
 
 Future cross-formula correlated random-effect blocks should use ID labels:
@@ -773,7 +778,7 @@ Not every parameter should accept random effects at the same development stage.
 | `phylo(1 | p | species, tree = tree)` | Implemented as a label for matching bivariate `mu1`/`mu2` phylogenetic location terms and for the matching all-four q=4 bivariate phylogenetic location-scale block. Partial, unlabelled, mismatched, and slope forms remain rejected. |
 | `phylo(1 + x | species, tree = tree)` | Planned structured random slope syntax after intercept-only phylogeny is tested; one slope first, two slopes as the near-term advanced path. |
 | `spatial(1 | site, coords = coords)` | Implemented first structured spatial random intercept for univariate Gaussian `mu`; coordinates define a fixed coordinate covariance foundation. Mesh/SPDE fitting remains planned. |
-| `spatial(1 + x | site, coords = coords)` | Planned structured spatial random slope syntax after intercept-only spatial fields are tested; one slope first, two slopes as the near-term advanced path. |
+| `spatial(1 + x | site, coords = coords)` | Implemented one numeric structured spatial random slope for univariate Gaussian `mu`; it estimates independent `spatial(1 | site)` and `spatial(0 + x | site)` fields with no slope correlation. Multiple spatial slopes remain planned. |
 
 ## Rules
 
@@ -799,15 +804,17 @@ Not every parameter should accept random effects at the same development stage.
   `mu` random intercepts.
 - Phylogenetic and spatial terms are structured random effects. The first
   fitted phylogenetic path is `phylo(1 | species, tree = tree)` in univariate
-  Gaussian `mu`; the first fitted spatial path is
-  `spatial(1 | site, coords = coords)` in univariate Gaussian `mu`. Later paths
-  should support `phylo(1 + x | species, tree = tree)` and spatial analogues.
-  Public `phylo()` should require an ultrametric tree with branch lengths;
-  dense covariance matrices belong to lower-level comparators or `gr()`-style
+  Gaussian `mu`; fitted coordinate spatial paths are
+  `spatial(1 | site, coords = coords)` and one numeric
+  `spatial(1 + x | site, coords = coords)` slope in univariate Gaussian `mu`.
+  Later paths should support `phylo(1 + x | species, tree = tree)`, multiple
+  spatial slopes, and slope correlations only after separate recovery evidence.
+  Public `phylo()` should require an ultrametric tree with branch lengths; dense
+  covariance matrices belong to lower-level comparators or `gr()`-style
   structured covariance inputs, not the main phylogeny API.
 - Spatial syntax mirrors this pattern with terms such as
-  `spatial(1 | site, coords = coords)` and later
-  `spatial(1 + x | site, coords = coords)`. The first fitted path uses
+  `spatial(1 | site, coords = coords)` and
+  `spatial(1 + x | site, coords = coords)`. The fitted coordinate paths use
   coordinates directly; mesh objects and scalable SPDE/GMRF precision matrices
   remain planned.
 - The parser should reject unsupported formulae early with clear errors.

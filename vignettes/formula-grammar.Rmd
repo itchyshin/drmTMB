@@ -223,11 +223,13 @@ must be constant within each site. A precomputed `mesh` remains planned. Mesh is
 not the scientific sampling level. It is the computational scaffold that will
 keep a future SPDE/GMRF spatial field scalable. These structured effects are
 separate from residual `rho12`.
-For structured slopes, the intended staged path is one `mu` slope first and at
-most two `mu` slopes as an advanced path. Multiple random factors should remain
-separate additive blocks. The first slope models should not estimate
-intercept-slope `corpair()` rows; the more interesting future bivariate target
-is a slope1-slope2 correlation for the same covariate across responses.
+For structured slopes, the fitted coordinate-spatial path now supports one
+numeric `mu` slope as independent intercept and slope fields with separate SDs.
+At most two `mu` slopes remains the advanced path after more recovery evidence.
+Multiple random factors should remain separate additive blocks. The first slope
+models should not estimate intercept-slope `corpair()` rows; the more
+interesting future bivariate target is a slope1-slope2 correlation for the same
+covariate across responses.
 
 The first bivariate group-level covariance syntax is explicit about the
 distinction between group-level covariance labels and residual `rho12`:

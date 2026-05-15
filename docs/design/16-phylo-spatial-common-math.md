@@ -242,10 +242,12 @@ spatial(1 | site, mesh = mesh)
 ```
 
 Here `spatial(1 | site, coords = coords)` is a fitted spatial random intercept
-for univariate Gaussian `mu`. `coords` supplies observed coordinates with one
-row per site or one row per observation. `mesh = mesh` is the planned route for
-users who have already built an SPDE mesh. Structured spatial slopes should
-come after intercept-only spatial fields are tested.
+for univariate Gaussian `mu`. `spatial(1 + depth | site, coords = coords)` is
+also fitted for one numeric `mu` slope by estimating independent intercept and
+slope fields with the same coordinate precision. `coords` supplies observed
+coordinates with one row per site or one row per observation. `mesh = mesh` is
+the planned route for users who have already built an SPDE mesh. Multiple
+spatial slopes and spatial slope correlations remain planned.
 
 The mesh is not the ecological object of inference. It is a numerical scaffold
 for the sparse SPDE/GMRF approximation. The current coordinate covariance path
@@ -401,6 +403,10 @@ Recommended staging:
 
 The first structured-slope path should treat the slope field as independent of
 the intercept field, and should not estimate intercept-slope `corpair()` rows.
+The fitted coordinate spatial one-slope path follows that rule: it estimates
+`spatial(1 | site)` and `spatial(0 + x | site)` as independent fields with a
+shared coordinate precision and separate SDs. Phylogenetic slopes, mesh/SPDE
+slopes, multiple spatial slopes, and slope correlations remain later gates.
 For two-response models, the most interesting later slope correlation is a
 response-1 slope versus response-2 slope for the same covariate, matching the
 plasticity-syndrome idea in O'Dea, Noble, and Nakagawa (2021). That target needs

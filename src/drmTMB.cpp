@@ -115,6 +115,7 @@ Type objective_function<Type>::operator()()
   DATA_INTEGER(has_phylo_mu);
   DATA_IVECTOR(phylo_mu_sd_row);
   DATA_IVECTOR(phylo_mu_node_index);
+  DATA_MATRIX(phylo_mu_value);
   DATA_SPARSE_MATRIX(Q_phylo);
   DATA_SCALAR(log_det_Q_phylo);
   DATA_INTEGER(n_re_cov_blocks);
@@ -545,32 +546,46 @@ Type objective_function<Type>::operator()()
           sd_phylo_group(g) = exp(eta_sd);
         }
       }
+      int n_phylo = Q_phylo.rows();
+      int q_phylo = log_sd_phylo.size();
       for (int i = 0; i < y.size(); ++i) {
-        Type phylo_effect = u_phylo(phylo_mu_node_index(i));
-        if (has_sd_phylo_model == 1) {
-          phylo_effect *= sd_phylo_group(phylo_mu_sd_row(i));
+        Type phylo_effect = Type(0.0);
+        for (int k = 0; k < q_phylo; ++k) {
+          int effect_index = k * n_phylo + phylo_mu_node_index(i);
+          Type field_effect = u_phylo(effect_index);
+          if (has_sd_phylo_model == 1) {
+            field_effect *= sd_phylo_group(phylo_mu_sd_row(i));
+          }
+          phylo_effect += phylo_mu_value(i, k) * field_effect;
         }
         mu(i) += phylo_effect;
       }
-      int n_phylo = u_phylo.size();
-      vector<Type> Q_u = Q_phylo * u_phylo;
       Type quadratic = Type(0.0);
-      for (int j = 0; j < n_phylo; ++j) {
-        quadratic += u_phylo(j) * Q_u(j);
-      }
-      if (has_sd_phylo_model == 1) {
-        nll += Type(0.5) * (
-          Type(n_phylo) * log(Type(2.0) * M_PI) -
-          log_det_Q_phylo +
-          quadratic
-        );
-      } else {
-        nll += Type(0.5) * (
-          Type(n_phylo) * log(Type(2.0) * M_PI) +
-          Type(2.0) * Type(n_phylo) * log_sd_phylo(0) -
-          log_det_Q_phylo +
-          exp(Type(-2.0) * log_sd_phylo(0)) * quadratic
-        );
+      for (int k = 0; k < q_phylo; ++k) {
+        vector<Type> effect_k(n_phylo);
+        for (int j = 0; j < n_phylo; ++j) {
+          effect_k(j) = u_phylo(k * n_phylo + j);
+        }
+        vector<Type> Q_u = Q_phylo * effect_k;
+        Type quadratic_k = Type(0.0);
+        for (int j = 0; j < n_phylo; ++j) {
+          quadratic_k += effect_k(j) * Q_u(j);
+        }
+        quadratic += quadratic_k;
+        if (has_sd_phylo_model == 1) {
+          nll += Type(0.5) * (
+            Type(n_phylo) * log(Type(2.0) * M_PI) -
+            log_det_Q_phylo +
+            quadratic_k
+          );
+        } else {
+          nll += Type(0.5) * (
+            Type(n_phylo) * log(Type(2.0) * M_PI) +
+            Type(2.0) * Type(n_phylo) * log_sd_phylo(k) -
+            log_det_Q_phylo +
+            exp(Type(-2.0) * log_sd_phylo(k)) * quadratic_k
+          );
+        }
       }
       REPORT(u_phylo);
       REPORT(log_sd_phylo);

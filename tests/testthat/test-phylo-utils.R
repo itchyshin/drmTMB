@@ -94,6 +94,7 @@ phylo_prior_tmb_data <- function(precision) {
       has_phylo_mu = 0L,
       phylo_mu_sd_row = 0L,
       phylo_mu_node_index = 0L,
+      phylo_mu_value = dummy_matrix,
       Q_phylo = precision$precision,
       log_det_Q_phylo = precision$log_det_precision
     ),

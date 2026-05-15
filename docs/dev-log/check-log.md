@@ -14992,3 +14992,65 @@ Known limitations:
   slope-specific `sd()` targets, and random effects in `rho12` remain future
   work for Phases 10+;
 - GitHub Actions remains the PR-side gate after push.
+
+## 2026-05-15 -- Phase 10 coordinate spatial one-slope
+
+Goal:
+
+- fit one coordinate-spatial `mu` slope for univariate Gaussian models without
+  adding intercept-slope spatial correlations or mesh/SPDE claims.
+
+Implemented:
+
+- allowed `spatial(1 + x | site, coords = coords)` in univariate Gaussian
+  `mu`;
+- represented the model as independent `spatial(1 | site)` and
+  `spatial(0 + x | site)` fields sharing the same coordinate precision;
+- passed a structured-effect design matrix into TMB and made the univariate
+  Gaussian structured-effect branch sum coefficient-specific fields;
+- made `sdpars$mu`, `ranef("spatial_mu")`, `profile_targets()`, `predict()`,
+  and `check_drm()` handle the two-field coordinate-spatial path;
+- added deterministic spatial slope simulation tests, complete-case and
+  slope-variable validation tests, and updated the former planned-error guard;
+- updated roadmap, likelihood/formula/spatial design docs, known limitations,
+  README, NEWS, tutorials, roxygen, and the generated `man/spatial.Rd`;
+- added after-task report
+  `docs/dev-log/after-task/2026-05-15-phase-10-coordinate-spatial-one-slope.md`.
+
+Checks run:
+
+- `PATH=/opt/homebrew/bin:/usr/local/bin:$PATH air format R/drmTMB.R R/methods.R R/check.R R/formula-markers.R src/drmTMB.cpp tests/testthat/test-spatial-gaussian.R tests/testthat/test-gaussian-location-scale.R tests/testthat/test-phylo-utils.R README.md NEWS.md ROADMAP.md docs/design/01-formula-grammar.md docs/design/03-likelihoods.md docs/design/09-phylogenetic-and-spatial-speed.md docs/design/16-phylo-spatial-common-math.md docs/design/32-phase-6b-tutorial-source-map.md docs/dev-log/known-limitations.md vignettes/formula-grammar.Rmd vignettes/phylogenetic-spatial.Rmd`:
+  passed.
+- `PATH=/opt/homebrew/bin:/usr/local/bin:$PATH /usr/local/bin/Rscript -e 'devtools::document()'`:
+  passed and regenerated `man/spatial.Rd`.
+- `PATH=/opt/homebrew/bin:/usr/local/bin:$PATH /usr/local/bin/Rscript -e 'devtools::test(filter = "spatial-gaussian", reporter = "summary")'`:
+  passed.
+- `PATH=/opt/homebrew/bin:/usr/local/bin:$PATH /usr/local/bin/Rscript -e 'devtools::test(filter = "gaussian-location-scale", reporter = "summary")'`:
+  passed.
+- `PATH=/opt/homebrew/bin:/usr/local/bin:$PATH /usr/local/bin/Rscript -e 'devtools::test(filter = "phylo-utils", reporter = "summary")'`:
+  passed.
+- `PATH=/opt/homebrew/bin:/usr/local/bin:$PATH /usr/local/bin/Rscript -e 'devtools::test(filter = "check-drm", reporter = "summary")'`:
+  passed.
+- `PATH=/opt/homebrew/bin:/usr/local/bin:$PATH /usr/local/bin/Rscript -e 'devtools::test(filter = "profile-targets", reporter = "summary")'`:
+  passed.
+- `PATH=/opt/homebrew/bin:/usr/local/bin:$PATH /usr/local/bin/Rscript -e 'devtools::test(reporter = "summary")'`:
+  passed.
+- `PATH=/opt/homebrew/bin:/usr/local/bin:$PATH /usr/local/bin/Rscript -e 'pkgdown::build_site()'`:
+  passed.
+- `PATH=/opt/homebrew/bin:/usr/local/bin:$PATH /usr/local/bin/Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed with no problems found.
+- `PATH=/opt/homebrew/bin:/usr/local/bin:$PATH /usr/local/bin/Rscript -e 'devtools::check(error_on = "never", env_vars = c("_R_CHECK_SYSTEM_CLOCK_" = "FALSE"))'`:
+  passed with 0 errors, 0 warnings, and 0 notes in 2m 26.2s.
+- `git diff --check`: passed.
+- `rg -n 'spatial slopes.*planned|spatial terms are planned|spatial terms.*not implemented|spatial likelihood is not implemented|coords = coords\\).*not implemented|spatial\\(1 \\+ x \\| site, coords = coords\\).*Planned|spatial random slopes should stay planned|spatial slopes should stay planned|structured slopes remain planned' README.md ROADMAP.md NEWS.md R docs/design docs/dev-log/known-limitations.md vignettes tests man pkgdown-site --glob '!pkgdown-site/search.json' --glob '!docs/dev-log/after-task/**' --glob '!docs/dev-log/after-phase/**' --glob '!pkgdown-site/dev-log/**'`:
+  found only valid planned references to mesh/SPDE, multiple spatial slopes,
+  slope correlations, or historical rendered wording.
+
+Known limitations:
+
+- coordinate spatial slopes are univariate Gaussian `mu` only and require a
+  numeric finite slope variable;
+- no spatial intercept-slope `corpair()` row is fitted;
+- mesh/SPDE, multiple spatial slopes, spatial `sigma`, bivariate spatial
+  covariance, and spatial `corpair()` regressions remain planned;
+- GitHub Actions remains the PR-side gate after push.

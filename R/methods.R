@@ -3377,7 +3377,11 @@ has_structured_mu_effect <- function(object) {
 
 n_mu_random_effect_terms <- function(object) {
   length(object$model$random$mu$labels) +
-    as.integer(has_structured_mu_effect(object))
+    if (has_structured_mu_effect(object)) {
+      structured_mu_q(object$model$structured$phylo_mu)
+    } else {
+      0L
+    }
 }
 
 has_sigma_random_effects <- function(object) {
@@ -3478,15 +3482,28 @@ mu_random_effect_contribution <- function(object, dpar = NULL) {
 mu_random_intercept_contribution <- mu_random_effect_contribution
 
 phylo_mu_contribution <- function(object, dpar = NULL) {
-  key <- structured_mu_random_effect_key(object$model$structured$phylo_mu)
+  phylo_mu <- object$model$structured$phylo_mu
+  key <- structured_mu_random_effect_key(phylo_mu)
   values <- object$random_effects[[key]]$values
-  index <- object$model$structured$phylo_mu$observation_node_index
+  index <- phylo_mu$observation_node_index
   if (identical(object$model$model_type, "biv_gaussian")) {
-    dpars <- phylo_mu_dpars(object$model$structured$phylo_mu)
+    dpars <- phylo_mu_dpars(phylo_mu)
     dpar <- match.arg(dpar, dpars)
-    offset <- (match(dpar, dpars) - 1L) *
-      object$model$structured$phylo_mu$n_re
+    offset <- (match(dpar, dpars) - 1L) * phylo_mu$n_re
     index <- index + offset
+    return(unname(values[index]))
+  }
+  q <- structured_mu_q(phylo_mu)
+  if (q > 1L && is.matrix(phylo_mu$value)) {
+    n_re <- phylo_mu$n_re
+    value_matrix <- matrix(
+      unname(values[seq_len(q * n_re)]),
+      nrow = n_re,
+      ncol = q
+    )
+    return(unname(rowSums(
+      value_matrix[index, , drop = FALSE] * phylo_mu$value
+    )))
   }
   unname(values[index])
 }

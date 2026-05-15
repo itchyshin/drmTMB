@@ -203,7 +203,8 @@ Grace's minimum check gate for `mesh = mesh` is:
 - pkgdown documentation that separates `coords`, mesh, residual `rho12`, and
   future spatial correlations.
 
-Later spatial random slopes should follow the same pattern:
+The first coordinate spatial random slope follows the same coordinate-covariance
+pattern:
 
 ```r
 bf(
@@ -211,6 +212,12 @@ bf(
   sigma ~ temp
 )
 ```
+
+This fitted path estimates two independent spatial fields with the same
+coordinate precision: `spatial(1 | site)` for site intercept deviations and
+`spatial(0 + depth | site)` for site-specific depth slopes. It deliberately does
+not estimate an intercept-slope correlation. Mesh/SPDE slopes should wait until
+the mesh intercept path has its own recovery and diagnostics.
 
 ### gllvmTMB SPDE Source Map
 
