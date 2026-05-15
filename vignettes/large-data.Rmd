@@ -178,6 +178,19 @@ Rscript bench/large-phylo-location.R --rows 100000 --species 1000 \
   --factor-heavy true --memory-light true --output bench/results.csv
 ```
 
+To benchmark the first sparse fixed-effect path, remove the phylogenetic
+structured effect explicitly:
+
+```sh
+Rscript bench/large-phylo-location.R --rows 100000 --species 1000 \
+  --structured none --factor-heavy true --sparse-fixed true \
+  --memory-light true --output bench/results.csv
+```
+
+That sparse smoke scenario fits a fixed-effect Gaussian location model, not a
+phylogenetic model, because `sparse_fixed = TRUE` is currently implemented only
+for univariate Gaussian `mu` fixed effects with intercept-only `sigma`.
+
 For a model with a scale predictor, add:
 
 ```sh

@@ -210,6 +210,8 @@ command-line options for:
 - 100,000, 500,000, 1,000,000, and 5,000,000 rows through `--rows`;
 - few fixed effects first, then factor-heavy fixed effects through
   `--factor-heavy`;
+- the default phylogenetic route, or the first non-phylogenetic sparse
+  fixed-effect route through `--structured none --sparse-fixed true`;
 - `sigma ~ 1` first, then `sigma ~ x` through `--sigma-x`;
 - intercept-only `phylo(1 | species, tree = tree)`.
 

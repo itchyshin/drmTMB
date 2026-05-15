@@ -312,6 +312,9 @@ Phase 5 closure boundary:
   no random effects, no structured effects, and no known covariance.
 - The optional large-data benchmark now records the largest fixed-effect design
   block, column count, nonzero count, and density.
+- The same benchmark harness now records `structured` and `sparse_fixed`
+  settings and can run a non-phylogenetic sparse fixed-effect smoke scenario
+  with `--structured none --factor-heavy true --sparse-fixed true`.
 - Extend memory-light fit controls for large phylogenetic and spatial
   datasets with broader method-matrix coverage, sparse fixed-effect matrices,
   aggregation, and repeated large-row benchmarks.

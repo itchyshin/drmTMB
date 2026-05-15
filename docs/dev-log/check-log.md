@@ -14014,3 +14014,53 @@ Known limitations:
   dense-start fits for difficult models;
 - large benchmark evidence for `sparse_fixed = TRUE` is still a later Phase 5b
   step.
+
+## 2026-05-14 -- Phase 5b Slice 46 sparse fixed-effect benchmark smoke
+
+Goal:
+
+- add benchmark coverage for the first sparse fixed-effect path without
+  pretending sparse phylogenetic fitting is implemented.
+
+Implemented:
+
+- added `--structured phylo|none` to `bench/large-phylo-location.R`, keeping
+  the existing phylogenetic route as the default;
+- added `--sparse-fixed true`, guarded so it currently requires
+  `--structured none --sigma-x false`;
+- made the benchmark output record `structured` and `sparse_fixed`;
+- kept `sd_phylo_hat` as `NA` for non-phylogenetic sparse fixed-effect smoke
+  rows;
+- updated `bench/summarize-results.R` so summary labels include the structured
+  route and sparse-fixed setting while remaining compatible with older CSVs;
+- updated `bench/README.md`, `vignettes/large-data.Rmd`,
+  `docs/design/23-large-data-memory.md`, `ROADMAP.md`, and `NEWS.md`.
+
+Checks run:
+
+- `Rscript bench/large-phylo-location.R --rows 80 --species 8 --eval-max 60 --iter-max 60 --memory-light true --output "$tmp_csv" && Rscript bench/summarize-results.R --input "$tmp_csv"`:
+  passed for the default phylogenetic route and printed
+  `structured=phylo`, `sparse_fixed=no`.
+- `Rscript bench/large-phylo-location.R --rows 100 --species 8 --structured none --factor-heavy true --sparse-fixed true --eval-max 80 --iter-max 80 --memory-light true --output "$tmp_sparse" && Rscript bench/summarize-results.R --input "$tmp_sparse"`:
+  passed as diagnostic-only with nonzero convergence and printed
+  `structured=none`, `sparse_fixed=yes`.
+- `Rscript bench/large-phylo-location.R --rows 100 --species 8 --structured none --factor-heavy true --sparse-fixed true --eval-max 240 --iter-max 240 --memory-light true --output "$tmp_sparse" && Rscript bench/summarize-results.R --input "$tmp_sparse"`:
+  passed with convergence code 0.
+- `Rscript bench/large-phylo-location.R --rows 20 --species 4 --sparse-fixed true --output /tmp/should-not-write.csv`:
+  failed as intended with `--sparse-fixed true currently requires --structured none`.
+- `PATH=/opt/homebrew/bin:$PATH Rscript -e 'devtools::load_all(quiet = TRUE); pkgdown::build_article("large-data", new_process = FALSE)'`:
+  passed and refreshed the local large-data article.
+- `PATH=/opt/homebrew/bin:$PATH Rscript -e 'devtools::load_all(quiet = TRUE); pkgdown::check_pkgdown()'`:
+  passed.
+- `rg -n -- '--structured none|--sparse-fixed|sparse_fixed|structured=none|structured = none|sparse phylogenetic' bench/README.md bench/large-phylo-location.R bench/summarize-results.R vignettes/large-data.Rmd pkgdown-site/articles/large-data.html docs/design/23-large-data-memory.md ROADMAP.md NEWS.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-14-phase-5b-slice-46-sparse-fixed-benchmark-smoke.md`:
+  found the intended benchmark scope and sparse-fixed wording.
+- `git diff --check`:
+  passed.
+
+Known limitations:
+
+- this benchmark smoke is not a large-data timing claim;
+- the first sparse benchmark route is non-phylogenetic because
+  `sparse_fixed = TRUE` still rejects phylogenetic and spatial structured
+  effects;
+- peak resident memory still needs operating-system tools.
