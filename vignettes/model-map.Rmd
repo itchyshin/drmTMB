@@ -42,13 +42,14 @@ Use this matrix before treating a syntax pattern as available. "Stable" means a
 routine fitted surface with tests and user-facing documentation. "First slice"
 means the model fits, but only inside the stated boundary. "Opt-in control"
 means the feature is a hardening or large-data path, not a promise that every
-neighbouring model scales the same way.
+neighbouring model scales the same way. The evidence and debt ledger behind the
+matrix lives in `docs/design/34-validation-debt-register.md`.
 
 | Model surface | Status | Fitted today | Not yet | Interval and diagnostic status |
 |---|---|---|---|---|
 | Fixed-effect one-response families | Stable | Gaussian, Student-t, lognormal, Gamma, beta, beta-binomial, Poisson, NB2, zero-inflated Poisson, zero-inflated NB2, truncated NB2, hurdle NB2, and cumulative-logit ordinal location | ordinal scale/discrimination, zero-one-inflated beta or ordered beta, and random effects for most non-Gaussian families | Wald fixed-effect intervals by default; direct profile targets appear in `profile_targets()` |
 | Gaussian ordinary random effects | Stable | `mu` intercepts, independent slopes, one-slope correlated blocks, `sigma` intercepts, and independent `sigma` slopes | correlated residual-scale slopes and coefficient-specific `sd()` slope models | `check_drm()` reports replication, weak-slope, boundary, and Hessian diagnostics; direct SD/correlation targets can be profiled |
-| Random-effect scale models | Stable first slice | `sd(group) ~ x_group` for unlabelled Gaussian `mu` random intercepts | slope-specific `sd(id, dpar = "mu", coef = "x") ~ ...` and residual-scale direct-SD models | SD-surface coefficients are direct; row-specific group SD summaries are derived |
+| Random-effect scale models | First slice | `sd(group) ~ x_group` for unlabelled Gaussian `mu` random intercepts | slope-specific `sd(id, dpar = "mu", coef = "x") ~ ...` and residual-scale direct-SD models | SD-surface coefficients are direct; row-specific group SD summaries are derived |
 | Known sampling covariance | Stable | Gaussian `meta_known_V(V = V)` for diagonal, dense, and row-paired bivariate known sampling covariance | non-Gaussian known covariance, sparse known covariance, and dense known `V` with non-unit likelihood weights | `check_drm()` reports known-covariance diagnostics; fixed effects and response-scale residual summaries use the usual interval routes |
 | Bivariate Gaussian residual coupling | Stable | fixed-effect `mu1`, `mu2`, `sigma1`, `sigma2`, and predictor-dependent residual `rho12` | random effects in `rho12` and mixed composed families | `rho12()` reports response-scale residual correlation; `confint(..., parm = "rho12", newdata = ...)` profiles supplied rows |
 | Ordinary bivariate covariance and `corpairs()` | First slice | matching labelled random intercepts in `mu1`/`mu2`, `sigma1`/`sigma2`, same-response `mu`/`sigma`, all-four q=4 blocks, and q=2 `corpair(..., level = "group") ~ x` | bivariate random slopes, full cross-parameter slope covariance, and slope1-slope2 plasticity-syndrome correlations | constant q=2 SD/correlation targets are direct; predictor-dependent `corpair()` values use `newdata`; q=4 rows are derived and mark derived intervals unavailable |

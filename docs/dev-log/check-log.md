@@ -15149,3 +15149,48 @@ Known limitations:
 - this is a status/documentation slice, not new likelihood behavior;
 - the matrix does not yet contain the Slice 78 validation-debt links;
 - GitHub Actions remains the PR-side gate after push.
+
+## 2026-05-15 -- Slice 78 validation-debt register
+
+Goal:
+
+- back the Slice 77 stable-core matrix with a register linking every advertised
+  surface to tests, diagnostics, interval status, docs, check-log evidence, and
+  explicit debt.
+
+Implemented:
+
+- added `docs/design/34-validation-debt-register.md`;
+- defined register statuses `covered`, `partial`, `opt-in`, and `blocked`;
+- added stable surface IDs, validation risk, and next gates for every Slice 77
+  matrix row;
+- linked each row to tests, diagnostics or interval routes, docs, check-log
+  evidence, and remaining debt;
+- updated README, model-map, source-map, ROADMAP, and NEWS pointers;
+- added after-task report
+  `docs/dev-log/after-task/2026-05-15-slice-78-validation-debt-register.md`.
+
+Checks run:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH air format README.md vignettes/model-map.Rmd vignettes/source-map.Rmd ROADMAP.md NEWS.md docs/design/34-validation-debt-register.md`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::load_all(quiet = TRUE); rmarkdown::render("vignettes/model-map.Rmd", output_file = tempfile(fileext = ".html"), quiet = FALSE); rmarkdown::render("vignettes/source-map.Rmd", output_file = tempfile(fileext = ".html"), quiet = FALSE)'`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::build_site()'`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed with no problems found.
+- `git diff --check`: passed.
+- `rg -n '34-validation-debt-register|Validation-debt register|covered|partial|opt-in|blocked|D78-0|Slice 78' README.md vignettes/model-map.Rmd vignettes/source-map.Rmd ROADMAP.md NEWS.md docs/design/34-validation-debt-register.md`:
+  confirmed source pointers and register rows.
+- `rg -n '34-validation-debt-register|Validation-debt register|covered|partial|opt-in|blocked|D78-0|Slice 78|First slice' README.md vignettes/model-map.Rmd vignettes/source-map.Rmd ROADMAP.md NEWS.md docs/design/34-validation-debt-register.md pkgdown-site/index.html pkgdown-site/articles/model-map.html pkgdown-site/articles/source-map.html pkgdown-site/ROADMAP.html pkgdown-site/news/index.html --glob '!pkgdown-site/search.json'`:
+  confirmed rendered README, model-map, source-map, roadmap, and NEWS output.
+- `rg -n 'Stable first slice|stable first slice|stable-versus-experimental|experimental feature matrix|spatial.*intercept-only.*implemented|q=4.*direct profile-ready|phylogenetic slopes.*fitted|spatial `corpair\\(\\)`.*fitted|random effects.*non-Gaussian.*implemented|profile intervals are supported' README.md ROADMAP.md NEWS.md vignettes/model-map.Rmd vignettes/source-map.Rmd docs/design/34-validation-debt-register.md`:
+  found only valid guardrail wording in NEWS and model-map.
+
+Known limitations:
+
+- this is a traceability slice, not new model behavior;
+- some check-log evidence is summarized by heading or source-map reference
+  rather than exact line number because the check log is append-only and large;
+- GitHub Actions remains the PR-side gate after push.

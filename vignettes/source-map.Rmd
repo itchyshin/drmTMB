@@ -145,6 +145,16 @@ docs/design/15-location-coscale-phylogenetic-extension.md
 The goal is consistency. The symbolic equations, R syntax, TMB branch, tests,
 vignettes, and check log should make the same claim.
 
+## Validation-debt register
+
+The stable-core matrix in the README and model-map article is backed by
+`docs/design/34-validation-debt-register.md`. That register records whether
+each advertised surface is `covered`, `partial`, `opt-in`, or `blocked`, and it
+names the tests, diagnostics, interval route, docs, and explicit debt for each
+row. When a surface moves from planned or first-slice status to routine support,
+update the register with the implementation, tests, docs, NEWS, check-log
+evidence, and after-task report in the same pull request.
+
 ## Current boundaries
 
 The following neighbouring features are intentionally not implemented as fitted
