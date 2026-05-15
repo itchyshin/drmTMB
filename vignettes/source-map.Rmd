@@ -145,6 +145,15 @@ docs/design/15-location-coscale-phylogenetic-extension.md
 The goal is consistency. The symbolic equations, R syntax, TMB branch, tests,
 vignettes, and check log should make the same claim.
 
+## C++ modularization boundary
+
+The C++ template is still one compiled TMB entry point. The modularization plan
+in `docs/design/36-cpp-modularization-source-map.md` should be treated as the
+source of truth before moving code out of `src/drmTMB.cpp`. Its first pass
+moves only pure numeric and likelihood-kernel helpers into headers; it does not
+move `DATA_*` declarations, `PARAMETER_*` declarations, `REPORT()` calls,
+`ADREPORT()` calls, R builders, formula grammar, or public branch IDs.
+
 ## Validation-debt register
 
 The stable-core matrix in the README and model-map article is backed by

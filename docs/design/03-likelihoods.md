@@ -80,14 +80,22 @@ is the current routing contract:
 | `12` | `family = truncated_nbinom2()` plus `hu ~ ...` | `drm_build_truncated_nbinom2_spec()` | Univariate fixed-effect hurdle negative-binomial 2 models, with `hu` as the hurdle-zero probability and nonzero counts drawn from the zero-truncated NB2 component. |
 | `13` | `family = cumulative_logit()` | `drm_build_cumulative_logit_spec()` | Univariate fixed-effect cumulative-logit ordinal location models, with ordered cutpoints and fixed latent logistic scale. |
 | `14` | `family = beta_binomial()` | `drm_build_beta_binomial_spec()` | Univariate fixed-effect beta-binomial models for counted successes out of known trials, with `mu` as success probability and `sigma` as extra-binomial variation. |
+| `93` | no public route | direct test construction only | Hidden q=4 phylogenetic precision-prior parity branch using `theta_phylo` and `log_sd_phylo`. |
 | `94` | no public route | direct test construction only | Hidden q=4 correlated phylogenetic precision-prior parity branch used to test the matrix-normal sparse augmented A-inverse objective in isolation. |
+| `95` | no public route | direct test construction only | Hidden q=4 bivariate Gaussian likelihood probe for labelled covariance-block contributions. |
+| `96` | no public route | direct test construction only | Hidden univariate Gaussian likelihood probe for labelled covariance-block contributions. |
+| `97` | no public route | direct test construction only | Hidden contribution-map probe for labelled covariance-block blocks and members. |
+| `98` | no public route | direct test construction only | Hidden non-centred unstructured-correlation transform probe. |
 | `99` | no public route | direct test construction only | Hidden phylogenetic precision-prior parity branch used to test the sparse augmented A-inverse objective in isolation. |
 
-The hidden `model_type = 94` and `model_type = 99` branches are not families
+The hidden `model_type = 93` through `model_type = 99` branches are not families
 and should not appear in user examples. Public phylogenetic Gaussian fits stay
 on `model_type = 1` or `model_type = 2`; the hidden branches exist only so
-tests can compare isolated sparse phylogenetic prior objectives against the R
-algebra helpers.
+tests can compare isolated sparse phylogenetic prior objectives, labelled
+covariance-block contribution maps, and non-centred covariance transforms
+against the R algebra helpers. The C++ modularization source map in
+`docs/design/36-cpp-modularization-source-map.md` records how to keep those
+hidden probes separate during future file-splitting work.
 
 ## Gaussian Aggregation Branch
 

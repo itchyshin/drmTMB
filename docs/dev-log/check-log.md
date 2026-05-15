@@ -15423,3 +15423,51 @@ Known limitations:
 - count-kernel tests are deterministic objective comparisons, not large
   performance benchmarks;
 - GitHub Actions remains the PR-side gate after push.
+
+## 2026-05-15 -- Slice 83 C++ modularization source map
+
+Goal:
+
+- plan a safe split of the current single TMB template into smaller
+  header-only units without moving code or changing fitted behavior.
+
+Implemented:
+
+- added `docs/design/36-cpp-modularization-source-map.md`;
+- named the first safe helper-extraction boundaries as `src/drm_numeric.hpp`
+  and `src/drm_count_kernels.hpp`;
+- recorded later candidate boundaries for continuous kernels, random effects,
+  structured effects, bivariate Gaussian code, and hidden test probes;
+- documented hidden `model_type` 93 to 99 probe branches and their tests;
+- updated `docs/design/03-likelihoods.md` so the implemented routing table
+  names all current hidden probe branches, not only 94 and 99;
+- linked the modularization source map from `vignettes/source-map.Rmd`;
+- marked Slice 83 complete in ROADMAP and recorded the developer-doc change in
+  NEWS;
+- added after-task report
+  `docs/dev-log/after-task/2026-05-15-slice-83-cpp-modularization-source-map.md`.
+
+Checks run:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH air format docs/design/36-cpp-modularization-source-map.md docs/design/03-likelihoods.md vignettes/source-map.Rmd ROADMAP.md NEWS.md`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::test(filter = "package-skeleton|count-kernels|covariance-block-registry|phylo-utils|biv-gaussian|gaussian-random-intercepts|spatial-gaussian", reporter = "summary")'`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::build_site()'`:
+  passed and refreshed ROADMAP, NEWS, and the implemented source-map article.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed with no problems found.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::check(error_on = "never", env_vars = c("_R_CHECK_SYSTEM_CLOCK_" = "FALSE"))'`:
+  passed with 0 errors, 0 warnings, and 0 notes in 2m 17.2s.
+- `git diff --check`: passed.
+- `rg -n '36-cpp-modularization-source-map|C\+\+ modularization source map|model_type = 93|model_type = 95|model_type = 96|model_type = 97|model_type = 98|drm_count_kernels|drm_numeric|What Should Not Move Yet|Slice 83' NEWS.md ROADMAP.md docs/design vignettes pkgdown-site --glob '!pkgdown-site/search.json' --glob '!pkgdown-site/deps/**'`:
+  confirmed source and rendered source-map wording.
+- `rg -n 'model_type = 94.*model_type = 99 branches|hidden model_type = 94 and model_type = 99|C\+\+ modularization.*implemented code split|headers now own|src/drm_numeric.hpp exists|src/drm_count_kernels.hpp exists' docs/design vignettes NEWS.md ROADMAP.md pkgdown-site --glob '!pkgdown-site/search.json' --glob '!pkgdown-site/deps/**'`:
+  returned no matches, which is expected because no code split happened.
+
+Known limitations:
+
+- no C++ files were split in this slice;
+- proposed header names are a plan, not existing source files;
+- the first actual helper extraction still needs its own focused commit,
+  checks, and after-task report.
