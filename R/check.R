@@ -6,7 +6,8 @@
 #' effects, or bivariate residual correlation `rho12`.
 #'
 #' The current checks cover optimizer convergence, finite objective values,
-#' optimizer evaluation counts, fixed-parameter gradients, Hessian status from
+#' optimizer evaluation counts, fixed-parameter gradients, whether
+#' [TMB::sdreport()] was computed, skipped, or failed, Hessian status from
 #' [TMB::sdreport()], finite fixed-effect standard errors, dropped rows,
 #' positive scale parameters, random-effect standard deviations near the lower
 #' boundary, bivariate residual-correlation `rho12` values near the boundary,
@@ -45,7 +46,10 @@
 #' stored with
 #' `drm_control(keep_tmb_object = FALSE)`, the
 #' fixed-gradient check is reported as a note because the TMB
-#' automatic-differentiation object is not available.
+#' automatic-differentiation object is not available. If a fit used
+#' `drm_control(se = FALSE)`, the `sdreport_status`, Hessian, and
+#' finite-standard-error checks are reported as notes. If `sdreport()` was
+#' requested but failed, those rows are warnings.
 #'
 #' Use `check_drm()` before interpreting coefficients, fitted values, or
 #' response-scale quantities. A `note` records something to inspect, such as
@@ -102,6 +106,7 @@ check_drm.drmTMB <- function(
     check_optimizer_budget(object),
     check_finite_objective(object),
     check_fixed_gradient(object, gradient_tolerance = gradient_tolerance),
+    check_sdreport_status(object),
     check_hessian(object),
     check_standard_errors_finite(object),
     check_dropped_rows(object),
@@ -337,6 +342,17 @@ check_fixed_gradient <- function(object, gradient_tolerance) {
 }
 
 check_hessian <- function(object) {
+  if (is.null(object$sdr)) {
+    return(check_row(
+      "hessian_positive_definite",
+      drm_uncertainty_check_status(object),
+      NA_character_,
+      paste(
+        "Hessian status is unavailable because",
+        drm_uncertainty_message(object)
+      )
+    ))
+  }
   pd_hess <- isTRUE(object$sdr$pdHess)
   check_row(
     "hessian_positive_definite",
@@ -350,12 +366,28 @@ check_hessian <- function(object) {
   )
 }
 
+check_sdreport_status <- function(object) {
+  status <- drm_uncertainty_status(object)
+  check_row(
+    "sdreport_status",
+    switch(
+      status,
+      ok = "ok",
+      skipped = "note",
+      failed = "warning",
+      "warning"
+    ),
+    status,
+    drm_uncertainty_message(object)
+  )
+}
+
 check_standard_errors_finite <- function(object) {
   vcov <- tryCatch(stats::vcov(object), error = function(e) e)
   if (inherits(vcov, "error")) {
     return(check_row(
       "standard_errors_finite",
-      "warning",
+      drm_uncertainty_check_status(object),
       NA_character_,
       paste(
         "Could not extract fixed-effect standard errors:",

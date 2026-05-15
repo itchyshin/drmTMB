@@ -26,6 +26,12 @@ print.drmTMB <- function(x, ...) {
   if (has_sigma_random_effects(x)) {
     cli::cli_text("  sigma random-effect terms: {length(x$sdpars$sigma)}")
   }
+  uncertainty <- drm_uncertainty_status(x)
+  if (!identical(uncertainty, "ok")) {
+    cli::cli_text(
+      "  standard errors: unavailable; point estimates only ({drm_uncertainty_message(x)})"
+    )
+  }
   cli::cli_text("  logLik: {format(x$logLik, digits = 4)}")
   cli::cli_text("  convergence: {x$opt$convergence}")
   invisible(x)
@@ -1488,6 +1494,7 @@ coef.drmTMB <- function(object, dpar = NULL, ...) {
 
 #' @export
 vcov.drmTMB <- function(object, ...) {
+  cov_fixed <- drm_sdreport_cov_fixed(object)
   labels <- coefficient_labels(object)
   targets <- drm_profile_targets(object)
   targets <- targets[targets$target_class == "fixed-effect", , drop = FALSE]
@@ -1507,13 +1514,103 @@ vcov.drmTMB <- function(object, ...) {
   }
   out <- matrix(NA_real_, nrow = length(labels), ncol = length(labels))
   ok <- !is.na(positions)
-  out[ok, ok] <- object$sdr$cov.fixed[
+  out[ok, ok] <- cov_fixed[
     positions[ok],
     positions[ok],
     drop = FALSE
   ]
   dimnames(out) <- list(labels, labels)
   out
+}
+
+drm_sdreport_cov_fixed <- function(object) {
+  if (!drm_has_sdreport_covariance(object)) {
+    cli::cli_abort(c(
+      drm_sdreport_unavailable_message(object),
+      "i" = "Refit with {.code control = drm_control(se = TRUE)} for {.fn vcov}, Wald standard errors, or Wald confidence intervals."
+    ))
+  }
+  object$sdr$cov.fixed
+}
+
+drm_has_sdreport_covariance <- function(object) {
+  !is.null(object$sdr) &&
+    !is.null(object$sdr$cov.fixed) &&
+    is.matrix(object$sdr$cov.fixed)
+}
+
+drm_uncertainty_status <- function(object) {
+  state <- object$uncertainty
+  if (
+    is.list(state) &&
+      is.character(state$status) &&
+      length(state$status) == 1L &&
+      !is.na(state$status) &&
+      nzchar(state$status)
+  ) {
+    return(state$status)
+  }
+  if (!is.null(object$sdr)) {
+    return("ok")
+  }
+  "unavailable"
+}
+
+drm_uncertainty_message <- function(object) {
+  state <- object$uncertainty
+  if (
+    is.list(state) &&
+      is.character(state$message) &&
+      length(state$message) == 1L &&
+      !is.na(state$message) &&
+      nzchar(state$message)
+  ) {
+    return(state$message)
+  }
+  switch(
+    drm_uncertainty_status(object),
+    ok = "TMB::sdreport() completed successfully.",
+    skipped = paste(
+      "TMB::sdreport() was skipped because",
+      "drm_control(se = FALSE) was used."
+    ),
+    failed = "TMB::sdreport() failed.",
+    "This fit does not contain a TMB::sdreport() object."
+  )
+}
+
+drm_sdreport_unavailable_message <- function(object) {
+  status <- drm_uncertainty_status(object)
+  if (identical(status, "skipped")) {
+    return(paste(
+      "Fixed-effect covariance is unavailable because TMB::sdreport()",
+      "was skipped by drm_control(se = FALSE)."
+    ))
+  }
+  if (identical(status, "failed")) {
+    return(paste(
+      "Fixed-effect covariance is unavailable because",
+      drm_uncertainty_message(object)
+    ))
+  }
+  "Fixed-effect covariance is unavailable because this drmTMB fit does not contain a TMB::sdreport() object."
+}
+
+drm_uncertainty_check_status <- function(object) {
+  if (identical(drm_uncertainty_status(object), "skipped")) {
+    return("note")
+  }
+  "warning"
+}
+
+drm_standard_error_status <- function(object) {
+  switch(
+    drm_uncertainty_status(object),
+    skipped = "sdreport_skipped",
+    failed = "sdreport_failed",
+    ok = "ok",
+    "sdreport_unavailable"
+  )
 }
 
 #' @export
@@ -2313,9 +2410,15 @@ summary.drmTMB <- function(
   coefficients <- drm_summary_coefficients(object)
   parameters <- drm_summary_parameters(object)
   ci <- NULL
+  ci_unavailable_status <- "not_requested"
   if (conf.int) {
     if (identical(method, "wald")) {
-      ci <- drm_wald_confint(object, parm = ci_parm, level = level)
+      if (drm_has_sdreport_covariance(object)) {
+        ci <- drm_wald_confint(object, parm = ci_parm, level = level)
+      } else {
+        ci_unavailable_status <- "wald_unavailable"
+        ci <- empty_summary_confint()
+      }
     } else {
       ci <- drm_summary_profile_confint(
         object,
@@ -2329,7 +2432,8 @@ summary.drmTMB <- function(
       coefficients,
       ci,
       level = level,
-      method = method
+      method = method,
+      unavailable_status = ci_unavailable_status
     )
     parameters <- drm_summary_add_parameter_ci(
       parameters,
@@ -2357,6 +2461,7 @@ summary.drmTMB <- function(
     sdpars = object$sdpars,
     corpars = object$corpars,
     ordinal = object$ordinal,
+    uncertainty = object$uncertainty,
     logLik = stats::logLik(object),
     convergence = object$opt$convergence,
     conf.int = conf.int,
@@ -2374,6 +2479,12 @@ print.summary.drmTMB <- function(x, ...) {
   if (isTRUE(x$conf.int)) {
     cli::cli_text(
       "confidence intervals: {x$conf.method}, level = {format(x$conf.level)}"
+    )
+  }
+  uncertainty <- drm_uncertainty_status(x)
+  if (!identical(uncertainty, "ok")) {
+    cli::cli_text(
+      "standard errors: unavailable; coefficients are point estimates only ({drm_uncertainty_message(x)})"
     )
   }
   print(x$coefficients)
@@ -2425,15 +2536,28 @@ validate_summary_trace <- function(trace) {
 }
 
 drm_summary_coefficients <- function(object) {
-  variances <- diag(stats::vcov(object))
+  labels <- coefficient_labels(object)
+  est <- unlist(object$coefficients, use.names = FALSE)
+  vcov <- tryCatch(stats::vcov(object), error = function(e) e)
+  if (inherits(vcov, "error")) {
+    out <- data.frame(
+      estimate = est,
+      std_error = rep(NA_real_, length(est)),
+      row.names = labels,
+      check.names = FALSE
+    )
+    out$std_error.status <- drm_standard_error_status(object)
+    attr(out, "std_error.message") <- conditionMessage(vcov)
+    return(out)
+  }
+  variances <- diag(vcov)
   se <- rep(NA_real_, length(variances))
   ok <- is.finite(variances) & variances >= 0
   se[ok] <- sqrt(variances[ok])
-  est <- unlist(object$coefficients, use.names = FALSE)
   data.frame(
     estimate = est,
     std_error = se,
-    row.names = coefficient_labels(object),
+    row.names = labels,
     check.names = FALSE
   )
 }
@@ -2777,12 +2901,18 @@ empty_summary_confint <- function() {
   )
 }
 
-drm_summary_add_coefficient_ci <- function(coefficients, ci, level, method) {
+drm_summary_add_coefficient_ci <- function(
+  coefficients,
+  ci,
+  level,
+  method,
+  unavailable_status = "not_requested"
+) {
   coefficients$conf.low <- NA_real_
   coefficients$conf.high <- NA_real_
   coefficients$conf.level <- level
   coefficients$conf.method <- method
-  coefficients$conf.status <- "not_requested"
+  coefficients$conf.status <- unavailable_status
   coefficients$profile.boundary <- NA
   coefficients$profile.message <- NA_character_
   if (is.null(ci) || nrow(ci) == 0L) {

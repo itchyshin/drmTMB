@@ -15194,3 +15194,62 @@ Known limitations:
 - some check-log evidence is summarized by heading or source-map reference
   rather than exact line number because the check log is append-only and large;
 - GitHub Actions remains the PR-side gate after push.
+
+## 2026-05-15 -- Slice 79 standard-error and sdreport controls
+
+Goal:
+
+- make optimized fits survive intentional or accidental absence of
+  `TMB::sdreport()` while reporting the Wald-uncertainty state clearly.
+
+Implemented:
+
+- added `drm_control(se = TRUE)` with opt-in `se = FALSE` to skip
+  `TMB::sdreport()` after optimization;
+- added `fit$uncertainty` with `status = "ok"`, `"skipped"`, or `"failed"`;
+- wrapped requested `sdreport()` errors so `drmTMB()` still returns the
+  optimized fit;
+- made `vcov()`, `summary()`, `confint(..., method = "wald")`, and
+  `check_drm()` report unavailable Wald uncertainty explicitly;
+- added a first-class `sdreport_status` diagnostic row;
+- rejected ambiguous plain optimizer lists such as `control = list(se = FALSE)`;
+- updated README, model-map, large-data article, design docs, ROADMAP, NEWS,
+  generated Rd files, and pkgdown output;
+- added after-task report
+  `docs/dev-log/after-task/2026-05-15-slice-79-sdreport-controls.md`.
+
+Checks run:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH air format R/control.R R/drmTMB.R R/methods.R R/check.R tests/testthat/test-control.R NEWS.md ROADMAP.md docs/design/23-large-data-memory.md docs/design/12-profile-likelihood-cis.md vignettes/large-data.Rmd`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::test(filter = "control|summary|check-drm|profile-targets", reporter = "summary")'`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::document()'`:
+  passed and updated `man/check_drm.Rd` and `man/drm_control.Rd`.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::build_site()'`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed with no problems found.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::test(reporter = "summary")'`:
+  passed after the final retained-profile assertion was added.
+- `git diff --check`: passed.
+- `rg -n 'se = FALSE|sdreport_status|sdreport_skipped|sdreport_failed|wald_unavailable|point estimates only|control = drm_control\(se = TRUE\)' R tests README.md ROADMAP.md NEWS.md docs/design/12-profile-likelihood-cis.md docs/design/23-large-data-memory.md vignettes/large-data.Rmd vignettes/model-map.Rmd man/check_drm.Rd man/drm_control.Rd pkgdown-site/index.html pkgdown-site/articles/large-data.html pkgdown-site/articles/model-map.html pkgdown-site/ROADMAP.html pkgdown-site/news/index.html pkgdown-site/reference/check_drm.html pkgdown-site/reference/drm_control.html --glob '!pkgdown-site/search.json'`:
+  confirmed source and rendered availability wording.
+- `rg -n 'Wald intervals by default|standard errors, fitted values|sdreport object|sdreport\(\).*always|finite fixed-effect standard errors' README.md ROADMAP.md NEWS.md docs/design vignettes man pkgdown-site --glob '!pkgdown-site/search.json' --glob '!docs/dev-log/after-task/**' --glob '!pkgdown-site/dev-log/**'`:
+  found only valid historical NEWS/check-list wording for finite
+  standard-error diagnostics and no remaining unconditional claim that Wald
+  intervals are always available.
+- `gh pr status --repo itchyshin/drmTMB`: could not run because `gh` is not
+  installed in this shell.
+- GitHub connector PR lookup for `itchyshin/drmTMB` found one open PR:
+  `#45 Close Phase 6 profile inference gate`.
+
+Known limitations:
+
+- `se = FALSE` skips post-optimization standard-error state only; it does not
+  reduce model-construction memory;
+- Wald intervals have no fallback bootstrap or sandwich estimator when
+  `sdreport()` is unavailable;
+- failed-`sdreport()` behavior is tested by deterministic mutation of a valid
+  fit rather than a naturally failing TMB model;
+- GitHub Actions remains the PR-side gate after push.

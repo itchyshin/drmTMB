@@ -42,7 +42,8 @@ effects, or bivariate residual correlation \code{rho12}.
 }
 \details{
 The current checks cover optimizer convergence, finite objective values,
-optimizer evaluation counts, fixed-parameter gradients, Hessian status from
+optimizer evaluation counts, fixed-parameter gradients, whether
+\code{\link[TMB:sdreport]{TMB::sdreport()}} was computed, skipped, or failed, Hessian status from
 \code{\link[TMB:sdreport]{TMB::sdreport()}}, finite fixed-effect standard errors, dropped rows,
 positive scale parameters, random-effect standard deviations near the lower
 boundary, bivariate residual-correlation \code{rho12} values near the boundary,
@@ -81,7 +82,10 @@ aggregation cells, compression ratio, and largest cell size. If a fit was
 stored with
 \code{drm_control(keep_tmb_object = FALSE)}, the
 fixed-gradient check is reported as a note because the TMB
-automatic-differentiation object is not available.
+automatic-differentiation object is not available. If a fit used
+\code{drm_control(se = FALSE)}, the \code{sdreport_status}, Hessian, and
+finite-standard-error checks are reported as notes. If \code{sdreport()} was
+requested but failed, those rows are warnings.
 
 Use \code{check_drm()} before interpreting coefficients, fitted values, or
 response-scale quantities. A \code{note} records something to inspect, such as

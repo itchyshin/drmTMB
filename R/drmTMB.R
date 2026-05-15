@@ -195,7 +195,8 @@ drmTMB <- function(
     control = control$optimizer
   )
 
-  sdr <- TMB::sdreport(obj, par.fixed = opt$par)
+  uncertainty <- drm_compute_uncertainty(obj, opt, control)
+  sdr <- uncertainty$sdr
   par_list <- obj$env$parList(opt$par)
   par <- split_tmb_parameters(par_list, spec)
 
@@ -208,6 +209,7 @@ drmTMB <- function(
     obj = obj,
     opt = opt,
     sdr = sdr,
+    uncertainty = uncertainty$state,
     par = par,
     coefficients = par,
     sdpars = split_tmb_sdpars(par_list, spec),
@@ -220,6 +222,61 @@ drmTMB <- function(
   )
   class(fit) <- "drmTMB"
   drm_apply_storage_control(fit, control)
+}
+
+drm_compute_uncertainty <- function(obj, opt, control) {
+  if (!isTRUE(control$se)) {
+    return(list(
+      sdr = NULL,
+      state = drm_uncertainty_state(
+        status = "skipped",
+        se = FALSE,
+        message = paste(
+          "TMB::sdreport() was skipped because",
+          "drm_control(se = FALSE) was used."
+        )
+      )
+    ))
+  }
+
+  sdr <- tryCatch(
+    TMB::sdreport(obj, par.fixed = opt$par),
+    error = function(e) e
+  )
+  if (inherits(sdr, "error")) {
+    return(list(
+      sdr = NULL,
+      state = drm_uncertainty_state(
+        status = "failed",
+        se = TRUE,
+        message = paste("TMB::sdreport() failed:", conditionMessage(sdr)),
+        sdr_error = conditionMessage(sdr)
+      )
+    ))
+  }
+
+  list(
+    sdr = sdr,
+    state = drm_uncertainty_state(
+      status = "ok",
+      se = TRUE,
+      message = "TMB::sdreport() completed successfully."
+    )
+  )
+}
+
+drm_uncertainty_state <- function(
+  status,
+  se,
+  message,
+  sdr_error = NA_character_
+) {
+  list(
+    status = status,
+    se = se,
+    message = message,
+    sdr_error = sdr_error
+  )
 }
 
 reject_corpair_formula_entries <- function(entries) {

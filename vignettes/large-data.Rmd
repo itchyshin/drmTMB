@@ -38,6 +38,7 @@ fit <- drmTMB(
   data = dat,
   control = drm_control(
     optimizer = list(eval.max = 1000, iter.max = 1000),
+    se = FALSE,
     keep_data = FALSE,
     keep_model_frame = FALSE,
     keep_tmb_object = FALSE
@@ -50,11 +51,14 @@ fitted object after optimization. `keep_model_frame = FALSE` removes stored
 model frames after TMB data are built, including nested model-frame caches for
 direct random-effect SD models such as `sd_phylo(species) ~ z_species` and
 fitted q=2 latent-correlation models such as `corpair(...) ~ ecology`.
-`keep_tmb_object = FALSE` removes the TMB automatic-differentiation object
-after optimization. The fitted coefficients, standard errors, fitted values,
-residuals, simulation, `sigma`, `rho12`, and `corpairs()` extraction still use
-the stored model matrices, terms, offsets, response vectors, response-name
-metadata, random-effect metadata, optimized parameters, and `sdreport` object.
+`se = FALSE` skips the `TMB::sdreport()` step after optimization. The fitted
+coefficients, fitted values, residuals, prediction, simulation, `sigma`,
+`rho12`, and `corpairs()` extraction still use the stored model matrices,
+terms, offsets, response vectors, response-name metadata, random-effect
+metadata, and optimized parameters. Standard errors, `vcov()`, and Wald
+confidence intervals are unavailable in this mode, and `summary()` marks the
+standard-error state explicitly. `keep_tmb_object = FALSE` separately removes
+the TMB automatic-differentiation object after optimization.
 
 This control is useful when the fitted model is kept for interpretation,
 prediction, or plotting, but the original data frame and TMB object do not need
@@ -139,6 +143,11 @@ If `keep_tmb_object = FALSE`, the fixed-gradient row is a note rather than an
 `fit$obj` was intentionally dropped. Refit with
 `drm_control(keep_tmb_object = TRUE)` when you need the gradient diagnostic for
 a final report.
+
+If `se = FALSE`, the `sdreport_status`, Hessian, and finite-standard-error
+rows are notes rather than `ok` results. That note means standard errors were
+intentionally skipped; refit with `drm_control(se = TRUE)` when Wald standard
+errors, `vcov()`, or Wald confidence intervals are part of the final inference.
 
 The `optimizer_budget` row compares `nlminb()` iterations and function
 evaluations with supplied `iter.max` and `eval.max`. If it is a note or warning,
@@ -268,9 +277,9 @@ bivariate large-data readiness, or non-Gaussian large-data readiness.
 
 - Start with a fixed-effect or smaller phylogenetic model that answers a
   simpler version of the question.
-- Fit with `keep_data = FALSE`, `keep_model_frame = FALSE`, and
+- Fit with `keep_data = FALSE`, `keep_model_frame = FALSE`, `se = FALSE`, and
   `keep_tmb_object = FALSE` when you do not need to carry the original data,
-  model frames, or TMB object inside the saved fit.
+  model frames, standard-error covariance, or TMB object inside the saved fit.
 - Keep `keep_tmb_object = TRUE` for final diagnostic refits where the fixed
   gradient check matters.
 - Inspect `check_drm(fit)` for fixed-effect design-size notes before assuming

@@ -12,6 +12,11 @@
 #'
 #' @param optimizer Named list passed to the `control` argument of
 #'   [stats::nlminb()].
+#' @param se Logical; compute standard errors and fixed-effect covariance with
+#'   [TMB::sdreport()] after optimization. Set to `FALSE` to keep fitted
+#'   coefficients, fitted values, residuals, predictions, simulations, and
+#'   profile-likelihood paths while skipping Wald standard errors,
+#'   [stats::vcov()], and Wald confidence intervals.
 #' @param keep_data Logical; keep the complete-case model data in the fitted
 #'   object. Set to `FALSE` to drop `fit$data` and `fit$model$data` after
 #'   fitting. Prediction, fitted values, residuals, simulation, and basic
@@ -44,6 +49,7 @@
 #'   data = dat,
 #'   control = drm_control(
 #'     optimizer = list(eval.max = 100, iter.max = 100),
+#'     se = FALSE,
 #'     keep_data = FALSE,
 #'     keep_model_frame = FALSE,
 #'     keep_tmb_object = FALSE
@@ -51,6 +57,7 @@
 #' )
 drm_control <- function(
   optimizer = list(),
+  se = TRUE,
   keep_data = TRUE,
   keep_model_frame = TRUE,
   keep_tmb_object = TRUE,
@@ -64,6 +71,7 @@ drm_control <- function(
   ) {
     cli::cli_abort("{.arg optimizer} must be a named list.")
   }
+  se <- drm_control_flag(se, "se")
   keep_data <- drm_control_flag(keep_data, "keep_data")
   keep_model_frame <- drm_control_flag(keep_model_frame, "keep_model_frame")
   keep_tmb_object <- drm_control_flag(keep_tmb_object, "keep_tmb_object")
@@ -75,6 +83,7 @@ drm_control <- function(
   structure(
     list(
       optimizer = optimizer,
+      se = se,
       keep_data = keep_data,
       keep_model_frame = keep_model_frame,
       keep_tmb_object = keep_tmb_object,
@@ -97,6 +106,15 @@ drm_parse_control <- function(control) {
       "{.arg control} must be a list or a {.cls drm_control} object.",
       "i" = "Use {.code control = list(eval.max = 1000)} for optimizer-only settings.",
       "i" = "Use {.code control = drm_control(...)} for storage controls."
+    ))
+  }
+  storage_names <- setdiff(names(formals(drm_control)), "optimizer")
+  reserved <- intersect(names(control), storage_names)
+  if (length(reserved) > 0L) {
+    cli::cli_abort(c(
+      "{.arg control} contains {.fn drm_control} setting{?s}: {.arg {reserved}}.",
+      "i" = "Use {.code control = drm_control(...)} for storage or standard-error controls.",
+      "i" = "Use {.code control = list(eval.max = 1000)} only for optimizer settings."
     ))
   }
   drm_control(optimizer = control)
