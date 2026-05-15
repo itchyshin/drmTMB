@@ -14,7 +14,7 @@ implemented and tested separately.
 
 ## First Supported Target
 
-The first aggregation target should be opt-in and narrow:
+The first aggregation target is opt-in and narrow:
 
 ```r
 drmTMB(
@@ -25,12 +25,8 @@ drmTMB(
 )
 ```
 
-`aggregate_gaussian` is a reserved design name, not an implemented control.
-Slice 48 should either adopt that name or choose a different explicit
-Gaussian-only control before writing code.
-
-The first coded path should allow only univariate Gaussian fixed-effect
-models. It should reject:
+`aggregate_gaussian = TRUE` is the implemented first control name. The first
+coded path allows only univariate Gaussian fixed-effect models. It rejects:
 
 - ordinary random effects;
 - direct random-effect SD formulas such as `sd(id) ~ z`;
@@ -91,8 +87,8 @@ sum_wy_g  = sum_i w_i y_i
 sum_wy2_g = sum_i w_i y_i^2
 ```
 
-The first implementation can reject non-unit weights if that keeps the
-comparison and diagnostics simpler.
+The first implementation rejects non-unit weights. Weighted sufficient
+statistics remain a later extension.
 
 ## Aggregation Key
 
@@ -111,9 +107,9 @@ contrasts and catches the model that TMB will actually fit.
 
 ## TMB Data Contract
 
-The first implementation should keep the dense row path intact and add a
-parallel aggregated Gaussian path. The TMB data should include enough fields to
-make the route explicit:
+The implementation keeps the dense row path intact and adds a parallel
+aggregated Gaussian path. The TMB data include enough fields to make the route
+explicit:
 
 ```text
 use_gaussian_aggregation
@@ -127,7 +123,7 @@ offset_mu_agg
 offset_sigma_agg
 ```
 
-The C++ Gaussian likelihood can then branch:
+The C++ Gaussian likelihood branches:
 
 ```text
 if (!use_gaussian_aggregation) {
@@ -137,23 +133,22 @@ if (!use_gaussian_aggregation) {
 }
 ```
 
-The branch should report the same fixed-effect coefficients, scale estimates,
-log-likelihood, `AIC`, and fitted parameter values at the cell level. Any
-method that returns one value per original row needs a clear policy before
-aggregation is advertised for saved fitted objects.
+The branch is tested to report the same fixed-effect coefficients, scale
+estimates, log-likelihood, `AIC`, and variance-covariance matrix as the
+full-row path on a small repeated-row fixture.
 
 ## Post-Fit Method Policy
 
 Aggregation compresses the likelihood rows. That creates an output question:
 should fitted-row methods return aggregation-cell rows or original rows?
 
-The first implementation should use one of two conservative policies:
-
-1. Keep an original-row expansion map when `keep_data = TRUE`, so
-   `predict(fit)`, `fitted(fit)`, and `residuals(fit)` can still return
-   original-row outputs.
-2. When the expansion map is not retained, require `newdata` for full-row
-   predictions and make fitted-row residuals error with a clear message.
+The first implementation keeps original-row response vectors and fixed-effect
+model matrices in the fitted object. TMB receives aggregation cells for
+likelihood evaluation, but `predict(fit)`, `fitted(fit)`, and `residuals(fit)`
+still return original-row outputs. This also works when `keep_data = FALSE`,
+`keep_model_frame = FALSE`, and `keep_tmb_object = FALSE`, because those flags
+drop data frames, model frames, and the TMB AD object, not the stored model
+matrices and response vectors needed by post-fit row methods.
 
 Do not silently return cell-level residuals as if they were row-level
 residuals. Cell-level fitted summaries can be useful, but they need an explicit
@@ -161,16 +156,16 @@ method or column that says they are aggregation-cell summaries.
 
 ## Diagnostics
 
-Before fitting, an internal helper should be able to report:
+Before fitting, an internal helper reports:
 
 - original row count;
 - aggregation-cell count;
 - compression ratio;
 - largest cell size;
-- whether `mu` and `sigma` designs are both part of the key;
-- the reason aggregation was rejected, when it is rejected.
+- whether `mu` and `sigma` designs are both part of the key.
 
-`check_drm()` can later expose the fitted aggregation state:
+Rejected models fail through targeted validation before optimization.
+`check_drm()` exposes the fitted aggregation state:
 
 ```text
 gaussian_aggregation: ok/note/warning
@@ -183,9 +178,9 @@ largest_cell_n
 Pat's reader-facing version is: "This fit used 5 million rows in the data, but
 only 80,000 Gaussian likelihood cells after aggregation."
 
-## Required Tests
+## Implemented Tests
 
-The first implementation should add tests before any benchmark claim:
+The first implementation adds tests for:
 
 - an independent likelihood-comparison test showing full rows and aggregated
   cells have the same log-likelihood at fixed coefficients;
@@ -193,20 +188,21 @@ The first implementation should add tests before any benchmark claim:
   `sigma`, `logLik()`, `AIC`, and `vcov()` on a small dataset;
 - a test with a non-intercept `sigma` formula where rows aggregate only when
   the `sigma` design row also matches;
-- rejection tests for random effects, direct-SD formulas, structured effects,
-  known covariance, bivariate Gaussian, and non-Gaussian families;
+- rejection tests for random effects, structured effects, known covariance,
+  bivariate Gaussian, non-Gaussian families, non-unit weights, and combined
+  sparse fixed-effect matrices;
 - a post-fit output test for the selected fitted-row prediction and residual
   policy;
 - a memory-light compatibility test when `keep_model_frame = FALSE`.
 
-The benchmark script should be extended only after the parity tests pass.
+The benchmark script is extended only after the parity tests pass.
 
 ## Roadmap
 
-Slice 47 records this design. Slice 48 should implement an internal
-aggregation-key builder and likelihood-comparison helper. Slice 49 should fit
-the first opt-in univariate Gaussian aggregation path. Slice 50 should add
-benchmarks, docs, and a release-readiness audit for the aggregation lane.
+Slice 47 records this design. Slice 48 implements the internal aggregation-key
+builder and likelihood-comparison helper. Slice 49 fits the first opt-in
+univariate Gaussian aggregation path. Slice 50 adds benchmark/docs evidence and
+a release-readiness audit for the aggregation lane.
 
 Later phases can consider:
 

@@ -293,8 +293,9 @@ Phase 5 closure boundary:
 
 - Status: first storage controls and benchmark harness implemented; Phase 5b
   now hardens those controls for newer structured-effect surfaces. The first
-  sparse fixed-effect path is implemented, and the Gaussian aggregation design
-  gate is recorded. Broader sparse matrices, fitted aggregation, and repeated
+  sparse fixed-effect path is implemented, and the first opt-in Gaussian
+  aggregation path is fitted for repeated univariate Gaussian fixed-effect
+  rows. Broader sparse matrices, broader aggregation, and repeated
   million-row benchmarks remain planned.
 - `drm_control()` now supports optimizer settings plus the first memory-light
   fitted-object controls: `keep_data = FALSE`,
@@ -316,6 +317,15 @@ Phase 5 closure boundary:
 - The same benchmark harness now records `structured` and `sparse_fixed`
   settings and can run a non-phylogenetic sparse fixed-effect smoke scenario
   with `--structured none --factor-heavy true --sparse-fixed true`.
+- `drm_control(aggregate_gaussian = TRUE)` now fits the first
+  sufficient-statistic aggregation path for univariate Gaussian fixed-effect
+  models with repeated processed `mu` and `sigma` design rows. Random effects,
+  direct-SD formulas, structured effects, known sampling covariance, bivariate
+  models, non-Gaussian families, non-unit weights, and combined sparse fixed
+  effects remain planned.
+- The benchmark harness can run a non-phylogenetic repeated-cell aggregation
+  smoke scenario with
+  `--structured none --aggregate-gaussian true --aggregation-cells 100`.
 - Extend memory-light fit controls for large phylogenetic and spatial
   datasets with broader method-matrix coverage, sparse fixed-effect matrices,
   aggregation, and repeated large-row benchmarks.
@@ -323,10 +333,9 @@ Phase 5 closure boundary:
   Gaussian `mu` path before claiming million-row readiness.
 - Use `docs/design/26-sparse-fixed-effect-matrices.md` as the implementation
   contract for sparse fixed-effect matrices.
-- Add optional aggregation or sufficient-statistic paths for Gaussian models
-  where repeated rows can be collapsed without changing the likelihood. Slice
-  47 records the first fixed-effect Gaussian aggregation contract in
-  `docs/design/31-gaussian-aggregation-sufficient-statistics.md`.
+- Extend aggregation or sufficient-statistic paths beyond the first univariate
+  Gaussian fixed-effect route where repeated rows can be collapsed without
+  changing the likelihood.
 - An initial non-CRAN benchmark harness exists at
   `bench/large-phylo-location.R`; use it to record 100k, 500k, 1M, and 5M
   observation-row runs with 1k-10k species as the implementation matures.
@@ -603,8 +612,9 @@ remain blocked by future covariance or non-Gaussian random-effect work.
 - Extend memory-light fitted objects for large ecological, evolutionary, and
   environmental datasets beyond the current post-fit storage controls.
 - Add sparse fixed-effect matrices before claiming million-row readiness.
-- Add Gaussian aggregation or sufficient-statistic paths where repeated rows can
-  be collapsed without changing the likelihood.
+- Extend Gaussian aggregation or sufficient-statistic paths beyond the first
+  fixed-effect route where repeated rows can be collapsed without changing the
+  likelihood.
 - Add non-CRAN benchmarks for 100k, 500k, 1M, and 5M rows with 1k-10k species.
 - Treat sparse phylogenetic A-inverse scaling, sparse known sampling covariance,
   and large-row model-frame memory as separate engineering problems.

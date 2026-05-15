@@ -5,7 +5,8 @@ part of the R package tarball and are not run by CRAN checks.
 
 The first harness focuses on the scaling question that matters for large
 phylogenetic data. It also has an explicit non-phylogenetic sparse fixed-effect
-scenario for the first `sparse_fixed` implementation:
+scenario for the first `sparse_fixed` implementation and a non-phylogenetic
+repeated-cell scenario for the first `aggregate_gaussian` implementation:
 
 ```sh
 Rscript bench/large-phylo-location.R --rows 100000 --species 1000 \
@@ -32,6 +33,7 @@ reasonable.
 | First large run | 100,000 | 1,000 | `--memory-light true` | Measure ordinary large-data behaviour. |
 | Factor pressure | 100,000 | 1,000 | `--factor-heavy true --memory-light true` | Expose dense fixed-effect matrix cost. |
 | Sparse fixed smoke | 100,000 | 1,000 | `--structured none --factor-heavy true --sparse-fixed true --memory-light true` | Measure the first sparse Gaussian `mu` fixed-effect path without phylogenetic structure. |
+| Aggregation smoke | 100,000 | 1,000 | `--structured none --aggregate-gaussian true --aggregation-cells 100 --memory-light true` | Measure the first Gaussian sufficient-statistic aggregation path on repeated fixed-effect cells. |
 | Scale predictor | 100,000 | 1,000 | `--sigma-x true --memory-light true` | Add a distributional scale predictor. |
 | Species pressure | 100,000 | 5,000 | `--memory-light true` | Stress tree and species-index handling. |
 | Row pressure | 500,000+ | 1,000+ | `--memory-light true` | Move toward million-row readiness. |
@@ -54,6 +56,8 @@ larger values when the fit is intended as a real timing result.
 | `factor_heavy` | Whether the `mu` formula includes a 40-level factor. |
 | `sigma_x` | Whether the scale model is `sigma ~ x1` instead of `sigma ~ 1`. |
 | `sparse_fixed` | Whether `drm_control(sparse_fixed = TRUE)` was used. This currently requires `--structured none --sigma-x false`. |
+| `aggregate_gaussian` | Whether `drm_control(aggregate_gaussian = TRUE)` was used. This currently requires `--structured none` and cannot be combined with `sparse_fixed`. |
+| `aggregation_cells_requested`, `aggregation_cells_fitted`, `aggregation_compression_ratio`, `aggregation_largest_cell_n` | Requested repeated fixed-effect cells in the synthetic generator and the fitted aggregation diagnostics returned from the model. |
 | `memory_light` | Whether `keep_data = FALSE`, `keep_model_frame = FALSE`, and `keep_tmb_object = FALSE` were used. |
 | `convergence` | `stats::nlminb()` convergence code; `0` is the target. |
 | `convergence_message` | Optimizer message from `stats::nlminb()`, when available. |

@@ -76,6 +76,25 @@ This path stores the `mu` fixed-effect design as a sparse `Matrix` object and
 uses a sparse TMB matrix multiply. It is intentionally limited to fixed-effect
 univariate Gaussian `mu` models with intercept-only `sigma`.
 
+For repeated-row Gaussian fixed-effect models, the first aggregation path is
+also available:
+
+```{r}
+fit_agg <- drmTMB(
+  bf(y ~ habitat + season, sigma ~ effort_class),
+  family = gaussian(),
+  data = dat,
+  control = drm_control(aggregate_gaussian = TRUE)
+)
+```
+
+This path collapses rows that have the same processed `mu` and `sigma` design
+state after model-row filtering. TMB evaluates the Gaussian likelihood with
+cell summaries `n`, `sum(y)`, and `sum(y^2)`, while the fitted object still
+keeps original-row model matrices and response vectors so `predict(fit_agg)`,
+`fitted(fit_agg)`, and `residuals(fit_agg)` return one value per original
+model row.
+
 ## What this does not solve yet
 
 The current memory-light path does not prevent R from building model frames and
@@ -88,10 +107,11 @@ These pieces remain planned:
 
 - sparse fixed-effect matrices for `sigma`, random-effect, phylogenetic,
   spatial, bivariate, and non-Gaussian models;
-- Gaussian sufficient-statistic aggregation when repeated rows can be collapsed
-  without changing the likelihood. The design gate is recorded for an opt-in
-  univariate Gaussian fixed-effect path, but no fitted aggregation control is
-  implemented yet;
+- Gaussian sufficient-statistic aggregation beyond the first fixed-effect
+  univariate path. Random effects, direct-SD formulas, structured effects,
+  known sampling covariance, bivariate Gaussian models, non-Gaussian families,
+  non-unit likelihood weights, and combined sparse fixed-effect matrices are
+  still rejected;
 - memory-light modes that avoid constructing dense model frames or dense model
   matrices in the first place;
 - repeated benchmark runs for million-row, bivariate, factor-heavy,
@@ -102,10 +122,9 @@ If a model has a high-cardinality factor in a fixed-effect formula, the dense
 as a sparse-design problem, not as a phylogenetic precision problem.
 
 If a model has many repeated Gaussian rows with the same `mu` and `sigma`
-design rows, aggregation is the separate future tool. In that case the
-likelihood can use cell summaries such as `n`, `sum(y)`, and `sum(y^2)`. That
-path is planned because `predict()`, `residuals()`, and fitted-row summaries
-need an explicit original-row versus aggregation-cell policy.
+design rows, aggregation is a separate tool from sparse matrices. In the first
+implemented path, the likelihood uses cell summaries such as `n`, `sum(y)`,
+and `sum(y^2)`, but fitted-row summaries remain original-row summaries.
 
 ## Check the fit with the storage choice in mind
 
@@ -134,6 +153,12 @@ before TMB optimization. That is a sparse fixed-effect design problem;
 simplifying the formula or using `drm_control(sparse_fixed = TRUE)` when the
 model is inside the implemented Gaussian `mu` scope is more relevant than
 changing the phylogenetic tree.
+
+For aggregated Gaussian fits, `check_drm()` also includes a
+`gaussian_aggregation` row. That row reports the number of original rows, the
+number of aggregation cells, the compression ratio, and the largest cell size.
+If the compression ratio is close to 1, aggregation was valid but did not buy
+much row compression for that model.
 
 ## Avoid accidental full-row output
 
@@ -198,6 +223,18 @@ Rscript bench/large-phylo-location.R --rows 100000 --species 1000 \
 That sparse smoke scenario fits a fixed-effect Gaussian location model, not a
 phylogenetic model, because `sparse_fixed = TRUE` is currently implemented only
 for univariate Gaussian `mu` fixed effects with intercept-only `sigma`.
+
+To benchmark the first Gaussian aggregation path, use a non-phylogenetic
+repeated-cell scenario:
+
+```sh
+Rscript bench/large-phylo-location.R --rows 100000 --species 1000 \
+  --structured none --aggregate-gaussian true --aggregation-cells 100 \
+  --memory-light true --output bench/results.csv
+```
+
+That scenario creates repeated fixed-effect cells deliberately, so the
+benchmark can record the fitted aggregation-cell count and compression ratio.
 
 For a model with a scale predictor, add:
 

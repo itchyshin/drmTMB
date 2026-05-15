@@ -95,7 +95,14 @@ optional_design_columns <- c(
 
 optional_scope_columns <- c(
   "structured",
-  "sparse_fixed"
+  "sparse_fixed",
+  "aggregate_gaussian"
+)
+
+optional_aggregation_columns <- c(
+  "aggregation_cells_fitted",
+  "aggregation_compression_ratio",
+  "aggregation_largest_cell_n"
 )
 
 read_results <- function(path) {
@@ -129,6 +136,11 @@ scenario_label <- function(x) {
   } else {
     rep("no", nrow(x))
   }
+  aggregate_gaussian <- if ("aggregate_gaussian" %in% names(x)) {
+    flag(x$aggregate_gaussian)
+  } else {
+    rep("no", nrow(x))
+  }
   paste0(
     x$rows,
     " rows / ",
@@ -144,6 +156,8 @@ scenario_label <- function(x) {
     flag(x$sigma_x),
     " / sparse_fixed=",
     sparse_fixed,
+    " / aggregate_gaussian=",
+    aggregate_gaussian,
     " / memory_light=",
     flag(x$memory_light)
   )
@@ -210,6 +224,17 @@ summarise_results <- function(x, converged_only = FALSE) {
   if (all(optional_scope_columns %in% names(x))) {
     out$structured <- x$structured
     out$sparse_fixed <- flag(x$sparse_fixed)
+    out$aggregate_gaussian <- flag(x$aggregate_gaussian)
+  }
+  if (all(optional_aggregation_columns %in% names(x))) {
+    out$aggregation_cells <- as.integer(x$aggregation_cells_fitted)
+    out$aggregation_compression <- round_numeric(
+      x$aggregation_compression_ratio,
+      digits = 2L
+    )
+    out$aggregation_largest_cell_n <- as.integer(
+      x$aggregation_largest_cell_n
+    )
   }
   out
 }
