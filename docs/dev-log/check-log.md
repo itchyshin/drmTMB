@@ -14662,3 +14662,50 @@ Known limitations:
 - covariance-product intervals, q4 derived-correlation intervals, and derived
   variance-ratio intervals remain unavailable until a derived-profile method is
   implemented.
+
+## 2026-05-15 -- Slice 58 profile diagnostics
+
+Goal:
+
+- add inspectable diagnostics for profile intervals that approach boundaries
+  and clearer messages for profile failures.
+
+Implemented:
+
+- added `profile.boundary` and `profile.message` columns to `confint()` rows;
+- carried those diagnostic columns into interval-aware `summary()` coefficient
+  and parameter tables;
+- flagged transformed SD intervals near zero and transformed correlation
+  intervals near the correlation boundary;
+- strengthened profile failure messages to mention boundary, one-sided,
+  non-monotone, and failed-inner-optimization profiles;
+- updated `docs/design/12-profile-likelihood-cis.md`, `ROADMAP.md`,
+  `NEWS.md`, and `man/confint.drmTMB.Rd`.
+
+Checks run:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::test(filter = "profile-targets|summary", reporter = "summary")'`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::document()'`:
+  passed and updated `man/confint.drmTMB.Rd`.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::test(filter = "profile-targets|summary|corpairs|covariance-block-registry", reporter = "summary")'`:
+  passed after documentation and formatting.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::test(reporter = "summary")'`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::build_site()'`:
+  passed and rebuilt `ROADMAP.html`, `news/index.html`, and
+  `reference/confint.drmTMB.html`.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed with no problems found.
+- `git diff --check`:
+  passed.
+- `rg -n "Slice 58|profile\\.boundary|profile\\.message|near_sd_boundary|near_correlation_boundary|failed-inner-optimization|Profile Diagnostics" NEWS.md ROADMAP.md docs/design/12-profile-likelihood-cis.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-15-slice-58-profile-diagnostics.md R/methods.R R/profile.R tests/testthat/test-profile-targets.R man/confint.drmTMB.Rd pkgdown-site/ROADMAP.html pkgdown-site/news/index.html pkgdown-site/reference/confint.drmTMB.html --glob '!pkgdown-site/search.json'`:
+  confirmed source, tests, Rd files, and rendered pkgdown wording for the
+  Slice 58 profile-diagnostics contract.
+
+Known limitations:
+
+- this slice does not implement one-sided intervals, automatic profile
+  recovery, non-monotone-profile plotting, or parametric-bootstrap fallback;
+- the boundary diagnostics are lightweight flags on transformed interval
+  endpoints, not a full likelihood-shape classifier.

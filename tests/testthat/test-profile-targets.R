@@ -394,7 +394,9 @@ test_that("confint returns Wald fixed-effect intervals", {
       "tmb_parameter",
       "index",
       "method",
-      "conf.status"
+      "conf.status",
+      "profile.boundary",
+      "profile.message"
     )
   )
   expect_equal(
@@ -410,6 +412,8 @@ test_that("confint returns Wald fixed-effect intervals", {
   expect_equal(ci$upper, unname(estimate + z * se), tolerance = 1e-12)
   expect_equal(ci$method, rep("wald", 4))
   expect_equal(ci$conf.status, rep("wald", 4))
+  expect_true(all(is.na(ci$profile.boundary)))
+  expect_true(all(is.na(ci$profile.message)))
   expect_equal(
     selected$parm,
     c("fixef:mu:x", "fixef:sigma:(Intercept)")
@@ -458,12 +462,16 @@ test_that("confint profile intervals wrap direct fixed-effect profiles", {
       "tmb_parameter",
       "index",
       "method",
-      "conf.status"
+      "conf.status",
+      "profile.boundary",
+      "profile.message"
     )
   )
   expect_equal(ci$parm, "fixef:mu:x")
   expect_equal(ci$level, 0.90)
   expect_equal(ci$conf.status, "profile")
+  expect_false(ci$profile.boundary)
+  expect_equal(ci$profile.message, "ok")
   expect_equal(ci$lower, unname(manual_ci[1L, "lower"]), tolerance = 1e-12)
   expect_equal(ci$upper, unname(manual_ci[1L, "upper"]), tolerance = 1e-12)
   expect_equal(ci$tmb_parameter, "beta_mu")
@@ -1245,8 +1253,30 @@ test_that("profile confidence intervals reject unsupported targets clearly", {
       trace = FALSE,
       ystep = 0
     ),
-    "failed while profiling target"
+    "boundary, one-sided, non-monotone"
   )
+})
+
+test_that("profile interval diagnostics flag boundary-like intervals", {
+  sd_diag <- drmTMB:::profile_interval_diagnostics(
+    c(0, 0.5),
+    transformation = "exp"
+  )
+  cor_diag <- drmTMB:::profile_interval_diagnostics(
+    c(-0.99, 0.2),
+    transformation = "tanh"
+  )
+  ok_diag <- drmTMB:::profile_interval_diagnostics(
+    c(-0.2, 0.2),
+    transformation = "linear_predictor"
+  )
+
+  expect_true(sd_diag$boundary)
+  expect_equal(sd_diag$message, "near_sd_boundary")
+  expect_true(cor_diag$boundary)
+  expect_equal(cor_diag$message, "near_correlation_boundary")
+  expect_false(ok_diag$boundary)
+  expect_equal(ok_diag$message, "ok")
 })
 
 test_that("profile target inventory maps hurdle probabilities to beta_zi", {

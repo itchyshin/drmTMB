@@ -2771,6 +2771,8 @@ empty_summary_confint <- function() {
     index = integer(),
     method = character(),
     conf.status = character(),
+    profile.boundary = logical(),
+    profile.message = character(),
     stringsAsFactors = FALSE
   )
 }
@@ -2781,6 +2783,8 @@ drm_summary_add_coefficient_ci <- function(coefficients, ci, level, method) {
   coefficients$conf.level <- level
   coefficients$conf.method <- method
   coefficients$conf.status <- "not_requested"
+  coefficients$profile.boundary <- NA
+  coefficients$profile.message <- NA_character_
   if (is.null(ci) || nrow(ci) == 0L) {
     return(coefficients)
   }
@@ -2794,6 +2798,18 @@ drm_summary_add_coefficient_ci <- function(coefficients, ci, level, method) {
     matched[has_ci],
     method
   )
+  coefficients$profile.boundary[has_ci] <- summary_ci_column(
+    ci,
+    matched[has_ci],
+    column = "profile.boundary",
+    default = NA
+  )
+  coefficients$profile.message[has_ci] <- summary_ci_column(
+    ci,
+    matched[has_ci],
+    column = "profile.message",
+    default = NA_character_
+  )
   coefficients
 }
 
@@ -2806,6 +2822,8 @@ drm_summary_add_parameter_ci <- function(parameters, ci, level, method) {
     parameters,
     method = method
   )
+  parameters$profile.boundary <- NA
+  parameters$profile.message <- NA_character_
   if (nrow(parameters) == 0L || is.null(ci) || nrow(ci) == 0L) {
     return(parameters)
   }
@@ -2818,6 +2836,18 @@ drm_summary_add_parameter_ci <- function(parameters, ci, level, method) {
     matched[has_ci],
     method
   )
+  parameters$profile.boundary[has_ci] <- summary_ci_column(
+    ci,
+    matched[has_ci],
+    column = "profile.boundary",
+    default = NA
+  )
+  parameters$profile.message[has_ci] <- summary_ci_column(
+    ci,
+    matched[has_ci],
+    column = "profile.message",
+    default = NA_character_
+  )
   parameters
 }
 
@@ -2826,6 +2856,13 @@ summary_ci_status <- function(ci, matched, method) {
     return(ci$conf.status[matched])
   }
   rep(method, length(matched))
+}
+
+summary_ci_column <- function(ci, matched, column, default) {
+  if (column %in% names(ci)) {
+    return(ci[[column]][matched])
+  }
+  rep(default, length(matched))
 }
 
 summary_parameter_conf_status <- function(parameters, method) {
@@ -2889,6 +2926,15 @@ drm_summary_print_parameters <- function(parameters) {
       any(parameters$conf.status != "profile", na.rm = TRUE)
   ) {
     keep <- c(keep, "conf.status")
+  }
+  if (
+    "profile.message" %in%
+      names(parameters) &&
+      any(
+        !is.na(parameters$profile.message) & parameters$profile.message != "ok"
+      )
+  ) {
+    keep <- c(keep, "profile.message")
   }
   out <- parameters[, keep, drop = FALSE]
   row.names(out) <- row.names(parameters)
