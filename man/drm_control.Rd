@@ -8,7 +8,8 @@ drm_control(
   optimizer = list(),
   keep_data = TRUE,
   keep_model_frame = TRUE,
-  keep_tmb_object = TRUE
+  keep_tmb_object = TRUE,
+  sparse_fixed = FALSE
 )
 }
 \arguments{
@@ -30,6 +31,10 @@ matrices, terms, response vectors, offsets, and response-name metadata.}
 in \code{fit$obj}. Set to \code{FALSE} to reduce fitted-object size after
 optimization. \code{check_drm()} will then report the fixed-gradient check as a
 note because it cannot re-evaluate the gradient without \code{fit$obj}.}
+
+\item{sparse_fixed}{Logical; experimental opt-in for sparse fixed-effect
+design matrices. The first fitted path is limited to univariate Gaussian
+\code{mu} fixed effects with no random effects and intercept-only \code{sigma}.}
 }
 \value{
 A \code{drm_control} object.

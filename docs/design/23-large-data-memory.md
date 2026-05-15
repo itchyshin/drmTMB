@@ -76,10 +76,23 @@ The implemented first slice means:
   reports the fixed-gradient check as a note rather than re-evaluating it;
 - `optimizer = list(...)`: pass optimizer controls to `stats::nlminb()`.
 
-The next larger memory controls remain planned rather than implemented:
+The first sparse fixed-effect fit path is also explicit and narrow:
 
-- sparse fixed-effect matrices: use sparse design matrices when factors or
-  high-dimensional terms would make dense matrices costly.
+```r
+drmTMB(
+  bf(y ~ habitat + x1, sigma ~ 1),
+  family = gaussian(),
+  data = dat,
+  control = drm_control(sparse_fixed = TRUE)
+)
+```
+
+This stores the univariate Gaussian `mu` design as a `Matrix` sparse matrix and
+uses a sparse TMB multiply for the location predictor. It currently requires a
+fixed-effect Gaussian location model with intercept-only `sigma`; random
+effects, direct-SD models, phylogenetic/spatial effects, known covariance,
+non-Gaussian families, bivariate models, and sparse scale formulas remain
+planned.
 
 ## Model-Frame Dependency Map
 
@@ -151,10 +164,11 @@ likelihood-comparison tests.
 ## Sparse Design Matrices
 
 Large fixed-effect designs can become memory-heavy when factors are expanded
-with dense `model.matrix()`. A future sparse path should use
-`Matrix::sparse.model.matrix()` and pass sparse matrices to TMB where possible.
+with dense `model.matrix()`. The first sparse path uses
+`Matrix::sparse.model.matrix()` and passes the univariate Gaussian `mu` design
+to TMB as a sparse matrix when `drm_control(sparse_fixed = TRUE)` is used.
 
-Candidate first targets:
+Next sparse targets:
 
 - large factor fixed effects;
 - interaction terms with many empty combinations;

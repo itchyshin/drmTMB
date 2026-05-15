@@ -65,6 +65,8 @@ Type objective_function<Type>::operator()()
   DATA_VECTOR(y2);
   DATA_INTEGER(model_type);
   DATA_MATRIX(X_mu);
+  DATA_INTEGER(use_sparse_X_mu);
+  DATA_SPARSE_MATRIX(X_mu_sparse);
   DATA_MATRIX(X_sigma);
   DATA_MATRIX(X_nu);
   DATA_MATRIX(X_zi);
@@ -426,7 +428,12 @@ Type objective_function<Type>::operator()()
     REPORT(quadratic);
     REPORT(log_det_Q_phylo);
   } else if (model_type == 1) {
-    vector<Type> mu = X_mu * beta_mu;
+    vector<Type> mu(y.size());
+    if (use_sparse_X_mu == 1) {
+      mu = X_mu_sparse * beta_mu;
+    } else {
+      mu = X_mu * beta_mu;
+    }
     vector<Type> log_sigma = X_sigma * beta_sigma;
 
     if (n_mu_re_terms > 0) {

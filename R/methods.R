@@ -2683,7 +2683,11 @@ drm_prediction_matrix <- function(object, newdata, dpar) {
   ) {
     return(ordinal_mu_model_matrix(object$model$terms[[dpar]], newdata))
   }
-  stats::model.matrix(object$model$terms[[dpar]], data = newdata)
+  drm_fixed_effect_matrix(
+    object$model$terms[[dpar]],
+    newdata,
+    sparse = drm_fixed_effect_is_sparse(object, dpar)
+  )
 }
 
 drm_prediction_offset <- function(object, newdata, dpar) {

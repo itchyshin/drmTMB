@@ -307,12 +307,16 @@ Phase 5 closure boundary:
 - Internal dense-versus-sparse fixed-effect matrix parity helpers now compare
   `stats::model.matrix()` with `Matrix::sparse.model.matrix()` before any
   sparse fit path is exposed.
+- `drm_control(sparse_fixed = TRUE)` now fits the first sparse fixed-effect
+  path for univariate Gaussian `mu` fixed effects with intercept-only `sigma`,
+  no random effects, no structured effects, and no known covariance.
 - The optional large-data benchmark now records the largest fixed-effect design
   block, column count, nonzero count, and density.
 - Extend memory-light fit controls for large phylogenetic and spatial
   datasets with broader method-matrix coverage, sparse fixed-effect matrices,
   aggregation, and repeated large-row benchmarks.
-- Add sparse fixed-effect matrix support before claiming million-row readiness.
+- Extend sparse fixed-effect matrix support beyond the first univariate
+  Gaussian `mu` path before claiming million-row readiness.
 - Use `docs/design/26-sparse-fixed-effect-matrices.md` as the implementation
   contract for sparse fixed-effect matrices.
 - Add optional aggregation or sufficient-statistic paths for Gaussian models

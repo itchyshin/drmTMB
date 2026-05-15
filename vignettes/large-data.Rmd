@@ -60,6 +60,22 @@ This control is useful when the fitted model is kept for interpretation,
 prediction, or plotting, but the original data frame and TMB object do not need
 to travel with it.
 
+For factor-heavy fixed-effect Gaussian location models, the first sparse
+fixed-effect path is also available:
+
+```{r}
+fit_sparse <- drmTMB(
+  bf(y ~ habitat + x1, sigma ~ 1),
+  family = gaussian(),
+  data = dat,
+  control = drm_control(sparse_fixed = TRUE)
+)
+```
+
+This path stores the `mu` fixed-effect design as a sparse `Matrix` object and
+uses a sparse TMB matrix multiply. It is intentionally limited to fixed-effect
+univariate Gaussian `mu` models with intercept-only `sigma`.
+
 ## What this does not solve yet
 
 The current memory-light path does not prevent R from building model frames and
@@ -70,7 +86,8 @@ millions of rows.
 
 These pieces remain planned:
 
-- sparse fixed-effect matrices for factor-heavy models;
+- sparse fixed-effect matrices for `sigma`, random-effect, phylogenetic,
+  spatial, bivariate, and non-Gaussian models;
 - Gaussian sufficient-statistic aggregation when repeated rows can be collapsed
   without changing the likelihood;
 - memory-light modes that avoid constructing dense model frames or dense model
@@ -101,13 +118,14 @@ evaluations with supplied `iter.max` and `eval.max`. If it is a note or warning,
 inspect convergence, gradients, and model structure before increasing the
 limits.
 
-Also inspect the `fixed_effect_design_size` row. It reports the retained dense
-fixed-effect design size, the widest design block, and the density of the
-largest retained block. A note with a low density means high-cardinality
-factors or sparse interactions may be driving memory use before TMB
-optimization. That is a sparse fixed-effect design problem; simplifying the
-formula or waiting for the future sparse path is more relevant than changing
-the phylogenetic tree.
+Also inspect the `fixed_effect_design_size` row. It reports the retained
+fixed-effect design size, the widest design block, the matrix class, and the
+density of the largest retained block. A dense-fit note with a low density
+means high-cardinality factors or sparse interactions may be driving memory use
+before TMB optimization. That is a sparse fixed-effect design problem;
+simplifying the formula or using `drm_control(sparse_fixed = TRUE)` when the
+model is inside the implemented Gaussian `mu` scope is more relevant than
+changing the phylogenetic tree.
 
 ## Avoid accidental full-row output
 
@@ -204,5 +222,6 @@ bivariate large-data readiness, or non-Gaussian large-data readiness.
 - Run the benchmark script at 100k rows before trying million-row analyses.
 - Treat a non-zero optimizer code as a diagnostic result, not as timing
   evidence.
-- Treat sparse fixed-effect matrices and data aggregation as future scaling
-  features, not current guarantees.
+- Treat sparse fixed-effect matrices outside fixed-effect Gaussian `mu` models,
+  and data aggregation in all models, as future scaling features rather than
+  current guarantees.

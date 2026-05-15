@@ -655,6 +655,8 @@ check_fixed_effect_design_size <- function(object) {
     largest <- "unnamed"
   }
   largest_density <- largest_row$density[[1L]]
+  largest_class <- largest_row$matrix_class[[1L]]
+  has_sparse <- any(vapply(X, inherits, logical(1), "sparseMatrix"))
   sparse_candidate <- is.finite(largest_density) &&
     max_cols >= 30L &&
     largest_density <= 0.25
@@ -666,6 +668,8 @@ check_fixed_effect_design_size <- function(object) {
     max_cols,
     "; largest=",
     largest,
+    "; largest_class=",
+    largest_class,
     "; largest_density=",
     format_check_number(largest_density)
   )
@@ -673,7 +677,9 @@ check_fixed_effect_design_size <- function(object) {
     "fixed_effect_design_size",
     if (note) "note" else "ok",
     value,
-    if (sparse_candidate) {
+    if (has_sparse) {
+      "Sparse fixed-effect design matrices are enabled for at least one fixed-effect block."
+    } else if (sparse_candidate) {
       paste(
         "Dense fixed-effect design matrices are wide and mostly zero;",
         "high-cardinality factors or sparse interactions may dominate memory before TMB optimization and are candidates for future sparse fixed-effect matrices."

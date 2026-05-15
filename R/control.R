@@ -25,6 +25,9 @@
 #'   in `fit$obj`. Set to `FALSE` to reduce fitted-object size after
 #'   optimization. `check_drm()` will then report the fixed-gradient check as a
 #'   note because it cannot re-evaluate the gradient without `fit$obj`.
+#' @param sparse_fixed Logical; experimental opt-in for sparse fixed-effect
+#'   design matrices. The first fitted path is limited to univariate Gaussian
+#'   `mu` fixed effects with no random effects and intercept-only `sigma`.
 #'
 #' @return A `drm_control` object.
 #' @export
@@ -45,7 +48,8 @@ drm_control <- function(
   optimizer = list(),
   keep_data = TRUE,
   keep_model_frame = TRUE,
-  keep_tmb_object = TRUE
+  keep_tmb_object = TRUE,
+  sparse_fixed = FALSE
 ) {
   if (
     !is.list(optimizer) ||
@@ -57,12 +61,14 @@ drm_control <- function(
   keep_data <- drm_control_flag(keep_data, "keep_data")
   keep_model_frame <- drm_control_flag(keep_model_frame, "keep_model_frame")
   keep_tmb_object <- drm_control_flag(keep_tmb_object, "keep_tmb_object")
+  sparse_fixed <- drm_control_flag(sparse_fixed, "sparse_fixed")
   structure(
     list(
       optimizer = optimizer,
       keep_data = keep_data,
       keep_model_frame = keep_model_frame,
-      keep_tmb_object = keep_tmb_object
+      keep_tmb_object = keep_tmb_object,
+      sparse_fixed = sparse_fixed
     ),
     class = "drm_control"
   )

@@ -13948,3 +13948,69 @@ Known limitations:
   before appending new rows;
 - peak resident memory still needs `/usr/bin/time -l` on macOS or
   `/usr/bin/time -v` on Linux.
+
+## 2026-05-14 -- Phase 5b Slice 45 first sparse fixed-effect fit path
+
+Goal:
+
+- connect the dense-versus-sparse fixed-effect scaffold to one fitted model
+  path without broadening the statistical claim.
+
+Implemented:
+
+- added `drm_control(sparse_fixed = TRUE)`;
+- limited the first fitted sparse path to univariate Gaussian `mu` fixed
+  effects with intercept-only `sigma`, no ordinary random effects, no direct-SD
+  models, no phylogenetic or spatial structured effects, no known covariance,
+  no bivariate model, and no non-Gaussian family;
+- routed sparse Gaussian `mu` designs through `Matrix::sparse.model.matrix()`,
+  `X_mu_sparse`, `use_sparse_X_mu`, and a sparse TMB matrix multiply;
+- kept dense `X_mu` for all other models and supplied a dummy sparse matrix to
+  TMB so the global template data declarations stay stable;
+- taught `predict(..., newdata = ...)` to rebuild sparse fixed-effect matrices
+  when the fitted distributional parameter used sparse storage;
+- updated `check_drm()` to identify sparse retained fixed-effect design
+  matrices rather than describing every fit as dense;
+- added dense-versus-sparse parity tests for `coef()`, `logLik()`, `fitted()`,
+  fitted-row and new-data `predict()`, `residuals()`, seeded `simulate()`,
+  `check_drm()`, and memory-light storage;
+- added snapshot tests for unsupported random-effect, non-intercept `sigma`,
+  and non-Gaussian sparse requests;
+- updated `docs/design/23-large-data-memory.md`,
+  `docs/design/26-sparse-fixed-effect-matrices.md`, `vignettes/large-data.Rmd`,
+  `ROADMAP.md`, `NEWS.md`, `docs/dev-log/known-limitations.md`, and
+  `man/drm_control.Rd`.
+
+Checks run:
+
+- `Rscript -e 'devtools::load_all(quiet = TRUE)'`:
+  passed after adding `DATA_SPARSE_MATRIX(X_mu_sparse)` and the Gaussian branch
+  sparse multiply.
+- manual dense/sparse Gaussian fit parity smoke:
+  passed; `fit_sparse$model$X$mu` was a `dgCMatrix`,
+  `fit_sparse$model$tmb_data$use_sparse_X_mu` was `1`, and dense/sparse
+  log-likelihoods matched to displayed precision.
+- `Rscript -e 'devtools::test(filter = "sparse-fixed-effects", reporter = "summary")'`:
+  passed on rerun after accepting the new unsupported-model snapshots.
+- `Rscript -e 'devtools::document()'`:
+  passed and refreshed `man/drm_control.Rd`.
+- `Rscript -e 'devtools::test(filter = "sparse-fixed-effects|control|check-drm", reporter = "summary")'`:
+  passed.
+- `PATH=/opt/homebrew/bin:$PATH Rscript -e 'devtools::load_all(quiet = TRUE); pkgdown::build_article("large-data", new_process = FALSE)'`:
+  passed and refreshed the local large-data article.
+- `PATH=/opt/homebrew/bin:$PATH Rscript -e 'devtools::load_all(quiet = TRUE); pkgdown::check_pkgdown()'`:
+  passed.
+- `rg -n 'sparse fixed-effect matrices remain planned|sparse fixed effects are planned|future sparse path|not yet connected to drmTMB\(\)|no sparse_fixed control|before any sparse fit path is exposed' docs/design docs/dev-log/known-limitations.md vignettes README.md ROADMAP.md NEWS.md man pkgdown-site --glob '!pkgdown-site/search.json'`:
+  returned no current-doc hits.
+- `git diff --check`:
+  passed.
+
+Known limitations:
+
+- this is not a general sparse fixed-effect engine yet;
+- sparse `sigma`, random-effect, direct-SD, known-covariance, phylogenetic,
+  spatial, bivariate, and non-Gaussian paths are deliberately rejected;
+- the sparse start value avoids dense `lm.fit()` and may be less polished than
+  dense-start fits for difficult models;
+- large benchmark evidence for `sparse_fixed = TRUE` is still a later Phase 5b
+  step.
