@@ -35,7 +35,9 @@ response scale.}
 \item{trace}{Logical; passed to \code{\link[TMB:tmbprofile]{TMB::tmbprofile()}} for profile intervals.}
 
 \item{...}{Additional arguments passed to \code{\link[TMB:tmbprofile]{TMB::tmbprofile()}} when
-\code{method = "profile"}.}
+\code{method = "profile"}. \code{drmTMB} supplies the profiled \code{obj}, \code{name},
+\code{lincomb}, and \code{trace} arguments internally; set the profile target with
+\code{parm}.}
 }
 \value{
 A data frame with columns \code{parm}, \code{level}, \code{lower}, \code{upper},

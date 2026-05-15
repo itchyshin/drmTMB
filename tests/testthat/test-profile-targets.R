@@ -1098,6 +1098,26 @@ test_that("profile confidence intervals reject unsupported targets clearly", {
     ),
     "TMB object retained"
   )
+  expect_error(
+    stats::confint(
+      fit,
+      parm = "fixef:mu:x",
+      method = "profile",
+      trace = FALSE,
+      name = "wrong-target"
+    ),
+    "Profile target selection is controlled"
+  )
+  expect_error(
+    stats::confint(
+      fit,
+      parm = "fixef:mu:x",
+      method = "profile",
+      trace = FALSE,
+      ystep = 0
+    ),
+    "failed while profiling target"
+  )
 })
 
 test_that("profile target inventory maps hurdle probabilities to beta_zi", {

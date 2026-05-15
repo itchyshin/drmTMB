@@ -167,6 +167,38 @@ distributional-scale, random-effect SD, random-effect correlation, residual
 correlation, ordinal cutpoint, modelled-SD, q4 derived-correlation, and
 memory-light fitted-object rows against this contract.
 
+## Phase 6 Slice 53 Direct Profile Robustness
+
+Slice 53 keeps the same statistical targets but hardens the failure boundary
+around direct profile calculations. `drmTMB` controls the target-specific
+arguments passed to `TMB::tmbprofile()`:
+
+```text
+obj
+name
+lincomb
+trace
+```
+
+Users choose the target with `parm` and may still tune profile controls such as
+`ystep`, `ytol`, `maxit`, `parm.range`, `slice`, and `adaptive`. Passing
+`obj`, `name`, `lincomb`, or `trace` through `...` now errors before entering
+TMB, because those arguments would otherwise create ambiguous "which target is
+being profiled?" calls.
+
+Direct profile failures are caught and rethrown with the public target name:
+
+```text
+Profile likelihood failed while profiling target "fixef:mu:x".
+```
+
+The message points users back to `profile_targets(fit)`, profile controls, and
+`check_drm(fit)`. Interval extraction from a completed TMB profile is also
+wrapped separately, because a profile can be computed yet fail to cross the
+likelihood-ratio threshold on both sides. This slice does not change the
+likelihood, the target transformations, or which derived targets are
+profile-ready.
+
 ## Core Definition
 
 For a single parameter `theta`, the likelihood-ratio statistic is:

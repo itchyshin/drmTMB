@@ -14366,3 +14366,54 @@ Known limitations:
 - derived q4 correlations, ICCs, repeatability, phylogenetic signal, and other
   nonlinear summaries remain point-estimate or unavailable-CI targets until a
   direct or fix-and-refit interval method exists.
+
+## 2026-05-15 -- Slice 53 direct profile robustness
+
+Goal:
+
+- harden direct `TMB::tmbprofile()` calls, target-selection errors, and failed
+  profile messages without adding new profile-likelihood targets.
+
+Implemented:
+
+- routed direct target profiles and `newdata` response-scale profiles through
+  a local `drm_tmbprofile()` wrapper;
+- added `drm_tmbprofile_confint()` to wrap profile-interval extraction failures
+  separately from profile construction failures;
+- blocked attempts to pass `obj`, `name`, `lincomb`, or `trace` through
+  `...`, because `drmTMB` supplies those target-specific arguments internally;
+- added focused tests for the controlled-target error and a forced
+  `TMB::tmbprofile()` failure using `ystep = 0`;
+- updated `confint()` Rd, `NEWS.md`, `ROADMAP.md`, and
+  `docs/design/12-profile-likelihood-cis.md`.
+
+Checks run:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::test(filter = "profile-targets", reporter = "summary")'`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::document()'`:
+  passed and regenerated `man/confint.drmTMB.Rd`.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH air format R/profile.R tests/testthat/test-profile-targets.R NEWS.md ROADMAP.md docs/design/12-profile-likelihood-cis.md man/confint.drmTMB.Rd`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::test(filter = "profile-targets|summary|corpairs", reporter = "summary")'`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::test(reporter = "summary")'`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::build_site()'`:
+  passed and rebuilt local `ROADMAP.html`, `reference/confint.drmTMB.html`,
+  and `news/index.html`.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed with no problems found.
+- `git diff --check`:
+  passed.
+- `rg -n "Profile target selection is controlled|Profile likelihood failed while profiling target|Could not extract a profile confidence interval|Direct Profile Robustness|Slice 53|obj.*name.*lincomb.*trace|ystep|parm.range" R/profile.R tests/testthat/test-profile-targets.R NEWS.md ROADMAP.md docs/design/12-profile-likelihood-cis.md man/confint.drmTMB.Rd pkgdown-site/ROADMAP.html pkgdown-site/reference/confint.drmTMB.html pkgdown-site/news/index.html --glob '!pkgdown-site/search.json'`:
+  confirmed source and rendered pkgdown wording for the Slice 53 error
+  boundary.
+
+Known limitations:
+
+- this slice does not add profile intervals for ordinal cutpoints, q4
+  correlations, ICCs, repeatability, phylogenetic signal, or other derived
+  summaries;
+- failed profiles still require user judgement about profile controls and model
+  diagnostics; this slice only makes the failure message target-specific.

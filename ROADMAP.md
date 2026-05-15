@@ -369,6 +369,9 @@ Phase 5 closure boundary:
   phylogenetic `mu1`/`mu2` mean-mean correlation target. These intervals are
   available through both `confint(..., method = "profile")` and
   `summary(conf.int = TRUE, method = "profile", ci_parm = ...)`.
+- Direct profile calls now wrap `TMB::tmbprofile()` failures with the
+  `profile_targets()` target name and block attempts to override the internal
+  `obj`, `name`, `lincomb`, or `trace` arguments through `...`.
 - Extend profile-likelihood confidence intervals to additional direct TMB
   parameters such as other residual-scale parameters, ordinal cutpoints, and
   multi-row or custom contrasts beyond one `newdata` row at a time.
