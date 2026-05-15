@@ -15622,3 +15622,54 @@ Known limitations:
   q=6/q=8 endpoint blocks, `rho12` random effects, structured spatial
   covariance, and non-phylogenetic species covariance remain planned;
 - GitHub Actions remains the PR-side gate.
+
+## 2026-05-15 -- Phase 12 phylogenetic correlation foundation closure
+
+Goal:
+
+- close the local phylogenetic correlation foundation without claiming
+  phylogenetic random slopes, structured `rho12`, or all location-scale-shape
+  extensions.
+
+Implemented:
+
+- added after-phase report
+  `docs/dev-log/after-phase/2026-05-15-phase-12-phylogenetic-correlation-foundation-closure.md`;
+- updated `ROADMAP.md` so Phase 12 is locally closed only for the fitted
+  phylogenetic correlation foundation;
+- updated `docs/design/34-validation-debt-register.md` so the phylogenetic
+  structured-effects row points to the Phase 12 closure report;
+- kept phylogenetic random slopes, phylogenetic intercept-slope correlations,
+  predictor-dependent q=4 phylogenetic correlations, phylogenetic effects in
+  residual `rho12`, phylogenetic location-scale-shape models, and longer
+  optional simulations as planned work.
+
+Checks run:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH air format ROADMAP.md docs/design/34-validation-debt-register.md docs/dev-log/after-phase/2026-05-15-phase-12-phylogenetic-correlation-foundation-closure.md`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::test(filter = "phylo-gaussian|phylo-utils|corpairs|profile-targets|summary|check-drm", reporter = "summary")'`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::build_site()'`:
+  passed and refreshed ROADMAP.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed with no problems found.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::check(error_on = "never", env_vars = c("_R_CHECK_SYSTEM_CLOCK_" = "FALSE"))'`:
+  passed with 0 errors, 0 warnings, and 0 notes in 2m 17.7s.
+- `git diff --check`: passed.
+- `rg -n 'Phase 12|phase-12-phylogenetic-correlation-foundation-closure|phylogenetic correlation foundation|predictor-dependent phylogenetic|sd_phylo1|sd_phylo2|all-four q=4 phylogenetic|phylogenetic random slopes|structured `rho12`|predictor-dependent q=4' ROADMAP.md docs/design/34-validation-debt-register.md docs/dev-log/after-phase/2026-05-15-phase-12-phylogenetic-correlation-foundation-closure.md pkgdown-site/ROADMAP.html --glob '!pkgdown-site/search.json'`:
+  confirmed source and rendered closure wording.
+- `rg -n 'phylo\\(1 \\+.*Implemented|phylogenetic random slopes (are|now) implemented|phylogenetic slopes (are|now) implemented|phylogenetic effects in `rho12` (are|now) implemented|structured `rho12`.*implemented|predictor-dependent q=4 phylogenetic.*implemented|q=4 phylogenetic.*predictor-dependent.*implemented|phylogenetic location-scale-shape.*implemented|phylogenetic `sigma` slope.*implemented' README.md ROADMAP.md NEWS.md docs/design vignettes R tests man pkgdown-site --glob '!docs/dev-log/**' --glob '!pkgdown-site/search.json' --glob '!pkgdown-site/deps/**'`:
+  returned no matches.
+
+Known limitations:
+
+- phylogenetic random slopes are not implemented;
+- phylogenetic effects in residual `rho12` are not implemented;
+- predictor-dependent q=4 phylogenetic correlations remain planned;
+- q=4 phylogenetic correlation rows are point summaries with derived interval
+  status, not direct profile intervals;
+- long optional simulations for larger trees, near-zero phylogenetic SD, high
+  residual noise, and combined phylogenetic plus non-phylogenetic species
+  effects remain planned;
+- GitHub Actions remains the PR-side gate.

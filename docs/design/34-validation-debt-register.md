@@ -177,12 +177,14 @@ Use these status labels:
 
 ### Phylogenetic structured effects
 
-- Matrix status: first slices.
+- Matrix status: first slices locally closed.
 - Register status: partial.
 - Evidence: `tests/testthat/test-phylo-gaussian.R`,
   `tests/testthat/test-phylo-utils.R`,
   `tests/testthat/test-profile-targets.R`, and
   `tests/testthat/test-check-drm.R`.
+- Phase gate: the phylogenetic correlation foundation is recorded in
+  `docs/dev-log/after-phase/2026-05-15-phase-12-phylogenetic-correlation-foundation-closure.md`.
 - Diagnostics and intervals: direct phylogenetic SD and constant q=2
   correlation targets are profile-ready; predictor-dependent q=2 `corpair()`
   values use `newdata`; q=4 phylogenetic correlations are derived-only for

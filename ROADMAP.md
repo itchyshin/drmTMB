@@ -717,8 +717,14 @@ remain blocked by future covariance or non-Gaussian random-effect work.
 
 ## Phase 12: Phylogenetic Location-Scale Extensions
 
-- Status: planned beyond the first fitted bivariate `mu1`/`mu2` phylogenetic
-  location slice.
+- Status: phylogenetic correlation foundation locally closed. See
+  `docs/dev-log/after-phase/2026-05-15-phase-12-phylogenetic-correlation-foundation-closure.md`.
+- The fitted foundation covers bivariate `mu1`/`mu2` phylogenetic
+  location-location covariance, q=2 predictor-dependent phylogenetic
+  `corpair()` regression, bivariate `sd_phylo1()` / `sd_phylo2()` direct-SD
+  surfaces, and the first constant all-four q=4 phylogenetic
+  location-scale block. These are intercept-level phylogenetic correlation
+  paths, not phylogenetic random slopes.
 - Extend the implemented `phylo(1 | species, tree = tree)` Gaussian `mu` path to
   one structured `mu` slope, then only later to at most two structured `mu`
   slopes. Three or more structured slopes, intercept-slope correlations, and
