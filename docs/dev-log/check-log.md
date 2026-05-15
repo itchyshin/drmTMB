@@ -15458,7 +15458,7 @@ Checks run:
 - `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::check_pkgdown()'`:
   passed with no problems found.
 - `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::check(error_on = "never", env_vars = c("_R_CHECK_SYSTEM_CLOCK_" = "FALSE"))'`:
-  passed with 0 errors, 0 warnings, and 0 notes in 2m 17.2s.
+  passed with 0 errors, 0 warnings, and 0 notes in 2m 29.6s.
 - `git diff --check`: passed.
 - `rg -n '36-cpp-modularization-source-map|C\+\+ modularization source map|model_type = 93|model_type = 95|model_type = 96|model_type = 97|model_type = 98|drm_count_kernels|drm_numeric|What Should Not Move Yet|Slice 83' NEWS.md ROADMAP.md docs/design vignettes pkgdown-site --glob '!pkgdown-site/search.json' --glob '!pkgdown-site/deps/**'`:
   confirmed source and rendered source-map wording.
@@ -15471,3 +15471,50 @@ Known limitations:
 - proposed header names are a plan, not existing source files;
 - the first actual helper extraction still needs its own focused commit,
   checks, and after-task report.
+
+## 2026-05-15 -- Slice 84 Phase 6d local gate
+
+Goal:
+
+- close the Phase 6d stable-core validation and engine-hardening lane locally
+  with tests, pkgdown, check, stale-claim scans, ROADMAP/NEWS updates, and an
+  after-phase report.
+
+Implemented:
+
+- marked Phase 6d as locally closed in `ROADMAP.md`;
+- marked Slice 84 locally done in the Phase 6d slice table;
+- added NEWS wording for the Phase 6d local closure;
+- added after-phase report
+  `docs/dev-log/after-phase/2026-05-15-phase-6d-stable-core-hardening-closure.md`;
+- recorded that GitHub Actions remains the PR-side gate and no new PR was
+  opened while repository PR #45 remains open.
+
+Checks run:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH air format ROADMAP.md NEWS.md docs/dev-log/check-log.md docs/dev-log/after-phase/2026-05-15-phase-6d-stable-core-hardening-closure.md`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::test(filter = "check-drm|control|optimizer-contract|count-kernels|covariance-block-registry|phylo-utils|biv-gaussian|gaussian-random-intercepts|spatial-gaussian|package-skeleton", reporter = "summary")'`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::test(reporter = "summary")'`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::build_site()'`:
+  passed and refreshed ROADMAP and NEWS.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed with no problems found.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::check(error_on = "never", env_vars = c("_R_CHECK_SYSTEM_CLOCK_" = "FALSE"))'`:
+  passed with 0 errors, 0 warnings, and 0 notes in 2m 17.2s.
+- `git diff --check`: passed.
+- `rg -n 'Phase 6d is locally closed|Phase 6d stable-core validation|Slice 84|phase-6d-stable-core-hardening-closure|GitHub Actions remains the PR-side gate' ROADMAP.md NEWS.md docs/dev-log/check-log.md docs/dev-log/after-phase/2026-05-15-phase-6d-stable-core-hardening-closure.md pkgdown-site/ROADMAP.html pkgdown-site/news/index.html --glob '!pkgdown-site/search.json'`:
+  confirmed source and rendered closure wording.
+- `rg -n 'all stable-core debt is closed|sparse known covariance.*implemented|block-sparse known covariance.*implemented|public multi-start support|public start support|helper headers now exist|Phase 6d.*fully complete' README.md ROADMAP.md NEWS.md docs/design vignettes pkgdown-site --glob '!docs/dev-log/**' --glob '!pkgdown-site/search.json' --glob '!pkgdown-site/deps/**'`:
+  returned no stale overclaim matches.
+
+Known limitations:
+
+- GitHub Actions remains the PR-side gate;
+- open repository PR #45 remains in the queue, so no new PR was opened from
+  this local closure;
+- sparse and block-sparse known covariance, public starts/maps/fixed
+  parameters, fallback optimizers, multi-start fitting, and actual C++ helper
+  header extraction remain future work.

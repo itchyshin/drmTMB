@@ -506,6 +506,11 @@ Phase 6b should turn the implemented surfaces into a coherent reader path:
 ## Phase 6d: Stable-Core Validation and Engine Hardening
 
 - Tracking issue: [#38](https://github.com/itchyshin/drmTMB/issues/38).
+- Local closure: Phase 6d is locally closed as of 2026-05-15 with focused
+  tests, full package tests, pkgdown build/check, `R CMD check`, stale-claim
+  scans, check-log evidence, and the after-phase report
+  `docs/dev-log/after-phase/2026-05-15-phase-6d-stable-core-hardening-closure.md`.
+  GitHub Actions remains the PR-side gate.
 - Treat Phase 6d as the audit-response lane. It should not distract from the
   current profile-CI slices, but it records the cross-cutting work needed before
   `drmTMB` expands too far into new families, broad spatial claims, or
@@ -550,7 +555,7 @@ Phase 6d should be closed as small hardening slices:
 | 81 | Dense covariance and large-data guards | Add diagnostics and wording for dense known covariance, sparse/block-sparse expectations, and large-data claim boundaries. | Done: dense `meta_known_V(V = V)` fits now appear as `check_drm()` notes with dense storage, dimension, density, size, rank, and conditioning, and the meta-analysis, large-data, and validation-debt docs label dense known covariance as small-to-moderate until sparse or block-sparse evidence exists. |
 | 82 | Count likelihood kernel audit | Review count likelihood sections and replace slow count loops with closed-form expressions where practical. | Done: NB2, zero-inflated NB2, zero-truncated NB2, and hurdle NB2 now share an internal count-kernel helper that avoids observed-count loops with a closed-form `lgamma` ratio and a small-`alpha y` series guard; deterministic high-count tests confirm unchanged likelihood values. |
 | 83 | C++ modularization source map | Write the refactor plan for splitting likelihood families, covariance blocks, structured effects, and numerical helpers without changing behavior. | Done: `docs/design/36-cpp-modularization-source-map.md` names the header-only split plan, hidden branch inventory, public branch gates, test gates, and pieces that must not move in the first pass. |
-| 84 | Phase 6d gate | Run targeted tests, pkgdown checks, Rose audit, Grace CI gate, and update NEWS/check-log/roadmap. | Phase 6d closes only after user-facing claims, tests, docs, and GitHub Actions agree. |
+| 84 | Phase 6d gate | Run targeted tests, pkgdown checks, Rose audit, Grace CI gate, and update NEWS/check-log/roadmap. | Done locally: focused tests, full tests, pkgdown build/check, `R CMD check`, stale-claim scans, check-log entry, and after-phase report are complete; GitHub Actions remains the PR-side gate. |
 
 ## Phase 7: Robust and Positive Continuous Families
 
