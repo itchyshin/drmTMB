@@ -167,6 +167,30 @@ distributional-scale, random-effect SD, random-effect correlation, residual
 correlation, ordinal cutpoint, modelled-SD, q4 derived-correlation, and
 memory-light fitted-object rows against this contract.
 
+## Phase 6 Slice 57 Output Integration
+
+Slice 57 adds the first shared interval-status vocabulary to returned tables.
+Successful `confint()` rows now include `conf.status = "wald"` or
+`conf.status = "profile"` alongside the existing `method` column. When
+`summary(conf.int = TRUE)` attaches interval columns, fixed-effect and parameter
+tables also carry `conf.status` so the reader can distinguish these states:
+
+| Status | Meaning |
+| --- | --- |
+| `wald` | A Wald interval was returned for this row. |
+| `profile` | A profile-likelihood interval was returned for this row. |
+| `profile_ready` | The row is a direct profile target, but this summary call did not request that target. |
+| `newdata_required` | The row is a fitted surface summary; use `confint(..., newdata = ...)` to profile a supplied row. |
+| `derived_interval_unavailable` | The point estimate is derived from multiple quantities and has no validated derived-interval method yet. |
+| `wald_unavailable` | Wald intervals are not reported for this non-fixed-effect summary row. |
+| `target_unavailable` | The row is a descriptive range or other summary with no current direct interval target. |
+
+This does not make Wald intervals the default for variance components or
+correlations. It only makes the output tables say why an interval is present or
+absent. `profile_targets()` remains the inventory for deciding which direct
+targets can be passed to `confint(..., method = "profile")`; `corpairs()` keeps
+its existing `conf.status` column for latent and residual correlation-pair rows.
+
 ## Phase 6 Slice 53 Direct Profile Robustness
 
 Slice 53 keeps the same statistical targets but hardens the failure boundary

@@ -393,7 +393,8 @@ test_that("confint returns Wald fixed-effect intervals", {
       "transformation",
       "tmb_parameter",
       "index",
-      "method"
+      "method",
+      "conf.status"
     )
   )
   expect_equal(
@@ -408,6 +409,7 @@ test_that("confint returns Wald fixed-effect intervals", {
   expect_equal(ci$lower, unname(estimate - z * se), tolerance = 1e-12)
   expect_equal(ci$upper, unname(estimate + z * se), tolerance = 1e-12)
   expect_equal(ci$method, rep("wald", 4))
+  expect_equal(ci$conf.status, rep("wald", 4))
   expect_equal(
     selected$parm,
     c("fixef:mu:x", "fixef:sigma:(Intercept)")
@@ -455,11 +457,13 @@ test_that("confint profile intervals wrap direct fixed-effect profiles", {
       "transformation",
       "tmb_parameter",
       "index",
-      "method"
+      "method",
+      "conf.status"
     )
   )
   expect_equal(ci$parm, "fixef:mu:x")
   expect_equal(ci$level, 0.90)
+  expect_equal(ci$conf.status, "profile")
   expect_equal(ci$lower, unname(manual_ci[1L, "lower"]), tolerance = 1e-12)
   expect_equal(ci$upper, unname(manual_ci[1L, "upper"]), tolerance = 1e-12)
   expect_equal(ci$tmb_parameter, "beta_mu")

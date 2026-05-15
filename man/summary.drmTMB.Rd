@@ -53,7 +53,9 @@ ingredients are unambiguous. Derived confidence intervals are marked as
 unavailable until a nonlinear interval method is implemented.
 Confidence intervals are opt-in: fast Wald intervals are available for fixed
 effects, and slower profile-likelihood intervals are available for selected
-direct profile targets.
+direct profile targets. Interval-aware tables include \code{conf.status} so rows
+without intervals can say whether an interval was not requested, needs
+\code{newdata}, is ready but unselected, or is currently unavailable.
 }
 \examples{
 dat <- data.frame(y = c(0.2, 0.5, 1.1, 1.4), x = c(-1, 0, 1, 2))

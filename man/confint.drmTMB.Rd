@@ -41,7 +41,9 @@ response scale.}
 }
 \value{
 A data frame with columns \code{parm}, \code{level}, \code{lower}, \code{upper},
-\code{scale}, \code{transformation}, \code{tmb_parameter}, \code{index}, and \code{method}.
+\code{scale}, \code{transformation}, \code{tmb_parameter}, \code{index}, \code{method}, and
+\code{conf.status}. Successful rows currently use \code{conf.status = "wald"} or
+\code{conf.status = "profile"}.
 }
 \description{
 \code{confint()} returns confidence intervals for a fitted \code{drmTMB} model. Wald
