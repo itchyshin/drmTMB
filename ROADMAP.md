@@ -412,6 +412,10 @@ large confidence-interval rewrite:
 - Pat should user-test each major `drmTMB` tutorial for a concrete question,
   real or transparent simulated data, symbolic equations, model output,
   plots or tables, interpretation, diagnostics, and recovery advice.
+- Add more symbolic maths and detailed biological interpretation to each major
+  tutorial before calling the tutorial layer mature. The reader should see the
+  model equation, the `drmTMB` syntax, the fitted output, and the biological
+  meaning together.
 - Upgrade the first tutorials in this order: Gaussian location-scale,
   bivariate location-coscale, meta-analysis, phylogenetic location effects,
   and random-effect scale models.
@@ -428,6 +432,52 @@ Phase 6b should turn the implemented surfaces into a coherent reader path:
 | 66 | Structured-dependence polish | Refine phylogenetic and spatial examples, mesh/coords guidance, citation notes, and fitted-versus-planned status. | The article does not overclaim spatial or derived q4 interval support. |
 | 67 | Random-effect scale and covariance tutorial | Explain `sd(group)`, `sd(..., level = ...)`, Family A versus Family B, `corpairs()`, and invalid mixed formulations. | Readers can distinguish direct-SD regression from scale random effects. |
 | 68 | Phase 6b gate | Run Pat/Rose tutorial audit, pkgdown build/check, stale-wording scan, NEWS/roadmap updates, PR, and GitHub Actions. | Tutorials render cleanly and CI is green. |
+
+## Phase 6c: Random Slopes and Structured-Slope Examples
+
+- Tracking issue: [#33](https://github.com/itchyshin/drmTMB/issues/33).
+- Treat Phase 6c as the random-slope bridge between the Phase 6 inference work,
+  the Phase 6b tutorial layer, and the later Phase 10-12 structured-dependence
+  programmes. It does not replace the later bivariate covariance programme; it
+  records the slope policy and should implement only the first slope paths that
+  have simulation recovery and readable output.
+- Start with one structured `mu` slope for each relevant dependence layer:
+  ordinary grouped effects as the baseline, then phylogenetic effects, then
+  spatial effects. Design for up to two structured `mu` slopes as an advanced
+  path if diagnostics and recovery remain stable.
+- Keep three or more structured slopes outside the advertised near-term path.
+  The covariance dimension grows quickly, so these models should remain
+  distant-future expert use.
+- Do not estimate intercept-slope correlations in the first slope path.
+  Intercept-slope correlations should still be part of the Phase 6c inference
+  roadmap as an advanced, diagnostic-heavy path once the one-slope point
+  estimates and recovery tests are stable.
+- Include profile-likelihood CI planning for slope quantities. The first
+  interval targets should be random-slope SDs and any slope-related
+  correlations that are direct, identifiable TMB targets. Derived or weakly
+  identified slope correlations should report explicit unavailable-status rows
+  in `profile_targets()` or `corpairs()` until a supported interval method
+  exists.
+- A later high-value biological target is the bivariate slope1-slope2
+  correlation for the same environmental covariate, such as a plasticity
+  syndrome across species or individuals. This should eventually include both
+  point estimates and profile-likelihood intervals where the target is direct
+  and recovery evidence is good.
+- Phase 6c examples should include symbolic maths, `drmTMB` syntax, output
+  interpretation, and biological examples. Good first examples include thermal
+  tolerance plasticity along temperature, desiccation tolerance along humidity,
+  or behavioural reaction norms along disturbance.
+
+| Slice | Goal | Main work | Done when |
+| --- | --- | --- | --- |
+| 69 | Random-slope issue and math contract | Create/maintain the Phase 6c issue, write the ordinary/phylogenetic/spatial one-slope equations, and fix coefficient naming rules. | Roadmap, formula grammar, and likelihood notes agree on one slope first. |
+| 70 | Ordinary one-slope baseline | Stabilize ordinary grouped `mu` one-slope syntax, extractor labels, `corpairs()` coefficient columns, and profile-target names. | Ordinary slope tests and output snapshots pass. |
+| 71 | Phylogenetic one-slope design and fit | Extend `phylo()` from intercept-only `mu` to one structured `mu` slope after the algebra and storage order are explicit. | Simulation recovery and diagnostics support the fitted slope SD. |
+| 72 | Spatial one-slope design and fit | Extend `spatial()` from intercept-only `mu` to one structured `mu` slope after coordinate/mesh diagnostics are clear. | Spatial slope tests distinguish coordinate and future mesh paths. |
+| 73 | One-slope diagnostics and inference | Add replication, weak-SD, boundary, profile-target, and profile-likelihood CI diagnostics for fitted one-slope paths. | `check_drm()` and `profile_targets()` tell users which slope SDs and correlations are profile-ready. |
+| 74 | Slope-correlation advanced gate | Design two-slope models, intercept-slope correlations, and bivariate slope1-slope2 correlations without advertising them as routine. | The roadmap names required replication, simulation recovery, direct-target status, and CI evidence before fitting or teaching slope correlations. |
+| 75 | Biological examples | Add tutorial examples for reaction norms and bivariate plasticity-syndrome questions, including how to read slope SDs, slope correlations, and interval/status columns. | Examples include equations, syntax, output, intervals or explicit unavailable statuses, and interpretation. |
+| 76 | Phase 6c gate | Run focused tests, pkgdown checks, after-phase audit, PR, and GitHub Actions. | Phase 6c closes only after CI and pkgdown are green. |
 
 ## Phase 7: Robust and Positive Continuous Families
 

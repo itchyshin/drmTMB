@@ -14266,3 +14266,49 @@ Known limitations:
 - this slice does not add new profile intervals;
 - Phase 6 still needs code hardening, focused tests, rendered examples, and
   GitHub Actions before it can be closed.
+
+## 2026-05-15 -- Phase 6c random-slope roadmap insertion
+
+Goal:
+
+- record the project-owner decision that random slopes should become a
+  near-term Phase 6c lane, with one structured `mu` slope first and up to two
+  slopes only as an advanced path.
+
+Implemented:
+
+- created GitHub issue
+  <https://github.com/itchyshin/drmTMB/issues/33> for Phase 6c structured
+  random slopes and biological slope-correlation examples;
+- updated `ROADMAP.md` with a Phase 6c section and Slices 69-76;
+- updated the Phase 6b tutorial-quality text to require more symbolic maths,
+  detailed explanations, and biological interpretation in major tutorials.
+- added Phase 6c planning language for profile-likelihood CIs on random-slope
+  SDs and direct, identifiable slope-related correlations;
+- recorded intercept-slope correlations and bivariate slope1-slope2
+  correlations as advanced Phase 6c targets rather than first-slope defaults.
+
+Checks run:
+
+- `gh issue create --repo itchyshin/drmTMB --label enhancement --title "Phase 6c: structured random slopes and biological slope-correlation examples" ...`:
+  created issue #33.
+- `gh issue comment 33 --repo itchyshin/drmTMB ...`:
+  added the project-owner clarification that Phase 6c includes
+  profile-likelihood CIs for random-slope quantities and advanced slope
+  correlations.
+- `PATH=/opt/homebrew/bin:$PATH air format ROADMAP.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-15-phase-6c-random-slope-roadmap.md`:
+  passed.
+- `git diff --check`:
+  passed.
+- `Rscript -e 'pkgdown::build_site()'`:
+  passed and rebuilt the local `ROADMAP.html`.
+- `Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed with no problems found.
+- `rg -n "Phase 6c|profile-likelihood CI|random-slope SD|slope-related correlations|slope1-slope2|plasticity syndrome|issues/33" ROADMAP.md pkgdown-site/ROADMAP.html docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-15-phase-6c-random-slope-roadmap.md --glob '!pkgdown-site/search.json'`:
+  confirmed source and rendered roadmap wording.
+
+Known limitations:
+
+- this slice records the roadmap and issue only; it does not implement random
+  slopes, two-slope covariance blocks, slope-correlation profile intervals, or
+  slope-slope `corpair()` output.
