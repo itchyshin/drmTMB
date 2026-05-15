@@ -14504,3 +14504,56 @@ Known limitations:
   `sdreport()` controls, optimizer fallbacks, multi-starts, count-kernel
   changes, or C++ modularization;
 - Slice 55 remains the next implementation slice in the active profile-CI lane.
+
+## 2026-05-15 -- Slice 55 random-effect SD and correlation intervals
+
+Goal:
+
+- stabilize direct profile-likelihood interval evidence for currently fitted
+  ordinary, phylogenetic, and coordinate-spatial random-effect SD and
+  correlation targets.
+
+Implemented:
+
+- added direct profile interval coverage for the first coordinate-spatial
+  `sd:mu:spatial(1 | site)` target;
+- added constant ordinary `corpairs(conf.int = TRUE)` coverage for the fitted
+  bivariate group-level `mu1`/`mu2` random-intercept correlation;
+- added bivariate phylogenetic `summary(conf.int = TRUE, method = "profile")`
+  coverage for a direct phylogenetic SD target and the direct phylogenetic
+  `mu1`/`mu2` mean-mean correlation target;
+- added constant phylogenetic `corpairs(conf.int = TRUE)` coverage;
+- updated `docs/design/12-profile-likelihood-cis.md`, `ROADMAP.md`, `NEWS.md`,
+  and
+  `docs/dev-log/after-task/2026-05-15-slice-55-random-effect-intervals.md`.
+
+Checks run:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::test(filter = "summary", reporter = "summary")'`:
+  passed after strengthening the bivariate phylogenetic summary design from
+  four to eight species.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::test(filter = "spatial-gaussian|summary|profile-targets", reporter = "summary")'`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::test(filter = "profile-targets|summary|spatial-gaussian|phylo-gaussian|covariance-block-registry", reporter = "summary")'`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::test(reporter = "summary")'`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH air format tests/testthat/test-spatial-gaussian.R tests/testthat/test-summary.R tests/testthat/test-profile-targets.R NEWS.md ROADMAP.md docs/design/12-profile-likelihood-cis.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-15-slice-55-random-effect-intervals.md`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::build_site()'`:
+  passed and rebuilt local `ROADMAP.html` and `news/index.html`.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed with no problems found.
+- `git diff --check`:
+  passed.
+- `rg -n "Slice 55|Random-Effect SD and Correlation Intervals|sd:mu:spatial|derived_interval_unavailable|newdata_required|stable-core validation" NEWS.md ROADMAP.md docs/design/12-profile-likelihood-cis.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-15-slice-55-random-effect-intervals.md tests/testthat/test-spatial-gaussian.R tests/testthat/test-summary.R tests/testthat/test-profile-targets.R pkgdown-site/ROADMAP.html pkgdown-site/news/index.html --glob '!pkgdown-site/search.json'`:
+  confirmed source, tests, and rendered pkgdown wording for Slice 55 and the
+  Phase 6d insertion.
+
+Known limitations:
+
+- this slice does not implement profile intervals for q4 unstructured
+  correlations, covariance products, ICCs, repeatability, phylogenetic signal,
+  conditional random-effect modes, or modelled `corpair(...) ~ x` summary rows
+  without `newdata`;
+- boundary and one-sided profile diagnostics remain a later Phase 6 slice.

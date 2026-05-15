@@ -64,6 +64,23 @@ test_that("Gaussian mu supports coordinate-based spatial intercepts", {
   expect_equal(nrow(spatial_target), 1L)
   expect_equal(spatial_target$tmb_parameter, "log_sd_phylo")
   expect_equal(spatial_target$target_type, "direct")
+  expect_true(spatial_target$profile_ready)
+  expect_equal(spatial_target$profile_note, "ready")
+
+  spatial_ci <- stats::confint(
+    fit,
+    parm = "sd:mu:spatial(1 | site)",
+    level = 0.70,
+    method = "profile",
+    trace = FALSE,
+    ystep = 0.50
+  )
+  expect_equal(spatial_ci$parm, "sd:mu:spatial(1 | site)")
+  expect_equal(spatial_ci$tmb_parameter, "log_sd_phylo")
+  expect_equal(spatial_ci$transformation, "exp")
+  expect_gt(spatial_ci$lower, 0)
+  expect_lt(spatial_ci$lower, unname(fit$sdpars$mu[["spatial(1 | site)"]]))
+  expect_gt(spatial_ci$upper, unname(fit$sdpars$mu[["spatial(1 | site)"]]))
 
   fixed_mu <- as.vector(fit$model$X$mu %*% fit$coefficients$mu)
   conditional_mu <- predict(fit, dpar = "mu", type = "link")
