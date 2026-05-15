@@ -150,13 +150,16 @@ Use these status labels:
 
 ### Ordinary bivariate covariance and `corpairs()`
 
-- Matrix status: first slice.
+- Matrix status: first slice locally closed.
 - Register status: partial.
 - Evidence: `tests/testthat/test-biv-gaussian.R`,
   `tests/testthat/test-corpairs.R`,
   `tests/testthat/test-covariance-block-registry.R`,
   `tests/testthat/test-profile-targets.R`, and
   `tests/testthat/test-summary.R`.
+- Phase gate: the ordinary bivariate random-intercept and `corpairs()`
+  foundation is recorded in
+  `docs/dev-log/after-phase/2026-05-15-phase-11-bivariate-corpairs-foundation-closure.md`.
 - Diagnostics and intervals: constant q=2 SD/correlation targets are direct;
   predictor-dependent q=2 `corpair()` values use `newdata`; q=4 rows are
   derived summaries and should report unavailable derived intervals.

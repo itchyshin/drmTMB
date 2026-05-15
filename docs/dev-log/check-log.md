@@ -15566,3 +15566,59 @@ Known limitations:
   `sigma`, bivariate spatial covariance, spatial direct-SD models, and spatial
   `corpair()` remain planned;
 - GitHub Actions remains the PR-side gate.
+
+## 2026-05-15 -- Phase 11 bivariate correlation-pair foundation closure
+
+Goal:
+
+- close the local ordinary bivariate random-intercept and `corpairs()`
+  foundation without claiming the full double-hierarchical endpoint.
+
+Implemented:
+
+- added after-phase report
+  `docs/dev-log/after-phase/2026-05-15-phase-11-bivariate-corpairs-foundation-closure.md`;
+- updated `ROADMAP.md` so Phase 11 is locally closed only for ordinary
+  bivariate random-intercept covariance and `corpairs()` rows;
+- refreshed `R/drmTMB.R`,
+  `docs/design/04-random-effects.md`, and
+  `docs/design/17-correlated-random-effect-blocks.md` to remove stale wording
+  that implied only q2 mean covariance was implemented or that all-four
+  intercept covariance remained unavailable;
+- updated `docs/design/34-validation-debt-register.md` so the ordinary
+  bivariate covariance row points to the Phase 11 closure report;
+- kept bivariate random slopes, coefficient-aware slope-pair `corpair()`
+  regression, full q=6 or q=8 endpoint blocks, direct q=4 profile intervals,
+  random effects in `rho12`, structured spatial covariance, and
+  non-phylogenetic species covariance as planned work.
+
+Checks run:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH air format ROADMAP.md R/drmTMB.R docs/design/04-random-effects.md docs/design/17-correlated-random-effect-blocks.md docs/design/34-validation-debt-register.md docs/dev-log/check-log.md docs/dev-log/after-phase/2026-05-15-phase-11-bivariate-corpairs-foundation-closure.md`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::test(filter = "biv-gaussian|corpairs|profile-targets|summary|check-drm|covariance-block-registry", reporter = "summary")'`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::build_site()'`:
+  passed and refreshed ROADMAP.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed with no problems found.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::check(error_on = "never", env_vars = c("_R_CHECK_SYSTEM_CLOCK_" = "FALSE"))'`:
+  passed with 0 errors, 0 warnings, and 0 notes in 2m 17s.
+- `git diff --check`: passed.
+- `rg -n 'Phase 11|phase-11-bivariate-corpairs-foundation-closure|ordinary bivariate random-intercept|ordinary q=4 all-four|direct q=4 profile intervals|rho12 random effects|structured spatial covariance|residual-scale slope covariance' ROADMAP.md docs/design/04-random-effects.md docs/design/17-correlated-random-effect-blocks.md docs/design/34-validation-debt-register.md docs/dev-log/check-log.md docs/dev-log/after-phase/2026-05-15-phase-11-bivariate-corpairs-foundation-closure.md pkgdown-site/ROADMAP.html --glob '!pkgdown-site/search.json'`:
+  confirmed source and rendered closure wording.
+- `rg -n 'bivariate random effects remain planned|Bivariate random-effect syntax is planned|sigma1.*sigma2.*planned|q4.*remain planned|full cross-parameter bivariate covariance|residual-scale covariance.*planned|bivariate random slopes (are|now) implemented|q=4.*direct profile.*(is|are|now) implemented|direct q=4 profile intervals (are|now) implemented|rho12 random effects (are|now) implemented|random effects in `rho12` (are|now) implemented|structured spatial covariance (is|now) implemented|spatial bivariate covariance (is|now) implemented|spatial `corpair\\(\\)` (is|now) implemented' README.md ROADMAP.md NEWS.md docs/design vignettes R tests man pkgdown-site --glob '!docs/dev-log/**' --glob '!pkgdown-site/search.json' --glob '!pkgdown-site/deps/**'`:
+  returned only allowed planned-boundary statements in README, rendered
+  ROADMAP, `vignettes/distribution-families.Rmd`,
+  `docs/design/01-formula-grammar.md`, and
+  `docs/design/28-double-hierarchical-endpoint.md`.
+
+Known limitations:
+
+- only ordinary random-intercept bivariate covariance is locally closed;
+- q=4 covariance rows are point summaries with derived interval status, not
+  direct profile intervals;
+- bivariate random slopes, coefficient-aware slope-pair `corpair()` regression,
+  q=6/q=8 endpoint blocks, `rho12` random effects, structured spatial
+  covariance, and non-phylogenetic species covariance remain planned;
+- GitHub Actions remains the PR-side gate.

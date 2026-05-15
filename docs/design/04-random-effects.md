@@ -272,13 +272,13 @@ does not put random effects inside the residual `sigma` model.
 
 The middle label `p` identifies a group-level covariance block. In the
 univariate Gaussian `mu` implementation, the label is retained in output names.
-In the first bivariate Gaussian covariance slice, matching `(1 | p | id)` terms
-in `mu1` and `mu2` estimate one constant group-level random-intercept
-correlation. Later implementations should allow the same label in more
-parameter formulas, for example in `mu` and `sigma`, to estimate constant
-correlations among those group-level effects. These are the correlations used
-in double-hierarchical models of individual averages, mean-model slopes,
-residual scale, and scale-model slopes.
+In the bivariate Gaussian covariance foundation, matching `(1 | p | id)` terms
+can estimate constant group-level random-intercept correlations for
+`mu1`/`mu2`, `sigma1`/`sigma2`, one same-response `mu`/`sigma` pair, or the
+intercept-only all-four block across `mu1`, `mu2`, `sigma1`, and `sigma2`.
+These are the correlations used in double-hierarchical models of individual
+averages and residual scale. Mean-model slopes, scale-model slopes, and
+coefficient-aware slope-pair `corpair()` regressions remain planned.
 
 Residual `rho12 ~` is separate and belongs to bivariate response likelihoods.
 It models the residual coupling between two responses after their location and

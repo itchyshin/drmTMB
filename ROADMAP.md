@@ -15,7 +15,7 @@ distributional regression models using TMB.
   visualization and marginal-effects layer that should make fitted location,
   scale, coscale, random-effect SD, and latent correlation results easier to
   inspect across model families. Richer bivariate random slopes,
-  residual-scale covariance, structured covariance, and the full
+  residual-scale slope covariance, structured covariance, and the full
   double-hierarchical endpoint remain roadmap work for later releases.
 - Completed before bumping the version:
   - `devtools::check()` passes with 0 errors, 0 warnings, and 0 notes;
@@ -681,12 +681,16 @@ remain blocked by future covariance or non-Gaussian random-effect work.
 
 ## Phase 11: Bivariate Random Effects and Correlation Pairs
 
-- Status: first slice implemented.
+- Status: ordinary bivariate random-intercept and `corpairs()` foundation
+  locally closed. See
+  `docs/dev-log/after-phase/2026-05-15-phase-11-bivariate-corpairs-foundation-closure.md`.
 - Matching labelled random intercepts in bivariate `mu1`/`mu2`,
   `sigma1`/`sigma2`, and one same-response `mu`/`sigma` pair are implemented
   after the fixed-effect bivariate Gaussian location-coscale model stabilized.
-  Random slopes, full cross-parameter bivariate covariance blocks, and
-  structured covariance remain planned.
+  The ordinary q=4 all-four intercept block reports all six fitted
+  `corpairs()` rows as derived summaries. Random slopes, full cross-parameter
+  slope covariance, direct q=4 profile intervals, `rho12` random effects, and
+  structured spatial covariance remain planned.
 - Use labelled group-level covariance blocks so residual `rho12`, ordinary
   group-level correlations, phylogenetic correlations, spatial field
   correlations, and mean-scale correlations stay in separate namespaces.

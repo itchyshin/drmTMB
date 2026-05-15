@@ -6024,10 +6024,10 @@ reject_biv_cross_parameter_label_reuse <- function(
   block_label <- labels[[1L]]
   group_name <- groups[[1L]]
   cli::cli_abort(c(
-    "Reusing one bivariate covariance-block label across {.code mu1}/{.code mu2} and {.code sigma1}/{.code sigma2} is not implemented.",
-    "x" = "Block {.code {block_label}} on group {.field {group_name}} would imply a full cross-parameter bivariate covariance block.",
-    "i" = "Use distinct labels such as {.code (1 | pm | {group_name})} for {.code mu1}/{.code mu2} and {.code (1 | ps | {group_name})} for {.code sigma1}/{.code sigma2}.",
-    "i" = "Full cross-parameter bivariate covariance across {.code mu1}, {.code mu2}, {.code sigma1}, and {.code sigma2} remains planned."
+    "Unsupported bivariate covariance-block label reuse.",
+    "x" = "Block {.code {block_label}} on group {.field {group_name}} was not recognized as a supported intercept-only covariance block.",
+    "i" = "Supported all-four bivariate covariance uses matching {.code (1 | p | {group_name})} terms in {.code mu1}, {.code mu2}, {.code sigma1}, and {.code sigma2}.",
+    "i" = "Use distinct labels such as {.code (1 | pm | {group_name})} for {.code mu1}/{.code mu2} and {.code (1 | ps | {group_name})} for {.code sigma1}/{.code sigma2} when you want two q=2 blocks."
   ))
 }
 
