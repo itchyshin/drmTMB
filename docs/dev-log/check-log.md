@@ -14762,3 +14762,49 @@ Known limitations:
 - one-sided intervals, non-monotone-profile recovery, bootstrap fallback,
   derived q=4 correlation intervals, and conditional random-effect mode
   intervals remain future work.
+
+## 2026-05-15 -- Slice 60 Phase 6 profile-likelihood gate
+
+Goal:
+
+- close Phase 6 with local full-test, pkgdown, local check, stale-wording, and
+  after-phase evidence before sending the gate PR to GitHub Actions.
+
+Implemented:
+
+- marked Phase 6 in `ROADMAP.md` as closure-audited for the scoped
+  direct-profile inference surfaces;
+- added an after-phase report at
+  `docs/dev-log/after-phase/2026-05-15-phase-6-profile-likelihood-closure.md`;
+- recorded the implemented Phase 6 boundary: direct profile intervals and
+  interval status output are now supported for the scoped fitted targets, while
+  derived q=4 intervals, one-sided intervals, bootstrap fallback, conditional
+  random-effect mode intervals, and broad profile recovery remain future work.
+
+Checks run:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::test(reporter = "summary")'`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::build_site()'`:
+  passed and rendered the updated `ROADMAP.html`.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed with no problems found.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::check(error_on = "never", env_vars = c("_R_CHECK_SYSTEM_CLOCK_" = "FALSE"))'`:
+  passed with 0 errors, 0 warnings, and 0 notes.
+- `git diff --check`:
+  passed.
+- `rg -n "Status: partly implemented|Phase 6 closes only|direct profile intervals for derived|all six.*profile-ready|all parameters.*95|complete.*profile|profile CI.*complete|profile-likelihood intervals.*all" README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes --glob '!docs/dev-log/after-task/**' --glob '!docs/dev-log/after-phase/**'`:
+  found no stale implemented-scope claim; the two hits were the valid phrases
+  "completed TMB profile" and "Do not treat profile CIs as complete".
+- `rg -n "closure-audited|conf\\.status|profile\\.boundary|profile\\.message|derived-profile intervals" ROADMAP.md pkgdown-site/ROADMAP.html README.md pkgdown-site/index.html vignettes/model-workflow.Rmd pkgdown-site/articles/model-workflow.html --glob '!pkgdown-site/search.json'`:
+  confirmed the closure status and interval vocabulary in source and rendered
+  pages.
+
+Known limitations:
+
+- Phase 6 does not make every possible `drmTMB` parameter profile-ready;
+- q=4 ordinary and phylogenetic correlations remain derived point-estimate
+  targets without validated profile intervals;
+- one-sided profile intervals, non-monotone-profile recovery, parametric
+  bootstrap fallback, conditional random-effect mode intervals, and full
+  marginal-effect uncertainty remain future phases.

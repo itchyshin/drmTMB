@@ -344,7 +344,7 @@ Phase 5 closure boundary:
 
 ## Phase 6: Profile-Likelihood Inference
 
-- Status: partly implemented.
+- Status: closure-audited for the scoped direct-profile inference surfaces.
 - Tracking issue: [#30](https://github.com/itchyshin/drmTMB/issues/30).
 - `profile_targets(fit)` lists the current target names and readiness notes for
   confidence-interval and profile-likelihood work, including the first
@@ -409,7 +409,7 @@ large confidence-interval rewrite:
 | 57 | Output integration | Align interval columns and status values across `summary()`, `corpairs()`, `confint()`, and `profile_targets()`. | Done: `conf.status` is now part of successful `confint()` rows and interval-aware `summary()` tables, with contract tests for returned and printed parameter tables. |
 | 58 | Inference diagnostics | Add diagnostics for boundary, near-correlation-limit, non-monotone, and failed inner-optimization profiles. | Done: profile interval rows carry `profile.boundary` and `profile.message`, and failed profile errors name boundary, one-sided, non-monotone, and failed-inner-optimization possibilities. |
 | 59 | Profile inference docs | Update profile-CI design, known limitations, tutorials, and NEWS for any user-facing behavior changes. | Done: README, known limitations, model workflow, model map, bivariate, phylogenetic-spatial, and profile-CI design prose teach `conf.status`, `profile.boundary`, and `profile.message` without claiming derived q4 intervals. |
-| 60 | Phase 6 gate | Run focused tests, full package tests when practical, pkgdown checks, after-phase audit, PR, and GitHub Actions. | Phase 6 closes only after CI and pkgdown are green. |
+| 60 | Phase 6 gate | Run focused tests, full package tests when practical, pkgdown checks, after-phase audit, PR, and GitHub Actions. | Done when this gate PR has green local checks, an after-phase report, pkgdown evidence, and GitHub Actions. |
 
 ## Phase 6b: Tutorial Quality Upgrade
 
