@@ -1056,6 +1056,7 @@ test_that("confint profile intervals transform bivariate phylogenetic correlatio
   )
 
   phylo_cor <- "cor:phylo:cor(mu1:(Intercept),mu2:(Intercept) | phylo | species)"
+  phylo_sd <- "sd:mu:mu1:phylo(1 | species)"
   ci <- stats::confint(
     fit,
     parm = phylo_cor,
@@ -1092,6 +1093,23 @@ test_that("confint profile intervals transform bivariate phylogenetic correlatio
   )
   expect_true(abs(ci$lower) < 1)
   expect_true(abs(ci$upper) < 1)
+
+  sd_ci <- stats::confint(
+    fit,
+    parm = phylo_sd,
+    level = 0.70,
+    method = "profile",
+    trace = FALSE,
+    ystep = 0.35
+  )
+  expect_equal(sd_ci$parm, phylo_sd)
+  expect_equal(sd_ci$scale, "response")
+  expect_equal(sd_ci$transformation, "exp")
+  expect_equal(sd_ci$tmb_parameter, "log_sd_phylo")
+  expect_equal(sd_ci$index, 1L)
+  expect_gt(sd_ci$lower, 0)
+  expect_lt(sd_ci$lower, fit$sdpars$mu[["mu1:phylo(1 | species)"]])
+  expect_gt(sd_ci$upper, fit$sdpars$mu[["mu1:phylo(1 | species)"]])
 })
 
 test_that("profile confidence intervals reject unsupported targets clearly", {

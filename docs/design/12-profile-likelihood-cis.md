@@ -238,6 +238,39 @@ The row-profile path is intentionally single-target. It rejects missing
 before calling TMB. Arbitrary multi-row or multi-parameter contrasts remain a
 later design target.
 
+## Phase 6 Slice 55 Random-Effect SD and Correlation Intervals
+
+Slice 55 closes the current direct random-effect interval contract. The fitted
+targets covered by tests are:
+
+- ordinary grouped SDs such as `sd:mu:(1 | id)`;
+- ordinary grouped correlations such as
+  `cor:mu:cor(mu1:(Intercept),mu2:(Intercept) | p | id)` and
+  `cor:mu_sigma:cor(mu:(Intercept),sigma:(Intercept) | p | id)`;
+- the first coordinate-spatial SD target,
+  `sd:mu:spatial(1 | site)`;
+- bivariate phylogenetic `mu1`/`mu2` SD targets such as
+  `sd:mu:mu1:phylo(1 | species)`;
+- the bivariate phylogenetic mean-mean correlation target
+  `cor:phylo:cor(mu1:(Intercept),mu2:(Intercept) | phylo | species)`.
+
+`summary(conf.int = TRUE, method = "profile", ci_parm = ...)` attaches
+intervals to `summary(fit)$parameters` for the requested direct rows. For
+random-effect covariance summaries, the same profile interval table is reused
+to populate `correlation_conf.*`, `from_sd_conf.*`, and `to_sd_conf.*` columns
+where those direct targets were requested. The nonlinear covariance itself is
+still reported as `covariance_conf.status = "derived_interval_unavailable"`
+because it combines multiple profiled quantities and is not yet a single direct
+profile target.
+
+`corpairs(conf.int = TRUE)` attaches profile-likelihood intervals only to
+constant fitted correlation-pair rows whose `profile_targets()` row is
+`profile_ready`. Modelled `corpair(...) ~ x` summary rows still report
+`newdata_required`; q4 unstructured ordinary or phylogenetic rows still report
+`derived_interval_unavailable`. This keeps constant latent correlations,
+predictor-dependent latent correlations, residual `rho12`, and derived q4 rows
+separate in both output and inference claims.
+
 ## Core Definition
 
 For a single parameter `theta`, the likelihood-ratio statistic is:

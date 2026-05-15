@@ -326,12 +326,23 @@ test_that("summary() separates bivariate group covariance from residual rho12", 
     ci_parm = cor_mu,
     ystep = 0.35
   )
+  pair_ci <- corpairs(
+    fit,
+    level = "group",
+    conf.int = TRUE,
+    conf.level = 0.80,
+    ystep = 0.35
+  )
   cor_row <- profiled$parameters[cor_mu, ]
   expect_equal(profiled$conf.method, "profile")
   expect_true(is.finite(cor_row$conf.low))
   expect_true(is.finite(cor_row$conf.high))
   expect_lt(cor_row$conf.low, smry$parameters[cor_mu, "estimate"])
   expect_gt(cor_row$conf.high, smry$parameters[cor_mu, "estimate"])
+  expect_equal(pair_ci$profile_target, cor_mu)
+  expect_equal(pair_ci$conf.status, "profile")
+  expect_true(is.finite(pair_ci$conf.low))
+  expect_true(is.finite(pair_ci$conf.high))
   expect_equal(
     profiled$covariance$covariance_conf.status,
     "derived_interval_unavailable"
@@ -339,7 +350,12 @@ test_that("summary() separates bivariate group covariance from residual rho12", 
 })
 
 test_that("summary() reports bivariate phylogenetic covariance separately", {
-  sim <- new_summary_biv_phylo_data()
+  sim <- new_summary_biv_phylo_data(
+    n_tip = 8L,
+    n_each = 8L,
+    rho_phylo = 0.35,
+    rho12 = 0.05
+  )
   dat <- sim$data
   tree <- sim$tree
   fit <- drmTMB(
@@ -420,6 +436,39 @@ test_that("summary() reports bivariate phylogenetic covariance separately", {
     smry$covariance$correlation_target,
     fixed = TRUE
   )))
+
+  profiled <- summary(
+    fit,
+    conf.int = TRUE,
+    method = "profile",
+    ci_parm = c(sd_mu1, cor_phylo),
+    ystep = 0.45,
+    level = 0.70
+  )
+  pair_ci <- corpairs(
+    fit,
+    level = "phylogenetic",
+    conf.int = TRUE,
+    conf.level = 0.70,
+    ystep = 0.45
+  )
+  expect_true(is.finite(profiled$parameters[sd_mu1, "conf.low"]))
+  expect_true(is.finite(profiled$parameters[sd_mu1, "conf.high"]))
+  expect_true(is.finite(profiled$parameters[cor_phylo, "conf.low"]))
+  expect_true(is.finite(profiled$parameters[cor_phylo, "conf.high"]))
+  expect_true(is.finite(profiled$covariance$correlation_conf.low))
+  expect_true(is.finite(profiled$covariance$correlation_conf.high))
+  expect_true(is.finite(profiled$covariance$from_sd_conf.low))
+  expect_true(is.finite(profiled$covariance$from_sd_conf.high))
+  expect_true(all(is.na(profiled$covariance$to_sd_conf.low)))
+  expect_equal(
+    profiled$covariance$covariance_conf.status,
+    "derived_interval_unavailable"
+  )
+  expect_equal(pair_ci$profile_target, cor_phylo)
+  expect_equal(pair_ci$conf.status, "profile")
+  expect_true(is.finite(pair_ci$conf.low))
+  expect_true(is.finite(pair_ci$conf.high))
 })
 
 test_that("summary() reports fitted shape ranges", {
