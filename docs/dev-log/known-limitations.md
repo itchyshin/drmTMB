@@ -35,14 +35,16 @@
   ordinary random effects, no direct-SD formulas, and no phylogenetic or
   spatial structured effects. Sparse `sigma`, bivariate, non-Gaussian,
   random-effect, and structured-effect fixed-effect matrices remain planned.
-- Gaussian sufficient-statistic aggregation is designed but not implemented.
-  The first planned path is opt-in and limited to univariate Gaussian
-  fixed-effect models where repeated rows share the same `mu` and `sigma`
-  design state after row filtering. Random effects, direct-SD formulas,
-  phylogenetic or spatial structured effects, known sampling covariance,
-  bivariate models, non-Gaussian families, and ambiguous fitted-row prediction
-  or residual output remain out of scope until likelihood parity tests and
-  post-fit method policies exist.
+- Gaussian sufficient-statistic aggregation is implemented only for the first
+  opt-in univariate Gaussian fixed-effect path through
+  `drm_control(aggregate_gaussian = TRUE)`. Rows can be collapsed only when
+  they share the same processed `mu` and `sigma` design state after row
+  filtering. Random effects, direct-SD formulas, phylogenetic or spatial
+  structured effects, known sampling covariance, bivariate models,
+  non-Gaussian families, non-unit likelihood weights, and combined sparse
+  fixed-effect matrices remain out of scope. Fitted-row predictions and
+  residuals still use stored original-row model matrices and response vectors;
+  no cell-level residual method is exposed yet.
 - Bivariate Gaussian location-scale-coscale models are implemented with `mu1`,
   `mu2`, `sigma1`, `sigma2`, and `rho12` formulas. The first group-level
   bivariate covariance slices are implemented for matching labelled
@@ -259,8 +261,8 @@
   including nested model-frame caches for direct-SD and fitted q=2
   `corpair()` models. Current fits still build ordinary R model frames and
   dense fixed-effect model matrices before optimization. Before claiming
-  readiness for millions of rows, `drmTMB` still needs sparse fixed-effect
-  matrices where appropriate, aggregation for repeated Gaussian rows, and
-  repeated large phylogenetic benchmark runs beyond the initial optional
-  harness in
+  readiness for millions of rows, `drmTMB` still needs broader sparse
+  fixed-effect matrices where appropriate, broader aggregation paths for
+  repeated Gaussian rows, and repeated large phylogenetic benchmark runs beyond
+  the initial optional harness in
   `bench/large-phylo-location.R`.

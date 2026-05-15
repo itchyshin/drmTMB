@@ -14143,3 +14143,75 @@ Known limitations:
   reserved candidate name, not implemented;
 - no TMB likelihood branch, aggregation-key builder, or dense-versus-aggregated
   parity test exists yet.
+
+## 2026-05-15 -- Phase 5b Slices 48-50 fitted Gaussian aggregation
+
+Goal:
+
+- finish the Phase 5b Gaussian aggregation lane by implementing the internal
+  aggregation key, the fitted opt-in TMB likelihood branch, benchmark support,
+  documentation, and release-readiness evidence.
+
+Implemented:
+
+- added `drm_control(aggregate_gaussian = TRUE)` for the first univariate
+  Gaussian fixed-effect sufficient-statistic aggregation path;
+- added `R/gaussian-aggregation.R` with aggregation-key construction, full-row
+  versus aggregation-cell likelihood parity helpers, TMB data assembly, and
+  fitted aggregation summaries;
+- added TMB data declarations and a `model_type = 1` aggregated Gaussian
+  likelihood branch using `n`, `sum_y`, and `sum_y2`;
+- kept original-row post-fit outputs by storing original-row model matrices and
+  response vectors in the fitted object while passing aggregation cells to TMB;
+- added `check_drm()`'s `gaussian_aggregation` row;
+- added dense-versus-aggregated tests, memory-light tests, rejection snapshots,
+  and the raw phylogenetic TMB-data dummy fields required by the expanded TMB
+  data contract;
+- extended `bench/large-phylo-location.R` and `bench/summarize-results.R` with
+  `aggregate_gaussian`, requested/fitted aggregation-cell counts, compression
+  ratio, and largest-cell diagnostics;
+- updated `NEWS.md`, `ROADMAP.md`, `docs/design/03-likelihoods.md`,
+  `docs/design/23-large-data-memory.md`,
+  `docs/design/31-gaussian-aggregation-sufficient-statistics.md`,
+  `docs/dev-log/known-limitations.md`, `vignettes/large-data.Rmd`,
+  `bench/README.md`, roxygen docs, and local pkgdown pages;
+- added after-task report
+  `docs/dev-log/after-task/2026-05-15-phase-5b-slices-48-50-gaussian-aggregation-fit.md`.
+
+Checks run:
+
+- `Rscript -e 'devtools::load_all(quiet = TRUE)'`:
+  passed after an early C++ brace repair.
+- `Rscript -e 'devtools::test(filter = "gaussian-aggregation")'`:
+  passed with `FAIL 0 | WARN 0 | SKIP 0 | PASS 33`.
+- `Rscript -e 'devtools::test(filter = "sparse-fixed-effects|phylo-utils")'`:
+  passed with `FAIL 0 | WARN 0 | SKIP 0 | PASS 117`.
+- `Rscript -e 'devtools::test(reporter = "summary")'`:
+  passed.
+- `Rscript -e 'e <- new.env(parent = globalenv()); sys.source("bench/large-phylo-location.R", e); args <- e$parse_args(c("--rows", "120", "--species", "8", "--structured", "none", "--aggregate-gaussian", "true", "--aggregation-cells", "12", "--memory-light", "true", "--eval-max", "80", "--iter-max", "80")); res <- e$run_benchmark(args); stopifnot(isTRUE(res$aggregate_gaussian[[1]]), res$aggregation_cells_fitted[[1]] <= 12, is.finite(res$aggregation_compression_ratio[[1]])); cat(res$aggregation_cells_fitted[[1]], res$aggregation_compression_ratio[[1]], "\n")'`:
+  passed and printed `12 10`.
+- `tmp_csv=$(mktemp /tmp/drmTMB-aggregation-smoke-XXXXXX.csv); Rscript bench/large-phylo-location.R --rows 120 --species 8 --structured none --aggregate-gaussian true --aggregation-cells 12 --memory-light true --eval-max 80 --iter-max 80 --output "$tmp_csv" && Rscript bench/summarize-results.R --input "$tmp_csv"`:
+  passed; the summary reported `aggregation_cells = 12` and
+  `aggregation_compression = 10`.
+- `Rscript -e 'devtools::document()'`:
+  passed and regenerated `man/check_drm.Rd` and `man/drm_control.Rd`.
+- `Rscript -e 'pkgdown::build_article("large-data", new_process = FALSE)'`:
+  passed.
+- `Rscript -e 'pkgdown::build_site()'`:
+  passed.
+- `Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed with no problems found.
+- `Rscript -e 'devtools::check(document = FALSE, args = "--no-manual")'`:
+  passed with 0 errors, 0 warnings, and 1 NOTE: unable to verify current time.
+- `git diff --check`:
+  passed.
+- `rg -n "aggregate_gaussian.*reserved|reserved design name|aggregation.*designed but not implemented|no fitted aggregation control|fitted aggregation.*planned|Gaussian sufficient-statistic aggregation is designed" README.md ROADMAP.md NEWS.md R man docs/design docs/dev-log/known-limitations.md vignettes pkgdown-site --glob '!pkgdown-site/search.json'`:
+  returned no matches.
+
+Known limitations:
+
+- aggregation currently covers only univariate Gaussian fixed-effect models
+  with unit likelihood weights and no random, structured, known-covariance,
+  bivariate, non-Gaussian, or sparse-fixed-effect combination;
+- benchmark smoke evidence confirms the harness and compression fields, not
+  million-row readiness.

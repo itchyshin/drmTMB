@@ -9,7 +9,8 @@ drm_control(
   keep_data = TRUE,
   keep_model_frame = TRUE,
   keep_tmb_object = TRUE,
-  sparse_fixed = FALSE
+  sparse_fixed = FALSE,
+  aggregate_gaussian = FALSE
 )
 }
 \arguments{
@@ -35,6 +36,12 @@ note because it cannot re-evaluate the gradient without \code{fit$obj}.}
 \item{sparse_fixed}{Logical; experimental opt-in for sparse fixed-effect
 design matrices. The first fitted path is limited to univariate Gaussian
 \code{mu} fixed effects with no random effects and intercept-only \code{sigma}.}
+
+\item{aggregate_gaussian}{Logical; experimental opt-in for sufficient-
+statistic row aggregation in univariate Gaussian fixed-effect models. The
+first fitted path rejects random effects, structured effects, known
+sampling covariance, bivariate models, non-Gaussian families, non-unit
+likelihood weights, and combined sparse fixed-effect matrices.}
 }
 \value{
 A \code{drm_control} object.

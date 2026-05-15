@@ -39,7 +39,10 @@
 #' fit includes `sd_phylo(species) ~ x_species`,
 #' `sd_phylo1(species) ~ x_species`, or
 #' `sd_phylo2(species) ~ x_species`, it reports species replication and the
-#' fitted direct-SD surface range. If a fit was stored with
+#' fitted direct-SD surface range. If a univariate Gaussian fit used
+#' `drm_control(aggregate_gaussian = TRUE)`, it reports original rows,
+#' aggregation cells, compression ratio, and largest cell size. If a fit was
+#' stored with
 #' `drm_control(keep_tmb_object = FALSE)`, the
 #' fixed-gradient check is reported as a note because the TMB
 #' automatic-differentiation object is not available.
@@ -108,6 +111,7 @@ check_drm.drmTMB <- function(
     check_student_nu(object),
     check_known_v(object),
     check_fixed_effect_design_size(object),
+    check_gaussian_aggregation(object),
     check_random_effect_replication(object, "mu"),
     check_random_effect_replication(object, "sigma"),
     check_random_effect_design(object, "mu"),
@@ -411,6 +415,39 @@ check_dropped_rows <- function(object) {
       "No rows were dropped by model-frame or known-covariance filtering."
     } else {
       "Rows were dropped by complete-case or known-covariance filtering."
+    }
+  )
+}
+
+check_gaussian_aggregation <- function(object) {
+  aggregation <- if (is.list(object$model$aggregation)) {
+    object$model$aggregation$gaussian
+  } else {
+    NULL
+  }
+  summary <- drm_gaussian_aggregation_summary(aggregation)
+  if (is.null(summary)) {
+    return(NULL)
+  }
+  row <- summary[1L, , drop = FALSE]
+  ratio <- row$compression_ratio[[1L]]
+  check_row(
+    "gaussian_aggregation",
+    if (ratio > 1) "ok" else "note",
+    paste0(
+      "original_rows=",
+      row$original_rows[[1L]],
+      "; aggregation_cells=",
+      row$aggregation_cells[[1L]],
+      "; compression_ratio=",
+      format_check_number(ratio),
+      "; largest_cell_n=",
+      row$largest_cell_n[[1L]]
+    ),
+    if (ratio > 1) {
+      "Gaussian aggregation compressed repeated fixed-effect likelihood rows before TMB optimization."
+    } else {
+      "Gaussian aggregation was enabled, but no fixed-effect likelihood rows were collapsed."
     }
   )
 }

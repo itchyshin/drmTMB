@@ -28,6 +28,11 @@
 #' @param sparse_fixed Logical; experimental opt-in for sparse fixed-effect
 #'   design matrices. The first fitted path is limited to univariate Gaussian
 #'   `mu` fixed effects with no random effects and intercept-only `sigma`.
+#' @param aggregate_gaussian Logical; experimental opt-in for sufficient-
+#'   statistic row aggregation in univariate Gaussian fixed-effect models. The
+#'   first fitted path rejects random effects, structured effects, known
+#'   sampling covariance, bivariate models, non-Gaussian families, non-unit
+#'   likelihood weights, and combined sparse fixed-effect matrices.
 #'
 #' @return A `drm_control` object.
 #' @export
@@ -49,7 +54,8 @@ drm_control <- function(
   keep_data = TRUE,
   keep_model_frame = TRUE,
   keep_tmb_object = TRUE,
-  sparse_fixed = FALSE
+  sparse_fixed = FALSE,
+  aggregate_gaussian = FALSE
 ) {
   if (
     !is.list(optimizer) ||
@@ -62,13 +68,18 @@ drm_control <- function(
   keep_model_frame <- drm_control_flag(keep_model_frame, "keep_model_frame")
   keep_tmb_object <- drm_control_flag(keep_tmb_object, "keep_tmb_object")
   sparse_fixed <- drm_control_flag(sparse_fixed, "sparse_fixed")
+  aggregate_gaussian <- drm_control_flag(
+    aggregate_gaussian,
+    "aggregate_gaussian"
+  )
   structure(
     list(
       optimizer = optimizer,
       keep_data = keep_data,
       keep_model_frame = keep_model_frame,
       keep_tmb_object = keep_tmb_object,
-      sparse_fixed = sparse_fixed
+      sparse_fixed = sparse_fixed,
+      aggregate_gaussian = aggregate_gaussian
     ),
     class = "drm_control"
   )

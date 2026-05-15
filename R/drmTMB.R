@@ -93,6 +93,15 @@ drmTMB <- function(
       "i" = "Use {.code family = gaussian()} with a fixed-effect {.code mu} formula, or set {.code sparse_fixed = FALSE}."
     ))
   }
+  if (
+    isTRUE(control$aggregate_gaussian) &&
+      !identical(family_type, "gaussian")
+  ) {
+    cli::cli_abort(c(
+      "Gaussian aggregation is implemented only for univariate Gaussian models in this phase.",
+      "i" = "Use {.code family = gaussian()} with a fixed-effect {.code mu} formula, or set {.code aggregate_gaussian = FALSE}."
+    ))
+  }
   if (!identical(family_type, "biv_gaussian")) {
     reject_corpair_formula_entries(formula$entries)
   }
@@ -459,6 +468,19 @@ drm_build_gaussian_ls_spec <- function(
     mu_phylo$term
   )
   sparse_mu <- isTRUE(control$sparse_fixed)
+  aggregate_gaussian <- isTRUE(control$aggregate_gaussian)
+  if (aggregate_gaussian) {
+    validate_gaussian_aggregation_gaussian(
+      meta = meta,
+      mu_phylo = mu_phylo,
+      mu_spatial = mu_spatial,
+      mu_re = mu_re,
+      sigma_re = sigma_re,
+      sd_mu_entries = sd_mu_entries,
+      sd_phylo_entries = sd_phylo_entries,
+      sparse_mu = sparse_mu
+    )
+  }
   if (sparse_mu) {
     validate_sparse_fixed_gaussian(
       meta = meta,
@@ -516,6 +538,9 @@ drm_build_gaussian_ls_spec <- function(
     nrow(data),
     sum(keep)
   )
+  if (aggregate_gaussian) {
+    drm_validate_gaussian_aggregation_weights(weights_model)
+  }
 
   mf_mu <- stats::model.frame(
     f_mu,
@@ -534,6 +559,16 @@ drm_build_gaussian_ls_spec <- function(
   X_sigma <- stats::model.matrix(stats::terms(mf_sigma), mf_sigma)
   if (sparse_mu) {
     validate_sparse_fixed_gaussian_design(X_sigma)
+  }
+  gaussian_aggregation <- if (aggregate_gaussian) {
+    drm_gaussian_aggregation(
+      y = y,
+      X_mu = X_mu,
+      X_sigma = X_sigma,
+      weights = weights_model
+    )
+  } else {
+    empty_gaussian_aggregation()
   }
   re_mu <- build_random_mu_structure(mu_re$terms, data_model)
   re_sigma <- build_random_sigma_structure(sigma_re$terms, data_model)
@@ -618,6 +653,7 @@ drm_build_gaussian_ls_spec <- function(
       mu_sigma = re_mu_sigma,
       covariance_blocks = re_cov_blocks
     ),
+    aggregation = list(gaussian = gaussian_aggregation),
     random_scale = list(mu = sd_mu, phylo = sd_phylo),
     structured = list(phylo_mu = phylo_mu),
     data = data_model,
@@ -7666,7 +7702,12 @@ add_covariance_block_tmb_data <- function(tmb_data, spec) {
   } else {
     empty_labelled_covariance_block_tmb_data()
   }
-  c(tmb_data, drm_sparse_fixed_tmb_data(spec), cov_tmb_data)
+  c(
+    tmb_data,
+    drm_sparse_fixed_tmb_data(spec),
+    drm_gaussian_aggregation_tmb_data(spec),
+    cov_tmb_data
+  )
 }
 
 add_covariance_probe_parameter <- function(spec) {
@@ -7761,11 +7802,18 @@ make_tmb_data <- function(spec) {
   }
   if (identical(spec$model_type, "gaussian")) {
     phylo_mu <- spec$structured$phylo_mu
+    gaussian_aggregation <- if (is.list(spec$aggregation)) {
+      spec$aggregation$gaussian
+    } else {
+      NULL
+    }
+    use_gaussian_aggregation <- is.list(gaussian_aggregation) &&
+      isTRUE(gaussian_aggregation$enabled)
     return(list(
       model_type = 1L,
-      y = spec$y,
-      trials = tmb_trials,
-      weights = spec$weights,
+      y = if (use_gaussian_aggregation) numeric(1) else spec$y,
+      trials = if (use_gaussian_aggregation) numeric(1) else tmb_trials,
+      weights = if (use_gaussian_aggregation) numeric(1) else spec$weights,
       offset_mu = offset_mu,
       V_known = spec$V_known_diag,
       V_known_matrix = if (identical(spec$V_known_type, "matrix")) {
@@ -7778,12 +7826,12 @@ make_tmb_data <- function(spec) {
       ),
       y1 = numeric(1),
       y2 = numeric(1),
-      X_mu = if (isTRUE(spec$sparse_fixed$mu)) {
+      X_mu = if (isTRUE(spec$sparse_fixed$mu) || use_gaussian_aggregation) {
         dummy_matrix
       } else {
         spec$X$mu
       },
-      X_sigma = spec$X$sigma,
+      X_sigma = if (use_gaussian_aggregation) dummy_matrix else spec$X$sigma,
       X_nu = dummy_matrix,
       X_zi = dummy_matrix,
       X_sd_mu = spec$random_scale$mu$X,

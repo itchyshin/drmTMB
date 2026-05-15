@@ -33,6 +33,8 @@ parse_args <- function(args = commandArgs(trailingOnly = TRUE)) {
     factor_heavy = FALSE,
     sigma_x = FALSE,
     sparse_fixed = FALSE,
+    aggregate_gaussian = FALSE,
+    aggregation_cells = 80L,
     memory_light = TRUE,
     eval_max = 200L,
     iter_max = 200L,
@@ -101,6 +103,8 @@ print_usage <- function() {
     "  --factor-heavy bool   Add a 40-level habitat factor; default false\n",
     "  --sigma-x bool        Fit sigma ~ x1 instead of sigma ~ 1; default false\n",
     "  --sparse-fixed bool   Use sparse Gaussian mu fixed effects; default false\n",
+    "  --aggregate-gaussian bool  Use Gaussian sufficient-statistic row aggregation; default false\n",
+    "  --aggregation-cells N Number of repeated fixed-effect cells when aggregating; default 80\n",
     "  --memory-light bool   Use all fitted-object storage controls; default true\n",
     "  --eval-max N          nlminb eval.max; default 200\n",
     "  --iter-max N          nlminb iter.max; default 200\n",
@@ -218,8 +222,19 @@ simulate_benchmark_data <- function(args) {
     species_levels <- tree$tip.label
   }
   species <- sample(species_levels, args$rows, replace = TRUE)
-  x1 <- stats::rnorm(args$rows)
-  x2 <- stats::runif(args$rows, -1, 1)
+  if (isTRUE(args$aggregate_gaussian)) {
+    n_cells <- min(args$aggregation_cells, args$rows)
+    cell <- sample(seq_len(n_cells), args$rows, replace = TRUE)
+    grid_size <- max(2L, ceiling(sqrt(n_cells)))
+    x1_grid <- seq(-1, 1, length.out = grid_size)
+    x2_grid <- seq(-0.8, 0.8, length.out = grid_size)
+    x1 <- x1_grid[((seq_len(n_cells) - 1L) %% grid_size) + 1L][cell]
+    x2 <- x2_grid[((seq_len(n_cells) - 1L) %/% grid_size) + 1L][cell]
+  } else {
+    cell <- NULL
+    x1 <- stats::rnorm(args$rows)
+    x2 <- stats::runif(args$rows, -1, 1)
+  }
   eta_mu <- 0.2 + 0.35 * x1 - 0.15 * x2
   if (!is.null(tree)) {
     phylo_effect <- simulate_phylo_effect(tree, sd_phylo = 0.5)
@@ -227,7 +242,15 @@ simulate_benchmark_data <- function(args) {
   }
   habitat <- NULL
   if (isTRUE(args$factor_heavy)) {
-    habitat <- factor(sample(paste0("hab_", 1:40), args$rows, replace = TRUE))
+    habitat_levels <- paste0("hab_", 1:40)
+    habitat <- if (isTRUE(args$aggregate_gaussian)) {
+      factor(
+        habitat_levels[((cell - 1L) %% length(habitat_levels)) + 1L],
+        levels = habitat_levels
+      )
+    } else {
+      factor(sample(habitat_levels, args$rows, replace = TRUE))
+    }
     habitat_effect <- stats::rnorm(nlevels(habitat), sd = 0.08)
     names(habitat_effect) <- levels(habitat)
     eta_mu <- eta_mu + habitat_effect[habitat]
@@ -258,6 +281,18 @@ fit_formula <- function(args) {
   if (isTRUE(args$sparse_fixed) && isTRUE(args$sigma_x)) {
     stop(
       "--sparse-fixed true currently requires --sigma-x false.",
+      call. = FALSE
+    )
+  }
+  if (isTRUE(args$aggregate_gaussian) && !identical(args$structured, "none")) {
+    stop(
+      "--aggregate-gaussian true currently requires --structured none.",
+      call. = FALSE
+    )
+  }
+  if (isTRUE(args$aggregate_gaussian) && isTRUE(args$sparse_fixed)) {
+    stop(
+      "--aggregate-gaussian true cannot be combined with --sparse-fixed true yet.",
       call. = FALSE
     )
   }
@@ -326,6 +361,26 @@ benchmark_largest_design <- function(fit) {
   )
 }
 
+benchmark_aggregation_summary <- function(fit) {
+  summary_fun <- get0(
+    "drm_gaussian_aggregation_summary",
+    envir = asNamespace("drmTMB"),
+    inherits = FALSE
+  )
+  if (is.null(summary_fun)) {
+    return(list(cells = NA_integer_, ratio = NA_real_, largest = NA_real_))
+  }
+  summary <- summary_fun(fit$model$aggregation$gaussian)
+  if (is.null(summary)) {
+    return(list(cells = NA_integer_, ratio = NA_real_, largest = NA_real_))
+  }
+  list(
+    cells = summary$aggregation_cells[[1L]],
+    ratio = summary$compression_ratio[[1L]],
+    largest = summary$largest_cell_n[[1L]]
+  )
+}
+
 gc_used_mb <- function() {
   gc_out <- gc()
   bytes_per_cell <- c(Ncells = 56, Vcells = 8)
@@ -365,6 +420,8 @@ benchmark_command <- function(args) {
     "factor_heavy",
     "sigma_x",
     "sparse_fixed",
+    "aggregate_gaussian",
+    "aggregation_cells",
     "memory_light",
     "eval_max",
     "iter_max",
@@ -472,7 +529,8 @@ run_benchmark <- function(args) {
     keep_data = !args$memory_light,
     keep_model_frame = !args$memory_light,
     keep_tmb_object = !args$memory_light,
-    sparse_fixed = args$sparse_fixed
+    sparse_fixed = args$sparse_fixed,
+    aggregate_gaussian = args$aggregate_gaussian
   )
   fit_time <- system.time({
     tree <- sim$tree
@@ -492,6 +550,7 @@ run_benchmark <- function(args) {
     opt_message <- NA_character_
   }
   largest_design <- benchmark_largest_design(fit)
+  aggregation <- benchmark_aggregation_summary(fit)
 
   cbind(
     as.data.frame(env, stringsAsFactors = FALSE),
@@ -503,6 +562,11 @@ run_benchmark <- function(args) {
       factor_heavy = args$factor_heavy,
       sigma_x = args$sigma_x,
       sparse_fixed = args$sparse_fixed,
+      aggregate_gaussian = args$aggregate_gaussian,
+      aggregation_cells_requested = args$aggregation_cells,
+      aggregation_cells_fitted = aggregation$cells,
+      aggregation_compression_ratio = aggregation$ratio,
+      aggregation_largest_cell_n = aggregation$largest,
       memory_light = args$memory_light,
       convergence = fit$opt$convergence,
       convergence_message = opt_message[[1L]],

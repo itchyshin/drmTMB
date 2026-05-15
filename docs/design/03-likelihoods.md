@@ -66,7 +66,7 @@ is the current routing contract:
 
 | TMB `model_type` | User-facing route | R builder | TMB branch purpose |
 |---:|---|---|---|
-| `1` | `family = gaussian()` | `drm_build_gaussian_ls_spec()` | Univariate Gaussian location-scale models, including ordinary `mu` random effects, residual-scale `sigma` random effects, `sd(group) ~ ...` random-effect scale models, `meta_known_V(V = V)`, the implemented intercept-only `phylo()` location effect, and the first coordinate-based `spatial()` location effect. |
+| `1` | `family = gaussian()` | `drm_build_gaussian_ls_spec()` | Univariate Gaussian location-scale models, including ordinary `mu` random effects, residual-scale `sigma` random effects, `sd(group) ~ ...` random-effect scale models, `meta_known_V(V = V)`, the implemented intercept-only `phylo()` location effect, the first coordinate-based `spatial()` location effect, and the first opt-in fixed-effect Gaussian aggregation path. |
 | `2` | `family = biv_gaussian()`, `family = c(gaussian(), gaussian())`, or `family = list(gaussian(), gaussian())` | `drm_build_biv_gaussian_spec()` | Bivariate Gaussian location-scale-coscale models with `mu1`, `mu2`, `sigma1`, `sigma2`, and residual `rho12`, including complete-row dense known sampling covariance, matching labelled `mu1`/`mu2` and `sigma1`/`sigma2` random-intercept covariance blocks, one same-response `mu`/`sigma` random-intercept covariance pair, intercept-only ordinary q=4 covariance blocks across all four bivariate distributional parameters, bivariate location random-effect SD formulas `sd1(group)` / `sd2(group)`, and matching intercept-only phylogenetic random intercepts in `mu1` and `mu2`. |
 | `3` | `family = student()` | `drm_build_student_ls_spec()` | Univariate Student-t location-scale-shape models with `mu`, `sigma`, and `nu = 2 + exp(eta_nu)`. |
 | `4` | `family = lognormal()` | `drm_build_lognormal_ls_spec()` | Univariate fixed-effect lognormal location-scale models for positive responses, with `mu` and `sigma` defined on the log-response scale. |
@@ -88,6 +88,39 @@ and should not appear in user examples. Public phylogenetic Gaussian fits stay
 on `model_type = 1` or `model_type = 2`; the hidden branches exist only so
 tests can compare isolated sparse phylogenetic prior objectives against the R
 algebra helpers.
+
+## Gaussian Aggregation Branch
+
+When `drm_control(aggregate_gaussian = TRUE)` is used for the first supported
+univariate Gaussian fixed-effect path, `model_type = 1` follows a
+sufficient-statistic sub-branch. The R builder groups rows after model-row
+filtering by the processed `mu` design row, processed `sigma` design row, and
+offset state. TMB receives one row per aggregation cell:
+
+```text
+n_g, sum_y_g, sum_y2_g, X_mu_g, X_sigma_g
+```
+
+For cell `g`,
+
+```text
+mu_g = X_mu_g beta_mu
+log(sigma_g) = X_sigma_g beta_sigma
+```
+
+and the negative log-likelihood contribution is:
+
+```text
+0.5 n_g log(2 pi)
+  + n_g log(sigma_g)
+  + 0.5 (sum_y2_g - 2 mu_g sum_y_g + n_g mu_g^2) / sigma_g^2
+```
+
+This is algebraically identical to summing independent Gaussian row
+log-likelihoods within the cell. The first implementation rejects non-unit
+likelihood weights, random effects, direct-SD formulas, structured effects,
+known sampling covariance, bivariate models, non-Gaussian families, and
+combined sparse fixed-effect matrices before TMB is called.
 
 ## Likelihood Weights
 

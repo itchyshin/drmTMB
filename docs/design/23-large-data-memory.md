@@ -159,18 +159,19 @@ likelihood weights are still useful when one row is intended to represent
 multiple identical observations, but sufficient-statistic aggregation is the
 stronger special-case optimization.
 
-Slice 47 records the design gate in
-`docs/design/31-gaussian-aggregation-sufficient-statistics.md`. The first
-implementation should be opt-in and should start with univariate Gaussian
-fixed-effect models only. Random effects, direct-SD formulas, phylogenetic and
-spatial structured effects, known sampling covariance, bivariate Gaussian
-models, and non-Gaussian families should error until the full-row likelihood
-and aggregation-cell likelihood have independent parity tests.
+`docs/design/31-gaussian-aggregation-sufficient-statistics.md` records the
+aggregation contract, and `drm_control(aggregate_gaussian = TRUE)` now fits
+the first opt-in univariate Gaussian fixed-effect path. Random effects,
+direct-SD formulas, phylogenetic and spatial structured effects, known
+sampling covariance, bivariate Gaussian models, non-Gaussian families,
+non-unit likelihood weights, and combined sparse fixed-effect matrices still
+error before optimization.
 
-The first implementation also needs a clear post-fit output rule. If the fit
-does not retain an original-row expansion map, fitted-row predictions and
-residuals should require `newdata` or error clearly rather than returning
-aggregation-cell output as if it were row-level output.
+The first fitted path keeps original-row model matrices and response vectors
+inside the fitted object while TMB receives aggregation cells for likelihood
+evaluation. This means `predict(fit)`, `fitted(fit)`, and `residuals(fit)`
+still return original-row outputs, even when data/model-frame/TMB-object
+storage is dropped after optimization.
 
 ## Sparse Design Matrices
 
@@ -237,9 +238,9 @@ cross-platform peak-memory measure.
 - Should `predict()` ever require `newdata` for future storage modes that drop
   response vectors, offsets, or design matrices, rather than only stored model
   frames?
-- Should sufficient-statistic aggregation use a control name such as
-  `aggregate_gaussian = TRUE`, or a more general future-proof name that still
-  rejects non-Gaussian models clearly?
+- Should weighted sufficient-statistic aggregation use the current
+  `aggregate_gaussian` control with a second weight contract, or should it
+  become a separate opt-in because weighted cells are easier to misuse?
 - `weights =` is now an ordinary likelihood multiplier. Aggregation should
   still have a separate Gaussian-only sufficient-statistics path when the
   within-cell squared residual term matters.

@@ -75,7 +75,10 @@ whether the spatial SD is tiny relative to the residual scale. If a Gaussian
 fit includes \code{sd_phylo(species) ~ x_species},
 \code{sd_phylo1(species) ~ x_species}, or
 \code{sd_phylo2(species) ~ x_species}, it reports species replication and the
-fitted direct-SD surface range. If a fit was stored with
+fitted direct-SD surface range. If a univariate Gaussian fit used
+\code{drm_control(aggregate_gaussian = TRUE)}, it reports original rows,
+aggregation cells, compression ratio, and largest cell size. If a fit was
+stored with
 \code{drm_control(keep_tmb_object = FALSE)}, the
 fixed-gradient check is reported as a note because the TMB
 automatic-differentiation object is not available.
