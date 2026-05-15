@@ -13903,3 +13903,48 @@ Known limitations:
 - no `sparse_fixed` control is exposed;
 - no TMB `DATA_SPARSE_MATRIX` branch or sparse linear-predictor helper is
   implemented yet.
+
+## 2026-05-14 -- Phase 5b Slice 44 benchmark fixed-effect density fields
+
+Goal:
+
+- make the optional large-data benchmark record the same fixed-effect design
+  density signal now reported by `check_drm()`.
+
+Implemented:
+
+- added benchmark helpers that use the package's internal
+  `fixed_effect_design_summary()` when available;
+- added `model_matrix_largest`, `model_matrix_largest_cols`,
+  `model_matrix_largest_nonzero`, and `model_matrix_largest_density` columns to
+  `bench/large-phylo-location.R` output;
+- updated `bench/summarize-results.R` to include the largest-design name,
+  columns, and density when those optional columns are present;
+- updated `bench/README.md`, `vignettes/large-data.Rmd`, `ROADMAP.md`, and
+  `NEWS.md`.
+
+Checks run:
+
+- `Rscript bench/large-phylo-location.R --rows 80 --species 8 --eval-max 60 --iter-max 60 --memory-light true --output "$tmp_csv" && Rscript bench/summarize-results.R --input "$tmp_csv"`:
+  passed; summary included `model_matrix_largest = mu`,
+  `model_matrix_largest_cols = 3`, and `model_matrix_largest_density = 1`.
+- `Rscript bench/large-phylo-location.R --rows 120 --species 8 --factor-heavy true --eval-max 40 --iter-max 40 --memory-light true --output "$tmp_csv" && Rscript bench/summarize-results.R --input "$tmp_csv"`:
+  passed as diagnostic-only with nonzero convergence; summary included
+  `model_matrix_largest = mu`, `model_matrix_largest_cols = 38`, and
+  `model_matrix_largest_density = 0.1048`.
+- `PATH=/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::build_article("large-data")'`:
+  passed and refreshed `pkgdown-site/articles/large-data.html`.
+- `PATH=/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed.
+- `git diff --check`:
+  passed.
+- `rg -n "model_matrix_largest|largest fixed-effect design|largest retained fixed-effect design block|fixed-effect design block and density" bench/README.md bench/large-phylo-location.R bench/summarize-results.R vignettes/large-data.Rmd pkgdown-site/articles/large-data.html ROADMAP.md NEWS.md`:
+  found the intended benchmark and documentation wording.
+
+Known limitations:
+
+- these benchmark columns are post-fit diagnostics; they do not reduce memory;
+- existing benchmark CSV files with older schemas require a fresh output path
+  before appending new rows;
+- peak resident memory still needs `/usr/bin/time -l` on macOS or
+  `/usr/bin/time -v` on Linux.

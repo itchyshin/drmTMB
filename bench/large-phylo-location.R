@@ -262,6 +262,37 @@ object_mb <- function(x) {
   as.numeric(utils::object.size(x)) / 1024^2
 }
 
+benchmark_design_summary <- function(fit) {
+  summary_fun <- get0(
+    "fixed_effect_design_summary",
+    envir = asNamespace("drmTMB"),
+    inherits = FALSE
+  )
+  if (is.null(summary_fun)) {
+    return(data.frame())
+  }
+  summary_fun(fit$model$X)
+}
+
+benchmark_largest_design <- function(fit) {
+  design <- benchmark_design_summary(fit)
+  if (nrow(design) == 0L) {
+    return(list(
+      name = NA_character_,
+      cols = NA_integer_,
+      nonzero = NA_real_,
+      density = NA_real_
+    ))
+  }
+  largest <- design[which.max(design$size_mb), , drop = FALSE]
+  list(
+    name = largest$dpar[[1L]],
+    cols = largest$n_cols[[1L]],
+    nonzero = largest$n_nonzero[[1L]],
+    density = largest$density[[1L]]
+  )
+}
+
 gc_used_mb <- function() {
   gc_out <- gc()
   bytes_per_cell <- c(Ncells = 56, Vcells = 8)
@@ -423,6 +454,7 @@ run_benchmark <- function(args) {
   if (is.null(opt_message) || length(opt_message) == 0L) {
     opt_message <- NA_character_
   }
+  largest_design <- benchmark_largest_design(fit)
 
   cbind(
     as.data.frame(env, stringsAsFactors = FALSE),
@@ -447,6 +479,10 @@ run_benchmark <- function(args) {
       tree_object_mb = tree_mb,
       fit_object_mb = object_mb(fit),
       model_matrix_mb = object_mb(fit$model$X),
+      model_matrix_largest = largest_design$name,
+      model_matrix_largest_cols = largest_design$cols,
+      model_matrix_largest_nonzero = largest_design$nonzero,
+      model_matrix_largest_density = largest_design$density,
       tmb_data_mb = object_mb(fit$model$tmb_data),
       gc_used_mb_before = before_mb,
       gc_used_mb_pre_fit = pre_fit_mb,

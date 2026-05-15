@@ -87,6 +87,12 @@ optional_diagnostic_columns <- c(
   "gradient_evaluations"
 )
 
+optional_design_columns <- c(
+  "model_matrix_largest",
+  "model_matrix_largest_cols",
+  "model_matrix_largest_density"
+)
+
 read_results <- function(path) {
   if (!file.exists(path)) {
     stop("Benchmark CSV not found: ", path, call. = FALSE)
@@ -172,6 +178,14 @@ summarise_results <- function(x, converged_only = FALSE) {
     out$convergence_message <- x$convergence_message
     out$iterations <- as.integer(x$iterations)
     out$function_evaluations <- as.integer(x$function_evaluations)
+  }
+  if (all(optional_design_columns %in% names(x))) {
+    out$model_matrix_largest <- x$model_matrix_largest
+    out$model_matrix_largest_cols <- as.integer(x$model_matrix_largest_cols)
+    out$model_matrix_largest_density <- round_numeric(
+      x$model_matrix_largest_density,
+      digits = 4L
+    )
   }
   out
 }

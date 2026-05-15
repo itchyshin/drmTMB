@@ -148,9 +148,10 @@ sigma ~ 1
 ```
 
 and records elapsed time, fitted-object size, model-matrix size, TMB-data size,
-prediction time, residual time, convergence code, optimizer message, optimizer
-evaluation counts, and fitted scale summaries. Use it to learn how your
-machine behaves before running the full analysis.
+the largest retained fixed-effect design block and density, prediction time,
+residual time, convergence code, optimizer message, optimizer evaluation
+counts, and fitted scale summaries. Use it to learn how your machine behaves
+before running the full analysis.
 
 For factor-heavy designs, add:
 

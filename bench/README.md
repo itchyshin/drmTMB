@@ -63,6 +63,7 @@ larger values when the fit is intended as a real timing result.
 | `data_object_mb`, `tree_object_mb` | Base R object sizes for generated inputs. |
 | `fit_object_mb` | Base R object size for the fitted `drmTMB` object. |
 | `model_matrix_mb` | Base R object size for stored fixed-effect model matrices. |
+| `model_matrix_largest`, `model_matrix_largest_cols`, `model_matrix_largest_nonzero`, `model_matrix_largest_density` | The largest retained fixed-effect design block and its width, nonzero count, and density. A low density points to a future sparse fixed-effect matrix candidate. |
 | `tmb_data_mb` | Base R object size for the TMB data list stored in the fit. |
 | `gc_used_mb_before` | Approximate R heap use before data generation, calculated from `gc()` Ncells and Vcells counts. |
 | `gc_used_mb_pre_fit` | Approximate R heap use after data generation, calculated from `gc()` Ncells and Vcells counts. |
