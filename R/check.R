@@ -31,8 +31,11 @@
 #' grouping factor. If a bivariate Gaussian fit includes a phylogenetic q=4
 #' `mu1`/`mu2`/`sigma1`/`sigma2` block, it reports species replication,
 #' location SDs relative to residual scales, log-`sigma` SDs, and whether any
-#' latent phylogenetic correlation is near the boundary. If a Gaussian fit
-#' includes `sd_phylo(species) ~ x_species`,
+#' latent phylogenetic correlation is near the boundary. If a univariate
+#' Gaussian fit includes `spatial(1 | site, coords = coords)` in `mu`, it
+#' reports site replication, fitted coordinate range, the spatial SD, and
+#' whether the spatial SD is tiny relative to the residual scale. If a Gaussian
+#' fit includes `sd_phylo(species) ~ x_species`,
 #' `sd_phylo1(species) ~ x_species`, or
 #' `sd_phylo2(species) ~ x_species`, it reports species replication and the
 #' fitted direct-SD surface range. If a fit was stored with
@@ -117,6 +120,7 @@ check_drm.drmTMB <- function(
       rho_boundary = rho_boundary
     ),
     check_phylo_replication(object),
+    check_spatial_mu_diagnostics(object),
     check_phylo_direct_sd_model(object),
     check_biv_phylo_mu_covariance(object, rho_boundary = rho_boundary),
     check_biv_phylo_q4_covariance(object, rho_boundary = rho_boundary)
@@ -1744,6 +1748,111 @@ check_phylo_replication <- function(object) {
     } else {
       "Every observed species has at least two fitted observations."
     }
+  )
+}
+
+check_spatial_mu_diagnostics <- function(object) {
+  if (!has_spatial_mu_effect(object)) {
+    return(NULL)
+  }
+
+  spatial_mu <- object$model$structured$phylo_mu
+  index <- spatial_mu$observation_node_index
+  counts <- tabulate(match(index, unique(index)))
+  min_count <- if (length(counts) > 0L) min(counts) else NA_integer_
+  n_sites <- length(counts)
+  weak_replication <- is.finite(min_count) && min_count < 2L
+
+  sd_label <- phylo_mu_sd_labels(spatial_mu, object$model$model_type)
+  sd_value <- unname(object$sdpars$mu[match(sd_label, names(object$sdpars$mu))])
+  finite_positive_sd <- length(sd_value) == 1L &&
+    is.finite(sd_value) &&
+    sd_value > 0
+
+  residual_scale <- spatial_mu_residual_scale(object)
+  sd_ratio <- if (finite_positive_sd && is.finite(residual_scale)) {
+    sd_value / residual_scale
+  } else {
+    NA_real_
+  }
+  weak_sd <- !finite_positive_sd || (is.finite(sd_ratio) && sd_ratio < 0.05)
+
+  coord_range <- spatial_mu$precision$range
+  check_row(
+    "spatial_mu_diagnostics",
+    if (!finite_positive_sd) {
+      "error"
+    } else if (weak_replication || weak_sd) {
+      "note"
+    } else {
+      "ok"
+    },
+    paste0(
+      "group=",
+      spatial_mu$group,
+      "; n_sites=",
+      n_sites,
+      "; min_site_n=",
+      min_count,
+      "; coord_range=",
+      format_check_number(coord_range),
+      "; spatial_sd=",
+      format_check_number(sd_value),
+      "; sd_ratio=",
+      format_check_number(sd_ratio)
+    ),
+    spatial_mu_diagnostic_message(
+      finite_positive_sd,
+      weak_replication,
+      weak_sd
+    )
+  )
+}
+
+spatial_mu_residual_scale <- function(object) {
+  sigma_values <- tryCatch(stats::sigma(object), error = function(e) e)
+  if (inherits(sigma_values, "error")) {
+    return(NA_real_)
+  }
+  if (is.list(sigma_values)) {
+    sigma_values <- unlist(sigma_values, use.names = FALSE)
+  }
+  mean(sigma_values, na.rm = TRUE)
+}
+
+spatial_mu_diagnostic_message <- function(
+  finite_positive_sd,
+  weak_replication,
+  weak_sd
+) {
+  if (!finite_positive_sd) {
+    return(paste(
+      "The fitted spatial SD is non-positive or non-finite;",
+      "inspect convergence, coordinate input, and the fitted structured effect."
+    ))
+  }
+  if (weak_replication && weak_sd) {
+    return(paste(
+      "At least one spatial site has fewer than two fitted observations and",
+      "the spatial SD is tiny relative to the residual scale; interpret the",
+      "coordinate spatial field cautiously."
+    ))
+  }
+  if (weak_replication) {
+    return(paste(
+      "At least one spatial site has fewer than two fitted observations;",
+      "interpret conditional spatial effects and the spatial SD cautiously."
+    ))
+  }
+  if (weak_sd) {
+    return(paste(
+      "The spatial SD is tiny relative to the residual scale; the coordinate",
+      "spatial field may be weakly identified."
+    ))
+  }
+  paste(
+    "The coordinate spatial random intercept has replicated sites and a",
+    "non-negligible fitted SD relative to the residual scale."
   )
 }
 

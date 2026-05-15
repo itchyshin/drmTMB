@@ -159,6 +159,50 @@ bf(
 )
 ```
 
+### Mesh/SPDE Implementation Gate
+
+Do not turn `mesh = mesh` into fitted syntax until the mesh object contract is
+explicit. The first acceptable contract should name:
+
+- the mesh vertices and triangle topology;
+- the observation-to-mesh projection matrix or enough information to build it;
+- the spatial precision recipe, either a ready sparse precision matrix or the
+  Matérn/SPDE ingredients needed to construct one;
+- the coordinate reference system or a clear statement that coordinates are
+  already projected into a distance-preserving working scale;
+- the mapping from data rows to site levels and from site levels to projected
+  mesh rows;
+- the fitted parameters that belong to the spatial field, starting with one
+  field SD and only then adding range, anisotropy, barriers, or replicate
+  fields.
+
+The first mesh implementation should still fit only a univariate Gaussian `mu`
+random intercept. That keeps the comparator close to the current
+`coords = coords` path: both estimate one structured spatial SD, but the mesh
+route should use a sparse SPDE/GMRF precision and a projection matrix rather
+than a dense coordinate covariance. Spatial `sigma`, bivariate spatial q=4,
+spatial direct-SD models, and spatial `corpair()` regressions should wait until
+the mesh intercept has recovery evidence and diagnostics.
+
+Dependency and citation decisions are part of the gate. If `drmTMB` accepts
+`fmesher` objects or uses `fmesher` to build meshes, the package website,
+article, and manuscript should tell users to cite `fmesher` in addition to the
+SPDE method literature and `sdmTMB` precedent. If `fmesher` is optional, start
+with `Suggests` and clear errors when it is missing; do not make it a hard
+dependency until ordinary coordinate users need it. If any mesh helper, SPDE
+matrix builder, projection code, or test fixture is copied or closely adapted
+from another package, the same slice must update `inst/COPYRIGHTS`.
+
+Grace's minimum check gate for `mesh = mesh` is:
+
+- parser tests that unsupported mesh shapes fail with actionable messages;
+- a sparse-vs-dense or small-mesh comparator for one `mu` field;
+- a CRAN-safe recovery smoke test for the spatial SD;
+- `ranef()`, `sdpars`, `profile_targets()`, and `check_drm()` rows that use
+  spatial names, not phylogenetic names;
+- pkgdown documentation that separates `coords`, mesh, residual `rho12`, and
+  future spatial correlations.
+
 Later spatial random slopes should follow the same pattern:
 
 ```r

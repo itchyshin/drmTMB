@@ -67,8 +67,11 @@ scale, and whether an ordinary group-level covariance block uses the same
 grouping factor. If a bivariate Gaussian fit includes a phylogenetic q=4
 \code{mu1}/\code{mu2}/\code{sigma1}/\code{sigma2} block, it reports species replication,
 location SDs relative to residual scales, log-\code{sigma} SDs, and whether any
-latent phylogenetic correlation is near the boundary. If a Gaussian fit
-includes \code{sd_phylo(species) ~ x_species},
+latent phylogenetic correlation is near the boundary. If a univariate
+Gaussian fit includes \code{spatial(1 | site, coords = coords)} in \code{mu}, it
+reports site replication, fitted coordinate range, the spatial SD, and
+whether the spatial SD is tiny relative to the residual scale. If a Gaussian
+fit includes \code{sd_phylo(species) ~ x_species},
 \code{sd_phylo1(species) ~ x_species}, or
 \code{sd_phylo2(species) ~ x_species}, it reports species replication and the
 fitted direct-SD surface range. If a fit was stored with

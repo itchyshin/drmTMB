@@ -178,7 +178,7 @@ questions:
 | residual | `rho12(fit)` or residual rows from `corpairs(fit)` | within-observation coupling between two responses |
 | ordinary group-level | `corpars$mu` or group-level rows from `corpairs(fit)` | correlation among random intercepts or slopes |
 | phylogenetic | `corpairs(fit, level = "phylogenetic")` | correlation among tree-structured species mean, scale, or q=2 modelled location deviations, depending on the fitted block |
-| spatial | `ranef(fit, "spatial_mu")` and `sdpars$mu` for the first univariate slice | coordinate-structured site deviations in one response; spatial correlations are planned |
+| spatial | `ranef(fit, "spatial_mu")`, `sdpars$mu`, and `check_drm()` for the first univariate slice | coordinate-structured site deviations in one response; spatial correlations are planned |
 
 Keep these layers separate in writing. A residual `rho12` result is not a
 phylogenetic correlation, a spatial correlation, or a personality/plasticity

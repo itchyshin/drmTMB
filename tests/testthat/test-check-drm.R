@@ -151,6 +151,44 @@ check_drm_sd_phylo_data <- function(seed = 2026051401, n_each = 4L) {
   list(data = data, tree = tree)
 }
 
+check_drm_spatial_data <- function(
+  seed = 2026051436,
+  n_site = 7L,
+  n_each = 4L
+) {
+  set.seed(seed)
+  site_levels <- paste0("site_", seq_len(n_site))
+  theta <- seq(0, 1.5 * pi, length.out = n_site)
+  coords <- data.frame(
+    x = cos(theta) + seq_len(n_site) / (4 * n_site),
+    y = sin(theta)
+  )
+  rownames(coords) <- site_levels
+
+  precision <- drmTMB:::drm_spatial_coords_precision(
+    coords,
+    site = site_levels,
+    group = "site"
+  )
+  covariance <- solve(as.matrix(precision$precision))
+  spatial_effect <- as.vector(
+    t(chol(covariance)) %*% stats::rnorm(n_site, sd = 0.35)
+  )
+  names(spatial_effect) <- site_levels
+
+  site <- rep(site_levels, each = n_each)
+  x <- stats::rnorm(length(site))
+  data <- data.frame(
+    y = 0.45 -
+      0.2 * x +
+      spatial_effect[site] +
+      stats::rnorm(length(site), sd = 0.12),
+    x = x,
+    site = site
+  )
+  list(data = data, coords = coords)
+}
+
 check_drm_biv_q4_data <- function(
   n_id = 36L,
   n_each = 6L,
@@ -507,6 +545,71 @@ test_that("check_drm() records phylogenetic replication notes", {
   expect_equal(phylo$status, "note")
   expect_match(phylo$value, "min_species_n=1")
   expect_true(attr(chk, "ok"))
+})
+
+test_that("check_drm() records spatial mu diagnostics separately from phylo", {
+  sim <- check_drm_spatial_data()
+  coords <- sim$coords
+
+  fit <- drmTMB(
+    bf(y ~ x + spatial(1 | site, coords = coords), sigma ~ 1),
+    family = gaussian(),
+    data = sim$data,
+    control = list(eval.max = 500, iter.max = 500)
+  )
+  stable <- fit
+  stable$sdpars$mu[["spatial(1 | site)"]] <- 0.35
+  stable$coefficients$sigma[] <- log(0.12)
+  chk <- check_drm(stable)
+  spatial <- chk[chk$check == "spatial_mu_diagnostics", ]
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(nrow(spatial), 1L)
+  expect_equal(spatial$status, "ok")
+  expect_match(spatial$value, "group=site")
+  expect_match(spatial$value, "n_sites=7")
+  expect_match(spatial$value, "min_site_n=4")
+  expect_match(spatial$value, "coord_range=")
+  expect_match(spatial$value, "spatial_sd=")
+  expect_match(spatial$value, "sd_ratio=")
+  expect_match(spatial$message, "coordinate spatial random intercept")
+  expect_equal(nrow(chk[chk$check == "phylo_mu_replication", ]), 0L)
+  expect_identical(attr(chk, "ok"), TRUE)
+
+  singleton <- stable
+  index <- singleton$model$structured$phylo_mu$observation_node_index
+  first_index <- index[[1L]]
+  first_rows <- which(index == first_index)
+  recipient <- index[which(index != first_index)[[1L]]]
+  singleton$model$structured$phylo_mu$observation_node_index[
+    first_rows[-1L]
+  ] <- recipient
+  singleton_chk <- check_drm(singleton)
+  singleton_spatial <- singleton_chk[
+    singleton_chk$check == "spatial_mu_diagnostics",
+  ]
+
+  expect_equal(singleton_spatial$status, "note")
+  expect_match(singleton_spatial$value, "min_site_n=1")
+  expect_match(singleton_spatial$message, "fewer than two fitted observations")
+  expect_identical(attr(singleton_chk, "ok"), TRUE)
+
+  weak <- stable
+  weak$sdpars$mu[["spatial(1 | site)"]] <- 1e-5
+  weak_chk <- check_drm(weak)
+  weak_spatial <- weak_chk[weak_chk$check == "spatial_mu_diagnostics", ]
+
+  expect_equal(weak_spatial$status, "note")
+  expect_match(weak_spatial$message, "tiny relative to the residual scale")
+
+  bad <- stable
+  bad$sdpars$mu[["spatial(1 | site)"]] <- NA_real_
+  bad_chk <- check_drm(bad)
+  bad_spatial <- bad_chk[bad_chk$check == "spatial_mu_diagnostics", ]
+
+  expect_equal(bad_spatial$status, "error")
+  expect_match(bad_spatial$message, "non-positive or non-finite")
+  expect_identical(attr(bad_chk, "ok"), FALSE)
 })
 
 test_that("check_drm() records sd_phylo direct-SD diagnostics", {

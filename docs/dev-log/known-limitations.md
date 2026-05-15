@@ -180,10 +180,12 @@
   are not yet routed into fitted likelihoods. The first coordinate-based
   spatial path, `spatial(1 | site, coords = coords)`, is fitted only for
   univariate Gaussian `mu` and uses a fixed coordinate covariance foundation.
-  Spatial slopes, spatial `sigma`, bivariate spatial q=4 blocks, and spatial
-  `corpair()` regressions remain planned. The reserved slope path is one
-  structured `mu` slope first, then at most two structured `mu` slopes after
-  simulation recovery.
+  It is not the scalable mesh/SPDE route. The mesh/SPDE design gate is recorded
+  in `docs/design/09-phylogenetic-and-spatial-speed.md`, but spatial slopes,
+  spatial `sigma`, bivariate spatial q=4 blocks, and spatial `corpair()`
+  regressions remain planned. The reserved slope path is one structured `mu`
+  slope first, then at most two structured `mu` slopes after simulation
+  recovery.
 - Internal phylogenetic tree validation, dense Brownian covariance comparators,
   sparse augmented Brownian precision helpers, pure-R prior checks, hidden TMB
   prior parity checks, and fitted univariate Gaussian `mu` simulation tests now

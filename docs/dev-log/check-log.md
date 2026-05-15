@@ -2,6 +2,145 @@
 
 Record meaningful development checks here.
 
+## 2026-05-14 -- Slice 40 final local gate before merge
+
+Scope:
+
+- ran the final local gate for Slices 36-40 before committing and pushing;
+- included format, full test suite, pkgdown check, and full `devtools::check()`.
+
+Checks:
+
+- `PATH=/opt/homebrew/bin:$PATH air format NEWS.md R/check.R README.md ROADMAP.md docs/design/09-phylogenetic-and-spatial-speed.md docs/dev-log/check-log.md docs/dev-log/known-limitations.md docs/dev-log/after-task/2026-05-14-slice-36-spatial-check-drm-diagnostics.md docs/dev-log/after-task/2026-05-14-slice-37-spatial-tutorial-diagnostic-polish.md docs/dev-log/after-task/2026-05-14-slice-38-mesh-spde-design-gate.md docs/dev-log/after-task/2026-05-14-slice-39-phase-5-synthesis.md tests/testthat/test-check-drm.R vignettes/model-map.Rmd vignettes/phylogenetic-spatial.Rmd`:
+  passed.
+- `git diff --check`: passed.
+- `Rscript -e 'devtools::test(reporter = "summary")'`: passed.
+- `PATH=/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed with no problems found.
+- `Rscript -e 'devtools::check()'`: passed with 0 errors, 0 warnings, and
+  0 notes in 2m 23.6s.
+
+Known limitations:
+
+- GitHub Actions and public pkgdown deployment still need to run after push and
+  merge.
+
+## 2026-05-14 -- Slice 39 Phase 5 synthesis and local site rebuild
+
+Scope:
+
+- added a Phase 5 closure-boundary table to `ROADMAP.md`, separating
+  implemented univariate phylogenetic, bivariate phylogenetic, coordinate
+  spatial, and inference/output pieces from planned extensions;
+- updated `README.md` so the landing page names fitted phylogenetic
+  `corpairs()`, q=4 phylogenetic location-scale covariance, and the
+  coordinate-spatial `check_drm()` row;
+- rebuilt the local pkgdown site so `ROADMAP.html`, `index.html`, the
+  structured-dependence article, the model-map article, and the
+  `check_drm()` reference all reflect Slices 36-39.
+
+Checks:
+
+- `PATH=/opt/homebrew/bin:$PATH air format README.md ROADMAP.md docs/design/09-phylogenetic-and-spatial-speed.md docs/dev-log/known-limitations.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-14-slice-37-spatial-tutorial-diagnostic-polish.md docs/dev-log/after-task/2026-05-14-slice-38-mesh-spde-design-gate.md`:
+  passed.
+- `rg -n 'Phase 5 closure boundary|spatial_mu_diagnostics|Phase 18|Visualization, Marginal Effects|fitted phylogenetic `corpairs\(\)`|check_drm\(\) spatial diagnostic' README.md ROADMAP.md docs/design/09-phylogenetic-and-spatial-speed.md docs/dev-log/known-limitations.md vignettes/model-map.Rmd vignettes/phylogenetic-spatial.Rmd`:
+  confirmed the source synthesis.
+- `PATH=/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::build_site()'`: passed.
+- `rg -n 'Phase 5 closure boundary|Phase 18: Visualization|spatial_mu_diagnostics|Mesh/SPDE Implementation Gate|coordinate-spatial `mu` diagnostics|spatial diagnostic row' pkgdown-site/ROADMAP.html pkgdown-site/index.html pkgdown-site/articles/phylogenetic-spatial.html pkgdown-site/articles/model-map.html pkgdown-site/reference/check_drm.html --glob '!pkgdown-site/search.json'`:
+  confirmed rendered local site output.
+- `rg -n 'spatial fields remain planned|coords = coords\).*not implemented|spatial likelihood is not implemented|will currently reject spatial\(1 \| site, coords|Phase 18.*planned only|public site.*Phase 18.*done' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes pkgdown-site --glob '!pkgdown-site/search.json'`:
+  returned no stale fitted-versus-planned contradictions.
+
+Known limitations:
+
+- Local `pkgdown-site/` is ignored build output. The public website will update
+  after merge to the deployment branch and GitHub Actions completes the pkgdown
+  workflow.
+
+## 2026-05-14 -- Slice 38 mesh/SPDE design gate
+
+Scope:
+
+- added an explicit mesh/SPDE implementation gate to
+  `docs/design/09-phylogenetic-and-spatial-speed.md`;
+- named the minimum mesh object contract: vertices, topology, projection,
+  precision recipe, coordinate scale, row/site mapping, and fitted spatial
+  parameters;
+- recorded that `fmesher`/`sdmTMB`/SPDE citation guidance and `inst/COPYRIGHTS`
+  provenance updates are part of the gate before mesh support can be called
+  complete;
+- updated ROADMAP and known limitations to say the design contract is recorded
+  while the coded mesh schema, projection path, recovery tests, and mesh
+  fitting remain future work.
+
+Checks:
+
+- `PATH=/opt/homebrew/bin:$PATH air format docs/design/09-phylogenetic-and-spatial-speed.md ROADMAP.md docs/dev-log/known-limitations.md`:
+  passed.
+- `rg -n 'Mesh/SPDE Implementation Gate|coded mesh object schema|fmesher|inst/COPYRIGHTS|not the scalable mesh/SPDE route' docs/design/09-phylogenetic-and-spatial-speed.md ROADMAP.md docs/dev-log/known-limitations.md inst/COPYRIGHTS`:
+  confirmed the design gate, citation/provenance policy, and limitations
+  wording.
+
+Known limitations:
+
+- This is a design-gate slice. It does not fit `spatial(..., mesh = mesh)`, add
+  `fmesher`, or add SPDE matrices to TMB.
+
+## 2026-05-14 -- Slice 37 spatial tutorial diagnostic polish
+
+Scope:
+
+- updated the structured-dependence article so the coordinate-spatial example
+  shows `check_drm(fit_spatial)` immediately after `sdpars`, `ranef()`, and
+  `profile_targets()`;
+- explained that `spatial_mu_diagnostics` is separate from
+  `phylo_mu_replication` because the fitted layer is a coordinate site field;
+- updated the model-map correlation layer table so the first spatial slice
+  points readers to `check_drm()` as well as `ranef()` and `sdpars`.
+
+Checks:
+
+- `PATH=/opt/homebrew/bin:$PATH air format vignettes/phylogenetic-spatial.Rmd vignettes/model-map.Rmd docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-14-slice-36-spatial-check-drm-diagnostics.md`:
+  passed.
+- `Rscript -e 'devtools::load_all(quiet = TRUE); pkgdown::build_article("phylogenetic-spatial", new_process = FALSE, quiet = TRUE); pkgdown::build_article("model-map", new_process = FALSE, quiet = TRUE)'`:
+  passed and refreshed local rendered articles.
+- `rg -n 'spatial_mu_diagnostics|coordinate site field|minimum number of observations per site|check_drm\(\)' vignettes/phylogenetic-spatial.Rmd pkgdown-site/articles/phylogenetic-spatial.html vignettes/model-map.Rmd pkgdown-site/articles/model-map.html`:
+  confirmed source and rendered article wording.
+
+Known limitations:
+
+- This is a tutorial polish slice. It does not add new spatial likelihoods,
+  spatial maps, or mesh/SPDE support.
+
+## 2026-05-14 -- Slice 36 spatial check_drm diagnostics
+
+Scope:
+
+- added a `spatial_mu_diagnostics` row to `check_drm()` for the first fitted
+  coordinate-spatial Gaussian `mu` random intercept;
+- kept spatial diagnostics separate from `phylo_mu_replication`, so a site
+  coordinate field is no longer described as a phylogenetic species check;
+- reported site replication, fitted coordinate range, fitted spatial SD, and
+  the spatial-SD-to-residual-scale ratio;
+- added tests for the ok path, singleton-site note, tiny-spatial-SD note, and
+  non-finite spatial SD error.
+
+Checks:
+
+- `PATH=/opt/homebrew/bin:$PATH air format R/check.R tests/testthat/test-check-drm.R NEWS.md`:
+  passed.
+- `Rscript -e 'devtools::test(filter = "check-drm|spatial-gaussian", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'devtools::document()'`: passed and regenerated
+  `man/check_drm.Rd`.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- This diagnostic covers the fitted univariate coordinate-spatial `mu` path
+  only. Spatial q=4, spatial direct-SD, mesh/SPDE, and spatial `corpair()`
+  diagnostics remain future paths.
+
 ## 2026-05-14 -- Slice 34 structured-dependence productization pass
 
 Scope:

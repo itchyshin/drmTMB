@@ -199,8 +199,8 @@ corpair(species, level = "phylogenetic", block = "p",
 ```
 
 Those formulae are not examples to run today. They mark the intended next layer
-after constant phylogenetic `corpairs()` rows: location-location, both
-cross-trait location-scale pairs, and scale-scale correlation regression. The
+after constant phylogenetic `corpairs()` rows: location-location, all four
+location-scale pairs, and scale-scale correlation regression. The
 ordinary grouped `corpair()` implementation cannot simply be copied here,
 because phylogenetic effects share one tree-coupled covariance matrix rather
 than independent per-species 2 by 2 blocks.
@@ -906,7 +906,9 @@ fit_spatial <- drmTMB(
 ```
 
 The fitted spatial SD is a structured location-scale component, not the
-residual `sigma`:
+residual `sigma`. The conditional spatial effects are site-level deviations in
+the location predictor, after the fixed effects and residual scale have been
+estimated:
 
 ```{r}
 fit_spatial$sdpars$mu
@@ -916,6 +918,27 @@ profile_targets(fit_spatial, ready_only = TRUE)[
   c("parm", "estimate", "profile_ready")
 ]
 ```
+
+Before interpreting the spatial SD or mapped site effects, inspect the spatial
+diagnostic row. It is deliberately named `spatial_mu_diagnostics`, not
+`phylo_mu_replication`, because the fitted layer is a coordinate site field:
+
+```{r}
+spatial_check <- check_drm(fit_spatial)
+spatial_check[spatial_check$check %in% c(
+  "optimizer_convergence",
+  "fixed_gradient",
+  "hessian_positive_definite",
+  "spatial_mu_diagnostics"
+), ]
+```
+
+The spatial row reports the number of fitted sites, the minimum number of
+observations per site, the coordinate range used by the fixed exponential
+covariance, the fitted spatial SD, and the ratio between the spatial SD and the
+residual scale. A `note` is not a failed model. It tells you to be cautious
+when a site is singly observed or when the spatial field is tiny relative to
+unstructured residual variation.
 
 The fitted `coords` path accepts either one row per site or one row per
 observation, provided coordinates are constant within each site. Internally,

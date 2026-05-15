@@ -224,7 +224,9 @@ distributional regression models using TMB.
 - The first spatial fitted path is now `spatial(1 | site, coords = coords)` in
   univariate Gaussian `mu`. It uses a fixed exponential coordinate covariance
   as a small-data foundation and reports `sdpars$mu["spatial(1 | site)"]` plus
-  a `spatial_mu` conditional random-effect block. Mesh/SPDE, spatial slopes,
+  a `spatial_mu` conditional random-effect block. `check_drm()` reports the
+  `spatial_mu_diagnostics` row for site replication, coordinate range, spatial
+  SD, and spatial-SD-to-residual-scale ratio. Mesh/SPDE, spatial slopes,
   spatial q=4, spatial `sd(...)`, and spatial `corpair()` regressions remain
   planned.
 - For bivariate structured models, estimate and report level-specific
@@ -271,10 +273,21 @@ distributional regression models using TMB.
   `corpair()` rows are distant-future; the more biologically interesting later
   target is a bivariate slope1-slope2 correlation for the same covariate, a
   plasticity-syndrome style model.
-- Add identifiability diagnostics for replication by study, species, location,
-  and effect-size levels before complex structured models are promoted.
+- Continue adding identifiability diagnostics for replication by study,
+  species, location, and effect-size levels before complex structured models
+  are promoted. The first spatial `mu` diagnostic is implemented for the
+  coordinate path; mesh/SPDE diagnostics remain tied to the future mesh gate.
 - Selectively reuse GPL-compatible ideas or modules from `gllvmTMB` with
   provenance notes and tests.
+
+Phase 5 closure boundary:
+
+| Layer | Implemented before spatial expansion | Still planned |
+| --- | --- | --- |
+| univariate phylogenetic | `phylo(1 | species, tree = tree)` in Gaussian `mu`, `sd_phylo(species) ~ z`, profile targets and diagnostics | phylogenetic slopes, richer tree-shape recovery grids |
+| bivariate phylogenetic | matching `mu1`/`mu2` phylogenetic location correlation, constant q=4 location-scale block, q=2 predictor-dependent `corpair(..., level = "phylogenetic") ~ w`, bivariate `sd_phylo1()` / `sd_phylo2()` | q=4 predictor-dependent location-scale and scale-scale `corpair()` regressions |
+| coordinate spatial | `spatial(1 | site, coords = coords)` in univariate Gaussian `mu`, `sdpars`, `ranef("spatial_mu")`, profile target, and `check_drm()` row | mesh/SPDE, spatial slopes, spatial scale, bivariate spatial q=4, spatial direct-SD, spatial `corpair()` |
+| inference/output | fixed-effect SEs, direct profile-ready targets where implemented, `corpairs(conf.int = TRUE)` with explicit interval status | direct profile intervals for derived q=4 correlations and richer marginal-effect/visualization helpers |
 
 ## Phase 5b: Large-Data Memory Strategy
 
@@ -448,9 +461,12 @@ remain blocked by future covariance or non-Gaussian random-effect work.
 - The first fitted spatial model is an intercept-only univariate Gaussian `mu`
   structured effect, parallel to the implemented phylogenetic path:
   `spatial(1 | site, coords = coords)`.
-- Support `spatial(1 | site, mesh = mesh)` only after the mesh data contract and
-  provenance policy are implemented. `coords` identify observation or site
-  locations, while `mesh` is the SPDE/GMRF computational scaffold.
+- Support `spatial(1 | site, mesh = mesh)` only after the coded mesh object
+  schema, projection path, and recovery tests are implemented. The design
+  contract and provenance policy are recorded in
+  `docs/design/09-phylogenetic-and-spatial-speed.md`. `coords` identify
+  observation or site locations, while `mesh` is the SPDE/GMRF computational
+  scaffold.
 - Treat `coords` as the friendly public input and `mesh` as optional expert
   control. A dense coordinate-only Gaussian-process path would not require a
   mesh, but it is not the scalable route. The planned SPDE/GMRF route needs a
