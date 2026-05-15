@@ -210,7 +210,8 @@ Use these status labels:
   `docs/design/16-phylo-spatial-common-math.md`.
 - Check-log evidence: `docs/dev-log/check-log.md` entries "Phase 10
   coordinate spatial one-slope" and "Phase 10 spatial slope reader path";
-  `docs/dev-log/after-task/2026-05-15-phase-10-coordinate-spatial-one-slope.md`.
+  `docs/dev-log/after-task/2026-05-15-phase-10-coordinate-spatial-one-slope.md`;
+  `docs/dev-log/after-phase/2026-05-15-phase-10-coordinate-spatial-foundation-closure.md`.
 - Debt: mesh/SPDE, multiple spatial slopes, spatial slope correlations,
   spatial `sigma`, bivariate spatial covariance, and spatial `corpair()` remain
   blocked.

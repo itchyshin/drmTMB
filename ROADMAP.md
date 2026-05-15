@@ -649,6 +649,10 @@ remain blocked by future covariance or non-Gaussian random-effect work.
 - Status: coordinate-based univariate Gaussian `mu` intercepts and one numeric
   spatial slope implemented; mesh/SPDE, multiple slopes, slope correlations, and
   bivariate spatial paths planned.
+- Local coordinate-spatial foundation closure:
+  `docs/dev-log/after-phase/2026-05-15-phase-10-coordinate-spatial-foundation-closure.md`
+  records the local gate for the coordinate intercept plus one numeric slope
+  path. This is not a mesh/SPDE or bivariate spatial closure.
 - The first fitted spatial models are univariate Gaussian `mu` structured
   effects, parallel to the implemented phylogenetic path:
   `spatial(1 | site, coords = coords)` and

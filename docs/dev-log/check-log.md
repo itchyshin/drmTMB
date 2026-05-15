@@ -15458,7 +15458,7 @@ Checks run:
 - `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::check_pkgdown()'`:
   passed with no problems found.
 - `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::check(error_on = "never", env_vars = c("_R_CHECK_SYSTEM_CLOCK_" = "FALSE"))'`:
-  passed with 0 errors, 0 warnings, and 0 notes in 2m 29.6s.
+  passed with 0 errors, 0 warnings, and 0 notes in 2m 17.5s.
 - `git diff --check`: passed.
 - `rg -n '36-cpp-modularization-source-map|C\+\+ modularization source map|model_type = 93|model_type = 95|model_type = 96|model_type = 97|model_type = 98|drm_count_kernels|drm_numeric|What Should Not Move Yet|Slice 83' NEWS.md ROADMAP.md docs/design vignettes pkgdown-site --glob '!pkgdown-site/search.json' --glob '!pkgdown-site/deps/**'`:
   confirmed source and rendered source-map wording.
@@ -15518,3 +15518,51 @@ Known limitations:
 - sparse and block-sparse known covariance, public starts/maps/fixed
   parameters, fallback optimizers, multi-start fitting, and actual C++ helper
   header extraction remain future work.
+
+## 2026-05-15 -- Phase 10 coordinate-spatial foundation closure
+
+Goal:
+
+- close the local Phase 10 coordinate-spatial foundation while keeping mesh/SPDE
+  and richer spatial covariance paths planned.
+
+Implemented:
+
+- added after-phase report
+  `docs/dev-log/after-phase/2026-05-15-phase-10-coordinate-spatial-foundation-closure.md`;
+- added ROADMAP local closure wording for the coordinate intercept plus one
+  numeric slope path;
+- refreshed `docs/design/16-phylo-spatial-common-math.md` so older all-spatial
+  planned wording now distinguishes the fitted coordinate foundation from
+  planned mesh/SPDE and richer spatial paths;
+- updated the Phase 6d validation-debt register so the coordinate spatial row
+  points to the Phase 10 after-phase report;
+- left mesh/SPDE, multiple spatial slopes, spatial slope correlations, spatial
+  `sigma`, bivariate spatial covariance, spatial direct-SD models, and spatial
+  `corpair()` regressions as planned debt.
+
+Checks run:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH air format ROADMAP.md docs/design/16-phylo-spatial-common-math.md docs/design/34-validation-debt-register.md docs/dev-log/check-log.md docs/dev-log/after-phase/2026-05-15-phase-10-coordinate-spatial-foundation-closure.md`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::test(filter = "spatial-gaussian|check-drm|profile-targets|phylo-utils", reporter = "summary")'`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::build_site()'`:
+  passed and refreshed ROADMAP.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed with no problems found.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::check(error_on = "never", env_vars = c("_R_CHECK_SYSTEM_CLOCK_" = "FALSE"))'`:
+  passed with 0 errors, 0 warnings, and 0 notes in 2m 29.6s.
+- `git diff --check`: passed.
+- `rg -n 'coordinate-spatial foundation closure|phase-10-coordinate-spatial-foundation-closure|coordinate intercept plus one numeric slope|not a mesh/SPDE or bivariate spatial closure|coordinate-spatial foundation now also fits|spatial-gaussian' ROADMAP.md docs/design/16-phylo-spatial-common-math.md docs/design/34-validation-debt-register.md docs/dev-log/check-log.md docs/dev-log/after-phase/2026-05-15-phase-10-coordinate-spatial-foundation-closure.md pkgdown-site/ROADMAP.html --glob '!pkgdown-site/search.json'`:
+  confirmed source and rendered closure wording.
+- `rg -n 'mesh/SPDE (is|are) implemented|multiple spatial slopes (are|now) implemented|spatial slope correlations (are|now) implemented|spatial `sigma` (is|now) implemented|bivariate spatial covariance (is|now) implemented|spatial `corpair\\(\\)` (is|now) implemented|spatial corpair (is|now) implemented' README.md ROADMAP.md NEWS.md docs/design vignettes pkgdown-site --glob '!docs/dev-log/**' --glob '!pkgdown-site/search.json' --glob '!pkgdown-site/deps/**'`:
+  returned no stale overclaim matches.
+
+Known limitations:
+
+- this closes the coordinate-spatial foundation only;
+- mesh/SPDE, multiple spatial slopes, spatial slope correlations, spatial
+  `sigma`, bivariate spatial covariance, spatial direct-SD models, and spatial
+  `corpair()` remain planned;
+- GitHub Actions remains the PR-side gate.
