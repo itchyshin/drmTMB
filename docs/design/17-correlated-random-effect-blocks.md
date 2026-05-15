@@ -8,6 +8,10 @@ intercepts such as `(1 | p | id)`, one-slope ordinary correlated blocks such as
 `mu`/`sigma` random-intercept covariance block, and the first bivariate
 labelled `mu1`/`mu2` random-intercept covariance block.
 
+For the Phase 6c core status ledger, see
+`docs/design/33-phase-6c-core-random-effects.md`. That note is the bridge
+between this implementation contract and the later structured-slope roadmap.
+
 ## User Grammar
 
 Keep ordinary mixed-model syntax familiar:

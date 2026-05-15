@@ -3,6 +3,11 @@
 Random effects are implemented after fixed-effect likelihoods are tested, but
 the grammar must support them from the start.
 
+The Phase 6c core source map is
+`docs/design/33-phase-6c-core-random-effects.md`. It records the ordinary
+random-intercept and one-slope foundation that later bivariate, phylogenetic,
+spatial, and derived-inference phases should build on.
+
 ## Order of Implementation
 
 1. No random effects.
@@ -81,7 +86,8 @@ bf(
 ```
 
 The fitted group-level intercept-slope correlation is reported under
-`corpars$mu`. It is not residual `rho12`.
+`corpars$mu` and as a `mean-slope` row from `corpairs(level = "group")`.
+It is not residual `rho12`.
 
 The same block can carry a covariance-block label:
 

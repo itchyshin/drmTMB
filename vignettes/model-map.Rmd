@@ -72,6 +72,21 @@ within-observation residual SD. `sd(group) ~ x_group` models the standard
 deviation of a group-level mean effect. Those two scales can answer different
 biological questions even when they use similar predictors.
 
+For ordinary grouped Gaussian models, read the random-effect layer in this
+order:
+
+| Model phrase | Syntax | Read with |
+|---|---|---|
+| groups differ in baseline `mu` | `(1 | id)` | `sdpars$mu`, `ranef(fit, "mu")` |
+| groups differ in the `x` slope | `(0 + x | id)` | `sdpars$mu`, `profile_targets(fit)` |
+| group baselines and slopes are correlated | `(1 + x | id)` or `(1 + x | p | id)` | `corpars$mu`, `corpairs(fit, class = "mean-slope")` |
+| groups differ in residual scale | `sigma ~ z + (1 | id)` | `sdpars$sigma`, `sigma(fit)` |
+| group-level predictors change among-group `mu` SD | `sd(id) ~ x_group` | `coef(fit, "sd(id)")`, `predict(fit, dpar = "sd(id)")` |
+
+The last column is the output contract. It keeps among-group `mu` variation,
+residual `sigma`, group-level random-effect correlations, and residual `rho12`
+as different model layers.
+
 ## Two responses
 
 The implemented bivariate Gaussian path estimates response-specific means,

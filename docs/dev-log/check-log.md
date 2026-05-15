@@ -14891,3 +14891,52 @@ Known limitations:
 - this task did not add new model behavior, tests, profile methods, visual
   helpers, or real external datasets;
 - GitHub Actions and public pkgdown deployment remain PR-side gates.
+
+## 2026-05-15 -- Phase 6c-core random-effect foundation
+
+Goal:
+
+- start Phase 6c with the ordinary grouped random-effect foundation before
+  moving into Phases 10-13.
+
+Implemented:
+
+- committed the Phase 6b tutorial scaffold as
+  `61e9781 Preserve Phase 6b tutorial scaffold`;
+- added `docs/design/33-phase-6c-core-random-effects.md` as the ordinary
+  random-intercept and one-slope source map;
+- updated `ROADMAP.md` so Slices 69-70 are done for the ordinary core and
+  Slice 73 is done for ordinary diagnostics/profile-target status;
+- updated the model map and location-scale tutorial so random-intercept SDs,
+  random-slope SDs, residual `sigma`, `sd(group)`, group-level correlations,
+  and residual `rho12` stay separate;
+- added a regression test that labelled `(1 + x | p | ID)` produces the
+  expected `corpairs()` `mean-slope` row and accepts the `location-slope`
+  filter alias.
+
+Checks run:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH air format ROADMAP.md docs/design/04-random-effects.md docs/design/17-correlated-random-effect-blocks.md docs/design/33-phase-6c-core-random-effects.md docs/dev-log/after-task/2026-05-15-phase-6c-core-random-effect-foundation.md tests/testthat/test-gaussian-random-intercepts.R vignettes/location-scale.Rmd vignettes/model-map.Rmd`:
+  passed.
+- `/usr/local/bin/Rscript -e 'devtools::test(filter = "gaussian-random-intercepts|profile-targets|check-drm", reporter = "summary")'`:
+  passed.
+- `git diff --check`: passed.
+- `/usr/local/bin/Rscript -e 'pkgdown::build_site()'`: failed once because
+  Pandoc was not visible on the shell `PATH`.
+- `PATH=/opt/homebrew/bin:/usr/local/bin:$PATH /usr/local/bin/Rscript -e 'pkgdown::build_site()'`:
+  passed after making `/opt/homebrew/bin/pandoc` visible.
+- `PATH=/opt/homebrew/bin:/usr/local/bin:$PATH /usr/local/bin/Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed with no problems found.
+- `rg -n 'Phase 6c core|33-phase-6c|mean-slope|location-slope|groups differ in baseline|groups differ in the .x. slope|ordinary grouped core|Done for the ordinary core|random-effect foundation' ROADMAP.md docs/design/04-random-effects.md docs/design/17-correlated-random-effect-blocks.md docs/design/33-phase-6c-core-random-effects.md docs/dev-log/after-task/2026-05-15-phase-6c-core-random-effect-foundation.md vignettes/location-scale.Rmd vignettes/model-map.Rmd pkgdown-site/ROADMAP.html pkgdown-site/articles/location-scale.html pkgdown-site/articles/model-map.html --glob '!pkgdown-site/search.json'`:
+  confirmed source and rendered Phase 6c-core wording.
+- `rg -n 'phylo\\(1 \\+ x.*Implemented|spatial\\(1 \\+ x.*Implemented|structured random slopes.*implemented|bivariate random slopes.*implemented|random effects in .*rho12.*implemented|rho12 random effects.*Implemented|slope-specific .*sd\\(.*Implemented' ROADMAP.md docs/design vignettes README.md NEWS.md --glob '!docs/dev-log/**'`:
+  found one valid guardrail phrase saying bivariate random slopes are future.
+
+Known limitations:
+
+- this task does not add new likelihood behavior;
+- structured phylogenetic slopes, spatial slopes, bivariate random slopes,
+  slope-specific `sd()` targets, and random effects in `rho12` remain planned
+  or unsupported;
+- GitHub Actions and full `devtools::test()` remain PR-side or later gate
+  evidence.

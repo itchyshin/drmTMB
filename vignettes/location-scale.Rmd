@@ -355,6 +355,13 @@ others should be named by what they scale:
   `sd(site) ~ x_group` when the target is an unlabelled Gaussian `mu` random
   intercept.
 
+When the model includes a correlated block such as `(1 + x1 | p | id)`,
+`corpairs(fit, level = "group")` returns the ordinary group-level correlation
+row. For this one-slope block the row has class `mean-slope`: it asks whether
+groups with higher baseline `mu` also tend to have steeper or shallower
+mean-model slopes. It is not `rho12`, because `rho12` belongs only to
+bivariate residual response-response coupling.
+
 The location formula models the conditional mean, `mu`, on the identity scale.
 The scale formula models the residual standard deviation, `sigma`, on the log
 scale:

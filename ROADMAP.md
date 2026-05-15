@@ -477,16 +477,25 @@ Phase 6b should turn the implemented surfaces into a coherent reader path:
   interpretation, and biological examples. Good first examples include thermal
   tolerance plasticity along temperature, desiccation tolerance along humidity,
   or behavioural reaction norms along disturbance.
+- Core ordinary grouped status: the random-intercept and one-slope baseline is
+  now recorded in `docs/design/33-phase-6c-core-random-effects.md`. The fitted
+  core covers ordinary Gaussian `mu` random intercepts, independent `mu`
+  random slopes, ordinary correlated intercept-slope blocks, residual-scale
+  random intercepts and independent residual-scale slopes, matching labelled
+  `mu`/`sigma` random-intercept covariance, and direct `sd(group)` models for
+  unlabelled Gaussian `mu` random intercepts. Structured phylogenetic and
+  spatial slopes remain later Phase 6c work that should be interleaved with
+  Phases 10 and 12.
 
 | Slice | Goal | Main work | Done when |
 | --- | --- | --- | --- |
-| 69 | Random-slope issue and math contract | Create/maintain the Phase 6c issue, write the ordinary/phylogenetic/spatial one-slope equations, and fix coefficient naming rules. | Roadmap, formula grammar, and likelihood notes agree on one slope first. |
-| 70 | Ordinary one-slope baseline | Stabilize ordinary grouped `mu` one-slope syntax, extractor labels, `corpairs()` coefficient columns, and profile-target names. | Ordinary slope tests and output snapshots pass. |
-| 71 | Phylogenetic one-slope design and fit | Extend `phylo()` from intercept-only `mu` to one structured `mu` slope after the algebra and storage order are explicit. | Simulation recovery and diagnostics support the fitted slope SD. |
-| 72 | Spatial one-slope design and fit | Extend `spatial()` from intercept-only `mu` to one structured `mu` slope after coordinate/mesh diagnostics are clear. | Spatial slope tests distinguish coordinate and future mesh paths. |
-| 73 | One-slope diagnostics and inference | Add replication, weak-SD, boundary, profile-target, and profile-likelihood CI diagnostics for fitted one-slope paths. | `check_drm()` and `profile_targets()` tell users which slope SDs and correlations are profile-ready. |
+| 69 | Random-slope issue and math contract | Create/maintain the Phase 6c issue, write the ordinary/phylogenetic/spatial one-slope equations, and fix coefficient naming rules. | Done for the ordinary grouped core: `docs/design/33-phase-6c-core-random-effects.md` records the symbolic equations, syntax, output rows, and stable/planned boundary. |
+| 70 | Ordinary one-slope baseline | Stabilize ordinary grouped `mu` one-slope syntax, extractor labels, `corpairs()` coefficient columns, and profile-target names. | Done for the ordinary core: tests cover independent and correlated one-slope `mu` blocks, labelled `(1 + x | p | ID)` names, the `mean-slope` `corpairs()` row, and direct profile-target names. |
+| 71 | Phylogenetic one-slope design and fit | Extend `phylo()` from intercept-only `mu` to one structured `mu` slope after the algebra and storage order are explicit. | Planned: simulation recovery and diagnostics must support the fitted slope SD before this is implemented. |
+| 72 | Spatial one-slope design and fit | Extend `spatial()` from intercept-only `mu` to one structured `mu` slope after coordinate/mesh diagnostics are clear. | Planned: spatial slope tests must distinguish the coordinate foundation from the future mesh path. |
+| 73 | One-slope diagnostics and inference | Add replication, weak-SD, boundary, profile-target, and profile-likelihood CI diagnostics for fitted one-slope paths. | Done for the ordinary core: existing `check_drm()` and `profile_targets()` tests cover weak random-slope design, boundary SDs, random-slope SD targets, and intercept-slope correlation targets. Structured slope diagnostics remain planned with Slices 71-72. |
 | 74 | Slope-correlation advanced gate | Design two-slope models, intercept-slope correlations, and bivariate slope1-slope2 correlations without advertising them as routine. | The roadmap names required replication, simulation recovery, direct-target status, and CI evidence before fitting or teaching slope correlations. |
-| 75 | Biological examples | Add tutorial examples for reaction norms and bivariate plasticity-syndrome questions, including how to read slope SDs, slope correlations, and interval/status columns. | Examples include equations, syntax, output, intervals or explicit unavailable statuses, and interpretation. |
+| 75 | Biological examples | Add tutorial examples for reaction norms and bivariate plasticity-syndrome questions, including how to read slope SDs, slope correlations, and interval/status columns. | Deferred until the Phases 10-13 model surfaces settle; current tutorials include the ordinary one-slope output contract but not final structured-slope examples. |
 | 76 | Phase 6c gate | Run focused tests, pkgdown checks, after-phase audit, PR, and GitHub Actions. | Phase 6c closes only after CI and pkgdown are green. |
 
 ## Phase 6d: Stable-Core Validation and Engine Hardening
