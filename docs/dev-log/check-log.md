@@ -2,6 +2,95 @@
 
 Record meaningful development checks here.
 
+## 2026-05-16 - Slice 101 prediction grid helper
+
+Goal: add the first data-only `prediction_grid()` contract for Phase 17 so
+users can build explicit `newdata` grids for `predict_parameters()` and
+`marginal_parameters()` before any plotting helper, EMM contrast, slope, or
+uncertainty-interval surface is advertised.
+
+Files changed:
+
+- `R/prediction-grid.R`
+- `NAMESPACE`
+- `man/prediction_grid.Rd`
+- `tests/testthat/test-prediction-grid.R`
+- `_pkgdown.yml`
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/39-visualization-grammar.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-16-slice-101-prediction-grid.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-16-125304-codex-checkpoint.md`
+- `vignettes/model-workflow.Rmd`
+
+What changed:
+
+- Added exported generic and `drmTMB` method `prediction_grid()`.
+- Added `margin = "mean_reference"` for focal-grid rows with nuisance
+  predictors set to numeric means, first fitted factor levels, first fitted
+  character values represented as factors, first fitted logical values, or
+  supplied `condition` values.
+- Added `margin = "empirical"` for counterfactual grids that cross focal values
+  with fitted model rows while allowing non-focal predictors to be conditioned.
+- Added `drm_prediction_grid` metadata recording focal terms, conditioned
+  terms, margin, weights label, grid source, reference terms, predictor terms,
+  source-row count, and grid-row count.
+- Added tests for focal values, automatic numeric and factor grids, empirical
+  grids, integration with `predict_parameters()` and `marginal_parameters()`,
+  argument validation, retained-data requirements, and missing condition
+  values.
+- Added the reference topic to pkgdown navigation and introduced
+  `prediction_grid()` in the model-workflow article.
+- Updated the Phase 17 design note, roadmap, and NEWS to record Slice 101 while
+  keeping plotting, EMM contrasts, slopes, and interval columns planned.
+
+Checks run:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH air format R/prediction-grid.R tests/testthat/test-prediction-grid.R`:
+  passed.
+- `Rscript -e "devtools::document()"`: passed and regenerated
+  `man/prediction_grid.Rd` plus the `prediction_grid` namespace exports.
+- `Rscript -e "devtools::test(filter = 'prediction-grid|predict-parameters|marginal-parameters', reporter = 'summary')"`:
+  passed across the focused prediction-grid, prediction-table, and
+  marginal-table helpers.
+- `Rscript -e "devtools::test(reporter = 'summary')"`: passed for the full
+  test suite.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed and rendered
+  `reference/prediction_grid.html`, `articles/model-workflow.html`,
+  `ROADMAP.html`, and `news/index.html`.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with "No problems found."
+- `rg -n 'prediction_grid|drm_prediction_grid|mean_reference|empirical|tables, not plotting functions|plotting helper|EMM|interval_source' R tests/testthat man NEWS.md ROADMAP.md docs/design/39-visualization-grammar.md vignettes/model-workflow.Rmd _pkgdown.yml pkgdown-site --glob '!pkgdown-site/search.json' --glob '!pkgdown-site/deps/**'`:
+  confirmed the source and rendered site carry the new helper, metadata class,
+  grid-rule wording, table-not-plotter boundary, EMM boundary, and
+  interval-source design note.
+- `rg -n 'autoplot\\.drmTMB|ggplot2.*Imports|tidybayes.*dependency|ggdist.*dependency|prediction_grid.*plot|plotting support' DESCRIPTION NEWS.md ROADMAP.md R tests docs/design vignettes pkgdown-site --glob '!pkgdown-site/search.json' --glob '!pkgdown-site/deps/**'`:
+  returned only intended design-boundary matches, not a plotting dependency or
+  implemented-plotting claim.
+- `git diff -U0 -- NAMESPACE NEWS.md ROADMAP.md _pkgdown.yml docs/design/39-visualization-grammar.md vignettes/model-workflow.Rmd R/prediction-grid.R man/prediction_grid.Rd tests/testthat/test-prediction-grid.R | LC_ALL=C rg -n '[^\x00-\x7F]'`:
+  returned no matches in the Slice 101 patch.
+- `git diff --check`: passed.
+- `Rscript tools/codex-checkpoint.R --goal "Slice 101 prediction_grid helper" --next "append check-log and after-task report, then stage, commit, push, and open PR"`:
+  passed and wrote
+  `docs/dev-log/recovery-checkpoints/2026-05-16-125304-codex-checkpoint.md`.
+
+Known limitations:
+
+- `prediction_grid()` requires fitted model data, so it errors for fits created
+  with `drm_control(keep_data = FALSE)`.
+- The helper records the requested `weights` label but does not compute
+  weighted summaries.
+- The helper does not add plotting, EMM contrasts, slopes, interval columns, or
+  direct `emmeans`, `ggeffects`, or `marginaleffects` methods.
+- The first contract is tested for ordinary fixed-effect prediction grids; more
+  specialized transformed, bounded, count, ordinal, bivariate, structured, and
+  random-scale cases still need targeted reference-grid checks before broad
+  compatibility claims.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-16-slice-101-prediction-grid.md`.
+
 ## 2026-05-16 - Slice 100 visualization research
 
 Goal: research the `ggplot2`, tidy Bayesian, marginal-effects, EMM,

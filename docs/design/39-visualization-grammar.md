@@ -108,9 +108,9 @@ data and model checks.
 
 ### Prediction Grid Builder
 
-A future `prediction_grid()` or equivalent should build explicit grids without
-fitting or plotting. The output should be an ordinary data frame plus metadata
-that can be printed:
+Slice 101 adds the first `prediction_grid()` implementation. It builds explicit
+grids without fitting or plotting. The output is an ordinary data frame plus
+metadata that can be printed:
 
 ```text
 focal_terms
@@ -120,10 +120,11 @@ weights
 grid_source
 ```
 
-The helper should support simple focal terms first. It should not promise full
-`emmeans` compatibility until the package has a tested reference-grid contract
-for transformed, bounded, count, ordinal, bivariate, and structured-effect
-fits.
+The first helper supports simple focal terms, supplied `at` values,
+conditioned nuisance predictors, mean-reference grids, and empirical
+counterfactual grids. It does not promise full `emmeans` compatibility; that
+requires a tested reference-grid contract for transformed, bounded, count,
+ordinal, bivariate, and structured-effect fits.
 
 ### Prediction Surface
 
@@ -230,8 +231,8 @@ idea is tidy long data for uncertainty, not Bayesian model support.
 
 ## Near-Term Slice Order
 
-1. Stabilize a grid-builder design for focal terms, conditioning, and
-   marginalization.
+1. Use `prediction_grid()` in examples that need explicit focal terms,
+   conditioning, and empirical marginalization.
 2. Add interval provenance to prediction and marginal tables only after the
    source can be computed honestly.
 3. Add one narrow ggplot-oriented helper for `predict_parameters()` output.

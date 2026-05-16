@@ -866,7 +866,7 @@ remain blocked by future covariance or non-Gaussian random-effect work.
 ## Phase 17: Visualization, Marginal Effects, and Reader-Facing Inference
 
 - Status: planned; initial long-format prediction surfaces exist through
-  `predict_parameters()` and `marginal_parameters()`.
+  `prediction_grid()`, `predict_parameters()`, and `marginal_parameters()`.
 - Slice 100 research note:
   `docs/design/39-visualization-grammar.md` records the external lessons from
   `ggplot2`, `tidybayes`, `ggdist`, `emmeans`, `ggeffects`,
@@ -882,6 +882,10 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   `prediction_grid()` or equivalent grid builders, `marginal_effects()` for
   averaging over nuisance covariates or groups, and compatibility checks for
   `emmeans` where the fitted parameter and link scale have a clean contract.
+- Slice 101 adds the first `prediction_grid()` contract: focal terms, supplied
+  `at` values, conditioned nuisance predictors, mean-reference grids, empirical
+  counterfactual grids, and metadata that records the grid rule. It does not add
+  plotting, EMM contrasts, slopes, or interval columns.
 - Add ggplot-oriented helpers only after the data contract is stable:
   location curves, scale/variance curves, residual `rho12` curves,
   `sd(group)` or `sd_phylo()` surfaces, `corpairs()` summaries, and eventually
