@@ -2,6 +2,46 @@
 
 Record meaningful development checks here.
 
+## 2026-05-16 - Portable agent operating kit
+
+Scope:
+
+- packaged the `drmTMB` agent collaboration pattern into reusable templates for
+  sibling R, statistical, machine-learning, agent-based modelling, and
+  data-wrangling projects;
+- added a portable `AGENTS.md`, `CLAUDE.md`, memory seed, after-task protocol,
+  check-log template, decision-log template, and local skill templates;
+- added a `.gitignore` exception so `docs/agent-kit/` is tracked rather than
+  silently ignored;
+- implemented one improvement for our own group by adding
+  `docs/dev-log/team-improvements.md` and a team-improvement rule in
+  `AGENTS.md`.
+
+Checks:
+
+- `PATH=/opt/homebrew/bin:$PATH air format .gitignore AGENTS.md docs/agent-kit/README.md docs/agent-kit/bootstrap-checklist.md docs/agent-kit/team-roles.md docs/agent-kit/project-memory-policy.md docs/agent-kit/templates/AGENTS.md docs/agent-kit/templates/CLAUDE.md docs/agent-kit/templates/MEMORY.seed.md docs/agent-kit/templates/docs/design/00-vision.md docs/agent-kit/templates/docs/design/10-after-task-protocol.md docs/agent-kit/templates/docs/dev-log/check-log.md docs/agent-kit/templates/docs/dev-log/decisions.md docs/agent-kit/templates/.agents/skills/after-task-audit/SKILL.md docs/agent-kit/templates/.agents/skills/prose-style-review/SKILL.md docs/agent-kit/templates/.agents/skills/simulation-test-plan/SKILL.md docs/agent-kit/templates/.agents/skills/model-implementation-review/SKILL.md docs/agent-kit/templates/.agents/skills/release-readiness-review/SKILL.md docs/design/38-portable-agent-operating-kit.md docs/dev-log/team-improvements.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-16-portable-agent-operating-kit.md`:
+  passed.
+- `git diff --check`: passed.
+- `PATH=/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed with no problems found.
+- `rg -n "<PROJECT>|<one-sentence|<plain-language|<statistical modelling|<applied users|<workflow|<non-goal|<future idea|<function|<parameter|<object field|<file>|<test or check>|<branch>|<record output>|<short task|<decision" docs/agent-kit docs/design/38-portable-agent-operating-kit.md docs/dev-log/team-improvements.md docs/dev-log/after-task/2026-05-16-portable-agent-operating-kit.md AGENTS.md docs/dev-log/check-log.md`:
+  confirmed placeholders are confined to copyable templates and explanatory
+  instructions.
+- `rg -n "<PROJECT>|<one-sentence|<plain-language|<statistical modelling|<applied users|<workflow|<non-goal|<future idea|<function|<parameter|<object field|<file>|<test or check>|<branch>|<record output>|<short task|<decision" docs/agent-kit docs/design/38-portable-agent-operating-kit.md docs/dev-log/team-improvements.md docs/dev-log/after-task/2026-05-16-portable-agent-operating-kit.md AGENTS.md docs/dev-log/check-log.md | rg -v "docs/agent-kit/templates|bootstrap-checklist.md|portable-agent-operating-kit.md" || true`:
+  returned no unexpected placeholders outside templates and explanatory text.
+- `rg -n "rho12|meta_known_V|phylo\(|spatial\(|Template Model Builder|TMB|drmTMB" docs/agent-kit/templates || true`:
+  returned no `drmTMB` statistical claims inside the copyable templates.
+- `git diff --unified=0 -- . ':!docs/dev-log/check-log.md' | LC_ALL=C rg -n '[^\x00-\x7F]' || true`:
+  returned no added non-ASCII outside the existing historical check log.
+- `git diff --unified=0 -- docs/dev-log/check-log.md | LC_ALL=C rg -n '^\+.*[^\x00-\x7F]' || true`:
+  returned no added non-ASCII in the new check-log entry.
+
+Known limitations:
+
+- the kit has not yet been piloted in `gllvmTMB` or another sibling project.
+- routine package tests were not rerun because no R code, tests, likelihoods,
+  vignettes, examples, or exports changed.
+
 ## 2026-05-14 -- Slice 40 final local gate before merge
 
 Scope:
