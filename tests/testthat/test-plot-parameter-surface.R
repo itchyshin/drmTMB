@@ -46,6 +46,7 @@ test_that("plot_parameter_surface() can filter parameters and draw points only",
 
   expect_s3_class(out, "ggplot")
   expect_length(out$layers, 1L)
+  expect_equal(out$labels$y, "sigma estimate (response scale)")
   built <- ggplot2::ggplot_build(out)
   expect_equal(nrow(built$data[[1L]]), 3L)
 })

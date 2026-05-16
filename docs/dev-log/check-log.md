@@ -17621,3 +17621,82 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-16-slice-109-raw-data-model-display.md`.
+
+## 2026-05-16 - Slice 110 plot surface labels
+
+Goal: make single-parameter `plot_parameter_surface()` panels label their
+y-axis with the fitted distributional parameter and prediction scale instead of
+requiring every tutorial to add manual `ggplot2::labs(y = ...)` calls.
+
+Roles:
+
+- Ada kept Slice 110 focused on one small plotting-surface usability polish.
+- Boole owned the user-facing default-label contract.
+- Pat owned the model-workflow example cleanup for applied readers.
+- Grace owned roxygen, focused tests, pkgdown, and rendered-page scans.
+- Rose owned closure notes and the stacked-branch handoff.
+- Fisher stayed watch-only because no interval computation changed.
+- Emmy, Gauss, Noether, Darwin, Jason, and Curie stayed watch-only because no
+  object structure, likelihood, equation, biological case study, landscape
+  claim, or simulation test changed.
+
+Files changed:
+
+- `NEWS.md`
+- `R/plot-parameter-surface.R`
+- `ROADMAP.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-16-slice-110-plot-surface-labels.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-16-164259-codex-checkpoint.md`
+- `man/plot_parameter_surface.Rd`
+- `tests/testthat/test-plot-parameter-surface.R`
+- `vignettes/model-workflow.Rmd`
+
+What changed:
+
+- Added an internal `plot_parameter_surface_y_label()` helper.
+- When the filtered plotting table has one `dpar`, the default y-axis label now
+  names that parameter; when the table also has one prediction scale, the label
+  includes that scale, for example `sigma estimate (response scale)`.
+- Multi-parameter displays keep the generic `Estimate` y-axis label.
+- The model-workflow article now relies on the default single-parameter labels
+  for its separate `mu` and `sigma` surfaces.
+- NEWS, ROADMAP, and the reference page record the label contract.
+
+Checks run:
+
+- `air format R/plot-parameter-surface.R tests/testthat/test-plot-parameter-surface.R NEWS.md ROADMAP.md vignettes/model-workflow.Rmd`:
+  passed.
+- `Rscript -e "devtools::document()"`: passed and regenerated
+  `man/plot_parameter_surface.Rd`.
+- `Rscript -e "devtools::test(filter = 'plot-parameter-surface', reporter = 'summary')"`:
+  passed.
+- `Rscript -e "devtools::load_all(quiet = TRUE); rmarkdown::render('vignettes/model-workflow.Rmd', output_file = tempfile(fileext = '.html'), quiet = TRUE)"`:
+  passed.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed and rendered the
+  updated `plot_parameter_surface()` reference page, model-workflow article,
+  ROADMAP, and NEWS.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with "No problems found."
+- `git diff --check`: passed.
+- `rg -n "Slice 110|single-parameter|single parameter|sigma estimate \\(response scale\\)|mu estimate \\(response scale\\)|y-axis label|Fitted mean growth|Fitted residual SD" R/plot-parameter-surface.R tests/testthat/test-plot-parameter-surface.R man/plot_parameter_surface.Rd vignettes/model-workflow.Rmd NEWS.md ROADMAP.md pkgdown-site/reference/plot_parameter_surface.html pkgdown-site/articles/model-workflow.html pkgdown-site/ROADMAP.html pkgdown-site/news/index.html`:
+  confirmed source and rendered pages carry the single-parameter label
+  contract.
+- `rg -n "plot_corpairs\\(|plot_diagnostics\\(|plot_simulation_summary\\(|autoplot\\.drmTMB|ggplot2.*Imports|tidybayes.*dependency|ggdist.*dependency|posterior draw|credible interval" NEWS.md ROADMAP.md docs/design/39-visualization-grammar.md vignettes/model-workflow.Rmd DESCRIPTION pkgdown-site/articles/model-workflow.html pkgdown-site/ROADMAP.html pkgdown-site/news/index.html pkgdown-site/reference/plot_parameter_surface.html --glob '!pkgdown-site/search.json' --glob '!pkgdown-site/deps/**'`:
+  found only intended planned-name, design-inspiration, and
+  confidence-not-credible-interval guardrails.
+- `Rscript tools/codex-checkpoint.R --goal "Slice 110 plot surface labels" --next "stage and commit Slice 110, then rebase Slice 109 and Slice 110 after PR #72 merge before opening PRs"`:
+  passed and wrote
+  `docs/dev-log/recovery-checkpoints/2026-05-16-164259-codex-checkpoint.md`.
+
+Known limitations:
+
+- no new plotting helper was exported;
+- no interval, EMM, contrast, slope, diagnostics, or simulation display was
+  added;
+- labels remain simple strings rather than biological phrases such as "Fitted
+  mean growth";
+- no likelihood, formula grammar, or TMB code changed.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-16-slice-110-plot-surface-labels.md`.
