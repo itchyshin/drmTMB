@@ -2,6 +2,51 @@
 
 Record meaningful development checks here.
 
+## 2026-05-16 - Slice 93 0.1.2 release gate
+
+Scope:
+
+- prepare the `0.1.2` preview release PR after Phase 6e and the Phase 17-20
+  roadmap reorder;
+- update active preview/install surfaces from `0.1.1` to `0.1.2`;
+- keep historical `0.1.1` release logs unchanged;
+- leave tagging, tag CI, and install smoke to Slice 94 after the release-gate
+  PR merges.
+
+Files touched:
+
+- `DESCRIPTION`
+- `NEWS.md`
+- `README.md`
+- `_pkgdown.yml`
+- `ROADMAP.md`
+- `docs/dev-log/release-checklists/2026-05-16-0.1.2-preview-release.md`
+- `docs/dev-log/after-task/2026-05-16-slice-93-0-1-2-release-gate.md`
+- `vignettes/drmTMB.Rmd`
+
+Checks:
+
+- `PATH=/opt/homebrew/bin:$PATH air format DESCRIPTION NEWS.md README.md _pkgdown.yml ROADMAP.md vignettes/drmTMB.Rmd docs/dev-log/check-log.md docs/dev-log/release-checklists/2026-05-16-0.1.2-preview-release.md docs/dev-log/after-task/2026-05-16-slice-93-0-1-2-release-gate.md`:
+  passed.
+- `git diff --check`: passed.
+- `rg -n "0\\.1\\.1|v0\\.1\\.1|0\\.1\\.2|v0\\.1\\.2|development version" README.md ROADMAP.md _pkgdown.yml vignettes/drmTMB.Rmd NEWS.md docs/dev-log/release-checklists/2026-05-16-0.1.2-preview-release.md docs/dev-log/after-task/2026-05-16-slice-93-0-1-2-release-gate.md docs/dev-log/check-log.md`:
+  confirmed active source install/version surfaces now point to `0.1.2`; the
+  remaining `0.1.1` matches are historical or explicitly describe the previous
+  immutable preview.
+- `PATH=/opt/homebrew/bin:/usr/local/bin:$PATH Rscript -e 'devtools::test()'`:
+  passed with 3,526 tests, 0 failures, 0 warnings, and 0 skips.
+- `PATH=/opt/homebrew/bin:/usr/local/bin:$PATH Rscript -e 'pkgdown::build_site()'`:
+  passed and rendered the home page, roadmap, getting-started article, and news
+  page with `0.1.2` preview metadata.
+- `PATH=/opt/homebrew/bin:/usr/local/bin:$PATH Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed with no problems found.
+- `PATH=/opt/homebrew/bin:/usr/local/bin:$PATH Rscript -e 'devtools::check(error_on = "never", env_vars = c("_R_CHECK_SYSTEM_CLOCK_" = "FALSE"))'`:
+  passed for `drmTMB 0.1.2` with 0 errors, 0 warnings, and 0 notes in 2m
+  36.2s.
+- `rg -n "0\\.1\\.1|v0\\.1\\.1|0\\.1\\.2|v0\\.1\\.2|development version" README.md ROADMAP.md _pkgdown.yml vignettes/drmTMB.Rmd NEWS.md pkgdown-site/index.html pkgdown-site/articles/drmTMB.html pkgdown-site/ROADMAP.html pkgdown-site/news/index.html --glob '!pkgdown-site/search.json'`:
+  confirmed rendered source and site surfaces use `0.1.2`; historical NEWS
+  retains the `0.1.1` section.
+
 ## 2026-05-16 - Roadmap phases 17-20 reorder
 
 Scope:
