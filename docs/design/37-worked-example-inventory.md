@@ -44,6 +44,7 @@ The inventory labels below are deliberately conservative:
 | `vignettes/meta-analysis.Rmd` | Known sampling covariance tutorial | ready enough, Slice 95 polished | Has restoration-effects example, fitted model, `summary()`, `sigma()` reporting table, categorical heterogeneous-heterogeneity parameter definitions, `check_drm()`, weights warning, future `meta_V()` boundary, and bivariate known-`V` extension. | Keep stable. Later work can add a smaller diagonal-versus-dense covariance decision graphic. |
 | `vignettes/phylogenetic-spatial.Rmd` | Structural-dependence tutorial | split pressure, routed | Has a three-step phylogeny, spatial, and planned phylogeny-plus-spatial route, current-status table, model ladder, phylogenetic examples, q=4 covariance rows, predictor-dependent q=2 phylogenetic `corpair()`, profile-target discussion, coordinate spatial one-slope example, and diagnostics. | Keep the route stable. Do not add runnable simultaneous `phylo()` plus `spatial()` syntax until the fitter supports multiple structural `mu` layers with identifiability checks. |
 | `vignettes/robust-student.Rmd` | Robust continuous-response tutorial | ready enough for a secondary tutorial | Has Student-t equation and syntax, seedling example, `check_drm()`, coefficient interpretation, Gaussian comparison, and boundary text. | Keep as a secondary tutorial; future visualization work can add a residual or tail-weight display. |
+| `vignettes/count-nbinom2.Rmd` | Fixed-effect count tutorial | ready enough, Slice 96 added | Has NB2 and zero-inflated NB2 equations, soil-invertebrate simulation, fitted `nbinom2()` and `zi ~ surface` models, `check_drm()`, `AIC()`, response-scale prediction tables, `sigma`/`theta` conversion, and unsupported-boundary text. | Keep fixed-effect and univariate until non-Gaussian random effects, phylogenetic/spatial count paths, and mixed-response models have implementation and recovery evidence. |
 | `vignettes/distribution-families.Rmd` | Family-choice guide | guide, not tutorial | Maps response types to families and explains family-specific public `sigma` meanings. | Keep as a guide. Future count/proportion tutorials should be separate worked examples, not appended here. |
 | `vignettes/large-data.Rmd` | Large-data guide | guide, not tutorial | Explains implemented storage controls, `check_drm()` expectations, aggregation boundaries, and benchmark discipline. | Keep as a guide until Phase 14 adds benchmark-backed examples. |
 | `vignettes/testing-likelihoods.Rmd` | Developer testing guide | guide, not tutorial | Explains comparator checks, simulation recovery, independent likelihood checks, and boundary tests. | Keep under Developer Notes; do not mix with applied tutorials. |
@@ -110,15 +111,32 @@ moderators. It also keeps the unifying-model distinction visible: current
 is ordinary likelihood weighting, and the broader `meta_V()` umbrella remains
 future design only.
 
+## Slice 96 Status: Count NB2 Source-Map Tutorial
+
+Slice 96 added `vignettes/count-nbinom2.Rmd` as the first non-Gaussian worked
+count tutorial. It follows Nakagawa et al. (2026), which treats count
+heteroscedasticity as a biological question and separates overdispersion from
+structural-zero processes. The tutorial uses springtail counts from a
+transparent soil-invertebrate simulation and teaches:
+
+```text
+Var(Y_i) = mu_i + sigma_i^2 * mu_i^2
+size_i = theta_i = 1 / sigma_i^2
+sigma_restored / sigma_degraded = exp(gamma_1)
+theta_restored / theta_degraded = exp(-2 * gamma_1)
+```
+
+The fitted example deliberately stays inside the implemented surface:
+fixed-effect univariate `nbinom2()` with optional `zi ~ surface`. It does not
+teach random effects, `sd(group) ~ ...`, `meta_known_V()`, `phylo()`,
+`spatial()`, bivariate counts, mixed-response families, or COM-Poisson as
+runnable syntax.
+
 ## Later Worked Tutorials
 
-After Slices 90-91 and the Slice 95 meta-analysis polish, the next candidates
-should be chosen one at a time:
+After Slices 90-91, the Slice 95 meta-analysis polish, and the Slice 96 count
+NB2 tutorial, the next candidates should be chosen one at a time:
 
-- a count-abundance example for NB2 or zero-inflated NB2, using the Methods in
-  Ecology and Evolution location-scale paper on heteroscedasticity in
-  continuous, count, and proportion data to name realistic count responses
-  such as fledgling counts, soil invertebrate abundance, or parasite counts;
 - a beta or beta-binomial proportion example from the same paper's
   count/proportion guidance, with the response, trials or bounds, `mu`,
   `sigma`, and any zero/one-inflation process defined before syntax appears;

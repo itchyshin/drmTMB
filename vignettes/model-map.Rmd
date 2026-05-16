@@ -360,6 +360,7 @@ a larger covariance model than the mean-mean path.
 | a worked Gaussian mean-variance analysis | [When variance carries signal](location-scale.html) |
 | a scale vocabulary check | [Which scale are you modelling?](which-scale.html) |
 | a robust continuous-response example | [Robust continuous responses](robust-student.html) |
+| a fixed-effect count example with overdispersion or structural zeros | [Count abundance and extra zeros](count-nbinom2.html) |
 | a two-response residual-correlation example | [Changing residual coupling with rho12](bivariate-coscale.html) |
 | known sampling variances or covariance | [Mean effects and residual heterogeneity](meta-analysis.html) |
 | implemented phylogenetic random intercepts or coordinate-spatial intercept/slope terms | [Structural dependence](phylogenetic-spatial.html) |

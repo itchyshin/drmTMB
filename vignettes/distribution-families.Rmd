@@ -358,7 +358,9 @@ For this family, `predict(fit, dpar = "mu")` and `fitted(fit)` return the
 count mean. `sigma(fit)` returns the overdispersion scale in the variance
 equation, not a residual standard deviation. Larger `sigma` means greater
 extra-Poisson variation. The implementation uses the equivalent
-`stats::dnbinom(mu = mu, size = 1 / sigma^2)` parameterization internally.
+`stats::dnbinom(mu = mu, size = 1 / sigma^2)` parameterization internally. The
+tutorial [Count abundance and extra zeros](count-nbinom2.html) works through
+this `sigma`-to-size conversion with a soil-invertebrate example.
 
 Zero-inflated NB2 models use the same `nbinom2()` family and add a `zi`
 formula for structural zeros:
@@ -394,7 +396,9 @@ For this model, `predict(fit, dpar = "mu")` and `sigma(fit)` describe the
 conditional NB2 count component. `predict(fit, dpar = "zi")` returns the
 structural-zero probability, and `fitted(fit)` returns the unconditional
 response mean `(1 - zi) * mu`. There is no separate `zi_nbinom2()`
-constructor in the current public API.
+constructor in the current public API. Fit this route only when the data story
+has a plausible structural-zero process; otherwise start with ordinary NB2 and
+diagnostics.
 
 Zero-truncated NB2 models are implemented for positive counts where zeros are
 absent by design, such as clutch size among breeding individuals or parasite

@@ -2,6 +2,71 @@
 
 Record meaningful development checks here.
 
+## 2026-05-16 - Slice 96 count NB2 source-map tutorial
+
+Goal: add the first non-Gaussian count worked example after the `0.1.2`
+release gate, keeping the example inside the implemented fixed-effect
+univariate `nbinom2()` and zero-inflated `nbinom2()` surface.
+
+Files changed:
+
+- `ROADMAP.md`
+- `_pkgdown.yml`
+- `docs/design/21-tutorial-style.md`
+- `docs/design/37-worked-example-inventory.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-16-slice-96-count-nbinom2-source-map.md`
+- `vignettes/count-nbinom2.Rmd`
+- `vignettes/distribution-families.Rmd`
+- `vignettes/drmTMB.Rmd`
+- `vignettes/model-map.Rmd`
+- `vignettes/source-map.Rmd`
+
+What changed:
+
+- Added `vignettes/count-nbinom2.Rmd`, a soil-invertebrate tutorial with
+  NB2 and zero-inflated NB2 equations, exact `drmTMB()` syntax, parameter
+  definitions, fitted diagnostics, and biological interpretation.
+- Explained the public `sigma` scale for NB2 counts:
+  `Var(Y_i) = mu_i + sigma_i^2 * mu_i^2` and
+  `size_i = theta_i = 1 / sigma_i^2`, so larger `sigma` means stronger
+  extra-Poisson variation.
+- Added response-scale interpretation for `mu`, `sigma`, `zi`, conditional
+  and unconditional means, and unconditional variance.
+- Linked the tutorial from the pkgdown Tutorials menu, Getting Started,
+  model map, family guide, source map, worked-example inventory, and roadmap.
+- Kept unsupported neighbours explicit: non-Gaussian random effects,
+  `sd(group) ~ ...`, `meta_known_V(V = V)` with counts, `phylo()` or
+  `spatial()` count models, bivariate or mixed-response counts, and
+  COM-Poisson underdispersion.
+
+Checks run:
+
+- `air format _pkgdown.yml ROADMAP.md docs/design/21-tutorial-style.md docs/design/37-worked-example-inventory.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-16-slice-96-count-nbinom2-source-map.md vignettes/count-nbinom2.Rmd vignettes/distribution-families.Rmd vignettes/drmTMB.Rmd vignettes/model-map.Rmd vignettes/source-map.Rmd`:
+  passed.
+- `git diff --check`: passed.
+- `Rscript -e 'devtools::test(filter = "nbinom2|count-kernels|zi-poisson|poisson-mean")'`:
+  passed with `FAIL 0 | WARN 0 | SKIP 0 | PASS 321`.
+- `Rscript -e 'pkgdown::build_site()'`: passed and rendered
+  `articles/count-nbinom2.html`.
+- `Rscript -e 'pkgdown::check_pkgdown()'`: passed with "No problems found."
+- `rg -n 'Count abundance and extra zeros|sigma_restored|theta_restored|structural-zero|fixed-effect and univariate|COM-Poisson|meta_known_V|phylo\(\)|spatial\(\)|random effects' vignettes/count-nbinom2.Rmd docs/design/37-worked-example-inventory.md vignettes/distribution-families.Rmd vignettes/drmTMB.Rmd vignettes/model-map.Rmd vignettes/source-map.Rmd ROADMAP.md _pkgdown.yml`:
+  confirmed the tutorial route, scale conversion, structural-zero language,
+  and unsupported-boundary wording.
+
+Known limitations:
+
+- no formula grammar, family, likelihood, TMB, extractor, or test
+  implementation changed in this slice;
+- the example is fixed-effect and univariate only;
+- non-Gaussian random effects, structured count effects, mixed-response count
+  families, known covariance with counts, and COM-Poisson remain planned until
+  they have implementation and recovery evidence.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-16-slice-96-count-nbinom2-source-map.md`.
+
 ## 2026-05-16 - Slice 95 meta-analysis source-map polish
 
 Goal: resume the example lane after the `0.1.2` release evidence PR by
