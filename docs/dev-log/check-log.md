@@ -2,6 +2,73 @@
 
 Record meaningful development checks here.
 
+## 2026-05-16 - Slice 102 empirical prediction-grid example
+
+Goal: add the first reader-facing empirical-grid workflow so the model-workflow
+article shows how to average `prediction_grid(..., margin = "empirical")`
+output with `marginal_parameters(..., by = "temperature")` instead of treating
+conditioned prediction rows and empirical marginal summaries as the same
+estimand.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/39-visualization-grammar.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-16-slice-102-empirical-grid-example.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-16-131655-codex-checkpoint.md`
+- `vignettes/model-workflow.Rmd`
+
+What changed:
+
+- Updated the model-workflow article to keep the conditioned reef grid for
+  direct `predict_parameters()` rows.
+- Added a separate `temperature_empirical` grid with
+  `prediction_grid(fit, focal = "temperature", at = ..., margin = "empirical")`.
+- Added `marginal_parameters(..., by = "temperature")` to reduce the empirical
+  grid over the fitted-row covariate distribution.
+- Updated the Phase 17 roadmap and visualization-grammar design note to record
+  Slice 102 and move the near-term order toward interval provenance.
+- Updated NEWS with the new reader-facing empirical-grid workflow.
+
+Checks run:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH air format NEWS.md ROADMAP.md docs/design/39-visualization-grammar.md vignettes/model-workflow.Rmd`:
+  passed.
+- `Rscript -e 'pkgload::load_all(".", quiet = TRUE); rmarkdown::render("vignettes/model-workflow.Rmd", output_dir = tempfile("model-workflow-render-"), quiet = FALSE)'`:
+  passed and rendered the model-workflow article with the new empirical-grid
+  chunks.
+- `Rscript -e "devtools::test(filter = 'prediction-grid|marginal-parameters', reporter = 'summary')"`:
+  passed across the focused grid-builder and marginal-table helpers.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed and rendered
+  `articles/model-workflow.html`, `ROADMAP.html`, and `news/index.html`.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with "No problems found."
+- `rg -n 'temperature_empirical|margin = "empirical"|fitted-row covariate distribution|by = "temperature"|Slice 102|empirical-grid' NEWS.md ROADMAP.md docs/design/39-visualization-grammar.md vignettes/model-workflow.Rmd pkgdown-site/articles/model-workflow.html pkgdown-site/ROADMAP.html pkgdown-site/news/index.html --glob '!pkgdown-site/search.json'`:
+  confirmed the source and rendered site carry the empirical-grid workflow and
+  Slice 102 roadmap/design-note wording.
+- `rg -n 'plotting support|ggplot2.*Imports|tidybayes.*dependency|ggdist.*dependency|EM means|prediction_grid.*plot' DESCRIPTION NEWS.md ROADMAP.md docs/design/39-visualization-grammar.md vignettes/model-workflow.Rmd pkgdown-site --glob '!pkgdown-site/search.json' --glob '!pkgdown-site/deps/**'`:
+  returned only intended design-boundary matches, not a new plotting claim or
+  dependency.
+- `git diff -U0 -- NEWS.md ROADMAP.md docs/design/39-visualization-grammar.md vignettes/model-workflow.Rmd | LC_ALL=C rg -n '[^\x00-\x7F]'`:
+  returned no matches in the Slice 102 patch.
+- `git diff --check`: passed.
+- `Rscript tools/codex-checkpoint.R --goal "Slice 102 empirical prediction-grid example" --next "append check-log and after-task report, then stage, commit, push, and open PR"`:
+  passed and wrote
+  `docs/dev-log/recovery-checkpoints/2026-05-16-131655-codex-checkpoint.md`.
+
+Known limitations:
+
+- This is a documentation and example slice; it does not change
+  `prediction_grid()`, `predict_parameters()`, or `marginal_parameters()`.
+- `weights` remains metadata only.
+- No plotting helper, EMM contrast, slope helper, interval columns, or external
+  visualization dependency was added.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-16-slice-102-empirical-grid-example.md`.
+
 ## 2026-05-16 - Slice 101 prediction grid helper
 
 Goal: add the first data-only `prediction_grid()` contract for Phase 17 so

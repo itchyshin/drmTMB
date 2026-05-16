@@ -886,6 +886,11 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   `at` values, conditioned nuisance predictors, mean-reference grids, empirical
   counterfactual grids, and metadata that records the grid rule. It does not add
   plotting, EMM contrasts, slopes, or interval columns.
+- Slice 102 adds the first reader-facing empirical-grid workflow to the
+  model-workflow article. The example separates a conditioned prediction grid
+  for direct `predict_parameters()` rows from an empirical grid that
+  `marginal_parameters(..., by = "temperature")` reduces over the fitted-row
+  covariate distribution.
 - Add ggplot-oriented helpers only after the data contract is stable:
   location curves, scale/variance curves, residual `rho12` curves,
   `sd(group)` or `sd_phylo()` surfaces, `corpairs()` summaries, and eventually
