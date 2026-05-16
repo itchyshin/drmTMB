@@ -16025,3 +16025,57 @@ Known limitations:
 - no tutorial Rmd file was edited beyond the style-contract pointer;
 - Slices 90-91 should make the next reader-facing tutorial edits and run the
   rendered-site gate.
+
+## 2026-05-16 -- Slice 90 flagship location-scale tutorial
+
+Goal:
+
+- deepen `vignettes/location-scale.Rmd` so the flagship Gaussian
+  location-scale tutorial explains mean slopes, residual-scale slopes,
+  random-slope SDs, `sd(group)` models, diagnostics, and report-scale
+  interpretation in one reader-facing path.
+
+Implemented:
+
+- added a response-scale interpretation ladder for fixed mean slopes,
+  residual-SD and residual-variance ratios, mean random-slope SDs,
+  residual-scale random-slope SDs, and random-effect scale slopes;
+- added `profile_targets(fit_growth)` to the fitted growth example as part of
+  the interpretation gate;
+- added a compact fitted `growth_translation` table for the mean-temperature
+  slope, residual-SD habitat ratio, and residual-variance habitat ratio;
+- added a hierarchical checklist distinguishing `sigma ~ temperature`,
+  `(0 + temperature | population)`, and `sd(population) ~ habitat`;
+- updated `docs/design/37-worked-example-inventory.md`, `ROADMAP.md`, and
+  `NEWS.md`, including a new `0.1.2 (development version)` NEWS heading;
+- added after-task report
+  `docs/dev-log/after-task/2026-05-16-slice-90-flagship-location-scale.md`.
+
+Checks run:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH air format NEWS.md ROADMAP.md docs/design/37-worked-example-inventory.md vignettes/location-scale.Rmd`:
+  passed.
+- `pkgdown::build_article("location-scale")`: failed before source-package
+  installation because the previously installed local package did not expose
+  `profile_targets()`.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::build_site()'`:
+  passed after installing the current source package into a temporary library.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed with "No problems found."
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::test(filter = "gaussian-(location-scale|random-effect-scale)", reporter = "summary")'`:
+  passed.
+- `rg -n "response-scale interpretation ladder|profile_targets\\(fit_growth\\)|growth_translation|fixed residual-SD contrast|sd\\(population\\) ~ habitat|0\\.1\\.2|Slice 90 Status|fixef:sd\\(population\\)" vignettes/location-scale.Rmd pkgdown-site/articles/location-scale.html NEWS.md pkgdown-site/news/index.html docs/design/37-worked-example-inventory.md ROADMAP.md --glob '!pkgdown-site/search.json'`:
+  confirmed source and rendered-site evidence.
+- `LC_ALL=C rg -n "[^\\x00-\\x7F]" vignettes/location-scale.Rmd NEWS.md docs/design/37-worked-example-inventory.md ROADMAP.md`:
+  returned no matches.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- this was tutorial maturation only; no formula grammar, likelihood, TMB,
+  extractor, or test surface changed;
+- Slice 90 did not add a new fitted hierarchical `sd(population) ~ habitat`
+  example, because the goal was to interpret the existing surface and keep
+  coefficient-specific random-slope SD regression clearly reserved;
+- Slice 91 should happen on a separate branch and focus only on the
+  structured-dependence reader route.

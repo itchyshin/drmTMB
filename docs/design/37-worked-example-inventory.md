@@ -38,7 +38,7 @@ The inventory labels below are deliberately conservative:
 | `vignettes/drmTMB.Rmd` | Getting-started orientation | guide, not tutorial | Fits the first Gaussian location-scale model, runs `check_drm()`, and points readers to model guides and tutorials. | Keep short. Do not turn the front door into the main worked example. |
 | `vignettes/model-map.Rmd` | Implemented-versus-planned guide | guide, not tutorial | Stable-core matrix separates fitted surfaces, planned neighbours, and diagnostic or interval status. | Keep as the status map; use it to route unsupported-syntax questions. |
 | `vignettes/model-workflow.Rmd` | Post-fit workflow guide | guide, not tutorial | Shows `check_drm()`, `summary()`, `profile_targets()`, `conf.status`, prediction, residuals, and simulation as a reusable workflow. | Keep as the post-fit checklist; link to it from worked examples when diagnostics appear. |
-| `vignettes/location-scale.Rmd` | Gaussian location-scale tutorial | needs focused polish | Has model equations, syntax, growth example, `check_drm()`, `summary(fit_growth)`, curved-response example, and caveats. | Slice 90 should make this the flagship: add a compact response-scale table or figure for mean, residual SD, random-slope SD, and `sd(group)` interpretation. |
+| `vignettes/location-scale.Rmd` | Gaussian location-scale tutorial | ready enough | Has model equations, syntax, growth example, `check_drm()`, `profile_targets(fit_growth)`, `summary(fit_growth)`, response-scale translation tables, curved-response example, and caveats. | Keep as the flagship tutorial; future edits should be smaller polish, not a second tutorial inside the same page. |
 | `vignettes/which-scale.Rmd` | Scale vocabulary guide with runnable audit snippets | guide, not tutorial | Explains residual `sigma`, random-effect SD, `sd(group)`, likelihood weights, known sampling variance, and residual `rho12`. | Keep as the glossary; cross-link from Slice 90 rather than duplicating the whole scale taxonomy. |
 | `vignettes/bivariate-coscale.Rmd` | Residual `rho12` and bivariate covariance tutorial | ready enough, with a later group-covariance polish need | Has behaviour-coupling equations, fitted bivariate model, `check_drm()`, `summary()`, `rho12()` extraction, a residual-correlation plot, reporting guidance, and a group-level `corpairs()` section. | Leave for now unless Slice 90 frees time; a later polish can give group-level covariance the same response-scale display depth as residual `rho12`. |
 | `vignettes/meta-analysis.Rmd` | Known sampling covariance tutorial | ready enough | Has restoration-effects example, fitted model, `summary()`, `sigma()` reporting table, `check_drm()`, weights warning, and bivariate known-`V` extension. | Keep stable. Later work can add a smaller diagonal-versus-dense covariance decision graphic. |
@@ -48,24 +48,26 @@ The inventory labels below are deliberately conservative:
 | `vignettes/large-data.Rmd` | Large-data guide | guide, not tutorial | Explains implemented storage controls, `check_drm()` expectations, aggregation boundaries, and benchmark discipline. | Keep as a guide until Phase 14 adds benchmark-backed examples. |
 | `vignettes/testing-likelihoods.Rmd` | Developer testing guide | guide, not tutorial | Explains comparator checks, simulation recovery, independent likelihood checks, and boundary tests. | Keep under Developer Notes; do not mix with applied tutorials. |
 
-## Slice 90 Candidate: Flagship Location-Scale Tutorial
+## Slice 90 Status: Flagship Location-Scale Tutorial
 
-The highest-value next tutorial is `vignettes/location-scale.Rmd`. It is already
-the right first worked example because it teaches the core package idea:
-biological variation can be modelled instead of treated as nuisance noise. Slice
-90 should not add new model syntax. It should tighten the existing growth
-example so the reader sees, in one place:
+`vignettes/location-scale.Rmd` is the flagship worked example because it teaches
+the core package idea: biological variation can be modelled instead of treated
+as nuisance noise. Slice 90 kept the syntax surface unchanged and tightened the
+existing growth example so the reader sees, in one place:
 
 - the average mean response slope;
 - the residual-scale slope as an SD ratio and, when useful, a variance ratio;
 - the random-slope SD as among-group reaction-norm variation;
 - the `sd(group)` slope as a group-level predictor of among-group SD;
-- `check_drm()` and `profile_targets()` as the interpretation gate.
+- `check_drm()` and `profile_targets()` as the interpretation gate;
+- the boundary that `sd(population) ~ habitat` targets an unlabelled random
+  intercept, while coefficient-specific random-slope SD regression remains
+  reserved.
 
-The likely artifact is a compact response-scale table or figure that uses the
-already fitted tutorial objects. Pat's test is whether an applied PhD student
-can explain the difference between `sigma ~ temperature`, `(0 + temperature |
-population)`, and `sd(population) ~ habitat` without reading the design docs.
+Pat's test is whether an applied PhD student can explain the difference between
+`sigma ~ temperature`, `(0 + temperature | population)`, and `sd(population) ~
+habitat` without reading the design docs. After Slice 90, that test should pass
+from the tutorial text itself.
 
 ## Slice 91 Candidate: Structured-Dependence Reader Route
 
