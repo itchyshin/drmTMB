@@ -17545,3 +17545,79 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-16-slice-108-reference-plotting-inventory.md`.
+
+## 2026-05-16 - Slice 109 raw-data-plus-model display rules
+
+Goal: translate the Phase 17 visualization landscape into concrete example
+rules so reader-facing plots pair raw response data with fitted model surfaces
+without hiding grids, marginalization, scale, interval status, or diagnostics.
+
+Roles:
+
+- Ada coordinated the Slice 109 scope and kept it documentation-only.
+- Pat owned the applied-reader workflow: show the observed response first, then
+  fitted `mu` and `sigma` surfaces.
+- Jason translated the visualization-landscape lessons into example rules
+  without turning them into new dependencies.
+- Fisher owned the interval-provenance guardrail for future ribbons and
+  interval layers.
+- Grace owned article rendering, pkgdown checks, and stale dependency scans.
+- Rose owned closure notes and the next-slice handoff.
+- Boole, Emmy, Gauss, Noether, Darwin, and Curie stayed watch-only because no
+  API, object structure, likelihood, equations, biological case study, or tests
+  changed.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/39-visualization-grammar.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-16-slice-109-raw-data-model-display.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-16-163605-codex-checkpoint.md`
+- `vignettes/model-workflow.Rmd`
+
+What changed:
+
+- Added raw-data-plus-model example rules to the visualization grammar design
+  note.
+- Updated the model-workflow article so the plotting section first builds an
+  explicit `pred_temperature` table, then shows an observed-response scatter
+  plot, a fitted `mu` surface, and a fitted `sigma` surface.
+- Added a reader-facing warning not to put raw response points on `sigma`,
+  `sigma^2`, `rho12`, random-effect SD, or correlation axes.
+- Recorded that interval ribbons or shaded regions should only be drawn from
+  tables with a real `interval_source`, not `interval_source = "not_available"`.
+- Updated NEWS and ROADMAP with the Slice 109 display-rule contract.
+
+Checks run:
+
+- `air format NEWS.md ROADMAP.md docs/design/39-visualization-grammar.md vignettes/model-workflow.Rmd`:
+  passed.
+- `Rscript -e "devtools::load_all(quiet = TRUE); rmarkdown::render('vignettes/model-workflow.Rmd', output_file = tempfile(fileext = '.html'), quiet = TRUE)"`:
+  passed.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed and rendered the
+  updated model-workflow article, ROADMAP, and NEWS.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with "No problems found."
+- `git diff --check`: passed.
+- `rg -n "Slice 109|raw-data-plus-model|observed-response scale|Fitted mean growth|Fitted residual SD|interval_source|not place raw response|Raw-Data-Plus-Model" NEWS.md ROADMAP.md docs/design/39-visualization-grammar.md vignettes/model-workflow.Rmd pkgdown-site/articles/model-workflow.html pkgdown-site/ROADMAP.html pkgdown-site/news/index.html`:
+  confirmed source and rendered pages carry the Slice 109 display rules.
+- `rg -n "plot_corpairs\\(|plot_diagnostics\\(|plot_simulation_summary\\(|autoplot\\.drmTMB|ggplot2.*Imports|tidybayes.*dependency|ggdist.*dependency|posterior draw|credible interval" NEWS.md ROADMAP.md docs/design/39-visualization-grammar.md vignettes/model-workflow.Rmd DESCRIPTION pkgdown-site/articles/model-workflow.html pkgdown-site/ROADMAP.html pkgdown-site/news/index.html --glob '!pkgdown-site/search.json' --glob '!pkgdown-site/deps/**'`:
+  found only intended planned-name, design-inspiration, and
+  confidence-not-credible-interval guardrails.
+- `Rscript tools/codex-checkpoint.R --goal "Slice 109 raw-data-plus-model display rules" --next "stage, commit, push stacked branch after Slice 108 PR #72 is green and merged; then open Slice 109 PR"`:
+  passed and wrote
+  `docs/dev-log/recovery-checkpoints/2026-05-16-163605-codex-checkpoint.md`.
+
+Known limitations:
+
+- no new plotting helper was exported;
+- no dependency, R API, likelihood, formula grammar, or TMB code changed;
+- no interval ribbons, `corpairs()` plots, diagnostics plots, EMMs, contrasts,
+  slopes, or simulation plots were added;
+- the raw-data-plus-model display is a teaching rule, not a new plotting
+  abstraction.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-16-slice-109-raw-data-model-display.md`.
