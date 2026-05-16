@@ -44,6 +44,8 @@ navbar:
           href: articles/location-scale.html
         - text: Robust continuous responses
           href: articles/robust-student.html
+        - text: Count abundance and extra zeros
+          href: articles/count-nbinom2.html
         - text: Changing residual coupling with rho12
           href: articles/bivariate-coscale.html
         - text: Mean effects and residual heterogeneity
@@ -82,8 +84,9 @@ reference:
       - truncated_nbinom2
       - biv_gaussian
   - title: Structured-effect markers
-    desc: Phylogenetic and planned spatial structured covariance terms.
+    desc: Random-effect scale, structured covariance, and latent-correlation formula syntax.
     contents:
+      - random_effect_scale_formulas
       - gr
       - phylo
       - spatial
@@ -131,6 +134,7 @@ articles:
     contents:
       - location-scale
       - robust-student
+      - count-nbinom2
       - meta-analysis
       - bivariate-coscale
       - phylogenetic-spatial

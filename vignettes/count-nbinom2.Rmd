@@ -1,0 +1,306 @@
+---
+title: "Count abundance and extra zeros"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Count abundance and extra zeros}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+library(drmTMB)
+```
+
+Many ecological responses are counts: fledglings per nest, parasites per host,
+insects in a trap, or soil invertebrates in a quadrat. A Poisson model is the
+natural baseline, but it fixes the variance equal to the mean. The
+location-scale count question is sharper: do predictors change the expected
+abundance, the extra-Poisson variation around that abundance, or the chance of
+a separate structural zero?
+
+This article stays inside the currently implemented `drmTMB` count surface:
+fixed-effect univariate NB2 and zero-inflated NB2 models.
+
+The source motivation comes from Nakagawa et al. (2026), who use
+location-scale models to discuss heteroscedasticity in continuous, count, and
+proportion data. Their count section highlights negative-binomial models for
+fledglings, insect colony size, parasites, and soil invertebrates, and it
+separates overdispersion from structural-zero processes. `drmTMB` uses the
+same scientific split, but reports the NB2 scale as public `sigma` rather than
+the native size or precision parameter often written as `theta`.
+
+## Model Equation And Syntax
+
+For an overdispersed count model, `nbinom2()` uses
+
+\[
+\begin{aligned}
+Y_i \mid \mu_i, \sigma_i
+  &\sim \operatorname{NB2}(\mu_i, \text{size}_i),\\
+\log(\mu_i)
+  &= \log(E_i) + \beta_0
+     + \beta_1 \text{restored}_i
+     + \beta_2 \text{moisture}_i,\\
+\log(\sigma_i)
+  &= \gamma_0 + \gamma_1 \text{restored}_i,\\
+\text{size}_i
+  &= 1 / \sigma_i^2,\\
+E[Y_i]
+  &= \mu_i,\\
+\operatorname{Var}(Y_i)
+  &= \mu_i + \sigma_i^2\mu_i^2.
+\end{aligned}
+\]
+
+The matching `drmTMB` syntax is:
+
+```r
+drmTMB(
+  bf(
+    springtails ~ habitat + moisture + offset(log(trap_nights)),
+    sigma ~ habitat
+  ),
+  family = nbinom2(),
+  data = soil_counts
+)
+```
+
+Read each parameter before interpreting the fitted model:
+
+| Symbol or syntax | Meaning | In the soil-invertebrate example |
+|---|---|---|
+| \(Y_i\), `springtails` | observed non-negative integer count | springtails found in trap \(i\) |
+| \(E_i\), `trap_nights` | sampling effort exposure | number of nights the trap was active |
+| `offset(log(trap_nights))` | forces expected count to scale with effort | estimates abundance rate per trap night |
+| \(\mu_i\), `mu` | expected count after accounting for effort | expected springtail abundance in a trap |
+| \(\boldsymbol{\beta}_{\mu}\) | location coefficients on the log mean scale | habitat and moisture effects on expected abundance |
+| \(\sigma_i\), `sigma` | NB2 extra-Poisson scale | variation beyond the Poisson expectation |
+| \(\boldsymbol{\beta}_{\sigma}\) | scale coefficients on the log `sigma` scale | habitat effects on extra-Poisson variation |
+| \(\text{size}_i\), `theta` in some papers | native NB2 size or precision | `size_i = 1 / sigma_i^2`, so larger `sigma` means smaller `size` |
+
+The `sigma` slope is a variability slope. If `gamma_1` is the restored-habitat
+coefficient, then
+
+\[
+\frac{\sigma_\text{restored}}{\sigma_\text{degraded}}
+  = \exp(\gamma_1),
+\qquad
+\frac{\sigma_\text{restored}^2}{\sigma_\text{degraded}^2}
+  = \exp(2\gamma_1).
+\]
+
+If a paper reports the native NB2 parameter
+\(\theta_i = 1 / \sigma_i^2\), the direction reverses:
+
+\[
+\frac{\theta_\text{restored}}{\theta_\text{degraded}}
+  = \exp(-2\gamma_1).
+\]
+
+That reversal is why the tutorial keeps saying `sigma`: in `drmTMB`, larger
+`sigma` always means more modelled variation for this family.
+
+## A Soil-Invertebrate Example
+
+Suppose springtails are counted from soil traps in degraded and restored
+grassland plots. Restoration may increase average abundance, but restored plots
+may also be more patchy while litter and vegetation structure re-establish. A
+few bare-soil microsites may be true absences where springtails are not
+available to be trapped.
+
+This transparent simulation gives us known structure before fitting:
+
+```{r}
+set.seed(106)
+n <- 360
+soil_counts <- data.frame(
+  habitat = factor(
+    rep(c("degraded", "restored"), each = n / 2),
+    levels = c("degraded", "restored")
+  ),
+  surface = factor(
+    sample(c("litter", "bare"), n, replace = TRUE, prob = c(0.72, 0.28)),
+    levels = c("litter", "bare")
+  ),
+  moisture = as.numeric(scale(runif(n, 0.15, 0.95))),
+  trap_nights = sample(2:5, n, replace = TRUE)
+)
+
+restored <- as.numeric(soil_counts$habitat == "restored")
+bare <- as.numeric(soil_counts$surface == "bare")
+
+rate <- exp(log(2.4) + 0.35 * restored + 0.30 * soil_counts$moisture)
+mu <- soil_counts$trap_nights * rate
+sigma_nb2 <- exp(-0.75 + 0.40 * restored)
+zi <- plogis(-3.2 + 1.6 * bare - 0.25 * restored)
+
+structural_zero <- runif(n) < zi
+soil_counts$springtails <- ifelse(
+  structural_zero,
+  0L,
+  rnbinom(n, size = 1 / sigma_nb2^2, mu = mu)
+)
+
+head(soil_counts)
+```
+
+Start with the NB2 location-scale model before adding a structural-zero
+submodel:
+
+```{r}
+fit_nb2 <- drmTMB(
+  bf(
+    springtails ~ habitat + moisture + offset(log(trap_nights)),
+    sigma ~ habitat
+  ),
+  family = nbinom2(),
+  data = soil_counts
+)
+```
+
+Run diagnostics before interpreting coefficients:
+
+```{r}
+check_drm(fit_nb2)
+```
+
+The NB2 fit answers two questions. The `mu` coefficients describe abundance
+rates, because the offset has already accounted for trap effort. The `sigma`
+coefficients describe extra-Poisson variation in the count component:
+
+```{r}
+coef(fit_nb2, "mu")
+coef(fit_nb2, "sigma")
+
+sigma_ratio <- exp(coef(fit_nb2, "sigma")["habitatrestored"])
+c(
+  sigma_ratio_restored_vs_degraded = sigma_ratio,
+  variance_multiplier_at_same_mu = sigma_ratio^2
+)
+```
+
+The second value is the multiplier on the quadratic extra-Poisson part
+\(\sigma_i^2\mu_i^2\) when two traps have the same expected count. It is not
+the full variance ratio whenever \(\mu_i\) also changes, because NB2 variance
+contains both \(\mu_i\) and \(\sigma_i^2\mu_i^2\).
+
+## When Zeros Are A Separate Process
+
+The paper example of soil invertebrates in patchy habitats maps naturally to a
+zero-inflated count model. Bare-soil microsites can be true absences, while
+litter microsites can still produce ordinary sampling zeros from the NB2 count
+component. Add a `zi` formula when the biological question needs that split:
+
+\[
+\begin{aligned}
+\Pr(Y_i = 0)
+  &= \pi_i + (1 - \pi_i)\Pr_{\operatorname{NB2}}(0 \mid \mu_i,\sigma_i),\\
+\Pr(Y_i = k > 0)
+  &= (1 - \pi_i)\Pr_{\operatorname{NB2}}(k \mid \mu_i,\sigma_i),\\
+\operatorname{logit}(\pi_i)
+  &= \delta_0 + \delta_1 \text{bare}_i,\\
+\operatorname{Var}(Y_i)
+  &= (1 - \pi_i)(\mu_i + \sigma_i^2\mu_i^2)
+     + \pi_i(1 - \pi_i)\mu_i^2.
+\end{aligned}
+\]
+
+In this equation, \(\pi_i\) is the structural-zero probability. It is not a
+scale parameter and should not be interpreted as overdispersion.
+
+```{r}
+fit_zinb2 <- drmTMB(
+  bf(
+    springtails ~ habitat + moisture + offset(log(trap_nights)),
+    sigma ~ habitat,
+    zi ~ surface
+  ),
+  family = nbinom2(),
+  data = soil_counts
+)
+
+check_drm(fit_zinb2)
+```
+
+The `zi` coefficients are on the log-odds scale. Prediction gives the
+structural-zero probability on the response scale:
+
+```{r}
+coef(fit_zinb2, "zi")
+
+zero_grid <- data.frame(
+  habitat = factor(c("degraded", "degraded"), levels = levels(soil_counts$habitat)),
+  surface = factor(c("litter", "bare"), levels = levels(soil_counts$surface)),
+  moisture = 0,
+  trap_nights = 3
+)
+
+data.frame(
+  surface = zero_grid$surface,
+  structural_zero_probability = predict(fit_zinb2, newdata = zero_grid, dpar = "zi")
+)
+```
+
+For the fitted zero-inflated model, `predict(fit_zinb2, dpar = "mu")` returns
+the conditional NB2 count mean, `sigma(fit_zinb2)` returns the conditional
+NB2 overdispersion scale, and `fitted(fit_zinb2)` returns the unconditional
+response mean \((1 - \pi_i)\mu_i\):
+
+```{r}
+new_traps <- data.frame(
+  habitat = factor(c("degraded", "restored"), levels = levels(soil_counts$habitat)),
+  surface = factor(c("litter", "litter"), levels = levels(soil_counts$surface)),
+  moisture = c(0, 0),
+  trap_nights = c(3, 3)
+)
+
+mu_hat <- predict(fit_zinb2, newdata = new_traps, dpar = "mu")
+sigma_hat <- predict(fit_zinb2, newdata = new_traps, dpar = "sigma")
+zi_hat <- predict(fit_zinb2, newdata = new_traps, dpar = "zi")
+
+data.frame(
+  habitat = new_traps$habitat,
+  conditional_mean = mu_hat,
+  sigma = sigma_hat,
+  structural_zero_probability = zi_hat,
+  unconditional_mean = (1 - zi_hat) * mu_hat,
+  unconditional_variance =
+    (1 - zi_hat) * (mu_hat + sigma_hat^2 * mu_hat^2) +
+      zi_hat * (1 - zi_hat) * mu_hat^2
+)
+```
+
+Use AIC only as one check, not as a substitute for the design story. A
+zero-inflated model needs a plausible structural-zero process such as bare
+soil, unsuitable host tissue, unsurveyable habitat, or true absence.
+
+```{r}
+AIC(fit_nb2, fit_zinb2)
+```
+
+## Current Boundary
+
+The implemented count path is intentionally fixed-effect and univariate:
+
+```r
+drmTMB(
+  bf(count ~ habitat + offset(log(effort)), sigma ~ habitat, zi ~ surface),
+  family = nbinom2(),
+  data = dat
+)
+```
+
+Do not teach the following as fitted count examples yet:
+
+- random effects in `mu`, `sigma`, or `zi`;
+- `sd(group) ~ ...` random-effect scale models;
+- `meta_known_V(V = V)` with counts;
+- `phylo()` or `spatial()` count models;
+- bivariate or mixed-response count models such as
+  `family = c(gaussian(), nbinom2())`;
+- COM-Poisson underdispersion models.
+
+Those are useful future routes, but each needs its own likelihood path,
+simulation recovery, diagnostics, and source-map update before it becomes
+tutorial syntax.

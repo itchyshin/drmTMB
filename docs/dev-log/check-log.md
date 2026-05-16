@@ -2,6 +2,117 @@
 
 Record meaningful development checks here.
 
+## 2026-05-16 - Reference index random-effect scale syntax patch
+
+Goal: fix a user-caught reference-index oversight where `sd(id) ~ ...`,
+`sd1()`, `sd2()`, and `sd_phylo*()` formula syntax appeared in tutorials and
+examples but had no dedicated Reference-index topic.
+
+Files changed:
+
+- `_pkgdown.yml`
+- `R/random-effect-scale-formulas.R`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-16-reference-index-random-effect-scale-syntax.md`
+
+What changed:
+
+- Added a docs-only reference topic for random-effect scale formula syntax.
+- Made clear that `sd(group) ~ predictors` is captured by `bf()` /
+  `drm_formula()` and does not replace `stats::sd()`.
+- Listed the currently documented random-effect scale targets:
+  `sd(group)`, `sd1(group)`, `sd2(group)`, `sd_phylo(species)`,
+  `sd_phylo1(species)`, and `sd_phylo2(species)`.
+- Added the topic to the pkgdown Reference index under structured and
+  random-effect formula syntax.
+
+Checks run:
+
+- `Rscript -e 'devtools::document()'`: passed and generated
+  `man/random_effect_scale_formulas.Rd`.
+- `air format _pkgdown.yml R/random-effect-scale-formulas.R docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-16-reference-index-random-effect-scale-syntax.md`:
+  passed.
+- `git diff --check`: passed.
+- `Rscript -e 'pkgdown::build_site()'`: passed and rendered the Reference
+  index with `random_effect_scale_formulas`.
+- `Rscript -e 'pkgdown::check_pkgdown()'`: passed with "No problems found."
+- `Rscript -e 'devtools::check(error_on = "never", env_vars = c("_R_CHECK_SYSTEM_CLOCK_" = "FALSE"))'`:
+  passed with `0 errors | 0 warnings | 0 notes`.
+- `rg -n 'random_effect_scale_formulas|sd\\(group\\)|sd_phylo1|corpair\\(\\)|corpairs\\(\\)' pkgdown-site/reference/index.html pkgdown-site/reference/random_effect_scale_formulas.html _pkgdown.yml man/random_effect_scale_formulas.Rd`:
+  confirmed the rendered reference topic and neighbouring correlation entries.
+
+Learning:
+
+Rose's audit missed this because Slice 96 checked tutorial/article routes and
+`pkgdown::check_pkgdown()`, but did not semantically inspect the rendered
+Reference index. Future documentation slices should check the Reference index
+for formula-only syntax and exported extractors before calling pkgdown closed.
+
+## 2026-05-16 - Slice 96 count NB2 source-map tutorial
+
+Goal: add the first non-Gaussian count worked example after the `0.1.2`
+release gate, keeping the example inside the implemented fixed-effect
+univariate `nbinom2()` and zero-inflated `nbinom2()` surface.
+
+Files changed:
+
+- `ROADMAP.md`
+- `_pkgdown.yml`
+- `docs/design/21-tutorial-style.md`
+- `docs/design/37-worked-example-inventory.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-16-slice-96-count-nbinom2-source-map.md`
+- `vignettes/count-nbinom2.Rmd`
+- `vignettes/distribution-families.Rmd`
+- `vignettes/drmTMB.Rmd`
+- `vignettes/model-map.Rmd`
+- `vignettes/source-map.Rmd`
+
+What changed:
+
+- Added `vignettes/count-nbinom2.Rmd`, a soil-invertebrate tutorial with
+  NB2 and zero-inflated NB2 equations, exact `drmTMB()` syntax, parameter
+  definitions, fitted diagnostics, and biological interpretation.
+- Explained the public `sigma` scale for NB2 counts:
+  `Var(Y_i) = mu_i + sigma_i^2 * mu_i^2` and
+  `size_i = theta_i = 1 / sigma_i^2`, so larger `sigma` means stronger
+  extra-Poisson variation.
+- Added response-scale interpretation for `mu`, `sigma`, `zi`, conditional
+  and unconditional means, and unconditional variance.
+- Linked the tutorial from the pkgdown Tutorials menu, Getting Started,
+  model map, family guide, source map, worked-example inventory, and roadmap.
+- Kept unsupported neighbours explicit: non-Gaussian random effects,
+  `sd(group) ~ ...`, `meta_known_V(V = V)` with counts, `phylo()` or
+  `spatial()` count models, bivariate or mixed-response counts, and
+  COM-Poisson underdispersion.
+
+Checks run:
+
+- `air format _pkgdown.yml ROADMAP.md docs/design/21-tutorial-style.md docs/design/37-worked-example-inventory.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-16-slice-96-count-nbinom2-source-map.md vignettes/count-nbinom2.Rmd vignettes/distribution-families.Rmd vignettes/drmTMB.Rmd vignettes/model-map.Rmd vignettes/source-map.Rmd`:
+  passed.
+- `git diff --check`: passed.
+- `Rscript -e 'devtools::test(filter = "nbinom2|count-kernels|zi-poisson|poisson-mean")'`:
+  passed with `FAIL 0 | WARN 0 | SKIP 0 | PASS 321`.
+- `Rscript -e 'pkgdown::build_site()'`: passed and rendered
+  `articles/count-nbinom2.html`.
+- `Rscript -e 'pkgdown::check_pkgdown()'`: passed with "No problems found."
+- `rg -n 'Count abundance and extra zeros|sigma_restored|theta_restored|structural-zero|fixed-effect and univariate|COM-Poisson|meta_known_V|phylo\(\)|spatial\(\)|random effects' vignettes/count-nbinom2.Rmd docs/design/37-worked-example-inventory.md vignettes/distribution-families.Rmd vignettes/drmTMB.Rmd vignettes/model-map.Rmd vignettes/source-map.Rmd ROADMAP.md _pkgdown.yml`:
+  confirmed the tutorial route, scale conversion, structural-zero language,
+  and unsupported-boundary wording.
+
+Known limitations:
+
+- no formula grammar, family, likelihood, TMB, extractor, or test
+  implementation changed in this slice;
+- the example is fixed-effect and univariate only;
+- non-Gaussian random effects, structured count effects, mixed-response count
+  families, known covariance with counts, and COM-Poisson remain planned until
+  they have implementation and recovery evidence.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-16-slice-96-count-nbinom2-source-map.md`.
+
 ## 2026-05-16 - Slice 95 meta-analysis source-map polish
 
 Goal: resume the example lane after the `0.1.2` release evidence PR by
