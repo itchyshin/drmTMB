@@ -3,12 +3,12 @@
 `drmTMB` is a focused R package for fast univariate and bivariate
 distributional regression models using TMB.
 
-## Version 0.1.1 Preview Release
+## Version 0.1.2 Preview Release
 
-- Current preview version: `0.1.1`.
-- Meaning of `0.1.1`: a patch preview that includes the first large-data
-  storage controls and corrected installation guidance. It is not the final
-  double-hierarchical individual-difference endpoint.
+- Current preview version: `0.1.2`.
+- Meaning of `0.1.2`: a preview that includes the Phase 6 profile-inference
+  hardening, Phase 6e tutorial maturation, and the Phase 17-20 roadmap reorder.
+  It is not the final double-hierarchical individual-difference endpoint.
 - Release boundary: Phase 9 is closed at the implemented ordinal and
   denominator-aware MVPs. The first Phase 11 bivariate `mu1`/`mu2`
   random-intercept covariance slice is now implemented. Phase 17 now records the
