@@ -96,6 +96,22 @@ variance ratios, log likelihood, and convergence code in one place when those
 quantities are present. The fixed-effect table includes standard errors when
 `TMB::sdreport()` was computed successfully.
 
+Read the printed summary as a map, then use a more specific extractor only
+when you need more detail:
+
+| Summary component | What it reports | Use it for |
+| --- | --- | --- |
+| `coefficients` | Fixed-effect coefficients for each distributional parameter, usually on the model's link scale. | Direction, sign, and approximate uncertainty of terms in `mu`, `sigma`, `rho12`, shape, or zero-inflation formulas. |
+| `parameters` | Direct response-scale parameters, fitted parameter ranges, random-effect SDs, and fitted correlations. | Constant `sigma`, residual `rho12`, `sd:mu:(1 | group)`, and quick response-scale uncertainty when `std_error` is available. |
+| `covariance` | Fitted random-effect covariance and correlation rows for supported covariance blocks. | Latent correlation layers such as group-level, phylogenetic, or structured-effect covariance summaries. |
+| `derived` | Simple variance-ratio summaries whose ingredients are unambiguous. | Repeatability or phylogenetic signal point estimates, including the random-effect and residual variances used in the ratio. |
+| `confint` | Confidence-interval rows only when `conf.int = TRUE`. | Checking which requested fixed-effect or profile-likelihood intervals were actually computed. |
+
+The printed summary is meant to answer "what did this fitted model estimate?"
+For workflows that need the full object behind a row, use `fixef()`, `sigma()`,
+`rho12()`, `ranef()`, `corpairs()`, or `profile_targets()` after reading the
+summary.
+
 For models with random effects, `summary()` is also the first place to look for
 variance components. This compact example adds a site random intercept to the
 location model:
@@ -367,11 +383,14 @@ For routine fitted models, the post-fit loop is:
 
 1. `check_drm(fit)` before interpreting estimates.
 2. `summary(fit)` for fixed effects, response-scale parameters, variance
-   components, derived summaries, and interval status.
-3. `predict(fit, dpar = ...)` for fitted or new-data distributional
+   components, derived summaries, interval status, and the extractor to use
+   next.
+3. `profile_targets(fit)` before asking for profile-likelihood intervals on
+   fitted SD or correlation targets.
+4. `predict(fit, dpar = ...)` for fitted or new-data distributional
    parameters.
-4. `residuals(fit, type = "pearson")` to inspect standardized lack of fit.
-5. `simulate(fit)` to compare fitted-model behaviour with the observed data.
+5. `residuals(fit, type = "pearson")` to inspect standardized lack of fit.
+6. `simulate(fit)` to compare fitted-model behaviour with the observed data.
 
 The same loop will extend as more families arrive. The parameter names change,
 but the discipline stays the same: check the fit, then interpret each

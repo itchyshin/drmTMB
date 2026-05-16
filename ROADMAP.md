@@ -910,6 +910,11 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   fitted ranges and derived variance ratios keep missing standard errors, and
   profile-likelihood confidence intervals remain the recommended interval route
   for fitted SD and correlation targets.
+- Slice 107 adds a reader-facing `summary()` map to the model-workflow guide.
+  The guide names what `coefficients`, `parameters`, `covariance`, `derived`,
+  and `confint` report, then points readers to `fixef()`, `sigma()`,
+  `rho12()`, `ranef()`, `corpairs()`, and `profile_targets()` when the ordinary
+  summary has identified the row they need to inspect further.
 - Add additional ggplot-oriented helpers only after the data contract is stable:
   location curves, scale/variance curves, residual `rho12` curves,
   `sd(group)` or `sd_phylo()` surfaces, `corpairs()` summaries, and eventually
