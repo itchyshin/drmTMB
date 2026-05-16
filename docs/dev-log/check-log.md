@@ -16134,3 +16134,74 @@ Known limitations:
   coefficient-specific random-slope SD regression clearly reserved;
 - Slice 91 should happen on a separate branch and focus only on the
   structured-dependence reader route.
+
+## 2026-05-16 - Slice 91 structural-dependence reader route
+
+Goal: make `vignettes/phylogenetic-spatial.Rmd` read as a structural-dependence
+ladder: phylogeny first, coordinate spatial dependence second, and
+phylogeny-plus-spatial as the planned third endpoint.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `_pkgdown.yml`
+- `docs/design/37-worked-example-inventory.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-16-slice-91-structural-dependence-route.md`
+- `vignettes/drmTMB.Rmd`
+- `vignettes/model-map.Rmd`
+- `vignettes/phylogenetic-spatial.Rmd`
+
+What changed:
+
+- Renamed the article/navigation label from "Structured dependence" to
+  "Structural dependence".
+- Added a top-level route table for phylogeny, spatial, and planned
+  phylogeny-plus-spatial.
+- Added a conceptual Gaussian equation for `heat_tolerance` with
+  tree-structured species deviations, coordinate-structured site deviations,
+  and residual-scale predictors, defining `A`, `M`, `sigma_phylo`, and
+  `sigma_space` before syntax.
+- Marked simultaneous `phylo()` plus `spatial()` syntax as planned and
+  non-runnable until multiple structural `mu` layers have implementation and
+  identifiability checks.
+- Updated the coordinate-spatial section so it is the second
+  structural-dependence route rather than a late isolated example.
+- Queued the local Methods in Ecology and Evolution location-scale
+  heteroscedasticity paper as a future source for count and proportion
+  tutorials after Gaussian tutorial work is closed.
+
+Checks run:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH air format NEWS.md ROADMAP.md docs/design/37-worked-example-inventory.md vignettes/phylogenetic-spatial.Rmd vignettes/model-map.Rmd vignettes/drmTMB.Rmd _pkgdown.yml`:
+  passed.
+- `git diff --check`: passed.
+- `git diff -- NEWS.md ROADMAP.md _pkgdown.yml docs/design/37-worked-example-inventory.md vignettes/drmTMB.Rmd vignettes/model-map.Rmd vignettes/phylogenetic-spatial.Rmd | LC_ALL=C rg -n '[^\\x00-\\x7F]' || true`:
+  returned no matches.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::build_site()'`:
+  passed; rendered the edited article, model map, article index, ROADMAP, and
+  NEWS.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed with "No problems found."
+- `rg -n 'Structural dependence|three-step structural-dependence ladder|Phylogeny \\+ spatial|Planned, not fitted yet|simultaneous \`phylo\\(\\)\` plus \`spatial\\(\\)\`|Methods in Ecology and Evolution location-scale paper|phylogeny-plus-spatial' vignettes/phylogenetic-spatial.Rmd pkgdown-site/articles/phylogenetic-spatial.html _pkgdown.yml pkgdown-site/articles/index.html pkgdown-site/articles/model-map.html docs/design/37-worked-example-inventory.md ROADMAP.md pkgdown-site/ROADMAP.html NEWS.md pkgdown-site/news/index.html --glob '!pkgdown-site/search.json'`:
+  confirmed source and rendered-site evidence.
+- `rg -n 'Only one structured \`mu\` effect|contains both|multiple structured layers|multiple structural \`mu\` layers|simultaneous \`phylo\\(\\)\` plus \`spatial\\(\\)\`' R/drmTMB.R pkgdown-site/articles/phylogenetic-spatial.html vignettes/phylogenetic-spatial.Rmd NEWS.md`:
+  confirmed the code-side rejection message and tutorial-side planned
+  boundary.
+- `pdfinfo "/Users/z3437171/Desktop/Methods Ecol Evol - 2025 - Nakagawa - Location scale models in ecology and evolution Heteroscedasticity in continuous .pdf"`:
+  confirmed the local non-Gaussian example-source paper metadata.
+- `pdftotext "/Users/z3437171/Desktop/Methods Ecol Evol - 2025 - Nakagawa - Location scale models in ecology and evolution Heteroscedasticity in continuous .pdf" - | rg -n -i "count|proportion|binomial|Poisson|negative binomial|beta|heteroscedastic|example|aggress|life" | head -n 80`:
+  inspected enough source text to queue count and proportion example candidates.
+
+Known limitations:
+
+- no formula grammar, likelihood, TMB, extractor, or test surface changed;
+- simultaneous `phylo()` plus `spatial()` remains planned and rejected by the
+  fitter;
+- non-Gaussian count/proportion tutorials remain later work, not part of Slice
+  91.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-16-slice-91-structural-dependence-route.md`.

@@ -33,7 +33,7 @@ the reference pages when you already know the function name.
 | residual variability, predictability, extra heterogeneity, or dispersion | `sigma` or `sigma1` / `sigma2` | [Which scale are you modelling?](which-scale.html) |
 | among-group variation in expected response | random-effect SDs or `sd(group)` | [Which scale are you modelling?](which-scale.html) |
 | residual trait coupling after the means and residual SDs are modelled | `rho12` | [Changing residual coupling with rho12](bivariate-coscale.html) |
-| tree- or coordinate-structured location deviations | `phylo()` or `spatial()` | [Structured dependence](phylogenetic-spatial.html) |
+| tree- or coordinate-structured location deviations | `phylo()` or `spatial()` | [Structural dependence](phylogenetic-spatial.html) |
 | fitted interval status or boundary diagnostics | `profile_targets()`, `conf.status`, `profile.boundary`, `profile.message` | [Checking and using fitted models](model-workflow.html) |
 
 ## Stable-core matrix
@@ -87,8 +87,8 @@ Implemented one-response surfaces include:
 | Does a group-level predictor change among-group SD in the mean model? | `sd(group) ~ x_group` for unlabelled Gaussian `mu` random intercepts | [Which scale are you modelling?](which-scale.html) |
 | Is the response continuous, count, bounded, robust, or zero-inflated? | fixed-effect non-Gaussian families | [Choosing response families](distribution-families.html) |
 | Does the response have known sampling variance or covariance? | Gaussian `meta_known_V(V = V)` | [Mean effects and residual heterogeneity](meta-analysis.html) |
-| Do species means remain similar after shared ancestry is included? | `phylo(1 | species, tree = tree)` in univariate Gaussian `mu` | [Structured dependence](phylogenetic-spatial.html) |
-| Do nearby sites share smooth location deviations or smooth slope differences? | `spatial(1 | site, coords = coords)` or one numeric `spatial(1 + x | site, coords = coords)` slope in univariate Gaussian `mu` | [Structured dependence](phylogenetic-spatial.html) |
+| Do species means remain similar after shared ancestry is included? | `phylo(1 | species, tree = tree)` in univariate Gaussian `mu` | [Structural dependence](phylogenetic-spatial.html) |
+| Do nearby sites share smooth location deviations or smooth slope differences? | `spatial(1 | site, coords = coords)` or one numeric `spatial(1 + x | site, coords = coords)` slope in univariate Gaussian `mu` | [Structural dependence](phylogenetic-spatial.html) |
 
 The random-effect scale terms are deliberately separate. `sigma ~ x` models
 within-observation residual SD. `sd(group) ~ x_group` models the standard
@@ -157,11 +157,13 @@ random intercepts. That group-level correlation is not `rho12`: it asks
 whether groups with higher average response 1 also tend to have higher average
 response 2. `rho12` still describes within-observation residual coupling.
 
-## Structured dependence
+## Structural dependence
 
-The implemented structured-effect path now has two one-response foundations:
-tree-structured phylogenetic location effects and coordinate-based spatial
-location effects.
+The implemented structural-dependence path now has two one-response
+foundations: tree-structured phylogenetic location effects and coordinate-based
+spatial location effects. The intended third route, phylogeny plus spatial in
+the same `mu` predictor, remains planned until multiple structural layers have
+their own identifiability checks.
 
 ```r
 drmTMB(
@@ -360,5 +362,5 @@ a larger covariance model than the mean-mean path.
 | a robust continuous-response example | [Robust continuous responses](robust-student.html) |
 | a two-response residual-correlation example | [Changing residual coupling with rho12](bivariate-coscale.html) |
 | known sampling variances or covariance | [Mean effects and residual heterogeneity](meta-analysis.html) |
-| implemented phylogenetic random intercepts or coordinate-spatial intercept/slope terms | [Structured dependence](phylogenetic-spatial.html) |
+| implemented phylogenetic random intercepts or coordinate-spatial intercept/slope terms | [Structural dependence](phylogenetic-spatial.html) |
 | post-fit checks, predictions, residuals, and simulation | [Checking and using fitted models](model-workflow.html) |
