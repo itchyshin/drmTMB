@@ -918,9 +918,9 @@ remain blocked by future covariance or non-Gaussian random-effect work.
 - Slice 108 audits and clarifies the pkgdown Reference index for post-fit and
   plotting helpers. Fitting, checking, summaries, predictions, uncertainty, and
   extractors are grouped under "Model fitting and post-fit tools"; exported
-  plotting helpers appear under "Visualization"; and `plot_parameter_surface()`
-  remains the only exported plotting helper until new helpers have data
-  contracts, documentation, and tests.
+  plotting helpers appear under "Visualization"; at the Slice 108 boundary,
+  `plot_parameter_surface()` was the exported plotting helper with a stable
+  data contract.
 - Slice 108 also tightens the `summary()` reference example after reader review:
   profile summaries keep fixed-effect Wald 95% confidence intervals while
   adding direct-profile `sigma` 95% confidence intervals, and direct constant
@@ -938,11 +938,16 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   article. It routes observed responses, fitted parameter surfaces, empirical
   marginal summaries, correlation rows, interval tables, and diagnostics to the
   current data helpers before any plotting style is chosen.
-- Slice 112 records the `corpairs()` plotting preflight contract. A future
-  `plot_corpairs()` helper should consume an explicit `corpairs()` table, keep
-  correlation `level` and `class` visible, draw intervals only from finite
-  confidence bounds, and test residual, ordinary group-level, phylogenetic,
-  derived-unavailable, empty-table, and missing-`ggplot2` cases before export.
+- Slice 112 records the `corpairs()` plotting preflight contract. The
+  `plot_corpairs()` helper consumes an explicit `corpairs()` table, keeps
+  correlation `level` and `class` visible, draws intervals only from finite
+  confidence bounds, and was tested for residual, ordinary group-level,
+  phylogenetic, empty-table, and missing-`ggplot2` cases before export.
+- Slice 113 implements the first narrow `plot_corpairs()` helper. It consumes
+  explicit `corpairs()` tables, draws one point per correlation row, adds
+  interval segments only for finite `conf.low` and `conf.high` bounds, keeps
+  correlation `level` and `class` visible, and lives in the Visualization
+  reference section.
 - Add additional ggplot-oriented helpers only after the data contract is stable:
   location curves, scale/variance curves, residual `rho12` curves,
   `sd(group)` or `sd_phylo()` surfaces, `corpairs()` summaries, and eventually

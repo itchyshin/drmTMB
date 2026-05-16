@@ -1,0 +1,189 @@
+#' Plot fitted correlation-pair summaries
+#'
+#' `plot_corpairs()` is a small `ggplot2` consumer for tables returned by
+#' [corpairs()]. It does not compute correlation pairs, fit intervals, or choose
+#' a correlation layer. Build the table first with [corpairs()], then pass that
+#' table to this helper.
+#'
+#' The helper draws one point per correlation row. If the table contains finite
+#' `conf.low` and `conf.high` bounds, it draws interval segments for those rows
+#' only. Rows without finite bounds remain visible as point estimates and keep
+#' their display interval status attached to the plotted data.
+#'
+#' @param data A data frame returned by [corpairs()], or a compatible table with
+#'   columns `level`, `class`, `parameter`, `estimate`, and `modelled`.
+#' @param colour Optional character scalar naming a column to map to colour.
+#'   Use `NULL` to suppress colour mapping.
+#' @param interval Logical; draw finite `conf.low`/`conf.high` intervals when
+#'   those columns are present.
+#' @param ... Reserved for future options.
+#'
+#' @return A `ggplot` object.
+#'
+#' @examples
+#' pairs <- data.frame(
+#'   level = c("residual", "group"),
+#'   class = c("residual", "mean-slope"),
+#'   parameter = c("rho12", "cor((Intercept),x | p | id)"),
+#'   estimate = c(0.25, 0.45),
+#'   modelled = c(FALSE, FALSE),
+#'   conf.low = c(NA, 0.10),
+#'   conf.high = c(NA, 0.72),
+#'   conf.status = c("not_requested", "profile")
+#' )
+#' if (requireNamespace("ggplot2", quietly = TRUE)) {
+#'   plot_corpairs(pairs)
+#' }
+#' @export
+plot_corpairs <- function(
+  data,
+  colour = "level",
+  interval = TRUE,
+  ...
+) {
+  dots <- list(...)
+  if (length(dots) > 0L) {
+    cli::cli_abort("{.arg ...} is reserved for future options.")
+  }
+  plot_corpairs_require_ggplot2()
+  validate_plot_corpairs_data(data)
+  colour <- validate_plot_corpairs_column(colour, data, "colour")
+  interval <- validate_plot_corpairs_flag(interval, "interval")
+
+  data <- add_plot_corpairs_columns(data, colour = colour)
+  mapping <- plot_corpairs_mapping(has_colour = !is.null(colour))
+  out <- ggplot2::ggplot(data, mapping) +
+    ggplot2::geom_vline(
+      xintercept = 0,
+      linetype = "dashed",
+      colour = "grey70",
+      linewidth = 0.3
+    )
+  if (isTRUE(interval)) {
+    interval_data <- plot_corpairs_interval_data(data)
+    if (nrow(interval_data) > 0L) {
+      out <- out +
+        ggplot2::geom_segment(
+          data = interval_data,
+          mapping = ggplot2::aes(
+            x = conf.low,
+            xend = conf.high,
+            y = .drmTMB_pair_label,
+            yend = .drmTMB_pair_label
+          ),
+          inherit.aes = FALSE,
+          linewidth = 0.6,
+          colour = "grey35"
+        )
+    }
+  }
+  out +
+    ggplot2::geom_point(size = 2, na.rm = TRUE) +
+    ggplot2::coord_cartesian(xlim = c(-1, 1)) +
+    ggplot2::labs(
+      x = "Correlation estimate",
+      y = NULL,
+      colour = colour
+    )
+}
+
+plot_corpairs_require_ggplot2 <- function() {
+  if (!requireNamespace("ggplot2", quietly = TRUE)) {
+    cli::cli_abort(c(
+      "{.fn plot_corpairs} requires the {.pkg ggplot2} package.",
+      i = "Install it with {.code install.packages(\"ggplot2\")}."
+    ))
+  }
+  invisible(TRUE)
+}
+
+validate_plot_corpairs_data <- function(data) {
+  if (!is.data.frame(data)) {
+    cli::cli_abort("{.arg data} must be a data frame.")
+  }
+  required <- c("level", "class", "parameter", "estimate", "modelled")
+  missing <- setdiff(required, names(data))
+  if (length(missing) > 0L) {
+    cli::cli_abort(c(
+      "{.arg data} is missing required {.fn corpairs} column{?s}: {.val {missing}}.",
+      i = "Use {.fn corpairs} or supply a compatible table."
+    ))
+  }
+  if (!is.numeric(data$estimate)) {
+    cli::cli_abort("{.arg data} column {.val estimate} must be numeric.")
+  }
+  if (
+    any(c("conf.low", "conf.high") %in% names(data)) &&
+      !all(c("conf.low", "conf.high") %in% names(data))
+  ) {
+    cli::cli_abort(
+      "{.arg data} must contain both {.val conf.low} and {.val conf.high} or neither."
+    )
+  }
+  if ("conf.low" %in% names(data) && !is.numeric(data$conf.low)) {
+    cli::cli_abort("{.arg data} column {.val conf.low} must be numeric.")
+  }
+  if ("conf.high" %in% names(data) && !is.numeric(data$conf.high)) {
+    cli::cli_abort("{.arg data} column {.val conf.high} must be numeric.")
+  }
+  invisible(data)
+}
+
+validate_plot_corpairs_column <- function(x, data, argument) {
+  if (is.null(x)) {
+    return(NULL)
+  }
+  if (!is.character(x) || length(x) != 1L || is.na(x)) {
+    cli::cli_abort("{.arg {argument}} must be a single column name or NULL.")
+  }
+  if (!x %in% names(data)) {
+    cli::cli_abort(c(
+      "{.arg {argument}} must name a column in {.arg data}: {.val {x}}.",
+      i = "Available columns: {.val {names(data)}}."
+    ))
+  }
+  x
+}
+
+validate_plot_corpairs_flag <- function(x, argument) {
+  if (!is.logical(x) || length(x) != 1L || is.na(x)) {
+    cli::cli_abort("{.arg {argument}} must be a single TRUE or FALSE value.")
+  }
+  x
+}
+
+add_plot_corpairs_columns <- function(data, colour) {
+  data$.drmTMB_pair_label <- plot_corpairs_labels(data)
+  if (!"conf.status" %in% names(data)) {
+    data$.drmTMB_conf_status <- rep("not_requested", nrow(data))
+  } else {
+    data$.drmTMB_conf_status <- data$conf.status
+  }
+  if (!is.null(colour)) {
+    data$.drmTMB_plot_colour <- data[[colour]]
+  }
+  data
+}
+
+plot_corpairs_labels <- function(data) {
+  paste(data$level, data$class, data$parameter, sep = " | ")
+}
+
+plot_corpairs_mapping <- function(has_colour) {
+  args <- list(
+    x = as.name("estimate"),
+    y = as.name(".drmTMB_pair_label")
+  )
+  if (has_colour) {
+    args$colour <- as.name(".drmTMB_plot_colour")
+  }
+  do.call(ggplot2::aes, args)
+}
+
+plot_corpairs_interval_data <- function(data) {
+  if (!all(c("conf.low", "conf.high") %in% names(data))) {
+    return(data[0L, , drop = FALSE])
+  }
+  keep <- is.finite(data$conf.low) & is.finite(data$conf.high)
+  data[keep, , drop = FALSE]
+}

@@ -124,6 +124,7 @@ reference:
   - title: Visualization
     desc: Optional plotting helpers for post-fit tables. Exported plotting functions appear here.
     contents:
+      - plot_corpairs
       - plot_parameter_surface
 
 articles:

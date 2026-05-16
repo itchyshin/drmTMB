@@ -244,21 +244,21 @@ question. A small set of named helpers is safer:
 
 ```text
 plot_parameter_surface()  # implemented in Slice 104
-plot_corpairs()           # planned
+plot_corpairs()           # implemented in Slice 113
 plot_diagnostics()        # planned
 plot_simulation_summary() # planned
 ```
 
 ### `corpairs()` Plotting Preflight
 
-Slice 112 records the minimum contract before `plot_corpairs()` becomes an
+Slice 112 records the minimum contract that `plot_corpairs()` follows as an
 exported helper. Correlation displays are scientifically dense because residual
 `rho12`, ordinary group-level correlations, phylogenetic correlations, spatial
 correlations, and q=4 mean-scale correlations are different layers. A plot
 helper should therefore consume an explicit `corpairs()` table rather than call
 fitting internals or guess which layer the reader wants.
 
-The future helper should satisfy these rules before export:
+The helper should satisfy these rules:
 
 - accept a `corpairs()` data frame as the primary input;
 - require visible columns for `level`, `class`, `parameter`, `estimate`,
@@ -273,11 +273,11 @@ The future helper should satisfy these rules before export:
   profile-ready correlation targets;
 - cover empty tables, residual `rho12`, ordinary group-level rows,
   phylogenetic rows, derived-unavailable statuses, and missing `ggplot2` in
-  tests before adding the helper to `_pkgdown.yml`.
+  tests while keeping the helper in `_pkgdown.yml`.
 
-Only `plot_parameter_surface()` is currently implemented. The remaining names
-are design placeholders and should not be exported until their data contracts
-and optional dependency policy are settled.
+Only `plot_parameter_surface()` and `plot_corpairs()` are currently
+implemented. The remaining names are design placeholders and should not be
+exported until their data contracts and optional dependency policy are settled.
 
 Slice 104 implements the first narrow helper, `plot_parameter_surface()`. It
 consumes a `predict_parameters()` table, maps one explicit x-axis column to
@@ -285,15 +285,23 @@ consumes a `predict_parameters()` table, maps one explicit x-axis column to
 `Suggests`. It does not compute intervals, estimated marginal means, contrasts,
 or slopes.
 
+Slice 113 implements `plot_corpairs()` after the Slice 112 preflight. It
+consumes a `corpairs()` table, draws one point per correlation row, adds
+interval segments only for rows with finite `conf.low` and `conf.high` bounds,
+and keeps correlation `level`, `class`, and display interval status attached to
+the plotted data. It does not compute correlation pairs, run profile intervals,
+or collapse residual, ordinary group-level, phylogenetic, spatial, and future
+study-level correlations into one unnamed layer.
+
 Slice 108 confirms the pkgdown reference-page contract. Exported plotting
 functions belong in the `Visualization` reference section, and only exported,
-documented, tested helpers should appear there. As of Slice 108,
-`plot_parameter_surface()` is the only exported plotting helper. Core post-fit
-tables and extractors, including `summary()`, `confint()`, `profile_targets()`,
-`prediction_grid()`, `predict_parameters()`, `marginal_parameters()`,
-`corpairs()`, `fixef()`, `ranef()`, `sigma()`, and `rho12()`, stay in the
-`Model fitting and post-fit tools` reference section because they are data and
-extraction surfaces rather than plotting helpers.
+documented, tested helpers should appear there. At that slice boundary,
+`plot_parameter_surface()` was the exported plotting helper with a stable data
+contract. Core post-fit tables and extractors, including `summary()`,
+`confint()`, `profile_targets()`, `prediction_grid()`, `predict_parameters()`,
+`marginal_parameters()`, `corpairs()`, `fixef()`, `ranef()`, `sigma()`, and
+`rho12()`, stay in the `Model fitting and post-fit tools` reference section
+because they are data and extraction surfaces rather than plotting helpers.
 
 ## Dependency Policy
 

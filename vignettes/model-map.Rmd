@@ -34,7 +34,7 @@ uncertainty, and plots without guessing which functions are user-facing:
 | Reference group | Current user-facing functions | Use when... |
 | --- | --- | --- |
 | Model fitting and post-fit tools | `drmTMB()`, `check_drm()`, `summary()`, `confint()`, `profile_targets()`, `prediction_grid()`, `predict_parameters()`, `marginal_parameters()`, `fixef()`, `ranef()`, `sigma()`, `rho12()`, `corpairs()` | You need to fit, check, summarize, predict, or extract fitted quantities. |
-| Visualization | `plot_parameter_surface()` | You already have a `predict_parameters()` table and want an optional `ggplot2` display of fitted point estimates. |
+| Visualization | `plot_parameter_surface()`, `plot_corpairs()` | You already have a `predict_parameters()` or `corpairs()` table and want an optional `ggplot2` display of fitted point estimates. |
 
 Planned plotting helpers stay out of the Reference index until they are
 exported, documented, tested, and connected to a stable data contract.
