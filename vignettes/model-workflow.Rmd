@@ -82,7 +82,79 @@ close to Gaussian behaviour, known sampling covariance summaries, random-effect
 standard deviations near zero, and random-effect design issues when random
 effects are present.
 
-## Read coefficients by parameter
+## Read the ordinary summary first
+
+The ordinary R habit is still the right first habit in `drmTMB`:
+
+```{r}
+summary(fit)
+```
+
+`summary()` puts the fixed-effect estimates, response-scale scale, shape,
+random-effect SD, correlation summaries, fitted covariance summaries, derived
+variance ratios, log likelihood, and convergence code in one place when those
+quantities are present. The fixed-effect table includes standard errors when
+`TMB::sdreport()` was computed successfully.
+
+For models with random effects, `summary()` is also the first place to look for
+variance components. This compact example adds a site random intercept to the
+location model:
+
+```{r}
+set.seed(13)
+n_site <- 18
+n_per_site <- 6
+site <- factor(rep(seq_len(n_site), each = n_per_site))
+site_effect <- rnorm(n_site, sd = 0.45)
+
+fish_site <- data.frame(
+  site = site,
+  temperature = runif(n_site * n_per_site, -1.5, 1.5),
+  habitat = factor(
+    sample(c("reef", "kelp"), n_site * n_per_site, replace = TRUE)
+  )
+)
+
+site_mu <- site_effect[as.integer(fish_site$site)]
+fish_site$growth <- rnorm(
+  nrow(fish_site),
+  mean = 1 + 0.7 * fish_site$temperature +
+    0.35 * (fish_site$habitat == "kelp") + site_mu,
+  sd = 0.35
+)
+
+fit_site <- drmTMB(
+  bf(growth ~ temperature + habitat + (1 | site), sigma ~ 1),
+  family = gaussian(),
+  data = fish_site
+)
+
+summary(fit_site)
+```
+
+In that output, the `sd:mu:(1 | site)` row is the fitted random-intercept
+standard deviation on the response scale. Squaring it gives the corresponding
+random-effect variance component. When the ingredients are unambiguous, the
+`derived` component also reports repeatability and shows both the
+random-effect variance and the residual variance used in that ratio.
+
+Random-effect SDs and correlations do not get routine Wald standard errors in
+the printed parameter table. For fitted direct SD or correlation targets, use
+profile-likelihood confidence intervals instead. `drmTMB` is a frequentist
+package, so these are confidence intervals, not Bayesian credible intervals:
+
+```{r}
+profile_targets(fit_site)
+```
+
+```{r, eval = FALSE}
+summary(
+  fit_site,
+  conf.int = TRUE,
+  method = "profile",
+  ci_parm = "sd:mu:(1 | site)"
+)
+```
 
 Each distributional parameter has its own coefficient vector:
 
@@ -106,13 +178,6 @@ Use the scale of the fitted parameter when deciding what to report:
 | `rho12(fit)` | residual correlation | residual coupling between two responses after means and residual SDs are modelled |
 | `corpairs(fit)` | fitted correlation rows | group-level, phylogenetic, or residual correlation layers, depending on `level` |
 | `profile_targets(fit)` | interval target inventory | whether a fitted SD or correlation target can receive a profile interval |
-
-`summary()` puts the fixed-effect estimates, response-scale scale, shape, and
-correlation summaries, log likelihood, and convergence code in one place:
-
-```{r}
-summary(fit)
-```
 
 For confidence intervals, keep the fast default summary separate from the
 expensive profile step. Wald intervals are available for fixed effects:
@@ -299,7 +364,8 @@ as `sim_1_y1` and `sim_1_y2`.
 For routine fitted models, the post-fit loop is:
 
 1. `check_drm(fit)` before interpreting estimates.
-2. `coef(fit, dpar)` or `summary(fit)` for parameter-specific coefficients.
+2. `summary(fit)` for fixed effects, response-scale parameters, variance
+   components, derived summaries, and interval status.
 3. `predict(fit, dpar = ...)` for fitted or new-data distributional
    parameters.
 4. `residuals(fit, type = "pearson")` to inspect standardized lack of fit.

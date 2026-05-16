@@ -17183,3 +17183,97 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-16-slice-104-plot-parameter-surface.md`.
+
+## 2026-05-16 - Slice 105 summary workflow
+
+Goal: make ordinary `summary()` visibly serve the workflow users expect:
+fixed effects, response-scale parameters, random-effect SDs, variance
+components, derived repeatability, and interval status before specialist
+extractors.
+
+Roles:
+
+- Ada coordinated the Slice 105 scope, validation, closure notes, and PR path.
+- Boole owned the public `summary()`/extractor API boundary.
+- Fisher owned the confidence-interval versus credible-interval language.
+- Curie owned the focused print-output regression test.
+- Pat owned the model-workflow teaching path for applied users.
+- Darwin checked that the site random-intercept example remains interpretable
+  without becoming a new full tutorial.
+- Emmy reviewed the `summary.drmTMB` object and print surface.
+- Grace owned pkgdown, R CMD check, and rendered-site validation.
+- Rose owned stale-wording scans and after-task closure.
+- Gauss and Noether stayed watch-only because no TMB likelihood or symbolic
+  model contract changed.
+
+Files changed:
+
+- `R/methods.R`
+- `ROADMAP.md`
+- `docs/design/37-worked-example-inventory.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-16-slice-105-summary-workflow.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-16-144822-codex-checkpoint.md`
+- `tests/testthat/test-summary.R`
+- `vignettes/model-workflow.Rmd`
+
+What changed:
+
+- `print.summary.drmTMB()` now labels the parameter table as
+  "Distributional, random-effect, scale, and correlation parameters".
+- `vignettes/model-workflow.Rmd` now starts the interpretation section with
+  ordinary `summary(fit)` before parameter-specific extractors.
+- The same article now includes a live site random-intercept example,
+  `summary(fit_site)`, and `profile_targets(fit_site)`.
+- The article explains that `sd:mu:(1 | site)` is a response-scale
+  random-effect SD, that squaring it gives the variance component, and that
+  the derived repeatability row shows the random-effect and residual variances.
+- The article explicitly calls profile intervals frequentist confidence
+  intervals, not Bayesian credible intervals.
+- ROADMAP and the worked-example inventory now record the Slice 105
+  summary-first workflow polish.
+
+Checks run:
+
+- `air format R/methods.R tests/testthat/test-summary.R`: passed.
+- `Rscript -e "devtools::test(filter = '^summary$')"`: initially failed
+  because the new `cli` heading writes to the message stream while data-frame
+  output writes to stdout.
+- `Rscript -e 'devtools::load_all(quiet=TRUE); ... capture.output(print(smry), type="message")'`:
+  confirmed the heading comes from the message stream.
+- `Rscript -e "devtools::test(filter = '^summary$')"`: passed after the test
+  captured both output streams, with `FAIL 0 | WARN 0 | SKIP 0 | PASS 171`.
+- `Rscript -e "devtools::document()"`: passed with no generated-file changes.
+- `Rscript -e "devtools::load_all(quiet = TRUE); rmarkdown::render('vignettes/model-workflow.Rmd', output_file = tempfile(fileext = '.html'), quiet = TRUE)"`:
+  passed.
+- `Rscript -e "devtools::test()"`: passed with
+  `FAIL 0 | WARN 0 | SKIP 0 | PASS 3594`.
+- `Rscript -e "pkgdown::clean_site(); pkgdown::build_site(preview = FALSE)"`:
+  passed and rendered the updated model-workflow page.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with "No problems found."
+- `Rscript -e "devtools::check(args = '--no-manual')"`: passed with
+  0 errors, 0 warnings, and 1 local NOTE: `unable to verify current time`.
+- `git diff --check`: passed.
+- `rg -n "credible interval|credible intervals|95% credible|Bayesian credible|confidence intervals, not Bayesian credible|sd:mu:\\(1 \\| site\\)|random-effect variance component|Distributional, random-effect" R tests vignettes ROADMAP.md docs/design pkgdown-site/articles/model-workflow.html pkgdown-site/reference/summary.drmTMB.html`:
+  found only the intended no-credible-interval wording, random-effect example,
+  and rendered heading.
+- `rg -n 'ordinary `summary\\(\\)`|summary\\(fit_site\\)|profile_targets\\(fit_site\\)|derived repeatability|variance components' vignettes/model-workflow.Rmd pkgdown-site/articles/model-workflow.html ROADMAP.md docs/design/37-worked-example-inventory.md`:
+  confirmed source and rendered docs carry the summary-first workflow.
+- `rg -n "summary\\(fit\\).*coef|coef\\(fit, dpar\\).*summary|Read coefficients by parameter" vignettes/model-workflow.Rmd pkgdown-site/articles/model-workflow.html`:
+  returned no matches.
+- `Rscript tools/codex-checkpoint.R --goal "Slice 105 summary workflow" --next "stage, commit, push, open PR, monitor CI, then start Slice 106 audit of random-effect SD standard-error feasibility"`:
+  passed and wrote
+  `docs/dev-log/recovery-checkpoints/2026-05-16-144822-codex-checkpoint.md`.
+
+Known limitations:
+
+- random-effect SD rows still do not print routine Wald standard errors;
+- profile-likelihood confidence intervals remain the supported route for
+  direct random-effect SD or correlation targets;
+- derived repeatability intervals remain unavailable;
+- this slice does not add bivariate, phylogenetic, or spatial `summary()`
+  examples.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-16-slice-105-summary-workflow.md`.
