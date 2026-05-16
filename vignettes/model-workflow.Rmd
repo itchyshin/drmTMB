@@ -165,7 +165,7 @@ head(sigma(fit))
 ```
 
 For new covariate values, supply `newdata`. These are fixed-effect,
-population-level predictions:
+population-level predictions. You can write the grid directly:
 
 ```{r}
 new_fish <- data.frame(
@@ -178,18 +178,32 @@ predict(fit, newdata = new_fish, dpar = "sigma")
 predict(fit, newdata = new_fish, dpar = "sigma", type = "link")
 ```
 
+Or build an explicit prediction grid. This keeps the focal term, conditioned
+nuisance predictors, and grid rule attached to the data:
+
+```{r}
+temperature_grid <- prediction_grid(
+  fit,
+  focal = "temperature",
+  at = list(temperature = c(-1, 0, 1)),
+  condition = list(habitat = "reef")
+)
+
+attr(temperature_grid, "prediction_grid")
+```
+
 Use `predict_parameters()` when the interpretation task needs several
 distributional parameters on the same grid:
 
 ```{r}
-predict_parameters(fit, newdata = new_fish, dpar = c("mu", "sigma"))
+predict_parameters(fit, newdata = temperature_grid, dpar = c("mu", "sigma"))
 ```
 
 Use `marginal_parameters()` when a grid should be reduced to group-level
 interpretation summaries:
 
 ```{r}
-marginal_parameters(fit, newdata = new_fish, dpar = c("mu", "sigma"))
+marginal_parameters(fit, newdata = temperature_grid, dpar = c("mu", "sigma"))
 ```
 
 These helpers are tables, not plotting functions. They are the current Phase 17
