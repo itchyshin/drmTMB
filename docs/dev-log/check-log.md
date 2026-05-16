@@ -2,6 +2,52 @@
 
 Record meaningful development checks here.
 
+## 2026-05-16 - Reference index random-effect scale syntax patch
+
+Goal: fix a user-caught reference-index oversight where `sd(id) ~ ...`,
+`sd1()`, `sd2()`, and `sd_phylo*()` formula syntax appeared in tutorials and
+examples but had no dedicated Reference-index topic.
+
+Files changed:
+
+- `_pkgdown.yml`
+- `R/random-effect-scale-formulas.R`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-16-reference-index-random-effect-scale-syntax.md`
+
+What changed:
+
+- Added a docs-only reference topic for random-effect scale formula syntax.
+- Made clear that `sd(group) ~ predictors` is captured by `bf()` /
+  `drm_formula()` and does not replace `stats::sd()`.
+- Listed the currently documented random-effect scale targets:
+  `sd(group)`, `sd1(group)`, `sd2(group)`, `sd_phylo(species)`,
+  `sd_phylo1(species)`, and `sd_phylo2(species)`.
+- Added the topic to the pkgdown Reference index under structured and
+  random-effect formula syntax.
+
+Checks run:
+
+- `Rscript -e 'devtools::document()'`: passed and generated
+  `man/random_effect_scale_formulas.Rd`.
+- `air format _pkgdown.yml R/random-effect-scale-formulas.R docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-16-reference-index-random-effect-scale-syntax.md`:
+  passed.
+- `git diff --check`: passed.
+- `Rscript -e 'pkgdown::build_site()'`: passed and rendered the Reference
+  index with `random_effect_scale_formulas`.
+- `Rscript -e 'pkgdown::check_pkgdown()'`: passed with "No problems found."
+- `Rscript -e 'devtools::check(error_on = "never", env_vars = c("_R_CHECK_SYSTEM_CLOCK_" = "FALSE"))'`:
+  passed with `0 errors | 0 warnings | 0 notes`.
+- `rg -n 'random_effect_scale_formulas|sd\\(group\\)|sd_phylo1|corpair\\(\\)|corpairs\\(\\)' pkgdown-site/reference/index.html pkgdown-site/reference/random_effect_scale_formulas.html _pkgdown.yml man/random_effect_scale_formulas.Rd`:
+  confirmed the rendered reference topic and neighbouring correlation entries.
+
+Learning:
+
+Rose's audit missed this because Slice 96 checked tutorial/article routes and
+`pkgdown::check_pkgdown()`, but did not semantically inspect the rendered
+Reference index. Future documentation slices should check the Reference index
+for formula-only syntax and exported extractors before calling pkgdown closed.
+
 ## 2026-05-16 - Slice 96 count NB2 source-map tutorial
 
 Goal: add the first non-Gaussian count worked example after the `0.1.2`

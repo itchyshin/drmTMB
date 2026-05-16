@@ -84,8 +84,9 @@ reference:
       - truncated_nbinom2
       - biv_gaussian
   - title: Structured-effect markers
-    desc: Phylogenetic and planned spatial structured covariance terms.
+    desc: Random-effect scale, structured covariance, and latent-correlation formula syntax.
     contents:
+      - random_effect_scale_formulas
       - gr
       - phylo
       - spatial
