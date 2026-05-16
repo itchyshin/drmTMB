@@ -15989,3 +15989,39 @@ Known limitations:
   and Windows for the stacked branch, but PR #46 still needs the normal
   `pull_request` GitHub Actions check against `main` after this trace commit is
   pushed.
+
+## 2026-05-16 -- Slice 89 worked-example inventory
+
+Goal:
+
+- audit the current tutorial and guide layer after PR #46 landed, then name the
+  next worked-example slices without adding model behaviour.
+
+Implemented:
+
+- added `docs/design/37-worked-example-inventory.md`;
+- updated `docs/design/21-tutorial-style.md` with a pointer to the Slice 89
+  inventory;
+- added Phase 6e to `ROADMAP.md`, with Slice 89 done and Slices 90-92 planned;
+- added after-task report
+  `docs/dev-log/after-task/2026-05-16-slice-89-worked-example-inventory.md`.
+
+Checks run:
+
+- `rg -n "^#|^##|^###|summary\\(|check_drm\\(|profile_targets\\(|corpairs\\(|rho12\\(|sigma\\(|fixef\\(|ggplot|plot\\(|kable|gt\\(|knitr::kable|conf\\.status|What.*not|not estimate|planned|unsupported|diagnostic" vignettes/drmTMB.Rmd vignettes/location-scale.Rmd vignettes/which-scale.Rmd vignettes/bivariate-coscale.Rmd vignettes/meta-analysis.Rmd vignettes/phylogenetic-spatial.Rmd vignettes/model-workflow.Rmd vignettes/model-map.Rmd`:
+  inspected the main guide/tutorial pages for tutorial-contract evidence.
+- `rg -n "^##|^###|summary\\(|check_drm\\(|plot\\(|ggplot|profile_targets\\(|rho12\\(|sigma\\(|corpairs\\(|not estimate|planned|caveat|diagnostic" vignettes/robust-student.Rmd vignettes/distribution-families.Rmd vignettes/testing-likelihoods.Rmd vignettes/large-data.Rmd`:
+  inspected secondary tutorials, guides, and developer notes.
+- `sed -n '1,180p' _pkgdown.yml`: confirmed current Model Guides, Tutorials,
+  and Developer Notes placement.
+- `pkgdown::build_site()`: passed; rebuilt the site and rendered
+  `ROADMAP.html`.
+- `pkgdown::check_pkgdown()`: passed with "No problems found."
+- `git diff --check`: passed.
+
+Known limitations:
+
+- this was documentation planning only;
+- no tutorial Rmd file was edited beyond the style-contract pointer;
+- Slices 90-91 should make the next reader-facing tutorial edits and run the
+  rendered-site gate.

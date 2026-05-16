@@ -107,6 +107,12 @@ variance-component interpretation layer. Use it when a tutorial explains fixed
 mean slopes, residual-scale slopes, mean random slopes, residual-scale random
 slopes, `sd(group)` models, residual `rho12`, or `corpairs()` rows.
 
+The Slice 89 worked-example inventory in
+`docs/design/37-worked-example-inventory.md` records which current pages are
+worked tutorials and which are guides. Use that inventory before adding another
+example: the next tutorial should fill a named gap rather than lengthening a
+page that is already doing a different job.
+
 ## Numerical Guards
 
 Internal numerical guards should not dominate teaching tables. For example,

@@ -557,6 +557,30 @@ Phase 6d should be closed as small hardening slices:
 | 83 | C++ modularization source map | Write the refactor plan for splitting likelihood families, covariance blocks, structured effects, and numerical helpers without changing behavior. | Done: `docs/design/36-cpp-modularization-source-map.md` names the header-only split plan, hidden branch inventory, public branch gates, test gates, and pieces that must not move in the first pass. |
 | 84 | Phase 6d gate | Run targeted tests, pkgdown checks, Rose audit, Grace CI gate, and update NEWS/check-log/roadmap. | Done locally: focused tests, full tests, pkgdown build/check, `R CMD check`, stale-claim scans, check-log entry, and after-phase report are complete; GitHub Actions remains the PR-side gate. |
 
+## Phase 6e: Worked-Example Maturation
+
+- Status: started after PR #46 merged the Phase 10-13 foundations into `main`.
+- Tracking anchor: continue from Phase 6b issue
+  [#31](https://github.com/itchyshin/drmTMB/issues/31) unless a separate
+  teaching issue becomes useful.
+- Treat Phase 6e as a tutorial-quality follow-through lane. It should not add
+  formula grammar, likelihood code, or new model claims.
+- Keep guides and tutorials distinct. `model-map`, `which-scale`,
+  `distribution-families`, `model-workflow`, `large-data`, and
+  `testing-likelihoods` are guides unless a future slice deliberately turns a
+  section into a full worked analysis.
+- Use `docs/design/37-worked-example-inventory.md` before adding a new example.
+  The next tutorial should fill a named gap in question, equation, syntax,
+  output, plot/table, interpretation, diagnostics, or unsupported-boundary
+  advice.
+
+| Slice | Goal | Main work | Done when |
+| --- | --- | --- | --- |
+| 89 | Worked-example inventory | Audit the current tutorials and guides against the tutorial contract, then name the next highest-value tutorial slices. | Done: `docs/design/37-worked-example-inventory.md` records which pages are worked tutorials versus guides, names the major gaps, and prioritizes Slice 90 for the flagship location-scale tutorial and Slice 91 for the structured-dependence reader route. |
+| 90 | Flagship location-scale tutorial | Deepen `vignettes/location-scale.Rmd` with a compact response-scale table or figure linking mean slopes, residual-scale slopes, random-slope SDs, `sd(group)`, diagnostics, and report-scale interpretation. | Done when Pat can explain `sigma ~ temperature`, `(0 + temperature | population)`, and `sd(population) ~ habitat` from the tutorial without reading design docs. |
+| 91 | Structured-dependence reader route | Add a route through `vignettes/phylogenetic-spatial.Rmd` and make the coordinate-spatial example self-contained without widening structured-effect claims. | Done when a reader can choose between residual `rho12`, phylogenetic `corpairs()`, q=4 covariance rows, predictor-dependent q=2 phylogenetic `corpair()`, and coordinate spatial effects without mistaking planned mesh/SPDE or phylogenetic slopes for implemented features. |
+| 92 | Tutorial maturation gate | Run pkgdown build/check, stale-status scans, Rose audit, and after-phase notes for the Phase 6e tutorial follow-through. | Done when source and rendered pages agree on implemented surfaces, planned neighbours, diagnostics, and next examples. |
+
 ## Phase 7: Robust and Positive Continuous Families
 
 - Status: fixed-effect univariate Student-t location-scale-shape, lognormal
