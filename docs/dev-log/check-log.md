@@ -2,6 +2,70 @@
 
 Record meaningful development checks here.
 
+## 2026-05-16 - Slice 100 visualization research
+
+Goal: research the `ggplot2`, tidy Bayesian, marginal-effects, EMM,
+diagnostics, and publication-figure ecosystem and record what `drmTMB` should
+learn for Phase 17 without adding plotting dependencies or Bayesian claims.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/39-visualization-grammar.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-16-slice-100-visualization-research.md`
+- `vignettes/model-workflow.Rmd`
+
+What changed:
+
+- Added `docs/design/39-visualization-grammar.md` as the Slice 100 design
+  note.
+- Recorded lessons from official `ggplot2`, `tidybayes`, `ggdist`,
+  `emmeans`, `ggeffects`, `marginaleffects`, `performance`, `DHARMa`,
+  `patchwork`, and `viridis` documentation.
+- Updated Phase 17 to keep visualization data-first and to treat predictions,
+  adjusted predictions, estimated marginal means, contrasts, slopes, and
+  diagnostics as separate estimands.
+- Clarified in the model-workflow article that `predict_parameters()` and
+  `marginal_parameters()` are tables for future visualization helpers, not
+  current plotters.
+- Updated NEWS for the design-note change.
+
+Checks run:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH air format NEWS.md ROADMAP.md vignettes/model-workflow.Rmd docs/design/39-visualization-grammar.md`:
+  passed.
+- `git diff --check`: passed.
+- `LC_ALL=C rg -n '[^\x00-\x7F]' NEWS.md ROADMAP.md vignettes/model-workflow.Rmd docs/design/39-visualization-grammar.md`:
+  returned no matches.
+- `git diff -U0 -- NEWS.md ROADMAP.md vignettes/model-workflow.Rmd docs/design/39-visualization-grammar.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-16-slice-100-visualization-research.md | LC_ALL=C rg -n '[^\x00-\x7F]'`:
+  returned no matches in the Slice 100 patch.
+- `Rscript -e "devtools::test(filter = 'predict-parameters|marginal-parameters', reporter = 'summary')"`:
+  passed with 40 expectations across the focused prediction and marginal-table
+  helpers.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed and rendered
+  `ROADMAP.html`, `articles/model-workflow.html`, and `news/index.html`.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with "No problems found."
+- `rg -n 'visualization-grammar|tables, not plotting functions|dependency-light|estimated marginal means|EM means|posterior draws|interval_source' NEWS.md ROADMAP.md vignettes/model-workflow.Rmd docs/design/39-visualization-grammar.md pkgdown-site/ROADMAP.html pkgdown-site/articles/model-workflow.html pkgdown-site/news/index.html --glob '!pkgdown-site/search.json'`:
+  confirmed source and rendered pages carry the Slice 100 wording, EMM
+  terminology guard, and interval-source contract.
+- `rg -n 'plotting support|autoplot\\.drmTMB\\(\\).*export|tidybayes.*dependency|ggdist.*dependency|ggplot2.*Imports|EM means' NEWS.md ROADMAP.md DESCRIPTION docs/design vignettes pkgdown-site --glob '!pkgdown-site/search.json' --glob '!pkgdown-site/deps/**'`:
+  returned only intended design-boundary and terminology-guard matches, not a
+  dependency or implemented-plotting claim.
+
+Known limitations:
+
+- no plotting helper, `emmeans` method, `ggeffects` method, or
+  `marginaleffects` method was implemented;
+- no uncertainty columns were added to `predict_parameters()` or
+  `marginal_parameters()`;
+- no ggplot-oriented dependency was added to `DESCRIPTION`.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-16-slice-100-visualization-research.md`.
+
 ## 2026-05-16 - Slice 98 bivariate group-level covariance polish
 
 Goal: deepen the bivariate location-coscale tutorial with a compact

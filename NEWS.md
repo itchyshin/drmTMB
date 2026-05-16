@@ -1,6 +1,14 @@
 # drmTMB 0.1.2 (2026-05-16)
 
 * Installation docs now point tagged-preview users to `pak::pak("itchyshin/drmTMB@v0.1.2")`.
+* `docs/design/39-visualization-grammar.md` now records the Phase 17
+  visualization and marginal-effects research contract. The note uses
+  `ggplot2`, `tidybayes`, `ggdist`, `emmeans`, `ggeffects`,
+  `marginaleffects`, diagnostic plotting packages, and figure-composition
+  tools as design sources while keeping `drmTMB` data-first and
+  dependency-light. The model-workflow article now states that
+  `predict_parameters()` and `marginal_parameters()` are tables for future
+  visualization helpers, not current plotters.
 * The Gaussian location-scale tutorial now includes a response-scale interpretation ladder for fixed mean slopes, residual-SD and residual-variance ratios, random-slope SDs, residual-scale random-slope SDs, and `sd(group)` slopes. It also adds a trait-named parrot beak-length equation block defining `mu`, `sigma`, body mass, forest habitat, and scale coefficients before the worked growth example. The worked growth example shows `profile_targets(fit_growth)` and a compact fitted translation table so readers can report mean growth, predictability, and among-group variation on the correct scale.
 * The phylogenetic-spatial tutorial is now framed as a structural-dependence route: first phylogeny, then coordinate spatial dependence, then the planned phylogeny-plus-spatial endpoint. The article defines the conceptual combined equation, names the phylogenetic and spatial SDs, and keeps simultaneous `phylo()` plus `spatial()` syntax marked as planned until multiple structural `mu` layers have implementation and identifiability checks.
 
