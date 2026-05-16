@@ -2,6 +2,40 @@
 
 Record meaningful development checks here.
 
+## 2026-05-16 - Slice 94 0.1.2 release evidence
+
+Scope:
+
+- merge the Slice 93 `0.1.2` release-gate PR;
+- push annotated tag `v0.1.2`;
+- watch tag-triggered CI;
+- run the clean install smoke;
+- record the release evidence before moving to Slice 95.
+
+Evidence:
+
+- PR #53: <https://github.com/itchyshin/drmTMB/pull/53>
+- Merge commit and tag target: `abe58f2f6be488db461e4b51d776e8a9c8f8ac5e`
+- PR CI: <https://github.com/itchyshin/drmTMB/actions/runs/25964521301>
+- Main CI: <https://github.com/itchyshin/drmTMB/actions/runs/25964714336>
+- Tag CI: <https://github.com/itchyshin/drmTMB/actions/runs/25964723611>
+- pkgdown deploy: <https://github.com/itchyshin/drmTMB/actions/runs/25964880488>
+
+Checks:
+
+- `gh pr checks 53 --watch`: passed on macOS, Ubuntu, and Windows before merge.
+- `git tag -a v0.1.2 -m "drmTMB 0.1.2 preview"` and
+  `git push origin v0.1.2`: pushed the annotated tag.
+- `gh run watch 25964723611 --exit-status`: tag-triggered R-CMD-check passed
+  on macOS in 6m30s, Ubuntu in 7m24s, and Windows in 9m8s.
+- `gh run watch 25964880488 --exit-status`: pkgdown built in 4m36s and
+  deployed in 8s.
+- `PATH=/opt/homebrew/bin:/usr/local/bin:$PATH Rscript tools/install-smoke.R v0.1.2 0.1.2`:
+  passed; installed `drmTMB 0.1.2` from GitHub ref `abe58f2`, confirmed the
+  required exports, fitted the storage-control Gaussian location-scale smoke
+  model, and confirmed the `optimizer_budget` and `fixed_effect_design_size`
+  diagnostic rows.
+
 ## 2026-05-16 - Slice 93 0.1.2 release gate
 
 Scope:
