@@ -1,0 +1,352 @@
+---
+title: "Proportions and success rates"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Proportions and success rates}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+library(drmTMB)
+```
+
+Proportion data are common in ecology and evolution, but the measurement
+process matters. Some proportions are counts of successes out of known trials:
+germinated seeds out of seeds planted, infected hosts out of hosts checked, or
+occupied quadrats out of quadrats surveyed. Other proportions are continuous
+rates already measured on the unit interval, such as leaf damage, vegetation
+cover, or the fraction of time an animal spends foraging.
+
+This article stays inside the currently implemented `drmTMB` bounded-response
+surface:
+
+- use `beta_binomial()` for counted successes out of known trials;
+- use `beta()` for continuous proportions strictly inside `(0, 1)`;
+- keep structural zeros and ones as planned neighbours unless the current
+  family already represents them through binomial sampling.
+
+The source motivation comes from Nakagawa et al. (2026), who treat
+overdispersed proportions as part of the same location-scale framework as
+continuous and count responses. They distinguish discrete proportions from
+continuous proportions, recommend beta-binomial models for successes out of
+trials when extra-binomial variation is present, and warn that exact 0 or 1
+values in continuous beta responses need explicit zero-one processes rather
+than being hidden by the model.
+
+## Choose The Proportion Route
+
+Start from how the response was measured:
+
+| Response | Example | First `drmTMB` family | Boundary status |
+|---|---|---|---|
+| Counted successes out of trials | germinated seeds out of planted seeds | `beta_binomial()` | successes can be 0 or all trials through the binomial count process |
+| Continuous proportion strictly inside `(0, 1)` | leaf-area damage, vegetation cover, foraging time fraction | `beta()` | exact 0 or 1 is not supported by the strict beta likelihood |
+| Continuous proportion with structural 0 or 1 values | 0% disease, 100% cover, complete absence or saturation | planned zero-one-inflated beta or ordered beta | not a fitted `drmTMB` tutorial path yet |
+
+The distinction is not cosmetic. A denominator-aware model knows that 3
+successes out of 6 trials and 30 successes out of 60 trials carry different
+sampling information. A strict beta model assumes the observation is already a
+continuous rate and that the boundaries are not part of the observed support.
+
+## Beta-Binomial Equation And Syntax
+
+For successes out of known trials, `beta_binomial()` uses
+
+\[
+\begin{aligned}
+Y_i \mid n_i, p_i
+  &\sim \operatorname{Binomial}(n_i, p_i),\\
+p_i \mid \mu_i, \sigma_i
+  &\sim \operatorname{Beta}(\alpha_i, \beta_i),\\
+\operatorname{logit}(\mu_i)
+  &= \beta_0
+     + \beta_1 \text{sheltered}_i
+     + \beta_2 \text{moisture}_i,\\
+\log(\sigma_i)
+  &= \gamma_0 + \gamma_1 \text{sheltered}_i,\\
+\phi_i
+  &= 1 / \sigma_i^2,\\
+\alpha_i
+  &= \mu_i\phi_i,\\
+\beta_i
+  &= (1 - \mu_i)\phi_i,\\
+E[Y_i / n_i]
+  &= \mu_i,\\
+\operatorname{Var}(Y_i / n_i)
+  &= \frac{\mu_i(1 - \mu_i)(1 + n_i\sigma_i^2)}
+          {n_i(1 + \sigma_i^2)}.
+\end{aligned}
+\]
+
+The matching `drmTMB` syntax is:
+
+```r
+drmTMB(
+  bf(cbind(germinated, failed) ~ treatment + moisture, sigma ~ treatment),
+  family = beta_binomial(),
+  data = seed_trials
+)
+```
+
+Read each parameter before interpreting the fitted model:
+
+| Symbol or syntax | Meaning | In the seed-germination example |
+|---|---|---|
+| \(Y_i\), `germinated` | number of successes | seeds that germinated in tray \(i\) |
+| \(n_i\), `germinated + failed` | known number of trials | viable seeds planted in tray \(i\) |
+| \(\mu_i\), `mu` | expected success probability | germination probability for a seed in that tray |
+| \(\boldsymbol{\beta}_{\mu}\) | location coefficients on the logit probability scale | treatment and moisture effects on germination probability |
+| \(\sigma_i\), `sigma` | extra-binomial scale | tray-to-tray probability variation beyond binomial sampling |
+| \(\phi_i\) | beta precision | `phi_i = 1 / sigma_i^2`, so larger `sigma` means lower precision |
+| \(\boldsymbol{\beta}_{\sigma}\) | scale coefficients on the log `sigma` scale | treatment effects on extra-binomial variation |
+
+If `gamma_1` is the sheltered-treatment coefficient, then
+
+\[
+\frac{\sigma_\text{sheltered}}{\sigma_\text{open}}
+  = \exp(\gamma_1),
+\qquad
+\frac{\phi_\text{sheltered}}{\phi_\text{open}}
+  = \exp(-2\gamma_1).
+\]
+
+That second ratio reverses direction because \(\phi = 1 / \sigma^2\). In
+`drmTMB`, report `sigma` when you want the direction to mean more or less
+modelled variation.
+
+## Seed Germination Example
+
+Suppose seeds are planted in trays under open and sheltered microsites during a
+restoration trial. Shelter may increase average germination by reducing heat
+stress, and it may also make tray outcomes more predictable by buffering
+microclimate. Each tray has a known number of seeds, so the denominator belongs
+in the model.
+
+This transparent simulation gives us known structure before fitting:
+
+```{r}
+set.seed(197)
+n <- 360
+seed_trials <- data.frame(
+  treatment = factor(
+    rep(c("open", "sheltered"), each = n / 2),
+    levels = c("open", "sheltered")
+  ),
+  moisture = as.numeric(scale(runif(n, 0.1, 0.9))),
+  trials = sample(18:32, n, replace = TRUE)
+)
+
+sheltered <- as.numeric(seed_trials$treatment == "sheltered")
+mu_seed <- plogis(-0.55 + 0.70 * sheltered + 0.45 * seed_trials$moisture)
+sigma_seed <- exp(-1.15 - 0.35 * sheltered)
+phi_seed <- 1 / sigma_seed^2
+tray_probability <- rbeta(
+  n,
+  shape1 = mu_seed * phi_seed,
+  shape2 = (1 - mu_seed) * phi_seed
+)
+
+seed_trials$germinated <- rbinom(n, size = seed_trials$trials, prob = tray_probability)
+seed_trials$failed <- seed_trials$trials - seed_trials$germinated
+
+head(seed_trials)
+```
+
+Fit the beta-binomial location-scale model:
+
+```{r}
+fit_seed <- drmTMB(
+  bf(cbind(germinated, failed) ~ treatment + moisture, sigma ~ treatment),
+  family = beta_binomial(),
+  data = seed_trials
+)
+```
+
+Run diagnostics before interpreting coefficients:
+
+```{r}
+check_drm(fit_seed)
+```
+
+The `mu` coefficients describe the log-odds of germination. The `sigma`
+coefficients describe extra-binomial variation in the latent tray-level
+success probability:
+
+```{r}
+coef(fit_seed, "mu")
+coef(fit_seed, "sigma")
+
+sigma_ratio <- exp(coef(fit_seed, "sigma")["treatmentsheltered"])
+c(
+  sigma_ratio_sheltered_vs_open = sigma_ratio,
+  precision_ratio_sheltered_vs_open = sigma_ratio^(-2)
+)
+```
+
+For a response-scale summary, predict the expected success probability and the
+proportion-level standard deviation for trays with the same number of seeds:
+
+```{r}
+new_seed_trays <- data.frame(
+  treatment = factor(c("open", "sheltered"), levels = levels(seed_trials$treatment)),
+  moisture = c(0, 0),
+  trials = c(24, 24)
+)
+
+mu_hat <- predict(fit_seed, newdata = new_seed_trays, dpar = "mu")
+sigma_hat <- predict(fit_seed, newdata = new_seed_trays, dpar = "sigma")
+prop_var <- mu_hat * (1 - mu_hat) *
+  (1 + new_seed_trays$trials * sigma_hat^2) /
+  (new_seed_trays$trials * (1 + sigma_hat^2))
+
+data.frame(
+  treatment = new_seed_trays$treatment,
+  trials = new_seed_trays$trials,
+  expected_probability = mu_hat,
+  expected_successes = new_seed_trays$trials * mu_hat,
+  sigma = sigma_hat,
+  phi = 1 / sigma_hat^2,
+  proportion_sd = sqrt(prop_var)
+)
+```
+
+This table keeps the two parts of the question separate: expected germination
+probability and extra-binomial scatter around that probability.
+
+## Strict Continuous Proportions
+
+Use `beta()` when the response is a continuous proportion strictly inside the
+open interval. For example, vegetation cover measured from image analysis may
+record 0.03, 0.41, or 0.82 rather than successes out of a known number of
+quadrats. The beta model uses
+
+\[
+\begin{aligned}
+Y_i \mid \mu_i, \sigma_i
+  &\sim \operatorname{Beta}(\alpha_i, \beta_i),\\
+\operatorname{logit}(\mu_i)
+  &= \beta_0
+     + \beta_1 \text{grazed}_i
+     + \beta_2 \text{moisture}_i,\\
+\log(\sigma_i)
+  &= \gamma_0 + \gamma_1 \text{grazed}_i,\\
+\phi_i
+  &= 1 / \sigma_i^2,\\
+\operatorname{Var}(Y_i)
+  &= \frac{\mu_i(1 - \mu_i)\sigma_i^2}{1 + \sigma_i^2}.
+\end{aligned}
+\]
+
+The fitted syntax is the same one-formula-per-parameter pattern:
+
+```r
+drmTMB(
+  bf(cover ~ grazing + moisture, sigma ~ grazing),
+  family = beta(),
+  data = cover_data
+)
+```
+
+A small transparent example:
+
+```{r}
+set.seed(198)
+n_cover <- 300
+cover_data <- data.frame(
+  grazing = factor(
+    rep(c("ungrazed", "grazed"), each = n_cover / 2),
+    levels = c("ungrazed", "grazed")
+  ),
+  moisture = as.numeric(scale(runif(n_cover, 0.05, 0.95)))
+)
+
+grazed <- as.numeric(cover_data$grazing == "grazed")
+mu_cover <- plogis(0.35 - 0.75 * grazed + 0.35 * cover_data$moisture)
+sigma_cover <- exp(-1.10 + 0.45 * grazed)
+phi_cover <- 1 / sigma_cover^2
+cover_data$cover <- rbeta(
+  n_cover,
+  shape1 = mu_cover * phi_cover,
+  shape2 = (1 - mu_cover) * phi_cover
+)
+
+fit_cover <- drmTMB(
+  bf(cover ~ grazing + moisture, sigma ~ grazing),
+  family = beta(),
+  data = cover_data
+)
+
+check_drm(fit_cover)
+```
+
+Here, grazing changes both expected cover and the variation of cover among
+sampling units:
+
+```{r}
+coef(fit_cover, "mu")
+coef(fit_cover, "sigma")
+
+new_cover <- data.frame(
+  grazing = factor(c("ungrazed", "grazed"), levels = levels(cover_data$grazing)),
+  moisture = c(0, 0)
+)
+
+mu_cover_hat <- predict(fit_cover, newdata = new_cover, dpar = "mu")
+sigma_cover_hat <- predict(fit_cover, newdata = new_cover, dpar = "sigma")
+
+data.frame(
+  grazing = new_cover$grazing,
+  expected_cover = mu_cover_hat,
+  sigma = sigma_cover_hat,
+  phi = 1 / sigma_cover_hat^2,
+  cover_sd = sqrt(
+    mu_cover_hat * (1 - mu_cover_hat) *
+      sigma_cover_hat^2 / (1 + sigma_cover_hat^2)
+  )
+)
+```
+
+Do not use this strict beta route if the observed response includes exact 0 or
+1 values. A sprayed plot with 0% damage or a quadrat with 100% cover is a
+boundary-generating process, not an interior beta observation. Those cases need
+a future zero-one-inflated beta or ordered-beta route, or a deliberate
+measurement-process decision outside this tutorial.
+
+## Current Boundary
+
+The implemented bounded-response path is intentionally fixed-effect and
+univariate:
+
+```r
+drmTMB(
+  bf(cbind(successes, failures) ~ treatment, sigma ~ treatment),
+  family = beta_binomial(),
+  data = dat
+)
+```
+
+```r
+drmTMB(
+  bf(proportion ~ treatment, sigma ~ treatment),
+  family = beta(),
+  data = dat
+)
+```
+
+Do not teach the following as fitted proportion examples yet:
+
+- random effects in `mu` or `sigma`;
+- `sd(group) ~ ...` random-effect scale models;
+- `meta_known_V(V = V)` with beta or beta-binomial responses;
+- `phylo()` or `spatial()` bounded-response models;
+- bivariate or mixed-response bounded models such as
+  `family = c(beta(), gaussian())`;
+- zero-one-inflated beta, ordered beta, or beta-binomial zero-inflation;
+- denominator shorthand such as `successes / trials` as a replacement for
+  `cbind(successes, failures)`.
+
+Those are useful future routes, but each needs likelihood code, simulation
+recovery, diagnostics, and source-map evidence before it becomes tutorial
+syntax.

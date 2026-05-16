@@ -266,6 +266,8 @@ precision; internally `phi = 1 / sigma^2`, so larger `sigma` means more
 variation around the mean. Responses equal to 0 or 1 need a later
 zero/one-inflated beta or ordered-beta route. Percentages derived from counts
 should wait for `beta_binomial()` so the denominator remains part of the data.
+The tutorial [Proportions and success rates](proportion-beta-binomial.html)
+works through the strict beta route and keeps boundary values separate.
 
 Poisson mean models are implemented for count responses:
 
@@ -526,7 +528,9 @@ For beta-binomial models, `mu_i` is the fitted success probability and `sigma`
 describes extra-binomial variation, not residual standard deviation.
 `fitted(fit)` returns probabilities; multiply by
 `successes_i + failures_i` when the scientific summary is the expected number
-of successes.
+of successes. The tutorial
+[Proportions and success rates](proportion-beta-binomial.html) gives a
+denominator-aware seed-germination example.
 
 Ordinal models are implemented first as fixed-effect univariate models with
 ordered cutpoints and a fixed latent logistic scale:

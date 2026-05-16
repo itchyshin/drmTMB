@@ -86,6 +86,7 @@ Implemented one-response surfaces include:
 | Do groups differ in residual-scale slopes? | `sigma ~ x + (0 + w | group)` for independent Gaussian residual-scale slopes | [Which scale are you modelling?](which-scale.html) |
 | Does a group-level predictor change among-group SD in the mean model? | `sd(group) ~ x_group` for unlabelled Gaussian `mu` random intercepts | [Which scale are you modelling?](which-scale.html) |
 | Is the response continuous, count, bounded, robust, or zero-inflated? | fixed-effect non-Gaussian families | [Choosing response families](distribution-families.html) |
+| Is the response a strict continuous proportion or successes out of known trials? | fixed-effect `beta()` or `beta_binomial()` | [Proportions and success rates](proportion-beta-binomial.html) |
 | Does the response have known sampling variance or covariance? | Gaussian `meta_known_V(V = V)` | [Mean effects and residual heterogeneity](meta-analysis.html) |
 | Do species means remain similar after shared ancestry is included? | `phylo(1 | species, tree = tree)` in univariate Gaussian `mu` | [Structural dependence](phylogenetic-spatial.html) |
 | Do nearby sites share smooth location deviations or smooth slope differences? | `spatial(1 | site, coords = coords)` or one numeric `spatial(1 + x | site, coords = coords)` slope in univariate Gaussian `mu` | [Structural dependence](phylogenetic-spatial.html) |

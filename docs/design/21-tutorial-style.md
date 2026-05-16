@@ -72,8 +72,8 @@ and interpretation can be kept concrete.
 |---|---|---|
 | Count abundance and extra zeros | Do restoration plots differ in expected species counts, and are some zeros from a separate absence process? | Implemented as `vignettes/count-nbinom2.Rmd` with `count ~ habitat + offset(log(effort))`, `sigma ~ habitat`, and optional `zi ~ surface` using `family = nbinom2()` |
 | Positive counts after conditional sampling | When zeros are absent by design, do traps or survey units differ in positive abundance? | `count ~ habitat`, `sigma ~ habitat` with `family = truncated_nbinom2()`; add `hu ~ habitat` only for hurdle zeros |
-| Continuous proportions | Does leaf damage proportion change with treatment, and does among-leaf variability also change? | `damage ~ treatment`, `sigma ~ treatment` with `family = beta()` for values strictly between 0 and 1 |
-| Successes out of trials | Does germination probability vary by treatment beyond binomial sampling error? | `cbind(germinated, not_germinated) ~ treatment`, `sigma ~ treatment` with `family = beta_binomial()` |
+| Continuous proportions | Does leaf damage proportion change with treatment, and does among-leaf variability also change? | Implemented in `vignettes/proportion-beta-binomial.Rmd` with `cover ~ grazing`, `sigma ~ grazing`, and `family = beta()` for values strictly between 0 and 1 |
+| Successes out of trials | Does germination probability vary by treatment beyond binomial sampling error? | Implemented in `vignettes/proportion-beta-binomial.Rmd` with `cbind(germinated, failed) ~ treatment`, `sigma ~ treatment`, and `family = beta_binomial()` |
 | Ordered severity scores | Does disease severity shift along an ordered scale? | `severity ~ treatment` with `family = cumulative_logit()`; keep scale effects planned until implemented |
 
 Each candidate needs the same teaching arc: question, data, symbolic equations,

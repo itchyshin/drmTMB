@@ -2,6 +2,76 @@
 
 Record meaningful development checks here.
 
+## 2026-05-16 - Slice 97 proportion source-map tutorial
+
+Goal: add the next non-Gaussian bounded-response worked example after Slice 96,
+keeping the example inside the implemented fixed-effect univariate
+`beta_binomial()` and `beta()` surfaces.
+
+Files changed:
+
+- `ROADMAP.md`
+- `_pkgdown.yml`
+- `docs/design/21-tutorial-style.md`
+- `docs/design/37-worked-example-inventory.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-16-slice-97-proportion-source-map.md`
+- `vignettes/distribution-families.Rmd`
+- `vignettes/drmTMB.Rmd`
+- `vignettes/model-map.Rmd`
+- `vignettes/proportion-beta-binomial.Rmd`
+- `vignettes/source-map.Rmd`
+
+What changed:
+
+- Added `vignettes/proportion-beta-binomial.Rmd`, a bounded-response tutorial
+  with beta-binomial and strict beta equations, exact `drmTMB()` syntax,
+  parameter definitions, fitted diagnostics, and biological interpretation.
+- Explained the public `sigma` scale for beta and beta-binomial responses:
+  `phi_i = 1 / sigma_i^2`, so larger `sigma` means lower beta precision and
+  more modelled variation.
+- Added denominator-aware response-scale interpretation for seed germination:
+  expected probability, expected successes, `sigma`, `phi`, and
+  proportion-level SD.
+- Added a strict beta vegetation-cover example and kept exact 0/1 values as
+  future zero-one-inflated beta or ordered-beta territory.
+- Linked the tutorial from the pkgdown Tutorials menu, Getting Started,
+  model map, family guide, source map, worked-example inventory, tutorial
+  style contract, and roadmap.
+
+Checks run:
+
+- `air format _pkgdown.yml ROADMAP.md docs/design/21-tutorial-style.md docs/design/37-worked-example-inventory.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-16-slice-97-proportion-source-map.md vignettes/distribution-families.Rmd vignettes/drmTMB.Rmd vignettes/model-map.Rmd vignettes/proportion-beta-binomial.Rmd vignettes/source-map.Rmd`:
+  passed.
+- `git diff --check`: passed.
+- `Rscript -e 'devtools::test(filter = "beta|family-link-contract", reporter = "summary")'`:
+  passed; ran the beta-binomial, beta-location-scale, and family-link-contract
+  test files with no failures.
+- `Rscript -e 'pkgdown::build_site()'`: passed and rendered
+  `articles/proportion-beta-binomial.html`.
+- `Rscript -e 'pkgdown::check_pkgdown()'`: passed with "No problems found."
+- `rg -n 'Proportions and success rates|proportion-beta-binomial|sigma_sheltered|phi_sheltered|zero-one-inflated beta|ordered beta|cbind\\(successes, failures\\)|strict continuous|successes out of trials|beta-binomial|beta\\(\\)' vignettes/proportion-beta-binomial.Rmd pkgdown-site/articles/proportion-beta-binomial.html _pkgdown.yml pkgdown-site/articles/index.html pkgdown-site/articles/distribution-families.html vignettes/distribution-families.Rmd vignettes/drmTMB.Rmd pkgdown-site/articles/drmTMB.html vignettes/model-map.Rmd pkgdown-site/articles/model-map.html vignettes/source-map.Rmd docs/design/37-worked-example-inventory.md ROADMAP.md --glob '!pkgdown-site/search.json'`:
+  confirmed the tutorial route, source and rendered links, scale conversion,
+  strict beta wording, denominator syntax, and unsupported-boundary wording.
+- `rg -n 'successes / trials|successes/trials|zero-one-inflated beta|ordered beta|beta-binomial zero inflation|meta_known_V\\(V = V\\).*beta|phylo\\(\\)|spatial\\(\\)|family = c\\(beta\\(\\), gaussian\\(\\)\\)' vignettes/proportion-beta-binomial.Rmd pkgdown-site/articles/proportion-beta-binomial.html docs/design/37-worked-example-inventory.md ROADMAP.md vignettes/source-map.Rmd --glob '!pkgdown-site/search.json'`:
+  confirmed the planned-neighbour and denominator-shorthand boundaries.
+- Tracked-diff and new-file non-ASCII scans with
+  `LC_ALL=C rg -n '[^\\x00-\\x7F]'`: returned no matches.
+
+Known limitations:
+
+- no formula grammar, family, likelihood, TMB, extractor, or test
+  implementation changed in this slice;
+- the examples are fixed-effect and univariate only;
+- non-Gaussian random effects, zero-one-inflated beta, ordered beta,
+  beta-binomial zero inflation, structured bounded responses, mixed-response
+  families, known covariance with bounded responses, and denominator shorthand
+  remain planned until they have implementation and recovery evidence.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-16-slice-97-proportion-source-map.md`.
+
 ## 2026-05-16 - Reference index random-effect scale syntax patch
 
 Goal: fix a user-caught reference-index oversight where `sd(id) ~ ...`,

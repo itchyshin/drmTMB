@@ -46,6 +46,8 @@ navbar:
           href: articles/robust-student.html
         - text: Count abundance and extra zeros
           href: articles/count-nbinom2.html
+        - text: Proportions and success rates
+          href: articles/proportion-beta-binomial.html
         - text: Changing residual coupling with rho12
           href: articles/bivariate-coscale.html
         - text: Mean effects and residual heterogeneity
@@ -135,6 +137,7 @@ articles:
       - location-scale
       - robust-student
       - count-nbinom2
+      - proportion-beta-binomial
       - meta-analysis
       - bivariate-coscale
       - phylogenetic-spatial
