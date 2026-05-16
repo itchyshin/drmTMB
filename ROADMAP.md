@@ -931,6 +931,9 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   scatter plot with separate fitted `mu` and `sigma` surfaces, keeps the
   prediction table visible, and warns not to place raw response points on
   `sigma`, `sigma^2`, `rho12`, random-effect SD, or correlation axes.
+- Slice 110 improves `plot_parameter_surface()` labels for single-parameter
+  panels. When a filtered prediction table contains one `dpar`, the default
+  y-axis label now names the parameter and, when unique, the prediction scale.
 - Add additional ggplot-oriented helpers only after the data contract is stable:
   location curves, scale/variance curves, residual `rho12` curves,
   `sd(group)` or `sd_phylo()` surfaces, `corpairs()` summaries, and eventually

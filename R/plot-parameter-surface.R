@@ -9,7 +9,9 @@
 #' The helper plots `estimate` against one supplied column. It expects the
 #' interval provenance columns created by [predict_parameters()] so the plotted
 #' data keep their uncertainty status attached, even though this first helper
-#' does not draw intervals.
+#' does not draw intervals. When the filtered table contains a single
+#' distributional parameter, the y-axis label names that parameter and, when
+#' unique, the prediction scale.
 #'
 #' @param data A data frame returned by [predict_parameters()], or a compatible
 #'   long table with columns `dpar`, `type`, `estimate`, `conf.status`, and
@@ -71,6 +73,7 @@ plot_parameter_surface <- function(
   }
 
   data <- filter_plot_parameter_surface_data(data, dpar = dpar, type = type)
+  y_label <- plot_parameter_surface_y_label(data)
   data <- add_plot_parameter_surface_columns(
     data,
     x = x,
@@ -93,7 +96,7 @@ plot_parameter_surface <- function(
   out +
     ggplot2::labs(
       x = x,
-      y = "Estimate",
+      y = y_label,
       colour = colour
     )
 }
@@ -178,6 +181,20 @@ filter_plot_parameter_surface_data <- function(data, dpar, type) {
   }
   row.names(data) <- NULL
   data
+}
+
+plot_parameter_surface_y_label <- function(data) {
+  dpar <- unique(as.character(data$dpar))
+  dpar <- dpar[!is.na(dpar)]
+  if (length(dpar) != 1L) {
+    return("Estimate")
+  }
+  type <- unique(as.character(data$type))
+  type <- type[!is.na(type)]
+  if (length(type) == 1L) {
+    return(sprintf("%s estimate (%s scale)", dpar, type))
+  }
+  sprintf("%s estimate", dpar)
 }
 
 add_plot_parameter_surface_columns <- function(data, x, colour, group, facet) {

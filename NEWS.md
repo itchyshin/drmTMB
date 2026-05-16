@@ -14,6 +14,7 @@
   point estimates only, keeps interval provenance columns attached to the data,
   and leaves confidence intervals, EMMs, contrasts, and slope plots for later
   tested helpers.
+* `plot_parameter_surface()` now labels single-parameter panels with the fitted distributional parameter and prediction scale, such as `sigma estimate (response scale)`, while keeping the generic `Estimate` label when multiple parameters are plotted together.
 * `prediction_grid()` now builds explicit `newdata` grids for
   `predict_parameters()` and `marginal_parameters()`. The first contract
   supports focal predictors, supplied values, conditioned nuisance predictors,
