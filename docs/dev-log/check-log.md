@@ -15820,3 +15820,48 @@ Known limitations:
 - richer spatial correlations, bivariate spatial covariance, mesh/SPDE fields,
   structured `rho12`, and nonlinear derived intervals remain planned;
 - GitHub Actions remains the PR-side gate.
+
+## 2026-05-15 -- Phase 6b structured-boundary cleanup
+
+Goal:
+
+- remove stale broad structured-effect wording that survived Phase 10 and Phase
+  12 without changing model behaviour.
+
+Implemented:
+
+- updated the structured-effect rejection message in `R/drmTMB.R` so unsupported
+  structured markers point users to the current fitted exceptions: univariate
+  phylogenetic `mu`, matching bivariate phylogenetic `mu1`/`mu2`, and
+  coordinate-spatial univariate `mu` intercept or one numeric slope;
+- updated `vignettes/location-scale.Rmd` so "spatial terms" and "phylogenetic
+  sigma terms" are no longer broad planned buckets;
+- added after-task report
+  `docs/dev-log/after-task/2026-05-15-phase-6b-structured-boundary-cleanup.md`.
+
+Checks run:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH air format R/drmTMB.R vignettes/location-scale.Rmd`:
+  passed.
+- `rg -n -F 'phylogenetic \`sigma\` terms, spatial terms' R vignettes README.md ROADMAP.md NEWS.md docs/design tests/testthat --glob '!docs/dev-log/**'`:
+  returned no matches.
+- `rg -n -F 'spatial terms and structured effects in other parameters are still planned' R vignettes README.md ROADMAP.md NEWS.md docs/design tests/testthat --glob '!docs/dev-log/**'`:
+  returned no matches.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::test(filter = "gaussian-location-scale|spatial-gaussian|package-skeleton", reporter = "summary")'`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::build_site()'`:
+  passed and rendered `articles/location-scale.html`.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed with no problems found.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::check(error_on = "never", env_vars = c("_R_CHECK_SYSTEM_CLOCK_" = "FALSE"))'`:
+  passed with 0 errors, 0 warnings, and 0 notes in 2m 28s.
+- `git diff --check`: passed.
+- `rg -n 'Coordinate-spatial random effects are implemented|spatial \`sigma\`, bivariate spatial covariance|Implemented structured paths are intercept-only|coordinate-spatial .*spatial\\(1 \\+ x' R/drmTMB.R vignettes/location-scale.Rmd pkgdown-site/articles/location-scale.html pkgdown-site/reference/drmTMB.html --glob '!pkgdown-site/search.json'`:
+  confirmed the updated source and rendered article wording.
+
+Known limitations:
+
+- this was a wording and error-message cleanup only;
+- spatial `sigma`, bivariate spatial covariance, mesh/SPDE fields, multiple
+  spatial slopes, spatial `corpair()`, phylogenetic slopes, standalone or
+  partial phylogenetic scale terms, and structured `rho12` remain planned.

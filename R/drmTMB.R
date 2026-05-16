@@ -3017,7 +3017,7 @@ drm_reject_phase1_terms <- function(rhs, dpar, allow_offset = FALSE) {
     cli::cli_abort(c(
       "Structured-effect syntax is planned, not implemented.",
       "x" = "The {.code {dpar}} formula contains structured marker{?s}: {.val {structured}}.",
-      "i" = "Implemented structured paths are intercept-only {.code phylo(1 | species, tree = tree)} terms in univariate {.code mu} and matching bivariate {.code mu1}/{.code mu2}; spatial terms and structured effects in other parameters are still planned."
+      "i" = "Implemented structured paths are intercept-only {.code phylo(1 | species, tree = tree)} terms in univariate {.code mu}, matching bivariate {.code mu1}/{.code mu2} phylogenetic terms, and coordinate-spatial {.code spatial(1 | site, coords = coords)} or {.code spatial(1 + x | site, coords = coords)} terms in univariate {.code mu}. Structured effects in other parameters remain planned."
     ))
   }
 
