@@ -49,5 +49,6 @@ pairs <- data.frame(
 )
 if (requireNamespace("ggplot2", quietly = TRUE)) {
   plot_corpairs(pairs)
+  plot_corpairs(pairs, facet = "level")
 }
 }

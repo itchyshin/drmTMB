@@ -951,6 +951,9 @@ remain blocked by future covariance or non-Gaussian random-effect work.
 - Slice 114 adds optional `facet` support to `plot_corpairs()` so residual,
   group-level, phylogenetic, spatial, or future study-level rows can be separated
   by an explicit table column without changing the extraction contract.
+- Slice 115 adds the first `facet = "level"` Reference example for
+  `plot_corpairs()`, keeping the example table explicit while making the layer
+  separation option visible to readers.
 - Add additional ggplot-oriented helpers only after the data contract is stable:
   location curves, scale/variance curves, residual `rho12` curves,
   `sd(group)` or `sd_phylo()` surfaces, `corpairs()` summaries, and eventually
