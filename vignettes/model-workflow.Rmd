@@ -199,11 +199,31 @@ distributional parameters on the same grid:
 predict_parameters(fit, newdata = temperature_grid, dpar = c("mu", "sigma"))
 ```
 
-Use `marginal_parameters()` when a grid should be reduced to group-level
-interpretation summaries:
+Use an empirical grid when the question is about the fitted response at focal
+temperatures while averaging over the fitted-row covariate distribution. Here
+each requested temperature is crossed with the fitted model rows, so the
+habitat distribution is the one in the fitted data:
 
 ```{r}
-marginal_parameters(fit, newdata = temperature_grid, dpar = c("mu", "sigma"))
+temperature_empirical <- prediction_grid(
+  fit,
+  focal = "temperature",
+  at = list(temperature = c(-1, 0, 1)),
+  margin = "empirical"
+)
+
+attr(temperature_empirical, "prediction_grid")
+```
+
+Then reduce the empirical grid by the focal term:
+
+```{r}
+marginal_parameters(
+  fit,
+  newdata = temperature_empirical,
+  dpar = c("mu", "sigma"),
+  by = "temperature"
+)
 ```
 
 These helpers are tables, not plotting functions. They are the current Phase 17

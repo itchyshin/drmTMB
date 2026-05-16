@@ -126,6 +126,11 @@ counterfactual grids. It does not promise full `emmeans` compatibility; that
 requires a tested reference-grid contract for transformed, bounded, count,
 ordinal, bivariate, and structured-effect fits.
 
+Slice 102 adds the first article-level empirical-grid example. The
+model-workflow article now shows a conditioned grid for direct
+`predict_parameters()` rows and a separate empirical grid for
+`marginal_parameters(..., by = "temperature")`.
+
 ### Prediction Surface
 
 `predict_parameters()` is the current base. Later versions can add optional
@@ -231,12 +236,10 @@ idea is tidy long data for uncertainty, not Bayesian model support.
 
 ## Near-Term Slice Order
 
-1. Use `prediction_grid()` in examples that need explicit focal terms,
-   conditioning, and empirical marginalization.
-2. Add interval provenance to prediction and marginal tables only after the
+1. Add interval provenance to prediction and marginal tables only after the
    source can be computed honestly.
-3. Add one narrow ggplot-oriented helper for `predict_parameters()` output.
-4. Add `corpairs()` plotting only after all displayed correlation rows carry
+2. Add one narrow ggplot-oriented helper for `predict_parameters()` output.
+3. Add `corpairs()` plotting only after all displayed correlation rows carry
    interval status consistently.
-5. Revisit `emmeans` compatibility only after the reference-grid and link-scale
+4. Revisit `emmeans` compatibility only after the reference-grid and link-scale
    contract is tested across the implemented families.
