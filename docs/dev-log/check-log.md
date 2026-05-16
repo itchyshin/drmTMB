@@ -2,6 +2,40 @@
 
 Record meaningful development checks here.
 
+## 2026-05-16 - Roadmap phases 17-20 reorder
+
+Scope:
+
+- moved visualization and marginal effects earlier from Phase 18 to Phase 17;
+- added Phase 18 as the comprehensive simulation, power, accuracy, and coverage
+  evidence layer;
+- added Phase 19 as the one-off comparator demonstration layer using matched
+  simulated or transparent datasets rather than repeated simulations;
+- moved CRAN release hardening and paper preparation to Phase 20;
+- updated the release-boundary summary at the top of `ROADMAP.md`.
+
+Checks:
+
+- `PATH=/opt/homebrew/bin:$PATH air format ROADMAP.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-16-roadmap-phases-17-20-reorder.md`:
+  passed.
+- `git diff --check`: passed.
+- `PATH=/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed with no problems found.
+- `rg -n "Phase 17|Phase 18|Phase 19|Phase 20|visualization and marginal|Release Hardening|Teaching, and Papers|CRAN Release|Comparator Demonstrations|Comprehensive Simulation" ROADMAP.md README.md NEWS.md docs/design docs/dev-log/known-limitations.md docs/dev-log/after-task/2026-05-16-roadmap-phases-17-20-reorder.md`:
+  confirmed the new Phase 17-20 headings and top roadmap summary.
+- `rg -n "Phase 18.*visualization|visualization.*Phase 18|Phase 17.*CRAN|CRAN.*Phase 17|Phase 19.*repeated simulation|one-off.*Phase 18" ROADMAP.md README.md NEWS.md docs/design docs/dev-log/known-limitations.md --glob '!docs/dev-log/check-log.md'`:
+  returned only the intentional Phase 17 sentence that says visualization
+  helpers should be designed with Phase 18 simulations in mind.
+- `rg -n "Phase 18 records the visualization|Phase 18: Visualization|Phase 17: Release Hardening|Release Hardening, Teaching, and Papers" ROADMAP.md README.md NEWS.md docs/design docs/dev-log/known-limitations.md docs/dev-log/after-task/2026-05-16-roadmap-phases-17-20-reorder.md || true`:
+  returned no stale old phase labels.
+- `git diff --unified=0 -- ROADMAP.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-16-roadmap-phases-17-20-reorder.md | LC_ALL=C rg -n '^\+.*[^\x00-\x7F]' || true`:
+  returned no added non-ASCII.
+
+Known limitations:
+
+- roadmap-only change; no visualization, simulation, comparator, or release
+  code was implemented in this task.
+
 ## 2026-05-16 - Portable agent operating kit
 
 Scope:
