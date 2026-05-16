@@ -59,6 +59,10 @@ distributional regression models using TMB.
 - Treat meta-analysis as `family = gaussian()` plus `meta_known_V(V = V)`.
 - Support known sampling covariance through vectors, columns, diagonal matrices,
   dense block-diagonal matrices, or dense full matrices.
+- Reserve, but do not implement for `0.1.2`, a possible future `meta_V()`
+  umbrella that could unify additive known covariance
+  `meta_V(value, V = V)` with proportional sampling-variance models such as
+  `meta_V(value, w = w, scale = "proportional")`.
 - The implemented known-covariance Gaussian path is now tested with ordinary
   `mu` random intercepts and random-effect scale formulae such as
   `sd(id) ~ x_group` using independent dense marginal-likelihood comparators.
@@ -76,6 +80,10 @@ distributional regression models using TMB.
 - Keep likelihood weights separate from `meta_known_V(V = V)`: weights multiply
   observation log-likelihood contributions, whereas `meta_known_V()` supplies
   known sampling covariance.
+- Coexistence rule: additive known `V` continues to reject non-unit top-level
+  weights until joint-block weighting is designed; proportional sampling
+  variance through a future `meta_V(..., scale = "proportional")` is also not
+  ordinary likelihood weighting.
 - Implemented design rule: univariate models use one non-negative finite
   weight per observation; bivariate models use one weight per complete response
   pair.
@@ -577,7 +585,7 @@ Phase 6d should be closed as small hardening slices:
 | Slice | Goal | Main work | Done when |
 | --- | --- | --- | --- |
 | 89 | Worked-example inventory | Audit the current tutorials and guides against the tutorial contract, then name the next highest-value tutorial slices. | Done: `docs/design/37-worked-example-inventory.md` records which pages are worked tutorials versus guides, names the major gaps, and prioritizes Slice 90 for the flagship location-scale tutorial and Slice 91 for the structured-dependence reader route. |
-| 90 | Flagship location-scale tutorial | Deepen `vignettes/location-scale.Rmd` with a compact response-scale table or figure linking mean slopes, residual-scale slopes, random-slope SDs, `sd(group)`, diagnostics, and report-scale interpretation. | Done when Pat can explain `sigma ~ temperature`, `(0 + temperature | population)`, and `sd(population) ~ habitat` from the tutorial without reading design docs. |
+| 90 | Flagship location-scale tutorial | Deepen `vignettes/location-scale.Rmd` with a compact response-scale table or figure linking mean slopes, residual-scale slopes, random-slope SDs, `sd(group)`, diagnostics, and report-scale interpretation. | Done: the location-scale tutorial now has a response-scale interpretation table, trait-named parrot beak-length equations with parameter definitions, `profile_targets(fit_growth)` gate, fitted growth translation table, and hierarchical interpretation checklist distinguishing `sigma ~ temperature`, `(0 + temperature | population)`, and `sd(population) ~ habitat`. |
 | 91 | Structured-dependence reader route | Add a route through `vignettes/phylogenetic-spatial.Rmd` and make the coordinate-spatial example self-contained without widening structured-effect claims. | Done when a reader can choose between residual `rho12`, phylogenetic `corpairs()`, q=4 covariance rows, predictor-dependent q=2 phylogenetic `corpair()`, and coordinate spatial effects without mistaking planned mesh/SPDE or phylogenetic slopes for implemented features. |
 | 92 | Tutorial maturation gate | Run pkgdown build/check, stale-status scans, Rose audit, and after-phase notes for the Phase 6e tutorial follow-through. | Done when source and rendered pages agree on implemented surfaces, planned neighbours, diagnostics, and next examples. |
 

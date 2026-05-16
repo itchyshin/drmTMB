@@ -244,6 +244,14 @@ contributes to the likelihood; it does not put `vi` into the modelled sampling
 variance. The current dense full-`V` path rejects non-unit weights until joint
 block weighting has a separate design.
 
+A proportional sampling-variance model, for example a term such as
+\(\pi_i \sim \operatorname{Normal}(0, \phi_\pi / w_i)\), is a different model
+again. It is not implemented in `drmTMB` yet and should not be mimicked with the
+top-level `weights =` argument. A future design may introduce a broader
+`meta_V()` keyword for both additive known `V` and proportional sampling
+variance, but current fitted examples should use `meta_known_V(V = V)` for
+known sampling covariance and `weights =` only for likelihood weights.
+
 ## Known sampling variance plus group-level heterogeneity
 
 Some meta-analyses contain multiple effect sizes per study, species, lab, or

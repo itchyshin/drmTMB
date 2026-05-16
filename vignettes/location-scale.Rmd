@@ -421,21 +421,93 @@ change in residual standard deviation for a one-unit change in that predictor.
 For example, a `sigma` coefficient of `0.3` means `exp(0.3) = 1.35`, or about a
 35% higher residual standard deviation.
 
-For biological interpretation, keep the slope-like quantities separate:
+For biological interpretation, keep the slope-like quantities separate and
+translate each one to the scale on which it answers the biological question:
 
-| Quantity | Model term | Biological claim |
+| Model component | Example syntax | Response-scale reading | Biological sentence |
+|---|---|---|---|
+| fixed mean slope | `growth ~ temperature` | `beta_temperature` is an additive change in expected growth per temperature unit | average growth changes with temperature |
+| fixed residual-scale slope | `sigma ~ temperature` | `exp(gamma_temperature)` is the residual-SD ratio per temperature unit; `exp(2 * gamma_temperature)` is the residual-variance ratio | growth becomes more or less predictable along the temperature gradient |
+| mean random-slope SD | `(0 + temperature | population)` or `(1 + temperature | population)` | `sd_mu_temperature_population` is the SD of population-specific temperature slopes, in growth-per-temperature units | populations differ in thermal reaction norms |
+| residual-scale random-slope SD | `sigma ~ (0 + temperature | population)` | the SD is on the log-residual-SD slope scale; `exp(sd)` and `exp(-sd)` give a rough one-SD spread in residual-SD ratios per temperature unit | populations differ in how predictability changes with temperature |
+| random-effect scale slope | `sd(population) ~ habitat` | `exp(alpha_habitat)` is the ratio of among-population SDs; `exp(2 * alpha_habitat)` is the corresponding among-population variance ratio | among-population differences in expected growth are larger in one habitat |
+
+The first two rows are fixed-effect slopes. The next two rows are variance
+components for group-specific slopes. The last row is a direct model for a
+group-level SD. A single ecological phrase such as "temperature-dependent
+variability" can point to any of these, so name the model component before
+stating the biological conclusion. Current `sd(population) ~ habitat` syntax
+targets an unlabelled random intercept; coefficient-specific syntax such as
+`sd(population, dpar = "mu", coef = "temperature") ~ habitat` is reserved until
+random-slope SD regression has likelihood code and simulation tests.
+
+### Name the biological response before the symbol
+
+When adapting the syntax, replace placeholders such as `y`, `x1`, and `x2`
+with trait names before writing the interpretation. A useful tutorial sentence
+defines the measured response, the covariates, the distributional parameters,
+and the biological meaning of each slope.
+
+For example, the parrot example in the phylogenetic location-scale paper asks
+whether forest habitat changes the average beak length of parrot species, the
+among-species heterogeneity in beak length, or both. Written in the
+non-phylogenetic Gaussian syntax used in this tutorial, the teaching version is:
+
+\[
+\begin{aligned}
+\text{beak\_length}_i
+  &\sim \operatorname{Normal}(\mu_i, \sigma_i^2),\\
+\mu_i
+  &= \beta_0^{(\mu)}
+     + \beta_{\text{mass}}^{(\mu)}\text{body\_mass}_i
+     + \beta_{\text{forest}}^{(\mu)}\text{forest}_i,\\
+\log(\sigma_i)
+  &= \beta_0^{(\sigma)}
+     + \beta_{\text{mass}}^{(\sigma)}\text{body\_mass}_i
+     + \beta_{\text{forest}}^{(\sigma)}\text{forest}_i .
+\end{aligned}
+\]
+
+```r
+drmTMB(
+  bf(beak_length ~ body_mass + forest, sigma ~ body_mass + forest),
+  family = gaussian(),
+  data = parrots
+)
+```
+
+| Quantity | Definition in the parrot example | Biological reading |
 |---|---|---|
-| fixed mean slope | `y ~ temperature` | average growth changes with temperature |
-| fixed residual-scale slope | `sigma ~ temperature` | residual predictability changes with temperature |
-| mean random-slope SD | `(0 + temperature | population)` or `(1 + temperature | population)` | populations differ in thermal reaction norms |
-| residual-scale random-slope SD | `sigma ~ (0 + temperature | population)` | populations differ in how residual variability changes with temperature |
-| random-effect scale slope | `sd(population) ~ habitat` | the among-population SD in expected growth differs by habitat |
+| `beak_length_i` | measured, centred, or log-centred beak length for species `i` | the focal morphological trait |
+| `body_mass_i` | centred log body mass for species `i` | a size covariate, so the beak-length comparison is not just body-size allometry |
+| `forest_i` | habitat indicator for species `i`, commonly 1 for forest-living and 0 for non-forest species | the ecological contrast |
+| `mu_i` | expected beak length for species `i` after conditioning on body mass and habitat | the location, or mean trait value |
+| `sigma_i` | residual standard deviation of beak length for species `i` after conditioning on body mass and habitat | the scale, or remaining among-species heterogeneity |
+| `beta_forest^(mu)` | forest versus non-forest contrast in `mu` | whether forest species have longer or shorter expected beaks |
+| `beta_forest^(sigma)` | forest versus non-forest contrast in `log(sigma)` | whether forest species are more or less heterogeneous in beak length |
 
-The first two are fixed-effect slopes. The next two are variance components for
-group-specific slopes. The last is a direct model for a group-level SD. A
-single ecological phrase such as "temperature-dependent variability" can point
-to any of these, so the tutorial should name the model component before naming
-the biological conclusion.
+Report the scale coefficient on the scale that matches the claim:
+`exp(beta_forest^(sigma))` is the residual-SD ratio for forest versus
+non-forest species, while `exp(2 * beta_forest^(sigma))` is the residual-variance
+ratio. A mean effect and a scale effect are different biological claims. The
+first says forest habitat shifts average beak length; the second says forest
+habitat changes beak-length predictability or evolvability after the mean model
+has been accounted for.
+
+The same naming rule works for behavioural or life-history examples. If the
+response is `aggressiveness` and the predictor is `life_history_pace`, then
+`beta_life_history_pace^(mu)` is the expected change in mean aggressiveness,
+whereas `beta_life_history_pace^(sigma)` is the change in residual
+predictability of aggressiveness. If the location formula also contains
+`(0 + life_history_pace | population)`, the random-slope SD is a third quantity:
+it measures how much populations differ in the life-history slope of
+aggressiveness.
+
+For effect-size synthesis, use the same habit of defining every symbol, but keep
+the teaching path in the separate
+[meta-analysis article](meta-analysis.html). There the known sampling variance
+or covariance is `V`, and the fitted `sigma` model describes extra
+heterogeneity after `V` has been included.
 
 ## Worked example: growth mean and predictability
 
@@ -501,6 +573,16 @@ Before interpreting coefficients, check the fitted object:
 check_drm(fit_growth)
 ```
 
+The interval target inventory is part of the same interpretation gate. For this
+fixed-effect example, every coefficient is a direct profile target:
+
+```{r location-scale-profile-targets}
+profile_targets(fit_growth)[
+  ,
+  c("parm", "estimate", "profile_ready", "profile_note")
+]
+```
+
 Now print the coefficient table:
 
 ```{r location-scale-summary}
@@ -553,10 +635,59 @@ growth_report
 This table maps the model back to the scientific question. The mean column
 summarises the location model. The residual SD column summarises the scale
 model in the units of growth. The residual variance column is the
-variance-facing version of the same fitted Gaussian scale model. If grassland
-has a larger fitted residual SD and residual variance, the model says that
-individual growth is less predictable in grassland even after the mean
-difference and temperature effect have been modelled.
+variance-facing version of the same fitted Gaussian scale model.
+
+The compact translation table below is the reporting layer Pat should be able
+to read without returning to the equations:
+
+```{r location-scale-translation-table}
+growth_translation <- data.frame(
+  model_piece = c(
+    "fixed mean slope",
+    "fixed residual-SD contrast",
+    "fixed residual-variance contrast"
+  ),
+  fitted_term = c(
+    "mu:temperature",
+    "exp(sigma:habitatgrassland)",
+    "exp(2 * sigma:habitatgrassland)"
+  ),
+  response_scale_value = c(
+    unname(coef(fit_growth, "mu")["temperature"]),
+    unname(exp(sigma_habitat)),
+    unname(exp(2 * sigma_habitat))
+  ),
+  interpretation = c(
+    "mean growth change per one-unit temperature increase",
+    "grassland residual SD divided by forest residual SD",
+    "grassland residual variance divided by forest residual variance"
+  )
+)
+growth_translation$response_scale_value <-
+  round(growth_translation$response_scale_value, 3)
+growth_translation
+```
+
+A report can now say three concrete things. Mean growth increases by the fitted
+`mu:temperature` slope for each one-unit temperature increase. Grassland has
+the fitted residual-SD ratio in the second row after accounting for mean habitat
+and temperature effects. Because Gaussian variance is `sigma^2`, the residual
+variance contrast is the third row. If that third row is larger than one,
+individual growth is less predictable in grassland.
+
+The same reporting discipline carries over to hierarchical versions of the
+question:
+
+| If the biological question is... | Fit this kind of term | Report this quantity | Check before reporting |
+|---|---|---|---|
+| Do populations differ in thermal plasticity? | `(0 + temperature | population)` or `(1 + temperature | population)` in the `mu` formula | the random-slope SD, in growth-per-temperature units | `check_drm(fit)` and the matching `sd:mu:...temperature...` row in `profile_targets(fit)` |
+| Does predictability change with temperature? | `sigma ~ temperature` | `exp(gamma_temperature)` as the residual-SD ratio, and `exp(2 * gamma_temperature)` when the paper talks about variance | `check_drm(fit)` and the `fixef:sigma:temperature` row in `profile_targets(fit)` |
+| Do habitats differ in among-population variation? | `(1 | population)` plus `sd(population) ~ habitat` | `exp(alpha_habitat)` as the ratio of among-population SDs | `check_drm(fit)` and the `fixef:sd(population):...` row in `profile_targets(fit)` |
+
+These three rows answer different biological questions. `sigma ~ temperature`
+models residual variation among observations. `(0 + temperature | population)`
+models population-to-population differences in the mean slope. `sd(population)
+~ habitat` models the size of among-population mean differences.
 
 ## Curved responses and interactions
 

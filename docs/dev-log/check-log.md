@@ -16025,3 +16025,112 @@ Known limitations:
 - no tutorial Rmd file was edited beyond the style-contract pointer;
 - Slices 90-91 should make the next reader-facing tutorial edits and run the
   rendered-site gate.
+
+## 2026-05-16 -- Slice 90 flagship location-scale tutorial
+
+Goal:
+
+- deepen `vignettes/location-scale.Rmd` so the flagship Gaussian
+  location-scale tutorial explains mean slopes, residual-scale slopes,
+  random-slope SDs, `sd(group)` models, diagnostics, and report-scale
+  interpretation in one reader-facing path.
+
+Implemented:
+
+- added a response-scale interpretation ladder for fixed mean slopes,
+  residual-SD and residual-variance ratios, mean random-slope SDs,
+  residual-scale random-slope SDs, and random-effect scale slopes;
+- added `profile_targets(fit_growth)` to the fitted growth example as part of
+  the interpretation gate;
+- added a compact fitted `growth_translation` table for the mean-temperature
+  slope, residual-SD habitat ratio, and residual-variance habitat ratio;
+- added a hierarchical checklist distinguishing `sigma ~ temperature`,
+  `(0 + temperature | population)`, and `sd(population) ~ habitat`;
+- after the user reminder to keep syntax and mathematical formulas connected to
+  biological names, added a parrot beak-length teaching block defining
+  `beak_length`, `body_mass`, `forest`, `mu`, `sigma`,
+  `beta_forest^(mu)`, and `beta_forest^(sigma)`, plus a short bridge to
+  aggressiveness and life-history examples;
+- updated `docs/design/37-worked-example-inventory.md`, `ROADMAP.md`, and
+  `NEWS.md`, including a new `0.1.2 (development version)` NEWS heading;
+- added after-task report
+  `docs/dev-log/after-task/2026-05-16-slice-90-flagship-location-scale.md`.
+
+Checks run:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH air format NEWS.md ROADMAP.md docs/design/37-worked-example-inventory.md vignettes/location-scale.Rmd`:
+  passed.
+- `pkgdown::build_article("location-scale")`: failed before source-package
+  installation because the previously installed local package did not expose
+  `profile_targets()`.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::build_site()'`:
+  passed after installing the current source package into a temporary library.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed with "No problems found."
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::test(filter = "gaussian-(location-scale|random-effect-scale)", reporter = "summary")'`:
+  passed.
+- `rg -n "response-scale interpretation ladder|profile_targets\\(fit_growth\\)|growth_translation|fixed residual-SD contrast|sd\\(population\\) ~ habitat|0\\.1\\.2|Slice 90 Status|fixef:sd\\(population\\)" vignettes/location-scale.Rmd pkgdown-site/articles/location-scale.html NEWS.md pkgdown-site/news/index.html docs/design/37-worked-example-inventory.md ROADMAP.md --glob '!pkgdown-site/search.json'`:
+  confirmed source and rendered-site evidence.
+- `LC_ALL=C rg -n "[^\\x00-\\x7F]" vignettes/location-scale.Rmd NEWS.md docs/design/37-worked-example-inventory.md ROADMAP.md`:
+  returned no matches.
+- `git diff --check`: passed.
+
+Additional paper-grounded polish before closing PR #48:
+
+- `pdfinfo "/Users/z3437171/Desktop/Methods Ecol Evol - 2025 - Nakagawa - Quantifying macro-evolutionary patterns of trait mean and variance with phylogenetic.pdf"`:
+  confirmed the local PLSM paper metadata and 18-page source.
+- `pdftotext -f 11 -l 15 "...phylogenetic.pdf" - | rg -n -C 2 "beak|forest|mass|range|rho|aggress|life|history"`:
+  inspected the worked parrot examples for beak length, forest habitat, body
+  mass, range size, and bivariate beak traits.
+- `pdfinfo "/Users/z3437171/Desktop/Global Change Biology - 2025 - Nakagawa - Location-Scale Meta-Analysis and Meta-Regression as a Tool to Capture Large-Scale.pdf"`:
+  confirmed the local location-scale meta-analysis paper metadata and 14-page
+  source.
+- `pdftotext -f 1 -l 4 "...Location-Scale Meta-Analysis..." - | rg -n -C 3 "location|scale|meta|heterogeneity|moderator|variance|sigma|tau"`:
+  inspected the motivation for a separate meta-analysis teaching route covering
+  known sampling variance, extra heterogeneity, moderators, and scale-part
+  claims.
+- `pdftotext -f 1 -l 4 "/Users/z3437171/Desktop/2604.00424v1.pdf" - | rg -n -C 3 "meta|glmmTMB|known|sampling|variance|equalto|heterogeneity|tau|location|scale"`:
+  inspected the distributional-regression meta-analysis manuscript enough to
+  record it as a future separate meta-analysis polish source.
+- `sed -n '188,292p' "/Users/z3437171/Dropbox/Github Local/unifying_model/R/unifying.html"`:
+  inspected the unifying-model notes for the proportional sampling-variance
+  idea `pi_i ~ Normal(0, phi_pi / w_i)`, the correlated weighted covariance
+  extension, and the additive-versus-multiplicative relationship.
+- Added a named-trait equation block to `vignettes/location-scale.Rmd` so the
+  tutorial now pairs mathematical notation, ordinary `drmTMB` syntax, parameter
+  definitions, and biological interpretation before the fitted growth example.
+- Updated the worked-example inventory to keep paper-grounded meta-analysis
+  polish as a separate later article route, not an extra section inside the
+  flagship location-scale tutorial.
+- Updated `docs/design/01-formula-grammar.md`, `docs/design/08-meta-analysis.md`,
+  `vignettes/meta-analysis.Rmd`, and `ROADMAP.md` to reserve the future
+  `meta_V()` umbrella while keeping it explicitly not implemented and not
+  CRAN-blocking.
+
+Final validation after the parrot and meta-analysis design polish:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH air format NEWS.md ROADMAP.md docs/design/01-formula-grammar.md docs/design/08-meta-analysis.md docs/design/37-worked-example-inventory.md vignettes/location-scale.Rmd vignettes/meta-analysis.Rmd docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-16-slice-90-flagship-location-scale.md`:
+  passed.
+- `git diff --check`: passed.
+- `git diff -- NEWS.md ROADMAP.md docs/design/01-formula-grammar.md docs/design/08-meta-analysis.md docs/design/37-worked-example-inventory.md vignettes/location-scale.Rmd vignettes/meta-analysis.Rmd docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-16-slice-90-flagship-location-scale.md | LC_ALL=C rg -n "[^\\x00-\\x7F]" || true`:
+  returned no matches in the current patch.
+- `Rscript -e 'devtools::test(filter = "gaussian-(location-scale|random-effect-scale)", reporter = "summary")'`:
+  passed before the final docs-only `meta_V()` reservation.
+- `Rscript -e 'pkgdown::build_site()'`: passed after the final
+  `vignettes/location-scale.Rmd`, `vignettes/meta-analysis.Rmd`, ROADMAP, and
+  NEWS edits.
+- `Rscript -e 'pkgdown::check_pkgdown()'`: passed with "No problems found."
+- `rg -n "beak_length|Name the biological response|beta_forest|meta_V\\(\\)|proportional sampling-variance|phi_pi|not implemented|0\\.1\\.2" vignettes/location-scale.Rmd vignettes/meta-analysis.Rmd pkgdown-site/articles/location-scale.html pkgdown-site/articles/meta-analysis.html ROADMAP.md pkgdown-site/ROADMAP.html docs/design/01-formula-grammar.md docs/design/08-meta-analysis.md docs/design/37-worked-example-inventory.md NEWS.md pkgdown-site/news/index.html --glob '!pkgdown-site/search.json'`:
+  confirmed the source and rendered-site evidence for the parrot block, the
+  meta-analysis `meta_V()` reservation, and the `0.1.2` NEWS heading.
+
+Known limitations:
+
+- this was tutorial maturation and future-design documentation only; no
+  implemented formula grammar, likelihood, TMB, extractor, or test surface
+  changed;
+- Slice 90 did not add a new fitted hierarchical `sd(population) ~ habitat`
+  example, because the goal was to interpret the existing surface and keep
+  coefficient-specific random-slope SD regression clearly reserved;
+- Slice 91 should happen on a separate branch and focus only on the
+  structured-dependence reader route.

@@ -1,3 +1,7 @@
+# drmTMB 0.1.2 (development version)
+
+* The Gaussian location-scale tutorial now includes a response-scale interpretation ladder for fixed mean slopes, residual-SD and residual-variance ratios, random-slope SDs, residual-scale random-slope SDs, and `sd(group)` slopes. It also adds a trait-named parrot beak-length equation block defining `mu`, `sigma`, body mass, forest habitat, and scale coefficients before the worked growth example. The worked growth example shows `profile_targets(fit_growth)` and a compact fitted translation table so readers can report mean growth, predictability, and among-group variation on the correct scale.
+
 # drmTMB 0.1.1 (2026-05-10)
 
 * `docs/design/34-validation-debt-register.md` now backs the stable-core matrix with an evidence and debt ledger. Each advertised surface is marked as covered, partial, opt-in, or blocked, with tests, diagnostics, interval status, docs, and explicit debt recorded before the project expands the surface.

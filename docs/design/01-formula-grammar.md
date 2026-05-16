@@ -64,6 +64,8 @@ In this table, "coscale" means a model for residual correlation, currently
 | `sd(id) ~ x_group` | Implemented | Random-effect scale model for one or more distinct unlabelled Gaussian `mu` random intercepts. |
 | `sd(id, dpar = "mu", coef = "x1") ~ x_group` | Reserved | Planned explicit coefficient-specific random-effect SD syntax for random slopes; `drmTMB()` rejects it until the covariance model and tests exist. |
 | `meta_known_V(V = V)` | Implemented | Known diagonal, block-diagonal, or dense sampling covariance with `family = gaussian()`; bivariate Gaussian known `V` uses a complete-row `2n` by `2n` row-paired matrix. |
+| `meta_V(value, V = V)` | Planned | Possible future umbrella spelling for additive known sampling covariance. If implemented, `meta_known_V()` should become a deprecated alias for the known-`V` form, not a separate likelihood. |
+| `meta_V(value, w = w, scale = "proportional")` | Planned | Possible future proportional sampling-variance spelling for models such as `pi_i ~ Normal(0, phi_pi / w_i)`. This is not implemented and is not a CRAN-blocking requirement. |
 | `mu1`, `mu2`, `sigma1`, `sigma2`, `rho12` | Implemented for fixed effects | Bivariate Gaussian location-coscale model with predictor-dependent residual correlation. |
 | `(1 | p | id)` in both bivariate `mu1` and `mu2` | Implemented | First bivariate group-level covariance slice: matching labelled random intercepts create `mu1`/`mu2` random-intercept SDs and one group-level correlation. |
 | `(1 | p | id)` in both bivariate `sigma1` and `sigma2` | Implemented | First bivariate residual-scale covariance slice: matching labelled random intercepts enter `log(sigma1)` and `log(sigma2)` and create one scale-scale group-level correlation. |
@@ -139,6 +141,25 @@ location formula and `V` is a dense `2n` by `2n` row-paired matrix. The fitted
 `rho12` is then the residual covariance component after known within-study
 sampling covariance has been included. It should not be called a study-level
 correlation unless a separate study-level random effect is fitted.
+
+Future design should leave room for a single `meta_V()` keyword that can cover
+both the current additive known-`V` route and a proportional sampling-variance
+route. The current release should not implement this. The possible spelling is:
+
+```r
+meta_V(value, V = V)
+meta_V(value, w = w, scale = "proportional")
+```
+
+In the additive route, the supplied `V` is known sampling covariance and enters
+the marginal covariance as `V + Omega_estimated`, matching the current
+`meta_known_V(V = V)` contract. In the proportional route, the sampling-error
+term would be modelled as `pi_i ~ Normal(0, phi_pi / w_i)` or, for correlated
+sampling errors, through a weighted covariance matrix. This proportional route
+is not ordinary likelihood weighting: the top-level `weights = w` argument still
+multiplies log-likelihood contributions. Additive known `V` and non-unit
+top-level weights should continue to be rejected together until joint-block
+weighting has its own design and tests.
 
 ## Bivariate Syntax
 
