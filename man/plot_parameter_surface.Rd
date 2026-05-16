@@ -58,7 +58,9 @@ workflow first, then pass the resulting prediction table to this helper.
 The helper plots \code{estimate} against one supplied column. It expects the
 interval provenance columns created by \code{\link[=predict_parameters]{predict_parameters()}} so the plotted
 data keep their uncertainty status attached, even though this first helper
-does not draw intervals.
+does not draw intervals. When the filtered table contains a single
+distributional parameter, the y-axis label names that parameter and, when
+unique, the prediction scale.
 }
 \examples{
 dat <- data.frame(

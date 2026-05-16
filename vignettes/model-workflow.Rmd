@@ -361,7 +361,9 @@ if (requireNamespace("ggplot2", quietly = TRUE)) {
 ```
 
 The fitted panels then use the prediction table. Keep `mu` and `sigma` on their
-own y-axes because they are different biological quantities:
+own y-axes because they are different biological quantities. When a plot keeps
+one distributional parameter, `plot_parameter_surface()` labels the y-axis with
+the parameter and prediction scale:
 
 ```{r}
 if (requireNamespace("ggplot2", quietly = TRUE)) {
@@ -371,8 +373,7 @@ if (requireNamespace("ggplot2", quietly = TRUE)) {
     colour = "habitat",
     dpar = "mu",
     facet = NULL
-  ) +
-    ggplot2::labs(y = "Fitted mean growth")
+  )
 }
 ```
 
@@ -384,8 +385,7 @@ if (requireNamespace("ggplot2", quietly = TRUE)) {
     colour = "habitat",
     dpar = "sigma",
     facet = NULL
-  ) +
-    ggplot2::labs(y = "Fitted residual SD")
+  )
 }
 ```
 
