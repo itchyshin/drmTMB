@@ -17277,3 +17277,96 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-16-slice-105-summary-workflow.md`.
+
+## 2026-05-16 - Slice 106 summary parameter standard errors
+
+Goal: add honest delta-method `std_error` values to direct response-scale
+`summary()` parameter rows when `TMB::sdreport()` supplies the optimized
+parameter covariance, while leaving fitted ranges and derived variance ratios
+without fabricated standard errors.
+
+Roles:
+
+- Ada coordinated the Slice 106 scope, validation, closure notes, and PR path.
+- Boole owned the public `summary()` table shape and avoided a new extractor
+  API.
+- Fisher owned the delta-method versus profile-likelihood interpretation.
+- Curie owned the exact `cov.fixed` regression test.
+- Pat owned the model-workflow wording for applied users.
+- Emmy caught the internal `link_estimate` column before it leaked into
+  `summary(fit)$parameters`.
+- Grace owned roxygen, pkgdown, full tests, and R CMD check.
+- Rose owned stale-wording scans and after-task closure.
+- Gauss and Noether stayed watch-only because no likelihood or symbolic model
+  contract changed.
+
+Files changed:
+
+- `NEWS.md`
+- `R/methods.R`
+- `ROADMAP.md`
+- `docs/design/12-profile-likelihood-cis.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/known-limitations.md`
+- `docs/dev-log/after-task/2026-05-16-slice-106-summary-parameter-se.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-16-151225-codex-checkpoint.md`
+- `man/summary.drmTMB.Rd`
+- `tests/testthat/test-summary.R`
+- `vignettes/model-workflow.Rmd`
+
+What changed:
+
+- `summary(fit)$parameters` now has a `std_error` column.
+- Direct one-parameter response-scale rows get delta-method SEs when
+  `TMB::sdreport()` succeeded.
+- The derivative uses the target transformation from `profile_targets()`:
+  `exp()` for constant scale and SD rows, guarded `tanh()` for correlations,
+  and the residual `rho12` guard for residual correlations.
+- Fitted ranges, derived repeatability, phylogenetic signal, and covariance
+  products keep missing SEs.
+- The printed summary parameter table includes `std_error` only when at least
+  one finite parameter SE is available.
+- The model-workflow article now says these SEs are quick local
+  approximations, while profile-likelihood confidence intervals remain the
+  safer interval route for SD and correlation targets.
+
+Checks run:
+
+- `air format R/methods.R tests/testthat/test-summary.R NEWS.md ROADMAP.md docs/design/12-profile-likelihood-cis.md docs/dev-log/known-limitations.md vignettes/model-workflow.Rmd`:
+  passed.
+- `Rscript -e "devtools::test(filter = '^summary$')"`: passed with
+  `FAIL 0 | WARN 0 | SKIP 0 | PASS 174`.
+- `Rscript -e "devtools::load_all(quiet = TRUE); rmarkdown::render('vignettes/model-workflow.Rmd', output_file = tempfile(fileext = '.html'), quiet = TRUE)"`:
+  passed.
+- `Rscript -e 'devtools::load_all(quiet=TRUE); ... print(summary(fit)$parameters)'`:
+  confirmed finite `std_error` values for constant `sigma` and
+  `sd:mu:(1 | id)`.
+- `Rscript -e "devtools::document()"`: passed and regenerated
+  `man/summary.drmTMB.Rd`.
+- `Rscript -e "devtools::test()"`: passed with
+  `FAIL 0 | WARN 0 | SKIP 0 | PASS 3597`.
+- `Rscript -e "pkgdown::clean_site(); pkgdown::build_site(preview = FALSE)"`:
+  passed.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with "No problems found."
+- `git diff --check`: passed.
+- `rg -n "delta-method standard errors|std_error|std_error|Bayesian credible|confidence intervals, not Bayesian credible|direct response-scale parameter rows|descriptive fitted ranges|derived variance ratios" R/methods.R tests/testthat/test-summary.R man/summary.drmTMB.Rd vignettes/model-workflow.Rmd NEWS.md ROADMAP.md docs/design/12-profile-likelihood-cis.md docs/dev-log/known-limitations.md pkgdown-site/reference/summary.drmTMB.html pkgdown-site/articles/model-workflow.html pkgdown-site/news/index.html pkgdown-site/ROADMAP.html`:
+  found the intended source, generated, and rendered references.
+- `rg -n "credible interval|credible intervals|95% credible|Wald intervals.*variance components|do not get routine Wald standard errors|standard errors.*not" vignettes/model-workflow.Rmd NEWS.md ROADMAP.md docs/design/12-profile-likelihood-cis.md docs/dev-log/known-limitations.md man/summary.drmTMB.Rd pkgdown-site/articles/model-workflow.html pkgdown-site/reference/summary.drmTMB.html`:
+  found only intended profile-CI design language and no-Bayesian wording.
+- `Rscript -e "devtools::check(args = '--no-manual')"`: passed with
+  0 errors, 0 warnings, and 1 local NOTE: `unable to verify current time`.
+- `Rscript tools/codex-checkpoint.R --goal "Slice 106 summary parameter standard errors" --next "stage, commit, push, open PR, monitor CI, merge, then start Slice 107 reader-facing summary closure"`:
+  passed and wrote
+  `docs/dev-log/recovery-checkpoints/2026-05-16-151225-codex-checkpoint.md`.
+
+Known limitations:
+
+- delta-method SEs are local approximations and may be fragile near boundaries;
+- derived repeatability, phylogenetic signal, covariance products, and fitted
+  ranges still do not have validated SEs or confidence intervals;
+- `summary(fit)$covariance` does not yet report standard errors for covariance
+  products.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-16-slice-106-summary-parameter-se.md`.

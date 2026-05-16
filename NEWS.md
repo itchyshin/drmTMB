@@ -23,6 +23,7 @@
   provenance columns. The first contract reports `conf.status =
   "not_requested"` and `interval_source = "not_available"` so downstream tables
   and future plots cannot imply confidence intervals that were not computed.
+* `summary()` now reports delta-method standard errors for direct response-scale parameter rows, including constant `sigma`, residual `rho12`, random-effect SDs, and random-effect correlations, when `TMB::sdreport()` succeeds. Descriptive fitted ranges and derived variance ratios keep missing standard errors, and profile-likelihood confidence intervals remain the recommended interval route for fitted SD and correlation targets.
 * The model-workflow article now shows empirical marginalization with
   `prediction_grid(..., margin = "empirical")` and
   `marginal_parameters(..., by = "temperature")`, separating conditioned
