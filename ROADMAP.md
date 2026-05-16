@@ -896,7 +896,11 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   `conf.status = "not_requested"` and
   `interval_source = "not_available"` until a later slice computes real
   intervals.
-- Add ggplot-oriented helpers only after the data contract is stable:
+- Slice 104 adds `plot_parameter_surface()`, the first optional `ggplot2`
+  helper for `predict_parameters()` tables. The helper returns a composable
+  `ggplot` object, lives on the Reference page under Visualization, and does
+  not compute intervals, EMMs, contrasts, or slopes.
+- Add additional ggplot-oriented helpers only after the data contract is stable:
   location curves, scale/variance curves, residual `rho12` curves,
   `sd(group)` or `sd_phylo()` surfaces, `corpairs()` summaries, and eventually
   spatial fields or maps.

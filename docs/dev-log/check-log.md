@@ -17074,3 +17074,112 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-16-slice-103-interval-provenance.md`.
+
+## 2026-05-16 - Slice 104 plot parameter surface
+
+Goal: add the first narrow optional `ggplot2` plotting helper for Phase 17
+without turning prediction helpers into plotters or claiming interval, EMM,
+contrast, or slope support.
+
+Roles:
+
+- Ada coordinated branch sequencing, validation, check log, after-task report,
+  checkpoint, and PR closure.
+- Boole owned the plotting API shape and kept it away from broad
+  `autoplot.drmTMB()` semantics.
+- Fisher owned the no-fake-interval, no-Bayesian-claim, no-EMM-claim boundary.
+- Curie owned tests for rendering, filtering, validation, and missing
+  `ggplot2`.
+- Pat owned model-workflow wording for applied readers.
+- Darwin checked that the temperature and habitat example remains biologically
+  interpretable.
+- Jason checked the ggplot ecosystem fit and optional dependency policy.
+- Grace owned roxygen, pkgdown reference navigation, rendered-site checks, and
+  package checks.
+- Rose owned stale-wording scans and closure consistency.
+
+Files changed:
+
+- `DESCRIPTION`
+- `NAMESPACE`
+- `NEWS.md`
+- `ROADMAP.md`
+- `_pkgdown.yml`
+- `R/plot-parameter-surface.R`
+- `docs/design/39-visualization-grammar.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-16-slice-104-plot-parameter-surface.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-16-141704-codex-checkpoint.md`
+- `man/plot_parameter_surface.Rd`
+- `tests/testthat/test-plot-parameter-surface.R`
+- `vignettes/model-workflow.Rmd`
+
+What changed:
+
+- Added exported `plot_parameter_surface()`.
+- Added `ggplot2` to `Suggests`, not `Imports`.
+- The helper consumes a `predict_parameters()`-style long table and returns a
+  composable `ggplot` object.
+- The helper validates the existing prediction-table columns, supports
+  character column names for `x`, `colour`, `group`, and `facet`, and can filter
+  by `dpar` or `type`.
+- The helper draws points, lines, or both from existing estimates only.
+- The helper fails clearly when `ggplot2` is unavailable.
+- Added a `Visualization` Reference section in `_pkgdown.yml` with
+  `plot_parameter_surface()`.
+- Updated NEWS, ROADMAP, the visualization grammar design note, and the
+  model-workflow article.
+
+Checks run:
+
+- `air format R/plot-parameter-surface.R tests/testthat/test-plot-parameter-surface.R NEWS.md ROADMAP.md docs/design/39-visualization-grammar.md vignettes/model-workflow.Rmd _pkgdown.yml DESCRIPTION`:
+  passed.
+- `Rscript -e "devtools::document()"`: passed and wrote `NAMESPACE` plus
+  `man/plot_parameter_surface.Rd`.
+- `Rscript -e "devtools::test(filter = 'plot-parameter-surface|predict-parameters|prediction-grid', reporter = 'summary')"`:
+  initially passed with two `ggplot2::aes_string()` lifecycle warnings; the
+  helper was then changed to use temporary internal columns and `ggplot2::aes()`.
+- `Rscript -e "devtools::test(filter = 'plot-parameter-surface|predict-parameters|prediction-grid', reporter = 'summary')"`:
+  passed after the lifecycle-warning fix.
+- `Rscript -e "devtools::test()"`: passed with
+  `FAIL 0 | WARN 0 | SKIP 0 | PASS 3593` before final facet-column polish.
+- `Rscript -e "devtools::test(filter = 'plot-parameter-surface', reporter = 'summary')"`:
+  passed after final facet-column polish.
+- `Rscript -e "devtools::test(reporter = 'summary')"`: passed after final
+  facet-column polish.
+- `Rscript -e "out <- tempfile(fileext = '.html'); env <- new.env(parent = globalenv()); devtools::load_all(export_all = FALSE, quiet = TRUE); rmarkdown::render('vignettes/model-workflow.Rmd', output_file = out, quiet = TRUE, envir = env); cat(out, '\n')"`:
+  passed.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed and wrote
+  `reference/plot_parameter_surface.html`.
+- `Rscript -e "pkgdown::clean_site(); pkgdown::build_site(preview = FALSE)"`:
+  passed and forced a full rendered-site refresh after a stale rendered-page
+  scan.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with "No problems found."
+- `rg -n 'not current plotters|future visualization helpers|future plotting|future plot|does not add `ggplot2`|does not add ggplot2|should not be exported|design placeholders only|Add one narrow ggplot|plot_parameter_surface|Visualization' NEWS.md ROADMAP.md docs/design/39-visualization-grammar.md vignettes/model-workflow.Rmd _pkgdown.yml DESCRIPTION pkgdown-site/reference/index.html pkgdown-site/reference/plot_parameter_surface.html pkgdown-site/articles/model-workflow.html pkgdown-site/ROADMAP.html pkgdown-site/news/index.html --glob '!pkgdown-site/search.json'`:
+  found only current implementation, reference-page, and planned-neighbour
+  wording after cleanup.
+- `rg -n 'conf\\.low|conf\\.high|std\\.error|credible interval|posterior draws|Bayesian|EM means|autoplot\\.drmTMB|ggplot2.*Imports|tidybayes.*dependency|ggdist.*dependency|plotting dependency' R/plot-parameter-surface.R tests/testthat/test-plot-parameter-surface.R DESCRIPTION NEWS.md ROADMAP.md docs/design/39-visualization-grammar.md vignettes/model-workflow.Rmd _pkgdown.yml pkgdown-site/reference/plot_parameter_surface.html pkgdown-site/articles/model-workflow.html pkgdown-site/reference/index.html --glob '!pkgdown-site/search.json'`:
+  returned intended model-workflow/profile-output and design-note references
+  only; the new helper does not add interval columns, Bayesian claims,
+  `autoplot.drmTMB()`, or hard plotting imports.
+- `git diff -U0 -- DESCRIPTION NAMESPACE NEWS.md ROADMAP.md _pkgdown.yml R/plot-parameter-surface.R tests/testthat/test-plot-parameter-surface.R man/plot_parameter_surface.Rd docs/design/39-visualization-grammar.md vignettes/model-workflow.Rmd | LC_ALL=C rg -n '[^\\x00-\\x7F]'`:
+  returned no matches.
+- `git diff --check`: passed.
+- `Rscript -e "devtools::check(args = '--no-manual')"`: passed with
+  0 errors, 0 warnings, and 1 local NOTE: `unable to verify current time`.
+- `Rscript tools/codex-checkpoint.R --goal "Slice 104 plot parameter surface helper" --next "append check-log and after-task report, then stage, commit, push, open PR, and monitor CI"`:
+  passed and wrote
+  `docs/dev-log/recovery-checkpoints/2026-05-16-141704-codex-checkpoint.md`.
+
+Known limitations:
+
+- the helper plots point estimates only;
+- it does not draw intervals, ribbons, profile samples, bootstrap samples, or
+  posterior-style distributions;
+- it does not compute predictions;
+- it does not implement EMMs, contrasts, slopes, diagnostics, simulation plots,
+  or `corpairs()` plots.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-16-slice-104-plot-parameter-surface.md`.

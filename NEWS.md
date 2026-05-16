@@ -7,8 +7,13 @@
   `marginaleffects`, diagnostic plotting packages, and figure-composition
   tools as design sources while keeping `drmTMB` data-first and
   dependency-light. The model-workflow article now states that
-  `predict_parameters()` and `marginal_parameters()` are tables for future
-  visualization helpers, not current plotters.
+  `predict_parameters()` and `marginal_parameters()` are data tables that
+  plotting helpers can consume, not plotters themselves.
+* `plot_parameter_surface()` now provides the first optional `ggplot2` plotting
+  helper for long tables returned by `predict_parameters()`. It plots existing
+  point estimates only, keeps interval provenance columns attached to the data,
+  and leaves confidence intervals, EMMs, contrasts, and slope plots for later
+  tested helpers.
 * `prediction_grid()` now builds explicit `newdata` grids for
   `predict_parameters()` and `marginal_parameters()`. The first contract
   supports focal predictors, supplied values, conditioned nuisance predictors,

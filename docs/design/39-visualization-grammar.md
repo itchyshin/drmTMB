@@ -5,11 +5,13 @@ model-interpretation ecosystem before adding a plotting layer. The reader is an
 applied ecology, evolution, or environmental-science user who wants to explain a
 fitted distributional model without rebuilding prediction grids by hand.
 
-This is a design note, not an implementation claim. `drmTMB` is not becoming a
-Bayesian package, and this slice does not add `ggplot2`, `tidybayes`, `ggdist`,
-`emmeans`, `ggeffects`, `marginaleffects`, `performance`, `see`, or `DHARMa` as
-dependencies. The useful lesson is structural: good model graphics start from
-clear tabular quantities, explicit grids, and honest uncertainty labels.
+This is a design note, not a blanket implementation claim. `drmTMB` is not
+becoming a Bayesian package, and the plotting layer should stay optional and
+small. Slice 104 adds `ggplot2` to `Suggests` for one helper, but does not add
+`tidybayes`, `ggdist`, `emmeans`, `ggeffects`, `marginaleffects`,
+`performance`, `see`, or `DHARMa` as dependencies. The useful lesson is
+structural: good model graphics start from clear tabular quantities, explicit
+grids, and honest uncertainty labels.
 
 ## Sources Read
 
@@ -218,15 +220,21 @@ Do not start with a broad `autoplot.drmTMB()` that guesses the reader's
 question. A small set of named helpers is safer:
 
 ```text
-plot_predictions()
-plot_parameter_surface()
-plot_corpairs()
-plot_diagnostics()
-plot_simulation_summary()
+plot_parameter_surface()  # implemented in Slice 104
+plot_corpairs()           # planned
+plot_diagnostics()        # planned
+plot_simulation_summary() # planned
 ```
 
-Those names are design placeholders only. They should not be exported until the
-data contracts and optional dependency policy are settled.
+Only `plot_parameter_surface()` is currently implemented. The remaining names
+are design placeholders and should not be exported until their data contracts
+and optional dependency policy are settled.
+
+Slice 104 implements the first narrow helper, `plot_parameter_surface()`. It
+consumes a `predict_parameters()` table, maps one explicit x-axis column to
+`estimate`, returns a composable `ggplot` object, and keeps `ggplot2` in
+`Suggests`. It does not compute intervals, estimated marginal means, contrasts,
+or slopes.
 
 ## Dependency Policy
 
@@ -242,8 +250,7 @@ idea is tidy long data for uncertainty, not Bayesian model support.
 
 ## Near-Term Slice Order
 
-1. Add one narrow ggplot-oriented helper for `predict_parameters()` output.
-2. Add `corpairs()` plotting only after all displayed correlation rows carry
+1. Add `corpairs()` plotting only after all displayed correlation rows carry
    interval status consistently.
-3. Revisit `emmeans` compatibility only after the reference-grid and link-scale
+2. Revisit `emmeans` compatibility only after the reference-grid and link-scale
    contract is tested across the implemented families.

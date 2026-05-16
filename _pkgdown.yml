@@ -121,6 +121,10 @@ reference:
       - simulate.drmTMB
       - summary.drmTMB
       - weights.drmTMB
+  - title: Visualization
+    desc: Optional plotting helpers for post-fit tables.
+    contents:
+      - plot_parameter_surface
 
 articles:
   - title: Getting Started

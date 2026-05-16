@@ -232,9 +232,24 @@ parameter, fitted component, prediction scale, estimate, interval status, and
 grid values. These first tables are point-estimate summaries, so
 `conf.status = "not_requested"` and
 `interval_source = "not_available"` tell you that no interval has been
-computed. Later plotting helpers should consume this table and keep reference
-grids, marginalization choices, and interval sources visible instead of hiding
-those decisions inside a figure.
+computed.
+
+The first optional plotting helper consumes that table directly:
+
+```{r}
+if (requireNamespace("ggplot2", quietly = TRUE)) {
+  pred_temperature <- predict_parameters(
+    fit,
+    newdata = temperature_grid,
+    dpar = c("mu", "sigma")
+  )
+  plot_parameter_surface(pred_temperature, x = "temperature", colour = "habitat")
+}
+```
+
+The figure is a convenience layer, not a new estimand. Keep reference grids,
+marginalization choices, and interval sources visible instead of hiding those
+decisions inside a plot.
 
 For this Gaussian model, the response-scale `sigma` predictions are residual
 standard deviations. The link-scale predictions are the corresponding
