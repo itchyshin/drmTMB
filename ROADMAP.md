@@ -938,6 +938,11 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   article. It routes observed responses, fitted parameter surfaces, empirical
   marginal summaries, correlation rows, interval tables, and diagnostics to the
   current data helpers before any plotting style is chosen.
+- Slice 112 records the `corpairs()` plotting preflight contract. A future
+  `plot_corpairs()` helper should consume an explicit `corpairs()` table, keep
+  correlation `level` and `class` visible, draw intervals only from finite
+  confidence bounds, and test residual, ordinary group-level, phylogenetic,
+  derived-unavailable, empty-table, and missing-`ggplot2` cases before export.
 - Add additional ggplot-oriented helpers only after the data contract is stable:
   location curves, scale/variance curves, residual `rho12` curves,
   `sd(group)` or `sd_phylo()` surfaces, `corpairs()` summaries, and eventually

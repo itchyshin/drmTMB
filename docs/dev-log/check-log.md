@@ -17770,3 +17770,69 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-16-slice-111-visual-decision-map.md`.
+
+## 2026-05-16 - Slice 112 corpairs plotting preflight
+
+Goal: record the minimum data and testing contract for a future
+`plot_corpairs()` helper before exporting another plotting function.
+
+Roles:
+
+- Ada kept Slice 112 as a design checkpoint rather than an implementation jump.
+- Fisher owned the interval-status and finite-bound requirements.
+- Boole owned the future helper input contract.
+- Jason connected the contract to the Phase 17 visualization landscape.
+- Grace owned pkgdown and stale-claim scans.
+- Rose owned closure notes and the stacked-branch handoff.
+- Pat, Emmy, Gauss, Noether, Darwin, and Curie stayed watch-only because no
+  reader example, object structure, likelihood, equation, biological case
+  study, or test file changed.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/39-visualization-grammar.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-16-slice-112-corpairs-plot-preflight.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-16-165401-codex-checkpoint.md`
+
+What changed:
+
+- Added a `corpairs()` plotting preflight section to the visualization grammar
+  design note.
+- Recorded that a future `plot_corpairs()` helper should consume an explicit
+  `corpairs()` table, keep `level` and `class` visible, and draw intervals only
+  from finite `conf.low` and `conf.high` bounds.
+- Required future tests for residual `rho12`, ordinary group-level rows,
+  phylogenetic rows, derived-unavailable statuses, empty tables, and missing
+  `ggplot2` before export.
+- Updated NEWS and ROADMAP with the Slice 112 preflight contract.
+
+Checks run:
+
+- `air format NEWS.md ROADMAP.md docs/design/39-visualization-grammar.md`:
+  passed.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed and rendered the
+  updated ROADMAP and NEWS.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with "No problems found."
+- `git diff --check`: passed.
+- `rg -n 'Slice 112|corpairs\\(\\) plotting preflight|plot_corpairs\\(\\).*helper|conf\\.status|derived-unavailable|empty-table|missing-`ggplot2`|finite confidence' NEWS.md ROADMAP.md docs/design/39-visualization-grammar.md pkgdown-site/ROADMAP.html pkgdown-site/news/index.html`:
+  confirmed source and rendered pages carry the preflight contract.
+- `rg -n "plot_corpairs\\(\\).*implemented|plot_corpairs\\(\\).*exported|autoplot\\.drmTMB|ggplot2.*Imports|tidybayes.*dependency|ggdist.*dependency|posterior draw|credible interval" NEWS.md ROADMAP.md docs/design/39-visualization-grammar.md DESCRIPTION pkgdown-site/ROADMAP.html pkgdown-site/news/index.html --glob '!pkgdown-site/search.json' --glob '!pkgdown-site/deps/**'`:
+  found only intended planned-name, design-inspiration, and
+  confidence-not-credible-interval guardrails.
+- `Rscript tools/codex-checkpoint.R --goal "Slice 112 corpairs plotting preflight" --next "stage, commit, push stacked branch, and open/retarget PR after Slice 109 through 111 settle"`:
+  passed and wrote
+  `docs/dev-log/recovery-checkpoints/2026-05-16-165401-codex-checkpoint.md`.
+
+Known limitations:
+
+- `plot_corpairs()` remains planned and unexported;
+- no R API, dependency, likelihood, formula grammar, TMB code, or tests changed;
+- no correlation plot, interval layer, diagnostics plot, EMM, contrast, slope,
+  or simulation display was added.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-16-slice-112-corpairs-plot-preflight.md`.
