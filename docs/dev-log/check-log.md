@@ -17700,3 +17700,73 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-16-slice-110-plot-surface-labels.md`.
+
+## 2026-05-16 - Slice 111 visualization decision map
+
+Goal: add a model-map decision table that routes common visualization questions
+to the current data helpers before readers choose a plotting style.
+
+Roles:
+
+- Ada kept Slice 111 as a navigation/documentation slice.
+- Pat owned the reader-facing "what do I start from?" table.
+- Jason connected the decision table to the Phase 17 visualization landscape.
+- Fisher owned the interval-table and interval-status rows.
+- Grace owned rendering, pkgdown checks, and stale-claim scans.
+- Rose owned closure notes and the stacked-branch handoff.
+- Boole, Emmy, Gauss, Noether, Darwin, and Curie stayed watch-only because no
+  API, object structure, likelihood, equations, biological case study, or tests
+  changed.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-16-slice-111-visual-decision-map.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-16-164842-codex-checkpoint.md`
+- `vignettes/model-map.Rmd`
+
+What changed:
+
+- Added a Phase 17 visualization decision table near the top of the model-map
+  article.
+- Routed observed responses to raw-data displays, fitted parameter surfaces to
+  `prediction_grid()` plus `predict_parameters()`, empirical summaries to
+  `marginal_parameters()`, correlations to `rho12()` or `corpairs()`, intervals
+  to `confint()` or `summary(conf.int = TRUE)`, and diagnostics to
+  `check_drm()`.
+- Added "Check before styling" guardrails for response-scale axes, `dpar`,
+  `type`, `conf.status`, `interval_source`, correlation layers, and diagnostic
+  status.
+- Updated NEWS and ROADMAP with the Slice 111 decision-map contract.
+
+Checks run:
+
+- `air format NEWS.md ROADMAP.md vignettes/model-map.Rmd`: passed.
+- `Rscript -e "devtools::load_all(quiet = TRUE); rmarkdown::render('vignettes/model-map.Rmd', output_file = tempfile(fileext = '.html'), quiet = TRUE)"`:
+  passed.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed and rendered the
+  updated model-map article, ROADMAP, and NEWS.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with "No problems found."
+- `git diff --check`: passed.
+- `rg -n "Slice 111|visualization decision|observed responses|fitted parameter surfaces|empirical marginal summaries|diagnostics before interpretation|Current display route|Check before styling" NEWS.md ROADMAP.md vignettes/model-map.Rmd pkgdown-site/articles/model-map.html pkgdown-site/ROADMAP.html pkgdown-site/news/index.html`:
+  confirmed source and rendered pages carry the decision map.
+- `rg -n "plot_corpairs\\(|plot_diagnostics\\(|plot_simulation_summary\\(|autoplot\\.drmTMB|ggplot2.*Imports|tidybayes.*dependency|ggdist.*dependency|posterior draw|credible interval" NEWS.md ROADMAP.md docs/design/39-visualization-grammar.md vignettes/model-map.Rmd vignettes/model-workflow.Rmd DESCRIPTION pkgdown-site/articles/model-map.html pkgdown-site/articles/model-workflow.html pkgdown-site/ROADMAP.html pkgdown-site/news/index.html --glob '!pkgdown-site/search.json' --glob '!pkgdown-site/deps/**'`:
+  found only intended planned-name, design-inspiration, and
+  confidence-not-credible-interval guardrails.
+- `Rscript tools/codex-checkpoint.R --goal "Slice 111 visualization decision map" --next "stage, commit, push stacked branch, then open or retarget PR after Slice 109 and Slice 110 settle"`:
+  passed and wrote
+  `docs/dev-log/recovery-checkpoints/2026-05-16-164842-codex-checkpoint.md`.
+
+Known limitations:
+
+- no new plotting helper was exported;
+- no R API, dependency, likelihood, formula grammar, TMB code, or tests changed;
+- the decision table points to current tables and extractors rather than adding
+  intervals, overlays, diagnostics plots, EMMs, contrasts, slopes, or
+  simulation plots.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-16-slice-111-visual-decision-map.md`.

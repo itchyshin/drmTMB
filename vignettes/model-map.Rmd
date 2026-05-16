@@ -39,6 +39,18 @@ uncertainty, and plots without guessing which functions are user-facing:
 Planned plotting helpers stay out of the Reference index until they are
 exported, documented, tested, and connected to a stable data contract.
 
+For Phase 17 visualization decisions, start from the table or extractor that
+matches the question before choosing a plot:
+
+| If you want to show... | Start from | Current display route | Check before styling |
+| --- | --- | --- | --- |
+| observed responses | the original analysis data | draw raw points or summaries on the observed-response scale | do not place raw response points on scale, correlation, or random-effect SD axes |
+| fitted `mu`, `sigma`, shape, or zero-inflation surfaces | `prediction_grid()` then `predict_parameters()` | `plot_parameter_surface()` for point-estimate surfaces, or your own `ggplot2` layers | `dpar`, `type`, `conf.status`, and `interval_source` columns |
+| adjusted or empirical marginal summaries | `prediction_grid(..., margin = "empirical")` then `marginal_parameters()` | table first; custom plot only after the averaging rule is clear | focal variables, `by`, margin metadata, and weights rule |
+| residual, group-level, phylogenetic, or spatial correlations | `rho12()` or `corpairs()` | table first; plotting helpers remain planned | correlation layer, `conf.status`, and whether the row is direct or derived |
+| fitted intervals | `confint()` or `summary(conf.int = TRUE)` | interval table first; ribbons remain planned for prediction surfaces | `conf.status`, `profile.boundary`, `profile.message`, and `interval_source` |
+| diagnostics before interpretation | `check_drm()` | diagnostic table first; diagnostic plots remain planned | convergence, Hessian, boundary, design, and retained-object status |
+
 | If the scientific phrase is... | It usually maps to... | Start here |
 | --- | --- | --- |
 | average response, expected trait value, or treatment effect | `mu` or `mu1` / `mu2` | [When variance carries signal](location-scale.html) |
