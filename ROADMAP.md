@@ -11,12 +11,14 @@ distributional regression models using TMB.
   double-hierarchical individual-difference endpoint.
 - Release boundary: Phase 9 is closed at the implemented ordinal and
   denominator-aware MVPs. The first Phase 11 bivariate `mu1`/`mu2`
-  random-intercept covariance slice is now implemented. Phase 18 records the
-  visualization and marginal-effects layer that should make fitted location,
-  scale, coscale, random-effect SD, and latent correlation results easier to
-  inspect across model families. Richer bivariate random slopes,
-  residual-scale slope covariance, structured covariance, and the full
-  double-hierarchical endpoint remain roadmap work for later releases.
+  random-intercept covariance slice is now implemented. Phase 17 now records the
+  visualization and marginal-effects layer because the later simulation and
+  comparator phases need stable plotting/data helpers from the start. Phase 18
+  is the comprehensive simulation, power, accuracy, and coverage evidence layer;
+  Phase 19 is the one-off comparator demonstration layer; Phase 20 is CRAN and
+  paper preparation. Richer bivariate random slopes, residual-scale slope
+  covariance, structured covariance, and the full double-hierarchical endpoint
+  remain roadmap work for later releases.
 - Completed before bumping the version:
   - `devtools::check()` passes with 0 errors, 0 warnings, and 0 notes;
   - `devtools::test()` and `pkgdown::check_pkgdown()` pass;
@@ -854,20 +856,7 @@ remain blocked by future covariance or non-Gaussian random-effect work.
 - Treat phylogenetic location-scale-shape and skewness/kurtosis evolution as a
   later methods programme, not a first implementation target.
 
-## Phase 17: Release Hardening, Teaching, and Papers
-
-- Status: planned.
-- Harden the package for CRAN with platform checks, dependency review, examples,
-  vignettes, pkgdown, and NEWS.
-- Build the teaching sequence around applied ecological, evolutionary, and
-  environmental examples, while keeping the package general like `glmmTMB`.
-- Prepare benchmark articles comparing `drmTMB` with relevant overlap in
-  `glmmTMB`, `brms`, `metafor`, `gamlss`, and phylogenetic/spatial tools.
-- Draft methods papers around the package-defining pieces: fast
-  location-scale regression, modelled residual `rho12`, and structured
-  phylogenetic/spatial distributional regression.
-
-## Phase 18: Visualization, Marginal Effects, and Reader-Facing Inference
+## Phase 17: Visualization, Marginal Effects, and Reader-Facing Inference
 
 - Status: planned; initial long-format prediction surfaces exist through
   `predict_parameters()` and `marginal_parameters()`.
@@ -893,3 +882,86 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   fitted model, the visualization call, and the interpretation in one path.
   Rose's audit gate: plotting docs must not overclaim support for parameters or
   interval types that the model object cannot yet supply.
+- Design visualization helpers with Phase 18 simulations in mind. Simulation
+  studies need plots for bias, root-mean-square error, empirical coverage,
+  convergence, interval width, and power curves, so the visualization layer
+  should expose reusable data frames rather than only polished figures.
+
+## Phase 18: Comprehensive Simulation, Power, Accuracy, and Coverage Evidence
+
+- Status: planned.
+- Build a documented simulation programme that lets project leaders, reviewers,
+  and applied readers understand when `drmTMB` is accurate enough for the
+  models it claims to fit.
+- Treat simulation as a scientific communication layer, not only a test layer.
+  Each simulation should name the biological or methodological question, the
+  data-generating model, the estimand, the fitted model, and the failure modes
+  being probed.
+- Add reusable simulation helpers that can also support earlier examples:
+  scenario builders, transparent data-generating functions, seed control,
+  compact result summaries, and plot-ready output for fitted parameters,
+  convergence, diagnostics, and interval status.
+- Include power analysis where it answers a reader question: for example, how
+  many groups, species, sites, repeated observations, or effect sizes are needed
+  to detect a change in `sigma`, `rho12`, `sd(group)`, phylogenetic SD, spatial
+  SD, or a structured correlation with acceptable uncertainty.
+- Report operating characteristics alongside power: bias, empirical standard
+  error, root-mean-square error, profile or Wald interval coverage, convergence
+  rate, boundary-hit rate, and diagnostic false-positive or false-negative
+  rates.
+- Keep routine CRAN tests small and deterministic. The comprehensive grids
+  should live in optional scripts, scheduled CI, rendered reports, or paper
+  supplements, with compact CRAN smoke tests proving that the simulation
+  helpers still run.
+- Curie's gate: every simulation helper needs tests for reproducibility,
+  malformed input, and summary shape. Fisher's gate: every power or coverage
+  statement must name the data-generating scenario and the uncertainty measure.
+  Pat's gate: every simulation report should include an interpretation that a
+  new applied user can read without reverse-engineering the code.
+
+## Phase 19: Comparator Demonstrations With Other Packages
+
+- Status: planned.
+- Compare `drmTMB` with related packages on the same simulated or transparent
+  example datasets, but do not make this a repeated simulation phase. Phase 19
+  should be a model-overlap and communication layer; Phase 18 is the operating
+  characteristics layer.
+- For each comparator example, fit one or a few matched datasets with the
+  closest defensible model in `drmTMB` and relevant overlap packages such as
+  `glmmTMB`, `lme4`, `brms`, `MCMCglmm`, `metafor`, `gamlss`, `sdmTMB`, or
+  package-specific TMB examples.
+- Report model syntax, model class, fitted parameter estimates on comparable
+  scales, standard errors or intervals when available, optimizer or sampler
+  diagnostics, and elapsed fitting time.
+- Be explicit about non-overlap. If a comparator package cannot fit
+  predictor-dependent residual `rho12`, a location-scale phylogenetic block, a
+  known dense meta-analytic covariance, or a structured random-effect scale
+  model, say so rather than forcing a misleading comparison.
+- Use the same simulation helpers and visualization data contracts from Phases
+  17 and 18, so comparator articles can reuse datasets, plots, timing summaries,
+  and parameter-scale conversions.
+- Jason's gate: every comparator must cite the comparator package capability or
+  documentation it relies on. Grace's gate: optional heavy packages and MCMC
+  fits must stay outside routine CRAN checks. Rose's gate: comparator articles
+  must not turn one-off examples into broad speed or accuracy claims.
+
+## Phase 20: CRAN Release and Paper Preparation
+
+- Status: planned.
+- Harden the package for CRAN with platform checks, dependency review, examples,
+  vignettes, pkgdown, NEWS, reverse-dependency awareness where relevant, and a
+  final implemented-versus-planned audit.
+- Build the teaching sequence around applied ecological, evolutionary, and
+  environmental examples, while keeping the package general like `glmmTMB`.
+- Use Phase 18 simulation reports and Phase 19 comparator demonstrations as the
+  evidence base for release notes, paper figures, supplementary material, and
+  reviewer responses.
+- Draft methods papers around the package-defining pieces: fast
+  location-scale regression, modelled residual `rho12`, structured
+  phylogenetic/spatial distributional regression, and documented simulation
+  evidence for accuracy, coverage, and power.
+- Grace's gate: release preparation should not begin until the site, examples,
+  check logs, known limitations, and roadmap agree about supported syntax and
+  fitted model classes. Rose's gate: paper text must not describe roadmap
+  features as implemented unless code, tests, docs, examples, and validation
+  evidence exist.
