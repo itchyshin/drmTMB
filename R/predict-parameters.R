@@ -11,6 +11,11 @@
 #' `newdata` supplied, predictions are fixed-effect, population-level
 #' predictions for those rows, matching [predict.drmTMB()].
 #'
+#' This first table surface does not compute confidence intervals. It still
+#' includes interval provenance columns: `conf.status = "not_requested"` and
+#' `interval_source = "not_available"`. Later interval-aware helpers can fill
+#' those columns without changing the long-table shape.
+#'
 #' @param object A `drmTMB` fit.
 #' @param newdata Optional data frame for prediction. If omitted, fitted rows
 #'   are used.
@@ -23,8 +28,9 @@
 #' @param ... Reserved for future options.
 #'
 #' @return A data frame with columns `row`, `row_label`, `dpar`, `component`,
-#'   `type`, and `estimate`. When `include_newdata = TRUE`, supplied `newdata`
-#'   columns are appended after those core columns.
+#'   `type`, `estimate`, `conf.status`, and `interval_source`. When
+#'   `include_newdata = TRUE`, supplied `newdata` columns are appended after
+#'   those core columns.
 #'
 #' @examples
 #' dat <- data.frame(
@@ -68,6 +74,8 @@ predict_parameters.drmTMB <- function(
       component = drm_dpar_component(one_dpar),
       type = type,
       estimate = as.numeric(estimate),
+      conf.status = "not_requested",
+      interval_source = "not_available",
       stringsAsFactors = FALSE,
       check.names = FALSE
     )
@@ -138,7 +146,16 @@ predict_parameters_row_labels <- function(newdata, n) {
 
 predict_parameters_newdata_columns <- function(newdata, n_dpar) {
   out <- newdata[rep(seq_len(nrow(newdata)), times = n_dpar), , drop = FALSE]
-  reserved <- c("row", "row_label", "dpar", "component", "type", "estimate")
+  reserved <- c(
+    "row",
+    "row_label",
+    "dpar",
+    "component",
+    "type",
+    "estimate",
+    "conf.status",
+    "interval_source"
+  )
   names(out) <- ifelse(
     names(out) %in% reserved,
     paste0("newdata_", names(out)),

@@ -14,6 +14,7 @@ test_that("marginal_parameters() averages mu and sigma over newdata groups", {
     x = c(-0.5, 0.5),
     habitat = levels(dat$habitat)
   )
+  grid$conf.status <- rep(c("reef_rows", "sand_rows", "kelp_rows"), each = 2)
 
   out <- marginal_parameters(
     fit,
@@ -22,9 +23,23 @@ test_that("marginal_parameters() averages mu and sigma over newdata groups", {
     by = "habitat"
   )
 
-  expect_named(out, c("dpar", "component", "type", "habitat", "estimate", "n"))
+  expect_named(
+    out,
+    c(
+      "dpar",
+      "component",
+      "type",
+      "habitat",
+      "estimate",
+      "n",
+      "conf.status",
+      "interval_source"
+    )
+  )
   expect_setequal(out$dpar, c("mu", "sigma"))
   expect_equal(unique(out$n), 2L)
+  expect_equal(unique(out$conf.status), "not_requested")
+  expect_equal(unique(out$interval_source), "not_available")
   pred <- predict_parameters(
     fit,
     newdata = grid,
@@ -40,6 +55,30 @@ test_that("marginal_parameters() averages mu and sigma over newdata groups", {
   row.names(manual) <- NULL
   row.names(out_sorted) <- NULL
   expect_equal(out_sorted, manual)
+
+  reserved_by <- marginal_parameters(
+    fit,
+    newdata = grid,
+    dpar = "mu",
+    by = "conf.status"
+  )
+  expect_named(
+    reserved_by,
+    c(
+      "dpar",
+      "component",
+      "type",
+      "newdata_conf.status",
+      "estimate",
+      "n",
+      "conf.status",
+      "interval_source"
+    )
+  )
+  expect_setequal(
+    reserved_by$newdata_conf.status,
+    c("reef_rows", "sand_rows", "kelp_rows")
+  )
 })
 
 test_that("marginal_parameters() can average over all fitted rows", {
@@ -60,6 +99,8 @@ test_that("marginal_parameters() can average over all fitted rows", {
   expect_equal(out$dpar, "nu")
   expect_equal(out$component, "shape")
   expect_equal(out$n, nrow(dat))
+  expect_equal(out$conf.status, "not_requested")
+  expect_equal(out$interval_source, "not_available")
   expect_equal(out$estimate, mean(predict(fit, dpar = "nu")))
 })
 
@@ -88,6 +129,8 @@ test_that("marginal_parameters() averages bivariate rho12 on supplied groups", {
 
   expect_equal(unique(out$component), "residual-correlation")
   expect_equal(unique(out$n), 2L)
+  expect_equal(unique(out$conf.status), "not_requested")
+  expect_equal(unique(out$interval_source), "not_available")
   expect_equal(
     out$estimate,
     as.vector(tapply(rho12(fit, newdata = grid), grid$period, mean))

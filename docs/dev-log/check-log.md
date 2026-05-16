@@ -16988,3 +16988,89 @@ Known limitations:
 After-phase report:
 
 - `docs/dev-log/after-phase/2026-05-16-phase-6e-tutorial-maturation-closure.md`.
+
+## 2026-05-16 - Slice 103 interval provenance columns
+
+Goal: add interval provenance columns to the Phase 17 prediction and marginal
+tables without computing intervals, adding confidence-limit placeholders, or
+adding a plotting dependency.
+
+Roles:
+
+- Ada coordinated the branch, validation, check log, after-task report,
+  checkpoint, and PR closure.
+- Boole owned the table contract and reserved-column behaviour.
+- Fisher owned the no-fake-interval semantics.
+- Curie owned the focused and full test checks.
+- Pat owned the model-workflow wording for applied readers.
+- Grace owned roxygen, pkgdown, and reproducibility checks.
+- Rose owned stale-wording scans and closure consistency.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `R/marginal-parameters.R`
+- `R/predict-parameters.R`
+- `docs/design/39-visualization-grammar.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-16-slice-103-interval-provenance.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-16-134305-codex-checkpoint.md`
+- `man/marginal_parameters.Rd`
+- `man/predict_parameters.Rd`
+- `tests/testthat/test-marginal-parameters.R`
+- `tests/testthat/test-predict-parameters.R`
+- `vignettes/model-workflow.Rmd`
+
+What changed:
+
+- `predict_parameters()` now returns `conf.status = "not_requested"` and
+  `interval_source = "not_available"` for every row.
+- `marginal_parameters()` now carries the same provenance fields after
+  averaging prediction rows.
+- User `newdata` columns named `conf.status` or `interval_source` are renamed
+  to `newdata_conf.status` and `newdata_interval_source`.
+- `marginal_parameters(..., by = "conf.status")` groups by
+  `newdata_conf.status`, so the user column does not collide with the core
+  provenance column.
+- Roxygen, generated Rd files, NEWS, ROADMAP, the visualization-grammar design
+  note, and the model-workflow article now describe the point-estimate-only
+  provenance contract.
+
+Checks run:
+
+- `air format R/predict-parameters.R R/marginal-parameters.R tests/testthat/test-predict-parameters.R tests/testthat/test-marginal-parameters.R`:
+  passed.
+- `Rscript -e "devtools::document()"`: passed.
+- `Rscript -e "devtools::test()"`: passed with
+  `FAIL 0 | WARN 0 | SKIP 0 | PASS 3578`.
+- `Rscript -e "out <- tempfile(fileext = '.html'); rmarkdown::render('vignettes/model-workflow.Rmd', output_file = out, quiet = TRUE); cat(out, '\n')"`:
+  failed because the ad hoc render session had not loaded the package and
+  could not find `prediction_grid()`.
+- `Rscript -e "out <- tempfile(fileext = '.html'); env <- new.env(parent = globalenv()); devtools::load_all(export_all = FALSE, quiet = TRUE); rmarkdown::render('vignettes/model-workflow.Rmd', output_file = out, quiet = TRUE, envir = env); cat(out, '\n')"`:
+  passed.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with "No problems found."
+- `rg -n "conf\\.low|conf\\.high|std\\.error" R/predict-parameters.R R/marginal-parameters.R tests/testthat/test-predict-parameters.R tests/testthat/test-marginal-parameters.R vignettes/model-workflow.Rmd docs/design/39-visualization-grammar.md NEWS.md ROADMAP.md`:
+  returned only intended design-note schema references.
+- `rg -n "plot_predictions|plot\\(|ggplot|geom_|half-eye|posterior draws|credible interval|Bayesian" R/predict-parameters.R R/marginal-parameters.R tests/testthat/test-predict-parameters.R tests/testthat/test-marginal-parameters.R vignettes/model-workflow.Rmd docs/design/39-visualization-grammar.md NEWS.md ROADMAP.md`:
+  returned only intended design-boundary references.
+- `LC_ALL=C rg -n "[^\\x00-\\x7F]" R/predict-parameters.R R/marginal-parameters.R tests/testthat/test-predict-parameters.R tests/testthat/test-marginal-parameters.R vignettes/model-workflow.Rmd docs/design/39-visualization-grammar.md NEWS.md ROADMAP.md`:
+  returned no matches.
+- `git diff --check`: passed.
+- `Rscript tools/codex-checkpoint.R --goal "Slice 103 interval provenance columns" --next "append check-log and after-task report, then stage, commit, push, and open PR"`:
+  passed and wrote
+  `docs/dev-log/recovery-checkpoints/2026-05-16-134305-codex-checkpoint.md`.
+
+Known limitations:
+
+- these helpers still do not compute confidence intervals;
+- `std.error`, `conf.low`, and `conf.high` remain future real-interval columns,
+  not placeholders;
+- no plotting helper, EMM method, slope helper, or visualization dependency was
+  added;
+- `marginal_parameters()` remains an unweighted plug-in average.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-16-slice-103-interval-provenance.md`.

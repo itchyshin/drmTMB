@@ -151,6 +151,12 @@ interval_source
 newdata columns
 ```
 
+Slice 103 adds the first provenance-only version of `conf.status` and
+`interval_source` to `predict_parameters()` and `marginal_parameters()`. The
+tables still contain point estimates only, so they report
+`conf.status = "not_requested"` and
+`interval_source = "not_available"` instead of empty confidence limits.
+
 When uncertainty is unavailable, the row should still print with a status that
 tells the user what to try next, such as profiling a direct target or supplying
 `newdata`.
@@ -236,10 +242,8 @@ idea is tidy long data for uncertainty, not Bayesian model support.
 
 ## Near-Term Slice Order
 
-1. Add interval provenance to prediction and marginal tables only after the
-   source can be computed honestly.
-2. Add one narrow ggplot-oriented helper for `predict_parameters()` output.
-3. Add `corpairs()` plotting only after all displayed correlation rows carry
+1. Add one narrow ggplot-oriented helper for `predict_parameters()` output.
+2. Add `corpairs()` plotting only after all displayed correlation rows carry
    interval status consistently.
-4. Revisit `emmeans` compatibility only after the reference-grid and link-scale
+3. Revisit `emmeans` compatibility only after the reference-grid and link-scale
    contract is tested across the implemented families.

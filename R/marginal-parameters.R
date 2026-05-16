@@ -11,6 +11,11 @@
 #' `newdata = NULL`, the fitted-row prediction contract is the same as
 #' [predict.drmTMB()].
 #'
+#' The returned table carries the same interval provenance columns as
+#' [predict_parameters()]. In this first contract, marginal summaries are point
+#' estimates with `conf.status = "not_requested"` and
+#' `interval_source = "not_available"`.
+#'
 #' @param object A `drmTMB` fit.
 #' @param newdata Optional data frame for prediction. If omitted, fitted rows
 #'   are used.
@@ -24,7 +29,8 @@
 #'
 #' @return A data frame with one row per distributional parameter and grouping
 #'   combination. The returned columns are `dpar`, `component`, `type`,
-#'   optional `by` columns, `estimate`, and `n`.
+#'   optional `by` columns, `estimate`, `n`, `conf.status`, and
+#'   `interval_source`.
 #'
 #' @examples
 #' dat <- data.frame(
@@ -97,7 +103,16 @@ marginal_parameters_by_columns <- function(newdata, by) {
       i = "Available columns: {.val {names(newdata)}}."
     ))
   }
-  reserved <- c("row", "row_label", "dpar", "component", "type", "estimate")
+  reserved <- c(
+    "row",
+    "row_label",
+    "dpar",
+    "component",
+    "type",
+    "estimate",
+    "conf.status",
+    "interval_source"
+  )
   output <- ifelse(by %in% reserved, paste0("newdata_", by), by)
   list(input = by, output = output)
 }
@@ -115,6 +130,8 @@ marginalise_parameter_predictions <- function(pred, by) {
     out <- pred[first, group_cols, drop = FALSE]
     out$estimate <- mean(pred$estimate[idx])
     out$n <- length(idx)
+    out$conf.status <- "not_requested"
+    out$interval_source <- "not_available"
     row.names(out) <- NULL
     out
   })
