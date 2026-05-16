@@ -74,6 +74,7 @@ and interpretation can be kept concrete.
 | Positive counts after conditional sampling | When zeros are absent by design, do traps or survey units differ in positive abundance? | `count ~ habitat`, `sigma ~ habitat` with `family = truncated_nbinom2()`; add `hu ~ habitat` only for hurdle zeros |
 | Continuous proportions | Does leaf damage proportion change with treatment, and does among-leaf variability also change? | Implemented in `vignettes/proportion-beta-binomial.Rmd` with `cover ~ grazing`, `sigma ~ grazing`, and `family = beta()` for values strictly between 0 and 1 |
 | Successes out of trials | Does germination probability vary by treatment beyond binomial sampling error? | Implemented in `vignettes/proportion-beta-binomial.Rmd` with `cbind(germinated, failed) ~ treatment`, `sigma ~ treatment`, and `family = beta_binomial()` |
+| Bivariate individual differences | Do individuals with higher average activity also tend to have higher average boldness after accounting for residual coupling? | Implemented in `vignettes/bivariate-coscale.Rmd` with matching `(1 \| p \| ID)` random intercepts in `mu1` and `mu2`, residual `rho12`, `corpairs()`, and `summary(fit)$covariance` |
 | Ordered severity scores | Does disease severity shift along an ordered scale? | `severity ~ treatment` with `family = cumulative_logit()`; keep scale effects planned until implemented |
 
 Each candidate needs the same teaching arc: question, data, symbolic equations,

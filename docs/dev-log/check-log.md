@@ -2,6 +2,92 @@
 
 Record meaningful development checks here.
 
+## 2026-05-16 - Slice 98 bivariate group-level covariance polish
+
+Goal: deepen the bivariate location-coscale tutorial with a compact
+repeated-individual example that fits the implemented ordinary `mu1`/`mu2`
+random-intercept covariance block, while keeping residual `rho12` and
+group-level covariance as separate correlation layers.
+
+Files changed:
+
+- `ROADMAP.md`
+- `docs/design/21-tutorial-style.md`
+- `docs/design/37-worked-example-inventory.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-16-slice-98-bivariate-group-covariance.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-16-114952-codex-checkpoint.md`
+- `vignettes/bivariate-coscale.Rmd`
+- `vignettes/drmTMB.Rmd`
+- `vignettes/source-map.Rmd`
+
+What changed:
+
+- Replaced the template-like group-level ending of
+  `vignettes/bivariate-coscale.Rmd` with a runnable repeated-individual
+  activity-boldness example.
+- Fitted matching labelled `(1 | p | ID)` random intercepts in `mu1` and
+  `mu2`, with constant residual `rho12`, `sigma1`, and `sigma2`.
+- Added `check_drm(fit_group)` diagnostics focused on convergence,
+  random-effect SD boundaries, residual-correlation boundaries, and the
+  bivariate `mu` covariance replication row.
+- Added `corpairs(fit_group)` output that keeps the residual `rho12` row and
+  the group-level `mu1`/`mu2` row separate.
+- Added a `summary(fit_group)$covariance` report-scale table with component
+  SDs, correlation, covariance, and scale labels.
+- Updated the worked-example inventory, tutorial-style candidate table,
+  getting-started learning path, source map, and roadmap to record Slice 98.
+- Cleaned up stale roadmap wording so ordinary bivariate q=4
+  random-intercept support is described as fitted, while bivariate random
+  slopes and the full double-hierarchical endpoint remain planned.
+- Wrote a recovery checkpoint for the crash-recovery slice before staging.
+
+Checks run:
+
+- `air format ROADMAP.md docs/design/21-tutorial-style.md docs/design/37-worked-example-inventory.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-16-slice-98-bivariate-group-covariance.md vignettes/bivariate-coscale.Rmd vignettes/drmTMB.Rmd vignettes/source-map.Rmd`:
+  passed.
+- `git diff --check`: passed.
+- `Rscript tools/codex-checkpoint.R --goal "Slice 98 bivariate group-level covariance polish" --next "git add the Slice 98 docs, commit, push, and open the PR"`:
+  passed and wrote
+  `docs/dev-log/recovery-checkpoints/2026-05-16-114952-codex-checkpoint.md`.
+- `Rscript -e 'pkgload::load_all(".", quiet = TRUE); rmarkdown::render("vignettes/bivariate-coscale.Rmd", output_dir = tempfile("biv-coscale-render-"), quiet = FALSE)'`:
+  passed and rendered all bivariate-coscale chunks with the source package
+  loaded.
+- `Rscript -e 'devtools::test(filter = "biv-gaussian|corpairs", reporter = "summary")'`:
+  passed; ran the bivariate Gaussian and `corpairs` test files with no
+  failures.
+- `Rscript -e 'pkgdown::build_site()'`: passed and rendered
+  `articles/bivariate-coscale.html`, `articles/drmTMB.html`, and
+  `articles/source-map.html` with the Slice 98 wording.
+- `Rscript -e 'pkgdown::check_pkgdown()'`: passed with "No problems found."
+- `rg -n 'individual-difference|individual differences|fit_group|corpairs\\(fit_group|summary\\(fit_group\\)\\$covariance|biv_mu_random_effect_covariance|mu1.*sigma2|slope1-slope2|random effects in rho12|Slice 98|Bivariate group-level covariance' vignettes/bivariate-coscale.Rmd pkgdown-site/articles/bivariate-coscale.html docs/design/37-worked-example-inventory.md ROADMAP.md docs/design/21-tutorial-style.md vignettes/drmTMB.Rmd vignettes/source-map.Rmd --glob '!pkgdown-site/search.json'`:
+  confirmed the source and rendered individual-difference example, covariance
+  extractor route, q=4 pair wording, Slice 98 inventory, and planned-neighbour
+  boundaries.
+- `rg -n 'bivariate random slopes|plasticity-syndrome|rho12.*random|bivariate meta_known_V\\(\\)|ordinary spatial group-level|all-four|mu1.*sigma1|mu1.*sigma2|mu2.*sigma1|mu2.*sigma2' vignettes/bivariate-coscale.Rmd pkgdown-site/articles/bivariate-coscale.html docs/design/37-worked-example-inventory.md ROADMAP.md vignettes/source-map.Rmd --glob '!pkgdown-site/search.json'`:
+  confirmed bivariate random slopes, plasticity-syndrome correlations,
+  `rho12` random effects, bivariate known-`V` plus random effects, and ordinary
+  spatial covariance stay planned, and all four q=4 mean-scale pairs are named.
+- Added-line non-ASCII scan with
+  `git diff --unified=0 -- ROADMAP.md docs/design/21-tutorial-style.md docs/design/37-worked-example-inventory.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-16-slice-98-bivariate-group-covariance.md docs/dev-log/recovery-checkpoints/2026-05-16-114952-codex-checkpoint.md vignettes/bivariate-coscale.Rmd vignettes/drmTMB.Rmd vignettes/source-map.Rmd | perl -ne 'print if /^\\+/ && !/^\\+\\+\\+/ && /[^\\x00-\\x7F]/'`:
+  returned no matches.
+
+Known limitations:
+
+- no formula grammar, likelihood, TMB, extractor, or test implementation
+  changed in this slice;
+- the new fitted example teaches ordinary bivariate Gaussian random intercepts
+  only;
+- bivariate random slopes, slope1-slope2 plasticity-syndrome correlations,
+  random effects in `rho12`, bivariate `meta_known_V()` plus random effects,
+  mixed-response models, and ordinary spatial group-level covariance remain
+  planned until they have implementation, recovery evidence, diagnostics, and
+  tutorial support.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-16-slice-98-bivariate-group-covariance.md`.
+
 ## 2026-05-16 - Slice 97 proportion source-map tutorial
 
 Goal: add the next non-Gaussian bounded-response worked example after Slice 96,

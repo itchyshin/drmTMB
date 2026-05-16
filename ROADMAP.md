@@ -132,8 +132,14 @@ distributional regression models using TMB.
   group-level covariance rows and omits residual `rho12`.
 - One same-response bivariate `mu`/`sigma` random-intercept covariance block is
   implemented, such as matching `(1 | p | id)` terms in `mu1` and `sigma1` or
-  in `mu2` and `sigma2`. This is still a pairwise bridge, not the full shared
-  labelled block across `mu1`, `mu2`, `sigma1`, and `sigma2`.
+  in `mu2` and `sigma2`.
+- Matching labelled random intercepts across all four bivariate location-scale
+  parameters, `mu1`, `mu2`, `sigma1`, and `sigma2`, now fit one all-four
+  intercept block and report six `corpairs()` rows: one `mu1`-`mu2` row, four
+  mean-scale rows (`mu1`-`sigma1`, `mu1`-`sigma2`, `mu2`-`sigma1`, and
+  `mu2`-`sigma2`), and one `sigma1`-`sigma2` row. This is still
+  random-intercept support, not bivariate random slopes or the full
+  double-hierarchical endpoint.
 - Bivariate random slopes, random effects in `rho12`, bivariate
   `meta_known_V()` plus random effects, multi-term cross-parameter bivariate
   covariance, and structured bivariate covariance remain future work and are
@@ -177,25 +183,20 @@ distributional regression models using TMB.
   a hidden Laplace version of that likelihood prototype. A deterministic
   hidden simulation-style check now verifies that this path can recover the
   simulated q=3 predictor signal better than a no-random-effect baseline. The
-  first q=4 bridge now confirms that one guarded block can enumerate
-  `mu1`/`mu2`/`sigma1`/`sigma2` members, all six pair rows, and a hidden
-  positive-definite contribution map. A hidden bivariate Gaussian probe now
-  routes those four intercept-level member contributions into `mu1`, `mu2`,
-  `log(sigma1)`, and `log(sigma2)` and checks the resulting likelihood against
-  an R-side reconstruction. The same hidden branch can now pass the q=4 latent
-  vector through TMB's `random` argument and reconstruct the predictors from the
-  optimized random-effect mode. A deterministic hidden recovery-style check now
-  shows that this bivariate q=4 Laplace path recovers the simulated endpoint
-  predictor signals better than no-random-effect baselines. An internal
-  `corpairs()` scaffold can now format all six q=4 endpoint rows from
-  fitted-like registry metadata, and `profile_targets()` can format the matching
-  six endpoint correlation targets. Dormant q > 2 rows remain invisible to
-  ordinary extractor/profile output. These probes are not user-facing
-  fitted-model support yet and do not cover random-slope q=6 or q=8 endpoint
-  blocks. The corresponding constant phylogenetic q=4 state is now fitted for
-  matching labelled all-four `phylo()` terms; the next phylogenetic work is
-  recovery evidence, diagnostics, and tutorial hardening. q=6 and q=8
-  random-slope endpoint blocks can wait.
+  first ordinary bivariate q=4 random-intercept block now routes
+  `mu1`/`mu2`/`sigma1`/`sigma2` member contributions through the fitted
+  bivariate Gaussian path. It reports all six endpoint rows through
+  `corpairs()` and `summary(fit)$covariance`: one `mu1`-`mu2` row, four
+  mean-scale rows (`mu1`-`sigma1`, `mu1`-`sigma2`, `mu2`-`sigma1`, and
+  `mu2`-`sigma2`), and one `sigma1`-`sigma2` row. `profile_targets()` can
+  format the matching six endpoint correlation targets, while q=4 intervals
+  remain direct-correlation or derived-row work rather than a closed
+  double-hierarchical endpoint. Dormant q=3 scaffolds, q > 4 blocks, and q=6 or
+  q=8 random-slope endpoint blocks remain invisible to ordinary
+  extractor/profile output. The corresponding constant phylogenetic q=4 state
+  is now fitted for matching labelled all-four `phylo()` terms; the next
+  phylogenetic work is recovery evidence, diagnostics, and tutorial hardening.
+  q=6 and q=8 random-slope endpoint blocks can wait.
 - Use `docs/design/18-random-effect-scale-models.md` as the design contract:
   the implemented MVP targets one or more distinct unlabelled univariate
   Gaussian `mu` random intercepts, with group-level predictors, simulation
@@ -595,6 +596,7 @@ Phase 6d should be closed as small hardening slices:
 | 95 | Meta-analysis source-map polish | Return to examples with the meta-analysis lane: equations, exact syntax, parameter definitions, categorical heterogeneous-heterogeneity interpretation, and future `meta_V()` boundaries. | Done locally: the meta-analysis tutorial now defines `yi`, `vi`, `V`, `mu`, `sigma`, `sd(study)`, and `weights = w`; design docs record the Nakagawa et al., Yang and Nakagawa, Rodriguez et al., and unifying-model anchors. |
 | 96 | Count NB2 source-map tutorial | Add the first non-Gaussian count worked example using fixed-effect `nbinom2()` and optional `zi ~` syntax, with source-grounded equations, parameter definitions, biological interpretation, diagnostics, and unsupported-boundary text. | Done locally: `vignettes/count-nbinom2.Rmd` now works through a soil-invertebrate count example, links `sigma` to NB2 `size = 1 / sigma^2`, fits NB2 and zero-inflated NB2 models, and keeps non-Gaussian random effects, structured count effects, mixed-response families, and COM-Poisson planned. |
 | 97 | Proportion source-map tutorial | Add a bounded-response worked example using fixed-effect `beta_binomial()` and `beta()` syntax, with source-grounded equations, denominator/boundary guidance, response-scale interpretation, diagnostics, and unsupported-boundary text. | Done locally: `vignettes/proportion-beta-binomial.Rmd` now works through seed-germination successes out of trials and strict continuous vegetation-cover proportions, links public `sigma` to beta precision `phi = 1 / sigma^2`, and keeps exact 0/1 continuous boundaries, non-Gaussian random effects, structured bounded responses, and mixed-response families planned. |
+| 98 | Bivariate group-level covariance polish | Deepen `vignettes/bivariate-coscale.Rmd` with a compact repeated-individual example that fits matching labelled `mu1`/`mu2` random intercepts, separates group-level covariance from residual `rho12`, and reports `corpairs()` plus `summary(fit)$covariance`. | Done locally: the bivariate tutorial now fits an activity-boldness individual-difference model with `(1 | p | ID)` in both location formulas, shows the covariance diagnostic row, reads residual and group-level rows through `corpairs()`, and keeps bivariate random slopes, `rho12` random effects, mixed-response models, and ordinary spatial covariance planned. |
 
 ## Phase 7: Robust and Positive Continuous Families
 
