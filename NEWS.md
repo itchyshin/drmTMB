@@ -14,6 +14,10 @@
   supports focal predictors, supplied values, conditioned nuisance predictors,
   mean-reference grids, and empirical counterfactual grids while recording the
   grid rule as metadata.
+* `predict_parameters()` and `marginal_parameters()` now include interval
+  provenance columns. The first contract reports `conf.status =
+  "not_requested"` and `interval_source = "not_available"` so downstream tables
+  and future plots cannot imply confidence intervals that were not computed.
 * The model-workflow article now shows empirical marginalization with
   `prediction_grid(..., margin = "empirical")` and
   `marginal_parameters(..., by = "temperature")`, separating conditioned

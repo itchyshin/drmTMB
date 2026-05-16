@@ -35,8 +35,9 @@ the supplied covariate columns to the returned table.}
 }
 \value{
 A data frame with columns \code{row}, \code{row_label}, \code{dpar}, \code{component},
-\code{type}, and \code{estimate}. When \code{include_newdata = TRUE}, supplied \code{newdata}
-columns are appended after those core columns.
+\code{type}, \code{estimate}, \code{conf.status}, and \code{interval_source}. When
+\code{include_newdata = TRUE}, supplied \code{newdata} columns are appended after
+those core columns.
 }
 \description{
 \code{predict_parameters()} returns predicted distributional parameters from a
@@ -50,6 +51,11 @@ The helper calls \code{\link[=predict.drmTMB]{predict.drmTMB()}} for each reques
 parameter. With \code{newdata = NULL}, predictions use the fitted rows. With
 \code{newdata} supplied, predictions are fixed-effect, population-level
 predictions for those rows, matching \code{\link[=predict.drmTMB]{predict.drmTMB()}}.
+
+This first table surface does not compute confidence intervals. It still
+includes interval provenance columns: \code{conf.status = "not_requested"} and
+\code{interval_source = "not_available"}. Later interval-aware helpers can fill
+those columns without changing the long-table shape.
 }
 \examples{
 dat <- data.frame(

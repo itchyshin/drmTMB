@@ -7,7 +7,9 @@ test_that("predict_parameters() returns a long newdata table", {
   fit <- drmTMB(bf(y ~ x, sigma ~ x), family = gaussian(), data = dat)
   grid <- data.frame(
     x = c(-0.5, 0.5),
-    dpar = c("left", "right")
+    dpar = c("left", "right"),
+    conf.status = c("raw", "raw"),
+    interval_source = c("field", "field")
   )
   row.names(grid) <- c("low_x", "high_x")
 
@@ -26,8 +28,12 @@ test_that("predict_parameters() returns a long newdata table", {
       "component",
       "type",
       "estimate",
+      "conf.status",
+      "interval_source",
       "x",
-      "newdata_dpar"
+      "newdata_dpar",
+      "newdata_conf.status",
+      "newdata_interval_source"
     )
   )
   expect_equal(out$row, c(1L, 2L, 1L, 2L))
@@ -45,6 +51,10 @@ test_that("predict_parameters() returns a long newdata table", {
     out$estimate[out$dpar == "sigma"],
     predict(fit, newdata = grid, dpar = "sigma")
   )
+  expect_equal(out$conf.status, rep("not_requested", 4))
+  expect_equal(out$interval_source, rep("not_available", 4))
+  expect_equal(out$newdata_conf.status, rep(c("raw", "raw"), 2))
+  expect_equal(out$newdata_interval_source, rep(c("field", "field"), 2))
 
   link <- predict_parameters(
     fit,
@@ -55,9 +65,20 @@ test_that("predict_parameters() returns a long newdata table", {
   )
   expect_named(
     link,
-    c("row", "row_label", "dpar", "component", "type", "estimate")
+    c(
+      "row",
+      "row_label",
+      "dpar",
+      "component",
+      "type",
+      "estimate",
+      "conf.status",
+      "interval_source"
+    )
   )
   expect_equal(link$type, rep("link", 2))
+  expect_equal(link$conf.status, rep("not_requested", 2))
+  expect_equal(link$interval_source, rep("not_available", 2))
   expect_equal(
     link$estimate,
     predict(fit, newdata = grid, dpar = "sigma", type = "link")
@@ -76,6 +97,8 @@ test_that("predict_parameters() defaults to all fitted distributional parameters
 
   expect_setequal(out$dpar, c("mu", "sigma"))
   expect_equal(nrow(out), 2L * nrow(dat))
+  expect_equal(unique(out$conf.status), "not_requested")
+  expect_equal(unique(out$interval_source), "not_available")
   expect_equal(
     out$estimate[out$dpar == "mu"],
     predict(fit, dpar = "mu")

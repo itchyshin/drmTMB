@@ -891,6 +891,11 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   for direct `predict_parameters()` rows from an empirical grid that
   `marginal_parameters(..., by = "temperature")` reduces over the fitted-row
   covariate distribution.
+- Slice 103 adds interval provenance columns to `predict_parameters()` and
+  `marginal_parameters()`. The current point-estimate tables report
+  `conf.status = "not_requested"` and
+  `interval_source = "not_available"` until a later slice computes real
+  intervals.
 - Add ggplot-oriented helpers only after the data contract is stable:
   location curves, scale/variance curves, residual `rho12` curves,
   `sd(group)` or `sd_phylo()` surfaces, `corpairs()` summaries, and eventually

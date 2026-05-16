@@ -36,7 +36,8 @@ distributional parameter.}
 \value{
 A data frame with one row per distributional parameter and grouping
 combination. The returned columns are \code{dpar}, \code{component}, \code{type},
-optional \code{by} columns, \code{estimate}, and \code{n}.
+optional \code{by} columns, \code{estimate}, \code{n}, \code{conf.status}, and
+\code{interval_source}.
 }
 \description{
 \code{marginal_parameters()} averages predicted distributional parameters over
@@ -50,6 +51,11 @@ It reports unweighted averages of already-predicted parameter values. For
 population-level summaries, supply an explicit \code{newdata} grid; with
 \code{newdata = NULL}, the fitted-row prediction contract is the same as
 \code{\link[=predict.drmTMB]{predict.drmTMB()}}.
+
+The returned table carries the same interval provenance columns as
+\code{\link[=predict_parameters]{predict_parameters()}}. In this first contract, marginal summaries are point
+estimates with \code{conf.status = "not_requested"} and
+\code{interval_source = "not_available"}.
 }
 \examples{
 dat <- data.frame(
