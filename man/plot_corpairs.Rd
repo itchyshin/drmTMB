@@ -4,7 +4,7 @@
 \alias{plot_corpairs}
 \title{Plot fitted correlation-pair summaries}
 \usage{
-plot_corpairs(data, colour = "level", interval = TRUE, ...)
+plot_corpairs(data, colour = "level", facet = NULL, interval = TRUE, ...)
 }
 \arguments{
 \item{data}{A data frame returned by \code{\link[=corpairs]{corpairs()}}, or a compatible table with
@@ -12,6 +12,9 @@ columns \code{level}, \code{class}, \code{parameter}, \code{estimate}, and \code
 
 \item{colour}{Optional character scalar naming a column to map to colour.
 Use \code{NULL} to suppress colour mapping.}
+
+\item{facet}{Optional character scalar naming a column to facet by. Use
+\code{NULL} to suppress faceting.}
 
 \item{interval}{Logical; draw finite \code{conf.low}/\code{conf.high} intervals when
 those columns are present.}

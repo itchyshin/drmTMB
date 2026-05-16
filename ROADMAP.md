@@ -948,6 +948,9 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   interval segments only for finite `conf.low` and `conf.high` bounds, keeps
   correlation `level` and `class` visible, and lives in the Visualization
   reference section.
+- Slice 114 adds optional `facet` support to `plot_corpairs()` so residual,
+  group-level, phylogenetic, spatial, or future study-level rows can be separated
+  by an explicit table column without changing the extraction contract.
 - Add additional ggplot-oriented helpers only after the data contract is stable:
   location curves, scale/variance curves, residual `rho12` curves,
   `sd(group)` or `sd_phylo()` surfaces, `corpairs()` summaries, and eventually

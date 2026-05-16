@@ -293,6 +293,11 @@ the plotted data. It does not compute correlation pairs, run profile intervals,
 or collapse residual, ordinary group-level, phylogenetic, spatial, and future
 study-level correlations into one unnamed layer.
 
+Slice 114 adds optional faceting to `plot_corpairs()`. The default remains a
+single panel with row labels that include `level`, `class`, and `parameter`;
+readers can set `facet = "level"` or another explicit table column when they
+need to visually separate correlation layers.
+
 Slice 108 confirms the pkgdown reference-page contract. Exported plotting
 functions belong in the `Visualization` reference section, and only exported,
 documented, tested helpers should appear there. At that slice boundary,
@@ -317,7 +322,7 @@ idea is tidy long data for uncertainty, not Bayesian model support.
 
 ## Near-Term Slice Order
 
-1. Add `corpairs()` plotting only after all displayed correlation rows carry
-   interval status consistently.
+1. Add reader-facing `plot_corpairs()` examples only after fitted correlation
+   rows and interval status are stable enough for a biological workflow.
 2. Revisit `emmeans` compatibility only after the reference-grid and link-scale
    contract is tested across the implemented families.

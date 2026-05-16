@@ -17922,3 +17922,82 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-16-slice-113-plot-corpairs-helper.md`.
+
+## 2026-05-16 - Slice 114 plot_corpairs faceting
+
+Goal: add a small optional faceting control to `plot_corpairs()` so explicit
+correlation rows can be separated by `level` or another supplied table column
+without changing the extraction or interval contract.
+
+Roles:
+
+- Ada kept the slice as a display option on the existing helper.
+- Boole owned the `facet` argument shape and validation.
+- Fisher checked that faceting does not imply new intervals or inference.
+- Curie owned the facet test and malformed `facet` input test.
+- Pat owned the reader-facing reason: separating residual, group-level,
+  phylogenetic, spatial, or future study-level rows when a single panel is too
+  dense.
+- Grace owned roxygen, pkgdown, and rendered Reference-page checks.
+- Rose owned the stale near-term-order cleanup in the visualization grammar.
+- Gauss, Noether, Darwin, Emmy, and Jason stayed watch-only because no
+  likelihood, equation, biological worked example, object structure, or
+  landscape claim changed.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `R/plot-corpairs.R`
+- `man/plot_corpairs.Rd`
+- `tests/testthat/test-plot-corpairs.R`
+- `docs/design/39-visualization-grammar.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-16-slice-114-plot-corpairs-facets.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-16-172339-codex-checkpoint.md`
+
+What changed:
+
+- Added `facet = NULL` to `plot_corpairs()`.
+- Validated `facet` as an optional table column name using the same column
+  contract as `colour`.
+- Added `ggplot2::facet_wrap(..., scales = "free_y")` when `facet` is supplied.
+- Kept the default single-panel plot unchanged.
+- Added tests that `facet = "level"` creates one panel per level and that
+  malformed facet columns fail clearly.
+- Updated NEWS, ROADMAP, and the visualization grammar, including the near-term
+  slice order now that `plot_corpairs()` itself exists.
+
+Checks run:
+
+- `air format R/plot-corpairs.R tests/testthat/test-plot-corpairs.R NEWS.md ROADMAP.md docs/design/39-visualization-grammar.md`:
+  passed.
+- `Rscript -e "devtools::document()"`: passed and regenerated
+  `man/plot_corpairs.Rd`.
+- `Rscript -e "devtools::test(filter = 'plot-corpairs|plot-parameter-surface', reporter = 'summary')"`:
+  passed with all focused plotting tests complete.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed and rendered the
+  updated `plot_corpairs()` Reference page, ROADMAP, and NEWS.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with "No problems found."
+- `git diff --check`: passed.
+- `rg -n 'facet|plot_corpairs|Slice 114|visually separate correlation layers|implemented in Slice 113|reader-facing `plot_corpairs` examples' R/plot-corpairs.R tests/testthat/test-plot-corpairs.R man/plot_corpairs.Rd NEWS.md ROADMAP.md docs/design/39-visualization-grammar.md pkgdown-site/reference/plot_corpairs.html pkgdown-site/ROADMAP.html pkgdown-site/news/index.html`:
+  confirmed source and rendered pages include the facet argument and Slice 114
+  docs.
+- `rg -n 'future `plot_corpairs`|future plot_corpairs|only exported plotting helper|currently `plot_parameter_surface`|facet.*computes|facet.*profile|plot_corpairs\\(\\).*model refit|ggplot2.*Imports|posterior draw|credible interval' R/plot-corpairs.R tests/testthat/test-plot-corpairs.R NEWS.md ROADMAP.md docs/design/39-visualization-grammar.md DESCRIPTION pkgdown-site/reference/plot_corpairs.html pkgdown-site/ROADMAP.html pkgdown-site/news/index.html --glob '!pkgdown-site/search.json' --glob '!pkgdown-site/deps/**'`:
+  found only intended confidence-not-credible-interval and design-source
+  guardrails.
+- `Rscript tools/codex-checkpoint.R --goal "Slice 114 plot_corpairs faceting" --next "stage, commit, push stacked branch, and open PR after Slice 113"`:
+  passed and wrote
+  `docs/dev-log/recovery-checkpoints/2026-05-16-172339-codex-checkpoint.md`.
+
+Known limitations:
+
+- `facet` separates supplied rows only; it does not compute correlation pairs,
+  select a correlation layer, or run intervals.
+- No fitted biological example was added in this slice.
+- No likelihood, formula grammar, TMB code, interval computation, EMM, contrast,
+  slope, or diagnostics plot changed.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-16-slice-114-plot-corpairs-facets.md`.

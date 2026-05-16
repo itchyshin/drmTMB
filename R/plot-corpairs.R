@@ -14,6 +14,8 @@
 #'   columns `level`, `class`, `parameter`, `estimate`, and `modelled`.
 #' @param colour Optional character scalar naming a column to map to colour.
 #'   Use `NULL` to suppress colour mapping.
+#' @param facet Optional character scalar naming a column to facet by. Use
+#'   `NULL` to suppress faceting.
 #' @param interval Logical; draw finite `conf.low`/`conf.high` intervals when
 #'   those columns are present.
 #' @param ... Reserved for future options.
@@ -38,6 +40,7 @@
 plot_corpairs <- function(
   data,
   colour = "level",
+  facet = NULL,
   interval = TRUE,
   ...
 ) {
@@ -48,9 +51,10 @@ plot_corpairs <- function(
   plot_corpairs_require_ggplot2()
   validate_plot_corpairs_data(data)
   colour <- validate_plot_corpairs_column(colour, data, "colour")
+  facet <- validate_plot_corpairs_column(facet, data, "facet")
   interval <- validate_plot_corpairs_flag(interval, "interval")
 
-  data <- add_plot_corpairs_columns(data, colour = colour)
+  data <- add_plot_corpairs_columns(data, colour = colour, facet = facet)
   mapping <- plot_corpairs_mapping(has_colour = !is.null(colour))
   out <- ggplot2::ggplot(data, mapping) +
     ggplot2::geom_vline(
@@ -77,9 +81,14 @@ plot_corpairs <- function(
         )
     }
   }
-  out +
+  out <- out +
     ggplot2::geom_point(size = 2, na.rm = TRUE) +
-    ggplot2::coord_cartesian(xlim = c(-1, 1)) +
+    ggplot2::coord_cartesian(xlim = c(-1, 1))
+  if (!is.null(facet)) {
+    out <- out +
+      ggplot2::facet_wrap(~.drmTMB_plot_facet, scales = "free_y")
+  }
+  out +
     ggplot2::labs(
       x = "Correlation estimate",
       y = NULL,
@@ -152,7 +161,7 @@ validate_plot_corpairs_flag <- function(x, argument) {
   x
 }
 
-add_plot_corpairs_columns <- function(data, colour) {
+add_plot_corpairs_columns <- function(data, colour, facet) {
   data$.drmTMB_pair_label <- plot_corpairs_labels(data)
   if (!"conf.status" %in% names(data)) {
     data$.drmTMB_conf_status <- rep("not_requested", nrow(data))
@@ -161,6 +170,9 @@ add_plot_corpairs_columns <- function(data, colour) {
   }
   if (!is.null(colour)) {
     data$.drmTMB_plot_colour <- data[[colour]]
+  }
+  if (!is.null(facet)) {
+    data$.drmTMB_plot_facet <- data[[facet]]
   }
   data
 }
