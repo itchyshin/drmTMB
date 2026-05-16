@@ -17836,3 +17836,89 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-16-slice-112-corpairs-plot-preflight.md`.
+
+## 2026-05-16 - Slice 113 plot_corpairs helper
+
+Goal: implement the first narrow `plot_corpairs()` helper promised by the
+Slice 112 preflight, while keeping the helper table-first and dependency-light.
+
+Roles:
+
+- Ada kept the slice narrow: a `corpairs()` table consumer, not a model refit or
+  interval engine.
+- Boole owned the R API shape, including the explicit `data`, `colour`, and
+  `interval` arguments.
+- Fisher owned the confidence-bound rule: interval segments appear only when
+  both bounds are finite.
+- Curie owned the focused tests for ordinary rows, point-only rows, empty
+  tables, malformed inputs, and missing `ggplot2`.
+- Pat owned the reader-facing Reference and model-map route.
+- Grace owned `devtools::document()`, pkgdown, and navigation consistency.
+- Rose owned stale-wording scans and closure notes.
+- Gauss, Noether, Darwin, Emmy, and Jason stayed watch-only because no
+  likelihood, equation, biological worked example, object structure, or
+  landscape claim changed.
+
+Files changed:
+
+- `NAMESPACE`
+- `NEWS.md`
+- `ROADMAP.md`
+- `_pkgdown.yml`
+- `R/plot-corpairs.R`
+- `man/plot_corpairs.Rd`
+- `tests/testthat/test-plot-corpairs.R`
+- `vignettes/model-map.Rmd`
+- `docs/design/39-visualization-grammar.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-16-slice-113-plot-corpairs-helper.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-16-171333-codex-checkpoint.md`
+
+What changed:
+
+- Added exported `plot_corpairs()` as an optional `ggplot2` display helper for
+  explicit `corpairs()` tables.
+- Required the input table to carry `level`, `class`, `parameter`, `estimate`,
+  and `modelled`.
+- Added point estimates for every row and interval segments only for rows with
+  finite `conf.low` and `conf.high`.
+- Kept `conf.status` or a generated `not_requested` display status attached to
+  the plotted data.
+- Added tests for table plotting, point-only plotting, empty tables, validation
+  failures, reserved `...`, and missing `ggplot2`.
+- Added the helper to `_pkgdown.yml`, NEWS, ROADMAP, the visualization grammar,
+  and the model-map visualization decision row.
+
+Checks run:
+
+- `air format NEWS.md ROADMAP.md docs/design/39-visualization-grammar.md R/plot-corpairs.R tests/testthat/test-plot-corpairs.R _pkgdown.yml vignettes/model-map.Rmd`:
+  passed.
+- `Rscript -e "devtools::document()"`: passed and regenerated `NAMESPACE` and
+  `man/plot_corpairs.Rd`.
+- `Rscript -e "devtools::test(filter = 'plot-corpairs|plot-parameter-surface', reporter = 'summary')"`:
+  passed with all focused plotting tests complete.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed and rendered the
+  new Reference page, Reference index, ROADMAP, NEWS, and model-map article.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with "No problems found."
+- `git diff --check`: passed.
+- `rg -n 'future `plot_corpairs`|future plot_corpairs|only exported plotting helper|currently `plot_parameter_surface`' NEWS.md ROADMAP.md docs/design/39-visualization-grammar.md vignettes/model-map.Rmd pkgdown-site/ROADMAP.html pkgdown-site/news/index.html pkgdown-site/articles/model-map.html`:
+  returned no matches after the Slice 113 wording update.
+- `rg -n 'plot_corpairs|Plot fitted correlation-pair summaries|Correlation estimate|Slice 113|Visualization|finite `conf.low`|finite confidence|level.*class' R/plot-corpairs.R tests/testthat/test-plot-corpairs.R man/plot_corpairs.Rd NAMESPACE _pkgdown.yml NEWS.md ROADMAP.md docs/design/39-visualization-grammar.md vignettes/model-map.Rmd pkgdown-site/reference/index.html pkgdown-site/reference/plot_corpairs.html pkgdown-site/articles/model-map.html pkgdown-site/ROADMAP.html pkgdown-site/news/index.html`:
+  confirmed source and rendered pages include the new helper, Reference entry,
+  axis label, finite-bound rule, and Slice 113 roadmap/news text.
+- `Rscript tools/codex-checkpoint.R --goal "Slice 113 plot_corpairs helper" --next "stage and commit Slice 113, push stacked branch, open PR, then merge and rebase the Slice 110-113 visualization stack"`:
+  passed and wrote
+  `docs/dev-log/recovery-checkpoints/2026-05-16-171333-codex-checkpoint.md`.
+
+Known limitations:
+
+- `plot_corpairs()` plots an explicit table only; it does not call `corpairs()`
+  internally, fit models, compute correlation pairs, or run profile intervals.
+- It uses a single y-axis label made from `level`, `class`, and `parameter`
+  rather than choosing final faceting or publication aesthetics.
+- No likelihood, formula grammar, TMB code, interval computation, spatial
+  example, EMM, contrast, slope, or diagnostics plot changed.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-16-slice-113-plot-corpairs-helper.md`.
