@@ -15865,3 +15865,40 @@ Known limitations:
 - spatial `sigma`, bivariate spatial covariance, mesh/SPDE fields, multiple
   spatial slopes, spatial `corpair()`, phylogenetic slopes, standalone or
   partial phylogenetic scale terms, and structured `rho12` remain planned.
+
+## 2026-05-15 -- Phase 6b `conf.status` action table
+
+Goal:
+
+- make the post-fit workflow tutorial tell applied readers what to do when they
+  see each `conf.status` value.
+
+Implemented:
+
+- added a compact action table to `vignettes/model-workflow.Rmd`;
+- covered `wald`, `profile`, `profile_ready`, `newdata_required`,
+  `derived_interval_unavailable`, `wald_unavailable`, `target_unavailable`,
+  `profile_unavailable`, and `not_requested`;
+- added after-task report
+  `docs/dev-log/after-task/2026-05-15-phase-6b-conf-status-action-table.md`.
+
+Checks run:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH air format vignettes/model-workflow.Rmd`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::build_site()'`:
+  passed and rendered `articles/model-workflow.html`.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed with no problems found.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::check(error_on = "never", env_vars = c("_R_CHECK_SYSTEM_CLOCK_" = "FALSE"))'`:
+  passed with 0 errors, 0 warnings, and 0 notes in 2m 30.1s.
+- `git diff --check`: passed.
+- `rg -n 'Read \`conf\\.status\` as an action column|profile_ready|derived_interval_unavailable|target_unavailable|not_requested' vignettes/model-workflow.Rmd pkgdown-site/articles/model-workflow.html --glob '!pkgdown-site/search.json'`:
+  confirmed the source and rendered model-workflow article carry the action
+  table.
+
+Known limitations:
+
+- this was documentation-only;
+- derived intervals, automatic intervals for every covariance summary, and
+  recovery from failed or non-monotone profiles remain planned.

@@ -139,6 +139,19 @@ method. Successful profile rows also include `profile.boundary` and
 `profile.message`; values other than `"ok"` tell you to check boundary or
 near-correlation-limit behaviour before interpreting the interval.
 
+Read `conf.status` as an action column:
+
+| `conf.status` | What it means | What to do next |
+| --- | --- | --- |
+| `wald` | A Wald interval was returned for a fixed-effect row. | Use it for routine fixed-effect summaries, while remembering it is asymptotic. |
+| `profile` | A profile-likelihood interval was returned. | Inspect `profile.boundary` and `profile.message` before treating the interval as stable. |
+| `profile_ready` | The row is a direct profile target, but the current summary call did not request it. | Use the row's `parm` value in `confint(..., method = "profile")` or in `summary(..., method = "profile", ci_parm = ...)`. |
+| `newdata_required` | The fitted surface needs a concrete row before it can be profiled. | Build a biologically meaningful `newdata` row and call `confint(..., newdata = ...)`. |
+| `derived_interval_unavailable` | The point estimate combines multiple fitted quantities and has no validated interval method yet. | Report the point estimate as exploratory, or simplify to a direct target if interval support is essential. |
+| `wald_unavailable` | Wald uncertainty is not available for this row, or `sdreport()` was skipped or failed. | Use a profile-ready target when one exists; otherwise report the missing interval explicitly. |
+| `target_unavailable` or `profile_unavailable` | The row is descriptive or has no current direct interval target. | Treat the interval as unsupported and check `profile_targets(fit)` before trying another route. |
+| `not_requested` | The table is reporting a point estimate without an interval request. | Refit is not needed; request intervals only for the rows you plan to interpret. |
+
 ## Predict distributional parameters
 
 `predict()` returns one distributional parameter at a time. For fitted rows,
