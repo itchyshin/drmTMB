@@ -2489,7 +2489,9 @@ print.summary.drmTMB <- function(x, ...) {
   }
   print(x$coefficients)
   if (nrow(x$parameters) > 0L) {
-    cli::cli_text("Distributional, scale, and correlation parameters:")
+    cli::cli_text(
+      "Distributional, random-effect, scale, and correlation parameters:"
+    )
     print(drm_summary_print_parameters(x$parameters))
   }
   if (is.data.frame(x$covariance) && nrow(x$covariance) > 0L) {

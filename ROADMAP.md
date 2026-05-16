@@ -900,6 +900,11 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   helper for `predict_parameters()` tables. The helper returns a composable
   `ggplot` object, lives on the Reference page under Visualization, and does
   not compute intervals, EMMs, contrasts, or slopes.
+- Slice 105 makes the ordinary `summary()` workflow more visible in the
+  model-workflow guide. It now shows a random-intercept model where
+  `summary()` prints response-scale random-effect SDs, derived repeatability,
+  and profile-likelihood confidence-interval status without describing those
+  intervals as Bayesian credible intervals.
 - Add additional ggplot-oriented helpers only after the data contract is stable:
   location curves, scale/variance curves, residual `rho12` curves,
   `sd(group)` or `sd_phylo()` surfaces, `corpairs()` summaries, and eventually

@@ -105,9 +105,18 @@ test_that("summary() reports random-effect and correlation parameter tables", {
     data = dat
   )
   smry <- summary(fit)
+  printed_output <- capture.output(
+    printed_messages <- capture.output(print(smry), type = "message")
+  )
+  printed <- paste(c(printed_messages, printed_output), collapse = "\n")
 
   expect_true("sigma" %in% rownames(smry$parameters))
   expect_true("sd:mu:(1 | id)" %in% rownames(smry$parameters))
+  expect_match(
+    printed,
+    "Distributional, random-effect, scale, and correlation parameters",
+    fixed = TRUE
+  )
   expect_equal(
     smry$parameters["sd:mu:(1 | id)", "estimate"],
     unname(fit$sdpars$mu[["(1 | id)"]])
