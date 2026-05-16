@@ -926,6 +926,11 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   adding direct-profile `sigma` 95% confidence intervals, and direct constant
   parameter rows no longer print duplicated `minimum` and `maximum` values that
   equal the estimate.
+- Slice 109 translates the visualization landscape into raw-data-plus-model
+  display rules. The model-workflow article now pairs an observed-response
+  scatter plot with separate fitted `mu` and `sigma` surfaces, keeps the
+  prediction table visible, and warns not to place raw response points on
+  `sigma`, `sigma^2`, `rho12`, random-effect SD, or correlation axes.
 - Add additional ggplot-oriented helpers only after the data contract is stable:
   location curves, scale/variance curves, residual `rho12` curves,
   `sd(group)` or `sd_phylo()` surfaces, `corpairs()` summaries, and eventually

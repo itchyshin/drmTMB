@@ -327,12 +327,13 @@ computed.
 The first optional plotting helper consumes that table directly:
 
 ```{r}
+pred_temperature <- predict_parameters(
+  fit,
+  newdata = temperature_grid,
+  dpar = c("mu", "sigma")
+)
+
 if (requireNamespace("ggplot2", quietly = TRUE)) {
-  pred_temperature <- predict_parameters(
-    fit,
-    newdata = temperature_grid,
-    dpar = c("mu", "sigma")
-  )
   plot_parameter_surface(pred_temperature, x = "temperature", colour = "habitat")
 }
 ```
@@ -340,6 +341,59 @@ if (requireNamespace("ggplot2", quietly = TRUE)) {
 The figure is a convenience layer, not a new estimand. Keep reference grids,
 marginalization choices, and interval sources visible instead of hiding those
 decisions inside a plot.
+
+For reports, pair model surfaces with the raw response pattern. The raw-data
+panel uses the observed response scale:
+
+```{r}
+if (requireNamespace("ggplot2", quietly = TRUE)) {
+  ggplot2::ggplot(
+    fish,
+    ggplot2::aes(x = temperature, y = growth, colour = habitat)
+  ) +
+    ggplot2::geom_point(alpha = 0.65) +
+    ggplot2::labs(
+      x = "Temperature",
+      y = "Observed growth",
+      colour = "Habitat"
+    )
+}
+```
+
+The fitted panels then use the prediction table. Keep `mu` and `sigma` on their
+own y-axes because they are different biological quantities:
+
+```{r}
+if (requireNamespace("ggplot2", quietly = TRUE)) {
+  plot_parameter_surface(
+    pred_temperature,
+    x = "temperature",
+    colour = "habitat",
+    dpar = "mu",
+    facet = NULL
+  ) +
+    ggplot2::labs(y = "Fitted mean growth")
+}
+```
+
+```{r}
+if (requireNamespace("ggplot2", quietly = TRUE)) {
+  plot_parameter_surface(
+    pred_temperature,
+    x = "temperature",
+    colour = "habitat",
+    dpar = "sigma",
+    facet = NULL
+  ) +
+    ggplot2::labs(y = "Fitted residual SD")
+}
+```
+
+Do not put raw `growth` points on the `sigma` panel. Raw observations show the
+response; fitted `sigma` shows the residual standard deviation implied by the
+model. If you add interval ribbons later, check the table first and draw them
+only when `interval_source` names a real source such as `"wald"` or
+`"profile"`.
 
 For this Gaussian model, the response-scale `sigma` predictions are residual
 standard deviations. The link-scale predictions are the corresponding

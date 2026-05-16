@@ -106,6 +106,29 @@ Tutorial figures should usually follow this order:
 This order keeps a beginner from reading a polished curve before seeing the
 data and model checks.
 
+### Raw-Data-Plus-Model Example Rules
+
+Slice 109 turns the landscape note into concrete example rules. A reader-facing
+figure should make four objects visible in the prose or code before it becomes
+publication styling:
+
+| Object | Example rule | Why it matters |
+| --- | --- | --- |
+| Scientific question | Name the focal predictor, response, and distributional parameter before drawing. | A `mu` plot, a `sigma` plot, and a `rho12` plot answer different questions. |
+| Raw data | Show observed responses on the observed response scale before or beside fitted `mu` curves. | Readers can see the data support before seeing the model surface. |
+| Prediction table | Build the grid with `prediction_grid()` and the surface with `predict_parameters()` before calling a plot helper. | Conditioning, marginalization, fitted scale, and interval status stay inspectable. |
+| Interpretation status | Report `conf.status`, `interval_source`, and `check_drm()` status in the surrounding workflow. | The plot cannot silently imply intervals or diagnostics that were not computed. |
+
+For now, examples should keep raw observations and fitted distributional
+parameters in separate panels or separate sequential figures. Raw response
+points belong on the observed-response axis; they should not be overplotted on a
+`sigma`, `sigma^2`, `rho12`, random-effect SD, or correlation axis. If an
+example derives residual variance, it should create an explicit `sigma^2`
+column from response-scale `sigma` predictions rather than renaming the fitted
+parameter. If a plot draws a ribbon, interval bar, or shaded region, the source
+table must contain a real interval source instead of
+`interval_source = "not_available"`.
+
 ## Proposed Phase 17 Data Contracts
 
 ### Prediction Grid Builder
