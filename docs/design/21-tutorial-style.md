@@ -41,7 +41,7 @@ The current top-level article groups are:
 - Model Guides: status maps, parameter-scale vocabulary, family choice,
   post-fit workflow, and large-data advice.
 - Tutorials: worked analyses for location-scale, robust continuous responses,
-  bivariate residual `rho12`, meta-analysis, and structured dependence.
+  bivariate residual `rho12`, meta-analysis, and structural dependence.
 - Developer Notes: formula grammar, family implementation, likelihood testing,
   and source-map material.
 

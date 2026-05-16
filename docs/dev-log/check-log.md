@@ -16205,3 +16205,71 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-16-slice-91-structural-dependence-route.md`.
+
+## 2026-05-16 - Slice 92 tutorial maturation gate
+
+Goal: close the local Phase 6e tutorial gate after Slices 89-91, making sure
+source and rendered pages agree on implemented surfaces, planned neighbours,
+diagnostics, and next examples before stopping the slice sequence.
+
+Files changed:
+
+- `ROADMAP.md`
+- `docs/design/00-vision.md`
+- `docs/design/09-phylogenetic-and-spatial-speed.md`
+- `docs/design/21-tutorial-style.md`
+- `docs/design/32-phase-6b-tutorial-source-map.md`
+- `docs/design/37-worked-example-inventory.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-phase/2026-05-16-phase-6e-tutorial-maturation-closure.md`
+
+What changed:
+
+- Marked Slice 92 locally done in `ROADMAP.md`.
+- Replaced stale active-source "structured dependence" wording with
+  "structural dependence".
+- Updated `docs/design/37-worked-example-inventory.md` so Slice 91 is no
+  longer described as a future candidate.
+- Recorded Rodriguez et al. 2023 as a future meta-analysis
+  heterogeneous-heterogeneity parameterization and simulation-design source.
+- Kept the post-gate boundary explicit: no Slice 93 will start until the
+  project owner defines the two large post-gate asks.
+
+Checks run:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH air format ROADMAP.md docs/design/00-vision.md docs/design/09-phylogenetic-and-spatial-speed.md docs/design/21-tutorial-style.md docs/design/32-phase-6b-tutorial-source-map.md docs/design/37-worked-example-inventory.md`:
+  passed.
+- `rg -n 'Structured dependence|Structured-dependence|structured-dependence|structured dependence' README.md NEWS.md ROADMAP.md _pkgdown.yml docs/design vignettes pkgdown-site --glob '!pkgdown-site/search.json' --glob '!docs/dev-log/**'`:
+  found old source labels before cleanup and returned no matches after cleanup.
+- `rg -n 'Slice 91 should|Slice 90 should|Done when a reader can choose|TODO|FIXME|not implemented yet.*implemented|implemented.*not implemented' ROADMAP.md docs/design/37-worked-example-inventory.md README.md NEWS.md vignettes pkgdown-site/articles pkgdown-site/ROADMAP.html pkgdown-site/news/index.html --glob '!pkgdown-site/search.json'`:
+  found stale Slice 91 future wording and old rendered ROADMAP text before
+  cleanup. Source was cleaned, and rendered pages were refreshed with pkgdown.
+- `rg -n 'meta_gaussian|tau ~|rho ~|meta_known_V\\([^V]' README.md NEWS.md ROADMAP.md docs/design vignettes R tests pkgdown-site --glob '!pkgdown-site/search.json'`:
+  found intentional guardrails or historical design references only.
+- `rg -n 'phylogeny-plus-spatial|phylogenetic-plus-spatial|simultaneous \`phylo\\(\\)\` plus \`spatial\\(\\)\`|contains both|multiple structural \`mu\` layers|multiple structured layers' README.md NEWS.md ROADMAP.md docs/design vignettes R tests pkgdown-site --glob '!pkgdown-site/search.json'`:
+  confirmed the planned combined route and the code-side rejection boundary.
+- `pdfinfo "/Users/z3437171/Downloads/Brit J Math Statis - 2023 - Rodriguez - Heterogeneous heterogeneity by default Testing categorical moderators in.pdf"`:
+  confirmed the Rodriguez et al. 2023 source metadata.
+- `pdftotext "/Users/z3437171/Downloads/Brit J Math Statis - 2023 - Rodriguez - Heterogeneous heterogeneity by default Testing categorical moderators in.pdf" - | rg -n -i 'parameter|location|scale|heterogeneous|heterogeneity|simulation|moderator|categorical|variance|tau|log|model|data generating|recommend|default' | head -n 100`:
+  inspected the location-scale meta-analysis parameterization and simulation
+  source enough to record it for later work.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::build_site()'`:
+  passed after the source cleanup.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed with "No problems found."
+- `git diff --check`: passed.
+- Patch-only non-ASCII scan with `LC_ALL=C rg -n '[^\\x00-\\x7F]'`: returned
+  no matches.
+
+Known limitations:
+
+- this is a documentation gate only; no formula grammar, likelihood, TMB,
+  extractor, or test surface changed;
+- Rodriguez et al. 2023 is queued for later meta-analysis/simulation work, not
+  incorporated as a new tutorial or implementation here;
+- the slice sequence should now stop until the project owner gives the two
+  larger post-gate asks.
+
+After-phase report:
+
+- `docs/dev-log/after-phase/2026-05-16-phase-6e-tutorial-maturation-closure.md`.
