@@ -1,6 +1,6 @@
 # drmTMB 0.1.2 (development version)
 
-* The Gaussian location-scale tutorial now includes a response-scale interpretation ladder for fixed mean slopes, residual-SD and residual-variance ratios, random-slope SDs, residual-scale random-slope SDs, and `sd(group)` slopes. The worked growth example also shows `profile_targets(fit_growth)` and a compact fitted translation table so readers can report mean growth, predictability, and among-group variation on the correct scale.
+* The Gaussian location-scale tutorial now includes a response-scale interpretation ladder for fixed mean slopes, residual-SD and residual-variance ratios, random-slope SDs, residual-scale random-slope SDs, and `sd(group)` slopes. It also adds a trait-named parrot beak-length equation block defining `mu`, `sigma`, body mass, forest habitat, and scale coefficients before the worked growth example. The worked growth example shows `profile_targets(fit_growth)` and a compact fitted translation table so readers can report mean growth, predictability, and among-group variation on the correct scale.
 
 # drmTMB 0.1.1 (2026-05-10)
 

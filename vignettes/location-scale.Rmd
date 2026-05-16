@@ -441,6 +441,74 @@ targets an unlabelled random intercept; coefficient-specific syntax such as
 `sd(population, dpar = "mu", coef = "temperature") ~ habitat` is reserved until
 random-slope SD regression has likelihood code and simulation tests.
 
+### Name the biological response before the symbol
+
+When adapting the syntax, replace placeholders such as `y`, `x1`, and `x2`
+with trait names before writing the interpretation. A useful tutorial sentence
+defines the measured response, the covariates, the distributional parameters,
+and the biological meaning of each slope.
+
+For example, the parrot example in the phylogenetic location-scale paper asks
+whether forest habitat changes the average beak length of parrot species, the
+among-species heterogeneity in beak length, or both. Written in the
+non-phylogenetic Gaussian syntax used in this tutorial, the teaching version is:
+
+\[
+\begin{aligned}
+\text{beak\_length}_i
+  &\sim \operatorname{Normal}(\mu_i, \sigma_i^2),\\
+\mu_i
+  &= \beta_0^{(\mu)}
+     + \beta_{\text{mass}}^{(\mu)}\text{body\_mass}_i
+     + \beta_{\text{forest}}^{(\mu)}\text{forest}_i,\\
+\log(\sigma_i)
+  &= \beta_0^{(\sigma)}
+     + \beta_{\text{mass}}^{(\sigma)}\text{body\_mass}_i
+     + \beta_{\text{forest}}^{(\sigma)}\text{forest}_i .
+\end{aligned}
+\]
+
+```r
+drmTMB(
+  bf(beak_length ~ body_mass + forest, sigma ~ body_mass + forest),
+  family = gaussian(),
+  data = parrots
+)
+```
+
+| Quantity | Definition in the parrot example | Biological reading |
+|---|---|---|
+| `beak_length_i` | measured, centred, or log-centred beak length for species `i` | the focal morphological trait |
+| `body_mass_i` | centred log body mass for species `i` | a size covariate, so the beak-length comparison is not just body-size allometry |
+| `forest_i` | habitat indicator for species `i`, commonly 1 for forest-living and 0 for non-forest species | the ecological contrast |
+| `mu_i` | expected beak length for species `i` after conditioning on body mass and habitat | the location, or mean trait value |
+| `sigma_i` | residual standard deviation of beak length for species `i` after conditioning on body mass and habitat | the scale, or remaining among-species heterogeneity |
+| `beta_forest^(mu)` | forest versus non-forest contrast in `mu` | whether forest species have longer or shorter expected beaks |
+| `beta_forest^(sigma)` | forest versus non-forest contrast in `log(sigma)` | whether forest species are more or less heterogeneous in beak length |
+
+Report the scale coefficient on the scale that matches the claim:
+`exp(beta_forest^(sigma))` is the residual-SD ratio for forest versus
+non-forest species, while `exp(2 * beta_forest^(sigma))` is the residual-variance
+ratio. A mean effect and a scale effect are different biological claims. The
+first says forest habitat shifts average beak length; the second says forest
+habitat changes beak-length predictability or evolvability after the mean model
+has been accounted for.
+
+The same naming rule works for behavioural or life-history examples. If the
+response is `aggressiveness` and the predictor is `life_history_pace`, then
+`beta_life_history_pace^(mu)` is the expected change in mean aggressiveness,
+whereas `beta_life_history_pace^(sigma)` is the change in residual
+predictability of aggressiveness. If the location formula also contains
+`(0 + life_history_pace | population)`, the random-slope SD is a third quantity:
+it measures how much populations differ in the life-history slope of
+aggressiveness.
+
+For effect-size synthesis, use the same habit of defining every symbol, but keep
+the teaching path in the separate
+[meta-analysis article](meta-analysis.html). There the known sampling variance
+or covariance is `V`, and the fitted `sigma` model describes extra
+heterogeneity after `V` has been included.
+
 ## Worked example: growth mean and predictability
 
 Suppose an ecologist measures juvenile growth in two habitats and records the

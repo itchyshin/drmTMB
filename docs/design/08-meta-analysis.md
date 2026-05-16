@@ -85,6 +85,61 @@ ordinary predictor column.
 The API should be explicit that vector inputs contain variances. If users have
 standard errors, they should supply squared values.
 
+## Future `meta_V()` Umbrella
+
+This section is a design reservation, not implemented API and not a
+CRAN-blocking requirement for `0.1.2`.
+
+The current additive known-covariance syntax is:
+
+```r
+bf(
+  yi ~ x1 + meta_known_V(V = V),
+  sigma ~ x1
+)
+```
+
+It means that a known sampling-error term enters the marginal covariance
+additively:
+
+```text
+y ~ MVN(mu, V + Omega_estimated)
+```
+
+Future work may introduce a single `meta_V()` keyword that covers this additive
+case and a proportional or multiplicative sampling-variance case. The possible
+spelling is:
+
+```r
+meta_V(value, V = V)
+meta_V(value, w = w, scale = "proportional")
+```
+
+If that lands, `meta_known_V()` should become a deprecated alias for the
+additive known-`V` form, not a second likelihood path.
+
+The proportional case is distinct from ordinary likelihood weights. It would
+model a sampling-error component such as:
+
+```text
+pi_i ~ Normal(0, phi_pi / w_i)
+```
+
+or, for correlated sampling errors, a weighted covariance matrix. This follows
+the unifying-model idea that a weight-like quantity can define a variance
+component, rather than merely multiplying the row log likelihood. Current
+`weights = w` remains a top-level likelihood-weight argument:
+
+```text
+ell(theta) = sum_i w_i ell_i(theta)
+```
+
+Coexistence rule: additive known `V` through `meta_known_V()` or a future
+`meta_V(value, V = V)` should reject non-unit top-level `weights =` until
+joint-block weighting has a separate likelihood design, diagnostics, and tests.
+Likewise, `meta_V(value, w = w, scale = "proportional")` should not be
+implemented as a wrapper around top-level `weights =`.
+
 ## Unknown Heterogeneity
 
 The public API uses `sigma` consistently:
@@ -294,6 +349,9 @@ fitted log likelihood with an independent dense marginal Gaussian likelihood.
   `family = gaussian()`.
 - Do not introduce `tau ~` grammar; document the translation from `sigma` to
   meta-analysis terminology instead.
+- Do not implement `meta_V()` before its additive and proportional branches have
+  a formula-grammar decision, likelihood design, row-alignment tests, and
+  comparator checks. Until then it is a planned umbrella only.
 - Row alignment matters: `V` must be subset in the same way as the response and
   model matrices after missing-data handling. For full matrices, rows and
   columns are subset together.

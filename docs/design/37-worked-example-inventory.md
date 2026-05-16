@@ -38,7 +38,7 @@ The inventory labels below are deliberately conservative:
 | `vignettes/drmTMB.Rmd` | Getting-started orientation | guide, not tutorial | Fits the first Gaussian location-scale model, runs `check_drm()`, and points readers to model guides and tutorials. | Keep short. Do not turn the front door into the main worked example. |
 | `vignettes/model-map.Rmd` | Implemented-versus-planned guide | guide, not tutorial | Stable-core matrix separates fitted surfaces, planned neighbours, and diagnostic or interval status. | Keep as the status map; use it to route unsupported-syntax questions. |
 | `vignettes/model-workflow.Rmd` | Post-fit workflow guide | guide, not tutorial | Shows `check_drm()`, `summary()`, `profile_targets()`, `conf.status`, prediction, residuals, and simulation as a reusable workflow. | Keep as the post-fit checklist; link to it from worked examples when diagnostics appear. |
-| `vignettes/location-scale.Rmd` | Gaussian location-scale tutorial | ready enough | Has model equations, syntax, growth example, `check_drm()`, `profile_targets(fit_growth)`, `summary(fit_growth)`, response-scale translation tables, curved-response example, and caveats. | Keep as the flagship tutorial; future edits should be smaller polish, not a second tutorial inside the same page. |
+| `vignettes/location-scale.Rmd` | Gaussian location-scale tutorial | ready enough | Has model equations, syntax, a trait-named parrot beak-length parameter-definition block, growth example, `check_drm()`, `profile_targets(fit_growth)`, `summary(fit_growth)`, response-scale translation tables, curved-response example, and caveats. | Keep as the flagship tutorial; future edits should be smaller polish, not a second tutorial inside the same page. |
 | `vignettes/which-scale.Rmd` | Scale vocabulary guide with runnable audit snippets | guide, not tutorial | Explains residual `sigma`, random-effect SD, `sd(group)`, likelihood weights, known sampling variance, and residual `rho12`. | Keep as the glossary; cross-link from Slice 90 rather than duplicating the whole scale taxonomy. |
 | `vignettes/bivariate-coscale.Rmd` | Residual `rho12` and bivariate covariance tutorial | ready enough, with a later group-covariance polish need | Has behaviour-coupling equations, fitted bivariate model, `check_drm()`, `summary()`, `rho12()` extraction, a residual-correlation plot, reporting guidance, and a group-level `corpairs()` section. | Leave for now unless Slice 90 frees time; a later polish can give group-level covariance the same response-scale display depth as residual `rho12`. |
 | `vignettes/meta-analysis.Rmd` | Known sampling covariance tutorial | ready enough | Has restoration-effects example, fitted model, `summary()`, `sigma()` reporting table, `check_drm()`, weights warning, and bivariate known-`V` extension. | Keep stable. Later work can add a smaller diagonal-versus-dense covariance decision graphic. |
@@ -90,6 +90,13 @@ feels too long after the top-level map is added.
 
 After Slices 90-91, the next candidates should be chosen one at a time:
 
+- a paper-grounded location-scale meta-analysis polish that keeps
+  `vignettes/meta-analysis.Rmd` as its own article and uses the Global Change
+  Biology location-scale meta-analysis paper plus the distributional-regression
+  meta-analysis manuscript to name known sampling variance, extra
+  heterogeneity, moderators, scale-part biological claims, and the planned
+  `meta_V()` distinction between additive known covariance and proportional
+  sampling variance;
 - a count-abundance example for NB2 or zero-inflated NB2;
 - a beta or beta-binomial proportion example;
 - a compact bivariate group-level covariance example that starts from an
