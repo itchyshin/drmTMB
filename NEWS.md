@@ -14,7 +14,7 @@
   point estimates only, keeps interval provenance columns attached to the data,
   and leaves confidence intervals, EMMs, contrasts, and slope plots for later
   tested helpers.
-* `plot_corpairs()` now provides the first optional `ggplot2` display for explicit `corpairs()` tables. It draws one point per fitted correlation row, adds interval segments only when finite `conf.low` and `conf.high` bounds are present, and keeps correlation `level`, `class`, and display interval status attached to the plotted data.
+* `plot_corpairs()` now provides the first optional `ggplot2` display for explicit `corpairs()` tables. It draws one point per fitted correlation row, adds interval segments only when finite `conf.low` and `conf.high` bounds are present, can facet by a supplied table column such as `level`, and keeps correlation `level`, `class`, and display interval status attached to the plotted data.
 * `plot_parameter_surface()` now labels single-parameter panels with the fitted distributional parameter and prediction scale, such as `sigma estimate (response scale)`, while keeping the generic `Estimate` label when multiple parameters are plotted together.
 * `prediction_grid()` now builds explicit `newdata` grids for
   `predict_parameters()` and `marginal_parameters()`. The first contract
