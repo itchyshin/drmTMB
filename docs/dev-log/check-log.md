@@ -17370,3 +17370,72 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-16-slice-106-summary-parameter-se.md`.
+
+## 2026-05-16 - Slice 107 summary reading guide
+
+Goal: make ordinary `summary()` easier to use as the first post-fit reading
+surface by mapping each summary component to the interpretation question and
+the next extractor.
+
+Roles:
+
+- Ada coordinated the Slice 107 scope, validation, closure notes, and PR path.
+- Pat owned the applied-user reading order.
+- Darwin owned the variance-component example continuity.
+- Emmy owned alignment with the actual `summary.drmTMB` object structure.
+- Boole owned the public `summary()` versus extractor API boundary.
+- Fisher owned confidence-interval and standard-error wording.
+- Grace owned rendering, pkgdown, and reference-page checks.
+- Rose owned stale-wording scans and after-task closure.
+- Gauss and Noether stayed watch-only because no likelihood or symbolic model
+  contract changed.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-16-slice-107-summary-reading-guide.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-16-153143-codex-checkpoint.md`
+- `vignettes/model-workflow.Rmd`
+
+What changed:
+
+- Added a compact summary-reading table to the model-workflow article.
+- The table maps `coefficients`, `parameters`, `covariance`, `derived`, and
+  `confint` to the interpretation task each component supports.
+- The article now points readers from `summary()` to `fixef()`, `sigma()`,
+  `rho12()`, `ranef()`, `corpairs()`, and `profile_targets()` when they need
+  the full object behind a printed row.
+- The compact post-fit checklist now includes `profile_targets(fit)` before
+  profile-likelihood interval requests on fitted SD or correlation targets.
+- NEWS and ROADMAP now record the reader-facing summary closure.
+
+Checks run:
+
+- `air format NEWS.md ROADMAP.md vignettes/model-workflow.Rmd`: passed.
+- `Rscript -e "devtools::load_all(quiet = TRUE); rmarkdown::render('vignettes/model-workflow.Rmd', output_file = tempfile(fileext = '.html'), quiet = TRUE)"`:
+  passed.
+- `Rscript -e "pkgdown::clean_site(); pkgdown::build_site(preview = FALSE)"`:
+  passed.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with "No problems found."
+- `git diff --check`: passed.
+- `rg -n "Read the printed summary as a map|Summary component|coefficients.*parameters.*covariance|sd:mu:\\(1 \\| group\\)|The printed summary is meant to answer|profile_targets\\(fit\\).*before asking" vignettes/model-workflow.Rmd pkgdown-site/articles/model-workflow.html NEWS.md ROADMAP.md`:
+  confirmed source and rendered docs contain the new summary map.
+- `rg -n "credible interval|credible intervals|95% credible|Bayesian credible|posterior|not Bayesian credible|confidence intervals, not Bayesian credible" vignettes/model-workflow.Rmd pkgdown-site/articles/model-workflow.html NEWS.md ROADMAP.md`:
+  found only the intended frequentist confidence-interval wording.
+- `Rscript tools/codex-checkpoint.R --goal "Slice 107 summary reading guide" --next "stage, commit, push, open PR, monitor CI, merge, then start Slice 108 pkgdown reference and plotting inventory"`:
+  passed and wrote
+  `docs/dev-log/recovery-checkpoints/2026-05-16-153143-codex-checkpoint.md`.
+
+Known limitations:
+
+- no R API, TMB, formula grammar, or test files changed;
+- this slice does not add bivariate, phylogenetic, spatial, shape, or
+  zero-inflation summary examples;
+- derived variance-ratio intervals and covariance-product standard errors
+  remain unavailable.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-16-slice-107-summary-reading-guide.md`.
