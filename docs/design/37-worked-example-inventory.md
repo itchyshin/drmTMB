@@ -41,7 +41,7 @@ The inventory labels below are deliberately conservative:
 | `vignettes/location-scale.Rmd` | Gaussian location-scale tutorial | ready enough | Has model equations, syntax, a trait-named parrot beak-length parameter-definition block, growth example, `check_drm()`, `profile_targets(fit_growth)`, `summary(fit_growth)`, response-scale translation tables, curved-response example, and caveats. | Keep as the flagship tutorial; future edits should be smaller polish, not a second tutorial inside the same page. |
 | `vignettes/which-scale.Rmd` | Scale vocabulary guide with runnable audit snippets | guide, not tutorial | Explains residual `sigma`, random-effect SD, `sd(group)`, likelihood weights, known sampling variance, and residual `rho12`. | Keep as the glossary; cross-link from Slice 90 rather than duplicating the whole scale taxonomy. |
 | `vignettes/bivariate-coscale.Rmd` | Residual `rho12` and bivariate covariance tutorial | ready enough, with a later group-covariance polish need | Has behaviour-coupling equations, fitted bivariate model, `check_drm()`, `summary()`, `rho12()` extraction, a residual-correlation plot, reporting guidance, and a group-level `corpairs()` section. | Leave for now unless Slice 90 frees time; a later polish can give group-level covariance the same response-scale display depth as residual `rho12`. |
-| `vignettes/meta-analysis.Rmd` | Known sampling covariance tutorial | ready enough | Has restoration-effects example, fitted model, `summary()`, `sigma()` reporting table, `check_drm()`, weights warning, and bivariate known-`V` extension. | Keep stable. Later work can add a smaller diagonal-versus-dense covariance decision graphic. |
+| `vignettes/meta-analysis.Rmd` | Known sampling covariance tutorial | ready enough, Slice 95 polished | Has restoration-effects example, fitted model, `summary()`, `sigma()` reporting table, categorical heterogeneous-heterogeneity parameter definitions, `check_drm()`, weights warning, future `meta_V()` boundary, and bivariate known-`V` extension. | Keep stable. Later work can add a smaller diagonal-versus-dense covariance decision graphic. |
 | `vignettes/phylogenetic-spatial.Rmd` | Structural-dependence tutorial | split pressure, routed | Has a three-step phylogeny, spatial, and planned phylogeny-plus-spatial route, current-status table, model ladder, phylogenetic examples, q=4 covariance rows, predictor-dependent q=2 phylogenetic `corpair()`, profile-target discussion, coordinate spatial one-slope example, and diagnostics. | Keep the route stable. Do not add runnable simultaneous `phylo()` plus `spatial()` syntax until the fitter supports multiple structural `mu` layers with identifiability checks. |
 | `vignettes/robust-student.Rmd` | Robust continuous-response tutorial | ready enough for a secondary tutorial | Has Student-t equation and syntax, seedling example, `check_drm()`, coefficient interpretation, Gaussian comparison, and boundary text. | Keep as a secondary tutorial; future visualization work can add a residual or tail-weight display. |
 | `vignettes/distribution-families.Rmd` | Family-choice guide | guide, not tutorial | Maps response types to families and explains family-specific public `sigma` meanings. | Keep as a guide. Future count/proportion tutorials should be separate worked examples, not appended here. |
@@ -88,21 +88,33 @@ phylogeny-plus-spatial as the planned third endpoint:
 The third route remains marked planned until simultaneous `phylo()` plus
 `spatial()` models have implementation and identifiability checks.
 
+## Slice 95 Status: Meta-Analysis Source-Map Polish
+
+Slice 95 kept meta-analysis as its own tutorial lane and did not change
+formula grammar, likelihood code, or fitted examples. The useful change is
+interpretive: the meta-analysis tutorial now defines `yi`, `vi`, `V`, `mu`,
+`sigma`, `sd(study)`, and `weights = w` before asking readers to interpret a
+model. It also gives the Rodriguez et al. categorical-moderator
+parameterization directly:
+
+```text
+log(sigma_i) = gamma_0 + gamma_1 forest_i
+sigma_forest / sigma_grassland = exp(gamma_1)
+sigma_forest^2 / sigma_grassland^2 = exp(2 * gamma_1)
+```
+
+That keeps the tutorial aligned with the biological reading from Nakagawa et
+al. (2025): average effects and heterogeneity can respond to different
+moderators. It also keeps the unifying-model distinction visible: current
+`meta_known_V(V = V)` is additive known covariance, top-level `weights = w`
+is ordinary likelihood weighting, and the broader `meta_V()` umbrella remains
+future design only.
+
 ## Later Worked Tutorials
 
-After Slices 90-91, the next candidates should be chosen one at a time:
+After Slices 90-91 and the Slice 95 meta-analysis polish, the next candidates
+should be chosen one at a time:
 
-- a paper-grounded location-scale meta-analysis polish that keeps
-  `vignettes/meta-analysis.Rmd` as its own article and uses the Global Change
-  Biology location-scale meta-analysis paper plus the distributional-regression
-  meta-analysis manuscript to name known sampling variance, extra
-  heterogeneity, moderators, scale-part biological claims, and the planned
-  `meta_V()` distinction between additive known covariance and proportional
-  sampling variance. The Rodriguez et al. heterogeneous-heterogeneity paper
-  should also anchor the alternative parameterization for categorical
-  moderators, where subgroup-specific between-study heterogeneity is the
-  default rather than an afterthought, and its simulations should inform later
-  comparator or teaching simulations;
 - a count-abundance example for NB2 or zero-inflated NB2, using the Methods in
   Ecology and Evolution location-scale paper on heteroscedasticity in
   continuous, count, and proportion data to name realistic count responses

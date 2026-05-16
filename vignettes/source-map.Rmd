@@ -170,6 +170,8 @@ The following neighbouring features are intentionally not implemented as fitted
 models yet:
 
 - mixed composed families such as `c(gaussian(), poisson())`;
+- the future `meta_V()` umbrella, including proportional sampling-variance
+  models such as `meta_V(value, w = w, scale = "proportional")`;
 - bivariate Student-t or bivariate skew-normal families;
 - bivariate random slopes, `rho12` random effects, and cross-parameter
   covariance blocks beyond the currently implemented ordinary and phylogenetic
