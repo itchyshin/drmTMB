@@ -45,6 +45,10 @@ language.
   future `meta_V()` boundary, and Slice 95 source anchors.
 - `rg -n 'meta_V\\(' R tests || true`: returned no matches, confirming no
   implementation was added.
+- PR #55 CI passed on macOS in 6m41s, Ubuntu in 7m38s, and Windows in 8m40s
+  before merge.
+- PR #55 was merged on 2026-05-16 as commit
+  `78160d6c008426454ce7f608f76e9c55439e6650`.
 
 ## Standing Review Notes
 
@@ -70,6 +74,5 @@ not implemented and not CRAN-blocking.
 
 ## Next Actions
 
-1. Open the Slice 95 PR after local review.
-2. Move to Slice 96: a non-Gaussian count example source map, likely NB2 or
+1. Move to Slice 96: a non-Gaussian count example source map, likely NB2 or
    zero-inflated NB2, using the local heteroscedasticity paper.

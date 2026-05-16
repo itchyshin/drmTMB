@@ -54,6 +54,9 @@ Checks run:
 - `rg -n 'meta_gaussian|tau ~|rho ~|meta_known_V\\([^V]' README.md NEWS.md ROADMAP.md docs/design vignettes R tests pkgdown-site --glob '!pkgdown-site/search.json'`:
   returned only intentional guardrails, historical/planned design rows, or
   explanatory text rejecting `meta_gaussian()` and `tau ~`.
+- PR #55 CI passed on macOS in 6m41s, Ubuntu in 7m38s, and Windows in 8m40s.
+- PR #55 was merged on 2026-05-16 as commit
+  `78160d6c008426454ce7f608f76e9c55439e6650`.
 
 Known limitations:
 
