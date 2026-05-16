@@ -448,7 +448,7 @@ Phase 6b should turn the implemented surfaces into a coherent reader path:
 | 63 | Gaussian location-scale polish | Tighten the question, equation, runnable model, fitted output, interpretation, diagnostics, and plot/table guidance. | Done: the Gaussian tutorial now separates fixed mean slopes, fixed residual-scale slopes, random-slope SDs, residual-scale random-slope SDs, and random-effect scale slopes. |
 | 64 | Bivariate coscale polish | Make residual `rho12`, `sigma1`/`sigma2`, response-scale interpretation, and intervals easier to read. | Done: the bivariate tutorial now reads `mu1`, `mu2`, `sigma1`, `sigma2`, and `rho12` slopes as separate biological claims and keeps residual `rho12` distinct from group-level `corpairs()` rows. |
 | 65 | Meta-analysis polish | Clarify `meta_known_V(V = V)`, ordinary weights, residual `sigma`, and unsupported combinations. | Done: the meta-analysis tutorial now names known sampling variance, fitted extra heterogeneity SD, heterogeneity variance, and total observation variance as different report scales. |
-| 66 | Structured-dependence polish | Refine phylogenetic and spatial examples, mesh/coords guidance, citation notes, and fitted-versus-planned status. | Done: the structured-dependence tutorial now gives a six-row q=4 phylogenetic interpretation table and keeps mesh/SPDE, multiple spatial slopes, q=4 extensions, and derived intervals visibly planned. |
+| 66 | Structural-dependence polish | Refine phylogenetic and spatial examples, mesh/coords guidance, citation notes, and fitted-versus-planned status. | Done: the structural-dependence tutorial now gives a six-row q=4 phylogenetic interpretation table and keeps mesh/SPDE, multiple spatial slopes, q=4 extensions, and derived intervals visibly planned. |
 | 67 | Random-effect scale and covariance tutorial | Explain `sd(group)`, `sd(..., level = ...)`, Family A versus Family B, `corpairs()`, and invalid mixed formulations. | Done: the scale guide now explains Family A versus Family B, current `sd_phylo()` naming, the future `sd(..., level = ...)` idea, and invalid mixed formulations. |
 | 68 | Phase 6b gate | Run Pat/Rose tutorial audit, pkgdown build/check, stale-wording scan, NEWS/roadmap updates, PR, and GitHub Actions. | Done locally: pkgdown build/check and stale-claim scans passed; GitHub Actions remains the PR-side gate after push. |
 
@@ -456,7 +456,7 @@ Phase 6b should turn the implemented surfaces into a coherent reader path:
 
 - Tracking issue: [#33](https://github.com/itchyshin/drmTMB/issues/33).
 - Treat Phase 6c as the random-slope bridge between the Phase 6 inference work,
-  the Phase 6b tutorial layer, and the later Phase 10-12 structured-dependence
+  the Phase 6b tutorial layer, and the later Phase 10-12 structural-dependence
   programmes. It does not replace the later bivariate covariance programme; it
   records the slope policy and should implement only the first slope paths that
   have simulation recovery and readable output.
@@ -584,9 +584,9 @@ Phase 6d should be closed as small hardening slices:
 
 | Slice | Goal | Main work | Done when |
 | --- | --- | --- | --- |
-| 89 | Worked-example inventory | Audit the current tutorials and guides against the tutorial contract, then name the next highest-value tutorial slices. | Done: `docs/design/37-worked-example-inventory.md` records which pages are worked tutorials versus guides, names the major gaps, and prioritizes Slice 90 for the flagship location-scale tutorial and Slice 91 for the structured-dependence reader route. |
+| 89 | Worked-example inventory | Audit the current tutorials and guides against the tutorial contract, then name the next highest-value tutorial slices. | Done: `docs/design/37-worked-example-inventory.md` records which pages are worked tutorials versus guides, names the major gaps, and prioritizes Slice 90 for the flagship location-scale tutorial and Slice 91 for the structural-dependence reader route. |
 | 90 | Flagship location-scale tutorial | Deepen `vignettes/location-scale.Rmd` with a compact response-scale table or figure linking mean slopes, residual-scale slopes, random-slope SDs, `sd(group)`, diagnostics, and report-scale interpretation. | Done: the location-scale tutorial now has a response-scale interpretation table, trait-named parrot beak-length equations with parameter definitions, `profile_targets(fit_growth)` gate, fitted growth translation table, and hierarchical interpretation checklist distinguishing `sigma ~ temperature`, `(0 + temperature | population)`, and `sd(population) ~ habitat`. |
-| 91 | Structured-dependence reader route | Add a route through `vignettes/phylogenetic-spatial.Rmd` and make the coordinate-spatial example self-contained without widening structured-effect claims. | Done when a reader can choose between residual `rho12`, phylogenetic `corpairs()`, q=4 covariance rows, predictor-dependent q=2 phylogenetic `corpair()`, and coordinate spatial effects without mistaking planned mesh/SPDE or phylogenetic slopes for implemented features. |
+| 91 | Structural-dependence reader route | Add a phylogeny, spatial, and planned phylogeny-plus-spatial route through `vignettes/phylogenetic-spatial.Rmd` and make the coordinate-spatial example self-contained without widening structural-effect claims. | Done when a reader can choose between phylogenetic `corpairs()`, q=4 phylogenetic covariance rows, predictor-dependent q=2 phylogenetic `corpair()`, coordinate spatial effects, and the planned combined route without mistaking mesh/SPDE, phylogenetic slopes, or simultaneous `phylo()` plus `spatial()` models for implemented features. |
 | 92 | Tutorial maturation gate | Run pkgdown build/check, stale-status scans, Rose audit, and after-phase notes for the Phase 6e tutorial follow-through. | Done when source and rendered pages agree on implemented surfaces, planned neighbours, diagnostics, and next examples. |
 
 ## Phase 7: Robust and Positive Continuous Families
