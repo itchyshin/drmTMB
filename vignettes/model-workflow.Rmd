@@ -192,6 +192,13 @@ interpretation summaries:
 marginal_parameters(fit, newdata = new_fish, dpar = c("mu", "sigma"))
 ```
 
+These helpers are tables, not plotting functions. They are the current Phase 17
+surface for future visualization work: each row names the distributional
+parameter, fitted component, prediction scale, estimate, and grid values. Later
+plotting helpers should consume this table and keep reference grids,
+marginalization choices, and interval sources visible instead of hiding those
+decisions inside a figure.
+
 For this Gaussian model, the response-scale `sigma` predictions are residual
 standard deviations. The link-scale predictions are the corresponding
 log-standard deviations. Report residual variance as `sigma(fit)^2` or

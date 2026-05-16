@@ -867,6 +867,12 @@ remain blocked by future covariance or non-Gaussian random-effect work.
 
 - Status: planned; initial long-format prediction surfaces exist through
   `predict_parameters()` and `marginal_parameters()`.
+- Slice 100 research note:
+  `docs/design/39-visualization-grammar.md` records the external lessons from
+  `ggplot2`, `tidybayes`, `ggdist`, `emmeans`, `ggeffects`,
+  `marginaleffects`, diagnostic plotting packages, and figure-composition
+  tools. It does not add dependencies or claim plotting support; it sharpens
+  the data-first contract for future helpers.
 - Build a coherent visualization layer across all implemented `drmTMB` model
   families rather than one-off plotting functions. The target reader is an
   applied ecology, evolution, or environmental-science user who needs to see
@@ -880,6 +886,10 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   location curves, scale/variance curves, residual `rho12` curves,
   `sd(group)` or `sd_phylo()` surfaces, `corpairs()` summaries, and eventually
   spatial fields or maps.
+- Treat predictions, adjusted predictions, estimated marginal means, contrasts,
+  slopes, and diagnostics as separate estimands. Do not hide reference grids,
+  marginalization rules, weighting choices, or link-versus-response scale
+  decisions inside a plotting call.
 - Every visual interval must state its inference source: Wald fixed-effect
   interval, direct profile-likelihood interval, derived nonlinear interval,
   conditional random-effect uncertainty, or parametric-bootstrap interval.
