@@ -25,6 +25,15 @@ the meta-analytic model estimates. In `drmTMB`, known sampling covariance is
 Throughout this article, `Normal(a, b)` and `MVN(a, B)` use variance or
 covariance as the second argument.
 
+The source logic mirrors recent location-scale meta-analysis papers and notes:
+Nakagawa et al. (2025) frame heterogeneity as a biological and methodological
+response, Yang and Nakagawa's distributional-regression manuscript treats
+location, scale, and shape as modelled distributional parameters, Rodriguez et
+al. (2023) argue that categorical moderators should usually allow unequal
+between-study heterogeneity, and Nakagawa's 2022 unifying note separates
+ordinary row weights from proportional sampling-variance components. The fitted
+syntax below stays inside the currently implemented `drmTMB` surface.
+
 ## The model
 
 For a univariate meta-analysis with independent sampling errors, the model is:
@@ -60,6 +69,20 @@ heterogeneity left after the known sampling variance has been included. In
 meta-analysis papers this extra heterogeneity SD is often written as `tau`;
 `drmTMB` keeps the public parameter name `sigma` so that meta-analysis uses the
 same distributional grammar as other Gaussian models.
+
+Read each symbol before interpreting coefficients:
+
+| Symbol or syntax | Meaning in a meta-analysis | In the restoration example |
+|---|---|---|
+| \(y_i\), `yi` | observed effect size for effect-size row \(i\) | standardized biodiversity response to restoration |
+| \(v_i\), `vi` | known sampling variance for \(y_i\), treated as known before fitting | uncertainty from the primary restoration study |
+| \(\mathbf{V}\), `V` | known sampling covariance matrix when effect sizes are correlated | a dense or block-diagonal covariance matrix for correlated effect sizes |
+| \(\mu_i\), `mu` | expected effect size after location moderators | mean restoration effect for a habitat and duration value |
+| \(\boldsymbol{\beta}_{\mu}\) | location coefficients in the mean model | average forest-grassland and duration contrasts |
+| \(\sigma_i\), `sigma` | fitted extra residual heterogeneity SD after known sampling variance is included | remaining among-effect-size unpredictability |
+| \(\boldsymbol{\beta}_{\sigma}\) | log-SD coefficients for extra heterogeneity | habitat effects on residual heterogeneity, reported as `exp(coef)` SD ratios |
+| `sd(study)` | study-level random-effect SD, when repeated effect sizes are grouped within studies | among-study heterogeneity distinct from residual `sigma` |
+| `weights = w` | ordinary row log-likelihood multiplier | not a substitute for known sampling variance |
 
 For correlated effect sizes, the same idea is written with a full known
 sampling covariance matrix:
@@ -151,6 +174,51 @@ exp(sigma_coef["habitatforest"])
 In this run, forest studies have about `r round(exp(sigma_coef["habitatforest"]), 2)`
 times the extra heterogeneity SD of grassland studies. That multiplier applies
 to `sigma_i`; it does not alter the known sampling variances `vi`.
+
+## Categorical moderators and heterogeneous heterogeneity
+
+Rodriguez et al. (2023) recommend treating unequal between-study heterogeneity
+as the default when testing categorical moderators. In `drmTMB`, the current
+Gaussian meta-analysis route expresses that idea with a `sigma` formula rather
+than a new `tau ~` syntax. For the two-habitat example above,
+
+\[
+\log(\sigma_i) =
+  \gamma_0 + \gamma_1 \operatorname{forest}_i,
+\]
+
+so the fitted extra heterogeneity SDs are
+
+\[
+\sigma_{\mathrm{grassland}} = \exp(\gamma_0),
+\qquad
+\sigma_{\mathrm{forest}} = \exp(\gamma_0 + \gamma_1).
+\]
+
+The scale coefficient \(\gamma_1\) is therefore not another mean effect. It is
+the log ratio of forest to grassland residual heterogeneity SD:
+
+\[
+\frac{\sigma_{\mathrm{forest}}}
+     {\sigma_{\mathrm{grassland}}}
+  = \exp(\gamma_1).
+\]
+
+If the report uses variance-facing meta-analysis language, the corresponding
+extra heterogeneity variance ratio is:
+
+\[
+\frac{\sigma_{\mathrm{forest}}^2}
+     {\sigma_{\mathrm{grassland}}^2}
+  = \exp(2\gamma_1).
+\]
+
+Biologically, the mean forest coefficient asks whether restoration has a larger
+average biodiversity effect in forests. The `sigma` forest coefficient asks a
+different question: are forest restoration effects less predictable across
+studies after known sampling error and duration are accounted for? Those two
+answers can point in the same direction, opposite directions, or only one can be
+important.
 
 It is often helpful to translate fitted values back to the response scale and
 to the variance scale used in many meta-analysis summaries:
@@ -246,11 +314,21 @@ block weighting has a separate design.
 
 A proportional sampling-variance model, for example a term such as
 \(\pi_i \sim \operatorname{Normal}(0, \phi_\pi / w_i)\), is a different model
-again. It is not implemented in `drmTMB` yet and should not be mimicked with the
-top-level `weights =` argument. A future design may introduce a broader
+again. It is not implemented in `drmTMB` yet and should not be mimicked with
+the top-level `weights =` argument. A future design may introduce a broader
 `meta_V()` keyword for both additive known `V` and proportional sampling
-variance, but current fitted examples should use `meta_known_V(V = V)` for
-known sampling covariance and `weights =` only for likelihood weights.
+variance:
+
+```r
+# Future design only; these calls are not implemented.
+meta_V(value, V = V)
+meta_V(value, w = w, scale = "proportional")
+```
+
+If that future API lands, `meta_known_V()` should become a deprecated alias for
+the additive known-`V` form, not a second likelihood path. Current fitted
+examples should use `meta_known_V(V = V)` for known sampling covariance and
+`weights =` only for likelihood weights.
 
 ## Known sampling variance plus group-level heterogeneity
 

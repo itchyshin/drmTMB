@@ -2,6 +2,70 @@
 
 Record meaningful development checks here.
 
+## 2026-05-16 - Slice 95 meta-analysis source-map polish
+
+Goal: resume the example lane after the `0.1.2` release evidence PR by
+polishing the meta-analysis tutorial with paper-grounded equations, exact
+syntax, parameter definitions, biological interpretation, and future-API
+boundaries.
+
+Files changed:
+
+- `ROADMAP.md`
+- `docs/design/08-meta-analysis.md`
+- `docs/design/37-worked-example-inventory.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-16-slice-95-meta-analysis-source-map.md`
+- `vignettes/meta-analysis.Rmd`
+- `vignettes/source-map.Rmd`
+
+What changed:
+
+- Added a source-grounding paragraph in the meta-analysis tutorial using the
+  Global Change Biology location-scale meta-analysis paper, the distributional
+  regression meta-analysis manuscript, Rodriguez et al. 2023, and the local
+  unifying-model note.
+- Added a parameter dictionary for `yi`, `vi`, `V`, `mu`, `sigma`,
+  `sd(study)`, and `weights = w`.
+- Added a categorical heterogeneous-heterogeneity section with
+  `log(sigma_i) = gamma_0 + gamma_1 forest_i`, the SD ratio
+  `exp(gamma_1)`, and the variance ratio `exp(2 * gamma_1)`.
+- Expanded the future `meta_V()` note while keeping it explicitly
+  unimplemented and separate from top-level likelihood weights.
+- Updated the meta-analysis design note, worked-example inventory, source map,
+  and roadmap so the tutorial/source-map layer agrees.
+
+Checks run:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH air format ROADMAP.md docs/design/08-meta-analysis.md docs/design/37-worked-example-inventory.md vignettes/meta-analysis.Rmd vignettes/source-map.Rmd`:
+  passed.
+- `git diff --check`: passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::build_site()'`:
+  passed; rendered `articles/meta-analysis.html`,
+  `articles/source-map.html`, and `ROADMAP.html`.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed with "No problems found."
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::test(filter = "meta")'`:
+  passed with `FAIL 0 | WARN 0 | SKIP 0 | PASS 57`.
+- `rg -n 'Categorical moderators and heterogeneous heterogeneity|sigma_forest / sigma_grassland|Future design only|meta_V\\(value, w = w, scale = "proportional"\\)|Slice 95 Source Anchors|Slice 95 Status' vignettes/meta-analysis.Rmd vignettes/source-map.Rmd docs/design/08-meta-analysis.md docs/design/37-worked-example-inventory.md ROADMAP.md pkgdown-site/articles/meta-analysis.html pkgdown-site/articles/source-map.html pkgdown-site/ROADMAP.html --glob '!pkgdown-site/search.json'`:
+  confirmed source and rendered evidence.
+- `rg -n 'meta_V\\(' R tests || true`: returned no matches, confirming the
+  future `meta_V()` API was not implemented.
+- `rg -n 'meta_gaussian|tau ~|rho ~|meta_known_V\\([^V]' README.md NEWS.md ROADMAP.md docs/design vignettes R tests pkgdown-site --glob '!pkgdown-site/search.json'`:
+  returned only intentional guardrails, historical/planned design rows, or
+  explanatory text rejecting `meta_gaussian()` and `tau ~`.
+
+Known limitations:
+
+- no formula grammar, likelihood, TMB, extractor, or fitted-example API
+  changed;
+- `meta_V()` remains future design only and not CRAN-blocking;
+- the next example slice should be separate from this meta-analysis lane.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-16-slice-95-meta-analysis-source-map.md`.
+
 ## 2026-05-16 - Slice 94 0.1.2 release evidence
 
 Scope:

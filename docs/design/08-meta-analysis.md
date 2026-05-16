@@ -37,6 +37,36 @@ residual covariance belongs in `sigma1`, `sigma2`, and `rho12`. In a model
 where the residual component represents between-study heterogeneity, this
 fitted covariance can be interpreted as between-study residual heterogeneity.
 
+## Slice 95 Source Anchors
+
+This section records the paper and local-note sources used to polish the
+meta-analysis tutorial. It is not a new API claim.
+
+- Nakagawa et al. (2025, Global Change Biology) motivates the core biological
+  question: ecological and evolutionary meta-analyses should model how both the
+  average effect size and the heterogeneity of effect sizes change with
+  environmental, methodological, hierarchical, and phylogenetic moderators.
+- Yang and Nakagawa's distributional-regression meta-analysis manuscript frames
+  random-effects, multilevel, multivariate, location-scale, and robust
+  meta-analysis as special cases of a broader distributional-regression idea:
+  location, scale, and shape parameters can each have predictors.
+- Rodriguez et al. (2023) motivates the categorical-moderator teaching rule:
+  assuming one common between-study variance across moderator levels can distort
+  Type I error and power when group sizes and heterogeneity differ, whereas a
+  mixed-effects location-scale model estimates group-specific heterogeneity.
+  The paper also notes a small-data caution, especially when there are very few
+  studies.
+- `../unifying_model/R/unifying.html` motivates the API boundary between
+  additive known sampling covariance and proportional sampling-variance
+  components. Top-level `weights = w` remains ordinary likelihood weighting;
+  a proportional sampling-error component would instead be a modelled variance
+  term such as `pi_i ~ Normal(0, phi_pi / w_i)`.
+
+The tutorial should therefore keep four objects separate: known sampling
+variance or covariance `V`, residual heterogeneity `sigma`, study-level or
+structured random-effect SDs such as `sd(study)` or `phylo()`, and ordinary
+likelihood weights `weights = w`.
+
 ## Implemented Syntax
 
 ```r
@@ -170,6 +200,21 @@ For full `V`, the likelihood is:
 ```text
 y ~ MVN(mu, V + diag(sigma_i^2))
 ```
+
+For a two-level categorical moderator, the tutorial should define the
+heterogeneous-heterogeneity parameterization explicitly:
+
+```text
+log(sigma_i) = gamma_0 + gamma_1 forest_i
+sigma_grassland = exp(gamma_0)
+sigma_forest = exp(gamma_0 + gamma_1)
+sigma_forest / sigma_grassland = exp(gamma_1)
+sigma_forest^2 / sigma_grassland^2 = exp(2 * gamma_1)
+```
+
+This is the `drmTMB` analogue of subgroup-specific between-study
+heterogeneity. It uses the public `sigma` grammar even when a meta-analysis
+paper would call the same unknown SD `tau`.
 
 ## Bivariate Meta-Analysis
 
