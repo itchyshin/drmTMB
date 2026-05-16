@@ -25,10 +25,13 @@
 #' direct-SD models in univariate Gaussian location formulas, matching
 #' bivariate Gaussian `mu1`/`mu2` location formulas, and matching labelled
 #' bivariate Gaussian `mu1`/`mu2`/`sigma1`/`sigma2` phylogenetic
-#' location-scale blocks,
+#' location-scale blocks, coordinate-based spatial random intercepts and one
+#' numeric coordinate-spatial slope in univariate Gaussian `mu`,
 #' fixed-effect bivariate Gaussian distributional models, and matched labelled
 #' bivariate Gaussian `mu1`/`mu2`, `sigma1`/`sigma2`, and same-response
-#' `mu`/`sigma` random-intercept covariance blocks.
+#' `mu`/`sigma` random-intercept covariance blocks, including the first
+#' all-four q=4 ordinary random-intercept covariance blocks and
+#' predictor-dependent q=2 ordinary or phylogenetic `corpair()` regressions.
 #' Bivariate Gaussian location formulas may be written explicitly as
 #' `mu1 = y1 ~ ...`, `mu2 = y2 ~ ...`, or with `mvbind(y1, y2) ~ ...` shorthand
 #' when both responses share the same location predictors.

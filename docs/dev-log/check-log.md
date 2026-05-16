@@ -15902,3 +15902,45 @@ Known limitations:
 - this was documentation-only;
 - derived intervals, automatic intervals for every covariance summary, and
   recovery from failed or non-monotone profiles remain planned.
+
+## 2026-05-15 -- Reference surface refresh
+
+Goal:
+
+- bring the main `drmTMB()` reference description up to date with the Phase 10-13
+  model surfaces.
+
+Implemented:
+
+- updated the `drmTMB()` roxygen description to mention coordinate-based spatial
+  random intercepts and one numeric coordinate-spatial slope in univariate
+  Gaussian `mu`;
+- added the first all-four q=4 ordinary random-intercept covariance blocks and
+  predictor-dependent q=2 ordinary or phylogenetic `corpair()` regressions to
+  the same reference description;
+- regenerated `man/drmTMB.Rd` with `devtools::document()`;
+- added after-task report
+  `docs/dev-log/after-task/2026-05-15-reference-surface-refresh.md`.
+
+Checks run:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH air format R/drmTMB.R`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::document()'`:
+  passed and wrote `man/drmTMB.Rd`.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::build_site()'`:
+  passed and rendered `reference/drmTMB.html`.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed with no problems found.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::check(error_on = "never", env_vars = c("_R_CHECK_SYSTEM_CLOCK_" = "FALSE"))'`:
+  passed with 0 errors, 0 warnings, and 0 notes in 2m 29.8s.
+- `git diff --check`: passed.
+- `rg -n 'coordinate-based spatial random intercepts and one|all-four q=4 ordinary random-intercept covariance blocks|predictor-dependent q=2 ordinary or phylogenetic' R/drmTMB.R man/drmTMB.Rd pkgdown-site/reference/drmTMB.html --glob '!pkgdown-site/search.json'`:
+  confirmed source, generated Rd, and rendered reference page wording.
+
+Known limitations:
+
+- this was roxygen/reference prose only;
+- mesh/SPDE spatial fields, spatial `sigma`, bivariate spatial covariance,
+  spatial `corpair()`, phylogenetic slopes, predictor-dependent q=4
+  phylogenetic correlations, and broad derived intervals remain planned.
