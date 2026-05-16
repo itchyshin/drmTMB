@@ -53,6 +53,8 @@ docs/*
 !docs/dev-log/**
 !docs/course/
 !docs/course/**
+!docs/agent-kit/
+!docs/agent-kit/**
 pkgdown-site/
 
 # Local benchmark outputs

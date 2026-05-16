@@ -135,6 +135,13 @@ status updates or project notes.
 | Grace | CI, pkgdown, CRAN, and reproducibility engineer | Will this pass on all platforms, deploy cleanly, and avoid compiled-code or dependency risk? |
 | Rose | Systems auditor | What discrepancies, repeated mistakes, stale wording, unsupported claims, and missing feedback loops are accumulating? |
 
+## Team Improvement Loop
+
+When a task exposes a better way for the team to work, record it in
+`docs/dev-log/team-improvements.md`. Low-risk documentation, process, and local
+skill improvements can be implemented immediately. Product, architecture, or
+validation-policy changes need a normal task, evidence, and review.
+
 ## pkgdown Policy
 
 The pkgdown site is a first-class project artifact. User-facing features should
