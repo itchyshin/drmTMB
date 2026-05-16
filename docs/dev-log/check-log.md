@@ -15944,3 +15944,48 @@ Known limitations:
 - mesh/SPDE spatial fields, spatial `sigma`, bivariate spatial covariance,
   spatial `corpair()`, phylogenetic slopes, predictor-dependent q=4
   phylogenetic correlations, and broad derived intervals remain planned.
+
+## 2026-05-16 -- Slices 87-88 PR stack landing and drift scan
+
+Goal:
+
+- land the prerequisite Phase 6 gate, retarget the Phase 10-13 closure PR to
+  `main`, and scan for stale implemented-versus-planned wording before treating
+  the branch as ready.
+
+Implemented:
+
+- merged PR #45, "Close Phase 6 profile inference gate", into `main` with merge
+  commit `18d1dbed77f07bd32910f102b2e829948dd3dea6`;
+- retargeted PR #46, "Close Phase 10-13 foundations", from
+  `codex/slice-60-phase-6-gate` to `main`;
+- marked PR #46 ready for review after the retarget;
+- added after-task report
+  `docs/dev-log/after-task/2026-05-16-slices-87-88-pr-stack-and-drift-scan.md`.
+
+Checks run:
+
+- `gh pr view 45 --repo itchyshin/drmTMB --json number,state,closed,closedAt,mergedAt,mergedBy,mergeCommit,url,title`:
+  confirmed PR #45 is merged into `main`.
+- `gh pr view 46 --repo itchyshin/drmTMB --json number,title,state,isDraft,url,baseRefName,headRefName,mergeStateStatus,statusCheckRollup`:
+  confirmed PR #46 targets `main`, is ready for review, and is merge-clean.
+- `git fetch origin main --prune`: updated local `origin/main`.
+- `git merge-base --is-ancestor 1468cdc47efc16f108153fa2a602729b1b41dd6f origin/main`:
+  passed, confirming the Phase 6 gate commit is now an ancestor of `main`.
+- `gh pr diff 46 --repo itchyshin/drmTMB --name-only`: confirmed the retargeted
+  PR diff contains 75 files from the Phase 10-13 branch.
+- `rg -n 'spatial\(1 \+ x \| site, coords = coords\).*Planned|spatial slopes.*planned|spatial random slopes should stay planned|coordinate-spatial.*not implemented|spatial likelihood is not implemented|phylogenetic slopes.*implemented|phylo\(1 \+ x.*Implemented|q=4.*profile intervals.*implemented|derived covariance intervals.*implemented|direct profile intervals for derived|all Phase 6c.*implemented|mesh/SPDE.*implemented|spatial `sigma`.*implemented|spatial corpair.*implemented|structured `rho12`.*implemented' README.md ROADMAP.md NEWS.md R docs/design docs/dev-log/known-limitations.md vignettes man pkgdown-site --glob '!docs/dev-log/check-log.md' --glob '!docs/dev-log/after-task/**' --glob '!docs/dev-log/after-phase/**' --glob '!docs/dev-log/recovery-checkpoints/**' --glob '!pkgdown-site/search.json' --glob '!pkgdown-site/dev-log/**' --glob '!pkgdown-site/deps/**'`:
+  returned expected planned-boundary wording and no implemented-status
+  contradiction.
+- `rg -n 'Phase 10|Phase 11|Phase 12|Phase 13|coordinate spatial|ordinary bivariate|phylogenetic correlation|derived-summary|interval-status|mesh/SPDE|phylogenetic slopes|structured `rho12`|nonlinear derived intervals' README.md ROADMAP.md NEWS.md vignettes/drmTMB.Rmd vignettes/model-map.Rmd vignettes/phylogenetic-spatial.Rmd vignettes/bivariate-coscale.Rmd vignettes/model-workflow.Rmd docs/design/34-validation-debt-register.md docs/dev-log/known-limitations.md man/drmTMB.Rd man/spatial.Rd`:
+  confirmed the main status surfaces keep fitted foundations and planned
+  neighbours separate.
+- `git diff --check origin/main...HEAD`: passed.
+
+Known limitations:
+
+- this slice did not add model code or tutorial content;
+- the earlier manual workflow-dispatch `R-CMD-check` passed on Ubuntu, macOS,
+  and Windows for the stacked branch, but PR #46 still needs the normal
+  `pull_request` GitHub Actions check against `main` after this trace commit is
+  pushed.
