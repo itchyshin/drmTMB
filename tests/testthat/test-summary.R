@@ -113,6 +113,10 @@ test_that("summary() reports random-effect and correlation parameter tables", {
 
   expect_true("sigma" %in% rownames(smry$parameters))
   expect_true("sd:mu:(1 | id)" %in% rownames(smry$parameters))
+  expect_equal(
+    unname(unlist(smry$parameters["sigma", c("minimum", "maximum")])),
+    c(NA_real_, NA_real_)
+  )
   expect_match(
     printed,
     "Distributional, random-effect, scale, and correlation parameters",
@@ -142,16 +146,25 @@ test_that("summary() reports random-effect and correlation parameter tables", {
   expect_lt(sd_row$conf.low, sd_row$conf.high)
   expect_equal(sd_row$conf.status, "profile")
   expect_equal(profiled$parameters["sigma", "conf.status"], "profile_ready")
-  expect_true(all(is.na(profiled$coefficients$conf.low)))
+  expect_true(all(is.finite(profiled$coefficients$conf.low)))
+  expect_true(all(is.finite(profiled$coefficients$conf.high)))
   expect_equal(
     profiled$coefficients$conf.status,
-    rep("not_requested", nrow(profiled$coefficients))
+    rep("wald", nrow(profiled$coefficients))
+  )
+  expect_equal(
+    profiled$coefficients$conf.method,
+    rep("wald", nrow(profiled$coefficients))
   )
 
   printed_parameters <- drmTMB:::drm_summary_print_parameters(
     profiled$parameters
   )
   expect_true("std_error" %in% names(printed_parameters))
+  expect_equal(
+    intersect(c("minimum", "maximum"), names(printed_parameters)),
+    character()
+  )
   expect_true("conf.status" %in% names(printed_parameters))
 })
 

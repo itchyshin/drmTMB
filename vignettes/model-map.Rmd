@@ -27,6 +27,18 @@ next. The quick rule is: use the worked tutorials for a fitted analysis, use
 the model guides for vocabulary and implemented-versus-planned status, and use
 the reference pages when you already know the function name.
 
+The Reference index is also part of the workflow. Post-fit helpers are grouped
+so that a reader can move from fitted models to summaries, predictions,
+uncertainty, and plots without guessing which functions are user-facing:
+
+| Reference group | Current user-facing functions | Use when... |
+| --- | --- | --- |
+| Model fitting and post-fit tools | `drmTMB()`, `check_drm()`, `summary()`, `confint()`, `profile_targets()`, `prediction_grid()`, `predict_parameters()`, `marginal_parameters()`, `fixef()`, `ranef()`, `sigma()`, `rho12()`, `corpairs()` | You need to fit, check, summarize, predict, or extract fitted quantities. |
+| Visualization | `plot_parameter_surface()` | You already have a `predict_parameters()` table and want an optional `ggplot2` display of fitted point estimates. |
+
+Planned plotting helpers stay out of the Reference index until they are
+exported, documented, tested, and connected to a stable data contract.
+
 | If the scientific phrase is... | It usually maps to... | Start here |
 | --- | --- | --- |
 | average response, expected trait value, or treatment effect | `mu` or `mu1` / `mu2` | [When variance carries signal](location-scale.html) |

@@ -198,19 +198,26 @@ Use the scale of the fitted parameter when deciding what to report:
 | `profile_targets(fit)` | interval target inventory | whether a fitted SD or correlation target can receive a profile interval |
 
 For confidence intervals, keep the fast default summary separate from the
-expensive profile step. Wald intervals are available for fixed effects:
+expensive profile step. Wald 95% confidence intervals are available for fixed
+effects:
 
 ```{r}
 summary(fit, conf.int = TRUE)
 ```
 
-Profile intervals are available for selected direct targets such as constant
-`sigma`, random-effect SDs, random-effect correlations, and constant residual
-`rho12`:
+Profile-likelihood 95% confidence intervals are available for selected direct
+targets such as constant `sigma`, random-effect SDs, random-effect
+correlations, and constant residual `rho12`. Fixed effects keep Wald
+confidence intervals in the same profile summary unless fixed-effect profile
+targets are selected:
 
 ```{r, eval = FALSE}
 summary(fit, conf.int = TRUE, method = "profile", ci_parm = "sigma")
 ```
+
+Use the profile call when a report needs fixed-effect confidence intervals and
+profile-likelihood intervals for variance components, SDs, or correlations in
+one summary.
 
 Use `profile_targets(fit)` before asking for a profile interval. A row is
 profile-ready only when it maps to a direct TMB target and the fitted object

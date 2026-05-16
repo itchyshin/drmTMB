@@ -19,11 +19,13 @@
   supports focal predictors, supplied values, conditioned nuisance predictors,
   mean-reference grids, and empirical counterfactual grids while recording the
   grid rule as metadata.
+* The Reference index now makes the post-fit path explicit: fitting, checking, summaries, predictions, uncertainty, and extractors are grouped under "Model fitting and post-fit tools", while exported plotting helpers appear under "Visualization". The only exported plotting helper is currently `plot_parameter_surface()`.
 * `predict_parameters()` and `marginal_parameters()` now include interval
   provenance columns. The first contract reports `conf.status =
   "not_requested"` and `interval_source = "not_available"` so downstream tables
   and future plots cannot imply confidence intervals that were not computed.
 * `summary()` now reports delta-method standard errors for direct response-scale parameter rows, including constant `sigma`, residual `rho12`, random-effect SDs, and random-effect correlations, when `TMB::sdreport()` succeeds. Descriptive fitted ranges and derived variance ratios keep missing standard errors, and profile-likelihood confidence intervals remain the recommended interval route for fitted SD and correlation targets.
+* `summary()` profile summaries now keep fixed-effect Wald 95% confidence intervals while adding profile-likelihood 95% confidence intervals for selected direct targets such as `sigma`. Printed parameter tables no longer show duplicated `minimum` and `maximum` columns for constant direct parameters where those values equal the estimate.
 * The model-workflow article now includes a compact guide to reading ordinary `summary()` output. The guide maps `coefficients`, `parameters`, `covariance`, `derived`, and `confint` components to the interpretation task and then points readers to `fixef()`, `sigma()`, `rho12()`, `ranef()`, `corpairs()`, and `profile_targets()` when they need more detail.
 * The model-workflow article now shows empirical marginalization with
   `prediction_grid(..., margin = "empirical")` and

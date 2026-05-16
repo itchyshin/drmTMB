@@ -236,6 +236,16 @@ consumes a `predict_parameters()` table, maps one explicit x-axis column to
 `Suggests`. It does not compute intervals, estimated marginal means, contrasts,
 or slopes.
 
+Slice 108 confirms the pkgdown reference-page contract. Exported plotting
+functions belong in the `Visualization` reference section, and only exported,
+documented, tested helpers should appear there. As of Slice 108,
+`plot_parameter_surface()` is the only exported plotting helper. Core post-fit
+tables and extractors, including `summary()`, `confint()`, `profile_targets()`,
+`prediction_grid()`, `predict_parameters()`, `marginal_parameters()`,
+`corpairs()`, `fixef()`, `ranef()`, `sigma()`, and `rho12()`, stay in the
+`Model fitting and post-fit tools` reference section because they are data and
+extraction surfaces rather than plotting helpers.
+
 ## Dependency Policy
 
 Core fitting, prediction, and summary helpers should remain free of plotting

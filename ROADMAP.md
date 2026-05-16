@@ -915,6 +915,17 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   and `confint` report, then points readers to `fixef()`, `sigma()`,
   `rho12()`, `ranef()`, `corpairs()`, and `profile_targets()` when the ordinary
   summary has identified the row they need to inspect further.
+- Slice 108 audits and clarifies the pkgdown Reference index for post-fit and
+  plotting helpers. Fitting, checking, summaries, predictions, uncertainty, and
+  extractors are grouped under "Model fitting and post-fit tools"; exported
+  plotting helpers appear under "Visualization"; and `plot_parameter_surface()`
+  remains the only exported plotting helper until new helpers have data
+  contracts, documentation, and tests.
+- Slice 108 also tightens the `summary()` reference example after reader review:
+  profile summaries keep fixed-effect Wald 95% confidence intervals while
+  adding direct-profile `sigma` 95% confidence intervals, and direct constant
+  parameter rows no longer print duplicated `minimum` and `maximum` values that
+  equal the estimate.
 - Add additional ggplot-oriented helpers only after the data contract is stable:
   location curves, scale/variance curves, residual `rho12` curves,
   `sd(group)` or `sd_phylo()` surfaces, `corpairs()` summaries, and eventually
