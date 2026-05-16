@@ -431,44 +431,48 @@ correlation between activity and boldness increased along the disturbance
 gradient. In biological terms, individuals that were more active than expected
 were also more bold than expected under higher disturbance.
 
-## What this model does not estimate
+## Where residual rho12 stops
 
-This fitted model has no group-level personality or plasticity correlations, no
-phylogenetic correlation, and no spatial field correlation. The first
-bivariate group-level covariance slices are implemented for matching labelled
-random intercepts, such as `(1 | p | ID)` in both `mu1` and `mu2`, or in both
-`sigma1` and `sigma2`. If you need random slopes, cross-parameter covariance,
-phylogenetic covariance, or spatial covariance, fit the nearest implemented
-bivariate or univariate Gaussian random-effect model until those covariance
-blocks are added.
+The fitted model above has no repeated-individual structure. It estimates
+residual coupling: whether two measurements from the same observation are
+closer together or farther apart than expected after modelling their means and
+residual SDs. That is useful, but it is not the same question as whether some
+individuals have consistently high activity and consistently high boldness.
 
 For ecological and evolutionary examples, residual `rho12` can represent
 changing residual coupling between traits such as activity and boldness, body
-size and fecundity, or leaf area and seed number.
+size and fecundity, or leaf area and seed number. A group-level covariance
+block asks a different question: do groups, individuals, species, or sites
+share latent deviations across fitted components?
 
-## Group-level equations
+## Worked example: individual differences
+
+Suppose the same ecologist repeatedly measures each individual and now asks an
+individual-difference question. After accounting for food and disturbance, do
+individuals with higher average activity also tend to have higher average
+boldness?
 
 The first fitted group-level version adds matching labelled random intercepts
-in the mean structure:
+in the mean structure. The shared `p` label creates one covariance block for
+the `mu1` and `mu2` random intercepts:
 
 ```r
 drmTMB(
-  formula = drm_formula(
+  formula = bf(
     mu1 = activity ~ food + disturbance + (1 | p | ID),
     mu2 = boldness ~ food              + (1 | p | ID),
-    sigma1 = ~ food + disturbance,
-    sigma2 = ~ food,
-    rho12 = ~ disturbance
+    sigma1 = ~1,
+    sigma2 = ~1,
+    rho12 = ~1
   ),
-  family = c(gaussian(), gaussian()),
-  data = dat
+  family = biv_gaussian(),
+  data = dat_group
 )
 ```
 
-The shared `p` label creates one group-level covariance block for the
-`mu1` and `mu2` random intercepts. `sigma1` and `sigma2` are residual scale
-parameters; fitted random-intercept SDs are group-level standard deviations in
-`sdpars$mu`, not residual `sigma`.
+Here `sigma1` and `sigma2` are residual scale parameters. The fitted
+random-intercept SDs are group-level standard deviations in `sdpars$mu`, not
+residual `sigma`.
 
 Symbolically, the implemented random-intercept mean part is:
 
@@ -486,22 +490,129 @@ b_{0,2j}
 \end{aligned}
 \]
 
-The covariance matrix `Sigma_mu_ID` would contain group-level standard
+The covariance matrix `Sigma_mu_ID` contains two group-level standard
 deviations and one group-level correlation. That correlation answers whether
-groups with higher average activity also tend to have higher average boldness.
-It is not `rho12_i`. The parameter `rho12_i` remains the observation-level
-residual correlation in `Omega_i`.
+individuals with higher average activity also tend to have higher average
+boldness. It is not `rho12_i`. The parameter `rho12_i` remains the
+observation-level residual correlation in `Omega_i`.
 
-After fitting this grouped model, `corpairs()` keeps the two correlation levels
-separate:
+The small simulation below creates repeated observations from that model:
 
-```r
-corpairs(fit_group, level = "residual")
-corpairs(fit_group, level = "group", group = "ID", block = "p")
+```{r bivariate-coscale-group-simulate}
+set.seed(98)
+n_ID <- 55
+n_each <- 7
+ID <- factor(rep(seq_len(n_ID), each = n_each))
+id_index <- as.integer(ID)
+n <- length(ID)
+
+food <- rnorm(n)
+disturbance <- rnorm(n)
+
+sigma_activity <- 0.35
+sigma_boldness <- 0.45
+sd_activity_ID <- 0.65
+sd_boldness_ID <- 0.65
+rho_ID <- 0.55
+rho_residual <- 0.15
+
+u_activity <- rnorm(n_ID)
+u_boldness <- rho_ID * u_activity + sqrt(1 - rho_ID^2) * rnorm(n_ID)
+
+e_activity <- rnorm(n)
+e_boldness <- rho_residual * e_activity +
+  sqrt(1 - rho_residual^2) * rnorm(n)
+
+dat_group <- data.frame(ID = ID, food = food, disturbance = disturbance)
+dat_group$activity <- 0.25 + 0.45 * food + 0.15 * disturbance +
+  sd_activity_ID * u_activity[id_index] + sigma_activity * e_activity
+dat_group$boldness <- -0.15 + 0.35 * food +
+  sd_boldness_ID * u_boldness[id_index] + sigma_boldness * e_boldness
 ```
 
-The first call returns the residual `rho12` row. The second returns the
-group-level mean-mean row for the labelled `mu1`/`mu2` random-intercept block.
+Fit the grouped model with matching `(1 | p | ID)` terms in the two location
+formulas:
+
+```{r bivariate-coscale-group-fit}
+fit_group <- drmTMB(
+  bf(
+    mu1 = activity ~ food + disturbance + (1 | p | ID),
+    mu2 = boldness ~ food + (1 | p | ID),
+    sigma1 = ~1,
+    sigma2 = ~1,
+    rho12 = ~1
+  ),
+  family = biv_gaussian(),
+  data = dat_group,
+  control = list(eval.max = 500, iter.max = 500)
+)
+```
+
+In a real analysis, inspect every row of `check_drm(fit_group)`. The filtered
+rows below show the convergence and covariance checks most directly tied to
+this individual-difference question:
+
+```{r bivariate-coscale-group-check}
+group_checks <- check_drm(fit_group)
+group_checks[
+  group_checks$check %in% c(
+    "optimizer_convergence",
+    "random_effect_sd_boundary",
+    "rho12_boundary",
+    "biv_mu_random_effect_covariance"
+  ),
+  c("check", "status", "value", "message")
+]
+```
+
+## Reading group-level covariance
+
+`corpairs()` keeps residual and group-level correlations in the same long table
+without giving them the same meaning:
+
+```{r bivariate-coscale-group-corpairs}
+pair_table <- corpairs(fit_group)
+pair_table[
+  ,
+  c(
+    "level", "group", "block", "from_dpar", "to_dpar", "class",
+    "parameter", "estimate", "min", "max", "modelled"
+  )
+]
+```
+
+The residual row is `rho12`: within-observation activity-boldness coupling.
+The group row is the `mu1`/`mu2` random-intercept correlation: among-individual
+covariation in average activity and average boldness.
+
+`summary(fit_group)$covariance` gives the same group-level row with the
+component SDs and covariance on the interpretation scale:
+
+```{r bivariate-coscale-group-covariance-table}
+group_covariance <- summary(fit_group)$covariance
+report_group_covariance <- group_covariance[
+  ,
+  c(
+    "level", "group", "block", "from_response", "to_response", "class",
+    "correlation", "from_sd", "to_sd", "covariance", "from_scale",
+    "to_scale", "covariance_conf.status"
+  )
+]
+numeric_columns <- vapply(report_group_covariance, is.numeric, logical(1))
+report_group_covariance[numeric_columns] <- lapply(
+  report_group_covariance[numeric_columns],
+  round,
+  3
+)
+report_group_covariance
+```
+
+For this mean-mean block, `from_sd` is the among-individual SD in average
+activity and `to_sd` is the among-individual SD in average boldness. The
+`correlation` column is the individual-level activity-boldness correlation,
+and `covariance` is `correlation * from_sd * to_sd`. The `identity` scale
+columns tell you these quantities are on the response-location scale, not on a
+log residual-SD scale.
 
 For this fitted block, `check_drm()` reports whether group levels are
 replicated and whether either group-level SD is tiny relative to the matching
@@ -509,7 +620,22 @@ residual scale. A note there is not a proof that the model is wrong; it tells
 you to inspect whether the group-level SDs and correlation are supported by the
 data before treating them as biological conclusions.
 
-Use `profile_targets(fit)` before requesting profile intervals for this block.
+Use `profile_targets(fit_group)` before requesting profile intervals for this
+block:
+
+```{r bivariate-coscale-group-targets}
+group_targets <- profile_targets(fit_group)
+group_target_names <- c(
+  "sd:mu:mu1:(1 | p | ID)",
+  "sd:mu:mu2:(1 | p | ID)",
+  "cor:mu:cor(mu1:(Intercept),mu2:(Intercept) | p | ID)"
+)
+group_targets[
+  match(group_target_names, group_targets$parm),
+  c("parm", "profile_ready", "profile_note")
+]
+```
+
 The group-level SD targets are named like `sd:mu:mu1:(1 | p | id)` and
 `sd:mu:mu2:(1 | p | id)`, while the group-level correlation target is named
 like `cor:mu:cor(mu1:(Intercept),mu2:(Intercept) | p | id)`. These are
@@ -518,21 +644,24 @@ include `profile.boundary` and `profile.message`; a non-`"ok"` message is a
 prompt to inspect `check_drm(fit)` and the profile path before treating the
 interval as a stable biological estimate.
 
-The middle `p` in `(1 | p | id)` follows grouped covariance-block syntax for
-correlated group-level effects. Labelled one-slope blocks are implemented for
-univariate Gaussian `mu`; bivariate random slopes remain future work. This
-syntax is distinct from residual `rho12`.
+## Boundaries for this covariance layer
 
-In phylogenetic location-scale models, correlations among phylogenetic mean and
-scale effects answer different questions: mean-mean coevolution, scale-scale
-co-divergence, and mean-scale evolutionary constraints. Those are group-level
-covariance summaries. Residual `rho12` is the observation-level
-trait coupling after fitted structured effects have been accounted for.
+The middle `p` in `(1 | p | ID)` follows grouped covariance-block syntax for
+correlated group-level effects. This syntax is distinct from residual `rho12`.
+Use `rho12(fit)` for within-observation residual coupling and
+`corpairs(fit, level = "group")` for fitted ordinary group-level covariance
+rows.
 
-The long-term package should therefore support several correlation levels, not
-only residual correlation. For example, a comparative model could estimate a
-phylogenetic correlation between response-specific evolutionary deviations, a
-non-phylogenetic species correlation after shared ancestry is accounted for,
-and a residual `rho12` within observations. Those quantities should be named
-and extracted separately, for example as `corpars$phylo`,
-`corpars$species`, and `rho12(fit)`.
+This example teaches only the `mu1`/`mu2` random-intercept covariance row.
+Other implemented ordinary bivariate random-intercept rows include
+`sigma1`/`sigma2`, one same-response `mu`/`sigma` pair, and the all-four
+`mu1`/`mu2`/`sigma1`/`sigma2` block. Read the all-four block as six rows: one
+`mu1`-`mu2` row, four mean-scale rows (`mu1`-`sigma1`, `mu1`-`sigma2`,
+`mu2`-`sigma1`, and `mu2`-`sigma2`), and one `sigma1`-`sigma2` row.
+
+Bivariate random slopes, slope1-slope2 plasticity-syndrome correlations,
+random effects in `rho12`, bivariate `meta_known_V()` plus random effects,
+mixed-response families, and ordinary spatial group-level covariance remain
+future work unless a later status map says otherwise. For phylogenetic
+covariance, use the structural-dependence tutorial and keep those rows
+separate from both ordinary group-level covariance and residual `rho12`.

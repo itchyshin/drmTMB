@@ -40,7 +40,7 @@ The inventory labels below are deliberately conservative:
 | `vignettes/model-workflow.Rmd` | Post-fit workflow guide | guide, not tutorial | Shows `check_drm()`, `summary()`, `profile_targets()`, `conf.status`, prediction, residuals, and simulation as a reusable workflow. | Keep as the post-fit checklist; link to it from worked examples when diagnostics appear. |
 | `vignettes/location-scale.Rmd` | Gaussian location-scale tutorial | ready enough | Has model equations, syntax, a trait-named parrot beak-length parameter-definition block, growth example, `check_drm()`, `profile_targets(fit_growth)`, `summary(fit_growth)`, response-scale translation tables, curved-response example, and caveats. | Keep as the flagship tutorial; future edits should be smaller polish, not a second tutorial inside the same page. |
 | `vignettes/which-scale.Rmd` | Scale vocabulary guide with runnable audit snippets | guide, not tutorial | Explains residual `sigma`, random-effect SD, `sd(group)`, likelihood weights, known sampling variance, and residual `rho12`. | Keep as the glossary; cross-link from Slice 90 rather than duplicating the whole scale taxonomy. |
-| `vignettes/bivariate-coscale.Rmd` | Residual `rho12` and bivariate covariance tutorial | ready enough, with a later group-covariance polish need | Has behaviour-coupling equations, fitted bivariate model, `check_drm()`, `summary()`, `rho12()` extraction, a residual-correlation plot, reporting guidance, and a group-level `corpairs()` section. | Leave for now unless Slice 90 frees time; a later polish can give group-level covariance the same response-scale display depth as residual `rho12`. |
+| `vignettes/bivariate-coscale.Rmd` | Residual `rho12` and bivariate covariance tutorial | ready enough, Slice 98 polished | Has behaviour-coupling equations, fitted bivariate residual model, `check_drm()`, `summary()`, `rho12()` extraction, a residual-correlation plot, reporting guidance, and a fitted individual-difference `mu1`/`mu2` group-level covariance example with `corpairs()` and `summary(fit)$covariance` tables. | Keep residual and group-level correlation layers separate; future edits should not turn this page into the full random-slope or q=4 covariance tutorial. |
 | `vignettes/meta-analysis.Rmd` | Known sampling covariance tutorial | ready enough, Slice 95 polished | Has restoration-effects example, fitted model, `summary()`, `sigma()` reporting table, categorical heterogeneous-heterogeneity parameter definitions, `check_drm()`, weights warning, future `meta_V()` boundary, and bivariate known-`V` extension. | Keep stable. Later work can add a smaller diagonal-versus-dense covariance decision graphic. |
 | `vignettes/phylogenetic-spatial.Rmd` | Structural-dependence tutorial | split pressure, routed | Has a three-step phylogeny, spatial, and planned phylogeny-plus-spatial route, current-status table, model ladder, phylogenetic examples, q=4 covariance rows, predictor-dependent q=2 phylogenetic `corpair()`, profile-target discussion, coordinate spatial one-slope example, and diagnostics. | Keep the route stable. Do not add runnable simultaneous `phylo()` plus `spatial()` syntax until the fitter supports multiple structural `mu` layers with identifiability checks. |
 | `vignettes/robust-student.Rmd` | Robust continuous-response tutorial | ready enough for a secondary tutorial | Has Student-t equation and syntax, seedling example, `check_drm()`, coefficient interpretation, Gaussian comparison, and boundary text. | Keep as a secondary tutorial; future visualization work can add a residual or tail-weight display. |
@@ -166,14 +166,47 @@ continuous proportions. The tutorial does not teach random effects,
 zero-one-inflated beta, ordered beta, beta-binomial zero inflation, or
 `successes / trials` denominator shorthand as runnable syntax.
 
+## Slice 98 Status: Bivariate Group-Level Covariance Polish
+
+Slice 98 kept `vignettes/bivariate-coscale.Rmd` as one article and filled the
+thin group-level covariance part rather than creating a new page. The residual
+`rho12` example remains the first lesson, but the article now also fits a
+repeated-individual example:
+
+```text
+mu1 = activity ~ food + disturbance + (1 | p | ID)
+mu2 = boldness ~ food + (1 | p | ID)
+sigma1 = ~1
+sigma2 = ~1
+rho12 = ~1
+```
+
+The individual-difference section now teaches:
+
+- residual `rho12` as within-observation activity-boldness coupling;
+- the group-level `mu1`/`mu2` random-intercept correlation as
+  among-individual covariance in average activity and average boldness;
+- `check_drm()` rows for convergence, random-effect SDs, residual-correlation
+  boundaries, and bivariate `mu` covariance replication;
+- `corpairs(fit_group)` as the table that keeps residual and group-level rows
+  separate;
+- `summary(fit_group)$covariance` as the report-scale table with component
+  SDs, correlation, covariance, and scale labels;
+- `profile_targets(fit_group)` as the interval-readiness gate.
+
+The example stays inside the implemented ordinary bivariate Gaussian
+random-intercept surface. It does not teach bivariate random slopes,
+slope1-slope2 plasticity-syndrome correlations, random effects in `rho12`,
+bivariate `meta_known_V()` plus random effects, mixed-response families, or
+ordinary spatial group-level covariance as fitted syntax.
+
 ## Later Worked Tutorials
 
 After Slices 90-91, the Slice 95 meta-analysis polish, the Slice 96 count NB2
-tutorial, and the Slice 97 proportion tutorial, the next candidates should be
-chosen one at a time:
+tutorial, the Slice 97 proportion tutorial, and the Slice 98 bivariate
+group-level covariance polish, the next candidates should be chosen one at a
+time:
 
-- a compact bivariate group-level covariance example that starts from an
-  individual-difference biological question;
 - a large-data benchmark article only after Phase 14 adds benchmark-backed
   evidence.
 

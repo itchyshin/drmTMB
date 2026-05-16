@@ -121,6 +121,7 @@ syntax, fitted output, and interpretation.
 | Do counts show extra-Poisson variation or structural zeros? | [Count abundance and extra zeros](count-nbinom2.html) | NB2 `mu`, `sigma`, `zi` |
 | Are proportions successes out of trials or continuous rates inside `(0, 1)`? | [Proportions and success rates](proportion-beta-binomial.html) | beta and beta-binomial `mu`, `sigma` |
 | Does a predictor change residual coupling between two responses? | [Changing residual coupling with rho12](bivariate-coscale.html) | `rho12` |
+| Do repeated individuals have correlated average responses after accounting for residual coupling? | [Changing residual coupling with rho12](bivariate-coscale.html) | `corpairs(level = "group")` |
 | Do effect sizes have known sampling variances or covariance? | [Mean effects and residual heterogeneity in meta-analysis](meta-analysis.html) | `meta_known_V(V = V)`, `sigma` |
 | Do group or phylogenetic covariance rows answer a bivariate question beyond residual coupling? | [What can I fit today?](model-map.html) | `corpairs()`, `corpair()`, `sd_phylo*()` |
 | Do species trait means remain similar after accounting for shared ancestry, or do sites share coordinate-structured deviations? | [Structural dependence](phylogenetic-spatial.html) | `phylo()`, `spatial()` |
