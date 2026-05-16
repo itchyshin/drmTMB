@@ -249,6 +249,32 @@ plot_diagnostics()        # planned
 plot_simulation_summary() # planned
 ```
 
+### `corpairs()` Plotting Preflight
+
+Slice 112 records the minimum contract before `plot_corpairs()` becomes an
+exported helper. Correlation displays are scientifically dense because residual
+`rho12`, ordinary group-level correlations, phylogenetic correlations, spatial
+correlations, and q=4 mean-scale correlations are different layers. A plot
+helper should therefore consume an explicit `corpairs()` table rather than call
+fitting internals or guess which layer the reader wants.
+
+The future helper should satisfy these rules before export:
+
+- accept a `corpairs()` data frame as the primary input;
+- require visible columns for `level`, `class`, `parameter`, `estimate`,
+  `modelled`, and, when intervals are requested, `conf.status`;
+- add a display status such as `not_requested` when a plain `corpairs(fit)`
+  table lacks interval columns, instead of implying that intervals were checked;
+- draw point estimates for all rows but draw interval segments only when
+  `conf.low` and `conf.high` are finite;
+- label or facet by `level` so residual, ordinary group-level, phylogenetic,
+  spatial, and future study-level correlations are not visually collapsed;
+- keep derived q=4 or covariance-product rows visibly separate from direct
+  profile-ready correlation targets;
+- cover empty tables, residual `rho12`, ordinary group-level rows,
+  phylogenetic rows, derived-unavailable statuses, and missing `ggplot2` in
+  tests before adding the helper to `_pkgdown.yml`.
+
 Only `plot_parameter_surface()` is currently implemented. The remaining names
 are design placeholders and should not be exported until their data contracts
 and optional dependency policy are settled.

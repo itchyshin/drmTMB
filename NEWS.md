@@ -22,6 +22,7 @@
   grid rule as metadata.
 * The Reference index now makes the post-fit path explicit: fitting, checking, summaries, predictions, uncertainty, and extractors are grouped under "Model fitting and post-fit tools", while exported plotting helpers appear under "Visualization". The only exported plotting helper is currently `plot_parameter_surface()`.
 * The model-map article now includes a Phase 17 visualization decision table that routes raw responses, fitted parameter surfaces, empirical marginal summaries, correlations, interval tables, and diagnostics to the current data helpers before readers choose a plotting style.
+* `docs/design/39-visualization-grammar.md` now records the preflight contract for a future `plot_corpairs()` helper: consume explicit `corpairs()` tables, keep correlation levels/classes visible, draw intervals only from finite confidence bounds, and test residual, ordinary group-level, phylogenetic, derived-unavailable, empty-table, and missing-`ggplot2` cases before export.
 * `predict_parameters()` and `marginal_parameters()` now include interval
   provenance columns. The first contract reports `conf.status =
   "not_requested"` and `interval_source = "not_available"` so downstream tables
