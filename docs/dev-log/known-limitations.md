@@ -28,7 +28,10 @@
   but rejected by `drmTMB()` until random-slope SD regression has a covariance
   model and tests.
 - Diagonal and dense full known-covariance Gaussian meta-analysis is
-  implemented.
+  implemented. Full-matrix `meta_known_V(V = V)` currently stores the retained
+  covariance as a dense R matrix; `check_drm()` reports that row as a note with
+  dimension, density, size, rank, and conditioning because dense `V` is a
+  small-to-moderate route until sparse or block-sparse storage exists.
 - Sparse fixed-effect matrices are implemented only for the first univariate
   Gaussian `mu` path through `drm_control(sparse_fixed = TRUE)`. The model must
   have fixed effects only, intercept-only `sigma`, no known covariance, no
@@ -58,13 +61,13 @@
   phylogenetic correlations, and spatial q=4 blocks are still planned;
   residual `rho12` should not be interpreted as a phylogenetic, spatial, or
   group-level covariance parameter.
-- Future phylogenetic and spatial random slopes should be staged as one
-  structured `mu` slope first and at most two structured `mu` slopes as the
-  near-term advanced path. Multiple random factors should be separate additive
-  blocks, not one enlarged cross-factor covariance model. Intercept-slope
-  `corpair()` rows are not a near-term target; a later coefficient-aware
-  `corpair()` design may target the bivariate slope1-slope2
-  plasticity-syndrome case for the same covariate across responses.
+- Phylogenetic random slopes and richer spatial random slopes should stay staged
+  behind recovery evidence. The first coordinate-spatial `mu` slope is fitted as
+  independent intercept and slope fields with no intercept-slope `corpair()`
+  row. Multiple random factors should be separate additive blocks, not one
+  enlarged cross-factor covariance model. A later coefficient-aware `corpair()`
+  design may target the bivariate slope1-slope2 plasticity-syndrome case for
+  the same covariate across responses.
 - Matching intercept-only `phylo(1 | species, tree = tree)` terms are fitted
   in bivariate Gaussian `mu1` and `mu2` formulas. This first phylogenetic
   bivariate slice estimates two phylogenetic location SDs and one phylogenetic
@@ -192,18 +195,17 @@
   as `phylo(1 | species, tree = tree)`. The tree must be an ultrametric
   `phylo` object with positive branch lengths, and every observed species must
   match a tip label.
-- Structured-effect markers outside that first path, such as
+- Structured-effect markers outside the fitted paths, such as
   `phylo(1 + x | species, tree = tree)`, phylogenetic terms in `sigma`, and
   `spatial(1 | site, mesh = mesh)`, are parsed and rejected clearly, but they
-  are not yet routed into fitted likelihoods. The first coordinate-based
-  spatial path, `spatial(1 | site, coords = coords)`, is fitted only for
-  univariate Gaussian `mu` and uses a fixed coordinate covariance foundation.
-  It is not the scalable mesh/SPDE route. The mesh/SPDE design gate is recorded
-  in `docs/design/09-phylogenetic-and-spatial-speed.md`, but spatial slopes,
-  spatial `sigma`, bivariate spatial q=4 blocks, and spatial `corpair()`
-  regressions remain planned. The reserved slope path is one structured `mu`
-  slope first, then at most two structured `mu` slopes after simulation
-  recovery.
+  are not yet routed into fitted likelihoods. The coordinate-based spatial
+  paths, `spatial(1 | site, coords = coords)` and
+  `spatial(1 + x | site, coords = coords)`, are fitted only for univariate
+  Gaussian `mu` and use a fixed coordinate covariance foundation. They are not
+  the scalable mesh/SPDE route. The mesh/SPDE design gate is recorded in
+  `docs/design/09-phylogenetic-and-spatial-speed.md`, while spatial `sigma`,
+  bivariate spatial q=4 blocks, spatial slope correlations, and spatial
+  `corpair()` regressions remain planned.
 - Internal phylogenetic tree validation, dense Brownian covariance comparators,
   sparse augmented Brownian precision helpers, pure-R prior checks, hidden TMB
   prior parity checks, and fitted univariate Gaussian `mu` simulation tests now
@@ -248,10 +250,10 @@
 - Users should not substitute `sigma ~ x + (1 | id)` for `sd(id) ~ x_group`
   unless their scientific question is residual variability rather than
   among-group variation in the mean model.
-- Sparse known sampling covariance for large meta-analysis and spatial
-  workloads is planned but not yet implemented. The first sparse phylogenetic
-  routes are implemented for univariate Gaussian `mu` random intercepts and
-  matching bivariate Gaussian `mu1`/`mu2` random intercepts.
+- Sparse or block-sparse known sampling covariance for large meta-analysis and
+  spatial workloads is planned but not yet implemented. The first sparse
+  phylogenetic routes are implemented for univariate Gaussian `mu` random
+  intercepts and matching bivariate Gaussian `mu1`/`mu2` random intercepts.
 - `weights =` is implemented as ordinary likelihood weights: one
   non-negative finite weight per observation for univariate models, and one
   weight per complete response pair for bivariate models. Known sampling

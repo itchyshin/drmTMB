@@ -6,13 +6,15 @@
 #' effects, or bivariate residual correlation `rho12`.
 #'
 #' The current checks cover optimizer convergence, finite objective values,
-#' optimizer evaluation counts, fixed-parameter gradients, Hessian status from
+#' optimizer evaluation counts, fixed-parameter gradients, whether
+#' [TMB::sdreport()] was computed, skipped, or failed, Hessian status from
 #' [TMB::sdreport()], finite fixed-effect standard errors, dropped rows,
 #' positive scale parameters, random-effect standard deviations near the lower
 #' boundary, bivariate residual-correlation `rho12` values near the boundary,
-#' Student-t `nu` boundary behaviour, known sampling covariance summaries, dense
-#' fixed-effect design size and density, random-effect replication, and
-#' random-slope design variation. If a univariate Gaussian fit includes a
+#' Student-t `nu` boundary behaviour, known sampling covariance summaries,
+#' dense known-covariance storage scale, dense fixed-effect design size and
+#' density, random-effect replication, and random-slope design variation. If a
+#' univariate Gaussian fit includes a
 #' matched labelled
 #' `mu`/`sigma` random-intercept covariance block, `check_drm()` also reports
 #' group replication and whether either component is tiny relative to its
@@ -45,7 +47,10 @@
 #' stored with
 #' `drm_control(keep_tmb_object = FALSE)`, the
 #' fixed-gradient check is reported as a note because the TMB
-#' automatic-differentiation object is not available.
+#' automatic-differentiation object is not available. If a fit used
+#' `drm_control(se = FALSE)`, the `sdreport_status`, Hessian, and
+#' finite-standard-error checks are reported as notes. If `sdreport()` was
+#' requested but failed, those rows are warnings.
 #'
 #' Use `check_drm()` before interpreting coefficients, fitted values, or
 #' response-scale quantities. A `note` records something to inspect, such as
@@ -102,6 +107,7 @@ check_drm.drmTMB <- function(
     check_optimizer_budget(object),
     check_finite_objective(object),
     check_fixed_gradient(object, gradient_tolerance = gradient_tolerance),
+    check_sdreport_status(object),
     check_hessian(object),
     check_standard_errors_finite(object),
     check_dropped_rows(object),
@@ -337,6 +343,17 @@ check_fixed_gradient <- function(object, gradient_tolerance) {
 }
 
 check_hessian <- function(object) {
+  if (is.null(object$sdr)) {
+    return(check_row(
+      "hessian_positive_definite",
+      drm_uncertainty_check_status(object),
+      NA_character_,
+      paste(
+        "Hessian status is unavailable because",
+        drm_uncertainty_message(object)
+      )
+    ))
+  }
   pd_hess <- isTRUE(object$sdr$pdHess)
   check_row(
     "hessian_positive_definite",
@@ -350,12 +367,28 @@ check_hessian <- function(object) {
   )
 }
 
+check_sdreport_status <- function(object) {
+  status <- drm_uncertainty_status(object)
+  check_row(
+    "sdreport_status",
+    switch(
+      status,
+      ok = "ok",
+      skipped = "note",
+      failed = "warning",
+      "warning"
+    ),
+    status,
+    drm_uncertainty_message(object)
+  )
+}
+
 check_standard_errors_finite <- function(object) {
   vcov <- tryCatch(stats::vcov(object), error = function(e) e)
   if (inherits(vcov, "error")) {
     return(check_row(
       "standard_errors_finite",
-      "warning",
+      drm_uncertainty_check_status(object),
       NA_character_,
       paste(
         "Could not extract fixed-effect standard errors:",
@@ -613,8 +646,9 @@ check_known_v <- function(object) {
   known_diag <- known_v_diag(object)
   ok <- all(is.finite(known_diag)) && all(known_diag >= 0)
   if (identical(known_type, "matrix")) {
+    V <- object$model$V_known
     eig <- eigen(
-      (object$model$V_known + t(object$model$V_known)) / 2,
+      (V + t(V)) / 2,
       symmetric = TRUE,
       only.values = TRUE
     )$values
@@ -626,12 +660,11 @@ check_known_v <- function(object) {
     } else {
       max(positive_eig) / min(positive_eig)
     }
+    storage <- known_v_dense_storage_summary(V)
     status <- if (!ok) {
       "error"
-    } else if (rank < length(eig) || condition > 1e8) {
-      "note"
     } else {
-      "ok"
+      "note"
     }
     return(check_row(
       "known_sampling_covariance",
@@ -639,17 +672,32 @@ check_known_v <- function(object) {
       paste0(
         "type=matrix; n=",
         length(eig),
+        "; storage=dense; density=",
+        format_check_number(storage$density),
+        "; size_mb=",
+        format_check_number(storage$size_mb),
         "; rank=",
         rank,
         "; cond=",
         format_check_number(condition)
       ),
-      if (identical(status, "note")) {
-        "Known sampling covariance is recorded; inspect rank or conditioning if estimates are unstable."
-      } else if (identical(status, "ok")) {
-        "Known sampling covariance is recorded as a dense matrix with finite non-negative diagonal."
-      } else {
+      if (identical(status, "error")) {
         "Known sampling covariance has a non-finite or negative diagonal entry."
+      } else if (rank < length(eig) || condition > 1e8) {
+        paste(
+          "Known sampling covariance is recorded as a dense matrix;",
+          "inspect rank or conditioning if estimates are unstable, and treat dense V as small-to-moderate until sparse or block-sparse storage is implemented."
+        )
+      } else if (storage$density <= 0.25) {
+        paste(
+          "Known sampling covariance is recorded as a dense matrix with many zero entries;",
+          "large block-structured V will need sparse or block-sparse storage before being treated as scalable."
+        )
+      } else {
+        paste(
+          "Known sampling covariance is recorded as a dense matrix with finite non-negative diagonal;",
+          "treat this as a small-to-moderate path until sparse or block-sparse storage has benchmark evidence."
+        )
       }
     ))
   }
@@ -672,6 +720,16 @@ check_known_v <- function(object) {
     } else {
       "Known sampling variances contain non-finite or negative values."
     }
+  )
+}
+
+known_v_dense_storage_summary <- function(V) {
+  entries <- length(V)
+  nonzero <- sum(!is.na(V) & V != 0)
+  list(
+    nonzero = nonzero,
+    density = if (entries == 0L) NA_real_ else nonzero / entries,
+    size_mb = as.numeric(utils::object.size(V)) / 1024^2
   )
 }
 
@@ -1862,20 +1920,48 @@ check_spatial_mu_diagnostics <- function(object) {
   weak_replication <- is.finite(min_count) && min_count < 2L
 
   sd_label <- phylo_mu_sd_labels(spatial_mu, object$model$model_type)
-  sd_value <- unname(object$sdpars$mu[match(sd_label, names(object$sdpars$mu))])
-  finite_positive_sd <- length(sd_value) == 1L &&
-    is.finite(sd_value) &&
-    sd_value > 0
+  sd_values <- unname(object$sdpars$mu[match(
+    sd_label,
+    names(object$sdpars$mu)
+  )])
+  finite_positive_sd <- length(sd_values) == length(sd_label) &&
+    all(is.finite(sd_values)) &&
+    all(sd_values > 0)
 
   residual_scale <- spatial_mu_residual_scale(object)
-  sd_ratio <- if (finite_positive_sd && is.finite(residual_scale)) {
-    sd_value / residual_scale
+  sd_ratios <- if (finite_positive_sd && is.finite(residual_scale)) {
+    sd_values / residual_scale
   } else {
     NA_real_
   }
-  weak_sd <- !finite_positive_sd || (is.finite(sd_ratio) && sd_ratio < 0.05)
+  finite_sd_ratios <- sd_ratios[is.finite(sd_ratios)]
+  min_sd <- if (finite_positive_sd) min(sd_values) else NA_real_
+  min_sd_ratio <- if (length(finite_sd_ratios) > 0L) {
+    min(finite_sd_ratios)
+  } else {
+    NA_real_
+  }
+  weak_sd <- !finite_positive_sd ||
+    any(finite_sd_ratios < 0.05)
 
   coord_range <- spatial_mu$precision$range
+  sd_text <- if (length(sd_label) == 1L) {
+    paste0(
+      "; spatial_sd=",
+      format_check_number(sd_values),
+      "; sd_ratio=",
+      format_check_number(sd_ratios)
+    )
+  } else {
+    paste0(
+      "; n_coef=",
+      length(sd_label),
+      "; min_spatial_sd=",
+      format_check_number(min_sd),
+      "; min_sd_ratio=",
+      format_check_number(min_sd_ratio)
+    )
+  }
   check_row(
     "spatial_mu_diagnostics",
     if (!finite_positive_sd) {
@@ -1894,10 +1980,7 @@ check_spatial_mu_diagnostics <- function(object) {
       min_count,
       "; coord_range=",
       format_check_number(coord_range),
-      "; spatial_sd=",
-      format_check_number(sd_value),
-      "; sd_ratio=",
-      format_check_number(sd_ratio)
+      sd_text
     ),
     spatial_mu_diagnostic_message(
       finite_positive_sd,

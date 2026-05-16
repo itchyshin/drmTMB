@@ -3,6 +3,11 @@
 Random effects are implemented after fixed-effect likelihoods are tested, but
 the grammar must support them from the start.
 
+The Phase 6c core source map is
+`docs/design/33-phase-6c-core-random-effects.md`. It records the ordinary
+random-intercept and one-slope foundation that later bivariate, phylogenetic,
+spatial, and derived-inference phases should build on.
+
 ## Order of Implementation
 
 1. No random effects.
@@ -81,7 +86,8 @@ bf(
 ```
 
 The fitted group-level intercept-slope correlation is reported under
-`corpars$mu`. It is not residual `rho12`.
+`corpars$mu` and as a `mean-slope` row from `corpairs(level = "group")`.
+It is not residual `rho12`.
 
 The same block can carry a covariance-block label:
 
@@ -266,13 +272,13 @@ does not put random effects inside the residual `sigma` model.
 
 The middle label `p` identifies a group-level covariance block. In the
 univariate Gaussian `mu` implementation, the label is retained in output names.
-In the first bivariate Gaussian covariance slice, matching `(1 | p | id)` terms
-in `mu1` and `mu2` estimate one constant group-level random-intercept
-correlation. Later implementations should allow the same label in more
-parameter formulas, for example in `mu` and `sigma`, to estimate constant
-correlations among those group-level effects. These are the correlations used
-in double-hierarchical models of individual averages, mean-model slopes,
-residual scale, and scale-model slopes.
+In the bivariate Gaussian covariance foundation, matching `(1 | p | id)` terms
+can estimate constant group-level random-intercept correlations for
+`mu1`/`mu2`, `sigma1`/`sigma2`, one same-response `mu`/`sigma` pair, or the
+intercept-only all-four block across `mu1`, `mu2`, `sigma1`, and `sigma2`.
+These are the correlations used in double-hierarchical models of individual
+averages and residual scale. Mean-model slopes, scale-model slopes, and
+coefficient-aware slope-pair `corpair()` regressions remain planned.
 
 Residual `rho12 ~` is separate and belongs to bivariate response likelihoods.
 It models the residual coupling between two responses after their location and

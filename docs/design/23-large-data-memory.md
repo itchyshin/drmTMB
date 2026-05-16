@@ -40,6 +40,9 @@ of 5 million-row objects before TMB starts optimizing.
    observation scale unless the user asks for them.
 6. Benchmark scale-up explicitly; do not infer million-row performance from
    small simulation tests.
+7. Treat dense known sampling covariance as a small-to-moderate path until
+   sparse or block-sparse `V` storage has direct implementation and benchmark
+   evidence.
 
 ## User Controls
 
@@ -55,6 +58,7 @@ fit <- drmTMB(
   family = gaussian(),
   data = dat,
   control = drm_control(
+    se = FALSE,
     keep_data = FALSE,
     keep_model_frame = FALSE,
     keep_tmb_object = FALSE,
@@ -65,6 +69,14 @@ fit <- drmTMB(
 
 The implemented first slice means:
 
+- `se = FALSE`: skip `TMB::sdreport()` after optimization. The fit keeps
+  coefficients, fitted values, residuals, prediction, simulation,
+  log-likelihood, and profile-likelihood routes that only need `fit$obj`, but
+  `vcov()`, Wald standard errors, and Wald confidence intervals are
+  unavailable. `summary()` reports `NA` standard errors with
+  `std_error.status = "sdreport_skipped"`, and `check_drm()` records the
+  `sdreport_status`, Hessian, and standard-error rows as notes rather than
+  warnings;
 - `keep_data = FALSE`: do not store the full input data frame in the fit;
 - `keep_model_frame = FALSE`: do not store model frames in the fit after TMB
   data has been built. Fitted-row prediction, new-data prediction, residuals,
@@ -94,6 +106,14 @@ effects, direct-SD models, phylogenetic/spatial effects, known covariance,
 non-Gaussian families, bivariate models, and sparse scale formulas remain
 planned.
 
+Known sampling covariance is a separate memory concern. Diagonal
+`meta_known_V(V = vi)` inputs stay vector-like, but a full-matrix
+`meta_known_V(V = V)` fit stores the retained `V` as a dense R matrix.
+`check_drm()` reports that dense storage as a note with dimension, density,
+size, rank, and conditioning. Low density in that row is a design signal for a
+future sparse or block-sparse known-covariance path, not a current scalability
+claim.
+
 ## Model-Frame Dependency Map
 
 The `keep_model_frame = FALSE` storage path is a method-dependency change, not
@@ -112,7 +132,7 @@ post-fit methods.
 | `sigma(fit)` and `rho12(fit)` | `predict()` | None | Yes. |
 | `corpairs(fit)` | fitted correlations, `predict()`, response-name metadata | Previously used `model_frame`; now should prefer stored response names | Yes, once response-name fallback tests pass. |
 | `check_drm(fit)` | optimizer result, `sdr`, `obj`, stored row filter, `sigma()`, `rho12()`, known covariance, random structures | None for current checks | Yes, except fixed-gradient already needs `obj`. |
-| Printing and summaries | coefficients, `vcov()`, log-likelihood, random-effect summaries | None | Yes. |
+| Printing and summaries | coefficients, `vcov()` when `se = TRUE`, log-likelihood, random-effect summaries, uncertainty state | None | Yes; `se = FALSE` reports unavailable standard errors explicitly. |
 
 The implemented storage path stores response names separately from model frames
 and updates response-label extractors to prefer that metadata. It then drops
@@ -129,6 +149,14 @@ fitted q=2 `corpair()` model-frame caches after their model matrices and group
 metadata have been stored. Tests cover an `sd_phylo(species) ~ z_species`
 fit and an ordinary q=2 `corpair(id, level = "group", block = "p",
 from = "mu1", to = "mu2") ~ ecology` fit with all memory-light flags enabled.
+
+The standard-error control is separate from object storage. `se = FALSE` saves
+the post-optimization `sdreport()` step and avoids storing its covariance
+matrix, but it does not remove the TMB automatic-differentiation object unless
+`keep_tmb_object = FALSE` is also supplied. If `sdreport()` is requested and
+fails, `drmTMB()` still returns the optimized fit with
+`fit$uncertainty$status = "failed"`; standard-error methods then fail clearly
+instead of making the fit object unusable.
 
 ## Aggregation Path
 

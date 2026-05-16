@@ -493,9 +493,15 @@ test_that("check_drm() records known sampling covariance summaries", {
   known_v <- chk[chk$check == "known_sampling_covariance", ]
 
   expect_equal(fit$opt$convergence, 0)
-  expect_equal(known_v$status, "ok")
+  expect_equal(known_v$status, "note")
   expect_match(known_v$value, "type=matrix")
+  expect_match(known_v$value, "storage=dense")
+  expect_match(known_v$value, "density=")
+  expect_match(known_v$value, "size_mb=")
   expect_match(known_v$value, "rank=24")
+  expect_match(known_v$message, "small-to-moderate")
+  expect_match(known_v$message, "sparse or block-sparse")
+  expect_true(attr(chk, "ok"))
 })
 
 test_that("check_drm() notes wide dense fixed-effect designs", {

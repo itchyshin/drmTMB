@@ -39,14 +39,25 @@ test_that("drm_control() validates optimizer and storage settings", {
 
   expect_s3_class(ctrl, "drm_control")
   expect_equal(ctrl$optimizer$eval.max, 25)
+  expect_true(ctrl$se)
+  expect_false(drm_control(se = FALSE)$se)
   expect_false(ctrl$keep_data)
   expect_true(ctrl$keep_model_frame)
   expect_false(ctrl$keep_tmb_object)
   expect_false(drm_control(keep_model_frame = FALSE)$keep_model_frame)
   expect_error(drm_control(optimizer = 1), "optimizer")
   expect_error(drm_control(optimizer = list(25)), "named list")
+  expect_error(drm_control(se = NA), "se")
   expect_error(drm_control(keep_data = NA), "keep_data")
   expect_error(drm_control(keep_model_frame = NA), "keep_model_frame")
+  expect_error(
+    drmTMB(
+      bf(y ~ 1),
+      data = data.frame(y = 1:4),
+      control = list(se = FALSE)
+    ),
+    "reserved"
+  )
 })
 
 test_that("plain control lists remain optimizer controls", {
@@ -101,6 +112,114 @@ test_that("memory-light storage keeps core post-fit methods working", {
   expect_true(attr(chk, "ok"))
   expect_equal(fixed_gradient$status, "note")
   expect_match(fixed_gradient$message, "not retained")
+})
+
+test_that("se = FALSE skips sdreport while keeping core methods usable", {
+  dat <- data.frame(
+    y = c(-0.2, 0.0, 0.3, 0.6, 0.8, 1.2),
+    x = c(-1, -0.5, 0, 0.5, 1, 1.5)
+  )
+
+  fit <- drmTMB(
+    bf(y ~ x, sigma ~ 1),
+    family = gaussian(),
+    data = dat,
+    control = drm_control(
+      optimizer = list(eval.max = 100, iter.max = 100),
+      se = FALSE
+    )
+  )
+
+  expect_null(fit$sdr)
+  expect_equal(fit$uncertainty$status, "skipped")
+  expect_error(stats::vcov(fit), "sdreport")
+  expect_error(stats::confint(fit), "sdreport")
+  expect_length(predict(fit, dpar = "mu"), nrow(dat))
+  expect_length(fitted(fit), nrow(dat))
+  expect_length(residuals(fit), nrow(dat))
+  expect_equal(dim(simulate(fit, nsim = 2, seed = 1)), c(nrow(dat), 2L))
+  expect_true(any(profile_targets(fit)$profile_ready))
+  profile_ci <- stats::confint(
+    fit,
+    parm = "fixef:mu:(Intercept)",
+    method = "profile",
+    trace = FALSE
+  )
+  expect_equal(profile_ci$conf.status, "profile")
+
+  smry <- summary(fit)
+  expect_true(all(is.na(smry$coefficients$std_error)))
+  expect_equal(
+    smry$coefficients$std_error.status,
+    rep("sdreport_skipped", nrow(smry$coefficients))
+  )
+
+  wald_smry <- summary(fit, conf.int = TRUE, method = "wald")
+  expect_equal(
+    wald_smry$coefficients$conf.status,
+    rep("wald_unavailable", nrow(wald_smry$coefficients))
+  )
+  expect_s3_class(wald_smry$confint, "data.frame")
+  expect_equal(nrow(wald_smry$confint), 0L)
+
+  chk <- check_drm(fit)
+  expect_true(attr(chk, "ok"))
+  expect_equal(
+    chk$status[chk$check == "sdreport_status"],
+    "note"
+  )
+  expect_equal(
+    chk$status[chk$check == "hessian_positive_definite"],
+    "note"
+  )
+  expect_equal(
+    chk$status[chk$check == "standard_errors_finite"],
+    "note"
+  )
+})
+
+test_that("failed sdreport state is explicit in summaries and diagnostics", {
+  dat <- data.frame(
+    y = c(-0.2, 0.0, 0.3, 0.6, 0.8, 1.2),
+    x = c(-1, -0.5, 0, 0.5, 1, 1.5)
+  )
+
+  fit <- drmTMB(
+    bf(y ~ x, sigma ~ 1),
+    family = gaussian(),
+    data = dat,
+    control = list(eval.max = 100, iter.max = 100)
+  )
+  fit$sdr <- NULL
+  fit$uncertainty <- list(
+    status = "failed",
+    se = TRUE,
+    message = "TMB::sdreport() failed: synthetic failure",
+    sdr_error = "synthetic failure"
+  )
+
+  expect_error(stats::vcov(fit), "synthetic failure")
+  smry <- summary(fit)
+  expect_true(all(is.na(smry$coefficients$std_error)))
+  expect_equal(
+    smry$coefficients$std_error.status,
+    rep("sdreport_failed", nrow(smry$coefficients))
+  )
+
+  chk <- check_drm(fit)
+  expect_false(attr(chk, "ok"))
+  expect_equal(
+    chk$status[chk$check == "sdreport_status"],
+    "warning"
+  )
+  expect_equal(
+    chk$status[chk$check == "hessian_positive_definite"],
+    "warning"
+  )
+  expect_equal(
+    chk$status[chk$check == "standard_errors_finite"],
+    "warning"
+  )
 })
 
 test_that("memory-light storage drops direct-SD phylogenetic model frames", {
@@ -276,7 +395,9 @@ test_that("memory-light storage keeps bivariate known-V methods working", {
   chk <- check_drm(fit)
   known_v <- chk[chk$check == "known_sampling_covariance", ]
   fixed_gradient <- chk[chk$check == "fixed_gradient", ]
-  expect_equal(known_v$status, "ok")
+  expect_equal(known_v$status, "note")
+  expect_match(known_v$value, "storage=dense")
+  expect_match(known_v$message, "sparse or block-sparse")
   expect_equal(fixed_gradient$status, "note")
 })
 

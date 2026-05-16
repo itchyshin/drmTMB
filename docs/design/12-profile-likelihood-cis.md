@@ -46,7 +46,7 @@ paths.
 
 | Surface | Current interval status | Next Phase 6 work |
 | --- | --- | --- |
-| Fixed-effect coefficients | Wald intervals by default; selected direct profile targets are available by explicit `fixef:<dpar>:<coef>` names. | Audit target names across families and improve failure messages for unsupported targets. |
+| Fixed-effect coefficients | Wald intervals by default when `TMB::sdreport()` is computed; selected direct profile targets are available by explicit `fixef:<dpar>:<coef>` names. | Audit target names across families and improve failure messages for unsupported targets. |
 | Constant residual scale and residual `rho12` | Direct profile intervals are available for constant `sigma`, `sigma1`, `sigma2`, and `rho12`. | Keep response-scale transformations explicit and test boundary behavior. |
 | Predictor-dependent response-scale values | `confint(..., method = "profile", newdata = ...)` profiles supplied rows for scale, residual `rho12`, and fitted q2 `corpair()` values. | Slice 54 adds focused tests for bivariate `sigma1`/`sigma2`, q2 ordinary and phylogenetic `corpair()` rows, and ambiguous `newdata` requests. |
 | Ordinary random-effect SDs and correlations | Selected direct SD and correlation targets are profile-ready and appear in `profile_targets()`. | Align `summary()`, `corpairs()`, and target names for every fitted direct registry row. |
@@ -182,7 +182,7 @@ tables also carry `conf.status` so the reader can distinguish these states:
 | `profile_ready` | The row is a direct profile target, but this summary call did not request that target. |
 | `newdata_required` | The row is a fitted surface summary; use `confint(..., newdata = ...)` to profile a supplied row. |
 | `derived_interval_unavailable` | The point estimate is derived from multiple quantities and has no validated derived-interval method yet. |
-| `wald_unavailable` | Wald intervals are not reported for this non-fixed-effect summary row. |
+| `wald_unavailable` | Wald intervals are not reported for this non-fixed-effect summary row, or fixed-effect Wald uncertainty is unavailable because `TMB::sdreport()` was skipped or failed. |
 | `target_unavailable` | The row is a descriptive range or other summary with no current direct interval target. |
 
 This does not make Wald intervals the default for variance components or

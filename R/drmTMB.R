@@ -25,10 +25,13 @@
 #' direct-SD models in univariate Gaussian location formulas, matching
 #' bivariate Gaussian `mu1`/`mu2` location formulas, and matching labelled
 #' bivariate Gaussian `mu1`/`mu2`/`sigma1`/`sigma2` phylogenetic
-#' location-scale blocks,
+#' location-scale blocks, coordinate-based spatial random intercepts and one
+#' numeric coordinate-spatial slope in univariate Gaussian `mu`,
 #' fixed-effect bivariate Gaussian distributional models, and matched labelled
 #' bivariate Gaussian `mu1`/`mu2`, `sigma1`/`sigma2`, and same-response
-#' `mu`/`sigma` random-intercept covariance blocks.
+#' `mu`/`sigma` random-intercept covariance blocks, including the first
+#' all-four q=4 ordinary random-intercept covariance blocks and
+#' predictor-dependent q=2 ordinary or phylogenetic `corpair()` regressions.
 #' Bivariate Gaussian location formulas may be written explicitly as
 #' `mu1 = y1 ~ ...`, `mu2 = y2 ~ ...`, or with `mvbind(y1, y2) ~ ...` shorthand
 #' when both responses share the same location predictors.
@@ -194,8 +197,11 @@ drmTMB <- function(
     gradient = obj$gr,
     control = control$optimizer
   )
+  drm_pin_tmb_object_to_optimum(obj, opt)
+  tmb_state <- drm_tmb_selected_state(obj, opt)
 
-  sdr <- TMB::sdreport(obj, par.fixed = opt$par)
+  uncertainty <- drm_compute_uncertainty(obj, opt, control)
+  sdr <- uncertainty$sdr
   par_list <- obj$env$parList(opt$par)
   par <- split_tmb_parameters(par_list, spec)
 
@@ -208,6 +214,8 @@ drmTMB <- function(
     obj = obj,
     opt = opt,
     sdr = sdr,
+    uncertainty = uncertainty$state,
+    tmb_state = tmb_state,
     par = par,
     coefficients = par,
     sdpars = split_tmb_sdpars(par_list, spec),
@@ -220,6 +228,114 @@ drmTMB <- function(
   )
   class(fit) <- "drmTMB"
   drm_apply_storage_control(fit, control)
+}
+
+drm_compute_uncertainty <- function(obj, opt, control) {
+  if (!isTRUE(control$se)) {
+    return(list(
+      sdr = NULL,
+      state = drm_uncertainty_state(
+        status = "skipped",
+        se = FALSE,
+        message = paste(
+          "TMB::sdreport() was skipped because",
+          "drm_control(se = FALSE) was used."
+        )
+      )
+    ))
+  }
+
+  sdr <- tryCatch(
+    TMB::sdreport(obj, par.fixed = opt$par),
+    error = function(e) e
+  )
+  if (inherits(sdr, "error")) {
+    return(list(
+      sdr = NULL,
+      state = drm_uncertainty_state(
+        status = "failed",
+        se = TRUE,
+        message = paste("TMB::sdreport() failed:", conditionMessage(sdr)),
+        sdr_error = conditionMessage(sdr)
+      )
+    ))
+  }
+
+  list(
+    sdr = sdr,
+    state = drm_uncertainty_state(
+      status = "ok",
+      se = TRUE,
+      message = "TMB::sdreport() completed successfully."
+    )
+  )
+}
+
+drm_uncertainty_state <- function(
+  status,
+  se,
+  message,
+  sdr_error = NA_character_
+) {
+  list(
+    status = status,
+    se = se,
+    message = message,
+    sdr_error = sdr_error
+  )
+}
+
+drm_tmb_selected_state <- function(obj, opt) {
+  list(
+    last.par = obj$env$last.par,
+    last.par.best = obj$env$last.par.best,
+    opt.par = opt$par
+  )
+}
+
+drm_pin_tmb_object_to_optimum <- function(obj, opt, state = NULL) {
+  if (
+    is.null(obj) ||
+      is.null(obj$env) ||
+      is.null(opt) ||
+      is.null(opt$par)
+  ) {
+    return(invisible(FALSE))
+  }
+  if (
+    is.list(state) &&
+      !is.null(state$last.par) &&
+      !is.null(state$last.par.best)
+  ) {
+    obj$env$last.par <- state$last.par
+    obj$env$last.par.best <- state$last.par.best
+    return(invisible(TRUE))
+  }
+  fixed <- obj$env$lfixed()
+  if (
+    is.logical(fixed) &&
+      length(fixed) == length(obj$env$last.par) &&
+      sum(fixed) == length(opt$par)
+  ) {
+    last_par <- obj$env$last.par
+    last_par[fixed] <- opt$par
+    obj$env$last.par <- last_par
+  } else if (length(obj$env$last.par) == length(opt$par)) {
+    obj$env$last.par <- opt$par
+  }
+
+  if (length(obj$env$last.par.best) == length(opt$par)) {
+    obj$env$last.par.best <- opt$par
+  } else if (
+    is.logical(fixed) &&
+      length(fixed) == length(obj$env$last.par.best) &&
+      sum(fixed) == length(opt$par)
+  ) {
+    last_par_best <- obj$env$last.par.best
+    last_par_best[fixed] <- opt$par
+    obj$env$last.par.best <- last_par_best
+  }
+  invisible(TRUE)
 }
 
 reject_corpair_formula_entries <- function(entries) {
@@ -2904,7 +3020,7 @@ drm_reject_phase1_terms <- function(rhs, dpar, allow_offset = FALSE) {
     cli::cli_abort(c(
       "Structured-effect syntax is planned, not implemented.",
       "x" = "The {.code {dpar}} formula contains structured marker{?s}: {.val {structured}}.",
-      "i" = "Implemented structured paths are intercept-only {.code phylo(1 | species, tree = tree)} terms in univariate {.code mu} and matching bivariate {.code mu1}/{.code mu2}; spatial terms and structured effects in other parameters are still planned."
+      "i" = "Implemented structured paths are intercept-only {.code phylo(1 | species, tree = tree)} terms in univariate {.code mu}, matching bivariate {.code mu1}/{.code mu2} phylogenetic terms, and coordinate-spatial {.code spatial(1 | site, coords = coords)} or {.code spatial(1 + x | site, coords = coords)} terms in univariate {.code mu}. Structured effects in other parameters remain planned."
     ))
   }
 
@@ -3316,11 +3432,16 @@ extract_gaussian_mu_spatial_term <- function(entry) {
     )
   }
   spatial_term <- spatial_terms[[1L]]
-  if (!identical(spatial_term$coef_names, "(Intercept)")) {
+  spatial_coef_names <- spatial_term$coef_names
+  valid_spatial_coef <- identical(spatial_coef_names, "(Intercept)") ||
+    (length(spatial_coef_names) == 2L &&
+      identical(spatial_coef_names[[1L]], "(Intercept)") &&
+      identical(spatial_coef_names[[2L]], spatial_term$variables[[1L]]))
+  if (!valid_spatial_coef) {
     cli::cli_abort(c(
-      "Only intercept-only spatial {.code mu} effects are implemented.",
+      "Only intercept-only or one-slope spatial {.code mu} effects are implemented.",
       "x" = "Requested structured coefficient{?s}: {.val {spatial_term$coef_names}}.",
-      "i" = "Use {.code spatial(1 | site, coords = coords)}. Spatial random slopes are planned after intercept-only spatial recovery tests."
+      "i" = "Use {.code spatial(1 | site, coords = coords)} or {.code spatial(1 + x | site, coords = coords)}."
     ))
   }
   if (!identical(spatial_term$structure, "coords")) {
@@ -3426,7 +3547,48 @@ phylo_mu_sd_labels <- function(phylo_mu, model_type) {
   if (identical(model_type, "biv_gaussian")) {
     return(paste0(phylo_mu_dpars(phylo_mu), ":", label))
   }
+  q <- structured_mu_q(phylo_mu)
+  if (q > 1L) {
+    return(structured_mu_coef_labels(phylo_mu))
+  }
   label
+}
+
+structured_mu_q <- function(phylo_mu) {
+  q <- phylo_mu$q
+  if (is.numeric(q) && length(q) == 1L && is.finite(q) && q > 0L) {
+    return(as.integer(q))
+  }
+  coef_names <- phylo_mu$coef_names
+  if (is.character(coef_names) && length(coef_names) > 0L) {
+    return(length(coef_names))
+  }
+  1L
+}
+
+structured_mu_coef_labels <- function(phylo_mu) {
+  coef_names <- phylo_mu$coef_names
+  if (!is.character(coef_names) || length(coef_names) == 0L) {
+    coef_names <- "(Intercept)"
+  }
+  vapply(
+    coef_names,
+    function(coef_name) {
+      lhs <- if (identical(coef_name, "(Intercept)")) {
+        "1"
+      } else {
+        paste0("0 + ", coef_name)
+      }
+      format_structured_label(
+        structured_mu_type(phylo_mu),
+        lhs,
+        phylo_mu$group,
+        phylo_mu$covariance_label
+      )
+    },
+    character(1L),
+    USE.NAMES = FALSE
+  )
 }
 
 phylo_mu_pair_table <- function(phylo_mu) {
@@ -3608,7 +3770,8 @@ spatial_mu_vars <- function(term) {
   if (is.null(term)) {
     return(character())
   }
-  term$group
+  variables <- term$variables
+  unique(c(term$group, variables[!is.na(variables)]))
 }
 
 empty_phylo_mu_structure <- function() {
@@ -3621,9 +3784,11 @@ empty_phylo_mu_structure <- function() {
     covariance_label = NULL,
     dpars = character(),
     q = 0L,
+    coef_names = character(),
     tree = NA_character_,
     n_re = 0L,
     precision = NULL,
+    value = matrix(0, nrow = 0L, ncol = 0L),
     observation_node_index = integer(),
     observation_node_index0 = 0L,
     node_labels = character(),
@@ -3677,9 +3842,19 @@ build_phylo_mu_structure <- function(term, data, env) {
     covariance_label = term$covariance_label,
     dpars = dpars,
     q = length(dpars),
+    coef_names = "(Intercept)",
     tree = term$tree,
     n_re = nrow(precision$precision),
     precision = precision,
+    value = matrix(
+      1,
+      nrow = length(species),
+      ncol = 1L,
+      dimnames = list(
+        NULL,
+        "(Intercept)"
+      )
+    ),
     observation_node_index = unname(as.integer(observation_node_index)),
     observation_node_index0 = unname(as.integer(observation_node_index - 1L)),
     node_labels = precision$node_labels,
@@ -3723,6 +3898,7 @@ build_spatial_mu_structure <- function(term, data, env) {
       "Internal error: failed to align observations with spatial coordinate nodes."
     )
   }
+  value <- structured_mu_design_matrix(term, data, marker = "spatial")
 
   list(
     has = TRUE,
@@ -3736,18 +3912,59 @@ build_spatial_mu_structure <- function(term, data, env) {
     },
     covariance_label = term$covariance_label,
     dpars = "mu",
-    q = 1L,
+    q = ncol(value),
+    coef_names = colnames(value),
     tree = NA_character_,
     structure = term$structure,
     object = term$object,
     n_re = nrow(precision$precision),
     precision = precision,
+    value = value,
     observation_node_index = unname(as.integer(observation_node_index)),
     observation_node_index0 = unname(as.integer(observation_node_index - 1L)),
     node_labels = precision$site_levels,
     species_levels = character(),
     group_levels = precision$site_levels
   )
+}
+
+structured_mu_design_matrix <- function(term, data, marker) {
+  coef_names <- term$coef_names
+  if (!is.character(coef_names) || length(coef_names) == 0L) {
+    coef_names <- "(Intercept)"
+  }
+  value <- matrix(1, nrow = nrow(data), ncol = length(coef_names))
+  colnames(value) <- coef_names
+  variables <- term$variables
+  variables <- variables[!is.na(variables)]
+  for (variable in variables) {
+    if (!variable %in% names(data)) {
+      cli::cli_abort(c(
+        "{.fn {marker}} slope variable {.field {variable}} was not found in {.arg data}.",
+        "x" = "Use syntax like {.code {marker}(1 + {variable} | {term$group}, coords = coords)} where {.field {variable}} is a numeric column in {.arg data}."
+      ))
+    }
+    if (!is.numeric(data[[variable]])) {
+      cli::cli_abort(c(
+        "{.fn {marker}} slope variable {.field {variable}} must be numeric.",
+        "x" = "Structured spatial slopes currently use a numeric design value for each observation."
+      ))
+    }
+    if (any(!is.finite(data[[variable]]))) {
+      cli::cli_abort(c(
+        "{.fn {marker}} slope variable {.field {variable}} must contain finite values.",
+        "x" = "Remove or recode missing, infinite, or non-finite slope values before fitting the structured slope."
+      ))
+    }
+    column <- match(variable, colnames(value), nomatch = 0L)
+    if (column == 0L) {
+      cli::cli_abort(
+        "Internal error: structured slope variable {.field {variable}} was not in the coefficient design."
+      )
+    }
+    value[, column] <- data[[variable]]
+  }
+  value
 }
 
 evaluate_spatial_coords <- function(name, env) {
@@ -5810,10 +6027,10 @@ reject_biv_cross_parameter_label_reuse <- function(
   block_label <- labels[[1L]]
   group_name <- groups[[1L]]
   cli::cli_abort(c(
-    "Reusing one bivariate covariance-block label across {.code mu1}/{.code mu2} and {.code sigma1}/{.code sigma2} is not implemented.",
-    "x" = "Block {.code {block_label}} on group {.field {group_name}} would imply a full cross-parameter bivariate covariance block.",
-    "i" = "Use distinct labels such as {.code (1 | pm | {group_name})} for {.code mu1}/{.code mu2} and {.code (1 | ps | {group_name})} for {.code sigma1}/{.code sigma2}.",
-    "i" = "Full cross-parameter bivariate covariance across {.code mu1}, {.code mu2}, {.code sigma1}, and {.code sigma2} remains planned."
+    "Unsupported bivariate covariance-block label reuse.",
+    "x" = "Block {.code {block_label}} on group {.field {group_name}} was not recognized as a supported intercept-only covariance block.",
+    "i" = "Supported all-four bivariate covariance uses matching {.code (1 | p | {group_name})} terms in {.code mu1}, {.code mu2}, {.code sigma1}, and {.code sigma2}.",
+    "i" = "Use distinct labels such as {.code (1 | pm | {group_name})} for {.code mu1}/{.code mu2} and {.code (1 | ps | {group_name})} for {.code sigma1}/{.code sigma2} when you want two q=2 blocks."
   ))
 }
 
@@ -7238,9 +7455,10 @@ gaussian_phylo_start <- function(y, phylo_mu) {
   if (!is.finite(y_scale) || y_scale <= 0) {
     y_scale <- 1
   }
+  q <- structured_mu_q(phylo_mu)
   list(
-    u_phylo = rep(0, phylo_mu$n_re),
-    log_sd_phylo = log(max(0.25 * y_scale, 1e-4))
+    u_phylo = rep(0, q * phylo_mu$n_re),
+    log_sd_phylo = rep(log(max(0.25 * y_scale, 1e-4)), q)
   )
 }
 
@@ -7704,10 +7922,28 @@ add_covariance_block_tmb_data <- function(tmb_data, spec) {
   }
   c(
     tmb_data,
+    structured_mu_tmb_data(spec),
     drm_sparse_fixed_tmb_data(spec),
     drm_gaussian_aggregation_tmb_data(spec),
     cov_tmb_data
   )
+}
+
+structured_mu_tmb_data <- function(spec) {
+  phylo_mu <- if (is.list(spec$structured)) {
+    spec$structured$phylo_mu
+  } else {
+    NULL
+  }
+  if (
+    is.list(phylo_mu) &&
+      isTRUE(phylo_mu$has) &&
+      is.matrix(phylo_mu$value) &&
+      nrow(phylo_mu$value) > 0L
+  ) {
+    return(list(phylo_mu_value = phylo_mu$value))
+  }
+  list(phylo_mu_value = matrix(0, nrow = 1L, ncol = 1L))
 }
 
 add_covariance_probe_parameter <- function(spec) {
@@ -9154,11 +9390,27 @@ split_tmb_random_effects <- function(par, spec) {
         terms = terms
       )
     } else {
-      latent <- unname(par$u_phylo[seq_len(n_phylo)])
-      names(latent) <- spec$structured$phylo_mu$node_labels
+      q <- structured_mu_q(spec$structured$phylo_mu)
+      labels <- phylo_mu_sd_labels(
+        spec$structured$phylo_mu,
+        spec$model_type
+      )
+      latent <- unname(par$u_phylo[seq_len(q * n_phylo)])
+      if (q == 1L) {
+        names(latent) <- spec$structured$phylo_mu$node_labels
+      } else {
+        names(latent) <- as.vector(vapply(
+          labels,
+          function(label) {
+            paste0(label, ":", spec$structured$phylo_mu$node_labels)
+          },
+          character(n_phylo)
+        ))
+      }
       values <- latent
       if (
         identical(spec$model_type, "gaussian") &&
+          q == 1L &&
           is.list(spec$random_scale$phylo) &&
           spec$random_scale$phylo$n_models > 0L
       ) {
@@ -9170,13 +9422,17 @@ split_tmb_random_effects <- function(par, spec) {
         values <- latent * sd_node
       }
       names(values) <- names(latent)
+      terms <- lapply(seq_len(q), function(i) {
+        idx <- (i - 1L) * n_phylo + seq_len(n_phylo)
+        term_values <- values[idx]
+        names(term_values) <- spec$structured$phylo_mu$node_labels
+        term_values
+      })
+      names(terms) <- labels
       out[[random_effect_key]] <- list(
         values = values,
         latent = latent,
-        terms = stats::setNames(
-          list(values),
-          spec$structured$phylo_mu$label
-        )
+        terms = terms
       )
     }
   }

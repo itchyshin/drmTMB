@@ -12,6 +12,11 @@
 #'
 #' @param optimizer Named list passed to the `control` argument of
 #'   [stats::nlminb()].
+#' @param se Logical; compute standard errors and fixed-effect covariance with
+#'   [TMB::sdreport()] after optimization. Set to `FALSE` to keep fitted
+#'   coefficients, fitted values, residuals, predictions, simulations, and
+#'   profile-likelihood paths while skipping Wald standard errors,
+#'   [stats::vcov()], and Wald confidence intervals.
 #' @param keep_data Logical; keep the complete-case model data in the fitted
 #'   object. Set to `FALSE` to drop `fit$data` and `fit$model$data` after
 #'   fitting. Prediction, fitted values, residuals, simulation, and basic
@@ -44,6 +49,7 @@
 #'   data = dat,
 #'   control = drm_control(
 #'     optimizer = list(eval.max = 100, iter.max = 100),
+#'     se = FALSE,
 #'     keep_data = FALSE,
 #'     keep_model_frame = FALSE,
 #'     keep_tmb_object = FALSE
@@ -51,6 +57,7 @@
 #' )
 drm_control <- function(
   optimizer = list(),
+  se = TRUE,
   keep_data = TRUE,
   keep_model_frame = TRUE,
   keep_tmb_object = TRUE,
@@ -64,6 +71,18 @@ drm_control <- function(
   ) {
     cli::cli_abort("{.arg optimizer} must be a named list.")
   }
+  optimizer_reserved <- intersect(
+    names(optimizer),
+    drm_control_reserved_names()
+  )
+  if (length(optimizer_reserved) > 0L) {
+    cli::cli_abort(c(
+      "{.arg optimizer} contains reserved {.pkg drmTMB} control name{?s}: {.arg {optimizer_reserved}}.",
+      "i" = "Use {.arg optimizer} only for {.fn stats::nlminb} control settings.",
+      "i" = "Future start, map, fixed-parameter, fallback-optimizer, and multi-start controls will use explicit {.pkg drmTMB} arguments after their contract is implemented."
+    ))
+  }
+  se <- drm_control_flag(se, "se")
   keep_data <- drm_control_flag(keep_data, "keep_data")
   keep_model_frame <- drm_control_flag(keep_model_frame, "keep_model_frame")
   keep_tmb_object <- drm_control_flag(keep_tmb_object, "keep_tmb_object")
@@ -75,6 +94,7 @@ drm_control <- function(
   structure(
     list(
       optimizer = optimizer,
+      se = se,
       keep_data = keep_data,
       keep_model_frame = keep_model_frame,
       keep_tmb_object = keep_tmb_object,
@@ -99,7 +119,29 @@ drm_parse_control <- function(control) {
       "i" = "Use {.code control = drm_control(...)} for storage controls."
     ))
   }
+  reserved <- intersect(names(control), drm_control_reserved_names())
+  if (length(reserved) > 0L) {
+    cli::cli_abort(c(
+      "{.arg control} contains reserved {.pkg drmTMB} control name{?s}: {.arg {reserved}}.",
+      "i" = "{.code control = list(...)} is only for {.fn stats::nlminb} optimizer settings.",
+      "i" = "Use {.code control = drm_control(...)} for implemented {.pkg drmTMB} controls such as {.arg se}, {.arg keep_data}, and {.arg keep_tmb_object}.",
+      "i" = "Use {.code control = list(eval.max = 1000)} only for optimizer settings."
+    ))
+  }
   drm_control(optimizer = control)
+}
+
+drm_control_reserved_names <- function() {
+  unique(c(
+    setdiff(names(formals(drm_control)), "optimizer"),
+    "start",
+    "starts",
+    "map",
+    "fixed",
+    "fallback_optimizer",
+    "multi_start",
+    "multistart"
+  ))
 }
 
 drm_apply_storage_control <- function(fit, control) {

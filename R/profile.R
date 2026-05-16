@@ -678,6 +678,7 @@ profile_check_tmbprofile_dots <- function(...) {
 }
 
 drm_tmbprofile <- function(object, target_name, lincomb, trace, ...) {
+  drm_pin_tmb_object_to_optimum(object$obj, object$opt, object$tmb_state)
   tryCatch(
     TMB::tmbprofile(
       obj = object$obj,

@@ -27,11 +27,17 @@ whether temperature also changes residual variability.
 
 Symbolically:
 
-```text
-growth_i | mu_i, sigma_i ~ Normal(mu_i, sigma_i^2)
-mu_i = beta_0 + beta_1 temperature_i + beta_2 habitat_i
-log(sigma_i) = gamma_0 + gamma_1 temperature_i
-```
+\[
+\begin{aligned}
+\text{growth}_i \mid \mu_i, \sigma_i
+  &\sim \operatorname{Normal}(\mu_i, \sigma_i^2),\\
+\mu_i
+  &= \beta_0 + \beta_1 \text{temperature}_i
+     + \beta_2 \mathbb{1}(\text{habitat}_i = \text{kelp}),\\
+\log(\sigma_i)
+  &= \gamma_0 + \gamma_1 \text{temperature}_i .
+\end{aligned}
+\]
 
 Matching R syntax:
 
@@ -90,6 +96,17 @@ temperature coefficient in `sigma` means that residual variability increases
 with temperature. Exponentiating the coefficient gives a multiplicative change
 in residual standard deviation for a one-unit temperature increase.
 
+Use the scale of the fitted parameter when deciding what to report:
+
+| Output | Fitted scale | Report when the question is... |
+| --- | --- | --- |
+| `coef(fit, "mu")` | response units | expected growth, treatment effects, or mean trait differences |
+| `coef(fit, "sigma")` | log residual SD | multiplicative residual-SD or residual-variance contrasts |
+| `sigma(fit)` | residual SD | fitted predictability or extra heterogeneity on the response scale |
+| `rho12(fit)` | residual correlation | residual coupling between two responses after means and residual SDs are modelled |
+| `corpairs(fit)` | fitted correlation rows | group-level, phylogenetic, or residual correlation layers, depending on `level` |
+| `profile_targets(fit)` | interval target inventory | whether a fitted SD or correlation target can receive a profile interval |
+
 `summary()` puts the fixed-effect estimates, response-scale scale, shape, and
 correlation summaries, log likelihood, and convergence code in one place:
 
@@ -121,6 +138,19 @@ point estimate combines several quantities and needs a later derived-profile
 method. Successful profile rows also include `profile.boundary` and
 `profile.message`; values other than `"ok"` tell you to check boundary or
 near-correlation-limit behaviour before interpreting the interval.
+
+Read `conf.status` as an action column:
+
+| `conf.status` | What it means | What to do next |
+| --- | --- | --- |
+| `wald` | A Wald interval was returned for a fixed-effect row. | Use it for routine fixed-effect summaries, while remembering it is asymptotic. |
+| `profile` | A profile-likelihood interval was returned. | Inspect `profile.boundary` and `profile.message` before treating the interval as stable. |
+| `profile_ready` | The row is a direct profile target, but the current summary call did not request it. | Use the row's `parm` value in `confint(..., method = "profile")` or in `summary(..., method = "profile", ci_parm = ...)`. |
+| `newdata_required` | The fitted surface needs a concrete row before it can be profiled. | Build a biologically meaningful `newdata` row and call `confint(..., newdata = ...)`. |
+| `derived_interval_unavailable` | The point estimate combines multiple fitted quantities and has no validated interval method yet. | Report the point estimate as exploratory, or simplify to a direct target if interval support is essential. |
+| `wald_unavailable` | Wald uncertainty is not available for this row, or `sdreport()` was skipped or failed. | Use a profile-ready target when one exists; otherwise report the missing interval explicitly. |
+| `target_unavailable` or `profile_unavailable` | The row is descriptive or has no current direct interval target. | Treat the interval as unsupported and check `profile_targets(fit)` before trying another route. |
+| `not_requested` | The table is reporting a point estimate without an interval request. | Refit is not needed; request intervals only for the rows you plan to interpret. |
 
 ## Predict distributional parameters
 

@@ -6,6 +6,7 @@
 \usage{
 drm_control(
   optimizer = list(),
+  se = TRUE,
   keep_data = TRUE,
   keep_model_frame = TRUE,
   keep_tmb_object = TRUE,
@@ -16,6 +17,12 @@ drm_control(
 \arguments{
 \item{optimizer}{Named list passed to the \code{control} argument of
 \code{\link[stats:nlminb]{stats::nlminb()}}.}
+
+\item{se}{Logical; compute standard errors and fixed-effect covariance with
+\code{\link[TMB:sdreport]{TMB::sdreport()}} after optimization. Set to \code{FALSE} to keep fitted
+coefficients, fitted values, residuals, predictions, simulations, and
+profile-likelihood paths while skipping Wald standard errors,
+\code{\link[stats:vcov]{stats::vcov()}}, and Wald confidence intervals.}
 
 \item{keep_data}{Logical; keep the complete-case model data in the fitted
 object. Set to \code{FALSE} to drop \code{fit$data} and \code{fit$model$data} after
@@ -65,6 +72,7 @@ fit <- drmTMB(
   data = dat,
   control = drm_control(
     optimizer = list(eval.max = 100, iter.max = 100),
+    se = FALSE,
     keep_data = FALSE,
     keep_model_frame = FALSE,
     keep_tmb_object = FALSE

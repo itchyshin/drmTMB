@@ -14808,3 +14808,1184 @@ Known limitations:
 - one-sided profile intervals, non-monotone-profile recovery, parametric
   bootstrap fallback, conditional random-effect mode intervals, and full
   marginal-effect uncertainty remain future phases.
+
+## 2026-05-15 -- Slice 61 tutorial source map
+
+Goal:
+
+- open Phase 6b with a source-map artifact that makes the tutorial upgrade
+  biological and mathematical, especially for slopes, variance components,
+  `sd(group)`, residual `rho12`, and group-level `corpairs()` rows.
+
+Implemented:
+
+- added `docs/design/32-phase-6b-tutorial-source-map.md`;
+- linked the source map from `docs/design/21-tutorial-style.md`;
+- marked Slice 61 done in `ROADMAP.md`;
+- kept the existing Phase 6b tracking issue #31 as the issue anchor.
+
+Checks run:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH air format ROADMAP.md docs/design/21-tutorial-style.md docs/design/32-phase-6b-tutorial-source-map.md`:
+  passed.
+- `git diff --check`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::build_site()'`:
+  passed and rendered the updated `ROADMAP.html`.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed with no problems found.
+- `rg -n "32-phase-6b|slopes, variance components|biological and mathematical interpretation|Slice 61|profile\\.boundary|profile\\.message" ROADMAP.md pkgdown-site/ROADMAP.html docs/design/21-tutorial-style.md docs/design/32-phase-6b-tutorial-source-map.md --glob '!pkgdown-site/search.json'`:
+  confirmed the source-map link, roadmap status, and rendered roadmap wording.
+- `rg -n "phylogenetic slopes.*implemented|spatial slopes.*implemented|q=4.*profile intervals|direct profile intervals for derived|rho ~|meta_gaussian\\(|tau ~" docs/design/32-phase-6b-tutorial-source-map.md ROADMAP.md docs/design/21-tutorial-style.md`:
+  found no unsupported syntax or stale implementation claim. The hits were
+  explicit planned-status guardrails.
+
+Known limitations:
+
+- this slice does not rewrite tutorials or change fitted-model behavior;
+- structured slopes, q=4 derived profile intervals, predictor-dependent
+  group-level correlations, and new slope-correlation machinery remain future
+  work.
+
+## 2026-05-15 -- Phase 6b Slices 62-68 tutorial quality gate
+
+Goal:
+
+- carry the Phase 6b tutorial programme from the Slice 61 source map through
+  the landing path, major tutorial interpretation edits, random-effect scale
+  guardrails, and local gate.
+
+Implemented:
+
+- Slice 62: updated Getting Started and the model map so readers can move from
+  a scientific phrase to the relevant guide, tutorial, or post-fit workflow;
+- Slice 63: added a compact slope-interpretation table to the Gaussian
+  location-scale tutorial;
+- Slice 64: added a bivariate coefficient-reading table for `mu1`, `mu2`,
+  `sigma1`, `sigma2`, and `rho12` slopes;
+- Slice 65: added a meta-analysis report-scale table;
+- Slice 66: added a six-row q=4 phylogenetic covariance interpretation table,
+  including all four mean-scale pairs;
+- Slice 67: added a Family A versus Family B section to the scale guide;
+- Slice 68: ran the local docs gate and updated `ROADMAP.md` with the local
+  gate boundary.
+
+Checks run:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH air format ROADMAP.md vignettes/drmTMB.Rmd vignettes/model-map.Rmd vignettes/model-workflow.Rmd vignettes/location-scale.Rmd vignettes/which-scale.Rmd vignettes/bivariate-coscale.Rmd vignettes/meta-analysis.Rmd vignettes/phylogenetic-spatial.Rmd`:
+  passed.
+- `git diff --check`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::build_site()'`:
+  passed and rendered the touched articles plus `ROADMAP.html`.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed with no problems found.
+- `rg -n "Question-first|If the scientific phrase|slope-like quantities|Family A versus Family B|Choose the report scale deliberately|Read the six q=4 rows|Done: Getting Started|Done locally" ROADMAP.md pkgdown-site/ROADMAP.html pkgdown-site/articles/drmTMB.html pkgdown-site/articles/model-map.html pkgdown-site/articles/model-workflow.html pkgdown-site/articles/location-scale.html pkgdown-site/articles/which-scale.html pkgdown-site/articles/bivariate-coscale.html pkgdown-site/articles/meta-analysis.html pkgdown-site/articles/phylogenetic-spatial.html --glob '!pkgdown-site/search.json'`:
+  confirmed source and rendered tutorial updates.
+- `rg -n "phylogenetic slopes.*implemented|spatial slopes.*implemented|direct profile intervals for derived|q=4.*profile-ready|all six.*profile-ready|rho ~|meta_gaussian\\(|tau ~|Family A.*implemented.*Family B.*same" vignettes ROADMAP.md docs/design --glob '!docs/dev-log/**'`:
+  found only intentional guardrail references for unsupported `meta_gaussian()`,
+  `tau ~`, and planned structured-slope/status wording.
+
+Known limitations:
+
+- this task did not add new model behavior, tests, profile methods, visual
+  helpers, or real external datasets;
+- GitHub Actions and public pkgdown deployment remain PR-side gates.
+
+## 2026-05-15 -- Phase 6c-core random-effect foundation
+
+Goal:
+
+- start Phase 6c with the ordinary grouped random-effect foundation before
+  moving into Phases 10-13.
+
+Implemented:
+
+- committed the Phase 6b tutorial scaffold as
+  `61e9781 Preserve Phase 6b tutorial scaffold`;
+- added `docs/design/33-phase-6c-core-random-effects.md` as the ordinary
+  random-intercept and one-slope source map;
+- updated `ROADMAP.md` so Slices 69-70 are done for the ordinary core and
+  Slice 73 is done for ordinary diagnostics/profile-target status;
+- updated the model map and location-scale tutorial so random-intercept SDs,
+  random-slope SDs, residual `sigma`, `sd(group)`, group-level correlations,
+  and residual `rho12` stay separate;
+- added a regression test that labelled `(1 + x | p | ID)` produces the
+  expected `corpairs()` `mean-slope` row and accepts the `location-slope`
+  filter alias.
+
+Checks run:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH air format ROADMAP.md docs/design/04-random-effects.md docs/design/17-correlated-random-effect-blocks.md docs/design/33-phase-6c-core-random-effects.md docs/dev-log/after-task/2026-05-15-phase-6c-core-random-effect-foundation.md tests/testthat/test-gaussian-random-intercepts.R vignettes/location-scale.Rmd vignettes/model-map.Rmd`:
+  passed.
+- `/usr/local/bin/Rscript -e 'devtools::test(filter = "gaussian-random-intercepts|profile-targets|check-drm", reporter = "summary")'`:
+  passed.
+- `git diff --check`: passed.
+- `/usr/local/bin/Rscript -e 'pkgdown::build_site()'`: failed once because
+  Pandoc was not visible on the shell `PATH`.
+- `PATH=/opt/homebrew/bin:/usr/local/bin:$PATH /usr/local/bin/Rscript -e 'pkgdown::build_site()'`:
+  passed after making `/opt/homebrew/bin/pandoc` visible.
+- `PATH=/opt/homebrew/bin:/usr/local/bin:$PATH /usr/local/bin/Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed with no problems found.
+- `rg -n 'Phase 6c core|33-phase-6c|mean-slope|location-slope|groups differ in baseline|groups differ in the .x. slope|ordinary grouped core|Done for the ordinary core|random-effect foundation' ROADMAP.md docs/design/04-random-effects.md docs/design/17-correlated-random-effect-blocks.md docs/design/33-phase-6c-core-random-effects.md docs/dev-log/after-task/2026-05-15-phase-6c-core-random-effect-foundation.md vignettes/location-scale.Rmd vignettes/model-map.Rmd pkgdown-site/ROADMAP.html pkgdown-site/articles/location-scale.html pkgdown-site/articles/model-map.html --glob '!pkgdown-site/search.json'`:
+  confirmed source and rendered Phase 6c-core wording.
+- `rg -n 'phylo\\(1 \\+ x.*Implemented|spatial\\(1 \\+ x.*Implemented|structured random slopes.*implemented|bivariate random slopes.*implemented|random effects in .*rho12.*implemented|rho12 random effects.*Implemented|slope-specific .*sd\\(.*Implemented' ROADMAP.md docs/design vignettes README.md NEWS.md --glob '!docs/dev-log/**'`:
+  found one valid guardrail phrase saying bivariate random slopes are future.
+
+Known limitations:
+
+- this task does not add new likelihood behavior;
+- structured phylogenetic slopes, spatial slopes, bivariate random slopes,
+  slope-specific `sd()` targets, and random effects in `rho12` remain planned
+  or unsupported;
+- GitHub Actions and full `devtools::test()` remain PR-side or later gate
+  evidence.
+
+## 2026-05-15 -- Phase 6c-core closure gate before Phases 10+
+
+Goal:
+
+- finish the Phase 6c-core section all the way through the local gate before
+  moving to Phases 10 and later.
+
+Implemented:
+
+- added a structured-slope handoff table to
+  `docs/design/33-phase-6c-core-random-effects.md`, naming the minimum Phase
+  10 spatial, Phase 12 phylogenetic, and later bivariate slope-correlation
+  implementation contracts;
+- added a thermal reaction-norm example to the location-scale tutorial, showing
+  how to read the fixed slope, random-intercept SD, random-slope SD,
+  group-level intercept-slope correlation, and `profile_targets()` rows;
+- updated `ROADMAP.md` so Slices 71-72 are design handoffs, Slices 74-75 are
+  done for the ordinary core, and Slice 76 is done locally for the Phase 6c
+  core;
+- added the after-phase report
+  `docs/dev-log/after-phase/2026-05-15-phase-6c-core-random-effect-closure.md`.
+
+Checks run:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH air format ROADMAP.md docs/design/33-phase-6c-core-random-effects.md docs/dev-log/after-phase/2026-05-15-phase-6c-core-random-effect-closure.md vignettes/location-scale.Rmd`:
+  passed.
+- `/usr/local/bin/Rscript -e 'devtools::test(filter = "gaussian-random-intercepts|profile-targets|check-drm", reporter = "summary")'`:
+  passed.
+- `git diff --check`: passed.
+- `PATH=/opt/homebrew/bin:/usr/local/bin:$PATH /usr/local/bin/Rscript -e 'pkgdown::build_site()'`:
+  passed.
+- `PATH=/opt/homebrew/bin:/usr/local/bin:$PATH /usr/local/bin/Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed with no problems found.
+- `rg -n 'Phase 6c closes|Closure boundary|Design handoff done|thermal reaction-norm|mean-slope|Move to Phases 10|Done locally for the Phase 6c core|structured-slope implementation problem' ROADMAP.md docs/design/33-phase-6c-core-random-effects.md docs/dev-log/after-phase/2026-05-15-phase-6c-core-random-effect-closure.md vignettes/location-scale.Rmd pkgdown-site/ROADMAP.html pkgdown-site/articles/location-scale.html --glob '!pkgdown-site/search.json'`:
+  confirmed source and rendered closure wording.
+- `rg -n 'phylo\\(1 \\+ x.*Implemented|spatial\\(1 \\+ x.*Implemented|structured random slopes.*implemented|bivariate random slopes.*implemented|random effects in .*rho12.*implemented|rho12 random effects.*Implemented|slope-specific .*sd\\(.*Implemented|full structured.*done|all Phase 6c.*implemented' ROADMAP.md docs/design vignettes README.md NEWS.md --glob '!docs/dev-log/**'`:
+  found one valid guardrail phrase saying bivariate random slopes are future.
+- `PATH=/opt/homebrew/bin:/usr/local/bin:$PATH /usr/local/bin/Rscript -e 'devtools::test(reporter = "summary")'`:
+  passed.
+- `PATH=/opt/homebrew/bin:/usr/local/bin:$PATH /usr/local/bin/Rscript -e 'devtools::check(error_on = "never", env_vars = c("_R_CHECK_SYSTEM_CLOCK_" = "FALSE"))'`:
+  passed with 0 errors, 0 warnings, and 0 notes in 2m 23.2s.
+
+Known limitations:
+
+- Phase 6c-core closes the ordinary grouped random-effect section, not full
+  structured random-slope fitting;
+- `phylo(1 + x | species, tree = tree)`,
+  `spatial(1 + x | site, coords = coords)`, bivariate random slopes,
+  slope-specific `sd()` targets, and random effects in `rho12` remain future
+  work for Phases 10+;
+- GitHub Actions remains the PR-side gate after push.
+
+## 2026-05-15 -- Phase 10 coordinate spatial one-slope
+
+Goal:
+
+- fit one coordinate-spatial `mu` slope for univariate Gaussian models without
+  adding intercept-slope spatial correlations or mesh/SPDE claims.
+
+Implemented:
+
+- allowed `spatial(1 + x | site, coords = coords)` in univariate Gaussian
+  `mu`;
+- represented the model as independent `spatial(1 | site)` and
+  `spatial(0 + x | site)` fields sharing the same coordinate precision;
+- passed a structured-effect design matrix into TMB and made the univariate
+  Gaussian structured-effect branch sum coefficient-specific fields;
+- made `sdpars$mu`, `ranef("spatial_mu")`, `profile_targets()`, `predict()`,
+  and `check_drm()` handle the two-field coordinate-spatial path;
+- added deterministic spatial slope simulation tests, complete-case and
+  slope-variable validation tests, and updated the former planned-error guard;
+- updated roadmap, likelihood/formula/spatial design docs, known limitations,
+  README, NEWS, tutorials, roxygen, and the generated `man/spatial.Rd`;
+- added after-task report
+  `docs/dev-log/after-task/2026-05-15-phase-10-coordinate-spatial-one-slope.md`.
+
+Checks run:
+
+- `PATH=/opt/homebrew/bin:/usr/local/bin:$PATH air format R/drmTMB.R R/methods.R R/check.R R/formula-markers.R src/drmTMB.cpp tests/testthat/test-spatial-gaussian.R tests/testthat/test-gaussian-location-scale.R tests/testthat/test-phylo-utils.R README.md NEWS.md ROADMAP.md docs/design/01-formula-grammar.md docs/design/03-likelihoods.md docs/design/09-phylogenetic-and-spatial-speed.md docs/design/16-phylo-spatial-common-math.md docs/design/32-phase-6b-tutorial-source-map.md docs/dev-log/known-limitations.md vignettes/formula-grammar.Rmd vignettes/phylogenetic-spatial.Rmd`:
+  passed.
+- `PATH=/opt/homebrew/bin:/usr/local/bin:$PATH /usr/local/bin/Rscript -e 'devtools::document()'`:
+  passed and regenerated `man/spatial.Rd`.
+- `PATH=/opt/homebrew/bin:/usr/local/bin:$PATH /usr/local/bin/Rscript -e 'devtools::test(filter = "spatial-gaussian", reporter = "summary")'`:
+  passed.
+- `PATH=/opt/homebrew/bin:/usr/local/bin:$PATH /usr/local/bin/Rscript -e 'devtools::test(filter = "gaussian-location-scale", reporter = "summary")'`:
+  passed.
+- `PATH=/opt/homebrew/bin:/usr/local/bin:$PATH /usr/local/bin/Rscript -e 'devtools::test(filter = "phylo-utils", reporter = "summary")'`:
+  passed.
+- `PATH=/opt/homebrew/bin:/usr/local/bin:$PATH /usr/local/bin/Rscript -e 'devtools::test(filter = "check-drm", reporter = "summary")'`:
+  passed.
+- `PATH=/opt/homebrew/bin:/usr/local/bin:$PATH /usr/local/bin/Rscript -e 'devtools::test(filter = "profile-targets", reporter = "summary")'`:
+  passed.
+- `PATH=/opt/homebrew/bin:/usr/local/bin:$PATH /usr/local/bin/Rscript -e 'devtools::test(reporter = "summary")'`:
+  passed.
+- `PATH=/opt/homebrew/bin:/usr/local/bin:$PATH /usr/local/bin/Rscript -e 'pkgdown::build_site()'`:
+  passed.
+- `PATH=/opt/homebrew/bin:/usr/local/bin:$PATH /usr/local/bin/Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed with no problems found.
+- `PATH=/opt/homebrew/bin:/usr/local/bin:$PATH /usr/local/bin/Rscript -e 'devtools::check(error_on = "never", env_vars = c("_R_CHECK_SYSTEM_CLOCK_" = "FALSE"))'`:
+  passed with 0 errors, 0 warnings, and 0 notes in 2m 26.2s.
+- `git diff --check`: passed.
+- `rg -n 'spatial slopes.*planned|spatial terms are planned|spatial terms.*not implemented|spatial likelihood is not implemented|coords = coords\\).*not implemented|spatial\\(1 \\+ x \\| site, coords = coords\\).*Planned|spatial random slopes should stay planned|spatial slopes should stay planned|structured slopes remain planned' README.md ROADMAP.md NEWS.md R docs/design docs/dev-log/known-limitations.md vignettes tests man pkgdown-site --glob '!pkgdown-site/search.json' --glob '!docs/dev-log/after-task/**' --glob '!docs/dev-log/after-phase/**' --glob '!pkgdown-site/dev-log/**'`:
+  found only valid planned references to mesh/SPDE, multiple spatial slopes,
+  slope correlations, or historical rendered wording.
+
+Known limitations:
+
+- coordinate spatial slopes are univariate Gaussian `mu` only and require a
+  numeric finite slope variable;
+- no spatial intercept-slope `corpair()` row is fitted;
+- mesh/SPDE, multiple spatial slopes, spatial `sigma`, bivariate spatial
+  covariance, and spatial `corpair()` regressions remain planned;
+- GitHub Actions remains the PR-side gate after push.
+
+## 2026-05-15 -- Phase 10 spatial slope reader path
+
+Goal:
+
+- make the implemented coordinate-spatial one-slope path discoverable in the
+  tutorial, model map, formula grammar, source map, README, and historical
+  Phase 6c notes.
+
+Implemented:
+
+- updated the structured-dependence article to name and fit
+  `spatial(1 + depth | site, coords = coords)` as an evaluated example;
+- interpreted `spatial(1 | site)` and `spatial(0 + depth | site)` as separate
+  smooth intercept and slope SDs in the location predictor;
+- updated the model map, formula grammar, source map, README, and common-math
+  design note to stop underclaiming the spatial path as intercept-only;
+- added supersession wording to the Phase 6c design and after-phase notes so
+  historical closure text remains true after the Phase 10 implementation;
+- added after-task report
+  `docs/dev-log/after-task/2026-05-15-phase-10-spatial-slope-reader-path.md`.
+
+Checks run:
+
+- `PATH=/opt/homebrew/bin:/usr/local/bin:$PATH air format README.md vignettes/phylogenetic-spatial.Rmd vignettes/formula-grammar.Rmd vignettes/model-map.Rmd vignettes/source-map.Rmd docs/design/16-phylo-spatial-common-math.md docs/design/33-phase-6c-core-random-effects.md docs/dev-log/after-phase/2026-05-15-phase-6c-core-random-effect-closure.md`:
+  passed.
+- `PATH=/opt/homebrew/bin:/usr/local/bin:$PATH /usr/local/bin/Rscript -e 'devtools::load_all(quiet = TRUE); rmarkdown::render("vignettes/phylogenetic-spatial.Rmd", output_file = tempfile(fileext = ".html"), quiet = FALSE)'`:
+  passed and rendered the evaluated spatial-slope vignette example.
+- `PATH=/opt/homebrew/bin:/usr/local/bin:$PATH /usr/local/bin/Rscript -e 'devtools::test(filter = "spatial-gaussian", reporter = "summary")'`:
+  passed.
+- `PATH=/opt/homebrew/bin:/usr/local/bin:$PATH /usr/local/bin/Rscript -e 'pkgdown::build_site()'`:
+  passed.
+- `PATH=/opt/homebrew/bin:/usr/local/bin:$PATH /usr/local/bin/Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed with no problems found.
+- `git diff --check`:
+  passed.
+- `rg -n 'spatial random intercepts|intercept-only structured random effect|The first coordinate-based spatial path|first fitted spatial instance|structured random slopes,|spatial\\(1 \\+ x \\| site, coords = coords\\).*Planned|spatial\\(1 \\+ x \\| site, coords = coords\\).*planned|only the intercept|spatial random fields|profile-likelihood confidence intervals\\.' README.md ROADMAP.md NEWS.md docs/design vignettes pkgdown-site --glob '!pkgdown-site/search.json' --glob '!pkgdown-site/dev-log/**'`:
+  found only valid hits for intercept-only phylogenetic wording, plural first
+  spatial paths, the completed ROADMAP row, and planned mesh/multiple-slope
+  boundaries.
+
+Known limitations:
+
+- coordinate spatial slopes are still univariate Gaussian `mu` only;
+- one numeric spatial slope is fitted, with independent intercept and slope
+  fields and no intercept-slope `corpair()` row;
+- mesh/SPDE, multiple spatial slopes, spatial `sigma`, bivariate spatial
+  covariance, and spatial `corpair()` regressions remain planned;
+- full `devtools::check()` was not rerun for this prose-only follow-through
+  slice because the immediately preceding implementation slice already passed
+  with 0 errors, 0 warnings, and 0 notes.
+
+## 2026-05-15 -- Slice 77 stable-core feature matrix
+
+Goal:
+
+- add the Phase 6d stable-core matrix to the README and model-map so users can
+  tell stable fitted surfaces, first slices, opt-in controls, rejected syntax,
+  planned neighbours, and interval/diagnostic status apart before fitting.
+
+Implemented:
+
+- added a stable-core matrix to `README.md`;
+- added the same status contract to `vignettes/model-map.Rmd`;
+- updated `ROADMAP.md` so Slice 77 is closed and the Phase 6d prose uses
+  stable, first-slice, opt-in, and planned/rejected wording instead of a vague
+  experimental split;
+- updated `NEWS.md`;
+- added after-task report
+  `docs/dev-log/after-task/2026-05-15-slice-77-stable-core-feature-matrix.md`;
+- rebuilt local pkgdown output for the landing page, model-map article, roadmap,
+  and news page.
+
+Checks run:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH air format README.md vignettes/model-map.Rmd ROADMAP.md NEWS.md`:
+  passed.
+- `git diff --check`: passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::load_all(quiet = TRUE); rmarkdown::render("vignettes/model-map.Rmd", output_file = tempfile(fileext = ".html"), quiet = FALSE)'`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::build_site()'`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed with no problems found.
+- `rg -n 'Stable-core matrix|First slice fitted|First slices fitted|Opt-in controls|Reserved or planned neighbours|feature matrix|stable-core feature matrix|derived_interval_unavailable|Profile support is target-specific' pkgdown-site/index.html pkgdown-site/articles/model-map.html pkgdown-site/ROADMAP.html pkgdown-site/news/index.html --glob '!pkgdown-site/search.json'`:
+  confirmed rendered source.
+- `rg -n 'stable-core versus experimental|stable or experimental|experimental feature matrix|Fitted narrow slice|blanket.*profile|all.*profile|every.*profile|spatial.*corpair.*Stable|phylogenetic slopes.*Stable|mesh/SPDE.*Stable|random effects in `rho12`.*Stable|bivariate random slopes.*Stable|mixed composed.*Stable|sigma\\*' README.md ROADMAP.md NEWS.md vignettes/model-map.Rmd pkgdown-site/index.html pkgdown-site/articles/model-map.html pkgdown-site/ROADMAP.html pkgdown-site/news/index.html --glob '!pkgdown-site/search.json'`:
+  found no Slice 77 stale-status contradiction. It returned valid historical
+  profile wording and valid ordinary covariance row text.
+
+Known limitations:
+
+- this is a status/documentation slice, not new likelihood behavior;
+- the matrix does not yet contain the Slice 78 validation-debt links;
+- GitHub Actions remains the PR-side gate after push.
+
+## 2026-05-15 -- Slice 78 validation-debt register
+
+Goal:
+
+- back the Slice 77 stable-core matrix with a register linking every advertised
+  surface to tests, diagnostics, interval status, docs, check-log evidence, and
+  explicit debt.
+
+Implemented:
+
+- added `docs/design/34-validation-debt-register.md`;
+- defined register statuses `covered`, `partial`, `opt-in`, and `blocked`;
+- added stable surface IDs, validation risk, and next gates for every Slice 77
+  matrix row;
+- linked each row to tests, diagnostics or interval routes, docs, check-log
+  evidence, and remaining debt;
+- updated README, model-map, source-map, ROADMAP, and NEWS pointers;
+- added after-task report
+  `docs/dev-log/after-task/2026-05-15-slice-78-validation-debt-register.md`.
+
+Checks run:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH air format README.md vignettes/model-map.Rmd vignettes/source-map.Rmd ROADMAP.md NEWS.md docs/design/34-validation-debt-register.md`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::load_all(quiet = TRUE); rmarkdown::render("vignettes/model-map.Rmd", output_file = tempfile(fileext = ".html"), quiet = FALSE); rmarkdown::render("vignettes/source-map.Rmd", output_file = tempfile(fileext = ".html"), quiet = FALSE)'`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::build_site()'`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed with no problems found.
+- `git diff --check`: passed.
+- `rg -n '34-validation-debt-register|Validation-debt register|covered|partial|opt-in|blocked|D78-0|Slice 78' README.md vignettes/model-map.Rmd vignettes/source-map.Rmd ROADMAP.md NEWS.md docs/design/34-validation-debt-register.md`:
+  confirmed source pointers and register rows.
+- `rg -n '34-validation-debt-register|Validation-debt register|covered|partial|opt-in|blocked|D78-0|Slice 78|First slice' README.md vignettes/model-map.Rmd vignettes/source-map.Rmd ROADMAP.md NEWS.md docs/design/34-validation-debt-register.md pkgdown-site/index.html pkgdown-site/articles/model-map.html pkgdown-site/articles/source-map.html pkgdown-site/ROADMAP.html pkgdown-site/news/index.html --glob '!pkgdown-site/search.json'`:
+  confirmed rendered README, model-map, source-map, roadmap, and NEWS output.
+- `rg -n 'Stable first slice|stable first slice|stable-versus-experimental|experimental feature matrix|spatial.*intercept-only.*implemented|q=4.*direct profile-ready|phylogenetic slopes.*fitted|spatial `corpair\\(\\)`.*fitted|random effects.*non-Gaussian.*implemented|profile intervals are supported' README.md ROADMAP.md NEWS.md vignettes/model-map.Rmd vignettes/source-map.Rmd docs/design/34-validation-debt-register.md`:
+  found only valid guardrail wording in NEWS and model-map.
+
+Known limitations:
+
+- this is a traceability slice, not new model behavior;
+- some check-log evidence is summarized by heading or source-map reference
+  rather than exact line number because the check log is append-only and large;
+- GitHub Actions remains the PR-side gate after push.
+
+## 2026-05-15 -- Slice 79 standard-error and sdreport controls
+
+Goal:
+
+- make optimized fits survive intentional or accidental absence of
+  `TMB::sdreport()` while reporting the Wald-uncertainty state clearly.
+
+Implemented:
+
+- added `drm_control(se = TRUE)` with opt-in `se = FALSE` to skip
+  `TMB::sdreport()` after optimization;
+- added `fit$uncertainty` with `status = "ok"`, `"skipped"`, or `"failed"`;
+- wrapped requested `sdreport()` errors so `drmTMB()` still returns the
+  optimized fit;
+- made `vcov()`, `summary()`, `confint(..., method = "wald")`, and
+  `check_drm()` report unavailable Wald uncertainty explicitly;
+- added a first-class `sdreport_status` diagnostic row;
+- rejected ambiguous plain optimizer lists such as `control = list(se = FALSE)`;
+- updated README, model-map, large-data article, design docs, ROADMAP, NEWS,
+  generated Rd files, and pkgdown output;
+- added after-task report
+  `docs/dev-log/after-task/2026-05-15-slice-79-sdreport-controls.md`.
+
+Checks run:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH air format R/control.R R/drmTMB.R R/methods.R R/check.R tests/testthat/test-control.R NEWS.md ROADMAP.md docs/design/23-large-data-memory.md docs/design/12-profile-likelihood-cis.md vignettes/large-data.Rmd`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::test(filter = "control|summary|check-drm|profile-targets", reporter = "summary")'`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::document()'`:
+  passed and updated `man/check_drm.Rd` and `man/drm_control.Rd`.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::build_site()'`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed with no problems found.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::test(reporter = "summary")'`:
+  passed after the final retained-profile assertion was added.
+- `git diff --check`: passed.
+- `rg -n 'se = FALSE|sdreport_status|sdreport_skipped|sdreport_failed|wald_unavailable|point estimates only|control = drm_control\(se = TRUE\)' R tests README.md ROADMAP.md NEWS.md docs/design/12-profile-likelihood-cis.md docs/design/23-large-data-memory.md vignettes/large-data.Rmd vignettes/model-map.Rmd man/check_drm.Rd man/drm_control.Rd pkgdown-site/index.html pkgdown-site/articles/large-data.html pkgdown-site/articles/model-map.html pkgdown-site/ROADMAP.html pkgdown-site/news/index.html pkgdown-site/reference/check_drm.html pkgdown-site/reference/drm_control.html --glob '!pkgdown-site/search.json'`:
+  confirmed source and rendered availability wording.
+- `rg -n 'Wald intervals by default|standard errors, fitted values|sdreport object|sdreport\(\).*always|finite fixed-effect standard errors' README.md ROADMAP.md NEWS.md docs/design vignettes man pkgdown-site --glob '!pkgdown-site/search.json' --glob '!docs/dev-log/after-task/**' --glob '!pkgdown-site/dev-log/**'`:
+  found only valid historical NEWS/check-list wording for finite
+  standard-error diagnostics and no remaining unconditional claim that Wald
+  intervals are always available.
+- `gh pr status --repo itchyshin/drmTMB`: could not run because `gh` is not
+  installed in this shell.
+- GitHub connector PR lookup for `itchyshin/drmTMB` found one open PR:
+  `#45 Close Phase 6 profile inference gate`.
+
+Known limitations:
+
+- `se = FALSE` skips post-optimization standard-error state only; it does not
+  reduce model-construction memory;
+- Wald intervals have no fallback bootstrap or sandwich estimator when
+  `sdreport()` is unavailable;
+- failed-`sdreport()` behavior is tested by deterministic mutation of a valid
+  fit rather than a naturally failing TMB model;
+- GitHub Actions remains the PR-side gate after push.
+
+## 2026-05-15 -- Slice 80 optimizer/start/map contract
+
+Goal:
+
+- record the optimizer/start/map/multi-start contract and make current TMB
+  callbacks re-anchor to the selected optimizer result.
+
+Implemented:
+
+- added `docs/design/35-optimizer-start-map-multistart.md`;
+- reserved future names `start`, `starts`, `map`, `fixed`,
+  `fallback_optimizer`, `multi_start`, and `multistart` in plain optimizer
+  lists and inside `drm_control(optimizer = list(...))`;
+- added `fit$tmb_state` to store selected TMB `last.par` and `last.par.best`
+  state at the chosen optimum;
+- added `drm_pin_tmb_object_to_optimum()` before `sdreport()` and
+  profile-likelihood callbacks;
+- updated `drm_tmbprofile()` to re-pin the object before calling
+  `TMB::tmbprofile()`;
+- added `tests/testthat/test-optimizer-contract.R`;
+- updated ROADMAP and NEWS;
+- added after-task report
+  `docs/dev-log/after-task/2026-05-15-slice-80-optimizer-contract.md`.
+
+Checks run:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH air format R/control.R R/drmTMB.R R/profile.R tests/testthat/test-control.R tests/testthat/test-optimizer-contract.R docs/design/35-optimizer-start-map-multistart.md ROADMAP.md NEWS.md`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::test(filter = "optimizer-contract|control|profile-targets", reporter = "summary")'`:
+  first failed because the initial pinning helper overwrote TMB's full
+  fixed-plus-random `last.par` state with fixed-only `opt$par`.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::test(filter = "optimizer-contract|control|profile-targets", reporter = "summary")'`:
+  passed after storing and restoring `fit$tmb_state`.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::test(reporter = "summary")'`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::build_site()'`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed with no problems found.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::check(error_on = "never", env_vars = c("_R_CHECK_SYSTEM_CLOCK_" = "FALSE"))'`:
+  passed with 0 errors, 0 warnings, and 0 notes in 2m 23.8s.
+- `git diff --check`: passed.
+- `rg -n '35-optimizer-start-map-multistart|selected opt\$par|last\.par|last\.par\.best|fallback_optimizer|multi_start|multistart|reserved.*control|future start|fixed-parameter map|re-pin|re-pins|winning opt\$par' R tests NEWS.md ROADMAP.md docs/design/35-optimizer-start-map-multistart.md docs/dev-log/check-log.md pkgdown-site/ROADMAP.html pkgdown-site/news/index.html --glob '!pkgdown-site/search.json'`:
+  confirmed source and rendered contract wording.
+- `rg -n 'start support|map support|multistart support|multi-start support|fallback optimizer support|public starts|public maps|public multi-start|start = list|fixed = list|multi_start = list' README.md ROADMAP.md NEWS.md docs/design/35-optimizer-start-map-multistart.md vignettes pkgdown-site --glob '!pkgdown-site/search.json' --glob '!pkgdown-site/dev-log/**'`:
+  found only future-contract examples in the design doc and no README/model-map
+  claim that public start/map/multi-start support exists.
+
+Known limitations:
+
+- public `start`, `map`, `fixed`, fallback-optimizer, and multi-start controls
+  remain planned, not implemented;
+- the future `fixed` name means fixed or mapped TMB parameters, not regression
+  fixed effects;
+- the current implementation still uses one primary `nlminb()` optimization;
+- GitHub Actions remains the PR-side gate after push.
+
+## 2026-05-15 -- Slice 81 dense covariance and large-data guards
+
+Goal:
+
+- make dense known sampling covariance visibly small-to-moderate rather than an
+  implicit scalability promise.
+
+Implemented:
+
+- changed `check_drm()` so full-matrix `meta_known_V(V = V)` fits report the
+  `known_sampling_covariance` row as a note;
+- added dense known-covariance diagnostics for retained dimension, storage,
+  density, approximate R object size, rank, and conditioning;
+- kept the Gaussian known-covariance likelihood unchanged;
+- updated README, model-map, meta-analysis, large-data, source-map,
+  known-limitations, validation-debt, ROADMAP, NEWS, and generated Rd/pkgdown
+  output;
+- added after-task report
+  `docs/dev-log/after-task/2026-05-15-slice-81-dense-covariance-guards.md`.
+
+Checks run:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH air format R/check.R tests/testthat/test-check-drm.R tests/testthat/test-control.R README.md vignettes/model-map.Rmd vignettes/meta-analysis.Rmd vignettes/large-data.Rmd vignettes/source-map.Rmd docs/design/08-meta-analysis.md docs/design/23-large-data-memory.md docs/design/34-validation-debt-register.md docs/dev-log/known-limitations.md ROADMAP.md NEWS.md`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::test(filter = "check-drm|control|meta-known-v|biv-gaussian", reporter = "summary")'`:
+  first failed because the bivariate memory-light test asserted the whole
+  `check_drm()` result had no warning, even though that fixture has an
+  unrelated near-boundary residual `rho12` warning.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::test(filter = "check-drm|control|meta-known-v|biv-gaussian", reporter = "summary")'`:
+  passed after checking the intended dense known-covariance diagnostic row
+  directly.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::document()'`:
+  passed and updated `man/check_drm.Rd`.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::build_site()'`:
+  passed and refreshed README, ROADMAP, NEWS, reference, and changed articles.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed with no problems found.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::test(reporter = "summary")'`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::check(error_on = "never", env_vars = c("_R_CHECK_SYSTEM_CLOCK_" = "FALSE"))'`:
+  passed with 0 errors, 0 warnings, and 0 notes in 2m 15.9s.
+- `git diff --check`: passed.
+- ``rg -n 'small-to-moderate|storage=dense|block-sparse|full-matrix|known-covariance notes|dense full V as a note|dense `V` is reported|Dense matrix support' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes pkgdown-site/index.html pkgdown-site/ROADMAP.html pkgdown-site/articles/meta-analysis.html pkgdown-site/articles/large-data.html pkgdown-site/articles/model-map.html pkgdown-site/articles/source-map.html pkgdown-site/reference/check_drm.html pkgdown-site/news/index.html --glob '!pkgdown-site/search.json'``:
+  confirmed source and rendered guardrail wording.
+- `rg -n 'sparse known covariance.*implemented|block-sparse.*implemented|dense known covariance.*scalable|large-data route.*meta_known_V|broad.*known-covariance scalability|full matrix known covariance.*large-data' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes pkgdown-site --glob '!pkgdown-site/search.json'`:
+  found only valid boundary wording in the model-map large-data row.
+- `rg -n 'known_sampling_covariance|meta_known_V\(V = V\)|known covariance|dense matrix' R/check.R tests/testthat/test-check-drm.R tests/testthat/test-control.R man/check_drm.Rd README.md vignettes/model-map.Rmd vignettes/meta-analysis.Rmd vignettes/large-data.Rmd docs/design/08-meta-analysis.md docs/design/23-large-data-memory.md docs/design/34-validation-debt-register.md docs/dev-log/known-limitations.md NEWS.md ROADMAP.md`:
+  confirmed implementation, tests, docs, and roadmap/NEWS are synchronized.
+
+Known limitations:
+
+- sparse and block-sparse known sampling covariance remain planned;
+- dense known-covariance diagnostics expose retained matrix storage, not peak
+  memory;
+- GitHub Actions remains the PR-side gate after push.
+
+## 2026-05-15 -- Slice 82 count likelihood kernel audit
+
+Goal:
+
+- remove avoidable observed-count loops from NB2 likelihood routes without
+  changing the public family contract, formula grammar, or fitted
+  parameterization.
+
+Implemented:
+
+- added shared internal helpers for the NB2 count product, NB2 log density, and
+  NB2 zero mass in `src/drmTMB.cpp`;
+- routed ordinary NB2, zero-inflated NB2, zero-truncated NB2, and hurdle NB2
+  through the shared helpers;
+- kept `mu = exp(eta_mu)`, `sigma = exp(eta_sigma)`, and
+  `alpha = sigma^2`;
+- added deterministic high-count objective tests in
+  `tests/testthat/test-count-kernels.R`;
+- updated `docs/design/03-likelihoods.md`,
+  `docs/design/34-validation-debt-register.md`, `vignettes/source-map.Rmd`,
+  ROADMAP, NEWS, and generated pkgdown pages;
+- added after-task report
+  `docs/dev-log/after-task/2026-05-15-slice-82-count-kernel-audit.md`.
+
+Checks run:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH air format src/drmTMB.cpp tests/testthat/test-count-kernels.R`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::test(filter = "count-kernels|nbinom2|truncated-nbinom2|hurdle-nbinom2|zi-nbinom2", reporter = "summary")'`:
+  first failed because the initial helper used a parameter-dependent C++ branch
+  near the Poisson limit.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::test(filter = "count-kernels|nbinom2|truncated-nbinom2|hurdle-nbinom2|zi-nbinom2", reporter = "summary")'`:
+  passed after replacing the branch with `CppAD::CondExpLt()` and a
+  small-`alpha y` series.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::test(filter = "count-kernels|poisson|nbinom2|truncated-nbinom2|hurdle-nbinom2|family-link-contract|comparators", reporter = "summary")'`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::test(reporter = "summary")'`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::build_site()'`:
+  passed and refreshed ROADMAP, source-map, and NEWS pages.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed with no problems found.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::check(error_on = "never", env_vars = c("_R_CHECK_SYSTEM_CLOCK_" = "FALSE"))'`:
+  passed with 0 errors, 0 warnings, and 0 notes in 2m 22.2s.
+- `git diff --check`: passed.
+- `rg -n 'drm_nbinom2_log_count_product|drm_nbinom2_log_density|drm_nbinom2_log_p0|count-kernel|observed-count loop|lgamma ratio|Count likelihood kernel|Slice 82' src tests NEWS.md ROADMAP.md docs vignettes pkgdown-site --glob '!pkgdown-site/search.json'`:
+  confirmed source and rendered helper wording.
+- `rg -n 'for \(int j = 0; j < yi|observed-count loop|NB2.*loop over observed counts|dnbinom2.*loop' src tests NEWS.md ROADMAP.md docs vignettes pkgdown-site --glob '!pkgdown-site/search.json'`:
+  found no remaining C++ observed-count loop for NB2 likelihood evaluation.
+
+Known limitations:
+
+- this slice does not add a new approximation method or change the optimizer;
+- count-kernel tests are deterministic objective comparisons, not large
+  performance benchmarks;
+- GitHub Actions remains the PR-side gate after push.
+
+## 2026-05-15 -- Slice 83 C++ modularization source map
+
+Goal:
+
+- plan a safe split of the current single TMB template into smaller
+  header-only units without moving code or changing fitted behavior.
+
+Implemented:
+
+- added `docs/design/36-cpp-modularization-source-map.md`;
+- named the first safe helper-extraction boundaries as `src/drm_numeric.hpp`
+  and `src/drm_count_kernels.hpp`;
+- recorded later candidate boundaries for continuous kernels, random effects,
+  structured effects, bivariate Gaussian code, and hidden test probes;
+- documented hidden `model_type` 93 to 99 probe branches and their tests;
+- updated `docs/design/03-likelihoods.md` so the implemented routing table
+  names all current hidden probe branches, not only 94 and 99;
+- linked the modularization source map from `vignettes/source-map.Rmd`;
+- marked Slice 83 complete in ROADMAP and recorded the developer-doc change in
+  NEWS;
+- added after-task report
+  `docs/dev-log/after-task/2026-05-15-slice-83-cpp-modularization-source-map.md`.
+
+Checks run:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH air format docs/design/36-cpp-modularization-source-map.md docs/design/03-likelihoods.md vignettes/source-map.Rmd ROADMAP.md NEWS.md`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::test(filter = "package-skeleton|count-kernels|covariance-block-registry|phylo-utils|biv-gaussian|gaussian-random-intercepts|spatial-gaussian", reporter = "summary")'`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::build_site()'`:
+  passed and refreshed ROADMAP, NEWS, and the implemented source-map article.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed with no problems found.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::check(error_on = "never", env_vars = c("_R_CHECK_SYSTEM_CLOCK_" = "FALSE"))'`:
+  passed with 0 errors, 0 warnings, and 0 notes in 2m 17.5s.
+- `git diff --check`: passed.
+- `rg -n '36-cpp-modularization-source-map|C\+\+ modularization source map|model_type = 93|model_type = 95|model_type = 96|model_type = 97|model_type = 98|drm_count_kernels|drm_numeric|What Should Not Move Yet|Slice 83' NEWS.md ROADMAP.md docs/design vignettes pkgdown-site --glob '!pkgdown-site/search.json' --glob '!pkgdown-site/deps/**'`:
+  confirmed source and rendered source-map wording.
+- `rg -n 'model_type = 94.*model_type = 99 branches|hidden model_type = 94 and model_type = 99|C\+\+ modularization.*implemented code split|headers now own|src/drm_numeric.hpp exists|src/drm_count_kernels.hpp exists' docs/design vignettes NEWS.md ROADMAP.md pkgdown-site --glob '!pkgdown-site/search.json' --glob '!pkgdown-site/deps/**'`:
+  returned no matches, which is expected because no code split happened.
+
+Known limitations:
+
+- no C++ files were split in this slice;
+- proposed header names are a plan, not existing source files;
+- the first actual helper extraction still needs its own focused commit,
+  checks, and after-task report.
+
+## 2026-05-15 -- Slice 84 Phase 6d local gate
+
+Goal:
+
+- close the Phase 6d stable-core validation and engine-hardening lane locally
+  with tests, pkgdown, check, stale-claim scans, ROADMAP/NEWS updates, and an
+  after-phase report.
+
+Implemented:
+
+- marked Phase 6d as locally closed in `ROADMAP.md`;
+- marked Slice 84 locally done in the Phase 6d slice table;
+- added NEWS wording for the Phase 6d local closure;
+- added after-phase report
+  `docs/dev-log/after-phase/2026-05-15-phase-6d-stable-core-hardening-closure.md`;
+- recorded that GitHub Actions remains the PR-side gate and no new PR was
+  opened while repository PR #45 remains open.
+
+Checks run:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH air format ROADMAP.md NEWS.md docs/dev-log/check-log.md docs/dev-log/after-phase/2026-05-15-phase-6d-stable-core-hardening-closure.md`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::test(filter = "check-drm|control|optimizer-contract|count-kernels|covariance-block-registry|phylo-utils|biv-gaussian|gaussian-random-intercepts|spatial-gaussian|package-skeleton", reporter = "summary")'`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::test(reporter = "summary")'`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::build_site()'`:
+  passed and refreshed ROADMAP and NEWS.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed with no problems found.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::check(error_on = "never", env_vars = c("_R_CHECK_SYSTEM_CLOCK_" = "FALSE"))'`:
+  passed with 0 errors, 0 warnings, and 0 notes in 2m 17.2s.
+- `git diff --check`: passed.
+- `rg -n 'Phase 6d is locally closed|Phase 6d stable-core validation|Slice 84|phase-6d-stable-core-hardening-closure|GitHub Actions remains the PR-side gate' ROADMAP.md NEWS.md docs/dev-log/check-log.md docs/dev-log/after-phase/2026-05-15-phase-6d-stable-core-hardening-closure.md pkgdown-site/ROADMAP.html pkgdown-site/news/index.html --glob '!pkgdown-site/search.json'`:
+  confirmed source and rendered closure wording.
+- `rg -n 'all stable-core debt is closed|sparse known covariance.*implemented|block-sparse known covariance.*implemented|public multi-start support|public start support|helper headers now exist|Phase 6d.*fully complete' README.md ROADMAP.md NEWS.md docs/design vignettes pkgdown-site --glob '!docs/dev-log/**' --glob '!pkgdown-site/search.json' --glob '!pkgdown-site/deps/**'`:
+  returned no stale overclaim matches.
+
+Known limitations:
+
+- GitHub Actions remains the PR-side gate;
+- open repository PR #45 remains in the queue, so no new PR was opened from
+  this local closure;
+- sparse and block-sparse known covariance, public starts/maps/fixed
+  parameters, fallback optimizers, multi-start fitting, and actual C++ helper
+  header extraction remain future work.
+
+## 2026-05-15 -- Phase 10 coordinate-spatial foundation closure
+
+Goal:
+
+- close the local Phase 10 coordinate-spatial foundation while keeping mesh/SPDE
+  and richer spatial covariance paths planned.
+
+Implemented:
+
+- added after-phase report
+  `docs/dev-log/after-phase/2026-05-15-phase-10-coordinate-spatial-foundation-closure.md`;
+- added ROADMAP local closure wording for the coordinate intercept plus one
+  numeric slope path;
+- refreshed `docs/design/16-phylo-spatial-common-math.md` so older all-spatial
+  planned wording now distinguishes the fitted coordinate foundation from
+  planned mesh/SPDE and richer spatial paths;
+- updated the Phase 6d validation-debt register so the coordinate spatial row
+  points to the Phase 10 after-phase report;
+- left mesh/SPDE, multiple spatial slopes, spatial slope correlations, spatial
+  `sigma`, bivariate spatial covariance, spatial direct-SD models, and spatial
+  `corpair()` regressions as planned debt.
+
+Checks run:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH air format ROADMAP.md docs/design/16-phylo-spatial-common-math.md docs/design/34-validation-debt-register.md docs/dev-log/check-log.md docs/dev-log/after-phase/2026-05-15-phase-10-coordinate-spatial-foundation-closure.md`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::test(filter = "spatial-gaussian|check-drm|profile-targets|phylo-utils", reporter = "summary")'`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::build_site()'`:
+  passed and refreshed ROADMAP.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed with no problems found.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::check(error_on = "never", env_vars = c("_R_CHECK_SYSTEM_CLOCK_" = "FALSE"))'`:
+  passed with 0 errors, 0 warnings, and 0 notes in 2m 29.6s.
+- `git diff --check`: passed.
+- `rg -n 'coordinate-spatial foundation closure|phase-10-coordinate-spatial-foundation-closure|coordinate intercept plus one numeric slope|not a mesh/SPDE or bivariate spatial closure|coordinate-spatial foundation now also fits|spatial-gaussian' ROADMAP.md docs/design/16-phylo-spatial-common-math.md docs/design/34-validation-debt-register.md docs/dev-log/check-log.md docs/dev-log/after-phase/2026-05-15-phase-10-coordinate-spatial-foundation-closure.md pkgdown-site/ROADMAP.html --glob '!pkgdown-site/search.json'`:
+  confirmed source and rendered closure wording.
+- `rg -n 'mesh/SPDE (is|are) implemented|multiple spatial slopes (are|now) implemented|spatial slope correlations (are|now) implemented|spatial `sigma` (is|now) implemented|bivariate spatial covariance (is|now) implemented|spatial `corpair\\(\\)` (is|now) implemented|spatial corpair (is|now) implemented' README.md ROADMAP.md NEWS.md docs/design vignettes pkgdown-site --glob '!docs/dev-log/**' --glob '!pkgdown-site/search.json' --glob '!pkgdown-site/deps/**'`:
+  returned no stale overclaim matches.
+
+Known limitations:
+
+- this closes the coordinate-spatial foundation only;
+- mesh/SPDE, multiple spatial slopes, spatial slope correlations, spatial
+  `sigma`, bivariate spatial covariance, spatial direct-SD models, and spatial
+  `corpair()` remain planned;
+- GitHub Actions remains the PR-side gate.
+
+## 2026-05-15 -- Phase 11 bivariate correlation-pair foundation closure
+
+Goal:
+
+- close the local ordinary bivariate random-intercept and `corpairs()`
+  foundation without claiming the full double-hierarchical endpoint.
+
+Implemented:
+
+- added after-phase report
+  `docs/dev-log/after-phase/2026-05-15-phase-11-bivariate-corpairs-foundation-closure.md`;
+- updated `ROADMAP.md` so Phase 11 is locally closed only for ordinary
+  bivariate random-intercept covariance and `corpairs()` rows;
+- refreshed `R/drmTMB.R`,
+  `docs/design/04-random-effects.md`, and
+  `docs/design/17-correlated-random-effect-blocks.md` to remove stale wording
+  that implied only q2 mean covariance was implemented or that all-four
+  intercept covariance remained unavailable;
+- updated `docs/design/34-validation-debt-register.md` so the ordinary
+  bivariate covariance row points to the Phase 11 closure report;
+- kept bivariate random slopes, coefficient-aware slope-pair `corpair()`
+  regression, full q=6 or q=8 endpoint blocks, direct q=4 profile intervals,
+  random effects in `rho12`, structured spatial covariance, and
+  non-phylogenetic species covariance as planned work.
+
+Checks run:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH air format ROADMAP.md R/drmTMB.R docs/design/04-random-effects.md docs/design/17-correlated-random-effect-blocks.md docs/design/34-validation-debt-register.md docs/dev-log/check-log.md docs/dev-log/after-phase/2026-05-15-phase-11-bivariate-corpairs-foundation-closure.md`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::test(filter = "biv-gaussian|corpairs|profile-targets|summary|check-drm|covariance-block-registry", reporter = "summary")'`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::build_site()'`:
+  passed and refreshed ROADMAP.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed with no problems found.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::check(error_on = "never", env_vars = c("_R_CHECK_SYSTEM_CLOCK_" = "FALSE"))'`:
+  passed with 0 errors, 0 warnings, and 0 notes in 2m 17s.
+- `git diff --check`: passed.
+- `rg -n 'Phase 11|phase-11-bivariate-corpairs-foundation-closure|ordinary bivariate random-intercept|ordinary q=4 all-four|direct q=4 profile intervals|rho12 random effects|structured spatial covariance|residual-scale slope covariance' ROADMAP.md docs/design/04-random-effects.md docs/design/17-correlated-random-effect-blocks.md docs/design/34-validation-debt-register.md docs/dev-log/check-log.md docs/dev-log/after-phase/2026-05-15-phase-11-bivariate-corpairs-foundation-closure.md pkgdown-site/ROADMAP.html --glob '!pkgdown-site/search.json'`:
+  confirmed source and rendered closure wording.
+- `rg -n 'bivariate random effects remain planned|Bivariate random-effect syntax is planned|sigma1.*sigma2.*planned|q4.*remain planned|full cross-parameter bivariate covariance|residual-scale covariance.*planned|bivariate random slopes (are|now) implemented|q=4.*direct profile.*(is|are|now) implemented|direct q=4 profile intervals (are|now) implemented|rho12 random effects (are|now) implemented|random effects in `rho12` (are|now) implemented|structured spatial covariance (is|now) implemented|spatial bivariate covariance (is|now) implemented|spatial `corpair\\(\\)` (is|now) implemented' README.md ROADMAP.md NEWS.md docs/design vignettes R tests man pkgdown-site --glob '!docs/dev-log/**' --glob '!pkgdown-site/search.json' --glob '!pkgdown-site/deps/**'`:
+  returned only allowed planned-boundary statements in README, rendered
+  ROADMAP, `vignettes/distribution-families.Rmd`,
+  `docs/design/01-formula-grammar.md`, and
+  `docs/design/28-double-hierarchical-endpoint.md`.
+
+Known limitations:
+
+- only ordinary random-intercept bivariate covariance is locally closed;
+- q=4 covariance rows are point summaries with derived interval status, not
+  direct profile intervals;
+- bivariate random slopes, coefficient-aware slope-pair `corpair()` regression,
+  q=6/q=8 endpoint blocks, `rho12` random effects, structured spatial
+  covariance, and non-phylogenetic species covariance remain planned;
+- GitHub Actions remains the PR-side gate.
+
+## 2026-05-15 -- Phase 12 phylogenetic correlation foundation closure
+
+Goal:
+
+- close the local phylogenetic correlation foundation without claiming
+  phylogenetic random slopes, structured `rho12`, or all location-scale-shape
+  extensions.
+
+Implemented:
+
+- added after-phase report
+  `docs/dev-log/after-phase/2026-05-15-phase-12-phylogenetic-correlation-foundation-closure.md`;
+- updated `ROADMAP.md` so Phase 12 is locally closed only for the fitted
+  phylogenetic correlation foundation;
+- updated `docs/design/34-validation-debt-register.md` so the phylogenetic
+  structured-effects row points to the Phase 12 closure report;
+- kept phylogenetic random slopes, phylogenetic intercept-slope correlations,
+  predictor-dependent q=4 phylogenetic correlations, phylogenetic effects in
+  residual `rho12`, phylogenetic location-scale-shape models, and longer
+  optional simulations as planned work.
+
+Checks run:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH air format ROADMAP.md docs/design/34-validation-debt-register.md docs/dev-log/after-phase/2026-05-15-phase-12-phylogenetic-correlation-foundation-closure.md`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::test(filter = "phylo-gaussian|phylo-utils|corpairs|profile-targets|summary|check-drm", reporter = "summary")'`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::build_site()'`:
+  passed and refreshed ROADMAP.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed with no problems found.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::check(error_on = "never", env_vars = c("_R_CHECK_SYSTEM_CLOCK_" = "FALSE"))'`:
+  passed with 0 errors, 0 warnings, and 0 notes in 2m 17.7s.
+- `git diff --check`: passed.
+- `rg -n 'Phase 12|phase-12-phylogenetic-correlation-foundation-closure|phylogenetic correlation foundation|predictor-dependent phylogenetic|sd_phylo1|sd_phylo2|all-four q=4 phylogenetic|phylogenetic random slopes|structured `rho12`|predictor-dependent q=4' ROADMAP.md docs/design/34-validation-debt-register.md docs/dev-log/after-phase/2026-05-15-phase-12-phylogenetic-correlation-foundation-closure.md pkgdown-site/ROADMAP.html --glob '!pkgdown-site/search.json'`:
+  confirmed source and rendered closure wording.
+- `rg -n 'phylo\\(1 \\+.*Implemented|phylogenetic random slopes (are|now) implemented|phylogenetic slopes (are|now) implemented|phylogenetic effects in `rho12` (are|now) implemented|structured `rho12`.*implemented|predictor-dependent q=4 phylogenetic.*implemented|q=4 phylogenetic.*predictor-dependent.*implemented|phylogenetic location-scale-shape.*implemented|phylogenetic `sigma` slope.*implemented' README.md ROADMAP.md NEWS.md docs/design vignettes R tests man pkgdown-site --glob '!docs/dev-log/**' --glob '!pkgdown-site/search.json' --glob '!pkgdown-site/deps/**'`:
+  returned no matches.
+
+Known limitations:
+
+- phylogenetic random slopes are not implemented;
+- phylogenetic effects in residual `rho12` are not implemented;
+- predictor-dependent q=4 phylogenetic correlations remain planned;
+- q=4 phylogenetic correlation rows are point summaries with derived interval
+  status, not direct profile intervals;
+- long optional simulations for larger trees, near-zero phylogenetic SD, high
+  residual noise, and combined phylogenetic plus non-phylogenetic species
+  effects remain planned;
+- GitHub Actions remains the PR-side gate.
+
+## 2026-05-15 -- Phase 13 derived inference foundation closure
+
+Goal:
+
+- close the local derived-summary and interval-status foundation without
+  claiming nonlinear derived confidence intervals.
+
+Implemented:
+
+- added after-phase report
+  `docs/dev-log/after-phase/2026-05-15-phase-13-derived-inference-foundation-closure.md`;
+- updated `ROADMAP.md` so Phase 13 is locally closed only for the
+  derived-summary and interval-status foundation;
+- updated `docs/design/34-validation-debt-register.md` so the profile
+  intervals and diagnostics row points to the Phase 13 closure report;
+- kept nonlinear derived intervals for covariance rows, q=4 unstructured
+  correlations, repeatability, phylogenetic signal, total variance, and
+  complete double-hierarchical slope-scale summaries as planned.
+
+Checks run:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH air format ROADMAP.md docs/design/34-validation-debt-register.md docs/dev-log/check-log.md docs/dev-log/after-phase/2026-05-15-phase-13-derived-inference-foundation-closure.md`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::test(filter = "profile-targets|summary|biv-gaussian|phylo-gaussian|spatial-gaussian|check-drm|gaussian-random-intercepts", reporter = "summary")'`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::build_site()'`:
+  passed and refreshed ROADMAP.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed with no problems found.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::check(error_on = "never", env_vars = c("_R_CHECK_SYSTEM_CLOCK_" = "FALSE"))'`:
+  passed with 0 errors, 0 warnings, and 0 notes in 2m 24s.
+- `git diff --check`: passed.
+- `rg -n 'Phase 13|phase-13-derived-inference-foundation-closure|derived-summary and interval-status foundation|derived_interval_unavailable|repeatability|phylogenetic_signal|covariance point summaries|nonlinear derived intervals' ROADMAP.md docs/design/34-validation-debt-register.md docs/dev-log/after-phase/2026-05-15-phase-13-derived-inference-foundation-closure.md pkgdown-site/ROADMAP.html --glob '!pkgdown-site/search.json'`:
+  confirmed source and rendered closure wording.
+- `rg -n 'derived intervals (are|now) implemented|derived confidence intervals (are|now) implemented|nonlinear derived intervals (are|now) implemented|q=4 .*intervals (are|now) implemented|q4 .*intervals (are|now) implemented|covariance intervals (are|now) implemented|repeatability intervals (are|now) implemented|phylogenetic signal intervals (are|now) implemented|total variance intervals (are|now) implemented' README.md ROADMAP.md NEWS.md docs/design vignettes R tests man pkgdown-site --glob '!docs/dev-log/**' --glob '!pkgdown-site/search.json' --glob '!pkgdown-site/deps/**'`:
+  returned no matches.
+
+Known limitations:
+
+- nonlinear derived intervals remain planned;
+- q=4 unstructured correlations remain derived targets and are not
+  profile-ready;
+- derived covariance intervals remain unavailable;
+- repeatability, phylogenetic signal, and total variance intervals need a
+  valid direct-target or fix-and-refit method;
+- GitHub Actions remains the PR-side gate.
+
+## 2026-05-15 -- Phase 12 phylogenetic scale-boundary wording cleanup
+
+Goal:
+
+- tighten Phase 12 wording after Maxwell and Mill flagged that "phylogenetic
+  effects in `sigma` remain planned" was too broad now that the matched
+  all-four q=4 phylogenetic block includes `sigma1` and `sigma2` endpoints.
+
+Implemented:
+
+- updated `README.md`, `vignettes/model-map.Rmd`,
+  `vignettes/which-scale.Rmd`, `vignettes/phylogenetic-spatial.Rmd`,
+  `docs/design/16-phylo-spatial-common-math.md`, and
+  `docs/design/34-validation-debt-register.md`;
+- replaced broad "phylogenetic sigma remains planned" wording with narrower
+  boundaries: standalone or partial phylogenetic scale terms, phylogenetic
+  slopes, structured `rho12`, and predictor-dependent q=4 phylogenetic
+  correlations remain planned;
+- clarified that the fitted constant labelled all-four q=4 block already
+  includes `sigma1` and `sigma2` phylogenetic endpoints.
+
+Checks run:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH air format README.md docs/design/16-phylo-spatial-common-math.md docs/design/34-validation-debt-register.md vignettes/model-map.Rmd vignettes/phylogenetic-spatial.Rmd vignettes/which-scale.Rmd`:
+  passed.
+- `rg -n 'phylogenetic effects in `sigma`|phylogenetic `sigma` terms|phylo\\(1 \\+.*Implemented|q=4 extensions remain planned|q4 extensions remain planned|phylogenetic random slopes (are|now) implemented|phylogenetic slopes (are|now) implemented|predictor-dependent q=4 phylogenetic.*implemented|q=4 phylogenetic.*predictor-dependent.*implemented|phylogenetic location-scale-shape.*implemented|structured `rho12`.*implemented' README.md ROADMAP.md NEWS.md docs/design vignettes R man tests/testthat --glob '!docs/dev-log/**'`:
+  returned only allowed planned-boundary matches for predictor-dependent q=4
+  extensions and univariate phylogenetic `sigma` terms.
+- `git diff --check`: passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::build_site()'`:
+  passed and refreshed README plus affected articles.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed with no problems found.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::check(error_on = "never", env_vars = c("_R_CHECK_SYSTEM_CLOCK_" = "FALSE"))'`:
+  passed with 0 errors, 0 warnings, and 0 notes in 2m 19s.
+
+Known limitations:
+
+- this is a wording cleanup only;
+- phylogenetic slopes, standalone or partial phylogenetic scale terms,
+  structured `rho12`, and predictor-dependent q=4 phylogenetic correlations
+  remain planned.
+
+## 2026-05-15 -- Phase 6b follow-through after Phases 10-13
+
+Goal:
+
+- refresh the tutorial front door after the local Phase 10-13 closures so the
+  getting-started path names current bivariate, phylogenetic, coordinate
+  spatial, and interval-status surfaces before returning to the next Phase 6b
+  tutorial-quality pass.
+
+Implemented:
+
+- updated `vignettes/drmTMB.Rmd` with current high-level implementation wording,
+  new learning-path rows for `corpairs()`, `corpair()`, `sd_phylo*()`,
+  `spatial()`, `profile_targets()`, and `conf.status`, and a narrower spatial
+  boundary;
+- updated `vignettes/bivariate-coscale.Rmd` so `corpairs()` no longer describes
+  fitted ordinary group-level and phylogenetic rows as only future design
+  targets;
+- added after-task report
+  `docs/dev-log/after-task/2026-05-15-phase-6b-follow-through-after-10-13.md`.
+
+Checks run:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH air format vignettes/drmTMB.Rmd vignettes/bivariate-coscale.Rmd`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::build_site()'`:
+  passed and rendered the updated getting-started and bivariate-coscale
+  articles.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed with no problems found.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::check(error_on = "never", env_vars = c("_R_CHECK_SYSTEM_CLOCK_" = "FALSE"))'`:
+  passed with 0 errors, 0 warnings, and 0 notes in 2m 33.5s.
+- `git diff --check`: passed.
+- `rg -n -F 'intercept-only phylogenetic Gaussian location effects' vignettes/drmTMB.Rmd pkgdown-site/articles/drmTMB.html pkgdown-site/articles/bivariate-coscale.html --glob '!pkgdown-site/search.json'`:
+  returned no matches.
+- `rg -n -F 'Future phylogenetic and spatial correlations' vignettes/drmTMB.Rmd pkgdown-site/articles/drmTMB.html pkgdown-site/articles/bivariate-coscale.html --glob '!pkgdown-site/search.json'`:
+  returned no matches.
+- `rg -n -F 'spatial fields and richer structured covariance blocks' vignettes/drmTMB.Rmd pkgdown-site/articles/drmTMB.html pkgdown-site/articles/bivariate-coscale.html --glob '!pkgdown-site/search.json'`:
+  returned no matches.
+- ``rg -n -F 'matching labelled bivariate `mu1`/`mu2` random intercepts' vignettes/drmTMB.Rmd pkgdown-site/articles/drmTMB.html pkgdown-site/articles/bivariate-coscale.html --glob '!pkgdown-site/search.json'``:
+  returned no matches.
+- `rg -n -F 'design target for future group-level' vignettes/bivariate-coscale.Rmd pkgdown-site/articles/bivariate-coscale.html --glob '!pkgdown-site/search.json'`:
+  returned no matches.
+- `rg -n 'ordinary bivariate covariance and \`corpairs\\(\\)\` rows|coordinate spatial Gaussian \`mu\` intercept and one numeric slope|fitted interval status and derived-summary flags|Checking and using fitted models|richer spatial correlation rows remain planned' vignettes/drmTMB.Rmd pkgdown-site/articles/drmTMB.html --glob '!pkgdown-site/search.json'`:
+  confirmed the source and rendered getting-started article carry the updated
+  status.
+- `rg -n 'same table shape now also holds fitted ordinary group-level and|richer spatial and study-level correlation rows remain planned' vignettes/bivariate-coscale.Rmd pkgdown-site/articles/bivariate-coscale.html --glob '!pkgdown-site/search.json'`:
+  confirmed the source wording; the rendered article also carried the updated
+  paragraph through the pkgdown build.
+
+Known limitations:
+
+- this was documentation follow-through only;
+- richer spatial correlations, bivariate spatial covariance, mesh/SPDE fields,
+  structured `rho12`, and nonlinear derived intervals remain planned;
+- GitHub Actions remains the PR-side gate.
+
+## 2026-05-15 -- Phase 6b structured-boundary cleanup
+
+Goal:
+
+- remove stale broad structured-effect wording that survived Phase 10 and Phase
+  12 without changing model behaviour.
+
+Implemented:
+
+- updated the structured-effect rejection message in `R/drmTMB.R` so unsupported
+  structured markers point users to the current fitted exceptions: univariate
+  phylogenetic `mu`, matching bivariate phylogenetic `mu1`/`mu2`, and
+  coordinate-spatial univariate `mu` intercept or one numeric slope;
+- updated `vignettes/location-scale.Rmd` so "spatial terms" and "phylogenetic
+  sigma terms" are no longer broad planned buckets;
+- added after-task report
+  `docs/dev-log/after-task/2026-05-15-phase-6b-structured-boundary-cleanup.md`.
+
+Checks run:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH air format R/drmTMB.R vignettes/location-scale.Rmd`:
+  passed.
+- `rg -n -F 'phylogenetic \`sigma\` terms, spatial terms' R vignettes README.md ROADMAP.md NEWS.md docs/design tests/testthat --glob '!docs/dev-log/**'`:
+  returned no matches.
+- `rg -n -F 'spatial terms and structured effects in other parameters are still planned' R vignettes README.md ROADMAP.md NEWS.md docs/design tests/testthat --glob '!docs/dev-log/**'`:
+  returned no matches.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::test(filter = "gaussian-location-scale|spatial-gaussian|package-skeleton", reporter = "summary")'`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::build_site()'`:
+  passed and rendered `articles/location-scale.html`.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed with no problems found.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::check(error_on = "never", env_vars = c("_R_CHECK_SYSTEM_CLOCK_" = "FALSE"))'`:
+  passed with 0 errors, 0 warnings, and 0 notes in 2m 28s.
+- `git diff --check`: passed.
+- `rg -n 'Coordinate-spatial random effects are implemented|spatial \`sigma\`, bivariate spatial covariance|Implemented structured paths are intercept-only|coordinate-spatial .*spatial\\(1 \\+ x' R/drmTMB.R vignettes/location-scale.Rmd pkgdown-site/articles/location-scale.html pkgdown-site/reference/drmTMB.html --glob '!pkgdown-site/search.json'`:
+  confirmed the updated source and rendered article wording.
+
+Known limitations:
+
+- this was a wording and error-message cleanup only;
+- spatial `sigma`, bivariate spatial covariance, mesh/SPDE fields, multiple
+  spatial slopes, spatial `corpair()`, phylogenetic slopes, standalone or
+  partial phylogenetic scale terms, and structured `rho12` remain planned.
+
+## 2026-05-15 -- Phase 6b `conf.status` action table
+
+Goal:
+
+- make the post-fit workflow tutorial tell applied readers what to do when they
+  see each `conf.status` value.
+
+Implemented:
+
+- added a compact action table to `vignettes/model-workflow.Rmd`;
+- covered `wald`, `profile`, `profile_ready`, `newdata_required`,
+  `derived_interval_unavailable`, `wald_unavailable`, `target_unavailable`,
+  `profile_unavailable`, and `not_requested`;
+- added after-task report
+  `docs/dev-log/after-task/2026-05-15-phase-6b-conf-status-action-table.md`.
+
+Checks run:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH air format vignettes/model-workflow.Rmd`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::build_site()'`:
+  passed and rendered `articles/model-workflow.html`.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed with no problems found.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::check(error_on = "never", env_vars = c("_R_CHECK_SYSTEM_CLOCK_" = "FALSE"))'`:
+  passed with 0 errors, 0 warnings, and 0 notes in 2m 30.1s.
+- `git diff --check`: passed.
+- `rg -n 'Read \`conf\\.status\` as an action column|profile_ready|derived_interval_unavailable|target_unavailable|not_requested' vignettes/model-workflow.Rmd pkgdown-site/articles/model-workflow.html --glob '!pkgdown-site/search.json'`:
+  confirmed the source and rendered model-workflow article carry the action
+  table.
+
+Known limitations:
+
+- this was documentation-only;
+- derived intervals, automatic intervals for every covariance summary, and
+  recovery from failed or non-monotone profiles remain planned.
+
+## 2026-05-15 -- Reference surface refresh
+
+Goal:
+
+- bring the main `drmTMB()` reference description up to date with the Phase 10-13
+  model surfaces.
+
+Implemented:
+
+- updated the `drmTMB()` roxygen description to mention coordinate-based spatial
+  random intercepts and one numeric coordinate-spatial slope in univariate
+  Gaussian `mu`;
+- added the first all-four q=4 ordinary random-intercept covariance blocks and
+  predictor-dependent q=2 ordinary or phylogenetic `corpair()` regressions to
+  the same reference description;
+- regenerated `man/drmTMB.Rd` with `devtools::document()`;
+- added after-task report
+  `docs/dev-log/after-task/2026-05-15-reference-surface-refresh.md`.
+
+Checks run:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH air format R/drmTMB.R`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::document()'`:
+  passed and wrote `man/drmTMB.Rd`.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::build_site()'`:
+  passed and rendered `reference/drmTMB.html`.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed with no problems found.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::check(error_on = "never", env_vars = c("_R_CHECK_SYSTEM_CLOCK_" = "FALSE"))'`:
+  passed with 0 errors, 0 warnings, and 0 notes in 2m 29.8s.
+- `git diff --check`: passed.
+- `rg -n 'coordinate-based spatial random intercepts and one|all-four q=4 ordinary random-intercept covariance blocks|predictor-dependent q=2 ordinary or phylogenetic' R/drmTMB.R man/drmTMB.Rd pkgdown-site/reference/drmTMB.html --glob '!pkgdown-site/search.json'`:
+  confirmed source, generated Rd, and rendered reference page wording.
+
+Known limitations:
+
+- this was roxygen/reference prose only;
+- mesh/SPDE spatial fields, spatial `sigma`, bivariate spatial covariance,
+  spatial `corpair()`, phylogenetic slopes, predictor-dependent q=4
+  phylogenetic correlations, and broad derived intervals remain planned.
+
+## 2026-05-16 -- Slices 87-88 PR stack landing and drift scan
+
+Goal:
+
+- land the prerequisite Phase 6 gate, retarget the Phase 10-13 closure PR to
+  `main`, and scan for stale implemented-versus-planned wording before treating
+  the branch as ready.
+
+Implemented:
+
+- merged PR #45, "Close Phase 6 profile inference gate", into `main` with merge
+  commit `18d1dbed77f07bd32910f102b2e829948dd3dea6`;
+- retargeted PR #46, "Close Phase 10-13 foundations", from
+  `codex/slice-60-phase-6-gate` to `main`;
+- marked PR #46 ready for review after the retarget;
+- added after-task report
+  `docs/dev-log/after-task/2026-05-16-slices-87-88-pr-stack-and-drift-scan.md`.
+
+Checks run:
+
+- `gh pr view 45 --repo itchyshin/drmTMB --json number,state,closed,closedAt,mergedAt,mergedBy,mergeCommit,url,title`:
+  confirmed PR #45 is merged into `main`.
+- `gh pr view 46 --repo itchyshin/drmTMB --json number,title,state,isDraft,url,baseRefName,headRefName,mergeStateStatus,statusCheckRollup`:
+  confirmed PR #46 targets `main`, is ready for review, and is merge-clean.
+- `git fetch origin main --prune`: updated local `origin/main`.
+- `git merge-base --is-ancestor 1468cdc47efc16f108153fa2a602729b1b41dd6f origin/main`:
+  passed, confirming the Phase 6 gate commit is now an ancestor of `main`.
+- `gh pr diff 46 --repo itchyshin/drmTMB --name-only`: confirmed the retargeted
+  PR diff contains 75 files from the Phase 10-13 branch.
+- `rg -n 'spatial\(1 \+ x \| site, coords = coords\).*Planned|spatial slopes.*planned|spatial random slopes should stay planned|coordinate-spatial.*not implemented|spatial likelihood is not implemented|phylogenetic slopes.*implemented|phylo\(1 \+ x.*Implemented|q=4.*profile intervals.*implemented|derived covariance intervals.*implemented|direct profile intervals for derived|all Phase 6c.*implemented|mesh/SPDE.*implemented|spatial `sigma`.*implemented|spatial corpair.*implemented|structured `rho12`.*implemented' README.md ROADMAP.md NEWS.md R docs/design docs/dev-log/known-limitations.md vignettes man pkgdown-site --glob '!docs/dev-log/check-log.md' --glob '!docs/dev-log/after-task/**' --glob '!docs/dev-log/after-phase/**' --glob '!docs/dev-log/recovery-checkpoints/**' --glob '!pkgdown-site/search.json' --glob '!pkgdown-site/dev-log/**' --glob '!pkgdown-site/deps/**'`:
+  returned expected planned-boundary wording and no implemented-status
+  contradiction.
+- `rg -n 'Phase 10|Phase 11|Phase 12|Phase 13|coordinate spatial|ordinary bivariate|phylogenetic correlation|derived-summary|interval-status|mesh/SPDE|phylogenetic slopes|structured `rho12`|nonlinear derived intervals' README.md ROADMAP.md NEWS.md vignettes/drmTMB.Rmd vignettes/model-map.Rmd vignettes/phylogenetic-spatial.Rmd vignettes/bivariate-coscale.Rmd vignettes/model-workflow.Rmd docs/design/34-validation-debt-register.md docs/dev-log/known-limitations.md man/drmTMB.Rd man/spatial.Rd`:
+  confirmed the main status surfaces keep fitted foundations and planned
+  neighbours separate.
+- `git diff --check origin/main...HEAD`: passed.
+
+Known limitations:
+
+- this slice did not add model code or tutorial content;
+- the earlier manual workflow-dispatch `R-CMD-check` passed on Ubuntu, macOS,
+  and Windows for the stacked branch, but PR #46 still needs the normal
+  `pull_request` GitHub Actions check against `main` after this trace commit is
+  pushed.

@@ -646,6 +646,38 @@ residual `rho12` separate from ordinary group-level random-effect correlations,
 including the implemented bivariate `mu1`/`mu2`, `sigma1`/`sigma2`, and
 same-response `mu`/`sigma` random-intercept correlations.
 
+## Family A versus Family B
+
+Two model families can both sound like "scale random effects", but they are
+different likelihoods.
+
+Family A puts random effects inside distributional formulas. For example,
+`sigma ~ z + (1 | id)` adds a group-level residual-scale deviation to
+`log(sigma_ij)`. Matching labels such as `(1 | p | id)` across `mu` and
+`sigma`, or across `mu1`, `mu2`, `sigma1`, and `sigma2`, define latent
+covariance blocks. Read those correlations with `corpairs()`.
+
+Family B models the SD of a location random effect directly. For example,
+`sd(id) ~ habitat` changes the among-`id` SD in the `mu` random intercept. The
+phylogenetic direct-SD analogue is currently spelled
+`sd_phylo(species) ~ z_species`; a future generic spelling might be
+`sd(species, level = "phylogenetic") ~ z_species`, but the explicit
+`sd_phylo()` name is the implemented public syntax today.
+
+Do not mix the two families for the same latent layer. For example, a q=4
+Family A block with matching labelled `phylo()` terms in `mu1`, `mu2`,
+`sigma1`, and `sigma2` already estimates one constant latent covariance block.
+Adding `sd_phylo1(species) ~ z` or `sd_phylo2(species) ~ z` to that same q=4
+block would ask for a predictor-dependent direct-SD model at the same time, so
+`drmTMB()` rejects that combination before fitting.
+
+| Question | Use | Do not read it as |
+|---|---|---|
+| Do groups differ in residual SD? | `sigma ~ ... + (1 | group)` | a model for among-group mean differences |
+| Does a group-level predictor change among-group mean SD? | `sd(group) ~ x_group` | residual `sigma` regression |
+| Do two latent group effects move together? | matching labelled random effects plus `corpairs()` | residual `rho12` |
+| Does a species-level predictor change phylogenetic location SD? | `sd_phylo(species) ~ z_species` | a q=4 location-scale covariance block |
+
 ## Current boundary
 
 Current implemented Gaussian syntax covers:
@@ -679,6 +711,6 @@ Current planned but not implemented syntax includes:
   more than one pair;
 - cross-formula covariance sharing from repeated labels such as
   `(1 + x | p | id)`;
-- phylogenetic slopes, phylogenetic `sigma` terms, full bivariate
-  phylogenetic location-scale blocks, structured `rho12` effects, and spatial
-  structured effects.
+- phylogenetic slopes, standalone or partial phylogenetic scale terms,
+  predictor-dependent q=4 phylogenetic location-scale correlations, structured
+  `rho12` effects, and spatial structured effects.

@@ -109,9 +109,10 @@ spatial(1 | site, coords = coords)
 
 but the TMB likelihood should see the same kind of structured-effect block.
 The first fitted phylogenetic instance is univariate Gaussian `mu` with
-`phylo(1 | species, tree = tree)`. The first fitted spatial instance is
-univariate Gaussian `mu` with `spatial(1 | site, coords = coords)`, using a
-fixed coordinate covariance as the small-data foundation before the scalable
+`phylo(1 | species, tree = tree)`. The first fitted spatial instances are
+univariate Gaussian `mu` with `spatial(1 | site, coords = coords)` and one
+numeric `spatial(1 + x | site, coords = coords)` slope, using a fixed
+coordinate covariance as the small-data foundation before the scalable
 mesh/SPDE route.
 
 The mature phylogenetic grammar should probably look like structured
@@ -242,10 +243,12 @@ spatial(1 | site, mesh = mesh)
 ```
 
 Here `spatial(1 | site, coords = coords)` is a fitted spatial random intercept
-for univariate Gaussian `mu`. `coords` supplies observed coordinates with one
-row per site or one row per observation. `mesh = mesh` is the planned route for
-users who have already built an SPDE mesh. Structured spatial slopes should
-come after intercept-only spatial fields are tested.
+for univariate Gaussian `mu`. `spatial(1 + depth | site, coords = coords)` is
+also fitted for one numeric `mu` slope by estimating independent intercept and
+slope fields with the same coordinate precision. `coords` supplies observed
+coordinates with one row per site or one row per observation. `mesh = mesh` is
+the planned route for users who have already built an SPDE mesh. Multiple
+spatial slopes and spatial slope correlations remain planned.
 
 The mesh is not the ecological object of inference. It is a numerical scaffold
 for the sparse SPDE/GMRF approximation. The current coordinate covariance path
@@ -319,8 +322,12 @@ covariance through `meta_known_V(V = V)`, univariate Gaussian `mu` random
 intercepts, independent numeric `mu` random slopes, one-slope correlated `mu`
 blocks, univariate Gaussian residual-scale random intercepts and independent
 random slopes in `sigma`, and intercept-only `phylo(1 | species, tree = tree)`
-in `mu`. Spatial structured effects, phylogenetic slopes, and phylogenetic
-effects in `sigma` are still planned.
+in `mu`. The coordinate-spatial foundation now also fits
+`spatial(1 | site, coords = coords)` and one numeric
+`spatial(1 + x | site, coords = coords)` slope in univariate Gaussian `mu`.
+Mesh/SPDE spatial fields, multiple spatial slopes, spatial slope correlations,
+phylogenetic slopes, and phylogenetic or spatial effects in `sigma` are still
+planned.
 
 ## Identifiability Rule
 
@@ -401,6 +408,10 @@ Recommended staging:
 
 The first structured-slope path should treat the slope field as independent of
 the intercept field, and should not estimate intercept-slope `corpair()` rows.
+The fitted coordinate spatial one-slope path follows that rule: it estimates
+`spatial(1 | site)` and `spatial(0 + x | site)` as independent fields with a
+shared coordinate precision and separate SDs. Phylogenetic slopes, mesh/SPDE
+slopes, multiple spatial slopes, and slope correlations remain later gates.
 For two-response models, the most interesting later slope correlation is a
 response-1 slope versus response-2 slope for the same covariate, matching the
 plasticity-syndrome idea in O'Dea, Noble, and Nakagawa (2021). That target needs
@@ -450,10 +461,16 @@ blocks, rather than treating every cross-response correlation as residual
    mean-mean correlation.
 5. Add the constant bivariate phylogenetic q=4 block spanning `mu1`, `mu2`,
    `sigma1`, and `sigma2`; this 35-slice route now precedes spatial.
-6. Add spatial SPDE/GMRF fields using the same structured-effect principle.
-7. Add one phylogenetic or spatial structured slope in `mu`; then, only after
-   recovery evidence, allow a maximum of two structured `mu` slopes.
-8. Treat structured effects in `rho12` as experimental until simulation
+6. Close the coordinate-spatial foundation:
+   `spatial(1 | site, coords = coords)` and one numeric
+   `spatial(1 + x | site, coords = coords)` slope in univariate Gaussian `mu`.
+7. Add spatial SPDE/GMRF fields using the same structured-effect principle.
+8. Add one phylogenetic structured slope in `mu`; then, only after recovery
+   evidence, allow a maximum of two structured `mu` slopes. For spatial, the
+   analogous multiple-slope and slope-correlation path starts after the
+   coordinate foundation has stronger recovery evidence and after the mesh/SPDE
+   route is designed.
+9. Treat structured effects in `rho12` as experimental until simulation
    evidence shows identifiability.
 
 ## Current Implementation Gate
@@ -501,8 +518,8 @@ mu2_i = X_mu2[i, ] beta_mu2 + a_mu2[species_i]
 ```
 
 This estimates `sd_phylo_mu1`, `sd_phylo_mu2`, and one phylogenetic mean-mean
-correlation. It does not yet add phylogenetic `sigma` terms, structured
-`rho12`, or random slopes.
+correlation. This q=2 path does not by itself add the all-four q=4
+phylogenetic `sigma1`/`sigma2` endpoints, structured `rho12`, or random slopes.
 
 ## Map Slice 14: Constant Bivariate Phylogenetic q=4 Design
 
@@ -542,9 +559,10 @@ This section supersedes the older local ordering that placed spatial fields
 before structured effects in `sigma`. The current 35-slice route implements
 constant phylogenetic q=4 first because the tree-precision algebra is already
 validated for univariate `mu` and bivariate `mu1`/`mu2`. Spatial remains the
-parallel sibling lane after the phylogenetic structured-effect contract is
-stable; it is not folded into residual `rho12` and not treated as an
-afterthought.
+parallel sibling lane, with the coordinate-spatial `mu` intercept and one-slope
+foundation now fitted locally and mesh/SPDE, bivariate spatial, and richer
+spatial covariance paths still planned. Spatial is not folded into residual
+`rho12` and not treated as an afterthought.
 
 Let
 

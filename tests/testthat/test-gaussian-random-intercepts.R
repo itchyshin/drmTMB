@@ -644,6 +644,19 @@ test_that("labelled Gaussian mu correlated blocks match unlabelled block semanti
     c("(1 + x | p | ID):(Intercept)", "(1 + x | p | ID):x")
   )
   expect_named(fit_labelled$corpars$mu, "cor((Intercept),x | p | ID)")
+  pairs <- corpairs(fit_labelled)
+  location_slope_pairs <- corpairs(fit_labelled, class = "location-slope")
+  expect_equal(nrow(pairs), 1L)
+  expect_equal(pairs$level, "group")
+  expect_equal(pairs$group, "ID")
+  expect_equal(pairs$block, "p")
+  expect_equal(pairs$from_dpar, "mu")
+  expect_equal(pairs$to_dpar, "mu")
+  expect_equal(pairs$from_coef, "(Intercept)")
+  expect_equal(pairs$to_coef, "x")
+  expect_equal(pairs$class, "mean-slope")
+  expect_equal(pairs$parameter, "cor((Intercept),x | p | ID)")
+  expect_equal(pairs, location_slope_pairs)
   expect_gaussian_covariance_block_registry(
     fit_labelled$model$random$covariance_blocks,
     dpars = c("mu", "mu"),

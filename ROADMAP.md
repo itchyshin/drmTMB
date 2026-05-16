@@ -15,7 +15,7 @@ distributional regression models using TMB.
   visualization and marginal-effects layer that should make fitted location,
   scale, coscale, random-effect SD, and latent correlation results easier to
   inspect across model families. Richer bivariate random slopes,
-  residual-scale covariance, structured covariance, and the full
+  residual-scale slope covariance, structured covariance, and the full
   double-hierarchical endpoint remain roadmap work for later releases.
 - Completed before bumping the version:
   - `devtools::check()` passes with 0 errors, 0 warnings, and 0 notes;
@@ -221,14 +221,15 @@ distributional regression models using TMB.
   weak phylogenetic-SD diagnostics, and ordinary same-species covariance
   overlap for that fitted slice. A CRAN-safe deterministic simulation now
   recovers a positive bivariate phylogenetic mean-mean correlation.
-- The first spatial fitted path is now `spatial(1 | site, coords = coords)` in
-  univariate Gaussian `mu`. It uses a fixed exponential coordinate covariance
-  as a small-data foundation and reports `sdpars$mu["spatial(1 | site)"]` plus
-  a `spatial_mu` conditional random-effect block. `check_drm()` reports the
-  `spatial_mu_diagnostics` row for site replication, coordinate range, spatial
-  SD, and spatial-SD-to-residual-scale ratio. Mesh/SPDE, spatial slopes,
-  spatial q=4, spatial `sd(...)`, and spatial `corpair()` regressions remain
-  planned.
+- The first spatial fitted paths are now `spatial(1 | site, coords = coords)`
+  and `spatial(1 + x | site, coords = coords)` in univariate Gaussian `mu`.
+  They use a fixed exponential coordinate covariance as a small-data foundation.
+  The one-slope path estimates independent intercept and slope fields that share
+  the coordinate precision, with separate SDs and no intercept-slope
+  correlation. `sdpars$mu`, `ranef("spatial_mu")`, `profile_targets()`, and
+  `check_drm()` expose those fields with spatial names. Mesh/SPDE, multiple
+  spatial slopes, spatial slope correlations, spatial q=4, spatial `sd(...)`,
+  and spatial `corpair()` regressions remain planned.
 - For bivariate structured models, estimate and report level-specific
   correlations separately: residual `rho12`, phylogenetic correlations,
   non-phylogenetic species correlations, spatial field correlations, and
@@ -286,7 +287,7 @@ Phase 5 closure boundary:
 | --- | --- | --- |
 | univariate phylogenetic | `phylo(1 | species, tree = tree)` in Gaussian `mu`, `sd_phylo(species) ~ z`, profile targets and diagnostics | phylogenetic slopes, richer tree-shape recovery grids |
 | bivariate phylogenetic | matching `mu1`/`mu2` phylogenetic location correlation, constant q=4 location-scale block, q=2 predictor-dependent `corpair(..., level = "phylogenetic") ~ w`, bivariate `sd_phylo1()` / `sd_phylo2()` | q=4 predictor-dependent location-scale and scale-scale `corpair()` regressions |
-| coordinate spatial | `spatial(1 | site, coords = coords)` in univariate Gaussian `mu`, `sdpars`, `ranef("spatial_mu")`, profile target, and `check_drm()` row | mesh/SPDE, spatial slopes, spatial scale, bivariate spatial q=4, spatial direct-SD, spatial `corpair()` |
+| coordinate spatial | `spatial(1 | site, coords = coords)` and one numeric `spatial(1 + x | site, coords = coords)` slope in univariate Gaussian `mu`, `sdpars`, `ranef("spatial_mu")`, direct profile targets, and `check_drm()` rows | mesh/SPDE, multiple spatial slopes, spatial slope correlations, spatial scale, bivariate spatial q=4, spatial direct-SD, spatial `corpair()` |
 | inference/output | fixed-effect SEs, direct profile-ready targets where implemented, `corpairs(conf.int = TRUE)` with explicit interval status | derived-profile intervals for q=4 correlations and richer marginal-effect/visualization helpers |
 
 ## Phase 5b: Large-Data Memory Strategy
@@ -434,14 +435,14 @@ Phase 6b should turn the implemented surfaces into a coherent reader path:
 
 | Slice | Goal | Main work | Done when |
 | --- | --- | --- | --- |
-| 61 | Tutorial issue and source map | Create the Phase 6b tracking issue and compare current tutorials with `docs/design/21-tutorial-style.md` and project-owner example priorities. | Source-map notes identify which tutorials need which fixes. |
-| 62 | Tutorial landing path | Improve pkgdown navigation from scientific question to tutorial to reference page. | The getting-started and model-map pages point to the same learning path. |
-| 63 | Gaussian location-scale polish | Tighten the question, equation, runnable model, fitted output, interpretation, diagnostics, and plot/table guidance. | Pat can follow the article without hidden terminology. |
-| 64 | Bivariate coscale polish | Make residual `rho12`, `sigma1`/`sigma2`, response-scale interpretation, and intervals easier to read. | The article separates residual coscale from latent random-effect correlations. |
-| 65 | Meta-analysis polish | Clarify `meta_known_V(V = V)`, ordinary weights, residual `sigma`, and unsupported combinations. | The article tells readers what to try when known covariance or weights do not fit. |
-| 66 | Structured-dependence polish | Refine phylogenetic and spatial examples, mesh/coords guidance, citation notes, and fitted-versus-planned status. | The article does not overclaim spatial or derived q4 interval support. |
-| 67 | Random-effect scale and covariance tutorial | Explain `sd(group)`, `sd(..., level = ...)`, Family A versus Family B, `corpairs()`, and invalid mixed formulations. | Readers can distinguish direct-SD regression from scale random effects. |
-| 68 | Phase 6b gate | Run Pat/Rose tutorial audit, pkgdown build/check, stale-wording scan, NEWS/roadmap updates, PR, and GitHub Actions. | Tutorials render cleanly and CI is green. |
+| 61 | Tutorial issue and source map | Create the Phase 6b tracking issue and compare current tutorials with `docs/design/21-tutorial-style.md` and project-owner example priorities. | Done: `docs/design/32-phase-6b-tutorial-source-map.md` maps the tutorial fixes and adds the biological and mathematical interpretation contract for slopes, variance components, `sd(group)`, `rho12`, and `corpairs()` rows. |
+| 62 | Tutorial landing path | Improve pkgdown navigation from scientific question to tutorial to reference page. | Done: Getting Started and the model map now share a question-first path from scientific phrase to tutorial, guide, or reference workflow. |
+| 63 | Gaussian location-scale polish | Tighten the question, equation, runnable model, fitted output, interpretation, diagnostics, and plot/table guidance. | Done: the Gaussian tutorial now separates fixed mean slopes, fixed residual-scale slopes, random-slope SDs, residual-scale random-slope SDs, and random-effect scale slopes. |
+| 64 | Bivariate coscale polish | Make residual `rho12`, `sigma1`/`sigma2`, response-scale interpretation, and intervals easier to read. | Done: the bivariate tutorial now reads `mu1`, `mu2`, `sigma1`, `sigma2`, and `rho12` slopes as separate biological claims and keeps residual `rho12` distinct from group-level `corpairs()` rows. |
+| 65 | Meta-analysis polish | Clarify `meta_known_V(V = V)`, ordinary weights, residual `sigma`, and unsupported combinations. | Done: the meta-analysis tutorial now names known sampling variance, fitted extra heterogeneity SD, heterogeneity variance, and total observation variance as different report scales. |
+| 66 | Structured-dependence polish | Refine phylogenetic and spatial examples, mesh/coords guidance, citation notes, and fitted-versus-planned status. | Done: the structured-dependence tutorial now gives a six-row q=4 phylogenetic interpretation table and keeps mesh/SPDE, multiple spatial slopes, q=4 extensions, and derived intervals visibly planned. |
+| 67 | Random-effect scale and covariance tutorial | Explain `sd(group)`, `sd(..., level = ...)`, Family A versus Family B, `corpairs()`, and invalid mixed formulations. | Done: the scale guide now explains Family A versus Family B, current `sd_phylo()` naming, the future `sd(..., level = ...)` idea, and invalid mixed formulations. |
+| 68 | Phase 6b gate | Run Pat/Rose tutorial audit, pkgdown build/check, stale-wording scan, NEWS/roadmap updates, PR, and GitHub Actions. | Done locally: pkgdown build/check and stale-claim scans passed; GitHub Actions remains the PR-side gate after push. |
 
 ## Phase 6c: Random Slopes and Structured-Slope Examples
 
@@ -477,29 +478,48 @@ Phase 6b should turn the implemented surfaces into a coherent reader path:
   interpretation, and biological examples. Good first examples include thermal
   tolerance plasticity along temperature, desiccation tolerance along humidity,
   or behavioural reaction norms along disturbance.
+- Core ordinary grouped status: the random-intercept and one-slope baseline is
+  now recorded in `docs/design/33-phase-6c-core-random-effects.md`. The fitted
+  core covers ordinary Gaussian `mu` random intercepts, independent `mu`
+  random slopes, ordinary correlated intercept-slope blocks, residual-scale
+  random intercepts and independent residual-scale slopes, matching labelled
+  `mu`/`sigma` random-intercept covariance, and direct `sd(group)` models for
+  unlabelled Gaussian `mu` random intercepts. The first coordinate spatial
+  slope is now implemented in Phase 10; phylogenetic slopes and richer
+  structured-slope paths remain later work for Phases 10 and 12.
+- Closure boundary: Phase 6c closes the ordinary grouped foundation and hands
+  structured random slopes to Phases 10 and 12. It does not fit
+  `phylo(1 + x | species, tree = tree)` yet; Phase 10 now fits the first
+  coordinate-spatial one-slope `mu` path.
 
 | Slice | Goal | Main work | Done when |
 | --- | --- | --- | --- |
-| 69 | Random-slope issue and math contract | Create/maintain the Phase 6c issue, write the ordinary/phylogenetic/spatial one-slope equations, and fix coefficient naming rules. | Roadmap, formula grammar, and likelihood notes agree on one slope first. |
-| 70 | Ordinary one-slope baseline | Stabilize ordinary grouped `mu` one-slope syntax, extractor labels, `corpairs()` coefficient columns, and profile-target names. | Ordinary slope tests and output snapshots pass. |
-| 71 | Phylogenetic one-slope design and fit | Extend `phylo()` from intercept-only `mu` to one structured `mu` slope after the algebra and storage order are explicit. | Simulation recovery and diagnostics support the fitted slope SD. |
-| 72 | Spatial one-slope design and fit | Extend `spatial()` from intercept-only `mu` to one structured `mu` slope after coordinate/mesh diagnostics are clear. | Spatial slope tests distinguish coordinate and future mesh paths. |
-| 73 | One-slope diagnostics and inference | Add replication, weak-SD, boundary, profile-target, and profile-likelihood CI diagnostics for fitted one-slope paths. | `check_drm()` and `profile_targets()` tell users which slope SDs and correlations are profile-ready. |
-| 74 | Slope-correlation advanced gate | Design two-slope models, intercept-slope correlations, and bivariate slope1-slope2 correlations without advertising them as routine. | The roadmap names required replication, simulation recovery, direct-target status, and CI evidence before fitting or teaching slope correlations. |
-| 75 | Biological examples | Add tutorial examples for reaction norms and bivariate plasticity-syndrome questions, including how to read slope SDs, slope correlations, and interval/status columns. | Examples include equations, syntax, output, intervals or explicit unavailable statuses, and interpretation. |
-| 76 | Phase 6c gate | Run focused tests, pkgdown checks, after-phase audit, PR, and GitHub Actions. | Phase 6c closes only after CI and pkgdown are green. |
+| 69 | Random-slope issue and math contract | Create/maintain the Phase 6c issue, write the ordinary/phylogenetic/spatial one-slope equations, and fix coefficient naming rules. | Done for the ordinary grouped core: `docs/design/33-phase-6c-core-random-effects.md` records the symbolic equations, syntax, output rows, and stable/planned boundary. |
+| 70 | Ordinary one-slope baseline | Stabilize ordinary grouped `mu` one-slope syntax, extractor labels, `corpairs()` coefficient columns, and profile-target names. | Done for the ordinary core: tests cover independent and correlated one-slope `mu` blocks, labelled `(1 + x | p | ID)` names, the `mean-slope` `corpairs()` row, and direct profile-target names. |
+| 71 | Phylogenetic one-slope design and fit | Extend `phylo()` from intercept-only `mu` to one structured `mu` slope after the algebra and storage order are explicit. | Design handoff done: `docs/design/33-phase-6c-core-random-effects.md` names the minimum Phase 12 implementation contract; fitting remains planned until simulation recovery and diagnostics support the slope SD. |
+| 72 | Spatial one-slope design and fit | Extend `spatial()` from intercept-only `mu` to one structured `mu` slope after coordinate/mesh diagnostics are clear. | Done for the coordinate path: Phase 10 fits `spatial(1 + x | site, coords = coords)` as independent intercept and slope fields with separate SDs, direct profile targets, `ranef()` terms, and simulation evidence. Mesh slopes remain planned. |
+| 73 | One-slope diagnostics and inference | Add replication, weak-SD, boundary, profile-target, and profile-likelihood CI diagnostics for fitted one-slope paths. | Done for the ordinary core and first coordinate-spatial slope: tests cover weak random-slope design, boundary SDs, ordinary random-slope SD targets, intercept-slope correlation targets where fitted, and spatial one-slope direct SD targets. Phylogenetic slope diagnostics remain planned with Slice 71. |
+| 74 | Slope-correlation advanced gate | Design two-slope models, intercept-slope correlations, and bivariate slope1-slope2 correlations without advertising them as routine. | Done for the ordinary core: the source map names the required coefficient-aware `corpair()` syntax, `corpairs()` rows, direct-target interval status, and recovery evidence before bivariate slope correlations are fitted or taught. |
+| 75 | Biological examples | Add tutorial examples for reaction norms and bivariate plasticity-syndrome questions, including how to read slope SDs, slope correlations, and interval/status columns. | Done for the ordinary core: the location-scale tutorial now gives a thermal reaction-norm example with fixed slope, random-intercept SD, random-slope SD, group-level intercept-slope correlation, and `profile_targets()` interpretation. Full structured-slope examples wait until Phases 10-13 settle. |
+| 76 | Phase 6c gate | Run focused tests, pkgdown checks, after-phase audit, PR, and GitHub Actions. | Done locally for the Phase 6c core: focused tests, pkgdown build/check, stale-claim scans, check-log entry, and after-phase report are complete. GitHub Actions remains the PR-side gate. |
 
 ## Phase 6d: Stable-Core Validation and Engine Hardening
 
 - Tracking issue: [#38](https://github.com/itchyshin/drmTMB/issues/38).
+- Local closure: Phase 6d is locally closed as of 2026-05-15 with focused
+  tests, full package tests, pkgdown build/check, `R CMD check`, stale-claim
+  scans, check-log evidence, and the after-phase report
+  `docs/dev-log/after-phase/2026-05-15-phase-6d-stable-core-hardening-closure.md`.
+  GitHub Actions remains the PR-side gate.
 - Treat Phase 6d as the audit-response lane. It should not distract from the
   current profile-CI slices, but it records the cross-cutting work needed before
   `drmTMB` expands too far into new families, broad spatial claims, or
   high-dimensional random-effect structures.
-- Add a stable-core versus experimental feature matrix for the README,
-  model-map, and pkgdown site. The table should make clear which surfaces are
-  fitted, which are parsed but rejected, which are documentation-only roadmap
-  items, and which have profile-likelihood interval support.
+- Add a stable-core matrix for the README, model-map, and pkgdown site. The
+  table should make clear which surfaces are stable, which are fitted first
+  slices, which are opt-in controls, which are parsed but rejected, which are
+  documentation-only roadmap items, and which have profile-likelihood interval
+  support.
 - Maintain a validation-debt register that links each advertised model surface
   to simulation recovery, malformed-input tests, diagnostics, profile/CI status,
   documentation, and check-log evidence.
@@ -528,14 +548,14 @@ Phase 6d should be closed as small hardening slices:
 
 | Slice | Goal | Main work | Done when |
 | --- | --- | --- | --- |
-| 77 | Stable-core feature matrix | Add a README/model-map/pkgdown table for fixed effects, random effects, `sigma`, known covariance, phylogeny, spatial, bivariate `rho12`, latent `corpair()`, profile-CI support, and status. | Pat and Rose can tell stable, experimental, parsed-but-rejected, and planned surfaces apart without reading source. |
-| 78 | Validation-debt register | Create a design note or issue-backed register linking each stable or experimental surface to recovery tests, diagnostics, interval status, docs, and check-log evidence. | Every advertised surface has evidence or an explicit debt entry. |
-| 79 | Standard-error and `sdreport()` controls | Design and implement failure-safe uncertainty controls, including `se = FALSE` behavior if compatible with current APIs. | Fits can be kept when `sdreport()` is skipped or fails, and methods report the uncertainty state clearly. |
-| 80 | Optimizer, start, map, and multi-start design | Add the public contract for starts, fixed or mapped parameters, fallback optimizers, and cautious future multi-start support. | Design docs and tests prove reports and `sdreport()` use the selected optimum. |
-| 81 | Dense covariance and large-data guards | Add diagnostics and wording for dense known covariance, sparse/block-sparse expectations, and large-data claim boundaries. | `check_drm()` and docs warn before users treat dense covariance or large-row paths as scalable by default. |
-| 82 | Count likelihood kernel audit | Review count likelihood sections and replace slow count loops with closed-form expressions where practical. | Comparator tests confirm unchanged likelihood values for representative counts. |
-| 83 | C++ modularization source map | Write the refactor plan for splitting likelihood families, covariance blocks, structured effects, and numerical helpers without changing behavior. | The plan names file boundaries, test gates, and what should not move yet. |
-| 84 | Phase 6d gate | Run targeted tests, pkgdown checks, Rose audit, Grace CI gate, and update NEWS/check-log/roadmap. | Phase 6d closes only after user-facing claims, tests, docs, and GitHub Actions agree. |
+| 77 | Stable-core feature matrix | Add a README/model-map/pkgdown table for fixed effects, random effects, `sigma`, known covariance, phylogeny, spatial, bivariate `rho12`, latent `corpair()`, profile-CI support, and status. | Done: README and model-map now carry a stable-core matrix that separates stable surfaces, first slices, opt-in controls, and planned or rejected neighbours, with profile/diagnostic status attached to each row. |
+| 78 | Validation-debt register | Create a design note or issue-backed register linking each stable, first-slice, or opt-in surface to recovery tests, diagnostics, interval status, docs, and check-log evidence. | Done: `docs/design/34-validation-debt-register.md` maps each stable-core row to evidence, diagnostics, interval status, docs, and explicit debt, with README, model-map, and source-map pointers. |
+| 79 | Standard-error and `sdreport()` controls | Design and implement failure-safe uncertainty controls, including `se = FALSE` behavior if compatible with current APIs. | Done: `drm_control(se = FALSE)` skips `TMB::sdreport()` while keeping optimized fits usable for non-Wald post-fit methods, and skipped or failed uncertainty states are explicit in `fit$uncertainty`, `summary()`, `vcov()`, and `check_drm()`. |
+| 80 | Optimizer, start, map, and multi-start design | Add the public contract for starts, fixed or mapped parameters, fallback optimizers, and cautious future multi-start support. | Done: `docs/design/35-optimizer-start-map-multistart.md` records the contract, future control names are reserved, and profile callbacks re-pin the TMB object to the selected `opt$par` before profiling. |
+| 81 | Dense covariance and large-data guards | Add diagnostics and wording for dense known covariance, sparse/block-sparse expectations, and large-data claim boundaries. | Done: dense `meta_known_V(V = V)` fits now appear as `check_drm()` notes with dense storage, dimension, density, size, rank, and conditioning, and the meta-analysis, large-data, and validation-debt docs label dense known covariance as small-to-moderate until sparse or block-sparse evidence exists. |
+| 82 | Count likelihood kernel audit | Review count likelihood sections and replace slow count loops with closed-form expressions where practical. | Done: NB2, zero-inflated NB2, zero-truncated NB2, and hurdle NB2 now share an internal count-kernel helper that avoids observed-count loops with a closed-form `lgamma` ratio and a small-`alpha y` series guard; deterministic high-count tests confirm unchanged likelihood values. |
+| 83 | C++ modularization source map | Write the refactor plan for splitting likelihood families, covariance blocks, structured effects, and numerical helpers without changing behavior. | Done: `docs/design/36-cpp-modularization-source-map.md` names the header-only split plan, hidden branch inventory, public branch gates, test gates, and pieces that must not move in the first pass. |
+| 84 | Phase 6d gate | Run targeted tests, pkgdown checks, Rose audit, Grace CI gate, and update NEWS/check-log/roadmap. | Done locally: focused tests, full tests, pkgdown build/check, `R CMD check`, stale-claim scans, check-log entry, and after-phase report are complete; GitHub Actions remains the PR-side gate. |
 
 ## Phase 7: Robust and Positive Continuous Families
 
@@ -626,11 +646,19 @@ remain blocked by future covariance or non-Gaussian random-effect work.
 
 ## Phase 10: Spatial Structured Effects
 
-- Status: first coordinate-based univariate Gaussian `mu` path implemented;
-  mesh/SPDE and bivariate spatial paths planned.
-- The first fitted spatial model is an intercept-only univariate Gaussian `mu`
-  structured effect, parallel to the implemented phylogenetic path:
-  `spatial(1 | site, coords = coords)`.
+- Status: coordinate-based univariate Gaussian `mu` intercepts and one numeric
+  spatial slope implemented; mesh/SPDE, multiple slopes, slope correlations, and
+  bivariate spatial paths planned.
+- Local coordinate-spatial foundation closure:
+  `docs/dev-log/after-phase/2026-05-15-phase-10-coordinate-spatial-foundation-closure.md`
+  records the local gate for the coordinate intercept plus one numeric slope
+  path. This is not a mesh/SPDE or bivariate spatial closure.
+- The first fitted spatial models are univariate Gaussian `mu` structured
+  effects, parallel to the implemented phylogenetic path:
+  `spatial(1 | site, coords = coords)` and
+  `spatial(1 + x | site, coords = coords)`. The slope path uses two independent
+  spatial fields, one for the intercept and one for the slope, with no fitted
+  intercept-slope correlation.
 - Support `spatial(1 | site, mesh = mesh)` only after the coded mesh object
   schema, projection path, and recovery tests are implemented. The design
   contract and provenance policy are recorded in
@@ -647,18 +675,22 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   `fmesher`, INLA-related sources, `gllvmTMB`, or another project, record
   provenance in `inst/COPYRIGHTS` before calling the spatial slice complete.
 - Use a small comparator or simulation recovery test before exposing spatial
-  effects beyond `mu`.
-- Do not add spatial terms in `sigma`, `rho12`, or bivariate structured
-  covariance blocks until the intercept-only path is stable.
+  effects beyond univariate `mu` or beyond one numeric slope.
+- Do not add spatial terms in `sigma`, `rho12`, bivariate structured covariance
+  blocks, or spatial slope correlations until the one-slope path is stable.
 
 ## Phase 11: Bivariate Random Effects and Correlation Pairs
 
-- Status: first slice implemented.
+- Status: ordinary bivariate random-intercept and `corpairs()` foundation
+  locally closed. See
+  `docs/dev-log/after-phase/2026-05-15-phase-11-bivariate-corpairs-foundation-closure.md`.
 - Matching labelled random intercepts in bivariate `mu1`/`mu2`,
   `sigma1`/`sigma2`, and one same-response `mu`/`sigma` pair are implemented
   after the fixed-effect bivariate Gaussian location-coscale model stabilized.
-  Random slopes, full cross-parameter bivariate covariance blocks, and
-  structured covariance remain planned.
+  The ordinary q=4 all-four intercept block reports all six fitted
+  `corpairs()` rows as derived summaries. Random slopes, full cross-parameter
+  slope covariance, direct q=4 profile intervals, `rho12` random effects, and
+  structured spatial covariance remain planned.
 - Use labelled group-level covariance blocks so residual `rho12`, ordinary
   group-level correlations, phylogenetic correlations, spatial field
   correlations, and mean-scale correlations stay in separate namespaces.
@@ -685,8 +717,14 @@ remain blocked by future covariance or non-Gaussian random-effect work.
 
 ## Phase 12: Phylogenetic Location-Scale Extensions
 
-- Status: planned beyond the first fitted bivariate `mu1`/`mu2` phylogenetic
-  location slice.
+- Status: phylogenetic correlation foundation locally closed. See
+  `docs/dev-log/after-phase/2026-05-15-phase-12-phylogenetic-correlation-foundation-closure.md`.
+- The fitted foundation covers bivariate `mu1`/`mu2` phylogenetic
+  location-location covariance, q=2 predictor-dependent phylogenetic
+  `corpair()` regression, bivariate `sd_phylo1()` / `sd_phylo2()` direct-SD
+  surfaces, and the first constant all-four q=4 phylogenetic
+  location-scale block. These are intercept-level phylogenetic correlation
+  paths, not phylogenetic random slopes.
 - Extend the implemented `phylo(1 | species, tree = tree)` Gaussian `mu` path to
   one structured `mu` slope, then only later to at most two structured `mu`
   slopes. Three or more structured slopes, intercept-slope correlations, and
@@ -719,7 +757,8 @@ remain blocked by future covariance or non-Gaussian random-effect work.
 
 ## Phase 13: Double-Hierarchical Derived Inference
 
-- Status: planned.
+- Status: derived-summary and interval-status foundation locally closed. See
+  `docs/dev-log/after-phase/2026-05-15-phase-13-derived-inference-foundation-closure.md`.
 - Build on Phase 6 direct-parameter profile intervals, including the first
   covariance-row profile intervals, and Phase 11 correlation-pair models.
 - Add uncertainty for derived quantities that matter in complete

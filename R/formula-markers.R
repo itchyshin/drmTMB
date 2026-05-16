@@ -59,9 +59,12 @@ phylo <- function(term, tree) {
 #' `spatial()` marks structured spatial dependence. The first fitted path is
 #' the univariate Gaussian location random intercept
 #' `spatial(1 | site, coords = coords)`, where `coords` is a matrix or data
-#' frame with one row per site or one row per observation. Mesh inputs,
-#' structured slopes, scale formulas, and bivariate spatial blocks remain
-#' planned.
+#' frame with one row per site or one row per observation. The univariate
+#' Gaussian location path also supports one numeric slope,
+#' `spatial(1 + x | site, coords = coords)`, as independent intercept and slope
+#' fields with separate SDs and no intercept-slope correlation. Mesh inputs,
+#' scale formulas, multiple structured slopes, slope correlations, and bivariate
+#' spatial blocks remain planned.
 #'
 #' @param term Structured random-effect term, such as `1 | site`.
 #' @param coords Coordinate object, such as a data frame or matrix of spatial

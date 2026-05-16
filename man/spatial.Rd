@@ -21,9 +21,12 @@ A formula marker; never evaluated by users.
 \code{spatial()} marks structured spatial dependence. The first fitted path is
 the univariate Gaussian location random intercept
 \code{spatial(1 | site, coords = coords)}, where \code{coords} is a matrix or data
-frame with one row per site or one row per observation. Mesh inputs,
-structured slopes, scale formulas, and bivariate spatial blocks remain
-planned.
+frame with one row per site or one row per observation. The univariate
+Gaussian location path also supports one numeric slope,
+\code{spatial(1 + x | site, coords = coords)}, as independent intercept and slope
+fields with separate SDs and no intercept-slope correlation. Mesh inputs,
+scale formulas, multiple structured slopes, slope correlations, and bivariate
+spatial blocks remain planned.
 }
 \examples{
 # Fitted for univariate Gaussian mu with coords:

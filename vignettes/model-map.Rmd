@@ -22,6 +22,43 @@ response, the most common parameters are the location `mu`, the residual scale
 responses, `mu1`, `mu2`, `sigma1`, `sigma2`, and `rho12` describe the two
 means, two residual scales, and residual response-response correlation.
 
+Use this guide as the landing page when you are deciding which article to read
+next. The quick rule is: use the worked tutorials for a fitted analysis, use
+the model guides for vocabulary and implemented-versus-planned status, and use
+the reference pages when you already know the function name.
+
+| If the scientific phrase is... | It usually maps to... | Start here |
+| --- | --- | --- |
+| average response, expected trait value, or treatment effect | `mu` or `mu1` / `mu2` | [When variance carries signal](location-scale.html) |
+| residual variability, predictability, extra heterogeneity, or dispersion | `sigma` or `sigma1` / `sigma2` | [Which scale are you modelling?](which-scale.html) |
+| among-group variation in expected response | random-effect SDs or `sd(group)` | [Which scale are you modelling?](which-scale.html) |
+| residual trait coupling after the means and residual SDs are modelled | `rho12` | [Changing residual coupling with rho12](bivariate-coscale.html) |
+| tree- or coordinate-structured location deviations | `phylo()` or `spatial()` | [Structured dependence](phylogenetic-spatial.html) |
+| fitted interval status or boundary diagnostics | `profile_targets()`, `conf.status`, `profile.boundary`, `profile.message` | [Checking and using fitted models](model-workflow.html) |
+
+## Stable-core matrix
+
+Use this matrix before treating a syntax pattern as available. "Stable" means a
+routine fitted surface with tests and user-facing documentation. "First slice"
+means the model fits, but only inside the stated boundary. "Opt-in control"
+means the feature is a hardening or large-data path, not a promise that every
+neighbouring model scales the same way. The evidence and debt ledger behind the
+matrix lives in `docs/design/34-validation-debt-register.md`.
+
+| Model surface | Status | Fitted today | Not yet | Interval and diagnostic status |
+|---|---|---|---|---|
+| Fixed-effect one-response families | Stable | Gaussian, Student-t, lognormal, Gamma, beta, beta-binomial, Poisson, NB2, zero-inflated Poisson, zero-inflated NB2, truncated NB2, hurdle NB2, and cumulative-logit ordinal location | ordinal scale/discrimination, zero-one-inflated beta or ordered beta, and random effects for most non-Gaussian families | Wald fixed-effect intervals by default when `sdreport()` is computed; direct profile targets appear in `profile_targets()` |
+| Gaussian ordinary random effects | Stable | `mu` intercepts, independent slopes, one-slope correlated blocks, `sigma` intercepts, and independent `sigma` slopes | correlated residual-scale slopes and coefficient-specific `sd()` slope models | `check_drm()` reports replication, weak-slope, boundary, and Hessian diagnostics; direct SD/correlation targets can be profiled |
+| Random-effect scale models | First slice | `sd(group) ~ x_group` for unlabelled Gaussian `mu` random intercepts | slope-specific `sd(id, dpar = "mu", coef = "x") ~ ...` and residual-scale direct-SD models | SD-surface coefficients are direct; row-specific group SD summaries are derived |
+| Known sampling covariance | Stable, with dense-storage guardrails | Gaussian `meta_known_V(V = V)` for diagonal, dense, and row-paired bivariate known sampling covariance | non-Gaussian known covariance, sparse known covariance, broad dense-`V` scalability claims, and dense known `V` with non-unit likelihood weights | `check_drm()` reports dense full `V` as a note with dimension, density, size, rank, and conditioning; fixed effects and response-scale residual summaries use the usual interval routes |
+| Bivariate Gaussian residual coupling | Stable | fixed-effect `mu1`, `mu2`, `sigma1`, `sigma2`, and predictor-dependent residual `rho12` | random effects in `rho12` and mixed composed families | `rho12()` reports response-scale residual correlation; `confint(..., parm = "rho12", newdata = ...)` profiles supplied rows |
+| Ordinary bivariate covariance and `corpairs()` | First slice | matching labelled random intercepts in `mu1`/`mu2`, `sigma1`/`sigma2`, same-response `mu`/`sigma`, all-four q=4 blocks, and q=2 `corpair(..., level = "group") ~ x` | bivariate random slopes, full cross-parameter slope covariance, and slope1-slope2 plasticity-syndrome correlations | constant q=2 SD/correlation targets are direct; predictor-dependent `corpair()` values use `newdata`; q=4 rows are derived and mark derived intervals unavailable |
+| Phylogenetic structured effects | First slices | univariate `mu`, bivariate `mu1`/`mu2`, labelled q=4 location-scale blocks, `sd_phylo*()` direct-SD surfaces, and q=2 phylogenetic `corpair()` regression | phylogenetic slopes, standalone or partial phylogenetic scale terms, structured `rho12`, and predictor-dependent q=4 phylogenetic correlations | direct phylogenetic SD and constant q=2 correlation targets are profile-ready; predictor-dependent `corpair()` values use `newdata`; q=4 correlations are derived-only for intervals |
+| Coordinate spatial structured effects | First slice | `spatial(1 | site, coords = coords)` and one numeric `spatial(1 + x | site, coords = coords)` slope in univariate Gaussian `mu` | mesh/SPDE, multiple slopes, slope correlations, spatial `sigma`, bivariate spatial covariance, and spatial `corpair()` | `sdpars$mu`, `ranef("spatial_mu")`, `profile_targets()`, and `check_drm()` expose the fitted coordinate fields |
+| Profile intervals and diagnostics | First slice | fixed effects, direct SD/correlation targets, row-specific `sigma`, `sigma1`, `sigma2`, `rho12`, and fitted q=2 `corpair()` values | automatic intervals for every derived covariance summary | `conf.status`, `profile.boundary`, and `profile.message` expose interval status; q=4 rows use `derived_interval_unavailable` |
+| Large-data fit controls | Opt-in control | memory-light fitted objects, optional `se = FALSE` standard-error skipping, sparse fixed-effect `mu` matrices, and Gaussian sufficient-statistic aggregation | broad random-effect, structured-effect, non-Gaussian, bivariate, and known-covariance scalability claims | `check_drm()` reports `sdreport`, sparse-design, and aggregation diagnostics where fitted |
+| Reserved or planned neighbours | Reserved/rejected or design-only | coefficient-specific `sd()` slopes, random effects in `rho12`, phylogenetic slopes, mesh/SPDE, spatial `corpair()`, bivariate random slopes, and mixed composed families | runnable analysis syntax | planned-feature errors should appear before fitting; no interval target is advertised |
+
 ## One response
 
 The most mature path is Gaussian location-scale regression. Use it when the
@@ -51,12 +88,27 @@ Implemented one-response surfaces include:
 | Is the response continuous, count, bounded, robust, or zero-inflated? | fixed-effect non-Gaussian families | [Choosing response families](distribution-families.html) |
 | Does the response have known sampling variance or covariance? | Gaussian `meta_known_V(V = V)` | [Mean effects and residual heterogeneity](meta-analysis.html) |
 | Do species means remain similar after shared ancestry is included? | `phylo(1 | species, tree = tree)` in univariate Gaussian `mu` | [Structured dependence](phylogenetic-spatial.html) |
-| Do nearby sites share smooth location deviations? | `spatial(1 | site, coords = coords)` in univariate Gaussian `mu` | [Structured dependence](phylogenetic-spatial.html) |
+| Do nearby sites share smooth location deviations or smooth slope differences? | `spatial(1 | site, coords = coords)` or one numeric `spatial(1 + x | site, coords = coords)` slope in univariate Gaussian `mu` | [Structured dependence](phylogenetic-spatial.html) |
 
 The random-effect scale terms are deliberately separate. `sigma ~ x` models
 within-observation residual SD. `sd(group) ~ x_group` models the standard
 deviation of a group-level mean effect. Those two scales can answer different
 biological questions even when they use similar predictors.
+
+For ordinary grouped Gaussian models, read the random-effect layer in this
+order:
+
+| Model phrase | Syntax | Read with |
+|---|---|---|
+| groups differ in baseline `mu` | `(1 | id)` | `sdpars$mu`, `ranef(fit, "mu")` |
+| groups differ in the `x` slope | `(0 + x | id)` | `sdpars$mu`, `profile_targets(fit)` |
+| group baselines and slopes are correlated | `(1 + x | id)` or `(1 + x | p | id)` | `corpars$mu`, `corpairs(fit, class = "mean-slope")` |
+| groups differ in residual scale | `sigma ~ z + (1 | id)` | `sdpars$sigma`, `sigma(fit)` |
+| group-level predictors change among-group `mu` SD | `sd(id) ~ x_group` | `coef(fit, "sd(id)")`, `predict(fit, dpar = "sd(id)")` |
+
+The last column is the output contract. It keeps among-group `mu` variation,
+residual `sigma`, group-level random-effect correlations, and residual `rho12`
+as different model layers.
 
 ## Two responses
 
@@ -133,15 +185,18 @@ drmTMB(
 )
 ```
 
-Each term adds an intercept-only structured random effect to the univariate
-Gaussian `mu` predictor. The residual `sigma` remains the within-observation
-SD. Matching intercept-only `phylo()` terms in bivariate `mu1` and `mu2`
-formulas fit the first phylogenetic mean-mean correlation slice. Matching
-labelled `phylo()` terms across `mu1`, `mu2`, `sigma1`, and `sigma2` also fit
-the first constant q=4 phylogenetic location-scale covariance block. The first
-coordinate-based `spatial()` slice is univariate only; mesh/SPDE spatial
-fields, spatial bivariate covariance blocks, spatial direct-SD models, and
-spatial `corpair()` regressions remain planned extensions.
+Each term adds a structured random effect to the univariate Gaussian `mu`
+predictor. The residual `sigma` remains the within-observation SD. Matching
+intercept-only `phylo()` terms in bivariate `mu1` and `mu2` formulas fit the
+first phylogenetic mean-mean correlation slice. Matching labelled `phylo()`
+terms across `mu1`, `mu2`, `sigma1`, and `sigma2` also fit the first constant
+q=4 phylogenetic location-scale covariance block. The coordinate-based
+`spatial()` slice is univariate only: `spatial(1 | site, coords = coords)`
+fits a spatial location intercept, and
+`spatial(1 + x | site, coords = coords)` fits independent spatial intercept
+and numeric slope fields. Mesh/SPDE spatial fields, spatial bivariate
+covariance blocks, spatial direct-SD models, multiple spatial slopes, slope
+correlations, and spatial `corpair()` regressions remain planned extensions.
 Run `check_drm()` before interpreting that fitted phylogenetic correlation; it
 now flags near-boundary `corpars$phylo` values and tiny phylogenetic location
 SDs relative to the matching residual scales.
@@ -161,7 +216,7 @@ These surfaces are roadmap items, not syntax to rely on in analyses yet:
 | larger cross-formula labelled covariance blocks linking `mu` and `sigma` | extends beyond the first fitted random-intercept mean-scale correlations |
 | bivariate random slopes and full cross-parameter covariance blocks | expands group-level covariance blocks beyond the first same-parameter and same-response random-intercept slices |
 | phylogenetic slopes, predictor-dependent q=4 phylogenetic correlations, and richer phylogenetic covariance blocks | the first bivariate `mu1`/`mu2` phylogenetic location slice, the q=2 predictor-dependent location-location slice, and the first constant q=4 phylogenetic location-scale block are fitted |
-| richer spatial random effects | first univariate Gaussian coordinate-based `mu` path implemented; mesh/SPDE, spatial scale, bivariate spatial covariance, and spatial `corpair()` paths remain planned |
+| richer spatial random effects | first univariate Gaussian coordinate-based `mu` intercept and one-slope paths implemented; mesh/SPDE, spatial scale, multiple slopes, slope correlations, bivariate spatial covariance, and spatial `corpair()` paths remain planned |
 | higher-dimensional multivariate models | belong in `gllvmTMB`, not `drmTMB` |
 
 When unsupported syntax fails, the right next step is usually to fit the
@@ -178,7 +233,7 @@ questions:
 | residual | `rho12(fit)` or residual rows from `corpairs(fit)` | within-observation coupling between two responses |
 | ordinary group-level | `corpars$mu` or group-level rows from `corpairs(fit)` | correlation among random intercepts or slopes |
 | phylogenetic | `corpairs(fit, level = "phylogenetic")` | correlation among tree-structured species mean, scale, or q=2 modelled location deviations, depending on the fitted block |
-| spatial | `ranef(fit, "spatial_mu")`, `sdpars$mu`, and `check_drm()` for the first univariate slice | coordinate-structured site deviations in one response; spatial correlations are planned |
+| spatial | `ranef(fit, "spatial_mu")`, `sdpars$mu`, and `check_drm()` for the first univariate coordinate slice | coordinate-structured site intercept or one numeric slope deviations in one response; spatial correlations are planned |
 
 Keep these layers separate in writing. A residual `rho12` result is not a
 phylogenetic correlation, a spatial correlation, or a personality/plasticity
@@ -305,5 +360,5 @@ a larger covariance model than the mean-mean path.
 | a robust continuous-response example | [Robust continuous responses](robust-student.html) |
 | a two-response residual-correlation example | [Changing residual coupling with rho12](bivariate-coscale.html) |
 | known sampling variances or covariance | [Mean effects and residual heterogeneity](meta-analysis.html) |
-| implemented phylogenetic or coordinate-spatial random intercepts | [Structured dependence](phylogenetic-spatial.html) |
+| implemented phylogenetic random intercepts or coordinate-spatial intercept/slope terms | [Structured dependence](phylogenetic-spatial.html) |
 | post-fit checks, predictions, residuals, and simulation | [Checking and using fitted models](model-workflow.html) |

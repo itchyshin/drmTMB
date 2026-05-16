@@ -70,10 +70,13 @@ intercept-only phylogenetic random effects and \code{sd_phylo(species) ~ x_speci
 direct-SD models in univariate Gaussian location formulas, matching
 bivariate Gaussian \code{mu1}/\code{mu2} location formulas, and matching labelled
 bivariate Gaussian \code{mu1}/\code{mu2}/\code{sigma1}/\code{sigma2} phylogenetic
-location-scale blocks,
+location-scale blocks, coordinate-based spatial random intercepts and one
+numeric coordinate-spatial slope in univariate Gaussian \code{mu},
 fixed-effect bivariate Gaussian distributional models, and matched labelled
 bivariate Gaussian \code{mu1}/\code{mu2}, \code{sigma1}/\code{sigma2}, and same-response
-\code{mu}/\code{sigma} random-intercept covariance blocks.
+\code{mu}/\code{sigma} random-intercept covariance blocks, including the first
+all-four q=4 ordinary random-intercept covariance blocks and
+predictor-dependent q=2 ordinary or phylogenetic \code{corpair()} regressions.
 Bivariate Gaussian location formulas may be written explicitly as
 \code{mu1 = y1 ~ ...}, \code{mu2 = y2 ~ ...}, or with \code{mvbind(y1, y2) ~ ...} shorthand
 when both responses share the same location predictors.

@@ -355,6 +355,47 @@ others should be named by what they scale:
   `sd(site) ~ x_group` when the target is an unlabelled Gaussian `mu` random
   intercept.
 
+When the model includes a correlated block such as `(1 + x1 | p | id)`,
+`corpairs(fit, level = "group")` returns the ordinary group-level correlation
+row. For this one-slope block the row has class `mean-slope`: it asks whether
+groups with higher baseline `mu` also tend to have steeper or shallower
+mean-model slopes. It is not `rho12`, because `rho12` belongs only to
+bivariate residual response-response coupling.
+
+For a biological reaction-norm question, let `x1` be centred temperature and
+`id` be population. The fixed slope `beta_1` is the average temperature effect.
+The random-intercept SD asks how much populations differ at the centred
+temperature. The random-slope SD asks how much populations differ in thermal
+plasticity. The intercept-slope correlation asks whether populations with high
+baseline response tend to have steeper or shallower thermal slopes:
+
+\[
+\begin{aligned}
+\mu_{ij}
+  &= \beta_0 + \beta_1 temperature_{ij}
+     + b_{0j} + temperature_{ij} b_{1j},\\
+\begin{bmatrix}b_{0j}\\ b_{1j}\end{bmatrix}
+  &\sim \operatorname{Normal}\left(
+    \begin{bmatrix}0\\0\end{bmatrix},
+    \Sigma_{\text{population}}
+  \right).
+\end{aligned}
+\]
+
+The matching fitted ordinary syntax is:
+
+```r
+drmTMB(
+  bf(y ~ temperature + (1 + temperature | p | population), sigma ~ habitat),
+  family = gaussian(),
+  data = dat
+)
+```
+
+Read the fitted object as `sdpars$mu` for the baseline and slope SDs,
+`corpairs(fit, class = "mean-slope")` for the group-level intercept-slope
+correlation, and `profile_targets(fit)` for the direct interval target names.
+
 The location formula models the conditional mean, `mu`, on the identity scale.
 The scale formula models the residual standard deviation, `sigma`, on the log
 scale:
@@ -379,6 +420,22 @@ deviation effects. Exponentiating a `sigma` coefficient gives the multiplicative
 change in residual standard deviation for a one-unit change in that predictor.
 For example, a `sigma` coefficient of `0.3` means `exp(0.3) = 1.35`, or about a
 35% higher residual standard deviation.
+
+For biological interpretation, keep the slope-like quantities separate:
+
+| Quantity | Model term | Biological claim |
+|---|---|---|
+| fixed mean slope | `y ~ temperature` | average growth changes with temperature |
+| fixed residual-scale slope | `sigma ~ temperature` | residual predictability changes with temperature |
+| mean random-slope SD | `(0 + temperature | population)` or `(1 + temperature | population)` | populations differ in thermal reaction norms |
+| residual-scale random-slope SD | `sigma ~ (0 + temperature | population)` | populations differ in how residual variability changes with temperature |
+| random-effect scale slope | `sd(population) ~ habitat` | the among-population SD in expected growth differs by habitat |
+
+The first two are fixed-effect slopes. The next two are variance components for
+group-specific slopes. The last is a direct model for a group-level SD. A
+single ecological phrase such as "temperature-dependent variability" can point
+to any of these, so the tutorial should name the model component before naming
+the biological conclusion.
 
 ## Worked example: growth mean and predictability
 
@@ -681,11 +738,16 @@ y \mid \mu, \sigma, V
   predictors that are constant within the named grouping variable.
 - Correlated residual-scale slope blocks, slope-specific `sd()` targets,
   labelled-block `sd()` targets, cross-formula labelled covariance sharing
-  beyond the first random-intercept slice, phylogenetic slopes, phylogenetic
-  `sigma` terms, spatial terms, and non-Gaussian random effects are planned but
-  not implemented in this Gaussian tutorial.
+  beyond the first random-intercept slice, phylogenetic slopes, standalone or
+  partial phylogenetic scale terms, spatial `sigma`, bivariate spatial
+  covariance, mesh/SPDE spatial fields, multiple spatial slopes, and
+  non-Gaussian random effects are planned but not implemented in this Gaussian
+  tutorial.
 - Intercept-only phylogenetic random effects are implemented in univariate
   Gaussian `mu` formulas as `phylo(1 | species, tree = tree)`.
+- Coordinate-spatial random effects are implemented in univariate Gaussian `mu`
+  formulas as `spatial(1 | site, coords = coords)` and one numeric
+  `spatial(1 + x | site, coords = coords)` slope.
 
 Multiple random-effect scale components use explicit `sd()` formulas, not
 extra residual `sigma` formulas:

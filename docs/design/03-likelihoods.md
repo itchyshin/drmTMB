@@ -80,14 +80,22 @@ is the current routing contract:
 | `12` | `family = truncated_nbinom2()` plus `hu ~ ...` | `drm_build_truncated_nbinom2_spec()` | Univariate fixed-effect hurdle negative-binomial 2 models, with `hu` as the hurdle-zero probability and nonzero counts drawn from the zero-truncated NB2 component. |
 | `13` | `family = cumulative_logit()` | `drm_build_cumulative_logit_spec()` | Univariate fixed-effect cumulative-logit ordinal location models, with ordered cutpoints and fixed latent logistic scale. |
 | `14` | `family = beta_binomial()` | `drm_build_beta_binomial_spec()` | Univariate fixed-effect beta-binomial models for counted successes out of known trials, with `mu` as success probability and `sigma` as extra-binomial variation. |
+| `93` | no public route | direct test construction only | Hidden q=4 phylogenetic precision-prior parity branch using `theta_phylo` and `log_sd_phylo`. |
 | `94` | no public route | direct test construction only | Hidden q=4 correlated phylogenetic precision-prior parity branch used to test the matrix-normal sparse augmented A-inverse objective in isolation. |
+| `95` | no public route | direct test construction only | Hidden q=4 bivariate Gaussian likelihood probe for labelled covariance-block contributions. |
+| `96` | no public route | direct test construction only | Hidden univariate Gaussian likelihood probe for labelled covariance-block contributions. |
+| `97` | no public route | direct test construction only | Hidden contribution-map probe for labelled covariance-block blocks and members. |
+| `98` | no public route | direct test construction only | Hidden non-centred unstructured-correlation transform probe. |
 | `99` | no public route | direct test construction only | Hidden phylogenetic precision-prior parity branch used to test the sparse augmented A-inverse objective in isolation. |
 
-The hidden `model_type = 94` and `model_type = 99` branches are not families
+The hidden `model_type = 93` through `model_type = 99` branches are not families
 and should not appear in user examples. Public phylogenetic Gaussian fits stay
 on `model_type = 1` or `model_type = 2`; the hidden branches exist only so
-tests can compare isolated sparse phylogenetic prior objectives against the R
-algebra helpers.
+tests can compare isolated sparse phylogenetic prior objectives, labelled
+covariance-block contribution maps, and non-centred covariance transforms
+against the R algebra helpers. The C++ modularization source map in
+`docs/design/36-cpp-modularization-source-map.md` records how to keep those
+hidden probes separate during future file-splitting work.
 
 ## Gaussian Aggregation Branch
 
@@ -239,7 +247,7 @@ implementation, the middle label `p` is retained for naming and future
 cross-formula covariance matching; the likelihood is otherwise the same as the
 unlabelled `(1 + x1 | id)` block.
 
-For the first coordinate-based spatial location model:
+For coordinate-based spatial location models:
 
 ```text
 mu_i = X_mu[i, ] beta_mu + s_site[i]
@@ -251,8 +259,8 @@ Q_coords = K_coords^{-1}
 
 The TMB likelihood uses the same sparse-precision prior shape as the
 phylogenetic random intercept path, with `Q_coords` replacing the tree-derived
-precision and `log_sd_phylo` internally holding the spatial SD for this first
-single-field implementation. The public output labels the term as
+precision and `log_sd_phylo` internally holding the spatial SD for the
+single-field intercept implementation. The public output labels the term as
 `spatial(1 | site)` and returns conditional effects in the `spatial_mu`
 `ranef()` block. This is a small-data coordinate covariance foundation, not the
 planned scalable SPDE/GMRF mesh implementation.
@@ -266,6 +274,30 @@ drmTMB(
   data = dat
 )
 ```
+
+The first spatial slope path keeps that covariance but uses two independent
+fields:
+
+```text
+mu_i = X_mu[i, ] beta_mu + s0_site[i] + x_i s1_site[i]
+s0 ~ Normal(0, sd_spatial_intercept^2 K_coords)
+s1 ~ Normal(0, sd_spatial_slope^2 K_coords)
+Cov(s0, s1) = 0 in this phase
+```
+
+The matching syntax is:
+
+```r
+drmTMB(
+  bf(y ~ x1 + spatial(1 + depth | site, coords = coords), sigma ~ x2),
+  family = gaussian(),
+  data = dat
+)
+```
+
+The public SD labels are `spatial(1 | site)` for the spatial intercept field and
+`spatial(0 + depth | site)` for the spatial slope field. There is no
+intercept-slope `corpair()` row for this slice.
 
 Residual-scale random intercepts and independent numeric random slopes are
 implemented on the log-`sigma` scale:
@@ -915,13 +947,34 @@ unstable `size_i = 1 / sigma_i^2` terms. With
 ```text
 log f(y_i) =
   y_i eta_mu_i - log Gamma(y_i + 1)
-  + sum_{j = 0}^{y_i - 1} log(1 + alpha_i j)
+  + C(y_i, alpha_i)
   - y_i log(1 + alpha_i mu_i)
   - log(1 + alpha_i mu_i) / alpha_i
 ```
 
+where
+
+```text
+C(y_i, alpha_i) =
+  sum_{j = 0}^{y_i - 1} log(1 + alpha_i j)
+```
+
+The template evaluates `C(y_i, alpha_i)` without an observed-count loop. For
+ordinary count and overdispersion values it uses the closed form
+
+```text
+C(y_i, alpha_i) =
+  log Gamma(y_i + 1 / alpha_i) -
+  log Gamma(1 / alpha_i) +
+  y_i log(alpha_i).
+```
+
+When `alpha_i y_i` is very small, the template uses the matching power-sum
+series for `sum log(1 + alpha_i j)` to preserve the Poisson limit.
+
 This form has the correct Poisson limit as `alpha_i` approaches zero and avoids
-overflow from computing very large `size_i`.
+overflow from computing very large `size_i` or looping over very large observed
+counts.
 
 Matching R syntax:
 

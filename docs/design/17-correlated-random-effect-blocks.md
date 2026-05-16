@@ -8,6 +8,10 @@ intercepts such as `(1 | p | id)`, one-slope ordinary correlated blocks such as
 `mu`/`sigma` random-intercept covariance block, and the first bivariate
 labelled `mu1`/`mu2` random-intercept covariance block.
 
+For the Phase 6c core status ledger, see
+`docs/design/33-phase-6c-core-random-effects.md`. That note is the bridge
+between this implementation contract and the later structured-slope roadmap.
+
 ## User Grammar
 
 Keep ordinary mixed-model syntax familiar:
@@ -189,23 +193,27 @@ Do not place group-level correlations under `rho12`.
 
 ## Implemented Boundary
 
-The current implementation supports ordinary labelled or unlabelled `q = 2`
-Gaussian `mu` blocks:
+The current univariate implementation supports ordinary labelled or unlabelled
+`q = 2` Gaussian `mu` blocks:
 
 ```r
 bf(y ~ x + (1 + x | id), sigma ~ z)
 bf(y ~ x + (1 + x | p | id), sigma ~ z)
 ```
 
+The current bivariate Gaussian foundation supports matching labelled
+random-intercept blocks for `mu1`/`mu2`, `sigma1`/`sigma2`, one same-response
+`mu`/`sigma` pair, and the intercept-only all-four q=4 block across `mu1`,
+`mu2`, `sigma1`, and `sigma2`. These bivariate blocks report `corpairs()` rows
+for fitted intercept-level correlations and keep residual `rho12` separate.
+
 Still deferred:
 
-- `q > 2` blocks;
+- univariate `q > 2` blocks;
 - factor or multi-column random slopes;
-- correlated blocks spanning `mu` and `sigma` beyond matching random
-  intercepts;
 - bivariate `mu1`/`mu2` random-slope covariance blocks;
-- bivariate random-slope covariance blocks and full cross-parameter covariance
-  blocks beyond the same-response random-intercept pair;
+- bivariate random-slope covariance blocks and full cross-parameter slope
+  covariance beyond the intercept-only q=4 foundation;
 - phylogenetic and spatial correlated slope blocks.
 
 For `q > 2`, use the labelled covariance block assembler and a
