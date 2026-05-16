@@ -56,12 +56,19 @@ include delta-method standard errors; descriptive fitted ranges and derived
 variance ratios do not.
 Confidence intervals are opt-in: fast Wald intervals are available for fixed
 effects, and slower profile-likelihood intervals are available for selected
-direct profile targets. Interval-aware tables include \code{conf.status} so rows
-without intervals can say whether an interval was not requested, needs
-\code{newdata}, is ready but unselected, or is currently unavailable.
+direct profile targets. Profile summaries keep Wald intervals for fixed
+effects unless fixed-effect profile targets are selected. Interval-aware
+tables include \code{conf.status} so rows without intervals can say whether an
+interval was not requested, needs \code{newdata}, is ready but unselected, or is
+currently unavailable. Use \code{summary(fit, conf.int = TRUE)} for fixed-effect
+Wald confidence intervals, and use \code{method = "profile"} with \code{ci_parm} for
+direct response-scale targets such as \code{sigma}, \code{rho12}, or a random-effect
+SD.
 }
 \examples{
 dat <- data.frame(y = c(0.2, 0.5, 1.1, 1.4), x = c(-1, 0, 1, 2))
 fit <- drmTMB(bf(y ~ x, sigma ~ 1), data = dat)
 summary(fit)
+summary(fit, conf.int = TRUE)
+summary(fit, conf.int = TRUE, method = "profile", ci_parm = "sigma")
 }

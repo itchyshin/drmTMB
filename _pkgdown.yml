@@ -98,8 +98,8 @@ reference:
     contents:
       - starts_with("drm_family")
       - ends_with("_family")
-  - title: Model fitting
-    desc: Fit, inspect, predict, and simulate distributional models.
+  - title: Model fitting and post-fit tools
+    desc: Fit, diagnose, summarize, predict, and simulate distributional models.
     contents:
       - starts_with("drmTMB")
       - drm_control
@@ -122,7 +122,7 @@ reference:
       - summary.drmTMB
       - weights.drmTMB
   - title: Visualization
-    desc: Optional plotting helpers for post-fit tables.
+    desc: Optional plotting helpers for post-fit tables. Exported plotting functions appear here.
     contents:
       - plot_parameter_surface
 

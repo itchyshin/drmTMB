@@ -2353,9 +2353,14 @@ sigma.drmTMB <- function(object, ...) {
 #' variance ratios do not.
 #' Confidence intervals are opt-in: fast Wald intervals are available for fixed
 #' effects, and slower profile-likelihood intervals are available for selected
-#' direct profile targets. Interval-aware tables include `conf.status` so rows
-#' without intervals can say whether an interval was not requested, needs
-#' `newdata`, is ready but unselected, or is currently unavailable.
+#' direct profile targets. Profile summaries keep Wald intervals for fixed
+#' effects unless fixed-effect profile targets are selected. Interval-aware
+#' tables include `conf.status` so rows without intervals can say whether an
+#' interval was not requested, needs `newdata`, is ready but unselected, or is
+#' currently unavailable. Use `summary(fit, conf.int = TRUE)` for fixed-effect
+#' Wald confidence intervals, and use `method = "profile"` with `ci_parm` for
+#' direct response-scale targets such as `sigma`, `rho12`, or a random-effect
+#' SD.
 #'
 #' @param object A `drmTMB` fit.
 #' @param conf.int Logical; include confidence intervals when `TRUE`.
@@ -2380,6 +2385,8 @@ sigma.drmTMB <- function(object, ...) {
 #' dat <- data.frame(y = c(0.2, 0.5, 1.1, 1.4), x = c(-1, 0, 1, 2))
 #' fit <- drmTMB(bf(y ~ x, sigma ~ 1), data = dat)
 #' summary(fit)
+#' summary(fit, conf.int = TRUE)
+#' summary(fit, conf.int = TRUE, method = "profile", ci_parm = "sigma")
 #' @export
 summary.drmTMB <- function(
   object,
@@ -2413,6 +2420,9 @@ summary.drmTMB <- function(
   coefficients <- drm_summary_coefficients(object)
   parameters <- drm_summary_parameters(object)
   ci <- NULL
+  coefficient_ci <- NULL
+  parameter_ci <- NULL
+  coefficient_ci_method <- method
   ci_unavailable_status <- "not_requested"
   if (conf.int) {
     if (identical(method, "wald")) {
@@ -2422,25 +2432,55 @@ summary.drmTMB <- function(
         ci_unavailable_status <- "wald_unavailable"
         ci <- empty_summary_confint()
       }
+      coefficient_ci <- ci
+      parameter_ci <- ci
     } else {
-      ci <- drm_summary_profile_confint(
+      parameter_ci <- drm_summary_profile_confint(
         object,
         ci_parm = ci_parm,
         level = level,
         trace = trace,
         ...
       )
+      coefficient_ci <- summary_profile_coefficient_ci(
+        object,
+        parameter_ci,
+        level = level
+      )
+      coefficient_ci_method <- if (
+        is.null(coefficient_ci) ||
+          nrow(coefficient_ci) == 0L ||
+          all(coefficient_ci$method == "wald")
+      ) {
+        "wald"
+      } else {
+        "profile"
+      }
+      if (
+        !drm_has_sdreport_covariance(object) &&
+          (is.null(coefficient_ci) || nrow(coefficient_ci) == 0L)
+      ) {
+        ci_unavailable_status <- "wald_unavailable"
+      }
+      ci <- rbind(
+        coefficient_ci,
+        parameter_ci[
+          !parameter_ci$parm %in% coefficient_ci$parm,
+          ,
+          drop = FALSE
+        ]
+      )
     }
     coefficients <- drm_summary_add_coefficient_ci(
       coefficients,
-      ci,
+      coefficient_ci,
       level = level,
-      method = method,
+      method = coefficient_ci_method,
       unavailable_status = ci_unavailable_status
     )
     parameters <- drm_summary_add_parameter_ci(
       parameters,
-      ci,
+      parameter_ci,
       level = level,
       method = method
     )
@@ -2448,7 +2488,11 @@ summary.drmTMB <- function(
 
   covariance <- random_effect_covariance_summaries(
     object,
-    intervals = if (conf.int && identical(method, "profile")) ci else NULL
+    intervals = if (conf.int && identical(method, "profile")) {
+      parameter_ci
+    } else {
+      NULL
+    }
   )
   derived <- drm_summary_derived_parameters(
     object,
@@ -2778,8 +2822,8 @@ drm_summary_direct_parameters <- function(object) {
     dpar = targets$dpar,
     term = targets$term,
     estimate = targets$estimate,
-    minimum = targets$estimate,
-    maximum = targets$estimate,
+    minimum = NA_real_,
+    maximum = NA_real_,
     scale = targets$scale,
     parm = targets$parm,
     profile_ready = targets$profile_ready,
@@ -2978,6 +3022,19 @@ drm_summary_profile_confint <- function(
   )
 }
 
+summary_profile_coefficient_ci <- function(object, profile_ci, level) {
+  if (!is.null(profile_ci) && nrow(profile_ci) > 0L) {
+    fixed_profile <- startsWith(profile_ci$parm, "fixef:")
+    if (any(fixed_profile)) {
+      return(profile_ci[fixed_profile, , drop = FALSE])
+    }
+  }
+  if (!drm_has_sdreport_covariance(object)) {
+    return(empty_summary_confint())
+  }
+  drm_wald_confint(object, parm = NULL, level = level)
+}
+
 empty_summary_confint <- function() {
   data.frame(
     parm = character(),
@@ -3145,6 +3202,16 @@ drm_summary_print_parameters <- function(parameters) {
       !any(is.finite(parameters$std_error))
   ) {
     keep <- setdiff(keep, "std_error")
+  }
+  if (
+    all(c("minimum", "maximum") %in% names(parameters)) &&
+      !any(
+        is.finite(parameters$minimum) &
+          is.finite(parameters$maximum) &
+          parameters$minimum != parameters$maximum
+      )
+  ) {
+    keep <- setdiff(keep, c("minimum", "maximum"))
   }
   if ("conf.low" %in% names(parameters)) {
     has_interval <- any(is.finite(parameters$conf.low)) ||

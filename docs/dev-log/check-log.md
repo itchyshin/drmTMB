@@ -17439,3 +17439,109 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-16-slice-107-summary-reading-guide.md`.
+
+## 2026-05-16 - Slice 108 reference plotting inventory
+
+Goal: answer whether plotting functions belong on Reference pages by making the
+pkgdown organization explicit, checking that only exported plotting helpers
+appear under Visualization, and tightening the adjacent `summary()` interval
+example after reader review.
+
+Roles:
+
+- Ada coordinated the Slice 108 scope, validation, closure notes, and PR path.
+- Grace owned `_pkgdown.yml`, rendered reference pages, and pkgdown checks.
+- Boole owned the exported-versus-planned API boundary.
+- Pat owned the reader-facing model-map navigation table.
+- Jason connected the reference grouping to the data-first visualization
+  research note.
+- Fisher owned the interval-wording distinction between fixed-effect Wald
+  intervals and direct profile-likelihood intervals.
+- Emmy owned the `summary.drmTMB` object and print-surface cleanup.
+- Rose owned stale scans and after-task closure.
+- Gauss and Noether stayed watch-only because no likelihood or symbolic model
+  contract changed.
+
+Files changed:
+
+- `NEWS.md`
+- `R/methods.R`
+- `ROADMAP.md`
+- `_pkgdown.yml`
+- `docs/design/39-visualization-grammar.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-16-slice-108-reference-plotting-inventory.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-16-154741-codex-checkpoint.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-16-162251-codex-checkpoint.md`
+- `man/summary.drmTMB.Rd`
+- `tests/testthat/test-summary.R`
+- `vignettes/model-map.Rmd`
+- `vignettes/model-workflow.Rmd`
+
+What changed:
+
+- Renamed the pkgdown reference group from "Model fitting" to
+  "Model fitting and post-fit tools".
+- Clarified that exported plotting helpers appear under the Visualization
+  reference group.
+- Added a model-map table that points readers to the post-fit reference group
+  for fitting, checking, summaries, predictions, uncertainty, and extractors,
+  and to Visualization for `plot_parameter_surface()`.
+- Updated the visualization design note to say that `plot_parameter_surface()`
+  is currently the only exported plotting helper.
+- Tightened `summary(conf.int = TRUE, method = "profile", ci_parm = "sigma")`
+  so fixed-effect rows keep Wald confidence intervals while selected direct
+  parameter rows receive profile-likelihood intervals.
+- Direct constant parameter rows no longer store duplicated `minimum` and
+  `maximum` values equal to the estimate, so printed parameter tables hide those
+  columns when no parameter has a real fitted range.
+- NEWS, ROADMAP, the summary reference page, and the model-workflow article now
+  record the reference-index and summary-reading contracts.
+
+Checks run:
+
+- `air format R/methods.R tests/testthat/test-summary.R NEWS.md ROADMAP.md _pkgdown.yml docs/design/39-visualization-grammar.md vignettes/model-map.Rmd vignettes/model-workflow.Rmd docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-16-slice-108-reference-plotting-inventory.md`:
+  passed.
+- `Rscript -e "devtools::document()"`: passed and regenerated
+  `man/summary.drmTMB.Rd`.
+- `Rscript -e "devtools::test(filter = 'summary', reporter = 'summary')"`:
+  passed.
+- `Rscript -e "devtools::load_all(quiet = TRUE); rmarkdown::render('vignettes/model-map.Rmd', output_file = tempfile(fileext = '.html'), quiet = TRUE)"`:
+  passed.
+- `Rscript -e "devtools::load_all(quiet = TRUE); rmarkdown::render('vignettes/model-workflow.Rmd', output_file = tempfile(fileext = '.html'), quiet = TRUE)"`:
+  passed.
+- `Rscript -e 'devtools::load_all(quiet = TRUE); cfg <- yaml::read_yaml("_pkgdown.yml"); ... stopifnot(identical(plot_exports, sort(viz)))'`:
+  passed and confirmed `plot_parameter_surface` is the only exported `plot_*`
+  helper and the only Visualization reference entry.
+- `Rscript -e "pkgdown::clean_site(); pkgdown::build_site(preview = FALSE)"`:
+  passed and rendered the updated reference index, summary reference page,
+  model-map article, model-workflow article, NEWS, and ROADMAP.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with "No problems found."
+- `git diff --check`: passed.
+- `rg -n "Model fitting and post-fit tools|Visualization|plot_parameter_surface\\(\\)|Exported plotting functions|Planned plotting helpers|Reference index" _pkgdown.yml vignettes/model-map.Rmd docs/design/39-visualization-grammar.md NEWS.md ROADMAP.md pkgdown-site/reference/index.html pkgdown-site/articles/model-map.html pkgdown-site/ROADMAP.html pkgdown-site/news/index.html`:
+  confirmed source and rendered pages carry the reference-index contract.
+- `rg -n 'fixed-effect Wald|profile-likelihood 95% confidence intervals|method = "profile"|ci_parm = "sigma"|duplicated `minimum`|summary\\(fit, conf.int = TRUE\\)' R/methods.R tests/testthat/test-summary.R man/summary.drmTMB.Rd vignettes/model-workflow.Rmd NEWS.md ROADMAP.md pkgdown-site/reference/summary.drmTMB.html pkgdown-site/articles/model-workflow.html pkgdown-site/ROADMAP.html pkgdown-site/news/index.html`:
+  confirmed source and rendered pages carry the fixed-effect Wald plus direct
+  profile interval contract and the constant-parameter range cleanup.
+- `rg -n "plot_corpairs\\(\\).*reference|plot_diagnostics\\(\\).*reference|plot_simulation_summary\\(\\).*reference|autoplot\\.drmTMB|planned plotting helpers stay out|only exported plotting helper" _pkgdown.yml vignettes docs/design NEWS.md ROADMAP.md pkgdown-site --glob '!pkgdown-site/search.json' --glob '!pkgdown-site/deps/**'`:
+  found only the intended warning against broad `autoplot.drmTMB()` and the
+  intended "only exported plotting helper" wording.
+- `Rscript tools/codex-checkpoint.R --goal "Slice 108 reference plotting inventory" --next "stage, commit, push, open PR, monitor CI, merge, then start Slice 109 visualization examples and landscape translation"`:
+  passed and wrote
+  `docs/dev-log/recovery-checkpoints/2026-05-16-154741-codex-checkpoint.md`.
+- `Rscript tools/codex-checkpoint.R --goal "Slice 108 reference plotting inventory with summary CI cleanup" --next "stage all Slice 108 files, commit, push, open PR, monitor CI, then start Slice 109 visualization examples and landscape translation"`:
+  passed and wrote
+  `docs/dev-log/recovery-checkpoints/2026-05-16-162251-codex-checkpoint.md`.
+
+Known limitations:
+
+- no new plotting helpers were exported;
+- no planned plotting helper names were added to `_pkgdown.yml`;
+- `plot_parameter_surface()` remains the only exported plotting helper;
+- no likelihood, formula grammar, or TMB code changed;
+- interval plots, `corpairs()` plots, diagnostics plots, EMMs, contrasts, and
+  slopes remain future work.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-16-slice-108-reference-plotting-inventory.md`.
