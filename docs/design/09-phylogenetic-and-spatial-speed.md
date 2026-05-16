@@ -275,7 +275,7 @@ spatial path from drifting away from the sister-package math.
 
 Residual `rho12` remains conceptually separate from phylogenetic or spatial
 correlation: `rho12 ~ predictors` models residual response coupling at the
-observation level, whereas A-inverse and SPDE terms model structured dependence
+observation level, whereas A-inverse and SPDE terms model structural dependence
 among units or locations.
 
 The tutorial on phylogenetic and spatial meta-analysis makes this separation

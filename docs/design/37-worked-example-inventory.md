@@ -42,7 +42,7 @@ The inventory labels below are deliberately conservative:
 | `vignettes/which-scale.Rmd` | Scale vocabulary guide with runnable audit snippets | guide, not tutorial | Explains residual `sigma`, random-effect SD, `sd(group)`, likelihood weights, known sampling variance, and residual `rho12`. | Keep as the glossary; cross-link from Slice 90 rather than duplicating the whole scale taxonomy. |
 | `vignettes/bivariate-coscale.Rmd` | Residual `rho12` and bivariate covariance tutorial | ready enough, with a later group-covariance polish need | Has behaviour-coupling equations, fitted bivariate model, `check_drm()`, `summary()`, `rho12()` extraction, a residual-correlation plot, reporting guidance, and a group-level `corpairs()` section. | Leave for now unless Slice 90 frees time; a later polish can give group-level covariance the same response-scale display depth as residual `rho12`. |
 | `vignettes/meta-analysis.Rmd` | Known sampling covariance tutorial | ready enough | Has restoration-effects example, fitted model, `summary()`, `sigma()` reporting table, `check_drm()`, weights warning, and bivariate known-`V` extension. | Keep stable. Later work can add a smaller diagonal-versus-dense covariance decision graphic. |
-| `vignettes/phylogenetic-spatial.Rmd` | Structural-dependence tutorial | split pressure | Has current-status table, model ladder, phylogenetic examples, q=4 covariance rows, predictor-dependent q=2 phylogenetic `corpair()`, profile-target discussion, coordinate spatial one-slope example, and diagnostics. | Slice 91 should add a phylogeny, spatial, and planned phylogeny-plus-spatial reader route through the page so the article does not become a single long mixed notebook. |
+| `vignettes/phylogenetic-spatial.Rmd` | Structural-dependence tutorial | split pressure, routed | Has a three-step phylogeny, spatial, and planned phylogeny-plus-spatial route, current-status table, model ladder, phylogenetic examples, q=4 covariance rows, predictor-dependent q=2 phylogenetic `corpair()`, profile-target discussion, coordinate spatial one-slope example, and diagnostics. | Keep the route stable. Do not add runnable simultaneous `phylo()` plus `spatial()` syntax until the fitter supports multiple structural `mu` layers with identifiability checks. |
 | `vignettes/robust-student.Rmd` | Robust continuous-response tutorial | ready enough for a secondary tutorial | Has Student-t equation and syntax, seedling example, `check_drm()`, coefficient interpretation, Gaussian comparison, and boundary text. | Keep as a secondary tutorial; future visualization work can add a residual or tail-weight display. |
 | `vignettes/distribution-families.Rmd` | Family-choice guide | guide, not tutorial | Maps response types to families and explains family-specific public `sigma` meanings. | Keep as a guide. Future count/proportion tutorials should be separate worked examples, not appended here. |
 | `vignettes/large-data.Rmd` | Large-data guide | guide, not tutorial | Explains implemented storage controls, `check_drm()` expectations, aggregation boundaries, and benchmark discipline. | Keep as a guide until Phase 14 adds benchmark-backed examples. |
@@ -69,10 +69,12 @@ Pat's test is whether an applied PhD student can explain the difference between
 habitat` without reading the design docs. After Slice 90, that test should pass
 from the tutorial text itself.
 
-## Slice 91 Candidate: Structural-Dependence Reader Route
+## Slice 91 Status: Structural-Dependence Reader Route
 
-The next-highest tutorial risk is `vignettes/phylogenetic-spatial.Rmd`. It is
-valuable, but it now carries several distinct lessons:
+Slice 91 added a route through `vignettes/phylogenetic-spatial.Rmd`. The page
+still carries several distinct lessons, but the top now tells readers to read
+them as phylogeny first, coordinate spatial dependence second, and
+phylogeny-plus-spatial as the planned third endpoint:
 
 - residual `rho12` versus structural covariance summaries;
 - univariate phylogenetic `mu` effects;
@@ -83,11 +85,8 @@ valuable, but it now carries several distinct lessons:
 - planned phylogeny plus spatial as a third structural-dependence endpoint;
 - mesh/SPDE and phylogenetic slopes as planned neighbours.
 
-Slice 91 should add a reader route near the top, name the three-step ladder
-as phylogeny, spatial, and phylogeny plus spatial, and make the coordinate
-spatial section self-contained. The third route should remain marked planned
-until simultaneous `phylo()` plus `spatial()` models have implementation and
-identifiability checks.
+The third route remains marked planned until simultaneous `phylo()` plus
+`spatial()` models have implementation and identifiability checks.
 
 ## Later Worked Tutorials
 
@@ -99,7 +98,11 @@ After Slices 90-91, the next candidates should be chosen one at a time:
   meta-analysis manuscript to name known sampling variance, extra
   heterogeneity, moderators, scale-part biological claims, and the planned
   `meta_V()` distinction between additive known covariance and proportional
-  sampling variance;
+  sampling variance. The Rodriguez et al. heterogeneous-heterogeneity paper
+  should also anchor the alternative parameterization for categorical
+  moderators, where subgroup-specific between-study heterogeneity is the
+  default rather than an afterthought, and its simulations should inform later
+  comparator or teaching simulations;
 - a count-abundance example for NB2 or zero-inflated NB2, using the Methods in
   Ecology and Evolution location-scale paper on heteroscedasticity in
   continuous, count, and proportion data to name realistic count responses
