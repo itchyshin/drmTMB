@@ -40,6 +40,10 @@ Checks run:
   passed with `0 errors | 0 warnings | 0 notes`.
 - `rg -n 'random_effect_scale_formulas|sd\\(group\\)|sd_phylo1|corpair\\(\\)|corpairs\\(\\)' pkgdown-site/reference/index.html pkgdown-site/reference/random_effect_scale_formulas.html _pkgdown.yml man/random_effect_scale_formulas.Rd`:
   confirmed the rendered reference topic and neighbouring correlation entries.
+- PR #56 CI passed after the reference-index patch: macOS in 7m28s, Ubuntu in
+  7m11s, and Windows in 9m19s.
+- PR #56 was merged on 2026-05-16 as commit
+  `cdb40d9d4e6f616d456dbbd74ec2f66c9793980e`.
 
 Learning:
 
@@ -99,6 +103,10 @@ Checks run:
 - `rg -n 'Count abundance and extra zeros|sigma_restored|theta_restored|structural-zero|fixed-effect and univariate|COM-Poisson|meta_known_V|phylo\(\)|spatial\(\)|random effects' vignettes/count-nbinom2.Rmd docs/design/37-worked-example-inventory.md vignettes/distribution-families.Rmd vignettes/drmTMB.Rmd vignettes/model-map.Rmd vignettes/source-map.Rmd ROADMAP.md _pkgdown.yml`:
   confirmed the tutorial route, scale conversion, structural-zero language,
   and unsupported-boundary wording.
+- PR #56 CI passed after the full Slice 96 branch update: macOS in 7m28s,
+  Ubuntu in 7m11s, and Windows in 9m19s.
+- PR #56 was merged on 2026-05-16 as commit
+  `cdb40d9d4e6f616d456dbbd74ec2f66c9793980e`.
 
 Known limitations:
 

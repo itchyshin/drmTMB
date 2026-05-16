@@ -34,6 +34,10 @@ standard deviations. They are distinct from residual scale formulas such as
   passed with `0 errors | 0 warnings | 0 notes`.
 - `rg -n 'random_effect_scale_formulas|sd\\(group\\)|sd_phylo1|corpair\\(\\)|corpairs\\(\\)' pkgdown-site/reference/index.html pkgdown-site/reference/random_effect_scale_formulas.html _pkgdown.yml man/random_effect_scale_formulas.Rd`:
   confirmed the rendered topic and neighbouring correlation entries.
+- PR #56 CI passed after this patch: macOS in 7m28s, Ubuntu in 7m11s, and
+  Windows in 9m19s.
+- PR #56 was merged on 2026-05-16 as commit
+  `cdb40d9d4e6f616d456dbbd74ec2f66c9793980e`.
 
 ## Tests Of The Tests
 

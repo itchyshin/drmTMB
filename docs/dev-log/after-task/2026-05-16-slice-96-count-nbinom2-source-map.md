@@ -53,6 +53,10 @@ interpretation, diagnostics, and unsupported-boundary text.
 - `Rscript -e 'pkgdown::check_pkgdown()'`: passed with "No problems found."
 - Source and rendered scans confirmed the new tutorial route, `sigma`/`theta`
   conversion, structural-zero language, and unsupported-boundary text.
+- PR #56 CI passed after the final branch update: macOS in 7m28s, Ubuntu in
+  7m11s, and Windows in 9m19s.
+- PR #56 was merged on 2026-05-16 as commit
+  `cdb40d9d4e6f616d456dbbd74ec2f66c9793980e`.
 
 ## Tests Of The Tests
 
