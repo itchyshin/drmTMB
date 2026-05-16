@@ -2348,6 +2348,9 @@ sigma.drmTMB <- function(object, ...) {
 #' Gaussian random-intercept repeatability and phylogenetic signal, when the
 #' ingredients are unambiguous. Derived confidence intervals are marked as
 #' unavailable until a nonlinear interval method is implemented.
+#' When `TMB::sdreport()` succeeds, direct response-scale parameter rows also
+#' include delta-method standard errors; descriptive fitted ranges and derived
+#' variance ratios do not.
 #' Confidence intervals are opt-in: fast Wald intervals are available for fixed
 #' effects, and slower profile-likelihood intervals are available for selected
 #' direct profile targets. Interval-aware tables include `conf.status` so rows
@@ -2484,7 +2487,7 @@ print.summary.drmTMB <- function(x, ...) {
   uncertainty <- drm_uncertainty_status(x)
   if (!identical(uncertainty, "ok")) {
     cli::cli_text(
-      "standard errors: unavailable; coefficients are point estimates only ({drm_uncertainty_message(x)})"
+      "standard errors: unavailable; coefficient and parameter tables are point estimates only ({drm_uncertainty_message(x)})"
     )
   }
   print(x$coefficients)
@@ -2574,6 +2577,7 @@ drm_summary_parameters <- function(object) {
     return(empty_summary_parameters())
   }
   out <- do.call(rbind, rows)
+  out <- drm_summary_add_parameter_standard_errors(object, out)
   row.names(out) <- out$parm
   out
 }
@@ -2846,6 +2850,7 @@ empty_summary_parameters <- function() {
     dpar = character(),
     term = character(),
     estimate = numeric(),
+    std_error = numeric(),
     minimum = numeric(),
     maximum = numeric(),
     scale = character(),
@@ -2854,6 +2859,94 @@ empty_summary_parameters <- function() {
     profile_note = character(),
     stringsAsFactors = FALSE,
     check.names = FALSE
+  )
+}
+
+drm_summary_add_parameter_standard_errors <- function(object, parameters) {
+  parameters$std_error <- NA_real_
+  if (nrow(parameters) == 0L || !drm_has_sdreport_covariance(object)) {
+    return(summary_parameter_order_columns(parameters))
+  }
+
+  targets <- drm_profile_targets(object)
+  matched <- match(parameters$parm, targets$parm)
+  cov_fixed <- object$sdr$cov.fixed
+
+  for (i in seq_len(nrow(parameters))) {
+    target_row <- matched[[i]]
+    if (is.na(target_row)) {
+      next
+    }
+    target <- targets[target_row, , drop = FALSE]
+    if (!identical(target$target_type[[1L]], "direct")) {
+      next
+    }
+    position <- summary_parameter_opt_position(object, target)
+    if (is.na(position) || position > nrow(cov_fixed)) {
+      next
+    }
+    variance <- cov_fixed[position, position]
+    if (!is.finite(variance) || variance < 0) {
+      next
+    }
+    derivative <- summary_parameter_delta_derivative(target)
+    if (!is.finite(derivative)) {
+      next
+    }
+    parameters$std_error[[i]] <- abs(derivative) * sqrt(variance)
+  }
+  parameters <- summary_parameter_order_columns(parameters)
+  parameters
+}
+
+summary_parameter_order_columns <- function(parameters) {
+  preferred <- c(
+    "component",
+    "dpar",
+    "term",
+    "estimate",
+    "std_error",
+    "minimum",
+    "maximum",
+    "scale",
+    "parm",
+    "profile_ready",
+    "profile_note"
+  )
+  parameters[,
+    c(
+      intersect(preferred, names(parameters)),
+      setdiff(names(parameters), preferred)
+    ),
+    drop = FALSE
+  ]
+}
+
+summary_parameter_opt_position <- function(object, target) {
+  internal <- target$tmb_parameter[[1L]]
+  index <- target$index[[1L]]
+  if (is.na(internal) || is.na(index)) {
+    return(NA_integer_)
+  }
+  positions <- which(names(object$opt$par) == internal)
+  if (length(positions) < index) {
+    return(NA_integer_)
+  }
+  positions[[index]]
+}
+
+summary_parameter_delta_derivative <- function(target) {
+  eta <- target$link_estimate[[1L]]
+  if (!is.finite(eta)) {
+    return(NA_real_)
+  }
+  switch(
+    target$transformation[[1L]],
+    linear_predictor = 1,
+    exp = exp(eta),
+    tanh = 0.999999 * (1 - tanh(eta)^2),
+    rho12_tanh = 0.99999999 * (1 - tanh(eta)^2),
+    NA_real_
   )
 }
 
@@ -3041,10 +3134,18 @@ drm_summary_print_parameters <- function(parameters) {
     "dpar",
     "term",
     "estimate",
+    "std_error",
     "minimum",
     "maximum",
     "scale"
   )
+  if (
+    "std_error" %in%
+      names(parameters) &&
+      !any(is.finite(parameters$std_error))
+  ) {
+    keep <- setdiff(keep, "std_error")
+  }
   if ("conf.low" %in% names(parameters)) {
     has_interval <- any(is.finite(parameters$conf.low)) ||
       any(is.finite(parameters$conf.high))

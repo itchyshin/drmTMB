@@ -138,10 +138,12 @@ random-effect variance component. When the ingredients are unambiguous, the
 `derived` component also reports repeatability and shows both the
 random-effect variance and the residual variance used in that ratio.
 
-Random-effect SDs and correlations do not get routine Wald standard errors in
-the printed parameter table. For fitted direct SD or correlation targets, use
-profile-likelihood confidence intervals instead. `drmTMB` is a frequentist
-package, so these are confidence intervals, not Bayesian credible intervals:
+When `TMB::sdreport()` succeeds, direct response-scale parameter rows such as
+constant `sigma` and `sd:mu:(1 | site)` also include delta-method standard
+errors. Treat those as quick local approximations. For fitted direct SD or
+correlation targets, profile-likelihood confidence intervals remain the safer
+interval route. `drmTMB` is a frequentist package, so these are confidence
+intervals, not Bayesian credible intervals:
 
 ```{r}
 profile_targets(fit_site)

@@ -51,6 +51,9 @@ The derived component reports simple point-estimate variance ratios, such as
 Gaussian random-intercept repeatability and phylogenetic signal, when the
 ingredients are unambiguous. Derived confidence intervals are marked as
 unavailable until a nonlinear interval method is implemented.
+When \code{TMB::sdreport()} succeeds, direct response-scale parameter rows also
+include delta-method standard errors; descriptive fitted ranges and derived
+variance ratios do not.
 Confidence intervals are opt-in: fast Wald intervals are available for fixed
 effects, and slower profile-likelihood intervals are available for selected
 direct profile targets. Interval-aware tables include \code{conf.status} so rows

@@ -84,6 +84,7 @@ test_that("summary() reports fitted response-scale parameter ranges", {
   sigma_row <- smry$parameters["fitted:sigma", ]
   expect_equal(sigma_row$component, "distributional-scale")
   expect_equal(sigma_row$profile_note, "use_confint_newdata")
+  expect_true(is.na(sigma_row$std_error))
   expect_lt(sigma_row$minimum, sigma_row$maximum)
   expect_equal(sigma_row$minimum, min(stats::sigma(fit)))
   expect_equal(sigma_row$maximum, max(stats::sigma(fit)))
@@ -121,6 +122,13 @@ test_that("summary() reports random-effect and correlation parameter tables", {
     smry$parameters["sd:mu:(1 | id)", "estimate"],
     unname(fit$sdpars$mu[["(1 | id)"]])
   )
+  log_sd_position <- which(names(fit$opt$par) == "log_sd_mu")[[1L]]
+  expected_sd_se <- unname(fit$sdpars$mu[["(1 | id)"]]) *
+    sqrt(fit$sdr$cov.fixed[log_sd_position, log_sd_position])
+  expect_equal(
+    smry$parameters["sd:mu:(1 | id)", "std_error"],
+    expected_sd_se
+  )
 
   profiled <- summary(
     fit,
@@ -143,6 +151,7 @@ test_that("summary() reports random-effect and correlation parameter tables", {
   printed_parameters <- drmTMB:::drm_summary_print_parameters(
     profiled$parameters
   )
+  expect_true("std_error" %in% names(printed_parameters))
   expect_true("conf.status" %in% names(printed_parameters))
 })
 

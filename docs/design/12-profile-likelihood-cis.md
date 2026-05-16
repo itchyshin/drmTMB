@@ -191,6 +191,13 @@ absent. `profile_targets()` remains the inventory for deciding which direct
 targets can be passed to `confint(..., method = "profile")`; `corpairs()` keeps
 its existing `conf.status` column for latent and residual correlation-pair rows.
 
+Slice 106 adds local delta-method standard errors to direct response-scale
+`summary()` parameter rows when `TMB::sdreport()` succeeds. These standard
+errors use the optimized TMB parameter covariance and the row's response-scale
+transformation, such as `exp()` for SDs or guarded `tanh()` for correlations.
+They are not a replacement for profile-likelihood confidence intervals, and
+they are not reported for descriptive fitted ranges or derived variance ratios.
+
 ## Phase 6 Slice 58 Profile Diagnostics
 
 Slice 58 adds lightweight diagnostics to successful profile-interval rows and

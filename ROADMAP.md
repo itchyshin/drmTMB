@@ -905,6 +905,11 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   `summary()` prints response-scale random-effect SDs, derived repeatability,
   and profile-likelihood confidence-interval status without describing those
   intervals as Bayesian credible intervals.
+- Slice 106 adds delta-method standard errors to direct response-scale
+  `summary()` parameter rows when `TMB::sdreport()` succeeds. Descriptive
+  fitted ranges and derived variance ratios keep missing standard errors, and
+  profile-likelihood confidence intervals remain the recommended interval route
+  for fitted SD and correlation targets.
 - Add additional ggplot-oriented helpers only after the data contract is stable:
   location curves, scale/variance curves, residual `rho12` curves,
   `sd(group)` or `sd_phylo()` surfaces, `corpairs()` summaries, and eventually

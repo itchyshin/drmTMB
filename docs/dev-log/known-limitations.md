@@ -140,7 +140,10 @@
   `profile_targets()` but are not direct profile-ready targets yet because the
   optimized `theta_re_cov` coordinates are not pairwise atanh correlations.
   Interval-aware summaries now carry explicit `conf.status` values, and profile
-  interval rows carry `profile.boundary` plus `profile.message`. The current
+  interval rows carry `profile.boundary` plus `profile.message`. Direct
+  response-scale `summary()` parameter rows can report delta-method standard
+  errors when `TMB::sdreport()` succeeds, but descriptive fitted ranges and
+  derived variance ratios still do not have standard errors. The current
   boundary diagnostics are endpoint flags, not a full profile-shape classifier:
   one-sided intervals, automatic recovery from non-monotone profiles, and
   bootstrap fallback remain planned. The first marginal helper computes
