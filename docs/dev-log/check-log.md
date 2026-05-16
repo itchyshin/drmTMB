@@ -15763,3 +15763,60 @@ Known limitations:
 - phylogenetic slopes, standalone or partial phylogenetic scale terms,
   structured `rho12`, and predictor-dependent q=4 phylogenetic correlations
   remain planned.
+
+## 2026-05-15 -- Phase 6b follow-through after Phases 10-13
+
+Goal:
+
+- refresh the tutorial front door after the local Phase 10-13 closures so the
+  getting-started path names current bivariate, phylogenetic, coordinate
+  spatial, and interval-status surfaces before returning to the next Phase 6b
+  tutorial-quality pass.
+
+Implemented:
+
+- updated `vignettes/drmTMB.Rmd` with current high-level implementation wording,
+  new learning-path rows for `corpairs()`, `corpair()`, `sd_phylo*()`,
+  `spatial()`, `profile_targets()`, and `conf.status`, and a narrower spatial
+  boundary;
+- updated `vignettes/bivariate-coscale.Rmd` so `corpairs()` no longer describes
+  fitted ordinary group-level and phylogenetic rows as only future design
+  targets;
+- added after-task report
+  `docs/dev-log/after-task/2026-05-15-phase-6b-follow-through-after-10-13.md`.
+
+Checks run:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH air format vignettes/drmTMB.Rmd vignettes/bivariate-coscale.Rmd`:
+  passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::build_site()'`:
+  passed and rendered the updated getting-started and bivariate-coscale
+  articles.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed with no problems found.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::check(error_on = "never", env_vars = c("_R_CHECK_SYSTEM_CLOCK_" = "FALSE"))'`:
+  passed with 0 errors, 0 warnings, and 0 notes in 2m 33.5s.
+- `git diff --check`: passed.
+- `rg -n -F 'intercept-only phylogenetic Gaussian location effects' vignettes/drmTMB.Rmd pkgdown-site/articles/drmTMB.html pkgdown-site/articles/bivariate-coscale.html --glob '!pkgdown-site/search.json'`:
+  returned no matches.
+- `rg -n -F 'Future phylogenetic and spatial correlations' vignettes/drmTMB.Rmd pkgdown-site/articles/drmTMB.html pkgdown-site/articles/bivariate-coscale.html --glob '!pkgdown-site/search.json'`:
+  returned no matches.
+- `rg -n -F 'spatial fields and richer structured covariance blocks' vignettes/drmTMB.Rmd pkgdown-site/articles/drmTMB.html pkgdown-site/articles/bivariate-coscale.html --glob '!pkgdown-site/search.json'`:
+  returned no matches.
+- ``rg -n -F 'matching labelled bivariate `mu1`/`mu2` random intercepts' vignettes/drmTMB.Rmd pkgdown-site/articles/drmTMB.html pkgdown-site/articles/bivariate-coscale.html --glob '!pkgdown-site/search.json'``:
+  returned no matches.
+- `rg -n -F 'design target for future group-level' vignettes/bivariate-coscale.Rmd pkgdown-site/articles/bivariate-coscale.html --glob '!pkgdown-site/search.json'`:
+  returned no matches.
+- `rg -n 'ordinary bivariate covariance and \`corpairs\\(\\)\` rows|coordinate spatial Gaussian \`mu\` intercept and one numeric slope|fitted interval status and derived-summary flags|Checking and using fitted models|richer spatial correlation rows remain planned' vignettes/drmTMB.Rmd pkgdown-site/articles/drmTMB.html --glob '!pkgdown-site/search.json'`:
+  confirmed the source and rendered getting-started article carry the updated
+  status.
+- `rg -n 'same table shape now also holds fitted ordinary group-level and|richer spatial and study-level correlation rows remain planned' vignettes/bivariate-coscale.Rmd pkgdown-site/articles/bivariate-coscale.html --glob '!pkgdown-site/search.json'`:
+  confirmed the source wording; the rendered article also carried the updated
+  paragraph through the pkgdown build.
+
+Known limitations:
+
+- this was documentation follow-through only;
+- richer spatial correlations, bivariate spatial covariance, mesh/SPDE fields,
+  structured `rho12`, and nonlinear derived intervals remain planned;
+- GitHub Actions remains the PR-side gate.

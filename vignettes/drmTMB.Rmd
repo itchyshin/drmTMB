@@ -17,14 +17,13 @@ if (!"package:drmTMB" %in% search()) {
 `drmTMB` is being developed as a model-first package: the documentation should
 pair symbolic equations with the R syntax that fits them. The current
 implementation includes Gaussian location-scale models with fixed effects,
-location random effects, residual-scale random intercepts and independent
-random slopes, and group-level random-effect scale formulae such as
-`sd(id) ~ x_group`. It also includes
-fixed-effect Student-t, lognormal, Gamma, beta, Poisson, zero-inflated Poisson,
-NB2, and zero-inflated NB2 models, known-covariance Gaussian meta-analysis,
-intercept-only phylogenetic Gaussian location effects, and fixed-effect
-bivariate Gaussian location-coscale models with `rho12 ~ predictors`. The
-article "Choosing response families" gives the broader implemented family map.
+ordinary location and scale random effects, group-level random-effect scale
+formulae such as `sd(id) ~ x_group`, fixed-effect non-Gaussian families,
+known-covariance Gaussian meta-analysis, bivariate Gaussian residual coupling
+with `rho12 ~ predictors`, first ordinary bivariate covariance blocks,
+phylogenetic Gaussian covariance slices, and coordinate-based spatial `mu`
+intercept and one-slope fields. The articles "What can I fit today?" and
+"Choosing response families" give the broader implemented map.
 
 The current package is already useful for one central workflow: write one
 formula for each parameter you want to estimate, then check that the fitted
@@ -121,7 +120,9 @@ syntax, fitted output, and interpretation.
 | Which continuous, count, proportion, or robust family should I use? | [Choosing response families](distribution-families.html) | family-specific `mu`, `sigma`, `nu`, `zi`, `hu` |
 | Does a predictor change residual coupling between two responses? | [Changing residual coupling with rho12](bivariate-coscale.html) | `rho12` |
 | Do effect sizes have known sampling variances or covariance? | [Mean effects and residual heterogeneity in meta-analysis](meta-analysis.html) | `meta_known_V(V = V)`, `sigma` |
-| Do species trait means remain similar after accounting for shared ancestry? | [Structured dependence](phylogenetic-spatial.html) | `phylo()`, `sigma_phylo` |
+| Do group or phylogenetic covariance rows answer a bivariate question beyond residual coupling? | [What can I fit today?](model-map.html) | `corpairs()`, `corpair()`, `sd_phylo*()` |
+| Do species trait means remain similar after accounting for shared ancestry, or do sites share coordinate-structured deviations? | [Structured dependence](phylogenetic-spatial.html) | `phylo()`, `spatial()` |
+| After fitting, which checks and interval-status columns should I read? | [Checking and using fitted models](model-workflow.html) | `check_drm()`, `profile_targets()`, `conf.status` |
 
 Here `nu` is a shape parameter, `zi` and `hu` are zero-process parameters, and
 `sd(group)` refers to a group-level random-effect standard deviation rather than
@@ -158,9 +159,10 @@ At a high level, the current public surface is:
 | fixed-effect non-Gaussian families | implemented | "Choosing response families" |
 | Gaussian meta-analysis with known sampling covariance | implemented | "Mean effects and residual heterogeneity in meta-analysis" |
 | fixed-effect bivariate Gaussian `rho12` | implemented | "Changing residual coupling with rho12" |
-| matching labelled bivariate `mu1`/`mu2` random intercepts | implemented first slice | "What can I fit today?" |
-| univariate Gaussian phylogenetic `mu` intercepts | implemented | "Structured dependence" |
-| spatial fields and richer structured covariance blocks | planned | "Structured dependence" |
+| ordinary bivariate covariance and `corpairs()` rows | implemented first slice | "What can I fit today?" |
+| phylogenetic Gaussian `mu`, q=2, q=4, and direct-SD covariance slices | implemented first slices | "Structured dependence" |
+| coordinate spatial Gaussian `mu` intercept and one numeric slope | implemented first slice | "Structured dependence" |
+| fitted interval status and derived-summary flags | implemented first slice | "Checking and using fitted models" |
 
 After fitting any model, run `check_drm()` before interpreting the estimates:
 
@@ -178,6 +180,8 @@ stable.
 
 The key rule is to keep correlation layers separate. A bivariate residual
 `rho12` is within-observation coupling after the two means and residual SDs are
-modelled. A random-effect correlation is a group-level quantity. Future
-phylogenetic and spatial correlations will be structured-effect quantities.
-Those layers should not be reported as if they were the same estimand.
+modelled. A random-effect correlation is a group-level quantity. Phylogenetic
+rows from `corpairs(..., level = "phylogenetic")` are structured-effect
+quantities. Coordinate spatial fits currently report field SDs and conditional
+modes; richer spatial correlation rows remain planned. Those layers should not
+be reported as if they were the same estimand.
