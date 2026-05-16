@@ -711,6 +711,6 @@ Current planned but not implemented syntax includes:
   more than one pair;
 - cross-formula covariance sharing from repeated labels such as
   `(1 + x | p | id)`;
-- phylogenetic slopes, phylogenetic `sigma` terms, full bivariate
-  phylogenetic location-scale blocks, structured `rho12` effects, and spatial
-  structured effects.
+- phylogenetic slopes, standalone or partial phylogenetic scale terms,
+  predictor-dependent q=4 phylogenetic location-scale correlations, structured
+  `rho12` effects, and spatial structured effects.

@@ -196,9 +196,9 @@ Use these status labels:
 - Check-log evidence: `docs/dev-log/check-log.md` records the phylogenetic
   direct-SD, bivariate phylogenetic covariance, q=4 phylogenetic, and
   predictor-dependent q=2 phylogenetic `corpair()` slices.
-- Debt: phylogenetic slopes, phylogenetic effects in `sigma` or `rho12`,
-  predictor-dependent q=4 correlations, and longer optional simulations remain
-  planned.
+- Debt: phylogenetic slopes, standalone or partial phylogenetic scale terms,
+  structured `rho12`, predictor-dependent q=4 correlations, and longer optional
+  simulations remain planned.
 
 ### Coordinate spatial structured effects
 

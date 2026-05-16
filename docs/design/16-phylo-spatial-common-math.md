@@ -518,8 +518,8 @@ mu2_i = X_mu2[i, ] beta_mu2 + a_mu2[species_i]
 ```
 
 This estimates `sd_phylo_mu1`, `sd_phylo_mu2`, and one phylogenetic mean-mean
-correlation. It does not yet add phylogenetic `sigma` terms, structured
-`rho12`, or random slopes.
+correlation. This q=2 path does not by itself add the all-four q=4
+phylogenetic `sigma1`/`sigma2` endpoints, structured `rho12`, or random slopes.
 
 ## Map Slice 14: Constant Bivariate Phylogenetic q=4 Design
 

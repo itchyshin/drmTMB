@@ -15720,3 +15720,46 @@ Known limitations:
 - repeatability, phylogenetic signal, and total variance intervals need a
   valid direct-target or fix-and-refit method;
 - GitHub Actions remains the PR-side gate.
+
+## 2026-05-15 -- Phase 12 phylogenetic scale-boundary wording cleanup
+
+Goal:
+
+- tighten Phase 12 wording after Maxwell and Mill flagged that "phylogenetic
+  effects in `sigma` remain planned" was too broad now that the matched
+  all-four q=4 phylogenetic block includes `sigma1` and `sigma2` endpoints.
+
+Implemented:
+
+- updated `README.md`, `vignettes/model-map.Rmd`,
+  `vignettes/which-scale.Rmd`, `vignettes/phylogenetic-spatial.Rmd`,
+  `docs/design/16-phylo-spatial-common-math.md`, and
+  `docs/design/34-validation-debt-register.md`;
+- replaced broad "phylogenetic sigma remains planned" wording with narrower
+  boundaries: standalone or partial phylogenetic scale terms, phylogenetic
+  slopes, structured `rho12`, and predictor-dependent q=4 phylogenetic
+  correlations remain planned;
+- clarified that the fitted constant labelled all-four q=4 block already
+  includes `sigma1` and `sigma2` phylogenetic endpoints.
+
+Checks run:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH air format README.md docs/design/16-phylo-spatial-common-math.md docs/design/34-validation-debt-register.md vignettes/model-map.Rmd vignettes/phylogenetic-spatial.Rmd vignettes/which-scale.Rmd`:
+  passed.
+- `rg -n 'phylogenetic effects in `sigma`|phylogenetic `sigma` terms|phylo\\(1 \\+.*Implemented|q=4 extensions remain planned|q4 extensions remain planned|phylogenetic random slopes (are|now) implemented|phylogenetic slopes (are|now) implemented|predictor-dependent q=4 phylogenetic.*implemented|q=4 phylogenetic.*predictor-dependent.*implemented|phylogenetic location-scale-shape.*implemented|structured `rho12`.*implemented' README.md ROADMAP.md NEWS.md docs/design vignettes R man tests/testthat --glob '!docs/dev-log/**'`:
+  returned only allowed planned-boundary matches for predictor-dependent q=4
+  extensions and univariate phylogenetic `sigma` terms.
+- `git diff --check`: passed.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::build_site()'`:
+  passed and refreshed README plus affected articles.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'pkgdown::check_pkgdown()'`:
+  passed with no problems found.
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH Rscript -e 'devtools::check(error_on = "never", env_vars = c("_R_CHECK_SYSTEM_CLOCK_" = "FALSE"))'`:
+  passed with 0 errors, 0 warnings, and 0 notes in 2m 19s.
+
+Known limitations:
+
+- this is a wording cleanup only;
+- phylogenetic slopes, standalone or partial phylogenetic scale terms,
+  structured `rho12`, and predictor-dependent q=4 phylogenetic correlations
+  remain planned.

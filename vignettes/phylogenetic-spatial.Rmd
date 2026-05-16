@@ -197,7 +197,7 @@ corpair(species, level = "phylogenetic", block = "p",
         from = "mu1", to = "mu2") ~ ecology
 ```
 
-The q=4 extensions remain planned:
+The predictor-dependent q=4 extensions remain planned:
 
 ```r
 # Planned q=4 extensions:
@@ -897,7 +897,7 @@ corpair(species, level = "phylogenetic", block = "p",
         from = "mu1", to = "mu2") ~ w
 ```
 
-The q=4 extensions remain planned:
+The predictor-dependent q=4 extensions remain planned:
 
 ```r
 # Planned q=4 extensions:
