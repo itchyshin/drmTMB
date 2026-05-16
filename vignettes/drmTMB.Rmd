@@ -119,6 +119,7 @@ syntax, fitted output, and interpretation.
 | Am I modelling residual variation, group-level variation, or likelihood weights? | [Which scale are you modelling?](which-scale.html) | `sigma`, `sd(group)`, `weights` |
 | Which continuous, count, proportion, or robust family should I use? | [Choosing response families](distribution-families.html) | family-specific `mu`, `sigma`, `nu`, `zi`, `hu` |
 | Do counts show extra-Poisson variation or structural zeros? | [Count abundance and extra zeros](count-nbinom2.html) | NB2 `mu`, `sigma`, `zi` |
+| Are proportions successes out of trials or continuous rates inside `(0, 1)`? | [Proportions and success rates](proportion-beta-binomial.html) | beta and beta-binomial `mu`, `sigma` |
 | Does a predictor change residual coupling between two responses? | [Changing residual coupling with rho12](bivariate-coscale.html) | `rho12` |
 | Do effect sizes have known sampling variances or covariance? | [Mean effects and residual heterogeneity in meta-analysis](meta-analysis.html) | `meta_known_V(V = V)`, `sigma` |
 | Do group or phylogenetic covariance rows answer a bivariate question beyond residual coupling? | [What can I fit today?](model-map.html) | `corpairs()`, `corpair()`, `sd_phylo*()` |
@@ -159,6 +160,7 @@ At a high level, the current public surface is:
 | unlabelled Gaussian `mu` random-intercept SD formulas | implemented | "Which scale are you modelling?" |
 | fixed-effect non-Gaussian families | implemented | "Choosing response families" |
 | fixed-effect NB2 and zero-inflated NB2 count examples | implemented | "Count abundance and extra zeros" |
+| fixed-effect beta and beta-binomial proportion examples | implemented | "Proportions and success rates" |
 | Gaussian meta-analysis with known sampling covariance | implemented | "Mean effects and residual heterogeneity in meta-analysis" |
 | fixed-effect bivariate Gaussian `rho12` | implemented | "Changing residual coupling with rho12" |
 | ordinary bivariate covariance and `corpairs()` rows | implemented first slice | "What can I fit today?" |
