@@ -286,7 +286,12 @@ Use `predict_parameters()` when the interpretation task needs several
 distributional parameters on the same grid:
 
 ```{r}
-predict_parameters(fit, newdata = temperature_grid, dpar = c("mu", "sigma"))
+predict_parameters(
+  fit,
+  newdata = temperature_grid,
+  dpar = c("mu", "sigma"),
+  conf.int = TRUE
+)
 ```
 
 Use an empirical grid when the question is about the fitted response at focal
@@ -319,10 +324,14 @@ marginal_parameters(
 These helpers are tables, not plotting functions. They are the current Phase 17
 surface for future visualization work: each row names the distributional
 parameter, fitted component, prediction scale, estimate, interval status, and
-grid values. These first tables are point-estimate summaries, so
+grid values. By default, prediction tables are point-estimate summaries with
 `conf.status = "not_requested"` and
-`interval_source = "not_available"` tell you that no interval has been
-computed.
+`interval_source = "not_available"`. When you request
+`conf.int = TRUE` on an explicit `newdata` grid, ordinary fixed-effect
+distributional parameters receive Wald fixed-effect intervals with
+`conf.status = "wald"` and `interval_source = "wald"`. Rows that cannot receive
+that interval, such as direct random-effect SD surfaces, keep an explicit
+unavailable status instead of silently drawing a band.
 
 ## Predict a random-effect SD surface
 
@@ -422,13 +431,22 @@ helpers remain a separate future contract. For other distributional targets, use
 explicit `prediction_grid()` and `predict_parameters()` tables until the
 corresponding reference-grid algebra and tests exist.
 
-The first optional plotting helper consumes that table directly:
+The first optional plotting helper consumes that table directly. For a figure,
+use a denser grid than the small printed table and request intervals before
+plotting:
 
 ```{r}
+temperature_plot_grid <- prediction_grid(
+  fit,
+  focal = c("temperature", "habitat"),
+  at = list(temperature = seq(-1.5, 1.5, length.out = 40))
+)
+
 pred_temperature <- predict_parameters(
   fit,
-  newdata = temperature_grid,
-  dpar = c("mu", "sigma")
+  newdata = temperature_plot_grid,
+  dpar = c("mu", "sigma"),
+  conf.int = TRUE
 )
 
 if (requireNamespace("ggplot2", quietly = TRUE)) {
@@ -461,7 +479,10 @@ if (requireNamespace("ggplot2", quietly = TRUE)) {
 The fitted panels then use the prediction table. Keep `mu` and `sigma` on their
 own y-axes because they are different biological quantities. When a plot keeps
 one distributional parameter, `plot_parameter_surface()` labels the y-axis with
-the parameter and prediction scale:
+the parameter and prediction scale. The bands in these panels come from the
+Wald fixed-effect intervals in `pred_temperature`; if those columns were absent
+or marked `interval_source = "not_available"`, the helper would draw only
+lines and points:
 
 ```{r}
 if (requireNamespace("ggplot2", quietly = TRUE)) {
@@ -489,9 +510,8 @@ if (requireNamespace("ggplot2", quietly = TRUE)) {
 
 Do not put raw `growth` points on the `sigma` panel. Raw observations show the
 response; fitted `sigma` shows the residual standard deviation implied by the
-model. If you add interval ribbons later, check the table first and draw them
-only when `interval_source` names a real source such as `"wald"` or
-`"profile"`.
+model. The same rule applies to uncertainty: draw a band only when the table
+names a real interval source such as `"wald"` or `"profile"`.
 
 For this Gaussian model, the response-scale `sigma` predictions are residual
 standard deviations. The link-scale predictions are the corresponding

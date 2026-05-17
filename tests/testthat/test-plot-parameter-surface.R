@@ -51,6 +51,100 @@ test_that("plot_parameter_surface() can filter parameters and draw points only",
   expect_equal(nrow(built$data[[1L]]), 3L)
 })
 
+test_that("plot_parameter_surface() draws confidence bands from interval columns", {
+  testthat::skip_if_not_installed("ggplot2")
+  pred <- data.frame(
+    dpar = "mu",
+    type = "response",
+    estimate = c(1.0, 1.3, 1.6, 1.2, 1.5, 1.8),
+    conf.low = c(0.8, 1.0, 1.2, 0.9, 1.1, 1.4),
+    conf.high = c(1.2, 1.6, 2.0, 1.5, 1.9, 2.2),
+    conf.status = "wald",
+    interval_source = "wald",
+    x = rep(c(0, 1, 2), times = 2),
+    habitat = factor(rep(c("reef", "kelp"), each = 3))
+  )
+
+  out <- plot_parameter_surface(pred, x = "x", colour = "habitat")
+
+  expect_s3_class(out, "ggplot")
+  expect_length(out$layers, 3L)
+  built <- ggplot2::ggplot_build(out)
+  expect_true(all(c("ymin", "ymax") %in% names(built$data[[1L]])))
+  expect_equal(nrow(built$data[[1L]]), nrow(pred))
+})
+
+test_that("plot_parameter_surface() draws confidence bands from prediction tables", {
+  testthat::skip_if_not_installed("ggplot2")
+  set.seed(20260569)
+  dat <- data.frame(y = stats::rnorm(70), x = stats::rnorm(70))
+  fit <- drmTMB(bf(y ~ x, sigma ~ 1), family = gaussian(), data = dat)
+  grid <- data.frame(x = c(-1, 0, 1))
+  pred <- predict_parameters(
+    fit,
+    newdata = grid,
+    dpar = "mu",
+    conf.int = TRUE
+  )
+
+  out <- plot_parameter_surface(pred, x = "x")
+
+  expect_s3_class(out, "ggplot")
+  expect_equal(unique(pred$conf.status), "wald")
+  expect_length(out$layers, 3L)
+  built <- ggplot2::ggplot_build(out)
+  expect_true(all(c("ymin", "ymax") %in% names(built$data[[1L]])))
+  expect_equal(nrow(built$data[[1L]]), nrow(grid))
+})
+
+test_that("plot_parameter_surface() leaves unavailable intervals undrawn", {
+  testthat::skip_if_not_installed("ggplot2")
+  pred <- data.frame(
+    dpar = "mu",
+    type = "response",
+    estimate = c(1.0, 1.3, 1.6),
+    conf.low = c(0.8, 1.0, 1.2),
+    conf.high = c(1.2, 1.6, 2.0),
+    conf.status = "not_requested",
+    interval_source = "not_available",
+    x = c(0, 1, 2)
+  )
+
+  out <- plot_parameter_surface(pred, x = "x")
+
+  expect_s3_class(out, "ggplot")
+  expect_length(out$layers, 2L)
+  built <- ggplot2::ggplot_build(out)
+  expect_length(built$data, 2L)
+
+  pred$conf.status <- "profile"
+  pred$interval_source <- "profile"
+  out_no_interval <- plot_parameter_surface(pred, x = "x", interval = FALSE)
+  expect_length(out_no_interval$layers, 2L)
+})
+
+test_that("plot_parameter_surface() draws interval bars for discrete x columns", {
+  testthat::skip_if_not_installed("ggplot2")
+  pred <- data.frame(
+    dpar = "mu",
+    type = "response",
+    estimate = c(1.0, 1.4),
+    conf.low = c(0.7, 1.1),
+    conf.high = c(1.3, 1.7),
+    conf.status = "profile",
+    interval_source = "profile",
+    season = factor(c("dry", "wet"))
+  )
+
+  out <- plot_parameter_surface(pred, x = "season", line = FALSE)
+
+  expect_s3_class(out, "ggplot")
+  expect_length(out$layers, 2L)
+  built <- ggplot2::ggplot_build(out)
+  expect_true(all(c("ymin", "ymax") %in% names(built$data[[1L]])))
+  expect_equal(nrow(built$data[[1L]]), nrow(pred))
+})
+
 test_that("plot_parameter_surface() validates inputs", {
   testthat::skip_if_not_installed("ggplot2")
   pred <- data.frame(
@@ -78,6 +172,21 @@ test_that("plot_parameter_surface() validates inputs", {
   expect_error(
     plot_parameter_surface(pred, x = "x", unknown = TRUE),
     "reserved"
+  )
+  expect_error(
+    plot_parameter_surface(transform(pred, conf.low = 0), x = "x"),
+    "both"
+  )
+  expect_error(
+    plot_parameter_surface(
+      transform(pred, conf.low = "0", conf.high = 1),
+      x = "x"
+    ),
+    "conf.low"
+  )
+  expect_error(
+    plot_parameter_surface(pred, x = "x", interval = NA),
+    "interval"
   )
 })
 

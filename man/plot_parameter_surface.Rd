@@ -14,13 +14,15 @@ plot_parameter_surface(
   type = NULL,
   line = TRUE,
   point = TRUE,
+  interval = TRUE,
   ...
 )
 }
 \arguments{
 \item{data}{A data frame returned by \code{\link[=predict_parameters]{predict_parameters()}}, or a compatible
 long table with columns \code{dpar}, \code{type}, \code{estimate}, \code{conf.status}, and
-\code{interval_source}.}
+\code{interval_source}. If \code{conf.low} and \code{conf.high} are present, both must be
+numeric.}
 
 \item{x}{Character scalar naming the column to draw on the x-axis.}
 
@@ -42,6 +44,10 @@ present.}
 
 \item{point}{Logical; draw points at the estimates.}
 
+\item{interval}{Logical; draw finite \code{conf.low}/\code{conf.high} intervals when
+those columns are present and \code{conf.status} plus \code{interval_source} indicate
+that an interval was actually computed.}
+
 \item{...}{Reserved for future options.}
 }
 \value{
@@ -56,9 +62,12 @@ workflow first, then pass the resulting prediction table to this helper.
 }
 \details{
 The helper plots \code{estimate} against one supplied column. It expects the
-interval provenance columns created by \code{\link[=predict_parameters]{predict_parameters()}} so the plotted
-data keep their uncertainty status attached, even though this first helper
-does not draw intervals. When the filtered table contains a single
+interval provenance columns created by \code{\link[=predict_parameters]{predict_parameters()}}. When finite
+\code{conf.low} and \code{conf.high} columns are present and the provenance columns
+describe a real interval, it draws confidence bands for continuous x-values
+and interval bars for discrete x-values. Rows without finite supported bounds
+remain visible as point or line estimates only. When the filtered table
+contains a single
 distributional parameter, the y-axis label names that parameter and, when
 unique, the prediction scale.
 }

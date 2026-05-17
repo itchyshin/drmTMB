@@ -34,7 +34,7 @@ uncertainty, and plots without guessing which functions are user-facing:
 | Reference group | Current user-facing functions | Use when... |
 | --- | --- | --- |
 | Model fitting and post-fit tools | `drmTMB()`, `check_drm()`, `summary()`, `confint()`, `profile_targets()`, `prediction_grid()`, `predict_parameters()`, `marginal_parameters()`, `fixef()`, `ranef()`, `sigma()`, `rho12()`, `corpairs()` | You need to fit, check, summarize, predict, or extract fitted quantities. |
-| Visualization | `plot_parameter_surface()`, `plot_corpairs()` | You already have a `predict_parameters()` or `corpairs()` table and want an optional `ggplot2` display of fitted point estimates. |
+| Visualization | `plot_parameter_surface()`, `plot_corpairs()` | You already have a `predict_parameters()` or `corpairs()` table and want an optional `ggplot2` display of fitted estimates and any explicit interval columns. |
 
 Planned plotting helpers stay out of the Reference index until they are
 exported, documented, tested, and connected to a stable data contract.
@@ -45,11 +45,11 @@ matches the question before choosing a plot:
 | If you want to show... | Start from | Current display route | Check before styling |
 | --- | --- | --- | --- |
 | observed responses | the original analysis data | draw raw points or summaries on the observed-response scale | do not place raw response points on scale, correlation, or random-effect SD axes |
-| fitted `mu`, `sigma`, shape, or zero-inflation surfaces | `prediction_grid()` then `predict_parameters()` | `plot_parameter_surface()` for point-estimate surfaces, or your own `ggplot2` layers | `dpar`, `type`, `conf.status`, and `interval_source` columns |
+| fitted `mu`, `sigma`, shape, or zero-inflation surfaces | `prediction_grid()` then `predict_parameters(conf.int = TRUE)` when Wald fixed-effect intervals are needed | `plot_parameter_surface()` for estimate surfaces and explicit interval bands, or your own `ggplot2` layers | `dpar`, `type`, `conf.status`, `conf.level`, and `interval_source` columns |
 | fitted random-effect SD surfaces | `prediction_grid()` then `predict_parameters(..., dpar = "sd(group)")`, optionally followed by `marginal_parameters()` | table first; custom plot only after residual `sigma` and random-effect SDs are separated | component `random-effect-sd-model`, group-level predictors, and interval status |
 | adjusted or empirical marginal summaries | `prediction_grid(..., margin = "empirical")` then `marginal_parameters()` | table first; custom plot only after the averaging rule is clear | focal variables, `by`, margin metadata, and weights rule |
 | residual, group-level, phylogenetic, or spatial correlations | `rho12()` or `corpairs()` | table first; plotting helpers remain planned | correlation layer, `conf.status`, and whether the row is direct or derived |
-| fitted intervals | `confint()` or `summary(conf.int = TRUE)` | interval table first; ribbons remain planned for prediction surfaces | `conf.status`, `profile.boundary`, `profile.message`, and `interval_source` |
+| fitted intervals | `predict_parameters(conf.int = TRUE)`, `confint()`, or `summary(conf.int = TRUE)` | interval table first; ribbons are drawn only from explicit interval columns | `conf.status`, `conf.level`, `profile.boundary`, `profile.message`, and `interval_source` |
 | diagnostics before interpretation | `check_drm()` | diagnostic table first; diagnostic plots remain planned | convergence, Hessian, boundary, design, and retained-object status |
 
 | If the scientific phrase is... | It usually maps to... | Start here |

@@ -13,6 +13,8 @@ predict_parameters(object, ...)
   dpar = NULL,
   type = c("response", "link"),
   include_newdata = TRUE,
+  conf.int = FALSE,
+  conf.level = 0.95,
   ...
 )
 }
@@ -33,12 +35,19 @@ predict, such as \code{"mu"}, \code{"sigma"}, \code{"nu"}, \code{"rho12"}, \code
 
 \item{include_newdata}{Logical; when \code{TRUE} and \code{newdata} is supplied, append
 the supplied covariate columns to the returned table.}
+
+\item{conf.int}{Logical; include Wald fixed-effect confidence intervals when
+available for the supplied prediction grid.}
+
+\item{conf.level}{Confidence level for Wald intervals when
+\code{conf.int = TRUE}.}
 }
 \value{
 A data frame with columns \code{row}, \code{row_label}, \code{dpar}, \code{component},
 \code{type}, \code{estimate}, \code{conf.status}, and \code{interval_source}. When
-\code{include_newdata = TRUE}, supplied \code{newdata} columns are appended after
-those core columns.
+\code{conf.int = TRUE}, \code{std.error}, \code{conf.low}, \code{conf.high}, and \code{conf.level}
+are also included. When \code{include_newdata = TRUE}, supplied \code{newdata}
+columns are appended after those core columns.
 }
 \description{
 \code{predict_parameters()} returns predicted distributional parameters from a
@@ -53,10 +62,15 @@ parameter. With \code{newdata = NULL}, predictions use the fitted rows. With
 \code{newdata} supplied, predictions are fixed-effect, population-level
 predictions for those rows, matching \code{\link[=predict.drmTMB]{predict.drmTMB()}}.
 
-This first table surface does not compute confidence intervals. It still
-includes interval provenance columns: \code{conf.status = "not_requested"} and
-\code{interval_source = "not_available"}. Later interval-aware helpers can fill
-those columns without changing the long-table shape.
+By default, the table includes interval provenance columns with
+\code{conf.status = "not_requested"} and
+\code{interval_source = "not_available"}. When \code{conf.int = TRUE} and \code{newdata} is
+supplied for ordinary fixed-effect distributional parameters, the helper
+adds Wald fixed-effect intervals from the fitted coefficient covariance and
+records the requested confidence level. These are population-level intervals
+for the supplied grid; they do not include random-effect mode uncertainty,
+profile-likelihood uncertainty, or uncertainty for direct random-effect scale
+models.
 }
 \examples{
 dat <- data.frame(

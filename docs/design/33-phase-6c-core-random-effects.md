@@ -43,6 +43,141 @@ foundation and the first intercept-slope correlation. It does not claim
 bivariate random slopes, structured phylogenetic or spatial slopes, slope-SD
 regression, or random effects in `rho12`.
 
+## Expansion Boundaries
+
+Random-slope support is not one feature. The project should track six separate
+layers, because each layer has a different likelihood, output, and validation
+cost.
+
+The minimum programme before comprehensive random-slope claims is a one-slope
+baseline: every random-effect layer that `drmTMB` supports should be able to
+take at least one numeric slope, or should have an explicit unsupported status
+and fallback. Ordinary grouped `mu` has an additional compatibility target:
+arbitrary `lme4`/`glmmTMB`-style numeric multi-slope covariance such as
+`(1 + x1 + x2 | id)`, limited in practice by data, diagnostics, and
+computation rather than by a conceptual one- or two-slope cap.
+
+| Layer | Current boundary | Next target | Claim only after |
+|---|---|---|---|
+| Ordinary Gaussian `mu` | Multiple independent slope terms and one correlated intercept-plus-one-slope block are implemented | Arbitrary unstructured grouped blocks such as `(1 + x1 + x2 + ... | id)` for numeric slopes | q > 2 covariance blocks fit, `sdpars()`, `corpars()`, `corpairs()`, and `profile_targets()` expose every SD/correlation, and recovery tests cover weak and strong slope SDs |
+| Gaussian `sigma` | Residual-scale random intercepts and independent numeric slopes on `log(sigma)` are implemented | Correlated scale intercept-slope blocks, then multi-slope scale blocks | simulations recover scale-slope SDs on the modelled `log(sigma)` scale, boundary diagnostics are useful, and examples do not confuse `sigma` slopes with `sd(group)` models |
+| Location-scale covariance | Matching labelled `mu`/`sigma` random intercepts are implemented | Mean-scale covariance involving slope terms only after the separate `mu` and `sigma` slope blocks are stable | output names identify both distributional parameter and coefficient, and direct correlations have profile or explicit unavailable interval status |
+| Bivariate Gaussian | Random-intercept covariance blocks are implemented; bivariate random slopes are not | One ordinary `mu1`/`mu2` slope per response, then same-covariate slope1-slope2 correlations for plasticity-syndrome questions | `corpairs()` carries response and coefficient columns, residual `rho12` stays separate, and simulations vary residual correlation and random-slope SDs |
+| Structured phylogenetic/spatial | Coordinate spatial has one univariate Gaussian `mu` slope; phylogeny has intercept-level effects but no fitted slope | Bring phylogeny to the one-slope Gaussian `mu` baseline, then evaluate whether spatial and phylo need a second structured slope | each structured layer has SD summaries, direct profile targets, diagnostics, and simulation recovery for at least one fitted slope |
+| Non-Gaussian families | Fixed-effect non-Gaussian families are implemented; random slopes are not a general non-Gaussian feature | Add ordinary `mu` random intercepts first for stable likelihoods, then one `mu` slope; scale, shape, zero-inflation, and hurdle random slopes come later | family-specific simulations show convergence, boundary behaviour, recovery, and useful failure messages on both model and response scales |
+
+The ordinary location-model benchmark is glmmTMB/lme4-style syntax such as
+`(1 + x1 + x2 + ... | id)`: one grouped random-effect vector with an
+unstructured covariance matrix. If the block has `q` coefficients, the model
+estimates `q` SDs and `q * (q - 1) / 2` constant correlations. `drmTMB` should
+treat arbitrary numeric grouped `mu` blocks as the next ordinary Gaussian
+boundary, not as already implemented. Scale-side random slopes are a separate
+advantage and a separate burden: they can answer harder distributional
+questions, but they need larger validation grids because `sigma` variation is
+often less directly identified than `mu` variation.
+
+Before Phase 18 comprehensive simulation, every random-slope layer should have
+an explicit status row: implemented, one-slope foundation, planned, or rejected
+with a suggested fallback. Comprehensive simulation should then estimate the
+sample-size and replication cost of these layers rather than assume they are
+already equally powered.
+
+## Correlation Policy
+
+For the first random-slope expansion, slope-related correlations are
+block-level constants, not modelled distributional parameters. A term such as
+`(1 + x | id)` may estimate one constant `cor((Intercept), x | id)`
+hyperparameter, and a labelled location-scale slope block may estimate constant
+correlations involving `mu` or `sigma` slope coefficients. The first expansion
+should not support formulae such as `cor((Intercept), x | id) ~ z` or
+`cor(x1, x2 | id) ~ z`.
+
+This policy keeps random-effect correlations separate from residual coscale
+`rho12`. The residual bivariate correlation may already be fixed or modelled
+with predictors in bivariate Gaussian models. Intercept-level group,
+phylogenetic, and future spatial `corpair()` regressions are a different lane:
+they may be predictor-dependent when the implemented likelihood and recovery
+tests support that specific intercept-level target. The constant-correlation
+cap here applies to correlations introduced by random slopes.
+
+The practical cap for the first public slope phase outside ordinary grouped
+`mu` is therefore: at most one numeric random slope per distributional-parameter
+block, constant correlations inside that block, and clear errors for multiple
+slopes, interactions, or duplicated slope columns on layers that have not
+passed recovery tests. Ordinary grouped `mu` is the exception because its
+benchmark is arbitrary numeric multi-slope covariance with constant
+correlations.
+
+## External Benchmarks
+
+This project should benchmark against existing packages without pretending that
+their syntax, inference, and computational cost are interchangeable.
+
+| Package | Benchmark for `drmTMB` | Boundary for `drmTMB` planning |
+|---|---|---|
+| `lme4` | Ordinary location random slopes such as `(1 + x1 + x2 + ... | id)` | Match the familiar grouped `mu` syntax before claiming full ordinary random-slope support |
+| `glmmTMB` | Fast frequentist GLMM location random slopes, zero-inflation random effects, and dispersion-side random effects | Treat conditional and dispersion random slopes as speed benchmarks; `glmmTMB` does not provide a shared covariance block that correlates conditional/location and dispersion random effects |
+| `ordinal::clmm` | Cumulative ordinal mixed models with lme4-like random-effect syntax | Use it as the ordinal random-slope benchmark, while keeping ordinal work separate from Gaussian location-scale covariance |
+| `brms` | Broad Bayesian distributional, ordinal, multivariate, and phylogenetic random-effect syntax | Use it as the breadth benchmark, not as a speed or profile-likelihood benchmark |
+| `MCMCglmm` | Ecology/evolution multivariate, random-regression, ordinal, pedigree, and phylogenetic models | Use it as a conceptual benchmark for random regression and phylogenetic covariance, but keep `drmTMB` syntax and diagnostics simpler |
+| `spaMM` and `INLA` | Spatial GLMMs, latent Gaussian fields, and spatially varying coefficients | Use them as structured-dependence benchmarks, not as direct bivariate distributional-regression templates |
+
+The target niche for `drmTMB` is therefore a focused, fast TMB implementation:
+one-response and two-response distributional regression with ordinary,
+scale-side, bivariate, phylogenetic, and spatial random-effect covariance
+made explicit through `summary()`, `sdpars`, `corpars`, `corpairs()`,
+`profile_targets()`, `check_drm()`, simulation recovery, and reader-facing
+examples.
+
+## Random-Slope Implementation Ladder
+
+The next random-slope work should proceed in small covariance expansions. The
+first strategic goal is one numeric slope everywhere random effects are meant
+to exist; the second goal is richer multi-slope covariance where the ordinary
+location benchmark already expects it. Each step adds one likelihood surface
+and one validation surface; if simulation recovery fails, the next step waits.
+
+1. **Ordinary Gaussian location baseline and benchmark.** Keep the existing
+   one-slope `mu` block stable, then fit arbitrary unstructured grouped `mu`
+   blocks such as `(1 + x1 + x2 + ... | id)`. This is the `lme4`/`glmmTMB`
+   compatibility boundary for ordinary location models; the limit should come
+   from identifiability diagnostics and computation, not from the formula
+   grammar.
+2. **Gaussian scale one-slope block.** Extend residual-scale `sigma` from
+   independent slopes to a correlated intercept-slope block on `log(sigma)`.
+   The reader-facing interpretation is group variation in residual variability,
+   not mean plasticity and not `sd(group) ~ x`. `glmmTMB` can fit
+   dispersion-side random effects, so the `drmTMB` target is not merely their
+   existence; it is stable `sigma` terminology, direct profile targets,
+   diagnostics, and later covariance with `mu` random effects.
+3. **Univariate Gaussian location-scale slope block.** Fit one shared labelled
+   block across `mu` and `sigma`, such as `(1 + x | p | id)` in both formulas.
+   This q=4 block is the first true double-hierarchical random-slope target:
+   mean intercept, mean slope, scale intercept, and scale slope.
+4. **Bivariate Gaussian location slopes.** Add one ordinary grouped slope in
+   `mu1` and `mu2`, then expose same-covariate slope1-slope2 correlations as
+   group-level `corpairs()` rows. Residual `rho12` stays a separate row-level
+   coscale parameter.
+5. **Bivariate Gaussian scale and location-scale slopes.** Add `sigma1` and
+   `sigma2` slope blocks only after bivariate location slopes are stable. Full
+   one-slope bivariate location-scale covariance is q=8, with 8 SDs and 28
+   correlations, so it belongs late in the ladder.
+6. **Structured one-slope parity.** Bring phylogeny to the fitted one-slope
+   Gaussian `mu` baseline already reached by coordinate spatial models; then
+   decide whether spatial and phylogeny each need a second structured slope.
+7. **Non-Gaussian random effects.** Add ordinary `mu` random intercepts and
+   one-slope blocks for stable non-Gaussian likelihoods before scale, shape,
+   zero-inflation, hurdle, or ordinal threshold-side random slopes. Once a
+   non-Gaussian distributional parameter supports random effects, its one-slope
+   baseline should follow the same constant-correlation rule. Every family
+   needs its own recovery and boundary tests.
+8. **Comprehensive simulation.** Use ADEMP-style simulation grids to estimate
+   power, bias, RMSE, coverage, convergence rate, boundary rate, and profile
+   failure rate across group counts, observations per group, within-group
+   covariate spread, slope SD, residual scale, residual `rho12`, structured
+   signal, family, and seed. Keep CRAN tests small and shard the large grid into
+   optional scripts or CI artifacts.
+
 ## Equations
 
 For a location random intercept:

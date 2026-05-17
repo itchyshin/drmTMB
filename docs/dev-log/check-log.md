@@ -21510,3 +21510,116 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slice-157-random-scale-model-map-route.md`.
+
+## 2026-05-17 - Slice 158 confidence-band prediction surfaces
+
+Goal: add the first confidence-band path for fitted distributional-parameter
+surfaces while keeping uncertainty computation in explicit tables rather than
+inside the plotting helper.
+
+Roles:
+
+- Ada scoped the slice as a Phase 17 table-and-plot contract, not a general
+  interval engine.
+- Pat checked that the model-workflow example shows the reader-facing path from
+  `prediction_grid()` to `predict_parameters(conf.int = TRUE)` to
+  `plot_parameter_surface()`.
+- Fisher separated Wald fixed-effect bands from profile-likelihood and future
+  bootstrap intervals, and kept random-effect SD surfaces interval-unavailable
+  rather than implying full uncertainty.
+- Grace owned roxygen, full tests, article renders, pkgdown build/check, and
+  rendered-site scans.
+- Rose corrected the runway: Slices 159-202 are a stabilization bridge before
+  returning to Phase 17, not a direct jump into Phase 18 comprehensive
+  simulation.
+- Boole reviewed the public API additions `conf.int`, `conf.level`, and
+  `interval`.
+- Darwin, Jason, Curie, Emmy, Gauss, and Noether stayed mostly watch-only
+  because no likelihood, new biological example, external landscape claim,
+  simulation fixture, object architecture, or TMB math changed.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `R/predict-parameters.R`
+- `R/plot-parameter-surface.R`
+- `man/predict_parameters.Rd`
+- `man/plot_parameter_surface.Rd`
+- `tests/testthat/test-predict-parameters.R`
+- `tests/testthat/test-plot-parameter-surface.R`
+- `docs/design/39-visualization-grammar.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-17-slice-158-confidence-band-prediction-surfaces.md`
+- `vignettes/model-map.Rmd`
+- `vignettes/model-workflow.Rmd`
+
+What changed:
+
+- `predict_parameters(conf.int = TRUE)` now computes Wald fixed-effect
+  intervals for explicit `newdata` grids when the requested distributional
+  parameter has an ordinary fixed-effect basis.
+- Supported prediction rows now include `std.error`, `conf.low`, `conf.high`,
+  `conf.level`, `conf.status = "wald"`, and
+  `interval_source = "wald"`.
+- Fitted-row interval requests report `newdata_required`; direct random-effect
+  SD prediction rows report `wald_unavailable`.
+- `plot_parameter_surface()` now draws ribbons for continuous x-values and
+  interval bars for discrete x-values when finite supported interval columns
+  are present. Rows with `interval_source = "not_available"` remain
+  interval-free.
+- The model-workflow and model-map articles show the table-first confidence-band
+  path and keep interval provenance visible.
+- `ROADMAP.md` now records the corrected runway: Slices 159-202 are a
+  stabilization bridge before returning to Phase 17; Phase 18 comprehensive
+  simulation waits until the resumed Phase 17 closure gate.
+- `ROADMAP.md` and `docs/design/33-phase-6c-core-random-effects.md` also
+  sharpen the random-slope boundary: each supported random-effect layer should
+  get a one-slope baseline or explicit unsupported fallback; ordinary grouped
+  `mu` still needs the arbitrary numeric `(1 + x1 + x2 + ... | id)` benchmark
+  with constant covariance-block correlations; slope-related correlations stay
+  constant during the first expansion; and this cap does not apply to separate
+  intercept-level `corpair()` regressions.
+
+Checks run:
+
+- `air format` on changed R, test, NEWS, roadmap, design, and vignette files:
+  passed.
+- `Rscript -e 'devtools::document()'`: passed and regenerated
+  `man/predict_parameters.Rd` and `man/plot_parameter_surface.Rd`.
+- `Rscript -e 'devtools::test(filter = "predict-parameters|plot-parameter-surface", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'devtools::test(reporter = "summary")'`: passed.
+- `git diff --check`: passed.
+- `Rscript -e 'pkgload::load_all(".", quiet = TRUE); rmarkdown::render("vignettes/model-workflow.Rmd", output_dir = tempfile("model-workflow-render-"), quiet = FALSE)'`:
+  passed.
+- `Rscript -e 'pkgload::load_all(".", quiet = TRUE); rmarkdown::render("vignettes/model-map.Rmd", output_dir = tempfile("model-map-render-"), quiet = FALSE)'`:
+  passed.
+- `Rscript -e 'pkgdown::build_site(preview = FALSE)'`: passed and rendered the
+  updated roadmap, reference pages, model workflow, model map, and news.
+- `Rscript -e 'pkgdown::check_pkgdown()'`: passed with "No problems found."
+- Rendered-site scans confirmed the new
+  `predict_parameters(conf.int = TRUE)`, `conf.level`, confidence-band, and
+  corrected Phase 17 runway wording.
+- Stale wording scan:
+  `rg -n "ribbons remain planned|add interval ribbons later|point-estimate surfaces|does not draw intervals|leaves confidence intervals" README.md NEWS.md ROADMAP.md docs vignettes R man pkgdown-site`
+  found only historical after-task/check-log notes from earlier slices.
+
+Known limitations:
+
+- The new prediction intervals are Wald fixed-effect intervals for supplied
+  grids, not profile-likelihood intervals, bootstrap intervals, prediction
+  intervals for future observations, or full uncertainty intervals for
+  variance components.
+- No interval route was added for direct random-effect SD surfaces, conditional
+  random-effect modes, q4 derived correlations, covariance products, derived
+  variance ratios, marginal means, contrasts, or slopes.
+- Spatial structured models are still not at phylogenetic parity; the corrected
+  stabilization bridge should keep spatial parity visible before Phase 18.
+- The bridge should add a phylogenetic one-slope plan and keep the
+  one-slope-per-layer status table current before any comprehensive simulation
+  claims full structured-dependence or random-slope coverage.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slice-158-confidence-band-prediction-surfaces.md`.
