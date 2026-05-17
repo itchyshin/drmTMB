@@ -1268,6 +1268,17 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   ordinal mixed-model gaps as a separate lane. After Slice 202, return to Phase
   17 to close the remaining visualization, marginal-effect, contrast, slope,
   and reader-facing inference surfaces.
+- Slices 160-164 close the first confidence-band documentation block and reopen
+  the profile-interval inventory. Slice 160 adds the factor-predictor
+  interval-bar example and a real prediction-table test. Slice 161 makes
+  fitted-row `newdata_required` visible as an action status. Slice 162 shows a
+  non-default `conf.level` and states that the level must be read with
+  `conf.status` and `interval_source`. Slice 163 is the render/pkgdown/stale
+  wording gate for this confidence-band block. Slice 164 refreshes the
+  profile-target inventory for fixed effects, constant distributional
+  parameters, row-specific `newdata` profiles, ordinary random-effect SDs and
+  correlations, modelled `sd(group)` surfaces, q2 and q4 covariance rows,
+  phylogenetic/spatial SDs, derived summaries, and ordinal cutpoint internals.
 - Add additional ggplot-oriented helpers only after the data contract is stable:
   location curves, scale/variance curves, residual `rho12` curves,
   `sd(group)` or `sd_phylo()` surfaces, `corpairs()` summaries, and eventually
