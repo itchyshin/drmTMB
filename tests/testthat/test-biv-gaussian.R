@@ -1951,7 +1951,7 @@ test_that("bivariate Gaussian rejects unsupported Phase 3 syntax clearly", {
       data = dat,
       weights = rep(1.5, nrow(dat))
     ),
-    "full.*meta_known_V.*covariance"
+    "full known sampling covariance"
   )
   expect_error(
     drmTMB(

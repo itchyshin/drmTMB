@@ -23424,10 +23424,15 @@ Files changed:
 - `R/formula-markers.R`
 - `R/drmTMB.R`
 - `tests/testthat/test-meta-known-v.R`
+- `NAMESPACE`
+- `man/meta_V.Rd`
 - `_pkgdown.yml`
 - `NEWS.md`
 - `ROADMAP.md`
+- `docs/design/01-formula-grammar.md`
+- `docs/design/08-meta-analysis.md`
 - `docs/dev-log/after-task/2026-05-17-slice-205-meta-v-alias.md`
+- `vignettes/meta-analysis.Rmd`
 
 What changed:
 
@@ -23456,3 +23461,50 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slice-205-meta-v-alias.md`.
+
+## 2026-05-17 - Slice 206 proportional sampling-variance boundary
+
+Goal: keep planned proportional sampling-variance models separate from additive
+known sampling covariance and top-level likelihood weights.
+
+Files changed:
+
+- `R/drmTMB.R`
+- `tests/testthat/test-meta-known-v.R`
+- `tests/testthat/test-biv-gaussian.R`
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/08-meta-analysis.md`
+- `docs/dev-log/after-task/2026-05-17-slice-206-proportional-boundary.md`
+
+What changed:
+
+- Tightened the reserved-argument error for `meta_V(w = w)`,
+  `meta_V(w = w, scale = "proportional")`, and
+  `meta_V(V = V, scale = "exact")`.
+- Added tests confirming diagonal/vector `meta_V(V = V)` can use ordinary
+  likelihood weights, while full dense matrix `V` rejects non-unit weights.
+- Updated the bivariate full known-`V` weight-boundary test to match the new
+  generic known-sampling-covariance error text.
+- Updated design and roadmap wording so top-level `weights =` remains ordinary
+  likelihood weighting and cannot mimic proportional sampling variance.
+
+Checks run:
+
+- `air format R/drmTMB.R tests/testthat/test-meta-known-v.R NEWS.md ROADMAP.md docs/design/08-meta-analysis.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-17-slice-206-proportional-boundary.md`
+- `Rscript -e "devtools::test(filter = 'meta-known-v|meta-vcov|check-drm', reporter = 'summary')"`
+- `Rscript -e "devtools::test(filter = 'biv-gaussian', reporter = 'summary')"`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `git diff --check`
+- `rg -n 'current implemented marker is still|planned umbrella only|Do not implement meta_V|Future meta_V Umbrella|reject non-unit top-level weights until' ROADMAP.md docs/design/08-meta-analysis.md docs/dev-log/check-log.md`:
+  found only the intended full dense matrix-`V` weighting boundary.
+
+Known limitations:
+
+- This slice does not implement proportional sampling-variance likelihoods,
+  sparse known covariance, non-Gaussian known covariance, or joint-block
+  weighting for full dense matrix `V`.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slice-206-proportional-boundary.md`.

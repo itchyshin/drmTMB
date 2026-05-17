@@ -89,12 +89,14 @@ distributional regression models using TMB.
   likelihood weights, matching the broad convention in mixed-model packages.
 - Keep likelihood weights separate from known sampling covariance: weights
   multiply observation log-likelihood contributions, whereas `meta_V(V = V)`
-  should supply known sampling covariance after the rename slice. The current
-  implemented marker is still `meta_known_V(V = V)`.
-- Coexistence rule: additive known `V` continues to reject non-unit top-level
-  weights until joint-block weighting is designed; proportional sampling
-  variance through a future `meta_V(..., scale = "proportional")` is also not
-  ordinary likelihood weighting.
+  supplies known sampling covariance. `meta_known_V(V = V)` remains a
+  compatibility alias for the same additive path.
+- Coexistence rule: diagonal/vector known `V` may be combined with ordinary
+  likelihood weights, but those weights do not create proportional sampling
+  variance. Full dense matrix-`V` fits reject non-unit top-level weights until
+  joint-block weighting is designed; proportional sampling variance through a
+  future `meta_V(..., scale = "proportional")` is also not ordinary likelihood
+  weighting.
 - Implemented design rule: univariate models use one non-negative finite
   weight per observation; bivariate models use one weight per complete response
   pair.
@@ -1379,7 +1381,7 @@ making the public grammar and examples match the preferred long-term name.
 | 203 | Meta-analysis return map | Done locally: record the post-202 return block, keep broad Phase 18 closed, and make `meta_V()`/known-`V` hardening the first Phase 17 target. |
 | 204 | `meta_V()` API decision | Done locally: `meta_V(V = V)` is the preferred future additive known-covariance spelling, the marker should not take a positional response/value argument, and `meta_known_V(V = V)` should become a compatibility alias rather than a separate likelihood path. |
 | 205 | Additive known `V` implementation | Done locally: `meta_V(V = vi_or_V)` is accepted for the additive known-covariance route by sharing the existing `meta_known_V(V = V)` path; proportional `meta_V(w = w, scale = "proportional")` remains rejected before fitting. |
-| 206 | Proportional sampling-variance boundary | Keep `meta_V(w = w, scale = "proportional")` design-only unless its likelihood, parameters, diagnostics, and examples are explicitly implemented. Do not mimic it with top-level `weights =`. |
+| 206 | Proportional sampling-variance boundary | Done locally: keep `meta_V(w = w, scale = "proportional")`, `meta_V(w = w)`, and `meta_V(V = V, scale = "exact")` reserved before fitting; clarify that diagonal/vector `meta_V(V = V)` may use ordinary likelihood weights, full matrix-`V` rejects non-unit weights, and neither route mimics proportional sampling variance. |
 | 207 | Meta-analysis interval safety | Recheck summary, Wald intervals, profile targets, dense `V` diagnostics, random effects, and bivariate known-`V` boundaries so confidence intervals do not silently drop or overclaim rows. |
 | 208 | Reader examples | Refresh the meta-analysis tutorial and model map around vector `V`, matrix `V`, residual heterogeneity `sigma`, random effects, random-effect scale, and the unsupported proportional branch. |
 
