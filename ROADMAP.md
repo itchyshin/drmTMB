@@ -418,6 +418,10 @@ Phase 5 closure boundary:
 - Direct profile calls now wrap `TMB::tmbprofile()` failures with the
   `profile_targets()` target name and block attempts to override the internal
   `obj`, `name`, `lincomb`, or `trace` arguments through `...`.
+- The interval-readiness gate now keeps q4 derived correlations and covariance
+  products explicitly unavailable for intervals, rejects unsupported bootstrap
+  interval method requests before interval work begins, and checks that returned
+  interval status/source values stay inside the current shared vocabulary.
 - Extend profile-likelihood confidence intervals to additional direct TMB
   parameters such as other residual-scale parameters, ordinal cutpoints, and
   multi-row or custom contrasts beyond one `newdata` row at a time.
@@ -1246,14 +1250,14 @@ remain blocked by future covariance or non-Gaussian random-effect work.
 | 166 | Profile intervals | Done: direct constant-`sigma` examples are separated from predictor-dependent scale profiles, with `profile.boundary` and `profile.message` interpretation kept visible. |
 | 167 | Profile intervals | Done: direct random-effect SD examples now point users to exact `profile_targets()` names, including random-slope suffixes. |
 | 168 | Profile intervals | Done: random-effect correlation examples now stay separate from residual `rho12`, with direct targets gated by `profile_targets()`. |
-| 169 | Derived intervals | Mark q=4 derived correlation and covariance-product interval boundaries explicitly. |
-| 170 | Bootstrap intervals | Audit parametric-bootstrap feasibility, runtime, and target ordering before coding. |
-| 171 | Bootstrap intervals | Prototype a narrow parametric-bootstrap interval contract if the audit passes. |
-| 172 | Bootstrap intervals | Add bootstrap interval-status columns without changing point-estimate tables. |
-| 173 | Interval evidence | Add comparator or simulation evidence for at least one interval path. |
-| 174 | Interval diagnostics | Document boundary, failed-profile, failed-bootstrap, and missing-covariance messages. |
-| 175 | Interval harmonization | Align `summary()`, `confint()`, `corpairs()`, and prediction-table interval statuses. |
-| 176 | Phase 6/13 gate | Close the interval-readiness revisit with tests, docs, and after-phase notes. |
+| 169 | Derived intervals | Done: q4 derived correlation and covariance-product rows remain explicit `derived_interval_unavailable` targets until a reparameterized or fix-and-refit derived interval method exists. |
+| 170 | Bootstrap intervals | Done: the audit found bootstrap needs a deterministic simulate-refit harness, target extractor, failure ledger, and runtime/reproducibility policy before coding. |
+| 171 | Bootstrap intervals | Done by deferral: the audit did not pass, so no public `method = "bootstrap"` prototype was added. |
+| 172 | Bootstrap intervals | Done by boundary: no bootstrap interval-status columns are emitted yet because unsupported bootstrap requests error before interval-table creation. |
+| 173 | Interval evidence | Done: focused tests now cover unsupported-bootstrap errors, q4 derived-unavailable boundaries, direct profile paths, and shared interval-status/source vocabulary. |
+| 174 | Interval diagnostics | Done: profile diagnostics remain `profile.boundary`/`profile.message`, and unsupported bootstrap requests now report that bootstrap intervals are not implemented. |
+| 175 | Interval harmonization | Done: internal status/source vocabulary helpers now align `summary()`, `confint()`, `corpairs()`, and prediction-table interval outputs. |
+| 176 | Phase 6/13 gate | Done: the interval-readiness revisit is closed with tests, docs, known-limitations updates, check-log evidence, and an after-phase note. |
 | 177 | Gaussian random slopes | Audit ordinary grouped location random-slope support against `(1 + x1 + x2 + ... | id)`. |
 | 178 | Gaussian random slopes | Plan parser/API and extractor output for arbitrary ordinary location blocks. |
 | 179 | Gaussian random slopes | Prototype q > 2 ordinary location block covariance with constant correlations. |
@@ -1284,6 +1288,11 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   parameters, row-specific `newdata` profiles, ordinary random-effect SDs and
   correlations, modelled `sd(group)` surfaces, q2 and q4 covariance rows,
   phylogenetic/spatial SDs, derived summaries, and ordinal cutpoint internals.
+- Slices 169-176 close the interval-readiness gate before random-slope work.
+  The important boundary is negative but useful: q4 correlations and covariance
+  products remain derived interval-unavailable rows, and bootstrap intervals are
+  not a public method until a deterministic simulate-refit harness, target
+  extractor, failure ledger, and runtime policy exist.
 - Add additional ggplot-oriented helpers only after the data contract is stable:
   location curves, scale/variance curves, residual `rho12` curves,
   `sd(group)` or `sd_phylo()` surfaces, `corpairs()` summaries, and eventually

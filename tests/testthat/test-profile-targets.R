@@ -1165,6 +1165,18 @@ test_that("profile confidence intervals reject unsupported targets clearly", {
     "between 0 and 1"
   )
   expect_error(
+    stats::confint(fit, method = "bootstrap"),
+    "not implemented"
+  )
+  expect_error(
+    summary(fit, conf.int = TRUE, method = "bootstrap"),
+    "not implemented"
+  )
+  expect_error(
+    corpairs(fit, conf.int = TRUE, method = "bootstrap"),
+    "not implemented"
+  )
+  expect_error(
     stats::confint(
       fit,
       parm = "sigma",
@@ -1277,6 +1289,46 @@ test_that("profile interval diagnostics flag boundary-like intervals", {
   expect_equal(cor_diag$message, "near_correlation_boundary")
   expect_false(ok_diag$boundary)
   expect_equal(ok_diag$message, "ok")
+})
+
+test_that("interval status vocabulary is shared across interval outputs", {
+  dat <- new_profile_group_data(n_id = 10, n_each = 4, seed = 20260616)
+  fit <- drmTMB(
+    bf(y ~ x + (1 | ID), sigma ~ 1),
+    family = gaussian(),
+    data = dat
+  )
+
+  ci <- stats::confint(fit)
+  profiled <- summary(
+    fit,
+    conf.int = TRUE,
+    method = "profile",
+    ci_parm = "sd:mu:(1 | ID)",
+    trace = FALSE,
+    ystep = 0.40
+  )
+  predicted <- predict_parameters(fit, conf.int = TRUE)
+
+  statuses <- c(
+    ci$conf.status,
+    profiled$coefficients$conf.status,
+    profiled$parameters$conf.status,
+    predicted$conf.status
+  )
+  sources <- predicted$interval_source
+
+  expect_setequal(
+    setdiff(unique(statuses), drmTMB:::interval_status_levels()),
+    character()
+  )
+  expect_setequal(
+    setdiff(unique(sources), drmTMB:::interval_source_levels()),
+    character()
+  )
+  expect_true("wald" %in% ci$conf.status)
+  expect_true("profile" %in% profiled$parameters$conf.status)
+  expect_true("newdata_required" %in% predicted$conf.status)
 })
 
 test_that("profile target inventory maps hurdle probabilities to beta_zi", {

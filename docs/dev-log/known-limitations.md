@@ -146,7 +146,12 @@
   derived variance ratios still do not have standard errors. The current
   boundary diagnostics are endpoint flags, not a full profile-shape classifier:
   one-sided intervals, automatic recovery from non-monotone profiles, and
-  bootstrap fallback remain planned. The first marginal helper computes
+  bootstrap fallback remain planned. Calls such as
+  `confint(fit, method = "bootstrap")`,
+  `summary(fit, conf.int = TRUE, method = "bootstrap")`, and
+  `corpairs(fit, conf.int = TRUE, method = "bootstrap")` error before interval
+  work begins because public bootstrap intervals are not implemented yet. The
+  first marginal helper computes
   unweighted plug-in means only; it does not yet compute uncertainty, standard
   errors, contrasts, plots, or full `emmeans`-style marginalisation.
 - Fixed-effect univariate lognormal location-scale models are implemented for

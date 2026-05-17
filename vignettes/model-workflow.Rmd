@@ -303,6 +303,14 @@ Read `conf.status` as an action column:
 | `target_unavailable` or `profile_unavailable` | The row is descriptive or has no current direct interval target. | Treat the interval as unsupported and check `profile_targets(fit)` before trying another route. |
 | `not_requested` | The table is reporting a point estimate without an interval request. | Refit is not needed; request intervals only for the rows you plan to interpret. |
 
+Parametric-bootstrap intervals are still a planned interval route, not a public
+`method` value. Calls such as `confint(fit, method = "bootstrap")`,
+`summary(fit, conf.int = TRUE, method = "bootstrap")`, or
+`corpairs(fit, conf.int = TRUE, method = "bootstrap")` stop before interval
+work begins. For now, use Wald intervals for routine fixed-effect summaries,
+profile intervals for direct profile-ready targets, and explicit simulation
+studies when bootstrap coverage is the scientific target.
+
 ## Predict distributional parameters
 
 `predict()` returns one distributional parameter at a time. For fitted rows,

@@ -336,13 +336,7 @@ plot_parameter_surface_interval_data <- function(data) {
 plot_parameter_surface_interval_available <- function(data) {
   unavailable_status <- c(
     "",
-    "not_requested",
-    "newdata_required",
-    "derived_interval_unavailable",
-    "wald_unavailable",
-    "target_unavailable",
-    "profile_ready",
-    "profile_unavailable"
+    setdiff(interval_status_levels(), c("wald", "profile"))
   )
   status <- as.character(data$conf.status)
   source <- as.character(data$interval_source)

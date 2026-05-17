@@ -23,7 +23,8 @@
 
 \item{method}{Interval method used when \code{conf.int = TRUE}: \code{"wald"} for
 fixed-effect intervals or \code{"profile"} for profile-likelihood intervals on
-selected direct targets.}
+selected direct targets. Parametric bootstrap intervals are not implemented
+yet.}
 
 \item{ci_parm}{Optional character or integer vector selecting confidence
 interval targets. For \code{method = "wald"}, targets must be fixed effects. For

@@ -21904,3 +21904,111 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slices-165-168-profile-example-bridge.md`.
+
+## 2026-05-17 - Slices 169-176 interval-readiness gate
+
+Goal: close the profile/bootstrap interval-readiness revisit before the
+Gaussian random-slope block, without overclaiming q4 derived intervals or
+bootstrap support.
+
+Who was working:
+
+- Ada coordinated the stacked Slice 169-176 branch from the Slice 165-168 PR
+  head.
+- Fisher checked the inferential boundary: q4 correlations and covariance
+  products remain derived interval-unavailable rows, and bootstrap intervals are
+  not implemented.
+- Curie owned the new tests for unsupported bootstrap methods and shared
+  interval status/source vocabulary.
+- Grace owned full-package tests, focused interval tests, vignette renders,
+  pkgdown build/check, `devtools::document()`, and stale scans.
+- Pat reviewed reader-facing examples and status interpretation in the
+  model-workflow and model-map articles.
+- Rose checked the roadmap, known limitations, after-phase report, and stale
+  wording.
+- Boole reviewed method names and interval status/source names.
+- No spawned subagents were running during this slice block.
+
+Files changed:
+
+- `R/profile.R`
+- `R/methods.R`
+- `R/plot-parameter-surface.R`
+- `tests/testthat/test-profile-targets.R`
+- `README.md`
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/12-profile-likelihood-cis.md`
+- `docs/dev-log/known-limitations.md`
+- `vignettes/model-workflow.Rmd`
+- `vignettes/model-map.Rmd`
+- `man/confint.drmTMB.Rd`
+- `man/summary.drmTMB.Rd`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-phase/2026-05-17-slices-169-176-interval-readiness-gate.md`
+
+What changed:
+
+- Slice 169: the profile-CI design note now spells out why q4 endpoint
+  correlations and covariance products are derived functions of multiple
+  covariance coordinates and remain `derived_interval_unavailable`.
+- Slice 170: the bootstrap audit now records the missing prerequisites:
+  deterministic simulate-refit harness, target extractor, failure ledger, and
+  runtime/reproducibility policy.
+- Slices 171-172: no `method = "bootstrap"` prototype or bootstrap status
+  columns were added because the audit did not pass. Unsupported bootstrap
+  requests now error before interval-table creation.
+- Slice 173: tests now cover unsupported bootstrap method requests and shared
+  interval status/source vocabulary.
+- Slice 174: docs now keep profile diagnostics separate from not-yet-implemented
+  bootstrap failure handling.
+- Slice 175: `interval_status_levels()` and `interval_source_levels()` centralize
+  the current internal status/source vocabulary, and
+  `plot_parameter_surface()` uses that status helper when deciding whether an
+  interval can be drawn.
+- Slice 176: README, model-map, model-workflow, known limitations, roadmap, and
+  profile-CI design docs now close the interval-readiness gate and point next to
+  Gaussian random-slope work.
+
+Checks run:
+
+- `air format R/profile.R R/methods.R R/plot-parameter-surface.R tests/testthat/test-profile-targets.R README.md NEWS.md ROADMAP.md docs/design/12-profile-likelihood-cis.md docs/dev-log/known-limitations.md vignettes/model-workflow.Rmd vignettes/model-map.Rmd docs/dev-log/check-log.md docs/dev-log/after-phase/2026-05-17-slices-169-176-interval-readiness-gate.md`:
+  passed.
+- `Rscript -e 'devtools::document()'`: passed and regenerated
+  `man/confint.drmTMB.Rd` and `man/summary.drmTMB.Rd`.
+- `Rscript -e 'devtools::test(filter = "profile-targets|summary|predict-parameters|plot-parameter-surface|corpairs|covariance-block-registry|phylo-gaussian", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'pkgload::load_all(".", quiet = TRUE); rmarkdown::render("vignettes/model-workflow.Rmd", output_dir = tempfile("model-workflow-render-"), quiet = FALSE)'`:
+  passed.
+- `Rscript -e 'pkgload::load_all(".", quiet = TRUE); rmarkdown::render("vignettes/model-map.Rmd", output_dir = tempfile("model-map-render-"), quiet = FALSE)'`:
+  passed.
+- `Rscript -e 'pkgdown::build_site(preview = FALSE)'`: passed.
+- `Rscript -e 'pkgdown::check_pkgdown()'`: passed with "No problems found."
+- `Rscript -e 'devtools::test(reporter = "summary")'`: passed.
+- `git diff --check`: passed.
+- Bootstrap overclaim scan:
+  `rg -n 'method = "bootstrap".*(works|available|implemented|returns|computes)|bootstrap intervals? (are|is) (available|implemented|returned|computed)|parametric-bootstrap intervals? (are|is) (available|implemented|returned|computed)|method = "parametric_bootstrap".*(works|available|implemented|returns|computes)' README.md NEWS.md ROADMAP.md docs/design docs/dev-log/known-limitations.md vignettes R man pkgdown-site --glob '!pkgdown-site/search.json' --glob '!docs/dev-log/check-log.md' --glob '!docs/dev-log/after-task/**' --glob '!docs/dev-log/after-phase/**'`
+  returned only the expected NEWS/source-site sentence saying bootstrap methods
+  are rejected as not yet implemented.
+- q4 interval overclaim scan:
+  `rg -n 'q4.*profile-ready|q4.*profile ready|q4.*profile intervals? (are|is) (available|implemented|returned|computed)|derived q4.*intervals? (are|is) (available|implemented|returned|computed)|derived_interval_unavailable.*implemented interval' README.md NEWS.md ROADMAP.md docs/design docs/dev-log/known-limitations.md vignettes R man pkgdown-site --glob '!pkgdown-site/search.json' --glob '!docs/dev-log/check-log.md' --glob '!docs/dev-log/after-task/**' --glob '!docs/dev-log/after-phase/**'`
+  returned only the expected design-note sentence saying q4 is not direct
+  profile-ready.
+- Rendered-site/source scan:
+  `rg -n 'not implemented for|Slices 169-176|interval_status_levels|method = "bootstrap"|derived_interval_unavailable|public bootstrap intervals are not implemented|bootstrap requests error' README.md NEWS.md ROADMAP.md docs/design/12-profile-likelihood-cis.md docs/dev-log/known-limitations.md vignettes/model-workflow.Rmd vignettes/model-map.Rmd man/confint.drmTMB.Rd man/summary.drmTMB.Rd pkgdown-site/index.html pkgdown-site/ROADMAP.html pkgdown-site/articles/model-workflow.html pkgdown-site/articles/model-map.html pkgdown-site/reference/confint.drmTMB.html pkgdown-site/reference/summary.drmTMB.html pkgdown-site/news/index.html --glob '!pkgdown-site/search.json'`
+  confirmed source and generated-site wording.
+
+Known limitations:
+
+- No public bootstrap interval method was added. That is intentional because the
+  feasibility audit did not pass.
+- q4 ordinary and phylogenetic endpoint correlations remain derived
+  interval-unavailable targets.
+- Profile diagnostics still do not implement one-sided profile intervals or
+  automatic recovery from non-monotone profiles.
+- The next block starts Slice 177: ordinary Gaussian location random-slope
+  support and limits.
+
+After-phase report:
+
+- `docs/dev-log/after-phase/2026-05-17-slices-169-176-interval-readiness-gate.md`.

@@ -124,6 +124,77 @@ latent correlation rows such as `cor:mu:cor((Intercept),x | p | id)`,
 marked `profile_ready` by `profile_targets()` should be requested as direct
 profile intervals.
 
+## Slices 169-176 Interval-Readiness Gate
+
+Slices 169-176 close the profile/bootstrap revisit before the Gaussian
+random-slope block. The implemented claim is narrower than "all intervals are
+done": direct Wald and profile intervals have a stable status vocabulary, while
+derived q4 and bootstrap intervals remain blocked.
+
+Slice 169 fixes the q4 boundary. Ordinary and phylogenetic q4 endpoint
+correlations are reported from a fitted four-dimensional covariance block. A
+reported endpoint correlation is:
+
+```text
+rho_ij = Sigma[i, j] / sqrt(Sigma[i, i] * Sigma[j, j])
+```
+
+and a reported covariance product is:
+
+```text
+cov_ij = sd_i * sd_j * rho_ij
+```
+
+Those rows are functions of several optimized covariance coordinates rather
+than one direct atanh-correlation parameter. Until a reparameterized or
+fix-and-refit derived-profile method exists, q4 correlations and covariance
+products must stay `derived_interval_unavailable`.
+
+Slice 170 audits parametric bootstrap feasibility. A safe bootstrap interval
+method needs four pieces before it can become a public `method` value:
+
+1. a deterministic simulation-and-refit harness that preserves formula
+   preprocessing, offsets, known covariance, structured effects, and
+   memory-light controls;
+2. a target extractor that returns the same target names and row order as
+   `confint()`, `summary()`, `corpairs()`, and prediction tables;
+3. a failure ledger for non-convergence, missing covariance, boundary fits, and
+   failed target extraction;
+4. runtime controls and reproducibility rules for long bootstrap runs.
+
+That audit does not pass yet for a package-level bootstrap API. Therefore
+Slices 171-172 do not add `method = "bootstrap"` or bootstrap interval-status
+columns. Requests for `method = "bootstrap"` or
+`method = "parametric_bootstrap"` now fail before fitting intervals, with a
+message that current methods are `wald` and `profile`.
+
+Slice 173 keeps the evidence target modest. The focused tests for this gate
+check the status vocabulary, unsupported-bootstrap errors, q4 derived status
+rows, and the existing direct profile paths. Coverage simulations comparing
+Wald, profile, and bootstrap intervals remain a later long-run simulation task.
+
+Slice 174 records diagnostics boundaries. Profile rows can report
+`profile.boundary` and `profile.message`; failed profile construction names
+boundary, one-sided, non-monotone, and failed-inner-optimization profiles as
+possible causes. Failed bootstrap is not a table status yet because bootstrap
+requests do not enter an interval table.
+
+Slice 175 centralizes the current interval vocabulary with internal helpers:
+
+```text
+interval_status_levels()
+interval_source_levels()
+```
+
+The current status values are `wald`, `profile`, `profile_ready`,
+`newdata_required`, `derived_interval_unavailable`, `wald_unavailable`,
+`target_unavailable`, `profile_unavailable`, and `not_requested`. The current
+interval-source values are `wald`, `profile`, and `not_available`.
+
+Slice 176 closes this gate by keeping the next work honest: derived q4
+intervals and bootstrap intervals are not implemented, but their absence is now
+documented, tested at the method boundary, and visible in status-bearing output.
+
 The first implementation must therefore start from a stable target inventory,
 not from ad hoc parameter names in the C++ template. Public targets should be
 named using user-facing quantities:

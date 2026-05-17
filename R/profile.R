@@ -28,8 +28,9 @@
 #'   `NULL` selects all fixed effects for Wald intervals. Profile intervals
 #'   require explicit target names.
 #' @param level Confidence level.
-#' @param method Interval method: `"wald"` or `"profile"`. If `newdata` is
-#'   supplied and `method` is omitted, `method = "profile"` is used.
+#' @param method Interval method: `"wald"` or `"profile"`. Parametric bootstrap
+#'   intervals are not implemented yet. If `newdata` is supplied and `method` is
+#'   omitted, `method = "profile"` is used.
 #' @param newdata Optional data frame for response-scale profile intervals for
 #'   predictor-dependent `sigma`, `sigma1`, `sigma2`, `rho12`, or fitted
 #'   `corpair()` values. Each row is profiled separately by profiling its
@@ -63,7 +64,7 @@ confint.drmTMB <- function(
   ...
 ) {
   method_missing <- missing(method)
-  method <- match.arg(method)
+  method <- validate_interval_method(method, c("wald", "profile"), "confint()")
   if (!is.null(newdata) && method_missing) {
     method <- "profile"
   }
@@ -166,6 +167,57 @@ profile_targets <- function(object, ready_only = FALSE) {
   }
   row.names(targets) <- NULL
   targets
+}
+
+validate_interval_method <- function(method, choices, caller) {
+  if (
+    !is.character(method) ||
+      length(method) < 1L ||
+      anyNA(method) ||
+      !all(nzchar(method))
+  ) {
+    cli::cli_abort("{.arg method} must be a non-missing character value.")
+  }
+  if (length(method) > 1L) {
+    if (all(method %in% choices)) {
+      return(choices[[1L]])
+    }
+    cli::cli_abort("{.arg method} must be a single character value.")
+  }
+
+  if (method %in% c("bootstrap", "parametric_bootstrap")) {
+    cli::cli_abort(c(
+      "{.arg method} = {.val {method}} is not implemented for {.fn {caller}} intervals yet.",
+      i = "Current interval methods are {.val {choices}}.",
+      i = "Use {.code method = \"profile\"} for direct profile-ready targets, or keep bootstrap intervals as a separate simulation/audit step."
+    ))
+  }
+
+  matched <- pmatch(method, choices, duplicates.ok = FALSE)
+  if (is.na(matched)) {
+    cli::cli_abort(
+      "{.arg method} must be one of {.val {choices}}."
+    )
+  }
+  choices[[matched]]
+}
+
+interval_status_levels <- function() {
+  c(
+    "wald",
+    "profile",
+    "profile_ready",
+    "newdata_required",
+    "derived_interval_unavailable",
+    "wald_unavailable",
+    "target_unavailable",
+    "profile_unavailable",
+    "not_requested"
+  )
+}
+
+interval_source_levels <- function() {
+  c("wald", "profile", "not_available")
 }
 
 drm_profile_targets <- function(object) {

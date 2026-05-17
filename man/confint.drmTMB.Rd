@@ -23,8 +23,9 @@ require explicit target names.}
 
 \item{level}{Confidence level.}
 
-\item{method}{Interval method: \code{"wald"} or \code{"profile"}. If \code{newdata} is
-supplied and \code{method} is omitted, \code{method = "profile"} is used.}
+\item{method}{Interval method: \code{"wald"} or \code{"profile"}. Parametric bootstrap
+intervals are not implemented yet. If \code{newdata} is supplied and \code{method} is
+omitted, \code{method = "profile"} is used.}
 
 \item{newdata}{Optional data frame for response-scale profile intervals for
 predictor-dependent \code{sigma}, \code{sigma1}, \code{sigma2}, \code{rho12}, or fitted
