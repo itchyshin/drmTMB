@@ -18815,3 +18815,87 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-16-slice-124-model-workflow-emmeans-example.md`.
+
+## 2026-05-16 - Slice 125 emmeans family coverage
+
+Goal: strengthen the first public `emmeans()` method with direct parity tests
+for the remaining univariate families already admitted by the fixed-effect
+`mu` gate, without changing public support or widening the gate.
+
+Roles:
+
+- Ada kept this as a test-only coverage slice stacked after the Slice 124
+  article example while PR #89 CI was still running.
+- Curie owned the self-contained family-coverage test and kept the assertions
+  tied to `predict(dpar = "mu")` on the same reference grid.
+- Fisher checked that the tested estimand remains native `mu` on link and
+  response scales.
+- Boole checked that the test uses the public `emmeans::emmeans()` method
+  rather than private helpers.
+- Grace watched runtime and CI risk by keeping the slice in the existing
+  `test-emmeans-methods.R` file.
+- Rose checked that roadmap and design wording describe coverage, not a broader
+  feature claim.
+- Gauss and Noether stayed watch-only because no likelihood or equation changed.
+- Pat, Darwin, Jason, and Emmy stayed watch-only because no user prose,
+  biological example, landscape claim, or object structure changed.
+
+Files changed:
+
+- `ROADMAP.md`
+- `docs/design/39-visualization-grammar.md`
+- `docs/design/40-emmeans-interface-contract.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-16-slice-125-emmeans-family-coverage.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-16-202613-codex-checkpoint.md`
+- `tests/testthat/test-emmeans-methods.R`
+
+What changed:
+
+- Added a shared test helper that compares `emmeans::emmeans()` link and
+  response summaries against `predict(fit, dpar = "mu", type = ...)` on the
+  same habitat reference grid.
+- Added direct coverage for Student-t, lognormal, Gamma, beta-binomial, NB2, and
+  zero-truncated NB2 fits.
+- Updated the Phase 17 roadmap and `emmeans` design notes to record this as
+  coverage for already admitted fixed-effect univariate `mu` targets, not a
+  broader method expansion.
+
+Checks run:
+
+- `air format tests/testthat/test-emmeans-methods.R`: passed.
+- `Rscript -e "devtools::test(filter = 'emmeans-methods', reporter = 'summary')"`:
+  passed.
+- `air format ROADMAP.md docs/design/39-visualization-grammar.md docs/design/40-emmeans-interface-contract.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-16-slice-125-emmeans-family-coverage.md tests/testthat/test-emmeans-methods.R`:
+  passed.
+- `git diff --check`: passed.
+- `Rscript -e "devtools::test(filter = 'emmeans-methods|emmeans-recover-data|emmeans-preflight|fixed-effect-basis|reference-grid-link-scale-contract', reporter = 'summary')"`:
+  passed.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed and rebuilt
+  `pkgdown-site/ROADMAP.html`.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with "No problems found."
+- `rg -n 'Slice 125|Student-t, lognormal, Gamma, beta-binomial, NB2|zero-truncated NB2|remaining univariate|already admitted|link-scale and response-scale EMMs|expect_emmeans_mu_prediction_parity|student_y|lognormal_y|gamma_y|positive_count|beta_binomial_fit' ROADMAP.md docs/design/39-visualization-grammar.md docs/design/40-emmeans-interface-contract.md tests/testthat/test-emmeans-methods.R pkgdown-site/ROADMAP.html`:
+  confirmed source and rendered roadmap/design/test wording.
+- `rg -n 'sigma.*emmeans.*works|random-effect.*emmeans.*works|bivariate.*emmeans.*works|zero-inflated.*emmeans.*works|hurdle.*emmeans.*works|ordinal.*emmeans.*works|contrast.*emmeans.*implemented|slope.*emmeans.*implemented|all.*emmeans.*targets|fitted response.*emmeans.*works|widen.*emmeans.*gate' ROADMAP.md docs/design/39-visualization-grammar.md docs/design/40-emmeans-interface-contract.md tests/testthat/test-emmeans-methods.R pkgdown-site/ROADMAP.html --glob '!pkgdown-site/search.json' --glob '!pkgdown-site/deps/**'`:
+  returned no matches.
+- `Rscript tools/codex-checkpoint.R --goal "Slice 125 emmeans family coverage" --next "commit Slice 125, then wait for Slice 124 PR #89, merge it, rebase Slice 125, rerun focused checks, push, and open PR"`:
+  passed and wrote
+  `docs/dev-log/recovery-checkpoints/2026-05-16-202613-codex-checkpoint.md`.
+
+Pending checks:
+
+- Post-rebase `git diff --check origin/main...HEAD`: passed after rebasing
+  onto merged Slice 124 `main`.
+- Post-rebase `Rscript -e "devtools::test(filter = 'emmeans-methods|emmeans-recover-data|emmeans-preflight|fixed-effect-basis|reference-grid-link-scale-contract', reporter = 'summary')"`:
+  passed.
+
+Known limitations:
+
+- This slice does not add new public `emmeans` targets.
+- Non-`mu`, bivariate, zero-inflated, hurdle, ordinal expected-score,
+  random-effect, structured-effect, fitted-response, contrast, slope, and
+  interval-specialized workflows remain outside the documented support boundary.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-16-slice-125-emmeans-family-coverage.md`.

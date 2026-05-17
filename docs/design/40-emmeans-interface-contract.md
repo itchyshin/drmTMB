@@ -200,3 +200,9 @@ before advertising public `emmeans` compatibility. Slice 124 adds the first
 model-workflow example for that path and keeps `emmeans()` adjusted means
 separate from `sigma`, random-effect, bivariate, zero-inflated, hurdle,
 ordinal, contrast, and slope workflows.
+
+Slice 125 extends the direct method tests across the remaining model types
+admitted by the first gate: Student-t, lognormal, Gamma, beta-binomial, NB2, and
+zero-truncated NB2. Those tests compare link-scale and response-scale
+`emmeans()` summaries with `predict(dpar = "mu")` on the same reference grid;
+they do not add support for blocked model structures or new estimands.
