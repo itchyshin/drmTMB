@@ -381,6 +381,23 @@ formula-based fixed-effect surfaces can carry Wald bands on explicit grids;
 direct random-effect SD surfaces stay line-only until a validated profile or
 bootstrap route exists.
 
+Slice 160 adds the discrete-x display boundary to the reader-facing workflow.
+When the x aesthetic is a factor, `plot_parameter_surface()` consumes the same
+finite interval columns but draws interval bars instead of ribbons. The
+corresponding focused test now exercises a real `prediction_grid()` ->
+`predict_parameters(conf.int = TRUE, conf.level = 0.90)` table for a factor
+predictor.
+
+Slice 161 documents the fitted-row interval boundary. A
+`predict_parameters(conf.int = TRUE)` call without `newdata` reports
+`conf.status = "newdata_required"` because fitted rows are not a deliberately
+chosen surface; the next action is to build an explicit prediction row or grid.
+
+Slice 162 tightens the `conf.level` display rule. The level column records the
+requested confidence level for interval requests, including rows where the
+requested interval was unavailable. It must be read with `conf.status` and
+`interval_source`; by itself it does not mean an interval was computed.
+
 When uncertainty is unavailable, the row should still print with a status that
 tells the user what to try next, such as profiling a direct target or supplying
 `newdata`.

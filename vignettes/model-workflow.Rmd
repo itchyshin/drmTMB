@@ -308,6 +308,28 @@ bases in this fitted model. The interval is a confidence band for the fitted
 distributional-parameter surface, not a prediction interval for future raw
 growth observations.
 
+If you request intervals for fitted rows without `newdata`, the table keeps the
+point estimates and says what is missing:
+
+```{r}
+fitted_interval_status <- predict_parameters(
+  fit,
+  dpar = "mu",
+  conf.int = TRUE
+)
+
+unique(fitted_interval_status[, c(
+  "dpar",
+  "conf.status",
+  "interval_source",
+  "conf.level"
+)])
+```
+
+Read `newdata_required` as an instruction to choose a row on purpose. For a
+surface, build a compact grid such as `temperature_grid` instead of asking the
+plot to decide which fitted rows deserve intervals.
+
 Use an empirical grid when the question is about the fitted response at focal
 temperatures while averaging over the fitted-row covariate distribution. Here
 each requested temperature is crossed with the fitted model rows, so the
@@ -500,6 +522,41 @@ if (requireNamespace("ggplot2", quietly = TRUE)) {
   plot_parameter_surface(pred_temperature, x = "temperature", colour = "habitat")
 }
 ```
+
+For a discrete focal predictor, the same interval columns draw interval bars
+rather than a ribbon. This example asks for 90% Wald intervals, so the table
+records `conf.level = 0.9` on rows where `conf.status = "wald"`:
+
+```{r}
+habitat_plot_grid <- prediction_grid(
+  fit,
+  focal = "habitat",
+  condition = list(temperature = 0)
+)
+
+pred_habitat <- predict_parameters(
+  fit,
+  newdata = habitat_plot_grid,
+  dpar = "mu",
+  conf.int = TRUE,
+  conf.level = 0.90
+)
+
+unique(pred_habitat[, c(
+  "dpar",
+  "conf.status",
+  "interval_source",
+  "conf.level"
+)])
+
+if (requireNamespace("ggplot2", quietly = TRUE)) {
+  plot_parameter_surface(pred_habitat, x = "habitat", line = FALSE)
+}
+```
+
+Treat `conf.level` as the requested level for rows where an interval was
+computed or attempted. It is not a success flag by itself; read it together
+with `conf.status` and `interval_source`.
 
 The figure is a convenience layer, not a new estimand. Keep reference grids,
 marginalization choices, and interval sources visible instead of hiding those

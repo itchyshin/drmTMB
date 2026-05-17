@@ -21734,3 +21734,91 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slice-159-confidence-band-examples.md`.
+
+## 2026-05-17 - Slices 160-164 confidence/profile bridge
+
+Goal: continue the stabilization bridge through Slice 164 by finishing the
+first confidence-band documentation block and reopening the profile-target
+inventory before the interval-readiness revisit.
+
+Who was working:
+
+- Ada coordinated the stacked Slice 160-164 branch and kept it based on the
+  open Slice 159 PR.
+- Pat watched the reader-facing workflow examples: factor-predictor interval
+  bars, fitted-row `newdata_required`, and non-default `conf.level`.
+- Fisher kept interval interpretation narrow: fixed-effect Wald bands are not
+  prediction intervals, `conf.level` is not a success flag, and derived
+  profile targets remain unavailable.
+- Grace owned focused tests, vignette render, pkgdown build/check, and stale
+  wording scans.
+- Rose checked roadmap continuity from Slice 160 through Slice 164 and guarded
+  against accidental claims of new profile coverage.
+- Boole reviewed the example/API surface around `conf.int`, `conf.level`,
+  `newdata`, and factor focal grids.
+- Curie watched that Slice 160 added an executable focused test rather than
+  prose only.
+- No spawned subagents were running during this slice block.
+
+Files changed:
+
+- `tests/testthat/test-plot-parameter-surface.R`
+- `vignettes/model-workflow.Rmd`
+- `docs/design/39-visualization-grammar.md`
+- `docs/design/12-profile-likelihood-cis.md`
+- `ROADMAP.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-17-slices-160-164-confidence-profile-bridge.md`
+
+What changed:
+
+- Slice 160: added a focused test that builds a real factor `prediction_grid()`,
+  calls `predict_parameters(conf.int = TRUE, conf.level = 0.90)`, and checks
+  that `plot_parameter_surface(..., x = "habitat", line = FALSE)` uses an
+  error-bar layer instead of a ribbon. The model-workflow article now shows the
+  same discrete-x example.
+- Slice 161: the model-workflow article now shows
+  `predict_parameters(fit, dpar = "mu", conf.int = TRUE)` without `newdata` and
+  teaches `newdata_required` as an action status, not an error.
+- Slice 162: the model-workflow article now uses a 90% interval example and
+  states that `conf.level` is the requested level for an interval attempt and
+  must be read together with `conf.status` and `interval_source`.
+- Slice 163: the confidence-band documentation block passed focused tests,
+  model-workflow render, pkgdown build/check, and stale wording scans.
+- Slice 164: `docs/design/12-profile-likelihood-cis.md` now has a refreshed
+  target inventory covering fixed effects, constant distributional parameters,
+  row-specific `newdata` profiles, ordinary random-effect SD/correlation
+  targets, modelled `sd(group)` surfaces, bivariate q2 and q4 covariance rows,
+  phylogenetic/spatial SDs, derived summaries, and ordinal cutpoint internals.
+
+Checks run:
+
+- `air format tests/testthat/test-plot-parameter-surface.R vignettes/model-workflow.Rmd docs/design/39-visualization-grammar.md docs/design/12-profile-likelihood-cis.md ROADMAP.md`:
+  passed.
+- `Rscript -e 'devtools::test(filter = "plot-parameter-surface|profile-targets", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'pkgload::load_all(".", quiet = TRUE); rmarkdown::render("vignettes/model-workflow.Rmd", output_dir = tempfile("model-workflow-render-"), quiet = FALSE)'`:
+  passed.
+- `Rscript -e 'pkgdown::build_site(preview = FALSE)'`: passed.
+- `Rscript -e 'pkgdown::check_pkgdown()'`: passed with "No problems found."
+- `git diff --check`: passed.
+- Stale wording scan:
+  `rg -n "ribbons remain planned|add interval ribbons later|point-estimate surfaces|does not draw intervals|leaves confidence intervals|conf\\.level.*success flag|newdata_required.*error|profile-target inventory.*planned only" README.md NEWS.md ROADMAP.md docs/design vignettes R man pkgdown-site --glob '!pkgdown-site/search.json' --glob '!docs/dev-log/**'`
+  returned no matches.
+- Rendered-site scan:
+  `rg -n "Slice 160|Slice 161|Slice 162|Slice 163|Slice 164|newdata_required|conf.level = 0.9|interval bars|Refreshed Target Inventory" ROADMAP.md docs/design/39-visualization-grammar.md docs/design/12-profile-likelihood-cis.md vignettes/model-workflow.Rmd pkgdown-site/ROADMAP.html pkgdown-site/articles/model-workflow.html --glob '!pkgdown-site/search.json'`
+  confirmed the updated source and rendered roadmap/article wording.
+
+Known limitations:
+
+- No new interval estimator was added. Slice 160 uses the existing interval-bar
+  consumer path for factor x-values.
+- Slice 164 is an inventory refresh only. It does not make derived summaries,
+  q4 endpoint correlations, modelled `sd(group)` surfaces, ordinal transformed
+  summaries, or custom contrasts profile-ready.
+- The next work starts Slice 165: pin row-specific profile examples for
+  `sigma`, `sigma1`, `sigma2`, and `rho12`.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slices-160-164-confidence-profile-bridge.md`.

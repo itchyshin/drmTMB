@@ -145,6 +145,36 @@ test_that("plot_parameter_surface() draws interval bars for discrete x columns",
   expect_equal(nrow(built$data[[1L]]), nrow(pred))
 })
 
+test_that("plot_parameter_surface() draws interval bars for factor prediction grids", {
+  testthat::skip_if_not_installed("ggplot2")
+  set.seed(20260605)
+  n <- 90
+  dat <- data.frame(
+    y = stats::rnorm(n),
+    habitat = factor(rep(c("reef", "kelp", "sand"), length.out = n))
+  )
+  fit <- drmTMB(bf(y ~ habitat, sigma ~ 1), family = gaussian(), data = dat)
+  grid <- prediction_grid(fit, focal = "habitat")
+  pred <- predict_parameters(
+    fit,
+    newdata = grid,
+    dpar = "mu",
+    conf.int = TRUE,
+    conf.level = 0.90
+  )
+
+  out <- plot_parameter_surface(pred, x = "habitat", line = FALSE)
+
+  expect_s3_class(out, "ggplot")
+  expect_equal(class(out$layers[[1L]]$geom)[[1L]], "GeomErrorbar")
+  expect_equal(unique(pred$conf.status), "wald")
+  expect_equal(unique(pred$interval_source), "wald")
+  expect_equal(unique(pred$conf.level), 0.90)
+  built <- ggplot2::ggplot_build(out)
+  expect_true(all(c("ymin", "ymax") %in% names(built$data[[1L]])))
+  expect_equal(nrow(built$data[[1L]]), nrow(grid))
+})
+
 test_that("plot_parameter_surface() validates inputs", {
   testthat::skip_if_not_installed("ggplot2")
   pred <- data.frame(
