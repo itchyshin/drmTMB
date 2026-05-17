@@ -20712,3 +20712,87 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slice-147-finite-transformed-predictors.md`.
+
+## 2026-05-17 - Slice 148 random-effect scale transformed newdata guard
+
+Goal: reject random-effect scale prediction `newdata` rows that evaluate to
+non-finite design-matrix values after transformed predictor terms are
+processed.
+
+Roles:
+
+- Ada scoped this as the sibling validation slice after Slice 147.
+- Boole checked that the change stays inside `predict()` input validation and
+  does not alter formula grammar.
+- Pat checked that the error names the affected `sd(id)` design-matrix column.
+- Curie owned the random-effect scale regression test.
+- Grace owned pkgdown and rendered-site checks.
+- Rose checked that the wording does not imply random-effect scale `emmeans`,
+  bivariate direct-SD expansion, `sd_sigma*()` syntax, or transformed-response
+  support.
+- Fisher, Gauss, Noether, Darwin, Jason, and Emmy stayed watch-only because no
+  estimand, likelihood, equation derivation, biological example, landscape
+  claim, or object structure changed.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `R/methods.R`
+- `docs/design/18-random-effect-scale-models.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-17-slice-148-random-scale-newdata-finite.md`
+- `tests/testthat/test-gaussian-random-effect-scale.R`
+
+What changed:
+
+- `predict_random_scale_dpar()` now validates the random-effect scale
+  prediction design matrix after formula evaluation when `newdata` is supplied.
+- `predict(fit, dpar = "sd(id)", newdata = ...)` requests such as a model with
+  `sd(id) ~ log(w_pos)` and `newdata` containing `w_pos = 0` now error with
+  the affected model column named instead of returning an infinite link- or
+  response-scale SD prediction.
+- The random-effect scale design note records the finite transformed-newdata
+  prediction requirement.
+
+Checks run:
+
+- No-edit scout before the fix:
+  `predict()` on a Gaussian `sd(id) ~ log(w_pos)` fit with `w_pos = 0` returned
+  `Inf` on the link scale.
+- `Rscript -e "devtools::test(filter = 'gaussian-random-effect-scale', reporter = 'summary')"`:
+  passed.
+- Post-fix scout of the same `predict()` call: errored with
+  `non-finite design-matrix value` and named `log(w_pos)`.
+- `air format NEWS.md ROADMAP.md R/methods.R docs/design/18-random-effect-scale-models.md tests/testthat/test-gaussian-random-effect-scale.R`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'fixed-effect-basis|gaussian-random-effect-scale', reporter = 'summary')"`:
+  passed.
+- `git diff --check`: passed.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed.
+- Positive source/rendered scan for Slice 148 random-effect scale
+  transformed-newdata wording: found the expected entries in `NEWS.md`,
+  `ROADMAP.md`, `R/methods.R`,
+  `docs/design/18-random-effect-scale-models.md`,
+  `tests/testthat/test-gaussian-random-effect-scale.R`, and rendered pkgdown
+  NEWS/ROADMAP pages.
+- Stale-claim scan for accidental random-effect scale `emmeans`, bivariate
+  random-effect scale implementation, `sd_sigma*()` syntax, residual-`sigma`
+  target drift, or transformed-response support: no new false support claims;
+  matches were existing direct-SD boundary text or unrelated implemented
+  residual-scale random-effect internals.
+- Recovery checkpoint:
+  `docs/dev-log/recovery-checkpoints/2026-05-17-014325-codex-checkpoint.md`.
+
+Known limitations:
+
+- This slice validates random-effect scale prediction design matrices when
+  `newdata` is supplied.
+- It does not add random-effect scale `emmeans`, bivariate random-effect scale
+  prediction surfaces, `sd_sigma*()` syntax, transformed-response support,
+  empirical marginalisation, or new random-effect scale model families.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slice-148-random-scale-newdata-finite.md`.
