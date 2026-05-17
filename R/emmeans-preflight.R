@@ -158,12 +158,6 @@ drm_validate_emmeans_mu_target <- function(object, dpar) {
       i = "Use {.fn prediction_grid} and {.fn predict_parameters} for other distributional parameters."
     ))
   }
-  if (!dpar %in% names(object$coefficients)) {
-    cli::cli_abort(
-      "This {.cls drmTMB} fit does not contain a fitted {.code mu} parameter."
-    )
-  }
-
   supported_model_types <- c(
     "gaussian",
     "student",
@@ -181,6 +175,12 @@ drm_validate_emmeans_mu_target <- function(object, dpar) {
       i = "Supported model types: {.val {supported_model_types}}.",
       i = "Use {.fn prediction_grid} and {.fn predict_parameters} for explicit prediction tables."
     ))
+  }
+
+  if (!dpar %in% names(object$coefficients)) {
+    cli::cli_abort(
+      "This {.cls drmTMB} fit does not contain a fitted {.code mu} parameter."
+    )
   }
 
   blocked <- drm_emmeans_blocked_features(object)

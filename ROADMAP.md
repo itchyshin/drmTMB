@@ -1064,6 +1064,10 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   returning an `emmGrid`, names the unsupported `"cumulative_logit"` model
   type, and points users back to `prediction_grid()` plus
   `predict_parameters()`.
+- Slice 137 improves the public bivariate boundary for the first `emmeans()`
+  bridge. Bivariate Gaussian fits now error as unsupported `"biv_gaussian"`
+  fits before returning an `emmGrid`, with the same prediction-table guidance,
+  instead of falling through to a generic missing-`mu` message.
 - Add additional ggplot-oriented helpers only after the data contract is stable:
   location curves, scale/variance curves, residual `rho12` curves,
   `sd(group)` or `sd_phylo()` surfaces, `corpairs()` summaries, and eventually

@@ -608,6 +608,33 @@ test_that("emmeans method rejects unsupported drmTMB paths", {
   )
   expect_match(conditionMessage(ordinal_error), "prediction_grid\\(\\)")
 
+  biv_dat <- dat
+  biv_dat$y1 <- 0.2 +
+    0.4 * biv_dat$x +
+    0.2 * (biv_dat$habitat == "kelp") +
+    stats::rnorm(nrow(biv_dat), sd = 0.2)
+  biv_dat$y2 <- -0.1 +
+    0.3 * biv_dat$x -
+    0.15 * (biv_dat$habitat == "sand") +
+    stats::rnorm(nrow(biv_dat), sd = 0.25)
+  biv_fit <- drmTMB(
+    bf(
+      mu1 = y1 ~ x + habitat,
+      mu2 = y2 ~ x + habitat,
+      sigma1 = ~1,
+      sigma2 = ~1,
+      rho12 = ~1
+    ),
+    family = biv_gaussian(),
+    data = biv_dat,
+    control = emmeans_methods_control(se = TRUE)
+  )
+  biv_error <- expect_error(
+    emmeans::emmeans(biv_fit, ~habitat, at = list(x = 0)),
+    "biv_gaussian"
+  )
+  expect_match(conditionMessage(biv_error), "prediction_grid\\(\\)")
+
   random_fit <- drmTMB(
     bf(y ~ x + habitat + (1 | id), sigma ~ 1),
     data = dat,

@@ -19827,3 +19827,91 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-16-slice-136-emmeans-ordinal-public-error.md`.
+
+## 2026-05-16 - Slice 137 emmeans bivariate public boundary
+
+Goal: make the public `emmeans()` boundary for bivariate Gaussian fits name the
+unsupported `"biv_gaussian"` model type before returning an `emmGrid`.
+
+Roles:
+
+- Ada kept this as a boundary-hardening slice after the ordinal, hurdle, and
+  zero-inflated public-error tests.
+- Boole checked that the public error remains a model-type boundary, not a new
+  formula grammar or `emmeans` syntax.
+- Fisher checked that bivariate `mu1`/`mu2` summaries stay separate from the
+  first univariate fixed-effect `mu` EMM bridge.
+- Curie added the bivariate Gaussian public rejection test.
+- Pat checked that the error points users back to `prediction_grid()` and
+  `predict_parameters()` for explicit prediction tables.
+- Grace owned focused tests, pkgdown, rendered scans, and the upstream PR #97
+  merge confirmation.
+- Rose checked that the wording does not claim bivariate `emmeans` support.
+- Gauss, Noether, Darwin, Jason, and Emmy stayed watch-only because no
+  likelihood, equation, biological example, landscape claim, or object
+  structure changed.
+
+Files changed:
+
+- `NEWS.md`
+- `R/emmeans-preflight.R`
+- `ROADMAP.md`
+- `docs/design/39-visualization-grammar.md`
+- `docs/design/40-emmeans-interface-contract.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-16-slice-137-emmeans-bivariate-boundary.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-16-222509-codex-checkpoint.md`
+- `tests/testthat/test-emmeans-methods.R`
+
+What changed:
+
+- Moved the missing-`mu` parameter check in `drm_validate_emmeans_mu_target()`
+  after the supported-model-type check so bivariate Gaussian fits receive the
+  explicit unsupported `"biv_gaussian"` error.
+- Added a public `emmeans()` rejection test for a `biv_gaussian()` fit.
+- Updated NEWS, roadmap, and design notes to state this as unsupported boundary
+  coverage, not bivariate `emmeans` support.
+
+Checks run:
+
+- No-edit scout:
+  `emmeans()` on a bivariate Gaussian fit previously errored with the generic
+  missing-`mu` message, even though the model type was unsupported.
+- `air format R/emmeans-preflight.R NEWS.md ROADMAP.md docs/design/39-visualization-grammar.md docs/design/40-emmeans-interface-contract.md tests/testthat/test-emmeans-methods.R`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'emmeans-methods', reporter = 'summary')"`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'emmeans-methods|emmeans-recover-data|emmeans-preflight|fixed-effect-basis|reference-grid-link-scale-contract', reporter = 'summary')"`:
+  passed.
+- `git diff --check`: passed.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed.
+- Positive source/rendered scan for Slice 137 bivariate boundary wording and
+  test evidence: found the expected entries.
+- Stale-claim scan for bivariate `emmeans` support: no false support claims;
+  the only match was intentional unsupported-boundary wording.
+- Upstream Slice 132 PR #97 merged with squash commit
+  `69e4383a6ff3487846193229cfaa8035f298beb7`, giving the local slice stack a
+  new `origin/main` base for the next rebase lane.
+- Recovery checkpoint:
+  `docs/dev-log/recovery-checkpoints/2026-05-16-222509-codex-checkpoint.md`.
+
+Post-rebase checks:
+
+- PR #101 merged as `8f4fa9d71f1df20691a1a1abb7b8b42c2ad7e289`.
+- `git rebase --onto origin/main c5a54bfe7b310925b259422d98b3477aeb831754`:
+  passed.
+- `git diff --check origin/main...HEAD`: passed.
+- `Rscript -e "devtools::test(filter = 'emmeans-methods|emmeans-recover-data|emmeans-preflight|fixed-effect-basis|reference-grid-link-scale-contract', reporter = 'summary')"`:
+  passed.
+
+Known limitations:
+
+- Bivariate Gaussian `emmeans` support remains unsupported.
+- This slice does not add fitted observed-response means, non-`mu` targets,
+  zero-inflated or hurdle support, ordinal expected-score support, random-effect
+  workflows, or blocked model structures.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-16-slice-137-emmeans-bivariate-boundary.md`.

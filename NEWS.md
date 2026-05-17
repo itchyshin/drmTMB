@@ -1,6 +1,7 @@
 # drmTMB 0.1.2 (2026-05-16)
 
 * `emmeans::emmeans()` now supports the first narrow `drmTMB` path: fixed-effect univariate `mu` estimated marginal means with retained model frames and fixed-effect covariance available. Generic `emmeans` pairwise contrasts on that returned `mu` grid are covered by a small parity test.
+* The public `emmeans::emmeans()` boundary tests now confirm that bivariate Gaussian fits error with the unsupported `"biv_gaussian"` model type before an `emmGrid` is returned, instead of falling through to a generic missing-`mu` message.
 * The public `emmeans::emmeans()` boundary tests now confirm that cumulative-logit ordinal fits still error before an `emmGrid` is returned, with guidance toward `prediction_grid()` and `predict_parameters()` for explicit prediction tables.
 * The public `emmeans::emmeans()` boundary tests now confirm that hurdle NB2 fits still error before an `emmGrid` is returned, with guidance toward `prediction_grid()` and `predict_parameters()` for explicit prediction tables.
 * The public `emmeans::emmeans()` boundary tests now confirm that zero-inflated Poisson fits still error before an `emmGrid` is returned, with guidance toward `prediction_grid()` and `predict_parameters()` for explicit prediction tables.

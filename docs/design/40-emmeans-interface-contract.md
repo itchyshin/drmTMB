@@ -282,3 +282,9 @@ unsupported `"cumulative_logit"` model type, and directs users to
 `prediction_grid()` plus `predict_parameters()` for explicit prediction tables.
 This remains an unsupported boundary, not ordinal expected-score `emmeans`
 support.
+
+Slice 137 improves the public bivariate boundary. Bivariate Gaussian fits now
+error as unsupported `"biv_gaussian"` fits before returning an `emmGrid`, with
+the same prediction-table guidance, instead of falling through to a generic
+missing-`mu` message. This remains an unsupported boundary, not bivariate
+`emmeans` support.
