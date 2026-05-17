@@ -324,6 +324,29 @@ grid values. These first tables are point-estimate summaries, so
 `interval_source = "not_available"` tell you that no interval has been
 computed.
 
+## Estimate marginal means for `mu`
+
+When the question is an adjusted mean of the location parameter `mu`, the first
+`emmeans` bridge can build an estimated marginal mean table directly from a
+fixed-effect univariate fit. Here the reference grid holds `temperature` at
+zero and estimates `mu` for each habitat:
+
+```{r}
+if (requireNamespace("emmeans", quietly = TRUE)) {
+  emmeans::emmeans(
+    fit,
+    ~habitat,
+    at = list(temperature = 0)
+  )
+}
+```
+
+Read this output as estimated marginal means of the native distributional
+parameter `mu`, not as summaries of `sigma` or as a random-effect, bivariate,
+zero-inflated, hurdle, ordinal, contrast, or slope workflow. For those targets,
+use explicit `prediction_grid()` and `predict_parameters()` tables until the
+corresponding reference-grid algebra and tests exist.
+
 The first optional plotting helper consumes that table directly:
 
 ```{r}

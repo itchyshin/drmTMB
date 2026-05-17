@@ -195,5 +195,8 @@ supported family and link. At minimum:
 6. Run pkgdown and stale-claim scans that confirm the docs say `emmeans`
    support is limited to the implemented target set.
 
-Only after that gate should `_pkgdown.yml`, NEWS, and examples advertise public
-`emmeans` compatibility.
+Slice 122 satisfied this gate for the first fixed-effect univariate `mu` path
+before advertising public `emmeans` compatibility. Slice 124 adds the first
+model-workflow example for that path and keeps `emmeans()` adjusted means
+separate from `sigma`, random-effect, bivariate, zero-inflated, hurdle,
+ordinal, contrast, and slope workflows.

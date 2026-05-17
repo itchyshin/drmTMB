@@ -18723,3 +18723,95 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-16-slice-123-plot-corpairs-check-note.md`.
+
+## 2026-05-16 - Slice 124 model-workflow emmeans example
+
+Goal: add the first reader-facing `emmeans::emmeans()` example to the
+model-workflow article now that Slice 122 provides a narrow public bridge for
+fixed-effect univariate `mu` EMMs.
+
+Roles:
+
+- Ada kept the slice documentation-only and stacked after the Slice 123
+  check-note cleanup while PR #88 CI was still running.
+- Pat owned the applied-user path: after learning `prediction_grid()` and
+  `predict_parameters()`, the reader sees when adjusted means of `mu` are the
+  right estimand.
+- Boole checked that the example uses the public `emmeans::emmeans()` call
+  without changing formula grammar or adding a new drmTMB wrapper.
+- Fisher kept the estimand named as an estimated marginal mean of native `mu`,
+  not a `sigma` summary, fitted response mean, contrast, or slope.
+- Grace owned vignette rendering, pkgdown, and optional suggested-package
+  behavior.
+- Rose checked that NEWS, roadmap, and design notes do not overclaim broad
+  `emmeans` support.
+- Gauss and Noether stayed watch-only because no likelihood equation,
+  parameterization, or mathematical contract changed.
+- Darwin and Jason stayed watch-only because the existing fish growth example
+  and landscape boundary did not change.
+- Curie and Emmy stayed watch-only because no new test helper or object
+  structure changed.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/39-visualization-grammar.md`
+- `docs/design/40-emmeans-interface-contract.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-16-slice-124-model-workflow-emmeans-example.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-16-201508-codex-checkpoint.md`
+- `vignettes/model-workflow.Rmd`
+
+What changed:
+
+- Added a new "Estimate marginal means for `mu`" section to the model-workflow
+  article.
+- The example conditionally calls `emmeans::emmeans(fit, ~habitat, at =
+  list(temperature = 0))` for the existing fixed-effect Gaussian location-scale
+  fit.
+- The prose tells readers to interpret the output as EMMs of native `mu`, and
+  to keep `sigma`, random-effect, bivariate, zero-inflated, hurdle, ordinal,
+  contrast, and slope workflows on explicit prediction-table paths until their
+  reference-grid algebra and tests exist.
+- Updated NEWS, the Phase 17 roadmap, and the emmeans/visualization design
+  notes to record the new reader-facing example.
+
+Checks run:
+
+- `air format NEWS.md ROADMAP.md docs/design/39-visualization-grammar.md docs/design/40-emmeans-interface-contract.md vignettes/model-workflow.Rmd`:
+  passed.
+- `Rscript -e "rmarkdown::render('vignettes/model-workflow.Rmd', output_dir = tempfile('model-workflow-render-'), quiet = FALSE)"`:
+  failed because the direct render used an installed package namespace that did
+  not expose the current development `profile_targets()` function.
+- `Rscript -e "pkgload::load_all('.', quiet = TRUE); rmarkdown::render('vignettes/model-workflow.Rmd', output_dir = tempfile('model-workflow-render-'), quiet = FALSE)"`:
+  passed.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed and rebuilt
+  `pkgdown-site/articles/model-workflow.html`, `pkgdown-site/ROADMAP.html`, and
+  `pkgdown-site/news/index.html`.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with "No problems found."
+- `rg -n 'Slice 124|Estimate marginal means for `mu`|emmeans::emmeans\\(|fixed-effect univariate `mu`|native distributional parameter `mu`|at = list\\(temperature = 0\\)|reference-grid algebra and tests' NEWS.md ROADMAP.md docs/design/39-visualization-grammar.md docs/design/40-emmeans-interface-contract.md vignettes/model-workflow.Rmd pkgdown-site/articles/model-workflow.html pkgdown-site/ROADMAP.html pkgdown-site/news/index.html`:
+  confirmed source and rendered-site wording for the new example.
+- `rg -n 'sigma.*emmeans.*works|random-effect.*emmeans.*works|bivariate.*emmeans.*works|zero-inflated.*emmeans.*works|hurdle.*emmeans.*works|ordinal.*emmeans.*works|contrast.*emmeans.*implemented|slope.*emmeans.*implemented|all.*emmeans.*targets|fitted response.*emmeans.*works' NEWS.md ROADMAP.md docs/design/39-visualization-grammar.md docs/design/40-emmeans-interface-contract.md vignettes/model-workflow.Rmd pkgdown-site --glob '!pkgdown-site/search.json' --glob '!pkgdown-site/deps/**'`:
+  returned no matches.
+- `git diff --check`: passed.
+- `Rscript tools/codex-checkpoint.R --goal "Slice 124 model-workflow emmeans example" --next "commit Slice 124, then wait for Slice 123 PR #88, merge it, rebase Slice 124, rerun focused checks, push, and open PR"`:
+  passed and wrote
+  `docs/dev-log/recovery-checkpoints/2026-05-16-201508-codex-checkpoint.md`.
+
+Pending checks:
+
+- Post-rebase `git diff --check origin/main...HEAD`: passed after rebasing
+  onto merged Slice 123 `main`.
+- Post-rebase `Rscript -e "pkgload::load_all('.', quiet = TRUE); rmarkdown::render('vignettes/model-workflow.Rmd', output_dir = tempfile('model-workflow-render-'), quiet = TRUE)"`:
+  passed.
+
+Known limitations:
+
+- This slice adds a tutorial example only. It does not expand `emmeans`
+  support beyond fixed-effect univariate `mu`, add contrast or slope workflows,
+  or change the Slice 122 method implementation.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-16-slice-124-model-workflow-emmeans-example.md`.
