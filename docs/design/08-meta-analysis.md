@@ -136,17 +136,23 @@ additively:
 y ~ MVN(mu, V + Omega_estimated)
 ```
 
-Future work may introduce a single `meta_V()` keyword that covers this additive
-case and a proportional or multiplicative sampling-variance case. The possible
-spelling is:
+Slice 204 decision: `meta_V(V = V)` should become the preferred public spelling
+for additive known sampling variance or covariance. The current
+`meta_known_V(V = V)` marker should remain as a compatibility alias after the
+rename, not as a separate likelihood path.
+
+The future spelling is:
 
 ```r
-meta_V(value, V = V)
-meta_V(value, w = w, scale = "proportional")
+meta_V(V = V)
+meta_V(w = w, scale = "proportional")
 ```
 
-If that lands, `meta_known_V()` should become a deprecated alias for the
-additive known-`V` form, not a second likelihood path.
+The response is already the left-hand side of the model formula, so the marker
+does not need a positional response or value argument. `V` may be a column,
+numeric vector, diagonal matrix, block-diagonal matrix, or dense matrix, just
+as the current additive `meta_known_V(V = V)` path accepts after model-row
+filtering.
 
 The proportional case is distinct from ordinary likelihood weights. It would
 model a sampling-error component such as:
@@ -165,9 +171,9 @@ ell(theta) = sum_i w_i ell_i(theta)
 ```
 
 Coexistence rule: additive known `V` through `meta_known_V()` or a future
-`meta_V(value, V = V)` should reject non-unit top-level `weights =` until
+`meta_V(V = V)` should reject non-unit top-level `weights =` until
 joint-block weighting has a separate likelihood design, diagnostics, and tests.
-Likewise, `meta_V(value, w = w, scale = "proportional")` should not be
+Likewise, `meta_V(w = w, scale = "proportional")` should not be
 implemented as a wrapper around top-level `weights =`.
 
 ## Unknown Heterogeneity

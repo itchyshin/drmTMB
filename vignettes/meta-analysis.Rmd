@@ -321,14 +321,16 @@ variance:
 
 ```r
 # Future design only; these calls are not implemented.
-meta_V(value, V = V)
-meta_V(value, w = w, scale = "proportional")
+meta_V(V = V)
+meta_V(w = w, scale = "proportional")
 ```
 
 If that future API lands, `meta_known_V()` should become a deprecated alias for
-the additive known-`V` form, not a second likelihood path. Current fitted
-examples should use `meta_known_V(V = V)` for known sampling covariance and
-`weights =` only for likelihood weights.
+the additive known-`V` form, not a second likelihood path. The response is
+already on the left-hand side of the model formula, so `meta_V()` should not
+repeat it as a positional argument. Current fitted examples should use
+`meta_known_V(V = V)` for known sampling covariance and `weights =` only for
+likelihood weights.
 
 ## Known sampling variance plus group-level heterogeneity
 
