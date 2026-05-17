@@ -65,7 +65,7 @@ computation rather than by a conceptual one- or two-slope cap.
 | Gaussian `sigma` | Residual-scale random intercepts and multiple independent numeric slopes on `log(sigma)` are implemented | Correlated scale intercept-slope blocks, then multi-slope scale covariance blocks | simulations recover scale-slope SDs on the modelled `log(sigma)` scale, boundary diagnostics are useful, and examples do not confuse `sigma` slopes with `sd(group)` models |
 | Location-scale covariance | One or more independent matching labelled `mu`/`sigma` random-intercept blocks are implemented | Mean-scale covariance involving slope terms only after the separate `mu` and `sigma` slope blocks are stable | output names identify both distributional parameter and coefficient, and direct correlations have profile or explicit unavailable interval status |
 | Bivariate Gaussian | Random-intercept covariance blocks are implemented; bivariate random slopes are not | One ordinary `mu1`/`mu2` slope per response, then same-covariate slope1-slope2 correlations for plasticity-syndrome questions | `corpairs()` carries response and coefficient columns, residual `rho12` stays separate, and simulations vary residual correlation and random-slope SDs |
-| Structured phylogenetic/spatial | Coordinate spatial has one univariate Gaussian `mu` slope; phylogeny has intercept-level effects but no fitted slope | Bring phylogeny to the one-slope Gaussian `mu` baseline, then evaluate whether spatial and phylo need a second structured slope | each structured layer has SD summaries, direct profile targets, diagnostics, and simulation recovery for at least one fitted slope |
+| Structured phylogenetic/spatial | Slice 186 audit: coordinate spatial has one univariate Gaussian `mu` slope; phylogeny has intercept-level effects but no fitted slope | Bring phylogeny to the one-slope Gaussian `mu` baseline, then evaluate whether spatial and phylo need a second structured slope | each structured layer has SD summaries, direct profile targets, diagnostics, and simulation recovery for at least one fitted slope |
 | Non-Gaussian families | Fixed-effect non-Gaussian families are implemented; random slopes are not a general non-Gaussian feature | Add ordinary `mu` random intercepts first for stable likelihoods, then one `mu` slope; scale, shape, zero-inflation, and hurdle random slopes come later | family-specific simulations show convergence, boundary behaviour, recovery, and useful failure messages on both model and response scales |
 
 The ordinary location-model benchmark is glmmTMB/lme4-style syntax such as
@@ -312,8 +312,10 @@ reader-facing examples before they can be taught as fitted behaviour.
 
 The structured one-slope rows were design-complete enough to hand forward, but
 not fitted in the Phase 6c core closure. Phase 10 later completed the
-coordinate-spatial row for one numeric univariate Gaussian `mu` slope; the
-other rows remain handoff items.
+coordinate-spatial row for one numeric univariate Gaussian `mu` slope. Slice
+186 re-audited the sibling lanes and confirmed that phylogenetic slope syntax
+is still rejected while spatial one-slope syntax is fitted. That is an
+intentional parity gap, not hidden support.
 
 | Surface | Minimum next implementation contract | Destination |
 |---|---|---|

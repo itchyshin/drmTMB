@@ -37,8 +37,10 @@ gr <- function(group, cov) {
 #' `phylo()` marks user-facing syntax for phylogenetic dependence. The current
 #' fitted paths support intercept-only Gaussian location effects:
 #' `phylo(1 | species, tree = tree)` in univariate `mu`, or matching terms in
-#' bivariate `mu1` and `mu2`. Later phases will add structured slopes such as
-#' `phylo(1 + x | species, tree = tree)`. The public `phylo()` API requires an
+#' bivariate `mu1` and `mu2`. Structured phylogenetic slopes such as
+#' `phylo(1 + x | species, tree = tree)` remain planned even though the
+#' coordinate-spatial sibling already fits one numeric `mu` slope. The public
+#' `phylo()` API requires an
 #' ultrametric tree with branch lengths and uses the Hadfield and Nakagawa
 #' A-inverse sparse-precision path internally.
 #'

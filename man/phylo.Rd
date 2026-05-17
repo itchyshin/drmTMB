@@ -18,8 +18,10 @@ A formula marker; never evaluated by users.
 \code{phylo()} marks user-facing syntax for phylogenetic dependence. The current
 fitted paths support intercept-only Gaussian location effects:
 \code{phylo(1 | species, tree = tree)} in univariate \code{mu}, or matching terms in
-bivariate \code{mu1} and \code{mu2}. Later phases will add structured slopes such as
-\code{phylo(1 + x | species, tree = tree)}. The public \code{phylo()} API requires an
+bivariate \code{mu1} and \code{mu2}. Structured phylogenetic slopes such as
+\code{phylo(1 + x | species, tree = tree)} remain planned even though the
+coordinate-spatial sibling already fits one numeric \code{mu} slope. The public
+\code{phylo()} API requires an
 ultrametric tree with branch lengths and uses the Hadfield and Nakagawa
 A-inverse sparse-precision path internally.
 }

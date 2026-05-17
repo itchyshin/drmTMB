@@ -3422,7 +3422,8 @@ extract_gaussian_mu_phylo_term <- function(entry) {
     cli::cli_abort(c(
       "Only intercept-only phylogenetic {.code mu} effects are implemented.",
       "x" = "Requested structured coefficient{?s}: {.val {phylo_term$coef_names}}.",
-      "i" = "Use {.code phylo(1 | species, tree = tree)}. Phylogenetic random slopes are planned after intercept-only recovery tests."
+      "i" = "Use {.code phylo(1 | species, tree = tree)}.",
+      "i" = "Coordinate-spatial one-slope support exists for univariate Gaussian {.code mu} via {.code spatial(1 + x | site, coords = coords)}; phylogenetic one-slope support needs separate recovery evidence before it is advertised."
     ))
   }
 

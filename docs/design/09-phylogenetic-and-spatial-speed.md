@@ -320,6 +320,13 @@ should impose conservative defaults and diagnostics. Three or more structured
 slopes should remain a distant-future expert mode, not a near-term advertised
 feature.
 
+Slice 186 records the current parity audit. Coordinate spatial has completed
+step 2 for one univariate Gaussian `mu` slope through
+`spatial(1 + x | site, coords = coords)`, using independent intercept and
+slope fields. Phylogeny has not: `phylo(1 + x | species, tree = tree)` remains
+rejected and should stay that way until its own slope-SD recovery,
+diagnostics, and profile-target naming are available.
+
 The first slope implementation should not estimate intercept-slope or
 slope-slope correlations. Those correlations multiply quickly and are usually
 less interpretable than the main structured location effect. A scientifically
