@@ -288,3 +288,9 @@ error as unsupported `"biv_gaussian"` fits before returning an `emmGrid`, with
 the same prediction-table guidance, instead of falling through to a generic
 missing-`mu` message. This remains an unsupported boundary, not bivariate
 `emmeans` support.
+
+Slice 138 blocks transformed-response formulas in the first `emmeans()` bridge.
+Fits such as `log(y) ~ x` now error before returning an `emmGrid`, with
+guidance toward explicit transformed-scale prediction tables through
+`prediction_grid()` plus `predict_parameters()`. This keeps transformed
+responses separate from the transformed-predictor path added in Slice 128.

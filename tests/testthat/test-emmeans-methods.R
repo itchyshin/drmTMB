@@ -516,6 +516,19 @@ test_that("emmeans method rejects unsupported drmTMB paths", {
     "dpar = \"mu\""
   )
 
+  transformed_dat <- dat
+  transformed_dat$positive_y <- exp(transformed_dat$y + 1)
+  transformed_fit <- drmTMB(
+    bf(log(positive_y) ~ x + habitat, sigma ~ 1),
+    data = transformed_dat,
+    control = emmeans_methods_control(se = TRUE)
+  )
+  transformed_error <- expect_error(
+    emmeans::emmeans(transformed_fit, ~habitat, at = list(x = 0)),
+    "transformed responses"
+  )
+  expect_match(conditionMessage(transformed_error), "prediction_grid\\(\\)")
+
   no_se_fit <- drmTMB(
     bf(y ~ x + habitat, sigma ~ 1),
     data = dat,
