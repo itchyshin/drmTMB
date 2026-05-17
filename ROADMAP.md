@@ -964,6 +964,13 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   relationship across implemented univariate, count, proportion, ordinal, and
   bivariate Gaussian families without adding an `emmeans` dependency or
   contrast API.
+- Slice 118 records the planned `emmeans` interface contract in
+  `docs/design/40-emmeans-interface-contract.md`. The first public method should
+  be a narrow fixed-effect univariate `mu` path using the official
+  `recover_data()` and `emm_basis()` extension API, with bivariate,
+  zero-inflated, hurdle, ordinal expected-score, random-effect, structured-effect,
+  contrast, slope, and interval-aware targets staying blocked until their
+  algebra and tests are explicit.
 - Add additional ggplot-oriented helpers only after the data contract is stable:
   location curves, scale/variance curves, residual `rho12` curves,
   `sd(group)` or `sd_phylo()` surfaces, `corpairs()` summaries, and eventually

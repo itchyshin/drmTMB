@@ -160,6 +160,13 @@ link for each fitted `dpar`. This is evidence that the existing data helpers
 respect link-versus-response scale on explicit grids; it is not an exported
 `emmeans` method, a contrast API, or a weighting contract.
 
+Slice 118 separates the future interface contract into
+`docs/design/40-emmeans-interface-contract.md`. That note maps the official
+`recover_data()` and `emm_basis()` extension API to `drmTMB` and keeps the
+first public method scoped to fixed-effect univariate `mu` until bivariate,
+structured-effect, random-effect, zero-inflated, hurdle, ordinal, contrast,
+slope, and interval-aware targets have their own algebra and tests.
+
 Slice 102 adds the first article-level empirical-grid example. The
 model-workflow article now shows a conditioned grid for direct
 `predict_parameters()` rows and a separate empirical grid for
@@ -342,8 +349,7 @@ idea is tidy long data for uncertainty, not Bayesian model support.
 
 ## Near-Term Slice Order
 
-1. Decide whether the next `emmeans` step should be a design-only S3 contract,
-   an internal reference-grid adapter, or another validation slice for
-   structured-effect and random-effect predictions. Do not add an exported
-   `emmeans` method until weights, contrasts, intervals, and unsupported-model
-   errors are explicit.
+1. Implement only an internal or exported `emmeans` method after
+   `docs/design/40-emmeans-interface-contract.md` has tests that compare
+   `emmeans::ref_grid()` output with `prediction_grid()` and
+   `predict_parameters()` for the exact supported target set.

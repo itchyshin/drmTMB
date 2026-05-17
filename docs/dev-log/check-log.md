@@ -18225,3 +18225,74 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-16-slice-117-emmeans-preflight.md`.
+
+## 2026-05-16 - Slice 118 emmeans interface contract
+
+Goal: record the future `emmeans` interface contract before implementing any S3
+method, dependency, or user-facing estimated marginal mean workflow.
+
+Roles:
+
+- Ada kept the work as a design-contract slice while Slice 117 CI finished.
+- Boole owned the S3 method boundary, especially `recover_data()`,
+  `emm_basis()`, `dpar`, and `type` vocabulary.
+- Fisher owned the distinction between EMMs of native distributional parameters
+  and fitted response means.
+- Pat owned unsupported-call guidance that points users back to current helpers.
+- Grace owned pkgdown and dependency checks.
+- Rose owned stale-claim scans and the no-public-method boundary.
+- Gauss, Noether, Curie, Emmy, Darwin, and Jason stayed watch-only because no
+  likelihood, equation, test code, object structure, biological example, or
+  landscape claim changed beyond the official `emmeans` API citation.
+
+Files changed:
+
+- `ROADMAP.md`
+- `docs/design/39-visualization-grammar.md`
+- `docs/design/40-emmeans-interface-contract.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-16-slice-118-emmeans-interface-contract.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-16-184715-codex-checkpoint.md`
+
+What changed:
+
+- Added `docs/design/40-emmeans-interface-contract.md` as a design-only
+  contract for future `emmeans` support.
+- Recorded that official `emmeans` support requires `recover_data.<class>()`
+  and `emm_basis.<class>()` methods and conditional registration only when the
+  package is available.
+- Scoped the first public method to fixed-effect univariate `mu` with explicit
+  `type = "link"` or `type = "response"` handling.
+- Kept bivariate, structured-effect, random-effect, zero-inflated, hurdle,
+  ordinal expected-score, contrast, slope, and interval-aware targets blocked
+  until their algebra and tests are explicit.
+- Updated the Phase 17 roadmap and visualization grammar to point to the new
+  contract.
+
+Checks run:
+
+- `air format ROADMAP.md docs/design/39-visualization-grammar.md docs/design/40-emmeans-interface-contract.md`:
+  passed.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed and rebuilt
+  `pkgdown-site/ROADMAP.html`.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with "No problems found."
+- `git diff --check`: passed.
+- `rg -n 'Slice 118|40-emmeans-interface-contract|recover_data\\(\\)|emm_basis\\(\\)|first public method|bivariate.*blocked|zero-inflated.*blocked|random-effect.*blocked' ROADMAP.md docs/design/39-visualization-grammar.md docs/design/40-emmeans-interface-contract.md pkgdown-site/ROADMAP.html`:
+  confirmed source and rendered roadmap wording.
+- `rg -n 'exported `emmeans` method|implemented `emmeans`|emmeans support is implemented|emmeans.*Imports|emmeans.*Suggests|contrast API.*implemented|slope.*implemented' DESCRIPTION NEWS.md ROADMAP.md docs/design/39-visualization-grammar.md docs/design/40-emmeans-interface-contract.md pkgdown-site --glob '!pkgdown-site/search.json' --glob '!pkgdown-site/deps/**'`:
+  found only intentional future-boundary wording and unrelated existing
+  slope-status text.
+- `Rscript tools/codex-checkpoint.R --goal "Slice 118 emmeans interface contract" --next "stage, commit, push branch, open PR after Slice 117 merge"`:
+  passed and wrote
+  `docs/dev-log/recovery-checkpoints/2026-05-16-184715-codex-checkpoint.md`.
+
+Known limitations:
+
+- No `emmeans` dependency, S3 method, or example workflow was added.
+- The first implementation still needs tests comparing `emmeans::ref_grid()`
+  output against `prediction_grid()` and `predict_parameters()` for the exact
+  supported target set.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-16-slice-118-emmeans-interface-contract.md`.
