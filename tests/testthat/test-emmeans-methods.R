@@ -131,6 +131,38 @@ test_that("emmeans method uses default numeric covariate reduction", {
   expect_equal(link$df, rep(Inf, nrow(link)))
 })
 
+test_that("emmeans method honors custom numeric covariate reduction", {
+  testthat::skip_if_not_installed("emmeans")
+  set.seed(20260549)
+  dat <- emmeans_methods_data(n = 81L)
+  dat$x <- c(rep(-0.75, 21L), seq(0.05, 2.05, length.out = 60L))
+  dat$y <- 0.2 +
+    0.5 * dat$x +
+    0.25 * (dat$habitat == "kelp") -
+    0.15 * (dat$habitat == "sand") +
+    stats::rnorm(nrow(dat), sd = 0.15)
+  fit <- drmTMB(
+    bf(y ~ x + habitat, sigma ~ 1),
+    data = dat,
+    control = emmeans_methods_control(se = TRUE)
+  )
+
+  emm <- emmeans::emmeans(fit, ~habitat, cov.reduce = stats::median)
+  link <- summary(emm)
+  grid <- data.frame(
+    x = stats::median(dat$x),
+    habitat = factor(link$habitat, levels = levels(dat$habitat))
+  )
+
+  expect_equal(
+    link$emmean,
+    unname(predict(fit, newdata = grid, dpar = "mu", type = "link")),
+    tolerance = 1e-10
+  )
+  expect_true(all(is.finite(link$SE)))
+  expect_equal(link$df, rep(Inf, nrow(link)))
+})
+
 test_that("emmeans response scale follows the fitted mu inverse link", {
   testthat::skip_if_not_installed("emmeans")
   set.seed(20260538)

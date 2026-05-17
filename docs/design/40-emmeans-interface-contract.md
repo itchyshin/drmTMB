@@ -245,3 +245,9 @@ model verifies that `emmeans(..., type = "response")` matches
 formula linear-predictor scale. This preserves the contract that response-scale
 summaries are inverse-link summaries of native `mu`, not fitted observed
 responses for blocked models.
+
+Slice 131 adds custom numeric covariate-reduction coverage. A skewed Gaussian
+fixed-effect `mu` model verifies that
+`emmeans(..., cov.reduce = stats::median)` matches `predict(dpar = "mu")` at
+`median(x)`. This is ordinary `emmeans` reference-grid behaviour, not a
+drmTMB-specific empirical-averaging or custom-weighting contract.
