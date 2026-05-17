@@ -204,6 +204,12 @@ fixed-effect Gaussian example, and tells readers to keep `emmeans()` adjusted
 means separate from direct prediction tables, `sigma`, random-effect,
 bivariate, zero-inflated, hurdle, ordinal, contrast, and slope workflows.
 
+Slice 125 extends the `emmeans()` parity tests across the remaining univariate
+families already admitted by the fixed-effect `mu` gate. Student-t, lognormal,
+Gamma, beta-binomial, NB2, and zero-truncated NB2 fits now check that link-scale
+and response-scale EMMs match `predict(dpar = "mu")` on the same reference grid
+without widening the gate to blocked model structures.
+
 Slice 102 adds the first article-level empirical-grid example. The
 model-workflow article now shows a conditioned grid for direct
 `predict_parameters()` rows and a separate empirical grid for

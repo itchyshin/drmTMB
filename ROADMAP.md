@@ -1002,6 +1002,11 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   fixed-effect univariate `mu` path at a supplied temperature and explicitly
   separates that target from `sigma`, random-effect, bivariate, zero-inflated,
   hurdle, ordinal, contrast, and slope workflows.
+- Slice 125 extends `emmeans()` parity tests across the remaining univariate
+  model types already admitted by the fixed-effect `mu` gate: Student-t,
+  lognormal, Gamma, beta-binomial, NB2, and zero-truncated NB2. The tests keep
+  link-scale and response-scale EMMs aligned with `predict(dpar = "mu")`
+  without widening the gate to unsupported model structures.
 - Add additional ggplot-oriented helpers only after the data contract is stable:
   location curves, scale/variance curves, residual `rho12` curves,
   `sd(group)` or `sd_phylo()` surfaces, `corpairs()` summaries, and eventually
