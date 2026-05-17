@@ -16,3 +16,10 @@ The layout follows the Phase 18 blueprint in
 Every simulation cell should have a stable cell id, explicit conditions,
 replicate-level seeds, fit diagnostics, interval status, and enough metadata to
 resume or audit a partial run.
+
+Current pilot files:
+
+- `dgp/sim_dgp_gaussian_ls.R` generates Gaussian location-scale data with
+  `mu ~ x` and `sigma ~ z`.
+- `fit/sim_summarise_gaussian_ls.R` converts one fitted pilot model into a
+  parameter-level truth/estimate/error table.

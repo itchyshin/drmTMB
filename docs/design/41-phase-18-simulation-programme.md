@@ -144,7 +144,7 @@ CRAN tests should only run smoke checks for seed stability and output shape.
 
 1. Slice 210 adds the `inst/sim/` skeleton, seed helper, cell registry, and
    one tiny CRAN-safe smoke test.
-2. Slice 211 should implement the Gaussian location-scale DGP and a pilot
-   summariser.
+2. Slice 211 adds the Gaussian location-scale DGP and a pilot summariser that
+   records truth, estimate, error, convergence, and Hessian status.
 3. Slice 212 should implement the Gaussian meta-analysis `meta_V(V = V)` DGP
    with vector `V`, dense matrix `V`, and interval-target checks.
