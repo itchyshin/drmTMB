@@ -18001,3 +18001,72 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-16-slice-114-plot-corpairs-facets.md`.
+
+## 2026-05-16 - Slice 115 plot_corpairs facet example
+
+Goal: make the new `facet = "level"` option discoverable in the
+`plot_corpairs()` Reference example without adding a fitted biological workflow
+before the correlation example is ready.
+
+Roles:
+
+- Ada kept the slice to a Reference-example polish layer.
+- Boole checked that the example uses the public `facet` argument directly.
+- Pat owned discoverability for applied readers.
+- Grace owned roxygen, pkgdown, and rendered Reference-page validation.
+- Rose owned the design-note distinction between a Reference example and a later
+  biological workflow.
+- Fisher, Curie, Gauss, Noether, Darwin, Emmy, and Jason stayed watch-only
+  because no inference, test contract, likelihood, equation, biological example,
+  object structure, or landscape claim changed.
+
+Files changed:
+
+- `R/plot-corpairs.R`
+- `man/plot_corpairs.Rd`
+- `ROADMAP.md`
+- `docs/design/39-visualization-grammar.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-16-slice-115-plot-corpairs-facet-example.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-16-173204-codex-checkpoint.md`
+
+What changed:
+
+- Added `plot_corpairs(pairs, facet = "level")` to the roxygen example.
+- Regenerated the `plot_corpairs()` Rd page.
+- Recorded Slice 115 in ROADMAP and the visualization grammar.
+- Updated the near-term design note to say that a full biological
+  `plot_corpairs()` workflow should wait until the fitted model, table, plot,
+  and interpretation can be shown together.
+
+Checks run:
+
+- `air format R/plot-corpairs.R ROADMAP.md docs/design/39-visualization-grammar.md`:
+  passed.
+- `Rscript -e "devtools::document()"`: passed and regenerated
+  `man/plot_corpairs.Rd`.
+- `Rscript -e "devtools::test(filter = 'plot-corpairs|plot-parameter-surface', reporter = 'summary')"`:
+  passed with all focused plotting tests complete.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed and rendered the
+  updated `plot_corpairs()` Reference page and ROADMAP.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with "No problems found."
+- `git diff --check`: passed.
+- `rg -n 'plot_corpairs\\(pairs, facet = "level"\\)|Slice 115|biological `plot_corpairs` workflow|faceted Reference example' R/plot-corpairs.R man/plot_corpairs.Rd ROADMAP.md docs/design/39-visualization-grammar.md pkgdown-site/reference/plot_corpairs.html pkgdown-site/ROADMAP.html`:
+  confirmed source and rendered pages include the faceted example and Slice 115
+  notes.
+- `rg -n 'future `plot_corpairs`|future plot_corpairs|only exported plotting helper|currently `plot_parameter_surface`|facet.*computes|facet.*profile|plot_corpairs\\(\\).*model refit|ggplot2.*Imports|posterior draw|credible interval' R/plot-corpairs.R tests/testthat/test-plot-corpairs.R NEWS.md ROADMAP.md docs/design/39-visualization-grammar.md DESCRIPTION pkgdown-site/reference/plot_corpairs.html pkgdown-site/ROADMAP.html pkgdown-site/news/index.html --glob '!pkgdown-site/search.json' --glob '!pkgdown-site/deps/**'`:
+  found only intended confidence-not-credible-interval and design-source
+  guardrails.
+- `Rscript tools/codex-checkpoint.R --goal "Slice 115 plot_corpairs facet example" --next "stage, commit, push stacked branch, and open PR after Slice 114"`:
+  passed and wrote
+  `docs/dev-log/recovery-checkpoints/2026-05-16-173204-codex-checkpoint.md`.
+
+Known limitations:
+
+- This is a Reference example, not a fitted biological workflow.
+- No new plotting option, likelihood, formula grammar, TMB code, interval
+  computation, EMM, contrast, slope, or diagnostics plot changed.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-16-slice-115-plot-corpairs-facet-example.md`.

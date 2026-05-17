@@ -298,6 +298,11 @@ single panel with row labels that include `level`, `class`, and `parameter`;
 readers can set `facet = "level"` or another explicit table column when they
 need to visually separate correlation layers.
 
+Slice 115 adds the first faceted Reference example for `plot_corpairs()`. This
+is still an explicit-table example rather than a fitted biological workflow; the
+workflow article should wait until the correlation example can show the fitted
+model, table, plot, and interpretation together.
+
 Slice 108 confirms the pkgdown reference-page contract. Exported plotting
 functions belong in the `Visualization` reference section, and only exported,
 documented, tested helpers should appear there. At that slice boundary,
@@ -322,7 +327,8 @@ idea is tidy long data for uncertainty, not Bayesian model support.
 
 ## Near-Term Slice Order
 
-1. Add reader-facing `plot_corpairs()` examples only after fitted correlation
-   rows and interval status are stable enough for a biological workflow.
+1. Add a biological `plot_corpairs()` workflow only after fitted correlation
+   rows and interval status are stable enough to show model, table, plot, and
+   interpretation together.
 2. Revisit `emmeans` compatibility only after the reference-grid and link-scale
    contract is tested across the implemented families.
