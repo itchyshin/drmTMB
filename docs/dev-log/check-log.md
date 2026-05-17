@@ -21439,3 +21439,74 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slice-156-random-scale-workflow-example.md`.
+
+## 2026-05-17 - Slice 157 random-effect scale model-map route
+
+Goal: make the model-map article route fitted random-effect SD surfaces through
+the same grid and table helpers shown in the model-workflow example.
+
+Roles:
+
+- Ada scoped this as the final small documentation route before the 5am report.
+- Pat checked that a user starting from the model map can find the
+  direct-SD grid-table route without reading the whole tutorial first.
+- Fisher checked that the map still presents point-estimate tables rather than
+  uncertainty intervals.
+- Rose checked that the wording does not advertise direct-SD `emmeans`,
+  plotting-helper, raw-response, or residual-`sigma` support.
+- Grace owned article render, pkgdown build/check, rendered scans, and focused
+  helper tests.
+- Boole, Gauss, Noether, Darwin, Jason, Curie, and Emmy stayed watch-only
+  because no syntax, likelihood, equation derivation, new biological example,
+  landscape claim, test fixture, or object structure changed.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/39-visualization-grammar.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-17-slice-157-random-scale-model-map-route.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-17-040912-codex-checkpoint.md`
+- `vignettes/model-map.Rmd`
+
+What changed:
+
+- Added an explicit Phase 17 model-map row for fitted random-effect SD
+  surfaces, routing users through `prediction_grid()`,
+  `predict_parameters(..., dpar = "sd(group)")`, and optional
+  `marginal_parameters()`.
+- Updated the grouped-Gaussian output-contract table so `sd(id) ~ x_group`
+  users see the same table-helper route.
+- NEWS, the Phase 17 roadmap, and visualization-grammar design notes now
+  record the model-map route.
+
+Checks run:
+
+- `air format NEWS.md ROADMAP.md docs/design/39-visualization-grammar.md vignettes/model-map.Rmd`:
+  passed.
+- `git diff --check`: passed.
+- `Rscript -e 'pkgload::load_all(".", quiet = TRUE); rmarkdown::render("vignettes/model-map.Rmd", output_dir = tempfile("model-map-render-"), quiet = FALSE)'`:
+  passed.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed and rendered
+  `articles/model-map.html`, `ROADMAP.html`, and `news/index.html`.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with "No problems found."
+- Positive source/rendered scan for the Slice 157 random-effect SD map route
+  found the expected source and rendered entries.
+- Stale-claim scan for direct-SD confidence intervals, direct-SD `emmeans`,
+  raw-response confusion, and plotting-helper overclaim found only intended
+  boundary wording.
+- `Rscript -e "devtools::test(filter = 'prediction-grid|predict-parameters|marginal-parameters', reporter = 'summary')"`:
+  passed.
+- Recovery checkpoint:
+  `docs/dev-log/recovery-checkpoints/2026-05-17-040912-codex-checkpoint.md`.
+
+Known limitations:
+
+- This is a route-map documentation slice only.
+- It does not add direct-SD uncertainty intervals, `emmeans` support, a
+  dedicated random-effect SD plotting helper, or any new model family.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slice-157-random-scale-model-map-route.md`.
