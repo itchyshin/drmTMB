@@ -340,7 +340,7 @@ Do not teach the following as fitted proportion examples yet:
 - random effects in `mu` or `sigma`;
 - `sd(group) ~ ...` random-effect scale models;
 - `meta_known_V(V = V)` with beta or beta-binomial responses;
-- `phylo()` or `spatial()` bounded-response models;
+- `phylo()`, `spatial()`, `animal()`, or `relmat()` bounded-response models;
 - bivariate or mixed-response bounded models such as
   `family = c(beta(), gaussian())`;
 - zero-one-inflated beta, ordered beta, or beta-binomial zero-inflation; fixed

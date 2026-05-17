@@ -246,6 +246,12 @@
   `docs/design/09-phylogenetic-and-spatial-speed.md`, while spatial `sigma`,
   bivariate spatial q=4 blocks, spatial slope correlations, and spatial
   `corpair()` regressions remain planned.
+- Structured non-Gaussian random effects are not implemented. `phylo()`,
+  `spatial()`, planned `animal()`, and planned `relmat()` markers now error in
+  non-Gaussian routes with a structured non-Gaussian boundary. Count, bounded,
+  ordinal, shape, inflation, hurdle, and one-inflation structured effects need
+  ordinary family-specific random-effect recovery and interval evidence before
+  entering the fitted surface.
 - Internal phylogenetic tree validation, dense Brownian covariance comparators,
   sparse augmented Brownian precision helpers, pure-R prior checks, hidden TMB
   prior parity checks, and fitted univariate Gaussian `mu` simulation tests now

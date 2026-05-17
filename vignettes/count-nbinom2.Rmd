@@ -296,7 +296,7 @@ Do not teach the following as fitted count examples yet:
 - random effects in NB2 `mu`, `sigma`, or `zi`;
 - `sd(group) ~ ...` random-effect scale models;
 - `meta_known_V(V = V)` with counts;
-- `phylo()` or `spatial()` count models;
+- `phylo()`, `spatial()`, `animal()`, or `relmat()` count models;
 - bivariate or mixed-response count models such as
   `family = c(gaussian(), nbinom2())`;
 - COM-Poisson underdispersion models.
