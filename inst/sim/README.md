@@ -21,5 +21,8 @@ Current pilot files:
 
 - `dgp/sim_dgp_gaussian_ls.R` generates Gaussian location-scale data with
   `mu ~ x` and `sigma ~ z`.
+- `dgp/sim_dgp_meta_v.R` generates Gaussian meta-analysis data with vector or
+  dense known sampling covariance via `meta_V(V = V)`.
 - `fit/sim_summarise_gaussian_ls.R` converts one fitted pilot model into a
   parameter-level truth/estimate/error table.
+- `fit/sim_summarise_meta_v.R` does the same for the `meta_V(V = V)` pilot.

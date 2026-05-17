@@ -1,5 +1,6 @@
 # drmTMB 0.1.2 (2026-05-16)
 
+* Phase 18 now has a Gaussian meta-analysis `meta_V(V = V)` simulation pilot covering vector and dense known sampling covariance, including smoke tests that keep known `V` out of interval targets.
 * Phase 18 now has a Gaussian location-scale simulation pilot: optional `inst/sim/` helpers generate `mu ~ x`, `sigma ~ z` data and summarise one fitted model into a truth/estimate/error table.
 * Phase 18 now has an optional `inst/sim/` skeleton with reproducible seed-table and cell-registry helpers plus a CRAN-safe smoke test for simulation-run bookkeeping.
 * Phase 18 now has an ADEMP-style simulation-programme blueprint in `docs/design/41-phase-18-simulation-programme.md`, including first-wave surfaces, estimands, methods, performance measures with Monte Carlo uncertainty, and the next three implementation slices.
