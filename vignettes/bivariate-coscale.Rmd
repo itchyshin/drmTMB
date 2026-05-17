@@ -581,6 +581,16 @@ pair_table[
 ]
 ```
 
+The optional plotting helper consumes that explicit table. Faceting by `level`
+keeps the residual `rho12` row visually separate from the group-level
+random-intercept correlation:
+
+```{r bivariate-coscale-group-corpairs-plot, fig.width = 6, fig.height = 4}
+if (requireNamespace("ggplot2", quietly = TRUE)) {
+  plot_corpairs(pair_table, facet = "level")
+}
+```
+
 The residual row is `rho12`: within-observation activity-boldness coupling.
 The group row is the `mu1`/`mu2` random-intercept correlation: among-individual
 covariation in average activity and average boldness.

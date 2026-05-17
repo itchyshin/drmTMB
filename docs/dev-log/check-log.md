@@ -18070,3 +18070,81 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-16-slice-115-plot-corpairs-facet-example.md`.
+
+## 2026-05-16 - Slice 116 fitted plot_corpairs workflow
+
+Goal: add the first fitted tutorial workflow where a `corpairs()` table feeds
+`plot_corpairs(..., facet = "level")`, using the existing bivariate-coscale
+individual-difference example.
+
+Roles:
+
+- Ada kept the slice inside the existing bivariate tutorial instead of inventing
+  a new example.
+- Pat owned the reader path: fitted model, table, plot, then interpretation.
+- Fisher owned the distinction between residual `rho12` and group-level
+  random-intercept correlation.
+- Boole owned the explicit table-first `plot_corpairs(pair_table, facet =
+  "level")` call.
+- Grace owned vignette rendering, pkgdown, and generated-site checks.
+- Rose owned stale-claim scans and the design-note update from "future workflow"
+  to "first fitted workflow".
+- Darwin checked that the individual-difference wording still answers the
+  biological question.
+- Gauss, Noether, Curie, Emmy, and Jason stayed watch-only because no
+  likelihood, equation, test contract, object structure, or landscape claim
+  changed.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `vignettes/bivariate-coscale.Rmd`
+- `docs/design/39-visualization-grammar.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-16-slice-116-bivariate-corpairs-plot.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-16-181106-codex-checkpoint.md`
+
+What changed:
+
+- Added a `plot_corpairs(pair_table, facet = "level")` chunk after the
+  `corpairs(fit_group)` table in the bivariate-coscale tutorial.
+- Added prose explaining that faceting separates the residual `rho12` row from
+  the group-level random-intercept correlation row.
+- Updated NEWS, ROADMAP, and the visualization grammar to record the first
+  fitted `plot_corpairs()` workflow.
+- Cleaned NEWS ordering so the `plot_corpairs()` bullet precedes
+  `plot_parameter_surface()` bullets.
+
+Checks run:
+
+- `air format NEWS.md vignettes/bivariate-coscale.Rmd ROADMAP.md docs/design/39-visualization-grammar.md`:
+  passed.
+- `Rscript -e "devtools::load_all(quiet = TRUE); rmarkdown::render('vignettes/bivariate-coscale.Rmd', output_file = tempfile(fileext = '.html'), quiet = TRUE)"`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'plot-corpairs', reporter = 'summary')"`:
+  passed with all focused `plot_corpairs()` tests complete.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed and rendered the
+  updated bivariate-coscale article, ROADMAP, and NEWS.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with "No problems found."
+- `git diff --check`: passed.
+- `rg -n 'plot_corpairs\\(pair_table, facet = "level"\\)|Slice 116|bivariate-coscale tutorial|residual `rho12` from group-level|optional plotting helper consumes that explicit table|biological `plot_corpairs` workflow' NEWS.md ROADMAP.md docs/design/39-visualization-grammar.md vignettes/bivariate-coscale.Rmd pkgdown-site/articles/bivariate-coscale.html pkgdown-site/ROADMAP.html pkgdown-site/news/index.html`:
+  confirmed source and rendered pages include the fitted workflow and Slice 116
+  notes.
+- `rg -n 'plot_corpairs\\(\\).*computes|plot_corpairs\\(\\).*refit|plot_corpairs\\(\\).*profile|raw correlation.*same estimand|group-level.*rho12_i|future `plot_corpairs`|future plot_corpairs|only exported plotting helper|currently `plot_parameter_surface`|ggplot2.*Imports|posterior draw|credible interval' NEWS.md ROADMAP.md docs/design/39-visualization-grammar.md vignettes/bivariate-coscale.Rmd pkgdown-site/articles/bivariate-coscale.html pkgdown-site/ROADMAP.html pkgdown-site/news/index.html DESCRIPTION --glob '!pkgdown-site/search.json' --glob '!pkgdown-site/deps/**'`:
+  found only intentional guardrails about posterior/credible-interval wording
+  and the raw-versus-residual correlation distinction.
+- `Rscript tools/codex-checkpoint.R --goal "Slice 116 bivariate corpairs plot workflow" --next "stage, commit, push branch, and open PR against main"`:
+  passed and wrote
+  `docs/dev-log/recovery-checkpoints/2026-05-16-181106-codex-checkpoint.md`.
+
+Known limitations:
+
+- The workflow uses the existing fitted ordinary bivariate group-level
+  covariance example; no new model family or likelihood path changed.
+- The plot remains an optional display of an explicit `corpairs()` table and
+  does not compute intervals or refit the model.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-16-slice-116-bivariate-corpairs-plot.md`.
