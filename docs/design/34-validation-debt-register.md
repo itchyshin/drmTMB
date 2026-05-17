@@ -80,6 +80,21 @@ Use these status labels:
   non-Gaussian `mu` slopes, and cross-parameter covariance need later slice
   evidence before Phase 18 comprehensive simulation.
 
+### Non-Gaussian scale random effects
+
+- Matrix status: blocked with explicit messages.
+- Register status: Student-t, lognormal, Gamma, beta, beta-binomial, NB2,
+  truncated NB2, and hurdle NB2 `sigma` formulas are fixed-effect only.
+  Random-effect bar terms in those scale formulas error before optimization.
+- Evidence: `tests/testthat/test-nongaussian-scale-boundary.R` plus the
+  neighbouring family malformed-input tests.
+- Diagnostics and intervals: none, because no non-Gaussian scale random-effect
+  likelihood is fitted yet.
+- Debt: family-specific likelihood code, `sdpars` and `random_effects`
+  extractors, `profile_targets()` rows, weak-SD recovery tests, scale-specific
+  interpretation docs, and CI evidence are required before any non-Gaussian
+  `sigma` random effect is advertised.
+
 ### Gaussian ordinary random effects
 
 - Matrix status: stable.

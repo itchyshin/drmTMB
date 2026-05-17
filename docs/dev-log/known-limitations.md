@@ -156,13 +156,13 @@
   errors, contrasts, plots, or full `emmeans`-style marginalisation.
 - Fixed-effect univariate lognormal location-scale models are implemented for
   positive finite responses. `mu` and `sigma` are on the log-response scale;
-  random effects, known sampling covariance, phylogenetic terms, and bivariate
-  lognormal models are not yet implemented.
+  `sigma` random effects, known sampling covariance, phylogenetic terms, and
+  bivariate lognormal models are not yet implemented.
 - Fixed-effect univariate Gamma mean-CV models are implemented for positive
   finite responses with `family = Gamma(link = "log")`. `mu` is the response
   mean and `sigma` is the coefficient of variation; non-log Gamma links,
-  random effects, known sampling covariance, phylogenetic terms, and bivariate
-  or mixed Gamma models are not yet implemented.
+  `sigma` random effects, known sampling covariance, phylogenetic terms, and
+  bivariate or mixed Gamma models are not yet implemented.
 - Fixed-effect univariate Poisson mean models are implemented for
   non-negative integer counts with `family = poisson(link = "log")`.
   The `mu` formula supports standard R exposure offsets such as
@@ -189,8 +189,8 @@
   `fitted()` returns the conditional positive-count mean. Hurdle NB2 models
   are implemented by adding `hu ~ predictors`; `hu` is the hurdle-zero
   probability and nonzero counts come from the zero-truncated NB2 component.
-  Random effects, known sampling covariance, phylogenetic terms, and bivariate
-  or mixed negative-binomial models are not yet implemented.
+  `sigma` random effects, known sampling covariance, phylogenetic terms, and
+  bivariate or mixed negative-binomial models are not yet implemented.
 - Fixed-effect univariate cumulative-logit ordinal models are implemented for
   ordered responses with `family = cumulative_logit()`. The first path supports
   only a `mu` location formula, ordered cutpoints, and a fixed latent logistic
@@ -200,8 +200,8 @@
 - Fixed-effect univariate beta-binomial models are implemented for counted
   successes and failures with `family = beta_binomial()`. The first path
   supports `cbind(successes, failures)` responses, fixed-effect `mu` and
-  `sigma` formulas, known trial totals from row sums, and no random effects,
-  known sampling covariance, phylogenetic terms, bivariate or mixed
+  `sigma` formulas, known trial totals from row sums, and no `sigma` random
+  effects, known sampling covariance, phylogenetic terms, bivariate or mixed
   beta-binomial models, or successes/trials response alias. Zero-one-inflated
   bounded-response models for percentage or proportion data are planned:
   fixed-effect `zoi` and `coi` likelihoods should come before random effects
