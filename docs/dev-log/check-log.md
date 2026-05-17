@@ -23001,3 +23001,53 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slice-196-ordinal-mixed-boundary.md`.
+
+## 2026-05-17 - Slice 197 structured non-Gaussian boundary
+
+Goal: decide whether phylogenetic, spatial, animal-model, and user-supplied
+relatedness structured effects enter non-Gaussian Phase 18 now or stay
+deferred with explicit diagnostics.
+
+Files changed:
+
+- `R/drmTMB.R`
+- `ROADMAP.md`
+- `docs/design/02-family-registry.md`
+- `docs/design/34-validation-debt-register.md`
+- `docs/dev-log/known-limitations.md`
+- `vignettes/count-nbinom2.Rmd`
+- `vignettes/proportion-beta-binomial.Rmd`
+- `tests/testthat/test-nongaussian-structured-boundary.R`
+- `docs/dev-log/after-task/2026-05-17-slice-197-structured-nongaussian-boundary.md`
+
+What changed:
+
+- The structured-effect boundary now recognizes `phylo`, `spatial`, planned
+  `animal`, and planned `relmat` markers.
+- The unsupported message now states that fitted structured paths are
+  Gaussian-only and that structured count, bounded, ordinal, shape, inflation,
+  hurdle, and one-inflation routes remain deferred until ordinary
+  family-specific random-effect recovery and interval evidence exists.
+- Added a focused non-Gaussian structured-boundary test covering count,
+  bounded, positive-continuous, ordinal, phylogenetic, spatial, animal, and
+  `relmat` marker requests across location, scale, shape, inflation, and
+  hurdle subformulas.
+- The roadmap, validation-debt register, known limitations, and count/proportion
+  tutorials now keep structured non-Gaussian models out of the fitted examples.
+
+Checks run:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH air format R/drmTMB.R ROADMAP.md docs/design/02-family-registry.md docs/design/34-validation-debt-register.md docs/dev-log/known-limitations.md vignettes/count-nbinom2.Rmd vignettes/proportion-beta-binomial.Rmd tests/testthat/test-nongaussian-structured-boundary.R docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-17-slice-197-structured-nongaussian-boundary.md`
+- `Rscript -e "devtools::test(filter = 'nongaussian-structured-boundary|cumulative-logit', reporter = 'summary')"`:
+  passed.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with no problems.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- This slice does not implement non-Gaussian `phylo()`, `spatial()`,
+  `animal()`, or `relmat()` effects.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slice-197-structured-nongaussian-boundary.md`.

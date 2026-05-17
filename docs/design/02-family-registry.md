@@ -351,6 +351,14 @@ boundary is separate from Gaussian ordinary random slopes because ordinal
 cutpoints and the fixed latent logistic scale create their own identifiability
 and interval checks.
 
+Slice 197 keeps structured non-Gaussian random effects out of the fitted
+surface. Phylogenetic, spatial, planned animal-model, and planned `relmat()`
+markers share the same structured-effect concept, but current fitted
+structured paths are Gaussian only. Count, bounded, ordinal, shape,
+inflation, hurdle, and one-inflation structured effects should wait until the
+ordinary family-specific random-effect paths have recovery tests, interval
+targets, extractors, and diagnostic rows.
+
 ## Implemented: Poisson Mean
 
 The first count path uses the existing R family constructor:

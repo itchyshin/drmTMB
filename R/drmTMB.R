@@ -1707,6 +1707,9 @@ drm_build_cumulative_logit_spec <- function(
     ))
   }
   mu_entry$rhs <- meta$rhs
+  if (formula_contains_structured_marker(mu_entry$rhs)) {
+    drm_reject_phase1_terms(mu_entry$rhs, mu_entry$dpar)
+  }
   if (formula_contains_call(mu_entry$rhs, "|")) {
     cli::cli_abort(c(
       "Ordinal random effects are not implemented.",
@@ -3063,8 +3066,9 @@ drm_entry_formula <- function(entry, response = FALSE) {
 }
 
 drm_reject_phase1_terms <- function(rhs, dpar, allow_offset = FALSE) {
-  structured <- c("phylo", "spatial")[vapply(
-    c("phylo", "spatial"),
+  structured_markers <- c("phylo", "spatial", "animal", "relmat")
+  structured <- structured_markers[vapply(
+    structured_markers,
     function(name) formula_contains_call(rhs, name),
     logical(1)
   )]
@@ -3072,7 +3076,8 @@ drm_reject_phase1_terms <- function(rhs, dpar, allow_offset = FALSE) {
     cli::cli_abort(c(
       "Structured-effect syntax is planned, not implemented.",
       "x" = "The {.code {dpar}} formula contains structured marker{?s}: {.val {structured}}.",
-      "i" = "Implemented structured paths are intercept-only {.code phylo(1 | species, tree = tree)} terms in univariate {.code mu}, matching bivariate {.code mu1}/{.code mu2} phylogenetic terms, and coordinate-spatial {.code spatial(1 | site, coords = coords)} or {.code spatial(1 + x | site, coords = coords)} terms in univariate {.code mu}. Structured effects in other parameters remain planned."
+      "i" = "Implemented structured paths are Gaussian-only: intercept-level {.code phylo()} terms in univariate and selected bivariate Gaussian formulas, and coordinate-spatial {.code spatial(1 | site, coords = coords)} or one-slope {.code spatial(1 + x | site, coords = coords)} terms in univariate Gaussian {.code mu}.",
+      "i" = "Structured non-Gaussian paths, including count, bounded, ordinal, shape, inflation, hurdle, and future {.fn animal} or {.fn relmat} relatedness routes, remain deferred until ordinary family-specific random-effect recovery is stable."
     ))
   }
 
@@ -3135,6 +3140,14 @@ drm_reject_phase1_terms <- function(rhs, dpar, allow_offset = FALSE) {
       "x" = "The {.code {dpar}} formula contains unsupported term{?s}: {.val {hits}}."
     ))
   }
+}
+
+formula_contains_structured_marker <- function(rhs) {
+  any(vapply(
+    c("phylo", "spatial", "animal", "relmat"),
+    function(name) formula_contains_call(rhs, name),
+    logical(1)
+  ))
 }
 
 inflation_random_effect_label <- function(dpar) {

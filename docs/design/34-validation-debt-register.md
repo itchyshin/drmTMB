@@ -138,6 +138,25 @@ Use these status labels:
   discrimination formulas, known covariance, phylogenetic terms, spatial
   terms, and bivariate ordinal models remain later phases.
 
+### Structured non-Gaussian random effects
+
+- Matrix status: blocked with explicit messages.
+- Register status: `phylo()`, `spatial()`, planned `animal()`, and planned
+  `relmat()` markers are rejected in non-Gaussian formula routes before
+  optimization. The fitted structured-effect layer remains Gaussian-only.
+- Evidence: `tests/testthat/test-nongaussian-structured-boundary.R` checks
+  count, bounded, positive-continuous, ordinal, phylogenetic, spatial, animal,
+  and `relmat()` marker boundaries.
+- Diagnostics and intervals: none for structured non-Gaussian paths because no
+  such likelihood is fitted yet.
+- Debt: implement ordinary family-specific random effects first, then decide
+  which structured path is identifiable enough for simulation. Near-term
+  candidates should probably be intercept-only `mu` structured effects for a
+  single count or positive-continuous family. Spatial, phylogenetic, animal,
+  and `relmat()` routes should share the same mathematical layer where possible
+  but still need separate parser validation, matrix diagnostics, extractors,
+  profile targets, and recovery evidence.
+
 ### Shape random effects and ID-level skewness
 
 - Matrix status: blocked with explicit messages.
