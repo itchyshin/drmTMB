@@ -1130,6 +1130,11 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   both `sd(id) ~ w_id` and `sd(site) ~ w_site` now have explicit tests that
   each requested `dpar` validates its own predictors, ignores sibling-target
   extra columns, and names the missing target-specific predictor.
+- Slice 154 pins direct-SD long-table helpers. `predict_parameters()` and
+  `marginal_parameters()` now have explicit tests and reference docs for fitted
+  random-effect scale model names such as `sd(id)`, with component
+  `random-effect-sd-model`, row-label preservation, and marginal averaging over
+  supplied direct-SD prediction rows.
 - Add additional ggplot-oriented helpers only after the data contract is stable:
   location curves, scale/variance curves, residual `rho12` curves,
   `sd(group)` or `sd_phylo()` surfaces, `corpairs()` summaries, and eventually

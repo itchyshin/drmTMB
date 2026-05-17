@@ -160,6 +160,13 @@ link for each fitted `dpar`. This is evidence that the existing data helpers
 respect link-versus-response scale on explicit grids; it is not an exported
 `emmeans` method, a contrast API, or a weighting contract.
 
+Slice 154 extends the table-helper contract to fitted random-effect scale model
+names such as `sd(id)`. `predict_parameters()` reports these rows with
+component `random-effect-sd-model`, preserves row labels from supplied
+`newdata`, and keeps link/response scale behavior delegated to `predict()`.
+`marginal_parameters()` can average supplied direct-SD prediction rows over
+explicit grouping columns.
+
 Slice 118 separates the future interface contract into
 `docs/design/40-emmeans-interface-contract.md`. That note maps the official
 `recover_data()` and `emm_basis()` extension API to `drmTMB` and keeps the

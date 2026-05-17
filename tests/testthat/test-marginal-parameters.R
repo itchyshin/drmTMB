@@ -137,6 +137,38 @@ test_that("marginal_parameters() averages bivariate rho12 on supplied groups", {
   )
 })
 
+test_that("marginal_parameters() averages random-effect scale model rows", {
+  sim <- new_gaussian_re_scale_data(n_id = 12, n_each = 4, seed = 20260568)
+  fit <- drmTMB(
+    bf(y ~ x + (1 | id), sigma ~ z, sd(id) ~ w),
+    family = gaussian(),
+    data = sim$data,
+    control = drm_control(optimizer = list(eval.max = 120L, iter.max = 120L))
+  )
+  grid <- data.frame(
+    w = c(-0.2, 0.4, 0.8),
+    band = c("low", "low", "high")
+  )
+
+  out <- marginal_parameters(fit, newdata = grid, dpar = "sd(id)", by = "band")
+  pred <- predict_parameters(fit, newdata = grid, dpar = "sd(id)")
+  manual <- aggregate(
+    estimate ~ dpar + component + type + band,
+    data = pred,
+    FUN = mean
+  )
+  manual <- manual[order(manual$band), ]
+  out_sorted <- out[order(out$band), names(manual)]
+  row.names(manual) <- NULL
+  row.names(out_sorted) <- NULL
+
+  expect_equal(unique(out$component), "random-effect-sd-model")
+  expect_equal(out_sorted, manual)
+  expect_equal(out$n[order(out$band)], c(1L, 2L))
+  expect_equal(unique(out$conf.status), "not_requested")
+  expect_equal(unique(out$interval_source), "not_available")
+})
+
 test_that("marginal_parameters() validates arguments", {
   dat <- data.frame(y = stats::rnorm(20), x = stats::rnorm(20))
   fit <- drmTMB(bf(y ~ x, sigma ~ 1), family = gaussian(), data = dat)

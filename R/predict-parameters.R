@@ -21,7 +21,8 @@
 #'   are used.
 #' @param dpar Optional character vector of distributional parameters to
 #'   predict, such as `"mu"`, `"sigma"`, `"nu"`, `"rho12"`, `"sigma1"`, or
-#'   `"sigma2"`. `NULL` predicts all fitted distributional parameters.
+#'   `"sigma2"`, plus fitted random-effect scale model names such as
+#'   `"sd(id)"`. `NULL` predicts all fitted distributional parameters.
 #' @param type Prediction scale: `"response"` or `"link"`.
 #' @param include_newdata Logical; when `TRUE` and `newdata` is supplied, append
 #'   the supplied covariate columns to the returned table.

@@ -26,7 +26,8 @@ are used.}
 
 \item{dpar}{Optional character vector of distributional parameters to
 predict, such as \code{"mu"}, \code{"sigma"}, \code{"nu"}, \code{"rho12"}, \code{"sigma1"}, or
-\code{"sigma2"}. \code{NULL} predicts all fitted distributional parameters.}
+\code{"sigma2"}, plus fitted random-effect scale model names such as
+\code{"sd(id)"}. \code{NULL} predicts all fitted distributional parameters.}
 
 \item{type}{Prediction scale: \code{"response"} or \code{"link"}.}
 
