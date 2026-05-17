@@ -957,6 +957,13 @@ remain blocked by future covariance or non-Gaussian random-effect work.
 - Slice 116 adds a fitted bivariate-coscale tutorial path where `corpairs()`
   feeds `plot_corpairs(..., facet = "level")`, visually separating residual
   `rho12` from group-level random-intercept correlation rows.
+- Slice 117 adds the first `emmeans` preflight test for the existing
+  reference-grid and link-scale contract. Small fixed-effect fits now check
+  that `prediction_grid()` plus `predict_parameters(type = "link")` and
+  `predict_parameters(type = "response")` preserve the documented inverse-link
+  relationship across implemented univariate, count, proportion, ordinal, and
+  bivariate Gaussian families without adding an `emmeans` dependency or
+  contrast API.
 - Add additional ggplot-oriented helpers only after the data contract is stable:
   location curves, scale/variance curves, residual `rho12` curves,
   `sd(group)` or `sd_phylo()` surfaces, `corpairs()` summaries, and eventually

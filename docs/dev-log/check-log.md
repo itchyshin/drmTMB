@@ -18148,3 +18148,80 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-16-slice-116-bivariate-corpairs-plot.md`.
+
+## 2026-05-16 - Slice 117 emmeans preflight
+
+Goal: test the existing reference-grid and link-scale contract before any
+exported `emmeans` method, contrast helper, or weighting API is designed.
+
+Roles:
+
+- Ada kept the slice to validation rather than introducing a new user-facing
+  method.
+- Fisher owned the link-versus-response estimand boundary.
+- Boole checked that no formula grammar, S3 method, or contrast syntax changed.
+- Grace owned focused tests, pkgdown build, and pkgdown validation.
+- Rose owned stale-claim scans and the explicit unsupported-scope wording.
+- Pat and Darwin stayed watch-only because no tutorial path or biological
+  example changed.
+- Gauss, Noether, Curie, Emmy, and Jason stayed watch-only because no
+  likelihood, symbolic equation, test framework, object structure, or landscape
+  claim changed.
+
+Files changed:
+
+- `ROADMAP.md`
+- `docs/design/39-visualization-grammar.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-16-slice-117-emmeans-preflight.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-16-183516-codex-checkpoint.md`
+- `tests/testthat/test-reference-grid-link-scale-contract.R`
+
+What changed:
+
+- Added a focused integration test that fits small fixed-effect models across
+  Gaussian, Student-t, lognormal, Gamma, beta, beta-binomial, cumulative-logit,
+  Poisson, zero-inflated Poisson, NB2, zero-truncated NB2, hurdle NB2,
+  zero-inflated NB2, and bivariate Gaussian paths.
+- Each case builds an explicit `prediction_grid()` and checks that
+  `predict_parameters(type = "response")` is the documented inverse-link
+  transform of `predict_parameters(type = "link")` for the fitted
+  distributional parameters.
+- Updated the Phase 17 roadmap and visualization grammar to record Slice 117
+  as a preflight test, not exported `emmeans` support.
+- Left NEWS unchanged because no user-facing function, argument, or article
+  workflow changed.
+
+Checks run:
+
+- `air format ROADMAP.md docs/design/39-visualization-grammar.md tests/testthat/test-reference-grid-link-scale-contract.R`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'reference-grid-link-scale-contract', reporter = 'summary')"`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'reference-grid-link-scale-contract|prediction-grid|predict-parameters|marginal-parameters', reporter = 'summary')"`:
+  passed across the new preflight test and the neighbouring data-helper tests.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed and rebuilt
+  `pkgdown-site/ROADMAP.html`.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with "No problems found."
+- `git diff --check`: passed.
+- `rg -n 'Slice 117|reference-grid and link-scale|predict_parameters\\(type = "link"\\)|predict_parameters\\(type = "response"\\)|emmeans dependency|contrast API' ROADMAP.md docs/design/39-visualization-grammar.md tests/testthat/test-reference-grid-link-scale-contract.R pkgdown-site/ROADMAP.html`:
+  confirmed source and rendered roadmap wording includes the Slice 117
+  preflight.
+- `rg -n 'emmeans method|exported `emmeans`|exported emmeans|EMM support|estimated marginal means.*implemented|contrast API|contrasts.*implemented|ggplot2.*Imports' DESCRIPTION NEWS.md ROADMAP.md docs/design/39-visualization-grammar.md tests/testthat/test-reference-grid-link-scale-contract.R pkgdown-site --glob '!pkgdown-site/search.json' --glob '!pkgdown-site/deps/**'`:
+  found only intentional design-boundary wording and no new dependency or
+  exported-support claim.
+- `Rscript tools/codex-checkpoint.R --goal "Slice 117 emmeans preflight" --next "stage, commit, push branch, open PR, and monitor CI"`:
+  passed and wrote
+  `docs/dev-log/recovery-checkpoints/2026-05-16-183516-codex-checkpoint.md`.
+
+Known limitations:
+
+- The preflight covers fixed-effect family paths and bivariate Gaussian
+  fixed-effect predictions.
+- Structured-effect, random-effect, conditional, weighted, interval-aware,
+  slope, and contrast reference grids still need separate validation before any
+  exported `emmeans` method is promised.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-16-slice-117-emmeans-preflight.md`.

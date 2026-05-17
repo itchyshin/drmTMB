@@ -151,6 +151,15 @@ counterfactual grids. It does not promise full `emmeans` compatibility; that
 requires a tested reference-grid contract for transformed, bounded, count,
 ordinal, bivariate, and structured-effect fits.
 
+Slice 117 adds the first preflight test for that contract. The current test
+fits small fixed-effect models for the implemented univariate, count,
+proportion, ordinal, and bivariate Gaussian families, builds explicit
+`prediction_grid()` objects, and checks that `predict_parameters(type = "link")`
+and `predict_parameters(type = "response")` preserve the documented inverse
+link for each fitted `dpar`. This is evidence that the existing data helpers
+respect link-versus-response scale on explicit grids; it is not an exported
+`emmeans` method, a contrast API, or a weighting contract.
+
 Slice 102 adds the first article-level empirical-grid example. The
 model-workflow article now shows a conditioned grid for direct
 `predict_parameters()` rows and a separate empirical grid for
@@ -333,5 +342,8 @@ idea is tidy long data for uncertainty, not Bayesian model support.
 
 ## Near-Term Slice Order
 
-1. Revisit `emmeans` compatibility only after the reference-grid and link-scale
-   contract is tested across the implemented families.
+1. Decide whether the next `emmeans` step should be a design-only S3 contract,
+   an internal reference-grid adapter, or another validation slice for
+   structured-effect and random-effect predictions. Do not add an exported
+   `emmeans` method until weights, contrasts, intervals, and unsupported-model
+   errors are explicit.
