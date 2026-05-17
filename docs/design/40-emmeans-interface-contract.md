@@ -294,3 +294,8 @@ Fits such as `log(y) ~ x` now error before returning an `emmGrid`, with
 guidance toward explicit transformed-scale prediction tables through
 `prediction_grid()` plus `predict_parameters()`. This keeps transformed
 responses separate from the transformed-predictor path added in Slice 128.
+
+Slice 139 extends the public zero-inflated `emmeans()` boundary to NB2.
+Zero-inflated NB2 fits now error as unsupported `"zi_nbinom2"` fits before
+returning an `emmGrid`, matching the zero-inflated Poisson boundary. This
+remains an unsupported boundary, not zero-inflated NB2 `emmeans` support.

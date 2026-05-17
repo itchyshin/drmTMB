@@ -20005,3 +20005,88 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-16-slice-138-emmeans-transformed-response-boundary.md`.
+
+## 2026-05-16 - Slice 139 emmeans zero-inflated NB2 boundary
+
+Goal: add public-method coverage that zero-inflated NB2 fits still error before
+`emmeans()` returns an `emmGrid`.
+
+Roles:
+
+- Ada kept this as the NB2 sibling to the Slice 134 zero-inflated Poisson
+  boundary test.
+- Boole checked that the error names the unsupported `"zi_nbinom2"` model type
+  rather than introducing syntax changes.
+- Fisher checked that zero-inflated NB2 fitted-response means remain outside
+  the first native-`mu` `emmeans` bridge.
+- Curie added the public zero-inflated NB2 rejection test.
+- Pat checked that the error still points users to `prediction_grid()` and
+  `predict_parameters()`.
+- Grace owned focused tests, pkgdown, rendered scans, and PR #99 monitoring.
+- Rose checked that zero-inflated NB2 model support is not confused with
+  zero-inflated NB2 `emmeans` support.
+- Gauss, Noether, Darwin, Jason, and Emmy stayed watch-only because no
+  likelihood, equation, biological example, landscape claim, or object
+  structure changed.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/39-visualization-grammar.md`
+- `docs/design/40-emmeans-interface-contract.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-16-slice-139-emmeans-zi-nbinom-boundary.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-16-224143-codex-checkpoint.md`
+- `tests/testthat/test-emmeans-methods.R`
+
+What changed:
+
+- Added a public `emmeans()` rejection test for a zero-inflated NB2 fit.
+- The test checks that the error names `"zi_nbinom2"` and points users toward
+  `prediction_grid()` for explicit prediction tables.
+- Updated NEWS, roadmap, and design notes to state this as boundary coverage,
+  not zero-inflated NB2 `emmeans` support.
+
+Checks run:
+
+- No-edit scout:
+  `emmeans()` on a zero-inflated NB2 fit errored before returning an `emmGrid`,
+  named `"zi_nbinom2"`, and suggested `prediction_grid()` plus
+  `predict_parameters()`.
+- `air format NEWS.md ROADMAP.md docs/design/39-visualization-grammar.md docs/design/40-emmeans-interface-contract.md tests/testthat/test-emmeans-methods.R`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'emmeans-methods', reporter = 'summary')"`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'emmeans-methods|emmeans-recover-data|emmeans-preflight|fixed-effect-basis|reference-grid-link-scale-contract', reporter = 'summary')"`:
+  passed.
+- `git diff --check`: passed.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed.
+- Positive source/rendered scan for Slice 139 zero-inflated NB2 boundary
+  wording and test evidence: found the expected entries.
+- Stale-claim scan for zero-inflated NB2 `emmeans` support: no false support
+  claims; matches were intentional unsupported-boundary wording or older
+  zero-inflated NB2 model-support wording.
+- Recovery checkpoint:
+  `docs/dev-log/recovery-checkpoints/2026-05-16-224143-codex-checkpoint.md`.
+
+Post-rebase checks:
+
+- PR #103 merged as `302b94a9bcb3f171b75413a6ca886a0e68be9f20`.
+- `git rebase --onto origin/main f9b3b7bb5118bab5e16b5bcb6532dfb520f0d1c8`:
+  passed.
+- `git diff --check origin/main...HEAD`: passed.
+- `Rscript -e "devtools::test(filter = 'emmeans-methods|emmeans-recover-data|emmeans-preflight|fixed-effect-basis|reference-grid-link-scale-contract', reporter = 'summary')"`:
+  passed.
+
+Known limitations:
+
+- Zero-inflated NB2 `emmeans` support remains unsupported.
+- This slice does not add fitted observed-response means, hurdle support,
+  ordinal expected-score support, non-`mu` targets, random-effect workflows, or
+  blocked model structures.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-16-slice-139-emmeans-zi-nbinom-boundary.md`.

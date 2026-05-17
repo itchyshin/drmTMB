@@ -1072,6 +1072,9 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   bridge. Fits such as `log(y) ~ x` now error before returning an `emmGrid`,
   with guidance toward explicit transformed-scale prediction tables through
   `prediction_grid()` plus `predict_parameters()`.
+- Slice 139 extends the public zero-inflated `emmeans()` boundary to NB2.
+  Zero-inflated NB2 fits now error as unsupported `"zi_nbinom2"` fits before
+  returning an `emmGrid`, matching the zero-inflated Poisson boundary.
 - Add additional ggplot-oriented helpers only after the data contract is stable:
   location curves, scale/variance curves, residual `rho12` curves,
   `sd(group)` or `sd_phylo()` surfaces, `corpairs()` summaries, and eventually
