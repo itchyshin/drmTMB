@@ -240,6 +240,13 @@ Gaussian fixed-effect `mu` model with an asymmetric numeric covariate checks tha
 records ordinary `emmeans` reference-grid behaviour and keeps empirical
 marginalisation or custom weighting separate.
 
+Slice 130 adds direct `type` argument coverage. A Poisson fixed-effect `mu`
+model checks that `emmeans(..., type = "response")` matches
+`predict(dpar = "mu", type = "response")`, while `type = "link"` remains on the
+formula linear-predictor scale. This keeps response-scale EMMs tied to the
+native distributional parameter, not to `fitted()` response means for blocked
+model structures.
+
 Slice 102 adds the first article-level empirical-grid example. The
 model-workflow article now shows a conditioned grid for direct
 `predict_parameters()` rows and a separate empirical grid for

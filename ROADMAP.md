@@ -1031,6 +1031,11 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   asymmetric numeric covariate now checks that `emmeans(fit, ~ habitat)` matches
   `predict(dpar = "mu")` at `mean(x)`, keeping this as ordinary `emmeans`
   reference-grid behaviour rather than a drmTMB-specific marginalisation rule.
+- Slice 130 adds direct `type` argument coverage for the first `emmeans()`
+  bridge. A Poisson fixed-effect `mu` model now checks that
+  `emmeans(..., type = "response")` matches
+  `predict(dpar = "mu", type = "response")`, while `type = "link"` remains on
+  the formula linear-predictor scale.
 - Add additional ggplot-oriented helpers only after the data contract is stable:
   location curves, scale/variance curves, residual `rho12` curves,
   `sd(group)` or `sd_phylo()` surfaces, `corpairs()` summaries, and eventually

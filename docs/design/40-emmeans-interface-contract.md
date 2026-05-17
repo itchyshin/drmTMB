@@ -238,3 +238,10 @@ rule. A Gaussian fixed-effect `mu` model with an asymmetric numeric covariate
 verifies that `emmeans(fit, ~ habitat)` matches `predict(dpar = "mu")` at
 `mean(x)`. This is ordinary `emmeans` reference-grid behaviour, not a
 drmTMB-specific empirical marginalisation or custom-weighting contract.
+
+Slice 130 adds direct `type` argument coverage. A Poisson fixed-effect `mu`
+model verifies that `emmeans(..., type = "response")` matches
+`predict(dpar = "mu", type = "response")`, while `type = "link"` remains on the
+formula linear-predictor scale. This preserves the contract that response-scale
+summaries are inverse-link summaries of native `mu`, not fitted observed
+responses for blocked models.
