@@ -1273,8 +1273,11 @@ remain blocked by future covariance or non-Gaussian random-effect work.
 | 187 | Spatial random slopes | Done: coordinate-spatial one-slope support now has a direct profile-interval test for the slope-field SD plus explicit boundary tests for multiple slopes, spatial scale terms, and bivariate spatial syntax. |
 | 188 | Random-effect gate | Done: the one-slope-per-layer status table and remaining Gaussian double-hierarchical limits are published below before the non-Gaussian revisit. |
 
-- Slice 189 should close any remaining Gaussian double-hierarchical boundary
-  wording before the non-Gaussian revisit.
+- Slice 189 is done: the double-hierarchical endpoint map now reflects the
+  current Gaussian boundary after Slices 177-188, including q > 2 ordinary
+  `mu`, multiple univariate mean-scale intercept blocks, coordinate-spatial
+  one-slope support, and the still-closed bivariate slope, q=6/q=8, and spatial
+  q=4 endpoints.
 - Slices 190-202 are the pre-simulation non-Gaussian gate. The purpose is not
   to implement every attractive family feature before Phase 18. It is to decide
   which non-Gaussian, scale, shape, zero-inflation, hurdle, ordinal, structured,

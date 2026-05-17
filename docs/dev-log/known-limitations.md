@@ -238,8 +238,8 @@
   positive counts, a hurdle NB2 path through `hu ~ predictors`, a
   fixed-effect univariate cumulative-logit ordinal path, and a fixed-effect
   univariate beta-binomial path.
-- Cross-formula labelled covariance sharing beyond the first univariate
-  intercept-only `mu`/`sigma` block, the first same-parameter bivariate
+- Cross-formula labelled covariance sharing beyond the implemented univariate
+  intercept-only `mu`/`sigma` blocks, the first same-parameter bivariate
   intercept blocks, same-response bivariate `mu`/`sigma` pairs, and the ordinary
   all-four bivariate q4 intercept block, correlated residual-scale random-slope
   blocks, labelled `mu`/`sigma` random-slope covariance, slope-specific

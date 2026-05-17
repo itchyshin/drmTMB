@@ -22521,3 +22521,45 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slice-188-random-effect-gate.md`.
+
+## 2026-05-17 - Slice 189 Gaussian double-hierarchical boundary
+
+Goal: close remaining Gaussian double-hierarchical boundary wording before the
+non-Gaussian revisit.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/28-double-hierarchical-endpoint.md`
+- `docs/dev-log/known-limitations.md`
+- `docs/dev-log/after-task/2026-05-17-slice-189-gaussian-dh-boundary.md`
+
+What changed:
+
+- Updated the double-hierarchical endpoint map to include q > 2 ordinary
+  Gaussian `mu` blocks, independent Gaussian `sigma` slopes, one or more
+  univariate mean-scale intercept blocks, and coordinate-spatial one-slope
+  support as fitted surfaces.
+- Kept bivariate slope blocks, q=6/q=8 endpoint blocks, spatial q=4 covariance,
+  spatial slope correlations, and slope-level mean-scale covariance planned.
+- Updated known limitations so the univariate mean-scale wording no longer
+  implies only one matched intercept block is fitted.
+
+Checks run:
+
+- `air format NEWS.md ROADMAP.md docs/design/28-double-hierarchical-endpoint.md docs/dev-log/known-limitations.md`:
+  passed.
+- `Rscript -e 'pkgdown::check_pkgdown()'`: passed.
+- `rg -n "full double-hierarchical.*implemented|complete double-hierarchical.*implemented|q=6.*implemented|q=8.*implemented|spatial q=4.*implemented|bivariate random-slope.*implemented|slope-level mean-scale.*implemented" README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes --glob '!docs/dev-log/check-log.md'`:
+  returned no stale implemented-status claims.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- This slice changes status wording only. It does not implement new covariance
+  likelihoods.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slice-189-gaussian-dh-boundary.md`.
