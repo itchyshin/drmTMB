@@ -20796,3 +20796,88 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slice-148-random-scale-newdata-finite.md`.
+
+## 2026-05-17 - Slice 149 random-effect scale factor newdata guard
+
+Goal: give random-effect scale prediction the same fitted factor-level
+validation style as fixed-effect prediction.
+
+Roles:
+
+- Ada scoped this as the next direct-SD `newdata` validation slice after Slice
+  148.
+- Boole checked that the helper generalization keeps formula grammar unchanged.
+- Pat checked that matching character values work and unknown levels name the
+  fitted levels.
+- Curie owned the random-effect scale factor-level regression test.
+- Grace owned pkgdown and rendered-site checks.
+- Rose checked that the wording does not imply random-effect scale `emmeans`,
+  residual `sigma` target drift, bivariate direct-SD expansion, or `sd_sigma*()`
+  syntax.
+- Fisher, Gauss, Noether, Darwin, Jason, and Emmy stayed watch-only because no
+  estimand, likelihood, equation derivation, biological example, landscape
+  claim, or object structure changed.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `R/methods.R`
+- `docs/design/18-random-effect-scale-models.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-17-slice-149-random-scale-factor-newdata.md`
+- `tests/testthat/test-gaussian-random-effect-scale.R`
+
+What changed:
+
+- The fixed-effect `newdata` preparation logic is now a shared
+  model-matrix-newdata helper.
+- `predict_random_scale_dpar()` now prepares `newdata` with the fitted
+  random-effect scale model frame before calling `model.matrix()`.
+- `predict(fit, dpar = "sd(id)", newdata = data.frame(w = "high"))` now routes
+  matching character values through the fitted factor coding, while unknown
+  values such as `w = "medium"` error with the fitted levels named instead of
+  falling into base R contrast or non-conformable matrix errors.
+
+Checks run:
+
+- No-edit scouts before the fix:
+  - `newdata = data.frame(w = factor("medium"))` failed with
+    `contrasts can be applied only to factors with 2 or more levels`.
+  - `newdata = data.frame(w = factor("medium", levels = c("low", "high", "medium")))`
+    failed with `non-conformable arguments`.
+- `Rscript -e "devtools::test(filter = 'fixed-effect-basis|gaussian-random-effect-scale', reporter = 'summary')"`:
+  passed.
+- Post-fix scout:
+  - matching character value `w = "high"` predicted successfully;
+  - unknown value `w = "medium"` errored with `unknown factor level` and listed
+    fitted levels `"low"` and `"high"`.
+- `air format NEWS.md ROADMAP.md R/methods.R docs/design/18-random-effect-scale-models.md tests/testthat/test-gaussian-random-effect-scale.R`:
+  passed.
+- `git diff --check`: passed.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed.
+- Positive source/rendered scan for Slice 149 random-effect scale factor-level
+  wording: found the expected entries in `NEWS.md`, `ROADMAP.md`,
+  `R/methods.R`, `docs/design/18-random-effect-scale-models.md`,
+  `tests/testthat/test-gaussian-random-effect-scale.R`, and rendered pkgdown
+  NEWS/ROADMAP pages.
+- Stale-claim scan for accidental random-effect scale `emmeans`, bivariate
+  random-effect scale implementation, `sd_sigma*()` syntax, residual-`sigma`
+  target drift, or transformed-response support: no new false support claims;
+  matches were existing direct-SD boundary text or unrelated implemented
+  residual-scale random-effect internals.
+- Recovery checkpoint:
+  `docs/dev-log/recovery-checkpoints/2026-05-17-015955-codex-checkpoint.md`.
+
+Known limitations:
+
+- This slice validates fitted factor levels for random-effect scale prediction
+  `newdata`.
+- It does not add random-effect scale `emmeans`, bivariate random-effect scale
+  prediction surfaces, `sd_sigma*()` syntax, transformed-response support,
+  empirical marginalisation, or new random-effect scale model families.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slice-149-random-scale-factor-newdata.md`.

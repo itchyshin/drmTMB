@@ -181,6 +181,34 @@ test_that("Gaussian sd(id) prediction validates transformed newdata values", {
   )
 })
 
+test_that("Gaussian sd(id) prediction validates factor levels in newdata", {
+  sim <- new_gaussian_re_scale_data(
+    n_id = 12,
+    n_each = 4,
+    factor_w = TRUE,
+    seed = 20260562
+  )
+  fit <- drmTMB(
+    bf(y ~ x + (1 | id), sigma ~ z, sd(id) ~ w),
+    family = gaussian(),
+    data = sim$data,
+    control = drm_control(optimizer = list(eval.max = 120L, iter.max = 120L))
+  )
+  high_factor <- data.frame(
+    w = factor("high", levels = levels(sim$data$w))
+  )
+
+  expect_equal(
+    predict(fit, dpar = "sd(id)", newdata = data.frame(w = "high")),
+    predict(fit, dpar = "sd(id)", newdata = high_factor),
+    ignore_attr = TRUE
+  )
+  expect_error(
+    predict(fit, dpar = "sd(id)", newdata = data.frame(w = "medium")),
+    "unknown factor level"
+  )
+})
+
 test_that("Gaussian sd(id) variables participate in missingness", {
   sim <- new_gaussian_re_scale_data(n_id = 16, n_each = 5, seed = 20260554)
   dat <- sim$data

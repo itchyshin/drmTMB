@@ -3390,7 +3390,16 @@ drm_prepare_prediction_newdata <- function(object, newdata, dpar) {
     return(newdata)
   }
 
-  needed <- all.vars(stats::delete.response(object$model$terms[[dpar]]))
+  drm_prepare_model_matrix_newdata(
+    newdata = newdata,
+    dpar = dpar,
+    terms = object$model$terms[[dpar]],
+    template = template
+  )
+}
+
+drm_prepare_model_matrix_newdata <- function(newdata, dpar, terms, template) {
+  needed <- all.vars(stats::delete.response(terms))
   missing <- setdiff(needed, names(newdata))
   if (length(missing) > 0L) {
     cli::cli_abort(c(
@@ -3433,6 +3442,19 @@ drm_prepare_prediction_newdata <- function(object, newdata, dpar) {
     )
   }
   newdata
+}
+
+drm_prepare_random_scale_newdata <- function(sd_target, newdata, dpar) {
+  template <- sd_target$model_frame_list[[dpar]]
+  if (!is.data.frame(template)) {
+    return(newdata)
+  }
+  drm_prepare_model_matrix_newdata(
+    newdata = newdata,
+    dpar = dpar,
+    terms = sd_target$terms_list[[dpar]],
+    template = template
+  )
 }
 
 drm_validate_prediction_matrix_finite <- function(X, dpar) {
@@ -3955,6 +3977,7 @@ predict_random_scale_dpar <- function(
     if (!is.data.frame(newdata)) {
       cli::cli_abort("{.arg newdata} must be a data frame.")
     }
+    newdata <- drm_prepare_random_scale_newdata(sd_target, newdata, dpar)
     X <- stats::model.matrix(sd_target$terms_list[[dpar]], data = newdata)
     drm_validate_prediction_matrix_finite(X, dpar)
     names_out <- rownames(newdata)

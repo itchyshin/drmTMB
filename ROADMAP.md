@@ -1110,6 +1110,10 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   prediction. Direct `sd(id)` predictions with `newdata` such as `w_pos = 0`
   in a model with `sd(id) ~ log(w_pos)` now error before returning infinite
   link- or response-scale SD predictions.
+- Slice 149 extends fitted factor-level validation to random-effect scale
+  prediction. Direct `sd(id)` predictions now accept character values that
+  match fitted `sd(id)` factor levels and reject unknown levels before base R
+  contrast or matrix-conformability errors.
 - Add additional ggplot-oriented helpers only after the data contract is stable:
   location curves, scale/variance curves, residual `rho12` curves,
   `sd(group)` or `sd_phylo()` surfaces, `corpairs()` summaries, and eventually
