@@ -1,5 +1,6 @@
 # drmTMB 0.1.2 (2026-05-16)
 
+* Slice 203 now records the post-202 Phase 17 return block for meta-analysis hardening. The next targets are the preferred `meta_V(V = V)` spelling and compatibility story, additive vector/matrix known `V`, proportional-variance design boundaries, interval safety, and reader examples.
 * The Slice 202 pre-simulation gate now keeps broad Phase 18 comprehensive simulation closed until the post-202 Phase 17 hardening block is complete. A narrow Poisson `mu` random-effect pilot simulation is allowed, but meta-analysis hardening around `meta_V()`/known `V`, interval safety, and reader-facing examples should come before broad simulation claims.
 * Focused Poisson random-effect recovery now includes a factor-predictor random-intercept case and a weak-SD boundary case. These tests keep ordinary non-zero-inflated Poisson `mu` random effects inside the Phase 17/18 gate while leaving NB2, zero-inflation, scale, shape, ordinal, and structured non-Gaussian random effects as planned work.
 * The validation-debt register now contains a Slice 201 non-Gaussian failure ledger. It names the convergence, boundary, identifiability, interval, and runtime risks that Phase 18 should measure or exclude before broad simulation claims are made.

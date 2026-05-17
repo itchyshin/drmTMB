@@ -23329,3 +23329,43 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slice-202-presimulation-decision.md`.
+
+## 2026-05-17 - Slice 203 meta-analysis return map
+
+Goal: set the first Phase 17 return block after the pre-simulation gate, with
+meta-analysis hardening before broad Phase 18 simulation claims.
+
+Files changed:
+
+- `ROADMAP.md`
+- `NEWS.md`
+- `docs/dev-log/after-task/2026-05-17-slice-203-meta-analysis-return-map.md`
+
+What changed:
+
+- Added a post-202 Phase 17 return section to the roadmap.
+- Set Slice 203 as the local roadmap slice for the return map.
+- Laid out Slices 204-208: `meta_V()` API decision, additive known-`V`
+  implementation if approved, proportional sampling-variance boundary,
+  interval safety, and reader examples.
+- Re-stated that meta-analysis remains Gaussian regression with known sampling
+  covariance, not a new `meta_gaussian()` family, and that `sigma` remains the
+  fitted extra heterogeneity SD.
+
+Checks run:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH air format NEWS.md ROADMAP.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-17-slice-203-meta-analysis-return-map.md`
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with no problems.
+- `rg -n 'Post-202 Phase 17 Return|Slice 203|meta-analysis return|meta_V\\(\\)|meta_V\\(V = V\\)|proportional sampling-variance|meta_gaussian|tau ~|sigma remains|compatibility alias' ROADMAP.md NEWS.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-17-slice-203-meta-analysis-return-map.md`:
+  found the intended return-map, naming, and guardrail wording.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- This slice does not implement `meta_V()`, deprecate `meta_known_V()`, add
+  proportional sampling-variance likelihoods, or change the current fitted
+  meta-analysis path.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slice-203-meta-analysis-return-map.md`.

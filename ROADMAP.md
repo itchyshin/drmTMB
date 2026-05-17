@@ -1368,6 +1368,25 @@ full Phase 18. If a simulation task starts before that block closes, it should
 be labelled as a Poisson `mu` random-effect pilot with explicitly limited
 estimands, not as the comprehensive drmTMB simulation programme.
 
+### Post-202 Phase 17 Return: Meta-Analysis Hardening
+
+The first return block after Slice 202 is meta-analysis hardening. This block
+keeps meta-analysis as Gaussian regression with known sampling covariance while
+making the public grammar and examples match the preferred long-term name.
+
+| Slice | Lane | Target |
+| --- | --- | --- |
+| 203 | Meta-analysis return map | Done locally: record the post-202 return block, keep broad Phase 18 closed, and make `meta_V()`/known-`V` hardening the first Phase 17 target. |
+| 204 | `meta_V()` API decision | Decide and document whether `meta_V(V = V)` becomes the preferred public spelling now, with `meta_known_V(V = V)` retained as a compatibility alias. |
+| 205 | Additive known `V` implementation | If Slice 204 passes, implement `meta_V(V = vi_or_V)` for vector, column, diagonal, block-diagonal, and dense matrix inputs by routing to the existing additive known-covariance path. |
+| 206 | Proportional sampling-variance boundary | Keep `meta_V(w = w, scale = "proportional")` design-only unless its likelihood, parameters, diagnostics, and examples are explicitly implemented. Do not mimic it with top-level `weights =`. |
+| 207 | Meta-analysis interval safety | Recheck summary, Wald intervals, profile targets, dense `V` diagnostics, random effects, and bivariate known-`V` boundaries so confidence intervals do not silently drop or overclaim rows. |
+| 208 | Reader examples | Refresh the meta-analysis tutorial and model map around vector `V`, matrix `V`, residual heterogeneity `sigma`, random effects, random-effect scale, and the unsupported proportional branch. |
+
+Do not introduce `meta_gaussian()` or `tau ~` syntax in this block. Keep
+`sigma` as the fitted extra heterogeneity SD, and explain the translation to
+meta-analytic `tau` only in prose and tables.
+
 Slice 190 decision: the first non-Gaussian implementation target should be
 ordinary `mu` random intercepts for the count families whose fixed-effect
 likelihoods already have focused tests and clear response-scale interpretation.
