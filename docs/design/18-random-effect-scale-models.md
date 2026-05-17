@@ -167,6 +167,12 @@ The supplied `newdata` object must be a data frame. A zero-row data frame is a
 valid empty prediction grid: direct-SD prediction returns a named length-zero
 numeric vector on either link or response scale.
 
+When more than one direct-SD formula is fitted, `newdata` validation is scoped
+to the requested `dpar`. For example, `predict(fit, dpar = "sd(id)")` requires
+the predictors used by `sd(id) ~ ...` and ignores extra columns used only by a
+sibling target such as `sd(site) ~ ...`; missing predictors for the requested
+target error before model-matrix construction.
+
 Ecology/evolution interpretation:
 
 ```r

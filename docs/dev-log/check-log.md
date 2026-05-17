@@ -21116,3 +21116,83 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slice-152-random-scale-newdata-boundaries.md`.
+
+## 2026-05-17 - Slice 153 multiple random-effect scale newdata targets
+
+Goal: pin direct-SD `newdata` validation when a fit has more than one
+random-effect scale formula.
+
+Roles:
+
+- Ada scoped this as the next direct-SD prediction boundary after container
+  validation.
+- Boole checked that target selection remains through the existing `dpar`
+  string, not new syntax.
+- Pat checked that missing-predictor errors name the requested target's
+  predictor.
+- Curie owned the multiple-target regression test.
+- Grace owned focused tests, pkgdown build/check, and rendered-site scans.
+- Rose checked that the wording does not imply bivariate direct-SD prediction
+  surfaces, random-effect scale `emmeans`, `sd_sigma*()` syntax, or
+  transformed-response support.
+- Fisher, Gauss, Noether, Darwin, Jason, and Emmy stayed watch-only because no
+  estimand, likelihood, equation derivation, biological example, landscape
+  claim, or object structure changed.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/18-random-effect-scale-models.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-17-slice-153-multiple-random-scale-newdata.md`
+- `tests/testthat/test-gaussian-random-effect-scale.R`
+
+What changed:
+
+- Added explicit tests for a Gaussian model with both `sd(id) ~ w_id` and
+  `sd(site) ~ w_site`.
+- The test checks that `predict(dpar = "sd(id)")` and
+  `predict(dpar = "sd(site)")` validate their own predictors, ignore
+  sibling-target extra columns, and name the missing target-specific predictor.
+- NEWS, the Phase 17 roadmap, and the random-effect scale design note now state
+  the same multiple-target `newdata` contract.
+
+Checks run:
+
+- No-edit scout before the slice showed that `sd(id)` and `sd(site)` predictions
+  each used their own `newdata` predictor, ignored the sibling predictor as an
+  extra column, and errored for missing `w_site` with `dpar = "sd(site)"`.
+- `air format NEWS.md ROADMAP.md docs/design/18-random-effect-scale-models.md tests/testthat/test-gaussian-random-effect-scale.R`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'gaussian-random-effect-scale', reporter = 'summary')"`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'fixed-effect-basis|gaussian-random-effect-scale', reporter = 'summary')"`:
+  passed.
+- `git diff --check`: passed.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed.
+- Positive source/rendered scan for Slice 153 multiple-target wording: found
+  the expected entries in `NEWS.md`, `ROADMAP.md`,
+  `docs/design/18-random-effect-scale-models.md`,
+  `tests/testthat/test-gaussian-random-effect-scale.R`, and rendered pkgdown
+  NEWS/ROADMAP pages.
+- Stale-claim scan for accidental random-effect scale `emmeans`, bivariate
+  random-effect scale prediction, `sd_sigma*()` syntax,
+  transformed-response support, or bivariate/multiple-target overclaims: no new
+  false support claims; matches were existing spatial, profile-interval, Family
+  B, or `sd_sigma1()` / `sd_sigma2()` guardrails.
+- Recovery checkpoint:
+  `docs/dev-log/recovery-checkpoints/2026-05-17-030256-codex-checkpoint.md`.
+
+Known limitations:
+
+- This slice pins multiple direct-SD `newdata` validation for ordinary
+  univariate Gaussian random-effect scale formulas.
+- It does not add random-effect scale `emmeans`, bivariate random-effect scale
+  prediction surfaces, empirical marginalisation, `sd_sigma*()` syntax,
+  transformed-response support, or new random-effect scale model families.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slice-153-multiple-random-scale-newdata.md`.

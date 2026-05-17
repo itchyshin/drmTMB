@@ -1126,6 +1126,10 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   `newdata` inputs now have explicit error coverage, while zero-row data-frame
   grids return named length-zero numeric vectors on both link and response
   scales.
+- Slice 153 pins multiple direct-SD formula prediction boundaries. Fits with
+  both `sd(id) ~ w_id` and `sd(site) ~ w_site` now have explicit tests that
+  each requested `dpar` validates its own predictors, ignores sibling-target
+  extra columns, and names the missing target-specific predictor.
 - Add additional ggplot-oriented helpers only after the data contract is stable:
   location curves, scale/variance curves, residual `rho12` curves,
   `sd(group)` or `sd_phylo()` surfaces, `corpairs()` summaries, and eventually
