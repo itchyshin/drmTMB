@@ -21822,3 +21822,85 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slices-160-164-confidence-profile-bridge.md`.
+
+## 2026-05-17 - Slices 165-168 profile example bridge
+
+Goal: continue the interval-readiness revisit through Slice 168 by making the
+reader-facing profile examples match the implemented direct and row-specific
+profile paths.
+
+Who was working:
+
+- Ada coordinated the stacked Slice 165-168 branch from the Slice 160-164 PR
+  head.
+- Fisher checked that interval claims stayed limited to implemented
+  profile-likelihood confidence intervals.
+- Pat reviewed whether applied users can find the right `confint()` or
+  `summary()` call for constant scale, row-specific scale, random-effect SDs,
+  and correlations.
+- Grace owned focused tests, vignette render, pkgdown build/check, and stale
+  wording scans.
+- Rose checked roadmap, design-note, check-log, and after-task continuity.
+- Boole reviewed the public target names around `sigma`, `sigma1`, `sigma2`,
+  `rho12`, `sd:mu:*`, and `cor:*`.
+- No spawned subagents were running during this slice block.
+
+Files changed:
+
+- `vignettes/model-workflow.Rmd`
+- `docs/design/12-profile-likelihood-cis.md`
+- `ROADMAP.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-17-slices-165-168-profile-example-bridge.md`
+
+What changed:
+
+- Slice 165: the model-workflow article now shows row-specific
+  `confint(..., method = "profile", newdata = ...)` examples for `sigma`,
+  `sigma1`, `sigma2`, and residual `rho12`.
+- Slice 166: the article and profile-CI design note now separate constant
+  `sigma ~ 1` direct targets from predictor-dependent `sigma ~ x` row profiles,
+  and keep `profile.boundary` plus `profile.message` interpretation visible.
+- Slice 167: random-effect SD examples now tell users to copy the exact
+  `profile_targets()` row, including random-slope suffixes such as
+  `sd:mu:(1 + x | p | id):x`.
+- Slice 168: random-effect correlation examples now stay separate from residual
+  `rho12`, with direct target requests gated by `profile_targets()`.
+- The roadmap's next-30-slice table now marks Slices 165-168 complete and keeps
+  Slice 169 as the next derived-interval boundary audit.
+
+Checks run:
+
+- `air format vignettes/model-workflow.Rmd docs/design/12-profile-likelihood-cis.md ROADMAP.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-17-slices-165-168-profile-example-bridge.md`:
+  passed.
+- `Rscript -e 'devtools::test(filter = "profile-targets|summary", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'pkgload::load_all(".", quiet = TRUE); rmarkdown::render("vignettes/model-workflow.Rmd", output_dir = tempfile("model-workflow-render-"), quiet = FALSE)'`:
+  passed.
+- `Rscript -e 'pkgdown::build_site(preview = FALSE)'`: passed.
+- `Rscript -e 'pkgdown::check_pkgdown()'`: passed with "No problems found."
+- `git diff --check`: passed.
+- Stale direct-`sigma` and derived-profile scan:
+  `rg -n 'summary\\(fit, conf\\.int = TRUE, method = "profile", ci_parm = "sigma"\\)|ci_parm = "sigma".*sigma ~ temperature|profile_ready.*q4|q4.*profile_ready|derived_interval_unavailable.*profile_ready' README.md NEWS.md ROADMAP.md docs/design vignettes R man pkgdown-site --glob '!pkgdown-site/search.json' --glob '!docs/dev-log/**'`
+  returned only the expected constant-`sigma` roxygen and manual examples in
+  `R/methods.R` and `man/summary.drmTMB.Rd`; that example fits `sigma ~ 1`.
+- Stale credible-interval and derived-q4 scan:
+  `rg -n 'credible intervals?[^.,;\\n]*(available|returned|computed)|Bayesian credible intervals?[^.,;\\n]*(available|returned|computed)|profile intervals?[^.,;\\n]*derived q4|derived q4[^.,;\\n]*profile intervals?' README.md NEWS.md ROADMAP.md docs/design vignettes R man pkgdown-site --glob '!pkgdown-site/search.json' --glob '!docs/dev-log/**'`
+  returned no matches.
+- Rendered-site scan:
+  `rg -n 'Slices 165-168|cool_reef|warm_reef|cool_low_coupling|warm_high_coupling|constant `sigma` uses|direct constant-`sigma`|random-slope suffixes|residual `rho12`.*profile_targets' ROADMAP.md docs/design/12-profile-likelihood-cis.md vignettes/model-workflow.Rmd pkgdown-site/ROADMAP.html pkgdown-site/articles/model-workflow.html --glob '!pkgdown-site/search.json'`
+  confirmed the updated source and rendered article/roadmap wording.
+
+Known limitations:
+
+- No new interval estimator was added. This block documents and validates the
+  existing profile paths.
+- Predictor-dependent row profiles still require concrete `newdata`; custom
+  multi-row contrasts remain later work.
+- q4 ordinary and phylogenetic endpoint correlations remain derived rows with
+  unavailable interval status.
+- Bootstrap and derived-interval work starts at Slice 169.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slices-165-168-profile-example-bridge.md`.

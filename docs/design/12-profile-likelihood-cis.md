@@ -85,6 +85,45 @@ object retained the TMB object. Predictor-row profiles are valid only after
 the user supplies `newdata`; derived summaries must stay status-only until a
 validated derived interval method exists.
 
+## Slices 165-168 Profile Example Bridge
+
+Slices 165-168 turn the refreshed inventory into the examples users should see
+before the bootstrap and derived-interval revisit. They do not add a new profile
+engine. They pin the boundary between direct fitted-object targets, row-specific
+`newdata` targets, and derived rows that still need a later method.
+
+Slice 165 records row-specific scale and residual-correlation profiles as the
+standard examples for predictor-dependent distributional parameters:
+
+```r
+confint(fit, parm = "sigma", method = "profile", newdata = grid)
+confint(fit_biv, parm = "sigma1", method = "profile", newdata = grid)
+confint(fit_biv, parm = "sigma2", method = "profile", newdata = grid)
+confint(fit_biv, parm = "rho12", method = "profile", newdata = grid)
+```
+
+Slice 166 keeps constant residual scale separate from predictor-dependent scale.
+When the formula is `sigma ~ 1`, `parm = "sigma"` is a fitted-object target and
+can be requested through `summary(conf.int = TRUE, method = "profile",
+ci_parm = "sigma")` or `confint(fit, parm = "sigma", method = "profile")`.
+When the formula is `sigma ~ x`, the response-scale target must be a supplied
+row. In both cases, output must expose `profile.boundary` and `profile.message`
+so users can identify one-sided or near-boundary intervals.
+
+Slice 167 uses the exact `profile_targets()` row for direct random-effect SDs.
+Intercept-only blocks can use short names such as `sd:mu:(1 | id)`, while
+random-slope blocks keep the coefficient suffix, for example
+`sd:mu:(1 + x | p | id):x`.
+
+Slice 168 gives correlation examples without merging correlation layers.
+Residual `rho12` is a distributional residual-correlation target; group-level,
+location-scale, phylogenetic, or spatial random-effect correlations are separate
+latent correlation rows such as `cor:mu:cor((Intercept),x | p | id)`,
+`cor:mu_sigma:cor(mu:(Intercept),sigma:(Intercept) | p | id)`, or
+`cor:phylo:cor(mu1:(Intercept),mu2:(Intercept) | phylo | species)`. Only rows
+marked `profile_ready` by `profile_targets()` should be requested as direct
+profile intervals.
+
 The first implementation must therefore start from a stable target inventory,
 not from ad hoc parameter names in the C++ template. Public targets should be
 named using user-facing quantities:
