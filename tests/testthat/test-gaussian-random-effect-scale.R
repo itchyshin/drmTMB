@@ -181,6 +181,29 @@ test_that("Gaussian sd(id) prediction validates transformed newdata values", {
   )
 })
 
+test_that("Gaussian sd(id) prediction validates raw newdata predictors", {
+  sim <- new_gaussian_re_scale_data(n_id = 12, n_each = 4, seed = 20260563)
+  fit <- drmTMB(
+    bf(y ~ x + (1 | id), sigma ~ z, sd(id) ~ w),
+    family = gaussian(),
+    data = sim$data,
+    control = drm_control(optimizer = list(eval.max = 120L, iter.max = 120L))
+  )
+  expect_sd_error <- function(newdata, pattern) {
+    err <- tryCatch(
+      predict(fit, dpar = "sd(id)", newdata = newdata),
+      error = identity
+    )
+    expect_s3_class(err, "error")
+    expect_match(conditionMessage(err), pattern)
+    expect_match(conditionMessage(err), "`w`")
+  }
+
+  expect_sd_error(data.frame(x = 0), "missing required predictor")
+  expect_sd_error(data.frame(w = NA_real_), "missing value")
+  expect_sd_error(data.frame(w = Inf), "non-finite value")
+})
+
 test_that("Gaussian sd(id) prediction validates factor levels in newdata", {
   sim <- new_gaussian_re_scale_data(
     n_id = 12,

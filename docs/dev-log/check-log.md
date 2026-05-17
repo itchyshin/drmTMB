@@ -20881,3 +20881,80 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slice-149-random-scale-factor-newdata.md`.
+
+## 2026-05-17 - Slice 150 random-effect scale raw newdata guard
+
+Goal: pin the raw-predictor side of random-effect scale `newdata` validation
+with explicit tests and public/design wording.
+
+Roles:
+
+- Ada scoped this as a no-likelihood-change evidence slice following Slice 149.
+- Boole checked that the formula grammar remains unchanged: `sd(id) ~ w` is the
+  same syntax, but malformed `newdata` fails earlier.
+- Pat checked that the user-facing errors name the required predictor `w`.
+- Curie owned the missing-column, missing-value, and non-finite-value regression
+  test.
+- Grace owned the focused tests, pkgdown build/check, and rendered-site scans.
+- Rose checked that the wording does not imply random-effect scale `emmeans`,
+  bivariate direct-SD prediction surfaces, `sd_sigma*()` syntax, or
+  transformed-response support.
+- Fisher, Gauss, Noether, Darwin, Jason, and Emmy stayed watch-only because no
+  estimand, likelihood, equation derivation, biological example, landscape
+  claim, or object structure changed.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/18-random-effect-scale-models.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-17-slice-150-random-scale-raw-newdata.md`
+- `tests/testthat/test-gaussian-random-effect-scale.R`
+
+What changed:
+
+- Added explicit direct-SD tests for `predict(fit, dpar = "sd(id)",
+  newdata = ...)` when the required raw predictor `w` is missing, `NA`, or
+  `Inf`.
+- NEWS, the Phase 17 roadmap, and the random-effect scale design note now state
+  that required direct-SD raw predictors in supplied `newdata` must be present,
+  complete, and finite when numeric.
+
+Checks run:
+
+- No-edit scout after Slice 149 showed the existing helper already errors for
+  `newdata = data.frame(x = 1)`, `newdata = data.frame(w = NA_real_)`, and
+  `newdata = data.frame(w = Inf)` with predictor-specific messages.
+- `air format NEWS.md ROADMAP.md docs/design/18-random-effect-scale-models.md tests/testthat/test-gaussian-random-effect-scale.R`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'gaussian-random-effect-scale', reporter = 'summary')"`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'fixed-effect-basis|gaussian-random-effect-scale', reporter = 'summary')"`:
+  passed.
+- `git diff --check`: passed.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed.
+- Positive source/rendered scan for Slice 150 random-effect scale raw-newdata
+  wording: found the expected entries in `NEWS.md`, `ROADMAP.md`,
+  `docs/design/18-random-effect-scale-models.md`,
+  `tests/testthat/test-gaussian-random-effect-scale.R`, and rendered pkgdown
+  NEWS/ROADMAP pages.
+- Stale-claim scan for accidental random-effect scale `emmeans`, bivariate
+  random-effect scale prediction, `sd_sigma*()` syntax, or
+  transformed-response support: no new false support claims; matches were
+  existing intentional `sd_sigma1()` / `sd_sigma2()` guardrails.
+- Recovery checkpoint:
+  `docs/dev-log/recovery-checkpoints/2026-05-17-021740-codex-checkpoint.md`.
+
+Known limitations:
+
+- This slice pins raw-predictor validation for random-effect scale prediction
+  `newdata`.
+- It does not add random-effect scale `emmeans`, bivariate random-effect scale
+  prediction surfaces, `sd_sigma*()` syntax, transformed-response support,
+  empirical marginalisation, or new random-effect scale model families.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slice-150-random-scale-raw-newdata.md`.
