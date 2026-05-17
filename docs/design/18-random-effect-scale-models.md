@@ -149,6 +149,11 @@ matrix values. For example, a model with `sd(id) ~ log(w_pos)` rejects
 `newdata = data.frame(w_pos = 0)` instead of returning an infinite fitted
 random-effect SD.
 
+Factor predictors on the `sd(id)` right-hand side use the fitted factor levels
+when `newdata` is supplied. Character values that match fitted levels are
+accepted and coerced through the fitted coding, while unknown levels error
+before random-effect scale model-matrix construction.
+
 Ecology/evolution interpretation:
 
 ```r
