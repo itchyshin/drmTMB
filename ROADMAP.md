@@ -1036,6 +1036,11 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   `emmeans(..., type = "response")` matches
   `predict(dpar = "mu", type = "response")`, while `type = "link"` remains on
   the formula linear-predictor scale.
+- Slice 131 adds custom numeric covariate-reduction coverage for the first
+  `emmeans()` bridge. A skewed Gaussian fixed-effect `mu` example now checks
+  that `emmeans(..., cov.reduce = stats::median)` matches
+  `predict(dpar = "mu")` at `median(x)`, keeping custom reduction as ordinary
+  `emmeans` reference-grid behaviour rather than drmTMB empirical averaging.
 - Add additional ggplot-oriented helpers only after the data contract is stable:
   location curves, scale/variance curves, residual `rho12` curves,
   `sd(group)` or `sd_phylo()` surfaces, `corpairs()` summaries, and eventually

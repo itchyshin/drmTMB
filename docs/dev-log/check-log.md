@@ -19325,3 +19325,88 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-16-slice-130-emmeans-type-argument.md`.
+
+## 2026-05-16 - Slice 131 emmeans custom covariate reduction
+
+Goal: add explicit coverage for a custom numeric covariate-reduction function in
+the first fixed-effect univariate `mu` `emmeans()` bridge.
+
+Roles:
+
+- Ada kept this as a test/docs slice on top of the direct `type` argument
+  coverage.
+- Boole checked that `cov.reduce = stats::median` is described as ordinary
+  `emmeans` reference-grid behaviour, not new drmTMB grammar.
+- Fisher checked that the estimand remains native fixed-effect `mu` at the
+  reduced numeric covariate value.
+- Curie added the skewed-covariate median parity test.
+- Pat checked that the docs tell readers which grid point is being reported.
+- Grace owned focused tests, pkgdown, and rendered wording scans.
+- Rose checked that custom covariate reduction stays separate from empirical
+  averaging and custom weights.
+- Gauss, Noether, Darwin, Jason, and Emmy stayed watch-only because no
+  likelihood, equation, biological example, landscape claim, or object
+  structure changed.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/39-visualization-grammar.md`
+- `docs/design/40-emmeans-interface-contract.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-16-slice-131-emmeans-covreduce-median.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-16-214431-codex-checkpoint.md`
+- `tests/testthat/test-emmeans-methods.R`
+
+What changed:
+
+- Added a public Gaussian fixed-effect `mu` test with a deliberately skewed
+  numeric covariate.
+- The test checks that `emmeans(..., cov.reduce = stats::median)` matches
+  `predict(dpar = "mu")` at `median(x)`.
+- Updated NEWS, roadmap, and design notes to keep custom covariate reduction
+  distinct from empirical averaging and custom-weight workflows.
+
+Checks run:
+
+- No-edit scout:
+  `emmeans(..., cov.reduce = stats::median)` shifted the grid away from the
+  default mean as expected in a skewed fixed-effect Gaussian `mu` example.
+- `air format NEWS.md ROADMAP.md docs/design/39-visualization-grammar.md docs/design/40-emmeans-interface-contract.md tests/testthat/test-emmeans-methods.R`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'emmeans-methods', reporter = 'summary')"`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'emmeans-methods|emmeans-recover-data|emmeans-preflight|fixed-effect-basis|reference-grid-link-scale-contract', reporter = 'summary')"`:
+  passed.
+- `git diff --check`: passed.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed.
+- Positive source/rendered scan for Slice 131 `cov.reduce = stats::median`
+  wording and tests: found the expected entries.
+- Stale-claim scan for `cov.reduce` as unsupported or custom weighting as
+  implemented: no contradictions; matches were the intentional boundary
+  sentences saying this is not drmTMB-specific empirical averaging or custom
+  weighting.
+- Recovery checkpoint:
+  `docs/dev-log/recovery-checkpoints/2026-05-16-214431-codex-checkpoint.md`.
+
+Post-rebase checks:
+
+- PR #95 merged as `a0425dbb417578fe5374d3d1e254f70397a1c0cf`.
+- `git rebase --onto origin/main c06f83cea77eff218d890b037869c7ed24913275`:
+  passed.
+- `git diff --check origin/main...HEAD`: passed.
+- `Rscript -e "devtools::test(filter = 'emmeans-methods|emmeans-recover-data|emmeans-preflight|fixed-effect-basis|reference-grid-link-scale-contract', reporter = 'summary')"`:
+  passed.
+
+Known limitations:
+
+- This slice covers custom numeric covariate reduction for fixed-effect
+  univariate `mu` only.
+- It does not add custom weights, empirical marginalisation through `emmeans`,
+  slopes, non-`mu` targets, transformed responses, or blocked model structures.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-16-slice-131-emmeans-covreduce-median.md`.
