@@ -431,6 +431,34 @@ Use these status labels:
   recovery tests, diagnostics, documentation, NEWS, check-log evidence, and an
   after-task report before moving out of blocked status.
 
+## Slice 201 non-Gaussian pre-simulation failure ledger
+
+This ledger closes the pre-simulation non-Gaussian gate by naming the failure
+modes that Phase 18 should measure or deliberately exclude. It is not a new
+implementation claim. A surface enters the first comprehensive simulation grid
+only when the fitted likelihood, extractor rows, diagnostics, interval targets,
+and focused recovery tests already exist.
+
+| Surface | Current fitted state | Main failure modes to track | Phase 18 decision |
+| --- | --- | --- | --- |
+| Ordinary Poisson `mu` random effects | Fitted for non-zero-inflated Poisson random intercepts and independent numeric random slopes. | Boundary fitted SDs near zero, weak group replication, weak within-group slope variation, biased fixed effects when group SD is small, and profile failure for `log_sd_mu` targets. | Include in the first non-Gaussian pilot grid with true SD, number of groups, repeats per group, fixed-effect contrast size, factor predictors, slope variation, convergence, Hessian, `check_drm()` status, profile success, bias, RMSE, and interval coverage where available. |
+| NB2 and zero-truncated NB2 `mu` random effects | Planned, not fitted. | Confounding among overdispersion, group-level heterogeneity, zero truncation, and count-side mean effects. | Exclude from the first comprehensive grid until NB2-style `mu` random effects have the same recovery and diagnostic evidence as Poisson. |
+| Non-Gaussian `sigma` random effects | Blocked; fixed-effect `sigma` formulas remain available where the family supports them. | Residual-scale random effects can mimic mean random effects, overdispersion, zero inflation, tail shape, and unmodelled heteroscedasticity. | Exclude until family-specific scale-random-effect likelihoods, `sdpars`, extractors, direct profile targets, weak-SD tests, and scale interpretation docs exist. |
+| Shape, skewness, and tail random effects | Blocked for Student-t `nu`; skew-normal and skew-t are future fixed-effect-first families. | Tail shape, residual skewness, residual scale, outliers, and latent ID-level skewness can mimic each other. | Exclude random effects in `nu`, future `tau`, and future ID-level skewness such as `skew(id) ~ x`; fixed-effect skew families need their own likelihood recovery before random effects are discussed as fitted. |
+| Zero inflation, hurdle, zero-one inflation, and one inflation | Fixed-effect `zi` and `hu` paths exist for selected count families; random effects and bounded-response `zoi`/`coi` paths are blocked or planned. | Count-side random effects can mimic structural zeros; hurdle and inflation components can be weakly separated from mean, dispersion, and sampling zeros. | Exclude random effects in `zi`, `hu`, future `zoi`, and future `coi`; add fixed-effect zero-one-inflated bounded likelihoods before any random-effect simulation grid. |
+| Ordinal mixed models | Cumulative-logit fixed-effect models fit; ordinal random effects are blocked. | Cutpoint separation, sparse categories, latent-scale identification, and random-effect SD boundaries can dominate ordinary coefficient recovery. | Exclude ordinal random effects until a random-intercept cumulative-logit likelihood has `sdpars`, `ranef()`, profile targets, cutpoint stability checks, weak-SD tests, and an `ordinal::clmm` comparator. |
+| Structured non-Gaussian dependence | `phylo()`, `spatial()`, planned `animal()`, and planned `relmat()` are Gaussian-only or design-only in fitted paths. | Known dependence matrices, Laplace random effects, sparse group support, and non-Gaussian links can create boundary and runtime failures before biology is interpretable. | Exclude structured non-Gaussian effects. Add ordinary family-specific random effects first, then one structured intercept route with matrix diagnostics, extractors, profile targets, and simulation recovery. |
+| Cross-parameter non-Gaussian covariance | Blocked. | Correlations among `mu`, `sigma`, shape, inflation, hurdle, and structured random effects can be weakly identified and can change sign under alternative parameterizations. | Exclude from Phase 18 until each marginal random-effect path is stable and a constant-block-correlation design has extractor, `corpairs()`, direct-target, and recovery evidence. |
+| Non-Gaussian intervals | Wald fixed-effect intervals exist where covariance is available; Poisson random-effect SDs expose direct profile targets. Bootstrap intervals are not implemented. | Wald intervals can understate uncertainty for boundary SDs; profiles can be one-sided, non-monotone, or fail inner optimization. | Measure interval coverage only for currently supported fixed-effect Wald and direct profile targets. Record profile failure, `profile.boundary`, and `profile.message`; do not report derived or bootstrap coverage yet. |
+| Runtime and scale | Routine tests are small deterministic gates, not benchmarks. | Large group counts, large dense known matrices, structured dependence, and repeated refits can change runtime and convergence rates. | Keep Phase 18 grids explicit about sample size, groups, repetitions, elapsed time, convergence rate, and failure rate. Large-data claims need optional benchmarks, not CRAN tests. |
+
+The immediate simulation-entry decision is therefore narrow. The first
+non-Gaussian operating-characteristics grid should include ordinary
+non-zero-inflated Poisson `mu` random intercepts and independent numeric slopes.
+All other non-Gaussian random-effect, structured-dependence, scale, shape,
+inflation, hurdle, ordinal, and cross-parameter covariance surfaces remain
+failure-ledger rows until their own implementation and recovery evidence exists.
+
 ## Open debt queue
 
 | Debt ID | Surface | Minimum next evidence |

@@ -23245,3 +23245,45 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slice-200-poisson-recovery.md`.
+
+## 2026-05-17 - Slice 201 non-Gaussian failure ledger
+
+Goal: record the non-Gaussian failure modes that Phase 18 should measure or
+exclude before broad simulation claims are made.
+
+Files changed:
+
+- `docs/design/34-validation-debt-register.md`
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/dev-log/after-task/2026-05-17-slice-201-nongaussian-failure-ledger.md`
+
+What changed:
+
+- Added a Slice 201 failure-ledger section to the validation-debt register.
+- Named fitted state, main failure modes, and Phase 18 decisions for ordinary
+  Poisson `mu` random effects, NB2-style count random effects, non-Gaussian
+  `sigma`, shape/skewness, zero/hurdle/one inflation, ordinal mixed models,
+  structured non-Gaussian dependence, cross-parameter covariance, intervals,
+  and runtime.
+- Kept the first non-Gaussian Phase 18 operating-characteristics grid narrow:
+  ordinary non-zero-inflated Poisson `mu` random intercepts and independent
+  numeric slopes can enter; other non-Gaussian random-effect surfaces stay
+  excluded until their own recovery evidence exists.
+
+Checks run:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH air format NEWS.md ROADMAP.md docs/design/34-validation-debt-register.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-17-slice-201-nongaussian-failure-ledger.md`
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with no problems.
+- `rg -n "Slice 201 non-Gaussian|Phase 18 decision|first non-Gaussian operating-characteristics|Exclude|Include|failure-ledger|convergence, boundary, identifiability" docs/design/34-validation-debt-register.md NEWS.md ROADMAP.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-17-slice-201-nongaussian-failure-ledger.md`:
+  found the intended include/exclude and failure-ledger wording.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- This slice does not implement any new likelihood, formula grammar, extractor,
+  interval method, or simulation runner.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slice-201-nongaussian-failure-ledger.md`.
