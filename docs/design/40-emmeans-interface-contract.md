@@ -299,3 +299,9 @@ Slice 139 extends the public zero-inflated `emmeans()` boundary to NB2.
 Zero-inflated NB2 fits now error as unsupported `"zi_nbinom2"` fits before
 returning an `emmGrid`, matching the zero-inflated Poisson boundary. This
 remains an unsupported boundary, not zero-inflated NB2 `emmeans` support.
+
+Slice 140 adds interaction-formula coverage for the fixed-effect univariate
+`mu` `emmeans()` bridge. A Gaussian `habitat * x` fit now checks that
+conditional EMMs at an explicit `x` value match `predict(dpar = "mu")` on the
+same interaction grid. This covers ordinary fixed-effect model-matrix
+interactions, not slope estimation or a new marginalisation contract.

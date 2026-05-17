@@ -234,6 +234,44 @@ test_that("emmeans method honors multiple explicit numeric at values", {
   expect_equal(link$df, rep(Inf, nrow(link)))
 })
 
+test_that("emmeans method handles mu interactions on an explicit grid", {
+  testthat::skip_if_not_installed("emmeans")
+  set.seed(20260554)
+  dat <- data.frame(
+    x = seq(-1, 1, length.out = 90L),
+    habitat = factor(rep(c("reef", "kelp", "sand"), length.out = 90L))
+  )
+  dat$y <- 0.2 +
+    0.35 * dat$x +
+    0.25 * (dat$habitat == "kelp") -
+    0.1 * (dat$habitat == "sand") +
+    0.3 * dat$x * (dat$habitat == "kelp") -
+    0.2 * dat$x * (dat$habitat == "sand") +
+    stats::rnorm(nrow(dat), sd = 0.08)
+  fit <- drmTMB(
+    bf(y ~ habitat * x, sigma ~ 1),
+    data = dat,
+    control = emmeans_methods_control(se = TRUE)
+  )
+
+  emm <- suppressMessages(
+    emmeans::emmeans(fit, ~habitat, at = list(x = 0.4))
+  )
+  link <- summary(emm)
+  grid <- data.frame(
+    x = 0.4,
+    habitat = factor(link$habitat, levels = levels(dat$habitat))
+  )
+
+  expect_equal(
+    link$emmean,
+    unname(predict(fit, newdata = grid, dpar = "mu", type = "link")),
+    tolerance = 1e-10
+  )
+  expect_true(all(is.finite(link$SE)))
+  expect_equal(link$df, rep(Inf, nrow(link)))
+})
+
 test_that("emmeans response scale follows the fitted mu inverse link", {
   testthat::skip_if_not_installed("emmeans")
   set.seed(20260538)
