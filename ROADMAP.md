@@ -1095,6 +1095,10 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   level named. Missing values in fitted factor predictors also error early, and
   extra factor columns not used by the requested distributional parameter are
   ignored.
+- Slice 144 extends fixed-effect prediction `newdata` validation to all
+  required predictors. Missing required columns and missing values in required
+  numeric predictors now error before model-matrix construction, while extra
+  unused columns remain harmless.
 - Add additional ggplot-oriented helpers only after the data contract is stable:
   location curves, scale/variance curves, residual `rho12` curves,
   `sd(group)` or `sd_phylo()` surfaces, `corpairs()` summaries, and eventually

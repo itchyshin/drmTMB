@@ -327,3 +327,11 @@ levels error before model-matrix construction with the predictor named. Extra
 factor columns not used by the requested distributional parameter are ignored.
 This keeps `predict()` and `emmeans` basis construction from falling through to
 an internal design-matrix or offset-length error.
+
+Slice 144 adds the matching required-variable validation for fixed-effect
+prediction newdata. Before building a model matrix, the basis path now checks
+that `newdata` supplies every predictor needed by the requested distributional
+parameter and that those required predictor values are complete. Extra columns
+that are not used by the target formula remain harmless. This protects both
+direct `predict()` calls and `emmeans` basis construction from base R
+`object not found` errors or row-dropping side effects.
