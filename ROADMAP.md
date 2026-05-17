@@ -14,11 +14,14 @@ distributional regression models using TMB.
   random-intercept covariance slice is now implemented. Phase 17 now records the
   visualization and marginal-effects layer because the later simulation and
   comparator phases need stable plotting/data helpers from the start. Phase 18
-  is the comprehensive simulation, power, accuracy, and coverage evidence layer;
-  Phase 19 is the one-off comparator demonstration layer; Phase 20 is CRAN and
-  paper preparation. Richer bivariate random slopes, residual-scale slope
-  covariance, structured covariance, and the full double-hierarchical endpoint
-  remain roadmap work for later releases.
+  is the comprehensive simulation, power, accuracy, and coverage evidence layer,
+  but the Slice 202 gate keeps broad Phase 18 closed until the post-202 Phase
+  17 return block, especially meta-analysis hardening, is complete. A narrow
+  Poisson random-effect pilot simulation may start earlier as a scoped
+  operating-characteristics grid. Phase 19 is the one-off comparator
+  demonstration layer; Phase 20 is CRAN and paper preparation. Richer bivariate
+  random slopes, residual-scale slope covariance, structured covariance, and the
+  full double-hierarchical endpoint remain roadmap work for later releases.
 - Completed before bumping the version:
   - `devtools::check()` passes with 0 errors, 0 warnings, and 0 notes;
   - `devtools::test()` and `pkgdown::check_pkgdown()` pass;
@@ -1344,7 +1347,26 @@ This is the current random-effect status before the non-Gaussian revisit:
 | 199 | Reader-facing family docs | Done locally: the model map, family chooser, and structural-dependence article now show implemented, planned, and unsupported states for non-Gaussian random effects and the structural-dependence ladder: animal, phylogeny, spatial, phylogeny plus spatial, then lower-level `relmat()` known-dependence matrices. |
 | 200 | Focused non-Gaussian recovery tests | Done locally: ordinary non-zero-inflated Poisson `mu` random-effect recovery now includes a factor-predictor random-intercept case and a weak-SD boundary case that exercises `check_drm()` lower-boundary diagnostics. |
 | 201 | Failure ledger | Done locally: `docs/design/34-validation-debt-register.md` now names the convergence, boundary, identifiability, interval, and runtime failures that Phase 18 should measure or exclude for ordinary Poisson, NB2, non-Gaussian scale, shape/skewness, inflation, ordinal, structured, cross-parameter covariance, interval, and runtime surfaces. |
-| 202 | Pre-simulation decision gate | Decide whether the random-effect and non-Gaussian surfaces are honest enough for Phase 18 or whether a smaller pilot simulation should start first. |
+| 202 | Pre-simulation decision gate | Done locally: do not start broad comprehensive Phase 18 yet. Permit only a narrow Poisson `mu` random-effect pilot grid if simulation begins now; otherwise return after Slice 202 to the Phase 17 hardening block, especially meta-analysis `meta_V()`/known-`V` API and interval safety. |
+
+### Slice 202 Pre-Simulation Decision Gate
+
+The Slices 190-202 non-Gaussian gate closes with a narrow decision. The package
+has enough evidence to simulate the currently fitted ordinary Poisson `mu`
+random-effect path, but not enough evidence to call the next phase a broad
+comprehensive simulation.
+
+| Decision Area | Slice 202 Decision | Reason |
+| --- | --- | --- |
+| Broad Phase 18 comprehensive simulation | Wait. | Too many neighbouring surfaces remain planned or blocked: NB2 `mu` random effects, non-Gaussian `sigma` random effects, shape/skew random effects, inflation and hurdle random effects, ordinal mixed models, structured non-Gaussian effects, cross-parameter non-Gaussian covariance, bootstrap intervals, and derived nonlinear interval coverage. |
+| Narrow pilot simulation | Allowed. | Ordinary non-zero-inflated Poisson `mu` random intercepts and independent numeric slopes have implementation, extractors, `sdpars$mu`, direct profile targets, focused recovery tests, factor-predictor coverage, and weak-SD boundary diagnostics. |
+| Post-202 work direction | Return to Phase 17 before full Phase 18. | Reader-facing inference and examples still need hardening before large simulation reports are useful. The first return block should focus on meta-analysis: preferred `meta_V(V = V)` spelling, vector and matrix `V`, proportional `meta_V(w = w, scale = "proportional")` design boundaries, profile/summary safety, and clear examples. |
+| Phase 18 entry rule | Open full grids only surface by surface. | Each surface needs a fitted likelihood, parser validation, extractors, diagnostics, direct or explicitly unavailable interval targets, focused recovery tests, and a failure-ledger row before it appears in a comprehensive simulation table. |
+
+The immediate next block is therefore a Phase 17 return block, not a leap into
+full Phase 18. If a simulation task starts before that block closes, it should
+be labelled as a Poisson `mu` random-effect pilot with explicitly limited
+estimands, not as the comprehensive drmTMB simulation programme.
 
 Slice 190 decision: the first non-Gaussian implementation target should be
 ordinary `mu` random intercepts for the count families whose fixed-effect
