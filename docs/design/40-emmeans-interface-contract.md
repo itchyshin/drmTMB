@@ -61,7 +61,9 @@ only. The method should:
 - preserve factor levels and ordered-factor status from the fitted data;
 - carry the requested `dpar`, prediction `type`, and target kind in metadata
   passed to `emm_basis()`;
-- reject random-effect, structured-effect, offset, and unsupported response
+- preserve `mu` formula offsets when the corresponding reference-grid variables
+  are supplied through `emmeans`;
+- reject random-effect, structured-effect, and unsupported response
   transformations until each path has its own tests.
 
 This mirrors `prediction_grid()` in spirit, but it should not call
@@ -214,3 +216,12 @@ pairwise differences among the EMMs, so documentation should not treat contrast
 itself as a pre-grid unsupported target. This is not a slope workflow, a custom
 weighting contract, a non-`mu` contrast helper, or support for blocked model
 structures.
+
+Slice 127 adds the first public offset parity check for this contract. A
+Poisson fixed-effect `mu` model with `offset(log(exposure))` verifies that
+`emmeans(..., at = list(exposure = 2))` matches `predict(dpar = "mu")` on both
+the link and response scales. This confirms that ordinary formula offsets can
+travel through the first `mu` EMM grid when users supply the needed offset
+variables, but it does not add support for non-`mu`, random-effect, bivariate,
+zero-inflated, hurdle, ordinal, slope, custom-weight, or fitted-response
+targets.

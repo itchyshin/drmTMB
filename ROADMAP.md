@@ -1015,6 +1015,12 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   fixed-effect `mu` EMMs, while docs avoid treating contrast itself as a
   pre-grid unsupported target and keep broader contrast and slope helpers
   separate.
+- Slice 127 adds explicit offset parity coverage for the first `emmeans()`
+  bridge. A Poisson fixed-effect `mu` model with `offset(log(exposure))` now
+  checks that `emmeans(..., at = list(exposure = 2))` matches
+  `predict(dpar = "mu")` on link and response scales, without widening support
+  to non-`mu`, random-effect, bivariate, zero-inflated, hurdle, ordinal, slope,
+  or fitted-response targets.
 - Add additional ggplot-oriented helpers only after the data contract is stable:
   location curves, scale/variance curves, residual `rho12` curves,
   `sd(group)` or `sd_phylo()` surfaces, `corpairs()` summaries, and eventually

@@ -19,7 +19,7 @@ drm_emmeans_mu_basis <- function(
   )
 }
 
-recover_data.drmTMB <- function(object, dpar = "mu", ...) {
+recover_data.drmTMB <- function(object, dpar = "mu", data = NULL, ...) {
   recovered <- tryCatch(
     drm_emmeans_recover_data(object, dpar = dpar),
     error = function(e) conditionMessage(e)
@@ -27,11 +27,13 @@ recover_data.drmTMB <- function(object, dpar = "mu", ...) {
   if (is.character(recovered)) {
     return(recovered)
   }
+  data <- if (is.null(data)) recovered$model_frame else data
   emmeans::recover_data(
     object$call,
     recovered$terms,
     na.action = NULL,
-    frame = recovered$model_frame,
+    data = data,
+    frame = data,
     ...
   )
 }
@@ -77,6 +79,7 @@ drm_emmeans_recover_data <- function(object, dpar = "mu") {
       "This {.cls drmTMB} fit does not retain terms for {.code dpar = \"{dpar}\"}."
     )
   }
+  model_frame <- drm_emmeans_complete_model_frame(object, model_frame, terms)
   list(
     dpar = dpar,
     model_frame = model_frame,
@@ -106,6 +109,39 @@ drm_emmeans_model_frame <- function(object, dpar) {
       "The first {.pkg emmeans} recover-data preflight requires a retained model frame for {.code dpar = \"{dpar}\"}.",
       i = "Refit with {.code control = drm_control(keep_model_frame = TRUE)}."
     ))
+  }
+  model_frame
+}
+
+drm_emmeans_complete_model_frame <- function(object, model_frame, terms) {
+  needed <- all.vars(terms)
+  missing <- setdiff(needed, names(model_frame))
+  if (length(missing) == 0L) {
+    return(model_frame)
+  }
+
+  source <- object$data
+  if (!is.data.frame(source) || !all(missing %in% names(source))) {
+    cli::cli_abort(c(
+      "The first {.pkg emmeans} recover-data preflight could not recover all model variables.",
+      i = "Missing variable{?s}: {.val {missing}}.",
+      i = "Refit with stored data so offset and transformed predictor variables can be reconstructed."
+    ))
+  }
+
+  row_index <- match(row.names(model_frame), row.names(source))
+  if (anyNA(row_index) && nrow(source) == nrow(model_frame)) {
+    row_index <- seq_len(nrow(model_frame))
+  }
+  if (anyNA(row_index)) {
+    cli::cli_abort(c(
+      "The first {.pkg emmeans} recover-data preflight could not align retained model rows with stored data.",
+      i = "Refit with retained model frames and stored data."
+    ))
+  }
+
+  for (name in missing) {
+    model_frame[[name]] <- source[[name]][row_index]
   }
   model_frame
 }

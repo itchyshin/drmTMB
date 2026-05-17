@@ -35,6 +35,27 @@ test_that("emmeans recover-data preflight returns retained model metadata", {
   expect_equal(recovered$row_names, row.names(fit$model$model_frame$mu))
 })
 
+test_that("emmeans recover-data preflight restores offset source variables", {
+  set.seed(20260544)
+  dat <- emmeans_recover_data_data()
+  dat$exposure <- rep(c(1.0, 1.5, 2.0), length.out = nrow(dat))
+  dat$count <- stats::rpois(
+    nrow(dat),
+    lambda = exp(0.2 + 0.4 * dat$x + log(dat$exposure))
+  )
+  fit <- drmTMB(
+    bf(count ~ x + habitat + offset(log(exposure))),
+    family = stats::poisson(link = "log"),
+    data = dat,
+    control = emmeans_recover_data_control()
+  )
+
+  recovered <- drmTMB:::drm_emmeans_recover_data(fit)
+
+  expect_equal(recovered$model_frame$exposure, dat$exposure)
+  expect_equal(recovered$predictors, c("x", "habitat", "exposure"))
+})
+
 test_that("emmeans recover-data preflight requires retained model frames", {
   set.seed(20260533)
   dat <- emmeans_recover_data_data()
