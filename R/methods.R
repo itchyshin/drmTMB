@@ -1719,9 +1719,8 @@ predict.drmTMB <- function(
       type = type
     ))
   }
-  X <- drm_prediction_matrix(object, newdata, dpar)
-  eta <- as.vector(X %*% object$coefficients[[dpar]]) +
-    drm_prediction_offset(object, newdata, dpar)
+  basis <- drm_fixed_effect_basis(object, newdata = newdata, dpar = dpar)
+  eta <- basis$eta
   if (
     is.null(newdata) &&
       dpar %in% mu_random_effect_dpars(object) &&
@@ -3318,6 +3317,91 @@ drm_prediction_matrix <- function(object, newdata, dpar) {
     newdata,
     sparse = drm_fixed_effect_is_sparse(object, dpar)
   )
+}
+
+drm_fixed_effect_basis <- function(
+  object,
+  newdata = NULL,
+  dpar = NULL,
+  covariance = FALSE
+) {
+  if (is.null(dpar)) {
+    dpar <- object$model$dpars[[1L]]
+  }
+  dpar <- match.arg(dpar, names(object$coefficients))
+  validate_fixed_effect_basis_covariance(covariance)
+  if (is_random_scale_dpar(object, dpar)) {
+    cli::cli_abort(c(
+      "Fixed-effect basis matrices are not defined for random-effect scale parameter {.val {dpar}}.",
+      i = "Use {.fn predict} for fitted random-effect scale predictions."
+    ))
+  }
+
+  X <- drm_prediction_matrix(object, newdata, dpar)
+  beta <- object$coefficients[[dpar]]
+  if (!identical(colnames(X), names(beta))) {
+    cli::cli_abort(c(
+      "Could not align the {.val {dpar}} design matrix with fitted coefficients.",
+      i = "Check that factor levels and predictor columns match the fitted model."
+    ))
+  }
+
+  offset <- drm_prediction_offset(object, newdata, dpar)
+  if (length(offset) != nrow(X)) {
+    cli::cli_abort(
+      "Internal error: fixed-effect basis offsets do not match design-matrix rows."
+    )
+  }
+
+  V <- NULL
+  if (isTRUE(covariance)) {
+    V <- drm_fixed_effect_basis_covariance(object, dpar, names(beta))
+  }
+
+  list(
+    dpar = dpar,
+    X = X,
+    bhat = beta,
+    V = V,
+    offset = offset,
+    eta = as.vector(X %*% beta) + offset,
+    link = drm_dpar_link(object, dpar),
+    coefficient_labels = paste0(dpar, ":", names(beta))
+  )
+}
+
+validate_fixed_effect_basis_covariance <- function(covariance) {
+  if (
+    !is.logical(covariance) ||
+      length(covariance) != 1L ||
+      is.na(covariance)
+  ) {
+    cli::cli_abort(
+      "{.arg covariance} must be a single {.code TRUE} or {.code FALSE}."
+    )
+  }
+  invisible(covariance)
+}
+
+drm_fixed_effect_basis_covariance <- function(object, dpar, terms) {
+  labels <- paste0(dpar, ":", terms)
+  V <- vcov(object)
+  missing <- setdiff(labels, row.names(V))
+  if (length(missing) > 0L) {
+    cli::cli_abort(c(
+      "Could not align the {.val {dpar}} covariance matrix with fitted coefficients.",
+      i = "Missing coefficient label{?s}: {.val {missing}}."
+    ))
+  }
+  out <- V[labels, labels, drop = FALSE]
+  if (anyNA(out)) {
+    cli::cli_abort(c(
+      "Fixed-effect covariance for {.val {dpar}} contains unavailable entries.",
+      i = "Refit with standard errors enabled and check the fitted coefficient map."
+    ))
+  }
+  dimnames(out) <- list(terms, terms)
+  out
 }
 
 drm_prediction_offset <- function(object, newdata, dpar) {

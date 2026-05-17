@@ -167,6 +167,14 @@ first public method scoped to fixed-effect univariate `mu` until bivariate,
 structured-effect, random-effect, zero-inflated, hurdle, ordinal, contrast,
 slope, and interval-aware targets have their own algebra and tests.
 
+Slice 119 adds the first internal implementation bridge for that contract.
+`drm_fixed_effect_basis()` returns the requested distributional-parameter model
+matrix, coefficients, optional fixed-effect covariance submatrix, offset, link,
+and linear predictor. `predict.drmTMB()` now uses that helper for its
+fixed-effect component, so the future `emm_basis()` path can reuse tested
+plumbing instead of rebuilding the linear predictor separately. This is still
+not an exported `emmeans` method or contrast workflow.
+
 Slice 102 adds the first article-level empirical-grid example. The
 model-workflow article now shows a conditioned grid for direct
 `predict_parameters()` rows and a separate empirical grid for

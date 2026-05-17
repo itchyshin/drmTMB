@@ -89,6 +89,22 @@ The method should return:
 - `misc`: link and response-scale metadata that matches
   `docs/design/19-family-link-contract.md`.
 
+Slice 119 adds the internal bridge for the `X`, `bhat`, `V`, offset, link, and
+linear-predictor pieces. `drm_fixed_effect_basis()` is not an `emmeans` method,
+but it gives future `emm_basis.drmTMB()` work one tested source for the fitted
+linear predictor:
+
+```text
+eta = X beta + offset
+```
+
+When `covariance = TRUE`, the helper aligns `vcov(fit)` rows back to the
+requested `dpar` coefficient names and returns a submatrix whose row and column
+names match `bhat`. When covariance is unavailable, it errors with the same
+refit guidance as `vcov.drmTMB()`. The first test evidence covers the
+implemented count-model `mu` offset path, coefficient-name alignment,
+link-scale prediction parity, and covariance opt-in behavior.
+
 For `type = "link"`, the EMM is on the formula linear-predictor scale. For
 `type = "response"`, `emmeans` should apply the same inverse link tested in
 Slice 117. The method should not silently switch from distributional-parameter

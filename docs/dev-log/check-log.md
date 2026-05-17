@@ -18296,3 +18296,91 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-16-slice-118-emmeans-interface-contract.md`.
+
+## 2026-05-16 - Slice 119 emmeans fixed-effect basis
+
+Goal: add a narrow internal fixed-effect basis helper that future
+`emm_basis.drmTMB()` work can reuse without exporting an `emmeans` method or
+advertising user-facing EMM support.
+
+Roles:
+
+- Ada kept the slice as internal plumbing and merged Slice 118 once CI was
+  green.
+- Boole checked the `dpar`, coefficient-name, covariance opt-in, and
+  `predict()` API boundaries.
+- Fisher checked that the helper stays on the native distributional-parameter
+  linear predictor rather than switching to fitted response means.
+- Curie owned the new tests and the broader `predict()` regression pass.
+- Grace owned full tests, pkgdown, and stale-claim scans.
+- Pat checked that error guidance still points users back to current helpers
+  rather than implying public `emmeans` support.
+- Rose recorded the offset-support correction: the new test covers the
+  implemented count-model `mu` offset path, not arbitrary offsets.
+- Gauss, Noether, Emmy, Darwin, and Jason stayed watch-only because no
+  likelihood equation, public object contract, biological example, or landscape
+  claim changed.
+
+Files changed:
+
+- `R/methods.R`
+- `tests/testthat/test-fixed-effect-basis.R`
+- `ROADMAP.md`
+- `docs/design/39-visualization-grammar.md`
+- `docs/design/40-emmeans-interface-contract.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-16-slice-119-emmeans-fixed-effect-basis.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-16-190148-codex-checkpoint.md`
+
+What changed:
+
+- Added internal `drm_fixed_effect_basis()` to return `X`, `bhat`, optional
+  fixed-effect covariance `V`, offsets, link metadata, coefficient labels, and
+  the fixed-effect linear predictor for one requested `dpar`.
+- Routed the fixed-effect component of `predict.drmTMB()` through the helper.
+  Conditional random-effect, covariance-block, phylogenetic, spatial, and
+  residual-scale contributions still enter through the existing `predict()`
+  code paths after the fixed-effect linear predictor is built.
+- Added covariance validation that aligns `vcov(fit)` rows and columns back to
+  the requested `dpar` coefficient names and errors when covariance was not
+  retained.
+- Added tests for coefficient alignment, count-model `mu` offsets,
+  link-scale prediction parity, covariance opt-in behavior, and missing
+  covariance errors.
+- Updated the Phase 17 roadmap and `emmeans` design notes to describe the
+  helper as internal implementation plumbing, not public `emmeans` support.
+
+Checks run:
+
+- `air format R/methods.R tests/testthat/test-fixed-effect-basis.R ROADMAP.md docs/design/39-visualization-grammar.md docs/design/40-emmeans-interface-contract.md`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'fixed-effect-basis', reporter = 'summary')"`:
+  passed after the test was narrowed from unsupported Gaussian offsets to the
+  implemented count-model `mu` offset path.
+- `Rscript -e "devtools::test(filter = 'fixed-effect-basis|predict-parameters|reference-grid-link-scale-contract|poisson-mean|nbinom2-location-scale|truncated-nbinom2-location-scale', reporter = 'summary')"`:
+  passed.
+- `Rscript -e "devtools::test(reporter = 'summary')"`: passed.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed and rebuilt
+  `pkgdown-site/ROADMAP.html`.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with "No problems found."
+- `git diff --check`: passed.
+- `rg -n 'Slice 119|drm_fixed_effect_basis|eta = X beta \\+ offset|fixed-effect basis|public `emmeans`|internal plumbing' ROADMAP.md docs/design/39-visualization-grammar.md docs/design/40-emmeans-interface-contract.md pkgdown-site/ROADMAP.html`:
+  confirmed source and rendered roadmap wording.
+- `rg -n 'exported `emmeans` method|implemented `emmeans`|emmeans support is implemented|public `emmeans` support|contrast workflow|contrast API.*implemented|slope.*implemented' DESCRIPTION NEWS.md ROADMAP.md docs/design/39-visualization-grammar.md docs/design/40-emmeans-interface-contract.md pkgdown-site --glob '!pkgdown-site/search.json' --glob '!pkgdown-site/deps/**'`:
+  found only the intentional "not exported" wording and unrelated existing
+  slope-status text.
+- `Rscript tools/codex-checkpoint.R --goal "Slice 119 emmeans fixed-effect basis" --next "rebase onto origin/main after Slice 118 merge, rerun git diff --check, commit, push, open PR"`:
+  passed and wrote
+  `docs/dev-log/recovery-checkpoints/2026-05-16-190148-codex-checkpoint.md`.
+
+Known limitations:
+
+- No `emmeans` dependency, `recover_data.drmTMB()`, `emm_basis.drmTMB()`,
+  registration hook, contrast workflow, or user-facing EMM example was added.
+- The helper is internal and currently tested for the first needed
+  fixed-effect basis behavior; public support still needs direct comparison
+  against `emmeans::ref_grid()` and explicit unsupported-path errors.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-16-slice-119-emmeans-fixed-effect-basis.md`.
