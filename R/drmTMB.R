@@ -3049,6 +3049,14 @@ drm_reject_phase1_terms <- function(rhs, dpar, allow_offset = FALSE) {
     logical(1)
   )]
   if (length(hits) > 0L) {
+    if ("|" %in% hits && identical(dpar, "sigma")) {
+      cli::cli_abort(c(
+        "Non-Gaussian {.code sigma} random effects are not implemented.",
+        "x" = "The {.code sigma} formula contains a random-effect bar term.",
+        "i" = "Keep non-Gaussian scale formulas fixed-effect for now, such as {.code sigma ~ z}.",
+        "i" = "Gaussian residual-scale random effects are implemented separately; Student-t, lognormal, Gamma, beta, beta-binomial, NB2, truncated NB2, and hurdle NB2 scale random effects need family-specific likelihood and recovery tests before fitting."
+      ))
+    }
     if (
       "|" %in% hits && dpar %in% c("mu1", "mu2", "sigma1", "sigma2", "rho12")
     ) {
@@ -3064,7 +3072,7 @@ drm_reject_phase1_terms <- function(rhs, dpar, allow_offset = FALSE) {
         "This formula contains unsupported model terms.",
         "x" = "The {.code {dpar}} formula contains unsupported term{?s}: {.val {hits}}.",
         "i" = "Non-Gaussian random effects are planned, not implemented in this family path.",
-        "i" = "The Slice 190 first candidates are ordinary {.code mu} random intercepts for Poisson and NB2-style count likelihoods; other families retain explicit unsupported messages until their recovery tests exist."
+        "i" = "The implemented non-Gaussian random-effect path is ordinary Poisson {.code mu}: unlabelled random intercepts and independent numeric slopes for non-zero-inflated Poisson models. Other families and parameters retain explicit unsupported messages until their recovery tests exist."
       ))
     }
     cli::cli_abort(c(

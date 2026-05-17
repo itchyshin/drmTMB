@@ -91,6 +91,19 @@ intentionally narrow:
 Unsupported formula messages should say that non-Gaussian random effects are
 planned and should not silently fall through as generic formula failures.
 
+## Slice 193 Non-Gaussian Scale Boundary
+
+Student-t, lognormal, Gamma, beta, beta-binomial, NB2, truncated NB2, and
+hurdle NB2 `sigma` formulas remain fixed-effect scale models in this release.
+Random-effect bar terms in those `sigma` formulas now receive a scale-specific
+unsupported message rather than the earlier generic non-Gaussian `mu` wording.
+
+This is a design boundary, not a claim that scale random effects are
+unimportant. Each family needs its own likelihood contribution, random-effect
+extraction, `sdpars`/`random_effects`/`profile_targets()` surface, weak-SD and
+boundary recovery tests, and reader-facing scale interpretation before
+`sigma ~ z + (1 | id)` is advertised outside Gaussian models.
+
 ## Implemented: Gaussian Location-Scale
 
 The first implementation accepts `stats::gaussian()` and maps it internally to:

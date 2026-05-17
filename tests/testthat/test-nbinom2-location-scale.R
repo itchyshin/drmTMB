@@ -315,7 +315,7 @@ test_that("nbinom2 rejects unsupported or invalid inputs", {
   )
   expect_error(
     drmTMB(bf(y ~ x + (1 | id), sigma ~ 1), family = nbinom2(), data = dat),
-    "Slice 190 first candidates"
+    "implemented non-Gaussian random-effect path"
   )
   expect_error(
     drmTMB(

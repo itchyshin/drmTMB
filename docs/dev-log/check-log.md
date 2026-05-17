@@ -22731,3 +22731,59 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slice-192-poisson-mu-random-slope.md`.
+
+## 2026-05-17 - Slice 193 non-Gaussian scale boundary
+
+Goal: make the non-Gaussian `sigma` random-effect boundary explicit before
+Phase 18.
+
+Files changed:
+
+- `R/drmTMB.R`
+- `tests/testthat/test-nongaussian-scale-boundary.R`
+- `tests/testthat/test-nbinom2-location-scale.R`
+- `NEWS.md`
+- `README.md`
+- `ROADMAP.md`
+- `docs/design/01-formula-grammar.md`
+- `docs/design/02-family-registry.md`
+- `docs/design/33-phase-6c-core-random-effects.md`
+- `docs/design/34-validation-debt-register.md`
+- `docs/dev-log/known-limitations.md`
+- `vignettes/model-map.Rmd`
+- `docs/dev-log/after-task/2026-05-17-slice-193-nongaussian-scale-boundary.md`
+
+What changed:
+
+- Student-t, lognormal, Gamma, beta, beta-binomial, NB2, truncated NB2, and
+  hurdle NB2 `sigma` formulas now reject random-effect bar terms with a
+  scale-specific non-Gaussian boundary message.
+- The generic non-Gaussian bar-term message now names the actually implemented
+  Poisson `mu` path: unlabelled random intercepts and independent numeric
+  slopes for ordinary non-zero-inflated Poisson.
+- The roadmap and status docs now mark non-Gaussian `sigma` random effects as
+  fixed-effect-only until family-specific likelihood, recovery, extractor,
+  interval, and documentation evidence exists.
+
+Checks run:
+
+- `air format R/drmTMB.R tests/testthat/test-nongaussian-scale-boundary.R tests/testthat/test-nbinom2-location-scale.R`
+- `air format R/drmTMB.R NEWS.md README.md ROADMAP.md docs/design/01-formula-grammar.md docs/design/02-family-registry.md docs/design/33-phase-6c-core-random-effects.md docs/design/34-validation-debt-register.md docs/dev-log/known-limitations.md vignettes/model-map.Rmd tests/testthat/test-nongaussian-scale-boundary.R tests/testthat/test-nbinom2-location-scale.R`
+- `Rscript -e "devtools::test(filter = 'nongaussian-scale-boundary', reporter = 'summary')"`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'nongaussian-scale-boundary|nbinom2-location-scale|student-location-scale|lognormal-location-scale|gamma-location-scale|beta-location-scale|beta-binomial|truncated-nbinom2|hurdle-nbinom2|zi-nbinom2', reporter = 'summary')"`:
+  passed.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with no problems.
+- `rg -n 'Slice 193|non-Gaussian `sigma` random effects|Non-Gaussian sigma random effects|Random-effect scale formulae are not implemented|Slice 190 first candidates|non-Gaussian scale random effects|sigma random effects.*not implemented' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes R tests`:
+  returned current Slice 193 rows, the intended `sd(group)` unsupported
+  messages, and no stale Slice 190 wording.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- This slice does not fit non-Gaussian `sigma` random effects. It only makes
+  the boundary explicit and test-covered.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slice-193-nongaussian-scale-boundary.md`.
