@@ -181,6 +181,12 @@ article. The example fits `sd(site) ~ reef_cover`, builds an explicit
 random-effect SD surface separate from residual `sigma` and raw response
 plots.
 
+Slice 157 updates the model-map decision table to point fitted random-effect SD
+surfaces to the same grid and table helpers. The map now routes users through
+`prediction_grid()`, `predict_parameters(..., dpar = "sd(group)")`, and
+`marginal_parameters()` while naming the `random-effect-sd-model` component and
+keeping residual `sigma` separate.
+
 Slice 118 separates the future interface contract into
 `docs/design/40-emmeans-interface-contract.md`. That note maps the official
 `recover_data()` and `emm_basis()` extension API to `drmTMB` and keeps the

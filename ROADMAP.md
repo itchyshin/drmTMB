@@ -1145,6 +1145,10 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   `predict_parameters(..., dpar = "sd(site)")`, and reduces the same grid with
   `marginal_parameters(..., by = "reef_cover")` while keeping random-effect SD
   separate from residual `sigma` and raw responses.
+- Slice 157 updates the model-map article so fitted random-effect SD surfaces
+  route through `prediction_grid()`, `predict_parameters(..., dpar =
+  "sd(group)")`, and `marginal_parameters()`, with component
+  `random-effect-sd-model` kept separate from residual `sigma`.
 - Add additional ggplot-oriented helpers only after the data contract is stable:
   location curves, scale/variance curves, residual `rho12` curves,
   `sd(group)` or `sd_phylo()` surfaces, `corpairs()` summaries, and eventually

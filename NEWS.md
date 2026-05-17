@@ -34,6 +34,7 @@
   targets still error before an `emmGrid` is returned.
 * The model-workflow article now shows the first optional `emmeans::emmeans()` example for fixed-effect univariate `mu`, keeping adjusted means separate from `predict_parameters()` tables and from unsupported `sigma`, random-effect, bivariate, zero-inflated, hurdle, ordinal, and slope workflows. Broader drmTMB-specific contrast helpers remain a separate future contract.
 * The model-workflow article now shows how to build an explicit `prediction_grid()` for a fitted random-effect scale model such as `sd(site) ~ reef_cover`, then pass that grid through `predict_parameters(..., dpar = "sd(site)")` and `marginal_parameters(..., by = "reef_cover")` without treating random-effect SDs as residual `sigma` or raw responses.
+* The model-map article now routes fitted random-effect SD surfaces through `prediction_grid()`, `predict_parameters(..., dpar = "sd(group)")`, and `marginal_parameters()`, with the `random-effect-sd-model` component kept separate from residual `sigma`.
 * Installation docs now point tagged-preview users to `pak::pak("itchyshin/drmTMB@v0.1.2")`.
 * `docs/design/39-visualization-grammar.md` now records the Phase 17
   visualization and marginal-effects research contract. The note uses
