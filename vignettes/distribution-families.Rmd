@@ -42,6 +42,18 @@ quantity each `sigma` formula models.
 | Ordered categories | `cumulative_logit()` | `mu`, cutpoints | fixed latent logistic scale | location-only; ordinal random effects and scale/discrimination planned |
 | Two continuous Gaussian responses | `c(gaussian(), gaussian())` | `mu1`, `mu2`, `sigma1`, `sigma2`, `rho12` | residual SDs for each response | matching labelled `mu1`/`mu2`, `sigma1`/`sigma2`, and one same-response `mu`/`sigma` random-intercept pair implemented; richer covariance planned |
 
+For non-Gaussian random effects, the current fitted path is deliberately
+narrow. Ordinary Poisson `mu` models can fit unlabelled random intercepts and
+independent numeric random slopes, such as `(1 | site)` and `(0 + effort | site)`,
+when there is no zero-inflation formula. Other non-Gaussian random-effect
+requests are still boundary checks: NB2 `mu` random effects, non-Gaussian
+`sigma` random effects, Student-t `nu` random effects, zero-inflation or
+hurdle random effects, ordinal mixed models, and structured non-Gaussian
+effects need their own likelihood and recovery evidence before they become
+runnable syntax. Fixed-effect Wald intervals are available where the fixed
+coefficient covariance is available; profile targets remain limited to direct
+optimized parameters listed by `profile_targets()`.
+
 The current design keeps constructor names close to base R where possible. For
 example, exposure in count models is written with the standard formula term
 `offset(log(exposure))`, and Gamma models use `stats::Gamma(link = "log")`

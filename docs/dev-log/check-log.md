@@ -23160,3 +23160,47 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slice-198-nongaussian-interval-readiness.md`.
+
+## 2026-05-17 - Slice 199 reader-facing family docs
+
+Goal: update public-facing docs so users can see the fitted, planned, and
+unsupported states before the comprehensive simulation phase.
+
+Files changed:
+
+- `vignettes/model-map.Rmd`
+- `vignettes/phylogenetic-spatial.Rmd`
+- `vignettes/distribution-families.Rmd`
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/dev-log/after-task/2026-05-17-slice-199-reader-family-docs.md`
+
+What changed:
+
+- The model map now introduces structural dependence in biological order:
+  `animal()`, `phylo()`, `spatial()`, combined phylogenetic-plus-spatial
+  models, then lower-level `relmat()` known-dependence matrices.
+- The structural-dependence article now uses a five-step reader ladder and adds
+  planned-marker rows for `animal()` and `relmat()`.
+- The family chooser now states the current non-Gaussian random-effect
+  boundary: ordinary non-zero-inflated Poisson `mu` random intercepts and
+  independent numeric slopes fit, while NB2, scale, shape, inflation, hurdle,
+  ordinal, and structured non-Gaussian random-effect paths remain planned.
+- NEWS and ROADMAP now record the docs change without widening fitted claims.
+
+Checks run:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH air format NEWS.md ROADMAP.md vignettes/model-map.Rmd vignettes/phylogenetic-spatial.Rmd vignettes/distribution-families.Rmd docs/dev-log/after-task/2026-05-17-slice-199-reader-family-docs.md`
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with no problems.
+- `rg -n 'animal\(\).*not fitted|relmat\(\).*not fitted|planned marker|documented planned markers|no fitted likelihood|ordinary Poisson `mu`|NB2 `mu` random effects|phylogeny plus spatial|combined phylogenetic-plus-spatial' vignettes/model-map.Rmd vignettes/phylogenetic-spatial.Rmd vignettes/distribution-families.Rmd NEWS.md ROADMAP.md docs/dev-log/after-task/2026-05-17-slice-199-reader-family-docs.md`:
+  found the intended boundary wording.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- This slice does not implement animal models, `relmat()` fits, combined
+  phylogenetic-spatial models, or additional non-Gaussian random effects.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slice-199-reader-family-docs.md`.

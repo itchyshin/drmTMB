@@ -58,7 +58,7 @@ matches the question before choosing a plot:
 | residual variability, predictability, extra heterogeneity, or dispersion | `sigma` or `sigma1` / `sigma2` | [Which scale are you modelling?](which-scale.html) |
 | among-group variation in expected response | random-effect SDs or `sd(group)` | [Which scale are you modelling?](which-scale.html) |
 | residual trait coupling after the means and residual SDs are modelled | `rho12` | [Changing residual coupling with rho12](bivariate-coscale.html) |
-| tree- or coordinate-structured location deviations | `phylo()` or `spatial()` | [Structural dependence](phylogenetic-spatial.html) |
+| pedigree, tree, coordinate, or known-matrix dependence | `animal()`, `phylo()`, `spatial()`, or `relmat()` depending on the source | [Structural dependence](phylogenetic-spatial.html) |
 | fitted interval status or boundary diagnostics | `profile_targets()`, `conf.status`, `profile.boundary`, `profile.message` | [Checking and using fitted models](model-workflow.html) |
 
 ## Stable-core matrix
@@ -80,6 +80,7 @@ matrix lives in `docs/design/34-validation-debt-register.md`.
 | Ordinary bivariate covariance and `corpairs()` | First slice | matching labelled random intercepts in `mu1`/`mu2`, `sigma1`/`sigma2`, same-response `mu`/`sigma`, all-four q=4 blocks, and q=2 `corpair(..., level = "group") ~ x` | bivariate random slopes, full cross-parameter slope covariance, and slope1-slope2 plasticity-syndrome correlations | constant q=2 SD/correlation targets are direct; predictor-dependent `corpair()` values use `newdata`; q=4 rows are derived and mark derived intervals unavailable |
 | Phylogenetic structured effects | First slices | univariate `mu`, bivariate `mu1`/`mu2`, labelled q=4 location-scale blocks, `sd_phylo*()` direct-SD surfaces, and q=2 phylogenetic `corpair()` regression | phylogenetic slopes, standalone or partial phylogenetic scale terms, structured `rho12`, and predictor-dependent q=4 phylogenetic correlations | direct phylogenetic SD and constant q=2 correlation targets are profile-ready; predictor-dependent `corpair()` values use `newdata`; q=4 correlations are derived-only for intervals |
 | Coordinate spatial structured effects | First slice | `spatial(1 | site, coords = coords)` and one numeric `spatial(1 + x | site, coords = coords)` slope in univariate Gaussian `mu` | mesh/SPDE, multiple slopes, slope correlations, spatial `sigma`, bivariate spatial covariance, and spatial `corpair()` | `sdpars$mu`, `ranef("spatial_mu")`, `profile_targets()`, and `check_drm()` expose the fitted coordinate fields |
+| Animal and lower-level relatedness markers | Planned markers | `animal()` and `relmat()` are exported, documented, and parsed so examples and roadmap text use the intended public grammar | fitted pedigree-derived animal models, direct `A` or `Ainv` relatedness inputs, low-level `K` or `Q` matrix fits, and their diagnostics | no fitted likelihood or interval targets yet; `drmTMB()` rejects these markers until recovery tests, diagnostics, and profile-target evidence exist |
 | Profile intervals and diagnostics | First slice | fixed effects, direct SD/correlation targets, row-specific `sigma`, `sigma1`, `sigma2`, `rho12`, and fitted q=2 `corpair()` values | automatic intervals for every derived covariance summary and public bootstrap intervals | `conf.status`, `profile.boundary`, and `profile.message` expose interval status; q=4 rows use `derived_interval_unavailable`, and bootstrap requests error before interval work begins |
 | Large-data fit controls | Opt-in control | memory-light fitted objects, optional `se = FALSE` standard-error skipping, sparse fixed-effect `mu` matrices, and Gaussian sufficient-statistic aggregation | broad random-effect, structured-effect, non-Gaussian, bivariate, and known-covariance scalability claims | `check_drm()` reports `sdreport`, sparse-design, and aggregation diagnostics where fitted |
 | Reserved or planned neighbours | Reserved/rejected or design-only | coefficient-specific `sd()` slopes, random effects in `rho12`, shape random effects, ID-level skewness such as future `skew(id) ~ x`, phylogenetic slopes, mesh/SPDE, spatial `corpair()`, bivariate random slopes, and mixed composed families | runnable analysis syntax | planned-feature errors should appear before fitting; no interval target is advertised |
@@ -185,11 +186,18 @@ response 2. `rho12` still describes within-observation residual coupling.
 
 ## Structural dependence
 
-The implemented structural-dependence path now has two one-response
-foundations: tree-structured phylogenetic location effects and coordinate-based
-spatial location effects. The intended third route, phylogeny plus spatial in
-the same `mu` predictor, remains planned until multiple structural layers have
-their own identifiability checks.
+Read structural-dependence syntax in biological order before reading the
+implementation order. Animal models use a known pedigree or additive
+relatedness matrix. Phylogenetic models use a tree or tree-derived covariance.
+Spatial models use coordinates or, in the future, mesh/SPDE structure. Some
+analyses need phylogenetic and spatial layers in the same predictor, and some
+advanced users need a generic known relatedness or precision matrix through
+`relmat()`.
+
+The current fitted paths are the phylogenetic and coordinate-spatial Gaussian
+pieces. The animal and `relmat()` markers are exported and documented as the
+planned public grammar, but `drmTMB()` still rejects them before fitting until
+their likelihood, diagnostics, profile targets, and recovery tests exist.
 
 ```r
 drmTMB(
@@ -229,6 +237,25 @@ Run `check_drm()` before interpreting that fitted phylogenetic correlation; it
 now flags near-boundary `corpars$phylo` values and tiny phylogenetic location
 SDs relative to the matching residual scales.
 
+For animal-model syntax, use the documented planned names in notes and design
+examples, but do not treat them as runnable analysis code yet:
+
+```r
+# Planned, not fitted yet:
+drmTMB(
+  drm_formula(
+    body_size ~ sex + animal(1 | individual, pedigree = pedigree),
+    sigma ~ cohort
+  ),
+  family = gaussian(),
+  data = dat
+)
+```
+
+Use `relmat(1 | id, K = K)` or `relmat(1 | id, Q = Q)` only for future
+lower-level examples where the known dependence matrix is neither naturally a
+pedigree, a phylogeny, nor a coordinate-spatial surface.
+
 For fitted q=4 phylogenetic blocks, read the six latent covariance rows with
 `corpairs(fit, level = "phylogenetic")` or
 `summary(fit)$covariance`. Those rows are not residual `rho12`, and
@@ -245,6 +272,7 @@ These surfaces are roadmap items, not syntax to rely on in analyses yet:
 | bivariate random slopes and full cross-parameter covariance blocks | expands group-level covariance blocks beyond the first same-parameter and same-response random-intercept slices |
 | phylogenetic slopes, predictor-dependent q=4 phylogenetic correlations, and richer phylogenetic covariance blocks | the first bivariate `mu1`/`mu2` phylogenetic location slice, the q=2 predictor-dependent location-location slice, and the first constant q=4 phylogenetic location-scale block are fitted |
 | richer spatial random effects | first univariate Gaussian coordinate-based `mu` intercept and one-slope paths implemented; mesh/SPDE, spatial scale, multiple slopes, slope correlations, bivariate spatial covariance, and spatial `corpair()` paths remain planned |
+| animal models and generic relatedness matrices | `animal()` and `relmat()` are documented markers only until pedigree or known-matrix likelihoods, diagnostics, profile targets, and recovery tests are implemented |
 | higher-dimensional multivariate models | belong in `gllvmTMB`, not `drmTMB` |
 
 When unsupported syntax fails, the right next step is usually to fit the
