@@ -1,0 +1,155 @@
+# emmeans Interface Contract
+
+This note records the design boundary for future `emmeans` compatibility in
+`drmTMB`. It is a planning contract only: no `emmeans` dependency, S3 method,
+or user-facing estimated marginal mean workflow is implemented here.
+
+The official `emmeans` extension API says package support is supplied through
+`recover_data.<class>()` and `emm_basis.<class>()` methods. `recover_data()`
+reconstructs the data, terms, predictors, and response information for a fitted
+object, while `emm_basis()` returns the linear-function matrix, coefficient
+vector, covariance matrix, non-estimability basis, and degrees-of-freedom
+function used by the reference grid. The same documentation also notes that
+multivariate responses require consistent flattening of coefficients, model
+matrices, and covariance matrices, and that packages can conditionally register
+methods with `.emm_register()` when `emmeans` is installed:
+<https://rvlenth.github.io/emmeans/reference/extending-emmeans.html>.
+
+## Reader And Scope
+
+The first reader is an applied user who has already fitted a `drmTMB` model and
+wants adjusted means over an explicit reference grid. The second reader is a
+package contributor who needs to implement `emmeans` support without confusing
+distributional parameters, fitted response means, and residual-scale or
+correlation parameters.
+
+The first implementation should support only fitted fixed-effect univariate
+models where the target is a single direct distributional parameter with a
+linear fixed-effect predictor and a tested inverse link. It should start with
+`dpar = "mu"` and `type = "link"` or `type = "response"` for models whose
+reference grid is already covered by `prediction_grid()` and Slice 117 tests.
+
+## Non-Goals
+
+Do not implement all Phase 17 estimands through one `emmeans` method.
+Predictions, estimated marginal means, contrasts, slopes, fitted response
+means, and diagnostics must remain separate concepts.
+
+Do not use `emmeans` to hide unsupported uncertainty. If `TMB::sdreport()` is
+unavailable, the fitted object has no usable fixed-effect covariance matrix, or
+the requested transformed response needs a delta method that is not implemented,
+the method should error before constructing an `emmGrid`.
+
+Do not support bivariate Gaussian, structured-effect, random-effect,
+zero-inflated, hurdle, ordinal expected-score, or fitted-response targets in
+the first public method. Those paths need additional algebra and tests because
+the EMM target may combine multiple linear predictors or require flattened
+coefficient blocks.
+
+## Recover Data Contract
+
+`recover_data.drmTMB()` should recover the model frame for the requested target
+only. The method should:
+
+- require `object$data` or `object$model$model_frame` to be available;
+- reject fits created with insufficient stored data and tell the user to refit
+  with stored data;
+- use the terms for the requested `dpar`, not every formula in the model;
+- preserve factor levels and ordered-factor status from the fitted data;
+- carry the requested `dpar`, prediction `type`, and target kind in metadata
+  passed to `emm_basis()`;
+- reject random-effect, structured-effect, offset, and unsupported response
+  transformations until each path has its own tests.
+
+This mirrors `prediction_grid()` in spirit, but it should not call
+`prediction_grid()` internally until the handling of `at`, `cov.reduce`,
+weights, offsets, and factor levels is checked against `emmeans::ref_grid()`.
+
+## Basis Contract
+
+`emm_basis.drmTMB()` should be built from the fixed-effect design matrix for the
+requested `dpar`.
+
+For the first fixed-effect `mu` path:
+
+```text
+eta = X_mu beta_mu
+```
+
+The method should return:
+
+- `X`: the reference-grid model matrix for the requested `dpar`;
+- `bhat`: the fixed-effect coefficient vector for that `dpar`, including
+  rank-deficient positions if they can occur;
+- `V`: the fixed-effect covariance submatrix for that `dpar`;
+- `nbasis`: a non-estimability basis, or the `emmeans` no-rank-deficiency
+  convention if the model matrix is full rank;
+- `dffun` and `dfargs`: asymptotic degrees of freedom unless a later inference
+  design provides finite-sample degrees of freedom;
+- `misc`: link and response-scale metadata that matches
+  `docs/design/19-family-link-contract.md`.
+
+For `type = "link"`, the EMM is on the formula linear-predictor scale. For
+`type = "response"`, `emmeans` should apply the same inverse link tested in
+Slice 117. The method should not silently switch from distributional-parameter
+scale to `fitted()` response mean. For example, lognormal `mu` remains the mean
+of `log(y)`, not `E[y]`.
+
+## First Supported Targets
+
+The first public method should be allowed only when all of the following are
+true:
+
+- the model is univariate and fixed-effect for the requested `dpar`;
+- the requested `dpar` is `mu`;
+- `type` is `"link"` or `"response"`;
+- the fitted object retained the needed model frame or data;
+- `vcov(fit)` or an equivalent fixed-effect covariance submatrix is available;
+- the model type is one of Gaussian, Student-t, lognormal, Gamma, beta,
+  beta-binomial, Poisson, NB2, or zero-truncated NB2 after targeted tests exist;
+- the result is documented as an EMM of the native distributional parameter, not
+  necessarily the expected observed response.
+
+Zero-inflated and hurdle models should wait because response-scale fitted means
+combine the count component and the zero component. Cumulative-logit models
+should wait because the most useful reader-facing target is often expected
+ordered score or category probability rather than the latent `mu` alone.
+Bivariate Gaussian models should wait because `emmeans` requires consistent
+flattening for multivariate responses, and `drmTMB` also has separate
+`mu1`/`mu2`, `sigma1`/`sigma2`, and `rho12` targets.
+
+## Error Messages
+
+Unsupported calls should tell the user which current helper to use instead:
+
+- use `prediction_grid()` plus `predict_parameters()` for direct parameter
+  predictions;
+- use `prediction_grid(..., margin = "empirical")` plus
+  `marginal_parameters()` for current plug-in empirical summaries;
+- use `profile_targets()` and `confint()` for supported profile-likelihood
+  intervals;
+- use `corpairs()` and `plot_corpairs()` for fitted correlation rows.
+
+The error should name the unsupported feature, such as random effects,
+structured effects, bivariate response, zero-inflation, hurdle response mean,
+ordinal expected score, contrast, slope, weight rule, or missing covariance
+matrix.
+
+## Validation Gate
+
+Before exporting an `emmeans` method, add tests that compare the method against
+existing `prediction_grid()` and `predict_parameters()` output for every
+supported family and link. At minimum:
+
+1. Build an `emmeans::ref_grid()` for a simple factor or numeric focal term.
+2. Build the matching `prediction_grid()` manually.
+3. Check that link-scale EMMs equal the matching linear predictions.
+4. Check that response-scale EMMs equal the documented inverse-link transform.
+5. Check that unsupported `dpar`, random-effect, bivariate, zero-inflated,
+   hurdle, ordinal, missing-data, and missing-covariance paths error before
+   returning an `emmGrid`.
+6. Run pkgdown and stale-claim scans that confirm the docs say `emmeans`
+   support is limited to the implemented target set.
+
+Only after that gate should `_pkgdown.yml`, NEWS, and examples advertise public
+`emmeans` compatibility.
