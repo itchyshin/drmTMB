@@ -174,6 +174,24 @@ They are not known sampling covariances. Keep `V` reserved for the preferred
 `meta_V(..., V = V)` design, where the matrix describes sampling error in
 observations or effect-size estimates.
 
+The first reader-facing animal-model examples should be ecological and
+evolutionary, not matrix demonstrations. Good targets are:
+
+- heritable trait means in a wild pedigree, such as body size, tarsus length,
+  arrival date, or breeding timing;
+- additive genetic variance in behavioural predictability or residual scale,
+  connecting animal models to location-scale individual-difference questions;
+- bivariate additive genetic covariance between two traits, with a clear
+  link to evolvability, genetic correlation, or a simple G-matrix
+  interpretation.
+
+These examples should still respect `drmTMB` scope. The first tutorial should
+not imply a full quantitative-genetics platform with dominance, maternal
+effects, permanent environment, arbitrary multivariate responses, or breeding
+programme workflows. It should show how a univariate or bivariate
+distributional-regression model can attach one known additive relationship
+structure to the fitted random-effect layer.
+
 The first parser should validate:
 
 ```text

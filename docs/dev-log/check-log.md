@@ -22874,6 +22874,10 @@ What changed:
   animal/user-relatedness models need parser support, matrix validation,
   diagnostics, extractors, profile targets, and recovery tests before they are
   advertised as fitted.
+- The roadmap and validation-debt register now require future animal-model docs
+  to use eco-evo examples, including heritable trait means in wild pedigrees,
+  behavioural predictability or residual-scale additive variance, and bivariate
+  genetic covariance.
 
 Checks run:
 

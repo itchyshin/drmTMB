@@ -255,6 +255,11 @@ distributional regression models using TMB.
   low-level wording rather than teaching both names. Keep `V` for known
   sampling covariance in the preferred `meta_V(..., V = V)` design; do not
   reuse `V` for additive genetic or phylogenetic relatedness.
+- When animal-model support becomes fitted, pair the syntax with eco-evo
+  examples rather than matrix-only demonstrations: heritable trait means in a
+  wild pedigree, additive genetic variance in behavioural predictability or
+  residual scale, and bivariate genetic covariance/evolvability examples are
+  higher-value teaching targets than an abstract `A` matrix smoke test.
 - Implemented `phylo(1 | species, tree = tree)` for univariate Gaussian `mu`
   using an ultrametric branch-length tree, the sparse augmented A-inverse path,
   one CRAN-safe simulation recovery test, and dense marginal likelihood

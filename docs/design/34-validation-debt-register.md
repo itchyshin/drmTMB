@@ -283,8 +283,11 @@ Use these status labels:
   `profile_targets()`, `corpairs()` where bivariate correlations are fitted,
   and `check_drm()` rows before they can be taught as routine.
 - User-facing docs: none beyond planned-syntax notes. A future tutorial should
-  separate additive genetic relatedness from phylogenetic relatedness, spatial
-  dependence, ordinary grouped random effects, and known sampling covariance.
+  use eco-evo examples, such as heritable trait means in a wild pedigree,
+  additive genetic variance in behavioural predictability or residual scale,
+  and bivariate genetic covariance. It should also separate additive genetic
+  relatedness from phylogenetic relatedness, spatial dependence, ordinary
+  grouped random effects, and known sampling covariance.
 - Debt: add parser support for `animal(1 | id, pedigree = ped)`,
   `animal(1 | id, A = A)`, `animal(1 | id, Ainv = Ainv)`, optional
   `phylo(..., A/Ainv = ...)`, and a lower-level `relmat()` route only after the

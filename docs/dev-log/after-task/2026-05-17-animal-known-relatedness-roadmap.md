@@ -32,7 +32,8 @@ special cases.
   runnable syntax was introduced.
 - Pat and Darwin kept the audience distinction visible: animal models are
   additive genetic or pedigree relatedness, not simply "phylo with another
-  object".
+  object". They also flagged that the future tutorial needs strong eco-evo
+  examples rather than abstract matrix-only examples.
 - Rose checked that `A`/`Ainv`/`K`/`Q` for relatedness stay separate from `V`
   for the preferred `meta_V(..., V = V)` meta-analysis design.
 
@@ -70,6 +71,9 @@ special cases.
 - Updated the meta-analysis design wording in the touched docs so
   `meta_V(V = V)` is the preferred roadmap spelling, while the current
   implemented marker remains `meta_known_V(V = V)` until an alias/rename slice.
+- Added an explicit eco-evo example requirement for future animal-model docs:
+  heritable trait means in wild pedigrees, behavioural predictability or
+  residual-scale additive variance, and bivariate genetic covariance.
 
 ## Validation
 
