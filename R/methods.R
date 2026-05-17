@@ -255,11 +255,7 @@ corpairs.drmTMB <- function(
   ...
 ) {
   validate_summary_conf_int(conf.int)
-  if (!identical(method, "profile")) {
-    cli::cli_abort(
-      "{.arg method} must be {.val profile} for {.fn corpairs} intervals."
-    )
-  }
+  method <- validate_interval_method(method, "profile", "corpairs()")
   if (!conf.int && length(list(...)) > 0L) {
     cli::cli_abort(
       "Additional arguments in {.arg ...} are only used when {.code conf.int = TRUE}."
@@ -2370,7 +2366,8 @@ sigma.drmTMB <- function(object, ...) {
 #' @param level Confidence level for intervals.
 #' @param method Interval method used when `conf.int = TRUE`: `"wald"` for
 #'   fixed-effect intervals or `"profile"` for profile-likelihood intervals on
-#'   selected direct targets.
+#'   selected direct targets. Parametric bootstrap intervals are not implemented
+#'   yet.
 #' @param ci_parm Optional character or integer vector selecting confidence
 #'   interval targets. For `method = "wald"`, targets must be fixed effects. For
 #'   `method = "profile"`, targets use the [profile_targets()] namespace, such
@@ -2403,7 +2400,7 @@ summary.drmTMB <- function(
   validate_summary_conf_int(conf.int)
   validate_summary_trace(trace)
   validate_profile_level(level)
-  method <- match.arg(method)
+  method <- validate_interval_method(method, c("wald", "profile"), "summary()")
 
   dots <- list(...)
   if (!conf.int && length(dots) > 0L) {
