@@ -73,6 +73,16 @@ Human-readable aliases such as `skew` or `df` can be considered later, but the
 canonical internal and documented names should stay consistent unless there is a
 strong reason not to.
 
+There are two planned skewness levels, and they should not be mixed in one
+implementation slice. Residual or observation-level skewness belongs to a
+family shape formula such as `nu ~ x`, where the conditional residual
+distribution is asymmetric. Latent group-level skewness would need a separate
+future grammar such as `skew(id) ~ x`, analogous to `sd(id) ~ x` but targeting
+the distribution of the `id` random effects. `drmTMB` should fit residual
+shape/skewness first, then add latent-effect skewness only after simulations
+show it can be distinguished from residual skewness, heteroscedasticity, and
+ordinary random-effect variation.
+
 ## Slice 190-192 Non-Gaussian Random-Effect Gate
 
 The first non-Gaussian random-effect expansion is ordinary Poisson `mu` random
@@ -86,7 +96,7 @@ intentionally narrow:
 | 2 | NB2 and zero-truncated NB2 `mu` | Next candidate after Poisson, retaining public `sigma` as dispersion and leaving dispersion-side random effects for a later scale gate. |
 | 3 | Lognormal, Gamma, and Student-t `mu` | Later continuous-response candidates after count recovery tests, because scale and tail parameters complicate weak-SD and boundary diagnostics. |
 | 4 | Beta and beta-binomial `mu` | Later bounded-response candidates; strict-boundary handling, denominators, and overdispersion need their own recovery grids. |
-| 5 | Zero-inflation, one-inflation, hurdle, ordinal, shape, and structured non-Gaussian paths | Explicitly unsupported until Slices 194-197 decide the target and diagnostics. For percentage/proportion data, zero-one-inflated beta-style likelihoods should expose fixed-effect `zoi` and `coi` first; random effects and cross-parameter covariance come later. |
+| 5 | Zero-inflation, one-inflation, hurdle, ordinal, shape, and structured non-Gaussian paths | Explicitly unsupported until Slices 195-197 decide the remaining target and diagnostics. Slice 194 keeps shape random effects blocked: fixed-effect residual shape comes first, while `nu`/`tau` random effects and future `skew(id) ~ x` need separate recovery evidence. For percentage/proportion data, zero-one-inflated beta-style likelihoods should expose fixed-effect `zoi` and `coi` first; random effects and cross-parameter covariance come later. |
 
 Unsupported formula messages should say that non-Gaussian random effects are
 planned and should not silently fall through as generic formula failures.
@@ -175,7 +185,8 @@ comparator.
 Random effects, known sampling covariance, phylogenetic terms, spatial terms,
 bivariate skew-normal models, `rho12`, and aliases such as `skew ~ x` are later
 phases. Examples and reference documentation should teach canonical `nu ~ x`
-before any alias is added.
+before any alias is added. ID-level skewness syntax such as `skew(id) ~ x` is
+not an alias for this residual shape formula; it is a later latent-effect model.
 
 ## Implemented: Lognormal Location-Scale
 

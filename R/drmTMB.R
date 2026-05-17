@@ -3049,6 +3049,15 @@ drm_reject_phase1_terms <- function(rhs, dpar, allow_offset = FALSE) {
     logical(1)
   )]
   if (length(hits) > 0L) {
+    if ("|" %in% hits && dpar %in% c("nu", "tau")) {
+      cli::cli_abort(c(
+        "Shape random effects are not implemented.",
+        "x" = "The {.code {dpar}} formula contains a random-effect bar term.",
+        "i" = "Keep shape formulas fixed-effect for now, such as {.code nu ~ x}.",
+        "i" = "Student-t {.code nu} models tail shape; future skew-normal and skew-t shape parameters need fixed-effect likelihood recovery before random effects are added.",
+        "i" = "Latent group-level skewness, such as future {.code skew(id) ~ x}, remains design-only until simulations separate it from residual skewness and heteroscedasticity."
+      ))
+    }
     if ("|" %in% hits && identical(dpar, "sigma")) {
       cli::cli_abort(c(
         "Non-Gaussian {.code sigma} random effects are not implemented.",
