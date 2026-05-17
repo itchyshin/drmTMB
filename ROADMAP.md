@@ -992,6 +992,11 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   frames and fixed-effect covariance are retained. The method still rejects
   non-`mu`, missing-covariance, memory-light, zero-inflated, random-effect, and
   other unsupported paths before returning an `emmGrid`.
+- Slice 123 cleans the `plot_corpairs()` R CMD check hygiene left visible by
+  Slice 122. The interval segment layer now builds its `ggplot2` aesthetics from
+  symbols, matching the existing `plot_parameter_surface()` pattern, so
+  `conf.low`, `conf.high`, and `.drmTMB_pair_label` are no longer treated as
+  undeclared global variables.
 - Add additional ggplot-oriented helpers only after the data contract is stable:
   location curves, scale/variance curves, residual `rho12` curves,
   `sd(group)` or `sd_phylo()` surfaces, `corpairs()` summaries, and eventually

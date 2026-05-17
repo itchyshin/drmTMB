@@ -70,12 +70,7 @@ plot_corpairs <- function(
       out <- out +
         ggplot2::geom_segment(
           data = interval_data,
-          mapping = ggplot2::aes(
-            x = conf.low,
-            xend = conf.high,
-            y = .drmTMB_pair_label,
-            yend = .drmTMB_pair_label
-          ),
+          mapping = plot_corpairs_interval_mapping(),
           inherit.aes = FALSE,
           linewidth = 0.6,
           colour = "grey35"
@@ -190,6 +185,16 @@ plot_corpairs_mapping <- function(has_colour) {
   if (has_colour) {
     args$colour <- as.name(".drmTMB_plot_colour")
   }
+  do.call(ggplot2::aes, args)
+}
+
+plot_corpairs_interval_mapping <- function() {
+  args <- list(
+    x = as.name("conf.low"),
+    xend = as.name("conf.high"),
+    y = as.name(".drmTMB_pair_label"),
+    yend = as.name(".drmTMB_pair_label")
+  )
   do.call(ggplot2::aes, args)
 }
 
