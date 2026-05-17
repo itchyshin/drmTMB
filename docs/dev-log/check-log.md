@@ -19241,3 +19241,87 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-16-slice-129-emmeans-covreduce-default.md`.
+
+## 2026-05-16 - Slice 130 emmeans direct type argument coverage
+
+Goal: add explicit coverage for users who pass `type = "response"` directly to
+`emmeans::emmeans()` in the first fixed-effect univariate `mu` bridge.
+
+Roles:
+
+- Ada kept this as a narrow test/docs slice stacked on Slice 129 while PR #94
+  was still in CI.
+- Boole checked that `type = "link"` and `type = "response"` remain named as
+  `emmeans` summary-scale choices, not new drmTMB formula grammar.
+- Fisher checked that the estimand is still native fixed-effect `mu` on the
+  reference grid.
+- Curie added the Poisson parity test for the direct `type` argument path.
+- Pat checked that the reader-facing docs say what response scale means here.
+- Grace owned focused tests, pkgdown, and rendered wording scans.
+- Rose checked that response-scale EMMs are not overclaimed as fitted observed
+  responses for blocked model structures.
+- Gauss, Noether, Darwin, Jason, and Emmy stayed watch-only because no
+  likelihood, symbolic equation, biological example, landscape claim, or object
+  structure changed.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/39-visualization-grammar.md`
+- `docs/design/40-emmeans-interface-contract.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-16-slice-130-emmeans-type-argument.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-16-213838-codex-checkpoint.md`
+- `tests/testthat/test-emmeans-methods.R`
+
+What changed:
+
+- Added a public Poisson fixed-effect `mu` test showing that
+  `emmeans(..., type = "response")` matches
+  `predict(dpar = "mu", type = "response")` on the same reference grid.
+- The same test keeps `type = "link"` aligned with
+  `predict(dpar = "mu", type = "link")`.
+- Updated NEWS, roadmap, and design notes to say response-scale EMMs are
+  inverse-link summaries of native `mu`, not fitted observed responses for
+  blocked model structures.
+
+Checks run:
+
+- `air format NEWS.md ROADMAP.md docs/design/39-visualization-grammar.md docs/design/40-emmeans-interface-contract.md tests/testthat/test-emmeans-methods.R`:
+  passed.
+- `git diff --check`: passed.
+- `Rscript -e "devtools::test(filter = 'emmeans-methods', reporter = 'summary')"`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'emmeans-methods|emmeans-recover-data|emmeans-preflight|fixed-effect-basis|reference-grid-link-scale-contract', reporter = 'summary')"`:
+  passed.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed.
+- Positive source/rendered scan for Slice 130 direct `type` argument wording and
+  tests: found the expected entries.
+- Stale-claim scan for `type = "response"` as unsupported or response-scale
+  EMMs as unsupported: no Slice 130 contradictions; the only match was the
+  earlier Slice 125 boundary that the covered gate was not widened.
+- Recovery checkpoint:
+  `docs/dev-log/recovery-checkpoints/2026-05-16-213838-codex-checkpoint.md`.
+
+Post-rebase checks:
+
+- PR #94 merged as `b4d2857065368e76fadc16b14b768fe912fae225`.
+- `git rebase --onto origin/main b4aba3562fa0381aaa4b0f2863b134226d4c1736`:
+  passed.
+- `git diff --check origin/main...HEAD`: passed.
+- `Rscript -e "devtools::test(filter = 'emmeans-methods|emmeans-recover-data|emmeans-preflight|fixed-effect-basis|reference-grid-link-scale-contract', reporter = 'summary')"`:
+  passed.
+
+Known limitations:
+
+- This slice covers direct `type` argument routing for fixed-effect univariate
+  `mu` only.
+- It does not add fitted-response summaries for blocked structures, non-`mu`
+  targets, slopes, transformed-response workflows, custom weights, or empirical
+  marginalisation through `emmeans`.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-16-slice-130-emmeans-type-argument.md`.

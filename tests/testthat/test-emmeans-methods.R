@@ -158,6 +158,49 @@ test_that("emmeans response scale follows the fitted mu inverse link", {
   expect_equal(response$response, mu, tolerance = 1e-10)
 })
 
+test_that("emmeans type argument can request response-scale mu summaries", {
+  testthat::skip_if_not_installed("emmeans")
+  set.seed(20260548)
+  dat <- emmeans_methods_data(n = 90L)
+  eta <- 0.1 +
+    0.4 * dat$x +
+    0.3 * (dat$habitat == "kelp") -
+    0.1 * (dat$habitat == "sand")
+  dat$count <- stats::rpois(nrow(dat), lambda = exp(eta))
+  fit <- drmTMB(
+    bf(count ~ x + habitat),
+    family = stats::poisson(link = "log"),
+    data = dat,
+    control = emmeans_methods_control(se = TRUE)
+  )
+
+  link <- summary(emmeans::emmeans(
+    fit,
+    ~habitat,
+    at = list(x = 0),
+    type = "link"
+  ))
+  response <- summary(
+    emmeans::emmeans(fit, ~habitat, at = list(x = 0), type = "response")
+  )
+  grid <- data.frame(
+    x = 0,
+    habitat = factor(link$habitat, levels = levels(dat$habitat))
+  )
+
+  expect_equal(
+    link$emmean,
+    unname(predict(fit, newdata = grid, dpar = "mu", type = "link")),
+    tolerance = 1e-10
+  )
+  expect_equal(
+    response$response,
+    unname(predict(fit, newdata = grid, dpar = "mu", type = "response")),
+    tolerance = 1e-10
+  )
+  expect_equal(response$df, rep(Inf, nrow(response)))
+})
+
 test_that("emmeans method carries mu offsets into the returned grid", {
   testthat::skip_if_not_installed("emmeans")
   set.seed(20260543)
