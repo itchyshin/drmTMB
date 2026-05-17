@@ -232,3 +232,9 @@ fixed-effect `mu` model with `log(size)` verifies that
 recover-data preflight confirms that raw source variables for transformed terms
 are restored from stored data. This is not support for transformed responses,
 slopes, custom weights, non-`mu` targets, or blocked model structures.
+
+Slice 129 adds explicit coverage for the default numeric covariate-reduction
+rule. A Gaussian fixed-effect `mu` model with an asymmetric numeric covariate
+verifies that `emmeans(fit, ~ habitat)` matches `predict(dpar = "mu")` at
+`mean(x)`. This is ordinary `emmeans` reference-grid behaviour, not a
+drmTMB-specific empirical marginalisation or custom-weighting contract.

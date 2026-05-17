@@ -1026,6 +1026,11 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   checks that `emmeans(..., at = list(size = 1.5))` matches
   `predict(dpar = "mu")`, and the recover-data preflight confirms that raw
   source variables for transformed predictors are restored from stored data.
+- Slice 129 adds explicit default numeric covariate-reduction coverage for the
+  first `emmeans()` bridge. A Gaussian fixed-effect `mu` model with an
+  asymmetric numeric covariate now checks that `emmeans(fit, ~ habitat)` matches
+  `predict(dpar = "mu")` at `mean(x)`, keeping this as ordinary `emmeans`
+  reference-grid behaviour rather than a drmTMB-specific marginalisation rule.
 - Add additional ggplot-oriented helpers only after the data contract is stable:
   location curves, scale/variance curves, residual `rho12` curves,
   `sd(group)` or `sd_phylo()` surfaces, `corpairs()` summaries, and eventually

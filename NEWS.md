@@ -1,6 +1,7 @@
 # drmTMB 0.1.2 (2026-05-16)
 
 * `emmeans::emmeans()` now supports the first narrow `drmTMB` path: fixed-effect univariate `mu` estimated marginal means with retained model frames and fixed-effect covariance available. Generic `emmeans` pairwise contrasts on that returned `mu` grid are covered by a small parity test.
+* The fixed-effect univariate `mu` `emmeans::emmeans()` path now explicitly checks the default numeric covariate-reduction rule, so `emmeans(fit, ~ habitat)` must match `predict(dpar = "mu")` at the mean of the numeric covariate used by the reference grid.
 * The fixed-effect univariate `mu` `emmeans::emmeans()` path now has explicit parity coverage for formulas with `offset(log(exposure))`, so exposure-adjusted count-rate grids must match `predict(dpar = "mu")` on both link and response scales.
 * The fixed-effect univariate `mu` `emmeans::emmeans()` path now has explicit recover-data coverage for transformed predictors such as `log(size)`, so reference grids supplied through `at` are checked against `predict(dpar = "mu")`.
 * Bivariate, zero-inflated, hurdle, ordinal expected-score, random-effect,
