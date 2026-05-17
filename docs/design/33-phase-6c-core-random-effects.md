@@ -86,6 +86,18 @@ with a suggested fallback. Comprehensive simulation should then estimate the
 sample-size and replication cost of these layers rather than assume they are
 already equally powered.
 
+Slice 188 publishes that gate as a pre-simulation status table:
+
+| Layer | Fitted one-slope or covariance surface | Still outside the fitted surface |
+|---|---|---|
+| Ordinary Gaussian `mu` | Independent slopes, one-slope correlated blocks, and q > 2 numeric location blocks | q > 2 direct correlation profile intervals and routine guidance for very large q |
+| Gaussian `sigma` | Multiple independent numeric slopes on `log(sigma)` | Correlated residual-scale slope blocks and labelled residual-scale slope covariance |
+| Univariate `mu`/`sigma` covariance | One or more matched labelled random-intercept blocks | Slope-level mean-scale covariance |
+| Bivariate ordinary covariance | Matching labelled random-intercept blocks and q=4 all-four intercept blocks | Matching slope-only `mu1`/`mu2`, q=4 location-slope, and q=8 all-four slope endpoints |
+| Phylogenetic structured effects | Intercept-level univariate, bivariate, direct-SD, q=2 correlation-regression, and q=4 location-scale paths | `phylo(1 + x | species, tree = tree)` and richer structured-slope covariance |
+| Coordinate spatial structured effects | Univariate Gaussian `mu` intercept and one numeric slope with independent coordinate fields | Mesh/SPDE, multiple slopes, slope correlations, spatial `sigma`, bivariate spatial covariance, and spatial `corpair()` |
+| Non-Gaussian families | Fixed-effect likelihoods only for the pre-simulation random-effect gate | Ordinary non-Gaussian random effects, scale/shape/ZI/hurdle/ordinal random effects, and structured non-Gaussian paths |
+
 ## Correlation Policy
 
 For the first random-slope expansion, slope-related correlations are

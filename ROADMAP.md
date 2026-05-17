@@ -1271,7 +1271,7 @@ remain blocked by future covariance or non-Gaussian random-effect work.
 | 185 | Bivariate random slopes | Done: matching slope-only `mu1`/`mu2` blocks such as `(0 + x | p | id)` are documented as the first future slope target, while `(1 + x | p | id)` q=4 location blocks and all-four q=8 location-scale slope blocks remain explicitly rejected. |
 | 186 | Phylogenetic random slopes | Done: audit confirms phylogenetic slopes remain rejected/intercept-only while coordinate spatial already fits one independent `mu` slope; the error, docs, and tests now state this parity gap explicitly. |
 | 187 | Spatial random slopes | Done: coordinate-spatial one-slope support now has a direct profile-interval test for the slope-field SD plus explicit boundary tests for multiple slopes, spatial scale terms, and bivariate spatial syntax. |
-| 188 | Random-effect gate | Publish the one-slope-per-layer status table and remaining Gaussian DH limits. |
+| 188 | Random-effect gate | Done: the one-slope-per-layer status table and remaining Gaussian double-hierarchical limits are published below before the non-Gaussian revisit. |
 
 - Slice 189 should close any remaining Gaussian double-hierarchical boundary
   wording before the non-Gaussian revisit.
@@ -1282,6 +1282,20 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   have enough recovery evidence to enter the comprehensive simulation grid.
   Treat the table below as the current working map; each row should become more
   specific as earlier random-effect slices close.
+
+### Slice 188 One-Slope Gate
+
+This is the current random-effect status before the non-Gaussian revisit:
+
+| Layer | One-Slope Status | Inference and Diagnostics | Remaining Gaussian DH Limit |
+| --- | --- | --- | --- |
+| Ordinary Gaussian `mu` | Fitted for independent slopes, one-slope correlated blocks, and ordinary q > 2 numeric location blocks. | q=3 recovery, `sdpars$mu`, `corpars$re_cov`, `corpairs()`, `summary()`, `profile_targets()`, and direct SD profiles are covered. | Larger q blocks are advanced and sample-size hungry; q > 2 correlations remain derived-unavailable for direct profile intervals. |
+| Gaussian `sigma` | Fitted for random intercepts and multiple independent numeric slopes on `log(sigma)`. | `sdpars$sigma`, prediction contributions, direct `log_sd_sigma` profile targets, and tests cover the independent-slope boundary. | Correlated residual-scale slope blocks and labelled residual-scale slope covariance are planned. |
+| Univariate `mu`/`sigma` covariance | Fitted for one or more matched labelled random-intercept blocks. | `corpars$mu_sigma`, `corpairs(class = "mean-scale")`, `summary()`, `check_drm()`, and second-block profile tests are covered. | Slope-level mean-scale covariance is planned. |
+| Bivariate ordinary covariance | Fitted for matching labelled random intercepts in `mu1`/`mu2`, `sigma1`/`sigma2`, same-response `mu`/`sigma`, and all-four q=4 intercept blocks. | Constant q=2 correlation targets are profile-ready; q=4 correlations are derived-only with explicit unavailable interval status. | First future slope target is matching slope-only `mu1`/`mu2`; q=4 location-slope and q=8 all-four slope endpoints remain closed. |
+| Phylogenetic structured effects | Intercept-level univariate, bivariate, direct-SD, q=2 correlation-regression, and q=4 location-scale paths are fitted. | Direct phylogenetic SDs and q=2 correlations have profile targets; q=4 correlations are derived-only. | `phylo(1 + x | species, tree = tree)` remains planned pending recovery and diagnostics. |
+| Coordinate spatial structured effects | Fitted for univariate Gaussian `mu` intercept and one numeric slope, with independent coordinate fields. | `sdpars$mu`, `ranef("spatial_mu")`, `profile_targets()`, `check_drm()`, and a slope-field profile interval are covered. | Mesh/SPDE, multiple slopes, slope correlations, spatial `sigma`, bivariate spatial covariance, and spatial `corpair()` remain planned. |
+| Non-Gaussian families | Fixed-effect likelihoods are fitted; random-effect coverage is not yet generalized. | Family-specific fixed-effect summaries and intervals exist where already implemented. | Slices 190-202 decide ordinary non-Gaussian random intercepts/slopes, scale, shape, zero-inflation, hurdle, ordinal, structured, and interval readiness. |
 
 | Slice | Lane | Target Before Phase 18 |
 | --- | --- | --- |
