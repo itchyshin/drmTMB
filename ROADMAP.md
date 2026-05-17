@@ -905,7 +905,8 @@ remain blocked by future covariance or non-Gaussian random-effect work.
 
 ## Phase 14: Large-Data Engine
 
-- Status: planned.
+- Status: planned; Slice 209 adds the ADEMP-style entry blueprint in
+  `docs/design/41-phase-18-simulation-programme.md`.
 - Extend memory-light fitted objects for large ecological, evolutionary, and
   environmental datasets beyond the current post-fit storage controls.
 - Add sparse fixed-effect matrices before claiming million-row readiness.
@@ -1476,6 +1477,10 @@ Use this order unless Slice 191 evidence overturns it:
   statement must name the data-generating scenario and the uncertainty measure.
   Pat's gate: every simulation report should include an interpretation that a
   new applied user can read without reverse-engineering the code.
+- First three implementation slices after the blueprint: add the `inst/sim/`
+  skeleton and seed/cell registry; implement the Gaussian location-scale pilot;
+  then implement the Gaussian meta-analysis `meta_V(V = V)` DGP with vector and
+  dense matrix `V`.
 
 ## Phase 19: Comparator Demonstrations With Other Packages
 
