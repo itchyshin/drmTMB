@@ -618,6 +618,109 @@ test_that("Gaussian mu supports multiple independent random slopes", {
   expect_equal(fit$corpars, list())
 })
 
+test_that("Gaussian mu supports q > 2 correlated random-slope blocks", {
+  set.seed(20260618)
+  n_id <- 30
+  n_each <- 8
+  n <- n_id * n_each
+  id <- factor(rep(seq_len(n_id), each = n_each))
+  x1 <- rep(seq(-1.1, 1.1, length.out = n_each), times = n_id)
+  x2 <- stats::rnorm(n)
+  z <- stats::rnorm(n)
+  sd <- c(0.5, 0.32, 0.26)
+  corr <- matrix(
+    c(
+      1.00,
+      0.35,
+      -0.20,
+      0.35,
+      1.00,
+      0.25,
+      -0.20,
+      0.25,
+      1.00
+    ),
+    nrow = 3L
+  )
+  latent <- matrix(stats::rnorm(n_id * 3L), ncol = 3L) %*%
+    chol(diag(sd) %*% corr %*% diag(sd))
+  beta_mu <- c(`(Intercept)` = 0.2, x1 = 0.55, x2 = -0.35)
+  beta_sigma <- c(`(Intercept)` = -0.35, z = 0.16)
+  mu <- beta_mu[[1L]] +
+    beta_mu[[2L]] * x1 +
+    beta_mu[[3L]] * x2 +
+    latent[id, 1L] +
+    latent[id, 2L] * x1 +
+    latent[id, 3L] * x2
+  sigma <- exp(beta_sigma[[1L]] + beta_sigma[[2L]] * z)
+  dat <- data.frame(y = stats::rnorm(n, mu, sigma), x1, x2, z, id)
+
+  fit <- drmTMB(
+    bf(y ~ x1 + x2 + (1 + x1 + x2 | id), sigma ~ z),
+    family = gaussian(),
+    data = dat
+  )
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_named(
+    fit$sdpars$mu,
+    c(
+      "(1 + x1 + x2 | id):(Intercept)",
+      "(1 + x1 + x2 | id):x1",
+      "(1 + x1 + x2 | id):x2"
+    )
+  )
+  expect_named(
+    fit$corpars$re_cov,
+    c(
+      "cor((Intercept),x1 | id)",
+      "cor((Intercept),x2 | id)",
+      "cor(x1,x2 | id)"
+    )
+  )
+  expect_equal(fit$model$random$mu$n_re, 0L)
+  expect_equal(fit$model$random$covariance_blocks$n_qgt2_blocks, 1L)
+  expect_true(drmTMB:::has_mu_random_effects(fit))
+  expect_equal(drmTMB:::n_mu_random_effect_terms(fit), 3L)
+  expect_equal(
+    length(fit$random_effects$covariance_blocks$values),
+    3L * n_id
+  )
+  expect_equal(
+    unname(predict(fit, dpar = "mu", type = "link")),
+    unname(fit$obj$report()$mu),
+    tolerance = 1e-8
+  )
+  expect_gt(unname(fit$sdpars$mu[[1L]]), 0.15)
+  expect_gt(unname(fit$sdpars$mu[[2L]]), 0.08)
+  expect_gt(unname(fit$sdpars$mu[[3L]]), 0.06)
+  pairs <- corpairs(fit)
+  expect_equal(nrow(pairs), 3L)
+  expect_equal(
+    pairs$class,
+    c("mean-slope", "mean-slope", "slope-slope")
+  )
+  expect_equal(summary(fit)$covariance$parameter, names(fit$corpars$re_cov))
+
+  targets <- profile_targets(fit)
+  ready_targets <- profile_targets(fit, ready_only = TRUE)
+  sd_parms <- paste0("sd:mu:", names(fit$sdpars$mu))
+  sd_targets <- targets[match(sd_parms, targets$parm), ]
+  cor_parms <- paste0("cor:re_cov:", names(fit$corpars$re_cov))
+  cor_targets <- targets[match(cor_parms, targets$parm), ]
+  expect_equal(sd_targets$tmb_parameter, rep("log_sd_re_cov", 3L))
+  expect_equal(sd_targets$index, 1:3)
+  expect_true(all(sd_targets$profile_ready))
+  expect_equal(cor_targets$tmb_parameter, rep("theta_re_cov", 3L))
+  expect_equal(cor_targets$target_type, rep("derived", 3L))
+  expect_false(any(cor_targets$profile_ready))
+  expect_equal(
+    cor_targets$profile_note,
+    rep("derived_unstructured_correlation", 3L)
+  )
+  expect_false(any(cor_parms %in% ready_targets$parm))
+})
+
 test_that("Gaussian mu supports correlated random intercept-slope blocks", {
   sim <- new_gaussian_corr_rs_data()
 
@@ -1393,8 +1496,8 @@ test_that("unsupported random-effect cases fail clearly", {
     "covariance-block labels"
   )
   expect_error(
-    drmTMB(bf(y ~ x + (1 + x + y2 | id)), family = gaussian(), data = dat),
-    "Arbitrary multi-slope covariance blocks"
+    drmTMB(bf(y ~ x + (0 + x + y2 | id)), family = gaussian(), data = dat),
+    "ordinary Gaussian location block"
   )
   expect_error(
     drmTMB(
@@ -1418,8 +1521,12 @@ test_that("unsupported random-effect cases fail clearly", {
     "must be numeric"
   )
   expect_error(
-    drmTMB(bf(y ~ x + (1 + x + y2 | p | id)), family = gaussian(), data = dat),
-    "Arbitrary multi-slope covariance blocks"
+    drmTMB(
+      bf(y ~ x + (0 + x + y2 | p | id)),
+      family = gaussian(),
+      data = dat
+    ),
+    "ordinary Gaussian location block"
   )
   expect_error(
     drmTMB(

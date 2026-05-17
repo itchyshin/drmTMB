@@ -1,6 +1,6 @@
 # drmTMB 0.1.2 (2026-05-16)
 
-* Gaussian location random-slope tests now explicitly cover multiple independent numeric slopes such as `(0 + x1 | id) + (0 + x2 | id)`, while correlated ordinary blocks remain limited to one numeric slope and now tell users that arbitrary multi-slope covariance blocks such as `(1 + x1 + x2 | id)` are planned but not yet implemented.
+* Gaussian location random-slope blocks now support ordinary unstructured numeric multi-slope `mu` terms such as `(1 + x1 + x2 | id)` and labelled variants. The first public path has q=3 recovery, `sdpars$mu`, `corpars$re_cov`, `corpairs()`, `summary()`, and `profile_targets()` coverage; larger q blocks are advanced fits whose sample-size cost remains a simulation target.
 * `emmeans::emmeans()` now supports the first narrow `drmTMB` path: fixed-effect univariate `mu` estimated marginal means with retained model frames and fixed-effect covariance available. Generic `emmeans` pairwise contrasts on that returned `mu` grid are covered by a small parity test.
 * The public `emmeans::emmeans()` boundary tests now confirm that transformed-response formulas such as `log(y) ~ x` error before an `emmGrid` is returned, keeping the first bridge limited to untransformed response formulas and explicit transformed-scale prediction tables through `prediction_grid()`.
 * The public `emmeans::emmeans()` boundary tests now confirm that bivariate Gaussian fits error with the unsupported `"biv_gaussian"` model type before an `emmGrid` is returned, instead of falling through to a generic missing-`mu` message.

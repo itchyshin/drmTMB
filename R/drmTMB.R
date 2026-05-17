@@ -579,6 +579,7 @@ drm_build_gaussian_ls_spec <- function(
   sigma_re <- extract_random_sigma_terms(sigma_entry$rhs, "sigma")
   sigma_entry$rhs <- sigma_re$rhs
   sd_mu_targets <- parse_sd_mu_entries(sd_mu_entries, mu_re$terms)
+  active_mu_terms <- remove_qgt2_random_mu_terms(mu_re$terms)
   sd_phylo_targets <- parse_sd_phylo_entries(
     sd_phylo_entries,
     mu_phylo$term
@@ -686,13 +687,16 @@ drm_build_gaussian_ls_spec <- function(
   } else {
     empty_gaussian_aggregation()
   }
-  re_mu <- build_random_mu_structure(mu_re$terms, data_model)
+  re_mu_registry <- build_random_mu_structure(mu_re$terms, data_model)
+  re_mu <- build_random_mu_structure(active_mu_terms, data_model)
   re_sigma <- build_random_sigma_structure(sigma_re$terms, data_model)
   re_mu_sigma <- build_mu_sigma_random_covariance(re_mu, re_sigma)
   re_cov_blocks <- build_labelled_covariance_block_registry(
     re_mu,
     re_sigma,
-    re_mu_sigma
+    re_mu_sigma,
+    re_mu_full = re_mu_registry,
+    re_mu_full_terms = mu_re$terms
   )
   sd_mu <- build_sd_mu_structure(
     sd_mu_entries,
@@ -733,7 +737,8 @@ drm_build_gaussian_ls_spec <- function(
     re_sigma,
     sd_mu,
     re_mu_sigma,
-    sd_phylo
+    sd_phylo,
+    re_cov_blocks
   )
   start <- c(start, gaussian_ls_dummy_start(phylo_mu, y = y))
 
@@ -788,6 +793,7 @@ drm_build_gaussian_ls_spec <- function(
     random_names = c(
       if (re_mu$n_re > 0L) "u_mu",
       if (re_sigma$n_re > 0L) "u_sigma",
+      if (re_cov_blocks$n_qgt2_re > 0L) "u_re_cov",
       if (isTRUE(phylo_mu$has)) "u_phylo"
     ),
     sparse_fixed = list(mu = sparse_mu)
@@ -3233,17 +3239,22 @@ parse_random_mu_lhs <- function(lhs, dpar, group, covariance_label = NULL) {
   if (
     !any(zero) &&
       sum(one) <= 1L &&
-      sum(symbol) == 1L &&
+      sum(symbol) >= 1L &&
       length(pieces) == sum(one) + sum(symbol)
   ) {
-    variable <- as.character(pieces[[which(symbol)]])
+    variables <- vapply(pieces[symbol], as.character, character(1L))
+    lhs_label <- paste(c("1", variables), collapse = " + ")
     return(list(
-      type = "correlated_slope",
-      variable = variable,
-      variables = variable,
-      coef_names = c("(Intercept)", variable),
+      type = if (length(variables) == 1L) {
+        "correlated_slope"
+      } else {
+        "correlated_block"
+      },
+      variable = if (length(variables) == 1L) variables else NA_character_,
+      variables = variables,
+      coef_names = c("(Intercept)", variables),
       label = format_random_mu_label(
-        paste0("1 + ", variable),
+        lhs_label,
         group,
         covariance_label
       )
@@ -3254,7 +3265,7 @@ parse_random_mu_lhs <- function(lhs, dpar, group, covariance_label = NULL) {
     "Only random intercepts, independent random slopes, and correlated intercept-slope blocks are implemented for {.code {dpar}}.",
     "x" = "Use {.code (1 | id)} for a random intercept or {.code (0 + x | id)} for a random slope.",
     "i" = "Use {.code (1 + x | id)} or {.code (1 + x | p | id)} for a correlated random intercept and one numeric slope.",
-    "i" = "Arbitrary multi-slope covariance blocks such as {.code (1 + x1 + x2 | id)} are planned but not implemented yet."
+    "i" = "Use {.code (1 + x1 + x2 | id)} for an ordinary Gaussian location block with two numeric slopes."
   ))
 }
 
@@ -3364,6 +3375,18 @@ random_effect_vars <- function(terms) {
     vapply(terms, `[[`, character(1), "group"),
     variables[!is.na(variables)]
   ))
+}
+
+is_qgt2_random_mu_term <- function(term) {
+  length(term$coef_names) > 2L
+}
+
+remove_qgt2_random_mu_terms <- function(terms) {
+  if (length(terms) == 0L) {
+    return(terms)
+  }
+  keep <- !vapply(terms, is_qgt2_random_mu_term, logical(1L))
+  terms[keep]
 }
 
 extract_gaussian_mu_phylo_term <- function(entry) {
@@ -4902,7 +4925,9 @@ build_labelled_covariance_block_registry <- function(
   re_mu_sigma = empty_mu_sigma_random_covariance(re_sigma$n_re),
   q4_blocks = list(),
   re_mu_full = re_mu,
-  re_sigma_full = re_sigma
+  re_sigma_full = re_sigma,
+  re_mu_full_terms = list(),
+  re_sigma_full_terms = list()
 ) {
   registry <- empty_labelled_covariance_block_registry()
   registry <- add_q4_covariance_blocks(
@@ -4910,6 +4935,16 @@ build_labelled_covariance_block_registry <- function(
     re_mu_full,
     re_sigma_full,
     q4_blocks
+  )
+  registry <- add_large_same_parameter_covariance_blocks(
+    registry,
+    re_mu_full,
+    re_mu_full_terms
+  )
+  registry <- add_large_same_parameter_covariance_blocks(
+    registry,
+    re_sigma_full,
+    re_sigma_full_terms
   )
   registry <- add_same_parameter_covariance_blocks(
     registry,
@@ -4988,6 +5023,70 @@ add_q4_covariance_blocks <- function(
     theta_offset <- theta_offset + length(pair_labels)
   }
   registry
+}
+
+add_large_same_parameter_covariance_blocks <- function(
+  registry,
+  re,
+  terms
+) {
+  if (length(terms) == 0L || re$n_terms == 0L) {
+    return(registry)
+  }
+
+  term_sizes <- vapply(
+    terms,
+    function(term) length(term$coef_names),
+    integer(1L)
+  )
+  term_starts <- c(1L, cumsum(term_sizes)[-length(term_sizes)] + 1L)
+
+  for (k in which(term_sizes > 2L)) {
+    q <- term_sizes[[k]]
+    member_terms <- seq.int(term_starts[[k]], length.out = q)
+    pair_coefs <- utils::combn(terms[[k]]$coef_names, 2L)
+    pair_labels <- vapply(
+      seq_len(ncol(pair_coefs)),
+      function(j) {
+        format_random_mu_cor_label(
+          pair_coefs[, j],
+          terms[[k]]$group,
+          terms[[k]]$covariance_label
+        )
+      },
+      character(1L)
+    )
+    n_pairs <- length(pair_labels)
+    tmb_index <- covariance_registry_next_theta_index(registry, n_pairs)
+    registry <- append_covariance_registry_block(
+      registry,
+      re_list = list(re),
+      member_terms = list(member_terms),
+      parameter = pair_labels,
+      tmb_parameter = rep("theta_re_cov", n_pairs),
+      tmb_index = tmb_index,
+      implemented = TRUE
+    )
+  }
+
+  registry
+}
+
+covariance_registry_next_theta_index <- function(registry, n) {
+  if (n == 0L) {
+    return(integer())
+  }
+  current <- if (nrow(registry$blocks) == 0L) {
+    0L
+  } else {
+    sum(
+      registry$blocks$n_pairs[
+        registry$blocks$n_members > 2L &
+          registry$blocks$implemented
+      ]
+    )
+  }
+  current + seq_len(n)
 }
 
 update_qgt2_covariance_counts <- function(registry) {
@@ -6818,7 +6917,8 @@ gaussian_ls_start <- function(
   re_sigma = empty_random_sigma_structure(length(y)),
   sd_mu = empty_sd_mu_structure(re_mu$n_re),
   re_mu_sigma = empty_mu_sigma_random_covariance(re_sigma$n_re),
-  sd_phylo = empty_sd_phylo_structure()
+  sd_phylo = empty_sd_phylo_structure(),
+  re_cov_blocks = empty_labelled_covariance_block_registry()
 ) {
   if (inherits(X_mu, "sparseMatrix")) {
     beta_mu <- numeric(ncol(X_mu))
@@ -6854,6 +6954,7 @@ gaussian_ls_start <- function(
 
   mu_re_start <- gaussian_mu_re_start(resid, re_mu, y_scale)
   sigma_re_start <- gaussian_sigma_re_start(re_sigma)
+  re_cov_start <- covariance_block_re_start(re_cov_blocks, y_scale)
   beta_sd_mu <- c(
     if (sd_mu$n_models > 0L) {
       gaussian_sd_mu_start(mu_re_start, sd_mu)
@@ -6874,7 +6975,10 @@ gaussian_ls_start <- function(
     eta_cor_mu_sigma = rep(0, max(1L, re_mu_sigma$n_cors)),
     eta_cor_sigma = sigma_re_start$eta_cor_sigma,
     u_sigma = sigma_re_start$u_sigma,
-    log_sd_sigma = sigma_re_start$log_sd_sigma
+    log_sd_sigma = sigma_re_start$log_sd_sigma,
+    u_re_cov = re_cov_start$u_re_cov,
+    log_sd_re_cov = re_cov_start$log_sd_re_cov,
+    theta_re_cov = re_cov_start$theta_re_cov
   )
 }
 
@@ -7831,6 +7935,9 @@ covariance_block_re_start <- function(registry, y_scale = c(1, 1)) {
     function(dpar) {
       if (grepl("^mu", dpar)) {
         response <- covariance_member_response_index(dpar)
+        if (is.na(response)) {
+          response <- 1L
+        }
         return(pmax(0.25 * y_scale[[response]], 1e-4))
       }
       0.2
