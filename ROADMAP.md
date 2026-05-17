@@ -1041,6 +1041,11 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   that `emmeans(..., cov.reduce = stats::median)` matches
   `predict(dpar = "mu")` at `median(x)`, keeping custom reduction as ordinary
   `emmeans` reference-grid behaviour rather than drmTMB empirical averaging.
+- Slice 132 adds unreduced numeric covariate-grid coverage for the first
+  `emmeans()` bridge. A Gaussian fixed-effect `mu` example now checks that
+  `emmeans(..., cov.reduce = FALSE)` matches `predict(dpar = "mu")` averaged
+  over the observed `x` levels in the reference grid, keeping this separate
+  from drmTMB row-wise empirical marginalisation.
 - Add additional ggplot-oriented helpers only after the data contract is stable:
   location curves, scale/variance curves, residual `rho12` curves,
   `sd(group)` or `sd_phylo()` surfaces, `corpairs()` summaries, and eventually
