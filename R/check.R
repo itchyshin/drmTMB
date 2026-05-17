@@ -14,11 +14,11 @@
 #' Student-t `nu` boundary behaviour, known sampling covariance summaries,
 #' dense known-covariance storage scale, dense fixed-effect design size and
 #' density, random-effect replication, and random-slope design variation. If a
-#' univariate Gaussian fit includes a
-#' matched labelled
-#' `mu`/`sigma` random-intercept covariance block, `check_drm()` also reports
+#' univariate Gaussian fit includes one or more matched labelled
+#' `mu`/`sigma` random-intercept covariance blocks, `check_drm()` also reports
 #' group replication and whether either component is tiny relative to its
-#' interpretation scale. If a bivariate Gaussian fit includes a matched
+#' interpretation scale for each independent block. If a bivariate Gaussian fit
+#' includes a matched
 #' labelled `mu1`/`mu2` random-intercept covariance block, `check_drm()` reports
 #' group replication and whether either group-level SD is tiny relative to the
 #' matching residual scale. For a matched labelled `sigma1`/`sigma2` block, it
@@ -1024,6 +1024,15 @@ check_mu_sigma_random_effect_covariance <- function(object) {
   if (!identical(object$model$model_type, "gaussian")) {
     return(NULL)
   }
+  re_mu_sigma <- object$model$random$mu_sigma
+  if (
+    is.list(re_mu_sigma) &&
+      !is.null(re_mu_sigma$n_cors) &&
+      re_mu_sigma$n_cors > 1L
+  ) {
+    return(check_mu_sigma_random_effect_covariance_rows(object, re_mu_sigma))
+  }
+
   registry_pair <- registry_covariance_pair(
     object,
     class = "mean-scale",
@@ -1083,67 +1092,77 @@ check_mu_sigma_random_effect_covariance <- function(object) {
     ))
   }
 
-  re_mu_sigma <- object$model$random$mu_sigma
   if (is.null(re_mu_sigma) || re_mu_sigma$n_cors == 0L) {
     return(NULL)
   }
+  check_mu_sigma_random_effect_covariance_rows(object, re_mu_sigma)
+}
+
+check_mu_sigma_random_effect_covariance_rows <- function(object, re_mu_sigma) {
   re_mu <- object$model$random$mu
   re_sigma <- object$model$random$sigma
-  sigma_rows <- which(re_mu_sigma$sigma_cross_cor_id0 >= 0L)
-  if (length(sigma_rows) == 0L) {
+  rows <- lapply(seq_len(re_mu_sigma$n_cors), function(cor_id) {
+    sigma_rows <- which(re_mu_sigma$sigma_cross_cor_id0 == cor_id - 1L)
+    if (length(sigma_rows) == 0L) {
+      return(NULL)
+    }
+
+    sigma_terms <- unique(re_sigma$term_id0[sigma_rows] + 1L)
+    mu_rows <- re_mu_sigma$sigma_cross_mu_index0[sigma_rows] + 1L
+    mu_terms <- unique(re_mu$term_id0[mu_rows] + 1L)
+    if (length(sigma_terms) != 1L || length(mu_terms) != 1L) {
+      return(check_row(
+        "mu_sigma_random_effect_covariance",
+        "note",
+        paste0("n_cors=", re_mu_sigma$n_cors, "; cor_id=", cor_id),
+        "The fitted mu/sigma covariance block is more complex than the current diagnostic summary."
+      ))
+    }
+
+    sigma_term <- sigma_terms[[1L]]
+    mu_term <- mu_terms[[1L]]
+    group_counts <- tabulate(
+      re_sigma$index[, sigma_term],
+      nbins = re_sigma$n_re
+    )[sigma_rows]
+    min_count <- min(group_counts)
+    singleton_groups <- sum(group_counts < 2L)
+
+    sd_mu <- unname(object$sdpars$mu[[re_mu$labels[[mu_term]]]])
+    sd_sigma <- unname(object$sdpars$sigma[[re_sigma$labels[[sigma_term]]]])
+    residual_scale <- mean(stats::sigma(object), na.rm = TRUE)
+    mu_sd_ratio <- sd_mu / residual_scale
+    weak_replication <- min_count < 2L
+    weak_sd <- !is.finite(mu_sd_ratio) ||
+      !is.finite(sd_sigma) ||
+      mu_sd_ratio < 0.05 ||
+      sd_sigma < 0.05
+
+    check_row(
+      "mu_sigma_random_effect_covariance",
+      if (weak_replication || weak_sd) "note" else "ok",
+      paste0(
+        "term=",
+        re_sigma$labels[[sigma_term]],
+        "; n_groups=",
+        length(sigma_rows),
+        "; min_group_n=",
+        min_count,
+        "; singleton_groups=",
+        singleton_groups,
+        "; mu_sd_ratio=",
+        format_check_number(mu_sd_ratio),
+        "; sigma_log_sd=",
+        format_check_number(sd_sigma)
+      ),
+      mu_sigma_re_diagnostic_message(weak_replication, weak_sd)
+    )
+  })
+  rows <- Filter(Negate(is.null), rows)
+  if (length(rows) == 0L) {
     return(NULL)
   }
-
-  sigma_terms <- unique(re_sigma$term_id0[sigma_rows] + 1L)
-  mu_rows <- re_mu_sigma$sigma_cross_mu_index0[sigma_rows] + 1L
-  mu_terms <- unique(re_mu$term_id0[mu_rows] + 1L)
-  if (length(sigma_terms) != 1L || length(mu_terms) != 1L) {
-    return(check_row(
-      "mu_sigma_random_effect_covariance",
-      "note",
-      paste0("n_cors=", re_mu_sigma$n_cors),
-      "The fitted mu/sigma covariance block is more complex than the current diagnostic summary."
-    ))
-  }
-
-  sigma_term <- sigma_terms[[1L]]
-  mu_term <- mu_terms[[1L]]
-  group_counts <- tabulate(
-    re_sigma$index[, sigma_term],
-    nbins = re_sigma$n_re
-  )[sigma_rows]
-  min_count <- min(group_counts)
-  singleton_groups <- sum(group_counts < 2L)
-
-  sd_mu <- unname(object$sdpars$mu[[re_mu$labels[[mu_term]]]])
-  sd_sigma <- unname(object$sdpars$sigma[[re_sigma$labels[[sigma_term]]]])
-  residual_scale <- mean(stats::sigma(object), na.rm = TRUE)
-  mu_sd_ratio <- sd_mu / residual_scale
-  weak_replication <- min_count < 2L
-  weak_sd <- !is.finite(mu_sd_ratio) ||
-    !is.finite(sd_sigma) ||
-    mu_sd_ratio < 0.05 ||
-    sd_sigma < 0.05
-
-  check_row(
-    "mu_sigma_random_effect_covariance",
-    if (weak_replication || weak_sd) "note" else "ok",
-    paste0(
-      "term=",
-      re_sigma$labels[[sigma_term]],
-      "; n_groups=",
-      length(sigma_rows),
-      "; min_group_n=",
-      min_count,
-      "; singleton_groups=",
-      singleton_groups,
-      "; mu_sd_ratio=",
-      format_check_number(mu_sd_ratio),
-      "; sigma_log_sd=",
-      format_check_number(sd_sigma)
-    ),
-    mu_sigma_re_diagnostic_message(weak_replication, weak_sd)
-  )
+  do.call(rbind, rows)
 }
 
 mu_sigma_re_diagnostic_message <- function(weak_replication, weak_sd) {

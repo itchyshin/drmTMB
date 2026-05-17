@@ -50,11 +50,11 @@ boundary, bivariate residual-correlation \code{rho12} values near the boundary,
 Student-t \code{nu} boundary behaviour, known sampling covariance summaries,
 dense known-covariance storage scale, dense fixed-effect design size and
 density, random-effect replication, and random-slope design variation. If a
-univariate Gaussian fit includes a
-matched labelled
-\code{mu}/\code{sigma} random-intercept covariance block, \code{check_drm()} also reports
+univariate Gaussian fit includes one or more matched labelled
+\code{mu}/\code{sigma} random-intercept covariance blocks, \code{check_drm()} also reports
 group replication and whether either component is tiny relative to its
-interpretation scale. If a bivariate Gaussian fit includes a matched
+interpretation scale for each independent block. If a bivariate Gaussian fit
+includes a matched
 labelled \code{mu1}/\code{mu2} random-intercept covariance block, \code{check_drm()} reports
 group replication and whether either group-level SD is tiny relative to the
 matching residual scale. For a matched labelled \code{sigma1}/\code{sigma2} block, it
