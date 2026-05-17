@@ -1,8 +1,9 @@
 # emmeans Interface Contract
 
-This note records the design boundary for future `emmeans` compatibility in
-`drmTMB`. It is a planning contract only: no `emmeans` dependency, S3 method,
-or user-facing estimated marginal mean workflow is implemented here.
+This note records the design boundary for `emmeans` compatibility in `drmTMB`.
+Slices 117-121 built tests and private preflight helpers. Slice 122 adds the
+first public bridge, limited to fixed-effect univariate `mu` estimated marginal
+means with retained model frames and fixed-effect covariance available.
 
 The official `emmeans` extension API says package support is supplied through
 `recover_data.<class>()` and `emm_basis.<class>()` methods. `recover_data()`
@@ -23,10 +24,10 @@ package contributor who needs to implement `emmeans` support without confusing
 distributional parameters, fitted response means, and residual-scale or
 correlation parameters.
 
-The first implementation should support only fitted fixed-effect univariate
+The first implementation supports only fitted fixed-effect univariate
 models where the target is a single direct distributional parameter with a
-linear fixed-effect predictor and a tested inverse link. It should start with
-`dpar = "mu"` and `type = "link"` or `type = "response"` for models whose
+linear fixed-effect predictor and a tested inverse link. It starts with
+`dpar = "mu"` and link- or response-scale summaries for models whose
 reference grid is already covered by `prediction_grid()` and Slice 117 tests.
 
 ## Non-Goals
@@ -121,6 +122,16 @@ and row names. If `drm_control(keep_model_frame = FALSE)` was used, the helper
 errors and asks for a refit with retained model frames. This mirrors the
 requirement that future `recover_data.drmTMB()` support needs fitted-row
 metadata, not only coefficients.
+
+Slice 122 wires those preflights into the first public methods.
+`recover_data.drmTMB()` delegates to `emmeans::recover_data()` using the
+retained `mu` model frame and terms, while `emm_basis.drmTMB()` returns the
+fixed-effect basis, covariance, asymptotic degrees of freedom, and link metadata
+for the requested reference grid. The methods are conditionally registered with
+`emmeans::.emm_register()` from `.onLoad()` when `emmeans` is installed. Tests
+compare `emmeans::emmeans()` link-scale results to `predict(type = "link")`,
+compare response-scale log-link results to `predict(type = "response")`, and
+confirm unsupported paths still fail before an `emmGrid` is returned.
 
 For `type = "link"`, the EMM is on the formula linear-predictor scale. For
 `type = "response"`, `emmeans` should apply the same inverse link tested in

@@ -19,6 +19,55 @@ drm_emmeans_mu_basis <- function(
   )
 }
 
+recover_data.drmTMB <- function(object, dpar = "mu", ...) {
+  recovered <- tryCatch(
+    drm_emmeans_recover_data(object, dpar = dpar),
+    error = function(e) conditionMessage(e)
+  )
+  if (is.character(recovered)) {
+    return(recovered)
+  }
+  emmeans::recover_data(
+    object$call,
+    recovered$terms,
+    na.action = NULL,
+    frame = recovered$model_frame,
+    ...
+  )
+}
+
+emm_basis.drmTMB <- function(object, trms, xlev, grid, dpar = "mu", ...) {
+  target <- drm_emmeans_mu_basis(
+    object,
+    newdata = grid,
+    dpar = dpar
+  )
+  basis <- target$basis
+  bhat <- as.numeric(basis$bhat)
+  names(bhat) <- names(basis$bhat)
+  misc <- drm_emmeans_misc(basis$link, dpar = dpar)
+  list(
+    X = as.matrix(basis$X),
+    bhat = bhat,
+    nbasis = matrix(NA_real_, nrow = 1L, ncol = 1L),
+    V = basis$V,
+    dffun = function(k, dfargs) dfargs$df,
+    dfargs = list(df = Inf),
+    misc = misc
+  )
+}
+
+drm_emmeans_misc <- function(link, dpar) {
+  misc <- list(dpar = dpar)
+  if (identical(link, "identity")) {
+    return(misc)
+  }
+  misc$tran <- link
+  misc$inv.lbl <- "response"
+  misc$sigma <- NA_real_
+  misc
+}
+
 drm_emmeans_recover_data <- function(object, dpar = "mu") {
   drm_validate_emmeans_mu_target(object, dpar)
   model_frame <- drm_emmeans_model_frame(object, dpar)

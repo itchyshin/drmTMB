@@ -986,6 +986,12 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   helper recovers the retained `mu` model frame, terms, predictor names,
   response name, factor levels, and row names for the same first eligible target
   and errors when memory-light fits did not retain model frames.
+- Slice 122 implements the first public `emmeans` bridge. `emmeans` is now a
+  suggested package with conditional method registration, and
+  `emmeans::emmeans()` works for fixed-effect univariate `mu` targets when model
+  frames and fixed-effect covariance are retained. The method still rejects
+  non-`mu`, missing-covariance, memory-light, zero-inflated, random-effect, and
+  other unsupported paths before returning an `emmGrid`.
 - Add additional ggplot-oriented helpers only after the data contract is stable:
   location curves, scale/variance curves, residual `rho12` curves,
   `sd(group)` or `sd_phylo()` surfaces, `corpairs()` summaries, and eventually
