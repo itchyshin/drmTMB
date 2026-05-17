@@ -23204,3 +23204,44 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slice-199-reader-family-docs.md`.
+
+## 2026-05-17 - Slice 200 Poisson recovery tests
+
+Goal: add focused non-Gaussian recovery evidence for the fitted ordinary
+Poisson `mu` random-effect path before the Phase 18 simulation gate.
+
+Files changed:
+
+- `tests/testthat/test-poisson-mean.R`
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/dev-log/after-task/2026-05-17-slice-200-poisson-recovery.md`
+
+What changed:
+
+- Added a factor-predictor Poisson random-intercept recovery test with habitat
+  levels in the log-mean formula.
+- Added a weak-SD Poisson random-intercept test that checks convergence,
+  finite positive fitted SDs, stable fixed effects, and
+  `check_drm(sd_boundary = 0.20)` lower-boundary warnings.
+- Parameterized the existing Poisson random-intercept simulator with `sd_id`
+  so ordinary and weak-SD cases use the same deterministic simulator.
+- NEWS and ROADMAP now record Slice 200 as recovery evidence, not a new
+  grammar or likelihood expansion.
+
+Checks run:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH air format tests/testthat/test-poisson-mean.R NEWS.md ROADMAP.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-17-slice-200-poisson-recovery.md`
+- `Rscript -e "devtools::test(filter = 'poisson-mean|check-drm', reporter = 'summary')"`:
+  passed.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with no problems.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- This slice does not implement NB2, zero-inflated, scale, shape, ordinal,
+  animal, phylogenetic, spatial, or cross-parameter non-Gaussian random effects.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slice-200-poisson-recovery.md`.
