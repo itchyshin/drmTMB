@@ -10,7 +10,8 @@ new_poisson_data <- function(n = 900, seed = 20260596) {
 new_poisson_random_intercept_data <- function(
   n_id = 36,
   n_each = 10,
-  seed = 20260619
+  seed = 20260619,
+  sd_id = 0.55
 ) {
   set.seed(seed)
   n <- n_id * n_each
@@ -19,9 +20,35 @@ new_poisson_random_intercept_data <- function(
     x = stats::rnorm(n)
   )
   beta_mu <- c(`(Intercept)` = 0.35, x = -0.30)
-  sd_id <- 0.55
   u_id <- stats::rnorm(n_id, sd = sd_id)
   eta <- beta_mu[[1L]] + beta_mu[[2L]] * dat$x + u_id[dat$id]
+  dat$count <- stats::rpois(n, lambda = exp(eta))
+  list(data = dat, beta_mu = beta_mu, sd_id = sd_id, u_id = u_id)
+}
+
+new_poisson_factor_random_intercept_data <- function(
+  n_id = 48,
+  n_each = 9,
+  seed = 20260623
+) {
+  set.seed(seed)
+  n <- n_id * n_each
+  dat <- data.frame(
+    id = factor(rep(seq_len(n_id), each = n_each))
+  )
+  dat$habitat <- factor(
+    sample(rep(c("forest", "open", "wet"), length.out = n)),
+    levels = c("forest", "open", "wet")
+  )
+  beta_mu <- c(
+    "(Intercept)" = 0.25,
+    habitatopen = 0.45,
+    habitatwet = -0.35
+  )
+  sd_id <- 0.45
+  u_id <- stats::rnorm(n_id, sd = sd_id)
+  eta <- as.vector(stats::model.matrix(~habitat, dat) %*% beta_mu) +
+    u_id[dat$id]
   dat$count <- stats::rpois(n, lambda = exp(eta))
   list(data = dat, beta_mu = beta_mu, sd_id = sd_id, u_id = u_id)
 }
@@ -231,6 +258,63 @@ test_that("Poisson mu supports independent random slopes", {
 
   expect_true(all(predict(fit, dpar = "mu") > 0))
   expect_equal(fitted(fit), predict(fit, dpar = "mu"), tolerance = 1e-12)
+})
+
+test_that("Poisson mu random intercept recovery handles factor predictors", {
+  sim <- new_poisson_factor_random_intercept_data()
+
+  fit <- drmTMB(
+    bf(count ~ habitat + (1 | id)),
+    family = stats::poisson(link = "log"),
+    data = sim$data
+  )
+
+  expect_s3_class(fit, "drmTMB")
+  expect_equal(fit$model$model_type, "poisson")
+  expect_equal(fit$opt$convergence, 0)
+  expect_true(fit$sdr$pdHess)
+  expect_equal(fit$model$random$mu$n_terms, 1L)
+  expect_equal(fit$model$random$mu$labels, "(1 | id)")
+  expect_named(fit$sdpars$mu, "(1 | id)")
+  expect_lt(max(abs(coef(fit, "mu") - sim$beta_mu)), 0.25)
+  expect_lt(abs(unname(fit$sdpars$mu) - sim$sd_id), 0.25)
+
+  id_effects <- fit$random_effects$mu$terms[["(1 | id)"]]
+  expect_equal(length(id_effects), length(sim$u_id))
+  expect_gt(stats::cor(id_effects, sim$u_id), 0.45)
+  expect_true(all(predict(fit, dpar = "mu") > 0))
+})
+
+test_that("Poisson mu random intercepts tolerate weak-SD boundary cases", {
+  sim <- new_poisson_random_intercept_data(
+    n_id = 42,
+    n_each = 9,
+    seed = 20260622,
+    sd_id = 0.03
+  )
+
+  fit <- drmTMB(
+    bf(count ~ x + (1 | id)),
+    family = stats::poisson(link = "log"),
+    data = sim$data
+  )
+
+  expect_s3_class(fit, "drmTMB")
+  expect_equal(fit$model$model_type, "poisson")
+  expect_equal(fit$opt$convergence, 0)
+  expect_true(fit$sdr$pdHess)
+  expect_named(fit$sdpars$mu, "(1 | id)")
+  expect_true(is.finite(unname(fit$sdpars$mu)))
+  expect_gt(unname(fit$sdpars$mu), 0)
+  expect_lt(unname(fit$sdpars$mu), 0.20)
+  expect_lt(max(abs(coef(fit, "mu") - sim$beta_mu)), 0.20)
+
+  chk <- check_drm(fit, sd_boundary = 0.20)
+  sd_boundary <- chk[chk$check == "random_effect_sd_boundary", ]
+  expect_equal(sd_boundary$status, "warning")
+  expect_match(sd_boundary$value, "boundary=0.2000")
+  expect_match(sd_boundary$message, "lower boundary")
+  expect_false(attr(chk, "ok"))
 })
 
 test_that("Poisson supports exposure offsets in the mean formula", {
