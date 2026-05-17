@@ -126,6 +126,47 @@ test_that("emmeans response scale follows the fitted mu inverse link", {
   expect_equal(response$response, mu, tolerance = 1e-10)
 })
 
+test_that("emmeans method carries mu offsets into the returned grid", {
+  testthat::skip_if_not_installed("emmeans")
+  set.seed(20260543)
+  dat <- emmeans_methods_data(n = 72L)
+  dat$exposure <- rep(c(1.0, 1.7, 2.3), length.out = nrow(dat))
+  eta <- -0.2 +
+    0.35 * dat$x +
+    0.25 * (dat$habitat == "kelp") -
+    0.10 * (dat$habitat == "sand") +
+    log(dat$exposure)
+  dat$count <- stats::rpois(nrow(dat), lambda = exp(eta))
+  fit <- drmTMB(
+    bf(count ~ x + habitat + offset(log(exposure))),
+    family = stats::poisson(link = "log"),
+    data = dat,
+    control = emmeans_methods_control(se = TRUE)
+  )
+
+  emm <- emmeans::emmeans(fit, ~habitat, at = list(x = 0, exposure = 2))
+  link <- summary(emm)
+  response <- summary(emm, type = "response")
+  grid <- data.frame(
+    x = 0,
+    habitat = factor(link$habitat, levels = levels(dat$habitat)),
+    exposure = 2
+  )
+
+  expect_equal(
+    link$emmean,
+    unname(predict(fit, newdata = grid, dpar = "mu", type = "link")),
+    tolerance = 1e-10
+  )
+  expect_equal(
+    response$response,
+    unname(predict(fit, newdata = grid, dpar = "mu", type = "response")),
+    tolerance = 1e-10
+  )
+  expect_true(all(is.finite(link$SE)))
+  expect_equal(link$df, rep(Inf, nrow(link)))
+})
+
 test_that("emmeans response scale handles logit mu families", {
   testthat::skip_if_not_installed("emmeans")
   set.seed(20260540)

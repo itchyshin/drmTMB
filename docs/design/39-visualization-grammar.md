@@ -219,6 +219,14 @@ tested contrast is only the ordinary difference among EMMs on that grid; broader
 drmTMB-specific contrast helpers and slope workflows remain separate future
 contracts.
 
+Slice 127 adds explicit offset parity coverage for the first `emmeans()` bridge.
+A Poisson fixed-effect `mu` model with `offset(log(exposure))` checks that the
+returned EMM grid matches `predict(dpar = "mu")` on link and response scales
+when `exposure` is supplied through `at`. This keeps exposure-adjusted count-rate
+means inside the first `mu` bridge without changing the unsupported boundaries
+for non-`mu`, random-effect, bivariate, zero-inflated, hurdle, ordinal, slope,
+or fitted-response targets.
+
 Slice 102 adds the first article-level empirical-grid example. The
 model-workflow article now shows a conditioned grid for direct
 `predict_parameters()` rows and a separate empirical grid for

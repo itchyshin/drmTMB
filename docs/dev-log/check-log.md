@@ -18981,3 +18981,97 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-16-slice-126-emmeans-contrast-boundary.md`.
+
+## 2026-05-16 - Slice 127 emmeans offset recover-data contract
+
+Goal: make the first public `emmeans()` bridge robust for fixed-effect `mu`
+formulas that contain ordinary R offsets, such as `offset(log(exposure))`.
+
+Roles:
+
+- Ada selected this as the next small `emmeans` slice after Slice 126 exposed
+  the downstream contrast boundary.
+- Boole owned the recover-data contract: offset source variables should travel
+  through the first `mu` grid without changing formula grammar.
+- Fisher checked that the estimand remains native `mu` on link or response
+  scale, not a fitted observed-response shortcut.
+- Curie added the public offset parity test and the recover-data regression
+  test.
+- Pat checked the exposure-adjusted count-rate reader path.
+- Grace owned focused `emmeans` tests, pkgdown, and stale-claim scans.
+- Rose recorded the interactive false start: the offset path only appeared to
+  work when the original data object still existed in the global environment.
+- Gauss, Noether, Darwin, Jason, and Emmy stayed watch-only because the slice
+  does not change likelihood algebra, equations, biological examples,
+  landscape claims, or object structure beyond recover-data metadata.
+
+Files changed:
+
+- `R/emmeans-preflight.R`
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/39-visualization-grammar.md`
+- `docs/design/40-emmeans-interface-contract.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-16-slice-127-emmeans-offset-contract.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-16-210359-codex-checkpoint.md`
+- `tests/testthat/test-emmeans-methods.R`
+- `tests/testthat/test-emmeans-recover-data.R`
+
+What changed:
+
+- `recover_data.drmTMB()` now accepts the `data` argument passed by
+  `emmeans::ref_grid()` and sends an explicit data frame to
+  `emmeans::recover_data()`, avoiding call-environment reconstruction when
+  terms contain functions such as `offset(log(exposure))`.
+- `drm_emmeans_recover_data()` now augments the retained model frame with model
+  variables needed by the terms but missing from the stored model frame, using
+  `object$data` aligned to retained model rows. This restores offset source
+  variables such as `exposure`.
+- Added a public `emmeans()` parity test for a Poisson fixed-effect `mu` model
+  with `offset(log(exposure))`, checking link-scale and response-scale EMMs
+  against `predict(dpar = "mu")`.
+- Added a recover-data regression test that confirms the retained model frame
+  exposes `exposure` and records it as a predictor for the first `mu` path.
+- Updated NEWS, roadmap, and design notes to say ordinary `mu` formula offsets
+  are covered only for the first fixed-effect univariate `mu` bridge.
+
+Checks run:
+
+- `air format R/emmeans-preflight.R tests/testthat/test-emmeans-methods.R tests/testthat/test-emmeans-recover-data.R NEWS.md ROADMAP.md docs/design/39-visualization-grammar.md docs/design/40-emmeans-interface-contract.md`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'emmeans-methods|emmeans-recover-data', reporter = 'summary')"`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'emmeans-methods|emmeans-recover-data|emmeans-preflight|fixed-effect-basis|reference-grid-link-scale-contract', reporter = 'summary')"`:
+  passed.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed.
+- Positive source/rendered scan for Slice 127 offset wording, offset tests, and
+  recover-data helper changes: found the expected entries.
+- Stale-claim scan for offset as an unsupported `emmeans` target: returned only
+  older general count-model roadmap/NEWS mentions outside the `emmeans`
+  contract.
+- `git diff --check`: passed.
+- Recovery checkpoint:
+  `docs/dev-log/recovery-checkpoints/2026-05-16-210359-codex-checkpoint.md`.
+
+Post-rebase checks:
+
+- PR #91 merged as `89326081ceea98b42057c6a5d12269951500929c`.
+- `git rebase --onto origin/main a5e4326e39306f0f4ce3aee3d243cf8e08b5910d`:
+  passed.
+- `git diff --check origin/main...HEAD`: passed.
+- `Rscript -e "devtools::test(filter = 'emmeans-methods|emmeans-recover-data|emmeans-preflight|fixed-effect-basis|reference-grid-link-scale-contract', reporter = 'summary')"`:
+  passed.
+
+Known limitations:
+
+- This slice covers ordinary `mu` formula offsets only when the offset source
+  variables are retained in stored data.
+- It does not add support for non-`mu`, random-effect, bivariate,
+  zero-inflated, hurdle, ordinal, slope, custom-weight, or fitted-response
+  `emmeans` targets.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-16-slice-127-emmeans-offset-contract.md`.
