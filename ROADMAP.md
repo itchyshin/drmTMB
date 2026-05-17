@@ -1272,11 +1272,36 @@ remain blocked by future covariance or non-Gaussian random-effect work.
 | 188 | Random-effect gate | Publish the one-slope-per-layer status table and remaining Gaussian DH limits. |
 
 - Slice 189 should close any remaining Gaussian double-hierarchical boundary
-  wording before the non-Gaussian revisit. Slices 190-202 then revisit Phase
-  7/8/9/16 non-Gaussian location-scale-shape and family gaps, including
-  ordinal mixed-model gaps as a separate lane. After Slice 202, return to Phase
-  17 to close the remaining visualization, marginal-effect, contrast, slope,
-  and reader-facing inference surfaces.
+  wording before the non-Gaussian revisit.
+- Slices 190-202 are the pre-simulation non-Gaussian gate. The purpose is not
+  to implement every attractive family feature before Phase 18. It is to decide
+  which non-Gaussian, scale, shape, zero-inflation, hurdle, ordinal, structured,
+  and interval surfaces are fitted, which are explicitly unsupported, and which
+  have enough recovery evidence to enter the comprehensive simulation grid.
+  Treat the table below as the current working map; each row should become more
+  specific as earlier random-effect slices close.
+
+| Slice | Lane | Target Before Phase 18 |
+| --- | --- | --- |
+| 190 | Non-Gaussian `mu` random effects | Decide which fixed-effect non-Gaussian families get an ordinary `mu` random-intercept path first, and which should retain a clear unsupported message. |
+| 191 | Non-Gaussian `mu` implementation | Add or harden the first ordinary non-Gaussian random-intercept path where the likelihood is already stable enough for recovery testing. |
+| 192 | Non-Gaussian `mu` slopes | Define the one-slope boundary for non-Gaussian `mu`; add explicit unsupported errors for families that are not ready. |
+| 193 | Non-Gaussian residual scale | Revisit beta, gamma, lognormal, Student, and related scale paths for random-effect feasibility on their fitted scale. |
+| 194 | Shape and skew boundary | Pin the policy for random effects in `nu`, `shape`, future skew-normal, and future skew-t parameters before simulation claims depend on them. |
+| 195 | Zero-inflation and hurdle random effects | Revisit `zi`, `hu`, `zoi`, and `coi` random-effect support and unsupported-boundary messages. |
+| 196 | Ordinal mixed models | Separate ordinal random-intercept and random-slope planning from Gaussian ordinary random slopes, using `ordinal::clmm` only as a benchmark. |
+| 197 | Structured non-Gaussian random effects | Decide whether phylogenetic or spatial non-Gaussian random effects enter Phase 18 or stay deferred with explicit diagnostics. |
+| 198 | Non-Gaussian interval readiness | Check `summary()`, `confint()`, `corpairs()`, and `profile_targets()` status for the fitted non-Gaussian paths. |
+| 199 | Reader-facing family docs | Update family, model-map, and workflow docs so users can see implemented, one-slope, planned, and unsupported states. |
+| 200 | Focused non-Gaussian recovery tests | Run targeted recovery tests for the chosen fitted paths, including weak-SD and boundary cases where feasible. |
+| 201 | Failure ledger | Record convergence, boundary, identifiability, interval, and runtime limits for the non-Gaussian gate. |
+| 202 | Pre-simulation decision gate | Decide whether the random-effect and non-Gaussian surfaces are honest enough for Phase 18 or whether a smaller pilot simulation should start first. |
+
+- After Slice 202, return to Phase 17 to close the remaining visualization,
+  marginal-effect, contrast, slope, and reader-facing inference surfaces. Phase
+  18 comprehensive simulation starts only after that resumed Phase 17 closure
+  gate, unless the project deliberately opens a smaller pilot simulation with a
+  narrower estimand.
 - Slices 160-164 close the first confidence-band documentation block and reopen
   the profile-interval inventory. Slice 160 adds the factor-predictor
   interval-bar example and a real prediction-table test. Slice 161 makes

@@ -22073,3 +22073,41 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slice-177-gaussian-random-slope-audit.md`.
+
+## 2026-05-17 - Pre-Phase-18 slice map
+
+Goal: make the remaining pre-Phase-18 path visible after Slice 177, especially
+the non-Gaussian gate from Slices 190-202 and the return to Phase 17 before
+comprehensive simulations.
+
+Files changed:
+
+- `ROADMAP.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-17-pre-phase18-slice-map.md`
+
+What changed:
+
+- Expanded the roadmap after Slice 189 with a Slices 190-202 table covering
+  non-Gaussian `mu` random effects, scale, shape/skew, zero-inflation and
+  hurdle random effects, ordinal mixed models, structured non-Gaussian random
+  effects, interval readiness, reader docs, recovery tests, failure-ledger
+  work, and the final pre-simulation decision gate.
+- Re-stated that after Slice 202 the project returns to Phase 17 visualization,
+  marginal-effect, contrast, slope, and reader-facing inference closure before
+  Phase 18 comprehensive simulation starts.
+
+Checks run:
+
+- `air format ROADMAP.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-17-pre-phase18-slice-map.md`:
+  passed.
+- `rg -n 'Slices 190-202|Pre-simulation decision gate|After Slice 202|Phase 18 comprehensive simulation starts only after' ROADMAP.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-17-pre-phase18-slice-map.md`:
+  confirmed the roadmap and report carry the intended gate wording.
+- `rg -n 'After Slice 202.*Phase 18|Phase 18 comprehensive simulation starts immediately|return to Phase 18 at Slice 203' ROADMAP.md docs/design docs/dev-log/known-limitations.md vignettes README.md NEWS.md --glob '!docs/dev-log/check-log.md' --glob '!docs/dev-log/after-task/**' --glob '!docs/dev-log/after-phase/**' || true`:
+  returned no direct-jump wording.
+- `git diff --check`: passed.
+- `Rscript -e 'pkgdown::check_pkgdown()'`: passed with "No problems found."
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-pre-phase18-slice-map.md`.
