@@ -22188,3 +22188,55 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slices-178-181-gaussian-qgt2-blocks.md`.
+
+## 2026-05-17 - Slice 182 Gaussian sigma random-slope boundary
+
+Goal: close the residual-scale random-slope boundary before returning to
+location-scale covariance and bivariate or structured random-slope slices.
+
+Files changed:
+
+- `tests/testthat/test-gaussian-random-intercepts.R`
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/01-formula-grammar.md`
+- `docs/design/04-random-effects.md`
+- `docs/design/33-phase-6c-core-random-effects.md`
+- `docs/dev-log/after-task/2026-05-17-slice-182-sigma-random-slope-boundary.md`
+
+What changed:
+
+- Added a simulation-style test for multiple independent residual-scale
+  Gaussian random-effect terms:
+  `sigma ~ z + (1 | id) + (0 + w1 | id) + (0 + w2 | id)`.
+- Confirmed those terms report separate `sdpars$sigma` rows, contribute to
+  `predict(dpar = "sigma", type = "link")`, and expose direct
+  `log_sd_sigma` profile targets.
+- Confirmed the boundary by checking that no `corpars$sigma` or `cor:sigma`
+  profile target is created for independent residual-scale terms.
+- Updated the roadmap and design docs to state that multiple independent
+  residual-scale terms are implemented, while correlated or labelled
+  residual-scale slope covariance blocks remain planned.
+
+Checks run:
+
+- `air format NEWS.md ROADMAP.md docs/design/01-formula-grammar.md docs/design/04-random-effects.md docs/design/33-phase-6c-core-random-effects.md tests/testthat/test-gaussian-random-intercepts.R`:
+  passed.
+- `Rscript -e 'devtools::test(filter = "gaussian-random-intercepts", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'devtools::test(filter = "profile-targets|gaussian-random-intercepts", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'pkgdown::check_pkgdown()'`: passed.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- Residual-scale random-effect correlations remain fixed at zero for
+  independent `sigma` terms.
+- Correlated residual-scale intercept-slope blocks, labelled residual-scale
+  slope covariance, bivariate scale slopes, and non-Gaussian scale random
+  effects remain later slices.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slice-182-sigma-random-slope-boundary.md`.

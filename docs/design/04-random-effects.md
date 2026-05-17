@@ -149,7 +149,11 @@ c_id = sd_sigma_w * q_id
 v_id, q_id ~ Normal(0, 1)
 ```
 
-It models residual-scale heterogeneity. It does not model the standard
+It models residual-scale heterogeneity. Multiple independent residual-scale
+terms can be added, for example `(1 | id) + (0 + w1 | id) + (0 + w2 | id)`.
+Each term gets its own log-`sigma` random-effect SD in `sdpars$sigma`; the
+correlations among those residual-scale terms are fixed at zero in this phase,
+so no `corpars$sigma` rows are reported. This is not a model for the standard
 deviation of the `mu` random intercept.
 
 The first cross-formula covariance block is also implemented for matching

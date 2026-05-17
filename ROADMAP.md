@@ -1264,7 +1264,7 @@ remain blocked by future covariance or non-Gaussian random-effect work.
 | 179 | Gaussian random slopes | Done: q > 2 ordinary Gaussian `mu` blocks use the registry-backed positive-definite unstructured covariance path with constant block correlations. |
 | 180 | Gaussian random slopes | Done: q=3 recovery, malformed-input, conditional prediction, summary, `corpairs()`, and `profile_targets()` tests cover the first public path. |
 | 181 | Gaussian random slopes | Done: user docs state the q=3 evidence, q > 2 output names, profile-ready SDs, derived-unavailable unstructured correlations, and sample-size boundary. |
-| 182 | Scale random slopes | Pin the one-slope residual-scale baseline and its constant-correlation boundary. |
+| 182 | Scale random slopes | Done: multiple independent residual-scale Gaussian `sigma` terms are tested as separate log-`sigma` SDs with correlations fixed at zero; correlated and labelled residual-scale slope covariance blocks remain planned. |
 | 183 | Location-scale covariance | Prototype two independent matched `mu`/`sigma` random-intercept covariance blocks. |
 | 184 | Location-scale covariance | Add recovery, `corpairs()`, summary, and profile-target tests for two matched blocks. |
 | 185 | Bivariate random slopes | Define the first bivariate one-slope policy without opening q=8 endpoint blocks. |

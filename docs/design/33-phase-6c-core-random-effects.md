@@ -62,7 +62,7 @@ computation rather than by a conceptual one- or two-slope cap.
 | Layer | Current boundary | Next target | Claim only after |
 |---|---|---|---|
 | Ordinary Gaussian `mu` | Independent slope terms, one-slope correlated blocks, and q > 2 unstructured numeric grouped blocks are implemented | Expand diagnostics around larger q and weak slope SDs before teaching them as routine | q > 2 covariance blocks fit, `sdpars`, `corpars$re_cov`, `corpairs()`, `summary()`, and `profile_targets()` expose every SD/correlation, and recovery tests cover the q=3 path |
-| Gaussian `sigma` | Residual-scale random intercepts and independent numeric slopes on `log(sigma)` are implemented | Correlated scale intercept-slope blocks, then multi-slope scale blocks | simulations recover scale-slope SDs on the modelled `log(sigma)` scale, boundary diagnostics are useful, and examples do not confuse `sigma` slopes with `sd(group)` models |
+| Gaussian `sigma` | Residual-scale random intercepts and multiple independent numeric slopes on `log(sigma)` are implemented | Correlated scale intercept-slope blocks, then multi-slope scale covariance blocks | simulations recover scale-slope SDs on the modelled `log(sigma)` scale, boundary diagnostics are useful, and examples do not confuse `sigma` slopes with `sd(group)` models |
 | Location-scale covariance | Matching labelled `mu`/`sigma` random intercepts are implemented | Mean-scale covariance involving slope terms only after the separate `mu` and `sigma` slope blocks are stable | output names identify both distributional parameter and coefficient, and direct correlations have profile or explicit unavailable interval status |
 | Bivariate Gaussian | Random-intercept covariance blocks are implemented; bivariate random slopes are not | One ordinary `mu1`/`mu2` slope per response, then same-covariate slope1-slope2 correlations for plasticity-syndrome questions | `corpairs()` carries response and coefficient columns, residual `rho12` stays separate, and simulations vary residual correlation and random-slope SDs |
 | Structured phylogenetic/spatial | Coordinate spatial has one univariate Gaussian `mu` slope; phylogeny has intercept-level effects but no fitted slope | Bring phylogeny to the one-slope Gaussian `mu` baseline, then evaluate whether spatial and phylo need a second structured slope | each structured layer has SD summaries, direct profile targets, diagnostics, and simulation recovery for at least one fitted slope |
@@ -271,6 +271,11 @@ bf(y ~ x, sigma ~ z + (1 | id) + (0 + w | id))
 
 This is group-to-group variation in residual scale. It is not the same as
 `sd(id) ~ x_group`, which models the SD of a location random intercept.
+Multiple independent residual-scale terms, such as
+`sigma ~ z + (1 | id) + (0 + w1 | id) + (0 + w2 | id)`, are fitted as separate
+log-`sigma` SDs with correlations fixed at zero. Correlated residual-scale
+blocks such as `sigma ~ z + (1 + w | id)` and labelled residual-scale slope
+covariance blocks remain planned.
 
 ## Output and Inference Ledger
 
