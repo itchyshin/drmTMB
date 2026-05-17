@@ -265,6 +265,11 @@ Slice 133 adds multiple explicit `at` value coverage. A Gaussian fixed-effect
 `predict(dpar = "mu")` on the same conditional reference grid. This keeps
 explicit conditioning distinct from averaged EMMs.
 
+Slice 134 adds public zero-inflated boundary coverage. A zero-inflated Poisson
+model checks that `emmeans()` errors before returning an `emmGrid`, names the
+unsupported `"zi_poisson"` model type, and points users to `prediction_grid()`
+plus `predict_parameters()` for explicit prediction tables.
+
 Slice 102 adds the first article-level empirical-grid example. The
 model-workflow article now shows a conditioned grid for direct
 `predict_parameters()` rows and a separate empirical grid for

@@ -1050,6 +1050,11 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   `emmeans()` bridge. A Gaussian fixed-effect `mu` example now checks that
   `emmeans(fit, ~ habitat | x, at = list(x = c(-0.25, 0.75)))` matches
   row-wise `predict(dpar = "mu")` on the same conditional reference grid.
+- Slice 134 adds public zero-inflated boundary coverage for the first
+  `emmeans()` bridge. A zero-inflated Poisson model now checks that
+  `emmeans()` errors before returning an `emmGrid`, names the unsupported
+  `"zi_poisson"` model type, and points users back to `prediction_grid()` plus
+  `predict_parameters()`.
 - Add additional ggplot-oriented helpers only after the data contract is stable:
   location curves, scale/variance curves, residual `rho12` curves,
   `sd(group)` or `sd_phylo()` surfaces, `corpairs()` summaries, and eventually

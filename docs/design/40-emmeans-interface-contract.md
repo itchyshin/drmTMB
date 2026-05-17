@@ -263,3 +263,9 @@ Slice 133 adds multiple explicit `at` value coverage. A Gaussian fixed-effect
 `emmeans(fit, ~ habitat | x, at = list(x = c(-0.25, 0.75)))` matches row-wise
 `predict(dpar = "mu")` on the same conditional reference grid. This is explicit
 conditioning, not a new marginalisation or slope contract.
+
+Slice 134 adds public zero-inflated boundary coverage. A zero-inflated Poisson
+model verifies that `emmeans()` errors before returning an `emmGrid`, names the
+unsupported `"zi_poisson"` model type, and directs users to `prediction_grid()`
+plus `predict_parameters()` for explicit prediction tables. This remains an
+unsupported boundary, not zero-inflated `emmeans` support.

@@ -536,6 +536,25 @@ test_that("emmeans method rejects unsupported drmTMB paths", {
     "keep_model_frame = TRUE"
   )
 
+  zi_dat <- dat
+  eta <- 0.2 +
+    0.4 * zi_dat$x +
+    0.25 * (zi_dat$habitat == "kelp") -
+    0.1 * (zi_dat$habitat == "sand")
+  zi_dat$count <- stats::rpois(nrow(zi_dat), lambda = exp(eta))
+  zi_dat$count[seq(1L, nrow(zi_dat), by = 5L)] <- 0L
+  zi_fit <- drmTMB(
+    bf(count ~ x + habitat, zi ~ habitat),
+    family = stats::poisson(link = "log"),
+    data = zi_dat,
+    control = emmeans_methods_control(se = TRUE)
+  )
+  zi_error <- expect_error(
+    emmeans::emmeans(zi_fit, ~habitat, at = list(x = 0)),
+    "zi_poisson"
+  )
+  expect_match(conditionMessage(zi_error), "prediction_grid\\(\\)")
+
   random_fit <- drmTMB(
     bf(y ~ x + habitat + (1 | id), sigma ~ 1),
     data = dat,
