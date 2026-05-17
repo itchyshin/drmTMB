@@ -26,6 +26,25 @@ new_poisson_random_intercept_data <- function(
   list(data = dat, beta_mu = beta_mu, sd_id = sd_id, u_id = u_id)
 }
 
+new_poisson_random_slope_data <- function(
+  n_id = 42,
+  n_each = 11,
+  seed = 20260621
+) {
+  set.seed(seed)
+  n <- n_id * n_each
+  dat <- data.frame(
+    id = factor(rep(seq_len(n_id), each = n_each)),
+    x = stats::rnorm(n)
+  )
+  beta_mu <- c(`(Intercept)` = 0.30, x = -0.25)
+  sd_x <- 0.45
+  u_x <- stats::rnorm(n_id, sd = sd_x)
+  eta <- beta_mu[[1L]] + beta_mu[[2L]] * dat$x + u_x[dat$id] * dat$x
+  dat$count <- stats::rpois(n, lambda = exp(eta))
+  list(data = dat, beta_mu = beta_mu, sd_x = sd_x, u_x = u_x)
+}
+
 test_that("drmTMB fits fixed-effect Poisson mean models", {
   sim <- new_poisson_data()
 
@@ -180,6 +199,40 @@ test_that("Poisson mu supports ordinary random intercepts", {
   expect_equal(fitted(fit), predict(fit, dpar = "mu"), tolerance = 1e-12)
 })
 
+test_that("Poisson mu supports independent random slopes", {
+  sim <- new_poisson_random_slope_data()
+
+  fit <- drmTMB(
+    bf(count ~ x + (0 + x | id)),
+    family = stats::poisson(link = "log"),
+    data = sim$data
+  )
+
+  expect_s3_class(fit, "drmTMB")
+  expect_equal(fit$model$model_type, "poisson")
+  expect_equal(fit$opt$convergence, 0)
+  expect_true(fit$sdr$pdHess)
+  expect_equal(fit$model$random$mu$n_terms, 1L)
+  expect_equal(fit$model$random$mu$labels, "(0 + x | id)")
+  expect_named(fit$sdpars$mu, "(0 + x | id)")
+  expect_gt(unname(fit$sdpars$mu), 0.05)
+  expect_lt(abs(unname(fit$sdpars$mu) - sim$sd_x), 0.25)
+  expect_lt(max(abs(coef(fit, "mu") - sim$beta_mu)), 0.20)
+
+  slope_effects <- fit$random_effects$mu$terms[["(0 + x | id)"]]
+  expect_equal(length(slope_effects), length(sim$u_x))
+  expect_gt(stats::cor(slope_effects, sim$u_x), 0.35)
+
+  targets <- profile_targets(fit)
+  sd_target <- targets[targets$parm == "sd:mu:(0 + x | id)", , drop = FALSE]
+  expect_equal(nrow(sd_target), 1L)
+  expect_true(sd_target$profile_ready)
+  expect_equal(sd_target$tmb_parameter, "log_sd_mu")
+
+  expect_true(all(predict(fit, dpar = "mu") > 0))
+  expect_equal(fitted(fit), predict(fit, dpar = "mu"), tolerance = 1e-12)
+})
+
 test_that("Poisson supports exposure offsets in the mean formula", {
   sim <- new_poisson_data(n = 260, seed = 20260603)
   dat <- sim$data
@@ -324,11 +377,11 @@ test_that("Poisson models reject unsupported or invalid inputs", {
   )
   expect_error(
     drmTMB(
-      bf(y ~ x + (0 + x | id)),
+      bf(y ~ x + (1 + x | id)),
       family = stats::poisson(link = "log"),
       data = dat
     ),
-    "Only ordinary Poisson"
+    "Only independent Poisson"
   )
   expect_error(
     drmTMB(
@@ -336,7 +389,7 @@ test_that("Poisson models reject unsupported or invalid inputs", {
       family = stats::poisson(link = "log"),
       data = dat
     ),
-    "Only ordinary Poisson"
+    "Only independent Poisson"
   )
   expect_error(
     drmTMB(
