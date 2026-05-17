@@ -114,6 +114,14 @@ covariance, zero-inflated, and random-effect paths with guidance back to
 narrower than the eventual design so that unsupported paths fail before a
 partially valid reference grid can be returned.
 
+Slice 121 adds the private recovery-side preflight for the same first target.
+`drm_emmeans_recover_data()` checks the same eligibility gate, then returns the
+retained `mu` model frame, terms, predictor names, response name, factor levels,
+and row names. If `drm_control(keep_model_frame = FALSE)` was used, the helper
+errors and asks for a refit with retained model frames. This mirrors the
+requirement that future `recover_data.drmTMB()` support needs fitted-row
+metadata, not only coefficients.
+
 For `type = "link"`, the EMM is on the formula linear-predictor scale. For
 `type = "response"`, `emmeans` should apply the same inverse link tested in
 Slice 117. The method should not silently switch from distributional-parameter
