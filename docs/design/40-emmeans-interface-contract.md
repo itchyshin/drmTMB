@@ -319,3 +319,11 @@ ordered predictor as an ordinary factor still align with the fitted polynomial
 contrast columns. A Gaussian `condition` by `habitat` grid checks parity with
 `predict(dpar = "mu")`. This is coding preservation for an already supported
 fixed-effect `mu` model, not ordinal-response `emmeans` support.
+
+Slice 143 adds the corresponding unknown-level validation for fixed-effect
+prediction newdata. Character values that match fitted factor levels are
+accepted and coerced through the fitted factor coding, while unknown or missing
+levels error before model-matrix construction with the predictor named. Extra
+factor columns not used by the requested distributional parameter are ignored.
+This keeps `predict()` and `emmeans` basis construction from falling through to
+an internal design-matrix or offset-length error.

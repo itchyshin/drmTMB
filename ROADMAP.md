@@ -1088,6 +1088,13 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   an ordered `condition` predictor now checks that `emmeans(fit, ~ condition |
   habitat, at = list(x = 0.2))` preserves ordered polynomial coding and matches
   `predict(dpar = "mu")` on the same grid.
+- Slice 143 adds explicit validation for fixed-effect prediction factor levels.
+  Character `newdata` values that match fitted factor levels now route through
+  the fitted factor coding, while unknown levels such as `habitat = "forest"`
+  error before model-matrix construction with the offending predictor and
+  level named. Missing values in fitted factor predictors also error early, and
+  extra factor columns not used by the requested distributional parameter are
+  ignored.
 - Add additional ggplot-oriented helpers only after the data contract is stable:
   location curves, scale/variance curves, residual `rho12` curves,
   `sd(group)` or `sd_phylo()` surfaces, `corpairs()` summaries, and eventually
