@@ -1079,6 +1079,10 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   `mu` `emmeans()` bridge. A Gaussian `habitat * x` fit now checks that
   conditional EMMs at an explicit `x` value match `predict(dpar = "mu")` on the
   same interaction grid.
+- Slice 141 adds factor-conditioned reference-grid coverage for the
+  fixed-effect univariate `mu` `emmeans()` bridge. A Gaussian `habitat` by
+  `season` grid at `x = 0.25` now checks that returned EMM rows preserve factor
+  levels and match `predict(dpar = "mu")` on the same grid.
 - Add additional ggplot-oriented helpers only after the data contract is stable:
   location curves, scale/variance curves, residual `rho12` curves,
   `sd(group)` or `sd_phylo()` surfaces, `corpairs()` summaries, and eventually
