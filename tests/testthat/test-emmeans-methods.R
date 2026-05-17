@@ -71,6 +71,34 @@ test_that("emmeans method matches fixed-effect mu predictions", {
   expect_equal(out$df, rep(Inf, nrow(out)))
 })
 
+test_that("emmeans pairwise contrasts use the returned mu grid", {
+  testthat::skip_if_not_installed("emmeans")
+  set.seed(20260542)
+  dat <- emmeans_methods_data()
+  fit <- drmTMB(
+    bf(y ~ x + habitat, sigma ~ 1),
+    data = dat,
+    control = emmeans_methods_control(se = TRUE)
+  )
+
+  pairwise <- emmeans::emmeans(fit, pairwise ~ habitat, at = list(x = 0))
+  means <- summary(pairwise$emmeans)
+  contrasts <- summary(pairwise$contrasts)
+  emmean_by_habitat <- stats::setNames(means$emmean, means$habitat)
+  expected <- vapply(
+    strsplit(as.character(contrasts$contrast), " - ", fixed = TRUE),
+    function(parts) {
+      emmean_by_habitat[[parts[[1L]]]] -
+        emmean_by_habitat[[parts[[2L]]]]
+    },
+    numeric(1)
+  )
+
+  expect_equal(contrasts$estimate, expected, tolerance = 1e-10)
+  expect_true(all(is.finite(contrasts$SE)))
+  expect_equal(contrasts$df, rep(Inf, nrow(contrasts)))
+})
+
 test_that("emmeans response scale follows the fitted mu inverse link", {
   testthat::skip_if_not_installed("emmeans")
   set.seed(20260538)

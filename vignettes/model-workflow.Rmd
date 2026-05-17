@@ -343,8 +343,10 @@ if (requireNamespace("emmeans", quietly = TRUE)) {
 
 Read this output as estimated marginal means of the native distributional
 parameter `mu`, not as summaries of `sigma` or as a random-effect, bivariate,
-zero-inflated, hurdle, ordinal, contrast, or slope workflow. For those targets,
-use explicit `prediction_grid()` and `predict_parameters()` tables until the
+zero-inflated, hurdle, ordinal, or slope workflow. Generic `emmeans` contrasts
+can be formed from this returned `mu` grid, but broader drmTMB-specific contrast
+helpers remain a separate future contract. For other distributional targets, use
+explicit `prediction_grid()` and `predict_parameters()` tables until the
 corresponding reference-grid algebra and tests exist.
 
 The first optional plotting helper consumes that table directly:

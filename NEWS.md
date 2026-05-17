@@ -1,7 +1,10 @@
 # drmTMB 0.1.2 (2026-05-16)
 
-* `emmeans::emmeans()` now supports the first narrow `drmTMB` path: fixed-effect univariate `mu` estimated marginal means with retained model frames and fixed-effect covariance available. Bivariate, zero-inflated, hurdle, ordinal expected-score, random-effect, structured-effect, non-`mu`, contrast, slope, and interval-specialized targets still error before an `emmGrid` is returned.
-* The model-workflow article now shows the first optional `emmeans::emmeans()` example for fixed-effect univariate `mu`, keeping adjusted means separate from `predict_parameters()` tables and from unsupported `sigma`, random-effect, bivariate, zero-inflated, hurdle, ordinal, contrast, and slope workflows.
+* `emmeans::emmeans()` now supports the first narrow `drmTMB` path: fixed-effect univariate `mu` estimated marginal means with retained model frames and fixed-effect covariance available. Generic `emmeans` pairwise contrasts on that returned `mu` grid are covered by a small parity test.
+* Bivariate, zero-inflated, hurdle, ordinal expected-score, random-effect,
+  structured-effect, non-`mu`, slope, and interval-specialized `emmeans`
+  targets still error before an `emmGrid` is returned.
+* The model-workflow article now shows the first optional `emmeans::emmeans()` example for fixed-effect univariate `mu`, keeping adjusted means separate from `predict_parameters()` tables and from unsupported `sigma`, random-effect, bivariate, zero-inflated, hurdle, ordinal, and slope workflows. Broader drmTMB-specific contrast helpers remain a separate future contract.
 * Installation docs now point tagged-preview users to `pak::pak("itchyshin/drmTMB@v0.1.2")`.
 * `docs/design/39-visualization-grammar.md` now records the Phase 17
   visualization and marginal-effects research contract. The note uses
