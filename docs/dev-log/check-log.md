@@ -23051,3 +23051,62 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slice-197-structured-nongaussian-boundary.md`.
+
+## 2026-05-17 - Slice 197a animal and relmat reference surface
+
+Goal: make the planned animal-model and user-supplied relatedness grammar
+visible in the public reference index before fitted `animal()` or `relmat()`
+likelihoods are implemented.
+
+Files changed:
+
+- `R/formula-markers.R`
+- `R/parse-formula.R`
+- `R/drmTMB.R`
+- `NAMESPACE`
+- `man/animal.Rd`
+- `man/relmat.Rd`
+- `man/gr.Rd`
+- `_pkgdown.yml`
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/01-formula-grammar.md`
+- `docs/design/16-phylo-spatial-common-math.md`
+- `tests/testthat/test-package-skeleton.R`
+- `tests/testthat/test-gaussian-location-scale.R`
+- `docs/dev-log/after-task/2026-05-17-slice-197a-animal-relmat-reference-surface.md`
+
+What changed:
+
+- Added exported no-op formula markers `animal()` and `relmat()` with reference
+  documentation and eco-evo examples.
+- `drm_formula()` now records planned `animal()` and `relmat()` terms as
+  structured-effect metadata, with grammar checks for exactly one named source
+  object: `pedigree`, `A`, or `Ainv` for `animal()`; `K` or `Q` for `relmat()`.
+- Gaussian and non-Gaussian fits still reject these markers as planned
+  structured-effect syntax until likelihood, diagnostics, profile targets, and
+  recovery tests exist.
+- The pkgdown reference index now teaches `animal()`, `phylo()`, `spatial()`,
+  and `relmat()` as the visible structured-effect route, while `gr()` moves to
+  a reserved-marker section.
+- Roadmap and design wording now order structural-dependence teaching as
+  animal, phylogenetic, spatial, combined phylogenetic-spatial, then lower-level
+  `relmat()` or other known-dependence matrices.
+
+Checks run:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH air format R/formula-markers.R R/parse-formula.R R/drmTMB.R ROADMAP.md docs/design/01-formula-grammar.md docs/design/16-phylo-spatial-common-math.md tests/testthat/test-package-skeleton.R tests/testthat/test-gaussian-location-scale.R _pkgdown.yml NEWS.md`
+- `Rscript -e "devtools::document()"`: passed on the second run after the new
+  topics existed.
+- `Rscript -e "devtools::test(filter = 'package-skeleton|gaussian-location-scale|nongaussian-structured-boundary', reporter = 'summary')"`:
+  passed.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with no problems.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- This slice does not implement fitted `animal()` or `relmat()` effects.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slice-197a-animal-relmat-reference-surface.md`.

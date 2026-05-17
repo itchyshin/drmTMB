@@ -3066,7 +3066,7 @@ drm_entry_formula <- function(entry, response = FALSE) {
 }
 
 drm_reject_phase1_terms <- function(rhs, dpar, allow_offset = FALSE) {
-  structured_markers <- c("phylo", "spatial", "animal", "relmat")
+  structured_markers <- structured_marker_names()
   structured <- structured_markers[vapply(
     structured_markers,
     function(name) formula_contains_call(rhs, name),
@@ -3144,7 +3144,7 @@ drm_reject_phase1_terms <- function(rhs, dpar, allow_offset = FALSE) {
 
 formula_contains_structured_marker <- function(rhs) {
   any(vapply(
-    c("phylo", "spatial", "animal", "relmat"),
+    structured_marker_names(),
     function(name) formula_contains_call(rhs, name),
     logical(1)
   ))

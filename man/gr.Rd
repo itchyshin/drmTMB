@@ -2,7 +2,7 @@
 % Please edit documentation in R/formula-markers.R
 \name{gr}
 \alias{gr}
-\title{Reserved known-covariance group effect marker}
+\title{Legacy reserved known-covariance group effect marker}
 \usage{
 gr(group, cov)
 }
@@ -16,8 +16,10 @@ A formula marker; never evaluated by users.
 }
 \description{
 \code{gr()} is an older reserved marker for group-level effects with a
-user-supplied covariance matrix. The current design direction is to use a
-clearer lower-level name such as \code{relmat()} if a public user-supplied
-relatedness route is exposed, while keeping \code{phylo()}, \code{spatial()}, and
-future \code{animal()} as named high-level structured-effect front doors.
+user-supplied covariance matrix. New user-facing documentation should prefer
+the biological and matrix-specific structured-effect markers: \code{\link[=animal]{animal()}} for
+pedigree or additive-relatedness animal models, \code{\link[=phylo]{phylo()}} for phylogenetic
+dependence, \code{\link[=spatial]{spatial()}} for spatial dependence, and \code{\link[=relmat]{relmat()}} for a
+validated user-supplied relatedness or precision matrix. \code{gr()} remains
+reserved while that clearer surface is completed.
 }

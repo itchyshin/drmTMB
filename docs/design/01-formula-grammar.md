@@ -846,17 +846,21 @@ Not every parameter should accept random effects at the same development stage.
 - Random-effect scale formulae are currently implemented as
   `sd(group) ~ x_group` for one or more distinct unlabelled univariate Gaussian
   `mu` random intercepts.
-- Phylogenetic, spatial, animal-model, and lower-level known-relatedness terms
-  are structured random effects. The first fitted phylogenetic path is
+- Animal-model, phylogenetic, spatial, and lower-level known-relatedness terms
+  are structured random effects. Teach them in that reader order: `animal()`
+  for pedigree or additive relatedness, `phylo()` for macroevolutionary
+  dependence, `spatial()` for geographic or environmental structure, then
+  combined `phylo()` plus `spatial()` layers, with `relmat()` reserved for other
+  validated known-dependence matrices. The first fitted phylogenetic path is
   `phylo(1 | species, tree = tree)` in univariate Gaussian `mu`; fitted
   coordinate spatial paths are `spatial(1 | site, coords = coords)` and one
   numeric `spatial(1 + x | site, coords = coords)` slope in univariate Gaussian
-  `mu`. Later paths should support `phylo(1 + x | species, tree = tree)`,
-  multiple spatial slopes, and slope correlations only after separate recovery
-  evidence. Future matrix-input routes such as `phylo(..., A = A)`,
-  `animal(..., pedigree = ped)`, `animal(..., A = A)`, and a lower-level
-  `relmat(..., K = K)` should reuse the same structured-effect layer but remain
-  unsupported until parser validation, diagnostics, extractor labels, profile
+  `mu`. Later paths should support `animal(1 | id, pedigree = ped)`,
+  `phylo(1 + x | species, tree = tree)`, multiple spatial slopes, and slope
+  correlations only after separate recovery evidence. Matrix-input routes such
+  as `animal(..., A = A)`, `animal(..., Ainv = Ainv)`, `phylo(..., A = A)`,
+  and lower-level `relmat(..., K = K)` should reuse the same structured-effect
+  layer but remain unsupported until diagnostics, extractor labels, profile
   targets, and simulation recovery exist. Keep `A`, `Ainv`, `K`, or `Q` for
   relatedness and precision inputs; keep `V` for known sampling covariance in
   the preferred `meta_V(..., V = V)` design. If `gr()` is retained, treat it as

@@ -230,7 +230,7 @@ distributional regression models using TMB.
   recovery tests are implemented.
 - Add variance-component correlation summaries when identifiable.
 
-## Phase 5: Phylogenetic, Spatial, and Known-Relatedness Dependence
+## Phase 5: Animal, Phylogenetic, Spatial, and Known-Dependence Effects
 
 - Status: first univariate Gaussian phylogenetic location path implemented;
   first matching bivariate `mu1`/`mu2` phylogenetic location slice implemented;
@@ -238,18 +238,21 @@ distributional regression models using TMB.
   Animal-model and user-supplied relatedness inputs are design-only until the
   shared structured-effect layer has parser, validation, extractor, profile,
   and recovery-test evidence.
-- Treat phylogenetic, spatial, animal-model, and user-supplied relatedness
-  terms as one structured-effect module: `z ~ MVN(0, sigma_z^2 K)`, with
-  `K = A_phylo` for phylogeny, `K = M` for spatial dependence,
-  `K = A_ped` for additive pedigree relatedness, and `K = K_user` for a
-  validated user-supplied relatedness matrix.
+- Teach structural dependence in the biological order readers are likely to
+  ask for it: animal models first, then phylogenetic dependence, then spatial
+  dependence, then combined phylogenetic-spatial layers, with lower-level
+  `relmat()` reserved for other validated known-dependence matrices. The common
+  mathematical module is `z ~ MVN(0, sigma_z^2 K)`, with `K = A_ped` for
+  additive pedigree or animal relatedness, `K = A_phylo` for phylogeny, `K = M`
+  for spatial dependence, and `K = K_user` for a validated user-supplied
+  relatedness matrix.
 - Add sparse known-covariance infrastructure beyond the current phylogenetic
   A-inverse path, especially for large known sampling covariance, spatial
   precision matrices, and combined phylogenetic-spatial meta-analysis.
 - Reserve animal-model and generic known-relatedness syntax as siblings of
   `phylo()` and `spatial()`, not as new response families:
   `animal(1 | id, pedigree = ped)`, `animal(1 | id, A = A)`,
-  `animal(1 | id, Ainv = Ainv)`, and a later lower-level
+  `animal(1 | id, Ainv = Ainv)`, and a lower-level
   `relmat(1 | id, K = K)` or `relmat(1 | id, Q = Q)` escape hatch. Treat
   `relmat()` as the likely public replacement for older `gr()`-style
   low-level wording rather than teaching both names. Keep `V` for known
@@ -1336,6 +1339,7 @@ This is the current random-effect status before the non-Gaussian revisit:
 | 195 | Zero-inflation, hurdle, and one-inflation random effects | Done: `zi`, `hu`, planned `zoi`, and planned `coi` random-effect requests now receive component-specific boundaries. Fixed-effect zero-inflation and hurdle paths remain implemented; count-side random effects in zero-inflated or hurdle routes, bounded-response `zoi`/`coi` likelihoods, and covariance among `mu`, `sigma`, shape, inflation, hurdle, or one-inflation random effects remain future work until likelihood, interval, and recovery evidence exists. |
 | 196 | Ordinal mixed models | Done: cumulative-logit `mu` random-effect bar terms now have an ordinal-specific boundary. The first future ordinal mixed target remains a random intercept such as `(1 | id)`; ordinal random slopes, scale/discrimination formulas, known covariance, phylo/spatial ordinal effects, and `ordinal::clmm` comparator recovery stay planned. |
 | 197 | Structured non-Gaussian random effects | Done: phylogenetic, spatial, planned animal, and planned `relmat()` structured markers now have a structured non-Gaussian boundary. Structured count, bounded, ordinal, shape, inflation, and hurdle paths stay deferred until ordinary family-specific random effects and their intervals are stable. |
+| 197a | Animal/relmat reference surface | Done locally: `animal()` and `relmat()` are documented and parsed as planned structured-effect markers, the reference index leads with animal/phylo/spatial/relmat rather than `gr()`, and `gr()` is demoted to a reserved legacy marker. |
 | 198 | Non-Gaussian interval readiness | Check `summary()`, `confint()`, `corpairs()`, and `profile_targets()` status for the fitted non-Gaussian paths. |
 | 199 | Reader-facing family docs | Update family, model-map, and workflow docs so users can see implemented, one-slope, planned, and unsupported states. |
 | 200 | Focused non-Gaussian recovery tests | Run targeted recovery tests for the chosen fitted paths, including weak-SD and boundary cases where feasible. |

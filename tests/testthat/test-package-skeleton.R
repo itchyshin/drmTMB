@@ -162,18 +162,36 @@ test_that("drm_formula() captures planned corpair formula syntax", {
 
 test_that("drm_formula() captures planned structured-effect syntax", {
   form <- drm_formula(
-    y ~ x + phylo(1 | species, tree = tree) + spatial(1 | site, coords = coords)
+    y ~ x +
+      animal(1 | id, pedigree = pedigree) +
+      phylo(1 | species, tree = tree) +
+      spatial(1 | site, coords = coords) +
+      relmat(1 | line, K = G)
   )
 
   expect_s3_class(form, "drm_formula")
   expect_equal(form$entries[[1]]$dpar, "mu")
-  expect_length(form$entries[[1]]$structured, 2)
+  expect_length(form$entries[[1]]$structured, 4)
   expect_equal(
-    form$entries[[1]]$structured[[1]][c("type", "group", "tree")],
+    form$entries[[1]]$structured[[1]][c(
+      "type",
+      "group",
+      "structure",
+      "object"
+    )],
+    list(
+      type = "animal",
+      group = "id",
+      structure = "pedigree",
+      object = "pedigree"
+    )
+  )
+  expect_equal(
+    form$entries[[1]]$structured[[2]][c("type", "group", "tree")],
     list(type = "phylo", group = "species", tree = "tree")
   )
   expect_equal(
-    form$entries[[1]]$structured[[2]][c(
+    form$entries[[1]]$structured[[3]][c(
       "type",
       "group",
       "structure",
@@ -185,6 +203,15 @@ test_that("drm_formula() captures planned structured-effect syntax", {
       structure = "coords",
       object = "coords"
     )
+  )
+  expect_equal(
+    form$entries[[1]]$structured[[4]][c(
+      "type",
+      "group",
+      "structure",
+      "object"
+    )],
+    list(type = "relmat", group = "line", structure = "K", object = "G")
   )
 
   mesh_form <- drm_formula(y ~ spatial(1 | site, mesh = mesh))
@@ -228,10 +255,15 @@ test_that("drm_formula() captures planned structured-effect syntax", {
 
 test_that("formula markers are no-op placeholders", {
   expect_null(meta_known_V(V = 1))
+  expect_null(animal(1 | id, pedigree = pedigree))
+  expect_null(animal(1 | id, A = A))
+  expect_null(animal(1 | id, Ainv = Ainv))
   expect_null(gr(id, cov = diag(1)))
   expect_null(phylo(1 | species, tree = tree))
   expect_null(spatial(1 | site, coords = coords))
   expect_null(spatial(1 | site, mesh = mesh))
+  expect_null(relmat(1 | line, K = K))
+  expect_null(relmat(1 | line, Q = Q))
   expect_null(corpair(id, block = "p", class = "location-scale"))
   expect_null(corpair(id, block = "p", from = "mu1", to = "sigma2"))
   expect_null(corpair(
@@ -244,6 +276,22 @@ test_that("formula markers are no-op placeholders", {
 })
 
 test_that("planned structured-effect markers validate their grammar", {
+  expect_error(
+    drm_formula(y ~ x + animal(id)),
+    "random-effect syntax"
+  )
+  expect_error(
+    drm_formula(y ~ x + animal(1 | id)),
+    "pedigree.*A.*Ainv"
+  )
+  expect_error(
+    drm_formula(y ~ x + animal(1 | id, pedigree = pedigree, Ainv = Ainv)),
+    "exactly one"
+  )
+  expect_error(
+    drm_formula(y ~ x + animal(1 | id, pedigree = list(id = id))),
+    "must name objects"
+  )
   expect_error(
     drm_formula(y ~ x + phylo(species)),
     "random-effect syntax"
@@ -269,7 +317,27 @@ test_that("planned structured-effect markers validate their grammar", {
     "coords.*mesh"
   )
   expect_error(
+    drm_formula(y ~ x + relmat(id)),
+    "random-effect syntax"
+  )
+  expect_error(
+    drm_formula(y ~ x + relmat(1 | id)),
+    "K.*Q"
+  )
+  expect_error(
+    drm_formula(y ~ x + relmat(1 | id, K = K, Q = Q)),
+    "exactly one"
+  )
+  expect_error(
+    drm_formula(y ~ x + relmat(1 | id, K = diag(3))),
+    "must name objects"
+  )
+  expect_error(
     drm_formula(y ~ x + log(phylo(1 | species, tree = tree))),
+    "additive formula terms"
+  )
+  expect_error(
+    drm_formula(y ~ x + log(animal(1 | id, pedigree = pedigree))),
     "additive formula terms"
   )
 })
