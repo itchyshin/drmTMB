@@ -21287,3 +21287,82 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slice-154-random-scale-parameter-tables.md`.
+
+## 2026-05-17 - Slice 155 random-effect scale prediction-grid chain
+
+Goal: pin the helper chain from `prediction_grid()` through direct-SD
+`predict_parameters()` and `marginal_parameters()`.
+
+Roles:
+
+- Ada scoped this as the reader-facing helper-chain follow-up after Slice 154.
+- Boole checked that no new syntax was introduced: the chain uses the existing
+  `focal`, `dpar`, and `by` arguments.
+- Pat checked that the workflow keeps the explicit grid visible to applied
+  users.
+- Curie owned the prediction-grid to table-helper integration test.
+- Grace owned focused tests, pkgdown build/check, and rendered-site scans.
+- Rose checked that the wording does not imply random-effect scale `emmeans`,
+  direct-SD uncertainty intervals, bivariate direct-SD prediction surfaces, or
+  transformed-response support.
+- Fisher, Gauss, Noether, Darwin, Jason, and Emmy stayed watch-only because no
+  estimand, likelihood, equation derivation, biological example, landscape
+  claim, or object structure changed.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/39-visualization-grammar.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-17-slice-155-random-scale-prediction-grid.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-17-033432-codex-checkpoint.md`
+- `tests/testthat/test-prediction-grid.R`
+
+What changed:
+
+- Added explicit integration coverage that a direct-SD predictor such as `w` in
+  `sd(id) ~ w` can be varied with `prediction_grid()`.
+- The same test passes the grid to `predict_parameters(..., dpar = "sd(id)")`
+  and `marginal_parameters(..., by = "w")`, checking the
+  `random-effect-sd-model` component and one-row-per-grid-value averaging.
+- NEWS, the Phase 17 roadmap, and visualization-grammar design notes now record
+  the helper-chain contract.
+
+Checks run:
+
+- No-edit scout before the slice showed `prediction_grid()` already accepted
+  direct-SD predictor `w` as a focal or conditioned predictor.
+- `air format NEWS.md ROADMAP.md docs/design/39-visualization-grammar.md tests/testthat/test-prediction-grid.R`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'prediction-grid|predict-parameters|marginal-parameters', reporter = 'summary')"`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'prediction-grid|predict-parameters|marginal-parameters|reference-grid-link-scale-contract', reporter = 'summary')"`:
+  passed.
+- `git diff --check`: passed.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed.
+- Positive source/rendered scan for Slice 155 helper-chain wording: found the
+  expected entries in `NEWS.md`, `ROADMAP.md`,
+  `docs/design/39-visualization-grammar.md`,
+  `tests/testthat/test-prediction-grid.R`, and rendered pkgdown NEWS/ROADMAP
+  pages.
+- Stale-claim scan for accidental random-effect scale `emmeans`, direct-SD
+  confidence intervals, bivariate random-effect scale prediction,
+  `sd_sigma*()` syntax, transformed-response support, or
+  `prediction_grid()` uncertainty claims: no new false support claims; matches
+  were existing Family B guardrails.
+- Recovery checkpoint:
+  `docs/dev-log/recovery-checkpoints/2026-05-17-033432-codex-checkpoint.md`.
+
+Known limitations:
+
+- This slice pins point-estimate helper-chain support for direct-SD predictors.
+- It does not add random-effect scale `emmeans`, direct-SD uncertainty
+  intervals, bivariate random-effect scale prediction surfaces, empirical
+  weighting beyond the existing marginal helper, `sd_sigma*()` syntax,
+  transformed-response support, or new random-effect scale model families.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slice-155-random-scale-prediction-grid.md`.

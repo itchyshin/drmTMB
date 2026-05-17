@@ -167,6 +167,12 @@ component `random-effect-sd-model`, preserves row labels from supplied
 `marginal_parameters()` can average supplied direct-SD prediction rows over
 explicit grouping columns.
 
+Slice 155 pins the full helper chain for direct-SD predictors. A fitted
+predictor such as `w` in `sd(id) ~ w` can be varied with `prediction_grid()`,
+passed to `predict_parameters(..., dpar = "sd(id)")`, and averaged with
+`marginal_parameters(..., by = "w")` while keeping the explicit grid and table
+contracts visible.
+
 Slice 118 separates the future interface contract into
 `docs/design/40-emmeans-interface-contract.md`. That note maps the official
 `recover_data()` and `emm_basis()` extension API to `drmTMB` and keeps the

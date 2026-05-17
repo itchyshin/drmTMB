@@ -43,6 +43,32 @@ test_that("prediction_grid() builds mean-reference grids for focal terms", {
   expect_equal(pred$estimate[pred$dpar == "mu"], predict(fit, newdata = grid))
 })
 
+test_that("prediction_grid() supports random-effect scale predictors", {
+  sim <- new_gaussian_re_scale_data(n_id = 12, n_each = 4, seed = 20260569)
+  fit <- drmTMB(
+    bf(y ~ x + (1 | id), sigma ~ z, sd(id) ~ w),
+    family = gaussian(),
+    data = sim$data,
+    control = drm_control(optimizer = list(eval.max = 120L, iter.max = 120L))
+  )
+
+  grid <- prediction_grid(fit, focal = "w", at = list(w = c(-0.2, 0.4)))
+  pred <- predict_parameters(fit, newdata = grid, dpar = "sd(id)")
+  avg <- marginal_parameters(fit, newdata = grid, dpar = "sd(id)", by = "w")
+
+  expect_s3_class(grid, "drm_prediction_grid")
+  expect_equal(grid$w, c(-0.2, 0.4))
+  expect_equal(attr(grid, "prediction_grid")$focal_terms, "w")
+  expect_equal(unique(pred$component), "random-effect-sd-model")
+  expect_equal(
+    pred$estimate,
+    unname(predict(fit, newdata = grid, dpar = "sd(id)"))
+  )
+  expect_equal(avg$w, grid$w)
+  expect_equal(avg$estimate, pred$estimate)
+  expect_equal(avg$n, c(1L, 1L))
+})
+
 test_that("prediction_grid() uses automatic focal values", {
   set.seed(20260523)
   dat <- data.frame(
