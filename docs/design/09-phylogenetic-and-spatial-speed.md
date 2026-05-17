@@ -327,6 +327,13 @@ slope fields. Phylogeny has not: `phylo(1 + x | species, tree = tree)` remains
 rejected and should stay that way until its own slope-SD recovery,
 diagnostics, and profile-target naming are available.
 
+Slice 187 then rechecked the spatial side of that boundary. The fitted
+coordinate-spatial slope SD is a direct profile target, including the
+`spatial(0 + x | site)` slope-field SD. The same slice keeps the fitted scope
+at univariate Gaussian `mu`: multiple spatial slopes, spatial terms in
+`sigma`, bivariate spatial syntax, mesh/SPDE slopes, and spatial slope
+correlations remain planned.
+
 The first slope implementation should not estimate intercept-slope or
 slope-slope correlations. Those correlations multiply quickly and are usually
 less interpretable than the main structured location effect. A scientifically

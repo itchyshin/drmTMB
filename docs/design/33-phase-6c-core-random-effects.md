@@ -316,6 +316,10 @@ coordinate-spatial row for one numeric univariate Gaussian `mu` slope. Slice
 186 re-audited the sibling lanes and confirmed that phylogenetic slope syntax
 is still rejected while spatial one-slope syntax is fitted. That is an
 intentional parity gap, not hidden support.
+Slice 187 re-audited the fitted spatial path itself and added direct
+profile-interval coverage for the `spatial(0 + x | site)` slope-field SD plus
+boundary tests for multiple slopes, spatial scale terms, and bivariate spatial
+syntax.
 
 | Surface | Minimum next implementation contract | Destination |
 |---|---|---|

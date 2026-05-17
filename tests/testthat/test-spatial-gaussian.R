@@ -179,6 +179,24 @@ test_that("Gaussian mu supports coordinate-based spatial one-slope fields", {
   expect_equal(spatial_targets$target_type, rep("direct", 2L))
   expect_true(all(spatial_targets$profile_ready))
 
+  slope_ci <- stats::confint(
+    fit,
+    parm = "sd:mu:spatial(0 + x | site)",
+    level = 0.70,
+    method = "profile",
+    trace = FALSE,
+    ystep = 0.50
+  )
+  slope_sd <- unname(fit$sdpars$mu[["spatial(0 + x | site)"]])
+  expect_equal(slope_ci$parm, "sd:mu:spatial(0 + x | site)")
+  expect_equal(slope_ci$tmb_parameter, "log_sd_phylo")
+  expect_equal(slope_ci$index, 2L)
+  expect_equal(slope_ci$transformation, "exp")
+  expect_true(all(is.finite(c(slope_ci$lower, slope_ci$upper))))
+  expect_gt(slope_ci$lower, 0)
+  expect_lt(slope_ci$lower, slope_sd)
+  expect_gt(slope_ci$upper, slope_sd)
+
   chk <- check_drm(fit)
   spatial_check <- chk[chk$check == "spatial_mu_diagnostics", ]
   expect_equal(nrow(spatial_check), 1L)
@@ -200,6 +218,49 @@ test_that("Gaussian mu supports coordinate-based spatial one-slope fields", {
     unname(conditional_mu),
     fixed_mu + drmTMB:::phylo_mu_contribution(fit),
     tolerance = 1e-8
+  )
+})
+
+test_that("spatial one-slope support stays limited to univariate mu", {
+  sim <- new_spatial_gaussian_slope_data(
+    seed = 20260575,
+    n_site = 6L,
+    n_each = 4L
+  )
+  coords <- sim$coords
+  dat <- sim$data
+  dat$z <- stats::rnorm(nrow(dat))
+  dat$y2 <- dat$y + stats::rnorm(nrow(dat), sd = 0.1)
+
+  expect_error(
+    drmTMB(
+      bf(y ~ x + spatial(1 + x + z | site, coords = coords), sigma ~ 1),
+      family = gaussian(),
+      data = dat
+    ),
+    "intercept and one-slope structured terms"
+  )
+  expect_error(
+    drmTMB(
+      bf(y ~ x, sigma ~ spatial(1 + x | site, coords = coords)),
+      family = gaussian(),
+      data = dat
+    ),
+    "Structured-effect syntax is planned"
+  )
+  expect_error(
+    drmTMB(
+      bf(
+        mu1 = y ~ x + spatial(1 + x | site, coords = coords),
+        mu2 = y2 ~ x,
+        sigma1 = ~1,
+        sigma2 = ~1,
+        rho12 = ~1
+      ),
+      family = biv_gaussian(),
+      data = dat
+    ),
+    "Structured-effect syntax is planned"
   )
 })
 
