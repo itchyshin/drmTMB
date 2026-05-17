@@ -49,8 +49,9 @@ distributional regression models using TMB.
   residual-scale random intercepts plus independent random slopes in `sigma`.
 - Supported syntax:
   `bf(y ~ x1 + (1 | id) + (0 + x1 | id), sigma ~ x2 + (1 | id) + (0 + w | id))`.
-- Keep parser support for `sd(group) ~`, `meta_known_V(V = V)`, `phylo()`,
-  and `spatial()` terms from the start.
+- Keep parser support for `sd(group) ~`, known sampling covariance
+  (`meta_known_V(V = V)` now, preferred `meta_V(V = V)` after the rename
+  slice), `phylo()`, and `spatial()` terms from the start.
 - Prediction for `mu` and `sigma` is implemented.
 - Simulation and parameter-recovery tests are implemented for the first
   Gaussian case.
@@ -58,13 +59,17 @@ distributional regression models using TMB.
 ## Phase 2: Meta-Analytic Gaussian Regression
 
 - Status: diagonal and dense full known sampling covariance implemented.
-- Treat meta-analysis as `family = gaussian()` plus `meta_known_V(V = V)`.
+- Treat meta-analysis as `family = gaussian()` plus known sampling covariance.
+  The preferred roadmap spelling is `meta_V(V = V)`, with vectors accepted for
+  diagonal sampling variances and matrices accepted for dense sampling
+  covariance. The current implemented marker is still `meta_known_V(V = V)`
+  until the alias/rename slice is completed.
 - Support known sampling covariance through vectors, columns, diagonal matrices,
   dense block-diagonal matrices, or dense full matrices.
-- Reserve, but do not implement for `0.1.2`, a possible future `meta_V()`
-  umbrella that could unify additive known covariance
-  `meta_V(value, V = V)` with proportional sampling-variance models such as
-  `meta_V(value, w = w, scale = "proportional")`.
+- Reserve, but do not fully implement for `0.1.2`, a `meta_V()` umbrella that
+  can unify additive known covariance `meta_V(V = V)` with proportional
+  sampling-variance models such as
+  `meta_V(w = w, scale = "proportional")`.
 - The implemented known-covariance Gaussian path is now tested with ordinary
   `mu` random intercepts and random-effect scale formulae such as
   `sd(id) ~ x_group` using independent dense marginal-likelihood comparators.
@@ -79,9 +84,10 @@ distributional regression models using TMB.
 - Status: implemented for ordinary row likelihood weights.
 - A top-level `weights =` argument to `drmTMB()` now supplies ordinary
   likelihood weights, matching the broad convention in mixed-model packages.
-- Keep likelihood weights separate from `meta_known_V(V = V)`: weights multiply
-  observation log-likelihood contributions, whereas `meta_known_V()` supplies
-  known sampling covariance.
+- Keep likelihood weights separate from known sampling covariance: weights
+  multiply observation log-likelihood contributions, whereas `meta_V(V = V)`
+  should supply known sampling covariance after the rename slice. The current
+  implemented marker is still `meta_known_V(V = V)`.
 - Coexistence rule: additive known `V` continues to reject non-unit top-level
   weights until joint-block weighting is designed; proportional sampling
   variance through a future `meta_V(..., scale = "proportional")` is also not
@@ -224,17 +230,36 @@ distributional regression models using TMB.
   recovery tests are implemented.
 - Add variance-component correlation summaries when identifiable.
 
-## Phase 5: Phylogenetic and Spatial Dependence
+## Phase 5: Phylogenetic, Spatial, and Known-Relatedness Dependence
 
 - Status: first univariate Gaussian phylogenetic location path implemented;
   first matching bivariate `mu1`/`mu2` phylogenetic location slice implemented;
   first univariate Gaussian coordinate-based spatial location path implemented.
-- Treat phylogenetic and spatial terms as one structured-effect module:
-  `z ~ MVN(0, sigma_z^2 K)`, with `K = A` for phylogeny and `K = M` for
-  spatial dependence.
+  Animal-model and user-supplied relatedness inputs are design-only until the
+  shared structured-effect layer has parser, validation, extractor, profile,
+  and recovery-test evidence.
+- Treat phylogenetic, spatial, animal-model, and user-supplied relatedness
+  terms as one structured-effect module: `z ~ MVN(0, sigma_z^2 K)`, with
+  `K = A_phylo` for phylogeny, `K = M` for spatial dependence,
+  `K = A_ped` for additive pedigree relatedness, and `K = K_user` for a
+  validated user-supplied relatedness matrix.
 - Add sparse known-covariance infrastructure beyond the current phylogenetic
   A-inverse path, especially for large known sampling covariance, spatial
   precision matrices, and combined phylogenetic-spatial meta-analysis.
+- Reserve animal-model and generic known-relatedness syntax as siblings of
+  `phylo()` and `spatial()`, not as new response families:
+  `animal(1 | id, pedigree = ped)`, `animal(1 | id, A = A)`,
+  `animal(1 | id, Ainv = Ainv)`, and a later lower-level
+  `relmat(1 | id, K = K)` or `relmat(1 | id, Q = Q)` escape hatch. Treat
+  `relmat()` as the likely public replacement for older `gr()`-style
+  low-level wording rather than teaching both names. Keep `V` for known
+  sampling covariance in the preferred `meta_V(..., V = V)` design; do not
+  reuse `V` for additive genetic or phylogenetic relatedness.
+- When animal-model support becomes fitted, pair the syntax with eco-evo
+  examples rather than matrix-only demonstrations: heritable trait means in a
+  wild pedigree, additive genetic variance in behavioural predictability or
+  residual scale, and bivariate genetic covariance/evolvability examples are
+  higher-value teaching targets than an abstract `A` matrix smoke test.
 - Implemented `phylo(1 | species, tree = tree)` for univariate Gaussian `mu`
   using an ultrametric branch-length tree, the sparse augmented A-inverse path,
   one CRAN-safe simulation recovery test, and dense marginal likelihood
@@ -326,6 +351,7 @@ Phase 5 closure boundary:
 | univariate phylogenetic | `phylo(1 | species, tree = tree)` in Gaussian `mu`, `sd_phylo(species) ~ z`, profile targets and diagnostics | phylogenetic slopes, richer tree-shape recovery grids |
 | bivariate phylogenetic | matching `mu1`/`mu2` phylogenetic location correlation, constant q=4 location-scale block, q=2 predictor-dependent `corpair(..., level = "phylogenetic") ~ w`, bivariate `sd_phylo1()` / `sd_phylo2()` | q=4 predictor-dependent location-scale and scale-scale `corpair()` regressions |
 | coordinate spatial | `spatial(1 | site, coords = coords)` and one numeric `spatial(1 + x | site, coords = coords)` slope in univariate Gaussian `mu`, `sdpars`, `ranef("spatial_mu")`, direct profile targets, and `check_drm()` rows | mesh/SPDE, multiple spatial slopes, spatial slope correlations, spatial scale, bivariate spatial q=4, spatial direct-SD, spatial `corpair()` |
+| animal and user-supplied relatedness | design boundary only; no fitted `animal()` or `relmat()` path yet | `animal(1 | id, pedigree = ped)`, `animal(1 | id, A = A)`, `animal(1 | id, Ainv = Ainv)`, optional `phylo(..., A/Ainv = ...)` input, a lower-level `relmat()` route, diagnostics, profile targets, and recovery tests |
 | inference/output | fixed-effect SEs, direct profile-ready targets where implemented, `corpairs(conf.int = TRUE)` with explicit interval status | derived-profile intervals for q=4 correlations and richer marginal-effect/visualization helpers |
 
 ## Phase 5b: Large-Data Memory Strategy

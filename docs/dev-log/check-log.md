@@ -22838,3 +22838,65 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slice-194-shape-random-boundary.md`.
+
+## 2026-05-17 - Animal and known-relatedness roadmap boundary
+
+Goal: record the animal-model and user-supplied relatedness design boundary
+before the next non-Gaussian and pre-simulation slices depend on the
+phylogenetic/spatial grammar.
+
+Files changed:
+
+- `R/formula-markers.R`
+- `ROADMAP.md`
+- `docs/design/01-formula-grammar.md`
+- `docs/design/16-phylo-spatial-common-math.md`
+- `docs/design/34-validation-debt-register.md`
+- `docs/dev-log/known-limitations.md`
+- `man/gr.Rd`
+- `docs/dev-log/after-task/2026-05-17-animal-known-relatedness-roadmap.md`
+
+What changed:
+
+- Phase 5 now frames phylogenetic, spatial, animal-model, and user-supplied
+  relatedness effects as one structured Gaussian random-effect family with
+  different matrix sources.
+- Planned syntax now records `animal(1 | id, pedigree = ped)`,
+  `animal(1 | id, A = A)`, `animal(1 | id, Ainv = Ainv)`, optional
+  `phylo(..., A/Ainv = ...)`, and a lower-level `relmat()` candidate.
+- `relmat()` is recorded as the preferred low-level public direction if the
+  project exposes user-supplied relatedness matrices; `gr()` is documented as
+  an older reserved marker rather than a second public teaching path.
+- The touched meta-analysis wording now treats `meta_V(V = V)` as the
+  preferred roadmap spelling while noting that current code still implements
+  `meta_known_V(V = V)` until an alias/rename slice.
+- The validation-debt register and known-limitations page now state that
+  animal/user-relatedness models need parser support, matrix validation,
+  diagnostics, extractors, profile targets, and recovery tests before they are
+  advertised as fitted.
+- The roadmap and validation-debt register now require future animal-model docs
+  to use eco-evo examples, including heritable trait means in wild pedigrees,
+  behavioural predictability or residual-scale additive variance, and bivariate
+  genetic covariance.
+
+Checks run:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH air format R/formula-markers.R ROADMAP.md docs/design/01-formula-grammar.md docs/design/16-phylo-spatial-common-math.md docs/design/34-validation-debt-register.md docs/dev-log/known-limitations.md docs/dev-log/after-task/2026-05-17-animal-known-relatedness-roadmap.md`
+- `Rscript -e "devtools::document()"`: passed and regenerated `man/gr.Rd`.
+- `Rscript -e "devtools::test(filter = 'package-skeleton|meta-known-v', reporter = 'summary')"`:
+  passed.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with no problems.
+- `rg -n 'animal.*Implemented|Implemented.*animal|relmat.*Implemented|Implemented.*relmat|animal.*is implemented|relmat.*is implemented|meta_V\(V = V\).*Implemented|Implemented.*meta_V\(V = V\)' README.md NEWS.md ROADMAP.md docs/design docs/dev-log/known-limitations.md vignettes R tests --glob '!docs/dev-log/check-log.md' --glob '!docs/dev-log/after-task/**' || true`:
+  returned only the intentional `weights = w` line that says weights are
+  implemented while `meta_V(V = V)` is a preferred replacement design.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- This slice does not implement `animal()`, `relmat()`, `phylo(..., A/Ainv)`,
+  or the `meta_V()` alias. It records the design boundary and preferred naming
+  so implementation slices can proceed without re-opening the public grammar.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-animal-known-relatedness-roadmap.md`.

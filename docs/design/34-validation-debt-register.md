@@ -28,6 +28,7 @@ Use these status labels:
 | `ordinary_biv_corpairs` | Ordinary bivariate covariance and `corpairs()` | partial | moderate | Add coefficient-aware bivariate slope covariance only after q=2/q=4 interval status and recovery evidence are explicit. |
 | `phylo_structured_effects` | Phylogenetic structured effects | partial | moderate | Add phylogenetic one-slope likelihood, diagnostics, and recovery evidence before teaching slopes. |
 | `spatial_coord_effects` | Coordinate spatial structured effects | partial | moderate | Add mesh/SPDE, multiple-slope, and spatial-correlation evidence before widening spatial syntax. |
+| `animal_known_relatedness` | Animal-model and user-supplied relatedness effects | blocked | high if confused with implemented phylogeny or meta-analysis known `V` | Add parser support, pedigree/`A`/`Ainv` validation, diagnostics, extractors, profile targets, and simulation recovery before advertising runnable syntax; prefer one low-level public name such as `relmat()`, not both `relmat()` and `gr()`. |
 | `profile_diagnostics` | Profile intervals and diagnostics | partial | moderate | Complete Slice 79 uncertainty-state handling and a nonlinear interval method for derived summaries. |
 | `large_data_controls` | Large-data fit controls | opt-in | moderate to high for extrapolated claims | Add non-CRAN benchmarks and compatibility tests before claiming broad scalability. |
 | `reserved_planned_neighbours` | Reserved or planned neighbours | blocked | high if advertised as runnable syntax | Keep errors and docs synchronized until implementation, tests, diagnostics, NEWS, and after-task evidence exist. |
@@ -270,6 +271,30 @@ Use these status labels:
 - Debt: mesh/SPDE, multiple spatial slopes, spatial slope correlations,
   spatial `sigma`, bivariate spatial covariance, and spatial `corpair()` remain
   blocked.
+
+### Animal-model and user-supplied relatedness effects
+
+- Matrix status: design-only.
+- Register status: blocked.
+- Evidence: no parser or likelihood tests exist yet. The current evidence is a
+  design boundary in `ROADMAP.md`, `docs/design/01-formula-grammar.md`, and
+  `docs/design/16-phylo-spatial-common-math.md`.
+- Diagnostics and intervals: none. Future fits need `sdpars`, `ranef()`,
+  `profile_targets()`, `corpairs()` where bivariate correlations are fitted,
+  and `check_drm()` rows before they can be taught as routine.
+- User-facing docs: none beyond planned-syntax notes. A future tutorial should
+  use eco-evo examples, such as heritable trait means in a wild pedigree,
+  additive genetic variance in behavioural predictability or residual scale,
+  and bivariate genetic covariance. It should also separate additive genetic
+  relatedness from phylogenetic relatedness, spatial dependence, ordinary
+  grouped random effects, and known sampling covariance.
+- Debt: add parser support for `animal(1 | id, pedigree = ped)`,
+  `animal(1 | id, A = A)`, `animal(1 | id, Ainv = Ainv)`, optional
+  `phylo(..., A/Ainv = ...)`, and a lower-level `relmat()` route only after the
+  pedigree or matrix validation contract is settled. Recovery tests should cover
+  dense `A` versus sparse `Ainv`, row-name and level alignment, near-singular
+  matrices, weak additive variance, and separation from meta-analysis
+  `meta_V(..., V = V)`.
 
 ### Profile intervals and diagnostics
 

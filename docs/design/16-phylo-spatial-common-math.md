@@ -1,15 +1,18 @@
-# Phylogenetic and Spatial Common Math
+# Phylogenetic, Spatial, and Known-Relatedness Common Math
 
-This note records the shared mathematical spine for phylogenetic and future
-spatial models in `drmTMB`. It is based on the local tutorial:
+This note records the shared mathematical spine for phylogenetic, spatial,
+animal-model, and user-supplied relatedness models in `drmTMB`. The
+phylogenetic and spatial sections are based on the local tutorial:
 
 ```text
 /Users/z3437171/Downloads/Tutorial___Phylo_spatial_meta_analysis_2.pdf
 ```
 
-The key design decision is that phylogenetic and spatial dependence should not
-be implemented as unrelated special cases. They are both structured Gaussian
-random effects attached to one distributional parameter.
+The key design decision is that phylogenetic, spatial, animal-model, and
+generic known-relatedness dependence should not be implemented as unrelated
+special cases. They are structured Gaussian random effects attached to one
+distributional parameter, with different sources for the known covariance or
+precision matrix.
 
 ## One Structured-Effect Template
 
@@ -32,13 +35,16 @@ where:
 The same template gives:
 
 ```text
-phylogenetic effect: z_phylo ~ MVN(0, sigma_phylo^2 A)
-spatial effect:      z_space ~ MVN(0, sigma_space^2 M)
+phylogenetic effect:      z_phylo  ~ MVN(0, sigma_phylo^2 A_phylo)
+spatial effect:           z_space  ~ MVN(0, sigma_space^2 M)
+animal-model effect:      z_animal ~ MVN(0, sigma_animal^2 A_ped)
+user-relatedness effect:  z_rel    ~ MVN(0, sigma_rel^2 K_user)
 ```
 
-Here `A` is a phylogenetic correlation matrix derived from a tree, and `M` is a
-spatial correlation matrix derived from geographic distances or a spatial
-kernel.
+Here `A_phylo` is a phylogenetic relatedness matrix derived from a tree or
+supplied by the user, `M` is a spatial correlation matrix derived from
+geographic distances or a spatial kernel, `A_ped` is additive pedigree
+relatedness, and `K_user` is a validated user-supplied relatedness matrix.
 
 ## Distance To Correlation
 
@@ -92,7 +98,7 @@ So the implementation abstraction should be:
 
 ```text
 structured_effect(
-  term = "phylo" or "spatial",
+  term = "phylo" or "spatial" or "animal" or "relmat",
   dpar = "mu" or "sigma" or later "rho12",
   Z = incidence or projection matrix,
   Q = sparse precision matrix,
@@ -104,7 +110,11 @@ The public syntax can differ:
 
 ```r
 phylo(1 | species, tree = tree)
+phylo(1 | species, A = A_phylo)
+animal(1 | id, pedigree = ped)
+animal(1 | id, Ainv = Ainv_ped)
 spatial(1 | site, coords = coords)
+relmat(1 | id, K = K_user)
 ```
 
 but the TMB likelihood should see the same kind of structured-effect block.
@@ -125,10 +135,62 @@ phylo(1 + x | species, tree = tree)
 
 Here `phylo(1 | species, tree = tree)` is a phylogenetic random intercept and
 `phylo(1 + x | species, tree = tree)` is a phylogenetic random intercept plus a
-phylogenetic random slope. Public `phylo()` should require an ultrametric tree
-with branch lengths. Dense covariance matrices should be reserved for
-lower-level structured-covariance or comparator pathways, not the main
-phylogeny API.
+phylogenetic random slope. The implemented public `phylo()` path still requires
+an ultrametric tree with branch lengths. A later matrix-input route can accept
+`A` or `Ainv` from users who already have a validated phylogenetic relatedness
+matrix or precision matrix. Aliases such as `vcv` or `corr` should only be
+added if the scale contract is explicit; silent conversion between covariance,
+correlation, and precision would make variance-component interpretation
+fragile.
+
+## Animal Models and User-Supplied Relatedness
+
+Animal models use the same structured-effect template as phylogenetic mixed
+models. The difference is the biological source of `K`: a pedigree or additive
+relationship matrix rather than an evolutionary tree. This mirrors the
+[MCMCglmm course-note framing](https://jarrodhadfield.github.io/MCMCglmm/course-notes/pedigree.html),
+where pedigrees, phylogenies, and user-defined covariance structures are
+treated as known structures that define correlations among random effects.
+
+The public grammar should keep that biological source visible:
+
+```r
+animal(1 | id, pedigree = ped)
+animal(1 | id, A = A_ped)
+animal(1 | id, Ainv = Ainv_ped)
+```
+
+The lower-level escape hatch, if added, should avoid a vague name such as
+`user()`. A name such as `relmat()` keeps the object of inference visible and
+is clearer than teaching both `relmat()` and the older reserved `gr()` wording:
+
+```r
+relmat(1 | id, K = K_user)
+relmat(1 | id, Q = Q_user)
+```
+
+These inputs are relatedness or precision matrices for latent random effects.
+They are not known sampling covariances. Keep `V` reserved for the preferred
+`meta_V(..., V = V)` design, where the matrix describes sampling error in
+observations or effect-size estimates.
+
+The first reader-facing animal-model examples should be ecological and
+evolutionary, not matrix demonstrations. Good targets are:
+
+- heritable trait means in a wild pedigree, such as body size, tarsus length,
+  arrival date, or breeding timing;
+- additive genetic variance in behavioural predictability or residual scale,
+  connecting animal models to location-scale individual-difference questions;
+- bivariate additive genetic covariance between two traits, with a clear
+  link to evolvability, genetic correlation, or a simple G-matrix
+  interpretation.
+
+These examples should still respect `drmTMB` scope. The first tutorial should
+not imply a full quantitative-genetics platform with dominance, maternal
+effects, permanent environment, arbitrary multivariate responses, or breeding
+programme workflows. It should show how a univariate or bivariate
+distributional-regression model can attach one known additive relationship
+structure to the fitted random-effect layer.
 
 The first parser should validate:
 
@@ -308,7 +370,7 @@ known sampling covariance:
 ```r
 drmTMB(
   formula = drm_formula(
-    mu = yi ~ x1 + meta_known_V(V = V) +
+    mu = yi ~ x1 + meta_V(V = V) +
       phylo(1 | species, tree = tree) + (1 | study),
     sigma = ~ x1
   ),
@@ -318,11 +380,13 @@ drmTMB(
 ```
 
 This is partly implemented. Current code supports dense known sampling
-covariance through `meta_known_V(V = V)`, univariate Gaussian `mu` random
-intercepts, independent numeric `mu` random slopes, one-slope correlated `mu`
-blocks, univariate Gaussian residual-scale random intercepts and independent
-random slopes in `sigma`, and intercept-only `phylo(1 | species, tree = tree)`
-in `mu`. The coordinate-spatial foundation now also fits
+covariance through `meta_known_V(V = V)`; the preferred roadmap spelling is
+`meta_V(V = V)` once the alias/rename slice is implemented. Current code also
+supports univariate Gaussian `mu` random intercepts, independent numeric `mu`
+random slopes, one-slope correlated `mu` blocks, univariate Gaussian
+residual-scale random intercepts and independent random slopes in `sigma`, and
+intercept-only `phylo(1 | species, tree = tree)` in `mu`. The
+coordinate-spatial foundation now also fits
 `spatial(1 | site, coords = coords)` and one numeric
 `spatial(1 + x | site, coords = coords)` slope in univariate Gaussian `mu`.
 Mesh/SPDE spatial fields, multiple spatial slopes, spatial slope correlations,
@@ -460,7 +524,9 @@ blocks, rather than treating every cross-response correlation as residual
 ## Implementation Order
 
 1. Keep the current Gaussian location-scale and bivariate `rho12` MVP stable.
-2. Extend `meta_known_V(V = V)` from dense known covariance to sparse storage.
+2. Extend the known-sampling-covariance path from dense `V` to sparse storage,
+   using the preferred `meta_V(V = V)` spelling once the alias/rename slice is
+   implemented.
 3. Keep the first `phylo(1 | species, tree = tree)` univariate Gaussian `mu`
    path under simulation and comparator tests.
 4. Add matching bivariate `mu1`/`mu2` phylogenetic location effects with one
@@ -470,13 +536,17 @@ blocks, rather than treating every cross-response correlation as residual
 6. Close the coordinate-spatial foundation:
    `spatial(1 | site, coords = coords)` and one numeric
    `spatial(1 + x | site, coords = coords)` slope in univariate Gaussian `mu`.
-7. Add spatial SPDE/GMRF fields using the same structured-effect principle.
-8. Add one phylogenetic structured slope in `mu`; then, only after recovery
+7. Reserve animal-model and user-supplied relatedness syntax as siblings of
+   `phylo()` and `spatial()`, while keeping the fitted path blocked until the
+   parser, matrix validation, diagnostics, profile-target labels, and recovery
+   tests exist.
+8. Add spatial SPDE/GMRF fields using the same structured-effect principle.
+9. Add one phylogenetic structured slope in `mu`; then, only after recovery
    evidence, allow a maximum of two structured `mu` slopes. For spatial, the
    analogous multiple-slope and slope-correlation path starts after the
    coordinate foundation has stronger recovery evidence and after the mesh/SPDE
    route is designed.
-9. Treat structured effects in `rho12` as experimental until simulation
+10. Treat structured effects in `rho12` as experimental until simulation
    evidence shows identifiability.
 
 ## Current Implementation Gate

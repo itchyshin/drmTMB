@@ -17,11 +17,13 @@ meta_known_V <- function(V) {
   invisible(NULL)
 }
 
-#' Planned known-covariance group effect marker
+#' Reserved known-covariance group effect marker
 #'
-#' `gr()` reserves syntax for group-level effects with a user-supplied
-#' covariance matrix. It is the planned low-level foundation for phylogenetic
-#' and other structured random effects.
+#' `gr()` is an older reserved marker for group-level effects with a
+#' user-supplied covariance matrix. The current design direction is to use a
+#' clearer lower-level name such as `relmat()` if a public user-supplied
+#' relatedness route is exposed, while keeping `phylo()`, `spatial()`, and
+#' future `animal()` as named high-level structured-effect front doors.
 #'
 #' @param group Grouping factor.
 #' @param cov Known covariance or precision structure.
