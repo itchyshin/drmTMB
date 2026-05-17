@@ -23675,3 +23675,45 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slice-210-phase-18-sim-skeleton.md`.
+
+## 2026-05-17 - Slice 211 Gaussian location-scale pilot
+
+Goal: add the first Phase 18 DGP and pilot summary helper for Gaussian
+location-scale simulation work.
+
+Files changed:
+
+- `inst/sim/dgp/sim_dgp_gaussian_ls.R`
+- `inst/sim/fit/sim_summarise_gaussian_ls.R`
+- `tests/testthat/test-phase18-gaussian-ls-pilot.R`
+- `inst/sim/README.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `ROADMAP.md`
+- `NEWS.md`
+- `docs/dev-log/after-task/2026-05-17-slice-211-gaussian-ls-pilot.md`
+
+What changed:
+
+- Added pilot-cell conditions for sample size, residual-scale slope, and
+  location-scale predictor collinearity.
+- Added a seeded Gaussian DGP for `mu ~ x` and `sigma ~ z`.
+- Added a pilot summariser that records truth, estimate, error, convergence,
+  Hessian status, elapsed time, and warnings per parameter.
+- Added a CRAN-safe fitted-pilot smoke test.
+
+Checks run:
+
+- `air format inst/sim/dgp/sim_dgp_gaussian_ls.R inst/sim/fit/sim_summarise_gaussian_ls.R tests/testthat/test-phase18-gaussian-ls-pilot.R inst/sim/README.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md NEWS.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-17-slice-211-gaussian-ls-pilot.md`
+- `Rscript -e "devtools::test(filter = 'phase18-gaussian-ls-pilot', reporter = 'summary')"`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `git diff --check`
+
+Known limitations:
+
+- This slice does not add a grid runner, saved per-cell RDS output, external
+  comparators, interval coverage, power calculations, or comprehensive
+  simulation reports.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slice-211-gaussian-ls-pilot.md`.
