@@ -351,16 +351,26 @@ estimate
 std.error
 conf.low
 conf.high
+conf.level
 conf.status
 interval_source
 newdata columns
 ```
 
-Slice 103 adds the first provenance-only version of `conf.status` and
-`interval_source` to `predict_parameters()` and `marginal_parameters()`. The
-tables still contain point estimates only, so they report
+Slice 103 added the first provenance-only version of `conf.status` and
+`interval_source` to `predict_parameters()` and `marginal_parameters()`. At
+that point the tables contained point estimates only, so they reported
 `conf.status = "not_requested"` and
 `interval_source = "not_available"` instead of empty confidence limits.
+
+Slice 158 adds the first confidence-band path without making the plotter an
+interval estimator. `predict_parameters(conf.int = TRUE)` fills Wald
+fixed-effect `std.error`, `conf.low`, `conf.high`, and `conf.level` columns for
+supplied `newdata` grids when the requested distributional parameter has an
+ordinary fixed-effect basis. `plot_parameter_surface()` then consumes those
+columns, drawing confidence bands for continuous x-values and interval bars for
+discrete x-values. Tables that still report
+`interval_source = "not_available"` remain visibly interval-free.
 
 When uncertainty is unavailable, the row should still print with a status that
 tells the user what to try next, such as profiling a direct target or supplying
@@ -424,6 +434,7 @@ question. A small set of named helpers is safer:
 
 ```text
 plot_parameter_surface()  # implemented in Slice 104
+                         # interval-aware consumer in Slice 158
 plot_corpairs()           # implemented in Slice 113
 plot_diagnostics()        # planned
 plot_simulation_summary() # planned

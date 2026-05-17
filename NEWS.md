@@ -35,6 +35,12 @@
 * The model-workflow article now shows the first optional `emmeans::emmeans()` example for fixed-effect univariate `mu`, keeping adjusted means separate from `predict_parameters()` tables and from unsupported `sigma`, random-effect, bivariate, zero-inflated, hurdle, ordinal, and slope workflows. Broader drmTMB-specific contrast helpers remain a separate future contract.
 * The model-workflow article now shows how to build an explicit `prediction_grid()` for a fitted random-effect scale model such as `sd(site) ~ reef_cover`, then pass that grid through `predict_parameters(..., dpar = "sd(site)")` and `marginal_parameters(..., by = "reef_cover")` without treating random-effect SDs as residual `sigma` or raw responses.
 * The model-map article now routes fitted random-effect SD surfaces through `prediction_grid()`, `predict_parameters(..., dpar = "sd(group)")`, and `marginal_parameters()`, with the `random-effect-sd-model` component kept separate from residual `sigma`.
+* `predict_parameters(conf.int = TRUE)` now adds Wald fixed-effect confidence
+  intervals for supplied `newdata` grids when the requested distributional
+  parameter has an ordinary fixed-effect basis. The table fills `std.error`,
+  `conf.low`, `conf.high`, `conf.level`, `conf.status = "wald"`, and
+  `interval_source = "wald"` for supported rows, while fitted-row requests and
+  direct random-effect scale models keep explicit unavailable interval status.
 * Installation docs now point tagged-preview users to `pak::pak("itchyshin/drmTMB@v0.1.2")`.
 * `docs/design/39-visualization-grammar.md` now records the Phase 17
   visualization and marginal-effects research contract. The note uses
@@ -47,9 +53,19 @@
 * `plot_corpairs()` now provides the first optional `ggplot2` display for explicit `corpairs()` tables. It draws one point per fitted correlation row, adds interval segments only when finite `conf.low` and `conf.high` bounds are present, can facet by a supplied table column such as `level`, and keeps correlation `level`, `class`, and display interval status attached to the plotted data.
 * `plot_parameter_surface()` now provides the first optional `ggplot2` plotting
   helper for long tables returned by `predict_parameters()`. It plots existing
-  point estimates only, keeps interval provenance columns attached to the data,
-  and leaves confidence intervals, EMMs, contrasts, and slope plots for later
-  tested helpers.
+  point estimates, keeps interval provenance columns attached to the data, and
+  leaves EMMs, contrasts, and slope plots for later tested helpers.
+* `plot_parameter_surface()` now draws confidence bands for continuous x-values
+  and interval bars for discrete x-values when the supplied table already
+  contains finite `conf.low` and `conf.high` bounds with real `conf.status` and
+  `interval_source` provenance. It still does not compute confidence intervals,
+  and rows with `interval_source = "not_available"` remain visibly
+  interval-free.
+* The model-workflow and model-map articles now show prediction-surface
+  confidence bands as a table-first workflow:
+  `prediction_grid()` -> `predict_parameters(conf.int = TRUE)` ->
+  `plot_parameter_surface()`, with `conf.status`, `conf.level`, and
+  `interval_source` left visible.
 * `plot_parameter_surface()` now labels single-parameter panels with the fitted distributional parameter and prediction scale, such as `sigma estimate (response scale)`, while keeping the generic `Estimate` label when multiple parameters are plotted together.
 * `prediction_grid()` now builds explicit `newdata` grids for
   `predict_parameters()` and `marginal_parameters()`. The first contract

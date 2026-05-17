@@ -11,10 +11,15 @@
 #' `newdata` supplied, predictions are fixed-effect, population-level
 #' predictions for those rows, matching [predict.drmTMB()].
 #'
-#' This first table surface does not compute confidence intervals. It still
-#' includes interval provenance columns: `conf.status = "not_requested"` and
-#' `interval_source = "not_available"`. Later interval-aware helpers can fill
-#' those columns without changing the long-table shape.
+#' By default, the table includes interval provenance columns with
+#' `conf.status = "not_requested"` and
+#' `interval_source = "not_available"`. When `conf.int = TRUE` and `newdata` is
+#' supplied for ordinary fixed-effect distributional parameters, the helper
+#' adds Wald fixed-effect intervals from the fitted coefficient covariance and
+#' records the requested confidence level. These are population-level intervals
+#' for the supplied grid; they do not include random-effect mode uncertainty,
+#' profile-likelihood uncertainty, or uncertainty for direct random-effect scale
+#' models.
 #'
 #' @param object A `drmTMB` fit.
 #' @param newdata Optional data frame for prediction. If omitted, fitted rows
@@ -26,12 +31,17 @@
 #' @param type Prediction scale: `"response"` or `"link"`.
 #' @param include_newdata Logical; when `TRUE` and `newdata` is supplied, append
 #'   the supplied covariate columns to the returned table.
+#' @param conf.int Logical; include Wald fixed-effect confidence intervals when
+#'   available for the supplied prediction grid.
+#' @param conf.level Confidence level for Wald intervals when
+#'   `conf.int = TRUE`.
 #' @param ... Reserved for future options.
 #'
 #' @return A data frame with columns `row`, `row_label`, `dpar`, `component`,
 #'   `type`, `estimate`, `conf.status`, and `interval_source`. When
-#'   `include_newdata = TRUE`, supplied `newdata` columns are appended after
-#'   those core columns.
+#'   `conf.int = TRUE`, `std.error`, `conf.low`, `conf.high`, and `conf.level`
+#'   are also included. When `include_newdata = TRUE`, supplied `newdata`
+#'   columns are appended after those core columns.
 #'
 #' @examples
 #' dat <- data.frame(
@@ -54,6 +64,8 @@ predict_parameters.drmTMB <- function(
   dpar = NULL,
   type = c("response", "link"),
   include_newdata = TRUE,
+  conf.int = FALSE,
+  conf.level = 0.95,
   ...
 ) {
   dots <- list(...)
@@ -63,23 +75,42 @@ predict_parameters.drmTMB <- function(
   type <- match.arg(type)
   validate_predict_parameters_newdata(newdata)
   validate_predict_parameters_include_newdata(include_newdata)
+  validate_predict_parameters_conf_int(conf.int)
+  validate_predict_parameters_conf_level(conf.level)
   dpar <- predict_parameters_dpars(object, dpar)
 
   rows <- lapply(dpar, function(one_dpar) {
     estimate <- predict(object, newdata = newdata, dpar = one_dpar, type = type)
     n <- length(estimate)
-    data.frame(
+    interval <- predict_parameters_interval(
+      object = object,
+      newdata = newdata,
+      dpar = one_dpar,
+      type = type,
+      estimate = as.numeric(estimate),
+      conf.int = conf.int,
+      conf.level = conf.level
+    )
+    out <- data.frame(
       row = seq_len(n),
       row_label = predict_parameters_row_labels(newdata, n),
       dpar = one_dpar,
       component = drm_dpar_component(one_dpar),
       type = type,
       estimate = as.numeric(estimate),
-      conf.status = "not_requested",
-      interval_source = "not_available",
+      conf.status = interval$conf.status,
+      interval_source = interval$interval_source,
       stringsAsFactors = FALSE,
       check.names = FALSE
     )
+    if (isTRUE(conf.int)) {
+      out$std.error <- interval$std.error
+      out$conf.low <- interval$conf.low
+      out$conf.high <- interval$conf.high
+      out$conf.level <- interval$conf.level
+      out <- predict_parameters_order_columns(out)
+    }
+    out
   })
   out <- do.call(rbind, rows)
   row.names(out) <- NULL
@@ -134,6 +165,186 @@ validate_predict_parameters_include_newdata <- function(include_newdata) {
   invisible(include_newdata)
 }
 
+validate_predict_parameters_conf_int <- function(conf.int) {
+  if (
+    !is.logical(conf.int) ||
+      length(conf.int) != 1L ||
+      is.na(conf.int)
+  ) {
+    cli::cli_abort(
+      "{.arg conf.int} must be a single {.code TRUE} or {.code FALSE}."
+    )
+  }
+  invisible(conf.int)
+}
+
+validate_predict_parameters_conf_level <- function(conf.level) {
+  if (
+    !is.numeric(conf.level) ||
+      length(conf.level) != 1L ||
+      !is.finite(conf.level) ||
+      conf.level <= 0 ||
+      conf.level >= 1
+  ) {
+    cli::cli_abort("{.arg conf.level} must be one number between 0 and 1.")
+  }
+  invisible(conf.level)
+}
+
+predict_parameters_interval <- function(
+  object,
+  newdata,
+  dpar,
+  type,
+  estimate,
+  conf.int,
+  conf.level
+) {
+  n <- length(estimate)
+  if (!isTRUE(conf.int)) {
+    return(predict_parameters_interval_unavailable(
+      n,
+      status = "not_requested"
+    ))
+  }
+  if (is.null(newdata)) {
+    return(predict_parameters_interval_unavailable(
+      n,
+      status = "newdata_required",
+      conf.level = conf.level
+    ))
+  }
+  if (is_random_scale_dpar(object, dpar)) {
+    return(predict_parameters_interval_unavailable(
+      n,
+      status = "wald_unavailable",
+      conf.level = conf.level
+    ))
+  }
+
+  basis <- tryCatch(
+    drm_fixed_effect_basis(
+      object = object,
+      newdata = newdata,
+      dpar = dpar,
+      covariance = TRUE
+    ),
+    error = function(e) e
+  )
+  if (inherits(basis, "error")) {
+    return(predict_parameters_interval_unavailable(
+      n,
+      status = "wald_unavailable",
+      conf.level = conf.level
+    ))
+  }
+
+  se_link <- predict_parameters_link_se(basis, n)
+  ok <- is.finite(se_link)
+  z <- stats::qnorm(1 - (1 - conf.level) / 2)
+  lo_link <- basis$eta - z * se_link
+  hi_link <- basis$eta + z * se_link
+
+  if (identical(type, "link")) {
+    std.error <- se_link
+    conf.low <- lo_link
+    conf.high <- hi_link
+  } else {
+    derivative <- predict_parameters_inverse_link_derivative(
+      object,
+      dpar,
+      basis$eta
+    )
+    std.error <- abs(derivative) * se_link
+    conf.low <- drm_inverse_link(object, dpar, lo_link)
+    conf.high <- drm_inverse_link(object, dpar, hi_link)
+  }
+
+  std.error[!ok] <- NA_real_
+  conf.low[!ok] <- NA_real_
+  conf.high[!ok] <- NA_real_
+
+  list(
+    std.error = std.error,
+    conf.low = conf.low,
+    conf.high = conf.high,
+    conf.level = rep(conf.level, n),
+    conf.status = ifelse(ok, "wald", "wald_unavailable"),
+    interval_source = ifelse(ok, "wald", "not_available")
+  )
+}
+
+predict_parameters_interval_unavailable <- function(
+  n,
+  status,
+  conf.level = NA_real_
+) {
+  list(
+    std.error = rep(NA_real_, n),
+    conf.low = rep(NA_real_, n),
+    conf.high = rep(NA_real_, n),
+    conf.level = rep(conf.level, n),
+    conf.status = rep(status, n),
+    interval_source = rep("not_available", n)
+  )
+}
+
+predict_parameters_link_se <- function(basis, n) {
+  X <- as.matrix(basis$X)
+  V <- as.matrix(basis$V)
+  variances <- rowSums((X %*% V) * X)
+  if (length(variances) != n) {
+    return(rep(NA_real_, n))
+  }
+  se <- rep(NA_real_, n)
+  ok <- is.finite(variances) & variances >= -sqrt(.Machine$double.eps)
+  se[ok] <- sqrt(pmax(variances[ok], 0))
+  se
+}
+
+predict_parameters_inverse_link_derivative <- function(object, dpar, eta) {
+  link <- drm_dpar_link(object, dpar)
+  switch(
+    link,
+    identity = rep(1, length(eta)),
+    log = exp(eta),
+    logit = {
+      p <- stats::plogis(eta)
+      p * (1 - p)
+    },
+    logm2 = exp(eta),
+    atanh_guarded = 0.99999999 * (1 - tanh(eta)^2),
+    atanh_re_guarded = 0.999999 * (1 - tanh(eta)^2),
+    cli::cli_abort(
+      "Internal error: unknown inverse-link derivative {.val {link}}."
+    )
+  )
+}
+
+predict_parameters_order_columns <- function(data) {
+  preferred <- c(
+    "row",
+    "row_label",
+    "dpar",
+    "component",
+    "type",
+    "estimate",
+    "std.error",
+    "std_error",
+    "conf.low",
+    "conf.high",
+    "conf.level",
+    "conf.status",
+    "interval_source"
+  )
+  data[
+    c(
+      intersect(preferred, names(data)),
+      setdiff(names(data), preferred)
+    )
+  ]
+}
+
 predict_parameters_row_labels <- function(newdata, n) {
   if (is.null(newdata)) {
     return(as.character(seq_len(n)))
@@ -154,6 +365,10 @@ predict_parameters_newdata_columns <- function(newdata, n_dpar) {
     "component",
     "type",
     "estimate",
+    "std.error",
+    "conf.low",
+    "conf.high",
+    "conf.level",
     "conf.status",
     "interval_source"
   )

@@ -205,6 +205,22 @@ distributional regression models using TMB.
   as slope-specific, labelled-block, bivariate, and non-Gaussian targets.
 - Respect labelled correlated group syntax such as `(1 + x | p | id)` when
   scale and bivariate random-effect paths are added.
+- Ordinary grouped random-slope boundary: do not claim full ordinary location
+  random-slope support until blocks such as `(1 + x1 + x2 + ... | id)` fit as
+  unstructured covariance blocks with SD/correlation summaries, profile
+  targets, recovery tests, and clear failure modes. The current Gaussian
+  grouped path can fit multiple independent slope terms and one correlated
+  intercept-plus-one-slope block, but it does not yet fit arbitrary numeric
+  multi-slope covariance. With `q` coefficients in a block, the fitted surface
+  has `q` SDs and `q * (q - 1) / 2` constant correlations.
+- One-slope baseline policy: every random-effect layer that `drmTMB` supports
+  should eventually accept at least one numeric random slope, or report an
+  explicit unsupported status and fallback. During the first expansion,
+  slope-related random-effect correlations are constant block hyperparameters,
+  not modelled formulae. This cap does not remove the separate
+  predictor-dependent `corpair()` lane for intercept-level group,
+  phylogenetic, or future spatial correlations when those likelihoods and
+  recovery tests are implemented.
 - Add variance-component correlation summaries when identifiable.
 
 ## Phase 5: Phylogenetic and Spatial Dependence
@@ -285,6 +301,16 @@ distributional regression models using TMB.
   `corpair()` rows are distant-future; the more biologically interesting later
   target is a bivariate slope1-slope2 correlation for the same covariate, a
   plasticity-syndrome style model.
+- Structured-dependence random-slope boundary: do not claim phylogenetic/spatial
+  slope parity until each structured layer has at least one fitted Gaussian
+  `mu` random slope with SD summaries, direct profile targets, diagnostics, and
+  simulation recovery. The coordinate spatial path has this first one-slope
+  baseline; the phylogenetic path does not yet.
+- Keep structured-effect correlations constant during the one-slope baseline.
+  Do not add predictor-dependent phylogenetic or spatial slope correlations
+  until the fixed-correlation one-slope paths recover reliably. This does not
+  block predictor-dependent intercept-level structured correlations that
+  already have their own `corpair()` design.
 - Continue adding identifiability diagnostics for replication by study,
   species, location, and effect-size levels before complex structured models
   are promoted. The first spatial `mu` diagnostic is implemented for the
@@ -498,10 +524,13 @@ Phase 6b should turn the implemented surfaces into a coherent reader path:
   unlabelled Gaussian `mu` random intercepts. The first coordinate spatial
   slope is now implemented in Phase 10; phylogenetic slopes and richer
   structured-slope paths remain later work for Phases 10 and 12.
-- Closure boundary: Phase 6c closes the ordinary grouped foundation and hands
-  structured random slopes to Phases 10 and 12. It does not fit
-  `phylo(1 + x | species, tree = tree)` yet; Phase 10 now fits the first
-  coordinate-spatial one-slope `mu` path.
+- Closure boundary: Phase 6c closes the ordinary grouped one-slope foundation,
+  not arbitrary ordinary grouped multi-slope covariance. The next ordinary
+  grouped boundary is glmmTMB/lme4-style syntax such as
+  `(1 + x1 + x2 + ... | id)`. Structured random slopes are handed to Phases 10
+  and 12; `spatial(1 + x | site, coords = coords)` now fits the first
+  coordinate spatial one-slope `mu` path, but
+  `phylo(1 + x | species, tree = tree)` still does not fit.
 
 | Slice | Goal | Main work | Done when |
 | --- | --- | --- | --- |
@@ -644,6 +673,10 @@ Phase 6d should be closed as small hardening slices:
   totals with public extra-binomial `sigma`.
   `cumulative_logit()` is implemented for fixed-effect univariate ordinal
   location models with ordered cutpoints and fixed latent logistic scale.
+- Ordinal random effects remain planned as a separate non-Gaussian mixed-model
+  lane. The first ordinal target is `(1 | id)` in `mu`; ordinary grouped
+  multi-slope covariance belongs to the Phase 4/6c boundary, not to the ordinal
+  MVP itself.
 - Next family sequence: zero-one-inflated beta after the boundary contract is
   settled, plus ordinal scale or discrimination formulas after their direction
   is documented.
@@ -1149,6 +1182,35 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   route through `prediction_grid()`, `predict_parameters(..., dpar =
   "sd(group)")`, and `marginal_parameters()`, with component
   `random-effect-sd-model` kept separate from residual `sigma`.
+- Slice 158 adds the first confidence-band path for prediction surfaces.
+  `predict_parameters(conf.int = TRUE)` now fills Wald fixed-effect
+  `std.error`, `conf.low`, and `conf.high` columns for supplied `newdata` grids
+  when the requested distributional parameter has an ordinary fixed-effect
+  basis. `plot_parameter_surface()` consumes those columns, drawing confidence
+  bands for continuous x-values and interval bars for discrete x-values;
+  `not_available` rows remain interval-free. The model-workflow and model-map
+  articles now show the table-first band workflow and leave `conf.status`,
+  `conf.level`, and `interval_source` visible.
+- Revised Phase 18 entry gate after Slice 158: do not jump directly into
+  comprehensive simulation while profile/bootstrap intervals, Gaussian
+  double-hierarchical random-slope limits, and non-Gaussian
+  location-scale-shape surfaces are still uneven. Treat Slices 159-202 as a
+  stabilization bridge before resuming Phase 17: Slices 159-163 finish
+  confidence-band examples and docs; Slices 164-176 revisit Phase 6/13 profile,
+  derived, and
+  bootstrap interval readiness; Slices 177-189 revisit Phase 4/6c/11/12
+  Gaussian double-hierarchical boundaries, including the gap between the
+  current one-slope grouped and structured paths and the desired
+  `(1 + x1 + x2 + ... | id)` ordinary grouped benchmark. This bridge should
+  also make the one-slope baseline explicit for each supported random-effect
+  layer and keep slope-related random-effect correlations constant rather than
+  predictor-modelled. Slices 190-202 revisit Phase 7/8/9/16 non-Gaussian
+  location-scale-shape and family gaps, including ordinal mixed-model gaps as a
+  separate lane. After Slice 202, return to Phase 17 to close the remaining
+  visualization, marginal-effect, contrast, slope, and reader-facing inference
+  surfaces. Phase 18 comprehensive
+  simulation should start only after that resumed Phase 17 closure gate, unless
+  a deliberately smaller pilot simulation is opened earlier.
 - Add additional ggplot-oriented helpers only after the data contract is stable:
   location curves, scale/variance curves, residual `rho12` curves,
   `sd(group)` or `sd_phylo()` surfaces, `corpairs()` summaries, and eventually

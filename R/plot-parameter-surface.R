@@ -7,15 +7,19 @@
 #' workflow first, then pass the resulting prediction table to this helper.
 #'
 #' The helper plots `estimate` against one supplied column. It expects the
-#' interval provenance columns created by [predict_parameters()] so the plotted
-#' data keep their uncertainty status attached, even though this first helper
-#' does not draw intervals. When the filtered table contains a single
+#' interval provenance columns created by [predict_parameters()]. When finite
+#' `conf.low` and `conf.high` columns are present and the provenance columns
+#' describe a real interval, it draws confidence bands for continuous x-values
+#' and interval bars for discrete x-values. Rows without finite supported bounds
+#' remain visible as point or line estimates only. When the filtered table
+#' contains a single
 #' distributional parameter, the y-axis label names that parameter and, when
 #' unique, the prediction scale.
 #'
 #' @param data A data frame returned by [predict_parameters()], or a compatible
 #'   long table with columns `dpar`, `type`, `estimate`, `conf.status`, and
-#'   `interval_source`.
+#'   `interval_source`. If `conf.low` and `conf.high` are present, both must be
+#'   numeric.
 #' @param x Character scalar naming the column to draw on the x-axis.
 #' @param colour Optional character scalar naming a column to map to colour.
 #' @param group Optional character scalar naming a column to group lines. If
@@ -28,6 +32,9 @@
 #'   `"response"` or `"link"`.
 #' @param line Logical; draw lines through the estimates.
 #' @param point Logical; draw points at the estimates.
+#' @param interval Logical; draw finite `conf.low`/`conf.high` intervals when
+#'   those columns are present and `conf.status` plus `interval_source` indicate
+#'   that an interval was actually computed.
 #' @param ... Reserved for future options.
 #'
 #' @return A `ggplot` object.
@@ -54,6 +61,7 @@ plot_parameter_surface <- function(
   type = NULL,
   line = TRUE,
   point = TRUE,
+  interval = TRUE,
   ...
 ) {
   dots <- list(...)
@@ -68,6 +76,7 @@ plot_parameter_surface <- function(
   facet <- validate_plot_parameter_surface_column(facet, data, "facet")
   line <- validate_plot_parameter_surface_flag(line, "line")
   point <- validate_plot_parameter_surface_flag(point, "point")
+  interval <- validate_plot_parameter_surface_flag(interval, "interval")
   if (!line && !point) {
     cli::cli_abort("At least one of {.arg line} or {.arg point} must be TRUE.")
   }
@@ -81,8 +90,24 @@ plot_parameter_surface <- function(
     group = group,
     facet = facet
   )
-  mapping <- plot_parameter_surface_mapping(has_colour = !is.null(colour))
+  has_colour <- !is.null(colour)
+  mapping <- plot_parameter_surface_mapping(has_colour = has_colour)
   out <- ggplot2::ggplot(data, mapping)
+  interval_ribbon <- FALSE
+  if (isTRUE(interval)) {
+    interval_data <- plot_parameter_surface_interval_data(data)
+    if (nrow(interval_data) > 0L) {
+      interval_ribbon <- plot_parameter_surface_interval_is_ribbon(
+        interval_data
+      )
+      out <- out +
+        plot_parameter_surface_interval_layer(
+          interval_data,
+          has_colour = has_colour,
+          ribbon = interval_ribbon
+        )
+    }
+  }
   if (line) {
     out <- out + ggplot2::geom_line(na.rm = TRUE)
   }
@@ -93,12 +118,16 @@ plot_parameter_surface <- function(
     out <- out +
       ggplot2::facet_wrap(~.drmTMB_plot_facet, scales = "free_y")
   }
-  out +
+  out <- out +
     ggplot2::labs(
       x = x,
       y = y_label,
       colour = colour
     )
+  if (interval_ribbon && has_colour) {
+    out <- out + ggplot2::guides(fill = "none")
+  }
+  out
 }
 
 plot_parameter_surface_require_ggplot2 <- function() {
@@ -125,6 +154,19 @@ validate_plot_parameter_surface_data <- function(data) {
   }
   if (!is.numeric(data$estimate)) {
     cli::cli_abort("{.arg data} column {.val estimate} must be numeric.")
+  }
+  interval_columns <- c("conf.low", "conf.high")
+  has_interval_columns <- interval_columns %in% names(data)
+  if (any(has_interval_columns) && !all(has_interval_columns)) {
+    cli::cli_abort(
+      "{.arg data} must contain both {.val conf.low} and {.val conf.high} or neither."
+    )
+  }
+  if ("conf.low" %in% names(data) && !is.numeric(data$conf.low)) {
+    cli::cli_abort("{.arg data} column {.val conf.low} must be numeric.")
+  }
+  if ("conf.high" %in% names(data) && !is.numeric(data$conf.high)) {
+    cli::cli_abort("{.arg data} column {.val conf.high} must be numeric.")
   }
   invisible(data)
 }
@@ -229,4 +271,85 @@ plot_parameter_surface_mapping <- function(has_colour) {
     args$colour <- as.name(".drmTMB_plot_colour")
   }
   do.call(ggplot2::aes, args)
+}
+
+plot_parameter_surface_interval_layer <- function(data, has_colour, ribbon) {
+  if (ribbon) {
+    return(ggplot2::geom_ribbon(
+      data = data,
+      mapping = plot_parameter_surface_interval_mapping(
+        has_colour = has_colour,
+        ribbon = TRUE
+      ),
+      inherit.aes = FALSE,
+      alpha = 0.18,
+      colour = NA,
+      na.rm = TRUE
+    ))
+  }
+
+  ggplot2::geom_errorbar(
+    data = data,
+    mapping = plot_parameter_surface_interval_mapping(
+      has_colour = has_colour,
+      ribbon = FALSE
+    ),
+    inherit.aes = FALSE,
+    alpha = 0.7,
+    width = 0.08,
+    na.rm = TRUE
+  )
+}
+
+plot_parameter_surface_interval_mapping <- function(has_colour, ribbon) {
+  args <- list(
+    x = as.name(".drmTMB_plot_x"),
+    ymin = as.name("conf.low"),
+    ymax = as.name("conf.high"),
+    group = as.name(".drmTMB_plot_group")
+  )
+  if (has_colour) {
+    if (ribbon) {
+      args$fill <- as.name(".drmTMB_plot_colour")
+    } else {
+      args$colour <- as.name(".drmTMB_plot_colour")
+    }
+  }
+  do.call(ggplot2::aes, args)
+}
+
+plot_parameter_surface_interval_data <- function(data) {
+  if (!all(c("conf.low", "conf.high") %in% names(data))) {
+    return(data[0L, , drop = FALSE])
+  }
+  keep <- is.finite(data$conf.low) &
+    is.finite(data$conf.high) &
+    plot_parameter_surface_interval_available(data)
+  data[keep, , drop = FALSE]
+}
+
+plot_parameter_surface_interval_available <- function(data) {
+  unavailable_status <- c(
+    "",
+    "not_requested",
+    "newdata_required",
+    "derived_interval_unavailable",
+    "wald_unavailable",
+    "target_unavailable",
+    "profile_ready",
+    "profile_unavailable"
+  )
+  status <- as.character(data$conf.status)
+  source <- as.character(data$interval_source)
+  !is.na(status) &
+    nzchar(status) &
+    !status %in% unavailable_status &
+    !is.na(source) &
+    nzchar(source) &
+    source != "not_available"
+}
+
+plot_parameter_surface_interval_is_ribbon <- function(data) {
+  x <- data$.drmTMB_plot_x
+  is.numeric(x) || inherits(x, c("Date", "POSIXct", "POSIXlt"))
 }
