@@ -1707,6 +1707,15 @@ drm_build_cumulative_logit_spec <- function(
     ))
   }
   mu_entry$rhs <- meta$rhs
+  if (formula_contains_call(mu_entry$rhs, "|")) {
+    cli::cli_abort(c(
+      "Ordinal random effects are not implemented.",
+      "x" = "The {.code mu} formula contains a random-effect bar term.",
+      "i" = "The first ordinal mixed-model target is a random intercept such as {.code bf(score ~ x + (1 | id))}.",
+      "i" = "Random slopes should remain a later step after ordinal intercept recovery, cutpoint stability, extractor support, and interval checks are in place.",
+      "i" = "{.pkg ordinal}'s {.fn clmm} is a useful benchmark, but matching it requires a separate likelihood and recovery slice."
+    ))
+  }
   drm_reject_phase1_terms(mu_entry$rhs, mu_entry$dpar)
 
   f_mu <- drm_entry_formula(mu_entry, response = TRUE)

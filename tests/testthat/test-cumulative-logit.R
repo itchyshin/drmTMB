@@ -432,6 +432,14 @@ test_that("cumulative-logit validates ordinal scope and malformed responses", {
     "support only"
   )
   expect_error(
+    drmTMB(bf(y ~ x + (1 | id)), family = cumulative_logit(), data = dat),
+    "Ordinal random effects"
+  )
+  expect_error(
+    drmTMB(bf(y ~ x + (0 + x | id)), family = cumulative_logit(), data = dat),
+    "Ordinal random effects"
+  )
+  expect_error(
     drmTMB(bf(y ~ x, sd(id) ~ 1), family = cumulative_logit(), data = dat),
     "Random-effect scale"
   )

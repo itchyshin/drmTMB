@@ -22955,3 +22955,49 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slice-195-inflation-random-boundary.md`.
+
+## 2026-05-17 - Slice 196 ordinal mixed-model boundary
+
+Goal: separate fixed-effect cumulative-logit ordinal models from future
+ordinal mixed models before the Phase 18 simulation gate.
+
+Files changed:
+
+- `R/drmTMB.R`
+- `ROADMAP.md`
+- `docs/design/02-family-registry.md`
+- `docs/design/34-validation-debt-register.md`
+- `docs/dev-log/known-limitations.md`
+- `vignettes/distribution-families.Rmd`
+- `vignettes/formula-grammar.Rmd`
+- `tests/testthat/test-cumulative-logit.R`
+- `docs/dev-log/after-task/2026-05-17-slice-196-ordinal-mixed-boundary.md`
+
+What changed:
+
+- Cumulative-logit `mu` formulas with random-effect bar terms now receive an
+  ordinal-specific unsupported message.
+- The first future ordinal mixed-model target is recorded as a random intercept
+  such as `(1 | id)`, while ordinal random slopes stay staged behind
+  random-intercept recovery and cutpoint-stability checks.
+- The roadmap, family registry, validation-debt register, known limitations,
+  and formula/family vignettes now separate ordinal random effects from
+  Gaussian ordinary random slopes.
+
+Checks run:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH air format R/drmTMB.R ROADMAP.md docs/design/02-family-registry.md docs/design/34-validation-debt-register.md docs/dev-log/known-limitations.md vignettes/distribution-families.Rmd vignettes/formula-grammar.Rmd tests/testthat/test-cumulative-logit.R docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-17-slice-196-ordinal-mixed-boundary.md`
+- `Rscript -e "devtools::test(filter = 'cumulative-logit', reporter = 'summary')"`:
+  passed.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with no problems.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- This slice does not implement ordinal random effects, ordinal scale or
+  discrimination formulas, known covariance, phylogenetic/spatial ordinal
+  effects, bivariate ordinal models, or mixed-response ordinal models.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slice-196-ordinal-mixed-boundary.md`.

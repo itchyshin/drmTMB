@@ -118,6 +118,26 @@ Use these status labels:
   interpretation docs, and CI evidence are required before any non-Gaussian
   `sigma` random effect is advertised.
 
+### Ordinal mixed models
+
+- Matrix status: blocked with explicit messages.
+- Register status: cumulative-logit `mu` random-effect bar terms are rejected
+  before optimization. The first future target is an ordinal random intercept
+  such as `(1 | id)`; ordinal random slopes are a later target after intercept
+  recovery and cutpoint stability.
+- Evidence: `tests/testthat/test-cumulative-logit.R` checks fixed-effect
+  ordinal likelihood behavior and the ordinal random-effect boundary.
+- Diagnostics and intervals: no ordinal random-effect diagnostics or
+  intervals exist because no ordinal mixed-model likelihood is fitted yet.
+  Existing ordinal cutpoint profile targets are internal cutpoint targets, not
+  evidence for ordinal random effects.
+- Debt: add the cumulative-logit random-intercept likelihood, extractors,
+  `sdpars`, `random_effects`, `profile_targets()`, weak-SD recovery,
+  cutpoint-stability checks, and `ordinal::clmm` comparator tests before
+  advertising ordinal mixed models. Random slopes, ordinal scale or
+  discrimination formulas, known covariance, phylogenetic terms, spatial
+  terms, and bivariate ordinal models remain later phases.
+
 ### Shape random effects and ID-level skewness
 
 - Matrix status: blocked with explicit messages.

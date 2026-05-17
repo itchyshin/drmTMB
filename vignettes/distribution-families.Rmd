@@ -39,7 +39,7 @@ quantity each `sigma` formula models.
 | Overdispersed count or rate | `nbinom2()` | `mu`, `sigma`, optional `zi` | extra-Poisson dispersion scale | fixed effects only |
 | Positive count, zeros absent by design | `truncated_nbinom2()` | `mu`, `sigma` | NB2 dispersion for the untruncated component | fixed effects only |
 | Count with a separate zero process | `truncated_nbinom2()` plus `hu ~` | `mu`, `sigma`, `hu` | NB2 dispersion for nonzero counts | fixed effects only; `hu` random effects planned |
-| Ordered categories | `cumulative_logit()` | `mu`, cutpoints | fixed latent logistic scale | location-only; ordinal scale planned |
+| Ordered categories | `cumulative_logit()` | `mu`, cutpoints | fixed latent logistic scale | location-only; ordinal random effects and scale/discrimination planned |
 | Two continuous Gaussian responses | `c(gaussian(), gaussian())` | `mu1`, `mu2`, `sigma1`, `sigma2`, `rho12` | residual SDs for each response | matching labelled `mu1`/`mu2`, `sigma1`/`sigma2`, and one same-response `mu`/`sigma` random-intercept pair implemented; richer covariance planned |
 
 The current design keeps constructor names close to base R where possible. For
