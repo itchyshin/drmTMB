@@ -18899,3 +18899,85 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-16-slice-125-emmeans-family-coverage.md`.
+
+## 2026-05-16 - Slice 126 emmeans contrast boundary
+
+Goal: fix an `emmeans` wording mismatch. Generic pairwise contrasts can be
+computed from the returned fixed-effect `mu` EMM grid, so documentation should
+not treat contrast itself as a pre-grid unsupported target.
+
+Roles:
+
+- Ada caught the mismatch while scouting the next `emmeans` slice after Slice
+  125.
+- Boole owned the public API boundary: no new drmTMB wrapper or formula grammar
+  is added.
+- Fisher checked that the contrast is an ordinary difference among EMMs of
+  native `mu`, not a new fitted-response, slope, or non-`mu` estimand.
+- Curie added the narrow pairwise-contrast parity test.
+- Pat and Rose checked that the model-workflow prose and NEWS no longer
+  overstate contrast failures or broad contrast support.
+- Grace owned targeted tests, pkgdown, and stale-claim scans.
+- Gauss, Noether, Darwin, Jason, and Emmy stayed watch-only because no
+  likelihood, equation, biological example, landscape claim, or object
+  structure changed.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/39-visualization-grammar.md`
+- `docs/design/40-emmeans-interface-contract.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-16-slice-126-emmeans-contrast-boundary.md`
+- `tests/testthat/test-emmeans-methods.R`
+- `vignettes/model-workflow.Rmd`
+
+What changed:
+
+- Added a test for `emmeans::emmeans(fit, pairwise ~ habitat, at = list(x = 0))`
+  on the existing fixed-effect Gaussian `mu` path.
+- The test checks that pairwise estimates equal differences among the returned
+  EMMs and that contrast standard errors and asymptotic degrees of freedom are
+  finite/coherent.
+- Updated NEWS, roadmap, design notes, and the model-workflow article to say
+  generic `emmeans` contrasts on the returned `mu` grid are covered narrowly,
+  while broader drmTMB-specific contrast helpers, slopes, non-`mu`, and blocked
+  model structures remain outside the current contract.
+
+Checks run:
+
+- `air format NEWS.md ROADMAP.md docs/design/39-visualization-grammar.md docs/design/40-emmeans-interface-contract.md vignettes/model-workflow.Rmd tests/testthat/test-emmeans-methods.R docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-16-slice-126-emmeans-contrast-boundary.md`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'emmeans-methods|emmeans-recover-data|emmeans-preflight|fixed-effect-basis|reference-grid-link-scale-contract', reporter = 'summary')"`:
+  passed.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed after the NEWS
+  and roadmap wording cleanup.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed.
+- Positive source/rendered scan for Slice 126 contrast wording, the
+  `pairwise ~ habitat` test, and model-workflow/NEWS/ROADMAP rendered text:
+  found the expected entries.
+- Stale-claim scan for old pre-grid failure wording: no matches.
+- `git diff --check`: passed.
+- Recovery checkpoint:
+  `docs/dev-log/recovery-checkpoints/2026-05-16-205211-codex-checkpoint.md`.
+
+Post-rebase checks:
+
+- PR #90 merged as `1e8d5cc5a71d8575b8d6ac5c9ca680233533539c`.
+- `git rebase --onto origin/main bb62a6839e492a99932045a6f6ccdb70abd60499`:
+  passed.
+- `git diff --check origin/main...HEAD`: passed.
+- `Rscript -e "devtools::test(filter = 'emmeans-methods|emmeans-recover-data|emmeans-preflight|fixed-effect-basis|reference-grid-link-scale-contract', reporter = 'summary')"`:
+  passed.
+
+Known limitations:
+
+- This slice tests only generic pairwise differences among fixed-effect `mu`
+  EMMs returned by `emmeans`.
+- It does not add a drmTMB contrast helper, slope workflow, custom weighting
+  contract, non-`mu` contrast, or support for blocked model structures.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-16-slice-126-emmeans-contrast-boundary.md`.

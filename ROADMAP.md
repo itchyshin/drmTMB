@@ -969,8 +969,9 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   be a narrow fixed-effect univariate `mu` path using the official
   `recover_data()` and `emm_basis()` extension API, with bivariate,
   zero-inflated, hurdle, ordinal expected-score, random-effect, structured-effect,
-  contrast, slope, and interval-aware targets staying blocked until their
-  algebra and tests are explicit.
+  slope, and interval-aware targets staying blocked until their algebra and
+  tests are explicit. Broader contrast helpers should stay separate from the
+  first EMM grid.
 - Slice 119 adds an internal fixed-effect basis helper for the future
   `emm_basis()` path. `drm_fixed_effect_basis()` returns the requested `dpar`
   model matrix, coefficients, optional covariance submatrix, offset, link, and
@@ -1001,12 +1002,19 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   model-workflow article. The example estimates habitat-level EMMs for the
   fixed-effect univariate `mu` path at a supplied temperature and explicitly
   separates that target from `sigma`, random-effect, bivariate, zero-inflated,
-  hurdle, ordinal, contrast, and slope workflows.
+  hurdle, ordinal, and slope workflows. Generic `emmeans` contrasts on the
+  returned `mu` grid are possible, but drmTMB-specific contrast helpers remain a
+  separate future contract.
 - Slice 125 extends `emmeans()` parity tests across the remaining univariate
   model types already admitted by the fixed-effect `mu` gate: Student-t,
   lognormal, Gamma, beta-binomial, NB2, and zero-truncated NB2. The tests keep
   link-scale and response-scale EMMs aligned with `predict(dpar = "mu")`
   without widening the gate to unsupported model structures.
+- Slice 126 clarifies the downstream contrast boundary. A new test confirms
+  that generic `emmeans` pairwise contrasts use differences among the returned
+  fixed-effect `mu` EMMs, while docs avoid treating contrast itself as a
+  pre-grid unsupported target and keep broader contrast and slope helpers
+  separate.
 - Add additional ggplot-oriented helpers only after the data contract is stable:
   location curves, scale/variance curves, residual `rho12` curves,
   `sd(group)` or `sd_phylo()` surfaces, `corpairs()` summaries, and eventually

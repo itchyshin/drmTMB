@@ -33,8 +33,10 @@ reference grid is already covered by `prediction_grid()` and Slice 117 tests.
 ## Non-Goals
 
 Do not implement all Phase 17 estimands through one `emmeans` method.
-Predictions, estimated marginal means, contrasts, slopes, fitted response
-means, and diagnostics must remain separate concepts.
+Predictions, estimated marginal means, slopes, fitted response means, and
+diagnostics must remain separate concepts. Generic contrasts among validated
+EMMs can be computed from an `emmGrid`, but a drmTMB-specific contrast helper is
+a separate contract.
 
 Do not use `emmeans` to hide unsupported uncertainty. If `TMB::sdreport()` is
 unavailable, the fitted object has no usable fixed-effect covariance matrix, or
@@ -176,8 +178,7 @@ Unsupported calls should tell the user which current helper to use instead:
 
 The error should name the unsupported feature, such as random effects,
 structured effects, bivariate response, zero-inflation, hurdle response mean,
-ordinal expected score, contrast, slope, weight rule, or missing covariance
-matrix.
+ordinal expected score, slope, weight rule, or missing covariance matrix.
 
 ## Validation Gate
 
@@ -199,10 +200,17 @@ Slice 122 satisfied this gate for the first fixed-effect univariate `mu` path
 before advertising public `emmeans` compatibility. Slice 124 adds the first
 model-workflow example for that path and keeps `emmeans()` adjusted means
 separate from `sigma`, random-effect, bivariate, zero-inflated, hurdle,
-ordinal, contrast, and slope workflows.
+ordinal, and slope workflows.
 
 Slice 125 extends the direct method tests across the remaining model types
 admitted by the first gate: Student-t, lognormal, Gamma, beta-binomial, NB2, and
 zero-truncated NB2. Those tests compare link-scale and response-scale
 `emmeans()` summaries with `predict(dpar = "mu")` on the same reference grid;
 they do not add support for blocked model structures or new estimands.
+
+Slice 126 adds a narrow downstream contrast check for the returned fixed-effect
+`mu` grid. `emmeans::emmeans(fit, pairwise ~ habitat, ...)` can compute generic
+pairwise differences among the EMMs, so documentation should not treat contrast
+itself as a pre-grid unsupported target. This is not a slope workflow, a custom
+weighting contract, a non-`mu` contrast helper, or support for blocked model
+structures.

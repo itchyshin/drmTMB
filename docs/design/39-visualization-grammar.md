@@ -164,8 +164,10 @@ Slice 118 separates the future interface contract into
 `docs/design/40-emmeans-interface-contract.md`. That note maps the official
 `recover_data()` and `emm_basis()` extension API to `drmTMB` and keeps the
 first public method scoped to fixed-effect univariate `mu` until bivariate,
-structured-effect, random-effect, zero-inflated, hurdle, ordinal, contrast,
-slope, and interval-aware targets have their own algebra and tests.
+structured-effect, random-effect, zero-inflated, hurdle, ordinal, slope, and
+interval-aware targets have their own algebra and tests. Generic contrasts of a
+validated `mu` EMM grid can be checked separately from a drmTMB-specific
+contrast helper.
 
 Slice 119 adds the first internal implementation bridge for that contract.
 `drm_fixed_effect_basis()` returns the requested distributional-parameter model
@@ -194,21 +196,28 @@ Slice 122 adds the first public bridge to `emmeans`. The package now suggests
 `emm_basis.drmTMB()` when `emmeans` is installed, and supports
 `emmeans::emmeans()` for fixed-effect univariate `mu` targets with retained
 model frames and covariance. The method still rejects unsupported targets before
-an `emmGrid` is returned; it is not a contrast, slope, bivariate, zero-inflated,
-hurdle, ordinal expected-score, random-effect, structured-effect, or
-fitted-response workflow.
+an `emmGrid` is returned; it is not a slope, bivariate, zero-inflated, hurdle,
+ordinal expected-score, random-effect, structured-effect, or fitted-response
+workflow.
 
 Slice 124 adds the first model-workflow example for that public bridge. The
 article estimates habitat-level EMMs for `mu` at a supplied temperature in the
 fixed-effect Gaussian example, and tells readers to keep `emmeans()` adjusted
 means separate from direct prediction tables, `sigma`, random-effect,
-bivariate, zero-inflated, hurdle, ordinal, contrast, and slope workflows.
+bivariate, zero-inflated, hurdle, ordinal, and slope workflows.
 
 Slice 125 extends the `emmeans()` parity tests across the remaining univariate
 families already admitted by the fixed-effect `mu` gate. Student-t, lognormal,
 Gamma, beta-binomial, NB2, and zero-truncated NB2 fits now check that link-scale
 and response-scale EMMs match `predict(dpar = "mu")` on the same reference grid
 without widening the gate to blocked model structures.
+
+Slice 126 clarifies the downstream contrast boundary. Generic `emmeans`
+pairwise contrasts can be computed from the returned fixed-effect `mu` grid, so
+docs should not treat contrast itself as a pre-grid unsupported target. The
+tested contrast is only the ordinary difference among EMMs on that grid; broader
+drmTMB-specific contrast helpers and slope workflows remain separate future
+contracts.
 
 Slice 102 adds the first article-level empirical-grid example. The
 model-workflow article now shows a conditioned grid for direct
