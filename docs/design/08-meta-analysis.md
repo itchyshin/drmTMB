@@ -177,6 +177,27 @@ has a separate likelihood design, diagnostics, and tests. Likewise,
 `meta_V(w = w, scale = "proportional")` should not be implemented as a wrapper
 around top-level `weights =`.
 
+## Interval Safety
+
+Known sampling covariance `V` is supplied data, not an estimated model
+parameter. It should therefore not appear as a Wald or profile confidence-
+interval target. Interval tooling should instead expose estimated quantities:
+fixed effects, residual heterogeneity such as `sigma`, ordinary random-effect
+SDs, structured-effect SDs, and residual correlations such as `rho12`.
+
+The practical rule is:
+
+- `summary(fit, conf.int = TRUE, method = "wald")` may add Wald intervals for
+  fixed effects, but response-scale direct parameters such as `sigma` keep an
+  explicit unavailable status unless a direct profile interval is requested.
+- `profile_targets(fit)` should include estimated `sigma`, random-effect SD,
+  structured-effect SD, and `rho12` targets where those quantities exist.
+- `profile_targets(fit)` should not add a row for `V`, `meta_V()`, or
+  `meta_known_V()` because those are known inputs.
+- Dense univariate and bivariate matrix-`V` fits should keep the same estimated
+  target inventory as their diagonal/vector-`V` counterparts while respecting
+  their separate weighting boundary.
+
 ## Unknown Heterogeneity
 
 The public API uses `sigma` consistently:

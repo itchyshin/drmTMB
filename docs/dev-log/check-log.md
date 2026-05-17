@@ -23508,3 +23508,46 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slice-206-proportional-boundary.md`.
+
+## 2026-05-17 - Slice 207 meta-analysis interval safety
+
+Goal: confirm that interval tooling treats known sampling covariance as data
+and estimated heterogeneity or correlation as model parameters.
+
+Files changed:
+
+- `tests/testthat/test-profile-targets.R`
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/08-meta-analysis.md`
+- `docs/dev-log/after-task/2026-05-17-slice-207-meta-interval-safety.md`
+
+What changed:
+
+- Added profile-target tests for `meta_V(V = V)` univariate vector-`V`, dense
+  matrix-`V`, ordinary random-intercept, and bivariate row-paired known-`V`
+  fits.
+- Confirmed interval targets include estimated `sigma`, `sd:mu:(1 | study)`,
+  `sigma1`, `sigma2`, and `rho12` where those quantities exist.
+- Confirmed known `V`, `meta_V()`, and `meta_known_V()` do not become estimated
+  Wald or profile targets.
+- Added a design-note section explaining that known sampling covariance is data,
+  while `sigma`, random-effect SDs, structured-effect SDs, and `rho12` are
+  estimated interval targets.
+
+Checks run:
+
+- `air format tests/testthat/test-profile-targets.R NEWS.md ROADMAP.md docs/design/08-meta-analysis.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-17-slice-207-meta-interval-safety.md`
+- `Rscript -e "devtools::load_all(quiet = TRUE); testthat::test_file('tests/testthat/test-profile-targets.R', reporter = 'summary')"`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `git diff --check`
+
+Known limitations:
+
+- This slice does not implement bootstrap intervals, proportional sampling-
+  variance intervals, sparse matrix `V`, non-Gaussian known covariance, or broad
+  Phase 18 simulation.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slice-207-meta-interval-safety.md`.

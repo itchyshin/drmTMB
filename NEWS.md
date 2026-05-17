@@ -1,5 +1,6 @@
 # drmTMB 0.1.2 (2026-05-16)
 
+* `meta_V()` interval safety is now tested for Gaussian meta-analysis fits: `profile_targets()` keeps estimated `sigma`, random-effect SD, and bivariate `rho12` targets visible while never treating known sampling covariance `V` as an estimated confidence-interval target.
 * `meta_V()` now gives a clearer reserved-boundary error for proportional sampling-variance arguments such as `meta_V(w = w, scale = "proportional")`, `meta_V(w = w)`, or `meta_V(V = V, scale = "exact")`. Diagonal/vector `meta_V(V = V)` can still use ordinary likelihood weights, while full matrix-`V` fits reject non-unit weights until joint-block weighting has a separate design.
 * `meta_V(V = V)` is now accepted as the preferred additive known sampling covariance marker for Gaussian meta-analysis, routing to the same likelihood path as `meta_known_V(V = V)`. The proportional branch `meta_V(w = w, scale = "proportional")` remains deliberately unimplemented and errors before fitting.
 * Slice 204 now records the `meta_V()` API decision: the preferred future additive known-covariance spelling is `meta_V(V = V)`, without a positional response/value argument, and `meta_known_V(V = V)` should become a compatibility alias rather than a separate likelihood path.
