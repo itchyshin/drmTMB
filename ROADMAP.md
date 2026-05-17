@@ -1114,6 +1114,10 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   prediction. Direct `sd(id)` predictions now accept character values that
   match fitted `sd(id)` factor levels and reject unknown levels before base R
   contrast or matrix-conformability errors.
+- Slice 150 pins the raw-predictor side of random-effect scale prediction
+  `newdata` validation. Missing required `sd(id)` predictor columns, missing
+  required values, and non-finite required numeric values now have explicit
+  tests and design text before random-effect scale model-matrix construction.
 - Add additional ggplot-oriented helpers only after the data contract is stable:
   location curves, scale/variance curves, residual `rho12` curves,
   `sd(group)` or `sd_phylo()` surfaces, `corpairs()` summaries, and eventually

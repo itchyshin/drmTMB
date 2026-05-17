@@ -143,11 +143,15 @@ predictor varies within `id`, the user should use `sigma ~ predictor` for
 residual scale or aggregate/define a group-level predictor before fitting
 `sd(id) ~ predictor`.
 
-When users supply `newdata` to `predict(fit, dpar = "sd(id)")`, transformed
-predictor terms on the `sd(id)` right-hand side must evaluate to finite design
-matrix values. For example, a model with `sd(id) ~ log(w_pos)` rejects
-`newdata = data.frame(w_pos = 0)` instead of returning an infinite fitted
-random-effect SD.
+When users supply `newdata` to `predict(fit, dpar = "sd(id)")`, the raw
+predictors required by the `sd(id)` right-hand side must be present and
+complete. Required numeric predictors must be finite before random-effect scale
+model-matrix construction.
+
+Transformed predictor terms on the `sd(id)` right-hand side must also evaluate
+to finite design matrix values. For example, a model with `sd(id) ~ log(w_pos)`
+rejects `newdata = data.frame(w_pos = 0)` instead of returning an infinite
+fitted random-effect SD.
 
 Factor predictors on the `sd(id)` right-hand side use the fitted factor levels
 when `newdata` is supplied. Character values that match fitted levels are
