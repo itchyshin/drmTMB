@@ -568,6 +568,29 @@ test_that("emmeans method rejects unsupported drmTMB paths", {
   )
   expect_match(conditionMessage(zi_error), "prediction_grid\\(\\)")
 
+  zi_nb_dat <- dat
+  zi_nb_eta <- 0.3 +
+    0.4 * zi_nb_dat$x +
+    0.25 * (zi_nb_dat$habitat == "kelp") -
+    0.1 * (zi_nb_dat$habitat == "sand")
+  zi_nb_dat$count <- stats::rnbinom(
+    nrow(zi_nb_dat),
+    size = 4,
+    mu = exp(zi_nb_eta)
+  )
+  zi_nb_dat$count[seq(1L, nrow(zi_nb_dat), by = 6L)] <- 0L
+  zi_nb_fit <- drmTMB(
+    bf(count ~ x + habitat, sigma ~ 1, zi ~ habitat),
+    family = nbinom2(),
+    data = zi_nb_dat,
+    control = emmeans_methods_control(se = TRUE)
+  )
+  zi_nb_error <- expect_error(
+    emmeans::emmeans(zi_nb_fit, ~habitat, at = list(x = 0)),
+    "zi_nbinom2"
+  )
+  expect_match(conditionMessage(zi_nb_error), "prediction_grid\\(\\)")
+
   hurdle_dat <- dat
   hurdle_eta <- 0.3 +
     0.4 * hurdle_dat$x +
