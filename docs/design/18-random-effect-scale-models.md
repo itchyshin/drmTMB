@@ -163,6 +163,10 @@ vector has one value per `newdata` row, uses `rownames(newdata)` as names, and
 uses `type = "response"` by default. Response-scale predictions equal the
 exponentiated link-scale predictions.
 
+The supplied `newdata` object must be a data frame. A zero-row data frame is a
+valid empty prediction grid: direct-SD prediction returns a named length-zero
+numeric vector on either link or response scale.
+
 Ecology/evolution interpretation:
 
 ```r
