@@ -20958,3 +20958,82 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slice-150-random-scale-raw-newdata.md`.
+
+## 2026-05-17 - Slice 151 random-effect scale newdata output contract
+
+Goal: pin the positive multi-row output contract for direct-SD `newdata`
+prediction.
+
+Roles:
+
+- Ada scoped this as a positive-contract follow-up after the malformed-`newdata`
+  guards.
+- Boole checked that the public call remains ordinary
+  `predict(fit, dpar = "sd(id)", newdata = grid)`.
+- Pat checked that row names and the default response scale make the output easy
+  to interpret.
+- Curie owned the multi-row, row-name, and link/response parity regression test.
+- Grace owned the focused tests, pkgdown build/check, and rendered-site scans.
+- Rose checked that the wording does not imply bivariate direct-SD prediction
+  surfaces, empirical marginalisation, random-effect scale `emmeans`, or
+  transformed-response support.
+- Fisher, Gauss, Noether, Darwin, Jason, and Emmy stayed watch-only because no
+  estimand, likelihood, equation derivation, biological example, landscape
+  claim, or object structure changed.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/18-random-effect-scale-models.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-17-slice-151-random-scale-newdata-output.md`
+- `tests/testthat/test-gaussian-random-effect-scale.R`
+
+What changed:
+
+- Added explicit tests that a two-row direct-SD `newdata` grid returns one
+  prediction per row and preserves `rownames(newdata)`.
+- The same test now checks that direct-SD prediction uses response scale by
+  default and that `type = "response"` equals `exp(type = "link")`.
+- NEWS, the Phase 17 roadmap, and the random-effect scale design note now state
+  that output contract.
+
+Checks run:
+
+- No-edit scout before the slice: a two-row `sd(id)` prediction grid preserved
+  names `low_w` and `high_w`, and response predictions matched `exp(link)` with
+  zero difference.
+- `air format NEWS.md ROADMAP.md docs/design/18-random-effect-scale-models.md tests/testthat/test-gaussian-random-effect-scale.R`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'gaussian-random-effect-scale', reporter = 'summary')"`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'fixed-effect-basis|gaussian-random-effect-scale', reporter = 'summary')"`:
+  passed.
+- `git diff --check`: passed.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed.
+- Positive source/rendered scan for Slice 151 direct-SD output wording: found
+  the expected entries in `NEWS.md`, `ROADMAP.md`,
+  `docs/design/18-random-effect-scale-models.md`,
+  `tests/testthat/test-gaussian-random-effect-scale.R`, and rendered pkgdown
+  NEWS/ROADMAP pages.
+- Stale-claim scan for accidental random-effect scale `emmeans`, bivariate
+  random-effect scale prediction, `sd_sigma*()` syntax,
+  transformed-response support, or new bivariate multi-row claims: no new false
+  support claims; matches were existing profile-interval, Family B, or
+  `sd_sigma1()` / `sd_sigma2()` guardrails.
+- Recovery checkpoint:
+  `docs/dev-log/recovery-checkpoints/2026-05-17-023354-codex-checkpoint.md`.
+
+Known limitations:
+
+- This slice pins the direct-SD `newdata` output contract for ordinary
+  univariate random-effect scale predictions.
+- It does not add random-effect scale `emmeans`, bivariate random-effect scale
+  prediction surfaces, empirical marginalisation, `sd_sigma*()` syntax,
+  transformed-response support, or new random-effect scale model families.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slice-151-random-scale-newdata-output.md`.

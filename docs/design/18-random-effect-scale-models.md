@@ -158,6 +158,11 @@ when `newdata` is supplied. Character values that match fitted levels are
 accepted and coerced through the fitted coding, while unknown levels error
 before random-effect scale model-matrix construction.
 
+Direct-SD `newdata` predictions may contain more than one row. The returned
+vector has one value per `newdata` row, uses `rownames(newdata)` as names, and
+uses `type = "response"` by default. Response-scale predictions equal the
+exponentiated link-scale predictions.
+
 Ecology/evolution interpretation:
 
 ```r

@@ -1118,6 +1118,10 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   `newdata` validation. Missing required `sd(id)` predictor columns, missing
   required values, and non-finite required numeric values now have explicit
   tests and design text before random-effect scale model-matrix construction.
+- Slice 151 pins the positive direct-SD `newdata` output contract. Multi-row
+  `sd(id)` prediction grids now have explicit tests for one output per row,
+  `rownames(newdata)` preservation, default response scale, and response
+  predictions equalling `exp(link)` from `type = "link"`.
 - Add additional ggplot-oriented helpers only after the data contract is stable:
   location curves, scale/variance curves, residual `rho12` curves,
   `sd(group)` or `sd_phylo()` surfaces, `corpairs()` summaries, and eventually
