@@ -99,10 +99,15 @@ test_that("nbinom2 supports exposure offsets in the mean formula", {
   expect_equal(fit$opt$convergence, 0)
   expect_equal(as.numeric(logLik(fit)), ll_independent, tolerance = 1e-6)
   expect_equal(fit$model$offset$mu, log(dat$effort), tolerance = 1e-12)
-  newdata <- data.frame(x = c(-1, 0, 1), z = c(-1, 0, 1), effort = c(0.25, 1, 4))
+  newdata <- data.frame(
+    x = c(-1, 0, 1),
+    z = c(-1, 0, 1),
+    effort = c(0.25, 1, 4)
+  )
   expect_equal(
     predict(fit, newdata = newdata, dpar = "mu"),
-    newdata$effort * exp(as.vector(stats::model.matrix(~ x, newdata) %*% coef(fit, "mu"))),
+    newdata$effort *
+      exp(as.vector(stats::model.matrix(~x, newdata) %*% coef(fit, "mu"))),
     tolerance = 1e-12
   )
 })
@@ -147,7 +152,11 @@ test_that("nbinom2 likelihood weights scale rows and match row duplication", {
   )
 
   expect_equal(stats::weights(fit_weighted), w)
-  expect_equal(coef(fit_weighted, "mu"), coef(fit_expanded, "mu"), tolerance = 1e-4)
+  expect_equal(
+    coef(fit_weighted, "mu"),
+    coef(fit_expanded, "mu"),
+    tolerance = 1e-4
+  )
   expect_equal(
     coef(fit_weighted, "sigma"),
     coef(fit_expanded, "sigma"),
@@ -181,12 +190,12 @@ test_that("nbinom2 methods return mean and overdispersion scales", {
   newdata <- data.frame(x = c(-1, 0, 1), z = c(-1, 0, 1))
   expect_equal(
     predict(fit, newdata = newdata, dpar = "mu"),
-    exp(as.vector(stats::model.matrix(~ x, newdata) %*% coef(fit, "mu"))),
+    exp(as.vector(stats::model.matrix(~x, newdata) %*% coef(fit, "mu"))),
     tolerance = 1e-12
   )
   expect_equal(
     predict(fit, newdata = newdata, dpar = "sigma"),
-    exp(as.vector(stats::model.matrix(~ z, newdata) %*% coef(fit, "sigma"))),
+    exp(as.vector(stats::model.matrix(~z, newdata) %*% coef(fit, "sigma"))),
     tolerance = 1e-12
   )
   sims <- simulate(fit, nsim = 2, seed = 20260605)
@@ -265,7 +274,7 @@ test_that("nbinom2 rejects unsupported or invalid inputs", {
     "only support"
   )
   expect_error(
-    drmTMB(bf(mu = ~ x, sigma ~ 1), family = nbinom2(), data = dat),
+    drmTMB(bf(mu = ~x, sigma ~ 1), family = nbinom2(), data = dat),
     "must include a response"
   )
   expect_error(
@@ -306,7 +315,7 @@ test_that("nbinom2 rejects unsupported or invalid inputs", {
   )
   expect_error(
     drmTMB(bf(y ~ x + (1 | id), sigma ~ 1), family = nbinom2(), data = dat),
-    "unsupported model terms"
+    "Slice 190 first candidates"
   )
   expect_error(
     drmTMB(

@@ -22563,3 +22563,43 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slice-189-gaussian-dh-boundary.md`.
+
+## 2026-05-17 - Slice 190 non-Gaussian mu random-effect gate
+
+Goal: decide which fixed-effect non-Gaussian families get an ordinary `mu`
+random-intercept path first, and which retain a clear unsupported message.
+
+Files changed:
+
+- `R/drmTMB.R`
+- `tests/testthat/test-poisson-mean.R`
+- `tests/testthat/test-nbinom2-location-scale.R`
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/02-family-registry.md`
+- `docs/dev-log/after-task/2026-05-17-slice-190-nongaussian-mu-re-gate.md`
+
+What changed:
+
+- The Slice 190 decision prioritizes ordinary `mu` random intercepts for
+  Poisson first, then NB2 and zero-truncated NB2.
+- Lognormal, Gamma, Student-t, beta, beta-binomial, ordinal, zero-inflation,
+  hurdle, shape, and structured non-Gaussian random-effect paths stay planned.
+- Unsupported bar syntax in non-Gaussian formulas now points users to the
+  Slice 190 first candidates instead of only reporting a generic unsupported
+  formula term.
+
+Checks run:
+
+- `air format R/drmTMB.R tests/testthat/test-poisson-mean.R tests/testthat/test-nbinom2-location-scale.R NEWS.md ROADMAP.md docs/design/02-family-registry.md`
+- `Rscript -e "devtools::test(filter = 'poisson-mean|nbinom2-location-scale|zi-poisson|zi-nbinom2|truncated-nbinom2|hurdle-nbinom2|student-location-scale|gamma-location-scale|lognormal-location-scale|beta-location-scale|beta-binomial', reporter = 'summary')"`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `git diff --check`
+
+Known limitations:
+
+- This slice does not add non-Gaussian random-effect likelihood code.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slice-190-nongaussian-mu-re-gate.md`.

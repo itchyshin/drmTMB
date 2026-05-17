@@ -88,7 +88,11 @@ test_that("Poisson likelihood weights scale rows and match row duplication", {
   )
 
   expect_equal(stats::weights(fit_weighted), w)
-  expect_equal(coef(fit_weighted, "mu"), coef(fit_expanded, "mu"), tolerance = 1e-4)
+  expect_equal(
+    coef(fit_weighted, "mu"),
+    coef(fit_expanded, "mu"),
+    tolerance = 1e-4
+  )
   expect_equal(
     as.numeric(logLik(fit_weighted)),
     as.numeric(logLik(fit_expanded)),
@@ -143,18 +147,24 @@ test_that("Poisson supports exposure offsets in the mean formula", {
 
   expect_equal(fit$opt$convergence, 0)
   expect_equal(coef(fit, "mu"), stats::coef(fit_glm), tolerance = 1e-6)
-  expect_equal(as.numeric(logLik(fit)), as.numeric(stats::logLik(fit_glm)), tolerance = 1e-6)
+  expect_equal(
+    as.numeric(logLik(fit)),
+    as.numeric(stats::logLik(fit_glm)),
+    tolerance = 1e-6
+  )
   expect_equal(fit$model$offset$mu, log(dat$effort), tolerance = 1e-12)
   expect_equal(
     predict(fit, dpar = "mu", type = "link"),
-    log(dat$effort) + as.vector(stats::model.matrix(~ x, dat) %*% coef(fit, "mu")),
+    log(dat$effort) +
+      as.vector(stats::model.matrix(~x, dat) %*% coef(fit, "mu")),
     tolerance = 1e-12
   )
 
   newdata <- data.frame(x = c(-1, 0, 1), effort = c(0.5, 1, 3))
   expect_equal(
     predict(fit, newdata = newdata, dpar = "mu"),
-    newdata$effort * exp(as.vector(stats::model.matrix(~ x, newdata) %*% coef(fit, "mu"))),
+    newdata$effort *
+      exp(as.vector(stats::model.matrix(~x, newdata) %*% coef(fit, "mu"))),
     tolerance = 1e-12
   )
 })
@@ -177,7 +187,7 @@ test_that("Poisson methods return count-scale summaries", {
   newdata <- data.frame(x = c(-1, 0, 1))
   expect_equal(
     predict(fit, newdata = newdata, dpar = "mu"),
-    exp(as.vector(stats::model.matrix(~ x, newdata) %*% coef(fit, "mu"))),
+    exp(as.vector(stats::model.matrix(~x, newdata) %*% coef(fit, "mu"))),
     tolerance = 1e-12
   )
   sims <- simulate(fit, nsim = 2, seed = 20260600)
@@ -224,11 +234,15 @@ test_that("Poisson models reject unsupported or invalid inputs", {
     "Poisson models currently require"
   )
   expect_error(
-    drmTMB(bf(y ~ x, sigma ~ 1), family = stats::poisson(link = "log"), data = dat),
+    drmTMB(
+      bf(y ~ x, sigma ~ 1),
+      family = stats::poisson(link = "log"),
+      data = dat
+    ),
     "only support"
   )
   expect_error(
-    drmTMB(bf(mu = ~ x), family = stats::poisson(link = "log"), data = dat),
+    drmTMB(bf(mu = ~x), family = stats::poisson(link = "log"), data = dat),
     "must include a response"
   )
   expect_error(
@@ -261,7 +275,7 @@ test_that("Poisson models reject unsupported or invalid inputs", {
       family = stats::poisson(link = "log"),
       data = dat
     ),
-    "unsupported model terms"
+    "Slice 190 first candidates"
   )
   expect_error(
     drmTMB(
