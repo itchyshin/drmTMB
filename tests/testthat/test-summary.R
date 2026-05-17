@@ -614,6 +614,64 @@ test_that("summary() reports fitted shape ranges", {
   )
 })
 
+test_that("summary() intervals handle ordinal fits without parameter rows", {
+  set.seed(20260553)
+  n <- 90
+  x <- rep(seq(-1, 1, length.out = 30), 3)
+  latent <- -0.2 + 0.65 * x + stats::rlogis(n)
+  dat <- data.frame(
+    y = ordered(cut(
+      latent,
+      breaks = c(-Inf, -0.7, 0.7, Inf),
+      labels = FALSE
+    )),
+    x = x
+  )
+
+  fit <- drmTMB(
+    bf(y ~ x),
+    family = cumulative_logit(),
+    data = dat
+  )
+  smry <- summary(fit, conf.int = TRUE, level = 0.90)
+
+  expect_equal(nrow(smry$parameters), 0L)
+  expect_true(all(
+    c(
+      "conf.low",
+      "conf.high",
+      "conf.level",
+      "conf.method",
+      "conf.status"
+    ) %in%
+      names(smry$parameters)
+  ))
+  expect_equal(smry$coefficients$conf.status, "wald")
+  expect_true(all(is.finite(smry$coefficients$conf.low)))
+  expect_true(all(is.finite(smry$coefficients$conf.high)))
+
+  fit_intercept <- drmTMB(
+    bf(y ~ 1),
+    family = cumulative_logit(),
+    data = dat
+  )
+  smry_intercept <- summary(fit_intercept, conf.int = TRUE)
+
+  expect_equal(nrow(smry_intercept$coefficients), 0L)
+  expect_true(all(
+    c(
+      "conf.low",
+      "conf.high",
+      "conf.level",
+      "conf.method",
+      "conf.status"
+    ) %in%
+      names(smry_intercept$coefficients)
+  ))
+  expect_equal(nrow(smry_intercept$parameters), 0L)
+  expect_equal(nrow(smry_intercept$confint), 0L)
+})
+
 test_that("summary() adds Wald intervals to fixed effects only", {
   set.seed(20260514)
   dat <- data.frame(y = stats::rnorm(60), x = stats::rnorm(60))

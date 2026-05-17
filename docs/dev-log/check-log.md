@@ -23110,3 +23110,53 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slice-197a-animal-relmat-reference-surface.md`.
+
+## 2026-05-17 - Slice 198 non-Gaussian interval readiness
+
+Goal: check that fitted non-Gaussian interval surfaces stay well formed before
+the comprehensive simulation phase, especially when a model has no
+summary-level parameter rows to receive intervals.
+
+Files changed:
+
+- `R/methods.R`
+- `R/profile.R`
+- `tests/testthat/test-summary.R`
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/34-validation-debt-register.md`
+- `docs/dev-log/after-task/2026-05-17-slice-198-nongaussian-interval-readiness.md`
+
+What changed:
+
+- `drm_summary_coefficients()` now returns a valid empty coefficient table when
+  no fixed-effect coefficients are present.
+- `drm_wald_confint()` now returns a valid empty Wald interval table when no
+  fixed-effect interval targets are available.
+- `drm_summary_add_coefficient_ci()` and `drm_summary_add_parameter_ci()` now
+  add interval columns with zero-row-safe lengths.
+- Added cumulative-logit ordinal coverage for `summary(conf.int = TRUE)` with a
+  fixed-effect coefficient and with intercept-only ordinal fits whose
+  coefficient and parameter tables are empty.
+- Roadmap, NEWS, and the validation-debt register now record the interval
+  readiness fix without claiming a new profile, bootstrap, or random-effect
+  interval method.
+
+Checks run:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH air format R/methods.R R/profile.R tests/testthat/test-summary.R NEWS.md ROADMAP.md docs/design/34-validation-debt-register.md docs/dev-log/after-task/2026-05-17-slice-198-nongaussian-interval-readiness.md`
+- `Rscript -e "devtools::test(filter = 'summary', reporter = 'summary')"`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'summary|profile-targets|predict-parameters|poisson-mean|cumulative-logit', reporter = 'summary')"`:
+  passed.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with no problems.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- This slice does not add bootstrap intervals, nonlinear derived intervals,
+  ordinal mixed-model intervals, or new non-Gaussian random-effect paths.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slice-198-nongaussian-interval-readiness.md`.

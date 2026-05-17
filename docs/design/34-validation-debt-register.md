@@ -130,7 +130,9 @@ Use these status labels:
 - Diagnostics and intervals: no ordinal random-effect diagnostics or
   intervals exist because no ordinal mixed-model likelihood is fitted yet.
   Existing ordinal cutpoint profile targets are internal cutpoint targets, not
-  evidence for ordinal random effects.
+  evidence for ordinal random effects. Slice 198 confirms that interval-aware
+  `summary()` output remains well formed for fitted ordinal models even when
+  there are no summary-level parameter rows to receive intervals.
 - Debt: add the cumulative-logit random-intercept likelihood, extractors,
   `sdpars`, `random_effects`, `profile_targets()`, weak-SD recovery,
   cutpoint-stability checks, and `ordinal::clmm` comparator tests before
