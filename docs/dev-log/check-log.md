@@ -23413,3 +23413,46 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slice-204-meta-v-api-decision.md`.
+
+## 2026-05-17 - Slice 205 meta_V additive alias
+
+Goal: implement the preferred additive known-covariance spelling after the
+Slice 204 API decision.
+
+Files changed:
+
+- `R/formula-markers.R`
+- `R/drmTMB.R`
+- `tests/testthat/test-meta-known-v.R`
+- `_pkgdown.yml`
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/dev-log/after-task/2026-05-17-slice-205-meta-v-alias.md`
+
+What changed:
+
+- Added exported `meta_V(V = V)` documentation.
+- Routed `meta_V(V = V)` through the existing additive `meta_known_V(V = V)`
+  likelihood path.
+- Added tests proving `meta_V(V = vi)` and `meta_known_V(V = vi)` produce the
+  same coefficients and log likelihood.
+- Rejected positional `meta_V(vi)` and proportional
+  `meta_V(w = w, scale = "proportional")` calls before fitting.
+
+Checks run:
+
+- `air format R/formula-markers.R R/drmTMB.R tests/testthat/test-meta-known-v.R _pkgdown.yml NEWS.md ROADMAP.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-17-slice-205-meta-v-alias.md`
+- `Rscript -e "devtools::document()"`
+- `Rscript -e "devtools::test(filter = 'meta-known-v|meta-vcov|check-drm', reporter = 'summary')"`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `git diff --check`
+
+Known limitations:
+
+- This slice does not implement proportional sampling-variance models, sparse
+  known covariance, non-Gaussian known covariance, or a deprecation warning for
+  `meta_known_V()`.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slice-205-meta-v-alias.md`.

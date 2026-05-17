@@ -3081,7 +3081,7 @@ drm_reject_phase1_terms <- function(rhs, dpar, allow_offset = FALSE) {
     ))
   }
 
-  unsupported <- c("|", "meta_known_V", "gr", "phylo", "spatial")
+  unsupported <- c("|", "meta_known_V", "meta_V", "gr", "phylo", "spatial")
   if (!isTRUE(allow_offset)) {
     unsupported <- c(unsupported, "offset")
   }
@@ -6661,7 +6661,7 @@ extract_meta_known_v <- function(rhs) {
   terms <- flatten_plus_terms(rhs)
   is_meta <- vapply(terms, is_meta_known_v_call, logical(1))
   if (sum(is_meta) > 1L) {
-    cli::cli_abort("Only one {.fn meta_known_V} term is supported.")
+    cli::cli_abort("Only one known sampling covariance term is supported.")
   }
   if (!any(is_meta)) {
     return(list(rhs = rhs, V = NULL))
@@ -6693,10 +6693,11 @@ rebuild_plus_terms <- function(terms) {
 
 is_meta_known_v_call <- function(expr) {
   expr <- strip_parens(expr)
-  is.call(expr) && identical(expr[[1L]], as.name("meta_known_V"))
+  is.call(expr) && as.character(expr[[1L]]) %in% c("meta_known_V", "meta_V")
 }
 
 extract_meta_known_v_arg <- function(expr) {
+  fn_name <- as.character(expr[[1L]])
   args <- as.list(expr)[-1L]
   arg_names <- names(args)
   if (is.null(arg_names)) {
@@ -6704,10 +6705,21 @@ extract_meta_known_v_arg <- function(expr) {
   }
   arg_names[is.na(arg_names)] <- ""
 
-  valid <- length(args) == 1L && arg_names[[1L]] %in% c("", "V")
+  if (identical(fn_name, "meta_V")) {
+    if ("w" %in% arg_names || "scale" %in% arg_names) {
+      cli::cli_abort(c(
+        "{.fn meta_V} proportional sampling-variance models are not implemented yet.",
+        "x" = "The implemented additive route is {.code meta_V(V = V)}.",
+        "i" = "{.code meta_V(w = w, scale = \"proportional\")} needs its own likelihood, diagnostics, and tests; it is not a wrapper around {.arg weights}."
+      ))
+    }
+    valid <- length(args) == 1L && identical(arg_names[[1L]], "V")
+  } else {
+    valid <- length(args) == 1L && arg_names[[1L]] %in% c("", "V")
+  }
   if (!valid) {
     cli::cli_abort(
-      "{.fn meta_known_V} requires exactly one argument named {.arg V}."
+      "{.fn {fn_name}} requires exactly one argument named {.arg V}."
     )
   }
 

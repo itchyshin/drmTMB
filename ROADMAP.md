@@ -63,10 +63,10 @@ distributional regression models using TMB.
 
 - Status: diagonal and dense full known sampling covariance implemented.
 - Treat meta-analysis as `family = gaussian()` plus known sampling covariance.
-  The preferred roadmap spelling is `meta_V(V = V)`, with vectors accepted for
-  diagonal sampling variances and matrices accepted for dense sampling
-  covariance. The current implemented marker is still `meta_known_V(V = V)`
-  until the alias/rename slice is completed.
+  The preferred implemented spelling is `meta_V(V = V)`, with vectors accepted
+  for diagonal sampling variances and matrices accepted for dense sampling
+  covariance. `meta_known_V(V = V)` remains a compatibility alias for the same
+  additive known-covariance likelihood path.
 - Support known sampling covariance through vectors, columns, diagonal matrices,
   dense block-diagonal matrices, or dense full matrices.
 - Reserve, but do not fully implement for `0.1.2`, a `meta_V()` umbrella that
@@ -1378,7 +1378,7 @@ making the public grammar and examples match the preferred long-term name.
 | --- | --- | --- |
 | 203 | Meta-analysis return map | Done locally: record the post-202 return block, keep broad Phase 18 closed, and make `meta_V()`/known-`V` hardening the first Phase 17 target. |
 | 204 | `meta_V()` API decision | Done locally: `meta_V(V = V)` is the preferred future additive known-covariance spelling, the marker should not take a positional response/value argument, and `meta_known_V(V = V)` should become a compatibility alias rather than a separate likelihood path. |
-| 205 | Additive known `V` implementation | If Slice 204 passes, implement `meta_V(V = vi_or_V)` for vector, column, diagonal, block-diagonal, and dense matrix inputs by routing to the existing additive known-covariance path. |
+| 205 | Additive known `V` implementation | Done locally: `meta_V(V = vi_or_V)` is accepted for the additive known-covariance route by sharing the existing `meta_known_V(V = V)` path; proportional `meta_V(w = w, scale = "proportional")` remains rejected before fitting. |
 | 206 | Proportional sampling-variance boundary | Keep `meta_V(w = w, scale = "proportional")` design-only unless its likelihood, parameters, diagnostics, and examples are explicitly implemented. Do not mimic it with top-level `weights =`. |
 | 207 | Meta-analysis interval safety | Recheck summary, Wald intervals, profile targets, dense `V` diagnostics, random effects, and bivariate known-`V` boundaries so confidence intervals do not silently drop or overclaim rows. |
 | 208 | Reader examples | Refresh the meta-analysis tutorial and model map around vector `V`, matrix `V`, residual heterogeneity `sigma`, random effects, random-effect scale, and the unsupported proportional branch. |

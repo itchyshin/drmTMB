@@ -1,5 +1,6 @@
 # drmTMB 0.1.2 (2026-05-16)
 
+* `meta_V(V = V)` is now accepted as the preferred additive known sampling covariance marker for Gaussian meta-analysis, routing to the same likelihood path as `meta_known_V(V = V)`. The proportional branch `meta_V(w = w, scale = "proportional")` remains deliberately unimplemented and errors before fitting.
 * Slice 204 now records the `meta_V()` API decision: the preferred future additive known-covariance spelling is `meta_V(V = V)`, without a positional response/value argument, and `meta_known_V(V = V)` should become a compatibility alias rather than a separate likelihood path.
 * Slice 203 now records the post-202 Phase 17 return block for meta-analysis hardening. The next targets are the preferred `meta_V(V = V)` spelling and compatibility story, additive vector/matrix known `V`, proportional-variance design boundaries, interval safety, and reader examples.
 * The Slice 202 pre-simulation gate now keeps broad Phase 18 comprehensive simulation closed until the post-202 Phase 17 hardening block is complete. A narrow Poisson `mu` random-effect pilot simulation is allowed, but meta-analysis hardening around `meta_V()`/known `V`, interval safety, and reader-facing examples should come before broad simulation claims.

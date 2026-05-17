@@ -115,16 +115,13 @@ ordinary predictor column.
 The API should be explicit that vector inputs contain variances. If users have
 standard errors, they should supply squared values.
 
-## Future `meta_V()` Umbrella
+## `meta_V()` Umbrella and Proportional Boundary
 
-This section is a design reservation, not implemented API and not a
-CRAN-blocking requirement for `0.1.2`.
-
-The current additive known-covariance syntax is:
+The implemented additive known-covariance syntax is:
 
 ```r
 bf(
-  yi ~ x1 + meta_known_V(V = V),
+  yi ~ x1 + meta_V(V = V),
   sigma ~ x1
 )
 ```
@@ -136,12 +133,12 @@ additively:
 y ~ MVN(mu, V + Omega_estimated)
 ```
 
-Slice 204 decision: `meta_V(V = V)` should become the preferred public spelling
-for additive known sampling variance or covariance. The current
-`meta_known_V(V = V)` marker should remain as a compatibility alias after the
-rename, not as a separate likelihood path.
+Slice 205 implements `meta_V(V = V)` as the preferred public spelling for
+additive known sampling variance or covariance. The current
+`meta_known_V(V = V)` marker remains as a compatibility alias, not as a
+separate likelihood path.
 
-The future spelling is:
+The implemented and reserved spelling split is:
 
 ```r
 meta_V(V = V)
@@ -154,8 +151,9 @@ numeric vector, diagonal matrix, block-diagonal matrix, or dense matrix, just
 as the current additive `meta_known_V(V = V)` path accepts after model-row
 filtering.
 
-The proportional case is distinct from ordinary likelihood weights. It would
-model a sampling-error component such as:
+The proportional case is not implemented and is not a CRAN-blocking requirement
+for `0.1.2`. It is distinct from ordinary likelihood weights and would model a
+sampling-error component such as:
 
 ```text
 pi_i ~ Normal(0, phi_pi / w_i)
@@ -170,11 +168,11 @@ component, rather than merely multiplying the row log likelihood. Current
 ell(theta) = sum_i w_i ell_i(theta)
 ```
 
-Coexistence rule: additive known `V` through `meta_known_V()` or a future
-`meta_V(V = V)` should reject non-unit top-level `weights =` until
+Coexistence rule: additive known `V` through `meta_V(V = V)` or compatibility
+`meta_known_V(V = V)` should reject non-unit top-level `weights =` until
 joint-block weighting has a separate likelihood design, diagnostics, and tests.
-Likewise, `meta_V(w = w, scale = "proportional")` should not be
-implemented as a wrapper around top-level `weights =`.
+Likewise, `meta_V(w = w, scale = "proportional")` should not be implemented as
+a wrapper around top-level `weights =`.
 
 ## Unknown Heterogeneity
 
