@@ -22012,3 +22012,64 @@ Known limitations:
 After-phase report:
 
 - `docs/dev-log/after-phase/2026-05-17-slices-169-176-interval-readiness-gate.md`.
+
+## 2026-05-17 - Slice 177 Gaussian random-slope audit
+
+Goal: audit ordinary grouped Gaussian location random-slope support against
+`(1 + x1 + x2 + ... | id)` and make the fitted-versus-planned boundary explicit
+before Slice 178 parser/API planning.
+
+Files changed:
+
+- `R/drmTMB.R`
+- `tests/testthat/test-gaussian-random-intercepts.R`
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/04-random-effects.md`
+- `docs/design/33-phase-6c-core-random-effects.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-17-slice-177-gaussian-random-slope-audit.md`
+
+What changed:
+
+- Added a deterministic Gaussian `mu` test showing that two independent numeric
+  random slopes can be fitted as `(0 + x1 | id) + (0 + x2 | id)` with finite
+  fitted SDs and no `corpars` entry.
+- Tightened the unsupported correlated multi-slope parser error so
+  `(1 + x1 + x2 | id)` and labelled variants name arbitrary multi-slope
+  covariance blocks as planned but not implemented.
+- Updated NEWS, the Phase 17-18 stabilization map, and the random-effect design
+  notes to say that ordinary Gaussian `mu` currently has multiple independent
+  slopes plus one correlated intercept-plus-one-slope block, not an arbitrary
+  unstructured multi-slope block.
+
+Checks run:
+
+- `air format R/drmTMB.R tests/testthat/test-gaussian-random-intercepts.R NEWS.md ROADMAP.md docs/design/04-random-effects.md docs/design/33-phase-6c-core-random-effects.md`:
+  passed.
+- `Rscript -e 'devtools::test(filter = "gaussian-random-intercepts", reporter = "summary")'`:
+  first exposed a too-tight auxiliary `sigma` fixed-effect tolerance in the new
+  simulation; after loosening that non-target tolerance, the rerun passed.
+- `Rscript -e 'devtools::test(filter = "gaussian-random-intercepts|corpairs|profile-targets", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'devtools::test(reporter = "summary")'`: passed.
+- `git diff --check`: passed.
+- `Rscript -e 'pkgdown::check_pkgdown()'`: passed with "No problems found."
+- Slice 177 wording scan:
+  `rg -n 'Slice 177|multi-slope covariance blocks|multiple independent numeric slopes|\(1 \+ x1 \+ x2 \| id\)' NEWS.md ROADMAP.md docs/design/04-random-effects.md docs/design/33-phase-6c-core-random-effects.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-17-slice-177-gaussian-random-slope-audit.md tests/testthat/test-gaussian-random-intercepts.R R/drmTMB.R`
+  confirmed the intended source, roadmap, test, and report wording.
+- Random-slope overclaim scan:
+  `rg -n 'arbitrary (numeric )?(grouped |correlated )?(mu )?blocks.*implemented|\(1 \+ x1 \+ x2 \| id\).*implemented|full arbitrary random-slope support|full ordinary random-slope support' NEWS.md ROADMAP.md docs/design R tests vignettes README.md --glob '!docs/dev-log/check-log.md' --glob '!docs/dev-log/after-task/**' --glob '!docs/dev-log/after-phase/**'`
+  returned only planned/not-implemented or benchmark-boundary wording, not a new
+  support overclaim.
+
+Known limitations:
+
+- Ordinary `(1 + x1 + x2 | id)` remains unsupported and should be planned in
+  Slice 178 before likelihood prototyping in Slice 179.
+- Correlated residual-scale slopes, bivariate random slopes, phylogenetic
+  slopes, and spatial slope parity remain later slices.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slice-177-gaussian-random-slope-audit.md`.

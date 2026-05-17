@@ -3253,7 +3253,8 @@ parse_random_mu_lhs <- function(lhs, dpar, group, covariance_label = NULL) {
   cli::cli_abort(c(
     "Only random intercepts, independent random slopes, and correlated intercept-slope blocks are implemented for {.code {dpar}}.",
     "x" = "Use {.code (1 | id)} for a random intercept or {.code (0 + x | id)} for a random slope.",
-    "i" = "Use {.code (1 + x | id)} or {.code (1 + x | p | id)} for a correlated random intercept and slope."
+    "i" = "Use {.code (1 + x | id)} or {.code (1 + x | p | id)} for a correlated random intercept and one numeric slope.",
+    "i" = "Arbitrary multi-slope covariance blocks such as {.code (1 + x1 + x2 | id)} are planned but not implemented yet."
   ))
 }
 
