@@ -23245,3 +23245,127 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slice-200-poisson-recovery.md`.
+
+## 2026-05-17 - Slice 201 non-Gaussian failure ledger
+
+Goal: record the non-Gaussian failure modes that Phase 18 should measure or
+exclude before broad simulation claims are made.
+
+Files changed:
+
+- `docs/design/34-validation-debt-register.md`
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/dev-log/after-task/2026-05-17-slice-201-nongaussian-failure-ledger.md`
+
+What changed:
+
+- Added a Slice 201 failure-ledger section to the validation-debt register.
+- Named fitted state, main failure modes, and Phase 18 decisions for ordinary
+  Poisson `mu` random effects, NB2-style count random effects, non-Gaussian
+  `sigma`, shape/skewness, zero/hurdle/one inflation, ordinal mixed models,
+  structured non-Gaussian dependence, cross-parameter covariance, intervals,
+  and runtime.
+- Kept the first non-Gaussian Phase 18 operating-characteristics grid narrow:
+  ordinary non-zero-inflated Poisson `mu` random intercepts and independent
+  numeric slopes can enter; other non-Gaussian random-effect surfaces stay
+  excluded until their own recovery evidence exists.
+
+Checks run:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH air format NEWS.md ROADMAP.md docs/design/34-validation-debt-register.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-17-slice-201-nongaussian-failure-ledger.md`
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with no problems.
+- `rg -n "Slice 201 non-Gaussian|Phase 18 decision|first non-Gaussian operating-characteristics|Exclude|Include|failure-ledger|convergence, boundary, identifiability" docs/design/34-validation-debt-register.md NEWS.md ROADMAP.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-17-slice-201-nongaussian-failure-ledger.md`:
+  found the intended include/exclude and failure-ledger wording.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- This slice does not implement any new likelihood, formula grammar, extractor,
+  interval method, or simulation runner.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slice-201-nongaussian-failure-ledger.md`.
+
+## 2026-05-17 - Slice 202 pre-simulation decision gate
+
+Goal: decide what can honestly move toward Phase 18 after the non-Gaussian gate
+and what should return to Phase 17 hardening first.
+
+Files changed:
+
+- `ROADMAP.md`
+- `NEWS.md`
+- `docs/dev-log/after-task/2026-05-17-slice-202-presimulation-decision.md`
+
+What changed:
+
+- Updated the roadmap preview boundary so broad Phase 18 comprehensive
+  simulation remains closed until the post-202 Phase 17 hardening block is
+  complete.
+- Marked Slice 202 as locally done in the non-Gaussian gate table.
+- Added a Slice 202 decision table: broad comprehensive Phase 18 waits, a
+  narrow Poisson `mu` random-effect pilot is allowed, the next work returns to
+  Phase 17 meta-analysis hardening, and full Phase 18 entry is surface by
+  surface.
+- NEWS now records the pre-simulation decision without claiming a new
+  simulation runner or model surface.
+
+Checks run:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH air format NEWS.md ROADMAP.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-17-slice-202-presimulation-decision.md`
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with no problems.
+- `rg -n 'Slice 202|broad Phase 18|narrow Poisson|random-effect pilot|post-202 Phase 17|meta-analysis hardening|meta_V|full Phase 18 entry' ROADMAP.md NEWS.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-17-slice-202-presimulation-decision.md`:
+  found the intended pre-simulation decision and post-202 return wording.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- This slice does not implement simulation helpers, `meta_V()`, proportional
+  sampling-variance models, bootstrap intervals, or any new non-Gaussian random
+  effect.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slice-202-presimulation-decision.md`.
+
+## 2026-05-17 - Slice 203 meta-analysis return map
+
+Goal: set the first Phase 17 return block after the pre-simulation gate, with
+meta-analysis hardening before broad Phase 18 simulation claims.
+
+Files changed:
+
+- `ROADMAP.md`
+- `NEWS.md`
+- `docs/dev-log/after-task/2026-05-17-slice-203-meta-analysis-return-map.md`
+
+What changed:
+
+- Added a post-202 Phase 17 return section to the roadmap.
+- Set Slice 203 as the local roadmap slice for the return map.
+- Laid out Slices 204-208: `meta_V()` API decision, additive known-`V`
+  implementation if approved, proportional sampling-variance boundary,
+  interval safety, and reader examples.
+- Re-stated that meta-analysis remains Gaussian regression with known sampling
+  covariance, not a new `meta_gaussian()` family, and that `sigma` remains the
+  fitted extra heterogeneity SD.
+
+Checks run:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH air format NEWS.md ROADMAP.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-17-slice-203-meta-analysis-return-map.md`
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with no problems.
+- `rg -n 'Post-202 Phase 17 Return|Slice 203|meta-analysis return|meta_V\\(\\)|meta_V\\(V = V\\)|proportional sampling-variance|meta_gaussian|tau ~|sigma remains|compatibility alias' ROADMAP.md NEWS.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-17-slice-203-meta-analysis-return-map.md`:
+  found the intended return-map, naming, and guardrail wording.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- This slice does not implement `meta_V()`, deprecate `meta_known_V()`, add
+  proportional sampling-variance likelihoods, or change the current fitted
+  meta-analysis path.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slice-203-meta-analysis-return-map.md`.
