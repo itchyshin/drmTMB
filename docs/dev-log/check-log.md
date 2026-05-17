@@ -22436,3 +22436,48 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slice-186-phylo-slope-audit.md`.
+
+## 2026-05-17 - Slice 187 spatial slope audit
+
+Goal: confirm spatial one-slope support, docs, diagnostics, and parity
+boundaries.
+
+Files changed:
+
+- `tests/testthat/test-spatial-gaussian.R`
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/01-formula-grammar.md`
+- `docs/design/09-phylogenetic-and-spatial-speed.md`
+- `docs/design/16-phylo-spatial-common-math.md`
+- `docs/design/33-phase-6c-core-random-effects.md`
+- `docs/dev-log/after-task/2026-05-17-slice-187-spatial-slope-audit.md`
+
+What changed:
+
+- The coordinate-spatial one-slope test now profiles
+  `sd:mu:spatial(0 + x | site)` and checks a finite positive response-scale
+  interval around the fitted slope-field SD.
+- Added a boundary test that keeps spatial one-slope support inside
+  univariate Gaussian `mu`: multiple spatial slopes, spatial `sigma`, and
+  bivariate spatial syntax still error before fitting.
+- Roadmap and design docs now record the fitted slope-SD interval evidence and
+  the remaining spatial neighbours.
+
+Checks run:
+
+- `air format tests/testthat/test-spatial-gaussian.R NEWS.md ROADMAP.md docs/design/01-formula-grammar.md docs/design/09-phylogenetic-and-spatial-speed.md docs/design/16-phylo-spatial-common-math.md docs/design/33-phase-6c-core-random-effects.md`:
+  passed.
+- `Rscript -e 'devtools::test(filter = "spatial-gaussian|gaussian-location-scale", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'pkgdown::check_pkgdown()'`: passed.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- This slice does not widen spatial support beyond the existing coordinate
+  univariate Gaussian `mu` one-slope path.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slice-187-spatial-slope-audit.md`.

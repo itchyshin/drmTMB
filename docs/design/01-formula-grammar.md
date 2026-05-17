@@ -811,7 +811,7 @@ Not every parameter should accept random effects at the same development stage.
 | `phylo(1 | p | species, tree = tree)` | Implemented as a label for matching bivariate `mu1`/`mu2` phylogenetic location terms and for the matching all-four q=4 bivariate phylogenetic location-scale block. Partial, unlabelled, mismatched, and slope forms remain rejected. |
 | `phylo(1 + x | species, tree = tree)` | Planned structured random slope syntax after intercept-only phylogeny is tested; one slope first, two slopes as the near-term advanced path. |
 | `spatial(1 | site, coords = coords)` | Implemented first structured spatial random intercept for univariate Gaussian `mu`; coordinates define a fixed coordinate covariance foundation. Mesh/SPDE fitting remains planned. |
-| `spatial(1 + x | site, coords = coords)` | Implemented one numeric structured spatial random slope for univariate Gaussian `mu`; it estimates independent `spatial(1 | site)` and `spatial(0 + x | site)` fields with no slope correlation. Multiple spatial slopes remain planned. |
+| `spatial(1 + x | site, coords = coords)` | Implemented one numeric structured spatial random slope for univariate Gaussian `mu`; it estimates independent `spatial(1 | site)` and `spatial(0 + x | site)` fields with no slope correlation. Slice 187 adds direct profile-interval coverage for the slope-field SD and keeps multiple spatial slopes planned. |
 
 ## Rules
 

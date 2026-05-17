@@ -1270,7 +1270,7 @@ remain blocked by future covariance or non-Gaussian random-effect work.
 | 184 | Location-scale covariance | Done: `check_drm()` now reports each independent univariate `mu`/`sigma` block separately, and profile tests cover the second `eta_cor_mu_sigma` interval target. |
 | 185 | Bivariate random slopes | Done: matching slope-only `mu1`/`mu2` blocks such as `(0 + x | p | id)` are documented as the first future slope target, while `(1 + x | p | id)` q=4 location blocks and all-four q=8 location-scale slope blocks remain explicitly rejected. |
 | 186 | Phylogenetic random slopes | Done: audit confirms phylogenetic slopes remain rejected/intercept-only while coordinate spatial already fits one independent `mu` slope; the error, docs, and tests now state this parity gap explicitly. |
-| 187 | Spatial random slopes | Confirm spatial one-slope support, docs, diagnostics, and parity boundaries. |
+| 187 | Spatial random slopes | Done: coordinate-spatial one-slope support now has a direct profile-interval test for the slope-field SD plus explicit boundary tests for multiple slopes, spatial scale terms, and bivariate spatial syntax. |
 | 188 | Random-effect gate | Publish the one-slope-per-layer status table and remaining Gaussian DH limits. |
 
 - Slice 189 should close any remaining Gaussian double-hierarchical boundary
