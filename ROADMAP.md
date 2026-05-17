@@ -1106,6 +1106,10 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   columns. Values such as `size = 0` in a model with `log(size)` now error
   after formula evaluation names the affected model column, rather than
   returning a non-finite prediction.
+- Slice 148 applies the same finite design-matrix guard to random-effect scale
+  prediction. Direct `sd(id)` predictions with `newdata` such as `w_pos = 0`
+  in a model with `sd(id) ~ log(w_pos)` now error before returning infinite
+  link- or response-scale SD predictions.
 - Add additional ggplot-oriented helpers only after the data contract is stable:
   location curves, scale/variance curves, residual `rho12` curves,
   `sd(group)` or `sd_phylo()` surfaces, `corpairs()` summaries, and eventually

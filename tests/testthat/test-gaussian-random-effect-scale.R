@@ -160,6 +160,27 @@ test_that("Gaussian sd(id) handles large scale slopes and factor predictors", {
   expect_true(all(predict(fit_factor, dpar = "sd(id)") > 0))
 })
 
+test_that("Gaussian sd(id) prediction validates transformed newdata values", {
+  sim <- new_gaussian_re_scale_data(n_id = 12, n_each = 4, seed = 20260561)
+  dat <- transform(sim$data, w_pos = exp(w) + 0.2)
+  fit <- drmTMB(
+    bf(y ~ x + (1 | id), sigma ~ z, sd(id) ~ log(w_pos)),
+    family = gaussian(),
+    data = dat,
+    control = drm_control(optimizer = list(eval.max = 120L, iter.max = 120L))
+  )
+
+  expect_error(
+    predict(
+      fit,
+      dpar = "sd(id)",
+      newdata = data.frame(w_pos = 0),
+      type = "link"
+    ),
+    "log\\(w_pos\\)"
+  )
+})
+
 test_that("Gaussian sd(id) variables participate in missingness", {
   sim <- new_gaussian_re_scale_data(n_id = 16, n_each = 5, seed = 20260554)
   dat <- sim$data

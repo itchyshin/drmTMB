@@ -3443,7 +3443,7 @@ drm_validate_prediction_matrix_finite <- function(X, dpar) {
   cli::cli_abort(c(
     "New prediction data produces non-finite design-matrix value{?s} for {.code dpar = \"{dpar}\"}.",
     i = "Affected model column{?s}: {.val {terms}}.",
-    i = "Check transformed predictors such as {.code log(x)} or {.code sqrt(x)} before calling {.fn predict} or {.pkg emmeans}."
+    i = "Check transformed predictors such as {.code log(x)} or {.code sqrt(x)} before prediction or post-fit grid helpers."
   ))
 }
 
@@ -3956,6 +3956,7 @@ predict_random_scale_dpar <- function(
       cli::cli_abort("{.arg newdata} must be a data frame.")
     }
     X <- stats::model.matrix(sd_target$terms_list[[dpar]], data = newdata)
+    drm_validate_prediction_matrix_finite(X, dpar)
     names_out <- rownames(newdata)
   }
   eta <- as.vector(X %*% object$coefficients[[dpar]])
