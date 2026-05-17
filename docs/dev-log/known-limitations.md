@@ -166,14 +166,15 @@
 - Fixed-effect univariate Poisson mean models are implemented for
   non-negative integer counts with `family = poisson(link = "log")`.
   The `mu` formula supports standard R exposure offsets such as
-  `offset(log(trap_nights))`. Ordinary unlabelled `mu` random intercepts such
-  as `(1 | id)` are implemented for non-zero-inflated Poisson models and enter
-  the log-mean predictor. Zero-inflated Poisson models are implemented by
+  `offset(log(trap_nights))`. Ordinary unlabelled `mu` random intercepts and
+  independent numeric slopes such as `(1 | id) + (0 + x | id)` are implemented
+  for non-zero-inflated Poisson models and enter the log-mean predictor.
+  Zero-inflated Poisson models are implemented by
   adding `zi ~ predictors`; here `mu` is the conditional count mean and `zi` is
   the structural-zero probability, but `zi` random effects and `mu` random
   effects in the zero-inflated route remain planned. There is no modelled
-  `sigma` parameter. Overdispersion, Poisson random slopes, labelled Poisson
-  covariance blocks, known sampling covariance, phylogenetic terms, and
+  `sigma` parameter. Overdispersion, correlated Poisson slope blocks, labelled
+  Poisson covariance blocks, known sampling covariance, phylogenetic terms, and
   bivariate or mixed Poisson models are not yet implemented.
 - Fixed-effect univariate negative-binomial 2 mean-dispersion models are
   implemented for overdispersed counts with `family = nbinom2()`. `mu` is the

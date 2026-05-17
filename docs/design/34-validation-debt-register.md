@@ -62,22 +62,23 @@ Use these status labels:
   ordinal scale/discrimination, and random effects for most non-Gaussian
   families still need separate likelihood work and simulation recovery.
 
-### Poisson ordinary random intercepts
+### Poisson ordinary random effects
 
 - Matrix status: first non-Gaussian path implemented for non-zero-inflated
   Poisson `mu`.
-- Register status: ordinary unlabelled `(1 | group)` random intercepts enter
-  the log-mean predictor. Random slopes, labelled covariance blocks,
+- Register status: ordinary unlabelled `(1 | group)` random intercepts and
+  independent numeric `(0 + x | group)` slopes enter the log-mean predictor.
+  Correlated slope blocks, labelled covariance blocks,
   zero-inflated Poisson random effects, and cross-parameter covariance blocks
   remain planned.
 - Evidence: `tests/testthat/test-poisson-mean.R` and
   `tests/testthat/test-comparators.R`.
 - Diagnostics and intervals: `sdpars$mu`, `random_effects$mu`, and
-  `profile_targets()` expose the random-intercept SD through direct
+  `profile_targets()` expose the random-effect SDs through direct
   `log_sd_mu` profile targets.
-- Debt: weak-SD grids, NB2-style count random intercepts, non-Gaussian `mu`
-  slopes, and cross-parameter covariance need later slice evidence before
-  Phase 18 comprehensive simulation.
+- Debt: weak-SD grids, NB2-style count random intercepts, correlated
+  non-Gaussian `mu` slopes, and cross-parameter covariance need later slice
+  evidence before Phase 18 comprehensive simulation.
 
 ### Gaussian ordinary random effects
 

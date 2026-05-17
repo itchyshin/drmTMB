@@ -140,9 +140,10 @@ head(sigma(fit)^2) # fitted residual variances
   [Choosing response families](https://itchyshin.github.io/drmTMB/articles/distribution-families.html).
 - **Overdispersed, zero-heavy, truncated, or hurdle counts.** Use
   `poisson()`, `nbinom2()`, `truncated_nbinom2()`, `zi ~`, or `hu ~`.
-  Ordinary Poisson `mu` random intercepts such as
-  `bf(count ~ x + (1 | id))` are the first non-Gaussian random-effect slice;
-  Poisson random slopes and zero-inflation random effects remain planned. Read
+  Ordinary Poisson `mu` random intercepts and independent numeric random slopes
+  such as `bf(count ~ x + (1 | id) + (0 + x | id))` are the first
+  non-Gaussian random-effect slice; correlated Poisson slope blocks and
+  zero-inflation random effects remain planned. Read
   [Choosing response families](https://itchyshin.github.io/drmTMB/articles/distribution-families.html).
 - **Ordered categories.** Use `cumulative_logit()` for fixed-effect
   cumulative-logit ordinal regression. See the
@@ -179,7 +180,7 @@ The evidence and debt ledger behind these rows lives in
 
 | Surface | Current status | Interval and diagnostic status | Main boundary |
 | --- | --- | --- | --- |
-| Fixed-effect one-response families | Stable for Gaussian, Student-t, lognormal, Gamma, beta, beta-binomial, Poisson, NB2, truncated NB2, hurdle NB2, zero-inflated Poisson, zero-inflated NB2, and cumulative-logit ordinal location; ordinary Poisson `mu` random intercepts are the first non-Gaussian random-effect slice | Wald fixed-effect intervals by default; explicit direct profile targets are listed by `profile_targets()`; Poisson random-intercept SDs are direct `log_sd_mu` profile targets | Random effects are otherwise mostly Gaussian-only; Poisson slopes, NB2 random effects, ordinal scale, and richer bounded-response families including zero-one inflation remain planned |
+| Fixed-effect one-response families | Stable for Gaussian, Student-t, lognormal, Gamma, beta, beta-binomial, Poisson, NB2, truncated NB2, hurdle NB2, zero-inflated Poisson, zero-inflated NB2, and cumulative-logit ordinal location; ordinary Poisson `mu` random intercepts and independent numeric slopes are the first non-Gaussian random-effect slice | Wald fixed-effect intervals by default; explicit direct profile targets are listed by `profile_targets()`; Poisson random-effect SDs are direct `log_sd_mu` profile targets | Random effects are otherwise mostly Gaussian-only; correlated Poisson slopes, NB2 random effects, ordinal scale, and richer bounded-response families including zero-one inflation remain planned |
 | Gaussian ordinary random effects | Stable for `mu` intercepts, independent slopes, and one-slope correlated blocks; stable for `sigma` intercepts and independent slopes | `check_drm()` reports replication, weak-slope, boundary, and Hessian diagnostics; direct SD and fitted correlation targets are profile-ready when the TMB object is retained | Correlated residual-scale slope blocks and coefficient-specific `sd()` slope models remain planned |
 | Random-effect scale models | First slice fitted for `sd(group) ~ x_group` on unlabelled Gaussian `mu` random intercepts | Fixed SD-surface coefficients are direct targets; row-specific group SD summaries are derived | Slope-specific `sd(id, dpar = "mu", coef = "x") ~ ...` is reserved and rejected |
 | Known sampling covariance | Stable for Gaussian `meta_known_V(V = V)`, including diagonal, dense, and row-paired bivariate known covariance | `check_drm()` reports dense full `V` as a note with dimension, density, size, rank, and conditioning; fixed effects and response-scale residual summaries use the usual interval routes | Dense covariance is small-to-moderate unless sparse or block-sparse evidence is added; full dense known `V` with non-unit likelihood weights is rejected |

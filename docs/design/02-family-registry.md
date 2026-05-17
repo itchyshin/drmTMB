@@ -73,15 +73,16 @@ Human-readable aliases such as `skew` or `df` can be considered later, but the
 canonical internal and documented names should stay consistent unless there is a
 strong reason not to.
 
-## Slice 190 Non-Gaussian Random-Effect Gate
+## Slice 190-192 Non-Gaussian Random-Effect Gate
 
-The first non-Gaussian random-effect expansion is ordinary `mu` random
-intercepts, not scale, shape, zero-inflation, hurdle, ordinal, or structured
-random effects. The decision remains intentionally narrow:
+The first non-Gaussian random-effect expansion is ordinary Poisson `mu` random
+intercepts plus independent numeric slopes, not scale, shape, zero-inflation,
+hurdle, ordinal, or structured random effects. The decision remains
+intentionally narrow:
 
-| Priority | Family surface | Slice 191 status |
+| Priority | Family surface | Slice 192 status |
 |---|---|---|
-| 1 | Poisson `mu` | Implemented for ordinary `(1 | group)` in the log-mean predictor of non-zero-inflated Poisson models. Slopes, covariance labels, zero-inflated Poisson random effects, and cross-parameter covariance remain planned. |
+| 1 | Poisson `mu` | Implemented for ordinary `(1 | group)` and independent numeric `(0 + x | group)` terms in the log-mean predictor of non-zero-inflated Poisson models. Correlated slope blocks, covariance labels, zero-inflated Poisson random effects, and cross-parameter covariance remain planned. |
 | 2 | NB2 and zero-truncated NB2 `mu` | Next candidate after Poisson, retaining public `sigma` as dispersion and leaving dispersion-side random effects for a later scale gate. |
 | 3 | Lognormal, Gamma, and Student-t `mu` | Later continuous-response candidates after count recovery tests, because scale and tail parameters complicate weak-SD and boundary diagnostics. |
 | 4 | Beta and beta-binomial `mu` | Later bounded-response candidates; strict-boundary handling, denominators, and overdispersion need their own recovery grids. |

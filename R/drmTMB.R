@@ -3104,15 +3104,15 @@ validate_poisson_mu_random_terms <- function(terms, has_zi = FALSE) {
   }
   if (isTRUE(has_zi)) {
     cli::cli_abort(c(
-      "Poisson {.code mu} random intercepts are implemented only for ordinary Poisson models.",
+      "Poisson {.code mu} random intercepts and slopes are implemented only for ordinary Poisson models.",
       "x" = "Zero-inflated Poisson random effects are planned but not implemented.",
-      "i" = "Fit {.code y ~ x + (1 | id)} without a {.code zi} formula, or use a fixed-effect {.code zi ~ predictors} model."
+      "i" = "Fit {.code y ~ x + (1 | id) + (0 + x | id)} without a {.code zi} formula, or use a fixed-effect {.code zi ~ predictors} model."
     ))
   }
   unsupported <- vapply(
     terms,
     function(term) {
-      !identical(term$type, "intercept") ||
+      !(term$type %in% c("intercept", "slope")) ||
         !is.null(term$covariance_label)
     },
     logical(1L)
@@ -3120,10 +3120,10 @@ validate_poisson_mu_random_terms <- function(terms, has_zi = FALSE) {
   if (any(unsupported)) {
     labels <- vapply(terms[unsupported], `[[`, character(1L), "label")
     cli::cli_abort(c(
-      "Only ordinary Poisson {.code mu} random intercepts are implemented in this slice.",
+      "Only independent Poisson {.code mu} random intercepts and slopes are implemented in this slice.",
       "x" = "Unsupported random-effect term{?s}: {.code {labels}}.",
-      "i" = "Use syntax like {.code count ~ x + (1 | id)}.",
-      "i" = "Poisson random slopes and labelled covariance blocks remain planned for the non-Gaussian random-effect gate."
+      "i" = "Use syntax like {.code count ~ x + (1 | id)} or {.code count ~ x + (0 + x | id)}.",
+      "i" = "Correlated Poisson random-slope blocks and labelled covariance blocks remain planned for a later non-Gaussian random-effect gate."
     ))
   }
   invisible(terms)
