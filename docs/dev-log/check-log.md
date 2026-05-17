@@ -22389,3 +22389,50 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slice-185-bivariate-slope-policy.md`.
+
+## 2026-05-17 - Slice 186 phylogenetic slope audit
+
+Goal: audit phylogenetic one-slope support and parity gaps against the spatial
+lane.
+
+Files changed:
+
+- `R/drmTMB.R`
+- `R/formula-markers.R`
+- `tests/testthat/test-phylo-gaussian.R`
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/01-formula-grammar.md`
+- `docs/design/09-phylogenetic-and-spatial-speed.md`
+- `docs/design/16-phylo-spatial-common-math.md`
+- `docs/design/33-phase-6c-core-random-effects.md`
+- `docs/dev-log/after-task/2026-05-17-slice-186-phylo-slope-audit.md`
+
+What changed:
+
+- The `phylo(1 + x | species, tree = tree)` error now explicitly says that
+  phylogenetic one-slope support is still planned, while the coordinate-spatial
+  one-slope sibling is fitted for univariate Gaussian `mu`.
+- The phylogenetic slope test now inspects the error condition and checks the
+  spatial-parity message.
+- The roadmap and structured-effect design notes now mark the spatial/phylo
+  asymmetry as an explicit validation gap.
+
+Checks run:
+
+- `air format R/drmTMB.R R/formula-markers.R tests/testthat/test-phylo-gaussian.R NEWS.md ROADMAP.md docs/design/01-formula-grammar.md docs/design/09-phylogenetic-and-spatial-speed.md docs/design/16-phylo-spatial-common-math.md docs/design/33-phase-6c-core-random-effects.md`:
+  passed.
+- `Rscript -e 'devtools::document()'`: passed and regenerated `man/phylo.Rd`.
+- `Rscript -e 'devtools::test(filter = "phylo-gaussian|gaussian-location-scale", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'pkgdown::check_pkgdown()'`: passed.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- This slice does not implement phylogenetic slope likelihood code or recovery
+  tests. It only clarifies the current fitted-versus-planned boundary.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slice-186-phylo-slope-audit.md`.

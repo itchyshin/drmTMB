@@ -412,6 +412,9 @@ The fitted coordinate spatial one-slope path follows that rule: it estimates
 `spatial(1 | site)` and `spatial(0 + x | site)` as independent fields with a
 shared coordinate precision and separate SDs. Phylogenetic slopes, mesh/SPDE
 slopes, multiple spatial slopes, and slope correlations remain later gates.
+Slice 186 rechecked this boundary: `phylo(1 + x | species, tree = tree)` is
+still rejected, while the coordinate-spatial one-slope path is fitted. This is
+a deliberate validation gap, not a syntax synonym.
 For two-response models, the most interesting later slope correlation is a
 response-1 slope versus response-2 slope for the same covariate, matching the
 plasticity-syndrome idea in O'Dea, Noble, and Nakagawa (2021). That target needs

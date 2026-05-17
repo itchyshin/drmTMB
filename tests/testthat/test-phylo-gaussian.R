@@ -1359,13 +1359,19 @@ test_that("phylogenetic mu terms participate in missingness and validation", {
   )
 
   expect_equal(fit$nobs, nrow(dat) - 2L)
-  expect_error(
+  phylo_slope_err <- tryCatch(
     drmTMB(
       bf(y ~ x + phylo(1 + x | species, tree = tree), sigma ~ 1),
       family = gaussian(),
       data = sim$data
     ),
-    "intercept-only phylogenetic"
+    error = identity
+  )
+  expect_s3_class(phylo_slope_err, "rlang_error")
+  expect_match(conditionMessage(phylo_slope_err), "intercept-only phylogenetic")
+  expect_match(
+    conditionMessage(phylo_slope_err),
+    "Coordinate-spatial one-slope support exists"
   )
   expect_error(
     drmTMB(
