@@ -99,6 +99,38 @@ test_that("emmeans pairwise contrasts use the returned mu grid", {
   expect_equal(contrasts$df, rep(Inf, nrow(contrasts)))
 })
 
+test_that("emmeans method uses default numeric covariate reduction", {
+  testthat::skip_if_not_installed("emmeans")
+  set.seed(20260547)
+  dat <- emmeans_methods_data(n = 75L)
+  dat$x <- seq(0.15, 1.35, length.out = nrow(dat))
+  dat$y <- 0.2 +
+    0.4 * dat$x +
+    0.3 * (dat$habitat == "kelp") -
+    0.1 * (dat$habitat == "sand") +
+    stats::rnorm(nrow(dat), sd = 0.1)
+  fit <- drmTMB(
+    bf(y ~ x + habitat, sigma ~ 1),
+    data = dat,
+    control = emmeans_methods_control(se = TRUE)
+  )
+
+  emm <- emmeans::emmeans(fit, ~habitat)
+  link <- summary(emm)
+  grid <- data.frame(
+    x = mean(dat$x),
+    habitat = factor(link$habitat, levels = levels(dat$habitat))
+  )
+
+  expect_equal(
+    link$emmean,
+    unname(predict(fit, newdata = grid, dpar = "mu", type = "link")),
+    tolerance = 1e-10
+  )
+  expect_true(all(is.finite(link$SE)))
+  expect_equal(link$df, rep(Inf, nrow(link)))
+})
+
 test_that("emmeans response scale follows the fitted mu inverse link", {
   testthat::skip_if_not_installed("emmeans")
   set.seed(20260538)

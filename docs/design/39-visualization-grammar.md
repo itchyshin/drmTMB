@@ -234,6 +234,12 @@ confirms that raw source variables for transformed terms are restored from
 stored data. This is still the same fixed-effect univariate `mu` bridge, not a
 new transformed-response or slope workflow.
 
+Slice 129 adds explicit coverage for default numeric covariate reduction. A
+Gaussian fixed-effect `mu` model with an asymmetric numeric covariate checks that
+`emmeans(fit, ~ habitat)` matches `predict(dpar = "mu")` at `mean(x)`. This
+records ordinary `emmeans` reference-grid behaviour and keeps empirical
+marginalisation or custom weighting separate.
+
 Slice 102 adds the first article-level empirical-grid example. The
 model-workflow article now shows a conditioned grid for direct
 `predict_parameters()` rows and a separate empirical grid for

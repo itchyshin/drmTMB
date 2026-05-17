@@ -19160,3 +19160,84 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-16-slice-128-emmeans-transformed-predictor.md`.
+
+## 2026-05-16 - Slice 129 emmeans default covariate reduction
+
+Goal: add explicit coverage for ordinary `emmeans` numeric covariate reduction
+in the first fixed-effect univariate `mu` bridge.
+
+Roles:
+
+- Ada kept this as a test/docs slice on top of the transformed-predictor
+  recovery work.
+- Boole checked that the slice documents ordinary `emmeans` reference-grid
+  behaviour rather than adding drmTMB grammar or a custom marginalisation rule.
+- Fisher checked that the estimand remains native fixed-effect `mu` at the
+  reference-grid mean of `x`.
+- Curie added the asymmetric-covariate parity test.
+- Pat checked that `emmeans(fit, ~ habitat)` without an explicit `at` value has
+  a reader-visible interpretation.
+- Grace owned focused tests, pkgdown, and stale-claim scans.
+- Rose checked that empirical marginalisation and custom weighting remain
+  separate from this default reference-grid behaviour.
+- Gauss, Noether, Darwin, Jason, and Emmy stayed watch-only because no
+  likelihood, equation, biological example, landscape claim, or object
+  structure changed.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/39-visualization-grammar.md`
+- `docs/design/40-emmeans-interface-contract.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-16-slice-129-emmeans-covreduce-default.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-16-213102-codex-checkpoint.md`
+- `tests/testthat/test-emmeans-methods.R`
+
+What changed:
+
+- Added a public `emmeans()` parity test for a Gaussian fixed-effect `mu` model
+  with an asymmetric numeric covariate.
+- The test checks that `emmeans(fit, ~ habitat)` matches
+  `predict(dpar = "mu")` at `mean(x)`, matching the default numeric covariate
+  reduction used by `emmeans::ref_grid()`.
+- Updated NEWS, roadmap, and design notes to keep this boundary distinct from
+  empirical marginalisation and custom weighting.
+
+Checks run:
+
+- `air format NEWS.md ROADMAP.md docs/design/39-visualization-grammar.md docs/design/40-emmeans-interface-contract.md tests/testthat/test-emmeans-methods.R`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'emmeans-methods', reporter = 'summary')"`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'emmeans-methods|emmeans-recover-data|emmeans-preflight|fixed-effect-basis|reference-grid-link-scale-contract', reporter = 'summary')"`:
+  passed.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed.
+- Positive source/rendered scan for Slice 129 covariate-reduction wording and
+  tests: found the expected entries.
+- Stale-claim scan for covariate reduction as unsupported or for custom
+  weighting as implemented: no matches.
+- `git diff --check`: passed.
+- Recovery checkpoint:
+  `docs/dev-log/recovery-checkpoints/2026-05-16-213102-codex-checkpoint.md`.
+
+Post-rebase checks:
+
+- PR #93 merged as `ac97052adace5510cdaab72c56b839a2c804cb40`.
+- `git rebase --onto origin/main 1ddc819b9cc3cfde1983e6ff3cd5af9ce3c747fb`:
+  passed.
+- `git diff --check origin/main...HEAD`: passed.
+- `Rscript -e "devtools::test(filter = 'emmeans-methods|emmeans-recover-data|emmeans-preflight|fixed-effect-basis|reference-grid-link-scale-contract', reporter = 'summary')"`:
+  passed.
+
+Known limitations:
+
+- This slice tests the default numeric mean rule only.
+- It does not add custom weights, empirical marginalisation through `emmeans`,
+  `cov.reduce` formulas, slopes, non-`mu` targets, or blocked model structures.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-16-slice-129-emmeans-covreduce-default.md`.
