@@ -18550,3 +18550,103 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-16-slice-121-emmeans-recover-data-preflight.md`.
+
+## 2026-05-16 - Slice 122 first emmeans method
+
+Goal: expose the first narrow public `emmeans` bridge for fixed-effect
+univariate `mu` estimated marginal means while keeping unsupported targets
+blocked before an `emmGrid` is returned.
+
+Roles:
+
+- Ada promoted the private preflights into a public-method slice after a
+  scratch prototype matched `predict()` for Gaussian and Poisson `mu`.
+- Boole owned S3 registration, `dpar`, retained-model-frame, and covariance
+  gates.
+- Fisher checked that the estimand remains the native `mu` distributional
+  parameter, not fitted response means, contrasts, or slopes.
+- Curie owned direct tests against `emmeans::emmeans()`, link-scale prediction,
+  response-scale inverse-link behavior, and blocked paths.
+- Grace owned the new `Suggests: emmeans` dependency, pkgdown, full tests, and
+  stale-claim scans.
+- Pat checked that unsupported requests still give actionable messages.
+- Rose recorded the `recover_data()` error-wrapping lesson and checked that
+  docs do not overclaim broad EMM support.
+- Gauss and Noether stayed watch-only because no likelihood equation changed.
+- Emmy watched the S3/dynamic-registration architecture.
+- Darwin and Jason stayed watch-only because no biological example or new
+  landscape claim was added beyond the official `emmeans` API boundary already
+  cited in `docs/design/40-emmeans-interface-contract.md`.
+
+Files changed:
+
+- `DESCRIPTION`
+- `NEWS.md`
+- `R/emmeans-preflight.R`
+- `R/zzz.R`
+- `tests/testthat/test-emmeans-methods.R`
+- `ROADMAP.md`
+- `docs/design/39-visualization-grammar.md`
+- `docs/design/40-emmeans-interface-contract.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-16-slice-122-first-emmeans-method.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-16-193749-codex-checkpoint.md`
+
+What changed:
+
+- Added `emmeans` to `Suggests`.
+- Added `.onLoad()` conditional registration with `emmeans::.emm_register()`
+  when `emmeans` is installed.
+- Added private S3 methods `recover_data.drmTMB()` and `emm_basis.drmTMB()`.
+  The methods reuse the Slice 120 and 121 preflight helpers.
+- `recover_data.drmTMB()` returns drmTMB's preflight message as a character
+  scalar when recovery fails, because `emmeans::ref_grid()` wraps errors thrown
+  inside `recover_data()` as a generic "Perhaps a data or params argument is
+  needed" message.
+- `emm_basis.drmTMB()` returns the fixed-effect model matrix, coefficient
+  vector, covariance matrix, no-rank-deficiency basis convention, asymptotic
+  degrees of freedom, and link metadata for the accepted `mu` path.
+- Added tests comparing `emmeans::emmeans()` link-scale results to
+  `predict(type = "link")`, response-scale log-link and logit-link summaries
+  to `predict(type = "response")`, and unsupported requests to clear errors.
+- Updated NEWS, the Phase 17 roadmap, and design notes to advertise only the
+  narrow supported path.
+
+Checks run:
+
+- `air format DESCRIPTION NEWS.md R/emmeans-preflight.R R/zzz.R tests/testthat/test-emmeans-methods.R ROADMAP.md docs/design/39-visualization-grammar.md docs/design/40-emmeans-interface-contract.md`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'emmeans-methods|emmeans-recover-data|emmeans-preflight|fixed-effect-basis', reporter = 'summary')"`:
+  passed after changing `recover_data.drmTMB()` to return preflight messages
+  instead of throwing errors that `ref_grid()` masks.
+- `Rscript -e "devtools::test(filter = 'emmeans-methods', reporter = 'summary')"`:
+  passed after adding the beta/logit response-scale parity test.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed and rebuilt
+  `pkgdown-site/ROADMAP.html` and `pkgdown-site/news/index.html`.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with "No problems found."
+- `git diff --check`: passed.
+- `rg -n 'Slice 122|emmeans::emmeans\\(\\)|recover_data\\.drmTMB|emm_basis\\.drmTMB|fixed-effect univariate `mu`|suggested package|conditional method registration|public `emmeans` bridge' DESCRIPTION NEWS.md ROADMAP.md docs/design/39-visualization-grammar.md docs/design/40-emmeans-interface-contract.md pkgdown-site/ROADMAP.html pkgdown-site/news/index.html`:
+  confirmed source and rendered NEWS/roadmap wording.
+- `rg -n 'bivariate.*emmeans.*works|zero-inflated.*emmeans.*works|hurdle.*emmeans.*works|ordinal.*emmeans.*works|random-effect.*emmGrid|structured.*emmGrid|contrast workflow.*implemented|slope.*emmeans.*implemented|all.*emmeans.*targets' DESCRIPTION NEWS.md ROADMAP.md docs/design/39-visualization-grammar.md docs/design/40-emmeans-interface-contract.md pkgdown-site --glob '!pkgdown-site/search.json' --glob '!pkgdown-site/deps/**'`:
+  found only intentional blocked-target wording and unrelated existing
+  slope-status text.
+- `Rscript -e "devtools::test(reporter = 'summary')"`: passed.
+- `Rscript -e "devtools::check(error_on = 'never')"`: completed with 0
+  errors, 0 warnings, and 2 notes: the local time-verification note and the
+  pre-existing `plot_corpairs()` visible-binding note for `conf.low`,
+  `conf.high`, and `.drmTMB_pair_label`.
+- `Rscript tools/codex-checkpoint.R --goal "Slice 122 first emmeans method" --next "wait for Slice 121 PR, then rebase Slice 122 onto merged main, rerun post-rebase emmeans checks, push, open PR"`:
+  passed and wrote
+  `docs/dev-log/recovery-checkpoints/2026-05-16-193749-codex-checkpoint.md`.
+
+Known limitations:
+
+- The public bridge supports only fixed-effect univariate `mu` EMMs with
+  retained model frames and fixed-effect covariance available.
+- Non-`mu`, bivariate, zero-inflated, hurdle, ordinal expected-score,
+  random-effect, structured-effect, fitted-response, contrast, slope, and
+  interval-specialized targets remain blocked.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-16-slice-122-first-emmeans-method.md`.

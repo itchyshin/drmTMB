@@ -33,6 +33,7 @@ LinkingTo:
     RcppEigen,
     TMB
 Suggests:
+    emmeans,
     glmmTMB,
     ggplot2,
     knitr,

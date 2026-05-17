@@ -189,6 +189,15 @@ predictor names, response name, factor levels, and row names. It errors when a
 memory-light fit has dropped model frames, which is the right failure mode for a
 future `recover_data.drmTMB()` method that cannot reconstruct a reference grid.
 
+Slice 122 adds the first public bridge to `emmeans`. The package now suggests
+`emmeans`, conditionally registers `recover_data.drmTMB()` and
+`emm_basis.drmTMB()` when `emmeans` is installed, and supports
+`emmeans::emmeans()` for fixed-effect univariate `mu` targets with retained
+model frames and covariance. The method still rejects unsupported targets before
+an `emmGrid` is returned; it is not a contrast, slope, bivariate, zero-inflated,
+hurdle, ordinal expected-score, random-effect, structured-effect, or
+fitted-response workflow.
+
 Slice 102 adds the first article-level empirical-grid example. The
 model-workflow article now shows a conditioned grid for direct
 `predict_parameters()` rows and a separate empirical grid for

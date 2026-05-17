@@ -1,5 +1,6 @@
 # drmTMB 0.1.2 (2026-05-16)
 
+* `emmeans::emmeans()` now supports the first narrow `drmTMB` path: fixed-effect univariate `mu` estimated marginal means with retained model frames and fixed-effect covariance available. Bivariate, zero-inflated, hurdle, ordinal expected-score, random-effect, structured-effect, non-`mu`, contrast, slope, and interval-specialized targets still error before an `emmGrid` is returned.
 * Installation docs now point tagged-preview users to `pak::pak("itchyshin/drmTMB@v0.1.2")`.
 * `docs/design/39-visualization-grammar.md` now records the Phase 17
   visualization and marginal-effects research contract. The note uses
