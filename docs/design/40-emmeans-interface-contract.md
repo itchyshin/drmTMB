@@ -305,3 +305,9 @@ Slice 140 adds interaction-formula coverage for the fixed-effect univariate
 conditional EMMs at an explicit `x` value match `predict(dpar = "mu")` on the
 same interaction grid. This covers ordinary fixed-effect model-matrix
 interactions, not slope estimation or a new marginalisation contract.
+
+Slice 141 adds factor-conditioned reference-grid coverage for the fixed-effect
+univariate `mu` `emmeans()` bridge. A Gaussian `habitat` by `season` grid at
+`x = 0.25` now checks that returned EMM rows preserve factor levels and match
+`predict(dpar = "mu")` on the same grid. This covers ordinary conditioning on
+factor levels, not empirical row-weighted marginalisation.

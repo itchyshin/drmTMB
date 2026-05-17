@@ -20177,3 +20177,78 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-16-slice-140-emmeans-interaction-grid.md`.
+
+## 2026-05-17 - Slice 141 emmeans factor-conditioned grid
+
+Goal: add positive coverage that factor-conditioned `emmeans()` reference grids
+preserve factor levels and match fixed-effect `mu` predictions.
+
+Roles:
+
+- Ada opened this as the first fresh slice after the Slice 133-140 stack merged
+  to `main`.
+- Boole checked that `~ habitat | season` is ordinary `emmeans` conditioning,
+  not new formula grammar.
+- Fisher checked that the estimand remains a conditional native-`mu` EMM at the
+  requested factor and numeric grid values.
+- Curie added the factor-conditioned parity test.
+- Pat checked that the wording names the conditioning variables directly.
+- Grace owned focused tests, pkgdown, and rendered scans.
+- Rose checked that the wording does not imply empirical row-weighted
+  marginalisation.
+- Gauss, Noether, Darwin, Jason, and Emmy stayed watch-only because no
+  likelihood, equation, biological example, landscape claim, or object
+  structure changed.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/39-visualization-grammar.md`
+- `docs/design/40-emmeans-interface-contract.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-17-slice-141-emmeans-factor-by-grid.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-17-000427-codex-checkpoint.md`
+- `tests/testthat/test-emmeans-methods.R`
+
+What changed:
+
+- Added a Gaussian fixed-effect `mu` test for
+  `emmeans(fit, ~ habitat | season, at = list(x = 0.25))`.
+- The test checks returned EMM rows against `predict(dpar = "mu")` on the same
+  factor-conditioned grid.
+- Updated NEWS, roadmap, and design notes to state this as factor-conditioned
+  reference-grid coverage, not empirical row-weighted marginalisation.
+
+Checks run:
+
+- No-edit scout:
+  `emmeans()` on a Gaussian `habitat` by `season` grid at `x = 0.25` matched
+  `predict(dpar = "mu")` exactly.
+- `air format NEWS.md ROADMAP.md docs/design/39-visualization-grammar.md docs/design/40-emmeans-interface-contract.md tests/testthat/test-emmeans-methods.R`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'emmeans-methods', reporter = 'summary')"`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'emmeans-methods|emmeans-recover-data|emmeans-preflight|fixed-effect-basis|reference-grid-link-scale-contract', reporter = 'summary')"`:
+  passed.
+- `git diff --check`: passed.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed.
+- Positive source/rendered scan for Slice 141 factor-conditioned grid wording
+  and test evidence: found the expected entries.
+- Stale-claim scan for empirical row-weighted marginalisation from factor-grid
+  wording: no false support claims; the only match was the intentional design
+  note that this is not empirical row-weighted marginalisation.
+- Recovery checkpoint:
+  `docs/dev-log/recovery-checkpoints/2026-05-17-000427-codex-checkpoint.md`.
+
+Known limitations:
+
+- This slice covers ordinary factor conditioning for fixed-effect univariate
+  `mu` only.
+- It does not add non-`mu` targets, transformed responses, empirical
+  marginalisation, random-effect workflows, or blocked model structures.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slice-141-emmeans-factor-by-grid.md`.
