@@ -53,8 +53,8 @@ distributional regression models using TMB.
 - Supported syntax:
   `bf(y ~ x1 + (1 | id) + (0 + x1 | id), sigma ~ x2 + (1 | id) + (0 + w | id))`.
 - Keep parser support for `sd(group) ~`, known sampling covariance
-  (`meta_known_V(V = V)` now, preferred `meta_V(V = V)` after the rename
-  slice), `phylo()`, and `spatial()` terms from the start.
+  (`meta_V(V = V)` preferred, `meta_known_V(V = V)` as a compatibility alias),
+  `phylo()`, and `spatial()` terms from the start.
 - Prediction for `mu` and `sigma` is implemented.
 - Simulation and parameter-recovery tests are implemented for the first
   Gaussian case.
@@ -102,8 +102,8 @@ distributional regression models using TMB.
   pair.
 - Do not add response-specific bivariate weights until the likelihood and
   interpretation are documented.
-- Full dense `meta_known_V(V = V)` covariance paths reject non-unit
-  `weights =` until a joint-block weighting design is documented.
+- Full dense `meta_V(V = V)` covariance paths reject non-unit `weights =`
+  until a joint-block weighting design is documented.
 
 ## Phase 3: Bivariate Gaussian Coscale
 
@@ -122,8 +122,8 @@ distributional regression models using TMB.
   `sigma()`, `simulate()`, whitened Pearson residuals, and coefficient-level
   `vcov()` names.
 - Added complete-row bivariate Gaussian known sampling covariance through
-  `meta_known_V(V = V)` and `meta_vcov_bivariate()`, with an independent base R
-  MVN likelihood comparator and tests that residual `rho12` stays distinct from
+  `meta_V(V = V)` and `meta_vcov_bivariate()`, with an independent base R MVN
+  likelihood comparator and tests that residual `rho12` stays distinct from
   known sampling correlation.
 - Added row likelihood weights for independent bivariate rows; dense known-`V`
   bivariate fits reject non-unit weights until a joint-block weighting design is
@@ -151,10 +151,10 @@ distributional regression models using TMB.
   `mu2`-`sigma2`), and one `sigma1`-`sigma2` row. This is still
   random-intercept support, not bivariate random slopes or the full
   double-hierarchical endpoint.
-- Bivariate random slopes, random effects in `rho12`, bivariate
-  `meta_known_V()` plus random effects, multi-term cross-parameter bivariate
-  covariance, and structured bivariate covariance remain future work and are
-  rejected before optimization.
+- Bivariate random slopes, random effects in `rho12`, bivariate known-`V` plus
+  random effects, multi-term cross-parameter bivariate covariance, and
+  structured bivariate covariance remain future work and are rejected before
+  optimization.
 
 ## Phase 4: Mixed and Double-Hierarchical Models
 
@@ -1379,11 +1379,11 @@ making the public grammar and examples match the preferred long-term name.
 | Slice | Lane | Target |
 | --- | --- | --- |
 | 203 | Meta-analysis return map | Done locally: record the post-202 return block, keep broad Phase 18 closed, and make `meta_V()`/known-`V` hardening the first Phase 17 target. |
-| 204 | `meta_V()` API decision | Done locally: `meta_V(V = V)` is the preferred future additive known-covariance spelling, the marker should not take a positional response/value argument, and `meta_known_V(V = V)` should become a compatibility alias rather than a separate likelihood path. |
+| 204 | `meta_V()` API decision | Done locally: `meta_V(V = V)` is the preferred additive known-covariance spelling, the marker should not take a positional response/value argument, and `meta_known_V(V = V)` is a compatibility alias rather than a separate likelihood path. |
 | 205 | Additive known `V` implementation | Done locally: `meta_V(V = vi_or_V)` is accepted for the additive known-covariance route by sharing the existing `meta_known_V(V = V)` path; proportional `meta_V(w = w, scale = "proportional")` remains rejected before fitting. |
 | 206 | Proportional sampling-variance boundary | Done locally: keep `meta_V(w = w, scale = "proportional")`, `meta_V(w = w)`, and `meta_V(V = V, scale = "exact")` reserved before fitting; clarify that diagonal/vector `meta_V(V = V)` may use ordinary likelihood weights, full matrix-`V` rejects non-unit weights, and neither route mimics proportional sampling variance. |
 | 207 | Meta-analysis interval safety | Done locally: add profile-target and summary interval tests proving `meta_V()` fits expose estimated `sigma`, random-effect SD, and bivariate `rho12` targets while never treating known `V` as an estimated interval target. |
-| 208 | Reader examples | Refresh the meta-analysis tutorial and model map around vector `V`, matrix `V`, residual heterogeneity `sigma`, random effects, random-effect scale, and the unsupported proportional branch. |
+| 208 | Reader examples | Done locally: refresh the meta-analysis tutorial and design examples around preferred `meta_V(V = V)`, vector `V`, matrix `V`, residual heterogeneity `sigma`, random effects, random-effect scale, bivariate known `V`, and the unsupported proportional branch. |
 
 Do not introduce `meta_gaussian()` or `tau ~` syntax in this block. Keep
 `sigma` as the fitted extra heterogeneity SD, and explain the translation to

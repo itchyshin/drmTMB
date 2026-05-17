@@ -85,7 +85,7 @@ In this table, "coscale" means a model for residual correlation, currently
 | `animal(1 | id, pedigree = ped)` | Planned | Future animal-model structured random effect using additive relatedness from a pedigree. This is a sibling of `phylo()` and `spatial()`, not a new family. |
 | `animal(1 | id, A = A)` or `animal(1 | id, Ainv = Ainv)` | Planned | Future additive genetic relatedness input. Use `A` or `Ainv` for relatedness; keep `V` reserved for known sampling covariance in meta-analysis. |
 | `relmat(1 | id, K = K)` or `relmat(1 | id, Q = Q)` | Design candidate | Possible lower-level user-supplied relatedness route after the named `phylo()`, `spatial()`, and `animal()` surfaces are stable. This should replace, not duplicate, older `gr()`-style low-level wording if exposed. |
-| `weights = w` | Implemented | Top-level likelihood weights, not formula syntax. Known sampling covariance remains a separate marker: currently `meta_known_V(V = V)`, with `meta_V(V = V)` the preferred replacement design. |
+| `weights = w` | Implemented | Top-level likelihood weights, not formula syntax. Known sampling covariance remains a separate marker: `meta_V(V = V)` is preferred, and `meta_known_V(V = V)` is a compatibility alias. |
 | `y ~ x1`, `family = cumulative_logit()` | Implemented | Fixed-effect univariate ordinal model for ordered scores with cutpoints; `mu` is a latent location and ordinal scale formulas are planned. |
 | `cbind(successes, failures) ~ x1`, `family = beta_binomial()` | Implemented | Fixed-effect denominator-aware model for success counts with known trial totals; `sigma` is extra-binomial variation. |
 | `phylo(1 + x1 | species, tree = tree)` | Planned | Slice 186 audit confirms this remains rejected: phylogenetic slopes come after the intercept-only path is hardened. The first path should fit one structured `mu` slope; two slopes are the near-term upper bound. |
@@ -159,14 +159,14 @@ meta_V(w = w, scale = "proportional")
 ```
 
 In the additive route, the supplied `V` is known sampling covariance and enters
-the marginal covariance as `V + Omega_estimated`, matching the current
-implemented `meta_known_V(V = V)` contract. In the proportional route, the
-sampling-error term would be modelled as `pi_i ~ Normal(0, phi_pi / w_i)` or,
-for correlated sampling errors, through a weighted covariance matrix. This
-proportional route is not ordinary likelihood weighting: the top-level
-`weights = w` argument still multiplies log-likelihood contributions. Additive
-known `V` and non-unit top-level weights should continue to be rejected together
-until joint-block weighting has its own design and tests.
+the marginal covariance as `V + Omega_estimated`, matching the implemented
+`meta_V(V = V)` contract. In the proportional route, the sampling-error term
+would be modelled as `pi_i ~ Normal(0, phi_pi / w_i)` or, for correlated
+sampling errors, through a weighted covariance matrix. This proportional route
+is not ordinary likelihood weighting: the top-level `weights = w` argument
+still multiplies log-likelihood contributions. Diagonal/vector known `V` may
+be combined with ordinary likelihood weights; full matrix-`V` fits reject
+non-unit weights until joint-block weighting has its own design and tests.
 
 ## Bivariate Syntax
 
