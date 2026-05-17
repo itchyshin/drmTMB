@@ -335,3 +335,8 @@ parameter and that those required predictor values are complete. Extra columns
 that are not used by the target formula remain harmless. This protects both
 direct `predict()` calls and `emmeans` basis construction from base R
 `object not found` errors or row-dropping side effects.
+
+Slice 145 adds a finite-value guard for required numeric predictors in the same
+path. Required numeric values such as `x = Inf` now error before fixed-effect
+prediction matrices are built, rather than flowing through `model.matrix()` to
+produce non-interpretable linear predictors.

@@ -1099,6 +1099,9 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   required predictors. Missing required columns and missing values in required
   numeric predictors now error before model-matrix construction, while extra
   unused columns remain harmless.
+- Slice 145 adds the corresponding finite-value guard for required numeric
+  predictors. Values such as `x = Inf` now error before fixed-effect prediction
+  matrices are built.
 - Add additional ggplot-oriented helpers only after the data contract is stable:
   location curves, scale/variance curves, residual `rho12` curves,
   `sd(group)` or `sd_phylo()` surfaces, `corpairs()` summaries, and eventually

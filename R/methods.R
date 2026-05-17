@@ -3397,6 +3397,12 @@ drm_prepare_prediction_newdata <- function(object, newdata, dpar) {
         i = "Supply complete prediction rows before calling {.fn predict} or {.pkg emmeans}."
       ))
     }
+    if (is.numeric(newdata[[name]]) && any(!is.finite(newdata[[name]]))) {
+      cli::cli_abort(c(
+        "New prediction data contains non-finite value{?s} for required predictor {.var {name}}.",
+        i = "Supply finite prediction values before calling {.fn predict} or {.pkg emmeans}."
+      ))
+    }
   }
   for (name in intersect(intersect(names(newdata), names(template)), needed)) {
     source <- template[[name]]
