@@ -14,8 +14,9 @@ library(drmTMB)
 
 Meta-analysis in `drmTMB` is ordinary Gaussian distributional regression with
 known sampling covariance. The sampling covariance is supplied with
-`meta_known_V(V = V)` inside the location formula; it is not a separate
-`meta_gaussian()` family.
+`meta_V(V = V)` inside the location formula; it is not a separate
+`meta_gaussian()` family. `meta_known_V(V = V)` remains a compatibility alias
+for older examples.
 
 The distinction matters. A meta-analysis usually has two sources of variation:
 known sampling error from the original studies, and unknown heterogeneity that
@@ -55,7 +56,7 @@ The matching R syntax is:
 ```r
 drmTMB(
   drm_formula(
-    yi ~ x1 + x2 + meta_known_V(V = vi),
+    yi ~ x1 + x2 + meta_V(V = vi),
     sigma ~ x1
   ),
   family = gaussian(),
@@ -96,8 +97,8 @@ sampling covariance matrix:
   \right).
 \]
 
-The right-hand side of `meta_known_V(V = V)` may be a variance column, a vector,
-a diagonal matrix, a dense block-diagonal matrix, or a dense full covariance
+The right-hand side of `meta_V(V = V)` may be a variance column, a vector, a
+diagonal matrix, a dense block-diagonal matrix, or a dense full covariance
 matrix.
 
 Dense means dense. If `V` is supplied as a full matrix, `drmTMB` stores the
@@ -146,7 +147,7 @@ The fitted model mirrors the equations above:
 ```{r}
 fit_meta <- drmTMB(
   drm_formula(
-    yi ~ habitat + duration + meta_known_V(V = vi),
+    yi ~ habitat + duration + meta_V(V = vi),
     sigma ~ habitat
   ),
   family = gaussian(),
@@ -283,7 +284,7 @@ current dense route still matches the scale of the analysis.
 
 ## Weights are not sampling variances
 
-The top-level `weights =` argument and `meta_known_V(V = V)` answer different
+The top-level `weights =` argument and `meta_V(V = V)` answer different
 questions. Ordinary likelihood weights multiply each observation's
 log-likelihood contribution:
 
@@ -304,13 +305,13 @@ Known sampling covariance changes the covariance model:
 \]
 
 Thus `weights = 1 / vi` is not the same model as
-`meta_known_V(V = vi)`. Use `meta_known_V(V = vi)` when `vi` is known sampling
-variance. Use `weights =` only when the intended analysis is a weighted
-likelihood, such as case weights or externally defined row weights. The
-practical consequence is that `weights = 1 / vi` changes how much each row
-contributes to the likelihood; it does not put `vi` into the modelled sampling
-variance. The current dense full-`V` path rejects non-unit weights until joint
-block weighting has a separate design.
+`meta_V(V = vi)`. Use `meta_V(V = vi)` when `vi` is known sampling variance.
+Use `weights =` only when the intended analysis is a weighted likelihood, such
+as case weights or externally defined row weights. The practical consequence is
+that `weights = 1 / vi` changes how much each row contributes to the
+likelihood; it does not put `vi` into the modelled sampling variance. The
+current dense full-`V` path rejects non-unit weights until joint-block
+weighting has a separate design.
 
 A proportional sampling-variance model, for example a term such as
 \(\pi_i \sim \operatorname{Normal}(0, \phi_\pi / w_i)\), is a different model
@@ -343,7 +344,7 @@ study after missing rows are removed:
 ```r
 fit_study <- drmTMB(
   drm_formula(
-    yi ~ treatment + (1 | study) + meta_known_V(V = vi),
+    yi ~ treatment + (1 | study) + meta_V(V = vi),
     sigma ~ 1,
     sd(study) ~ habitat
   ),
@@ -374,9 +375,9 @@ r_i \sim \operatorname{Normal}(0, \sigma_i^2),
 \]
 
 Here `s_i` is the known sampling-error component supplied by
-`meta_known_V(V = vi)` or `meta_known_V(V = V)`. The `sigma` formula models
-remaining observation-level heterogeneity. The `sd(study)` formula models
-`\omega_j`, the study-level random-effect standard deviation. Predictors in
+`meta_V(V = vi)` or `meta_V(V = V)`. The `sigma` formula models remaining
+observation-level heterogeneity. The `sd(study)` formula models `\omega_j`,
+the study-level random-effect standard deviation. Predictors in
 `sd(study) ~ ...` must be constant within each study after missing-data
 filtering; otherwise a single study-level random-effect SD would not be well
 defined.
@@ -459,7 +460,7 @@ sampling covariance is added to the estimated residual covariance:
 ```r
 fit_biv <- drmTMB(
   drm_formula(
-    mu1 = y1 ~ habitat + meta_known_V(V = V),
+    mu1 = y1 ~ habitat + meta_V(V = V),
     mu2 = y2 ~ habitat,
     sigma1 = ~ habitat,
     sigma2 = ~ habitat,

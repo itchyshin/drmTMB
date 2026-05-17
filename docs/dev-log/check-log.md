@@ -23551,3 +23551,44 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slice-207-meta-interval-safety.md`.
+
+## 2026-05-17 - Slice 208 meta-analysis reader examples
+
+Goal: update reader-facing meta-analysis examples to teach the implemented
+preferred `meta_V(V = V)` spelling.
+
+Files changed:
+
+- `vignettes/meta-analysis.Rmd`
+- `docs/design/08-meta-analysis.md`
+- `docs/design/01-formula-grammar.md`
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/dev-log/after-task/2026-05-17-slice-208-meta-reader-examples.md`
+
+What changed:
+
+- Updated univariate, repeated-study, bivariate, heterogeneous-heterogeneity,
+  multiple-variance-component, and phylogenetic-plus-study examples from
+  `meta_known_V(V = V)` to preferred `meta_V(V = V)`.
+- Kept `meta_known_V(V = V)` as a compatibility alias in explanatory prose.
+- Updated stale roadmap and grammar text that still described `meta_V(V = V)`
+  as a future replacement.
+
+Checks run:
+
+- `air format NEWS.md ROADMAP.md docs/design/01-formula-grammar.md docs/design/08-meta-analysis.md vignettes/meta-analysis.Rmd docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-17-slice-208-meta-reader-examples.md`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `git diff --check`
+- `rg -n 'future replacement|preferred replacement design|after the rename|current implemented marker is still|meta_known_V\\(V = vi\\)|meta_known_V\\(V = V\\)' vignettes/meta-analysis.Rmd docs/design/08-meta-analysis.md docs/design/01-formula-grammar.md ROADMAP.md`:
+  found only compatibility-alias wording and historical completed-slice labels.
+
+Known limitations:
+
+- This slice does not add a new worked dataset, run vignettes end to end, or
+  implement proportional sampling variance, sparse known covariance, or
+  non-Gaussian known covariance.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slice-208-meta-reader-examples.md`.

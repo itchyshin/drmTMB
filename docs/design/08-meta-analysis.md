@@ -96,8 +96,8 @@ The fitting implementation supports:
 
 Sparse matrix storage is not implemented yet. This is especially important for
 large block-diagonal meta-analyses: those matrices may be mathematically
-block-sparse, but the current direct `meta_known_V(V = V)` matrix route stores
-them as dense R matrices after row filtering. Use dense full `V` for small to
+block-sparse, but the current direct `meta_V(V = V)` matrix route stores them
+as dense R matrices after row filtering. Use dense full `V` for small to
 moderate fits, likelihood-comparator checks, and unusual dependence structures
 where the full covariance is scientifically required. Do not treat it as the
 large-data route until sparse or block-sparse storage has implementation,
@@ -149,8 +149,7 @@ meta_V(w = w, scale = "proportional")
 The response is already the left-hand side of the model formula, so the marker
 does not need a positional response or value argument. `V` may be a column,
 numeric vector, diagonal matrix, block-diagonal matrix, or dense matrix, just
-as the current additive `meta_known_V(V = V)` path accepts after model-row
-filtering.
+as the additive `meta_V(V = V)` path accepts after model-row filtering.
 
 The proportional case is not implemented and is not a CRAN-blocking requirement
 for `0.1.2`. It is distinct from ordinary likelihood weights and would model a
@@ -204,7 +203,7 @@ The public API uses `sigma` consistently:
 
 ```r
 bf(
-  yi ~ x1 + x2 + meta_known_V(V = V),
+  yi ~ x1 + x2 + meta_V(V = V),
   sigma ~ x1
 )
 ```
@@ -273,7 +272,7 @@ eta_rho12_i = X_rho12[i, ] beta_rho12
 rho12_i = tanh(eta_rho12_i)
 ```
 
-Here `S_i` is known and supplied through `meta_known_V(V = V)`. The fitted
+Here `S_i` is known and supplied through `meta_V(V = V)`. The fitted
 `rho12_i` is the estimated residual correlation after the known within-study
 covariance has already been included. In a model where the residual component
 represents between-study heterogeneity, this is the between-study residual
@@ -290,7 +289,7 @@ The implemented complete-row syntax is:
 ```r
 drmTMB(
   formula = drm_formula(
-    mu1 = y1 ~ x1 + meta_known_V(V = V),
+    mu1 = y1 ~ x1 + meta_V(V = V),
     mu2 = y2 ~ x1 + x2,
     sigma1 = ~ x1,
     sigma2 = ~ x1,
@@ -301,9 +300,9 @@ drmTMB(
 )
 ```
 
-The `meta_known_V(V = V)` marker is still a model-level known-covariance marker
-even if it appears in one location formula. The parser rejects duplicate
-markers across `mu1` and `mu2`.
+The `meta_V(V = V)` marker is a model-level known-covariance marker even if it
+appears in one location formula. The parser rejects duplicate markers across
+`mu1` and `mu2`.
 
 For direct matrix input, `V` should be a `2n` by `2n` matrix using row-paired
 stacking:
@@ -360,7 +359,7 @@ Location-scale meta-analysis is a central use case:
 
 ```r
 bf(
-  yi ~ x1 + x2 + meta_known_V(V = V),
+  yi ~ x1 + x2 + meta_V(V = V),
   sigma ~ x1
 )
 ```
@@ -380,7 +379,7 @@ Some meta-analyses require more than one unknown scale component:
 
 ```r
 bf(
-  yi ~ x1 + x2 + meta_known_V(V = V) + (1 | study) + (1 | species),
+  yi ~ x1 + x2 + meta_V(V = V) + (1 | study) + (1 | species),
   sd(study) ~ x1,
   sd(species) ~ 1
 )
@@ -484,7 +483,7 @@ Gaussian syntax:
 ```r
 drmTMB(
   formula = drm_formula(
-    mu = yi ~ x1 + meta_known_V(V = V) +
+    mu = yi ~ x1 + meta_V(V = V) +
       phylo(1 | species, tree = tree) + (1 | study),
     sigma = ~ x1
   ),
