@@ -22,3 +22,16 @@ issues, or pull requests.
   treat repository files as authoritative and verify drift-prone facts.
 - Pilot needed: install the kit in a sibling project, preferably `gllvmTMB`,
   and revise the templates after first-use friction.
+
+## 2026-05-17 - Start-Of-Task Role Status
+
+- Improvement implemented: every substantial `drmTMB` task should start with a
+  short "who is working right now" update. The default visible roles are Ada,
+  Pat, Fisher, Grace, and Rose; add Boole, Gauss, Noether, Darwin, Jason,
+  Curie, or Emmy when the task touches their lane.
+- Improvement implemented: if no spawned subagents are currently running, say
+  so explicitly instead of letting the named perspectives sound like hidden
+  background processes.
+- Improvement implemented: meaningful after-task reports should preserve the
+  same role perspective so the user can see who steered orchestration,
+  usability, inference, reproducibility, and consistency.

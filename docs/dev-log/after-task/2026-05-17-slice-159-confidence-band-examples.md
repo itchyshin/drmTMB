@@ -118,6 +118,12 @@ confirmed that skew-normal and skew-t parameterization choices must be explicit
 rather than copied wholesale from another package. Gauss flagged the skew-t
 zero-start derivative trap from `RTMBdist` as a future numerical guard.
 
+User reminder after this slice: future substantial `drmTMB` tasks should open
+with a visible "who is working right now" update. At minimum, name Ada, Pat,
+Fisher, Grace, and Rose; add Boole, Gauss, Noether, Darwin, Jason, Curie, or
+Emmy when their lanes are active. If no spawned subagents are running, say so
+explicitly.
+
 ## Known Limitations
 
 This slice does not add profile-likelihood or bootstrap intervals to prediction
