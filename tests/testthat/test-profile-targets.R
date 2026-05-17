@@ -969,6 +969,107 @@ test_that("confint profile intervals transform phylogenetic SD targets", {
   expect_gt(ci$lower, 0)
 })
 
+test_that("meta_V fits keep interval targets on estimated quantities", {
+  set.seed(20260641)
+  n <- 70
+  dat <- data.frame(
+    x = stats::rnorm(n),
+    vi = stats::runif(n, min = 0.02, max = 0.05)
+  )
+  dat$yi <- 0.2 + 0.4 * dat$x + stats::rnorm(n, sd = sqrt(dat$vi + 0.45^2))
+
+  fit <- drmTMB(
+    bf(yi ~ x + meta_V(V = vi), sigma ~ 1),
+    family = gaussian(),
+    data = dat
+  )
+  targets <- profile_targets(fit)
+
+  expect_true("sigma" %in% targets$parm)
+  expect_false(any(grepl("V_known|meta", targets$parm)))
+  expect_true(targets[targets$parm == "sigma", "profile_ready"])
+
+  profiled <- summary(
+    fit,
+    conf.int = TRUE,
+    method = "profile",
+    ci_parm = "sigma",
+    trace = FALSE,
+    level = 0.80
+  )
+  sigma_row <- profiled$parameters["sigma", ]
+  sigma_hat <- unique(as.numeric(stats::sigma(fit)))
+  expect_equal(sigma_row$conf.status, "profile")
+  expect_length(sigma_hat, 1L)
+  expect_lt(sigma_row$conf.low, sigma_hat)
+  expect_gt(sigma_row$conf.high, sigma_hat)
+  expect_equal(
+    profiled$coefficients$conf.status,
+    rep("wald", nrow(profiled$coefficients))
+  )
+
+  V_full <- diag(dat$vi)
+  V_full <- V_full +
+    0.006 * outer(seq_len(n), seq_len(n), function(i, j) 0.3^abs(i - j))
+  fit_full <- drmTMB(
+    bf(yi ~ x + meta_V(V = V_full), sigma ~ 1),
+    family = gaussian(),
+    data = dat
+  )
+  full_targets <- profile_targets(fit_full)
+  expect_true("sigma" %in% full_targets$parm)
+  expect_false(any(grepl("V_known|meta", full_targets$parm)))
+
+  n_id <- 12
+  n_each <- 4
+  study <- factor(rep(seq_len(n_id), each = n_each))
+  n_re <- length(study)
+  re_dat <- data.frame(
+    study = study,
+    x = stats::rnorm(n_re),
+    vi = stats::runif(n_re, min = 0.015, max = 0.04)
+  )
+  u <- stats::rnorm(n_id, sd = 0.35)
+  re_dat$yi <- 0.1 +
+    0.35 * re_dat$x +
+    u[re_dat$study] +
+    stats::rnorm(n_re, sd = sqrt(re_dat$vi + 0.25^2))
+  fit_re <- drmTMB(
+    bf(yi ~ x + (1 | study) + meta_V(V = vi), sigma ~ 1),
+    family = gaussian(),
+    data = re_dat
+  )
+  re_targets <- profile_targets(fit_re)
+  expect_true("sigma" %in% re_targets$parm)
+  expect_true("sd:mu:(1 | study)" %in% re_targets$parm)
+  expect_false(any(grepl("V_known|meta", re_targets$parm)))
+
+  n_biv <- 28
+  x <- stats::rnorm(n_biv)
+  y1 <- 0.2 + 0.3 * x + stats::rnorm(n_biv, sd = 0.4)
+  y2 <- -0.1 - 0.2 * x + 0.2 * y1 + stats::rnorm(n_biv, sd = 0.45)
+  biv_dat <- data.frame(y1 = y1, y2 = y2, x = x)
+  V_biv <- meta_vcov_bivariate(
+    v1 = rep(0.02, n_biv),
+    v2 = rep(0.025, n_biv),
+    cov12 = rep(0.006, n_biv)
+  )
+  fit_biv <- drmTMB(
+    bf(
+      mu1 = y1 ~ x + meta_V(V = V_biv),
+      mu2 = y2 ~ x,
+      sigma1 = ~1,
+      sigma2 = ~1,
+      rho12 = ~1
+    ),
+    family = c(gaussian(), gaussian()),
+    data = biv_dat
+  )
+  biv_targets <- profile_targets(fit_biv)
+  expect_true(all(c("sigma1", "sigma2", "rho12") %in% biv_targets$parm))
+  expect_false(any(grepl("V_known|meta", biv_targets$parm)))
+})
+
 test_that("profile target inventory covers bivariate phylogenetic covariance labels", {
   sim <- new_profile_biv_phylo_data()
   dat <- sim$data
