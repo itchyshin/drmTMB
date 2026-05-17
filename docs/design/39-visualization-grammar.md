@@ -175,6 +175,14 @@ fixed-effect component, so the future `emm_basis()` path can reuse tested
 plumbing instead of rebuilding the linear predictor separately. This is still
 not an exported `emmeans` method or contrast workflow.
 
+Slice 120 adds the first internal eligibility gate for that path.
+`drm_emmeans_mu_basis()` wraps the fixed-effect basis helper, requires
+covariance, and rejects unsupported targets before any future method could
+return an `emmGrid`. The tested gate accepts only fixed-effect univariate `mu`
+targets and rejects non-`mu` `dpar`, missing covariance, zero-inflated, and
+random-effect paths. This remains private preflight code; users should still use
+`prediction_grid()` and `predict_parameters()` for explicit prediction tables.
+
 Slice 102 adds the first article-level empirical-grid example. The
 model-workflow article now shows a conditioned grid for direct
 `predict_parameters()` rows and a separate empirical grid for
