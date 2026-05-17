@@ -20492,3 +20492,74 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slice-144-required-newdata-variables.md`.
+
+## 2026-05-17 - Slice 145 finite newdata predictors
+
+Goal: reject non-finite numeric values in required fixed-effect prediction
+predictors before model-matrix construction.
+
+Roles:
+
+- Ada opened this from a no-edit scout after Slice 144 validated missing
+  required predictors.
+- Boole checked that this is input validation, not formula grammar.
+- Fisher checked that predictions remain the same estimand for complete finite
+  rows.
+- Curie added focused fixed-effect-basis coverage for `x = Inf`.
+- Pat checked that the error tells users to supply finite prediction values.
+- Grace owns focused tests, formatting, pkgdown, and PR CI.
+- Rose checked that the slice does not broaden `emmeans` support.
+- Gauss, Noether, Darwin, Jason, and Emmy stayed watch-only because no
+  likelihood, equation, biological example, landscape claim, or object
+  structure changed.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `R/methods.R`
+- `docs/design/40-emmeans-interface-contract.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-17-slice-145-finite-newdata-predictors.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-17-004423-codex-checkpoint.md`
+- `tests/testthat/test-fixed-effect-basis.R`
+
+What changed:
+
+- Required numeric predictors in fixed-effect prediction `newdata` now error if
+  they contain non-finite values such as `Inf`.
+- The guard runs before model-matrix construction and applies only to
+  predictors used by the requested distributional parameter.
+
+Checks run:
+
+- No-edit scout:
+  `predict()` with `x = Inf` previously returned a numeric prediction rather
+  than an early validation error.
+- `Rscript -e "devtools::test(filter = 'fixed-effect-basis', reporter = 'summary')"`:
+  passed.
+- `air format NEWS.md ROADMAP.md R/methods.R docs/design/40-emmeans-interface-contract.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-17-slice-145-finite-newdata-predictors.md tests/testthat/test-fixed-effect-basis.R`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'emmeans-methods|emmeans-recover-data|emmeans-preflight|fixed-effect-basis|reference-grid-link-scale-contract', reporter = 'summary')"`:
+  passed.
+- `git diff --check`: passed.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed.
+- Positive source/rendered scan for Slice 145 finite-newdata wording and test
+  evidence: found the expected entries.
+- Stale-claim scan for accidental new-estimand, non-`mu`, or new `emmeans`
+  support claims from finite-value validation wording: no matches.
+- Recovery checkpoint:
+  `docs/dev-log/recovery-checkpoints/2026-05-17-004423-codex-checkpoint.md`.
+
+Known limitations:
+
+- This slice validates finite numeric values for fixed-effect prediction
+  `newdata`.
+- It does not add new estimands, non-`mu` `emmeans` support, transformed
+  responses, empirical marginalisation, random-effect workflows, or blocked
+  model structures.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slice-145-finite-newdata-predictors.md`.

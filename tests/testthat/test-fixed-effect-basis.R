@@ -181,6 +181,14 @@ test_that("fixed-effect basis validates required newdata variables", {
     ),
     "missing value"
   )
+  expect_error(
+    predict(
+      fit,
+      newdata = data.frame(x = Inf, habitat = "reef"),
+      dpar = "mu"
+    ),
+    "non-finite value"
+  )
   expect_no_error(
     predict(
       fit,
