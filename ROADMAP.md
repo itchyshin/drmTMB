@@ -524,21 +524,22 @@ Phase 6b should turn the implemented surfaces into a coherent reader path:
   interpretation, and biological examples. Good first examples include thermal
   tolerance plasticity along temperature, desiccation tolerance along humidity,
   or behavioural reaction norms along disturbance.
-- Core ordinary grouped status: the random-intercept and one-slope baseline is
+- Core ordinary grouped status: the random-intercept, one-slope, and q > 2
+  ordinary Gaussian `mu` baseline is
   now recorded in `docs/design/33-phase-6c-core-random-effects.md`. The fitted
   core covers ordinary Gaussian `mu` random intercepts, independent `mu`
-  random slopes, ordinary correlated intercept-slope blocks, residual-scale
-  random intercepts and independent residual-scale slopes, matching labelled
+  random slopes, ordinary correlated intercept-slope blocks, ordinary
+  unstructured numeric multi-slope `mu` blocks, residual-scale random
+  intercepts and independent residual-scale slopes, matching labelled
   `mu`/`sigma` random-intercept covariance, and direct `sd(group)` models for
   unlabelled Gaussian `mu` random intercepts. The first coordinate spatial
   slope is now implemented in Phase 10; phylogenetic slopes and richer
   structured-slope paths remain later work for Phases 10 and 12.
-- Closure boundary: Phase 6c closes the ordinary grouped one-slope foundation,
-  not arbitrary ordinary grouped multi-slope covariance. The next ordinary
-  grouped boundary is glmmTMB/lme4-style syntax such as
-  `(1 + x1 + x2 + ... | id)`. Structured random slopes are handed to Phases 10
-  and 12; `spatial(1 + x | site, coords = coords)` now fits the first
-  coordinate spatial one-slope `mu` path, but
+- Closure boundary: Phase 6c now includes the ordinary grouped q > 2 Gaussian
+  `mu` block path, with q=3 recovery and extractor coverage. Larger ordinary
+  blocks remain advanced, sample-size hungry fits. Structured random slopes
+  are handed to Phases 10 and 12; `spatial(1 + x | site, coords = coords)` now
+  fits the first coordinate spatial one-slope `mu` path, but
   `phylo(1 + x | species, tree = tree)` still does not fit.
 
 | Slice | Goal | Main work | Done when |
@@ -1258,11 +1259,11 @@ remain blocked by future covariance or non-Gaussian random-effect work.
 | 174 | Interval diagnostics | Done: profile diagnostics remain `profile.boundary`/`profile.message`, and unsupported bootstrap requests now report that bootstrap intervals are not implemented. |
 | 175 | Interval harmonization | Done: internal status/source vocabulary helpers now align `summary()`, `confint()`, `corpairs()`, and prediction-table interval outputs. |
 | 176 | Phase 6/13 gate | Done: the interval-readiness revisit is closed with tests, docs, known-limitations updates, check-log evidence, and an after-phase note. |
-| 177 | Gaussian random slopes | Done: ordinary Gaussian `mu` supports multiple independent numeric slopes and one correlated intercept-plus-one-slope block; arbitrary correlated multi-slope blocks such as `(1 + x1 + x2 | id)` remain planned. |
-| 178 | Gaussian random slopes | Plan parser/API and extractor output for arbitrary ordinary location blocks. |
-| 179 | Gaussian random slopes | Prototype q > 2 ordinary location block covariance with constant correlations. |
-| 180 | Gaussian random slopes | Add recovery, malformed-input, summary, `corpairs()`, and profile-target tests. |
-| 181 | Gaussian random slopes | Add user docs for arbitrary ordinary location random-slope blocks and limits. |
+| 177 | Gaussian random slopes | Done: ordinary Gaussian `mu` supports multiple independent numeric slopes and one correlated intercept-plus-one-slope block; arbitrary correlated multi-slope blocks were moved to Slices 178-181. |
+| 178 | Gaussian random slopes | Done: the parser/API accepts ordinary Gaussian `mu` blocks such as `(1 + x1 + x2 | id)` and labelled variants while keeping residual-scale correlated slope blocks outside scope. |
+| 179 | Gaussian random slopes | Done: q > 2 ordinary Gaussian `mu` blocks use the registry-backed positive-definite unstructured covariance path with constant block correlations. |
+| 180 | Gaussian random slopes | Done: q=3 recovery, malformed-input, conditional prediction, summary, `corpairs()`, and `profile_targets()` tests cover the first public path. |
+| 181 | Gaussian random slopes | Done: user docs state the q=3 evidence, q > 2 output names, profile-ready SDs, derived-unavailable unstructured correlations, and sample-size boundary. |
 | 182 | Scale random slopes | Pin the one-slope residual-scale baseline and its constant-correlation boundary. |
 | 183 | Location-scale covariance | Prototype two independent matched `mu`/`sigma` random-intercept covariance blocks. |
 | 184 | Location-scale covariance | Add recovery, `corpairs()`, summary, and profile-target tests for two matched blocks. |

@@ -39,9 +39,10 @@ fitted \code{corpair()} model, this means the correlation scale. Use
 
 When \code{newdata = NULL}, predictions are for the fitted rows and include
 currently implemented conditional random-effect contributions for \code{mu},
-bivariate \code{mu1}/\code{mu2}, phylogenetic \code{mu}, and residual-scale \code{sigma}
-including bivariate \code{sigma1}/\code{sigma2} blocks. When \code{newdata} is supplied,
-predictions are fixed-effect, population-level
+including registry-backed q > 2 ordinary covariance blocks, bivariate
+\code{mu1}/\code{mu2}, phylogenetic \code{mu}, and residual-scale \code{sigma} including
+bivariate \code{sigma1}/\code{sigma2} blocks. When \code{newdata} is supplied, predictions
+are fixed-effect, population-level
 predictions for the supplied rows.
 }
 \examples{

@@ -1668,9 +1668,10 @@ deviance.drmTMB <- function(object, ...) {
 #'
 #' When `newdata = NULL`, predictions are for the fitted rows and include
 #' currently implemented conditional random-effect contributions for `mu`,
-#' bivariate `mu1`/`mu2`, phylogenetic `mu`, and residual-scale `sigma`
-#' including bivariate `sigma1`/`sigma2` blocks. When `newdata` is supplied,
-#' predictions are fixed-effect, population-level
+#' including registry-backed q > 2 ordinary covariance blocks, bivariate
+#' `mu1`/`mu2`, phylogenetic `mu`, and residual-scale `sigma` including
+#' bivariate `sigma1`/`sigma2` blocks. When `newdata` is supplied, predictions
+#' are fixed-effect, population-level
 #' predictions for the supplied rows.
 #'
 #' @param object A `drmTMB` fit.
@@ -1730,7 +1731,7 @@ predict.drmTMB <- function(
   }
   if (
     is.null(newdata) &&
-      dpar %in% c("mu1", "mu2") &&
+      dpar %in% c("mu", "mu1", "mu2") &&
       has_covariance_block_random_effects(object)
   ) {
     eta <- eta +
@@ -1755,7 +1756,7 @@ predict.drmTMB <- function(
   }
   if (
     is.null(newdata) &&
-      dpar %in% c("sigma1", "sigma2") &&
+      dpar %in% c("sigma", "sigma1", "sigma2") &&
       has_covariance_block_random_effects(object)
   ) {
     eta <- eta +
@@ -3862,7 +3863,9 @@ coefficient_labels <- function(object) {
 }
 
 has_mu_random_effects <- function(object) {
-  has_ordinary_mu_random_effects(object) || has_structured_mu_effect(object)
+  has_ordinary_mu_random_effects(object) ||
+    has_structured_mu_effect(object) ||
+    has_mu_covariance_block_random_effects(object)
 }
 
 has_ordinary_mu_random_effects <- function(object) {
@@ -3895,6 +3898,7 @@ has_structured_mu_effect <- function(object) {
 
 n_mu_random_effect_terms <- function(object) {
   length(object$model$random$mu$labels) +
+    n_mu_covariance_block_random_effect_terms(object) +
     if (has_structured_mu_effect(object)) {
       structured_mu_q(object$model$structured$phylo_mu)
     } else {
@@ -3912,6 +3916,23 @@ has_covariance_block_random_effects <- function(object) {
   is.list(object$random_effects$covariance_blocks) &&
     !is.null(object$random_effects$covariance_blocks$contribution) &&
     ncol(object$random_effects$covariance_blocks$contribution) > 0L
+}
+
+has_mu_covariance_block_random_effects <- function(object) {
+  has_covariance_block_random_effects(object) &&
+    n_mu_covariance_block_random_effect_terms(object) > 0L
+}
+
+n_mu_covariance_block_random_effect_terms <- function(object) {
+  registry <- object$model$random$covariance_blocks
+  if (!is.list(registry)) {
+    return(0L)
+  }
+  members <- qgt2_covariance_members(registry)
+  if (nrow(members) == 0L) {
+    return(0L)
+  }
+  sum(grepl("^mu", members$dpar))
 }
 
 sigma_random_effect_dpars <- function(object) {

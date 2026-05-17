@@ -33,15 +33,17 @@ If any link is missing, the surface is experimental, planned, or unsupported.
 | Do groups differ in baseline mean response? | `y ~ x + (1 | id)` | `sdpars$mu["(1 | id)"]` | Implemented |
 | Do groups differ in the slope of `x`? | `y ~ x + (0 + x | id)` | `sdpars$mu["(0 + x | id)"]` | Implemented |
 | Are group baselines and slopes correlated? | `y ~ x + (1 + x | id)` | `corpars$mu["cor((Intercept),x | id)"]` and `corpairs()` | Implemented |
+| Are group baselines and several numeric slopes correlated? | `y ~ x1 + x2 + (1 + x1 + x2 | id)` | `sdpars$mu`, `corpars$re_cov`, `corpairs()`, and `summary(fit)$covariance` | Implemented for ordinary Gaussian `mu`; q=3 recovery is tested |
 | Do group residual scales vary? | `sigma ~ z + (1 | id)` | `sdpars$sigma["(1 | id)"]` | Implemented |
 | Do group residual-scale slopes vary? | `sigma ~ z + (0 + w | id)` | `sdpars$sigma["(0 + w | id)"]` | Implemented |
 | Are baseline `mu` and baseline `sigma` deviations correlated? | `(1 | p | id)` in both `mu` and `sigma` | `corpars$mu_sigma` and `corpairs(class = "mean-scale")` | Implemented |
 | Does a group-level predictor change among-group `mu` SD? | `sd(id) ~ x_group` | `coef(fit, "sd(id)")`, `predict(fit, dpar = "sd(id)")` | Implemented for unlabelled Gaussian `mu` random intercepts |
 
-The implemented ordinary one-slope core therefore covers the random-intercept
-foundation and the first intercept-slope correlation. It does not claim
-bivariate random slopes, structured phylogenetic or spatial slopes, slope-SD
-regression, or random effects in `rho12`.
+The implemented ordinary Gaussian `mu` core now covers the random-intercept
+foundation, the first intercept-slope correlation, and unstructured numeric
+multi-slope blocks through the registry-backed q > 2 covariance path. It does
+not claim bivariate random slopes, phylogenetic slopes, slope-SD regression, or
+random effects in `rho12`.
 
 ## Expansion Boundaries
 
@@ -59,7 +61,7 @@ computation rather than by a conceptual one- or two-slope cap.
 
 | Layer | Current boundary | Next target | Claim only after |
 |---|---|---|---|
-| Ordinary Gaussian `mu` | Multiple independent slope terms and one correlated intercept-plus-one-slope block are implemented | Arbitrary unstructured grouped blocks such as `(1 + x1 + x2 + ... | id)` for numeric slopes | q > 2 covariance blocks fit, `sdpars()`, `corpars()`, `corpairs()`, and `profile_targets()` expose every SD/correlation, and recovery tests cover weak and strong slope SDs |
+| Ordinary Gaussian `mu` | Independent slope terms, one-slope correlated blocks, and q > 2 unstructured numeric grouped blocks are implemented | Expand diagnostics around larger q and weak slope SDs before teaching them as routine | q > 2 covariance blocks fit, `sdpars`, `corpars$re_cov`, `corpairs()`, `summary()`, and `profile_targets()` expose every SD/correlation, and recovery tests cover the q=3 path |
 | Gaussian `sigma` | Residual-scale random intercepts and independent numeric slopes on `log(sigma)` are implemented | Correlated scale intercept-slope blocks, then multi-slope scale blocks | simulations recover scale-slope SDs on the modelled `log(sigma)` scale, boundary diagnostics are useful, and examples do not confuse `sigma` slopes with `sd(group)` models |
 | Location-scale covariance | Matching labelled `mu`/`sigma` random intercepts are implemented | Mean-scale covariance involving slope terms only after the separate `mu` and `sigma` slope blocks are stable | output names identify both distributional parameter and coefficient, and direct correlations have profile or explicit unavailable interval status |
 | Bivariate Gaussian | Random-intercept covariance blocks are implemented; bivariate random slopes are not | One ordinary `mu1`/`mu2` slope per response, then same-covariate slope1-slope2 correlations for plasticity-syndrome questions | `corpairs()` carries response and coefficient columns, residual `rho12` stays separate, and simulations vary residual correlation and random-slope SDs |
@@ -69,20 +71,14 @@ computation rather than by a conceptual one- or two-slope cap.
 The ordinary location-model benchmark is glmmTMB/lme4-style syntax such as
 `(1 + x1 + x2 + ... | id)`: one grouped random-effect vector with an
 unstructured covariance matrix. If the block has `q` coefficients, the model
-estimates `q` SDs and `q * (q - 1) / 2` constant correlations. `drmTMB` should
-treat arbitrary numeric grouped `mu` blocks as the next ordinary Gaussian
-boundary, not as already implemented. Scale-side random slopes are a separate
-advantage and a separate burden: they can answer harder distributional
-questions, but they need larger validation grids because `sigma` variation is
-often less directly identified than `mu` variation.
-
-Slice 177 confirms the current ordinary Gaussian `mu` boundary with a dedicated
-test: multiple numeric slopes can be fitted as separate independent variance
-components, for example `(0 + x1 | id) + (0 + x2 | id)`. Correlated ordinary
-blocks are still limited to the one-slope form `(1 + x | id)` or
-`(1 + x | p | id)`. Requests for `(1 + x1 + x2 | id)` now fail with an error
-that names the arbitrary multi-slope covariance block as planned rather than
-silently implying it is a parser accident.
+estimates `q` SDs and `q * (q - 1) / 2` constant correlations. Slices 178-181
+open this path for univariate Gaussian `mu`. The tested recovery path is q=3,
+so larger blocks should be treated as advanced and sample-size hungry until
+the comprehensive simulation phase quantifies convergence, boundary, bias, and
+interval failure rates. Scale-side random slopes are a separate advantage and a
+separate burden: they can answer harder distributional questions, but they
+need larger validation grids because `sigma` variation is often less directly
+identified than `mu` variation.
 
 Before Phase 18 comprehensive simulation, every random-slope layer should have
 an explicit status row: implemented, one-slope foundation, planned, or rejected
@@ -145,12 +141,12 @@ to exist; the second goal is richer multi-slope covariance where the ordinary
 location benchmark already expects it. Each step adds one likelihood surface
 and one validation surface; if simulation recovery fails, the next step waits.
 
-1. **Ordinary Gaussian location baseline and benchmark.** Keep the existing
-   one-slope `mu` block stable, then fit arbitrary unstructured grouped `mu`
-   blocks such as `(1 + x1 + x2 + ... | id)`. This is the `lme4`/`glmmTMB`
-   compatibility boundary for ordinary location models; the limit should come
-   from identifiability diagnostics and computation, not from the formula
-   grammar.
+1. **Ordinary Gaussian location baseline and benchmark.** Keep the one-slope
+   `mu` block stable while expanding diagnostics for unstructured grouped
+   `mu` blocks such as `(1 + x1 + x2 + ... | id)`. This is the
+   `lme4`/`glmmTMB` compatibility boundary for ordinary location models; the
+   practical limit should come from identifiability diagnostics and
+   computation, not from the formula grammar.
 2. **Gaussian scale one-slope block.** Extend residual-scale `sigma` from
    independent slopes to a correlated intercept-slope block on `log(sigma)`.
    The reader-facing interpretation is group variation in residual variability,
@@ -238,6 +234,26 @@ bf(y ~ x + (1 + x | p | id), sigma ~ z)
 The label `p` is a covariance-block label. It is not a grouping variable and
 it is not `rho12`.
 
+For an ordinary q=3 location block:
+
+```text
+mu_ij = X_mu[ij, ] beta_mu + b_0j + x1_ij b_1j + x2_ij b_2j
+
+[b_0j, b_1j, b_2j]' = diag(sd0, sd1, sd2) L_corr [u_0j, u_1j, u_2j]'
+[u_0j, u_1j, u_2j]' ~ Normal([0, 0, 0]', I)
+```
+
+Matching syntax:
+
+```r
+bf(y ~ x1 + x2 + (1 + x1 + x2 | id), sigma ~ z)
+bf(y ~ x1 + x2 + (1 + x1 + x2 | p | id), sigma ~ z)
+```
+
+The fitted SDs use `sdpars$mu`. The fitted correlations use `corpars$re_cov`
+because the q > 2 block is backed by the registry unstructured-correlation
+path, not by the older one-correlation `eta_cor_mu` path.
+
 For residual-scale random effects:
 
 ```text
@@ -264,6 +280,8 @@ This is group-to-group variation in residual scale. It is not the same as
 | `mu` random-intercept SD | `sdpars$mu`, `summary()`, `profile_targets()` | Ready for direct SD targets | Boundary diagnostics use `check_drm()` |
 | `mu` random-slope SD | `sdpars$mu`, `summary()`, `profile_targets()` | Ready for direct SD targets | One numeric slope per ordinary correlated block |
 | Ordinary intercept-slope correlation | `corpars$mu`, `corpairs(level = "group")`, `profile_targets()` | Ready for direct correlation targets | Class is `mean-slope`; `location-slope` is a filter alias |
+| q > 2 ordinary `mu` block SDs | `sdpars$mu`, `summary()`, `profile_targets()` | Ready for direct SD targets | TMB parameter is `log_sd_re_cov` |
+| q > 2 ordinary `mu` block correlations | `corpars$re_cov`, `corpairs(level = "group")`, `summary()`, `profile_targets()` | Explicitly unavailable for direct profiling | Correlations are derived from an unstructured correlation parameterization |
 | Residual-scale random-effect SD | `sdpars$sigma`, `summary()`, `profile_targets()` | Ready for direct SD targets | Enters `log(sigma)` |
 | `mu`/`sigma` random-intercept correlation | `corpars$mu_sigma`, `corpairs(class = "mean-scale")` | Ready for direct correlation targets | Group-level covariance, not residual coupling |
 | `sd(id) ~ x_group` coefficients | `coef(fit, "sd(id)")`, `predict(fit, dpar = "sd(id)")` | Fixed-effect rows ready; derived group SD intervals remain limited | Target must be an unlabelled Gaussian `mu` random intercept |

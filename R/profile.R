@@ -331,7 +331,7 @@ drm_profile_targets <- function(object) {
     values <- object$sdpars[[dpar]]
     for (i in seq_along(values)) {
       term <- names(values)[[i]]
-      internal <- profile_sd_internal(dpar, term)
+      internal <- profile_sd_internal(object, dpar, term)
       is_direct <- !is.na(internal)
       index <- if (is_direct) {
         next_indices(internal, 1L)
@@ -1030,7 +1030,15 @@ profile_fixef_internal <- function(dpar) {
   paste0("beta_", dpar)
 }
 
-profile_sd_internal <- function(dpar, term) {
+profile_sd_internal <- function(object, dpar, term) {
+  registry <- object$model$random$covariance_blocks
+  if (
+    is.list(registry) &&
+      nrow(qgt2_members <- qgt2_covariance_members(registry)) > 0L &&
+      any(qgt2_members$dpar == dpar & qgt2_members$label == term)
+  ) {
+    return("log_sd_re_cov")
+  }
   if (identical(dpar, "mu") && grepl("phylo\\(|spatial\\(", term)) {
     return("log_sd_phylo")
   }

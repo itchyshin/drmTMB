@@ -14,8 +14,9 @@ spatial, and derived-inference phases should build on.
 2. Random intercepts in location. Implemented for univariate Gaussian `mu`.
 3. Simple numeric random slopes in location. Implemented for univariate
    Gaussian `mu` as separate uncorrelated terms.
-4. Ordinary correlated random intercept-slope blocks in location. Implemented
-   for univariate Gaussian `mu`, with optional covariance-block labels.
+4. Ordinary correlated random intercept-slope and multi-slope blocks in
+   location. Implemented for univariate Gaussian `mu`, with optional
+   covariance-block labels.
 5. Random intercepts and independent numeric random slopes in residual scale.
    Implemented for univariate Gaussian `sigma`.
 6. Random-effect scale formulae such as `sd(id) ~ x_group`. Implemented for
@@ -77,8 +78,22 @@ bf(
 
 Slice 177 adds explicit recovery coverage for the multiple-independent-slope
 case, using two numeric slopes in `mu` with no fitted group-level correlation.
-This is useful but it is not the same model as one unstructured
-`(1 + x1 + x2 | id)` block.
+Slices 178-181 add the ordinary unstructured location block:
+
+```r
+bf(
+  y ~ x1 + x2 + (1 + x1 + x2 | id),
+  sigma ~ x1
+)
+```
+
+This syntax fits one grouped Gaussian `mu` random-effect vector with an
+intercept, an `x1` slope, and an `x2` slope. The covariance matrix has three
+SDs and three constant correlations. The parser accepts additional simple
+numeric slope columns, but q grows quickly: a block with q coefficients has
+q SDs and q * (q - 1) / 2 correlations. Treat blocks larger than the tested q=3
+path as advanced fits that need enough groups, within-group predictor spread,
+and diagnostics.
 
 Ordinary correlated random intercept-slope blocks are implemented for one
 numeric slope:
@@ -104,8 +119,16 @@ bf(
 ```
 
 In the current univariate Gaussian `mu` implementation, `p` is retained in
-output names and future design metadata. It does not yet create covariance
-sharing across `mu`, `sigma`, `mu1`, or `mu2` formulas.
+output names and covariance metadata. A multi-slope label such as
+`(1 + x1 + x2 | p | id)` labels the ordinary `mu` block; it does not yet create
+covariance sharing across `sigma`, `mu1`, or `mu2` formulas.
+
+For q > 2 ordinary `mu` blocks, fitted SDs are reported in `sdpars$mu` and
+`summary(fit)$parameters`. The fitted correlations are reported in
+`corpars$re_cov`, `corpairs(level = "group")`, and
+`summary(fit)$covariance`. The SD profile targets are direct; the unstructured
+correlations are derived from the TMB correlation parameterization and are
+therefore marked as unavailable for direct profiling in this phase.
 
 Residual-scale random intercepts and independent numeric random slopes are
 implemented in `sigma`:

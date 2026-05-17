@@ -22111,3 +22111,80 @@ Checks run:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-pre-phase18-slice-map.md`.
+
+## 2026-05-17 - Slices 178-181 Gaussian q > 2 location blocks
+
+Goal: move ordinary Gaussian `mu` random slopes from the one-slope boundary to
+the first public q > 2 unstructured location block before returning to the
+scale and location-scale random-effect slices.
+
+Files changed:
+
+- `R/drmTMB.R`
+- `R/methods.R`
+- `R/profile.R`
+- `src/drmTMB.cpp`
+- `tests/testthat/test-gaussian-random-intercepts.R`
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/04-random-effects.md`
+- `docs/design/33-phase-6c-core-random-effects.md`
+- `man/predict.drmTMB.Rd`
+- `docs/dev-log/after-task/2026-05-17-slices-178-181-gaussian-qgt2-blocks.md`
+
+What changed:
+
+- The Gaussian `mu` parser now accepts ordinary numeric multi-slope blocks such
+  as `(1 + x1 + x2 | id)` and labelled variants such as
+  `(1 + x1 + x2 | p | id)`.
+- q > 2 ordinary Gaussian `mu` blocks are removed from the legacy q <= 2
+  `u_mu` path and fitted through the registry-backed `u_re_cov`,
+  `log_sd_re_cov`, and `theta_re_cov` path, using the existing
+  positive-definite unstructured-correlation TMB parameterization.
+- Fitted-row `predict(dpar = "mu")` now includes registry-backed covariance
+  block contributions for univariate q > 2 blocks.
+- `profile_targets()` maps q > 2 block SDs to direct `log_sd_re_cov` targets
+  while keeping unstructured block correlations explicit as derived,
+  unavailable-for-direct-profiling targets.
+- User-facing docs now state the q=3 evidence boundary: larger ordinary
+  Gaussian `mu` blocks are accepted, but should be treated as advanced,
+  sample-size hungry fits until Phase 18 quantifies convergence, boundary,
+  bias, coverage, and interval failure rates.
+
+Checks run:
+
+- `air format R/drmTMB.R tests/testthat/test-gaussian-random-intercepts.R src/drmTMB.cpp`:
+  passed.
+- `Rscript -e 'devtools::test(filter = "gaussian-random-intercepts")'`:
+  first exposed a `stats::head()` namespace mistake in the q > 2 registry
+  helper; after replacing it with direct `cumsum()` indexing, the rerun passed.
+- `Rscript -e 'devtools::test(filter = "gaussian-random-intercepts|profile-targets")'`:
+  first exposed that q > 2 SD profile targets were still mapped to
+  `log_sd_mu`; after routing registry member SD targets to `log_sd_re_cov`,
+  the rerun passed with `FAIL 0 | WARN 0 | SKIP 0 | PASS 806`.
+- `Rscript -e 'devtools::test(filter = "corpairs|gaussian-random-intercepts|profile-targets|summary")'`:
+  passed with `FAIL 0 | WARN 0 | SKIP 0 | PASS 1090`.
+- `Rscript -e 'devtools::test(filter = "gaussian-location-scale|gaussian-random-intercepts|profile-targets", reporter = "summary")'`:
+  first exposed a stale negative test that still treated
+  `(1 + x + z | id)` as unsupported; after changing that test to the still
+  unsupported zero-intercept multi-slope form `(0 + x + z | id)`, the rerun
+  passed.
+- `Rscript -e 'devtools::test(reporter = "summary")'`: passed.
+- `Rscript -e 'devtools::document()'`: passed and updated
+  `man/predict.drmTMB.Rd`.
+- `git diff --check`: passed.
+- `Rscript -e 'pkgdown::check_pkgdown()'`: passed with "No problems found."
+
+Known limitations:
+
+- q > 2 ordinary Gaussian `mu` correlations are fitted and reported through
+  `corpars$re_cov`, `corpairs()`, and `summary(fit)$covariance`, but direct
+  profile intervals for those correlations remain unavailable because they are
+  derived from the unstructured correlation parameterization.
+- Residual-scale correlated slope blocks, multiple residual-scale slopes,
+  slope-specific `sd(group)` formulae, bivariate random slopes, phylogenetic
+  slopes, and non-Gaussian random-effect slopes remain later slices.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slices-178-181-gaussian-qgt2-blocks.md`.
