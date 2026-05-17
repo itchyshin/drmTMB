@@ -48,6 +48,49 @@ test_that("Gaussian random intercepts agree with lme4 on an overlapping model", 
   expect_equal(stats::BIC(fit), stats::BIC(fit_lme4), tolerance = 1e-4)
 })
 
+test_that("Poisson random intercepts agree with lme4 on an overlapping model", {
+  testthat::skip_if_not_installed("lme4")
+
+  set.seed(20260620)
+  n_id <- 32
+  n_each <- 9
+  n <- n_id * n_each
+  dat <- data.frame(
+    id = factor(rep(seq_len(n_id), each = n_each)),
+    x = stats::rnorm(n)
+  )
+  u_id <- stats::rnorm(n_id, sd = 0.45)
+  dat$y <- stats::rpois(n, exp(0.25 - 0.35 * dat$x + u_id[dat$id]))
+
+  fit <- drmTMB(
+    bf(y ~ x + (1 | id)),
+    family = stats::poisson(link = "log"),
+    data = dat
+  )
+  fit_lme4 <- lme4::glmer(
+    y ~ x + (1 | id),
+    family = stats::poisson(link = "log"),
+    data = dat
+  )
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(
+    unname(coef(fit, "mu")),
+    unname(lme4::fixef(fit_lme4)),
+    tolerance = 5e-4
+  )
+  expect_equal(
+    unname(fit$sdpars$mu),
+    unname(attr(lme4::VarCorr(fit_lme4)$id, "stddev")),
+    tolerance = 5e-4
+  )
+  expect_equal(
+    as.numeric(stats::logLik(fit)),
+    as.numeric(stats::logLik(fit_lme4)),
+    tolerance = 5e-4
+  )
+})
+
 test_that("Gaussian independent random slopes agree with lme4 on an overlapping model", {
   testthat::skip_if_not_installed("lme4")
 

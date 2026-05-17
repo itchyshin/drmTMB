@@ -35,3 +35,13 @@ issues, or pull requests.
 - Improvement implemented: meaningful after-task reports should preserve the
   same role perspective so the user can see who steered orchestration,
   usability, inference, reproducibility, and consistency.
+
+## 2026-05-17 - Family-Block TMB Data Wiring Check
+
+- Improvement implemented: when a slice changes `make_tmb_data()` for one
+  family, inspect the neighbouring family blocks with line numbers before
+  testing. The Slice 191 Poisson random-intercept patch first wired
+  random-effect TMB fields into the adjacent cumulative-logit block; a manual
+  `MakeADFun()` probe and comparator tests caught the mismatch. Future family
+  slices should confirm the intended block receives the new fields before
+  broad validation.
