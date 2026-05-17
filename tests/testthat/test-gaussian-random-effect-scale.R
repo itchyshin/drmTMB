@@ -204,6 +204,31 @@ test_that("Gaussian sd(id) prediction validates raw newdata predictors", {
   expect_sd_error(data.frame(w = Inf), "non-finite value")
 })
 
+test_that("Gaussian sd(id) prediction preserves newdata output rows", {
+  sim <- new_gaussian_re_scale_data(n_id = 12, n_each = 4, seed = 20260564)
+  fit <- drmTMB(
+    bf(y ~ x + (1 | id), sigma ~ z, sd(id) ~ w),
+    family = gaussian(),
+    data = sim$data,
+    control = drm_control(optimizer = list(eval.max = 120L, iter.max = 120L))
+  )
+  nd <- data.frame(
+    w = c(-0.5, 0.75),
+    row.names = c("low_w", "high_w")
+  )
+
+  link <- predict(fit, dpar = "sd(id)", newdata = nd, type = "link")
+  response <- predict(fit, dpar = "sd(id)", newdata = nd, type = "response")
+  default <- predict(fit, dpar = "sd(id)", newdata = nd)
+
+  expect_named(link, rownames(nd))
+  expect_named(response, rownames(nd))
+  expect_length(response, nrow(nd))
+  expect_equal(response, exp(link), ignore_attr = TRUE)
+  expect_equal(default, response)
+  expect_true(all(response > 0))
+})
+
 test_that("Gaussian sd(id) prediction validates factor levels in newdata", {
   sim <- new_gaussian_re_scale_data(
     n_id = 12,
