@@ -1831,6 +1831,9 @@ drm_build_poisson_spec <- function(
     ))
   }
   mu_entry$rhs <- meta$rhs
+  mu_re <- extract_random_mu_terms(mu_entry$rhs, mu_entry$dpar)
+  mu_entry$rhs <- mu_re$rhs
+  validate_poisson_mu_random_terms(mu_re$terms, has_zi = !is.null(zi_entry))
   drm_reject_phase1_terms(mu_entry$rhs, mu_entry$dpar, allow_offset = TRUE)
   if (!is.null(zi_entry)) {
     drm_reject_phase1_terms(zi_entry$rhs, zi_entry$dpar)
@@ -1842,7 +1845,11 @@ drm_build_poisson_spec <- function(
   } else {
     NULL
   }
-  vars <- unique(c(all.vars(f_mu), if (!is.null(f_zi)) all.vars(f_zi)))
+  vars <- unique(c(
+    all.vars(f_mu),
+    if (!is.null(f_zi)) all.vars(f_zi),
+    random_effect_vars(mu_re$terms)
+  ))
   if (length(vars) > 0L) {
     keep <- stats::complete.cases(data[, vars, drop = FALSE])
   } else {
@@ -1905,6 +1912,8 @@ drm_build_poisson_spec <- function(
     ))
   }
   has_zi <- !is.null(X_zi)
+  re_mu <- build_random_mu_structure(mu_re$terms, data_model)
+  sd_mu <- empty_sd_mu_structure(re_mu$n_re)
 
   spec <- list(
     model_type = if (has_zi) "zi_poisson" else "poisson",
@@ -1930,10 +1939,10 @@ drm_build_poisson_spec <- function(
       list(mu = mf_mu)
     },
     random = list(
-      mu = empty_random_mu_structure(nrow(data_model)),
+      mu = re_mu,
       sigma = empty_random_sigma_structure(nrow(data_model))
     ),
-    random_scale = list(mu = empty_sd_mu_structure(1L)),
+    random_scale = list(mu = sd_mu),
     structured = list(phylo_mu = empty_phylo_mu_structure()),
     data = data_model,
     variables = vars,
@@ -1942,10 +1951,10 @@ drm_build_poisson_spec <- function(
     start = if (has_zi) {
       zi_poisson_start(y, X_mu, X_zi, offset_mu)
     } else {
-      poisson_start(y, X_mu, offset_mu)
+      poisson_start(y, X_mu, offset_mu, re_mu = re_mu)
     },
-    map = if (has_zi) zi_poisson_map() else poisson_map(),
-    random_names = NULL
+    map = if (has_zi) zi_poisson_map() else poisson_map(re_mu),
+    random_names = if (re_mu$n_re > 0L) "u_mu" else NULL
   )
   spec$tmb_data <- add_covariance_block_tmb_data(
     make_tmb_data(spec),
@@ -3087,6 +3096,37 @@ extract_random_sigma_terms <- function(rhs, dpar) {
   re_terms <- lapply(terms[is_re], parse_random_sigma_term, dpar = dpar)
   clean_terms <- terms[!is_re]
   list(rhs = rebuild_plus_terms(clean_terms), terms = re_terms)
+}
+
+validate_poisson_mu_random_terms <- function(terms, has_zi = FALSE) {
+  if (length(terms) == 0L) {
+    return(invisible(terms))
+  }
+  if (isTRUE(has_zi)) {
+    cli::cli_abort(c(
+      "Poisson {.code mu} random intercepts are implemented only for ordinary Poisson models.",
+      "x" = "Zero-inflated Poisson random effects are planned but not implemented.",
+      "i" = "Fit {.code y ~ x + (1 | id)} without a {.code zi} formula, or use a fixed-effect {.code zi ~ predictors} model."
+    ))
+  }
+  unsupported <- vapply(
+    terms,
+    function(term) {
+      !identical(term$type, "intercept") ||
+        !is.null(term$covariance_label)
+    },
+    logical(1L)
+  )
+  if (any(unsupported)) {
+    labels <- vapply(terms[unsupported], `[[`, character(1L), "label")
+    cli::cli_abort(c(
+      "Only ordinary Poisson {.code mu} random intercepts are implemented in this slice.",
+      "x" = "Unsupported random-effect term{?s}: {.code {labels}}.",
+      "i" = "Use syntax like {.code count ~ x + (1 | id)}.",
+      "i" = "Poisson random slopes and labelled covariance blocks remain planned for the non-Gaussian random-effect gate."
+    ))
+  }
+  invisible(terms)
 }
 
 is_random_bar_call <- function(expr) {
@@ -7214,7 +7254,12 @@ beta_binomial_map <- function() {
   beta_ls_map()
 }
 
-poisson_start <- function(y, X_mu, offset_mu = rep(0, length(y))) {
+poisson_start <- function(
+  y,
+  X_mu,
+  offset_mu = rep(0, length(y)),
+  re_mu = empty_random_mu_structure(length(y))
+) {
   beta_mu <- tryCatch(
     suppressWarnings(
       stats::glm.fit(
@@ -7230,6 +7275,7 @@ poisson_start <- function(y, X_mu, offset_mu = rep(0, length(y))) {
     beta_mu <- rep(0, ncol(X_mu))
     beta_mu[[1L]] <- log(max(mean(y), 1e-4)) - mean(offset_mu)
   }
+  mu_re_start <- poisson_mu_re_start(re_mu)
   c(
     list(beta_mu = beta_mu),
     list(
@@ -7238,9 +7284,9 @@ poisson_start <- function(y, X_mu, offset_mu = rep(0, length(y))) {
       beta_zi = 0,
       theta_ord = 0,
       beta_sd_mu = 0,
-      u_mu = 0,
-      log_sd_mu = 0,
-      eta_cor_mu = 0,
+      u_mu = mu_re_start$u_mu,
+      log_sd_mu = mu_re_start$log_sd_mu,
+      eta_cor_mu = mu_re_start$eta_cor_mu,
       eta_cor_mu_sigma = 0,
       eta_cor_sigma = 0,
       u_sigma = 0,
@@ -7257,8 +7303,19 @@ poisson_start <- function(y, X_mu, offset_mu = rep(0, length(y))) {
   )
 }
 
-poisson_map <- function() {
-  out <- lognormal_ls_map()
+poisson_mu_re_start <- function(re_mu) {
+  if (re_mu$n_re == 0L) {
+    return(list(u_mu = 0, log_sd_mu = 0, eta_cor_mu = 0))
+  }
+  list(
+    u_mu = rep(0, re_mu$n_re),
+    log_sd_mu = rep(log(0.35), re_mu$n_terms),
+    eta_cor_mu = rep(0, max(1L, re_mu$n_cors))
+  )
+}
+
+poisson_map <- function(re_mu = empty_random_mu_structure(1L)) {
+  out <- gaussian_ls_map(re_mu = re_mu)
   out$beta_sigma <- factor(NA)
   out
 }
@@ -8603,7 +8660,7 @@ make_tmb_data <- function(spec) {
       X_sigma = dummy_matrix,
       X_nu = dummy_matrix,
       X_zi = dummy_matrix,
-      X_sd_mu = dummy_matrix,
+      X_sd_mu = spec$random_scale$mu$X,
       has_sd_mu_model = 0L,
       X_sd_phylo = dummy_matrix,
       has_sd_phylo_model = 0L,
@@ -8615,16 +8672,16 @@ make_tmb_data <- function(spec) {
       X_rho12 = dummy_matrix,
       X_cor_mu = dummy_matrix,
       has_cor_mu_model = 0L,
-      n_mu_re_terms = 0L,
-      n_mu_re_cors = 0L,
-      mu_re_index = matrix(0L, nrow = 1L, ncol = 1L),
-      mu_re_value = dummy_matrix,
-      mu_re_term = 0L,
-      mu_re_dpar = 0L,
-      mu_re_pos = 0L,
-      mu_re_cor_id = -1L,
-      mu_re_pair_index = -1L,
-      mu_re_sd_row = -1L,
+      n_mu_re_terms = spec$random$mu$n_terms,
+      n_mu_re_cors = spec$random$mu$n_cors,
+      mu_re_index = spec$random$mu$index0,
+      mu_re_value = spec$random$mu$value,
+      mu_re_term = spec$random$mu$term_id0,
+      mu_re_dpar = spec$random$mu$dpar_id0,
+      mu_re_pos = spec$random$mu$re_pos0,
+      mu_re_cor_id = spec$random$mu$re_cor_id0,
+      mu_re_pair_index = spec$random$mu$re_pair_index0,
+      mu_re_sd_row = spec$random_scale$mu$re_sd_row0,
       n_sigma_re_terms = 0L,
       n_sigma_re_cors = 0L,
       n_mu_sigma_re_cors = 0L,
@@ -9193,7 +9250,7 @@ ordinal_cutpoint_names <- function(levels) {
 }
 
 split_tmb_sdpars <- function(par, spec) {
-  if (!spec$model_type %in% c("gaussian", "biv_gaussian")) {
+  if (!spec$model_type %in% c("gaussian", "biv_gaussian", "poisson")) {
     return(list())
   }
   out <- list()
@@ -9227,15 +9284,21 @@ split_tmb_sdpars <- function(par, spec) {
     names(sd_sigma) <- spec$random$sigma$labels
     out$sigma <- sd_sigma
   }
-  qgt2_members <- qgt2_covariance_members(spec$random$covariance_blocks)
-  if (nrow(qgt2_members) > 0L) {
-    sd_re_cov <- exp(unname(par$log_sd_re_cov[seq_len(nrow(qgt2_members))]))
-    for (i in seq_len(nrow(qgt2_members))) {
-      key <- covariance_registry_member_sd_key(qgt2_members[i, , drop = FALSE])
-      out[[key]] <- c(
-        out[[key]],
-        stats::setNames(sd_re_cov[[i]], qgt2_members$label[[i]])
-      )
+  if (is.list(spec$random$covariance_blocks)) {
+    qgt2_members <- qgt2_covariance_members(spec$random$covariance_blocks)
+    if (nrow(qgt2_members) > 0L) {
+      sd_re_cov <- exp(unname(par$log_sd_re_cov[seq_len(nrow(qgt2_members))]))
+      for (i in seq_len(nrow(qgt2_members))) {
+        key <- covariance_registry_member_sd_key(qgt2_members[
+          i,
+          ,
+          drop = FALSE
+        ])
+        out[[key]] <- c(
+          out[[key]],
+          stats::setNames(sd_re_cov[[i]], qgt2_members$label[[i]])
+        )
+      }
     }
   }
   if (isTRUE(spec$structured$phylo_mu$has)) {
@@ -9428,7 +9491,7 @@ tmb_vecscale_sqrt_cov_scale <- function(theta, sd, z) {
 }
 
 split_tmb_random_effects <- function(par, spec) {
-  if (!spec$model_type %in% c("gaussian", "biv_gaussian")) {
+  if (!spec$model_type %in% c("gaussian", "biv_gaussian", "poisson")) {
     return(list())
   }
 
@@ -9466,12 +9529,14 @@ split_tmb_random_effects <- function(par, spec) {
     }
     out$sigma <- format_random_effect_values(latent, values, spec$random$sigma)
   }
-  qgt2_re <- transform_covariance_block_random_effects(
-    par,
-    spec$random$covariance_blocks
-  )
-  if (!is.null(qgt2_re)) {
-    out$covariance_blocks <- qgt2_re
+  if (is.list(spec$random$covariance_blocks)) {
+    qgt2_re <- transform_covariance_block_random_effects(
+      par,
+      spec$random$covariance_blocks
+    )
+    if (!is.null(qgt2_re)) {
+      out$covariance_blocks <- qgt2_re
+    }
   }
   if (isTRUE(spec$structured$phylo_mu$has)) {
     n_phylo <- spec$structured$phylo_mu$n_re

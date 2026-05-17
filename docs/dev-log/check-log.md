@@ -22603,3 +22603,71 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slice-190-nongaussian-mu-re-gate.md`.
+
+## 2026-05-17 - Slice 191 Poisson mu random intercept
+
+Goal: implement the first ordinary non-Gaussian `mu` random-intercept path.
+
+Files changed:
+
+- `R/drmTMB.R`
+- `src/drmTMB.cpp`
+- `tests/testthat/test-poisson-mean.R`
+- `tests/testthat/test-zi-poisson.R`
+- `tests/testthat/test-comparators.R`
+- `NEWS.md`
+- `README.md`
+- `ROADMAP.md`
+- `docs/design/01-formula-grammar.md`
+- `docs/design/02-family-registry.md`
+- `docs/design/05-testing-strategy.md`
+- `docs/design/33-phase-6c-core-random-effects.md`
+- `docs/design/34-validation-debt-register.md`
+- `docs/dev-log/known-limitations.md`
+- `vignettes/formula-grammar.Rmd`
+- `vignettes/model-map.Rmd`
+- `docs/dev-log/after-task/2026-05-17-slice-191-poisson-mu-random-intercept.md`
+
+What changed:
+
+- Ordinary non-zero-inflated Poisson models now accept unlabelled
+  `(1 | group)` terms in `mu`.
+- The random intercept enters the log-mean predictor and uses the existing
+  `u_mu` / `log_sd_mu` random-effect machinery.
+- `sdpars$mu`, `random_effects$mu`, and `profile_targets()` expose the fitted
+  Poisson random-intercept SD.
+- Poisson random slopes, labelled covariance blocks, zero-inflated Poisson
+  random effects, `zoi`/`coi` bounded-response random effects, and
+  cross-parameter non-Gaussian covariance remain planned.
+
+Checks run:
+
+- `air format R/drmTMB.R tests/testthat/test-poisson-mean.R tests/testthat/test-zi-poisson.R tests/testthat/test-comparators.R`
+- `air format README.md NEWS.md ROADMAP.md docs/design/01-formula-grammar.md docs/design/02-family-registry.md docs/design/05-testing-strategy.md docs/design/33-phase-6c-core-random-effects.md docs/design/34-validation-debt-register.md docs/dev-log/known-limitations.md vignettes/formula-grammar.Rmd vignettes/model-map.Rmd`
+- `Rscript -e "devtools::test(filter = 'poisson-mean', reporter = 'summary')"`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'zi-poisson', reporter = 'summary')"`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'comparators', reporter = 'summary')"`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'poisson-mean|zi-poisson|comparators|profile-targets', reporter = 'summary')"`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'cumulative-logit|student-location-scale|gaussian-random-intercepts', reporter = 'summary')"`:
+  passed.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with no problems.
+- `rg -n "Poisson.*random effects.*not yet implemented|Fixed-effect univariate Poisson mean models|Poisson.*fixed-effect.*only|non-Gaussian families \\| Fixed-effect likelihoods only|Non-Gaussian families \\| Fixed-effect non-Gaussian families are implemented; random slopes" README.md ROADMAP.md NEWS.md docs vignettes R tests`:
+  returned only historical after-task/check-log lines plus updated current-scope
+  rows.
+- `rg -n "zoi|coi|one-inflation|zero-one" README.md ROADMAP.md NEWS.md docs vignettes R tests`:
+  confirmed `zoi`/`coi` remain a planned bounded-response lane.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- This is an ordinary Poisson `mu` random-intercept path only. Slopes,
+  labelled covariance blocks, zero-inflation random effects, NB2 random
+  effects, and non-Gaussian cross-parameter covariance remain future slices.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slice-191-poisson-mu-random-intercept.md`.

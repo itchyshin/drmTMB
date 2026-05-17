@@ -1298,16 +1298,16 @@ This is the current random-effect status before the non-Gaussian revisit:
 | Bivariate ordinary covariance | Fitted for matching labelled random intercepts in `mu1`/`mu2`, `sigma1`/`sigma2`, same-response `mu`/`sigma`, and all-four q=4 intercept blocks. | Constant q=2 correlation targets are profile-ready; q=4 correlations are derived-only with explicit unavailable interval status. | First future slope target is matching slope-only `mu1`/`mu2`; q=4 location-slope and q=8 all-four slope endpoints remain closed. |
 | Phylogenetic structured effects | Intercept-level univariate, bivariate, direct-SD, q=2 correlation-regression, and q=4 location-scale paths are fitted. | Direct phylogenetic SDs and q=2 correlations have profile targets; q=4 correlations are derived-only. | `phylo(1 + x | species, tree = tree)` remains planned pending recovery and diagnostics. |
 | Coordinate spatial structured effects | Fitted for univariate Gaussian `mu` intercept and one numeric slope, with independent coordinate fields. | `sdpars$mu`, `ranef("spatial_mu")`, `profile_targets()`, `check_drm()`, and a slope-field profile interval are covered. | Mesh/SPDE, multiple slopes, slope correlations, spatial `sigma`, bivariate spatial covariance, and spatial `corpair()` remain planned. |
-| Non-Gaussian families | Fixed-effect likelihoods are fitted; random-effect coverage is not yet generalized. | Family-specific fixed-effect summaries and intervals exist where already implemented. | Slices 190-202 decide ordinary non-Gaussian random intercepts/slopes, scale, shape, zero-inflation, hurdle, ordinal, structured, and interval readiness. |
+| Non-Gaussian families | Fixed-effect likelihoods are fitted, and ordinary Poisson `mu` random intercepts are fitted for non-zero-inflated Poisson models. | Poisson `mu` random-intercept SDs appear in `sdpars$mu`, random effects, and direct `profile_targets()` rows; family-specific fixed-effect summaries and intervals exist where already implemented. | Slices 192-202 decide Poisson slopes, NB2 `mu` random intercepts, scale, shape, zero-inflation, hurdle, ordinal, structured, cross-parameter covariance, and interval readiness. |
 
 | Slice | Lane | Target Before Phase 18 |
 | --- | --- | --- |
 | 190 | Non-Gaussian `mu` random effects | Done: first candidates are ordinary `mu` random intercepts for Poisson and NB2-style count likelihoods; lognormal/Gamma/Student-t follow only after count recovery, while beta, beta-binomial, ordinal, zero-inflation, hurdle, shape, and structured non-Gaussian paths retain explicit unsupported messages. |
-| 191 | Non-Gaussian `mu` implementation | Add or harden the first ordinary non-Gaussian random-intercept path where the likelihood is already stable enough for recovery testing. |
+| 191 | Non-Gaussian `mu` implementation | Done: ordinary Poisson `mu` random intercepts now fit as `(1 | group)` in the log-mean predictor for non-zero-inflated Poisson models, with recovery, lme4 comparator, random-effect extraction, `sdpars$mu`, and direct SD profile-target coverage. |
 | 192 | Non-Gaussian `mu` slopes | Define the one-slope boundary for non-Gaussian `mu`; add explicit unsupported errors for families that are not ready. |
 | 193 | Non-Gaussian residual scale | Revisit beta, gamma, lognormal, Student, and related scale paths for random-effect feasibility on their fitted scale. |
 | 194 | Shape and skew boundary | Pin the policy for random effects in `nu`, `shape`, future skew-normal, and future skew-t parameters before simulation claims depend on them. |
-| 195 | Zero-inflation and hurdle random effects | Revisit `zi`, `hu`, `zoi`, and `coi` random-effect support and unsupported-boundary messages. |
+| 195 | Zero-inflation, hurdle, and one-inflation random effects | Revisit `zi`, `hu`, `zoi`, and `coi` support and unsupported-boundary messages. For percentage/proportion data, plan zero-one-inflated beta/beta-binomial style fixed-effect likelihoods first, then random effects and cross-parameter covariance only after the bounded-response likelihood and interval surface are stable. |
 | 196 | Ordinal mixed models | Separate ordinal random-intercept and random-slope planning from Gaussian ordinary random slopes, using `ordinal::clmm` only as a benchmark. |
 | 197 | Structured non-Gaussian random effects | Decide whether phylogenetic or spatial non-Gaussian random effects enter Phase 18 or stay deferred with explicit diagnostics. |
 | 198 | Non-Gaussian interval readiness | Check `summary()`, `confint()`, `corpairs()`, and `profile_targets()` status for the fitted non-Gaussian paths. |
@@ -1323,11 +1323,11 @@ Use this order unless Slice 191 evidence overturns it:
 
 | Priority | Family Surface | Slice 190 Decision |
 | --- | --- | --- |
-| 1 | Poisson `mu` | First candidate: ordinary `(1 | group)` in the log-mean predictor, with recovery against fixed-effect and no-random-effect baselines. |
+| 1 | Poisson `mu` | Implemented in Slice 191 for ordinary `(1 | group)` in the log-mean predictor, with recovery, lme4 comparator, and direct SD profile target coverage. Random slopes, labelled blocks, zero-inflation random effects, and cross-parameter covariance remain planned. |
 | 2 | NB2 and zero-truncated NB2 `mu` | Same candidate class after Poisson, keeping public `sigma` as NB2 dispersion and not adding random effects to `sigma` yet. |
 | 3 | Lognormal, Gamma, and Student-t `mu` | Later continuous-response candidates after count recovery, because scale/tail interaction and boundary diagnostics need their own grids. |
 | 4 | Beta and beta-binomial `mu` | Later bounded-response candidates; boundary values, denominators, and overdispersion need separate recovery checks. |
-| 5 | Zero-inflation, hurdle, ordinal, shape, and structured non-Gaussian paths | Keep unsupported for now; revisit in Slices 194-197. |
+| 5 | Zero-inflation, one-inflation, hurdle, ordinal, shape, and structured non-Gaussian paths | Keep unsupported for now; revisit in Slices 194-197. For proportion data, `zoi` and `coi` are the planned zero-one-inflation lane rather than part of the Poisson count gate. |
 
 - After Slice 202, return to Phase 17 to close the remaining visualization,
   marginal-effect, contrast, slope, and reader-facing inference surfaces. Phase

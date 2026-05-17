@@ -74,6 +74,9 @@ Implemented comparator smoke tests:
   `stats::glm(..., family = poisson(link = "log"))` for the overlapping
   mean-regression case, including a standard R `offset(log(exposure))`
   exposure model.
+- ordinary Poisson `mu` random intercepts against
+  `lme4::glmer(..., family = poisson(link = "log"))` for the overlapping
+  non-zero-inflated GLMM case.
 - Negative-binomial 2 fixed-effect likelihood against an independent
   `stats::dnbinom(mu = mu, size = 1 / sigma^2)` calculation at the fitted
   coefficients, including an exposure offset in the `mu` predictor.

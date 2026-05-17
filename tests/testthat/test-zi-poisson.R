@@ -122,16 +122,23 @@ test_that("zero-inflated Poisson methods return count-scale summaries", {
   newdata <- data.frame(
     x = c(-1, 0, 1),
     z = c(-1, 0, 1),
-    habitat = factor(c("edge", "open", "edge"), levels = levels(fit$data$habitat))
+    habitat = factor(
+      c("edge", "open", "edge"),
+      levels = levels(fit$data$habitat)
+    )
   )
   expect_equal(
     predict(fit, newdata = newdata, dpar = "mu"),
-    exp(as.vector(stats::model.matrix(~ x + habitat, newdata) %*% coef(fit, "mu"))),
+    exp(as.vector(
+      stats::model.matrix(~ x + habitat, newdata) %*% coef(fit, "mu")
+    )),
     tolerance = 1e-12
   )
   expect_equal(
     predict(fit, newdata = newdata, dpar = "zi"),
-    stats::plogis(as.vector(stats::model.matrix(~ z + habitat, newdata) %*% coef(fit, "zi"))),
+    stats::plogis(as.vector(
+      stats::model.matrix(~ z + habitat, newdata) %*% coef(fit, "zi")
+    )),
     tolerance = 1e-12
   )
   sims <- simulate(fit, nsim = 2, seed = 20260611)
@@ -184,7 +191,10 @@ test_that("zero-inflated Poisson likelihood stays finite near certain structural
   log_one_minus_zi <- -log1p(exp(eta_zi))
   ll_zip <- ifelse(
     dat$y == 0,
-    logspace_add(log_zi, log_one_minus_zi + stats::dpois(0, lambda = mu, log = TRUE)),
+    logspace_add(
+      log_zi,
+      log_one_minus_zi + stats::dpois(0, lambda = mu, log = TRUE)
+    ),
     log_one_minus_zi + stats::dpois(dat$y, lambda = mu, log = TRUE)
   )
 
@@ -242,7 +252,7 @@ test_that("zero-inflated Poisson rejects unsupported or invalid inputs", {
       family = stats::poisson(link = "log"),
       data = dat
     ),
-    "unsupported model terms"
+    "Zero-inflated Poisson random effects"
   )
   expect_error(
     drmTMB(
@@ -300,5 +310,9 @@ test_that("zero-inflated Poisson rejects unsupported or invalid inputs", {
     ),
     "non-negative integer"
   )
-  expect_false(exists("zi_poisson", where = asNamespace("drmTMB"), inherits = FALSE))
+  expect_false(exists(
+    "zi_poisson",
+    where = asNamespace("drmTMB"),
+    inherits = FALSE
+  ))
 })

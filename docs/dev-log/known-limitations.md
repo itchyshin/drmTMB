@@ -166,11 +166,15 @@
 - Fixed-effect univariate Poisson mean models are implemented for
   non-negative integer counts with `family = poisson(link = "log")`.
   The `mu` formula supports standard R exposure offsets such as
-  `offset(log(trap_nights))`. Zero-inflated Poisson models are implemented by
+  `offset(log(trap_nights))`. Ordinary unlabelled `mu` random intercepts such
+  as `(1 | id)` are implemented for non-zero-inflated Poisson models and enter
+  the log-mean predictor. Zero-inflated Poisson models are implemented by
   adding `zi ~ predictors`; here `mu` is the conditional count mean and `zi` is
-  the structural-zero probability. There is no modelled `sigma` parameter.
-  Overdispersion, random effects, known sampling covariance, phylogenetic
-  terms, and bivariate or mixed Poisson models are not yet implemented.
+  the structural-zero probability, but `zi` random effects and `mu` random
+  effects in the zero-inflated route remain planned. There is no modelled
+  `sigma` parameter. Overdispersion, Poisson random slopes, labelled Poisson
+  covariance blocks, known sampling covariance, phylogenetic terms, and
+  bivariate or mixed Poisson models are not yet implemented.
 - Fixed-effect univariate negative-binomial 2 mean-dispersion models are
   implemented for overdispersed counts with `family = nbinom2()`. `mu` is the
   count mean and `sigma` is an overdispersion scale in
@@ -197,7 +201,10 @@
   supports `cbind(successes, failures)` responses, fixed-effect `mu` and
   `sigma` formulas, known trial totals from row sums, and no random effects,
   known sampling covariance, phylogenetic terms, bivariate or mixed
-  beta-binomial models, or successes/trials response alias.
+  beta-binomial models, or successes/trials response alias. Zero-one-inflated
+  bounded-response models for percentage or proportion data are planned:
+  fixed-effect `zoi` and `coi` likelihoods should come before random effects
+  or covariance among bounded-response distributional parameters.
 - Intercept-only phylogenetic random effects are implemented in univariate
   Gaussian `mu` formulas and matching bivariate Gaussian `mu1`/`mu2` formulas
   as `phylo(1 | species, tree = tree)`. The tree must be an ultrametric

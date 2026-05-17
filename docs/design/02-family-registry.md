@@ -75,17 +75,17 @@ strong reason not to.
 
 ## Slice 190 Non-Gaussian Random-Effect Gate
 
-The first non-Gaussian random-effect expansion should be ordinary `mu` random
+The first non-Gaussian random-effect expansion is ordinary `mu` random
 intercepts, not scale, shape, zero-inflation, hurdle, ordinal, or structured
-random effects. The decision is intentionally narrow:
+random effects. The decision remains intentionally narrow:
 
-| Priority | Family surface | Decision before Slice 191 |
+| Priority | Family surface | Slice 191 status |
 |---|---|---|
-| 1 | Poisson `mu` | First candidate for `(1 | group)` in the log-mean predictor. It has the simplest fixed-effect count likelihood and a clear GLMM benchmark. |
+| 1 | Poisson `mu` | Implemented for ordinary `(1 | group)` in the log-mean predictor of non-zero-inflated Poisson models. Slopes, covariance labels, zero-inflated Poisson random effects, and cross-parameter covariance remain planned. |
 | 2 | NB2 and zero-truncated NB2 `mu` | Next candidate after Poisson, retaining public `sigma` as dispersion and leaving dispersion-side random effects for a later scale gate. |
 | 3 | Lognormal, Gamma, and Student-t `mu` | Later continuous-response candidates after count recovery tests, because scale and tail parameters complicate weak-SD and boundary diagnostics. |
 | 4 | Beta and beta-binomial `mu` | Later bounded-response candidates; strict-boundary handling, denominators, and overdispersion need their own recovery grids. |
-| 5 | Zero-inflation, hurdle, ordinal, shape, and structured non-Gaussian paths | Explicitly unsupported until Slices 194-197 decide the target and diagnostics. |
+| 5 | Zero-inflation, one-inflation, hurdle, ordinal, shape, and structured non-Gaussian paths | Explicitly unsupported until Slices 194-197 decide the target and diagnostics. For percentage/proportion data, zero-one-inflated beta-style likelihoods should expose fixed-effect `zoi` and `coi` first; random effects and cross-parameter covariance come later. |
 
 Unsupported formula messages should say that non-Gaussian random effects are
 planned and should not silently fall through as generic formula failures.
@@ -315,11 +315,13 @@ The first count path uses the existing R family constructor:
 family = poisson(link = "log")
 ```
 
-The implemented model is fixed-effect and univariate:
+The implemented ordinary Poisson model is univariate. It supports fixed
+effects and the first unlabelled `mu` random-intercept path:
 
 ```text
 y_i | mu_i ~ Poisson(mu_i)
-log(mu_i) = o_i + X_mu[i, ] beta_mu
+b_g ~ Normal(0, sd_mu^2)
+log(mu_i) = o_i + X_mu[i, ] beta_mu + b_{g[i]}
 E[y_i] = Var[y_i] = mu_i
 ```
 
@@ -329,9 +331,10 @@ For exposure models, `o_i` is a known offset from standard R syntax such as
 This path is mostly a baseline count-regression model and a comparator for
 later overdispersed count families. It deliberately has no fitted `sigma`
 distributional parameter. `sigma(fit)` returns a fixed unit dispersion vector
-for base-R method compatibility, not a modelled residual scale. Random effects,
-known sampling covariance, overdispersion, phylogenetic terms, and bivariate or
-mixed Poisson models are later phases.
+for base-R method compatibility, not a modelled residual scale. Random slopes,
+labelled random-effect covariance blocks, known sampling covariance,
+overdispersion, phylogenetic terms, and bivariate or mixed Poisson models are
+later phases.
 
 The same Poisson route also supports fixed-effect structural-zero regression by
 adding a `zi` formula:

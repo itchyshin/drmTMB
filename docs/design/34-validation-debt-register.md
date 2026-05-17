@@ -58,9 +58,26 @@ Use these status labels:
 - Check-log evidence: family-specific check-log entries are summarized in
   `vignettes/source-map.Rmd`; Slice 78 keeps them grouped because this row is
   a family collection rather than one likelihood.
-- Debt: richer bounded-response families, ordinal scale/discrimination, and
-  random effects for most non-Gaussian families still need separate likelihood
-  work and simulation recovery.
+- Debt: richer bounded-response families, zero-one-inflated proportion models,
+  ordinal scale/discrimination, and random effects for most non-Gaussian
+  families still need separate likelihood work and simulation recovery.
+
+### Poisson ordinary random intercepts
+
+- Matrix status: first non-Gaussian path implemented for non-zero-inflated
+  Poisson `mu`.
+- Register status: ordinary unlabelled `(1 | group)` random intercepts enter
+  the log-mean predictor. Random slopes, labelled covariance blocks,
+  zero-inflated Poisson random effects, and cross-parameter covariance blocks
+  remain planned.
+- Evidence: `tests/testthat/test-poisson-mean.R` and
+  `tests/testthat/test-comparators.R`.
+- Diagnostics and intervals: `sdpars$mu`, `random_effects$mu`, and
+  `profile_targets()` expose the random-intercept SD through direct
+  `log_sd_mu` profile targets.
+- Debt: weak-SD grids, NB2-style count random intercepts, non-Gaussian `mu`
+  slopes, and cross-parameter covariance need later slice evidence before
+  Phase 18 comprehensive simulation.
 
 ### Gaussian ordinary random effects
 
