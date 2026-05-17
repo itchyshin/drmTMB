@@ -1,5 +1,6 @@
 # drmTMB 0.1.2 (2026-05-16)
 
+* Bivariate random-slope boundary errors now distinguish the first planned slope-only `mu1`/`mu2` target, later intercept-plus-slope q=4 location blocks, and deliberately closed all-four q=8 location-scale slope blocks before simulation evidence exists.
 * Gaussian location random-slope blocks now support ordinary unstructured numeric multi-slope `mu` terms such as `(1 + x1 + x2 | id)` and labelled variants. The first public path has q=3 recovery, `sdpars$mu`, `corpars$re_cov`, `corpairs()`, `summary()`, and `profile_targets()` coverage; larger q blocks are advanced fits whose sample-size cost remains a simulation target.
 * Gaussian location-scale models now fit more than one independent matched labelled `mu`/`sigma` random-intercept covariance block, for example matching `(1 | p | id)` and `(1 | q | site)` terms in both formulas. Each block reports its own `corpars$mu_sigma`, `corpairs(class = "mean-scale")`, `summary()`, and `profile_targets()` row.
 * `check_drm()` and profile-interval tests now cover two independent univariate `mu`/`sigma` random-intercept covariance blocks, reporting one diagnostic row per mean-scale block and confirming the second `eta_cor_mu_sigma` profile target.

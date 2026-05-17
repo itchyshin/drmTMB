@@ -2109,7 +2109,7 @@ test_that("bivariate Gaussian rejects unsupported Phase 3 syntax clearly", {
     ),
     "Larger labelled covariance blocks"
   )
-  expect_error(
+  q8_slope_err <- tryCatch(
     drmTMB(
       bf(
         mu1 = y1 ~ x + (1 + x | p | id),
@@ -2121,8 +2121,14 @@ test_that("bivariate Gaussian rejects unsupported Phase 3 syntax clearly", {
       family = biv_gaussian(),
       data = dat
     ),
+    error = identity
+  )
+  expect_s3_class(q8_slope_err, "rlang_error")
+  expect_match(
+    conditionMessage(q8_slope_err),
     "random slopes in bivariate models remain planned"
   )
+  expect_match(conditionMessage(q8_slope_err), "q=8 endpoint covariance")
   expect_error(
     drmTMB(
       bf(
@@ -2170,7 +2176,21 @@ test_that("bivariate Gaussian rejects unsupported Phase 3 syntax clearly", {
       family = c(gaussian(), gaussian()),
       data = dat
     ),
-    "Only bivariate random intercepts"
+    "Bivariate random slopes are planned"
+  )
+  expect_error(
+    drmTMB(
+      bf(
+        mu1 = y1 ~ x + (0 + x | p | id),
+        mu2 = y2 ~ x + (0 + x | p | id),
+        sigma1 = ~1,
+        sigma2 = ~1,
+        rho12 = ~x
+      ),
+      family = biv_gaussian(),
+      data = dat
+    ),
+    "slope-only block"
   )
   expect_error(
     drmTMB(

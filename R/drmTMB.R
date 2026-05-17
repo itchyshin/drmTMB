@@ -3129,7 +3129,8 @@ parse_random_sigma_term <- function(expr, dpar) {
     cli::cli_abort(c(
       "Only bivariate residual-scale random intercepts are implemented for {.code {dpar}}.",
       "x" = "Use matching terms such as {.code {dpar} = ~ z + (1 | p | id)}.",
-      "i" = "Residual-scale random slopes in bivariate models remain planned."
+      "i" = "Residual-scale random slopes in bivariate models remain planned.",
+      "i" = "Do not use all-four slope terms to request a q=8 endpoint covariance block; that larger double-hierarchical surface is deliberately closed in this phase."
     ))
   }
 
@@ -5962,9 +5963,10 @@ build_biv_parameter_random_structure <- function(
     ))
   ) {
     cli::cli_abort(c(
-      "Only bivariate random intercepts are implemented for {.code {pair}} covariance blocks.",
-      "x" = "Random slopes and broader bivariate covariance blocks remain planned.",
-      "i" = "Use labelled random-intercept terms such as {.code (1 | p | id)}."
+      "Bivariate random slopes are planned but not implemented for {.code {pair}} covariance blocks.",
+      "x" = "This phase fits matching labelled random intercepts such as {.code (1 | p | id)}.",
+      "i" = "The first future location-slope target is a matching slope-only block such as {.code (0 + x | p | id)} in {.code mu1} and {.code mu2}.",
+      "i" = "Intercept-plus-slope and all-four location-scale slope blocks stay closed until q=4 and q=8 endpoint covariance evidence exists."
     ))
   }
   labels <- unname(vapply(
