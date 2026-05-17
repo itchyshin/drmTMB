@@ -22293,3 +22293,53 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slice-183-two-mu-sigma-blocks.md`.
+
+## 2026-05-17 - Slice 184 two-block diagnostics and intervals
+
+Goal: harden the two independent univariate `mu`/`sigma` covariance-block
+surface with diagnostics and interval-target evidence.
+
+Files changed:
+
+- `R/check.R`
+- `tests/testthat/test-check-drm.R`
+- `tests/testthat/test-profile-targets.R`
+- `NEWS.md`
+- `ROADMAP.md`
+- `man/check_drm.Rd`
+- `docs/dev-log/after-task/2026-05-17-slice-184-two-block-validation.md`
+
+What changed:
+
+- `check_drm()` now reports one `mu_sigma_random_effect_covariance` row per
+  independent univariate matched `mu`/`sigma` block when multiple
+  `eta_cor_mu_sigma` targets are fitted.
+- Added a `check_drm()` test that fits matching `(1 | p | id)` and
+  `(1 | q | site)` blocks in both `mu` and `sigma`, then checks separate group
+  diagnostics for `id` and `site`.
+- Added a profile-likelihood test for the second `cor:mu_sigma` target, making
+  sure it uses `eta_cor_mu_sigma` index 2 and returns finite bounded
+  confidence limits.
+- Updated `check_drm()` documentation and NEWS/roadmap status.
+
+Checks run:
+
+- `air format R/check.R tests/testthat/test-check-drm.R tests/testthat/test-profile-targets.R NEWS.md ROADMAP.md`:
+  passed.
+- `Rscript -e 'devtools::document()'`: passed.
+- `Rscript -e 'devtools::test(filter = "check-drm|profile-targets", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'pkgdown::check_pkgdown()'`: passed.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- The two matched blocks are independent intercept-level blocks, not one larger
+  all-endpoint covariance surface.
+- Slope-level mean-scale covariance, correlated residual-scale slopes,
+  bivariate random slopes, and q > 2 direct correlation intervals remain later
+  slices.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slice-184-two-block-validation.md`.

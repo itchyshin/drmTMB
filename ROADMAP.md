@@ -1267,7 +1267,7 @@ remain blocked by future covariance or non-Gaussian random-effect work.
 | 181 | Gaussian random slopes | Done: user docs state the q=3 evidence, q > 2 output names, profile-ready SDs, derived-unavailable unstructured correlations, and sample-size boundary. |
 | 182 | Scale random slopes | Done: multiple independent residual-scale Gaussian `sigma` terms are tested as separate log-`sigma` SDs with correlations fixed at zero; correlated and labelled residual-scale slope covariance blocks remain planned. |
 | 183 | Location-scale covariance | Done: two independent matched univariate `mu`/`sigma` random-intercept covariance blocks can be fitted and reported through `corpars$mu_sigma`, `corpairs()`, `summary()`, and `profile_targets()`. |
-| 184 | Location-scale covariance | Add stronger recovery, diagnostics, and interval checks for two matched blocks. |
+| 184 | Location-scale covariance | Done: `check_drm()` now reports each independent univariate `mu`/`sigma` block separately, and profile tests cover the second `eta_cor_mu_sigma` interval target. |
 | 185 | Bivariate random slopes | Define the first bivariate one-slope policy without opening q=8 endpoint blocks. |
 | 186 | Phylogenetic random slopes | Audit phylogenetic one-slope support and parity gaps against the spatial lane. |
 | 187 | Spatial random slopes | Confirm spatial one-slope support, docs, diagnostics, and parity boundaries. |

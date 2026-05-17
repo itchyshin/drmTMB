@@ -86,6 +86,39 @@ new_profile_mu_sigma_group_data <- function(
   )
 }
 
+new_profile_two_mu_sigma_group_data <- function(
+  n_id = 16L,
+  n_site = 8L,
+  n_rep = 4L,
+  seed = 20260617
+) {
+  set.seed(seed)
+  dat <- expand.grid(
+    id = factor(seq_len(n_id)),
+    site = factor(seq_len(n_site)),
+    rep = seq_len(n_rep)
+  )
+  n <- nrow(dat)
+  dat$x <- stats::rnorm(n)
+  dat$z <- stats::rnorm(n)
+  id_mu <- stats::rnorm(n_id)
+  id_sigma <- 0.35 * id_mu + sqrt(1 - 0.35^2) * stats::rnorm(n_id)
+  site_mu <- stats::rnorm(n_site)
+  site_sigma <- 0.25 * site_mu + sqrt(1 - 0.25^2) * stats::rnorm(n_site)
+  mu <- 0.2 +
+    0.5 * dat$x +
+    0.45 * id_mu[dat$id] +
+    0.35 * site_mu[dat$site]
+  sigma <- exp(
+    log(0.55) +
+      0.18 * dat$z +
+      0.26 * id_sigma[dat$id] +
+      0.30 * site_sigma[dat$site]
+  )
+  dat$y <- stats::rnorm(n, mean = mu, sd = sigma)
+  dat
+}
+
 new_profile_group_data <- function(n_id = 18, n_each = 5, seed = 20260591) {
   set.seed(seed)
   n <- n_id * n_each
@@ -1467,6 +1500,46 @@ test_that("confint profile intervals transform mu/sigma covariance targets", {
   expect_equal(ci$transformation, "tanh")
   expect_equal(ci$tmb_parameter, "eta_cor_mu_sigma")
   expect_equal(ci$index, 1L)
+  expect_equal(ci$method, "profile")
+  expect_true(all(is.finite(c(ci$lower, ci$upper))))
+  expect_true(all(abs(c(ci$lower, ci$upper)) < 1))
+  expect_lt(ci$lower, cor_hat)
+  expect_gt(ci$upper, cor_hat)
+})
+
+test_that("confint profiles the second mu/sigma covariance block", {
+  dat <- new_profile_two_mu_sigma_group_data()
+  fit <- drmTMB(
+    bf(
+      y ~ x + (1 | p | id) + (1 | q | site),
+      sigma ~ z + (1 | p | id) + (1 | q | site)
+    ),
+    family = gaussian(),
+    data = dat,
+    control = list(eval.max = 400, iter.max = 400)
+  )
+
+  cor_parms <- paste0("cor:mu_sigma:", names(fit$corpars$mu_sigma))
+  targets <- profile_targets(fit)
+  cor_targets <- targets[match(cor_parms, targets$parm), ]
+  ci <- stats::confint(
+    fit,
+    parm = cor_parms[[2L]],
+    level = 0.80,
+    method = "profile",
+    trace = FALSE,
+    ystep = 0.25
+  )
+  cor_hat <- unname(fit$corpars$mu_sigma[[2L]])
+
+  expect_equal(cor_targets$tmb_parameter, rep("eta_cor_mu_sigma", 2L))
+  expect_equal(cor_targets$index, 1:2)
+  expect_true(all(cor_targets$profile_ready))
+  expect_equal(ci$parm, cor_parms[[2L]])
+  expect_equal(ci$scale, "response")
+  expect_equal(ci$transformation, "tanh")
+  expect_equal(ci$tmb_parameter, "eta_cor_mu_sigma")
+  expect_equal(ci$index, 2L)
   expect_equal(ci$method, "profile")
   expect_true(all(is.finite(c(ci$lower, ci$upper))))
   expect_true(all(abs(c(ci$lower, ci$upper)) < 1))

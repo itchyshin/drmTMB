@@ -53,6 +53,41 @@ check_drm_mu_sigma_cov_data <- function(
   )
 }
 
+check_drm_two_mu_sigma_cov_data <- function(
+  n_id = 14,
+  n_site = 7,
+  n_rep = 3,
+  seed = 2026051207
+) {
+  set.seed(seed)
+  dat <- expand.grid(
+    id = factor(seq_len(n_id)),
+    site = factor(seq_len(n_site)),
+    rep = seq_len(n_rep)
+  )
+  n <- nrow(dat)
+  dat$x <- stats::rnorm(n)
+  dat$z <- stats::rnorm(n)
+  id_mu <- stats::rnorm(n_id)
+  id_sigma <- 0.45 * id_mu + sqrt(1 - 0.45^2) * stats::rnorm(n_id)
+  site_mu <- stats::rnorm(n_site)
+  site_sigma <- -0.35 * site_mu + sqrt(1 - 0.35^2) * stats::rnorm(n_site)
+  id_index <- as.integer(dat$id)
+  site_index <- as.integer(dat$site)
+  mu <- 0.2 +
+    0.45 * dat$x +
+    0.50 * id_mu[id_index] +
+    0.35 * site_mu[site_index]
+  sigma <- exp(
+    log(0.55) +
+      0.18 * dat$z +
+      0.30 * id_sigma[id_index] +
+      0.24 * site_sigma[site_index]
+  )
+  dat$y <- stats::rnorm(n, mean = mu, sd = sigma)
+  dat
+}
+
 check_drm_biv_phylo_data <- function(
   seed = 2026051305,
   n_each = 5L,
@@ -863,6 +898,29 @@ test_that("check_drm() reports univariate mu/sigma covariance diagnostics", {
   expect_equal(weak_cov$status, "note")
   expect_match(weak_cov$message, "tiny")
   expect_true(attr(weak_chk, "ok"))
+})
+
+test_that("check_drm() reports each univariate mu/sigma covariance block", {
+  dat <- check_drm_two_mu_sigma_cov_data()
+  fit <- drmTMB(
+    bf(
+      y ~ x + (1 | p | id) + (1 | q | site),
+      sigma ~ z + (1 | p | id) + (1 | q | site)
+    ),
+    family = gaussian(),
+    data = dat,
+    control = list(eval.max = 500, iter.max = 500)
+  )
+  chk <- check_drm(fit)
+  group_cov <- chk[chk$check == "mu_sigma_random_effect_covariance", ]
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(nrow(group_cov), 2L)
+  expect_match(group_cov$value[[1L]], "term=\\(1 \\| p \\| id\\)")
+  expect_match(group_cov$value[[1L]], "n_groups=14")
+  expect_match(group_cov$value[[2L]], "term=\\(1 \\| q \\| site\\)")
+  expect_match(group_cov$value[[2L]], "n_groups=7")
+  expect_false(any(grepl("complex", group_cov$message, fixed = TRUE)))
 })
 
 test_that("check_drm() reports bivariate mu random-effect covariance diagnostics", {
