@@ -2588,6 +2588,14 @@ validate_summary_trace <- function(trace) {
 drm_summary_coefficients <- function(object) {
   labels <- coefficient_labels(object)
   est <- unlist(object$coefficients, use.names = FALSE)
+  if (length(est) == 0L) {
+    return(data.frame(
+      estimate = numeric(),
+      std_error = numeric(),
+      row.names = character(),
+      check.names = FALSE
+    ))
+  }
   vcov <- tryCatch(stats::vcov(object), error = function(e) e)
   if (inherits(vcov, "error")) {
     out <- data.frame(
@@ -3061,13 +3069,14 @@ drm_summary_add_coefficient_ci <- function(
   method,
   unavailable_status = "not_requested"
 ) {
-  coefficients$conf.low <- NA_real_
-  coefficients$conf.high <- NA_real_
-  coefficients$conf.level <- level
-  coefficients$conf.method <- method
-  coefficients$conf.status <- unavailable_status
-  coefficients$profile.boundary <- NA
-  coefficients$profile.message <- NA_character_
+  n <- nrow(coefficients)
+  coefficients$conf.low <- rep(NA_real_, n)
+  coefficients$conf.high <- rep(NA_real_, n)
+  coefficients$conf.level <- rep(level, n)
+  coefficients$conf.method <- rep(method, n)
+  coefficients$conf.status <- rep(unavailable_status, n)
+  coefficients$profile.boundary <- rep(NA, n)
+  coefficients$profile.message <- rep(NA_character_, n)
   if (is.null(ci) || nrow(ci) == 0L) {
     return(coefficients)
   }
@@ -3097,16 +3106,17 @@ drm_summary_add_coefficient_ci <- function(
 }
 
 drm_summary_add_parameter_ci <- function(parameters, ci, level, method) {
-  parameters$conf.low <- NA_real_
-  parameters$conf.high <- NA_real_
-  parameters$conf.level <- level
-  parameters$conf.method <- method
+  n <- nrow(parameters)
+  parameters$conf.low <- rep(NA_real_, n)
+  parameters$conf.high <- rep(NA_real_, n)
+  parameters$conf.level <- rep(level, n)
+  parameters$conf.method <- rep(method, n)
   parameters$conf.status <- summary_parameter_conf_status(
     parameters,
     method = method
   )
-  parameters$profile.boundary <- NA
-  parameters$profile.message <- NA_character_
+  parameters$profile.boundary <- rep(NA, n)
+  parameters$profile.message <- rep(NA_character_, n)
   if (nrow(parameters) == 0L || is.null(ci) || nrow(ci) == 0L) {
     return(parameters)
   }

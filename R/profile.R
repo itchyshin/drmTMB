@@ -618,6 +618,9 @@ drm_wald_confint <- function(object, parm, level) {
     parm,
     fixed_only = TRUE
   )
+  if (nrow(targets) == 0L) {
+    return(empty_confint_table(method = "wald"))
+  }
 
   estimates <- unlist(object$coefficients, use.names = FALSE)
   se <- sqrt(diag(stats::vcov(object)))
@@ -642,6 +645,24 @@ drm_wald_confint <- function(object, parm, level) {
   )
   row.names(out) <- NULL
   out
+}
+
+empty_confint_table <- function(method = character()) {
+  data.frame(
+    parm = character(),
+    level = numeric(),
+    lower = numeric(),
+    upper = numeric(),
+    scale = character(),
+    transformation = character(),
+    tmb_parameter = character(),
+    index = integer(),
+    method = rep(method, 0L),
+    conf.status = character(),
+    profile.boundary = logical(),
+    profile.message = character(),
+    stringsAsFactors = FALSE
+  )
 }
 
 drm_profile_target_confint <- function(
