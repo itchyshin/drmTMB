@@ -1135,6 +1135,10 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   random-effect scale model names such as `sd(id)`, with component
   `random-effect-sd-model`, row-label preservation, and marginal averaging over
   supplied direct-SD prediction rows.
+- Slice 155 pins the direct-SD prediction-grid helper chain. A grid over a
+  predictor such as `w` in `sd(id) ~ w` now has explicit coverage through
+  `prediction_grid()`, `predict_parameters(..., dpar = "sd(id)")`, and
+  `marginal_parameters(..., by = "w")`.
 - Add additional ggplot-oriented helpers only after the data contract is stable:
   location curves, scale/variance curves, residual `rho12` curves,
   `sd(group)` or `sd_phylo()` surfaces, `corpairs()` summaries, and eventually

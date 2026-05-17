@@ -14,6 +14,7 @@
 * Fixed-effect prediction matrices now reject non-finite numeric values such as `Inf` in required predictors before model-matrix construction.
 * Fixed-effect prediction matrices now reject `newdata` values that produce non-finite transformed-predictor columns, such as `log(size)` when `size = 0`, before returning a non-finite prediction.
 * `marginal_parameters()` and `predict_parameters()` now have explicit coverage for fitted random-effect scale model names such as `sd(id)`, returning the `random-effect-sd-model` component, preserving row labels in long prediction tables, and averaging supplied direct-SD rows in marginal summaries.
+* `prediction_grid()` now has explicit integration coverage for fitted direct-SD predictors: grids over predictors such as `w` in `sd(id) ~ w` can feed `predict_parameters(..., dpar = "sd(id)")` and `marginal_parameters(..., by = "w")`.
 * Random-effect scale predictions now accept character `newdata` values for fitted `sd(group)` factor levels and reject unknown levels with a predictor-specific error before random-effect scale model-matrix construction.
 * Random-effect scale predictions now have explicit boundary coverage for `newdata` containers: non-data-frame inputs error, while zero-row data frames return named length-zero numeric vectors on both link and response scales.
 * Random-effect scale predictions now have explicit coverage that multi-row `newdata` returns one value per supplied row, preserves `rownames(newdata)`, uses response scale by default, and matches `exp(link)` when compared with `type = "link"`.
