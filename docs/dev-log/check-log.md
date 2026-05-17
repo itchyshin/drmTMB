@@ -23592,3 +23592,42 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slice-208-meta-reader-examples.md`.
+
+## 2026-05-17 - Slice 209 Phase 18 simulation blueprint
+
+Goal: open Phase 18 with a written simulation-programme blueprint before adding
+simulation code or broad grids.
+
+Files changed:
+
+- `docs/design/41-phase-18-simulation-programme.md`
+- `ROADMAP.md`
+- `NEWS.md`
+- `docs/dev-log/after-task/2026-05-17-slice-209-phase-18-simulation-blueprint.md`
+
+What changed:
+
+- Added an ADEMP-style blueprint with aims, DGP surfaces, estimands, methods,
+  performance measures, MCSE requirements, implementation layout, and
+  Williams-style self-audit.
+- Named the first-wave surfaces eligible for comprehensive simulation and kept
+  blocked surfaces tied to the validation-debt register.
+- Proposed the next three implementation slices: `inst/sim/` skeleton,
+  Gaussian location-scale pilot, and Gaussian meta-analysis `meta_V(V = V)`
+  DGP.
+
+Checks run:
+
+- `air format docs/design/41-phase-18-simulation-programme.md ROADMAP.md NEWS.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-17-slice-209-phase-18-simulation-blueprint.md`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `git diff --check`
+- `rg -n 'ADEMP|Morris|Williams|MCSE|Slice 210|Phase 18 simulation' docs/design/41-phase-18-simulation-programme.md ROADMAP.md NEWS.md docs/dev-log/check-log.md`
+
+Known limitations:
+
+- This slice does not add simulation code, run simulation grids, choose
+  external comparators, or make coverage/power claims.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slice-209-phase-18-simulation-blueprint.md`.
