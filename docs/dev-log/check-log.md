@@ -20090,3 +20090,90 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-16-slice-139-emmeans-zi-nbinom-boundary.md`.
+
+## 2026-05-16 - Slice 140 emmeans interaction grid
+
+Goal: add positive coverage that ordinary fixed-effect `mu` interactions work
+on an explicit `emmeans()` reference grid.
+
+Roles:
+
+- Ada kept this as positive fixed-effect coverage after several boundary-only
+  slices.
+- Boole checked that the syntax is ordinary R formula interaction syntax, not a
+  new `emmeans` grammar.
+- Fisher checked that the estimand remains a conditional native-`mu` EMM at the
+  requested interaction design point.
+- Curie added the interaction parity test.
+- Pat checked that the docs distinguish interaction-grid EMMs from slopes.
+- Grace owned focused tests, pkgdown, rendered scans, and PR #99 monitoring.
+- Rose checked that the wording does not imply slope estimation or a new
+  marginalisation contract.
+- Gauss, Noether, Darwin, Jason, and Emmy stayed watch-only because no
+  likelihood, equation, biological example, landscape claim, or object
+  structure changed.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/39-visualization-grammar.md`
+- `docs/design/40-emmeans-interface-contract.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-16-slice-140-emmeans-interaction-grid.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-16-224815-codex-checkpoint.md`
+- `tests/testthat/test-emmeans-methods.R`
+
+What changed:
+
+- Added a Gaussian fixed-effect `mu` test for `bf(y ~ habitat * x, sigma ~ 1)`.
+- The test checks `emmeans(fit, ~ habitat, at = list(x = 0.4))` against
+  `predict(dpar = "mu")` on the same interaction grid.
+- Updated NEWS, roadmap, and design notes to state this as interaction-grid
+  parity, not slope support or a new marginalisation contract.
+
+Checks run:
+
+- No-edit scout:
+  `emmeans()` on a Gaussian `habitat * x` fit matched `predict(dpar = "mu")`
+  exactly at `x = 0.4`.
+- `air format NEWS.md ROADMAP.md docs/design/39-visualization-grammar.md docs/design/40-emmeans-interface-contract.md tests/testthat/test-emmeans-methods.R`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'emmeans-methods', reporter = 'summary')"`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'emmeans-methods|emmeans-recover-data|emmeans-preflight|fixed-effect-basis|reference-grid-link-scale-contract', reporter = 'summary')"`:
+  passed.
+- `git diff --check`: passed.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed.
+- Positive source/rendered scan for Slice 140 interaction-grid wording and test
+  evidence: found the expected entries.
+- Stale-claim scan for slopes or new marginalisation from interaction wording:
+  no false support claims; the only match was the intentional design note that
+  this is not slope estimation or a new marginalisation contract.
+- Upstream Slice 134 PR #99 merged with squash commit
+  `4a10206ce2444b77dcd40e71fc20019b2b25c01b`; the remaining local stack needs
+  rebasing before the next PR.
+- Recovery checkpoint:
+  `docs/dev-log/recovery-checkpoints/2026-05-16-224815-codex-checkpoint.md`.
+
+Post-rebase checks:
+
+- PR #104 merged as `aaa6c673fce40d2625245ec9c281adbc35385b19`.
+- `git rebase --onto origin/main f6abdf561b1ba701c6ddd7a907ddd6534f078a4f`:
+  passed.
+- `git diff --check origin/main...HEAD`: passed.
+- `Rscript -e "devtools::test(filter = 'emmeans-methods|emmeans-recover-data|emmeans-preflight|fixed-effect-basis|reference-grid-link-scale-contract', reporter = 'summary')"`:
+  passed.
+
+Known limitations:
+
+- This slice covers ordinary fixed-effect interactions for fixed-effect
+  univariate `mu` only.
+- It does not add slope estimation, non-`mu` targets, transformed responses,
+  empirical marginalisation, random-effect workflows, or blocked model
+  structures.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-16-slice-140-emmeans-interaction-grid.md`.

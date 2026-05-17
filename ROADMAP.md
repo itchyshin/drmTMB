@@ -1075,6 +1075,10 @@ remain blocked by future covariance or non-Gaussian random-effect work.
 - Slice 139 extends the public zero-inflated `emmeans()` boundary to NB2.
   Zero-inflated NB2 fits now error as unsupported `"zi_nbinom2"` fits before
   returning an `emmGrid`, matching the zero-inflated Poisson boundary.
+- Slice 140 adds interaction-formula coverage for the fixed-effect univariate
+  `mu` `emmeans()` bridge. A Gaussian `habitat * x` fit now checks that
+  conditional EMMs at an explicit `x` value match `predict(dpar = "mu")` on the
+  same interaction grid.
 - Add additional ggplot-oriented helpers only after the data contract is stable:
   location curves, scale/variance curves, residual `rho12` curves,
   `sd(group)` or `sd_phylo()` surfaces, `corpairs()` summaries, and eventually
