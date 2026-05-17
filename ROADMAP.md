@@ -1021,6 +1021,11 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   `predict(dpar = "mu")` on link and response scales, without widening support
   to non-`mu`, random-effect, bivariate, zero-inflated, hurdle, ordinal, slope,
   or fitted-response targets.
+- Slice 128 adds transformed-predictor recovery coverage for the same first
+  `emmeans()` bridge. A Gaussian fixed-effect `mu` model with `log(size)` now
+  checks that `emmeans(..., at = list(size = 1.5))` matches
+  `predict(dpar = "mu")`, and the recover-data preflight confirms that raw
+  source variables for transformed predictors are restored from stored data.
 - Add additional ggplot-oriented helpers only after the data contract is stable:
   location curves, scale/variance curves, residual `rho12` curves,
   `sd(group)` or `sd_phylo()` surfaces, `corpairs()` summaries, and eventually

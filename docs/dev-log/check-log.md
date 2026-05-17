@@ -19075,3 +19075,88 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-16-slice-127-emmeans-offset-contract.md`.
+
+## 2026-05-16 - Slice 128 emmeans transformed-predictor recovery
+
+Goal: extend the Slice 127 recover-data evidence from offsets to ordinary
+transformed predictors, using `log(size)` as the first fixed-effect univariate
+`mu` test case.
+
+Roles:
+
+- Ada kept the slice separate from the Slice 127 code fix so PR review can
+  distinguish implementation from added coverage.
+- Boole checked that this remains ordinary R formula syntax and does not change
+  formula grammar.
+- Fisher checked that the target remains native fixed-effect `mu` EMMs on the
+  same reference grid as `predict(dpar = "mu")`.
+- Curie added the public transformed-predictor parity test and the recover-data
+  preflight regression test.
+- Pat checked the reader path for a body-size-like covariate supplied through
+  `at = list(size = 1.5)`.
+- Grace owned focused tests, pkgdown, and stale-claim scans.
+- Rose checked that the docs do not turn this into transformed-response, slope,
+  or custom-weight support.
+- Gauss, Noether, Darwin, Jason, and Emmy stayed watch-only because no
+  likelihood, equation, biological example, landscape claim, or object
+  structure changed.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/39-visualization-grammar.md`
+- `docs/design/40-emmeans-interface-contract.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-16-slice-128-emmeans-transformed-predictor.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-16-211819-codex-checkpoint.md`
+- `tests/testthat/test-emmeans-methods.R`
+- `tests/testthat/test-emmeans-recover-data.R`
+
+What changed:
+
+- Added a public `emmeans()` parity test for a Gaussian fixed-effect `mu` model
+  with `log(size)`, checking that EMMs at `size = 1.5` match
+  `predict(dpar = "mu")` on link and response scales.
+- Added a recover-data preflight test confirming that raw source variables for
+  transformed predictors, here `size`, are restored from stored data.
+- Updated NEWS, roadmap, and design notes to make transformed-predictor recovery
+  visible while keeping the support boundary fixed-effect univariate `mu` only.
+
+Checks run:
+
+- `air format NEWS.md ROADMAP.md docs/design/39-visualization-grammar.md docs/design/40-emmeans-interface-contract.md tests/testthat/test-emmeans-methods.R tests/testthat/test-emmeans-recover-data.R`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'emmeans-methods|emmeans-recover-data', reporter = 'summary')"`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'emmeans-methods|emmeans-recover-data|emmeans-preflight|fixed-effect-basis|reference-grid-link-scale-contract', reporter = 'summary')"`:
+  passed.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed.
+- Positive source/rendered scan for Slice 128 transformed-predictor wording and
+  tests: found the expected entries.
+- Stale-claim scan for transformed predictors as unsupported or planned in the
+  `emmeans` contract: no matches.
+- `git diff --check`: passed.
+- Recovery checkpoint:
+  `docs/dev-log/recovery-checkpoints/2026-05-16-211819-codex-checkpoint.md`.
+
+Post-rebase checks:
+
+- PR #92 merged as `f52b692f6a53925336286e723022bd3184400fec`.
+- `git rebase --onto origin/main 8d98ae1c6897c47d1e9c3cd44ac0fa5cba87d7e5`:
+  passed.
+- `git diff --check origin/main...HEAD`: passed.
+- `Rscript -e "devtools::test(filter = 'emmeans-methods|emmeans-recover-data|emmeans-preflight|fixed-effect-basis|reference-grid-link-scale-contract', reporter = 'summary')"`:
+  passed.
+
+Known limitations:
+
+- This slice adds coverage only; the recover-data implementation came from
+  Slice 127.
+- It does not add transformed-response EMMs, slopes, custom weights, non-`mu`
+  targets, or blocked model structures.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-16-slice-128-emmeans-transformed-predictor.md`.
