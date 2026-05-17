@@ -19410,3 +19410,89 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-16-slice-131-emmeans-covreduce-median.md`.
+
+## 2026-05-16 - Slice 132 emmeans unreduced covariate grid
+
+Goal: add explicit coverage for `cov.reduce = FALSE` in the first fixed-effect
+univariate `mu` `emmeans()` bridge.
+
+Roles:
+
+- Ada kept this as a test/docs slice stacked after custom median covariate
+  reduction.
+- Boole checked that `cov.reduce = FALSE` is described as an `emmeans`
+  reference-grid choice, not a drmTMB syntax extension.
+- Fisher checked that the estimand is the average over grid-level native `mu`
+  predictions.
+- Curie added the unreduced numeric-covariate parity test.
+- Pat checked that the docs distinguish grid averaging from row-wise empirical
+  marginalisation.
+- Grace owned focused tests, pkgdown, and rendered wording scans.
+- Rose checked that the slice does not imply custom weights or empirical
+  averaging are now implemented through `emmeans`.
+- Gauss, Noether, Darwin, Jason, and Emmy stayed watch-only because no
+  likelihood, equation, biological example, landscape claim, or object
+  structure changed.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/39-visualization-grammar.md`
+- `docs/design/40-emmeans-interface-contract.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-16-slice-132-emmeans-covreduce-false.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-16-215050-codex-checkpoint.md`
+- `tests/testthat/test-emmeans-methods.R`
+
+What changed:
+
+- Added a public Gaussian fixed-effect `mu` test with three observed numeric
+  `x` levels.
+- The test checks that `emmeans(..., cov.reduce = FALSE)` matches
+  `predict(dpar = "mu")` averaged over the same unreduced `x` levels in the
+  reference grid.
+- Updated NEWS, roadmap, and design notes to keep unreduced-grid averaging
+  distinct from drmTMB row-wise empirical marginalisation.
+
+Checks run:
+
+- No-edit scout:
+  `emmeans(..., cov.reduce = FALSE)` matched the mean of
+  `predict(dpar = "mu")` over the unreduced observed `x` levels.
+- `air format NEWS.md ROADMAP.md docs/design/39-visualization-grammar.md docs/design/40-emmeans-interface-contract.md tests/testthat/test-emmeans-methods.R`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'emmeans-methods', reporter = 'summary')"`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'emmeans-methods|emmeans-recover-data|emmeans-preflight|fixed-effect-basis|reference-grid-link-scale-contract', reporter = 'summary')"`:
+  passed.
+- `git diff --check`: passed.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed.
+- Positive source/rendered scan for Slice 132 `cov.reduce = FALSE` wording and
+  tests: found the expected entries.
+- Stale-claim scan for `cov.reduce = FALSE` as unsupported, row-wise empirical
+  averaging as implemented, or custom weights as implemented: no matches.
+- Recovery checkpoint:
+  `docs/dev-log/recovery-checkpoints/2026-05-16-215050-codex-checkpoint.md`.
+
+Post-rebase checks:
+
+- PR #96 merged as `e468ba44cae3623c3bbc7c7e0e81e39c8c60920d`.
+- `git rebase --onto origin/main e8b3b0e6649c7890d244119d63897c705b23ee07`:
+  passed.
+- `git diff --check origin/main...HEAD`: passed.
+- `Rscript -e "devtools::test(filter = 'emmeans-methods|emmeans-recover-data|emmeans-preflight|fixed-effect-basis|reference-grid-link-scale-contract', reporter = 'summary')"`:
+  passed.
+
+Known limitations:
+
+- This slice covers unreduced numeric covariate levels for fixed-effect
+  univariate `mu` only.
+- It does not add custom weights, row-wise empirical marginalisation through
+  `emmeans`, slopes, non-`mu` targets, transformed responses, or blocked model
+  structures.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-16-slice-132-emmeans-covreduce-false.md`.

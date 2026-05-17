@@ -253,6 +253,12 @@ fixed-effect `mu` model checks that
 `median(x)`. This records ordinary `emmeans` reference-grid behaviour and does
 not add drmTMB-specific empirical averaging or custom weights.
 
+Slice 132 adds unreduced numeric covariate-grid coverage. A Gaussian
+fixed-effect `mu` model checks that `emmeans(..., cov.reduce = FALSE)` matches
+`predict(dpar = "mu")` averaged over the observed `x` levels in the
+`emmeans` reference grid. This is still grid-based `emmeans` behaviour, not
+drmTMB row-wise empirical marginalisation.
+
 Slice 102 adds the first article-level empirical-grid example. The
 model-workflow article now shows a conditioned grid for direct
 `predict_parameters()` rows and a separate empirical grid for

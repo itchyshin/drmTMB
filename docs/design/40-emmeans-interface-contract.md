@@ -251,3 +251,9 @@ fixed-effect `mu` model verifies that
 `emmeans(..., cov.reduce = stats::median)` matches `predict(dpar = "mu")` at
 `median(x)`. This is ordinary `emmeans` reference-grid behaviour, not a
 drmTMB-specific empirical-averaging or custom-weighting contract.
+
+Slice 132 adds unreduced numeric covariate-grid coverage. A Gaussian
+fixed-effect `mu` model verifies that `emmeans(..., cov.reduce = FALSE)`
+matches `predict(dpar = "mu")` averaged over the observed `x` levels in the
+`emmeans` reference grid. This is grid averaging by `emmeans`, not
+drmTMB-specific row-wise empirical marginalisation.
