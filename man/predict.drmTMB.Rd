@@ -10,7 +10,10 @@
 \item{object}{A \code{drmTMB} fit.}
 
 \item{newdata}{Optional data frame for prediction. If omitted, fitted rows
-are used.}
+are used. When supplied, \code{newdata} must include the predictors used by the
+requested \code{dpar}; required predictor values must be complete, required
+numeric predictors must be finite, and factor predictors must use fitted
+levels.}
 
 \item{dpar}{Distributional parameter to predict. If \code{NULL}, the first
 fitted distributional parameter is used.}

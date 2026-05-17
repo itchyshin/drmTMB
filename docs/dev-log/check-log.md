@@ -20563,3 +20563,64 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slice-145-finite-newdata-predictors.md`.
+
+## 2026-05-17 - Slice 146 predict newdata reference docs
+
+Goal: make the `predict.drmTMB()` reference documentation state the validation
+contract added by Slices 143-145.
+
+Roles:
+
+- Ada opened this as a documentation consolidation slice after the prediction
+  `newdata` validation work landed.
+- Boole checked that the wording follows the existing `predict()` argument
+  contract.
+- Pat checked that the parameter text tells users what to supply next.
+- Grace owned roxygen regeneration and documentation checks.
+- Rose checked that this is documentation only and does not claim new estimands
+  or `emmeans` support.
+- Fisher, Curie, Gauss, Noether, Darwin, Jason, and Emmy stayed watch-only
+  because no statistical target, test logic, likelihood, equation, biological
+  example, landscape claim, or object structure changed.
+
+Files changed:
+
+- `R/methods.R`
+- `man/predict.drmTMB.Rd`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-17-slice-146-predict-newdata-docs.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-17-010455-codex-checkpoint.md`
+
+What changed:
+
+- The `newdata` argument for `predict.drmTMB()` now says supplied prediction
+  data must include predictors used by the requested `dpar`, have complete
+  required predictor values, have finite required numeric predictors, and use
+  fitted levels for factor predictors.
+- `devtools::document()` regenerated `man/predict.drmTMB.Rd`.
+
+Checks run:
+
+- `air format R/methods.R`: passed.
+- `Rscript -e "devtools::document()"`: passed and rewrote
+  `man/predict.drmTMB.Rd`.
+- `git diff --check`: passed.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed.
+- Positive source/rendered scan for the new `predict.drmTMB()` `newdata`
+  wording: found the expected entries in roxygen, Rd, after-task notes, and
+  rendered pkgdown reference.
+- Stale-claim scan for accidental new-support language: no matches.
+- Recovery checkpoint:
+  `docs/dev-log/recovery-checkpoints/2026-05-17-010455-codex-checkpoint.md`.
+
+Known limitations:
+
+- This slice changes reference documentation only.
+- It does not add new prediction behaviour, new estimands, non-`mu` `emmeans`
+  support, transformed responses, empirical marginalisation, random-effect
+  workflows, or blocked model structures.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slice-146-predict-newdata-docs.md`.
