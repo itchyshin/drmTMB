@@ -209,15 +209,78 @@ Profile-likelihood 95% confidence intervals are available for selected direct
 targets such as constant `sigma`, random-effect SDs, random-effect
 correlations, and constant residual `rho12`. Fixed effects keep Wald
 confidence intervals in the same profile summary unless fixed-effect profile
-targets are selected:
+targets are selected. For example, `fit_site` has `sigma ~ 1`, so its residual
+standard deviation is a direct fitted-object target:
 
 ```{r, eval = FALSE}
-summary(fit, conf.int = TRUE, method = "profile", ci_parm = "sigma")
+summary(fit_site, conf.int = TRUE, method = "profile", ci_parm = "sigma")
+```
+
+For the first model in this article, `sigma` depends on `temperature`. There is
+no single response-scale `sigma` target until you name the covariate row you
+want to profile:
+
+```{r, eval = FALSE}
+sigma_grid <- data.frame(
+  temperature = c(-1, 1),
+  habitat = factor("reef", levels = levels(fish$habitat))
+)
+row.names(sigma_grid) <- c("cool_reef", "warm_reef")
+
+confint(fit, parm = "sigma", method = "profile", newdata = sigma_grid)
+```
+
+The same row-specific rule applies to bivariate Gaussian scale and residual
+correlation models. In a two-response fit with `sigma1 ~ z1`, `sigma2 ~ z2`,
+and `rho12 ~ w`, profile the biologically meaningful rows directly:
+
+```{r, eval = FALSE}
+biv_grid <- data.frame(
+  x = 0,
+  z1 = c(-1, 1),
+  z2 = c(1, -1),
+  w = c(-0.5, 0.5)
+)
+row.names(biv_grid) <- c("cool_low_coupling", "warm_high_coupling")
+
+confint(fit_biv, parm = "sigma1", method = "profile", newdata = biv_grid)
+confint(fit_biv, parm = "sigma2", method = "profile", newdata = biv_grid)
+confint(fit_biv, parm = "rho12", method = "profile", newdata = biv_grid)
+```
+
+For random-effect SDs and correlations, copy the exact target name from
+`profile_targets()`. Random-slope terms keep the coefficient suffix in the
+target name, and residual `rho12` remains separate from group-level or
+phylogenetic correlation rows:
+
+```{r, eval = FALSE}
+profile_targets(fit_slope)
+
+summary(
+  fit_slope,
+  conf.int = TRUE,
+  method = "profile",
+  ci_parm = "sd:mu:(1 + temperature | p | site):temperature"
+)
+summary(
+  fit_slope,
+  conf.int = TRUE,
+  method = "profile",
+  ci_parm = "cor:mu:cor((Intercept),temperature | p | site)"
+)
+summary(
+  fit_biv_group,
+  conf.int = TRUE,
+  method = "profile",
+  ci_parm = "cor:mu:cor(mu1:(Intercept),mu2:(Intercept) | p | id)"
+)
 ```
 
 Use the profile call when a report needs fixed-effect confidence intervals and
 profile-likelihood intervals for variance components, SDs, or correlations in
-one summary.
+one summary. Successful profile rows also include `profile.boundary` and
+`profile.message`; values other than `"ok"` tell you to check boundary or
+near-correlation-limit behaviour before interpreting the interval.
 
 Use `profile_targets(fit)` before asking for a profile interval. A row is
 profile-ready only when it maps to a direct TMB target and the fitted object
@@ -225,9 +288,7 @@ kept its TMB object. Interval-aware output uses `conf.status` to explain rows
 without intervals: `newdata_required` means profile a supplied row with
 `confint(..., newdata = ...)`, while `derived_interval_unavailable` means the
 point estimate combines several quantities and needs a later derived-profile
-method. Successful profile rows also include `profile.boundary` and
-`profile.message`; values other than `"ok"` tell you to check boundary or
-near-correlation-limit behaviour before interpreting the interval.
+method.
 
 Read `conf.status` as an action column:
 

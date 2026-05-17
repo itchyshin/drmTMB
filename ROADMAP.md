@@ -404,6 +404,11 @@ Phase 5 closure boundary:
   row-specific route is now covered for `sigma1`, `sigma2`, and fitted q=2
   ordinary or phylogenetic `corpair()` values; ambiguous `newdata` requests are
   rejected before profile optimization.
+- The model-workflow article now shows the profile-example boundary directly:
+  constant `sigma` uses a fitted-object target, predictor-dependent `sigma`,
+  `sigma1`, `sigma2`, and `rho12` use supplied `newdata` rows, and
+  random-effect SD/correlation examples copy exact target names from
+  `profile_targets()`.
 - Direct covariance profile intervals are implemented for the first univariate
   `mu`/`sigma` random-intercept correlation target, the first bivariate
   `mu1`/`mu2` random-intercept correlation target, and the first bivariate
@@ -1237,10 +1242,10 @@ remain blocked by future covariance or non-Gaussian random-effect work.
 | 162 | Confidence bands | Tighten `conf.level` examples and interval-status display conventions. |
 | 163 | Confidence bands | Gate the confidence-band docs with render, pkgdown, and stale-wording checks. |
 | 164 | Profile intervals | Refresh the profile-target inventory for fixed effects, SDs, correlations, and row-specific parameters. |
-| 165 | Profile intervals | Pin `newdata` profile examples for row-specific `sigma`, `sigma1`, `sigma2`, and `rho12`. |
-| 166 | Profile intervals | Strengthen direct `sigma` profile examples and boundary messaging. |
-| 167 | Profile intervals | Strengthen random-effect SD profile examples where direct targets exist. |
-| 168 | Profile intervals | Strengthen random-effect and residual correlation profile examples where direct targets exist. |
+| 165 | Profile intervals | Done: the workflow and profile-CI design notes now pin `newdata` examples for row-specific `sigma`, `sigma1`, `sigma2`, and `rho12`. |
+| 166 | Profile intervals | Done: direct constant-`sigma` examples are separated from predictor-dependent scale profiles, with `profile.boundary` and `profile.message` interpretation kept visible. |
+| 167 | Profile intervals | Done: direct random-effect SD examples now point users to exact `profile_targets()` names, including random-slope suffixes. |
+| 168 | Profile intervals | Done: random-effect correlation examples now stay separate from residual `rho12`, with direct targets gated by `profile_targets()`. |
 | 169 | Derived intervals | Mark q=4 derived correlation and covariance-product interval boundaries explicitly. |
 | 170 | Bootstrap intervals | Audit parametric-bootstrap feasibility, runtime, and target ordering before coding. |
 | 171 | Bootstrap intervals | Prototype a narrow parametric-bootstrap interval contract if the audit passes. |
