@@ -20624,3 +20624,91 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slice-146-predict-newdata-docs.md`.
+
+## 2026-05-17 - Slice 147 finite transformed-predictor newdata guard
+
+Goal: reject `newdata` rows that evaluate to non-finite fixed-effect design
+matrix values after transformed predictor terms are processed.
+
+Roles:
+
+- Ada scoped this as the next prediction-validation slice after Slice 146
+  merged.
+- Boole checked that the public contract stays inside ordinary formula syntax
+  and `newdata` validation.
+- Pat checked that the error names the affected model column and tells users
+  what kind of input to fix.
+- Curie owned the failing transformed-predictor regression test.
+- Grace owned roxygen, pkgdown, and rendered-site validation.
+- Rose checked that the wording does not imply transformed-response,
+  non-`mu`, random-effect, bivariate, or broader `emmeans` support.
+- Fisher, Gauss, Noether, Darwin, Jason, and Emmy stayed watch-only because no
+  statistical estimand, likelihood, equation, biological example, landscape
+  claim, or object structure changed.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `R/methods.R`
+- `docs/design/40-emmeans-interface-contract.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-17-slice-147-finite-transformed-predictors.md`
+- `man/predict.drmTMB.Rd`
+- `tests/testthat/test-fixed-effect-basis.R`
+
+What changed:
+
+- `drm_fixed_effect_basis()` now validates the fixed-effect prediction design
+  matrix after formula evaluation when `newdata` is supplied.
+- The validation names non-finite sparse-matrix columns without densifying the
+  matrix.
+- `predict()` requests such as a model with `log(size)` and `newdata` containing
+  `size = 0` now error with the affected model column named instead of
+  returning `-Inf`.
+- The `predict.drmTMB()` reference documentation now states that transformed
+  predictor terms must evaluate to finite design-matrix values.
+
+Checks run:
+
+- No-edit scout before the fix:
+  `predict()` on a Gaussian `y ~ log(size) + habitat` fit with `size = 0`
+  returned `-Inf`.
+- `Rscript -e "devtools::test(filter = 'fixed-effect-basis', reporter = 'summary')"`:
+  passed before and after formatting/roxygen regeneration.
+- A sparse-matrix unit check confirmed the internal term-name helper reports
+  `log(size)` without needing a dense matrix conversion.
+- Post-fix scout of the same `predict()` call: errored with
+  `non-finite design-matrix value` and named `log(size)`.
+- `air format NEWS.md ROADMAP.md R/methods.R docs/design/40-emmeans-interface-contract.md tests/testthat/test-fixed-effect-basis.R`:
+  passed.
+- `Rscript -e "devtools::document()"`: passed and rewrote
+  `man/predict.drmTMB.Rd`.
+- `Rscript -e "devtools::test(filter = 'emmeans-methods|emmeans-recover-data|emmeans-preflight|fixed-effect-basis|reference-grid-link-scale-contract', reporter = 'summary')"`:
+  passed.
+- `git diff --check`: passed.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed.
+- Positive source/rendered scan for Slice 147 transformed-predictor wording:
+  found the expected entries in `NEWS.md`, `ROADMAP.md`, `R/methods.R`,
+  `man/predict.drmTMB.Rd`, `docs/design/40-emmeans-interface-contract.md`,
+  `tests/testthat/test-fixed-effect-basis.R`, and rendered pkgdown pages.
+- Stale-claim scan for accidental transformed-response, ordinal-response,
+  bivariate, non-`mu`, random-effect, empirical-marginalisation, or
+  custom-weight `emmeans` support: no new false support claims; matches were
+  existing intentional boundary text or unrelated implemented bivariate
+  features.
+- Recovery checkpoint:
+  `docs/dev-log/recovery-checkpoints/2026-05-17-012249-codex-checkpoint.md`.
+
+Known limitations:
+
+- This slice validates fixed-effect prediction design matrices when `newdata`
+  is supplied.
+- It does not add transformed-response `emmeans` support, non-`mu` `emmeans`
+  support, empirical marginalisation, random-effect workflows, bivariate
+  `emmeans`, or blocked model structures.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slice-147-finite-transformed-predictors.md`.
