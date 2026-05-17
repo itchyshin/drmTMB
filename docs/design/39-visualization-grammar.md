@@ -303,6 +303,12 @@ is still an explicit-table example rather than a fitted biological workflow; the
 workflow article should wait until the correlation example can show the fitted
 model, table, plot, and interpretation together.
 
+Slice 116 adds that first fitted workflow in the bivariate-coscale tutorial. The
+example fits a repeated-individual model, stores `corpairs(fit_group)` as an
+explicit table, and calls `plot_corpairs(pair_table, facet = "level")` so
+residual `rho12` and group-level random-intercept correlation rows stay
+separate.
+
 Slice 108 confirms the pkgdown reference-page contract. Exported plotting
 functions belong in the `Visualization` reference section, and only exported,
 documented, tested helpers should appear there. At that slice boundary,
@@ -327,8 +333,5 @@ idea is tidy long data for uncertainty, not Bayesian model support.
 
 ## Near-Term Slice Order
 
-1. Add a biological `plot_corpairs()` workflow only after fitted correlation
-   rows and interval status are stable enough to show model, table, plot, and
-   interpretation together.
-2. Revisit `emmeans` compatibility only after the reference-grid and link-scale
+1. Revisit `emmeans` compatibility only after the reference-grid and link-scale
    contract is tested across the implemented families.

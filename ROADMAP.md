@@ -954,6 +954,9 @@ remain blocked by future covariance or non-Gaussian random-effect work.
 - Slice 115 adds the first `facet = "level"` Reference example for
   `plot_corpairs()`, keeping the example table explicit while making the layer
   separation option visible to readers.
+- Slice 116 adds a fitted bivariate-coscale tutorial path where `corpairs()`
+  feeds `plot_corpairs(..., facet = "level")`, visually separating residual
+  `rho12` from group-level random-intercept correlation rows.
 - Add additional ggplot-oriented helpers only after the data contract is stable:
   location curves, scale/variance curves, residual `rho12` curves,
   `sd(group)` or `sd_phylo()` surfaces, `corpairs()` summaries, and eventually
