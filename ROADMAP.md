@@ -1377,7 +1377,7 @@ making the public grammar and examples match the preferred long-term name.
 | Slice | Lane | Target |
 | --- | --- | --- |
 | 203 | Meta-analysis return map | Done locally: record the post-202 return block, keep broad Phase 18 closed, and make `meta_V()`/known-`V` hardening the first Phase 17 target. |
-| 204 | `meta_V()` API decision | Decide and document whether `meta_V(V = V)` becomes the preferred public spelling now, with `meta_known_V(V = V)` retained as a compatibility alias. |
+| 204 | `meta_V()` API decision | Done locally: `meta_V(V = V)` is the preferred future additive known-covariance spelling, the marker should not take a positional response/value argument, and `meta_known_V(V = V)` should become a compatibility alias rather than a separate likelihood path. |
 | 205 | Additive known `V` implementation | If Slice 204 passes, implement `meta_V(V = vi_or_V)` for vector, column, diagonal, block-diagonal, and dense matrix inputs by routing to the existing additive known-covariance path. |
 | 206 | Proportional sampling-variance boundary | Keep `meta_V(w = w, scale = "proportional")` design-only unless its likelihood, parameters, diagnostics, and examples are explicitly implemented. Do not mimic it with top-level `weights =`. |
 | 207 | Meta-analysis interval safety | Recheck summary, Wald intervals, profile targets, dense `V` diagnostics, random effects, and bivariate known-`V` boundaries so confidence intervals do not silently drop or overclaim rows. |
