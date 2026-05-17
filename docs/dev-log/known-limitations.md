@@ -177,9 +177,10 @@
   Zero-inflated Poisson models are implemented by
   adding `zi ~ predictors`; here `mu` is the conditional count mean and `zi` is
   the structural-zero probability, but `zi` random effects and `mu` random
-  effects in the zero-inflated route remain planned. There is no modelled
-  `sigma` parameter. Overdispersion, correlated Poisson slope blocks, labelled
-  Poisson covariance blocks, known sampling covariance, phylogenetic terms, and
+  effects in the zero-inflated route remain planned and now error with
+  zero-inflation-specific boundary messages. There is no modelled `sigma`
+  parameter. Overdispersion, correlated Poisson slope blocks, labelled Poisson
+  covariance blocks, known sampling covariance, phylogenetic terms, and
   bivariate or mixed Poisson models are not yet implemented.
 - Fixed-effect univariate negative-binomial 2 mean-dispersion models are
   implemented for overdispersed counts with `family = nbinom2()`. `mu` is the
@@ -194,8 +195,12 @@
   `fitted()` returns the conditional positive-count mean. Hurdle NB2 models
   are implemented by adding `hu ~ predictors`; `hu` is the hurdle-zero
   probability and nonzero counts come from the zero-truncated NB2 component.
-  `sigma` random effects, known sampling covariance, phylogenetic terms, and
-  bivariate or mixed negative-binomial models are not yet implemented.
+  Random effects in `zi`, `hu`, or the count-side `mu` path of zero-inflated
+  or hurdle models are not implemented yet, and cross-parameter covariance
+  among count, dispersion, inflation, hurdle, or shape random effects remains
+  future work. `sigma` random effects, known sampling covariance, phylogenetic
+  terms, and bivariate or mixed negative-binomial models are not yet
+  implemented.
 - Fixed-effect univariate cumulative-logit ordinal models are implemented for
   ordered responses with `family = cumulative_logit()`. The first path supports
   only a `mu` location formula, ordered cutpoints, and a fixed latent logistic
@@ -210,7 +215,9 @@
   beta-binomial models, or successes/trials response alias. Zero-one-inflated
   bounded-response models for percentage or proportion data are planned:
   fixed-effect `zoi` and `coi` likelihoods should come before random effects
-  or covariance among bounded-response distributional parameters.
+  or covariance among bounded-response distributional parameters, and current
+  `zoi`/`coi` formulas error with fixed-effect-first or random-effect boundary
+  messages.
 - Intercept-only phylogenetic random effects are implemented in univariate
   Gaussian `mu` formulas and matching bivariate Gaussian `mu1`/`mu2` formulas
   as `phylo(1 | species, tree = tree)`. The tree must be an ultrametric

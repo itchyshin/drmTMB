@@ -228,6 +228,22 @@ test_that("beta-binomial rejects malformed and unsupported inputs", {
   )
   expect_error(
     drmTMB(
+      bf(cbind(success, failure) ~ x, zoi ~ x, coi ~ 1),
+      family = beta_binomial(),
+      data = dat
+    ),
+    "Zero-one-inflated bounded-response likelihoods"
+  )
+  expect_error(
+    drmTMB(
+      bf(cbind(success, failure) ~ x, coi ~ x + (1 | id)),
+      family = beta_binomial(),
+      data = dat
+    ),
+    "Zero-one-inflated bounded-response random effects"
+  )
+  expect_error(
+    drmTMB(
       bf(cbind(success, failure) ~ x + (1 | id), sigma ~ 1),
       family = beta_binomial(),
       data = dat

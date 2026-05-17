@@ -343,7 +343,8 @@ Do not teach the following as fitted proportion examples yet:
 - `phylo()` or `spatial()` bounded-response models;
 - bivariate or mixed-response bounded models such as
   `family = c(beta(), gaussian())`;
-- zero-one-inflated beta, ordered beta, or beta-binomial zero-inflation;
+- zero-one-inflated beta, ordered beta, or beta-binomial zero-inflation; fixed
+  `zoi` and `coi` likelihoods should come before their random effects;
 - denominator shorthand such as `successes / trials` as a replacement for
   `cbind(successes, failures)`.
 

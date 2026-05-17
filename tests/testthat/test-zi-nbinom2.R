@@ -10,7 +10,7 @@ new_zi_nbinom2_data <- function(n = 1800, seed = 20260613) {
   beta_sigma <- c(`(Intercept)` = -0.75, z = 0.20)
   beta_zi <- c(`(Intercept)` = -1.15, w = 0.45, habitatopen = -0.35)
   X_mu <- stats::model.matrix(~ x + habitat, dat)
-  X_sigma <- stats::model.matrix(~ z, dat)
+  X_sigma <- stats::model.matrix(~z, dat)
   X_zi <- stats::model.matrix(~ w + habitat, dat)
   mu <- exp(as.vector(X_mu %*% beta_mu))
   sigma <- exp(as.vector(X_sigma %*% beta_sigma))
@@ -20,7 +20,12 @@ new_zi_nbinom2_data <- function(n = 1800, seed = 20260613) {
     0L,
     stats::rnbinom(n, size = 1 / sigma^2, mu = mu)
   )
-  list(data = dat, beta_mu = beta_mu, beta_sigma = beta_sigma, beta_zi = beta_zi)
+  list(
+    data = dat,
+    beta_mu = beta_mu,
+    beta_sigma = beta_sigma,
+    beta_zi = beta_zi
+  )
 }
 
 test_that("drmTMB fits zero-inflated nbinom2 models through a zi formula", {
@@ -98,7 +103,11 @@ test_that("zero-inflated nbinom2 supports exposure offsets in the mean formula",
   dat$effort <- exp(stats::rnorm(nrow(dat), mean = 0, sd = 0.4))
 
   fit <- drmTMB(
-    drm_formula(count ~ x + habitat + offset(log(effort)), sigma ~ z, zi ~ w + habitat),
+    drm_formula(
+      count ~ x + habitat + offset(log(effort)),
+      sigma ~ z,
+      zi ~ w + habitat
+    ),
     family = nbinom2(),
     data = dat
   )
@@ -146,21 +155,28 @@ test_that("zero-inflated nbinom2 methods return count-scale summaries", {
     x = c(-1, 0, 1),
     z = c(-1, 0, 1),
     w = c(-1, 0, 1),
-    habitat = factor(c("edge", "open", "edge"), levels = levels(fit$data$habitat))
+    habitat = factor(
+      c("edge", "open", "edge"),
+      levels = levels(fit$data$habitat)
+    )
   )
   expect_equal(
     predict(fit, newdata = newdata, dpar = "mu"),
-    exp(as.vector(stats::model.matrix(~ x + habitat, newdata) %*% coef(fit, "mu"))),
+    exp(as.vector(
+      stats::model.matrix(~ x + habitat, newdata) %*% coef(fit, "mu")
+    )),
     tolerance = 1e-12
   )
   expect_equal(
     predict(fit, newdata = newdata, dpar = "sigma"),
-    exp(as.vector(stats::model.matrix(~ z, newdata) %*% coef(fit, "sigma"))),
+    exp(as.vector(stats::model.matrix(~z, newdata) %*% coef(fit, "sigma"))),
     tolerance = 1e-12
   )
   expect_equal(
     predict(fit, newdata = newdata, dpar = "zi"),
-    stats::plogis(as.vector(stats::model.matrix(~ w + habitat, newdata) %*% coef(fit, "zi"))),
+    stats::plogis(as.vector(
+      stats::model.matrix(~ w + habitat, newdata) %*% coef(fit, "zi")
+    )),
     tolerance = 1e-12
   )
   sims <- simulate(fit, nsim = 2, seed = 20260616)
@@ -254,23 +270,51 @@ test_that("zero-inflated nbinom2 rejects unsupported or invalid inputs", {
   )
 
   expect_error(
-    drmTMB(drm_formula(y ~ x, sigma ~ 1, zi ~ 1, zi ~ x), family = nbinom2(), data = dat),
+    drmTMB(
+      drm_formula(y ~ x, sigma ~ 1, zi ~ 1, zi ~ x),
+      family = nbinom2(),
+      data = dat
+    ),
     "at most one"
   )
   expect_error(
-    drmTMB(drm_formula(y ~ x, sigma ~ 1, zi = y ~ x), family = nbinom2(), data = dat),
+    drmTMB(
+      drm_formula(y ~ x, sigma ~ 1, zi = y ~ x),
+      family = nbinom2(),
+      data = dat
+    ),
     "one-sided"
   )
   expect_error(
-    drmTMB(drm_formula(y ~ x, sigma ~ 1, zi ~ x + (1 | id)), family = nbinom2(), data = dat),
+    drmTMB(
+      drm_formula(y ~ x + (1 | id), sigma ~ 1, zi ~ 1),
+      family = nbinom2(),
+      data = dat
+    ),
+    "Zero-inflated .* random effects"
+  )
+  expect_error(
+    drmTMB(
+      drm_formula(y ~ x, sigma ~ 1, zi ~ x + (1 | id)),
+      family = nbinom2(),
+      data = dat
+    ),
+    "Zero-inflation random effects"
+  )
+  expect_error(
+    drmTMB(
+      drm_formula(y ~ x, sigma ~ 1, zi ~ offset(rep(1, 4))),
+      family = nbinom2(),
+      data = dat
+    ),
     "unsupported model terms"
   )
   expect_error(
-    drmTMB(drm_formula(y ~ x, sigma ~ 1, zi ~ offset(rep(1, 4))), family = nbinom2(), data = dat),
-    "unsupported model terms"
-  )
-  expect_error(
-    drmTMB(drm_formula(y ~ x, sigma ~ 1, zi ~ 0), family = nbinom2(), data = dat),
+    drmTMB(
+      drm_formula(y ~ x, sigma ~ 1, zi ~ 0),
+      family = nbinom2(),
+      data = dat
+    ),
     "zero-column"
   )
   expect_error(
@@ -282,11 +326,19 @@ test_that("zero-inflated nbinom2 rejects unsupported or invalid inputs", {
     "meta_known_V"
   )
   expect_error(
-    drmTMB(drm_formula(y ~ x, sigma ~ 1, zi ~ 1, sd(id) ~ 1), family = nbinom2(), data = dat),
+    drmTMB(
+      drm_formula(y ~ x, sigma ~ 1, zi ~ 1, sd(id) ~ 1),
+      family = nbinom2(),
+      data = dat
+    ),
     "Random-effect scale"
   )
   expect_error(
-    drmTMB(drm_formula(mvbind(y, y) ~ x, sigma ~ 1, zi ~ 1), family = nbinom2(), data = dat),
+    drmTMB(
+      drm_formula(mvbind(y, y) ~ x, sigma ~ 1, zi ~ 1),
+      family = nbinom2(),
+      data = dat
+    ),
     "mvbind"
   )
   expect_error(

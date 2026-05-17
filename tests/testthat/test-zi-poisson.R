@@ -260,7 +260,7 @@ test_that("zero-inflated Poisson rejects unsupported or invalid inputs", {
       family = stats::poisson(link = "log"),
       data = dat
     ),
-    "unsupported model terms"
+    "Zero-inflation random effects"
   )
   expect_error(
     drmTMB(

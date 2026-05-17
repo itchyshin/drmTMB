@@ -1330,6 +1330,11 @@ drm_build_beta_ls_spec <- function(
   is_sd_dpar <- startsWith(dpars, "sd(")
 
   unsupported <- setdiff(dpars[!is_sd_dpar], c("mu", "sigma"))
+  reject_planned_bounded_inflation(
+    entries = entries,
+    unsupported = unsupported,
+    family_label = "beta()"
+  )
   if (length(unsupported) > 0L) {
     cli::cli_abort(c(
       "Beta models only support {.code mu} and {.code sigma}.",
@@ -1493,6 +1498,11 @@ drm_build_beta_binomial_spec <- function(
   is_sd_dpar <- startsWith(dpars, "sd(")
 
   unsupported <- setdiff(dpars[!is_sd_dpar], c("mu", "sigma"))
+  reject_planned_bounded_inflation(
+    entries = entries,
+    unsupported = unsupported,
+    family_label = "beta_binomial()"
+  )
   if (length(unsupported) > 0L) {
     cli::cli_abort(c(
       "Beta-binomial models only support {.code mu} and {.code sigma}.",
@@ -2041,6 +2051,15 @@ drm_build_nbinom2_spec <- function(
   }
   mu_entry$rhs <- meta$rhs
 
+  if (!is.null(zi_entry) && formula_contains_call(mu_entry$rhs, "|")) {
+    cli::cli_abort(c(
+      "Zero-inflated {.fn nbinom2} random effects are not implemented.",
+      "x" = "The {.code mu} formula contains a random-effect bar term while {.code zi} is present.",
+      "i" = "Keep zero-inflated NB2 models fixed-effect for now, such as {.code bf(count ~ x, sigma ~ z, zi ~ w)}.",
+      "i" = "Inflation-side and count-side random effects need likelihood, extractor, interval, and recovery-test support before they can be fitted together."
+    ))
+  }
+
   for (entry in c(
     list(mu_entry, sigma_entry),
     if (!is.null(zi_entry)) list(zi_entry)
@@ -2276,6 +2295,15 @@ drm_build_truncated_nbinom2_spec <- function(
     ))
   }
   mu_entry$rhs <- meta$rhs
+
+  if (!is.null(hu_entry) && formula_contains_call(mu_entry$rhs, "|")) {
+    cli::cli_abort(c(
+      "Hurdle {.fn truncated_nbinom2} random effects are not implemented.",
+      "x" = "The {.code mu} formula contains a random-effect bar term while {.code hu} is present.",
+      "i" = "Keep hurdle NB2 models fixed-effect for now, such as {.code bf(count ~ x, sigma ~ z, hu ~ w)}.",
+      "i" = "Hurdle-side and positive-count random effects need likelihood, extractor, interval, and recovery-test support before they can be fitted together."
+    ))
+  }
 
   for (entry in c(
     list(mu_entry, sigma_entry),
@@ -3049,6 +3077,15 @@ drm_reject_phase1_terms <- function(rhs, dpar, allow_offset = FALSE) {
     logical(1)
   )]
   if (length(hits) > 0L) {
+    if ("|" %in% hits && dpar %in% c("zi", "hu", "zoi", "coi")) {
+      cli::cli_abort(c(
+        "{inflation_random_effect_label(dpar)} random effects are not implemented.",
+        "x" = "The {.code {dpar}} formula contains a random-effect bar term.",
+        "i" = "Keep the {.code {dpar}} formula fixed-effect for now, such as {.code {dpar} ~ x}.",
+        "i" = "Inflation, hurdle, and one-inflation random effects need family-specific likelihood, extractor, interval, and recovery-test support before fitting.",
+        "i" = "Cross-parameter covariance with {.code mu}, {.code sigma}, or shape random effects remains future work after the separate random-effect paths are stable."
+      ))
+    }
     if ("|" %in% hits && dpar %in% c("nu", "tau")) {
       cli::cli_abort(c(
         "Shape random effects are not implemented.",
@@ -3089,6 +3126,49 @@ drm_reject_phase1_terms <- function(rhs, dpar, allow_offset = FALSE) {
       "x" = "The {.code {dpar}} formula contains unsupported term{?s}: {.val {hits}}."
     ))
   }
+}
+
+inflation_random_effect_label <- function(dpar) {
+  switch(
+    dpar,
+    zi = "Zero-inflation",
+    hu = "Hurdle",
+    zoi = "Zero-one-inflation",
+    coi = "One-inflation",
+    "Inflation"
+  )
+}
+
+reject_planned_bounded_inflation <- function(
+  entries,
+  unsupported,
+  family_label
+) {
+  inflation <- intersect(unsupported, c("zoi", "coi"))
+  if (length(inflation) == 0L) {
+    return(invisible(NULL))
+  }
+  entry_dpars <- vapply(entries, `[[`, character(1), "dpar")
+  inflation_entries <- entries[entry_dpars %in% inflation]
+  has_random <- any(vapply(
+    inflation_entries,
+    function(entry) formula_contains_call(entry$rhs, "|"),
+    logical(1)
+  ))
+  if (has_random) {
+    cli::cli_abort(c(
+      "Zero-one-inflated bounded-response random effects are not implemented.",
+      "x" = "{family_label} models do not support distributional parameter{?s}: {.val {inflation}}.",
+      "i" = "Implement fixed-effect {.code zoi} and {.code coi} likelihoods first for exact-zero and exact-one proportions.",
+      "i" = "Random effects and cross-parameter covariance for {.code zoi} and {.code coi} come later, after bounded-response recovery tests and interval checks."
+    ))
+  }
+  cli::cli_abort(c(
+    "Zero-one-inflated bounded-response likelihoods are planned, not implemented.",
+    "x" = "{family_label} models do not support distributional parameter{?s}: {.val {inflation}}.",
+    "i" = "Use strict {.fn beta} or denominator-aware {.fn beta_binomial} models for data without exact boundary values.",
+    "i" = "Future fixed-effect {.code zoi} and {.code coi} likelihoods must land before their random effects or covariance blocks."
+  ))
 }
 
 extract_random_mu_terms <- function(rhs, dpar) {
