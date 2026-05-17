@@ -575,6 +575,49 @@ test_that("Gaussian mu can combine independent random intercept and slope terms"
   expect_gt(unname(fit$sdpars$mu[["(0 + x | id)"]]), 0.1)
 })
 
+test_that("Gaussian mu supports multiple independent random slopes", {
+  set.seed(20260617)
+  n_id <- 28
+  n_each <- 7
+  n <- n_id * n_each
+  id <- factor(rep(seq_len(n_id), each = n_each))
+  x1 <- stats::rnorm(n)
+  x2 <- stats::rnorm(n)
+  z <- stats::rnorm(n)
+  u1 <- stats::rnorm(n_id, sd = 0.35)
+  u2 <- stats::rnorm(n_id, sd = 0.28)
+  beta_mu <- c(`(Intercept)` = 0.2, x1 = 0.55, x2 = -0.35)
+  beta_sigma <- c(`(Intercept)` = -0.25, z = 0.18)
+  mu <- beta_mu[[1L]] +
+    beta_mu[[2L]] * x1 +
+    beta_mu[[3L]] * x2 +
+    u1[id] * x1 +
+    u2[id] * x2
+  sigma <- exp(beta_sigma[[1L]] + beta_sigma[[2L]] * z)
+  dat <- data.frame(
+    y = stats::rnorm(n, mean = mu, sd = sigma),
+    x1 = x1,
+    x2 = x2,
+    z = z,
+    id = id
+  )
+
+  fit <- drmTMB(
+    bf(y ~ x1 + x2 + (0 + x1 | id) + (0 + x2 | id), sigma ~ z),
+    family = gaussian(),
+    data = dat
+  )
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_named(fit$sdpars$mu, c("(0 + x1 | id)", "(0 + x2 | id)"))
+  expect_equal(length(fit$random_effects$mu$values), 2 * n_id)
+  expect_lt(max(abs(unname(coef(fit, "mu")) - unname(beta_mu))), 0.12)
+  expect_lt(max(abs(unname(coef(fit, "sigma")) - unname(beta_sigma))), 0.18)
+  expect_gt(unname(fit$sdpars$mu[["(0 + x1 | id)"]]), 0.15)
+  expect_gt(unname(fit$sdpars$mu[["(0 + x2 | id)"]]), 0.10)
+  expect_equal(fit$corpars, list())
+})
+
 test_that("Gaussian mu supports correlated random intercept-slope blocks", {
   sim <- new_gaussian_corr_rs_data()
 
@@ -1351,7 +1394,7 @@ test_that("unsupported random-effect cases fail clearly", {
   )
   expect_error(
     drmTMB(bf(y ~ x + (1 + x + y2 | id)), family = gaussian(), data = dat),
-    "Only random intercepts"
+    "Arbitrary multi-slope covariance blocks"
   )
   expect_error(
     drmTMB(
@@ -1376,7 +1419,7 @@ test_that("unsupported random-effect cases fail clearly", {
   )
   expect_error(
     drmTMB(bf(y ~ x + (1 + x + y2 | p | id)), family = gaussian(), data = dat),
-    "Only random intercepts"
+    "Arbitrary multi-slope covariance blocks"
   )
   expect_error(
     drmTMB(

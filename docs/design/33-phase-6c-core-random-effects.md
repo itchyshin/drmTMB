@@ -76,6 +76,14 @@ advantage and a separate burden: they can answer harder distributional
 questions, but they need larger validation grids because `sigma` variation is
 often less directly identified than `mu` variation.
 
+Slice 177 confirms the current ordinary Gaussian `mu` boundary with a dedicated
+test: multiple numeric slopes can be fitted as separate independent variance
+components, for example `(0 + x1 | id) + (0 + x2 | id)`. Correlated ordinary
+blocks are still limited to the one-slope form `(1 + x | id)` or
+`(1 + x | p | id)`. Requests for `(1 + x1 + x2 | id)` now fail with an error
+that names the arbitrary multi-slope covariance block as planned rather than
+silently implying it is a parser accident.
+
 Before Phase 18 comprehensive simulation, every random-slope layer should have
 an explicit status row: implemented, one-slope foundation, planned, or rejected
 with a suggested fallback. Comprehensive simulation should then estimate the

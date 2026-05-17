@@ -1258,7 +1258,7 @@ remain blocked by future covariance or non-Gaussian random-effect work.
 | 174 | Interval diagnostics | Done: profile diagnostics remain `profile.boundary`/`profile.message`, and unsupported bootstrap requests now report that bootstrap intervals are not implemented. |
 | 175 | Interval harmonization | Done: internal status/source vocabulary helpers now align `summary()`, `confint()`, `corpairs()`, and prediction-table interval outputs. |
 | 176 | Phase 6/13 gate | Done: the interval-readiness revisit is closed with tests, docs, known-limitations updates, check-log evidence, and an after-phase note. |
-| 177 | Gaussian random slopes | Audit ordinary grouped location random-slope support against `(1 + x1 + x2 + ... | id)`. |
+| 177 | Gaussian random slopes | Done: ordinary Gaussian `mu` supports multiple independent numeric slopes and one correlated intercept-plus-one-slope block; arbitrary correlated multi-slope blocks such as `(1 + x1 + x2 | id)` remain planned. |
 | 178 | Gaussian random slopes | Plan parser/API and extractor output for arbitrary ordinary location blocks. |
 | 179 | Gaussian random slopes | Prototype q > 2 ordinary location block covariance with constant correlations. |
 | 180 | Gaussian random slopes | Add recovery, malformed-input, summary, `corpairs()`, and profile-target tests. |

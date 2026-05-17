@@ -75,6 +75,11 @@ bf(
 )
 ```
 
+Slice 177 adds explicit recovery coverage for the multiple-independent-slope
+case, using two numeric slopes in `mu` with no fitted group-level correlation.
+This is useful but it is not the same model as one unstructured
+`(1 + x1 + x2 | id)` block.
+
 Ordinary correlated random intercept-slope blocks are implemented for one
 numeric slope:
 
