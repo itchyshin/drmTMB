@@ -21196,3 +21196,94 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slice-153-multiple-random-scale-newdata.md`.
+
+## 2026-05-17 - Slice 154 random-effect scale parameter tables
+
+Goal: pin the long-table helper contract for fitted random-effect scale model
+names such as `sd(id)`.
+
+Roles:
+
+- Ada scoped this as the table-helper follow-up after the direct `predict()`
+  surface was pinned.
+- Boole checked that `dpar = "sd(id)"` uses the existing fitted-parameter name
+  contract.
+- Pat checked that row labels and the `random-effect-sd-model` component make
+  the table readable.
+- Curie owned the `predict_parameters()` and `marginal_parameters()` regression
+  tests.
+- Grace owned `devtools::document()`, focused tests, pkgdown build/check, and
+  rendered-reference scans.
+- Rose checked that the wording does not imply random-effect scale `emmeans`,
+  direct-SD confidence intervals, bivariate direct-SD prediction surfaces, or
+  transformed-response support.
+- Fisher, Gauss, Noether, Darwin, Jason, and Emmy stayed watch-only because no
+  estimand, likelihood, equation derivation, biological example, landscape
+  claim, or object structure changed.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `R/marginal-parameters.R`
+- `R/predict-parameters.R`
+- `docs/design/39-visualization-grammar.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-17-slice-154-random-scale-parameter-tables.md`
+- `man/marginal_parameters.Rd`
+- `man/predict_parameters.Rd`
+- `tests/testthat/test-marginal-parameters.R`
+- `tests/testthat/test-predict-parameters.R`
+
+What changed:
+
+- Added `predict_parameters()` coverage for `dpar = "sd(id)"`, including
+  component `random-effect-sd-model`, row-label preservation, link-scale
+  prediction rows, supplied `newdata` columns, and interval provenance columns.
+- Added `marginal_parameters()` coverage that averages supplied direct-SD
+  prediction rows by an explicit grouping column.
+- Updated roxygen/Rd docs to name fitted random-effect scale model names such
+  as `sd(id)` as supported `dpar` values for the table helpers.
+- NEWS, the Phase 17 roadmap, and visualization-grammar design notes now record
+  the same table-helper contract.
+
+Checks run:
+
+- No-edit scout before the slice showed that `predict_parameters()` and
+  `marginal_parameters()` already worked with `dpar = "sd(id)"`, produced
+  component `random-effect-sd-model`, preserved row labels, respected
+  link/response scale, and averaged supplied rows.
+- `air format R/predict-parameters.R R/marginal-parameters.R NEWS.md ROADMAP.md docs/design/39-visualization-grammar.md tests/testthat/test-predict-parameters.R tests/testthat/test-marginal-parameters.R`:
+  passed.
+- `Rscript -e "devtools::document()"`: passed and regenerated
+  `man/predict_parameters.Rd` and `man/marginal_parameters.Rd`.
+- `Rscript -e "devtools::test(filter = 'predict-parameters|marginal-parameters', reporter = 'summary')"`:
+  initially failed because the test compared unnamed long-table estimates to
+  named `predict()` vectors; after comparing numeric values and checking row
+  labels separately, it passed.
+- `Rscript -e "devtools::test(filter = 'predict-parameters|marginal-parameters|prediction-grid|reference-grid-link-scale-contract', reporter = 'summary')"`:
+  passed.
+- `git diff --check`: passed.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed.
+- Positive source/rendered scan for Slice 154 direct-SD table-helper wording:
+  found expected entries in source, tests, generated Rd files, rendered
+  reference pages, NEWS, ROADMAP, and rendered pkgdown NEWS/ROADMAP pages.
+- Stale-claim scan for accidental random-effect scale `emmeans`, direct-SD
+  confidence intervals, bivariate random-effect scale prediction,
+  `sd_sigma*()` syntax, or transformed-response support: no new false support
+  claims; matches were existing Family B guardrails.
+- Recovery checkpoint:
+  `docs/dev-log/recovery-checkpoints/2026-05-17-032001-codex-checkpoint.md`.
+
+Known limitations:
+
+- This slice pins point-estimate table helpers for fitted direct-SD model names.
+- It does not add random-effect scale `emmeans`, direct-SD uncertainty
+  intervals, bivariate random-effect scale prediction surfaces, empirical
+  weighting beyond the existing marginal helper, `sd_sigma*()` syntax,
+  transformed-response support, or new random-effect scale model families.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slice-154-random-scale-parameter-tables.md`.

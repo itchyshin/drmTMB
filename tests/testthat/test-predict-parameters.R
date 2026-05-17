@@ -140,6 +140,42 @@ test_that("predict_parameters() reports shape and residual-correlation component
   expect_equal(rho$estimate, rho12(fit_biv, newdata = grid))
 })
 
+test_that("predict_parameters() reports random-effect scale model components", {
+  sim <- new_gaussian_re_scale_data(n_id = 12, n_each = 4, seed = 20260567)
+  fit <- drmTMB(
+    bf(y ~ x + (1 | id), sigma ~ z, sd(id) ~ w),
+    family = gaussian(),
+    data = sim$data,
+    control = drm_control(optimizer = list(eval.max = 120L, iter.max = 120L))
+  )
+  grid <- data.frame(w = c(-0.2, 0.4), row.names = c("low_w", "high_w"))
+
+  out <- predict_parameters(fit, newdata = grid, dpar = "sd(id)")
+  link <- predict_parameters(
+    fit,
+    newdata = grid,
+    dpar = "sd(id)",
+    type = "link"
+  )
+
+  expect_equal(out$row_label, row.names(grid))
+  expect_equal(out$dpar, rep("sd(id)", nrow(grid)))
+  expect_equal(out$component, rep("random-effect-sd-model", nrow(grid)))
+  expect_equal(out$type, rep("response", nrow(grid)))
+  expect_equal(
+    out$estimate,
+    unname(predict(fit, newdata = grid, dpar = "sd(id)"))
+  )
+  expect_equal(link$type, rep("link", nrow(grid)))
+  expect_equal(
+    link$estimate,
+    unname(predict(fit, newdata = grid, dpar = "sd(id)", type = "link"))
+  )
+  expect_equal(out$w, grid$w)
+  expect_equal(out$conf.status, rep("not_requested", nrow(grid)))
+  expect_equal(out$interval_source, rep("not_available", nrow(grid)))
+})
+
 test_that("predict_parameters() validates arguments", {
   dat <- data.frame(y = stats::rnorm(20), x = stats::rnorm(20))
   fit <- drmTMB(bf(y ~ x, sigma ~ 1), family = gaussian(), data = dat)

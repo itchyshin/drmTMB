@@ -25,7 +25,8 @@ marginal_parameters(object, ...)
 are used.}
 
 \item{dpar}{Optional character vector of distributional parameters to
-summarise. \code{NULL} summarises all fitted distributional parameters.}
+summarise, including fitted random-effect scale model names such as
+\code{"sd(id)"}. \code{NULL} summarises all fitted distributional parameters.}
 
 \item{by}{Optional character vector of columns in \code{newdata} used to define
 marginal groups. \code{NULL} averages over all prediction rows for each

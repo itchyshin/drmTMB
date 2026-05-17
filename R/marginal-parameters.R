@@ -20,7 +20,8 @@
 #' @param newdata Optional data frame for prediction. If omitted, fitted rows
 #'   are used.
 #' @param dpar Optional character vector of distributional parameters to
-#'   summarise. `NULL` summarises all fitted distributional parameters.
+#'   summarise, including fitted random-effect scale model names such as
+#'   `"sd(id)"`. `NULL` summarises all fitted distributional parameters.
 #' @param by Optional character vector of columns in `newdata` used to define
 #'   marginal groups. `NULL` averages over all prediction rows for each
 #'   distributional parameter.
