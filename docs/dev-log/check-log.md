@@ -20334,3 +20334,85 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slice-142-emmeans-ordered-factor-grid.md`.
+
+## 2026-05-17 - Slice 143 factor newdata level validation
+
+Goal: accept character `newdata` values that match fitted factor levels and
+error clearly when fixed-effect prediction `newdata` contains an unknown factor
+level.
+
+Roles:
+
+- Ada opened this from a no-edit scout after Slice 142 exposed the shared
+  factor-coercion helper.
+- Boole checked that this is prediction data validation, not a formula grammar
+  change.
+- Fisher checked that the prediction target remains the same fixed-effect
+  native distributional parameter.
+- Curie added focused low-level fixed-effect-basis coverage for matching
+  character levels and unknown levels.
+- Pat checked that the error should name the predictor and offending level.
+- Grace owns focused tests, formatting, pkgdown, and PR CI.
+- Rose checked that the fix removes an internal-error path rather than masking
+  unsupported model structures.
+- Gauss, Noether, Darwin, Jason, and Emmy stayed watch-only because no
+  likelihood, equation, biological example, landscape claim, or object
+  structure changed.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `R/methods.R`
+- `docs/design/40-emmeans-interface-contract.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-17-slice-143-factor-newdata-levels.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-17-002704-codex-checkpoint.md`
+- `tests/testthat/test-fixed-effect-basis.R`
+
+What changed:
+
+- `drm_prepare_prediction_newdata()` now checks fitted factor predictors for
+  unknown levels before coercing prediction `newdata`.
+- Matching character values such as `habitat = "reef"` are accepted and routed
+  through the fitted factor coding.
+- Unknown values such as `habitat = "forest"` now produce a predictor-specific
+  error instead of an internal offset-length error.
+- Missing factor values now error before model-matrix construction.
+- Extra factor columns that are not used by the requested distributional
+  parameter are ignored.
+
+Checks run:
+
+- No-edit scout:
+  `predict()` with `habitat = "forest"` previously failed with
+  `Internal error: fixed-effect basis offsets do not match design-matrix rows.`
+- First focused test attempt caught a test fixture mistake: Poisson models do
+  not accept `sigma ~ 1`; the fixture was corrected to `bf(y ~ x + habitat)`.
+- `Rscript -e "devtools::test(filter = 'fixed-effect-basis', reporter = 'summary')"`:
+  passed after the fixture correction; passed again after adding missing-factor
+  and unused-column coverage.
+- `air format NEWS.md ROADMAP.md R/methods.R docs/design/40-emmeans-interface-contract.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-17-slice-143-factor-newdata-levels.md tests/testthat/test-fixed-effect-basis.R`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'emmeans-methods|emmeans-recover-data|emmeans-preflight|fixed-effect-basis|reference-grid-link-scale-contract', reporter = 'summary')"`:
+  passed.
+- `git diff --check`: passed.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed.
+- Positive source/rendered scan for Slice 143 unknown-factor-level wording and
+  test evidence: found the expected entries.
+- Stale-claim scan for accidental new-estimand or non-`mu` support claims from
+  factor-level validation wording: no matches.
+- Recovery checkpoint:
+  `docs/dev-log/recovery-checkpoints/2026-05-17-002704-codex-checkpoint.md`.
+
+Known limitations:
+
+- This slice validates factor levels for fixed-effect prediction/newdata paths.
+- It does not add new estimands, non-`mu` `emmeans` support, transformed
+  responses, empirical marginalisation, random-effect workflows, or blocked
+  model structures.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slice-143-factor-newdata-levels.md`.

@@ -102,6 +102,84 @@ test_that("fixed-effect basis preserves ordered factor coding in newdata", {
   )
 })
 
+test_that("fixed-effect basis validates factor levels in newdata", {
+  set.seed(20260557)
+  dat <- fixed_effect_basis_data()
+  fit <- drmTMB(
+    bf(y ~ x + habitat),
+    family = stats::poisson(link = "log"),
+    data = dat,
+    control = fixed_effect_basis_control(se = TRUE)
+  )
+  newdata <- data.frame(
+    x = c(-0.25, 0.5),
+    habitat = c("reef", "sand")
+  )
+  expected_newdata <- newdata
+  expected_newdata$habitat <- factor(
+    expected_newdata$habitat,
+    levels = levels(dat$habitat)
+  )
+
+  basis <- drmTMB:::drm_fixed_effect_basis(
+    fit,
+    newdata = newdata,
+    dpar = "mu"
+  )
+  expected_X <- stats::model.matrix(fit$model$terms$mu, expected_newdata)
+
+  expect_equal(basis$X, expected_X)
+  expect_equal(
+    basis$eta,
+    as.numeric(expected_X %*% coef(fit, "mu"))
+  )
+  expect_error(
+    drmTMB:::drm_fixed_effect_basis(
+      fit,
+      newdata = data.frame(x = 0, habitat = "forest"),
+      dpar = "mu"
+    ),
+    "unknown factor level"
+  )
+  expect_error(
+    predict(fit, newdata = data.frame(x = 0, habitat = "forest"), dpar = "mu"),
+    "forest"
+  )
+  expect_error(
+    predict(
+      fit,
+      newdata = data.frame(x = 0, habitat = NA_character_),
+      dpar = "mu"
+    ),
+    "missing factor value"
+  )
+})
+
+test_that("fixed-effect basis ignores unused factor columns in newdata", {
+  set.seed(20260558)
+  dat <- fixed_effect_basis_data()
+  dat$unused <- factor(rep(c("a", "b"), length.out = nrow(dat)))
+  fit <- drmTMB(
+    bf(y ~ x + habitat),
+    family = stats::poisson(link = "log"),
+    data = dat,
+    control = drm_control(
+      se = TRUE,
+      keep_model_frame = FALSE,
+      optimizer = list(eval.max = 120L, iter.max = 120L)
+    )
+  )
+  newdata <- data.frame(
+    x = 0,
+    habitat = "reef",
+    unused = "forest"
+  )
+
+  expect_no_error(
+    drmTMB:::drm_fixed_effect_basis(fit, newdata = newdata, dpar = "mu")
+  )
+})
+
 test_that("fixed-effect basis handles covariance as an explicit opt-in", {
   set.seed(20260528)
   dat <- fixed_effect_basis_data()

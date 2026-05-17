@@ -3382,13 +3382,29 @@ drm_prepare_prediction_newdata <- function(object, newdata, dpar) {
     return(newdata)
   }
 
-  for (name in intersect(names(newdata), names(template))) {
+  needed <- all.vars(stats::delete.response(object$model$terms[[dpar]]))
+  for (name in intersect(intersect(names(newdata), names(template)), needed)) {
     source <- template[[name]]
     if (!is.factor(source)) {
       next
     }
+    value <- as.character(newdata[[name]])
+    if (anyNA(value)) {
+      cli::cli_abort(c(
+        "New prediction data contains missing factor value{?s} for {.var {name}}.",
+        i = "Supply one of the fitted levels: {.val {levels(source)}}."
+      ))
+    }
+    unknown <- setdiff(unique(stats::na.omit(value)), levels(source))
+    if (length(unknown) > 0L) {
+      cli::cli_abort(c(
+        "New prediction data contains unknown factor level{?s} for {.var {name}}.",
+        i = "Unknown level{?s}: {.val {unknown}}.",
+        i = "Fitted level{?s}: {.val {levels(source)}}."
+      ))
+    }
     newdata[[name]] <- factor(
-      as.character(newdata[[name]]),
+      value,
       levels = levels(source),
       ordered = is.ordered(source)
     )
