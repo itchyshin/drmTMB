@@ -62,12 +62,16 @@ test_that("Student-t objective matches an independent R likelihood", {
     family = student(),
     data = dat
   )
-  mu <- as.vector(stats::model.matrix(~ x, dat) %*% coef(fit, "mu"))
-  sigma <- exp(as.vector(stats::model.matrix(~ z, dat) %*% coef(fit, "sigma")))
-  nu <- 2 + exp(as.vector(stats::model.matrix(~ w, dat) %*% coef(fit, "nu")))
+  mu <- as.vector(stats::model.matrix(~x, dat) %*% coef(fit, "mu"))
+  sigma <- exp(as.vector(stats::model.matrix(~z, dat) %*% coef(fit, "sigma")))
+  nu <- 2 + exp(as.vector(stats::model.matrix(~w, dat) %*% coef(fit, "nu")))
 
   expect_equal(fit$opt$convergence, 0)
-  expect_equal(fit$opt$objective, student_nll(dat$y, mu, sigma, nu), tolerance = 1e-8)
+  expect_equal(
+    fit$opt$objective,
+    student_nll(dat$y, mu, sigma, nu),
+    tolerance = 1e-8
+  )
 })
 
 test_that("Student-t methods simulate and compute residuals", {
@@ -99,11 +103,40 @@ test_that("Student-t models reject unsupported early-phase terms clearly", {
     "unsupported model terms"
   )
   expect_error(
-    drmTMB(bf(y ~ x + meta_known_V(V = V), sigma ~ 1), family = student(), data = dat),
+    drmTMB(
+      bf(y ~ x + meta_known_V(V = V), sigma ~ 1),
+      family = student(),
+      data = dat
+    ),
     "not implemented"
   )
   expect_error(
     drmTMB(bf(y ~ x, sigma ~ 1, sd(id) ~ 1), family = student(), data = dat),
     "Random-effect scale formulae"
+  )
+})
+
+test_that("Student-t shape random effects have a specific boundary", {
+  dat <- data.frame(
+    y = stats::rnorm(20),
+    x = stats::rnorm(20),
+    id = rep(1:5, each = 4)
+  )
+
+  expect_error(
+    drmTMB(
+      bf(y ~ x, sigma ~ 1, nu ~ x + (1 | id)),
+      family = student(),
+      data = dat
+    ),
+    "Shape random effects are not implemented"
+  )
+  expect_error(
+    drmTMB(
+      bf(y ~ x, sigma ~ 1, nu ~ x + (0 + x | id)),
+      family = student(),
+      data = dat
+    ),
+    "future skew-normal and skew-t shape parameters"
   )
 })

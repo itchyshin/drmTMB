@@ -74,6 +74,33 @@ names alone to communicate the biology.
 Aliases such as `skew ~ x` or `shape ~ x` may be considered after the canonical
 grammar is stable, but examples should teach `nu` first.
 
+## Residual Versus Latent-Effect Skewness
+
+The first skewness target is residual or observation-level asymmetry:
+
+```r
+bf(y ~ x1, sigma ~ x2, nu ~ x3)
+```
+
+Here `nu ~ x3` changes the conditional residual or response distribution for
+each observation. In a future skew-normal family, that would mean the fitted
+residual density is asymmetric after accounting for `mu` and `sigma`.
+
+A different question is whether the distribution of a latent group effect is
+asymmetric. A possible future spelling is:
+
+```r
+skew(id) ~ x_group
+```
+
+That would be analogous to `sd(id) ~ x_group`, but it would model the shape of
+the `id` random-effect distribution rather than the residual distribution.
+This is scientifically useful for ID-level skewness, but it is not the same
+parameter as residual `nu`. Do not implement both in the same slice: skewed
+residuals, heteroscedastic residuals, and skewed random effects can mimic each
+other unless the data include enough within-group replication and the
+simulation design separates those mechanisms.
+
 ## Staged Implementation
 
 1. Harden the implemented fixed-effect `student()` path with `mu`, `sigma`,
@@ -84,9 +111,11 @@ grammar is stable, but examples should teach `nu` first.
 4. Implement Gaussian phylogenetic `mu` and `sigma` before any phylogenetic
    shape model.
 5. Fit skew-normal models with phylogenetic `mu` or `sigma` but fixed `nu`.
-6. Explore phylogenetic or species-level effects in `nu` only when data include
-   enough within-species replication.
+6. Explore phylogenetic, species-level, or group-level effects in `nu` only
+   when data include enough within-species or within-group replication.
 7. Implement `skew_t()` last because asymmetry and tail shape can trade off.
+8. Treat ID-level skewness grammar such as `skew(id) ~ x` as a separate later
+   family of latent-effect models, not as an alias for residual `nu ~ x`.
 
 ## Minimum Tests
 

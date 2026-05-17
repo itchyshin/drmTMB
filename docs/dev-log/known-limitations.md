@@ -158,6 +158,11 @@
   positive finite responses. `mu` and `sigma` are on the log-response scale;
   `sigma` random effects, known sampling covariance, phylogenetic terms, and
   bivariate lognormal models are not yet implemented.
+- Fixed-effect univariate Student-t location-scale-shape models are implemented
+  for robust continuous responses. Student-t `nu` is a fixed-effect tail-shape
+  parameter; random effects in `nu`, future skew-normal or skew-t shape
+  random effects, and latent ID-level skewness syntax such as
+  `skew(id) ~ x` are not yet implemented.
 - Fixed-effect univariate Gamma mean-CV models are implemented for positive
   finite responses with `family = Gamma(link = "log")`. `mu` is the response
   mean and `sigma` is the coefficient of variation; non-log Gamma links,

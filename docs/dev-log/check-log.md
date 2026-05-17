@@ -22787,3 +22787,54 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slice-193-nongaussian-scale-boundary.md`.
+
+## 2026-05-17 - Slice 194 shape random-effect boundary
+
+Goal: make the shape and skewness random-effect boundary explicit before
+skew-normal, skew-t, or comprehensive simulation work depends on it.
+
+Files changed:
+
+- `R/drmTMB.R`
+- `tests/testthat/test-student-location-scale.R`
+- `NEWS.md`
+- `README.md`
+- `ROADMAP.md`
+- `docs/design/01-formula-grammar.md`
+- `docs/design/02-family-registry.md`
+- `docs/design/19-phylogenetic-location-scale-shape.md`
+- `docs/design/34-validation-debt-register.md`
+- `docs/dev-log/known-limitations.md`
+- `vignettes/model-map.Rmd`
+- `docs/dev-log/after-task/2026-05-17-slice-194-shape-random-boundary.md`
+
+What changed:
+
+- Random-effect bar terms in `nu` or future `tau` formulas now fail with a
+  shape-specific boundary message.
+- Student-t tests cover both `nu ~ x + (1 | id)` and
+  `nu ~ x + (0 + x | id)`.
+- The roadmap and design docs now separate residual shape/skewness (`nu ~ x`)
+  from future latent ID-level skewness (`skew(id) ~ x`), and keep both
+  random-effect shape paths evidence-gated.
+
+Checks run:
+
+- `air format R/drmTMB.R tests/testthat/test-student-location-scale.R NEWS.md README.md ROADMAP.md docs/design/01-formula-grammar.md docs/design/02-family-registry.md docs/design/19-phylogenetic-location-scale-shape.md docs/design/34-validation-debt-register.md docs/dev-log/known-limitations.md vignettes/model-map.Rmd`
+- `Rscript -e "devtools::test(filter = 'student-location-scale', reporter = 'summary')"`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'student-location-scale|nongaussian-scale-boundary|nbinom2-location-scale|lognormal-location-scale|gamma-location-scale|beta-location-scale|beta-binomial|truncated-nbinom2|hurdle-nbinom2|zi-nbinom2', reporter = 'summary')"`:
+  passed.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with no problems.
+- `rg -n 'Shape random effects|shape random effects|ID-level skewness|skew\(id\)|nu random effects|tau random effects|Slice 194|future skew-normal|future skew-t|non-Gaussian sigma and shape' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes R tests`:
+  returned intended current boundary rows, tests, and design notes.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- This slice does not implement skew-normal, skew-t, `nu` random effects,
+  future `tau` random effects, or ID-level skewness.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slice-194-shape-random-boundary.md`.

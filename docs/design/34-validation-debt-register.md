@@ -95,6 +95,23 @@ Use these status labels:
   interpretation docs, and CI evidence are required before any non-Gaussian
   `sigma` random effect is advertised.
 
+### Shape random effects and ID-level skewness
+
+- Matrix status: blocked with explicit messages.
+- Register status: Student-t `nu` is a fixed-effect tail-shape formula.
+  Future skew-normal and skew-t shape formulas should remain fixed-effect
+  residual-shape paths until density, recovery, prediction, and false-positive
+  heteroscedasticity checks pass.
+- Evidence: `tests/testthat/test-student-location-scale.R` checks that
+  `nu ~ x + (1 | id)` and `nu ~ x + (0 + x | id)` fail with a shape-specific
+  boundary.
+- Diagnostics and intervals: no shape random-effect diagnostics or intervals
+  exist because no shape random-effect likelihood is fitted yet.
+- Debt: fixed-effect skew-normal and skew-t recovery, normal or Student-t limit
+  checks, separation of `sigma ~ x` from `nu ~ x`, then simulation evidence
+  before adding `nu`/`tau` random effects or latent ID-level skewness such as
+  future `skew(id) ~ x`.
+
 ### Gaussian ordinary random effects
 
 - Matrix status: stable.
