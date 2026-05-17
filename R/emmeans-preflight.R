@@ -177,6 +177,15 @@ drm_validate_emmeans_mu_target <- function(object, dpar) {
     ))
   }
 
+  if (drm_emmeans_has_transformed_response(object, dpar)) {
+    response <- object$model$response_names[[dpar]]
+    cli::cli_abort(c(
+      "The first {.pkg emmeans} basis preflight does not support transformed responses.",
+      i = "Unsupported response: {.code {response}}.",
+      i = "Fit an untransformed response, or use {.fn prediction_grid} and {.fn predict_parameters} for explicit transformed-scale predictions."
+    ))
+  }
+
   if (!dpar %in% names(object$coefficients)) {
     cli::cli_abort(
       "This {.cls drmTMB} fit does not contain a fitted {.code mu} parameter."
@@ -192,6 +201,24 @@ drm_validate_emmeans_mu_target <- function(object, dpar) {
     ))
   }
   invisible(TRUE)
+}
+
+drm_emmeans_has_transformed_response <- function(object, dpar) {
+  response <- object$model$response_names[[dpar]]
+  if (!is.character(response) || length(response) != 1L || is.na(response)) {
+    return(FALSE)
+  }
+  expr <- tryCatch(
+    parse(text = response, keep.source = FALSE)[[1L]],
+    error = function(e) NULL
+  )
+  if (is.null(expr) || is.symbol(expr)) {
+    return(FALSE)
+  }
+  if (is.call(expr) && identical(as.character(expr[[1L]]), "cbind")) {
+    return(FALSE)
+  }
+  TRUE
 }
 
 drm_emmeans_blocked_features <- function(object) {

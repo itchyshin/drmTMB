@@ -64,6 +64,18 @@ test_that("emmeans mu basis preflight rejects unsupported targets", {
     "dpar = \"mu\""
   )
 
+  transformed_dat <- dat
+  transformed_dat$positive_y <- exp(transformed_dat$y + 1)
+  transformed_fit <- drmTMB(
+    bf(log(positive_y) ~ x + habitat, sigma ~ 1),
+    data = transformed_dat,
+    control = emmeans_preflight_control(se = TRUE)
+  )
+  expect_error(
+    drmTMB:::drm_emmeans_mu_basis(transformed_fit, newdata = newdata),
+    "transformed responses"
+  )
+
   no_se_fit <- drmTMB(
     bf(y ~ x + habitat),
     data = dat,

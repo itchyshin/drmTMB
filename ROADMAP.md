@@ -1068,6 +1068,10 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   bridge. Bivariate Gaussian fits now error as unsupported `"biv_gaussian"`
   fits before returning an `emmGrid`, with the same prediction-table guidance,
   instead of falling through to a generic missing-`mu` message.
+- Slice 138 blocks transformed-response formulas in the first `emmeans()`
+  bridge. Fits such as `log(y) ~ x` now error before returning an `emmGrid`,
+  with guidance toward explicit transformed-scale prediction tables through
+  `prediction_grid()` plus `predict_parameters()`.
 - Add additional ggplot-oriented helpers only after the data contract is stable:
   location curves, scale/variance curves, residual `rho12` curves,
   `sd(group)` or `sd_phylo()` surfaces, `corpairs()` summaries, and eventually

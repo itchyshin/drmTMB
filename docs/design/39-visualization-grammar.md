@@ -285,6 +285,11 @@ error as unsupported `"biv_gaussian"` fits before returning an `emmGrid`, with
 the same prediction-table guidance, instead of falling through to a generic
 missing-`mu` message.
 
+Slice 138 blocks transformed-response formulas in the first `emmeans()` bridge.
+Fits such as `log(y) ~ x` now error before returning an `emmGrid`, with
+guidance toward explicit transformed-scale prediction tables through
+`prediction_grid()` plus `predict_parameters()`.
+
 Slice 102 adds the first article-level empirical-grid example. The
 model-workflow article now shows a conditioned grid for direct
 `predict_parameters()` rows and a separate empirical grid for

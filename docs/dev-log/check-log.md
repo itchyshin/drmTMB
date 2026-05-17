@@ -19915,3 +19915,93 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-16-slice-137-emmeans-bivariate-boundary.md`.
+
+## 2026-05-16 - Slice 138 emmeans transformed-response boundary
+
+Goal: block transformed-response formulas from the first public `emmeans()`
+bridge before an `emmGrid` is returned.
+
+Roles:
+
+- Ada kept this as a contract-hardening slice after the bivariate boundary
+  cleanup.
+- Boole checked that `log(y) ~ x` is treated as a response-formula boundary,
+  not as transformed-predictor support.
+- Fisher checked that the first `emmeans` bridge stays limited to native
+  untransformed response formulas for fixed-effect univariate `mu`.
+- Curie added both private preflight and public `emmeans()` rejection tests.
+- Pat checked that the public error points users to explicit transformed-scale
+  prediction tables.
+- Grace owned focused tests, pkgdown, rendered scans, and PR #98 monitoring.
+- Rose checked that the wording keeps transformed predictors and transformed
+  responses separate.
+- Gauss, Noether, Darwin, Jason, and Emmy stayed watch-only because no
+  likelihood, equation, biological example, landscape claim, or object
+  structure changed.
+
+Files changed:
+
+- `NEWS.md`
+- `R/emmeans-preflight.R`
+- `ROADMAP.md`
+- `docs/design/39-visualization-grammar.md`
+- `docs/design/40-emmeans-interface-contract.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-16-slice-138-emmeans-transformed-response-boundary.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-16-223354-codex-checkpoint.md`
+- `tests/testthat/test-emmeans-methods.R`
+- `tests/testthat/test-emmeans-preflight.R`
+
+What changed:
+
+- Added `drm_emmeans_has_transformed_response()` and called it from the first
+  `mu` `emmeans` target validator.
+- The guard allows ordinary response names and `cbind()` beta-binomial
+  responses but rejects response formulas such as `log(y) ~ x`.
+- Added private and public tests that transformed-response fits error before
+  `emmeans()` returns an `emmGrid`.
+- Updated NEWS, roadmap, and design notes to state this as unsupported boundary
+  coverage, not transformed-response `emmeans` support.
+
+Checks run:
+
+- No-edit scout:
+  `emmeans()` on `bf(log(y) ~ x + habitat, sigma ~ 1)` previously returned an
+  `emmGrid`, despite the interface contract excluding transformed responses.
+- `air format R/emmeans-preflight.R NEWS.md ROADMAP.md docs/design/39-visualization-grammar.md docs/design/40-emmeans-interface-contract.md tests/testthat/test-emmeans-preflight.R tests/testthat/test-emmeans-methods.R`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'emmeans-preflight|emmeans-methods', reporter = 'summary')"`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'emmeans-methods|emmeans-recover-data|emmeans-preflight|fixed-effect-basis|reference-grid-link-scale-contract', reporter = 'summary')"`:
+  passed.
+- `git diff --check`: passed.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed.
+- Positive source/rendered scan for Slice 138 transformed-response boundary
+  wording and tests: found the expected entries.
+- Stale-claim scan for transformed-response `emmeans` support: no false support
+  claims; the only match was the intentional Slice 128 note that transformed
+  predictors are not transformed-response support.
+- Recovery checkpoint:
+  `docs/dev-log/recovery-checkpoints/2026-05-16-223354-codex-checkpoint.md`.
+
+Post-rebase checks:
+
+- PR #102 merged as `d3096082d60a73a6824f81660dc9badfcb059832`.
+- `git rebase --onto origin/main 65bc30e8d777e7b9c84501333aee2b2d5518334f`:
+  passed.
+- `git diff --check origin/main...HEAD`: passed.
+- `Rscript -e "devtools::test(filter = 'emmeans-methods|emmeans-recover-data|emmeans-preflight|fixed-effect-basis|reference-grid-link-scale-contract', reporter = 'summary')"`:
+  passed.
+
+Known limitations:
+
+- Transformed-response `emmeans` support remains unsupported.
+- This slice does not add delta-method response transformations, fitted
+  observed-response means, non-`mu` targets, zero-inflated or hurdle support,
+  ordinal expected-score support, random-effect workflows, or blocked model
+  structures.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-16-slice-138-emmeans-transformed-response-boundary.md`.
