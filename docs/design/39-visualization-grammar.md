@@ -259,6 +259,12 @@ fixed-effect `mu` model checks that `emmeans(..., cov.reduce = FALSE)` matches
 `emmeans` reference grid. This is still grid-based `emmeans` behaviour, not
 drmTMB row-wise empirical marginalisation.
 
+Slice 133 adds multiple explicit `at` value coverage. A Gaussian fixed-effect
+`mu` model checks that
+`emmeans(fit, ~ habitat | x, at = list(x = c(-0.25, 0.75)))` matches row-wise
+`predict(dpar = "mu")` on the same conditional reference grid. This keeps
+explicit conditioning distinct from averaged EMMs.
+
 Slice 102 adds the first article-level empirical-grid example. The
 model-workflow article now shows a conditioned grid for direct
 `predict_parameters()` rows and a separate empirical grid for

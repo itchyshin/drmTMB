@@ -2,6 +2,7 @@
 
 * `emmeans::emmeans()` now supports the first narrow `drmTMB` path: fixed-effect univariate `mu` estimated marginal means with retained model frames and fixed-effect covariance available. Generic `emmeans` pairwise contrasts on that returned `mu` grid are covered by a small parity test.
 * The fixed-effect univariate `mu` `emmeans::emmeans()` path now explicitly checks the `type = "response"` argument path, so response-scale EMMs requested directly from `emmeans()` must match `predict(dpar = "mu", type = "response")`.
+* The fixed-effect univariate `mu` `emmeans::emmeans()` path now explicitly checks multiple numeric `at` values, so conditional grids such as `emmeans(fit, ~ habitat | x, at = list(x = c(-0.25, 0.75)))` must match row-wise `predict(dpar = "mu")` on the same grid.
 * The fixed-effect univariate `mu` `emmeans::emmeans()` path now explicitly checks `cov.reduce = FALSE`, so EMMs that average over unreduced numeric covariate levels must match `predict(dpar = "mu")` averaged over the same reference grid.
 * The fixed-effect univariate `mu` `emmeans::emmeans()` path now explicitly checks custom numeric covariate reduction, so `cov.reduce = stats::median` must move the reference grid to `median(x)` rather than the default mean.
 * The fixed-effect univariate `mu` `emmeans::emmeans()` path now explicitly checks the default numeric covariate-reduction rule, so `emmeans(fit, ~ habitat)` must match `predict(dpar = "mu")` at the mean of the numeric covariate used by the reference grid.

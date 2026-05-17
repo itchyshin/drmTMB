@@ -19496,3 +19496,87 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-16-slice-132-emmeans-covreduce-false.md`.
+
+## 2026-05-16 - Slice 133 emmeans multiple explicit at values
+
+Goal: add explicit coverage for conditional `emmeans()` grids with more than
+one numeric `at` value in the first fixed-effect univariate `mu` bridge.
+
+Roles:
+
+- Ada kept this as a test/docs slice after the covariate-reduction coverage.
+- Boole checked that explicit `at` values are described as reference-grid
+  conditioning, not formula grammar.
+- Fisher checked that the estimand is row-wise native `mu` on the returned
+  conditional grid.
+- Curie added the multiple-`at` parity test.
+- Pat checked that the docs distinguish explicit conditioning from averaged
+  EMMs.
+- Grace owned focused tests, pkgdown, and rendered wording scans.
+- Rose checked that the slice does not imply slopes or a new marginalisation
+  workflow.
+- Gauss, Noether, Darwin, Jason, and Emmy stayed watch-only because no
+  likelihood, equation, biological example, landscape claim, or object
+  structure changed.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/39-visualization-grammar.md`
+- `docs/design/40-emmeans-interface-contract.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-16-slice-133-emmeans-multiple-at-grid.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-16-215616-codex-checkpoint.md`
+- `tests/testthat/test-emmeans-methods.R`
+
+What changed:
+
+- Added a public Gaussian fixed-effect `mu` test for
+  `emmeans(fit, ~ habitat | x, at = list(x = c(-0.25, 0.75)))`.
+- The test checks that returned EMM rows match `predict(dpar = "mu")`
+  row-by-row on the same conditional reference grid.
+- Updated NEWS, roadmap, and design notes to keep explicit conditioning
+  distinct from averaged EMMs, slope contracts, and new marginalisation.
+
+Checks run:
+
+- No-edit scout:
+  `emmeans(fit, ~ habitat | x, at = list(x = c(-0.25, 0.75)))` matched
+  row-wise `predict(dpar = "mu")` on the returned grid.
+- `air format NEWS.md ROADMAP.md docs/design/39-visualization-grammar.md docs/design/40-emmeans-interface-contract.md tests/testthat/test-emmeans-methods.R`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'emmeans-methods', reporter = 'summary')"`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'emmeans-methods|emmeans-recover-data|emmeans-preflight|fixed-effect-basis|reference-grid-link-scale-contract', reporter = 'summary')"`:
+  passed.
+- `git diff --check`: passed.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed.
+- Positive source/rendered scan for Slice 133 multiple-`at` wording and tests:
+  found the expected entries.
+- Stale-claim scan for multiple `at` values as unsupported, conditional grids
+  as unsupported, or new slope/marginalisation support: no Slice 133
+  contradictions; matches were unrelated planned spatial-slope wording.
+- Recovery checkpoint:
+  `docs/dev-log/recovery-checkpoints/2026-05-16-215616-codex-checkpoint.md`.
+
+Post-rebase checks:
+
+- PR #97 merged as `69e4383a6ff3487846193229cfaa8035f298beb7`.
+- `git rebase --onto origin/main 182d6260fa7248991025f2bf30682b68dcca2998`:
+  passed.
+- `git diff --check origin/main...HEAD`: passed.
+- `Rscript -e "devtools::test(filter = 'emmeans-methods|emmeans-recover-data|emmeans-preflight|fixed-effect-basis|reference-grid-link-scale-contract', reporter = 'summary')"`:
+  passed.
+
+Known limitations:
+
+- This slice covers explicit numeric `at` grids for fixed-effect univariate
+  `mu` only.
+- It does not add slope estimation, non-`mu` targets, transformed responses,
+  empirical marginalisation, or blocked model structures.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-16-slice-133-emmeans-multiple-at-grid.md`.
