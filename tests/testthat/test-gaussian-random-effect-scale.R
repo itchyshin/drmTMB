@@ -229,6 +229,30 @@ test_that("Gaussian sd(id) prediction preserves newdata output rows", {
   expect_true(all(response > 0))
 })
 
+test_that("Gaussian sd(id) prediction handles newdata container boundaries", {
+  sim <- new_gaussian_re_scale_data(n_id = 12, n_each = 4, seed = 20260565)
+  fit <- drmTMB(
+    bf(y ~ x + (1 | id), sigma ~ z, sd(id) ~ w),
+    family = gaussian(),
+    data = sim$data,
+    control = drm_control(optimizer = list(eval.max = 120L, iter.max = 120L))
+  )
+
+  expect_error(
+    predict(fit, dpar = "sd(id)", newdata = list(w = 0)),
+    "must be a data frame"
+  )
+
+  empty <- data.frame(w = numeric())
+  response <- predict(fit, dpar = "sd(id)", newdata = empty)
+  link <- predict(fit, dpar = "sd(id)", newdata = empty, type = "link")
+
+  expect_length(response, 0L)
+  expect_identical(names(response), character())
+  expect_identical(unname(response), numeric())
+  expect_equal(response, exp(link), ignore_attr = TRUE)
+})
+
 test_that("Gaussian sd(id) prediction validates factor levels in newdata", {
   sim <- new_gaussian_re_scale_data(
     n_id = 12,

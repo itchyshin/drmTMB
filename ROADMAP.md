@@ -1122,6 +1122,10 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   `sd(id)` prediction grids now have explicit tests for one output per row,
   `rownames(newdata)` preservation, default response scale, and response
   predictions equalling `exp(link)` from `type = "link"`.
+- Slice 152 pins direct-SD `newdata` container boundaries. Non-data-frame
+  `newdata` inputs now have explicit error coverage, while zero-row data-frame
+  grids return named length-zero numeric vectors on both link and response
+  scales.
 - Add additional ggplot-oriented helpers only after the data contract is stable:
   location curves, scale/variance curves, residual `rho12` curves,
   `sd(group)` or `sd_phylo()` surfaces, `corpairs()` summaries, and eventually

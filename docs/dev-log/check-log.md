@@ -21037,3 +21037,82 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slice-151-random-scale-newdata-output.md`.
+
+## 2026-05-17 - Slice 152 random-effect scale newdata container boundaries
+
+Goal: pin direct-SD `newdata` container boundaries for non-data-frame inputs
+and zero-row prediction grids.
+
+Roles:
+
+- Ada scoped this as the next boundary slice after the positive multi-row output
+  contract.
+- Boole checked that the public API remains `newdata` as a data frame rather
+  than a new container abstraction.
+- Pat checked that the empty-grid behavior is explicit rather than surprising.
+- Curie owned the non-data-frame error and zero-row regression test.
+- Grace owned focused tests, pkgdown build/check, and rendered-site scans.
+- Rose checked that the wording does not imply bivariate direct-SD prediction
+  surfaces, random-effect scale `emmeans`, `sd_sigma*()` syntax, or
+  transformed-response support.
+- Fisher, Gauss, Noether, Darwin, Jason, and Emmy stayed watch-only because no
+  estimand, likelihood, equation derivation, biological example, landscape
+  claim, or object structure changed.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/18-random-effect-scale-models.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-17-slice-152-random-scale-newdata-boundaries.md`
+- `tests/testthat/test-gaussian-random-effect-scale.R`
+
+What changed:
+
+- Added explicit tests that direct-SD prediction rejects non-data-frame
+  `newdata` inputs.
+- Added explicit tests that zero-row direct-SD data-frame grids return named
+  length-zero numeric vectors and preserve link/response parity.
+- NEWS, the Phase 17 roadmap, and the random-effect scale design note now state
+  the same container-boundary contract.
+
+Checks run:
+
+- No-edit scout before the slice:
+  - `newdata = list(w = 0)` errored with `` `newdata` must be a data frame.``;
+  - `newdata = data.frame(w = numeric())` returned `named numeric(0)` on both
+    link and response scales.
+- `air format NEWS.md ROADMAP.md docs/design/18-random-effect-scale-models.md tests/testthat/test-gaussian-random-effect-scale.R`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'gaussian-random-effect-scale', reporter = 'summary')"`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'fixed-effect-basis|gaussian-random-effect-scale', reporter = 'summary')"`:
+  passed.
+- `git diff --check`: passed.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed.
+- Positive source/rendered scan for Slice 152 container-boundary wording: found
+  the expected entries in `NEWS.md`, `ROADMAP.md`,
+  `docs/design/18-random-effect-scale-models.md`,
+  `tests/testthat/test-gaussian-random-effect-scale.R`, and rendered pkgdown
+  NEWS/ROADMAP pages.
+- Stale-claim scan for accidental random-effect scale `emmeans`, bivariate
+  random-effect scale prediction, `sd_sigma*()` syntax,
+  transformed-response support, or bivariate empty-grid claims: no new false
+  support claims; matches were existing profile-interval, Family B, or
+  `sd_sigma1()` / `sd_sigma2()` guardrails.
+- Recovery checkpoint:
+  `docs/dev-log/recovery-checkpoints/2026-05-17-024851-codex-checkpoint.md`.
+
+Known limitations:
+
+- This slice pins non-data-frame and zero-row direct-SD `newdata` boundaries for
+  ordinary univariate random-effect scale prediction.
+- It does not add random-effect scale `emmeans`, bivariate random-effect scale
+  prediction surfaces, empirical marginalisation, `sd_sigma*()` syntax,
+  transformed-response support, or new random-effect scale model families.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slice-152-random-scale-newdata-boundaries.md`.
