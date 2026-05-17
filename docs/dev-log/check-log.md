@@ -20252,3 +20252,85 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slice-141-emmeans-factor-by-grid.md`.
+
+## 2026-05-17 - Slice 142 emmeans ordered-factor grid
+
+Goal: preserve ordered-factor predictor coding when fixed-effect prediction
+newdata or an `emmeans()` reference grid supplies fitted ordered-factor levels
+as an ordinary factor.
+
+Roles:
+
+- Ada opened this from a no-edit scout while Slice 141 CI was still running.
+- Boole checked that this is factor-coding preservation, not new formula
+  grammar.
+- Fisher checked that the estimand remains a fixed-effect native-`mu` EMM on
+  the same reference grid.
+- Curie added low-level fixed-effect-basis coverage and public `emmeans()`
+  coverage.
+- Pat checked that the docs distinguish ordered predictors from ordinal
+  responses.
+- Grace owned focused tests and will own pkgdown/check scans before merge.
+- Rose checked that this does not expand the unsupported ordinal-response
+  `emmeans()` boundary.
+- Gauss, Noether, Darwin, Jason, and Emmy stayed watch-only because no
+  likelihood, equation, biological example, landscape claim, or object
+  structure changed.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `R/methods.R`
+- `docs/design/40-emmeans-interface-contract.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-17-slice-142-emmeans-ordered-factor-grid.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-17-001450-codex-checkpoint.md`
+- `tests/testthat/test-emmeans-methods.R`
+- `tests/testthat/test-fixed-effect-basis.R`
+
+What changed:
+
+- Added `drm_prepare_prediction_newdata()` and
+  `drm_prediction_template_data()` so fixed-effect prediction matrices reuse
+  fitted factor levels and ordered status before model-matrix construction.
+- Added low-level coverage that an ordered predictor supplied in `newdata` as
+  an ordinary factor still produces the fitted ordered polynomial columns.
+- Added public `emmeans()` coverage for
+  `emmeans(fit, ~ condition | habitat, at = list(x = 0.2))` with an ordered
+  `condition` predictor.
+
+Checks run:
+
+- No-edit scout:
+  the ordered-factor `emmeans()` grid failed before the fix with
+  `Could not align the "mu" design matrix with fitted coefficients`.
+- `Rscript -e "devtools::test(filter = 'fixed-effect-basis', reporter = 'summary')"`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'emmeans-methods', reporter = 'summary')"`:
+  passed.
+- `air format NEWS.md ROADMAP.md R/methods.R docs/design/40-emmeans-interface-contract.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-17-slice-142-emmeans-ordered-factor-grid.md tests/testthat/test-emmeans-methods.R tests/testthat/test-fixed-effect-basis.R`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'emmeans-methods|emmeans-recover-data|emmeans-preflight|fixed-effect-basis|reference-grid-link-scale-contract', reporter = 'summary')"`:
+  passed.
+- `git diff --check`: passed.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed.
+- Positive source/rendered scan for Slice 142 ordered-factor wording and test
+  evidence: found the expected entries.
+- Stale-claim scan for accidental ordinal-response `emmeans` support claims:
+  no matches.
+- Recovery checkpoint:
+  `docs/dev-log/recovery-checkpoints/2026-05-17-001450-codex-checkpoint.md`.
+
+Known limitations:
+
+- This slice preserves ordered-factor predictor coding only for fixed-effect
+  prediction/newdata and the supported univariate `mu` `emmeans()` bridge.
+- It does not add ordinal-response `emmeans()` support, non-`mu` targets,
+  transformed responses, empirical marginalisation, random-effect workflows, or
+  blocked model structures.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slice-142-emmeans-ordered-factor-grid.md`.
