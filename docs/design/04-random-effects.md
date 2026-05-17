@@ -180,7 +180,10 @@ cor(b_j, a_j) = rho_mu_sigma
 
 The fitted correlation is reported under `corpars$mu_sigma` and `corpairs()`
 as `mean-scale`. It is a group-level association between individual average
-response and individual residual scale, not residual `rho12`.
+response and individual residual scale, not residual `rho12`. Multiple
+independent matched labelled intercept blocks can be used in the same model,
+for example `(1 | p | id)` and `(1 | q | site)` in both `mu` and `sigma`; each
+block gets its own mean-scale correlation row.
 
 Random-effect scale formulae are implemented for the first simple case:
 

@@ -4676,84 +4676,84 @@ build_mu_sigma_random_covariance <- function(re_mu, re_sigma) {
   if (length(cross_sigma) == 0L) {
     return(empty_mu_sigma_random_covariance(re_sigma$n_re))
   }
-  if (length(cross_sigma) > 1L) {
-    cli::cli_abort(c(
-      "Only one labelled {.code mu}/{.code sigma} covariance block is implemented in this phase.",
-      "i" = "Start with one matching random-intercept pair such as {.code mu1 = y1 ~ x + (1 | p | id)} and {.code sigma1 = ~ z + (1 | p | id)}."
-    ))
-  }
-
-  labelled_sigma <- cross_sigma
-  block_label <- re_sigma$covariance_labels[[labelled_sigma]]
-  group_name <- re_sigma$group_names[[labelled_sigma]]
-  matching_mu <- which(
-    re_mu$covariance_labels == block_label &
-      re_mu$group_names == group_name
-  )
-  if (length(matching_mu) == 0L) {
-    cli::cli_abort(c(
-      "Labelled residual-scale random effects require a matching labelled {.code mu} random effect.",
-      "x" = "{.code sigma} uses block {.code {block_label}} for group {.field {group_name}}, but {.code mu} does not.",
-      "i" = "Use matching labels such as {.code y ~ x + (1 | {block_label} | {group_name})} and {.code sigma ~ z + (1 | {block_label} | {group_name})}."
-    ))
-  }
-  if (length(unique(re_mu$dpars[matching_mu])) > 1L) {
-    cli::cli_abort(c(
-      "Larger labelled covariance blocks are not implemented yet.",
-      "x" = "Block {.code {block_label}} on group {.field {group_name}} would connect {.code {re_mu$dpars[matching_mu]}} with {.code {re_sigma$dpars[[labelled_sigma]]}}.",
-      "i" = "Use one same-response pair such as {.code mu1} with {.code sigma1}, or wait for the positive-definite q > 2 block parameterization."
-    ))
-  }
-  if (
-    length(matching_mu) > 1L ||
-      !identical(re_mu$coef_names[[matching_mu]], "(Intercept)")
-  ) {
-    cli::cli_abort(c(
-      "Labelled {.code mu}/{.code sigma} covariance blocks are intercept-only in this phase.",
-      "x" = "The matching {.code mu} block has coefficient{?s}: {.val {re_mu$coef_names[matching_mu]}}.",
-      "i" = "Fit {.code (1 | p | id)} first; random-slope scale covariance will follow after recovery tests."
-    ))
-  }
-  if (!identical(re_sigma$coef_names[[labelled_sigma]], "(Intercept)")) {
-    cli::cli_abort(
-      "Internal error: labelled {.code sigma} covariance block is not intercept-only."
-    )
-  }
-  if (
-    !same_response_mu_sigma_dpars(
-      re_mu$dpars[[matching_mu]],
-      re_sigma$dpars[[labelled_sigma]]
-    )
-  ) {
-    cli::cli_abort(c(
-      "Bivariate cross-parameter covariance blocks are same-response only in this phase.",
-      "x" = "Block {.code {block_label}} pairs {.code {re_mu$dpars[[matching_mu]]}} with {.code {re_sigma$dpars[[labelled_sigma]]}}.",
-      "i" = "Use matching response terms such as {.code mu1} with {.code sigma1}, or {.code mu2} with {.code sigma2}."
-    ))
-  }
-  if (
-    !identical(re_mu$groups[[matching_mu]], re_sigma$groups[[labelled_sigma]])
-  ) {
-    cli::cli_abort(c(
-      "Labelled {.code mu}/{.code sigma} covariance blocks need matching group levels.",
-      "x" = "Block {.code {block_label}} on group {.field {group_name}} did not align after row filtering."
-    ))
-  }
 
   sigma_cross_cor_id0 <- rep.int(-1L, re_sigma$n_re)
   sigma_cross_mu_index0 <- rep.int(-1L, re_sigma$n_re)
-  sigma_rows <- which(re_sigma$term_id0 == labelled_sigma - 1L)
-  mu_rows <- which(re_mu$term_id0 == matching_mu - 1L)
-  sigma_cross_cor_id0[sigma_rows] <- 0L
-  sigma_cross_mu_index0[sigma_rows] <- mu_rows - 1L
-  list(
-    n_cors = 1L,
-    cor_labels = format_cross_dpar_cor_label(
+  cor_labels <- character(length(cross_sigma))
+
+  for (cor_id in seq_along(cross_sigma)) {
+    labelled_sigma <- cross_sigma[[cor_id]]
+    block_label <- re_sigma$covariance_labels[[labelled_sigma]]
+    group_name <- re_sigma$group_names[[labelled_sigma]]
+    matching_mu <- which(
+      re_mu$covariance_labels == block_label &
+        re_mu$group_names == group_name
+    )
+    if (length(matching_mu) == 0L) {
+      cli::cli_abort(c(
+        "Labelled residual-scale random effects require a matching labelled {.code mu} random effect.",
+        "x" = "{.code sigma} uses block {.code {block_label}} for group {.field {group_name}}, but {.code mu} does not.",
+        "i" = "Use matching labels such as {.code y ~ x + (1 | {block_label} | {group_name})} and {.code sigma ~ z + (1 | {block_label} | {group_name})}."
+      ))
+    }
+    if (length(unique(re_mu$dpars[matching_mu])) > 1L) {
+      cli::cli_abort(c(
+        "Larger labelled covariance blocks are not implemented yet.",
+        "x" = "Block {.code {block_label}} on group {.field {group_name}} would connect {.code {re_mu$dpars[matching_mu]}} with {.code {re_sigma$dpars[[labelled_sigma]]}}.",
+        "i" = "Use one same-response pair such as {.code mu1} with {.code sigma1}, or wait for the positive-definite q > 2 block parameterization."
+      ))
+    }
+    if (
+      length(matching_mu) > 1L ||
+        !identical(re_mu$coef_names[[matching_mu]], "(Intercept)")
+    ) {
+      cli::cli_abort(c(
+        "Labelled {.code mu}/{.code sigma} covariance blocks are intercept-only in this phase.",
+        "x" = "The matching {.code mu} block has coefficient{?s}: {.val {re_mu$coef_names[matching_mu]}}.",
+        "i" = "Fit {.code (1 | p | id)} first; random-slope scale covariance will follow after recovery tests."
+      ))
+    }
+    if (!identical(re_sigma$coef_names[[labelled_sigma]], "(Intercept)")) {
+      cli::cli_abort(
+        "Internal error: labelled {.code sigma} covariance block is not intercept-only."
+      )
+    }
+    if (
+      !same_response_mu_sigma_dpars(
+        re_mu$dpars[[matching_mu]],
+        re_sigma$dpars[[labelled_sigma]]
+      )
+    ) {
+      cli::cli_abort(c(
+        "Bivariate cross-parameter covariance blocks are same-response only in this phase.",
+        "x" = "Block {.code {block_label}} pairs {.code {re_mu$dpars[[matching_mu]]}} with {.code {re_sigma$dpars[[labelled_sigma]]}}.",
+        "i" = "Use matching response terms such as {.code mu1} with {.code sigma1}, or {.code mu2} with {.code sigma2}."
+      ))
+    }
+    if (
+      !identical(re_mu$groups[[matching_mu]], re_sigma$groups[[labelled_sigma]])
+    ) {
+      cli::cli_abort(c(
+        "Labelled {.code mu}/{.code sigma} covariance blocks need matching group levels.",
+        "x" = "Block {.code {block_label}} on group {.field {group_name}} did not align after row filtering."
+      ))
+    }
+
+    sigma_rows <- which(re_sigma$term_id0 == labelled_sigma - 1L)
+    mu_rows <- which(re_mu$term_id0 == matching_mu - 1L)
+    sigma_cross_cor_id0[sigma_rows] <- cor_id - 1L
+    sigma_cross_mu_index0[sigma_rows] <- mu_rows - 1L
+    cor_labels[[cor_id]] <- format_cross_dpar_cor_label(
       re_mu$dpars[[matching_mu]],
       re_sigma$dpars[[labelled_sigma]],
       group_name,
       block_label
-    ),
+    )
+  }
+
+  list(
+    n_cors = length(cross_sigma),
+    cor_labels = cor_labels,
     sigma_cross_cor_id0 = sigma_cross_cor_id0,
     sigma_cross_mu_index0 = sigma_cross_mu_index0
   )

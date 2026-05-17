@@ -153,9 +153,10 @@ distributional regression models using TMB.
   Gaussian location formula. Random intercepts in the residual `sigma` formula
   and independent residual-scale random slopes written as `(0 + x | id)` are
   also implemented, and matching labelled `mu`/`sigma` random intercepts now
-  fit the first univariate mean-scale covariance block. Random-effect scale
-  formulae are implemented for one or more distinct unlabelled Gaussian `mu`
-  random intercepts, such as `sd(id) ~ x_group` and `sd(site) ~ site_type`.
+  fit one or more independent univariate mean-scale covariance blocks.
+  Random-effect scale formulae are implemented for one or more distinct
+  unlabelled Gaussian `mu` random intercepts, such as `sd(id) ~ x_group` and
+  `sd(site) ~ site_type`.
   The bivariate Gaussian path now fits matched labelled `mu1`/`mu2`,
   `sigma1`/`sigma2`, and same-response `mu`/`sigma` random-intercept
   covariance blocks.
@@ -1265,8 +1266,8 @@ remain blocked by future covariance or non-Gaussian random-effect work.
 | 180 | Gaussian random slopes | Done: q=3 recovery, malformed-input, conditional prediction, summary, `corpairs()`, and `profile_targets()` tests cover the first public path. |
 | 181 | Gaussian random slopes | Done: user docs state the q=3 evidence, q > 2 output names, profile-ready SDs, derived-unavailable unstructured correlations, and sample-size boundary. |
 | 182 | Scale random slopes | Done: multiple independent residual-scale Gaussian `sigma` terms are tested as separate log-`sigma` SDs with correlations fixed at zero; correlated and labelled residual-scale slope covariance blocks remain planned. |
-| 183 | Location-scale covariance | Prototype two independent matched `mu`/`sigma` random-intercept covariance blocks. |
-| 184 | Location-scale covariance | Add recovery, `corpairs()`, summary, and profile-target tests for two matched blocks. |
+| 183 | Location-scale covariance | Done: two independent matched univariate `mu`/`sigma` random-intercept covariance blocks can be fitted and reported through `corpars$mu_sigma`, `corpairs()`, `summary()`, and `profile_targets()`. |
+| 184 | Location-scale covariance | Add stronger recovery, diagnostics, and interval checks for two matched blocks. |
 | 185 | Bivariate random slopes | Define the first bivariate one-slope policy without opening q=8 endpoint blocks. |
 | 186 | Phylogenetic random slopes | Audit phylogenetic one-slope support and parity gaps against the spatial lane. |
 | 187 | Spatial random slopes | Confirm spatial one-slope support, docs, diagnostics, and parity boundaries. |

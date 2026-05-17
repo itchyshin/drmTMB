@@ -284,6 +284,64 @@ new_gaussian_mu_sigma_cov_data <- function(
   )
 }
 
+new_gaussian_two_mu_sigma_cov_data <- function(
+  n_id = 16,
+  n_site = 8,
+  n_rep = 3,
+  sd_mu_id = 0.42,
+  sd_sigma_id = 0.26,
+  rho_id = 0.40,
+  sd_mu_site = 0.30,
+  sd_sigma_site = 0.22,
+  rho_site = -0.35,
+  seed = 20260683
+) {
+  set.seed(seed)
+  dat <- expand.grid(
+    id = factor(seq_len(n_id)),
+    site = factor(seq_len(n_site)),
+    rep = seq_len(n_rep)
+  )
+  n <- nrow(dat)
+  dat$x <- stats::rnorm(n)
+  dat$z <- stats::rnorm(n)
+
+  raw_mu_id <- stats::rnorm(n_id)
+  raw_sigma_id <- rho_id * raw_mu_id + sqrt(1 - rho_id^2) * stats::rnorm(n_id)
+  raw_mu_site <- stats::rnorm(n_site)
+  raw_sigma_site <- rho_site *
+    raw_mu_site +
+    sqrt(1 - rho_site^2) * stats::rnorm(n_site)
+  beta_mu <- c(`(Intercept)` = 0.2, x = 0.50)
+  beta_sigma <- c(`(Intercept)` = log(0.55), z = 0.18)
+  id_index <- as.integer(dat$id)
+  site_index <- as.integer(dat$site)
+  mu <- beta_mu[[1L]] +
+    beta_mu[[2L]] * dat$x +
+    sd_mu_id * raw_mu_id[id_index] +
+    sd_mu_site * raw_mu_site[site_index]
+  sigma <- exp(
+    beta_sigma[[1L]] +
+      beta_sigma[[2L]] * dat$z +
+      sd_sigma_id * raw_sigma_id[id_index] +
+      sd_sigma_site * raw_sigma_site[site_index]
+  )
+  dat$y <- stats::rnorm(n, mean = mu, sd = sigma)
+
+  list(
+    data = dat,
+    beta_mu = beta_mu,
+    beta_sigma = beta_sigma,
+    sd = c(
+      mu_id = sd_mu_id,
+      sigma_id = sd_sigma_id,
+      mu_site = sd_mu_site,
+      sigma_site = sd_sigma_site
+    ),
+    rho = c(id = rho_id, site = rho_site)
+  )
+}
+
 gaussian_mu_sigma_joint_nll <- function(fit, par) {
   spec <- fit$model
   re_mu <- spec$random$mu
@@ -1217,6 +1275,53 @@ test_that("Gaussian mu/sigma labelled random-intercept covariance is fitted", {
     "cor:mu_sigma:cor(mu:(Intercept),sigma:(Intercept) | p | id)" %in%
       targets$parm
   )
+})
+
+test_that("Gaussian mu/sigma supports two independent matched covariance blocks", {
+  sim <- new_gaussian_two_mu_sigma_cov_data()
+
+  fit <- drmTMB(
+    bf(
+      y ~ x + (1 | p | id) + (1 | q | site),
+      sigma ~ z + (1 | p | id) + (1 | q | site)
+    ),
+    family = gaussian(),
+    data = sim$data,
+    control = list(eval.max = 600, iter.max = 600)
+  )
+  pairs <- corpairs(fit, class = "mean-scale")
+  smry <- summary(fit)
+  targets <- profile_targets(fit)
+  cor_parms <- paste0("cor:mu_sigma:", names(fit$corpars$mu_sigma))
+  cor_targets <- targets[match(cor_parms, targets$parm), ]
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(fit$model$random$mu_sigma$n_cors, 2L)
+  expect_equal(fit$model$tmb_data$n_mu_sigma_re_cors, 2L)
+  expect_named(fit$sdpars$mu, c("(1 | p | id)", "(1 | q | site)"))
+  expect_named(fit$sdpars$sigma, c("(1 | p | id)", "(1 | q | site)"))
+  expect_named(
+    fit$corpars$mu_sigma,
+    c(
+      "cor(mu:(Intercept),sigma:(Intercept) | p | id)",
+      "cor(mu:(Intercept),sigma:(Intercept) | q | site)"
+    )
+  )
+  expect_equal(nrow(pairs), 2L)
+  expect_equal(smry$covariance$parameter, names(fit$corpars$mu_sigma))
+  expect_equal(pairs$group, c("id", "site"))
+  expect_equal(pairs$block, c("p", "q"))
+  expect_equal(pairs$estimate, unname(fit$corpars$mu_sigma), tolerance = 1e-12)
+  expect_equal(
+    sort(unique(fit$model$random$mu_sigma$sigma_cross_cor_id0[
+      fit$model$random$mu_sigma$sigma_cross_cor_id0 >= 0L
+    ])),
+    0:1
+  )
+  expect_equal(cor_targets$tmb_parameter, rep("eta_cor_mu_sigma", 2L))
+  expect_equal(cor_targets$index, 1:2)
+  expect_equal(cor_targets$target_type, rep("direct", 2L))
+  expect_true(all(cor_targets$profile_ready))
 })
 
 test_that("Gaussian mu/sigma covariance maps only the labelled sigma block", {
