@@ -257,3 +257,9 @@ fixed-effect `mu` model verifies that `emmeans(..., cov.reduce = FALSE)`
 matches `predict(dpar = "mu")` averaged over the observed `x` levels in the
 `emmeans` reference grid. This is grid averaging by `emmeans`, not
 drmTMB-specific row-wise empirical marginalisation.
+
+Slice 133 adds multiple explicit `at` value coverage. A Gaussian fixed-effect
+`mu` model verifies that
+`emmeans(fit, ~ habitat | x, at = list(x = c(-0.25, 0.75)))` matches row-wise
+`predict(dpar = "mu")` on the same conditional reference grid. This is explicit
+conditioning, not a new marginalisation or slope contract.

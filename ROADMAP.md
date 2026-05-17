@@ -1046,6 +1046,10 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   `emmeans(..., cov.reduce = FALSE)` matches `predict(dpar = "mu")` averaged
   over the observed `x` levels in the reference grid, keeping this separate
   from drmTMB row-wise empirical marginalisation.
+- Slice 133 adds multiple explicit `at` value coverage for the first
+  `emmeans()` bridge. A Gaussian fixed-effect `mu` example now checks that
+  `emmeans(fit, ~ habitat | x, at = list(x = c(-0.25, 0.75)))` matches
+  row-wise `predict(dpar = "mu")` on the same conditional reference grid.
 - Add additional ggplot-oriented helpers only after the data contract is stable:
   location curves, scale/variance curves, residual `rho12` curves,
   `sd(group)` or `sd_phylo()` surfaces, `corpairs()` summaries, and eventually
