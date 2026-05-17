@@ -1679,7 +1679,10 @@ deviance.drmTMB <- function(object, ...) {
 #'
 #' @param object A `drmTMB` fit.
 #' @param newdata Optional data frame for prediction. If omitted, fitted rows
-#'   are used.
+#'   are used. When supplied, `newdata` must include the predictors used by the
+#'   requested `dpar`; required predictor values must be complete, required
+#'   numeric predictors must be finite, and factor predictors must use fitted
+#'   levels.
 #' @param dpar Distributional parameter to predict. If `NULL`, the first
 #'   fitted distributional parameter is used.
 #' @param type Prediction scale: `"response"` or `"link"`.
