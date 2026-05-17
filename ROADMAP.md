@@ -1481,8 +1481,9 @@ Use this order unless Slice 191 evidence overturns it:
   skeleton and seed/cell registry are done locally in Slice 210; the Gaussian
   location-scale DGP and pilot summariser are done locally in Slice 211; the
   Gaussian meta-analysis `meta_V(V = V)` DGP with vector and dense matrix `V`
-  is done locally in Slice 212. Next, add resumable per-cell runners for the
-  two first-wave pilot surfaces.
+  is done locally in Slice 212; a generic resumable replicate runner is done
+  locally in Slice 213. Next, wire surface-specific pilot runner scripts for the
+  two first-wave surfaces.
 
 ## Phase 19: Comparator Demonstrations With Other Packages
 

@@ -23761,3 +23761,42 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slice-212-meta-v-dgp.md`.
+
+## 2026-05-17 - Slice 213 simulation replicate runner
+
+Goal: add the first resumable runner primitive for one Phase 18 simulation cell
+replicate.
+
+Files changed:
+
+- `inst/sim/R/sim_runner.R`
+- `tests/testthat/test-phase18-sim-runner.R`
+- `inst/sim/README.md`
+- `ROADMAP.md`
+- `NEWS.md`
+- `docs/dev-log/after-task/2026-05-17-slice-213-sim-runner.md`
+
+What changed:
+
+- Added `phase18_run_replicate()` to run one `cell` and one `seed_row` through
+  DGP, fit, and summarise functions.
+- Captured warnings, errors, elapsed time, session metadata, and optional RDS
+  output.
+- Added tests for save/resume behaviour, warning/error capture, and malformed
+  inputs.
+
+Checks run:
+
+- `air format inst/sim/R/sim_runner.R tests/testthat/test-phase18-sim-runner.R inst/sim/README.md ROADMAP.md NEWS.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-17-slice-213-sim-runner.md`
+- `Rscript -e "devtools::test(filter = 'phase18-sim-runner', reporter = 'summary')"`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `git diff --check`
+
+Known limitations:
+
+- This slice does not add surface-specific runner scripts, parallel execution,
+  per-cell aggregation, reports, comparators, or simulation result claims.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slice-213-sim-runner.md`.
