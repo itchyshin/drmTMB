@@ -134,53 +134,67 @@ simulate_spatial_location_data <- function(seed = 20260534) {
 }
 ```
 
-Phylogenetic and spatial dependence are structural random effects: they use a
-known biological or geographical structure to describe which observations are
-expected to be similar. The first implemented `drmTMB` path is an
-intercept-only phylogenetic effect in the univariate Gaussian location formula.
-A first bivariate path also fits matching intercept-only `phylo()` terms in
-`mu1` and `mu2`, estimating the two phylogenetic location SDs and their
-mean-mean correlation. Matching labelled `phylo()` terms across `mu1`, `mu2`,
-`sigma1`, and `sigma2` now fit the first constant bivariate phylogenetic
-location-scale block. The first predictor-dependent phylogenetic correlation
-regression is also fitted for the q=2 `mu1`-`mu2` location-location row. The
-first coordinate-based spatial paths, `spatial(1 | site, coords = coords)` and
+Structural dependence means a random effect has a known dependence structure
+instead of independent group levels. Read the grammar in biological order:
+animal models for pedigree or additive relatedness, phylogenetic models for
+tree-structured relatedness, spatial models for coordinate or mesh structure,
+combined phylogenetic-plus-spatial models when both sources matter, and
+`relmat()` for other known relatedness or precision matrices.
+
+The current fitted `drmTMB` paths are a subset of that ladder. The first
+implemented path is an intercept-only phylogenetic effect in the univariate
+Gaussian location formula. A first bivariate path also fits matching
+intercept-only `phylo()` terms in `mu1` and `mu2`, estimating the two
+phylogenetic location SDs and their mean-mean correlation. Matching labelled
+`phylo()` terms across `mu1`, `mu2`, `sigma1`, and `sigma2` now fit the first
+constant bivariate phylogenetic location-scale block. The first
+predictor-dependent phylogenetic correlation regression is also fitted for the
+q=2 `mu1`-`mu2` location-location row. The first coordinate-based spatial
+paths, `spatial(1 | site, coords = coords)` and
 `spatial(1 + x | site, coords = coords)`, are fitted for univariate Gaussian
 location models. The one-slope path estimates independent coordinate-spatial
-intercept and slope fields with separate SDs. Mesh/SPDE spatial fields,
-combined phylogenetic-plus-spatial location models, multiple spatial slopes,
-spatial slope correlations, and predictor-dependent q=4 location-scale or
-scale-scale phylogenetic correlations remain planned extensions.
+intercept and slope fields with separate SDs. `animal()` and `relmat()` are
+exported and documented as planned markers, but they are not fitted paths yet.
+Mesh/SPDE spatial fields, combined phylogenetic-plus-spatial location models,
+multiple spatial slopes, spatial slope correlations, and predictor-dependent
+q=4 location-scale or scale-scale phylogenetic correlations remain planned
+extensions.
 
-The scientific questions for the implemented structural paths are simple:
+The scientific questions for the structural ladder are simple:
 
-> Do predictors explain species trait means after accounting for similarity
-> among related species? Do predictors explain a response after accounting for
-> smooth coordinate-based site deviations, or does a predictor's slope vary
-> smoothly across sites?
+> Do predictors explain trait means after accounting for resemblance among
+> relatives, species, or nearby sites? Does a response still have smooth
+> coordinate-based site deviations, or does a predictor's slope vary smoothly
+> across sites?
 
-For phylogenetic models, `species` indexes the rows in the data and `tree`
-supplies the relatedness among those species. For spatial models, `site`
+For planned animal models, `individual` or `animal` will index rows in the data
+and a pedigree or additive relatedness matrix will supply expected genetic
+similarity. For phylogenetic models, `species` indexes the rows in the data and
+`tree` supplies the relatedness among those species. For spatial models, `site`
 indexes the rows in the data and `coords` supplies one coordinate pair per
 site, or one row per observation when coordinates are constant within site. In
-both cases, the first fitted spatial or phylogenetic term adds structured
-Gaussian coefficients to the location parameter `mu`. The intercept path adds
-a site or species deviation in mean response. The coordinate-spatial one-slope
-path also lets the effect of one numeric predictor vary smoothly across sites.
+the fitted phylogenetic and spatial paths, the structured term adds Gaussian
+coefficients to the location parameter `mu`. The intercept path adds a species
+or site deviation in mean response. The coordinate-spatial one-slope path also
+lets the effect of one numeric predictor vary smoothly across sites.
 
 Throughout this article, `Normal(a, b)` and `MVN(a, B)` use variance or
 covariance as the second argument.
 
-## Reader route: phylogeny, spatial, and both together
+## Reader route: animal, phylogeny, spatial, and known matrices
 
-Read this page as a three-step structural-dependence ladder. Step 1 asks
-whether related species remain similar after fixed effects. Step 2 asks whether
-nearby sites remain similar after fixed effects. Step 3 will ask whether both
-species relatedness and site coordinates are needed in the same model. Step 3
-is the scientific endpoint, but it is not a fitted `drmTMB()` path yet.
+Read this page as a five-step structural-dependence ladder. Step 1 asks whether
+individuals resemble each other because of pedigree or additive relatedness.
+Step 2 asks whether related species remain similar after fixed effects. Step 3
+asks whether nearby sites remain similar after fixed effects. Step 4 asks
+whether both species relatedness and site coordinates are needed in the same
+model. Step 5 covers lower-level known dependence matrices that do not belong
+to the named animal, phylogenetic, or spatial routes. In the current package,
+Steps 2 and 3 have fitted Gaussian paths; Steps 1, 4, and 5 are documented
+planned syntax.
 
-For one Gaussian response such as `heat_tolerance`, the conceptual full model
-is:
+For a one-response phylogenetic-plus-spatial endpoint such as
+`heat_tolerance`, the conceptual full model is:
 
 \[
 \begin{aligned}
@@ -211,13 +225,22 @@ location deviations. The vector \(\mathbf{z}_i\) contains residual-scale
 predictors and \(\boldsymbol{\beta}_{\sigma}\) are their effects on log
 residual SD.
 
-The current fitted routes are the first two pieces of that equation:
+The animal-model analogue replaces the species term with an individual
+additive effect, for example
+\(\mathbf{g} \sim \operatorname{MVN}(\mathbf{0},
+\sigma^2_{\mathrm{animal}}\mathbf{A}_{\mathrm{pedigree}})\). That is the
+planned meaning of `animal(1 | individual, pedigree = pedigree)`, but it is
+not fitted yet.
+
+Read the current route status this way:
 
 | Route | Current status | Use when | Syntax to read |
 | --- | --- | --- | --- |
-| 1. Phylogeny | Implemented for the listed Gaussian slices | Species share evolutionary history, and related species may have similar trait means, trait variances, or cross-trait latent correlations. | `phylo(1 | species, tree = tree)`; labelled bivariate blocks such as `phylo(1 | p | species, tree = tree)` |
-| 2. Spatial | Implemented for univariate Gaussian `mu` coordinate slices | Nearby sampling sites may share smooth deviations in the expected response or in one numeric slope such as `depth`. | `spatial(1 | site, coords = coords)`; `spatial(1 + depth | site, coords = coords)` |
-| 3. Phylogeny + spatial | Planned, not fitted yet | The same response could be structured by both species relatedness and site coordinates. | Fit separate phylogenetic and spatial sensitivity models for now; simultaneous `phylo()` plus `spatial()` in `mu` is rejected until the joint model has identifiability checks. |
+| 1. Animal | Planned marker, not fitted yet | Individuals have known additive relatedness from a pedigree or relationship matrix, and the biological question is an animal model or quantitative-genetic random effect. | `animal(1 | individual, pedigree = pedigree)`; later `animal(1 | individual, A = A)` or `animal(1 | individual, Ainv = Ainv)` |
+| 2. Phylogeny | Implemented for the listed Gaussian slices | Species share evolutionary history, and related species may have similar trait means, trait variances, or cross-trait latent correlations. | `phylo(1 | species, tree = tree)`; labelled bivariate blocks such as `phylo(1 | p | species, tree = tree)` |
+| 3. Spatial | Implemented for univariate Gaussian `mu` coordinate slices | Nearby sampling sites may share smooth deviations in the expected response or in one numeric slope such as `depth`. | `spatial(1 | site, coords = coords)`; `spatial(1 + depth | site, coords = coords)` |
+| 4. Phylogeny + spatial | Planned, not fitted yet | The same response could be structured by both species relatedness and site coordinates. | Fit separate phylogenetic and spatial sensitivity models for now; simultaneous `phylo()` plus `spatial()` in `mu` is rejected until the joint model has identifiability checks. |
+| 5. Other known dependence | Design candidate, not fitted yet | A known covariance or precision matrix does not naturally belong to animal, phylogenetic, or spatial syntax. | `relmat(1 | id, K = K)` or `relmat(1 | id, Q = Q)` in future low-level workflows. |
 
 That status boundary is deliberate. A combined model like this is
 scientifically natural:
@@ -240,6 +263,8 @@ phylogenetic-plus-spatial location-scale-coscale model.
 
 | Model piece | Status | What it means |
 | --- | --- | --- |
+| `animal(1 | individual, pedigree = pedigree)` | Planned marker | A future animal-model random effect using pedigree-derived additive relatedness. The marker is documented and parsed, but `drmTMB()` rejects it before fitting. |
+| `animal(1 | individual, A = A)` or `animal(1 | individual, Ainv = Ainv)` | Planned marker | A future direct relatedness or inverse-relatedness input for animal-model fits. Use `A` or `Ainv`; keep `V` for known sampling covariance in meta-analysis. |
 | `phylo(1 | species, tree = tree)` in univariate `mu` | Implemented | One trait has a phylogenetic random intercept in the location predictor. |
 | Matching `phylo(1 | species, tree = tree)` terms in bivariate `mu1` and `mu2` | Implemented first slice | Two traits have correlated phylogenetic location deviations; `corpairs(level = "phylogenetic")` reports the mean-mean row separately from residual `rho12`. |
 | Matching labelled `phylo(1 | p | species, tree = tree)` terms in bivariate `mu1` and `mu2` | Implemented | The label is preserved in SD names, the fitted mean-mean correlation, `corpairs(block = "p")`, and profile-target names. |
@@ -251,6 +276,7 @@ phylogenetic-plus-spatial location-scale-coscale model.
 | `spatial(1 | site, coords = coords)` | Implemented first slice | One trait has a coordinate-based spatial random intercept in the location predictor. This is a fixed coordinate covariance foundation, not the future mesh/SPDE path. |
 | `spatial(1 + x | site, coords = coords)` | Implemented first one-slope slice | One trait has independent coordinate-spatial intercept and numeric slope fields in the location predictor. The two fields share the same coordinate precision, have separate SDs, and do not estimate an intercept-slope correlation. |
 | `phylo(1 | species, tree = tree) + spatial(1 | site, coords = coords)` in the same `mu` formula | Planned | This is the intended third structural-dependence route, but the fitter currently stops with a planned-feature message because multiple structural `mu` layers need their own identifiability checks. |
+| `relmat(1 | id, K = K)` or `relmat(1 | id, Q = Q)` | Design candidate | A lower-level route for known covariance or precision matrices after the named animal, phylogenetic, and spatial surfaces are stable. |
 | `spatial(1 | site, mesh = mesh)` | Planned | Mesh inputs will provide expert control for the scalable SPDE/GMRF spatial path. |
 
 The fitted q=2 phylogenetic correlation-regression syntax is:
@@ -982,9 +1008,9 @@ biologically harder to interpret than same-trait pairs. Use
 `corpairs(fit, level = "phylogenetic")` to extract fitted constant or modelled
 latent phylogenetic correlations.
 
-## Implemented second route: coordinate spatial intercepts and one slope
+## Implemented third route: coordinate spatial intercepts and one slope
 
-Spatial fields are the second route in the structural-dependence ladder. They
+Spatial fields are the third route in the structural-dependence ladder. They
 are deliberately shaped to look parallel to phylogenetic effects, but they use
 site coordinates rather than a tree. The first fitted paths are
 coordinate-based univariate Gaussian `mu` coefficient fields: a random
@@ -1329,7 +1355,8 @@ level-specific correlations such as phylogenetic mean-mean correlations,
 non-phylogenetic species correlations, spatial field correlations, and
 mean-scale correlations. These are not residual `rho12`; they should be
 reported as structural or group-level covariance summaries. For the univariate
-structural-dependence ladder, remember the order: fit phylogeny when the
-species tree is the main dependence structure, fit spatial coordinates when the
-site field is the main dependence structure, and treat phylogeny plus spatial
-as the next endpoint rather than a current runnable example.
+structural-dependence ladder, remember the order: use `animal()` when pedigree
+or additive relatedness is the target, `phylo()` when the species tree is the
+main dependence structure, `spatial()` when the site field is the main
+dependence structure, combined `phylo()` plus `spatial()` when both structures
+are needed, and `relmat()` only for future lower-level known-matrix workflows.
