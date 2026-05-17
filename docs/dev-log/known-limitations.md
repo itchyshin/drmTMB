@@ -216,6 +216,15 @@
   as `phylo(1 | species, tree = tree)`. The tree must be an ultrametric
   `phylo` object with positive branch lengths, and every observed species must
   match a tip label.
+- Animal-model and generic known-relatedness structured random effects are not
+  implemented yet. Planned syntax such as `animal(1 | id, pedigree = ped)`,
+  `animal(1 | id, A = A)`, `animal(1 | id, Ainv = Ainv)`, and a possible
+  lower-level `relmat(1 | id, K = K)` should reuse the same structured Gaussian
+  random-effect algebra as `phylo()` and `spatial()`, but the parser,
+  pedigree/matrix validation, extractor names, profile targets, diagnostics,
+  and simulation recovery tests do not exist yet. These relatedness inputs are
+  distinct from meta-analysis `meta_V(..., V = V)`, which supplies known
+  sampling covariance.
 - Structured-effect markers outside the fitted paths, such as
   `phylo(1 + x | species, tree = tree)`, phylogenetic terms in `sigma`, and
   `spatial(1 | site, mesh = mesh)`, are parsed and rejected clearly, but they

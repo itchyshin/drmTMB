@@ -65,8 +65,8 @@ In this table, "coscale" means a model for residual correlation, currently
 | `sd(id) ~ x_group` | Implemented | Random-effect scale model for one or more distinct unlabelled Gaussian `mu` random intercepts. |
 | `sd(id, dpar = "mu", coef = "x1") ~ x_group` | Reserved | Planned explicit coefficient-specific random-effect SD syntax for random slopes; `drmTMB()` rejects it until the covariance model and tests exist. |
 | `meta_known_V(V = V)` | Implemented | Known diagonal, block-diagonal, or dense sampling covariance with `family = gaussian()`; bivariate Gaussian known `V` uses a complete-row `2n` by `2n` row-paired matrix. |
-| `meta_V(value, V = V)` | Planned | Possible future umbrella spelling for additive known sampling covariance. If implemented, `meta_known_V()` should become a deprecated alias for the known-`V` form, not a separate likelihood. |
-| `meta_V(value, w = w, scale = "proportional")` | Planned | Possible future proportional sampling-variance spelling for models such as `pi_i ~ Normal(0, phi_pi / w_i)`. This is not implemented and is not a CRAN-blocking requirement. |
+| `meta_V(V = V)` | Planned preferred spelling | Future umbrella spelling for additive known sampling covariance; `V` may be a vector, column, diagonal matrix, block-diagonal matrix, or dense matrix. `meta_known_V()` should become a compatibility alias for the known-`V` form, not a separate likelihood. |
+| `meta_V(w = w, scale = "proportional")` | Planned | Possible future proportional sampling-variance spelling for models such as `pi_i ~ Normal(0, phi_pi / w_i)`. This is not implemented and is not a CRAN-blocking requirement. |
 | `mu1`, `mu2`, `sigma1`, `sigma2`, `rho12` | Implemented for fixed effects | Bivariate Gaussian location-coscale model with predictor-dependent residual correlation. |
 | `(1 | p | id)` in both bivariate `mu1` and `mu2` | Implemented | First bivariate group-level covariance slice: matching labelled random intercepts create `mu1`/`mu2` random-intercept SDs and one group-level correlation. |
 | `(1 | p | id)` in both bivariate `sigma1` and `sigma2` | Implemented | First bivariate residual-scale covariance slice: matching labelled random intercepts enter `log(sigma1)` and `log(sigma2)` and create one scale-scale group-level correlation. |
@@ -81,7 +81,11 @@ In this table, "coscale" means a model for residual correlation, currently
 | labelled `phylo(1 | p | species, tree = tree)` in all four bivariate `mu1`, `mu2`, `sigma1`, and `sigma2` formulas | Implemented first slice | One constant q=4 phylogenetic location-scale block estimates four endpoint SDs and six latent phylogenetic correlations. Partial, unlabelled, mismatched, and slope forms remain rejected. |
 | `sd_phylo(species) ~ x_species` | Implemented | Family B direct-SD model for a univariate Gaussian phylogenetic location random effect; predictors must be constant within species and scale observed tips through the `D_tip A_tip D_tip` contract. |
 | bivariate `sd_phylo1(species) ~ x_species` / `sd_phylo2(species) ~ x_species` | Implemented | Response-specific bivariate phylogenetic location direct-SD models. They target only `mu1` and `mu2` phylogenetic location SDs, keep the latent phylogenetic location-location correlation separate, and are rejected with q=4 phylogenetic location-scale blocks. |
-| `weights = w` | Implemented | Top-level likelihood weights, not formula syntax. Known sampling covariance remains `meta_known_V(V = V)`. |
+| `phylo(1 | species, A = A)` or `phylo(1 | species, Ainv = Ainv)` | Planned | Future phylogenetic known-relatedness input for users who already have a validated phylogenetic covariance or precision matrix. The implemented public phylo path still requires `tree = tree`. |
+| `animal(1 | id, pedigree = ped)` | Planned | Future animal-model structured random effect using additive relatedness from a pedigree. This is a sibling of `phylo()` and `spatial()`, not a new family. |
+| `animal(1 | id, A = A)` or `animal(1 | id, Ainv = Ainv)` | Planned | Future additive genetic relatedness input. Use `A` or `Ainv` for relatedness; keep `V` reserved for known sampling covariance in meta-analysis. |
+| `relmat(1 | id, K = K)` or `relmat(1 | id, Q = Q)` | Design candidate | Possible lower-level user-supplied relatedness route after the named `phylo()`, `spatial()`, and `animal()` surfaces are stable. This should replace, not duplicate, older `gr()`-style low-level wording if exposed. |
+| `weights = w` | Implemented | Top-level likelihood weights, not formula syntax. Known sampling covariance remains a separate marker: currently `meta_known_V(V = V)`, with `meta_V(V = V)` the preferred replacement design. |
 | `y ~ x1`, `family = cumulative_logit()` | Implemented | Fixed-effect univariate ordinal model for ordered scores with cutpoints; `mu` is a latent location and ordinal scale formulas are planned. |
 | `cbind(successes, failures) ~ x1`, `family = beta_binomial()` | Implemented | Fixed-effect denominator-aware model for success counts with known trial totals; `sigma` is extra-binomial variation. |
 | `phylo(1 + x1 | species, tree = tree)` | Planned | Slice 186 audit confirms this remains rejected: phylogenetic slopes come after the intercept-only path is hardened. The first path should fit one structured `mu` slope; two slopes are the near-term upper bound. |
@@ -127,42 +131,43 @@ a separate family.
 
 ```r
 bf(
-  yi ~ x1 + x2 + meta_known_V(V = V),
+  yi ~ x1 + x2 + meta_V(V = V),
   sigma ~ x1
 )
 ```
 
-`meta_known_V(V = V)` supplies known sampling variances, a diagonal covariance
-structure, a block-diagonal covariance matrix, or a full known sampling
-covariance matrix. The response is already on the left-hand side, so the marker
-does not repeat the response name. Meta-analysis is still regression; Gaussian
-meta-analysis should normally use `family = gaussian()`, not a special
+The preferred `meta_V(V = V)` spelling supplies known sampling variances, a
+diagonal covariance structure, a block-diagonal covariance matrix, or a full
+known sampling covariance matrix. The current implemented marker is still
+`meta_known_V(V = V)` until the alias/rename slice is completed, but the design
+direction is that `meta_known_V()` becomes a compatibility alias rather than a
+separate likelihood. The response is already on the left-hand side, so the
+marker does not repeat the response name. Meta-analysis is still regression;
+Gaussian meta-analysis should normally use `family = gaussian()`, not a special
 meta-analysis family.
 
-For bivariate Gaussian meta-analysis, `meta_known_V(V = V)` marks one
-location formula and `V` is a dense `2n` by `2n` row-paired matrix. The fitted
-`rho12` is then the residual covariance component after known within-study
-sampling covariance has been included. It should not be called a study-level
-correlation unless a separate study-level random effect is fitted.
+For bivariate Gaussian meta-analysis, `meta_V(V = V)` should mark one location
+formula and `V` is a dense `2n` by `2n` row-paired matrix. The fitted `rho12`
+is then the residual covariance component after known within-study sampling
+covariance has been included. It should not be called a study-level correlation
+unless a separate study-level random effect is fitted.
 
-Future design should leave room for a single `meta_V()` keyword that can cover
-both the current additive known-`V` route and a proportional sampling-variance
-route. The current release should not implement this. The possible spelling is:
+The single `meta_V()` keyword should also leave room for a proportional
+sampling-variance route:
 
 ```r
-meta_V(value, V = V)
-meta_V(value, w = w, scale = "proportional")
+meta_V(w = w, scale = "proportional")
 ```
 
 In the additive route, the supplied `V` is known sampling covariance and enters
 the marginal covariance as `V + Omega_estimated`, matching the current
-`meta_known_V(V = V)` contract. In the proportional route, the sampling-error
-term would be modelled as `pi_i ~ Normal(0, phi_pi / w_i)` or, for correlated
-sampling errors, through a weighted covariance matrix. This proportional route
-is not ordinary likelihood weighting: the top-level `weights = w` argument still
-multiplies log-likelihood contributions. Additive known `V` and non-unit
-top-level weights should continue to be rejected together until joint-block
-weighting has its own design and tests.
+implemented `meta_known_V(V = V)` contract. In the proportional route, the
+sampling-error term would be modelled as `pi_i ~ Normal(0, phi_pi / w_i)` or,
+for correlated sampling errors, through a weighted covariance matrix. This
+proportional route is not ordinary likelihood weighting: the top-level
+`weights = w` argument still multiplies log-likelihood contributions. Additive
+known `V` and non-unit top-level weights should continue to be rejected together
+until joint-block weighting has its own design and tests.
 
 ## Bivariate Syntax
 
@@ -810,6 +815,9 @@ Not every parameter should accept random effects at the same development stage.
 | `meta_known_V()` | Never; it is known sampling covariance, not an estimated parameter. |
 | `phylo(1 | species, tree = tree)` | Implemented structured random intercept for univariate Gaussian `mu`; `tree` must be an ultrametric phylogeny with branch lengths. |
 | `phylo(1 | p | species, tree = tree)` | Implemented as a label for matching bivariate `mu1`/`mu2` phylogenetic location terms and for the matching all-four q=4 bivariate phylogenetic location-scale block. Partial, unlabelled, mismatched, and slope forms remain rejected. |
+| `phylo(1 | species, A = A)` or `phylo(1 | species, Ainv = Ainv)` | Planned matrix-input sibling to the tree route; `tree = tree` remains the only implemented public phylogenetic input. |
+| `animal(1 | id, pedigree = ped)` / `animal(1 | id, A = A)` / `animal(1 | id, Ainv = Ainv)` | Planned animal-model known-relatedness random effect; no fitted path yet. |
+| `relmat(1 | id, K = K)` / `relmat(1 | id, Q = Q)` | Design candidate for a lower-level user-supplied relatedness matrix; no fitted path yet. Prefer one public low-level name, not both `relmat()` and `gr()`. |
 | `phylo(1 + x | species, tree = tree)` | Planned structured random slope syntax after intercept-only phylogeny is tested; one slope first, two slopes as the near-term advanced path. |
 | `spatial(1 | site, coords = coords)` | Implemented first structured spatial random intercept for univariate Gaussian `mu`; coordinates define a fixed coordinate covariance foundation. Mesh/SPDE fitting remains planned. |
 | `spatial(1 + x | site, coords = coords)` | Implemented one numeric structured spatial random slope for univariate Gaussian `mu`; it estimates independent `spatial(1 | site)` and `spatial(0 + x | site)` fields with no slope correlation. Slice 187 adds direct profile-interval coverage for the slope-field SD and keeps multiple spatial slopes planned. |
@@ -821,7 +829,9 @@ Not every parameter should accept random effects at the same development stage.
 - Missing dpar formulae use family-defined intercept-only defaults.
 - `rho12` is allowed only for bivariate families.
 - `rho` may become a convenience alias, but `rho12` is canonical.
-- `meta_known_V(V = V)` is a known-covariance marker, not a predictor.
+- `meta_V(V = V)` is the preferred known-sampling-covariance marker design, not
+  a predictor. The current implemented marker is still `meta_known_V(V = V)`
+  until the alias/rename slice is completed.
 - `offset()` terms are implemented only in the `mu` formula for Poisson and
   `nbinom2()` count models, including their zero-inflated paths. Use standard
   exposure syntax such as `offset(log(trap_nights))`. Offsets in `sigma`, `zi`,
@@ -836,16 +846,22 @@ Not every parameter should accept random effects at the same development stage.
 - Random-effect scale formulae are currently implemented as
   `sd(group) ~ x_group` for one or more distinct unlabelled univariate Gaussian
   `mu` random intercepts.
-- Phylogenetic and spatial terms are structured random effects. The first
-  fitted phylogenetic path is `phylo(1 | species, tree = tree)` in univariate
-  Gaussian `mu`; fitted coordinate spatial paths are
-  `spatial(1 | site, coords = coords)` and one numeric
-  `spatial(1 + x | site, coords = coords)` slope in univariate Gaussian `mu`.
-  Later paths should support `phylo(1 + x | species, tree = tree)`, multiple
-  spatial slopes, and slope correlations only after separate recovery evidence.
-  Public `phylo()` should require an ultrametric tree with branch lengths; dense
-  covariance matrices belong to lower-level comparators or `gr()`-style
-  structured covariance inputs, not the main phylogeny API.
+- Phylogenetic, spatial, animal-model, and lower-level known-relatedness terms
+  are structured random effects. The first fitted phylogenetic path is
+  `phylo(1 | species, tree = tree)` in univariate Gaussian `mu`; fitted
+  coordinate spatial paths are `spatial(1 | site, coords = coords)` and one
+  numeric `spatial(1 + x | site, coords = coords)` slope in univariate Gaussian
+  `mu`. Later paths should support `phylo(1 + x | species, tree = tree)`,
+  multiple spatial slopes, and slope correlations only after separate recovery
+  evidence. Future matrix-input routes such as `phylo(..., A = A)`,
+  `animal(..., pedigree = ped)`, `animal(..., A = A)`, and a lower-level
+  `relmat(..., K = K)` should reuse the same structured-effect layer but remain
+  unsupported until parser validation, diagnostics, extractor labels, profile
+  targets, and simulation recovery exist. Keep `A`, `Ainv`, `K`, or `Q` for
+  relatedness and precision inputs; keep `V` for known sampling covariance in
+  the preferred `meta_V(..., V = V)` design. If `gr()` is retained, treat it as
+  a compatibility alias or internal reserved marker rather than a second public
+  teaching path.
 - Spatial syntax mirrors this pattern with terms such as
   `spatial(1 | site, coords = coords)` and
   `spatial(1 + x | site, coords = coords)`. The fitted coordinate paths use
