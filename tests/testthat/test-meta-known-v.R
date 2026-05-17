@@ -41,7 +41,8 @@ test_that("meta_known_V accepts diagonal and full covariance matrices", {
   dat$yi <- stats::rnorm(n)
   V_diag <- diag(rep(0.02, n))
   V_full <- V_diag
-  V_full <- V_full + 0.01 * outer(seq_len(n), seq_len(n), function(i, j) 0.7^abs(i - j))
+  V_full <- V_full +
+    0.01 * outer(seq_len(n), seq_len(n), function(i, j) 0.7^abs(i - j))
 
   fit_diag <- drmTMB(
     bf(yi ~ x + meta_known_V(V = V_diag)),
@@ -61,6 +62,40 @@ test_that("meta_known_V accepts diagonal and full covariance matrices", {
   expect_equal(fit_full$model$V_known, V_full)
   expect_equal(fit_full$model$V_known_diag, diag(V_full))
   expect_equal(fit_full$model$V_known_type, "matrix")
+})
+
+test_that("meta_V is an additive known-V alias", {
+  dat <- data.frame(x = c(-1, 0, 1, 2))
+  dat$yi <- 0.4 + 0.3 * dat$x + c(-0.1, 0.2, -0.05, 0.1)
+  dat$vi <- c(0.04, 0.05, 0.03, 0.06)
+
+  fit_meta_v <- drmTMB(
+    bf(yi ~ x + meta_V(V = vi)),
+    family = gaussian(),
+    data = dat
+  )
+  fit_known_v <- drmTMB(
+    bf(yi ~ x + meta_known_V(V = vi)),
+    family = gaussian(),
+    data = dat
+  )
+
+  expect_equal(fit_meta_v$opt$convergence, 0)
+  expect_equal(
+    coef(fit_meta_v, "mu"),
+    coef(fit_known_v, "mu"),
+    tolerance = 1e-8
+  )
+  expect_equal(
+    coef(fit_meta_v, "sigma"),
+    coef(fit_known_v, "sigma"),
+    tolerance = 1e-8
+  )
+  expect_equal(
+    as.numeric(logLik(fit_meta_v)),
+    as.numeric(logLik(fit_known_v)),
+    tolerance = 1e-8
+  )
 })
 
 test_that("full meta_known_V likelihood matches a base R MVN calculation", {
@@ -192,6 +227,22 @@ test_that("meta_known_V rejects malformed marker calls", {
   )
   expect_error(
     drmTMB(
+      bf(yi ~ x + meta_V(vi)),
+      family = gaussian(),
+      data = dat
+    ),
+    "exactly one argument"
+  )
+  expect_error(
+    drmTMB(
+      bf(yi ~ x + meta_V(w = vi, scale = "proportional")),
+      family = gaussian(),
+      data = dat
+    ),
+    "not implemented"
+  )
+  expect_error(
+    drmTMB(
       bf(yi ~ x, sigma ~ meta_known_V(V = vi)),
       family = gaussian(),
       data = dat
@@ -207,7 +258,11 @@ test_that("near-zero heterogeneity starts remain numerically workable", {
     x = stats::rnorm(n),
     vi = stats::runif(n, min = 0.03, max = 0.08)
   )
-  dat$yi <- stats::rnorm(n, mean = 0.1 + 0.4 * dat$x, sd = sqrt(dat$vi + 0.03^2))
+  dat$yi <- stats::rnorm(
+    n,
+    mean = 0.1 + 0.4 * dat$x,
+    sd = sqrt(dat$vi + 0.03^2)
+  )
 
   fit <- drmTMB(
     bf(yi ~ x + meta_known_V(V = vi)),
@@ -279,14 +334,22 @@ test_that("full meta_known_V rejects invalid covariance matrices", {
   V_bad <- diag(0.01, 4)
   V_bad[1, 1] <- -0.01
   expect_error(
-    drmTMB(bf(yi ~ x + meta_known_V(V = V_bad)), family = gaussian(), data = dat),
+    drmTMB(
+      bf(yi ~ x + meta_known_V(V = V_bad)),
+      family = gaussian(),
+      data = dat
+    ),
     "non-negative"
   )
 
   V_missing <- diag(0.01, 4)
   V_missing[1, 2] <- V_missing[2, 1] <- NA_real_
   expect_error(
-    drmTMB(bf(yi ~ x + meta_known_V(V = V_missing)), family = gaussian(), data = dat),
+    drmTMB(
+      bf(yi ~ x + meta_known_V(V = V_missing)),
+      family = gaussian(),
+      data = dat
+    ),
     "finite"
   )
 })

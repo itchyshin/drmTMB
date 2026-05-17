@@ -1,8 +1,10 @@
-#' Known sampling covariance term
+#' Known sampling covariance terms
 #'
-#' `meta_known_V()` marks known sampling variance or covariance in a formula.
-#' It is designed for meta-analysis and other regression problems where part of
-#' the observation covariance is known in advance.
+#' `meta_V()` and `meta_known_V()` mark known sampling variance or covariance
+#' in a formula. They are designed for meta-analysis and other regression
+#' problems where part of the observation covariance is known in advance.
+#' `meta_V(V = V)` is the preferred spelling; `meta_known_V(V = V)` is retained
+#' as a compatibility alias.
 #'
 #' @param V A column name, vector, diagonal matrix, block-diagonal matrix, or
 #'   full covariance matrix. Diagonal/vector `V` represents independent known
@@ -12,7 +14,14 @@
 #' @export
 #'
 #' @examples
+#' bf(yi ~ moderator + meta_V(V = vi), sigma ~ moderator)
 #' bf(yi ~ moderator + meta_known_V(V = vi), sigma ~ moderator)
+meta_V <- function(V) {
+  invisible(NULL)
+}
+
+#' @rdname meta_V
+#' @export
 meta_known_V <- function(V) {
   invisible(NULL)
 }

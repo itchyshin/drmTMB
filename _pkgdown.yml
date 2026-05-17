@@ -75,6 +75,7 @@ reference:
     contents:
       - drm_formula
       - bf
+      - meta_V
       - meta_known_V
       - meta_vcov_bivariate
       - beta

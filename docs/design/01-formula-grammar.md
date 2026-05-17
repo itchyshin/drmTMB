@@ -64,8 +64,8 @@ In this table, "coscale" means a model for residual correlation, currently
 | `(1 | p | id)` in both `mu` and `sigma` | Implemented | Matching labelled random intercepts create mean-scale group-level correlations. More than one independent matched block can be fitted, such as `(1 | p | id)` and `(1 | q | site)` in both formulas. |
 | `sd(id) ~ x_group` | Implemented | Random-effect scale model for one or more distinct unlabelled Gaussian `mu` random intercepts. |
 | `sd(id, dpar = "mu", coef = "x1") ~ x_group` | Reserved | Planned explicit coefficient-specific random-effect SD syntax for random slopes; `drmTMB()` rejects it until the covariance model and tests exist. |
-| `meta_known_V(V = V)` | Implemented | Known diagonal, block-diagonal, or dense sampling covariance with `family = gaussian()`; bivariate Gaussian known `V` uses a complete-row `2n` by `2n` row-paired matrix. |
-| `meta_V(V = V)` | Planned preferred spelling | Future umbrella spelling for additive known sampling covariance; `V` may be a vector, column, diagonal matrix, block-diagonal matrix, or dense matrix. `meta_known_V()` should become a compatibility alias for the known-`V` form, not a separate likelihood. |
+| `meta_V(V = V)` | Implemented | Preferred spelling for additive known sampling covariance; `V` may be a vector, column, diagonal matrix, block-diagonal matrix, or dense matrix. |
+| `meta_known_V(V = V)` | Implemented | Compatibility alias for the same known diagonal, block-diagonal, or dense sampling covariance path with `family = gaussian()`; bivariate Gaussian known `V` uses a complete-row `2n` by `2n` row-paired matrix. |
 | `meta_V(w = w, scale = "proportional")` | Planned | Possible future proportional sampling-variance spelling for models such as `pi_i ~ Normal(0, phi_pi / w_i)`. This is not implemented and is not a CRAN-blocking requirement. |
 | `mu1`, `mu2`, `sigma1`, `sigma2`, `rho12` | Implemented for fixed effects | Bivariate Gaussian location-coscale model with predictor-dependent residual correlation. |
 | `(1 | p | id)` in both bivariate `mu1` and `mu2` | Implemented | First bivariate group-level covariance slice: matching labelled random intercepts create `mu1`/`mu2` random-intercept SDs and one group-level correlation. |
@@ -138,12 +138,11 @@ bf(
 
 The preferred `meta_V(V = V)` spelling supplies known sampling variances, a
 diagonal covariance structure, a block-diagonal covariance matrix, or a full
-known sampling covariance matrix. The current implemented marker is still
-`meta_known_V(V = V)` until the alias/rename slice is completed, but the design
-direction is that `meta_known_V()` becomes a compatibility alias rather than a
-separate likelihood. The response is already on the left-hand side, so the
-marker does not repeat the response name. Meta-analysis is still regression;
-Gaussian meta-analysis should normally use `family = gaussian()`, not a special
+known sampling covariance matrix. `meta_known_V(V = V)` remains a compatibility
+alias for the same additive known-covariance likelihood path, not a separate
+likelihood. The response is already on the left-hand side, so the marker does
+not repeat the response name. Meta-analysis is still regression; Gaussian
+meta-analysis should normally use `family = gaussian()`, not a special
 meta-analysis family.
 
 For bivariate Gaussian meta-analysis, `meta_V(V = V)` should mark one location
@@ -829,9 +828,9 @@ Not every parameter should accept random effects at the same development stage.
 - Missing dpar formulae use family-defined intercept-only defaults.
 - `rho12` is allowed only for bivariate families.
 - `rho` may become a convenience alias, but `rho12` is canonical.
-- `meta_V(V = V)` is the preferred known-sampling-covariance marker design, not
-  a predictor. The current implemented marker is still `meta_known_V(V = V)`
-  until the alias/rename slice is completed.
+- `meta_V(V = V)` is the preferred known-sampling-covariance marker, not a
+  predictor. `meta_known_V(V = V)` is a compatibility alias for the same
+  additive known-covariance path.
 - `offset()` terms are implemented only in the `mu` formula for Poisson and
   `nbinom2()` count models, including their zero-inflated paths. Use standard
   exposure syntax such as `offset(log(trap_nights))`. Offsets in `sigma`, `zi`,
