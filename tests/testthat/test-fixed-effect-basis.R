@@ -61,6 +61,47 @@ test_that("fixed-effect basis matches prediction matrix, offset, and covariance"
   expect_equal(basis$V, expected_vcov)
 })
 
+test_that("fixed-effect basis preserves ordered factor coding in newdata", {
+  set.seed(20260556)
+  dat <- fixed_effect_basis_data(n = 90L)
+  dat$condition <- ordered(
+    rep(c("low", "mid", "high"), length.out = nrow(dat)),
+    levels = c("low", "mid", "high")
+  )
+  dat$y <- 0.1 +
+    0.35 * dat$x +
+    0.2 * as.numeric(dat$condition) +
+    stats::rnorm(nrow(dat), sd = 0.08)
+  fit <- drmTMB(
+    bf(y ~ x + condition, sigma ~ 1),
+    data = dat,
+    control = fixed_effect_basis_control(se = TRUE)
+  )
+  newdata <- data.frame(
+    x = c(-0.25, 0.5),
+    condition = factor(c("low", "high"), levels = levels(dat$condition))
+  )
+  expected_newdata <- newdata
+  expected_newdata$condition <- ordered(
+    expected_newdata$condition,
+    levels = levels(dat$condition)
+  )
+
+  basis <- drmTMB:::drm_fixed_effect_basis(
+    fit,
+    newdata = newdata,
+    dpar = "mu"
+  )
+  expected_X <- stats::model.matrix(fit$model$terms$mu, expected_newdata)
+
+  expect_equal(colnames(basis$X), names(coef(fit, "mu")))
+  expect_equal(basis$X, expected_X)
+  expect_equal(
+    basis$eta,
+    as.numeric(expected_X %*% coef(fit, "mu"))
+  )
+})
+
 test_that("fixed-effect basis handles covariance as an explicit opt-in", {
   set.seed(20260528)
   dat <- fixed_effect_basis_data()

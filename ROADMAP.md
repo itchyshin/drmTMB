@@ -1083,6 +1083,11 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   fixed-effect univariate `mu` `emmeans()` bridge. A Gaussian `habitat` by
   `season` grid at `x = 0.25` now checks that returned EMM rows preserve factor
   levels and match `predict(dpar = "mu")` on the same grid.
+- Slice 142 fixes and covers ordered-factor predictor coding in fixed-effect
+  prediction matrices and the first `emmeans()` bridge. A Gaussian model with
+  an ordered `condition` predictor now checks that `emmeans(fit, ~ condition |
+  habitat, at = list(x = 0.2))` preserves ordered polynomial coding and matches
+  `predict(dpar = "mu")` on the same grid.
 - Add additional ggplot-oriented helpers only after the data contract is stable:
   location curves, scale/variance curves, residual `rho12` curves,
   `sd(group)` or `sd_phylo()` surfaces, `corpairs()` summaries, and eventually

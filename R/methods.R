@@ -3336,6 +3336,9 @@ drm_fixed_effect_basis <- function(
       i = "Use {.fn predict} for fitted random-effect scale predictions."
     ))
   }
+  if (!is.null(newdata)) {
+    newdata <- drm_prepare_prediction_newdata(object, newdata, dpar)
+  }
 
   X <- drm_prediction_matrix(object, newdata, dpar)
   beta <- object$coefficients[[dpar]]
@@ -3368,6 +3371,43 @@ drm_fixed_effect_basis <- function(
     link = drm_dpar_link(object, dpar),
     coefficient_labels = paste0(dpar, ":", names(beta))
   )
+}
+
+drm_prepare_prediction_newdata <- function(object, newdata, dpar) {
+  if (!is.data.frame(newdata)) {
+    return(newdata)
+  }
+  template <- drm_prediction_template_data(object, dpar)
+  if (!is.data.frame(template)) {
+    return(newdata)
+  }
+
+  for (name in intersect(names(newdata), names(template))) {
+    source <- template[[name]]
+    if (!is.factor(source)) {
+      next
+    }
+    newdata[[name]] <- factor(
+      as.character(newdata[[name]]),
+      levels = levels(source),
+      ordered = is.ordered(source)
+    )
+  }
+  newdata
+}
+
+drm_prediction_template_data <- function(object, dpar) {
+  model_frames <- object$model$model_frame
+  if (is.list(model_frames) && is.data.frame(model_frames[[dpar]])) {
+    return(model_frames[[dpar]])
+  }
+  if (is.data.frame(object$data)) {
+    return(object$data)
+  }
+  if (is.data.frame(object$model$data)) {
+    return(object$model$data)
+  }
+  NULL
 }
 
 validate_fixed_effect_basis_covariance <- function(covariance) {

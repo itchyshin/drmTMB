@@ -311,3 +311,11 @@ univariate `mu` `emmeans()` bridge. A Gaussian `habitat` by `season` grid at
 `x = 0.25` now checks that returned EMM rows preserve factor levels and match
 `predict(dpar = "mu")` on the same grid. This covers ordinary conditioning on
 factor levels, not empirical row-weighted marginalisation.
+
+Slice 142 fixes and covers ordered-factor predictor coding for the same bridge.
+Fixed-effect prediction newdata now reuses fitted factor levels and ordered
+status before constructing the model matrix, so `emmeans` grids that supply an
+ordered predictor as an ordinary factor still align with the fitted polynomial
+contrast columns. A Gaussian `condition` by `habitat` grid checks parity with
+`predict(dpar = "mu")`. This is coding preservation for an already supported
+fixed-effect `mu` model, not ordinal-response `emmeans` support.

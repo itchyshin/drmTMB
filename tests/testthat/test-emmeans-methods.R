@@ -271,6 +271,46 @@ test_that("emmeans method handles factor-conditioned grids", {
   expect_equal(link$df, rep(Inf, nrow(link)))
 })
 
+test_that("emmeans method preserves ordered-factor grids", {
+  testthat::skip_if_not_installed("emmeans")
+  set.seed(20260556)
+  dat <- data.frame(
+    x = rep(c(-0.5, 0.5), length.out = 90L),
+    habitat = factor(rep(c("reef", "kelp", "sand"), length.out = 90L)),
+    condition = ordered(
+      rep(c("low", "mid", "high"), each = 30L),
+      levels = c("low", "mid", "high")
+    )
+  )
+  dat$y <- 0.1 +
+    0.35 * dat$x +
+    0.25 * (dat$habitat == "kelp") -
+    0.1 * (dat$habitat == "sand") +
+    0.2 * as.numeric(dat$condition) +
+    stats::rnorm(nrow(dat), sd = 0.08)
+  fit <- drmTMB(
+    bf(y ~ x + habitat + condition, sigma ~ 1),
+    data = dat,
+    control = emmeans_methods_control(se = TRUE)
+  )
+
+  emm <- emmeans::emmeans(fit, ~ condition | habitat, at = list(x = 0.2))
+  link <- summary(emm)
+  grid <- data.frame(
+    x = 0.2,
+    habitat = factor(link$habitat, levels = levels(dat$habitat)),
+    condition = ordered(link$condition, levels = levels(dat$condition))
+  )
+
+  expect_equal(
+    link$emmean,
+    unname(predict(fit, newdata = grid, dpar = "mu", type = "link")),
+    tolerance = 1e-10
+  )
+  expect_true(all(is.finite(link$SE)))
+  expect_equal(link$df, rep(Inf, nrow(link)))
+})
+
 test_that("emmeans method handles mu interactions on an explicit grid", {
   testthat::skip_if_not_installed("emmeans")
   set.seed(20260554)
