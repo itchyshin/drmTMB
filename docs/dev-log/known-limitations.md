@@ -204,9 +204,12 @@
 - Fixed-effect univariate cumulative-logit ordinal models are implemented for
   ordered responses with `family = cumulative_logit()`. The first path supports
   only a `mu` location formula, ordered cutpoints, and a fixed latent logistic
-  scale. Ordinal `sigma` or discrimination formulas, random effects, known
-  sampling covariance, phylogenetic terms, bivariate or mixed ordinal models,
-  and non-logit ordinal links are not yet implemented.
+  scale. Ordinal `mu` random-effect bar terms now error with an
+  ordinal-specific boundary; the first future mixed-model target is a random
+  intercept such as `(1 | id)`, with ordinal random slopes later. Ordinal
+  `sigma` or discrimination formulas, known sampling covariance, phylogenetic
+  terms, bivariate or mixed ordinal models, and non-logit ordinal links are not
+  yet implemented.
 - Fixed-effect univariate beta-binomial models are implemented for counted
   successes and failures with `family = beta_binomial()`. The first path
   supports `cbind(successes, failures)` responses, fixed-effect `mu` and

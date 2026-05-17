@@ -342,6 +342,15 @@ bivariate ordinal models, and mixed-response ordinal models are later phases.
 The scale/discrimination direction is recorded in
 `docs/design/25-ordinal-scale-discrimination.md`.
 
+Slice 196 keeps ordinal random effects out of the fitted surface but gives
+`mu` bar terms an ordinal-specific message. The first future mixed-model target
+is a random intercept such as `bf(score ~ x + (1 | id))`; random slopes should
+come later, after intercept recovery, cutpoint stability, extractor support,
+profile targets, and `ordinal::clmm` comparator checks are in place. This
+boundary is separate from Gaussian ordinary random slopes because ordinal
+cutpoints and the fixed latent logistic scale create their own identifiability
+and interval checks.
+
 ## Implemented: Poisson Mean
 
 The first count path uses the existing R family constructor:
