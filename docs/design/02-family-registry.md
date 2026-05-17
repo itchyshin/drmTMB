@@ -73,6 +73,23 @@ Human-readable aliases such as `skew` or `df` can be considered later, but the
 canonical internal and documented names should stay consistent unless there is a
 strong reason not to.
 
+## Slice 190 Non-Gaussian Random-Effect Gate
+
+The first non-Gaussian random-effect expansion should be ordinary `mu` random
+intercepts, not scale, shape, zero-inflation, hurdle, ordinal, or structured
+random effects. The decision is intentionally narrow:
+
+| Priority | Family surface | Decision before Slice 191 |
+|---|---|---|
+| 1 | Poisson `mu` | First candidate for `(1 | group)` in the log-mean predictor. It has the simplest fixed-effect count likelihood and a clear GLMM benchmark. |
+| 2 | NB2 and zero-truncated NB2 `mu` | Next candidate after Poisson, retaining public `sigma` as dispersion and leaving dispersion-side random effects for a later scale gate. |
+| 3 | Lognormal, Gamma, and Student-t `mu` | Later continuous-response candidates after count recovery tests, because scale and tail parameters complicate weak-SD and boundary diagnostics. |
+| 4 | Beta and beta-binomial `mu` | Later bounded-response candidates; strict-boundary handling, denominators, and overdispersion need their own recovery grids. |
+| 5 | Zero-inflation, hurdle, ordinal, shape, and structured non-Gaussian paths | Explicitly unsupported until Slices 194-197 decide the target and diagnostics. |
+
+Unsupported formula messages should say that non-Gaussian random effects are
+planned and should not silently fall through as generic formula failures.
+
 ## Implemented: Gaussian Location-Scale
 
 The first implementation accepts `stats::gaussian()` and maps it internally to:

@@ -1302,7 +1302,7 @@ This is the current random-effect status before the non-Gaussian revisit:
 
 | Slice | Lane | Target Before Phase 18 |
 | --- | --- | --- |
-| 190 | Non-Gaussian `mu` random effects | Decide which fixed-effect non-Gaussian families get an ordinary `mu` random-intercept path first, and which should retain a clear unsupported message. |
+| 190 | Non-Gaussian `mu` random effects | Done: first candidates are ordinary `mu` random intercepts for Poisson and NB2-style count likelihoods; lognormal/Gamma/Student-t follow only after count recovery, while beta, beta-binomial, ordinal, zero-inflation, hurdle, shape, and structured non-Gaussian paths retain explicit unsupported messages. |
 | 191 | Non-Gaussian `mu` implementation | Add or harden the first ordinary non-Gaussian random-intercept path where the likelihood is already stable enough for recovery testing. |
 | 192 | Non-Gaussian `mu` slopes | Define the one-slope boundary for non-Gaussian `mu`; add explicit unsupported errors for families that are not ready. |
 | 193 | Non-Gaussian residual scale | Revisit beta, gamma, lognormal, Student, and related scale paths for random-effect feasibility on their fitted scale. |
@@ -1315,6 +1315,19 @@ This is the current random-effect status before the non-Gaussian revisit:
 | 200 | Focused non-Gaussian recovery tests | Run targeted recovery tests for the chosen fitted paths, including weak-SD and boundary cases where feasible. |
 | 201 | Failure ledger | Record convergence, boundary, identifiability, interval, and runtime limits for the non-Gaussian gate. |
 | 202 | Pre-simulation decision gate | Decide whether the random-effect and non-Gaussian surfaces are honest enough for Phase 18 or whether a smaller pilot simulation should start first. |
+
+Slice 190 decision: the first non-Gaussian implementation target should be
+ordinary `mu` random intercepts for the count families whose fixed-effect
+likelihoods already have focused tests and clear response-scale interpretation.
+Use this order unless Slice 191 evidence overturns it:
+
+| Priority | Family Surface | Slice 190 Decision |
+| --- | --- | --- |
+| 1 | Poisson `mu` | First candidate: ordinary `(1 | group)` in the log-mean predictor, with recovery against fixed-effect and no-random-effect baselines. |
+| 2 | NB2 and zero-truncated NB2 `mu` | Same candidate class after Poisson, keeping public `sigma` as NB2 dispersion and not adding random effects to `sigma` yet. |
+| 3 | Lognormal, Gamma, and Student-t `mu` | Later continuous-response candidates after count recovery, because scale/tail interaction and boundary diagnostics need their own grids. |
+| 4 | Beta and beta-binomial `mu` | Later bounded-response candidates; boundary values, denominators, and overdispersion need separate recovery checks. |
+| 5 | Zero-inflation, hurdle, ordinal, shape, and structured non-Gaussian paths | Keep unsupported for now; revisit in Slices 194-197. |
 
 - After Slice 202, return to Phase 17 to close the remaining visualization,
   marginal-effect, contrast, slope, and reader-facing inference surfaces. Phase

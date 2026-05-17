@@ -3050,6 +3050,14 @@ drm_reject_phase1_terms <- function(rhs, dpar, allow_offset = FALSE) {
         "i" = "Residual {.code rho12} is a within-observation correlation, not a group-level random-effect correlation."
       ))
     }
+    if ("|" %in% hits) {
+      cli::cli_abort(c(
+        "This formula contains unsupported model terms.",
+        "x" = "The {.code {dpar}} formula contains unsupported term{?s}: {.val {hits}}.",
+        "i" = "Non-Gaussian random effects are planned, not implemented in this family path.",
+        "i" = "The Slice 190 first candidates are ordinary {.code mu} random intercepts for Poisson and NB2-style count likelihoods; other families retain explicit unsupported messages until their recovery tests exist."
+      ))
+    }
     cli::cli_abort(c(
       "This formula contains unsupported model terms.",
       "x" = "The {.code {dpar}} formula contains unsupported term{?s}: {.val {hits}}."
