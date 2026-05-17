@@ -1055,6 +1055,10 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   `emmeans()` errors before returning an `emmGrid`, names the unsupported
   `"zi_poisson"` model type, and points users back to `prediction_grid()` plus
   `predict_parameters()`.
+- Slice 135 adds public hurdle boundary coverage for the first `emmeans()`
+  bridge. A hurdle NB2 model now checks that `emmeans()` errors before
+  returning an `emmGrid`, names the unsupported `"hurdle_nbinom2"` model type,
+  and points users back to `prediction_grid()` plus `predict_parameters()`.
 - Add additional ggplot-oriented helpers only after the data contract is stable:
   location curves, scale/variance curves, residual `rho12` curves,
   `sd(group)` or `sd_phylo()` surfaces, `corpairs()` summaries, and eventually

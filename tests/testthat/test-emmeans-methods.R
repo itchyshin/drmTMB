@@ -555,6 +555,35 @@ test_that("emmeans method rejects unsupported drmTMB paths", {
   )
   expect_match(conditionMessage(zi_error), "prediction_grid\\(\\)")
 
+  hurdle_dat <- dat
+  hurdle_eta <- 0.3 +
+    0.4 * hurdle_dat$x +
+    0.2 * (hurdle_dat$habitat == "kelp") -
+    0.1 * (hurdle_dat$habitat == "sand")
+  positive_count <- stats::rnbinom(
+    nrow(hurdle_dat),
+    size = 4,
+    mu = exp(hurdle_eta)
+  )
+  positive_count[positive_count == 0L] <- 1L
+  hurdle_zero <- stats::rbinom(
+    nrow(hurdle_dat),
+    size = 1L,
+    prob = stats::plogis(-1.1 + 0.2 * (hurdle_dat$habitat == "sand"))
+  )
+  hurdle_dat$count <- ifelse(hurdle_zero == 1L, 0L, positive_count)
+  hurdle_fit <- drmTMB(
+    bf(count ~ x + habitat, hu ~ habitat),
+    family = truncated_nbinom2(),
+    data = hurdle_dat,
+    control = emmeans_methods_control(se = TRUE)
+  )
+  hurdle_error <- expect_error(
+    emmeans::emmeans(hurdle_fit, ~habitat, at = list(x = 0)),
+    "hurdle_nbinom2"
+  )
+  expect_match(conditionMessage(hurdle_error), "prediction_grid\\(\\)")
+
   random_fit <- drmTMB(
     bf(y ~ x + habitat + (1 | id), sigma ~ 1),
     data = dat,

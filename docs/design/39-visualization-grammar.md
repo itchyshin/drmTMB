@@ -270,6 +270,11 @@ model checks that `emmeans()` errors before returning an `emmGrid`, names the
 unsupported `"zi_poisson"` model type, and points users to `prediction_grid()`
 plus `predict_parameters()` for explicit prediction tables.
 
+Slice 135 adds public hurdle boundary coverage. A hurdle NB2 model checks that
+`emmeans()` errors before returning an `emmGrid`, names the unsupported
+`"hurdle_nbinom2"` model type, and points users to `prediction_grid()` plus
+`predict_parameters()` for explicit prediction tables.
+
 Slice 102 adds the first article-level empirical-grid example. The
 model-workflow article now shows a conditioned grid for direct
 `predict_parameters()` rows and a separate empirical grid for

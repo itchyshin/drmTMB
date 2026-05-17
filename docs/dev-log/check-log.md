@@ -19662,3 +19662,86 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-16-slice-134-emmeans-zi-public-error.md`.
+
+## 2026-05-16 - Slice 135 emmeans hurdle public boundary
+
+Goal: add public-method coverage that hurdle NB2 fits still error before
+`emmeans()` returns an `emmGrid`.
+
+Roles:
+
+- Ada kept this as the hurdle sibling to the zero-inflated public-boundary
+  test.
+- Boole checked that the error is documented as an unsupported boundary, not a
+  syntax change.
+- Fisher checked that the blocked estimand is the fitted observed-response mean
+  that combines `mu`, overdispersion, truncation, and hurdle probability.
+- Curie added the public hurdle rejection test.
+- Pat checked that the error points users to `prediction_grid()` and
+  `predict_parameters()`.
+- Grace owned focused tests, pkgdown, and rendered wording scans.
+- Rose checked that hurdle `emmeans` support is not claimed.
+- Gauss, Noether, Darwin, Jason, and Emmy stayed watch-only because no
+  likelihood, equation, biological example, landscape claim, or object
+  structure changed.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/39-visualization-grammar.md`
+- `docs/design/40-emmeans-interface-contract.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-16-slice-135-emmeans-hurdle-public-error.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-16-220916-codex-checkpoint.md`
+- `tests/testthat/test-emmeans-methods.R`
+
+What changed:
+
+- Added a public `emmeans()` rejection test for a hurdle NB2 fit.
+- The test checks that the error names `"hurdle_nbinom2"` and points users
+  toward `prediction_grid()` for explicit prediction tables.
+- Updated NEWS, roadmap, and design notes to state this as boundary coverage,
+  not hurdle `emmeans` support.
+
+Checks run:
+
+- No-edit scout:
+  `emmeans()` on a hurdle NB2 fit errored before returning an `emmGrid`, named
+  `"hurdle_nbinom2"`, and suggested `prediction_grid()` plus
+  `predict_parameters()`.
+- `air format NEWS.md ROADMAP.md docs/design/39-visualization-grammar.md docs/design/40-emmeans-interface-contract.md tests/testthat/test-emmeans-methods.R`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'emmeans-methods', reporter = 'summary')"`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'emmeans-methods|emmeans-recover-data|emmeans-preflight|fixed-effect-basis|reference-grid-link-scale-contract', reporter = 'summary')"`:
+  passed.
+- `git diff --check`: passed.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed.
+- Positive source/rendered scan for Slice 135 hurdle boundary wording and test
+  evidence: found the expected entries.
+- Stale-claim scan for hurdle `emmeans` support: no false support claims;
+  matches were intentional unsupported-boundary wording.
+- Recovery checkpoint:
+  `docs/dev-log/recovery-checkpoints/2026-05-16-220916-codex-checkpoint.md`.
+
+Post-rebase checks:
+
+- PR #99 merged as `4a10206ce2444b77dcd40e71fc20019b2b25c01b`.
+- `git rebase --onto origin/main 24b2609efab21909f6e33cddb868c115add53268`:
+  passed.
+- `git diff --check origin/main...HEAD`: passed.
+- `Rscript -e "devtools::test(filter = 'emmeans-methods|emmeans-recover-data|emmeans-preflight|fixed-effect-basis|reference-grid-link-scale-contract', reporter = 'summary')"`:
+  passed.
+
+Known limitations:
+
+- Hurdle `emmeans` support remains unsupported.
+- This slice does not add zero-inflated support, fitted observed-response
+  means, ordinal expected-score EMMs, non-`mu` targets, or blocked model
+  structures.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-16-slice-135-emmeans-hurdle-public-error.md`.

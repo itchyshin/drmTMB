@@ -269,3 +269,9 @@ model verifies that `emmeans()` errors before returning an `emmGrid`, names the
 unsupported `"zi_poisson"` model type, and directs users to `prediction_grid()`
 plus `predict_parameters()` for explicit prediction tables. This remains an
 unsupported boundary, not zero-inflated `emmeans` support.
+
+Slice 135 adds public hurdle boundary coverage. A hurdle NB2 model verifies that
+`emmeans()` errors before returning an `emmGrid`, names the unsupported
+`"hurdle_nbinom2"` model type, and directs users to `prediction_grid()` plus
+`predict_parameters()` for explicit prediction tables. This remains an
+unsupported boundary, not hurdle `emmeans` support.
