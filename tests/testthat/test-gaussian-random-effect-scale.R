@@ -109,6 +109,53 @@ test_that("Gaussian supports multiple random-effect scale formulas", {
   )
 })
 
+test_that("Gaussian multiple sd(id) targets validate newdata by dpar", {
+  sim <- new_gaussian_multi_re_scale_data(
+    n_id = 10,
+    n_site = 5,
+    seed = 20260566
+  )
+  fit <- drmTMB(
+    bf(
+      y ~ x + (1 | id) + (1 | site),
+      sigma ~ z,
+      sd(id) ~ w_id,
+      sd(site) ~ w_site
+    ),
+    family = gaussian(),
+    data = sim$data,
+    control = drm_control(optimizer = list(eval.max = 140L, iter.max = 140L))
+  )
+  id_grid <- data.frame(w_id = c(-0.3, 0.6), w_site = 99)
+  site_grid <- data.frame(w_site = c(-0.3, 0.6), w_id = 99)
+
+  sd_id <- predict(fit, dpar = "sd(id)", newdata = id_grid)
+  sd_site <- predict(fit, dpar = "sd(site)", newdata = site_grid)
+
+  expect_equal(
+    sd_id,
+    predict(fit, dpar = "sd(id)", newdata = data.frame(w_id = id_grid$w_id))
+  )
+  expect_equal(
+    sd_site,
+    predict(
+      fit,
+      dpar = "sd(site)",
+      newdata = data.frame(w_site = site_grid$w_site)
+    )
+  )
+  expect_true(all(sd_id > 0))
+  expect_true(all(sd_site > 0))
+  expect_error(
+    predict(fit, dpar = "sd(id)", newdata = data.frame(w_site = 0)),
+    "w_id"
+  )
+  expect_error(
+    predict(fit, dpar = "sd(site)", newdata = data.frame(w_id = 0)),
+    "w_site"
+  )
+})
+
 test_that("Gaussian sd(id) reduces to constant random-intercept scale when slope is zero", {
   sim <- new_gaussian_re_scale_data(
     alpha = c(`(Intercept)` = log(0.6), w = 0),
