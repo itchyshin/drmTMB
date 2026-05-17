@@ -105,6 +105,15 @@ refit guidance as `vcov.drmTMB()`. The first test evidence covers the
 implemented count-model `mu` offset path, coefficient-name alignment,
 link-scale prediction parity, and covariance opt-in behavior.
 
+Slice 120 adds the internal gate that a future `emm_basis.drmTMB()` method
+should call before creating an `emmGrid`. `drm_emmeans_mu_basis()` is private
+and dependency-free. It accepts only fixed-effect univariate `mu` targets,
+requires fixed-effect covariance, and rejects unsupported `dpar`, missing
+covariance, zero-inflated, and random-effect paths with guidance back to
+`prediction_grid()` and `predict_parameters()`. The gate is deliberately
+narrower than the eventual design so that unsupported paths fail before a
+partially valid reference grid can be returned.
+
 For `type = "link"`, the EMM is on the formula linear-predictor scale. For
 `type = "response"`, `emmeans` should apply the same inverse link tested in
 Slice 117. The method should not silently switch from distributional-parameter

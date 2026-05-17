@@ -18384,3 +18384,87 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-16-slice-119-emmeans-fixed-effect-basis.md`.
+
+## 2026-05-16 - Slice 120 emmeans mu preflight
+
+Goal: add a private eligibility gate for the first possible `emmeans`
+`emm_basis()` path so unsupported targets fail before a future method can
+return a partly valid `emmGrid`.
+
+Roles:
+
+- Ada kept the slice stacked behind Slice 119 while PR #84 CI ran.
+- Boole owned the private `dpar`, `type`, model-type, and feature-gate
+  boundaries.
+- Fisher kept the gate limited to native fixed-effect `mu` linear-predictor
+  targets with covariance available.
+- Curie owned tests for accepted and rejected paths.
+- Grace owned pkgdown and stale-claim scans.
+- Pat checked that unsupported paths point users back to `prediction_grid()` and
+  `predict_parameters()`.
+- Rose checked that the private helper was not described as public `emmeans`
+  support.
+- Gauss, Noether, Emmy, Darwin, and Jason stayed watch-only because no
+  likelihood equation, public object contract, biological example, or landscape
+  claim changed.
+
+Files changed:
+
+- `R/emmeans-preflight.R`
+- `tests/testthat/test-emmeans-preflight.R`
+- `ROADMAP.md`
+- `docs/design/39-visualization-grammar.md`
+- `docs/design/40-emmeans-interface-contract.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-16-slice-120-emmeans-mu-preflight.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-16-191004-codex-checkpoint.md`
+
+What changed:
+
+- Added private `drm_emmeans_mu_basis()` to wrap the fixed-effect basis helper
+  for the first future `emmeans` target.
+- Added `drm_validate_emmeans_mu_target()` to accept only one fixed-effect
+  univariate `mu` target for supported model types and to reject unsupported
+  `dpar`, unsupported model types, random effects, structured effects,
+  covariance-block random effects, and random-effect scale models.
+- Kept covariance required by calling `drm_fixed_effect_basis(...,
+  covariance = TRUE)`, so missing covariance fails before a future `emmGrid`
+  could be returned.
+- Added tests for the supported fixed-effect Gaussian `mu` path and for
+  non-`mu`, missing-covariance, zero-inflated Poisson, and ordinary random-effect
+  rejections.
+- Updated Phase 17 roadmap and design notes to describe the gate as private
+  preflight code, not public `emmeans` support.
+
+Checks run:
+
+- `air format R/emmeans-preflight.R tests/testthat/test-emmeans-preflight.R ROADMAP.md docs/design/39-visualization-grammar.md docs/design/40-emmeans-interface-contract.md`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'emmeans-preflight', reporter = 'summary')"`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'emmeans-preflight|fixed-effect-basis|reference-grid-link-scale-contract|predict-parameters', reporter = 'summary')"`:
+  passed.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed and rebuilt
+  `pkgdown-site/ROADMAP.html`.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with "No problems found."
+- `git diff --check`: passed.
+- `rg -n 'Slice 120|drm_emmeans_mu_basis|first internal eligibility gate|fixed-effect univariate `mu`|before any future method could return an `emmGrid`|not public `emmeans`' ROADMAP.md docs/design/39-visualization-grammar.md docs/design/40-emmeans-interface-contract.md pkgdown-site/ROADMAP.html`:
+  confirmed source and rendered roadmap wording.
+- `rg -n 'exported `emmeans` method|implemented `emmeans`|emmeans support is implemented|public `emmeans` support|return an `emmGrid`.*implemented|contrast workflow|contrast API.*implemented|slope.*implemented' DESCRIPTION NEWS.md ROADMAP.md docs/design/39-visualization-grammar.md docs/design/40-emmeans-interface-contract.md pkgdown-site --glob '!pkgdown-site/search.json' --glob '!pkgdown-site/deps/**'`:
+  found only the intentional "not exported" wording and unrelated existing
+  slope-status text.
+- `Rscript tools/codex-checkpoint.R --goal "Slice 120 emmeans mu preflight" --next "wait for Slice 119 PR #84 CI, merge when green, rebase Slice 120 onto origin/main, rerun post-rebase checks, commit, push, open PR"`:
+  passed and wrote
+  `docs/dev-log/recovery-checkpoints/2026-05-16-191004-codex-checkpoint.md`.
+
+Known limitations:
+
+- No `emmeans` dependency, `recover_data.drmTMB()`, `emm_basis.drmTMB()`,
+  registration hook, contrast workflow, or public EMM example was added.
+- The private gate deliberately rejects many potentially supportable future
+  targets until direct `emmeans::ref_grid()` comparisons and unsupported-path
+  tests are added.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-16-slice-120-emmeans-mu-preflight.md`.
