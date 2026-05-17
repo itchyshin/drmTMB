@@ -1139,6 +1139,12 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   predictor such as `w` in `sd(id) ~ w` now has explicit coverage through
   `prediction_grid()`, `predict_parameters(..., dpar = "sd(id)")`, and
   `marginal_parameters(..., by = "w")`.
+- Slice 156 adds the first reader-facing model-workflow example for a
+  direct-SD prediction surface. The article fits `sd(site) ~ reef_cover`,
+  builds a `prediction_grid()` over reef cover, reports
+  `predict_parameters(..., dpar = "sd(site)")`, and reduces the same grid with
+  `marginal_parameters(..., by = "reef_cover")` while keeping random-effect SD
+  separate from residual `sigma` and raw responses.
 - Add additional ggplot-oriented helpers only after the data contract is stable:
   location curves, scale/variance curves, residual `rho12` curves,
   `sd(group)` or `sd_phylo()` surfaces, `corpairs()` summaries, and eventually

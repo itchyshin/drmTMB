@@ -173,6 +173,14 @@ passed to `predict_parameters(..., dpar = "sd(id)")`, and averaged with
 `marginal_parameters(..., by = "w")` while keeping the explicit grid and table
 contracts visible.
 
+Slice 156 adds the first reader-facing direct-SD workflow to the model-workflow
+article. The example fits `sd(site) ~ reef_cover`, builds an explicit
+`prediction_grid()` over the site-level predictor, reports
+`predict_parameters(..., dpar = "sd(site)")`, and reduces the same grid with
+`marginal_parameters(..., by = "reef_cover")`. The prose keeps the fitted
+random-effect SD surface separate from residual `sigma` and raw response
+plots.
+
 Slice 118 separates the future interface contract into
 `docs/design/40-emmeans-interface-contract.md`. That note maps the official
 `recover_data()` and `emm_basis()` extension API to `drmTMB` and keeps the

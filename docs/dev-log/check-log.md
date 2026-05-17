@@ -21366,3 +21366,76 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slice-155-random-scale-prediction-grid.md`.
+
+## 2026-05-17 - Slice 156 random-effect scale workflow example
+
+Goal: add the first reader-facing model-workflow example for predicting a
+fitted random-effect SD surface.
+
+Roles:
+
+- Ada scoped this as a documentation-only follow-up to the direct-SD prediction
+  grid and table-helper tests.
+- Pat owned the applied workflow: fit, grid, table, and interpretation in one
+  path.
+- Fisher checked that the article keeps direct-SD point estimates separate
+  from unsupported interval claims.
+- Rose checked that the prose does not turn random-effect SDs into residual
+  `sigma`, raw responses, or an `emmeans` target.
+- Grace owned render, focused tests, pkgdown build/check, and rendered-site
+  scans.
+- Boole, Gauss, Noether, Darwin, Jason, Curie, and Emmy stayed watch-only
+  because no syntax, likelihood, equation derivation, ecological claim beyond
+  the example, source-map decision, test helper, or object structure changed.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/39-visualization-grammar.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-17-slice-156-random-scale-workflow-example.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-17-035330-codex-checkpoint.md`
+- `vignettes/model-workflow.Rmd`
+
+What changed:
+
+- Added a model-workflow section that simulates site-level reef cover, fits
+  `sd(site) ~ reef_cover`, and explains that this models the among-site spread
+  in expected growth.
+- The example builds an explicit `prediction_grid()` over reef cover, reports
+  `predict_parameters(..., dpar = "sd(site)")`, and reduces the same grid with
+  `marginal_parameters(..., by = "reef_cover")`.
+- NEWS, the Phase 17 roadmap, and visualization-grammar design notes now
+  record the reader-facing direct-SD workflow.
+
+Checks run:
+
+- Dry-run scout for the proposed vignette model code: passed.
+- `air format NEWS.md ROADMAP.md docs/design/39-visualization-grammar.md vignettes/model-workflow.Rmd`:
+  passed.
+- `git diff --check`: passed.
+- `Rscript -e 'pkgload::load_all(".", quiet = TRUE); rmarkdown::render("vignettes/model-workflow.Rmd", output_dir = tempfile("model-workflow-render-"), quiet = FALSE)'`:
+  passed and rendered the new section.
+- `Rscript -e "devtools::test(filter = 'prediction-grid|predict-parameters|marginal-parameters', reporter = 'summary')"`:
+  passed.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed and rendered
+  `articles/model-workflow.html`, `ROADMAP.html`, and `news/index.html`.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with "No problems found."
+- Positive source/rendered scan for the Slice 156 `sd(site) ~ reef_cover`
+  workflow found the expected source and rendered entries.
+- Stale-claim scan for direct-SD confidence intervals, direct-SD `emmeans`,
+  and raw-response confusion found only intended boundary wording.
+- Recovery checkpoint:
+  `docs/dev-log/recovery-checkpoints/2026-05-17-035330-codex-checkpoint.md`.
+
+Known limitations:
+
+- This slice adds a reader-facing point-estimate example only.
+- It does not add direct-SD uncertainty intervals, `emmeans` support,
+  bivariate random-effect scale surfaces, empirical weighting beyond the
+  existing helper, or a plotting helper for random-effect SDs.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slice-156-random-scale-workflow-example.md`.
