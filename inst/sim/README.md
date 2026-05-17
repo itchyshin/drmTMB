@@ -1,0 +1,18 @@
+# Phase 18 Simulation Skeleton
+
+This folder holds optional simulation infrastructure for Phase 18. It is not a
+package dependency and it is not run as part of ordinary examples.
+
+The layout follows the Phase 18 blueprint in
+`docs/design/41-phase-18-simulation-programme.md`:
+
+- `R/` contains small reusable helpers that CRAN-safe tests can source.
+- `dgp/` will contain data-generating mechanisms.
+- `fit/` will contain model-fitting wrappers.
+- `run/` will contain resumable cell runners.
+- `reports/` will contain rendered simulation reports.
+- `results/` is reserved for ignored local or scheduled-run output.
+
+Every simulation cell should have a stable cell id, explicit conditions,
+replicate-level seeds, fit diagnostics, interval status, and enough metadata to
+resume or audit a partial run.

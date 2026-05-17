@@ -23631,3 +23631,47 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slice-209-phase-18-simulation-blueprint.md`.
+
+## 2026-05-17 - Slice 210 Phase 18 simulation skeleton
+
+Goal: add the first optional simulation infrastructure without running a
+simulation grid.
+
+Files changed:
+
+- `inst/sim/README.md`
+- `inst/sim/R/sim_registry.R`
+- `inst/sim/dgp/.gitkeep`
+- `inst/sim/fit/.gitkeep`
+- `inst/sim/reports/.gitkeep`
+- `inst/sim/run/.gitkeep`
+- `inst/sim/results/.gitignore`
+- `tests/testthat/test-phase18-sim-skeleton.R`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `ROADMAP.md`
+- `NEWS.md`
+- `docs/dev-log/after-task/2026-05-17-slice-210-phase-18-sim-skeleton.md`
+
+What changed:
+
+- Added reproducible seed-table and cell-registry helpers.
+- Added a small optional `inst/sim/` layout for later DGP, fitter, runner, and
+  report files.
+- Added CRAN-safe tests for helper reproducibility, registry shape, and
+  malformed inputs.
+
+Checks run:
+
+- `air format inst/sim/R/sim_registry.R tests/testthat/test-phase18-sim-skeleton.R inst/sim/README.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md NEWS.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-17-slice-210-phase-18-sim-skeleton.md`
+- `Rscript -e "devtools::test(filter = 'phase18-sim-skeleton', reporter = 'summary')"`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `git diff --check`
+
+Known limitations:
+
+- This slice does not add DGPs, fitters, runners, reports, results, external
+  comparators, or coverage/power claims.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slice-210-phase-18-sim-skeleton.md`.
