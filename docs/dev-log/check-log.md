@@ -22481,3 +22481,43 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slice-187-spatial-slope-audit.md`.
+
+## 2026-05-17 - Slice 188 random-effect gate
+
+Goal: publish the one-slope-per-layer status table and remaining Gaussian
+double-hierarchical limits before the non-Gaussian revisit.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/33-phase-6c-core-random-effects.md`
+- `docs/dev-log/after-task/2026-05-17-slice-188-random-effect-gate.md`
+
+What changed:
+
+- Added a Slice 188 one-slope gate table to `ROADMAP.md`.
+- Added the compact pre-simulation status gate to
+  `docs/design/33-phase-6c-core-random-effects.md`.
+- The gate separates fitted ordinary Gaussian `mu`, Gaussian `sigma`,
+  univariate mean-scale, bivariate intercept, phylogenetic intercept, and
+  coordinate-spatial one-slope surfaces from planned slope-level,
+  structured-slope, q=8, and non-Gaussian random-effect work.
+
+Checks run:
+
+- `air format NEWS.md ROADMAP.md docs/design/33-phase-6c-core-random-effects.md`:
+  passed.
+- `Rscript -e 'pkgdown::check_pkgdown()'`: passed.
+- `rg -n "random slopes.*done|phylo\\(1 \\+ x.*Implemented|bivariate random slopes.*Implemented|spatial.*sigma.*Implemented|q=8.*Implemented|non-Gaussian.*random effects.*Implemented" README.md ROADMAP.md NEWS.md docs/design vignettes --glob '!docs/dev-log/**'`:
+  returned no stale implemented-status claims.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- This slice does not change likelihood code or add tests; it consolidates
+  status from Slices 177-187 before the non-Gaussian gate.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slice-188-random-effect-gate.md`.
