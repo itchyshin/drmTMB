@@ -18650,3 +18650,76 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-16-slice-122-first-emmeans-method.md`.
+
+## 2026-05-16 - Slice 123 plot_corpairs check-note cleanup
+
+Goal: remove the `plot_corpairs()` visible-binding NOTE reported by local
+`R CMD check` after Slice 122 without changing the plotting API or widening the
+visualization scope.
+
+Roles:
+
+- Ada kept this as a narrow stacked cleanup while Slice 122 CI was still
+  running.
+- Grace owned the check-hygiene target and will confirm the local `R CMD check`
+  NOTE disappears.
+- Boole and Emmy checked that the fix stays inside the existing
+  `plot_corpairs()` mapping helpers rather than adding package-wide global
+  variables.
+- Pat checked that plotted data, labels, and intervals remain unchanged through
+  the existing tests.
+- Rose recorded that this is not a new visualization feature and does not add
+  `corpairs()` computation, interval estimation, or new ggplot dependencies.
+- Gauss, Noether, Fisher, Darwin, Jason, and Curie stayed watch-only because no
+  likelihood, equation, inference target, biological example, landscape claim,
+  or new test scenario changed.
+
+Files changed:
+
+- `R/plot-corpairs.R`
+- `ROADMAP.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-16-slice-123-plot-corpairs-check-note.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-16-200628-codex-checkpoint.md`
+
+What changed:
+
+- Replaced the direct `ggplot2::aes(conf.low, conf.high, .drmTMB_pair_label)`
+  interval mapping with a private `plot_corpairs_interval_mapping()` helper that
+  constructs the same aesthetics from symbols.
+- Kept the existing `plot_corpairs()` user-facing arguments, returned `ggplot`
+  object, interval behavior, and optional `ggplot2` dependency unchanged.
+- Updated the Phase 17 roadmap to record the check-note cleanup as Slice 123.
+
+Checks run:
+
+- `air format R/plot-corpairs.R`: passed.
+- `Rscript -e "devtools::test(filter = 'plot-corpairs', reporter = 'summary')"`:
+  passed.
+- `air format R/plot-corpairs.R ROADMAP.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-16-slice-123-plot-corpairs-check-note.md`:
+  passed.
+- `git diff --check`: passed.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed and rebuilt
+  `pkgdown-site/ROADMAP.html`.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with "No problems found."
+- `Rscript -e "devtools::check(error_on = 'never')"`: completed with 0
+  errors, 0 warnings, and 1 note. The only remaining note was the local
+  time-verification note; the previous `plot_corpairs()` visible-binding note
+  for `conf.low`, `conf.high`, and `.drmTMB_pair_label` did not reappear.
+- `Rscript tools/codex-checkpoint.R --goal "Slice 123 plot_corpairs check-note cleanup" --next "commit Slice 123, rebase onto merged main after PR #87, rerun focused post-rebase checks, push, and open PR"`:
+  passed and wrote
+  `docs/dev-log/recovery-checkpoints/2026-05-16-200628-codex-checkpoint.md`.
+- Post-rebase `git diff --check origin/main...HEAD`: passed after rebasing the
+  branch onto merged Slice 122 `main`.
+- Post-rebase `Rscript -e "devtools::test(filter = 'plot-corpairs', reporter = 'summary')"`:
+  passed.
+
+Known limitations:
+
+- This slice does not add a new `plot_corpairs()` feature, compute intervals,
+  change the `corpairs()` table contract, or change the first public `emmeans`
+  bridge from Slice 122.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-16-slice-123-plot-corpairs-check-note.md`.
