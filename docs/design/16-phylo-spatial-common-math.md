@@ -98,7 +98,7 @@ So the implementation abstraction should be:
 
 ```text
 structured_effect(
-  term = "phylo" or "spatial" or "animal" or "relmat",
+  term = "animal" or "phylo" or "spatial" or "relmat",
   dpar = "mu" or "sigma" or later "rho12",
   Z = incidence or projection matrix,
   Q = sparse precision matrix,
@@ -109,16 +109,21 @@ structured_effect(
 The public syntax can differ:
 
 ```r
-phylo(1 | species, tree = tree)
-phylo(1 | species, A = A_phylo)
 animal(1 | id, pedigree = ped)
 animal(1 | id, Ainv = Ainv_ped)
+phylo(1 | species, tree = tree)
+phylo(1 | species, A = A_phylo)
 spatial(1 | site, coords = coords)
 relmat(1 | id, K = K_user)
 ```
 
 but the TMB likelihood should see the same kind of structured-effect block.
-The first fitted phylogenetic instance is univariate Gaussian `mu` with
+The documentation should lead with the scientific source of dependence:
+pedigree or additive relatedness for `animal()`, shared evolutionary history
+for `phylo()`, coordinates or meshes for `spatial()`, combined structural
+layers when the question needs more than one source, and `relmat()` only when
+the user already has a validated known-dependence matrix. The first fitted
+phylogenetic instance is univariate Gaussian `mu` with
 `phylo(1 | species, tree = tree)`. The first fitted spatial instances are
 univariate Gaussian `mu` with `spatial(1 | site, coords = coords)` and one
 numeric `spatial(1 + x | site, coords = coords)` slope, using a fixed

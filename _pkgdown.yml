@@ -89,10 +89,15 @@ reference:
     desc: Random-effect scale, structured covariance, and latent-correlation formula syntax.
     contents:
       - random_effect_scale_formulas
-      - gr
+      - animal
       - phylo
       - spatial
+      - relmat
       - corpair
+  - title: Reserved marker internals
+    desc: Older reserved formula markers kept out of the main reader path.
+    contents:
+      - gr
   - title: Family internals
     desc: Family constructor helpers.
     contents:

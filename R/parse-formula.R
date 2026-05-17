@@ -405,24 +405,17 @@ collect_structured_effects <- function(rhs, dpar) {
   structured <- list()
   for (term in terms) {
     term <- strip_parens(term)
-    if (is_structured_marker_call(term, "phylo")) {
+    marker <- structured_marker_call_name(term)
+    if (!is.null(marker)) {
       structured[[length(structured) + 1L]] <- parse_structured_marker_call(
         term,
-        "phylo",
+        marker,
         dpar
       )
       next
     }
-    if (is_structured_marker_call(term, "spatial")) {
-      structured[[length(structured) + 1L]] <- parse_structured_marker_call(
-        term,
-        "spatial",
-        dpar
-      )
-      next
-    }
-    nested <- c("phylo", "spatial")[vapply(
-      c("phylo", "spatial"),
+    nested <- structured_marker_names()[vapply(
+      structured_marker_names(),
       function(name) formula_contains_call(term, name),
       logical(1)
     )]
@@ -435,6 +428,22 @@ collect_structured_effects <- function(rhs, dpar) {
     }
   }
   structured
+}
+
+structured_marker_names <- function() {
+  c("animal", "phylo", "spatial", "relmat")
+}
+
+structured_marker_call_name <- function(expr) {
+  hits <- structured_marker_names()[vapply(
+    structured_marker_names(),
+    function(name) is_structured_marker_call(expr, name),
+    logical(1)
+  )]
+  if (length(hits) == 0L) {
+    return(NULL)
+  }
+  hits[[1L]]
 }
 
 is_structured_marker_call <- function(expr, name) {
@@ -461,6 +470,33 @@ parse_structured_marker_call <- function(expr, marker, dpar) {
   term <- parse_structured_bar_term(args[[term_pos]], marker)
   marker_args <- args[-term_pos]
   marker_arg_names <- arg_names[-term_pos]
+
+  if (identical(marker, "animal")) {
+    selected <- marker_arg_names %in% c("pedigree", "A", "Ainv")
+    bad <- setdiff(marker_arg_names, c("pedigree", "A", "Ainv"))
+    if (length(bad) > 0L || sum(selected) != 1L) {
+      cli::cli_abort(c(
+        "{.fn animal} requires exactly one of {.arg pedigree}, {.arg A}, or {.arg Ainv}.",
+        "x" = "Use syntax like {.code animal(1 | id, pedigree = pedigree)} or {.code animal(1 | id, Ainv = Ainv)}."
+      ))
+    }
+    structure_arg <- marker_args[[which(selected)]]
+    if (!is.symbol(structure_arg)) {
+      cli::cli_abort(c(
+        "{.arg pedigree}, {.arg A}, and {.arg Ainv} must name objects.",
+        "x" = "Use syntax like {.code animal(1 | id, pedigree = pedigree)}."
+      ))
+    }
+    return(c(
+      list(type = "animal", dpar = dpar),
+      term,
+      list(
+        structure = marker_arg_names[[which(selected)]],
+        object = as.character(structure_arg)
+      )
+    ))
+  }
+
   if (identical(marker, "phylo")) {
     extra <- setdiff(marker_arg_names, "tree")
     if (
@@ -484,6 +520,32 @@ parse_structured_marker_call <- function(expr, marker, dpar) {
       list(type = "phylo", dpar = dpar),
       term,
       list(tree = as.character(marker_args[[1L]]))
+    ))
+  }
+
+  if (identical(marker, "relmat")) {
+    selected <- marker_arg_names %in% c("K", "Q")
+    bad <- setdiff(marker_arg_names, c("K", "Q"))
+    if (length(bad) > 0L || sum(selected) != 1L) {
+      cli::cli_abort(c(
+        "{.fn relmat} requires exactly one of {.arg K} or {.arg Q}.",
+        "x" = "Use syntax like {.code relmat(1 | id, K = K)} or {.code relmat(1 | id, Q = Q)}."
+      ))
+    }
+    structure_arg <- marker_args[[which(selected)]]
+    if (!is.symbol(structure_arg)) {
+      cli::cli_abort(c(
+        "{.arg K} and {.arg Q} must name objects.",
+        "x" = "Use syntax like {.code relmat(1 | id, K = K)}."
+      ))
+    }
+    return(c(
+      list(type = "relmat", dpar = dpar),
+      term,
+      list(
+        structure = marker_arg_names[[which(selected)]],
+        object = as.character(structure_arg)
+      )
     ))
   }
 

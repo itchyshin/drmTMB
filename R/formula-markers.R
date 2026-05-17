@@ -17,13 +17,15 @@ meta_known_V <- function(V) {
   invisible(NULL)
 }
 
-#' Reserved known-covariance group effect marker
+#' Legacy reserved known-covariance group effect marker
 #'
 #' `gr()` is an older reserved marker for group-level effects with a
-#' user-supplied covariance matrix. The current design direction is to use a
-#' clearer lower-level name such as `relmat()` if a public user-supplied
-#' relatedness route is exposed, while keeping `phylo()`, `spatial()`, and
-#' future `animal()` as named high-level structured-effect front doors.
+#' user-supplied covariance matrix. New user-facing documentation should prefer
+#' the biological and matrix-specific structured-effect markers: [animal()] for
+#' pedigree or additive-relatedness animal models, [phylo()] for phylogenetic
+#' dependence, [spatial()] for spatial dependence, and [relmat()] for a
+#' validated user-supplied relatedness or precision matrix. `gr()` remains
+#' reserved while that clearer surface is completed.
 #'
 #' @param group Grouping factor.
 #' @param cov Known covariance or precision structure.
@@ -31,6 +33,44 @@ meta_known_V <- function(V) {
 #' @return A formula marker; never evaluated by users.
 #' @export
 gr <- function(group, cov) {
+  invisible(NULL)
+}
+
+#' Animal-model structured-effect marker
+#'
+#' `animal()` marks planned pedigree or additive-relatedness animal-model
+#' syntax. It is the biological front door for questions such as whether
+#' among-individual additive genetic variance appears in the location `mu`,
+#' residual scale `sigma`, shape or skewness, inflation, or a bivariate
+#' covariance. The first fitted route will be Gaussian `mu`, for example
+#' `animal(1 | id, pedigree = pedigree)` or the same model with a precomputed
+#' additive relationship matrix.
+#'
+#' This marker is parsed and documented so examples, design notes, and error
+#' messages can use the final reader-facing grammar now. It does not fit a
+#' model yet; current fits should use implemented ordinary random effects,
+#' [phylo()], or [spatial()] where those paths match the scientific question.
+#'
+#' @param term Structured random-effect term, such as `1 | id`.
+#' @param pedigree Planned pedigree input from which an additive relationship
+#'   matrix or sparse inverse will be built.
+#' @param A Planned additive relatedness or covariance matrix.
+#' @param Ainv Planned sparse or dense inverse additive relatedness matrix.
+#'
+#' @return A formula marker; never evaluated by users.
+#' @export
+#'
+#' @examples
+#' # Planned: additive genetic variance in body size from a wild pedigree.
+#' bf(body_size ~ age + sex + animal(1 | id, pedigree = pedigree),
+#'   sigma ~ habitat
+#' )
+#'
+#' # Planned later: distributional animal model for residual predictability.
+#' bf(activity ~ treatment + animal(1 | id, Ainv = Ainv),
+#'   sigma ~ treatment
+#' )
+animal <- function(term, pedigree = NULL, A = NULL, Ainv = NULL) {
   invisible(NULL)
 }
 
@@ -84,6 +124,42 @@ phylo <- function(term, tree) {
 #' # Planned:
 #' bf(y ~ x + spatial(1 | site, mesh = mesh), sigma ~ z)
 spatial <- function(term, coords = NULL, mesh = NULL) {
+  invisible(NULL)
+}
+
+#' User-supplied relatedness structured-effect marker
+#'
+#' `relmat()` marks planned syntax for a validated user-supplied relatedness
+#' matrix. It is the lower-level route for dependence structures that are not
+#' best named as `animal()`, `phylo()`, or `spatial()`: for example a genomic
+#' relationship matrix, a laboratory relatedness kernel, or a precision matrix
+#' built outside `drmTMB` and checked by the analyst.
+#'
+#' Use `K` for a covariance or relatedness matrix and `Q` for an inverse
+#' covariance or precision matrix. This marker is parsed and documented, but
+#' does not fit a model yet. It is intentionally separate from
+#' [meta_known_V()], which adds known sampling covariance among observations,
+#' and from residual `rho12`, which models within-observation bivariate
+#' residual correlation.
+#'
+#' @param term Structured random-effect term, such as `1 | id`.
+#' @param K Planned known relatedness or covariance matrix.
+#' @param Q Planned known precision or inverse covariance matrix.
+#'
+#' @return A formula marker; never evaluated by users.
+#' @export
+#'
+#' @examples
+#' # Planned: a genomic relatedness matrix for among-line genetic variance.
+#' bf(seed_mass ~ temperature + relmat(1 | line, K = G),
+#'   sigma ~ temperature
+#' )
+#'
+#' # Planned: a user-built sparse precision for another dependence structure.
+#' bf(growth ~ treatment + relmat(1 | plot, Q = Q_plot),
+#'   sigma ~ treatment
+#' )
+relmat <- function(term, K = NULL, Q = NULL) {
   invisible(NULL)
 }
 
