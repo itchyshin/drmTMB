@@ -290,6 +290,15 @@ can teach common interpretations:
 These names are interpretation aids. The extractor should always report the
 formal pair so users can interpret other designs without guessing.
 
+Slice 185 keeps the first bivariate random-slope target at the slope-slope
+mean row: matching slope-only `mu1`/`mu2` terms such as
+`(0 + x | p | ID)`. That target is scientifically useful for plasticity
+syndromes and avoids opening intercept-slope or all-four location-scale
+correlations before the package can name, diagnose, and profile them. A
+matching `(1 + x | p | ID)` location block would be q=4, and matching slope
+terms across `mu1`, `mu2`, `sigma1`, and `sigma2` would be q=8; both remain
+planned.
+
 ## Source Map: CRNs, EGA+GNM, and `gllvmTMB`
 
 Two Martin papers are useful design anchors, but they point to different parts

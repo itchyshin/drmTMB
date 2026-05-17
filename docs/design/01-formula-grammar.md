@@ -88,7 +88,9 @@ In this table, "coscale" means a model for residual correlation, currently
 | `spatial(1 | site, mesh = mesh)` | Planned | Mesh/SPDE spatial fitting remains planned after the coordinate foundation. |
 | `corpair(id, level = "group", block = "p", from = "mu1", to = "mu2") ~ x_group` | Implemented | Predictor-dependent ordinary q=2 location-location latent random-effect correlation regression for matching labelled `mu1`/`mu2` random intercepts. Predictors must be constant within `id`. |
 | `corpair(species, level = "phylogenetic", block = "p", from = "mu1", to = "mu2") ~ ecology` | Implemented | Predictor-dependent phylogenetic q=2 location-location latent random-effect correlation regression for matching labelled `mu1`/`mu2` `phylo()` terms. Predictors must be constant within `species`. Location-scale, scale-scale, q=4, and spatial `corpair()` regressions remain planned. |
-| Bivariate random slopes, spatial q4 covariance blocks, predictor-dependent phylogenetic/spatial q4 correlations, or `rho12` random effects | Planned | Requires larger structured covariance parameterizations, simulation recovery, and naming checks. Do not treat intercept-slope `corpair()` rows as a near-term target; a later slope1-slope2 bivariate plasticity-syndrome target needs coefficient-aware syntax. |
+| Matching slope-only `(0 + x | p | id)` in bivariate `mu1` and `mu2` | Planned first bivariate slope target | This is the intended first bivariate random-slope path because it can target the slope1-slope2 plasticity-syndrome correlation without also estimating intercept-slope correlations. It remains rejected until fitting, recovery tests, diagnostics, `corpairs()`, and profile-target names exist. |
+| Intercept-plus-slope bivariate blocks such as `(1 + x | p | id)` in both `mu1` and `mu2` | Planned later | These would require a q=4 location block with intercept-intercept, intercept-slope, and slope-slope correlations. They are not opened by the first bivariate one-slope policy. |
+| All-four bivariate location-scale slope blocks across `mu1`, `mu2`, `sigma1`, and `sigma2`; spatial q4 covariance blocks; predictor-dependent phylogenetic/spatial q4 correlations; or `rho12` random effects | Planned | Requires larger structured covariance parameterizations, simulation recovery, and naming checks. Do not use all-four slope terms to request a q=8 endpoint covariance block in this phase. Do not treat intercept-slope `corpair()` rows as a near-term target; a later slope1-slope2 bivariate plasticity-syndrome target needs coefficient-aware syntax. |
 
 ## Univariate Syntax
 
@@ -199,6 +201,16 @@ the same label and group in all four `mu1`, `mu2`, `sigma1`, and `sigma2`
 formulas requests one ordinary q=4 random-intercept block with all six latent
 correlations. Bivariate random slopes and `rho12` random effects remain
 planned.
+
+The first bivariate random-slope target is intentionally narrower than the
+full endpoint. A matching slope-only location block such as
+`(0 + x | p | id)` in both `mu1` and `mu2` is the first planned slope path.
+It would estimate the group-level association between individual differences
+in the two response-specific slopes. Intercept-plus-slope location blocks
+such as `(1 + x | p | id)` in both responses are a later q=4 location block,
+and all-four location-scale slope terms across `mu1`, `mu2`, `sigma1`, and
+`sigma2` are a q=8 endpoint. Both remain rejected until the covariance naming,
+diagnostics, recovery tests, and interval targets are in place.
 
 The first fitted bivariate phylogenetic location slice uses matching
 intercept-only `phylo()` terms in the two location formulas:

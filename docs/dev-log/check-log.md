@@ -22343,3 +22343,49 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slice-184-two-block-validation.md`.
+
+## 2026-05-17 - Slice 185 bivariate random-slope policy
+
+Goal: define the first bivariate one-slope policy without opening q=8 endpoint
+covariance blocks.
+
+Files changed:
+
+- `R/drmTMB.R`
+- `tests/testthat/test-biv-gaussian.R`
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/01-formula-grammar.md`
+- `docs/design/04-random-effects.md`
+- `docs/design/20-coscale-correlation-pairs.md`
+- `docs/dev-log/after-task/2026-05-17-slice-185-bivariate-slope-policy.md`
+
+What changed:
+
+- Bivariate `mu1`/`mu2` slope attempts now error with an explicit
+  slope-policy message instead of only saying random intercepts are
+  implemented.
+- Matching slope-only `mu1`/`mu2` terms such as `(0 + x | p | id)` are
+  documented as the first future bivariate slope target.
+- Matching `(1 + x | p | id)` location blocks are documented as a later q=4
+  location block, not the first slope step.
+- All-four `mu1`/`mu2`/`sigma1`/`sigma2` slope terms are documented and tested
+  as a closed q=8 endpoint boundary.
+
+Checks run:
+
+- `air format R/drmTMB.R tests/testthat/test-biv-gaussian.R NEWS.md ROADMAP.md docs/design/01-formula-grammar.md docs/design/04-random-effects.md docs/design/20-coscale-correlation-pairs.md`:
+  passed.
+- `Rscript -e 'devtools::test(filter = "biv-gaussian", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'pkgdown::check_pkgdown()'`: passed.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- This slice does not fit bivariate random slopes. It only clarifies and tests
+  the current boundary before implementation work.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slice-185-bivariate-slope-policy.md`.
