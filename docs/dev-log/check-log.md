@@ -21623,3 +21623,114 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slice-158-confidence-band-prediction-surfaces.md`.
+
+## 2026-05-17 - Slice 159 confidence-band examples and asymmetry roadmap note
+
+Goal: make the confidence-band examples show both a real 95% Wald band path and
+an explicit unavailable interval status, while keeping the roadmap page useful
+as the live Slice 159-202 control panel.
+
+Roles:
+
+- Ada kept this as a documentation and roadmap slice stacked on the green Slice
+  158 confidence-band PR.
+- Pat checked that the model-workflow article now shows the table a reader will
+  inspect before trusting a ribbon.
+- Fisher kept the interval boundary explicit: fixed-effect `mu`/`sigma`
+  surfaces can use Wald bands on supplied grids, while direct `sd(site)`
+  surfaces report `wald_unavailable`.
+- Grace owned roxygen, focused tests, vignette render, pkgdown build/check, and
+  rendered-site scans.
+- Rose caught roadmap ambiguity around skew-family planning and stale wording
+  that could imply skew-normal or skew-t support already exists.
+- Jason contributed a small landscape pass using official docs for `brms`,
+  `gamlss.dist`, `sn`, and `RTMBdist`.
+- Gauss noted the `RTMBdist` skew-t starting-value warning: an exact zero skew
+  start can have zero derivatives and should become a numerical guard if a TMB
+  skew-t path is implemented.
+
+Files changed:
+
+- `R/predict-parameters.R`
+- `R/plot-parameter-surface.R`
+- `man/predict_parameters.Rd`
+- `man/plot_parameter_surface.Rd`
+- `vignettes/model-workflow.Rmd`
+- `docs/design/39-visualization-grammar.md`
+- `ROADMAP.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-17-slice-159-confidence-band-examples.md`
+
+What changed:
+
+- The `predict_parameters()` and `plot_parameter_surface()` examples now request
+  `conf.int = TRUE`, so the Reference examples exercise the new interval-aware
+  table path.
+- The model-workflow article now stores the explicit `mu`/`sigma` prediction
+  table, prints `conf.status`, `interval_source`, and `conf.level`, and states
+  that these are fitted-surface confidence bands rather than prediction
+  intervals for future raw observations.
+- The same article now contrasts that fixed-effect path with a direct
+  `sd(site)` prediction table whose interval request reports
+  `conf.status = "wald_unavailable"` and `interval_source = "not_available"`.
+- The visualization design note records the Slice 159 boundary.
+- `ROADMAP.md` now contains the next 30-slice stabilization map from Slice 159
+  through Slice 188, plus the handoff note that Slice 189 closes remaining
+  Gaussian double-hierarchical boundary wording and Slices 190-202 revisit
+  non-Gaussian location-scale-shape gaps before returning to Phase 17.
+- `ROADMAP.md` also records a Phase 16 skew-family planning note: fixed-effect
+  univariate `skew_normal()` first, `skew_t()` later, `nu` for asymmetry,
+  `tau` for skew-t tail thickness, shape random effects later, and residual
+  `sigma ~ ...` kept separate from `sd(group) ~ ...`.
+
+External research anchors for the skew-family note:
+
+- `brms::skew_normal()` documents `mu`, `sigma`, and `alpha`:
+  <https://paulbuerkner.com/brms/reference/SkewNormal.html>.
+- The `brms` family list includes `skew_normal` but not a default skew-t family
+  in the documented family list:
+  <https://paulbuerkner.com/brms/reference/brmsfamily.html>.
+- `gamlss.dist::SN2()` documents a three-parameter skew normal with `mu`,
+  `sigma`, and `nu`: <https://rdrr.io/cran/gamlss.dist/man/SN2.html>.
+- `gamlss.dist` documents five skew-t variants, so `drmTMB` must choose a
+  parameterization deliberately: <https://rdrr.io/cran/gamlss.dist/man/ST1.html>.
+- `sn::dsn()` documents the classic skew-normal parameters `xi`, `omega`, and
+  `alpha`: <https://search.r-project.org/CRAN/refmans/sn/html/dsn.html>.
+- `RTMBdist` documents AD-compatible skew-normal and skew-t densities and warns
+  not to initialize skew-t skew exactly at zero:
+  <https://cran.r-universe.dev/RTMBdist/doc/manual.html#vm>.
+
+Checks run:
+
+- `air format R/predict-parameters.R R/plot-parameter-surface.R
+  vignettes/model-workflow.Rmd docs/design/39-visualization-grammar.md
+  ROADMAP.md`: passed.
+- `Rscript -e 'devtools::document()'`: passed and regenerated
+  `man/predict_parameters.Rd` and `man/plot_parameter_surface.Rd`.
+- `Rscript -e 'devtools::test(filter = "predict-parameters|plot-parameter-surface", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'pkgload::load_all(".", quiet = TRUE); rmarkdown::render("vignettes/model-workflow.Rmd", output_dir = tempfile("model-workflow-render-"), quiet = FALSE)'`:
+  passed.
+- `Rscript -e 'pkgdown::build_site(preview = FALSE)'`: passed after the final
+  roadmap wording fix.
+- `Rscript -e 'pkgdown::check_pkgdown()'`: passed with "No problems found."
+- `git diff --check`: passed.
+- Stale interval wording scan:
+  `rg -n "ribbons remain planned|add interval ribbons later|point-estimate surfaces|does not draw intervals|leaves confidence intervals" README.md NEWS.md ROADMAP.md docs/design vignettes R man pkgdown-site --glob '!pkgdown-site/search.json' --glob '!docs/dev-log/**'`
+  returned no matches.
+- Stale skew-family status scan:
+  `rg -n "skew_normal\\(\\).*implemented|skew_t\\(\\).*implemented|family = skew_normal\\(\\).*Implemented|family = skew_t\\(\\).*Implemented|skew-normal.*available|skew-t.*available" README.md NEWS.md ROADMAP.md docs/design vignettes R man pkgdown-site --glob '!pkgdown-site/search.json' --glob '!docs/dev-log/**'`
+  returned no matches after changing "implemented density" to "chosen density".
+
+Known limitations:
+
+- This slice does not add a new interval method, a new family, or skew-family
+  code.
+- The direct random-effect SD table still reports `wald_unavailable`; profile
+  or bootstrap support remains later work.
+- The Phase 16 skew-family plan is a roadmap note only. It does not make
+  `skew_normal()` or `skew_t()` available in `drmTMB`.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slice-159-confidence-band-examples.md`.
