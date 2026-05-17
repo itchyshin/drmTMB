@@ -225,3 +225,10 @@ travel through the first `mu` EMM grid when users supply the needed offset
 variables, but it does not add support for non-`mu`, random-effect, bivariate,
 zero-inflated, hurdle, ordinal, slope, custom-weight, or fitted-response
 targets.
+
+Slice 128 adds the matching transformed-predictor recovery check. A Gaussian
+fixed-effect `mu` model with `log(size)` verifies that
+`emmeans(..., at = list(size = 1.5))` matches `predict(dpar = "mu")`, while the
+recover-data preflight confirms that raw source variables for transformed terms
+are restored from stored data. This is not support for transformed responses,
+slopes, custom weights, non-`mu` targets, or blocked model structures.

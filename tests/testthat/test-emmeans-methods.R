@@ -167,6 +167,44 @@ test_that("emmeans method carries mu offsets into the returned grid", {
   expect_equal(link$df, rep(Inf, nrow(link)))
 })
 
+test_that("emmeans method carries transformed mu predictors into the grid", {
+  testthat::skip_if_not_installed("emmeans")
+  set.seed(20260545)
+  dat <- emmeans_methods_data(n = 90L)
+  dat$size <- exp(seq(log(0.8), log(2.4), length.out = nrow(dat)))
+  eta <- 0.1 +
+    0.5 * log(dat$size) +
+    0.25 * (dat$habitat == "kelp") -
+    0.10 * (dat$habitat == "sand")
+  dat$y <- eta + stats::rnorm(nrow(dat), sd = 0.1)
+  fit <- drmTMB(
+    bf(y ~ log(size) + habitat, sigma ~ 1),
+    data = dat,
+    control = emmeans_methods_control(se = TRUE)
+  )
+
+  emm <- emmeans::emmeans(fit, ~habitat, at = list(size = 1.5))
+  link <- summary(emm)
+  response <- summary(emm, type = "response")
+  grid <- data.frame(
+    size = 1.5,
+    habitat = factor(link$habitat, levels = levels(dat$habitat))
+  )
+
+  expect_equal(
+    link$emmean,
+    unname(predict(fit, newdata = grid, dpar = "mu", type = "link")),
+    tolerance = 1e-10
+  )
+  expect_equal(
+    response$emmean,
+    unname(predict(fit, newdata = grid, dpar = "mu", type = "response")),
+    tolerance = 1e-10
+  )
+  expect_true(all(is.finite(link$SE)))
+  expect_equal(link$df, rep(Inf, nrow(link)))
+})
+
 test_that("emmeans response scale handles logit mu families", {
   testthat::skip_if_not_installed("emmeans")
   set.seed(20260540)

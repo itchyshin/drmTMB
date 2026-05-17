@@ -56,6 +56,26 @@ test_that("emmeans recover-data preflight restores offset source variables", {
   expect_equal(recovered$predictors, c("x", "habitat", "exposure"))
 })
 
+test_that("emmeans recover-data preflight restores transformed predictors", {
+  set.seed(20260546)
+  dat <- emmeans_recover_data_data()
+  dat$size <- exp(seq(log(0.8), log(2.4), length.out = nrow(dat)))
+  dat$y <- 0.1 +
+    0.5 * log(dat$size) +
+    0.25 * (dat$habitat == "kelp") +
+    stats::rnorm(nrow(dat), sd = 0.1)
+  fit <- drmTMB(
+    bf(y ~ log(size) + habitat, sigma ~ 1),
+    data = dat,
+    control = emmeans_recover_data_control()
+  )
+
+  recovered <- drmTMB:::drm_emmeans_recover_data(fit)
+
+  expect_equal(recovered$model_frame$size, dat$size)
+  expect_equal(recovered$predictors, c("size", "habitat"))
+})
+
 test_that("emmeans recover-data preflight requires retained model frames", {
   set.seed(20260533)
   dat <- emmeans_recover_data_data()
