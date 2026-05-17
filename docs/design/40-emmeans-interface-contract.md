@@ -275,3 +275,10 @@ Slice 135 adds public hurdle boundary coverage. A hurdle NB2 model verifies that
 `"hurdle_nbinom2"` model type, and directs users to `prediction_grid()` plus
 `predict_parameters()` for explicit prediction tables. This remains an
 unsupported boundary, not hurdle `emmeans` support.
+
+Slice 136 adds public ordinal boundary coverage. A cumulative-logit model
+verifies that `emmeans()` errors before returning an `emmGrid`, names the
+unsupported `"cumulative_logit"` model type, and directs users to
+`prediction_grid()` plus `predict_parameters()` for explicit prediction tables.
+This remains an unsupported boundary, not ordinal expected-score `emmeans`
+support.

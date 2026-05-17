@@ -584,6 +584,30 @@ test_that("emmeans method rejects unsupported drmTMB paths", {
   )
   expect_match(conditionMessage(hurdle_error), "prediction_grid\\(\\)")
 
+  ordinal_dat <- dat
+  ordinal_eta <- -0.1 +
+    0.6 * ordinal_dat$x +
+    0.25 * (ordinal_dat$habitat == "kelp") -
+    0.15 * (ordinal_dat$habitat == "sand")
+  ordinal_latent <- ordinal_eta + stats::rlogis(nrow(ordinal_dat))
+  ordinal_dat$ordinal <- cut(
+    ordinal_latent,
+    breaks = c(-Inf, -0.6, 0.4, Inf),
+    labels = c("low", "mid", "high"),
+    ordered_result = TRUE
+  )
+  ordinal_fit <- drmTMB(
+    bf(ordinal ~ x + habitat),
+    family = cumulative_logit(),
+    data = ordinal_dat,
+    control = emmeans_methods_control(se = TRUE)
+  )
+  ordinal_error <- expect_error(
+    emmeans::emmeans(ordinal_fit, ~habitat, at = list(x = 0)),
+    "cumulative_logit"
+  )
+  expect_match(conditionMessage(ordinal_error), "prediction_grid\\(\\)")
+
   random_fit <- drmTMB(
     bf(y ~ x + habitat + (1 | id), sigma ~ 1),
     data = dat,

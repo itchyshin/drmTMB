@@ -19745,3 +19745,85 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-16-slice-135-emmeans-hurdle-public-error.md`.
+
+## 2026-05-16 - Slice 136 emmeans ordinal public boundary
+
+Goal: add public-method coverage that cumulative-logit ordinal fits still error
+before `emmeans()` returns an `emmGrid`.
+
+Roles:
+
+- Ada kept this as the ordinal sibling to the zero-inflated and hurdle
+  public-boundary tests.
+- Boole checked that the error is documented as an unsupported boundary, not a
+  syntax change.
+- Fisher checked that ordinal expected-score EMMs remain a separate estimand
+  from native `mu` location summaries.
+- Curie added the public cumulative-logit rejection test.
+- Pat checked that the error points users to `prediction_grid()` and
+  `predict_parameters()`.
+- Grace owned focused tests, pkgdown, and rendered wording scans.
+- Rose checked that ordinal expected-score `emmeans` support is not claimed.
+- Gauss, Noether, Darwin, Jason, and Emmy stayed watch-only because no
+  likelihood, equation, biological example, landscape claim, or object
+  structure changed.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/39-visualization-grammar.md`
+- `docs/design/40-emmeans-interface-contract.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-16-slice-136-emmeans-ordinal-public-error.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-16-221705-codex-checkpoint.md`
+- `tests/testthat/test-emmeans-methods.R`
+
+What changed:
+
+- Added a public `emmeans()` rejection test for a cumulative-logit ordinal fit.
+- The test checks that the error names `"cumulative_logit"` and points users
+  toward `prediction_grid()` for explicit prediction tables.
+- Updated NEWS, roadmap, and design notes to state this as boundary coverage,
+  not ordinal expected-score `emmeans` support.
+
+Checks run:
+
+- No-edit scout:
+  `emmeans()` on a cumulative-logit fit errored before returning an `emmGrid`,
+  named `"cumulative_logit"`, and suggested `prediction_grid()` plus
+  `predict_parameters()`.
+- `air format NEWS.md ROADMAP.md docs/design/39-visualization-grammar.md docs/design/40-emmeans-interface-contract.md tests/testthat/test-emmeans-methods.R`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'emmeans-methods', reporter = 'summary')"`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'emmeans-methods|emmeans-recover-data|emmeans-preflight|fixed-effect-basis|reference-grid-link-scale-contract', reporter = 'summary')"`:
+  passed.
+- `git diff --check`: passed.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed.
+- Positive source/rendered scan for Slice 136 ordinal boundary wording and test
+  evidence: found the expected entries.
+- Stale-claim scan for ordinal `emmeans` support: no false support claims;
+  matches were intentional unsupported-boundary wording.
+- Recovery checkpoint:
+  `docs/dev-log/recovery-checkpoints/2026-05-16-221705-codex-checkpoint.md`.
+
+Post-rebase checks:
+
+- PR #100 merged as `5024d1350a3843c58819862c114be4a909b61c01`.
+- `git rebase --onto origin/main e694e7f0a1a38f8d5a0884686d338d1941268ce2`:
+  passed.
+- `git diff --check origin/main...HEAD`: passed.
+- `Rscript -e "devtools::test(filter = 'emmeans-methods|emmeans-recover-data|emmeans-preflight|fixed-effect-basis|reference-grid-link-scale-contract', reporter = 'summary')"`:
+  passed.
+
+Known limitations:
+
+- Ordinal expected-score `emmeans` support remains unsupported.
+- This slice does not add zero-inflated or hurdle support, fitted
+  observed-response means, non-`mu` targets, or blocked model structures.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-16-slice-136-emmeans-ordinal-public-error.md`.
