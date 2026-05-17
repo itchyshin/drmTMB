@@ -324,6 +324,79 @@ grid values. These first tables are point-estimate summaries, so
 `interval_source = "not_available"` tell you that no interval has been
 computed.
 
+## Predict a random-effect SD surface
+
+Random-effect scale formulas answer a different question from residual
+`sigma`. In the next example, `sd(site) ~ reef_cover` asks whether the
+among-site spread in expected growth changes along a site-level reef-cover
+gradient. The predictor is constant within each site:
+
+```{r}
+set.seed(14)
+n_site <- 14
+n_per_site <- 5
+site <- factor(rep(seq_len(n_site), each = n_per_site))
+reef_cover_site <- seq(-1, 1, length.out = n_site)
+reef_cover <- reef_cover_site[as.integer(site)]
+temperature <- runif(n_site * n_per_site, -1.5, 1.5)
+site_sd <- exp(-0.65 + 0.45 * reef_cover_site)
+site_effect <- rnorm(n_site, sd = site_sd)
+
+fish_site_scale <- data.frame(
+  site = site,
+  temperature = temperature,
+  reef_cover = reef_cover
+)
+fish_site_scale$growth <- rnorm(
+  nrow(fish_site_scale),
+  mean = 1 + 0.6 * fish_site_scale$temperature +
+    site_effect[as.integer(fish_site_scale$site)],
+  sd = 0.35
+)
+
+fit_site_scale <- drmTMB(
+  bf(
+    growth ~ temperature + (1 | site),
+    sigma ~ 1,
+    sd(site) ~ reef_cover
+  ),
+  family = gaussian(),
+  data = fish_site_scale
+)
+```
+
+The fitted equation for the site random-effect SD is
+`log(sd_site) = alpha_0 + alpha_1 reef_cover`. Use a grid when you want the
+site-level SD surface on the response scale:
+
+```{r}
+sd_site_grid <- prediction_grid(
+  fit_site_scale,
+  focal = "reef_cover",
+  at = list(reef_cover = c(-1, 0, 1)),
+  condition = list(temperature = 0)
+)
+
+predict_parameters(
+  fit_site_scale,
+  newdata = sd_site_grid,
+  dpar = "sd(site)"
+)
+```
+
+The table reports the `random-effect-sd-model` component. Its estimates are
+random-intercept SDs, not residual SDs and not raw responses. If the report
+needs one row per reef-cover value, reduce the same explicit grid:
+
+```{r}
+marginal_parameters(
+  fit_site_scale,
+  newdata = sd_site_grid,
+  dpar = "sd(site)",
+  by = "reef_cover"
+)
+```
+
 ## Estimate marginal means for `mu`
 
 When the question is an adjusted mean of the location parameter `mu`, the first
