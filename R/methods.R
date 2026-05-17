@@ -3383,19 +3383,28 @@ drm_prepare_prediction_newdata <- function(object, newdata, dpar) {
   }
 
   needed <- all.vars(stats::delete.response(object$model$terms[[dpar]]))
+  missing <- setdiff(needed, names(newdata))
+  if (length(missing) > 0L) {
+    cli::cli_abort(c(
+      "New prediction data is missing required predictor{?s} for {.code dpar = \"{dpar}\"}.",
+      i = "Missing predictor{?s}: {.var {missing}}."
+    ))
+  }
+  for (name in intersect(names(newdata), needed)) {
+    if (anyNA(newdata[[name]])) {
+      cli::cli_abort(c(
+        "New prediction data contains missing value{?s} for required predictor {.var {name}}.",
+        i = "Supply complete prediction rows before calling {.fn predict} or {.pkg emmeans}."
+      ))
+    }
+  }
   for (name in intersect(intersect(names(newdata), names(template)), needed)) {
     source <- template[[name]]
     if (!is.factor(source)) {
       next
     }
     value <- as.character(newdata[[name]])
-    if (anyNA(value)) {
-      cli::cli_abort(c(
-        "New prediction data contains missing factor value{?s} for {.var {name}}.",
-        i = "Supply one of the fitted levels: {.val {levels(source)}}."
-      ))
-    }
-    unknown <- setdiff(unique(stats::na.omit(value)), levels(source))
+    unknown <- setdiff(unique(value), levels(source))
     if (length(unknown) > 0L) {
       cli::cli_abort(c(
         "New prediction data contains unknown factor level{?s} for {.var {name}}.",

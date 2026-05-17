@@ -20416,3 +20416,79 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slice-143-factor-newdata-levels.md`.
+
+## 2026-05-17 - Slice 144 required newdata variables
+
+Goal: validate that fixed-effect prediction `newdata` supplies every required
+predictor for the requested distributional parameter and has complete values
+before model-matrix construction.
+
+Roles:
+
+- Ada opened this from a no-edit scout after Slice 143 fixed factor-level
+  validation.
+- Boole checked that this is prediction-data validation, not a formula grammar
+  change.
+- Fisher checked that the prediction target and estimand do not change.
+- Curie added focused fixed-effect-basis tests for missing required columns,
+  missing numeric values, and harmless unused columns.
+- Pat checked that the new errors tell users what to supply next.
+- Grace owns focused tests, formatting, pkgdown, and PR CI.
+- Rose checked that this removes base/internal error paths without broadening
+  `emmeans` support.
+- Gauss, Noether, Darwin, Jason, and Emmy stayed watch-only because no
+  likelihood, equation, biological example, landscape claim, or object
+  structure changed.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `R/methods.R`
+- `docs/design/40-emmeans-interface-contract.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-17-slice-144-required-newdata-variables.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-17-003323-codex-checkpoint.md`
+- `tests/testthat/test-fixed-effect-basis.R`
+
+What changed:
+
+- `drm_prepare_prediction_newdata()` now errors when `newdata` is missing a
+  predictor required by the requested distributional parameter.
+- Required predictor values are checked for missing values before model-matrix
+  construction.
+- Extra columns that are not used by the requested target formula remain
+  harmless.
+
+Checks run:
+
+- No-edit scout:
+  `predict()` with missing `habitat` previously failed with
+  `object 'habitat' not found`; `predict()` with `x = NA_real_` failed with
+  `Internal error: fixed-effect basis offsets do not match design-matrix rows`.
+- `Rscript -e "devtools::test(filter = 'fixed-effect-basis', reporter = 'summary')"`:
+  passed.
+- `air format NEWS.md ROADMAP.md R/methods.R docs/design/40-emmeans-interface-contract.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-17-slice-144-required-newdata-variables.md tests/testthat/test-fixed-effect-basis.R`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'emmeans-methods|emmeans-recover-data|emmeans-preflight|fixed-effect-basis|reference-grid-link-scale-contract', reporter = 'summary')"`:
+  passed.
+- `git diff --check`: passed.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed.
+- Positive source/rendered scan for Slice 144 required-newdata wording and
+  test evidence: found the expected entries.
+- Stale-claim scan for accidental new-estimand, non-`mu`, or new `emmeans`
+  support claims from required-predictor validation wording: no matches.
+- Recovery checkpoint:
+  `docs/dev-log/recovery-checkpoints/2026-05-17-003323-codex-checkpoint.md`.
+
+Known limitations:
+
+- This slice validates fixed-effect prediction/newdata inputs.
+- It does not add new estimands, non-`mu` `emmeans` support, transformed
+  responses, empirical marginalisation, random-effect workflows, or blocked
+  model structures.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slice-144-required-newdata-variables.md`.

@@ -151,7 +151,42 @@ test_that("fixed-effect basis validates factor levels in newdata", {
       newdata = data.frame(x = 0, habitat = NA_character_),
       dpar = "mu"
     ),
-    "missing factor value"
+    "missing value"
+  )
+})
+
+test_that("fixed-effect basis validates required newdata variables", {
+  set.seed(20260559)
+  dat <- fixed_effect_basis_data()
+  fit <- drmTMB(
+    bf(y ~ x + habitat),
+    family = stats::poisson(link = "log"),
+    data = dat,
+    control = fixed_effect_basis_control(se = TRUE)
+  )
+
+  expect_error(
+    drmTMB:::drm_fixed_effect_basis(
+      fit,
+      newdata = data.frame(x = 0),
+      dpar = "mu"
+    ),
+    "missing required predictor"
+  )
+  expect_error(
+    predict(
+      fit,
+      newdata = data.frame(x = NA_real_, habitat = "reef"),
+      dpar = "mu"
+    ),
+    "missing value"
+  )
+  expect_no_error(
+    predict(
+      fit,
+      newdata = data.frame(x = 0, habitat = "reef", extra = NA_real_),
+      dpar = "mu"
+    )
   )
 })
 
