@@ -19580,3 +19580,85 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-16-slice-133-emmeans-multiple-at-grid.md`.
+
+## 2026-05-16 - Slice 134 emmeans zero-inflated public boundary
+
+Goal: add public-method coverage that zero-inflated Poisson fits still error
+before `emmeans()` returns an `emmGrid`.
+
+Roles:
+
+- Ada kept this as a boundary-test slice after the positive grid-contract
+  coverage.
+- Boole checked that the error is documented as an unsupported boundary, not a
+  syntax change.
+- Fisher checked that the blocked estimand is the fitted observed-response mean
+  that combines `mu` and zero inflation.
+- Curie added the public zero-inflated rejection test.
+- Pat checked that the error points users to `prediction_grid()` and
+  `predict_parameters()`.
+- Grace owned focused tests, pkgdown, and rendered wording scans.
+- Rose checked that zero-inflated `emmeans` support is not claimed.
+- Gauss, Noether, Darwin, Jason, and Emmy stayed watch-only because no
+  likelihood, equation, biological example, landscape claim, or object
+  structure changed.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/39-visualization-grammar.md`
+- `docs/design/40-emmeans-interface-contract.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-16-slice-134-emmeans-zi-public-error.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-16-220410-codex-checkpoint.md`
+- `tests/testthat/test-emmeans-methods.R`
+
+What changed:
+
+- Added a public `emmeans()` rejection test for a zero-inflated Poisson fit.
+- The test checks that the error names `"zi_poisson"` and points users toward
+  `prediction_grid()` for explicit prediction tables.
+- Updated NEWS, roadmap, and design notes to state this as boundary coverage,
+  not zero-inflated `emmeans` support.
+
+Checks run:
+
+- No-edit scout:
+  `emmeans()` on a zero-inflated Poisson fit errored before returning an
+  `emmGrid`, named `"zi_poisson"`, and suggested `prediction_grid()` plus
+  `predict_parameters()`.
+- `air format NEWS.md ROADMAP.md docs/design/39-visualization-grammar.md docs/design/40-emmeans-interface-contract.md tests/testthat/test-emmeans-methods.R`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'emmeans-methods', reporter = 'summary')"`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'emmeans-methods|emmeans-recover-data|emmeans-preflight|fixed-effect-basis|reference-grid-link-scale-contract', reporter = 'summary')"`:
+  passed.
+- `git diff --check`: passed.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed.
+- Positive source/rendered scan for Slice 134 zero-inflated boundary wording
+  and test evidence: found the expected entries.
+- Stale-claim scan for zero-inflated `emmeans` support: no false support
+  claims; matches were intentional unsupported-boundary wording.
+- Recovery checkpoint:
+  `docs/dev-log/recovery-checkpoints/2026-05-16-220410-codex-checkpoint.md`.
+
+Post-rebase checks:
+
+- PR #98 merged as `63855fc008ae7d0c1c342aea4affd40faa9e36cc`.
+- `git rebase --onto origin/main 3d476a2659a9cc37da143244ac88107d44bcdf33`:
+  passed.
+- `git diff --check origin/main...HEAD`: passed.
+- `Rscript -e "devtools::test(filter = 'emmeans-methods|emmeans-recover-data|emmeans-preflight|fixed-effect-basis|reference-grid-link-scale-contract', reporter = 'summary')"`:
+  passed.
+
+Known limitations:
+
+- Zero-inflated `emmeans` support remains unsupported.
+- This slice does not add fitted observed-response means, hurdle support,
+  ordinal expected-score EMMs, non-`mu` targets, or blocked model structures.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-16-slice-134-emmeans-zi-public-error.md`.
