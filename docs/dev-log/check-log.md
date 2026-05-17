@@ -22240,3 +22240,56 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slice-182-sigma-random-slope-boundary.md`.
+
+## 2026-05-17 - Slice 183 two independent mu/sigma covariance blocks
+
+Goal: prototype two independent matched univariate `mu`/`sigma`
+random-intercept covariance blocks before adding stronger recovery and
+interval checks.
+
+Files changed:
+
+- `R/drmTMB.R`
+- `tests/testthat/test-gaussian-random-intercepts.R`
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/01-formula-grammar.md`
+- `docs/design/04-random-effects.md`
+- `docs/design/33-phase-6c-core-random-effects.md`
+- `docs/dev-log/after-task/2026-05-17-slice-183-two-mu-sigma-blocks.md`
+
+What changed:
+
+- The labelled `mu`/`sigma` covariance builder now loops over independent
+  matched label/group pairs instead of aborting after the first one.
+- A new crossed simulation-style test fits matching `(1 | p | id)` and
+  `(1 | q | site)` random intercepts in both `mu` and `sigma`.
+- The test checks two `corpars$mu_sigma` rows, `corpairs(class = "mean-scale")`
+  groups and blocks, `summary()` covariance row names, and direct
+  `eta_cor_mu_sigma` profile targets with indices 1 and 2.
+- NEWS, roadmap, formula grammar, and design docs now say one or more
+  independent matched univariate mean-scale blocks are implemented.
+
+Checks run:
+
+- `air format R/drmTMB.R tests/testthat/test-gaussian-random-intercepts.R NEWS.md ROADMAP.md docs/design/01-formula-grammar.md docs/design/04-random-effects.md docs/design/33-phase-6c-core-random-effects.md`:
+  passed.
+- `Rscript -e 'devtools::test(filter = "gaussian-random-intercepts", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'devtools::test(filter = "profile-targets|gaussian-random-intercepts|summary", reporter = "summary")'`:
+  passed.
+- `Rscript -e 'pkgdown::check_pkgdown()'`: passed.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- Slice 183 is structural/reporting coverage. Slice 184 should add stronger
+  recovery thresholds, summary/profile interval checks, and weak-identification
+  diagnostics for the two-block surface.
+- Slope-level mean-scale covariance, correlated residual-scale slope blocks,
+  bivariate random slopes, and large all-endpoint covariance blocks remain
+  later slices.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slice-183-two-mu-sigma-blocks.md`.
