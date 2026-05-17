@@ -982,6 +982,10 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   fixed-effect univariate `mu` targets with covariance available and rejects
   unsupported `dpar`, missing covariance, zero-inflated, and random-effect paths
   before any future method could return an `emmGrid`.
+- Slice 121 adds the matching private recover-data preflight. The internal
+  helper recovers the retained `mu` model frame, terms, predictor names,
+  response name, factor levels, and row names for the same first eligible target
+  and errors when memory-light fits did not retain model frames.
 - Add additional ggplot-oriented helpers only after the data contract is stable:
   location curves, scale/variance curves, residual `rho12` curves,
   `sd(group)` or `sd_phylo()` surfaces, `corpairs()` summaries, and eventually

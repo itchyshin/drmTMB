@@ -19,6 +19,48 @@ drm_emmeans_mu_basis <- function(
   )
 }
 
+drm_emmeans_recover_data <- function(object, dpar = "mu") {
+  drm_validate_emmeans_mu_target(object, dpar)
+  model_frame <- drm_emmeans_model_frame(object, dpar)
+  terms <- object$model$terms[[dpar]]
+  if (is.null(terms)) {
+    cli::cli_abort(
+      "This {.cls drmTMB} fit does not retain terms for {.code dpar = \"{dpar}\"}."
+    )
+  }
+  list(
+    dpar = dpar,
+    model_frame = model_frame,
+    terms = terms,
+    predictors = all.vars(stats::delete.response(terms)),
+    response = response_name_from_model_frame(
+      object,
+      dpar,
+      fallback = NA_character_
+    ),
+    xlevels = stats::.getXlevels(terms, model_frame),
+    row_names = row.names(model_frame)
+  )
+}
+
+drm_emmeans_model_frame <- function(object, dpar) {
+  model_frames <- object$model$model_frame
+  if (!is.list(model_frames)) {
+    cli::cli_abort(c(
+      "The first {.pkg emmeans} recover-data preflight requires retained model frames.",
+      i = "Refit with {.code control = drm_control(keep_model_frame = TRUE)}."
+    ))
+  }
+  model_frame <- model_frames[[dpar]]
+  if (!is.data.frame(model_frame)) {
+    cli::cli_abort(c(
+      "The first {.pkg emmeans} recover-data preflight requires a retained model frame for {.code dpar = \"{dpar}\"}.",
+      i = "Refit with {.code control = drm_control(keep_model_frame = TRUE)}."
+    ))
+  }
+  model_frame
+}
+
 drm_validate_emmeans_mu_target <- function(object, dpar) {
   if (!is.character(dpar) || length(dpar) != 1L || is.na(dpar)) {
     cli::cli_abort(

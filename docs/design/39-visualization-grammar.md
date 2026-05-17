@@ -183,6 +183,12 @@ targets and rejects non-`mu` `dpar`, missing covariance, zero-inflated, and
 random-effect paths. This remains private preflight code; users should still use
 `prediction_grid()` and `predict_parameters()` for explicit prediction tables.
 
+Slice 121 adds the matching private recover-data preflight for the same target.
+`drm_emmeans_recover_data()` recovers the retained `mu` model frame, terms,
+predictor names, response name, factor levels, and row names. It errors when a
+memory-light fit has dropped model frames, which is the right failure mode for a
+future `recover_data.drmTMB()` method that cannot reconstruct a reference grid.
+
 Slice 102 adds the first article-level empirical-grid example. The
 model-workflow article now shows a conditioned grid for direct
 `predict_parameters()` rows and a separate empirical grid for

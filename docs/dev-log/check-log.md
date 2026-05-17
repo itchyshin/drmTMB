@@ -18468,3 +18468,85 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-16-slice-120-emmeans-mu-preflight.md`.
+
+## 2026-05-16 - Slice 121 emmeans recover-data preflight
+
+Goal: add a private recover-data preflight for the same first eligible
+`emmeans` target so future `recover_data.drmTMB()` work has a tested source for
+retained model metadata.
+
+Roles:
+
+- Ada kept the slice local and stacked behind Slice 120 while Slice 119 PR #84
+  merged.
+- Boole owned the model-frame, terms, predictor, response-name, and factor-level
+  contract.
+- Fisher kept the recovered metadata tied to the fixed-effect univariate `mu`
+  estimand rather than response means or contrasts.
+- Curie owned tests for retained model frames and memory-light fits.
+- Grace owned pkgdown and stale-claim scans.
+- Pat checked that memory-light failures tell the user to refit with retained
+  model frames.
+- Rose checked that this remains a private preflight, not public
+  `recover_data.drmTMB()` support.
+- Gauss, Noether, Emmy, Darwin, and Jason stayed watch-only because no
+  likelihood equation, public object contract, biological example, or landscape
+  claim changed.
+
+Files changed:
+
+- `R/emmeans-preflight.R`
+- `tests/testthat/test-emmeans-recover-data.R`
+- `ROADMAP.md`
+- `docs/design/39-visualization-grammar.md`
+- `docs/design/40-emmeans-interface-contract.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-16-slice-121-emmeans-recover-data-preflight.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-16-191740-codex-checkpoint.md`
+
+What changed:
+
+- Added private `drm_emmeans_recover_data()` for the first future `emmeans`
+  target.
+- The helper reuses the Slice 120 eligibility gate, then returns the retained
+  `mu` model frame, terms, predictor names, response name, factor levels, and
+  row names.
+- Added `drm_emmeans_model_frame()` to error clearly when model frames were
+  dropped by memory-light fits.
+- Added tests for successful recovery from a retained fixed-effect Gaussian
+  model and for failure when `drm_control(keep_model_frame = FALSE)` was used.
+- Updated Phase 17 roadmap and design notes to describe the helper as private
+  recover-data preflight code.
+
+Checks run:
+
+- `air format R/emmeans-preflight.R tests/testthat/test-emmeans-recover-data.R ROADMAP.md docs/design/39-visualization-grammar.md docs/design/40-emmeans-interface-contract.md`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'emmeans-recover-data|emmeans-preflight', reporter = 'summary')"`:
+  passed.
+- `Rscript -e "devtools::test(filter = 'emmeans-recover-data|emmeans-preflight|fixed-effect-basis', reporter = 'summary')"`:
+  passed.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"`: passed and rebuilt
+  `pkgdown-site/ROADMAP.html`.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with "No problems found."
+- `git diff --check`: passed.
+- `rg -n 'Slice 121|drm_emmeans_recover_data|recover-data preflight|retained `mu` model frame|memory-light|keep_model_frame' ROADMAP.md docs/design/39-visualization-grammar.md docs/design/40-emmeans-interface-contract.md pkgdown-site/ROADMAP.html`:
+  confirmed source and rendered roadmap wording.
+- `rg -n 'exported `emmeans` method|implemented `emmeans`|emmeans support is implemented|public `emmeans` support|recover_data\\.drmTMB\\(\\).*implemented|emm_basis\\.drmTMB\\(\\).*implemented|return an `emmGrid`.*implemented|contrast workflow|contrast API.*implemented|slope.*implemented' DESCRIPTION NEWS.md ROADMAP.md docs/design/39-visualization-grammar.md docs/design/40-emmeans-interface-contract.md pkgdown-site --glob '!pkgdown-site/search.json' --glob '!pkgdown-site/deps/**'`:
+  found only the intentional "not exported" wording and unrelated existing
+  slope-status text.
+- `Rscript tools/codex-checkpoint.R --goal "Slice 121 emmeans recover-data preflight" --next "open Slice 120 PR after rebasing onto merged main; then rebase Slice 121 after Slice 120 lands"`:
+  passed and wrote
+  `docs/dev-log/recovery-checkpoints/2026-05-16-191740-codex-checkpoint.md`.
+
+Known limitations:
+
+- No `emmeans` dependency, public `recover_data.drmTMB()`,
+  `emm_basis.drmTMB()`, registration hook, contrast workflow, or public EMM
+  example was added.
+- The helper only covers retained model-frame metadata for the first eligible
+  fixed-effect `mu` target.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-16-slice-121-emmeans-recover-data-preflight.md`.
