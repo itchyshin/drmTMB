@@ -198,6 +198,47 @@ test_that("fixed-effect basis validates required newdata variables", {
   )
 })
 
+test_that("fixed-effect basis validates transformed predictor values", {
+  set.seed(20260560)
+  dat <- fixed_effect_basis_data()
+  dat$size <- seq(0.4, 3.2, length.out = nrow(dat))
+  fit <- drmTMB(
+    bf(y ~ log(size) + habitat),
+    family = stats::poisson(link = "log"),
+    data = dat,
+    control = fixed_effect_basis_control(se = TRUE)
+  )
+  bad_newdata <- data.frame(size = 0, habitat = "reef")
+
+  expect_error(
+    drmTMB:::drm_fixed_effect_basis(
+      fit,
+      newdata = bad_newdata,
+      dpar = "mu"
+    ),
+    "log\\(size\\)"
+  )
+  expect_error(
+    predict(fit, newdata = bad_newdata, dpar = "mu"),
+    "non-finite design-matrix"
+  )
+})
+
+test_that("fixed-effect basis finite matrix validation handles sparse matrices", {
+  sparse <- Matrix::sparseMatrix(
+    i = 1,
+    j = 2,
+    x = Inf,
+    dims = c(2, 2),
+    dimnames = list(NULL, c("(Intercept)", "log(size)"))
+  )
+
+  expect_equal(
+    drmTMB:::drm_nonfinite_prediction_matrix_terms(sparse),
+    "log(size)"
+  )
+})
+
 test_that("fixed-effect basis ignores unused factor columns in newdata", {
   set.seed(20260558)
   dat <- fixed_effect_basis_data()

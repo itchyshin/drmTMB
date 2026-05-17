@@ -1682,7 +1682,8 @@ deviance.drmTMB <- function(object, ...) {
 #'   are used. When supplied, `newdata` must include the predictors used by the
 #'   requested `dpar`; required predictor values must be complete, required
 #'   numeric predictors must be finite, and factor predictors must use fitted
-#'   levels.
+#'   levels. Transformed predictor terms, such as `log(size)`, must also
+#'   evaluate to finite design-matrix values.
 #' @param dpar Distributional parameter to predict. If `NULL`, the first
 #'   fitted distributional parameter is used.
 #' @param type Prediction scale: `"response"` or `"link"`.
@@ -3339,11 +3340,15 @@ drm_fixed_effect_basis <- function(
       i = "Use {.fn predict} for fitted random-effect scale predictions."
     ))
   }
+  supplied_newdata <- !is.null(newdata)
   if (!is.null(newdata)) {
     newdata <- drm_prepare_prediction_newdata(object, newdata, dpar)
   }
 
   X <- drm_prediction_matrix(object, newdata, dpar)
+  if (isTRUE(supplied_newdata)) {
+    drm_validate_prediction_matrix_finite(X, dpar)
+  }
   beta <- object$coefficients[[dpar]]
   if (!identical(colnames(X), names(beta))) {
     cli::cli_abort(c(
@@ -3428,6 +3433,42 @@ drm_prepare_prediction_newdata <- function(object, newdata, dpar) {
     )
   }
   newdata
+}
+
+drm_validate_prediction_matrix_finite <- function(X, dpar) {
+  terms <- drm_nonfinite_prediction_matrix_terms(X)
+  if (length(terms) == 0L) {
+    return(invisible(X))
+  }
+  cli::cli_abort(c(
+    "New prediction data produces non-finite design-matrix value{?s} for {.code dpar = \"{dpar}\"}.",
+    i = "Affected model column{?s}: {.val {terms}}.",
+    i = "Check transformed predictors such as {.code log(x)} or {.code sqrt(x)} before calling {.fn predict} or {.pkg emmeans}."
+  ))
+}
+
+drm_nonfinite_prediction_matrix_terms <- function(X) {
+  if (inherits(X, "sparseMatrix")) {
+    bad <- !is.finite(X@x)
+    if (!any(bad)) {
+      return(character())
+    }
+    columns <- unique(findInterval(which(bad) - 1L, X@p[-1L]) + 1L)
+    return(drm_prediction_matrix_term_names(X, columns))
+  }
+  bad <- !is.finite(as.matrix(X))
+  if (!any(bad)) {
+    return(character())
+  }
+  drm_prediction_matrix_term_names(X, which(colSums(bad) > 0L))
+}
+
+drm_prediction_matrix_term_names <- function(X, columns) {
+  names <- colnames(X)
+  if (is.null(names)) {
+    return(paste0("column ", columns))
+  }
+  names[columns]
 }
 
 drm_prediction_template_data <- function(object, dpar) {

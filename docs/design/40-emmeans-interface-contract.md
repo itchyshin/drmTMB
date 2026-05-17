@@ -340,3 +340,10 @@ Slice 145 adds a finite-value guard for required numeric predictors in the same
 path. Required numeric values such as `x = Inf` now error before fixed-effect
 prediction matrices are built, rather than flowing through `model.matrix()` to
 produce non-interpretable linear predictors.
+
+Slice 147 extends the guard to transformed-predictor design columns. A supplied
+raw predictor value can be finite but still produce a non-finite model-matrix
+column after formula evaluation, for example `size = 0` in a model with
+`log(size)`. The fixed-effect basis path now rejects those rows with the
+affected model column named before `predict()` or `emmeans` basis construction
+can return non-finite linear predictions.

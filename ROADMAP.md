@@ -1102,6 +1102,10 @@ remain blocked by future covariance or non-Gaussian random-effect work.
 - Slice 145 adds the corresponding finite-value guard for required numeric
   predictors. Values such as `x = Inf` now error before fixed-effect prediction
   matrices are built.
+- Slice 147 extends that finite-value guard to transformed-predictor design
+  columns. Values such as `size = 0` in a model with `log(size)` now error
+  after formula evaluation names the affected model column, rather than
+  returning a non-finite prediction.
 - Add additional ggplot-oriented helpers only after the data contract is stable:
   location curves, scale/variance curves, residual `rho12` curves,
   `sd(group)` or `sd_phylo()` surfaces, `corpairs()` summaries, and eventually

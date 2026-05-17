@@ -13,7 +13,8 @@
 are used. When supplied, \code{newdata} must include the predictors used by the
 requested \code{dpar}; required predictor values must be complete, required
 numeric predictors must be finite, and factor predictors must use fitted
-levels.}
+levels. Transformed predictor terms, such as \code{log(size)}, must also
+evaluate to finite design-matrix values.}
 
 \item{dpar}{Distributional parameter to predict. If \code{NULL}, the first
 fitted distributional parameter is used.}
