@@ -239,7 +239,23 @@ test_that("meta_known_V rejects malformed marker calls", {
       family = gaussian(),
       data = dat
     ),
-    "not implemented"
+    "reserved"
+  )
+  expect_error(
+    drmTMB(
+      bf(yi ~ x + meta_V(w = vi)),
+      family = gaussian(),
+      data = dat
+    ),
+    "reserved"
+  )
+  expect_error(
+    drmTMB(
+      bf(yi ~ x + meta_V(V = vi, scale = "exact")),
+      family = gaussian(),
+      data = dat
+    ),
+    "reserved"
   )
   expect_error(
     drmTMB(
@@ -294,6 +310,46 @@ test_that("meta_known_V removes missing known variances consistently", {
   expect_equal(fit$nobs, 28)
   expect_equal(length(fit$model$V_known), 28)
   expect_false(anyNA(fit$model$V_known))
+})
+
+test_that("meta_V keeps likelihood weights distinct from proportional variance", {
+  dat <- data.frame(
+    x = c(-1, -0.5, 0, 0.5, 1, 1.5),
+    vi = rep(0.03, 6)
+  )
+  dat$yi <- 0.2 + 0.4 * dat$x + c(-0.1, 0.05, 0.03, -0.02, 0.04, -0.03)
+
+  fit <- drmTMB(
+    bf(yi ~ x + meta_V(V = vi)),
+    family = gaussian(),
+    data = dat
+  )
+  fit_double <- drmTMB(
+    bf(yi ~ x + meta_V(V = vi)),
+    family = gaussian(),
+    data = dat,
+    weights = rep(2, nrow(dat))
+  )
+
+  expect_equal(stats::weights(fit_double), rep(2, nrow(dat)))
+  expect_equal(coef(fit_double, "mu"), coef(fit, "mu"), tolerance = 1e-5)
+  expect_equal(
+    as.numeric(stats::logLik(fit_double)),
+    2 * as.numeric(stats::logLik(fit)),
+    tolerance = 1e-4
+  )
+
+  V_full <- diag(dat$vi)
+  V_full[1, 2] <- V_full[2, 1] <- 0.005
+  expect_error(
+    drmTMB(
+      bf(yi ~ x + meta_V(V = V_full)),
+      family = gaussian(),
+      data = dat,
+      weights = rep(2, nrow(dat))
+    ),
+    "full known sampling covariance"
+  )
 })
 
 test_that("full meta_known_V removes rows and columns consistently", {

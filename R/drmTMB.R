@@ -6706,10 +6706,10 @@ extract_meta_known_v_arg <- function(expr) {
   arg_names[is.na(arg_names)] <- ""
 
   if (identical(fn_name, "meta_V")) {
-    if ("w" %in% arg_names || "scale" %in% arg_names) {
+    if (any(arg_names %in% c("w", "scale"))) {
       cli::cli_abort(c(
-        "{.fn meta_V} proportional sampling-variance models are not implemented yet.",
-        "x" = "The implemented additive route is {.code meta_V(V = V)}.",
+        "{.fn meta_V} proportional sampling-variance arguments are reserved, not implemented.",
+        "x" = "Use {.code meta_V(V = V)} without {.arg w} or {.arg scale} for additive known sampling covariance.",
         "i" = "{.code meta_V(w = w, scale = \"proportional\")} needs its own likelihood, diagnostics, and tests; it is not a wrapper around {.arg weights}."
       ))
     }
@@ -6907,9 +6907,9 @@ check_weights_known_covariance <- function(spec) {
     return(invisible(spec))
   }
   cli::cli_abort(c(
-    "{.arg weights} cannot currently be combined with a full {.fn meta_known_V} covariance matrix.",
+    "{.arg weights} cannot currently be combined with a full known sampling covariance matrix.",
     "x" = "Full known covariance uses one joint multivariate likelihood block, not independent row contributions.",
-    "i" = "Use {.fn meta_known_V} without {.arg weights}, or use diagonal known variances when row likelihood weighting is scientifically intended."
+    "i" = "Use {.code meta_V(V = V)} without {.arg weights}, or use diagonal known variances when row likelihood weighting is scientifically intended."
   ))
 }
 

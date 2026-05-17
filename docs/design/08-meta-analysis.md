@@ -72,7 +72,7 @@ likelihood weights `weights = w`.
 ```r
 drmTMB(
   bf(
-    yi ~ x1 + x2 + meta_known_V(V = V),
+    yi ~ x1 + x2 + meta_V(V = V),
     sigma ~ x1
   ),
   family = gaussian(),
@@ -80,8 +80,9 @@ drmTMB(
 )
 ```
 
-The response is on the left-hand side. `meta_known_V(V = V)` supplies known
-sampling covariance and should not repeat the response name.
+The response is on the left-hand side. `meta_V(V = V)` supplies known sampling
+covariance and should not repeat the response name. `meta_known_V(V = V)`
+remains a compatibility alias for the same additive likelihood path.
 
 ## Known Covariance Input
 
@@ -110,7 +111,7 @@ univariate Gaussian known-covariance models and are covered by an independent
 dense marginal-likelihood test.
 
 The parser should treat `meta_known_V()` as a covariance marker, not as an
-ordinary predictor column.
+ordinary predictor column. It should treat `meta_V(V = V)` the same way.
 
 The API should be explicit that vector inputs contain variances. If users have
 standard errors, they should supply squared values.
@@ -168,11 +169,13 @@ component, rather than merely multiplying the row log likelihood. Current
 ell(theta) = sum_i w_i ell_i(theta)
 ```
 
-Coexistence rule: additive known `V` through `meta_V(V = V)` or compatibility
-`meta_known_V(V = V)` should reject non-unit top-level `weights =` until
-joint-block weighting has a separate likelihood design, diagnostics, and tests.
-Likewise, `meta_V(w = w, scale = "proportional")` should not be implemented as
-a wrapper around top-level `weights =`.
+Coexistence rule: diagonal or vector `meta_V(V = V)` may be combined with
+top-level `weights =`, but those weights remain ordinary likelihood weights.
+They do not create a proportional sampling-variance model. Full dense
+matrix-`V` fits reject non-unit top-level weights until joint-block weighting
+has a separate likelihood design, diagnostics, and tests. Likewise,
+`meta_V(w = w, scale = "proportional")` should not be implemented as a wrapper
+around top-level `weights =`.
 
 ## Unknown Heterogeneity
 
@@ -398,9 +401,10 @@ fitted log likelihood with an independent dense marginal Gaussian likelihood.
   `family = gaussian()`.
 - Do not introduce `tau ~` grammar; document the translation from `sigma` to
   meta-analysis terminology instead.
-- Do not implement `meta_V()` before its additive and proportional branches have
-  a formula-grammar decision, likelihood design, row-alignment tests, and
-  comparator checks. Until then it is a planned umbrella only.
+- Do not implement the proportional `meta_V(w = w, scale = "proportional")`
+  branch before it has a likelihood design, identifiable parameters,
+  diagnostics, examples, row-alignment tests, and comparator checks. The
+  additive `meta_V(V = V)` branch is implemented.
 - Row alignment matters: `V` must be subset in the same way as the response and
   model matrices after missing-data handling. For full matrices, rows and
   columns are subset together.
