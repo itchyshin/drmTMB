@@ -198,6 +198,12 @@ an `emmGrid` is returned; it is not a contrast, slope, bivariate, zero-inflated,
 hurdle, ordinal expected-score, random-effect, structured-effect, or
 fitted-response workflow.
 
+Slice 124 adds the first model-workflow example for that public bridge. The
+article estimates habitat-level EMMs for `mu` at a supplied temperature in the
+fixed-effect Gaussian example, and tells readers to keep `emmeans()` adjusted
+means separate from direct prediction tables, `sigma`, random-effect,
+bivariate, zero-inflated, hurdle, ordinal, contrast, and slope workflows.
+
 Slice 102 adds the first article-level empirical-grid example. The
 model-workflow article now shows a conditioned grid for direct
 `predict_parameters()` rows and a separate empirical grid for

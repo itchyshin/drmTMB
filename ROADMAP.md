@@ -997,6 +997,11 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   symbols, matching the existing `plot_parameter_surface()` pattern, so
   `conf.low`, `conf.high`, and `.drmTMB_pair_label` are no longer treated as
   undeclared global variables.
+- Slice 124 adds the first reader-facing `emmeans::emmeans()` example to the
+  model-workflow article. The example estimates habitat-level EMMs for the
+  fixed-effect univariate `mu` path at a supplied temperature and explicitly
+  separates that target from `sigma`, random-effect, bivariate, zero-inflated,
+  hurdle, ordinal, contrast, and slope workflows.
 - Add additional ggplot-oriented helpers only after the data contract is stable:
   location curves, scale/variance curves, residual `rho12` curves,
   `sd(group)` or `sd_phylo()` surfaces, `corpairs()` summaries, and eventually
