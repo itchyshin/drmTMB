@@ -78,7 +78,12 @@ dat <- data.frame(
 )
 fit <- drmTMB(bf(y ~ x, sigma ~ x), data = dat)
 grid <- data.frame(x = seq(-1, 1.5, length.out = 6))
-pred <- predict_parameters(fit, newdata = grid, dpar = c("mu", "sigma"))
+pred <- predict_parameters(
+  fit,
+  newdata = grid,
+  dpar = c("mu", "sigma"),
+  conf.int = TRUE
+)
 if (requireNamespace("ggplot2", quietly = TRUE)) {
   plot_parameter_surface(pred, x = "x")
 }

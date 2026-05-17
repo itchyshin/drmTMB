@@ -372,6 +372,15 @@ columns, drawing confidence bands for continuous x-values and interval bars for
 discrete x-values. Tables that still report
 `interval_source = "not_available"` remain visibly interval-free.
 
+Slice 159 strengthens the reader-facing examples around that boundary. The
+model-workflow article now prints the interval provenance for an explicit
+fixed-effect `mu`/`sigma` grid, then contrasts it with a fitted direct
+`sd(site)` surface whose requested Wald intervals report
+`conf.status = "wald_unavailable"`. The intended reader action is concrete:
+formula-based fixed-effect surfaces can carry Wald bands on explicit grids;
+direct random-effect SD surfaces stay line-only until a validated profile or
+bootstrap route exists.
+
 When uncertainty is unavailable, the row should still print with a status that
 tells the user what to try next, such as profiling a direct target or supplying
 `newdata`.

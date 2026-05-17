@@ -79,5 +79,10 @@ dat <- data.frame(
 )
 fit <- drmTMB(bf(y ~ x, sigma ~ x), data = dat)
 grid <- data.frame(x = c(0, 1))
-predict_parameters(fit, newdata = grid, dpar = c("mu", "sigma"))
+predict_parameters(
+  fit,
+  newdata = grid,
+  dpar = c("mu", "sigma"),
+  conf.int = TRUE
+)
 }

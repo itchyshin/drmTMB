@@ -887,12 +887,34 @@ remain blocked by future covariance or non-Gaussian random-effect work.
 
 - Status: planned.
 - Add skew-normal and skew-t only after Student-t, Gaussian phylogenetic
-  location-scale, and the core family-link contract are stable.
+  location-scale, and the core family-link contract are stable. The first
+  asymmetry slice should be fixed-effect and univariate, not a random-effect or
+  structured-dependence endpoint.
 - Use GAMLSS-style names: `nu` for the first shape parameter and `tau` for the
-  second when needed.
-- Start with fixed-effect shape formulae and clear warnings about identifiability
-  among location, residual scale, skewness, tail shape, outliers, and unmodelled
-  heteroscedasticity.
+  second when needed. For `skew_normal()`, `nu` should be the asymmetry or
+  skewness parameter and the documentation must map it to the native skew
+  parameter used by the chosen density. For `skew_t()`, `nu` should remain
+  the asymmetry parameter and `tau` should control tail thickness or degrees of
+  freedom, so the Student-t `nu` convention does not silently change meaning.
+- Current research anchors: `sn` provides the classic skew-normal density with
+  location `xi`, scale `omega`, and slant `alpha`;
+  `gamlss.dist::SN2()` uses `mu`, `sigma`, and `nu`; GAMLSS exposes several
+  skew-t variants, so `drmTMB` must choose and document one parameterization;
+  `brms::skew_normal()` uses `mu`, `sigma`, and `alpha`; `RTMBdist` exposes
+  AD-compatible skew-normal and skew-t densities that are useful comparator and
+  implementation references. The `RTMBdist` skew-t warning about not
+  initializing skew exactly at zero should be treated as a numerical-starting
+  guard for any TMB implementation.
+- Start with fixed-effect shape formulae and clear warnings about
+  identifiability among location, residual scale, skewness, tail shape,
+  outliers, and unmodelled heteroscedasticity. Shape random effects are a later
+  evidence-gated lane, not the first skew-normal or skew-t slice.
+- Preserve the two scale logics when skew families arrive: `sigma ~ ...`
+  models residual or distributional scale, while `sd(group) ~ ...` models the
+  SD of a latent group-level effect. The first skew-family slice should not add
+  `sigma` random effects, `nu` random effects, `sd(group)` scale models, or
+  `phylo()`/`spatial()` terms until fixed-effect likelihood recovery, normal or
+  Student-t limit behaviour, and false-positive heteroscedasticity checks pass.
 - Treat phylogenetic location-scale-shape and skewness/kurtosis evolution as a
   later methods programme, not a first implementation target.
 
@@ -1191,26 +1213,61 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   `not_available` rows remain interval-free. The model-workflow and model-map
   articles now show the table-first band workflow and leave `conf.status`,
   `conf.level`, and `interval_source` visible.
-- Revised Phase 18 entry gate after Slice 158: do not jump directly into
+- Slice 159 clarifies the confidence-band example boundary. The
+  model-workflow article now prints interval provenance for explicit
+  fixed-effect `mu`/`sigma` grids, and contrasts that with a direct
+  `sd(site)` surface that reports `conf.status = "wald_unavailable"` when Wald
+  intervals are requested. The point is reader-facing: fixed-effect parameter
+  surfaces can draw 95% Wald bands on explicit grids; direct random-effect SD
+  surfaces need a profile or bootstrap route before a ribbon is honest.
+- Revised Phase 18 entry gate after Slice 159: do not jump directly into
   comprehensive simulation while profile/bootstrap intervals, Gaussian
   double-hierarchical random-slope limits, and non-Gaussian
   location-scale-shape surfaces are still uneven. Treat Slices 159-202 as a
-  stabilization bridge before resuming Phase 17: Slices 159-163 finish
-  confidence-band examples and docs; Slices 164-176 revisit Phase 6/13 profile,
-  derived, and
-  bootstrap interval readiness; Slices 177-189 revisit Phase 4/6c/11/12
-  Gaussian double-hierarchical boundaries, including the gap between the
-  current one-slope grouped and structured paths and the desired
-  `(1 + x1 + x2 + ... | id)` ordinary grouped benchmark. This bridge should
-  also make the one-slope baseline explicit for each supported random-effect
-  layer and keep slope-related random-effect correlations constant rather than
-  predictor-modelled. Slices 190-202 revisit Phase 7/8/9/16 non-Gaussian
-  location-scale-shape and family gaps, including ordinal mixed-model gaps as a
-  separate lane. After Slice 202, return to Phase 17 to close the remaining
-  visualization, marginal-effect, contrast, slope, and reader-facing inference
-  surfaces. Phase 18 comprehensive
+  stabilization bridge before resuming Phase 17. Phase 18 comprehensive
   simulation should start only after that resumed Phase 17 closure gate, unless
   a deliberately smaller pilot simulation is opened earlier.
+- Next 30-slice stabilization map:
+
+| Slice | Lane | Target |
+| --- | --- | --- |
+| 159 | Confidence bands | Clarify fixed-effect Wald bands versus explicit unavailable direct-SD surfaces. |
+| 160 | Confidence bands | Add or test discrete-x interval-bar examples for factor predictors. |
+| 161 | Confidence bands | Document `newdata_required` for fitted-row interval requests. |
+| 162 | Confidence bands | Tighten `conf.level` examples and interval-status display conventions. |
+| 163 | Confidence bands | Gate the confidence-band docs with render, pkgdown, and stale-wording checks. |
+| 164 | Profile intervals | Refresh the profile-target inventory for fixed effects, SDs, correlations, and row-specific parameters. |
+| 165 | Profile intervals | Pin `newdata` profile examples for row-specific `sigma`, `sigma1`, `sigma2`, and `rho12`. |
+| 166 | Profile intervals | Strengthen direct `sigma` profile examples and boundary messaging. |
+| 167 | Profile intervals | Strengthen random-effect SD profile examples where direct targets exist. |
+| 168 | Profile intervals | Strengthen random-effect and residual correlation profile examples where direct targets exist. |
+| 169 | Derived intervals | Mark q=4 derived correlation and covariance-product interval boundaries explicitly. |
+| 170 | Bootstrap intervals | Audit parametric-bootstrap feasibility, runtime, and target ordering before coding. |
+| 171 | Bootstrap intervals | Prototype a narrow parametric-bootstrap interval contract if the audit passes. |
+| 172 | Bootstrap intervals | Add bootstrap interval-status columns without changing point-estimate tables. |
+| 173 | Interval evidence | Add comparator or simulation evidence for at least one interval path. |
+| 174 | Interval diagnostics | Document boundary, failed-profile, failed-bootstrap, and missing-covariance messages. |
+| 175 | Interval harmonization | Align `summary()`, `confint()`, `corpairs()`, and prediction-table interval statuses. |
+| 176 | Phase 6/13 gate | Close the interval-readiness revisit with tests, docs, and after-phase notes. |
+| 177 | Gaussian random slopes | Audit ordinary grouped location random-slope support against `(1 + x1 + x2 + ... | id)`. |
+| 178 | Gaussian random slopes | Plan parser/API and extractor output for arbitrary ordinary location blocks. |
+| 179 | Gaussian random slopes | Prototype q > 2 ordinary location block covariance with constant correlations. |
+| 180 | Gaussian random slopes | Add recovery, malformed-input, summary, `corpairs()`, and profile-target tests. |
+| 181 | Gaussian random slopes | Add user docs for arbitrary ordinary location random-slope blocks and limits. |
+| 182 | Scale random slopes | Pin the one-slope residual-scale baseline and its constant-correlation boundary. |
+| 183 | Location-scale covariance | Prototype two independent matched `mu`/`sigma` random-intercept covariance blocks. |
+| 184 | Location-scale covariance | Add recovery, `corpairs()`, summary, and profile-target tests for two matched blocks. |
+| 185 | Bivariate random slopes | Define the first bivariate one-slope policy without opening q=8 endpoint blocks. |
+| 186 | Phylogenetic random slopes | Audit phylogenetic one-slope support and parity gaps against the spatial lane. |
+| 187 | Spatial random slopes | Confirm spatial one-slope support, docs, diagnostics, and parity boundaries. |
+| 188 | Random-effect gate | Publish the one-slope-per-layer status table and remaining Gaussian DH limits. |
+
+- Slice 189 should close any remaining Gaussian double-hierarchical boundary
+  wording before the non-Gaussian revisit. Slices 190-202 then revisit Phase
+  7/8/9/16 non-Gaussian location-scale-shape and family gaps, including
+  ordinal mixed-model gaps as a separate lane. After Slice 202, return to Phase
+  17 to close the remaining visualization, marginal-effect, contrast, slope,
+  and reader-facing inference surfaces.
 - Add additional ggplot-oriented helpers only after the data contract is stable:
   location curves, scale/variance curves, residual `rho12` curves,
   `sd(group)` or `sd_phylo()` surfaces, `corpairs()` summaries, and eventually

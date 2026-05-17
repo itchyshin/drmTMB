@@ -286,13 +286,27 @@ Use `predict_parameters()` when the interpretation task needs several
 distributional parameters on the same grid:
 
 ```{r}
-predict_parameters(
+temperature_surface <- predict_parameters(
   fit,
   newdata = temperature_grid,
   dpar = c("mu", "sigma"),
   conf.int = TRUE
 )
+
+temperature_surface
+unique(temperature_surface[, c(
+  "dpar",
+  "conf.status",
+  "interval_source",
+  "conf.level"
+)])
 ```
+
+Here both rows receive Wald 95% confidence intervals because the table uses an
+explicit `newdata` grid and both `mu` and `sigma` have ordinary fixed-effect
+bases in this fitted model. The interval is a confidence band for the fitted
+distributional-parameter surface, not a prediction interval for future raw
+growth observations.
 
 Use an empirical grid when the question is about the fitted response at focal
 temperatures while averaging over the fitted-row covariate distribution. Here
@@ -386,16 +400,42 @@ sd_site_grid <- prediction_grid(
   condition = list(temperature = 0)
 )
 
-predict_parameters(
+sd_site_surface <- predict_parameters(
   fit_site_scale,
   newdata = sd_site_grid,
   dpar = "sd(site)"
 )
+
+sd_site_surface
 ```
 
 The table reports the `random-effect-sd-model` component. Its estimates are
-random-intercept SDs, not residual SDs and not raw responses. If the report
-needs one row per reef-cover value, reduce the same explicit grid:
+random-intercept SDs, not residual SDs and not raw responses. If you request a
+Wald interval for this direct random-effect SD surface, the table keeps the
+point estimate and marks the interval status explicitly:
+
+```{r}
+sd_site_interval_status <- predict_parameters(
+  fit_site_scale,
+  newdata = sd_site_grid,
+  dpar = "sd(site)",
+  conf.int = TRUE
+)
+
+unique(sd_site_interval_status[, c(
+  "dpar",
+  "component",
+  "conf.status",
+  "interval_source",
+  "conf.level"
+)])
+```
+
+Read that status as a boundary, not as a plotting failure. Direct
+random-effect SD surfaces need a profile-likelihood or bootstrap route before a
+confidence band is available, so the current plotting helper should show the
+line without a ribbon. If the report needs one row per reef-cover value, reduce
+the same explicit grid:
 
 ```{r}
 marginal_parameters(
@@ -448,6 +488,13 @@ pred_temperature <- predict_parameters(
   dpar = c("mu", "sigma"),
   conf.int = TRUE
 )
+
+unique(pred_temperature[, c(
+  "dpar",
+  "conf.status",
+  "interval_source",
+  "conf.level"
+)])
 
 if (requireNamespace("ggplot2", quietly = TRUE)) {
   plot_parameter_surface(pred_temperature, x = "temperature", colour = "habitat")
