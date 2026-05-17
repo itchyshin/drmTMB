@@ -98,6 +98,16 @@ intentionally narrow:
 | 4 | Beta and beta-binomial `mu` | Later bounded-response candidates; strict-boundary handling, denominators, and overdispersion need their own recovery grids. |
 | 5 | Zero-inflation, one-inflation, hurdle, ordinal, shape, and structured non-Gaussian paths | Explicitly unsupported until Slices 195-197 decide the remaining target and diagnostics. Slice 194 keeps shape random effects blocked: fixed-effect residual shape comes first, while `nu`/`tau` random effects and future `skew(id) ~ x` need separate recovery evidence. For percentage/proportion data, zero-one-inflated beta-style likelihoods should expose fixed-effect `zoi` and `coi` first; random effects and cross-parameter covariance come later. |
 
+Slice 195 keeps `zi`, `hu`, `zoi`, and `coi` random effects out of the fitted
+surface, but gives them explicit unsupported messages. Fixed-effect
+zero-inflation and hurdle formulas are implemented where listed above;
+random effects in those formulas, count-side random effects in zero-inflated
+or hurdle routes, and covariance among `mu`, `sigma`, shape, and
+inflation/hurdle random effects need separate likelihood, extractor,
+interval, and simulation-recovery evidence. For bounded responses with exact
+0 or 1 values, fixed-effect `zoi`/`coi` likelihoods must land before any
+zero-one-inflation random-effect or cross-parameter covariance block.
+
 Unsupported formula messages should say that non-Gaussian random effects are
 planned and should not silently fall through as generic formula failures.
 

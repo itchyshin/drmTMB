@@ -81,6 +81,28 @@ Use these status labels:
   non-Gaussian `mu` slopes, and cross-parameter covariance need later slice
   evidence before Phase 18 comprehensive simulation.
 
+### Inflation, hurdle, and one-inflation random effects
+
+- Matrix status: blocked with explicit messages.
+- Register status: fixed-effect `zi` formulas are implemented for Poisson and
+  NB2, and fixed-effect `hu` formulas are implemented for hurdle NB2.
+  Random-effect bar terms in `zi` or `hu`, count-side random-effect bar terms
+  in zero-inflated or hurdle routes, and planned bounded-response `zoi`/`coi`
+  random effects are rejected before optimization.
+- Evidence: `tests/testthat/test-zi-poisson.R`,
+  `tests/testthat/test-zi-nbinom2.R`,
+  `tests/testthat/test-hurdle-nbinom2.R`,
+  `tests/testthat/test-beta-location-scale.R`, and
+  `tests/testthat/test-beta-binomial.R`.
+- Diagnostics and intervals: no inflation, hurdle, or one-inflation
+  random-effect diagnostics or intervals exist because no corresponding
+  likelihood is fitted yet.
+- Debt: fixed-effect zero-one-inflated bounded likelihoods should precede
+  `zoi`/`coi` random effects. Any future covariance among `mu`, `sigma`,
+  shape, `zi`, `hu`, `zoi`, or `coi` random effects should use constant block
+  correlations first and needs extractor, `corpairs()`, profile-target, weak-SD,
+  boundary, and simulation-recovery evidence before Phase 18.
+
 ### Non-Gaussian scale random effects
 
 - Matrix status: blocked with explicit messages.

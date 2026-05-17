@@ -10,7 +10,7 @@ new_hurdle_nbinom2_data <- function(n = 1800, seed = 20260623) {
   beta_sigma <- c(`(Intercept)` = -0.75, z = 0.18)
   beta_hu <- c(`(Intercept)` = -0.85, w = 0.45, habitatopen = -0.35)
   X_mu <- stats::model.matrix(~ x + habitat, dat)
-  X_sigma <- stats::model.matrix(~ z, dat)
+  X_sigma <- stats::model.matrix(~z, dat)
   X_hu <- stats::model.matrix(~ w + habitat, dat)
   mu <- exp(as.vector(X_mu %*% beta_mu))
   sigma <- exp(as.vector(X_sigma %*% beta_sigma))
@@ -23,7 +23,12 @@ new_hurdle_nbinom2_data <- function(n = 1800, seed = 20260623) {
     0,
     stats::qnbinom(positive_u, size = 1 / sigma^2, mu = mu)
   )
-  list(data = dat, beta_mu = beta_mu, beta_sigma = beta_sigma, beta_hu = beta_hu)
+  list(
+    data = dat,
+    beta_mu = beta_mu,
+    beta_sigma = beta_sigma,
+    beta_hu = beta_hu
+  )
 }
 
 test_that("drmTMB fits fixed-effect hurdle nbinom2 models", {
@@ -78,7 +83,8 @@ test_that("hurdle nbinom2 likelihood matches independent calculation", {
     size = 1 / sigma^2,
     mu = mu,
     log = TRUE
-  ) - log1p(-p0)
+  ) -
+    log1p(-p0)
   ll_independent <- sum(ifelse(
     fit$model$y == 0,
     log(hu),
@@ -119,11 +125,16 @@ test_that("hurdle nbinom2 methods return unconditional summaries", {
     x = c(-1, 0, 1),
     z = c(-1, 0, 1),
     w = c(-1, 0, 1),
-    habitat = factor(c("closed", "open", "closed"), levels = levels(sim$data$habitat))
+    habitat = factor(
+      c("closed", "open", "closed"),
+      levels = levels(sim$data$habitat)
+    )
   )
   expect_equal(
     predict(fit, newdata = newdata, dpar = "hu"),
-    stats::plogis(as.vector(stats::model.matrix(~ w + habitat, newdata) %*% coef(fit, "hu"))),
+    stats::plogis(as.vector(
+      stats::model.matrix(~ w + habitat, newdata) %*% coef(fit, "hu")
+    )),
     tolerance = 1e-12
   )
   sims <- simulate(fit, nsim = 2, seed = 20260626)
@@ -185,7 +196,8 @@ test_that("hurdle nbinom2 approaches hurdle zero-truncated Poisson as sigma appr
   ll_pois <- sum(ifelse(
     dat$y == 0,
     log(0.25),
-    log(0.75) + stats::dpois(dat$y, lambda = 1, log = TRUE) -
+    log(0.75) +
+      stats::dpois(dat$y, lambda = 1, log = TRUE) -
       log1p(-stats::dpois(0, lambda = 1))
   ))
 
@@ -217,11 +229,27 @@ test_that("hurdle nbinom2 rejects unsupported or invalid inputs", {
     "zero-column"
   )
   expect_error(
-    drmTMB(bf(y ~ x + (1 | id), hu ~ 1), family = truncated_nbinom2(), data = dat),
-    "unsupported model terms"
+    drmTMB(
+      bf(y ~ x + (1 | id), hu ~ 1),
+      family = truncated_nbinom2(),
+      data = dat
+    ),
+    "Hurdle .* random effects"
   )
   expect_error(
-    drmTMB(bf(y ~ x, sigma ~ 1, hu ~ 1, sd(id) ~ 1), family = truncated_nbinom2(), data = dat),
+    drmTMB(
+      bf(y ~ x, sigma ~ 1, hu ~ x + (1 | id)),
+      family = truncated_nbinom2(),
+      data = dat
+    ),
+    "Hurdle random effects"
+  )
+  expect_error(
+    drmTMB(
+      bf(y ~ x, sigma ~ 1, hu ~ 1, sd(id) ~ 1),
+      family = truncated_nbinom2(),
+      data = dat
+    ),
     "Random-effect scale"
   )
   expect_error(
@@ -257,11 +285,19 @@ test_that("hurdle nbinom2 rejects unsupported or invalid inputs", {
     "at least one positive"
   )
   expect_error(
-    drmTMB(bf(mvbind(y, y) ~ x, hu ~ 1), family = truncated_nbinom2(), data = dat),
+    drmTMB(
+      bf(mvbind(y, y) ~ x, hu ~ 1),
+      family = truncated_nbinom2(),
+      data = dat
+    ),
     "mvbind"
   )
   expect_error(
-    drmTMB(bf(cbind(y, y) ~ x, hu ~ 1), family = truncated_nbinom2(), data = dat),
+    drmTMB(
+      bf(cbind(y, y) ~ x, hu ~ 1),
+      family = truncated_nbinom2(),
+      data = dat
+    ),
     "single positive-count response"
   )
 })

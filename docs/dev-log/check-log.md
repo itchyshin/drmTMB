@@ -22900,3 +22900,58 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-animal-known-relatedness-roadmap.md`.
+
+## 2026-05-17 - Slice 195 inflation, hurdle, and one-inflation random-effect boundary
+
+Goal: close the zero-inflation, hurdle, and one-inflation random-effect gate
+with explicit unsupported messages before the Phase 18 simulation decision.
+
+Files changed:
+
+- `R/drmTMB.R`
+- `ROADMAP.md`
+- `docs/design/02-family-registry.md`
+- `docs/design/34-validation-debt-register.md`
+- `docs/dev-log/known-limitations.md`
+- `vignettes/distribution-families.Rmd`
+- `vignettes/count-nbinom2.Rmd`
+- `vignettes/proportion-beta-binomial.Rmd`
+- `tests/testthat/test-zi-poisson.R`
+- `tests/testthat/test-zi-nbinom2.R`
+- `tests/testthat/test-hurdle-nbinom2.R`
+- `tests/testthat/test-beta-location-scale.R`
+- `tests/testthat/test-beta-binomial.R`
+- `docs/dev-log/after-task/2026-05-17-slice-195-inflation-random-boundary.md`
+
+What changed:
+
+- `zi` and `hu` formulas now receive component-specific errors when they
+  contain random-effect bar terms.
+- Zero-inflated NB2 and hurdle NB2 count-side random effects now receive
+  family-specific boundary messages when `mu` contains a bar term while `zi` or
+  `hu` is present.
+- Planned bounded-response `zoi` and `coi` formulas now error with
+  fixed-effect-first messages in beta and beta-binomial routes; `zoi`/`coi`
+  random-effect requests receive a separate random-effect boundary.
+- The roadmap, family registry, validation-debt register, known limitations,
+  and vignettes now state that covariance among `mu`, `sigma`, shape,
+  inflation, hurdle, or one-inflation random effects remains future work until
+  component-specific likelihood, interval, and recovery evidence exists.
+
+Checks run:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH air format R/drmTMB.R ROADMAP.md docs/design/02-family-registry.md docs/design/34-validation-debt-register.md docs/dev-log/known-limitations.md vignettes/distribution-families.Rmd vignettes/count-nbinom2.Rmd vignettes/proportion-beta-binomial.Rmd tests/testthat/test-zi-poisson.R tests/testthat/test-zi-nbinom2.R tests/testthat/test-hurdle-nbinom2.R tests/testthat/test-beta-location-scale.R tests/testthat/test-beta-binomial.R`
+- `Rscript -e "devtools::test(filter = 'zi-poisson|zi-nbinom2|hurdle-nbinom2|beta-location-scale|beta-binomial', reporter = 'summary')"`:
+  passed.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with no problems.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- This slice does not implement zero-one-inflated beta/beta-binomial
+  likelihoods, inflation/hurdle/one-inflation random effects, or covariance
+  involving those future random-effect layers.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slice-195-inflation-random-boundary.md`.

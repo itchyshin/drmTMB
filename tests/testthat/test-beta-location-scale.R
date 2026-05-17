@@ -91,12 +91,14 @@ test_that("beta methods return mean and public sigma scales", {
   newdata <- data.frame(x = c(-1, 0, 1), z = c(-1, 0, 1))
   expect_equal(
     predict(fit, newdata = newdata, dpar = "mu"),
-    stats::plogis(as.vector(stats::model.matrix(~ x, newdata) %*% coef(fit, "mu"))),
+    stats::plogis(as.vector(
+      stats::model.matrix(~x, newdata) %*% coef(fit, "mu")
+    )),
     tolerance = 1e-12
   )
   expect_equal(
     predict(fit, newdata = newdata, dpar = "sigma", type = "link"),
-    as.vector(stats::model.matrix(~ z, newdata) %*% coef(fit, "sigma")),
+    as.vector(stats::model.matrix(~z, newdata) %*% coef(fit, "sigma")),
     tolerance = 1e-12
   )
   sims <- simulate(fit, nsim = 2, seed = 20260617)
@@ -208,15 +210,27 @@ test_that("beta rejects boundary and unsupported inputs", {
   )
 
   expect_error(
-    drmTMB(bf(y ~ x, sigma ~ 1), family = beta(), data = transform(dat, y = c(0, 0.2, 0.7, 0.9))),
+    drmTMB(
+      bf(y ~ x, sigma ~ 1),
+      family = beta(),
+      data = transform(dat, y = c(0, 0.2, 0.7, 0.9))
+    ),
     "strictly between 0 and 1"
   )
   expect_error(
-    drmTMB(bf(y ~ x, sigma ~ 1), family = beta(), data = transform(dat, y = c(0.1, 0.2, 0.7, 1))),
+    drmTMB(
+      bf(y ~ x, sigma ~ 1),
+      family = beta(),
+      data = transform(dat, y = c(0.1, 0.2, 0.7, 1))
+    ),
     "strictly between 0 and 1"
   )
   expect_error(
-    drmTMB(bf(y ~ x, sigma ~ 1), family = beta(), data = transform(dat, y = NA_real_)),
+    drmTMB(
+      bf(y ~ x, sigma ~ 1),
+      family = beta(),
+      data = transform(dat, y = NA_real_)
+    ),
     "No complete observations"
   )
   expect_error(
@@ -228,7 +242,15 @@ test_that("beta rejects boundary and unsupported inputs", {
     "only support|location formula"
   )
   expect_error(
-    drmTMB(bf(mu = ~ x, sigma ~ 1), family = beta(), data = dat),
+    drmTMB(bf(y ~ x, zoi ~ x, coi ~ 1), family = beta(), data = dat),
+    "Zero-one-inflated bounded-response likelihoods"
+  )
+  expect_error(
+    drmTMB(bf(y ~ x, zoi ~ x + (1 | id)), family = beta(), data = dat),
+    "Zero-one-inflated bounded-response random effects"
+  )
+  expect_error(
+    drmTMB(bf(mu = ~x, sigma ~ 1), family = beta(), data = dat),
     "must include a response"
   )
   expect_error(
