@@ -77,6 +77,14 @@ test_that("Phase 18 meta_V summary smoke run aggregates vector and dense output"
     nrow(out$failures),
     sum(out$manifest$status != "ok") + sum(out$manifest$warning_count)
   )
+  expect_equal(nrow(out$wald_coverage), 9L)
+  expect_equal(out$wald_coverage$n_replicate, rep(2L, 9L))
+  expect_equal(out$wald_coverage$n_interval, rep(2L, 9L))
+  expect_true(all(out$wald_intervals$interval_status == "ok"))
+  expect_setequal(
+    out$wald_intervals$interval_scale,
+    c("formula_coefficient", "public")
+  )
   expect_equal(out$aggregate$n_replicate, rep(2L, 9L))
   expect_setequal(unique(out$aggregate$known_v_type), c("vector", "dense"))
   expect_setequal(out$aggregate$parameter, c("mu:(Intercept)", "mu:x", "sigma"))
