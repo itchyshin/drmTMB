@@ -54,6 +54,17 @@ phase18_summarise_nbinom2_mu_re_smoke <- function(
     interval_ready,
     by = by
   )
+  profile_intervals <- phase18_nbinom2_mu_re_profile_intervals(run$summary)
+  profile_ready <- profile_intervals[
+    profile_intervals$interval_status == "ok",
+    ,
+    drop = FALSE
+  ]
+  profile_coverage <- if (nrow(profile_ready) == 0L) {
+    data.frame()
+  } else {
+    phase18_summarise_interval_coverage(profile_ready, by = by)
+  }
 
   list(
     surface = "nbinom2_mu_random_effect",
@@ -62,6 +73,36 @@ phase18_summarise_nbinom2_mu_re_smoke <- function(
     manifest = manifest,
     failures = failures,
     wald_intervals = wald_intervals,
-    wald_coverage = wald_coverage
+    wald_coverage = wald_coverage,
+    profile_intervals = profile_intervals,
+    profile_coverage = profile_coverage
   )
+}
+
+phase18_nbinom2_mu_re_profile_intervals <- function(summary) {
+  phase18_assert_summary_columns(
+    summary,
+    c(
+      "parameter",
+      "parameter_class",
+      "profile.conf.low",
+      "profile.conf.high",
+      "profile.status",
+      "profile.message"
+    )
+  )
+  out <- summary[summary$parameter_class == "random_sd", , drop = FALSE]
+  out$conf.low <- out$profile.conf.low
+  out$conf.high <- out$profile.conf.high
+  out$conf.level <- out$profile.conf.level
+  out$interval_method <- "profile"
+  out$interval_scale <- "public_sd"
+  out$interval_status <- ifelse(
+    is.finite(out$conf.low) & is.finite(out$conf.high),
+    "ok",
+    "failed"
+  )
+  out$interval_message <- out$profile.message
+  row.names(out) <- NULL
+  out
 }

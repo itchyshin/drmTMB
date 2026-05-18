@@ -1548,7 +1548,9 @@ Use this order unless Slice 191 evidence overturns it:
   aggregate output, manifest, failure ledger, and tests. Slice 247 attaches
   fixed-effect Wald interval rows and coverage summaries to that NB2 smoke
   output for `mu` and `sigma` coefficients, while leaving random-effect SD
-  profile coverage as the next evidence step.
+  profile coverage as the next evidence step. Slice 248 attaches direct
+  profile-likelihood interval rows and coverage summaries for the two fitted
+  NB2 `sd:mu` targets in that smoke output.
 
 ## Structured Slope Parity Gate
 

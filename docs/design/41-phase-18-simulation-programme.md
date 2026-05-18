@@ -265,3 +265,5 @@ CRAN tests should only run smoke checks for seed stability and output shape.
     `mu` random-effect smoke output for fixed log-mean and log-overdispersion
     coefficients, while leaving random-effect SD rows visible as profile-needed
     interval failures until direct SD profile producers are attached.
+38. Slice 248 attaches direct profile-likelihood interval rows and coverage
+    summaries for the NB2 `mu` random-effect SD targets in the smoke output.

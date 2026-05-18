@@ -25238,3 +25238,43 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-18-slice-247-nbinom2-mu-wald-coverage.md`.
+
+## 2026-05-18 - Slice 248 NB2 mu profile SD coverage
+
+Goal: attach direct profile-likelihood interval rows and coverage summaries for
+NB2 `mu` random-effect SD targets in the smoke output.
+
+Files changed:
+
+- `inst/sim/fit/sim_summarise_nbinom2_mu_random_effect.R`
+- `inst/sim/run/sim_summary_nbinom2_mu_random_effect_smoke.R`
+- `tests/testthat/test-phase18-nbinom2-mu-random-effect.R`
+- `inst/sim/README.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `ROADMAP.md`
+- `NEWS.md`
+- `docs/dev-log/after-task/2026-05-18-slice-248-nbinom2-mu-profile-sd-coverage.md`
+
+What changed:
+
+- The NB2 random-effect summariser now profiles direct `sd:mu` targets for the
+  random intercept and independent random slope during smoke runs.
+- The summary-smoke wrapper now returns `profile_intervals` and
+  `profile_coverage` beside the Wald outputs.
+- Tests confirm that both random-effect SD rows get profile intervals and
+  coverage rows.
+
+Checks run:
+
+- `air format inst/sim/fit/sim_summarise_nbinom2_mu_random_effect.R inst/sim/run/sim_summary_nbinom2_mu_random_effect_smoke.R tests/testthat/test-phase18-nbinom2-mu-random-effect.R inst/sim/README.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md NEWS.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-18-slice-248-nbinom2-mu-profile-sd-coverage.md`
+- `Rscript -e "devtools::test(filter = 'phase18-nbinom2-mu-random-effect|nbinom2-location-scale', reporter = 'summary')"`
+- `Rscript -e "devtools::test(filter = 'phase18-nbinom2-mu-random-effect|phase18-poisson-mu-random-effect|phase18-sim-uncertainty|profile-targets', reporter = 'summary')"`
+- `git diff --check`
+
+Known limitations:
+
+- This is still a tiny smoke surface, not a full NB2 coverage grid.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-248-nbinom2-mu-profile-sd-coverage.md`.
