@@ -1457,6 +1457,29 @@ Use this order unless Slice 191 evidence overturns it:
   studies need plots for bias, root-mean-square error, empirical coverage,
   convergence, interval width, and power curves, so the visualization layer
   should expose reusable data frames rather than only polished figures.
+- Slice 259 reopens the public visualization route after the first count-pilot
+  diagnostics page proved too narrow to be called a gallery. The user-facing
+  `vignettes/figure-gallery.Rmd` should be the Florence showcase for raw data
+  plus fitted slopes, 95% confidence bands, categorical and continuous
+  interactions, `emmeans` displays, fitted correlation layers, and simulation
+  operating-characteristic plots. Simulation and comparator outputs get their
+  own pkgdown section, "Simulation & Comparison", so power, bias, coverage,
+  runtime, convergence, and failure-ledger articles do not compete with
+  tutorials.
+
+### Florence Figure-Gallery Slice Map
+
+| Slice | Target | Done When |
+| --- | --- | --- |
+| 259 | First public figure gallery route | Done locally: `figure-gallery` is a Tutorials article, `convergence` is a Model Guides article, and `testing-likelihoods` moved to Simulation & Comparison. |
+| 260 | Interaction plot polish | The gallery shows categorical x continuous, categorical x categorical, and continuous x continuous examples with fitted values, raw data where useful, 95% confidence intervals, and clear conditioning labels. |
+| 261 | Distributional-parameter panels | Add polished examples for `mu`, `sigma`, `nu`, zero-inflation or hurdle probability where fitted, and residual `rho12`, with explicit reporting scales and interval provenance. |
+| 262 | Random-effect and variance-component figures | Add ordinary grouped SDs, random-slope summaries, `sd(group)` surfaces, and clear separation between residual `sigma` and group-level SDs. |
+| 263 | Correlation-layer figures | Improve `corpairs()` gallery examples for residual, group, phylogenetic, spatial, and future animal/`relmat()` layers without visually collapsing them. |
+| 264 | `emmeans` and marginal-effects figures | Show the supported fixed-effect univariate `mu` `emmeans` route, factor-conditioned grids, interaction grids, and the boundary for unsupported `sigma`, bivariate, zero-inflated, hurdle, ordinal, and random-effect targets. |
+| 265 | Simulation plot grammar | Create the first Simulation & Comparison article for power, bias, RMSE, coverage, convergence, interval width, runtime, and warning/error ledgers across continuous, proportion, count, and meta-analysis examples. |
+| 266 | Gallery source-map and QA | Add a table mapping each figure to the fitted object, extractor, interval source, and current support boundary; run pkgdown and visual/readability checks. |
+| 267 | Florence closeout | Decide which plots need new exported helpers versus tutorial-level `ggplot2` recipes, and record the next helper backlog before returning to convergence hardening. |
 
 ## Phase 18: Comprehensive Simulation, Power, Accuracy, and Coverage Evidence
 
@@ -1572,10 +1595,12 @@ Use this order unless Slice 191 evidence overturns it:
   and returns both the pilot and artifact paths. Slice 257 applies the first
   Florence visual polish to that gallery, replacing default diagnostic panels
   with horizontal estimand labels, shared palette/theme helpers, plot captions,
-  and MCSE-aware coverage ranges when available. Slice 258 adds the first
-  pkgdown-facing Phase 18 count simulation gallery article, explaining how to
-  render and interpret the pilot gallery without treating it as final
-  operating-characteristic evidence.
+  and MCSE-aware coverage ranges when available. Slice 258 built a narrow
+  pkgdown-facing count simulation diagnostics draft, but that page was removed
+  from the public site for now because it was not the broad figure gallery the
+  user intended. Count diagnostics should return later as a Simulation &
+  Comparison article after continuous, proportion, count, meta-analysis, and
+  other surfaces are ready to be compared in one framework.
 
 ## Structured Slope Parity Gate
 

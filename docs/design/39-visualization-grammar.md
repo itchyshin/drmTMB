@@ -513,11 +513,20 @@ warning/error ledger, and coverage MCSE ranges when the coverage table supplies
 `coverage_mcse`. This is still a pilot gallery, but it is no longer a raw
 default-`ggplot2` diagnostic.
 
-Slice 258 adds `vignettes/phase18-count-gallery.Rmd` as the first pkgdown-facing
-gallery article. The article explains what the paired Poisson/NB2 count pilot
-does and does not show, how to render the local gallery, and how to read bias,
-RMSE, coverage, manifests, and warning ledgers before scaling up a simulation
-grid.
+Slice 258 drafted `vignettes/phase18-count-gallery.Rmd` as a pkgdown-facing
+count simulation diagnostics article, but that public page was removed for now.
+The paired Poisson/NB2 count pilot remains useful internal simulation
+infrastructure, but it is too narrow to be the project figure gallery. Public
+page titles should use reader-facing names and should avoid internal phase or
+slice labels.
+
+Slice 259 adds `vignettes/figure-gallery.Rmd` as the broader user-facing figure
+gallery. It separates model-interpretation plots, confidence bands, fitted
+correlation displays, and illustrative simulation operating-characteristic
+figures. Later simulation result articles should live in a dedicated
+Simulation & Comparison section and should cover power, bias, coverage,
+runtime, convergence, and failures across continuous, proportion, count, and
+other data types.
 
 ### `corpairs()` Plotting Preflight
 

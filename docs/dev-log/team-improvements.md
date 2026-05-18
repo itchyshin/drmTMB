@@ -55,6 +55,24 @@ issues, or pull requests.
   inside `drmTMB` without a separate design decision. Adopt the useful
   store-recall-audit habit first; keep repository files authoritative.
 
+## 2026-05-18 - Reader-Facing Page Names And Sibling-Learning Checks
+
+- Improvement implemented: public pkgdown article titles and navbar labels
+  should be reader-facing first. Internal labels such as "Phase 18" or "Slice
+  258" can appear in developer notes or provenance text, but they should not be
+  the main route to a tutorial, gallery, or analysis workflow.
+- Improvement implemented: distinguish a general figure gallery from a
+  specialised simulation diagnostics report. The general gallery should show
+  model interpretation, confidence bands, fitted correlation displays,
+  variance/SD surfaces, and simulation operating-characteristic figures across
+  continuous, proportion, count, bivariate, and structured-dependence examples
+  as those surfaces become ready.
+- Improvement implemented: Ada and Jason should periodically compare sibling
+  packages and project reports for reusable lessons, while Rose records only
+  the lessons that change `drmTMB` process, documentation, validation, or user
+  routing. These checks should be occasional and scoped, not a distraction from
+  the active slice.
+
 ## 2026-05-17 - Family-Block TMB Data Wiring Check
 
 - Improvement implemented: when a slice changes `make_tmb_data()` for one

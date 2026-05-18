@@ -1,0 +1,453 @@
+---
+title: "Figure gallery"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Figure gallery}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+has_ggplot2 <- requireNamespace("ggplot2", quietly = TRUE)
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 7,
+  fig.height = 4.2,
+  dpi = 144,
+  eval = has_ggplot2
+)
+```
+
+This gallery shows the kinds of figures `drmTMB` users can build for model
+interpretation, uncertainty display, fitted interactions, fitted correlation
+summaries, and simulation diagnostics. It is different from the internal
+count-pilot diagnostics used while developing the first Poisson/NB2 simulation
+plumbing.
+
+The examples here use small simulated data so the page can build quickly. They
+are meant to show figure patterns, not biological conclusions.
+
+```{r setup}
+library(drmTMB)
+library(ggplot2)
+
+theme_drmtmb_gallery <- function() {
+  theme_minimal(base_size = 11) +
+    theme(
+      panel.grid.minor = element_blank(),
+      plot.title.position = "plot",
+      strip.text = element_text(face = "bold"),
+      legend.position = "bottom"
+    )
+}
+
+scale_drmtmb_colour <- scale_colour_manual(
+  values = c("reef" = "#1b9e77", "kelp" = "#d95f02")
+)
+scale_drmtmb_fill <- scale_fill_manual(
+  values = c("reef" = "#1b9e77", "kelp" = "#d95f02")
+)
+```
+
+## Fitted mean with a confidence band
+
+Start with the figure most readers expect: raw observations, fitted mean, and a
+95% confidence band on the response scale. This example is also a
+categorical-by-continuous interaction: the temperature slope differs by
+habitat.
+
+```{r location-scale-fit}
+set.seed(2591)
+n <- 160
+fish <- data.frame(
+  temperature = runif(n, -1.6, 1.6),
+  habitat = factor(sample(c("reef", "kelp"), n, replace = TRUE))
+)
+eta_mu <- 0.4 +
+  0.7 * fish$temperature +
+  0.35 * (fish$habitat == "kelp") +
+  0.18 * fish$temperature * (fish$habitat == "kelp")
+eta_sigma <- -0.55 + 0.35 * fish$temperature
+fish$growth <- rnorm(n, mean = eta_mu, sd = exp(eta_sigma))
+
+fit_growth <- drmTMB(
+  bf(growth ~ temperature * habitat, sigma ~ temperature),
+  family = gaussian(),
+  data = fish
+)
+
+grid_growth <- expand.grid(
+  temperature = seq(-1.6, 1.6, length.out = 80),
+  habitat = levels(fish$habitat)
+)
+pred_growth <- predict_parameters(
+  fit_growth,
+  newdata = grid_growth,
+  dpar = c("mu", "sigma"),
+  conf.int = TRUE
+)
+
+pred_mu <- pred_growth[pred_growth$dpar == "mu", , drop = FALSE]
+
+ggplot(fish, aes(temperature, growth, colour = habitat)) +
+  geom_point(alpha = 0.35, size = 1.4) +
+  geom_ribbon(
+    data = pred_mu,
+    aes(
+      x = temperature,
+      y = estimate,
+      ymin = conf.low,
+      ymax = conf.high,
+      fill = habitat
+    ),
+    inherit.aes = FALSE,
+    alpha = 0.16,
+    colour = NA
+  ) +
+  geom_line(data = pred_mu, aes(y = estimate), linewidth = 0.8) +
+  scale_drmtmb_colour +
+  scale_drmtmb_fill +
+  labs(
+    title = "Expected growth along a temperature gradient",
+    x = "Temperature anomaly",
+    y = "Growth",
+    colour = "Habitat",
+    fill = "Habitat"
+  ) +
+  theme_drmtmb_gallery()
+```
+
+## Distributional-parameter surfaces
+
+The same fit can show more than the mean. `predict_parameters()` returns a long
+table with one row per distributional parameter, and
+`plot_parameter_surface()` draws estimate lines plus finite interval bands when
+they are present.
+
+```{r parameter-surface}
+plot_parameter_surface(
+  pred_growth,
+  x = "temperature",
+  colour = "habitat",
+  dpar = c("mu", "sigma")
+) +
+  scale_drmtmb_colour +
+  scale_drmtmb_fill +
+  labs(
+    title = "Location and residual-scale surfaces",
+    x = "Temperature anomaly",
+    colour = "Habitat"
+  ) +
+  theme_drmtmb_gallery()
+```
+
+The `mu` panel is the expected response. The `sigma` panel is the fitted
+residual standard deviation, so an upward line means lower predictability or
+larger residual heterogeneity at warmer values.
+
+## Discrete comparisons
+
+For a factor predictor, the same plotting helper uses interval bars rather than
+ribbons. This is useful for compact tutorial figures and estimated marginal
+comparisons.
+
+```{r discrete-comparison}
+habitat_grid <- data.frame(
+  temperature = 0,
+  habitat = factor(c("reef", "kelp"), levels = levels(fish$habitat))
+)
+pred_habitat <- predict_parameters(
+  fit_growth,
+  newdata = habitat_grid,
+  dpar = "mu",
+  conf.int = TRUE
+)
+
+plot_parameter_surface(
+  pred_habitat,
+  x = "habitat",
+  line = FALSE,
+  point = TRUE
+) +
+  scale_drmtmb_colour +
+  labs(
+    title = "Estimated habitat contrast at average temperature",
+    x = NULL,
+    y = "Expected growth"
+  ) +
+  theme_drmtmb_gallery()
+```
+
+## Estimated marginal means
+
+For the first supported `emmeans` path, a fixed-effect univariate `mu` model can
+produce estimated marginal means that are easy to turn into publication-style
+figures. The same rule applies: keep the conditioning values visible.
+
+```{r emmeans-display, eval = has_ggplot2 && requireNamespace("emmeans", quietly = TRUE)}
+emm_habitat <- suppressMessages(
+  as.data.frame(
+    emmeans::emmeans(
+      fit_growth,
+      ~ habitat,
+      at = list(temperature = 0),
+      type = "response"
+    )
+  )
+)
+
+ggplot(emm_habitat, aes(habitat, emmean, colour = habitat)) +
+  geom_pointrange(
+    aes(ymin = asymp.LCL, ymax = asymp.UCL),
+    linewidth = 0.7,
+    fatten = 2.4
+  ) +
+  scale_drmtmb_colour +
+  labs(
+    title = "Estimated marginal mean growth",
+    subtitle = "Conditioned at temperature = 0",
+    x = NULL,
+    y = "Expected growth",
+    colour = "Habitat"
+  ) +
+  theme_drmtmb_gallery()
+```
+
+## Categorical by categorical interaction
+
+For two categorical predictors, show every fitted cell and its interval. Use
+position dodging so the uncertainty intervals do not sit on top of each other.
+
+```{r cat-cat-interaction}
+set.seed(2592)
+n_cell <- 30
+reef <- expand.grid(
+  habitat = factor(c("reef", "kelp")),
+  season = factor(c("dry", "wet")),
+  replicate = seq_len(n_cell)
+)
+reef$mu <- with(
+  reef,
+  0.6 +
+    0.35 * (habitat == "kelp") -
+    0.15 * (season == "wet") +
+    0.45 * (habitat == "kelp") * (season == "wet")
+)
+reef$growth <- rnorm(nrow(reef), mean = reef$mu, sd = 0.45)
+
+fit_cat_cat <- drmTMB(
+  bf(growth ~ habitat * season, sigma ~ 1),
+  family = gaussian(),
+  data = reef
+)
+
+grid_cat_cat <- expand.grid(
+  habitat = levels(reef$habitat),
+  season = levels(reef$season)
+)
+pred_cat_cat <- predict_parameters(
+  fit_cat_cat,
+  newdata = grid_cat_cat,
+  dpar = "mu",
+  conf.int = TRUE
+)
+
+ggplot(pred_cat_cat, aes(habitat, estimate, colour = season)) +
+  geom_pointrange(
+    aes(ymin = conf.low, ymax = conf.high),
+    position = position_dodge(width = 0.35),
+    linewidth = 0.65,
+    fatten = 2.3
+  ) +
+  scale_colour_manual(values = c("dry" = "#0072B2", "wet" = "#E69F00")) +
+  labs(
+    title = "Categorical by categorical interaction",
+    x = "Habitat",
+    y = "Expected growth",
+    colour = "Season"
+  ) +
+  theme_drmtmb_gallery()
+```
+
+## Continuous by continuous interaction
+
+For two continuous predictors, choose scientifically meaningful slices of one
+predictor and show fitted slopes across the other. The values should be named
+in the legend so the reader can interpret the conditioning.
+
+```{r cont-cont-interaction}
+set.seed(2593)
+n_cc <- 180
+soil <- data.frame(
+  temperature = runif(n_cc, -1.5, 1.5),
+  moisture = runif(n_cc, -1.4, 1.4)
+)
+soil$growth <- rnorm(
+  n_cc,
+  mean = 0.3 +
+    0.55 * soil$temperature +
+    0.45 * soil$moisture -
+    0.35 * soil$temperature * soil$moisture,
+  sd = 0.45
+)
+
+fit_cont_cont <- drmTMB(
+  bf(growth ~ temperature * moisture, sigma ~ 1),
+  family = gaussian(),
+  data = soil
+)
+
+grid_cont_cont <- expand.grid(
+  temperature = seq(-1.5, 1.5, length.out = 80),
+  moisture = c(-1, 0, 1)
+)
+grid_cont_cont$moisture_level <- factor(
+  grid_cont_cont$moisture,
+  levels = c(-1, 0, 1),
+  labels = c("low moisture", "average moisture", "high moisture")
+)
+
+pred_cont_cont <- predict_parameters(
+  fit_cont_cont,
+  newdata = grid_cont_cont,
+  dpar = "mu",
+  conf.int = TRUE
+)
+
+ggplot(
+  pred_cont_cont,
+  aes(temperature, estimate, colour = moisture_level, fill = moisture_level)
+) +
+  geom_ribbon(aes(ymin = conf.low, ymax = conf.high), alpha = 0.14, colour = NA) +
+  geom_line(linewidth = 0.8) +
+  scale_colour_manual(values = c(
+    "low moisture" = "#0072B2",
+    "average moisture" = "#555555",
+    "high moisture" = "#D55E00"
+  )) +
+  scale_fill_manual(values = c(
+    "low moisture" = "#0072B2",
+    "average moisture" = "#555555",
+    "high moisture" = "#D55E00"
+  )) +
+  labs(
+    title = "Continuous by continuous interaction",
+    x = "Temperature anomaly",
+    y = "Expected growth",
+    colour = "Moisture slice",
+    fill = "Moisture slice"
+  ) +
+  theme_drmtmb_gallery()
+```
+
+## Fitted correlation summaries
+
+Correlation displays should keep layers separate. Residual `rho12`,
+ordinary-group correlations, and phylogenetic or spatial correlations are not
+the same parameter even when all are correlations.
+
+```{r correlation-display}
+pair_table <- data.frame(
+  level = c("residual", "group", "phylogenetic"),
+  class = c("rho12", "mean-slope", "trait"),
+  parameter = c("trait coupling", "intercept-slope", "species covariance"),
+  estimate = c(-0.32, 0.44, 0.61),
+  modelled = c(TRUE, FALSE, FALSE),
+  conf.low = c(-0.54, 0.12, 0.29),
+  conf.high = c(-0.05, 0.68, 0.79),
+  conf.status = c("wald", "profile", "profile")
+)
+
+plot_corpairs(pair_table, facet = "level") +
+  labs(title = "Correlation layers stay separate") +
+  theme_drmtmb_gallery()
+```
+
+## Simulation operating characteristics
+
+Simulation figures answer different questions from model-interpretation
+figures. They should show bias, error, coverage, runtime, and failures beside
+the model surface being tested.
+
+```{r simulation-operating-characteristics}
+sim_summary <- data.frame(
+  surface = rep(
+    c("Gaussian location-scale", "Proportion", "Count"),
+    each = 4
+  ),
+  estimand = rep(c("beta_x", "sigma", "sd_intercept", "rho12"), 3),
+  bias = c(
+    0.01, -0.02, 0.04, 0.00,
+    -0.01, 0.03, NA, NA,
+    0.02, -0.01, -0.04, NA
+  ),
+  rmse = c(
+    0.07, 0.09, 0.13, 0.11,
+    0.08, 0.10, NA, NA,
+    0.10, 0.09, 0.16, NA
+  ),
+  coverage = c(
+    0.95, 0.94, 0.91, 0.93,
+    0.94, 0.92, NA, NA,
+    0.93, 0.95, 0.89, NA
+  )
+)
+
+ggplot(sim_summary, aes(estimand, bias, colour = surface, group = surface)) +
+  geom_hline(yintercept = 0, linetype = "dashed", colour = "grey60") +
+  geom_point(size = 2.2, na.rm = TRUE) +
+  geom_line(na.rm = TRUE) +
+  coord_flip() +
+  scale_colour_manual(values = c(
+    "Gaussian location-scale" = "#0072B2",
+    "Proportion" = "#009E73",
+    "Count" = "#CC79A7"
+  )) +
+  labs(
+    title = "Bias by estimand",
+    x = NULL,
+    y = "Mean estimate minus truth",
+    colour = "Surface"
+  ) +
+  theme_drmtmb_gallery()
+
+ggplot(sim_summary, aes(estimand, coverage, fill = surface)) +
+  geom_hline(yintercept = 0.95, linetype = "dashed", colour = "grey60") +
+  geom_col(position = position_dodge(width = 0.75), width = 0.65, na.rm = TRUE) +
+  coord_flip(ylim = c(0.75, 1)) +
+  scale_fill_manual(values = c(
+    "Gaussian location-scale" = "#0072B2",
+    "Proportion" = "#009E73",
+    "Count" = "#CC79A7"
+  )) +
+  labs(
+    title = "Interval coverage",
+    x = NULL,
+    y = "Empirical coverage",
+    fill = "Surface"
+  ) +
+  theme_drmtmb_gallery()
+```
+
+These figures use a small illustrative table with the same columns that
+simulation summaries should carry. The comprehensive simulation programme
+should not be count-only. It should add continuous, meta-analysis, proportion,
+count, ordinal, bivariate, random-slope, and structured-dependence surfaces as
+each surface becomes ready. Real simulation reports should also show the run
+manifest and warning/error ledger so missing or failed fits are not hidden
+behind clean-looking panels.
+
+## Future simulation result articles
+
+Specialised simulation result articles should come later, after the
+comprehensive simulation surfaces are ready. Those articles can be organised by
+scientific question: power, bias, coverage, runtime, convergence, and failure
+patterns. They should also be organised across data types, not only counts:
+continuous location-scale models, meta-analysis with known `V`, proportions,
+counts, ordinal responses, bivariate `rho12`, random-slope surfaces, and
+structured dependence.
+
+This figure gallery is broader and lighter. It shows the visual language users
+should see across tutorials, examples, model interpretation, and later
+simulation reports.
