@@ -23929,3 +23929,45 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slice-216-sim-aggregation.md`.
+
+## 2026-05-17 - Slice 217 simulation MCSE and coverage helpers
+
+Goal: add the first Monte Carlo uncertainty and explicit interval-coverage
+helpers for Phase 18 simulation summaries.
+
+Files changed:
+
+- `inst/sim/R/sim_uncertainty.R`
+- `tests/testthat/test-phase18-sim-uncertainty.R`
+- `inst/sim/README.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `ROADMAP.md`
+- `NEWS.md`
+- `docs/dev-log/after-task/2026-05-17-slice-217-sim-mcse-coverage.md`
+
+What changed:
+
+- Added MCSE helpers for means, proportions, and RMSE through the delta method.
+- Added `phase18_aggregate_error_mcse()` for grouped bias and RMSE
+  uncertainty.
+- Added `phase18_summarise_interval_coverage()` for summary tables that
+  already carry explicit lower and upper interval columns.
+- Added tests for error MCSEs, coverage summaries, custom grouping, and
+  malformed inputs.
+
+Checks run:
+
+- `air format inst/sim/R/sim_uncertainty.R tests/testthat/test-phase18-sim-uncertainty.R inst/sim/README.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md NEWS.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-17-slice-217-sim-mcse-coverage.md`
+- `Rscript -e "devtools::test(filter = 'phase18-sim-uncertainty', reporter = 'summary')"`
+- `Rscript -e "devtools::test(filter = 'phase18', reporter = 'summary')"`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `git diff --check`
+
+Known limitations:
+
+- Coverage is computed only from explicit interval columns. This slice does not
+  create Wald, profile, bootstrap, or derived-quantity intervals.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slice-217-sim-mcse-coverage.md`.
