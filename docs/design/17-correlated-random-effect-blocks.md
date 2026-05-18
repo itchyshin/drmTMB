@@ -4,9 +4,11 @@ This note records the implemented design for ordinary correlated Gaussian `mu`
 random-effect blocks. The current implementation supports independent
 random-effect terms such as `(1 | id)` and `(0 + x | id)`, labelled random
 intercepts such as `(1 | p | id)`, one-slope ordinary correlated blocks such as
-`(1 + x | id)` or `(1 + x | p | id)`, the first univariate labelled
-`mu`/`sigma` random-intercept covariance block, and the first bivariate
-labelled `mu1`/`mu2` random-intercept covariance block.
+`(1 + x | id)` or `(1 + x | p | id)`, and ordinary univariate Gaussian `mu`
+multi-slope blocks such as `(1 + x1 + x2 | id)`. The same labelled covariance
+infrastructure also supports the first univariate labelled `mu`/`sigma`
+random-intercept covariance block and the first bivariate labelled `mu1`/`mu2`
+random-intercept covariance block.
 
 For the Phase 6c core status ledger, see
 `docs/design/33-phase-6c-core-random-effects.md`. That note is the bridge
@@ -148,6 +150,14 @@ sum_j log Normal(u_j | 0, I)
 No log determinant or Jacobian term is added for the deterministic transform
 from standardized random effects to conditional random effects.
 
+For ordinary Gaussian `mu` blocks with `q > 2` coefficients, use the
+registry-backed unstructured covariance path described in
+`docs/design/30-labelled-covariance-block-assembler.md`, not independent
+pairwise `tanh()` correlations. The fitted surface has `q` SDs and
+`q * (q - 1) / 2` constant correlations. The q=3 recovery path is tested;
+larger q blocks should be treated as advanced until Phase 18 reports
+convergence, boundary, bias, and interval behaviour.
+
 ## Proposed Internal Data
 
 The current `q = 1` terms can be represented as one-coefficient blocks. The
@@ -194,12 +204,25 @@ Do not place group-level correlations under `rho12`.
 ## Implemented Boundary
 
 The current univariate implementation supports ordinary labelled or unlabelled
-`q = 2` Gaussian `mu` blocks:
+Gaussian `mu` covariance blocks, including `q = 2` intercept-slope blocks:
 
 ```r
 bf(y ~ x + (1 + x | id), sigma ~ z)
 bf(y ~ x + (1 + x | p | id), sigma ~ z)
 ```
+
+and q > 2 numeric location blocks:
+
+```r
+bf(y ~ x1 + x2 + (1 + x1 + x2 | id), sigma ~ z)
+bf(y ~ x1 + x2 + (1 + x1 + x2 | p | id), sigma ~ z)
+```
+
+The q > 2 path reports SDs, correlations, `corpairs()` rows, and
+`summary(fit)$covariance` rows. Direct SD profile targets are ready; direct
+correlation profile intervals for q > 2 remain explicitly unavailable because
+those correlations are derived from the positive-definite covariance
+parameterization.
 
 The current bivariate Gaussian foundation supports matching labelled
 random-intercept blocks for `mu1`/`mu2`, `sigma1`/`sigma2`, one same-response
@@ -209,17 +232,11 @@ for fitted intercept-level correlations and keep residual `rho12` separate.
 
 Still deferred:
 
-- univariate `q > 2` blocks;
 - factor or multi-column random slopes;
 - bivariate `mu1`/`mu2` random-slope covariance blocks;
 - bivariate random-slope covariance blocks and full cross-parameter slope
   covariance beyond the intercept-only q=4 foundation;
 - phylogenetic and spatial correlated slope blocks.
-
-For `q > 2`, use the labelled covariance block assembler and a
-positive-definite Cholesky or partial-correlation parameterization. Do not use
-unconstrained pairwise `tanh()` correlations directly because they do not
-guarantee a valid correlation matrix.
 
 ## Comparator Tests
 

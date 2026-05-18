@@ -202,3 +202,9 @@ CRAN tests should only run smoke checks for seed stability and output shape.
     known sampling covariance `V` out of interval targets.
 25. Slice 235 attaches Wald interval rows and coverage summaries to the
     `meta_V(V = V)` summary-smoke output.
+26. Slice 236 reconciles the random-slope pre-simulation promise: ordinary
+    Gaussian `mu` q > 2 is fitted but advanced; Gaussian `sigma` is independent
+    slopes only; coordinate spatial has one fitted `mu` slope; phylogenetic,
+    bivariate slope, slope-level location-scale covariance, and non-Gaussian
+    scale/shape random-effect slopes remain outside Phase 18 Wave A until
+    their recovery gates close.
