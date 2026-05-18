@@ -24471,6 +24471,49 @@ After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slice-230-wald-interval-table.md`.
 
+## 2026-05-17 - Slice 231 correlation Fisher-z Wald intervals
+
+Goal: add a Phase 18 Wald interval helper for correlation summaries that uses
+Fisher-z intervals and reports endpoints back on the raw correlation scale.
+
+Files changed:
+
+- `inst/sim/R/sim_uncertainty.R`
+- `tests/testthat/test-phase18-sim-uncertainty.R`
+- `inst/sim/README.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `docs/design/43-phase-18-interval-producer-contract.md`
+- `ROADMAP.md`
+- `NEWS.md`
+- `docs/dev-log/after-task/2026-05-17-slice-231-correlation-fisher-z-wald.md`
+
+What changed:
+
+- Added `phase18_add_correlation_fisher_z_intervals()` for correlation
+  summaries with estimates and standard errors.
+- The helper accepts standard errors supplied on raw correlation scale or on
+  Fisher-z scale, records `std.error.scale`, and reports
+  `interval_scale = "fisher_z_backtransformed"`.
+- Rows with missing standard errors or boundary correlations are marked as
+  failed with missing endpoints instead of being silently clipped.
+- Added tests for back-transformed endpoints, bounded output, failed boundary
+  rows, metadata, and argument validation.
+
+Checks run:
+
+- `air format inst/sim/R/sim_uncertainty.R tests/testthat/test-phase18-sim-uncertainty.R inst/sim/README.md docs/design/41-phase-18-simulation-programme.md docs/design/43-phase-18-interval-producer-contract.md ROADMAP.md NEWS.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-17-slice-231-correlation-fisher-z-wald.md`
+- `Rscript -e "devtools::test(filter = 'phase18-sim-uncertainty', reporter = 'summary')"`
+- `git diff --check`
+
+Known limitations:
+
+- The helper expects a summary table with a correlation estimate and standard
+  error; it does not yet extract them from fitted `drmTMB` objects.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slice-231-correlation-fisher-z-wald.md`.
+
 ## 2026-05-18 - Florence visualization role and memory guardrails
 
 Goal: make the new visualization role durable and adopt the useful Memory OS

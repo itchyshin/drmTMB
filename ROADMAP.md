@@ -1501,7 +1501,8 @@ Use this order unless Slice 191 evidence overturns it:
   CSV fixtures is done locally in Slice 228. The interval-producer contract is
   recorded locally in Slice 229. A generic Wald interval-table helper is done
   locally in Slice 230 for summaries that already contain estimates and
-  standard errors. Next, attach model-specific standard-error extraction
+  standard errors. A Fisher-z back-transformed correlation Wald helper is done
+  locally in Slice 231. Next, attach model-specific standard-error extraction
   surface by surface.
 
 ## ASReml Efficiency Lessons For Future Animal Models

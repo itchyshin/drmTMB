@@ -105,6 +105,60 @@ phase18_add_wald_intervals <- function(
   out
 }
 
+phase18_add_correlation_fisher_z_intervals <- function(
+  summary,
+  conf.level = 0.95,
+  estimate = "estimate",
+  std.error = "std.error",
+  std.error.scale = c("rho", "fisher_z"),
+  lower = "conf.low",
+  upper = "conf.high"
+) {
+  std.error.scale <- match.arg(std.error.scale)
+  phase18_assert_summary_columns(summary, c("parameter", estimate, std.error))
+  if (
+    !is.numeric(conf.level) ||
+      length(conf.level) != 1L ||
+      !is.finite(conf.level) ||
+      conf.level <= 0 ||
+      conf.level >= 1
+  ) {
+    stop("`conf.level` must be one number between 0 and 1.", call. = FALSE)
+  }
+  phase18_assert_interval_column_names(lower, upper)
+
+  rho <- as.numeric(summary[[estimate]])
+  se <- as.numeric(summary[[std.error]])
+  ok <- is.finite(rho) & abs(rho) < 1 & is.finite(se) & se >= 0
+  se_z <- rep(NA_real_, length(rho))
+  if (identical(std.error.scale, "rho")) {
+    se_z[ok] <- se[ok] / (1 - rho[ok]^2)
+  } else {
+    se_z[ok] <- se[ok]
+  }
+  ok <- ok & is.finite(se_z)
+  z_hat <- rep(NA_real_, length(rho))
+  z_hat[ok] <- atanh(rho[ok])
+  z <- stats::qnorm(1 - (1 - conf.level) / 2)
+
+  out <- summary
+  out[[lower]] <- NA_real_
+  out[[upper]] <- NA_real_
+  out[[lower]][ok] <- tanh(z_hat[ok] - z * se_z[ok])
+  out[[upper]][ok] <- tanh(z_hat[ok] + z * se_z[ok])
+  out$conf.level <- conf.level
+  out$interval_method <- "wald"
+  out$interval_scale <- "fisher_z_backtransformed"
+  out$std.error.scale <- std.error.scale
+  out$interval_status <- ifelse(ok, "ok", "failed")
+  out$interval_message <- ifelse(
+    ok,
+    "",
+    "missing or invalid correlation/std.error"
+  )
+  out
+}
+
 phase18_summarise_interval_coverage <- function(
   summary,
   by = NULL,

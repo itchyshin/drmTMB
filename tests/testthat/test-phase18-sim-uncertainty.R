@@ -84,6 +84,42 @@ test_that("Phase 18 Wald interval helper records method and status", {
   expect_equal(coverage$n_interval, 2L)
 })
 
+test_that("Phase 18 correlation Wald helper uses Fisher-z scale", {
+  source(
+    system.file("sim/R/sim_uncertainty.R", package = "drmTMB", mustWork = TRUE),
+    local = TRUE
+  )
+
+  summary <- data.frame(
+    surface = "biv_gaussian",
+    cell_id = "rho_001",
+    parameter = "rho12",
+    truth = c(0.30, 0.30, 0.30),
+    estimate = c(0.30, 0.80, 1.00),
+    std.error = c(0.10, 0.10, 0.10)
+  )
+
+  out <- phase18_add_correlation_fisher_z_intervals(
+    summary,
+    std.error.scale = "rho"
+  )
+  z <- stats::qnorm(0.975)
+  se_z <- 0.10 / (1 - 0.30^2)
+  expected <- tanh(atanh(0.30) + c(-1, 1) * z * se_z)
+
+  expect_equal(out$conf.low[[1L]], expected[[1L]])
+  expect_equal(out$conf.high[[1L]], expected[[2L]])
+  expect_true(out$conf.low[[2L]] > -1)
+  expect_true(out$conf.high[[2L]] < 1)
+  expect_true(is.na(out$conf.low[[3L]]))
+  expect_equal(
+    out$interval_scale,
+    rep("fisher_z_backtransformed", 3L)
+  )
+  expect_equal(out$std.error.scale, rep("rho", 3L))
+  expect_equal(out$interval_status, c("ok", "ok", "failed"))
+})
+
 test_that("Phase 18 uncertainty helpers validate inputs", {
   source(
     system.file("sim/R/sim_uncertainty.R", package = "drmTMB", mustWork = TRUE),
@@ -114,5 +150,12 @@ test_that("Phase 18 uncertainty helpers validate inputs", {
       conf.level = 1
     ),
     "conf.level"
+  )
+  expect_error(
+    phase18_add_correlation_fisher_z_intervals(
+      data.frame(parameter = "rho12", estimate = 0.1, std.error = 0.1),
+      std.error.scale = "bad"
+    ),
+    "arg"
   )
 })

@@ -72,3 +72,11 @@ It takes a parameter-summary table that already contains `estimate` and
 `interval_scale`, `interval_status`, and `interval_message`. It deliberately
 does not extract standard errors from fitted model objects; model-specific
 producers should do that surface by surface.
+
+`phase18_add_correlation_fisher_z_intervals()` is the matching correlation
+helper. It reports endpoints on the raw correlation scale after calculating the
+interval on Fisher's z scale. When `std.error.scale = "rho"`, it uses the delta
+method to move the raw-correlation standard error to z scale. When
+`std.error.scale = "fisher_z"`, it uses the supplied standard error directly.
+Rows at or beyond the correlation boundary are marked as failed rather than
+silently clipped.
