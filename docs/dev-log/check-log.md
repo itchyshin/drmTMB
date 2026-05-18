@@ -25317,3 +25317,42 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-18-slice-249-nbinom2-weak-sd-boundary.md`.
+
+## 2026-05-18 - Slice 250 pre-simulation readiness matrix
+
+Goal: record a reader-facing readiness matrix before broad Phase 18 simulation
+reports are written.
+
+Files changed:
+
+- `docs/design/46-pre-simulation-readiness-matrix.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `ROADMAP.md`
+- `NEWS.md`
+- `docs/dev-log/after-task/2026-05-18-slice-250-pre-simulation-readiness-matrix.md`
+
+What changed:
+
+- Added a matrix separating fitted status, current evidence, and Phase 18
+  admission status for ready, planned, and blocked surfaces.
+- The matrix keeps Gaussian, meta-analysis, spatial, phylogenetic, Poisson,
+  NB2, bivariate, shape, inflation, ordinal, animal/`relmat()`, and structured
+  non-Gaussian surfaces distinct.
+- The final section gives narrow next choices rather than advertising a broad
+  all-features simulation.
+
+Checks run:
+
+- `air format docs/design/46-pre-simulation-readiness-matrix.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md NEWS.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-18-slice-250-pre-simulation-readiness-matrix.md`
+- `git diff --check`
+- Prose-style pass against `docs/design/46-pre-simulation-readiness-matrix.md`
+  for reader, claim, and terminology consistency.
+
+Known limitations:
+
+- This is a planning and reporting slice; it does not add likelihood or
+  interval code.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-250-pre-simulation-readiness-matrix.md`.

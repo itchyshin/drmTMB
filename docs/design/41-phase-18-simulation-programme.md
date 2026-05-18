@@ -270,3 +270,7 @@ CRAN tests should only run smoke checks for seed stability and output shape.
 39. Slice 249 adds a focused weak-SD boundary diagnostic for fitted NB2 `mu`
     random intercepts, exercising `check_drm()` lower-boundary reporting before
     larger NB2 grids vary the true random-effect SD.
+40. Slice 250 records the pre-simulation readiness matrix in
+    `docs/design/46-pre-simulation-readiness-matrix.md`, separating fitted,
+    smoke-tested, interval-ready, weak-boundary-tested, planned, and blocked
+    surfaces before broad simulation reports are written.
