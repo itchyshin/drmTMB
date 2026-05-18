@@ -25022,3 +25022,40 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-18-slice-242-poisson-mu-random-effect-smoke.md`.
+
+## 2026-05-18 - Slice 243 Poisson mu Wald coverage
+
+Goal: attach fixed-effect Wald interval rows and coverage summaries to the
+Poisson `mu` random-effect smoke output.
+
+Files changed:
+
+- `inst/sim/run/sim_summary_poisson_mu_random_effect_smoke.R`
+- `tests/testthat/test-phase18-poisson-mu-random-effect.R`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `NEWS.md`
+- `docs/dev-log/after-task/2026-05-18-slice-243-poisson-mu-wald-coverage.md`
+
+What changed:
+
+- Added `wald_intervals` and `wald_coverage` outputs to the Poisson `mu`
+  random-effect summary-smoke wrapper.
+- Wald coverage is summarized for fixed log-mean coefficients with finite
+  standard errors.
+- Random-effect SD rows remain in the interval table with failed status because
+  their direct profile interval producer is a separate follow-up.
+
+Checks run:
+
+- `air format inst/sim/run/sim_summary_poisson_mu_random_effect_smoke.R tests/testthat/test-phase18-poisson-mu-random-effect.R docs/design/41-phase-18-simulation-programme.md NEWS.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-18-slice-243-poisson-mu-wald-coverage.md`
+- `Rscript -e "devtools::test(filter = 'phase18-poisson-mu-random-effect', reporter = 'summary')"`
+- `Rscript -e "devtools::test(filter = 'phase18-poisson-mu-random-effect|poisson-mean', reporter = 'summary')"`
+
+Known limitations:
+
+- This slice does not add Wald or profile intervals for Poisson random-effect
+  SDs.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-243-poisson-mu-wald-coverage.md`.

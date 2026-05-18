@@ -243,3 +243,7 @@ CRAN tests should only run smoke checks for seed stability and output shape.
 32. Slice 242 adds a CRAN-safe smoke surface for fitted ordinary
     non-zero-inflated Poisson `mu` random effects, covering random intercepts
     plus independent numeric slopes on the log-mean predictor.
+33. Slice 243 attaches Wald interval rows and coverage summaries to the
+    Poisson `mu` random-effect smoke output for fixed log-mean coefficients,
+    while leaving random-effect SD rows visible as profile-needed interval
+    failures until direct SD profile producers are attached.
