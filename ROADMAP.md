@@ -1485,8 +1485,9 @@ Use this order unless Slice 191 evidence overturns it:
   locally in Slice 213; the first end-to-end Gaussian location-scale smoke
   runner is done locally in Slice 214; the matching vector/dense `meta_V(V = V)`
   smoke runner is done locally in Slice 215; the first parameter-level
-  aggregation helper is done locally in Slice 216. Next, add MCSE and interval
-  coverage summaries.
+  aggregation helper is done locally in Slice 216; MCSE and explicit
+  interval-coverage helpers are done locally in Slice 217. Next, wire the smoke
+  runners to aggregation output and start tiny coverage smoke grids.
 
 ## Phase 19: Comparator Demonstrations With Other Packages
 

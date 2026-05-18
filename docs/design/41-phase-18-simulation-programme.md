@@ -160,3 +160,6 @@ CRAN tests should only run smoke checks for seed stability and output shape.
    empirical standard error, convergence, Hessian, warning, and elapsed-time
    summaries. Monte Carlo uncertainty and interval coverage remain separate
    follow-up slices.
+8. Slice 217 adds Monte Carlo uncertainty helpers for mean error, RMSE, and
+   proportions, plus an explicit interval-coverage summary that only runs when
+   lower and upper interval columns are present.

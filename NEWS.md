@@ -1,6 +1,7 @@
 # drmTMB 0.1.2 (2026-05-16)
 
 * Phase 18 now has an optional resumable replicate runner under `inst/sim/` that captures warnings, errors, elapsed time, session metadata, and optional RDS output for pilot simulation cells.
+* Phase 18 now has Monte Carlo uncertainty helpers for simulation summaries, including MCSEs for mean error, RMSE, proportions, and explicit interval-coverage summaries when lower and upper interval columns are present.
 * Phase 18 now has a small aggregation helper for simulation parameter summaries, reporting replicate counts, bias, RMSE, absolute error, empirical standard error, convergence rate, Hessian rate, warning rate, and elapsed time by explicit grouping columns.
 * Phase 18 now has a first end-to-end `meta_V(V = V)` smoke runner under `inst/sim/run/`, covering vector and dense known sampling covariance cells through DGP, `drmTMB()` fit, saved RDS output, and combined parameter summaries.
 * Phase 18 now has a first end-to-end Gaussian location-scale smoke runner under `inst/sim/run/`, wiring the cell registry, seeded DGP, `drmTMB()` fit, pilot summariser, saved RDS output, and combined parameter table for one small surface.
