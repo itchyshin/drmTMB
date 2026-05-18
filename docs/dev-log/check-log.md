@@ -25897,3 +25897,54 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-18-slice-261-dpar-panels.md`.
+
+## 2026-05-18 - Slice 262 random-effect and variance-component figures
+
+Goal: make the public figure gallery distinguish residual `sigma`, ordinary
+group-level SDs, conditional random-slope summaries, and direct `sd(group)`
+surfaces.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/39-visualization-grammar.md`
+- `docs/dev-log/after-task/2026-05-18-slice-262-variance-figures.md`
+- `docs/dev-log/check-log.md`
+- `vignettes/figure-gallery.Rmd`
+
+What changed:
+
+- Added a random-effect and variance-component section to the figure gallery.
+- Added an ordinary Gaussian `(1 + temperature | site)` example and plotted
+  residual `sigma`, site intercept SD, and site temperature-slope SD as
+  separate fitted standard deviations.
+- Added an ordered conditional-random-slope plot from `ranef()` so site-level
+  slope deviations are not confused with variance components.
+- Added a fitted `sd(site) ~ reef_cover` surface using
+  `prediction_grid()`, `predict_parameters(conf.int = TRUE)`, and
+  `plot_parameter_surface()`.
+- Updated the roadmap, visualization grammar design note, and NEWS entry for
+  Slice 262.
+
+Checks run:
+
+- `air format vignettes/figure-gallery.Rmd NEWS.md ROADMAP.md docs/design/39-visualization-grammar.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-18-slice-262-variance-figures.md`
+- `Rscript -e "devtools::load_all('.', quiet = TRUE); rmarkdown::render('vignettes/figure-gallery.Rmd', output_dir = '/tmp/drmtmb-figure-gallery-s262', quiet = FALSE)"`
+- Extracted embedded PNGs from `/tmp/drmtmb-figure-gallery-s262/figure-gallery.html` and visually checked the variance-component dot plot, random-slope deviation plot, and `sd(site)` surface.
+- `Rscript -e "devtools::test(filter = 'plot-parameter-surface|prediction-grid|predict-parameters', reporter = 'summary')"`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `git diff --check`
+
+Known limitations:
+
+- This slice does not add new plotting helper APIs.
+- Direct random-effect SD surfaces still show line-only displays because
+  `predict_parameters(conf.int = TRUE)` reports
+  `conf.status = "wald_unavailable"`.
+- Conditional random-slope modes are shrunken fitted deviations, not raw
+  site-specific regression estimates or interval summaries.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-262-variance-figures.md`.

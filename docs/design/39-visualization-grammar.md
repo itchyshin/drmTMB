@@ -528,6 +528,13 @@ Simulation & Comparison section and should cover power, bias, coverage,
 runtime, convergence, and failures across continuous, proportion, count, and
 other data types.
 
+Slice 262 adds the first random-effect and variance-component gallery section.
+It keeps residual `sigma`, ordinary group-level SDs, conditional random-slope
+deviations, and fitted `sd(site)` surfaces as separate visual targets. Direct
+random-effect SD surfaces are drawn without confidence bands when
+`predict_parameters(conf.int = TRUE)` reports
+`conf.status = "wald_unavailable"`.
+
 ### `corpairs()` Plotting Preflight
 
 Slice 112 records the minimum contract that `plot_corpairs()` follows as an

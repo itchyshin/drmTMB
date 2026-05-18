@@ -321,6 +321,182 @@ through `nu ~ tail_pressure`. The `zi` panel is a structural-zero probability,
 not a mean count. The `rho12` panel is residual coupling between two responses
 after their own means and scales have been modelled.
 
+## Random-effect and variance-component figures
+
+Random-effect figures need a different visual grammar from residual-scale
+figures. Residual `sigma` is the observation-level standard deviation. A
+group-level SD, such as the SD of site intercepts or temperature slopes, is
+among-group variation in a fitted random effect.
+
+```{r random-effect-variance-components, fig.alt="Dot plot comparing residual sigma, among-site intercept SD, and among-site temperature-slope SD on their fitted response-scale units."}
+set.seed(2621)
+n_site <- 24
+n_site_obs <- 6
+site_levels <- seq_len(n_site)
+site_random <- data.frame(
+  site = factor(site_levels),
+  intercept = rnorm(n_site, mean = 0, sd = 0.42),
+  slope = rnorm(n_site, mean = 0, sd = 0.24)
+)
+reef_re <- data.frame(
+  site = factor(rep(site_levels, each = n_site_obs), levels = site_levels)
+)
+reef_re$temperature <- rep(seq(-1, 1, length.out = n_site_obs), n_site)
+site_lookup <- as.integer(reef_re$site)
+reef_re$growth <- 0.25 +
+  0.62 * reef_re$temperature +
+  site_random$intercept[site_lookup] +
+  site_random$slope[site_lookup] * reef_re$temperature +
+  rnorm(nrow(reef_re), mean = 0, sd = 0.34)
+
+fit_re_slopes <- drmTMB(
+  bf(growth ~ temperature + (1 + temperature | site), sigma ~ 1),
+  family = gaussian(),
+  data = reef_re,
+  control = drm_control(optimizer = list(eval.max = 160L, iter.max = 160L))
+)
+
+component_rows <- summary(fit_re_slopes)$parameters
+variance_components <- data.frame(
+  component = c(
+    "Residual sigma",
+    "Site intercept SD",
+    "Site temperature-slope SD"
+  ),
+  estimate = c(
+    component_rows["sigma", "estimate"],
+    component_rows[
+      "sd:mu:(1 + temperature | site):(Intercept)",
+      "estimate"
+    ],
+    component_rows[
+      "sd:mu:(1 + temperature | site):temperature",
+      "estimate"
+    ]
+  )
+)
+variance_components$component <- factor(
+  variance_components$component,
+  levels = rev(variance_components$component)
+)
+
+ggplot(variance_components, aes(estimate, component)) +
+  geom_point(size = 2.8, colour = "#0072B2") +
+  geom_segment(
+    aes(x = 0, xend = estimate, yend = component),
+    linewidth = 0.7,
+    colour = "#0072B2",
+    alpha = 0.55
+  ) +
+  labs(
+    title = "Residual scale and group-level SDs are different quantities",
+    subtitle = "The slope SD measures among-site variation in temperature responses",
+    x = "Fitted standard deviation",
+    y = NULL
+  ) +
+  theme_drmtmb_gallery()
+```
+
+The dot plot compares three standard deviations, but only one is residual
+`sigma`. The other two are random-effect SDs: how much sites differ in baseline
+growth, and how much sites differ in the temperature slope. For intervals on
+these SDs, use `profile_targets(fit_re_slopes)` to choose direct profile-ready
+targets rather than treating the quick point plot as an uncertainty analysis.
+
+Conditional random effects answer a related but different question. They are
+shrunken site-level deviations from the population intercept or slope, not
+variance components.
+
+```{r random-slope-modes, fig.alt="Ordered dot plot of conditional site-level temperature-slope deviations from a fitted random-slope model, centered around zero."}
+site_slope <- ranef(fit_re_slopes, "mu")$terms[[
+  "(1 + temperature | site):temperature"
+]]
+site_slope <- data.frame(
+  site = names(site_slope),
+  slope_deviation = unname(site_slope)
+)
+site_slope$site <- factor(
+  site_slope$site,
+  levels = site_slope$site[order(site_slope$slope_deviation)]
+)
+
+ggplot(site_slope, aes(slope_deviation, site)) +
+  geom_vline(xintercept = 0, linetype = "dashed", colour = "grey60") +
+  geom_point(size = 1.7, colour = "#D55E00") +
+  labs(
+    title = "Conditional random-slope deviations",
+    subtitle = "Each point is a site-specific deviation from the average temperature slope",
+    x = "Deviation in temperature slope",
+    y = "Site"
+  ) +
+  theme_drmtmb_gallery() +
+  theme(
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank()
+  )
+```
+
+A direct `sd(site) ~ reef_cover` formula asks a third question: does a
+site-level predictor change the among-site SD in expected growth? The
+prediction table keeps this target as `sd(site)`, not residual `sigma`.
+
+```{r random-effect-sd-surface, fig.alt="Line plot showing a fitted among-site random-intercept SD surface along reef cover, with no confidence band because direct random-effect SD surfaces do not yet supply Wald intervals."}
+set.seed(2622)
+n_sd_site <- 28
+n_sd_each <- 5
+site_sd_data <- data.frame(
+  site = factor(seq_len(n_sd_site)),
+  reef_cover = runif(n_sd_site, -1.2, 1.2)
+)
+site_sd <- exp(-0.6 + 0.45 * site_sd_data$reef_cover)
+site_deviation <- rnorm(n_sd_site, mean = 0, sd = site_sd)
+reef_sd <- site_sd_data[rep(seq_len(n_sd_site), each = n_sd_each), ]
+reef_sd$temperature <- rep(seq(-1.2, 1.2, length.out = n_sd_each), n_sd_site)
+reef_sd$growth <- 0.4 +
+  0.5 * reef_sd$temperature +
+  site_deviation[as.integer(reef_sd$site)] +
+  rnorm(nrow(reef_sd), mean = 0, sd = 0.35)
+
+fit_site_sd <- drmTMB(
+  bf(growth ~ temperature + (1 | site), sigma ~ 1, sd(site) ~ reef_cover),
+  family = gaussian(),
+  data = reef_sd,
+  control = drm_control(optimizer = list(eval.max = 180L, iter.max = 180L))
+)
+
+grid_site_sd <- prediction_grid(
+  fit_site_sd,
+  focal = "reef_cover",
+  at = list(reef_cover = seq(-1.2, 1.2, length.out = 80))
+)
+pred_site_sd <- predict_parameters(
+  fit_site_sd,
+  newdata = grid_site_sd,
+  dpar = "sd(site)",
+  conf.int = TRUE
+)
+
+plot_parameter_surface(
+  pred_site_sd,
+  x = "reef_cover",
+  facet = NULL,
+  point = FALSE
+) +
+  labs(
+    title = "Among-site SD surface",
+    subtitle = "Requested Wald intervals remain unavailable for direct random-effect SD surfaces",
+    x = "Reef cover",
+    y = "Among-site SD in expected growth"
+  ) +
+  theme_drmtmb_gallery()
+```
+
+This line is a fitted random-effect SD surface. It should not be read as a raw
+growth curve, and it should not be overlaid with raw `growth` points. The
+table behind the plot reports `conf.status = "wald_unavailable"`, which is the
+honest interval boundary until a profile or bootstrap route is attached to
+these derived surfaces.
+
 ## Discrete comparisons
 
 For a factor predictor, the same plotting helper uses interval bars rather than
