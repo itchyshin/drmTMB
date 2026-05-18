@@ -1572,7 +1572,10 @@ Use this order unless Slice 191 evidence overturns it:
   and returns both the pilot and artifact paths. Slice 257 applies the first
   Florence visual polish to that gallery, replacing default diagnostic panels
   with horizontal estimand labels, shared palette/theme helpers, plot captions,
-  and MCSE-aware coverage ranges when available.
+  and MCSE-aware coverage ranges when available. Slice 258 adds the first
+  pkgdown-facing Phase 18 count simulation gallery article, explaining how to
+  render and interpret the pilot gallery without treating it as final
+  operating-characteristic evidence.
 
 ## Structured Slope Parity Gate
 

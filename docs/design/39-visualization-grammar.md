@@ -513,6 +513,12 @@ warning/error ledger, and coverage MCSE ranges when the coverage table supplies
 `coverage_mcse`. This is still a pilot gallery, but it is no longer a raw
 default-`ggplot2` diagnostic.
 
+Slice 258 adds `vignettes/phase18-count-gallery.Rmd` as the first pkgdown-facing
+gallery article. The article explains what the paired Poisson/NB2 count pilot
+does and does not show, how to render the local gallery, and how to read bias,
+RMSE, coverage, manifests, and warning ledgers before scaling up a simulation
+grid.
+
 ### `corpairs()` Plotting Preflight
 
 Slice 112 records the minimum contract that `plot_corpairs()` follows as an
