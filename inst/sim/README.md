@@ -31,11 +31,14 @@ Current pilot files:
   `spatial(1 + x | site, coords = coords)`.
 - `dgp/sim_dgp_poisson_mu_random_effect.R` generates non-zero-inflated Poisson
   count data with ordinary log-mean random intercepts and independent numeric
-  slopes, `(1 | id) + (0 + x | id)`.
+  slopes, `(1 | id) + (0 + x | id)`, and its condition helper can cross
+  group count, observations per group, fixed effects, and true random-effect
+  SDs.
 - `dgp/sim_dgp_nbinom2_mu_random_effect.R` generates non-zero-inflated NB2
   count data with ordinary log-mean random intercepts and independent numeric
   slopes, `(1 | id) + (0 + x | id)`, plus fixed-effect overdispersion
-  `sigma ~ z`.
+  `sigma ~ z`; its condition helper can also cross true overdispersion
+  settings.
 - `dgp/sim_dgp_meta_v.R` generates Gaussian meta-analysis data with vector or
   dense known sampling covariance via `meta_V(V = V)`.
 - `fit/sim_summarise_gaussian_ls.R` converts one fitted pilot model into a
