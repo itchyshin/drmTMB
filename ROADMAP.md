@@ -1483,8 +1483,8 @@ Use this order unless Slice 191 evidence overturns it:
   Gaussian meta-analysis `meta_V(V = V)` DGP with vector and dense matrix `V`
   is done locally in Slice 212; a generic resumable replicate runner is done
   locally in Slice 213; the first end-to-end Gaussian location-scale smoke
-  runner is done locally in Slice 214. Next, wire the matching `meta_V(V = V)`
-  pilot runner and then add aggregation tables.
+  runner is done locally in Slice 214; the matching vector/dense `meta_V(V = V)`
+  smoke runner is done locally in Slice 215. Next, add aggregation tables.
 
 ## Phase 19: Comparator Demonstrations With Other Packages
 

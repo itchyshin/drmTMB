@@ -31,3 +31,5 @@ Current pilot files:
 - `run/sim_run_gaussian_ls_smoke.R` wires the Gaussian location-scale DGP,
   `drmTMB()` fit, summariser, registry, and replicate runner into one
   end-to-end smoke surface.
+- `run/sim_run_meta_v_smoke.R` does the same for vector and dense
+  `meta_V(V = V)` smoke cells.
