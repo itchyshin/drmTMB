@@ -24011,3 +24011,44 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slice-218-gaussian-ls-summary-smoke.md`.
+
+## 2026-05-17 - Slice 219 meta_V summary smoke
+
+Goal: wire the `meta_V(V = V)` smoke runner to Phase 18 aggregation and MCSE
+helpers.
+
+Files changed:
+
+- `inst/sim/run/sim_summary_meta_v_smoke.R`
+- `tests/testthat/test-phase18-meta-v-summary-smoke.R`
+- `inst/sim/README.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `ROADMAP.md`
+- `NEWS.md`
+- `docs/dev-log/after-task/2026-05-17-slice-219-meta-v-summary-smoke.md`
+
+What changed:
+
+- Added `phase18_summarise_meta_v_smoke()` to run vector and dense
+  `meta_V(V = V)` smoke cells, aggregate parameter summaries, and attach
+  bias/RMSE MCSEs.
+- Added tests for a two-replicate vector/dense summary smoke run and the empty
+  summary guard.
+
+Checks run:
+
+- `air format inst/sim/run/sim_summary_meta_v_smoke.R tests/testthat/test-phase18-meta-v-summary-smoke.R inst/sim/README.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md NEWS.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-17-slice-219-meta-v-summary-smoke.md`
+- `Rscript -e "devtools::test(filter = 'phase18-meta-v-summary-smoke', reporter = 'summary')"`
+- `Rscript -e "devtools::test(filter = 'phase18', reporter = 'summary')"`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `git diff --check`
+
+Known limitations:
+
+- This is a tiny smoke run. It reports bias/RMSE summaries with MCSEs but does
+  not add interval construction, interval coverage, dense-`V` scalability
+  claims, comparators, power, plots, parallel execution, or rendered reports.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slice-219-meta-v-summary-smoke.md`.
