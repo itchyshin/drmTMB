@@ -16,7 +16,8 @@ plus:
 - `interval_method`: one of `wald`, `profile`, `parametric_bootstrap`, or
   `bootstrap`.
 - `interval_scale`: the scale on which endpoints are reported, such as
-  `public`, `log_sigma`, `rho`, or `fisher_z_backtransformed`.
+  `public`, `formula_coefficient`, `log_sigma`, `rho`, or
+  `fisher_z_backtransformed`.
 - `interval_status`: `ok`, `not_estimated`, `failed`, or `not_requested`.
 - `interval_message`: short reason when `interval_status` is not `ok`.
 
@@ -72,6 +73,11 @@ It takes a parameter-summary table that already contains `estimate` and
 `interval_scale`, `interval_status`, and `interval_message`. It deliberately
 does not extract standard errors from fitted model objects; model-specific
 producers should do that surface by surface.
+
+The Gaussian location-scale summary smoke uses this helper with
+`interval_scale = "formula_coefficient"`, because the current pilot summaries
+target fixed-effect coefficients such as `mu:x` and `sigma:z`, not response-
+scale fitted values.
 
 `phase18_add_correlation_fisher_z_intervals()` is the matching correlation
 helper. It reports endpoints on the raw correlation scale after calculating the

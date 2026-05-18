@@ -37,12 +37,22 @@ phase18_summarise_gaussian_ls_smoke <- function(
   )
   manifest <- phase18_result_manifest(run$results)
   failures <- phase18_result_failures(run$results)
+  wald_intervals <- phase18_add_wald_intervals(
+    run$summary,
+    interval_scale = "formula_coefficient"
+  )
+  wald_coverage <- phase18_summarise_interval_coverage(
+    wald_intervals,
+    by = by
+  )
 
   list(
     surface = "gaussian_ls",
     run = run,
     aggregate = aggregate,
     manifest = manifest,
-    failures = failures
+    failures = failures,
+    wald_intervals = wald_intervals,
+    wald_coverage = wald_coverage
   )
 }

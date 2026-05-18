@@ -195,3 +195,5 @@ CRAN tests should only run smoke checks for seed stability and output shape.
     summaries, complementing raw-rho Wald intervals from the generic helper.
 22. Slice 232 adds fixed-effect standard errors to Gaussian location-scale pilot
     summaries when fitted models expose them.
+23. Slice 233 attaches formula-coefficient Wald interval rows and coverage
+    summaries to the Gaussian location-scale summary-smoke output.
