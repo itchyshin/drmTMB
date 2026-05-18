@@ -25521,3 +25521,44 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-18-slice-254-count-pilot-gallery-template.md`.
+
+## 2026-05-18 - Slice 255 Count gallery render helper
+
+Goal: render a checked local HTML gallery artifact from paired Poisson/NB2
+`mu` random-effect pilot output.
+
+Files changed:
+
+- `inst/sim/R/sim_gallery.R`
+- `tests/testthat/test-phase18-count-gallery-render-helper.R`
+- `inst/sim/README.md`
+- `docs/design/39-visualization-grammar.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `ROADMAP.md`
+- `NEWS.md`
+- `docs/dev-log/after-task/2026-05-18-slice-255-count-gallery-render-helper.md`
+
+What changed:
+
+- Added `phase18_write_count_mu_re_gallery_inputs()` to write plot-ready
+  aggregate, coverage, manifest, and failure CSV inputs from a paired count
+  pilot object.
+- Added `phase18_render_count_mu_re_gallery()` to render the Florence-facing
+  count pilot gallery template from those CSV inputs.
+- Added overwrite checks and skip-aware tests for writing and rendering.
+
+Checks run:
+
+- `air format inst/sim/R/sim_gallery.R tests/testthat/test-phase18-count-gallery-render-helper.R inst/sim/README.md docs/design/39-visualization-grammar.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md NEWS.md`
+- `Rscript -e "devtools::test(filter = 'phase18-count-gallery-render-helper|phase18-count-gallery-template|phase18-sim-plot-data', reporter = 'summary')"`
+- `Rscript -e "devtools::test(filter = 'phase18-count-mu-random-effect-pilot|phase18-count-gallery-render-helper', reporter = 'summary')"`
+- `git diff --check`
+
+Known limitations:
+
+- This slice renders through a helper but does not commit rendered HTML, export
+  standalone image files, or add a pkgdown gallery article.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-255-count-gallery-render-helper.md`.
