@@ -41,6 +41,7 @@ minimum first wave is:
 | Gaussian location-scale covariance | Fitted | matched `mu`/`sigma` random intercept blocks | group count, correlation, SD ratio |
 | Bivariate Gaussian coscale | Fitted | two responses with `sigma1`, `sigma2`, and `rho12` | residual correlation, missing rows excluded |
 | Phylogenetic and spatial Gaussian | Fitted subsets | known relatedness or coordinate covariance plus Gaussian residuals | number of taxa/sites, signal size |
+| Structured one-slope parity | Spatial fitted; phylo/animal/relmat planned | coordinate spatial `mu` one-slope only in Wave A | sites, slope-field SD, covariate spread |
 | Gaussian meta-analysis | Fitted | `y ~ MVN(mu, V + Omega_estimated)` with vector or matrix `V` | effect sizes, dense `V`, heterogeneity |
 | Poisson `mu` random effects | Pilot only | log-mean count model with ordinary random intercepts/slopes | groups, mean count, SD size |
 
@@ -216,3 +217,7 @@ CRAN tests should only run smoke checks for seed stability and output shape.
 28. Slice 238 adds a CRAN-safe smoke surface for Gaussian `sigma` independent
     one-slope random effects on `log(sigma)`, keeping correlated scale-slope
     covariance and labelled scale-slope blocks outside Wave A.
+29. Slice 239 records the structured-slope parity gate: coordinate spatial has
+    one fitted Gaussian `mu` slope, while phylogenetic, animal, and `relmat()`
+    one-slope paths remain planned until they have implementation, diagnostics,
+    profile targets, recovery tests, and biological examples.

@@ -24843,3 +24843,44 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-18-slice-238-gaussian-sigma-random-slope-smoke.md`.
+
+## 2026-05-18 - Slice 239 structured slope parity gate
+
+Goal: record the fitted-versus-planned boundary for structured one-slope
+models before Phase 18 simulation.
+
+Files changed:
+
+- `docs/design/44-structured-slope-parity-gate.md`
+- `docs/design/16-phylo-spatial-common-math.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `ROADMAP.md`
+- `NEWS.md`
+- `docs/dev-log/after-task/2026-05-18-slice-239-structured-slope-parity-gate.md`
+
+What changed:
+
+- Added a structured-effect one-slope status table.
+- Marked coordinate spatial Gaussian `mu` one-slope models as fitted enough for
+  a focused Wave A smoke grid.
+- Kept phylogenetic, animal, and `relmat()` one-slope models planned until
+  their implementation, diagnostics, profile targets, recovery tests, and
+  biological examples exist.
+- Added eco-evo animal-model examples that keep additive relatedness and
+  plasticity questions visible.
+
+Checks run:
+
+- `air format docs/design/44-structured-slope-parity-gate.md docs/design/16-phylo-spatial-common-math.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md NEWS.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-18-slice-239-structured-slope-parity-gate.md`
+- `Rscript -e "devtools::test(filter = 'spatial-gaussian|phylo-gaussian|package-skeleton|nongaussian-structured-boundary', reporter = 'summary')"`
+- `git diff --check`
+
+Known limitations:
+
+- This is a status-gate slice. It does not implement phylogenetic, animal, or
+  `relmat()` slopes, and it does not yet add a coordinate-spatial simulation
+  runner.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-239-structured-slope-parity-gate.md`.
