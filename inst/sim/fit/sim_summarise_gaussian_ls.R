@@ -27,6 +27,7 @@ phase18_summarise_gaussian_ls_fit <- function(
     paste0("sigma:", names(sigma_est))
   )
   names(truth_value) <- names(estimate)
+  std_error <- phase18_gaussian_ls_fixed_effect_se(fit, names(estimate))
 
   data.frame(
     surface = "gaussian_ls",
@@ -35,6 +36,7 @@ phase18_summarise_gaussian_ls_fit <- function(
     parameter = names(estimate),
     truth = unname(truth_value),
     estimate = unname(estimate),
+    std.error = unname(std_error),
     error = unname(estimate - truth_value),
     converged = isTRUE(fit$opt$convergence == 0),
     pdHess = isTRUE(fit$sdr$pdHess),
@@ -44,4 +46,24 @@ phase18_summarise_gaussian_ls_fit <- function(
     warnings = paste(warnings, collapse = " | "),
     stringsAsFactors = FALSE
   )
+}
+
+phase18_gaussian_ls_fixed_effect_se <- function(fit, parameter) {
+  out <- rep(NA_real_, length(parameter))
+  names(out) <- parameter
+  coefficients <- tryCatch(
+    summary(fit)$coefficients,
+    error = function(e) NULL
+  )
+  if (
+    is.null(coefficients) ||
+      !"std_error" %in% names(coefficients) ||
+      is.null(row.names(coefficients))
+  ) {
+    return(out)
+  }
+  matched <- match(parameter, row.names(coefficients))
+  ok <- !is.na(matched)
+  out[ok] <- coefficients$std_error[matched[ok]]
+  out
 }

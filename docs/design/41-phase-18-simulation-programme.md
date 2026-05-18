@@ -193,3 +193,5 @@ CRAN tests should only run smoke checks for seed stability and output shape.
     already carry estimates and standard errors.
 21. Slice 231 adds Fisher-z back-transformed Wald intervals for correlation
     summaries, complementing raw-rho Wald intervals from the generic helper.
+22. Slice 232 adds fixed-effect standard errors to Gaussian location-scale pilot
+    summaries when fitted models expose them.
