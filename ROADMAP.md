@@ -1565,7 +1565,9 @@ Use this order unless Slice 191 evidence overturns it:
   preparing aggregate, coverage, manifest, and failure tables for Florence's
   later figure gallery. Slice 254 adds the first Florence-facing count pilot
   gallery template for bias, RMSE, interval coverage, manifests, and
-  warning/error ledgers.
+  warning/error ledgers. Slice 255 adds helper plumbing that writes the
+  plot-ready CSV inputs and renders a checked local HTML gallery artifact from
+  a paired count pilot object.
 
 ## Structured Slope Parity Gate
 

@@ -493,6 +493,13 @@ bias, RMSE, and interval-coverage panels when `ggplot2` is available, falls
 back to tables otherwise, and keeps warning/error ledgers visible beside the
 figures.
 
+Slice 255 adds `phase18_write_count_mu_re_gallery_inputs()` and
+`phase18_render_count_mu_re_gallery()` under `inst/sim/R/sim_gallery.R`.
+Together they turn a paired count pilot object into stable CSV inputs and a
+checked local HTML gallery artifact. This closes the first Florence bridge from
+simulation tables to a concrete figure-gallery report, while still treating the
+output as pilot evidence rather than a publishable final simulation result.
+
 ### `corpairs()` Plotting Preflight
 
 Slice 112 records the minimum contract that `plot_corpairs()` follows as an

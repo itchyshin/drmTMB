@@ -287,3 +287,6 @@ CRAN tests should only run smoke checks for seed stability and output shape.
 44. Slice 254 adds the first count-pilot figure-gallery report template,
     rendering bias, RMSE, coverage, manifest, and warning/error sections from
     the plot-ready tables.
+45. Slice 255 adds count-pilot gallery helpers that write the plot-ready CSV
+    inputs and render a checked local HTML gallery artifact from a paired count
+    pilot object.

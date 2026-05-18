@@ -71,6 +71,8 @@ Current pilot files:
   Fisher-z back-transformed path for correlation summaries.
 - `R/sim_plot_data.R` prepares plot-ready data tables for Phase 18 outputs,
   starting with paired Poisson/NB2 `mu` random-effect pilot summaries.
+- `R/sim_gallery.R` writes plot-ready count-pilot CSV inputs and renders the
+  first Florence-facing count-pilot gallery artifact from a pilot object.
 - `run/sim_run_gaussian_ls_smoke.R` wires the Gaussian location-scale DGP,
   `drmTMB()` fit, summariser, registry, and replicate runner into one
   end-to-end smoke surface.
