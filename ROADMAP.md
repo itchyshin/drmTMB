@@ -1473,7 +1473,7 @@ Use this order unless Slice 191 evidence overturns it:
 | --- | --- | --- |
 | 259 | First public figure gallery route | Done locally: `figure-gallery` is a Tutorials article, `convergence` is a Model Guides article, and `testing-likelihoods` moved to Simulation & Comparison. |
 | 260 | Interaction plot polish | The gallery shows categorical x continuous, categorical x categorical, and continuous x continuous examples with fitted values, raw data where useful, 95% confidence intervals, and clear conditioning labels. |
-| 261 | Distributional-parameter panels | Add polished examples for `mu`, `sigma`, `nu`, zero-inflation or hurdle probability where fitted, and residual `rho12`, with explicit reporting scales and interval provenance. |
+| 261 | Distributional-parameter panels | Done locally: the gallery now labels `mu` and `sigma` panels by estimand and adds fitted Student-t `nu`, zero-inflation probability `zi`, and residual `rho12` examples with explicit response-scale wording and interval provenance. |
 | 262 | Random-effect and variance-component figures | Add ordinary grouped SDs, random-slope summaries, `sd(group)` surfaces, and clear separation between residual `sigma` and group-level SDs. |
 | 263 | Correlation-layer figures | Improve `corpairs()` gallery examples for residual, group, phylogenetic, spatial, and future animal/`relmat()` layers without visually collapsing them. |
 | 264 | `emmeans` and marginal-effects figures | Show the supported fixed-effect univariate `mu` `emmeans` route, factor-conditioned grids, interaction grids, and the boundary for unsupported `sigma`, bivariate, zero-inflated, hurdle, ordinal, and random-effect targets. |
@@ -1492,7 +1492,7 @@ as the whole comprehensive simulation programme.
 | Slice | Block | Target | Done When |
 | --- | --- | --- | --- |
 | 260 | Figure gallery | Interaction plot polish | Done locally: the gallery now shows categorical x continuous, categorical x categorical, and continuous x continuous examples with raw data where useful, fitted values, 95% confidence intervals, clear conditioning labels, alt text, and a cleaner correlation figure using `plot_corpairs(label = ...)`. |
-| 261 | Figure gallery | Distributional-parameter panels | The gallery has polished examples for `mu`, `sigma`, `nu` or other shape parameters, zero-inflation, hurdle or one-inflation probabilities, and residual `rho12`, with explicit reporting scales and interval provenance. |
+| 261 | Figure gallery | Distributional-parameter panels | Done locally: the gallery labels `mu` and `sigma` by estimand and adds fitted Student-t `nu`, zero-inflation probability `zi`, and residual `rho12` panels with explicit response-scale wording and interval provenance. |
 | 262 | Figure gallery | Random-effect and variance-component figures | The gallery separates ordinary grouped SDs, random-slope summaries, `sd(group)` surfaces, residual `sigma`, and group-level SDs instead of visually collapsing them. |
 | 263 | Figure gallery | Correlation-layer figures | `corpairs()` examples distinguish residual, ordinary group, phylogenetic, spatial, future animal, and future `relmat()` layers. |
 | 264 | Figure gallery | `emmeans` and marginal-effects figures | The gallery shows the supported fixed-effect univariate `mu` `emmeans` route, factor-conditioned grids, interaction grids, and the boundary for unsupported `sigma`, bivariate, zero-inflated, hurdle, ordinal, and random-effect targets. |

@@ -25854,3 +25854,46 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-18-slice-260-gallery-interactions.md`.
+
+## 2026-05-18 - Slice 261 distributional-parameter panels
+
+Goal: make the figure gallery clearer for fitted distributional parameters
+beyond the expected mean.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/dev-log/after-task/2026-05-18-slice-261-dpar-panels.md`
+- `docs/dev-log/check-log.md`
+- `vignettes/figure-gallery.Rmd`
+
+What changed:
+
+- Added reader-facing strip labels for the `mu` and `sigma` gallery panels.
+- Added fitted Student-t `nu`, zero-inflation probability `zi`, and residual
+  `rho12` panels using `predict_parameters(conf.int = TRUE)` plus
+  `plot_parameter_surface()`.
+- Added prose that distinguishes expected response, residual SD, tail weight,
+  structural-zero probability, and residual correlation.
+- Updated the roadmap and NEWS entry for Slice 261.
+
+Checks run:
+
+- `air format vignettes/figure-gallery.Rmd NEWS.md ROADMAP.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-18-slice-261-dpar-panels.md`
+- `Rscript -e "devtools::load_all('.', quiet = TRUE); rmarkdown::render('vignettes/figure-gallery.Rmd', output_dir = '/tmp/drmtmb-figure-gallery-s261b', quiet = TRUE)"`
+- Extracted embedded PNGs from `/tmp/drmtmb-figure-gallery-s261b/figure-gallery.html` and visually checked the `mu`/`sigma` panel, the new `nu`/`zi`/`rho12` panel, and the correlation-layer panel.
+- `Rscript -e "devtools::test(filter = 'plot-parameter-surface', reporter = 'summary')"`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `git diff --check`
+
+Known limitations:
+
+- This slice does not add new plotting helper APIs.
+- Hurdle and one-inflation panels remain future examples.
+- The Student-t `nu` interval remains widest at the heavy-tail end; the figure
+  is an interpretation display, not a precision or power claim.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-261-dpar-panels.md`.
