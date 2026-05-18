@@ -37,6 +37,29 @@ test_that("Phase 18 Poisson mu random-effect DGP is seeded and self-describing",
   truth <- attr(dat, "truth")
 
   expect_equal(nrow(conditions), 1L)
+  expect_named(
+    phase18_poisson_mu_re_conditions(
+      n_group = c(8L, 10L),
+      n_per_group = 5L,
+      sd_intercept = c(0.2, 0.4)
+    ),
+    c(
+      "n_group",
+      "n_per_group",
+      "sd_intercept",
+      "sd_x",
+      "beta_mu_intercept",
+      "beta_mu_x"
+    )
+  )
+  expect_equal(
+    nrow(phase18_poisson_mu_re_conditions(
+      n_group = c(8L, 10L),
+      n_per_group = 5L,
+      sd_intercept = c(0.2, 0.4)
+    )),
+    4L
+  )
   expect_equal(dat, again)
   expect_equal(nrow(dat), 60L)
   expect_named(

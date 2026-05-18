@@ -1558,7 +1558,9 @@ Use this order unless Slice 191 evidence overturns it:
   written. Slice 251 starts the first paired count pilot, combining ready
   Poisson and NB2 `mu` random-effect surfaces into one optional output with
   aggregate, manifest, failure-ledger, Wald-coverage, and profile-coverage
-  tables.
+  tables. Slice 252 makes the Poisson and NB2 condition helpers true grid
+  builders, allowing optional count pilots to vary group count, repeats, true
+  random-effect SDs, fixed mean effects, and NB2 overdispersion settings.
 
 ## Structured Slope Parity Gate
 

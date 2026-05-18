@@ -278,3 +278,6 @@ CRAN tests should only run smoke checks for seed stability and output shape.
     and NB2 `mu` random-effect smoke surfaces into one optional pilot output
     with aggregate, manifest, failure-ledger, Wald-coverage, and profile-
     coverage tables.
+42. Slice 252 turns the Poisson and NB2 `mu` random-effect condition helpers
+    into true grid builders, so optional pilots can cross group count, repeats,
+    true random-effect SDs, fixed mean effects, and NB2 overdispersion settings.
