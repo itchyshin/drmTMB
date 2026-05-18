@@ -15,6 +15,15 @@ test_that("Phase 18 smoke report template is installed and reader-facing", {
     fixed = TRUE
   ))
   expect_true(grepl("Aggregate Summary", text, fixed = TRUE))
+  expect_true(grepl("manifest_csv", text, fixed = TRUE))
+  expect_true(grepl("failures_csv", text, fixed = TRUE))
+  expect_true(grepl("Run Manifest", text, fixed = TRUE))
+  expect_true(grepl("Warning And Error Ledger", text, fixed = TRUE))
+  expect_true(grepl(
+    "No warning/error ledger CSV supplied",
+    text,
+    fixed = TRUE
+  ))
   expect_true(grepl("Reader Checks", text, fixed = TRUE))
   expect_true(grepl("Interpretation Boundary", text, fixed = TRUE))
 })
