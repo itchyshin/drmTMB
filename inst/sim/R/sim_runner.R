@@ -170,3 +170,56 @@ phase18_manifest_row <- function(result) {
     stringsAsFactors = FALSE
   )
 }
+
+phase18_result_failures <- function(results) {
+  manifest <- phase18_result_manifest(results)
+  rows <- list()
+  index <- 0L
+  for (i in seq_along(results)) {
+    result <- results[[i]]
+    if (!identical(result$status, "ok")) {
+      index <- index + 1L
+      rows[[index]] <- phase18_failure_row(
+        result,
+        severity = "error",
+        message = if (is.null(result$error)) NA_character_ else result$error
+      )
+    }
+    for (warning in result$warnings) {
+      index <- index + 1L
+      rows[[index]] <- phase18_failure_row(
+        result,
+        severity = "warning",
+        message = warning
+      )
+    }
+  }
+  if (length(rows) == 0L) {
+    return(data.frame(
+      cell_id = character(),
+      replicate = integer(),
+      seed = integer(),
+      status = character(),
+      severity = character(),
+      message = character(),
+      skipped = logical(),
+      stringsAsFactors = FALSE
+    ))
+  }
+  out <- do.call(rbind, rows)
+  row.names(out) <- NULL
+  out
+}
+
+phase18_failure_row <- function(result, severity, message) {
+  data.frame(
+    cell_id = result$cell_id,
+    replicate = result$replicate,
+    seed = result$seed,
+    status = result$status,
+    severity = severity,
+    message = message,
+    skipped = isTRUE(result$skipped),
+    stringsAsFactors = FALSE
+  )
+}

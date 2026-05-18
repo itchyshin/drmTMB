@@ -24167,3 +24167,41 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slice-222-run-manifest.md`.
+
+## 2026-05-17 - Slice 223 run failure ledger
+
+Goal: keep Phase 18 warning and error rows visible beside aggregate summaries.
+
+Files changed:
+
+- `inst/sim/R/sim_runner.R`
+- `tests/testthat/test-phase18-sim-runner.R`
+- `inst/sim/README.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `ROADMAP.md`
+- `NEWS.md`
+- `docs/dev-log/after-task/2026-05-17-slice-223-run-failure-ledger.md`
+
+What changed:
+
+- Added `phase18_result_failures()` to extract one row for each failed
+  replicate and one row for each captured warning.
+- Added tests for mixed ok/error results and empty failure ledgers.
+
+Checks run:
+
+- `air format inst/sim/R/sim_runner.R tests/testthat/test-phase18-sim-runner.R inst/sim/README.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md NEWS.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-17-slice-223-run-failure-ledger.md`
+- `Rscript -e "devtools::test(filter = 'phase18-sim-runner', reporter = 'summary')"`
+- `Rscript -e "devtools::test(filter = 'phase18', reporter = 'summary')"`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `git diff --check`
+
+Known limitations:
+
+- The ledger records warning and error messages from in-memory result objects.
+  It does not classify root causes, parse optimizer diagnostics, or scan result
+  directories from disk.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slice-223-run-failure-ledger.md`.

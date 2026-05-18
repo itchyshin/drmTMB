@@ -1,6 +1,7 @@
 # drmTMB 0.1.2 (2026-05-16)
 
 * Phase 18 now has an optional resumable replicate runner under `inst/sim/` that captures warnings, errors, elapsed time, session metadata, and optional RDS output for pilot simulation cells.
+* Phase 18 replicate results can now be reduced to a warning/error failure ledger so failed fits and warning-bearing replicates remain visible beside aggregate summaries.
 * Phase 18 simulation results can now be reduced to a compact manifest table with cell id, replicate, seed, status, skipped/resumed flag, warning count, error message, and elapsed time.
 * Developer design notes now include ASReml efficiency lessons for future `animal()` and `relmat()` work, emphasizing sparse precision matrices, explicit row-name matching, matrix-orientation metadata, and honest speed claims.
 * Phase 18 now includes a smoke simulation report template under `inst/sim/reports/`, giving pilot surfaces a reader-facing structure for purpose, aggregate summaries, reader checks, and interpretation boundaries.

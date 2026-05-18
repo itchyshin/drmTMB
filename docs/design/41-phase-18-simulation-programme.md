@@ -173,3 +173,5 @@ CRAN tests should only run smoke checks for seed stability and output shape.
     boundaries before full evidence reports are claimed.
 12. Slice 222 adds compact result manifests so saved or resumed runs can be
     audited without opening every per-replicate summary.
+13. Slice 223 adds a warning/error ledger for replicate results so failed fits
+    remain visible beside aggregate summaries.

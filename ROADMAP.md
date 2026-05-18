@@ -1492,7 +1492,8 @@ Use this order unless Slice 191 evidence overturns it:
   A reader-facing smoke report template is done locally in Slice 220. Next,
   start tiny interval-coverage smoke grids. A compact result manifest helper is
   done locally in Slice 222 so resumed runs can be audited without opening every
-  RDS object.
+  RDS object. A warning/error failure-ledger helper is done locally in Slice
+  223.
 
 ## ASReml Efficiency Lessons For Future Animal Models
 

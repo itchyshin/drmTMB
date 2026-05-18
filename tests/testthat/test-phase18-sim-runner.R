@@ -230,3 +230,52 @@ test_that("Phase 18 replicate runner builds compact result manifests", {
     "must contain"
   )
 })
+
+test_that("Phase 18 replicate runner extracts warning and error rows", {
+  source(
+    system.file("sim/R/sim_registry.R", package = "drmTMB", mustWork = TRUE),
+    local = TRUE
+  )
+  source(
+    system.file("sim/R/sim_utils.R", package = "drmTMB", mustWork = TRUE),
+    local = TRUE
+  )
+  source(
+    system.file("sim/R/sim_runner.R", package = "drmTMB", mustWork = TRUE),
+    local = TRUE
+  )
+
+  results <- list(
+    list(
+      cell_id = "cell_001",
+      replicate = 1L,
+      seed = 101L,
+      status = "ok",
+      warnings = character(),
+      error = NULL,
+      elapsed = 0.1,
+      skipped = FALSE
+    ),
+    list(
+      cell_id = "cell_001",
+      replicate = 2L,
+      seed = 102L,
+      status = "error",
+      warnings = c("careful", "still careful"),
+      error = "failed",
+      elapsed = 0.2,
+      skipped = FALSE
+    )
+  )
+
+  failures <- phase18_result_failures(results)
+
+  expect_equal(nrow(failures), 3L)
+  expect_equal(failures$severity, c("error", "warning", "warning"))
+  expect_equal(failures$message, c("failed", "careful", "still careful"))
+  expect_equal(failures$replicate, rep(2L, 3L))
+  expect_equal(
+    nrow(phase18_result_failures(results[1L])),
+    0L
+  )
+})
