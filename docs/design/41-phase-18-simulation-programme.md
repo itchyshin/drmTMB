@@ -267,3 +267,6 @@ CRAN tests should only run smoke checks for seed stability and output shape.
     interval failures until direct SD profile producers are attached.
 38. Slice 248 attaches direct profile-likelihood interval rows and coverage
     summaries for the NB2 `mu` random-effect SD targets in the smoke output.
+39. Slice 249 adds a focused weak-SD boundary diagnostic for fitted NB2 `mu`
+    random intercepts, exercising `check_drm()` lower-boundary reporting before
+    larger NB2 grids vary the true random-effect SD.
