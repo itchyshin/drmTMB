@@ -1345,7 +1345,7 @@ This is the current random-effect status before the non-Gaussian revisit:
 | Bivariate ordinary covariance | Fitted for matching labelled random intercepts in `mu1`/`mu2`, `sigma1`/`sigma2`, same-response `mu`/`sigma`, and all-four q=4 intercept blocks. | Constant q=2 correlation targets are profile-ready; q=4 correlations are derived-only with explicit unavailable interval status. | First future slope target is matching slope-only `mu1`/`mu2`; q=4 location-slope and q=8 all-four slope endpoints remain closed. |
 | Phylogenetic structured effects | Intercept-level univariate, bivariate, direct-SD, q=2 correlation-regression, and q=4 location-scale paths are fitted. | Direct phylogenetic SDs and q=2 correlations have profile targets; q=4 correlations are derived-only. | `phylo(1 + x | species, tree = tree)` remains planned pending recovery and diagnostics. |
 | Coordinate spatial structured effects | Fitted for univariate Gaussian `mu` intercept and one numeric slope, with independent coordinate fields. | `sdpars$mu`, `ranef("spatial_mu")`, `profile_targets()`, `check_drm()`, and a slope-field profile interval are covered. | Mesh/SPDE, multiple slopes, slope correlations, spatial `sigma`, bivariate spatial covariance, and spatial `corpair()` remain planned. |
-| Non-Gaussian families | Fixed-effect likelihoods are fitted, ordinary Poisson `mu` random intercepts plus independent numeric slopes are fitted for non-zero-inflated Poisson models, and non-Gaussian `sigma` plus shape random effects are explicitly blocked. | Poisson `mu` random-effect SDs appear in `sdpars$mu`, random effects, and direct `profile_targets()` rows; family-specific fixed-effect summaries and intervals exist where already implemented. | Slices 195-202 decide zero-inflation, hurdle, ordinal, structured, cross-parameter covariance, and interval readiness; NB2 `mu`, non-Gaussian scale random effects, and shape random effects need separate implementation evidence. |
+| Non-Gaussian families | Fixed-effect likelihoods are fitted; ordinary Poisson and NB2 `mu` random intercepts plus independent numeric slopes are fitted for non-zero-inflated count models; non-Gaussian `sigma` plus shape random effects are explicitly blocked. | Poisson and NB2 `mu` random-effect SDs appear in `sdpars$mu`, random effects, and direct `profile_targets()` rows; family-specific fixed-effect summaries and intervals exist where already implemented. | Zero-inflation, hurdle, ordinal, structured, cross-parameter covariance, non-Gaussian scale random effects, and shape random effects still need separate implementation evidence before broad simulation. |
 
 | Slice | Lane | Target Before Phase 18 |
 | --- | --- | --- |
@@ -1373,8 +1373,8 @@ comprehensive simulation.
 
 | Decision Area | Slice 202 Decision | Reason |
 | --- | --- | --- |
-| Broad Phase 18 comprehensive simulation | Wait. | Too many neighbouring surfaces remain planned or blocked: NB2 `mu` random effects, non-Gaussian `sigma` random effects, shape/skew random effects, inflation and hurdle random effects, ordinal mixed models, structured non-Gaussian effects, cross-parameter non-Gaussian covariance, bootstrap intervals, and derived nonlinear interval coverage. |
-| Narrow pilot simulation | Implemented smoke surface. | Ordinary non-zero-inflated Poisson `mu` random intercepts and independent numeric slopes have implementation, extractors, `sdpars$mu`, direct profile targets, focused recovery tests, factor-predictor coverage, weak-SD boundary diagnostics, and a Phase 18 smoke runner with manifests and failure ledgers. |
+| Broad Phase 18 comprehensive simulation | Wait. | Too many neighbouring surfaces remain planned or blocked: non-Gaussian `sigma` random effects, shape/skew random effects, inflation and hurdle random effects, ordinal mixed models, structured non-Gaussian effects, cross-parameter non-Gaussian covariance, bootstrap intervals, and derived nonlinear interval coverage. |
+| Narrow pilot simulation | Implemented smoke surface for Poisson; NB2 admitted as fitted first slice. | Ordinary non-zero-inflated Poisson `mu` random intercepts and independent numeric slopes have implementation, extractors, `sdpars$mu`, direct profile targets, focused recovery tests, factor-predictor coverage, weak-SD boundary diagnostics, and a Phase 18 smoke runner with manifests and failure ledgers. NB2 now has the same fitted ordinary `mu` random-effect class and focused recovery test, but not yet the full smoke runner/interval-coverage surface. |
 | Post-202 work direction | Return to Phase 17 before full Phase 18. | Reader-facing inference and examples still need hardening before large simulation reports are useful. The first return block should focus on meta-analysis: preferred `meta_V(V = V)` spelling, vector and matrix `V`, proportional `meta_V(w = w, scale = "proportional")` design boundaries, profile/summary safety, and clear examples. |
 | Phase 18 entry rule | Open full grids only surface by surface. | Each surface needs a fitted likelihood, parser validation, extractors, diagnostics, direct or explicitly unavailable interval targets, focused recovery tests, and a failure-ledger row before it appears in a comprehensive simulation table. |
 
@@ -1410,7 +1410,7 @@ Use this order unless Slice 191 evidence overturns it:
 | Priority | Family Surface | Slice 190 Decision |
 | --- | --- | --- |
 | 1 | Poisson `mu` | Implemented in Slices 191-192 for ordinary `(1 | group)` and independent numeric `(0 + x | group)` terms in the log-mean predictor, with recovery, lme4 comparator, and direct SD profile target coverage. Correlated slope blocks, labelled blocks, zero-inflation random effects, and cross-parameter covariance remain planned. |
-| 2 | NB2 and zero-truncated NB2 `mu` | Same candidate class after Poisson, keeping public `sigma` as NB2 dispersion and not adding random effects to `sigma` yet. |
+| 2 | NB2 and zero-truncated NB2 `mu` | NB2 ordinary `mu` random intercepts and independent numeric slopes are now fitted for non-zero-inflated models, keeping public `sigma` as fixed-effect NB2 dispersion. Zero-truncated NB2 `mu`, zero-inflated NB2 random effects, and NB2 `sigma` random effects remain planned. |
 | 3 | Lognormal, Gamma, and Student-t `mu` | Later continuous-response candidates after count recovery, because scale/tail interaction and boundary diagnostics need their own grids. |
 | 4 | Beta and beta-binomial `mu` | Later bounded-response candidates; boundary values, denominators, and overdispersion need separate recovery checks. |
 | 5 | Zero-inflation, one-inflation, hurdle, ordinal, shape, and structured non-Gaussian paths | Keep unsupported for now; revisit in Slices 194-197. For proportion data, `zoi` and `coi` are the planned zero-one-inflation lane rather than part of the Poisson count gate. |
@@ -1534,7 +1534,16 @@ Use this order unless Slice 191 evidence overturns it:
   the structured-slope parity gate: coordinate spatial has one fitted Gaussian
   `mu` slope, while phylogenetic, animal, and `relmat()` one-slope paths remain
   planned until their implementation, profile targets, diagnostics, recovery
-  tests, and biological examples exist.
+  tests, and biological examples exist. Slice 240 records the
+  cross-distributional-parameter correlation gate. Slice 241 adds a coordinate
+  spatial Gaussian `mu` one-slope smoke surface. Slice 242 adds a Poisson `mu`
+  random-effect smoke surface; Slice 243 adds fixed-effect Wald interval
+  coverage for that smoke output; Slice 244 adds direct profile-likelihood SD
+  interval coverage for the Poisson random-effect SD targets. Slice 245 fits
+  ordinary non-zero-inflated NB2 `mu` random intercepts and independent numeric
+  slopes with extractor and direct profile-target coverage, while keeping NB2
+  `sigma`, zero-inflated NB2 random effects, and correlated or labelled NB2
+  slope blocks outside Wave A.
 
 ## Structured Slope Parity Gate
 

@@ -22,6 +22,18 @@ Type drm_log1p_pos(Type x)
 }
 
 template<class Type>
+Type drm_log1p_exp_stable(Type eta)
+{
+  Type eta_for_direct = CppAD::CondExpGt(eta, Type(35.0), Type(0.0), eta);
+  Type x = exp(eta_for_direct);
+  Type series = x - x * x / Type(2.0) + x * x * x / Type(3.0);
+  Type direct = log(Type(1.0) + x);
+  Type small = CppAD::CondExpLt(x, Type(1e-6), series, direct);
+  Type stable = logspace_add(Type(0.0), eta);
+  return CppAD::CondExpGt(eta, Type(35.0), stable, small);
+}
+
+template<class Type>
 Type drm_log1mexp(Type log_p)
 {
   Type u = -log_p;
@@ -79,8 +91,7 @@ template<class Type>
 Type drm_nbinom2_log_density(Type y, Type eta_mu, Type log_sigma)
 {
   Type alpha = exp(Type(2.0) * log_sigma) + Type(1e-300);
-  Type mu = exp(eta_mu);
-  Type log1p_alpha_mu = drm_log1p_pos(alpha * mu);
+  Type log1p_alpha_mu = drm_log1p_exp_stable(log(alpha) + eta_mu);
   return
     y * eta_mu -
     lgamma(y + Type(1.0)) -
@@ -93,8 +104,7 @@ template<class Type>
 Type drm_nbinom2_log_p0(Type eta_mu, Type log_sigma)
 {
   Type alpha = exp(Type(2.0) * log_sigma) + Type(1e-300);
-  Type mu = exp(eta_mu);
-  Type log1p_alpha_mu = drm_log1p_pos(alpha * mu);
+  Type log1p_alpha_mu = drm_log1p_exp_stable(log(alpha) + eta_mu);
   return -log1p_alpha_mu / alpha;
 }
 
@@ -1067,6 +1077,58 @@ Type objective_function<Type>::operator()()
   } else if (model_type == 7) {
     vector<Type> eta_mu = offset_mu + X_mu * beta_mu;
     vector<Type> log_sigma = X_sigma * beta_sigma;
+    if (n_mu_re_terms > 0) {
+      vector<Type> sd_mu_re = exp(log_sd_mu);
+      vector<Type> sd_mu_group(X_sd_mu.rows());
+      if (has_sd_mu_model == 1) {
+        for (int g = 0; g < X_sd_mu.rows(); ++g) {
+          Type eta_sd = Type(0.0);
+          for (int k = 0; k < X_sd_mu.cols(); ++k) {
+            eta_sd += X_sd_mu(g, k) * beta_sd_mu(k);
+          }
+          sd_mu_group(g) = exp(eta_sd);
+        }
+      }
+      vector<Type> rho_mu_re(n_mu_re_cors);
+      for (int j = 0; j < n_mu_re_cors; ++j) {
+        rho_mu_re(j) = Type(0.999999) * tanh(eta_cor_mu(j));
+      }
+      for (int i = 0; i < y.size(); ++i) {
+        for (int j = 0; j < n_mu_re_terms; ++j) {
+          int idx = mu_re_index(i, j);
+          int cor_id = mu_re_cor_id(idx);
+          int sd_row = mu_re_sd_row(idx);
+          Type sd_current = sd_mu_re(mu_re_term(idx));
+          if (sd_row >= 0) {
+            sd_current = sd_mu_group(sd_row);
+          }
+          Type u_cond = u_mu(idx);
+          if (cor_id >= 0 && mu_re_pos(idx) == 1) {
+            Type rho = rho_mu_re(cor_id);
+            int pair_idx = mu_re_pair_index(idx);
+            u_cond = rho * u_mu(pair_idx) +
+              sqrt(Type(1.0) - rho * rho) * u_mu(idx);
+          }
+          eta_mu(i) += mu_re_value(i, j) * sd_current * u_cond;
+        }
+      }
+      for (int j = 0; j < u_mu.size(); ++j) {
+        nll -= dnorm(u_mu(j), Type(0.0), Type(1.0), true);
+      }
+      REPORT(u_mu);
+      REPORT(log_sd_mu);
+      REPORT(sd_mu_re);
+      if (n_mu_re_cors > 0) {
+        REPORT(eta_cor_mu);
+        REPORT(rho_mu_re);
+      }
+      ADREPORT(log_sd_mu);
+      ADREPORT(sd_mu_re);
+      if (n_mu_re_cors > 0) {
+        ADREPORT(eta_cor_mu);
+        ADREPORT(rho_mu_re);
+      }
+    }
     vector<Type> mu = exp(eta_mu);
     vector<Type> sigma = exp(log_sigma);
     for (int i = 0; i < y.size(); ++i) {

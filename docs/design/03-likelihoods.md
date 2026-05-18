@@ -72,7 +72,7 @@ is the current routing contract:
 | `4` | `family = lognormal()` | `drm_build_lognormal_ls_spec()` | Univariate fixed-effect lognormal location-scale models for positive responses, with `mu` and `sigma` defined on the log-response scale. |
 | `5` | `family = Gamma(link = "log")` | `drm_build_gamma_ls_spec()` | Univariate fixed-effect Gamma mean-CV models for positive responses, with `mu` as the response mean and `sigma` as the coefficient of variation. |
 | `6` | `family = poisson(link = "log")` | `drm_build_poisson_spec()` | Univariate fixed-effect Poisson mean models for non-negative integer counts, with `mu` as the count mean. |
-| `7` | `family = nbinom2()` | `drm_build_nbinom2_spec()` | Univariate fixed-effect negative-binomial 2 models for overdispersed counts, with `mu` as the count mean and `sigma` as an overdispersion scale. |
+| `7` | `family = nbinom2()` | `drm_build_nbinom2_spec()` | Univariate negative-binomial 2 models for overdispersed counts, with `mu` as the count mean, `sigma` as an overdispersion scale, and optional ordinary `mu` random intercepts or independent numeric slopes on the log-mean predictor. |
 | `8` | `family = poisson(link = "log")` plus `zi ~ ...` | `drm_build_poisson_spec()` | Univariate fixed-effect zero-inflated Poisson models, with `mu` as the conditional count mean and `zi` as the structural-zero probability. |
 | `9` | `family = nbinom2()` plus `zi ~ ...` | `drm_build_nbinom2_spec()` | Univariate fixed-effect zero-inflated negative-binomial 2 models, with `mu` as the conditional count mean, `sigma` as the NB2 overdispersion scale, and `zi` as the structural-zero probability. |
 | `10` | `family = beta()` | `drm_build_beta_ls_spec()` | Univariate fixed-effect beta mean-scale models for strict continuous proportions, with `mu` as the mean proportion and public `sigma` mapped internally to `phi = 1 / sigma^2`. |
@@ -989,9 +989,11 @@ drmTMB(
 For `nbinom2()` fits, `predict(fit, dpar = "mu")` and `fitted(fit)` return the
 count mean. `sigma(fit)` returns the overdispersion scale in the variance
 equation, not a residual standard deviation. Larger `sigma` means greater
-extra-Poisson variation. Random effects, known sampling covariance,
-phylogenetic terms, and bivariate or mixed negative-binomial models are later
-phases.
+extra-Poisson variation. Ordinary `mu` random intercepts and independent
+numeric slopes are fitted for non-zero-inflated NB2 models. Correlated NB2
+slope blocks, labelled covariance blocks, NB2 `sigma` random effects,
+zero-inflated NB2 random effects, known sampling covariance, phylogenetic terms,
+and bivariate or mixed negative-binomial models are later phases.
 
 ## Implemented Zero-Truncated Negative Binomial 2
 

@@ -86,8 +86,10 @@ families.
 - `nbinom2()`: `mu`, `sigma`; implemented fixed-effect path with
   `Var(y) = mu + sigma^2 * mu^2`, so larger `sigma` means greater
   overdispersion. The `mu` formula supports standard R exposure offsets such as
-  `offset(log(trap_nights))`. Adding `zi ~ predictors` fits the implemented
-  fixed-effect zero-inflated NB2 path.
+  `offset(log(trap_nights))`, ordinary random intercepts, and independent
+  numeric random slopes for non-zero-inflated NB2 models. Adding `zi ~
+  predictors` fits the implemented fixed-effect zero-inflated NB2 path, but
+  zero-inflated NB2 random effects remain planned.
 - `truncated_nbinom2()`: `mu`, `sigma`; implemented fixed-effect
   zero-truncated NB2 path for positive counts. The parameters describe the
   untruncated NB2 component, and `fitted()` returns the conditional
