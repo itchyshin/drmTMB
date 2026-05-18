@@ -1481,6 +1481,50 @@ Use this order unless Slice 191 evidence overturns it:
 | 266 | Gallery source-map and QA | Add a table mapping each figure to the fitted object, extractor, interval source, and current support boundary; run pkgdown and visual/readability checks. |
 | 267 | Florence closeout | Decide which plots need new exported helpers versus tutorial-level `ggplot2` recipes, and record the next helper backlog before returning to convergence hardening. |
 
+### Pre-Simulation Readiness Slice Map
+
+This table is the working contract before full Phase 18 simulation begins. It
+keeps three lanes separate: user-facing plots, model-feature hardening, and
+simulation evidence. A narrow internal pilot, such as the Slice 258 count
+simulation diagnostics, should not be promoted as the general figure gallery or
+as the whole comprehensive simulation programme.
+
+| Slice | Block | Target | Done When |
+| --- | --- | --- | --- |
+| 260 | Figure gallery | Interaction plot polish | The gallery shows categorical x continuous, categorical x categorical, and continuous x continuous examples with raw data where useful, fitted values, 95% confidence intervals, and clear conditioning labels. |
+| 261 | Figure gallery | Distributional-parameter panels | The gallery has polished examples for `mu`, `sigma`, `nu` or other shape parameters, zero-inflation, hurdle or one-inflation probabilities, and residual `rho12`, with explicit reporting scales and interval provenance. |
+| 262 | Figure gallery | Random-effect and variance-component figures | The gallery separates ordinary grouped SDs, random-slope summaries, `sd(group)` surfaces, residual `sigma`, and group-level SDs instead of visually collapsing them. |
+| 263 | Figure gallery | Correlation-layer figures | `corpairs()` examples distinguish residual, ordinary group, phylogenetic, spatial, future animal, and future `relmat()` layers. |
+| 264 | Figure gallery | `emmeans` and marginal-effects figures | The gallery shows the supported fixed-effect univariate `mu` `emmeans` route, factor-conditioned grids, interaction grids, and the boundary for unsupported `sigma`, bivariate, zero-inflated, hurdle, ordinal, and random-effect targets. |
+| 265 | Simulation plot grammar | Operating-characteristic plot design | The Simulation & Comparison route has reusable plot grammar for power, bias, RMSE, coverage, convergence, interval width, runtime, and warning/error ledgers across continuous, proportion, count, and meta-analysis examples. |
+| 266 | Figure QA | Gallery source map | Each figure maps to the fitted object, extractor, interval source, support status, and current limitation. |
+| 267 | Florence closeout | Plot helper backlog | Decide which plots need exported helpers and which should remain tutorial-level `ggplot2` recipes before returning to convergence hardening. |
+| 268 | Support audit | Pre-simulation capability matrix | One table says implemented, tested, planned, or unsupported for Gaussian, non-Gaussian, shape, inflation, bivariate, random slopes, meta-analysis, phylogenetic, spatial, animal, and `relmat()` models. |
+| 269 | Random slopes | Ordinary location random slopes | Confirm arbitrary multi-slope ordinary location blocks, such as `(1 + x1 + x2 + ... | id)`, with tests and user-facing boundary wording. |
+| 270 | Random slopes | Scale random effects | Confirm or implement up to two random-effect terms in `sigma`, each with at least one slope where feasible, and state the boundary honestly. |
+| 271 | Random slopes | Shape and inflation random effects | Audit or implement at least one random slope for `nu` or other shape parameters and zero-inflation, hurdle, or one-inflation paths where the model is identifiable. |
+| 272 | Random slopes | Structured random slopes | Clarify phylogenetic, spatial, animal, and `relmat()` random-intercept and one-slope boundaries; keep predictor-modelled random-effect correlations out of scope for this gate. |
+| 273 | Bivariate | Bivariate random-slope combinations | Test location arbitrary slopes by response and paired location-scale combinations; identify q=4 and block-diagonal gaps before simulation claims are made. |
+| 274 | Convergence | Control presets and defaults | Keep ordinary defaults fast, but document and test robust settings for complex bivariate, structured, location-scale, shape, inflation, and random-slope models. |
+| 275 | Convergence | Warm starts from simpler models | Add or design simpler-fit starts, moving from location-only to location-scale and then to full bivariate or structured models. |
+| 276 | Convergence | Multi-optimizer fallback | Add or design fallback refits across `nlminb`, BFGS or L-BFGS-B, and comparison reporting without slowing ordinary fits. |
+| 277 | Convergence | Hessian and boundary diagnostics | Improve `pdHess`, gradient, tiny variance, near +/-1 correlation, boundary, and culprit-parameter reporting. |
+| 278 | CIs and profiles | Interval hardening | Support or clearly document Wald, Fisher-z correlation Wald, and profile intervals for correlations, variances, scale, shape, and boundary cases. |
+| 279 | Known issues | Bergmann report fixes | Address boundary-NaN SE propagation, q=4 block-diagonal fallback, univariate `sigma ~ phylo()`, and long-iteration guidance. |
+| 280 | Meta-analysis | `meta_V(V = V)` hardening | Harden vector and matrix `V`, exact scale defaults, naming cleanup, profile or Wald checks, and avoid drift back to `meta_known_V` in user-facing prose. |
+| 281 | Structural dependence | Animal and `relmat()` user surface | Add or finalize `animal()` and `relmat()` design, examples, and ecological or evolutionary biology use cases alongside phylogenetic and spatial models. |
+| 282 | Structural dependence | Sparse precision path | Clarify dense VCV versus sparse precision or A-inverse paths for phylogenetic, animal, and `relmat()` models, including scalability boundaries. |
+| 283 | Non-Gaussian audit | Family and parameter map | List every family, distributional parameter, link, shape parameter, random-effect allowance, and test evidence state. |
+| 284 | Counts | Count-model hardening | Poisson, negative-binomial, truncated, hurdle, and zero-inflated count surfaces have fixed-effect, relevant shape or scale, and random-effect tests. |
+| 285 | Proportions | Beta, binomial, and one-inflation hardening | Proportion and percent-data paths, including zero-one or one-inflation where appropriate, are tested and documented. |
+| 286 | Continuous shape | Heavy-tail and skewness design | Student-t or `nu`, skew-normal or skew-t residual-shape plans, and the separation of residual skewness from future `skew(id)` are documented before simulation. |
+| 287 | Ordinal | Ordinal readiness | Ordinal likelihoods, random effects, one-slope boundaries, prediction, intervals, and examples have implementation and evidence status. |
+| 288 | Bivariate mixed families | Mixed-response combinations | Gaussian-count, Gaussian-proportion, count-proportion, and other two-response combinations are audited or implemented within the bivariate scope. |
+| 289 | Extractors | Prediction and plotting contracts | `predict_parameters()`, `vcov`, `corpairs()`, `emmeans`, and plotting helpers return consistent status and provenance columns. |
+| 290 | Documentation | User-facing boundaries | README, pkgdown, reference topics, and articles state what is stable, experimental, planned, or unsupported. |
+| 291 | Pre-simulation gate | Evidence ledger | Rose and Fisher sign off that every advertised feature has implementation, tests, examples or docs, limitations, and simulation status. |
+| 292 | Phase 18 start | Comprehensive simulation blueprint | Start the full design only after the gate, covering continuous, proportion, count, ordinal, meta-analysis, bivariate, random-slope, shape, phylogenetic, spatial, animal, and `relmat()` scenarios. |
+
 ## Phase 18: Comprehensive Simulation, Power, Accuracy, and Coverage Evidence
 
 - Status: planned.
