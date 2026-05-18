@@ -24205,3 +24205,41 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slice-223-run-failure-ledger.md`.
+
+## 2026-05-17 - Slice 224 result directory scan
+
+Goal: allow Phase 18 saved replicate directories to be audited after a
+resumable run.
+
+Files changed:
+
+- `inst/sim/R/sim_runner.R`
+- `tests/testthat/test-phase18-sim-runner.R`
+- `inst/sim/README.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `ROADMAP.md`
+- `NEWS.md`
+- `docs/dev-log/after-task/2026-05-17-slice-224-result-directory-scan.md`
+
+What changed:
+
+- Added `phase18_read_result_dir()` to recursively read saved `.rds` replicate
+  results, sort paths, validate each object against the manifest contract, and
+  retain `source_path` on each loaded result.
+- Added tests showing that manifests and warning/error ledgers can be rebuilt
+  from saved result files.
+
+Checks run:
+
+- `air format inst/sim/R/sim_runner.R tests/testthat/test-phase18-sim-runner.R inst/sim/README.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md NEWS.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-17-slice-224-result-directory-scan.md`
+- `Rscript -e "devtools::test(filter = 'phase18-sim-runner', reporter = 'summary')"`
+- `git diff --check`
+
+Known limitations:
+
+- The loader reads saved result objects from disk but does not yet classify
+  optimizer root causes, parse diagnostics, or discover aggregate CSV files.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slice-224-result-directory-scan.md`.

@@ -279,3 +279,111 @@ test_that("Phase 18 replicate runner extracts warning and error rows", {
     0L
   )
 })
+
+test_that("Phase 18 replicate runner reads saved result directories", {
+  source(
+    system.file("sim/R/sim_registry.R", package = "drmTMB", mustWork = TRUE),
+    local = TRUE
+  )
+  source(
+    system.file("sim/R/sim_utils.R", package = "drmTMB", mustWork = TRUE),
+    local = TRUE
+  )
+  source(
+    system.file("sim/R/sim_runner.R", package = "drmTMB", mustWork = TRUE),
+    local = TRUE
+  )
+
+  result_dir <- tempfile("phase18-results-")
+  dir.create(result_dir)
+  withr::defer(unlink(result_dir, recursive = TRUE))
+
+  ok <- list(
+    cell_id = "cell 001",
+    replicate = 1L,
+    seed = 101L,
+    status = "ok",
+    warnings = character(),
+    error = NULL,
+    elapsed = 0.1,
+    skipped = FALSE
+  )
+  failed <- list(
+    cell_id = "cell 001",
+    replicate = 2L,
+    seed = 102L,
+    status = "error",
+    warnings = "careful",
+    error = "failed",
+    elapsed = 0.2,
+    skipped = FALSE
+  )
+  ok_path <- phase18_result_path(result_dir, ok$cell_id, ok$replicate)
+  failed_path <- phase18_result_path(
+    result_dir,
+    failed$cell_id,
+    failed$replicate
+  )
+  dir.create(dirname(ok_path), recursive = TRUE, showWarnings = FALSE)
+  saveRDS(ok, ok_path)
+  saveRDS(
+    failed,
+    failed_path
+  )
+  writeLines("ignored", file.path(result_dir, "notes.txt"))
+
+  results <- phase18_read_result_dir(result_dir)
+  manifest <- phase18_result_manifest(results)
+  failures <- phase18_result_failures(results)
+
+  expect_equal(length(results), 2L)
+  expect_true(all(file.exists(vapply(
+    results,
+    function(result) result$source_path,
+    character(1L)
+  ))))
+  expect_equal(manifest$replicate, c(1L, 2L))
+  expect_equal(manifest$status, c("ok", "error"))
+  expect_equal(nrow(failures), 2L)
+  expect_equal(failures$severity, c("error", "warning"))
+})
+
+test_that("Phase 18 replicate runner validates result directory reads", {
+  source(
+    system.file("sim/R/sim_registry.R", package = "drmTMB", mustWork = TRUE),
+    local = TRUE
+  )
+  source(
+    system.file("sim/R/sim_utils.R", package = "drmTMB", mustWork = TRUE),
+    local = TRUE
+  )
+  source(
+    system.file("sim/R/sim_runner.R", package = "drmTMB", mustWork = TRUE),
+    local = TRUE
+  )
+
+  result_dir <- tempfile("phase18-empty-results-")
+  dir.create(result_dir)
+  withr::defer(unlink(result_dir, recursive = TRUE))
+
+  expect_error(
+    phase18_read_result_dir(file.path(result_dir, "missing")),
+    "existing directory"
+  )
+  expect_error(
+    phase18_read_result_dir(result_dir),
+    "does not contain"
+  )
+  expect_error(
+    phase18_read_result_dir(result_dir, pattern = ""),
+    "pattern"
+  )
+
+  invalid_path <- phase18_result_path(result_dir, "bad", 1L)
+  dir.create(dirname(invalid_path), recursive = TRUE, showWarnings = FALSE)
+  saveRDS(list(cell_id = "bad"), invalid_path)
+  expect_error(
+    phase18_read_result_dir(result_dir),
+    "not a valid Phase 18 replicate result"
+  )
+})

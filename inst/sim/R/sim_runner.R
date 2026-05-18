@@ -104,6 +104,63 @@ phase18_result_path <- function(result_dir, cell_id, replicate) {
   file.path(result_dir, safe_cell_id, sprintf("replicate_%04d.rds", replicate))
 }
 
+phase18_read_result_dir <- function(result_dir, pattern = "[.]rds$") {
+  if (
+    !is.character(result_dir) || length(result_dir) != 1L || !nzchar(result_dir)
+  ) {
+    stop("`result_dir` must be one non-empty character string.", call. = FALSE)
+  }
+  if (!dir.exists(result_dir)) {
+    stop("`result_dir` must be an existing directory.", call. = FALSE)
+  }
+  if (!is.character(pattern) || length(pattern) != 1L || !nzchar(pattern)) {
+    stop("`pattern` must be one non-empty character string.", call. = FALSE)
+  }
+
+  paths <- sort(list.files(
+    result_dir,
+    pattern = pattern,
+    recursive = TRUE,
+    full.names = TRUE
+  ))
+  if (length(paths) == 0L) {
+    stop("`result_dir` does not contain any result files.", call. = FALSE)
+  }
+
+  results <- lapply(paths, phase18_read_result_file)
+  names(results) <- paths
+  results
+}
+
+phase18_read_result_file <- function(path) {
+  result <- tryCatch(
+    readRDS(path),
+    error = function(e) {
+      stop(
+        "`",
+        path,
+        "` could not be read as an RDS result: ",
+        conditionMessage(e),
+        call. = FALSE
+      )
+    }
+  )
+  tryCatch(
+    phase18_manifest_row(result),
+    error = function(e) {
+      stop(
+        "`",
+        path,
+        "` is not a valid Phase 18 replicate result: ",
+        conditionMessage(e),
+        call. = FALSE
+      )
+    }
+  )
+  result$source_path <- path
+  result
+}
+
 phase18_assert_one_row_data_frame <- function(x, name) {
   if (!is.data.frame(x) || nrow(x) != 1L) {
     stop("`", name, "` must be a one-row data frame.", call. = FALSE)
