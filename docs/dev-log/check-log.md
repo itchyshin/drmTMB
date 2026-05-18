@@ -25356,3 +25356,45 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-18-slice-250-pre-simulation-readiness-matrix.md`.
+
+## 2026-05-18 - Slice 251 Count mu random-effect pilot
+
+Goal: start Phase 18 simulation with a paired Poisson/NB2 `mu` random-effect
+pilot over the two count-family surfaces now ready for small grids.
+
+Files changed:
+
+- `inst/sim/run/sim_summary_count_mu_random_effect_pilot.R`
+- `tests/testthat/test-phase18-count-mu-random-effect-pilot.R`
+- `inst/sim/README.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `ROADMAP.md`
+- `NEWS.md`
+- `docs/dev-log/after-task/2026-05-18-slice-251-count-mu-random-effect-pilot.md`
+
+What changed:
+
+- Added a paired count-family pilot helper that runs the ready Poisson and NB2
+  `mu` random-effect smoke surfaces and combines their aggregate, manifest,
+  failure-ledger, Wald interval, Wald coverage, profile interval, and profile
+  coverage outputs.
+- The helper writes each family into its own result subdirectory when
+  `result_dir` is supplied.
+- Tests run one Poisson and one NB2 replicate and validate the combined output
+  shape and input checks.
+
+Checks run:
+
+- `air format inst/sim/run/sim_summary_count_mu_random_effect_pilot.R tests/testthat/test-phase18-count-mu-random-effect-pilot.R inst/sim/README.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md NEWS.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-18-slice-251-count-mu-random-effect-pilot.md`
+- `Rscript -e "devtools::test(filter = 'phase18-count-mu-random-effect-pilot|phase18-poisson-mu-random-effect|phase18-nbinom2-mu-random-effect', reporter = 'summary')"`
+- `Rscript -e "devtools::test(filter = 'phase18-count-mu-random-effect-pilot|phase18-sim-aggregate|phase18-sim-runner|phase18-sim-uncertainty', reporter = 'summary')"`
+- `git diff --check`
+
+Known limitations:
+
+- This is a paired pilot output, not a large operating-characteristic grid or a
+  figure gallery.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-251-count-mu-random-effect-pilot.md`.

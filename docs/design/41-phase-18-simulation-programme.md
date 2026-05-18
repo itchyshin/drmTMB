@@ -274,3 +274,7 @@ CRAN tests should only run smoke checks for seed stability and output shape.
     `docs/design/46-pre-simulation-readiness-matrix.md`, separating fitted,
     smoke-tested, interval-ready, weak-boundary-tested, planned, and blocked
     surfaces before broad simulation reports are written.
+41. Slice 251 starts the first paired count pilot by combining the ready Poisson
+    and NB2 `mu` random-effect smoke surfaces into one optional pilot output
+    with aggregate, manifest, failure-ledger, Wald-coverage, and profile-
+    coverage tables.
