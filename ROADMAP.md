@@ -1489,11 +1489,12 @@ Use this order unless Slice 191 evidence overturns it:
   interval-coverage helpers are done locally in Slice 217; the first Gaussian
   location-scale summary-smoke run is done locally in Slice 218; the matching
   vector/dense `meta_V(V = V)` summary-smoke run is done locally in Slice 219.
-  A reader-facing smoke report template is done locally in Slice 220. Next,
-  start tiny interval-coverage smoke grids. A compact result manifest helper is
-  done locally in Slice 222 so resumed runs can be audited without opening every
-  RDS object. A warning/error failure-ledger helper is done locally in Slice
-  223.
+  A reader-facing smoke report template is done locally in Slice 220. A compact
+  result manifest helper is done locally in Slice 222 so resumed runs can be
+  audited without opening every RDS object. A warning/error failure-ledger
+  helper is done locally in Slice 223. Result-directory loading is done locally
+  in Slice 224 so manifests and ledgers can be rebuilt from saved RDS output.
+  Next, start tiny interval-coverage smoke grids.
 
 ## ASReml Efficiency Lessons For Future Animal Models
 

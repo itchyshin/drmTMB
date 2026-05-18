@@ -27,8 +27,8 @@ Current pilot files:
   parameter-level truth/estimate/error table.
 - `fit/sim_summarise_meta_v.R` does the same for the `meta_V(V = V)` pilot.
 - `R/sim_runner.R` runs one cell replicate, captures warnings/errors, can save
-  or resume an RDS result, and can reduce result lists to compact manifests or
-  warning/error ledgers.
+  or resume an RDS result, can reload saved result directories, and can reduce
+  result lists to compact manifests or warning/error ledgers.
 - `R/sim_aggregate.R` reduces parameter-level replicate summaries to grouped
   bias, RMSE, convergence, Hessian, warning, and elapsed-time summaries.
 - `R/sim_uncertainty.R` adds Monte Carlo uncertainty and explicit

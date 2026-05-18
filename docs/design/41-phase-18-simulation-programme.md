@@ -175,3 +175,5 @@ CRAN tests should only run smoke checks for seed stability and output shape.
     audited without opening every per-replicate summary.
 13. Slice 223 adds a warning/error ledger for replicate results so failed fits
     remain visible beside aggregate summaries.
+14. Slice 224 adds result-directory loading so manifests and warning/error
+    ledgers can be rebuilt from saved RDS output after a resumable run.
