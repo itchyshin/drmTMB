@@ -4,7 +4,9 @@ phase18_summarise_nbinom2_mu_re_fit <- function(
   cell_id = NA_character_,
   replicate = NA_integer_,
   elapsed = NA_real_,
-  warnings = character()
+  warnings = character(),
+  profile_random_sd = TRUE,
+  profile_level = 0.70
 ) {
   if (is.data.frame(truth)) {
     truth <- attr(truth, "truth", exact = TRUE)
@@ -34,7 +36,7 @@ phase18_summarise_nbinom2_mu_re_fit <- function(
   names(estimate) <- parameter
   names(truth_value) <- parameter
 
-  data.frame(
+  out <- data.frame(
     surface = "nbinom2_mu_random_effect",
     cell_id = cell_id,
     replicate = replicate,
@@ -56,6 +58,72 @@ phase18_summarise_nbinom2_mu_re_fit <- function(
     warnings = paste(warnings, collapse = " | "),
     stringsAsFactors = FALSE
   )
+  phase18_nbinom2_mu_re_attach_profiles(
+    out,
+    fit = fit,
+    profile_random_sd = profile_random_sd,
+    profile_level = profile_level
+  )
+}
+
+phase18_nbinom2_mu_re_attach_profiles <- function(
+  summary,
+  fit,
+  profile_random_sd,
+  profile_level
+) {
+  if (
+    !is.logical(profile_random_sd) ||
+      length(profile_random_sd) != 1L ||
+      is.na(profile_random_sd)
+  ) {
+    stop("`profile_random_sd` must be TRUE or FALSE.", call. = FALSE)
+  }
+  if (
+    !is.numeric(profile_level) ||
+      length(profile_level) != 1L ||
+      !is.finite(profile_level) ||
+      profile_level <= 0 ||
+      profile_level >= 1
+  ) {
+    stop("`profile_level` must be one number between 0 and 1.", call. = FALSE)
+  }
+
+  summary$profile.conf.low <- NA_real_
+  summary$profile.conf.high <- NA_real_
+  summary$profile.conf.level <- profile_level
+  summary$profile.method <- NA_character_
+  summary$profile.status <- "not_requested"
+  summary$profile.message <- ""
+  if (!profile_random_sd) {
+    return(summary)
+  }
+
+  rows <- which(summary$parameter_class == "random_sd")
+  for (row in rows) {
+    ci <- tryCatch(
+      stats::confint(
+        fit,
+        parm = summary$parameter[[row]],
+        method = "profile",
+        level = profile_level,
+        trace = FALSE,
+        ystep = 0.50
+      ),
+      error = function(e) e
+    )
+    summary$profile.method[[row]] <- "profile"
+    if (inherits(ci, "error")) {
+      summary$profile.status[[row]] <- "failed"
+      summary$profile.message[[row]] <- conditionMessage(ci)
+      next
+    }
+    summary$profile.conf.low[[row]] <- ci$lower[[1L]]
+    summary$profile.conf.high[[row]] <- ci$upper[[1L]]
+    summary$profile.status[[row]] <- ci$conf.status[[1L]]
+    summary$profile.message[[row]] <- ci$profile.message[[1L]]
+  }
+  summary
 }
 
 phase18_nbinom2_mu_re_std_error <- function(fit, parameter) {
