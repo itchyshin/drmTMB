@@ -186,3 +186,6 @@ CRAN tests should only run smoke checks for seed stability and output shape.
     warning/error ledger CSVs have explicit reader-facing sections.
 18. Slice 228 adds a skip-aware render test for the smoke report template using
     tiny aggregate, manifest, and warning/error ledger CSV fixtures.
+19. Slice 229 records the interval-producer contract for Wald, profile, and
+    bootstrap endpoints, including reported scale, method, failure status, and
+    correlation-scale rules.
