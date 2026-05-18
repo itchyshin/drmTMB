@@ -45,6 +45,23 @@ test_that("plot_corpairs() can facet correlation rows", {
   expect_equal(length(unique(built$layout$layout$PANEL)), 3L)
 })
 
+test_that("plot_corpairs() accepts concise publication labels", {
+  testthat::skip_if_not_installed("ggplot2")
+  pairs <- new_plot_corpairs_table()
+  pairs$display <- factor(
+    c("Residual\nrho12", "Group\nslope", "Phylogenetic\ntrait"),
+    levels = c("Group\nslope", "Phylogenetic\ntrait", "Residual\nrho12")
+  )
+
+  out <- plot_corpairs(pairs, label = "display")
+
+  expect_s3_class(out, "ggplot")
+  expect_equal(out$data$.drmTMB_pair_label, pairs$display)
+  built <- ggplot2::ggplot_build(out)
+  expect_equal(nrow(built$data[[2L]]), 2L)
+  expect_equal(nrow(built$data[[3L]]), 3L)
+})
+
 test_that("plot_corpairs() accepts point-only and empty tables", {
   testthat::skip_if_not_installed("ggplot2")
   pairs <- new_plot_corpairs_table()[c(
@@ -91,6 +108,10 @@ test_that("plot_corpairs() validates inputs", {
   )
   expect_error(
     plot_corpairs(pairs, facet = "missing"),
+    "must name a column"
+  )
+  expect_error(
+    plot_corpairs(pairs, label = "missing"),
     "must name a column"
   )
   expect_error(

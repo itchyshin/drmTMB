@@ -25806,3 +25806,51 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-18-pre-simulation-slice-map.md`.
+
+## 2026-05-18 - Slice 260 figure-gallery interaction polish
+
+Goal: make the first figure-gallery article closer to Florence's AA-class
+scientific illustration standard, especially for interaction displays and the
+cramped correlation summary.
+
+Files changed:
+
+- `R/plot-corpairs.R`
+- `man/plot_corpairs.Rd`
+- `tests/testthat/test-plot-corpairs.R`
+- `vignettes/figure-gallery.Rmd`
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-18-slice-260-gallery-interactions.md`
+
+What changed:
+
+- Added `label =` to `plot_corpairs()` so users can supply short row labels
+  for publication figures while keeping full correlation metadata in the
+  source table.
+- Added plot-helper tests for concise `plot_corpairs()` labels.
+- Improved gallery interaction figures with raw data, fitted values, 95%
+  confidence intervals, stable colour ordering, clear conditioning labels, and
+  alt text.
+- Replaced the cramped long-label correlation display with a cleaner
+  single-panel display using stacked short labels.
+
+Checks run:
+
+- `air format R/plot-corpairs.R tests/testthat/test-plot-corpairs.R vignettes/figure-gallery.Rmd`
+- `Rscript -e "devtools::document()"`
+- `Rscript -e "devtools::test(filter = 'plot-corpairs|plot-parameter-surface', reporter = 'summary')"`
+- `Rscript -e "devtools::load_all('.', quiet = TRUE); rmarkdown::render('vignettes/figure-gallery.Rmd', output_dir = '/tmp/drmtmb-figure-gallery-s260', quiet = TRUE)"`
+- Extracted embedded rendered PNGs from `/tmp/drmtmb-figure-gallery-s260/figure-gallery.html` and visually checked the fitted-mean, categorical interaction, continuous interaction, and correlation figures.
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `git diff --check`
+
+Known limitations:
+
+- This slice does not complete the later distributional-parameter,
+  correlation-layer, or simulation-result gallery slices.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-260-gallery-interactions.md`.

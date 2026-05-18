@@ -1,6 +1,7 @@
 # drmTMB 0.1.2 (2026-05-16)
 
 * Phase 18 now has an optional resumable replicate runner under `inst/sim/` that captures warnings, errors, elapsed time, session metadata, and optional RDS output for pilot simulation cells.
+* `plot_corpairs()` now has a `label` argument so publication figures can use short row labels while keeping full correlation metadata in the source table.
 * Phase 18 replicate results can now be reduced to a warning/error failure ledger so failed fits and warning-bearing replicates remain visible beside aggregate summaries.
 * Phase 18 saved replicate directories can now be reloaded into result lists, allowing manifests and failure ledgers to be rebuilt from RDS output after a resumable simulation run.
 * Phase 18 simulation results can now be reduced to a compact manifest table with cell id, replicate, seed, status, skipped/resumed flag, warning count, error message, and elapsed time.

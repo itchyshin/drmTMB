@@ -1491,7 +1491,7 @@ as the whole comprehensive simulation programme.
 
 | Slice | Block | Target | Done When |
 | --- | --- | --- | --- |
-| 260 | Figure gallery | Interaction plot polish | The gallery shows categorical x continuous, categorical x categorical, and continuous x continuous examples with raw data where useful, fitted values, 95% confidence intervals, and clear conditioning labels. |
+| 260 | Figure gallery | Interaction plot polish | Done locally: the gallery now shows categorical x continuous, categorical x categorical, and continuous x continuous examples with raw data where useful, fitted values, 95% confidence intervals, clear conditioning labels, alt text, and a cleaner correlation figure using `plot_corpairs(label = ...)`. |
 | 261 | Figure gallery | Distributional-parameter panels | The gallery has polished examples for `mu`, `sigma`, `nu` or other shape parameters, zero-inflation, hurdle or one-inflation probabilities, and residual `rho12`, with explicit reporting scales and interval provenance. |
 | 262 | Figure gallery | Random-effect and variance-component figures | The gallery separates ordinary grouped SDs, random-slope summaries, `sd(group)` surfaces, residual `sigma`, and group-level SDs instead of visually collapsing them. |
 | 263 | Figure gallery | Correlation-layer figures | `corpairs()` examples distinguish residual, ordinary group, phylogenetic, spatial, future animal, and future `relmat()` layers. |
