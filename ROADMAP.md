@@ -1492,6 +1492,19 @@ Use this order unless Slice 191 evidence overturns it:
   A reader-facing smoke report template is done locally in Slice 220. Next,
   start tiny interval-coverage smoke grids.
 
+## ASReml Efficiency Lessons For Future Animal Models
+
+- `docs/design/42-asreml-efficiency-lessons.md` records a design-only
+  inspection of the local ASReml-R archive. The main lesson is that large
+  animal-model performance depends on sparse inverse relationship structures,
+  row-name matching metadata, log-determinant bookkeeping, and clear
+  covariance-versus-precision contracts.
+- For `drmTMB`, `animal()` should remain biological sugar, while `relmat()`
+  should become the lower-level known-matrix surface with explicit `K`
+  covariance and `Q` precision paths. Do not claim ASReml-like large-pedigree
+  speed until the sparse-precision route exists and passes recovery and scaling
+  tests.
+
 ## Phase 19: Comparator Demonstrations With Other Packages
 
 - Status: planned.
