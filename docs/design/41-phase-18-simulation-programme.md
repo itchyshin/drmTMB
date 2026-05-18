@@ -156,3 +156,7 @@ CRAN tests should only run smoke checks for seed stability and output shape.
 6. Slice 215 adds the matching `meta_V(V = V)` smoke surface for vector and
    dense known sampling covariance cells, again stopping at per-parameter
    summaries rather than aggregate operating-characteristic claims.
+7. Slice 216 adds the first parameter-level aggregation helper for bias, RMSE,
+   empirical standard error, convergence, Hessian, warning, and elapsed-time
+   summaries. Monte Carlo uncertainty and interval coverage remain separate
+   follow-up slices.

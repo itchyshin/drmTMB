@@ -1484,7 +1484,9 @@ Use this order unless Slice 191 evidence overturns it:
   is done locally in Slice 212; a generic resumable replicate runner is done
   locally in Slice 213; the first end-to-end Gaussian location-scale smoke
   runner is done locally in Slice 214; the matching vector/dense `meta_V(V = V)`
-  smoke runner is done locally in Slice 215. Next, add aggregation tables.
+  smoke runner is done locally in Slice 215; the first parameter-level
+  aggregation helper is done locally in Slice 216. Next, add MCSE and interval
+  coverage summaries.
 
 ## Phase 19: Comparator Demonstrations With Other Packages
 
