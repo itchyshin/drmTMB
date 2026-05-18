@@ -129,6 +129,21 @@ parameter. If a plot draws a ribbon, interval bar, or shaded region, the source
 table must contain a real interval source instead of
 `interval_source = "not_available"`.
 
+### Florence Figure Gate
+
+Florence is the standing scientific figure editor for visualization work. She
+reviews whether a figure is ready for readers, not just whether it is produced
+by `ggplot2`. A reader-facing plot should pass this gate before it appears in a
+tutorial, gallery, or report:
+
+| Gate | Minimum standard |
+| --- | --- |
+| Interpretability | The title, axes, facets, and caption name the biological question, fitted distributional parameter, and reporting scale. |
+| Uncertainty | Confidence bands, interval bars, or missing-interval markers match `conf.status` and `interval_source`; a plain line is not presented as an interval. |
+| Evidence | Raw data, prediction grids, `check_drm()` status, or simulation diagnostics are visible in the surrounding workflow when they are needed for interpretation. |
+| Accessibility | Colour choices are colour-blind-friendly, line widths remain legible in print, and panels are readable at pkgdown and manuscript sizes. |
+| Composability | The helper returns an ordinary `ggplot` object and keeps the data table inspectable for custom ecology/evolution figures. |
+
 ## Proposed Phase 17 Data Contracts
 
 ### Prediction Grid Builder
