@@ -23843,3 +23843,47 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slice-214-gaussian-ls-runner.md`.
+
+## 2026-05-17 - Slice 215 meta_V smoke runner
+
+Goal: add the first end-to-end Phase 18 smoke runner for the Gaussian
+`meta_V(V = V)` pilot.
+
+Files changed:
+
+- `inst/sim/run/sim_run_meta_v_smoke.R`
+- `tests/testthat/test-phase18-meta-v-runner.R`
+- `inst/sim/README.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `ROADMAP.md`
+- `NEWS.md`
+- `docs/dev-log/after-task/2026-05-17-slice-215-meta-v-runner.md`
+
+What changed:
+
+- Added a `meta_V(V = V)` cell-to-DGP adapter for registry rows.
+- Added a small `drmTMB()` fitting wrapper for
+  `bf(yi ~ x + meta_V(V = V), sigma ~ 1)`.
+- Added `phase18_run_meta_v_smoke()` to build the registry, run seeded
+  replicates through the generic runner, save optional RDS results, and return
+  one combined parameter summary.
+- Added tests for vector and dense known sampling covariance cells, resume
+  behaviour, missing known `V`, and malformed inputs.
+
+Checks run:
+
+- `air format inst/sim/run/sim_run_meta_v_smoke.R tests/testthat/test-phase18-meta-v-runner.R inst/sim/README.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md NEWS.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-17-slice-215-meta-v-runner.md`
+- `Rscript -e "devtools::test(filter = 'phase18-meta-v-runner', reporter = 'summary')"`
+- `Rscript -e "devtools::test(filter = 'phase18', reporter = 'summary')"`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `git diff --check`
+
+Known limitations:
+
+- This is a CRAN-safe smoke surface, not a simulation grid. It does not add
+  dense-`V` scalability claims, MCSE calculations, interval coverage, power
+  curves, `metafor` comparators, or rendered reports.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slice-215-meta-v-runner.md`.

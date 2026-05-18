@@ -153,3 +153,6 @@ CRAN tests should only run smoke checks for seed stability and output shape.
 5. Slice 214 adds the first end-to-end Gaussian location-scale smoke surface,
    wiring registry, DGP, fit, summariser, saved output, and combined parameter
    table without yet making coverage or power claims.
+6. Slice 215 adds the matching `meta_V(V = V)` smoke surface for vector and
+   dense known sampling covariance cells, again stopping at per-parameter
+   summaries rather than aggregate operating-characteristic claims.
