@@ -20,7 +20,10 @@ abundance, the extra-Poisson variation around that abundance, or the chance of
 a separate structural zero?
 
 This article stays inside the currently implemented `drmTMB` count surface:
-fixed-effect univariate NB2 and zero-inflated NB2 models.
+univariate NB2 models, fixed-effect zero-inflated NB2 models, and the first
+ordinary NB2 `mu` random-effect path. The worked example below remains
+fixed-effect so the mean, overdispersion, and structural-zero pieces are easy
+to read before adding group effects.
 
 The source motivation comes from Nakagawa et al. (2026), who use
 location-scale models to discuss heteroscedasticity in continuous, count, and
@@ -293,7 +296,8 @@ drmTMB(
 
 Do not teach the following as fitted count examples yet:
 
-- random effects in NB2 `mu`, `sigma`, or `zi`;
+- correlated or labelled NB2 `mu` random-slope blocks;
+- random effects in NB2 `sigma` or `zi`;
 - `sd(group) ~ ...` random-effect scale models;
 - `meta_known_V(V = V)` with counts;
 - `phylo()`, `spatial()`, `animal()`, or `relmat()` count models;

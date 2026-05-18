@@ -12,6 +12,41 @@ new_nbinom2_data <- function(n = 1200, seed = 20260602) {
   list(data = dat, beta_mu = beta_mu, beta_sigma = beta_sigma)
 }
 
+new_nbinom2_random_effect_data <- function(
+  n_id = 44,
+  n_each = 10,
+  seed = 20260628
+) {
+  set.seed(seed)
+  n <- n_id * n_each
+  dat <- data.frame(
+    id = factor(rep(seq_len(n_id), each = n_each)),
+    x = stats::rnorm(n),
+    z = stats::rnorm(n)
+  )
+  beta_mu <- c(`(Intercept)` = 0.35, x = -0.25)
+  beta_sigma <- c(`(Intercept)` = -0.70, z = 0.20)
+  sd_id <- 0.45
+  sd_x <- 0.30
+  u_id <- stats::rnorm(n_id, sd = sd_id)
+  u_x <- stats::rnorm(n_id, sd = sd_x)
+  eta_mu <- beta_mu[[1L]] +
+    beta_mu[[2L]] * dat$x +
+    u_id[dat$id] +
+    u_x[dat$id] * dat$x
+  sigma <- exp(beta_sigma[[1L]] + beta_sigma[[2L]] * dat$z)
+  dat$count <- stats::rnbinom(n, size = 1 / sigma^2, mu = exp(eta_mu))
+  list(
+    data = dat,
+    beta_mu = beta_mu,
+    beta_sigma = beta_sigma,
+    sd_id = sd_id,
+    sd_x = sd_x,
+    u_id = u_id,
+    u_x = u_x
+  )
+}
+
 test_that("drmTMB fits fixed-effect nbinom2 mean-dispersion models", {
   sim <- new_nbinom2_data()
 
@@ -40,6 +75,60 @@ test_that("drmTMB fits fixed-effect nbinom2 mean-dispersion models", {
     exp(predict(fit, dpar = "sigma", type = "link")),
     tolerance = 1e-12
   )
+  expect_equal(fitted(fit), predict(fit, dpar = "mu"), tolerance = 1e-12)
+})
+
+test_that("nbinom2 mu supports ordinary random intercepts and slopes", {
+  sim <- new_nbinom2_random_effect_data()
+
+  fit <- drmTMB(
+    bf(count ~ x + (1 | id) + (0 + x | id), sigma ~ z),
+    family = nbinom2(),
+    data = sim$data
+  )
+
+  expect_s3_class(fit, "drmTMB")
+  expect_equal(fit$model$model_type, "nbinom2")
+  expect_equal(fit$opt$convergence, 0)
+  expect_true(fit$sdr$pdHess)
+  expect_equal(fit$model$random$mu$n_terms, 2L)
+  expect_equal(fit$model$random$mu$labels, c("(1 | id)", "(0 + x | id)"))
+  expect_named(fit$sdpars$mu, c("(1 | id)", "(0 + x | id)"))
+  expect_gt(unname(fit$sdpars$mu[["(1 | id)"]]), 0.05)
+  expect_gt(unname(fit$sdpars$mu[["(0 + x | id)"]]), 0.05)
+  expect_lt(abs(unname(fit$sdpars$mu[["(1 | id)"]]) - sim$sd_id), 0.30)
+  expect_lt(abs(unname(fit$sdpars$mu[["(0 + x | id)"]]) - sim$sd_x), 0.30)
+  expect_lt(max(abs(coef(fit, "mu") - sim$beta_mu)), 0.25)
+  expect_lt(max(abs(coef(fit, "sigma") - sim$beta_sigma)), 0.25)
+
+  id_effects <- fit$random_effects$mu$terms[["(1 | id)"]]
+  slope_effects <- fit$random_effects$mu$terms[["(0 + x | id)"]]
+  expect_equal(length(id_effects), length(sim$u_id))
+  expect_equal(length(slope_effects), length(sim$u_x))
+  expect_gt(stats::cor(id_effects, sim$u_id), 0.35)
+  expect_gt(stats::cor(slope_effects, sim$u_x), 0.25)
+
+  targets <- profile_targets(fit)
+  sd_targets <- targets[
+    targets$parm %in% c("sd:mu:(1 | id)", "sd:mu:(0 + x | id)"),
+  ]
+  sd_targets <- sd_targets[
+    match(
+      c("sd:mu:(1 | id)", "sd:mu:(0 + x | id)"),
+      sd_targets$parm
+    ),
+  ]
+  expect_equal(
+    sd_targets$parm,
+    c(
+      "sd:mu:(1 | id)",
+      "sd:mu:(0 + x | id)"
+    )
+  )
+  expect_true(all(sd_targets$profile_ready))
+  expect_equal(sd_targets$tmb_parameter, c("log_sd_mu", "log_sd_mu"))
+
+  expect_true(all(predict(fit, dpar = "mu") > 0))
   expect_equal(fitted(fit), predict(fit, dpar = "mu"), tolerance = 1e-12)
 })
 
@@ -314,8 +403,20 @@ test_that("nbinom2 rejects unsupported or invalid inputs", {
     "Offset terms"
   )
   expect_error(
-    drmTMB(bf(y ~ x + (1 | id), sigma ~ 1), family = nbinom2(), data = dat),
-    "implemented non-Gaussian random-effect path"
+    drmTMB(
+      bf(y ~ x + (1 | id), sigma ~ 1, zi ~ 1),
+      family = nbinom2(),
+      data = dat
+    ),
+    "Zero-inflated NB2 random effects"
+  )
+  expect_error(
+    drmTMB(
+      bf(y ~ x + (1 + x | id), sigma ~ 1),
+      family = nbinom2(),
+      data = dat
+    ),
+    "Only independent NB2"
   )
   expect_error(
     drmTMB(
