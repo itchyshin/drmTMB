@@ -24282,3 +24282,41 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slice-225-summary-manifest-ledgers.md`.
+
+## 2026-05-18 - Florence visualization role and memory guardrails
+
+Goal: make the new visualization role durable and adopt the useful Memory OS
+discipline without installing a new project framework.
+
+Files changed:
+
+- `AGENTS.md`
+- `docs/design/07-collaboration-and-site.md`
+- `docs/design/39-visualization-grammar.md`
+- `docs/dev-log/team-improvements.md`
+- `docs/dev-log/after-task/2026-05-18-florence-memory-os-role.md`
+
+What changed:
+
+- Added Florence as the standing scientific figure editor and visualization
+  reviewer.
+- Added a Florence figure gate for publication-quality plots, confidence bands,
+  interval provenance, accessibility, and composable `ggplot` output.
+- Recorded the conservative Memory OS rule: durable decisions should be stored
+  in repository docs, check logs, after-task reports, issues, pull requests, or
+  explicit memory notes; conversation alone is not reliable project memory.
+
+Checks run:
+
+- `air format AGENTS.md docs/design/07-collaboration-and-site.md docs/design/39-visualization-grammar.md docs/dev-log/team-improvements.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-18-florence-memory-os-role.md`
+- `git diff --check`
+
+Known limitations:
+
+- This process/documentation slice does not restyle the existing plotting
+  helpers or rebuild pkgdown. The next visualization slice should improve
+  example quality and figure-gallery guidance.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-florence-memory-os-role.md`.

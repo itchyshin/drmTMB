@@ -2,7 +2,7 @@
 
 This log records improvements to the agent team's own operating process. Use it
 when a task exposes a better way for Ada, Boole, Gauss, Noether, Darwin,
-Fisher, Pat, Jason, Curie, Emmy, Grace, or Rose to work.
+Florence, Fisher, Pat, Jason, Curie, Emmy, Grace, or Rose to work.
 
 This file is for process improvements, not package feature requests. Product
 or statistical-design changes still belong in roadmap files, design docs,
@@ -28,13 +28,32 @@ issues, or pull requests.
 - Improvement implemented: every substantial `drmTMB` task should start with a
   short "who is working right now" update. The default visible roles are Ada,
   Pat, Fisher, Grace, and Rose; add Boole, Gauss, Noether, Darwin, Jason,
-  Curie, or Emmy when the task touches their lane.
+  Florence, Curie, or Emmy when the task touches their lane.
 - Improvement implemented: if no spawned subagents are currently running, say
   so explicitly instead of letting the named perspectives sound like hidden
   background processes.
 - Improvement implemented: meaningful after-task reports should preserve the
   same role perspective so the user can see who steered orchestration,
   usability, inference, reproducibility, and consistency.
+
+## 2026-05-18 - Florence And Memory OS Guardrails
+
+- Improvement implemented: Florence is now the standing scientific figure
+  editor for visualization work. Add her whenever a slice touches plots,
+  confidence bands, simulation figures, figure galleries, visual diagnostics, or
+  publication-ready ggplot examples.
+- Improvement implemented: the visualization grammar now has a Florence figure
+  gate. A plot should show the fitted parameter, reporting scale, interval
+  provenance, raw-data or diagnostic context, and accessibility choices before it
+  is treated as reader-facing.
+- Improvement implemented: the user-provided Memory OS PDF and starter pack
+  informed a conservative memory rule for this project: durable decisions belong
+  in `AGENTS.md`, design docs, check logs, after-task reports, or explicit memory
+  notes with source, date, status, and confidence. Conversation alone is not a
+  reliable project memory.
+- Boundary: do not install Hermes, MemSearch hooks, or a new agent framework
+  inside `drmTMB` without a separate design decision. Adopt the useful
+  store-recall-audit habit first; keep repository files authoritative.
 
 ## 2026-05-17 - Family-Block TMB Data Wiring Check
 

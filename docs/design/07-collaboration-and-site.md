@@ -50,6 +50,7 @@ check logs, after-task notes, or issues before moving on.
 | Gauss | TMB reviewer | Likelihoods, parameter transforms, Laplace/random-effect numerics, and optimizer risk. |
 | Noether | mathematical consistency reviewer | Symbolic equations, formula taxonomy, family composition, `rho12` naming, and correlation namespaces. |
 | Darwin | ecology/evolution audience reviewer | Biological examples, ecological interpretation, and gllvmTMB sibling positioning. |
+| Florence | scientific figure editor | Publication-quality statistical graphics, visual uncertainty, figure galleries, accessibility, and ggplot helper design. |
 | Fisher | statistical inference reviewer | Comparator-package checks, simulation recovery, profile-likelihood plans, and identifiability diagnostics. |
 | Pat | applied user tester | Tutorial clarity, output interpretation, error recovery, and whether a new applied user can follow the workflow. |
 | Jason | landscape and source-map scout | Related package capabilities, literature context, and what `drmTMB` should learn or avoid. |
