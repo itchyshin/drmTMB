@@ -33,7 +33,8 @@ Current pilot files:
   bias, RMSE, convergence, Hessian, warning, and elapsed-time summaries.
 - `R/sim_uncertainty.R` adds Monte Carlo uncertainty and explicit
   interval-coverage summaries, plus generic Wald interval-table helpers for
-  summaries that already contain estimates and standard errors.
+  summaries that already contain estimates and standard errors, including a
+  Fisher-z back-transformed path for correlation summaries.
 - `run/sim_run_gaussian_ls_smoke.R` wires the Gaussian location-scale DGP,
   `drmTMB()` fit, summariser, registry, and replicate runner into one
   end-to-end smoke surface.

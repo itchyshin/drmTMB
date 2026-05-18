@@ -191,3 +191,5 @@ CRAN tests should only run smoke checks for seed stability and output shape.
     correlation-scale rules.
 20. Slice 230 adds a generic Wald interval-table helper for summaries that
     already carry estimates and standard errors.
+21. Slice 231 adds Fisher-z back-transformed Wald intervals for correlation
+    summaries, complementing raw-rho Wald intervals from the generic helper.
