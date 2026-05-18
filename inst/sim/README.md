@@ -28,3 +28,6 @@ Current pilot files:
 - `fit/sim_summarise_meta_v.R` does the same for the `meta_V(V = V)` pilot.
 - `R/sim_runner.R` runs one cell replicate, captures warnings/errors, and can
   save or resume an RDS result.
+- `run/sim_run_gaussian_ls_smoke.R` wires the Gaussian location-scale DGP,
+  `drmTMB()` fit, summariser, registry, and replicate runner into one
+  end-to-end smoke surface.
