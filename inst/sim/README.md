@@ -69,6 +69,8 @@ Current pilot files:
   interval-coverage summaries, plus generic Wald interval-table helpers for
   summaries that already contain estimates and standard errors, including a
   Fisher-z back-transformed path for correlation summaries.
+- `R/sim_plot_data.R` prepares plot-ready data tables for Phase 18 outputs,
+  starting with paired Poisson/NB2 `mu` random-effect pilot summaries.
 - `run/sim_run_gaussian_ls_smoke.R` wires the Gaussian location-scale DGP,
   `drmTMB()` fit, summariser, registry, and replicate runner into one
   end-to-end smoke surface.
