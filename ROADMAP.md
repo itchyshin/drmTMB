@@ -1497,8 +1497,9 @@ Use this order unless Slice 191 evidence overturns it:
   Summary-smoke helpers return manifests and failure ledgers locally in Slice
   225. Synthetic interval-coverage smoke plumbing is done locally in Slice 226.
   The smoke report template accepts aggregate, manifest, and warning/error
-  ledger CSVs locally in Slice 227. Next, attach real interval producers
-  surface by surface.
+  ledger CSVs locally in Slice 227. A skip-aware report-render test with tiny
+  CSV fixtures is done locally in Slice 228. Next, attach real interval
+  producers surface by surface.
 
 ## ASReml Efficiency Lessons For Future Animal Models
 
