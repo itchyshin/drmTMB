@@ -36,12 +36,32 @@ phase18_summarise_nbinom2_mu_re_smoke <- function(
   )
   manifest <- phase18_result_manifest(run$results)
   failures <- phase18_result_failures(run$results)
+  interval_scale <- ifelse(
+    run$summary$parameter_class %in% c("fixed_mu", "fixed_sigma"),
+    "formula_coefficient",
+    "public_sd"
+  )
+  wald_intervals <- phase18_add_wald_intervals(
+    run$summary,
+    interval_scale = interval_scale
+  )
+  interval_ready <- wald_intervals[
+    wald_intervals$interval_status == "ok",
+    ,
+    drop = FALSE
+  ]
+  wald_coverage <- phase18_summarise_interval_coverage(
+    interval_ready,
+    by = by
+  )
 
   list(
     surface = "nbinom2_mu_random_effect",
     run = run,
     aggregate = aggregate,
     manifest = manifest,
-    failures = failures
+    failures = failures,
+    wald_intervals = wald_intervals,
+    wald_coverage = wald_coverage
   )
 }

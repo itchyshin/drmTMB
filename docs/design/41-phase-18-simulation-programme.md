@@ -261,3 +261,7 @@ CRAN tests should only run smoke checks for seed stability and output shape.
     non-zero-inflated NB2 `mu` random effects, covering random intercepts plus
     independent numeric slopes on the log-mean predictor, while leaving Wald
     and profile interval coverage for follow-up slices.
+37. Slice 247 attaches Wald interval rows and coverage summaries to the NB2
+    `mu` random-effect smoke output for fixed log-mean and log-overdispersion
+    coefficients, while leaving random-effect SD rows visible as profile-needed
+    interval failures until direct SD profile producers are attached.
