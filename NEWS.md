@@ -18,6 +18,7 @@
 * Phase 18 now has a generic Wald interval-table helper for parameter summaries that already contain estimates and standard errors, recording interval method, reported scale, status, and failure messages.
 * Phase 18 now has a small aggregation helper for simulation parameter summaries, reporting replicate counts, bias, RMSE, absolute error, empirical standard error, convergence rate, Hessian rate, warning rate, and elapsed time by explicit grouping columns.
 * Phase 18 now has a first end-to-end `meta_V(V = V)` smoke runner under `inst/sim/run/`, covering vector and dense known sampling covariance cells through DGP, `drmTMB()` fit, saved RDS output, and combined parameter summaries.
+* Phase 18 `meta_V(V = V)` pilot summaries now carry standard errors for estimated `mu` coefficients and response-scale fitted residual `sigma`, while keeping known sampling covariance `V` out of interval targets.
 * Phase 18 now has a first end-to-end Gaussian location-scale smoke runner under `inst/sim/run/`, wiring the cell registry, seeded DGP, `drmTMB()` fit, pilot summariser, saved RDS output, and combined parameter table for one small surface.
 * Phase 18 Gaussian location-scale pilot summaries now carry fixed-effect standard errors when the fitted model exposes them, preparing that surface for real Wald interval coverage checks.
 * Phase 18 Gaussian location-scale summary-smoke output now includes formula-coefficient Wald interval rows and coverage summaries.

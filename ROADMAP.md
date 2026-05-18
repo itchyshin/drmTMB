@@ -1506,7 +1506,9 @@ Use this order unless Slice 191 evidence overturns it:
   fixed-effect standard errors locally in Slice 232. Next, connect those
   standard errors to Gaussian location-scale Wald coverage summaries. Gaussian
   location-scale summary smoke returns formula-coefficient Wald intervals and
-  coverage locally in Slice 233.
+  coverage locally in Slice 233. `meta_V(V = V)` pilot summaries carry standard
+  errors for estimated `mu` coefficients and fitted residual `sigma` locally in
+  Slice 234.
 
 ## ASReml Efficiency Lessons For Future Animal Models
 

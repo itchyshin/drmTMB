@@ -24592,6 +24592,45 @@ After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slice-233-gaussian-ls-wald-coverage.md`.
 
+## 2026-05-17 - Slice 234 meta_V standard errors
+
+Goal: expose standard errors in the `meta_V(V = V)` Phase 18 pilot summary
+without treating known sampling covariance `V` as an estimated target.
+
+Files changed:
+
+- `inst/sim/fit/sim_summarise_meta_v.R`
+- `tests/testthat/test-phase18-meta-v-dgp.R`
+- `inst/sim/README.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `ROADMAP.md`
+- `NEWS.md`
+- `docs/dev-log/after-task/2026-05-17-slice-234-meta-v-se-summary.md`
+
+What changed:
+
+- Updated `phase18_summarise_meta_v_fit()` to add a `std.error` column.
+- Read `summary(fit)$coefficients$std_error` for estimated `mu` fixed effects
+  and `summary(fit)$parameters$std_error` for response-scale fitted residual
+  `sigma`.
+- Extended the `meta_V(V = V)` pilot test to require finite positive standard
+  errors for vector and dense known-covariance smoke fits.
+
+Checks run:
+
+- `air format inst/sim/fit/sim_summarise_meta_v.R tests/testthat/test-phase18-meta-v-dgp.R inst/sim/README.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md NEWS.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-17-slice-234-meta-v-se-summary.md`
+- `Rscript -e "devtools::test(filter = 'phase18-meta-v-dgp', reporter = 'summary')"`
+- `git diff --check`
+
+Known limitations:
+
+- This slice does not yet attach `meta_V(V = V)` Wald intervals or coverage
+  summaries.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slice-234-meta-v-se-summary.md`.
+
 ## 2026-05-18 - Florence visualization role and memory guardrails
 
 Goal: make the new visualization role durable and adopt the useful Memory OS
