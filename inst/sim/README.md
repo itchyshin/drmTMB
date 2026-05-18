@@ -26,3 +26,5 @@ Current pilot files:
 - `fit/sim_summarise_gaussian_ls.R` converts one fitted pilot model into a
   parameter-level truth/estimate/error table.
 - `fit/sim_summarise_meta_v.R` does the same for the `meta_V(V = V)` pilot.
+- `R/sim_runner.R` runs one cell replicate, captures warnings/errors, and can
+  save or resume an RDS result.
