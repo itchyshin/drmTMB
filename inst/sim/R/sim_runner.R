@@ -133,3 +133,40 @@ phase18_extract_id <- function(x, name) {
   }
   cell_id
 }
+
+phase18_result_manifest <- function(results) {
+  if (!is.list(results) || length(results) == 0L) {
+    stop(
+      "`results` must be a non-empty list of replicate results.",
+      call. = FALSE
+    )
+  }
+  rows <- lapply(results, phase18_manifest_row)
+  out <- do.call(rbind, rows)
+  row.names(out) <- NULL
+  out
+}
+
+phase18_manifest_row <- function(result) {
+  required <- c("cell_id", "replicate", "seed", "status", "warnings", "elapsed")
+  missing <- setdiff(required, names(result))
+  if (length(missing) > 0L) {
+    stop(
+      "Each result must contain ",
+      paste(missing, collapse = ", "),
+      ".",
+      call. = FALSE
+    )
+  }
+  data.frame(
+    cell_id = result$cell_id,
+    replicate = result$replicate,
+    seed = result$seed,
+    status = result$status,
+    skipped = isTRUE(result$skipped),
+    warning_count = length(result$warnings),
+    error = if (is.null(result$error)) NA_character_ else result$error,
+    elapsed = result$elapsed,
+    stringsAsFactors = FALSE
+  )
+}

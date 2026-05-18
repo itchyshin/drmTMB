@@ -24128,3 +24128,42 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slice-221-asreml-efficiency-note.md`.
+
+## 2026-05-17 - Slice 222 run manifest
+
+Goal: add a compact manifest helper for Phase 18 replicate-run results.
+
+Files changed:
+
+- `inst/sim/R/sim_runner.R`
+- `tests/testthat/test-phase18-sim-runner.R`
+- `inst/sim/README.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `ROADMAP.md`
+- `NEWS.md`
+- `docs/dev-log/after-task/2026-05-17-slice-222-run-manifest.md`
+
+What changed:
+
+- Added `phase18_result_manifest()` to reduce a list of replicate-run result
+  objects to `cell_id`, `replicate`, `seed`, `status`, `skipped`,
+  `warning_count`, `error`, and `elapsed`.
+- Added tests for successful and failed result rows plus malformed result
+  objects.
+
+Checks run:
+
+- `air format inst/sim/R/sim_runner.R tests/testthat/test-phase18-sim-runner.R inst/sim/README.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md NEWS.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-17-slice-222-run-manifest.md`
+- `Rscript -e "devtools::test(filter = 'phase18-sim-runner', reporter = 'summary')"`
+- `Rscript -e "devtools::test(filter = 'phase18', reporter = 'summary')"`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `git diff --check`
+
+Known limitations:
+
+- The manifest records run status but does not aggregate parameter estimates,
+  compute MCSEs, or inspect saved RDS files from disk.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slice-222-run-manifest.md`.
