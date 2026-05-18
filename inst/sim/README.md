@@ -117,3 +117,5 @@ Current pilot files:
   interval methods are attached.
 - `reports/phase18-smoke-report-template.Rmd` is the first reader-facing report
   template for smoke aggregate, manifest, and warning/error ledger outputs.
+- `reports/phase18-count-mu-gallery.Rmd` is the first Florence-facing figure
+  gallery template for paired Poisson/NB2 `mu` random-effect pilot outputs.

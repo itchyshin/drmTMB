@@ -481,6 +481,18 @@ plot_diagnostics()        # planned
 plot_simulation_summary() # planned
 ```
 
+Slice 253 adds the first simulation plot-data contract under `inst/sim/`:
+`phase18_count_mu_re_plot_data()` converts the paired Poisson/NB2 `mu`
+random-effect pilot output into inspectable aggregate, coverage, manifest, and
+failure tables. This is Florence's input layer for the later figure gallery,
+not yet a rendered `ggplot2` gallery.
+
+Slice 254 adds `inst/sim/reports/phase18-count-mu-gallery.Rmd`, the first
+Florence-facing gallery template for Phase 18 count pilots. The report draws
+bias, RMSE, and interval-coverage panels when `ggplot2` is available, falls
+back to tables otherwise, and keeps warning/error ledgers visible beside the
+figures.
+
 ### `corpairs()` Plotting Preflight
 
 Slice 112 records the minimum contract that `plot_corpairs()` follows as an

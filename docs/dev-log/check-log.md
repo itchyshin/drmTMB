@@ -25439,3 +25439,85 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-18-slice-252-count-pilot-condition-grids.md`.
+
+## 2026-05-18 - Slice 253 Count pilot plot data
+
+Goal: prepare Florence's figure-gallery input layer for paired Poisson/NB2
+`mu` random-effect pilot outputs.
+
+Files changed:
+
+- `inst/sim/R/sim_plot_data.R`
+- `tests/testthat/test-phase18-sim-plot-data.R`
+- `inst/sim/README.md`
+- `docs/design/39-visualization-grammar.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `ROADMAP.md`
+- `NEWS.md`
+- `docs/dev-log/after-task/2026-05-18-slice-253-count-pilot-plot-data.md`
+
+What changed:
+
+- Added `phase18_count_mu_re_plot_data()` to convert paired count pilot output
+  into aggregate, coverage, manifest, and failure tables.
+- Aggregate rows gain plot-facing `family`, `parameter_class`, `dpar`, `term`,
+  and `abs_bias` columns.
+- Coverage rows gain `family`, `parameter_class`, `dpar`, `term`, and
+  `interval_method` columns.
+
+Checks run:
+
+- `air format inst/sim/R/sim_plot_data.R tests/testthat/test-phase18-sim-plot-data.R inst/sim/README.md docs/design/39-visualization-grammar.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md NEWS.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-18-slice-253-count-pilot-plot-data.md`
+- `Rscript -e "devtools::test(filter = 'phase18-sim-plot-data|phase18-count-mu-random-effect-pilot', reporter = 'summary')"`
+- `Rscript -e "devtools::test(filter = 'phase18-sim-plot-data|plot-parameter-surface|plot-corpairs', reporter = 'summary')"`
+- `git diff --check`
+
+Known limitations:
+
+- This slice adds plot-data tables only; it does not add rendered figures or a
+  gallery article.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-253-count-pilot-plot-data.md`.
+
+## 2026-05-18 - Slice 254 Count pilot gallery template
+
+Goal: add Florence's first Phase 18 figure-gallery report template for paired
+Poisson/NB2 `mu` random-effect pilots.
+
+Files changed:
+
+- `inst/sim/reports/phase18-count-mu-gallery.Rmd`
+- `tests/testthat/test-phase18-count-gallery-template.R`
+- `inst/sim/README.md`
+- `docs/design/39-visualization-grammar.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `ROADMAP.md`
+- `NEWS.md`
+- `docs/dev-log/after-task/2026-05-18-slice-254-count-pilot-gallery-template.md`
+
+What changed:
+
+- Added a report template that reads plot-ready aggregate, coverage, manifest,
+  and failure CSVs.
+- The template draws bias, RMSE, and interval-coverage panels when `ggplot2` is
+  available and falls back to printed tables otherwise.
+- Tests check installed reader-facing text and skip-aware rendering with tiny
+  CSV fixtures.
+
+Checks run:
+
+- `air format tests/testthat/test-phase18-count-gallery-template.R inst/sim/README.md docs/design/39-visualization-grammar.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md NEWS.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-18-slice-254-count-pilot-gallery-template.md`
+- `Rscript -e "devtools::test(filter = 'phase18-count-gallery-template|phase18-report-template|phase18-sim-plot-data', reporter = 'summary')"`
+- `Rscript -e "devtools::test(filter = 'phase18-count-gallery-template|plot-parameter-surface|plot-corpairs', reporter = 'summary')"`
+- `git diff --check`
+
+Known limitations:
+
+- This slice adds the gallery template only; it does not yet render a checked
+  local gallery artifact from a real pilot run.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-254-count-pilot-gallery-template.md`.
