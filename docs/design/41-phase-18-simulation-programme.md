@@ -163,3 +163,5 @@ CRAN tests should only run smoke checks for seed stability and output shape.
 8. Slice 217 adds Monte Carlo uncertainty helpers for mean error, RMSE, and
    proportions, plus an explicit interval-coverage summary that only runs when
    lower and upper interval columns are present.
+9. Slice 218 wires the Gaussian location-scale smoke runner to the aggregation
+   and MCSE helpers, giving the first tiny end-to-end bias/RMSE summary surface.
