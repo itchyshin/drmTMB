@@ -506,6 +506,13 @@ random-effect pilot, writes the gallery inputs, renders the HTML report, and
 returns the pilot object beside the rendered artifact paths so Florence, Pat,
 and Fisher can inspect figures, tables, and warning ledgers together.
 
+Slice 257 applies the first Florence visual polish to the count-pilot gallery:
+horizontal estimand labels, a shared colour-blind family palette, a single
+theme helper, plot captions that remind readers to inspect the manifest and
+warning/error ledger, and coverage MCSE ranges when the coverage table supplies
+`coverage_mcse`. This is still a pilot gallery, but it is no longer a raw
+default-`ggplot2` diagnostic.
+
 ### `corpairs()` Plotting Preflight
 
 Slice 112 records the minimum contract that `plot_corpairs()` follows as an

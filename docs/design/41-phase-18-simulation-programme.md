@@ -293,3 +293,6 @@ CRAN tests should only run smoke checks for seed stability and output shape.
 46. Slice 256 adds the end-to-end count-gallery smoke runner that runs a tiny
     paired count pilot, writes gallery inputs, renders the HTML gallery, and
     returns the pilot and artifact paths together.
+47. Slice 257 applies the first Florence visual polish to the count-pilot
+    gallery, including horizontal estimand labels, shared palette/theme
+    helpers, captions, and MCSE-aware coverage ranges when available.

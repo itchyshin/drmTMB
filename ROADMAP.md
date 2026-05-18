@@ -1569,7 +1569,10 @@ Use this order unless Slice 191 evidence overturns it:
   plot-ready CSV inputs and renders a checked local HTML gallery artifact from
   a paired count pilot object. Slice 256 adds the end-to-end smoke runner that
   runs a tiny paired count pilot, writes gallery inputs, renders the gallery,
-  and returns both the pilot and artifact paths.
+  and returns both the pilot and artifact paths. Slice 257 applies the first
+  Florence visual polish to that gallery, replacing default diagnostic panels
+  with horizontal estimand labels, shared palette/theme helpers, plot captions,
+  and MCSE-aware coverage ranges when available.
 
 ## Structured Slope Parity Gate
 
