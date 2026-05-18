@@ -24356,6 +24356,42 @@ After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slice-227-report-ledger-inputs.md`.
 
+## 2026-05-17 - Slice 228 report render smoke
+
+Goal: verify that the Phase 18 smoke report template can render with tiny CSV
+inputs.
+
+Files changed:
+
+- `tests/testthat/test-phase18-report-template.R`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `ROADMAP.md`
+- `NEWS.md`
+- `docs/dev-log/after-task/2026-05-17-slice-228-report-render-smoke.md`
+
+What changed:
+
+- Added a skip-aware render test for
+  `inst/sim/reports/phase18-smoke-report-template.Rmd`.
+- The test writes tiny aggregate, manifest, and warning/error ledger CSV
+  fixtures, renders the template when `rmarkdown` and Pandoc are available, and
+  checks that the HTML contains the supplied surface and ledger content.
+
+Checks run:
+
+- `air format tests/testthat/test-phase18-report-template.R docs/design/41-phase-18-simulation-programme.md ROADMAP.md NEWS.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-17-slice-228-report-render-smoke.md`
+- `Rscript -e "devtools::test(filter = 'phase18-report-template', reporter = 'summary')"`
+- `git diff --check`
+
+Known limitations:
+
+- This is a render smoke test with toy CSV fixtures. It does not render a real
+  simulation report or validate statistical content.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slice-228-report-render-smoke.md`.
+
 ## 2026-05-18 - Florence visualization role and memory guardrails
 
 Goal: make the new visualization role durable and adopt the useful Memory OS

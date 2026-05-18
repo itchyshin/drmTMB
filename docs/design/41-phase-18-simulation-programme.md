@@ -184,3 +184,5 @@ CRAN tests should only run smoke checks for seed stability and output shape.
     producers are attached surface by surface.
 17. Slice 227 updates the smoke report template so aggregate, manifest, and
     warning/error ledger CSVs have explicit reader-facing sections.
+18. Slice 228 adds a skip-aware render test for the smoke report template using
+    tiny aggregate, manifest, and warning/error ledger CSV fixtures.
