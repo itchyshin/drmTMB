@@ -25199,3 +25199,42 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-18-slice-246-nbinom2-mu-random-effect-smoke.md`.
+
+## 2026-05-18 - Slice 247 NB2 mu Wald coverage
+
+Goal: attach fixed-effect Wald interval rows and coverage summaries to the NB2
+`mu` random-effect smoke output.
+
+Files changed:
+
+- `inst/sim/run/sim_summary_nbinom2_mu_random_effect_smoke.R`
+- `tests/testthat/test-phase18-nbinom2-mu-random-effect.R`
+- `inst/sim/README.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `ROADMAP.md`
+- `NEWS.md`
+- `docs/dev-log/after-task/2026-05-18-slice-247-nbinom2-mu-wald-coverage.md`
+
+What changed:
+
+- Added `wald_intervals` and `wald_coverage` outputs to the NB2 `mu`
+  random-effect summary-smoke wrapper.
+- Wald coverage is summarized for fixed log-mean and log-overdispersion
+  coefficients with finite standard errors.
+- Random-effect SD rows remain in the interval table with failed status because
+  their direct profile interval producer is a separate follow-up.
+
+Checks run:
+
+- `air format inst/sim/run/sim_summary_nbinom2_mu_random_effect_smoke.R tests/testthat/test-phase18-nbinom2-mu-random-effect.R inst/sim/README.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md NEWS.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-18-slice-247-nbinom2-mu-wald-coverage.md`
+- `Rscript -e "devtools::test(filter = 'phase18-nbinom2-mu-random-effect|nbinom2-location-scale', reporter = 'summary')"`
+- `Rscript -e "devtools::test(filter = 'phase18-nbinom2-mu-random-effect|phase18-poisson-mu-random-effect|phase18-sim-uncertainty', reporter = 'summary')"`
+- `git diff --check`
+
+Known limitations:
+
+- This slice does not add profile intervals for NB2 random-effect SDs.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-247-nbinom2-mu-wald-coverage.md`.

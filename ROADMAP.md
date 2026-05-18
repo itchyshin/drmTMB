@@ -1545,8 +1545,10 @@ Use this order unless Slice 191 evidence overturns it:
   `sigma`, zero-inflated NB2 random effects, and correlated or labelled NB2
   slope blocks outside Wave A. Slice 246 adds the matching NB2 `mu`
   random-effect smoke surface with seeded DGP, live fit, parameter summaries,
-  aggregate output, manifest, failure ledger, and tests, while leaving NB2 Wald
-  and profile interval coverage as the next evidence step.
+  aggregate output, manifest, failure ledger, and tests. Slice 247 attaches
+  fixed-effect Wald interval rows and coverage summaries to that NB2 smoke
+  output for `mu` and `sigma` coefficients, while leaving random-effect SD
+  profile coverage as the next evidence step.
 
 ## Structured Slope Parity Gate
 
