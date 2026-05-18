@@ -182,3 +182,5 @@ CRAN tests should only run smoke checks for seed stability and output shape.
 16. Slice 226 adds synthetic interval-coverage smoke plumbing. This validates
     the coverage summary path before real Wald, profile, or bootstrap interval
     producers are attached surface by surface.
+17. Slice 227 updates the smoke report template so aggregate, manifest, and
+    warning/error ledger CSVs have explicit reader-facing sections.

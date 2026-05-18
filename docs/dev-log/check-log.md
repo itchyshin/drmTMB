@@ -24319,6 +24319,43 @@ After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slice-226-interval-coverage-smoke.md`.
 
+## 2026-05-17 - Slice 227 report ledger inputs
+
+Goal: give Phase 18 smoke reports explicit places for aggregate summaries, run
+manifests, and warning/error ledgers.
+
+Files changed:
+
+- `inst/sim/reports/phase18-smoke-report-template.Rmd`
+- `tests/testthat/test-phase18-report-template.R`
+- `inst/sim/README.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `ROADMAP.md`
+- `NEWS.md`
+- `docs/dev-log/after-task/2026-05-17-slice-227-report-ledger-inputs.md`
+
+What changed:
+
+- Added optional `manifest_csv` and `failures_csv` parameters beside
+  `aggregate_csv`.
+- Updated the report template to render a supplied table or a clear missing-CSV
+  message for aggregate, manifest, and warning/error ledger sections.
+- Extended the template test to check the new sections and parameters.
+
+Checks run:
+
+- `air format inst/sim/reports/phase18-smoke-report-template.Rmd tests/testthat/test-phase18-report-template.R inst/sim/README.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md NEWS.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-17-slice-227-report-ledger-inputs.md`
+- `Rscript -e "devtools::test(filter = 'phase18-report-template', reporter = 'summary')"`
+- `git diff --check`
+
+Known limitations:
+
+- The test checks the template source rather than rendering an HTML report.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slice-227-report-ledger-inputs.md`.
+
 ## 2026-05-18 - Florence visualization role and memory guardrails
 
 Goal: make the new visualization role durable and adopt the useful Memory OS

@@ -47,4 +47,4 @@ Current pilot files:
   parameter summaries so coverage-table plumbing can be tested before real
   interval methods are attached.
 - `reports/phase18-smoke-report-template.Rmd` is the first reader-facing report
-  template for smoke aggregate outputs.
+  template for smoke aggregate, manifest, and warning/error ledger outputs.

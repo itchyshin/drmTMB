@@ -6,6 +6,8 @@ output:
 params:
   surface: "gaussian_ls"
   aggregate_csv: null
+  manifest_csv: null
+  failures_csv: null
   notes: ""
 ---
 
@@ -14,6 +16,22 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
+
+phase18_read_optional_csv <- function(path) {
+  if (
+    is.null(path) ||
+      length(path) != 1L ||
+      is.na(path) ||
+      !nzchar(path)
+  ) {
+    return(NULL)
+  }
+  read.csv(path)
+}
+
+aggregate <- phase18_read_optional_csv(params$aggregate_csv)
+manifest <- phase18_read_optional_csv(params$manifest_csv)
+failures <- phase18_read_optional_csv(params$failures_csv)
 ```
 
 # Purpose
@@ -32,9 +50,32 @@ Notes: `r params$notes`
 
 # Aggregate Summary
 
-```{r aggregate-summary, eval=FALSE}
-aggregate <- read.csv(params$aggregate_csv)
-aggregate
+```{r aggregate-summary}
+if (is.null(aggregate)) {
+  cat("No aggregate summary CSV supplied.\n")
+} else {
+  aggregate
+}
+```
+
+# Run Manifest
+
+```{r run-manifest}
+if (is.null(manifest)) {
+  cat("No run manifest CSV supplied.\n")
+} else {
+  manifest
+}
+```
+
+# Warning And Error Ledger
+
+```{r warning-error-ledger}
+if (is.null(failures)) {
+  cat("No warning/error ledger CSV supplied.\n")
+} else {
+  failures
+}
 ```
 
 # Reader Checks
