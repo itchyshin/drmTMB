@@ -24430,6 +24430,47 @@ After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slice-229-interval-producer-contract.md`.
 
+## 2026-05-17 - Slice 230 Wald interval table
+
+Goal: add the first generic interval-table producer for Phase 18 summaries that
+already contain estimates and standard errors.
+
+Files changed:
+
+- `inst/sim/R/sim_uncertainty.R`
+- `inst/sim/run/sim_interval_coverage_smoke.R`
+- `tests/testthat/test-phase18-sim-uncertainty.R`
+- `inst/sim/README.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `docs/design/43-phase-18-interval-producer-contract.md`
+- `ROADMAP.md`
+- `NEWS.md`
+- `docs/dev-log/after-task/2026-05-17-slice-230-wald-interval-table.md`
+
+What changed:
+
+- Added `phase18_add_wald_intervals()` to add normal Wald endpoints and record
+  `conf.level`, `interval_method`, `interval_scale`, `interval_status`, and
+  `interval_message`.
+- Updated the synthetic interval smoke helper to reuse shared lower/upper
+  column-name validation.
+- Added tests for successful Wald endpoints, failed rows with missing standard
+  errors, coverage-table compatibility, and confidence-level validation.
+
+Checks run:
+
+- `air format inst/sim/R/sim_uncertainty.R inst/sim/run/sim_interval_coverage_smoke.R tests/testthat/test-phase18-sim-uncertainty.R inst/sim/README.md docs/design/41-phase-18-simulation-programme.md docs/design/43-phase-18-interval-producer-contract.md ROADMAP.md NEWS.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-17-slice-230-wald-interval-table.md`
+- `Rscript -e "devtools::test(filter = 'phase18-sim-uncertainty|phase18-interval-coverage-smoke', reporter = 'summary')"`
+- `git diff --check`
+
+Known limitations:
+
+- The helper does not extract standard errors from fitted drmTMB objects.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slice-230-wald-interval-table.md`.
+
 ## 2026-05-18 - Florence visualization role and memory guardrails
 
 Goal: make the new visualization role durable and adopt the useful Memory OS

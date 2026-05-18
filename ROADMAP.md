@@ -1499,8 +1499,10 @@ Use this order unless Slice 191 evidence overturns it:
   The smoke report template accepts aggregate, manifest, and warning/error
   ledger CSVs locally in Slice 227. A skip-aware report-render test with tiny
   CSV fixtures is done locally in Slice 228. The interval-producer contract is
-  recorded locally in Slice 229. Next, attach real interval producers surface by
-  surface.
+  recorded locally in Slice 229. A generic Wald interval-table helper is done
+  locally in Slice 230 for summaries that already contain estimates and
+  standard errors. Next, attach model-specific standard-error extraction
+  surface by surface.
 
 ## ASReml Efficiency Lessons For Future Animal Models
 
