@@ -36,12 +36,27 @@ phase18_summarise_meta_v_smoke <- function(
   )
   manifest <- phase18_result_manifest(run$results)
   failures <- phase18_result_failures(run$results)
+  interval_scale <- ifelse(
+    run$summary$parameter == "sigma",
+    "public",
+    "formula_coefficient"
+  )
+  wald_intervals <- phase18_add_wald_intervals(
+    run$summary,
+    interval_scale = interval_scale
+  )
+  wald_coverage <- phase18_summarise_interval_coverage(
+    wald_intervals,
+    by = by
+  )
 
   list(
     surface = "meta_v",
     run = run,
     aggregate = aggregate,
     manifest = manifest,
-    failures = failures
+    failures = failures,
+    wald_intervals = wald_intervals,
+    wald_coverage = wald_coverage
   )
 }

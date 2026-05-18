@@ -72,7 +72,8 @@ It takes a parameter-summary table that already contains `estimate` and
 `std.error`, adds normal Wald endpoints, and records `interval_method`,
 `interval_scale`, `interval_status`, and `interval_message`. It deliberately
 does not extract standard errors from fitted model objects; model-specific
-producers should do that surface by surface.
+producers should do that surface by surface. `interval_scale` may be one value
+for the whole table or one value per row.
 
 The Gaussian location-scale summary smoke uses this helper with
 `interval_scale = "formula_coefficient"`, because the current pilot summaries

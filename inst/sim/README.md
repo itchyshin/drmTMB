@@ -47,7 +47,8 @@ Current pilot files:
   warning/error ledger, formula-coefficient Wald interval, and Wald coverage
   outputs.
 - `run/sim_summary_meta_v_smoke.R` does the same for vector and dense
-  `meta_V(V = V)` smoke cells.
+  `meta_V(V = V)` smoke cells, including Wald interval and coverage outputs for
+  estimated targets.
 - `run/sim_interval_coverage_smoke.R` adds synthetic interval columns to
   parameter summaries so coverage-table plumbing can be tested before real
   interval methods are attached.

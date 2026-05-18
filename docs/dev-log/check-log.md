@@ -24631,6 +24631,50 @@ After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slice-234-meta-v-se-summary.md`.
 
+## 2026-05-17 - Slice 235 meta_V Wald coverage
+
+Goal: attach Wald interval and coverage outputs to the `meta_V(V = V)`
+summary-smoke surface.
+
+Files changed:
+
+- `inst/sim/R/sim_uncertainty.R`
+- `inst/sim/run/sim_summary_meta_v_smoke.R`
+- `tests/testthat/test-phase18-meta-v-summary-smoke.R`
+- `tests/testthat/test-phase18-sim-uncertainty.R`
+- `inst/sim/README.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `docs/design/43-phase-18-interval-producer-contract.md`
+- `ROADMAP.md`
+- `NEWS.md`
+- `docs/dev-log/after-task/2026-05-17-slice-235-meta-v-wald-coverage.md`
+
+What changed:
+
+- Updated `phase18_add_wald_intervals()` so `interval_scale` can be one value
+  per row.
+- Updated `phase18_summarise_meta_v_smoke()` to return `wald_intervals` and
+  `wald_coverage`.
+- Labelled `mu` coefficients as `formula_coefficient` and fitted residual
+  `sigma` as `public`.
+- Extended tests for `meta_V(V = V)` summary smoke and row-specific interval
+  scales.
+
+Checks run:
+
+- `air format inst/sim/R/sim_uncertainty.R inst/sim/run/sim_summary_meta_v_smoke.R tests/testthat/test-phase18-meta-v-summary-smoke.R tests/testthat/test-phase18-sim-uncertainty.R inst/sim/README.md docs/design/41-phase-18-simulation-programme.md docs/design/43-phase-18-interval-producer-contract.md ROADMAP.md NEWS.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-17-slice-235-meta-v-wald-coverage.md`
+- `Rscript -e "devtools::test(filter = 'phase18-meta-v-summary-smoke|phase18-sim-uncertainty', reporter = 'summary')"`
+- `git diff --check`
+
+Known limitations:
+
+- These are Wald intervals from fitted standard errors. Profile and bootstrap
+  intervals remain later interval-producer work.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slice-235-meta-v-wald-coverage.md`.
+
 ## 2026-05-18 - Florence visualization role and memory guardrails
 
 Goal: make the new visualization role durable and adopt the useful Memory OS

@@ -79,6 +79,15 @@ test_that("Phase 18 Wald interval helper records method and status", {
   expect_equal(out$interval_status, c("ok", "ok", "failed"))
   expect_match(out$interval_message[[3L]], "invalid")
 
+  mixed_scale <- phase18_add_wald_intervals(
+    summary,
+    interval_scale = c("formula_coefficient", "formula_coefficient", "public")
+  )
+  expect_equal(
+    mixed_scale$interval_scale,
+    c("formula_coefficient", "formula_coefficient", "public")
+  )
+
   coverage <- phase18_summarise_interval_coverage(out)
   expect_equal(coverage$n_replicate, 3L)
   expect_equal(coverage$n_interval, 2L)

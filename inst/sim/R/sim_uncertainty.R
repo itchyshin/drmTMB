@@ -76,12 +76,16 @@ phase18_add_wald_intervals <- function(
   }
   if (
     !is.character(interval_scale) ||
-      length(interval_scale) != 1L ||
-      !nzchar(interval_scale)
+      !(length(interval_scale) %in% c(1L, nrow(summary))) ||
+      any(!nzchar(interval_scale))
   ) {
-    stop("`interval_scale` must be one non-empty string.", call. = FALSE)
+    stop(
+      "`interval_scale` must be one non-empty string or one value per row.",
+      call. = FALSE
+    )
   }
   phase18_assert_interval_column_names(lower, upper)
+  interval_scale <- rep(interval_scale, length.out = nrow(summary))
 
   estimate_value <- as.numeric(summary[[estimate]])
   se_value <- as.numeric(summary[[std.error]])
