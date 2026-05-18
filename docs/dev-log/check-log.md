@@ -25156,3 +25156,46 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-18-slice-245-nbinom2-mu-random-effects.md`.
+
+## 2026-05-18 - Slice 246 NB2 mu random-effect smoke
+
+Goal: add a CRAN-safe Phase 18 smoke surface for the fitted ordinary
+non-zero-inflated NB2 `mu` random-effect path.
+
+Files changed:
+
+- `inst/sim/dgp/sim_dgp_nbinom2_mu_random_effect.R`
+- `inst/sim/fit/sim_summarise_nbinom2_mu_random_effect.R`
+- `inst/sim/run/sim_run_nbinom2_mu_random_effect_smoke.R`
+- `inst/sim/run/sim_summary_nbinom2_mu_random_effect_smoke.R`
+- `tests/testthat/test-phase18-nbinom2-mu-random-effect.R`
+- `inst/sim/README.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `ROADMAP.md`
+- `NEWS.md`
+- `docs/dev-log/after-task/2026-05-18-slice-246-nbinom2-mu-random-effect-smoke.md`
+
+What changed:
+
+- Added a seeded NB2 DGP for ordinary log-mean random intercepts and
+  independent numeric random slopes, with fixed-effect overdispersion
+  `sigma ~ z`.
+- Added a live `drmTMB()` smoke runner, fit summariser, aggregate summary
+  wrapper, manifest output, and warning/error ledger for the NB2 surface.
+- Tests cover deterministic DGP output, one live saved replicate, the six
+  expected parameter-summary rows, finite estimates, and malformed inputs.
+
+Checks run:
+
+- `air format inst/sim/dgp/sim_dgp_nbinom2_mu_random_effect.R inst/sim/fit/sim_summarise_nbinom2_mu_random_effect.R inst/sim/run/sim_run_nbinom2_mu_random_effect_smoke.R inst/sim/run/sim_summary_nbinom2_mu_random_effect_smoke.R tests/testthat/test-phase18-nbinom2-mu-random-effect.R inst/sim/README.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md NEWS.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-18-slice-246-nbinom2-mu-random-effect-smoke.md`
+- `Rscript -e "devtools::test(filter = 'phase18-nbinom2-mu-random-effect|nbinom2-location-scale', reporter = 'summary')"`
+- `Rscript -e "devtools::test(filter = 'phase18-nbinom2-mu-random-effect|phase18-poisson-mu-random-effect|phase18-sim-aggregate|phase18-sim-runner', reporter = 'summary')"`
+- `git diff --check`
+
+Known limitations:
+
+- NB2 Wald and profile interval coverage are still separate follow-up slices.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-246-nbinom2-mu-random-effect-smoke.md`.
