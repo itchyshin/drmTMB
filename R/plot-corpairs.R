@@ -16,6 +16,10 @@
 #'   Use `NULL` to suppress colour mapping.
 #' @param facet Optional character scalar naming a column to facet by. Use
 #'   `NULL` to suppress faceting.
+#' @param label Optional character scalar naming a column to use for y-axis row
+#'   labels. Use this for publication figures where the full
+#'   `level | class | parameter` label is too long. If `NULL`, labels are built
+#'   from `level`, `class`, and `parameter`.
 #' @param interval Logical; draw finite `conf.low`/`conf.high` intervals when
 #'   those columns are present.
 #' @param ... Reserved for future options.
@@ -42,6 +46,7 @@ plot_corpairs <- function(
   data,
   colour = "level",
   facet = NULL,
+  label = NULL,
   interval = TRUE,
   ...
 ) {
@@ -53,9 +58,15 @@ plot_corpairs <- function(
   validate_plot_corpairs_data(data)
   colour <- validate_plot_corpairs_column(colour, data, "colour")
   facet <- validate_plot_corpairs_column(facet, data, "facet")
+  label <- validate_plot_corpairs_column(label, data, "label")
   interval <- validate_plot_corpairs_flag(interval, "interval")
 
-  data <- add_plot_corpairs_columns(data, colour = colour, facet = facet)
+  data <- add_plot_corpairs_columns(
+    data,
+    colour = colour,
+    facet = facet,
+    label = label
+  )
   mapping <- plot_corpairs_mapping(has_colour = !is.null(colour))
   out <- ggplot2::ggplot(data, mapping) +
     ggplot2::geom_vline(
@@ -157,8 +168,8 @@ validate_plot_corpairs_flag <- function(x, argument) {
   x
 }
 
-add_plot_corpairs_columns <- function(data, colour, facet) {
-  data$.drmTMB_pair_label <- plot_corpairs_labels(data)
+add_plot_corpairs_columns <- function(data, colour, facet, label) {
+  data$.drmTMB_pair_label <- plot_corpairs_labels(data, label = label)
   if (!"conf.status" %in% names(data)) {
     data$.drmTMB_conf_status <- rep("not_requested", nrow(data))
   } else {
@@ -173,7 +184,10 @@ add_plot_corpairs_columns <- function(data, colour, facet) {
   data
 }
 
-plot_corpairs_labels <- function(data) {
+plot_corpairs_labels <- function(data, label = NULL) {
+  if (!is.null(label)) {
+    return(data[[label]])
+  }
   paste(data$level, data$class, data$parameter, sep = " | ")
 }
 

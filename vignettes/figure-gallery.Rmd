@@ -21,12 +21,14 @@ knitr::opts_chunk$set(
 
 This gallery shows the kinds of figures `drmTMB` users can build for model
 interpretation, uncertainty display, fitted interactions, fitted correlation
-summaries, and simulation diagnostics. It is different from the internal
+summaries, and later simulation diagnostics. It is different from the internal
 count-pilot diagnostics used while developing the first Poisson/NB2 simulation
 plumbing.
 
 The examples here use small simulated data so the page can build quickly. They
-are meant to show figure patterns, not biological conclusions.
+are meant to show figure patterns, not biological conclusions. The interaction
+figures deliberately keep three pieces visible: the observed data, the fitted
+surface or cell means, and the conditioning values used to make the display.
 
 ```{r setup}
 library(drmTMB)
@@ -36,17 +38,23 @@ theme_drmtmb_gallery <- function() {
   theme_minimal(base_size = 11) +
     theme(
       panel.grid.minor = element_blank(),
+      panel.grid.major.x = element_blank(),
       plot.title.position = "plot",
+      plot.title = element_text(face = "bold"),
+      plot.subtitle = element_text(colour = "grey30"),
       strip.text = element_text(face = "bold"),
       legend.position = "bottom"
     )
 }
 
+habitat_palette <- c("reef" = "#0072B2", "kelp" = "#D55E00")
 scale_drmtmb_colour <- scale_colour_manual(
-  values = c("reef" = "#1b9e77", "kelp" = "#d95f02")
+  values = habitat_palette,
+  limits = names(habitat_palette)
 )
 scale_drmtmb_fill <- scale_fill_manual(
-  values = c("reef" = "#1b9e77", "kelp" = "#d95f02")
+  values = habitat_palette,
+  limits = names(habitat_palette)
 )
 ```
 
@@ -57,12 +65,16 @@ Start with the figure most readers expect: raw observations, fitted mean, and a
 categorical-by-continuous interaction: the temperature slope differs by
 habitat.
 
-```{r location-scale-fit}
+```{r location-scale-fit, fig.alt="Scatterplot of simulated growth against temperature for two habitats, with fitted mean lines and 95 percent confidence bands for each habitat."}
 set.seed(2591)
 n <- 160
+habitat_levels <- c("reef", "kelp")
 fish <- data.frame(
   temperature = runif(n, -1.6, 1.6),
-  habitat = factor(sample(c("reef", "kelp"), n, replace = TRUE))
+  habitat = factor(
+    sample(habitat_levels, n, replace = TRUE),
+    levels = habitat_levels
+  )
 )
 eta_mu <- 0.4 +
   0.7 * fish$temperature +
@@ -110,6 +122,7 @@ ggplot(fish, aes(temperature, growth, colour = habitat)) +
   scale_drmtmb_fill +
   labs(
     title = "Expected growth along a temperature gradient",
+    subtitle = "Raw observations, fitted mean, and 95% confidence band",
     x = "Temperature anomaly",
     y = "Growth",
     colour = "Habitat",
@@ -125,7 +138,7 @@ table with one row per distributional parameter, and
 `plot_parameter_surface()` draws estimate lines plus finite interval bands when
 they are present.
 
-```{r parameter-surface}
+```{r parameter-surface, fig.alt="Two-panel plot showing fitted mu and sigma surfaces along temperature for reef and kelp habitats."}
 plot_parameter_surface(
   pred_growth,
   x = "temperature",
@@ -136,6 +149,7 @@ plot_parameter_surface(
   scale_drmtmb_fill +
   labs(
     title = "Location and residual-scale surfaces",
+    subtitle = "Both panels use the same prediction grid",
     x = "Temperature anomaly",
     colour = "Habitat"
   ) +
@@ -152,7 +166,7 @@ For a factor predictor, the same plotting helper uses interval bars rather than
 ribbons. This is useful for compact tutorial figures and estimated marginal
 comparisons.
 
-```{r discrete-comparison}
+```{r discrete-comparison, fig.alt="Point interval plot comparing expected growth between reef and kelp habitats at average temperature."}
 habitat_grid <- data.frame(
   temperature = 0,
   habitat = factor(c("reef", "kelp"), levels = levels(fish$habitat))
@@ -173,6 +187,7 @@ plot_parameter_surface(
   scale_drmtmb_colour +
   labs(
     title = "Estimated habitat contrast at average temperature",
+    subtitle = "Intervals are Wald intervals from predict_parameters()",
     x = NULL,
     y = "Expected growth"
   ) +
@@ -185,7 +200,7 @@ For the first supported `emmeans` path, a fixed-effect univariate `mu` model can
 produce estimated marginal means that are easy to turn into publication-style
 figures. The same rule applies: keep the conditioning values visible.
 
-```{r emmeans-display, eval = has_ggplot2 && requireNamespace("emmeans", quietly = TRUE)}
+```{r emmeans-display, eval = has_ggplot2 && requireNamespace("emmeans", quietly = TRUE), fig.alt="Point interval plot of estimated marginal mean growth for reef and kelp habitats conditioned at temperature zero."}
 emm_habitat <- suppressMessages(
   as.data.frame(
     emmeans::emmeans(
@@ -218,13 +233,15 @@ ggplot(emm_habitat, aes(habitat, emmean, colour = habitat)) +
 
 For two categorical predictors, show every fitted cell and its interval. Use
 position dodging so the uncertainty intervals do not sit on top of each other.
+Raw observations can sit behind the intervals when they help readers see the
+data support for each cell.
 
-```{r cat-cat-interaction}
+```{r cat-cat-interaction, fig.alt="Categorical by categorical interaction plot showing raw growth observations and fitted growth intervals for each habitat and season combination."}
 set.seed(2592)
 n_cell <- 30
 reef <- expand.grid(
-  habitat = factor(c("reef", "kelp")),
-  season = factor(c("dry", "wet")),
+  habitat = factor(habitat_levels, levels = habitat_levels),
+  season = factor(c("dry", "wet"), levels = c("dry", "wet")),
   replicate = seq_len(n_cell)
 )
 reef$mu <- with(
@@ -253,7 +270,18 @@ pred_cat_cat <- predict_parameters(
   conf.int = TRUE
 )
 
+raw_cat_cat <- reef
+
 ggplot(pred_cat_cat, aes(habitat, estimate, colour = season)) +
+  geom_jitter(
+    data = raw_cat_cat,
+    aes(y = growth, colour = season),
+    width = 0.11,
+    height = 0,
+    alpha = 0.22,
+    size = 1.1,
+    show.legend = FALSE
+  ) +
   geom_pointrange(
     aes(ymin = conf.low, ymax = conf.high),
     position = position_dodge(width = 0.35),
@@ -263,8 +291,9 @@ ggplot(pred_cat_cat, aes(habitat, estimate, colour = season)) +
   scale_colour_manual(values = c("dry" = "#0072B2", "wet" = "#E69F00")) +
   labs(
     title = "Categorical by categorical interaction",
+    subtitle = "Small points are observations; intervals are fitted cell means",
     x = "Habitat",
-    y = "Expected growth",
+    y = "Growth",
     colour = "Season"
   ) +
   theme_drmtmb_gallery()
@@ -276,7 +305,7 @@ For two continuous predictors, choose scientifically meaningful slices of one
 predictor and show fitted slopes across the other. The values should be named
 in the legend so the reader can interpret the conditioning.
 
-```{r cont-cont-interaction}
+```{r cont-cont-interaction, fig.alt="Continuous by continuous interaction plot showing raw observations in grey and fitted temperature slopes at low, average, and high moisture with confidence bands."}
 set.seed(2593)
 n_cc <- 180
 soil <- data.frame(
@@ -319,6 +348,14 @@ ggplot(
   pred_cont_cont,
   aes(temperature, estimate, colour = moisture_level, fill = moisture_level)
 ) +
+  geom_point(
+    data = soil,
+    aes(temperature, growth),
+    inherit.aes = FALSE,
+    alpha = 0.18,
+    size = 1,
+    colour = "grey35"
+  ) +
   geom_ribbon(aes(ymin = conf.low, ymax = conf.high), alpha = 0.14, colour = NA) +
   geom_line(linewidth = 0.8) +
   scale_colour_manual(values = c(
@@ -333,13 +370,19 @@ ggplot(
   )) +
   labs(
     title = "Continuous by continuous interaction",
+    subtitle = "Moisture is held at three named slices",
     x = "Temperature anomaly",
-    y = "Expected growth",
+    y = "Growth",
     colour = "Moisture slice",
     fill = "Moisture slice"
   ) +
   theme_drmtmb_gallery()
 ```
+
+The raw point cloud is not coloured by the sliced predictor because the fitted
+lines are conditional displays, not clusters in the data. This keeps the
+visual message honest: the model is being read at three moisture values, while
+the observations span the whole moisture gradient.
 
 ## Fitted correlation summaries
 
@@ -347,21 +390,40 @@ Correlation displays should keep layers separate. Residual `rho12`,
 ordinary-group correlations, and phylogenetic or spatial correlations are not
 the same parameter even when all are correlations.
 
-```{r correlation-display}
+```{r correlation-display, fig.alt="Point interval plot showing separate residual, group, and phylogenetic correlation layers with short row labels."}
 pair_table <- data.frame(
-  level = c("residual", "group", "phylogenetic"),
-  class = c("rho12", "mean-slope", "trait"),
-  parameter = c("trait coupling", "intercept-slope", "species covariance"),
+  level = c("Residual", "Group", "Phylogenetic"),
+  class = c("rho12", "random slope", "trait"),
+  parameter = c("Trait coupling", "Intercept-slope", "Species covariance"),
   estimate = c(-0.32, 0.44, 0.61),
   modelled = c(TRUE, FALSE, FALSE),
   conf.low = c(-0.54, 0.12, 0.29),
   conf.high = c(-0.05, 0.68, 0.79),
   conf.status = c("wald", "profile", "profile")
 )
+pair_table$display <- factor(
+  c(
+    "Residual\nrho12",
+    "Group\nintercept-slope",
+    "Phylogenetic\ntrait covariance"
+  ),
+  levels = c(
+    "Group\nintercept-slope",
+    "Phylogenetic\ntrait covariance",
+    "Residual\nrho12"
+  )
+)
 
-plot_corpairs(pair_table, facet = "level") +
-  labs(title = "Correlation layers stay separate") +
-  theme_drmtmb_gallery()
+plot_corpairs(pair_table, label = "display") +
+  labs(
+    title = "Correlation layers stay separate",
+    subtitle = "Colour identifies the correlation layer; intervals are drawn only where available"
+  ) +
+  theme_drmtmb_gallery() +
+  theme(
+    axis.text.y = element_text(size = 10, lineheight = 0.95),
+    legend.position = "none"
+  )
 ```
 
 ## Simulation operating characteristics
@@ -370,7 +432,7 @@ Simulation figures answer different questions from model-interpretation
 figures. They should show bias, error, coverage, runtime, and failures beside
 the model surface being tested.
 
-```{r simulation-operating-characteristics}
+```{r simulation-operating-characteristics, fig.alt="Simulation summary plots showing illustrative bias and interval coverage by estimand across Gaussian location-scale, proportion, and count surfaces."}
 sim_summary <- data.frame(
   surface = rep(
     c("Gaussian location-scale", "Proportion", "Count"),
