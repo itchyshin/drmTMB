@@ -1494,7 +1494,8 @@ Use this order unless Slice 191 evidence overturns it:
   audited without opening every RDS object. A warning/error failure-ledger
   helper is done locally in Slice 223. Result-directory loading is done locally
   in Slice 224 so manifests and ledgers can be rebuilt from saved RDS output.
-  Next, start tiny interval-coverage smoke grids.
+  Summary-smoke helpers return manifests and failure ledgers locally in Slice
+  225. Next, start tiny interval-coverage smoke grids.
 
 ## ASReml Efficiency Lessons For Future Animal Models
 

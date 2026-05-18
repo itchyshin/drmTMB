@@ -70,6 +70,11 @@ test_that("Phase 18 Gaussian location-scale summary smoke run aggregates output"
   expect_identical(out$surface, "gaussian_ls")
   expect_equal(nrow(out$run$summary), 8L)
   expect_equal(nrow(out$aggregate), 4L)
+  expect_equal(nrow(out$manifest), length(out$run$results))
+  expect_equal(
+    nrow(out$failures),
+    sum(out$manifest$status != "ok") + sum(out$manifest$warning_count)
+  )
   expect_equal(out$aggregate$n_replicate, rep(2L, 4L))
   expect_setequal(
     out$aggregate$parameter,

@@ -24243,3 +24243,42 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slice-224-result-directory-scan.md`.
+
+## 2026-05-17 - Slice 225 summary manifest ledgers
+
+Goal: keep run-status evidence next to Phase 18 aggregate summary-smoke
+outputs.
+
+Files changed:
+
+- `inst/sim/run/sim_summary_gaussian_ls_smoke.R`
+- `inst/sim/run/sim_summary_meta_v_smoke.R`
+- `tests/testthat/test-phase18-gaussian-ls-summary-smoke.R`
+- `tests/testthat/test-phase18-meta-v-summary-smoke.R`
+- `inst/sim/README.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `ROADMAP.md`
+- `NEWS.md`
+- `docs/dev-log/after-task/2026-05-17-slice-225-summary-manifest-ledgers.md`
+
+What changed:
+
+- Updated Gaussian location-scale and `meta_V(V = V)` summary-smoke helpers to
+  return `manifest` and `failures` beside `run` and `aggregate`.
+- Added tests checking that manifest rows and warning/error ledger rows match
+  the underlying replicate results.
+
+Checks run:
+
+- `air format inst/sim/run/sim_summary_gaussian_ls_smoke.R inst/sim/run/sim_summary_meta_v_smoke.R tests/testthat/test-phase18-gaussian-ls-summary-smoke.R tests/testthat/test-phase18-meta-v-summary-smoke.R inst/sim/README.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md NEWS.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-17-slice-225-summary-manifest-ledgers.md`
+- `Rscript -e "devtools::test(filter = 'phase18-gaussian-ls-summary-smoke|phase18-meta-v-summary-smoke', reporter = 'summary')"`
+- `git diff --check`
+
+Known limitations:
+
+- The summary helpers now expose run-status tables, but they do not yet render
+  a report or calculate interval coverage.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slice-225-summary-manifest-ledgers.md`.

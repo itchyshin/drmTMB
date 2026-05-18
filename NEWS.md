@@ -4,6 +4,7 @@
 * Phase 18 replicate results can now be reduced to a warning/error failure ledger so failed fits and warning-bearing replicates remain visible beside aggregate summaries.
 * Phase 18 saved replicate directories can now be reloaded into result lists, allowing manifests and failure ledgers to be rebuilt from RDS output after a resumable simulation run.
 * Phase 18 simulation results can now be reduced to a compact manifest table with cell id, replicate, seed, status, skipped/resumed flag, warning count, error message, and elapsed time.
+* Phase 18 summary-smoke helpers now return run manifests and warning/error ledgers beside aggregate bias, RMSE, and MCSE tables.
 * Developer design notes now include ASReml efficiency lessons for future `animal()` and `relmat()` work, emphasizing sparse precision matrices, explicit row-name matching, matrix-orientation metadata, and honest speed claims.
 * Phase 18 now includes a smoke simulation report template under `inst/sim/reports/`, giving pilot surfaces a reader-facing structure for purpose, aggregate summaries, reader checks, and interpretation boundaries.
 * Phase 18 now has a `meta_V(V = V)` summary-smoke runner that executes vector and dense known-covariance pilot replicates and returns grouped bias, RMSE, and Monte Carlo error summaries.
