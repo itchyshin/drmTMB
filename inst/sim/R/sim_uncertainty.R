@@ -55,6 +55,56 @@ phase18_aggregate_error_mcse <- function(summary, by = NULL) {
   out
 }
 
+phase18_add_wald_intervals <- function(
+  summary,
+  conf.level = 0.95,
+  estimate = "estimate",
+  std.error = "std.error",
+  lower = "conf.low",
+  upper = "conf.high",
+  interval_scale = "public"
+) {
+  phase18_assert_summary_columns(summary, c("parameter", estimate, std.error))
+  if (
+    !is.numeric(conf.level) ||
+      length(conf.level) != 1L ||
+      !is.finite(conf.level) ||
+      conf.level <= 0 ||
+      conf.level >= 1
+  ) {
+    stop("`conf.level` must be one number between 0 and 1.", call. = FALSE)
+  }
+  if (
+    !is.character(interval_scale) ||
+      length(interval_scale) != 1L ||
+      !nzchar(interval_scale)
+  ) {
+    stop("`interval_scale` must be one non-empty string.", call. = FALSE)
+  }
+  phase18_assert_interval_column_names(lower, upper)
+
+  estimate_value <- as.numeric(summary[[estimate]])
+  se_value <- as.numeric(summary[[std.error]])
+  ok <- is.finite(estimate_value) & is.finite(se_value) & se_value >= 0
+  z <- stats::qnorm(1 - (1 - conf.level) / 2)
+
+  out <- summary
+  out[[lower]] <- NA_real_
+  out[[upper]] <- NA_real_
+  out[[lower]][ok] <- estimate_value[ok] - z * se_value[ok]
+  out[[upper]][ok] <- estimate_value[ok] + z * se_value[ok]
+  out$conf.level <- conf.level
+  out$interval_method <- "wald"
+  out$interval_scale <- interval_scale
+  out$interval_status <- ifelse(ok, "ok", "failed")
+  out$interval_message <- ifelse(
+    ok,
+    "",
+    "missing or invalid estimate/std.error"
+  )
+  out
+}
+
 phase18_summarise_interval_coverage <- function(
   summary,
   by = NULL,
@@ -125,6 +175,20 @@ phase18_assert_group_columns <- function(summary, by) {
     stop("Every `by` column must exist in `summary`.", call. = FALSE)
   }
   invisible(by)
+}
+
+phase18_assert_interval_column_names <- function(lower, upper) {
+  if (
+    !is.character(lower) ||
+      length(lower) != 1L ||
+      !nzchar(lower) ||
+      !is.character(upper) ||
+      length(upper) != 1L ||
+      !nzchar(upper)
+  ) {
+    stop("`lower` and `upper` must be non-empty column names.", call. = FALSE)
+  }
+  invisible(list(lower = lower, upper = upper))
 }
 
 phase18_finite_numeric_vector <- function(x, name) {

@@ -32,7 +32,8 @@ Current pilot files:
 - `R/sim_aggregate.R` reduces parameter-level replicate summaries to grouped
   bias, RMSE, convergence, Hessian, warning, and elapsed-time summaries.
 - `R/sim_uncertainty.R` adds Monte Carlo uncertainty and explicit
-  interval-coverage summaries for later report layers.
+  interval-coverage summaries, plus generic Wald interval-table helpers for
+  summaries that already contain estimates and standard errors.
 - `run/sim_run_gaussian_ls_smoke.R` wires the Gaussian location-scale DGP,
   `drmTMB()` fit, summariser, registry, and replicate runner into one
   end-to-end smoke surface.

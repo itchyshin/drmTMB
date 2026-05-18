@@ -189,3 +189,5 @@ CRAN tests should only run smoke checks for seed stability and output shape.
 19. Slice 229 records the interval-producer contract for Wald, profile, and
     bootstrap endpoints, including reported scale, method, failure status, and
     correlation-scale rules.
+20. Slice 230 adds a generic Wald interval-table helper for summaries that
+    already carry estimates and standard errors.

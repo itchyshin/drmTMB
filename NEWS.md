@@ -14,6 +14,7 @@
 * Phase 18 smoke reports can now display optional aggregate, manifest, and warning/error ledger CSVs while still rendering when those files are not supplied.
 * Phase 18 smoke report rendering is now covered by a skip-aware test with tiny aggregate, manifest, and warning/error ledger CSV fixtures.
 * Phase 18 interval work now has a producer contract for Wald, profile, and bootstrap interval tables, including reported scale, method, status, and correlation-scale rules.
+* Phase 18 now has a generic Wald interval-table helper for parameter summaries that already contain estimates and standard errors, recording interval method, reported scale, status, and failure messages.
 * Phase 18 now has a small aggregation helper for simulation parameter summaries, reporting replicate counts, bias, RMSE, absolute error, empirical standard error, convergence rate, Hessian rate, warning rate, and elapsed time by explicit grouping columns.
 * Phase 18 now has a first end-to-end `meta_V(V = V)` smoke runner under `inst/sim/run/`, covering vector and dense known sampling covariance cells through DGP, `drmTMB()` fit, saved RDS output, and combined parameter summaries.
 * Phase 18 now has a first end-to-end Gaussian location-scale smoke runner under `inst/sim/run/`, wiring the cell registry, seeded DGP, `drmTMB()` fit, pilot summariser, saved RDS output, and combined parameter table for one small surface.

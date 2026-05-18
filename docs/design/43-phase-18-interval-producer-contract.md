@@ -63,3 +63,12 @@ The first real producers should target:
    Wald labels.
 4. Profile intervals for variance, correlation, shape, and scale targets after
    the narrower Wald path is tested.
+
+## Current Helper
+
+`phase18_add_wald_intervals()` is the first generic helper for this contract.
+It takes a parameter-summary table that already contains `estimate` and
+`std.error`, adds normal Wald endpoints, and records `interval_method`,
+`interval_scale`, `interval_status`, and `interval_message`. It deliberately
+does not extract standard errors from fitted model objects; model-specific
+producers should do that surface by surface.

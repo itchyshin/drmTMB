@@ -16,16 +16,7 @@ phase18_add_synthetic_intervals <- function(
       call. = FALSE
     )
   }
-  if (
-    !is.character(lower) ||
-      length(lower) != 1L ||
-      !nzchar(lower) ||
-      !is.character(upper) ||
-      length(upper) != 1L ||
-      !nzchar(upper)
-  ) {
-    stop("`lower` and `upper` must be non-empty column names.", call. = FALSE)
-  }
+  phase18_assert_interval_column_names(lower, upper)
 
   estimate <- phase18_finite_numeric_vector(summary$estimate, "estimate")
   width <- rep(half_width, length.out = nrow(summary))
