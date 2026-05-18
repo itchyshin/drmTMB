@@ -25610,3 +25610,45 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-18-slice-256-count-gallery-smoke-runner.md`.
+
+## 2026-05-18 - Slice 257 Count gallery visual polish
+
+Goal: improve the first count-pilot gallery so it reads like an intentional
+simulation figure gallery rather than raw default output.
+
+Files changed:
+
+- `inst/sim/reports/phase18-count-mu-gallery.Rmd`
+- `tests/testthat/test-phase18-count-gallery-template.R`
+- `docs/design/39-visualization-grammar.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `ROADMAP.md`
+- `NEWS.md`
+- `docs/dev-log/after-task/2026-05-18-slice-257-count-gallery-visual-polish.md`
+
+What changed:
+
+- Added a shared count-gallery colour palette and theme helper.
+- Reworked bias and RMSE panels with horizontal estimand labels, consistent
+  family colours, parameter-class shapes, and interpretive captions.
+- Reworked coverage panels to show MCSE-based approximate 95% uncertainty
+  ranges when `coverage_mcse` is present.
+- Updated tests to keep the Florence visual-polish helper and MCSE language in
+  the template.
+
+Checks run:
+
+- `air format inst/sim/reports/phase18-count-mu-gallery.Rmd tests/testthat/test-phase18-count-gallery-template.R`
+- `Rscript -e "devtools::test(filter = 'phase18-count-gallery-template|phase18-count-gallery-smoke-runner|phase18-count-gallery-render-helper', reporter = 'summary')"`
+- `Rscript -e 'devtools::load_all(\".\", quiet = TRUE); ...; out <- phase18_render_count_mu_re_gallery_smoke(output_dir = \"inst/sim/results/slice-257-count-gallery-polished\", overwrite = TRUE, notes = \"Slice 257 polished local gallery smoke\", template = \"inst/sim/reports/phase18-count-mu-gallery.Rmd\"); cat(out$gallery$output_file, \"\\n\")'`
+- `rg -n "Slice 257 polished local gallery smoke|Root-mean-square error by estimand|Florence Checks" inst/sim/results/slice-257-count-gallery-polished/gallery/phase18-count-mu-gallery.html`
+- `git diff --check`
+
+Known limitations:
+
+- This is template polish only; no pkgdown gallery article, alt text, or
+  visual snapshot test is added yet.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-257-count-gallery-visual-polish.md`.

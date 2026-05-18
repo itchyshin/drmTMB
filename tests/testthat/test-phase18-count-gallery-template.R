@@ -15,6 +15,8 @@ test_that("Phase 18 count gallery template is installed and reader-facing", {
   expect_true(grepl("Interval Coverage", text, fixed = TRUE))
   expect_true(grepl("Florence Checks", text, fixed = TRUE))
   expect_true(grepl("No warning/error ledger CSV supplied", text, fixed = TRUE))
+  expect_true(grepl("phase18_count_gallery_theme", text, fixed = TRUE))
+  expect_true(grepl("Monte Carlo uncertainty", text, fixed = TRUE))
 })
 
 test_that("Phase 18 count gallery template renders with CSV inputs", {
