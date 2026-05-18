@@ -24090,3 +24090,41 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slice-220-sim-report-template.md`.
+
+## 2026-05-17 - Slice 221 ASReml efficiency note
+
+Goal: record design-level ASReml efficiency lessons for future `animal()` and
+`relmat()` work without copying proprietary implementation code.
+
+Files changed:
+
+- `docs/design/42-asreml-efficiency-lessons.md`
+- `ROADMAP.md`
+- `NEWS.md`
+- `docs/dev-log/after-task/2026-05-17-slice-221-asreml-efficiency-note.md`
+
+What changed:
+
+- Added a design note based on local ASReml-R package metadata and public help
+  topics, especially `ainverse`, `knownStruc`, and model constructors.
+- Recorded the main architecture lesson: large animal-model performance depends
+  on sparse inverse relationship structures, row-name matching, log-determinant
+  bookkeeping, and explicit covariance-versus-precision contracts.
+- Clarified that `drmTMB` should keep `animal()` as biological sugar and
+  `relmat()` as the lower-level known-matrix surface, with honest speed claims
+  until sparse-precision recovery and scaling evidence exists.
+
+Checks run:
+
+- `air format docs/design/42-asreml-efficiency-lessons.md ROADMAP.md NEWS.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-17-slice-221-asreml-efficiency-note.md`
+- `git diff --check`
+
+Known limitations:
+
+- This is a design note only. It does not add `animal()` fitting,
+  sparse-precision support, pedigree conversion, scaling benchmarks, or ASReml
+  comparators.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slice-221-asreml-efficiency-note.md`.

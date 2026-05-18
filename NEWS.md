@@ -1,6 +1,7 @@
 # drmTMB 0.1.2 (2026-05-16)
 
 * Phase 18 now has an optional resumable replicate runner under `inst/sim/` that captures warnings, errors, elapsed time, session metadata, and optional RDS output for pilot simulation cells.
+* Developer design notes now include ASReml efficiency lessons for future `animal()` and `relmat()` work, emphasizing sparse precision matrices, explicit row-name matching, matrix-orientation metadata, and honest speed claims.
 * Phase 18 now includes a smoke simulation report template under `inst/sim/reports/`, giving pilot surfaces a reader-facing structure for purpose, aggregate summaries, reader checks, and interpretation boundaries.
 * Phase 18 now has a `meta_V(V = V)` summary-smoke runner that executes vector and dense known-covariance pilot replicates and returns grouped bias, RMSE, and Monte Carlo error summaries.
 * Phase 18 now has a Gaussian location-scale summary-smoke runner that executes two or more pilot replicates and returns grouped bias, RMSE, and Monte Carlo error summaries from the smoke output.
