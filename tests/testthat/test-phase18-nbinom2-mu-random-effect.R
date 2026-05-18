@@ -137,7 +137,25 @@ test_that("Phase 18 NB2 mu random-effect smoke runner summarises output", {
   expect_equal(nrow(out$manifest), 1L)
   expect_identical(out$manifest$status, "ok")
   expect_equal(nrow(out$failures), 0L)
+  expect_equal(nrow(out$wald_intervals), 6L)
+  expect_equal(nrow(out$wald_coverage), 4L)
   expect_equal(out$aggregate$n_replicate, rep(1L, 6L))
+  expect_equal(
+    out$wald_intervals$interval_status,
+    c("ok", "ok", "ok", "ok", "failed", "failed")
+  )
+  expect_equal(
+    out$wald_intervals$interval_scale,
+    c(
+      "formula_coefficient",
+      "formula_coefficient",
+      "formula_coefficient",
+      "formula_coefficient",
+      "public_sd",
+      "public_sd"
+    )
+  )
+  expect_true(all(out$wald_coverage$n_interval == 1L))
   expect_setequal(
     out$run$summary$parameter_class,
     c("fixed_mu", "fixed_sigma", "random_sd")
