@@ -24926,3 +24926,50 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-18-slice-240-cross-dpar-correlation-gate.md`.
+
+## 2026-05-18 - Slice 241 spatial mu one-slope smoke surface
+
+Goal: add a Phase 18 smoke surface for the fitted coordinate spatial Gaussian
+`mu` one-slope path.
+
+Files changed:
+
+- `inst/sim/dgp/sim_dgp_spatial_mu_slope.R`
+- `inst/sim/fit/sim_summarise_spatial_mu_slope.R`
+- `inst/sim/run/sim_run_spatial_mu_slope_smoke.R`
+- `inst/sim/run/sim_summary_spatial_mu_slope_smoke.R`
+- `tests/testthat/test-phase18-spatial-mu-slope.R`
+- `inst/sim/README.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `docs/design/44-structured-slope-parity-gate.md`
+- `ROADMAP.md`
+- `NEWS.md`
+- `docs/dev-log/after-task/2026-05-18-slice-241-spatial-mu-slope-smoke.md`
+
+What changed:
+
+- Added a seeded DGP for
+  `bf(y ~ x + spatial(1 + x | site, coords = coords), sigma ~ 1)`.
+- Added a replicate runner and summary-smoke wrapper for the coordinate spatial
+  Gaussian `mu` one-slope surface.
+- Summaries now include fixed `mu` coefficients, public residual `sigma`, and
+  direct coordinate-spatial intercept-field and slope-field SD rows.
+- Added tests for seeded data, live spatial one-slope smoke fitting,
+  summary/manifest/failure outputs, and malformed inputs.
+
+Checks run:
+
+- `air format inst/sim/dgp/sim_dgp_spatial_mu_slope.R inst/sim/fit/sim_summarise_spatial_mu_slope.R inst/sim/run/sim_run_spatial_mu_slope_smoke.R inst/sim/run/sim_summary_spatial_mu_slope_smoke.R tests/testthat/test-phase18-spatial-mu-slope.R`
+- `Rscript -e "devtools::test(filter = 'phase18-spatial-mu-slope', reporter = 'summary')"`
+- `air format inst/sim/dgp/sim_dgp_spatial_mu_slope.R inst/sim/fit/sim_summarise_spatial_mu_slope.R inst/sim/run/sim_run_spatial_mu_slope_smoke.R inst/sim/run/sim_summary_spatial_mu_slope_smoke.R tests/testthat/test-phase18-spatial-mu-slope.R inst/sim/README.md docs/design/41-phase-18-simulation-programme.md docs/design/44-structured-slope-parity-gate.md ROADMAP.md NEWS.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-18-slice-241-spatial-mu-slope-smoke.md`
+- `Rscript -e "devtools::test(filter = 'phase18-spatial-mu-slope|spatial-gaussian', reporter = 'summary')"`
+
+Known limitations:
+
+- This smoke surface covers the fitted independent spatial intercept and slope
+  fields only. It does not add spatial slope correlations, spatial `sigma`,
+  bivariate spatial covariance, mesh/SPDE, animal, or `relmat()` fitting.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-241-spatial-mu-slope-smoke.md`.
