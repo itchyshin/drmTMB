@@ -1550,7 +1550,9 @@ Use this order unless Slice 191 evidence overturns it:
   output for `mu` and `sigma` coefficients, while leaving random-effect SD
   profile coverage as the next evidence step. Slice 248 attaches direct
   profile-likelihood interval rows and coverage summaries for the two fitted
-  NB2 `sd:mu` targets in that smoke output.
+  NB2 `sd:mu` targets in that smoke output. Slice 249 adds a focused weak-SD
+  boundary diagnostic for fitted NB2 `mu` random intercepts and keeps larger
+  NB2 operating-characteristic grids as future Phase 18 work.
 
 ## Structured Slope Parity Gate
 

@@ -25278,3 +25278,42 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-18-slice-248-nbinom2-mu-profile-sd-coverage.md`.
+
+## 2026-05-18 - Slice 249 NB2 weak-SD boundary
+
+Goal: add a focused weak-SD boundary diagnostic for fitted NB2 `mu` random
+intercepts before larger Phase 18 grids vary true random-effect SDs.
+
+Files changed:
+
+- `tests/testthat/test-nbinom2-location-scale.R`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `docs/design/34-validation-debt-register.md`
+- `ROADMAP.md`
+- `NEWS.md`
+- `docs/dev-log/after-task/2026-05-18-slice-249-nbinom2-weak-sd-boundary.md`
+
+What changed:
+
+- The NB2 random-effect DGP helper in the focused unit tests can now vary the
+  true random-intercept and independent random-slope SDs.
+- Added a weak-SD NB2 random-intercept test that converges, keeps a finite
+  positive fitted SD, and triggers `check_drm()` lower-boundary reporting.
+- Updated the validation-debt register so NB2 now records smoke-runner,
+  interval, and weak-SD evidence, while larger operating-characteristic grids
+  remain future Phase 18 work.
+
+Checks run:
+
+- `air format tests/testthat/test-nbinom2-location-scale.R docs/design/41-phase-18-simulation-programme.md docs/design/34-validation-debt-register.md ROADMAP.md NEWS.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-18-slice-249-nbinom2-weak-sd-boundary.md`
+- `Rscript -e "devtools::test(filter = 'nbinom2-location-scale|check-drm', reporter = 'summary')"`
+- `git diff --check`
+
+Known limitations:
+
+- This is a single focused diagnostic test, not a full NB2 weak-SD simulation
+  grid.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-249-nbinom2-weak-sd-boundary.md`.

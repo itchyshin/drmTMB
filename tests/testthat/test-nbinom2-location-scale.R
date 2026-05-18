@@ -15,7 +15,9 @@ new_nbinom2_data <- function(n = 1200, seed = 20260602) {
 new_nbinom2_random_effect_data <- function(
   n_id = 44,
   n_each = 10,
-  seed = 20260628
+  seed = 20260628,
+  sd_id = 0.45,
+  sd_x = 0.30
 ) {
   set.seed(seed)
   n <- n_id * n_each
@@ -26,8 +28,6 @@ new_nbinom2_random_effect_data <- function(
   )
   beta_mu <- c(`(Intercept)` = 0.35, x = -0.25)
   beta_sigma <- c(`(Intercept)` = -0.70, z = 0.20)
-  sd_id <- 0.45
-  sd_x <- 0.30
   u_id <- stats::rnorm(n_id, sd = sd_id)
   u_x <- stats::rnorm(n_id, sd = sd_x)
   eta_mu <- beta_mu[[1L]] +
@@ -130,6 +130,40 @@ test_that("nbinom2 mu supports ordinary random intercepts and slopes", {
 
   expect_true(all(predict(fit, dpar = "mu") > 0))
   expect_equal(fitted(fit), predict(fit, dpar = "mu"), tolerance = 1e-12)
+})
+
+test_that("nbinom2 mu random intercepts tolerate weak-SD boundary cases", {
+  sim <- new_nbinom2_random_effect_data(
+    n_id = 50,
+    n_each = 12,
+    seed = 20260629,
+    sd_id = 0.03,
+    sd_x = 0
+  )
+
+  fit <- drmTMB(
+    bf(count ~ x + (1 | id), sigma ~ z),
+    family = nbinom2(),
+    data = sim$data
+  )
+
+  expect_s3_class(fit, "drmTMB")
+  expect_equal(fit$model$model_type, "nbinom2")
+  expect_equal(fit$opt$convergence, 0)
+  expect_true(fit$sdr$pdHess)
+  expect_named(fit$sdpars$mu, "(1 | id)")
+  expect_true(is.finite(unname(fit$sdpars$mu)))
+  expect_gt(unname(fit$sdpars$mu), 0)
+  expect_lt(unname(fit$sdpars$mu), 0.25)
+  expect_lt(max(abs(coef(fit, "mu") - sim$beta_mu)), 0.25)
+  expect_lt(max(abs(coef(fit, "sigma") - sim$beta_sigma)), 0.25)
+
+  chk <- check_drm(fit, sd_boundary = 0.25)
+  sd_boundary <- chk[chk$check == "random_effect_sd_boundary", ]
+  expect_equal(sd_boundary$status, "warning")
+  expect_match(sd_boundary$value, "boundary=0.2500")
+  expect_match(sd_boundary$message, "lower boundary")
+  expect_false(attr(chk, "ok"))
 })
 
 test_that("nbinom2 likelihood matches independent dnbinom calculation", {
