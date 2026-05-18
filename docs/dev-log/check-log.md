@@ -25059,3 +25059,41 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-18-slice-243-poisson-mu-wald-coverage.md`.
+
+## 2026-05-18 - Slice 244 Poisson mu profile SD coverage
+
+Goal: attach direct profile-likelihood interval rows and coverage summaries for
+Poisson `mu` random-effect SD targets in the smoke output.
+
+Files changed:
+
+- `inst/sim/fit/sim_summarise_poisson_mu_random_effect.R`
+- `inst/sim/run/sim_summary_poisson_mu_random_effect_smoke.R`
+- `tests/testthat/test-phase18-poisson-mu-random-effect.R`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `NEWS.md`
+- `docs/dev-log/after-task/2026-05-18-slice-244-poisson-mu-profile-sd-coverage.md`
+
+What changed:
+
+- The Poisson random-effect summariser now profiles direct `sd:mu` targets for
+  the random intercept and independent random slope during smoke runs.
+- The summary-smoke wrapper now returns `profile_intervals` and
+  `profile_coverage` beside the existing Wald outputs.
+- Tests confirm that both random-effect SD rows get profile intervals and
+  coverage rows.
+
+Checks run:
+
+- `air format inst/sim/fit/sim_summarise_poisson_mu_random_effect.R inst/sim/run/sim_summary_poisson_mu_random_effect_smoke.R tests/testthat/test-phase18-poisson-mu-random-effect.R docs/design/41-phase-18-simulation-programme.md NEWS.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-18-slice-244-poisson-mu-profile-sd-coverage.md`
+- `Rscript -e "devtools::test(filter = 'phase18-poisson-mu-random-effect', reporter = 'summary')"`
+- `Rscript -e "devtools::test(filter = 'phase18-poisson-mu-random-effect|poisson-mean|profile-targets', reporter = 'summary')"`
+
+Known limitations:
+
+- This is still a tiny smoke surface, not a full coverage grid. Profile
+  intervals are attached only to direct Poisson `mu` SD targets.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-244-poisson-mu-profile-sd-coverage.md`.
