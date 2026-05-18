@@ -37,6 +37,7 @@ minimum first wave is:
 | Gaussian location-scale | Fitted | `y_i ~ Normal(mu_i, sigma_i^2)` with `mu ~ x` and `log(sigma) ~ z` | `n`, sigma slope, collinearity |
 | Gaussian ordinary random effects | Fitted | `y_ij = mu_ij + u_j + e_ij`, optional slopes | groups, observations per group, SD size |
 | Gaussian ordinary q=3 random slopes | Fitted but advanced | `mu_ij = X beta + b_0j + x1 b_1j + x2 b_2j` with `(1 + x1 + x2 | id)` | groups, observations per group, slope SD, correlation |
+| Gaussian residual-scale random slopes | Fitted independent slope | `log(sigma_ij) = X beta + w_ij a_j` with `(0 + w | id)` | groups, observations per group, scale-slope SD |
 | Gaussian location-scale covariance | Fitted | matched `mu`/`sigma` random intercept blocks | group count, correlation, SD ratio |
 | Bivariate Gaussian coscale | Fitted | two responses with `sigma1`, `sigma2`, and `rho12` | residual correlation, missing rows excluded |
 | Phylogenetic and spatial Gaussian | Fitted subsets | known relatedness or coordinate covariance plus Gaussian residuals | number of taxa/sites, signal size |
@@ -212,3 +213,6 @@ CRAN tests should only run smoke checks for seed stability and output shape.
 27. Slice 237 adds a CRAN-safe smoke surface for ordinary Gaussian `mu` q=3
     random slopes, including a seeded DGP, replicate runner, summary table,
     aggregate output, manifest, failure ledger, and tests.
+28. Slice 238 adds a CRAN-safe smoke surface for Gaussian `sigma` independent
+    one-slope random effects on `log(sigma)`, keeping correlated scale-slope
+    covariance and labelled scale-slope blocks outside Wave A.

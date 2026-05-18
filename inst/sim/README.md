@@ -23,6 +23,9 @@ Current pilot files:
   `mu ~ x` and `sigma ~ z`.
 - `dgp/sim_dgp_gaussian_mu_random_slope.R` generates Gaussian `mu` data with
   one q=3 grouped random-slope block, `(1 + x1 + x2 | id)`.
+- `dgp/sim_dgp_gaussian_sigma_random_slope.R` generates Gaussian
+  residual-scale data with one independent `log(sigma)` random slope,
+  `(0 + w | id)`.
 - `dgp/sim_dgp_meta_v.R` generates Gaussian meta-analysis data with vector or
   dense known sampling covariance via `meta_V(V = V)`.
 - `fit/sim_summarise_gaussian_ls.R` converts one fitted pilot model into a
@@ -34,6 +37,9 @@ Current pilot files:
   coefficients, public residual `sigma`, q=3 random-slope SDs, and q=3
   derived random-effect correlations for the ordinary Gaussian `mu`
   random-slope pilot.
+- `fit/sim_summarise_gaussian_sigma_random_slope.R` summarises fixed `mu` and
+  fixed `sigma` coefficients plus the direct residual-scale random-slope SD on
+  the modelled `log(sigma)` scale.
 - `R/sim_runner.R` runs one cell replicate, captures warnings/errors, can save
   or resume an RDS result, can reload saved result directories, and can reduce
   result lists to compact manifests or warning/error ledgers.
@@ -48,6 +54,8 @@ Current pilot files:
   end-to-end smoke surface.
 - `run/sim_run_gaussian_mu_random_slope_smoke.R` does the same for the ordinary
   Gaussian `mu` q=3 random-slope surface.
+- `run/sim_run_gaussian_sigma_random_slope_smoke.R` does the same for the
+  Gaussian `sigma` independent one-slope surface.
 - `run/sim_run_meta_v_smoke.R` does the same for vector and dense
   `meta_V(V = V)` smoke cells.
 - `run/sim_summary_gaussian_ls_smoke.R` runs a tiny Gaussian location-scale
@@ -56,6 +64,9 @@ Current pilot files:
   outputs.
 - `run/sim_summary_gaussian_mu_random_slope_smoke.R` runs a tiny ordinary
   Gaussian `mu` q=3 random-slope summary smoke grid and returns grouped bias,
+  RMSE, MCSE, manifest, and warning/error ledger outputs.
+- `run/sim_summary_gaussian_sigma_random_slope_smoke.R` runs a tiny Gaussian
+  `sigma` independent one-slope summary smoke grid and returns grouped bias,
   RMSE, MCSE, manifest, and warning/error ledger outputs.
 - `run/sim_summary_meta_v_smoke.R` does the same for vector and dense
   `meta_V(V = V)` smoke cells, including Wald interval and coverage outputs for

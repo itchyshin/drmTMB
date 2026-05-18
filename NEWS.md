@@ -8,6 +8,7 @@
 * Developer design notes now include ASReml efficiency lessons for future `animal()` and `relmat()` work, emphasizing sparse precision matrices, explicit row-name matching, matrix-orientation metadata, and honest speed claims.
 * Phase 18 now includes a smoke simulation report template under `inst/sim/reports/`, giving pilot surfaces a reader-facing structure for purpose, aggregate summaries, reader checks, and interpretation boundaries.
 * Phase 18 now has a Gaussian `mu` q=3 random-slope smoke surface under `inst/sim/`, covering seeded data generation, `drmTMB()` fitting for `(1 + x1 + x2 | id)`, parameter summaries, aggregate output, manifests, and failure ledgers.
+* Phase 18 now has a Gaussian `sigma` independent random-slope smoke surface under `inst/sim/`, covering seeded data generation, `drmTMB()` fitting for `sigma ~ z + (0 + w | id)`, parameter summaries, aggregate output, manifests, and failure ledgers.
 * Phase 18 now has a `meta_V(V = V)` summary-smoke runner that executes vector and dense known-covariance pilot replicates and returns grouped bias, RMSE, and Monte Carlo error summaries.
 * Phase 18 now has a Gaussian location-scale summary-smoke runner that executes two or more pilot replicates and returns grouped bias, RMSE, and Monte Carlo error summaries from the smoke output.
 * Phase 18 now has Monte Carlo uncertainty helpers for simulation summaries, including MCSEs for mean error, RMSE, proportions, and explicit interval-coverage summaries when lower and upper interval columns are present.

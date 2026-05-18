@@ -24798,3 +24798,48 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-18-slice-237-gaussian-mu-random-slope-smoke.md`.
+
+## 2026-05-18 - Slice 238 Gaussian sigma random-slope smoke surface
+
+Goal: add a Phase 18 smoke surface for the fitted Gaussian `sigma` independent
+one-slope path.
+
+Files changed:
+
+- `inst/sim/dgp/sim_dgp_gaussian_sigma_random_slope.R`
+- `inst/sim/fit/sim_summarise_gaussian_sigma_random_slope.R`
+- `inst/sim/run/sim_run_gaussian_sigma_random_slope_smoke.R`
+- `inst/sim/run/sim_summary_gaussian_sigma_random_slope_smoke.R`
+- `tests/testthat/test-phase18-gaussian-sigma-random-slope.R`
+- `inst/sim/README.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `ROADMAP.md`
+- `NEWS.md`
+- `docs/dev-log/after-task/2026-05-18-slice-238-gaussian-sigma-random-slope-smoke.md`
+
+What changed:
+
+- Added a seeded DGP for `bf(y ~ x, sigma ~ z + (0 + w | id))`.
+- Added a replicate runner and summary-smoke wrapper for the Gaussian
+  residual-scale one-slope surface.
+- Summaries now include fixed `mu`, fixed `sigma`, and direct residual-scale
+  random-slope SD rows.
+- Added tests for seeded data, live one-slope smoke fitting,
+  summary/manifest/failure outputs, and malformed inputs.
+
+Checks run:
+
+- `air format inst/sim/dgp/sim_dgp_gaussian_sigma_random_slope.R inst/sim/fit/sim_summarise_gaussian_sigma_random_slope.R inst/sim/run/sim_run_gaussian_sigma_random_slope_smoke.R inst/sim/run/sim_summary_gaussian_sigma_random_slope_smoke.R tests/testthat/test-phase18-gaussian-sigma-random-slope.R inst/sim/README.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md NEWS.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-18-slice-238-gaussian-sigma-random-slope-smoke.md`
+- `Rscript -e "devtools::test(filter = 'phase18-gaussian-sigma-random-slope', reporter = 'summary')"`
+- `Rscript -e "devtools::test(filter = 'gaussian-random-intercepts|phase18-gaussian-sigma-random-slope', reporter = 'summary')"`
+- `git diff --check`
+
+Known limitations:
+
+- This is the independent one-slope `log(sigma)` path only. Correlated
+  scale-slope covariance, labelled scale-slope blocks, and non-Gaussian scale
+  random effects remain planned.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-238-gaussian-sigma-random-slope-smoke.md`.
