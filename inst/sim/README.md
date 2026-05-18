@@ -102,6 +102,10 @@ Current pilot files:
   grouped bias, RMSE, MCSE, manifest, warning/error ledger, formula-coefficient
   Wald interval, Wald coverage, direct random-effect SD profile interval, and
   profile coverage outputs.
+- `run/sim_summary_count_mu_random_effect_pilot.R` runs the first paired
+  Poisson/NB2 `mu` random-effect pilot, returning combined aggregate, manifest,
+  failure-ledger, Wald interval, Wald coverage, profile interval, and profile
+  coverage tables for count-family comparisons.
 - `run/sim_summary_meta_v_smoke.R` does the same for vector and dense
   `meta_V(V = V)` smoke cells, including Wald interval and coverage outputs for
   estimated targets.

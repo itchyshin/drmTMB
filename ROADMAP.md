@@ -1555,7 +1555,10 @@ Use this order unless Slice 191 evidence overturns it:
   NB2 operating-characteristic grids as future Phase 18 work. Slice 250 records
   a pre-simulation readiness matrix that separates surfaces ready for small
   grids from planned or blocked surfaces before broad Phase 18 reports are
-  written.
+  written. Slice 251 starts the first paired count pilot, combining ready
+  Poisson and NB2 `mu` random-effect surfaces into one optional output with
+  aggregate, manifest, failure-ledger, Wald-coverage, and profile-coverage
+  tables.
 
 ## Structured Slope Parity Gate
 
