@@ -39,3 +39,5 @@ Current pilot files:
   `meta_V(V = V)` smoke cells.
 - `run/sim_summary_gaussian_ls_smoke.R` runs a tiny Gaussian location-scale
   summary smoke grid and returns grouped bias, RMSE, and MCSE columns.
+- `run/sim_summary_meta_v_smoke.R` does the same for vector and dense
+  `meta_V(V = V)` smoke cells.

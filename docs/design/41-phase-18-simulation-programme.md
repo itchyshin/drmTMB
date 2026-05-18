@@ -165,3 +165,6 @@ CRAN tests should only run smoke checks for seed stability and output shape.
    lower and upper interval columns are present.
 9. Slice 218 wires the Gaussian location-scale smoke runner to the aggregation
    and MCSE helpers, giving the first tiny end-to-end bias/RMSE summary surface.
+10. Slice 219 does the same for vector and dense `meta_V(V = V)` smoke cells,
+    preserving the separation between known sampling covariance and fitted
+    residual heterogeneity `sigma`.
