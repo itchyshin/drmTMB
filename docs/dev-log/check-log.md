@@ -24392,6 +24392,44 @@ After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slice-228-report-render-smoke.md`.
 
+## 2026-05-17 - Slice 229 interval producer contract
+
+Goal: define the metadata contract for real Phase 18 interval producers before
+attaching Wald, profile, or bootstrap intervals to simulation surfaces.
+
+Files changed:
+
+- `docs/design/43-phase-18-interval-producer-contract.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `ROADMAP.md`
+- `NEWS.md`
+- `docs/dev-log/after-task/2026-05-17-slice-229-interval-producer-contract.md`
+
+What changed:
+
+- Added a design note defining required interval columns: endpoints,
+  confidence level, method, reported scale, status, and failure message.
+- Recorded that known `meta_V(V = V)` inputs are not estimated interval
+  targets.
+- Recorded the correlation rule: Wald intervals for `rho12` and random-effect
+  correlations should distinguish raw-rho intervals from Fisher-z
+  back-transformed intervals, while profile endpoints should be reported on the
+  public target scale.
+
+Checks run:
+
+- `air format docs/design/43-phase-18-interval-producer-contract.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md NEWS.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-17-slice-229-interval-producer-contract.md`
+- `git diff --check`
+
+Known limitations:
+
+- This slice is a design contract only. It does not compute Wald, profile, or
+  bootstrap intervals.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slice-229-interval-producer-contract.md`.
+
 ## 2026-05-18 - Florence visualization role and memory guardrails
 
 Goal: make the new visualization role durable and adopt the useful Memory OS
