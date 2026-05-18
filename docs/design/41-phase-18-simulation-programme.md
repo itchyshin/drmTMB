@@ -44,7 +44,7 @@ minimum first wave is:
 | Structured one-slope parity | Spatial fitted; phylo/animal/relmat planned | coordinate spatial `mu` one-slope only in Wave A | sites, slope-field SD, covariate spread |
 | Coordinate spatial one-slope smoke | Fitted smoke surface | `eta_mu = X beta + z0_site + x z1_site` with two independent coordinate-spatial fields | sites, observations per site, intercept-field SD, slope-field SD |
 | Gaussian meta-analysis | Fitted | `y ~ MVN(mu, V + Omega_estimated)` with vector or matrix `V` | effect sizes, dense `V`, heterogeneity |
-| Poisson `mu` random effects | Pilot only | log-mean count model with ordinary random intercepts/slopes | groups, mean count, SD size |
+| Poisson `mu` random effects | Fitted smoke surface | log-mean count model with ordinary random intercepts and independent numeric slopes | groups, observations per group, mean count, SD size |
 
 Later waves can add NB2, zero inflation, hurdle, ordinal, shape/skew, and
 non-Gaussian scale/random-effect surfaces only after their focused gates are
@@ -240,3 +240,6 @@ CRAN tests should only run smoke checks for seed stability and output shape.
 31. Slice 241 adds a CRAN-safe smoke surface for the fitted coordinate spatial
     Gaussian `mu` one-slope path, including a seeded DGP, live `drmTMB()` fit,
     parameter summaries, aggregate output, manifest, failure ledger, and tests.
+32. Slice 242 adds a CRAN-safe smoke surface for fitted ordinary
+    non-zero-inflated Poisson `mu` random effects, covering random intercepts
+    plus independent numeric slopes on the log-mean predictor.
