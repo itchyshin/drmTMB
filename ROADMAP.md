@@ -1504,7 +1504,9 @@ Use this order unless Slice 191 evidence overturns it:
   standard errors. A Fisher-z back-transformed correlation Wald helper is done
   locally in Slice 231. Gaussian location-scale pilot summaries carry
   fixed-effect standard errors locally in Slice 232. Next, connect those
-  standard errors to Gaussian location-scale Wald coverage summaries.
+  standard errors to Gaussian location-scale Wald coverage summaries. Gaussian
+  location-scale summary smoke returns formula-coefficient Wald intervals and
+  coverage locally in Slice 233.
 
 ## ASReml Efficiency Lessons For Future Animal Models
 

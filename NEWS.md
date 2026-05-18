@@ -20,6 +20,7 @@
 * Phase 18 now has a first end-to-end `meta_V(V = V)` smoke runner under `inst/sim/run/`, covering vector and dense known sampling covariance cells through DGP, `drmTMB()` fit, saved RDS output, and combined parameter summaries.
 * Phase 18 now has a first end-to-end Gaussian location-scale smoke runner under `inst/sim/run/`, wiring the cell registry, seeded DGP, `drmTMB()` fit, pilot summariser, saved RDS output, and combined parameter table for one small surface.
 * Phase 18 Gaussian location-scale pilot summaries now carry fixed-effect standard errors when the fitted model exposes them, preparing that surface for real Wald interval coverage checks.
+* Phase 18 Gaussian location-scale summary-smoke output now includes formula-coefficient Wald interval rows and coverage summaries.
 * Phase 18 now has a Gaussian meta-analysis `meta_V(V = V)` simulation pilot covering vector and dense known sampling covariance, including smoke tests that keep known `V` out of interval targets.
 * Phase 18 now has a Gaussian location-scale simulation pilot: optional `inst/sim/` helpers generate `mu ~ x`, `sigma ~ z` data and summarise one fitted model into a truth/estimate/error table.
 * Phase 18 now has an optional `inst/sim/` skeleton with reproducible seed-table and cell-registry helpers plus a CRAN-safe smoke test for simulation-run bookkeeping.

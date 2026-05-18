@@ -24552,6 +24552,46 @@ After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slice-232-gaussian-ls-se-summary.md`.
 
+## 2026-05-17 - Slice 233 Gaussian location-scale Wald coverage
+
+Goal: attach real Wald interval and coverage outputs to the Gaussian
+location-scale summary-smoke surface.
+
+Files changed:
+
+- `inst/sim/run/sim_summary_gaussian_ls_smoke.R`
+- `tests/testthat/test-phase18-gaussian-ls-summary-smoke.R`
+- `inst/sim/README.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `docs/design/43-phase-18-interval-producer-contract.md`
+- `ROADMAP.md`
+- `NEWS.md`
+- `docs/dev-log/after-task/2026-05-17-slice-233-gaussian-ls-wald-coverage.md`
+
+What changed:
+
+- Updated `phase18_summarise_gaussian_ls_smoke()` to return `wald_intervals`
+  and `wald_coverage`.
+- Labelled intervals with `interval_scale = "formula_coefficient"` because the
+  pilot summary targets coefficients such as `mu:x` and `sigma:z`.
+- Extended the Gaussian location-scale summary-smoke test to check interval
+  status, interval scale, replicate counts, and interval counts.
+
+Checks run:
+
+- `air format inst/sim/run/sim_summary_gaussian_ls_smoke.R tests/testthat/test-phase18-gaussian-ls-summary-smoke.R inst/sim/README.md docs/design/41-phase-18-simulation-programme.md docs/design/43-phase-18-interval-producer-contract.md ROADMAP.md NEWS.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-17-slice-233-gaussian-ls-wald-coverage.md`
+- `Rscript -e "devtools::test(filter = 'phase18-gaussian-ls-summary-smoke', reporter = 'summary')"`
+- `git diff --check`
+
+Known limitations:
+
+- These are formula-coefficient Wald intervals, not response-scale confidence
+  bands for predicted `mu` or `sigma`.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slice-233-gaussian-ls-wald-coverage.md`.
+
 ## 2026-05-18 - Florence visualization role and memory guardrails
 
 Goal: make the new visualization role durable and adopt the useful Memory OS

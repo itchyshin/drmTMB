@@ -75,6 +75,11 @@ test_that("Phase 18 Gaussian location-scale summary smoke run aggregates output"
     nrow(out$failures),
     sum(out$manifest$status != "ok") + sum(out$manifest$warning_count)
   )
+  expect_equal(nrow(out$wald_coverage), 4L)
+  expect_equal(out$wald_coverage$n_replicate, rep(2L, 4L))
+  expect_equal(out$wald_coverage$n_interval, rep(2L, 4L))
+  expect_true(all(out$wald_intervals$interval_status == "ok"))
+  expect_true(all(out$wald_intervals$interval_scale == "formula_coefficient"))
   expect_equal(out$aggregate$n_replicate, rep(2L, 4L))
   expect_setequal(
     out$aggregate$parameter,

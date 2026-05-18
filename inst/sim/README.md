@@ -41,8 +41,9 @@ Current pilot files:
 - `run/sim_run_meta_v_smoke.R` does the same for vector and dense
   `meta_V(V = V)` smoke cells.
 - `run/sim_summary_gaussian_ls_smoke.R` runs a tiny Gaussian location-scale
-  summary smoke grid and returns grouped bias, RMSE, MCSE, manifest, and
-  warning/error ledger outputs.
+  summary smoke grid and returns grouped bias, RMSE, MCSE, manifest,
+  warning/error ledger, formula-coefficient Wald interval, and Wald coverage
+  outputs.
 - `run/sim_summary_meta_v_smoke.R` does the same for vector and dense
   `meta_V(V = V)` smoke cells.
 - `run/sim_interval_coverage_smoke.R` adds synthetic interval columns to
