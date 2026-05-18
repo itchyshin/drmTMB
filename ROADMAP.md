@@ -298,9 +298,11 @@ distributional regression models using TMB.
   The one-slope path estimates independent intercept and slope fields that share
   the coordinate precision, with separate SDs and no intercept-slope
   correlation. `sdpars$mu`, `ranef("spatial_mu")`, `profile_targets()`, and
-  `check_drm()` expose those fields with spatial names. Mesh/SPDE, multiple
-  spatial slopes, spatial slope correlations, spatial q=4, spatial `sd(...)`,
-  and spatial `corpair()` regressions remain planned.
+  `check_drm()` expose those fields with spatial names. Phase 18 now has a
+  smoke surface for the coordinate spatial one-slope path, covering seeded DGP,
+  fit, parameter summaries, aggregate output, manifest, and failure ledger.
+  Mesh/SPDE, multiple spatial slopes, spatial slope correlations, spatial q=4,
+  spatial `sd(...)`, and spatial `corpair()` regressions remain planned.
 - For bivariate structured models, estimate and report level-specific
   correlations separately: residual `rho12`, phylogenetic correlations,
   non-phylogenetic species correlations, spatial field correlations, and

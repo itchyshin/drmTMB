@@ -42,6 +42,7 @@ minimum first wave is:
 | Bivariate Gaussian coscale | Fitted | two responses with `sigma1`, `sigma2`, and `rho12` | residual correlation, missing rows excluded |
 | Phylogenetic and spatial Gaussian | Fitted subsets | known relatedness or coordinate covariance plus Gaussian residuals | number of taxa/sites, signal size |
 | Structured one-slope parity | Spatial fitted; phylo/animal/relmat planned | coordinate spatial `mu` one-slope only in Wave A | sites, slope-field SD, covariate spread |
+| Coordinate spatial one-slope smoke | Fitted smoke surface | `eta_mu = X beta + z0_site + x z1_site` with two independent coordinate-spatial fields | sites, observations per site, intercept-field SD, slope-field SD |
 | Gaussian meta-analysis | Fitted | `y ~ MVN(mu, V + Omega_estimated)` with vector or matrix `V` | effect sizes, dense `V`, heterogeneity |
 | Poisson `mu` random effects | Pilot only | log-mean count model with ordinary random intercepts/slopes | groups, mean count, SD size |
 
@@ -236,3 +237,6 @@ CRAN tests should only run smoke checks for seed stability and output shape.
     `V` stay separate; non-Gaussian, slope-level, shape, inflation, hurdle,
     one-inflation, and `rho12` random-effect covariance surfaces remain outside
     Wave A until focused gates close.
+31. Slice 241 adds a CRAN-safe smoke surface for the fitted coordinate spatial
+    Gaussian `mu` one-slope path, including a seeded DGP, live `drmTMB()` fit,
+    parameter summaries, aggregate output, manifest, failure ledger, and tests.

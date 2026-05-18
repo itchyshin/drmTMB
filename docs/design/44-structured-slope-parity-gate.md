@@ -82,8 +82,9 @@ spatial covariance remain planned.
 
 ## Simulation Gate
 
-Only the coordinate spatial one-slope path can enter Phase 18 Wave A today. A
-simulation cell for it should record:
+Only the coordinate spatial one-slope path can enter Phase 18 Wave A today.
+Slice 241 adds the first CRAN-safe smoke surface for that path. Larger
+simulation cells should record:
 
 - number of sites;
 - observations per site;
