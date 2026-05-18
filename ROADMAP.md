@@ -1567,7 +1567,9 @@ Use this order unless Slice 191 evidence overturns it:
   gallery template for bias, RMSE, interval coverage, manifests, and
   warning/error ledgers. Slice 255 adds helper plumbing that writes the
   plot-ready CSV inputs and renders a checked local HTML gallery artifact from
-  a paired count pilot object.
+  a paired count pilot object. Slice 256 adds the end-to-end smoke runner that
+  runs a tiny paired count pilot, writes gallery inputs, renders the gallery,
+  and returns both the pilot and artifact paths.
 
 ## Structured Slope Parity Gate
 

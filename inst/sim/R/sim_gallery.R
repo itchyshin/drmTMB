@@ -12,8 +12,10 @@ phase18_write_count_mu_re_gallery_inputs <- function(
     stop("`overwrite` must be TRUE or FALSE.", call. = FALSE)
   }
   dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
+  output_dir <- normalizePath(output_dir, mustWork = TRUE)
 
   plot_data <- phase18_count_mu_re_plot_data(pilot)
+  plot_data$failures <- phase18_gallery_failure_table(plot_data$failures)
   paths <- list(
     aggregate_csv = file.path(output_dir, "count-mu-aggregate.csv"),
     coverage_csv = file.path(output_dir, "count-mu-coverage.csv"),
@@ -66,6 +68,7 @@ phase18_render_count_mu_re_gallery <- function(
     stop("`output_dir` must be one non-empty path string.", call. = FALSE)
   }
   dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
+  output_dir <- normalizePath(output_dir, mustWork = TRUE)
   output_path <- file.path(output_dir, output_file)
   if (!overwrite && file.exists(output_path)) {
     stop("Gallery output already exists: ", output_path, call. = FALSE)
@@ -109,4 +112,20 @@ phase18_assert_gallery_overwrite <- function(paths, overwrite) {
     )
   }
   invisible(paths)
+}
+
+phase18_gallery_failure_table <- function(x) {
+  if (is.data.frame(x) && ncol(x) > 0L) {
+    return(x)
+  }
+  data.frame(
+    cell_id = character(),
+    replicate = integer(),
+    seed = integer(),
+    status = character(),
+    severity = character(),
+    message = character(),
+    skipped = logical(),
+    stringsAsFactors = FALSE
+  )
 }
