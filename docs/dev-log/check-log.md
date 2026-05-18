@@ -24751,3 +24751,50 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-18-slice-236-random-slope-promise-audit.md`.
+
+## 2026-05-18 - Slice 237 Gaussian mu random-slope smoke surface
+
+Goal: add a Phase 18 smoke surface for the fitted ordinary Gaussian `mu` q=3
+random-slope block.
+
+Files changed:
+
+- `inst/sim/dgp/sim_dgp_gaussian_mu_random_slope.R`
+- `inst/sim/fit/sim_summarise_gaussian_mu_random_slope.R`
+- `inst/sim/run/sim_run_gaussian_mu_random_slope_smoke.R`
+- `inst/sim/run/sim_summary_gaussian_mu_random_slope_smoke.R`
+- `tests/testthat/test-phase18-gaussian-mu-random-slope.R`
+- `inst/sim/README.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `ROADMAP.md`
+- `NEWS.md`
+- `docs/dev-log/after-task/2026-05-18-slice-237-gaussian-mu-random-slope-smoke.md`
+
+What changed:
+
+- Added a seeded DGP for
+  `bf(y ~ x1 + x2 + (1 + x1 + x2 | id), sigma ~ 1)`.
+- Added a replicate runner and summary-smoke wrapper for the q=3 ordinary
+  Gaussian `mu` random-slope surface.
+- Summaries now include fixed `mu` coefficients, public residual `sigma`, q=3
+  random-slope SDs, and q=3 derived random-effect correlations.
+- Added tests for seeded data, live q=3 smoke fitting, summary/manifest/failure
+  outputs, and malformed inputs.
+
+Checks run:
+
+- `air format inst/sim/dgp/sim_dgp_gaussian_mu_random_slope.R inst/sim/fit/sim_summarise_gaussian_mu_random_slope.R inst/sim/run/sim_run_gaussian_mu_random_slope_smoke.R inst/sim/run/sim_summary_gaussian_mu_random_slope_smoke.R tests/testthat/test-phase18-gaussian-mu-random-slope.R inst/sim/README.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md NEWS.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-18-slice-237-gaussian-mu-random-slope-smoke.md`
+- `Rscript -e "devtools::test(filter = 'phase18-gaussian-mu-random-slope', reporter = 'summary')"`
+- `Rscript -e "devtools::test(filter = 'gaussian-random-intercepts|phase18-gaussian-mu-random-slope', reporter = 'summary')"`
+- `git diff --check`
+
+Known limitations:
+
+- The q=3 smoke surface records `pdHess` rather than requiring it to be true for
+  every tiny smoke fit. Larger Phase 18 grids should quantify Hessian failures,
+  boundary rates, and interval availability before q > 2 random slopes are
+  taught as routine.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-237-gaussian-mu-random-slope-smoke.md`.

@@ -1513,7 +1513,10 @@ Use this order unless Slice 191 evidence overturns it:
   locally in Slice 235. The random-slope promise audit is done locally in Slice
   236, reconciling the ordinary Gaussian `mu` q > 2 fitted path with the
   remaining Gaussian `sigma`, structured, bivariate, and non-Gaussian
-  random-slope gates before broader Phase 18 grids begin.
+  random-slope gates before broader Phase 18 grids begin. A Gaussian `mu` q=3
+  random-slope smoke surface is done locally in Slice 237, giving the fitted
+  ordinary multi-slope block a seeded DGP, runner, summary, aggregate, manifest,
+  and failure-ledger path before larger grids are allowed.
 
 ## ASReml Efficiency Lessons For Future Animal Models
 
