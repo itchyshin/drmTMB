@@ -25652,3 +25652,42 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-18-slice-257-count-gallery-visual-polish.md`.
+
+## 2026-05-18 - Slice 258 Count gallery pkgdown article
+
+Goal: make the new count-pilot gallery discoverable on pkgdown and explain how
+to interpret it without over-claiming final simulation evidence.
+
+Files changed:
+
+- `vignettes/phase18-count-gallery.Rmd`
+- `_pkgdown.yml`
+- `docs/design/39-visualization-grammar.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `ROADMAP.md`
+- `NEWS.md`
+- `docs/dev-log/after-task/2026-05-18-slice-258-count-gallery-pkgdown-article.md`
+
+What changed:
+
+- Added a Developer Notes article explaining the paired Poisson/NB2 `mu`
+  random-effect count pilot and the local gallery-render workflow.
+- Added the article to the pkgdown navbar and article index.
+- Explained how to read bias, RMSE, coverage, run manifests, and warning/error
+  ledgers while preserving the pilot-versus-final boundary.
+
+Checks run:
+
+- `air format vignettes/phase18-count-gallery.Rmd _pkgdown.yml docs/design/39-visualization-grammar.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md NEWS.md`
+- `Rscript -e "rmarkdown::render('vignettes/phase18-count-gallery.Rmd', output_dir = tempfile('phase18-count-gallery-article-'), quiet = TRUE)"`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `git diff --check`
+
+Known limitations:
+
+- This article does not embed a committed rendered gallery or run a larger
+  simulation grid.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-258-count-gallery-pkgdown-article.md`.

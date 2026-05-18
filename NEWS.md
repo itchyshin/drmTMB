@@ -27,6 +27,7 @@
 * Phase 18 now has count-pilot gallery helper plumbing that writes plot-ready CSV inputs and renders a checked local HTML gallery artifact from a paired Poisson/NB2 `mu` random-effect pilot object.
 * Phase 18 now has an end-to-end count-gallery smoke runner that executes a tiny paired Poisson/NB2 `mu` random-effect pilot and renders the Florence-facing HTML gallery from the resulting tables.
 * The Phase 18 count-pilot gallery now has a first Florence visual-polish pass, with horizontal estimand labels, shared palette/theme helpers, captions, and MCSE-aware coverage ranges when available.
+* The pkgdown site now includes a Phase 18 count simulation gallery article explaining the paired Poisson/NB2 pilot, local rendering workflow, figure interpretation, and pilot-versus-final boundary.
 * Phase 18 now has a pre-simulation readiness matrix that separates fitted, smoke-tested, interval-ready, weak-boundary-tested, planned, and blocked surfaces before broad simulation reports are written.
 * Phase 18 now has a `meta_V(V = V)` summary-smoke runner that executes vector and dense known-covariance pilot replicates and returns grouped bias, RMSE, and Monte Carlo error summaries.
 * Phase 18 now has a Gaussian location-scale summary-smoke runner that executes two or more pilot replicates and returns grouped bias, RMSE, and Monte Carlo error summaries from the smoke output.

@@ -296,3 +296,6 @@ CRAN tests should only run smoke checks for seed stability and output shape.
 47. Slice 257 applies the first Florence visual polish to the count-pilot
     gallery, including horizontal estimand labels, shared palette/theme
     helpers, captions, and MCSE-aware coverage ranges when available.
+48. Slice 258 adds a pkgdown-facing Phase 18 count simulation gallery article
+    that explains the paired count pilot, local rendering workflow, and
+    pilot-versus-final interpretation boundary.
