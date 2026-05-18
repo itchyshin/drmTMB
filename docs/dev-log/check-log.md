@@ -23717,3 +23717,47 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slice-211-gaussian-ls-pilot.md`.
+
+## 2026-05-17 - Slice 212 meta_V simulation DGP
+
+Goal: add the Gaussian meta-analysis DGP for `meta_V(V = V)` with vector and
+dense known sampling covariance.
+
+Files changed:
+
+- `inst/sim/R/sim_utils.R`
+- `inst/sim/dgp/sim_dgp_gaussian_ls.R`
+- `inst/sim/dgp/sim_dgp_meta_v.R`
+- `inst/sim/fit/sim_summarise_meta_v.R`
+- `tests/testthat/test-phase18-gaussian-ls-pilot.R`
+- `tests/testthat/test-phase18-meta-v-dgp.R`
+- `inst/sim/README.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `ROADMAP.md`
+- `NEWS.md`
+- `docs/dev-log/after-task/2026-05-17-slice-212-meta-v-dgp.md`
+
+What changed:
+
+- Added vector and dense known-`V` DGPs for Gaussian meta-analysis.
+- Added a meta-analysis pilot summariser for fixed effects and fitted residual
+  heterogeneity `sigma`.
+- Moved shared simulation utilities into `inst/sim/R/sim_utils.R`.
+- Added fitted vector and dense smoke tests that keep known `V` out of
+  interval targets.
+
+Checks run:
+
+- `air format inst/sim/R/sim_utils.R inst/sim/dgp/sim_dgp_gaussian_ls.R inst/sim/dgp/sim_dgp_meta_v.R inst/sim/fit/sim_summarise_meta_v.R tests/testthat/test-phase18-gaussian-ls-pilot.R tests/testthat/test-phase18-meta-v-dgp.R inst/sim/README.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md NEWS.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-17-slice-212-meta-v-dgp.md`
+- `Rscript -e "devtools::test(filter = 'phase18-gaussian-ls-pilot|phase18-meta-v-dgp', reporter = 'summary')"`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `git diff --check`
+
+Known limitations:
+
+- This slice does not add grid runners, saved per-cell RDS output, coverage or
+  power summaries, external comparators, or dense-`V` scalability claims.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slice-212-meta-v-dgp.md`.

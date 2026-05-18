@@ -4,6 +4,10 @@ test_that("Phase 18 Gaussian location-scale conditions define pilot cells", {
     local = TRUE
   )
   source(
+    system.file("sim/R/sim_utils.R", package = "drmTMB", mustWork = TRUE),
+    local = TRUE
+  )
+  source(
     system.file(
       "sim/dgp/sim_dgp_gaussian_ls.R",
       package = "drmTMB",
@@ -36,6 +40,10 @@ test_that("Phase 18 Gaussian location-scale conditions define pilot cells", {
 test_that("Phase 18 Gaussian location-scale DGP is seeded and self-describing", {
   source(
     system.file("sim/R/sim_registry.R", package = "drmTMB", mustWork = TRUE),
+    local = TRUE
+  )
+  source(
+    system.file("sim/R/sim_utils.R", package = "drmTMB", mustWork = TRUE),
     local = TRUE
   )
   source(
@@ -95,6 +103,10 @@ test_that("Phase 18 Gaussian location-scale DGP is seeded and self-describing", 
 test_that("Phase 18 Gaussian location-scale pilot summariser records errors", {
   source(
     system.file("sim/R/sim_registry.R", package = "drmTMB", mustWork = TRUE),
+    local = TRUE
+  )
+  source(
+    system.file("sim/R/sim_utils.R", package = "drmTMB", mustWork = TRUE),
     local = TRUE
   )
   source(
@@ -159,6 +171,10 @@ test_that("Phase 18 Gaussian location-scale pilot summariser records errors", {
 test_that("Phase 18 Gaussian location-scale helpers reject malformed inputs", {
   source(
     system.file("sim/R/sim_registry.R", package = "drmTMB", mustWork = TRUE),
+    local = TRUE
+  )
+  source(
+    system.file("sim/R/sim_utils.R", package = "drmTMB", mustWork = TRUE),
     local = TRUE
   )
   source(
