@@ -1482,8 +1482,9 @@ Use this order unless Slice 191 evidence overturns it:
   location-scale DGP and pilot summariser are done locally in Slice 211; the
   Gaussian meta-analysis `meta_V(V = V)` DGP with vector and dense matrix `V`
   is done locally in Slice 212; a generic resumable replicate runner is done
-  locally in Slice 213. Next, wire surface-specific pilot runner scripts for the
-  two first-wave surfaces.
+  locally in Slice 213; the first end-to-end Gaussian location-scale smoke
+  runner is done locally in Slice 214. Next, wire the matching `meta_V(V = V)`
+  pilot runner and then add aggregation tables.
 
 ## Phase 19: Comparator Demonstrations With Other Packages
 

@@ -148,3 +148,8 @@ CRAN tests should only run smoke checks for seed stability and output shape.
    records truth, estimate, error, convergence, and Hessian status.
 3. Slice 212 adds the Gaussian meta-analysis `meta_V(V = V)` DGP with vector
    `V`, dense matrix `V`, pilot summaries, and interval-target checks.
+4. Slice 213 adds a resumable replicate runner with warning/error capture and
+   optional per-replicate RDS output.
+5. Slice 214 adds the first end-to-end Gaussian location-scale smoke surface,
+   wiring registry, DGP, fit, summariser, saved output, and combined parameter
+   table without yet making coverage or power claims.

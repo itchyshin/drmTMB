@@ -23800,3 +23800,46 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slice-213-sim-runner.md`.
+
+## 2026-05-17 - Slice 214 Gaussian location-scale smoke runner
+
+Goal: add the first end-to-end Phase 18 surface runner for the Gaussian
+location-scale pilot.
+
+Files changed:
+
+- `inst/sim/run/sim_run_gaussian_ls_smoke.R`
+- `tests/testthat/test-phase18-gaussian-ls-runner.R`
+- `inst/sim/README.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `ROADMAP.md`
+- `NEWS.md`
+- `docs/dev-log/after-task/2026-05-17-slice-214-gaussian-ls-runner.md`
+
+What changed:
+
+- Added a Gaussian location-scale cell-to-DGP adapter for registry rows.
+- Added a small `drmTMB()` fitting wrapper for `bf(y ~ x, sigma ~ z)`.
+- Added `phase18_run_gaussian_ls_smoke()` to build the registry, run seeded
+  replicates through the generic runner, save optional RDS results, and return
+  one combined parameter summary.
+- Added tests for the full DGP-fit-summary-save-resume path and malformed
+  inputs.
+
+Checks run:
+
+- `air format inst/sim/run/sim_run_gaussian_ls_smoke.R tests/testthat/test-phase18-gaussian-ls-runner.R inst/sim/README.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md NEWS.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-17-slice-214-gaussian-ls-runner.md`
+- `Rscript -e "devtools::test(filter = 'phase18-gaussian-ls-runner', reporter = 'summary')"`
+- `Rscript -e "devtools::test(filter = 'phase18', reporter = 'summary')"`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `git diff --check`
+
+Known limitations:
+
+- This is a CRAN-safe smoke surface, not a simulation grid. It does not add
+  parallel execution, aggregation metrics, MCSE calculations, interval
+  coverage, power curves, external comparators, or rendered reports.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slice-214-gaussian-ls-runner.md`.
