@@ -179,3 +179,6 @@ CRAN tests should only run smoke checks for seed stability and output shape.
     ledgers can be rebuilt from saved RDS output after a resumable run.
 15. Slice 225 attaches manifests and warning/error ledgers to Gaussian
     location-scale and `meta_V(V = V)` summary-smoke outputs.
+16. Slice 226 adds synthetic interval-coverage smoke plumbing. This validates
+    the coverage summary path before real Wald, profile, or bootstrap interval
+    producers are attached surface by surface.

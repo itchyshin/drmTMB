@@ -43,5 +43,8 @@ Current pilot files:
   warning/error ledger outputs.
 - `run/sim_summary_meta_v_smoke.R` does the same for vector and dense
   `meta_V(V = V)` smoke cells.
+- `run/sim_interval_coverage_smoke.R` adds synthetic interval columns to
+  parameter summaries so coverage-table plumbing can be tested before real
+  interval methods are attached.
 - `reports/phase18-smoke-report-template.Rmd` is the first reader-facing report
   template for smoke aggregate outputs.

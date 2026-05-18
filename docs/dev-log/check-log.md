@@ -24283,6 +24283,42 @@ After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slice-225-summary-manifest-ledgers.md`.
 
+## 2026-05-17 - Slice 226 interval coverage smoke
+
+Goal: test the Phase 18 interval-coverage table path without claiming real
+confidence-interval evidence.
+
+Files changed:
+
+- `inst/sim/run/sim_interval_coverage_smoke.R`
+- `tests/testthat/test-phase18-interval-coverage-smoke.R`
+- `inst/sim/README.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `ROADMAP.md`
+- `NEWS.md`
+- `docs/dev-log/after-task/2026-05-17-slice-226-interval-coverage-smoke.md`
+
+What changed:
+
+- Added a synthetic interval helper that creates explicit lower/upper interval
+  columns and routes them through `phase18_summarise_interval_coverage()`.
+- Added tests for coverage-table output and input validation.
+
+Checks run:
+
+- `air format inst/sim/run/sim_interval_coverage_smoke.R tests/testthat/test-phase18-interval-coverage-smoke.R inst/sim/README.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md NEWS.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-17-slice-226-interval-coverage-smoke.md`
+- `Rscript -e "devtools::test(filter = 'phase18-interval-coverage-smoke', reporter = 'summary')"`
+- `git diff --check`
+
+Known limitations:
+
+- The intervals are synthetic and must not be interpreted as Wald, profile, or
+  bootstrap intervals.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slice-226-interval-coverage-smoke.md`.
+
 ## 2026-05-18 - Florence visualization role and memory guardrails
 
 Goal: make the new visualization role durable and adopt the useful Memory OS
