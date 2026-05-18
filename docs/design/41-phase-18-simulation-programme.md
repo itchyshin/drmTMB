@@ -197,3 +197,6 @@ CRAN tests should only run smoke checks for seed stability and output shape.
     summaries when fitted models expose them.
 23. Slice 233 attaches formula-coefficient Wald interval rows and coverage
     summaries to the Gaussian location-scale summary-smoke output.
+24. Slice 234 adds standard errors to `meta_V(V = V)` pilot summaries for
+    estimated `mu` coefficients and fitted residual `sigma`, while leaving
+    known sampling covariance `V` out of interval targets.

@@ -25,7 +25,9 @@ Current pilot files:
   dense known sampling covariance via `meta_V(V = V)`.
 - `fit/sim_summarise_gaussian_ls.R` converts one fitted pilot model into a
   parameter-level truth/estimate/standard-error/error table.
-- `fit/sim_summarise_meta_v.R` does the same for the `meta_V(V = V)` pilot.
+- `fit/sim_summarise_meta_v.R` does the same for the `meta_V(V = V)` pilot,
+  including standard errors for estimated `mu` coefficients and fitted
+  residual `sigma`.
 - `R/sim_runner.R` runs one cell replicate, captures warnings/errors, can save
   or resume an RDS result, can reload saved result directories, and can reduce
   result lists to compact manifests or warning/error ledgers.
