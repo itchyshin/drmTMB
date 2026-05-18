@@ -25691,3 +25691,78 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-18-slice-258-count-gallery-pkgdown-article.md`.
+
+## 2026-05-18 - Slice 259 Convergence guide
+
+Goal: add a user-facing pkgdown page explaining how to improve convergence when
+the default optimizer settings are not enough for complex `drmTMB` models, and
+repair the figure-gallery route so it matches the user's intended meaning.
+
+Files changed:
+
+- `vignettes/convergence.Rmd`
+- `vignettes/figure-gallery.Rmd`
+- `vignettes/phase18-count-gallery.Rmd` (removed from public pkgdown)
+- `_pkgdown.yml`
+- `NEWS.md`
+- `docs/design/39-visualization-grammar.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `ROADMAP.md`
+- `docs/dev-log/team-improvements.md`
+- `docs/dev-log/after-task/2026-05-18-slice-259-convergence-guide.md`
+
+What changed:
+
+- Added an "Improving convergence" Model Guides article.
+- Explained that defaults are chosen for ordinary models and quick everyday
+  fitting, not as the best possible budget for every bivariate, phylogenetic,
+  spatial, location-scale, shape, inflation, or random-slope model.
+- Documented `drm_control(optimizer = list(iter.max = ..., eval.max = ...))`,
+  `drm_control(se = FALSE)`, and the main `check_drm()` rows to inspect before
+  interpreting difficult fits.
+- Kept planned fallback optimizers, warm starts, multi-starts, Hessian culprit
+  reporting, and automatic simplification advice clearly marked as planned.
+- Added the article to the pkgdown navbar and article index, and added a NEWS
+  bullet.
+- Added a broader "Figure gallery" Tutorials article showing raw data, fitted
+  model slopes, 95% confidence bands, distributional-parameter surfaces,
+  `emmeans` displays, categorical-by-continuous,
+  categorical-by-categorical, continuous-by-continuous interaction plots,
+  correlation summaries, and illustrative simulation operating-characteristic
+  figures.
+- Added a dedicated "Simulation & Comparison" article section and moved the
+  likelihood/comparator testing article there.
+- Removed the narrow count simulation diagnostics article from public pkgdown
+  for now; count pilot diagnostics remain internal simulation infrastructure
+  until broader simulation result articles are designed.
+- Recorded a team-improvement rule that public page names should be
+  reader-facing and that general figure galleries must stay distinct from
+  specialised simulation diagnostics reports.
+- Added a Florence figure-gallery slice map to `ROADMAP.md`, covering Slices
+  259-267 before the project returns to convergence hardening and the
+  pre-simulation readiness gate.
+
+Checks run:
+
+- `air format vignettes/convergence.Rmd _pkgdown.yml NEWS.md`
+- `Rscript -e "rmarkdown::render('vignettes/convergence.Rmd', output_dir = tempfile('convergence-article-'), quiet = TRUE)"`
+- `Rscript -e "devtools::load_all('.', quiet = TRUE); rmarkdown::render('vignettes/figure-gallery.Rmd', output_dir = tempfile('figure-gallery-article-'), quiet = TRUE)"`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `rg -n "Improving convergence|convergence\\.html|optimizer budget|optimizer_convergence|pdHess|se = FALSE|default optimizer|drm_control\\(optimizer" vignettes/convergence.Rmd _pkgdown.yml NEWS.md README.md vignettes/model-workflow.Rmd vignettes/large-data.Rmd R/check.R R/control.R docs/design/35-optimizer-start-map-multistart.md`
+- `rg -n "Figure gallery|figure-gallery|Improving convergence|convergence\\.html|Simulation & Comparison|testing-likelihoods|phase18-count-gallery" _pkgdown.yml vignettes NEWS.md docs/design/39-visualization-grammar.md docs/design/41-phase-18-simulation-programme.md docs/dev-log/team-improvements.md`
+- `rg -n "Florence Figure-Gallery Slice Map|Slice 260|Simulation & Comparison|figure-gallery|convergence" ROADMAP.md docs/design/39-visualization-grammar.md _pkgdown.yml vignettes`
+- `git diff --check`
+
+Known limitations:
+
+- This slice adds guidance only; it does not add fallback optimizers, warm
+  starts, Hessian eigenvector culprit reporting, or automatic convergence
+  advice.
+- The figure gallery is a first showcased set, not a final publication atlas or
+  comprehensive simulation result article.
+- Slice numbers after 259 are a planning scaffold and can be revised if
+  convergence hardening or pre-simulation blockers become urgent.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-259-convergence-guide.md`.

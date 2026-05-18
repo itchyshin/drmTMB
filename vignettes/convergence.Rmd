@@ -1,0 +1,313 @@
+---
+title: "Improving convergence"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Improving convergence}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", eval = FALSE)
+```
+
+Complex distributional models sometimes need more care than the default fit.
+This article gives a practical workflow for `drmTMB` users when the optimizer
+does not converge, gradients look large, `TMB::sdreport()` reports a
+non-positive-definite Hessian, or Wald standard errors are unavailable.
+
+The default optimizer settings are chosen for ordinary models to fit quickly
+and reproducibly. They are not meant to be the best possible settings for every
+large phylogenetic, spatial, bivariate, location-scale, shape, inflation, or
+random-slope model. For complex models, using a larger optimizer budget is a
+normal part of the workflow, not a sign that the model has failed.
+
+The short version is: diagnose first, increase optimizer limits when the
+diagnostics point to an unfinished optimization, and simplify the model when
+the fitted surface is flat because a variance, correlation, shape, dispersion,
+or zero-inflation component is weakly identified.
+
+## Start with `check_drm()`
+
+Always inspect the fitted object before interpreting a difficult model:
+
+```{r}
+check_drm(fit)
+```
+
+The diagnostic table separates several questions that are easy to confuse:
+
+| Diagnostic | What it asks | First response when it warns |
+| --- | --- | --- |
+| `optimizer_convergence` | Did `nlminb()` return convergence code 0? | Inspect the optimizer message, gradient, and budget rows. |
+| `optimizer_budget` | Did the fit hit supplied `iter.max` or `eval.max` limits? | Increase limits if the model is still moving and the structure is defensible. |
+| `fixed_gradient` | Is the fixed-parameter gradient small at the selected optimum? | Treat large gradients as an optimization problem before using Wald inference. |
+| `hessian_positive_definite` | Did `TMB::sdreport()` report a positive-definite Hessian? | Look for boundary SDs, correlations, shape, dispersion, or inflation parameters. |
+| `fixed_se_finite` | Are fixed-effect standard errors finite? | If not, do not use Wald intervals until the Hessian problem is understood. |
+| boundary rows | Are fitted SDs, `rho12`, or shape parameters near a boundary? | Consider a simpler model, profile intervals, or a fixed/removal decision. |
+
+A warning is not automatically a failed analysis. It is a prompt to decide
+whether the problem is unfinished optimization, weak identifiability, or an
+unnecessary model component.
+
+## Use `drm_control()` for optimizer limits
+
+`drmTMB()` uses `stats::nlminb()` by default. The public way to pass optimizer
+settings is through `drm_control(optimizer = list(...))`:
+
+```{r}
+fit <- drmTMB(
+  bf(y ~ x + (1 | id), sigma ~ z),
+  data = dat,
+  family = gaussian(),
+  control = drm_control(
+    optimizer = list(iter.max = 2000, eval.max = 2000)
+  )
+)
+```
+
+This kind of control is often appropriate for complex models:
+
+```{r}
+complex_control <- drm_control(
+  optimizer = list(iter.max = 5000, eval.max = 5000)
+)
+```
+
+There is no universal best number. A small Gaussian fixed-effect model should
+not need the same budget as a bivariate phylogenetic location-scale model with
+random slopes and fitted correlations. Use `check_drm()` to decide whether the
+extra budget changed the result or merely gave the optimizer more time to
+reach the same boundary.
+
+A plain list is still accepted for backward compatibility:
+
+```{r}
+fit <- drmTMB(
+  bf(y ~ x, sigma ~ z),
+  data = dat,
+  control = list(iter.max = 2000, eval.max = 2000)
+)
+```
+
+Prefer `drm_control()` in new code because it keeps optimizer settings separate
+from `drmTMB` controls such as `se`, `keep_data`, `keep_model_frame`,
+`keep_tmb_object`, `sparse_fixed`, and `aggregate_gaussian`.
+
+Do not pass `se = FALSE` or storage controls inside `optimizer = list(...)`.
+Those names are not `nlminb()` controls:
+
+```{r}
+fit_fast <- drmTMB(
+  bf(y ~ x + (1 | id), sigma ~ z),
+  data = dat,
+  control = drm_control(
+    optimizer = list(iter.max = 2000, eval.max = 2000),
+    se = FALSE
+  )
+)
+```
+
+Here `se = FALSE` skips `TMB::sdreport()` after optimization. The fitted
+coefficients, log likelihood, fitted values, residuals, predictions,
+simulations, and retained profile-likelihood paths remain available, but Wald
+standard errors, `vcov()`, and Wald confidence intervals are unavailable.
+
+## If the optimizer did not converge
+
+When `optimizer_convergence` warns, read the message and the other diagnostic
+rows. A useful escalation ladder is:
+
+1. Check the model formula and data. Confirm that each predictor has variation
+   after missing-row removal, each grouping factor has enough levels and
+   replication, and each transformed predictor is finite.
+2. Center and scale continuous predictors. This is especially important for
+   polynomial terms, interactions, phylogenetic or spatial terms, and
+   distributional parameters such as `sigma`, `nu`, zero inflation, hurdle
+   probability, or `rho12`.
+3. Increase `iter.max` and `eval.max` when the optimizer hit a supplied limit
+   or stopped before the gradient was small.
+4. Fit a simpler version of the model. For example, use `sigma ~ 1` before
+   `sigma ~ x`, remove a weak random slope before fitting a full covariance
+   block, or fit `mu` random effects before adding scale, shape, inflation, or
+   residual-correlation formulas.
+5. Compare the estimates from the simpler and larger models. If the main
+   scientific effect changes wildly, treat the larger model as unstable until
+   simulation or profiling supports it.
+
+Increasing optimizer limits is not a cure for a model that the data cannot
+identify. It is useful when the fit was still making progress, the gradient is
+not yet small, or a large model simply needed more evaluations.
+
+## If `pdHess` is false
+
+`pdHess = FALSE` means the Hessian used by `TMB::sdreport()` is not positive
+definite at the selected optimum. In practice this often means the likelihood
+surface is nearly flat in at least one direction.
+
+Common causes are:
+
+- a random-effect SD close to zero;
+- a fitted correlation close to -1 or 1, including residual `rho12` or a
+  random-effect correlation;
+- a zero-inflation or hurdle component estimated near its boundary;
+- dispersion or shape parameters that duplicate another source of variation;
+- a scale model that is trying to explain the same pattern as a random effect;
+- too many random slopes or covariance terms for the available replication;
+- badly scaled predictors or responses.
+
+First check whether the gradient is small. If the gradient is large, the model
+has not been optimized well enough. If the gradient is small but `pdHess` is
+false, the point estimates may still describe the fitted optimum, but Wald
+standard errors and Wald confidence intervals should not be treated as reliable.
+
+In that second case, look for the culprit:
+
+```{r}
+summary(fit)
+check_drm(fit)
+fit$sdpars
+fit$corpars
+```
+
+If one SD is effectively zero, that component may be unnecessary for these
+data. If one correlation is close to -1 or 1, the covariance block may be too
+rich. If `sigma`, `nu`, zero inflation, hurdle, or one-inflation terms are
+extreme, the distributional parameter may be duplicating another part of the
+model.
+
+For inference on direct SD or correlation targets, use profile-likelihood
+intervals when the target is available:
+
+```{r}
+profile_targets(fit)
+
+summary(
+  fit,
+  conf.int = TRUE,
+  method = "profile",
+  ci_parm = "sd:mu:(1 | id)"
+)
+```
+
+Profile intervals are not magic either: a flat profile is evidence that the
+parameter is weakly identified. But profiles show the shape of the likelihood
+more honestly than a Wald standard error near a boundary.
+
+## Separate optimization from uncertainty
+
+For very large or experimental fits, it can be useful to separate "can the
+model optimize?" from "can Wald uncertainty be computed?":
+
+```{r}
+fit_no_se <- drmTMB(
+  bf(y ~ x + (1 | id), sigma ~ z),
+  data = dat,
+  control = drm_control(
+    optimizer = list(iter.max = 2000, eval.max = 2000),
+    se = FALSE
+  )
+)
+
+check_drm(fit_no_se)
+```
+
+This fit skips `TMB::sdreport()`, so Hessian and finite-SE rows are reported as
+notes. Use this mode for exploratory optimization, prediction, simulation, and
+large-data stress tests. Refit with `se = TRUE` when Wald standard errors or
+Wald confidence intervals are part of the final report:
+
+```{r}
+fit_final <- drmTMB(
+  bf(y ~ x + (1 | id), sigma ~ z),
+  data = dat,
+  control = drm_control(
+    optimizer = list(iter.max = 2000, eval.max = 2000),
+    se = TRUE
+  )
+)
+```
+
+For memory-heavy objects, keep the TMB object in the final fit if you need
+gradient diagnostics or profile intervals:
+
+```{r}
+fit_final <- drmTMB(
+  bf(y ~ x + (1 | id), sigma ~ z),
+  data = dat,
+  control = drm_control(
+    optimizer = list(iter.max = 2000, eval.max = 2000),
+    keep_tmb_object = TRUE
+  )
+)
+```
+
+## Model-specific advice
+
+For ordinary Gaussian location random effects, start with the location model.
+Add arbitrary correlated `mu` slopes only when groups have enough replication
+to estimate the covariance block. A model such as `(1 + x1 + x2 | id)` is
+statistically hungrier than three independent SD terms.
+
+For Gaussian scale models, remember that `sigma` is a residual standard
+deviation model. Scale random effects and scale random slopes can be difficult
+to separate from location random effects, residual heteroscedasticity, and
+outliers. Use enough groups and repeated observations, and check boundary SDs
+before interpreting a scale component.
+
+For bivariate models, keep residual `rho12`, group-level correlations,
+phylogenetic or spatial correlations, and known sampling covariance `V`
+separate. A warning in one correlation layer does not mean the others are the
+same problem.
+
+For non-Gaussian models, add complexity in this order: fixed-effect `mu`,
+fixed-effect scale or shape if implemented for that family, ordinary `mu`
+random effects, then scale, shape, inflation, hurdle, one-inflation, structured
+dependence, or cross-parameter covariance only after each simpler layer is
+stable. Non-Gaussian shape and inflation formulas can look like extra variance
+components when data are sparse.
+
+For `meta_V(V = V)` models, check the scale and conditioning of the known
+sampling covariance. A diagonal known variance vector and a dense known
+covariance matrix are both accepted inputs, but a poorly conditioned dense `V`
+can make the likelihood numerically harder even when the model formula is
+simple.
+
+## What is planned but not automatic yet
+
+Several convergence tools are deliberately not automatic in the current
+release:
+
+- user-supplied named starts;
+- warm-start refits from a simpler fitted model;
+- fallback optimizers such as `optim(method = "BFGS")`;
+- multi-start jittered searches;
+- Hessian eigenvector culprit reporting;
+- automatic simplification suggestions.
+
+The current design records these as future controls rather than silently trying
+many optimizers behind the user's back. For reproducible science, a fitted
+object must record which optimizer, start, objective value, gradient, and
+selected optimum produced the reported estimates.
+
+## Further reading
+
+The practical recommendations here follow the same broad logic used by related
+mixed-model software:
+
+- the `metafor` note on
+  [convergence problems in `rma.mv()`](https://www.metafor-project.org/doku.php/tips:convergence_problems_rma_mv),
+  which shows why boundary variance components can make `nlminb()` sensitive
+  to iteration and tolerance settings;
+- the
+  [`glmmTMB` troubleshooting vignette](https://glmmtmb.github.io/glmmTMB/articles/troubleshooting.html),
+  especially its discussion of non-positive-definite Hessians, extreme
+  parameters, and flat likelihood directions;
+- the
+  [`lme4` convergence guidance](https://lme4.github.io/lme4/reference/convergence.html),
+  which recommends scaling predictors, restarting from the reported optimum,
+  and comparing optimizers when warnings are hard to interpret;
+- the
+  [`TMB::sdreport()` documentation](https://search.r-project.org/CRAN/refmans/TMB/html/sdreport.html),
+  which explains why Wald standard errors depend on the fitted-parameter
+  Hessian.

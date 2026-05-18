@@ -19,7 +19,7 @@ development:
 
 navbar:
   structure:
-    left: [intro, reference, model_guides, tutorials, developer, news]
+    left: [intro, reference, model_guides, tutorials, validation, developer, news]
     right: [search, github]
   components:
     model_guides:
@@ -33,6 +33,8 @@ navbar:
           href: articles/distribution-families.html
         - text: Checking and using fitted models
           href: articles/model-workflow.html
+        - text: Improving convergence
+          href: articles/convergence.html
         - text: Working with large data
           href: articles/large-data.html
     tutorials:
@@ -46,6 +48,8 @@ navbar:
           href: articles/robust-student.html
         - text: Count abundance and extra zeros
           href: articles/count-nbinom2.html
+        - text: Figure gallery
+          href: articles/figure-gallery.html
         - text: Proportions and success rates
           href: articles/proportion-beta-binomial.html
         - text: Changing residual coupling with rho12
@@ -54,6 +58,11 @@ navbar:
           href: articles/meta-analysis.html
         - text: Structural dependence
           href: articles/phylogenetic-spatial.html
+    validation:
+      text: Simulation & Comparison
+      menu:
+        - text: Testing likelihoods and comparators
+          href: articles/testing-likelihoods.html
     developer:
       text: Developer Notes
       menu:
@@ -61,10 +70,6 @@ navbar:
           href: articles/formula-grammar.html
         - text: Adding families
           href: articles/adding-families.html
-        - text: Testing likelihoods
-          href: articles/testing-likelihoods.html
-        - text: Phase 18 count simulation gallery
-          href: articles/phase18-count-gallery.html
         - text: Implemented source map
           href: articles/source-map.html
 
@@ -145,20 +150,23 @@ articles:
       - which-scale
       - distribution-families
       - model-workflow
+      - convergence
       - large-data
   - title: Tutorials
     contents:
       - location-scale
       - robust-student
       - count-nbinom2
+      - figure-gallery
       - proportion-beta-binomial
       - meta-analysis
       - bivariate-coscale
       - phylogenetic-spatial
+  - title: Simulation & Comparison
+    contents:
+      - testing-likelihoods
   - title: Developer Notes
     contents:
       - formula-grammar
       - adding-families
-      - testing-likelihoods
-      - phase18-count-gallery
       - source-map
