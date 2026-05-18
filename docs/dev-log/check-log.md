@@ -24052,3 +24052,41 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slice-219-meta-v-summary-smoke.md`.
+
+## 2026-05-17 - Slice 220 simulation report template
+
+Goal: add the first reader-facing Phase 18 smoke report template.
+
+Files changed:
+
+- `inst/sim/reports/phase18-smoke-report-template.Rmd`
+- `tests/testthat/test-phase18-report-template.R`
+- `inst/sim/README.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `ROADMAP.md`
+- `NEWS.md`
+- `docs/dev-log/after-task/2026-05-17-slice-220-sim-report-template.md`
+
+What changed:
+
+- Added a smoke report template with purpose, surface, aggregate summary,
+  reader checks, and interpretation-boundary sections.
+- Added a test confirming the installed template carries the key sections and
+  does not present smoke output as comprehensive simulation evidence.
+
+Checks run:
+
+- `air format inst/sim/reports/phase18-smoke-report-template.Rmd tests/testthat/test-phase18-report-template.R inst/sim/README.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md NEWS.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-17-slice-220-sim-report-template.md`
+- `Rscript -e "devtools::test(filter = 'phase18-report-template', reporter = 'summary')"`
+- `Rscript -e "devtools::test(filter = 'phase18', reporter = 'summary')"`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `git diff --check`
+
+Known limitations:
+
+- The template is not rendered by tests and does not yet read real result files
+  by default.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slice-220-sim-report-template.md`.

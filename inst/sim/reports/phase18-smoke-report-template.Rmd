@@ -1,0 +1,54 @@
+---
+title: "Phase 18 Smoke Simulation Report"
+output:
+  html_document:
+    toc: true
+params:
+  surface: "gaussian_ls"
+  aggregate_csv: null
+  notes: ""
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+# Purpose
+
+This smoke report is for checking that a Phase 18 surface can run from data
+generation to fitted summaries and grouped operating-characteristic tables. It
+is not a comprehensive simulation report and should not be used for power or
+coverage claims without the larger grid, Monte Carlo uncertainty, and interval
+construction slices.
+
+# Surface
+
+Surface: `r params$surface`
+
+Notes: `r params$notes`
+
+# Aggregate Summary
+
+```{r aggregate-summary, eval=FALSE}
+aggregate <- read.csv(params$aggregate_csv)
+aggregate
+```
+
+# Reader Checks
+
+- What is the biological or methodological question?
+- What data-generating model produced the simulated response?
+- Which estimand does each row target?
+- How many replicates contributed to each aggregate row?
+- Are failures, warnings, convergence rates, and Hessian rates visible?
+- Are Monte Carlo uncertainty columns present for reported operating
+  characteristics?
+
+# Interpretation Boundary
+
+Use this report to check that the simulation machinery is coherent and
+readable. Move to a full Phase 18 report only after the surface has enough
+replicates, explicit interval targets, MCSEs, and failure-mode summaries.

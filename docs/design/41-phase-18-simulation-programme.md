@@ -168,3 +168,6 @@ CRAN tests should only run smoke checks for seed stability and output shape.
 10. Slice 219 does the same for vector and dense `meta_V(V = V)` smoke cells,
     preserving the separation between known sampling covariance and fitted
     residual heterogeneity `sigma`.
+11. Slice 220 adds a reader-facing smoke report template so aggregate outputs
+    have a stable place for purpose, methods, reader checks, and interpretation
+    boundaries before full evidence reports are claimed.
