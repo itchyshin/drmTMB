@@ -1516,7 +1516,10 @@ Use this order unless Slice 191 evidence overturns it:
   random-slope gates before broader Phase 18 grids begin. A Gaussian `mu` q=3
   random-slope smoke surface is done locally in Slice 237, giving the fitted
   ordinary multi-slope block a seeded DGP, runner, summary, aggregate, manifest,
-  and failure-ledger path before larger grids are allowed.
+  and failure-ledger path before larger grids are allowed. A Gaussian `sigma`
+  independent one-slope smoke surface is done locally in Slice 238, giving the
+  fitted residual-scale `(0 + w | id)` path the same Phase 18 bookkeeping while
+  leaving correlated scale-slope covariance outside Wave A.
 
 ## ASReml Efficiency Lessons For Future Animal Models
 
