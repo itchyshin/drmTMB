@@ -100,7 +100,8 @@ Current pilot files:
 - `run/sim_summary_nbinom2_mu_random_effect_smoke.R` runs a tiny
   non-zero-inflated NB2 `mu` random-effect summary smoke grid and returns
   grouped bias, RMSE, MCSE, manifest, warning/error ledger, formula-coefficient
-  Wald interval, and Wald coverage outputs.
+  Wald interval, Wald coverage, direct random-effect SD profile interval, and
+  profile coverage outputs.
 - `run/sim_summary_meta_v_smoke.R` does the same for vector and dense
   `meta_V(V = V)` smoke cells, including Wald interval and coverage outputs for
   estimated targets.
