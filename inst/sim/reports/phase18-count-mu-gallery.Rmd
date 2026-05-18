@@ -1,0 +1,188 @@
+---
+title: "Phase 18 Count Pilot Figure Gallery"
+output:
+  html_document:
+    toc: true
+params:
+  aggregate_csv: null
+  coverage_csv: null
+  manifest_csv: null
+  failures_csv: null
+  notes: ""
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 8,
+  fig.height = 4.8
+)
+
+phase18_read_optional_csv <- function(path) {
+  if (
+    is.null(path) ||
+      length(path) != 1L ||
+      is.na(path) ||
+      !nzchar(path)
+  ) {
+    return(NULL)
+  }
+  read.csv(path)
+}
+
+aggregate <- phase18_read_optional_csv(params$aggregate_csv)
+coverage <- phase18_read_optional_csv(params$coverage_csv)
+manifest <- phase18_read_optional_csv(params$manifest_csv)
+failures <- phase18_read_optional_csv(params$failures_csv)
+has_ggplot2 <- requireNamespace("ggplot2", quietly = TRUE)
+```
+
+# Purpose
+
+This gallery is for the first paired count-family Phase 18 pilot. It compares
+the ready Poisson and NB2 `mu` random-effect surfaces using plot-ready output
+from `phase18_count_mu_re_plot_data()`.
+
+It is not a final simulation report. Use it to inspect bias, RMSE, interval
+coverage, convergence status, and warning/error patterns before increasing the
+grid size or replicate count.
+
+Notes: `r params$notes`
+
+# Bias
+
+```{r bias-plot}
+if (is.null(aggregate)) {
+  cat("No aggregate CSV supplied.\n")
+} else if (!has_ggplot2) {
+  aggregate
+} else {
+  ggplot2::ggplot(
+    aggregate,
+    ggplot2::aes(
+      x = term,
+      y = bias,
+      colour = family,
+      shape = parameter_class
+    )
+  ) +
+    ggplot2::geom_hline(yintercept = 0, linewidth = 0.3, colour = "grey55") +
+    ggplot2::geom_point(size = 2.5, alpha = 0.9) +
+    ggplot2::facet_wrap(~dpar, scales = "free_x") +
+    ggplot2::scale_colour_manual(values = c(Poisson = "#0072B2", NB2 = "#D55E00")) +
+    ggplot2::labs(
+      x = NULL,
+      y = "Bias",
+      colour = "Family",
+      shape = "Parameter class"
+    ) +
+    ggplot2::theme_minimal(base_size = 12) +
+    ggplot2::theme(
+      panel.grid.minor = ggplot2::element_blank(),
+      axis.text.x = ggplot2::element_text(angle = 25, hjust = 1)
+    )
+}
+```
+
+# RMSE
+
+```{r rmse-plot}
+if (is.null(aggregate)) {
+  cat("No aggregate CSV supplied.\n")
+} else if (!has_ggplot2) {
+  aggregate
+} else {
+  ggplot2::ggplot(
+    aggregate,
+    ggplot2::aes(
+      x = term,
+      y = rmse,
+      colour = family,
+      shape = parameter_class
+    )
+  ) +
+    ggplot2::geom_point(size = 2.5, alpha = 0.9) +
+    ggplot2::facet_wrap(~dpar, scales = "free_x") +
+    ggplot2::scale_colour_manual(values = c(Poisson = "#0072B2", NB2 = "#D55E00")) +
+    ggplot2::labs(
+      x = NULL,
+      y = "RMSE",
+      colour = "Family",
+      shape = "Parameter class"
+    ) +
+    ggplot2::theme_minimal(base_size = 12) +
+    ggplot2::theme(
+      panel.grid.minor = ggplot2::element_blank(),
+      axis.text.x = ggplot2::element_text(angle = 25, hjust = 1)
+    )
+}
+```
+
+# Interval Coverage
+
+```{r coverage-plot}
+if (is.null(coverage)) {
+  cat("No coverage CSV supplied.\n")
+} else if (!has_ggplot2) {
+  coverage
+} else {
+  ggplot2::ggplot(
+    coverage,
+    ggplot2::aes(
+      x = term,
+      y = coverage,
+      colour = family,
+      shape = interval_method
+    )
+  ) +
+    ggplot2::geom_hline(yintercept = 0.95, linewidth = 0.3, colour = "grey55") +
+    ggplot2::geom_point(size = 2.5, alpha = 0.9) +
+    ggplot2::facet_grid(interval_method ~ dpar, scales = "free_x") +
+    ggplot2::coord_cartesian(ylim = c(0, 1)) +
+    ggplot2::scale_colour_manual(values = c(Poisson = "#0072B2", NB2 = "#D55E00")) +
+    ggplot2::labs(
+      x = NULL,
+      y = "Coverage",
+      colour = "Family",
+      shape = "Interval method"
+    ) +
+    ggplot2::theme_minimal(base_size = 12) +
+    ggplot2::theme(
+      panel.grid.minor = ggplot2::element_blank(),
+      axis.text.x = ggplot2::element_text(angle = 25, hjust = 1)
+    )
+}
+```
+
+# Run Manifest
+
+```{r manifest-table}
+if (is.null(manifest)) {
+  cat("No manifest CSV supplied.\n")
+} else {
+  manifest
+}
+```
+
+# Warning And Error Ledger
+
+```{r failures-table}
+if (is.null(failures)) {
+  cat("No warning/error ledger CSV supplied.\n")
+} else if (nrow(failures) == 0L) {
+  cat("No warnings or errors recorded.\n")
+} else {
+  failures
+}
+```
+
+# Florence Checks
+
+- Are the Poisson and NB2 panels visually comparable without hiding family
+  differences?
+- Are bias, RMSE, and coverage interpreted separately?
+- Are fixed-effect and random-effect SD targets visually distinguishable?
+- Are failed fits, warnings, and missing intervals visible before interpretation?
+- Does the caption or surrounding text say this is a pilot, not a final power
+  or coverage claim?
