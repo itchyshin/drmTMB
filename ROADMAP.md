@@ -1563,7 +1563,9 @@ Use this order unless Slice 191 evidence overturns it:
   random-effect SDs, fixed mean effects, and NB2 overdispersion settings. Slice
   253 adds the first simulation plot-data contract for the paired count pilot,
   preparing aggregate, coverage, manifest, and failure tables for Florence's
-  later figure gallery.
+  later figure gallery. Slice 254 adds the first Florence-facing count pilot
+  gallery template for bias, RMSE, interval coverage, manifests, and
+  warning/error ledgers.
 
 ## Structured Slope Parity Gate
 

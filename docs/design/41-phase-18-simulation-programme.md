@@ -284,3 +284,6 @@ CRAN tests should only run smoke checks for seed stability and output shape.
 43. Slice 253 adds the first Phase 18 plot-data helper, converting the paired
     count pilot into aggregate, coverage, manifest, and failure tables ready for
     Florence's later figure gallery.
+44. Slice 254 adds the first count-pilot figure-gallery report template,
+    rendering bias, RMSE, coverage, manifest, and warning/error sections from
+    the plot-ready tables.
