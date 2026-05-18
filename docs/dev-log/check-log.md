@@ -24973,3 +24973,52 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-18-slice-241-spatial-mu-slope-smoke.md`.
+
+## 2026-05-18 - Slice 242 Poisson mu random-effect smoke surface
+
+Goal: add a Phase 18 smoke surface for the fitted ordinary
+non-zero-inflated Poisson `mu` random-effect path.
+
+Files changed:
+
+- `inst/sim/dgp/sim_dgp_poisson_mu_random_effect.R`
+- `inst/sim/fit/sim_summarise_poisson_mu_random_effect.R`
+- `inst/sim/run/sim_run_poisson_mu_random_effect_smoke.R`
+- `inst/sim/run/sim_summary_poisson_mu_random_effect_smoke.R`
+- `tests/testthat/test-phase18-poisson-mu-random-effect.R`
+- `inst/sim/README.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `ROADMAP.md`
+- `NEWS.md`
+- `docs/dev-log/after-task/2026-05-18-slice-242-poisson-mu-random-effect-smoke.md`
+
+What changed:
+
+- Added a seeded DGP for
+  `bf(count ~ x + (1 | id) + (0 + x | id))` with
+  `family = poisson(link = "log")`.
+- Added a replicate runner and summary-smoke wrapper for the Poisson `mu`
+  random-effect pilot.
+- Summaries now include fixed log-mean coefficients and direct random-effect
+  SD rows for the intercept and independent numeric slope.
+- Added tests for seeded count data, live Poisson random-effect smoke fitting,
+  summary/manifest/failure outputs, and malformed inputs.
+
+Checks run:
+
+- `air format inst/sim/dgp/sim_dgp_poisson_mu_random_effect.R inst/sim/fit/sim_summarise_poisson_mu_random_effect.R inst/sim/run/sim_run_poisson_mu_random_effect_smoke.R inst/sim/run/sim_summary_poisson_mu_random_effect_smoke.R tests/testthat/test-phase18-poisson-mu-random-effect.R`
+- `Rscript -e "devtools::test(filter = 'phase18-poisson-mu-random-effect', reporter = 'summary')"`
+- `air format inst/sim/dgp/sim_dgp_poisson_mu_random_effect.R inst/sim/fit/sim_summarise_poisson_mu_random_effect.R inst/sim/run/sim_run_poisson_mu_random_effect_smoke.R inst/sim/run/sim_summary_poisson_mu_random_effect_smoke.R tests/testthat/test-phase18-poisson-mu-random-effect.R inst/sim/README.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md NEWS.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-18-slice-242-poisson-mu-random-effect-smoke.md`
+- `Rscript -e "devtools::test(filter = 'phase18-poisson-mu-random-effect|poisson-mean', reporter = 'summary')"`
+
+Known limitations:
+
+- This smoke surface covers non-zero-inflated Poisson `mu` random intercepts
+  plus independent numeric slopes only. Correlated Poisson slopes, labelled
+  non-Gaussian covariance, NB2 random effects, zero-inflated count random
+  effects, scale/shape random effects, and cross-parameter covariance remain
+  planned.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-242-poisson-mu-random-effect-smoke.md`.

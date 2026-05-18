@@ -29,6 +29,9 @@ Current pilot files:
 - `dgp/sim_dgp_spatial_mu_slope.R` generates Gaussian spatial `mu` data with
   independent coordinate-spatial intercept and slope fields,
   `spatial(1 + x | site, coords = coords)`.
+- `dgp/sim_dgp_poisson_mu_random_effect.R` generates non-zero-inflated Poisson
+  count data with ordinary log-mean random intercepts and independent numeric
+  slopes, `(1 | id) + (0 + x | id)`.
 - `dgp/sim_dgp_meta_v.R` generates Gaussian meta-analysis data with vector or
   dense known sampling covariance via `meta_V(V = V)`.
 - `fit/sim_summarise_gaussian_ls.R` converts one fitted pilot model into a
@@ -46,6 +49,8 @@ Current pilot files:
 - `fit/sim_summarise_spatial_mu_slope.R` summarises fixed `mu` coefficients,
   public residual `sigma`, and the two direct coordinate-spatial `mu` SDs for
   the intercept and slope fields.
+- `fit/sim_summarise_poisson_mu_random_effect.R` summarises fixed Poisson
+  `mu` coefficients and direct ordinary log-mean random-effect SDs.
 - `R/sim_runner.R` runs one cell replicate, captures warnings/errors, can save
   or resume an RDS result, can reload saved result directories, and can reduce
   result lists to compact manifests or warning/error ledgers.
@@ -64,6 +69,8 @@ Current pilot files:
   Gaussian `sigma` independent one-slope surface.
 - `run/sim_run_spatial_mu_slope_smoke.R` does the same for the coordinate
   spatial Gaussian `mu` one-slope surface.
+- `run/sim_run_poisson_mu_random_effect_smoke.R` does the same for the
+  non-zero-inflated Poisson `mu` random-effect surface.
 - `run/sim_run_meta_v_smoke.R` does the same for vector and dense
   `meta_V(V = V)` smoke cells.
 - `run/sim_summary_gaussian_ls_smoke.R` runs a tiny Gaussian location-scale
@@ -79,6 +86,9 @@ Current pilot files:
 - `run/sim_summary_spatial_mu_slope_smoke.R` runs a tiny coordinate spatial
   Gaussian `mu` one-slope summary smoke grid and returns grouped bias, RMSE,
   MCSE, manifest, and warning/error ledger outputs.
+- `run/sim_summary_poisson_mu_random_effect_smoke.R` runs a tiny
+  non-zero-inflated Poisson `mu` random-effect summary smoke grid and returns
+  grouped bias, RMSE, MCSE, manifest, and warning/error ledger outputs.
 - `run/sim_summary_meta_v_smoke.R` does the same for vector and dense
   `meta_V(V = V)` smoke cells, including Wald interval and coverage outputs for
   estimated targets.
