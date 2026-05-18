@@ -166,3 +166,67 @@ test_that("Phase 18 replicate runner validates malformed inputs", {
     "result_dir"
   )
 })
+
+test_that("Phase 18 replicate runner builds compact result manifests", {
+  source(
+    system.file("sim/R/sim_registry.R", package = "drmTMB", mustWork = TRUE),
+    local = TRUE
+  )
+  source(
+    system.file("sim/R/sim_utils.R", package = "drmTMB", mustWork = TRUE),
+    local = TRUE
+  )
+  source(
+    system.file("sim/R/sim_runner.R", package = "drmTMB", mustWork = TRUE),
+    local = TRUE
+  )
+
+  results <- list(
+    list(
+      cell_id = "cell_001",
+      replicate = 1L,
+      seed = 101L,
+      status = "ok",
+      warnings = character(),
+      error = NULL,
+      elapsed = 0.1,
+      skipped = FALSE
+    ),
+    list(
+      cell_id = "cell_001",
+      replicate = 2L,
+      seed = 102L,
+      status = "error",
+      warnings = c("careful"),
+      error = "failed",
+      elapsed = 0.2,
+      skipped = TRUE
+    )
+  )
+
+  manifest <- phase18_result_manifest(results)
+
+  expect_equal(nrow(manifest), 2L)
+  expect_equal(
+    names(manifest),
+    c(
+      "cell_id",
+      "replicate",
+      "seed",
+      "status",
+      "skipped",
+      "warning_count",
+      "error",
+      "elapsed"
+    )
+  )
+  expect_equal(manifest$status, c("ok", "error"))
+  expect_equal(manifest$warning_count, c(0L, 1L))
+  expect_true(is.na(manifest$error[[1L]]))
+  expect_equal(manifest$error[[2L]], "failed")
+  expect_true(manifest$skipped[[2L]])
+  expect_error(
+    phase18_result_manifest(list(list(cell_id = "x"))),
+    "must contain"
+  )
+})
