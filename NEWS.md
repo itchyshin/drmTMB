@@ -22,6 +22,7 @@
 * NB2 `mu` random effects now have a focused weak-SD boundary diagnostic test, exercising `check_drm()` lower-boundary reporting for a near-zero fitted random-intercept SD before larger Phase 18 grids vary the true SD.
 * Phase 18 Poisson and NB2 `mu` random-effect condition helpers now build true crossed condition grids, including random-effect SDs and, for NB2, overdispersion settings.
 * Phase 18 now has a paired count-family `mu` random-effect pilot helper that combines ready Poisson and NB2 surfaces into one optional aggregate, manifest, failure-ledger, Wald-coverage, and profile-coverage output.
+* Phase 18 now has a plot-data helper for paired Poisson/NB2 `mu` random-effect pilot outputs, preparing aggregate, coverage, manifest, and failure tables for later figure-gallery work.
 * Phase 18 now has a pre-simulation readiness matrix that separates fitted, smoke-tested, interval-ready, weak-boundary-tested, planned, and blocked surfaces before broad simulation reports are written.
 * Phase 18 now has a `meta_V(V = V)` summary-smoke runner that executes vector and dense known-covariance pilot replicates and returns grouped bias, RMSE, and Monte Carlo error summaries.
 * Phase 18 now has a Gaussian location-scale summary-smoke runner that executes two or more pilot replicates and returns grouped bias, RMSE, and Monte Carlo error summaries from the smoke output.

@@ -481,6 +481,12 @@ plot_diagnostics()        # planned
 plot_simulation_summary() # planned
 ```
 
+Slice 253 adds the first simulation plot-data contract under `inst/sim/`:
+`phase18_count_mu_re_plot_data()` converts the paired Poisson/NB2 `mu`
+random-effect pilot output into inspectable aggregate, coverage, manifest, and
+failure tables. This is Florence's input layer for the later figure gallery,
+not yet a rendered `ggplot2` gallery.
+
 ### `corpairs()` Plotting Preflight
 
 Slice 112 records the minimum contract that `plot_corpairs()` follows as an

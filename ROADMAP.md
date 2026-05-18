@@ -1560,7 +1560,10 @@ Use this order unless Slice 191 evidence overturns it:
   aggregate, manifest, failure-ledger, Wald-coverage, and profile-coverage
   tables. Slice 252 makes the Poisson and NB2 condition helpers true grid
   builders, allowing optional count pilots to vary group count, repeats, true
-  random-effect SDs, fixed mean effects, and NB2 overdispersion settings.
+  random-effect SDs, fixed mean effects, and NB2 overdispersion settings. Slice
+  253 adds the first simulation plot-data contract for the paired count pilot,
+  preparing aggregate, coverage, manifest, and failure tables for Florence's
+  later figure gallery.
 
 ## Structured Slope Parity Gate
 

@@ -281,3 +281,6 @@ CRAN tests should only run smoke checks for seed stability and output shape.
 42. Slice 252 turns the Poisson and NB2 `mu` random-effect condition helpers
     into true grid builders, so optional pilots can cross group count, repeats,
     true random-effect SDs, fixed mean effects, and NB2 overdispersion settings.
+43. Slice 253 adds the first Phase 18 plot-data helper, converting the paired
+    count pilot into aggregate, coverage, manifest, and failure tables ready for
+    Florence's later figure gallery.
