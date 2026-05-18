@@ -1543,7 +1543,10 @@ Use this order unless Slice 191 evidence overturns it:
   ordinary non-zero-inflated NB2 `mu` random intercepts and independent numeric
   slopes with extractor and direct profile-target coverage, while keeping NB2
   `sigma`, zero-inflated NB2 random effects, and correlated or labelled NB2
-  slope blocks outside Wave A.
+  slope blocks outside Wave A. Slice 246 adds the matching NB2 `mu`
+  random-effect smoke surface with seeded DGP, live fit, parameter summaries,
+  aggregate output, manifest, failure ledger, and tests, while leaving NB2 Wald
+  and profile interval coverage as the next evidence step.
 
 ## Structured Slope Parity Gate
 

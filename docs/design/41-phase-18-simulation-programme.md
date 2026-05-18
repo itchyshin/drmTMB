@@ -45,12 +45,13 @@ minimum first wave is:
 | Coordinate spatial one-slope smoke | Fitted smoke surface | `eta_mu = X beta + z0_site + x z1_site` with two independent coordinate-spatial fields | sites, observations per site, intercept-field SD, slope-field SD |
 | Gaussian meta-analysis | Fitted | `y ~ MVN(mu, V + Omega_estimated)` with vector or matrix `V` | effect sizes, dense `V`, heterogeneity |
 | Poisson `mu` random effects | Fitted smoke surface | log-mean count model with ordinary random intercepts and independent numeric slopes | groups, observations per group, mean count, SD size |
-| NB2 `mu` random effects | Fitted first slice | log-mean overdispersed count model with ordinary random intercepts and independent numeric slopes; `sigma` remains fixed-effect overdispersion | groups, observations per group, mean count, overdispersion, SD size |
+| NB2 `mu` random effects | Fitted smoke surface | log-mean overdispersed count model with ordinary random intercepts and independent numeric slopes; `sigma` remains fixed-effect overdispersion | groups, observations per group, mean count, overdispersion, SD size |
 
 Later waves can add zero inflation, hurdle, ordinal, shape/skew, and
 non-Gaussian scale/random-effect surfaces only after their focused gates are
-closed. The NB2 `mu` random-effect row is admitted as a first fitted slice, not
-yet as a full simulation grid. The failure ledger in
+closed. The NB2 `mu` random-effect row is admitted as a fitted smoke surface,
+not yet as a full simulation grid or interval-coverage surface. The failure
+ledger in
 `docs/design/34-validation-debt-register.md` names the remaining blocked
 surfaces.
 
@@ -256,3 +257,7 @@ CRAN tests should only run smoke checks for seed stability and output shape.
     independent numeric slopes, exposes their SDs and direct profile targets,
     and keeps zero-inflated NB2, correlated/labelled NB2 slope blocks, and NB2
     `sigma` random effects outside Wave A.
+36. Slice 246 adds a CRAN-safe smoke surface for fitted ordinary
+    non-zero-inflated NB2 `mu` random effects, covering random intercepts plus
+    independent numeric slopes on the log-mean predictor, while leaving Wald
+    and profile interval coverage for follow-up slices.
