@@ -177,3 +177,5 @@ CRAN tests should only run smoke checks for seed stability and output shape.
     remain visible beside aggregate summaries.
 14. Slice 224 adds result-directory loading so manifests and warning/error
     ledgers can be rebuilt from saved RDS output after a resumable run.
+15. Slice 225 attaches manifests and warning/error ledgers to Gaussian
+    location-scale and `meta_V(V = V)` summary-smoke outputs.

@@ -35,10 +35,14 @@ phase18_summarise_gaussian_ls_smoke <- function(
     all.x = TRUE,
     sort = FALSE
   )
+  manifest <- phase18_result_manifest(run$results)
+  failures <- phase18_result_failures(run$results)
 
   list(
     surface = "gaussian_ls",
     run = run,
-    aggregate = aggregate
+    aggregate = aggregate,
+    manifest = manifest,
+    failures = failures
   )
 }

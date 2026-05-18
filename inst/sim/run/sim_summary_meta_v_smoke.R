@@ -34,10 +34,14 @@ phase18_summarise_meta_v_smoke <- function(
     all.x = TRUE,
     sort = FALSE
   )
+  manifest <- phase18_result_manifest(run$results)
+  failures <- phase18_result_failures(run$results)
 
   list(
     surface = "meta_v",
     run = run,
-    aggregate = aggregate
+    aggregate = aggregate,
+    manifest = manifest,
+    failures = failures
   )
 }

@@ -39,7 +39,8 @@ Current pilot files:
 - `run/sim_run_meta_v_smoke.R` does the same for vector and dense
   `meta_V(V = V)` smoke cells.
 - `run/sim_summary_gaussian_ls_smoke.R` runs a tiny Gaussian location-scale
-  summary smoke grid and returns grouped bias, RMSE, and MCSE columns.
+  summary smoke grid and returns grouped bias, RMSE, MCSE, manifest, and
+  warning/error ledger outputs.
 - `run/sim_summary_meta_v_smoke.R` does the same for vector and dense
   `meta_V(V = V)` smoke cells.
 - `reports/phase18-smoke-report-template.Rmd` is the first reader-facing report

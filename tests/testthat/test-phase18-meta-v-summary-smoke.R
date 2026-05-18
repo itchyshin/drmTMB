@@ -72,6 +72,11 @@ test_that("Phase 18 meta_V summary smoke run aggregates vector and dense output"
   expect_identical(out$surface, "meta_v")
   expect_equal(nrow(out$run$summary), 18L)
   expect_equal(nrow(out$aggregate), 9L)
+  expect_equal(nrow(out$manifest), length(out$run$results))
+  expect_equal(
+    nrow(out$failures),
+    sum(out$manifest$status != "ok") + sum(out$manifest$warning_count)
+  )
   expect_equal(out$aggregate$n_replicate, rep(2L, 9L))
   expect_setequal(unique(out$aggregate$known_v_type), c("vector", "dense"))
   expect_setequal(out$aggregate$parameter, c("mu:(Intercept)", "mu:x", "sigma"))
