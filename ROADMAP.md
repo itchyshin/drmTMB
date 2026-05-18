@@ -1489,7 +1489,8 @@ Use this order unless Slice 191 evidence overturns it:
   interval-coverage helpers are done locally in Slice 217; the first Gaussian
   location-scale summary-smoke run is done locally in Slice 218; the matching
   vector/dense `meta_V(V = V)` summary-smoke run is done locally in Slice 219.
-  Next, start tiny interval-coverage smoke grids.
+  A reader-facing smoke report template is done locally in Slice 220. Next,
+  start tiny interval-coverage smoke grids.
 
 ## Phase 19: Comparator Demonstrations With Other Packages
 

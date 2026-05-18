@@ -41,3 +41,5 @@ Current pilot files:
   summary smoke grid and returns grouped bias, RMSE, and MCSE columns.
 - `run/sim_summary_meta_v_smoke.R` does the same for vector and dense
   `meta_V(V = V)` smoke cells.
+- `reports/phase18-smoke-report-template.Rmd` is the first reader-facing report
+  template for smoke aggregate outputs.
