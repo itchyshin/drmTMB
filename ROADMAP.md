@@ -1552,7 +1552,10 @@ Use this order unless Slice 191 evidence overturns it:
   profile-likelihood interval rows and coverage summaries for the two fitted
   NB2 `sd:mu` targets in that smoke output. Slice 249 adds a focused weak-SD
   boundary diagnostic for fitted NB2 `mu` random intercepts and keeps larger
-  NB2 operating-characteristic grids as future Phase 18 work.
+  NB2 operating-characteristic grids as future Phase 18 work. Slice 250 records
+  a pre-simulation readiness matrix that separates surfaces ready for small
+  grids from planned or blocked surfaces before broad Phase 18 reports are
+  written.
 
 ## Structured Slope Parity Gate
 
