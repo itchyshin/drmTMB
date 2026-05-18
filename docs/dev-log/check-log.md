@@ -25766,3 +25766,43 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-18-slice-259-convergence-guide.md`.
+
+## 2026-05-18 - Pre-simulation slice map
+
+Goal: record the corrected slice plan before comprehensive Phase 18 simulation
+so the figure-gallery, feature-hardening, and simulation-evidence lanes stay
+separate.
+
+Files changed:
+
+- `ROADMAP.md`
+- `docs/dev-log/after-task/2026-05-18-pre-simulation-slice-map.md`
+- `docs/dev-log/check-log.md`
+
+What changed:
+
+- Added a pre-simulation readiness slice map covering Slices 260-292.
+- Kept the Florence figure-gallery lane separate from the later Simulation &
+  Comparison route.
+- Added explicit slices for random slopes, convergence controls, warm starts,
+  multi-optimizer fallback, Hessian diagnostics, interval hardening,
+  meta-analysis, structural dependence, non-Gaussian families, shape models,
+  ordinal models, bivariate mixed families, extractor contracts, documentation
+  boundaries, and the final pre-simulation evidence ledger.
+- Recorded that internal count simulation diagnostics should remain an internal
+  pilot until broader simulation result articles are designed.
+
+Checks run:
+
+- `air format ROADMAP.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-18-pre-simulation-slice-map.md`
+- `rg -n "Pre-Simulation Readiness Slice Map|Slice 292|count simulation diagnostics|meta_known_V|meta_V\\(V = V\\)|Simulation & Comparison" ROADMAP.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-18-pre-simulation-slice-map.md`
+- `git diff --check`
+
+Known limitations:
+
+- This is roadmap/process work only; it does not implement the listed
+  readiness slices.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-pre-simulation-slice-map.md`.
