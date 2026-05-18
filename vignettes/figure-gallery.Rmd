@@ -99,6 +99,14 @@ pred_growth <- predict_parameters(
   dpar = c("mu", "sigma"),
   conf.int = TRUE
 )
+pred_growth$panel <- factor(
+  ifelse(
+    pred_growth$dpar == "mu",
+    "Expected growth (mu)",
+    "Residual SD (sigma)"
+  ),
+  levels = c("Expected growth (mu)", "Residual SD (sigma)")
+)
 
 pred_mu <- pred_growth[pred_growth$dpar == "mu", , drop = FALSE]
 
@@ -138,12 +146,13 @@ table with one row per distributional parameter, and
 `plot_parameter_surface()` draws estimate lines plus finite interval bands when
 they are present.
 
-```{r parameter-surface, fig.alt="Two-panel plot showing fitted mu and sigma surfaces along temperature for reef and kelp habitats."}
+```{r parameter-surface, fig.alt="Two-panel plot showing fitted expected growth and residual standard deviation surfaces along temperature for reef and kelp habitats."}
 plot_parameter_surface(
   pred_growth,
   x = "temperature",
   colour = "habitat",
-  dpar = c("mu", "sigma")
+  dpar = c("mu", "sigma"),
+  facet = "panel"
 ) +
   scale_drmtmb_colour +
   scale_drmtmb_fill +
@@ -151,6 +160,7 @@ plot_parameter_surface(
     title = "Location and residual-scale surfaces",
     subtitle = "Both panels use the same prediction grid",
     x = "Temperature anomaly",
+    y = "Estimate on response scale",
     colour = "Habitat"
   ) +
   theme_drmtmb_gallery()
@@ -159,6 +169,157 @@ plot_parameter_surface(
 The `mu` panel is the expected response. The `sigma` panel is the fitted
 residual standard deviation, so an upward line means lower predictability or
 larger residual heterogeneity at warmer values.
+
+Distributional parameters are not all residual standard deviations. Shape,
+inflation, hurdle, and residual-correlation parameters answer different
+questions and often live on bounded response scales. The next panel set uses
+three fitted models and the same plotting helper, but each panel names the
+estimand explicitly.
+
+```{r shape-inflation-rho12-panels, fig.alt="Three-panel plot showing a Student-t degrees-of-freedom shape parameter, a zero-inflation probability, and a residual rho12 correlation along a predictor gradient with 95 percent confidence bands."}
+set.seed(2594)
+n_tail <- 2500
+tail_dat <- data.frame(tail_pressure = runif(n_tail, -1.5, 1.5))
+tail_nu <- 2 + exp(log(4) - tail_dat$tail_pressure)
+tail_dat$robust_trait <- 0.35 +
+  0.45 * tail_dat$tail_pressure +
+  0.55 * stats::rt(n_tail, df = tail_nu)
+fit_tail <- drmTMB(
+  bf(robust_trait ~ tail_pressure, sigma ~ 1, nu ~ tail_pressure),
+  family = student(),
+  data = tail_dat
+)
+tail_grid <- data.frame(tail_pressure = seq(-1.5, 1.5, length.out = 80))
+pred_tail <- predict_parameters(
+  fit_tail,
+  newdata = tail_grid,
+  dpar = "nu",
+  conf.int = TRUE
+)
+pred_tail$gradient <- pred_tail$tail_pressure
+pred_tail$panel <- "Tail weight (Student-t nu)"
+pred_tail$model <- "Tail weight"
+
+set.seed(2595)
+n_count <- 180
+count_dat <- data.frame(detection_difficulty = runif(n_count, -1.2, 1.2))
+mu_count <- exp(0.9 + 0.35 * count_dat$detection_difficulty)
+zi_count <- plogis(-1.1 + 1.25 * count_dat$detection_difficulty)
+count_dat$count <- ifelse(
+  runif(n_count) < zi_count,
+  0,
+  stats::rpois(n_count, mu_count)
+)
+fit_zi <- drmTMB(
+  bf(count ~ detection_difficulty, zi ~ detection_difficulty),
+  family = poisson(link = "log"),
+  data = count_dat
+)
+zi_grid <- data.frame(detection_difficulty = seq(-1.2, 1.2, length.out = 80))
+pred_zi <- predict_parameters(
+  fit_zi,
+  newdata = zi_grid,
+  dpar = "zi",
+  conf.int = TRUE
+)
+pred_zi$gradient <- pred_zi$detection_difficulty
+pred_zi$panel <- "Structural-zero probability (zi)"
+pred_zi$model <- "Structural-zero probability"
+
+set.seed(2596)
+n_pair <- 160
+pair_dat <- data.frame(disturbance = runif(n_pair, -1.4, 1.4))
+rho_true <- tanh(-0.15 + 0.75 * pair_dat$disturbance)
+z1 <- stats::rnorm(n_pair)
+z2 <- stats::rnorm(n_pair)
+pair_dat$activity <- 0.25 + 0.35 * pair_dat$disturbance + z1
+pair_dat$boldness <- -0.1 +
+  0.2 * pair_dat$disturbance +
+  rho_true * z1 +
+  sqrt(1 - rho_true^2) * z2
+fit_pair <- drmTMB(
+  bf(
+    mu1 = activity ~ disturbance,
+    mu2 = boldness ~ disturbance,
+    sigma1 ~ 1,
+    sigma2 ~ 1,
+    rho12 ~ disturbance
+  ),
+  family = c(gaussian(), gaussian()),
+  data = pair_dat
+)
+rho_grid <- data.frame(disturbance = seq(-1.4, 1.4, length.out = 80))
+pred_rho <- predict_parameters(
+  fit_pair,
+  newdata = rho_grid,
+  dpar = "rho12",
+  conf.int = TRUE
+)
+pred_rho$gradient <- pred_rho$disturbance
+pred_rho$panel <- "Residual correlation (rho12)"
+pred_rho$model <- "Residual correlation"
+
+pred_extra <- rbind(
+  pred_tail[intersect(names(pred_tail), names(pred_zi))],
+  pred_zi[intersect(names(pred_tail), names(pred_zi))],
+  pred_rho[intersect(names(pred_tail), names(pred_zi))]
+)
+pred_extra$panel <- factor(
+  pred_extra$panel,
+  levels = c(
+    "Tail weight (Student-t nu)",
+    "Structural-zero probability (zi)",
+    "Residual correlation (rho12)"
+  )
+)
+
+plot_parameter_surface(
+  pred_extra,
+  x = "gradient",
+  colour = "model",
+  facet = "panel",
+  dpar = c("nu", "zi", "rho12"),
+  point = FALSE
+) +
+  geom_hline(
+    data = data.frame(
+      .drmTMB_plot_facet = factor(
+        "Residual correlation (rho12)",
+        levels = levels(pred_extra$panel)
+      )
+    ),
+    aes(yintercept = 0),
+    inherit.aes = FALSE,
+    linetype = "dashed",
+    colour = "grey55"
+  ) +
+  scale_colour_manual(values = c(
+    "Tail weight" = "#0072B2",
+    "Structural-zero probability" = "#009E73",
+    "Residual correlation" = "#D55E00"
+  )) +
+  scale_fill_manual(values = c(
+    "Tail weight" = "#0072B2",
+    "Structural-zero probability" = "#009E73",
+    "Residual correlation" = "#D55E00"
+  )) +
+  labs(
+    title = "Shape, inflation, and residual-correlation panels",
+    subtitle = "Each panel is a different distributional parameter on its response scale",
+    x = "Predictor gradient",
+    y = "Estimate on response scale",
+    colour = "Parameter",
+    fill = "Parameter"
+  ) +
+  theme_drmtmb_gallery() +
+  theme(legend.position = "none")
+```
+
+The `nu` panel is a Student-t degrees-of-freedom parameter: lower values mean
+heavier tails, and here the fitted model estimates a changing tail shape
+through `nu ~ tail_pressure`. The `zi` panel is a structural-zero probability,
+not a mean count. The `rho12` panel is residual coupling between two responses
+after their own means and scales have been modelled.
 
 ## Discrete comparisons
 

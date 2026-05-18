@@ -28,6 +28,7 @@
 * Phase 18 now has count-pilot gallery helper plumbing that writes plot-ready CSV inputs and renders a checked local HTML gallery artifact from a paired Poisson/NB2 `mu` random-effect pilot object.
 * Phase 18 now has an end-to-end count-gallery smoke runner that executes a tiny paired Poisson/NB2 `mu` random-effect pilot and renders the Florence-facing HTML gallery from the resulting tables.
 * The Phase 18 count-pilot gallery now has a first Florence visual-polish pass, with horizontal estimand labels, shared palette/theme helpers, captions, and MCSE-aware coverage ranges when available.
+* The figure gallery now includes distributional-parameter panels for `mu`, `sigma`, Student-t `nu`, zero-inflation probability `zi`, and residual `rho12`, with explicit response-scale labels and interval provenance.
 * The pkgdown site now includes a user-facing figure gallery for model interpretation plots, confidence bands, correlation displays, random-effect scale surfaces, and simulation operating-characteristic figures.
 * The pkgdown site now includes an improving-convergence guide explaining when the default optimizer budget is enough, how to use `drm_control(optimizer = ...)`, how to interpret `check_drm()` rows, and when to separate optimization from Wald uncertainty with `se = FALSE`.
 * Phase 18 now has a pre-simulation readiness matrix that separates fitted, smoke-tested, interval-ready, weak-boundary-tested, planned, and blocked surfaces before broad simulation reports are written.
