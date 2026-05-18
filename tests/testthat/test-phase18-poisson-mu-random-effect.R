@@ -127,6 +127,8 @@ test_that("Phase 18 Poisson mu random-effect smoke runner summarises output", {
   expect_equal(nrow(out$failures), 0L)
   expect_equal(nrow(out$wald_intervals), 4L)
   expect_equal(nrow(out$wald_coverage), 2L)
+  expect_equal(nrow(out$profile_intervals), 2L)
+  expect_equal(nrow(out$profile_coverage), 2L)
   expect_equal(out$aggregate$n_replicate, rep(1L, 4L))
   expect_equal(
     out$wald_intervals$interval_status,
@@ -137,6 +139,9 @@ test_that("Phase 18 Poisson mu random-effect smoke runner summarises output", {
     c("formula_coefficient", "formula_coefficient", "public_sd", "public_sd")
   )
   expect_true(all(out$wald_coverage$n_interval == 1L))
+  expect_equal(out$profile_intervals$interval_status, c("ok", "ok"))
+  expect_equal(out$profile_intervals$interval_method, c("profile", "profile"))
+  expect_true(all(out$profile_coverage$n_interval == 1L))
   expect_setequal(
     out$run$summary$parameter_class,
     c("fixed_mu", "random_sd")
