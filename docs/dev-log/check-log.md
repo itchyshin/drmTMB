@@ -25398,3 +25398,44 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-18-slice-251-count-mu-random-effect-pilot.md`.
+
+## 2026-05-18 - Slice 252 Count pilot condition grids
+
+Goal: make Poisson and NB2 `mu` random-effect pilot conditions true crossed
+grids rather than one-cell smoke helpers.
+
+Files changed:
+
+- `inst/sim/dgp/sim_dgp_poisson_mu_random_effect.R`
+- `inst/sim/dgp/sim_dgp_nbinom2_mu_random_effect.R`
+- `tests/testthat/test-phase18-poisson-mu-random-effect.R`
+- `tests/testthat/test-phase18-nbinom2-mu-random-effect.R`
+- `inst/sim/README.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `ROADMAP.md`
+- `NEWS.md`
+- `docs/dev-log/after-task/2026-05-18-slice-252-count-pilot-condition-grids.md`
+
+What changed:
+
+- `phase18_poisson_mu_re_conditions()` now crosses group count, observations
+  per group, true random-effect SDs, and fixed log-mean effects.
+- `phase18_nbinom2_mu_re_conditions()` now crosses the same mean-side
+  conditions plus fixed log-overdispersion settings.
+- Tests cover crossed condition row counts and stable column names.
+
+Checks run:
+
+- `air format inst/sim/dgp/sim_dgp_poisson_mu_random_effect.R inst/sim/dgp/sim_dgp_nbinom2_mu_random_effect.R tests/testthat/test-phase18-poisson-mu-random-effect.R tests/testthat/test-phase18-nbinom2-mu-random-effect.R inst/sim/README.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md NEWS.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-18-slice-252-count-pilot-condition-grids.md`
+- `Rscript -e "devtools::test(filter = 'phase18-poisson-mu-random-effect|phase18-nbinom2-mu-random-effect|phase18-count-mu-random-effect-pilot', reporter = 'summary')"`
+- `Rscript -e "devtools::test(filter = 'phase18-sim-skeleton|phase18-sim-runner|phase18-sim-aggregate|phase18-sim-uncertainty', reporter = 'summary')"`
+- `git diff --check`
+
+Known limitations:
+
+- This slice changes condition-grid construction only; it does not run larger
+  grids or add figures.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-252-count-pilot-condition-grids.md`.

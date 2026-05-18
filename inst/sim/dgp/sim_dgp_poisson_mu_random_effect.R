@@ -9,13 +9,13 @@ phase18_poisson_mu_re_conditions <- function(
   conditions <- expand.grid(
     n_group = as.integer(n_group),
     n_per_group = as.integer(n_per_group),
+    sd_intercept = sd_intercept,
+    sd_x = sd_x,
+    beta_mu_intercept = beta_mu_intercept,
+    beta_mu_x = beta_mu_x,
     KEEP.OUT.ATTRS = FALSE,
     stringsAsFactors = FALSE
   )
-  conditions$sd_intercept <- sd_intercept
-  conditions$sd_x <- sd_x
-  conditions$beta_mu_intercept <- beta_mu_intercept
-  conditions$beta_mu_x <- beta_mu_x
   conditions
 }
 
