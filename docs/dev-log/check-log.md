@@ -24712,3 +24712,42 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-18-florence-memory-os-role.md`.
+
+## 2026-05-18 - Slice 236 random-slope promise audit
+
+Goal: reconcile random-slope implementation promises before broader Phase 18
+simulation work.
+
+Files changed:
+
+- `ROADMAP.md`
+- `docs/design/17-correlated-random-effect-blocks.md`
+- `docs/design/33-phase-6c-core-random-effects.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `docs/dev-log/after-task/2026-05-18-slice-236-random-slope-promise-audit.md`
+
+What changed:
+
+- Corrected stale roadmap wording that still said ordinary Gaussian `mu` did
+  not fit arbitrary numeric multi-slope covariance blocks.
+- Updated the correlated random-effect block design note to state the q > 2
+  univariate Gaussian `mu` boundary and derived-unavailable correlation
+  interval status.
+- Added a Slice 236 pre-simulation boundary to the Phase 6c and Phase 18 design
+  notes.
+
+Checks run:
+
+- `air format ROADMAP.md docs/design/17-correlated-random-effect-blocks.md docs/design/33-phase-6c-core-random-effects.md docs/design/41-phase-18-simulation-programme.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-18-slice-236-random-slope-promise-audit.md`
+- `rg -n "does not yet fit arbitrary numeric|univariate q > 2 blocks" ROADMAP.md docs/design`
+- `Rscript -e "devtools::test(filter = 'gaussian-random-intercepts|spatial-gaussian|phylo-gaussian|biv-gaussian|comparators', reporter = 'summary')"`
+- `git diff --check`
+
+Known limitations:
+
+- This is a consistency and promise-audit slice. It does not add new fitted
+  random-slope surfaces.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-236-random-slope-promise-audit.md`.

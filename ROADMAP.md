@@ -217,14 +217,15 @@ distributional regression models using TMB.
   as slope-specific, labelled-block, bivariate, and non-Gaussian targets.
 - Respect labelled correlated group syntax such as `(1 + x | p | id)` when
   scale and bivariate random-effect paths are added.
-- Ordinary grouped random-slope boundary: do not claim full ordinary location
-  random-slope support until blocks such as `(1 + x1 + x2 + ... | id)` fit as
-  unstructured covariance blocks with SD/correlation summaries, profile
-  targets, recovery tests, and clear failure modes. The current Gaussian
-  grouped path can fit multiple independent slope terms and one correlated
-  intercept-plus-one-slope block, but it does not yet fit arbitrary numeric
-  multi-slope covariance. With `q` coefficients in a block, the fitted surface
-  has `q` SDs and `q * (q - 1) / 2` constant correlations.
+- Ordinary grouped random-slope boundary: the univariate Gaussian `mu` path now
+  accepts blocks such as `(1 + x1 + x2 | id)` as unstructured covariance blocks
+  with SD/correlation summaries, profile targets for the SDs, recovery tests
+  for the q=3 path, and explicit derived-unavailable status for q > 2 direct
+  correlation profile intervals. This is the ordinary location-model
+  compatibility boundary with `lme4`/`glmmTMB` syntax. Larger q blocks remain
+  advanced and sample-size hungry until Phase 18 quantifies convergence,
+  boundary, bias, and interval failure rates. With `q` coefficients in a block,
+  the fitted surface has `q` SDs and `q * (q - 1) / 2` constant correlations.
 - One-slope baseline policy: every random-effect layer that `drmTMB` supports
   should eventually accept at least one numeric random slope, or report an
   explicit unsupported status and fallback. During the first expansion,
@@ -1509,7 +1510,10 @@ Use this order unless Slice 191 evidence overturns it:
   coverage locally in Slice 233. `meta_V(V = V)` pilot summaries carry standard
   errors for estimated `mu` coefficients and fitted residual `sigma` locally in
   Slice 234. `meta_V(V = V)` summary smoke returns Wald intervals and coverage
-  locally in Slice 235.
+  locally in Slice 235. The random-slope promise audit is done locally in Slice
+  236, reconciling the ordinary Gaussian `mu` q > 2 fitted path with the
+  remaining Gaussian `sigma`, structured, bivariate, and non-Gaussian
+  random-slope gates before broader Phase 18 grids begin.
 
 ## ASReml Efficiency Lessons For Future Animal Models
 

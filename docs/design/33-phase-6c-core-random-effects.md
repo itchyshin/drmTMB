@@ -98,6 +98,30 @@ Slice 188 publishes that gate as a pre-simulation status table:
 | Coordinate spatial structured effects | Univariate Gaussian `mu` intercept and one numeric slope with independent coordinate fields | Mesh/SPDE, multiple slopes, slope correlations, spatial `sigma`, bivariate spatial covariance, and spatial `corpair()` |
 | Non-Gaussian families | Fixed-effect likelihoods plus ordinary Poisson `mu` random intercepts and independent numeric slopes in the pre-simulation random-effect gate; non-Gaussian `sigma` random effects have a fixed-effect-only boundary | NB2 `mu` random intercepts, correlated non-Gaussian `mu` slopes, scale/shape/ZI/one-inflation/hurdle/ordinal random effects, cross-parameter covariance blocks, and structured non-Gaussian paths |
 
+Slice 236 re-audits the same promise before broader Phase 18 work starts. The
+current boundary is:
+
+- ordinary Gaussian `mu` is the only layer with arbitrary numeric multi-slope
+  grouped covariance syntax, with q=3 recovery evidence and larger q treated as
+  advanced;
+- Gaussian `sigma` supports random intercepts and multiple independent numeric
+  slopes on `log(sigma)`, not correlated scale-slope blocks;
+- coordinate spatial Gaussian `mu` has one independent numeric slope field,
+  while phylogenetic one-slope support remains planned;
+- bivariate random slopes, slope-level `mu`/`sigma` covariance, and q=6/q=8
+  bivariate location-scale slope endpoints remain outside the fitted surface;
+- non-Gaussian random-slope support is currently ordinary Poisson `mu`
+  intercepts and independent numeric slopes only; NB2, scale, shape,
+  zero-inflation, one-inflation, hurdle, ordinal, and structured non-Gaussian
+  random effects need their own recovery gates before entering comprehensive
+  simulation.
+
+This means Phase 18 Wave A can simulate fitted Gaussian location-scale,
+ordinary Gaussian random-slope, coordinate-spatial one-slope, Poisson `mu`
+pilot, and `meta_V(V = V)` surfaces. It should not silently include unfitted
+bivariate slope, phylogenetic slope, non-Gaussian scale/shape, or random-effect
+correlation surfaces.
+
 ## Correlation Policy
 
 For the first random-slope expansion, slope-related correlations are
