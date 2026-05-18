@@ -1519,7 +1519,22 @@ Use this order unless Slice 191 evidence overturns it:
   and failure-ledger path before larger grids are allowed. A Gaussian `sigma`
   independent one-slope smoke surface is done locally in Slice 238, giving the
   fitted residual-scale `(0 + w | id)` path the same Phase 18 bookkeeping while
-  leaving correlated scale-slope covariance outside Wave A.
+  leaving correlated scale-slope covariance outside Wave A. Slice 239 records
+  the structured-slope parity gate: coordinate spatial has one fitted Gaussian
+  `mu` slope, while phylogenetic, animal, and `relmat()` one-slope paths remain
+  planned until their implementation, profile targets, diagnostics, recovery
+  tests, and biological examples exist.
+
+## Structured Slope Parity Gate
+
+- `docs/design/44-structured-slope-parity-gate.md` records the current
+  structured-effect slope boundary before Phase 18. Spatial one-slope Gaussian
+  `mu` can enter a focused Wave A grid; phylogenetic, animal, and `relmat()`
+  one-slope models should remain in the failure ledger as planned surfaces.
+- The intended public order remains biological: `animal()` for pedigree or
+  additive relatedness, `phylo()` for shared ancestry, `spatial()` for
+  coordinate or mesh structure, combined structural layers when required, and
+  `relmat()` as the lower-level known-relatedness escape hatch.
 
 ## ASReml Efficiency Lessons For Future Animal Models
 

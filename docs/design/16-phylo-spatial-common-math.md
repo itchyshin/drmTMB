@@ -130,6 +130,13 @@ numeric `spatial(1 + x | site, coords = coords)` slope, using a fixed
 coordinate covariance as the small-data foundation before the scalable
 mesh/SPDE route.
 
+Slice 239 records the pre-simulation structured-slope parity gate in
+`docs/design/44-structured-slope-parity-gate.md`. The current fitted status is
+not parity: coordinate spatial has one univariate Gaussian `mu` slope, while
+phylogenetic, animal, and `relmat()` one-slope paths remain planned until they
+have implementation, SD/profile targets, diagnostics, recovery tests, and
+reader-facing examples.
+
 The mature phylogenetic grammar should probably look like structured
 random-effect syntax rather than a bare marker:
 
