@@ -25562,3 +25562,51 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-18-slice-255-count-gallery-render-helper.md`.
+
+## 2026-05-18 - Slice 256 Count gallery smoke runner
+
+Goal: prove the first paired count-pilot figure gallery can be generated end to
+end from a tiny real pilot run.
+
+Files changed:
+
+- `inst/sim/run/sim_render_count_mu_gallery_smoke.R`
+- `tests/testthat/test-phase18-count-gallery-smoke-runner.R`
+- `inst/sim/R/sim_gallery.R`
+- `tests/testthat/test-phase18-count-gallery-render-helper.R`
+- `inst/sim/README.md`
+- `docs/design/39-visualization-grammar.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `ROADMAP.md`
+- `NEWS.md`
+- `docs/dev-log/after-task/2026-05-18-slice-256-count-gallery-smoke-runner.md`
+
+What changed:
+
+- Added `phase18_render_count_mu_re_gallery_smoke()` to run a tiny paired
+  Poisson/NB2 `mu` random-effect pilot, write gallery inputs, and render the
+  HTML gallery.
+- Normalized gallery output paths before rendering so relative local output
+  folders work.
+- Normalized empty failure ledgers before writing CSVs so pilots without
+  warnings or errors still produce readable warning/error-ledger inputs.
+- Generated an ignored local gallery artifact at
+  `inst/sim/results/slice-256-count-gallery-smoke/gallery/phase18-count-mu-gallery.html`.
+
+Checks run:
+
+- `air format inst/sim/run/sim_render_count_mu_gallery_smoke.R tests/testthat/test-phase18-count-gallery-smoke-runner.R inst/sim/README.md docs/design/39-visualization-grammar.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md NEWS.md`
+- `Rscript -e "devtools::test(filter = 'phase18-count-gallery-smoke-runner|phase18-count-gallery-render-helper', reporter = 'summary')"`
+- `Rscript -e "devtools::test(filter = 'phase18-count-gallery-smoke-runner|phase18-count-gallery-template|phase18-count-mu-random-effect-pilot', reporter = 'summary')"`
+- `Rscript -e 'devtools::load_all(\".\", quiet = TRUE); ...; out <- phase18_render_count_mu_re_gallery_smoke(output_dir = \"inst/sim/results/slice-256-count-gallery-smoke\", overwrite = TRUE, notes = \"Slice 256 local gallery smoke\", template = \"inst/sim/reports/phase18-count-mu-gallery.Rmd\"); cat(out$gallery$output_file, \"\\n\")'`
+- `rg -n "Slice 256 local gallery smoke|Florence Checks|Bias|RMSE|Interval Coverage" inst/sim/results/slice-256-count-gallery-smoke/gallery/phase18-count-mu-gallery.html`
+- `git diff --check`
+
+Known limitations:
+
+- The generated HTML is ignored local output, not a committed pkgdown article.
+  The figures still need Florence's publication-theme polish.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-256-count-gallery-smoke-runner.md`.

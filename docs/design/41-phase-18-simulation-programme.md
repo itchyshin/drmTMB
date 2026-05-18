@@ -290,3 +290,6 @@ CRAN tests should only run smoke checks for seed stability and output shape.
 45. Slice 255 adds count-pilot gallery helpers that write the plot-ready CSV
     inputs and render a checked local HTML gallery artifact from a paired count
     pilot object.
+46. Slice 256 adds the end-to-end count-gallery smoke runner that runs a tiny
+    paired count pilot, writes gallery inputs, renders the HTML gallery, and
+    returns the pilot and artifact paths together.

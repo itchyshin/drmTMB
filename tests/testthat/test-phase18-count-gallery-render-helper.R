@@ -32,11 +32,7 @@ phase18_count_gallery_pilot_fixture <- function() {
       replicate = c(1L, 1L),
       status = c("ok", "ok")
     ),
-    failures = data.frame(
-      cell_id = character(),
-      severity = character(),
-      message = character()
-    )
+    failures = data.frame()
   )
 }
 
@@ -65,7 +61,9 @@ test_that("Phase 18 count gallery helper writes plot-ready CSV inputs", {
   expect_equal(nrow(read.csv(paths$aggregate_csv)), 2L)
   expect_equal(nrow(read.csv(paths$coverage_csv)), 2L)
   expect_equal(nrow(read.csv(paths$manifest_csv)), 2L)
-  expect_equal(nrow(read.csv(paths$failures_csv)), 0L)
+  failures <- read.csv(paths$failures_csv)
+  expect_equal(nrow(failures), 0L)
+  expect_true(all(c("cell_id", "severity", "message") %in% names(failures)))
   expect_error(
     phase18_write_count_mu_re_gallery_inputs(
       phase18_count_gallery_pilot_fixture(),
@@ -88,8 +86,11 @@ test_that("Phase 18 count gallery helper renders the report artifact", {
     local = TRUE
   )
 
-  output_dir <- tempfile("phase18-count-gallery-render-")
-  withr::defer(unlink(output_dir, recursive = TRUE))
+  root_dir <- tempfile("phase18-count-gallery-render-root-")
+  dir.create(root_dir)
+  withr::defer(unlink(root_dir, recursive = TRUE))
+  withr::local_dir(root_dir)
+  output_dir <- "relative-gallery-output"
 
   out <- phase18_render_count_mu_re_gallery(
     phase18_count_gallery_pilot_fixture(),

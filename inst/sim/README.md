@@ -113,6 +113,8 @@ Current pilot files:
   Poisson/NB2 `mu` random-effect pilot, returning combined aggregate, manifest,
   failure-ledger, Wald interval, Wald coverage, profile interval, and profile
   coverage tables for count-family comparisons.
+- `run/sim_render_count_mu_gallery_smoke.R` runs a tiny paired count pilot and
+  renders the Florence-facing count-pilot gallery into a local output folder.
 - `run/sim_summary_meta_v_smoke.R` does the same for vector and dense
   `meta_V(V = V)` smoke cells, including Wald interval and coverage outputs for
   estimated targets.

@@ -500,6 +500,12 @@ checked local HTML gallery artifact. This closes the first Florence bridge from
 simulation tables to a concrete figure-gallery report, while still treating the
 output as pilot evidence rather than a publishable final simulation result.
 
+Slice 256 adds `phase18_render_count_mu_re_gallery_smoke()` as the first
+end-to-end gallery smoke runner. It runs a tiny paired Poisson/NB2 `mu`
+random-effect pilot, writes the gallery inputs, renders the HTML report, and
+returns the pilot object beside the rendered artifact paths so Florence, Pat,
+and Fisher can inspect figures, tables, and warning ledgers together.
+
 ### `corpairs()` Plotting Preflight
 
 Slice 112 records the minimum contract that `plot_corpairs()` follows as an

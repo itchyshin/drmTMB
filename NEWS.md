@@ -25,6 +25,7 @@
 * Phase 18 now has a plot-data helper for paired Poisson/NB2 `mu` random-effect pilot outputs, preparing aggregate, coverage, manifest, and failure tables for later figure-gallery work.
 * Phase 18 now has a count-pilot figure-gallery report template for bias, RMSE, interval coverage, manifests, and warning/error ledgers from paired Poisson/NB2 `mu` random-effect pilots.
 * Phase 18 now has count-pilot gallery helper plumbing that writes plot-ready CSV inputs and renders a checked local HTML gallery artifact from a paired Poisson/NB2 `mu` random-effect pilot object.
+* Phase 18 now has an end-to-end count-gallery smoke runner that executes a tiny paired Poisson/NB2 `mu` random-effect pilot and renders the Florence-facing HTML gallery from the resulting tables.
 * Phase 18 now has a pre-simulation readiness matrix that separates fitted, smoke-tested, interval-ready, weak-boundary-tested, planned, and blocked surfaces before broad simulation reports are written.
 * Phase 18 now has a `meta_V(V = V)` summary-smoke runner that executes vector and dense known-covariance pilot replicates and returns grouped bias, RMSE, and Monte Carlo error summaries.
 * Phase 18 now has a Gaussian location-scale summary-smoke runner that executes two or more pilot replicates and returns grouped bias, RMSE, and Monte Carlo error summaries from the smoke output.
