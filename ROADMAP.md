@@ -234,6 +234,15 @@ distributional regression models using TMB.
   predictor-dependent `corpair()` lane for intercept-level group,
   phylogenetic, or future spatial correlations when those likelihoods and
   recovery tests are implemented.
+- Cross-distributional-parameter correlation gate: keep residual `rho12`,
+  ordinary group-level covariance, structured covariance, and known sampling
+  covariance `V` as separate layers. Current fitted correlation surfaces are
+  Gaussian-heavy and mostly constant block correlations, with special
+  predictor-dependent routes for residual `rho12` and q=2 intercept-level
+  `corpair()` models. Random effects in `rho12`, non-Gaussian covariance among
+  `mu`, `sigma`, `zi`, `hu`, `zoi`, `coi`, or `nu`, slope-level
+  cross-parameter covariance, and mixed-distribution bivariate covariance stay
+  outside Phase 18 Wave A until their focused gates close.
 - Add variance-component correlation summaries when identifiable.
 
 ## Phase 5: Animal, Phylogenetic, Spatial, and Known-Dependence Effects

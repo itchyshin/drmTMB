@@ -24884,3 +24884,45 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-18-slice-239-structured-slope-parity-gate.md`.
+
+## 2026-05-18 - Slice 240 cross-dpar correlation gate
+
+Goal: record which cross-distributional-parameter correlation surfaces may
+enter Phase 18 Wave A and which remain validation debt.
+
+Files changed:
+
+- `docs/design/45-cross-dpar-correlation-gate.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `ROADMAP.md`
+- `NEWS.md`
+- `docs/dev-log/after-task/2026-05-18-slice-240-cross-dpar-correlation-gate.md`
+
+What changed:
+
+- Added a status table separating residual `rho12`, ordinary group-level
+  correlations, structured correlations, non-Gaussian parameter covariance, and
+  known sampling covariance `V`.
+- Kept fitted predictor-dependent routes limited to residual `rho12` and q=2
+  intercept-level `corpair()` models.
+- Marked random effects in `rho12`, non-Gaussian covariance among `mu`,
+  `sigma`, `zi`, `hu`, `zoi`, `coi`, or `nu`, slope-level cross-parameter
+  covariance, and mixed-distribution bivariate covariance as outside Phase 18
+  Wave A.
+
+Checks run:
+
+- `air format docs/design/45-cross-dpar-correlation-gate.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md NEWS.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-18-slice-240-cross-dpar-correlation-gate.md`
+- `Rscript -e "devtools::test(filter = 'biv-gaussian|corpairs|profile-targets|check-drm|nongaussian-scale-boundary|student-location-scale|nongaussian-structured-boundary|beta-location-scale|beta-binomial|spatial-gaussian|phylo-gaussian', reporter = 'summary')"`
+- `git diff --check`
+- `rg -n 'Pending\.' docs/design/45-cross-dpar-correlation-gate.md docs/dev-log/after-task/2026-05-18-slice-240-cross-dpar-correlation-gate.md`
+- `rg -n '\bzi\b.*random effects.*implemented|\bnu\b.*random effects.*implemented|rho12 random-effect|random effects in rho12.*implemented' docs/design/45-cross-dpar-correlation-gate.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md NEWS.md`
+
+Known limitations:
+
+- This is a status-gate slice. It does not add likelihood code or new
+  simulation runners.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-240-cross-dpar-correlation-gate.md`.

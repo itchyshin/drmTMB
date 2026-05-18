@@ -50,6 +50,15 @@ non-Gaussian scale/random-effect surfaces only after their focused gates are
 closed. The failure ledger in `docs/design/34-validation-debt-register.md`
 names these blocked surfaces.
 
+The cross-distributional-parameter correlation gate in
+`docs/design/45-cross-dpar-correlation-gate.md` is part of the same admission
+rule. Residual `rho12`, group-level random-effect correlations, structured
+random-effect correlations, and known sampling covariance `V` are different
+layers. Phase 18 Wave A should not simulate random effects in `rho12`,
+non-Gaussian covariance among `mu`, `sigma`, `zi`, `hu`, `zoi`, `coi`, or
+`nu`, or slope-level cross-parameter covariance until the focused likelihood,
+extractor, interval, diagnostic, and recovery gates exist.
+
 Every DGP file should state the hierarchy, true fixed effects, random-effect
 distributions, covariance labels, sampling covariance `V` when present,
 interval target truths, varied conditions, and number of replicates per cell.
@@ -221,3 +230,9 @@ CRAN tests should only run smoke checks for seed stability and output shape.
     one fitted Gaussian `mu` slope, while phylogenetic, animal, and `relmat()`
     one-slope paths remain planned until they have implementation, diagnostics,
     profile targets, recovery tests, and biological examples.
+30. Slice 240 records the cross-distributional-parameter correlation gate:
+    residual `rho12`, constant fitted random-effect block correlations,
+    predictor-dependent q=2 `corpair()` routes, and known sampling covariance
+    `V` stay separate; non-Gaussian, slope-level, shape, inflation, hurdle,
+    one-inflation, and `rho12` random-effect covariance surfaces remain outside
+    Wave A until focused gates close.
