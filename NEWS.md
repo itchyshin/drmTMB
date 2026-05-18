@@ -10,6 +10,7 @@
 * Phase 18 now has a `meta_V(V = V)` summary-smoke runner that executes vector and dense known-covariance pilot replicates and returns grouped bias, RMSE, and Monte Carlo error summaries.
 * Phase 18 now has a Gaussian location-scale summary-smoke runner that executes two or more pilot replicates and returns grouped bias, RMSE, and Monte Carlo error summaries from the smoke output.
 * Phase 18 now has Monte Carlo uncertainty helpers for simulation summaries, including MCSEs for mean error, RMSE, proportions, and explicit interval-coverage summaries when lower and upper interval columns are present.
+* Phase 18 now has a synthetic interval-coverage smoke helper for testing coverage-table plumbing before Wald, profile, or bootstrap interval methods are attached.
 * Phase 18 now has a small aggregation helper for simulation parameter summaries, reporting replicate counts, bias, RMSE, absolute error, empirical standard error, convergence rate, Hessian rate, warning rate, and elapsed time by explicit grouping columns.
 * Phase 18 now has a first end-to-end `meta_V(V = V)` smoke runner under `inst/sim/run/`, covering vector and dense known sampling covariance cells through DGP, `drmTMB()` fit, saved RDS output, and combined parameter summaries.
 * Phase 18 now has a first end-to-end Gaussian location-scale smoke runner under `inst/sim/run/`, wiring the cell registry, seeded DGP, `drmTMB()` fit, pilot summariser, saved RDS output, and combined parameter table for one small surface.

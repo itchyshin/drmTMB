@@ -1495,7 +1495,8 @@ Use this order unless Slice 191 evidence overturns it:
   helper is done locally in Slice 223. Result-directory loading is done locally
   in Slice 224 so manifests and ledgers can be rebuilt from saved RDS output.
   Summary-smoke helpers return manifests and failure ledgers locally in Slice
-  225. Next, start tiny interval-coverage smoke grids.
+  225. Synthetic interval-coverage smoke plumbing is done locally in Slice 226.
+  Next, attach real interval producers surface by surface.
 
 ## ASReml Efficiency Lessons For Future Animal Models
 
