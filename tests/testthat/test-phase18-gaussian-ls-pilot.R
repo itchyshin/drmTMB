@@ -165,6 +165,8 @@ test_that("Phase 18 Gaussian location-scale pilot summariser records errors", {
   expect_true(all(summary$converged))
   expect_true(all(summary$pdHess))
   expect_true(all(is.finite(summary$estimate)))
+  expect_true(all(is.finite(summary$std.error)))
+  expect_true(all(summary$std.error > 0))
   expect_lt(max(abs(summary$error)), 0.35)
 })
 

@@ -24514,6 +24514,44 @@ After-task report:
 
 - `docs/dev-log/after-task/2026-05-17-slice-231-correlation-fisher-z-wald.md`.
 
+## 2026-05-17 - Slice 232 Gaussian location-scale standard errors
+
+Goal: expose fixed-effect standard errors in the Gaussian location-scale Phase
+18 pilot summary.
+
+Files changed:
+
+- `inst/sim/fit/sim_summarise_gaussian_ls.R`
+- `tests/testthat/test-phase18-gaussian-ls-pilot.R`
+- `inst/sim/README.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `ROADMAP.md`
+- `NEWS.md`
+- `docs/dev-log/after-task/2026-05-17-slice-232-gaussian-ls-se-summary.md`
+
+What changed:
+
+- Updated `phase18_summarise_gaussian_ls_fit()` to add a `std.error` column
+  from `summary(fit)$coefficients$std_error` when available.
+- Aligned standard errors by parameter names such as `mu:x` and `sigma:z`.
+- Extended the Gaussian location-scale pilot test to require finite positive
+  standard errors for the fitted smoke model.
+
+Checks run:
+
+- `air format inst/sim/fit/sim_summarise_gaussian_ls.R tests/testthat/test-phase18-gaussian-ls-pilot.R inst/sim/README.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md NEWS.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-17-slice-232-gaussian-ls-se-summary.md`
+- `Rscript -e "devtools::test(filter = 'phase18-gaussian-ls-pilot', reporter = 'summary')"`
+- `git diff --check`
+
+Known limitations:
+
+- This slice does not yet attach Wald intervals or coverage summaries to the
+  Gaussian location-scale surface.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-17-slice-232-gaussian-ls-se-summary.md`.
+
 ## 2026-05-18 - Florence visualization role and memory guardrails
 
 Goal: make the new visualization role durable and adopt the useful Memory OS

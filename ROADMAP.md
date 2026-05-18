@@ -1502,8 +1502,9 @@ Use this order unless Slice 191 evidence overturns it:
   recorded locally in Slice 229. A generic Wald interval-table helper is done
   locally in Slice 230 for summaries that already contain estimates and
   standard errors. A Fisher-z back-transformed correlation Wald helper is done
-  locally in Slice 231. Next, attach model-specific standard-error extraction
-  surface by surface.
+  locally in Slice 231. Gaussian location-scale pilot summaries carry
+  fixed-effect standard errors locally in Slice 232. Next, connect those
+  standard errors to Gaussian location-scale Wald coverage summaries.
 
 ## ASReml Efficiency Lessons For Future Animal Models
 
