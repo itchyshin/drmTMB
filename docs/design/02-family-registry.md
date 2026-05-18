@@ -286,7 +286,8 @@ successes and failures:
 family = beta_binomial()
 ```
 
-The implemented model is fixed-effect and univariate:
+The implemented model is univariate and can include ordinary `mu` random
+intercepts or independent numeric slopes:
 
 ```text
 y_i | n_i, p_i ~ Binomial(n_i, p_i)
@@ -400,7 +401,7 @@ Here `mu` is the conditional Poisson mean and `zi` is the structural-zero
 probability:
 
 ```text
-log(mu_i) = o_i + X_mu[i, ] beta_mu
+log(mu_i) = o_i + X_mu[i, ] beta_mu + Z_mu[i, ] b_mu
 logit(zi_i) = X_zi[i, ] beta_zi
 E[y_i] = (1 - zi_i) mu_i
 ```
@@ -416,12 +417,14 @@ zero inflation is a distributional parameter of the existing Poisson family.
 family = nbinom2()
 ```
 
-The implemented model is fixed-effect and univariate:
+The implemented model is univariate and can include ordinary `mu` random
+intercepts or independent numeric slopes:
 
 ```text
 y_i | mu_i, sigma_i ~ NB2(mu_i, size_i)
-log(mu_i) = o_i + X_mu[i, ] beta_mu
+log(mu_i) = o_i + X_mu[i, ] beta_mu + Z_mu[i, ] b_mu
 log(sigma_i) = X_sigma[i, ] beta_sigma
+b_mu ~ Normal(0, diag(sd_mu^2)) for independent random-effect terms
 size_i = 1 / sigma_i^2
 E[y_i] = mu_i
 Var[y_i] = mu_i + sigma_i^2 * mu_i^2
@@ -441,8 +444,10 @@ logit(zi_i) = X_zi[i, ] beta_zi
 E[y_i] = (1 - zi_i) mu_i
 ```
 
-Random effects, known sampling covariance, phylogenetic terms, and bivariate
-or mixed negative-binomial models are later phases.
+Correlated NB2 slope blocks, labelled covariance blocks, NB2 `sigma` random
+effects, zero-inflated NB2 random effects, known sampling covariance,
+phylogenetic terms, and bivariate or mixed negative-binomial models are later
+phases.
 
 ## Implemented: Zero-Truncated Negative Binomial 2 Mean-Dispersion
 

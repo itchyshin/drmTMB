@@ -25097,3 +25097,62 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-18-slice-244-poisson-mu-profile-sd-coverage.md`.
+
+## 2026-05-18 - Slice 245 NB2 mu random effects
+
+Goal: fit the first ordinary non-zero-inflated NB2 `mu` random-effect surface,
+parallel to the fitted Poisson `mu` path, before admitting NB2 to Phase 18
+simulation work.
+
+Files changed:
+
+- `R/drmTMB.R`
+- `src/drmTMB.cpp`
+- `tests/testthat/test-nbinom2-location-scale.R`
+- `docs/design/01-formula-grammar.md`
+- `docs/design/02-family-registry.md`
+- `docs/design/03-likelihoods.md`
+- `docs/design/06-distribution-roadmap.md`
+- `docs/design/34-validation-debt-register.md`
+- `docs/design/37-worked-example-inventory.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `README.md`
+- `ROADMAP.md`
+- `NEWS.md`
+- `vignettes/count-nbinom2.Rmd`
+- `vignettes/distribution-families.Rmd`
+- `vignettes/formula-grammar.Rmd`
+- `vignettes/model-map.Rmd`
+- `vignettes/source-map.Rmd`
+- `docs/dev-log/after-task/2026-05-18-slice-245-nbinom2-mu-random-effects.md`
+
+What changed:
+
+- `nbinom2()` now fits ordinary `mu` random intercepts and independent numeric
+  random slopes for non-zero-inflated NB2 models.
+- The NB2 TMB data path now passes the ordinary `mu` random-effect structures
+  to model type 7, and the likelihood adds `Z_mu b_mu` to the log-mean
+  predictor.
+- `sdpars$mu`, `random_effects$mu`, and `profile_targets()` expose the direct
+  `log_sd_mu` SD targets for fitted NB2 random-effect terms.
+- Docs and roadmap text now keep NB2 `sigma`, zero-inflated NB2 random effects,
+  correlated/labelled NB2 slope blocks, and zero-truncated NB2 random effects
+  as planned surfaces.
+
+Checks run:
+
+- `air format R/drmTMB.R src/drmTMB.cpp tests/testthat/test-nbinom2-location-scale.R`
+- `Rscript -e "devtools::test(filter = 'nbinom2-location-scale', reporter = 'summary')"`
+- `Rscript -e "devtools::test(filter = 'count-kernels|zi-nbinom2|hurdle-nbinom2|profile-targets|summary|check-drm', reporter = 'summary')"`
+- `git diff --check`
+- `Rscript -e "devtools::test(filter = 'nbinom2-location-scale|count-kernels|zi-nbinom2|hurdle-nbinom2|profile-targets|summary|check-drm|gaussian-random-intercepts', reporter = 'summary')"`
+
+Known limitations:
+
+- This slice does not yet add the Phase 18 NB2 smoke runner, interval coverage,
+  weak-SD grid, zero-truncated NB2 random effects, zero-inflated NB2 random
+  effects, NB2 `sigma` random effects, or correlated/labelled NB2 slope blocks.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-245-nbinom2-mu-random-effects.md`.

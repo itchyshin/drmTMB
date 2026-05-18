@@ -2062,15 +2062,14 @@ drm_build_nbinom2_spec <- function(
     ))
   }
   mu_entry$rhs <- meta$rhs
-
-  if (!is.null(zi_entry) && formula_contains_call(mu_entry$rhs, "|")) {
-    cli::cli_abort(c(
-      "Zero-inflated {.fn nbinom2} random effects are not implemented.",
-      "x" = "The {.code mu} formula contains a random-effect bar term while {.code zi} is present.",
-      "i" = "Keep zero-inflated NB2 models fixed-effect for now, such as {.code bf(count ~ x, sigma ~ z, zi ~ w)}.",
-      "i" = "Inflation-side and count-side random effects need likelihood, extractor, interval, and recovery-test support before they can be fitted together."
-    ))
-  }
+  mu_re <- extract_random_mu_terms(mu_entry$rhs, mu_entry$dpar)
+  mu_entry$rhs <- mu_re$rhs
+  validate_poisson_mu_random_terms(
+    mu_re$terms,
+    has_zi = !is.null(zi_entry),
+    family_label = "NB2",
+    inflated_label = "Zero-inflated NB2"
+  )
 
   for (entry in c(
     list(mu_entry, sigma_entry),
@@ -2093,7 +2092,8 @@ drm_build_nbinom2_spec <- function(
   vars <- unique(c(
     all.vars(f_mu),
     all.vars(f_sigma),
-    if (!is.null(f_zi)) all.vars(f_zi)
+    if (!is.null(f_zi)) all.vars(f_zi),
+    random_effect_vars(mu_re$terms)
   ))
   if (length(vars) > 0L) {
     keep <- stats::complete.cases(data[, vars, drop = FALSE])
@@ -2167,6 +2167,8 @@ drm_build_nbinom2_spec <- function(
     ))
   }
   has_zi <- !is.null(X_zi)
+  re_mu <- build_random_mu_structure(mu_re$terms, data_model)
+  sd_mu <- empty_sd_mu_structure(re_mu$n_re)
 
   spec <- list(
     model_type = if (has_zi) "zi_nbinom2" else "nbinom2",
@@ -2200,10 +2202,10 @@ drm_build_nbinom2_spec <- function(
       list(mu = mf_mu, sigma = mf_sigma)
     },
     random = list(
-      mu = empty_random_mu_structure(nrow(data_model)),
+      mu = re_mu,
       sigma = empty_random_sigma_structure(nrow(data_model))
     ),
-    random_scale = list(mu = empty_sd_mu_structure(1L)),
+    random_scale = list(mu = sd_mu),
     structured = list(phylo_mu = empty_phylo_mu_structure()),
     data = data_model,
     variables = vars,
@@ -2212,10 +2214,10 @@ drm_build_nbinom2_spec <- function(
     start = if (has_zi) {
       zi_nbinom2_start(y, X_mu, X_sigma, X_zi, offset_mu)
     } else {
-      nbinom2_start(y, X_mu, X_sigma, offset_mu)
+      nbinom2_start(y, X_mu, X_sigma, offset_mu, re_mu = re_mu)
     },
-    map = if (has_zi) zi_nbinom2_map() else nbinom2_map(),
-    random_names = NULL
+    map = if (has_zi) zi_nbinom2_map() else nbinom2_map(re_mu),
+    random_names = if (re_mu$n_re > 0L) "u_mu" else NULL
   )
   spec$tmb_data <- add_covariance_block_tmb_data(
     make_tmb_data(spec),
@@ -3217,14 +3219,21 @@ extract_random_sigma_terms <- function(rhs, dpar) {
   list(rhs = rebuild_plus_terms(clean_terms), terms = re_terms)
 }
 
-validate_poisson_mu_random_terms <- function(terms, has_zi = FALSE) {
+validate_poisson_mu_random_terms <- function(
+  terms,
+  has_zi = FALSE,
+  family_label = "Poisson",
+  inflated_label = "Zero-inflated Poisson"
+) {
   if (length(terms) == 0L) {
     return(invisible(terms))
   }
+  family_label <- as.character(family_label)[[1L]]
+  inflated_label <- as.character(inflated_label)[[1L]]
   if (isTRUE(has_zi)) {
     cli::cli_abort(c(
-      "Poisson {.code mu} random intercepts and slopes are implemented only for ordinary Poisson models.",
-      "x" = "Zero-inflated Poisson random effects are planned but not implemented.",
+      "{family_label} {.code mu} random intercepts and slopes are implemented only for ordinary {family_label} models.",
+      "x" = "{inflated_label} random effects are planned but not implemented.",
       "i" = "Fit {.code y ~ x + (1 | id) + (0 + x | id)} without a {.code zi} formula, or use a fixed-effect {.code zi ~ predictors} model."
     ))
   }
@@ -3239,10 +3248,10 @@ validate_poisson_mu_random_terms <- function(terms, has_zi = FALSE) {
   if (any(unsupported)) {
     labels <- vapply(terms[unsupported], `[[`, character(1L), "label")
     cli::cli_abort(c(
-      "Only independent Poisson {.code mu} random intercepts and slopes are implemented in this slice.",
+      "Only independent {family_label} {.code mu} random intercepts and slopes are implemented in this slice.",
       "x" = "Unsupported random-effect term{?s}: {.code {labels}}.",
       "i" = "Use syntax like {.code count ~ x + (1 | id)} or {.code count ~ x + (0 + x | id)}.",
-      "i" = "Correlated Poisson random-slope blocks and labelled covariance blocks remain planned for a later non-Gaussian random-effect gate."
+      "i" = "Correlated {family_label} random-slope blocks and labelled covariance blocks remain planned for a later non-Gaussian random-effect gate."
     ))
   }
   invisible(terms)
@@ -7502,8 +7511,14 @@ zi_poisson_map <- function() {
   out
 }
 
-nbinom2_start <- function(y, X_mu, X_sigma, offset_mu = rep(0, length(y))) {
-  poisson <- poisson_start(y, X_mu, offset_mu)
+nbinom2_start <- function(
+  y,
+  X_mu,
+  X_sigma,
+  offset_mu = rep(0, length(y)),
+  re_mu = empty_random_mu_structure(length(y))
+) {
+  poisson <- poisson_start(y, X_mu, offset_mu, re_mu = re_mu)
   beta_mu <- poisson$beta_mu
   mu <- exp(offset_mu + as.vector(X_mu %*% beta_mu))
   moment_sigma2 <- stats::var(y) - mean(mu)
@@ -7528,9 +7543,9 @@ nbinom2_start <- function(y, X_mu, X_sigma, offset_mu = rep(0, length(y))) {
       beta_zi = 0,
       theta_ord = 0,
       beta_sd_mu = 0,
-      u_mu = 0,
-      log_sd_mu = 0,
-      eta_cor_mu = 0,
+      u_mu = poisson$u_mu,
+      log_sd_mu = poisson$log_sd_mu,
+      eta_cor_mu = poisson$eta_cor_mu,
       eta_cor_mu_sigma = 0,
       eta_cor_sigma = 0,
       u_sigma = 0,
@@ -7547,8 +7562,16 @@ nbinom2_start <- function(y, X_mu, X_sigma, offset_mu = rep(0, length(y))) {
   )
 }
 
-nbinom2_map <- function() {
-  lognormal_ls_map()
+nbinom2_map <- function(re_mu = empty_random_mu_structure(1L)) {
+  out <- lognormal_ls_map()
+  if (re_mu$n_re > 0L) {
+    out$u_mu <- NULL
+    out$log_sd_mu <- NULL
+  }
+  if (re_mu$n_cors > 0L) {
+    out$eta_cor_mu <- NULL
+  }
+  out
 }
 
 truncated_nbinom2_start <- function(y, X_mu, X_sigma) {
@@ -8888,6 +8911,8 @@ make_tmb_data <- function(spec) {
     ))
   }
   if (identical(spec$model_type, "nbinom2")) {
+    re_mu <- spec$random$mu
+    sd_mu <- spec$random_scale$mu
     return(list(
       model_type = 7L,
       y = spec$y,
@@ -8903,7 +8928,7 @@ make_tmb_data <- function(spec) {
       X_sigma = spec$X$sigma,
       X_nu = dummy_matrix,
       X_zi = dummy_matrix,
-      X_sd_mu = dummy_matrix,
+      X_sd_mu = sd_mu$X,
       has_sd_mu_model = 0L,
       X_sd_phylo = dummy_matrix,
       has_sd_phylo_model = 0L,
@@ -8915,16 +8940,16 @@ make_tmb_data <- function(spec) {
       X_rho12 = dummy_matrix,
       X_cor_mu = dummy_matrix,
       has_cor_mu_model = 0L,
-      n_mu_re_terms = 0L,
-      n_mu_re_cors = 0L,
-      mu_re_index = matrix(0L, nrow = 1L, ncol = 1L),
-      mu_re_value = dummy_matrix,
-      mu_re_term = 0L,
-      mu_re_dpar = 0L,
-      mu_re_pos = 0L,
-      mu_re_cor_id = -1L,
-      mu_re_pair_index = -1L,
-      mu_re_sd_row = -1L,
+      n_mu_re_terms = re_mu$n_terms,
+      n_mu_re_cors = re_mu$n_cors,
+      mu_re_index = re_mu$index0,
+      mu_re_value = re_mu$value,
+      mu_re_term = re_mu$term_id0,
+      mu_re_dpar = re_mu$dpar_id0,
+      mu_re_pos = re_mu$re_pos0,
+      mu_re_cor_id = re_mu$re_cor_id0,
+      mu_re_pair_index = re_mu$re_pair_index0,
+      mu_re_sd_row = sd_mu$re_sd_row0,
       n_sigma_re_terms = 0L,
       n_sigma_re_cors = 0L,
       n_mu_sigma_re_cors = 0L,
@@ -9381,7 +9406,9 @@ ordinal_cutpoint_names <- function(levels) {
 }
 
 split_tmb_sdpars <- function(par, spec) {
-  if (!spec$model_type %in% c("gaussian", "biv_gaussian", "poisson")) {
+  if (
+    !spec$model_type %in% c("gaussian", "biv_gaussian", "poisson", "nbinom2")
+  ) {
     return(list())
   }
   out <- list()
@@ -9622,7 +9649,9 @@ tmb_vecscale_sqrt_cov_scale <- function(theta, sd, z) {
 }
 
 split_tmb_random_effects <- function(par, spec) {
-  if (!spec$model_type %in% c("gaussian", "biv_gaussian", "poisson")) {
+  if (
+    !spec$model_type %in% c("gaussian", "biv_gaussian", "poisson", "nbinom2")
+  ) {
     return(list())
   }
 
