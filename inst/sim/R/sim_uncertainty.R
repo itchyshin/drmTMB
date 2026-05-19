@@ -202,6 +202,77 @@ phase18_summarise_interval_coverage <- function(
   out
 }
 
+phase18_interval_failures <- function(
+  intervals,
+  status = NULL,
+  ok_status = NULL
+) {
+  if (!is.data.frame(intervals)) {
+    stop("`intervals` must be a data frame.", call. = FALSE)
+  }
+  if (nrow(intervals) == 0L) {
+    return(phase18_empty_interval_failures(intervals))
+  }
+  if (is.null(status)) {
+    if ("interval_status" %in% names(intervals)) {
+      status <- "interval_status"
+    } else if ("conf.status" %in% names(intervals)) {
+      status <- "conf.status"
+    } else {
+      stop(
+        "`intervals` must contain `interval_status` or `conf.status`.",
+        call. = FALSE
+      )
+    }
+  }
+  if (
+    !is.character(status) ||
+      length(status) != 1L ||
+      !nzchar(status) ||
+      !status %in% names(intervals)
+  ) {
+    stop("`status` must name one column in `intervals`.", call. = FALSE)
+  }
+  if (is.null(ok_status)) {
+    ok_status <- if (identical(status, "interval_status")) {
+      "ok"
+    } else {
+      c("wald", "profile")
+    }
+  }
+  if (
+    !is.character(ok_status) ||
+      length(ok_status) == 0L ||
+      any(!nzchar(ok_status))
+  ) {
+    stop("`ok_status` must be a non-empty character vector.", call. = FALSE)
+  }
+
+  status_value <- as.character(intervals[[status]])
+  failed <- is.na(status_value) | !status_value %in% ok_status
+  out <- intervals[failed, , drop = FALSE]
+  if (nrow(out) == 0L) {
+    return(phase18_empty_interval_failures(intervals))
+  }
+  out$artifact_grain <- "interval_failure"
+  out$interval_failure_status <- status_value[failed]
+  if (!"interval_message" %in% names(out)) {
+    out$interval_message <- NA_character_
+  }
+  row.names(out) <- NULL
+  out
+}
+
+phase18_empty_interval_failures <- function(intervals) {
+  out <- intervals[0L, , drop = FALSE]
+  out$artifact_grain <- character()
+  out$interval_failure_status <- character()
+  if (!"interval_message" %in% names(out)) {
+    out$interval_message <- character()
+  }
+  out
+}
+
 phase18_default_summary_groups <- function(summary) {
   intersect(
     c("surface", "known_v_type", "cell_id", "parameter"),
