@@ -28067,3 +28067,73 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-19-slice-300-simulation-raincloud-grammar.md`.
+
+## 2026-05-19 - Slice 301 count gallery accuracy grammar
+
+Goal: apply the Slice 300 accuracy-display contract to the actual Phase 18
+paired count-pilot gallery template without pretending that aggregate-only CSVs
+contain replicate-level error clouds.
+
+Files changed:
+
+- `inst/sim/reports/phase18-count-mu-gallery.Rmd`
+- `tests/testthat/test-phase18-count-gallery-template.R`
+- `tests/testthat/test-phase18-count-gallery-render-helper.R`
+- `docs/design/39-visualization-grammar.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-19-slice-301-count-gallery-accuracy-grammar.md`
+
+What changed:
+
+- Replaced the generic count-gallery accuracy plotter with separate bias and
+  RMSE plotters.
+- Bias and RMSE now use fixed family facets and readable parameter-class facet
+  labels instead of a single flipped panel where families compete for dodged
+  positions.
+- Bias and RMSE draw approximate 95% MCSE bars when aggregate CSVs include
+  `bias_mcse` or `rmse_mcse`.
+- The bias plot now states that replicate-error clouds should be added only
+  when replicate-level output exists, and the RMSE plot states that RMSE is an
+  aggregate summary rather than the center of an absolute-error cloud.
+- Updated tests so the template source and render fixtures cover the new
+  MCSE-aware grammar.
+
+Checks run:
+
+```sh
+PATH=/usr/local/bin:/opt/homebrew/bin:$PATH air format inst/sim/reports/phase18-count-mu-gallery.Rmd tests/testthat/test-phase18-count-gallery-template.R tests/testthat/test-phase18-count-gallery-render-helper.R
+Rscript -e "devtools::test(filter = '^phase18-count-gallery')"
+Rscript - <<'RS'
+# Rendered a real count-gallery smoke artifact under
+# /tmp/drmtmb-s301-count-gallery and extracted embedded PNGs for visual QA.
+RS
+Rscript -e "pkgdown::check_pkgdown()"
+git diff --check
+```
+
+Validation notes:
+
+- Focused count-gallery tests passed with 41 tests, 0 failures, 0 warnings, and
+  0 skips.
+- The smoke gallery rendered to
+  `/tmp/drmtmb-s301-count-gallery/gallery/phase18-count-mu-gallery.html`.
+- Visual inspection checked the extracted bias, RMSE, and coverage PNGs under
+  `/tmp/drmtmb-s301-count-gallery/embedded-pngs/`.
+- `pkgdown::check_pkgdown()` passed with no problems.
+- `git diff --check` passed.
+- Recovery checkpoint:
+  `docs/dev-log/recovery-checkpoints/2026-05-19-071653-codex-checkpoint.md`.
+
+Known limitations:
+
+- No DGP, simulation runner, aggregation helper, package API, likelihood,
+  formula grammar, or exported plotting helper changed.
+- The count gallery still has aggregate rows only. True raincloud displays need
+  replicate-level error output in a later result-report schema.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-19-slice-301-count-gallery-accuracy-grammar.md`.

@@ -8,7 +8,9 @@ phase18_count_gallery_pilot_fixture <- function() {
       ),
       parameter = c("mu:x", "sd:mu:(0 + x | id)"),
       bias = c(0.01, -0.03),
-      rmse = c(0.05, 0.09)
+      rmse = c(0.05, 0.09),
+      bias_mcse = c(0.004, 0.006),
+      rmse_mcse = c(0.003, 0.007)
     ),
     wald_coverage = data.frame(
       surface = "poisson_mu_random_effect",
