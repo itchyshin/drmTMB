@@ -27661,3 +27661,50 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-18-slice-293-gaussian-ls-ademp.md`.
+
+## 2026-05-18 - Slice 294 meta-analysis known-V ADEMP sheet
+
+Goal: create a one-page ADEMP design sheet for the admitted Gaussian
+`meta_V(V = V)` Phase 18 lane before expanding vector or dense known-`V` grids.
+
+Files changed:
+
+- `docs/design/48-phase-18-meta-v-ademp.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `inst/sim/README.md`
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/dev-log/after-task/2026-05-18-slice-294-meta-v-ademp.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-18-224503-codex-checkpoint.md`
+
+What changed:
+
+- Added a `meta_V(V = V)` ADEMP sheet with aims, vector/dense known-`V` DGP
+  conditions, estimands, methods, performance measures, MCSE target, and
+  Williams-style self-audit.
+- Linked the sheet from the Phase 18 simulation programme and the `inst/sim/`
+  README.
+- NEWS and ROADMAP record Slice 294 as the meta-analysis known-`V` ADEMP sheet.
+
+Checks run:
+
+```sh
+air format docs/design/48-phase-18-meta-v-ademp.md docs/design/41-phase-18-simulation-programme.md inst/sim/README.md NEWS.md ROADMAP.md
+rg -n 'Meta-Analysis Known-V ADEMP|phase18_dgp_meta_v|phase18_meta_v_conditions|meta_V\(V = V\)|known sampling covariance|input data|public residual `sigma`|unique\(as.numeric\(sigma\(fit\)\)\)|500 replicates|Williams|Morris|Slice 294' docs/design/48-phase-18-meta-v-ademp.md docs/design/41-phase-18-simulation-programme.md inst/sim/README.md NEWS.md ROADMAP.md
+rg -n 'tau|proportional sampling-variance models|animal models|latent relatedness|known sampling covariance \| supplied `V`|no estimator|V.*input data|estimated interval target' docs/design/48-phase-18-meta-v-ademp.md
+git diff --check
+Rscript -e "pkgdown::check_pkgdown()"
+git diff --check
+Rscript tools/codex-checkpoint.R --goal "Slice 294 meta_V ADEMP sheet" --next "stage, commit, push, and open draft PR"
+```
+
+Known limitations:
+
+- No simulation code, DGP change, runner, result table, executable test,
+  likelihood, formula grammar, extractor, or interval method changed.
+- The sheet is a design contract; the formal vector/dense known-`V` grid still
+  needs a separate implementation slice.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-294-meta-v-ademp.md`.
