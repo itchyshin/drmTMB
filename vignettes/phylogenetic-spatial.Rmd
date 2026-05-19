@@ -255,6 +255,24 @@ heat_tolerance ~ climate +
 It requires careful checks that the tree-structured and coordinate-structured
 SDs are both identifiable before `drmTMB` treats the syntax as runnable.
 
+For planned animal and `relmat()` models, write the intended syntax in design
+notes and scripts, but choose a fitted sensitivity model before interpreting
+biology. If the question is repeatability without known relatedness, fit an
+ordinary `(1 | individual)` or `(1 | line)` Gaussian model and report that it
+ignores pedigree or matrix structure. If the question is species shared ancestry,
+use the fitted `phylo(1 | species, tree = tree)` route. If the question is site
+structure, use the fitted coordinate-spatial route. If the matrix is sampling
+covariance among effect-size estimates, use `meta_V(V = V)`, not `relmat()`;
+`relmat()` is reserved for future latent random-effect relatedness or precision
+matrices.
+
+| Planned question | Planned syntax | Fitted action now |
+| --- | --- | --- |
+| Heritable individual differences in a wild pedigree | `animal(1 | individual, pedigree = pedigree)` | Fit `(1 | individual)` as a repeatability sensitivity model and label pedigree relatedness as omitted. |
+| Additive genetic variance from a precomputed relationship matrix | `animal(1 | individual, A = A)` or `animal(1 | individual, Ainv = Ainv)` | Keep the matrix in the design note; do not force it through `V` or `weights`. |
+| Experimental-line, genomic, or laboratory relatedness that is not a pedigree, tree, or coordinate surface | `relmat(1 | line, K = K)` or `relmat(1 | line, Q = Q)` | Use an ordinary `(1 | line)` sensitivity model, or switch to `phylo()` / `spatial()` when the known structure belongs to those named routes. |
+| Known sampling covariance among effect-size estimates | `meta_V(V = V)` | Use the fitted Gaussian meta-analysis route; this is observation covariance, not a latent relatedness random effect. |
+
 ## Current implementation status
 
 This page separates the fitted paths from the roadmap. The fitted structural

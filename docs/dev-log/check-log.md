@@ -26927,3 +26927,54 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-18-slice-280-meta-v-hardening.md`.
+
+## 2026-05-18 - Slice 281 structured user surface
+
+Goal: make planned `animal()` and `relmat()` syntax more usable to readers
+without implying a fitted animal-model or lower-level relatedness likelihood.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/dev-log/after-task/2026-05-18-slice-281-structured-user-surface.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-18-204717-codex-checkpoint.md`
+- `vignettes/model-map.Rmd`
+- `vignettes/phylogenetic-spatial.Rmd`
+
+What changed:
+
+- Added a planned-question table to the structural-dependence article that
+  pairs animal and `relmat()` questions with planned syntax and fitted actions
+  available now.
+- Clarified that ordinary `(1 | individual)` or `(1 | line)` fits are
+  repeatability sensitivity models that ignore pedigree or known-matrix
+  relatedness.
+- Clarified that known sampling covariance among effect-size estimates belongs
+  to `meta_V(V = V)`, not to future `relmat()` latent relatedness syntax.
+- Added the same `meta_V()` versus `relmat()` boundary to the model map.
+- Marked Slice 281 done in the roadmap and added a NEWS bullet.
+
+Checks run:
+
+- `air format NEWS.md ROADMAP.md vignettes/phylogenetic-spatial.Rmd vignettes/model-map.Rmd`
+- `Rscript -e 'devtools::load_all(quiet = TRUE); rmarkdown::render("vignettes/phylogenetic-spatial.Rmd", output_dir = tempfile("phylo-spatial-render-"), quiet = FALSE); rmarkdown::render("vignettes/model-map.Rmd", output_dir = tempfile("model-map-render-"), quiet = FALSE)'`
+- `rg -n 'Slice 281|Structural-dependence docs|planned animal|relmat\\(\\).*future latent|Fitted action now|repeatability sensitivity|matrix is sampling covariance|meta_V\\(V = V\\).*relmat|latent relatedness|observation-level known sampling covariance' NEWS.md ROADMAP.md vignettes/phylogenetic-spatial.Rmd vignettes/model-map.Rmd`
+- `rg -n 'animal\\(.*Implemented|relmat\\(.*Implemented|animal\\(.*fitted|relmat\\(.*fitted|relmat\\(.*sampling covariance|meta_V\\(V = V\\).*latent relatedness|V.*relatedness.*relmat|weights.*relatedness' README.md NEWS.md ROADMAP.md docs/design vignettes R tests/testthat --glob '!docs/dev-log/**'`
+  returned only intended planned-boundary, design, or negative-status wording,
+  not a fitted animal/`relmat()` claim.
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `git diff --check`
+- `Rscript tools/codex-checkpoint.R --goal "Slice 281 structured user surface" --next "stage, commit, push, and open draft PR"`
+
+Known limitations:
+
+- This slice adds no animal-model, `A`/`Ainv`, `relmat(K)`, `relmat(Q)`,
+  combined phylogenetic plus spatial, or sparse precision likelihood.
+- Existing parser and unsupported-boundary tests remain the evidence for the
+  planned marker grammar.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-281-structured-user-surface.md`.

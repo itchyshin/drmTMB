@@ -255,6 +255,9 @@ drmTMB(
 Use `relmat(1 | id, K = K)` or `relmat(1 | id, Q = Q)` only for future
 lower-level examples where the known dependence matrix is neither naturally a
 pedigree, a phylogeny, nor a coordinate-spatial surface.
+If that matrix is known sampling covariance among observations or effect-size
+estimates, use `meta_V(V = V)` instead; `relmat()` is for future latent
+random-effect relatedness or precision matrices.
 
 For fitted q=4 phylogenetic blocks, read the six latent covariance rows with
 `corpairs(fit, level = "phylogenetic")` or
