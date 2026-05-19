@@ -74,9 +74,12 @@ Planned family rows stay out of fitted examples until they have the same
 evidence pattern. The current named example is `skew_normal()`, where `nu`
 would be residual asymmetry on the native skew-normal scale. That row has no
 likelihood, no recovery tests, no prediction contract, and no random-effect
-allowance yet. A future Tweedie row likewise needs a final public `sigma`
-versus comparator-`phi` decision before tests or documentation can claim a
-fitted family.
+allowance yet. User-facing examples may show planned syntax only when they
+also say "not fitted yet" and give a fitted fallback, such as Gaussian
+location-scale regression or the implemented fixed-effect `student()` route.
+A future Tweedie row likewise needs a final public `sigma` versus
+comparator-`phi` decision before tests or documentation can claim a fitted
+family.
 
 ## Distributional Parameter Naming
 
@@ -87,6 +90,12 @@ parameter vocabulary:
 - `sigma`: residual scale, dispersion, or standard-deviation-like parameter;
 - `nu`: first shape parameter;
 - `tau`: second shape parameter.
+
+For bivariate Gaussian models, residual `rho12` is the current coscale
+parameter: it models residual correlation after `mu1`, `mu2`, `sigma1`, and
+`sigma2` are accounted for. Do not use coscale for phylogenetic, spatial, or
+ordinary group-level correlations unless the text explicitly names those as
+separate non-residual covariance layers.
 
 The interpretation of `nu` and `tau` is family specific. In a skew-normal-like
 family, `nu` can be the skewness/shape parameter. In a Student-t-like family,
@@ -243,6 +252,24 @@ bivariate skew-normal models, `rho12`, and aliases such as `skew ~ x` are later
 phases. Examples and reference documentation should teach canonical `nu ~ x`
 before any alias is added. ID-level skewness syntax such as `skew(id) ~ x` is
 not an alias for this residual shape formula; it is a later latent-effect model.
+
+Reader-facing examples should use this planned syntax only with an explicit
+boundary:
+
+```r
+# Planned, not fitted yet:
+drmTMB(
+  bf(y ~ x1, sigma ~ x2, nu ~ x3),
+  family = skew_normal(),
+  data = dat
+)
+```
+
+The fitted fallback is to compare Gaussian location-scale and Student-t
+location-scale-shape models, then report whether conclusions about `mu` and
+`sigma` are sensitive to heavy tails. That fallback does not answer a skewness
+question; it only prevents a planned skew-normal formula from being mistaken
+for current analysis syntax.
 
 ## Implemented: Lognormal Location-Scale
 

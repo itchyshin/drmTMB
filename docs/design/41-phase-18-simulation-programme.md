@@ -31,7 +31,7 @@ DGP file, an opt-in stress cell, or a failure-ledger row.
 | Meta-analysis with known `V` | Admitted for Gaussian `meta_V(V = V)` vector and dense known sampling covariance | `docs/design/48-phase-18-meta-v-ademp.md` records the vector/dense known-`V` ADEMP sheet before larger grids | Keep proportional sampling variance, non-Gaussian known covariance, and phylogenetic-plus-study extensions out |
 | Bivariate Gaussian | Admitted for residual `rho12` and selected intercept covariance blocks | `docs/design/52-phase-18-bivariate-rho12-ademp.md` records the residual-correlation ADEMP sheet; group-level `corpairs()` needs a separate sheet | Keep mixed-response families, random effects in `rho12`, bivariate random slopes, and broad q=4/q=8 slope covariance out |
 | Random slopes | Admitted for ordinary Gaussian `mu` q > 2, independent Gaussian `sigma` one-slope terms, ordinary Poisson/NB2 `mu` independent slopes, and coordinate-spatial Gaussian `mu` one slope | Give each admitted slope class its own condition table for group count, repeats, slope SD, and covariate spread | Keep phylogenetic, animal, `relmat()`, bivariate, correlated non-Gaussian, and residual-scale correlated slopes out |
-| Shape and skewness | Admitted only for fitted fixed-effect shape such as Student-t `nu`; skew-normal and skew-t remain design-only future targets | Add a fixed-effect Student-t `nu` DGP sheet before any skew-family DGP, with separation from `sigma` effects explicit | Keep `nu` random effects, future `tau` random effects, skewness random effects, and latent `skew(id) ~ ...` out |
+| Shape and skewness | Admitted for fixed-effect Student-t `nu` smoke, artifact-path, Wald interval, profile-smoke, and bootstrap-smoke evidence; skew-normal and skew-t remain design-only future targets | Extend the fixed-effect Student-t `nu` lane from smoke evidence to formal coverage grids after the interval evidence schema is stable | Keep `nu` random effects, future `tau` random effects, skewness random effects, and latent `skew(id) ~ ...` out |
 | Phylogenetic structured effects | Admitted for fitted Gaussian intercept/direct-SD/selected bivariate covariance subsets | Write small tree-size and phylogenetic-signal condition tables for the fitted intercept/direct-SD surfaces | Keep phylogenetic slopes, non-Gaussian phylogenetic effects, structured `rho12`, and predictor-dependent q=4 correlations out |
 | Coordinate spatial structured effects | Admitted for univariate Gaussian `mu` intercepts and one numeric coordinate-spatial slope | Extend the existing spatial one-slope smoke design with site count, observations per site, field SD, and covariate-spread conditions | Keep mesh/SPDE, multiple slopes, slope correlations, spatial `sigma`, bivariate spatial covariance, and spatial `corpair()` out |
 | `animal()` models | Failure-ledger only | Record biological questions and expected sparse-precision inputs, but do not write fitted DGP grids yet | No pedigree, `A`, or `Ainv` likelihood exists |
@@ -448,7 +448,7 @@ been reduced.
 79. Slice 330 updates the simulation README so the Student-t shape design
     sheet, DGP, summariser, runner, summary output, and grid writer are
     discoverable.
-80. Slice 331 runs the first small Student-t shape grid under
+80. Slice 332 runs the first small Student-t shape grid under
     `inst/sim/results/slice-332-student-shape-small-grid/`: 4 cells, 3
     replicates per cell, 12 successful replicate results, 72 replicate-level
     parameter rows, 24 aggregate rows, and no warning/error or interval-failure
@@ -456,3 +456,27 @@ been reduced.
 81. Slice 332 records the Student-t shape after-task evidence and keeps the
     claim boundary explicit: this is smoke and artifact-path evidence, not yet
     formal Student-t shape coverage evidence.
+82. Slice 333 re-audits the interval target contract so failed, planned, and
+    unavailable interval rows remain visible instead of being counted as finite
+    coverage evidence.
+83. Slice 334 moves profile-interval columns into shared Phase 18 helpers, with
+    explicit status and message columns that can be joined into interval
+    evidence ledgers.
+84. Slice 335 adds optional Student-t `nu` profile interval smoke evidence while
+    keeping the fitted target on the formula-coefficient scale.
+85. Slice 336 adds optional Student-t parametric-bootstrap interval smoke
+    evidence for fixed `mu`, `sigma`, and `nu` coefficients.
+86. Slice 337 combines Wald, profile, and bootstrap rows into one
+    interval-evidence table and matching failure ledger.
+87. Slice 338 applies the same optional profile and parametric-bootstrap
+    interval path to bivariate Gaussian residual-correlation `rho12` smoke
+    runs.
+88. Slice 339 extends the Student-t and `rho12` grid writers so interval
+    evidence, profile, bootstrap, and interval-failure CSVs sit beside the
+    existing aggregate, replicate, manifest, and Wald coverage artifacts.
+89. Slice 340 runs a tiny Student-t interval comparison grid to check artifact
+    paths and interval status handling, not to claim formal coverage.
+90. Slice 341 adds reader-facing animal-model, Student-t, and skew-normal
+    examples while marking animal and skew-normal syntax as planned-only.
+91. Slice 342 records the after-task evidence and closes the gate from smoke
+    interval infrastructure to the next formal simulation slices.

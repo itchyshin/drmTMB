@@ -9,7 +9,12 @@ phase18_write_student_shape_grid_outputs <- function(
   ),
   n_rep = 5L,
   master_seed = 20260526L,
-  overwrite = FALSE
+  overwrite = FALSE,
+  profile_parameters = character(),
+  profile_level = 0.70,
+  profile_args = list(ystep = 0.50),
+  bootstrap_nsim = 0L,
+  bootstrap_level = 0.70
 ) {
   if (
     !is.character(output_dir) || length(output_dir) != 1L || !nzchar(output_dir)
@@ -37,6 +42,26 @@ phase18_write_student_shape_grid_outputs <- function(
       "student-shape-wald-intervals.csv"
     ),
     wald_coverage_csv = file.path(table_dir, "student-shape-wald-coverage.csv"),
+    profile_intervals_csv = file.path(
+      table_dir,
+      "student-shape-profile-intervals.csv"
+    ),
+    profile_coverage_csv = file.path(
+      table_dir,
+      "student-shape-profile-coverage.csv"
+    ),
+    bootstrap_intervals_csv = file.path(
+      table_dir,
+      "student-shape-bootstrap-intervals.csv"
+    ),
+    bootstrap_coverage_csv = file.path(
+      table_dir,
+      "student-shape-bootstrap-coverage.csv"
+    ),
+    interval_evidence_csv = file.path(
+      table_dir,
+      "student-shape-interval-evidence.csv"
+    ),
     interval_failures_csv = file.path(
       table_dir,
       "student-shape-interval-failures.csv"
@@ -49,7 +74,12 @@ phase18_write_student_shape_grid_outputs <- function(
     n_rep = n_rep,
     master_seed = master_seed,
     result_dir = result_dir,
-    overwrite = overwrite
+    overwrite = overwrite,
+    profile_parameters = profile_parameters,
+    profile_level = profile_level,
+    profile_args = profile_args,
+    bootstrap_nsim = bootstrap_nsim,
+    bootstrap_level = bootstrap_level
   )
 
   utils::write.csv(summary$aggregate, paths$aggregate_csv, row.names = FALSE)
@@ -64,6 +94,31 @@ phase18_write_student_shape_grid_outputs <- function(
   utils::write.csv(
     summary$wald_coverage,
     paths$wald_coverage_csv,
+    row.names = FALSE
+  )
+  utils::write.csv(
+    summary$profile_intervals,
+    paths$profile_intervals_csv,
+    row.names = FALSE
+  )
+  utils::write.csv(
+    summary$profile_coverage,
+    paths$profile_coverage_csv,
+    row.names = FALSE
+  )
+  utils::write.csv(
+    summary$bootstrap_intervals,
+    paths$bootstrap_intervals_csv,
+    row.names = FALSE
+  )
+  utils::write.csv(
+    summary$bootstrap_coverage,
+    paths$bootstrap_coverage_csv,
+    row.names = FALSE
+  )
+  utils::write.csv(
+    summary$interval_evidence,
+    paths$interval_evidence_csv,
     row.names = FALSE
   )
   utils::write.csv(

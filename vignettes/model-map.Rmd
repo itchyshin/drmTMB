@@ -21,6 +21,9 @@ response, the most common parameters are the location `mu`, the residual scale
 `sigma`, and family-specific shape or zero-inflation parameters. For two
 responses, `mu1`, `mu2`, `sigma1`, `sigma2`, and `rho12` describe the two
 means, two residual scales, and residual response-response correlation.
+Equivalently, `mu` is the location term, `sigma` is the scale term,
+family-specific parameters such as Student-t `nu` are shape terms, and
+coscale means a residual-correlation parameter such as bivariate `rho12`.
 
 Use this guide as the landing page when you are deciding which article to read
 next. The quick rule is: use the worked tutorials for a fitted analysis, use
@@ -122,6 +125,7 @@ Implemented one-response surfaces include:
 | Do groups differ in residual-scale slopes? | `sigma ~ x + (0 + w | group)` for independent Gaussian residual-scale slopes | [Which scale are you modelling?](which-scale.html) |
 | Does a group-level predictor change among-group SD in the mean model? | `sd(group) ~ x_group` for unlabelled Gaussian `mu` random intercepts | [Which scale are you modelling?](which-scale.html) |
 | Is the response continuous, count, bounded, robust, or zero-inflated? | fixed-effect non-Gaussian families | [Choosing response families](distribution-families.html) |
+| Are the large residuals changing the location and scale conclusions? | fixed-effect Student-t `mu`, `sigma`, and `nu` formulas | [Robust continuous responses](robust-student.html) |
 | Is the response a strict continuous proportion or successes out of known trials? | fixed-effect `beta()` or `beta_binomial()` | [Proportions and success rates](proportion-beta-binomial.html) |
 | Does the response have known sampling variance or covariance? | Gaussian `meta_known_V(V = V)` | [Mean effects and residual heterogeneity](meta-analysis.html) |
 | Do species means remain similar after shared ancestry is included? | `phylo(1 | species, tree = tree)` in univariate Gaussian `mu` | [Structural dependence](phylogenetic-spatial.html) |
@@ -262,6 +266,24 @@ drmTMB(
 )
 ```
 
+The fitted fallback is an ordinary Gaussian random-effect model:
+
+```r
+drmTMB(
+  drm_formula(
+    body_size ~ sex + (1 | individual),
+    sigma ~ cohort
+  ),
+  family = gaussian(),
+  data = dat
+)
+```
+
+Report that fallback as repeatability or grouped heterogeneity, not additive
+genetic variance. It ignores pedigree or `Ainv` structure until the
+animal-model likelihood, diagnostics, profile targets, and recovery tests are
+implemented.
+
 Use `relmat(1 | id, K = K)` or `relmat(1 | id, Q = Q)` only for future
 lower-level examples where the known dependence matrix is neither naturally a
 pedigree, a phylogeny, nor a coordinate-spatial surface.
@@ -286,6 +308,7 @@ These surfaces are roadmap items, not syntax to rely on in analyses yet:
 | phylogenetic slopes, predictor-dependent q=4 phylogenetic correlations, and richer phylogenetic covariance blocks | the first bivariate `mu1`/`mu2` phylogenetic location slice, the q=2 predictor-dependent location-location slice, and the first constant q=4 phylogenetic location-scale block are fitted |
 | richer spatial random effects | first univariate Gaussian coordinate-based `mu` intercept and one-slope paths implemented; mesh/SPDE, spatial scale, multiple slopes, slope correlations, bivariate spatial covariance, and spatial `corpair()` paths remain planned |
 | animal models and generic relatedness matrices | `animal()` and `relmat()` are documented markers only until pedigree or known-matrix likelihoods, diagnostics, profile targets, and recovery tests are implemented |
+| skew-normal residual asymmetry | `skew_normal()` with `nu ~ ...` is planned only; use Gaussian or fitted Student-t sensitivity checks until density, normal-limit, skew-recovery, and false-positive heteroscedasticity tests exist |
 | higher-dimensional multivariate models | belong in `gllvmTMB`, not `drmTMB` |
 
 When unsupported syntax fails, the right next step is usually to fit the

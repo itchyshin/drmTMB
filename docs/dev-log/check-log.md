@@ -2,6 +2,165 @@
 
 Record meaningful development checks here.
 
+## 2026-05-19 - Slices 333-342 Interval Evidence, Bootstrap Smoke, And Examples
+
+Goal: add an explicit interval-evidence contract for Phase 18 simulations,
+wire optional profile-likelihood and private parametric-bootstrap interval
+smoke evidence into Student-t shape and bivariate `rho12` surfaces, and add
+animal-model, Student-t, and skew-normal examples without claiming planned
+features as fitted.
+
+Team roles:
+
+- Ada integrated code, docs, tests, validation, and git state.
+- Curie/Galileo supplied the interval-evidence regression test.
+- Rose/Mencius reviewed stale status language and planned-versus-fitted claims.
+- Pat and Florence/Wegener shaped the reader-facing examples and figure/report
+  boundaries.
+- Grace owns the package-level checks before PR handoff.
+
+Files changed:
+
+- `docs/design/02-family-registry.md`
+- `docs/design/03-likelihoods.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `docs/design/43-phase-18-interval-producer-contract.md`
+- `docs/dev-log/after-task/2026-05-19-animal-student-skew-examples.md`
+- `docs/dev-log/after-task/2026-05-19-slices-333-342-interval-evidence-and-examples.md`
+- `docs/dev-log/check-log.md`
+- `inst/sim/README.md`
+- `inst/sim/R/sim_bootstrap.R`
+- `inst/sim/R/sim_uncertainty.R`
+- `inst/sim/fit/sim_summarise_biv_rho12.R`
+- `inst/sim/fit/sim_summarise_student_shape.R`
+- `inst/sim/run/sim_run_biv_rho12_smoke.R`
+- `inst/sim/run/sim_run_student_shape_smoke.R`
+- `inst/sim/run/sim_summary_biv_rho12_smoke.R`
+- `inst/sim/run/sim_summary_student_shape_smoke.R`
+- `inst/sim/run/sim_write_biv_rho12_grid.R`
+- `inst/sim/run/sim_write_student_shape_grid.R`
+- `tests/testthat/test-phase18-biv-rho12-*.R`
+- `tests/testthat/test-phase18-sim-interval-evidence.R`
+- `tests/testthat/test-phase18-student-shape-*.R`
+- `vignettes/model-map.Rmd`
+- `vignettes/phylogenetic-spatial.Rmd`
+- `vignettes/robust-student.Rmd`
+
+What changed:
+
+- Made `phase18_summarise_interval_coverage()` status-aware: when
+  `interval_status` exists, only `ok` rows count in `n_interval`; failed,
+  planned, and unavailable rows remain in `n_replicate`.
+- Added shared profile interval columns, optional interval extraction, combined
+  interval-evidence binding, and status-aware optional interval coverage.
+- Added private parametric-bootstrap interval columns on top of the existing
+  Phase 18 bootstrap refit harness.
+- Wired optional profile and bootstrap interval smoke evidence into Student-t
+  `mu`/`sigma`/`nu` and bivariate `mu1`/`mu2`/`sigma1`/`sigma2`/`rho12`
+  surfaces.
+- Extended Student-t and bivariate `rho12` grid writers with profile,
+  bootstrap, combined interval-evidence, and interval-failure CSVs.
+- Added a planned `animal()` example with a runnable ordinary `(1 | individual)`
+  fallback, a fitted Student-t route pointer, and planned-only `skew_normal()`
+  guidance.
+
+Checks run:
+
+- `Rscript -e "testthat::test_file('tests/testthat/test-phase18-sim-interval-evidence.R')"`:
+  passed with 19 expectations.
+- `Rscript -e "devtools::load_all(quiet=TRUE); testthat::test_file('tests/testthat/test-phase18-student-shape-summary-smoke.R')"`:
+  passed with 20 expectations.
+- `Rscript -e "devtools::load_all(quiet=TRUE); testthat::test_file('tests/testthat/test-phase18-biv-rho12-summary-smoke.R')"`:
+  passed with 19 expectations.
+- `Rscript -e "devtools::test(filter = 'phase18-(sim-(interval-evidence|uncertainty|bootstrap)|student-shape|biv-rho12)')"`:
+  passed with 197 expectations.
+- `Rscript -e "devtools::test()"`: passed with 5,177 expectations, 0 failures,
+  0 warnings, and 0 skips.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with no problems found.
+- `git diff --check`: passed.
+- `phase18_write_student_shape_grid_outputs(... profile_parameters = c("nu:(Intercept)", "nu:w"), bootstrap_nsim = 2L ...)`
+  wrote `inst/sim/results/slice-340-student-shape-interval-small-grid/`
+  with 6 replicate rows, 2 profile rows, 6 bootstrap rows, and 14 interval
+  evidence rows. The `nu:(Intercept)` profile row was `ok`, `nu:w` was retained
+  as a failed profile row, and all bootstrap rows were `ok`.
+- `phase18_write_biv_rho12_grid_outputs(... profile_parameters = "rho12:w", bootstrap_nsim = 2L ...)`
+  wrote `inst/sim/results/slice-338-biv-rho12-interval-small-grid/` with 10
+  replicate rows, 1 profile row, 10 bootstrap rows, and 21 interval evidence
+  rows. The `rho12:w` profile row and all bootstrap rows were `ok`.
+
+Known limitations:
+
+- These profile and bootstrap rows are smoke/artifact-path evidence, not formal
+  coverage evidence. Larger replicate grids still need to separate coverage,
+  method-failure rates, and MCSE.
+- Student-t `nu:w` profile likelihood can fail even in a successful fit; that
+  failure is now visible in `interval_failures` rather than hidden.
+- `animal()`, `relmat()`, `skew_normal()`, skew-t, shape random effects, and
+  latent skewness remain planned or failure-ledger only.
+
+After-task reports:
+
+- `docs/dev-log/after-task/2026-05-19-animal-student-skew-examples.md`
+- `docs/dev-log/after-task/2026-05-19-slices-333-342-interval-evidence-and-examples.md`
+
+## 2026-05-19 - Animal, Student-t, and skew-normal examples
+
+Goal: sharpen reader-facing examples for animal-model syntax, fitted
+Student-t location-scale-shape regression, and planned skew-normal residual
+asymmetry without changing model-fitting code or claiming planned surfaces as
+available.
+
+Files changed:
+
+- `docs/design/02-family-registry.md`
+- `docs/design/03-likelihoods.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-19-animal-student-skew-examples.md`
+- `vignettes/model-map.Rmd`
+- `vignettes/phylogenetic-spatial.Rmd`
+- `vignettes/robust-student.Rmd`
+
+What changed:
+
+- Added a planned `animal()` animal-model example plus a runnable ordinary
+  `(1 | individual)` Gaussian sensitivity fallback in the structural-dependence
+  article.
+- Pointed the model map to the fitted Student-t robust-response tutorial and
+  sharpened the Student-t `nu` interpretation.
+- Added planned-only `skew_normal()` syntax with explicit "not fitted yet"
+  boundaries and Gaussian/Student-t fallback guidance.
+- Defined location, scale, shape, and coscale in the touched user-facing docs,
+  with coscale tied to residual correlation such as `rho12`.
+
+Checks run:
+
+- `PATH=/usr/local/bin:/opt/homebrew/bin:$PATH air format vignettes/phylogenetic-spatial.Rmd vignettes/model-map.Rmd vignettes/robust-student.Rmd docs/design/02-family-registry.md docs/design/03-likelihoods.md`:
+  passed.
+- `Rscript -e 'pkgload::load_all(".", quiet = TRUE); rmarkdown::render("vignettes/robust-student.Rmd", output_dir = tempfile("robust-student-render-"), quiet = FALSE)'`:
+  passed and rendered the fitted Student-t example.
+- `Rscript -e 'pkgload::load_all(".", quiet = TRUE); rmarkdown::render("vignettes/model-map.Rmd", output_dir = tempfile("model-map-render-"), quiet = FALSE)'`:
+  passed and rendered the status map.
+- `Rscript -e 'pkgload::load_all(".", quiet = TRUE); rmarkdown::render("vignettes/phylogenetic-spatial.Rmd", output_dir = tempfile("phylo-spatial-render-"), quiet = FALSE)'`:
+  passed and rendered the new animal-model fallback chunk.
+- `rg -n "skew_normal\\(\\)|skew-normal|animal\\(|student\\(|coscale|rho12|not fitted yet|planned only|fitted fallback" vignettes/phylogenetic-spatial.Rmd vignettes/model-map.Rmd vignettes/robust-student.Rmd docs/design/02-family-registry.md docs/design/03-likelihoods.md`:
+  confirmed planned/fitted language appears in the touched docs.
+- `git diff --check -- vignettes/phylogenetic-spatial.Rmd vignettes/model-map.Rmd vignettes/robust-student.Rmd docs/design/02-family-registry.md docs/design/03-likelihoods.md`:
+  passed.
+- `git diff -U0 -- vignettes/phylogenetic-spatial.Rmd vignettes/model-map.Rmd vignettes/robust-student.Rmd docs/design/02-family-registry.md docs/design/03-likelihoods.md | LC_ALL=C rg -n '^\\+.*[^\\x00-\\x7F]' || true`:
+  returned no added non-ASCII text.
+
+Known limitations:
+
+- This is documentation and example work only. It does not add fitted
+  `animal()` or `skew_normal()` likelihoods, diagnostics, profile targets, or
+  recovery tests.
+- No roxygen examples were changed because no exported function or reference
+  page changed in this slice.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-19-animal-student-skew-examples.md`.
+
 ## 2026-05-16 - Slice 102 empirical prediction-grid example
 
 Goal: add the first reader-facing empirical-grid workflow so the model-workflow

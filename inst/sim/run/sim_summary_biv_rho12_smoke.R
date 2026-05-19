@@ -10,14 +10,24 @@ phase18_summarise_biv_rho12_smoke <- function(
   master_seed = 20260523L,
   result_dir = NULL,
   overwrite = FALSE,
-  by = NULL
+  by = NULL,
+  profile_parameters = character(),
+  profile_level = 0.70,
+  profile_args = list(ystep = 0.50),
+  bootstrap_nsim = 0L,
+  bootstrap_level = 0.70
 ) {
   run <- phase18_run_biv_rho12_smoke(
     conditions = conditions,
     n_rep = n_rep,
     master_seed = master_seed,
     result_dir = result_dir,
-    overwrite = overwrite
+    overwrite = overwrite,
+    profile_parameters = profile_parameters,
+    profile_level = profile_level,
+    profile_args = profile_args,
+    bootstrap_nsim = bootstrap_nsim,
+    bootstrap_level = bootstrap_level
   )
   if (nrow(run$summary) == 0L) {
     stop(
@@ -47,6 +57,34 @@ phase18_summarise_biv_rho12_smoke <- function(
     wald_intervals,
     by = by
   )
+  profile_intervals <- phase18_optional_intervals_from_columns(
+    run$summary,
+    prefix = "profile",
+    parameters = profile_parameters
+  )
+  profile_coverage <- phase18_optional_interval_coverage(
+    profile_intervals,
+    by = by
+  )
+  bootstrap_intervals <- if (bootstrap_nsim > 0L) {
+    phase18_optional_intervals_from_columns(
+      run$summary,
+      prefix = "bootstrap",
+      parameters = unique(run$summary$parameter)
+    )
+  } else {
+    data.frame()
+  }
+  bootstrap_coverage <- phase18_optional_interval_coverage(
+    bootstrap_intervals,
+    by = by
+  )
+  interval_evidence <- phase18_interval_evidence_table(
+    wald_intervals,
+    profile_intervals,
+    bootstrap_intervals
+  )
+  interval_failures <- phase18_interval_failures(interval_evidence)
 
   list(
     surface = "biv_rho12",
@@ -56,6 +94,12 @@ phase18_summarise_biv_rho12_smoke <- function(
     manifest = manifest,
     failures = failures,
     wald_intervals = wald_intervals,
-    wald_coverage = wald_coverage
+    wald_coverage = wald_coverage,
+    profile_intervals = profile_intervals,
+    profile_coverage = profile_coverage,
+    bootstrap_intervals = bootstrap_intervals,
+    bootstrap_coverage = bootstrap_coverage,
+    interval_evidence = interval_evidence,
+    interval_failures = interval_failures
   )
 }

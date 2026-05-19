@@ -174,6 +174,79 @@ phase18_bootstrap_percentile_intervals <- function(
   out
 }
 
+phase18_bootstrap_interval_columns <- function(
+  summary,
+  fit,
+  statistic_fun,
+  refit_fun,
+  nsim = 0L,
+  conf.level = 0.70,
+  seed = NULL,
+  interval_scale = "formula_coefficient"
+) {
+  phase18_assert_summary_columns(summary, c("parameter"))
+  if (
+    !is.numeric(nsim) ||
+      length(nsim) != 1L ||
+      is.na(nsim) ||
+      nsim < 0 ||
+      nsim != as.integer(nsim)
+  ) {
+    stop("`nsim` must be a non-negative whole number.", call. = FALSE)
+  }
+  if (
+    !is.numeric(conf.level) ||
+      length(conf.level) != 1L ||
+      !is.finite(conf.level) ||
+      conf.level <= 0 ||
+      conf.level >= 1
+  ) {
+    stop("`conf.level` must be one number between 0 and 1.", call. = FALSE)
+  }
+  if (
+    !is.character(interval_scale) ||
+      length(interval_scale) != 1L ||
+      !nzchar(interval_scale)
+  ) {
+    stop("`interval_scale` must be one non-empty string.", call. = FALSE)
+  }
+
+  out <- phase18_initialise_interval_columns(
+    summary,
+    prefix = "bootstrap",
+    conf.level = conf.level,
+    method = "parametric_bootstrap",
+    interval_scale = interval_scale,
+    default_status = "not_requested"
+  )
+  out$bootstrap.n <- 0L
+  if (identical(as.integer(nsim), 0L)) {
+    return(out)
+  }
+  out$bootstrap.status <- "failed"
+  out$bootstrap.message <- "no finite bootstrap estimates"
+
+  draws <- phase18_parametric_bootstrap(
+    fit = fit,
+    statistic_fun = statistic_fun,
+    refit_fun = refit_fun,
+    nsim = as.integer(nsim),
+    seed = seed
+  )
+  intervals <- phase18_bootstrap_percentile_intervals(
+    draws,
+    conf.level = conf.level
+  )
+  matched <- match(out$parameter, intervals$parameter)
+  ok <- !is.na(matched)
+  out$bootstrap.conf.low[ok] <- intervals$conf.low[matched[ok]]
+  out$bootstrap.conf.high[ok] <- intervals$conf.high[matched[ok]]
+  out$bootstrap.status[ok] <- intervals$interval_status[matched[ok]]
+  out$bootstrap.message[ok] <- intervals$interval_message[matched[ok]]
+  out$bootstrap.n[ok] <- intervals$n_bootstrap[matched[ok]]
+  out
+}
+
 phase18_empty_bootstrap_intervals <- function(parameter) {
   data.frame(
     parameter = character(),

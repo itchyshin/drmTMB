@@ -181,14 +181,18 @@ phase18_summarise_interval_coverage <- function(
     lower_value <- as.numeric(x[[lower]])
     upper_value <- as.numeric(x[[upper]])
     truth <- as.numeric(x$truth)
-    finite_interval <- is.finite(lower_value) & is.finite(upper_value)
-    covered <- finite_interval & lower_value <= truth & truth <= upper_value
-    width <- upper_value[finite_interval] - lower_value[finite_interval]
+    usable_interval <- is.finite(lower_value) & is.finite(upper_value)
+    if ("interval_status" %in% names(x)) {
+      usable_interval <- usable_interval &
+        as.character(x$interval_status) == "ok"
+    }
+    covered <- usable_interval & lower_value <= truth & truth <= upper_value
+    width <- upper_value[usable_interval] - lower_value[usable_interval]
 
     data.frame(
       x[1L, by, drop = FALSE],
       n_replicate = nrow(x),
-      n_interval = sum(finite_interval),
+      n_interval = sum(usable_interval),
       coverage = mean(covered),
       coverage_mcse = phase18_mcse_proportion(covered),
       mean_interval_width = if (length(width) == 0L) NA_real_ else mean(width),
@@ -265,6 +269,220 @@ phase18_interval_failures <- function(
   }
   row.names(out) <- NULL
   out
+}
+
+phase18_profile_interval_columns <- function(
+  summary,
+  fit,
+  parameters,
+  conf.level = 0.70,
+  interval_scale = "formula_coefficient",
+  trace = FALSE,
+  profile_args = list(ystep = 0.50)
+) {
+  phase18_assert_summary_columns(summary, c("parameter"))
+  if (!inherits(fit, "drmTMB")) {
+    stop("`fit` must be a drmTMB object.", call. = FALSE)
+  }
+  if (
+    !is.character(parameters) ||
+      length(parameters) == 0L ||
+      any(!nzchar(parameters))
+  ) {
+    stop("`parameters` must be a non-empty character vector.", call. = FALSE)
+  }
+  if (
+    !is.numeric(conf.level) ||
+      length(conf.level) != 1L ||
+      !is.finite(conf.level) ||
+      conf.level <= 0 ||
+      conf.level >= 1
+  ) {
+    stop("`conf.level` must be one number between 0 and 1.", call. = FALSE)
+  }
+  if (
+    !is.character(interval_scale) ||
+      length(interval_scale) != 1L ||
+      !nzchar(interval_scale)
+  ) {
+    stop("`interval_scale` must be one non-empty string.", call. = FALSE)
+  }
+  if (!is.list(profile_args)) {
+    stop("`profile_args` must be a list.", call. = FALSE)
+  }
+
+  out <- phase18_initialise_interval_columns(
+    summary,
+    prefix = "profile",
+    conf.level = conf.level,
+    method = "profile",
+    interval_scale = interval_scale,
+    default_status = "not_requested"
+  )
+  rows <- which(out$parameter %in% parameters)
+  for (row in rows) {
+    ci <- tryCatch(
+      do.call(
+        stats::confint,
+        c(
+          list(
+            object = fit,
+            parm = out$parameter[[row]],
+            method = "profile",
+            level = conf.level,
+            trace = trace
+          ),
+          profile_args
+        )
+      ),
+      error = function(e) e
+    )
+    out$profile.status[[row]] <- "failed"
+    out$profile.message[[row]] <- ""
+    if (inherits(ci, "error")) {
+      out$profile.message[[row]] <- conditionMessage(ci)
+      next
+    }
+    if (!all(c("lower", "upper") %in% names(ci)) || nrow(ci) == 0L) {
+      out$profile.message[[row]] <- "profile interval lacks lower/upper columns"
+      next
+    }
+    out$profile.conf.low[[row]] <- ci$lower[[1L]]
+    out$profile.conf.high[[row]] <- ci$upper[[1L]]
+    out$profile.status[[row]] <- ifelse(
+      is.finite(ci$lower[[1L]]) & is.finite(ci$upper[[1L]]),
+      "ok",
+      "failed"
+    )
+    out$profile.message[[row]] <- if ("profile.message" %in% names(ci)) {
+      ci$profile.message[[1L]]
+    } else {
+      ""
+    }
+  }
+  out
+}
+
+phase18_initialise_interval_columns <- function(
+  summary,
+  prefix,
+  conf.level,
+  method,
+  interval_scale,
+  default_status
+) {
+  out <- summary
+  out[[paste0(prefix, ".conf.low")]] <- NA_real_
+  out[[paste0(prefix, ".conf.high")]] <- NA_real_
+  out[[paste0(prefix, ".conf.level")]] <- conf.level
+  out[[paste0(prefix, ".method")]] <- method
+  out[[paste0(prefix, ".interval_scale")]] <- interval_scale
+  out[[paste0(prefix, ".status")]] <- default_status
+  out[[paste0(prefix, ".message")]] <- ""
+  out
+}
+
+phase18_intervals_from_columns <- function(
+  summary,
+  prefix,
+  interval_scale = NULL,
+  parameters = NULL
+) {
+  lower <- paste0(prefix, ".conf.low")
+  upper <- paste0(prefix, ".conf.high")
+  level <- paste0(prefix, ".conf.level")
+  method <- paste0(prefix, ".method")
+  scale <- paste0(prefix, ".interval_scale")
+  status <- paste0(prefix, ".status")
+  message <- paste0(prefix, ".message")
+  phase18_assert_summary_columns(
+    summary,
+    c("parameter", lower, upper, level, method, scale, status, message)
+  )
+  out <- summary
+  if (!is.null(parameters)) {
+    if (
+      !is.character(parameters) ||
+        length(parameters) == 0L ||
+        any(!nzchar(parameters))
+    ) {
+      stop("`parameters` must be a non-empty character vector.", call. = FALSE)
+    }
+    out <- out[out$parameter %in% parameters, , drop = FALSE]
+  }
+  if (!is.null(interval_scale)) {
+    if (
+      !is.character(interval_scale) ||
+        length(interval_scale) != 1L ||
+        !nzchar(interval_scale)
+    ) {
+      stop("`interval_scale` must be one non-empty string.", call. = FALSE)
+    }
+    out[[scale]] <- interval_scale
+  }
+  out$conf.low <- out[[lower]]
+  out$conf.high <- out[[upper]]
+  out$conf.level <- out[[level]]
+  out$interval_method <- out[[method]]
+  out$interval_scale <- out[[scale]]
+  if (identical(prefix, "bootstrap") && "bootstrap.n" %in% names(out)) {
+    out$n_bootstrap <- out$bootstrap.n
+  }
+  out$interval_status <- ifelse(
+    is.finite(out$conf.low) &
+      is.finite(out$conf.high) &
+      out[[status]] %in% c("ok", "profile", "wald"),
+    "ok",
+    ifelse(out[[status]] == "not_requested", "not_requested", "failed")
+  )
+  out$interval_message <- out[[message]]
+  row.names(out) <- NULL
+  out
+}
+
+phase18_interval_evidence_table <- function(...) {
+  pieces <- list(...)
+  pieces <- Filter(function(x) is.data.frame(x) && nrow(x) > 0L, pieces)
+  if (length(pieces) == 0L) {
+    return(data.frame())
+  }
+  all_names <- unique(unlist(lapply(pieces, names), use.names = FALSE))
+  aligned <- lapply(pieces, function(x) {
+    missing <- setdiff(all_names, names(x))
+    for (name in missing) {
+      x[[name]] <- NA
+    }
+    x[all_names]
+  })
+  out <- do.call(rbind, aligned)
+  out$artifact_grain <- "interval_evidence"
+  row.names(out) <- NULL
+  out
+}
+
+phase18_optional_intervals_from_columns <- function(
+  summary,
+  prefix,
+  parameters = NULL
+) {
+  if (!paste0(prefix, ".conf.low") %in% names(summary)) {
+    return(data.frame())
+  }
+  if (!is.null(parameters) && length(parameters) == 0L) {
+    return(data.frame())
+  }
+  phase18_intervals_from_columns(
+    summary,
+    prefix = prefix,
+    parameters = parameters
+  )
+}
+
+phase18_optional_interval_coverage <- function(intervals, by) {
+  if (!is.data.frame(intervals) || nrow(intervals) == 0L) {
+    return(data.frame())
+  }
+  phase18_summarise_interval_coverage(intervals, by = by)
 }
 
 phase18_empty_interval_failures <- function(intervals) {

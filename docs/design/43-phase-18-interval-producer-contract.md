@@ -1,10 +1,11 @@
 # Phase 18 Interval Producer Contract
 
-Phase 18 coverage tables should consume interval columns from fitting-specific
+Phase 18 coverage tables should consume interval rows from fitting-specific
 producers rather than guessing how an interval was made. The common consumer is
-`phase18_summarise_interval_coverage()`: it only needs `truth`, `conf.low`, and
-`conf.high`, but the rows that feed it should carry enough metadata for a reader
-to understand the interval.
+`phase18_summarise_interval_coverage()`: it needs `truth`, `conf.low`, and
+`conf.high`, and it uses `interval_status = "ok"` when that status column is
+present. Failed, planned, or unavailable rows therefore stay in the evidence
+table and still count in `n_replicate`, but they do not count in `n_interval`.
 
 ## Required Columns
 
@@ -95,3 +96,23 @@ correlation targets. Simulation producers may use Fisher-z back-transformed
 Wald intervals with either raw-correlation standard errors or Fisher-z-scale
 standard errors, and the returned table must record
 `interval_scale = "fisher_z_backtransformed"` and `std.error.scale`.
+
+`phase18_profile_interval_columns()` is the shared profile-smoke adapter. It
+keeps profile endpoints beside the replicate summary as `profile.conf.low`,
+`profile.conf.high`, `profile.status`, and `profile.message` so a later
+artifact writer can choose the requested parameters without dropping the rest
+of the replicate table.
+
+`phase18_bootstrap_interval_columns()` is the matching private parametric-
+bootstrap adapter. It uses `phase18_parametric_bootstrap()` and percentile
+intervals from `R/sim_bootstrap.R`, writes `bootstrap.*` columns back onto the
+replicate summary, and leaves unrequested rows as `not_requested`. If bootstrap
+is requested but no finite estimates are available for a parameter, the row is
+marked as `failed`.
+
+`phase18_intervals_from_columns()` converts profile or bootstrap column sets
+into the standard interval-row contract. `phase18_interval_evidence_table()`
+then binds Wald, profile, and bootstrap rows into one artifact with
+`artifact_grain = "interval_evidence"`. `phase18_interval_failures()` should be
+run on that combined artifact so planned, failed, and unavailable intervals are
+visible before coverage summaries are interpreted.

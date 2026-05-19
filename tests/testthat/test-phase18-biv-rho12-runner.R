@@ -13,6 +13,22 @@ source_phase18_biv_rho12 <- function(env = parent.frame()) {
   )
   source(
     system.file(
+      "sim/R/sim_uncertainty.R",
+      package = "drmTMB",
+      mustWork = TRUE
+    ),
+    local = env
+  )
+  source(
+    system.file(
+      "sim/R/sim_bootstrap.R",
+      package = "drmTMB",
+      mustWork = TRUE
+    ),
+    local = env
+  )
+  source(
+    system.file(
       "sim/dgp/sim_dgp_biv_rho12.R",
       package = "drmTMB",
       mustWork = TRUE
