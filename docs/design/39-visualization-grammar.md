@@ -584,6 +584,16 @@ profiled correlation-pair row says `conf.status = "profile"` and
 drawable intervals only when those provenance columns name a real interval
 source, matching the rule already used by `plot_parameter_surface()`.
 
+Slice 299 reopens the gallery for visual repair after reader-facing QA. The
+confidence-distribution panel now uses a compact confidence cloud with the
+no-effect line, estimate, and central 66% and 95% intervals visible in the same
+facet. The simulation bias display uses raincloud-style replicate estimates
+plus mean/MCSE intervals because `beta_x`, `sigma`, `sd_intercept`, and `rho12`
+are categorical estimands, not an ordered trajectory. Gallery recipes also
+share palettes more consistently, recolour discrete and empirical summaries
+that had fallen back to default black, and improve support-strip label contrast
+so colour carries status without making the text harder to read.
+
 | Display pattern | Current decision | Export only after |
 | --- | --- | --- |
 | Raw data plus fitted `mu` lines and confidence bands | Tutorial recipe | A repeated need for one grammar across multiple articles and a stable raw-data overlay policy |
