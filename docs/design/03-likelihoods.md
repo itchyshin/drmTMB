@@ -563,10 +563,33 @@ drmTMB(
 The first implementation should be fixed-effect and univariate. It should
 start with intercept-only or simple fixed-effect `nu` formulas, reject random
 effects in `sigma` or `nu`, and reject bivariate, `rho12`,
-`meta_known_V(V = V)`, `phylo()`, and `spatial()` paths until separate
-recovery, normal-limit, false-positive heteroscedasticity, and comparator
-tests exist. Treat this section as an implementation gate for issue #3, not as
-evidence that `skew_normal()` is available.
+`meta_V(V = V)`/`meta_known_V(V = V)`, `phylo()`, and `spatial()` paths until
+separate recovery, normal-limit, false-positive heteroscedasticity, and
+comparator tests exist. Treat this section as an implementation gate for issue
+#3, not as evidence that `skew_normal()` is available.
+
+## Planned Skew-T Shape Gate
+
+The future skew-t path should come after the skew-normal gate because it has
+two shape dimensions that can trade off: residual asymmetry and tail weight.
+`tau` is reserved for a second shape parameter but is not current formula
+syntax. Before implementation, choose one skew-t density, name its native
+parameters, and decide whether `nu` controls asymmetry and `tau` controls tail
+thickness:
+
+```r
+drmTMB(
+  bf(y ~ x1, sigma ~ x2, nu ~ x3, tau ~ x4),
+  family = skew_t(),
+  data = dat
+)
+```
+
+This example is planned syntax only. A fitted skew-t route needs density
+comparators, skew-normal or Student-t limit checks, recovery for `sigma ~ x`,
+`nu ~ x`, and `tau ~ x`, and false-positive checks showing that skewness,
+tail thickness, heteroscedasticity, outliers, and ordinary random effects are
+not being conflated.
 
 ## Implemented Lognormal Location-Scale
 

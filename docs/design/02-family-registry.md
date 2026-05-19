@@ -107,6 +107,17 @@ Human-readable aliases such as `skew` or `df` can be considered later, but the
 canonical internal and documented names should stay consistent unless there is a
 strong reason not to.
 
+## Slice 286 Continuous Shape Boundary
+
+Continuous shape work has one fitted path and several planned neighbours:
+
+| Surface | Fitted state | Boundary before simulation |
+| --- | --- | --- |
+| Student-t `nu ~ ...` | Implemented for fixed-effect univariate `student()` models as `nu = 2 + exp(eta_nu)`. | Keep `nu` random effects, known sampling covariance, phylogenetic, spatial, and bivariate Student-t paths out of simulation grids until each has likelihood, extractor, diagnostic, interval, and recovery evidence. |
+| Skew-normal `nu ~ ...` | Planned fixed-effect residual-asymmetry family. | First add density and comparator checks, positive and negative skew recovery, the `nu = 0` normal-limit check, and false-positive heteroscedasticity checks. |
+| Skew-t `nu ~ ...`, future `tau ~ ...` | Planned after the skew-normal gate. | Choose and document which parameter controls asymmetry and which controls tails before adding syntax, examples, or simulations. |
+| Future `skew(id) ~ ...` | Design-only latent-effect skewness grammar. | Do not treat this as an alias for residual `nu ~ ...`; require simulations separating residual skewness, heteroscedasticity, ordinary random effects, and latent-effect skewness. |
+
 There are two planned skewness levels, and they should not be mixed in one
 implementation slice. Residual or observation-level skewness belongs to a
 family shape formula such as `nu ~ x`, where the conditional residual

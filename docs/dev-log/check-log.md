@@ -27223,3 +27223,58 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-18-slice-285-proportion-hardening.md`.
+
+## 2026-05-18 - Slice 286 continuous-shape design
+
+Goal: document the continuous-shape and skewness boundary before admitting
+shape, skewness, or tail surfaces into broader simulation work.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/02-family-registry.md`
+- `docs/design/03-likelihoods.md`
+- `docs/design/46-pre-simulation-readiness-matrix.md`
+- `docs/dev-log/after-task/2026-05-18-slice-286-continuous-shape-design.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-18-213841-codex-checkpoint.md`
+- `vignettes/formula-grammar.Rmd`
+- `vignettes/robust-student.Rmd`
+
+What changed:
+
+- Added a Slice 286 shape-boundary table that separates fitted fixed-effect
+  Student-t `nu`, planned fixed-effect skew-normal `nu`, planned skew-t
+  `nu`/future `tau`, and design-only latent-effect `skew(id) ~ ...`.
+- Added a planned skew-t gate to the likelihood notes, including the evidence
+  needed before any syntax, examples, or simulations claim a fitted skew-t
+  route.
+- Updated the robust Student-t and formula-grammar tutorials so applied users
+  do not treat future `skew(id) ~ ...` latent-effect syntax as an alias for
+  residual `nu ~ ...`.
+- Updated NEWS, ROADMAP, and the pre-simulation readiness matrix with the same
+  fixed-effect-first boundary.
+
+Checks run:
+
+```sh
+air format NEWS.md ROADMAP.md docs/design/02-family-registry.md docs/design/03-likelihoods.md docs/design/46-pre-simulation-readiness-matrix.md vignettes/robust-student.Rmd vignettes/formula-grammar.Rmd
+Rscript -e "devtools::test(filter = 'student-location-scale|nongaussian-scale-boundary', reporter = 'summary')"
+Rscript -e 'devtools::load_all(quiet = TRUE); rmarkdown::render("vignettes/robust-student.Rmd", output_dir = tempfile("robust-student-render-"), quiet = FALSE); rmarkdown::render("vignettes/formula-grammar.Rmd", output_dir = tempfile("formula-grammar-render-"), quiet = FALSE)'
+rg -n 'skew_t\(\)|skew_normal\(\)|tau ~|skew\(id\)|Shape and skewness|Slice 286|Student-t `nu`|future `tau`' NEWS.md ROADMAP.md docs/design/02-family-registry.md docs/design/03-likelihoods.md docs/design/46-pre-simulation-readiness-matrix.md vignettes/robust-student.Rmd vignettes/formula-grammar.Rmd
+Rscript -e "pkgdown::check_pkgdown()"
+git diff --check
+Rscript tools/codex-checkpoint.R --goal "Slice 286 continuous-shape design" --next "stage, commit, push, and open draft PR"
+```
+
+Known limitations:
+
+- No skew-normal, skew-t, shape-random-effect, phylogenetic shape, spatial
+  shape, bivariate shape, or latent-effect skewness likelihood was added.
+- No new profile target, extractor, diagnostic row, or simulation runner was
+  added.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-286-continuous-shape-design.md`.

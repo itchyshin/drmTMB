@@ -115,6 +115,11 @@ drm_formula(y ~ x, sigma ~ z, nu ~ x)
 Student-t random effects, known sampling covariance, phylogenetic terms, and
 bivariate Student-t models are later phases.
 
+Future skew-normal and skew-t formulas should also start with fixed-effect
+residual-shape terms such as `nu ~ x`. A later latent-effect spelling such as
+`skew(id) ~ x_group` would ask a different question about the distribution of
+group effects and should not be taught as an alias for residual `nu`.
+
 Current implemented lognormal form:
 
 ```r

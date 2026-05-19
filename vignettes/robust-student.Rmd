@@ -190,4 +190,6 @@ drmTMB(
 Random effects, known sampling covariance, phylogenetic terms, spatial terms,
 and bivariate Student-t models are later phases. Start with this fixed-effect
 path when you need a robust continuous comparison to a Gaussian
-location-scale model.
+location-scale model. Future skew-normal and skew-t families should start as
+fixed-effect residual-shape models; ID-level skewness such as `skew(id) ~ x`
+is a different latent-effect question, not an alias for Student-t `nu`.
