@@ -27857,3 +27857,54 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-18-slice-297-ordinal-fixed-effect-ademp.md`.
+
+## 2026-05-18 - Slice 298 bivariate residual rho12 ADEMP sheet
+
+Goal: create a one-page ADEMP design sheet for the bivariate Gaussian residual
+`rho12` Phase 18 lane before adding a residual-correlation DGP helper or formal
+grid.
+
+Files changed:
+
+- `docs/design/52-phase-18-bivariate-rho12-ademp.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `inst/sim/README.md`
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/dev-log/after-task/2026-05-18-slice-298-bivariate-rho12-ademp.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-18-230811-codex-checkpoint.md`
+
+What changed:
+
+- Added a bivariate residual `rho12` ADEMP sheet with aims, bivariate Gaussian
+  residual-correlation DGPs, response-specific mean and scale estimands,
+  response-scale `rho12` and covariance grids, boundary diagnostics,
+  performance measures, MCSE target, and Williams-style self-audit.
+- Linked the sheet from the Phase 18 simulation programme and the `inst/sim/`
+  README.
+- NEWS and ROADMAP record Slice 298 as the bivariate residual `rho12` ADEMP
+  sheet.
+
+Checks run:
+
+```sh
+air format docs/design/52-phase-18-bivariate-rho12-ademp.md docs/design/41-phase-18-simulation-programme.md inst/sim/README.md NEWS.md ROADMAP.md
+sed -n '1,300p' docs/design/52-phase-18-bivariate-rho12-ademp.md
+rg -n 'Bivariate Residual Rho12 ADEMP|biv_gaussian\(\)|rho12|residual covariance|0\.99999999|sigma1|sigma2|corpairs\(\)|known sampling covariance|random effects in `rho12`|500 replicates|Williams|Morris|Slice 298' docs/design/52-phase-18-bivariate-rho12-ademp.md docs/design/41-phase-18-simulation-programme.md inst/sim/README.md NEWS.md ROADMAP.md
+rg -n 'group-level|structured correlations|known sampling covariance|random effects in `rho12`|mixed-response|bivariate random slopes|failure ledger|profile coverage|rho12_boundary|new DGP helper' docs/design/52-phase-18-bivariate-rho12-ademp.md
+git diff --check
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript tools/codex-checkpoint.R --goal "Slice 298 bivariate rho12 ADEMP sheet" --next "stage, commit, push, and open draft PR"
+```
+
+Known limitations:
+
+- No simulation code, DGP helper, runner, result table, executable test,
+  likelihood, formula grammar, extractor, or interval method changed.
+- The sheet is a design contract; formal bivariate residual-correlation
+  operating-characteristic evidence still needs an explicit DGP helper and a
+  separate implementation slice.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-298-bivariate-rho12-ademp.md`.

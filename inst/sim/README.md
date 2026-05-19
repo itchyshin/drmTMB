@@ -36,6 +36,8 @@ Current pilot files:
   ADEMP sheet for the fixed-effect `beta()` and `beta_binomial()` lane.
 - `docs/design/51-phase-18-ordinal-fixed-effect-ademp.md` is the one-page
   ADEMP sheet for the fixed-effect `cumulative_logit()` ordinal lane.
+- `docs/design/52-phase-18-bivariate-rho12-ademp.md` is the one-page ADEMP
+  sheet for the bivariate Gaussian residual `rho12` lane.
 - `dgp/sim_dgp_gaussian_ls.R` generates Gaussian location-scale data with
   `mu ~ x` and `sigma ~ z`.
 - `dgp/sim_dgp_gaussian_mu_random_slope.R` generates Gaussian `mu` data with
