@@ -118,7 +118,9 @@ Use these status labels:
   `tests/testthat/test-beta-location-scale.R`, and
   `tests/testthat/test-beta-binomial.R`; Slice 271 confirms both
   random-intercept and random-slope bar requests stay blocked for the relevant
-  count, hurdle, and planned bounded-response parameters.
+  count, hurdle, and planned bounded-response parameters. Slice 285 adds
+  fixed-effect Wald interval row checks for fitted beta and beta-binomial
+  `mu` and `sigma` coefficients, without opening `zoi` or `coi` likelihoods.
 - Diagnostics and intervals: no inflation, hurdle, or one-inflation
   random-effect diagnostics or intervals exist because no corresponding
   likelihood is fitted yet.

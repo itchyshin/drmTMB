@@ -27164,3 +27164,62 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-18-slice-284-count-model-hardening.md`.
+
+## 2026-05-18 - Slice 285 proportion hardening
+
+Goal: add explicit fixed-effect interval evidence for fitted beta and
+beta-binomial proportion paths and keep the tutorial boundary honest about
+planned zero-one-inflation and random-effect routes.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/02-family-registry.md`
+- `docs/design/34-validation-debt-register.md`
+- `docs/dev-log/after-task/2026-05-18-slice-285-proportion-hardening.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-18-213216-codex-checkpoint.md`
+- `tests/testthat/test-beta-location-scale.R`
+- `tests/testthat/test-beta-binomial.R`
+- `vignettes/proportion-beta-binomial.Rmd`
+
+What changed:
+
+- Added `confint()` assertions to the fitted beta and beta-binomial tests so
+  `mu` and `sigma` fixed-effect rows must appear with `beta_mu`,
+  `beta_sigma`, and Wald status.
+- Updated the proportion tutorial boundary to state that fixed-effect
+  `beta()` and `beta_binomial()` are fitted, while fixed-effect `zoi`/`coi`,
+  zero-one-inflation, random effects, structured bounded responses,
+  mixed-response bounded models, and bounded-response `meta_V(V = V)` remain
+  planned or blocked.
+- Updated the family registry, validation-debt register, roadmap, and NEWS with
+  the same evidence boundary.
+
+Checks run:
+
+```sh
+air format tests/testthat/test-beta-location-scale.R tests/testthat/test-beta-binomial.R vignettes/proportion-beta-binomial.Rmd docs/design/02-family-registry.md docs/design/34-validation-debt-register.md NEWS.md ROADMAP.md
+Rscript -e "devtools::test(filter = 'beta-location-scale|beta-binomial', reporter = 'summary')"
+Rscript -e 'devtools::load_all(quiet = TRUE); rmarkdown::render("vignettes/proportion-beta-binomial.Rmd", output_dir = tempfile("proportion-render-"), quiet = FALSE)'
+rg -n 'meta_known_V\(V = V\) with beta|fixed `zoi` and `coi` likelihoods should come before|zero-one-inflated beta.*fitted|beta-binomial zero-inflation.*fitted|implemented bounded-response path is intentionally fixed-effect|fixed-effect `zoi` or `coi` likelihoods' vignettes/proportion-beta-binomial.Rmd vignettes/distribution-families.Rmd docs/design README.md ROADMAP.md NEWS.md
+rg -n 'Slice 285|Proportion-family tests|fixed-effect beta and beta-binomial|fixef:sigma|meta_V\(V = V\)|fixed-effect `zoi`|Wald interval row checks' NEWS.md ROADMAP.md docs/design/02-family-registry.md docs/design/34-validation-debt-register.md vignettes/proportion-beta-binomial.Rmd tests/testthat/test-beta-location-scale.R tests/testthat/test-beta-binomial.R
+Rscript -e "pkgdown::check_pkgdown()"
+git diff --check
+Rscript -e "devtools::test(reporter = 'summary')"
+Rscript tools/codex-checkpoint.R --goal "Slice 285 proportion hardening" --next "stage, commit, push, and open draft PR"
+```
+
+Known limitations:
+
+- No new bounded-response likelihood, formula grammar, random-effect support,
+  structured dependence, bivariate or mixed-response route, profile interval
+  producer, or simulation grid was added.
+- Fixed-effect `zoi`/`coi`, zero-one-inflated beta, ordered beta,
+  beta-binomial zero-inflation, bounded-response `meta_V(V = V)`, and
+  proportion random effects remain future work.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-285-proportion-hardening.md`.
