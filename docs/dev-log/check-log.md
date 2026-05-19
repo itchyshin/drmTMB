@@ -28170,12 +28170,16 @@ What changed:
   `x random-slope SD`, and `intercept SD` instead of raw formula strings.
 - Hid MCSE interval segments from aggregate bias/RMSE legends so the legend
   shows the plotted parameter classes rather than line glyphs.
+- Added an empirical marginal `mu` interval display that keeps
+  `marginal_parameters()` as a plug-in point summary while averaging row-wise
+  Wald `predict_parameters(conf.int = TRUE)` limits for the gallery plot.
 
 Checks run:
 
 ```sh
 air format inst/sim/reports/phase18-count-mu-gallery.Rmd vignettes/figure-gallery.Rmd vignettes/simulation-plot-grammar.Rmd
 Rscript -e "devtools::load_all(quiet = TRUE); rmarkdown::render('vignettes/figure-gallery.Rmd', output_dir = '/tmp/drmtmb-visual-audit/current-figure', output_options = list(self_contained = FALSE), quiet = TRUE)"
+Rscript -e "devtools::load_all(quiet = TRUE); rmarkdown::render('vignettes/figure-gallery.Rmd', output_dir = '/tmp/drmtmb-visual-audit/followup-figure', output_options = list(self_contained = FALSE), quiet = TRUE)"
 Rscript -e "rmarkdown::render('vignettes/simulation-plot-grammar.Rmd', output_dir = '/tmp/drmtmb-visual-audit/current-sim', output_options = list(self_contained = FALSE), quiet = TRUE)"
 Rscript -e "devtools::load_all(quiet = TRUE); root <- normalizePath('.'); rmarkdown::render('inst/sim/reports/phase18-count-mu-gallery.Rmd', output_dir = '/tmp/drmtmb-visual-audit/count-fixed', params = list(aggregate_csv = file.path(root, 'inst/sim/results/slice-257-count-gallery-polished/gallery/count-mu-aggregate.csv'), coverage_csv = file.path(root, 'inst/sim/results/slice-257-count-gallery-polished/gallery/count-mu-coverage.csv'), manifest_csv = file.path(root, 'inst/sim/results/slice-257-count-gallery-polished/gallery/count-mu-manifest.csv'), failures_csv = file.path(root, 'inst/sim/results/slice-257-count-gallery-polished/gallery/count-mu-failures.csv'), notes = 'Slice 302 visual audit re-render'), output_options = list(self_contained = FALSE), quiet = TRUE)"
 Rscript - <<'RS'
@@ -28201,12 +28205,18 @@ Validation notes:
   and 0 skips.
 - `pkgdown::check_pkgdown()` passed with no problems.
 - `git diff --check` passed.
+- Follow-up visual review fixed the point-only empirical marginal `mu` plot so
+  the gallery no longer presents a bare point display where readers expect
+  uncertainty.
 
 Known limitations:
 
 - This slice fixes figure grammar, labels, legends, and render layout only.
   It does not add replicate-level Phase 18 artifacts; true rainclouds in the
   count report still need the result schema tracked in issue #255.
+- The empirical marginal `mu` bars are a display approximation from averaged
+  row-wise Wald prediction limits, not a formal covariance estimator for
+  marginal means.
 - No likelihood, formula grammar, DGP, runner, extractor, or exported plotting
   helper changed.
 

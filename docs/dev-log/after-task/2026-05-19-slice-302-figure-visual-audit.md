@@ -21,6 +21,10 @@ simulation graphics still looked inconsistent and under-polished.
   with term labels such as `z slope`, `x random-slope SD`, and `intercept SD`.
 - Kept count bias and RMSE aggregate-only, while making their legends and
   captions explicit about MCSE bars and the absence of replicate-level clouds.
+- Revised the empirical marginal `mu` gallery panel so it no longer appears as
+  an under-finished point-only display: the plot now shows plug-in marginal
+  means plus averaged row-wise Wald prediction limits, with the approximation
+  named in the prose and caption.
 
 ## Files Changed
 
@@ -34,6 +38,7 @@ simulation graphics still looked inconsistent and under-polished.
 ```sh
 air format inst/sim/reports/phase18-count-mu-gallery.Rmd vignettes/figure-gallery.Rmd vignettes/simulation-plot-grammar.Rmd
 Rscript -e "devtools::load_all(quiet = TRUE); rmarkdown::render('vignettes/figure-gallery.Rmd', output_dir = '/tmp/drmtmb-visual-audit/current-figure', output_options = list(self_contained = FALSE), quiet = TRUE)"
+Rscript -e "devtools::load_all(quiet = TRUE); rmarkdown::render('vignettes/figure-gallery.Rmd', output_dir = '/tmp/drmtmb-visual-audit/followup-figure', output_options = list(self_contained = FALSE), quiet = TRUE)"
 Rscript -e "rmarkdown::render('vignettes/simulation-plot-grammar.Rmd', output_dir = '/tmp/drmtmb-visual-audit/current-sim', output_options = list(self_contained = FALSE), quiet = TRUE)"
 Rscript -e "devtools::load_all(quiet = TRUE); root <- normalizePath('.'); rmarkdown::render('inst/sim/reports/phase18-count-mu-gallery.Rmd', output_dir = '/tmp/drmtmb-visual-audit/count-fixed', params = list(aggregate_csv = file.path(root, 'inst/sim/results/slice-257-count-gallery-polished/gallery/count-mu-aggregate.csv'), coverage_csv = file.path(root, 'inst/sim/results/slice-257-count-gallery-polished/gallery/count-mu-coverage.csv'), manifest_csv = file.path(root, 'inst/sim/results/slice-257-count-gallery-polished/gallery/count-mu-manifest.csv'), failures_csv = file.path(root, 'inst/sim/results/slice-257-count-gallery-polished/gallery/count-mu-failures.csv'), notes = 'Slice 302 visual audit re-render'), output_options = list(self_contained = FALSE), quiet = TRUE)"
 Rscript -e "devtools::test(filter = '^phase18-count-gallery')"
@@ -55,6 +60,10 @@ The inspected contact sheets are local artifacts under
 The final count coverage PNG was also inspected directly to confirm the
 `sigma:z` term is labelled `z slope`.
 
+The follow-up empirical marginal `mu` PNG was inspected directly to confirm
+that the interval display is visible and labelled as an approximation rather
+than formal marginal-mean uncertainty.
+
 Focused count-gallery tests passed with 41 tests, 0 failures, 0 warnings, and
 0 skips. `pkgdown::check_pkgdown()` passed with no problems.
 
@@ -73,3 +82,7 @@ subagents were used.
 This slice does not add the replicate-level result artifacts needed for true
 count-gallery rainclouds. The count gallery still reports aggregate bias and
 RMSE until the issue #255 schema work supplies replicate-level errors.
+
+The empirical marginal `mu` interval bars are averaged row-wise Wald prediction
+limits. They are suitable as a gallery display of uncertainty, but they are not
+a dedicated covariance estimator for empirical marginal means.

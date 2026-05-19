@@ -1212,11 +1212,12 @@ ggplot(emm_temperature, aes(temperature_slice, emmean, colour = habitat)) +
 
 Empirical marginal summaries use a different rule. `prediction_grid(...,
 margin = "empirical")` crosses a focal value with fitted rows, and
-`marginal_parameters()` averages the resulting parameter predictions. This
-point display deliberately has no interval bars because the current empirical
-summary is a plug-in average.
+`marginal_parameters()` averages the resulting parameter predictions. The helper
+itself is still a plug-in point summary, so the interval bars below are a
+display approximation: they average row-wise Wald prediction limits from
+`predict_parameters(conf.int = TRUE)` within each habitat.
 
-```{r empirical-marginal-summary, fig.alt="Point plot of empirical marginal expected growth for reef and kelp habitats without interval bars."}
+```{r empirical-marginal-summary, fig.alt="Point-and-interval plot of empirical marginal expected growth for reef and kelp habitats, where points are plug-in marginal means and bars average row-wise Wald prediction limits."}
 empirical_habitat_grid <- prediction_grid(
   fit_growth,
   focal = "habitat",
@@ -1229,9 +1230,29 @@ empirical_habitat <- marginal_parameters(
   dpar = "mu",
   by = "habitat"
 )
+empirical_habitat_rowwise <- predict_parameters(
+  fit_growth,
+  newdata = empirical_habitat_grid,
+  dpar = "mu",
+  conf.int = TRUE
+)
+empirical_habitat_wald <- aggregate(
+  cbind(conf.low, conf.high) ~ habitat,
+  data = empirical_habitat_rowwise,
+  FUN = mean
+)
+empirical_habitat_plot <- empirical_habitat
+empirical_habitat_plot$conf.low <- empirical_habitat_wald$conf.low[
+  match(empirical_habitat_plot$habitat, empirical_habitat_wald$habitat)
+]
+empirical_habitat_plot$conf.high <- empirical_habitat_wald$conf.high[
+  match(empirical_habitat_plot$habitat, empirical_habitat_wald$habitat)
+]
+empirical_habitat_plot$conf.status <- "wald"
+empirical_habitat_plot$interval_source <- "averaged_rowwise_wald"
 
 plot_parameter_surface(
-  empirical_habitat,
+  empirical_habitat_plot,
   x = "habitat",
   colour = "habitat",
   facet = NULL,
@@ -1241,10 +1262,11 @@ plot_parameter_surface(
   scale_drmtmb_colour +
   labs(
     title = "Empirical marginal mu summary",
-    subtitle = "Averaged over the fitted-row covariate distribution",
+    subtitle = "Bars average row-wise Wald prediction limits over fitted rows",
     x = NULL,
     y = "Average expected growth",
-    colour = "Habitat"
+    colour = "Habitat",
+    caption = "marginal_parameters() returns plug-in point averages; bars are a display approximation."
   ) +
   theme_drmtmb_gallery()
 ```
@@ -1783,7 +1805,7 @@ gallery_source_map <- data.frame(
     "emmeans::emmeans(type = \"response\") + ggplot2",
     "emmeans::emmeans(~ habitat | season) + ggplot2",
     "emmeans::emmeans(~ habitat | temperature) + ggplot2",
-    "prediction_grid(margin = \"empirical\") + marginal_parameters()",
+    "prediction_grid(margin = \"empirical\") + marginal_parameters() + predict_parameters()",
     "ggplot2 status strip",
     "predict_parameters(dpar = \"mu\") + ggplot2",
     "plot_corpairs()",
@@ -1802,7 +1824,7 @@ gallery_source_map <- data.frame(
     "asymptotic emmeans intervals",
     "asymptotic emmeans intervals",
     "asymptotic emmeans intervals",
-    "Plug-in average, no intervals",
+    "Display approximation from averaged row-wise Wald limits",
     "No intervals; status only",
     "Wald intervals from predict_parameters()",
     "Finite bounds supplied in compatible pair table",
