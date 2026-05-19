@@ -27332,3 +27332,54 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-18-slice-287-ordinal-readiness.md`.
+
+## 2026-05-18 - Slice 288 mixed-family status
+
+Goal: audit and harden the status of two-response mixed-family combinations
+without opening any Gaussian-count, Gaussian-proportion, count-proportion,
+ordinal mixed, or higher-dimensional response route.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/02-family-registry.md`
+- `docs/design/46-pre-simulation-readiness-matrix.md`
+- `docs/dev-log/after-task/2026-05-18-slice-288-mixed-family-status.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-18-214925-codex-checkpoint.md`
+- `tests/testthat/test-biv-gaussian.R`
+- `vignettes/distribution-families.Rmd`
+
+What changed:
+
+- Added mixed-family boundary tests for `family = list(gaussian(), poisson())`,
+  `family = c(poisson(), gaussian())`, and
+  `family = c(gaussian(), beta())`.
+- Added a Slice 288 mixed-response boundary table to the family registry.
+- Updated the distribution-family tutorial, NEWS, ROADMAP, and pre-simulation
+  readiness matrix so mixed-response bivariate routes require a joint
+  likelihood or copula/latent-variable contract, prediction, simulation,
+  extractors, intervals, examples, and comparator checks before fitting.
+
+Checks run:
+
+```sh
+air format tests/testthat/test-biv-gaussian.R docs/design/02-family-registry.md docs/design/46-pre-simulation-readiness-matrix.md vignettes/distribution-families.Rmd NEWS.md ROADMAP.md
+Rscript -e "devtools::test(filter = 'biv-gaussian|family-link-contract|source-map', reporter = 'summary')"
+Rscript -e 'devtools::load_all(quiet = TRUE); rmarkdown::render("vignettes/distribution-families.Rmd", output_dir = tempfile("distribution-families-render-"), quiet = FALSE)'
+rg -n 'Slice 288|Mixed-response|mixed-response|Gaussian-count|Gaussian-proportion|count-proportion|family = c\(gaussian\(\), poisson\(\)\)|list\(gaussian\(\), poisson\(\)\)|one-response and two-response|gllvmTMB|joint likelihood|copula' NEWS.md ROADMAP.md docs/design/02-family-registry.md docs/design/46-pre-simulation-readiness-matrix.md vignettes/distribution-families.Rmd tests/testthat/test-biv-gaussian.R README.md vignettes/model-map.Rmd
+Rscript -e "pkgdown::check_pkgdown()"
+git diff --check
+Rscript tools/codex-checkpoint.R --goal "Slice 288 mixed-family status" --next "stage, commit, push, and open draft PR"
+```
+
+Known limitations:
+
+- No mixed-response bivariate likelihood, residual-association parameter,
+  copula, shared-random-effect bridge, extractor, interval, simulation, or
+  worked example was added.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-288-mixed-family-status.md`.

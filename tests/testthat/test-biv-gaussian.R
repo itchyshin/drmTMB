@@ -2323,6 +2323,30 @@ test_that("bivariate Gaussian rejects unsupported Phase 3 syntax clearly", {
   expect_error(
     drmTMB(
       bf(mu1 = y1 ~ x, mu2 = y2 ~ x),
+      family = list(gaussian(), poisson()),
+      data = dat
+    ),
+    "Mixed-response bivariate families"
+  )
+  expect_error(
+    drmTMB(
+      bf(mu1 = y1 ~ x, mu2 = y2 ~ x),
+      family = c(poisson(), gaussian()),
+      data = dat
+    ),
+    "Mixed-response bivariate families"
+  )
+  expect_error(
+    drmTMB(
+      bf(mu1 = y1 ~ x, mu2 = y2 ~ x),
+      family = c(gaussian(), beta()),
+      data = dat
+    ),
+    "Mixed-response bivariate families"
+  )
+  expect_error(
+    drmTMB(
+      bf(mu1 = y1 ~ x, mu2 = y2 ~ x),
       family = c(gaussian(), gaussian(), gaussian()),
       data = dat
     ),

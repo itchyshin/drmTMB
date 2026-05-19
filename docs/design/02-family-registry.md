@@ -602,6 +602,16 @@ covariance blocks are implemented for all-Gaussian bivariate fits; bivariate
 random slopes, mixed-response bivariate families, and broad q=4/q=8 endpoint
 blocks remain planned.
 
+## Slice 288 Mixed-Response Boundary
+
+Mixed-response bivariate families remain planned, not partially fitted:
+
+| Candidate surface | Current status | Gate before fitting |
+| --- | --- | --- |
+| `family = c(gaussian(), gaussian())` or `list(gaussian(), gaussian())` | Implemented and routed to the bivariate Gaussian likelihood. | Continue using explicit `mu1`/`mu2` formulas for different location predictors; keep `mvbind()` as identical-location shorthand only. |
+| Gaussian-count, Gaussian-proportion, count-proportion, ordinal mixed, or other two-response combinations | Rejected before fitting for both `c()` and `list()` composed-family spellings. | Choose a joint likelihood or copula/latent-variable contract, define what any residual association parameter means, add prediction/simulation/extractor methods, and add comparator or independent-likelihood tests. |
+| Three or more response families | Rejected before fitting. | Out of `drmTMB` scope; higher-dimensional multivariate models belong to `gllvmTMB`. |
+
 ## Design Principle
 
 Do not expose a large distribution zoo before the fitting, prediction,

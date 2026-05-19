@@ -646,3 +646,6 @@ Mixed-response composed families remain future work. For example,
 `family = c(gaussian(), poisson())` is a planned direction for ecological
 examples such as body mass with fecundity counts, survival with dispersal
 counts, or leaf area with seed number. It is not a supported fitting path yet.
+The package rejects those mixed-family requests before fitting for both `c()`
+and `list()` spellings until the joint likelihood, residual-association
+parameter, prediction, simulation, intervals, and examples are designed.
