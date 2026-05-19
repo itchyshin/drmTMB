@@ -173,6 +173,17 @@ Per-cell results should be saved as RDS files with replicate seeds, fit status,
 warnings, elapsed time, `check_drm()` rows, interval status, and session info.
 CRAN tests should only run smoke checks for seed stability and output shape.
 
+Simulation artifacts have two explicit grains. Replicate-level summaries carry
+`artifact_grain = "replicate"` and one row per fitted simulation replicate,
+parameter, and cell. They are the only valid input for replicate-error clouds,
+empirical quantiles, per-cell failure-pattern displays, and future bootstrap or
+profile-draw comparisons. Aggregate summaries carry
+`artifact_grain = "aggregate"` and one row per grouped estimand, with
+`n_replicate`, bias, RMSE, MCSE, convergence, Hessian, warning, and runtime
+columns. Aggregate-only reports must use points, bars, and MCSE or interval
+ranges; they must not draw distributional clouds from rows that have already
+been reduced.
+
 ## Williams-Style Self-Audit
 
 | Item | Covered by this blueprint |
@@ -351,3 +362,20 @@ CRAN tests should only run smoke checks for seed stability and output shape.
     show fixed family facets with bias and RMSE points plus MCSE bars. RMSE
     remains a root mean-square aggregate, not the center of an absolute-error
     cloud.
+52. Slice 303 merges the figure-visual-audit PR and verifies that the
+    post-merge R-CMD-check on `main` passes before the next simulation branch
+    begins.
+53. Slice 304 records the artifact-grain contract in code and design prose:
+    replicate rows and aggregate rows are separate, named outputs, and plots
+    choose geometry from that grain.
+54. Slice 305 routes all current Phase 18 smoke runners through a shared
+    replicate-summary binder so run summaries keep `artifact_grain =
+    "replicate"` and summary-smoke objects expose a top-level `replicates`
+    table beside aggregate, manifest, and failure outputs.
+55. Slice 306 extends the count-pilot gallery inputs with an optional
+    replicate-level CSV. When it is present, the bias display overlays faint
+    replicate-error points with mean-bias MCSE bars; when it is absent, the
+    gallery stays aggregate-only.
+56. Slice 307 adds a repeatable Gaussian location-scale grid writer and runs
+    the first small grid: 8 cells, 5 replicates per cell, 160 replicate-level
+    parameter rows, 32 aggregate rows, and no warning/error ledger rows.

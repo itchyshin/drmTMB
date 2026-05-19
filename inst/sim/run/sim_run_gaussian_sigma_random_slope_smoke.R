@@ -84,13 +84,7 @@ phase18_run_gaussian_sigma_rs_smoke <- function(
     sep = ":"
   )
 
-  summaries <- lapply(results, function(result) result$summary)
-  summaries <- Filter(is.data.frame, summaries)
-  summary <- if (length(summaries) == 0L) {
-    data.frame()
-  } else {
-    do.call(rbind, summaries)
-  }
+  summary <- phase18_result_summaries(results)
 
   list(
     surface = "gaussian_sigma_random_slope",

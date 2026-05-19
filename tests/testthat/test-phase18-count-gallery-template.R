@@ -17,6 +17,8 @@ test_that("Phase 18 count gallery template is installed and reader-facing", {
   expect_true(grepl("No warning/error ledger CSV supplied", text, fixed = TRUE))
   expect_true(grepl("phase18_count_gallery_theme", text, fixed = TRUE))
   expect_true(grepl("phase18_plot_count_bias", text, fixed = TRUE))
+  expect_true(grepl("replicate_csv", text, fixed = TRUE))
+  expect_true(grepl("replicate-level errors", text, fixed = TRUE))
   expect_true(grepl("phase18_plot_count_rmse", text, fixed = TRUE))
   expect_true(grepl("Monte Carlo uncertainty", text, fixed = TRUE))
   expect_true(grepl("bias_mcse", text, fixed = TRUE))
@@ -42,9 +44,22 @@ test_that("Phase 18 count gallery template renders with CSV inputs", {
   withr::defer(unlink(output_dir, recursive = TRUE))
 
   aggregate_csv <- file.path(output_dir, "aggregate.csv")
+  replicate_csv <- file.path(output_dir, "replicates.csv")
   coverage_csv <- file.path(output_dir, "coverage.csv")
   manifest_csv <- file.path(output_dir, "manifest.csv")
   failures_csv <- file.path(output_dir, "failures.csv")
+  write.csv(
+    data.frame(
+      family = c("Poisson", "NB2"),
+      parameter_class = c("fixed_effect", "random_sd"),
+      dpar = c("mu", "mu"),
+      term = c("x", "(1 | id)"),
+      replicate = c(1L, 1L),
+      error = c(0.01, -0.02)
+    ),
+    replicate_csv,
+    row.names = FALSE
+  )
   write.csv(
     data.frame(
       family = c("Poisson", "NB2"),
@@ -93,6 +108,7 @@ test_that("Phase 18 count gallery template renders with CSV inputs", {
     quiet = TRUE,
     params = list(
       aggregate_csv = aggregate_csv,
+      replicate_csv = replicate_csv,
       coverage_csv = coverage_csv,
       manifest_csv = manifest_csv,
       failures_csv = failures_csv,

@@ -66,6 +66,7 @@ test_that("Phase 18 Gaussian location-scale smoke runner completes and resumes",
   expect_true(second$results[[1L]]$skipped)
   expect_equal(nrow(first$summary), 4L)
   expect_equal(first$summary$surface, rep("gaussian_ls", 4L))
+  expect_equal(first$summary$artifact_grain, rep("replicate", 4L))
   expect_equal(
     first$summary$parameter,
     c("mu:(Intercept)", "mu:x", "sigma:(Intercept)", "sigma:z")

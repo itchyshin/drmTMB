@@ -70,6 +70,7 @@ test_that("Phase 18 Gaussian location-scale summary smoke run aggregates output"
   expect_identical(out$surface, "gaussian_ls")
   expect_equal(nrow(out$run$summary), 8L)
   expect_equal(nrow(out$aggregate), 4L)
+  expect_equal(nrow(out$replicates), 8L)
   expect_equal(nrow(out$manifest), length(out$run$results))
   expect_equal(
     nrow(out$failures),
@@ -81,6 +82,8 @@ test_that("Phase 18 Gaussian location-scale summary smoke run aggregates output"
   expect_true(all(out$wald_intervals$interval_status == "ok"))
   expect_true(all(out$wald_intervals$interval_scale == "formula_coefficient"))
   expect_equal(out$aggregate$n_replicate, rep(2L, 4L))
+  expect_equal(out$aggregate$artifact_grain, rep("aggregate", 4L))
+  expect_equal(out$replicates$artifact_grain, rep("replicate", 8L))
   expect_setequal(
     out$aggregate$parameter,
     c("mu:(Intercept)", "mu:x", "sigma:(Intercept)", "sigma:z")

@@ -38,6 +38,7 @@ phase18_summarise_spatial_mu_slope_smoke <- function(
     surface = "spatial_mu_slope",
     run = run,
     aggregate = aggregate,
+    replicates = run$summary,
     manifest = manifest,
     failures = failures
   )

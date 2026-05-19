@@ -161,6 +161,40 @@ phase18_read_result_file <- function(path) {
   result
 }
 
+phase18_result_summaries <- function(
+  results,
+  artifact_grain = "replicate"
+) {
+  if (!is.list(results) || length(results) == 0L) {
+    stop(
+      "`results` must be a non-empty list of replicate results.",
+      call. = FALSE
+    )
+  }
+  if (
+    !is.character(artifact_grain) ||
+      length(artifact_grain) != 1L ||
+      !nzchar(artifact_grain)
+  ) {
+    stop("`artifact_grain` must be one non-empty string.", call. = FALSE)
+  }
+
+  summaries <- lapply(results, function(result) result$summary)
+  summaries <- Filter(
+    function(x) is.data.frame(x) && nrow(x) > 0L,
+    summaries
+  )
+  if (length(summaries) == 0L) {
+    return(data.frame())
+  }
+  out <- do.call(rbind, summaries)
+  row.names(out) <- NULL
+  if (!"artifact_grain" %in% names(out)) {
+    out$artifact_grain <- artifact_grain
+  }
+  out
+}
+
 phase18_assert_one_row_data_frame <- function(x, name) {
   if (!is.data.frame(x) || nrow(x) != 1L) {
     stop("`", name, "` must be a one-row data frame.", call. = FALSE)

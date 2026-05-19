@@ -54,6 +54,7 @@ phase18_summarise_meta_v_smoke <- function(
     surface = "meta_v",
     run = run,
     aggregate = aggregate,
+    replicates = run$summary,
     manifest = manifest,
     failures = failures,
     wald_intervals = wald_intervals,

@@ -87,13 +87,7 @@ phase18_run_nbinom2_mu_re_smoke <- function(
     sep = ":"
   )
 
-  summaries <- lapply(results, function(result) result$summary)
-  summaries <- Filter(is.data.frame, summaries)
-  summary <- if (length(summaries) == 0L) {
-    data.frame()
-  } else {
-    do.call(rbind, summaries)
-  }
+  summary <- phase18_result_summaries(results)
 
   list(
     surface = "nbinom2_mu_random_effect",

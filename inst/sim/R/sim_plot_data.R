@@ -1,6 +1,7 @@
 phase18_count_mu_re_plot_data <- function(pilot) {
   phase18_assert_count_mu_re_pilot(pilot)
   aggregate <- phase18_count_mu_re_add_plot_columns(pilot$aggregate)
+  replicates <- phase18_count_mu_re_replicate_plot_data(pilot)
   wald_coverage <- phase18_count_mu_re_add_coverage_columns(
     pilot$wald_coverage,
     interval_method = "wald"
@@ -16,6 +17,7 @@ phase18_count_mu_re_plot_data <- function(pilot) {
 
   list(
     aggregate = aggregate,
+    replicates = replicates,
     coverage = coverage,
     manifest = pilot$manifest,
     failures = pilot$failures
@@ -34,7 +36,66 @@ phase18_count_mu_re_add_plot_columns <- function(x) {
   out$dpar <- phase18_count_mu_re_dpar(out$parameter)
   out$term <- phase18_count_mu_re_term(out$parameter)
   out$abs_bias <- abs(out$bias)
+  if (!"artifact_grain" %in% names(out)) {
+    out$artifact_grain <- "aggregate"
+  }
   out
+}
+
+phase18_count_mu_re_replicate_plot_data <- function(pilot) {
+  if (
+    !"replicates" %in% names(pilot) ||
+      !is.data.frame(pilot$replicates) ||
+      nrow(pilot$replicates) == 0L
+  ) {
+    return(phase18_count_mu_re_empty_replicates())
+  }
+  phase18_count_mu_re_add_replicate_columns(pilot$replicates)
+}
+
+phase18_count_mu_re_add_replicate_columns <- function(x) {
+  phase18_assert_plot_data_frame(
+    x,
+    c(
+      "surface",
+      "cell_id",
+      "replicate",
+      "parameter",
+      "truth",
+      "estimate",
+      "error"
+    ),
+    "replicates"
+  )
+  out <- x
+  out$family <- phase18_count_mu_re_family_label(out$surface)
+  out$parameter_class <- phase18_count_mu_re_parameter_class(out$parameter)
+  out$dpar <- phase18_count_mu_re_dpar(out$parameter)
+  out$term <- phase18_count_mu_re_term(out$parameter)
+  out$abs_error <- abs(out$error)
+  if (!"artifact_grain" %in% names(out)) {
+    out$artifact_grain <- "replicate"
+  }
+  out
+}
+
+phase18_count_mu_re_empty_replicates <- function() {
+  data.frame(
+    surface = character(),
+    cell_id = character(),
+    replicate = integer(),
+    parameter = character(),
+    truth = numeric(),
+    estimate = numeric(),
+    error = numeric(),
+    family = character(),
+    parameter_class = character(),
+    dpar = character(),
+    term = character(),
+    abs_error = numeric(),
+    artifact_grain = character(),
+    stringsAsFactors = FALSE
+  )
 }
 
 phase18_count_mu_re_add_coverage_columns <- function(
@@ -51,7 +112,7 @@ phase18_count_mu_re_add_coverage_columns <- function(
   out$parameter_class <- phase18_count_mu_re_parameter_class(out$parameter)
   out$dpar <- phase18_count_mu_re_dpar(out$parameter)
   out$term <- phase18_count_mu_re_term(out$parameter)
-  out$interval_method <- interval_method
+  out$interval_method <- rep(interval_method, nrow(out))
   out
 }
 

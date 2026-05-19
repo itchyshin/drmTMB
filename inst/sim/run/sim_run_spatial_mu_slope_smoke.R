@@ -85,13 +85,7 @@ phase18_run_spatial_mu_slope_smoke <- function(
     sep = ":"
   )
 
-  summaries <- lapply(results, function(result) result$summary)
-  summaries <- Filter(is.data.frame, summaries)
-  summary <- if (length(summaries) == 0L) {
-    data.frame()
-  } else {
-    do.call(rbind, summaries)
-  }
+  summary <- phase18_result_summaries(results)
 
   list(
     surface = "spatial_mu_slope",
