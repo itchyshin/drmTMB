@@ -604,6 +604,14 @@ faceted axis with signed bias. These remain article recipes until Phase 18
 result schemas have stable replicate, aggregate, MCSE, manifest, and
 failure-ledger columns.
 
+Slice 301 applies the same contract to the paired count-pilot gallery template.
+That gallery currently receives aggregate CSVs, not one row per replicate
+error, so it must not fake a raincloud. Instead, bias and RMSE use fixed family
+facets, readable parameter-class labels, and horizontal MCSE bars when
+`bias_mcse` or `rmse_mcse` are present. A later formal result report can add
+replicate-error clouds only after the result schema exposes replicate-level
+errors beside the aggregate rows.
+
 | Display pattern | Current decision | Export only after |
 | --- | --- | --- |
 | Raw data plus fitted `mu` lines and confidence bands | Tutorial recipe | A repeated need for one grammar across multiple articles and a stable raw-data overlay policy |

@@ -16,7 +16,16 @@ test_that("Phase 18 count gallery template is installed and reader-facing", {
   expect_true(grepl("Florence Checks", text, fixed = TRUE))
   expect_true(grepl("No warning/error ledger CSV supplied", text, fixed = TRUE))
   expect_true(grepl("phase18_count_gallery_theme", text, fixed = TRUE))
+  expect_true(grepl("phase18_plot_count_bias", text, fixed = TRUE))
+  expect_true(grepl("phase18_plot_count_rmse", text, fixed = TRUE))
   expect_true(grepl("Monte Carlo uncertainty", text, fixed = TRUE))
+  expect_true(grepl("bias_mcse", text, fixed = TRUE))
+  expect_true(grepl("rmse_mcse", text, fixed = TRUE))
+  expect_true(grepl(
+    "RMSE needs its own uncertainty display",
+    text,
+    fixed = TRUE
+  ))
 })
 
 test_that("Phase 18 count gallery template renders with CSV inputs", {
@@ -43,7 +52,9 @@ test_that("Phase 18 count gallery template renders with CSV inputs", {
       dpar = c("mu", "mu"),
       term = c("x", "(1 | id)"),
       bias = c(0.01, -0.02),
-      rmse = c(0.04, 0.08)
+      rmse = c(0.04, 0.08),
+      bias_mcse = c(0.005, 0.006),
+      rmse_mcse = c(0.004, 0.007)
     ),
     aggregate_csv,
     row.names = FALSE

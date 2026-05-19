@@ -16,7 +16,7 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
   fig.width = 8,
-  fig.height = 4.8
+  fig.height = 5.4
 )
 
 phase18_read_optional_csv <- function(path) {
@@ -38,49 +38,158 @@ failures <- phase18_read_optional_csv(params$failures_csv)
 has_ggplot2 <- requireNamespace("ggplot2", quietly = TRUE)
 
 phase18_count_gallery_palette <- c(Poisson = "#0072B2", NB2 = "#D55E00")
+phase18_count_gallery_class_palette <- c(
+  fixed_effect = "#0072B2",
+  random_sd = "#009E73"
+)
+phase18_count_gallery_class_labels <- c(
+  fixed_effect = "Fixed effect",
+  random_sd = "Random-effect SD"
+)
 
 phase18_count_gallery_theme <- function() {
-  ggplot2::theme_minimal(base_size = 12) +
+  ggplot2::theme_minimal(base_size = 11) +
     ggplot2::theme(
       legend.position = "bottom",
       panel.grid.major.y = ggplot2::element_blank(),
       panel.grid.minor = ggplot2::element_blank(),
       strip.text = ggplot2::element_text(face = "bold"),
       plot.title.position = "plot",
-      plot.caption.position = "plot"
+      plot.title = ggplot2::element_text(face = "bold", size = 14),
+      plot.subtitle = ggplot2::element_text(size = 10, colour = "grey30"),
+      plot.caption.position = "plot",
+      plot.caption = ggplot2::element_text(size = 8, hjust = 0),
+      plot.margin = ggplot2::margin(6, 8, 14, 8)
     )
 }
 
 phase18_count_gallery_terms <- function(x) {
+  if ("family" %in% names(x)) {
+    x$family <- factor(x$family, levels = names(phase18_count_gallery_palette))
+  }
+  if ("parameter_class" %in% names(x)) {
+    x$parameter_class <- factor(
+      x$parameter_class,
+      levels = names(phase18_count_gallery_class_palette)
+    )
+  }
   x$term <- factor(x$term, levels = rev(unique(x$term)))
   x
 }
 
-phase18_plot_count_metric <- function(data, metric, y_label, title) {
+phase18_count_gallery_add_mcse_interval <- function(data, metric) {
+  mcse <- paste0(metric, "_mcse")
+  low <- paste0(metric, "_low")
+  high <- paste0(metric, "_high")
+  if (!(mcse %in% names(data))) {
+    return(data)
+  }
+  z <- stats::qnorm(0.975)
+  data[[low]] <- data[[metric]] - z * data[[mcse]]
+  data[[high]] <- data[[metric]] + z * data[[mcse]]
+  if (identical(metric, "rmse")) {
+    data[[low]] <- pmax(0, data[[low]])
+  }
+  data
+}
+
+phase18_plot_count_bias <- function(data) {
   data <- phase18_count_gallery_terms(data)
-  ggplot2::ggplot(
+  data <- phase18_count_gallery_add_mcse_interval(data, "bias")
+  p <- ggplot2::ggplot(
     data,
     ggplot2::aes(
-      x = term,
-      y = .data[[metric]],
-      colour = family,
+      x = bias,
+      y = term,
+      colour = parameter_class,
       shape = parameter_class
     )
   ) +
-    ggplot2::geom_hline(yintercept = 0, linewidth = 0.3, colour = "grey55") +
-    ggplot2::geom_point(size = 2.7, alpha = 0.9) +
-    ggplot2::facet_wrap(~dpar, scales = "free_y") +
-    ggplot2::coord_flip() +
-    ggplot2::scale_colour_manual(values = phase18_count_gallery_palette) +
+    ggplot2::geom_vline(xintercept = 0, linewidth = 0.3, colour = "grey55")
+  if (all(c("bias_low", "bias_high") %in% names(data))) {
+    p <- p + ggplot2::geom_segment(
+      ggplot2::aes(x = bias_low, xend = bias_high, yend = term),
+      linewidth = 0.75,
+      alpha = 0.8,
+      na.rm = TRUE
+    )
+  }
+  p +
+    ggplot2::geom_point(size = 2.7, alpha = 0.95, na.rm = TRUE) +
+    ggplot2::facet_grid(
+      parameter_class ~ family,
+      scales = "free_y",
+      labeller = ggplot2::labeller(
+        parameter_class = phase18_count_gallery_class_labels
+      )
+    ) +
+    ggplot2::scale_colour_manual(
+      values = phase18_count_gallery_class_palette,
+      labels = phase18_count_gallery_class_labels
+    ) +
+    ggplot2::scale_shape_discrete(labels = phase18_count_gallery_class_labels) +
     ggplot2::labs(
-      title = title,
-      x = NULL,
-      y = y_label,
-      colour = "Family",
+      title = "Bias by estimand",
+      subtitle = paste(
+        "Aggregate mean errors are shown here;",
+        "add replicate-error clouds when replicate-level output is supplied."
+      ),
+      x = "Mean estimate minus truth",
+      y = NULL,
+      colour = "Parameter class",
       shape = "Parameter class",
       caption = paste(
-        "Pilot summary from paired Poisson/NB2 mu random-effect smoke runs;",
-        "inspect the manifest and warning/error ledger before interpretation."
+        "Bars show 95% MCSE when bias_mcse is available;",
+        "inspect the manifest and failure ledger before interpretation."
+      )
+    ) +
+    phase18_count_gallery_theme()
+}
+
+phase18_plot_count_rmse <- function(data) {
+  data <- phase18_count_gallery_terms(data)
+  data <- phase18_count_gallery_add_mcse_interval(data, "rmse")
+  p <- ggplot2::ggplot(
+    data,
+    ggplot2::aes(
+      x = rmse,
+      y = term,
+      colour = parameter_class,
+      shape = parameter_class
+    )
+  )
+  if (all(c("rmse_low", "rmse_high") %in% names(data))) {
+    p <- p + ggplot2::geom_segment(
+      ggplot2::aes(x = rmse_low, xend = rmse_high, yend = term),
+      linewidth = 0.75,
+      alpha = 0.8,
+      na.rm = TRUE
+    )
+  }
+  p +
+    ggplot2::geom_point(size = 2.7, alpha = 0.95, na.rm = TRUE) +
+    ggplot2::facet_grid(
+      parameter_class ~ family,
+      scales = "free_y",
+      labeller = ggplot2::labeller(
+        parameter_class = phase18_count_gallery_class_labels
+      )
+    ) +
+    ggplot2::scale_colour_manual(
+      values = phase18_count_gallery_class_palette,
+      labels = phase18_count_gallery_class_labels
+    ) +
+    ggplot2::scale_shape_discrete(labels = phase18_count_gallery_class_labels) +
+    ggplot2::labs(
+      title = "RMSE needs its own uncertainty display",
+      subtitle = "Root mean-square error is an aggregate summary, not the center of an absolute-error cloud.",
+      x = "Root mean-square error",
+      y = NULL,
+      colour = "Parameter class",
+      shape = "Parameter class",
+      caption = paste(
+        "Bars show 95% MCSE when rmse_mcse is available;",
+        "bias, RMSE, and coverage answer different simulation questions."
       )
     ) +
     phase18_count_gallery_theme()
@@ -152,12 +261,7 @@ if (is.null(aggregate)) {
 } else if (!has_ggplot2) {
   aggregate
 } else {
-  phase18_plot_count_metric(
-    aggregate,
-    metric = "bias",
-    y_label = "Bias",
-    title = "Bias by estimand"
-  )
+  phase18_plot_count_bias(aggregate)
 }
 ```
 
@@ -169,12 +273,7 @@ if (is.null(aggregate)) {
 } else if (!has_ggplot2) {
   aggregate
 } else {
-  phase18_plot_count_metric(
-    aggregate,
-    metric = "rmse",
-    y_label = "RMSE",
-    title = "Root-mean-square error by estimand"
-  )
+  phase18_plot_count_rmse(aggregate)
 }
 ```
 
@@ -221,3 +320,7 @@ if (is.null(failures)) {
 - Are failed fits, warnings, and missing intervals visible before interpretation?
 - Does the caption or surrounding text say this is a pilot, not a final power
   or coverage claim?
+- Does bias use replicate-error clouds only when replicate-level errors are
+  available, and otherwise show aggregate means with MCSE?
+- Does RMSE stay separate from signed bias and avoid looking like the center of
+  an absolute-error cloud?

@@ -345,3 +345,9 @@ CRAN tests should only run smoke checks for seed stability and output shape.
     Gaussian, non-Gaussian, shape, inflation, bivariate, random-slope,
     meta-analysis, phylogenetic, spatial, animal, and `relmat()` model
     classes, so Phase 18 reports can admit only the fitted and tested subsets.
+51. Slices 300 and 301 tighten the accuracy-display contract before broad
+    result reports. Bias may show replicate-level error clouds only when
+    replicate rows are available; aggregate-only count-pilot reports instead
+    show fixed family facets with bias and RMSE points plus MCSE bars. RMSE
+    remains a root mean-square aggregate, not the center of an absolute-error
+    cloud.
