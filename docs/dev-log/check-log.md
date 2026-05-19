@@ -27908,3 +27908,86 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-18-slice-298-bivariate-rho12-ademp.md`.
+
+## 2026-05-19 - Slice 299 Florence gallery visual repair
+
+Goal: repair the public figure gallery after reader-facing QA showed default
+black-and-white styling, a strange coefficient-cloud panel, and a simulation
+bias display that showed only means and previously connected unrelated
+categorical estimands.
+
+Files changed:
+
+- `vignettes/figure-gallery.Rmd`
+- `docs/design/39-visualization-grammar.md`
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-19-slice-299-florence-gallery-repair.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-19-061045-codex-checkpoint.md`
+
+What changed:
+
+- Added shared gallery colour helpers and applied explicit palettes to
+  discrete comparison, empirical marginal, direct `sd(site)`,
+  variance-component, random-slope, season, moisture-slice, and simulation
+  displays.
+- Added a residual-magnitude scale check so the `sigma` story has an
+  observed-data analogue without plotting raw responses on a residual-SD axis.
+- Added compact confidence clouds for the fitted `mu` temperature slope and
+  `sigma` residual-SD ratio, with no-effect reference lines, estimates, and
+  central 66% and 95% intervals.
+- Replaced the visually awkward coefficient cloud with a direct Wald interval
+  plot for fixed effects, SDs, and the intercept-slope correlation.
+- Replaced the simulation bias line plot with a raincloud-style panel showing
+  replicate-level values, mean points, and 95% MCSE intervals. The panel leaves
+  `beta_x`, `sigma`, `sd_intercept`, and `rho12` disconnected because they are
+  categorical estimands, not ordered trajectories.
+- Added approximate 95% binomial MCSE whiskers to the coverage display.
+- Improved status-strip tile label contrast for the `emmeans` and correlation
+  support-boundary displays.
+- Updated NEWS, ROADMAP, and the visualization grammar design note to record
+  the repair without claiming a new plotting helper API.
+
+Checks run:
+
+```sh
+PATH=/usr/local/bin:/opt/homebrew/bin:$PATH air format NEWS.md ROADMAP.md docs/design/39-visualization-grammar.md vignettes/figure-gallery.Rmd docs/dev-log/after-task/2026-05-19-slice-299-florence-gallery-repair.md
+Rscript -e "devtools::load_all('.', quiet = TRUE); rmarkdown::render('vignettes/figure-gallery.Rmd', output_dir = '/tmp/drmtmb-figure-gallery-florence-repair', quiet = FALSE)"
+Rscript - <<'RS'
+# Extract embedded PNGs from the rendered HTML and write
+# /tmp/drmtmb-figure-gallery-florence-repair/contact-sheet.png.
+RS
+rg -n 'Slice 299|Florence visual repair|raincloud|MCSE|central 66%|coefficient intervals|coefficient cloud|central 50%|unconnected dodged points|simulation bias line' NEWS.md ROADMAP.md docs/design/39-visualization-grammar.md vignettes/figure-gallery.Rmd docs/dev-log/after-task/2026-05-19-slice-299-florence-gallery-repair.md
+rg -n 'coefficient-confidence-clouds|Coefficient clouds|central 50%|unconnected dodged points' vignettes/figure-gallery.Rmd docs/design/39-visualization-grammar.md NEWS.md ROADMAP.md
+Rscript -e "pkgdown::check_pkgdown()"
+git diff --check
+LC_ALL=C rg -n '[^\x00-\x7F]' NEWS.md ROADMAP.md docs/design/39-visualization-grammar.md vignettes/figure-gallery.Rmd docs/dev-log/after-task/2026-05-19-slice-299-florence-gallery-repair.md
+Rscript tools/codex-checkpoint.R --goal "Slice 299 Florence gallery visual repair" --next "review rendered figure-gallery panels, then stage, commit, push, and open a draft PR when the visual repair is accepted"
+```
+
+Validation notes:
+
+- Render passed and produced 21 embedded PNGs.
+- Visual inspection checked the contact sheet plus the revised coefficient
+  interval, simulation bias raincloud, and coverage panels under
+  `/tmp/drmtmb-figure-gallery-florence-repair/embedded-pngs/`.
+- The second stale-wording `rg` returned no matches in the current source,
+  design note, NEWS, or ROADMAP.
+- `pkgdown::check_pkgdown()` passed with "No problems found."
+- `git diff --check` passed.
+- The ASCII scan returned no matches.
+- The checkpoint command wrote
+  `docs/dev-log/recovery-checkpoints/2026-05-19-061045-codex-checkpoint.md`.
+
+Known limitations:
+
+- No plotting helper API, simulation DGP, runner, result table, interval
+  method, likelihood, extractor, or formula grammar changed.
+- The gallery still uses illustrative simulation fixtures. Formal Phase 18
+  simulation evidence should use real replicate-level outputs, MCSE intervals,
+  run manifests, and warning/error ledgers.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-19-slice-299-florence-gallery-repair.md`.

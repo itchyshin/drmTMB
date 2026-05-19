@@ -39,15 +39,96 @@ theme_drmtmb_gallery <- function() {
     theme(
       panel.grid.minor = element_blank(),
       panel.grid.major.x = element_blank(),
+      axis.title = element_text(colour = "grey15"),
       plot.title.position = "plot",
       plot.title = element_text(face = "bold"),
       plot.subtitle = element_text(colour = "grey30"),
       strip.text = element_text(face = "bold"),
-      legend.position = "bottom"
+      legend.position = "bottom",
+      legend.title = element_text(colour = "grey20"),
+      legend.key.width = grid::unit(1.1, "lines")
     )
 }
 
-habitat_palette <- c("reef" = "#0072B2", "kelp" = "#D55E00")
+gallery_colours <- c(
+  blue = "#0072B2",
+  green = "#009E73",
+  orange = "#D55E00",
+  yellow = "#E69F00",
+  pink = "#CC79A7",
+  sky = "#56B4E9",
+  charcoal = "#4D4D4D"
+)
+gallery_colour <- function(name) unname(gallery_colours[name])
+
+habitat_palette <- c(
+  "reef" = gallery_colour("blue"),
+  "kelp" = gallery_colour("orange")
+)
+season_palette <- c(
+  "dry" = gallery_colour("blue"),
+  "wet" = gallery_colour("yellow")
+)
+surface_palette <- c(
+  "Gaussian location-scale" = gallery_colour("blue"),
+  "Proportion" = gallery_colour("green"),
+  "Count" = gallery_colour("pink")
+)
+make_confidence_distribution <- function(
+  parameter,
+  estimate,
+  std_error,
+  transform = c("identity", "exp"),
+  null_value = 0,
+  n = 500
+) {
+  transform <- match.arg(transform)
+  theta <- seq(
+    estimate - 4 * std_error,
+    estimate + 4 * std_error,
+    length.out = n
+  )
+  value <- switch(
+    transform,
+    identity = theta,
+    exp = exp(theta)
+  )
+  density <- switch(
+    transform,
+    identity = dnorm(theta, mean = estimate, sd = std_error),
+    exp = dnorm(theta, mean = estimate, sd = std_error) / value
+  )
+  data.frame(
+    parameter = parameter,
+    theta = theta,
+    value = value,
+    cdf = pnorm(theta, mean = estimate, sd = std_error),
+    density = density,
+    null_value = switch(transform, identity = null_value, exp = exp(null_value)),
+    estimate_value = switch(transform, identity = estimate, exp = exp(estimate))
+  )
+}
+
+make_confidence_intervals <- function(
+  parameter,
+  estimate,
+  std_error,
+  transform = c("identity", "exp"),
+  levels = c(0.66, 0.95)
+) {
+  transform <- match.arg(transform)
+  z_low <- qnorm((1 - levels) / 2)
+  z_high <- qnorm(1 - (1 - levels) / 2)
+  low <- estimate + z_low * std_error
+  high <- estimate + z_high * std_error
+  data.frame(
+    parameter = parameter,
+    level = sprintf("%d%%", round(100 * levels)),
+    y = seq(0.10, 0.22, length.out = length(levels)),
+    xmin = switch(transform, identity = low, exp = exp(low)),
+    xmax = switch(transform, identity = high, exp = exp(high))
+  )
+}
 scale_drmtmb_colour <- scale_colour_manual(
   values = habitat_palette,
   limits = names(habitat_palette)
@@ -169,6 +250,193 @@ plot_parameter_surface(
 The `mu` panel is the expected response. The `sigma` panel is the fitted
 residual standard deviation, so an upward line means lower predictability or
 larger residual heterogeneity at warmer values.
+
+For scale models, the observed-data analogue is not the raw response itself.
+Raw `growth` lives on the location scale. A useful scale check is the residual
+magnitude after subtracting the fitted `mu`: under a Gaussian model,
+`E(|residual|) = sigma * sqrt(2 / pi)`. This keeps the observed scatter visible
+without putting raw response points on a `sigma` axis.
+
+```{r residual-scale-observed-check, fig.alt="Scatterplot of absolute residual magnitudes against temperature, with a fitted expected absolute residual curve derived from the residual sigma surface."}
+pred_row_growth <- predict_parameters(
+  fit_growth,
+  newdata = fish,
+  dpar = c("mu", "sigma")
+)
+row_mu <- pred_row_growth[pred_row_growth$dpar == "mu", c("row", "estimate")]
+row_sigma <- pred_row_growth[
+  pred_row_growth$dpar == "sigma",
+  c("row", "estimate")
+]
+names(row_mu)[2] <- "fitted_mu"
+names(row_sigma)[2] <- "fitted_sigma"
+scale_check <- merge(row_mu, row_sigma, by = "row")
+scale_check <- cbind(fish[scale_check$row, ], scale_check)
+scale_check$abs_residual <- abs(scale_check$growth - scale_check$fitted_mu)
+
+pred_sigma <- pred_growth[pred_growth$dpar == "sigma", , drop = FALSE]
+pred_sigma$expected_abs_residual <- pred_sigma$estimate * sqrt(2 / pi)
+pred_sigma$quantity <- "Expected absolute residual"
+
+ggplot(scale_check, aes(temperature, abs_residual, colour = habitat)) +
+  geom_point(alpha = 0.22, size = 1.2) +
+  geom_line(
+    data = pred_sigma,
+    aes(
+      y = expected_abs_residual,
+      colour = quantity,
+      group = quantity
+    ),
+    linewidth = 0.9
+  ) +
+  scale_colour_manual(values = c(
+    habitat_palette,
+    "Expected absolute residual" = gallery_colour("green")
+  )) +
+  labs(
+    title = "Residual magnitudes carry the scale information",
+    subtitle = "The green curve is sigma converted to expected absolute residual size",
+    x = "Temperature anomaly",
+    y = "|Observed growth - fitted mu|",
+    colour = NULL
+  ) +
+  theme_drmtmb_gallery()
+```
+
+Confidence intervals are only one slice through the uncertainty surface. A
+confidence distribution is a frequentist, posterior-like curve over parameter
+values whose quantiles are confidence limits. The code below keeps that
+estimate-plus-standard-error contract dependency-free, then draws a compact
+cloud so the no-effect line, estimate, and interval width are visible together.
+The scale coefficient is shown as a residual-SD ratio: values above one mean
+that one unit of temperature increases residual scale.
+
+```{r confidence-distribution-slopes, fig.alt="Two-panel confidence cloud plot for the fitted mu temperature slope and the residual SD ratio temperature effect, with density shapes, no-effect reference lines, estimate dots, and central interval bars."}
+coef_growth <- summary(fit_growth)$coefficients
+confidence_curves <- rbind(
+  make_confidence_distribution(
+    parameter = "mu temperature slope",
+    estimate = coef_growth["mu:temperature", "estimate"],
+    std_error = coef_growth["mu:temperature", "std_error"],
+    transform = "identity",
+    null_value = 0
+  ),
+  make_confidence_distribution(
+    parameter = "sigma temperature SD ratio",
+    estimate = coef_growth["sigma:temperature", "estimate"],
+    std_error = coef_growth["sigma:temperature", "std_error"],
+    transform = "exp",
+    null_value = 0
+  )
+)
+confidence_curves$parameter <- factor(
+  confidence_curves$parameter,
+  levels = c("mu temperature slope", "sigma temperature SD ratio")
+)
+confidence_curves$density_scaled <- ave(
+  confidence_curves$density,
+  confidence_curves$parameter,
+  FUN = function(x) x / max(x, na.rm = TRUE)
+)
+confidence_intervals <- rbind(
+  make_confidence_intervals(
+    parameter = "mu temperature slope",
+    estimate = coef_growth["mu:temperature", "estimate"],
+    std_error = coef_growth["mu:temperature", "std_error"],
+    transform = "identity"
+  ),
+  make_confidence_intervals(
+    parameter = "sigma temperature SD ratio",
+    estimate = coef_growth["sigma:temperature", "estimate"],
+    std_error = coef_growth["sigma:temperature", "std_error"],
+    transform = "exp"
+  )
+)
+confidence_intervals$parameter <- factor(
+  confidence_intervals$parameter,
+  levels = levels(confidence_curves$parameter)
+)
+confidence_intervals$level <- factor(
+  confidence_intervals$level,
+  levels = c("95%", "66%")
+)
+confidence_intervals <- confidence_intervals[
+  order(confidence_intervals$parameter, confidence_intervals$level),
+]
+confidence_reference <- unique(
+  confidence_curves[c("parameter", "null_value", "estimate_value")]
+)
+confidence_reference$null_label <- c("no slope", "no scale change")
+confidence_reference$label_x <- confidence_reference$null_value + c(0.03, 0.02)
+confidence_palette <- c(
+  "mu temperature slope" = gallery_colour("blue"),
+  "sigma temperature SD ratio" = gallery_colour("green")
+)
+
+ggplot(confidence_curves, aes(value, density_scaled, fill = parameter)) +
+  geom_area(alpha = 0.24, colour = NA) +
+  geom_line(aes(colour = parameter), linewidth = 0.65, alpha = 0.85) +
+  geom_vline(
+    data = confidence_reference,
+    aes(xintercept = null_value),
+    inherit.aes = FALSE,
+    linetype = "dashed",
+    colour = "grey45",
+    linewidth = 0.45
+  ) +
+  geom_text(
+    data = confidence_reference,
+    aes(x = label_x, y = 0.98, label = null_label),
+    inherit.aes = FALSE,
+    colour = "grey35",
+    size = 3,
+    hjust = 0,
+    vjust = 0
+  ) +
+  geom_segment(
+    data = confidence_intervals,
+    aes(
+      x = xmin,
+      xend = xmax,
+      y = 0,
+      yend = 0,
+      colour = parameter,
+      linewidth = level,
+      alpha = level
+    ),
+    inherit.aes = FALSE,
+    lineend = "round"
+  ) +
+  geom_point(
+    data = confidence_reference,
+    aes(x = estimate_value, y = 0, colour = parameter),
+    inherit.aes = FALSE,
+    size = 2.4
+  ) +
+  facet_wrap(~parameter, scales = "free_x") +
+  scale_colour_manual(values = confidence_palette) +
+  scale_fill_manual(values = confidence_palette) +
+  scale_linewidth_manual(values = c("95%" = 1.2, "66%" = 4.8)) +
+  scale_alpha_manual(values = c("95%" = 0.50, "66%" = 0.85)) +
+  scale_y_continuous(
+    breaks = NULL,
+    limits = c(-0.03, 1.10),
+    expand = expansion(mult = c(0, 0.02))
+  ) +
+  labs(
+    title = "Confidence clouds show the effect away from no change",
+    subtitle = "Dense colour marks more compatible values; bars show central 66% and 95% confidence intervals",
+    x = "Effect value",
+    y = NULL,
+    colour = "Parameter"
+  ) +
+  theme_drmtmb_gallery() +
+  theme(
+    legend.position = "none",
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor = element_blank()
+  )
+```
 
 Distributional parameters are not all residual standard deviations. Shape,
 inflation, hurdle, and residual-correlation parameters answer different
@@ -363,6 +631,11 @@ variance_components <- data.frame(
     "Site intercept SD",
     "Site temperature-slope SD"
   ),
+  component_type = c(
+    "Residual scale",
+    "Group intercept SD",
+    "Group slope SD"
+  ),
   estimate = c(
     component_rows["sigma", "estimate"],
     component_rows[
@@ -379,22 +652,34 @@ variance_components$component <- factor(
   variance_components$component,
   levels = rev(variance_components$component)
 )
+variance_components$component_type <- factor(
+  variance_components$component_type,
+  levels = c("Residual scale", "Group intercept SD", "Group slope SD")
+)
 
-ggplot(variance_components, aes(estimate, component)) +
-  geom_point(size = 2.8, colour = "#0072B2") +
+component_palette <- c(
+  "Residual scale" = gallery_colour("blue"),
+  "Group intercept SD" = gallery_colour("green"),
+  "Group slope SD" = gallery_colour("orange")
+)
+
+ggplot(variance_components, aes(estimate, component, colour = component_type)) +
   geom_segment(
     aes(x = 0, xend = estimate, yend = component),
     linewidth = 0.7,
-    colour = "#0072B2",
     alpha = 0.55
   ) +
+  geom_point(size = 2.8) +
+  scale_colour_manual(values = component_palette) +
   labs(
     title = "Residual scale and group-level SDs are different quantities",
     subtitle = "The slope SD measures among-site variation in temperature responses",
     x = "Fitted standard deviation",
-    y = NULL
+    y = NULL,
+    colour = "Component"
   ) +
-  theme_drmtmb_gallery()
+  theme_drmtmb_gallery() +
+  guides(colour = "none")
 ```
 
 The dot plot compares three standard deviations, but only one is residual
@@ -403,37 +688,240 @@ growth, and how much sites differ in the temperature slope. For intervals on
 these SDs, use `profile_targets(fit_re_slopes)` to choose direct profile-ready
 targets rather than treating the quick point plot as an uncertainty analysis.
 
-Conditional random effects answer a related but different question. They are
-shrunken site-level deviations from the population intercept or slope, not
-variance components.
+Readers used to Bayesian model summaries often expect one display that keeps
+fixed effects, standard deviations, and correlations together. For this
+frequentist fit, a direct interval plot is clearer than a cloud: the point is
+the estimate, the thick bar is the central 66% Wald interval, and the thin bar
+is the 95% Wald interval.
 
-```{r random-slope-modes, fig.alt="Ordered dot plot of conditional site-level temperature-slope deviations from a fitted random-slope model, centered around zero."}
-site_slope <- ranef(fit_re_slopes, "mu")$terms[[
-  "(1 + temperature | site):temperature"
-]]
-site_slope <- data.frame(
-  site = names(site_slope),
-  slope_deviation = unname(site_slope)
+```{r coefficient-intervals, fig.alt="Coefficient interval panel showing fixed effects, residual and group-level standard deviations, and the random intercept-slope correlation, with zero reference line, estimate dots, and 66 and 95 percent interval bars."}
+fixed_rows <- summary(fit_re_slopes)$coefficients
+parameter_rows <- summary(fit_re_slopes)$parameters
+coefficient_specs <- data.frame(
+  group = c(
+    "Fixed effects",
+    "Fixed effects",
+    "SD parameters",
+    "SD parameters",
+    "SD parameters",
+    "Correlation"
+  ),
+  parameter = c(
+    "mu intercept",
+    "mu temperature slope",
+    "residual sigma",
+    "site intercept SD",
+    "site temperature-slope SD",
+    "intercept-slope correlation"
+  ),
+  estimate = c(
+    fixed_rows["mu:(Intercept)", "estimate"],
+    fixed_rows["mu:temperature", "estimate"],
+    parameter_rows["sigma", "estimate"],
+    parameter_rows[
+      "sd:mu:(1 + temperature | site):(Intercept)",
+      "estimate"
+    ],
+    parameter_rows[
+      "sd:mu:(1 + temperature | site):temperature",
+      "estimate"
+    ],
+    parameter_rows[
+      "cor:mu:cor((Intercept),temperature | site)",
+      "estimate"
+    ]
+  ),
+  std_error = c(
+    fixed_rows["mu:(Intercept)", "std_error"],
+    fixed_rows["mu:temperature", "std_error"],
+    parameter_rows["sigma", "std_error"],
+    parameter_rows[
+      "sd:mu:(1 + temperature | site):(Intercept)",
+      "std_error"
+    ],
+    parameter_rows[
+      "sd:mu:(1 + temperature | site):temperature",
+      "std_error"
+    ],
+    parameter_rows[
+      "cor:mu:cor((Intercept),temperature | site)",
+      "std_error"
+    ]
+  ),
+  null_value = c(0, 0, 0, 0, 0, 0)
 )
-site_slope$site <- factor(
-  site_slope$site,
-  levels = site_slope$site[order(site_slope$slope_deviation)]
+coefficient_levels <- rev(coefficient_specs$parameter)
+coefficient_specs$parameter <- factor(
+  coefficient_specs$parameter,
+  levels = coefficient_levels
+)
+coefficient_intervals <- do.call(
+  rbind,
+  lapply(seq_len(nrow(coefficient_specs)), function(i) {
+    row <- coefficient_specs[i, ]
+    make_confidence_intervals(
+      parameter = row$parameter,
+      estimate = row$estimate,
+      std_error = row$std_error,
+      transform = "identity"
+    )
+  })
+)
+coefficient_intervals <- merge(
+  coefficient_intervals,
+  coefficient_specs[c("parameter", "group")],
+  by = "parameter"
+)
+coefficient_intervals$parameter <- factor(
+  coefficient_intervals$parameter,
+  levels = coefficient_levels
+)
+coefficient_intervals$level <- factor(
+  coefficient_intervals$level,
+  levels = c("95%", "66%")
+)
+coefficient_intervals <- coefficient_intervals[
+  order(coefficient_intervals$parameter, coefficient_intervals$level),
+]
+
+interval_group_palette <- c(
+  "Fixed effects" = gallery_colour("blue"),
+  "SD parameters" = gallery_colour("green"),
+  "Correlation" = gallery_colour("orange")
 )
 
-ggplot(site_slope, aes(slope_deviation, site)) +
-  geom_vline(xintercept = 0, linetype = "dashed", colour = "grey60") +
-  geom_point(size = 1.7, colour = "#D55E00") +
+ggplot() +
+  geom_vline(xintercept = 0, linetype = "dashed", colour = "grey55") +
+  geom_segment(
+    data = coefficient_intervals[coefficient_intervals$level == "95%", ],
+    aes(
+      x = xmin,
+      xend = xmax,
+      y = parameter,
+      yend = parameter,
+      colour = group
+    ),
+    linewidth = 1.0,
+    alpha = 0.45,
+    lineend = "round"
+  ) +
+  geom_segment(
+    data = coefficient_intervals[coefficient_intervals$level == "66%", ],
+    aes(
+      x = xmin,
+      xend = xmax,
+      y = parameter,
+      yend = parameter,
+      colour = group
+    ),
+    linewidth = 3.4,
+    alpha = 0.72,
+    lineend = "round"
+  ) +
+  geom_point(
+    data = coefficient_specs,
+    aes(x = estimate, y = parameter, colour = group),
+    size = 2.3
+  ) +
+  scale_colour_manual(values = interval_group_palette) +
+  scale_y_discrete(drop = FALSE) +
   labs(
-    title = "Conditional random-slope deviations",
-    subtitle = "Each point is a site-specific deviation from the average temperature slope",
-    x = "Deviation in temperature slope",
-    y = "Site"
+    title = "Coefficient intervals separate fixed effects, SDs, and correlations",
+    subtitle = "Points are estimates; thick and thin bars show 66% and 95% Wald intervals",
+    x = "Estimate on displayed scale",
+    y = NULL,
+    colour = "Parameter class"
   ) +
   theme_drmtmb_gallery() +
   theme(
-    axis.text.y = element_blank(),
-    axis.ticks.y = element_blank()
+    legend.position = "bottom",
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor = element_blank()
   )
+```
+
+A random-slope figure should show repeated site behaviour. The translucent
+lines below are conditional site-level trajectories: each site borrows strength
+from the population fit, but sites can still differ in both intercept and
+temperature slope.
+
+```{r random-slope-modes, fig.alt="Repeated-measures random-slope plot with grey observed site data, translucent site-level fitted trajectories, and a darker population-average fitted line."}
+site_intercept <- ranef(fit_re_slopes, "mu")$terms[[
+  "(1 + temperature | site):(Intercept)"
+]]
+site_slope_deviation <- ranef(fit_re_slopes, "mu")$terms[[
+  "(1 + temperature | site):temperature"
+]]
+site_effects <- data.frame(
+  site = names(site_slope_deviation),
+  intercept_deviation = unname(site_intercept),
+  slope_deviation = unname(site_slope_deviation)
+)
+site_effects$slope_direction <- factor(
+  ifelse(
+    site_effects$slope_deviation < 0,
+    "Lower than average",
+    "Higher than average"
+  ),
+  levels = c("Lower than average", "Higher than average")
+)
+fixed_re <- summary(fit_re_slopes)$coefficients
+site_lines <- expand.grid(
+  site = names(site_slope_deviation),
+  temperature = seq(-1, 1, length.out = 50),
+  KEEP.OUT.ATTRS = FALSE
+)
+site_lines <- merge(site_lines, site_effects, by = "site")
+site_lines$fitted_growth <- (
+  fixed_re["mu:(Intercept)", "estimate"] +
+    site_lines$intercept_deviation
+) + (
+  fixed_re["mu:temperature", "estimate"] +
+    site_lines$slope_deviation
+) * site_lines$temperature
+population_line <- data.frame(
+  temperature = seq(-1, 1, length.out = 80)
+)
+population_line$fitted_growth <- fixed_re["mu:(Intercept)", "estimate"] +
+  fixed_re["mu:temperature", "estimate"] * population_line$temperature
+
+ggplot() +
+  geom_point(
+    data = reef_re,
+    aes(temperature, growth),
+    colour = "grey55",
+    alpha = 0.38,
+    size = 1.15
+  ) +
+  geom_line(
+    data = site_lines,
+    aes(
+      temperature,
+      fitted_growth,
+      group = site,
+      colour = slope_direction
+    ),
+    alpha = 0.48,
+    linewidth = 0.55
+  ) +
+  geom_line(
+    data = population_line,
+    aes(temperature, fitted_growth),
+    colour = gallery_colour("charcoal"),
+    linewidth = 1.05
+  ) +
+  scale_colour_manual(values = c(
+    "Lower than average" = gallery_colour("blue"),
+    "Higher than average" = gallery_colour("orange")
+  )) +
+  labs(
+    title = "Translucent site trajectories show random slopes",
+    subtitle = "Grey points are repeated site observations; the dark line is the population slope",
+    x = "Temperature anomaly",
+    y = "Growth",
+    colour = "Site slope"
+  ) +
+  theme_drmtmb_gallery()
 ```
 
 A direct `sd(site) ~ reef_cover` formula asks a third question: does a
@@ -475,20 +963,27 @@ pred_site_sd <- predict_parameters(
   dpar = "sd(site)",
   conf.int = TRUE
 )
+pred_site_sd$quantity <- "Among-site SD"
 
 plot_parameter_surface(
   pred_site_sd,
   x = "reef_cover",
+  colour = "quantity",
   facet = NULL,
   point = FALSE
 ) +
+  scale_colour_manual(values = c(
+    "Among-site SD" = gallery_colour("green")
+  )) +
   labs(
     title = "Among-site SD surface",
     subtitle = "Requested Wald intervals remain unavailable for direct random-effect SD surfaces",
     x = "Reef cover",
-    y = "Among-site SD in expected growth"
+    y = "Among-site SD in expected growth",
+    colour = NULL
   ) +
-  theme_drmtmb_gallery()
+  theme_drmtmb_gallery() +
+  guides(colour = "none")
 ```
 
 This line is a fitted random-effect SD surface. It should not be read as a raw
@@ -518,6 +1013,7 @@ pred_habitat <- predict_parameters(
 plot_parameter_surface(
   pred_habitat,
   x = "habitat",
+  colour = "habitat",
   line = FALSE,
   point = TRUE
 ) +
@@ -575,22 +1071,25 @@ pred_cat_cat <- predict_parameters(
 raw_cat_cat <- reef
 
 ggplot(pred_cat_cat, aes(habitat, estimate, colour = season)) +
-  geom_jitter(
+  geom_point(
     data = raw_cat_cat,
     aes(y = growth, colour = season),
-    width = 0.11,
-    height = 0,
+    position = position_jitterdodge(
+      jitter.width = 0.08,
+      jitter.height = 0,
+      dodge.width = 0.45
+    ),
     alpha = 0.22,
     size = 1.1,
     show.legend = FALSE
   ) +
   geom_pointrange(
     aes(ymin = conf.low, ymax = conf.high),
-    position = position_dodge(width = 0.35),
+    position = position_dodge(width = 0.45),
     linewidth = 0.65,
     fatten = 2.3
   ) +
-  scale_colour_manual(values = c("dry" = "#0072B2", "wet" = "#E69F00")) +
+  scale_colour_manual(values = season_palette) +
   labs(
     title = "Categorical by categorical interaction",
     subtitle = "Small points are observations; intervals are fitted cell means",
@@ -660,7 +1159,7 @@ ggplot(emm_season, aes(habitat, emmean, colour = season)) +
     linewidth = 0.65,
     fatten = 2.3
   ) +
-  scale_colour_manual(values = c("dry" = "#0072B2", "wet" = "#E69F00")) +
+  scale_colour_manual(values = season_palette) +
   labs(
     title = "Factor-conditioned estimated marginal means",
     subtitle = "Habitat mu summaries are shown separately for each season",
@@ -733,6 +1232,7 @@ empirical_habitat <- marginal_parameters(
 plot_parameter_surface(
   empirical_habitat,
   x = "habitat",
+  colour = "habitat",
   facet = NULL,
   line = FALSE,
   point = TRUE
@@ -784,14 +1284,24 @@ emmeans_boundary$status_label <- ifelse(
   "supported\nmu EMM",
   "unsupported\nboundary"
 )
+emmeans_boundary$status_text_colour <- ifelse(
+  emmeans_boundary$status == "Supported emmeans route",
+  "white",
+  "grey10"
+)
 
 ggplot(emmeans_boundary, aes(status, target, fill = status)) +
   geom_tile(width = 0.84, height = 0.72, colour = "white", linewidth = 0.6) +
-  geom_text(aes(label = status_label), size = 3.1, lineheight = 0.9) +
+  geom_text(
+    aes(label = status_label, colour = status_text_colour),
+    size = 3.1,
+    lineheight = 0.9
+  ) +
   scale_fill_manual(values = c(
     "Supported emmeans route" = "#0072B2",
     "Unsupported boundary" = "#E69F00"
   )) +
+  scale_colour_identity() +
   labs(
     title = "Current emmeans support boundary",
     subtitle = "Only fixed-effect univariate mu is advertised as an emmeans target",
@@ -866,14 +1376,14 @@ ggplot(
   geom_ribbon(aes(ymin = conf.low, ymax = conf.high), alpha = 0.14, colour = NA) +
   geom_line(linewidth = 0.8) +
   scale_colour_manual(values = c(
-    "low moisture" = "#0072B2",
-    "average moisture" = "#555555",
-    "high moisture" = "#D55E00"
+    "low moisture" = gallery_colour("blue"),
+    "average moisture" = gallery_colour("green"),
+    "high moisture" = gallery_colour("orange")
   )) +
   scale_fill_manual(values = c(
-    "low moisture" = "#0072B2",
-    "average moisture" = "#555555",
-    "high moisture" = "#D55E00"
+    "low moisture" = gallery_colour("blue"),
+    "average moisture" = gallery_colour("green"),
+    "high moisture" = gallery_colour("orange")
   )) +
   labs(
     title = "Continuous by continuous interaction",
@@ -992,14 +1502,24 @@ layer_boundary$status_label <- ifelse(
   "fitted\nrow",
   "planned\nboundary"
 )
+layer_boundary$status_text_colour <- ifelse(
+  layer_boundary$status == "Fitted corpairs row",
+  "white",
+  "grey10"
+)
 
 ggplot(layer_boundary, aes(status, layer, fill = status)) +
   geom_tile(width = 0.82, height = 0.72, colour = "white", linewidth = 0.6) +
-  geom_text(aes(label = status_label), size = 3.1, lineheight = 0.9) +
+  geom_text(
+    aes(label = status_label, colour = status_text_colour),
+    size = 3.1,
+    lineheight = 0.9
+  ) +
   scale_fill_manual(values = c(
     "Fitted corpairs row" = "#0072B2",
     "Planned boundary" = "#E69F00"
   )) +
+  scale_colour_identity() +
   labs(
     title = "Correlation-layer support boundary",
     subtitle = "Spatial, animal, and relmat rows are reserved until fitted correlation-pair evidence exists",
@@ -1026,7 +1546,7 @@ Simulation figures answer different questions from model-interpretation
 figures. They should show bias, error, coverage, runtime, and failures beside
 the model surface being tested.
 
-```{r simulation-operating-characteristics, fig.alt="Simulation summary plots showing illustrative bias and interval coverage by estimand across Gaussian location-scale, proportion, and count surfaces."}
+```{r simulation-operating-characteristics, fig.alt="Simulation summary plots showing illustrative replicate-level bias clouds with mean and MCSE intervals, plus interval coverage bars with binomial MCSE whiskers, by estimand across Gaussian location-scale, proportion, and count surfaces."}
 sim_summary <- data.frame(
   surface = rep(
     c("Gaussian location-scale", "Proportion", "Count"),
@@ -1049,36 +1569,140 @@ sim_summary <- data.frame(
     0.93, 0.95, 0.89, NA
   )
 )
+sim_summary$n_rep <- 500L
+sim_summary$bias_mcse <- sim_summary$rmse / sqrt(sim_summary$n_rep)
+sim_summary$bias_low <- sim_summary$bias - 1.96 * sim_summary$bias_mcse
+sim_summary$bias_high <- sim_summary$bias + 1.96 * sim_summary$bias_mcse
+sim_summary$coverage_mcse <- sqrt(
+  sim_summary$coverage * (1 - sim_summary$coverage) / sim_summary$n_rep
+)
+sim_summary$coverage_low <- pmax(
+  0,
+  sim_summary$coverage - 1.96 * sim_summary$coverage_mcse
+)
+sim_summary$coverage_high <- pmin(
+  1,
+  sim_summary$coverage + 1.96 * sim_summary$coverage_mcse
+)
+sim_summary$surface <- factor(
+  sim_summary$surface,
+  levels = names(surface_palette)
+)
+estimand_labels <- c(
+  "beta_x" = "beta_x fixed slope",
+  "sigma" = "sigma residual SD",
+  "sd_intercept" = "sd_intercept group SD",
+  "rho12" = "rho12 residual correlation"
+)
+sim_summary$estimand_label <- factor(
+  estimand_labels[sim_summary$estimand],
+  levels = rev(unname(estimand_labels))
+)
+display_replicates <- 45
+sim_rain <- do.call(
+  rbind,
+  lapply(seq_len(nrow(sim_summary)), function(i) {
+    row <- sim_summary[i, ]
+    if (is.na(row$bias)) {
+      return(NULL)
+    }
+    data.frame(
+      surface = row$surface,
+      estimand_label = row$estimand_label,
+      bias_replicate = row$bias +
+        qnorm(ppoints(display_replicates)) * row$rmse
+    )
+  })
+)
+sim_rain$surface <- factor(sim_rain$surface, levels = levels(sim_summary$surface))
+sim_rain$estimand_label <- factor(
+  sim_rain$estimand_label,
+  levels = levels(sim_summary$estimand_label)
+)
 
-ggplot(sim_summary, aes(estimand, bias, colour = surface, group = surface)) +
+bias_position <- position_dodge(width = 0.65)
+
+ggplot() +
   geom_hline(yintercept = 0, linetype = "dashed", colour = "grey60") +
-  geom_point(size = 2.2, na.rm = TRUE) +
-  geom_line(na.rm = TRUE) +
+  geom_violin(
+    data = sim_rain,
+    aes(
+      estimand_label,
+      bias_replicate,
+      group = interaction(estimand_label, surface),
+      fill = surface
+    ),
+    position = bias_position,
+    width = 0.62,
+    alpha = 0.16,
+    colour = NA,
+    scale = "width",
+    trim = FALSE
+  ) +
+  geom_point(
+    data = sim_rain,
+    aes(estimand_label, bias_replicate, colour = surface),
+    position = position_jitterdodge(jitter.width = 0.08, dodge.width = 0.65),
+    alpha = 0.22,
+    size = 0.75,
+    show.legend = FALSE
+  ) +
+  geom_linerange(
+    data = sim_summary,
+    aes(
+      estimand_label,
+      ymin = bias_low,
+      ymax = bias_high,
+      colour = surface
+    ),
+    position = bias_position,
+    linewidth = 0.95,
+    na.rm = TRUE
+  ) +
+  geom_point(
+    data = sim_summary,
+    aes(estimand_label, bias, colour = surface),
+    position = bias_position,
+    size = 2.6,
+    na.rm = TRUE
+  ) +
   coord_flip() +
-  scale_colour_manual(values = c(
-    "Gaussian location-scale" = "#0072B2",
-    "Proportion" = "#009E73",
-    "Count" = "#CC79A7"
-  )) +
+  scale_colour_manual(values = surface_palette, drop = FALSE) +
+  scale_fill_manual(values = surface_palette, drop = FALSE) +
   labs(
     title = "Bias by estimand",
+    subtitle = "Rainclouds show replicate estimates; large points are means with 95% MCSE intervals",
     x = NULL,
     y = "Mean estimate minus truth",
     colour = "Surface"
   ) +
+  guides(fill = "none") +
   theme_drmtmb_gallery()
 
-ggplot(sim_summary, aes(estimand, coverage, fill = surface)) +
+coverage_position <- position_dodge2(width = 0.78, preserve = "single")
+
+ggplot(sim_summary, aes(estimand_label, coverage, fill = surface)) +
   geom_hline(yintercept = 0.95, linetype = "dashed", colour = "grey60") +
-  geom_col(position = position_dodge(width = 0.75), width = 0.65, na.rm = TRUE) +
+  geom_col(
+    position = coverage_position,
+    width = 0.65,
+    colour = "white",
+    linewidth = 0.25,
+    na.rm = TRUE
+  ) +
+  geom_errorbar(
+    aes(ymin = coverage_low, ymax = coverage_high, colour = surface),
+    position = coverage_position,
+    width = 0.22,
+    linewidth = 0.45,
+    na.rm = TRUE
+  ) +
   coord_flip(ylim = c(0.75, 1)) +
-  scale_fill_manual(values = c(
-    "Gaussian location-scale" = "#0072B2",
-    "Proportion" = "#009E73",
-    "Count" = "#CC79A7"
-  )) +
+  scale_fill_manual(values = surface_palette, drop = FALSE) +
+  scale_colour_manual(values = surface_palette, drop = FALSE, guide = "none") +
   labs(
     title = "Interval coverage",
+    subtitle = "Bars are means; whiskers are approximate 95% binomial MCSE intervals",
     x = NULL,
     y = "Empirical coverage",
     fill = "Surface"
@@ -1087,10 +1711,15 @@ ggplot(sim_summary, aes(estimand, coverage, fill = surface)) +
 ```
 
 These figures use a small illustrative table with the same columns that
-simulation summaries should carry. The comprehensive simulation programme
-should not be count-only. It should add continuous, meta-analysis, proportion,
-count, ordinal, bivariate, random-slope, and structured-dependence surfaces as
-each surface becomes ready. Real simulation reports should also show the run
+simulation summaries should carry. The bias panel shows the intended
+raincloud-style grammar: real reports should draw the replicate-level
+estimates, then overplot the mean and MCSE interval for each defined
+surface-estimand cell. The panel still leaves estimands disconnected because
+`beta_x`, `sigma`, `sd_intercept`, and `rho12` are categorical targets, not
+steps along one trajectory. The comprehensive simulation programme should not
+be count-only. It should add continuous, meta-analysis, proportion, count,
+ordinal, bivariate, random-slope, and structured-dependence surfaces as each
+surface becomes ready. Real simulation reports should also show the run
 manifest and warning/error ledger so missing or failed fits are not hidden
 behind clean-looking panels.
 
