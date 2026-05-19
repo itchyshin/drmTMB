@@ -554,6 +554,14 @@ uses a support-boundary strip to keep `sigma`, bivariate responses,
 zero-inflated or hurdle response means, ordinal expected scores, and
 random-effect targets visibly unsupported for the current `emmeans` bridge.
 
+Slice 265 creates the first Simulation & Comparison plot-grammar article. It
+keeps simulation result displays separate from the model-interpretation figure
+gallery and defines reusable displays for bias, RMSE, coverage, power,
+convergence, runtime, and warning/error ledgers. The example tables are
+illustrative fixtures, not final operating-characteristic evidence; real
+reports should use the same grammar only after the surface has fitted
+likelihood, estimand, interval-status, diagnostic, and failure-ledger evidence.
+
 ### `corpairs()` Plotting Preflight
 
 Slice 112 records the minimum contract that `plot_corpairs()` follows as an

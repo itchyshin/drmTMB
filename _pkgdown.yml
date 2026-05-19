@@ -63,6 +63,8 @@ navbar:
       menu:
         - text: Testing likelihoods and comparators
           href: articles/testing-likelihoods.html
+        - text: Simulation plot grammar
+          href: articles/simulation-plot-grammar.html
     developer:
       text: Developer Notes
       menu:
@@ -165,6 +167,7 @@ articles:
   - title: Simulation & Comparison
     contents:
       - testing-likelihoods
+      - simulation-plot-grammar
   - title: Developer Notes
     contents:
       - formula-grammar

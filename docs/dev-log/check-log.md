@@ -26053,3 +26053,53 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-18-slice-264-emmeans-marginal-figures.md`.
+
+## 2026-05-18 - Slice 265 simulation plot grammar
+
+Goal: create the first Simulation & Comparison article for
+operating-characteristic plot grammar before broad Phase 18 result articles are
+advertised.
+
+Files changed:
+
+- `_pkgdown.yml`
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/39-visualization-grammar.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `docs/dev-log/after-task/2026-05-18-slice-265-simulation-plot-grammar.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-18-181824-codex-checkpoint.md`
+- `vignettes/simulation-plot-grammar.Rmd`
+
+What changed:
+
+- Added `vignettes/simulation-plot-grammar.Rmd`.
+- Added the article to the Simulation & Comparison pkgdown navbar and article
+  index.
+- Added illustrative fixture tables and plots for bias, RMSE, coverage, power,
+  convergence, runtime, and warning/error ledgers.
+- Covered continuous, proportion, count, and meta-analysis example surfaces
+  without presenting the fixtures as final simulation evidence.
+- Updated the roadmap, visualization grammar note, Phase 18 simulation
+  programme note, and NEWS entry for Slice 265.
+
+Checks run:
+
+- `air format vignettes/simulation-plot-grammar.Rmd _pkgdown.yml NEWS.md ROADMAP.md docs/design/39-visualization-grammar.md docs/design/41-phase-18-simulation-programme.md docs/dev-log/recovery-checkpoints/2026-05-18-181824-codex-checkpoint.md`
+- `Rscript -e "devtools::load_all('.', quiet = TRUE); rmarkdown::render('vignettes/simulation-plot-grammar.Rmd', output_dir = '/tmp/drmtmb-simulation-plot-grammar-s265b', quiet = FALSE)"`
+- Extracted embedded PNGs from `/tmp/drmtmb-simulation-plot-grammar-s265b/simulation-plot-grammar.html` and visually checked the bias/RMSE, coverage/power, convergence/runtime, and warning/error ledger displays.
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `git diff --check`
+
+Known limitations:
+
+- The article uses illustrative fixtures; it does not report real Phase 18
+  operating-characteristic results.
+- This slice does not add new simulation helpers or runners.
+- Real result articles still need generated tables with fitted-surface
+  admission checks, interval status, diagnostics, and failure ledgers.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-265-simulation-plot-grammar.md`.

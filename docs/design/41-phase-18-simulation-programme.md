@@ -302,3 +302,9 @@ CRAN tests should only run smoke checks for seed stability and output shape.
     broader set of simulation result articles covering power, bias, coverage,
     runtime, convergence, and failures across continuous, proportion, count,
     and other data types.
+49. Slice 265 adds `vignettes/simulation-plot-grammar.Rmd` as the first
+    Simulation & Comparison article for operating-characteristic displays. The
+    article uses illustrative fixtures across continuous, proportion, count,
+    and meta-analysis examples to show bias, RMSE, coverage, power,
+    convergence, runtime, and warning/error ledger plots. It is a display
+    contract for later simulation reports, not final Phase 18 evidence.
