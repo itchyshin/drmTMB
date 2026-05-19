@@ -3075,12 +3075,19 @@ drm_reject_phase1_terms <- function(rhs, dpar, allow_offset = FALSE) {
     logical(1)
   )]
   if (length(structured) > 0L) {
-    cli::cli_abort(c(
+    message <- c(
       "Structured-effect syntax is planned, not implemented.",
       "x" = "The {.code {dpar}} formula contains structured marker{?s}: {.val {structured}}.",
       "i" = "Implemented structured paths are Gaussian-only: intercept-level {.code phylo()} terms in univariate and selected bivariate Gaussian formulas, and coordinate-spatial {.code spatial(1 | site, coords = coords)} or one-slope {.code spatial(1 + x | site, coords = coords)} terms in univariate Gaussian {.code mu}.",
       "i" = "Structured non-Gaussian paths, including count, bounded, ordinal, shape, inflation, hurdle, and future {.fn animal} or {.fn relmat} relatedness routes, remain deferred until ordinary family-specific random-effect recovery is stable."
-    ))
+    )
+    if (identical(dpar, "sigma") && "phylo" %in% structured) {
+      message <- c(
+        message,
+        "i" = "{.code sigma ~ phylo(...)} is not a fitted univariate residual-scale model yet; use fixed-effect {.code sigma} predictors or a documented bivariate labelled q4 phylogenetic block when that is the intended four-endpoint model."
+      )
+    }
+    cli::cli_abort(message)
   }
 
   unsupported <- c("|", "meta_known_V", "meta_V", "gr", "phylo", "spatial")

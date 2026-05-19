@@ -26787,3 +26787,74 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-18-slice-278-interval-hardening.md`.
+
+## 2026-05-18 - Slice 279 Bergmann report fixes
+
+Goal: close the Bergmann-report follow-up items without widening the modelling
+scope: invalid fixed-effect Wald variances should be unavailable rather than
+`NaN`, univariate `sigma ~ phylo(...)` should have a targeted unsupported
+message, labelled q4 syntax that decomposes into two q2 blocks should be tested,
+and long optimizer histories should have reader-facing triage guidance.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `R/drmTMB.R`
+- `R/profile.R`
+- `docs/dev-log/after-task/2026-05-18-slice-279-bergmann-report-fixes.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-18-203121-codex-checkpoint.md`
+- `tests/testthat/test-biv-gaussian.R`
+- `tests/testthat/test-phylo-gaussian.R`
+- `tests/testthat/test-profile-targets.R`
+- `vignettes/convergence.Rmd`
+
+What changed:
+
+- Added a `profile_wald_standard_errors()` guard so invalid fixed-effect
+  variances produce `NA` Wald endpoints and `conf.status = "wald_unavailable"`
+  instead of `NaN` intervals with a valid-looking status.
+- Added a univariate `sigma ~ phylo(...)` note to the structured-effect
+  unsupported message, directing users to fixed-effect `sigma` predictors or
+  the documented labelled bivariate q4 phylogenetic block when that is the
+  intended four-endpoint model.
+- Added a bivariate Gaussian test confirming that separate `p` and `q` labels
+  across matching `mu1`/`mu2` and `sigma1`/`sigma2` terms fit as two q2 blocks,
+  report mean-mean and scale-scale `corpairs()` rows, and do not produce q4
+  `re_cov` profile targets.
+- Added convergence-vignette guidance for checking whether a long iteration
+  history hit `iter.max` or `eval.max`, rerunning with larger optimizer
+  budgets, comparing estimates/gradients/boundary rows, and simplifying
+  boundary-heavy covariance structures.
+- Marked Slice 279 done in the roadmap and added a NEWS bullet.
+
+Checks run:
+
+- `air format NEWS.md ROADMAP.md R/profile.R R/drmTMB.R tests/testthat/test-profile-targets.R tests/testthat/test-phylo-gaussian.R tests/testthat/test-biv-gaussian.R vignettes/convergence.Rmd`
+- `Rscript -e "devtools::test(filter = 'profile-targets|phylo-gaussian|biv-gaussian', reporter = 'summary')"`
+- `Rscript -e 'devtools::load_all(quiet = TRUE); rmarkdown::render("vignettes/convergence.Rmd", output_dir = tempfile("convergence-render-"), quiet = FALSE)'`
+- `rg -n 'Slice 279|Bergmann|wald_unavailable|sigma ~ phylo|q4 block-diagonal|long iteration|n_qgt2_blocks|largest fixed-effect Wald|block-diagonal q2' NEWS.md ROADMAP.md R/profile.R R/drmTMB.R tests/testthat/test-profile-targets.R tests/testthat/test-phylo-gaussian.R tests/testthat/test-biv-gaussian.R vignettes/convergence.Rmd`
+- `rg -n 'sigma ~ phylo.*fitted|univariate `?sigma`?.*phylo.*fitted|block-diagonal.*q4.*unsupported|boundary-NaN|NaN.*conf\\.status = "wald"|long iteration.*ignore|long iteration.*stronger evidence' README.md ROADMAP.md NEWS.md docs/design vignettes R tests/testthat --glob '!docs/dev-log/**'`
+  returned only the new negative `not yet fitted` wording and expected
+  no-current-claim matches.
+- `rg -n 'meta_gaussian|tau ~|rho ~|meta_known_V\\([^V]' README.md ROADMAP.md NEWS.md docs/design vignettes R tests/testthat --glob '!docs/dev-log/**'`
+  returned existing design-boundary and compatibility references, not new drift.
+- `rg -n 'sigma.*phylo|phylo.*sigma|q4.*block|block-diagonal|long iteration|wald_unavailable' README.md docs/dev-log/known-limitations.md docs/design/01-formula-grammar.md vignettes/formula-grammar.Rmd _pkgdown.yml`
+  confirmed the status inventory still separates planned univariate
+  phylogenetic `sigma` terms from the fitted labelled bivariate q4 route.
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `git diff --check`
+- `Rscript tools/codex-checkpoint.R --goal "Slice 279 Bergmann report fixes" --next "stage, commit, push, and open draft PR"`
+
+Known limitations:
+
+- Univariate `sigma ~ phylo(...)` remains planned.
+- This slice does not add q4 derived interval support or predictor-dependent
+  phylogenetic correlations.
+- The Wald guard marks invalid fixed-effect SE rows unavailable; it does not
+  repair a failed Hessian or weakly identified model.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-279-bergmann-report-fixes.md`.

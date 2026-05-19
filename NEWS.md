@@ -5,6 +5,7 @@
 * `drm_control()` now reserves warm-start control names such as `start_from`, `warm_start`, and `warm_start_from` so simpler-fit starts cannot be silently passed to `nlminb()` before the source-fit contract is implemented.
 * `check_drm()` now reports the largest fixed-gradient component label in the `fixed_gradient` diagnostic row, making non-converged or flat-surface fits easier to triage before Hessian or Wald inference is trusted.
 * Interval documentation now separates fitted-model Wald and profile intervals from Phase 18 Fisher-z simulation helpers, and tests confirm Student-t `nu` fixed-effect interval targets plus Fisher-z-scale correlation-helper output.
+* Bergmann-report follow-up now hardens invalid Wald standard-error rows, clarifies that univariate `sigma ~ phylo(...)` is not yet fitted, documents long-iteration triage, and tests the labelled q4-to-two-q2 block-diagonal fallback.
 * Bivariate random-slope combination boundaries now have focused error coverage for matching slope-only `mu1`/`mu2` blocks, intercept-plus-slope location q=4 requests, residual-scale slope pairs, same-response location-scale slope combinations, and all-four q=8-style slope requests.
 * Structured random-slope boundaries now have parser and fit-time audit coverage:
   one-slope `animal()` and `relmat()` markers are readable as planned grammar,

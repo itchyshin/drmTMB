@@ -86,6 +86,13 @@ random slopes and fitted correlations. Use `check_drm()` to decide whether the
 extra budget changed the result or merely gave the optimizer more time to
 reach the same boundary.
 
+For a model that reports a long iteration history, first check whether the fit
+actually hit `iter.max` or `eval.max` in `check_drm()`. If it did, rerun with
+`optimizer_preset = "careful"` or `"robust"` and compare estimates, gradients,
+and boundary rows with the original fit. If the fitted SDs or correlations stay
+near a boundary after a larger budget, simplify the random-effect or
+correlation structure before treating the longer run as stronger evidence.
+
 If a preset is almost right, combine it with explicit overrides:
 
 ```{r}

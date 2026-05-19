@@ -453,6 +453,28 @@ test_that("confint returns Wald fixed-effect intervals", {
   )
 })
 
+test_that("confint marks invalid Wald standard errors unavailable by row", {
+  set.seed(20260619)
+  n <- 70
+  dat <- data.frame(
+    y = stats::rnorm(n),
+    x = stats::rnorm(n)
+  )
+  fit <- drmTMB(bf(y ~ x, sigma ~ 1), family = gaussian(), data = dat)
+  bad_se <- fit
+  bad_se$sdr$cov.fixed[1, 1] <- -1
+  bad_se$sdr$cov.fixed[2, 2] <- Inf
+
+  expect_no_warning(
+    ci <- stats::confint(bad_se, parm = c("mu:(Intercept)", "mu:x"))
+  )
+
+  expect_equal(ci$parm, c("fixef:mu:(Intercept)", "fixef:mu:x"))
+  expect_true(all(is.na(ci$lower)))
+  expect_true(all(is.na(ci$upper)))
+  expect_equal(ci$conf.status, rep("wald_unavailable", 2L))
+})
+
 test_that("interval inventory covers Student-t fixed-effect shape targets", {
   set.seed(20260618)
   n <- 120

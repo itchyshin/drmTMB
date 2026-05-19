@@ -623,28 +623,43 @@ drm_wald_confint <- function(object, parm, level) {
   }
 
   estimates <- unlist(object$coefficients, use.names = FALSE)
-  se <- sqrt(diag(stats::vcov(object)))
+  variances <- diag(stats::vcov(object))
+  se <- profile_wald_standard_errors(variances)
   labels <- coefficient_labels(object)
   z <- stats::qnorm((1 + level) / 2)
   rows <- profile_target_positions(targets, labels)
+  interval_ready <- is.finite(estimates[rows]) & is.finite(se[rows])
+  lower <- rep(NA_real_, nrow(targets))
+  upper <- rep(NA_real_, nrow(targets))
+  lower[interval_ready] <- estimates[rows][interval_ready] -
+    z * se[rows][interval_ready]
+  upper[interval_ready] <- estimates[rows][interval_ready] +
+    z * se[rows][interval_ready]
 
   out <- data.frame(
     parm = targets$parm,
     level = level,
-    lower = estimates[rows] - z * se[rows],
-    upper = estimates[rows] + z * se[rows],
+    lower = lower,
+    upper = upper,
     scale = targets$scale,
     transformation = targets$transformation,
     tmb_parameter = targets$tmb_parameter,
     index = targets$index,
     method = "wald",
-    conf.status = "wald",
+    conf.status = ifelse(interval_ready, "wald", "wald_unavailable"),
     profile.boundary = NA,
     profile.message = NA_character_,
     stringsAsFactors = FALSE
   )
   row.names(out) <- NULL
   out
+}
+
+profile_wald_standard_errors <- function(variances) {
+  se <- rep(NA_real_, length(variances))
+  ok <- is.finite(variances) & variances >= -sqrt(.Machine$double.eps)
+  se[ok] <- sqrt(pmax(variances[ok], 0))
+  se
 }
 
 empty_confint_table <- function(method = character()) {

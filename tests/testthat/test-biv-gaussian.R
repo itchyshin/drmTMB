@@ -993,6 +993,42 @@ test_that("bivariate Gaussian supports full q4 labelled location-scale covarianc
   expect_equal(sims, simulate(fit, nsim = 2, seed = 20260630))
 })
 
+test_that("bivariate q4 syntax can fall back to block-diagonal q2 blocks", {
+  sim <- new_biv_gaussian_q4_re_data(seed = 20260645)
+
+  fit <- drmTMB(
+    bf(
+      mu1 = y1 ~ x + (1 | p | id),
+      mu2 = y2 ~ x + (1 | p | id),
+      sigma1 = ~ 1 + (1 | q | id),
+      sigma2 = ~ 1 + (1 | q | id),
+      rho12 = ~1
+    ),
+    family = biv_gaussian(),
+    data = sim$data,
+    control = list(eval.max = 500, iter.max = 500)
+  )
+
+  pairs <- corpairs(fit, level = "group")
+  targets <- profile_targets(fit)
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(fit$model$random$covariance_blocks$n_qgt2_blocks, 0L)
+  expect_named(fit$corpars, c("mu", "sigma"))
+  expect_equal(nrow(pairs), 2L)
+  expect_equal(pairs$class, c("mean-mean", "scale-scale"))
+  expect_equal(pairs$block, c("p", "q"))
+  expect_equal(nrow(corpairs(fit, class = "location-scale")), 0L)
+  expect_true(all(
+    c(
+      "cor:mu:cor(mu1:(Intercept),mu2:(Intercept) | p | id)",
+      "cor:sigma:cor(sigma1:(Intercept),sigma2:(Intercept) | q | id)"
+    ) %in%
+      targets$parm
+  ))
+  expect_false(any(startsWith(targets$parm, "cor:re_cov:")))
+})
+
 test_that("bivariate Gaussian supports labelled sigma1/sigma2 random-intercept covariance blocks", {
   sim <- new_biv_gaussian_sigma_re_data()
 
