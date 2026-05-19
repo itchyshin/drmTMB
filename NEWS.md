@@ -30,6 +30,7 @@
 * Phase 18 now has an end-to-end count-gallery smoke runner that executes a tiny paired Poisson/NB2 `mu` random-effect pilot and renders the Florence-facing HTML gallery from the resulting tables.
 * The Phase 18 count-pilot gallery now has a first Florence visual-polish pass, with horizontal estimand labels, shared palette/theme helpers, captions, and MCSE-aware coverage ranges when available.
 * The figure gallery now keeps correlation layers visually separate, with faceted residual `rho12`, ordinary group, and phylogenetic `corpairs()`-style rows plus planned boundaries for spatial, animal, and `relmat()` layers.
+* The figure gallery now includes a source-map table that maps each display to its fitted object or fixture, extractor or plotter, interval source, and current support boundary.
 * The figure gallery now shows the supported fixed-effect univariate `mu` `emmeans` route, including factor-conditioned and interaction grids, an empirical `marginal_parameters()` summary, and unsupported boundaries for non-`mu` or blocked `emmeans` targets.
 * The figure gallery now separates residual `sigma`, ordinary group-level SDs, conditional random-slope deviations, and fitted `sd(site)` surfaces, with unavailable random-effect SD intervals shown as an explicit plotting boundary.
 * The figure gallery now includes distributional-parameter panels for `mu`, `sigma`, Student-t `nu`, zero-inflation probability `zi`, and residual `rho12`, with explicit response-scale labels and interval provenance.

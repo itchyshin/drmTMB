@@ -562,6 +562,13 @@ illustrative fixtures, not final operating-characteristic evidence; real
 reports should use the same grammar only after the surface has fitted
 likelihood, estimand, interval-status, diagnostic, and failure-ledger evidence.
 
+Slice 266 adds a source-map and QA table to the figure gallery. Each display is
+mapped to its fitted object or fixture, extractor or plotter, interval source,
+and support boundary so readers and maintainers can see which panels are
+Wald-interval displays, profile-needed point displays, status strips,
+`emmeans` reference-grid summaries, empirical marginal summaries, or
+illustrative simulation fixtures.
+
 ### `corpairs()` Plotting Preflight
 
 Slice 112 records the minimum contract that `plot_corpairs()` follows as an

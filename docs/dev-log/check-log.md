@@ -26103,3 +26103,53 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-18-slice-265-simulation-plot-grammar.md`.
+
+## 2026-05-18 - Slice 266 gallery source map and QA
+
+Goal: add a source-map and QA table to the public figure gallery so each display
+names its fitted object or fixture, extractor or plotter, interval source, and
+support boundary.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/39-visualization-grammar.md`
+- `docs/dev-log/after-task/2026-05-18-slice-266-gallery-source-map-qa.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-18-182742-codex-checkpoint.md`
+- `vignettes/figure-gallery.Rmd`
+
+What changed:
+
+- Added a "Gallery source map" section to `vignettes/figure-gallery.Rmd`.
+- Mapped each display to the fitted object or illustrative fixture that drives
+  it.
+- Recorded each extractor or plotter, including `predict_parameters()`,
+  `plot_parameter_surface()`, `emmeans::emmeans()`, `marginal_parameters()`,
+  `plot_corpairs()`, status strips, and fixture displays.
+- Recorded interval provenance and support boundaries so readers do not treat
+  point plots, status strips, or illustrative simulation fixtures as fitted
+  interval evidence.
+- Updated the roadmap, visualization grammar note, and NEWS entry for Slice
+  266.
+
+Checks run:
+
+- `air format vignettes/figure-gallery.Rmd NEWS.md ROADMAP.md docs/design/39-visualization-grammar.md docs/dev-log/recovery-checkpoints/2026-05-18-182742-codex-checkpoint.md`
+- `Rscript -e "devtools::load_all('.', quiet = TRUE); rmarkdown::render('vignettes/figure-gallery.Rmd', output_dir = '/tmp/drmtmb-figure-gallery-s266', quiet = FALSE)"`
+- Confirmed the rendered HTML contains the "Gallery source map" heading and representative table rows.
+- Extracted embedded PNGs from `/tmp/drmtmb-figure-gallery-s266/figure-gallery.html` and spot-checked the post-source-map render output.
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `git diff --check`
+
+Known limitations:
+
+- The source map is a documentation table; it does not validate plot output at
+  runtime.
+- The table should be refreshed when new gallery figures or exported plotting
+  helpers are added.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-266-gallery-source-map-qa.md`.

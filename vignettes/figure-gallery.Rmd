@@ -1094,6 +1094,115 @@ each surface becomes ready. Real simulation reports should also show the run
 manifest and warning/error ledger so missing or failed fits are not hidden
 behind clean-looking panels.
 
+## Gallery source map
+
+The gallery is easier to audit when every figure names its source object,
+extractor, interval source, and support boundary. Use this table as a quick
+check before adapting a plot to a manuscript, tutorial, or simulation report.
+
+```{r gallery-source-map, eval=TRUE}
+gallery_source_map <- data.frame(
+  figure = c(
+    "Mean with confidence band",
+    "mu and sigma surfaces",
+    "nu, zi, and rho12 panels",
+    "Variance-component dot plot",
+    "Conditional random-slope deviations",
+    "sd(site) surface",
+    "Discrete habitat comparison",
+    "Categorical interaction",
+    "Simple emmeans display",
+    "Factor-conditioned emmeans grid",
+    "Interaction emmeans grid",
+    "Empirical marginal mu summary",
+    "emmeans support boundary",
+    "Continuous interaction",
+    "Correlation estimate rows",
+    "Correlation support boundary",
+    "Simulation bias and coverage"
+  ),
+  source = c(
+    "fit_growth",
+    "fit_growth",
+    "fit_tail, fit_zi, fit_pair",
+    "fit_re_slopes",
+    "fit_re_slopes",
+    "fit_site_sd",
+    "fit_growth",
+    "fit_cat_cat",
+    "fit_growth",
+    "fit_cat_cat",
+    "fit_growth",
+    "fit_growth",
+    "emmeans_boundary",
+    "fit_cont_cont",
+    "pair_table",
+    "layer_boundary",
+    "sim_summary"
+  ),
+  extractor_or_plotter = c(
+    "predict_parameters(dpar = \"mu\") + ggplot2",
+    "predict_parameters() + plot_parameter_surface()",
+    "predict_parameters() + plot_parameter_surface()",
+    "summary(fit)$parameters + ggplot2",
+    "ranef() + ggplot2",
+    "prediction_grid() + predict_parameters() + plot_parameter_surface()",
+    "predict_parameters(dpar = \"mu\") + plot_parameter_surface()",
+    "predict_parameters(dpar = \"mu\") + ggplot2",
+    "emmeans::emmeans(type = \"response\") + ggplot2",
+    "emmeans::emmeans(~ habitat | season) + ggplot2",
+    "emmeans::emmeans(~ habitat | temperature) + ggplot2",
+    "prediction_grid(margin = \"empirical\") + marginal_parameters()",
+    "ggplot2 status strip",
+    "predict_parameters(dpar = \"mu\") + ggplot2",
+    "plot_corpairs()",
+    "ggplot2 status strip",
+    "ggplot2 fixture display"
+  ),
+  interval_source = c(
+    "Wald intervals from predict_parameters()",
+    "Wald intervals when finite",
+    "Wald intervals from each fitted parameter table",
+    "Point estimates only",
+    "Conditional modes only",
+    "conf.status = \"wald_unavailable\"",
+    "Wald intervals from predict_parameters()",
+    "Wald intervals from predict_parameters()",
+    "asymptotic emmeans intervals",
+    "asymptotic emmeans intervals",
+    "asymptotic emmeans intervals",
+    "Plug-in average, no intervals",
+    "No intervals; status only",
+    "Wald intervals from predict_parameters()",
+    "Finite bounds supplied in compatible pair table",
+    "No intervals; status only",
+    "Illustrative summaries, not final evidence"
+  ),
+  support_boundary = c(
+    "fixed-effect univariate mu",
+    "fixed-effect mu and sigma",
+    "fixed-effect shape, inflation, and residual rho12",
+    "ordinary Gaussian random-slope fit",
+    "shrunken deviations, not variance intervals",
+    "direct random-effect SD surface without Wald bands",
+    "fixed-effect univariate mu",
+    "fixed-effect univariate mu",
+    "fixed-effect univariate mu only",
+    "fixed-effect univariate mu only",
+    "fixed-effect univariate mu only",
+    "empirical marginalisation, not emmeans",
+    "unsupported targets remain unsupported",
+    "fixed-effect univariate mu",
+    "implemented residual, group, and phylogenetic rows",
+    "spatial, animal, and relmat rows remain planned",
+    "display grammar for later result articles"
+  ),
+  stringsAsFactors = FALSE
+)
+
+knitr::kable(gallery_source_map)
+```
+
 ## Future simulation result articles
 
 Specialised simulation result articles should come later, after the
