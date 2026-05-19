@@ -56,6 +56,14 @@ and explain the failure in `interval_message`. This lets
 `phase18_summarise_interval_coverage()` count `n_replicate` and `n_interval`
 separately.
 
+Diagnostics should also separate three different causes of a low coverage
+entry. `phase18_summarise_interval_evidence()` reports how many requested
+replicates produced usable intervals, how many usable intervals covered truth,
+how many usable intervals missed truth, and how many rows were unusable because
+they failed or were not requested. This is the default interpretation layer for
+formal Student-t shape and `rho12` interval pilots; a failed profile is a
+method-status result, not a coverage miss.
+
 The first real producers should target:
 
 1. Gaussian location-scale fixed effects on `mu` and `sigma`.
@@ -116,3 +124,10 @@ then binds Wald, profile, and bootstrap rows into one artifact with
 `artifact_grain = "interval_evidence"`. `phase18_interval_failures()` should be
 run on that combined artifact so planned, failed, and unavailable intervals are
 visible before coverage summaries are interpreted.
+
+`phase18_summarise_interval_evidence()` is the method-level diagnostics
+consumer for the same combined artifact. It returns
+`artifact_grain = "interval_diagnostics"` and keeps `n_interval`,
+`n_covered`, `n_interval_missed`, `n_interval_unusable`, success/failure
+rates, and MCSEs together so reports can distinguish method instability from
+statistical under-coverage.

@@ -145,3 +145,42 @@ test_that("Phase 18 coverage excludes planned and unavailable intervals", {
   expect_equal(coverage$coverage, 0.25)
   expect_equal(coverage$mean_interval_width, 0.20)
 })
+
+test_that("Phase 18 interval diagnostics separate failures from misses", {
+  source_phase18_interval_evidence()
+
+  evidence <- data.frame(
+    surface = "student_shape",
+    cell_id = "student_shape_001",
+    parameter = "nu:w",
+    interval_method = c("profile", "profile", "profile", "bootstrap"),
+    truth = c(0.25, 0.25, 0.25, 0.25),
+    conf.low = c(0.10, 0.40, NA_real_, 0.40),
+    conf.high = c(0.30, 0.60, NA_real_, 0.60),
+    interval_status = c("ok", "ok", "failed", "ok"),
+    interval_message = c("", "", "profile failed", ""),
+    stringsAsFactors = FALSE
+  )
+
+  diagnostics <- phase18_summarise_interval_evidence(
+    evidence,
+    by = c("surface", "cell_id", "parameter", "interval_method")
+  )
+  diagnostics <- diagnostics[order(diagnostics$interval_method), ]
+  row.names(diagnostics) <- NULL
+
+  expect_equal(diagnostics$interval_method, c("bootstrap", "profile"))
+  expect_equal(diagnostics$n_replicate, c(1L, 3L))
+  expect_equal(diagnostics$n_interval, c(1L, 2L))
+  expect_equal(diagnostics$n_covered, c(0L, 1L))
+  expect_equal(diagnostics$n_interval_missed, c(1L, 1L))
+  expect_equal(diagnostics$n_interval_unusable, c(0L, 1L))
+  expect_equal(diagnostics$n_ok, c(1L, 2L))
+  expect_equal(diagnostics$n_failed, c(0L, 1L))
+  expect_equal(diagnostics$interval_success_rate, c(1, 2 / 3))
+  expect_equal(diagnostics$coverage, c(0, 1 / 3))
+  expect_equal(
+    diagnostics$artifact_grain,
+    rep("interval_diagnostics", 2L)
+  )
+})

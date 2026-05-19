@@ -193,6 +193,7 @@ phase18_summarise_interval_coverage <- function(
       x[1L, by, drop = FALSE],
       n_replicate = nrow(x),
       n_interval = sum(usable_interval),
+      n_covered = sum(covered),
       coverage = mean(covered),
       coverage_mcse = phase18_mcse_proportion(covered),
       mean_interval_width = if (length(width) == 0L) NA_real_ else mean(width),
@@ -207,6 +208,95 @@ phase18_summarise_interval_coverage <- function(
   })
   out <- do.call(rbind, rows)
   row.names(out) <- NULL
+  out
+}
+
+phase18_summarise_interval_status <- function(
+  intervals,
+  by = NULL,
+  status = "interval_status"
+) {
+  if (!is.data.frame(intervals)) {
+    stop("`intervals` must be a data frame.", call. = FALSE)
+  }
+  if (nrow(intervals) == 0L) {
+    return(data.frame())
+  }
+  if (
+    !is.character(status) ||
+      length(status) != 1L ||
+      !nzchar(status) ||
+      !status %in% names(intervals)
+  ) {
+    stop("`status` must name one column in `intervals`.", call. = FALSE)
+  }
+  if (is.null(by)) {
+    by <- phase18_default_interval_groups(intervals)
+  }
+  phase18_assert_group_columns(intervals, by)
+
+  split_key <- interaction(intervals[by], drop = TRUE, lex.order = TRUE)
+  pieces <- split(intervals, split_key)
+  rows <- lapply(pieces, function(x) {
+    status_value <- as.character(x[[status]])
+    ok <- !is.na(status_value) & status_value == "ok"
+    failed <- is.na(status_value) | status_value == "failed"
+    not_requested <- !is.na(status_value) &
+      status_value == "not_requested"
+    known <- ok | failed | not_requested
+
+    data.frame(
+      x[1L, by, drop = FALSE],
+      n_replicate = nrow(x),
+      n_ok = sum(ok),
+      n_failed = sum(failed),
+      n_not_requested = sum(not_requested),
+      n_other_status = sum(!known),
+      interval_success_rate = mean(ok),
+      interval_success_mcse = phase18_mcse_proportion(ok),
+      interval_failure_rate = mean(failed),
+      interval_failure_mcse = phase18_mcse_proportion(failed),
+      stringsAsFactors = FALSE,
+      check.names = FALSE
+    )
+  })
+  out <- do.call(rbind, rows)
+  row.names(out) <- NULL
+  out
+}
+
+phase18_summarise_interval_evidence <- function(
+  intervals,
+  by = NULL,
+  lower = "conf.low",
+  upper = "conf.high"
+) {
+  if (!is.data.frame(intervals)) {
+    stop("`intervals` must be a data frame.", call. = FALSE)
+  }
+  if (nrow(intervals) == 0L) {
+    return(data.frame())
+  }
+  if (is.null(by)) {
+    by <- phase18_default_interval_groups(intervals)
+  }
+  phase18_assert_group_columns(intervals, by)
+
+  coverage <- phase18_summarise_interval_coverage(
+    intervals,
+    by = by,
+    lower = lower,
+    upper = upper
+  )
+  status <- phase18_summarise_interval_status(intervals, by = by)
+  status_extra <- status[,
+    setdiff(names(status), "n_replicate"),
+    drop = FALSE
+  ]
+  out <- merge(coverage, status_extra, by = by, all.x = TRUE, sort = FALSE)
+  out$n_interval_missed <- out$n_interval - out$n_covered
+  out$n_interval_unusable <- out$n_replicate - out$n_interval
+  out$artifact_grain <- "interval_diagnostics"
   out
 }
 
@@ -485,6 +575,13 @@ phase18_optional_interval_coverage <- function(intervals, by) {
   phase18_summarise_interval_coverage(intervals, by = by)
 }
 
+phase18_optional_interval_diagnostics <- function(intervals, by) {
+  if (!is.data.frame(intervals) || nrow(intervals) == 0L) {
+    return(data.frame())
+  }
+  phase18_summarise_interval_evidence(intervals, by = by)
+}
+
 phase18_empty_interval_failures <- function(intervals) {
   out <- intervals[0L, , drop = FALSE]
   out$artifact_grain <- character()
@@ -499,6 +596,20 @@ phase18_default_summary_groups <- function(summary) {
   intersect(
     c("surface", "known_v_type", "cell_id", "parameter"),
     names(summary)
+  )
+}
+
+phase18_default_interval_groups <- function(intervals) {
+  intersect(
+    c(
+      "surface",
+      "known_v_type",
+      "cell_id",
+      "parameter",
+      "interval_method",
+      "interval_scale"
+    ),
+    names(intervals)
   )
 }
 

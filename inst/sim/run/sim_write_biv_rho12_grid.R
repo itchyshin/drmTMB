@@ -59,6 +59,10 @@ phase18_write_biv_rho12_grid_outputs <- function(
       table_dir,
       "biv-rho12-interval-evidence.csv"
     ),
+    interval_diagnostics_csv = file.path(
+      table_dir,
+      "biv-rho12-interval-diagnostics.csv"
+    ),
     interval_failures_csv = file.path(
       table_dir,
       "biv-rho12-interval-failures.csv"
@@ -116,6 +120,11 @@ phase18_write_biv_rho12_grid_outputs <- function(
   utils::write.csv(
     summary$interval_evidence,
     paths$interval_evidence_csv,
+    row.names = FALSE
+  )
+  utils::write.csv(
+    summary$interval_diagnostics,
+    paths$interval_diagnostics_csv,
     row.names = FALSE
   )
   utils::write.csv(
