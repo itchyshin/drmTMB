@@ -691,7 +691,9 @@ Current implemented Gaussian syntax covers:
   multi-slope `mu` blocks, where random-slope SDs are direct targets and block
   correlations are derived-unavailable for direct profile intervals;
 - `sigma ~ x + (1 | id)` for residual-scale random intercepts;
-- `sigma ~ x + (0 + w | id)` for independent residual-scale random slopes;
+- `sigma ~ x + (0 + w | id)` and
+  `sigma ~ x + (0 + w_id | id) + (0 + w_site | site)` for independent
+  residual-scale random slopes, including separate grouping factors;
 - `sd(id) ~ x_group` and multiple distinct `sd(group) ~ x_group` formulas for
   standard deviations of unlabelled Gaussian `mu` random intercepts;
 - bivariate fixed-effect `rho12 ~ x` with `family = c(gaussian(), gaussian())`;

@@ -1194,6 +1194,76 @@ test_that("Gaussian sigma supports multiple independent residual-scale terms", {
   expect_false(any(grepl("^cor:sigma:", targets$parm)))
 })
 
+test_that("Gaussian sigma supports independent residual-scale slopes across groups", {
+  set.seed(20260519)
+  n_id <- 30
+  n_each <- 8
+  n_site <- 12
+  n <- n_id * n_each
+  id <- factor(rep(seq_len(n_id), each = n_each))
+  site <- factor(rep(seq_len(n_site), length.out = n))
+  x <- stats::rnorm(n)
+  z <- stats::rnorm(n)
+  w_id <- rep(seq(-1, 1, length.out = n_each), times = n_id)
+  w_site <- stats::rnorm(n)
+  beta_mu <- c(`(Intercept)` = 0.20, x = 0.55)
+  beta_sigma <- c(`(Intercept)` = -0.50, z = 0.12)
+  a_id <- stats::rnorm(n_id, sd = 0.24)
+  a_site <- stats::rnorm(n_site, sd = 0.18)
+  mu <- beta_mu[[1L]] + beta_mu[[2L]] * x
+  sigma_link <- beta_sigma[[1L]] +
+    beta_sigma[[2L]] * z +
+    a_id[id] * w_id +
+    a_site[site] * w_site
+  dat <- data.frame(
+    y = stats::rnorm(n, mu, exp(sigma_link)),
+    x = x,
+    z = z,
+    w_id = w_id,
+    w_site = w_site,
+    id = id,
+    site = site
+  )
+
+  fit <- drmTMB(
+    bf(y ~ x, sigma ~ z + (0 + w_id | id) + (0 + w_site | site)),
+    family = gaussian(),
+    data = dat,
+    control = drm_control(se = FALSE)
+  )
+  fixed_sigma <- as.vector(
+    fit$model$tmb_data$X_sigma %*% coef(fit, "sigma")
+  )
+  fitted_sigma_link <- predict(fit, dpar = "sigma", type = "link")
+  contribution <- drmTMB:::sigma_random_effect_contribution(fit)
+  targets <- profile_targets(fit)
+  sigma_sd_parms <- paste0("sd:sigma:", names(fit$sdpars$sigma))
+  sigma_sd_targets <- targets[match(sigma_sd_parms, targets$parm), ]
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(fit$model$random$sigma$n_cors, 0L)
+  expect_false("sigma" %in% names(fit$corpars))
+  expect_named(
+    fit$sdpars$sigma,
+    c("(0 + w_id | id)", "(0 + w_site | site)")
+  )
+  expect_equal(
+    length(fit$random_effects$sigma$values),
+    nlevels(dat$id) + nlevels(dat$site)
+  )
+  expect_true(all(is.finite(unname(fit$sdpars$sigma))))
+  expect_true(all(unname(fit$sdpars$sigma) > 0))
+  expect_equal(
+    fitted_sigma_link,
+    fixed_sigma + contribution,
+    tolerance = 1e-10
+  )
+  expect_equal(sigma_sd_targets$tmb_parameter, rep("log_sd_sigma", 2L))
+  expect_equal(sigma_sd_targets$index, 1:2)
+  expect_true(all(sigma_sd_targets$profile_ready))
+  expect_false(any(grepl("^cor:sigma:", targets$parm)))
+})
+
 test_that("Gaussian sigma random intercepts handle boundary and large scale heterogeneity", {
   cases <- list(
     near_zero = list(sd_sigma_id = 0.06, max_est = 0.30, seed = 20260540),

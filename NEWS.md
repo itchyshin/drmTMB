@@ -1,5 +1,6 @@
 # drmTMB 0.1.2 (2026-05-16)
 
+* Gaussian `sigma` random-effect documentation now states the independent residual-scale slope boundary more explicitly: separate terms such as `sigma ~ z + (0 + w_id | id) + (0 + w_site | site)` are fitted with direct `log_sd_sigma` profile targets, while correlated residual-scale slope blocks remain planned.
 * Ordinary Gaussian `mu` random-slope documentation now states the q > 2 boundary more explicitly: multi-slope blocks such as `(1 + x1 + x2 + x3 | id)` are fitted, their SDs are direct profile targets, and their block correlations are derived-unavailable for direct profile intervals until a dedicated interval method exists.
 * Phase 18 now has a pre-simulation capability audit table that records implemented, tested, planned, and unsupported status for Gaussian, non-Gaussian, shape, inflation, bivariate, random-slope, meta-analysis, phylogenetic, spatial, animal, and `relmat()` model classes before broad simulation grids admit them.
 * Phase 18 now has an optional resumable replicate runner under `inst/sim/` that captures warnings, errors, elapsed time, session metadata, and optional RDS output for pilot simulation cells.
