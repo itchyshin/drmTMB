@@ -91,8 +91,9 @@ y_stack ~ MVN(mu_stack, Omega_stack + V_stack)
 That is not the same operation as multiplying log-likelihood contributions by
 `w_i`. A known sampling variance `vi_i` should not be silently converted to
 `weights = 1 / vi_i` inside `drmTMB`. Users who want inverse-variance
-meta-analysis should use `meta_known_V(V = vi)`, because the known uncertainty
-then enters the covariance model directly.
+meta-analysis should use `meta_V(V = vi)`, because the known uncertainty then
+enters the covariance model directly. `meta_known_V(V = vi)` remains a
+compatibility alias for the same additive known-covariance route.
 
 ## Related-Package Caution
 

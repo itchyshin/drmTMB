@@ -147,7 +147,7 @@ spatial <- function(term, coords = NULL, mesh = NULL) {
 #' Use `K` for a covariance or relatedness matrix and `Q` for an inverse
 #' covariance or precision matrix. This marker is parsed and documented, but
 #' does not fit a model yet. It is intentionally separate from
-#' [meta_known_V()], which adds known sampling covariance among observations,
+#' [meta_V()], which adds known sampling covariance among observations,
 #' and from residual `rho12`, which models within-observation bivariate
 #' residual correlation.
 #'

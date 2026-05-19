@@ -32,8 +32,8 @@ bivariate Gaussian engine also accepts
 
 \item{weights}{Optional non-negative likelihood weights. These are row
 log-likelihood multipliers, not known sampling variances. For
-meta-analytic sampling variance or covariance, use \code{\link[=meta_known_V]{meta_known_V()}} in the
-model formula instead.}
+meta-analytic sampling variance or covariance, use \code{\link[=meta_V]{meta_V()}} in the model
+formula instead.}
 
 \item{control}{Optional list passed to \code{\link[stats:nlminb]{stats::nlminb()}}, or a
 \code{\link[=drm_control]{drm_control()}} object when optimizer settings and fitted-object storage
@@ -61,7 +61,8 @@ negative-binomial \code{mu} formulas may include standard R
 Gaussian random intercepts, independent numeric random slopes,
 and labelled or unlabelled correlated numeric random intercept-slope blocks
 in the location formula,
-known sampling covariance through \code{meta_known_V(V = V)}, residual-scale
+known sampling covariance through \code{meta_V(V = V)} with
+\code{meta_known_V(V = V)} as a compatibility alias, residual-scale
 random intercepts and independent numeric random slopes in the scale formula,
 labelled \code{mu}/\code{sigma}
 random-intercept covariance blocks, and one or more group-level

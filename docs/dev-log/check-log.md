@@ -26858,3 +26858,72 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-18-slice-279-bergmann-report-fixes.md`.
+
+## 2026-05-18 - Slice 280 meta_V hardening
+
+Goal: harden the preferred `meta_V(V = V)` route by covering vector and
+full-matrix known covariance through the preferred spelling, clarifying that
+`scale = "exact"` is unnecessary because additive exact known `V` is the
+default, and removing current-facing prose drift back to `meta_known_V()` as the
+main recommendation.
+
+Files changed:
+
+- `NEWS.md`
+- `README.md`
+- `ROADMAP.md`
+- `R/drmTMB.R`
+- `R/formula-markers.R`
+- `R/meta-vcov.R`
+- `docs/design/22-likelihood-weights.md`
+- `docs/dev-log/after-task/2026-05-18-slice-280-meta-v-hardening.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/known-limitations.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-18-204217-codex-checkpoint.md`
+- `man/drmTMB.Rd`
+- `man/meta_vcov_bivariate.Rd`
+- `man/relmat.Rd`
+- `tests/testthat/test-meta-known-v.R`
+
+What changed:
+
+- Added a targeted parser error for `meta_V(V = V, scale = "exact")`, telling
+  users to remove `scale` because `meta_V(V = V)` is already the exact additive
+  known-covariance route.
+- Extended the `meta_V()` alias test so full-matrix `meta_V(V = V)` is compared
+  against `meta_known_V(V = V)` for coefficients and log-likelihood, stores
+  `V_known_type = "matrix"`, and returns finite Wald fixed-effect intervals.
+- Updated `drmTMB()` and `meta_vcov_bivariate()` documentation so the preferred
+  spelling is `meta_V(V = V)`.
+- Updated `relmat()` prose, README, known limitations, likelihood-weights
+  design notes, NEWS, and the roadmap so current-facing text leads with
+  `meta_V()` while preserving `meta_known_V()` as a compatibility alias.
+
+Checks run:
+
+- `air format R/drmTMB.R R/meta-vcov.R tests/testthat/test-meta-known-v.R`
+- `Rscript -e "devtools::document()"`
+- `Rscript -e "devtools::test(filter = 'meta-known-v', reporter = 'summary')"`
+- `Rscript -e "devtools::test(filter = 'meta-known-v|profile-targets|phase18-meta-v', reporter = 'summary')"`
+- `air format NEWS.md README.md ROADMAP.md R/drmTMB.R R/formula-markers.R R/meta-vcov.R docs/design/22-likelihood-weights.md docs/dev-log/known-limitations.md tests/testthat/test-meta-known-v.R`
+- `Rscript -e "devtools::document()"`
+- `rg -n 'preferred.*meta_known_V|use \\[meta_known_V\\]|use `meta_known_V|known `V` matrix used by \\[meta_known_V\\]|Known sampling variance or covariance remains separate and should use `meta_known_V|covariance remains `meta_known_V|meta-analysis should use `meta_known_V|meta_V\\(V = V, scale = "exact"\\).*implemented|scale = "exact".*implemented|weights = 1 / vi.*same model|tau ~|meta_gaussian' README.md NEWS.md ROADMAP.md docs/design vignettes R man tests/testthat --glob '!docs/dev-log/**'`
+  returned only compatibility-alias text, older NEWS/history entries,
+  intentional `meta_gaussian()` / `tau ~` design boundaries, and the expected
+  `weights = 1 / vi` contrast.
+- `rg -n 'Slice 280|meta_V\\(V = V\\).*hardening|scale = "exact"|without.*scale|exact additive|preferred known-covariance|full-matrix alias|Wald fixed-effect interval|meta_vcov_bivariate\\(\\).*meta_V|compatibility alias' NEWS.md README.md ROADMAP.md docs/design/22-likelihood-weights.md docs/dev-log/known-limitations.md R/drmTMB.R R/formula-markers.R R/meta-vcov.R man/drmTMB.Rd man/meta_vcov_bivariate.Rd man/relmat.Rd tests/testthat/test-meta-known-v.R`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `git diff --check`
+- `Rscript tools/codex-checkpoint.R --goal "Slice 280 meta_V hardening" --next "stage, commit, push, and open draft PR"`
+
+Known limitations:
+
+- `meta_known_V(V = V)` remains supported as a compatibility alias.
+- Proportional sampling-variance likelihoods, sparse known covariance storage,
+  full-matrix known `V` with non-unit weights, and missing single-outcome
+  bivariate meta-analysis remain planned.
+- Known `V` is still not an estimated profile or Wald interval target.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-280-meta-v-hardening.md`.

@@ -16,7 +16,8 @@
 #' Gaussian random intercepts, independent numeric random slopes,
 #' and labelled or unlabelled correlated numeric random intercept-slope blocks
 #' in the location formula,
-#' known sampling covariance through `meta_known_V(V = V)`, residual-scale
+#' known sampling covariance through `meta_V(V = V)` with
+#' `meta_known_V(V = V)` as a compatibility alias, residual-scale
 #' random intercepts and independent numeric random slopes in the scale formula,
 #' labelled `mu`/`sigma`
 #' random-intercept covariance blocks, and one or more group-level
@@ -51,8 +52,8 @@
 #' @param data A data frame.
 #' @param weights Optional non-negative likelihood weights. These are row
 #'   log-likelihood multipliers, not known sampling variances. For
-#'   meta-analytic sampling variance or covariance, use [meta_known_V()] in the
-#'   model formula instead.
+#'   meta-analytic sampling variance or covariance, use [meta_V()] in the model
+#'   formula instead.
 #' @param control Optional list passed to [stats::nlminb()], or a
 #'   [drm_control()] object when optimizer settings and fitted-object storage
 #'   choices should be supplied together.
@@ -6722,6 +6723,13 @@ extract_meta_known_v_arg <- function(expr) {
   arg_names[is.na(arg_names)] <- ""
 
   if (identical(fn_name, "meta_V")) {
+    if ("scale" %in% arg_names && "V" %in% arg_names && !"w" %in% arg_names) {
+      cli::cli_abort(c(
+        "{.arg scale} is not used for additive known sampling covariance.",
+        "x" = "Use {.code meta_V(V = V)} without {.arg scale}; that is the exact additive known-`V` route.",
+        "i" = "{.code meta_V(w = w, scale = \"proportional\")} remains reserved until a proportional sampling-variance likelihood is implemented."
+      ))
+    }
     if (any(arg_names %in% c("w", "scale"))) {
       cli::cli_abort(c(
         "{.fn meta_V} proportional sampling-variance arguments are reserved, not implemented.",
