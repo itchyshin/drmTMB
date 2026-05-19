@@ -27102,3 +27102,65 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-18-slice-283-nongaussian-family-map.md`.
+
+## 2026-05-18 - Slice 284 count-model hardening
+
+Goal: add explicit fixed-effect interval evidence for fitted count-family
+dpars and make the count tutorial state the fitted mixed-count boundary.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/dev-log/after-task/2026-05-18-slice-284-count-model-hardening.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-18-211627-codex-checkpoint.md`
+- `tests/testthat/test-poisson-mean.R`
+- `tests/testthat/test-nbinom2-location-scale.R`
+- `tests/testthat/test-truncated-nbinom2-location-scale.R`
+- `tests/testthat/test-zi-poisson.R`
+- `tests/testthat/test-zi-nbinom2.R`
+- `tests/testthat/test-hurdle-nbinom2.R`
+- `vignettes/count-nbinom2.Rmd`
+
+What changed:
+
+- Added `confint()` assertions to the count test files for fitted
+  fixed-effect dpars: Poisson `mu`, NB2 and truncated NB2 `mu`/`sigma`,
+  zero-inflated Poisson `mu`/`zi`, zero-inflated NB2 `mu`/`sigma`/`zi`, and
+  hurdle NB2 `mu`/`sigma`/`hu`.
+- Kept the TMB parameter contract explicit, including hurdle `hu` rows mapping
+  to the existing internal `beta_zi` parameter block.
+- Updated the count tutorial boundary to say that ordinary non-zero-inflated
+  Poisson/NB2 `mu` random intercepts and independent numeric slopes are fitted,
+  while zero-inflated, hurdle, truncated, and scale-side count routes remain
+  fixed-effect only.
+- Marked Slice 284 done in the roadmap and added a NEWS bullet.
+
+Checks run:
+
+```sh
+air format tests/testthat/test-poisson-mean.R tests/testthat/test-nbinom2-location-scale.R tests/testthat/test-truncated-nbinom2-location-scale.R tests/testthat/test-zi-poisson.R tests/testthat/test-zi-nbinom2.R tests/testthat/test-hurdle-nbinom2.R vignettes/count-nbinom2.Rmd
+air format NEWS.md ROADMAP.md
+Rscript -e "devtools::test(filter = 'poisson-mean|nbinom2-location-scale|truncated-nbinom2-location-scale|zi-poisson|zi-nbinom2|hurdle-nbinom2', reporter = 'summary')"
+Rscript -e "devtools::test(filter = 'phase18-poisson-mu-random-effect|phase18-nbinom2-mu-random-effect', reporter = 'summary')"
+Rscript -e 'devtools::load_all(quiet = TRUE); rmarkdown::render("vignettes/count-nbinom2.Rmd", output_dir = tempfile("count-nbinom2-render-"), quiet = FALSE)'
+rg -n 'implemented count path is intentionally fixed-effect|count path is intentionally fixed-effect|fixed-effect and univariate|meta_known_V\(V = V\) with counts|random effects in NB2 `sigma` or `zi`' vignettes/count-nbinom2.Rmd vignettes/distribution-families.Rmd docs/design README.md ROADMAP.md NEWS.md
+rg -n 'Slice 284|Count-family tests|fixed-effect Wald interval rows|ordinary non-zero-inflated Poisson/NB2|zero-inflated NB2|hurdle NB2|confint\(fit\)|fixef:hu|fixef:zi|fixef:sigma' NEWS.md ROADMAP.md vignettes/count-nbinom2.Rmd tests/testthat/test-poisson-mean.R tests/testthat/test-nbinom2-location-scale.R tests/testthat/test-truncated-nbinom2-location-scale.R tests/testthat/test-zi-poisson.R tests/testthat/test-zi-nbinom2.R tests/testthat/test-hurdle-nbinom2.R
+Rscript -e "pkgdown::check_pkgdown()"
+git diff --check
+Rscript tools/codex-checkpoint.R --goal "Slice 284 count-model hardening" --next "stage, commit, push, and open draft PR"
+```
+
+Known limitations:
+
+- No new count likelihood, parser route, random-effect allowance, interval
+  method, or simulation grid was added.
+- Zero-truncated NB2 random effects, zero-inflated count random effects,
+  hurdle random effects, NB2 `sigma` random effects, correlated or labelled
+  count slopes, structured count effects, COM-Poisson, and mixed-response
+  count models remain planned.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-284-count-model-hardening.md`.

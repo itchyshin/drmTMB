@@ -47,6 +47,22 @@ test_that("drmTMB fits fixed-effect truncated nbinom2 models", {
     tolerance = 1e-12
   )
   expect_true(all(fitted(fit) >= predict(fit, dpar = "mu")))
+
+  ci <- confint(fit)
+  expect_equal(
+    ci$parm,
+    c(
+      "fixef:mu:(Intercept)",
+      "fixef:mu:x",
+      "fixef:sigma:(Intercept)",
+      "fixef:sigma:z"
+    )
+  )
+  expect_equal(
+    ci$tmb_parameter,
+    c("beta_mu", "beta_mu", "beta_sigma", "beta_sigma")
+  )
+  expect_true(all(ci$conf.status == "wald"))
 })
 
 test_that("truncated nbinom2 likelihood matches independent dnbinom calculation", {
@@ -63,12 +79,15 @@ test_that("truncated nbinom2 likelihood matches independent dnbinom calculation"
   mu <- exp(eta_mu)
   sigma <- exp(eta_sigma)
   p0 <- stats::dnbinom(0, size = 1 / sigma^2, mu = mu)
-  ll_independent <- sum(stats::dnbinom(
-    fit$model$y,
-    size = 1 / sigma^2,
-    mu = mu,
-    log = TRUE
-  ) - log1p(-p0))
+  ll_independent <- sum(
+    stats::dnbinom(
+      fit$model$y,
+      size = 1 / sigma^2,
+      mu = mu,
+      log = TRUE
+    ) -
+      log1p(-p0)
+  )
 
   expect_equal(fit$opt$convergence, 0)
   expect_equal(as.numeric(logLik(fit)), ll_independent, tolerance = 1e-6)
@@ -100,12 +119,12 @@ test_that("truncated nbinom2 methods return positive-count summaries", {
   newdata <- data.frame(x = c(-1, 0, 1), z = c(-1, 0, 1))
   expect_equal(
     predict(fit, newdata = newdata, dpar = "mu"),
-    exp(as.vector(stats::model.matrix(~ x, newdata) %*% coef(fit, "mu"))),
+    exp(as.vector(stats::model.matrix(~x, newdata) %*% coef(fit, "mu"))),
     tolerance = 1e-12
   )
   expect_equal(
     predict(fit, newdata = newdata, dpar = "sigma"),
-    exp(as.vector(stats::model.matrix(~ z, newdata) %*% coef(fit, "sigma"))),
+    exp(as.vector(stats::model.matrix(~z, newdata) %*% coef(fit, "sigma"))),
     tolerance = 1e-12
   )
   sims <- simulate(fit, nsim = 2, seed = 20260621)
@@ -162,8 +181,10 @@ test_that("truncated nbinom2 approaches zero-truncated Poisson as sigma approach
   par[["beta_mu"]] <- 0
   par[["beta_sigma"]] <- -20
   ll_nb <- -fit$obj$fn(par)
-  ll_pois <- sum(stats::dpois(dat$y, lambda = 1, log = TRUE) -
-    log1p(-stats::dpois(0, lambda = 1)))
+  ll_pois <- sum(
+    stats::dpois(dat$y, lambda = 1, log = TRUE) -
+      log1p(-stats::dpois(0, lambda = 1))
+  )
 
   expect_equal(ll_nb, ll_pois, tolerance = 1e-6)
   expect_true(is.finite(fit$obj$fn(par)))
@@ -175,7 +196,7 @@ test_that("truncated nbinom2 supports factor predictors and scale extremes", {
   q <- seq(0.05, 0.95, length.out = n)
   beta_mu <- c(`(Intercept)` = 0.25, grouptreatment = -0.30)
   beta_sigma <- c(`(Intercept)` = -0.8, grouptreatment = 0.35)
-  X <- stats::model.matrix(~ group)
+  X <- stats::model.matrix(~group)
   mu <- exp(as.vector(X %*% beta_mu))
   sigma <- exp(as.vector(X %*% beta_sigma))
   p0 <- stats::dnbinom(0, size = 1 / sigma^2, mu = mu)
@@ -212,11 +233,15 @@ test_that("truncated nbinom2 rejects unsupported or invalid inputs", {
     "only support"
   )
   expect_error(
-    drmTMB(bf(mu = ~ x, sigma ~ 1), family = truncated_nbinom2(), data = dat),
+    drmTMB(bf(mu = ~x, sigma ~ 1), family = truncated_nbinom2(), data = dat),
     "must include a response"
   )
   expect_error(
-    drmTMB(bf(y ~ x, sigma ~ 1, sigma ~ x), family = truncated_nbinom2(), data = dat),
+    drmTMB(
+      bf(y ~ x, sigma ~ 1, sigma ~ x),
+      family = truncated_nbinom2(),
+      data = dat
+    ),
     "at most one"
   )
   expect_error(
@@ -252,7 +277,11 @@ test_that("truncated nbinom2 rejects unsupported or invalid inputs", {
     "No complete observations"
   )
   expect_error(
-    drmTMB(bf(y ~ x + (1 | id), sigma ~ 1), family = truncated_nbinom2(), data = dat),
+    drmTMB(
+      bf(y ~ x + (1 | id), sigma ~ 1),
+      family = truncated_nbinom2(),
+      data = dat
+    ),
     "unsupported model terms"
   )
   expect_error(
@@ -264,11 +293,19 @@ test_that("truncated nbinom2 rejects unsupported or invalid inputs", {
     "meta_known_V"
   )
   expect_error(
-    drmTMB(bf(y ~ x, sigma ~ 1, sd(id) ~ 1), family = truncated_nbinom2(), data = dat),
+    drmTMB(
+      bf(y ~ x, sigma ~ 1, sd(id) ~ 1),
+      family = truncated_nbinom2(),
+      data = dat
+    ),
     "Random-effect scale"
   )
   expect_error(
-    drmTMB(bf(mvbind(y, y) ~ x, sigma ~ 1), family = truncated_nbinom2(), data = dat),
+    drmTMB(
+      bf(mvbind(y, y) ~ x, sigma ~ 1),
+      family = truncated_nbinom2(),
+      data = dat
+    ),
     "mvbind"
   )
   expect_error(

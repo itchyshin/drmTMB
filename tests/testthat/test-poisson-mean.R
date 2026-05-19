@@ -95,6 +95,14 @@ test_that("drmTMB fits fixed-effect Poisson mean models", {
   )
   expect_equal(fitted(fit), predict(fit, dpar = "mu"), tolerance = 1e-12)
   expect_equal(sigma(fit), rep(1, nobs(fit)))
+
+  ci <- confint(fit)
+  expect_equal(
+    ci$parm,
+    c("fixef:mu:(Intercept)", "fixef:mu:x")
+  )
+  expect_equal(ci$tmb_parameter, c("beta_mu", "beta_mu"))
+  expect_true(all(ci$conf.status == "wald"))
 })
 
 test_that("Poisson likelihood matches independent dpois calculation", {
