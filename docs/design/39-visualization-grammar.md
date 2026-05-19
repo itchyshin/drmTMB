@@ -545,6 +545,15 @@ those layers should move into the estimate plot only after fitted
 correlation-pair rows, interval status, recovery tests, and reader-facing
 examples exist.
 
+Slice 264 expands the gallery's `emmeans` and marginal-summary displays. The
+implemented figure path is fixed-effect univariate `mu`: a simple habitat EMM,
+a factor-conditioned habitat-by-season grid, and an explicit interaction grid
+over temperature slices. The same section shows an empirical
+`marginal_parameters()` summary as a plug-in average without interval bars, then
+uses a support-boundary strip to keep `sigma`, bivariate responses,
+zero-inflated or hurdle response means, ordinal expected scores, and
+random-effect targets visibly unsupported for the current `emmeans` bridge.
+
 ### `corpairs()` Plotting Preflight
 
 Slice 112 records the minimum contract that `plot_corpairs()` follows as an

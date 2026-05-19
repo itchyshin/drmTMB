@@ -531,41 +531,6 @@ plot_parameter_surface(
   theme_drmtmb_gallery()
 ```
 
-## Estimated marginal means
-
-For the first supported `emmeans` path, a fixed-effect univariate `mu` model can
-produce estimated marginal means that are easy to turn into publication-style
-figures. The same rule applies: keep the conditioning values visible.
-
-```{r emmeans-display, eval = has_ggplot2 && requireNamespace("emmeans", quietly = TRUE), fig.alt="Point interval plot of estimated marginal mean growth for reef and kelp habitats conditioned at temperature zero."}
-emm_habitat <- suppressMessages(
-  as.data.frame(
-    emmeans::emmeans(
-      fit_growth,
-      ~ habitat,
-      at = list(temperature = 0),
-      type = "response"
-    )
-  )
-)
-
-ggplot(emm_habitat, aes(habitat, emmean, colour = habitat)) +
-  geom_pointrange(
-    aes(ymin = asymp.LCL, ymax = asymp.UCL),
-    linewidth = 0.7,
-    fatten = 2.4
-  ) +
-  scale_drmtmb_colour +
-  labs(
-    title = "Estimated marginal mean growth",
-    subtitle = "Conditioned at temperature = 0",
-    x = NULL,
-    y = "Expected growth",
-    colour = "Habitat"
-  ) +
-  theme_drmtmb_gallery()
-```
-
 ## Categorical by categorical interaction
 
 For two categorical predictors, show every fitted cell and its interval. Use
@@ -634,6 +599,211 @@ ggplot(pred_cat_cat, aes(habitat, estimate, colour = season)) +
     colour = "Season"
   ) +
   theme_drmtmb_gallery()
+```
+
+## Estimated marginal means and marginal summaries
+
+For the first supported `emmeans` path, a fixed-effect univariate `mu` model can
+produce estimated marginal means that are easy to turn into publication-style
+figures. The same rule applies: keep the target and conditioning values
+visible. These displays are `mu` summaries, not `sigma`, fitted-response,
+random-effect, or bivariate summaries.
+
+```{r emmeans-display, eval = has_ggplot2 && requireNamespace("emmeans", quietly = TRUE), fig.alt="Point interval plot of estimated marginal mean growth for reef and kelp habitats conditioned at temperature zero."}
+emm_habitat <- suppressMessages(
+  as.data.frame(
+    emmeans::emmeans(
+      fit_growth,
+      ~ habitat,
+      at = list(temperature = 0),
+      type = "response"
+    )
+  )
+)
+
+ggplot(emm_habitat, aes(habitat, emmean, colour = habitat)) +
+  geom_pointrange(
+    aes(ymin = asymp.LCL, ymax = asymp.UCL),
+    linewidth = 0.7,
+    fatten = 2.4
+  ) +
+  scale_drmtmb_colour +
+  labs(
+    title = "Estimated marginal mean growth",
+    subtitle = "Supported fixed-effect mu target, conditioned at temperature = 0",
+    x = NULL,
+    y = "Expected growth",
+    colour = "Habitat"
+  ) +
+  theme_drmtmb_gallery()
+```
+
+`emmeans` reference grids can also condition on a factor. In the next display,
+the `mu` cell means are grouped by season, so the reader sees the fitted
+habitat contrast inside each season rather than a single averaged contrast.
+
+```{r emmeans-factor-grid, eval = has_ggplot2 && requireNamespace("emmeans", quietly = TRUE), fig.alt="Point interval plot of estimated marginal mean growth for reef and kelp habitats shown separately for dry and wet seasons."}
+emm_season <- suppressMessages(
+  as.data.frame(
+    emmeans::emmeans(
+      fit_cat_cat,
+      ~ habitat | season,
+      type = "response"
+    )
+  )
+)
+
+ggplot(emm_season, aes(habitat, emmean, colour = season)) +
+  geom_pointrange(
+    aes(ymin = asymp.LCL, ymax = asymp.UCL),
+    position = position_dodge(width = 0.35),
+    linewidth = 0.65,
+    fatten = 2.3
+  ) +
+  scale_colour_manual(values = c("dry" = "#0072B2", "wet" = "#E69F00")) +
+  labs(
+    title = "Factor-conditioned estimated marginal means",
+    subtitle = "Habitat mu summaries are shown separately for each season",
+    x = "Habitat",
+    y = "Expected growth",
+    colour = "Season"
+  ) +
+  theme_drmtmb_gallery()
+```
+
+For a numeric interaction, use an explicit reference grid. Here `temperature`
+is held at three named values so the habitat contrast does not hide the
+conditioning rule.
+
+```{r emmeans-interaction-grid, eval = has_ggplot2 && requireNamespace("emmeans", quietly = TRUE), fig.alt="Point interval plot of estimated marginal mean growth for reef and kelp habitats at three temperature values."}
+emm_temperature <- suppressMessages(
+  as.data.frame(
+    emmeans::emmeans(
+      fit_growth,
+      ~ habitat | temperature,
+      at = list(temperature = c(-1, 0, 1)),
+      type = "response"
+    )
+  )
+)
+emm_temperature$temperature_slice <- factor(
+  emm_temperature$temperature,
+  levels = c(-1, 0, 1),
+  labels = c("cooler", "average", "warmer")
+)
+
+ggplot(emm_temperature, aes(temperature_slice, emmean, colour = habitat)) +
+  geom_pointrange(
+    aes(ymin = asymp.LCL, ymax = asymp.UCL),
+    position = position_dodge(width = 0.42),
+    linewidth = 0.65,
+    fatten = 2.3
+  ) +
+  scale_drmtmb_colour +
+  labs(
+    title = "Estimated marginal means across an interaction grid",
+    subtitle = "The same fixed-effect mu bridge, evaluated at named temperature slices",
+    x = "Temperature slice",
+    y = "Expected growth",
+    colour = "Habitat"
+  ) +
+  theme_drmtmb_gallery()
+```
+
+Empirical marginal summaries use a different rule. `prediction_grid(...,
+margin = "empirical")` crosses a focal value with fitted rows, and
+`marginal_parameters()` averages the resulting parameter predictions. This
+point display deliberately has no interval bars because the current empirical
+summary is a plug-in average.
+
+```{r empirical-marginal-summary, fig.alt="Point plot of empirical marginal expected growth for reef and kelp habitats without interval bars."}
+empirical_habitat_grid <- prediction_grid(
+  fit_growth,
+  focal = "habitat",
+  at = list(habitat = levels(fish$habitat)),
+  margin = "empirical"
+)
+empirical_habitat <- marginal_parameters(
+  fit_growth,
+  newdata = empirical_habitat_grid,
+  dpar = "mu",
+  by = "habitat"
+)
+
+plot_parameter_surface(
+  empirical_habitat,
+  x = "habitat",
+  facet = NULL,
+  line = FALSE,
+  point = TRUE
+) +
+  scale_drmtmb_colour +
+  labs(
+    title = "Empirical marginal mu summary",
+    subtitle = "Averaged over the fitted-row covariate distribution",
+    x = NULL,
+    y = "Average expected growth"
+  ) +
+  theme_drmtmb_gallery()
+```
+
+Unsupported targets should be visible before a reader tries to plot them. The
+current `emmeans` bridge is for fixed-effect univariate `mu`; other targets
+should use parameter prediction, `corpairs()`, profile intervals, or a future
+feature-specific design.
+
+```{r emmeans-boundary-strip, fig.alt="Tile plot showing fixed-effect univariate mu as the supported emmeans target and sigma, bivariate, zero-inflated, hurdle, ordinal, and random-effect targets as unsupported boundaries."}
+emmeans_boundary <- data.frame(
+  target = c(
+    "Fixed-effect univariate mu",
+    "sigma",
+    "Bivariate responses",
+    "Zero-inflated or hurdle means",
+    "Ordinal expected scores",
+    "Random-effect targets"
+  ),
+  status = c(
+    "Supported emmeans route",
+    "Unsupported boundary",
+    "Unsupported boundary",
+    "Unsupported boundary",
+    "Unsupported boundary",
+    "Unsupported boundary"
+  )
+)
+emmeans_boundary$target <- factor(
+  emmeans_boundary$target,
+  levels = rev(emmeans_boundary$target)
+)
+emmeans_boundary$status <- factor(
+  emmeans_boundary$status,
+  levels = c("Supported emmeans route", "Unsupported boundary")
+)
+emmeans_boundary$status_label <- ifelse(
+  emmeans_boundary$status == "Supported emmeans route",
+  "supported\nmu EMM",
+  "unsupported\nboundary"
+)
+
+ggplot(emmeans_boundary, aes(status, target, fill = status)) +
+  geom_tile(width = 0.84, height = 0.72, colour = "white", linewidth = 0.6) +
+  geom_text(aes(label = status_label), size = 3.1, lineheight = 0.9) +
+  scale_fill_manual(values = c(
+    "Supported emmeans route" = "#0072B2",
+    "Unsupported boundary" = "#E69F00"
+  )) +
+  labs(
+    title = "Current emmeans support boundary",
+    subtitle = "Only fixed-effect univariate mu is advertised as an emmeans target",
+    x = "Current status",
+    y = NULL,
+    fill = "Status"
+  ) +
+  theme_drmtmb_gallery() +
+  theme(
+    panel.grid = element_blank(),
+    legend.position = "none"
+  )
 ```
 
 ## Continuous by continuous interaction

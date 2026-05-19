@@ -25997,3 +25997,59 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-18-slice-263-correlation-layer-figures.md`.
+
+## 2026-05-18 - Slice 264 emmeans and marginal-effects figures
+
+Goal: extend the public figure gallery so the supported fixed-effect
+univariate `mu` `emmeans` route, factor-conditioned grids, interaction grids,
+empirical marginal summaries, and unsupported `emmeans` boundaries are visible
+in one reader-facing path.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/39-visualization-grammar.md`
+- `docs/design/40-emmeans-interface-contract.md`
+- `docs/dev-log/after-task/2026-05-18-slice-264-emmeans-marginal-figures.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-18-181035-codex-checkpoint.md`
+- `vignettes/figure-gallery.Rmd`
+
+What changed:
+
+- Expanded the estimated-marginal-means section into a broader `emmeans` and
+  marginal-summary section.
+- Added a simple fixed-effect univariate `mu` EMM, a factor-conditioned
+  habitat-by-season grid, and an explicit habitat-by-temperature interaction
+  grid.
+- Added an empirical `marginal_parameters()` display that averages over the
+  fitted-row covariate distribution without interval bars.
+- Added an `emmeans` support-boundary strip for `sigma`, bivariate responses,
+  zero-inflated or hurdle response means, ordinal expected scores, and
+  random-effect targets.
+- Updated the roadmap, visualization grammar note, `emmeans` interface
+  contract, and NEWS entry for Slice 264.
+
+Checks run:
+
+- `air format vignettes/figure-gallery.Rmd NEWS.md ROADMAP.md docs/design/39-visualization-grammar.md docs/design/40-emmeans-interface-contract.md docs/dev-log/after-task/2026-05-18-slice-264-emmeans-marginal-figures.md docs/dev-log/recovery-checkpoints/2026-05-18-181035-codex-checkpoint.md`
+- `Rscript -e "devtools::load_all('.', quiet = TRUE); rmarkdown::render('vignettes/figure-gallery.Rmd', output_dir = '/tmp/drmtmb-figure-gallery-s264b', quiet = FALSE)"`
+- Extracted embedded PNGs from `/tmp/drmtmb-figure-gallery-s264b/figure-gallery.html` and visually checked the EMM, factor-conditioned, interaction-grid, empirical marginal, and support-boundary displays.
+- `Rscript -e "devtools::test(filter = 'emmeans-methods|marginal-parameters|plot-parameter-surface', reporter = 'summary')"`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `git diff --check`
+
+Known limitations:
+
+- This slice does not extend the `emmeans` bridge beyond fixed-effect
+  univariate `mu`.
+- The empirical marginal summary is a plug-in average and does not display
+  interval bars.
+- Unsupported `sigma`, bivariate, zero-inflated, hurdle, ordinal, and
+  random-effect targets need separate design and validation before they can be
+  plotted as `emmeans` results.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-264-emmeans-marginal-figures.md`.

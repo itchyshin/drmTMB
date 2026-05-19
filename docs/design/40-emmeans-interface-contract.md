@@ -320,6 +320,14 @@ contrast columns. A Gaussian `condition` by `habitat` grid checks parity with
 `predict(dpar = "mu")`. This is coding preservation for an already supported
 fixed-effect `mu` model, not ordinal-response `emmeans` support.
 
+Slice 264 turns the supported `emmeans` contract into figure-gallery examples.
+The gallery shows the fixed-effect univariate `mu` route for a simple habitat
+EMM, a factor-conditioned habitat-by-season grid, and an explicit interaction
+grid over temperature slices. It also separates empirical
+`marginal_parameters()` averaging from `emmeans` reference-grid summaries and
+shows `sigma`, bivariate responses, zero-inflated or hurdle response means,
+ordinal expected scores, and random-effect targets as unsupported boundaries.
+
 Slice 143 adds the corresponding unknown-level validation for fixed-effect
 prediction newdata. Character values that match fitted factor levels are
 accepted and coerced through the fitted factor coding, while unknown or missing
