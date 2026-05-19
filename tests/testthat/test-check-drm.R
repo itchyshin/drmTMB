@@ -1068,6 +1068,17 @@ test_that("check_drm() reports mutated diagnostic failure branches", {
   objective <- objective[objective$check == "finite_objective", ]
   expect_equal(objective$status, "error")
 
+  large_gradient <- fit
+  large_gradient$obj$gr <- function(par) {
+    c(0, 0.02, 0)
+  }
+  gradient <- check_drm(large_gradient)
+  gradient <- gradient[gradient$check == "fixed_gradient", ]
+  expect_equal(gradient$status, "warning")
+  expect_match(gradient$value, "max=")
+  expect_match(gradient$value, "component=beta_mu\\[2\\]")
+  expect_match(gradient$message, "largest component is beta_mu\\[2\\]")
+
   gradient_error <- fit
   gradient_error$obj$gr <- function(par) {
     stop("test gradient failure")

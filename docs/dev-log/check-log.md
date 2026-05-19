@@ -26681,3 +26681,55 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-18-slice-276-fallback-optimizer-boundary.md`.
+
+## 2026-05-18 - Slice 277 fixed-gradient culprit diagnostic
+
+Goal: improve convergence triage by naming the largest fixed-gradient component
+in `check_drm()` without changing optimization or Hessian logic.
+
+Files changed:
+
+- `NEWS.md`
+- `R/check.R`
+- `ROADMAP.md`
+- `docs/dev-log/after-task/2026-05-18-slice-277-gradient-culprit-diagnostic.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-18-200027-codex-checkpoint.md`
+- `man/check_drm.Rd`
+- `tests/testthat/test-check-drm.R`
+- `vignettes/convergence.Rmd`
+
+What changed:
+
+- Updated the `fixed_gradient` diagnostic value from a bare maximum to
+  `max=<value>; component=<label>`.
+- Added internal duplicate-name disambiguation so repeated TMB parameter names
+  become labels such as `beta_mu[2]`.
+- Added a focused warning-branch test for the second `beta_mu` component.
+- Updated the convergence guide, roxygen reference documentation, roadmap, and
+  NEWS.
+
+Checks run:
+
+- `air format NEWS.md R/check.R ROADMAP.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-18-slice-277-gradient-culprit-diagnostic.md docs/dev-log/recovery-checkpoints/2026-05-18-200027-codex-checkpoint.md man/check_drm.Rd tests/testthat/test-check-drm.R vignettes/convergence.Rmd`
+- `Rscript -e "devtools::document()"`
+- `Rscript -e "devtools::test(filter = 'check-drm', reporter = 'summary')"`
+- `Rscript -e 'rmarkdown::render("vignettes/convergence.Rmd", output_dir = tempfile("convergence-render-"), quiet = FALSE)'`
+- `rg -n 'Slice 277|fixed_gradient|largest fixed-gradient|largest component|component=|beta_mu\[2\]|Hessian and boundary diagnostics|gradient component label' NEWS.md ROADMAP.md R/check.R man/check_drm.Rd tests/testthat/test-check-drm.R vignettes/convergence.Rmd`
+- `rg -n 'Hessian eigenvector.*implemented|culprit.*implemented|pdHess.*culprit|boundary.*culprit.*implemented|gradient component.*implemented|largest fixed-gradient.*implemented' README.md ROADMAP.md NEWS.md docs/design vignettes R tests/testthat --glob '!docs/dev-log/**'`
+  returned no matches.
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `git diff --check`
+- `Rscript tools/codex-checkpoint.R --goal "Slice 277 fixed-gradient culprit diagnostic" --next "stage, commit, push, and open draft PR"`
+
+Known limitations:
+
+- Hessian eigenvector culprit reporting remains planned.
+- Boundary-specific culprit labels for random-effect SDs and correlations remain
+  limited to existing row values.
+- Duplicate TMB parameter names are disambiguated positionally, not mapped back
+  to formula-term labels in this slice.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-277-gradient-culprit-diagnostic.md`.

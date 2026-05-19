@@ -41,7 +41,7 @@ The diagnostic table separates several questions that are easy to confuse:
 | --- | --- | --- |
 | `optimizer_convergence` | Did `nlminb()` return convergence code 0? | Inspect the optimizer message, gradient, and budget rows. |
 | `optimizer_budget` | Did the fit hit supplied `iter.max` or `eval.max` limits? | Increase limits if the model is still moving and the structure is defensible. |
-| `fixed_gradient` | Is the fixed-parameter gradient small at the selected optimum? | Treat large gradients as an optimization problem before using Wald inference. |
+| `fixed_gradient` | Is the fixed-parameter gradient small at the selected optimum, and which component is largest? | Treat large gradients as an optimization problem before using Wald inference. |
 | `hessian_positive_definite` | Did `TMB::sdreport()` report a positive-definite Hessian? | Look for boundary SDs, correlations, shape, dispersion, or inflation parameters. |
 | `fixed_se_finite` | Are fixed-effect standard errors finite? | If not, do not use Wald intervals until the Hessian problem is understood. |
 | boundary rows | Are fitted SDs, `rho12`, or shape parameters near a boundary? | Consider a simpler model, profile intervals, or a fixed/removal decision. |
