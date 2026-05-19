@@ -27564,3 +27564,53 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-18-slice-291-pre-simulation-ledger.md`.
+
+## 2026-05-18 - Slice 292 Phase 18 comprehensive blueprint
+
+Goal: start the comprehensive Phase 18 simulation design after the Slice 291
+gate, while keeping planned or blocked model lanes out of fitted grids.
+
+Files changed:
+
+- `docs/design/41-phase-18-simulation-programme.md`
+- `inst/sim/README.md`
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/dev-log/after-task/2026-05-18-slice-292-phase18-blueprint.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-18-223344-codex-checkpoint.md`
+
+What changed:
+
+- The Phase 18 simulation programme now has a Slice 292 design map covering
+  continuous, proportion, count, ordinal, meta-analysis, bivariate,
+  random-slope, shape, phylogenetic, spatial, `animal()`, and `relmat()` lanes.
+- Each lane is assigned to admitted grid, fixed-effect design target, opt-in
+  stress cell, or failure ledger before new DGP files are added.
+- The simulation skeleton README now points contributors to the Slice 292 map
+  before adding new DGP files.
+- ROADMAP now records Slice 292 as done locally as blueprint and corrects a
+  stale NB2 note so the Poisson/NB2 smoke and interval evidence are current.
+
+Checks run:
+
+```sh
+air format docs/design/41-phase-18-simulation-programme.md inst/sim/README.md NEWS.md ROADMAP.md
+rg -n "Slice 292|comprehensive design map|one-page ADEMP|failure-ledger only|admitted.*animal|admitted.*relmat|skew-normal.*admitted|comprehensive all-feature|NB2.*not yet.*interval|Later waves can add .*ordinal" docs/design/41-phase-18-simulation-programme.md inst/sim/README.md NEWS.md ROADMAP.md
+rg -n "fixed-effect ordinal|ordinal mixed|cumulative_logit\\(\\)|shape/skew extensions|zero-inflation or hurdle random effects|focused first slice" docs/design/41-phase-18-simulation-programme.md docs/design/46-pre-simulation-readiness-matrix.md
+git diff --check
+Rscript -e "pkgdown::check_pkgdown()"
+rg -n "Slice 292|comprehensive design map|one-page ADEMP|failure-ledger only|NB2.*not yet.*interval|full smoke runner/interval|comprehensive all-feature" docs/design/41-phase-18-simulation-programme.md inst/sim/README.md NEWS.md ROADMAP.md
+git diff --check
+Rscript tools/codex-checkpoint.R --goal "Slice 292 Phase 18 comprehensive blueprint" --next "stage, commit, push, and open draft PR"
+```
+
+Known limitations:
+
+- No DGP, runner, report, result schema, executable test, likelihood, formula
+  grammar, extractor, or interval method changed.
+- The blueprint starts comprehensive simulation design; it does not produce a
+  comprehensive simulation result.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-292-phase18-blueprint.md`.

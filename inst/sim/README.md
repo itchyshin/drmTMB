@@ -17,6 +17,13 @@ Every simulation cell should have a stable cell id, explicit conditions,
 replicate-level seeds, fit diagnostics, interval status, and enough metadata to
 resume or audit a partial run.
 
+Slice 292 starts the comprehensive design as a blueprint, not as a full grid.
+The scenario map in `docs/design/41-phase-18-simulation-programme.md` decides
+which continuous, proportion, count, ordinal, meta-analysis, bivariate,
+random-slope, shape, phylogenetic, spatial, `animal()`, and `relmat()` lanes
+are admitted, opt-in, design-only, or failure-ledger only before new DGP files
+are added here.
+
 Current pilot files:
 
 - `dgp/sim_dgp_gaussian_ls.R` generates Gaussian location-scale data with

@@ -15,6 +15,34 @@ Before adding a DGP row, check the Slice 291 evidence-ledger gate in
 public surface, the validation-debt register evidence, and whether the surface
 is admitted, opt-in only, or failure-ledger only.
 
+## Slice 292 Comprehensive Design Map
+
+Comprehensive simulation means every advertised scenario lane is assigned a
+role before grids run. It does not mean every planned model is fitted. A lane
+can enter as an admitted grid, a fixed-effect design target that still needs a
+DGP file, an opt-in stress cell, or a failure-ledger row.
+
+| Scenario lane | Phase 18 role after Slice 291 gate | First design action | Failure-ledger boundary |
+| --- | --- | --- | --- |
+| Continuous location-scale | Admitted for Gaussian location-scale first; fixed-effect lognormal, Gamma, and Student-t can receive later one-response DGP sheets after family-specific estimands are named | Extend the existing Gaussian location-scale smoke design into a full ADEMP sheet with MCSE targets before adding neighbouring continuous families | Do not claim shape/skewness random effects, phylogenetic shape, or latent ID-level skewness |
+| Proportion and bounded responses | Admitted for fixed-effect beta and beta-binomial design; no bounded-response known-`V` or zero-one-inflated route yet | Write a beta/beta-binomial DGP sheet that states denominator generation, boundary handling, `mu`, public `sigma`, and Wald interval targets | Keep `zoi`, `coi`, zero-one inflation, one inflation, random effects, and bounded-response `meta_V(V = V)` in the failure ledger |
+| Counts | Admitted for fixed-effect count families and ordinary non-zero-inflated Poisson/NB2 `mu` random effects | Promote the paired Poisson/NB2 `mu` pilot into a planned grid with group count, repeats, mean count, overdispersion, and true SD levels | Keep zero-inflated/hurdle random effects, zero-truncated NB2 random effects, correlated count slopes, and count-side structured effects out |
+| Ordinal | Admitted only for fixed-effect `cumulative_logit()` location models | Write a small fixed-effect ordinal DGP sheet with category probabilities, expected-score estimands, cutpoint handling, and malformed-input boundaries | Keep ordinal random effects, scale/discrimination formulas, bivariate ordinal, and mixed-response ordinal models out |
+| Meta-analysis with known `V` | Admitted for Gaussian `meta_V(V = V)` vector and dense known sampling covariance | Expand the existing vector/dense smoke design with effect-size counts, known-`V` conditioning, residual `sigma`, and interval-target exclusions | Keep proportional sampling variance, non-Gaussian known covariance, and phylogenetic-plus-study extensions out |
+| Bivariate Gaussian | Admitted for residual `rho12` and selected intercept covariance blocks | Split residual-correlation grids from group-level `corpairs()` grids so `rho12`, `sigma1`, `sigma2`, and random-effect correlations are not pooled | Keep mixed-response families, random effects in `rho12`, bivariate random slopes, and broad q=4/q=8 slope covariance out |
+| Random slopes | Admitted for ordinary Gaussian `mu` q > 2, independent Gaussian `sigma` one-slope terms, ordinary Poisson/NB2 `mu` independent slopes, and coordinate-spatial Gaussian `mu` one slope | Give each admitted slope class its own condition table for group count, repeats, slope SD, and covariate spread | Keep phylogenetic, animal, `relmat()`, bivariate, correlated non-Gaussian, and residual-scale correlated slopes out |
+| Shape and skewness | Admitted only for fitted fixed-effect shape such as Student-t `nu`; skew-normal and skew-t remain design-only future targets | Add a fixed-effect Student-t `nu` DGP sheet before any skew-family DGP, with separation from `sigma` effects explicit | Keep `nu` random effects, future `tau` random effects, skewness random effects, and latent `skew(id) ~ ...` out |
+| Phylogenetic structured effects | Admitted for fitted Gaussian intercept/direct-SD/selected bivariate covariance subsets | Write small tree-size and phylogenetic-signal condition tables for the fitted intercept/direct-SD surfaces | Keep phylogenetic slopes, non-Gaussian phylogenetic effects, structured `rho12`, and predictor-dependent q=4 correlations out |
+| Coordinate spatial structured effects | Admitted for univariate Gaussian `mu` intercepts and one numeric coordinate-spatial slope | Extend the existing spatial one-slope smoke design with site count, observations per site, field SD, and covariate-spread conditions | Keep mesh/SPDE, multiple slopes, slope correlations, spatial `sigma`, bivariate spatial covariance, and spatial `corpair()` out |
+| `animal()` models | Failure-ledger only | Record biological questions and expected sparse-precision inputs, but do not write fitted DGP grids yet | No pedigree, `A`, or `Ainv` likelihood exists |
+| `relmat()` models | Failure-ledger only | Record lower-level `K`/`Q` use cases and matrix-validation requirements, but do not write fitted DGP grids yet | No user-supplied relatedness likelihood exists |
+
+Every admitted lane needs a one-page ADEMP sheet before new code: aim,
+hierarchy, true parameter values, varied conditions, estimands, fitted methods,
+performance measures, replicate count, MCSE target, and failure-ledger row.
+The first implementation wave should reuse existing smoke infrastructure before
+adding new result schemas.
+
 ## A - Aims
 
 Primary aim: quantify when fitted `drmTMB` surfaces recover scientifically
@@ -51,11 +79,11 @@ minimum first wave is:
 | Poisson `mu` random effects | Fitted smoke surface | log-mean count model with ordinary random intercepts and independent numeric slopes | groups, observations per group, mean count, SD size |
 | NB2 `mu` random effects | Fitted smoke surface | log-mean overdispersed count model with ordinary random intercepts and independent numeric slopes; `sigma` remains fixed-effect overdispersion | groups, observations per group, mean count, overdispersion, SD size |
 
-Later waves can add zero inflation, hurdle, ordinal, shape/skew, and
-non-Gaussian scale/random-effect surfaces only after their focused gates are
-closed. The NB2 `mu` random-effect row is admitted as a fitted smoke surface,
-not yet as a full simulation grid or interval-coverage surface. The failure
-ledger in
+Later waves can add zero-inflation or hurdle random effects, ordinal mixed
+models, shape/skew extensions, and non-Gaussian scale/random-effect surfaces
+only after their focused gates are closed. The NB2 `mu` random-effect row is
+admitted as a focused first slice; larger grids still need an explicit condition
+table before they are treated as routine evidence. The failure ledger in
 `docs/design/34-validation-debt-register.md` names the remaining blocked
 surfaces.
 
