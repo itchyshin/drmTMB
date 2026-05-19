@@ -569,6 +569,29 @@ Wald-interval displays, profile-needed point displays, status strips,
 `emmeans` reference-grid summaries, empirical marginal summaries, or
 illustrative simulation fixtures.
 
+Slice 267 closes the Florence gallery lane with a helper-versus-recipe
+decision. The current exported helpers, `plot_parameter_surface()` and
+`plot_corpairs()`, cover stable table contracts. The remaining gallery displays
+should stay as tutorial-level `ggplot2` recipes until their data contracts and
+interval status are stable enough to test as exported APIs.
+
+| Display pattern | Current decision | Export only after |
+| --- | --- | --- |
+| Raw data plus fitted `mu` lines and confidence bands | Tutorial recipe | A repeated need for one grammar across multiple articles and a stable raw-data overlay policy |
+| `emmeans` point-interval displays | Tutorial recipe | The `emmeans` bridge supports more targets and the contrast or conditioning display contract is stable |
+| Conditional random-effect modes | Tutorial recipe | A general random-effect display has uncertainty, grouping, ordering, and shrinkage-language tests |
+| Variance-component dot plots | Tutorial recipe | `summary()`/`profile_targets()`/interval status can supply a unified variance-component table |
+| Status-boundary strips | Tutorial recipe | Multiple articles need the same status schema and visual encoding |
+| Gallery source-map tables | Tutorial recipe | A package-wide support-matrix object is introduced |
+| Simulation operating-characteristic plots | Future helper candidate | Phase 18 aggregate tables have stable columns for bias, RMSE, MCSE, coverage, power, runtime, and failures |
+| Failure-ledger plots | Future helper candidate | Warning/error ledgers have stable classes, counts, messages, and cell identifiers |
+
+The next visualization-helper backlog is therefore narrow: maintain
+`plot_parameter_surface()` and `plot_corpairs()`; defer simulation and
+failure-ledger helpers until the Phase 18 result schema stabilizes; keep
+article-specific figures as readable `ggplot2` recipes rather than exporting
+premature wrappers.
+
 ### `corpairs()` Plotting Preflight
 
 Slice 112 records the minimum contract that `plot_corpairs()` follows as an

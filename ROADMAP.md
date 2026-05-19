@@ -1479,7 +1479,7 @@ Use this order unless Slice 191 evidence overturns it:
 | 264 | `emmeans` and marginal-effects figures | Done locally: the gallery now shows the supported fixed-effect univariate `mu` `emmeans` route, factor-conditioned and interaction grids, an empirical `marginal_parameters()` summary, and unsupported boundaries for `sigma`, bivariate, zero-inflated, hurdle, ordinal, and random-effect targets. |
 | 265 | Simulation plot grammar | Done locally: `simulation-plot-grammar` is a Simulation & Comparison article with display contracts for bias, RMSE, coverage, power, convergence, runtime, and warning/error ledgers across continuous, proportion, count, and meta-analysis examples. |
 | 266 | Gallery source-map and QA | Done locally: the figure gallery now has a source-map table mapping each display to its fitted object or fixture, extractor or plotter, interval source, and support boundary, with render, pkgdown, and visual checks recorded. |
-| 267 | Florence closeout | Decide which plots need new exported helpers versus tutorial-level `ggplot2` recipes, and record the next helper backlog before returning to convergence hardening. |
+| 267 | Florence closeout | Done locally: the visualization grammar now records that `plot_parameter_surface()` and `plot_corpairs()` remain the exported helpers, most gallery displays stay tutorial-level `ggplot2` recipes, and simulation/failure-ledger helpers wait for stable Phase 18 result schemas. |
 
 ### Pre-Simulation Readiness Slice Map
 
@@ -1498,7 +1498,7 @@ as the whole comprehensive simulation programme.
 | 264 | Figure gallery | `emmeans` and marginal-effects figures | Done locally: the gallery shows the supported fixed-effect univariate `mu` `emmeans` route, factor-conditioned and interaction grids, an empirical `marginal_parameters()` summary, and unsupported boundaries for `sigma`, bivariate, zero-inflated, hurdle, ordinal, and random-effect targets. |
 | 265 | Simulation plot grammar | Operating-characteristic plot design | Done locally: the Simulation & Comparison route has reusable plot grammar for bias, RMSE, coverage, power, convergence, runtime, and warning/error ledgers across continuous, proportion, count, and meta-analysis examples. |
 | 266 | Figure QA | Gallery source map | Done locally: each figure maps to the fitted object or fixture, extractor or plotter, interval source, support status, and current limitation. |
-| 267 | Florence closeout | Plot helper backlog | Decide which plots need exported helpers and which should remain tutorial-level `ggplot2` recipes before returning to convergence hardening. |
+| 267 | Florence closeout | Plot helper backlog | Done locally: the helper backlog keeps `plot_parameter_surface()` and `plot_corpairs()` as the exported helpers, leaves gallery-specific plots as tutorial recipes, and defers simulation/failure-ledger helpers until result schemas stabilize. |
 | 268 | Support audit | Pre-simulation capability matrix | One table says implemented, tested, planned, or unsupported for Gaussian, non-Gaussian, shape, inflation, bivariate, random slopes, meta-analysis, phylogenetic, spatial, animal, and `relmat()` models. |
 | 269 | Random slopes | Ordinary location random slopes | Confirm arbitrary multi-slope ordinary location blocks, such as `(1 + x1 + x2 + ... | id)`, with tests and user-facing boundary wording. |
 | 270 | Random slopes | Scale random effects | Confirm or implement up to two random-effect terms in `sigma`, each with at least one slope where feasible, and state the boundary honestly. |
