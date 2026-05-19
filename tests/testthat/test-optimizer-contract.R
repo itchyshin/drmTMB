@@ -46,6 +46,9 @@ test_that("future optimizer contract names are reserved in plain control lists",
     "map",
     "fixed",
     "fallback_optimizer",
+    "fallback_optimizers",
+    "optimizer_fallback",
+    "optimizer_fallbacks",
     "multi_start",
     "multistart"
   )

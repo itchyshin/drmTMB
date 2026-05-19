@@ -156,6 +156,9 @@ drm_control_reserved_names <- function() {
     "map",
     "fixed",
     "fallback_optimizer",
+    "fallback_optimizers",
+    "optimizer_fallback",
+    "optimizer_fallbacks",
     "multi_start",
     "multistart"
   ))

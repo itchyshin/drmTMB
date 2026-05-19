@@ -26629,3 +26629,55 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-18-slice-275-warm-start-boundary.md`.
+
+## 2026-05-18 - Slice 276 fallback optimizer boundary
+
+Goal: design the multi-optimizer fallback route without making fallback BFGS or
+L-BFGS-B refits automatic for ordinary models.
+
+Files changed:
+
+- `NEWS.md`
+- `R/control.R`
+- `ROADMAP.md`
+- `docs/design/35-optimizer-start-map-multistart.md`
+- `docs/dev-log/after-task/2026-05-18-slice-276-fallback-optimizer-boundary.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-18-195332-codex-checkpoint.md`
+- `tests/testthat/test-optimizer-contract.R`
+- `vignettes/convergence.Rmd`
+
+What changed:
+
+- Reserved `fallback_optimizers`, `optimizer_fallback`, and
+  `optimizer_fallbacks` alongside the existing `fallback_optimizer` name.
+- Extended optimizer-contract tests so fallback names error in plain
+  `control = list(...)` and `drm_control(optimizer = list(...))` paths.
+- Expanded the optimizer contract design note with the future fallback sequence,
+  selected-optimizer rule, and comparison provenance table.
+- Updated the convergence guide, roadmap, and NEWS to keep fallback optimizers
+  planned, not automatic.
+
+Checks run:
+
+- `air format NEWS.md R/control.R ROADMAP.md docs/design/35-optimizer-start-map-multistart.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-18-slice-276-fallback-optimizer-boundary.md docs/dev-log/recovery-checkpoints/2026-05-18-195332-codex-checkpoint.md tests/testthat/test-optimizer-contract.R vignettes/convergence.Rmd`
+- `Rscript -e "devtools::test(filter = 'optimizer-contract|control', reporter = 'summary')"`
+- `Rscript -e 'rmarkdown::render("vignettes/convergence.Rmd", output_dir = tempfile("convergence-render-"), quiet = FALSE)'`
+- `rg -n 'Slice 276|fallback_optimizer|fallback_optimizers|optimizer_fallback|optimizer_fallbacks|BFGS|L-BFGS-B|selected-optimizer|selected optimizer|optimizer comparison|fallback-control names' NEWS.md ROADMAP.md R/control.R tests/testthat/test-optimizer-contract.R vignettes/convergence.Rmd docs/design/35-optimizer-start-map-multistart.md`
+- `rg -n 'fallback optimizer.*implemented|fallback optimizers.*implemented|fallback refits.*implemented|fallback.*automatic|BFGS.*automatic|L-BFGS-B.*automatic|optimizer_fallback.*implemented|fallback_optimizer.*implemented|optimizer comparison.*implemented' README.md ROADMAP.md NEWS.md docs/design vignettes R tests/testthat --glob '!docs/dev-log/**'`
+  returned only negative or planned-boundary wording, not a fallback
+  implementation claim.
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `git diff --check`
+- `Rscript tools/codex-checkpoint.R --goal "Slice 276 fallback optimizer boundary" --next "stage, commit, push, and open draft PR"`
+
+Known limitations:
+
+- No fallback optimizer is run.
+- No optimizer comparison table is stored on fitted objects.
+- No selected-optimizer provenance row is added to `check_drm()`.
+- No BFGS or L-BFGS-B parameter-scale compatibility tests exist yet.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-276-fallback-optimizer-boundary.md`.

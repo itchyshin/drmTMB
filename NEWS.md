@@ -1,6 +1,7 @@
 # drmTMB 0.1.2 (2026-05-16)
 
 * `drm_control()` now has `optimizer_preset = "careful"` and `"robust"` for explicit `nlminb()` optimizer-budget presets. These expand to recorded `iter.max` and `eval.max` controls, keep the default fit fast, and can still be overridden with `optimizer = list(...)`.
+* `drm_control()` now reserves fallback-optimizer control names such as `fallback_optimizer`, `fallback_optimizers`, and `optimizer_fallback` while documenting the future selected-optimizer provenance contract. Fallback BFGS or L-BFGS-B refits remain planned, not automatic.
 * `drm_control()` now reserves warm-start control names such as `start_from`, `warm_start`, and `warm_start_from` so simpler-fit starts cannot be silently passed to `nlminb()` before the source-fit contract is implemented.
 * Bivariate random-slope combination boundaries now have focused error coverage for matching slope-only `mu1`/`mu2` blocks, intercept-plus-slope location q=4 requests, residual-scale slope pairs, same-response location-scale slope combinations, and all-four q=8-style slope requests.
 * Structured random-slope boundaries now have parser and fit-time audit coverage:

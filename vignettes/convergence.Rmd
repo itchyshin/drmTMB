@@ -304,7 +304,10 @@ release:
 - warm-start refits from a simpler fitted model; names such as `start_from`,
   `warm_start`, and `warm_start_from` are reserved until the source-fit contract
   is implemented;
-- fallback optimizers such as `optim(method = "BFGS")`;
+- fallback optimizers such as `optim(method = "BFGS")` or
+  `optim(method = "L-BFGS-B")`; names such as `fallback_optimizer`,
+  `fallback_optimizers`, and `optimizer_fallback` are reserved until optimizer
+  comparison provenance is implemented;
 - multi-start jittered searches;
 - Hessian eigenvector culprit reporting;
 - automatic simplification suggestions.

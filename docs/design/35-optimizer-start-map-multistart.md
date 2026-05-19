@@ -67,6 +67,9 @@ warm_start_from
 map
 fixed
 fallback_optimizer
+fallback_optimizers
+optimizer_fallback
+optimizer_fallbacks
 multi_start
 multistart
 ```
@@ -188,7 +191,8 @@ Design constraints before implementation:
 ## Future Fallback Optimizer Contract
 
 Fallback optimizers should be deterministic and recorded in the fitted object.
-A future interface might look like:
+Slice 276 reserves the remaining obvious fallback-control names but does not
+implement fallback fitting. A future interface might look like:
 
 ```r
 drm_control(
@@ -201,6 +205,12 @@ drm_control(
 )
 ```
 
+The first supported fallback set should be small and explicit: the primary
+`nlminb()` path, then `stats::optim(method = "BFGS")`, then
+`stats::optim(method = "L-BFGS-B")` only if the unconstrained internal parameter
+scale and any box constraints are explicitly reconciled. Fallbacks must not run
+by default for ordinary fits.
+
 The selected optimizer must be recorded with:
 
 - optimizer name and settings;
@@ -212,6 +222,23 @@ The selected optimizer must be recorded with:
 
 `summary()`, `vcov()`, profiles, `check_drm()`, and extractors must use the
 selected optimizer result, not whichever optimizer ran last.
+
+The comparison record must include every attempted optimizer, not only the
+winner:
+
+- optimizer name and method;
+- control settings;
+- convergence code and message;
+- objective value;
+- maximum absolute fixed-gradient value when available;
+- elapsed time;
+- whether the attempt was eligible for selection;
+- a reason when an attempt was rejected.
+
+The winner should be the converged eligible attempt with the lowest objective,
+with a deterministic tie rule. If no attempt converges, the fit may still return
+the best attempted optimum only if `check_drm()` clearly reports the fallback
+failure state and all inference remains tied to that selected optimum.
 
 ## Future Multi-Start Contract
 
@@ -258,6 +285,7 @@ Slice 80 does not implement public starts, fixed parameters, fallback
 optimizers, or multi-start fitting. It reserves the public names, documents the
 contract, and tests the selected-optimum invariant for the current
 single-optimizer path. Slice 274 adds only single-optimizer budget presets.
-Slice 275 reserves warm-start names and documents the simpler-fit contract. It
-does not add user starts, warm starts, maps, fallback optimizers, or multi-start
-fitting.
+Slice 275 reserves warm-start names and documents the simpler-fit contract.
+Slice 276 reserves fallback-optimizer names and documents fallback comparison
+provenance. Neither slice adds user starts, warm starts, maps, fallback
+optimizers, or multi-start fitting.
