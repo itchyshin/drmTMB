@@ -25948,3 +25948,52 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-18-slice-262-variance-figures.md`.
+
+## 2026-05-18 - Slice 263 correlation-layer figures
+
+Goal: make the public figure gallery distinguish residual, ordinary group,
+phylogenetic, spatial, animal, and `relmat()` correlation layers without
+turning planned layers into fitted estimates.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/39-visualization-grammar.md`
+- `docs/dev-log/after-task/2026-05-18-slice-263-correlation-layer-figures.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-18-180253-codex-checkpoint.md`
+- `vignettes/figure-gallery.Rmd`
+
+What changed:
+
+- Replaced the compact correlation display with a faceted
+  `plot_corpairs()` display for implemented estimate rows.
+- Kept residual `rho12`, ordinary group-level intercept-slope correlation, and
+  phylogenetic location-location correlation in separate facets.
+- Added a support-boundary strip that marks spatial, animal, and `relmat()`
+  correlation-pair layers as planned boundaries rather than fitted estimates.
+- Updated the roadmap, visualization grammar design note, and NEWS entry for
+  Slice 263.
+
+Checks run:
+
+- `air format vignettes/figure-gallery.Rmd NEWS.md ROADMAP.md docs/design/39-visualization-grammar.md docs/dev-log/after-task/2026-05-18-slice-263-correlation-layer-figures.md docs/dev-log/recovery-checkpoints/2026-05-18-180253-codex-checkpoint.md`
+- `Rscript -e "devtools::load_all('.', quiet = TRUE); rmarkdown::render('vignettes/figure-gallery.Rmd', output_dir = '/tmp/drmtmb-figure-gallery-s263', quiet = FALSE)"`
+- Extracted embedded PNGs from `/tmp/drmtmb-figure-gallery-s263/figure-gallery.html` and visually checked the faceted correlation-layer plot plus the support-boundary strip.
+- `Rscript -e "devtools::test(filter = 'plot-corpairs', reporter = 'summary')"`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `git diff --check`
+
+Known limitations:
+
+- This slice does not add new `corpairs()` support for spatial, animal, or
+  `relmat()` models.
+- The gallery uses a compact `corpairs()`-compatible table for speed; fitted
+  biological workflows remain in model-specific tutorials.
+- Planned layers should move into the estimate plot only after fitted rows,
+  interval status, recovery tests, and reader-facing examples exist.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-263-correlation-layer-figures.md`.

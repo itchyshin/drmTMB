@@ -535,6 +535,16 @@ random-effect SD surfaces are drawn without confidence bands when
 `predict_parameters(conf.int = TRUE)` reports
 `conf.status = "wald_unavailable"`.
 
+Slice 263 extends the gallery's correlation-layer display. The estimate plot
+uses a `corpairs()`-compatible table and facets residual `rho12`, ordinary
+group-level, and phylogenetic rows so the visual grammar does not collapse
+within-observation coscale, latent group covariance, and structured
+species-level covariance. A separate status strip reserves spatial, `animal()`,
+and `relmat()` rows as planned boundaries rather than plotting fake estimates;
+those layers should move into the estimate plot only after fitted
+correlation-pair rows, interval status, recovery tests, and reader-facing
+examples exist.
+
 ### `corpairs()` Plotting Preflight
 
 Slice 112 records the minimum contract that `plot_corpairs()` follows as an

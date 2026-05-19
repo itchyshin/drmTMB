@@ -724,37 +724,57 @@ the observations span the whole moisture gradient.
 ## Fitted correlation summaries
 
 Correlation displays should keep layers separate. Residual `rho12`,
-ordinary-group correlations, and phylogenetic or spatial correlations are not
-the same parameter even when all are correlations.
+ordinary-group correlations, phylogenetic correlations, spatial correlations,
+and future animal or `relmat()` layers are not the same parameter even when all
+are correlations. A fitted workflow should start from `corpairs(fit)`; this
+gallery uses a compact compatible table so the page builds quickly while
+preserving the same required columns.
 
-```{r correlation-display, fig.alt="Point interval plot showing separate residual, group, and phylogenetic correlation layers with short row labels."}
+```{r correlation-display, fig.alt="Faceted point interval plot showing separate residual, group, and phylogenetic correlation layers with short row labels."}
 pair_table <- data.frame(
-  level = c("Residual", "Group", "Phylogenetic"),
-  class = c("rho12", "random slope", "trait"),
-  parameter = c("Trait coupling", "Intercept-slope", "Species covariance"),
+  level = c("residual", "group", "phylogenetic"),
+  class = c("residual", "mean-slope", "mean-mean"),
+  parameter = c(
+    "rho12",
+    "cor((Intercept),temperature | site)",
+    "cor(mu1,mu2 | phylo | species)"
+  ),
   estimate = c(-0.32, 0.44, 0.61),
   modelled = c(TRUE, FALSE, FALSE),
   conf.low = c(-0.54, 0.12, 0.29),
   conf.high = c(-0.05, 0.68, 0.79),
-  conf.status = c("wald", "profile", "profile")
+  conf.status = c("wald", "profile", "profile"),
+  layer = c("Residual coscale", "Ordinary group", "Phylogenetic")
+)
+pair_table$layer <- factor(
+  pair_table$layer,
+  levels = c("Residual coscale", "Ordinary group", "Phylogenetic")
 )
 pair_table$display <- factor(
   c(
     "Residual\nrho12",
     "Group\nintercept-slope",
-    "Phylogenetic\ntrait covariance"
+    "Phylogenetic\nlocation-location"
   ),
   levels = c(
+    "Residual\nrho12",
     "Group\nintercept-slope",
-    "Phylogenetic\ntrait covariance",
-    "Residual\nrho12"
+    "Phylogenetic\nlocation-location"
   )
 )
 
-plot_corpairs(pair_table, label = "display") +
+correlation_palette <- c(
+  "Residual coscale" = "#0072B2",
+  "Ordinary group" = "#009E73",
+  "Phylogenetic" = "#D55E00"
+)
+
+plot_corpairs(pair_table, colour = "layer", facet = "layer", label = "display") +
+  scale_colour_manual(values = correlation_palette) +
   labs(
-    title = "Correlation layers stay separate",
-    subtitle = "Colour identifies the correlation layer; intervals are drawn only where available"
+    title = "Implemented correlation rows stay in their own layers",
+    subtitle = "Intervals are drawn only when the pair table has finite bounds",
+    colour = "Layer"
   ) +
   theme_drmtmb_gallery() +
   theme(
@@ -762,6 +782,73 @@ plot_corpairs(pair_table, label = "display") +
     legend.position = "none"
   )
 ```
+
+The residual row is the fitted within-observation coscale `rho12`. The group
+row is a latent random-effect correlation, here an intercept-slope row from an
+ordinary grouped model. The phylogenetic row is a species-level structured
+location-location correlation. These rows can live in the same `corpairs()`
+table, but the figure keeps them apart because they answer different
+biological questions.
+
+```{r correlation-layer-boundaries, fig.alt="Tile plot showing implemented residual, group, and phylogenetic correlation-pair layers separately from planned spatial, animal, and relmat boundaries."}
+layer_boundary <- data.frame(
+  layer = c(
+    "Residual rho12",
+    "Ordinary group",
+    "Phylogenetic",
+    "Spatial",
+    "Animal",
+    "relmat"
+  ),
+  status = c(
+    "Fitted corpairs row",
+    "Fitted corpairs row",
+    "Fitted corpairs row",
+    "Planned boundary",
+    "Planned boundary",
+    "Planned boundary"
+  )
+)
+layer_boundary$layer <- factor(
+  layer_boundary$layer,
+  levels = rev(layer_boundary$layer)
+)
+layer_boundary$status <- factor(
+  layer_boundary$status,
+  levels = c("Fitted corpairs row", "Planned boundary")
+)
+layer_boundary$status_label <- ifelse(
+  layer_boundary$status == "Fitted corpairs row",
+  "fitted\nrow",
+  "planned\nboundary"
+)
+
+ggplot(layer_boundary, aes(status, layer, fill = status)) +
+  geom_tile(width = 0.82, height = 0.72, colour = "white", linewidth = 0.6) +
+  geom_text(aes(label = status_label), size = 3.1, lineheight = 0.9) +
+  scale_fill_manual(values = c(
+    "Fitted corpairs row" = "#0072B2",
+    "Planned boundary" = "#E69F00"
+  )) +
+  labs(
+    title = "Correlation-layer support boundary",
+    subtitle = "Spatial, animal, and relmat rows are reserved until fitted correlation-pair evidence exists",
+    x = "Current status",
+    y = NULL,
+    fill = "Status"
+  ) +
+  theme_drmtmb_gallery() +
+  theme(
+    panel.grid = element_blank(),
+    legend.position = "none"
+  )
+```
+
+The status strip is not an estimate plot. Coordinate-spatial Gaussian `mu`
+slopes are fitted elsewhere, but spatial `corpairs()` rows remain planned.
+`animal()` and `relmat()` are also reserved structured-effect markers until the
+likelihood, diagnostics, profile-target, recovery-test, and example evidence
+exist.
 
 ## Simulation operating characteristics
 
