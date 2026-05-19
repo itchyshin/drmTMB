@@ -27757,3 +27757,53 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-18-slice-295-count-mu-re-ademp.md`.
+
+## 2026-05-18 - Slice 296 proportion fixed-effect ADEMP sheet
+
+Goal: create a one-page ADEMP design sheet for the fixed-effect `beta()` and
+`beta_binomial()` Phase 18 lane before adding bounded-response DGP helpers or
+formal grids.
+
+Files changed:
+
+- `docs/design/50-phase-18-proportion-fixed-effect-ademp.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `inst/sim/README.md`
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/dev-log/after-task/2026-05-18-slice-296-proportion-fixed-effect-ademp.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-18-230024-codex-checkpoint.md`
+
+What changed:
+
+- Added a fixed-effect proportion ADEMP sheet with aims, strict beta and
+  beta-binomial DGPs, denominator generation, condition levels, estimands,
+  methods, performance measures, MCSE target, and Williams-style self-audit.
+- Linked the sheet from the Phase 18 simulation programme and the `inst/sim/`
+  README.
+- NEWS and ROADMAP record Slice 296 as the fixed-effect proportion ADEMP
+  sheet.
+
+Checks run:
+
+```sh
+air format docs/design/50-phase-18-proportion-fixed-effect-ademp.md docs/design/41-phase-18-simulation-programme.md inst/sim/README.md NEWS.md ROADMAP.md
+sed -n '1,260p' docs/design/50-phase-18-proportion-fixed-effect-ademp.md
+rg -n 'Proportion Fixed-Effect ADEMP|beta\(\)|beta_binomial\(\)|denominator|strict continuous|exact 0/1|zoi|coi|meta_V\(V = V\)|500 replicates|Williams|Morris|Slice 296' docs/design/50-phase-18-proportion-fixed-effect-ademp.md docs/design/41-phase-18-simulation-programme.md inst/sim/README.md NEWS.md ROADMAP.md
+rg -n 'random effects|structured effects|known sampling covariance|mixed-response|failure ledger|phi|public `sigma`|precision|0/1 continuous|DGP helpers' docs/design/50-phase-18-proportion-fixed-effect-ademp.md
+git diff --check
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript tools/codex-checkpoint.R --goal "Slice 296 proportion fixed-effect ADEMP sheet" --next "stage, commit, push, and open draft PR"
+```
+
+Known limitations:
+
+- No simulation code, DGP helper, runner, result table, executable test,
+  likelihood, formula grammar, extractor, or interval method changed.
+- The sheet is a design contract; formal proportion operating-characteristic
+  evidence still needs explicit beta and beta-binomial DGP helpers and a
+  separate implementation slice.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-296-proportion-fixed-effect-ademp.md`.
