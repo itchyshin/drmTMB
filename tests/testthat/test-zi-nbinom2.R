@@ -295,7 +295,23 @@ test_that("zero-inflated nbinom2 rejects unsupported or invalid inputs", {
   )
   expect_error(
     drmTMB(
+      drm_formula(y ~ x + (0 + x | id), sigma ~ 1, zi ~ 1),
+      family = nbinom2(),
+      data = dat
+    ),
+    "Zero-inflated .* random effects"
+  )
+  expect_error(
+    drmTMB(
       drm_formula(y ~ x, sigma ~ 1, zi ~ x + (1 | id)),
+      family = nbinom2(),
+      data = dat
+    ),
+    "Zero-inflation random effects"
+  )
+  expect_error(
+    drmTMB(
+      drm_formula(y ~ x, sigma ~ 1, zi ~ x + (0 + x | id)),
       family = nbinom2(),
       data = dat
     ),

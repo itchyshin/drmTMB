@@ -250,6 +250,10 @@ test_that("beta rejects boundary and unsupported inputs", {
     "Zero-one-inflated bounded-response random effects"
   )
   expect_error(
+    drmTMB(bf(y ~ x, coi ~ x + (0 + x | id)), family = beta(), data = dat),
+    "Zero-one-inflated bounded-response random effects"
+  )
+  expect_error(
     drmTMB(bf(mu = ~x, sigma ~ 1), family = beta(), data = dat),
     "must include a response"
   )

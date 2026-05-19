@@ -54,8 +54,8 @@ out of operating-characteristic tables except as failure-ledger entries.
 | NB2 `mu` random effects | Fitted for ordinary non-zero-inflated intercepts and independent numeric slopes | Smoke runner, fixed-effect Wald intervals, direct SD profile intervals, weak-SD boundary test, and diagnostics | Ready for first small non-Gaussian `mu` grids |
 | Zero-truncated NB2 `mu` random effects | Planned | Fixed-effect likelihood exists; random effects are blocked | Not ready |
 | Non-Gaussian `sigma` random effects | Blocked | Fixed-effect `sigma` formulas exist for supported families; random-effect bars error clearly | Not ready |
-| Shape or skewness random effects | Planned | Shape formulas exist only where already fitted as fixed effects; skewness remains design/research | Not ready |
-| Zero-inflation, hurdle, zero-one inflation, and one-inflation random effects | Planned or blocked | Fixed-effect `zi` and `hu` exist for selected count families; random effects are blocked | Not ready |
+| Shape or skewness random effects | Planned | Shape formulas exist only where already fitted as fixed effects; Student-t `nu` random-intercept and random-slope requests are blocked with a shape-specific test gate; skewness remains design/research | Not ready |
+| Zero-inflation, hurdle, zero-one inflation, and one-inflation random effects | Planned or blocked | Fixed-effect `zi` and `hu` exist for selected count families; random-intercept and random-slope requests in `zi`, `hu`, future `zoi`, and future `coi` are blocked | Not ready |
 | Ordinal random effects | Blocked | Cumulative-logit fixed-effect path exists; random effects error clearly | Not ready |
 | Structured non-Gaussian dependence | Blocked | Ordinary count `mu` random effects now have first evidence; structured count effects remain blocked | Not ready |
 | Cross-parameter non-Gaussian covariance | Blocked | Cross-distributional-parameter correlation gate records the boundary | Not ready |
