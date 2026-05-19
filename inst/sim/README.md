@@ -30,6 +30,8 @@ Current pilot files:
   one-page ADEMP sheet for the admitted Gaussian location-scale lane.
 - `docs/design/48-phase-18-meta-v-ademp.md` is the one-page ADEMP sheet for
   the admitted Gaussian `meta_V(V = V)` lane.
+- `docs/design/49-phase-18-count-mu-random-effect-ademp.md` is the one-page
+  ADEMP sheet for the paired Poisson/NB2 `mu` random-effect lane.
 - `dgp/sim_dgp_gaussian_ls.R` generates Gaussian location-scale data with
   `mu ~ x` and `sigma ~ z`.
 - `dgp/sim_dgp_gaussian_mu_random_slope.R` generates Gaussian `mu` data with

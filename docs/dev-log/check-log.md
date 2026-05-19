@@ -27708,3 +27708,52 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-18-slice-294-meta-v-ademp.md`.
+
+## 2026-05-18 - Slice 295 count mu random-effect ADEMP sheet
+
+Goal: create a one-page ADEMP design sheet for the paired ordinary Poisson/NB2
+`mu` random-effect Phase 18 lane before expanding the count pilot grid.
+
+Files changed:
+
+- `docs/design/49-phase-18-count-mu-random-effect-ademp.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `inst/sim/README.md`
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/dev-log/after-task/2026-05-18-slice-295-count-mu-re-ademp.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-18-225015-codex-checkpoint.md`
+
+What changed:
+
+- Added a paired Poisson/NB2 `mu` random-effect ADEMP sheet with aims, grouped
+  count DGPs, condition levels, estimands, methods, performance measures, MCSE
+  target, and Williams-style self-audit.
+- Linked the sheet from the Phase 18 simulation programme and the `inst/sim/`
+  README.
+- NEWS and ROADMAP record Slice 295 as the paired count `mu` random-effect
+  ADEMP sheet.
+
+Checks run:
+
+```sh
+air format docs/design/49-phase-18-count-mu-random-effect-ademp.md docs/design/41-phase-18-simulation-programme.md inst/sim/README.md NEWS.md ROADMAP.md
+rg -n 'Count Mu Random-Effect ADEMP|phase18_dgp_poisson_mu_re|phase18_dgp_nbinom2_mu_re|phase18_summarise_count_mu_re_pilot|profile level|0\.70|Poisson|NB2|sd:mu|zero-inflated|hurdle|zero-truncated|Slice 295' docs/design/49-phase-18-count-mu-random-effect-ademp.md docs/design/41-phase-18-simulation-programme.md inst/sim/README.md NEWS.md ROADMAP.md
+rg -n 'mixed-response|structured|correlated-slope|labelled covariance|failure ledger|profile-failed|0\.95 profile grid|DGP code|comprehensive all-feature' docs/design/49-phase-18-count-mu-random-effect-ademp.md
+git diff --check
+Rscript -e "pkgdown::check_pkgdown()"
+git diff --check
+Rscript tools/codex-checkpoint.R --goal "Slice 295 count mu random-effect ADEMP sheet" --next "stage, commit, push, and open draft PR"
+```
+
+Known limitations:
+
+- No simulation code, DGP change, runner, result table, executable test,
+  likelihood, formula grammar, extractor, or interval method changed.
+- The sheet is a design contract; the formal paired count grid still needs a
+  separate implementation slice and an explicit profile-interval runtime
+  decision.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-295-count-mu-re-ademp.md`.
