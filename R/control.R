@@ -1,14 +1,19 @@
 #' Control fitting and fitted-object storage
 #'
 #' `drm_control()` collects optimizer settings and storage choices for
-#' [drmTMB()]. Use `optimizer` for settings passed to [stats::nlminb()]. Use the
-#' storage flags when a fitted object should keep less R-side state, for
+#' [drmTMB()]. Use `optimizer` for settings passed to [stats::nlminb()], or
+#' `optimizer_preset` for named `nlminb()` budgets that keep ordinary defaults
+#' fast while making complex refits easier to write. Use the storage flags when
+#' a fitted object should keep less R-side state, for
 #' example during large-data experiments where the original data frame and TMB
 #' automatic-differentiation object are expensive to retain.
 #'
 #' For optimizer-only settings, `control = list(eval.max = 1000)` remains
 #' valid. When using `drm_control()`, put optimizer arguments inside
 #' `optimizer = list(...)`; do not pass `eval.max` directly to `drm_control()`.
+#' Presets `"careful"` and `"robust"` expand to explicit `iter.max` and
+#' `eval.max` controls for `nlminb()`. Values in `optimizer` override values from
+#' the selected preset.
 #'
 #' @param optimizer Named list passed to the `control` argument of
 #'   [stats::nlminb()].
@@ -38,6 +43,10 @@
 #'   first fitted path rejects random effects, structured effects, known
 #'   sampling covariance, bivariate models, non-Gaussian families, non-unit
 #'   likelihood weights, and combined sparse fixed-effect matrices.
+#' @param optimizer_preset Optimizer-budget preset. `"default"` adds no
+#'   optimizer controls, `"careful"` sets `iter.max = 1000` and
+#'   `eval.max = 1000`, and `"robust"` sets `iter.max = 5000` and
+#'   `eval.max = 5000`.
 #'
 #' @return A `drm_control` object.
 #' @export
@@ -48,7 +57,7 @@
 #'   bf(y ~ x, sigma ~ 1),
 #'   data = dat,
 #'   control = drm_control(
-#'     optimizer = list(eval.max = 100, iter.max = 100),
+#'     optimizer_preset = "careful",
 #'     se = FALSE,
 #'     keep_data = FALSE,
 #'     keep_model_frame = FALSE,
@@ -62,8 +71,10 @@ drm_control <- function(
   keep_model_frame = TRUE,
   keep_tmb_object = TRUE,
   sparse_fixed = FALSE,
-  aggregate_gaussian = FALSE
+  aggregate_gaussian = FALSE,
+  optimizer_preset = c("default", "careful", "robust")
 ) {
+  optimizer_preset <- match.arg(optimizer_preset)
   if (
     !is.list(optimizer) ||
       (length(optimizer) > 0L &&
@@ -82,6 +93,7 @@ drm_control <- function(
       "i" = "Future start, map, fixed-parameter, fallback-optimizer, and multi-start controls will use explicit {.pkg drmTMB} arguments after their contract is implemented."
     ))
   }
+  optimizer <- drm_control_optimizer(optimizer, optimizer_preset)
   se <- drm_control_flag(se, "se")
   keep_data <- drm_control_flag(keep_data, "keep_data")
   keep_model_frame <- drm_control_flag(keep_model_frame, "keep_model_frame")
@@ -99,7 +111,8 @@ drm_control <- function(
       keep_model_frame = keep_model_frame,
       keep_tmb_object = keep_tmb_object,
       sparse_fixed = sparse_fixed,
-      aggregate_gaussian = aggregate_gaussian
+      aggregate_gaussian = aggregate_gaussian,
+      optimizer_preset = optimizer_preset
     ),
     class = "drm_control"
   )
@@ -142,6 +155,20 @@ drm_control_reserved_names <- function() {
     "multi_start",
     "multistart"
   ))
+}
+
+drm_control_optimizer <- function(optimizer, optimizer_preset) {
+  preset <- drm_control_optimizer_preset(optimizer_preset)
+  c(preset[setdiff(names(preset), names(optimizer))], optimizer)
+}
+
+drm_control_optimizer_preset <- function(optimizer_preset) {
+  switch(
+    optimizer_preset,
+    default = list(),
+    careful = list(iter.max = 1000L, eval.max = 1000L),
+    robust = list(iter.max = 5000L, eval.max = 5000L)
+  )
 }
 
 drm_apply_storage_control <- function(fit, control) {

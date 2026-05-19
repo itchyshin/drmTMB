@@ -28,6 +28,18 @@ control = drm_control(
 )
 ```
 
+Slice 274 adds named optimizer-budget presets without changing the default fit:
+
+```r
+control = drm_control(optimizer_preset = "careful")
+control = drm_control(optimizer_preset = "robust")
+```
+
+These presets expand to explicit `nlminb()` `iter.max` and `eval.max` controls
+and are stored on the fitted object as ordinary optimizer settings. User-supplied
+`optimizer = list(...)` values override the selected preset when a fit needs a
+specific budget.
+
 For backward compatibility, plain lists remain optimizer-only controls:
 
 ```r
@@ -45,6 +57,7 @@ keep_model_frame
 keep_tmb_object
 sparse_fixed
 aggregate_gaussian
+optimizer_preset
 start
 starts
 map
@@ -200,4 +213,5 @@ Required safeguards:
 Slice 80 does not implement public starts, fixed parameters, fallback
 optimizers, or multi-start fitting. It reserves the public names, documents the
 contract, and tests the selected-optimum invariant for the current
-single-optimizer path.
+single-optimizer path. Slice 274 adds only single-optimizer budget presets; it
+does not add user starts, maps, fallback optimizers, or multi-start fitting.

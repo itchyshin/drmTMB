@@ -11,7 +11,8 @@ drm_control(
   keep_model_frame = TRUE,
   keep_tmb_object = TRUE,
   sparse_fixed = FALSE,
-  aggregate_gaussian = FALSE
+  aggregate_gaussian = FALSE,
+  optimizer_preset = c("default", "careful", "robust")
 )
 }
 \arguments{
@@ -49,14 +50,21 @@ statistic row aggregation in univariate Gaussian fixed-effect models. The
 first fitted path rejects random effects, structured effects, known
 sampling covariance, bivariate models, non-Gaussian families, non-unit
 likelihood weights, and combined sparse fixed-effect matrices.}
+
+\item{optimizer_preset}{Optimizer-budget preset. \code{"default"} adds no
+optimizer controls, \code{"careful"} sets \code{iter.max = 1000} and
+\code{eval.max = 1000}, and \code{"robust"} sets \code{iter.max = 5000} and
+\code{eval.max = 5000}.}
 }
 \value{
 A \code{drm_control} object.
 }
 \description{
 \code{drm_control()} collects optimizer settings and storage choices for
-\code{\link[=drmTMB]{drmTMB()}}. Use \code{optimizer} for settings passed to \code{\link[stats:nlminb]{stats::nlminb()}}. Use the
-storage flags when a fitted object should keep less R-side state, for
+\code{\link[=drmTMB]{drmTMB()}}. Use \code{optimizer} for settings passed to \code{\link[stats:nlminb]{stats::nlminb()}}, or
+\code{optimizer_preset} for named \code{nlminb()} budgets that keep ordinary defaults
+fast while making complex refits easier to write. Use the storage flags when
+a fitted object should keep less R-side state, for
 example during large-data experiments where the original data frame and TMB
 automatic-differentiation object are expensive to retain.
 }
@@ -64,6 +72,9 @@ automatic-differentiation object are expensive to retain.
 For optimizer-only settings, \code{control = list(eval.max = 1000)} remains
 valid. When using \code{drm_control()}, put optimizer arguments inside
 \code{optimizer = list(...)}; do not pass \code{eval.max} directly to \code{drm_control()}.
+Presets \code{"careful"} and \code{"robust"} expand to explicit \code{iter.max} and
+\code{eval.max} controls for \code{nlminb()}. Values in \code{optimizer} override values from
+the selected preset.
 }
 \examples{
 dat <- data.frame(y = rnorm(20), x = rnorm(20))
@@ -71,7 +82,7 @@ fit <- drmTMB(
   bf(y ~ x, sigma ~ 1),
   data = dat,
   control = drm_control(
-    optimizer = list(eval.max = 100, iter.max = 100),
+    optimizer_preset = "careful",
     se = FALSE,
     keep_data = FALSE,
     keep_model_frame = FALSE,

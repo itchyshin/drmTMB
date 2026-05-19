@@ -26522,3 +26522,59 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-18-slice-273-bivariate-slope-boundary.md`.
+
+## 2026-05-18 - Slice 274 convergence control presets
+
+Goal: keep ordinary optimizer defaults fast while giving users named,
+reproducible optimizer-budget presets for difficult distributional models.
+
+Files changed:
+
+- `NEWS.md`
+- `R/control.R`
+- `ROADMAP.md`
+- `docs/design/35-optimizer-start-map-multistart.md`
+- `docs/dev-log/after-task/2026-05-18-slice-274-convergence-controls.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-18-194240-codex-checkpoint.md`
+- `man/drm_control.Rd`
+- `tests/testthat/test-optimizer-contract.R`
+- `vignettes/convergence.Rmd`
+
+What changed:
+
+- Added `optimizer_preset = "default"`, `"careful"`, and `"robust"` to
+  `drm_control()`.
+- Expanded `"careful"` to `iter.max = 1000` and `eval.max = 1000`; expanded
+  `"robust"` to `iter.max = 5000` and `eval.max = 5000`.
+- Kept ordinary defaults unchanged and let `optimizer = list(...)` override
+  preset values when a user needs a custom budget.
+- Updated the convergence guide, optimizer contract design note, roadmap, NEWS,
+  and roxygen reference documentation.
+
+Checks run:
+
+- `air format NEWS.md R/control.R ROADMAP.md docs/design/35-optimizer-start-map-multistart.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-18-slice-274-convergence-controls.md docs/dev-log/recovery-checkpoints/2026-05-18-194240-codex-checkpoint.md man/drm_control.Rd tests/testthat/test-optimizer-contract.R vignettes/convergence.Rmd`
+- `Rscript -e "devtools::document()"`
+- `Rscript -e "devtools::test(filter = 'optimizer-contract', reporter = 'summary')"`
+- `Rscript -e 'rmarkdown::render("vignettes/convergence.Rmd", output_dir = tempfile("convergence-render-"), quiet = FALSE)'`
+- `rg -n 'optimizer_preset|careful|robust|Control presets and defaults|Slice 274|nlminb\(\).*budget|expanded optimizer settings|recorded optimizer settings' NEWS.md ROADMAP.md R/control.R man/drm_control.Rd tests/testthat/test-optimizer-contract.R vignettes/convergence.Rmd docs/design/35-optimizer-start-map-multistart.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-18-slice-274-convergence-controls.md`
+- `rg -n 'fallback optimizer.*implemented|fallback optimizers.*implemented|multi-start.*implemented|multi_start.*implemented|warm-start.*implemented|warm starts.*implemented|BFGS.*automatic|L-BFGS-B.*automatic|many optimizers|automatic.*optimizers' README.md ROADMAP.md NEWS.md docs/design vignettes R tests/testthat --glob '!docs/dev-log/**'`
+  returned only planned-boundary text, not a fallback or multi-start
+  implementation claim.
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `git diff --check`
+- `Rscript tools/codex-checkpoint.R --goal "Slice 274 convergence control presets" --next "stage, commit, push, and open draft PR"`
+
+Known limitations:
+
+- No warm-start, user-start, map, fallback-optimizer, or multi-start path was
+  added.
+- No optimizer comparison table, Hessian eigenvector culprit report, or
+  automatic simplification advice was added.
+- Presets tune only `iter.max` and `eval.max`; users still need `check_drm()`,
+  simpler-model comparison, scaling, and profiles to diagnose weak fits.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-274-convergence-controls.md`.

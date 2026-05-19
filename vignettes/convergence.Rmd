@@ -66,19 +66,41 @@ fit <- drmTMB(
 )
 ```
 
-This kind of control is often appropriate for complex models:
+For the common case where you simply want a larger deterministic `nlminb()`
+budget, use a named preset:
 
 ```{r}
 complex_control <- drm_control(
-  optimizer = list(iter.max = 5000, eval.max = 5000)
+  optimizer_preset = "robust"
 )
 ```
+
+`optimizer_preset = "careful"` sets `iter.max = 1000` and `eval.max = 1000`.
+`optimizer_preset = "robust"` sets both limits to 5000. The default preset adds
+no optimizer controls, so ordinary models still use the ordinary `nlminb()`
+defaults.
 
 There is no universal best number. A small Gaussian fixed-effect model should
 not need the same budget as a bivariate phylogenetic location-scale model with
 random slopes and fitted correlations. Use `check_drm()` to decide whether the
 extra budget changed the result or merely gave the optimizer more time to
 reach the same boundary.
+
+If a preset is almost right, combine it with explicit overrides:
+
+```{r}
+fit <- drmTMB(
+  bf(y ~ x + (1 | id), sigma ~ z),
+  data = dat,
+  control = drm_control(
+    optimizer_preset = "robust",
+    optimizer = list(eval.max = 8000)
+  )
+)
+```
+
+The fitted object records the expanded optimizer settings in `fit$control`, so
+the analysis remains reproducible.
 
 A plain list is still accepted for backward compatibility:
 
