@@ -26,6 +26,8 @@ are added here.
 
 Current pilot files:
 
+- `docs/design/47-phase-18-gaussian-location-scale-ademp.md` is the first
+  one-page ADEMP sheet for the admitted Gaussian location-scale lane.
 - `dgp/sim_dgp_gaussian_ls.R` generates Gaussian location-scale data with
   `mu ~ x` and `sigma ~ z`.
 - `dgp/sim_dgp_gaussian_mu_random_slope.R` generates Gaussian `mu` data with

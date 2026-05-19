@@ -27614,3 +27614,50 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-18-slice-292-phase18-blueprint.md`.
+
+## 2026-05-18 - Slice 293 Gaussian location-scale ADEMP sheet
+
+Goal: create the first one-page ADEMP design sheet for an admitted Phase 18
+lane before writing new DGP or grid code.
+
+Files changed:
+
+- `docs/design/47-phase-18-gaussian-location-scale-ademp.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `inst/sim/README.md`
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/dev-log/after-task/2026-05-18-slice-293-gaussian-ls-ademp.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-18-224009-codex-checkpoint.md`
+
+What changed:
+
+- Added a Gaussian location-scale ADEMP sheet with aims, DGP equations,
+  condition levels, estimands, methods, performance measures, MCSE target, and
+  Williams-style self-audit.
+- Linked the sheet from the Phase 18 simulation programme and the `inst/sim/`
+  README.
+- NEWS and ROADMAP record Slice 293 as the first post-blueprint ADEMP sheet.
+
+Checks run:
+
+```sh
+air format docs/design/47-phase-18-gaussian-location-scale-ademp.md docs/design/41-phase-18-simulation-programme.md inst/sim/README.md NEWS.md ROADMAP.md
+rg -n "Gaussian Location-Scale ADEMP|phase18_dgp_gaussian_ls|phase18_gaussian_ls_conditions|coef\\(fit, dpar = \\\"mu\\\"\\)|coef\\(fit, dpar = \\\"sigma\\\"\\)|sigma\\(fit, newdata|500 replicates|Williams|Morris|one-page ADEMP|Slice 293" docs/design/47-phase-18-gaussian-location-scale-ademp.md docs/design/41-phase-18-simulation-programme.md inst/sim/README.md NEWS.md ROADMAP.md
+rg -n "external comparator|animal\\(\\)|relmat\\(\\)|shape/skewness|random-effect|phylogenetic|spatial|comprehensive all-feature|DGP code" docs/design/47-phase-18-gaussian-location-scale-ademp.md
+git diff --check
+Rscript -e "pkgdown::check_pkgdown()"
+git diff --check
+Rscript tools/codex-checkpoint.R --goal "Slice 293 Gaussian location-scale ADEMP sheet" --next "stage, commit, push, and open draft PR"
+```
+
+Known limitations:
+
+- No simulation code, DGP change, runner, result table, executable test,
+  likelihood, formula grammar, extractor, or interval method changed.
+- The sheet is a design contract; the formal grid still needs a separate
+  implementation slice.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-293-gaussian-ls-ademp.md`.
