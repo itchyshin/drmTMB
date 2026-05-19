@@ -17,6 +17,35 @@ distributional-parameter link, shape or coscale slot, fitted random-effect
 allowance, and test-evidence state. Treat that map as the source check before
 adding a family to a Phase 18 grid.
 
+## Slice 291 Evidence-Ledger Gate
+
+This gate maps the public stable-core rows to the evidence a Phase 18 report
+writer must find before a surface enters a simulation grid. "Advertised" here
+means a surface appears in README, the model-map article, a package reference
+topic, or a Phase 18 DGP row as fitted, stable, first slice, or opt-in
+control. Planned or blocked rows can appear only as failure-ledger rows.
+
+| Public row | Implementation evidence | Test, diagnostic, or interval evidence | User-facing boundary | Simulation status after Rose/Fisher signoff |
+| --- | --- | --- | --- | --- |
+| Fixed-effect one-response families | Family registry entries and likelihood rows in `docs/design/02-family-registry.md` and `docs/design/03-likelihoods.md` | Family-specific tests listed in `docs/design/34-validation-debt-register.md`; fixed-effect Wald rows for count, proportion, ordinal, and continuous-shape paths where recently hardened | Distribution-family tutorial and stable-core matrix separate fitted fixed-effect families from random-effect extensions | Admit named fixed-effect families; do not borrow this evidence for non-Gaussian random effects |
+| Gaussian ordinary random effects | Gaussian `mu` intercepts, independent slopes, one-slope correlated blocks, q > 2 numeric `mu` blocks, `sigma` intercepts, and independent `sigma` slopes are fitted | Random-effect, profile-target, comparator, weak-boundary, and `check_drm()` evidence in the validation-debt register and recent random-slope slices | README, model-map, and which-scale docs mark larger q blocks as fitted but sample-size hungry | Admit small Gaussian ordinary grids; label q > 2 grids as advanced |
+| Random-effect scale `sd(group)` models | Unlabelled Gaussian `mu` random-intercept SD surfaces are fitted | Recovery and comparator tests exist; row-specific SD summaries remain derived | `sd(group) ~ x_group` is the public fitted syntax; coefficient-specific slope-SD formulas stay reserved | Admit only the unlabelled intercept-SD surface |
+| Known sampling covariance | Gaussian `meta_V(V = V)` fits diagonal, dense, and row-paired bivariate known sampling covariance | Vector, dense, bivariate, interval-safety, and `check_drm()` evidence exist | Meta-analysis docs keep known sampling covariance `V` separate from latent relatedness and fitted residual `sigma` | Admit vector and dense known-`V` Gaussian grids with `V` treated as input data |
+| Bivariate residual `rho12` | Two-response Gaussian models fit fixed and predictor-dependent residual `rho12` | `rho12()`, profile-target, row-specific profile, and tutorial evidence exist | Docs keep residual coscale separate from group, phylogenetic, spatial, and known-sampling covariance | Admit residual-correlation grids; do not treat `rho12` as a random-effect or structured-correlation layer |
+| Ordinary bivariate covariance and `corpairs()` | Selected labelled intercept blocks and q=2 `corpair(..., level = "group") ~ x` surfaces are fitted | `corpairs()`, summary rows, direct profile targets for supported q=2 rows, and interval-source provenance exist | q=4 rows expose derived interval unavailability; bivariate random slopes remain planned | Admit selected intercept-block and q=2 rows; keep slope-level covariance out |
+| Phylogenetic structured effects | Univariate `mu`, bivariate `mu1`/`mu2`, selected q=4 location-scale, direct-SD, and q=2 phylogenetic `corpair()` slices are fitted | Profile, direct-SD, covariance-row, diagnostic, and example evidence exist | Structural-dependence docs keep phylogenetic slopes and structured `rho12` planned | Admit intercept/direct-SD subsets; keep phylogenetic slopes out |
+| Coordinate spatial structured effects | Univariate Gaussian `mu` intercepts and one numeric coordinate-spatial slope are fitted | Direct SD targets, `ranef("spatial_mu")`, one-slope smoke evidence, and diagnostics exist | Docs keep mesh/SPDE, multiple slopes, spatial `sigma`, bivariate spatial covariance, and spatial `corpair()` planned | Admit univariate coordinate-spatial `mu` intercept and one-slope grids only |
+| Profile intervals and diagnostics | `summary()`, `confint()`, `profile_targets()`, `check_drm()`, `predict_parameters()`, and `corpairs()` expose target-specific status | Slice 278 records interval routes; Slice 289 records extractor and plot interval provenance | Docs state that bootstrap and many derived-summary intervals remain unavailable | Use as supporting infrastructure after the model surface itself is admitted |
+| Large-data controls | Memory-light objects, `se = FALSE`, sparse Gaussian fixed-effect `mu`, and Gaussian sufficient-statistic aggregation are opt-in controls | `check_drm()` exposes sparse-design, aggregation, and `sdreport` diagnostics where fitted | Control docs state these are hardening or memory routes, not general scalability claims | Admit only as opt-in stress cells, not as broad performance evidence |
+| Reserved, planned, or blocked neighbours | Parser, reference, or roadmap syntax may exist for future features | Boundary tests and error messages are evidence only that unsupported paths stay closed | README, model-map, family registry, and structural docs tell users what to fit instead | Keep in the failure ledger until likelihood, tests, diagnostics, docs, simulation status, and after-task evidence exist |
+
+The signoff result is conditional rather than global. The current evidence can
+start Phase 18 on the admitted named surfaces, but it does not yet support a
+comprehensive all-feature grid. Every new DGP row should cite the public row
+above, the register row in
+`docs/design/34-validation-debt-register.md`, and the specific tests or
+after-task report that make the row admissible.
+
 ## Slice 268 Capability Audit
 
 This audit condenses the readiness matrix into the model classes that a Phase

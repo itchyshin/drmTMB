@@ -27512,3 +27512,55 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-18-slice-290-user-boundaries.md`.
+
+## 2026-05-18 - Slice 291 pre-simulation evidence ledger
+
+Goal: close the pre-simulation gate by giving Rose and Fisher a concrete
+ledger for checking whether public fitted claims have implementation evidence,
+tests or diagnostics, user-facing boundaries, and Phase 18 simulation status.
+
+Files changed:
+
+- `docs/design/46-pre-simulation-readiness-matrix.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `docs/design/34-validation-debt-register.md`
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/dev-log/after-task/2026-05-18-slice-291-pre-simulation-ledger.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-18-222659-codex-checkpoint.md`
+
+What changed:
+
+- The pre-simulation readiness matrix now has a Slice 291 evidence-ledger gate
+  that maps each public stable-core row to implementation evidence,
+  test/diagnostic/interval evidence, user-facing boundaries, and Phase 18
+  admission status.
+- The Phase 18 simulation programme now requires each new DGP row to trace back
+  to that gate before it enters an admitted grid.
+- The validation-debt register now says simulation admission requires both the
+  register and the Slice 291 gate.
+- NEWS and ROADMAP record the local completion of the evidence-ledger gate.
+
+Checks run:
+
+```sh
+air format docs/design/46-pre-simulation-readiness-matrix.md docs/design/41-phase-18-simulation-programme.md docs/design/34-validation-debt-register.md NEWS.md ROADMAP.md
+rg -n "Slice 291|evidence-ledger gate|Rose/Fisher|simulation status|admitted named surfaces|failure-ledger only|first-slice" NEWS.md ROADMAP.md docs/design/34-validation-debt-register.md docs/design/41-phase-18-simulation-programme.md docs/design/46-pre-simulation-readiness-matrix.md
+rg -n "comprehensive all-feature|advertised.*implemented|animal.*admit|relmat.*admit|rho12.*random-effect layer|known sampling covariance.*latent" docs/design/46-pre-simulation-readiness-matrix.md docs/design/41-phase-18-simulation-programme.md docs/design/34-validation-debt-register.md README.md vignettes/model-map.Rmd
+git diff --check
+Rscript -e "pkgdown::check_pkgdown()"
+rg -n "Slice 291|evidence-ledger gate|Rose/Fisher|simulation status|admitted named surfaces|failure-ledger only|first-slice" NEWS.md ROADMAP.md docs/design/34-validation-debt-register.md docs/design/41-phase-18-simulation-programme.md docs/design/46-pre-simulation-readiness-matrix.md
+git diff --check
+Rscript tools/codex-checkpoint.R --goal "Slice 291 pre-simulation evidence ledger" --next "stage, commit, push, and open draft PR"
+```
+
+Known limitations:
+
+- No likelihood, formula grammar, simulation helper, executable test, fitted
+  model, extractor, or interval method changed.
+- The gate admits named surfaces only; it does not support a comprehensive
+  all-feature grid.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-291-pre-simulation-ledger.md`.

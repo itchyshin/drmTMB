@@ -10,6 +10,10 @@ The first rule is scope. A surface enters the comprehensive simulation only
 after it has a fitted likelihood, parser validation, extractors, diagnostics,
 interval status, and focused recovery tests. Surfaces that are still only
 planned belong in the failure ledger, not in a broad simulation table.
+Before adding a DGP row, check the Slice 291 evidence-ledger gate in
+`docs/design/46-pre-simulation-readiness-matrix.md`; the row should name the
+public surface, the validation-debt register evidence, and whether the surface
+is admitted, opt-in only, or failure-ledger only.
 
 ## A - Aims
 
