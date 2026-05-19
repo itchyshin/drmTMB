@@ -11,6 +11,12 @@ The matrix below keeps location, scale, shape, inflation, structured
 dependence, and bivariate responses separate so simulation reports do not mix
 evidence from one layer into another.
 
+Slice 283 adds the family-level crosswalk in
+`docs/design/02-family-registry.md`, listing each public family route,
+distributional-parameter link, shape or coscale slot, fitted random-effect
+allowance, and test-evidence state. Treat that map as the source check before
+adding a family to a Phase 18 grid.
+
 ## Slice 268 Capability Audit
 
 This audit condenses the readiness matrix into the model classes that a Phase

@@ -56,8 +56,9 @@ this and what should I read next?", put it under Model Guides. When it answers
 - Random-effect scale models: residual `sigma` versus `sd(group)`.
 - Bivariate location-coscale: `rho12` as residual coupling after means and
   residual SDs are modelled.
-- Meta-analysis: Gaussian regression with `meta_known_V(V = V)`, including
-  diagonal, block-diagonal, and dense row-paired covariance examples.
+- Meta-analysis: Gaussian regression with preferred `meta_V(V = V)`, including
+  diagonal, block-diagonal, and dense row-paired covariance examples;
+  `meta_known_V(V = V)` remains a compatibility alias.
 - Phylogenetic location effects: ultrametric tree input, sparse A-inverse route,
   and the distinction between residual and structured correlations.
 

@@ -9,6 +9,7 @@
 * Bergmann-report follow-up now hardens invalid Wald standard-error rows, clarifies that univariate `sigma ~ phylo(...)` is not yet fitted, documents long-iteration triage, and tests the labelled q4-to-two-q2 block-diagonal fallback.
 * Structural-dependence docs now give a clearer user surface for planned `animal()` and `relmat()` models, including what fitted sensitivity model to use now and when a known matrix belongs to `meta_V(V = V)` instead of a future latent relatedness path.
 * Structural-dependence design notes now separate dense covariance inputs (`A`, `K`) from sparse precision inputs (`Ainv`, `Q`) for future `animal()` and `relmat()` models, keeping large-pedigree or large-matrix speed claims blocked until sparse-precision recovery and scaling evidence exists.
+* The family registry now has a Slice 283 family-and-parameter evidence map, listing each public family route, distributional-parameter link, shape or coscale slot, fitted random-effect allowance, and test evidence state before later count, proportion, shape, ordinal, or mixed-response hardening work expands those rows.
 * Bivariate random-slope combination boundaries now have focused error coverage for matching slope-only `mu1`/`mu2` blocks, intercept-plus-slope location q=4 requests, residual-scale slope pairs, same-response location-scale slope combinations, and all-four q=8-style slope requests.
 * Structured random-slope boundaries now have parser and fit-time audit coverage:
   one-slope `animal()` and `relmat()` markers are readable as planned grammar,

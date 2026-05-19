@@ -72,14 +72,37 @@ Use these status labels:
   Correlated slope blocks, labelled covariance blocks,
   zero-inflated Poisson random effects, and cross-parameter covariance blocks
   remain planned.
-- Evidence: `tests/testthat/test-poisson-mean.R` and
+- Evidence: `tests/testthat/test-poisson-mean.R`,
+  `tests/testthat/test-phase18-poisson-mu-random-effect.R`, and
   `tests/testthat/test-comparators.R`.
 - Diagnostics and intervals: `sdpars$mu`, `random_effects$mu`, and
   `profile_targets()` expose the random-effect SDs through direct
   `log_sd_mu` profile targets.
-- Debt: weak-SD grids, NB2 full smoke runners, correlated non-Gaussian `mu`
-  slopes, and cross-parameter covariance need later slice evidence before
-  Phase 18 comprehensive simulation.
+- Debt: larger grids, correlated non-Gaussian `mu` slopes, labelled
+  covariance blocks, zero-inflated Poisson random effects, and
+  cross-parameter covariance need later slice evidence before Phase 18 treats
+  them as routine.
+
+### NB2 ordinary random effects
+
+- Matrix status: first non-Gaussian overdispersed-count path implemented for
+  non-zero-inflated NB2 `mu`.
+- Register status: ordinary unlabelled `(1 | group)` random intercepts and
+  independent numeric `(0 + x | group)` slopes enter the log-mean predictor;
+  `sigma` remains a fixed-effect overdispersion formula.
+  Correlated slope blocks, labelled covariance blocks, zero-inflated NB2
+  random effects, and NB2 `sigma` random effects remain planned.
+- Evidence: `tests/testthat/test-nbinom2-location-scale.R` and
+  `tests/testthat/test-phase18-nbinom2-mu-random-effect.R`.
+- Diagnostics and intervals: `sdpars$mu`, `random_effects$mu`, and
+  `profile_targets()` expose the fitted random-effect SDs through direct
+  `log_sd_mu` profile targets. The Phase 18 smoke surface records fixed-effect
+  Wald rows for `mu` and `sigma` coefficients and direct profile rows for the
+  `mu` random-effect SDs.
+- Debt: zero-inflated NB2 random effects, `sigma` random effects, correlated
+  or labelled NB2 slope blocks, and cross-parameter non-Gaussian covariance
+  need separate likelihood, extractor, interval, diagnostic, and recovery
+  evidence before comprehensive simulation.
 
 ### Inflation, hurdle, and one-inflation random effects
 

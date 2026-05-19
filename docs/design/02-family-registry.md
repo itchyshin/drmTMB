@@ -44,6 +44,40 @@ The detailed contract is in `docs/design/19-family-link-contract.md`. Treat it
 as a prerequisite before implementing additional count, ordinal-scale,
 denominator-aware, or positive-continuous families.
 
+## Slice 283 Current Family and Evidence Map
+
+This map is an audit of current package scope, not new grammar. The
+random-effect column lists only syntax that is fitted now. A row marked
+fixed-effect only can still have distributional-parameter formulas such as
+`sigma ~ x`, `nu ~ x`, `zi ~ x`, or `hu ~ x`; it cannot include bar terms in
+that parameter until the row has likelihood, extractor, interval, diagnostic,
+and recovery evidence.
+
+| Public route | Distributional parameters and links | Shape or coscale slot | Random-effect allowance now | Evidence state |
+| --- | --- | --- | --- | --- |
+| `gaussian()` | `mu` identity; `sigma` log | none | Fixed effects; ordinary `mu` random intercepts, independent slopes, q > 2 numeric slope blocks, selected labelled intercept covariance; Gaussian `sigma` random intercepts and independent slopes; selected `sd(group)` SD-surface formulas; Gaussian-only `meta_V()`, `phylo()`, and `spatial()` routes are separate rows in the readiness matrix. | Covered by Gaussian location-scale, random-effect, profile, `check_drm()`, meta-analysis, phylogenetic, and spatial tests. |
+| `student()` | `mu` identity; `sigma` log; `nu` logm2 | `nu = 2 + exp(eta_nu)` is tail shape or degrees of freedom | Fixed-effect only for all dpars. `nu` and `sigma` bar terms are blocked. | `tests/testthat/test-student-location-scale.R`; `tests/testthat/test-nongaussian-scale-boundary.R`. |
+| `lognormal()` | `mu` identity on `log(y)`; `sigma` log | none | Fixed-effect only for `mu` and `sigma`. | `tests/testthat/test-lognormal-location-scale.R`; `tests/testthat/test-family-link-contract.R`; scale-boundary tests. |
+| `Gamma(link = "log")` | `mu` log; `sigma` log | no public `nu`; internal shape is `1 / sigma^2` | Fixed-effect only for `mu` and `sigma`; non-log Gamma links remain unsupported. | `tests/testthat/test-gamma-location-scale.R`; `tests/testthat/test-family-link-contract.R`; scale-boundary tests. |
+| `beta()` | `mu` logit; `sigma` log | no public `nu`; internal precision is `phi = 1 / sigma^2` | Fixed-effect only for strict `(0, 1)` responses. Exact 0/1 boundary mass and `zoi`/`coi` are planned. | `tests/testthat/test-beta-location-scale.R`; `tests/testthat/test-family-link-contract.R`; bounded-response boundary tests. |
+| `beta_binomial()` | `mu` logit; `sigma` log | no public `nu`; internal precision is `phi = 1 / sigma^2` with row trials | Fixed-effect only for two-column `cbind(successes, failures)` responses. `mu`, `sigma`, `zoi`, and `coi` random effects are blocked. | `tests/testthat/test-beta-binomial.R`; `tests/testthat/test-family-link-contract.R`; scale and bounded-response boundary tests. |
+| `poisson(link = "log")` | `mu` log | none; no modelled `sigma` | Non-zero-inflated Poisson fits fixed effects plus ordinary unlabelled `mu` random intercepts and independent numeric `mu` slopes. Correlated slopes and labelled covariance remain planned. | `tests/testthat/test-poisson-mean.R`; `tests/testthat/test-phase18-poisson-mu-random-effect.R`; comparator and profile-target checks. |
+| `poisson(link = "log")` with `zi ~ ...` | `mu` log; `zi` logit | `zi` is structural-zero probability, not shape | Fixed-effect `mu` and fixed-effect `zi` only. Count-side and `zi` random effects are blocked for zero-inflated Poisson. | `tests/testthat/test-zi-poisson.R`; inflation-random-effect boundary tests. |
+| `nbinom2()` | `mu` log; `sigma` log | no public `nu`; internal size is `1 / sigma^2` | Non-zero-inflated NB2 fits fixed `sigma` formulas plus ordinary unlabelled `mu` random intercepts and independent numeric `mu` slopes. Correlated slopes, labelled covariance, and `sigma` random effects remain planned. | `tests/testthat/test-nbinom2-location-scale.R`; `tests/testthat/test-phase18-nbinom2-mu-random-effect.R`; scale-boundary and profile-target checks. |
+| `nbinom2()` with `zi ~ ...` | `mu` log; `sigma` log; `zi` logit | `zi` is structural-zero probability | Fixed-effect `mu`, `sigma`, and `zi` only. Count-side, `sigma`, and `zi` random effects are blocked for zero-inflated NB2. | `tests/testthat/test-zi-nbinom2.R`; inflation and scale-boundary tests. |
+| `truncated_nbinom2()` | `mu` log; `sigma` log | no public `nu`; internal size is `1 / sigma^2` | Fixed-effect only for positive-count data. Zero-truncated `mu` random effects are a later count gate. | `tests/testthat/test-truncated-nbinom2-location-scale.R`; count-kernel and scale-boundary tests. |
+| `truncated_nbinom2()` with `hu ~ ...` | `mu` log; `sigma` log; `hu` logit | `hu` is hurdle-zero probability | Fixed-effect `mu`, `sigma`, and `hu` only. Hurdle-side and positive-count random effects are blocked. | `tests/testthat/test-hurdle-nbinom2.R`; inflation/hurdle boundary tests. |
+| `cumulative_logit()` | `mu` identity plus ordered cutpoints | cutpoints are ordered thresholds; no fitted `sigma` | Fixed-effect location only. Ordinal random effects, scale, and discrimination are blocked. | `tests/testthat/test-cumulative-logit.R`; ordinal interval and boundary checks. |
+| `c(gaussian(), gaussian())`, `list(gaussian(), gaussian())`, `biv_gaussian()` | `mu1`, `mu2` identity; `sigma1`, `sigma2` log; `rho12` guarded atanh | `rho12` is residual coscale or correlation, not group, phylogenetic, or spatial covariance | Fixed effects; selected matching labelled random-intercept covariance blocks; selected phylogenetic location and location-scale blocks. Bivariate random slopes and mixed-response bivariate families remain planned. | `tests/testthat/test-biv-gaussian.R`; `tests/testthat/test-corpairs.R`; bivariate profile, summary, and phylogenetic tests. |
+
+Planned family rows stay out of fitted examples until they have the same
+evidence pattern. The current named example is `skew_normal()`, where `nu`
+would be residual asymmetry on the native skew-normal scale. That row has no
+likelihood, no recovery tests, no prediction contract, and no random-effect
+allowance yet. A future Tweedie row likewise needs a final public `sigma`
+versus comparator-`phi` decision before tests or documentation can claim a
+fitted family.
+
 ## Distributional Parameter Naming
 
 Use the GAMLSS convention from Rigby and Stasinopoulos (2005) as the default
@@ -142,7 +176,8 @@ intercepts, independent numeric `mu` random slopes, one-slope correlated `mu`
 random intercept-slope blocks with optional covariance-block labels,
 univariate Gaussian residual-scale random intercepts and independent random
 slopes in `sigma`, and optional
-known sampling covariance through `meta_known_V(V = V)`. Random-effect scale
+known sampling covariance through `meta_V(V = V)`, with
+`meta_known_V(V = V)` retained as a compatibility alias. Random-effect scale
 formulae such as `sd(id) ~ x_group` and `sd(site) ~ site_type` are implemented
 for distinct unlabelled Gaussian `mu` random intercepts. Sparse known
 covariance, correlated residual-scale slope blocks, slope-specific or labelled
@@ -286,8 +321,7 @@ successes and failures:
 family = beta_binomial()
 ```
 
-The implemented model is univariate and can include ordinary `mu` random
-intercepts or independent numeric slopes:
+The implemented model is univariate and fixed-effect only:
 
 ```text
 y_i | n_i, p_i ~ Binomial(n_i, p_i)
@@ -369,7 +403,8 @@ family = poisson(link = "log")
 ```
 
 The implemented ordinary Poisson model is univariate. It supports fixed
-effects and the first unlabelled `mu` random-intercept path:
+effects, ordinary unlabelled `mu` random intercepts, and independent numeric
+`mu` random slopes for non-zero-inflated models:
 
 ```text
 y_i | mu_i ~ Poisson(mu_i)
@@ -378,16 +413,20 @@ log(mu_i) = o_i + X_mu[i, ] beta_mu + b_{g[i]}
 E[y_i] = Var[y_i] = mu_i
 ```
 
+For an independent random-slope term such as `(0 + x | group)`, the mean
+predictor adds `x_i b_{x,g[i]}` with its own fitted `sd_mu`.
+
 For exposure models, `o_i` is a known offset from standard R syntax such as
 `offset(log(trap_nights))`; otherwise `o_i = 0`.
 
 This path is mostly a baseline count-regression model and a comparator for
 later overdispersed count families. It deliberately has no fitted `sigma`
 distributional parameter. `sigma(fit)` returns a fixed unit dispersion vector
-for base-R method compatibility, not a modelled residual scale. Random slopes,
-labelled random-effect covariance blocks, known sampling covariance,
-overdispersion, phylogenetic terms, and bivariate or mixed Poisson models are
-later phases.
+for base-R method compatibility, not a modelled residual scale. Correlated
+random-slope blocks, labelled random-effect covariance blocks,
+zero-inflated Poisson random effects, known sampling covariance,
+overdispersion, phylogenetic terms, and bivariate or mixed Poisson models
+remain later phases.
 
 The same Poisson route also supports fixed-effect structural-zero regression by
 adding a `zi` formula:
@@ -547,8 +586,10 @@ bf(
 `rho12` uses a guarded atanh-style link internally:
 `rho12 = 0.99999999 * tanh(eta_rho12)` on the response scale.
 `mvbind(y1, y2) ~ x` is implemented as shorthand for identical `mu1` and
-`mu2` location formulas. Bivariate random effects are planned but not
-implemented.
+`mu2` location formulas. Selected matching labelled random-intercept
+covariance blocks are implemented for all-Gaussian bivariate fits; bivariate
+random slopes, mixed-response bivariate families, and broad q=4/q=8 endpoint
+blocks remain planned.
 
 ## Design Principle
 

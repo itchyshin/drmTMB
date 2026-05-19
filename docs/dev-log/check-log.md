@@ -27032,3 +27032,73 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-18-slice-282-sparse-precision-boundary.md`.
+
+## 2026-05-18 - Slice 283 non-Gaussian family map
+
+Goal: list current family routes, distributional-parameter links, shape or
+coscale slots, fitted random-effect allowance, and test-evidence state before
+the next count, proportion, shape, ordinal, and mixed-response hardening
+slices.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/02-family-registry.md`
+- `docs/design/21-tutorial-style.md`
+- `docs/design/34-validation-debt-register.md`
+- `docs/design/46-pre-simulation-readiness-matrix.md`
+- `docs/dev-log/after-task/2026-05-18-slice-283-nongaussian-family-map.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-18-210801-codex-checkpoint.md`
+- `vignettes/distribution-families.Rmd`
+- `vignettes/source-map.Rmd`
+
+What changed:
+
+- Added a Slice 283 family-and-evidence map to the family registry, covering
+  public family routes, links, shape or coscale slots, current random-effect
+  allowance, and named test evidence.
+- Corrected the beta-binomial row to fixed-effect only, with bounded-response
+  and scale random effects still blocked.
+- Updated Poisson and NB2 rows to identify non-zero-inflated `mu` random
+  intercepts and independent numeric slopes as the fitted non-Gaussian
+  random-effect paths.
+- Added an NB2 ordinary random-effect section to the validation-debt register.
+- Updated family chooser, source map, tutorial-style, NEWS, roadmap, and
+  readiness wording around preferred `meta_V(V = V)`, retaining
+  `meta_known_V(V = V)` as a compatibility alias.
+
+Checks run:
+
+- `air format NEWS.md ROADMAP.md docs/design/02-family-registry.md docs/design/34-validation-debt-register.md docs/design/46-pre-simulation-readiness-matrix.md vignettes/distribution-families.Rmd`
+- `air format docs/design/21-tutorial-style.md`
+- `air format vignettes/source-map.Rmd`
+- `Rscript -e 'devtools::load_all(quiet = TRUE); rmarkdown::render("vignettes/distribution-families.Rmd", output_dir = tempfile("distribution-families-render-"), quiet = FALSE)'`
+- `Rscript -e 'devtools::load_all(quiet = TRUE); rmarkdown::render("vignettes/source-map.Rmd", output_dir = tempfile("source-map-render-"), quiet = FALSE)'`
+- `Rscript -e "devtools::test(filter = 'family-link-contract|poisson-mean|nbinom2-location-scale|beta-binomial', reporter = 'summary')"`
+- `Rscript -e "devtools::test(filter = 'phase18-poisson-mu-random-effect|phase18-nbinom2-mu-random-effect', reporter = 'summary')"`
+- Stale-wording scans:
+
+```sh
+rg -n 'beta-binomial.*ordinary|beta_binomial\(\).*ordinary|beta-binomial.*random intercept|beta-binomial.*independent numeric|Bivariate random effects are planned but not implemented|Meta-analysis: Gaussian regression with `meta_known_V\(V = V\)`|meta-analysis.*with `meta_known_V\(V = V\)`' docs/design vignettes README.md ROADMAP.md NEWS.md
+rg -n 'meta_known_V\(V = V\).*remains the route|`meta_known_V\(V = V\)` in one bivariate|with `meta_known_V\(V = V\)`$' vignettes/source-map.Rmd docs/design vignettes README.md ROADMAP.md NEWS.md
+rg -n 'family map|Family and parameter map|Slice 283|beta-binomial|Poisson/NB2|meta_V\(V = V\)|meta_known_V\(V = V\)|fixed-effect only|random intercepts plus independent slopes|random-effect allowance|test evidence' README.md ROADMAP.md NEWS.md docs/dev-log/known-limitations.md docs/design/01-formula-grammar.md docs/design/02-family-registry.md docs/design/21-tutorial-style.md docs/design/34-validation-debt-register.md docs/design/46-pre-simulation-readiness-matrix.md vignettes/formula-grammar.Rmd vignettes/distribution-families.Rmd vignettes/source-map.Rmd _pkgdown.yml
+```
+
+- `Rscript -e "pkgdown::check_pkgdown()"`, rerun after the final source-map
+  edit and reporting no problems.
+- `git diff --check`
+- `Rscript tools/codex-checkpoint.R --goal "Slice 283 non-Gaussian family map" --next "stage, commit, push, and open draft PR"`
+
+Known limitations:
+
+- This slice adds no likelihood, parser route, random-effect allowance,
+  interval method, simulation grid, or pkgdown navigation item.
+- Non-Gaussian `sigma`, shape, inflation, hurdle, zero-one-inflation,
+  ordinal, structured, and mixed-response random-effect paths remain planned
+  or blocked unless the new map names a fitted route.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-283-nongaussian-family-map.md`.
