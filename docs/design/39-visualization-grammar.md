@@ -594,6 +594,16 @@ share palettes more consistently, recolour discrete and empirical summaries
 that had fallen back to default black, and improve support-strip label contrast
 so colour carries status without making the text harder to read.
 
+Slice 300 carries that simulation display rule into the Simulation & Comparison
+article. Bias panels should show replicate-level errors, not only aggregate
+means, and should overlay the mean bias with an MCSE interval inside fixed
+surface facets so missing cells do not shift the apparent lane for a surface.
+RMSE is a root mean-square summary, not the center of an absolute-error cloud,
+so it gets a separate aggregate point-and-MCSE display rather than sharing one
+faceted axis with signed bias. These remain article recipes until Phase 18
+result schemas have stable replicate, aggregate, MCSE, manifest, and
+failure-ledger columns.
+
 | Display pattern | Current decision | Export only after |
 | --- | --- | --- |
 | Raw data plus fitted `mu` lines and confidence bands | Tutorial recipe | A repeated need for one grammar across multiple articles and a stable raw-data overlay policy |

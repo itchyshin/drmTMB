@@ -27991,3 +27991,79 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-19-slice-299-florence-gallery-repair.md`.
+
+## 2026-05-19 - Slice 300 simulation raincloud grammar
+
+Goal: carry the Slice 299 raincloud lesson into the Simulation & Comparison
+article so future Phase 18 reports show replicate-level simulation variation
+beside means and Monte Carlo uncertainty.
+
+Files changed:
+
+- `vignettes/simulation-plot-grammar.Rmd`
+- `docs/design/39-visualization-grammar.md`
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-19-slice-300-simulation-raincloud-grammar.md`
+
+What changed:
+
+- Updated the bias display in `simulation-plot-grammar` to show
+  replicate-level error clouds, faint replicate points, mean bias points, and
+  95% MCSE intervals in fixed surface facets.
+- Split RMSE into its own point-and-MCSE display because RMSE is a
+  root mean-square aggregate rather than signed bias or the center of an
+  absolute-error cloud.
+- Kept missing surface-estimand cells blank instead of filling unsupported or
+  not-yet-targeted cells with zeros.
+- Updated NEWS, ROADMAP, and the visualization grammar design note to record
+  the raincloud and MCSE display contract without adding an exported simulation
+  plotting helper.
+
+Checks run:
+
+```sh
+PATH=/usr/local/bin:/opt/homebrew/bin:$PATH air format vignettes/simulation-plot-grammar.Rmd
+Rscript -e "devtools::load_all('.', quiet = TRUE); rmarkdown::render('vignettes/simulation-plot-grammar.Rmd', output_dir = '/tmp/drmtmb-simulation-raincloud-s300', quiet = FALSE)"
+Rscript - <<'RS'
+# Extract embedded PNGs from the rendered HTML into
+# /tmp/drmtmb-simulation-raincloud-s300/embedded-pngs.
+RS
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "devtools::test()"
+git diff --check
+```
+
+Validation notes:
+
+- Render passed and produced 5 embedded PNGs.
+- Visual inspection checked the revised bias raincloud and RMSE point/MCSE
+  panels under `/tmp/drmtmb-simulation-raincloud-s300/embedded-pngs/`.
+- The first RMSE interval attempt had slanted whiskers, and a later
+  absolute-error cloud risked implying that RMSE was the center of an
+  absolute-error distribution. The final version facets by surface, uses fixed
+  estimand rows, and draws RMSE as an aggregate point with a horizontal MCSE
+  bar.
+- Pat and Rose review flagged the lane-shifting ambiguity caused by dodged
+  surfaces with missing cells, stale wording around explicit offsets, and the
+  RMSE-versus-absolute-error ambiguity; the article and notes were revised
+  after those findings.
+- `pkgdown::check_pkgdown()` passed with no problems.
+- `devtools::test()` passed with 4,952 tests, 0 failures, 0 warnings, and
+  0 skips.
+- `git diff --check` passed.
+- Recovery checkpoint:
+  `docs/dev-log/recovery-checkpoints/2026-05-19-065413-codex-checkpoint.md`.
+
+Known limitations:
+
+- No simulation DGP, runner, result table, exported plotting helper, likelihood,
+  extractor, formula grammar, or executable test changed.
+- The article still uses illustrative fixture rows. Formal reports need actual
+  replicate-level outputs, aggregate summaries, MCSE intervals, manifests, and
+  warning/error ledgers.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-19-slice-300-simulation-raincloud-grammar.md`.

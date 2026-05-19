@@ -58,6 +58,12 @@ surface_palette <- c(
 )
 
 surface_levels <- names(surface_palette)
+estimand_display_labels <- c(
+  "beta_x" = "beta_x",
+  "sigma" = "sigma",
+  "sd_group" = "sd(group)",
+  "rho12" = "rho12"
+)
 ```
 
 ## Bias and RMSE
@@ -66,7 +72,7 @@ Bias and RMSE should be plotted beside the estimand. A single average across
 all parameters hides the distinction between fixed effects, residual scale,
 random-effect SDs, and residual correlation `rho12`.
 
-```{r bias-rmse-display, fig.alt="Faceted dot plot showing illustrative bias and RMSE for four simulation surfaces and four estimands."}
+```{r bias-rmse-display, fig.width=8.2, fig.height=4.4, fig.alt="Two simulation accuracy plots faceted by simulation surface: a raincloud-style bias display with replicate-level errors, mean bias points, and MCSE intervals, followed by an aggregate RMSE display with MCSE intervals for four estimands."}
 accuracy_summary <- data.frame(
   surface = rep(surface_levels, each = 4),
   estimand = rep(c("beta_x", "sigma", "sd_group", "rho12"), 4),
@@ -93,51 +99,147 @@ accuracy_summary$surface <- factor(
   accuracy_summary$surface,
   levels = surface_levels
 )
-accuracy_long <- rbind(
-  data.frame(
-    accuracy_summary[c("surface", "estimand", "n_replicate")],
-    measure = "Bias",
-    value = accuracy_summary$bias
-  ),
-  data.frame(
-    accuracy_summary[c("surface", "estimand", "n_replicate")],
-    measure = "RMSE",
-    value = accuracy_summary$rmse
-  )
+accuracy_summary$error_sd <- sqrt(
+  pmax(accuracy_summary$rmse^2 - accuracy_summary$bias^2, 0)
 )
-accuracy_long$measure <- factor(accuracy_long$measure, levels = c("Bias", "RMSE"))
-accuracy_long$estimand <- factor(
-  accuracy_long$estimand,
+accuracy_summary$bias_mcse <- with(
+  accuracy_summary,
+  error_sd / sqrt(n_replicate)
+)
+accuracy_summary$rmse_mcse <- with(
+  accuracy_summary,
+  rmse / sqrt(2 * n_replicate)
+)
+accuracy_summary$bias_low <- accuracy_summary$bias -
+  1.96 * accuracy_summary$bias_mcse
+accuracy_summary$bias_high <- accuracy_summary$bias +
+  1.96 * accuracy_summary$bias_mcse
+accuracy_summary$rmse_low <- pmax(
+  0,
+  accuracy_summary$rmse - 1.96 * accuracy_summary$rmse_mcse
+)
+accuracy_summary$rmse_high <- accuracy_summary$rmse +
+  1.96 * accuracy_summary$rmse_mcse
+accuracy_summary$estimand <- factor(
+  accuracy_summary$estimand,
   levels = rev(c("beta_x", "sigma", "sd_group", "rho12"))
 )
 
-ggplot(
-  accuracy_long,
-  aes(value, estimand, colour = surface, group = surface)
-) +
-  geom_vline(
-    data = data.frame(measure = "Bias"),
-    aes(xintercept = 0),
-    inherit.aes = FALSE,
-    linetype = "dashed",
-    colour = "grey55"
+display_replicates <- 49
+accuracy_replicates <- do.call(
+  rbind,
+  lapply(seq_len(nrow(accuracy_summary)), function(i) {
+    row <- accuracy_summary[i, ]
+    if (is.na(row$bias) || is.na(row$rmse)) {
+      return(NULL)
+    }
+    data.frame(
+      surface = row$surface,
+      estimand = row$estimand,
+      error = row$bias + qnorm(ppoints(display_replicates)) * row$error_sd
+    )
+  })
+)
+accuracy_replicates$surface <- factor(
+  accuracy_replicates$surface,
+  levels = surface_levels
+)
+accuracy_replicates$estimand <- factor(
+  accuracy_replicates$estimand,
+  levels = levels(accuracy_summary$estimand)
+)
+set.seed(20260519)
+ggplot(accuracy_replicates, aes(error, estimand)) +
+  geom_vline(xintercept = 0, linetype = "dashed", colour = "grey55") +
+  geom_violin(
+    aes(
+      fill = surface
+    ),
+    width = 0.62,
+    alpha = 0.16,
+    colour = NA,
+    scale = "width",
+    trim = FALSE
   ) +
-  geom_point(size = 2.1, na.rm = TRUE) +
-  facet_wrap(~measure, scales = "free_x") +
-  scale_colour_manual(values = surface_palette) +
+  geom_point(
+    aes(colour = surface),
+    position = position_jitter(height = 0.05, width = 0),
+    alpha = 0.22,
+    size = 0.65,
+    show.legend = FALSE
+  ) +
+  geom_segment(
+    data = accuracy_summary,
+    aes(
+      x = bias_low,
+      xend = bias_high,
+      y = estimand,
+      yend = estimand,
+      colour = surface
+    ),
+    linewidth = 0.85,
+    na.rm = TRUE
+  ) +
+  geom_point(
+    data = accuracy_summary,
+    aes(bias, estimand, colour = surface),
+    size = 2.4,
+    na.rm = TRUE
+  ) +
+  facet_wrap(~surface, nrow = 1) +
+  scale_colour_manual(values = surface_palette, drop = FALSE) +
+  scale_fill_manual(values = surface_palette, drop = FALSE) +
   labs(
-    title = "Bias and RMSE by estimand",
-    subtitle = "Missing points are unsupported or not-yet-targeted estimands",
-    x = "Summary value",
+    title = "Bias displays should show replicate-level error",
+    subtitle = "Facets are surfaces; clouds and faint dots are displayed errors, large points and bars are mean bias and 95% MCSE",
+    x = "Estimate minus truth",
     y = NULL,
     colour = "Surface"
   ) +
+  scale_y_discrete(labels = estimand_display_labels) +
+  guides(colour = "none", fill = "none") +
+  theme_sim_grammar()
+
+ggplot(accuracy_summary, aes(rmse, estimand, colour = surface)) +
+  geom_point(size = 2.4, na.rm = TRUE) +
+  geom_segment(
+    inherit.aes = FALSE,
+    aes(
+      x = rmse_low,
+      xend = rmse_high,
+      y = estimand,
+      yend = estimand
+    ),
+    colour = "grey15",
+    linewidth = 1,
+    na.rm = TRUE
+  ) +
+  facet_wrap(~surface, nrow = 1) +
+  scale_colour_manual(values = surface_palette, drop = FALSE) +
+  labs(
+    title = "RMSE needs its own uncertainty display",
+    subtitle = "Facets are surfaces; points and bars are RMSE and 95% MCSE intervals for each estimand",
+    x = "Root mean-square error",
+    y = NULL,
+    colour = "Surface"
+  ) +
+  scale_x_continuous(
+    breaks = c(0, 0.25, 0.50, 0.75),
+    limits = c(0, 0.82),
+    expand = expansion(mult = c(0.01, 0.05))
+  ) +
+  scale_y_discrete(labels = estimand_display_labels) +
+  guides(colour = "none") +
   theme_sim_grammar()
 ```
 
 The missing rows are part of the message. A count pilot should not quietly fill
 `rho12` with zeros, and a proportion example should not invent a random-effect
-SD if that surface was not fitted.
+SD if that surface was not fitted. Real bias reports should replace the fixture
+quantiles above with one row per replicate estimate or error, then overplot the
+aggregate mean and MCSE interval produced by the Phase 18 summary helpers. RMSE
+should remain an aggregate root-mean-square summary with its own MCSE interval,
+not a cloud whose center could be mistaken for a mean absolute error.
 
 ## Coverage and Power
 
@@ -214,6 +316,7 @@ ggplot(interval_long, aes(value, estimand, colour = surface)) +
   geom_point(size = 2.1, na.rm = TRUE) +
   facet_wrap(~measure, scales = "free_x") +
   scale_colour_manual(values = surface_palette) +
+  scale_y_discrete(labels = estimand_display_labels) +
   labs(
     title = "Interval coverage and power need Monte Carlo uncertainty",
     subtitle = "Dashed lines mark nominal coverage and a planned power benchmark",
