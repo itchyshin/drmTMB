@@ -28418,3 +28418,85 @@ Known limitations:
 - Response-scale `rho12` profile coverage and latent `corpair()` profile
   coverage remain follow-up work; this slice records their routes and failure
   statuses before broad runs.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-19-slices-308-314-correlation-inference.md`
+
+## 2026-05-19 - Slices 315-332 Student-T Shape Simulation Smoke Grid
+
+Goal:
+
+- Move the shape-model simulation block from plan to a fitted, tested,
+  artifact-producing Student-t `nu` lane while keeping skew and latent-shape
+  models outside the evidence claim.
+
+Files changed:
+
+- `docs/design/53-phase-18-student-shape-ademp.md`
+- `inst/sim/dgp/sim_dgp_student_shape.R`
+- `inst/sim/fit/sim_summarise_student_shape.R`
+- `inst/sim/run/sim_run_student_shape_smoke.R`
+- `inst/sim/run/sim_summary_student_shape_smoke.R`
+- `inst/sim/run/sim_write_student_shape_grid.R`
+- `inst/sim/R/sim_uncertainty.R`
+- `inst/sim/README.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `tests/testthat/test-phase18-student-shape-*.R`
+- `tests/testthat/test-phase18-sim-uncertainty.R`
+
+What changed:
+
+- Added the Student-t shape ADEMP sheet for the admitted fixed-effect
+  `student()` lane, with `mu ~ x`, `sigma ~ z`, and `nu ~ w`.
+- Added a seeded Student-t DGP that stores link-scale truth and uses
+  `nu = 2 + exp(eta_nu)`, matching the finite-variance fitted shape transform.
+- Added a live `drmTMB()` fit wrapper, parameter summariser, resumable smoke
+  runner, summary-smoke reducer, and grid writer for Student-t shape recovery.
+- Added Wald interval and coverage outputs for fixed formula coefficients, plus
+  interval-failure ledgers for invalid or missing interval rows.
+- Hardened `phase18_summarise_interval_coverage()` so groups with zero or one
+  finite interval width return `NA` interval-width MCSE rather than failing.
+- Ran the first small Student-t shape grid under
+  `inst/sim/results/slice-332-student-shape-small-grid/`: 4 cells, 3
+  replicates per cell, 12 successful replicate results, 72 replicate-level
+  parameter rows, 24 aggregate rows, and no warning/error or interval-failure
+  rows.
+
+Checks run:
+
+```sh
+Rscript -e "devtools::test(filter = '^phase18-(student-shape|sim-uncertainty|biv-rho12|correlation-targets|sim-bootstrap)')"
+Rscript -e 'manifest <- read.csv("inst/sim/results/slice-332-student-shape-small-grid/tables/student-shape-manifest.csv"); reps <- read.csv("inst/sim/results/slice-332-student-shape-small-grid/tables/student-shape-replicates.csv"); agg <- read.csv("inst/sim/results/slice-332-student-shape-small-grid/tables/student-shape-aggregate.csv"); fail <- read.csv("inst/sim/results/slice-332-student-shape-small-grid/tables/student-shape-failures.csv"); interval_fail <- read.csv("inst/sim/results/slice-332-student-shape-small-grid/tables/student-shape-interval-failures.csv"); print(table(manifest$status)); print(nrow(reps)); print(nrow(agg)); print(nrow(fail)); print(nrow(interval_fail))'
+Rscript -e "pkgdown::check_pkgdown()"
+git diff --check
+```
+
+Validation notes:
+
+- Focused Student-t shape, shared uncertainty, bivariate `rho12`, correlation
+  target, and private bootstrap tests passed with 188 tests, 0 failures, 0
+  warnings, and 0 skips after the shape branch was rebased onto the merged
+  correlation-inference branch.
+- The small Student-t shape grid manifest had 12 `ok` rows, 72 replicate-level
+  parameter rows, 24 aggregate rows, 0 failure rows, and 0 interval-failure
+  rows.
+- `pkgdown::check_pkgdown()` passed with no problems.
+- `git diff --check` passed.
+- A first attempt to print the small-grid object used the wrong returned path
+  name for interval failures. The artifact files had already been written
+  correctly; the direct CSV verification above was then run successfully.
+
+Known limitations:
+
+- The small Student-t grid has only 3 replicates per cell. It validates the
+  runner, artifact contract, and gross recovery path; it is not formal bias,
+  RMSE, or coverage evidence.
+- Skew-normal, skew-t, second-shape `tau`, shape random effects, and latent
+  shape terms such as `skew(id) ~ x` remain planned or failure-ledger only.
+- Response-scale `nu` interval coverage, profile likelihood, and bootstrap
+  coverage remain follow-up slices.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-19-slices-315-332-student-shape-sim.md`

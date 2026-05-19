@@ -403,3 +403,56 @@ been reduced.
     `inst/sim/results/slice-314-biv-rho12-small-grid/`: 4 cells, 3 replicates
     per cell, 12 successful replicate results, 120 replicate-level parameter
     rows, 40 aggregate rows, and no warning/error ledger rows.
+64. Slice 315 records the shape-model admission gate: fitted fixed-effect
+    Student-t `nu` is admitted first, while skew-normal, skew-t, second-shape
+    `tau`, shape random effects, and latent-effect skewness stay planned or
+    failure-ledger only.
+65. Slice 316 adds the Student-t shape ADEMP sheet, keeping the DGP, estimands,
+    fitted model, performance measures, MCSE target, and unsupported skew lanes
+    explicit before broad shape grids are claimed.
+66. Slice 317 adds the Student-t shape condition helper and DGP with `mu ~ x`,
+    `sigma ~ z`, `nu ~ w`, optional mean-shape predictor correlation, and
+    link-scale truth storage.
+67. Slice 318 records the fitted shape transform `nu = 2 + exp(eta_nu)` in the
+    DGP and row-level truth helper so response-scale `nu` summaries can be
+    added later only on named grids.
+68. Slice 319 adds a live `student()` fit wrapper for the admitted fixed-effect
+    shape model `bf(y ~ x, sigma ~ z, nu ~ w)`.
+69. Slice 320 adds a Student-t fit summariser for fitted `mu`, `sigma`, and
+    `nu` formula coefficients, including standard errors when `summary()`
+    exposes them.
+70. Slice 321 adds the resumable Student-t shape smoke runner with
+    replicate-level result summaries, per-replicate RDS paths, and skip-aware
+    reload behavior.
+71. Slice 322 adds the Student-t shape summary smoke output with aggregate,
+    MCSE, manifest, warning/error ledger, Wald interval, Wald coverage, and
+    interval-failure tables.
+72. Slice 323 attaches formula-coefficient Wald intervals to fixed `mu`,
+    `sigma`, and `nu` rows while keeping response-scale `nu` profile or
+    bootstrap coverage outside this smoke lane.
+73. Slice 324 keeps invalid or missing Student-t Wald interval rows visible in
+    the interval-failure ledger rather than silently dropping them from
+    coverage evidence.
+74. Slice 325 hardens the shared interval-coverage summariser so groups with
+    zero or one finite interval width return `NA` interval-width MCSE instead
+    of failing.
+75. Slice 326 adds the repeatable Student-t shape grid writer with aggregate,
+    replicate, manifest, failure, Wald-interval, Wald-coverage, and interval-
+    failure CSVs beside per-replicate RDS results.
+76. Slice 327 adds overwrite and artifact-existence tests for the Student-t
+    shape grid writer.
+77. Slice 328 adds DGP, truth-transform, runner, resume, and cell-validation
+    tests for the Student-t shape surface.
+78. Slice 329 adds summary-smoke tests for Student-t aggregate rows, replicate
+    rows, Wald interval rows, coverage rows, and interval-failure ledgers.
+79. Slice 330 updates the simulation README so the Student-t shape design
+    sheet, DGP, summariser, runner, summary output, and grid writer are
+    discoverable.
+80. Slice 331 runs the first small Student-t shape grid under
+    `inst/sim/results/slice-332-student-shape-small-grid/`: 4 cells, 3
+    replicates per cell, 12 successful replicate results, 72 replicate-level
+    parameter rows, 24 aggregate rows, and no warning/error or interval-failure
+    rows.
+81. Slice 332 records the Student-t shape after-task evidence and keeps the
+    claim boundary explicit: this is smoke and artifact-path evidence, not yet
+    formal Student-t shape coverage evidence.
