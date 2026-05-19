@@ -502,3 +502,32 @@ been reduced.
      checks.
 101. Slice 352 records the after-task evidence and leaves the next audit and
      convergence-stress-test jobs queued explicitly.
+102. Slice 353 locates the local Ayumi test folder and confirms the relevant
+     lightness data live in `data_raw/data_6196spp.csv`, not the smaller
+     `dat_500spp.csv` table.
+103. Slice 354 adds `tools/ayumi-convergence-stress.R`, a reproducible local
+     stress script that writes summary CSVs but keeps raw data outside the
+     package.
+104. Slice 355 records the tree-preflight result: the pruned raw 10,597-tip
+     tree is not ultrametric, so phylogenetic fits fail before optimization
+     unless a stress-test-only forced-ultrametric tree is supplied.
+105. Slice 356 runs aggregate 80-species non-phylogenetic bivariate Gaussian
+     checks; residual `rho12` and predictor-dependent residual `rho12` converge
+     cleanly with positive-definite Hessians.
+106. Slice 357 runs the forced-tree aggregate phylogenetic mean-correlation
+     check; it fits, but `check_drm()` flags a boundary phylogenetic
+     mean-mean correlation and weak species replication.
+107. Slice 358 runs forced-tree aggregate q4 phylogenetic location-scale
+     variants; they run but show false convergence, non-positive-definite
+     Hessians, large gradients, and near-boundary latent correlations.
+108. Slice 359 verifies that residual `rho12` remains profile-ready on the
+     stable aggregate fit and that `corpairs(conf.int = TRUE)` returns a
+     profile interval.
+109. Slice 360 runs row-level replicated variants and records why they are not
+     a rescue for these data: species-level responses repeated over rows push
+     residual `rho12` to the boundary and retain Hessian/gradient warnings.
+110. Slice 361 records the warm-start boundary: optimizer presets are not a
+     real starting-value contract, and robust budgets did not rescue the q4
+     phylogenetic location-scale fits.
+111. Slice 362 writes the convergence report, check-log entry, after-task note,
+     and validation evidence before returning to the Phase 18 simulation wave.

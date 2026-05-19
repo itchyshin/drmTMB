@@ -2,6 +2,86 @@
 
 Record meaningful development checks here.
 
+## 2026-05-19 - Slices 353-362 Ayumi Convergence Stress Test
+
+Goal: convert the local Ayumi bivariate lightness/convergence question into a
+reproducible package-adjacent stress test, then record which current
+correlation paths are stable enough for simulations and which should remain in
+the harder-identifiability lane.
+
+Team roles:
+
+- Ada integrated the local stress script, summary artifacts, design-log update,
+  after-task report, and git state.
+- Fisher treated the results as convergence and diagnostic evidence rather
+  than a biological analysis of Ayumi's data.
+- Gauss and Noether kept residual `rho12`, phylogenetic mean correlation, and
+  q4 latent covariance/correlation claims separate.
+- Curie checked that warnings, failed tree preflight, boundary correlations,
+  and profile-interval status are exported as evidence artifacts.
+- Pat marked the q4 phylogenetic fit as not tutorial-ready until a convergence
+  workflow exists.
+- Grace confirmed that only compact summaries were committed; raw local data
+  remain outside the package.
+- Rose tracked the next follow-up: warm-start design and convergence-guide
+  prose before q4 showcase examples.
+
+Files changed:
+
+- `docs/design/41-phase-18-simulation-programme.md`
+- `docs/dev-log/after-task/2026-05-19-slices-353-362-ayumi-convergence.md`
+- `docs/dev-log/ayumi-convergence/2026-05-19-slices-353-362-ayumi-convergence.md`
+- `docs/dev-log/ayumi-convergence/slices-353-362/check-rows.csv`
+- `docs/dev-log/ayumi-convergence/slices-353-362/corpairs.csv`
+- `docs/dev-log/ayumi-convergence/slices-353-362/fit-conditions.csv`
+- `docs/dev-log/ayumi-convergence/slices-353-362/fit-summary.csv`
+- `docs/dev-log/ayumi-convergence/slices-353-362/profile-intervals.csv`
+- `docs/dev-log/ayumi-convergence/slices-353-362/profile-targets.csv`
+- `docs/dev-log/ayumi-convergence/slices-353-362/tree-preflight.csv`
+- `docs/dev-log/check-log.md`
+- `tools/ayumi-convergence-stress.R`
+
+What changed:
+
+- Added a local stress script for Ayumi's `data_6196spp.csv` and the
+  10,597-tip tree, with `DRMTMB_TEST_DIR` and `DRMTMB_AYUMI_STRESS_OUT`
+  overrides.
+- Wrote compact CSV artifacts for tree preflight, fit summaries, `check_drm()`
+  rows, `corpairs()` rows, profile targets, residual-`rho12` profile intervals,
+  and fit warnings/messages.
+- Confirmed that the raw pruned tree fails the ultrametric preflight before
+  fitting, while a forced-ultrametric stress tree lets the package reach the
+  optimizer.
+- Confirmed stable aggregate non-phylogenetic bivariate Gaussian fits for
+  residual `rho12` and predictor-dependent residual `rho12`.
+- Confirmed that the forced-tree phylogenetic mean model fits but flags a
+  boundary phylogenetic mean-mean correlation.
+- Confirmed that q4 phylogenetic location-scale variants run but are not
+  inferentially safe: false convergence, `pdHess = FALSE`, fixed-gradient
+  warnings, non-finite-SE warnings, and near-boundary q4 correlations.
+- Confirmed that row-level repeated data are not a rescue for this response
+  structure because residual `rho12` hits the boundary.
+
+Checks run:
+
+- `air format tools/ayumi-convergence-stress.R`: passed.
+- `Rscript tools/ayumi-convergence-stress.R`: passed and wrote all seven
+  artifact CSVs under
+  `docs/dev-log/ayumi-convergence/slices-353-362/`.
+- `Rscript -e "devtools::test(filter = 'phylo-gaussian|corpairs|profile-targets|check-drm')"`:
+  passed with 963 expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with no problems found.
+- `git diff --check`: passed.
+
+Known limitations:
+
+- The forced ultrametric tree is a stress-test convenience, not a scientific
+  rate-smoothing decision.
+- These are convergence diagnostics and package-behaviour checks, not a formal
+  simulation study and not a biological result.
+- Warm starts are still a design task. `careful` and `robust` optimizer
+  presets are not equivalent to a start-value contract.
+
 ## 2026-05-19 - Slices 343-352 Formal Interval Diagnostics
 
 Goal: add a method-aware interval diagnostics layer for Phase 18 so Student-t

@@ -1,0 +1,11 @@
+"scenario","data","formula","tree","optimizer_preset","n_rows","n_species","elapsed_sec","n_fit_warnings","n_fit_messages","status","error","convergence","opt_message","pdHess","objective","check_warnings","check_errors","check_notes"
+"agg_base_80_careful","aggregate_80","base","none","careful",80,80,0.0759999999999996,0,0,"fit",,0,"relative convergence (4)",TRUE,191.310025045478,0,0,0
+"agg_ls_rho_80_careful","aggregate_80","ls_rho","none","careful",80,80,0.557,0,0,"fit",,0,"relative convergence (4)",TRUE,188.521691243695,0,0,0
+"agg_phylo_mean_raw_tree_80","aggregate_80","phylo_mean","raw","careful",80,80,0.0199999999999996,0,0,"error","`tree` must be ultrametric.
+✖ Root-to-tip distances differ by more than 1.49011611938477e-08.",,,,,,,
+"agg_phylo_mean_forced_tree_80_careful","aggregate_80","phylo_mean","forced","careful",80,80,0.369,0,0,"fit",,0,"relative convergence (4)",TRUE,194.604147535129,1,0,1
+"agg_phylo_q4_forced_tree_80_careful","aggregate_80","phylo_q4","forced","careful",80,80,2.322,1,0,"fit",,1,"false convergence (8)",FALSE,175.135837029288,5,0,1
+"agg_phylo_q4_forced_tree_80_robust","aggregate_80","phylo_q4_const","forced","robust",80,80,2.231,11,0,"fit",,1,"false convergence (8)",FALSE,175.802107784423,5,0,1
+"agg_phylo_q4_rho_forced_tree_80_robust","aggregate_80","phylo_q4_rho","forced","robust",80,80,2.243,1,0,"fit",,1,"false convergence (8)",FALSE,175.205924511505,5,0,1
+"row5_phylo_mean_forced_tree_80_robust","row5_80","phylo_mean","forced","robust",395,80,3.359,0,0,"fit",,1,"false convergence (8)",FALSE,-16361.0744121651,5,0,0
+"row5_phylo_q4_forced_tree_80_robust","row5_80","phylo_q4","forced","robust",395,80,35.92,0,0,"fit",,1,"false convergence (8)",FALSE,-9821.09057288903,5,0,0
