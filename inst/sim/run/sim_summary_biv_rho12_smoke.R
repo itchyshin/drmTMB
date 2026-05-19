@@ -85,6 +85,10 @@ phase18_summarise_biv_rho12_smoke <- function(
     bootstrap_intervals
   )
   interval_failures <- phase18_interval_failures(interval_evidence)
+  interval_diagnostics <- phase18_optional_interval_diagnostics(
+    interval_evidence,
+    by = unique(c(by, "interval_method"))
+  )
 
   list(
     surface = "biv_rho12",
@@ -100,6 +104,7 @@ phase18_summarise_biv_rho12_smoke <- function(
     bootstrap_intervals = bootstrap_intervals,
     bootstrap_coverage = bootstrap_coverage,
     interval_evidence = interval_evidence,
+    interval_diagnostics = interval_diagnostics,
     interval_failures = interval_failures
   )
 }

@@ -2,6 +2,91 @@
 
 Record meaningful development checks here.
 
+## 2026-05-19 - Slices 343-352 Formal Interval Diagnostics
+
+Goal: add a method-aware interval diagnostics layer for Phase 18 so Student-t
+shape and bivariate residual `rho12` pilots can separate usable interval
+coverage, finite misses, failed intervals, and not-requested rows.
+
+Team roles:
+
+- Ada integrated the interval diagnostics helper, writers, docs, validation,
+  and git state.
+- Curie added the status-versus-coverage regression test and checked the
+  pilot-grid artifacts.
+- Fisher reviewed the interpretation boundary: six-replicate pilots are
+  diagnostics evidence, not final coverage evidence.
+- Grace verified focused tests, full tests, pkgdown, and whitespace checks.
+- Rose tracked stale or overconfident wording and queued the next audit and
+  convergence-stress-test jobs.
+- Pat and Florence were not asked to redesign figures in this slice, but the
+  diagnostics output is prepared for later reader-facing simulation plots.
+
+Files changed:
+
+- `docs/design/41-phase-18-simulation-programme.md`
+- `docs/design/43-phase-18-interval-producer-contract.md`
+- `docs/dev-log/after-task/2026-05-19-slices-343-352-formal-interval-diagnostics.md`
+- `docs/dev-log/check-log.md`
+- `inst/sim/README.md`
+- `inst/sim/R/sim_uncertainty.R`
+- `inst/sim/run/sim_summary_biv_rho12_smoke.R`
+- `inst/sim/run/sim_summary_student_shape_smoke.R`
+- `inst/sim/run/sim_write_biv_rho12_grid.R`
+- `inst/sim/run/sim_write_student_shape_grid.R`
+- `tests/testthat/test-phase18-biv-rho12-summary-smoke.R`
+- `tests/testthat/test-phase18-sim-interval-evidence.R`
+- `tests/testthat/test-phase18-student-shape-summary-smoke.R`
+
+What changed:
+
+- Added `phase18_summarise_interval_status()` and
+  `phase18_summarise_interval_evidence()` to summarize interval method status
+  and coverage in one diagnostics table.
+- Added `n_covered`, `n_interval_missed`, and `n_interval_unusable` so a
+  finite miss is not confused with a failed or unavailable interval.
+- Returned `interval_diagnostics` from the Student-t shape and bivariate
+  residual `rho12` summary surfaces.
+- Added `student-shape-interval-diagnostics.csv` and
+  `biv-rho12-interval-diagnostics.csv` to the corresponding grid writers.
+- Updated the simulation README, interval producer contract, and Phase 18
+  programme to explain the diagnostics artifact and slices 343-352.
+
+Checks run:
+
+- `Rscript -e "devtools::test(filter = 'phase18-(sim-(interval-evidence|uncertainty|bootstrap)|student-shape|biv-rho12)')"`:
+  passed with 214 expectations.
+- `Rscript -e "devtools::test()"`: passed with 5,194 expectations, 0 failures,
+  0 warnings, and 0 skips.
+- `Rscript -e "pkgdown::check_pkgdown()"`: passed with no problems found.
+- `git diff --check`: passed.
+- `rg -n "interval diagnostics|interval-diagnostics|interval_diagnostics|formal coverage|coverage evidence|not formal coverage" docs/design inst/sim vignettes README.md ROADMAP.md NEWS.md`:
+  confirmed the diagnostics wording and bounded coverage claims.
+- `phase18_write_student_shape_grid_outputs(... profile_parameters = c("nu:(Intercept)", "nu:w"), bootstrap_nsim = 4L ...)`
+  wrote `inst/sim/results/slice-347-student-shape-formal-interval-grid/`
+  with 72 replicate-parameter rows, 168 interval-evidence rows, and 13
+  interval-failure rows. Student-t `nu` profile rows were visibly fragile:
+  `nu:(Intercept)` had 7 usable intervals across 12 requested rows, and
+  `nu:w` had 6 usable intervals across 12 requested rows.
+- `phase18_write_biv_rho12_grid_outputs(... profile_parameters = c("rho12:(Intercept)", "rho12:w"), bootstrap_nsim = 4L ...)`
+  wrote `inst/sim/results/slice-348-biv-rho12-formal-interval-grid/`
+  with 120 replicate-parameter rows, 264 interval-evidence rows, and no
+  interval-failure rows. Both requested `rho12` profile targets were usable in
+  all 12 requested rows.
+
+Known limitations:
+
+- These are six-replicate-per-cell diagnostics pilots. They prove the
+  artifact and status accounting paths, not final interval coverage.
+- The private bootstrap interval path remains Phase 18 simulation
+  infrastructure and is not public `confint(method = "bootstrap")`.
+- Response-scale Student-t `nu` intervals, larger formal coverage grids, and
+  real-data convergence stress tests remain next work.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-19-slices-343-352-formal-interval-diagnostics.md`
+
 ## 2026-05-19 - Slices 333-342 Interval Evidence, Bootstrap Smoke, And Examples
 
 Goal: add an explicit interval-evidence contract for Phase 18 simulations,

@@ -62,6 +62,10 @@ phase18_write_student_shape_grid_outputs <- function(
       table_dir,
       "student-shape-interval-evidence.csv"
     ),
+    interval_diagnostics_csv = file.path(
+      table_dir,
+      "student-shape-interval-diagnostics.csv"
+    ),
     interval_failures_csv = file.path(
       table_dir,
       "student-shape-interval-failures.csv"
@@ -119,6 +123,11 @@ phase18_write_student_shape_grid_outputs <- function(
   utils::write.csv(
     summary$interval_evidence,
     paths$interval_evidence_csv,
+    row.names = FALSE
+  )
+  utils::write.csv(
+    summary$interval_diagnostics,
+    paths$interval_diagnostics_csv,
     row.names = FALSE
   )
   utils::write.csv(

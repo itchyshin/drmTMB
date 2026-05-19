@@ -480,3 +480,25 @@ been reduced.
     examples while marking animal and skew-normal syntax as planned-only.
 91. Slice 342 records the after-task evidence and closes the gate from smoke
     interval infrastructure to the next formal simulation slices.
+92. Slice 343 adds interval diagnostics that keep method status, usable
+    interval coverage, usable interval misses, and unusable interval rows
+    separate.
+93. Slice 344 returns interval diagnostics from the Student-t shape and
+    bivariate residual `rho12` summary surfaces.
+94. Slice 345 extends the Student-t shape and bivariate residual `rho12` grid
+    writers with interval-diagnostics CSV artifacts.
+95. Slice 346 tests that failed or not-requested intervals are status
+    evidence, while finite intervals that miss truth are coverage evidence.
+96. Slice 347 runs the next Student-t shape interval pilot with profile and
+    private parametric-bootstrap rows for `nu` coefficients.
+97. Slice 348 runs the matching bivariate residual `rho12` interval pilot with
+    profile and private parametric-bootstrap rows.
+98. Slice 349 compares method status and coverage diagnostics across Wald,
+    profile, and private parametric-bootstrap rows without treating the pilot
+    as final coverage evidence.
+99. Slice 350 updates the simulation README and interval-producer contract so
+    readers know where to find diagnostics, evidence, and failure ledgers.
+100. Slice 351 runs the focused Phase 18 interval tests and package-site
+     checks.
+101. Slice 352 records the after-task evidence and leaves the next audit and
+     convergence-stress-test jobs queued explicitly.

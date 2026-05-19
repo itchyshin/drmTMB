@@ -119,8 +119,9 @@ Current pilot files:
   interval-coverage summaries, plus generic Wald, profile, and interval-
   evidence table helpers for summaries that already contain estimates and
   standard errors, including a Fisher-z back-transformed path for correlation
-  summaries and a failure ledger for interval rows whose status is not usable
-  evidence.
+  summaries, a failure ledger for interval rows whose status is not usable
+  evidence, and interval-diagnostics summaries that separate usable coverage,
+  misses, failures, and not-requested rows.
 - `R/sim_plot_data.R` prepares plot-ready data tables for Phase 18 outputs,
   starting with paired Poisson/NB2 `mu` random-effect pilot summaries.
 - `R/sim_gallery.R` writes plot-ready count-pilot CSV inputs and renders the
@@ -154,10 +155,12 @@ Current pilot files:
   results.
 - `run/sim_write_biv_rho12_grid.R` writes the same artifact set for the
   bivariate Gaussian residual `rho12` grid, with optional profile,
-  parametric-bootstrap, combined interval-evidence, and interval-failure CSVs.
+  parametric-bootstrap, combined interval-evidence, interval-diagnostics, and
+  interval-failure CSVs.
 - `run/sim_write_student_shape_grid.R` writes the same artifact set for the
   Student-t fixed-effect shape `nu` grid, with optional profile,
-  parametric-bootstrap, combined interval-evidence, and interval-failure CSVs.
+  parametric-bootstrap, combined interval-evidence, interval-diagnostics, and
+  interval-failure CSVs.
 - `run/sim_summary_gaussian_mu_random_slope_smoke.R` runs a tiny ordinary
   Gaussian `mu` q=3 random-slope summary smoke grid and returns grouped bias,
   RMSE, MCSE, manifest, and warning/error ledger outputs.

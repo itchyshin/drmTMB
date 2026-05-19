@@ -88,6 +88,7 @@ test_that("Phase 18 Student-t shape summary smoke returns interval artifacts", {
   expect_equal(nrow(summary$failures), 0L)
   expect_equal(nrow(summary$wald_intervals), 12L)
   expect_equal(nrow(summary$wald_coverage), 6L)
+  expect_equal(nrow(summary$interval_diagnostics), 6L)
   expect_equal(nrow(summary$interval_failures), 0L)
   expect_equal(summary$replicates$artifact_grain, rep("replicate", 12L))
   expect_equal(summary$aggregate$artifact_grain, rep("aggregate", 6L))
@@ -134,6 +135,13 @@ test_that("Phase 18 Student-t shape summary can request profile and bootstrap ev
   expect_setequal(
     unique(summary$interval_evidence$interval_method),
     c("wald", "profile", "parametric_bootstrap")
+  )
+  expect_setequal(
+    unique(summary$interval_diagnostics$interval_method),
+    c("wald", "profile", "parametric_bootstrap")
+  )
+  expect_true(
+    all(summary$interval_diagnostics$artifact_grain == "interval_diagnostics")
   )
   expect_true(nrow(summary$interval_evidence) >= 14L)
 })
