@@ -575,6 +575,15 @@ decision. The current exported helpers, `plot_parameter_surface()` and
 should stay as tutorial-level `ggplot2` recipes until their data contracts and
 interval status are stable enough to test as exported APIs.
 
+Slice 289 tightens the shared extractor provenance rule. Prediction tables use
+`conf.status` and `interval_source`; `corpairs()` now carries the same pair of
+columns even when intervals are not requested. A plain `corpairs(fit)` row says
+`conf.status = "not_requested"` and `interval_source = "not_available"`, while a
+profiled correlation-pair row says `conf.status = "profile"` and
+`interval_source = "profile"`. `plot_corpairs()` treats finite bounds as
+drawable intervals only when those provenance columns name a real interval
+source, matching the rule already used by `plot_parameter_surface()`.
+
 | Display pattern | Current decision | Export only after |
 | --- | --- | --- |
 | Raw data plus fitted `mu` lines and confidence bands | Tutorial recipe | A repeated need for one grammar across multiple articles and a stable raw-data overlay policy |
@@ -605,11 +614,13 @@ The helper should satisfy these rules:
 
 - accept a `corpairs()` data frame as the primary input;
 - require visible columns for `level`, `class`, `parameter`, `estimate`,
-  `modelled`, and, when intervals are requested, `conf.status`;
+  `modelled`, and, when intervals are requested, `conf.status` and
+  `interval_source`;
 - add a display status such as `not_requested` when a plain `corpairs(fit)`
   table lacks interval columns, instead of implying that intervals were checked;
 - draw point estimates for all rows but draw interval segments only when
-  `conf.low` and `conf.high` are finite;
+  `conf.low` and `conf.high` are finite and the interval provenance columns name
+  a supported interval source;
 - label or facet by `level` so residual, ordinary group-level, phylogenetic,
   spatial, and future study-level correlations are not visually collapsed;
 - keep derived q=4 or covariance-product rows visibly separate from direct
@@ -630,11 +641,12 @@ or slopes.
 
 Slice 113 implements `plot_corpairs()` after the Slice 112 preflight. It
 consumes a `corpairs()` table, draws one point per correlation row, adds
-interval segments only for rows with finite `conf.low` and `conf.high` bounds,
-and keeps correlation `level`, `class`, and display interval status attached to
-the plotted data. It does not compute correlation pairs, run profile intervals,
-or collapse residual, ordinary group-level, phylogenetic, spatial, and future
-study-level correlations into one unnamed layer.
+interval segments only for rows with finite `conf.low` and `conf.high` bounds
+whose `conf.status` and `interval_source` mark a real interval, and keeps
+correlation `level`, `class`, display interval status, and interval source
+attached to the plotted data. It does not compute correlation pairs, run profile
+intervals, or collapse residual, ordinary group-level, phylogenetic, spatial,
+and future study-level correlations into one unnamed layer.
 
 Slice 114 adds optional faceting to `plot_corpairs()`. The default remains a
 single panel with row labels that include `level`, `class`, and `parameter`;

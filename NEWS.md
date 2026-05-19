@@ -15,6 +15,7 @@
 * Continuous-shape design notes now separate fitted fixed-effect Student-t `nu`, planned fixed-effect skew-normal `nu`, planned skew-t `nu`/`tau`, and future latent-effect `skew(id) ~ ...`, keeping shape and skewness random effects out of Phase 18 simulation until likelihood, recovery, diagnostic, and interval evidence exists.
 * Ordinal readiness docs now record the fixed-effect `cumulative_logit()` evidence ledger: likelihood, category probabilities, prediction, expected-score summaries, simulation, fixed-effect Wald intervals, internal cutpoint profile targets, malformed inputs, and unsupported random-effect boundaries are covered, while ordinal mixed models and scale/discrimination formulas remain planned.
 * Mixed-response bivariate family docs now keep Gaussian-count, Gaussian-proportion, count-proportion, ordinal mixed, and other two-response combinations planned until a joint likelihood or copula/latent-variable contract, prediction, simulation, extractors, intervals, examples, and comparator checks exist; tests cover mixed-family errors for `c()` and `list()` spellings.
+* `corpairs()` now returns `conf.status` and `interval_source` columns by default, matching the prediction-table provenance contract. `plot_corpairs()` now draws finite bounds only when those columns mark a real interval source, so compatible pair tables cannot imply confidence intervals from bare numeric limits alone.
 * Bivariate random-slope combination boundaries now have focused error coverage for matching slope-only `mu1`/`mu2` blocks, intercept-plus-slope location q=4 requests, residual-scale slope pairs, same-response location-scale slope combinations, and all-four q=8-style slope requests.
 * Structured random-slope boundaries now have parser and fit-time audit coverage:
   one-slope `animal()` and `relmat()` markers are readable as planned grammar,
@@ -157,7 +158,7 @@
   dependency-light. The model-workflow article now states that
   `predict_parameters()` and `marginal_parameters()` are data tables that
   plotting helpers can consume, not plotters themselves.
-* `plot_corpairs()` now provides the first optional `ggplot2` display for explicit `corpairs()` tables. It draws one point per fitted correlation row, adds interval segments only when finite `conf.low` and `conf.high` bounds are present, can facet by a supplied table column such as `level`, and keeps correlation `level`, `class`, and display interval status attached to the plotted data.
+* `plot_corpairs()` now provides the first optional `ggplot2` display for explicit `corpairs()` tables. It draws one point per fitted correlation row, adds interval segments only when finite `conf.low` and `conf.high` bounds have supported interval provenance, can facet by a supplied table column such as `level`, and keeps correlation `level`, `class`, display interval status, and interval source attached to the plotted data.
 * `plot_parameter_surface()` now provides the first optional `ggplot2` plotting
   helper for long tables returned by `predict_parameters()`. It plots existing
   point estimates, keeps interval provenance columns attached to the data, and
@@ -180,7 +181,7 @@
   mean-reference grids, and empirical counterfactual grids while recording the
   grid rule as metadata.
 * The bivariate-coscale tutorial now shows a fitted `corpairs()` table flowing into `plot_corpairs(..., facet = "level")`, separating residual `rho12` from group-level correlation rows in the displayed workflow.
-* `docs/design/39-visualization-grammar.md` now records the pre-export contract that `plot_corpairs()` follows: consume explicit `corpairs()` tables, keep correlation levels/classes visible, draw intervals only from finite confidence bounds, and test residual, ordinary group-level, phylogenetic, derived-unavailable, empty-table, and missing-`ggplot2` cases before export.
+* `docs/design/39-visualization-grammar.md` now records the pre-export contract that `plot_corpairs()` follows: consume explicit `corpairs()` tables, keep correlation levels/classes visible, draw intervals only from finite confidence bounds with supported provenance, and test residual, ordinary group-level, phylogenetic, derived-unavailable, empty-table, and missing-`ggplot2` cases before export.
 * The model-map article now includes a Phase 17 visualization decision table that routes raw responses, fitted parameter surfaces, empirical marginal summaries, correlations, interval tables, and diagnostics to the current data helpers before readers choose a plotting style.
 * The Reference index now makes the post-fit path explicit: fitting, checking, summaries, predictions, uncertainty, and extractors are grouped under "Model fitting and post-fit tools", while exported plotting helpers appear under "Visualization". The current exported plotting helpers are `plot_parameter_surface()` and `plot_corpairs()`.
 * `predict_parameters()` and `marginal_parameters()` now include interval

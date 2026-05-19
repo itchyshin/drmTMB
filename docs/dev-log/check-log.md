@@ -27383,3 +27383,68 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-18-slice-288-mixed-family-status.md`.
+
+## 2026-05-18 - Slice 289 extractor provenance contracts
+
+Goal: make the post-fit extractor and plotting contract more consistent without
+adding a new estimand, interval method, or plotting helper.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `R/methods.R`
+- `R/plot-corpairs.R`
+- `docs/design/39-visualization-grammar.md`
+- `docs/design/46-pre-simulation-readiness-matrix.md`
+- `docs/dev-log/after-task/2026-05-18-slice-289-extractor-provenance.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-18-221022-codex-checkpoint.md`
+- `man/corpairs.Rd`
+- `man/plot_corpairs.Rd`
+- `tests/testthat/test-corpairs.R`
+- `tests/testthat/test-plot-corpairs.R`
+- `vignettes/model-map.Rmd`
+
+What changed:
+
+- `corpairs()` now returns `conf.status` and `interval_source` columns by
+  default, with point-only tables marked as `not_requested` and
+  `not_available`.
+- `corpairs(conf.int = TRUE)` now marks successful profiled pair rows with
+  `interval_source = "profile"` beside `conf.status = "profile"`.
+- `plot_corpairs()` now draws interval segments only when finite bounds have
+  supported status and interval-source provenance, matching the
+  `plot_parameter_surface()` rule.
+- The visualization grammar, pre-simulation readiness matrix, model-map
+  article, NEWS, and ROADMAP now record how the shared provenance rule relates
+  to `predict_parameters()`, `corpairs()`, `plot_parameter_surface()`,
+  `plot_corpairs()`, `vcov()`, and the narrow `emmeans()` bridge.
+
+Checks run:
+
+```sh
+air format R/methods.R R/plot-corpairs.R tests/testthat/test-corpairs.R tests/testthat/test-plot-corpairs.R docs/design/39-visualization-grammar.md docs/design/46-pre-simulation-readiness-matrix.md vignettes/model-map.Rmd NEWS.md ROADMAP.md
+Rscript -e "devtools::test(filter = 'corpairs|plot-corpairs', reporter = 'summary')"
+Rscript -e "devtools::document()"
+git diff --check
+Rscript -e "rmarkdown::render('vignettes/model-map.Rmd', quiet = TRUE)"
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "devtools::test(reporter = 'summary')"
+rg -n 'Slice 289|interval_source|plot_corpairs\(\)|plotting helpers remain planned|conf\.status|profile_ready|not_available|emmeans\(\)|vcov\(\)|post-fit extractor' NEWS.md ROADMAP.md docs/design/39-visualization-grammar.md docs/design/46-pre-simulation-readiness-matrix.md vignettes/model-map.Rmd R/methods.R R/plot-corpairs.R tests/testthat/test-corpairs.R tests/testthat/test-plot-corpairs.R man/corpairs.Rd man/plot_corpairs.Rd
+rg -n 'plotting helpers remain planned' vignettes docs README.md NEWS.md ROADMAP.md
+git diff --check
+Rscript tools/codex-checkpoint.R --goal "Slice 289 extractor provenance contracts" --next "stage, commit, push, and open draft PR"
+```
+
+Known limitations:
+
+- No likelihood, formula grammar, bootstrap interval, derived-profile interval,
+  contrast, slope, diagnostic-plot, or simulation-plot helper was added.
+- `vcov()` remains a covariance matrix with coefficient-name provenance, and
+  `emmeans()` still returns an external `emmGrid` only for fixed-effect
+  univariate `mu`.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-289-extractor-provenance.md`.

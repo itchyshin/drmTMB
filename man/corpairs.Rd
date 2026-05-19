@@ -60,7 +60,9 @@ are requested.}
 \value{
 A data frame with one row per fitted correlation pair or pair
 summary. Predictor-dependent \code{rho12} is summarized by its mean, minimum,
-and maximum over the fitted rows.
+and maximum over the fitted rows. Rows include \code{conf.status} and
+\code{interval_source} so point-only and interval-aware pair tables use the same
+provenance vocabulary as prediction tables.
 }
 \description{
 \code{corpairs()} returns a long table of fitted correlation pairs from a
