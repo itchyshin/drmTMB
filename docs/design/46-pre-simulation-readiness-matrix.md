@@ -39,7 +39,7 @@ out of operating-characteristic tables except as failure-ledger entries.
 | Surface | Fitted status | Evidence now available | Phase 18 status |
 | --- | --- | --- | --- |
 | Gaussian fixed-effect location-scale | Fitted | DGP, smoke runner, Wald intervals for fixed formula coefficients, `sigma` summaries, manifests, and failure ledgers | Ready for first small grids |
-| Gaussian ordinary `mu` random intercepts and q > 2 random slopes | Fitted | Focused recovery tests, q=3 smoke surface, `sdpars$mu`, random effects, direct profile targets, and diagnostics | Ready for focused grids |
+| Gaussian ordinary `mu` random intercepts and q > 2 random slopes | Fitted | Focused recovery tests, q=3 smoke surface, q=4 output-name check, `sdpars$mu`, random effects, direct profile targets, and diagnostics | Ready for focused grids, with larger q treated as advanced |
 | Gaussian `sigma` random slopes | Fitted for independent one-slope terms | Smoke surface for `(0 + w | id)` on `log(sigma)`, summaries, manifests, and failure ledgers | Ready only for independent one-slope grids |
 | Gaussian location-scale covariance | Fitted for supported intercept blocks | `corpairs()`, `summary()` covariance rows, profile targets for direct rows, and diagnostics | Ready for small intercept-block grids, not slope-level covariance |
 | Bivariate Gaussian `rho12` | Fitted | Constant and predictor-dependent residual coscale, `rho12()`, row-specific profile support, and tutorial examples | Ready for focused residual-correlation grids |

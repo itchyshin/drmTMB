@@ -687,6 +687,9 @@ Current implemented Gaussian syntax covers:
 - `y ~ x + (0 + x | id)` for independent numeric `mu` random slopes;
 - `y ~ x + (1 + x | id)` and `(1 + x | p | id)` for one-slope correlated
   `mu` blocks;
+- `y ~ x1 + x2 + x3 + (1 + x1 + x2 + x3 | id)` for ordinary q > 2 numeric
+  multi-slope `mu` blocks, where random-slope SDs are direct targets and block
+  correlations are derived-unavailable for direct profile intervals;
 - `sigma ~ x + (1 | id)` for residual-scale random intercepts;
 - `sigma ~ x + (0 + w | id)` for independent residual-scale random slopes;
 - `sd(id) ~ x_group` and multiple distinct `sd(group) ~ x_group` formulas for

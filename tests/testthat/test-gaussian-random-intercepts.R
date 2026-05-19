@@ -822,6 +822,88 @@ test_that("Gaussian mu supports q > 2 correlated random-slope blocks", {
   expect_false(any(cor_parms %in% ready_targets$parm))
 })
 
+test_that("Gaussian mu reports larger ordinary multi-slope blocks consistently", {
+  set.seed(20260518)
+  n_id <- 28
+  n_each <- 10
+  n <- n_id * n_each
+  id <- factor(rep(seq_len(n_id), each = n_each))
+  x1 <- rep(seq(-1.2, 1.2, length.out = n_each), times = n_id)
+  x2 <- rep(scale(cos(seq(0, 2 * pi, length.out = n_each)))[, 1L], times = n_id)
+  x3 <- stats::rnorm(n)
+  z <- stats::rnorm(n)
+  sd <- c(0.38, 0.22, 0.18, 0.14)
+  latent <- matrix(stats::rnorm(n_id * 4L), ncol = 4L) %*% diag(sd)
+  beta_mu <- c(`(Intercept)` = 0.15, x1 = 0.45, x2 = -0.25, x3 = 0.20)
+  beta_sigma <- c(`(Intercept)` = -0.55, z = 0.10)
+  mu <- beta_mu[[1L]] +
+    beta_mu[[2L]] * x1 +
+    beta_mu[[3L]] * x2 +
+    beta_mu[[4L]] * x3 +
+    latent[id, 1L] +
+    latent[id, 2L] * x1 +
+    latent[id, 3L] * x2 +
+    latent[id, 4L] * x3
+  sigma <- exp(beta_sigma[[1L]] + beta_sigma[[2L]] * z)
+  dat <- data.frame(y = stats::rnorm(n, mu, sigma), x1, x2, x3, z, id)
+
+  fit <- drmTMB(
+    bf(y ~ x1 + x2 + x3 + (1 + x1 + x2 + x3 | id), sigma ~ z),
+    family = gaussian(),
+    data = dat,
+    control = drm_control(se = FALSE)
+  )
+
+  expected_sd <- c(
+    "(1 + x1 + x2 + x3 | id):(Intercept)",
+    "(1 + x1 + x2 + x3 | id):x1",
+    "(1 + x1 + x2 + x3 | id):x2",
+    "(1 + x1 + x2 + x3 | id):x3"
+  )
+  expected_cor <- c(
+    "cor((Intercept),x1 | id)",
+    "cor((Intercept),x2 | id)",
+    "cor((Intercept),x3 | id)",
+    "cor(x1,x2 | id)",
+    "cor(x1,x3 | id)",
+    "cor(x2,x3 | id)"
+  )
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_named(fit$sdpars$mu, expected_sd)
+  expect_named(fit$corpars$re_cov, expected_cor)
+  expect_equal(fit$model$random$covariance_blocks$n_qgt2_blocks, 1L)
+  expect_equal(drmTMB:::n_mu_random_effect_terms(fit), 4L)
+  expect_equal(
+    length(fit$random_effects$covariance_blocks$values),
+    4L * n_id
+  )
+  pairs <- corpairs(fit)
+  expect_equal(nrow(pairs), 6L)
+  expect_equal(
+    pairs$class,
+    c(
+      rep("mean-slope", 3L),
+      rep("slope-slope", 3L)
+    )
+  )
+  expect_equal(pairs$parameter, expected_cor)
+
+  targets <- profile_targets(fit)
+  sd_parms <- paste0("sd:mu:", expected_sd)
+  cor_parms <- paste0("cor:re_cov:", expected_cor)
+  sd_targets <- targets[match(sd_parms, targets$parm), ]
+  cor_targets <- targets[match(cor_parms, targets$parm), ]
+  expect_true(all(sd_targets$profile_ready))
+  expect_equal(sd_targets$index, seq_along(expected_sd))
+  expect_equal(cor_targets$target_type, rep("derived", length(expected_cor)))
+  expect_false(any(cor_targets$profile_ready))
+  expect_equal(
+    cor_targets$profile_note,
+    rep("derived_unstructured_correlation", length(expected_cor))
+  )
+})
+
 test_that("Gaussian mu supports correlated random intercept-slope blocks", {
   sim <- new_gaussian_corr_rs_data()
 
