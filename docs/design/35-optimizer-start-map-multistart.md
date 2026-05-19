@@ -60,6 +60,10 @@ aggregate_gaussian
 optimizer_preset
 start
 starts
+start_from
+warm_start
+warm_starts
+warm_start_from
 map
 fixed
 fallback_optimizer
@@ -114,6 +118,46 @@ Design constraints before implementation:
   charge of the remaining robust defaults;
 - random-effect latent starts should remain internal until there is a clear
   biological use case and simulation evidence.
+
+## Future Simpler-Fit Warm-Start Contract
+
+Warm starts from a simpler fitted model are useful only if they are explicit and
+auditable. Slice 275 reserves warm-start control names but does not implement
+them. A future interface might look like:
+
+```r
+fit_mu <- drmTMB(bf(y ~ x, sigma ~ 1), data = dat)
+
+fit_location_scale <- drmTMB(
+  bf(y ~ x, sigma ~ z),
+  data = dat,
+  control = drm_control(start_from = fit_mu)
+)
+```
+
+The intended ladder is from simpler to richer models:
+
+1. location-only to location-scale;
+2. fixed-effect location-scale to ordinary random-effect models;
+3. univariate or response-specific fits to bivariate Gaussian fits;
+4. ordinary Gaussian fits to structured phylogenetic or spatial fits only after
+   the target structured surface has its own diagnostics and recovery tests.
+
+Design constraints before implementation:
+
+- the source fit must have the same response family or an explicitly supported
+  simpler-to-richer route;
+- response names, distributional parameters, factor contrasts, offsets, and
+  complete-case row handling must be checked before parameters are copied;
+- copied parameters must use the same public target namespace as `start`, then
+  transform to the internal unconstrained scale;
+- any target not present in the simpler fit must use the richer model builder's
+  ordinary start;
+- the fitted object must record the source call, source family, copied target
+  names, skipped target names, and the final optimizer result;
+- `check_drm()` should report that a warm start was used, but inference should
+  still be based only on the selected optimum of the final model;
+- unsupported warm-start routes must error before optimization.
 
 ## Future Fixed-Parameter Or Map Contract
 
@@ -213,5 +257,7 @@ Required safeguards:
 Slice 80 does not implement public starts, fixed parameters, fallback
 optimizers, or multi-start fitting. It reserves the public names, documents the
 contract, and tests the selected-optimum invariant for the current
-single-optimizer path. Slice 274 adds only single-optimizer budget presets; it
-does not add user starts, maps, fallback optimizers, or multi-start fitting.
+single-optimizer path. Slice 274 adds only single-optimizer budget presets.
+Slice 275 reserves warm-start names and documents the simpler-fit contract. It
+does not add user starts, warm starts, maps, fallback optimizers, or multi-start
+fitting.

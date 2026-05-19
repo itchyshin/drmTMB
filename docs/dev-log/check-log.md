@@ -26578,3 +26578,54 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-18-slice-274-convergence-controls.md`.
+
+## 2026-05-18 - Slice 275 warm-start boundary
+
+Goal: design the simpler-fit warm-start route without letting unimplemented
+start controls pass silently into `stats::nlminb()`.
+
+Files changed:
+
+- `NEWS.md`
+- `R/control.R`
+- `ROADMAP.md`
+- `docs/design/35-optimizer-start-map-multistart.md`
+- `docs/dev-log/after-task/2026-05-18-slice-275-warm-start-boundary.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-18-194822-codex-checkpoint.md`
+- `tests/testthat/test-optimizer-contract.R`
+- `vignettes/convergence.Rmd`
+
+What changed:
+
+- Reserved `start_from`, `warm_start`, `warm_starts`, and `warm_start_from` in
+  `drm_control()`'s optimizer-control boundary.
+- Extended optimizer-contract tests so warm-start names error in plain
+  `control = list(...)` and `drm_control(optimizer = list(...))` paths.
+- Documented the future simpler-fit warm-start ladder and provenance contract.
+- Updated the convergence guide, roadmap, and NEWS to keep warm starts planned.
+
+Checks run:
+
+- `air format NEWS.md R/control.R ROADMAP.md docs/design/35-optimizer-start-map-multistart.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-18-slice-275-warm-start-boundary.md docs/dev-log/recovery-checkpoints/2026-05-18-194822-codex-checkpoint.md tests/testthat/test-optimizer-contract.R vignettes/convergence.Rmd`
+- `Rscript -e "devtools::test(filter = 'optimizer-contract|control', reporter = 'summary')"`
+- `Rscript -e 'rmarkdown::render("vignettes/convergence.Rmd", output_dir = tempfile("convergence-render-"), quiet = FALSE)'`
+- `rg -n 'Slice 275|start_from|warm_start|warm_starts|warm_start_from|simpler-fit|source-fit contract|warm-start names|Warm starts from simpler models' NEWS.md ROADMAP.md R/control.R tests/testthat/test-optimizer-contract.R vignettes/convergence.Rmd docs/design/35-optimizer-start-map-multistart.md`
+- `rg -n 'warm-start.*implemented|warm starts.*implemented|start_from.*implemented|warm_start.*implemented|source-fit.*implemented|copies.*source fit|copied.*source fit' README.md ROADMAP.md NEWS.md docs/design vignettes R tests/testthat --glob '!docs/dev-log/**'`
+  returned only negative or planned-boundary wording, not an implemented
+  warm-start claim.
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `git diff --check`
+- `Rscript tools/codex-checkpoint.R --goal "Slice 275 warm-start boundary" --next "stage, commit, push, and open draft PR"`
+
+Known limitations:
+
+- No warm-start fitting, source-fit validation, target-name mapping, or
+  parameter-copying path was added.
+- No `check_drm()` warm-start provenance row exists yet.
+- No simpler-to-richer route has simulation recovery or optimizer comparison
+  evidence yet.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-275-warm-start-boundary.md`.

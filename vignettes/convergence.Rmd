@@ -301,7 +301,9 @@ Several convergence tools are deliberately not automatic in the current
 release:
 
 - user-supplied named starts;
-- warm-start refits from a simpler fitted model;
+- warm-start refits from a simpler fitted model; names such as `start_from`,
+  `warm_start`, and `warm_start_from` are reserved until the source-fit contract
+  is implemented;
 - fallback optimizers such as `optim(method = "BFGS")`;
 - multi-start jittered searches;
 - Hessian eigenvector culprit reporting;

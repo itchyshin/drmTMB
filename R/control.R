@@ -90,7 +90,7 @@ drm_control <- function(
     cli::cli_abort(c(
       "{.arg optimizer} contains reserved {.pkg drmTMB} control name{?s}: {.arg {optimizer_reserved}}.",
       "i" = "Use {.arg optimizer} only for {.fn stats::nlminb} control settings.",
-      "i" = "Future start, map, fixed-parameter, fallback-optimizer, and multi-start controls will use explicit {.pkg drmTMB} arguments after their contract is implemented."
+      "i" = "Future start, warm-start, map, fixed-parameter, fallback-optimizer, and multi-start controls will use explicit {.pkg drmTMB} arguments after their contract is implemented."
     ))
   }
   optimizer <- drm_control_optimizer(optimizer, optimizer_preset)
@@ -137,7 +137,7 @@ drm_parse_control <- function(control) {
     cli::cli_abort(c(
       "{.arg control} contains reserved {.pkg drmTMB} control name{?s}: {.arg {reserved}}.",
       "i" = "{.code control = list(...)} is only for {.fn stats::nlminb} optimizer settings.",
-      "i" = "Use {.code control = drm_control(...)} for implemented {.pkg drmTMB} controls such as {.arg se}, {.arg keep_data}, and {.arg keep_tmb_object}.",
+      "i" = "Use {.code control = drm_control(...)} for implemented {.pkg drmTMB} controls such as {.arg se}, {.arg keep_data}, and {.arg keep_tmb_object}. Future warm starts need an explicit source-fit contract before they can be used.",
       "i" = "Use {.code control = list(eval.max = 1000)} only for optimizer settings."
     ))
   }
@@ -149,6 +149,10 @@ drm_control_reserved_names <- function() {
     setdiff(names(formals(drm_control)), "optimizer"),
     "start",
     "starts",
+    "start_from",
+    "warm_start",
+    "warm_starts",
+    "warm_start_from",
     "map",
     "fixed",
     "fallback_optimizer",
