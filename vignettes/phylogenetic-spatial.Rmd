@@ -132,6 +132,34 @@ simulate_spatial_location_data <- function(seed = 20260534) {
     coords = coords
   )
 }
+
+simulate_animal_marker_data <- function(seed = 20260519) {
+  set.seed(seed)
+  n_individual <- 40
+  n_each <- 4
+  individual <- factor(rep(paste0("id_", seq_len(n_individual)), each = n_each))
+  sex <- factor(rep(rep(c("female", "male"), each = n_each), n_individual / 2))
+  age <- runif(length(individual), 0, 2)
+  breeding_line <- factor(rep(rep(paste0("line_", seq_len(10)), each = 4), each = n_each))
+
+  individual_effect <- rnorm(n_individual, sd = 0.35)
+  line_effect <- rnorm(nlevels(breeding_line), sd = 0.25)
+  names(individual_effect) <- levels(individual)
+  names(line_effect) <- levels(breeding_line)
+
+  sigma <- exp(-1.0 + 0.15 * (sex == "male"))
+  body_size <- 2.1 + 0.45 * age + 0.20 * (sex == "male") +
+    individual_effect[individual] + line_effect[breeding_line] +
+    rnorm(length(individual), sd = sigma)
+
+  data.frame(
+    body_size = body_size,
+    age = age,
+    sex = sex,
+    individual = individual,
+    breeding_line = breeding_line
+  )
+}
 ```
 
 Structural dependence means a random effect has a known dependence structure
@@ -180,6 +208,14 @@ lets the effect of one numeric predictor vary smoothly across sites.
 
 Throughout this article, `Normal(a, b)` and `MVN(a, B)` use variance or
 covariance as the second argument.
+
+In this article, a location parameter such as `mu` describes the expected
+trait value, a scale parameter such as `sigma` describes residual or
+random-effect variability, a shape parameter such as `nu` describes a
+family-specific feature such as tail weight or skewness, and a coscale
+parameter models residual correlation, such as bivariate `rho12`. Structured
+animal, phylogenetic, and spatial effects are not residual coscale terms unless
+the fitted model explicitly includes a residual `rho12` formula.
 
 ## Reader route: animal, phylogeny, spatial, and known matrices
 
@@ -272,6 +308,58 @@ matrices.
 | Additive genetic variance from a precomputed relationship matrix | `animal(1 | individual, A = A)` or `animal(1 | individual, Ainv = Ainv)` | Keep the matrix in the design note; do not force it through `V` or `weights`. |
 | Experimental-line, genomic, or laboratory relatedness that is not a pedigree, tree, or coordinate surface | `relmat(1 | line, K = K)` or `relmat(1 | line, Q = Q)` | Use an ordinary `(1 | line)` sensitivity model, or switch to `phylo()` / `spatial()` when the known structure belongs to those named routes. |
 | Known sampling covariance among effect-size estimates | `meta_V(V = V)` | Use the fitted Gaussian meta-analysis route; this is observation covariance, not a latent relatedness random effect. |
+
+## Planned animal model with a fitted fallback
+
+An applied animal-model question might be: after accounting for age and sex,
+is there additive individual-level variation in body size that follows a known
+pedigree? The intended `drmTMB` syntax is:
+
+```r
+# Planned, not fitted yet:
+fit_animal <- drmTMB(
+  drm_formula(
+    body_size ~ age + sex + animal(1 | individual, pedigree = pedigree),
+    sigma ~ sex
+  ),
+  family = gaussian(),
+  data = growth
+)
+```
+
+That code is documentation for the intended public grammar, not a runnable
+analysis today. The planned animal effect would put the individual-level
+location deviations in a pedigree-derived additive relationship matrix. It
+would not be a residual `rho12` coscale model, and it would not use
+`meta_V(V = V)`, which is reserved for known sampling covariance among
+observations or effect-size estimates.
+
+For a runnable sensitivity analysis today, fit an ordinary grouped Gaussian
+model and state the omitted structure:
+
+```{r}
+growth <- simulate_animal_marker_data()
+
+fit_repeatability <- drmTMB(
+  drm_formula(
+    body_size ~ age + sex + (1 | individual),
+    sigma ~ sex
+  ),
+  family = gaussian(),
+  data = growth
+)
+
+check_drm(fit_repeatability)
+summary(fit_repeatability)
+```
+
+This fallback asks whether repeated observations of the same individual share
+a common location deviation. It does not estimate additive genetic variance,
+does not use pedigree relatedness among individuals, and cannot distinguish
+genetic resemblance from permanent environmental or measurement effects. If
+the scientific claim requires additive genetic variance, keep the planned
+`animal()` model in the analysis plan and report the ordinary random-effect
+fit only as a sensitivity check.
 
 For future matrix inputs, keep the representation explicit. A covariance matrix
 such as `A` or `K` is the dense VCV form. It is useful for small examples and
@@ -1383,8 +1471,10 @@ level-specific correlations such as phylogenetic mean-mean correlations,
 non-phylogenetic species correlations, spatial field correlations, and
 mean-scale correlations. These are not residual `rho12`; they should be
 reported as structural or group-level covariance summaries. For the univariate
-structural-dependence ladder, remember the order: use `animal()` when pedigree
-or additive relatedness is the target, `phylo()` when the species tree is the
-main dependence structure, `spatial()` when the site field is the main
-dependence structure, combined `phylo()` plus `spatial()` when both structures
-are needed, and `relmat()` only for future lower-level known-matrix workflows.
+structural-dependence ladder, keep the implementation status visible: reserve
+`animal()` for pedigree or additive-relatedness designs until the animal
+likelihood is fitted; use `phylo()` when the species tree is the fitted
+dependence structure; use `spatial()` when the site field is the fitted
+dependence structure; plan combined `phylo()` plus `spatial()` only after joint
+identifiability checks; and reserve `relmat()` for future lower-level
+known-matrix workflows.

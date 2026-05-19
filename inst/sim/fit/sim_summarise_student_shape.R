@@ -4,8 +4,15 @@ phase18_summarise_student_shape_fit <- function(
   cell_id = NA_character_,
   replicate = NA_integer_,
   elapsed = NA_real_,
-  warnings = character()
+  warnings = character(),
+  profile_parameters = character(),
+  profile_level = 0.70,
+  profile_args = list(ystep = 0.50),
+  bootstrap_nsim = 0L,
+  bootstrap_level = 0.70,
+  bootstrap_seed = NULL
 ) {
+  data <- truth
   if (is.data.frame(truth)) {
     truth <- attr(truth, "truth", exact = TRUE)
   }
@@ -30,7 +37,7 @@ phase18_summarise_student_shape_fit <- function(
   names(estimate) <- names(truth_value)
   std_error <- phase18_student_shape_fixed_effect_se(fit, names(estimate))
 
-  data.frame(
+  out <- data.frame(
     surface = "student_shape",
     cell_id = cell_id,
     replicate = replicate,
@@ -47,6 +54,52 @@ phase18_summarise_student_shape_fit <- function(
     warnings = paste(warnings, collapse = " | "),
     stringsAsFactors = FALSE
   )
+  if (length(profile_parameters) > 0L) {
+    out <- phase18_profile_interval_columns(
+      out,
+      fit = fit,
+      parameters = profile_parameters,
+      conf.level = profile_level,
+      interval_scale = "formula_coefficient",
+      profile_args = profile_args
+    )
+  }
+  phase18_bootstrap_interval_columns(
+    out,
+    fit = fit,
+    statistic_fun = phase18_student_shape_bootstrap_statistic,
+    refit_fun = phase18_student_shape_bootstrap_refit(data),
+    nsim = bootstrap_nsim,
+    conf.level = bootstrap_level,
+    seed = bootstrap_seed,
+    interval_scale = "formula_coefficient"
+  )
+}
+
+phase18_student_shape_bootstrap_statistic <- function(fit) {
+  estimate <- c(
+    stats::coef(fit, dpar = "mu"),
+    stats::coef(fit, dpar = "sigma"),
+    stats::coef(fit, dpar = "nu")
+  )
+  names(estimate) <- c(
+    paste0("mu:", names(stats::coef(fit, dpar = "mu"))),
+    paste0("sigma:", names(stats::coef(fit, dpar = "sigma"))),
+    paste0("nu:", names(stats::coef(fit, dpar = "nu")))
+  )
+  estimate
+}
+
+phase18_student_shape_bootstrap_refit <- function(data) {
+  force(data)
+  function(fit, simulations, index) {
+    data$y <- simulations[[paste0("sim_", index)]]
+    drmTMB(
+      bf(y ~ x, sigma ~ z, nu ~ w),
+      family = student(),
+      data = data
+    )
+  }
 }
 
 phase18_student_shape_fixed_effect_se <- function(fit, parameter) {

@@ -25,6 +25,14 @@ source_phase18_student_shape_grid_writer <- function(env = parent.frame()) {
   )
   source(
     system.file(
+      "sim/R/sim_bootstrap.R",
+      package = "drmTMB",
+      mustWork = TRUE
+    ),
+    local = env
+  )
+  source(
+    system.file(
       "sim/dgp/sim_dgp_student_shape.R",
       package = "drmTMB",
       mustWork = TRUE

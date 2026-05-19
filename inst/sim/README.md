@@ -97,16 +97,18 @@ Current pilot files:
   and `sigma` coefficients plus direct ordinary log-mean random-effect SDs.
 - `fit/sim_summarise_biv_rho12.R` summarises bivariate Gaussian fixed
   `mu1`, `mu2`, `sigma1`, `sigma2`, and `rho12` coefficients on their fitted
-  formula scales, and includes a helper for named response-scale truth grids.
+  formula scales, adds optional profile and parametric-bootstrap interval
+  columns, and includes a helper for named response-scale truth grids.
 - `fit/sim_summarise_student_shape.R` summarises fixed Student-t `mu`,
-  `sigma`, and `nu` coefficients on their fitted formula scales, and includes a
-  helper for named response-scale truth grids.
+  `sigma`, and `nu` coefficients on their fitted formula scales, adds optional
+  profile and parametric-bootstrap interval columns, and includes a helper for
+  named response-scale truth grids.
 - `R/sim_correlation_targets.R` classifies fitted `corpairs()` rows by their
   current profile route, keeping residual `rho12`, ordinary group, and
   phylogenetic correlations separate before simulation coverage is claimed.
 - `R/sim_bootstrap.R` provides a private Phase 18 parametric-bootstrap refit
-  harness and percentile interval summariser for simulation studies; it does
-  not change public `confint()` bootstrap support.
+  harness, percentile interval summariser, and summary-column adapter for
+  simulation studies; it does not change public `confint()` bootstrap support.
 - `R/sim_runner.R` runs one cell replicate, captures warnings/errors, can save
   or resume an RDS result, can reload saved result directories, can bind
   replicate-level summaries, and can reduce result lists to compact manifests
@@ -114,10 +116,11 @@ Current pilot files:
 - `R/sim_aggregate.R` reduces parameter-level replicate summaries to grouped
   bias, RMSE, convergence, Hessian, warning, and elapsed-time summaries.
 - `R/sim_uncertainty.R` adds Monte Carlo uncertainty and explicit
-  interval-coverage summaries, plus generic Wald interval-table helpers for
-  summaries that already contain estimates and standard errors, including a
-  Fisher-z back-transformed path for correlation summaries and a failure ledger
-  for interval rows whose status is not usable evidence.
+  interval-coverage summaries, plus generic Wald, profile, and interval-
+  evidence table helpers for summaries that already contain estimates and
+  standard errors, including a Fisher-z back-transformed path for correlation
+  summaries and a failure ledger for interval rows whose status is not usable
+  evidence.
 - `R/sim_plot_data.R` prepares plot-ready data tables for Phase 18 outputs,
   starting with paired Poisson/NB2 `mu` random-effect pilot summaries.
 - `R/sim_gallery.R` writes plot-ready count-pilot CSV inputs and renders the
@@ -150,9 +153,11 @@ Current pilot files:
   failure, Wald-interval, and Wald-coverage CSVs beside the per-replicate RDS
   results.
 - `run/sim_write_biv_rho12_grid.R` writes the same artifact set for the
-  bivariate Gaussian residual `rho12` grid.
+  bivariate Gaussian residual `rho12` grid, with optional profile,
+  parametric-bootstrap, combined interval-evidence, and interval-failure CSVs.
 - `run/sim_write_student_shape_grid.R` writes the same artifact set for the
-  Student-t fixed-effect shape `nu` grid.
+  Student-t fixed-effect shape `nu` grid, with optional profile,
+  parametric-bootstrap, combined interval-evidence, and interval-failure CSVs.
 - `run/sim_summary_gaussian_mu_random_slope_smoke.R` runs a tiny ordinary
   Gaussian `mu` q=3 random-slope summary smoke grid and returns grouped bias,
   RMSE, MCSE, manifest, and warning/error ledger outputs.
@@ -181,10 +186,12 @@ Current pilot files:
   estimated targets.
 - `run/sim_summary_biv_rho12_smoke.R` does the same for the bivariate
   Gaussian residual `rho12` smoke grid, including formula-coefficient Wald
-  intervals and coverage outputs.
+  intervals, optional profile and parametric-bootstrap interval evidence, and
+  coverage outputs.
 - `run/sim_summary_student_shape_smoke.R` does the same for the Student-t
   fixed-effect shape `nu` smoke grid, including formula-coefficient Wald
-  intervals, coverage outputs, and interval-failure ledgers.
+  intervals, optional profile and parametric-bootstrap interval evidence,
+  coverage outputs, and interval-failure ledgers.
 - `run/sim_interval_coverage_smoke.R` adds synthetic interval columns to
   parameter summaries so coverage-table plumbing can be tested before real
   interval methods are attached.

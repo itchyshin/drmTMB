@@ -40,6 +40,10 @@ Current examples:
 Names that are not scale slots should stay specific. For example, ordinal
 `theta` values are cutpoints, not a precision or variability parameter, and
 Student-t `nu` is a shape parameter rather than an alias for `sigma`.
+In bivariate Gaussian models, `rho12` is the residual coscale parameter:
+coscale means modelling residual correlation after the location and scale
+predictors have been accounted for. This term should not be collapsed with
+ordinary group-level, phylogenetic, or spatial correlations.
 
 The guard on residual correlations is purely numerical. In teaching material,
 describe the model as the standard transform `rho = tanh(eta)`, then note that
@@ -515,6 +519,13 @@ This first implementation deliberately rejects random effects, known sampling
 covariance, phylogenetic terms, and bivariate Student-t families until the
 fixed-effect likelihood and recovery tests remain stable.
 
+For applied examples, the runnable Student-t question is a sensitivity question:
+do conclusions about the location `mu` and scale `sigma` change when the
+likelihood estimates the tail-shape parameter `nu` rather than assuming
+Gaussian residual tails? The fitted fallback for planned skew-normal models is
+this Student-t comparison plus the Gaussian location-scale model; it is not
+evidence for residual asymmetry.
+
 ## Planned Skew-Normal Location-Scale-Shape Gate
 
 The future skew-normal path is for continuous responses where residual
@@ -567,6 +578,22 @@ effects in `sigma` or `nu`, and reject bivariate, `rho12`,
 separate recovery, normal-limit, false-positive heteroscedasticity, and
 comparator tests exist. Treat this section as an implementation gate for issue
 #3, not as evidence that `skew_normal()` is available.
+
+Until that gate is complete, user examples should use only planned syntax:
+
+```r
+# Planned, not fitted yet:
+drmTMB(
+  bf(y ~ x1, sigma ~ x2, nu ~ x3),
+  family = skew_normal(),
+  data = dat
+)
+```
+
+The next fitted action is to run Gaussian and Student-t sensitivity models,
+then state that skewness remains unmodelled. Do not present `nu ~ x` under
+`skew_normal()` as runnable until the density branch, prediction contract,
+profile targets, diagnostics, and recovery tests exist.
 
 ## Planned Skew-T Shape Gate
 

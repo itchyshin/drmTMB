@@ -21,6 +21,10 @@ heavier tails?
 
 This article introduces the first implemented robust continuous family in
 `drmTMB`: fixed-effect Student-t location-scale-shape regression.
+Here location means the expected response parameter `mu`, scale means the
+positive Student-t core scale `sigma`, and shape means the tail parameter
+`nu`. This one-response model has no coscale term; in `drmTMB`, coscale means
+modelling residual correlation, such as bivariate `rho12`.
 
 ## Model equation and R syntax
 
@@ -108,8 +112,10 @@ fit_student <- drmTMB(
 
 The extra line `nu ~ 1` says that the tail-shape parameter is estimated as a
 constant across observations. Predictor-varying fixed-effect `nu` formulas are
-also supported. This first tutorial keeps `nu` constant so the comparison
-focuses on location, scale, and residual-tail assumptions.
+also supported. For example, `nu ~ drought` asks whether the residual tails are
+heavier in the dry treatment than in the ambient treatment after `mu` and
+`sigma` have been modelled. This first tutorial keeps `nu` constant so the
+comparison focuses on location, scale, and residual-tail assumptions.
 
 ## Check the fitted robust model
 
@@ -190,6 +196,25 @@ drmTMB(
 Random effects, known sampling covariance, phylogenetic terms, spatial terms,
 and bivariate Student-t models are later phases. Start with this fixed-effect
 path when you need a robust continuous comparison to a Gaussian
-location-scale model. Future skew-normal and skew-t families should start as
-fixed-effect residual-shape models; ID-level skewness such as `skew(id) ~ x`
-is a different latent-effect question, not an alias for Student-t `nu`.
+location-scale model.
+
+Skew-normal residual asymmetry is a separate planned family, not a fitted
+option today:
+
+```r
+# Planned, not fitted yet:
+drmTMB(
+  bf(y ~ x1, sigma ~ x2, nu ~ x3),
+  family = skew_normal(),
+  data = dat
+)
+```
+
+Use this planned syntax only in design notes until `skew_normal()` has a
+density implementation, a normal-limit check at `nu = 0`, recovery for
+positive and negative skew, and tests showing that `nu ~ x` is not merely
+absorbing heteroscedasticity or outliers. For now, fit the Gaussian and
+Student-t models above and report whether the location and scale conclusions
+are robust to heavier tails. ID-level skewness such as future `skew(id) ~ x`
+is a different latent-effect question, not an alias for residual Student-t
+`nu` or planned skew-normal `nu`.

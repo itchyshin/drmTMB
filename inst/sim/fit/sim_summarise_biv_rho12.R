@@ -4,8 +4,15 @@ phase18_summarise_biv_rho12_fit <- function(
   cell_id = NA_character_,
   replicate = NA_integer_,
   elapsed = NA_real_,
-  warnings = character()
+  warnings = character(),
+  profile_parameters = character(),
+  profile_level = 0.70,
+  profile_args = list(ystep = 0.50),
+  bootstrap_nsim = 0L,
+  bootstrap_level = 0.70,
+  bootstrap_seed = NULL
 ) {
+  data <- truth
   if (is.data.frame(truth)) {
     truth <- attr(truth, "truth", exact = TRUE)
   }
@@ -41,7 +48,7 @@ phase18_summarise_biv_rho12_fit <- function(
   names(estimate) <- names(truth_value)
   std_error <- phase18_biv_rho12_fixed_effect_se(fit, names(estimate))
 
-  data.frame(
+  out <- data.frame(
     surface = "biv_rho12",
     cell_id = cell_id,
     replicate = replicate,
@@ -58,6 +65,63 @@ phase18_summarise_biv_rho12_fit <- function(
     warnings = paste(warnings, collapse = " | "),
     stringsAsFactors = FALSE
   )
+  if (length(profile_parameters) > 0L) {
+    out <- phase18_profile_interval_columns(
+      out,
+      fit = fit,
+      parameters = profile_parameters,
+      conf.level = profile_level,
+      interval_scale = "formula_coefficient",
+      profile_args = profile_args
+    )
+  }
+  phase18_bootstrap_interval_columns(
+    out,
+    fit = fit,
+    statistic_fun = phase18_biv_rho12_bootstrap_statistic,
+    refit_fun = phase18_biv_rho12_bootstrap_refit(data),
+    nsim = bootstrap_nsim,
+    conf.level = bootstrap_level,
+    seed = bootstrap_seed,
+    interval_scale = "formula_coefficient"
+  )
+}
+
+phase18_biv_rho12_bootstrap_statistic <- function(fit) {
+  estimate <- c(
+    stats::coef(fit, dpar = "mu1"),
+    stats::coef(fit, dpar = "mu2"),
+    stats::coef(fit, dpar = "sigma1"),
+    stats::coef(fit, dpar = "sigma2"),
+    stats::coef(fit, dpar = "rho12")
+  )
+  names(estimate) <- c(
+    paste0("mu1:", names(stats::coef(fit, dpar = "mu1"))),
+    paste0("mu2:", names(stats::coef(fit, dpar = "mu2"))),
+    paste0("sigma1:", names(stats::coef(fit, dpar = "sigma1"))),
+    paste0("sigma2:", names(stats::coef(fit, dpar = "sigma2"))),
+    paste0("rho12:", names(stats::coef(fit, dpar = "rho12")))
+  )
+  estimate
+}
+
+phase18_biv_rho12_bootstrap_refit <- function(data) {
+  force(data)
+  function(fit, simulations, index) {
+    data$y1 <- simulations[[paste0("sim_", index, "_y1")]]
+    data$y2 <- simulations[[paste0("sim_", index, "_y2")]]
+    drmTMB(
+      bf(
+        mu1 = y1 ~ x,
+        mu2 = y2 ~ x,
+        sigma1 = ~z1,
+        sigma2 = ~z2,
+        rho12 = ~w
+      ),
+      family = biv_gaussian(),
+      data = data
+    )
+  }
 }
 
 phase18_biv_rho12_fixed_effect_se <- function(fit, parameter) {
