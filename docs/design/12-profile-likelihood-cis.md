@@ -833,3 +833,25 @@ Profile-likelihood support is done only when these checks exist:
 - unsupported derived targets fail with a clear available-target message;
 - long simulations compare profile, Wald, and bootstrap coverage for a small
   set of variance components.
+
+## Slice 278 Interval Hardening Checkpoint
+
+Slice 278 closes the pre-simulation interval audit as a status contract rather
+than a broad interval-engine rewrite. The implemented fitted-model rules are:
+
+| Target | Current route | Current boundary |
+| --- | --- | --- |
+| Fixed-effect `mu`, `sigma`, `nu`, `zi`, `hu`, and `rho12` coefficients | `confint(fit)` or `summary(fit, conf.int = TRUE)` returns Wald intervals on the fitted link scale when standard errors are available; explicit fixed-effect profile targets are also direct `profile_targets()` rows. | The coefficient interval is not a response-scale fitted-value interval. For Student-t `nu`, `fixef:nu:x` is on the `log(nu - 2)` coefficient scale. |
+| Constant `sigma`, `sigma1`, `sigma2`, and residual `rho12` | `confint(..., method = "profile", parm = "sigma")` or `parm = "rho12"` profiles the direct target and reports response-scale endpoints. | Available only for constant formulae; predictor-dependent rows need `newdata`. |
+| Predictor-dependent `sigma`, `sigma1`, `sigma2`, and residual `rho12` | `confint(..., method = "profile", parm = <dpar>, newdata = grid)` profiles one supplied row at a time and reports response-scale endpoints. | There is no single fitted-object response-scale target without a named row. |
+| Random-effect SDs and direct q2 correlations | Direct `sd:*` and `cor:*` rows marked `profile_ready` can be profiled and are transformed back to SD or correlation scale. | q4 unstructured endpoint correlations, covariance products, repeatability, and phylogenetic signal remain derived-status rows. |
+| Fisher-z Wald correlation intervals | `phase18_add_correlation_fisher_z_intervals()` is available for Phase 18 simulation and coverage tables when a summary already supplies a correlation estimate and standard error. | This is not a public fitted-model `confint()` default and does not replace profile intervals for fitted correlation inference. |
+| Bootstrap intervals | Requests for `method = "bootstrap"` or `method = "parametric_bootstrap"` error before interval work begins. | A simulation/refit harness, target extractor, failure ledger, and runtime controls are still required before a public bootstrap interval API. |
+
+The practical rule for reports is to use Wald intervals for routine fixed-effect
+coefficients, profile intervals for direct fitted SD, scale, and correlation
+targets, and explicit simulation producers when Fisher-z Wald correlation
+coverage is the scientific target. Any variance, covariance, or nonlinear
+summary that combines several fitted quantities must keep
+`derived_interval_unavailable` until a fix-and-refit or reparameterized derived
+profile method is implemented and tested.

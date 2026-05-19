@@ -26733,3 +26733,57 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-18-slice-277-gradient-culprit-diagnostic.md`.
+
+## 2026-05-18 - Slice 278 interval hardening
+
+Goal: close the pre-simulation interval-hardening checkpoint by making the
+current fitted-model and Phase 18 interval routes explicit without changing the
+likelihood or adding a broad interval engine.
+
+Files changed:
+
+- `NEWS.md`
+- `README.md`
+- `ROADMAP.md`
+- `docs/design/12-profile-likelihood-cis.md`
+- `docs/design/43-phase-18-interval-producer-contract.md`
+- `docs/dev-log/after-task/2026-05-18-slice-278-interval-hardening.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-18-201509-codex-checkpoint.md`
+- `tests/testthat/test-phase18-sim-uncertainty.R`
+- `tests/testthat/test-profile-targets.R`
+- `vignettes/model-workflow.Rmd`
+
+What changed:
+
+- Added a Student-t interval-inventory test for fixed-effect `nu` targets,
+  link-scale Wald intervals, and the absence of a response-scale direct `nu`
+  target.
+- Extended the Phase 18 Fisher-z correlation helper test to cover supplied
+  Fisher-z-scale standard errors and custom endpoint columns.
+- Updated README, workflow vignette, and design notes to keep fitted-model Wald
+  and profile intervals separate from Fisher-z simulation producers.
+- Marked Slice 278 done in the roadmap and added a NEWS bullet.
+
+Checks run:
+
+- `air format NEWS.md README.md ROADMAP.md docs/design/12-profile-likelihood-cis.md docs/design/43-phase-18-interval-producer-contract.md tests/testthat/test-phase18-sim-uncertainty.R tests/testthat/test-profile-targets.R vignettes/model-workflow.Rmd`
+- `Rscript -e "devtools::test(filter = 'profile-targets|phase18-sim-uncertainty', reporter = 'summary')"`
+- `Rscript -e 'devtools::load_all(quiet = TRUE); rmarkdown::render("vignettes/model-workflow.Rmd", output_dir = tempfile("model-workflow-render-"), quiet = FALSE)'`
+- `rg -n 'Slice 278|Student-t `nu`|fixef:nu:x|Fisher-z|fisher_z_backtransformed|phase18_add_correlation_fisher_z_intervals|derived_interval_unavailable|bootstrap intervals|Interval hardening' NEWS.md README.md ROADMAP.md docs/design/12-profile-likelihood-cis.md docs/design/43-phase-18-interval-producer-contract.md tests/testthat/test-phase18-sim-uncertainty.R tests/testthat/test-profile-targets.R vignettes/model-workflow.Rmd`
+- `rg -n 'Fisher-z.*confint\(\).*default|Fisher-z.*fitted-model|bootstrap intervals are implemented|derived.*interval.*implemented|response-scale `nu`.*profile-ready|`nu`.*response-scale.*confint|variance.*profile.*implemented for all|q4.*profile.*implemented' README.md ROADMAP.md NEWS.md docs/design vignettes R tests/testthat --glob '!docs/dev-log/**'`
+  returned only negative, planned-boundary, or historical status wording.
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `git diff --check`
+- `Rscript tools/codex-checkpoint.R --goal "Slice 278 interval hardening" --next "stage, commit, push, and open draft PR"`
+
+Known limitations:
+
+- No new fitted-model Fisher-z `confint()` route was added.
+- No response-scale Student-t `nu` profile target was added.
+- Derived variance, covariance-product, q4 correlation, repeatability,
+  phylogenetic-signal, and bootstrap intervals remain unavailable or planned.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-278-interval-hardening.md`.

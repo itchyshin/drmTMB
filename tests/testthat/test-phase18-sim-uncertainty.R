@@ -127,6 +127,27 @@ test_that("Phase 18 correlation Wald helper uses Fisher-z scale", {
   )
   expect_equal(out$std.error.scale, rep("rho", 3L))
   expect_equal(out$interval_status, c("ok", "ok", "failed"))
+
+  fisher_scale <- phase18_add_correlation_fisher_z_intervals(
+    summary[1:2, ],
+    conf.level = 0.90,
+    std.error.scale = "fisher_z",
+    lower = "lo",
+    upper = "hi"
+  )
+  z_90 <- stats::qnorm(0.95)
+  expected_z <- tanh(atanh(summary$estimate[[1L]]) + c(-1, 1) * z_90 * 0.10)
+
+  expect_equal(fisher_scale$lo[[1L]], expected_z[[1L]])
+  expect_equal(fisher_scale$hi[[1L]], expected_z[[2L]])
+  expect_true(all(fisher_scale$lo > -1))
+  expect_true(all(fisher_scale$hi < 1))
+  expect_equal(
+    fisher_scale$interval_scale,
+    rep("fisher_z_backtransformed", 2L)
+  )
+  expect_equal(fisher_scale$std.error.scale, rep("fisher_z", 2L))
+  expect_equal(fisher_scale$interval_status, rep("ok", 2L))
 })
 
 test_that("Phase 18 uncertainty helpers validate inputs", {

@@ -205,6 +205,12 @@ effects:
 summary(fit, conf.int = TRUE)
 ```
 
+Fixed effects include distributional-parameter coefficients such as `sigma`,
+Student-t `nu`, zero-inflation, hurdle, and residual `rho12` formula terms.
+Those Wald intervals are on the fitted link scale. For example, a Student-t
+`fixef:nu:x` row is an interval for the `log(nu - 2)` coefficient, not a
+response-scale degrees-of-freedom interval at a particular covariate value.
+
 Profile-likelihood 95% confidence intervals are available for selected direct
 targets such as constant `sigma`, random-effect SDs, random-effect
 correlations, and constant residual `rho12`. Fixed effects keep Wald
@@ -281,6 +287,12 @@ profile-likelihood intervals for variance components, SDs, or correlations in
 one summary. Successful profile rows also include `profile.boundary` and
 `profile.message`; values other than `"ok"` tell you to check boundary or
 near-correlation-limit behaviour before interpreting the interval.
+
+For correlations, use profile intervals for fitted-model inference when the
+target is profile-ready. The Phase 18 simulation helpers also include a
+Fisher-z back-transformed Wald route for coverage tables with supplied
+correlation standard errors, but that helper is a simulation producer contract,
+not a public `confint()` default for fitted correlation rows.
 
 Use `profile_targets(fit)` before asking for a profile interval. A row is
 profile-ready only when it maps to a direct TMB target and the fitted object

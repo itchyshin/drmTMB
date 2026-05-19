@@ -237,15 +237,18 @@ row. Mesh/SPDE fields, multiple spatial slopes, spatial slope correlations,
 spatial scale terms, and bivariate spatial covariance blocks are still planned
 rather than landing-page workflows.
 
-For uncertainty, `confint()` returns Wald intervals for fixed effects by
-default when `TMB::sdreport()` has been computed, and profile-likelihood
-intervals only for explicit direct targets. Use `profile_targets(fit)` to see
-which SD, correlation, scale, or `rho12` targets are ready. Interval-aware
-summaries use `conf.status` to separate returned intervals from rows that need
-`newdata`, derived-profile methods, or refitting with
-`control = drm_control(se = TRUE)` for Wald standard errors; profile rows also
-report `profile.boundary` and `profile.message` so boundary or
-near-correlation-limit intervals are visible before interpretation.
+For uncertainty, `confint()` returns Wald intervals for fixed effects,
+including shape and coscale formula coefficients, by default when
+`TMB::sdreport()` has been computed. Profile-likelihood intervals are available
+only for explicit direct targets. Use `profile_targets(fit)` to see which SD,
+correlation, scale, or `rho12` targets are ready. Interval-aware summaries use
+`conf.status` to separate returned intervals from rows that need `newdata`,
+derived-profile methods, or refitting with `control = drm_control(se = TRUE)`
+for Wald standard errors; profile rows also report `profile.boundary` and
+`profile.message` so boundary or near-correlation-limit intervals are visible
+before interpretation. Fisher-z Wald correlation intervals are reserved for
+Phase 18 simulation coverage producers, not the fitted-model `confint()`
+default.
 
 ## Project status
 

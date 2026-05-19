@@ -4,6 +4,7 @@
 * `drm_control()` now reserves fallback-optimizer control names such as `fallback_optimizer`, `fallback_optimizers`, and `optimizer_fallback` while documenting the future selected-optimizer provenance contract. Fallback BFGS or L-BFGS-B refits remain planned, not automatic.
 * `drm_control()` now reserves warm-start control names such as `start_from`, `warm_start`, and `warm_start_from` so simpler-fit starts cannot be silently passed to `nlminb()` before the source-fit contract is implemented.
 * `check_drm()` now reports the largest fixed-gradient component label in the `fixed_gradient` diagnostic row, making non-converged or flat-surface fits easier to triage before Hessian or Wald inference is trusted.
+* Interval documentation now separates fitted-model Wald and profile intervals from Phase 18 Fisher-z simulation helpers, and tests confirm Student-t `nu` fixed-effect interval targets plus Fisher-z-scale correlation-helper output.
 * Bivariate random-slope combination boundaries now have focused error coverage for matching slope-only `mu1`/`mu2` blocks, intercept-plus-slope location q=4 requests, residual-scale slope pairs, same-response location-scale slope combinations, and all-four q=8-style slope requests.
 * Structured random-slope boundaries now have parser and fit-time audit coverage:
   one-slope `animal()` and `relmat()` markers are readable as planned grammar,

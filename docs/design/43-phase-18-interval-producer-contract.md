@@ -87,3 +87,11 @@ method to move the raw-correlation standard error to z scale. When
 `std.error.scale = "fisher_z"`, it uses the supplied standard error directly.
 Rows at or beyond the correlation boundary are marked as failed rather than
 silently clipped.
+
+Slice 278 confirms that this helper is a simulation-table producer, not the
+public fitted-model correlation interval route. The fitted-model route remains
+`profile_targets()` plus `confint(..., method = "profile")` for direct
+correlation targets. Simulation producers may use Fisher-z back-transformed
+Wald intervals with either raw-correlation standard errors or Fisher-z-scale
+standard errors, and the returned table must record
+`interval_scale = "fisher_z_backtransformed"` and `std.error.scale`.

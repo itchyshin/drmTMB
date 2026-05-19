@@ -453,6 +453,45 @@ test_that("confint returns Wald fixed-effect intervals", {
   )
 })
 
+test_that("interval inventory covers Student-t fixed-effect shape targets", {
+  set.seed(20260618)
+  n <- 120
+  dat <- data.frame(
+    x = stats::rnorm(n),
+    z = stats::rnorm(n)
+  )
+  mu <- 0.15 + 0.35 * dat$x
+  sigma <- exp(-0.25 + 0.10 * dat$z)
+  q <- stats::qt((seq_len(n) - 0.5) / n, df = 8)
+  dat$y <- mu + sigma * sample(q)
+  fit <- drmTMB(
+    bf(y ~ x, sigma ~ z, nu ~ x),
+    family = student(),
+    data = dat,
+    control = drm_control(optimizer_preset = "careful")
+  )
+
+  targets <- profile_targets(fit)
+  nu_targets <- targets[targets$dpar == "nu", , drop = FALSE]
+  ci <- stats::confint(fit, parm = "nu:x", level = 0.90)
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(
+    nu_targets$parm,
+    c("fixef:nu:(Intercept)", "fixef:nu:x")
+  )
+  expect_equal(nu_targets$target_class, rep("fixed-effect", 2L))
+  expect_equal(nu_targets$tmb_parameter, rep("beta_nu", 2L))
+  expect_equal(nu_targets$scale, rep("link", 2L))
+  expect_equal(nu_targets$transformation, rep("linear_predictor", 2L))
+  expect_true(all(nu_targets$profile_ready))
+  expect_false("nu" %in% targets$parm)
+  expect_equal(ci$parm, "fixef:nu:x")
+  expect_equal(ci$method, "wald")
+  expect_equal(ci$conf.status, "wald")
+  expect_equal(ci$scale, "link")
+})
+
 test_that("confint profile intervals wrap direct fixed-effect profiles", {
   set.seed(20260595)
   n <- 55
