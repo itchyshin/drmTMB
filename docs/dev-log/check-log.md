@@ -27807,3 +27807,53 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-18-slice-296-proportion-fixed-effect-ademp.md`.
+
+## 2026-05-18 - Slice 297 ordinal fixed-effect ADEMP sheet
+
+Goal: create a one-page ADEMP design sheet for the fixed-effect
+`cumulative_logit()` Phase 18 lane before adding ordinal DGP helpers or formal
+grids.
+
+Files changed:
+
+- `docs/design/51-phase-18-ordinal-fixed-effect-ademp.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `inst/sim/README.md`
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/dev-log/after-task/2026-05-18-slice-297-ordinal-fixed-effect-ademp.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-18-230415-codex-checkpoint.md`
+
+What changed:
+
+- Added a fixed-effect ordinal ADEMP sheet with aims, cumulative-logit DGPs,
+  category probabilities, cutpoint recovery, expected ordered-score summaries,
+  condition levels, performance measures, MCSE target, and Williams-style
+  self-audit.
+- Linked the sheet from the Phase 18 simulation programme and the `inst/sim/`
+  README.
+- NEWS and ROADMAP record Slice 297 as the fixed-effect ordinal ADEMP sheet.
+
+Checks run:
+
+```sh
+air format docs/design/51-phase-18-ordinal-fixed-effect-ademp.md docs/design/41-phase-18-simulation-programme.md inst/sim/README.md NEWS.md ROADMAP.md
+sed -n '1,280p' docs/design/51-phase-18-ordinal-fixed-effect-ademp.md
+rg -n 'Ordinal Fixed-Effect ADEMP|cumulative_logit\(\)|cutpoint|expected ordered|expected-score|category probabilities|sigma|discrimination|random effects|mixed-response|500 replicates|Williams|Morris|Slice 297' docs/design/51-phase-18-ordinal-fixed-effect-ademp.md docs/design/41-phase-18-simulation-programme.md inst/sim/README.md NEWS.md ROADMAP.md
+rg -n 'ordinal random effects|scale/discrimination|cutpoint-specific|known sampling covariance|bivariate ordinal|mixed-response|DGP helper|fixed latent scale|sigma\(fit\)' docs/design/51-phase-18-ordinal-fixed-effect-ademp.md
+git diff --check
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript tools/codex-checkpoint.R --goal "Slice 297 ordinal fixed-effect ADEMP sheet" --next "stage, commit, push, and open draft PR"
+```
+
+Known limitations:
+
+- No simulation code, DGP helper, runner, result table, executable test,
+  likelihood, formula grammar, extractor, or interval method changed.
+- The sheet is a design contract; formal ordinal operating-characteristic
+  evidence still needs an explicit ordinal DGP helper and a separate
+  implementation slice.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-297-ordinal-fixed-effect-ademp.md`.

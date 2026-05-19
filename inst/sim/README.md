@@ -34,6 +34,8 @@ Current pilot files:
   ADEMP sheet for the paired Poisson/NB2 `mu` random-effect lane.
 - `docs/design/50-phase-18-proportion-fixed-effect-ademp.md` is the one-page
   ADEMP sheet for the fixed-effect `beta()` and `beta_binomial()` lane.
+- `docs/design/51-phase-18-ordinal-fixed-effect-ademp.md` is the one-page
+  ADEMP sheet for the fixed-effect `cumulative_logit()` ordinal lane.
 - `dgp/sim_dgp_gaussian_ls.R` generates Gaussian location-scale data with
   `mu ~ x` and `sigma ~ z`.
 - `dgp/sim_dgp_gaussian_mu_random_slope.R` generates Gaussian `mu` data with
