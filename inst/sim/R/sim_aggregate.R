@@ -52,6 +52,7 @@ phase18_aggregate_parameter_group <- function(x, by) {
   data.frame(
     x[1L, by, drop = FALSE],
     n_replicate = length(error),
+    artifact_grain = "aggregate",
     mean_truth = mean(truth),
     mean_estimate = mean(estimate),
     bias = mean(error),

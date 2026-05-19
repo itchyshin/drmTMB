@@ -12,6 +12,18 @@ phase18_count_gallery_pilot_fixture <- function() {
       bias_mcse = c(0.004, 0.006),
       rmse_mcse = c(0.003, 0.007)
     ),
+    replicates = data.frame(
+      surface = c("poisson_mu_random_effect", "poisson_mu_random_effect"),
+      cell_id = c(
+        "poisson_mu_random_effect_001",
+        "poisson_mu_random_effect_001"
+      ),
+      replicate = c(1L, 2L),
+      parameter = c("mu:x", "sd:mu:(0 + x | id)"),
+      truth = c(0.2, 0.5),
+      estimate = c(0.21, 0.47),
+      error = c(0.01, -0.03)
+    ),
     wald_coverage = data.frame(
       surface = "poisson_mu_random_effect",
       cell_id = "poisson_mu_random_effect_001",
@@ -57,10 +69,12 @@ test_that("Phase 18 count gallery helper writes plot-ready CSV inputs", {
   )
 
   expect_true(file.exists(paths$aggregate_csv))
+  expect_true(file.exists(paths$replicate_csv))
   expect_true(file.exists(paths$coverage_csv))
   expect_true(file.exists(paths$manifest_csv))
   expect_true(file.exists(paths$failures_csv))
   expect_equal(nrow(read.csv(paths$aggregate_csv)), 2L)
+  expect_equal(nrow(read.csv(paths$replicate_csv)), 2L)
   expect_equal(nrow(read.csv(paths$coverage_csv)), 2L)
   expect_equal(nrow(read.csv(paths$manifest_csv)), 2L)
   failures <- read.csv(paths$failures_csv)

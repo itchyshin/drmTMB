@@ -41,6 +41,7 @@ phase18_summarise_gaussian_sigma_rs_smoke <- function(
     surface = "gaussian_sigma_random_slope",
     run = run,
     aggregate = aggregate,
+    replicates = run$summary,
     manifest = manifest,
     failures = failures
   )

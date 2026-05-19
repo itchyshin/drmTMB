@@ -52,6 +52,10 @@ phase18_summarise_count_mu_re_pilot <- function(
       poisson$aggregate,
       nbinom2$aggregate
     ),
+    replicates = phase18_bind_count_mu_re_outputs(
+      poisson$replicates,
+      nbinom2$replicates
+    ),
     manifest = phase18_bind_count_mu_re_outputs(
       poisson$manifest,
       nbinom2$manifest

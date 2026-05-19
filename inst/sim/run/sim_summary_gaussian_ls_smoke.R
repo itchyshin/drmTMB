@@ -50,6 +50,7 @@ phase18_summarise_gaussian_ls_smoke <- function(
     surface = "gaussian_ls",
     run = run,
     aggregate = aggregate,
+    replicates = run$summary,
     manifest = manifest,
     failures = failures,
     wald_intervals = wald_intervals,

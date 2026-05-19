@@ -25,6 +25,7 @@ test_that("Phase 18 aggregation summarises parameter errors by default groups", 
   expect_equal(out$n_replicate, c(2L, 2L))
   expect_equal(out$bias[out$parameter == "mu:x"], 0)
   expect_equal(out$rmse[out$parameter == "mu:x"], 0.1)
+  expect_equal(out$artifact_grain, rep("aggregate", 2L))
   expect_equal(out$convergence_rate[out$parameter == "sigma:z"], 0.5)
   expect_equal(out$pdHess_rate[out$parameter == "sigma:z"], 0)
   expect_equal(out$warning_rate[out$parameter == "mu:x"], 0.5)

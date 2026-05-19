@@ -53,8 +53,11 @@ test_that("Phase 18 count gallery smoke runner renders a real pilot gallery", {
   expect_true(dir.exists(out$result_dir))
   expect_true(dir.exists(out$gallery_dir))
   expect_equal(nrow(out$pilot$aggregate), 10L)
+  expect_equal(nrow(out$pilot$replicates), 10L)
   expect_equal(nrow(out$pilot$manifest), 2L)
   expect_equal(nrow(out$gallery$inputs$plot_data$aggregate), 10L)
+  expect_equal(nrow(out$gallery$inputs$plot_data$replicates), 10L)
+  expect_true(file.exists(out$gallery$inputs$replicate_csv))
   html <- paste(
     readLines(out$gallery$output_file, warn = FALSE),
     collapse = "\n"

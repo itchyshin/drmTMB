@@ -28223,3 +28223,119 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-19-slice-302-figure-visual-audit.md`.
+
+## 2026-05-19 - Slices 303-307 Simulation Artifact Grain And First Gaussian Grid
+
+Goal:
+
+- Merge the Slice 302 figure-audit branch, verify the deploy path, make Phase
+  18 simulation artifacts explicit about replicate-level versus aggregate-only
+  grain, and run the first small Gaussian location-scale grid.
+
+Files changed:
+
+- `inst/sim/R/sim_runner.R`
+- `inst/sim/R/sim_aggregate.R`
+- `inst/sim/R/sim_plot_data.R`
+- `inst/sim/R/sim_gallery.R`
+- `inst/sim/run/sim_run_gaussian_ls_smoke.R`
+- `inst/sim/run/sim_run_gaussian_mu_random_slope_smoke.R`
+- `inst/sim/run/sim_run_gaussian_sigma_random_slope_smoke.R`
+- `inst/sim/run/sim_run_meta_v_smoke.R`
+- `inst/sim/run/sim_run_nbinom2_mu_random_effect_smoke.R`
+- `inst/sim/run/sim_run_poisson_mu_random_effect_smoke.R`
+- `inst/sim/run/sim_run_spatial_mu_slope_smoke.R`
+- `inst/sim/run/sim_summary_count_mu_random_effect_pilot.R`
+- `inst/sim/run/sim_summary_gaussian_ls_smoke.R`
+- `inst/sim/run/sim_summary_gaussian_mu_random_slope_smoke.R`
+- `inst/sim/run/sim_summary_gaussian_sigma_random_slope_smoke.R`
+- `inst/sim/run/sim_summary_meta_v_smoke.R`
+- `inst/sim/run/sim_summary_nbinom2_mu_random_effect_smoke.R`
+- `inst/sim/run/sim_summary_poisson_mu_random_effect_smoke.R`
+- `inst/sim/run/sim_summary_spatial_mu_slope_smoke.R`
+- `inst/sim/run/sim_write_gaussian_ls_grid.R`
+- `inst/sim/reports/phase18-count-mu-gallery.Rmd`
+- `inst/sim/README.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-19-114912-codex-checkpoint.md`
+- `tests/testthat/test-phase18-*.R` focused simulation contract tests.
+
+What changed:
+
+- Merged PR #256 with squash commit `977d70a5` and verified post-merge
+  R-CMD-check and pkgdown deploy on `main`.
+- Added `phase18_result_summaries()` so smoke runners bind replicate-level
+  parameter summaries through one helper and mark them with
+  `artifact_grain = "replicate"`.
+- Marked aggregate rows from `phase18_aggregate_parameters()` with
+  `artifact_grain = "aggregate"`.
+- Exposed top-level `replicates` tables from current Phase 18 summary-smoke
+  outputs.
+- Added count-pilot replicate plot-data support, a `count-mu-replicates.csv`
+  gallery input, and a count-gallery bias display that overlays replicate
+  errors only when that replicate-level CSV exists.
+- Added `phase18_write_gaussian_ls_grid_outputs()` to write repeatable Gaussian
+  location-scale aggregate, replicate, manifest, failure, Wald-interval, and
+  Wald-coverage CSVs beside per-replicate RDS results.
+- Ran the first small Gaussian location-scale grid under
+  `inst/sim/results/slice-307-gaussian-ls-small-grid/`: 8 cells, 5 replicates
+  per cell, 40 successful replicate results, 160 replicate-level parameter
+  rows, 32 aggregate rows, and 0 warning/error ledger rows.
+
+Checks run:
+
+```sh
+Rscript -e "devtools::test(filter = '^phase18-sim-(runner|aggregate|plot-data|uncertainty)$')"
+Rscript -e "devtools::test(filter = '^phase18-count-(gallery|mu-random-effect-pilot)')"
+Rscript -e "devtools::test(filter = '^phase18-gaussian-ls')"
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript - <<'RS'
+devtools::load_all(quiet = TRUE)
+source(system.file('sim/R/sim_registry.R', package = 'drmTMB', mustWork = TRUE))
+source(system.file('sim/R/sim_utils.R', package = 'drmTMB', mustWork = TRUE))
+source(system.file('sim/R/sim_runner.R', package = 'drmTMB', mustWork = TRUE))
+source(system.file('sim/R/sim_aggregate.R', package = 'drmTMB', mustWork = TRUE))
+source(system.file('sim/R/sim_uncertainty.R', package = 'drmTMB', mustWork = TRUE))
+source(system.file('sim/dgp/sim_dgp_gaussian_ls.R', package = 'drmTMB', mustWork = TRUE))
+source(system.file('sim/fit/sim_summarise_gaussian_ls.R', package = 'drmTMB', mustWork = TRUE))
+source(system.file('sim/run/sim_run_gaussian_ls_smoke.R', package = 'drmTMB', mustWork = TRUE))
+source(system.file('sim/run/sim_summary_gaussian_ls_smoke.R', package = 'drmTMB', mustWork = TRUE))
+source(system.file('sim/run/sim_write_gaussian_ls_grid.R', package = 'drmTMB', mustWork = TRUE))
+phase18_write_gaussian_ls_grid_outputs(
+  output_dir = file.path('inst', 'sim', 'results', 'slice-307-gaussian-ls-small-grid'),
+  conditions = phase18_gaussian_ls_conditions(
+    n = c(120L, 240L),
+    sigma_slope = c(0, 0.35),
+    collinearity = c(0, 0.60)
+  ),
+  n_rep = 5L,
+  master_seed = 20260522L,
+  overwrite = TRUE
+)
+RS
+```
+
+Validation notes:
+
+- Focused simulation helper tests passed with 119 tests, 0 failures, 0
+  warnings, and 0 skips after fixing the zero-row coverage-table edge case.
+- Focused count gallery and count pilot tests passed with 67 tests, 0
+  failures, 0 warnings, and 0 skips.
+- Focused Gaussian location-scale tests passed with 78 tests, 0 failures, 0
+  warnings, and 0 skips.
+- `pkgdown::check_pkgdown()` passed with no problems.
+- The post-merge `main` R-CMD-check run
+  `https://github.com/itchyshin/drmTMB/actions/runs/26114872200` completed
+  successfully on macOS, Ubuntu, and Windows.
+- The post-merge pkgdown run
+  `https://github.com/itchyshin/drmTMB/actions/runs/26115469458` built and
+  deployed successfully for commit `977d70a5`.
+
+Known limitations:
+
+- The small Gaussian grid has only 5 replicates per cell. It validates the
+  artifact path and catches gross estimator/reporting mistakes, but it is not
+  formal coverage evidence.
+- Count-gallery replicate points are real replicate-level errors when the CSV
+  exists, but the current smoke fixture has too few replicates to be visually
+  distributional evidence.

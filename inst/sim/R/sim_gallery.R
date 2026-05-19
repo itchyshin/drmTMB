@@ -18,6 +18,7 @@ phase18_write_count_mu_re_gallery_inputs <- function(
   plot_data$failures <- phase18_gallery_failure_table(plot_data$failures)
   paths <- list(
     aggregate_csv = file.path(output_dir, "count-mu-aggregate.csv"),
+    replicate_csv = file.path(output_dir, "count-mu-replicates.csv"),
     coverage_csv = file.path(output_dir, "count-mu-coverage.csv"),
     manifest_csv = file.path(output_dir, "count-mu-manifest.csv"),
     failures_csv = file.path(output_dir, "count-mu-failures.csv")
@@ -25,6 +26,11 @@ phase18_write_count_mu_re_gallery_inputs <- function(
   phase18_assert_gallery_overwrite(paths, overwrite)
 
   utils::write.csv(plot_data$aggregate, paths$aggregate_csv, row.names = FALSE)
+  utils::write.csv(
+    plot_data$replicates,
+    paths$replicate_csv,
+    row.names = FALSE
+  )
   utils::write.csv(plot_data$coverage, paths$coverage_csv, row.names = FALSE)
   utils::write.csv(plot_data$manifest, paths$manifest_csv, row.names = FALSE)
   utils::write.csv(plot_data$failures, paths$failures_csv, row.names = FALSE)
@@ -88,6 +94,7 @@ phase18_render_count_mu_re_gallery <- function(
     quiet = TRUE,
     params = list(
       aggregate_csv = inputs$aggregate_csv,
+      replicate_csv = inputs$replicate_csv,
       coverage_csv = inputs$coverage_csv,
       manifest_csv = inputs$manifest_csv,
       failures_csv = inputs$failures_csv,

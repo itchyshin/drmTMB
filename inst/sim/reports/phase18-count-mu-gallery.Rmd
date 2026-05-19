@@ -5,6 +5,7 @@ output:
     toc: true
 params:
   aggregate_csv: null
+  replicate_csv: null
   coverage_csv: null
   manifest_csv: null
   failures_csv: null
@@ -32,6 +33,7 @@ phase18_read_optional_csv <- function(path) {
 }
 
 aggregate <- phase18_read_optional_csv(params$aggregate_csv)
+replicates <- phase18_read_optional_csv(params$replicate_csv)
 coverage <- phase18_read_optional_csv(params$coverage_csv)
 manifest <- phase18_read_optional_csv(params$manifest_csv)
 failures <- phase18_read_optional_csv(params$failures_csv)
@@ -105,8 +107,23 @@ phase18_count_gallery_add_mcse_interval <- function(data, metric) {
   data
 }
 
-phase18_plot_count_bias <- function(data) {
+phase18_count_gallery_has_replicates <- function(data) {
+  is.data.frame(data) &&
+    nrow(data) > 0L &&
+    all(c("error", "term", "family", "parameter_class") %in% names(data))
+}
+
+phase18_plot_count_bias <- function(data, replicate_data = NULL) {
   data <- phase18_count_gallery_terms(data)
+  if (phase18_count_gallery_has_replicates(replicate_data)) {
+    replicate_data <- phase18_count_gallery_terms(replicate_data)
+    replicate_data$term <- factor(
+      as.character(replicate_data$term),
+      levels = levels(data$term)
+    )
+  } else {
+    replicate_data <- NULL
+  }
   data <- phase18_count_gallery_add_mcse_interval(data, "bias")
   p <- ggplot2::ggplot(
     data,
@@ -118,6 +135,23 @@ phase18_plot_count_bias <- function(data) {
     )
   ) +
     ggplot2::geom_vline(xintercept = 0, linewidth = 0.3, colour = "grey55")
+  if (!is.null(replicate_data)) {
+    p <- p +
+      ggplot2::geom_point(
+        data = replicate_data,
+        ggplot2::aes(
+          x = error,
+          y = term,
+          colour = parameter_class
+        ),
+        position = ggplot2::position_jitter(width = 0, height = 0.07),
+        alpha = 0.28,
+        size = 1.15,
+        show.legend = FALSE,
+        inherit.aes = FALSE,
+        na.rm = TRUE
+      )
+  }
   if (all(c("bias_low", "bias_high") %in% names(data))) {
     p <- p + ggplot2::geom_segment(
       ggplot2::aes(x = bias_low, xend = bias_high, yend = term),
@@ -144,10 +178,17 @@ phase18_plot_count_bias <- function(data) {
     ggplot2::scale_shape_discrete(labels = phase18_count_gallery_class_labels) +
     ggplot2::labs(
       title = "Bias by estimand",
-      subtitle = paste(
-        "Aggregate mean errors are shown here;",
-        "add replicate-error clouds when replicate-level output is supplied."
-      ),
+      subtitle = if (is.null(replicate_data)) {
+        paste(
+          "Aggregate mean errors are shown here;",
+          "replicate-error clouds require a replicate-level CSV."
+        )
+      } else {
+        paste(
+          "Faint points are replicate-level errors;",
+          "large points and bars are mean bias with 95% MCSE intervals."
+        )
+      },
       x = "Mean estimate minus truth",
       y = NULL,
       colour = "Parameter class",
@@ -300,7 +341,7 @@ if (is.null(aggregate)) {
 } else if (!has_ggplot2) {
   aggregate
 } else {
-  phase18_plot_count_bias(aggregate)
+  phase18_plot_count_bias(aggregate, replicates)
 }
 ```
 

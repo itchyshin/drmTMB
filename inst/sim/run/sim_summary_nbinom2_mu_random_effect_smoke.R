@@ -70,6 +70,7 @@ phase18_summarise_nbinom2_mu_re_smoke <- function(
     surface = "nbinom2_mu_random_effect",
     run = run,
     aggregate = aggregate,
+    replicates = run$summary,
     manifest = manifest,
     failures = failures,
     wald_intervals = wald_intervals,

@@ -17,6 +17,14 @@ Every simulation cell should have a stable cell id, explicit conditions,
 replicate-level seeds, fit diagnostics, interval status, and enough metadata to
 resume or audit a partial run.
 
+Phase 18 result artifacts now name their grain. Replicate-level tables use
+`artifact_grain = "replicate"` and keep one row per simulation replicate and
+parameter. Aggregate tables use `artifact_grain = "aggregate"` and carry
+`n_replicate`, bias/RMSE, MCSEs, convergence, Hessian, warning, and elapsed
+time summaries. Report templates may draw replicate-error clouds only from
+replicate-level tables; aggregate-only inputs get points, bars, and MCSE
+ranges.
+
 Slice 292 starts the comprehensive design as a blueprint, not as a full grid.
 The scenario map in `docs/design/41-phase-18-simulation-programme.md` decides
 which continuous, proportion, count, ordinal, meta-analysis, bivariate,
@@ -80,8 +88,9 @@ Current pilot files:
 - `fit/sim_summarise_nbinom2_mu_random_effect.R` summarises fixed NB2 `mu`
   and `sigma` coefficients plus direct ordinary log-mean random-effect SDs.
 - `R/sim_runner.R` runs one cell replicate, captures warnings/errors, can save
-  or resume an RDS result, can reload saved result directories, and can reduce
-  result lists to compact manifests or warning/error ledgers.
+  or resume an RDS result, can reload saved result directories, can bind
+  replicate-level summaries, and can reduce result lists to compact manifests
+  or warning/error ledgers.
 - `R/sim_aggregate.R` reduces parameter-level replicate summaries to grouped
   bias, RMSE, convergence, Hessian, warning, and elapsed-time summaries.
 - `R/sim_uncertainty.R` adds Monte Carlo uncertainty and explicit
@@ -111,6 +120,10 @@ Current pilot files:
   summary smoke grid and returns grouped bias, RMSE, MCSE, manifest,
   warning/error ledger, formula-coefficient Wald interval, and Wald coverage
   outputs.
+- `run/sim_write_gaussian_ls_grid.R` writes a repeatable Gaussian
+  location-scale grid output folder with aggregate, replicate-level, manifest,
+  failure, Wald-interval, and Wald-coverage CSVs beside the per-replicate RDS
+  results.
 - `run/sim_summary_gaussian_mu_random_slope_smoke.R` runs a tiny ordinary
   Gaussian `mu` q=3 random-slope summary smoke grid and returns grouped bias,
   RMSE, MCSE, manifest, and warning/error ledger outputs.

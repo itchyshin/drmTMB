@@ -348,6 +348,67 @@ test_that("Phase 18 replicate runner reads saved result directories", {
   expect_equal(failures$severity, c("error", "warning"))
 })
 
+test_that("Phase 18 replicate runner binds replicate-level summaries", {
+  source(
+    system.file("sim/R/sim_registry.R", package = "drmTMB", mustWork = TRUE),
+    local = TRUE
+  )
+  source(
+    system.file("sim/R/sim_utils.R", package = "drmTMB", mustWork = TRUE),
+    local = TRUE
+  )
+  source(
+    system.file("sim/R/sim_runner.R", package = "drmTMB", mustWork = TRUE),
+    local = TRUE
+  )
+
+  results <- list(
+    list(
+      cell_id = "cell_001",
+      replicate = 1L,
+      seed = 101L,
+      status = "ok",
+      summary = data.frame(
+        cell_id = "cell_001",
+        replicate = 1L,
+        parameter = "mu:x",
+        error = 0.1
+      ),
+      warnings = character(),
+      elapsed = 0.1
+    ),
+    list(
+      cell_id = "cell_001",
+      replicate = 2L,
+      seed = 102L,
+      status = "ok",
+      summary = data.frame(
+        cell_id = "cell_001",
+        replicate = 2L,
+        parameter = "mu:x",
+        error = -0.1
+      ),
+      warnings = character(),
+      elapsed = 0.1
+    )
+  )
+
+  out <- phase18_result_summaries(results)
+
+  expect_equal(nrow(out), 2L)
+  expect_equal(out$replicate, c(1L, 2L))
+  expect_equal(out$artifact_grain, rep("replicate", 2L))
+  expect_equal(
+    phase18_result_summaries(
+      list(list(summary = data.frame())),
+      artifact_grain = "simulation_replicate"
+    ),
+    data.frame()
+  )
+  expect_error(phase18_result_summaries(list()), "non-empty list")
+  expect_error(phase18_result_summaries(results, artifact_grain = ""), "grain")
+})
+
 test_that("Phase 18 replicate runner validates result directory reads", {
   source(
     system.file("sim/R/sim_registry.R", package = "drmTMB", mustWork = TRUE),
