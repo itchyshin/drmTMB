@@ -1,5 +1,6 @@
 # drmTMB 0.1.2 (2026-05-16)
 
+* Bivariate random-slope combination boundaries now have focused error coverage for matching slope-only `mu1`/`mu2` blocks, intercept-plus-slope location q=4 requests, residual-scale slope pairs, same-response location-scale slope combinations, and all-four q=8-style slope requests.
 * Structured random-slope boundaries now have parser and fit-time audit coverage:
   one-slope `animal()` and `relmat()` markers are readable as planned grammar,
   and multiple structured slopes are rejected. Only coordinate spatial Gaussian

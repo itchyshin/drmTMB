@@ -44,7 +44,7 @@ out of operating-characteristic tables except as failure-ledger entries.
 | Gaussian location-scale covariance | Fitted for supported intercept blocks | `corpairs()`, `summary()` covariance rows, profile targets for direct rows, and diagnostics | Ready for small intercept-block grids, not slope-level covariance |
 | Bivariate Gaussian `rho12` | Fitted | Constant and predictor-dependent residual coscale, `rho12()`, row-specific profile support, and tutorial examples | Ready for focused residual-correlation grids |
 | Bivariate Gaussian random-effect intercept blocks | Fitted for selected labelled intercept blocks | `sdpars`, `corpars`, `corpairs()`, `summary()` covariance rows, direct profile targets, and diagnostics | Ready for selected intercept-block grids |
-| Bivariate Gaussian random slopes | Planned | Explicit parser and error boundaries | Not ready |
+| Bivariate Gaussian random slopes | Planned | Explicit error boundaries for matching slope-only `mu1`/`mu2`, intercept-plus-slope q=4 location, residual-scale slope, same-response location-scale slope, and all-four q=8-style slope requests | Not ready |
 | Mixed-response bivariate families | Planned | Clear errors for mixed composed families such as Gaussian plus Poisson | Not ready |
 | Meta-analysis with known `V` | Fitted through `meta_V(V = V)` | Vector and dense `V` DGPs, smoke runner, Wald intervals for estimated targets, and safeguards that known `V` is not an interval target | Ready for first small grids |
 | Coordinate spatial Gaussian `mu` | Fitted for intercept and one numeric slope | Spatial one-slope smoke surface, direct SD targets, and diagnostics | Ready for focused univariate Gaussian `mu` grids |

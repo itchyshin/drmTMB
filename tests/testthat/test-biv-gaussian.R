@@ -2109,6 +2109,29 @@ test_that("bivariate Gaussian rejects unsupported Phase 3 syntax clearly", {
     ),
     "Larger labelled covariance blocks"
   )
+  q4_location_slope_err <- tryCatch(
+    drmTMB(
+      bf(
+        mu1 = y1 ~ x + (1 + x | p | id),
+        mu2 = y2 ~ x + (1 + x | p | id),
+        sigma1 = ~ 1 + (1 | p | id),
+        sigma2 = ~ 1 + (1 | p | id),
+        rho12 = ~x
+      ),
+      family = biv_gaussian(),
+      data = dat
+    ),
+    error = identity
+  )
+  expect_s3_class(q4_location_slope_err, "rlang_error")
+  expect_match(
+    conditionMessage(q4_location_slope_err),
+    "location-scale covariance blocks are intercept-only"
+  )
+  expect_match(
+    conditionMessage(q4_location_slope_err),
+    "includes random slopes"
+  )
   q8_slope_err <- tryCatch(
     drmTMB(
       bf(
@@ -2191,6 +2214,34 @@ test_that("bivariate Gaussian rejects unsupported Phase 3 syntax clearly", {
       data = dat
     ),
     "slope-only block"
+  )
+  expect_error(
+    drmTMB(
+      bf(
+        mu1 = y1 ~ x,
+        mu2 = y2 ~ x,
+        sigma1 = ~ 1 + (0 + x | p | id),
+        sigma2 = ~ 1 + (0 + x | p | id),
+        rho12 = ~x
+      ),
+      family = biv_gaussian(),
+      data = dat
+    ),
+    "Residual-scale random slopes in bivariate models remain planned"
+  )
+  expect_error(
+    drmTMB(
+      bf(
+        mu1 = y1 ~ x + (1 | p | id),
+        mu2 = y2 ~ x,
+        sigma1 = ~ 1 + (0 + x | p | id),
+        sigma2 = ~1,
+        rho12 = ~x
+      ),
+      family = biv_gaussian(),
+      data = dat
+    ),
+    "Residual-scale random slopes in bivariate models remain planned"
   )
   expect_error(
     drmTMB(

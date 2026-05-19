@@ -26470,3 +26470,55 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-18-slice-272-structured-slope-boundary.md`.
+
+## 2026-05-18 - Slice 273 bivariate random-slope boundary audit
+
+Goal: audit bivariate Gaussian random-slope combinations before Phase 18 treats
+any bivariate slope grid as fitted.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/33-phase-6c-core-random-effects.md`
+- `docs/design/46-pre-simulation-readiness-matrix.md`
+- `docs/dev-log/after-task/2026-05-18-slice-273-bivariate-slope-boundary.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-18-193146-codex-checkpoint.md`
+- `tests/testthat/test-biv-gaussian.R`
+
+What changed:
+
+- Added focused bivariate Gaussian boundary tests for matching slope-only
+  `mu1`/`mu2` requests.
+- Added tests for intercept-plus-slope q=4 location blocks, residual-scale slope
+  pairs, same-response location-scale slope combinations, and all-four
+  q=8-style slope requests.
+- Updated NEWS, roadmap, the Phase 6c random-effect design note, and the
+  pre-simulation readiness matrix to keep bivariate slope grids out of Phase 18
+  admission.
+
+Checks run:
+
+- `air format NEWS.md ROADMAP.md docs/design/33-phase-6c-core-random-effects.md docs/design/46-pre-simulation-readiness-matrix.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-18-slice-273-bivariate-slope-boundary.md docs/dev-log/recovery-checkpoints/2026-05-18-193146-codex-checkpoint.md tests/testthat/test-biv-gaussian.R`
+- `Rscript -e "devtools::test(filter = 'biv-gaussian', reporter = 'summary')"`
+- `rg -n 'Slice 273|Bivariate random-slope combination|slope-only|q=8-style|Residual-scale random slopes|same-response location-scale|location-scale covariance blocks are intercept-only|bivariate slope grid|bivariate Gaussian boundary tests' NEWS.md ROADMAP.md docs/design/33-phase-6c-core-random-effects.md docs/design/46-pre-simulation-readiness-matrix.md tests/testthat/test-biv-gaussian.R`
+- `rg -n 'bivariate random slopes.*implemented|slope1-slope2.*implemented|q=8.*implemented|residual-scale slope.*implemented|same-response location-scale slope.*implemented|bivariate slope grid.*ready' README.md ROADMAP.md NEWS.md docs/design vignettes tests/testthat --glob '!docs/dev-log/**'`
+  returned only planned-context wording, not a bivariate slope implementation
+  claim.
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `git diff --check`
+- `Rscript tools/codex-checkpoint.R --goal "Slice 273 bivariate random-slope boundary" --next "stage, commit, push, and open draft PR"`
+
+Known limitations:
+
+- No bivariate random-slope likelihood was added.
+- No slope1-slope2 `corpairs()` row, coefficient-aware `corpair()` syntax,
+  direct slope-correlation profile target, or simulation recovery grid was
+  added.
+- Same-response location-scale slope covariance and all-four q=8-style
+  location-scale slope covariance remain planned.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-273-bivariate-slope-boundary.md`.
