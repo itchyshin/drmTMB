@@ -28339,3 +28339,82 @@ Known limitations:
 - Count-gallery replicate points are real replicate-level errors when the CSV
   exists, but the current smoke fixture has too few replicates to be visually
   distributional evidence.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-19-slices-303-307-sim-artifact-grid.md`.
+
+## 2026-05-19 - Slices 308-314 Correlation Inference And Bivariate Rho12 Simulation
+
+Goal:
+
+- Start the post-artifact-grain correlation inference block by separating
+  residual `rho12`, latent `corpairs()` correlations, and bootstrap refit
+  artifacts; then add the first bivariate residual-correlation simulation
+  grid writer.
+
+Files changed:
+
+- `inst/sim/R/sim_correlation_targets.R`
+- `inst/sim/R/sim_bootstrap.R`
+- `inst/sim/R/sim_uncertainty.R`
+- `inst/sim/dgp/sim_dgp_biv_rho12.R`
+- `inst/sim/fit/sim_summarise_biv_rho12.R`
+- `inst/sim/run/sim_run_biv_rho12_smoke.R`
+- `inst/sim/run/sim_summary_biv_rho12_smoke.R`
+- `inst/sim/run/sim_write_biv_rho12_grid.R`
+- `inst/sim/README.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `tests/testthat/test-phase18-biv-rho12-*.R`
+- `tests/testthat/test-phase18-correlation-targets.R`
+- `tests/testthat/test-phase18-sim-bootstrap.R`
+- `tests/testthat/test-phase18-sim-uncertainty.R`
+
+What changed:
+
+- Merged PR #257 after release checks passed on Ubuntu, macOS, and Windows,
+  then rebased the new slice branch onto merged `origin/main`.
+- Added `phase18_correlation_target_inventory()` to classify fitted
+  `corpairs()` rows by profile target, profile readiness, interval route, and
+  interval status without running expensive profiles.
+- Added the bivariate Gaussian residual `rho12` DGP, live fit wrapper,
+  fixed-effect summariser, smoke runner, summary runner, and grid writer.
+- Added `phase18_interval_failures()` so failed interval rows are retained as
+  explicit artifacts rather than silently disappearing from coverage tables.
+- Added private Phase 18 parametric-bootstrap helpers:
+  `phase18_parametric_bootstrap()` and
+  `phase18_bootstrap_percentile_intervals()`. These are simulation-study
+  helpers only; public bootstrap intervals remain unimplemented.
+- Ran the first small bivariate `rho12` grid under
+  `inst/sim/results/slice-314-biv-rho12-small-grid/`: 4 cells, 3 replicates per
+  cell, 12 successful replicate results, 120 replicate-level parameter rows,
+  40 aggregate rows, and 0 warning/error ledger rows.
+
+Checks run:
+
+```sh
+Rscript -e "devtools::test(filter = '^phase18-(correlation-targets|biv-rho12|sim-(bootstrap|uncertainty))')"
+Rscript -e 'manifest <- read.csv("inst/sim/results/slice-314-biv-rho12-small-grid/tables/biv-rho12-manifest.csv"); reps <- read.csv("inst/sim/results/slice-314-biv-rho12-small-grid/tables/biv-rho12-replicates.csv"); agg <- read.csv("inst/sim/results/slice-314-biv-rho12-small-grid/tables/biv-rho12-aggregate.csv"); fail <- read.csv("inst/sim/results/slice-314-biv-rho12-small-grid/tables/biv-rho12-failures.csv"); print(table(manifest$status)); print(nrow(reps)); print(nrow(agg)); print(nrow(fail))'
+```
+
+Validation notes:
+
+- Focused new simulation tests passed with 137 tests, 0 failures, 0 warnings,
+  and 0 skips.
+- The small bivariate `rho12` grid manifest had 12 `ok` rows, 120 replicate
+  coefficient rows, 40 aggregate rows, and 0 failure rows.
+- A first attempt to print the small-grid object used shell-interpreted `$`
+  signs and produced noisy output plus a reporting error. The artifact files
+  were already written correctly; the concise CSV verification above was then
+  run successfully.
+
+Known limitations:
+
+- The small bivariate `rho12` grid validates artifact shape and catches gross
+  recovery/reporting mistakes. With 3 replicates per cell, it is not formal
+  bias, RMSE, or coverage evidence.
+- The new bootstrap harness is private simulation plumbing. It does not change
+  `confint()`, `summary()`, or `corpairs()` bootstrap behavior.
+- Response-scale `rho12` profile coverage and latent `corpair()` profile
+  coverage remain follow-up work; this slice records their routes and failure
+  statuses before broad runs.

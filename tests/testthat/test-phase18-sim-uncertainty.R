@@ -93,6 +93,52 @@ test_that("Phase 18 Wald interval helper records method and status", {
   expect_equal(coverage$n_interval, 2L)
 })
 
+test_that("Phase 18 interval failure ledger keeps failed intervals visible", {
+  source(
+    system.file("sim/R/sim_uncertainty.R", package = "drmTMB", mustWork = TRUE),
+    local = TRUE
+  )
+
+  intervals <- data.frame(
+    surface = "biv_rho12",
+    cell_id = "biv_rho12_001",
+    parameter = c("rho12:w", "rho12:(Intercept)", "sigma1:z1"),
+    interval_status = c("ok", "failed", NA_character_),
+    interval_message = c("", "profile failed", NA_character_)
+  )
+
+  failures <- phase18_interval_failures(intervals)
+
+  expect_equal(nrow(failures), 2L)
+  expect_equal(failures$artifact_grain, rep("interval_failure", 2L))
+  expect_equal(
+    failures$parameter,
+    c("rho12:(Intercept)", "sigma1:z1")
+  )
+  expect_equal(
+    failures$interval_failure_status,
+    c("failed", NA_character_)
+  )
+
+  profile_intervals <- data.frame(
+    parameter = c("rho12", "cor:mu:x"),
+    conf.status = c("profile", "newdata_required")
+  )
+  profile_failures <- phase18_interval_failures(profile_intervals)
+  expect_equal(nrow(profile_failures), 1L)
+  expect_equal(profile_failures$interval_failure_status, "newdata_required")
+  expect_named(
+    profile_failures,
+    c(
+      "parameter",
+      "conf.status",
+      "artifact_grain",
+      "interval_failure_status",
+      "interval_message"
+    )
+  )
+})
+
 test_that("Phase 18 correlation Wald helper uses Fisher-z scale", {
   source(
     system.file("sim/R/sim_uncertainty.R", package = "drmTMB", mustWork = TRUE),

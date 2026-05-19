@@ -379,3 +379,27 @@ been reduced.
 56. Slice 307 adds a repeatable Gaussian location-scale grid writer and runs
     the first small grid: 8 cells, 5 replicates per cell, 160 replicate-level
     parameter rows, 32 aggregate rows, and no warning/error ledger rows.
+57. Slice 308 adds a simulation-only correlation target inventory. It reads
+    fitted `corpairs()` rows, matches direct profile targets where available,
+    and keeps residual `rho12`, ordinary group-level, and phylogenetic
+    correlation routes separate before coverage claims are made.
+58. Slice 309 adds the bivariate Gaussian residual `rho12` DGP, live
+    `drmTMB()` smoke runner, fixed-effect summariser, and formula-coefficient
+    Wald coverage tables.
+59. Slice 310 adds a repeatable bivariate `rho12` grid writer with aggregate,
+    replicate, manifest, failure, Wald-interval, and Wald-coverage CSVs beside
+    per-replicate RDS results.
+60. Slice 311 adds an interval-failure ledger helper so failed, missing,
+    derived-unavailable, or `newdata_required` interval rows stay visible
+    beside coverage summaries.
+61. Slice 312 adds a private Phase 18 parametric-bootstrap refit harness for
+    simulation studies. This does not implement public
+    `confint(method = "bootstrap")`; it supplies controlled simulation
+    artifacts for later bootstrap coverage work.
+62. Slice 313 adds percentile bootstrap interval summarisation for bootstrap
+    draws produced by the private harness, including interval status and
+    failure messages when too few finite refits succeed.
+63. Slice 314 runs the first small bivariate `rho12` grid under
+    `inst/sim/results/slice-314-biv-rho12-small-grid/`: 4 cells, 3 replicates
+    per cell, 12 successful replicate results, 120 replicate-level parameter
+    rows, 40 aggregate rows, and no warning/error ledger rows.

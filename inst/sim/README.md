@@ -68,6 +68,9 @@ Current pilot files:
   settings.
 - `dgp/sim_dgp_meta_v.R` generates Gaussian meta-analysis data with vector or
   dense known sampling covariance via `meta_V(V = V)`.
+- `dgp/sim_dgp_biv_rho12.R` generates bivariate Gaussian data with
+  response-specific `mu`, `sigma`, and residual-correlation `rho12 ~ w`
+  predictors.
 - `fit/sim_summarise_gaussian_ls.R` converts one fitted pilot model into a
   parameter-level truth/estimate/standard-error/error table.
 - `fit/sim_summarise_meta_v.R` does the same for the `meta_V(V = V)` pilot,
@@ -87,6 +90,15 @@ Current pilot files:
   `mu` coefficients and direct ordinary log-mean random-effect SDs.
 - `fit/sim_summarise_nbinom2_mu_random_effect.R` summarises fixed NB2 `mu`
   and `sigma` coefficients plus direct ordinary log-mean random-effect SDs.
+- `fit/sim_summarise_biv_rho12.R` summarises bivariate Gaussian fixed
+  `mu1`, `mu2`, `sigma1`, `sigma2`, and `rho12` coefficients on their fitted
+  formula scales, and includes a helper for named response-scale truth grids.
+- `R/sim_correlation_targets.R` classifies fitted `corpairs()` rows by their
+  current profile route, keeping residual `rho12`, ordinary group, and
+  phylogenetic correlations separate before simulation coverage is claimed.
+- `R/sim_bootstrap.R` provides a private Phase 18 parametric-bootstrap refit
+  harness and percentile interval summariser for simulation studies; it does
+  not change public `confint()` bootstrap support.
 - `R/sim_runner.R` runs one cell replicate, captures warnings/errors, can save
   or resume an RDS result, can reload saved result directories, can bind
   replicate-level summaries, and can reduce result lists to compact manifests
@@ -96,7 +108,8 @@ Current pilot files:
 - `R/sim_uncertainty.R` adds Monte Carlo uncertainty and explicit
   interval-coverage summaries, plus generic Wald interval-table helpers for
   summaries that already contain estimates and standard errors, including a
-  Fisher-z back-transformed path for correlation summaries.
+  Fisher-z back-transformed path for correlation summaries and a failure ledger
+  for interval rows whose status is not usable evidence.
 - `R/sim_plot_data.R` prepares plot-ready data tables for Phase 18 outputs,
   starting with paired Poisson/NB2 `mu` random-effect pilot summaries.
 - `R/sim_gallery.R` writes plot-ready count-pilot CSV inputs and renders the
@@ -116,6 +129,8 @@ Current pilot files:
   non-zero-inflated NB2 `mu` random-effect surface.
 - `run/sim_run_meta_v_smoke.R` does the same for vector and dense
   `meta_V(V = V)` smoke cells.
+- `run/sim_run_biv_rho12_smoke.R` does the same for the bivariate Gaussian
+  residual-correlation surface.
 - `run/sim_summary_gaussian_ls_smoke.R` runs a tiny Gaussian location-scale
   summary smoke grid and returns grouped bias, RMSE, MCSE, manifest,
   warning/error ledger, formula-coefficient Wald interval, and Wald coverage
@@ -124,6 +139,8 @@ Current pilot files:
   location-scale grid output folder with aggregate, replicate-level, manifest,
   failure, Wald-interval, and Wald-coverage CSVs beside the per-replicate RDS
   results.
+- `run/sim_write_biv_rho12_grid.R` writes the same artifact set for the
+  bivariate Gaussian residual `rho12` grid.
 - `run/sim_summary_gaussian_mu_random_slope_smoke.R` runs a tiny ordinary
   Gaussian `mu` q=3 random-slope summary smoke grid and returns grouped bias,
   RMSE, MCSE, manifest, and warning/error ledger outputs.
@@ -150,6 +167,9 @@ Current pilot files:
 - `run/sim_summary_meta_v_smoke.R` does the same for vector and dense
   `meta_V(V = V)` smoke cells, including Wald interval and coverage outputs for
   estimated targets.
+- `run/sim_summary_biv_rho12_smoke.R` does the same for the bivariate
+  Gaussian residual `rho12` smoke grid, including formula-coefficient Wald
+  intervals and coverage outputs.
 - `run/sim_interval_coverage_smoke.R` adds synthetic interval columns to
   parameter summaries so coverage-table plumbing can be tested before real
   interval methods are attached.
