@@ -308,3 +308,8 @@ CRAN tests should only run smoke checks for seed stability and output shape.
     and meta-analysis examples to show bias, RMSE, coverage, power,
     convergence, runtime, and warning/error ledger plots. It is a display
     contract for later simulation reports, not final Phase 18 evidence.
+50. Slice 268 adds a capability audit to the pre-simulation readiness matrix.
+    It records implemented, tested, planned, and unsupported status for
+    Gaussian, non-Gaussian, shape, inflation, bivariate, random-slope,
+    meta-analysis, phylogenetic, spatial, animal, and `relmat()` model
+    classes, so Phase 18 reports can admit only the fitted and tested subsets.

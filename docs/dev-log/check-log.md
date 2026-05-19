@@ -26199,3 +26199,53 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-18-slice-267-florence-closeout.md`.
+
+## 2026-05-18 - Slice 268 pre-simulation capability audit
+
+Goal: add one pre-simulation capability table that says which major model
+classes are implemented, tested, planned, or unsupported before Phase 18 grids
+admit them.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `docs/design/46-pre-simulation-readiness-matrix.md`
+- `docs/dev-log/after-task/2026-05-18-slice-268-pre-simulation-capability-audit.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-18-183851-codex-checkpoint.md`
+
+What changed:
+
+- Added a Slice 268 capability audit to
+  `docs/design/46-pre-simulation-readiness-matrix.md`.
+- Covered Gaussian, non-Gaussian, shape, inflation, bivariate, random-slope,
+  meta-analysis, phylogenetic, spatial, animal, and `relmat()` model classes in
+  one table.
+- Separated implemented parser or likelihood status from tested evidence
+  status, so planned markers such as `animal()` and `relmat()` are not mistaken
+  for fitted models.
+- Updated the Phase 18 simulation programme, roadmap, and NEWS entry for Slice
+  268.
+
+Checks run:
+
+- `air format NEWS.md ROADMAP.md docs/design/41-phase-18-simulation-programme.md docs/design/46-pre-simulation-readiness-matrix.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-18-slice-268-pre-simulation-capability-audit.md docs/dev-log/recovery-checkpoints/2026-05-18-183851-codex-checkpoint.md`
+- `rg -n "Slice 268|Capability Audit|implemented, tested, planned, and unsupported|animal\\(\\)|relmat\\(\\)|Phase 18 admission" NEWS.md ROADMAP.md docs/design/41-phase-18-simulation-programme.md docs/design/46-pre-simulation-readiness-matrix.md docs/dev-log/check-log.md`
+- `rg -n "animal.*fitted|relmat.*fitted|animal.*implemented|relmat.*implemented|phylogenetic slopes.*implemented|spatial.*sigma.*implemented|non-Gaussian.*sigma random effects.*implemented" docs/design/46-pre-simulation-readiness-matrix.md ROADMAP.md NEWS.md`
+  returned only negative, planned, or support-boundary rows, not fitted
+  `animal()` or `relmat()` claims.
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `git diff --check`
+
+Known limitations:
+
+- This slice does not add new tests, likelihood code, simulation helpers, or
+  fitted model classes.
+- The capability table summarizes existing evidence and must be updated when a
+  planned class becomes fitted and tested.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-268-pre-simulation-capability-audit.md`.

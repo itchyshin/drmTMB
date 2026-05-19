@@ -1,5 +1,6 @@
 # drmTMB 0.1.2 (2026-05-16)
 
+* Phase 18 now has a pre-simulation capability audit table that records implemented, tested, planned, and unsupported status for Gaussian, non-Gaussian, shape, inflation, bivariate, random-slope, meta-analysis, phylogenetic, spatial, animal, and `relmat()` model classes before broad simulation grids admit them.
 * Phase 18 now has an optional resumable replicate runner under `inst/sim/` that captures warnings, errors, elapsed time, session metadata, and optional RDS output for pilot simulation cells.
 * Phase 18 now has a Simulation & Comparison plot-grammar article for bias, RMSE, coverage, power, convergence, runtime, and warning/error ledgers across continuous, proportion, count, and meta-analysis examples.
 * `plot_corpairs()` now has a `label` argument so publication figures can use short row labels while keeping full correlation metadata in the source table.
