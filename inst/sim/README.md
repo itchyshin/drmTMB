@@ -46,6 +46,8 @@ Current pilot files:
   ADEMP sheet for the fixed-effect `cumulative_logit()` ordinal lane.
 - `docs/design/52-phase-18-bivariate-rho12-ademp.md` is the one-page ADEMP
   sheet for the bivariate Gaussian residual `rho12` lane.
+- `docs/design/53-phase-18-student-shape-ademp.md` is the one-page ADEMP
+  sheet for the fixed-effect Student-t shape `nu` lane.
 - `dgp/sim_dgp_gaussian_ls.R` generates Gaussian location-scale data with
   `mu ~ x` and `sigma ~ z`.
 - `dgp/sim_dgp_gaussian_mu_random_slope.R` generates Gaussian `mu` data with
@@ -71,6 +73,9 @@ Current pilot files:
 - `dgp/sim_dgp_biv_rho12.R` generates bivariate Gaussian data with
   response-specific `mu`, `sigma`, and residual-correlation `rho12 ~ w`
   predictors.
+- `dgp/sim_dgp_student_shape.R` generates Student-t data with `mu ~ x`,
+  `sigma ~ z`, and `nu ~ w`, using the fitted `nu = 2 + exp(eta_nu)` shape
+  transform and optional mean-shape predictor correlation.
 - `fit/sim_summarise_gaussian_ls.R` converts one fitted pilot model into a
   parameter-level truth/estimate/standard-error/error table.
 - `fit/sim_summarise_meta_v.R` does the same for the `meta_V(V = V)` pilot,
@@ -93,6 +98,9 @@ Current pilot files:
 - `fit/sim_summarise_biv_rho12.R` summarises bivariate Gaussian fixed
   `mu1`, `mu2`, `sigma1`, `sigma2`, and `rho12` coefficients on their fitted
   formula scales, and includes a helper for named response-scale truth grids.
+- `fit/sim_summarise_student_shape.R` summarises fixed Student-t `mu`,
+  `sigma`, and `nu` coefficients on their fitted formula scales, and includes a
+  helper for named response-scale truth grids.
 - `R/sim_correlation_targets.R` classifies fitted `corpairs()` rows by their
   current profile route, keeping residual `rho12`, ordinary group, and
   phylogenetic correlations separate before simulation coverage is claimed.
@@ -131,6 +139,8 @@ Current pilot files:
   `meta_V(V = V)` smoke cells.
 - `run/sim_run_biv_rho12_smoke.R` does the same for the bivariate Gaussian
   residual-correlation surface.
+- `run/sim_run_student_shape_smoke.R` does the same for the Student-t
+  fixed-effect shape `nu` surface.
 - `run/sim_summary_gaussian_ls_smoke.R` runs a tiny Gaussian location-scale
   summary smoke grid and returns grouped bias, RMSE, MCSE, manifest,
   warning/error ledger, formula-coefficient Wald interval, and Wald coverage
@@ -141,6 +151,8 @@ Current pilot files:
   results.
 - `run/sim_write_biv_rho12_grid.R` writes the same artifact set for the
   bivariate Gaussian residual `rho12` grid.
+- `run/sim_write_student_shape_grid.R` writes the same artifact set for the
+  Student-t fixed-effect shape `nu` grid.
 - `run/sim_summary_gaussian_mu_random_slope_smoke.R` runs a tiny ordinary
   Gaussian `mu` q=3 random-slope summary smoke grid and returns grouped bias,
   RMSE, MCSE, manifest, and warning/error ledger outputs.
@@ -170,6 +182,9 @@ Current pilot files:
 - `run/sim_summary_biv_rho12_smoke.R` does the same for the bivariate
   Gaussian residual `rho12` smoke grid, including formula-coefficient Wald
   intervals and coverage outputs.
+- `run/sim_summary_student_shape_smoke.R` does the same for the Student-t
+  fixed-effect shape `nu` smoke grid, including formula-coefficient Wald
+  intervals, coverage outputs, and interval-failure ledgers.
 - `run/sim_interval_coverage_smoke.R` adds synthetic interval columns to
   parameter summaries so coverage-table plumbing can be tested before real
   interval methods are attached.

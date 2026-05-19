@@ -53,6 +53,40 @@ test_that("Phase 18 interval coverage helper uses explicit interval columns", {
   expect_equal(out$mean_interval_width, mean(c(0.10, 0.02, 0.15)))
 })
 
+test_that("Phase 18 interval coverage tolerates sparse finite intervals", {
+  source(
+    system.file("sim/R/sim_uncertainty.R", package = "drmTMB", mustWork = TRUE),
+    local = TRUE
+  )
+
+  one_interval <- data.frame(
+    surface = "student_shape",
+    cell_id = "student_shape_001",
+    parameter = "nu:w",
+    truth = c(0.20, 0.20),
+    conf.low = c(0.10, NA_real_),
+    conf.high = c(0.30, NA_real_)
+  )
+
+  one_out <- phase18_summarise_interval_coverage(one_interval)
+
+  expect_equal(one_out$n_replicate, 2L)
+  expect_equal(one_out$n_interval, 1L)
+  expect_equal(one_out$mean_interval_width, 0.20)
+  expect_true(is.na(one_out$interval_width_mcse))
+
+  zero_interval <- one_interval
+  zero_interval$conf.low <- NA_real_
+  zero_interval$conf.high <- NA_real_
+
+  zero_out <- phase18_summarise_interval_coverage(zero_interval)
+
+  expect_equal(zero_out$n_replicate, 2L)
+  expect_equal(zero_out$n_interval, 0L)
+  expect_true(is.na(zero_out$mean_interval_width))
+  expect_true(is.na(zero_out$interval_width_mcse))
+})
+
 test_that("Phase 18 Wald interval helper records method and status", {
   source(
     system.file("sim/R/sim_uncertainty.R", package = "drmTMB", mustWork = TRUE),

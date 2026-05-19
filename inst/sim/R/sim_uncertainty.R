@@ -192,7 +192,11 @@ phase18_summarise_interval_coverage <- function(
       coverage = mean(covered),
       coverage_mcse = phase18_mcse_proportion(covered),
       mean_interval_width = if (length(width) == 0L) NA_real_ else mean(width),
-      interval_width_mcse = phase18_mcse_mean(width),
+      interval_width_mcse = if (length(width) < 2L) {
+        NA_real_
+      } else {
+        phase18_mcse_mean(width)
+      },
       stringsAsFactors = FALSE,
       check.names = FALSE
     )
