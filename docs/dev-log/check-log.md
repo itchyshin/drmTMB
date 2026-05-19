@@ -27448,3 +27448,67 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-18-slice-289-extractor-provenance.md`.
+
+## 2026-05-18 - Slice 290 user-facing status boundaries
+
+Goal: make the public documentation use one concrete vocabulary for fitted,
+narrow, opt-in, planned, and unsupported model surfaces.
+
+Files changed:
+
+- `README.md`
+- `R/control.R`
+- `R/drmTMB-package.R`
+- `_pkgdown.yml`
+- `man/drmTMB-package.Rd`
+- `man/drm_control.Rd`
+- `vignettes/convergence.Rmd`
+- `vignettes/drmTMB.Rmd`
+- `vignettes/model-map.Rmd`
+- `vignettes/source-map.Rmd`
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/dev-log/after-task/2026-05-18-slice-290-user-boundaries.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-18-222052-codex-checkpoint.md`
+
+What changed:
+
+- README, the model-map article, and the package reference topic now define
+  stable, first slice, opt-in control, planned or reserved, and unsupported or
+  blocked as shared reader-facing status words.
+- The getting-started article now uses stable and first-slice wording instead
+  of generic `implemented` labels.
+- The source-map article now maps the public status words back to the internal
+  validation-debt register.
+- The pkgdown reference group descriptions and `drm_control()` help now use the
+  same status vocabulary for fitted and planned syntax and large-data controls.
+
+Checks run:
+
+```sh
+air format README.md vignettes/model-map.Rmd vignettes/drmTMB.Rmd vignettes/source-map.Rmd R/drmTMB-package.R _pkgdown.yml NEWS.md ROADMAP.md
+Rscript -e "devtools::document()"
+Rscript -e "rmarkdown::render('vignettes/model-map.Rmd', quiet = TRUE)"
+Rscript -e "rmarkdown::render('vignettes/drmTMB.Rmd', quiet = TRUE)"
+Rscript -e "rmarkdown::render('vignettes/source-map.Rmd', quiet = TRUE)"
+rg -n 'Status word|status vocabulary|first-slice|first slice|Opt-in control|planned or reserved|unsupported or blocked|implemented first slice|implemented first slices|implemented \| "|experimental' README.md vignettes/model-map.Rmd vignettes/drmTMB.Rmd vignettes/source-map.Rmd R/drmTMB-package.R man/drmTMB-package.Rd _pkgdown.yml NEWS.md ROADMAP.md
+git diff --check
+air format R/control.R
+Rscript -e "devtools::document()"
+air format vignettes/convergence.Rmd
+rg -n "implemented first slice|implemented first slices|experimental opt-in|experimental fits|experimental" README.md vignettes/*.Rmd R/*.R man/*.Rd _pkgdown.yml
+Rscript -e "rmarkdown::render('vignettes/convergence.Rmd', quiet = TRUE)"
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript tools/codex-checkpoint.R --goal "Slice 290 user-facing boundaries" --next "stage, commit, push, and open draft PR"
+```
+
+Known limitations:
+
+- No likelihood, formula grammar, simulation, fitted model, extractor, or
+  interval method changed.
+- Full `pkgdown::build_site()` and `devtools::check()` were not run for this
+  narrow documentation-status slice.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-290-user-boundaries.md`.

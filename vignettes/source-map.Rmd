@@ -164,6 +164,12 @@ row. When a surface moves from planned or first-slice status to routine support,
 update the register with the implementation, tests, docs, NEWS, check-log
 evidence, and after-task report in the same pull request.
 
+The public status words are the reader-facing version of that internal ledger.
+`Stable` maps to a covered routine path, `first slice` maps to a covered but
+narrow fitted path, `opt-in control` maps to scalability or memory hardening,
+and `planned`, `reserved`, `unsupported`, or `blocked` rows stay out of runnable
+analysis examples until code, tests, docs, and after-task evidence exist.
+
 ## Current boundaries
 
 The following neighbouring features are intentionally not implemented as fitted

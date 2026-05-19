@@ -181,6 +181,16 @@ hardening or large-data path, not a general modelling guarantee.
 The evidence and debt ledger behind these rows lives in
 `docs/design/34-validation-debt-register.md`.
 
+Read status words consistently:
+
+| Status word | Meaning for a user |
+| --- | --- |
+| Stable | Routine fitted path with tests, diagnostics or interval status, and a reader-facing example or guide. |
+| First slice | Fitted and tested, but intentionally narrow; stay inside the named formula, family, and data-shape boundary. |
+| Opt-in control | Available for hardening, scalability, or memory control, but not a modelling guarantee for neighbouring surfaces. |
+| Planned or reserved | Public grammar or roadmap wording may exist, but `drmTMB()` should reject it or treat it as design-only until likelihood, tests, docs, and after-task evidence land. |
+| Unsupported or blocked | Do not use as analysis syntax; fit the nearest implemented model or check the roadmap before interpreting a richer structure. |
+
 | Surface | Current status | Interval and diagnostic status | Main boundary |
 | --- | --- | --- | --- |
 | Fixed-effect one-response families | Stable for Gaussian, Student-t, lognormal, Gamma, beta, beta-binomial, Poisson, NB2, truncated NB2, hurdle NB2, zero-inflated Poisson, zero-inflated NB2, and cumulative-logit ordinal location; ordinary Poisson and NB2 `mu` random intercepts and independent numeric slopes are the first non-Gaussian random-effect slices | Wald fixed-effect intervals by default; explicit direct profile targets are listed by `profile_targets()`; Poisson and NB2 random-effect SDs are direct `log_sd_mu` profile targets | Random effects are otherwise mostly Gaussian-only; non-Gaussian `sigma` and shape random effects, correlated count slopes, zero-inflated count random effects, ordinal scale, and richer bounded-response families including zero-one inflation remain planned |

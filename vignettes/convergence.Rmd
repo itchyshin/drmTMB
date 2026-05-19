@@ -225,7 +225,7 @@ more honestly than a Wald standard error near a boundary.
 
 ## Separate optimization from uncertainty
 
-For very large or experimental fits, it can be useful to separate "can the
+For very large or opt-in-control fits, it can be useful to separate "can the
 model optimize?" from "can Wald uncertainty be computed?":
 
 ```{r}

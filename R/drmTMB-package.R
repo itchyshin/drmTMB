@@ -5,6 +5,17 @@
 #' distributional parameter, fitted by maximum marginal likelihood with Template
 #' Model Builder.
 #'
+#' @section Status vocabulary:
+#' Public documentation uses a small status vocabulary. "Stable" means a routine
+#' fitted path with tests, diagnostics or interval status, and a reader-facing
+#' example or guide. "First slice" means fitted and tested, but intentionally
+#' narrow. "Opt-in control" means available for hardening, scalability, or memory
+#' control, not a modelling guarantee for neighbouring surfaces. "Planned" or
+#' "reserved" syntax may appear in roadmap or formula-grammar text, but should be
+#' rejected by `drmTMB()` or treated as design-only until likelihood, tests,
+#' documentation, and after-task evidence land. "Unsupported" or "blocked"
+#' syntax should not be used as analysis syntax.
+#'
 #' @keywords internal
 #' @importFrom Matrix sparseMatrix
 #' @importFrom TMB MakeADFun sdreport

@@ -80,7 +80,7 @@ reference:
     contents:
       - drmTMB-package
   - title: Model specification
-    desc: Formula constructors and family objects.
+    desc: Formula constructors, family objects, and status-marked model syntax.
     contents:
       - drm_formula
       - bf
@@ -96,7 +96,7 @@ reference:
       - truncated_nbinom2
       - biv_gaussian
   - title: Structured-effect markers
-    desc: Random-effect scale, structured covariance, and latent-correlation formula syntax.
+    desc: Fitted and planned random-effect scale, structured covariance, and latent-correlation formula syntax. Each topic names its current status.
     contents:
       - random_effect_scale_formulas
       - animal

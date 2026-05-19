@@ -155,19 +155,19 @@ At a high level, the current public surface is:
 
 | Model family or component | Current status | Main article |
 | --- | --- | --- |
-| Gaussian location-scale fixed effects | implemented | "When variance carries signal" |
-| Gaussian `mu` random intercepts and one-slope blocks | implemented | "When variance carries signal" |
-| residual-scale random intercepts and independent slopes | implemented | "Which scale are you modelling?" |
-| unlabelled Gaussian `mu` random-intercept SD formulas | implemented | "Which scale are you modelling?" |
-| fixed-effect non-Gaussian families | implemented | "Choosing response families" |
-| fixed-effect NB2 and zero-inflated NB2 count examples | implemented | "Count abundance and extra zeros" |
-| fixed-effect beta and beta-binomial proportion examples | implemented | "Proportions and success rates" |
-| Gaussian meta-analysis with known sampling covariance | implemented | "Mean effects and residual heterogeneity in meta-analysis" |
-| fixed-effect bivariate Gaussian `rho12` | implemented | "Changing residual coupling with rho12" |
-| ordinary bivariate covariance and `corpairs()` rows | implemented first slice | "What can I fit today?" |
-| phylogenetic Gaussian `mu`, q=2, q=4, and direct-SD covariance slices | implemented first slices | "Structural dependence" |
-| coordinate spatial Gaussian `mu` intercept and one numeric slope | implemented first slice | "Structural dependence" |
-| fitted interval status and derived-summary flags | implemented first slice | "Checking and using fitted models" |
+| Gaussian location-scale fixed effects | stable | "When variance carries signal" |
+| Gaussian `mu` random intercepts and one-slope blocks | stable | "When variance carries signal" |
+| residual-scale random intercepts and independent slopes | stable or first slice, depending on term | "Which scale are you modelling?" |
+| unlabelled Gaussian `mu` random-intercept SD formulas | first slice | "Which scale are you modelling?" |
+| fixed-effect non-Gaussian families | stable for named fixed-effect paths | "Choosing response families" |
+| fixed-effect NB2 and zero-inflated NB2 count examples | stable for fixed effects | "Count abundance and extra zeros" |
+| fixed-effect beta and beta-binomial proportion examples | stable for fixed effects | "Proportions and success rates" |
+| Gaussian meta-analysis with known sampling covariance | stable | "Mean effects and residual heterogeneity in meta-analysis" |
+| fixed-effect bivariate Gaussian `rho12` | stable | "Changing residual coupling with rho12" |
+| ordinary bivariate covariance and `corpairs()` rows | first slice | "What can I fit today?" |
+| phylogenetic Gaussian `mu`, q=2, q=4, and direct-SD covariance slices | first slices | "Structural dependence" |
+| coordinate spatial Gaussian `mu` intercept and one numeric slope | first slice | "Structural dependence" |
+| fitted interval status and derived-summary flags | first slice | "Checking and using fitted models" |
 
 After fitting any model, run `check_drm()` before interpreting the estimates:
 

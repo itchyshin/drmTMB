@@ -41,11 +41,11 @@ in \code{fit$obj}. Set to \code{FALSE} to reduce fitted-object size after
 optimization. \code{check_drm()} will then report the fixed-gradient check as a
 note because it cannot re-evaluate the gradient without \code{fit$obj}.}
 
-\item{sparse_fixed}{Logical; experimental opt-in for sparse fixed-effect
+\item{sparse_fixed}{Logical; opt-in control for sparse fixed-effect
 design matrices. The first fitted path is limited to univariate Gaussian
 \code{mu} fixed effects with no random effects and intercept-only \code{sigma}.}
 
-\item{aggregate_gaussian}{Logical; experimental opt-in for sufficient-
+\item{aggregate_gaussian}{Logical; opt-in control for sufficient-
 statistic row aggregation in univariate Gaussian fixed-effect models. The
 first fitted path rejects random effects, structured effects, known
 sampling covariance, bivariate models, non-Gaussian families, non-unit
