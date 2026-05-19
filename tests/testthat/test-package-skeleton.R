@@ -232,6 +232,56 @@ test_that("drm_formula() captures planned structured-effect syntax", {
   )
   expect_equal(slope_form$entries[[1]]$structured[[1]]$variables, "depth")
 
+  animal_slope <- drm_formula(
+    y ~ x + animal(1 + temperature | animal_id, pedigree = ped)
+  )
+  expect_equal(
+    animal_slope$entries[[1]]$structured[[1]][c(
+      "type",
+      "group",
+      "variables",
+      "label",
+      "structure",
+      "object"
+    )],
+    list(
+      type = "animal",
+      group = "animal_id",
+      variables = "temperature",
+      label = "animal(1 + temperature | animal_id)",
+      structure = "pedigree",
+      object = "ped"
+    )
+  )
+  expect_equal(
+    animal_slope$entries[[1]]$structured[[1]]$coef_names,
+    c("(Intercept)", "temperature")
+  )
+
+  relmat_slope <- drm_formula(y ~ x + relmat(1 + x | line, K = G))
+  expect_equal(
+    relmat_slope$entries[[1]]$structured[[1]][c(
+      "type",
+      "group",
+      "variables",
+      "label",
+      "structure",
+      "object"
+    )],
+    list(
+      type = "relmat",
+      group = "line",
+      variables = "x",
+      label = "relmat(1 + x | line)",
+      structure = "K",
+      object = "G"
+    )
+  )
+  expect_equal(
+    relmat_slope$entries[[1]]$structured[[1]]$coef_names,
+    c("(Intercept)", "x")
+  )
+
   labelled_phylo <- drm_formula(
     y ~ x + phylo(1 | p | species, tree = tree)
   )
@@ -258,12 +308,14 @@ test_that("formula markers are no-op placeholders", {
   expect_null(animal(1 | id, pedigree = pedigree))
   expect_null(animal(1 | id, A = A))
   expect_null(animal(1 | id, Ainv = Ainv))
+  expect_null(animal(1 + x | id, pedigree = pedigree))
   expect_null(gr(id, cov = diag(1)))
   expect_null(phylo(1 | species, tree = tree))
   expect_null(spatial(1 | site, coords = coords))
   expect_null(spatial(1 | site, mesh = mesh))
   expect_null(relmat(1 | line, K = K))
   expect_null(relmat(1 | line, Q = Q))
+  expect_null(relmat(1 + x | line, K = K))
   expect_null(corpair(id, block = "p", class = "location-scale"))
   expect_null(corpair(id, block = "p", from = "mu1", to = "sigma2"))
   expect_null(corpair(
@@ -291,6 +343,10 @@ test_that("planned structured-effect markers validate their grammar", {
   expect_error(
     drm_formula(y ~ x + animal(1 | id, pedigree = list(id = id))),
     "must name objects"
+  )
+  expect_error(
+    drm_formula(y ~ x + animal(1 + x + z | id, pedigree = pedigree)),
+    "one-slope structured terms"
   )
   expect_error(
     drm_formula(y ~ x + phylo(species)),
@@ -331,6 +387,10 @@ test_that("planned structured-effect markers validate their grammar", {
   expect_error(
     drm_formula(y ~ x + relmat(1 | id, K = diag(3))),
     "must name objects"
+  )
+  expect_error(
+    drm_formula(y ~ x + relmat(1 + x + z | id, K = K)),
+    "one-slope structured terms"
   )
   expect_error(
     drm_formula(y ~ x + log(phylo(1 | species, tree = tree))),

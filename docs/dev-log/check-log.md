@@ -26410,3 +26410,63 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-18-slice-271-shape-inflation-boundary.md`.
+
+## 2026-05-18 - Slice 272 structured slope boundary audit
+
+Goal: clarify the structured random-slope boundary before Phase 18 by separating
+parser-readable one-slope markers from fitted coordinate-spatial Gaussian `mu`
+support.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/01-formula-grammar.md`
+- `docs/design/44-structured-slope-parity-gate.md`
+- `docs/design/45-cross-dpar-correlation-gate.md`
+- `docs/design/46-pre-simulation-readiness-matrix.md`
+- `docs/dev-log/after-task/2026-05-18-slice-272-structured-slope-boundary.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-18-191359-codex-checkpoint.md`
+- `tests/testthat/test-gaussian-location-scale.R`
+- `tests/testthat/test-package-skeleton.R`
+- `vignettes/formula-grammar.Rmd`
+
+What changed:
+
+- Added parser tests for one-slope `animal()` and `relmat()` planned markers,
+  including coefficient names, labels, structure type, and object names.
+- Added parser rejection checks for multiple `animal()` and `relmat()`
+  structured slopes.
+- Added Gaussian fit-time checks confirming one-slope `animal()` and `relmat()`
+  requests still stop with the structured-effect planned-status error.
+- Updated the formula grammar, formula-grammar article, structured-slope parity
+  gate, cross-parameter correlation gate, pre-simulation readiness matrix,
+  roadmap, and NEWS so parser support does not read as fitted likelihood
+  support.
+
+Checks run:
+
+- `air format NEWS.md ROADMAP.md docs/design/01-formula-grammar.md docs/design/44-structured-slope-parity-gate.md docs/design/45-cross-dpar-correlation-gate.md docs/design/46-pre-simulation-readiness-matrix.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-18-slice-272-structured-slope-boundary.md docs/dev-log/recovery-checkpoints/2026-05-18-191359-codex-checkpoint.md tests/testthat/test-package-skeleton.R tests/testthat/test-gaussian-location-scale.R vignettes/formula-grammar.Rmd`
+- `Rscript -e "devtools::test(filter = 'package-skeleton|gaussian-location-scale|phylo-gaussian|spatial-gaussian', reporter = 'summary')"`
+- `Rscript -e 'rmarkdown::render("vignettes/formula-grammar.Rmd", output_dir = tempfile("formula-grammar-render-"), quiet = FALSE)'`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `rg -n 'Slice 272|animal\(1 \+ x|relmat\(1 \+ x|Structured random-slope boundaries|parser-boundary|parser checks|planned marker grammar|Coordinate spatial|multiple structured slopes' NEWS.md ROADMAP.md docs/design/01-formula-grammar.md docs/design/44-structured-slope-parity-gate.md docs/design/45-cross-dpar-correlation-gate.md docs/design/46-pre-simulation-readiness-matrix.md vignettes/formula-grammar.Rmd tests/testthat/test-package-skeleton.R tests/testthat/test-gaussian-location-scale.R`
+- `rg -n 'animal.*one-slope.*implemented|relmat.*one-slope.*implemented|animal.*slope.*fitted|relmat.*slope.*fitted|phylogenetic.*slope.*fitted|spatial.*slope correlations.*implemented|structured.*slope correlations.*implemented' README.md ROADMAP.md NEWS.md docs/design vignettes tests/testthat --glob '!docs/dev-log/**'`
+  returned only planned, contrast, or prior boundary rows, not a fitted animal or
+  `relmat()` slope claim.
+- `git diff --check`
+- `Rscript tools/codex-checkpoint.R --goal "Slice 272 structured random-slope boundary" --next "append check-log and after-task report, then stage, commit, push, and open draft PR"`
+
+Known limitations:
+
+- No phylogenetic, animal, or `relmat()` one-slope likelihood was added.
+- No structured slope correlation, predictor-dependent structured slope
+  correlation, bivariate structured slope block, or spatial q=4 block was added.
+- Future animal and `relmat()` work still needs row-name validation, covariance
+  or precision scale decisions, diagnostics, profile targets, examples, and
+  simulation recovery.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-272-structured-slope-boundary.md`.

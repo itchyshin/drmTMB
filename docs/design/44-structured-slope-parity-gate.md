@@ -1,10 +1,10 @@
 # Structured Slope Parity Gate
 
-This note records the Slice 239 boundary before Phase 18 simulations include
-structured random slopes. The reader question is simple: can `drmTMB` fit the
-same one-slope model for spatial, phylogenetic, animal, and user-supplied
-relatedness effects? The current answer is no. The common mathematical template
-is ready, but the fitted surfaces are at different stages.
+This note records the Slice 239 boundary, rechecked in Slice 272, before Phase
+18 simulations include structured random slopes. The reader question is simple:
+can `drmTMB` fit the same one-slope model for spatial, phylogenetic, animal, and
+user-supplied relatedness effects? The current answer is no. The parser can read
+the intended one-slope syntax, but the fitted surfaces are at different stages.
 
 ## Current Status
 
@@ -12,7 +12,7 @@ is ready, but the fitted surfaces are at different stages.
 | --- | --- | --- | --- |
 | Coordinate spatial one-slope `mu` | `spatial(1 + x | site, coords = coords)` | Yes, for univariate Gaussian `mu` with independent intercept and slope fields | Can enter a focused Wave A structured-slope smoke grid |
 | Phylogenetic one-slope `mu` | `phylo(1 + x | species, tree = tree)` | No, rejected with an explicit planned-status message | Keep out of simulation until implementation, SD/profile targets, diagnostics, and recovery tests exist |
-| Animal one-slope `mu` | `animal(1 + x | id, pedigree = ped)` | No, marker/planned grammar only | Keep out of simulation until `animal()` accepts pedigree/A/Ainv, validates names, fits at least intercepts, then one slope |
+| Animal one-slope `mu` | `animal(1 + x | id, pedigree = ped)` | No, marker/planned grammar only | Keep out of simulation until `animal()` validates pedigree/A/Ainv row names, fits at least intercepts, then one slope |
 | Generic relatedness one-slope `mu` | `relmat(1 + x | id, K = K)` or `relmat(1 + x | id, Q = Q)` | No, marker/planned grammar only | Keep out of simulation until matrix orientation, covariance/precision scale, sparse precision, and recovery tests are implemented |
 
 This asymmetry is intentional. Spatial one-slope support came from the
@@ -95,9 +95,11 @@ simulation cells should record:
 - convergence, Hessian status, boundary flags, and direct SD interval status.
 
 Phylogenetic, animal, and `relmat()` one-slope cells should appear in the
-failure ledger as planned surfaces until they have:
+failure ledger as planned surfaces. Slice 272 confirms parser validation for
+intercept and one numeric slope and rejection of multiple structured slopes, but
+that is not fitting evidence. These cells stay out of operating-characteristic
+tables until they also have:
 
-- parser validation for intercept and one numeric slope;
 - validated covariance or precision input with stable row-name matching;
 - fitted SD summaries and `profile_targets()` rows;
 - `check_drm()` diagnostics;

@@ -1,5 +1,9 @@
 # drmTMB 0.1.2 (2026-05-16)
 
+* Structured random-slope boundaries now have parser and fit-time audit coverage:
+  one-slope `animal()` and `relmat()` markers are readable as planned grammar,
+  and multiple structured slopes are rejected. Only coordinate spatial Gaussian
+  `mu` one-slope models are fitted for Phase 18 admission.
 * Shape and inflation random-effect boundaries now have random-slope-specific test coverage: Student-t `nu`, zero-inflation `zi`, hurdle `hu`, and planned bounded-response `zoi`/`coi` random slopes still error before fitting, so Phase 18 will not treat those paths as implemented.
 * Gaussian `sigma` random-effect documentation now states the independent residual-scale slope boundary more explicitly: separate terms such as `sigma ~ z + (0 + w_id | id) + (0 + w_site | site)` are fitted with direct `log_sd_sigma` profile targets, while correlated residual-scale slope blocks remain planned.
 * Ordinary Gaussian `mu` random-slope documentation now states the q > 2 boundary more explicitly: multi-slope blocks such as `(1 + x1 + x2 + x3 | id)` are fitted, their SDs are direct profile targets, and their block correlations are derived-unavailable for direct profile intervals until a dedicated interval method exists.

@@ -482,7 +482,23 @@ test_that("Phase 1 rejects unsupported model syntax clearly", {
   )
   expect_error(
     drmTMB(
+      bf(y ~ x + animal(1 + x | id, pedigree = pedigree), sigma ~ 1),
+      family = gaussian(),
+      data = dat
+    ),
+    "Structured-effect syntax"
+  )
+  expect_error(
+    drmTMB(
       bf(y ~ x + relmat(1 | id, K = K), sigma ~ 1),
+      family = gaussian(),
+      data = dat
+    ),
+    "Structured-effect syntax"
+  )
+  expect_error(
+    drmTMB(
+      bf(y ~ x + relmat(1 + x | id, K = K), sigma ~ 1),
       family = gaussian(),
       data = dat
     ),
