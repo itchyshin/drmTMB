@@ -8,6 +8,7 @@
 * `meta_V(V = V)` now has explicit full-matrix alias coverage with Wald fixed-effect interval checks, documentation points to it as the preferred known-covariance spelling, and `meta_V(V = V, scale = "exact")` now errors with guidance that the exact additive route is already selected by `meta_V(V = V)`.
 * Bergmann-report follow-up now hardens invalid Wald standard-error rows, clarifies that univariate `sigma ~ phylo(...)` is not yet fitted, documents long-iteration triage, and tests the labelled q4-to-two-q2 block-diagonal fallback.
 * Structural-dependence docs now give a clearer user surface for planned `animal()` and `relmat()` models, including what fitted sensitivity model to use now and when a known matrix belongs to `meta_V(V = V)` instead of a future latent relatedness path.
+* Structural-dependence design notes now separate dense covariance inputs (`A`, `K`) from sparse precision inputs (`Ainv`, `Q`) for future `animal()` and `relmat()` models, keeping large-pedigree or large-matrix speed claims blocked until sparse-precision recovery and scaling evidence exists.
 * Bivariate random-slope combination boundaries now have focused error coverage for matching slope-only `mu1`/`mu2` blocks, intercept-plus-slope location q=4 requests, residual-scale slope pairs, same-response location-scale slope combinations, and all-four q=8-style slope requests.
 * Structured random-slope boundaries now have parser and fit-time audit coverage:
   one-slope `animal()` and `relmat()` markers are readable as planned grammar,

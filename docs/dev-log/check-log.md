@@ -26978,3 +26978,57 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-18-slice-281-structured-user-surface.md`.
+
+## 2026-05-18 - Slice 282 sparse precision boundary
+
+Goal: clarify dense covariance versus sparse precision routes for future
+phylogenetic, animal-model, and `relmat()` work without claiming a new fitted
+likelihood.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/42-asreml-efficiency-lessons.md`
+- `docs/dev-log/after-task/2026-05-18-slice-282-sparse-precision-boundary.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-18-205304-codex-checkpoint.md`
+- `vignettes/model-map.Rmd`
+- `vignettes/phylogenetic-spatial.Rmd`
+
+What changed:
+
+- Added a representation-boundary table to the ASReml efficiency note,
+  separating dense covariance inputs (`A`, `K`) from sparse precision or
+  inverse-relatedness inputs (`Ainv`, `Q`) and from observation-level
+  `meta_V(V = V)` sampling covariance.
+- Updated the structural-dependence article to explain why dense VCV inputs are
+  small-example/parity routes and why speed claims require sparse precision
+  evidence.
+- Updated the model-map known-covariance row to use the preferred
+  `meta_V(V = V)` spelling and added the dense-`K`/`A` versus sparse-`Q`/`Ainv`
+  boundary to the animal/`relmat()` row.
+- Marked Slice 282 done in the roadmap and added a NEWS bullet.
+
+Checks run:
+
+- `air format NEWS.md ROADMAP.md docs/design/42-asreml-efficiency-lessons.md vignettes/phylogenetic-spatial.Rmd vignettes/model-map.Rmd`
+- `Rscript -e 'devtools::load_all(quiet = TRUE); rmarkdown::render("vignettes/phylogenetic-spatial.Rmd", output_dir = tempfile("phylo-spatial-render-"), quiet = FALSE); rmarkdown::render("vignettes/model-map.Rmd", output_dir = tempfile("model-map-render-"), quiet = FALSE)'`
+- `rg -n 'Slice 282|dense covariance inputs|sparse precision inputs|dense VCV|Ainv|Q\\)|large-pedigree|large-matrix|sparse-precision|representation boundary|meta_V\\(V = V\\).*sampling covariance' NEWS.md ROADMAP.md docs/design/42-asreml-efficiency-lessons.md vignettes/phylogenetic-spatial.Rmd vignettes/model-map.Rmd`
+- `rg -n 'large-pedigree.*implemented|large-matrix.*implemented|ASReml-like.*speed|dense `?K`?.*large|dense `?A`?.*large|Ainv.*fitted|relmat\\(.*Q.*fitted|meta_V\\(V = V\\).*relatedness|V.*Ainv|weights.*Ainv|sampling covariance.*relmat' README.md NEWS.md ROADMAP.md docs/design vignettes R tests/testthat --glob '!docs/dev-log/**'`
+  returned planned-boundary and negative-status wording, not a current fitted
+  sparse-precision or large-matrix claim.
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `git diff --check`
+- `Rscript tools/codex-checkpoint.R --goal "Slice 282 sparse precision boundary" --next "stage, commit, push, and open draft PR"`
+
+Known limitations:
+
+- No sparse precision likelihood, dense `A`/`K` animal or `relmat()` fit,
+  `Ainv`/`Q` route, sparse known sampling covariance, or benchmark was added.
+- Large-pedigree and large-matrix claims remain blocked until implementation,
+  diagnostics, recovery tests, and scaling evidence exist.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-282-sparse-precision-boundary.md`.

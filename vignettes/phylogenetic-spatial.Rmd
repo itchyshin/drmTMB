@@ -273,6 +273,16 @@ matrices.
 | Experimental-line, genomic, or laboratory relatedness that is not a pedigree, tree, or coordinate surface | `relmat(1 | line, K = K)` or `relmat(1 | line, Q = Q)` | Use an ordinary `(1 | line)` sensitivity model, or switch to `phylo()` / `spatial()` when the known structure belongs to those named routes. |
 | Known sampling covariance among effect-size estimates | `meta_V(V = V)` | Use the fitted Gaussian meta-analysis route; this is observation covariance, not a latent relatedness random effect. |
 
+For future matrix inputs, keep the representation explicit. A covariance matrix
+such as `A` or `K` is the dense VCV form. It is useful for small examples and
+parity checks, but it does not by itself justify large-pedigree or large-matrix
+claims. A precision or inverse relationship matrix such as `Ainv` or `Q` is the
+future sparse route; it needs row-name matching, determinant handling,
+positive-definiteness checks, diagnostics, and recovery tests before speed
+claims are honest. This is the same distinction as the implemented phylogenetic
+tree path: users pass `tree = tree`, and `drmTMB` builds the sparse augmented
+A-inverse internally rather than asking users to hand-write a dense tip VCV.
+
 ## Current implementation status
 
 This page separates the fitted paths from the roadmap. The fitted structural
