@@ -44,20 +44,27 @@ theme_sim_grammar <- function() {
       panel.grid.major.y = element_blank(),
       plot.title.position = "plot",
       plot.title = element_text(face = "bold"),
-      plot.subtitle = element_text(colour = "grey30"),
+      plot.subtitle = element_text(colour = "grey30", lineheight = 1.05),
       strip.text = element_text(face = "bold"),
-      legend.position = "bottom"
+      legend.position = "bottom",
+      plot.margin = margin(6, 10, 12, 6)
     )
 }
 
 surface_palette <- c(
-  "Continuous" = "#0072B2",
+  "Gaussian location-scale" = "#0072B2",
   "Proportion" = "#009E73",
   "Count" = "#D55E00",
   "Meta-analysis" = "#CC79A7"
 )
 
 surface_levels <- names(surface_palette)
+surface_facet_labels <- c(
+  "Gaussian location-scale" = "Gaussian\nlocation-scale",
+  "Proportion" = "Proportion",
+  "Count" = "Count",
+  "Meta-analysis" = "Meta-analysis"
+)
 estimand_display_labels <- c(
   "beta_x" = "beta_x",
   "sigma" = "sigma",
@@ -186,12 +193,19 @@ ggplot(accuracy_replicates, aes(error, estimand)) +
     size = 2.4,
     na.rm = TRUE
   ) +
-  facet_wrap(~surface, nrow = 1) +
+  facet_wrap(
+    ~surface,
+    nrow = 1,
+    labeller = labeller(surface = as_labeller(surface_facet_labels))
+  ) +
   scale_colour_manual(values = surface_palette, drop = FALSE) +
   scale_fill_manual(values = surface_palette, drop = FALSE) +
   labs(
     title = "Bias displays should show replicate-level error",
-    subtitle = "Facets are surfaces; clouds and faint dots are displayed errors, large points and bars are mean bias and 95% MCSE",
+    subtitle = paste(
+      "Clouds and faint dots are replicate errors;",
+      "large points and bars are mean bias with 95% MCSE"
+    ),
     x = "Estimate minus truth",
     y = NULL,
     colour = "Surface"
@@ -201,20 +215,24 @@ ggplot(accuracy_replicates, aes(error, estimand)) +
   theme_sim_grammar()
 
 ggplot(accuracy_summary, aes(rmse, estimand, colour = surface)) +
-  geom_point(size = 2.4, na.rm = TRUE) +
   geom_segment(
-    inherit.aes = FALSE,
     aes(
       x = rmse_low,
       xend = rmse_high,
       y = estimand,
-      yend = estimand
+      yend = estimand,
+      colour = surface
     ),
-    colour = "grey15",
-    linewidth = 1,
+    linewidth = 0.9,
+    alpha = 0.8,
     na.rm = TRUE
   ) +
-  facet_wrap(~surface, nrow = 1) +
+  geom_point(size = 2.4, na.rm = TRUE) +
+  facet_wrap(
+    ~surface,
+    nrow = 1,
+    labeller = labeller(surface = as_labeller(surface_facet_labels))
+  ) +
   scale_colour_manual(values = surface_palette, drop = FALSE) +
   labs(
     title = "RMSE needs its own uncertainty display",

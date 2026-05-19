@@ -465,7 +465,7 @@ pred_tail <- predict_parameters(
   conf.int = TRUE
 )
 pred_tail$gradient <- pred_tail$tail_pressure
-pred_tail$panel <- "Tail weight (Student-t nu)"
+pred_tail$panel <- "Tail weight (nu)"
 pred_tail$model <- "Tail weight"
 
 set.seed(2595)
@@ -491,7 +491,7 @@ pred_zi <- predict_parameters(
   conf.int = TRUE
 )
 pred_zi$gradient <- pred_zi$detection_difficulty
-pred_zi$panel <- "Structural-zero probability (zi)"
+pred_zi$panel <- "Structural zero (zi)"
 pred_zi$model <- "Structural-zero probability"
 
 set.seed(2596)
@@ -524,7 +524,7 @@ pred_rho <- predict_parameters(
   conf.int = TRUE
 )
 pred_rho$gradient <- pred_rho$disturbance
-pred_rho$panel <- "Residual correlation (rho12)"
+pred_rho$panel <- "Residual rho12"
 pred_rho$model <- "Residual correlation"
 
 pred_extra <- rbind(
@@ -535,9 +535,9 @@ pred_extra <- rbind(
 pred_extra$panel <- factor(
   pred_extra$panel,
   levels = c(
-    "Tail weight (Student-t nu)",
-    "Structural-zero probability (zi)",
-    "Residual correlation (rho12)"
+    "Tail weight (nu)",
+    "Structural zero (zi)",
+    "Residual rho12"
   )
 )
 
@@ -552,7 +552,7 @@ plot_parameter_surface(
   geom_hline(
     data = data.frame(
       .drmTMB_plot_facet = factor(
-        "Residual correlation (rho12)",
+        "Residual rho12",
         levels = levels(pred_extra$panel)
       )
     ),
@@ -1022,7 +1022,8 @@ plot_parameter_surface(
     title = "Estimated habitat contrast at average temperature",
     subtitle = "Intervals are Wald intervals from predict_parameters()",
     x = NULL,
-    y = "Expected growth"
+    y = "Expected growth",
+    colour = "Habitat"
   ) +
   theme_drmtmb_gallery()
 ```
@@ -1242,7 +1243,8 @@ plot_parameter_surface(
     title = "Empirical marginal mu summary",
     subtitle = "Averaged over the fitted-row covariate distribution",
     x = NULL,
-    y = "Average expected growth"
+    y = "Average expected growth",
+    colour = "Habitat"
   ) +
   theme_drmtmb_gallery()
 ```
@@ -1671,9 +1673,9 @@ ggplot() +
   scale_fill_manual(values = surface_palette, drop = FALSE) +
   labs(
     title = "Bias by estimand",
-    subtitle = "Rainclouds show replicate estimates; large points are means with 95% MCSE intervals",
+    subtitle = "Rainclouds show replicate errors; large points are mean bias with 95% MCSE intervals",
     x = NULL,
-    y = "Mean estimate minus truth",
+    y = "Estimate minus truth",
     colour = "Surface"
   ) +
   guides(fill = "none") +

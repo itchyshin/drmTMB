@@ -46,6 +46,13 @@ phase18_count_gallery_class_labels <- c(
   fixed_effect = "Fixed effect",
   random_sd = "Random-effect SD"
 )
+phase18_count_gallery_term_labels <- c(
+  "(Intercept)" = "intercept",
+  "x" = "x slope",
+  "z" = "z slope",
+  "(0 + x | id)" = "x random-slope SD",
+  "(1 | id)" = "intercept SD"
+)
 
 phase18_count_gallery_theme <- function() {
   ggplot2::theme_minimal(base_size = 11) +
@@ -73,6 +80,11 @@ phase18_count_gallery_terms <- function(x) {
       levels = names(phase18_count_gallery_class_palette)
     )
   }
+  x$term <- ifelse(
+    x$term %in% names(phase18_count_gallery_term_labels),
+    phase18_count_gallery_term_labels[x$term],
+    x$term
+  )
   x$term <- factor(x$term, levels = rev(unique(x$term)))
   x
 }
@@ -111,6 +123,7 @@ phase18_plot_count_bias <- function(data) {
       ggplot2::aes(x = bias_low, xend = bias_high, yend = term),
       linewidth = 0.75,
       alpha = 0.8,
+      show.legend = FALSE,
       na.rm = TRUE
     )
   }
@@ -119,6 +132,7 @@ phase18_plot_count_bias <- function(data) {
     ggplot2::facet_grid(
       parameter_class ~ family,
       scales = "free_y",
+      space = "free_y",
       labeller = ggplot2::labeller(
         parameter_class = phase18_count_gallery_class_labels
       )
@@ -163,6 +177,7 @@ phase18_plot_count_rmse <- function(data) {
       ggplot2::aes(x = rmse_low, xend = rmse_high, yend = term),
       linewidth = 0.75,
       alpha = 0.8,
+      show.legend = FALSE,
       na.rm = TRUE
     )
   }
@@ -171,6 +186,7 @@ phase18_plot_count_rmse <- function(data) {
     ggplot2::facet_grid(
       parameter_class ~ family,
       scales = "free_y",
+      space = "free_y",
       labeller = ggplot2::labeller(
         parameter_class = phase18_count_gallery_class_labels
       )
@@ -197,44 +213,67 @@ phase18_plot_count_rmse <- function(data) {
 
 phase18_plot_count_coverage <- function(data) {
   data <- phase18_count_gallery_terms(data)
-  dodge <- ggplot2::position_dodge(width = 0.5)
   if ("coverage_mcse" %in% names(data)) {
     data$coverage_low <- pmax(0, data$coverage - 1.96 * data$coverage_mcse)
     data$coverage_high <- pmin(1, data$coverage + 1.96 * data$coverage_mcse)
   }
+  coverage_values <- data$coverage
+  if ("coverage_low" %in% names(data)) {
+    coverage_values <- c(coverage_values, data$coverage_low)
+  }
+  coverage_floor <- min(coverage_values, na.rm = TRUE)
+  if (!is.finite(coverage_floor)) {
+    coverage_floor <- 0.90
+  }
+  coverage_floor <- max(0, min(0.90, coverage_floor - 0.02))
+  data$coverage_panel <- paste(
+    phase18_count_gallery_class_labels[as.character(data$parameter_class)],
+    data$dpar,
+    sep = ": "
+  )
+  data$coverage_panel <- factor(data$coverage_panel, levels = unique(data$coverage_panel))
+  point_position <- ggplot2::position_jitter(width = 0, height = 0.06)
   p <- ggplot2::ggplot(
     data,
     ggplot2::aes(
-      x = term,
-      y = coverage,
+      x = coverage,
+      y = term,
       colour = family,
       shape = interval_method,
       group = interaction(family, interval_method)
     )
   ) +
-    ggplot2::geom_hline(yintercept = 0.95, linewidth = 0.3, colour = "grey55")
+    ggplot2::geom_vline(xintercept = 0.95, linewidth = 0.3, colour = "grey55")
   if (all(c("coverage_low", "coverage_high") %in% names(data))) {
-    p <- p + ggplot2::geom_linerange(
-      ggplot2::aes(ymin = coverage_low, ymax = coverage_high),
-      position = dodge,
+    p <- p + ggplot2::geom_segment(
+      ggplot2::aes(x = coverage_low, xend = coverage_high, yend = term),
       alpha = 0.65,
-      linewidth = 0.5
+      linewidth = 0.5,
+      show.legend = FALSE
     )
   }
   p +
-    ggplot2::geom_point(position = dodge, size = 2.7, alpha = 0.9) +
-    ggplot2::facet_grid(interval_method ~ dpar, scales = "free_y") +
-    ggplot2::coord_flip(ylim = c(0, 1), clip = "off") +
+    ggplot2::geom_point(position = point_position, size = 2.7, alpha = 0.9) +
+    ggplot2::facet_wrap(
+      ~coverage_panel,
+      scales = "free_y",
+      ncol = 1
+    ) +
+    ggplot2::coord_cartesian(xlim = c(coverage_floor, 1.01), clip = "off") +
+    ggplot2::scale_x_continuous(
+      breaks = c(0.90, 0.95, 1.00),
+      labels = c("0.90", "0.95", "1.00")
+    ) +
     ggplot2::scale_colour_manual(values = phase18_count_gallery_palette) +
     ggplot2::labs(
       title = "Interval coverage",
-      x = NULL,
-      y = "Coverage",
+      x = "Empirical coverage",
+      y = NULL,
       colour = "Family",
       shape = "Interval method",
       caption = paste(
         "The grey line marks nominal 95% coverage;",
-        "vertical ranges show approximate 95% Monte Carlo uncertainty when available."
+        "horizontal ranges show approximate 95% Monte Carlo uncertainty when available."
       )
     ) +
     phase18_count_gallery_theme()
@@ -279,7 +318,7 @@ if (is.null(aggregate)) {
 
 # Interval Coverage
 
-```{r coverage-plot}
+```{r coverage-plot, fig.height=6.1}
 if (is.null(coverage)) {
   cat("No coverage CSV supplied.\n")
 } else if (!has_ggplot2) {

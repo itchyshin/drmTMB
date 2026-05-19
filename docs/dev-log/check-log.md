@@ -28137,3 +28137,79 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-19-slice-301-count-gallery-accuracy-grammar.md`.
+
+## 2026-05-19 - Slice 302 figure visual audit
+
+Goal: respond to the Florence/Pat/Rose visual QA concern by checking every
+currently rendered figure in the figure gallery, simulation plot grammar, and
+Phase 18 count-pilot gallery rather than only the figures that were recently
+edited.
+
+Files changed:
+
+- `vignettes/figure-gallery.Rmd`
+- `vignettes/simulation-plot-grammar.Rmd`
+- `inst/sim/reports/phase18-count-mu-gallery.Rmd`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-19-slice-302-figure-visual-audit.md`
+
+What changed:
+
+- Rendered and visually inspected 29 local PNGs: 21 from the figure gallery,
+  5 from the simulation plot grammar article, and 3 from the count-pilot
+  gallery template.
+- Shortened clipped shape/inflation/rho12 facet labels in the figure gallery.
+- Fixed simulation bias wording so rainclouds are replicate errors and the
+  axis is `Estimate minus truth`, not only a mean-bias axis.
+- Standardized the simulation grammar surface label to `Gaussian
+  location-scale` and wrapped that facet strip.
+- Redrew the count coverage panel as horizontal empirical coverage by
+  parameter-class/dpar panel, with readable term labels and a horizontal MCSE
+  caption.
+- Added display labels for count terms such as `intercept`, `z slope`,
+  `x random-slope SD`, and `intercept SD` instead of raw formula strings.
+- Hid MCSE interval segments from aggregate bias/RMSE legends so the legend
+  shows the plotted parameter classes rather than line glyphs.
+
+Checks run:
+
+```sh
+air format inst/sim/reports/phase18-count-mu-gallery.Rmd vignettes/figure-gallery.Rmd vignettes/simulation-plot-grammar.Rmd
+Rscript -e "devtools::load_all(quiet = TRUE); rmarkdown::render('vignettes/figure-gallery.Rmd', output_dir = '/tmp/drmtmb-visual-audit/current-figure', output_options = list(self_contained = FALSE), quiet = TRUE)"
+Rscript -e "rmarkdown::render('vignettes/simulation-plot-grammar.Rmd', output_dir = '/tmp/drmtmb-visual-audit/current-sim', output_options = list(self_contained = FALSE), quiet = TRUE)"
+Rscript -e "devtools::load_all(quiet = TRUE); root <- normalizePath('.'); rmarkdown::render('inst/sim/reports/phase18-count-mu-gallery.Rmd', output_dir = '/tmp/drmtmb-visual-audit/count-fixed', params = list(aggregate_csv = file.path(root, 'inst/sim/results/slice-257-count-gallery-polished/gallery/count-mu-aggregate.csv'), coverage_csv = file.path(root, 'inst/sim/results/slice-257-count-gallery-polished/gallery/count-mu-coverage.csv'), manifest_csv = file.path(root, 'inst/sim/results/slice-257-count-gallery-polished/gallery/count-mu-manifest.csv'), failures_csv = file.path(root, 'inst/sim/results/slice-257-count-gallery-polished/gallery/count-mu-failures.csv'), notes = 'Slice 302 visual audit re-render'), output_options = list(self_contained = FALSE), quiet = TRUE)"
+Rscript - <<'RS'
+# Built full visual-audit contact sheets under
+# /tmp/drmtmb-visual-audit/sheets-current-full.
+RS
+Rscript -e "devtools::test(filter = '^phase18-count-gallery')"
+Rscript -e "pkgdown::check_pkgdown()"
+git diff --check
+```
+
+Validation notes:
+
+- Full contact sheets were inspected at
+  `/tmp/drmtmb-visual-audit/sheets-current-full/figure-gallery-current-01.png`,
+  `/tmp/drmtmb-visual-audit/sheets-current-full/figure-gallery-current-02.png`,
+  `/tmp/drmtmb-visual-audit/sheets-current-full/figure-gallery-current-03.png`,
+  `/tmp/drmtmb-visual-audit/sheets-current-full/simulation-plot-grammar-current.png`,
+  and `/tmp/drmtmb-visual-audit/sheets-current-full/count-gallery-current.png`.
+- The count coverage relabeling was checked again on the individual rendered
+  PNG to confirm `sigma:z` appears as `z slope`, not `x slope`.
+- Focused count-gallery tests passed with 41 tests, 0 failures, 0 warnings,
+  and 0 skips.
+- `pkgdown::check_pkgdown()` passed with no problems.
+- `git diff --check` passed.
+
+Known limitations:
+
+- This slice fixes figure grammar, labels, legends, and render layout only.
+  It does not add replicate-level Phase 18 artifacts; true rainclouds in the
+  count report still need the result schema tracked in issue #255.
+- No likelihood, formula grammar, DGP, runner, extractor, or exported plotting
+  helper changed.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-19-slice-302-figure-visual-audit.md`.
