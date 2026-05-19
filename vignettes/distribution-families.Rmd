@@ -608,6 +608,11 @@ the direction of a predictor but should not be treated as a measured continuous
 outcome. With `Pr(y_i <= k) = logit^{-1}(theta_k - mu_i)`, larger `mu_i`
 shifts probability toward higher ordered categories.
 
+For fitted location coefficients, `confint(fit)` returns Wald intervals on the
+latent `mu` coefficient scale. Internal ordered-cutpoint profile targets are
+visible through `profile_targets()`, but transformed cutpoint or
+category-probability intervals are not a polished user-facing surface yet.
+
 Ordinal scale or discrimination formulas remain planned. A future extension
 may add `sigma ~ mismatch` with
 `Pr(y_i <= k) = logit^{-1}((theta_k - mu_i) / sigma_i)` or expose a direct

@@ -66,6 +66,13 @@ test_that("drmTMB fits fixed-effect cumulative-logit ordinal models", {
     tolerance = 0.18
   )
   expect_true(all(diff(fit$ordinal$cutpoints) > 0))
+
+  ci <- confint(fit)
+  expect_equal(ci$parm, "fixef:mu:x")
+  expect_equal(ci$tmb_parameter, "beta_mu")
+  expect_equal(ci$conf.status, "wald")
+  expect_true(is.finite(ci$lower))
+  expect_true(is.finite(ci$upper))
 })
 
 test_that("cumulative-logit likelihood matches independent category probabilities", {

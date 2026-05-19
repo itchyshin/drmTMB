@@ -27278,3 +27278,57 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-18-slice-286-continuous-shape-design.md`.
+
+## 2026-05-18 - Slice 287 ordinal readiness
+
+Goal: record the implementation and evidence status for the fitted ordinal
+surface before broader simulation, mixed-model, or scale/discrimination claims.
+
+Files changed:
+
+- `NEWS.md`
+- `README.md`
+- `ROADMAP.md`
+- `docs/design/02-family-registry.md`
+- `docs/design/25-ordinal-scale-discrimination.md`
+- `docs/design/46-pre-simulation-readiness-matrix.md`
+- `docs/dev-log/after-task/2026-05-18-slice-287-ordinal-readiness.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-18-214435-codex-checkpoint.md`
+- `tests/testthat/test-cumulative-logit.R`
+- `vignettes/distribution-families.Rmd`
+
+What changed:
+
+- Added a `confint()` assertion to the fitted cumulative-logit test so the
+  ordinal location coefficient must appear as `fixef:mu:x`, map to `beta_mu`,
+  and report Wald status.
+- Added a Slice 287 readiness ledger to the ordinal scale/discrimination design
+  note, covering likelihood and cutpoints, prediction and summaries, intervals
+  and targets, and unsupported neighbours.
+- Updated README, the family registry, the distribution-family tutorial,
+  NEWS, ROADMAP, and the pre-simulation matrix with the same ordinal
+  fitted-versus-planned boundary.
+
+Checks run:
+
+```sh
+air format tests/testthat/test-cumulative-logit.R docs/design/25-ordinal-scale-discrimination.md docs/design/02-family-registry.md docs/design/46-pre-simulation-readiness-matrix.md vignettes/distribution-families.Rmd README.md NEWS.md ROADMAP.md
+Rscript -e "devtools::test(filter = 'cumulative-logit|profile-targets|summary|reference-grid-link-scale-contract|nongaussian-structured-boundary', reporter = 'summary')"
+Rscript -e 'devtools::load_all(quiet = TRUE); rmarkdown::render("vignettes/distribution-families.Rmd", output_dir = tempfile("distribution-families-render-"), quiet = FALSE)'
+rg -n 'Slice 287|ordinal readiness|cumulative_logit\(\)|fixed-effect Wald|internal cutpoint|ordinal random effects|scale/discrimination|expected ordered-category|confint\(fit\)|fixef:mu:x' NEWS.md ROADMAP.md README.md docs/design/02-family-registry.md docs/design/25-ordinal-scale-discrimination.md docs/design/46-pre-simulation-readiness-matrix.md vignettes/distribution-families.Rmd tests/testthat/test-cumulative-logit.R
+Rscript -e "pkgdown::check_pkgdown()"
+git diff --check
+Rscript tools/codex-checkpoint.R --goal "Slice 287 ordinal readiness" --next "stage, commit, push, and open draft PR"
+```
+
+Known limitations:
+
+- No ordinal random effect, ordinal random slope, ordinal `sigma` scale model,
+  direct discrimination formula, structured ordinal path, bivariate ordinal
+  model, mixed-response ordinal model, transformed cutpoint interval, or
+  category-probability interval was added.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-287-ordinal-readiness.md`.

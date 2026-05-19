@@ -147,8 +147,10 @@ head(sigma(fit)^2) # fitted residual variances
   Read
   [Choosing response families](https://itchyshin.github.io/drmTMB/articles/distribution-families.html).
 - **Ordered categories.** Use `cumulative_logit()` for fixed-effect
-  cumulative-logit ordinal regression. See the
-  [reference index](https://itchyshin.github.io/drmTMB/reference/index.html).
+  cumulative-logit ordinal regression with ordered cutpoints and a fixed
+  latent logistic scale. Ordinal random effects and scale/discrimination
+  formulas remain planned. Read
+  [Choosing response families](https://itchyshin.github.io/drmTMB/articles/distribution-families.html).
 - **Two Gaussian responses with changing residual correlation.** Use bivariate
   Gaussian location-coscale regression with `mu1`, `mu2`, `sigma1`,
   `sigma2`, and `rho12`. Matching labelled random intercepts in `mu1` and
