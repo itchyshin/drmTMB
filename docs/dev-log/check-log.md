@@ -25897,3 +25897,2014 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-18-slice-261-dpar-panels.md`.
+
+## 2026-05-18 - Slice 262 random-effect and variance-component figures
+
+Goal: make the public figure gallery distinguish residual `sigma`, ordinary
+group-level SDs, conditional random-slope summaries, and direct `sd(group)`
+surfaces.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/39-visualization-grammar.md`
+- `docs/dev-log/after-task/2026-05-18-slice-262-variance-figures.md`
+- `docs/dev-log/check-log.md`
+- `vignettes/figure-gallery.Rmd`
+
+What changed:
+
+- Added a random-effect and variance-component section to the figure gallery.
+- Added an ordinary Gaussian `(1 + temperature | site)` example and plotted
+  residual `sigma`, site intercept SD, and site temperature-slope SD as
+  separate fitted standard deviations.
+- Added an ordered conditional-random-slope plot from `ranef()` so site-level
+  slope deviations are not confused with variance components.
+- Added a fitted `sd(site) ~ reef_cover` surface using
+  `prediction_grid()`, `predict_parameters(conf.int = TRUE)`, and
+  `plot_parameter_surface()`.
+- Updated the roadmap, visualization grammar design note, and NEWS entry for
+  Slice 262.
+
+Checks run:
+
+- `air format vignettes/figure-gallery.Rmd NEWS.md ROADMAP.md docs/design/39-visualization-grammar.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-18-slice-262-variance-figures.md`
+- `Rscript -e "devtools::load_all('.', quiet = TRUE); rmarkdown::render('vignettes/figure-gallery.Rmd', output_dir = '/tmp/drmtmb-figure-gallery-s262', quiet = FALSE)"`
+- Extracted embedded PNGs from `/tmp/drmtmb-figure-gallery-s262/figure-gallery.html` and visually checked the variance-component dot plot, random-slope deviation plot, and `sd(site)` surface.
+- `Rscript -e "devtools::test(filter = 'plot-parameter-surface|prediction-grid|predict-parameters', reporter = 'summary')"`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `git diff --check`
+
+Known limitations:
+
+- This slice does not add new plotting helper APIs.
+- Direct random-effect SD surfaces still show line-only displays because
+  `predict_parameters(conf.int = TRUE)` reports
+  `conf.status = "wald_unavailable"`.
+- Conditional random-slope modes are shrunken fitted deviations, not raw
+  site-specific regression estimates or interval summaries.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-262-variance-figures.md`.
+
+## 2026-05-18 - Slice 263 correlation-layer figures
+
+Goal: make the public figure gallery distinguish residual, ordinary group,
+phylogenetic, spatial, animal, and `relmat()` correlation layers without
+turning planned layers into fitted estimates.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/39-visualization-grammar.md`
+- `docs/dev-log/after-task/2026-05-18-slice-263-correlation-layer-figures.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-18-180253-codex-checkpoint.md`
+- `vignettes/figure-gallery.Rmd`
+
+What changed:
+
+- Replaced the compact correlation display with a faceted
+  `plot_corpairs()` display for implemented estimate rows.
+- Kept residual `rho12`, ordinary group-level intercept-slope correlation, and
+  phylogenetic location-location correlation in separate facets.
+- Added a support-boundary strip that marks spatial, animal, and `relmat()`
+  correlation-pair layers as planned boundaries rather than fitted estimates.
+- Updated the roadmap, visualization grammar design note, and NEWS entry for
+  Slice 263.
+
+Checks run:
+
+- `air format vignettes/figure-gallery.Rmd NEWS.md ROADMAP.md docs/design/39-visualization-grammar.md docs/dev-log/after-task/2026-05-18-slice-263-correlation-layer-figures.md docs/dev-log/recovery-checkpoints/2026-05-18-180253-codex-checkpoint.md`
+- `Rscript -e "devtools::load_all('.', quiet = TRUE); rmarkdown::render('vignettes/figure-gallery.Rmd', output_dir = '/tmp/drmtmb-figure-gallery-s263', quiet = FALSE)"`
+- Extracted embedded PNGs from `/tmp/drmtmb-figure-gallery-s263/figure-gallery.html` and visually checked the faceted correlation-layer plot plus the support-boundary strip.
+- `Rscript -e "devtools::test(filter = 'plot-corpairs', reporter = 'summary')"`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `git diff --check`
+
+Known limitations:
+
+- This slice does not add new `corpairs()` support for spatial, animal, or
+  `relmat()` models.
+- The gallery uses a compact `corpairs()`-compatible table for speed; fitted
+  biological workflows remain in model-specific tutorials.
+- Planned layers should move into the estimate plot only after fitted rows,
+  interval status, recovery tests, and reader-facing examples exist.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-263-correlation-layer-figures.md`.
+
+## 2026-05-18 - Slice 264 emmeans and marginal-effects figures
+
+Goal: extend the public figure gallery so the supported fixed-effect
+univariate `mu` `emmeans` route, factor-conditioned grids, interaction grids,
+empirical marginal summaries, and unsupported `emmeans` boundaries are visible
+in one reader-facing path.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/39-visualization-grammar.md`
+- `docs/design/40-emmeans-interface-contract.md`
+- `docs/dev-log/after-task/2026-05-18-slice-264-emmeans-marginal-figures.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-18-181035-codex-checkpoint.md`
+- `vignettes/figure-gallery.Rmd`
+
+What changed:
+
+- Expanded the estimated-marginal-means section into a broader `emmeans` and
+  marginal-summary section.
+- Added a simple fixed-effect univariate `mu` EMM, a factor-conditioned
+  habitat-by-season grid, and an explicit habitat-by-temperature interaction
+  grid.
+- Added an empirical `marginal_parameters()` display that averages over the
+  fitted-row covariate distribution without interval bars.
+- Added an `emmeans` support-boundary strip for `sigma`, bivariate responses,
+  zero-inflated or hurdle response means, ordinal expected scores, and
+  random-effect targets.
+- Updated the roadmap, visualization grammar note, `emmeans` interface
+  contract, and NEWS entry for Slice 264.
+
+Checks run:
+
+- `air format vignettes/figure-gallery.Rmd NEWS.md ROADMAP.md docs/design/39-visualization-grammar.md docs/design/40-emmeans-interface-contract.md docs/dev-log/after-task/2026-05-18-slice-264-emmeans-marginal-figures.md docs/dev-log/recovery-checkpoints/2026-05-18-181035-codex-checkpoint.md`
+- `Rscript -e "devtools::load_all('.', quiet = TRUE); rmarkdown::render('vignettes/figure-gallery.Rmd', output_dir = '/tmp/drmtmb-figure-gallery-s264b', quiet = FALSE)"`
+- Extracted embedded PNGs from `/tmp/drmtmb-figure-gallery-s264b/figure-gallery.html` and visually checked the EMM, factor-conditioned, interaction-grid, empirical marginal, and support-boundary displays.
+- `Rscript -e "devtools::test(filter = 'emmeans-methods|marginal-parameters|plot-parameter-surface', reporter = 'summary')"`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `git diff --check`
+
+Known limitations:
+
+- This slice does not extend the `emmeans` bridge beyond fixed-effect
+  univariate `mu`.
+- The empirical marginal summary is a plug-in average and does not display
+  interval bars.
+- Unsupported `sigma`, bivariate, zero-inflated, hurdle, ordinal, and
+  random-effect targets need separate design and validation before they can be
+  plotted as `emmeans` results.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-264-emmeans-marginal-figures.md`.
+
+## 2026-05-18 - Slice 265 simulation plot grammar
+
+Goal: create the first Simulation & Comparison article for
+operating-characteristic plot grammar before broad Phase 18 result articles are
+advertised.
+
+Files changed:
+
+- `_pkgdown.yml`
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/39-visualization-grammar.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `docs/dev-log/after-task/2026-05-18-slice-265-simulation-plot-grammar.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-18-181824-codex-checkpoint.md`
+- `vignettes/simulation-plot-grammar.Rmd`
+
+What changed:
+
+- Added `vignettes/simulation-plot-grammar.Rmd`.
+- Added the article to the Simulation & Comparison pkgdown navbar and article
+  index.
+- Added illustrative fixture tables and plots for bias, RMSE, coverage, power,
+  convergence, runtime, and warning/error ledgers.
+- Covered continuous, proportion, count, and meta-analysis example surfaces
+  without presenting the fixtures as final simulation evidence.
+- Updated the roadmap, visualization grammar note, Phase 18 simulation
+  programme note, and NEWS entry for Slice 265.
+
+Checks run:
+
+- `air format vignettes/simulation-plot-grammar.Rmd _pkgdown.yml NEWS.md ROADMAP.md docs/design/39-visualization-grammar.md docs/design/41-phase-18-simulation-programme.md docs/dev-log/recovery-checkpoints/2026-05-18-181824-codex-checkpoint.md`
+- `Rscript -e "devtools::load_all('.', quiet = TRUE); rmarkdown::render('vignettes/simulation-plot-grammar.Rmd', output_dir = '/tmp/drmtmb-simulation-plot-grammar-s265b', quiet = FALSE)"`
+- Extracted embedded PNGs from `/tmp/drmtmb-simulation-plot-grammar-s265b/simulation-plot-grammar.html` and visually checked the bias/RMSE, coverage/power, convergence/runtime, and warning/error ledger displays.
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `git diff --check`
+
+Known limitations:
+
+- The article uses illustrative fixtures; it does not report real Phase 18
+  operating-characteristic results.
+- This slice does not add new simulation helpers or runners.
+- Real result articles still need generated tables with fitted-surface
+  admission checks, interval status, diagnostics, and failure ledgers.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-265-simulation-plot-grammar.md`.
+
+## 2026-05-18 - Slice 266 gallery source map and QA
+
+Goal: add a source-map and QA table to the public figure gallery so each display
+names its fitted object or fixture, extractor or plotter, interval source, and
+support boundary.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/39-visualization-grammar.md`
+- `docs/dev-log/after-task/2026-05-18-slice-266-gallery-source-map-qa.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-18-182742-codex-checkpoint.md`
+- `vignettes/figure-gallery.Rmd`
+
+What changed:
+
+- Added a "Gallery source map" section to `vignettes/figure-gallery.Rmd`.
+- Mapped each display to the fitted object or illustrative fixture that drives
+  it.
+- Recorded each extractor or plotter, including `predict_parameters()`,
+  `plot_parameter_surface()`, `emmeans::emmeans()`, `marginal_parameters()`,
+  `plot_corpairs()`, status strips, and fixture displays.
+- Recorded interval provenance and support boundaries so readers do not treat
+  point plots, status strips, or illustrative simulation fixtures as fitted
+  interval evidence.
+- Updated the roadmap, visualization grammar note, and NEWS entry for Slice
+  266.
+
+Checks run:
+
+- `air format vignettes/figure-gallery.Rmd NEWS.md ROADMAP.md docs/design/39-visualization-grammar.md docs/dev-log/recovery-checkpoints/2026-05-18-182742-codex-checkpoint.md`
+- `Rscript -e "devtools::load_all('.', quiet = TRUE); rmarkdown::render('vignettes/figure-gallery.Rmd', output_dir = '/tmp/drmtmb-figure-gallery-s266', quiet = FALSE)"`
+- Confirmed the rendered HTML contains the "Gallery source map" heading and representative table rows.
+- Extracted embedded PNGs from `/tmp/drmtmb-figure-gallery-s266/figure-gallery.html` and spot-checked the post-source-map render output.
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `git diff --check`
+
+Known limitations:
+
+- The source map is a documentation table; it does not validate plot output at
+  runtime.
+- The table should be refreshed when new gallery figures or exported plotting
+  helpers are added.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-266-gallery-source-map-qa.md`.
+
+## 2026-05-18 - Slice 267 Florence closeout
+
+Goal: close the Florence figure-gallery lane by deciding which display patterns
+should be exported helpers and which should remain tutorial-level `ggplot2`
+recipes.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/39-visualization-grammar.md`
+- `docs/dev-log/after-task/2026-05-18-slice-267-florence-closeout.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-18-183410-codex-checkpoint.md`
+
+What changed:
+
+- Added a Slice 267 closeout decision to
+  `docs/design/39-visualization-grammar.md`.
+- Kept `plot_parameter_surface()` and `plot_corpairs()` as the current exported
+  visualization helpers because their input table contracts are stable.
+- Recorded raw data plus fitted lines, `emmeans` displays, conditional
+  random-effect modes, variance-component dot plots, status strips, and source
+  maps as tutorial-level recipes for now.
+- Recorded simulation operating-characteristic and failure-ledger plots as
+  future helper candidates after Phase 18 result schemas stabilize.
+- Updated the roadmap and NEWS entry for Slice 267.
+
+Checks run:
+
+- `air format NEWS.md ROADMAP.md docs/design/39-visualization-grammar.md docs/dev-log/recovery-checkpoints/2026-05-18-183410-codex-checkpoint.md`
+- `rg -n "Slice 267|helper-versus-recipe|plot_parameter_surface\\(\\).*plot_corpairs|Future helper candidate|Florence closeout|Plot helper backlog" docs/design/39-visualization-grammar.md ROADMAP.md NEWS.md`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `git diff --check`
+
+Known limitations:
+
+- This slice records a helper backlog; it does not implement new plotting
+  helpers.
+- Simulation and failure-ledger helper names remain provisional until Phase 18
+  aggregate and ledger schemas stabilize.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-267-florence-closeout.md`.
+
+## 2026-05-18 - Slice 268 pre-simulation capability audit
+
+Goal: add one pre-simulation capability table that says which major model
+classes are implemented, tested, planned, or unsupported before Phase 18 grids
+admit them.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `docs/design/46-pre-simulation-readiness-matrix.md`
+- `docs/dev-log/after-task/2026-05-18-slice-268-pre-simulation-capability-audit.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-18-183851-codex-checkpoint.md`
+
+What changed:
+
+- Added a Slice 268 capability audit to
+  `docs/design/46-pre-simulation-readiness-matrix.md`.
+- Covered Gaussian, non-Gaussian, shape, inflation, bivariate, random-slope,
+  meta-analysis, phylogenetic, spatial, animal, and `relmat()` model classes in
+  one table.
+- Separated implemented parser or likelihood status from tested evidence
+  status, so planned markers such as `animal()` and `relmat()` are not mistaken
+  for fitted models.
+- Updated the Phase 18 simulation programme, roadmap, and NEWS entry for Slice
+  268.
+
+Checks run:
+
+- `air format NEWS.md ROADMAP.md docs/design/41-phase-18-simulation-programme.md docs/design/46-pre-simulation-readiness-matrix.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-18-slice-268-pre-simulation-capability-audit.md docs/dev-log/recovery-checkpoints/2026-05-18-183851-codex-checkpoint.md`
+- `rg -n "Slice 268|Capability Audit|implemented, tested, planned, and unsupported|animal\\(\\)|relmat\\(\\)|Phase 18 admission" NEWS.md ROADMAP.md docs/design/41-phase-18-simulation-programme.md docs/design/46-pre-simulation-readiness-matrix.md docs/dev-log/check-log.md`
+- `rg -n "animal.*fitted|relmat.*fitted|animal.*implemented|relmat.*implemented|phylogenetic slopes.*implemented|spatial.*sigma.*implemented|non-Gaussian.*sigma random effects.*implemented" docs/design/46-pre-simulation-readiness-matrix.md ROADMAP.md NEWS.md`
+  returned only negative, planned, or support-boundary rows, not fitted
+  `animal()` or `relmat()` claims.
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `git diff --check`
+
+Known limitations:
+
+- This slice does not add new tests, likelihood code, simulation helpers, or
+  fitted model classes.
+- The capability table summarizes existing evidence and must be updated when a
+  planned class becomes fitted and tested.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-268-pre-simulation-capability-audit.md`.
+
+## 2026-05-18 - Slice 269 ordinary multi-slope audit
+
+Goal: confirm that ordinary Gaussian `mu` random-slope blocks are not limited
+to the first q=3 recovery example, and make the user-facing boundary visible.
+
+Files changed:
+
+- `NEWS.md`
+- `README.md`
+- `ROADMAP.md`
+- `docs/design/33-phase-6c-core-random-effects.md`
+- `docs/design/46-pre-simulation-readiness-matrix.md`
+- `docs/dev-log/after-task/2026-05-18-slice-269-ordinary-multislope-audit.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-18-184656-codex-checkpoint.md`
+- `tests/testthat/test-gaussian-random-intercepts.R`
+- `vignettes/model-map.Rmd`
+- `vignettes/which-scale.Rmd`
+
+What changed:
+
+- Added a q=4 ordinary Gaussian `mu` random-slope test with syntax
+  `(1 + x1 + x2 + x3 | id)`.
+- Checked the fitted SD names, six derived correlation names, `corpairs()`
+  classes, covariance-block random-effect length, and `profile_targets()`
+  status.
+- Updated README, model-map, which-scale, Phase 6c design, roadmap, NEWS, and
+  the pre-simulation readiness matrix so q > 2 ordinary `mu` blocks are
+  described as fitted but sample-size hungry.
+
+Checks run:
+
+- `air format tests/testthat/test-gaussian-random-intercepts.R README.md NEWS.md ROADMAP.md vignettes/model-map.Rmd vignettes/which-scale.Rmd docs/design/33-phase-6c-core-random-effects.md docs/design/46-pre-simulation-readiness-matrix.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-18-slice-269-ordinary-multislope-audit.md docs/dev-log/recovery-checkpoints/2026-05-18-184656-codex-checkpoint.md`
+- `Rscript -e "devtools::test(filter = 'gaussian-random-intercepts', reporter = 'summary')"`
+- `rg -n "q=4 output-name check|larger ordinary multi-slope|ordinary q > 2 numeric multi-slope|derived-unavailable for direct profile" README.md NEWS.md ROADMAP.md docs/design/33-phase-6c-core-random-effects.md docs/design/46-pre-simulation-readiness-matrix.md vignettes/model-map.Rmd vignettes/which-scale.Rmd tests/testthat/test-gaussian-random-intercepts.R docs/dev-log/check-log.md`
+- `rg -n "ordinary q > 2.*planned|ordinary q > 2.*not ready|multi-slope.*planned|q > 2.*unsupported" README.md ROADMAP.md docs/design vignettes NEWS.md --glob '!docs/dev-log/**'`
+  returned only neighbouring planned-boundary text on the same rows, not a
+  claim that ordinary q > 2 `mu` blocks remain planned.
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `git diff --check`
+
+Known limitations:
+
+- The new q=4 test is an output-contract smoke check, not a parameter-recovery
+  or coverage simulation.
+- Larger q blocks remain advanced fits. Phase 18 still needs grids for
+  convergence, weak slope SDs, boundary rates, bias, interval status, and
+  sample size before examples teach them as routine.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-269-ordinary-multislope-audit.md`.
+
+## 2026-05-18 - Slice 270 sigma random-effect audit
+
+Goal: confirm the fitted Gaussian `sigma` random-effect boundary for
+independent residual-scale slope terms, and keep correlated residual-scale
+slope covariance outside the implemented claim.
+
+Files changed:
+
+- `NEWS.md`
+- `README.md`
+- `ROADMAP.md`
+- `docs/design/33-phase-6c-core-random-effects.md`
+- `docs/design/46-pre-simulation-readiness-matrix.md`
+- `docs/dev-log/after-task/2026-05-18-slice-270-sigma-random-effect-audit.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-18-185313-codex-checkpoint.md`
+- `tests/testthat/test-gaussian-random-intercepts.R`
+- `vignettes/model-map.Rmd`
+- `vignettes/which-scale.Rmd`
+
+What changed:
+
+- Added a cross-group Gaussian `sigma` test with
+  `sigma ~ z + (0 + w_id | id) + (0 + w_site | site)`.
+- Checked that the two residual-scale slope SDs are named, finite, direct
+  `log_sd_sigma` profile targets, and that no residual-scale correlation rows
+  are produced.
+- Updated README, model-map, which-scale, Phase 6c design, roadmap, NEWS, and
+  the pre-simulation readiness matrix so multiple independent `sigma` slopes
+  are visible while correlated residual-scale slope blocks remain planned.
+
+Checks run:
+
+- `air format tests/testthat/test-gaussian-random-intercepts.R README.md NEWS.md ROADMAP.md vignettes/model-map.Rmd vignettes/which-scale.Rmd docs/design/33-phase-6c-core-random-effects.md docs/design/46-pre-simulation-readiness-matrix.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-18-slice-270-sigma-random-effect-audit.md docs/dev-log/recovery-checkpoints/2026-05-18-185313-codex-checkpoint.md`
+- `Rscript -e "devtools::test(filter = 'gaussian-random-intercepts', reporter = 'summary')"`
+- `rg -n "cross-group Gaussian sigma|multiple independent sigma slopes|0 \\+ w_id|0 \\+ w_site|log_sd_sigma" README.md NEWS.md ROADMAP.md docs/design/33-phase-6c-core-random-effects.md docs/design/46-pre-simulation-readiness-matrix.md vignettes/model-map.Rmd vignettes/which-scale.Rmd tests/testthat/test-gaussian-random-intercepts.R docs/dev-log/check-log.md`
+- `rg -n "correlated residual-scale slope blocks.*fitted|residual-scale slope covariance.*implemented|cor:sigma" README.md ROADMAP.md NEWS.md docs/design vignettes tests/testthat/test-gaussian-random-intercepts.R --glob '!docs/dev-log/**'`
+  returned only the separate bivariate `sigma1`/`sigma2` namespace and explicit
+  `expect_false()` checks for residual-scale `cor:sigma` rows.
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `git diff --check`
+
+Known limitations:
+
+- The new test is an output-contract check, not a full residual-scale slope
+  recovery simulation.
+- Correlated residual-scale slope blocks, labelled residual-scale slope
+  covariance, and slope-level `mu`/`sigma` covariance remain planned.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-270-sigma-random-effect-audit.md`.
+
+## 2026-05-18 - Slice 271 shape and inflation boundary audit
+
+Goal: audit shape and inflation random-effect slopes before Phase 18, and only
+open a likelihood path if the model is identifiable and already designed.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/34-validation-debt-register.md`
+- `docs/design/46-pre-simulation-readiness-matrix.md`
+- `docs/dev-log/after-task/2026-05-18-slice-271-shape-inflation-boundary.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-18-185741-codex-checkpoint.md`
+- `tests/testthat/test-beta-binomial.R`
+- `tests/testthat/test-beta-location-scale.R`
+- `tests/testthat/test-hurdle-nbinom2.R`
+- `tests/testthat/test-zi-nbinom2.R`
+- `tests/testthat/test-zi-poisson.R`
+
+What changed:
+
+- Kept shape and inflation random-effect slopes blocked rather than adding a
+  new likelihood.
+- Added random-slope-specific boundary tests for zero-inflated Poisson,
+  zero-inflated NB2, hurdle NB2, beta `zoi`/`coi`, and beta-binomial
+  `zoi`/`coi` requests.
+- Preserved the existing Student-t `nu` random-intercept and random-slope shape
+  boundary.
+- Updated the validation-debt register, pre-simulation readiness matrix,
+  roadmap, and NEWS entry.
+
+Checks run:
+
+- `air format tests/testthat/test-student-location-scale.R tests/testthat/test-zi-poisson.R tests/testthat/test-zi-nbinom2.R tests/testthat/test-hurdle-nbinom2.R tests/testthat/test-beta-location-scale.R tests/testthat/test-beta-binomial.R NEWS.md ROADMAP.md docs/design/34-validation-debt-register.md docs/design/46-pre-simulation-readiness-matrix.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-18-slice-271-shape-inflation-boundary.md docs/dev-log/recovery-checkpoints/2026-05-18-185741-codex-checkpoint.md`
+- `Rscript -e "devtools::test(filter = 'student-location-scale|zi-poisson|zi-nbinom2|hurdle-nbinom2|beta-location-scale|beta-binomial', reporter = 'summary')"`
+- `rg -n "Slice 271|random-slope-specific|nu.*random-slope|zi.*random-slope|hu.*random-slope|zoi|coi|shape-specific test gate" NEWS.md ROADMAP.md docs/design/34-validation-debt-register.md docs/design/46-pre-simulation-readiness-matrix.md tests/testthat/test-student-location-scale.R tests/testthat/test-zi-poisson.R tests/testthat/test-zi-nbinom2.R tests/testthat/test-hurdle-nbinom2.R tests/testthat/test-beta-location-scale.R tests/testthat/test-beta-binomial.R docs/dev-log/check-log.md`
+- `rg -n "nu.*random effects.*implemented|zi.*random effects.*implemented|hu.*random effects.*implemented|zoi.*implemented|coi.*implemented|shape random effects.*fitted|inflation random effects.*fitted" README.md ROADMAP.md NEWS.md docs/design vignettes tests/testthat --glob '!docs/dev-log/**'`
+  returned only negative, fixed-effect, or future-evidence boundary wording,
+  not fitted shape or inflation random-effect claims.
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `git diff --check`
+
+Known limitations:
+
+- No shape, zero-inflation, hurdle, zero-one-inflation, or one-inflation
+  random-effect likelihood was added.
+- Future work needs fixed-effect likelihood recovery where missing, then
+  extractor, interval, diagnostic, weak-boundary, and simulation evidence before
+  any random-effect slope in these components enters Phase 18 grids.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-271-shape-inflation-boundary.md`.
+
+## 2026-05-18 - Slice 272 structured slope boundary audit
+
+Goal: clarify the structured random-slope boundary before Phase 18 by separating
+parser-readable one-slope markers from fitted coordinate-spatial Gaussian `mu`
+support.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/01-formula-grammar.md`
+- `docs/design/44-structured-slope-parity-gate.md`
+- `docs/design/45-cross-dpar-correlation-gate.md`
+- `docs/design/46-pre-simulation-readiness-matrix.md`
+- `docs/dev-log/after-task/2026-05-18-slice-272-structured-slope-boundary.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-18-191359-codex-checkpoint.md`
+- `tests/testthat/test-gaussian-location-scale.R`
+- `tests/testthat/test-package-skeleton.R`
+- `vignettes/formula-grammar.Rmd`
+
+What changed:
+
+- Added parser tests for one-slope `animal()` and `relmat()` planned markers,
+  including coefficient names, labels, structure type, and object names.
+- Added parser rejection checks for multiple `animal()` and `relmat()`
+  structured slopes.
+- Added Gaussian fit-time checks confirming one-slope `animal()` and `relmat()`
+  requests still stop with the structured-effect planned-status error.
+- Updated the formula grammar, formula-grammar article, structured-slope parity
+  gate, cross-parameter correlation gate, pre-simulation readiness matrix,
+  roadmap, and NEWS so parser support does not read as fitted likelihood
+  support.
+
+Checks run:
+
+- `air format NEWS.md ROADMAP.md docs/design/01-formula-grammar.md docs/design/44-structured-slope-parity-gate.md docs/design/45-cross-dpar-correlation-gate.md docs/design/46-pre-simulation-readiness-matrix.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-18-slice-272-structured-slope-boundary.md docs/dev-log/recovery-checkpoints/2026-05-18-191359-codex-checkpoint.md tests/testthat/test-package-skeleton.R tests/testthat/test-gaussian-location-scale.R vignettes/formula-grammar.Rmd`
+- `Rscript -e "devtools::test(filter = 'package-skeleton|gaussian-location-scale|phylo-gaussian|spatial-gaussian', reporter = 'summary')"`
+- `Rscript -e 'rmarkdown::render("vignettes/formula-grammar.Rmd", output_dir = tempfile("formula-grammar-render-"), quiet = FALSE)'`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `rg -n 'Slice 272|animal\(1 \+ x|relmat\(1 \+ x|Structured random-slope boundaries|parser-boundary|parser checks|planned marker grammar|Coordinate spatial|multiple structured slopes' NEWS.md ROADMAP.md docs/design/01-formula-grammar.md docs/design/44-structured-slope-parity-gate.md docs/design/45-cross-dpar-correlation-gate.md docs/design/46-pre-simulation-readiness-matrix.md vignettes/formula-grammar.Rmd tests/testthat/test-package-skeleton.R tests/testthat/test-gaussian-location-scale.R`
+- `rg -n 'animal.*one-slope.*implemented|relmat.*one-slope.*implemented|animal.*slope.*fitted|relmat.*slope.*fitted|phylogenetic.*slope.*fitted|spatial.*slope correlations.*implemented|structured.*slope correlations.*implemented' README.md ROADMAP.md NEWS.md docs/design vignettes tests/testthat --glob '!docs/dev-log/**'`
+  returned only planned, contrast, or prior boundary rows, not a fitted animal or
+  `relmat()` slope claim.
+- `git diff --check`
+- `Rscript tools/codex-checkpoint.R --goal "Slice 272 structured random-slope boundary" --next "append check-log and after-task report, then stage, commit, push, and open draft PR"`
+
+Known limitations:
+
+- No phylogenetic, animal, or `relmat()` one-slope likelihood was added.
+- No structured slope correlation, predictor-dependent structured slope
+  correlation, bivariate structured slope block, or spatial q=4 block was added.
+- Future animal and `relmat()` work still needs row-name validation, covariance
+  or precision scale decisions, diagnostics, profile targets, examples, and
+  simulation recovery.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-272-structured-slope-boundary.md`.
+
+## 2026-05-18 - Slice 273 bivariate random-slope boundary audit
+
+Goal: audit bivariate Gaussian random-slope combinations before Phase 18 treats
+any bivariate slope grid as fitted.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/33-phase-6c-core-random-effects.md`
+- `docs/design/46-pre-simulation-readiness-matrix.md`
+- `docs/dev-log/after-task/2026-05-18-slice-273-bivariate-slope-boundary.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-18-193146-codex-checkpoint.md`
+- `tests/testthat/test-biv-gaussian.R`
+
+What changed:
+
+- Added focused bivariate Gaussian boundary tests for matching slope-only
+  `mu1`/`mu2` requests.
+- Added tests for intercept-plus-slope q=4 location blocks, residual-scale slope
+  pairs, same-response location-scale slope combinations, and all-four
+  q=8-style slope requests.
+- Updated NEWS, roadmap, the Phase 6c random-effect design note, and the
+  pre-simulation readiness matrix to keep bivariate slope grids out of Phase 18
+  admission.
+
+Checks run:
+
+- `air format NEWS.md ROADMAP.md docs/design/33-phase-6c-core-random-effects.md docs/design/46-pre-simulation-readiness-matrix.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-18-slice-273-bivariate-slope-boundary.md docs/dev-log/recovery-checkpoints/2026-05-18-193146-codex-checkpoint.md tests/testthat/test-biv-gaussian.R`
+- `Rscript -e "devtools::test(filter = 'biv-gaussian', reporter = 'summary')"`
+- `rg -n 'Slice 273|Bivariate random-slope combination|slope-only|q=8-style|Residual-scale random slopes|same-response location-scale|location-scale covariance blocks are intercept-only|bivariate slope grid|bivariate Gaussian boundary tests' NEWS.md ROADMAP.md docs/design/33-phase-6c-core-random-effects.md docs/design/46-pre-simulation-readiness-matrix.md tests/testthat/test-biv-gaussian.R`
+- `rg -n 'bivariate random slopes.*implemented|slope1-slope2.*implemented|q=8.*implemented|residual-scale slope.*implemented|same-response location-scale slope.*implemented|bivariate slope grid.*ready' README.md ROADMAP.md NEWS.md docs/design vignettes tests/testthat --glob '!docs/dev-log/**'`
+  returned only planned-context wording, not a bivariate slope implementation
+  claim.
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `git diff --check`
+- `Rscript tools/codex-checkpoint.R --goal "Slice 273 bivariate random-slope boundary" --next "stage, commit, push, and open draft PR"`
+
+Known limitations:
+
+- No bivariate random-slope likelihood was added.
+- No slope1-slope2 `corpairs()` row, coefficient-aware `corpair()` syntax,
+  direct slope-correlation profile target, or simulation recovery grid was
+  added.
+- Same-response location-scale slope covariance and all-four q=8-style
+  location-scale slope covariance remain planned.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-273-bivariate-slope-boundary.md`.
+
+## 2026-05-18 - Slice 274 convergence control presets
+
+Goal: keep ordinary optimizer defaults fast while giving users named,
+reproducible optimizer-budget presets for difficult distributional models.
+
+Files changed:
+
+- `NEWS.md`
+- `R/control.R`
+- `ROADMAP.md`
+- `docs/design/35-optimizer-start-map-multistart.md`
+- `docs/dev-log/after-task/2026-05-18-slice-274-convergence-controls.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-18-194240-codex-checkpoint.md`
+- `man/drm_control.Rd`
+- `tests/testthat/test-optimizer-contract.R`
+- `vignettes/convergence.Rmd`
+
+What changed:
+
+- Added `optimizer_preset = "default"`, `"careful"`, and `"robust"` to
+  `drm_control()`.
+- Expanded `"careful"` to `iter.max = 1000` and `eval.max = 1000`; expanded
+  `"robust"` to `iter.max = 5000` and `eval.max = 5000`.
+- Kept ordinary defaults unchanged and let `optimizer = list(...)` override
+  preset values when a user needs a custom budget.
+- Updated the convergence guide, optimizer contract design note, roadmap, NEWS,
+  and roxygen reference documentation.
+
+Checks run:
+
+- `air format NEWS.md R/control.R ROADMAP.md docs/design/35-optimizer-start-map-multistart.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-18-slice-274-convergence-controls.md docs/dev-log/recovery-checkpoints/2026-05-18-194240-codex-checkpoint.md man/drm_control.Rd tests/testthat/test-optimizer-contract.R vignettes/convergence.Rmd`
+- `Rscript -e "devtools::document()"`
+- `Rscript -e "devtools::test(filter = 'optimizer-contract', reporter = 'summary')"`
+- `Rscript -e 'rmarkdown::render("vignettes/convergence.Rmd", output_dir = tempfile("convergence-render-"), quiet = FALSE)'`
+- `rg -n 'optimizer_preset|careful|robust|Control presets and defaults|Slice 274|nlminb\(\).*budget|expanded optimizer settings|recorded optimizer settings' NEWS.md ROADMAP.md R/control.R man/drm_control.Rd tests/testthat/test-optimizer-contract.R vignettes/convergence.Rmd docs/design/35-optimizer-start-map-multistart.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-18-slice-274-convergence-controls.md`
+- `rg -n 'fallback optimizer.*implemented|fallback optimizers.*implemented|multi-start.*implemented|multi_start.*implemented|warm-start.*implemented|warm starts.*implemented|BFGS.*automatic|L-BFGS-B.*automatic|many optimizers|automatic.*optimizers' README.md ROADMAP.md NEWS.md docs/design vignettes R tests/testthat --glob '!docs/dev-log/**'`
+  returned only planned-boundary text, not a fallback or multi-start
+  implementation claim.
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `git diff --check`
+- `Rscript tools/codex-checkpoint.R --goal "Slice 274 convergence control presets" --next "stage, commit, push, and open draft PR"`
+
+Known limitations:
+
+- No warm-start, user-start, map, fallback-optimizer, or multi-start path was
+  added.
+- No optimizer comparison table, Hessian eigenvector culprit report, or
+  automatic simplification advice was added.
+- Presets tune only `iter.max` and `eval.max`; users still need `check_drm()`,
+  simpler-model comparison, scaling, and profiles to diagnose weak fits.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-274-convergence-controls.md`.
+
+## 2026-05-18 - Slice 275 warm-start boundary
+
+Goal: design the simpler-fit warm-start route without letting unimplemented
+start controls pass silently into `stats::nlminb()`.
+
+Files changed:
+
+- `NEWS.md`
+- `R/control.R`
+- `ROADMAP.md`
+- `docs/design/35-optimizer-start-map-multistart.md`
+- `docs/dev-log/after-task/2026-05-18-slice-275-warm-start-boundary.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-18-194822-codex-checkpoint.md`
+- `tests/testthat/test-optimizer-contract.R`
+- `vignettes/convergence.Rmd`
+
+What changed:
+
+- Reserved `start_from`, `warm_start`, `warm_starts`, and `warm_start_from` in
+  `drm_control()`'s optimizer-control boundary.
+- Extended optimizer-contract tests so warm-start names error in plain
+  `control = list(...)` and `drm_control(optimizer = list(...))` paths.
+- Documented the future simpler-fit warm-start ladder and provenance contract.
+- Updated the convergence guide, roadmap, and NEWS to keep warm starts planned.
+
+Checks run:
+
+- `air format NEWS.md R/control.R ROADMAP.md docs/design/35-optimizer-start-map-multistart.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-18-slice-275-warm-start-boundary.md docs/dev-log/recovery-checkpoints/2026-05-18-194822-codex-checkpoint.md tests/testthat/test-optimizer-contract.R vignettes/convergence.Rmd`
+- `Rscript -e "devtools::test(filter = 'optimizer-contract|control', reporter = 'summary')"`
+- `Rscript -e 'rmarkdown::render("vignettes/convergence.Rmd", output_dir = tempfile("convergence-render-"), quiet = FALSE)'`
+- `rg -n 'Slice 275|start_from|warm_start|warm_starts|warm_start_from|simpler-fit|source-fit contract|warm-start names|Warm starts from simpler models' NEWS.md ROADMAP.md R/control.R tests/testthat/test-optimizer-contract.R vignettes/convergence.Rmd docs/design/35-optimizer-start-map-multistart.md`
+- `rg -n 'warm-start.*implemented|warm starts.*implemented|start_from.*implemented|warm_start.*implemented|source-fit.*implemented|copies.*source fit|copied.*source fit' README.md ROADMAP.md NEWS.md docs/design vignettes R tests/testthat --glob '!docs/dev-log/**'`
+  returned only negative or planned-boundary wording, not an implemented
+  warm-start claim.
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `git diff --check`
+- `Rscript tools/codex-checkpoint.R --goal "Slice 275 warm-start boundary" --next "stage, commit, push, and open draft PR"`
+
+Known limitations:
+
+- No warm-start fitting, source-fit validation, target-name mapping, or
+  parameter-copying path was added.
+- No `check_drm()` warm-start provenance row exists yet.
+- No simpler-to-richer route has simulation recovery or optimizer comparison
+  evidence yet.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-275-warm-start-boundary.md`.
+
+## 2026-05-18 - Slice 276 fallback optimizer boundary
+
+Goal: design the multi-optimizer fallback route without making fallback BFGS or
+L-BFGS-B refits automatic for ordinary models.
+
+Files changed:
+
+- `NEWS.md`
+- `R/control.R`
+- `ROADMAP.md`
+- `docs/design/35-optimizer-start-map-multistart.md`
+- `docs/dev-log/after-task/2026-05-18-slice-276-fallback-optimizer-boundary.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-18-195332-codex-checkpoint.md`
+- `tests/testthat/test-optimizer-contract.R`
+- `vignettes/convergence.Rmd`
+
+What changed:
+
+- Reserved `fallback_optimizers`, `optimizer_fallback`, and
+  `optimizer_fallbacks` alongside the existing `fallback_optimizer` name.
+- Extended optimizer-contract tests so fallback names error in plain
+  `control = list(...)` and `drm_control(optimizer = list(...))` paths.
+- Expanded the optimizer contract design note with the future fallback sequence,
+  selected-optimizer rule, and comparison provenance table.
+- Updated the convergence guide, roadmap, and NEWS to keep fallback optimizers
+  planned, not automatic.
+
+Checks run:
+
+- `air format NEWS.md R/control.R ROADMAP.md docs/design/35-optimizer-start-map-multistart.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-18-slice-276-fallback-optimizer-boundary.md docs/dev-log/recovery-checkpoints/2026-05-18-195332-codex-checkpoint.md tests/testthat/test-optimizer-contract.R vignettes/convergence.Rmd`
+- `Rscript -e "devtools::test(filter = 'optimizer-contract|control', reporter = 'summary')"`
+- `Rscript -e 'rmarkdown::render("vignettes/convergence.Rmd", output_dir = tempfile("convergence-render-"), quiet = FALSE)'`
+- `rg -n 'Slice 276|fallback_optimizer|fallback_optimizers|optimizer_fallback|optimizer_fallbacks|BFGS|L-BFGS-B|selected-optimizer|selected optimizer|optimizer comparison|fallback-control names' NEWS.md ROADMAP.md R/control.R tests/testthat/test-optimizer-contract.R vignettes/convergence.Rmd docs/design/35-optimizer-start-map-multistart.md`
+- `rg -n 'fallback optimizer.*implemented|fallback optimizers.*implemented|fallback refits.*implemented|fallback.*automatic|BFGS.*automatic|L-BFGS-B.*automatic|optimizer_fallback.*implemented|fallback_optimizer.*implemented|optimizer comparison.*implemented' README.md ROADMAP.md NEWS.md docs/design vignettes R tests/testthat --glob '!docs/dev-log/**'`
+  returned only negative or planned-boundary wording, not a fallback
+  implementation claim.
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `git diff --check`
+- `Rscript tools/codex-checkpoint.R --goal "Slice 276 fallback optimizer boundary" --next "stage, commit, push, and open draft PR"`
+
+Known limitations:
+
+- No fallback optimizer is run.
+- No optimizer comparison table is stored on fitted objects.
+- No selected-optimizer provenance row is added to `check_drm()`.
+- No BFGS or L-BFGS-B parameter-scale compatibility tests exist yet.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-276-fallback-optimizer-boundary.md`.
+
+## 2026-05-18 - Slice 277 fixed-gradient culprit diagnostic
+
+Goal: improve convergence triage by naming the largest fixed-gradient component
+in `check_drm()` without changing optimization or Hessian logic.
+
+Files changed:
+
+- `NEWS.md`
+- `R/check.R`
+- `ROADMAP.md`
+- `docs/dev-log/after-task/2026-05-18-slice-277-gradient-culprit-diagnostic.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-18-200027-codex-checkpoint.md`
+- `man/check_drm.Rd`
+- `tests/testthat/test-check-drm.R`
+- `vignettes/convergence.Rmd`
+
+What changed:
+
+- Updated the `fixed_gradient` diagnostic value from a bare maximum to
+  `max=<value>; component=<label>`.
+- Added internal duplicate-name disambiguation so repeated TMB parameter names
+  become labels such as `beta_mu[2]`.
+- Added a focused warning-branch test for the second `beta_mu` component.
+- Updated the convergence guide, roxygen reference documentation, roadmap, and
+  NEWS.
+
+Checks run:
+
+- `air format NEWS.md R/check.R ROADMAP.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-18-slice-277-gradient-culprit-diagnostic.md docs/dev-log/recovery-checkpoints/2026-05-18-200027-codex-checkpoint.md man/check_drm.Rd tests/testthat/test-check-drm.R vignettes/convergence.Rmd`
+- `Rscript -e "devtools::document()"`
+- `Rscript -e "devtools::test(filter = 'check-drm', reporter = 'summary')"`
+- `Rscript -e 'rmarkdown::render("vignettes/convergence.Rmd", output_dir = tempfile("convergence-render-"), quiet = FALSE)'`
+- `rg -n 'Slice 277|fixed_gradient|largest fixed-gradient|largest component|component=|beta_mu\[2\]|Hessian and boundary diagnostics|gradient component label' NEWS.md ROADMAP.md R/check.R man/check_drm.Rd tests/testthat/test-check-drm.R vignettes/convergence.Rmd`
+- `rg -n 'Hessian eigenvector.*implemented|culprit.*implemented|pdHess.*culprit|boundary.*culprit.*implemented|gradient component.*implemented|largest fixed-gradient.*implemented' README.md ROADMAP.md NEWS.md docs/design vignettes R tests/testthat --glob '!docs/dev-log/**'`
+  returned no matches.
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `git diff --check`
+- `Rscript tools/codex-checkpoint.R --goal "Slice 277 fixed-gradient culprit diagnostic" --next "stage, commit, push, and open draft PR"`
+
+Known limitations:
+
+- Hessian eigenvector culprit reporting remains planned.
+- Boundary-specific culprit labels for random-effect SDs and correlations remain
+  limited to existing row values.
+- Duplicate TMB parameter names are disambiguated positionally, not mapped back
+  to formula-term labels in this slice.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-277-gradient-culprit-diagnostic.md`.
+
+## 2026-05-18 - Slice 278 interval hardening
+
+Goal: close the pre-simulation interval-hardening checkpoint by making the
+current fitted-model and Phase 18 interval routes explicit without changing the
+likelihood or adding a broad interval engine.
+
+Files changed:
+
+- `NEWS.md`
+- `README.md`
+- `ROADMAP.md`
+- `docs/design/12-profile-likelihood-cis.md`
+- `docs/design/43-phase-18-interval-producer-contract.md`
+- `docs/dev-log/after-task/2026-05-18-slice-278-interval-hardening.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-18-201509-codex-checkpoint.md`
+- `tests/testthat/test-phase18-sim-uncertainty.R`
+- `tests/testthat/test-profile-targets.R`
+- `vignettes/model-workflow.Rmd`
+
+What changed:
+
+- Added a Student-t interval-inventory test for fixed-effect `nu` targets,
+  link-scale Wald intervals, and the absence of a response-scale direct `nu`
+  target.
+- Extended the Phase 18 Fisher-z correlation helper test to cover supplied
+  Fisher-z-scale standard errors and custom endpoint columns.
+- Updated README, workflow vignette, and design notes to keep fitted-model Wald
+  and profile intervals separate from Fisher-z simulation producers.
+- Marked Slice 278 done in the roadmap and added a NEWS bullet.
+
+Checks run:
+
+- `air format NEWS.md README.md ROADMAP.md docs/design/12-profile-likelihood-cis.md docs/design/43-phase-18-interval-producer-contract.md tests/testthat/test-phase18-sim-uncertainty.R tests/testthat/test-profile-targets.R vignettes/model-workflow.Rmd`
+- `Rscript -e "devtools::test(filter = 'profile-targets|phase18-sim-uncertainty', reporter = 'summary')"`
+- `Rscript -e 'devtools::load_all(quiet = TRUE); rmarkdown::render("vignettes/model-workflow.Rmd", output_dir = tempfile("model-workflow-render-"), quiet = FALSE)'`
+- `rg -n 'Slice 278|Student-t `nu`|fixef:nu:x|Fisher-z|fisher_z_backtransformed|phase18_add_correlation_fisher_z_intervals|derived_interval_unavailable|bootstrap intervals|Interval hardening' NEWS.md README.md ROADMAP.md docs/design/12-profile-likelihood-cis.md docs/design/43-phase-18-interval-producer-contract.md tests/testthat/test-phase18-sim-uncertainty.R tests/testthat/test-profile-targets.R vignettes/model-workflow.Rmd`
+- `rg -n 'Fisher-z.*confint\(\).*default|Fisher-z.*fitted-model|bootstrap intervals are implemented|derived.*interval.*implemented|response-scale `nu`.*profile-ready|`nu`.*response-scale.*confint|variance.*profile.*implemented for all|q4.*profile.*implemented' README.md ROADMAP.md NEWS.md docs/design vignettes R tests/testthat --glob '!docs/dev-log/**'`
+  returned only negative, planned-boundary, or historical status wording.
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `git diff --check`
+- `Rscript tools/codex-checkpoint.R --goal "Slice 278 interval hardening" --next "stage, commit, push, and open draft PR"`
+
+Known limitations:
+
+- No new fitted-model Fisher-z `confint()` route was added.
+- No response-scale Student-t `nu` profile target was added.
+- Derived variance, covariance-product, q4 correlation, repeatability,
+  phylogenetic-signal, and bootstrap intervals remain unavailable or planned.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-278-interval-hardening.md`.
+
+## 2026-05-18 - Slice 279 Bergmann report fixes
+
+Goal: close the Bergmann-report follow-up items without widening the modelling
+scope: invalid fixed-effect Wald variances should be unavailable rather than
+`NaN`, univariate `sigma ~ phylo(...)` should have a targeted unsupported
+message, labelled q4 syntax that decomposes into two q2 blocks should be tested,
+and long optimizer histories should have reader-facing triage guidance.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `R/drmTMB.R`
+- `R/profile.R`
+- `docs/dev-log/after-task/2026-05-18-slice-279-bergmann-report-fixes.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-18-203121-codex-checkpoint.md`
+- `tests/testthat/test-biv-gaussian.R`
+- `tests/testthat/test-phylo-gaussian.R`
+- `tests/testthat/test-profile-targets.R`
+- `vignettes/convergence.Rmd`
+
+What changed:
+
+- Added a `profile_wald_standard_errors()` guard so invalid fixed-effect
+  variances produce `NA` Wald endpoints and `conf.status = "wald_unavailable"`
+  instead of `NaN` intervals with a valid-looking status.
+- Added a univariate `sigma ~ phylo(...)` note to the structured-effect
+  unsupported message, directing users to fixed-effect `sigma` predictors or
+  the documented labelled bivariate q4 phylogenetic block when that is the
+  intended four-endpoint model.
+- Added a bivariate Gaussian test confirming that separate `p` and `q` labels
+  across matching `mu1`/`mu2` and `sigma1`/`sigma2` terms fit as two q2 blocks,
+  report mean-mean and scale-scale `corpairs()` rows, and do not produce q4
+  `re_cov` profile targets.
+- Added convergence-vignette guidance for checking whether a long iteration
+  history hit `iter.max` or `eval.max`, rerunning with larger optimizer
+  budgets, comparing estimates/gradients/boundary rows, and simplifying
+  boundary-heavy covariance structures.
+- Marked Slice 279 done in the roadmap and added a NEWS bullet.
+
+Checks run:
+
+- `air format NEWS.md ROADMAP.md R/profile.R R/drmTMB.R tests/testthat/test-profile-targets.R tests/testthat/test-phylo-gaussian.R tests/testthat/test-biv-gaussian.R vignettes/convergence.Rmd`
+- `Rscript -e "devtools::test(filter = 'profile-targets|phylo-gaussian|biv-gaussian', reporter = 'summary')"`
+- `Rscript -e 'devtools::load_all(quiet = TRUE); rmarkdown::render("vignettes/convergence.Rmd", output_dir = tempfile("convergence-render-"), quiet = FALSE)'`
+- `rg -n 'Slice 279|Bergmann|wald_unavailable|sigma ~ phylo|q4 block-diagonal|long iteration|n_qgt2_blocks|largest fixed-effect Wald|block-diagonal q2' NEWS.md ROADMAP.md R/profile.R R/drmTMB.R tests/testthat/test-profile-targets.R tests/testthat/test-phylo-gaussian.R tests/testthat/test-biv-gaussian.R vignettes/convergence.Rmd`
+- `rg -n 'sigma ~ phylo.*fitted|univariate `?sigma`?.*phylo.*fitted|block-diagonal.*q4.*unsupported|boundary-NaN|NaN.*conf\\.status = "wald"|long iteration.*ignore|long iteration.*stronger evidence' README.md ROADMAP.md NEWS.md docs/design vignettes R tests/testthat --glob '!docs/dev-log/**'`
+  returned only the new negative `not yet fitted` wording and expected
+  no-current-claim matches.
+- `rg -n 'meta_gaussian|tau ~|rho ~|meta_known_V\\([^V]' README.md ROADMAP.md NEWS.md docs/design vignettes R tests/testthat --glob '!docs/dev-log/**'`
+  returned existing design-boundary and compatibility references, not new drift.
+- `rg -n 'sigma.*phylo|phylo.*sigma|q4.*block|block-diagonal|long iteration|wald_unavailable' README.md docs/dev-log/known-limitations.md docs/design/01-formula-grammar.md vignettes/formula-grammar.Rmd _pkgdown.yml`
+  confirmed the status inventory still separates planned univariate
+  phylogenetic `sigma` terms from the fitted labelled bivariate q4 route.
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `git diff --check`
+- `Rscript tools/codex-checkpoint.R --goal "Slice 279 Bergmann report fixes" --next "stage, commit, push, and open draft PR"`
+
+Known limitations:
+
+- Univariate `sigma ~ phylo(...)` remains planned.
+- This slice does not add q4 derived interval support or predictor-dependent
+  phylogenetic correlations.
+- The Wald guard marks invalid fixed-effect SE rows unavailable; it does not
+  repair a failed Hessian or weakly identified model.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-279-bergmann-report-fixes.md`.
+
+## 2026-05-18 - Slice 280 meta_V hardening
+
+Goal: harden the preferred `meta_V(V = V)` route by covering vector and
+full-matrix known covariance through the preferred spelling, clarifying that
+`scale = "exact"` is unnecessary because additive exact known `V` is the
+default, and removing current-facing prose drift back to `meta_known_V()` as the
+main recommendation.
+
+Files changed:
+
+- `NEWS.md`
+- `README.md`
+- `ROADMAP.md`
+- `R/drmTMB.R`
+- `R/formula-markers.R`
+- `R/meta-vcov.R`
+- `docs/design/22-likelihood-weights.md`
+- `docs/dev-log/after-task/2026-05-18-slice-280-meta-v-hardening.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/known-limitations.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-18-204217-codex-checkpoint.md`
+- `man/drmTMB.Rd`
+- `man/meta_vcov_bivariate.Rd`
+- `man/relmat.Rd`
+- `tests/testthat/test-meta-known-v.R`
+
+What changed:
+
+- Added a targeted parser error for `meta_V(V = V, scale = "exact")`, telling
+  users to remove `scale` because `meta_V(V = V)` is already the exact additive
+  known-covariance route.
+- Extended the `meta_V()` alias test so full-matrix `meta_V(V = V)` is compared
+  against `meta_known_V(V = V)` for coefficients and log-likelihood, stores
+  `V_known_type = "matrix"`, and returns finite Wald fixed-effect intervals.
+- Updated `drmTMB()` and `meta_vcov_bivariate()` documentation so the preferred
+  spelling is `meta_V(V = V)`.
+- Updated `relmat()` prose, README, known limitations, likelihood-weights
+  design notes, NEWS, and the roadmap so current-facing text leads with
+  `meta_V()` while preserving `meta_known_V()` as a compatibility alias.
+
+Checks run:
+
+- `air format R/drmTMB.R R/meta-vcov.R tests/testthat/test-meta-known-v.R`
+- `Rscript -e "devtools::document()"`
+- `Rscript -e "devtools::test(filter = 'meta-known-v', reporter = 'summary')"`
+- `Rscript -e "devtools::test(filter = 'meta-known-v|profile-targets|phase18-meta-v', reporter = 'summary')"`
+- `air format NEWS.md README.md ROADMAP.md R/drmTMB.R R/formula-markers.R R/meta-vcov.R docs/design/22-likelihood-weights.md docs/dev-log/known-limitations.md tests/testthat/test-meta-known-v.R`
+- `Rscript -e "devtools::document()"`
+- `rg -n 'preferred.*meta_known_V|use \\[meta_known_V\\]|use `meta_known_V|known `V` matrix used by \\[meta_known_V\\]|Known sampling variance or covariance remains separate and should use `meta_known_V|covariance remains `meta_known_V|meta-analysis should use `meta_known_V|meta_V\\(V = V, scale = "exact"\\).*implemented|scale = "exact".*implemented|weights = 1 / vi.*same model|tau ~|meta_gaussian' README.md NEWS.md ROADMAP.md docs/design vignettes R man tests/testthat --glob '!docs/dev-log/**'`
+  returned only compatibility-alias text, older NEWS/history entries,
+  intentional `meta_gaussian()` / `tau ~` design boundaries, and the expected
+  `weights = 1 / vi` contrast.
+- `rg -n 'Slice 280|meta_V\\(V = V\\).*hardening|scale = "exact"|without.*scale|exact additive|preferred known-covariance|full-matrix alias|Wald fixed-effect interval|meta_vcov_bivariate\\(\\).*meta_V|compatibility alias' NEWS.md README.md ROADMAP.md docs/design/22-likelihood-weights.md docs/dev-log/known-limitations.md R/drmTMB.R R/formula-markers.R R/meta-vcov.R man/drmTMB.Rd man/meta_vcov_bivariate.Rd man/relmat.Rd tests/testthat/test-meta-known-v.R`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `git diff --check`
+- `Rscript tools/codex-checkpoint.R --goal "Slice 280 meta_V hardening" --next "stage, commit, push, and open draft PR"`
+
+Known limitations:
+
+- `meta_known_V(V = V)` remains supported as a compatibility alias.
+- Proportional sampling-variance likelihoods, sparse known covariance storage,
+  full-matrix known `V` with non-unit weights, and missing single-outcome
+  bivariate meta-analysis remain planned.
+- Known `V` is still not an estimated profile or Wald interval target.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-280-meta-v-hardening.md`.
+
+## 2026-05-18 - Slice 281 structured user surface
+
+Goal: make planned `animal()` and `relmat()` syntax more usable to readers
+without implying a fitted animal-model or lower-level relatedness likelihood.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/dev-log/after-task/2026-05-18-slice-281-structured-user-surface.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-18-204717-codex-checkpoint.md`
+- `vignettes/model-map.Rmd`
+- `vignettes/phylogenetic-spatial.Rmd`
+
+What changed:
+
+- Added a planned-question table to the structural-dependence article that
+  pairs animal and `relmat()` questions with planned syntax and fitted actions
+  available now.
+- Clarified that ordinary `(1 | individual)` or `(1 | line)` fits are
+  repeatability sensitivity models that ignore pedigree or known-matrix
+  relatedness.
+- Clarified that known sampling covariance among effect-size estimates belongs
+  to `meta_V(V = V)`, not to future `relmat()` latent relatedness syntax.
+- Added the same `meta_V()` versus `relmat()` boundary to the model map.
+- Marked Slice 281 done in the roadmap and added a NEWS bullet.
+
+Checks run:
+
+- `air format NEWS.md ROADMAP.md vignettes/phylogenetic-spatial.Rmd vignettes/model-map.Rmd`
+- `Rscript -e 'devtools::load_all(quiet = TRUE); rmarkdown::render("vignettes/phylogenetic-spatial.Rmd", output_dir = tempfile("phylo-spatial-render-"), quiet = FALSE); rmarkdown::render("vignettes/model-map.Rmd", output_dir = tempfile("model-map-render-"), quiet = FALSE)'`
+- `rg -n 'Slice 281|Structural-dependence docs|planned animal|relmat\\(\\).*future latent|Fitted action now|repeatability sensitivity|matrix is sampling covariance|meta_V\\(V = V\\).*relmat|latent relatedness|observation-level known sampling covariance' NEWS.md ROADMAP.md vignettes/phylogenetic-spatial.Rmd vignettes/model-map.Rmd`
+- `rg -n 'animal\\(.*Implemented|relmat\\(.*Implemented|animal\\(.*fitted|relmat\\(.*fitted|relmat\\(.*sampling covariance|meta_V\\(V = V\\).*latent relatedness|V.*relatedness.*relmat|weights.*relatedness' README.md NEWS.md ROADMAP.md docs/design vignettes R tests/testthat --glob '!docs/dev-log/**'`
+  returned only intended planned-boundary, design, or negative-status wording,
+  not a fitted animal/`relmat()` claim.
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `git diff --check`
+- `Rscript tools/codex-checkpoint.R --goal "Slice 281 structured user surface" --next "stage, commit, push, and open draft PR"`
+
+Known limitations:
+
+- This slice adds no animal-model, `A`/`Ainv`, `relmat(K)`, `relmat(Q)`,
+  combined phylogenetic plus spatial, or sparse precision likelihood.
+- Existing parser and unsupported-boundary tests remain the evidence for the
+  planned marker grammar.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-281-structured-user-surface.md`.
+
+## 2026-05-18 - Slice 282 sparse precision boundary
+
+Goal: clarify dense covariance versus sparse precision routes for future
+phylogenetic, animal-model, and `relmat()` work without claiming a new fitted
+likelihood.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/42-asreml-efficiency-lessons.md`
+- `docs/dev-log/after-task/2026-05-18-slice-282-sparse-precision-boundary.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-18-205304-codex-checkpoint.md`
+- `vignettes/model-map.Rmd`
+- `vignettes/phylogenetic-spatial.Rmd`
+
+What changed:
+
+- Added a representation-boundary table to the ASReml efficiency note,
+  separating dense covariance inputs (`A`, `K`) from sparse precision or
+  inverse-relatedness inputs (`Ainv`, `Q`) and from observation-level
+  `meta_V(V = V)` sampling covariance.
+- Updated the structural-dependence article to explain why dense VCV inputs are
+  small-example/parity routes and why speed claims require sparse precision
+  evidence.
+- Updated the model-map known-covariance row to use the preferred
+  `meta_V(V = V)` spelling and added the dense-`K`/`A` versus sparse-`Q`/`Ainv`
+  boundary to the animal/`relmat()` row.
+- Marked Slice 282 done in the roadmap and added a NEWS bullet.
+
+Checks run:
+
+- `air format NEWS.md ROADMAP.md docs/design/42-asreml-efficiency-lessons.md vignettes/phylogenetic-spatial.Rmd vignettes/model-map.Rmd`
+- `Rscript -e 'devtools::load_all(quiet = TRUE); rmarkdown::render("vignettes/phylogenetic-spatial.Rmd", output_dir = tempfile("phylo-spatial-render-"), quiet = FALSE); rmarkdown::render("vignettes/model-map.Rmd", output_dir = tempfile("model-map-render-"), quiet = FALSE)'`
+- `rg -n 'Slice 282|dense covariance inputs|sparse precision inputs|dense VCV|Ainv|Q\\)|large-pedigree|large-matrix|sparse-precision|representation boundary|meta_V\\(V = V\\).*sampling covariance' NEWS.md ROADMAP.md docs/design/42-asreml-efficiency-lessons.md vignettes/phylogenetic-spatial.Rmd vignettes/model-map.Rmd`
+- `rg -n 'large-pedigree.*implemented|large-matrix.*implemented|ASReml-like.*speed|dense `?K`?.*large|dense `?A`?.*large|Ainv.*fitted|relmat\\(.*Q.*fitted|meta_V\\(V = V\\).*relatedness|V.*Ainv|weights.*Ainv|sampling covariance.*relmat' README.md NEWS.md ROADMAP.md docs/design vignettes R tests/testthat --glob '!docs/dev-log/**'`
+  returned planned-boundary and negative-status wording, not a current fitted
+  sparse-precision or large-matrix claim.
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `git diff --check`
+- `Rscript tools/codex-checkpoint.R --goal "Slice 282 sparse precision boundary" --next "stage, commit, push, and open draft PR"`
+
+Known limitations:
+
+- No sparse precision likelihood, dense `A`/`K` animal or `relmat()` fit,
+  `Ainv`/`Q` route, sparse known sampling covariance, or benchmark was added.
+- Large-pedigree and large-matrix claims remain blocked until implementation,
+  diagnostics, recovery tests, and scaling evidence exist.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-282-sparse-precision-boundary.md`.
+
+## 2026-05-18 - Slice 283 non-Gaussian family map
+
+Goal: list current family routes, distributional-parameter links, shape or
+coscale slots, fitted random-effect allowance, and test-evidence state before
+the next count, proportion, shape, ordinal, and mixed-response hardening
+slices.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/02-family-registry.md`
+- `docs/design/21-tutorial-style.md`
+- `docs/design/34-validation-debt-register.md`
+- `docs/design/46-pre-simulation-readiness-matrix.md`
+- `docs/dev-log/after-task/2026-05-18-slice-283-nongaussian-family-map.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-18-210801-codex-checkpoint.md`
+- `vignettes/distribution-families.Rmd`
+- `vignettes/source-map.Rmd`
+
+What changed:
+
+- Added a Slice 283 family-and-evidence map to the family registry, covering
+  public family routes, links, shape or coscale slots, current random-effect
+  allowance, and named test evidence.
+- Corrected the beta-binomial row to fixed-effect only, with bounded-response
+  and scale random effects still blocked.
+- Updated Poisson and NB2 rows to identify non-zero-inflated `mu` random
+  intercepts and independent numeric slopes as the fitted non-Gaussian
+  random-effect paths.
+- Added an NB2 ordinary random-effect section to the validation-debt register.
+- Updated family chooser, source map, tutorial-style, NEWS, roadmap, and
+  readiness wording around preferred `meta_V(V = V)`, retaining
+  `meta_known_V(V = V)` as a compatibility alias.
+
+Checks run:
+
+- `air format NEWS.md ROADMAP.md docs/design/02-family-registry.md docs/design/34-validation-debt-register.md docs/design/46-pre-simulation-readiness-matrix.md vignettes/distribution-families.Rmd`
+- `air format docs/design/21-tutorial-style.md`
+- `air format vignettes/source-map.Rmd`
+- `Rscript -e 'devtools::load_all(quiet = TRUE); rmarkdown::render("vignettes/distribution-families.Rmd", output_dir = tempfile("distribution-families-render-"), quiet = FALSE)'`
+- `Rscript -e 'devtools::load_all(quiet = TRUE); rmarkdown::render("vignettes/source-map.Rmd", output_dir = tempfile("source-map-render-"), quiet = FALSE)'`
+- `Rscript -e "devtools::test(filter = 'family-link-contract|poisson-mean|nbinom2-location-scale|beta-binomial', reporter = 'summary')"`
+- `Rscript -e "devtools::test(filter = 'phase18-poisson-mu-random-effect|phase18-nbinom2-mu-random-effect', reporter = 'summary')"`
+- Stale-wording scans:
+
+```sh
+rg -n 'beta-binomial.*ordinary|beta_binomial\(\).*ordinary|beta-binomial.*random intercept|beta-binomial.*independent numeric|Bivariate random effects are planned but not implemented|Meta-analysis: Gaussian regression with `meta_known_V\(V = V\)`|meta-analysis.*with `meta_known_V\(V = V\)`' docs/design vignettes README.md ROADMAP.md NEWS.md
+rg -n 'meta_known_V\(V = V\).*remains the route|`meta_known_V\(V = V\)` in one bivariate|with `meta_known_V\(V = V\)`$' vignettes/source-map.Rmd docs/design vignettes README.md ROADMAP.md NEWS.md
+rg -n 'family map|Family and parameter map|Slice 283|beta-binomial|Poisson/NB2|meta_V\(V = V\)|meta_known_V\(V = V\)|fixed-effect only|random intercepts plus independent slopes|random-effect allowance|test evidence' README.md ROADMAP.md NEWS.md docs/dev-log/known-limitations.md docs/design/01-formula-grammar.md docs/design/02-family-registry.md docs/design/21-tutorial-style.md docs/design/34-validation-debt-register.md docs/design/46-pre-simulation-readiness-matrix.md vignettes/formula-grammar.Rmd vignettes/distribution-families.Rmd vignettes/source-map.Rmd _pkgdown.yml
+```
+
+- `Rscript -e "pkgdown::check_pkgdown()"`, rerun after the final source-map
+  edit and reporting no problems.
+- `git diff --check`
+- `Rscript tools/codex-checkpoint.R --goal "Slice 283 non-Gaussian family map" --next "stage, commit, push, and open draft PR"`
+
+Known limitations:
+
+- This slice adds no likelihood, parser route, random-effect allowance,
+  interval method, simulation grid, or pkgdown navigation item.
+- Non-Gaussian `sigma`, shape, inflation, hurdle, zero-one-inflation,
+  ordinal, structured, and mixed-response random-effect paths remain planned
+  or blocked unless the new map names a fitted route.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-283-nongaussian-family-map.md`.
+
+## 2026-05-18 - Slice 284 count-model hardening
+
+Goal: add explicit fixed-effect interval evidence for fitted count-family
+dpars and make the count tutorial state the fitted mixed-count boundary.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/dev-log/after-task/2026-05-18-slice-284-count-model-hardening.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-18-211627-codex-checkpoint.md`
+- `tests/testthat/test-poisson-mean.R`
+- `tests/testthat/test-nbinom2-location-scale.R`
+- `tests/testthat/test-truncated-nbinom2-location-scale.R`
+- `tests/testthat/test-zi-poisson.R`
+- `tests/testthat/test-zi-nbinom2.R`
+- `tests/testthat/test-hurdle-nbinom2.R`
+- `vignettes/count-nbinom2.Rmd`
+
+What changed:
+
+- Added `confint()` assertions to the count test files for fitted
+  fixed-effect dpars: Poisson `mu`, NB2 and truncated NB2 `mu`/`sigma`,
+  zero-inflated Poisson `mu`/`zi`, zero-inflated NB2 `mu`/`sigma`/`zi`, and
+  hurdle NB2 `mu`/`sigma`/`hu`.
+- Kept the TMB parameter contract explicit, including hurdle `hu` rows mapping
+  to the existing internal `beta_zi` parameter block.
+- Updated the count tutorial boundary to say that ordinary non-zero-inflated
+  Poisson/NB2 `mu` random intercepts and independent numeric slopes are fitted,
+  while zero-inflated, hurdle, truncated, and scale-side count routes remain
+  fixed-effect only.
+- Marked Slice 284 done in the roadmap and added a NEWS bullet.
+
+Checks run:
+
+```sh
+air format tests/testthat/test-poisson-mean.R tests/testthat/test-nbinom2-location-scale.R tests/testthat/test-truncated-nbinom2-location-scale.R tests/testthat/test-zi-poisson.R tests/testthat/test-zi-nbinom2.R tests/testthat/test-hurdle-nbinom2.R vignettes/count-nbinom2.Rmd
+air format NEWS.md ROADMAP.md
+Rscript -e "devtools::test(filter = 'poisson-mean|nbinom2-location-scale|truncated-nbinom2-location-scale|zi-poisson|zi-nbinom2|hurdle-nbinom2', reporter = 'summary')"
+Rscript -e "devtools::test(filter = 'phase18-poisson-mu-random-effect|phase18-nbinom2-mu-random-effect', reporter = 'summary')"
+Rscript -e 'devtools::load_all(quiet = TRUE); rmarkdown::render("vignettes/count-nbinom2.Rmd", output_dir = tempfile("count-nbinom2-render-"), quiet = FALSE)'
+rg -n 'implemented count path is intentionally fixed-effect|count path is intentionally fixed-effect|fixed-effect and univariate|meta_known_V\(V = V\) with counts|random effects in NB2 `sigma` or `zi`' vignettes/count-nbinom2.Rmd vignettes/distribution-families.Rmd docs/design README.md ROADMAP.md NEWS.md
+rg -n 'Slice 284|Count-family tests|fixed-effect Wald interval rows|ordinary non-zero-inflated Poisson/NB2|zero-inflated NB2|hurdle NB2|confint\(fit\)|fixef:hu|fixef:zi|fixef:sigma' NEWS.md ROADMAP.md vignettes/count-nbinom2.Rmd tests/testthat/test-poisson-mean.R tests/testthat/test-nbinom2-location-scale.R tests/testthat/test-truncated-nbinom2-location-scale.R tests/testthat/test-zi-poisson.R tests/testthat/test-zi-nbinom2.R tests/testthat/test-hurdle-nbinom2.R
+Rscript -e "pkgdown::check_pkgdown()"
+git diff --check
+Rscript tools/codex-checkpoint.R --goal "Slice 284 count-model hardening" --next "stage, commit, push, and open draft PR"
+```
+
+Known limitations:
+
+- No new count likelihood, parser route, random-effect allowance, interval
+  method, or simulation grid was added.
+- Zero-truncated NB2 random effects, zero-inflated count random effects,
+  hurdle random effects, NB2 `sigma` random effects, correlated or labelled
+  count slopes, structured count effects, COM-Poisson, and mixed-response
+  count models remain planned.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-284-count-model-hardening.md`.
+
+## 2026-05-18 - Slice 285 proportion hardening
+
+Goal: add explicit fixed-effect interval evidence for fitted beta and
+beta-binomial proportion paths and keep the tutorial boundary honest about
+planned zero-one-inflation and random-effect routes.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/02-family-registry.md`
+- `docs/design/34-validation-debt-register.md`
+- `docs/dev-log/after-task/2026-05-18-slice-285-proportion-hardening.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-18-213216-codex-checkpoint.md`
+- `tests/testthat/test-beta-location-scale.R`
+- `tests/testthat/test-beta-binomial.R`
+- `vignettes/proportion-beta-binomial.Rmd`
+
+What changed:
+
+- Added `confint()` assertions to the fitted beta and beta-binomial tests so
+  `mu` and `sigma` fixed-effect rows must appear with `beta_mu`,
+  `beta_sigma`, and Wald status.
+- Updated the proportion tutorial boundary to state that fixed-effect
+  `beta()` and `beta_binomial()` are fitted, while fixed-effect `zoi`/`coi`,
+  zero-one-inflation, random effects, structured bounded responses,
+  mixed-response bounded models, and bounded-response `meta_V(V = V)` remain
+  planned or blocked.
+- Updated the family registry, validation-debt register, roadmap, and NEWS with
+  the same evidence boundary.
+
+Checks run:
+
+```sh
+air format tests/testthat/test-beta-location-scale.R tests/testthat/test-beta-binomial.R vignettes/proportion-beta-binomial.Rmd docs/design/02-family-registry.md docs/design/34-validation-debt-register.md NEWS.md ROADMAP.md
+Rscript -e "devtools::test(filter = 'beta-location-scale|beta-binomial', reporter = 'summary')"
+Rscript -e 'devtools::load_all(quiet = TRUE); rmarkdown::render("vignettes/proportion-beta-binomial.Rmd", output_dir = tempfile("proportion-render-"), quiet = FALSE)'
+rg -n 'meta_known_V\(V = V\) with beta|fixed `zoi` and `coi` likelihoods should come before|zero-one-inflated beta.*fitted|beta-binomial zero-inflation.*fitted|implemented bounded-response path is intentionally fixed-effect|fixed-effect `zoi` or `coi` likelihoods' vignettes/proportion-beta-binomial.Rmd vignettes/distribution-families.Rmd docs/design README.md ROADMAP.md NEWS.md
+rg -n 'Slice 285|Proportion-family tests|fixed-effect beta and beta-binomial|fixef:sigma|meta_V\(V = V\)|fixed-effect `zoi`|Wald interval row checks' NEWS.md ROADMAP.md docs/design/02-family-registry.md docs/design/34-validation-debt-register.md vignettes/proportion-beta-binomial.Rmd tests/testthat/test-beta-location-scale.R tests/testthat/test-beta-binomial.R
+Rscript -e "pkgdown::check_pkgdown()"
+git diff --check
+Rscript -e "devtools::test(reporter = 'summary')"
+Rscript tools/codex-checkpoint.R --goal "Slice 285 proportion hardening" --next "stage, commit, push, and open draft PR"
+```
+
+Known limitations:
+
+- No new bounded-response likelihood, formula grammar, random-effect support,
+  structured dependence, bivariate or mixed-response route, profile interval
+  producer, or simulation grid was added.
+- Fixed-effect `zoi`/`coi`, zero-one-inflated beta, ordered beta,
+  beta-binomial zero-inflation, bounded-response `meta_V(V = V)`, and
+  proportion random effects remain future work.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-285-proportion-hardening.md`.
+
+## 2026-05-18 - Slice 286 continuous-shape design
+
+Goal: document the continuous-shape and skewness boundary before admitting
+shape, skewness, or tail surfaces into broader simulation work.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/02-family-registry.md`
+- `docs/design/03-likelihoods.md`
+- `docs/design/46-pre-simulation-readiness-matrix.md`
+- `docs/dev-log/after-task/2026-05-18-slice-286-continuous-shape-design.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-18-213841-codex-checkpoint.md`
+- `vignettes/formula-grammar.Rmd`
+- `vignettes/robust-student.Rmd`
+
+What changed:
+
+- Added a Slice 286 shape-boundary table that separates fitted fixed-effect
+  Student-t `nu`, planned fixed-effect skew-normal `nu`, planned skew-t
+  `nu`/future `tau`, and design-only latent-effect `skew(id) ~ ...`.
+- Added a planned skew-t gate to the likelihood notes, including the evidence
+  needed before any syntax, examples, or simulations claim a fitted skew-t
+  route.
+- Updated the robust Student-t and formula-grammar tutorials so applied users
+  do not treat future `skew(id) ~ ...` latent-effect syntax as an alias for
+  residual `nu ~ ...`.
+- Updated NEWS, ROADMAP, and the pre-simulation readiness matrix with the same
+  fixed-effect-first boundary.
+
+Checks run:
+
+```sh
+air format NEWS.md ROADMAP.md docs/design/02-family-registry.md docs/design/03-likelihoods.md docs/design/46-pre-simulation-readiness-matrix.md vignettes/robust-student.Rmd vignettes/formula-grammar.Rmd
+Rscript -e "devtools::test(filter = 'student-location-scale|nongaussian-scale-boundary', reporter = 'summary')"
+Rscript -e 'devtools::load_all(quiet = TRUE); rmarkdown::render("vignettes/robust-student.Rmd", output_dir = tempfile("robust-student-render-"), quiet = FALSE); rmarkdown::render("vignettes/formula-grammar.Rmd", output_dir = tempfile("formula-grammar-render-"), quiet = FALSE)'
+rg -n 'skew_t\(\)|skew_normal\(\)|tau ~|skew\(id\)|Shape and skewness|Slice 286|Student-t `nu`|future `tau`' NEWS.md ROADMAP.md docs/design/02-family-registry.md docs/design/03-likelihoods.md docs/design/46-pre-simulation-readiness-matrix.md vignettes/robust-student.Rmd vignettes/formula-grammar.Rmd
+Rscript -e "pkgdown::check_pkgdown()"
+git diff --check
+Rscript tools/codex-checkpoint.R --goal "Slice 286 continuous-shape design" --next "stage, commit, push, and open draft PR"
+```
+
+Known limitations:
+
+- No skew-normal, skew-t, shape-random-effect, phylogenetic shape, spatial
+  shape, bivariate shape, or latent-effect skewness likelihood was added.
+- No new profile target, extractor, diagnostic row, or simulation runner was
+  added.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-286-continuous-shape-design.md`.
+
+## 2026-05-18 - Slice 287 ordinal readiness
+
+Goal: record the implementation and evidence status for the fitted ordinal
+surface before broader simulation, mixed-model, or scale/discrimination claims.
+
+Files changed:
+
+- `NEWS.md`
+- `README.md`
+- `ROADMAP.md`
+- `docs/design/02-family-registry.md`
+- `docs/design/25-ordinal-scale-discrimination.md`
+- `docs/design/46-pre-simulation-readiness-matrix.md`
+- `docs/dev-log/after-task/2026-05-18-slice-287-ordinal-readiness.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-18-214435-codex-checkpoint.md`
+- `tests/testthat/test-cumulative-logit.R`
+- `vignettes/distribution-families.Rmd`
+
+What changed:
+
+- Added a `confint()` assertion to the fitted cumulative-logit test so the
+  ordinal location coefficient must appear as `fixef:mu:x`, map to `beta_mu`,
+  and report Wald status.
+- Added a Slice 287 readiness ledger to the ordinal scale/discrimination design
+  note, covering likelihood and cutpoints, prediction and summaries, intervals
+  and targets, and unsupported neighbours.
+- Updated README, the family registry, the distribution-family tutorial,
+  NEWS, ROADMAP, and the pre-simulation matrix with the same ordinal
+  fitted-versus-planned boundary.
+
+Checks run:
+
+```sh
+air format tests/testthat/test-cumulative-logit.R docs/design/25-ordinal-scale-discrimination.md docs/design/02-family-registry.md docs/design/46-pre-simulation-readiness-matrix.md vignettes/distribution-families.Rmd README.md NEWS.md ROADMAP.md
+Rscript -e "devtools::test(filter = 'cumulative-logit|profile-targets|summary|reference-grid-link-scale-contract|nongaussian-structured-boundary', reporter = 'summary')"
+Rscript -e 'devtools::load_all(quiet = TRUE); rmarkdown::render("vignettes/distribution-families.Rmd", output_dir = tempfile("distribution-families-render-"), quiet = FALSE)'
+rg -n 'Slice 287|ordinal readiness|cumulative_logit\(\)|fixed-effect Wald|internal cutpoint|ordinal random effects|scale/discrimination|expected ordered-category|confint\(fit\)|fixef:mu:x' NEWS.md ROADMAP.md README.md docs/design/02-family-registry.md docs/design/25-ordinal-scale-discrimination.md docs/design/46-pre-simulation-readiness-matrix.md vignettes/distribution-families.Rmd tests/testthat/test-cumulative-logit.R
+Rscript -e "pkgdown::check_pkgdown()"
+git diff --check
+Rscript tools/codex-checkpoint.R --goal "Slice 287 ordinal readiness" --next "stage, commit, push, and open draft PR"
+```
+
+Known limitations:
+
+- No ordinal random effect, ordinal random slope, ordinal `sigma` scale model,
+  direct discrimination formula, structured ordinal path, bivariate ordinal
+  model, mixed-response ordinal model, transformed cutpoint interval, or
+  category-probability interval was added.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-287-ordinal-readiness.md`.
+
+## 2026-05-18 - Slice 288 mixed-family status
+
+Goal: audit and harden the status of two-response mixed-family combinations
+without opening any Gaussian-count, Gaussian-proportion, count-proportion,
+ordinal mixed, or higher-dimensional response route.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/02-family-registry.md`
+- `docs/design/46-pre-simulation-readiness-matrix.md`
+- `docs/dev-log/after-task/2026-05-18-slice-288-mixed-family-status.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-18-214925-codex-checkpoint.md`
+- `tests/testthat/test-biv-gaussian.R`
+- `vignettes/distribution-families.Rmd`
+
+What changed:
+
+- Added mixed-family boundary tests for `family = list(gaussian(), poisson())`,
+  `family = c(poisson(), gaussian())`, and
+  `family = c(gaussian(), beta())`.
+- Added a Slice 288 mixed-response boundary table to the family registry.
+- Updated the distribution-family tutorial, NEWS, ROADMAP, and pre-simulation
+  readiness matrix so mixed-response bivariate routes require a joint
+  likelihood or copula/latent-variable contract, prediction, simulation,
+  extractors, intervals, examples, and comparator checks before fitting.
+
+Checks run:
+
+```sh
+air format tests/testthat/test-biv-gaussian.R docs/design/02-family-registry.md docs/design/46-pre-simulation-readiness-matrix.md vignettes/distribution-families.Rmd NEWS.md ROADMAP.md
+Rscript -e "devtools::test(filter = 'biv-gaussian|family-link-contract|source-map', reporter = 'summary')"
+Rscript -e 'devtools::load_all(quiet = TRUE); rmarkdown::render("vignettes/distribution-families.Rmd", output_dir = tempfile("distribution-families-render-"), quiet = FALSE)'
+rg -n 'Slice 288|Mixed-response|mixed-response|Gaussian-count|Gaussian-proportion|count-proportion|family = c\(gaussian\(\), poisson\(\)\)|list\(gaussian\(\), poisson\(\)\)|one-response and two-response|gllvmTMB|joint likelihood|copula' NEWS.md ROADMAP.md docs/design/02-family-registry.md docs/design/46-pre-simulation-readiness-matrix.md vignettes/distribution-families.Rmd tests/testthat/test-biv-gaussian.R README.md vignettes/model-map.Rmd
+Rscript -e "pkgdown::check_pkgdown()"
+git diff --check
+Rscript tools/codex-checkpoint.R --goal "Slice 288 mixed-family status" --next "stage, commit, push, and open draft PR"
+```
+
+Known limitations:
+
+- No mixed-response bivariate likelihood, residual-association parameter,
+  copula, shared-random-effect bridge, extractor, interval, simulation, or
+  worked example was added.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-288-mixed-family-status.md`.
+
+## 2026-05-18 - Slice 289 extractor provenance contracts
+
+Goal: make the post-fit extractor and plotting contract more consistent without
+adding a new estimand, interval method, or plotting helper.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `R/methods.R`
+- `R/plot-corpairs.R`
+- `docs/design/39-visualization-grammar.md`
+- `docs/design/46-pre-simulation-readiness-matrix.md`
+- `docs/dev-log/after-task/2026-05-18-slice-289-extractor-provenance.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-18-221022-codex-checkpoint.md`
+- `man/corpairs.Rd`
+- `man/plot_corpairs.Rd`
+- `tests/testthat/test-corpairs.R`
+- `tests/testthat/test-plot-corpairs.R`
+- `vignettes/model-map.Rmd`
+
+What changed:
+
+- `corpairs()` now returns `conf.status` and `interval_source` columns by
+  default, with point-only tables marked as `not_requested` and
+  `not_available`.
+- `corpairs(conf.int = TRUE)` now marks successful profiled pair rows with
+  `interval_source = "profile"` beside `conf.status = "profile"`.
+- `plot_corpairs()` now draws interval segments only when finite bounds have
+  supported status and interval-source provenance, matching the
+  `plot_parameter_surface()` rule.
+- The visualization grammar, pre-simulation readiness matrix, model-map
+  article, NEWS, and ROADMAP now record how the shared provenance rule relates
+  to `predict_parameters()`, `corpairs()`, `plot_parameter_surface()`,
+  `plot_corpairs()`, `vcov()`, and the narrow `emmeans()` bridge.
+
+Checks run:
+
+```sh
+air format R/methods.R R/plot-corpairs.R tests/testthat/test-corpairs.R tests/testthat/test-plot-corpairs.R docs/design/39-visualization-grammar.md docs/design/46-pre-simulation-readiness-matrix.md vignettes/model-map.Rmd NEWS.md ROADMAP.md
+Rscript -e "devtools::test(filter = 'corpairs|plot-corpairs', reporter = 'summary')"
+Rscript -e "devtools::document()"
+git diff --check
+Rscript -e "rmarkdown::render('vignettes/model-map.Rmd', quiet = TRUE)"
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "devtools::test(reporter = 'summary')"
+rg -n 'Slice 289|interval_source|plot_corpairs\(\)|plotting helpers remain planned|conf\.status|profile_ready|not_available|emmeans\(\)|vcov\(\)|post-fit extractor' NEWS.md ROADMAP.md docs/design/39-visualization-grammar.md docs/design/46-pre-simulation-readiness-matrix.md vignettes/model-map.Rmd R/methods.R R/plot-corpairs.R tests/testthat/test-corpairs.R tests/testthat/test-plot-corpairs.R man/corpairs.Rd man/plot_corpairs.Rd
+rg -n 'plotting helpers remain planned' vignettes docs README.md NEWS.md ROADMAP.md
+git diff --check
+Rscript tools/codex-checkpoint.R --goal "Slice 289 extractor provenance contracts" --next "stage, commit, push, and open draft PR"
+```
+
+Known limitations:
+
+- No likelihood, formula grammar, bootstrap interval, derived-profile interval,
+  contrast, slope, diagnostic-plot, or simulation-plot helper was added.
+- `vcov()` remains a covariance matrix with coefficient-name provenance, and
+  `emmeans()` still returns an external `emmGrid` only for fixed-effect
+  univariate `mu`.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-289-extractor-provenance.md`.
+
+## 2026-05-18 - Slice 290 user-facing status boundaries
+
+Goal: make the public documentation use one concrete vocabulary for fitted,
+narrow, opt-in, planned, and unsupported model surfaces.
+
+Files changed:
+
+- `README.md`
+- `R/control.R`
+- `R/drmTMB-package.R`
+- `_pkgdown.yml`
+- `man/drmTMB-package.Rd`
+- `man/drm_control.Rd`
+- `vignettes/convergence.Rmd`
+- `vignettes/drmTMB.Rmd`
+- `vignettes/model-map.Rmd`
+- `vignettes/source-map.Rmd`
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/dev-log/after-task/2026-05-18-slice-290-user-boundaries.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-18-222052-codex-checkpoint.md`
+
+What changed:
+
+- README, the model-map article, and the package reference topic now define
+  stable, first slice, opt-in control, planned or reserved, and unsupported or
+  blocked as shared reader-facing status words.
+- The getting-started article now uses stable and first-slice wording instead
+  of generic `implemented` labels.
+- The source-map article now maps the public status words back to the internal
+  validation-debt register.
+- The pkgdown reference group descriptions and `drm_control()` help now use the
+  same status vocabulary for fitted and planned syntax and large-data controls.
+
+Checks run:
+
+```sh
+air format README.md vignettes/model-map.Rmd vignettes/drmTMB.Rmd vignettes/source-map.Rmd R/drmTMB-package.R _pkgdown.yml NEWS.md ROADMAP.md
+Rscript -e "devtools::document()"
+Rscript -e "rmarkdown::render('vignettes/model-map.Rmd', quiet = TRUE)"
+Rscript -e "rmarkdown::render('vignettes/drmTMB.Rmd', quiet = TRUE)"
+Rscript -e "rmarkdown::render('vignettes/source-map.Rmd', quiet = TRUE)"
+rg -n 'Status word|status vocabulary|first-slice|first slice|Opt-in control|planned or reserved|unsupported or blocked|implemented first slice|implemented first slices|implemented \| "|experimental' README.md vignettes/model-map.Rmd vignettes/drmTMB.Rmd vignettes/source-map.Rmd R/drmTMB-package.R man/drmTMB-package.Rd _pkgdown.yml NEWS.md ROADMAP.md
+git diff --check
+air format R/control.R
+Rscript -e "devtools::document()"
+air format vignettes/convergence.Rmd
+rg -n "implemented first slice|implemented first slices|experimental opt-in|experimental fits|experimental" README.md vignettes/*.Rmd R/*.R man/*.Rd _pkgdown.yml
+Rscript -e "rmarkdown::render('vignettes/convergence.Rmd', quiet = TRUE)"
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript tools/codex-checkpoint.R --goal "Slice 290 user-facing boundaries" --next "stage, commit, push, and open draft PR"
+```
+
+Known limitations:
+
+- No likelihood, formula grammar, simulation, fitted model, extractor, or
+  interval method changed.
+- Full `pkgdown::build_site()` and `devtools::check()` were not run for this
+  narrow documentation-status slice.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-290-user-boundaries.md`.
+
+## 2026-05-18 - Slice 291 pre-simulation evidence ledger
+
+Goal: close the pre-simulation gate by giving Rose and Fisher a concrete
+ledger for checking whether public fitted claims have implementation evidence,
+tests or diagnostics, user-facing boundaries, and Phase 18 simulation status.
+
+Files changed:
+
+- `docs/design/46-pre-simulation-readiness-matrix.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `docs/design/34-validation-debt-register.md`
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/dev-log/after-task/2026-05-18-slice-291-pre-simulation-ledger.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-18-222659-codex-checkpoint.md`
+
+What changed:
+
+- The pre-simulation readiness matrix now has a Slice 291 evidence-ledger gate
+  that maps each public stable-core row to implementation evidence,
+  test/diagnostic/interval evidence, user-facing boundaries, and Phase 18
+  admission status.
+- The Phase 18 simulation programme now requires each new DGP row to trace back
+  to that gate before it enters an admitted grid.
+- The validation-debt register now says simulation admission requires both the
+  register and the Slice 291 gate.
+- NEWS and ROADMAP record the local completion of the evidence-ledger gate.
+
+Checks run:
+
+```sh
+air format docs/design/46-pre-simulation-readiness-matrix.md docs/design/41-phase-18-simulation-programme.md docs/design/34-validation-debt-register.md NEWS.md ROADMAP.md
+rg -n "Slice 291|evidence-ledger gate|Rose/Fisher|simulation status|admitted named surfaces|failure-ledger only|first-slice" NEWS.md ROADMAP.md docs/design/34-validation-debt-register.md docs/design/41-phase-18-simulation-programme.md docs/design/46-pre-simulation-readiness-matrix.md
+rg -n "comprehensive all-feature|advertised.*implemented|animal.*admit|relmat.*admit|rho12.*random-effect layer|known sampling covariance.*latent" docs/design/46-pre-simulation-readiness-matrix.md docs/design/41-phase-18-simulation-programme.md docs/design/34-validation-debt-register.md README.md vignettes/model-map.Rmd
+git diff --check
+Rscript -e "pkgdown::check_pkgdown()"
+rg -n "Slice 291|evidence-ledger gate|Rose/Fisher|simulation status|admitted named surfaces|failure-ledger only|first-slice" NEWS.md ROADMAP.md docs/design/34-validation-debt-register.md docs/design/41-phase-18-simulation-programme.md docs/design/46-pre-simulation-readiness-matrix.md
+git diff --check
+Rscript tools/codex-checkpoint.R --goal "Slice 291 pre-simulation evidence ledger" --next "stage, commit, push, and open draft PR"
+```
+
+Known limitations:
+
+- No likelihood, formula grammar, simulation helper, executable test, fitted
+  model, extractor, or interval method changed.
+- The gate admits named surfaces only; it does not support a comprehensive
+  all-feature grid.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-291-pre-simulation-ledger.md`.
+
+## 2026-05-18 - Slice 292 Phase 18 comprehensive blueprint
+
+Goal: start the comprehensive Phase 18 simulation design after the Slice 291
+gate, while keeping planned or blocked model lanes out of fitted grids.
+
+Files changed:
+
+- `docs/design/41-phase-18-simulation-programme.md`
+- `inst/sim/README.md`
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/dev-log/after-task/2026-05-18-slice-292-phase18-blueprint.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-18-223344-codex-checkpoint.md`
+
+What changed:
+
+- The Phase 18 simulation programme now has a Slice 292 design map covering
+  continuous, proportion, count, ordinal, meta-analysis, bivariate,
+  random-slope, shape, phylogenetic, spatial, `animal()`, and `relmat()` lanes.
+- Each lane is assigned to admitted grid, fixed-effect design target, opt-in
+  stress cell, or failure ledger before new DGP files are added.
+- The simulation skeleton README now points contributors to the Slice 292 map
+  before adding new DGP files.
+- ROADMAP now records Slice 292 as done locally as blueprint and corrects a
+  stale NB2 note so the Poisson/NB2 smoke and interval evidence are current.
+
+Checks run:
+
+```sh
+air format docs/design/41-phase-18-simulation-programme.md inst/sim/README.md NEWS.md ROADMAP.md
+rg -n "Slice 292|comprehensive design map|one-page ADEMP|failure-ledger only|admitted.*animal|admitted.*relmat|skew-normal.*admitted|comprehensive all-feature|NB2.*not yet.*interval|Later waves can add .*ordinal" docs/design/41-phase-18-simulation-programme.md inst/sim/README.md NEWS.md ROADMAP.md
+rg -n "fixed-effect ordinal|ordinal mixed|cumulative_logit\\(\\)|shape/skew extensions|zero-inflation or hurdle random effects|focused first slice" docs/design/41-phase-18-simulation-programme.md docs/design/46-pre-simulation-readiness-matrix.md
+git diff --check
+Rscript -e "pkgdown::check_pkgdown()"
+rg -n "Slice 292|comprehensive design map|one-page ADEMP|failure-ledger only|NB2.*not yet.*interval|full smoke runner/interval|comprehensive all-feature" docs/design/41-phase-18-simulation-programme.md inst/sim/README.md NEWS.md ROADMAP.md
+git diff --check
+Rscript tools/codex-checkpoint.R --goal "Slice 292 Phase 18 comprehensive blueprint" --next "stage, commit, push, and open draft PR"
+```
+
+Known limitations:
+
+- No DGP, runner, report, result schema, executable test, likelihood, formula
+  grammar, extractor, or interval method changed.
+- The blueprint starts comprehensive simulation design; it does not produce a
+  comprehensive simulation result.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-292-phase18-blueprint.md`.
+
+## 2026-05-18 - Slice 293 Gaussian location-scale ADEMP sheet
+
+Goal: create the first one-page ADEMP design sheet for an admitted Phase 18
+lane before writing new DGP or grid code.
+
+Files changed:
+
+- `docs/design/47-phase-18-gaussian-location-scale-ademp.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `inst/sim/README.md`
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/dev-log/after-task/2026-05-18-slice-293-gaussian-ls-ademp.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-18-224009-codex-checkpoint.md`
+
+What changed:
+
+- Added a Gaussian location-scale ADEMP sheet with aims, DGP equations,
+  condition levels, estimands, methods, performance measures, MCSE target, and
+  Williams-style self-audit.
+- Linked the sheet from the Phase 18 simulation programme and the `inst/sim/`
+  README.
+- NEWS and ROADMAP record Slice 293 as the first post-blueprint ADEMP sheet.
+
+Checks run:
+
+```sh
+air format docs/design/47-phase-18-gaussian-location-scale-ademp.md docs/design/41-phase-18-simulation-programme.md inst/sim/README.md NEWS.md ROADMAP.md
+rg -n "Gaussian Location-Scale ADEMP|phase18_dgp_gaussian_ls|phase18_gaussian_ls_conditions|coef\\(fit, dpar = \\\"mu\\\"\\)|coef\\(fit, dpar = \\\"sigma\\\"\\)|sigma\\(fit, newdata|500 replicates|Williams|Morris|one-page ADEMP|Slice 293" docs/design/47-phase-18-gaussian-location-scale-ademp.md docs/design/41-phase-18-simulation-programme.md inst/sim/README.md NEWS.md ROADMAP.md
+rg -n "external comparator|animal\\(\\)|relmat\\(\\)|shape/skewness|random-effect|phylogenetic|spatial|comprehensive all-feature|DGP code" docs/design/47-phase-18-gaussian-location-scale-ademp.md
+git diff --check
+Rscript -e "pkgdown::check_pkgdown()"
+git diff --check
+Rscript tools/codex-checkpoint.R --goal "Slice 293 Gaussian location-scale ADEMP sheet" --next "stage, commit, push, and open draft PR"
+```
+
+Known limitations:
+
+- No simulation code, DGP change, runner, result table, executable test,
+  likelihood, formula grammar, extractor, or interval method changed.
+- The sheet is a design contract; the formal grid still needs a separate
+  implementation slice.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-293-gaussian-ls-ademp.md`.
+
+## 2026-05-18 - Slice 294 meta-analysis known-V ADEMP sheet
+
+Goal: create a one-page ADEMP design sheet for the admitted Gaussian
+`meta_V(V = V)` Phase 18 lane before expanding vector or dense known-`V` grids.
+
+Files changed:
+
+- `docs/design/48-phase-18-meta-v-ademp.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `inst/sim/README.md`
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/dev-log/after-task/2026-05-18-slice-294-meta-v-ademp.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-18-224503-codex-checkpoint.md`
+
+What changed:
+
+- Added a `meta_V(V = V)` ADEMP sheet with aims, vector/dense known-`V` DGP
+  conditions, estimands, methods, performance measures, MCSE target, and
+  Williams-style self-audit.
+- Linked the sheet from the Phase 18 simulation programme and the `inst/sim/`
+  README.
+- NEWS and ROADMAP record Slice 294 as the meta-analysis known-`V` ADEMP sheet.
+
+Checks run:
+
+```sh
+air format docs/design/48-phase-18-meta-v-ademp.md docs/design/41-phase-18-simulation-programme.md inst/sim/README.md NEWS.md ROADMAP.md
+rg -n 'Meta-Analysis Known-V ADEMP|phase18_dgp_meta_v|phase18_meta_v_conditions|meta_V\(V = V\)|known sampling covariance|input data|public residual `sigma`|unique\(as.numeric\(sigma\(fit\)\)\)|500 replicates|Williams|Morris|Slice 294' docs/design/48-phase-18-meta-v-ademp.md docs/design/41-phase-18-simulation-programme.md inst/sim/README.md NEWS.md ROADMAP.md
+rg -n 'tau|proportional sampling-variance models|animal models|latent relatedness|known sampling covariance \| supplied `V`|no estimator|V.*input data|estimated interval target' docs/design/48-phase-18-meta-v-ademp.md
+git diff --check
+Rscript -e "pkgdown::check_pkgdown()"
+git diff --check
+Rscript tools/codex-checkpoint.R --goal "Slice 294 meta_V ADEMP sheet" --next "stage, commit, push, and open draft PR"
+```
+
+Known limitations:
+
+- No simulation code, DGP change, runner, result table, executable test,
+  likelihood, formula grammar, extractor, or interval method changed.
+- The sheet is a design contract; the formal vector/dense known-`V` grid still
+  needs a separate implementation slice.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-294-meta-v-ademp.md`.
+
+## 2026-05-18 - Slice 295 count mu random-effect ADEMP sheet
+
+Goal: create a one-page ADEMP design sheet for the paired ordinary Poisson/NB2
+`mu` random-effect Phase 18 lane before expanding the count pilot grid.
+
+Files changed:
+
+- `docs/design/49-phase-18-count-mu-random-effect-ademp.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `inst/sim/README.md`
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/dev-log/after-task/2026-05-18-slice-295-count-mu-re-ademp.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-18-225015-codex-checkpoint.md`
+
+What changed:
+
+- Added a paired Poisson/NB2 `mu` random-effect ADEMP sheet with aims, grouped
+  count DGPs, condition levels, estimands, methods, performance measures, MCSE
+  target, and Williams-style self-audit.
+- Linked the sheet from the Phase 18 simulation programme and the `inst/sim/`
+  README.
+- NEWS and ROADMAP record Slice 295 as the paired count `mu` random-effect
+  ADEMP sheet.
+
+Checks run:
+
+```sh
+air format docs/design/49-phase-18-count-mu-random-effect-ademp.md docs/design/41-phase-18-simulation-programme.md inst/sim/README.md NEWS.md ROADMAP.md
+rg -n 'Count Mu Random-Effect ADEMP|phase18_dgp_poisson_mu_re|phase18_dgp_nbinom2_mu_re|phase18_summarise_count_mu_re_pilot|profile level|0\.70|Poisson|NB2|sd:mu|zero-inflated|hurdle|zero-truncated|Slice 295' docs/design/49-phase-18-count-mu-random-effect-ademp.md docs/design/41-phase-18-simulation-programme.md inst/sim/README.md NEWS.md ROADMAP.md
+rg -n 'mixed-response|structured|correlated-slope|labelled covariance|failure ledger|profile-failed|0\.95 profile grid|DGP code|comprehensive all-feature' docs/design/49-phase-18-count-mu-random-effect-ademp.md
+git diff --check
+Rscript -e "pkgdown::check_pkgdown()"
+git diff --check
+Rscript tools/codex-checkpoint.R --goal "Slice 295 count mu random-effect ADEMP sheet" --next "stage, commit, push, and open draft PR"
+```
+
+Known limitations:
+
+- No simulation code, DGP change, runner, result table, executable test,
+  likelihood, formula grammar, extractor, or interval method changed.
+- The sheet is a design contract; the formal paired count grid still needs a
+  separate implementation slice and an explicit profile-interval runtime
+  decision.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-295-count-mu-re-ademp.md`.
+
+## 2026-05-18 - Slice 296 proportion fixed-effect ADEMP sheet
+
+Goal: create a one-page ADEMP design sheet for the fixed-effect `beta()` and
+`beta_binomial()` Phase 18 lane before adding bounded-response DGP helpers or
+formal grids.
+
+Files changed:
+
+- `docs/design/50-phase-18-proportion-fixed-effect-ademp.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `inst/sim/README.md`
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/dev-log/after-task/2026-05-18-slice-296-proportion-fixed-effect-ademp.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-18-230024-codex-checkpoint.md`
+
+What changed:
+
+- Added a fixed-effect proportion ADEMP sheet with aims, strict beta and
+  beta-binomial DGPs, denominator generation, condition levels, estimands,
+  methods, performance measures, MCSE target, and Williams-style self-audit.
+- Linked the sheet from the Phase 18 simulation programme and the `inst/sim/`
+  README.
+- NEWS and ROADMAP record Slice 296 as the fixed-effect proportion ADEMP
+  sheet.
+
+Checks run:
+
+```sh
+air format docs/design/50-phase-18-proportion-fixed-effect-ademp.md docs/design/41-phase-18-simulation-programme.md inst/sim/README.md NEWS.md ROADMAP.md
+sed -n '1,260p' docs/design/50-phase-18-proportion-fixed-effect-ademp.md
+rg -n 'Proportion Fixed-Effect ADEMP|beta\(\)|beta_binomial\(\)|denominator|strict continuous|exact 0/1|zoi|coi|meta_V\(V = V\)|500 replicates|Williams|Morris|Slice 296' docs/design/50-phase-18-proportion-fixed-effect-ademp.md docs/design/41-phase-18-simulation-programme.md inst/sim/README.md NEWS.md ROADMAP.md
+rg -n 'random effects|structured effects|known sampling covariance|mixed-response|failure ledger|phi|public `sigma`|precision|0/1 continuous|DGP helpers' docs/design/50-phase-18-proportion-fixed-effect-ademp.md
+git diff --check
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript tools/codex-checkpoint.R --goal "Slice 296 proportion fixed-effect ADEMP sheet" --next "stage, commit, push, and open draft PR"
+```
+
+Known limitations:
+
+- No simulation code, DGP helper, runner, result table, executable test,
+  likelihood, formula grammar, extractor, or interval method changed.
+- The sheet is a design contract; formal proportion operating-characteristic
+  evidence still needs explicit beta and beta-binomial DGP helpers and a
+  separate implementation slice.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-296-proportion-fixed-effect-ademp.md`.
+
+## 2026-05-18 - Slice 297 ordinal fixed-effect ADEMP sheet
+
+Goal: create a one-page ADEMP design sheet for the fixed-effect
+`cumulative_logit()` Phase 18 lane before adding ordinal DGP helpers or formal
+grids.
+
+Files changed:
+
+- `docs/design/51-phase-18-ordinal-fixed-effect-ademp.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `inst/sim/README.md`
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/dev-log/after-task/2026-05-18-slice-297-ordinal-fixed-effect-ademp.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-18-230415-codex-checkpoint.md`
+
+What changed:
+
+- Added a fixed-effect ordinal ADEMP sheet with aims, cumulative-logit DGPs,
+  category probabilities, cutpoint recovery, expected ordered-score summaries,
+  condition levels, performance measures, MCSE target, and Williams-style
+  self-audit.
+- Linked the sheet from the Phase 18 simulation programme and the `inst/sim/`
+  README.
+- NEWS and ROADMAP record Slice 297 as the fixed-effect ordinal ADEMP sheet.
+
+Checks run:
+
+```sh
+air format docs/design/51-phase-18-ordinal-fixed-effect-ademp.md docs/design/41-phase-18-simulation-programme.md inst/sim/README.md NEWS.md ROADMAP.md
+sed -n '1,280p' docs/design/51-phase-18-ordinal-fixed-effect-ademp.md
+rg -n 'Ordinal Fixed-Effect ADEMP|cumulative_logit\(\)|cutpoint|expected ordered|expected-score|category probabilities|sigma|discrimination|random effects|mixed-response|500 replicates|Williams|Morris|Slice 297' docs/design/51-phase-18-ordinal-fixed-effect-ademp.md docs/design/41-phase-18-simulation-programme.md inst/sim/README.md NEWS.md ROADMAP.md
+rg -n 'ordinal random effects|scale/discrimination|cutpoint-specific|known sampling covariance|bivariate ordinal|mixed-response|DGP helper|fixed latent scale|sigma\(fit\)' docs/design/51-phase-18-ordinal-fixed-effect-ademp.md
+git diff --check
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript tools/codex-checkpoint.R --goal "Slice 297 ordinal fixed-effect ADEMP sheet" --next "stage, commit, push, and open draft PR"
+```
+
+Known limitations:
+
+- No simulation code, DGP helper, runner, result table, executable test,
+  likelihood, formula grammar, extractor, or interval method changed.
+- The sheet is a design contract; formal ordinal operating-characteristic
+  evidence still needs an explicit ordinal DGP helper and a separate
+  implementation slice.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-297-ordinal-fixed-effect-ademp.md`.
+
+## 2026-05-18 - Slice 298 bivariate residual rho12 ADEMP sheet
+
+Goal: create a one-page ADEMP design sheet for the bivariate Gaussian residual
+`rho12` Phase 18 lane before adding a residual-correlation DGP helper or formal
+grid.
+
+Files changed:
+
+- `docs/design/52-phase-18-bivariate-rho12-ademp.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `inst/sim/README.md`
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/dev-log/after-task/2026-05-18-slice-298-bivariate-rho12-ademp.md`
+- `docs/dev-log/recovery-checkpoints/2026-05-18-230811-codex-checkpoint.md`
+
+What changed:
+
+- Added a bivariate residual `rho12` ADEMP sheet with aims, bivariate Gaussian
+  residual-correlation DGPs, response-specific mean and scale estimands,
+  response-scale `rho12` and covariance grids, boundary diagnostics,
+  performance measures, MCSE target, and Williams-style self-audit.
+- Linked the sheet from the Phase 18 simulation programme and the `inst/sim/`
+  README.
+- NEWS and ROADMAP record Slice 298 as the bivariate residual `rho12` ADEMP
+  sheet.
+
+Checks run:
+
+```sh
+air format docs/design/52-phase-18-bivariate-rho12-ademp.md docs/design/41-phase-18-simulation-programme.md inst/sim/README.md NEWS.md ROADMAP.md
+sed -n '1,300p' docs/design/52-phase-18-bivariate-rho12-ademp.md
+rg -n 'Bivariate Residual Rho12 ADEMP|biv_gaussian\(\)|rho12|residual covariance|0\.99999999|sigma1|sigma2|corpairs\(\)|known sampling covariance|random effects in `rho12`|500 replicates|Williams|Morris|Slice 298' docs/design/52-phase-18-bivariate-rho12-ademp.md docs/design/41-phase-18-simulation-programme.md inst/sim/README.md NEWS.md ROADMAP.md
+rg -n 'group-level|structured correlations|known sampling covariance|random effects in `rho12`|mixed-response|bivariate random slopes|failure ledger|profile coverage|rho12_boundary|new DGP helper' docs/design/52-phase-18-bivariate-rho12-ademp.md
+git diff --check
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript tools/codex-checkpoint.R --goal "Slice 298 bivariate rho12 ADEMP sheet" --next "stage, commit, push, and open draft PR"
+```
+
+Known limitations:
+
+- No simulation code, DGP helper, runner, result table, executable test,
+  likelihood, formula grammar, extractor, or interval method changed.
+- The sheet is a design contract; formal bivariate residual-correlation
+  operating-characteristic evidence still needs an explicit DGP helper and a
+  separate implementation slice.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-18-slice-298-bivariate-rho12-ademp.md`.

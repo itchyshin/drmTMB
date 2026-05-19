@@ -19,7 +19,8 @@ ecological, evolutionary, and environmental applications.
 The implementation roadmap lives in `docs/design/06-distribution-roadmap.md`.
 
 Meta-analysis is not listed as a separate family. It uses `family = gaussian()`
-with `meta_known_V(V = V)`.
+with `meta_V(V = V)`, while `meta_known_V(V = V)` remains a compatibility
+alias.
 
 ## At a glance
 
@@ -41,6 +42,10 @@ quantity each `sigma` formula models.
 | Count with a separate zero process | `truncated_nbinom2()` plus `hu ~` | `mu`, `sigma`, `hu` | NB2 dispersion for nonzero counts | fixed effects only; `hu` random effects planned |
 | Ordered categories | `cumulative_logit()` | `mu`, cutpoints | fixed latent logistic scale | location-only; ordinal random effects and scale/discrimination planned |
 | Two continuous Gaussian responses | `c(gaussian(), gaussian())` | `mu1`, `mu2`, `sigma1`, `sigma2`, `rho12` | residual SDs for each response | matching labelled `mu1`/`mu2`, `sigma1`/`sigma2`, and one same-response `mu`/`sigma` random-intercept pair implemented; richer covariance planned |
+
+The source-level family map in `docs/design/02-family-registry.md` records the
+links, shape or coscale slots, random-effect allowance, and test evidence
+behind each row.
 
 For non-Gaussian random effects, the current fitted path is deliberately
 narrow. Ordinary Poisson and NB2 `mu` models can fit unlabelled random
@@ -603,6 +608,11 @@ the direction of a predictor but should not be treated as a measured continuous
 outcome. With `Pr(y_i <= k) = logit^{-1}(theta_k - mu_i)`, larger `mu_i`
 shifts probability toward higher ordered categories.
 
+For fitted location coefficients, `confint(fit)` returns Wald intervals on the
+latent `mu` coefficient scale. Internal ordered-cutpoint profile targets are
+visible through `profile_targets()`, but transformed cutpoint or
+category-probability intervals are not a polished user-facing surface yet.
+
 Ordinal scale or discrimination formulas remain planned. A future extension
 may add `sigma ~ mismatch` with
 `Pr(y_i <= k) = logit^{-1}((theta_k - mu_i) / sigma_i)` or expose a direct
@@ -636,3 +646,6 @@ Mixed-response composed families remain future work. For example,
 `family = c(gaussian(), poisson())` is a planned direction for ecological
 examples such as body mass with fecundity counts, survival with dispersal
 counts, or leaf area with seed number. It is not a supported fitting path yet.
+The package rejects those mixed-family requests before fitting for both `c()`
+and `list()` spellings until the joint likelihood, residual-association
+parameter, prediction, simulation, intervals, and examples are designed.

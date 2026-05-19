@@ -1,11 +1,54 @@
+test_that("optimizer presets expand to explicit nlminb controls", {
+  default <- drm_control()
+  expect_equal(default$optimizer_preset, "default")
+  expect_equal(default$optimizer, list())
+
+  careful <- drm_control(optimizer_preset = "careful")
+  expect_equal(careful$optimizer, list(iter.max = 1000L, eval.max = 1000L))
+
+  robust <- drm_control(
+    optimizer_preset = "robust",
+    optimizer = list(eval.max = 8000L, trace = 1L)
+  )
+  expect_equal(
+    robust$optimizer,
+    list(iter.max = 5000L, eval.max = 8000L, trace = 1L)
+  )
+
+  expect_error(drm_control(optimizer_preset = "wide"), "should be one of")
+})
+
+test_that("optimizer presets are recorded on fitted objects", {
+  dat <- data.frame(y = c(-0.2, 0.0, 0.3, 0.6), x = c(-1, 0, 1, 2))
+
+  fit <- drmTMB(
+    bf(y ~ x, sigma ~ 1),
+    data = dat,
+    control = drm_control(optimizer_preset = "careful", se = FALSE)
+  )
+
+  expect_equal(fit$control$optimizer_preset, "careful")
+  expect_equal(fit$control$optimizer$iter.max, 1000L)
+  expect_equal(fit$control$optimizer$eval.max, 1000L)
+  expect_equal(fit$uncertainty$status, "skipped")
+})
+
 test_that("future optimizer contract names are reserved in plain control lists", {
   dat <- data.frame(y = c(-0.2, 0.0, 0.3, 0.6), x = c(-1, 0, 1, 2))
   reserved <- c(
+    "optimizer_preset",
     "start",
     "starts",
+    "start_from",
+    "warm_start",
+    "warm_starts",
+    "warm_start_from",
     "map",
     "fixed",
     "fallback_optimizer",
+    "fallback_optimizers",
+    "optimizer_fallback",
+    "optimizer_fallbacks",
     "multi_start",
     "multistart"
   )

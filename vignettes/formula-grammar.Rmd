@@ -77,8 +77,10 @@ In this table, "coscale" means a model for residual correlation, currently
 | `y ~ x1 + x2`, `family = cumulative_logit()` | Implemented | Fixed-effect univariate ordinal model for ordered scores with cutpoints; ordinal random effects and scale/discrimination formulas are planned. |
 | `cbind(successes, failures) ~ x1`, `family = beta_binomial()` | Implemented | Fixed-effect denominator-aware model for success counts with known trial totals; `sigma` is extra-binomial variation. |
 | `phylo(1 + x1 | species, tree = tree)` | Planned | Structured slopes come after the intercept-only path is fully hardened. The first path should fit one structured `mu` slope; two slopes are the near-term upper bound. |
+| `animal(1 + x | id, pedigree = ped)` | Planned marker grammar | Parsed as a future animal-model one-slope route, but rejected before fitting until animal intercepts, diagnostics, profile targets, and recovery tests exist. |
 | `spatial(1 | site, coords = coords)` | Implemented first slice | Univariate Gaussian `mu` spatial random intercept using a fixed coordinate covariance foundation; mesh/SPDE paths remain planned. |
 | `spatial(1 + x | site, coords = coords)` | Implemented first one-slope slice | Univariate Gaussian `mu` spatial random intercept plus one numeric spatial slope. The two coordinate fields are independent and have separate SDs. |
+| `relmat(1 + x | id, K = K)` | Planned marker grammar | Parsed as a future lower-level relatedness one-slope route, but rejected before fitting until matrix validation, diagnostics, profile targets, and recovery tests exist. |
 | `corpair(id, level = "group", block = "p", from = "mu1", to = "mu2") ~ x_group` | Implemented | Predictor-dependent ordinary q=2 location-location latent random-effect correlation regression for matching labelled `mu1`/`mu2` random intercepts. Predictors must be constant within `id`. |
 | `corpair(species, level = "phylogenetic", block = "p", from = "mu1", to = "mu2") ~ ecology` | Implemented | Predictor-dependent phylogenetic q=2 location-location latent random-effect correlation regression for matching labelled `mu1`/`mu2` `phylo()` terms. Predictors must be constant within `species`. Location-scale, scale-scale, q=4, and spatial `corpair()` regressions remain planned. |
 | Bivariate random slopes, non-Gaussian cross-parameter covariance, spatial q=4 blocks, predictor-dependent q=4 phylogenetic/spatial correlations, or `rho12` random effects | Planned | These need a larger covariance parameterization, simulation, and naming checks before fitting. Intercept-slope `corpair()` rows are distant-future; a later slope1-slope2 bivariate plasticity-syndrome target needs coefficient-aware syntax. |
@@ -112,6 +114,11 @@ drm_formula(y ~ x, sigma ~ z, nu ~ x)
 
 Student-t random effects, known sampling covariance, phylogenetic terms, and
 bivariate Student-t models are later phases.
+
+Future skew-normal and skew-t formulas should also start with fixed-effect
+residual-shape terms such as `nu ~ x`. A later latent-effect spelling such as
+`skew(id) ~ x_group` would ask a different question about the distribution of
+group effects and should not be taught as an alias for residual `nu`.
 
 Current implemented lognormal form:
 
@@ -202,12 +209,14 @@ drm_formula(
 ```
 
 Phylogenetic random slopes, phylogenetic scale terms, structured effects in
-`rho12`, multiple spatial slopes, and mesh-based spatial terms are still
-planned:
+`rho12`, animal-model slopes, lower-level `relmat()` slopes, multiple spatial
+slopes, and mesh-based spatial terms are still planned:
 
 ```r
 # planned; drmTMB() will currently reject these
 drm_formula(y ~ x + phylo(1 + x | species, tree = tree), sigma ~ z)
+drm_formula(y ~ x + animal(1 + x | id, pedigree = ped), sigma ~ z)
+drm_formula(y ~ x + relmat(1 + x | id, K = K), sigma ~ z)
 drm_formula(y ~ x + spatial(1 | site, mesh = mesh), sigma ~ z)
 ```
 

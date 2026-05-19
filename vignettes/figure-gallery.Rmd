@@ -321,6 +321,182 @@ through `nu ~ tail_pressure`. The `zi` panel is a structural-zero probability,
 not a mean count. The `rho12` panel is residual coupling between two responses
 after their own means and scales have been modelled.
 
+## Random-effect and variance-component figures
+
+Random-effect figures need a different visual grammar from residual-scale
+figures. Residual `sigma` is the observation-level standard deviation. A
+group-level SD, such as the SD of site intercepts or temperature slopes, is
+among-group variation in a fitted random effect.
+
+```{r random-effect-variance-components, fig.alt="Dot plot comparing residual sigma, among-site intercept SD, and among-site temperature-slope SD on their fitted response-scale units."}
+set.seed(2621)
+n_site <- 24
+n_site_obs <- 6
+site_levels <- seq_len(n_site)
+site_random <- data.frame(
+  site = factor(site_levels),
+  intercept = rnorm(n_site, mean = 0, sd = 0.42),
+  slope = rnorm(n_site, mean = 0, sd = 0.24)
+)
+reef_re <- data.frame(
+  site = factor(rep(site_levels, each = n_site_obs), levels = site_levels)
+)
+reef_re$temperature <- rep(seq(-1, 1, length.out = n_site_obs), n_site)
+site_lookup <- as.integer(reef_re$site)
+reef_re$growth <- 0.25 +
+  0.62 * reef_re$temperature +
+  site_random$intercept[site_lookup] +
+  site_random$slope[site_lookup] * reef_re$temperature +
+  rnorm(nrow(reef_re), mean = 0, sd = 0.34)
+
+fit_re_slopes <- drmTMB(
+  bf(growth ~ temperature + (1 + temperature | site), sigma ~ 1),
+  family = gaussian(),
+  data = reef_re,
+  control = drm_control(optimizer = list(eval.max = 160L, iter.max = 160L))
+)
+
+component_rows <- summary(fit_re_slopes)$parameters
+variance_components <- data.frame(
+  component = c(
+    "Residual sigma",
+    "Site intercept SD",
+    "Site temperature-slope SD"
+  ),
+  estimate = c(
+    component_rows["sigma", "estimate"],
+    component_rows[
+      "sd:mu:(1 + temperature | site):(Intercept)",
+      "estimate"
+    ],
+    component_rows[
+      "sd:mu:(1 + temperature | site):temperature",
+      "estimate"
+    ]
+  )
+)
+variance_components$component <- factor(
+  variance_components$component,
+  levels = rev(variance_components$component)
+)
+
+ggplot(variance_components, aes(estimate, component)) +
+  geom_point(size = 2.8, colour = "#0072B2") +
+  geom_segment(
+    aes(x = 0, xend = estimate, yend = component),
+    linewidth = 0.7,
+    colour = "#0072B2",
+    alpha = 0.55
+  ) +
+  labs(
+    title = "Residual scale and group-level SDs are different quantities",
+    subtitle = "The slope SD measures among-site variation in temperature responses",
+    x = "Fitted standard deviation",
+    y = NULL
+  ) +
+  theme_drmtmb_gallery()
+```
+
+The dot plot compares three standard deviations, but only one is residual
+`sigma`. The other two are random-effect SDs: how much sites differ in baseline
+growth, and how much sites differ in the temperature slope. For intervals on
+these SDs, use `profile_targets(fit_re_slopes)` to choose direct profile-ready
+targets rather than treating the quick point plot as an uncertainty analysis.
+
+Conditional random effects answer a related but different question. They are
+shrunken site-level deviations from the population intercept or slope, not
+variance components.
+
+```{r random-slope-modes, fig.alt="Ordered dot plot of conditional site-level temperature-slope deviations from a fitted random-slope model, centered around zero."}
+site_slope <- ranef(fit_re_slopes, "mu")$terms[[
+  "(1 + temperature | site):temperature"
+]]
+site_slope <- data.frame(
+  site = names(site_slope),
+  slope_deviation = unname(site_slope)
+)
+site_slope$site <- factor(
+  site_slope$site,
+  levels = site_slope$site[order(site_slope$slope_deviation)]
+)
+
+ggplot(site_slope, aes(slope_deviation, site)) +
+  geom_vline(xintercept = 0, linetype = "dashed", colour = "grey60") +
+  geom_point(size = 1.7, colour = "#D55E00") +
+  labs(
+    title = "Conditional random-slope deviations",
+    subtitle = "Each point is a site-specific deviation from the average temperature slope",
+    x = "Deviation in temperature slope",
+    y = "Site"
+  ) +
+  theme_drmtmb_gallery() +
+  theme(
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank()
+  )
+```
+
+A direct `sd(site) ~ reef_cover` formula asks a third question: does a
+site-level predictor change the among-site SD in expected growth? The
+prediction table keeps this target as `sd(site)`, not residual `sigma`.
+
+```{r random-effect-sd-surface, fig.alt="Line plot showing a fitted among-site random-intercept SD surface along reef cover, with no confidence band because direct random-effect SD surfaces do not yet supply Wald intervals."}
+set.seed(2622)
+n_sd_site <- 28
+n_sd_each <- 5
+site_sd_data <- data.frame(
+  site = factor(seq_len(n_sd_site)),
+  reef_cover = runif(n_sd_site, -1.2, 1.2)
+)
+site_sd <- exp(-0.6 + 0.45 * site_sd_data$reef_cover)
+site_deviation <- rnorm(n_sd_site, mean = 0, sd = site_sd)
+reef_sd <- site_sd_data[rep(seq_len(n_sd_site), each = n_sd_each), ]
+reef_sd$temperature <- rep(seq(-1.2, 1.2, length.out = n_sd_each), n_sd_site)
+reef_sd$growth <- 0.4 +
+  0.5 * reef_sd$temperature +
+  site_deviation[as.integer(reef_sd$site)] +
+  rnorm(nrow(reef_sd), mean = 0, sd = 0.35)
+
+fit_site_sd <- drmTMB(
+  bf(growth ~ temperature + (1 | site), sigma ~ 1, sd(site) ~ reef_cover),
+  family = gaussian(),
+  data = reef_sd,
+  control = drm_control(optimizer = list(eval.max = 180L, iter.max = 180L))
+)
+
+grid_site_sd <- prediction_grid(
+  fit_site_sd,
+  focal = "reef_cover",
+  at = list(reef_cover = seq(-1.2, 1.2, length.out = 80))
+)
+pred_site_sd <- predict_parameters(
+  fit_site_sd,
+  newdata = grid_site_sd,
+  dpar = "sd(site)",
+  conf.int = TRUE
+)
+
+plot_parameter_surface(
+  pred_site_sd,
+  x = "reef_cover",
+  facet = NULL,
+  point = FALSE
+) +
+  labs(
+    title = "Among-site SD surface",
+    subtitle = "Requested Wald intervals remain unavailable for direct random-effect SD surfaces",
+    x = "Reef cover",
+    y = "Among-site SD in expected growth"
+  ) +
+  theme_drmtmb_gallery()
+```
+
+This line is a fitted random-effect SD surface. It should not be read as a raw
+growth curve, and it should not be overlaid with raw `growth` points. The
+table behind the plot reports `conf.status = "wald_unavailable"`, which is the
+honest interval boundary until a profile or bootstrap route is attached to
+these derived surfaces.
+
 ## Discrete comparisons
 
 For a factor predictor, the same plotting helper uses interval bars rather than
@@ -351,41 +527,6 @@ plot_parameter_surface(
     subtitle = "Intervals are Wald intervals from predict_parameters()",
     x = NULL,
     y = "Expected growth"
-  ) +
-  theme_drmtmb_gallery()
-```
-
-## Estimated marginal means
-
-For the first supported `emmeans` path, a fixed-effect univariate `mu` model can
-produce estimated marginal means that are easy to turn into publication-style
-figures. The same rule applies: keep the conditioning values visible.
-
-```{r emmeans-display, eval = has_ggplot2 && requireNamespace("emmeans", quietly = TRUE), fig.alt="Point interval plot of estimated marginal mean growth for reef and kelp habitats conditioned at temperature zero."}
-emm_habitat <- suppressMessages(
-  as.data.frame(
-    emmeans::emmeans(
-      fit_growth,
-      ~ habitat,
-      at = list(temperature = 0),
-      type = "response"
-    )
-  )
-)
-
-ggplot(emm_habitat, aes(habitat, emmean, colour = habitat)) +
-  geom_pointrange(
-    aes(ymin = asymp.LCL, ymax = asymp.UCL),
-    linewidth = 0.7,
-    fatten = 2.4
-  ) +
-  scale_drmtmb_colour +
-  labs(
-    title = "Estimated marginal mean growth",
-    subtitle = "Conditioned at temperature = 0",
-    x = NULL,
-    y = "Expected growth",
-    colour = "Habitat"
   ) +
   theme_drmtmb_gallery()
 ```
@@ -458,6 +599,211 @@ ggplot(pred_cat_cat, aes(habitat, estimate, colour = season)) +
     colour = "Season"
   ) +
   theme_drmtmb_gallery()
+```
+
+## Estimated marginal means and marginal summaries
+
+For the first supported `emmeans` path, a fixed-effect univariate `mu` model can
+produce estimated marginal means that are easy to turn into publication-style
+figures. The same rule applies: keep the target and conditioning values
+visible. These displays are `mu` summaries, not `sigma`, fitted-response,
+random-effect, or bivariate summaries.
+
+```{r emmeans-display, eval = has_ggplot2 && requireNamespace("emmeans", quietly = TRUE), fig.alt="Point interval plot of estimated marginal mean growth for reef and kelp habitats conditioned at temperature zero."}
+emm_habitat <- suppressMessages(
+  as.data.frame(
+    emmeans::emmeans(
+      fit_growth,
+      ~ habitat,
+      at = list(temperature = 0),
+      type = "response"
+    )
+  )
+)
+
+ggplot(emm_habitat, aes(habitat, emmean, colour = habitat)) +
+  geom_pointrange(
+    aes(ymin = asymp.LCL, ymax = asymp.UCL),
+    linewidth = 0.7,
+    fatten = 2.4
+  ) +
+  scale_drmtmb_colour +
+  labs(
+    title = "Estimated marginal mean growth",
+    subtitle = "Supported fixed-effect mu target, conditioned at temperature = 0",
+    x = NULL,
+    y = "Expected growth",
+    colour = "Habitat"
+  ) +
+  theme_drmtmb_gallery()
+```
+
+`emmeans` reference grids can also condition on a factor. In the next display,
+the `mu` cell means are grouped by season, so the reader sees the fitted
+habitat contrast inside each season rather than a single averaged contrast.
+
+```{r emmeans-factor-grid, eval = has_ggplot2 && requireNamespace("emmeans", quietly = TRUE), fig.alt="Point interval plot of estimated marginal mean growth for reef and kelp habitats shown separately for dry and wet seasons."}
+emm_season <- suppressMessages(
+  as.data.frame(
+    emmeans::emmeans(
+      fit_cat_cat,
+      ~ habitat | season,
+      type = "response"
+    )
+  )
+)
+
+ggplot(emm_season, aes(habitat, emmean, colour = season)) +
+  geom_pointrange(
+    aes(ymin = asymp.LCL, ymax = asymp.UCL),
+    position = position_dodge(width = 0.35),
+    linewidth = 0.65,
+    fatten = 2.3
+  ) +
+  scale_colour_manual(values = c("dry" = "#0072B2", "wet" = "#E69F00")) +
+  labs(
+    title = "Factor-conditioned estimated marginal means",
+    subtitle = "Habitat mu summaries are shown separately for each season",
+    x = "Habitat",
+    y = "Expected growth",
+    colour = "Season"
+  ) +
+  theme_drmtmb_gallery()
+```
+
+For a numeric interaction, use an explicit reference grid. Here `temperature`
+is held at three named values so the habitat contrast does not hide the
+conditioning rule.
+
+```{r emmeans-interaction-grid, eval = has_ggplot2 && requireNamespace("emmeans", quietly = TRUE), fig.alt="Point interval plot of estimated marginal mean growth for reef and kelp habitats at three temperature values."}
+emm_temperature <- suppressMessages(
+  as.data.frame(
+    emmeans::emmeans(
+      fit_growth,
+      ~ habitat | temperature,
+      at = list(temperature = c(-1, 0, 1)),
+      type = "response"
+    )
+  )
+)
+emm_temperature$temperature_slice <- factor(
+  emm_temperature$temperature,
+  levels = c(-1, 0, 1),
+  labels = c("cooler", "average", "warmer")
+)
+
+ggplot(emm_temperature, aes(temperature_slice, emmean, colour = habitat)) +
+  geom_pointrange(
+    aes(ymin = asymp.LCL, ymax = asymp.UCL),
+    position = position_dodge(width = 0.42),
+    linewidth = 0.65,
+    fatten = 2.3
+  ) +
+  scale_drmtmb_colour +
+  labs(
+    title = "Estimated marginal means across an interaction grid",
+    subtitle = "The same fixed-effect mu bridge, evaluated at named temperature slices",
+    x = "Temperature slice",
+    y = "Expected growth",
+    colour = "Habitat"
+  ) +
+  theme_drmtmb_gallery()
+```
+
+Empirical marginal summaries use a different rule. `prediction_grid(...,
+margin = "empirical")` crosses a focal value with fitted rows, and
+`marginal_parameters()` averages the resulting parameter predictions. This
+point display deliberately has no interval bars because the current empirical
+summary is a plug-in average.
+
+```{r empirical-marginal-summary, fig.alt="Point plot of empirical marginal expected growth for reef and kelp habitats without interval bars."}
+empirical_habitat_grid <- prediction_grid(
+  fit_growth,
+  focal = "habitat",
+  at = list(habitat = levels(fish$habitat)),
+  margin = "empirical"
+)
+empirical_habitat <- marginal_parameters(
+  fit_growth,
+  newdata = empirical_habitat_grid,
+  dpar = "mu",
+  by = "habitat"
+)
+
+plot_parameter_surface(
+  empirical_habitat,
+  x = "habitat",
+  facet = NULL,
+  line = FALSE,
+  point = TRUE
+) +
+  scale_drmtmb_colour +
+  labs(
+    title = "Empirical marginal mu summary",
+    subtitle = "Averaged over the fitted-row covariate distribution",
+    x = NULL,
+    y = "Average expected growth"
+  ) +
+  theme_drmtmb_gallery()
+```
+
+Unsupported targets should be visible before a reader tries to plot them. The
+current `emmeans` bridge is for fixed-effect univariate `mu`; other targets
+should use parameter prediction, `corpairs()`, profile intervals, or a future
+feature-specific design.
+
+```{r emmeans-boundary-strip, fig.alt="Tile plot showing fixed-effect univariate mu as the supported emmeans target and sigma, bivariate, zero-inflated, hurdle, ordinal, and random-effect targets as unsupported boundaries."}
+emmeans_boundary <- data.frame(
+  target = c(
+    "Fixed-effect univariate mu",
+    "sigma",
+    "Bivariate responses",
+    "Zero-inflated or hurdle means",
+    "Ordinal expected scores",
+    "Random-effect targets"
+  ),
+  status = c(
+    "Supported emmeans route",
+    "Unsupported boundary",
+    "Unsupported boundary",
+    "Unsupported boundary",
+    "Unsupported boundary",
+    "Unsupported boundary"
+  )
+)
+emmeans_boundary$target <- factor(
+  emmeans_boundary$target,
+  levels = rev(emmeans_boundary$target)
+)
+emmeans_boundary$status <- factor(
+  emmeans_boundary$status,
+  levels = c("Supported emmeans route", "Unsupported boundary")
+)
+emmeans_boundary$status_label <- ifelse(
+  emmeans_boundary$status == "Supported emmeans route",
+  "supported\nmu EMM",
+  "unsupported\nboundary"
+)
+
+ggplot(emmeans_boundary, aes(status, target, fill = status)) +
+  geom_tile(width = 0.84, height = 0.72, colour = "white", linewidth = 0.6) +
+  geom_text(aes(label = status_label), size = 3.1, lineheight = 0.9) +
+  scale_fill_manual(values = c(
+    "Supported emmeans route" = "#0072B2",
+    "Unsupported boundary" = "#E69F00"
+  )) +
+  labs(
+    title = "Current emmeans support boundary",
+    subtitle = "Only fixed-effect univariate mu is advertised as an emmeans target",
+    x = "Current status",
+    y = NULL,
+    fill = "Status"
+  ) +
+  theme_drmtmb_gallery() +
+  theme(
+    panel.grid = element_blank(),
+    legend.position = "none"
+  )
 ```
 
 ## Continuous by continuous interaction
@@ -548,37 +894,57 @@ the observations span the whole moisture gradient.
 ## Fitted correlation summaries
 
 Correlation displays should keep layers separate. Residual `rho12`,
-ordinary-group correlations, and phylogenetic or spatial correlations are not
-the same parameter even when all are correlations.
+ordinary-group correlations, phylogenetic correlations, spatial correlations,
+and future animal or `relmat()` layers are not the same parameter even when all
+are correlations. A fitted workflow should start from `corpairs(fit)`; this
+gallery uses a compact compatible table so the page builds quickly while
+preserving the same required columns.
 
-```{r correlation-display, fig.alt="Point interval plot showing separate residual, group, and phylogenetic correlation layers with short row labels."}
+```{r correlation-display, fig.alt="Faceted point interval plot showing separate residual, group, and phylogenetic correlation layers with short row labels."}
 pair_table <- data.frame(
-  level = c("Residual", "Group", "Phylogenetic"),
-  class = c("rho12", "random slope", "trait"),
-  parameter = c("Trait coupling", "Intercept-slope", "Species covariance"),
+  level = c("residual", "group", "phylogenetic"),
+  class = c("residual", "mean-slope", "mean-mean"),
+  parameter = c(
+    "rho12",
+    "cor((Intercept),temperature | site)",
+    "cor(mu1,mu2 | phylo | species)"
+  ),
   estimate = c(-0.32, 0.44, 0.61),
   modelled = c(TRUE, FALSE, FALSE),
   conf.low = c(-0.54, 0.12, 0.29),
   conf.high = c(-0.05, 0.68, 0.79),
-  conf.status = c("wald", "profile", "profile")
+  conf.status = c("wald", "profile", "profile"),
+  layer = c("Residual coscale", "Ordinary group", "Phylogenetic")
+)
+pair_table$layer <- factor(
+  pair_table$layer,
+  levels = c("Residual coscale", "Ordinary group", "Phylogenetic")
 )
 pair_table$display <- factor(
   c(
     "Residual\nrho12",
     "Group\nintercept-slope",
-    "Phylogenetic\ntrait covariance"
+    "Phylogenetic\nlocation-location"
   ),
   levels = c(
+    "Residual\nrho12",
     "Group\nintercept-slope",
-    "Phylogenetic\ntrait covariance",
-    "Residual\nrho12"
+    "Phylogenetic\nlocation-location"
   )
 )
 
-plot_corpairs(pair_table, label = "display") +
+correlation_palette <- c(
+  "Residual coscale" = "#0072B2",
+  "Ordinary group" = "#009E73",
+  "Phylogenetic" = "#D55E00"
+)
+
+plot_corpairs(pair_table, colour = "layer", facet = "layer", label = "display") +
+  scale_colour_manual(values = correlation_palette) +
   labs(
-    title = "Correlation layers stay separate",
-    subtitle = "Colour identifies the correlation layer; intervals are drawn only where available"
+    title = "Implemented correlation rows stay in their own layers",
+    subtitle = "Intervals are drawn only when the pair table has finite bounds",
+    colour = "Layer"
   ) +
   theme_drmtmb_gallery() +
   theme(
@@ -586,6 +952,73 @@ plot_corpairs(pair_table, label = "display") +
     legend.position = "none"
   )
 ```
+
+The residual row is the fitted within-observation coscale `rho12`. The group
+row is a latent random-effect correlation, here an intercept-slope row from an
+ordinary grouped model. The phylogenetic row is a species-level structured
+location-location correlation. These rows can live in the same `corpairs()`
+table, but the figure keeps them apart because they answer different
+biological questions.
+
+```{r correlation-layer-boundaries, fig.alt="Tile plot showing implemented residual, group, and phylogenetic correlation-pair layers separately from planned spatial, animal, and relmat boundaries."}
+layer_boundary <- data.frame(
+  layer = c(
+    "Residual rho12",
+    "Ordinary group",
+    "Phylogenetic",
+    "Spatial",
+    "Animal",
+    "relmat"
+  ),
+  status = c(
+    "Fitted corpairs row",
+    "Fitted corpairs row",
+    "Fitted corpairs row",
+    "Planned boundary",
+    "Planned boundary",
+    "Planned boundary"
+  )
+)
+layer_boundary$layer <- factor(
+  layer_boundary$layer,
+  levels = rev(layer_boundary$layer)
+)
+layer_boundary$status <- factor(
+  layer_boundary$status,
+  levels = c("Fitted corpairs row", "Planned boundary")
+)
+layer_boundary$status_label <- ifelse(
+  layer_boundary$status == "Fitted corpairs row",
+  "fitted\nrow",
+  "planned\nboundary"
+)
+
+ggplot(layer_boundary, aes(status, layer, fill = status)) +
+  geom_tile(width = 0.82, height = 0.72, colour = "white", linewidth = 0.6) +
+  geom_text(aes(label = status_label), size = 3.1, lineheight = 0.9) +
+  scale_fill_manual(values = c(
+    "Fitted corpairs row" = "#0072B2",
+    "Planned boundary" = "#E69F00"
+  )) +
+  labs(
+    title = "Correlation-layer support boundary",
+    subtitle = "Spatial, animal, and relmat rows are reserved until fitted correlation-pair evidence exists",
+    x = "Current status",
+    y = NULL,
+    fill = "Status"
+  ) +
+  theme_drmtmb_gallery() +
+  theme(
+    panel.grid = element_blank(),
+    legend.position = "none"
+  )
+```
+
+The status strip is not an estimate plot. Coordinate-spatial Gaussian `mu`
+slopes are fitted elsewhere, but spatial `corpairs()` rows remain planned.
+`animal()` and `relmat()` are also reserved structured-effect markers until the
+likelihood, diagnostics, profile-target, recovery-test, and example evidence
+exist.
 
 ## Simulation operating characteristics
 
@@ -660,6 +1093,115 @@ count, ordinal, bivariate, random-slope, and structured-dependence surfaces as
 each surface becomes ready. Real simulation reports should also show the run
 manifest and warning/error ledger so missing or failed fits are not hidden
 behind clean-looking panels.
+
+## Gallery source map
+
+The gallery is easier to audit when every figure names its source object,
+extractor, interval source, and support boundary. Use this table as a quick
+check before adapting a plot to a manuscript, tutorial, or simulation report.
+
+```{r gallery-source-map, eval=TRUE}
+gallery_source_map <- data.frame(
+  figure = c(
+    "Mean with confidence band",
+    "mu and sigma surfaces",
+    "nu, zi, and rho12 panels",
+    "Variance-component dot plot",
+    "Conditional random-slope deviations",
+    "sd(site) surface",
+    "Discrete habitat comparison",
+    "Categorical interaction",
+    "Simple emmeans display",
+    "Factor-conditioned emmeans grid",
+    "Interaction emmeans grid",
+    "Empirical marginal mu summary",
+    "emmeans support boundary",
+    "Continuous interaction",
+    "Correlation estimate rows",
+    "Correlation support boundary",
+    "Simulation bias and coverage"
+  ),
+  source = c(
+    "fit_growth",
+    "fit_growth",
+    "fit_tail, fit_zi, fit_pair",
+    "fit_re_slopes",
+    "fit_re_slopes",
+    "fit_site_sd",
+    "fit_growth",
+    "fit_cat_cat",
+    "fit_growth",
+    "fit_cat_cat",
+    "fit_growth",
+    "fit_growth",
+    "emmeans_boundary",
+    "fit_cont_cont",
+    "pair_table",
+    "layer_boundary",
+    "sim_summary"
+  ),
+  extractor_or_plotter = c(
+    "predict_parameters(dpar = \"mu\") + ggplot2",
+    "predict_parameters() + plot_parameter_surface()",
+    "predict_parameters() + plot_parameter_surface()",
+    "summary(fit)$parameters + ggplot2",
+    "ranef() + ggplot2",
+    "prediction_grid() + predict_parameters() + plot_parameter_surface()",
+    "predict_parameters(dpar = \"mu\") + plot_parameter_surface()",
+    "predict_parameters(dpar = \"mu\") + ggplot2",
+    "emmeans::emmeans(type = \"response\") + ggplot2",
+    "emmeans::emmeans(~ habitat | season) + ggplot2",
+    "emmeans::emmeans(~ habitat | temperature) + ggplot2",
+    "prediction_grid(margin = \"empirical\") + marginal_parameters()",
+    "ggplot2 status strip",
+    "predict_parameters(dpar = \"mu\") + ggplot2",
+    "plot_corpairs()",
+    "ggplot2 status strip",
+    "ggplot2 fixture display"
+  ),
+  interval_source = c(
+    "Wald intervals from predict_parameters()",
+    "Wald intervals when finite",
+    "Wald intervals from each fitted parameter table",
+    "Point estimates only",
+    "Conditional modes only",
+    "conf.status = \"wald_unavailable\"",
+    "Wald intervals from predict_parameters()",
+    "Wald intervals from predict_parameters()",
+    "asymptotic emmeans intervals",
+    "asymptotic emmeans intervals",
+    "asymptotic emmeans intervals",
+    "Plug-in average, no intervals",
+    "No intervals; status only",
+    "Wald intervals from predict_parameters()",
+    "Finite bounds supplied in compatible pair table",
+    "No intervals; status only",
+    "Illustrative summaries, not final evidence"
+  ),
+  support_boundary = c(
+    "fixed-effect univariate mu",
+    "fixed-effect mu and sigma",
+    "fixed-effect shape, inflation, and residual rho12",
+    "ordinary Gaussian random-slope fit",
+    "shrunken deviations, not variance intervals",
+    "direct random-effect SD surface without Wald bands",
+    "fixed-effect univariate mu",
+    "fixed-effect univariate mu",
+    "fixed-effect univariate mu only",
+    "fixed-effect univariate mu only",
+    "fixed-effect univariate mu only",
+    "empirical marginalisation, not emmeans",
+    "unsupported targets remain unsupported",
+    "fixed-effect univariate mu",
+    "implemented residual, group, and phylogenetic rows",
+    "spatial, animal, and relmat rows remain planned",
+    "display grammar for later result articles"
+  ),
+  stringsAsFactors = FALSE
+)
+
+knitr::kable(gallery_source_map)
+```
 
 ## Future simulation result articles
 

@@ -528,6 +528,79 @@ Simulation & Comparison section and should cover power, bias, coverage,
 runtime, convergence, and failures across continuous, proportion, count, and
 other data types.
 
+Slice 262 adds the first random-effect and variance-component gallery section.
+It keeps residual `sigma`, ordinary group-level SDs, conditional random-slope
+deviations, and fitted `sd(site)` surfaces as separate visual targets. Direct
+random-effect SD surfaces are drawn without confidence bands when
+`predict_parameters(conf.int = TRUE)` reports
+`conf.status = "wald_unavailable"`.
+
+Slice 263 extends the gallery's correlation-layer display. The estimate plot
+uses a `corpairs()`-compatible table and facets residual `rho12`, ordinary
+group-level, and phylogenetic rows so the visual grammar does not collapse
+within-observation coscale, latent group covariance, and structured
+species-level covariance. A separate status strip reserves spatial, `animal()`,
+and `relmat()` rows as planned boundaries rather than plotting fake estimates;
+those layers should move into the estimate plot only after fitted
+correlation-pair rows, interval status, recovery tests, and reader-facing
+examples exist.
+
+Slice 264 expands the gallery's `emmeans` and marginal-summary displays. The
+implemented figure path is fixed-effect univariate `mu`: a simple habitat EMM,
+a factor-conditioned habitat-by-season grid, and an explicit interaction grid
+over temperature slices. The same section shows an empirical
+`marginal_parameters()` summary as a plug-in average without interval bars, then
+uses a support-boundary strip to keep `sigma`, bivariate responses,
+zero-inflated or hurdle response means, ordinal expected scores, and
+random-effect targets visibly unsupported for the current `emmeans` bridge.
+
+Slice 265 creates the first Simulation & Comparison plot-grammar article. It
+keeps simulation result displays separate from the model-interpretation figure
+gallery and defines reusable displays for bias, RMSE, coverage, power,
+convergence, runtime, and warning/error ledgers. The example tables are
+illustrative fixtures, not final operating-characteristic evidence; real
+reports should use the same grammar only after the surface has fitted
+likelihood, estimand, interval-status, diagnostic, and failure-ledger evidence.
+
+Slice 266 adds a source-map and QA table to the figure gallery. Each display is
+mapped to its fitted object or fixture, extractor or plotter, interval source,
+and support boundary so readers and maintainers can see which panels are
+Wald-interval displays, profile-needed point displays, status strips,
+`emmeans` reference-grid summaries, empirical marginal summaries, or
+illustrative simulation fixtures.
+
+Slice 267 closes the Florence gallery lane with a helper-versus-recipe
+decision. The current exported helpers, `plot_parameter_surface()` and
+`plot_corpairs()`, cover stable table contracts. The remaining gallery displays
+should stay as tutorial-level `ggplot2` recipes until their data contracts and
+interval status are stable enough to test as exported APIs.
+
+Slice 289 tightens the shared extractor provenance rule. Prediction tables use
+`conf.status` and `interval_source`; `corpairs()` now carries the same pair of
+columns even when intervals are not requested. A plain `corpairs(fit)` row says
+`conf.status = "not_requested"` and `interval_source = "not_available"`, while a
+profiled correlation-pair row says `conf.status = "profile"` and
+`interval_source = "profile"`. `plot_corpairs()` treats finite bounds as
+drawable intervals only when those provenance columns name a real interval
+source, matching the rule already used by `plot_parameter_surface()`.
+
+| Display pattern | Current decision | Export only after |
+| --- | --- | --- |
+| Raw data plus fitted `mu` lines and confidence bands | Tutorial recipe | A repeated need for one grammar across multiple articles and a stable raw-data overlay policy |
+| `emmeans` point-interval displays | Tutorial recipe | The `emmeans` bridge supports more targets and the contrast or conditioning display contract is stable |
+| Conditional random-effect modes | Tutorial recipe | A general random-effect display has uncertainty, grouping, ordering, and shrinkage-language tests |
+| Variance-component dot plots | Tutorial recipe | `summary()`/`profile_targets()`/interval status can supply a unified variance-component table |
+| Status-boundary strips | Tutorial recipe | Multiple articles need the same status schema and visual encoding |
+| Gallery source-map tables | Tutorial recipe | A package-wide support-matrix object is introduced |
+| Simulation operating-characteristic plots | Future helper candidate | Phase 18 aggregate tables have stable columns for bias, RMSE, MCSE, coverage, power, runtime, and failures |
+| Failure-ledger plots | Future helper candidate | Warning/error ledgers have stable classes, counts, messages, and cell identifiers |
+
+The next visualization-helper backlog is therefore narrow: maintain
+`plot_parameter_surface()` and `plot_corpairs()`; defer simulation and
+failure-ledger helpers until the Phase 18 result schema stabilizes; keep
+article-specific figures as readable `ggplot2` recipes rather than exporting
+premature wrappers.
+
 ### `corpairs()` Plotting Preflight
 
 Slice 112 records the minimum contract that `plot_corpairs()` follows as an
@@ -541,11 +614,13 @@ The helper should satisfy these rules:
 
 - accept a `corpairs()` data frame as the primary input;
 - require visible columns for `level`, `class`, `parameter`, `estimate`,
-  `modelled`, and, when intervals are requested, `conf.status`;
+  `modelled`, and, when intervals are requested, `conf.status` and
+  `interval_source`;
 - add a display status such as `not_requested` when a plain `corpairs(fit)`
   table lacks interval columns, instead of implying that intervals were checked;
 - draw point estimates for all rows but draw interval segments only when
-  `conf.low` and `conf.high` are finite;
+  `conf.low` and `conf.high` are finite and the interval provenance columns name
+  a supported interval source;
 - label or facet by `level` so residual, ordinary group-level, phylogenetic,
   spatial, and future study-level correlations are not visually collapsed;
 - keep derived q=4 or covariance-product rows visibly separate from direct
@@ -566,11 +641,12 @@ or slopes.
 
 Slice 113 implements `plot_corpairs()` after the Slice 112 preflight. It
 consumes a `corpairs()` table, draws one point per correlation row, adds
-interval segments only for rows with finite `conf.low` and `conf.high` bounds,
-and keeps correlation `level`, `class`, and display interval status attached to
-the plotted data. It does not compute correlation pairs, run profile intervals,
-or collapse residual, ordinary group-level, phylogenetic, spatial, and future
-study-level correlations into one unnamed layer.
+interval segments only for rows with finite `conf.low` and `conf.high` bounds
+whose `conf.status` and `interval_source` mark a real interval, and keeps
+correlation `level`, `class`, display interval status, and interval source
+attached to the plotted data. It does not compute correlation pairs, run profile
+intervals, or collapse residual, ordinary group-level, phylogenetic, spatial,
+and future study-level correlations into one unnamed layer.
 
 Slice 114 adds optional faceting to `plot_corpairs()`. The default remains a
 single panel with row labels that include `level`, `class`, and `parameter`;

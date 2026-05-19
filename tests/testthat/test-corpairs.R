@@ -138,8 +138,11 @@ test_that("corpairs summarizes predictor-dependent residual rho12", {
   )
   expect_lt(pairs$min, pairs$max)
   expect_equal(pairs$modelled, TRUE)
+  expect_equal(pairs$conf.status, "not_requested")
+  expect_equal(pairs$interval_source, "not_available")
   expect_equal(nrow(corpairs(fit, level = "group")), 0L)
   expect_equal(pairs_ci$conf.status, "newdata_required")
+  expect_equal(pairs_ci$interval_source, "not_available")
   expect_true(is.na(pairs_ci$profile_target))
   expect_true(is.na(pairs_ci$conf.low))
 
@@ -321,7 +324,9 @@ test_that("corpairs returns an empty table when no correlations are fitted", {
       "link_estimate",
       "link_min",
       "link_max",
-      "modelled"
+      "modelled",
+      "conf.status",
+      "interval_source"
     )
   )
 })

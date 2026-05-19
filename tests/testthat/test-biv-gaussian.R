@@ -993,6 +993,42 @@ test_that("bivariate Gaussian supports full q4 labelled location-scale covarianc
   expect_equal(sims, simulate(fit, nsim = 2, seed = 20260630))
 })
 
+test_that("bivariate q4 syntax can fall back to block-diagonal q2 blocks", {
+  sim <- new_biv_gaussian_q4_re_data(seed = 20260645)
+
+  fit <- drmTMB(
+    bf(
+      mu1 = y1 ~ x + (1 | p | id),
+      mu2 = y2 ~ x + (1 | p | id),
+      sigma1 = ~ 1 + (1 | q | id),
+      sigma2 = ~ 1 + (1 | q | id),
+      rho12 = ~1
+    ),
+    family = biv_gaussian(),
+    data = sim$data,
+    control = list(eval.max = 500, iter.max = 500)
+  )
+
+  pairs <- corpairs(fit, level = "group")
+  targets <- profile_targets(fit)
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(fit$model$random$covariance_blocks$n_qgt2_blocks, 0L)
+  expect_named(fit$corpars, c("mu", "sigma"))
+  expect_equal(nrow(pairs), 2L)
+  expect_equal(pairs$class, c("mean-mean", "scale-scale"))
+  expect_equal(pairs$block, c("p", "q"))
+  expect_equal(nrow(corpairs(fit, class = "location-scale")), 0L)
+  expect_true(all(
+    c(
+      "cor:mu:cor(mu1:(Intercept),mu2:(Intercept) | p | id)",
+      "cor:sigma:cor(sigma1:(Intercept),sigma2:(Intercept) | q | id)"
+    ) %in%
+      targets$parm
+  ))
+  expect_false(any(startsWith(targets$parm, "cor:re_cov:")))
+})
+
 test_that("bivariate Gaussian supports labelled sigma1/sigma2 random-intercept covariance blocks", {
   sim <- new_biv_gaussian_sigma_re_data()
 
@@ -2109,6 +2145,29 @@ test_that("bivariate Gaussian rejects unsupported Phase 3 syntax clearly", {
     ),
     "Larger labelled covariance blocks"
   )
+  q4_location_slope_err <- tryCatch(
+    drmTMB(
+      bf(
+        mu1 = y1 ~ x + (1 + x | p | id),
+        mu2 = y2 ~ x + (1 + x | p | id),
+        sigma1 = ~ 1 + (1 | p | id),
+        sigma2 = ~ 1 + (1 | p | id),
+        rho12 = ~x
+      ),
+      family = biv_gaussian(),
+      data = dat
+    ),
+    error = identity
+  )
+  expect_s3_class(q4_location_slope_err, "rlang_error")
+  expect_match(
+    conditionMessage(q4_location_slope_err),
+    "location-scale covariance blocks are intercept-only"
+  )
+  expect_match(
+    conditionMessage(q4_location_slope_err),
+    "includes random slopes"
+  )
   q8_slope_err <- tryCatch(
     drmTMB(
       bf(
@@ -2194,6 +2253,34 @@ test_that("bivariate Gaussian rejects unsupported Phase 3 syntax clearly", {
   )
   expect_error(
     drmTMB(
+      bf(
+        mu1 = y1 ~ x,
+        mu2 = y2 ~ x,
+        sigma1 = ~ 1 + (0 + x | p | id),
+        sigma2 = ~ 1 + (0 + x | p | id),
+        rho12 = ~x
+      ),
+      family = biv_gaussian(),
+      data = dat
+    ),
+    "Residual-scale random slopes in bivariate models remain planned"
+  )
+  expect_error(
+    drmTMB(
+      bf(
+        mu1 = y1 ~ x + (1 | p | id),
+        mu2 = y2 ~ x,
+        sigma1 = ~ 1 + (0 + x | p | id),
+        sigma2 = ~1,
+        rho12 = ~x
+      ),
+      family = biv_gaussian(),
+      data = dat
+    ),
+    "Residual-scale random slopes in bivariate models remain planned"
+  )
+  expect_error(
+    drmTMB(
       bf(mu1 = y1 ~ x + phylo(1 | id, tree = tree), mu2 = y2 ~ x),
       family = biv_gaussian(),
       data = dat
@@ -2229,6 +2316,30 @@ test_that("bivariate Gaussian rejects unsupported Phase 3 syntax clearly", {
     drmTMB(
       bf(mu1 = y1 ~ x, mu2 = y2 ~ x),
       family = c(gaussian(), poisson()),
+      data = dat
+    ),
+    "Mixed-response bivariate families"
+  )
+  expect_error(
+    drmTMB(
+      bf(mu1 = y1 ~ x, mu2 = y2 ~ x),
+      family = list(gaussian(), poisson()),
+      data = dat
+    ),
+    "Mixed-response bivariate families"
+  )
+  expect_error(
+    drmTMB(
+      bf(mu1 = y1 ~ x, mu2 = y2 ~ x),
+      family = c(poisson(), gaussian()),
+      data = dat
+    ),
+    "Mixed-response bivariate families"
+  )
+  expect_error(
+    drmTMB(
+      bf(mu1 = y1 ~ x, mu2 = y2 ~ x),
+      family = c(gaussian(), beta()),
       data = dat
     ),
     "Mixed-response bivariate families"

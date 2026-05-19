@@ -25,7 +25,7 @@ class \code{"drm_meta_vcov_bivariate"}.
 \description{
 \code{meta_vcov_bivariate()} builds a dense row-paired sampling covariance matrix
 for bivariate meta-analysis. It is a convenience helper for constructing the
-known \code{V} matrix used by \code{\link[=meta_known_V]{meta_known_V()}} in complete-row bivariate Gaussian
+known \code{V} matrix used by \code{\link[=meta_V]{meta_V()}} in complete-row bivariate Gaussian
 meta-analysis.
 }
 \details{

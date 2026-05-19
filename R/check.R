@@ -6,7 +6,8 @@
 #' effects, or bivariate residual correlation `rho12`.
 #'
 #' The current checks cover optimizer convergence, finite objective values,
-#' optimizer evaluation counts, fixed-parameter gradients, whether
+#' optimizer evaluation counts, fixed-parameter gradients including the largest
+#' gradient component label, whether
 #' [TMB::sdreport()] was computed, skipped, or failed, Hessian status from
 #' [TMB::sdreport()], finite fixed-effect standard errors, dropped rows,
 #' positive scale parameters, random-effect standard deviations near the lower
@@ -329,17 +330,74 @@ check_fixed_gradient <- function(object, gradient_tolerance) {
     ))
   }
   max_abs <- max(abs(gradient), 0)
+  max_index <- if (length(gradient) > 0L) {
+    which.max(abs(gradient))
+  } else {
+    NA_integer_
+  }
+  max_component <- fixed_gradient_component_label(object, gradient, max_index)
   ok <- max_abs <= gradient_tolerance
   check_row(
     "fixed_gradient",
     if (ok) "ok" else "warning",
-    format_check_number(max_abs),
+    paste0(
+      "max=",
+      format_check_number(max_abs),
+      "; component=",
+      max_component
+    ),
     if (ok) {
-      paste0("Maximum absolute fixed gradient is <= ", gradient_tolerance, ".")
+      paste0(
+        "Maximum absolute fixed gradient is <= ",
+        gradient_tolerance,
+        "; largest component is ",
+        max_component,
+        "."
+      )
     } else {
-      paste0("Maximum absolute fixed gradient is > ", gradient_tolerance, ".")
+      paste0(
+        "Maximum absolute fixed gradient is > ",
+        gradient_tolerance,
+        "; largest component is ",
+        max_component,
+        "."
+      )
     }
   )
+}
+
+fixed_gradient_component_label <- function(object, gradient, index) {
+  if (length(index) != 1L || is.na(index)) {
+    return("none")
+  }
+  labels <- names(object$opt$par)
+  if (is.null(labels) || length(labels) != length(gradient)) {
+    labels <- names(gradient)
+  }
+  if (is.null(labels) || length(labels) != length(gradient)) {
+    labels <- paste0("par", seq_along(gradient))
+  }
+  labels[is.na(labels) | !nzchar(labels)] <- paste0(
+    "par",
+    which(is.na(labels) | !nzchar(labels))
+  )
+  labels <- disambiguate_duplicate_labels(labels)
+  labels[[index]]
+}
+
+disambiguate_duplicate_labels <- function(labels) {
+  duplicated_labels <- labels %in% labels[duplicated(labels)]
+  if (!any(duplicated_labels)) {
+    return(labels)
+  }
+  sequence <- ave(seq_along(labels), labels, FUN = seq_along)
+  labels[duplicated_labels] <- paste0(
+    labels[duplicated_labels],
+    "[",
+    sequence[duplicated_labels],
+    "]"
+  )
+  labels
 }
 
 check_hessian <- function(object) {

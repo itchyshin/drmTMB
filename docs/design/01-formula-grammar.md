@@ -85,7 +85,9 @@ In this table, "coscale" means a model for residual correlation, currently
 | `phylo(1 | species, A = A)` or `phylo(1 | species, Ainv = Ainv)` | Planned | Future phylogenetic known-relatedness input for users who already have a validated phylogenetic covariance or precision matrix. The implemented public phylo path still requires `tree = tree`. |
 | `animal(1 | id, pedigree = ped)` | Planned | Future animal-model structured random effect using additive relatedness from a pedigree. This is a sibling of `phylo()` and `spatial()`, not a new family. |
 | `animal(1 | id, A = A)` or `animal(1 | id, Ainv = Ainv)` | Planned | Future additive genetic relatedness input. Use `A` or `Ainv` for relatedness; keep `V` reserved for known sampling covariance in meta-analysis. |
+| `animal(1 + x | id, pedigree = ped)` | Planned marker grammar | Slice 272 confirms the parser can read one numeric animal-model slope and reject multiple structured slopes. This is not a fitted animal-model likelihood. |
 | `relmat(1 | id, K = K)` or `relmat(1 | id, Q = Q)` | Design candidate | Possible lower-level user-supplied relatedness route after the named `phylo()`, `spatial()`, and `animal()` surfaces are stable. This should replace, not duplicate, older `gr()`-style low-level wording if exposed. |
+| `relmat(1 + x | id, K = K)` or `relmat(1 + x | id, Q = Q)` | Planned marker grammar | Slice 272 confirms the parser can read one numeric lower-level relatedness slope and reject multiple structured slopes. Fitting waits for matrix validation, diagnostics, profile targets, and recovery tests. |
 | `weights = w` | Implemented | Top-level likelihood weights, not formula syntax. Known sampling covariance remains a separate marker: `meta_V(V = V)` is preferred, and `meta_known_V(V = V)` is a compatibility alias. |
 | `y ~ x1`, `family = cumulative_logit()` | Implemented | Fixed-effect univariate ordinal model for ordered scores with cutpoints; `mu` is a latent location and ordinal scale formulas are planned. |
 | `cbind(successes, failures) ~ x1`, `family = beta_binomial()` | Implemented | Fixed-effect denominator-aware model for success counts with known trial totals; `sigma` is extra-binomial variation. |
@@ -817,7 +819,9 @@ Not every parameter should accept random effects at the same development stage.
 | `phylo(1 | p | species, tree = tree)` | Implemented as a label for matching bivariate `mu1`/`mu2` phylogenetic location terms and for the matching all-four q=4 bivariate phylogenetic location-scale block. Partial, unlabelled, mismatched, and slope forms remain rejected. |
 | `phylo(1 | species, A = A)` or `phylo(1 | species, Ainv = Ainv)` | Planned matrix-input sibling to the tree route; `tree = tree` remains the only implemented public phylogenetic input. |
 | `animal(1 | id, pedigree = ped)` / `animal(1 | id, A = A)` / `animal(1 | id, Ainv = Ainv)` | Planned animal-model known-relatedness random effect; no fitted path yet. |
+| `animal(1 + x | id, pedigree = ped)` | Planned animal-model one-slope marker grammar; parsed and rejected before fitting until intercept animal models, diagnostics, profile targets, and recovery tests exist. |
 | `relmat(1 | id, K = K)` / `relmat(1 | id, Q = Q)` | Design candidate for a lower-level user-supplied relatedness matrix; no fitted path yet. Prefer one public low-level name, not both `relmat()` and `gr()`. |
+| `relmat(1 + x | id, K = K)` / `relmat(1 + x | id, Q = Q)` | Planned lower-level relatedness one-slope marker grammar; parsed and rejected before fitting until covariance/precision validation, diagnostics, profile targets, and recovery tests exist. |
 | `phylo(1 + x | species, tree = tree)` | Planned structured random slope syntax after intercept-only phylogeny is tested; one slope first, two slopes as the near-term advanced path. |
 | `spatial(1 | site, coords = coords)` | Implemented first structured spatial random intercept for univariate Gaussian `mu`; coordinates define a fixed coordinate covariance foundation. Mesh/SPDE fitting remains planned. |
 | `spatial(1 + x | site, coords = coords)` | Implemented one numeric structured spatial random slope for univariate Gaussian `mu`; it estimates independent `spatial(1 | site)` and `spatial(0 + x | site)` fields with no slope correlation. Slice 187 adds direct profile-interval coverage for the slope-field SD and keeps multiple spatial slopes planned. |
@@ -855,17 +859,20 @@ Not every parameter should accept random effects at the same development stage.
   `phylo(1 | species, tree = tree)` in univariate Gaussian `mu`; fitted
   coordinate spatial paths are `spatial(1 | site, coords = coords)` and one
   numeric `spatial(1 + x | site, coords = coords)` slope in univariate Gaussian
-  `mu`. Later paths should support `animal(1 | id, pedigree = ped)`,
-  `phylo(1 + x | species, tree = tree)`, multiple spatial slopes, and slope
-  correlations only after separate recovery evidence. Matrix-input routes such
-  as `animal(..., A = A)`, `animal(..., Ainv = Ainv)`, `phylo(..., A = A)`,
-  and lower-level `relmat(..., K = K)` should reuse the same structured-effect
-  layer but remain unsupported until diagnostics, extractor labels, profile
-  targets, and simulation recovery exist. Keep `A`, `Ainv`, `K`, or `Q` for
-  relatedness and precision inputs; keep `V` for known sampling covariance in
-  the preferred `meta_V(..., V = V)` design. If `gr()` is retained, treat it as
-  a compatibility alias or internal reserved marker rather than a second public
-  teaching path.
+  `mu`. Slice 272 confirms one-slope `animal()` and `relmat()` markers are
+  parser-readable, but those markers are not fitted likelihoods. Later paths
+  should support `animal(1 | id, pedigree = ped)`,
+  `animal(1 + x | id, pedigree = ped)`,
+  `phylo(1 + x | species, tree = tree)`, `relmat(1 + x | id, K = K)`, multiple
+  spatial slopes, and slope correlations only after separate recovery evidence.
+  Matrix-input routes such as `animal(..., A = A)`, `animal(..., Ainv = Ainv)`,
+  `phylo(..., A = A)`, and lower-level `relmat(..., K = K)` should reuse the
+  same structured-effect layer but remain unsupported until diagnostics,
+  extractor labels, profile targets, and simulation recovery exist. Keep `A`,
+  `Ainv`, `K`, or `Q` for relatedness and precision inputs; keep `V` for known
+  sampling covariance in the preferred `meta_V(..., V = V)` design. If `gr()` is
+  retained, treat it as a compatibility alias or internal reserved marker rather
+  than a second public teaching path.
 - Spatial syntax mirrors this pattern with terms such as
   `spatial(1 | site, coords = coords)` and
   `spatial(1 + x | site, coords = coords)`. The fitted coordinate paths use

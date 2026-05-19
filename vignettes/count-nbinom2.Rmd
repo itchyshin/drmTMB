@@ -284,7 +284,13 @@ AIC(fit_nb2, fit_zinb2)
 
 ## Current Boundary
 
-The implemented count path is intentionally fixed-effect and univariate:
+The implemented count path is still intentionally narrow. Fixed-effect
+Poisson, NB2, zero-inflated Poisson, zero-inflated NB2, zero-truncated NB2,
+and hurdle NB2 models are fitted. Ordinary non-zero-inflated Poisson and NB2
+`mu` models can also fit unlabelled random intercepts and independent numeric
+random slopes such as `(1 | site)` and `(0 + effort | site)`. The
+zero-inflated, hurdle, truncated, and scale-side count routes remain
+fixed-effect only.
 
 ```r
 drmTMB(
@@ -298,8 +304,10 @@ Do not teach the following as fitted count examples yet:
 
 - correlated or labelled NB2 `mu` random-slope blocks;
 - random effects in NB2 `sigma` or `zi`;
+- random effects in zero-inflated Poisson, zero-inflated NB2, truncated NB2,
+  or hurdle NB2 count components;
 - `sd(group) ~ ...` random-effect scale models;
-- `meta_known_V(V = V)` with counts;
+- `meta_V(V = V)` or `meta_known_V(V = V)` with counts;
 - `phylo()`, `spatial()`, `animal()`, or `relmat()` count models;
 - bivariate or mixed-response count models such as
   `family = c(gaussian(), nbinom2())`;

@@ -316,8 +316,9 @@ measurement-process decision outside this tutorial.
 
 ## Current Boundary
 
-The implemented bounded-response path is intentionally fixed-effect and
-univariate:
+The implemented bounded-response path is fixed-effect and univariate. Use
+`beta_binomial()` for counted successes and failures, and use `beta()` for a
+single continuous proportion that is strictly between 0 and 1:
 
 ```r
 drmTMB(
@@ -339,12 +340,13 @@ Do not teach the following as fitted proportion examples yet:
 
 - random effects in `mu` or `sigma`;
 - `sd(group) ~ ...` random-effect scale models;
-- `meta_known_V(V = V)` with beta or beta-binomial responses;
+- `meta_V(V = V)`, or its `meta_known_V(V = V)` compatibility alias, with
+  beta or beta-binomial responses;
 - `phylo()`, `spatial()`, `animal()`, or `relmat()` bounded-response models;
 - bivariate or mixed-response bounded models such as
   `family = c(beta(), gaussian())`;
-- zero-one-inflated beta, ordered beta, or beta-binomial zero-inflation; fixed
-  `zoi` and `coi` likelihoods should come before their random effects;
+- fixed-effect `zoi` or `coi` likelihoods, zero-one-inflated beta, ordered
+  beta, or beta-binomial zero-inflation;
 - denominator shorthand such as `successes / trials` as a replacement for
   `cbind(successes, failures)`.
 

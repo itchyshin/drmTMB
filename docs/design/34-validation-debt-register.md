@@ -5,6 +5,13 @@ and model-map article. It does not make new model claims. It records what backs
 each advertised surface and what remains debt before a neighbouring feature can
 be taught as routine.
 
+For Phase 18 simulation admission, read this register together with the Slice
+291 evidence-ledger gate in
+`docs/design/46-pre-simulation-readiness-matrix.md`. A simulation DGP row should
+not enter the admitted grid unless its public surface, implementation evidence,
+tests, diagnostics or interval route, user-facing boundary, and simulation
+status can all be traced back to these two ledgers.
+
 Use these status labels:
 
 - `covered`: the row has implementation, focused tests, user-facing docs, and
@@ -72,14 +79,37 @@ Use these status labels:
   Correlated slope blocks, labelled covariance blocks,
   zero-inflated Poisson random effects, and cross-parameter covariance blocks
   remain planned.
-- Evidence: `tests/testthat/test-poisson-mean.R` and
+- Evidence: `tests/testthat/test-poisson-mean.R`,
+  `tests/testthat/test-phase18-poisson-mu-random-effect.R`, and
   `tests/testthat/test-comparators.R`.
 - Diagnostics and intervals: `sdpars$mu`, `random_effects$mu`, and
   `profile_targets()` expose the random-effect SDs through direct
   `log_sd_mu` profile targets.
-- Debt: weak-SD grids, NB2 full smoke runners, correlated non-Gaussian `mu`
-  slopes, and cross-parameter covariance need later slice evidence before
-  Phase 18 comprehensive simulation.
+- Debt: larger grids, correlated non-Gaussian `mu` slopes, labelled
+  covariance blocks, zero-inflated Poisson random effects, and
+  cross-parameter covariance need later slice evidence before Phase 18 treats
+  them as routine.
+
+### NB2 ordinary random effects
+
+- Matrix status: first non-Gaussian overdispersed-count path implemented for
+  non-zero-inflated NB2 `mu`.
+- Register status: ordinary unlabelled `(1 | group)` random intercepts and
+  independent numeric `(0 + x | group)` slopes enter the log-mean predictor;
+  `sigma` remains a fixed-effect overdispersion formula.
+  Correlated slope blocks, labelled covariance blocks, zero-inflated NB2
+  random effects, and NB2 `sigma` random effects remain planned.
+- Evidence: `tests/testthat/test-nbinom2-location-scale.R` and
+  `tests/testthat/test-phase18-nbinom2-mu-random-effect.R`.
+- Diagnostics and intervals: `sdpars$mu`, `random_effects$mu`, and
+  `profile_targets()` expose the fitted random-effect SDs through direct
+  `log_sd_mu` profile targets. The Phase 18 smoke surface records fixed-effect
+  Wald rows for `mu` and `sigma` coefficients and direct profile rows for the
+  `mu` random-effect SDs.
+- Debt: zero-inflated NB2 random effects, `sigma` random effects, correlated
+  or labelled NB2 slope blocks, and cross-parameter non-Gaussian covariance
+  need separate likelihood, extractor, interval, diagnostic, and recovery
+  evidence before comprehensive simulation.
 
 ### Inflation, hurdle, and one-inflation random effects
 
@@ -93,7 +123,11 @@ Use these status labels:
   `tests/testthat/test-zi-nbinom2.R`,
   `tests/testthat/test-hurdle-nbinom2.R`,
   `tests/testthat/test-beta-location-scale.R`, and
-  `tests/testthat/test-beta-binomial.R`.
+  `tests/testthat/test-beta-binomial.R`; Slice 271 confirms both
+  random-intercept and random-slope bar requests stay blocked for the relevant
+  count, hurdle, and planned bounded-response parameters. Slice 285 adds
+  fixed-effect Wald interval row checks for fitted beta and beta-binomial
+  `mu` and `sigma` coefficients, without opening `zoi` or `coi` likelihoods.
 - Diagnostics and intervals: no inflation, hurdle, or one-inflation
   random-effect diagnostics or intervals exist because no corresponding
   likelihood is fitted yet.
@@ -442,7 +476,7 @@ and focused recovery tests already exist.
 | Surface | Current fitted state | Main failure modes to track | Phase 18 decision |
 | --- | --- | --- | --- |
 | Ordinary Poisson `mu` random effects | Fitted for non-zero-inflated Poisson random intercepts and independent numeric random slopes. | Boundary fitted SDs near zero, weak group replication, weak within-group slope variation, biased fixed effects when group SD is small, and profile failure for `log_sd_mu` targets. | Include in the first non-Gaussian pilot grid with true SD, number of groups, repeats per group, fixed-effect contrast size, factor predictors, slope variation, convergence, Hessian, `check_drm()` status, profile success, bias, RMSE, and interval coverage where available. |
-| NB2 and zero-truncated NB2 `mu` random effects | NB2 is fitted for non-zero-inflated ordinary random intercepts and independent numeric slopes; NB2 now has a smoke runner, fixed-effect Wald intervals, direct SD profile intervals, and a weak-SD boundary test; zero-truncated NB2 remains planned. | Confounding among overdispersion, group-level heterogeneity, zero truncation, and count-side mean effects. | Admit NB2 only as a focused first-slice surface until larger grids vary overdispersion, group count, repeats, true SD, and mean count; exclude zero-truncated NB2 until fitted. |
+| NB2 and zero-truncated NB2 `mu` random effects | NB2 is fitted for non-zero-inflated ordinary random intercepts and independent numeric slopes; NB2 now has a smoke runner, fixed-effect Wald intervals, direct SD profile intervals, and a weak-SD boundary test; zero-truncated NB2 remains planned. | Confounding among overdispersion, group-level heterogeneity, zero truncation, and count-side mean effects. | Admit NB2 only as a focused first slice until larger grids vary overdispersion, group count, repeats, true SD, and mean count; exclude zero-truncated NB2 until fitted. |
 | Non-Gaussian `sigma` random effects | Blocked; fixed-effect `sigma` formulas remain available where the family supports them. | Residual-scale random effects can mimic mean random effects, overdispersion, zero inflation, tail shape, and unmodelled heteroscedasticity. | Exclude until family-specific scale-random-effect likelihoods, `sdpars`, extractors, direct profile targets, weak-SD tests, and scale interpretation docs exist. |
 | Shape, skewness, and tail random effects | Blocked for Student-t `nu`; skew-normal and skew-t are future fixed-effect-first families. | Tail shape, residual skewness, residual scale, outliers, and latent ID-level skewness can mimic each other. | Exclude random effects in `nu`, future `tau`, and future ID-level skewness such as `skew(id) ~ x`; fixed-effect skew families need their own likelihood recovery before random effects are discussed as fitted. |
 | Zero inflation, hurdle, zero-one inflation, and one inflation | Fixed-effect `zi` and `hu` paths exist for selected count families; random effects and bounded-response `zoi`/`coi` paths are blocked or planned. | Count-side random effects can mimic structural zeros; hurdle and inflation components can be weakly separated from mean, dispersion, and sampling zeros. | Exclude random effects in `zi`, `hu`, future `zoi`, and future `coi`; add fixed-effect zero-one-inflated bounded likelihoods before any random-effect simulation grid. |

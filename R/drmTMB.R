@@ -16,7 +16,8 @@
 #' Gaussian random intercepts, independent numeric random slopes,
 #' and labelled or unlabelled correlated numeric random intercept-slope blocks
 #' in the location formula,
-#' known sampling covariance through `meta_known_V(V = V)`, residual-scale
+#' known sampling covariance through `meta_V(V = V)` with
+#' `meta_known_V(V = V)` as a compatibility alias, residual-scale
 #' random intercepts and independent numeric random slopes in the scale formula,
 #' labelled `mu`/`sigma`
 #' random-intercept covariance blocks, and one or more group-level
@@ -51,8 +52,8 @@
 #' @param data A data frame.
 #' @param weights Optional non-negative likelihood weights. These are row
 #'   log-likelihood multipliers, not known sampling variances. For
-#'   meta-analytic sampling variance or covariance, use [meta_known_V()] in the
-#'   model formula instead.
+#'   meta-analytic sampling variance or covariance, use [meta_V()] in the model
+#'   formula instead.
 #' @param control Optional list passed to [stats::nlminb()], or a
 #'   [drm_control()] object when optimizer settings and fitted-object storage
 #'   choices should be supplied together.
@@ -3075,12 +3076,19 @@ drm_reject_phase1_terms <- function(rhs, dpar, allow_offset = FALSE) {
     logical(1)
   )]
   if (length(structured) > 0L) {
-    cli::cli_abort(c(
+    message <- c(
       "Structured-effect syntax is planned, not implemented.",
       "x" = "The {.code {dpar}} formula contains structured marker{?s}: {.val {structured}}.",
       "i" = "Implemented structured paths are Gaussian-only: intercept-level {.code phylo()} terms in univariate and selected bivariate Gaussian formulas, and coordinate-spatial {.code spatial(1 | site, coords = coords)} or one-slope {.code spatial(1 + x | site, coords = coords)} terms in univariate Gaussian {.code mu}.",
       "i" = "Structured non-Gaussian paths, including count, bounded, ordinal, shape, inflation, hurdle, and future {.fn animal} or {.fn relmat} relatedness routes, remain deferred until ordinary family-specific random-effect recovery is stable."
-    ))
+    )
+    if (identical(dpar, "sigma") && "phylo" %in% structured) {
+      message <- c(
+        message,
+        "i" = "{.code sigma ~ phylo(...)} is not a fitted univariate residual-scale model yet; use fixed-effect {.code sigma} predictors or a documented bivariate labelled q4 phylogenetic block when that is the intended four-endpoint model."
+      )
+    }
+    cli::cli_abort(message)
   }
 
   unsupported <- c("|", "meta_known_V", "meta_V", "gr", "phylo", "spatial")
@@ -6715,6 +6723,13 @@ extract_meta_known_v_arg <- function(expr) {
   arg_names[is.na(arg_names)] <- ""
 
   if (identical(fn_name, "meta_V")) {
+    if ("scale" %in% arg_names && "V" %in% arg_names && !"w" %in% arg_names) {
+      cli::cli_abort(c(
+        "{.arg scale} is not used for additive known sampling covariance.",
+        "x" = "Use {.code meta_V(V = V)} without {.arg scale}; that is the exact additive known-`V` route.",
+        "i" = "{.code meta_V(w = w, scale = \"proportional\")} remains reserved until a proportional sampling-variance likelihood is implemented."
+      ))
+    }
     if (any(arg_names %in% c("w", "scale"))) {
       cli::cli_abort(c(
         "{.fn meta_V} proportional sampling-variance arguments are reserved, not implemented.",

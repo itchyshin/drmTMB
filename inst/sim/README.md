@@ -17,8 +17,27 @@ Every simulation cell should have a stable cell id, explicit conditions,
 replicate-level seeds, fit diagnostics, interval status, and enough metadata to
 resume or audit a partial run.
 
+Slice 292 starts the comprehensive design as a blueprint, not as a full grid.
+The scenario map in `docs/design/41-phase-18-simulation-programme.md` decides
+which continuous, proportion, count, ordinal, meta-analysis, bivariate,
+random-slope, shape, phylogenetic, spatial, `animal()`, and `relmat()` lanes
+are admitted, opt-in, design-only, or failure-ledger only before new DGP files
+are added here.
+
 Current pilot files:
 
+- `docs/design/47-phase-18-gaussian-location-scale-ademp.md` is the first
+  one-page ADEMP sheet for the admitted Gaussian location-scale lane.
+- `docs/design/48-phase-18-meta-v-ademp.md` is the one-page ADEMP sheet for
+  the admitted Gaussian `meta_V(V = V)` lane.
+- `docs/design/49-phase-18-count-mu-random-effect-ademp.md` is the one-page
+  ADEMP sheet for the paired Poisson/NB2 `mu` random-effect lane.
+- `docs/design/50-phase-18-proportion-fixed-effect-ademp.md` is the one-page
+  ADEMP sheet for the fixed-effect `beta()` and `beta_binomial()` lane.
+- `docs/design/51-phase-18-ordinal-fixed-effect-ademp.md` is the one-page
+  ADEMP sheet for the fixed-effect `cumulative_logit()` ordinal lane.
+- `docs/design/52-phase-18-bivariate-rho12-ademp.md` is the one-page ADEMP
+  sheet for the bivariate Gaussian residual `rho12` lane.
 - `dgp/sim_dgp_gaussian_ls.R` generates Gaussian location-scale data with
   `mu ~ x` and `sigma ~ z`.
 - `dgp/sim_dgp_gaussian_mu_random_slope.R` generates Gaussian `mu` data with

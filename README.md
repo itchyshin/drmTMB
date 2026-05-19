@@ -147,8 +147,10 @@ head(sigma(fit)^2) # fitted residual variances
   Read
   [Choosing response families](https://itchyshin.github.io/drmTMB/articles/distribution-families.html).
 - **Ordered categories.** Use `cumulative_logit()` for fixed-effect
-  cumulative-logit ordinal regression. See the
-  [reference index](https://itchyshin.github.io/drmTMB/reference/index.html).
+  cumulative-logit ordinal regression with ordered cutpoints and a fixed
+  latent logistic scale. Ordinal random effects and scale/discrimination
+  formulas remain planned. Read
+  [Choosing response families](https://itchyshin.github.io/drmTMB/articles/distribution-families.html).
 - **Two Gaussian responses with changing residual correlation.** Use bivariate
   Gaussian location-coscale regression with `mu1`, `mu2`, `sigma1`,
   `sigma2`, and `rho12`. Matching labelled random intercepts in `mu1` and
@@ -156,7 +158,7 @@ head(sigma(fit)^2) # fitted residual variances
   group-level covariance block. Read
   [Changing residual coupling with `rho12`](https://itchyshin.github.io/drmTMB/articles/bivariate-coscale.html).
 - **Known sampling variance or covariance.** Use Gaussian meta-analysis with
-  `meta_known_V(V = V)`. Read
+  `meta_V(V = V)`; `meta_known_V(V = V)` remains a compatibility alias. Read
   [Mean effects and residual heterogeneity](https://itchyshin.github.io/drmTMB/articles/meta-analysis.html).
 - **Structured Gaussian effects.** Use ordinary random effects,
   residual-scale random intercepts or independent random slopes in `sigma`,
@@ -179,12 +181,22 @@ hardening or large-data path, not a general modelling guarantee.
 The evidence and debt ledger behind these rows lives in
 `docs/design/34-validation-debt-register.md`.
 
+Read status words consistently:
+
+| Status word | Meaning for a user |
+| --- | --- |
+| Stable | Routine fitted path with tests, diagnostics or interval status, and a reader-facing example or guide. |
+| First slice | Fitted and tested, but intentionally narrow; stay inside the named formula, family, and data-shape boundary. |
+| Opt-in control | Available for hardening, scalability, or memory control, but not a modelling guarantee for neighbouring surfaces. |
+| Planned or reserved | Public grammar or roadmap wording may exist, but `drmTMB()` should reject it or treat it as design-only until likelihood, tests, docs, and after-task evidence land. |
+| Unsupported or blocked | Do not use as analysis syntax; fit the nearest implemented model or check the roadmap before interpreting a richer structure. |
+
 | Surface | Current status | Interval and diagnostic status | Main boundary |
 | --- | --- | --- | --- |
 | Fixed-effect one-response families | Stable for Gaussian, Student-t, lognormal, Gamma, beta, beta-binomial, Poisson, NB2, truncated NB2, hurdle NB2, zero-inflated Poisson, zero-inflated NB2, and cumulative-logit ordinal location; ordinary Poisson and NB2 `mu` random intercepts and independent numeric slopes are the first non-Gaussian random-effect slices | Wald fixed-effect intervals by default; explicit direct profile targets are listed by `profile_targets()`; Poisson and NB2 random-effect SDs are direct `log_sd_mu` profile targets | Random effects are otherwise mostly Gaussian-only; non-Gaussian `sigma` and shape random effects, correlated count slopes, zero-inflated count random effects, ordinal scale, and richer bounded-response families including zero-one inflation remain planned |
-| Gaussian ordinary random effects | Stable for `mu` intercepts, independent slopes, and one-slope correlated blocks; stable for `sigma` intercepts and independent slopes | `check_drm()` reports replication, weak-slope, boundary, and Hessian diagnostics; direct SD and fitted correlation targets are profile-ready when the TMB object is retained | Correlated residual-scale slope blocks and coefficient-specific `sd()` slope models remain planned |
+| Gaussian ordinary random effects | Stable for `mu` intercepts, independent slopes, one-slope correlated blocks, and ordinary q > 2 numeric multi-slope blocks; stable for `sigma` intercepts and multiple independent `sigma` slopes | `check_drm()` reports replication, weak-slope, boundary, and Hessian diagnostics; q > 2 `mu` block SDs and independent `sigma` slope SDs are direct profile targets, while q > 2 `mu` correlations are derived-unavailable for direct profiling | Larger q blocks can be sample-size hungry; correlated residual-scale slope blocks and coefficient-specific `sd()` slope models remain planned |
 | Random-effect scale models | First slice fitted for `sd(group) ~ x_group` on unlabelled Gaussian `mu` random intercepts | Fixed SD-surface coefficients are direct targets; row-specific group SD summaries are derived | Slope-specific `sd(id, dpar = "mu", coef = "x") ~ ...` is reserved and rejected |
-| Known sampling covariance | Stable for Gaussian `meta_known_V(V = V)`, including diagonal, dense, and row-paired bivariate known covariance | `check_drm()` reports dense full `V` as a note with dimension, density, size, rank, and conditioning; fixed effects and response-scale residual summaries use the usual interval routes | Dense covariance is small-to-moderate unless sparse or block-sparse evidence is added; full dense known `V` with non-unit likelihood weights is rejected |
+| Known sampling covariance | Stable for Gaussian `meta_V(V = V)`, including diagonal, dense, and row-paired bivariate known covariance; `meta_known_V(V = V)` remains a compatibility alias | `check_drm()` reports dense full `V` as a note with dimension, density, size, rank, and conditioning; fixed effects and response-scale residual summaries use the usual interval routes | Dense covariance is small-to-moderate unless sparse or block-sparse evidence is added; full dense known `V` with non-unit likelihood weights is rejected |
 | Bivariate Gaussian residual `rho12` | Stable for fixed-effect `mu1`, `mu2`, `sigma1`, `sigma2`, and predictor-dependent residual `rho12` | `rho12()` extracts response-scale residual correlations; row-specific profile intervals use `confint(..., parm = "rho12", newdata = ...)` | Residual `rho12` is not a group-level, phylogenetic, or spatial correlation |
 | Ordinary bivariate covariance and `corpairs()` | First slice fitted for matching labelled random intercepts in `mu1`/`mu2`, `sigma1`/`sigma2`, same-response `mu`/`sigma`, all-four q=4 blocks, and q=2 `corpair(..., level = "group") ~ x` | Constant q=2 SD/correlation targets are profile-ready; predictor-dependent `corpair()` values use `newdata`; q=4 unstructured-correlation rows are derived and report unavailable derived intervals | Bivariate random slopes and slope1-slope2 plasticity-syndrome correlations remain planned |
 | Phylogenetic structured effects | First slices fitted for univariate `mu`, bivariate `mu1`/`mu2`, labelled q=4 location-scale blocks, `sd_phylo*()` direct-SD surfaces, and q=2 phylogenetic `corpair()` regression | Direct phylogenetic SD and constant q=2 correlation targets are profile-ready; predictor-dependent `corpair()` values use `newdata`; q=4 phylogenetic correlations are derived-only for intervals | Phylogenetic slopes, standalone or partial phylogenetic scale terms, structured `rho12`, and predictor-dependent q=4 correlations remain planned |
@@ -237,15 +249,18 @@ row. Mesh/SPDE fields, multiple spatial slopes, spatial slope correlations,
 spatial scale terms, and bivariate spatial covariance blocks are still planned
 rather than landing-page workflows.
 
-For uncertainty, `confint()` returns Wald intervals for fixed effects by
-default when `TMB::sdreport()` has been computed, and profile-likelihood
-intervals only for explicit direct targets. Use `profile_targets(fit)` to see
-which SD, correlation, scale, or `rho12` targets are ready. Interval-aware
-summaries use `conf.status` to separate returned intervals from rows that need
-`newdata`, derived-profile methods, or refitting with
-`control = drm_control(se = TRUE)` for Wald standard errors; profile rows also
-report `profile.boundary` and `profile.message` so boundary or
-near-correlation-limit intervals are visible before interpretation.
+For uncertainty, `confint()` returns Wald intervals for fixed effects,
+including shape and coscale formula coefficients, by default when
+`TMB::sdreport()` has been computed. Profile-likelihood intervals are available
+only for explicit direct targets. Use `profile_targets(fit)` to see which SD,
+correlation, scale, or `rho12` targets are ready. Interval-aware summaries use
+`conf.status` to separate returned intervals from rows that need `newdata`,
+derived-profile methods, or refitting with `control = drm_control(se = TRUE)`
+for Wald standard errors; profile rows also report `profile.boundary` and
+`profile.message` so boundary or near-correlation-limit intervals are visible
+before interpretation. Fisher-z Wald correlation intervals are reserved for
+Phase 18 simulation coverage producers, not the fitted-model `confint()`
+default.
 
 ## Project status
 

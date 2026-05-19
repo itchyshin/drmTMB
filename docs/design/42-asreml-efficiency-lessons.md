@@ -58,6 +58,17 @@ not enough to compete with ASReml on large single-trait animal models. The
 performance-critical target is a direct sparse-precision path with stable log
 determinants and no avoidable dense inverse.
 
+Use this representation boundary when writing examples or planning code:
+
+| Public input | Mathematical object | Near-term use | Scalability claim |
+| --- | --- | --- | --- |
+| `animal(1 | id, pedigree = ped)` | Additive relationship derived from a pedigree, preferably normalized internally to a sparse inverse relationship precision. | First biological animal-model surface after parser and validation gates. | Do not claim large-pedigree speed until the sparse inverse path is fitted, tested, and benchmarked. |
+| `animal(1 | id, A = A)` | Dense or sparse additive relationship covariance. | Small examples, dense parity checks, and user-supplied relationship matrices when inversion is explicit and safe. | Small-to-moderate only if the engine must invert or factor a dense matrix. |
+| `animal(1 | id, Ainv = Ainv)` | User-supplied inverse additive relationship or precision matrix. | Preferred scalability route once row-name, positive-definiteness, and log-determinant checks exist. | Potential large-pedigree route after recovery and scaling evidence. |
+| `relmat(1 | id, K = K)` | Lower-level user-supplied relatedness covariance. | Expert route for known latent relatedness that is not animal, phylogenetic, or spatial. | Small-to-moderate until sparse covariance or precision handling is proven. |
+| `relmat(1 | id, Q = Q)` | Lower-level user-supplied precision or inverse relationship matrix. | Expert sparse route after orientation, row-name, and determinant contracts are implemented. | Potential scalable route, but only after diagnostics and benchmarks. |
+| `meta_V(V = V)` | Known sampling covariance among observations or effect-size estimates. | Gaussian meta-analysis and related known-observation-covariance models. | Separate problem: dense `V` remains small-to-moderate until sparse/block-sparse sampling-covariance storage is implemented. |
+
 ## Immediate Design Rules
 
 - Keep `animal()` as biological sugar and `relmat()` as the lower-level known

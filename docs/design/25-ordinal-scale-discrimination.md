@@ -19,6 +19,18 @@ internally because a free intercept and free cutpoints are not jointly
 identifiable. `predict(fit, dpar = "mu")` returns latent location, and
 `fitted(fit)` returns the expected ordered-category score.
 
+## Slice 287 Readiness Ledger
+
+The fitted ordinal surface is ready only for fixed-effect univariate
+location-model use:
+
+| Surface | Current evidence | Boundary |
+| --- | --- | --- |
+| Likelihood and cutpoints | `tests/testthat/test-cumulative-logit.R` checks coefficient recovery, ordered cutpoints, independent category-probability likelihoods, weights, integer-score inputs, more than three categories, missing rows, sparse nonempty categories, and stable close-cutpoint/extreme-location probabilities. | Cutpoint-specific predictors are not fitted. |
+| Prediction and summaries | The same test file checks latent-location `predict()`, expected-score `fitted()`, response and Pearson residuals, category probabilities, seeded `simulate()`, and `sigma(fit) = 1`. | Expected ordered-category scores are summaries for plotting or comparison, not measured continuous outcomes. |
+| Intervals and targets | `confint()` exposes fitted fixed-effect `mu` rows as Wald intervals; `profile_targets()` lists internal ordered-cutpoint rows as direct TMB targets. | Polished response-scale cutpoint intervals, ordinal-scale intervals, and transformed category-probability intervals remain later work. |
+| Unsupported neighbours | Boundary tests reject `sigma ~`, `sd(group) ~`, `meta_known_V(V = V)`, `mvbind()`, denominator syntax, and `mu` random-effect bar terms before fitting. | The first future ordinal mixed target is a random intercept such as `bf(score ~ x + (1 | id))`; random slopes, structured effects, scale/discrimination, and bivariate or mixed-response ordinal models wait. |
+
 ## Preferred First Scale Extension
 
 The first planned scale extension should use the package's stable scale grammar:

@@ -56,10 +56,12 @@ correlations, q=4 correlation regressions, or random effects in `rho12`.
 
 Slope-related correlations stay deliberately narrower. Ordinary Gaussian `mu`
 can fit q > 2 constant location blocks. Gaussian `sigma` can fit independent
-slopes. Coordinate spatial can fit one independent `mu` slope. Phylogenetic,
-animal, `relmat()`, bivariate, non-Gaussian, and cross-parameter slope
-correlations need their own implementation, diagnostics, interval targets, and
-recovery tests before they enter broad simulations.
+slopes. Coordinate spatial can fit one independent `mu` slope. The parser can
+read one-slope `phylo()`, `animal()`, and `relmat()` markers, but parser support
+does not create a fitted slope correlation model. Phylogenetic, animal,
+`relmat()`, bivariate, non-Gaussian, and cross-parameter slope correlations need
+their own implementation, diagnostics, interval targets, and recovery tests
+before they enter broad simulations.
 
 ## Simulation Consequence
 

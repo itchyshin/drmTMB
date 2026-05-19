@@ -28,10 +28,11 @@
   but rejected by `drmTMB()` until random-slope SD regression has a covariance
   model and tests.
 - Diagonal and dense full known-covariance Gaussian meta-analysis is
-  implemented. Full-matrix `meta_known_V(V = V)` currently stores the retained
-  covariance as a dense R matrix; `check_drm()` reports that row as a note with
-  dimension, density, size, rank, and conditioning because dense `V` is a
-  small-to-moderate route until sparse or block-sparse storage exists.
+  implemented. Full-matrix `meta_V(V = V)` currently stores the retained
+  covariance as a dense R matrix, with `meta_known_V(V = V)` retained as a
+  compatibility alias; `check_drm()` reports that row as a note with dimension,
+  density, size, rank, and conditioning because dense `V` is a small-to-moderate
+  route until sparse or block-sparse storage exists.
 - Sparse fixed-effect matrices are implemented only for the first univariate
   Gaussian `mu` path through `drm_control(sparse_fixed = TRUE)`. The model must
   have fixed effects only, intercept-only `sigma`, no known covariance, no
@@ -303,9 +304,10 @@
 - `weights =` is implemented as ordinary likelihood weights: one
   non-negative finite weight per observation for univariate models, and one
   weight per complete response pair for bivariate models. Known sampling
-  covariance remains `meta_known_V(V = V)`, not `weights`. Full dense
-  `meta_known_V(V = V)` covariance paths currently reject non-unit weights
-  because they are joint MVN likelihood blocks.
+  covariance remains `meta_V(V = V)`, not `weights`. Full dense
+  `meta_V(V = V)` covariance paths currently reject non-unit weights because
+  they are joint MVN likelihood blocks; `meta_known_V(V = V)` remains a
+  compatibility alias.
 - The first large-data storage controls are implemented through
   `drm_control(keep_data = FALSE, keep_model_frame = FALSE, keep_tmb_object = FALSE)`,
   including nested model-frame caches for direct-SD and fitted q=2

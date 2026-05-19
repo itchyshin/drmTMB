@@ -2,7 +2,7 @@
 #'
 #' `meta_vcov_bivariate()` builds a dense row-paired sampling covariance matrix
 #' for bivariate meta-analysis. It is a convenience helper for constructing the
-#' known `V` matrix used by [meta_known_V()] in complete-row bivariate Gaussian
+#' known `V` matrix used by [meta_V()] in complete-row bivariate Gaussian
 #' meta-analysis.
 #'
 #' The returned matrix uses row-paired stacking:
@@ -87,7 +87,9 @@ meta_vcov_bivariate <- function(v1, v2, cov12 = NULL, cor12 = NULL) {
   if (is.null(pair_names)) {
     pair_names <- names(v2)
   }
-  if (!is.null(pair_names) && length(pair_names) == n && all(nzchar(pair_names))) {
+  if (
+    !is.null(pair_names) && length(pair_names) == n && all(nzchar(pair_names))
+  ) {
     dimnames(out) <- list(
       as.vector(rbind(paste0(pair_names, ":y1"), paste0(pair_names, ":y2"))),
       as.vector(rbind(paste0(pair_names, ":y1"), paste0(pair_names, ":y2")))
@@ -99,13 +101,17 @@ meta_vcov_bivariate <- function(v1, v2, cov12 = NULL, cor12 = NULL) {
 
 validate_meta_variance_vector <- function(x, name) {
   if (!is.numeric(x) || is.matrix(x) || is.array(x)) {
-    cli::cli_abort("{.arg {name}} must be a numeric vector of known sampling variances.")
+    cli::cli_abort(
+      "{.arg {name}} must be a numeric vector of known sampling variances."
+    )
   }
   if (any(!is.finite(x) | is.na(x))) {
     cli::cli_abort("{.arg {name}} must contain only finite values.")
   }
   if (any(x < 0)) {
-    cli::cli_abort("{.arg {name}} must contain non-negative known sampling variances.")
+    cli::cli_abort(
+      "{.arg {name}} must contain non-negative known sampling variances."
+    )
   }
   out <- as.numeric(x)
   names(out) <- names(x)
@@ -117,7 +123,9 @@ validate_meta_pair_vector <- function(x, name, n) {
     cli::cli_abort("{.arg {name}} must be a numeric vector.")
   }
   if (!(length(x) %in% c(1L, n))) {
-    cli::cli_abort("{.arg {name}} must have length 1 or the same length as {.arg v1}.")
+    cli::cli_abort(
+      "{.arg {name}} must have length 1 or the same length as {.arg v1}."
+    )
   }
   if (any(!is.finite(x) | is.na(x))) {
     cli::cli_abort("{.arg {name}} must contain only finite values.")

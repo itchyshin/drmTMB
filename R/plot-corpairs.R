@@ -6,12 +6,15 @@
 #' table to this helper.
 #'
 #' The helper draws one point per correlation row. If the table contains finite
-#' `conf.low` and `conf.high` bounds, it draws interval segments for those rows
-#' only. Rows without finite bounds remain visible as point estimates and keep
-#' their display interval status attached to the plotted data.
+#' `conf.low` and `conf.high` bounds plus interval provenance columns that
+#' describe a real interval, it draws interval segments for those rows only. Rows
+#' without supported bounds remain visible as point estimates and keep their
+#' display interval status attached to the plotted data.
 #'
 #' @param data A data frame returned by [corpairs()], or a compatible table with
 #'   columns `level`, `class`, `parameter`, `estimate`, and `modelled`.
+#'   `conf.status` and `interval_source` are optional for point-only tables, but
+#'   finite intervals are drawn only when those columns mark a supported interval.
 #' @param colour Optional character scalar naming a column to map to colour.
 #'   Use `NULL` to suppress colour mapping.
 #' @param facet Optional character scalar naming a column to facet by. Use
@@ -35,7 +38,8 @@
 #'   modelled = c(FALSE, FALSE),
 #'   conf.low = c(NA, 0.10),
 #'   conf.high = c(NA, 0.72),
-#'   conf.status = c("not_requested", "profile")
+#'   conf.status = c("not_requested", "profile"),
+#'   interval_source = c("not_available", "profile")
 #' )
 #' if (requireNamespace("ggplot2", quietly = TRUE)) {
 #'   plot_corpairs(pairs)
@@ -175,6 +179,11 @@ add_plot_corpairs_columns <- function(data, colour, facet, label) {
   } else {
     data$.drmTMB_conf_status <- data$conf.status
   }
+  if (!"interval_source" %in% names(data)) {
+    data$.drmTMB_interval_source <- rep("not_available", nrow(data))
+  } else {
+    data$.drmTMB_interval_source <- data$interval_source
+  }
   if (!is.null(colour)) {
     data$.drmTMB_plot_colour <- data[[colour]]
   }
@@ -216,6 +225,23 @@ plot_corpairs_interval_data <- function(data) {
   if (!all(c("conf.low", "conf.high") %in% names(data))) {
     return(data[0L, , drop = FALSE])
   }
-  keep <- is.finite(data$conf.low) & is.finite(data$conf.high)
+  keep <- is.finite(data$conf.low) &
+    is.finite(data$conf.high) &
+    plot_corpairs_interval_available(data)
   data[keep, , drop = FALSE]
+}
+
+plot_corpairs_interval_available <- function(data) {
+  unavailable_status <- c(
+    "",
+    setdiff(interval_status_levels(), c("wald", "profile"))
+  )
+  status <- as.character(data$.drmTMB_conf_status)
+  source <- as.character(data$.drmTMB_interval_source)
+  !is.na(status) &
+    nzchar(status) &
+    !status %in% unavailable_status &
+    !is.na(source) &
+    nzchar(source) &
+    source != "not_available"
 }

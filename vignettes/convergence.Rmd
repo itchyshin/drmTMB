@@ -41,7 +41,7 @@ The diagnostic table separates several questions that are easy to confuse:
 | --- | --- | --- |
 | `optimizer_convergence` | Did `nlminb()` return convergence code 0? | Inspect the optimizer message, gradient, and budget rows. |
 | `optimizer_budget` | Did the fit hit supplied `iter.max` or `eval.max` limits? | Increase limits if the model is still moving and the structure is defensible. |
-| `fixed_gradient` | Is the fixed-parameter gradient small at the selected optimum? | Treat large gradients as an optimization problem before using Wald inference. |
+| `fixed_gradient` | Is the fixed-parameter gradient small at the selected optimum, and which component is largest? | Treat large gradients as an optimization problem before using Wald inference. |
 | `hessian_positive_definite` | Did `TMB::sdreport()` report a positive-definite Hessian? | Look for boundary SDs, correlations, shape, dispersion, or inflation parameters. |
 | `fixed_se_finite` | Are fixed-effect standard errors finite? | If not, do not use Wald intervals until the Hessian problem is understood. |
 | boundary rows | Are fitted SDs, `rho12`, or shape parameters near a boundary? | Consider a simpler model, profile intervals, or a fixed/removal decision. |
@@ -66,19 +66,48 @@ fit <- drmTMB(
 )
 ```
 
-This kind of control is often appropriate for complex models:
+For the common case where you simply want a larger deterministic `nlminb()`
+budget, use a named preset:
 
 ```{r}
 complex_control <- drm_control(
-  optimizer = list(iter.max = 5000, eval.max = 5000)
+  optimizer_preset = "robust"
 )
 ```
+
+`optimizer_preset = "careful"` sets `iter.max = 1000` and `eval.max = 1000`.
+`optimizer_preset = "robust"` sets both limits to 5000. The default preset adds
+no optimizer controls, so ordinary models still use the ordinary `nlminb()`
+defaults.
 
 There is no universal best number. A small Gaussian fixed-effect model should
 not need the same budget as a bivariate phylogenetic location-scale model with
 random slopes and fitted correlations. Use `check_drm()` to decide whether the
 extra budget changed the result or merely gave the optimizer more time to
 reach the same boundary.
+
+For a model that reports a long iteration history, first check whether the fit
+actually hit `iter.max` or `eval.max` in `check_drm()`. If it did, rerun with
+`optimizer_preset = "careful"` or `"robust"` and compare estimates, gradients,
+and boundary rows with the original fit. If the fitted SDs or correlations stay
+near a boundary after a larger budget, simplify the random-effect or
+correlation structure before treating the longer run as stronger evidence.
+
+If a preset is almost right, combine it with explicit overrides:
+
+```{r}
+fit <- drmTMB(
+  bf(y ~ x + (1 | id), sigma ~ z),
+  data = dat,
+  control = drm_control(
+    optimizer_preset = "robust",
+    optimizer = list(eval.max = 8000)
+  )
+)
+```
+
+The fitted object records the expanded optimizer settings in `fit$control`, so
+the analysis remains reproducible.
 
 A plain list is still accepted for backward compatibility:
 
@@ -196,7 +225,7 @@ more honestly than a Wald standard error near a boundary.
 
 ## Separate optimization from uncertainty
 
-For very large or experimental fits, it can be useful to separate "can the
+For very large or opt-in-control fits, it can be useful to separate "can the
 model optimize?" from "can Wald uncertainty be computed?":
 
 ```{r}
@@ -279,8 +308,13 @@ Several convergence tools are deliberately not automatic in the current
 release:
 
 - user-supplied named starts;
-- warm-start refits from a simpler fitted model;
-- fallback optimizers such as `optim(method = "BFGS")`;
+- warm-start refits from a simpler fitted model; names such as `start_from`,
+  `warm_start`, and `warm_start_from` are reserved until the source-fit contract
+  is implemented;
+- fallback optimizers such as `optim(method = "BFGS")` or
+  `optim(method = "L-BFGS-B")`; names such as `fallback_optimizer`,
+  `fallback_optimizers`, and `optimizer_fallback` are reserved until optimizer
+  comparison provenance is implemented;
 - multi-start jittered searches;
 - Hessian eigenvector culprit reporting;
 - automatic simplification suggestions.

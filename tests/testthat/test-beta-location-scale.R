@@ -43,6 +43,22 @@ test_that("drmTMB fits fixed-effect beta mean-scale models", {
     tolerance = 1e-12
   )
   expect_equal(fitted(fit), predict(fit, dpar = "mu"), tolerance = 1e-12)
+
+  ci <- confint(fit)
+  expect_equal(
+    ci$parm,
+    c(
+      "fixef:mu:(Intercept)",
+      "fixef:mu:x",
+      "fixef:sigma:(Intercept)",
+      "fixef:sigma:z"
+    )
+  )
+  expect_equal(
+    ci$tmb_parameter,
+    c("beta_mu", "beta_mu", "beta_sigma", "beta_sigma")
+  )
+  expect_true(all(ci$conf.status == "wald"))
 })
 
 test_that("beta likelihood matches independent dbeta calculation", {
@@ -247,6 +263,10 @@ test_that("beta rejects boundary and unsupported inputs", {
   )
   expect_error(
     drmTMB(bf(y ~ x, zoi ~ x + (1 | id)), family = beta(), data = dat),
+    "Zero-one-inflated bounded-response random effects"
+  )
+  expect_error(
+    drmTMB(bf(y ~ x, coi ~ x + (0 + x | id)), family = beta(), data = dat),
     "Zero-one-inflated bounded-response random effects"
   )
   expect_error(

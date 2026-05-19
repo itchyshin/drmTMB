@@ -27,7 +27,7 @@ built outside \code{drmTMB} and checked by the analyst.
 Use \code{K} for a covariance or relatedness matrix and \code{Q} for an inverse
 covariance or precision matrix. This marker is parsed and documented, but
 does not fit a model yet. It is intentionally separate from
-\code{\link[=meta_known_V]{meta_known_V()}}, which adds known sampling covariance among observations,
+\code{\link[=meta_V]{meta_V()}}, which adds known sampling covariance among observations,
 and from residual \code{rho12}, which models within-observation bivariate
 residual correlation.
 }

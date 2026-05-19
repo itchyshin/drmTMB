@@ -12,6 +12,7 @@ new_plot_corpairs_table <- function() {
     conf.low = c(NA, 0.10, -0.55),
     conf.high = c(NA, 0.72, 0.12),
     conf.status = c("not_requested", "profile", "profile"),
+    interval_source = c("not_available", "profile", "profile"),
     stringsAsFactors = FALSE
   )
 }
@@ -26,11 +27,17 @@ test_that("plot_corpairs() returns a ggplot for corpairs tables", {
   expect_equal(out$labels$x, "Correlation estimate")
   expect_equal(out$labels$colour, "level")
   expect_equal(out$data$.drmTMB_conf_status, pairs$conf.status)
+  expect_equal(out$data$.drmTMB_interval_source, pairs$interval_source)
   expect_match(out$data$.drmTMB_pair_label[[1L]], "residual")
   expect_length(out$layers, 3L)
   built <- ggplot2::ggplot_build(out)
   expect_equal(nrow(built$data[[2L]]), 2L)
   expect_equal(nrow(built$data[[3L]]), 3L)
+
+  unsupported <- pairs
+  unsupported$interval_source <- "not_available"
+  out_no_interval <- plot_corpairs(unsupported)
+  expect_length(out_no_interval$layers, 2L)
 })
 
 test_that("plot_corpairs() can facet correlation rows", {
@@ -77,6 +84,10 @@ test_that("plot_corpairs() accepts point-only and empty tables", {
   expect_s3_class(out, "ggplot")
   expect_null(out$labels$colour)
   expect_equal(out$data$.drmTMB_conf_status, rep("not_requested", nrow(pairs)))
+  expect_equal(
+    out$data$.drmTMB_interval_source,
+    rep("not_available", nrow(pairs))
+  )
   expect_length(out$layers, 2L)
 
   empty <- pairs[0L, , drop = FALSE]

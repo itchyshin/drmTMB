@@ -69,6 +69,35 @@ test_that("drmTMB fits zero-inflated nbinom2 models through a zi formula", {
     (1 - predict(fit, dpar = "zi")) * predict(fit, dpar = "mu"),
     tolerance = 1e-12
   )
+
+  ci <- confint(fit)
+  expect_equal(
+    ci$parm,
+    c(
+      "fixef:mu:(Intercept)",
+      "fixef:mu:x",
+      "fixef:mu:habitatopen",
+      "fixef:sigma:(Intercept)",
+      "fixef:sigma:z",
+      "fixef:zi:(Intercept)",
+      "fixef:zi:w",
+      "fixef:zi:habitatopen"
+    )
+  )
+  expect_equal(
+    ci$tmb_parameter,
+    c(
+      "beta_mu",
+      "beta_mu",
+      "beta_mu",
+      "beta_sigma",
+      "beta_sigma",
+      "beta_zi",
+      "beta_zi",
+      "beta_zi"
+    )
+  )
+  expect_true(all(ci$conf.status == "wald"))
 })
 
 test_that("zero-inflated nbinom2 likelihood matches independent calculation", {
@@ -295,7 +324,23 @@ test_that("zero-inflated nbinom2 rejects unsupported or invalid inputs", {
   )
   expect_error(
     drmTMB(
+      drm_formula(y ~ x + (0 + x | id), sigma ~ 1, zi ~ 1),
+      family = nbinom2(),
+      data = dat
+    ),
+    "Zero-inflated .* random effects"
+  )
+  expect_error(
+    drmTMB(
       drm_formula(y ~ x, sigma ~ 1, zi ~ x + (1 | id)),
+      family = nbinom2(),
+      data = dat
+    ),
+    "Zero-inflation random effects"
+  )
+  expect_error(
+    drmTMB(
+      drm_formula(y ~ x, sigma ~ 1, zi ~ x + (0 + x | id)),
       family = nbinom2(),
       data = dat
     ),

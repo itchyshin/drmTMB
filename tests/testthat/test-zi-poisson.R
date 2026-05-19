@@ -50,6 +50,24 @@ test_that("drmTMB fits zero-inflated Poisson models through a zi formula", {
     tolerance = 1e-12
   )
   expect_equal(sigma(fit), rep(1, nobs(fit)))
+
+  ci <- confint(fit)
+  expect_equal(
+    ci$parm,
+    c(
+      "fixef:mu:(Intercept)",
+      "fixef:mu:x",
+      "fixef:mu:habitatopen",
+      "fixef:zi:(Intercept)",
+      "fixef:zi:z",
+      "fixef:zi:habitatopen"
+    )
+  )
+  expect_equal(
+    ci$tmb_parameter,
+    c("beta_mu", "beta_mu", "beta_mu", "beta_zi", "beta_zi", "beta_zi")
+  )
+  expect_true(all(ci$conf.status == "wald"))
 })
 
 test_that("zero-inflated Poisson likelihood matches independent calculation", {
@@ -256,7 +274,23 @@ test_that("zero-inflated Poisson rejects unsupported or invalid inputs", {
   )
   expect_error(
     drmTMB(
+      bf(y ~ x + (0 + x | id), zi ~ 1),
+      family = stats::poisson(link = "log"),
+      data = dat
+    ),
+    "Zero-inflated Poisson random effects"
+  )
+  expect_error(
+    drmTMB(
       bf(y ~ x, zi ~ x + (1 | id)),
+      family = stats::poisson(link = "log"),
+      data = dat
+    ),
+    "Zero-inflation random effects"
+  )
+  expect_error(
+    drmTMB(
+      bf(y ~ x, zi ~ x + (0 + x | id)),
       family = stats::poisson(link = "log"),
       data = dat
     ),

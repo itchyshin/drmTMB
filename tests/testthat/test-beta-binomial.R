@@ -53,6 +53,22 @@ test_that("drmTMB fits fixed-effect beta-binomial models", {
   expect_true(all(predict(fit, dpar = "mu") < 1))
   expect_true(all(sigma(fit) > 0))
   expect_equal(fit$model$trials, sim$data$trials)
+
+  ci <- confint(fit)
+  expect_equal(
+    ci$parm,
+    c(
+      "fixef:mu:(Intercept)",
+      "fixef:mu:x",
+      "fixef:sigma:(Intercept)",
+      "fixef:sigma:z"
+    )
+  )
+  expect_equal(
+    ci$tmb_parameter,
+    c("beta_mu", "beta_mu", "beta_sigma", "beta_sigma")
+  )
+  expect_true(all(ci$conf.status == "wald"))
 })
 
 test_that("beta-binomial likelihood matches independent calculation", {
@@ -237,6 +253,14 @@ test_that("beta-binomial rejects malformed and unsupported inputs", {
   expect_error(
     drmTMB(
       bf(cbind(success, failure) ~ x, coi ~ x + (1 | id)),
+      family = beta_binomial(),
+      data = dat
+    ),
+    "Zero-one-inflated bounded-response random effects"
+  )
+  expect_error(
+    drmTMB(
+      bf(cbind(success, failure) ~ x, zoi ~ x + (0 + x | id)),
       family = beta_binomial(),
       data = dat
     ),

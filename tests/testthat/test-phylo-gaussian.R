@@ -1381,12 +1381,15 @@ test_that("phylogenetic mu terms participate in missingness and validation", {
     ),
     "Could not find phylogeny object"
   )
-  expect_error(
+  sigma_phylo_err <- tryCatch(
     drmTMB(
       bf(y ~ x, sigma ~ phylo(1 | species, tree = tree)),
       family = gaussian(),
       data = sim$data
     ),
-    "planned, not implemented"
+    error = identity
   )
+  expect_s3_class(sigma_phylo_err, "rlang_error")
+  expect_match(conditionMessage(sigma_phylo_err), "planned, not implemented")
+  expect_match(conditionMessage(sigma_phylo_err), "sigma ~ phylo")
 })

@@ -15,7 +15,9 @@ plot_corpairs(
 }
 \arguments{
 \item{data}{A data frame returned by \code{\link[=corpairs]{corpairs()}}, or a compatible table with
-columns \code{level}, \code{class}, \code{parameter}, \code{estimate}, and \code{modelled}.}
+columns \code{level}, \code{class}, \code{parameter}, \code{estimate}, and \code{modelled}.
+\code{conf.status} and \code{interval_source} are optional for point-only tables, but
+finite intervals are drawn only when those columns mark a supported interval.}
 
 \item{colour}{Optional character scalar naming a column to map to colour.
 Use \code{NULL} to suppress colour mapping.}
@@ -44,9 +46,10 @@ table to this helper.
 }
 \details{
 The helper draws one point per correlation row. If the table contains finite
-\code{conf.low} and \code{conf.high} bounds, it draws interval segments for those rows
-only. Rows without finite bounds remain visible as point estimates and keep
-their display interval status attached to the plotted data.
+\code{conf.low} and \code{conf.high} bounds plus interval provenance columns that
+describe a real interval, it draws interval segments for those rows only. Rows
+without supported bounds remain visible as point estimates and keep their
+display interval status attached to the plotted data.
 }
 \examples{
 pairs <- data.frame(
@@ -57,7 +60,8 @@ pairs <- data.frame(
   modelled = c(FALSE, FALSE),
   conf.low = c(NA, 0.10),
   conf.high = c(NA, 0.72),
-  conf.status = c("not_requested", "profile")
+  conf.status = c("not_requested", "profile"),
+  interval_source = c("not_available", "profile")
 )
 if (requireNamespace("ggplot2", quietly = TRUE)) {
   plot_corpairs(pairs)

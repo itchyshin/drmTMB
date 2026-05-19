@@ -28,6 +28,18 @@ control = drm_control(
 )
 ```
 
+Slice 274 adds named optimizer-budget presets without changing the default fit:
+
+```r
+control = drm_control(optimizer_preset = "careful")
+control = drm_control(optimizer_preset = "robust")
+```
+
+These presets expand to explicit `nlminb()` `iter.max` and `eval.max` controls
+and are stored on the fitted object as ordinary optimizer settings. User-supplied
+`optimizer = list(...)` values override the selected preset when a fit needs a
+specific budget.
+
 For backward compatibility, plain lists remain optimizer-only controls:
 
 ```r
@@ -45,11 +57,19 @@ keep_model_frame
 keep_tmb_object
 sparse_fixed
 aggregate_gaussian
+optimizer_preset
 start
 starts
+start_from
+warm_start
+warm_starts
+warm_start_from
 map
 fixed
 fallback_optimizer
+fallback_optimizers
+optimizer_fallback
+optimizer_fallbacks
 multi_start
 multistart
 ```
@@ -102,6 +122,46 @@ Design constraints before implementation:
 - random-effect latent starts should remain internal until there is a clear
   biological use case and simulation evidence.
 
+## Future Simpler-Fit Warm-Start Contract
+
+Warm starts from a simpler fitted model are useful only if they are explicit and
+auditable. Slice 275 reserves warm-start control names but does not implement
+them. A future interface might look like:
+
+```r
+fit_mu <- drmTMB(bf(y ~ x, sigma ~ 1), data = dat)
+
+fit_location_scale <- drmTMB(
+  bf(y ~ x, sigma ~ z),
+  data = dat,
+  control = drm_control(start_from = fit_mu)
+)
+```
+
+The intended ladder is from simpler to richer models:
+
+1. location-only to location-scale;
+2. fixed-effect location-scale to ordinary random-effect models;
+3. univariate or response-specific fits to bivariate Gaussian fits;
+4. ordinary Gaussian fits to structured phylogenetic or spatial fits only after
+   the target structured surface has its own diagnostics and recovery tests.
+
+Design constraints before implementation:
+
+- the source fit must have the same response family or an explicitly supported
+  simpler-to-richer route;
+- response names, distributional parameters, factor contrasts, offsets, and
+  complete-case row handling must be checked before parameters are copied;
+- copied parameters must use the same public target namespace as `start`, then
+  transform to the internal unconstrained scale;
+- any target not present in the simpler fit must use the richer model builder's
+  ordinary start;
+- the fitted object must record the source call, source family, copied target
+  names, skipped target names, and the final optimizer result;
+- `check_drm()` should report that a warm start was used, but inference should
+  still be based only on the selected optimum of the final model;
+- unsupported warm-start routes must error before optimization.
+
 ## Future Fixed-Parameter Or Map Contract
 
 Fixed parameters and TMB maps are more dangerous than starts because they alter
@@ -131,7 +191,8 @@ Design constraints before implementation:
 ## Future Fallback Optimizer Contract
 
 Fallback optimizers should be deterministic and recorded in the fitted object.
-A future interface might look like:
+Slice 276 reserves the remaining obvious fallback-control names but does not
+implement fallback fitting. A future interface might look like:
 
 ```r
 drm_control(
@@ -144,6 +205,12 @@ drm_control(
 )
 ```
 
+The first supported fallback set should be small and explicit: the primary
+`nlminb()` path, then `stats::optim(method = "BFGS")`, then
+`stats::optim(method = "L-BFGS-B")` only if the unconstrained internal parameter
+scale and any box constraints are explicitly reconciled. Fallbacks must not run
+by default for ordinary fits.
+
 The selected optimizer must be recorded with:
 
 - optimizer name and settings;
@@ -155,6 +222,23 @@ The selected optimizer must be recorded with:
 
 `summary()`, `vcov()`, profiles, `check_drm()`, and extractors must use the
 selected optimizer result, not whichever optimizer ran last.
+
+The comparison record must include every attempted optimizer, not only the
+winner:
+
+- optimizer name and method;
+- control settings;
+- convergence code and message;
+- objective value;
+- maximum absolute fixed-gradient value when available;
+- elapsed time;
+- whether the attempt was eligible for selection;
+- a reason when an attempt was rejected.
+
+The winner should be the converged eligible attempt with the lowest objective,
+with a deterministic tie rule. If no attempt converges, the fit may still return
+the best attempted optimum only if `check_drm()` clearly reports the fallback
+failure state and all inference remains tied to that selected optimum.
 
 ## Future Multi-Start Contract
 
@@ -200,4 +284,8 @@ Required safeguards:
 Slice 80 does not implement public starts, fixed parameters, fallback
 optimizers, or multi-start fitting. It reserves the public names, documents the
 contract, and tests the selected-optimum invariant for the current
-single-optimizer path.
+single-optimizer path. Slice 274 adds only single-optimizer budget presets.
+Slice 275 reserves warm-start names and documents the simpler-fit contract.
+Slice 276 reserves fallback-optimizer names and documents fallback comparison
+provenance. Neither slice adds user starts, warm starts, maps, fallback
+optimizers, or multi-start fitting.

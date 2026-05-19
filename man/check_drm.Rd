@@ -42,7 +42,8 @@ effects, or bivariate residual correlation \code{rho12}.
 }
 \details{
 The current checks cover optimizer convergence, finite objective values,
-optimizer evaluation counts, fixed-parameter gradients, whether
+optimizer evaluation counts, fixed-parameter gradients including the largest
+gradient component label, whether
 \code{\link[TMB:sdreport]{TMB::sdreport()}} was computed, skipped, or failed, Hessian status from
 \code{\link[TMB:sdreport]{TMB::sdreport()}}, finite fixed-effect standard errors, dropped rows,
 positive scale parameters, random-effect standard deviations near the lower

@@ -10,6 +10,38 @@ The first rule is scope. A surface enters the comprehensive simulation only
 after it has a fitted likelihood, parser validation, extractors, diagnostics,
 interval status, and focused recovery tests. Surfaces that are still only
 planned belong in the failure ledger, not in a broad simulation table.
+Before adding a DGP row, check the Slice 291 evidence-ledger gate in
+`docs/design/46-pre-simulation-readiness-matrix.md`; the row should name the
+public surface, the validation-debt register evidence, and whether the surface
+is admitted, opt-in only, or failure-ledger only.
+
+## Slice 292 Comprehensive Design Map
+
+Comprehensive simulation means every advertised scenario lane is assigned a
+role before grids run. It does not mean every planned model is fitted. A lane
+can enter as an admitted grid, a fixed-effect design target that still needs a
+DGP file, an opt-in stress cell, or a failure-ledger row.
+
+| Scenario lane | Phase 18 role after Slice 291 gate | First design action | Failure-ledger boundary |
+| --- | --- | --- | --- |
+| Continuous location-scale | Admitted for Gaussian location-scale first; fixed-effect lognormal, Gamma, and Student-t can receive later one-response DGP sheets after family-specific estimands are named | `docs/design/47-phase-18-gaussian-location-scale-ademp.md` is the first ADEMP sheet; use it before extending the existing smoke design | Do not claim shape/skewness random effects, phylogenetic shape, or latent ID-level skewness |
+| Proportion and bounded responses | Admitted for fixed-effect beta and beta-binomial design; no bounded-response known-`V` or zero-one-inflated route yet | `docs/design/50-phase-18-proportion-fixed-effect-ademp.md` records the fixed-effect beta/beta-binomial ADEMP sheet | Keep `zoi`, `coi`, zero-one inflation, one inflation, random effects, and bounded-response `meta_V(V = V)` in the failure ledger |
+| Counts | Admitted for fixed-effect count families and ordinary non-zero-inflated Poisson/NB2 `mu` random effects | `docs/design/49-phase-18-count-mu-random-effect-ademp.md` records the paired Poisson/NB2 `mu` random-effect ADEMP sheet | Keep zero-inflated/hurdle random effects, zero-truncated NB2 random effects, correlated count slopes, and count-side structured effects out |
+| Ordinal | Admitted only for fixed-effect `cumulative_logit()` location models | `docs/design/51-phase-18-ordinal-fixed-effect-ademp.md` records the fixed-effect ordinal ADEMP sheet | Keep ordinal random effects, scale/discrimination formulas, bivariate ordinal, and mixed-response ordinal models out |
+| Meta-analysis with known `V` | Admitted for Gaussian `meta_V(V = V)` vector and dense known sampling covariance | `docs/design/48-phase-18-meta-v-ademp.md` records the vector/dense known-`V` ADEMP sheet before larger grids | Keep proportional sampling variance, non-Gaussian known covariance, and phylogenetic-plus-study extensions out |
+| Bivariate Gaussian | Admitted for residual `rho12` and selected intercept covariance blocks | `docs/design/52-phase-18-bivariate-rho12-ademp.md` records the residual-correlation ADEMP sheet; group-level `corpairs()` needs a separate sheet | Keep mixed-response families, random effects in `rho12`, bivariate random slopes, and broad q=4/q=8 slope covariance out |
+| Random slopes | Admitted for ordinary Gaussian `mu` q > 2, independent Gaussian `sigma` one-slope terms, ordinary Poisson/NB2 `mu` independent slopes, and coordinate-spatial Gaussian `mu` one slope | Give each admitted slope class its own condition table for group count, repeats, slope SD, and covariate spread | Keep phylogenetic, animal, `relmat()`, bivariate, correlated non-Gaussian, and residual-scale correlated slopes out |
+| Shape and skewness | Admitted only for fitted fixed-effect shape such as Student-t `nu`; skew-normal and skew-t remain design-only future targets | Add a fixed-effect Student-t `nu` DGP sheet before any skew-family DGP, with separation from `sigma` effects explicit | Keep `nu` random effects, future `tau` random effects, skewness random effects, and latent `skew(id) ~ ...` out |
+| Phylogenetic structured effects | Admitted for fitted Gaussian intercept/direct-SD/selected bivariate covariance subsets | Write small tree-size and phylogenetic-signal condition tables for the fitted intercept/direct-SD surfaces | Keep phylogenetic slopes, non-Gaussian phylogenetic effects, structured `rho12`, and predictor-dependent q=4 correlations out |
+| Coordinate spatial structured effects | Admitted for univariate Gaussian `mu` intercepts and one numeric coordinate-spatial slope | Extend the existing spatial one-slope smoke design with site count, observations per site, field SD, and covariate-spread conditions | Keep mesh/SPDE, multiple slopes, slope correlations, spatial `sigma`, bivariate spatial covariance, and spatial `corpair()` out |
+| `animal()` models | Failure-ledger only | Record biological questions and expected sparse-precision inputs, but do not write fitted DGP grids yet | No pedigree, `A`, or `Ainv` likelihood exists |
+| `relmat()` models | Failure-ledger only | Record lower-level `K`/`Q` use cases and matrix-validation requirements, but do not write fitted DGP grids yet | No user-supplied relatedness likelihood exists |
+
+Every admitted lane needs a one-page ADEMP sheet before new code: aim,
+hierarchy, true parameter values, varied conditions, estimands, fitted methods,
+performance measures, replicate count, MCSE target, and failure-ledger row.
+The first implementation wave should reuse existing smoke infrastructure before
+adding new result schemas.
 
 ## A - Aims
 
@@ -47,11 +79,11 @@ minimum first wave is:
 | Poisson `mu` random effects | Fitted smoke surface | log-mean count model with ordinary random intercepts and independent numeric slopes | groups, observations per group, mean count, SD size |
 | NB2 `mu` random effects | Fitted smoke surface | log-mean overdispersed count model with ordinary random intercepts and independent numeric slopes; `sigma` remains fixed-effect overdispersion | groups, observations per group, mean count, overdispersion, SD size |
 
-Later waves can add zero inflation, hurdle, ordinal, shape/skew, and
-non-Gaussian scale/random-effect surfaces only after their focused gates are
-closed. The NB2 `mu` random-effect row is admitted as a fitted smoke surface,
-not yet as a full simulation grid or interval-coverage surface. The failure
-ledger in
+Later waves can add zero-inflation or hurdle random effects, ordinal mixed
+models, shape/skew extensions, and non-Gaussian scale/random-effect surfaces
+only after their focused gates are closed. The NB2 `mu` random-effect row is
+admitted as a focused first slice; larger grids still need an explicit condition
+table before they are treated as routine evidence. The failure ledger in
 `docs/design/34-validation-debt-register.md` names the remaining blocked
 surfaces.
 
@@ -302,3 +334,14 @@ CRAN tests should only run smoke checks for seed stability and output shape.
     broader set of simulation result articles covering power, bias, coverage,
     runtime, convergence, and failures across continuous, proportion, count,
     and other data types.
+49. Slice 265 adds `vignettes/simulation-plot-grammar.Rmd` as the first
+    Simulation & Comparison article for operating-characteristic displays. The
+    article uses illustrative fixtures across continuous, proportion, count,
+    and meta-analysis examples to show bias, RMSE, coverage, power,
+    convergence, runtime, and warning/error ledger plots. It is a display
+    contract for later simulation reports, not final Phase 18 evidence.
+50. Slice 268 adds a capability audit to the pre-simulation readiness matrix.
+    It records implemented, tested, planned, and unsupported status for
+    Gaussian, non-Gaussian, shape, inflation, bivariate, random-slope,
+    meta-analysis, phylogenetic, spatial, animal, and `relmat()` model
+    classes, so Phase 18 reports can admit only the fitted and tested subsets.

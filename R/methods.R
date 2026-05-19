@@ -201,7 +201,9 @@ rho12.drmTMB <- function(
 #'
 #' @return A data frame with one row per fitted correlation pair or pair
 #'   summary. Predictor-dependent `rho12` is summarized by its mean, minimum,
-#'   and maximum over the fitted rows.
+#'   and maximum over the fitted rows. Rows include `conf.status` and
+#'   `interval_source` so point-only and interval-aware pair tables use the same
+#'   provenance vocabulary as prediction tables.
 #'
 #' @examples
 #' set.seed(1)
@@ -307,6 +309,7 @@ corpairs.drmTMB <- function(
     out <- out[out$class %in% class, , drop = FALSE]
   }
   row.names(out) <- NULL
+  out <- corpairs_add_default_interval_provenance(out)
   if (conf.int) {
     out <- corpairs_add_confint(
       object,
@@ -328,6 +331,7 @@ corpairs_add_confint <- function(object, pairs, level, trace, ...) {
     pairs$conf.level <- numeric()
     pairs$conf.method <- character()
     pairs$conf.status <- character()
+    pairs$interval_source <- character()
     return(pairs)
   }
 
@@ -359,6 +363,7 @@ corpairs_add_confint <- function(object, pairs, level, trace, ...) {
   pairs$conf.level <- level
   pairs$conf.method <- NA_character_
   pairs$conf.status <- corpairs_conf_status(pairs, target_rows, target_index)
+  pairs$interval_source <- rep("not_available", nrow(pairs))
 
   if (nrow(ci) > 0L) {
     matched <- match(pairs$profile_target, ci$parm)
@@ -367,8 +372,19 @@ corpairs_add_confint <- function(object, pairs, level, trace, ...) {
     pairs$conf.high[has_ci] <- ci$upper[matched[has_ci]]
     pairs$conf.method[has_ci] <- ci$method[matched[has_ci]]
     pairs$conf.status[has_ci] <- "profile"
+    pairs$interval_source[has_ci] <- "profile"
   }
 
+  pairs
+}
+
+corpairs_add_default_interval_provenance <- function(pairs) {
+  if (!"conf.status" %in% names(pairs)) {
+    pairs$conf.status <- rep("not_requested", nrow(pairs))
+  }
+  if (!"interval_source" %in% names(pairs)) {
+    pairs$interval_source <- rep("not_available", nrow(pairs))
+  }
   pairs
 }
 
@@ -482,6 +498,8 @@ empty_corpairs <- function() {
     link_min = numeric(),
     link_max = numeric(),
     modelled = logical(),
+    conf.status = character(),
+    interval_source = character(),
     stringsAsFactors = FALSE
   )
 }

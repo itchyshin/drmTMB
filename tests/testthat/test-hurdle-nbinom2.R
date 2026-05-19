@@ -60,6 +60,35 @@ test_that("drmTMB fits fixed-effect hurdle nbinom2 models", {
     stats::plogis(predict(fit, dpar = "hu", type = "link")),
     tolerance = 1e-12
   )
+
+  ci <- confint(fit)
+  expect_equal(
+    ci$parm,
+    c(
+      "fixef:mu:(Intercept)",
+      "fixef:mu:x",
+      "fixef:mu:habitatopen",
+      "fixef:sigma:(Intercept)",
+      "fixef:sigma:z",
+      "fixef:hu:(Intercept)",
+      "fixef:hu:w",
+      "fixef:hu:habitatopen"
+    )
+  )
+  expect_equal(
+    ci$tmb_parameter,
+    c(
+      "beta_mu",
+      "beta_mu",
+      "beta_mu",
+      "beta_sigma",
+      "beta_sigma",
+      "beta_zi",
+      "beta_zi",
+      "beta_zi"
+    )
+  )
+  expect_true(all(ci$conf.status == "wald"))
 })
 
 test_that("hurdle nbinom2 likelihood matches independent calculation", {
@@ -238,7 +267,23 @@ test_that("hurdle nbinom2 rejects unsupported or invalid inputs", {
   )
   expect_error(
     drmTMB(
+      bf(y ~ x + (0 + x | id), hu ~ 1),
+      family = truncated_nbinom2(),
+      data = dat
+    ),
+    "Hurdle .* random effects"
+  )
+  expect_error(
+    drmTMB(
       bf(y ~ x, sigma ~ 1, hu ~ x + (1 | id)),
+      family = truncated_nbinom2(),
+      data = dat
+    ),
+    "Hurdle random effects"
+  )
+  expect_error(
+    drmTMB(
+      bf(y ~ x, sigma ~ 1, hu ~ x + (0 + x | id)),
       family = truncated_nbinom2(),
       data = dat
     ),

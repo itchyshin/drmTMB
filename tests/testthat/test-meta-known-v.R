@@ -68,6 +68,8 @@ test_that("meta_V is an additive known-V alias", {
   dat <- data.frame(x = c(-1, 0, 1, 2))
   dat$yi <- 0.4 + 0.3 * dat$x + c(-0.1, 0.2, -0.05, 0.1)
   dat$vi <- c(0.04, 0.05, 0.03, 0.06)
+  V_full <- diag(dat$vi)
+  V_full[1, 2] <- V_full[2, 1] <- 0.01
 
   fit_meta_v <- drmTMB(
     bf(yi ~ x + meta_V(V = vi)),
@@ -76,6 +78,16 @@ test_that("meta_V is an additive known-V alias", {
   )
   fit_known_v <- drmTMB(
     bf(yi ~ x + meta_known_V(V = vi)),
+    family = gaussian(),
+    data = dat
+  )
+  fit_meta_v_full <- drmTMB(
+    bf(yi ~ x + meta_V(V = V_full)),
+    family = gaussian(),
+    data = dat
+  )
+  fit_known_v_full <- drmTMB(
+    bf(yi ~ x + meta_known_V(V = V_full)),
     family = gaussian(),
     data = dat
   )
@@ -96,6 +108,26 @@ test_that("meta_V is an additive known-V alias", {
     as.numeric(logLik(fit_known_v)),
     tolerance = 1e-8
   )
+  expect_equal(fit_meta_v_full$opt$convergence, 0)
+  expect_equal(fit_meta_v_full$model$V_known_type, "matrix")
+  expect_equal(fit_meta_v_full$model$V_known, V_full)
+  expect_equal(
+    coef(fit_meta_v_full, "mu"),
+    coef(fit_known_v_full, "mu"),
+    tolerance = 1e-8
+  )
+  expect_equal(
+    as.numeric(logLik(fit_meta_v_full)),
+    as.numeric(logLik(fit_known_v_full)),
+    tolerance = 1e-8
+  )
+  ci_full <- stats::confint(
+    fit_meta_v_full,
+    parm = c("mu:(Intercept)", "mu:x")
+  )
+  expect_equal(ci_full$conf.status, rep("wald", 2L))
+  expect_true(all(is.finite(ci_full$lower)))
+  expect_true(all(is.finite(ci_full$upper)))
 })
 
 test_that("full meta_known_V likelihood matches a base R MVN calculation", {
@@ -255,7 +287,7 @@ test_that("meta_known_V rejects malformed marker calls", {
       family = gaussian(),
       data = dat
     ),
-    "reserved"
+    "without.*scale"
   )
   expect_error(
     drmTMB(
