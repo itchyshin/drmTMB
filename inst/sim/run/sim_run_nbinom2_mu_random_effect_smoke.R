@@ -57,7 +57,9 @@ phase18_run_nbinom2_mu_re_smoke <- function(
   n_rep = 1L,
   master_seed = 20260519L,
   result_dir = NULL,
-  overwrite = FALSE
+  overwrite = FALSE,
+  cores = 1L,
+  backend = "none"
 ) {
   assert_positive_whole_number(n_rep, "n_rep")
   registry <- phase18_cell_registry(
@@ -67,24 +69,16 @@ phase18_run_nbinom2_mu_re_smoke <- function(
     master_seed = master_seed
   )
 
-  results <- vector("list", nrow(registry$seeds))
-  for (i in seq_len(nrow(registry$seeds))) {
-    seed_row <- registry$seeds[i, , drop = FALSE]
-    cell <- registry$cells[seed_row$cell_index[[1L]], , drop = FALSE]
-    results[[i]] <- phase18_run_replicate(
-      cell = cell,
-      seed_row = seed_row,
-      dgp_fun = phase18_dgp_nbinom2_mu_re_cell,
-      fit_fun = phase18_fit_nbinom2_mu_re,
-      summarise_fun = phase18_summarise_nbinom2_mu_re_fit,
-      result_dir = result_dir,
-      overwrite = overwrite
-    )
-  }
-  names(results) <- paste(
-    registry$seeds$cell_id,
-    sprintf("rep%04d", registry$seeds$replicate),
-    sep = ":"
+  results <- phase18_run_replicates(
+    cells = registry$cells,
+    seeds = registry$seeds,
+    dgp_fun = phase18_dgp_nbinom2_mu_re_cell,
+    fit_fun = phase18_fit_nbinom2_mu_re,
+    summarise_fun = phase18_summarise_nbinom2_mu_re_fit,
+    result_dir = result_dir,
+    overwrite = overwrite,
+    cores = cores,
+    backend = backend
   )
 
   summary <- phase18_result_summaries(results)
@@ -92,6 +86,7 @@ phase18_run_nbinom2_mu_re_smoke <- function(
   list(
     surface = "nbinom2_mu_random_effect",
     registry = registry,
+    parallel = attr(results, "phase18_parallel", exact = TRUE),
     results = results,
     summary = summary
   )

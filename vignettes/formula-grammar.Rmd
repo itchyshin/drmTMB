@@ -208,9 +208,25 @@ drm_formula(
 )
 ```
 
-Phylogenetic random slopes, phylogenetic scale terms, structured effects in
-`rho12`, animal-model slopes, lower-level `relmat()` slopes, multiple spatial
-slopes, and mesh-based spatial terms are still planned:
+Matching labelled `phylo()` terms across all four bivariate Gaussian endpoints
+fit the constant q=4 phylogenetic location-scale block. A single shared label
+estimates one full q4 tree block; using one label for `mu1`/`mu2` and another
+for `sigma1`/`sigma2` estimates the block-diagonal fallback:
+
+```r
+drm_formula(
+  mu1 = y1 ~ x + phylo(1 | pl | species, tree = tree),
+  mu2 = y2 ~ x + phylo(1 | pl | species, tree = tree),
+  sigma1 = ~ z + phylo(1 | ps | species, tree = tree),
+  sigma2 = ~ z + phylo(1 | ps | species, tree = tree),
+  rho12 = ~ 1
+)
+```
+
+Phylogenetic random slopes, standalone or partial phylogenetic scale terms,
+structured effects in `rho12`, animal-model slopes, lower-level `relmat()`
+slopes, multiple spatial slopes, and mesh-based spatial terms are still
+planned:
 
 ```r
 # planned; drmTMB() will currently reject these
@@ -316,4 +332,4 @@ responses, and random-effect coefficients. The current `corpairs(fit)` helper
 already uses this table shape for residual `rho12`, ordinary univariate
 Gaussian `mu` random-effect correlations, and the implemented bivariate
 mean-mean, scale-scale, same-response mean-scale, ordinary q=4, and
-phylogenetic mean-mean random-intercept correlations.
+phylogenetic mean-mean and q=4 random-intercept correlations.

@@ -108,11 +108,6 @@ reference:
     desc: Older reserved formula markers kept out of the main reader path.
     contents:
       - gr
-  - title: Family internals
-    desc: Family constructor helpers.
-    contents:
-      - starts_with("drm_family")
-      - ends_with("_family")
   - title: Model fitting and post-fit tools
     desc: Fit, diagnose, summarize, predict, and simulate distributional models.
     contents:

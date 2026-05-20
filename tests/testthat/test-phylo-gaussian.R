@@ -1027,6 +1027,47 @@ test_that("bivariate phylogenetic q4 block is fitted with clear boundaries", {
   )
   expect_true(all(is.na(q4_pairs_ci$conf.low)))
 
+  fit_block <- suppressWarnings(
+    drmTMB(
+      bf(
+        mu1 = y1 ~ x + phylo(1 | pl | species, tree = tree),
+        mu2 = y2 ~ x + phylo(1 | pl | species, tree = tree),
+        sigma1 = ~ z + phylo(1 | ps | species, tree = tree),
+        sigma2 = ~ z + phylo(1 | ps | species, tree = tree),
+        rho12 = ~1
+      ),
+      family = c(gaussian(), gaussian()),
+      data = dat,
+      control = drm_control(
+        se = FALSE,
+        optimizer = list(eval.max = 100, iter.max = 100)
+      )
+    )
+  )
+  block_pairs <- corpairs(fit_block, level = "phylogenetic")
+  block_targets <- profile_targets(fit_block)
+  block_cor_targets <- block_targets[
+    startsWith(block_targets$parm, "cor:phylo:"),
+    ,
+    drop = FALSE
+  ]
+
+  expect_equal(
+    fit_block$model$structured$phylo_mu$covariance_mode,
+    "block_diagonal"
+  )
+  expect_equal(fit_block$model$structured$phylo_mu$block_ids, c(1L, 1L, 2L, 2L))
+  expect_equal(sum(names(fit_block$opt$par) == "theta_phylo"), 2L)
+  expect_equal(nrow(block_pairs), 2L)
+  expect_equal(block_pairs$block, c("pl", "ps"))
+  expect_equal(block_pairs$class, c("mean-mean", "scale-scale"))
+  expect_equal(nrow(corpairs(fit_block, class = "location-scale")), 0L)
+  expect_equal(nrow(corpairs(fit_block, block = "pl")), 1L)
+  expect_equal(nrow(corpairs(fit_block, block = "ps")), 1L)
+  expect_equal(block_cor_targets$tmb_parameter, rep("theta_phylo", 2L))
+  expect_equal(block_cor_targets$target_type, rep("direct", 2L))
+  expect_equal(block_cor_targets$transformation, rep("tanh", 2L))
+
   expect_error(
     drmTMB(
       bf(

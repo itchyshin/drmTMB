@@ -79,7 +79,8 @@ In this table, "coscale" means a model for residual correlation, currently
 | `phylo(1 | species, tree = tree)` in `mu` | Implemented | Intercept-only univariate Gaussian phylogenetic location effect; requires an ultrametric tree with branch lengths. |
 | matching `phylo(1 | species, tree = tree)` in bivariate `mu1` and `mu2` | Implemented first slice | Correlated phylogenetic random intercepts enter the two response means; `sigma1`, `sigma2`, and residual `rho12` remain ordinary fixed-effect distributional parameters. |
 | labelled `phylo(1 | p | species, tree = tree)` in matching bivariate `mu1` and `mu2` | Implemented | The label is preserved in SD, correlation, `corpairs()`, and profile-target names for the phylogenetic mean-mean path. |
-| labelled `phylo(1 | p | species, tree = tree)` in all four bivariate `mu1`, `mu2`, `sigma1`, and `sigma2` formulas | Implemented first slice | One constant q=4 phylogenetic location-scale block estimates four endpoint SDs and six latent phylogenetic correlations. Partial, unlabelled, mismatched, and slope forms remain rejected. |
+| labelled `phylo(1 | p | species, tree = tree)` in all four bivariate `mu1`, `mu2`, `sigma1`, and `sigma2` formulas | Implemented first slice | One constant q=4 phylogenetic location-scale block estimates four endpoint SDs and six latent phylogenetic correlations. Partial, unlabelled, unsupported mismatched, and slope forms remain rejected. |
+| labelled `phylo(1 | pl | species, tree = tree)` in `mu1` and `mu2` plus labelled `phylo(1 | ps | species, tree = tree)` in `sigma1` and `sigma2` | Implemented | Block-diagonal q=4 fallback: one q=2 phylogenetic mean-mean block and one independent q=2 phylogenetic scale-scale block for the same tree. It reports two `corpairs()` rows and no mean-scale phylogenetic correlations. |
 | `sd_phylo(species) ~ x_species` | Implemented | Family B direct-SD model for a univariate Gaussian phylogenetic location random effect; predictors must be constant within species and scale observed tips through the `D_tip A_tip D_tip` contract. |
 | bivariate `sd_phylo1(species) ~ x_species` / `sd_phylo2(species) ~ x_species` | Implemented | Response-specific bivariate phylogenetic location direct-SD models. They target only `mu1` and `mu2` phylogenetic location SDs, keep the latent phylogenetic location-location correlation separate, and are rejected with q=4 phylogenetic location-scale blocks. |
 | `phylo(1 | species, A = A)` or `phylo(1 | species, Ainv = Ainv)` | Planned | Future phylogenetic known-relatedness input for users who already have a validated phylogenetic covariance or precision matrix. The implemented public phylo path still requires `tree = tree`. |
@@ -207,8 +208,11 @@ between-group associations after the fixed effects are included. One
 same-response `mu`/`sigma` random-intercept pair is also implemented. Reusing
 the same label and group in all four `mu1`, `mu2`, `sigma1`, and `sigma2`
 formulas requests one ordinary q=4 random-intercept block with all six latent
-correlations. Bivariate random slopes and `rho12` random effects remain
-planned.
+correlations. For phylogenetic all-four terms, using one label for `mu1` and
+`mu2` and a different label for `sigma1` and `sigma2` requests the
+block-diagonal fallback: two independent q=2 tree blocks, with mean-mean and
+scale-scale phylogenetic correlations but no mean-scale phylogenetic rows.
+Bivariate random slopes and `rho12` random effects remain planned.
 
 The first bivariate random-slope target is intentionally narrower than the
 full endpoint. A matching slope-only location block such as

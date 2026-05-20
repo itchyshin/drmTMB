@@ -33,7 +33,7 @@ control. Planned or blocked rows can appear only as failure-ledger rows.
 | Known sampling covariance | Gaussian `meta_V(V = V)` fits diagonal, dense, and row-paired bivariate known sampling covariance | Vector, dense, bivariate, interval-safety, and `check_drm()` evidence exist | Meta-analysis docs keep known sampling covariance `V` separate from latent relatedness and fitted residual `sigma` | Admit vector and dense known-`V` Gaussian grids with `V` treated as input data |
 | Bivariate residual `rho12` | Two-response Gaussian models fit fixed and predictor-dependent residual `rho12` | `rho12()`, profile-target, row-specific profile, and tutorial evidence exist | Docs keep residual coscale separate from group, phylogenetic, spatial, and known-sampling covariance | Admit residual-correlation grids; do not treat `rho12` as a random-effect or structured-correlation layer |
 | Ordinary bivariate covariance and `corpairs()` | Selected labelled intercept blocks and q=2 `corpair(..., level = "group") ~ x` surfaces are fitted | `corpairs()`, summary rows, direct profile targets for supported q=2 rows, and interval-source provenance exist | q=4 rows expose derived interval unavailability; bivariate random slopes remain planned | Admit selected intercept-block and q=2 rows; keep slope-level covariance out |
-| Phylogenetic structured effects | Univariate `mu`, bivariate `mu1`/`mu2`, selected q=4 location-scale, direct-SD, and q=2 phylogenetic `corpair()` slices are fitted | Profile, direct-SD, covariance-row, diagnostic, and example evidence exist | Structural-dependence docs keep phylogenetic slopes and structured `rho12` planned | Admit intercept/direct-SD subsets; keep phylogenetic slopes out |
+| Phylogenetic structured effects | Univariate `mu`, bivariate `mu1`/`mu2`, selected full and block-diagonal q=4 location-scale, direct-SD, and q=2 phylogenetic `corpair()` slices are fitted | Profile, direct-SD, covariance-row, diagnostic, and example evidence exist; Ayumi Mass + Beak keeps the q=4 fallback in the weak-fit ledger | Structural-dependence docs keep phylogenetic slopes and structured `rho12` planned | Admit intercept/direct-SD subsets; keep phylogenetic slopes out |
 | Coordinate spatial structured effects | Univariate Gaussian `mu` intercepts and one numeric coordinate-spatial slope are fitted | Direct SD targets, `ranef("spatial_mu")`, one-slope smoke evidence, and diagnostics exist | Docs keep mesh/SPDE, multiple slopes, spatial `sigma`, bivariate spatial covariance, and spatial `corpair()` planned | Admit univariate coordinate-spatial `mu` intercept and one-slope grids only |
 | Profile intervals and diagnostics | `summary()`, `confint()`, `profile_targets()`, `check_drm()`, `predict_parameters()`, and `corpairs()` expose target-specific status | Slice 278 records interval routes; Slice 289 records extractor and plot interval provenance | Docs state that bootstrap and many derived-summary intervals remain unavailable | Use as supporting infrastructure after the model surface itself is admitted |
 | Large-data controls | Memory-light objects, `se = FALSE`, sparse Gaussian fixed-effect `mu`, and Gaussian sufficient-statistic aggregation are opt-in controls | `check_drm()` exposes sparse-design, aggregation, and `sdreport` diagnostics where fitted | Control docs state these are hardening or memory routes, not general scalability claims | Admit only as opt-in stress cells, not as broad performance evidence |
@@ -45,6 +45,76 @@ comprehensive all-feature grid. Every new DGP row should cite the public row
 above, the register row in
 `docs/design/34-validation-debt-register.md`, and the specific tests or
 after-task report that make the row admissible.
+
+### Slice 390 Ayumi Q2 Hard-Case Addendum
+
+Slices 363-390 add an Ayumi full-species stress case for bivariate Gaussian q2
+phylogenetic species effects. The aggregate all-species phylogenetic q2 source
+fit converged, but the row-capped all-species target false-converged under
+default starts, fixed/residual source starts, ordinary species source starts,
+aggregate phylogenetic q2 source starts, and modest covariance jitter. In every
+full-species target attempt, residual `rho12` landed essentially at 1.
+
+This does not remove the fitted q2 phylogenetic intercept surface from the
+readiness matrix. It does narrow the claim. The current q2 phylogenetic
+mean-mean path is ready for small controlled recovery grids and extractor or
+diagnostic checks; it is not ready as a general full-species row-level
+convergence showcase. Larger data should be described as helpful only when it
+adds information that separates residual covariance from structured species
+covariance.
+
+The same addendum keeps structured covariance priorities clear. Ordinary
+Gaussian `sigma1`/`sigma2` intercept covariance is already fitted where the
+ordinary bivariate covariance rows say so. Standalone phylogenetic, spatial, or
+future animal `sigma`-`sigma` covariance is not a near-term admission target.
+The structured priority remains `mu`-`mu` first for phylogenetic, spatial, and
+future animal relatedness, with residual `rho12` kept separate.
+
+### Slice 391-402 Mass-Beak PV2 Addendum
+
+The corrected Ayumi Issue #1 target is Mass + Beak, not the earlier lightness
+stress fixture. In this model body mass has two roles: `Mass_z` is response 1,
+and `Mass_cov_z` is the fixed allometric covariate for Beak. The two columns
+are identical on the observed data, but the split is required for simulation
+and bootstrap so a simulated response does not silently overwrite the
+conditioning covariate.
+
+The stable anchor is the q2 location-only phylogenetic model. On all 6,196
+species it converged with `pdHess = TRUE`, residual `rho12 = -0.789`, and
+phylogenetic `mu1`-`mu2` correlation `-0.841`. Slice 403-412 implements the
+prereg block-diagonal phylogenetic fallback with one q2 location block and one
+q2 scale block for the same tree. On the same Mass + Beak data it now fits
+rather than aborting, but it returns false convergence, `pdHess = FALSE`,
+residual `rho12 = -0.720`, phylogenetic mean-mean correlation `-0.750`, and a
+scale-scale phylogenetic correlation essentially at `-1`. A 10-core parametric
+bootstrap smoke run (`B = 10`) refitted all replicates but all retained
+convergence code 1; the mean bootstrap values were residual `rho12 = -0.746`,
+phylogenetic mean-mean `-0.824`, scale-scale `-0.99999`, and Beak-on-Mass
+coefficient `1.81`. The full q4 location-scale model can be optimized with
+`se = FALSE`, but it still returns false convergence, large gradients,
+residual `rho12 = -0.984`, and several q4 correlations near `+/-1`.
+
+This addendum narrows Phase 18 admission further:
+
+- admit Mass + Beak locphylo as a high-value real-data convergence and
+  bootstrap diagnostic target;
+- keep full q4 PV2-main in the failure/diagnostic ledger until the selected
+  optimum is stable under restart, bootstrap, or fallback simplification;
+- keep the block-diagonal phylogenetic fallback fitted but diagnostic-only for
+  this dataset because the scale-scale row sits on a boundary;
+- treat fallback `profile_targets()` rows as mechanically profile-ready, not
+  profile-proven: a bounded full-species Ayumi mean-mean profile took about 512
+  seconds and still failed to extract a 95% interval;
+- do not treat intercept-only scale formulas as a rescue for this target yet:
+  the first simplified scale-phylo fallback still false-converged with
+  `pdHess = FALSE`, worse AIC, and scale-scale phylogenetic correlation near
+  `-1`;
+- use the clean `PV2_locphylo` model as the Mass + Beak demonstration: the same
+  10-core bootstrap diagnostic refitted all ten replicates with convergence 0
+  and small gradients;
+- use parametric bootstrap as a diagnostic route for weak-Hessian fits, but do
+  not report bootstrap intervals as scientific uncertainty until convergence
+  and boundary diagnostics improve or the model is simplified.
 
 ## Slice 268 Capability Audit
 
@@ -66,7 +136,7 @@ out of operating-characteristic tables except as failure-ledger entries.
 | Post-fit extractor provenance | Implemented for interval-aware prediction tables, `summary()`, `confint()`, `corpairs()`, and the exported plotting consumers | Slice 289 verifies that `corpairs()` carries `conf.status` and `interval_source` beside profile-target metadata, while `plot_corpairs()` draws intervals only when those provenance columns mark a real interval source; existing `predict_parameters()` and `plot_parameter_surface()` tests cover the same rule for distributional-parameter surfaces | `vcov()` remains a covariance matrix with row and column-name provenance rather than a status table; `emmeans()` returns an external `emmGrid` for the narrow fixed-effect univariate `mu` path | Use these extractors as simulation and figure inputs only after the fitted surface itself is admitted |
 | Random slopes | Implemented for ordinary Gaussian `mu` multi-slope blocks, independent Gaussian `sigma` one-slope terms, ordinary Poisson/NB2 `mu` independent numeric slopes, and coordinate spatial Gaussian `mu` one-slope fields | Tested with focused recovery, smoke, direct profile, weak-boundary, diagnostic checks, and parser-boundary checks for planned structured slopes | Correlated non-Gaussian slopes, bivariate random slopes, phylogenetic slopes, animal slopes, `relmat()` slopes, and spatial slope correlations remain planned or unsupported | Admit only the fitted ordinary, count-`mu`, and coordinate-spatial one-slope cases |
 | Meta-analysis | Implemented for Gaussian models with known sampling covariance through `meta_V(V = V)` and the compatibility alias `meta_known_V(V = V)` | Tested for vector and dense `V`, summary-smoke output, Wald rows for estimated targets, and interval safety that keeps known `V` out of confidence-interval targets | Proportional sampling-variance models, multiple variance-component meta-analysis, and phylogenetic-plus-study extensions remain planned | Admit vector and dense known-`V` Gaussian grids, with `V` treated as input data |
-| Phylogenetic models | Implemented for Gaussian `mu` intercept effects, selected bivariate `mu1`/`mu2` phylogenetic location correlations, constant q=4 location-scale blocks, and direct `sd_phylo*()` paths | Tested with profile targets, direct-SD surfaces, bivariate phylogenetic covariance rows, diagnostics, examples, and one-slope parser or rejection boundaries | Phylogenetic `mu` slopes, richer q=4 predictor-dependent `corpair()` regressions, and phylogenetic non-Gaussian effects remain planned or unsupported | Admit intercept and documented direct-SD subsets; keep slope grids out |
+| Phylogenetic models | Implemented for Gaussian `mu` intercept effects, selected bivariate `mu1`/`mu2` phylogenetic location correlations, constant q=4 location-scale blocks, and direct `sd_phylo*()` paths | Tested with profile targets, direct-SD surfaces, bivariate phylogenetic covariance rows, diagnostics, examples, one-slope parser or rejection boundaries, and the Ayumi q2 hard-case stress ledger | Phylogenetic `mu` slopes, richer q=4 predictor-dependent `corpair()` regressions, standalone structured `sigma`-`sigma` covariance, and phylogenetic non-Gaussian effects remain planned or unsupported | Admit small controlled intercept and documented direct-SD subsets; keep Ayumi-style row-level q2 stress cases in the failure/diagnostic ledger until start, profile, and Hessian evidence improves |
 | Spatial models | Implemented for coordinate spatial Gaussian `mu` intercepts and one numeric slope with independent spatial fields | Tested with a coordinate-spatial one-slope smoke surface, direct SD targets, `ranef("spatial_mu")`, diagnostics, and reader-facing boundary text | Mesh/SPDE models, multiple spatial slopes, spatial slope correlations, spatial `sigma`, bivariate spatial q=4, spatial direct-SD, and spatial `corpair()` regressions remain planned | Admit only univariate Gaussian coordinate-spatial `mu` intercept and one-slope grids |
 | `animal()` models | Exported and parsed as planned structured-effect markers, including intercept and one-slope grammar, but no fitted likelihood exists | Tested as reference/parser and unsupported-boundary surface, not as a fitted model | Pedigree, `A`, and `Ainv` animal-model likelihoods, diagnostics, profile targets, and recovery tests remain planned | Do not admit fitted animal-model grids |
 | `relmat()` models | Exported and parsed as lower-level planned known-relatedness markers, including intercept and one-slope grammar, but no fitted likelihood exists | Tested as reference/parser and unsupported-boundary surface, not as a fitted model | User-supplied `K` or `Q` fitting, matrix validation, diagnostics, profile targets, and recovery tests remain planned | Do not admit fitted `relmat()` grids |
@@ -85,7 +155,7 @@ out of operating-characteristic tables except as failure-ledger entries.
 | Mixed-response bivariate families | Planned; Slice 288 keeps Gaussian-count, Gaussian-proportion, count-proportion, ordinal mixed, and other two-response combinations out of the fitted surface | Clear errors for mixed composed families in both `c()` and `list()` spellings, plus the all-Gaussian composed-family positive path | Not ready until a joint likelihood or copula/latent-variable contract, prediction, simulation, extractors, intervals, examples, and comparator or independent-likelihood tests exist |
 | Meta-analysis with known `V` | Fitted through `meta_V(V = V)` | Vector and dense `V` DGPs, smoke runner, Wald intervals for estimated targets, and safeguards that known `V` is not an interval target | Ready for first small grids |
 | Coordinate spatial Gaussian `mu` | Fitted for intercept and one numeric slope | Spatial one-slope smoke surface, direct SD targets, and diagnostics | Ready for focused univariate Gaussian `mu` grids |
-| Phylogenetic Gaussian `mu` | Fitted for intercept and selected bivariate intercept structures | Profile targets, direct-SD surfaces, bivariate phylogenetic covariance rows, and examples | Ready for intercept grids; one-slope parity remains planned |
+| Phylogenetic Gaussian `mu` | Fitted for intercept and selected bivariate intercept structures | Profile targets, direct-SD surfaces, bivariate phylogenetic covariance rows, examples, and Ayumi q2 hard-case stress artifacts | Ready for small controlled intercept grids; row-level all-species q2 stress cases remain diagnostic/failure-ledger material |
 | `animal()` and `relmat()` | Parser/planned only for intercept and one-slope markers; no fitted likelihood | ASReml efficiency note, structured-slope parity gate, parser checks, and unsupported-boundary tests | Not ready |
 | Poisson `mu` random effects | Fitted for ordinary non-zero-inflated intercepts and independent numeric slopes | Smoke runner, fixed-effect Wald intervals, direct SD profile intervals, weak-SD boundary test, and diagnostics | Ready for first small non-Gaussian `mu` grids |
 | NB2 `mu` random effects | Fitted for ordinary non-zero-inflated intercepts and independent numeric slopes | Smoke runner, fixed-effect Wald intervals, direct SD profile intervals, weak-SD boundary test, and diagnostics | Ready for first small non-Gaussian `mu` grids |

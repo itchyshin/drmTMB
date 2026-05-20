@@ -89,10 +89,14 @@ test_that("Phase 18 Student-t shape grid writer creates table artifacts", {
     output_dir = output_dir,
     conditions = conditions,
     n_rep = 1L,
-    master_seed = 221L
+    master_seed = 221L,
+    cores = 10L
   )
 
   expect_equal(out$surface, "student_shape_grid")
+  expect_equal(out$summary$run$parallel$backend, "none")
+  expect_equal(out$summary$run$parallel$requested_cores, 10L)
+  expect_equal(out$summary$run$parallel$cores, 1L)
   expect_true(dir.exists(out$result_dir))
   expect_true(dir.exists(out$table_dir))
   expect_true(all(file.exists(unlist(out$paths, use.names = FALSE))))
@@ -115,4 +119,28 @@ test_that("Phase 18 Student-t shape grid writer creates table artifacts", {
     master_seed = 221L,
     overwrite = TRUE
   ))
+})
+
+test_that("Phase 18 Student-t shape grid writer passes bootstrap backend args", {
+  source_phase18_student_shape_grid_writer()
+  output_dir <- tempfile("phase18-student-shape-grid-bad-bootstrap-")
+  withr::defer(unlink(output_dir, recursive = TRUE))
+
+  expect_error(
+    phase18_write_student_shape_grid_outputs(
+      output_dir = output_dir,
+      conditions = phase18_student_shape_conditions(
+        n = 240L,
+        nu_intercept = log(6),
+        nu_slope = 0.20,
+        sigma_slope = 0.20,
+        rho_xw = 0.1
+      ),
+      n_rep = 1L,
+      master_seed = 222L,
+      bootstrap_nsim = 1L,
+      bootstrap_backend = "psock"
+    ),
+    "none.*multicore"
+  )
 })

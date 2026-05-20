@@ -10,7 +10,9 @@ phase18_summarise_biv_rho12_fit <- function(
   profile_args = list(ystep = 0.50),
   bootstrap_nsim = 0L,
   bootstrap_level = 0.70,
-  bootstrap_seed = NULL
+  bootstrap_seed = NULL,
+  bootstrap_cores = 1L,
+  bootstrap_backend = "none"
 ) {
   data <- truth
   if (is.data.frame(truth)) {
@@ -83,7 +85,9 @@ phase18_summarise_biv_rho12_fit <- function(
     nsim = bootstrap_nsim,
     conf.level = bootstrap_level,
     seed = bootstrap_seed,
-    interval_scale = "formula_coefficient"
+    interval_scale = "formula_coefficient",
+    cores = bootstrap_cores,
+    backend = bootstrap_backend
   )
 }
 

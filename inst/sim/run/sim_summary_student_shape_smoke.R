@@ -15,7 +15,11 @@ phase18_summarise_student_shape_smoke <- function(
   profile_level = 0.70,
   profile_args = list(ystep = 0.50),
   bootstrap_nsim = 0L,
-  bootstrap_level = 0.70
+  bootstrap_level = 0.70,
+  bootstrap_cores = 1L,
+  bootstrap_backend = "none",
+  cores = 1L,
+  backend = "none"
 ) {
   run <- phase18_run_student_shape_smoke(
     conditions = conditions,
@@ -27,7 +31,11 @@ phase18_summarise_student_shape_smoke <- function(
     profile_level = profile_level,
     profile_args = profile_args,
     bootstrap_nsim = bootstrap_nsim,
-    bootstrap_level = bootstrap_level
+    bootstrap_level = bootstrap_level,
+    bootstrap_cores = bootstrap_cores,
+    bootstrap_backend = bootstrap_backend,
+    cores = cores,
+    backend = backend
   )
   if (nrow(run$summary) == 0L) {
     stop(

@@ -107,10 +107,15 @@ test_that("Phase 18 count mu random-effect pilot combines Poisson and NB2", {
     ),
     n_rep = 1L,
     master_seed = 251L,
-    result_dir = result_dir
+    result_dir = result_dir,
+    cores = 10L
   )
 
   expect_identical(out$surface, "count_mu_random_effect_pilot")
+  expect_equal(out$poisson$run$parallel$backend, "none")
+  expect_equal(out$poisson$run$parallel$requested_cores, 10L)
+  expect_equal(out$poisson$run$parallel$cores, 1L)
+  expect_equal(out$nbinom2$run$parallel$requested_cores, 10L)
   expect_setequal(
     unique(out$aggregate$surface),
     c("poisson_mu_random_effect", "nbinom2_mu_random_effect")

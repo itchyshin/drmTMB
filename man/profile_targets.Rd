@@ -31,7 +31,10 @@ signal are listed as point-estimate targets with
 \code{profile_targets()} shows the names that can be supplied to
 \code{\link[=confint.drmTMB]{confint.drmTMB()}}. The table also records whether each row is currently
 ready for direct profile-likelihood intervals. This helps users inspect the
-fitted object before starting an expensive profile.
+fitted object before starting an expensive profile. Full q4 unstructured
+correlation summaries are derived targets; block-diagonal phylogenetic q4
+fallback correlations are direct targets, but a direct target can still fail
+on a weak, boundary-limited, or one-sided profile.
 }
 \examples{
 dat <- data.frame(y = c(0.2, 0.5, 1.1, 1.4), x = c(-1, 0, 1, 2))

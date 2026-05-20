@@ -173,6 +173,32 @@ Per-cell results should be saved as RDS files with replicate seeds, fit status,
 warnings, elapsed time, `check_drm()` rows, interval status, and session info.
 CRAN tests should only run smoke checks for seed stability and output shape.
 
+Slice 549 adds `phase18_run_replicates()` as the first bounded parallel
+execution helper for replicate grids. The default remains serial
+`backend = "none"`, while Unix `backend = "multicore"` can fork independent
+replicate tasks with actual workers capped at 10 and at the number of
+replicates. The Gaussian location-scale, `meta_V(V = V)`, Poisson `mu`
+random-effect, NB2 `mu` random-effect, Gaussian `mu` random-slope, Gaussian
+`sigma` random-slope, coordinate spatial `mu` slope, Student-t shape, and
+bivariate residual `rho12` smoke runners are wired through this helper.
+Student-t shape and bivariate `rho12` use the helper's closure-aware
+`summarise_fun_factory` path so each replicate can keep its own profile or
+bootstrap seed without reverting to a local loop.
+
+Slices 679-688 make the higher-level wrappers respect the same execution
+contract. Gaussian location-scale, Student-t shape, and bivariate residual
+`rho12` grid writers forward replicate-runner `cores` and `backend`; the paired
+count pilot and count-gallery smoke wrapper do the same. Student-t shape and
+bivariate residual `rho12` keep separate `bootstrap_cores` and
+`bootstrap_backend` arguments for the inner private parametric-bootstrap layer,
+and bootstrap interval rows carry `bootstrap.backend`,
+`bootstrap.requested_cores`, and `bootstrap.cores` for artifact audits. The
+recommended heavier-use pattern is to parallelize either the replicate layer or
+the bootstrap layer, not both at once. Slices 689-698 turn that recommendation
+into a guard for Student-t shape and bivariate residual `rho12` bootstrap
+smokes: if the replicate layer and bootstrap layer would both use more than one
+worker, the runner errors before fitting.
+
 Simulation artifacts have two explicit grains. Replicate-level summaries carry
 `artifact_grain = "replicate"` and one row per fitted simulation replicate,
 parameter, and cell. They are the only valid input for replicate-error clouds,
@@ -183,6 +209,32 @@ profile-draw comparisons. Aggregate summaries carry
 columns. Aggregate-only reports must use points, bars, and MCSE or interval
 ranges; they must not draw distributional clouds from rows that have already
 been reduced.
+
+Grid-output writers also return artifact manifests with one row per CSV
+artifact, file-existence status, and CSV row counts. First-wave report staging
+binds those manifests across surfaces and writes both the bound manifest and a
+surface-status table before a report tries to read the individual aggregate,
+replicate, interval, or failure-ledger files. The first status report template
+uses those tables as a preflight gate and can stop immediately when required
+artifacts are missing. A separate first-wave table-bundle writer can then bind
+selected CSV artifacts across surfaces, preserving source-surface and
+source-artifact columns first while filling missing table columns with `NA`. The
+first summary-report skeleton is table-first: it reads artifact status,
+aggregate operating-characteristic rows, interval diagnostics, interval
+failures, manifests, and warning/error ledgers before figure design begins. A
+render helper now ties those staging pieces together by writing status outputs,
+writing bundled tables, and optionally rendering the HTML summary report from
+the staged CSVs. The summary report displays priority columns first and caps
+large tables, while leaving the full CSVs intact for downstream figures. It
+also adds a compact warning/error summary above the raw ledger so recurring
+surface-level diagnostics are visible before a reader scans every event row. A
+first compact aggregate-bias overview gives reviewers a quick visual screen of
+largest finite signed-bias rows, with the report caption explicitly reserving
+replicate-level clouds for later Florence-reviewed simulation figures. The
+summary report also reads Wald, profile, and bootstrap coverage artifacts when
+present and summarises interval methods by surface before the raw diagnostic
+tables. A run-manifest summary groups run status, skipped rows, warnings,
+errors, and elapsed time by surface before the raw manifest.
 
 ## Williams-Style Self-Audit
 
@@ -531,3 +583,147 @@ been reduced.
      phylogenetic location-scale fits.
 111. Slice 362 writes the convergence report, check-log entry, after-task note,
      and validation evidence before returning to the Phase 18 simulation wave.
+112. Slices 539-548 add bounded private parametric-bootstrap execution for
+     Phase 18 interval evidence, with serial and Unix `multicore` backends,
+     actual-worker caps of 10 and `nsim`, and recorded requested versus actual
+     core counts.
+113. Slices 549-578 add and migrate the shared bounded replicate runner for
+     Gaussian location-scale, `meta_V(V = V)`, Poisson `mu`, and NB2 `mu`
+     smoke surfaces.
+114. Slices 579-628 validate the migrated Phase 18 runners, then run the full
+     package test suite, pkgdown checks, and package checks.
+115. Slices 629-638 add the closure-aware summary-factory path so Student-t
+     shape and bivariate residual `rho12` runners can keep profile or
+     bootstrap seeds per replicate while still using the shared runner.
+116. Slices 639-668 rerun focused Phase 18 tests, full package tests, pkgdown,
+     and package checks after the closure-aware migration.
+117. Slices 669-678 synchronize the roadmap and simulation programme text with
+     the implemented bounded-runner status, while keeping public bootstrap
+     intervals and PSOCK support out of the implemented surface.
+118. Slices 679-688 forward bounded runner settings through the first grid and
+     count-gallery wrappers, add separate bootstrap backend settings for
+     Student-t shape and bivariate residual `rho12`, and record bootstrap
+     backend/core metadata in interval artifacts.
+119. Slices 689-698 add a nested-parallel guard so Student-t shape and
+     bivariate residual `rho12` bootstrap smokes cannot run multicore
+     replicate and multicore bootstrap layers at the same time.
+120. Slices 699-708 add the repeatable `meta_V(V = V)` grid-output writer,
+     saving aggregate, replicate, manifest, failure-ledger, Wald interval, and
+     Wald coverage CSV artifacts beside resumable per-replicate RDS files.
+121. Slices 709-718 add the repeatable paired Poisson/NB2 `mu` random-effect
+     grid-output writer, including aggregate, replicate, manifest,
+     failure-ledger, Wald interval, Wald coverage, direct-SD profile interval,
+     and profile coverage CSV artifacts.
+122. Slices 719-728 add repeatable simple grid-output writers for ordinary
+     Gaussian `mu` random slopes, independent Gaussian `sigma` random slopes,
+     and coordinate-spatial Gaussian `mu` slopes.
+123. Slices 729-738 add grid-artifact manifests to the first-wave writers so
+     report staging can audit file existence and CSV row counts, including
+     zero-row optional interval artifacts.
+124. Slices 739-748 add manifest binding and surface-level artifact status
+     summaries for first-wave report staging.
+125. Slices 749-758 add a first-wave artifact-status writer that saves bound
+     artifact-manifest and surface-status CSVs from multiple grid-writer
+     outputs before a report consumes the simulation tables.
+126. Slices 759-768 add a first-wave artifact-status report template that
+     renders the preflight status page for complete outputs and fails clearly
+     when required artifacts are missing.
+127. Slices 769-778 add a first-wave table-bundle writer that combines selected
+     CSV artifacts across grid-writer outputs while retaining source-surface
+     and source-artifact columns.
+128. Slices 779-788 add a first-wave summary-report skeleton over artifact
+     status, aggregate operating-characteristic rows, interval diagnostics,
+     interval failures, manifests, and warning/error ledgers.
+129. Slices 789-798 add a first-wave summary-report render helper that writes
+     artifact status, table-bundle outputs, and optional HTML from grid-writer
+     outputs in one orchestration step.
+130. Slices 809-818 run a tiny real first-wave summary smoke under
+     `inst/sim/results/slice-809-first-wave-summary-smoke/`, combining actual
+     Gaussian location-scale and `meta_V(V = V)` grid-writer outputs into a
+     rendered summary HTML.
+131. Slices 819-828 make the first-wave table-bundle provenance columns lead
+     the combined tables, then rerun the tiny Gaussian plus `meta_V(V = V)`
+     summary smoke under
+     `inst/sim/results/slice-819-first-wave-summary-polished-smoke/`.
+132. Slices 829-838 add the paired Poisson/NB2 `mu` random-effect grid writer
+     to the tiny first-wave rendered summary smoke under
+     `inst/sim/results/slice-829-first-wave-summary-count-smoke/`, giving the
+     report a continuous, meta-analysis, and count mixed-model surface mix.
+133. Slices 839-848 add priority-column and row-cap display polish to the
+     first-wave summary report, then rerun the three-surface smoke under
+     `inst/sim/results/slice-839-first-wave-summary-table-polish-smoke/`.
+134. Slices 849-858 add a compact warning/error summary to the first-wave
+     summary report, then rerun the three-surface smoke under
+     `inst/sim/results/slice-849-first-wave-summary-warning-smoke/`.
+135. Slices 859-868 add the first compact aggregate-bias overview to the
+     first-wave summary report, then rerun the three-surface smoke under
+     `inst/sim/results/slice-859-first-wave-summary-bias-overview-smoke/`.
+136. Slices 869-878 add a compact interval-coverage summary to the first-wave
+     summary report, then rerun the three-surface smoke under
+     `inst/sim/results/slice-869-first-wave-summary-interval-coverage-smoke/`.
+137. Slices 879-888 add a compact run-manifest summary to the first-wave
+     summary report, then rerun the three-surface smoke under
+     `inst/sim/results/slice-879-first-wave-summary-manifest-smoke/`.
+138. Slices 889-898 run a slightly larger three-surface first-wave staging
+     smoke with `n_rep = 2` and a small `multicore` backend under
+     `inst/sim/results/slice-889-first-wave-summary-nrep2-smoke/`, keeping
+     actual worker counts below the 10-core cap.
+139. Slices 899-908 add a reusable private first-wave summary smoke runner for
+     the Gaussian location-scale, `meta_V(V = V)`, and paired Poisson/NB2 `mu`
+     random-effect grid writers, including a requested-versus-actual worker
+     summary CSV.
+140. Slices 909-918 validate that reusable runner with a rendered `n_rep = 2`
+     multicore smoke under
+     `inst/sim/results/slice-909-first-wave-runner-nrep2-smoke/`.
+141. Slices 919-928 add ordinary Gaussian `mu` random slopes to the reusable
+     first-wave summary runner and validate the rendered four-surface smoke
+     under
+     `inst/sim/results/slice-919-first-wave-runner-four-surface-smoke/`.
+142. Slices 929-938 add ordinary Gaussian `sigma` random slopes to the reusable
+     first-wave summary runner and validate the rendered five-surface smoke
+     under
+     `inst/sim/results/slice-929-first-wave-runner-five-surface-smoke/`.
+143. Slices 939-948 add coordinate-spatial Gaussian `mu` slopes to the reusable
+     first-wave summary runner and validate the rendered six-surface smoke
+     under
+     `inst/sim/results/slice-939-first-wave-runner-six-surface-smoke/`.
+144. Slices 949-958 run the six-surface first-wave runner at `n_rep = 2` with
+     a small `multicore` backend under
+     `inst/sim/results/slice-949-first-wave-runner-six-surface-nrep2-smoke/`.
+145. Slices 959-968 add a separate interval-heavy summary runner for
+     Student-t shape and bivariate residual `rho12`, then validate the rendered
+     two-surface report under
+     `inst/sim/results/slice-959-interval-heavy-runner-smoke/`.
+146. Slices 969-978 run a tiny profile-enabled interval-heavy smoke for
+     `nu:w` and `rho12:w` under
+     `inst/sim/results/slice-969-interval-heavy-profile-smoke/`.
+147. Slices 979-988 run a tiny bootstrap-enabled interval-heavy smoke with
+     `bootstrap_nsim = 2` and a two-worker `multicore` bootstrap backend under
+     `inst/sim/results/slice-979-interval-heavy-bootstrap-smoke/`.
+148. Slices 989-998 run focused validation over first-wave staging,
+     interval-heavy staging, Student-t shape, and bivariate residual `rho12`
+     tests: 260 expectations, 0 failures, 0 warnings, 0 skips.
+149. Slices 999-1008 run the broader `^phase18-` focused validation suite:
+     1008 expectations, 0 failures, 0 warnings, 0 skips.
+150. Slices 1009-1018 run the full package test suite after the first-wave
+     and interval-heavy runner additions: 5480 expectations, 0 failures,
+     0 warnings, 0 skips.
+151. Slices 1019-1028 run `pkgdown::check_pkgdown()` after the report-runner
+     documentation updates: no problems found.
+152. Slices 1029-1038 normalize active Phase 18 smoke/grid/bootstrap tests to
+     request at most 10 cores, then rerun the affected tests: 266
+     expectations, 0 failures, 0 warnings, 0 skips.
+153. Slices 1039-1048 rerun the full package test suite after the 10-core
+     test normalization: 5480 expectations, 0 failures, 0 warnings, 0 skips.
+154. Slices 1049-1058 fix two example-style vignette source tangles and rerun
+     the light package check: 0 errors, 0 warnings, 1 time-verification NOTE.
+155. Slices 1059-1068 run the six-surface first-wave staging grid at
+     `n_rep = 3` with a `multicore` backend and a 10-core request cap, then
+     audit and fix the rendered aggregate-bias overview so long parameter
+     labels no longer clip the plot.
+156. Slices 1069-1078 consolidate the merge payload after the first-wave
+     staging run: duplicate warning messages are collapsed in the Phase 18
+     warning/error ledger, bulky Ayumi CSV/RDS stress outputs and local
+     recovery checkpoints stay out of git, and the branch passes focused
+     Phase 18 validation, full package tests, pkgdown checks, and package
+     checks before staging.

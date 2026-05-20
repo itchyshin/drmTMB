@@ -159,6 +159,8 @@ test_that("Phase 18 NB2 mu random-effect smoke runner summarises output", {
   )
 
   expect_identical(out$surface, "nbinom2_mu_random_effect")
+  expect_equal(out$run$parallel$backend, "none")
+  expect_equal(out$run$parallel$cores, 1L)
   expect_equal(nrow(out$run$summary), 6L)
   expect_equal(nrow(out$aggregate), 6L)
   expect_equal(nrow(out$manifest), 1L)

@@ -14,7 +14,11 @@ phase18_write_student_shape_grid_outputs <- function(
   profile_level = 0.70,
   profile_args = list(ystep = 0.50),
   bootstrap_nsim = 0L,
-  bootstrap_level = 0.70
+  bootstrap_level = 0.70,
+  bootstrap_cores = 1L,
+  bootstrap_backend = "none",
+  cores = 1L,
+  backend = "none"
 ) {
   if (
     !is.character(output_dir) || length(output_dir) != 1L || !nzchar(output_dir)
@@ -83,7 +87,11 @@ phase18_write_student_shape_grid_outputs <- function(
     profile_level = profile_level,
     profile_args = profile_args,
     bootstrap_nsim = bootstrap_nsim,
-    bootstrap_level = bootstrap_level
+    bootstrap_level = bootstrap_level,
+    bootstrap_cores = bootstrap_cores,
+    bootstrap_backend = bootstrap_backend,
+    cores = cores,
+    backend = backend
   )
 
   utils::write.csv(summary$aggregate, paths$aggregate_csv, row.names = FALSE)
@@ -142,6 +150,10 @@ phase18_write_student_shape_grid_outputs <- function(
     result_dir = result_dir,
     table_dir = table_dir,
     paths = paths,
+    artifact_manifest = phase18_grid_artifact_manifest(
+      "student_shape_grid",
+      paths
+    ),
     summary = summary
   )
 }

@@ -5,8 +5,9 @@
 #' Profile-likelihood intervals are slower because nuisance parameters are
 #' re-optimized; this first public profile path supports explicit fixed-effect,
 #' constant distributional-scale, random-effect standard-deviation,
-#' random-effect correlation, the first bivariate phylogenetic mean-mean
-#' correlation, and constant residual-correlation targets.
+#' random-effect correlation, bivariate phylogenetic q=2 mean-mean
+#' correlation, block-diagonal bivariate phylogenetic `mu1`/`mu2` and
+#' `sigma1`/`sigma2` correlations, and constant residual-correlation targets.
 #' For predictor-dependent scale, residual-correlation, or currently supported
 #' `corpair()` formulae, supply `newdata` with `parm = "sigma"`,
 #' `parm = "rho12"`, or the fitted `corpair(...)` dpar to profile the fitted
@@ -122,7 +123,10 @@ confint.drmTMB <- function(
 #' `profile_targets()` shows the names that can be supplied to
 #' [confint.drmTMB()]. The table also records whether each row is currently
 #' ready for direct profile-likelihood intervals. This helps users inspect the
-#' fitted object before starting an expensive profile.
+#' fitted object before starting an expensive profile. Full q4 unstructured
+#' correlation summaries are derived targets; block-diagonal phylogenetic q4
+#' fallback correlations are direct targets, but a direct target can still fail
+#' on a weak, boundary-limited, or one-sided profile.
 #'
 #' @param object A `drmTMB` fit.
 #' @param ready_only Logical; if `TRUE`, return only targets whose
@@ -372,7 +376,8 @@ drm_profile_targets <- function(object) {
     internal <- profile_cor_internal(dpar)
     is_phylo_unstructured <- identical(dpar, "phylo") &&
       isTRUE(object$model$structured$phylo_mu$has) &&
-      isTRUE(object$model$structured$phylo_mu$q > 2L)
+      isTRUE(object$model$structured$phylo_mu$q > 2L) &&
+      !phylo_mu_is_block_diagonal(object$model$structured$phylo_mu)
     for (i in seq_along(values)) {
       if (paste(dpar, i, sep = ":") %in% registry_cor_keys) {
         next
@@ -381,8 +386,14 @@ drm_profile_targets <- function(object) {
         next
       }
       index <- i
-      if (is_phylo_unstructured) {
+      if (
+        identical(dpar, "phylo") &&
+          isTRUE(object$model$structured$phylo_mu$has) &&
+          isTRUE(object$model$structured$phylo_mu$q > 2L)
+      ) {
         internal <- "theta_phylo"
+      }
+      if (is_phylo_unstructured) {
         status <- list(
           profile_ready = FALSE,
           profile_note = "derived_unstructured_correlation"

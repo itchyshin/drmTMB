@@ -3717,6 +3717,110 @@ phylo_mu_block <- function(phylo_mu) {
   phylo_mu$block
 }
 
+phylo_mu_covariance_mode <- function(phylo_mu) {
+  mode <- phylo_mu$covariance_mode
+  if (is.character(mode) && length(mode) == 1L && nzchar(mode)) {
+    return(mode)
+  }
+  q <- structured_mu_q(phylo_mu)
+  if (q > 2L) {
+    return("unstructured")
+  }
+  "scalar"
+}
+
+phylo_mu_is_block_diagonal <- function(phylo_mu) {
+  identical(phylo_mu_covariance_mode(phylo_mu), "block_diagonal")
+}
+
+phylo_mu_block_ids <- function(phylo_mu) {
+  q <- structured_mu_q(phylo_mu)
+  block_ids <- phylo_mu$block_ids
+  if (
+    is.numeric(block_ids) &&
+      length(block_ids) == q &&
+      all(is.finite(block_ids)) &&
+      all(block_ids >= 1L)
+  ) {
+    return(as.integer(block_ids))
+  }
+  rep(1L, q)
+}
+
+phylo_mu_endpoint_blocks <- function(phylo_mu) {
+  q <- structured_mu_q(phylo_mu)
+  endpoint_blocks <- phylo_mu$endpoint_blocks
+  if (is.character(endpoint_blocks) && length(endpoint_blocks) == q) {
+    return(endpoint_blocks)
+  }
+  block_labels <- phylo_mu$block_labels
+  block_ids <- phylo_mu_block_ids(phylo_mu)
+  if (length(block_ids) == 0L) {
+    return(character())
+  }
+  if (
+    is.character(block_labels) &&
+      length(block_labels) >= max(block_ids)
+  ) {
+    return(block_labels[block_ids])
+  }
+  rep(phylo_mu_block(phylo_mu), q)
+}
+
+phylo_mu_endpoint_covariance_labels <- function(phylo_mu) {
+  q <- structured_mu_q(phylo_mu)
+  labels <- phylo_mu$endpoint_covariance_labels
+  if (is.character(labels) && length(labels) == q) {
+    return(labels)
+  }
+  label <- phylo_mu$covariance_label
+  if (is.null(label)) {
+    return(rep(NA_character_, q))
+  }
+  rep(label, q)
+}
+
+phylo_mu_endpoint_labels <- function(phylo_mu) {
+  q <- structured_mu_q(phylo_mu)
+  covariance_labels <- phylo_mu_endpoint_covariance_labels(phylo_mu)
+  vapply(
+    seq_len(q),
+    function(i) {
+      covariance_label <- covariance_labels[[i]]
+      if (is.na(covariance_label) || !nzchar(covariance_label)) {
+        covariance_label <- NULL
+      }
+      format_structured_label(
+        structured_mu_type(phylo_mu),
+        "1",
+        phylo_mu$group,
+        covariance_label
+      )
+    },
+    character(1L)
+  )
+}
+
+phylo_mu_n_blocks <- function(phylo_mu) {
+  block_ids <- phylo_mu_block_ids(phylo_mu)
+  if (length(block_ids) == 0L) {
+    return(0L)
+  }
+  max(block_ids)
+}
+
+phylo_mu_theta_count <- function(phylo_mu) {
+  q <- structured_mu_q(phylo_mu)
+  if (q <= 2L) {
+    return(0L)
+  }
+  if (!phylo_mu_is_block_diagonal(phylo_mu)) {
+    return(choose(q, 2L))
+  }
+  block_sizes <- tabulate(phylo_mu_block_ids(phylo_mu))
+  sum(vapply(block_sizes, function(size) choose(size, 2L), numeric(1L)))
+}
+
 structured_mu_type <- function(phylo_mu) {
   type <- phylo_mu$type
   if (is.character(type) && length(type) == 1L && nzchar(type)) {
@@ -3745,21 +3849,22 @@ phylo_mu_dpars <- function(phylo_mu) {
 }
 
 phylo_mu_sd_labels <- function(phylo_mu, model_type) {
-  label <- phylo_mu$label
-  if (!is.character(label) || length(label) != 1L || !nzchar(label)) {
-    label <- format_structured_label(
-      structured_mu_type(phylo_mu),
-      "1",
-      phylo_mu$group,
-      NULL
-    )
-  }
   if (identical(model_type, "biv_gaussian")) {
-    return(paste0(phylo_mu_dpars(phylo_mu), ":", label))
+    return(paste0(
+      phylo_mu_dpars(phylo_mu),
+      ":",
+      phylo_mu_endpoint_labels(
+        phylo_mu
+      )
+    ))
   }
   q <- structured_mu_q(phylo_mu)
   if (q > 1L) {
     return(structured_mu_coef_labels(phylo_mu))
+  }
+  label <- phylo_mu$label
+  if (!is.character(label) || length(label) != 1L || !nzchar(label)) {
+    label <- phylo_mu_endpoint_labels(phylo_mu)[[1L]]
   }
   label
 }
@@ -3809,23 +3914,32 @@ phylo_mu_pair_table <- function(phylo_mu) {
       to_index = integer(),
       from_dpar = character(),
       to_dpar = character(),
+      block = character(),
       parameter = character(),
       stringsAsFactors = FALSE
     ))
   }
   pair_index <- utils::combn(seq_along(dpars), 2L)
-  block <- phylo_mu_block(phylo_mu)
+  endpoint_blocks <- phylo_mu_endpoint_blocks(phylo_mu)
+  if (phylo_mu_is_block_diagonal(phylo_mu)) {
+    same_block <- endpoint_blocks[pair_index[1L, ]] ==
+      endpoint_blocks[pair_index[2L, ]]
+    pair_index <- pair_index[, same_block, drop = FALSE]
+  }
+  block <- endpoint_blocks[pair_index[1L, ]]
   group <- phylo_mu$group
   data.frame(
     from_index = pair_index[1L, ],
     to_index = pair_index[2L, ],
     from_dpar = dpars[pair_index[1L, ]],
     to_dpar = dpars[pair_index[2L, ]],
+    block = block,
     parameter = mapply(
       format_cross_dpar_cor_label,
       dpars[pair_index[1L, ]],
       dpars[pair_index[2L, ]],
-      MoreArgs = list(group = group, covariance_label = block),
+      group = group,
+      covariance_label = block,
       USE.NAMES = FALSE
     ),
     stringsAsFactors = FALSE
@@ -3894,23 +4008,44 @@ detect_biv_phylo_q4_terms <- function(
       "i" = "Use one shared label, for example {.code phylo(1 | p | species, tree = tree)}, across {.code mu1}, {.code mu2}, {.code sigma1}, and {.code sigma2}."
     ))
   }
-  if (
-    length(unique(labels)) != 1L ||
-      length(unique(groups)) != 1L ||
-      length(unique(trees)) != 1L
-  ) {
+  same_tree_and_group <- length(unique(groups)) == 1L &&
+    length(unique(trees)) == 1L
+  full_q4 <- length(unique(labels)) == 1L
+  block_diagonal_q4 <- identical(labels[["mu1"]], labels[["mu2"]]) &&
+    identical(labels[["sigma1"]], labels[["sigma2"]]) &&
+    !identical(labels[["mu1"]], labels[["sigma1"]])
+
+  if (!same_tree_and_group || !(full_q4 || block_diagonal_q4)) {
     cli::cli_abort(c(
-      "Matched phylogenetic q=4 location-scale terms need the same block, group, and tree.",
+      "Phylogenetic q=4 location-scale terms need a supported block layout.",
       "x" = "Blocks: {.val {labels}}.",
       "x" = "Groups: {.val {groups}}.",
       "x" = "Trees: {.val {trees}}.",
-      "i" = "Use the same term, such as {.code phylo(1 | p | species, tree = tree)}, in all four endpoints."
+      "i" = "Use one full block, such as {.code phylo(1 | p | species, tree = tree)}, in all four endpoints.",
+      "i" = "Or use the block-diagonal fallback with one label for {.code mu1}/{.code mu2} and one label for {.code sigma1}/{.code sigma2}."
     ))
   }
 
   term <- terms[[1L]]
   term$dpars <- names(terms)
   term$q <- length(terms)
+  term$covariance_mode <- if (full_q4) {
+    "unstructured"
+  } else {
+    "block_diagonal"
+  }
+  term$block_ids <- if (full_q4) {
+    rep(1L, length(terms))
+  } else {
+    c(mu1 = 1L, mu2 = 1L, sigma1 = 2L, sigma2 = 2L)
+  }
+  term$block_labels <- if (full_q4) {
+    labels[[1L]]
+  } else {
+    c(labels[["mu1"]], labels[["sigma1"]])
+  }
+  term$endpoint_blocks <- labels
+  term$endpoint_covariance_labels <- labels
   term$label <- format_structured_label(
     "phylo",
     "1",
@@ -3992,6 +4127,11 @@ empty_phylo_mu_structure <- function() {
     group = NA_character_,
     block = "phylo",
     covariance_label = NULL,
+    covariance_mode = "none",
+    block_ids = integer(),
+    block_labels = character(),
+    endpoint_blocks = character(),
+    endpoint_covariance_labels = character(),
     dpars = character(),
     q = 0L,
     coef_names = character(),
@@ -4015,6 +4155,39 @@ build_phylo_mu_structure <- function(term, data, env) {
     "mu"
   } else {
     term$dpars
+  }
+  q <- length(dpars)
+  endpoint_covariance_labels <- if (!is.null(term$endpoint_covariance_labels)) {
+    unname(as.character(term$endpoint_covariance_labels))
+  } else if (is.null(term$covariance_label)) {
+    rep(NA_character_, q)
+  } else {
+    rep(term$covariance_label, q)
+  }
+  block_ids <- if (!is.null(term$block_ids)) {
+    as.integer(term$block_ids)
+  } else {
+    rep(1L, q)
+  }
+  block_ids <- match(block_ids, sort(unique(block_ids)))
+  block_labels <- if (!is.null(term$block_labels)) {
+    unname(as.character(term$block_labels))
+  } else if (is.null(term$covariance_label)) {
+    "phylo"
+  } else {
+    term$covariance_label
+  }
+  endpoint_blocks <- if (!is.null(term$endpoint_blocks)) {
+    unname(as.character(term$endpoint_blocks))
+  } else {
+    block_labels[block_ids]
+  }
+  covariance_mode <- if (!is.null(term$covariance_mode)) {
+    term$covariance_mode
+  } else if (q > 2L) {
+    "unstructured"
+  } else {
+    "scalar"
   }
 
   group <- term$group
@@ -4048,10 +4221,15 @@ build_phylo_mu_structure <- function(term, data, env) {
     type = "phylo",
     label = term$label,
     group = group,
-    block = phylo_term_block(term),
+    block = paste(unique(endpoint_blocks), collapse = "/"),
     covariance_label = term$covariance_label,
+    covariance_mode = covariance_mode,
+    block_ids = block_ids,
+    block_labels = block_labels,
+    endpoint_blocks = endpoint_blocks,
+    endpoint_covariance_labels = endpoint_covariance_labels,
     dpars = dpars,
-    q = length(dpars),
+    q = q,
     coef_names = "(Intercept)",
     tree = term$tree,
     n_re = nrow(precision$precision),
@@ -7853,7 +8031,11 @@ biv_gaussian_phylo_start <- function(phylo_mu, y_scale) {
     u_phylo = rep(0, q * phylo_mu$n_re),
     log_sd_phylo = log(pmax(0.25 * endpoint_scale, 1e-4)),
     eta_cor_phylo = 0,
-    theta_phylo = if (q > 2L) rep(0, choose(q, 2L)) else 0
+    theta_phylo = if (q > 2L) {
+      rep(0, phylo_mu_theta_count(phylo_mu))
+    } else {
+      0
+    }
   )
 }
 
@@ -8280,15 +8462,38 @@ structured_mu_tmb_data <- function(spec) {
   } else {
     NULL
   }
+  q <- if (is.list(phylo_mu) && isTRUE(phylo_mu$has)) {
+    structured_mu_q(phylo_mu)
+  } else {
+    0L
+  }
+  phylo_mu_block_id <- if (q > 0L) {
+    phylo_mu_block_ids(phylo_mu) - 1L
+  } else {
+    0L
+  }
+  n_phylo_mu_blocks <- if (q > 0L) {
+    phylo_mu_n_blocks(phylo_mu)
+  } else {
+    0L
+  }
   if (
     is.list(phylo_mu) &&
       isTRUE(phylo_mu$has) &&
       is.matrix(phylo_mu$value) &&
       nrow(phylo_mu$value) > 0L
   ) {
-    return(list(phylo_mu_value = phylo_mu$value))
+    return(list(
+      phylo_mu_value = phylo_mu$value,
+      phylo_mu_block_id = phylo_mu_block_id,
+      phylo_mu_n_blocks = n_phylo_mu_blocks
+    ))
   }
-  list(phylo_mu_value = matrix(0, nrow = 1L, ncol = 1L))
+  list(
+    phylo_mu_value = matrix(0, nrow = 1L, ncol = 1L),
+    phylo_mu_block_id = 0L,
+    phylo_mu_n_blocks = 0L
+  )
 }
 
 add_covariance_probe_parameter <- function(spec) {
@@ -9561,13 +9766,17 @@ split_tmb_corpars <- function(par, spec) {
     phylo_pairs <- phylo_mu_pair_table(spec$structured$phylo_mu)
     if (spec$structured$phylo_mu$q > 2L) {
       theta <- unname(par$theta_phylo[seq_len(nrow(phylo_pairs))])
-      corr <- tmb_unstructured_corr_matrix(theta)
-      rho_phylo <- numeric(nrow(phylo_pairs))
-      for (i in seq_len(nrow(phylo_pairs))) {
-        rho_phylo[[i]] <- corr[
-          phylo_pairs$from_index[[i]],
-          phylo_pairs$to_index[[i]]
-        ]
+      if (phylo_mu_is_block_diagonal(spec$structured$phylo_mu)) {
+        rho_phylo <- 0.999999 * tanh(theta)
+      } else {
+        corr <- tmb_unstructured_corr_matrix(theta)
+        rho_phylo <- numeric(nrow(phylo_pairs))
+        for (i in seq_len(nrow(phylo_pairs))) {
+          rho_phylo[[i]] <- corr[
+            phylo_pairs$from_index[[i]],
+            phylo_pairs$to_index[[i]]
+          ]
+        }
       }
     } else if (has_modelled_phylo_correlation(spec)) {
       rho_phylo <- mean(modelled_corpair_values(par, spec))

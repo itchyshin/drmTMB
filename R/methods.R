@@ -165,8 +165,10 @@ rho12.drmTMB <- function(
 #' group-level `mu` random-effect correlations, matched univariate and
 #' same-response bivariate `mu`/`sigma` random-intercept covariance blocks, and
 #' matched bivariate `mu1`/`mu2` and `sigma1`/`sigma2` random-intercept
-#' covariance blocks from `corpars`, plus the first fitted bivariate
-#' phylogenetic `mu1`/`mu2` mean-mean correlation.
+#' covariance blocks from `corpars`, plus fitted bivariate phylogenetic
+#' correlation rows. Full q4 phylogenetic blocks report six derived endpoint
+#' correlations; block-diagonal q4 fallback fits report the direct `mu1`/`mu2`
+#' and `sigma1`/`sigma2` block correlations.
 #'
 #' The table is intentionally more explicit than `rho12()` or `corpars`
 #' because future double-hierarchical, phylogenetic, spatial, and study-level
@@ -572,7 +574,7 @@ phylo_mu_corpairs <- function(object) {
     new_corpair_row(
       level = "phylogenetic",
       group = phylo_mu$group,
-      block = phylo_mu_block(phylo_mu),
+      block = pair$block[[1L]],
       from_dpar = pair$from_dpar[[1L]],
       to_dpar = pair$to_dpar[[1L]],
       from_coef = "(Intercept)",
@@ -728,7 +730,6 @@ phylo_mu_covariance_summaries <- function(object, intervals = NULL) {
 
   phylo_mu <- object$model$structured$phylo_mu
   group <- phylo_mu$group
-  block <- phylo_mu_block(phylo_mu)
   pair_table <- phylo_mu_pair_table(phylo_mu)
   sd_parameters <- phylo_mu_sd_labels(phylo_mu, object$model$model_type)
   covariance_interval_status <- covariance_summary_interval_status(intervals)
@@ -765,7 +766,7 @@ phylo_mu_covariance_summaries <- function(object, intervals = NULL) {
     data.frame(
       level = "phylogenetic",
       group = group,
-      block = block,
+      block = pair$block[[1L]],
       from_dpar = pair$from_dpar[[1L]],
       to_dpar = pair$to_dpar[[1L]],
       from_coef = "(Intercept)",
@@ -2361,7 +2362,8 @@ sigma.drmTMB <- function(object, ...) {
 #' response-scale distributional, scale, shape, random-effect SD, correlation,
 #' and fitted random-effect covariance quantities when they are present.
 #' The covariance component reports currently fitted registry-backed rows and
-#' the first fitted bivariate phylogenetic `mu1`/`mu2` mean-mean row.
+#' fitted bivariate phylogenetic covariance rows, including q=2 mean-mean and
+#' q=4 endpoint rows where present.
 #' The derived component reports simple point-estimate variance ratios, such as
 #' Gaussian random-intercept repeatability and phylogenetic signal, when the
 #' ingredients are unambiguous. Derived confidence intervals are marked as

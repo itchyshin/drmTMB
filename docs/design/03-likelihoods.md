@@ -71,7 +71,7 @@ is the current routing contract:
 | TMB `model_type` | User-facing route | R builder | TMB branch purpose |
 |---:|---|---|---|
 | `1` | `family = gaussian()` | `drm_build_gaussian_ls_spec()` | Univariate Gaussian location-scale models, including ordinary `mu` random effects, residual-scale `sigma` random effects, `sd(group) ~ ...` random-effect scale models, `meta_known_V(V = V)`, the implemented intercept-only `phylo()` location effect, the first coordinate-based `spatial()` location effect, and the first opt-in fixed-effect Gaussian aggregation path. |
-| `2` | `family = biv_gaussian()`, `family = c(gaussian(), gaussian())`, or `family = list(gaussian(), gaussian())` | `drm_build_biv_gaussian_spec()` | Bivariate Gaussian location-scale-coscale models with `mu1`, `mu2`, `sigma1`, `sigma2`, and residual `rho12`, including complete-row dense known sampling covariance, matching labelled `mu1`/`mu2` and `sigma1`/`sigma2` random-intercept covariance blocks, one same-response `mu`/`sigma` random-intercept covariance pair, intercept-only ordinary q=4 covariance blocks across all four bivariate distributional parameters, bivariate location random-effect SD formulas `sd1(group)` / `sd2(group)`, and matching intercept-only phylogenetic random intercepts in `mu1` and `mu2`. |
+| `2` | `family = biv_gaussian()`, `family = c(gaussian(), gaussian())`, or `family = list(gaussian(), gaussian())` | `drm_build_biv_gaussian_spec()` | Bivariate Gaussian location-scale-coscale models with `mu1`, `mu2`, `sigma1`, `sigma2`, and residual `rho12`, including complete-row dense known sampling covariance, matching labelled `mu1`/`mu2` and `sigma1`/`sigma2` random-intercept covariance blocks, one same-response `mu`/`sigma` random-intercept covariance pair, intercept-only ordinary q=4 covariance blocks across all four bivariate distributional parameters, bivariate location random-effect SD formulas `sd1(group)` / `sd2(group)`, matching intercept-only phylogenetic random intercepts in `mu1` and `mu2`, and constant all-four phylogenetic location-scale blocks in either full q=4 or block-diagonal two-q2 form. |
 | `3` | `family = student()` | `drm_build_student_ls_spec()` | Univariate Student-t location-scale-shape models with `mu`, `sigma`, and `nu = 2 + exp(eta_nu)`. |
 | `4` | `family = lognormal()` | `drm_build_lognormal_ls_spec()` | Univariate fixed-effect lognormal location-scale models for positive responses, with `mu` and `sigma` defined on the log-response scale. |
 | `5` | `family = Gamma(link = "log")` | `drm_build_gamma_ls_spec()` | Univariate fixed-effect Gamma mean-CV models for positive responses, with `mu` as the response mean and `sigma` as the coefficient of variation. |
@@ -1272,6 +1272,34 @@ Here `rho_phylo` is a phylogenetic mean-mean correlation, not residual
 `rho12`. In this first fitted slice, `sigma1`, `sigma2`, and `rho12` remain
 ordinary fixed-effect distributional parameters.
 
+With labelled all-four phylogenetic terms, the same augmented tree precision
+can carry four endpoint deviations:
+
+```text
+a = [a_mu1, a_mu2, a_sigma1, a_sigma2]
+a ~ MatrixNormal(0, Q_A^{-1}, Sigma_phylo_q4)
+
+mu1_i = X_mu1[i, ] beta_mu1 + a_mu1[species_i]
+mu2_i = X_mu2[i, ] beta_mu2 + a_mu2[species_i]
+log(sigma1_i) = X_sigma1[i, ] beta_sigma1 + a_sigma1[species_i]
+log(sigma2_i) = X_sigma2[i, ] beta_sigma2 + a_sigma2[species_i]
+```
+
+If all four endpoints use the same label, `Sigma_phylo_q4` is one
+unstructured four-endpoint covariance matrix and `corpairs()` reports six
+phylogenetic rows. If `mu1`/`mu2` share one label and `sigma1`/`sigma2` share
+another label for the same tree, `Sigma_phylo_q4` is block diagonal:
+
+```text
+Sigma_phylo_q4 =
+  blockdiag(Sigma_phylo_location, Sigma_phylo_scale)
+```
+
+The block-diagonal fallback reports only the mean-mean and scale-scale
+phylogenetic correlations. It deliberately omits mean-scale phylogenetic rows,
+which is useful when a full q=4 block is too weakly identified but the protocol
+still needs a phylogenetic scale-scale check.
+
 The TMB implementation uses tiny boundary guards around `tanh()` for numerical
 positive definiteness; the clean transforms above are the statistical model.
 
@@ -1405,7 +1433,9 @@ Implementation notes:
   predictor-dependent q=4 phylogenetic correlations, and spatial q=4 blocks
   remain planned. The first constant intercept-only bivariate phylogenetic q=4
   block is implemented for matching labelled `phylo()` terms in `mu1`, `mu2`,
-  `sigma1`, and `sigma2`.
+  `sigma1`, and `sigma2`. It supports the full one-label q=4 block and the
+  two-label block-diagonal fallback with one location block and one scale
+  block.
 - The selected q=2 predictor-dependent phylogenetic `corpair()` contract uses
   two independent unit tree fields and species-specific loadings. For each
   species `l`, `rho_l = tanh_guard(W_l alpha)`,

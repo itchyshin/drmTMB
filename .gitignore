@@ -61,6 +61,11 @@ pkgdown-site/
 bench/*.csv
 bench/results/
 
+# Local Codex handoff and stress-test outputs
+docs/dev-log/recovery-checkpoints/
+docs/dev-log/ayumi-convergence/**/*.csv
+docs/dev-log/ayumi-convergence/**/*.rds
+
 # translation temp files
 po/*~
 

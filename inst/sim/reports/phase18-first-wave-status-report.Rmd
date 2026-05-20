@@ -1,0 +1,125 @@
+---
+title: "Phase 18 First-Wave Artifact Status"
+output:
+  html_document:
+    toc: true
+params:
+  artifact_manifest_csv: null
+  artifact_status_csv: null
+  require_complete: true
+  notes: ""
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+
+phase18_read_required_csv <- function(path, label) {
+  if (
+    is.null(path) ||
+      length(path) != 1L ||
+      is.na(path) ||
+      !nzchar(path)
+  ) {
+    stop("`", label, "` must be supplied.", call. = FALSE)
+  }
+  if (!file.exists(path)) {
+    stop("`", label, "` does not exist: ", path, call. = FALSE)
+  }
+  read.csv(path)
+}
+
+phase18_assert_columns <- function(data, label, required) {
+  missing <- setdiff(required, names(data))
+  if (length(missing) > 0L) {
+    stop(
+      "`",
+      label,
+      "` is missing ",
+      paste(missing, collapse = ", "),
+      ".",
+      call. = FALSE
+    )
+  }
+  invisible(data)
+}
+
+artifact_manifest <- phase18_read_required_csv(
+  params$artifact_manifest_csv,
+  "artifact_manifest_csv"
+)
+artifact_status <- phase18_read_required_csv(
+  params$artifact_status_csv,
+  "artifact_status_csv"
+)
+phase18_assert_columns(
+  artifact_manifest,
+  "artifact_manifest_csv",
+  c("surface", "artifact", "path", "exists", "n_row")
+)
+phase18_assert_columns(
+  artifact_status,
+  "artifact_status_csv",
+  c("surface", "n_artifact", "n_present", "n_missing", "n_empty_csv")
+)
+
+missing_surface <- artifact_status$surface[artifact_status$n_missing > 0L]
+if (isTRUE(params$require_complete) && length(missing_surface) > 0L) {
+  stop(
+    "Phase 18 artifact status has missing artifacts for: ",
+    paste(missing_surface, collapse = ", "),
+    call. = FALSE
+  )
+}
+```
+
+# Purpose
+
+This first-wave status report checks that Phase 18 grid-output artifacts exist
+before a reader-facing simulation report consumes aggregate, replicate,
+interval, or warning/error tables. It is an artifact preflight, not a model
+accuracy, power, or coverage report.
+
+# Notes
+
+`r params$notes`
+
+# Surface Status
+
+```{r surface-status}
+artifact_status
+```
+
+# Artifact Manifest
+
+```{r artifact-manifest}
+artifact_manifest
+```
+
+# Missing Or Empty Artifacts
+
+```{r missing-empty}
+subset(
+  artifact_manifest,
+  !exists | (!is.na(n_row) & n_row == 0L)
+)
+```
+
+# Reader Checks
+
+- Are all required grid-output CSVs present before the report reads them?
+- Are empty CSVs expected optional ledgers, such as no failures, or evidence of
+  an incomplete run?
+- Which surfaces have enough aggregate, replicate, interval, and failure-ledger
+  rows for the next report?
+- Which artifacts should be regenerated before a public figure or table is
+  interpreted?
+
+# Interpretation Boundary
+
+This status page only verifies artifact availability and row counts. The
+statistical report must still inspect model convergence, Hessian status,
+interval status, Monte Carlo uncertainty, and warning/error ledgers before
+claiming operating characteristics.

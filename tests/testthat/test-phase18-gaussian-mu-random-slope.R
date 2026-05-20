@@ -133,6 +133,8 @@ test_that("Phase 18 Gaussian mu random-slope smoke runner summarises q=3 output"
   )
 
   expect_identical(out$surface, "gaussian_mu_random_slope")
+  expect_equal(out$run$parallel$backend, "none")
+  expect_equal(out$run$parallel$cores, 1L)
   expect_equal(nrow(out$run$summary), 10L)
   expect_equal(nrow(out$aggregate), 10L)
   expect_equal(nrow(out$manifest), 1L)

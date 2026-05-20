@@ -10,14 +10,18 @@ phase18_summarise_meta_v_smoke <- function(
   master_seed = 20260518L,
   result_dir = NULL,
   overwrite = FALSE,
-  by = NULL
+  by = NULL,
+  cores = 1L,
+  backend = "none"
 ) {
   run <- phase18_run_meta_v_smoke(
     conditions = conditions,
     n_rep = n_rep,
     master_seed = master_seed,
     result_dir = result_dir,
-    overwrite = overwrite
+    overwrite = overwrite,
+    cores = cores,
+    backend = backend
   )
   if (nrow(run$summary) == 0L) {
     stop("The meta_V smoke run produced no summaries.", call. = FALSE)

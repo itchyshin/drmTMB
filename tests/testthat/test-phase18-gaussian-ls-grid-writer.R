@@ -71,10 +71,17 @@ test_that("Phase 18 Gaussian location-scale grid writer saves all table grains",
       collinearity = 0.10
     ),
     n_rep = 1L,
-    master_seed = 307L
+    master_seed = 307L,
+    cores = 10L
   )
 
   expect_identical(out$surface, "gaussian_ls_grid")
+  expect_equal(out$summary$run$parallel$backend, "none")
+  expect_equal(out$summary$run$parallel$requested_cores, 10L)
+  expect_equal(out$summary$run$parallel$cores, 1L)
+  expect_equal(nrow(out$artifact_manifest), length(out$paths))
+  expect_true(all(out$artifact_manifest$exists))
+  expect_equal(out$artifact_manifest$surface, rep(out$surface, length(out$paths)))
   expect_true(all(file.exists(unlist(out$paths, use.names = FALSE))))
   expect_equal(nrow(read.csv(out$paths$aggregate_csv)), 4L)
   expect_equal(nrow(read.csv(out$paths$replicate_csv)), 4L)

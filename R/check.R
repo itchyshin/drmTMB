@@ -390,7 +390,7 @@ disambiguate_duplicate_labels <- function(labels) {
   if (!any(duplicated_labels)) {
     return(labels)
   }
-  sequence <- ave(seq_along(labels), labels, FUN = seq_along)
+  sequence <- stats::ave(seq_along(labels), labels, FUN = seq_along)
   labels[duplicated_labels] <- paste0(
     labels[duplicated_labels],
     "[",
@@ -2342,7 +2342,9 @@ check_biv_phylo_q4_covariance <- function(object, rho_boundary) {
       "group=",
       phylo_mu$group,
       "; block=",
-      phylo_mu_block(phylo_mu),
+      paste(unique(phylo_mu_endpoint_blocks(phylo_mu)), collapse = "/"),
+      "; covariance_mode=",
+      phylo_mu_covariance_mode(phylo_mu),
       "; q=4",
       "; n_species=",
       n_species,
@@ -2402,7 +2404,7 @@ bivariate_phylo_q4_diagnostic_message <- function(
   if (near_rho_boundary) {
     return(paste(
       "At least one latent phylogenetic q4 correlation is close to +/-1;",
-      "profile, simulate, or simplify before interpreting all six phylogenetic correlations."
+      "profile, simulate, or simplify before interpreting the phylogenetic correlations."
     ))
   }
   weak <- c(

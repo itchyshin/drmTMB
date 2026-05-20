@@ -79,7 +79,7 @@ Bias and RMSE should be plotted beside the estimand. A single average across
 all parameters hides the distinction between fixed effects, residual scale,
 random-effect SDs, and residual correlation `rho12`.
 
-```{r bias-rmse-display, fig.width=8.2, fig.height=4.4, fig.alt="Two simulation accuracy plots faceted by simulation surface: a raincloud-style bias display with replicate-level errors, mean bias points, and MCSE intervals, followed by an aggregate RMSE display with MCSE intervals for four estimands."}
+```{r bias-rmse-display, fig.width=8.2, fig.height=5.1, fig.alt="Two simulation accuracy plots faceted by simulation surface: a raincloud-style bias display with replicate-level errors, mean bias points, and MCSE intervals, followed by an aggregate RMSE display with MCSE intervals for four estimands."}
 accuracy_summary <- data.frame(
   surface = rep(surface_levels, each = 4),
   estimand = rep(c("beta_x", "sigma", "sd_group", "rho12"), 4),
@@ -215,22 +215,20 @@ ggplot(accuracy_replicates, aes(error, estimand)) +
   theme_sim_grammar()
 
 ggplot(accuracy_summary, aes(rmse, estimand, colour = surface)) +
-  geom_segment(
+  geom_errorbarh(
     aes(
-      x = rmse_low,
-      xend = rmse_high,
-      y = estimand,
-      yend = estimand,
-      colour = surface
+      xmin = rmse_low,
+      xmax = rmse_high
     ),
+    height = 0.15,
     linewidth = 0.9,
-    alpha = 0.8,
+    alpha = 0.9,
     na.rm = TRUE
   ) +
   geom_point(size = 2.4, na.rm = TRUE) +
   facet_wrap(
     ~surface,
-    nrow = 1,
+    nrow = 2,
     labeller = labeller(surface = as_labeller(surface_facet_labels))
   ) +
   scale_colour_manual(values = surface_palette, drop = FALSE) +
@@ -242,9 +240,9 @@ ggplot(accuracy_summary, aes(rmse, estimand, colour = surface)) +
     colour = "Surface"
   ) +
   scale_x_continuous(
-    breaks = c(0, 0.25, 0.50, 0.75),
-    limits = c(0, 0.82),
-    expand = expansion(mult = c(0.01, 0.05))
+    breaks = c(0, 0.10, 0.20),
+    limits = c(0, 0.31),
+    expand = expansion(mult = c(0.01, 0.04))
   ) +
   scale_y_discrete(labels = estimand_display_labels) +
   guides(colour = "none") +

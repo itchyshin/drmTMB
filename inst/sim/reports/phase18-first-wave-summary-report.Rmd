@@ -1,0 +1,633 @@
+---
+title: "Phase 18 First-Wave Simulation Summary"
+output:
+  html_document:
+    toc: true
+params:
+  artifact_status_csv: null
+  aggregate_csv: null
+  manifest_csv: null
+  failures_csv: null
+  wald_coverage_csv: null
+  profile_coverage_csv: null
+  bootstrap_coverage_csv: null
+  interval_diagnostics_csv: null
+  interval_failures_csv: null
+  require_complete: true
+  max_rows: 20
+  notes: ""
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+
+phase18_read_optional_csv <- function(path) {
+  if (
+    is.null(path) ||
+      length(path) != 1L ||
+      is.na(path) ||
+      !nzchar(path)
+  ) {
+    return(NULL)
+  }
+  if (!file.exists(path)) {
+    return(NULL)
+  }
+  read.csv(path)
+}
+
+phase18_read_required_csv <- function(path, label) {
+  data <- phase18_read_optional_csv(path)
+  if (is.null(data)) {
+    stop("`", label, "` must be an existing CSV path.", call. = FALSE)
+  }
+  data
+}
+
+phase18_select_columns <- function(data, priority = character()) {
+  if (is.null(data) || nrow(data) == 0L) {
+    return(data)
+  }
+  front <- intersect(priority, names(data))
+  data[c(front, setdiff(names(data), front))]
+}
+
+phase18_show_table <- function(data, empty_message, priority = character()) {
+  if (is.null(data) || nrow(data) == 0L) {
+    cat(empty_message, "\n")
+  } else {
+    out <- phase18_select_columns(data, priority)
+    max_rows <- params$max_rows
+    if (
+      is.numeric(max_rows) &&
+        length(max_rows) == 1L &&
+        is.finite(max_rows) &&
+        max_rows > 0L &&
+        nrow(out) > max_rows
+    ) {
+      cat("Showing first", max_rows, "of", nrow(out), "rows.\n\n")
+      out <- utils::head(out, max_rows)
+    }
+    out
+  }
+}
+
+phase18_missing_text <- function(data, name, default) {
+  if (!name %in% names(data)) {
+    return(rep(default, nrow(data)))
+  }
+  out <- as.character(data[[name]])
+  out[is.na(out) | !nzchar(out)] <- default
+  out
+}
+
+phase18_failure_summary <- function(data) {
+  if (is.null(data) || nrow(data) == 0L) {
+    return(data.frame())
+  }
+
+  surface <- phase18_missing_text(data, "source_surface", "unknown_surface")
+  severity <- phase18_missing_text(data, "severity", "unknown_severity")
+  message <- phase18_missing_text(data, "message", "missing message")
+  key <- paste(surface, severity, sep = "\r")
+  groups <- split(seq_len(nrow(data)), key)
+  out <- do.call(
+    rbind,
+    lapply(groups, function(index) {
+      data.frame(
+        source_surface = surface[index[1L]],
+        severity = severity[index[1L]],
+        n_event = length(index),
+        n_unique_message = length(unique(message[index])),
+        example_message = message[index[1L]],
+        stringsAsFactors = FALSE
+      )
+    })
+  )
+  row.names(out) <- NULL
+  out[order(out$source_surface, out$severity), , drop = FALSE]
+}
+
+phase18_bias_overview_data <- function(data) {
+  if (is.null(data) || nrow(data) == 0L || !"bias" %in% names(data)) {
+    return(NULL)
+  }
+
+  out <- data
+  out$bias <- suppressWarnings(as.numeric(out$bias))
+  out <- out[is.finite(out$bias), , drop = FALSE]
+  if (nrow(out) == 0L) {
+    return(NULL)
+  }
+
+  out$source_surface <- phase18_missing_text(
+    out,
+    "source_surface",
+    "unknown_surface"
+  )
+  if ("parameter" %in% names(out)) {
+    out$parameter_label <- phase18_missing_text(out, "parameter", "parameter")
+  } else if (all(c("dpar", "term") %in% names(out))) {
+    out$parameter_label <- paste(
+      phase18_missing_text(out, "dpar", "dpar"),
+      phase18_missing_text(out, "term", "term"),
+      sep = ":"
+    )
+  } else {
+    out$parameter_label <- paste0("row_", seq_len(nrow(out)))
+  }
+  if ("cell_id" %in% names(out)) {
+    out$parameter_label <- paste(
+      phase18_missing_text(out, "cell_id", "cell"),
+      out$parameter_label,
+      sep = " / "
+    )
+  }
+
+  total <- nrow(out)
+  out <- out[order(abs(out$bias), decreasing = TRUE), , drop = FALSE]
+  max_rows <- params$max_rows
+  if (
+    is.numeric(max_rows) &&
+      length(max_rows) == 1L &&
+      is.finite(max_rows) &&
+      max_rows > 0L &&
+      nrow(out) > max_rows
+  ) {
+    out <- utils::head(out, max_rows)
+  }
+  out$bias_rank <- seq_len(nrow(out))
+  out$plot_label <- factor(
+    paste0("#", out$bias_rank),
+    levels = rev(paste0("#", out$bias_rank))
+  )
+  attr(out, "n_total") <- total
+  out
+}
+
+phase18_bind_tables <- function(pieces) {
+  pieces <- Filter(function(x) is.data.frame(x) && nrow(x) > 0L, pieces)
+  if (length(pieces) == 0L) {
+    return(data.frame())
+  }
+  all_names <- unique(unlist(lapply(pieces, names), use.names = FALSE))
+  aligned <- lapply(pieces, function(x) {
+    missing <- setdiff(all_names, names(x))
+    for (name in missing) {
+      x[[name]] <- NA
+    }
+    x[all_names]
+  })
+  out <- do.call(rbind, aligned)
+  row.names(out) <- NULL
+  out
+}
+
+phase18_bind_interval_coverage <- function(wald, profile, bootstrap) {
+  pieces <- list(wald = wald, profile = profile, bootstrap = bootstrap)
+  pieces <- lapply(names(pieces), function(method) {
+    data <- pieces[[method]]
+    if (is.null(data) || nrow(data) == 0L) {
+      return(NULL)
+    }
+    data$interval_method <- method
+    data
+  })
+  phase18_bind_tables(pieces)
+}
+
+phase18_interval_coverage_summary <- function(data) {
+  if (is.null(data) || nrow(data) == 0L) {
+    return(data.frame())
+  }
+  data$source_surface <- phase18_missing_text(
+    data,
+    "source_surface",
+    "unknown_surface"
+  )
+  data$interval_method <- phase18_missing_text(
+    data,
+    "interval_method",
+    "unknown_method"
+  )
+  data$coverage <- if ("coverage" %in% names(data)) {
+    suppressWarnings(as.numeric(data$coverage))
+  } else {
+    rep(NA_real_, nrow(data))
+  }
+  data$n_interval <- if ("n_interval" %in% names(data)) {
+    suppressWarnings(as.numeric(data$n_interval))
+  } else {
+    rep(NA_real_, nrow(data))
+  }
+  data$n_covered <- if ("n_covered" %in% names(data)) {
+    suppressWarnings(as.numeric(data$n_covered))
+  } else {
+    rep(NA_real_, nrow(data))
+  }
+  data$parameter <- phase18_missing_text(data, "parameter", "parameter")
+
+  key <- paste(data$source_surface, data$interval_method, sep = "\r")
+  groups <- split(seq_len(nrow(data)), key)
+  out <- do.call(
+    rbind,
+    lapply(groups, function(index) {
+      finite_interval <- is.finite(data$n_interval[index])
+      finite_covered <- is.finite(data$n_covered[index])
+      interval_total <- if (any(finite_interval)) {
+        sum(data$n_interval[index][finite_interval])
+      } else {
+        NA_real_
+      }
+      covered_total <- if (any(finite_covered)) {
+        sum(data$n_covered[index][finite_covered])
+      } else {
+        NA_real_
+      }
+      coverage <- if (is.finite(interval_total) && interval_total > 0) {
+        covered_total / interval_total
+      } else {
+        mean(data$coverage[index], na.rm = TRUE)
+      }
+      if (!is.finite(coverage)) {
+        coverage <- NA_real_
+      }
+      data.frame(
+        source_surface = data$source_surface[index[1L]],
+        interval_method = data$interval_method[index[1L]],
+        n_parameter = length(unique(data$parameter[index])),
+        n_interval_total = interval_total,
+        n_covered_total = covered_total,
+        coverage = coverage,
+        stringsAsFactors = FALSE
+      )
+    })
+  )
+  row.names(out) <- NULL
+  out[order(out$source_surface, out$interval_method), , drop = FALSE]
+}
+
+phase18_manifest_summary <- function(data) {
+  if (is.null(data) || nrow(data) == 0L) {
+    return(data.frame())
+  }
+  data$source_surface <- phase18_missing_text(
+    data,
+    "source_surface",
+    "unknown_surface"
+  )
+  data$status <- phase18_missing_text(data, "status", "unknown_status")
+  skipped <- if ("skipped" %in% names(data)) {
+    as.logical(data$skipped)
+  } else {
+    rep(FALSE, nrow(data))
+  }
+  skipped[is.na(skipped)] <- FALSE
+  warning_count <- if ("warning_count" %in% names(data)) {
+    suppressWarnings(as.numeric(data$warning_count))
+  } else {
+    rep(0, nrow(data))
+  }
+  warning_count[!is.finite(warning_count)] <- 0
+  error_text <- phase18_missing_text(data, "error", "")
+  has_error <- nzchar(error_text) & error_text != "NA"
+  elapsed <- if ("elapsed" %in% names(data)) {
+    suppressWarnings(as.numeric(data$elapsed))
+  } else {
+    rep(NA_real_, nrow(data))
+  }
+
+  key <- paste(data$source_surface, data$status, sep = "\r")
+  groups <- split(seq_len(nrow(data)), key)
+  out <- do.call(
+    rbind,
+    lapply(groups, function(index) {
+      elapsed_mean <- mean(elapsed[index], na.rm = TRUE)
+      if (!is.finite(elapsed_mean)) {
+        elapsed_mean <- NA_real_
+      }
+      data.frame(
+        source_surface = data$source_surface[index[1L]],
+        status = data$status[index[1L]],
+        n_run = length(index),
+        n_skipped = sum(skipped[index]),
+        n_warning_run = sum(warning_count[index] > 0),
+        warning_total = sum(warning_count[index]),
+        n_error = sum(has_error[index]),
+        mean_elapsed = elapsed_mean,
+        stringsAsFactors = FALSE
+      )
+    })
+  )
+  row.names(out) <- NULL
+  out[order(out$source_surface, out$status), , drop = FALSE]
+}
+
+artifact_status <- phase18_read_required_csv(
+  params$artifact_status_csv,
+  "artifact_status_csv"
+)
+aggregate <- phase18_read_optional_csv(params$aggregate_csv)
+manifest <- phase18_read_optional_csv(params$manifest_csv)
+failures <- phase18_read_optional_csv(params$failures_csv)
+wald_coverage <- phase18_read_optional_csv(params$wald_coverage_csv)
+profile_coverage <- phase18_read_optional_csv(params$profile_coverage_csv)
+bootstrap_coverage <- phase18_read_optional_csv(params$bootstrap_coverage_csv)
+interval_coverage <- phase18_bind_interval_coverage(
+  wald_coverage,
+  profile_coverage,
+  bootstrap_coverage
+)
+interval_diagnostics <- phase18_read_optional_csv(params$interval_diagnostics_csv)
+interval_failures <- phase18_read_optional_csv(params$interval_failures_csv)
+
+if (
+  isTRUE(params$require_complete) &&
+    "n_missing" %in% names(artifact_status) &&
+    any(artifact_status$n_missing > 0L)
+) {
+  missing_surface <- artifact_status$surface[artifact_status$n_missing > 0L]
+  stop(
+    "Phase 18 artifact status has missing artifacts for: ",
+    paste(missing_surface, collapse = ", "),
+    call. = FALSE
+  )
+}
+```
+
+# Purpose
+
+This first-wave summary report is a staging report for Phase 18 simulation
+outputs. It brings artifact status, aggregate operating-characteristic rows,
+interval diagnostics, and warning/error ledgers into one reader-facing page
+before any publication-style figures or claims are made.
+
+# Notes
+
+`r params$notes`
+
+# Artifact Status
+
+```{r artifact-status}
+phase18_show_table(
+  artifact_status,
+  "No artifact-status CSV supplied.",
+  c(
+    "surface",
+    "n_artifact",
+    "n_present",
+    "n_missing",
+    "n_empty_csv",
+    "n_total_csv_rows"
+  )
+)
+```
+
+# Aggregate Operating Characteristics
+
+```{r aggregate}
+phase18_show_table(
+  aggregate,
+  "No aggregate table supplied.",
+  c(
+    "source_surface",
+    "source_artifact",
+    "surface",
+    "family",
+    "parameter_class",
+    "dpar",
+    "term",
+    "parameter",
+    "n_replicate",
+    "bias",
+    "rmse",
+    "convergence_rate",
+    "pd_hessian_rate",
+    "warning_rate"
+  )
+)
+```
+
+# Aggregate Bias Overview
+
+```{r aggregate-bias-overview, fig.width=8.5, fig.height=5}
+bias_overview <- phase18_bias_overview_data(aggregate)
+if (is.null(bias_overview)) {
+  cat("No finite aggregate-bias rows to plot.\n")
+} else if (!requireNamespace("ggplot2", quietly = TRUE)) {
+  cat("Package `ggplot2` is required for the aggregate-bias overview.\n")
+} else {
+  n_total <- attr(bias_overview, "n_total")
+  if (!is.null(n_total) && n_total > nrow(bias_overview)) {
+    cat(
+      "Showing first",
+      nrow(bias_overview),
+      "of",
+      n_total,
+      "finite aggregate-bias rows by absolute bias.\n\n"
+    )
+  }
+  bias_plot <- ggplot2::ggplot(
+    bias_overview,
+    ggplot2::aes(
+      x = bias,
+      y = plot_label,
+      colour = source_surface
+    )
+  ) +
+    ggplot2::geom_vline(
+      xintercept = 0,
+      linetype = "dashed",
+      linewidth = 0.5,
+      colour = "grey55"
+    ) +
+    ggplot2::geom_point(size = 2.3, alpha = 0.85) +
+    ggplot2::labs(
+      x = "Mean estimate minus truth",
+      y = "Aggregate row rank by absolute bias",
+      colour = "Surface",
+      caption = paste(
+        "Full parameter names are listed below. Aggregate rows only;",
+        "replicate-level clouds belong to the",
+        "later Florence-reviewed simulation figures."
+      )
+    ) +
+    ggplot2::theme_minimal(base_size = 11) +
+    ggplot2::theme(
+      legend.position = "bottom",
+      panel.grid.major.y = ggplot2::element_line(colour = "grey90"),
+      panel.grid.minor = ggplot2::element_blank()
+    )
+  print(bias_plot)
+  bias_columns <- c(
+    "bias_rank",
+    "source_surface",
+    "cell_id",
+    "parameter_label",
+    "n_replicate",
+    "bias",
+    "rmse",
+    "bias_mcse"
+  )
+  phase18_show_table(
+    bias_overview[intersect(bias_columns, names(bias_overview))],
+    "No finite aggregate-bias rows to list.",
+    bias_columns
+  )
+}
+```
+
+# Interval Coverage Summary
+
+```{r interval-coverage-summary}
+phase18_show_table(
+  phase18_interval_coverage_summary(interval_coverage),
+  "No interval-coverage rows supplied.",
+  c(
+    "source_surface",
+    "interval_method",
+    "n_parameter",
+    "n_interval_total",
+    "n_covered_total",
+    "coverage"
+  )
+)
+```
+
+# Interval Diagnostics
+
+```{r interval-diagnostics}
+phase18_show_table(
+  interval_diagnostics,
+  "No interval-diagnostics table supplied.",
+  c(
+    "source_surface",
+    "source_artifact",
+    "surface",
+    "interval_method",
+    "interval_status",
+    "coverage",
+    "n_interval",
+    "n_covered",
+    "n_failed"
+  )
+)
+```
+
+# Interval Failure Ledger
+
+```{r interval-failures}
+phase18_show_table(
+  interval_failures,
+  "No interval-failure table supplied.",
+  c(
+    "source_surface",
+    "source_artifact",
+    "surface",
+    "interval_method",
+    "interval_status",
+    "parameter",
+    "message"
+  )
+)
+```
+
+# Run Manifest Summary
+
+```{r manifest-summary}
+phase18_show_table(
+  phase18_manifest_summary(manifest),
+  "No run-manifest rows to summarise.",
+  c(
+    "source_surface",
+    "status",
+    "n_run",
+    "n_skipped",
+    "n_warning_run",
+    "warning_total",
+    "n_error",
+    "mean_elapsed"
+  )
+)
+```
+
+# Run Manifest
+
+```{r manifest}
+phase18_show_table(
+  manifest,
+  "No run-manifest table supplied.",
+  c(
+    "source_surface",
+    "source_artifact",
+    "cell_id",
+    "replicate",
+    "status",
+    "warning_count",
+    "error",
+    "elapsed"
+  )
+)
+```
+
+# Warning And Error Summary
+
+```{r failure-summary}
+phase18_show_table(
+  phase18_failure_summary(failures),
+  "No warning/error events to summarise.",
+  c(
+    "source_surface",
+    "severity",
+    "n_event",
+    "n_unique_message",
+    "example_message"
+  )
+)
+```
+
+# Warning And Error Ledger
+
+```{r failures}
+phase18_show_table(
+  failures,
+  "No warning/error ledger supplied.",
+  c(
+    "source_surface",
+    "source_artifact",
+    "cell_id",
+    "replicate",
+    "severity",
+    "message"
+  )
+)
+```
+
+# Reader Checks
+
+- Which surfaces are represented in the artifact-status and aggregate tables?
+- Do any surfaces have missing or empty artifacts that change interpretation?
+- Are convergence rate, Hessian rate, warning rate, and elapsed-time summaries
+  visible for each estimand?
+- Does the aggregate-bias overview point to rows that need replicate-level
+  simulation displays?
+- Which interval methods have coverage rows before deeper diagnostics are read?
+- Which interval methods are usable evidence, failed diagnostics, or
+  not-requested rows?
+- Which warning/error severities recur by surface, and do they need a targeted
+  diagnostic before the next larger grid?
+- Do manifest summaries show skipped runs, warnings, errors, or elapsed-time
+  outliers that should be handled before larger grids?
+- Are these rows enough for a visual report, or does the surface need a larger
+  grid first?
+
+# Interpretation Boundary
+
+This summary is a staging report. It can identify promising or broken
+simulation surfaces, but it does not by itself establish final operating
+characteristics. Formal claims still require the planned replicate counts,
+Monte Carlo uncertainty, interval status review, and a Florence-reviewed visual
+display.

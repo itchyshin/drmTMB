@@ -7,8 +7,13 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r, include = FALSE}
-knitr::opts_chunk$set(collapse = TRUE, comment = "#>", eval = FALSE)
+```{r, include = FALSE, purl=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  eval = FALSE,
+  purl = FALSE
+)
 ```
 
 Large data changes the workflow. A model that is statistically reasonable can
@@ -26,7 +31,7 @@ the real data before running the full analysis.
 `drmTMB` has a first memory-light fitted-object path through `drm_control()`.
 For a large univariate Gaussian phylogenetic location model, use:
 
-```{r}
+```{r, purl=FALSE}
 library(drmTMB)
 
 fit <- drmTMB(
@@ -67,7 +72,7 @@ to travel with it.
 For factor-heavy fixed-effect Gaussian location models, the first sparse
 fixed-effect path is also available:
 
-```{r}
+```{r, purl=FALSE}
 fit_sparse <- drmTMB(
   bf(y ~ habitat + x1, sigma ~ 1),
   family = gaussian(),
@@ -83,7 +88,7 @@ univariate Gaussian `mu` models with intercept-only `sigma`.
 For repeated-row Gaussian fixed-effect models, the first aggregation path is
 also available:
 
-```{r}
+```{r, purl=FALSE}
 fit_agg <- drmTMB(
   bf(y ~ habitat + season, sigma ~ effort_class),
   family = gaussian(),
@@ -138,7 +143,7 @@ and `sum(y^2)`, but fitted-row summaries remain original-row summaries.
 
 Run `check_drm()` before interpreting a large fit:
 
-```{r}
+```{r, purl=FALSE}
 check_drm(fit)
 ```
 
@@ -187,7 +192,7 @@ observation. On a five-million-row dataset, that output is itself large.
 
 For interpretation plots, prefer smaller `newdata` grids:
 
-```{r}
+```{r, purl=FALSE}
 new_dat <- data.frame(
   x1 = seq(-2, 2, length.out = 100),
   x2 = 0,

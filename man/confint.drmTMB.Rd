@@ -54,8 +54,9 @@ intervals are fast and are returned for fixed-effect coefficients by default.
 Profile-likelihood intervals are slower because nuisance parameters are
 re-optimized; this first public profile path supports explicit fixed-effect,
 constant distributional-scale, random-effect standard-deviation,
-random-effect correlation, the first bivariate phylogenetic mean-mean
-correlation, and constant residual-correlation targets.
+random-effect correlation, bivariate phylogenetic q=2 mean-mean
+correlation, block-diagonal bivariate phylogenetic \code{mu1}/\code{mu2} and
+\code{sigma1}/\code{sigma2} correlations, and constant residual-correlation targets.
 For predictor-dependent scale, residual-correlation, or currently supported
 \code{corpair()} formulae, supply \code{newdata} with \code{parm = "sigma"},
 \code{parm = "rho12"}, or the fitted \code{corpair(...)} dpar to profile the fitted

@@ -117,7 +117,8 @@ test_that("Phase 18 Student-t shape summary can request profile and bootstrap ev
     profile_level = 0.70,
     profile_args = list(ystep = 0.50),
     bootstrap_nsim = 2L,
-    bootstrap_level = 0.70
+    bootstrap_level = 0.70,
+    bootstrap_cores = 10L
   )
 
   expect_equal(nrow(summary$profile_intervals), 2L)
@@ -132,6 +133,12 @@ test_that("Phase 18 Student-t shape summary can request profile and bootstrap ev
   expect_equal(nrow(summary$bootstrap_intervals), 6L)
   expect_true(any(summary$bootstrap_intervals$n_bootstrap > 0L))
   expect_true(all(summary$bootstrap_intervals$n_bootstrap <= 2L))
+  expect_equal(unique(summary$bootstrap_intervals$bootstrap.backend), "none")
+  expect_equal(
+    unique(summary$bootstrap_intervals$bootstrap.requested_cores),
+    10L
+  )
+  expect_equal(unique(summary$bootstrap_intervals$bootstrap.cores), 1L)
   expect_setequal(
     unique(summary$interval_evidence$interval_method),
     c("wald", "profile", "parametric_bootstrap")

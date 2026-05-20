@@ -71,8 +71,10 @@ already fitted elsewhere: residual bivariate \code{rho12}, ordinary univariate
 group-level \code{mu} random-effect correlations, matched univariate and
 same-response bivariate \code{mu}/\code{sigma} random-intercept covariance blocks, and
 matched bivariate \code{mu1}/\code{mu2} and \code{sigma1}/\code{sigma2} random-intercept
-covariance blocks from \code{corpars}, plus the first fitted bivariate
-phylogenetic \code{mu1}/\code{mu2} mean-mean correlation.
+covariance blocks from \code{corpars}, plus fitted bivariate phylogenetic
+correlation rows. Full q4 phylogenetic blocks report six derived endpoint
+correlations; block-diagonal q4 fallback fits report the direct \code{mu1}/\code{mu2}
+and \code{sigma1}/\code{sigma2} block correlations.
 }
 \details{
 The table is intentionally more explicit than \code{rho12()} or \code{corpars}

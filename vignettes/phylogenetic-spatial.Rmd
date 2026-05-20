@@ -1055,9 +1055,10 @@ with extra care.
 
 The `scale-scale` row asks whether the two traits' phylogenetic log-SD
 deviations move together. The `conf.status` column is part of the inference
-contract: profile-ready correlations receive 95% bounds, while the current q=4
+contract: profile-ready correlations can be profiled, while the current q=4
 rows are marked as derived targets until a direct or fix-and-refit profile is
-implemented.
+implemented. A profile-ready row can still fail on a difficult fitted model, so
+inspect `profile.message` before treating an interval as usable inference.
 
 For a compact scalar view of the residual layer, use `rho12()`:
 

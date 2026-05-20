@@ -7,8 +7,13 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r, include = FALSE}
-knitr::opts_chunk$set(collapse = TRUE, comment = "#>", eval = FALSE)
+```{r, include = FALSE, purl=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  eval = FALSE,
+  purl = FALSE
+)
 ```
 
 Complex distributional models sometimes need more care than the default fit.
@@ -31,7 +36,7 @@ or zero-inflation component is weakly identified.
 
 Always inspect the fitted object before interpreting a difficult model:
 
-```{r}
+```{r, purl=FALSE}
 check_drm(fit)
 ```
 
@@ -55,7 +60,7 @@ unnecessary model component.
 `drmTMB()` uses `stats::nlminb()` by default. The public way to pass optimizer
 settings is through `drm_control(optimizer = list(...))`:
 
-```{r}
+```{r, purl=FALSE}
 fit <- drmTMB(
   bf(y ~ x + (1 | id), sigma ~ z),
   data = dat,
@@ -69,7 +74,7 @@ fit <- drmTMB(
 For the common case where you simply want a larger deterministic `nlminb()`
 budget, use a named preset:
 
-```{r}
+```{r, purl=FALSE}
 complex_control <- drm_control(
   optimizer_preset = "robust"
 )
@@ -95,7 +100,7 @@ correlation structure before treating the longer run as stronger evidence.
 
 If a preset is almost right, combine it with explicit overrides:
 
-```{r}
+```{r, purl=FALSE}
 fit <- drmTMB(
   bf(y ~ x + (1 | id), sigma ~ z),
   data = dat,
@@ -111,7 +116,7 @@ the analysis remains reproducible.
 
 A plain list is still accepted for backward compatibility:
 
-```{r}
+```{r, purl=FALSE}
 fit <- drmTMB(
   bf(y ~ x, sigma ~ z),
   data = dat,
@@ -126,7 +131,7 @@ from `drmTMB` controls such as `se`, `keep_data`, `keep_model_frame`,
 Do not pass `se = FALSE` or storage controls inside `optimizer = list(...)`.
 Those names are not `nlminb()` controls:
 
-```{r}
+```{r, purl=FALSE}
 fit_fast <- drmTMB(
   bf(y ~ x + (1 | id), sigma ~ z),
   data = dat,
@@ -192,7 +197,7 @@ standard errors and Wald confidence intervals should not be treated as reliable.
 
 In that second case, look for the culprit:
 
-```{r}
+```{r, purl=FALSE}
 summary(fit)
 check_drm(fit)
 fit$sdpars
@@ -208,7 +213,7 @@ model.
 For inference on direct SD or correlation targets, use profile-likelihood
 intervals when the target is available:
 
-```{r}
+```{r, purl=FALSE}
 profile_targets(fit)
 
 summary(
@@ -223,12 +228,60 @@ Profile intervals are not magic either: a flat profile is evidence that the
 parameter is weakly identified. But profiles show the shape of the likelihood
 more honestly than a Wald standard error near a boundary.
 
+## When bivariate phylogenetic correlations are near a boundary
+
+Bivariate phylogenetic models can have more than one correlation layer. Keep
+these layers separate when reading diagnostics:
+
+- residual `rho12` is within-row response-response dependence after the fitted
+  fixed, random, phylogenetic, or spatial components are accounted for;
+- a phylogenetic mean-mean correlation is latent structured covariance between
+  the response-specific species effects;
+- ordinary species or group correlations are non-phylogenetic random-effect
+  covariance layers.
+
+Near-boundary values in any of these layers are warnings, but they are not the
+same warning. A residual `rho12` close to `+/-1` says the remaining paired
+responses are almost perfectly coupled. A phylogenetic mean-mean correlation
+close to `+/-1` says the fitted species effects have an almost one-dimensional
+latent covariance. If both layers are present and one moves to the boundary,
+the model may be trying to allocate the same biological or measurement signal
+to more than one covariance component.
+
+For these fits, use a staged workflow:
+
+1. Fit a fixed/residual bivariate model and inspect `rho12`.
+2. Fit the simpler phylogenetic or ordinary group-level model that contains
+   only the covariance layer you need first.
+3. Compare `check_drm()` rows for optimizer convergence, fixed-gradient
+   culprit, `rho12_boundary`, phylogenetic covariance diagnostics, and species
+   replication.
+4. Use `profile_targets()` or `corpairs()` only for targets whose interval
+   status is reported as available.
+5. Treat `se = FALSE` runs as optimizer stress evidence only; they do not
+   validate Hessian curvature, Wald standard errors, or Wald confidence
+   intervals.
+
+Larger data sets help when they add the right replication. More species can
+help estimate a phylogenetic covariance layer, and more independent repeated
+observations can help separate residual covariance from species-level
+covariance. More rows alone do not guarantee a better fit if the extra rows
+carry nearly the same paired response signal and leave residual `rho12` and
+structured covariance competing for it.
+
+`drmTMB` does not yet expose public `start_from`, raw starts, raw TMB maps,
+fallback optimizers, or stochastic multi-start controls. The reserved control
+names are deliberate: future start or optimizer comparison tools must record
+which parameters were copied, which targets were skipped or jittered, which
+optimizer result was selected, and whether inference is tied to that selected
+optimum.
+
 ## Separate optimization from uncertainty
 
 For very large or opt-in-control fits, it can be useful to separate "can the
 model optimize?" from "can Wald uncertainty be computed?":
 
-```{r}
+```{r, purl=FALSE}
 fit_no_se <- drmTMB(
   bf(y ~ x + (1 | id), sigma ~ z),
   data = dat,
@@ -246,7 +299,7 @@ notes. Use this mode for exploratory optimization, prediction, simulation, and
 large-data stress tests. Refit with `se = TRUE` when Wald standard errors or
 Wald confidence intervals are part of the final report:
 
-```{r}
+```{r, purl=FALSE}
 fit_final <- drmTMB(
   bf(y ~ x + (1 | id), sigma ~ z),
   data = dat,
@@ -260,7 +313,7 @@ fit_final <- drmTMB(
 For memory-heavy objects, keep the TMB object in the final fit if you need
 gradient diagnostics or profile intervals:
 
-```{r}
+```{r, purl=FALSE}
 fit_final <- drmTMB(
   bf(y ~ x + (1 | id), sigma ~ z),
   data = dat,

@@ -118,6 +118,15 @@ replicate summary, and leaves unrequested rows as `not_requested`. If bootstrap
 is requested but no finite estimates are available for a parameter, the row is
 marked as `failed`.
 
+Slice 539 adds bounded multicore support for this private bootstrap adapter.
+The helper accepts `backend = "none"` or `backend = "multicore"` plus
+`cores`, caps actual workers at 10 and at `nsim`, and records the requested and
+actual core counts in the bootstrap draw table. PSOCK is deliberately excluded
+until there is a refit-or-rebuild contract for fitted `TMB` objects with
+external pointers. This keeps developer bootstrap pilots useful for difficult
+correlation and Hessian cases without turning Phase 18 into an unbounded
+parallel job.
+
 `phase18_intervals_from_columns()` converts profile or bootstrap column sets
 into the standard interval-row contract. `phase18_interval_evidence_table()`
 then binds Wald, profile, and bootstrap rows into one artifact with

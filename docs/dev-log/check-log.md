@@ -2,6 +2,94 @@
 
 Record meaningful development checks here.
 
+## 2026-05-19 - Slices 373-390 Q2 Starts And Regularization Boundary
+
+Goal: test whether source-fit starts, covariance jitter, larger species sets,
+or regularization ideas should change the next q2 phylogenetic species-effect
+implementation path.
+
+Team roles:
+
+- Ada built and integrated the developer-only q2 start prototype and kept the
+  public start/multi-start API closed.
+- Gauss and Noether kept residual `rho12`, ordinary species covariance, and
+  phylogenetic mean-mean covariance separate.
+- Fisher treated larger data as useful only when it adds the right
+  identifiability information.
+- Jason and Russell reviewed nearby package practice and the mixed-model
+  regularization literature.
+- Pat checked that the convergence guide explains the user-facing boundary.
+- Grace tracked reproducible all-species artifacts and validation commands.
+- Rose checked for accidental claims that lasso, priors, raw maps, starts, or
+  stochastic multi-start are implemented solutions.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/35-optimizer-start-map-multistart.md`
+- `docs/design/46-pre-simulation-readiness-matrix.md`
+- `docs/dev-log/after-task/2026-05-19-slices-373-390-q2-start-regularization.md`
+- `docs/dev-log/ayumi-convergence/slices-373-382/2026-05-19-q2-start-prototype.md`
+- `docs/dev-log/ayumi-convergence/slices-373-382/q2-start-prototype-80species/*.csv`
+- `docs/dev-log/ayumi-convergence/slices-373-382/q2-start-prototype-300species/*.csv`
+- `docs/dev-log/ayumi-convergence/slices-373-382/q2-start-prototype-full/*.csv`
+- `docs/dev-log/check-log.md`
+- `tools/ayumi-q2-start-prototype.R`
+- `vignettes/convergence.Rmd`
+
+What changed:
+
+- Added a developer-only q2 start prototype that compares default starts,
+  default covariance jitter, fixed/residual source starts, ordinary species
+  source starts, aggregate phylogenetic q2 source starts, and phylogenetic
+  source jitter.
+- Ran the prototype for 80 species, 300 species, and all 6,196 species.
+- Recorded that fixed/residual and aggregate phylogenetic q2 source fits can
+  converge, while ordinary species row-capped source fits false-converge with
+  residual `rho12` at the boundary.
+- Recorded that every row-capped phylogenetic q2 target fit false-converged
+  under every tested start strategy. The full all-species target attempts all
+  landed with residual `rho12` essentially at 1.
+- Updated the optimizer/start/multi-start contract to treat source starts and
+  jitter as diagnostics until they produce converged non-boundary evidence.
+- Updated the convergence guide and readiness matrix so larger data is described
+  as helpful only when it adds information that separates residual covariance
+  from structured species covariance.
+- Recorded that lasso is not the right first tool for this q2 boundary problem;
+  future priors or penalties would be penalized/MAP estimators, not ordinary ML
+  starts.
+
+Checks run:
+
+```sh
+DRMTMB_Q2_START_N_SPECIES=80 DRMTMB_Q2_START_N_JITTER=2 Rscript tools/ayumi-q2-start-prototype.R
+DRMTMB_Q2_START_N_SPECIES=300 DRMTMB_Q2_START_N_JITTER=2 Rscript tools/ayumi-q2-start-prototype.R
+DRMTMB_Q2_START_N_SPECIES=0 DRMTMB_Q2_START_N_JITTER=1 Rscript tools/ayumi-q2-start-prototype.R
+Rscript -e 'paths <- c(s80="docs/dev-log/ayumi-convergence/slices-373-382/q2-start-prototype-80species/target-summary.csv", s300="docs/dev-log/ayumi-convergence/slices-373-382/q2-start-prototype-300species/target-summary.csv", full="docs/dev-log/ayumi-convergence/slices-373-382/q2-start-prototype-full/target-summary.csv"); for (nm in names(paths)) { x <- read.csv(paths[[nm]], check.names=FALSE); cat("\n", nm, "\n", sep=""); print(data.frame(strategy=x$start_strategy, convergence=x$convergence, objective=signif(x$objective, 7), grad=signif(x$max_fixed_gradient, 4), rho_min=signif(x$residual_rho12_min, 8), rho_max=signif(x$residual_rho12_max, 8)), row.names=FALSE) }'
+Rscript -e 'paths <- c(s80="docs/dev-log/ayumi-convergence/slices-373-382/q2-start-prototype-80species/source-summary.csv", s300="docs/dev-log/ayumi-convergence/slices-373-382/q2-start-prototype-300species/source-summary.csv", full="docs/dev-log/ayumi-convergence/slices-373-382/q2-start-prototype-full/source-summary.csv"); for (nm in names(paths)) { x <- read.csv(paths[[nm]], check.names=FALSE); cat("\n", nm, "\n", sep=""); print(data.frame(name=x$name, convergence=x$convergence, objective=signif(x$objective, 7), grad=signif(x$max_fixed_gradient, 4), rho_min=signif(x$residual_rho12_min, 8), rho_max=signif(x$residual_rho12_max, 8)), row.names=FALSE) }'
+Rscript -e "parse('tools/ayumi-q2-start-prototype.R'); parse('tools/ayumi-full-species-convergence.R')"
+Rscript -e 'rmarkdown::render("vignettes/convergence.Rmd", output_dir = tempfile("convergence-render-"), quiet = FALSE)'
+Rscript -e 'devtools::load_all(quiet = TRUE); pkgdown::build_article("convergence", new_process = FALSE, quiet = TRUE)'
+Rscript -e 'pkgdown::check_pkgdown()'
+git diff --check
+```
+
+Validation notes:
+
+- The strongest negative evidence is the full all-species target set: six start
+  strategies, six false-converged fits, all with residual `rho12` at the
+  positive boundary.
+- The source-fit results still matter for future implementation: fixed/residual
+  and aggregate phylogenetic q2 source fits are plausible start sources, but
+  they need provenance and target-side diagnostics before becoming public.
+- The run used `se = FALSE`; it is optimizer and identifiability evidence, not
+  Hessian, Wald-SE, or final biological-inference evidence.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-19-slices-373-390-q2-start-regularization.md`
+
 ## 2026-05-19 - Slices 353-362 Ayumi Convergence Stress Test
 
 Goal: convert the local Ayumi bivariate lightness/convergence question into a
@@ -28824,3 +28912,3508 @@ Known limitations:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-19-slices-315-332-student-shape-sim.md`
+
+## 2026-05-19 - Slices 363-372 Full Ayumi Starting-Value Read
+
+Goal:
+
+- Read starting-value guidance for the full Ayumi phylogenetic species-effect
+  convergence problem, avoid treating reduced-rank `rr()` starts as a
+  drmTMB phylogenetic covariance solution, and run a full-species stress
+  ladder.
+
+Files changed:
+
+- `tools/ayumi-full-species-convergence.R`
+- `docs/dev-log/ayumi-convergence/slices-363-372/2026-05-19-full-species-start-values.md`
+- `docs/dev-log/ayumi-convergence/slices-363-372/full-species-live/tree-preflight.csv`
+- `docs/dev-log/ayumi-convergence/slices-363-372/full-species-live/fit-summary.csv`
+- `docs/dev-log/ayumi-convergence/slices-363-372/full-species-live/check-rows.csv`
+- `docs/dev-log/ayumi-convergence/slices-363-372/full-species-live/corpairs.csv`
+- `docs/dev-log/ayumi-convergence/slices-363-372/full-species-live/profile-targets.csv`
+- `docs/dev-log/ayumi-convergence/slices-363-372/full-species-live/fit-conditions.csv`
+- `docs/dev-log/after-task/2026-05-19-slices-363-372-full-ayumi-start-values.md`
+
+What changed:
+
+- Added a reproducible full-species Ayumi convergence script with aggregate
+  and row-capped all-species scenarios.
+- Recorded that the glmmTMB/JSS `rr()` start method is reduced-rank
+  factor-analytic machinery, not a direct drmTMB phylogenetic
+  species-effect start recipe.
+- Read pedigree-animal, phylogenetic, and mixed-model starting-value guidance
+  from ASReml, BLUPF90, lme4, and glmmTMB documentation, while keeping the
+  pedigree animal-model distinction explicit.
+- Ran all 6,196 species on aggregate data and all 6,196 species on a
+  row-capped 29,489-row stress data set.
+
+Validation notes:
+
+- Aggregate fixed/residual, location-scale plus modelled residual `rho12`, and
+  forced-tree q2 phylogenetic mean fits converged with `se = FALSE`.
+- Raw-tree q2 phylogenetic mean failed preflight because the pruned tree was
+  not ultrametric.
+- Row-capped ordinary species q2, row-capped q2 phylogenetic mean, and
+  row-capped q2 phylogeny plus ordinary species all ran but returned false
+  convergence, boundary residual `rho12`, and large fixed-gradient diagnostics.
+- The run used `se = FALSE`; Hessian and Wald standard-error evidence remain
+  untested.
+
+Checks run:
+
+```sh
+Rscript tools/ayumi-full-species-convergence.R
+git status --short --branch
+sed -n '1,120p' docs/dev-log/ayumi-convergence/slices-363-372/full-species-live/fit-summary.csv
+sed -n '1,160p' docs/dev-log/ayumi-convergence/slices-363-372/full-species-live/corpairs.csv
+sed -n '1,220p' docs/dev-log/ayumi-convergence/slices-363-372/full-species-live/check-rows.csv
+sed -n '1,80p' docs/dev-log/ayumi-convergence/slices-363-372/full-species-live/tree-preflight.csv
+```
+
+Known limitations:
+
+- No public `start`, `start_from`, warm-start, map, fallback-optimizer, or
+  multi-start path was implemented.
+- The row-capped data keep all species but not every one of the 1.6 million
+  raw rows.
+- q4 phylogenetic location-scale was not rerun in this slice.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-19-slices-363-372-full-ayumi-start-values.md`
+
+## 2026-05-19 - Slices 391-402 Correct Mass-Beak PV2 Rerun And Bootstrap Prototype
+
+Goal:
+
+- Redo the Ayumi Issue #1 feasibility slice on the correct Mass + Beak target,
+  keep the Beak allometric covariate role separate from the body-mass response,
+  and test whether no-SE fitting plus parametric bootstrap can provide a
+  usable uncertainty route when Hessian-based SEs are unavailable.
+
+Files changed:
+
+- `tools/ayumi-mass-beak-pv2-rerun.R`
+- `tools/ayumi-parametric-bootstrap-prototype.R`
+- `docs/dev-log/ayumi-convergence/slices-391-402/2026-05-19-mass-beak-pv2-rerun.md`
+- `docs/design/35-optimizer-start-map-multistart.md`
+- `docs/design/46-pre-simulation-readiness-matrix.md`
+- `docs/dev-log/after-task/2026-05-19-slices-391-402-mass-beak-pv2-rerun-bootstrap.md`
+
+What changed:
+
+- Added the corrected full-species Mass + Beak PV2 rerun script.
+- Split `Mass_z` as response 1 from `Mass_cov_z` as the fixed Beak allometric
+  covariate, which is essential for bootstrap refits.
+- Reproduced the stable `PV2_locphylo` result: convergence 0, `pdHess TRUE`,
+  residual `rho12 = -0.789`, and phylogenetic `mu1`-`mu2 = -0.841`.
+- Reproduced the prereg fallback package gap: separate phylogenetic location
+  and scale labels still abort before fitting.
+- Reran q4 PV2-main with `se = FALSE`; it returned false convergence, large
+  gradients, boundary residual `rho12 = -0.984`, and q4 correlations near
+  `+/-1`.
+- Added a developer-only parametric bootstrap prototype with serial,
+  `multicore`, and `psock` refit backends.
+
+Validation notes:
+
+- The fixed-effect design has modest VIF and condition number, but body mass
+  and beak length are strongly correlated (`r = 0.816`), so the issue is
+  model-geometry confounding rather than ordinary VIF.
+- Four 4-core locphylo bootstrap refits converged with code 0 when
+  `Mass_cov_z` stayed fixed; residual `rho12` ranged from -0.822 to -0.767 and
+  phylogenetic `mu1`-`mu2` ranged from -0.889 to -0.881.
+- The bootstrap run is a mechanics check only, not a final uncertainty report.
+
+Checks run:
+
+```sh
+DRMTMB_PV2_RUN_Q4=false Rscript tools/ayumi-mass-beak-pv2-rerun.R
+DRMTMB_PV2_MODELS=PV2_main_q4 DRMTMB_PV2_SE=false DRMTMB_PV2_RERUN_OUT=docs/dev-log/ayumi-convergence/slices-391-402/mass-beak-pv2-q4-main Rscript tools/ayumi-mass-beak-pv2-rerun.R
+DRMTMB_BOOT_R=4 DRMTMB_BOOT_CORES=4 DRMTMB_BOOT_BACKEND=multicore DRMTMB_BOOT_OUT=docs/dev-log/ayumi-convergence/slices-391-402/mass-beak-bootstrap-4core Rscript tools/ayumi-parametric-bootstrap-prototype.R
+```
+
+Known limitations:
+
+- q4 PV2-main remains diagnostic/failure-ledger material despite the lower
+  objective, because the selected optimum is boundary-heavy and has a large
+  gradient.
+- At the time of slices 391-402, the phylogenetic block-diagonal q2 fallback
+  was not implemented. Slices 403-412 supersede this limitation by adding the
+  fitted fallback and recording its Ayumi boundary diagnostics.
+- The bootstrap helper is local and developer-only; it is not a public
+  `confint(method = "bootstrap")` interface.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-19-slices-391-402-mass-beak-pv2-rerun-bootstrap.md`
+
+## 2026-05-19 - Slices 403-412 Phylogenetic Block-Diagonal Fallback
+
+Goal:
+
+- Implement the preregistered phylogenetic block-diagonal q4 fallback for
+  bivariate Gaussian location-scale models, rerun the Ayumi Mass + Beak
+  fallback, and smoke-test parametric bootstrap with at most 10 cores.
+
+Files changed:
+
+- `R/drmTMB.R`
+- `R/methods.R`
+- `R/profile.R`
+- `R/check.R`
+- `src/drmTMB.cpp`
+- `tests/testthat/test-phylo-gaussian.R`
+- `tests/testthat/test-phylo-utils.R`
+- `tools/ayumi-parametric-bootstrap-prototype.R`
+- `docs/design/01-formula-grammar.md`
+- `docs/design/03-likelihoods.md`
+- `docs/design/15-location-coscale-phylogenetic-extension.md`
+- `docs/design/35-optimizer-start-map-multistart.md`
+- `docs/design/46-pre-simulation-readiness-matrix.md`
+- `ROADMAP.md`
+- `NEWS.md`
+- `docs/dev-log/ayumi-convergence/slices-403-412/2026-05-19-phylo-block-fallback-bootstrap.md`
+- `docs/dev-log/after-task/2026-05-19-slices-403-412-phylo-block-fallback-bootstrap.md`
+
+What changed:
+
+- Added a block-diagonal covariance mode for labelled all-four phylogenetic
+  bivariate Gaussian models.
+- Kept one-label all-four `phylo()` terms as full q4 with six latent
+  correlations.
+- Allowed two-label all-four `phylo()` terms where `mu1`/`mu2` share one label
+  and `sigma1`/`sigma2` share another; this reports two phylogenetic
+  `corpairs()` rows and no mean-scale phylogenetic rows.
+- Updated profile targets so fallback correlations are direct `theta_phylo`
+  tanh targets, while full q4 correlations remain derived unstructured
+  correlation rows.
+- Extended the local Ayumi bootstrap prototype to fit `PV2_phylo_fallback` and
+  clamp actual worker use to at most 10 cores.
+
+Validation notes:
+
+- `PV2_phylo_fallback` no longer aborts on the full Ayumi Mass + Beak data.
+  It fit in 678.6 seconds with convergence 1, `pdHess = FALSE`, logLik
+  -4220.555, AIC 8499.111, residual `rho12 = -0.720`, phylogenetic
+  `mu1`-`mu2 = -0.750`, and phylogenetic `sigma1`-`sigma2 = -0.999999`.
+- `check_drm()` flags false convergence, a non-positive-definite Hessian, a
+  large fixed-gradient component, and boundary q4 phylogenetic covariance.
+- The 10-core bootstrap smoke (`B = 10`) completed all refits, but all ten
+  retained convergence code 1. Mean bootstrap values were residual
+  `rho12 = -0.746`, phylogenetic `mu1`-`mu2 = -0.824`, phylogenetic
+  `sigma1`-`sigma2 = -0.999993`, and Beak-on-Mass coefficient 1.807.
+
+Checks run:
+
+```sh
+Rscript -e "devtools::load_all()"
+Rscript -e "devtools::test(filter = '^phylo-gaussian$')"
+Rscript -e "devtools::test(filter = '^phylo-utils$')"
+Rscript -e "devtools::test(filter = '^profile-targets$')"
+DRMTMB_PV2_MODELS=PV2_phylo_fallback DRMTMB_PV2_RUN_Q4=false DRMTMB_PV2_SE=true DRMTMB_PV2_ITER_MAX=2000 DRMTMB_PV2_EVAL_MAX=2000 DRMTMB_PV2_RERUN_OUT=docs/dev-log/ayumi-convergence/slices-403-412/mass-beak-pv2-block-fallback Rscript tools/ayumi-mass-beak-pv2-rerun.R
+OMP_NUM_THREADS=1 DRMTMB_BOOT_MODEL=PV2_phylo_fallback DRMTMB_BOOT_FIT_RDS=docs/dev-log/ayumi-convergence/slices-403-412/mass-beak-pv2-block-fallback/fits.rds DRMTMB_BOOT_OUT=docs/dev-log/ayumi-convergence/slices-403-412/mass-beak-pv2-block-fallback-bootstrap DRMTMB_BOOT_R=10 DRMTMB_BOOT_CORES=10 DRMTMB_BOOT_BACKEND=multicore DRMTMB_BOOT_ITER_MAX=1000 DRMTMB_BOOT_EVAL_MAX=1000 Rscript tools/ayumi-parametric-bootstrap-prototype.R
+```
+
+Known limitations:
+
+- The block-diagonal fallback is implemented but not clean for Ayumi Mass +
+  Beak; the scale-scale phylogenetic correlation sits on a boundary.
+- The bootstrap run is a diagnostic smoke test, not an uncertainty interval
+  report.
+- No public bootstrap/profile parallel API was added.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-19-slices-403-412-phylo-block-fallback-bootstrap.md`
+
+## 2026-05-19 - Slices 413-422 Fallback Profile And Bootstrap Diagnostics
+
+Goal:
+
+- Test whether the implemented Ayumi Mass + Beak block-diagonal phylogenetic
+  fallback can support profile or bootstrap uncertainty, and whether a simpler
+  scale formula moves the scale-phylogenetic boundary.
+
+Files changed:
+
+- `tools/ayumi-profile-fallback-correlations.R`
+- `tools/ayumi-parametric-bootstrap-prototype.R`
+- `tools/ayumi-mass-beak-pv2-rerun.R`
+- `docs/design/12-profile-likelihood-cis.md`
+- `docs/design/35-optimizer-start-map-multistart.md`
+- `docs/design/46-pre-simulation-readiness-matrix.md`
+- `vignettes/phylogenetic-spatial.Rmd`
+- `ROADMAP.md`
+- `docs/dev-log/ayumi-convergence/slices-413-422/2026-05-19-profile-bootstrap-simplification.md`
+- `docs/dev-log/after-task/2026-05-19-slices-413-422-profile-bootstrap-simplification.md`
+
+What changed:
+
+- Added a developer-only profile diagnostic wrapper for Ayumi fallback
+  correlation targets.
+- Extended the developer bootstrap prototype with optimizer messages,
+  objective values, max-gradient diagnostics, and worker-level error rows.
+- Added a developer-only `PV2_phylo_fallback_sigma_intercept` simplification
+  to test whether removing climate predictors from the scale formulas rescues
+  the scale phylogenetic boundary.
+- Clarified current docs so `profile_ready` means a direct profile can be
+  attempted, not that a successful interval is guaranteed.
+
+Validation notes:
+
+- The bounded full-species profile for the fallback phylogenetic mean-mean
+  correlation took 511.6 seconds and failed to extract a 95% interval.
+- The 10-core bootstrap diagnostic rerun refitted all ten replicates, but all
+  retained `false convergence (8)`. Median max gradient was 37.45 and the
+  scale-scale phylogenetic correlation stayed near `-0.99999`.
+- The intercept-only scale fallback fit in 538.0 seconds, but still had
+  convergence 1 and `pdHess = FALSE`; AIC worsened to 8610.5, residual `rho12`
+  collapsed near zero, and the scale-scale phylogenetic correlation stayed near
+  `-1`.
+
+Checks run:
+
+```sh
+air format tools/ayumi-profile-fallback-correlations.R
+air format tools/ayumi-parametric-bootstrap-prototype.R tools/ayumi-mass-beak-pv2-rerun.R
+Rscript -e "invisible(parse(file = 'tools/ayumi-parametric-bootstrap-prototype.R')); cat('bootstrap parse ok\n')"
+Rscript -e "invisible(parse(file = 'tools/ayumi-profile-fallback-correlations.R')); invisible(parse(file = 'tools/ayumi-parametric-bootstrap-prototype.R')); invisible(parse(file = 'tools/ayumi-mass-beak-pv2-rerun.R')); invisible(parse(file = 'tools/ayumi-q2-start-prototype.R')); invisible(parse(file = 'tools/ayumi-full-species-convergence.R')); cat('tool parse ok\n')"
+git diff --check
+Rscript -e "devtools::test(filter = '^phylo-gaussian$')"
+Rscript -e "devtools::test(filter = '^profile-targets$')"
+Rscript -e "devtools::test(filter = '^phylo-utils$')"
+OMP_NUM_THREADS=1 DRMTMB_PROFILE_TARGETS=phylo_mean DRMTMB_PROFILE_YSTEP=1 DRMTMB_PROFILE_YTOL=0.5 DRMTMB_PROFILE_MAXIT=2 DRMTMB_PROFILE_RANGE_LOWER=-1.6 DRMTMB_PROFILE_RANGE_UPPER=-0.4 DRMTMB_PROFILE_OUT=docs/dev-log/ayumi-convergence/slices-413-422/mass-beak-pv2-block-fallback-profile-bounded Rscript tools/ayumi-profile-fallback-correlations.R
+OMP_NUM_THREADS=1 DRMTMB_BOOT_MODEL=PV2_phylo_fallback DRMTMB_BOOT_FIT_RDS=docs/dev-log/ayumi-convergence/slices-403-412/mass-beak-pv2-block-fallback/fits.rds DRMTMB_BOOT_OUT=docs/dev-log/ayumi-convergence/slices-413-422/mass-beak-pv2-block-fallback-bootstrap-diagnostics DRMTMB_BOOT_R=10 DRMTMB_BOOT_CORES=10 DRMTMB_BOOT_BACKEND=multicore DRMTMB_BOOT_ITER_MAX=1000 DRMTMB_BOOT_EVAL_MAX=1000 Rscript tools/ayumi-parametric-bootstrap-prototype.R
+OMP_NUM_THREADS=1 DRMTMB_PV2_MODELS=PV2_phylo_fallback_sigma_intercept DRMTMB_PV2_RUN_Q4=false DRMTMB_PV2_SE=true DRMTMB_PV2_ITER_MAX=2000 DRMTMB_PV2_EVAL_MAX=2000 DRMTMB_PV2_RERUN_OUT=docs/dev-log/ayumi-convergence/slices-413-422/mass-beak-pv2-block-fallback-sigma-intercept Rscript tools/ayumi-mass-beak-pv2-rerun.R
+```
+
+Focused tests passed: `phylo-gaussian` 178 assertions, `profile-targets` 480
+assertions, and `phylo-utils` 79 assertions.
+
+Known limitations:
+
+- The Ayumi fallback remains diagnostic-only; profile and bootstrap diagnostics
+  do not yet provide scientific uncertainty for this model.
+- The bootstrap script is developer-only and not a public
+  `confint(method = "bootstrap")` API.
+- The profile wrapper is serial and intentionally bounded; it is not a general
+  profile scheduler.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-19-slices-413-422-profile-bootstrap-simplification.md`
+
+## 2026-05-19 - Slices 423-432 Locphylo Bootstrap Positive Control
+
+Goal:
+
+- Run the same 10-core bootstrap diagnostic on the clean Ayumi Mass + Beak
+  `PV2_locphylo` model so the fallback failure has a positive-control
+  comparison.
+
+Files changed:
+
+- `docs/design/35-optimizer-start-map-multistart.md`
+- `docs/design/46-pre-simulation-readiness-matrix.md`
+- `ROADMAP.md`
+- `docs/dev-log/ayumi-convergence/slices-423-432/2026-05-19-locphylo-bootstrap-positive-control.md`
+- `docs/dev-log/after-task/2026-05-19-slices-423-432-locphylo-bootstrap-positive-control.md`
+
+Validation notes:
+
+- The clean `PV2_locphylo` bootstrap used the same prototype, seed, worker cap,
+  and optimizer budget as the fallback diagnostic.
+- It completed in 117.7 seconds with all ten refits returning convergence code
+  0 and `relative convergence (4)`.
+- Median max gradient was 0.043 and max gradient was 0.121.
+- Mean bootstrap values were residual `rho12 = -0.802`, phylogenetic
+  `mu1`-`mu2 = -0.884`, and Beak-on-Mass coefficient 2.100.
+- The matched fallback diagnostic had convergence code 1 in all ten refits,
+  median max gradient 37.45, and scale-scale phylogenetic correlation near
+  `-1`.
+
+Checks run:
+
+```sh
+OMP_NUM_THREADS=1 DRMTMB_BOOT_MODEL=PV2_locphylo DRMTMB_BOOT_FIT_RDS=docs/dev-log/ayumi-convergence/slices-391-402/mass-beak-pv2-rerun/fits.rds DRMTMB_BOOT_OUT=docs/dev-log/ayumi-convergence/slices-423-432/mass-beak-locphylo-bootstrap-diagnostics DRMTMB_BOOT_R=10 DRMTMB_BOOT_CORES=10 DRMTMB_BOOT_BACKEND=multicore DRMTMB_BOOT_ITER_MAX=1000 DRMTMB_BOOT_EVAL_MAX=1000 Rscript tools/ayumi-parametric-bootstrap-prototype.R
+```
+
+Known limitations:
+
+- `B = 10` is a smoke diagnostic, not a final interval report.
+- The bootstrap prototype remains developer-only.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-19-slices-423-432-locphylo-bootstrap-positive-control.md`
+
+## 2026-05-19 - Slices 433-438 `phylo()` Reference Audit
+
+Goal:
+
+- Synchronize the `phylo()` reference help with the implemented bivariate
+  Gaussian location-scale phylogenetic paths.
+
+Files changed:
+
+- `R/formula-markers.R`
+- `README.md`
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/12-profile-likelihood-cis.md`
+- `docs/design/34-validation-debt-register.md`
+- `vignettes/formula-grammar.Rmd`
+- `vignettes/model-map.Rmd`
+- `man/phylo.Rd`
+- `docs/dev-log/after-task/2026-05-19-slices-433-438-phylo-reference-audit.md`
+
+What changed:
+
+- Updated the `phylo()` roxygen description so it no longer says the current
+  fitted paths stop at univariate `mu` and bivariate `mu1`/`mu2`.
+- The help page now describes full all-four q4 labelled blocks and the
+  block-diagonal q4 fallback, while keeping standalone univariate
+  `sigma ~ phylo(...)` and phylogenetic slopes marked as planned.
+- The formula grammar article now gives the block-diagonal q4 `phylo()` syntax
+  and says only standalone or partial phylogenetic scale terms remain planned.
+- The README, NEWS, roadmap, model map, profile-CI design, and validation-debt
+  register now distinguish full q4 derived correlations from block-diagonal q4
+  fallback direct targets, and say that direct fallback targets still need
+  fit-specific profile diagnostics.
+
+Checks run:
+
+```sh
+air format R/formula-markers.R
+Rscript -e "devtools::document()"
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "pkgdown::build_site()"
+Rscript -e "pkgdown::build_article('formula-grammar', quiet = FALSE)"
+rg -n "block-diagonal fallback|profile-ready row can still fail|bounded profile|PV2_locphylo|scale-scale phylogenetic" pkgdown-site/reference/phylo.html pkgdown-site/articles/phylogenetic-spatial.html pkgdown-site/ROADMAP.html pkgdown-site/articles/model-workflow.html pkgdown-site/articles/model-map.html --glob '!pkgdown-site/search.json'
+rg -n "block-diagonal fallback|standalone or partial phylogenetic scale|phylogenetic mean-mean and q=4" vignettes/formula-grammar.Rmd pkgdown-site/articles/formula-grammar.html
+air format README.md NEWS.md ROADMAP.md docs/design/12-profile-likelihood-cis.md docs/design/34-validation-debt-register.md vignettes/model-map.Rmd
+Rscript -e "pkgdown::build_site()"
+rg -n "block-diagonal q=4 fallback|direct fallback targets|direct targets but still need fit-specific|Full phylogenetic q=4 correlations|full q=4 correlations are derived-only" README.md NEWS.md ROADMAP.md vignettes/model-map.Rmd docs/design/12-profile-likelihood-cis.md docs/design/34-validation-debt-register.md pkgdown-site/index.html pkgdown-site/news/index.html pkgdown-site/ROADMAP.html pkgdown-site/articles/model-map.html --glob '!pkgdown-site/search.json'
+rg -n "phylogenetic or spatial terms in sigma|Phylogenetic q=4 correlations are currently reported|q=4 phylogenetic correlations are derived-only for intervals|all six.*profile-ready|q4.*profile-ready atanh" README.md NEWS.md ROADMAP.md vignettes/model-map.Rmd vignettes/phylogenetic-spatial.Rmd vignettes/formula-grammar.Rmd docs/design pkgdown-site/index.html pkgdown-site/news/index.html pkgdown-site/ROADMAP.html pkgdown-site/articles/model-map.html --glob '!docs/dev-log/**' --glob '!pkgdown-site/search.json'
+git diff --check
+```
+
+Validation notes:
+
+- `devtools::document()` regenerated `man/phylo.Rd`.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `pkgdown::build_site()` completed successfully.
+- The rendered scan found the updated `phylo()` reference, profile-ready
+  caution, Ayumi bounded-profile note, and positive-control `PV2_locphylo`
+  wording in `pkgdown-site/`.
+- The formula-grammar rendered scan found the corrected q4/block-diagonal
+  wording.
+- The follow-up rendered scan found the corrected README, NEWS, ROADMAP, and
+  model-map wording, and did not find the older broad
+  `phylogenetic or spatial terms in sigma` shorthand in current source/status
+  pages.
+- `git diff --check` reported no whitespace problems.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-19-slices-433-438-phylo-reference-audit.md`
+
+## 2026-05-19 - Slices 439-448 Reference Index Audit
+
+Goal:
+
+- Check that exported functions, formula-only marker topics, articles, and
+  pkgdown reference groups remain discoverable after the phylogenetic fallback
+  and profile-diagnostic documentation work.
+
+Files changed:
+
+- `_pkgdown.yml`
+- `docs/dev-log/after-task/2026-05-19-slices-439-448-reference-index-audit.md`
+
+What changed:
+
+- Removed the empty `Family internals` reference group from `_pkgdown.yml`.
+- Confirmed all 32 exported functions have literal coverage in `_pkgdown.yml`.
+- Confirmed all 20 article entries have matching vignette sources.
+- Confirmed all 20 navbar article links have rendered targets in
+  `pkgdown-site/`.
+- Rebuilt the local pkgdown site and checked that the Reference index no longer
+  contains the empty `Family internals` heading while keeping structured-effect
+  aliases visible.
+
+Checks run:
+
+```sh
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript - <<'EOF'
+exports <- sub('^export\\((.*)\\)$', '\\1', grep('^export\\(', readLines('NAMESPACE'), value = TRUE))
+yml <- readLines('_pkgdown.yml')
+missing <- exports[!vapply(exports, function(x) any(grepl(paste0('(^|[^[:alnum:]_.])', gsub('([.|()\\\\+*?{}\\[\\]^$])', '\\\\\\1', x), '([^[:alnum:]_.]|$)'), yml)), logical(1))]
+cat('Exports:', length(exports), '\n')
+cat('Missing literal _pkgdown.yml refs:', if (length(missing)) paste(missing, collapse = ', ') else 'none', '\n')
+EOF
+Rscript -e "pkgdown::build_site()"
+rg -n "Family internals|Reserved marker internals|Structured-effect markers|random_effect_scale_formulas|sd_phylo|corpair|Model fitting and post-fit tools|Visualization" pkgdown-site/reference/index.html --glob '!pkgdown-site/search.json'
+Rscript - <<'EOF'
+y <- yaml::read_yaml('_pkgdown.yml')
+article_names <- unlist(lapply(y$articles, function(section) section$contents), use.names = FALSE)
+missing_articles <- paste0('vignettes/', article_names, '.Rmd')[!file.exists(paste0('vignettes/', article_names, '.Rmd'))]
+hrefs <- unlist(lapply(y$navbar$components, function(component) {
+  menu <- component$menu
+  if (is.null(menu)) character() else vapply(menu, function(x) if (is.null(x$href)) NA_character_ else x$href, character(1))
+}), use.names = FALSE)
+hrefs <- hrefs[!is.na(hrefs)]
+missing_hrefs <- hrefs[!file.exists(file.path('pkgdown-site', hrefs))]
+cat('article entries:', length(article_names), '\n')
+cat('missing vignette sources:', if (length(missing_articles)) paste(missing_articles, collapse = ', ') else 'none', '\n')
+cat('navbar hrefs:', length(hrefs), '\n')
+cat('missing rendered hrefs:', if (length(missing_hrefs)) paste(missing_hrefs, collapse = ', ') else 'none', '\n')
+EOF
+git diff --check
+```
+
+Validation notes:
+
+- `pkgdown::check_pkgdown()` reported no problems.
+- The export audit reported `Exports: 32` and no missing literal
+  `_pkgdown.yml` references.
+- The article/navbar audit reported 20 article entries, no missing vignette
+  sources, 20 navbar hrefs, and no missing rendered hrefs.
+- The rendered Reference scan found structured-effect aliases and post-fit
+  sections, and did not find the removed `Family internals` heading.
+- `git diff --check` reported no whitespace problems.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-19-slices-439-448-reference-index-audit.md`
+
+## 2026-05-19 - Slices 449-458 Function Reference Prose Audit
+
+Goal:
+
+- Audit high-risk reference pages whose prose mentions planned syntax, profile
+  intervals, or advanced covariance layers.
+
+Files changed:
+
+- `R/methods.R`
+- `R/profile.R`
+- `man/corpairs.Rd`
+- `man/confint.drmTMB.Rd`
+- `man/profile_targets.Rd`
+- `man/summary.drmTMB.Rd`
+- `docs/dev-log/after-task/2026-05-19-slices-449-458-function-reference-prose-audit.md`
+
+What changed:
+
+- Updated `corpairs()` documentation so bivariate phylogenetic rows include
+  full q4 derived endpoint correlations and block-diagonal q4 fallback direct
+  block correlations, not only the first q2 mean-mean row.
+- Updated `confint()` documentation so direct profile targets include the
+  block-diagonal bivariate phylogenetic `mu1`/`mu2` and `sigma1`/`sigma2`
+  correlations.
+- Updated `profile_targets()` documentation to state that full q4
+  unstructured-correlation summaries are derived targets, while block-diagonal
+  phylogenetic q4 fallback correlations are direct targets that can still fail
+  on weak, boundary-limited, or one-sided profiles.
+- Updated `summary()` documentation so the covariance component refers to
+  fitted bivariate phylogenetic q2 and q4 covariance rows where present.
+- Regenerated Rd files and rebuilt the rendered reference pages.
+
+Checks run:
+
+```sh
+air format R/methods.R R/profile.R
+Rscript -e "devtools::document()"
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "pkgdown::build_reference()"
+rg -n "first fitted bivariate phylogenetic|first bivariate phylogenetic mean-mean correlation|first bivariate phylogenetic mean-mean" R/methods.R R/profile.R man/corpairs.Rd man/confint.drmTMB.Rd man/profile_targets.Rd man/summary.drmTMB.Rd pkgdown-site/reference/corpairs.html pkgdown-site/reference/confint.drmTMB.html pkgdown-site/reference/profile_targets.html pkgdown-site/reference/summary.drmTMB.html --glob '!pkgdown-site/search.json'
+rg -n "Full q4 phylogenetic blocks report six derived|block-diagonal q4 fallback fits report|bivariate phylogenetic q=2 mean-mean|fitted bivariate phylogenetic covariance rows|direct target can still fail" R/methods.R R/profile.R man/corpairs.Rd man/confint.drmTMB.Rd man/profile_targets.Rd man/summary.drmTMB.Rd pkgdown-site/reference/corpairs.html pkgdown-site/reference/confint.drmTMB.html pkgdown-site/reference/profile_targets.html pkgdown-site/reference/summary.drmTMB.html --glob '!pkgdown-site/search.json'
+git diff --check
+```
+
+Validation notes:
+
+- `devtools::document()` regenerated `man/corpairs.Rd`,
+  `man/confint.drmTMB.Rd`, `man/profile_targets.Rd`, and
+  `man/summary.drmTMB.Rd`.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `pkgdown::build_reference()` rebuilt the changed rendered reference pages.
+- The stale phrase scan found no remaining `first fitted bivariate
+  phylogenetic` shorthand in the audited source, Rd, or rendered pages.
+- The positive scan found the corrected full q4, block-diagonal fallback, q2,
+  summary covariance, and direct-target caveat wording.
+- `git diff --check` reported no whitespace problems.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-19-slices-449-458-function-reference-prose-audit.md`
+
+## 2026-05-19 - Slices 459-468 Reference Example Copy-Run
+
+Goal:
+
+- Copy-run the high-risk reference examples for structural markers, latent
+  correlation extraction, profile targets, confidence intervals, and
+  diagnostics.
+
+Files changed:
+
+- `docs/dev-log/after-task/2026-05-19-slices-459-468-reference-example-copy-run.md`
+- `docs/dev-log/check-log.md`
+
+Validation notes:
+
+- The extracted examples from `man/phylo.Rd`, `man/corpair.Rd`,
+  `man/corpairs.Rd`, `man/profile_targets.Rd`, `man/confint.drmTMB.Rd`, and
+  `man/check_drm.Rd` ran successfully in a `devtools::load_all()` session.
+- The `corpairs()` example fitted a small bivariate Gaussian
+  residual-correlation model and returned a residual `rho12` row.
+- The `profile_targets()` and `confint()` examples fitted the small Gaussian
+  location-scale example and returned the expected target and Wald interval
+  tables.
+- The `check_drm()` example returned 10 ok checks and no notes, warnings, or
+  errors.
+
+Checks run:
+
+```sh
+Rscript - <<'EOF'
+devtools::load_all(quiet = TRUE)
+files <- c(
+  'man/phylo.Rd',
+  'man/corpair.Rd',
+  'man/corpairs.Rd',
+  'man/profile_targets.Rd',
+  'man/confint.drmTMB.Rd',
+  'man/check_drm.Rd'
+)
+for (rd in files) {
+  cat('\n## Rd example:', rd, '\n')
+  ex <- tempfile(fileext = '.R')
+  tools::Rd2ex(rd, out = ex)
+  code <- readLines(ex, warn = FALSE)
+  code <- code[!grepl('^###', code)]
+  src <- tempfile(fileext = '.R')
+  writeLines(code, src)
+  source(src, echo = TRUE, max.deparse.length = Inf)
+}
+EOF
+```
+
+Known limitations:
+
+- This did not run every package example or `devtools::check()`. It targeted
+  the reference pages most likely to drift after the q4 fallback,
+  profile-target, and pkgdown audit work.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-19-slices-459-468-reference-example-copy-run.md`
+
+## 2026-05-19 - Slices 469-478 Stale Promise Audit
+
+Goal:
+
+- Scan current-facing status pages and recent after-task notes for stale
+  implemented-versus-planned claims after the Ayumi, q4 fallback, pkgdown, and
+  reference-page slices.
+
+Files changed:
+
+- `docs/dev-log/after-task/2026-05-19-slices-469-478-stale-promise-audit.md`
+- `docs/dev-log/check-log.md`
+
+Validation notes:
+
+- Current source status pages consistently distinguish full q4 derived
+  correlations from block-diagonal q4 fallback direct targets.
+- Public bootstrap confidence intervals remain correctly described as not
+  implemented, even though developer-only and Phase 18 private bootstrap
+  helpers now exist.
+- `animal()` and `relmat()` remain correctly described as exported, documented,
+  parsed/planned markers, not fitted model paths.
+- Coordinate spatial one-slope `mu` support is described as fitted; mesh/SPDE,
+  spatial scale, bivariate spatial covariance, and spatial `corpair()` remain
+  planned.
+- Ignored generated files such as `vignettes/*.html` and `pkgdown-site/` are
+  not tracked, so the audit did not treat stale local HTML as source evidence.
+
+Checks run:
+
+```sh
+rg -n "phylogenetic scale terms planned|phylogenetic or spatial terms in sigma|only.*mu1.*mu2|first fitted bivariate phylogenetic|not yet fitted|not implemented yet|planned but not implemented|remain planned|Next Actions|TODO|FIXME|bootstrap intervals|public bootstrap|animal models|animal\\(\\).*implemented|spatial.*bivariate|q4.*derived-only|q=4.*derived-only" README.md NEWS.md ROADMAP.md docs/design vignettes docs/dev-log/after-task --glob '!docs/dev-log/after-task/2026-05-19-slices-*.md'
+rg -n "Next Actions|Known Limitations|not implemented|planned|future|blocked|needs|TODO|FIXME" docs/dev-log/after-task/2026-05-19-slices-*.md
+rg -n "animal|relmat|phylo|spatial|bootstrap|profile|simulation|pkgdown|reference|examples|shape|skew|student|t" docs/dev-log/after-task/2026-05-19-slices-*.md
+git ls-files vignettes/*.html
+git check-ignore -v vignettes/model-map.html pkgdown-site/articles/model-map.html
+rg -n "q=4 correlations are derived-only for intervals|phylogenetic scale terms planned|phylogenetic or spatial terms in sigma|first fitted bivariate phylogenetic" vignettes/*.html
+git status --short vignettes/model-map.html vignettes/drmTMB.html vignettes/source-map.html vignettes/convergence.html
+```
+
+Known limitations:
+
+- The scan was current-facing and high-signal. It did not rewrite historical
+  after-task reports that contained statements true at the time they were
+  written.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-19-slices-469-478-stale-promise-audit.md`
+
+## 2026-05-19 - Slices 479-488 Focused Validation
+
+Goal:
+
+- Run a focused test pass over the phylogenetic, profile, correlation
+  extractor, summary, plotting, and diagnostic paths touched by the Ayumi
+  convergence work and reference/documentation cleanup.
+
+Files changed:
+
+- `docs/dev-log/after-task/2026-05-19-slices-479-488-focused-validation.md`
+- `docs/dev-log/check-log.md`
+
+Validation notes:
+
+- `test-phylo-gaussian.R` passed 178 expectations.
+- `test-profile-targets.R` passed 480 expectations.
+- `test-phylo-utils.R` passed 79 expectations.
+- `test-corpairs.R` passed 83 expectations.
+- `test-plot-corpairs.R` passed 34 expectations.
+- `test-summary.R` passed 187 expectations.
+- `test-check-drm.R` passed 200 expectations.
+
+Checks run:
+
+```sh
+Rscript -e "devtools::test(filter = '^phylo-gaussian$')"
+Rscript -e "devtools::test(filter = '^profile-targets$')"
+Rscript -e "devtools::test(filter = '^phylo-utils$')"
+Rscript -e "devtools::test(filter = '^corpairs$')"
+Rscript -e "devtools::test(filter = '^plot-corpairs$')"
+Rscript -e "devtools::test(filter = '^summary$')"
+Rscript -e "devtools::test(filter = '^check-drm$')"
+```
+
+Known limitations:
+
+- This was a focused validation pass, not a full `devtools::test()` or
+  `devtools::check()`.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-19-slices-479-488-focused-validation.md`
+
+## 2026-05-19 - Slices 489-498 Broader Package Health
+
+Goal:
+
+- Run a broader package-health pass after the Ayumi convergence, q4 fallback,
+  reference-page, and stale-promise audit slices.
+
+Files changed:
+
+- `docs/dev-log/after-task/2026-05-19-slices-489-498-broader-package-health.md`
+- `docs/dev-log/check-log.md`
+
+Validation notes:
+
+- `devtools::test()` passed the full test suite with 5,206 expectations.
+- `pkgdown::check_pkgdown()` reported no problems.
+
+Checks run:
+
+```sh
+Rscript -e "devtools::test()"
+Rscript -e "pkgdown::check_pkgdown()"
+```
+
+Known limitations:
+
+- This did not run `devtools::check()`, rebuild all rendered articles, or run
+  the long Ayumi/bootstrap developer scripts.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-19-slices-489-498-broader-package-health.md`
+
+## 2026-05-19 - Slices 499-508 Rendered Figure Audit
+
+Goal:
+
+- Inspect the rendered pkgdown article figures after the reference and
+  simulation-plot cleanup, with special attention to uncertainty displays that
+  had previously looked inconsistent.
+
+Files changed:
+
+- `vignettes/simulation-plot-grammar.Rmd`
+- `docs/dev-log/after-task/2026-05-19-slices-499-508-rendered-figure-audit.md`
+- `docs/dev-log/figure-audits/2026-05-19-rendered-pkgdown/figure-gallery-contact-sheet.png`
+- `docs/dev-log/figure-audits/2026-05-19-rendered-pkgdown/simulation-plot-grammar-contact-sheet.png`
+- `docs/dev-log/check-log.md`
+
+Validation notes:
+
+- The rendered pkgdown site rebuilt successfully.
+- A high-signal stale-status scan found intended planned-boundary wording
+  rather than a new implemented-versus-planned contradiction.
+- Florence found one real visual mismatch: the rendered RMSE panel advertised
+  points and bars, but the MCSE bars were nearly invisible because the x-axis
+  range was too wide.
+- The RMSE panel now uses capped horizontal MCSE intervals, a tighter x-axis,
+  and a two-by-two facet layout.
+- The updated RMSE PNG was visually inspected after rendering.
+- `pkgdown::check_pkgdown()` reported no problems after the figure edit.
+
+Checks run:
+
+```sh
+Rscript -e "pkgdown::build_site()"
+Rscript -e "pkgdown::build_article('simulation-plot-grammar')"
+Rscript -e "pkgdown::check_pkgdown()"
+rg -n "first fitted bivariate phylogenetic|q=4 correlations are derived-only|q4.*derived-only|bootstrap confidence intervals.*implemented|public bootstrap|animal models are implemented|animal\\(\\).*fitted|spatial.*corpair.*implemented|phylogenetic scale terms planned|not yet fitted|planned but not implemented|remain planned" pkgdown-site README.md NEWS.md ROADMAP.md docs/design vignettes --glob '!pkgdown-site/search.json'
+```
+
+Known limitations:
+
+- This was a rendered-figure and status-language pass, not a full accessibility
+  audit of every caption and alt-text string.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-19-slices-499-508-rendered-figure-audit.md`
+
+## 2026-05-19 - Slices 509-518 Profile Parallel Cap
+
+Goal:
+
+- Make the developer-only Ayumi profile fallback helper follow the same bounded
+  worker rule as the parametric-bootstrap prototype.
+
+Files changed:
+
+- `tools/ayumi-profile-fallback-correlations.R`
+- `docs/design/35-optimizer-start-map-multistart.md`
+- `docs/dev-log/after-task/2026-05-19-slices-509-518-profile-parallel-cap.md`
+- `docs/dev-log/check-log.md`
+
+Validation notes:
+
+- `DRMTMB_PROFILE_CORES` is capped at 10 and at the number of selected direct
+  profile targets.
+- `DRMTMB_PROFILE_BACKEND` supports `none` and Unix `multicore`.
+- `preflight.csv` now records backend, requested cores, and actual cores.
+- PSOCK profiling remains unsupported because fitted `TMB` objects carry
+  external pointers and need a refit-or-rebuild worker contract first.
+- Both the profile helper and bootstrap helper parse successfully after the
+  edit.
+
+Checks run:
+
+```sh
+air format docs/design/35-optimizer-start-map-multistart.md tools/ayumi-profile-fallback-correlations.R
+Rscript -e "invisible(parse(file = 'tools/ayumi-profile-fallback-correlations.R')); cat('profile helper parse ok\n')"
+Rscript -e "invisible(parse(file = 'tools/ayumi-parametric-bootstrap-prototype.R')); cat('bootstrap helper parse ok\n')"
+```
+
+Known limitations:
+
+- This did not rerun the expensive Ayumi profile; it hardens the helper and
+  metadata for future bounded profile attempts.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-19-slices-509-518-profile-parallel-cap.md`
+
+## 2026-05-19 - Slices 519-528 Check Cleanup
+
+Goal:
+
+- Run a broader `devtools::check()` pass and clean up package-level issues that
+  focused tests and pkgdown checks did not catch.
+
+Files changed:
+
+- `.Rbuildignore`
+- `R/check.R`
+- `docs/dev-log/after-task/2026-05-19-slices-519-528-check-cleanup.md`
+- `docs/dev-log/check-log.md`
+
+Validation notes:
+
+- The first `devtools::check()` completed with 0 errors and 0 warnings, but 2
+  notes: non-portable file paths from ignored local simulation outputs under
+  `inst/sim/results/`, and an unqualified `ave()` call in
+  `disambiguate_duplicate_labels()`.
+- `ave()` is now `stats::ave()`.
+- `.Rbuildignore` now excludes `inst/sim/results/`, so local simulation output
+  remains available in the worktree but is not bundled into source tarballs.
+- `test-check-drm.R` passed 200 expectations after the namespace fix.
+- The duplicate-label smoke check returned `a[1]`, `a[2]`, `b`, and `a[3]`.
+- The rerun of `devtools::check(document = FALSE, args = '--no-manual')`
+  finished with 0 errors, 0 warnings, and 0 notes.
+
+Checks run:
+
+```sh
+Rscript -e "devtools::check(document = FALSE, error_on = 'never', args = '--no-manual')"
+air format R/check.R
+Rscript -e "devtools::test(filter = '^check-drm$')"
+Rscript -e "devtools::load_all(quiet = TRUE); f <- getFromNamespace('disambiguate_duplicate_labels', 'drmTMB'); print(f(c('a', 'a', 'b', 'a')))"
+Rscript -e "devtools::check(document = FALSE, error_on = 'never', args = '--no-manual')"
+```
+
+Known limitations:
+
+- This check used `--no-manual`; it did not generate the PDF manual.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-19-slices-519-528-check-cleanup.md`
+
+## 2026-05-19 - Slices 529-538 Example Promise Audit
+
+Goal:
+
+- Recheck older requests for animal-model examples and Student-t or skewed
+  normal examples, then record what is already present versus what must remain
+  planned.
+
+Files changed:
+
+- `docs/design/37-worked-example-inventory.md`
+- `docs/dev-log/after-task/2026-05-19-slices-529-538-example-promise-audit.md`
+- `docs/dev-log/check-log.md`
+
+Validation notes:
+
+- Student-t already has a worked tutorial in `vignettes/robust-student.Rmd`,
+  including model equation, simulated seedling example, `check_drm()`,
+  coefficient interpretation, and Gaussian comparison.
+- Skew-normal and skew-t are not fitted families; the current docs correctly
+  keep skew-normal syntax planned only.
+- `animal()` has planned marker examples in the reference page and model-map
+  material, but no fitted animal-model example exists yet because the model
+  code, diagnostics, profile targets, recovery tests, and biological example
+  are not implemented.
+- `docs/design/37-worked-example-inventory.md` now records this status split.
+
+Checks run:
+
+```sh
+rg -n "animal\\(|relmat\\(|Student|student|skew|skew-normal|skewed|shape" README.md ROADMAP.md NEWS.md vignettes docs/design R man _pkgdown.yml
+air format docs/design/37-worked-example-inventory.md
+```
+
+Known limitations:
+
+- This was an inventory and promise-control slice, not a new fitted example.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-19-slices-529-538-example-promise-audit.md`
+
+## 2026-05-19 - Slices 539-548 Phase 18 Bootstrap Parallel Cap
+
+Goal:
+
+- Bring the reusable private Phase 18 parametric-bootstrap helper in line with
+  the Ayumi prototype's 10-core limit and make worker provenance visible in
+  bootstrap draw tables.
+
+Files changed:
+
+- `inst/sim/R/sim_bootstrap.R`
+- `tests/testthat/test-phase18-sim-bootstrap.R`
+- `docs/design/43-phase-18-interval-producer-contract.md`
+- `NEWS.md`
+- `docs/dev-log/after-task/2026-05-19-slices-539-548-phase18-bootstrap-parallel-cap.md`
+- `docs/dev-log/check-log.md`
+
+Validation notes:
+
+- `phase18_parametric_bootstrap()` and
+  `phase18_bootstrap_interval_columns()` now accept `backend = "none"` or
+  `backend = "multicore"` plus `cores`.
+- Actual workers are capped at 10 and at `nsim`; serial mode always uses one
+  worker while preserving the requested core count for provenance.
+- Bootstrap draw tables now record `bootstrap_backend`,
+  `bootstrap_requested_cores`, and `bootstrap_cores`.
+- PSOCK remains unsupported until fitted `TMB` object rebuild semantics are
+  explicit.
+
+Checks run:
+
+```sh
+air format inst/sim/R/sim_bootstrap.R tests/testthat/test-phase18-sim-bootstrap.R docs/design/43-phase-18-interval-producer-contract.md NEWS.md
+Rscript -e "invisible(parse(file = 'inst/sim/R/sim_bootstrap.R')); cat('sim_bootstrap parse ok\n')"
+Rscript -e "devtools::test(filter = '^phase18-sim-bootstrap$')"
+Rscript - <<'RS'
+devtools::load_all(quiet = TRUE)
+source(system.file('sim/R/sim_registry.R', package = 'drmTMB', mustWork = TRUE), local = TRUE)
+source(system.file('sim/R/sim_bootstrap.R', package = 'drmTMB', mustWork = TRUE), local = TRUE)
+dat <- data.frame(y = c(-0.8, -0.1, 0.2, 0.7, 1.1, 1.5), x = c(-2, -1, 0, 1, 2, 3))
+fit <- drmTMB(bf(y ~ x, sigma ~ 1), family = gaussian(), data = dat)
+refit_fun <- function(fit, simulations, index) {
+  dat$y <- simulations[[paste0('sim_', index)]]
+  drmTMB(bf(y ~ x, sigma ~ 1), family = gaussian(), data = dat)
+}
+statistic_fun <- function(fit) c(mu_x = unname(stats::coef(fit, dpar = 'mu')[['x']]))
+draws <- phase18_parametric_bootstrap(fit, statistic_fun, refit_fun, nsim = 2L, seed = 20260519L, cores = 2L, backend = 'multicore')
+stopifnot(nrow(draws) == 2L, all(draws$status == 'ok'), all(draws$bootstrap_cores == 2L))
+print(draws[, c('bootstrap', 'parameter', 'status', 'bootstrap_backend', 'bootstrap_requested_cores', 'bootstrap_cores')])
+RS
+```
+
+Known limitations:
+
+- The change does not expose public bootstrap confidence intervals for fitted
+  models.
+- Large bootstrap grids still need a formal scheduling and reporting layer.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-19-slices-539-548-phase18-bootstrap-parallel-cap.md`
+
+## 2026-05-19 - Slices 549-558 Phase 18 Replicate Runner Cap
+
+Goal:
+
+- Add one reusable bounded replicate-runner helper for Phase 18 smoke grids,
+  and wire the first safe surface through it.
+
+Files changed:
+
+- `inst/sim/R/sim_runner.R`
+- `inst/sim/run/sim_run_gaussian_ls_smoke.R`
+- `inst/sim/run/sim_summary_gaussian_ls_smoke.R`
+- `tests/testthat/test-phase18-sim-runner.R`
+- `tests/testthat/test-phase18-gaussian-ls-runner.R`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `NEWS.md`
+- `docs/dev-log/after-task/2026-05-19-slices-549-558-phase18-replicate-runner-cap.md`
+- `docs/dev-log/check-log.md`
+
+Validation notes:
+
+- `phase18_run_replicates()` now takes cells, seeds, DGP, fit, and summarise
+  functions and returns named replicate results.
+- The helper records `phase18_parallel` metadata with backend, requested cores,
+  and actual cores.
+- `backend = "none"` remains the serial default; Unix `backend = "multicore"`
+  caps actual workers at 10 and at the number of tasks.
+- The Gaussian location-scale smoke runner and summary wrapper now accept
+  `cores` and `backend`.
+
+Checks run:
+
+```sh
+air format inst/sim/R/sim_runner.R inst/sim/run/sim_run_gaussian_ls_smoke.R inst/sim/run/sim_summary_gaussian_ls_smoke.R tests/testthat/test-phase18-sim-runner.R tests/testthat/test-phase18-gaussian-ls-runner.R
+Rscript -e "invisible(parse(file = 'inst/sim/R/sim_runner.R')); invisible(parse(file = 'inst/sim/run/sim_run_gaussian_ls_smoke.R')); invisible(parse(file = 'inst/sim/run/sim_summary_gaussian_ls_smoke.R')); cat('runner parse ok\n')"
+Rscript -e "devtools::test(filter = '^phase18-sim-runner$|^phase18-gaussian-ls-runner$|^phase18-gaussian-ls-summary-smoke$')"
+Rscript - <<'RS'
+devtools::load_all(quiet = TRUE)
+source(system.file('sim/R/sim_registry.R', package = 'drmTMB', mustWork = TRUE), local = TRUE)
+source(system.file('sim/R/sim_utils.R', package = 'drmTMB', mustWork = TRUE), local = TRUE)
+source(system.file('sim/R/sim_runner.R', package = 'drmTMB', mustWork = TRUE), local = TRUE)
+source(system.file('sim/dgp/sim_dgp_gaussian_ls.R', package = 'drmTMB', mustWork = TRUE), local = TRUE)
+source(system.file('sim/fit/sim_summarise_gaussian_ls.R', package = 'drmTMB', mustWork = TRUE), local = TRUE)
+source(system.file('sim/run/sim_run_gaussian_ls_smoke.R', package = 'drmTMB', mustWork = TRUE), local = TRUE)
+out <- phase18_run_gaussian_ls_smoke(
+  conditions = phase18_gaussian_ls_conditions(n = 80L, sigma_slope = 0.15, collinearity = 0.05),
+  n_rep = 2L,
+  master_seed = 20260519L,
+  cores = 2L,
+  backend = 'multicore'
+)
+stopifnot(length(out$results) == 2L, all(vapply(out$results, `[[`, character(1L), 'status') == 'ok'))
+print(out$parallel)
+RS
+```
+
+Known limitations:
+
+- Only the Gaussian location-scale smoke runner is migrated in this slice.
+- Surfaces with per-replicate profile or bootstrap closures need focused tests
+  before migration.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-19-slices-549-558-phase18-replicate-runner-cap.md`
+
+## 2026-05-19 - Slices 559-568 Phase 18 Meta-V Runner Cap
+
+Goal:
+
+- Migrate the core `meta_V(V = V)` smoke runner to the bounded Phase 18
+  replicate helper.
+
+Files changed:
+
+- `inst/sim/run/sim_run_meta_v_smoke.R`
+- `inst/sim/run/sim_summary_meta_v_smoke.R`
+- `tests/testthat/test-phase18-meta-v-runner.R`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `NEWS.md`
+- `docs/dev-log/after-task/2026-05-19-slices-559-568-phase18-meta-v-runner-cap.md`
+- `docs/dev-log/check-log.md`
+
+Validation notes:
+
+- `phase18_run_meta_v_smoke()` now accepts `cores` and `backend`, uses
+  `phase18_run_replicates()`, and returns `parallel` metadata.
+- The summary wrapper passes those controls through.
+- The migration preserves vector and dense known-`V` smoke behaviour.
+
+Checks run:
+
+```sh
+air format inst/sim/run/sim_run_meta_v_smoke.R inst/sim/run/sim_summary_meta_v_smoke.R tests/testthat/test-phase18-meta-v-runner.R
+Rscript -e "invisible(parse(file = 'inst/sim/run/sim_run_meta_v_smoke.R')); invisible(parse(file = 'inst/sim/run/sim_summary_meta_v_smoke.R')); cat('meta runner parse ok\n')"
+Rscript -e "devtools::test(filter = '^phase18-meta-v-runner$|^phase18-meta-v-summary-smoke$|^phase18-sim-runner$')"
+Rscript - <<'RS'
+devtools::load_all(quiet = TRUE)
+source(system.file('sim/R/sim_registry.R', package = 'drmTMB', mustWork = TRUE), local = TRUE)
+source(system.file('sim/R/sim_utils.R', package = 'drmTMB', mustWork = TRUE), local = TRUE)
+source(system.file('sim/R/sim_runner.R', package = 'drmTMB', mustWork = TRUE), local = TRUE)
+source(system.file('sim/dgp/sim_dgp_meta_v.R', package = 'drmTMB', mustWork = TRUE), local = TRUE)
+source(system.file('sim/fit/sim_summarise_meta_v.R', package = 'drmTMB', mustWork = TRUE), local = TRUE)
+source(system.file('sim/run/sim_run_meta_v_smoke.R', package = 'drmTMB', mustWork = TRUE), local = TRUE)
+out <- phase18_run_meta_v_smoke(
+  conditions = phase18_meta_v_conditions(n_study = 24L, known_v_type = c('vector', 'dense'), sigma = 0.20, sampling_sd = 0.12, sampling_rho = c(0, 0.10)),
+  n_rep = 1L,
+  master_seed = 20260519L,
+  cores = 2L,
+  backend = 'multicore'
+)
+stopifnot(length(out$results) == nrow(out$registry$seeds), all(vapply(out$results, `[[`, character(1L), 'status') == 'ok'))
+print(out$parallel)
+RS
+```
+
+Known limitations:
+
+- Other Phase 18 surfaces still need separate migration and tests.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-19-slices-559-568-phase18-meta-v-runner-cap.md`
+
+## 2026-05-19 - Slices 569-578 Phase 18 Count Runner Cap
+
+Goal:
+
+- Migrate the paired Poisson and NB2 `mu` random-effect Phase 18 smoke runners
+  to the bounded replicate helper.
+
+Files changed:
+
+- `inst/sim/run/sim_run_poisson_mu_random_effect_smoke.R`
+- `inst/sim/run/sim_run_nbinom2_mu_random_effect_smoke.R`
+- `inst/sim/run/sim_summary_poisson_mu_random_effect_smoke.R`
+- `inst/sim/run/sim_summary_nbinom2_mu_random_effect_smoke.R`
+- `tests/testthat/test-phase18-poisson-mu-random-effect.R`
+- `tests/testthat/test-phase18-nbinom2-mu-random-effect.R`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `NEWS.md`
+- `docs/dev-log/after-task/2026-05-19-slices-569-578-phase18-count-runner-cap.md`
+- `docs/dev-log/check-log.md`
+
+Validation notes:
+
+- Poisson and NB2 count smoke runners now accept `cores` and `backend`, use
+  `phase18_run_replicates()`, and return `parallel` metadata.
+- Their summary wrappers pass those controls through.
+- Student-t and bivariate `rho12` runners were deliberately left alone because
+  they build per-replicate profile or bootstrap closures.
+
+Checks run:
+
+```sh
+air format inst/sim/run/sim_run_poisson_mu_random_effect_smoke.R inst/sim/run/sim_run_nbinom2_mu_random_effect_smoke.R inst/sim/run/sim_summary_poisson_mu_random_effect_smoke.R inst/sim/run/sim_summary_nbinom2_mu_random_effect_smoke.R tests/testthat/test-phase18-poisson-mu-random-effect.R tests/testthat/test-phase18-nbinom2-mu-random-effect.R
+Rscript -e "invisible(parse(file = 'inst/sim/run/sim_run_poisson_mu_random_effect_smoke.R')); invisible(parse(file = 'inst/sim/run/sim_run_nbinom2_mu_random_effect_smoke.R')); invisible(parse(file = 'inst/sim/run/sim_summary_poisson_mu_random_effect_smoke.R')); invisible(parse(file = 'inst/sim/run/sim_summary_nbinom2_mu_random_effect_smoke.R')); cat('count runner parse ok\n')"
+Rscript -e "devtools::test(filter = '^phase18-poisson-mu-random-effect$|^phase18-nbinom2-mu-random-effect$|^phase18-sim-runner$')"
+```
+
+Additional two-core smoke checks:
+
+```sh
+Rscript - <<'RS'
+devtools::load_all(quiet = TRUE)
+source(system.file('sim/R/sim_registry.R', package = 'drmTMB', mustWork = TRUE), local = TRUE)
+source(system.file('sim/R/sim_utils.R', package = 'drmTMB', mustWork = TRUE), local = TRUE)
+source(system.file('sim/R/sim_runner.R', package = 'drmTMB', mustWork = TRUE), local = TRUE)
+source(system.file('sim/dgp/sim_dgp_poisson_mu_random_effect.R', package = 'drmTMB', mustWork = TRUE), local = TRUE)
+source(system.file('sim/fit/sim_summarise_poisson_mu_random_effect.R', package = 'drmTMB', mustWork = TRUE), local = TRUE)
+source(system.file('sim/run/sim_run_poisson_mu_random_effect_smoke.R', package = 'drmTMB', mustWork = TRUE), local = TRUE)
+out <- phase18_run_poisson_mu_re_smoke(
+  conditions = phase18_poisson_mu_re_conditions(n_group = 16L, n_per_group = 5L),
+  n_rep = 2L,
+  master_seed = 20260519L,
+  cores = 2L,
+  backend = 'multicore'
+)
+stopifnot(length(out$results) == 2L, all(vapply(out$results, `[[`, character(1L), 'status') == 'ok'))
+print(out$parallel)
+RS
+
+Rscript - <<'RS'
+devtools::load_all(quiet = TRUE)
+source(system.file('sim/R/sim_registry.R', package = 'drmTMB', mustWork = TRUE), local = TRUE)
+source(system.file('sim/R/sim_utils.R', package = 'drmTMB', mustWork = TRUE), local = TRUE)
+source(system.file('sim/R/sim_runner.R', package = 'drmTMB', mustWork = TRUE), local = TRUE)
+source(system.file('sim/dgp/sim_dgp_nbinom2_mu_random_effect.R', package = 'drmTMB', mustWork = TRUE), local = TRUE)
+source(system.file('sim/fit/sim_summarise_nbinom2_mu_random_effect.R', package = 'drmTMB', mustWork = TRUE), local = TRUE)
+source(system.file('sim/run/sim_run_nbinom2_mu_random_effect_smoke.R', package = 'drmTMB', mustWork = TRUE), local = TRUE)
+out <- phase18_run_nbinom2_mu_re_smoke(
+  conditions = phase18_nbinom2_mu_re_conditions(n_group = 18L, n_per_group = 5L),
+  n_rep = 2L,
+  master_seed = 20260519L,
+  cores = 2L,
+  backend = 'multicore'
+)
+stopifnot(length(out$results) == 2L, all(vapply(out$results, `[[`, character(1L), 'status') == 'ok'))
+print(out$parallel)
+RS
+```
+
+Known limitations:
+
+- Spatial and Gaussian random-slope smoke runners remain unmigrated.
+- Closure-heavy Student-t and bivariate `rho12` runners need a separate
+  migration design.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-19-slices-569-578-phase18-count-runner-cap.md`
+
+## 2026-05-19 - Slices 579-588 Phase 18 Validation Pass
+
+Goal:
+
+- Run the full focused Phase 18 test set after bootstrap and replicate-runner
+  parallel-cap edits.
+
+Files changed:
+
+- `docs/dev-log/after-task/2026-05-19-slices-579-588-phase18-validation.md`
+- `docs/dev-log/check-log.md`
+
+Validation notes:
+
+- The broader Phase 18 test layer passed after the runner migrations.
+- This guards the simulation scaffold before any more surfaces are migrated.
+
+Checks run:
+
+```sh
+Rscript -e "devtools::test(filter = '^phase18-')"
+```
+
+Result:
+
+- 760 expectations passed.
+- 0 failures.
+- 0 warnings.
+- 0 skips.
+- Duration: 119.3 seconds.
+
+Known limitations:
+
+- This was a focused Phase 18 test pass, not a full package check.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-19-slices-579-588-phase18-validation.md`
+
+## 2026-05-19 - Slices 589-598 Phase 18 Simple Runner Migration
+
+Goal:
+
+- Migrate remaining simple Phase 18 smoke runners to the bounded replicate
+  helper while leaving closure-heavy interval runners alone.
+
+Files changed:
+
+- `inst/sim/run/sim_run_gaussian_mu_random_slope_smoke.R`
+- `inst/sim/run/sim_run_gaussian_sigma_random_slope_smoke.R`
+- `inst/sim/run/sim_run_spatial_mu_slope_smoke.R`
+- `inst/sim/run/sim_summary_gaussian_mu_random_slope_smoke.R`
+- `inst/sim/run/sim_summary_gaussian_sigma_random_slope_smoke.R`
+- `inst/sim/run/sim_summary_spatial_mu_slope_smoke.R`
+- `tests/testthat/test-phase18-gaussian-mu-random-slope.R`
+- `tests/testthat/test-phase18-gaussian-sigma-random-slope.R`
+- `tests/testthat/test-phase18-spatial-mu-slope.R`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `NEWS.md`
+- `docs/dev-log/after-task/2026-05-19-slices-589-598-phase18-simple-runner-migration.md`
+- `docs/dev-log/check-log.md`
+
+Validation notes:
+
+- Gaussian `mu` random-slope, Gaussian `sigma` random-slope, and coordinate
+  spatial `mu` slope runners now accept `cores` and `backend`, use
+  `phase18_run_replicates()`, and return `parallel` metadata.
+- Their summary wrappers pass those controls through.
+- Student-t and bivariate `rho12` runners remain local-loop runners because
+  they build per-replicate profile or bootstrap closures.
+
+Checks run:
+
+```sh
+air format inst/sim/run/sim_run_gaussian_mu_random_slope_smoke.R inst/sim/run/sim_run_gaussian_sigma_random_slope_smoke.R inst/sim/run/sim_run_spatial_mu_slope_smoke.R inst/sim/run/sim_summary_gaussian_mu_random_slope_smoke.R inst/sim/run/sim_summary_gaussian_sigma_random_slope_smoke.R inst/sim/run/sim_summary_spatial_mu_slope_smoke.R tests/testthat/test-phase18-gaussian-mu-random-slope.R tests/testthat/test-phase18-gaussian-sigma-random-slope.R tests/testthat/test-phase18-spatial-mu-slope.R
+Rscript -e "invisible(parse(file = 'inst/sim/run/sim_run_gaussian_mu_random_slope_smoke.R')); invisible(parse(file = 'inst/sim/run/sim_run_gaussian_sigma_random_slope_smoke.R')); invisible(parse(file = 'inst/sim/run/sim_run_spatial_mu_slope_smoke.R')); invisible(parse(file = 'inst/sim/run/sim_summary_gaussian_mu_random_slope_smoke.R')); invisible(parse(file = 'inst/sim/run/sim_summary_gaussian_sigma_random_slope_smoke.R')); invisible(parse(file = 'inst/sim/run/sim_summary_spatial_mu_slope_smoke.R')); cat('simple runner parse ok\n')"
+Rscript -e "devtools::test(filter = '^phase18-gaussian-mu-random-slope$|^phase18-gaussian-sigma-random-slope$|^phase18-spatial-mu-slope$|^phase18-sim-runner$')"
+```
+
+Additional two-core smoke checks:
+
+- `phase18_run_gaussian_mu_rs_smoke()`.
+- `phase18_run_gaussian_sigma_rs_smoke()`.
+- `phase18_run_spatial_mu_slope_smoke()`.
+
+Known limitations:
+
+- A full Phase 18 validation pass should follow this migration.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-19-slices-589-598-phase18-simple-runner-migration.md`
+
+## 2026-05-19 - Slices 599-608 Phase 18 Post-Migration Validation
+
+Goal:
+
+- Rerun the full focused Phase 18 test set after all simple runner migrations.
+
+Files changed:
+
+- `docs/dev-log/after-task/2026-05-19-slices-599-608-phase18-post-migration-validation.md`
+- `docs/dev-log/check-log.md`
+
+Validation notes:
+
+- The full Phase 18 focused test layer passed after the Gaussian, meta, count,
+  random-slope, and spatial simple-runner migrations.
+- Student-t shape and bivariate `rho12` runners remain local-loop runners but
+  are included in this passing test set.
+
+Checks run:
+
+```sh
+Rscript -e "devtools::test(filter = '^phase18-')"
+```
+
+Result:
+
+- 766 expectations passed.
+- 0 failures.
+- 0 warnings.
+- 0 skips.
+- Duration: 121.5 seconds.
+
+Known limitations:
+
+- This was not a full package test or `devtools::check()`.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-19-slices-599-608-phase18-post-migration-validation.md`
+
+## 2026-05-19 - Slices 609-618 Full Test Baseline
+
+Goal:
+
+- Run the full package test suite after the Phase 18 bounded-runner changes.
+
+Files changed:
+
+- `docs/dev-log/after-task/2026-05-19-slices-609-618-full-test-baseline.md`
+- `docs/dev-log/check-log.md`
+
+Validation notes:
+
+- Full package tests passed after the Phase 18 bootstrap and runner-cap work.
+
+Checks run:
+
+```sh
+Rscript -e "devtools::test()"
+```
+
+Result:
+
+- 5,238 expectations passed.
+- 0 failures.
+- 0 warnings.
+- 0 skips.
+- Duration: 270.6 seconds.
+
+Known limitations:
+
+- This was not `devtools::check()` or `pkgdown::check_pkgdown()`.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-19-slices-609-618-full-test-baseline.md`
+
+## 2026-05-19 - Slices 619-628 Release Readiness Checks
+
+Goal:
+
+- Run pkgdown and package-level checks after the Phase 18 runner migrations.
+
+Files changed:
+
+- `docs/dev-log/after-task/2026-05-19-slices-619-628-release-readiness-checks.md`
+- `docs/dev-log/check-log.md`
+
+Validation notes:
+
+- Pkgdown metadata and package checks are clean after the simulation helper
+  changes.
+- `R CMD check` also confirms that ignored local simulation outputs are not
+  being bundled into the source tarball.
+
+Checks run:
+
+```sh
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "devtools::check(document = FALSE, error_on = 'never', args = '--no-manual')"
+```
+
+Results:
+
+- `pkgdown::check_pkgdown()`: no problems found.
+- `devtools::check(document = FALSE, args = '--no-manual')`: 0 errors, 0
+  warnings, 0 notes; duration 3 minutes 43.9 seconds.
+
+Known limitations:
+
+- The package check used `--no-manual`.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-19-slices-619-628-release-readiness-checks.md`
+
+## 2026-05-19 - Slices 629-638 Phase 18 Closure-Aware Runner Migration
+
+Goal:
+
+- Add a closure-aware summary factory path to the bounded Phase 18 replicate
+  helper and migrate Student-t shape plus bivariate residual `rho12` runners.
+
+Files changed:
+
+- `inst/sim/R/sim_runner.R`
+- `inst/sim/run/sim_run_student_shape_smoke.R`
+- `inst/sim/run/sim_summary_student_shape_smoke.R`
+- `inst/sim/run/sim_run_biv_rho12_smoke.R`
+- `inst/sim/run/sim_summary_biv_rho12_smoke.R`
+- `tests/testthat/test-phase18-sim-runner.R`
+- `tests/testthat/test-phase18-student-shape-runner.R`
+- `tests/testthat/test-phase18-biv-rho12-runner.R`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `NEWS.md`
+- `docs/dev-log/after-task/2026-05-19-slices-629-638-phase18-closure-runner-migration.md`
+- `docs/dev-log/check-log.md`
+
+Validation notes:
+
+- `phase18_run_replicates()` now accepts a
+  `summarise_fun_factory(cell, seed_row)` for per-replicate summary functions.
+- Student-t shape and bivariate residual `rho12` runners now use this factory
+  to preserve profile and bootstrap seeds while sharing the bounded runner.
+- Both runners now accept `cores` and `backend` and return `parallel` metadata.
+
+Checks run:
+
+```sh
+air format inst/sim/R/sim_runner.R inst/sim/run/sim_run_student_shape_smoke.R inst/sim/run/sim_summary_student_shape_smoke.R inst/sim/run/sim_run_biv_rho12_smoke.R inst/sim/run/sim_summary_biv_rho12_smoke.R tests/testthat/test-phase18-sim-runner.R tests/testthat/test-phase18-student-shape-runner.R tests/testthat/test-phase18-biv-rho12-runner.R
+Rscript -e "invisible(parse(file = 'inst/sim/R/sim_runner.R')); invisible(parse(file = 'inst/sim/run/sim_run_student_shape_smoke.R')); invisible(parse(file = 'inst/sim/run/sim_run_biv_rho12_smoke.R')); cat('closure runner parse ok\n')"
+Rscript -e "devtools::test(filter = '^phase18-sim-runner$|^phase18-student-shape-runner$|^phase18-student-shape-summary-smoke$|^phase18-biv-rho12-runner$|^phase18-biv-rho12-summary-smoke$')"
+```
+
+Additional two-core smoke checks:
+
+- Student-t shape and bivariate residual `rho12` with `n_rep = 2`.
+- Student-t shape and bivariate residual `rho12` with `bootstrap_nsim = 2`.
+
+Results:
+
+- Focused closure-runner tests passed 149 expectations.
+- Bootstrap smokes returned all `bootstrap.status = "ok"` rows: 12 Student-t
+  rows and 20 bivariate `rho12` rows.
+
+Known limitations:
+
+- This remains private simulation infrastructure, not public bootstrap
+  intervals.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-19-slices-629-638-phase18-closure-runner-migration.md`
+
+## 2026-05-19 - Slices 639-648 Phase 18 Post-Closure Validation
+
+Goal:
+
+- Rerun the full focused Phase 18 test set after closure-aware runner migration.
+
+Files changed:
+
+- `docs/dev-log/after-task/2026-05-19-slices-639-648-phase18-post-closure-validation.md`
+- `docs/dev-log/check-log.md`
+
+Validation notes:
+
+- Full Phase 18 focused tests passed after all smoke runners were moved to the
+  bounded helper.
+
+Checks run:
+
+```sh
+Rscript -e "devtools::test(filter = '^phase18-')"
+```
+
+Result:
+
+- 772 expectations passed.
+- 0 failures.
+- 0 warnings.
+- 0 skips.
+- Duration: 117.6 seconds.
+
+Known limitations:
+
+- This was not a full package test or `devtools::check()`.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-19-slices-639-648-phase18-post-closure-validation.md`
+
+## 2026-05-19 - Slices 649-658 Full Test After Closure Runner
+
+Goal:
+
+- Run the full package test suite after adding the closure-aware Phase 18
+  runner path.
+
+Files changed:
+
+- `docs/dev-log/after-task/2026-05-19-slices-649-658-full-test-after-closure-runner.md`
+- `docs/dev-log/check-log.md`
+
+Validation notes:
+
+- Full package tests passed after Student-t shape and bivariate residual
+  `rho12` runner migration.
+
+Checks run:
+
+```sh
+Rscript -e "devtools::test()"
+```
+
+Result:
+
+- 5,244 expectations passed.
+- 0 failures.
+- 0 warnings.
+- 0 skips.
+- Duration: 260.9 seconds.
+
+Known limitations:
+
+- This was not `devtools::check()` or `pkgdown::check_pkgdown()`.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-19-slices-649-658-full-test-after-closure-runner.md`
+
+## 2026-05-19 - Slices 659-668 Post-Closure Release Checks
+
+Goal:
+
+- Run pkgdown and package-level checks after the closure-aware runner migration.
+
+Files changed:
+
+- `docs/dev-log/after-task/2026-05-19-slices-659-668-post-closure-release-checks.md`
+- `docs/dev-log/check-log.md`
+
+Validation notes:
+
+- Pkgdown and package checks are clean after all Phase 18 runners moved to the
+  bounded helper.
+
+Checks run:
+
+```sh
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "devtools::check(document = FALSE, error_on = 'never', args = '--no-manual')"
+```
+
+Results:
+
+- `pkgdown::check_pkgdown()`: no problems found.
+- `devtools::check(document = FALSE, args = '--no-manual')`: 0 errors, 0
+  warnings, 0 notes; duration 4 minutes 25.5 seconds.
+
+Known limitations:
+
+- The package check used `--no-manual`.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-19-slices-659-668-post-closure-release-checks.md`
+
+## 2026-05-20 - Slices 669-678 Phase 18 Runner Status Audit
+
+Goal:
+
+- Reconcile the roadmap and Phase 18 simulation programme with the bounded
+  runner and private bootstrap infrastructure that passed focused, full,
+  pkgdown, and package checks in Slices 539-668.
+
+Files changed:
+
+- `ROADMAP.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `docs/dev-log/after-task/2026-05-20-slices-669-678-phase18-runner-status-audit.md`
+- `docs/dev-log/check-log.md`
+
+Validation notes:
+
+- This was a documentation/status audit after the clean Slices 659-668 package
+  baseline.
+- The audit keeps public bootstrap intervals and PSOCK execution outside the
+  implemented package surface.
+
+Stale-wording scans:
+
+```sh
+rg -n "phase18_run_replicates|bounded|multicore|PSOCK|cores" README.md ROADMAP.md NEWS.md docs/design docs/dev-log/check-log.md inst/sim -g'*.md' -g'*.Rmd'
+rg -n "Phase 18|runner|bootstrap|public bootstrap|animal\\(|relmat\\(|skew|planned|blocked|TODO|FIXME" README.md ROADMAP.md NEWS.md docs/design docs/dev-log/check-log.md vignettes inst/sim
+```
+
+Checks run:
+
+```sh
+git diff --check
+```
+
+Result:
+
+- `git diff --check` completed with no whitespace errors.
+
+Known limitations:
+
+- No new simulation grids were added in this slice.
+- The runner bridge is private Phase 18 infrastructure, not a public
+  confidence-interval API.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-20-slices-669-678-phase18-runner-status-audit.md`
+
+## 2026-05-20 - Slices 679-688 Phase 18 Grid Wrapper Parallel Controls
+
+Goal:
+
+- Make the higher-level Phase 18 grid and gallery wrappers forward the bounded
+  runner controls, and make Student-t shape plus bivariate residual `rho12`
+  bootstrap settings explicit rather than silently serial.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `docs/dev-log/after-task/2026-05-20-slices-679-688-phase18-grid-wrapper-parallel-controls.md`
+- `docs/dev-log/check-log.md`
+- `inst/sim/README.md`
+- `inst/sim/R/sim_bootstrap.R`
+- `inst/sim/fit/sim_summarise_biv_rho12.R`
+- `inst/sim/fit/sim_summarise_student_shape.R`
+- `inst/sim/run/sim_render_count_mu_gallery_smoke.R`
+- `inst/sim/run/sim_run_biv_rho12_smoke.R`
+- `inst/sim/run/sim_run_student_shape_smoke.R`
+- `inst/sim/run/sim_summary_biv_rho12_smoke.R`
+- `inst/sim/run/sim_summary_count_mu_random_effect_pilot.R`
+- `inst/sim/run/sim_summary_student_shape_smoke.R`
+- `inst/sim/run/sim_write_biv_rho12_grid.R`
+- `inst/sim/run/sim_write_gaussian_ls_grid.R`
+- `inst/sim/run/sim_write_student_shape_grid.R`
+- `tests/testthat/test-phase18-biv-rho12-grid-writer.R`
+- `tests/testthat/test-phase18-biv-rho12-summary-smoke.R`
+- `tests/testthat/test-phase18-count-mu-random-effect-pilot.R`
+- `tests/testthat/test-phase18-gaussian-ls-grid-writer.R`
+- `tests/testthat/test-phase18-student-shape-grid-writer.R`
+- `tests/testthat/test-phase18-student-shape-summary-smoke.R`
+
+Validation notes:
+
+- The first focused grid-wrapper test run exposed a useful failure: invalid
+  bootstrap backend settings were captured inside replicate errors and then
+  collapsed to "no summaries." Student-t shape and bivariate residual `rho12`
+  runners now validate bootstrap backend settings before any replicate fit.
+- Bootstrap interval rows now carry backend and requested/actual core metadata.
+
+Checks run:
+
+```sh
+Rscript -e "devtools::test(filter = '^phase18-(gaussian-ls-grid-writer|biv-rho12-grid-writer|student-shape-grid-writer|count-mu-random-effect-pilot|count-gallery-smoke-runner|student-shape-runner|biv-rho12-runner)$')"
+Rscript -e "devtools::test(filter = '^phase18-(student-shape-summary-smoke|biv-rho12-summary-smoke|sim-bootstrap)$')"
+Rscript -e "devtools::test(filter = '^phase18-')"
+```
+
+Results:
+
+- First command after the validation fix: 126 expectations passed, 0 failures,
+  0 warnings, 0 skips; duration 70.7 seconds.
+- Second command: 77 expectations passed, 0 failures, 0 warnings, 0 skips;
+  duration 3.5 seconds.
+- Full focused Phase 18 command: 793 expectations passed, 0 failures, 0
+  warnings, 0 skips; duration 118.2 seconds.
+
+Known limitations:
+
+- These remain private Phase 18 simulation controls.
+- The recommended heavy-use pattern is to parallelize either the replicate
+  layer or the bootstrap layer, not both at once.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-20-slices-679-688-phase18-grid-wrapper-parallel-controls.md`
+
+## 2026-05-20 - Slices 689-698 Phase 18 Nested Parallel Guard
+
+Goal:
+
+- Enforce the documented Phase 18 rule that larger bootstrap grids should
+  parallelize either replicate execution or private bootstrap refits, not both
+  at once.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `docs/dev-log/after-task/2026-05-20-slices-689-698-phase18-nested-parallel-guard.md`
+- `docs/dev-log/check-log.md`
+- `inst/sim/README.md`
+- `inst/sim/R/sim_runner.R`
+- `inst/sim/run/sim_run_biv_rho12_smoke.R`
+- `inst/sim/run/sim_run_student_shape_smoke.R`
+- `tests/testthat/test-phase18-biv-rho12-runner.R`
+- `tests/testthat/test-phase18-sim-runner.R`
+- `tests/testthat/test-phase18-student-shape-runner.R`
+
+Validation notes:
+
+- The guard compares the actual capped worker counts for the replicate plan and
+  the bootstrap plan. It errors only when both layers would use more than one
+  worker.
+
+Checks run:
+
+```sh
+Rscript -e "devtools::test(filter = '^phase18-(sim-runner|student-shape-runner|biv-rho12-runner|student-shape-summary-smoke|biv-rho12-summary-smoke)$')"
+```
+
+Result:
+
+- 159 expectations passed, 0 failures, 0 warnings, 0 skips; duration 4.1
+  seconds.
+
+Known limitations:
+
+- This guard currently applies to Student-t shape and bivariate residual
+  `rho12` runners, the two closure-heavy smoke surfaces with optional private
+  bootstrap refits.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-20-slices-689-698-phase18-nested-parallel-guard.md`
+
+## 2026-05-20 - Slices 699-708 Phase 18 `meta_V(V = V)` Grid Writer
+
+Goal:
+
+- Give the admitted Phase 18 Gaussian meta-analysis lane a repeatable grid
+  output writer matching the Gaussian location-scale artifact path.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `docs/dev-log/after-task/2026-05-20-slices-699-708-phase18-meta-v-grid-writer.md`
+- `docs/dev-log/check-log.md`
+- `inst/sim/README.md`
+- `inst/sim/run/sim_write_meta_v_grid.R`
+- `tests/testthat/test-phase18-meta-v-grid-writer.R`
+
+Validation notes:
+
+- The writer saves aggregate, replicate, manifest, failure-ledger, Wald
+  interval, and Wald coverage CSVs beside resumable per-replicate RDS files.
+- The writer forwards private runner `cores` and `backend` settings.
+
+Checks run:
+
+```sh
+Rscript -e "devtools::test(filter = '^phase18-meta-v-(grid-writer|summary-smoke|runner)$')"
+Rscript -e "devtools::test(filter = '^phase18-')"
+```
+
+Result:
+
+- 52 expectations passed, 0 failures, 0 warnings, 0 skips; duration 2.1
+  seconds.
+- Full focused Phase 18 tests passed with 814 expectations, 0 failures, 0
+  warnings, 0 skips; duration 118.4 seconds.
+
+Known limitations:
+
+- This is still a smoke/grid artifact writer, not a formal operating-
+  characteristic claim.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-20-slices-699-708-phase18-meta-v-grid-writer.md`
+
+## 2026-05-20 - Slices 709-718 Phase 18 Count `mu` Random-Effect Grid Writer
+
+Goal:
+
+- Give the admitted paired Poisson/NB2 `mu` random-effect Phase 18 lane a
+  repeatable grid output writer.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `docs/dev-log/after-task/2026-05-20-slices-709-718-phase18-count-mu-re-grid-writer.md`
+- `docs/dev-log/check-log.md`
+- `inst/sim/README.md`
+- `inst/sim/run/sim_write_count_mu_random_effect_grid.R`
+- `tests/testthat/test-phase18-count-mu-random-effect-grid-writer.R`
+
+Validation notes:
+
+- The writer saves aggregate, replicate, manifest, failure-ledger, Wald
+  interval, Wald coverage, direct-SD profile interval, and profile coverage
+  CSVs beside resumable per-replicate RDS files.
+- The writer forwards private runner `cores` and `backend` settings to both
+  count-family smoke surfaces.
+
+Checks run:
+
+```sh
+Rscript -e "devtools::test(filter = '^phase18-count-mu-random-effect-(grid-writer|pilot)$')"
+Rscript -e "devtools::test(filter = '^phase18-count-mu-random-effect-grid-writer$')"
+Rscript -e "devtools::test(filter = '^phase18-(gaussian-ls-grid-writer|meta-v-grid-writer|count-mu-random-effect-grid-writer|biv-rho12-grid-writer|student-shape-grid-writer)$')"
+```
+
+Results:
+
+- First command before test trim: 41 expectations passed, 0 failures, 0
+  warnings, 0 skips; duration 101.8 seconds.
+- Grid-writer-only command after trimming the duplicate overwrite rerun: 17
+  expectations passed, 0 failures, 0 warnings, 0 skips; duration 35.9 seconds.
+- Grid-writer bundle: 75 expectations passed, 0 failures, 0 warnings, 0
+  skips; duration 38.0 seconds.
+
+Known limitations:
+
+- This remains a small-grid artifact writer, not a formal coverage grid claim.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-20-slices-709-718-phase18-count-mu-re-grid-writer.md`
+
+## 2026-05-20 - Slices 719-728 Phase 18 Simple Random-Slope Grid Writers
+
+Goal:
+
+- Add repeatable simple grid writers for the ordinary Gaussian `mu`
+  random-slope, independent Gaussian `sigma` random-slope, and coordinate
+  spatial Gaussian `mu` slope lanes.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `docs/dev-log/after-task/2026-05-20-slices-719-728-phase18-simple-random-slope-grid-writers.md`
+- `docs/dev-log/check-log.md`
+- `inst/sim/README.md`
+- `inst/sim/R/sim_runner.R`
+- `inst/sim/run/sim_write_gaussian_mu_random_slope_grid.R`
+- `inst/sim/run/sim_write_gaussian_sigma_random_slope_grid.R`
+- `inst/sim/run/sim_write_spatial_mu_slope_grid.R`
+- `tests/testthat/test-phase18-random-slope-grid-writers.R`
+
+Validation notes:
+
+- The new simple grid writers share helper functions for output directories,
+  path construction, overwrite checks, and aggregate/replicate/manifest/failure
+  CSV writing.
+
+Checks run:
+
+```sh
+Rscript -e "devtools::test(filter = '^phase18-(random-slope-grid-writers|gaussian-mu-random-slope|gaussian-sigma-random-slope|spatial-mu-slope)$')"
+Rscript -e "devtools::test(filter = '^phase18-')"
+```
+
+Result:
+
+- 109 expectations passed, 0 failures, 0 warnings, 0 skips; duration 2.7
+  seconds.
+- Full focused Phase 18 tests passed with 853 expectations, 0 failures, 0
+  warnings, 0 skips; duration 154.4 seconds.
+
+Known limitations:
+
+- These simple writers do not add interval artifacts because the corresponding
+  summary smokes do not yet include formal interval rows for every target.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-20-slices-719-728-phase18-simple-random-slope-grid-writers.md`
+
+## 2026-05-20 - Slices 729-738 Phase 18 Grid Artifact Manifests
+
+Goal:
+
+- Add a report-staging manifest to Phase 18 grid writers so downstream reports
+  can audit which CSV artifacts were written and how many rows each contains.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `docs/dev-log/after-task/2026-05-20-slices-729-738-phase18-grid-artifact-manifests.md`
+- `docs/dev-log/check-log.md`
+- `inst/sim/README.md`
+- `inst/sim/R/sim_runner.R`
+- `inst/sim/run/sim_write_biv_rho12_grid.R`
+- `inst/sim/run/sim_write_count_mu_random_effect_grid.R`
+- `inst/sim/run/sim_write_gaussian_ls_grid.R`
+- `inst/sim/run/sim_write_gaussian_mu_random_slope_grid.R`
+- `inst/sim/run/sim_write_gaussian_sigma_random_slope_grid.R`
+- `inst/sim/run/sim_write_meta_v_grid.R`
+- `inst/sim/run/sim_write_spatial_mu_slope_grid.R`
+- `inst/sim/run/sim_write_student_shape_grid.R`
+- `tests/testthat/test-phase18-count-mu-random-effect-grid-writer.R`
+- `tests/testthat/test-phase18-gaussian-ls-grid-writer.R`
+- `tests/testthat/test-phase18-meta-v-grid-writer.R`
+- `tests/testthat/test-phase18-random-slope-grid-writers.R`
+- `tests/testthat/test-phase18-sim-runner.R`
+
+Validation notes:
+
+- The first focused run caught that optional interval CSVs may be present but
+  empty; the manifest helper now records those as zero-row artifacts rather
+  than failing.
+
+Checks run:
+
+```sh
+Rscript -e "devtools::test(filter = '^phase18-(sim-runner|gaussian-ls-grid-writer|meta-v-grid-writer|count-mu-random-effect-grid-writer|random-slope-grid-writers|biv-rho12-grid-writer|student-shape-grid-writer)$')"
+```
+
+Result:
+
+- After the empty-CSV fix: 169 expectations passed, 0 failures, 0 warnings, 0
+  skips; duration 39.6 seconds.
+
+Known limitations:
+
+- The manifest records current CSV artifacts only; it does not summarize
+  per-replicate RDS files.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-20-slices-729-738-phase18-grid-artifact-manifests.md`
+
+## 2026-05-20 - Slices 739-748 Phase 18 Artifact Manifest Status Helpers
+
+Goal:
+
+- Add small report-staging helpers that bind artifact manifests across grid
+  writers and summarize present, missing, empty, and total CSV rows by surface.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `docs/dev-log/after-task/2026-05-20-slices-739-748-phase18-artifact-manifest-status.md`
+- `docs/dev-log/check-log.md`
+- `inst/sim/README.md`
+- `inst/sim/R/sim_runner.R`
+- `tests/testthat/test-phase18-sim-runner.R`
+
+Checks run:
+
+```sh
+Rscript -e "devtools::test(filter = '^phase18-sim-runner$')"
+```
+
+Result:
+
+- 70 expectations passed, 0 failures, 0 warnings, 0 skips.
+
+Known limitations:
+
+- The helpers summarize artifact availability and row counts, not the semantic
+  correctness of each table.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-20-slices-739-748-phase18-artifact-manifest-status.md`
+
+## 2026-05-20 - Slices 749-758 Phase 18 First-Wave Artifact Status Writer
+
+Goal:
+
+- Use the cross-grid artifact manifest helpers in a concrete first-wave staging
+  writer that writes bound artifact-manifest and surface-status CSVs before a
+  report consumes simulation tables.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `docs/dev-log/after-task/2026-05-20-slices-749-758-phase18-first-wave-artifact-status.md`
+- `docs/dev-log/check-log.md`
+- `inst/sim/README.md`
+- `inst/sim/run/sim_write_first_wave_artifact_status.R`
+- `tests/testthat/test-phase18-first-wave-artifact-status.R`
+
+Checks run:
+
+```sh
+Rscript -e "devtools::test(filter = '^phase18-first-wave-artifact-status$')"
+air format inst/sim/run/sim_write_first_wave_artifact_status.R tests/testthat/test-phase18-first-wave-artifact-status.R
+Rscript -e "devtools::test(filter = '^phase18-(sim-runner|first-wave-artifact-status)$')"
+```
+
+Result:
+
+- 16 expectations passed, 0 failures, 0 warnings, 0 skips.
+- After formatting, the runner plus first-wave writer bundle passed with 86
+  expectations, 0 failures, 0 warnings, 0 skips.
+
+Known limitations:
+
+- The writer checks artifact availability and row counts, not semantic table
+  correctness.
+- It does not summarize per-replicate RDS files.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-20-slices-749-758-phase18-first-wave-artifact-status.md`
+
+## 2026-05-20 - Slices 759-768 Phase 18 First-Wave Status Report Template
+
+Goal:
+
+- Add a report-staging template that reads first-wave artifact status before a
+  larger simulation report consumes surface-specific tables.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `docs/dev-log/after-task/2026-05-20-slices-759-768-phase18-first-wave-status-report.md`
+- `docs/dev-log/check-log.md`
+- `inst/sim/README.md`
+- `inst/sim/reports/phase18-first-wave-status-report.Rmd`
+- `tests/testthat/test-phase18-first-wave-status-report.R`
+
+Checks run:
+
+```sh
+Rscript -e "devtools::test(filter = '^phase18-first-wave-status-report$')"
+air format tests/testthat/test-phase18-first-wave-status-report.R
+Rscript -e "devtools::test(filter = '^phase18-first-wave-status-report$')"
+Rscript -e "devtools::test(filter = '^phase18-(first-wave-artifact-status|first-wave-status-report|sim-runner)$')"
+```
+
+Result:
+
+- Before and after formatting, 14 expectations passed with 0 failures, 0
+  warnings, and 0 skips.
+- The writer, status-report, and runner bundle passed with 100 expectations, 0
+  failures, 0 warnings, and 0 skips.
+
+Known limitations:
+
+- This template checks artifact availability and row counts, not semantic table
+  correctness.
+- It is a staging report, not the final first-wave simulation report.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-20-slices-759-768-phase18-first-wave-status-report.md`
+
+## 2026-05-20 - Slices 769-778 Phase 18 First-Wave Table Bundle Writer
+
+Goal:
+
+- Add a private table-bundle writer that combines selected CSV artifacts across
+  grid-writer outputs for first-wave report staging.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `docs/dev-log/after-task/2026-05-20-slices-769-778-phase18-first-wave-table-bundle.md`
+- `docs/dev-log/check-log.md`
+- `inst/sim/README.md`
+- `inst/sim/run/sim_write_first_wave_table_bundle.R`
+- `tests/testthat/test-phase18-first-wave-table-bundle.R`
+
+Checks run:
+
+```sh
+Rscript -e "devtools::test(filter = '^phase18-first-wave-table-bundle$')"
+air format inst/sim/run/sim_write_first_wave_table_bundle.R tests/testthat/test-phase18-first-wave-table-bundle.R
+Rscript -e "devtools::test(filter = '^phase18-first-wave-table-bundle$')"
+Rscript -e "devtools::test(filter = '^phase18-(first-wave-artifact-status|first-wave-status-report|first-wave-table-bundle|sim-runner)$')"
+```
+
+Result:
+
+- Before and after formatting, 20 expectations passed with 0 failures, 0
+  warnings, and 0 skips.
+- The first-wave staging plus runner bundle passed with 120 expectations, 0
+  failures, 0 warnings, and 0 skips.
+
+Known limitations:
+
+- The table bundle skips missing artifact files; the status preflight remains
+  the fail-fast missing-file gate.
+- The writer does not validate semantic table correctness.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-20-slices-769-778-phase18-first-wave-table-bundle.md`
+
+## 2026-05-20 - Slices 779-788 Phase 18 First-Wave Summary Report Skeleton
+
+Goal:
+
+- Add a table-first summary report skeleton for Phase 18 first-wave simulation
+  artifacts.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `docs/dev-log/after-task/2026-05-20-slices-779-788-phase18-first-wave-summary-report.md`
+- `docs/dev-log/check-log.md`
+- `inst/sim/README.md`
+- `inst/sim/reports/phase18-first-wave-summary-report.Rmd`
+- `tests/testthat/test-phase18-first-wave-summary-report.R`
+
+Checks run:
+
+```sh
+Rscript -e "devtools::test(filter = '^phase18-first-wave-summary-report$')"
+air format tests/testthat/test-phase18-first-wave-summary-report.R
+Rscript -e "devtools::test(filter = '^phase18-first-wave-summary-report$')"
+Rscript -e "devtools::test(filter = '^phase18-(first-wave-artifact-status|first-wave-status-report|first-wave-table-bundle|first-wave-summary-report|sim-runner)$')"
+```
+
+Result:
+
+- Before and after formatting, 14 expectations passed with 0 failures, 0
+  warnings, and 0 skips.
+- The first-wave staging, report, table-bundle, summary-report, and runner
+  bundle passed with 134 expectations, 0 failures, 0 warnings, and 0 skips.
+
+Known limitations:
+
+- The report does not draw figures or validate semantic table correctness.
+- It remains a staging report, not final operating-characteristic evidence.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-20-slices-779-788-phase18-first-wave-summary-report.md`
+
+## 2026-05-20 - Slices 789-798 Phase 18 First-Wave Summary Render Helper
+
+Goal:
+
+- Add an orchestration helper that writes first-wave artifact status, table
+  bundles, and an optional rendered HTML summary report from grid-writer
+  outputs.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `docs/dev-log/after-task/2026-05-20-slices-789-798-phase18-first-wave-summary-render-helper.md`
+- `docs/dev-log/check-log.md`
+- `inst/sim/README.md`
+- `inst/sim/run/sim_render_first_wave_summary_report.R`
+- `tests/testthat/test-phase18-first-wave-summary-render-helper.R`
+
+Checks run:
+
+```sh
+Rscript -e "devtools::test(filter = '^phase18-first-wave-summary-render-helper$')"
+air format inst/sim/run/sim_render_first_wave_summary_report.R tests/testthat/test-phase18-first-wave-summary-render-helper.R
+Rscript -e "devtools::test(filter = '^phase18-first-wave-summary-render-helper$')"
+Rscript -e "devtools::test(filter = '^phase18-(first-wave-.*|sim-runner|gaussian-ls-grid-writer|meta-v-grid-writer|count-mu-random-effect-grid-writer|random-slope-grid-writers|biv-rho12-grid-writer|student-shape-grid-writer)$')"
+```
+
+Result:
+
+- After fixing the fake grid-output fixture, 16 expectations passed with 0
+  failures, 0 warnings, and 0 skips before and after formatting.
+- The broader first-wave staging and grid-writer bundle passed with 257
+  expectations, 0 failures, 0 warnings, and 0 skips.
+
+Known limitations:
+
+- The helper consumes grid-writer outputs; it does not run the simulation grids.
+- The rendered summary report is still table-first and has no figure layer.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-20-slices-789-798-phase18-first-wave-summary-render-helper.md`
+
+## 2026-05-20 - Slices 799-808 Phase 18 Full Focused Validation
+
+Goal:
+
+- Rerun the full focused Phase 18 test bundle after adding first-wave
+  report-staging helpers and templates.
+
+Checks run:
+
+```sh
+Rscript -e "devtools::test(filter = '^phase18-')"
+```
+
+Result:
+
+- 958 expectations passed, 0 failures, 0 warnings, 0 skips; duration 158.5
+  seconds.
+
+Known limitations:
+
+- This is focused Phase 18 validation, not full package, pkgdown, or package
+  check validation.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-20-slices-799-808-phase18-full-focused-validation.md`
+
+## 2026-05-20 - Slices 809-818 Phase 18 First-Wave Real Summary Smoke
+
+Goal:
+
+- Run the first tiny first-wave summary report smoke using actual grid-writer
+  outputs, not only synthetic fixtures.
+
+Run summary:
+
+- Output root:
+  `inst/sim/results/slice-809-first-wave-summary-smoke/`
+- Rendered report:
+  `inst/sim/results/slice-809-first-wave-summary-smoke/first-wave-summary/report/phase18-first-wave-summary.html`
+- Surfaces:
+  `gaussian_ls_grid`, `meta_v_grid`
+- Artifact-status rows: 2 data rows plus header.
+- Bundled aggregate rows: 13 data rows plus header.
+
+Checks run:
+
+```sh
+Rscript - <<'RS'
+# Local smoke sources inst/sim helpers, writes ignored results, and renders HTML.
+RS
+test -f inst/sim/results/slice-809-first-wave-summary-smoke/first-wave-summary/report/phase18-first-wave-summary.html
+rg -n "Slice 809|gaussian_ls_grid|meta_v_grid|Aggregate Operating Characteristics|Interval Diagnostics" inst/sim/results/slice-809-first-wave-summary-smoke/first-wave-summary/report/phase18-first-wave-summary.html
+find inst/sim/results/slice-809-first-wave-summary-smoke -maxdepth 3 -type f | sort
+wc -l inst/sim/results/slice-809-first-wave-summary-smoke/first-wave-summary/status/phase18-first-wave-artifact-status.csv
+wc -l inst/sim/results/slice-809-first-wave-summary-smoke/first-wave-summary/tables/phase18-first-wave-aggregate.csv
+```
+
+Known limitations:
+
+- This is a tiny report smoke, not a formal Phase 18 operating-characteristic
+  grid.
+- It includes Gaussian location-scale and `meta_V(V = V)` only.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-20-slices-809-818-phase18-first-wave-real-summary-smoke.md`
+
+## 2026-05-20 - Slices 819-828 Phase 18 First-Wave Report Table Polish
+
+Goal:
+
+- Put first-wave table-bundle provenance columns first so mixed-surface report
+  tables are easier to inspect.
+
+Files changed:
+
+- `NEWS.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `docs/dev-log/after-task/2026-05-20-slices-819-828-phase18-first-wave-report-table-polish.md`
+- `docs/dev-log/check-log.md`
+- `inst/sim/README.md`
+- `inst/sim/run/sim_write_first_wave_table_bundle.R`
+- `tests/testthat/test-phase18-first-wave-table-bundle.R`
+
+Checks run:
+
+```sh
+air format inst/sim/run/sim_write_first_wave_table_bundle.R tests/testthat/test-phase18-first-wave-table-bundle.R
+Rscript -e "devtools::test(filter = '^phase18-(first-wave-table-bundle|first-wave-summary-render-helper|first-wave-summary-report)$')"
+```
+
+Result:
+
+- 51 expectations passed, 0 failures, 0 warnings, 0 skips.
+
+Tiny real smoke:
+
+- Output root:
+  `inst/sim/results/slice-819-first-wave-summary-polished-smoke/`
+- Rendered report:
+  `inst/sim/results/slice-819-first-wave-summary-polished-smoke/first-wave-summary/report/phase18-first-wave-summary.html`
+- Bundled aggregate rows: 13.
+- First aggregate columns: `source_surface`, `source_artifact`.
+
+Known limitations:
+
+- This is report readability polish, not a new simulation claim.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-20-slices-819-828-phase18-first-wave-report-table-polish.md`
+
+## 2026-05-20 - Slices 829-838 Phase 18 First-Wave Count Summary Smoke
+
+Goal:
+
+- Expand the tiny first-wave rendered summary smoke to include the paired
+  Poisson/NB2 `mu` random-effect grid writer beside Gaussian location-scale and
+  `meta_V(V = V)`.
+
+Run summary:
+
+- Output root:
+  `inst/sim/results/slice-829-first-wave-summary-count-smoke/`
+- Rendered report:
+  `inst/sim/results/slice-829-first-wave-summary-count-smoke/first-wave-summary/report/phase18-first-wave-summary.html`
+- Surfaces:
+  `count_mu_random_effect_grid`, `gaussian_ls_grid`, `meta_v_grid`
+- Artifact-status rows: 3 data rows plus header.
+- Bundled aggregate rows: 23 data rows plus header.
+- Bundled profile-coverage rows: 4 data rows plus header.
+
+Checks run:
+
+```sh
+Rscript - <<'RS'
+# Local smoke sources inst/sim helpers, writes ignored results, and renders HTML.
+RS
+test -f inst/sim/results/slice-829-first-wave-summary-count-smoke/first-wave-summary/report/phase18-first-wave-summary.html
+rg -n "Slice 829|count_mu_random_effect_grid|gaussian_ls_grid|meta_v_grid|profile|Aggregate Operating Characteristics" inst/sim/results/slice-829-first-wave-summary-count-smoke/first-wave-summary/report/phase18-first-wave-summary.html
+wc -l inst/sim/results/slice-829-first-wave-summary-count-smoke/first-wave-summary/status/phase18-first-wave-artifact-status.csv
+wc -l inst/sim/results/slice-829-first-wave-summary-count-smoke/first-wave-summary/tables/phase18-first-wave-aggregate.csv
+wc -l inst/sim/results/slice-829-first-wave-summary-count-smoke/first-wave-summary/tables/phase18-first-wave-profile-coverage.csv
+```
+
+Known limitations:
+
+- This is a one-replicate smoke, not a formal Phase 18 grid.
+- The report remains table-first and has no figure layer yet.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-20-slices-829-838-phase18-first-wave-count-summary-smoke.md`
+
+## 2026-05-20 - Slices 839-848 Phase 18 First-Wave Summary Table Display
+
+Goal:
+
+- Polish the first-wave summary report tables with priority columns and row
+  caps while leaving the full CSV artifacts unchanged.
+
+Files changed:
+
+- `NEWS.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `docs/dev-log/after-task/2026-05-20-slices-839-848-phase18-first-wave-summary-table-display.md`
+- `docs/dev-log/check-log.md`
+- `inst/sim/README.md`
+- `inst/sim/reports/phase18-first-wave-summary-report.Rmd`
+- `tests/testthat/test-phase18-first-wave-summary-report.R`
+
+Checks run:
+
+```sh
+air format tests/testthat/test-phase18-first-wave-summary-report.R
+Rscript -e "devtools::test(filter = '^phase18-(first-wave-summary-report|first-wave-summary-render-helper)$')"
+```
+
+Result:
+
+- 33 expectations passed, 0 failures, 0 warnings, 0 skips.
+
+Tiny real smoke:
+
+- Output root:
+  `inst/sim/results/slice-839-first-wave-summary-table-polish-smoke/`
+- Rendered report:
+  `inst/sim/results/slice-839-first-wave-summary-table-polish-smoke/first-wave-summary/report/phase18-first-wave-summary.html`
+- Bundled aggregate rows: 23.
+- The rendered report shows "Showing first 20 of 23 rows."
+- First aggregate display columns: `source_surface`, `source_artifact`.
+- Warning/error ledger includes one count warning: `collapsing to unique 'x'
+  values`.
+
+Known limitations:
+
+- The report remains table-first and has no figure layer yet.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-20-slices-839-848-phase18-first-wave-summary-table-display.md`
+
+## 2026-05-20 - Slices 849-858 Phase 18 First-Wave Warning Summary
+
+Goal:
+
+- Add a compact warning/error summary above the raw warning/error ledger in the
+  first-wave summary report.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `docs/dev-log/after-task/2026-05-20-slices-849-858-phase18-first-wave-warning-summary.md`
+- `docs/dev-log/check-log.md`
+- `inst/sim/README.md`
+- `inst/sim/reports/phase18-first-wave-summary-report.Rmd`
+- `tests/testthat/test-phase18-first-wave-summary-report.R`
+
+Checks run:
+
+```sh
+air format tests/testthat/test-phase18-first-wave-summary-report.R
+Rscript -e "devtools::test(filter = '^phase18-first-wave-summary-report$')"
+Rscript -e "devtools::test(filter = '^phase18-(first-wave-summary-report|first-wave-summary-render-helper)$')"
+```
+
+Result:
+
+- 22 expectations passed, 0 failures, 0 warnings, 0 skips.
+- The broader report/render-helper bundle then passed 38 expectations, 0
+  failures, 0 warnings, 0 skips.
+
+Tiny real smoke:
+
+- Output root:
+  `inst/sim/results/slice-849-first-wave-summary-warning-smoke/`
+- Rendered report:
+  `inst/sim/results/slice-849-first-wave-summary-warning-smoke/first-wave-summary/report/phase18-first-wave-summary.html`
+- Surfaces:
+  `count_mu_random_effect_grid`, `gaussian_ls_grid`, `meta_v_grid`
+- Artifact-status rows: 3.
+- Bundled aggregate rows: 23.
+- Warning/error events: 1.
+- The rendered report includes the new `Warning And Error Summary` section and
+  still shows the count warning `collapsing to unique 'x' values`.
+
+Known limitations:
+
+- The warning summary groups events for fast review but does not diagnose or
+  suppress the warning.
+- The smoke remains one replicate per surface cell.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-20-slices-849-858-phase18-first-wave-warning-summary.md`
+
+## 2026-05-20 - Slices 859-868 Phase 18 First-Wave Aggregate-Bias Overview
+
+Goal:
+
+- Add the first compact visual layer to the first-wave summary report without
+  treating it as a final Florence figure.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `docs/dev-log/after-task/2026-05-20-slices-859-868-phase18-first-wave-bias-overview.md`
+- `docs/dev-log/check-log.md`
+- `inst/sim/README.md`
+- `inst/sim/reports/phase18-first-wave-summary-report.Rmd`
+- `tests/testthat/test-phase18-first-wave-summary-report.R`
+
+Checks run:
+
+```sh
+air format tests/testthat/test-phase18-first-wave-summary-report.R
+Rscript -e "devtools::test(filter = '^phase18-first-wave-summary-report$')"
+Rscript -e "devtools::test(filter = '^phase18-(first-wave-summary-report|first-wave-summary-render-helper)$')"
+```
+
+Result:
+
+- 25 expectations passed, 0 failures, 0 warnings, 0 skips.
+- The broader report/render-helper bundle then passed 41 expectations, 0
+  failures, 0 warnings, 0 skips.
+
+Tiny real smoke:
+
+- Output root:
+  `inst/sim/results/slice-859-first-wave-summary-bias-overview-smoke/`
+- Rendered report:
+  `inst/sim/results/slice-859-first-wave-summary-bias-overview-smoke/first-wave-summary/report/phase18-first-wave-summary.html`
+- Bundled aggregate rows: 23.
+- Warning/error events: 1.
+- The rendered report includes `Aggregate Bias Overview`,
+  `Warning And Error Summary`, the aggregate-only caption, and the count warning
+  `collapsing to unique 'x' values`.
+- The HTML artifact contains an embedded plot image.
+
+Known limitations:
+
+- The bias overview is an aggregate screening figure, not a replicate-level
+  raincloud or final publication figure.
+- It intentionally uses the report row cap for the displayed rows and leaves
+  the full aggregate CSV unchanged.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-20-slices-859-868-phase18-first-wave-bias-overview.md`
+
+## 2026-05-20 - Slices 869-878 Phase 18 First-Wave Interval Coverage Summary
+
+Goal:
+
+- Add compact interval-coverage evidence to the first-wave summary report so
+  Wald/profile/bootstrap coverage rows are visible before raw diagnostics.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `docs/dev-log/after-task/2026-05-20-slices-869-878-phase18-first-wave-interval-coverage.md`
+- `docs/dev-log/check-log.md`
+- `inst/sim/README.md`
+- `inst/sim/reports/phase18-first-wave-summary-report.Rmd`
+- `inst/sim/run/sim_render_first_wave_summary_report.R`
+- `tests/testthat/test-phase18-first-wave-summary-report.R`
+
+Checks run:
+
+```sh
+air format inst/sim/run/sim_render_first_wave_summary_report.R tests/testthat/test-phase18-first-wave-summary-report.R
+Rscript -e "devtools::test(filter = '^phase18-(first-wave-summary-report|first-wave-summary-render-helper)$')"
+```
+
+Result:
+
+- 45 expectations passed, 0 failures, 0 warnings, 0 skips.
+
+Tiny real smoke:
+
+- Output root:
+  `inst/sim/results/slice-869-first-wave-summary-interval-coverage-smoke/`
+- Rendered report:
+  `inst/sim/results/slice-869-first-wave-summary-interval-coverage-smoke/first-wave-summary/report/phase18-first-wave-summary.html`
+- Wald coverage rows: 19.
+- Profile coverage rows: 4.
+- The rendered report includes `Interval Coverage Summary`, `wald`, `profile`,
+  `Aggregate Bias Overview`, and `Warning And Error Summary`.
+
+Known limitations:
+
+- The coverage summary is descriptive staging evidence; one-replicate smokes do
+  not estimate final coverage.
+- Bootstrap coverage appears only when a grid writer supplies bootstrap
+  coverage rows.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-20-slices-869-878-phase18-first-wave-interval-coverage.md`
+
+## 2026-05-20 - Slices 879-888 Phase 18 First-Wave Run Manifest Summary
+
+Goal:
+
+- Add compact run-status provenance to the first-wave summary report before
+  raw manifest rows.
+
+Files changed:
+
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `docs/dev-log/after-task/2026-05-20-slices-879-888-phase18-first-wave-manifest-summary.md`
+- `docs/dev-log/check-log.md`
+- `inst/sim/README.md`
+- `inst/sim/reports/phase18-first-wave-summary-report.Rmd`
+- `tests/testthat/test-phase18-first-wave-summary-report.R`
+
+Checks run:
+
+```sh
+air format tests/testthat/test-phase18-first-wave-summary-report.R
+Rscript -e "devtools::test(filter = '^phase18-first-wave-summary-report$')"
+Rscript -e "devtools::test(filter = '^phase18-(first-wave-summary-report|first-wave-summary-render-helper)$')"
+```
+
+Result:
+
+- 32 expectations passed, 0 failures, 0 warnings, 0 skips.
+- The broader report/render-helper bundle then passed 48 expectations, 0
+  failures, 0 warnings, 0 skips.
+
+Tiny real smoke:
+
+- Output root:
+  `inst/sim/results/slice-879-first-wave-summary-manifest-smoke/`
+- Rendered report:
+  `inst/sim/results/slice-879-first-wave-summary-manifest-smoke/first-wave-summary/report/phase18-first-wave-summary.html`
+- Manifest rows: 6.
+- Manifest warning total: 1.
+- The rendered report includes `Run Manifest Summary`,
+  `Interval Coverage Summary`, `Aggregate Bias Overview`, and
+  `Warning And Error Summary`.
+
+Known limitations:
+
+- The manifest summary is run provenance, not a convergence diagnosis by
+  itself.
+- Elapsed-time summaries are smoke-scale and should not be used as benchmarks.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-20-slices-879-888-phase18-first-wave-manifest-summary.md`
+
+## 2026-05-20 - Slices 889-898 Phase 18 First-Wave n_rep = 2 Staging Smoke
+
+Goal:
+
+- Run a slightly larger three-surface first-wave staging smoke with two
+  replicates per cell and bounded multicore execution.
+
+Files changed:
+
+- `docs/design/41-phase-18-simulation-programme.md`
+- `docs/dev-log/after-task/2026-05-20-slices-889-898-phase18-first-wave-nrep2-smoke.md`
+- `docs/dev-log/check-log.md`
+
+Command:
+
+```sh
+Rscript - <<'RS'
+# Sources Phase 18 helpers, runs Gaussian location-scale, meta_V(V = V), and
+# paired Poisson/NB2 mu random-effect grid writers with n_rep = 2,
+# backend = "multicore", cores = 3, then renders the first-wave summary report.
+RS
+Rscript -e "devtools::test(filter = '^phase18-first-wave')"
+```
+
+Result:
+
+- Output root:
+  `inst/sim/results/slice-889-first-wave-summary-nrep2-smoke/`
+- Rendered report:
+  `inst/sim/results/slice-889-first-wave-summary-nrep2-smoke/first-wave-summary/report/phase18-first-wave-summary.html`
+- Aggregate rows: 23.
+- Manifest rows: 12.
+- Manifest warning total: 1.
+- Failure rows: 1.
+- Wald coverage rows: 19.
+- Profile coverage rows: 4.
+- Actual worker counts by surface path: `2`, `3`, `2`, `2`.
+- The rendered report includes `Run Manifest Summary`,
+  `Interval Coverage Summary`, `Aggregate Bias Overview`, and
+  `Warning And Error Summary`.
+
+Known limitations:
+
+- This is still a staging smoke, not a final Phase 18 simulation grid.
+- `inst/sim/results/` artifacts are local ignored outputs.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-20-slices-889-898-phase18-first-wave-nrep2-smoke.md`
+
+## 2026-05-20 - Slices 899-908 Phase 18 First-Wave Summary Smoke Runner
+
+Goal:
+
+- Replace the repeated manual first-wave smoke script with a reusable private
+  runner.
+
+Files changed:
+
+- `NEWS.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `docs/dev-log/after-task/2026-05-20-slices-899-908-phase18-first-wave-smoke-runner.md`
+- `docs/dev-log/check-log.md`
+- `inst/sim/README.md`
+- `inst/sim/run/sim_run_first_wave_summary_smoke.R`
+- `tests/testthat/test-phase18-first-wave-summary-smoke-runner.R`
+
+Checks run:
+
+```sh
+air format inst/sim/run/sim_run_first_wave_summary_smoke.R tests/testthat/test-phase18-first-wave-summary-smoke-runner.R
+Rscript -e "devtools::test(filter = '^phase18-first-wave-summary-smoke-runner$')"
+Rscript -e "devtools::test(filter = '^phase18-(first-wave-summary-report|first-wave-summary-render-helper|first-wave-summary-smoke-runner)$')"
+```
+
+Result:
+
+- 15 expectations passed, 0 failures, 0 warnings, 0 skips.
+- The broader first-wave report/render-helper/smoke-runner bundle then passed
+  63 expectations, 0 failures, 0 warnings, 0 skips.
+
+Implemented:
+
+- `phase18_run_first_wave_summary_smoke()` runs the current Gaussian
+  location-scale, `meta_V(V = V)`, and paired Poisson/NB2 `mu` random-effect
+  first-wave smoke surfaces.
+- The runner stages the combined first-wave summary report and writes
+  `first-wave-parallel-summary.csv`.
+- Tests check staged outputs, aggregate rows, Wald coverage rows, nonzero
+  profile coverage rows, worker-count recording, and input validation.
+
+Known limitations:
+
+- The runner intentionally covers only the current three-surface first-wave
+  smoke bundle.
+- It is private `inst/sim/` infrastructure, not a public exported API.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-20-slices-899-908-phase18-first-wave-smoke-runner.md`
+
+## 2026-05-20 - Slices 909-918 Phase 18 Runner-Backed n_rep = 2 Smoke
+
+Goal:
+
+- Validate the reusable first-wave summary smoke runner on a rendered
+  `n_rep = 2` multicore smoke.
+
+Command:
+
+```sh
+Rscript - <<'RS'
+# Sources Phase 18 helpers and calls phase18_run_first_wave_summary_smoke()
+# with n_rep = 2, backend = "multicore", cores = 3, render = TRUE.
+RS
+```
+
+Result:
+
+- Output root:
+  `inst/sim/results/slice-909-first-wave-runner-nrep2-smoke/`
+- Rendered report:
+  `inst/sim/results/slice-909-first-wave-runner-nrep2-smoke/first-wave-summary/report/phase18-first-wave-summary.html`
+- Aggregate rows: 23.
+- Manifest rows: 12.
+- Manifest warning total: 2.
+- Failure rows: 2.
+- Wald coverage rows: 19.
+- Profile coverage rows: 3.
+- Requested worker counts: `3`, `3`, `3`, `3`.
+- Actual worker counts: `2`, `3`, `2`, `2`.
+- The rendered report includes `Run Manifest Summary`,
+  `Interval Coverage Summary`, `Aggregate Bias Overview`, and
+  `Warning And Error Summary`.
+
+Files changed:
+
+- `docs/design/41-phase-18-simulation-programme.md`
+- `docs/dev-log/after-task/2026-05-20-slices-909-918-phase18-runner-backed-nrep2-smoke.md`
+- `docs/dev-log/check-log.md`
+
+Known limitations:
+
+- This is still smoke-scale validation and does not support final operating
+  characteristic claims.
+- Profile coverage row count is seed-sensitive at this scale, so the runner
+  test only requires nonzero profile coverage.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-20-slices-909-918-phase18-runner-backed-nrep2-smoke.md`
+
+## 2026-05-20 - Slices 919-928 Phase 18 Four-Surface First-Wave Runner
+
+Goal:
+
+- Add ordinary Gaussian `mu` random slopes to the reusable first-wave summary
+  runner and validate a rendered four-surface smoke.
+
+Files changed:
+
+- `docs/design/41-phase-18-simulation-programme.md`
+- `docs/dev-log/after-task/2026-05-20-slices-919-928-phase18-four-surface-first-wave-runner.md`
+- `docs/dev-log/check-log.md`
+- `inst/sim/run/sim_run_first_wave_summary_smoke.R`
+- `tests/testthat/test-phase18-first-wave-summary-smoke-runner.R`
+
+Checks run:
+
+```sh
+air format inst/sim/run/sim_run_first_wave_summary_smoke.R tests/testthat/test-phase18-first-wave-summary-smoke-runner.R
+Rscript -e "devtools::test(filter = '^phase18-first-wave-summary-smoke-runner$')"
+Rscript -e "devtools::test(filter = '^phase18-(first-wave-summary-report|first-wave-summary-render-helper|first-wave-summary-smoke-runner)$')"
+```
+
+Result:
+
+- 16 expectations passed, 0 failures, 0 warnings, 0 skips.
+- The broader first-wave report/render-helper/smoke-runner bundle then passed
+  64 expectations, 0 failures, 0 warnings, 0 skips.
+
+Rendered smoke:
+
+- Output root:
+  `inst/sim/results/slice-919-first-wave-runner-four-surface-smoke/`
+- Rendered report:
+  `inst/sim/results/slice-919-first-wave-runner-four-surface-smoke/first-wave-summary/report/phase18-first-wave-summary.html`
+- Surfaces:
+  `count_mu_random_effect_grid`, `gaussian_ls_grid`,
+  `gaussian_mu_random_slope_grid`, `meta_v_grid`
+- Aggregate rows: 33.
+- Manifest rows: 7.
+- Failure rows: 0.
+- Parallel-summary rows: 5.
+- Actual worker counts: `1`, `3`, `1`, `1`, `1`.
+- The rendered report includes the new Gaussian `mu` random-slope surface plus
+  `Run Manifest Summary`, `Interval Coverage Summary`,
+  `Aggregate Bias Overview`, and `Warning And Error Summary`.
+
+Known limitations:
+
+- The first-wave runner still excludes Gaussian `sigma` random slopes,
+  coordinate spatial `mu` slopes, Student-t shape, and bivariate residual
+  `rho12`.
+- This is a smoke bundle, not a final simulation grid.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-20-slices-919-928-phase18-four-surface-first-wave-runner.md`
+
+## 2026-05-20 - Slices 929-938 Phase 18 Five-Surface First-Wave Runner
+
+Goal:
+
+- Add ordinary Gaussian `sigma` random slopes to the reusable first-wave summary
+  runner and validate a rendered five-surface smoke.
+
+Files changed:
+
+- `NEWS.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `docs/dev-log/after-task/2026-05-20-slices-929-938-phase18-five-surface-first-wave-runner.md`
+- `docs/dev-log/check-log.md`
+- `inst/sim/README.md`
+- `inst/sim/run/sim_run_first_wave_summary_smoke.R`
+- `tests/testthat/test-phase18-first-wave-summary-smoke-runner.R`
+
+Checks run:
+
+```sh
+air format inst/sim/run/sim_run_first_wave_summary_smoke.R tests/testthat/test-phase18-first-wave-summary-smoke-runner.R
+Rscript -e "devtools::test(filter = '^phase18-first-wave-summary-smoke-runner$')"
+Rscript -e "devtools::test(filter = '^phase18-(first-wave-summary-report|first-wave-summary-render-helper|first-wave-summary-smoke-runner)$')"
+```
+
+Result:
+
+- 16 expectations passed, 0 failures, 0 warnings, 0 skips.
+- The broader first-wave report/render-helper/smoke-runner bundle then passed
+  64 expectations, 0 failures, 0 warnings, 0 skips.
+
+Rendered smoke:
+
+- Output root:
+  `inst/sim/results/slice-929-first-wave-runner-five-surface-smoke/`
+- Rendered report:
+  `inst/sim/results/slice-929-first-wave-runner-five-surface-smoke/first-wave-summary/report/phase18-first-wave-summary.html`
+- Surfaces:
+  `count_mu_random_effect_grid`, `gaussian_ls_grid`,
+  `gaussian_mu_random_slope_grid`, `gaussian_sigma_random_slope_grid`,
+  `meta_v_grid`
+- Aggregate rows: 38.
+- Manifest rows: 8.
+- Failure rows: 0.
+- Parallel-summary rows: 6.
+- Actual worker counts: `1`, `3`, `1`, `1`, `1`, `1`.
+- The rendered report includes both Gaussian random-slope surfaces plus
+  `Run Manifest Summary`, `Interval Coverage Summary`,
+  `Aggregate Bias Overview`, and `Warning And Error Summary`.
+
+Known limitations:
+
+- Coordinate spatial `mu` slopes, Student-t shape, and bivariate residual
+  `rho12` remain outside this first-wave runner.
+- This remains smoke-scale validation.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-20-slices-929-938-phase18-five-surface-first-wave-runner.md`
+
+## 2026-05-20 - Slices 939-948 Phase 18 Six-Surface First-Wave Runner
+
+Goal:
+
+- Add coordinate-spatial Gaussian `mu` slopes to the reusable first-wave
+  summary runner and validate a rendered six-surface smoke.
+
+Files changed:
+
+- `NEWS.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `docs/dev-log/after-task/2026-05-20-slices-939-948-phase18-six-surface-first-wave-runner.md`
+- `docs/dev-log/check-log.md`
+- `inst/sim/README.md`
+- `inst/sim/run/sim_run_first_wave_summary_smoke.R`
+- `tests/testthat/test-phase18-first-wave-summary-smoke-runner.R`
+
+Checks run:
+
+```sh
+air format inst/sim/run/sim_run_first_wave_summary_smoke.R tests/testthat/test-phase18-first-wave-summary-smoke-runner.R
+Rscript -e "devtools::test(filter = '^phase18-first-wave-summary-smoke-runner$')"
+Rscript -e "devtools::test(filter = '^phase18-(first-wave-summary-report|first-wave-summary-render-helper|first-wave-summary-smoke-runner)$')"
+```
+
+Result:
+
+- 16 expectations passed, 0 failures, 0 warnings, 0 skips.
+- The broader first-wave report/render-helper/smoke-runner bundle then passed
+  64 expectations, 0 failures, 0 warnings, 0 skips.
+
+Rendered smoke:
+
+- Output root:
+  `inst/sim/results/slice-939-first-wave-runner-six-surface-smoke/`
+- Rendered report:
+  `inst/sim/results/slice-939-first-wave-runner-six-surface-smoke/first-wave-summary/report/phase18-first-wave-summary.html`
+- Surfaces:
+  `count_mu_random_effect_grid`, `gaussian_ls_grid`,
+  `gaussian_mu_random_slope_grid`, `gaussian_sigma_random_slope_grid`,
+  `meta_v_grid`, `spatial_mu_slope_grid`
+- Aggregate rows: 43.
+- Manifest rows: 9.
+- Failure rows: 0.
+- Parallel-summary rows: 7.
+- Actual worker counts: `1`, `3`, `1`, `1`, `1`, `1`, `1`.
+- The rendered report includes the spatial surface plus `Run Manifest Summary`,
+  `Interval Coverage Summary`, `Aggregate Bias Overview`, and
+  `Warning And Error Summary`.
+
+Known limitations:
+
+- Phylogenetic, animal, Student-t shape, and bivariate residual `rho12` remain
+  outside this baseline runner.
+- This remains smoke-scale validation.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-20-slices-939-948-phase18-six-surface-first-wave-runner.md`
+
+## 2026-05-20 - Slices 949-958 Phase 18 Six-Surface n_rep = 2 Smoke
+
+Goal:
+
+- Run the six-surface first-wave runner at `n_rep = 2` with bounded multicore
+  execution.
+
+Command:
+
+```sh
+Rscript - <<'RS'
+# Sources Phase 18 helpers and calls phase18_run_first_wave_summary_smoke()
+# with n_rep = 2, backend = "multicore", cores = 3, render = TRUE.
+RS
+```
+
+Result:
+
+- Output root:
+  `inst/sim/results/slice-949-first-wave-runner-six-surface-nrep2-smoke/`
+- Rendered report:
+  `inst/sim/results/slice-949-first-wave-runner-six-surface-nrep2-smoke/first-wave-summary/report/phase18-first-wave-summary.html`
+- Surfaces:
+  `count_mu_random_effect_grid`, `gaussian_ls_grid`,
+  `gaussian_mu_random_slope_grid`, `gaussian_sigma_random_slope_grid`,
+  `meta_v_grid`, `spatial_mu_slope_grid`
+- Aggregate rows: 43.
+- Manifest rows: 18.
+- Manifest warning total: 1.
+- Failure rows: 1.
+- Wald coverage rows: 19.
+- Profile coverage rows: 4.
+- Parallel-summary rows: 7.
+- Actual worker counts: `2`, `3`, `2`, `2`, `2`, `2`, `2`.
+- The rendered report includes `Run Manifest Summary`,
+  `Interval Coverage Summary`, `Aggregate Bias Overview`, and
+  `Warning And Error Summary`.
+- The full first-wave test bundle then passed 115 expectations, 0 failures, 0
+  warnings, 0 skips.
+
+Files changed:
+
+- `docs/design/41-phase-18-simulation-programme.md`
+- `docs/dev-log/after-task/2026-05-20-slices-949-958-phase18-six-surface-nrep2-smoke.md`
+- `docs/dev-log/check-log.md`
+
+Known limitations:
+
+- This is still smoke-scale validation and does not support final operating
+  characteristic claims.
+- Student-t shape and bivariate residual `rho12` remain separate
+  interval-heavy lanes.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-20-slices-949-958-phase18-six-surface-nrep2-smoke.md`
+
+## 2026-05-20 - Slices 959-968 Phase 18 Interval-Heavy Summary Runner
+
+Goal:
+
+- Stage Student-t shape and bivariate residual `rho12` in a separate
+  interval-heavy summary runner rather than adding them to the baseline
+  first-wave runner.
+
+Files changed:
+
+- `NEWS.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `docs/dev-log/after-task/2026-05-20-slices-959-968-phase18-interval-heavy-summary-runner.md`
+- `docs/dev-log/check-log.md`
+- `inst/sim/README.md`
+- `inst/sim/run/sim_run_interval_heavy_summary_smoke.R`
+- `tests/testthat/test-phase18-interval-heavy-summary-smoke-runner.R`
+
+Checks run:
+
+```sh
+air format inst/sim/run/sim_run_interval_heavy_summary_smoke.R tests/testthat/test-phase18-interval-heavy-summary-smoke-runner.R
+Rscript -e "devtools::test(filter = '^phase18-interval-heavy-summary-smoke-runner$')"
+Rscript -e "devtools::test(filter = '^phase18-(first-wave|interval-heavy)')"
+```
+
+Result:
+
+- 15 expectations passed, 0 failures, 0 warnings, 0 skips.
+- The integrated first-wave plus interval-heavy staging bundle then passed 130
+  expectations, 0 failures, 0 warnings, 0 skips.
+
+Rendered smoke:
+
+- Output root:
+  `inst/sim/results/slice-959-interval-heavy-runner-smoke/`
+- Rendered report:
+  `inst/sim/results/slice-959-interval-heavy-runner-smoke/interval-heavy-summary/report/phase18-first-wave-summary.html`
+- Surfaces: `biv_rho12_grid`, `student_shape_grid`
+- Aggregate rows: 16.
+- Manifest rows: 2.
+- Failure rows: 0.
+- Wald coverage rows: 16.
+- Parallel-summary rows: 2.
+- Actual worker counts: `1`, `1`.
+- The rendered report includes both interval-heavy surfaces plus
+  `Run Manifest Summary`, `Interval Coverage Summary`,
+  `Aggregate Bias Overview`, and `Warning And Error Summary`.
+
+Known limitations:
+
+- The default smoke uses Wald evidence only; profile and bootstrap are still
+  opt-in arguments for this runner.
+- This runner is private `inst/sim/` infrastructure, not a public API.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-20-slices-959-968-phase18-interval-heavy-summary-runner.md`
+
+## 2026-05-20 - Slices 969-978 Phase 18 Interval-Heavy Profile Smoke
+
+Goal:
+
+- Run a tiny profile-enabled interval-heavy smoke for Student-t `nu:w` and
+  bivariate residual `rho12:w`.
+
+Command:
+
+```sh
+Rscript - <<'RS'
+# Calls phase18_run_interval_heavy_summary_smoke() with
+# profile_parameters = c("nu:w", "rho12:w"), profile_level = 0.70,
+# profile_args = list(ystep = 0.75), n_rep = 1, and no bootstrap.
+RS
+```
+
+Result:
+
+- Output root:
+  `inst/sim/results/slice-969-interval-heavy-profile-smoke/`
+- Rendered report:
+  `inst/sim/results/slice-969-interval-heavy-profile-smoke/interval-heavy-summary/report/phase18-first-wave-summary.html`
+- Aggregate rows: 16.
+- Profile interval rows: 2.
+- Profile coverage rows: 2.
+- Interval failure rows: 0.
+- Failure rows: 0.
+- Profile statuses: `ok`.
+- Profile parameters: `nu:w`, `rho12:w`.
+- The rendered report includes `profile` evidence and the interval-coverage
+  summary.
+
+Files changed:
+
+- `docs/design/41-phase-18-simulation-programme.md`
+- `docs/dev-log/after-task/2026-05-20-slices-969-978-phase18-interval-heavy-profile-smoke.md`
+- `docs/dev-log/check-log.md`
+
+Known limitations:
+
+- This is one replicate per surface and a 70% smoke interval, not final profile
+  coverage evidence.
+- Bootstrap was not run in this slice.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-20-slices-969-978-phase18-interval-heavy-profile-smoke.md`
+
+## 2026-05-20 - Slices 979-988 Phase 18 Interval-Heavy Bootstrap Smoke
+
+Goal:
+
+- Run a tiny bootstrap-enabled interval-heavy smoke for Student-t shape and
+  bivariate residual `rho12`.
+
+Command:
+
+```sh
+Rscript - <<'RS'
+# Calls phase18_run_interval_heavy_summary_smoke() with bootstrap_nsim = 2,
+# bootstrap_level = 0.70, bootstrap_cores = 2,
+# bootstrap_backend = "multicore", serial replicate execution, and no profile.
+RS
+```
+
+Result:
+
+- Output root:
+  `inst/sim/results/slice-979-interval-heavy-bootstrap-smoke/`
+- Rendered report:
+  `inst/sim/results/slice-979-interval-heavy-bootstrap-smoke/interval-heavy-summary/report/phase18-first-wave-summary.html`
+- Aggregate rows: 16.
+- Bootstrap interval rows: 16.
+- Bootstrap coverage rows: 16.
+- Interval failure rows: 0.
+- Failure rows: 0.
+- Bootstrap statuses: `ok`.
+- Bootstrap method: `parametric_bootstrap`.
+- The rendered report includes `parametric_bootstrap` evidence and the
+  interval-coverage summary.
+
+Files changed:
+
+- `docs/design/41-phase-18-simulation-programme.md`
+- `docs/dev-log/after-task/2026-05-20-slices-979-988-phase18-interval-heavy-bootstrap-smoke.md`
+- `docs/dev-log/check-log.md`
+
+Known limitations:
+
+- `bootstrap_nsim = 2` is plumbing evidence only, not a usable bootstrap
+  interval setting.
+- The smoke deliberately avoids nested multicore by keeping replicate
+  execution serial.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-20-slices-979-988-phase18-interval-heavy-bootstrap-smoke.md`
+
+## 2026-05-20 - Slices 989-998 Phase 18 Focused Interval Validation
+
+Goal:
+
+- Validate the first-wave staging, interval-heavy staging, Student-t shape, and
+  bivariate residual `rho12` lanes together after the new runners and smokes.
+
+Command:
+
+```sh
+Rscript -e "devtools::test(filter = '^phase18-(first-wave|interval-heavy|student-shape|biv-rho12)')"
+```
+
+Result:
+
+- 260 expectations passed, 0 failures, 0 warnings, 0 skips.
+
+Files changed:
+
+- `docs/design/41-phase-18-simulation-programme.md`
+- `docs/dev-log/after-task/2026-05-20-slices-989-998-phase18-focused-interval-validation.md`
+- `docs/dev-log/check-log.md`
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-20-slices-989-998-phase18-focused-interval-validation.md`
+
+## 2026-05-20 - Slices 999-1008 Phase 18 Broader Focused Validation
+
+Goal:
+
+- Run the broader Phase 18 focused validation suite after the first-wave and
+  interval-heavy runner additions.
+
+Command:
+
+```sh
+Rscript -e "devtools::test(filter = '^phase18-')"
+```
+
+Result:
+
+- 1008 expectations passed, 0 failures, 0 warnings, 0 skips.
+
+Files changed:
+
+- `docs/design/41-phase-18-simulation-programme.md`
+- `docs/dev-log/after-task/2026-05-20-slices-999-1008-phase18-broader-focused-validation.md`
+- `docs/dev-log/check-log.md`
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-20-slices-999-1008-phase18-broader-focused-validation.md`
+
+## 2026-05-20 - Slices 1009-1018 Full Test After First-Wave Runners
+
+Goal:
+
+- Run the full package test suite after adding the first-wave and
+  interval-heavy summary runners.
+
+Command:
+
+```sh
+Rscript -e "devtools::test()"
+```
+
+Result:
+
+- 5480 expectations passed, 0 failures, 0 warnings, 0 skips.
+- Duration: 316.6 seconds.
+
+Files changed:
+
+- `docs/design/41-phase-18-simulation-programme.md`
+- `docs/dev-log/after-task/2026-05-20-slices-1009-1018-full-test-after-first-wave-runners.md`
+- `docs/dev-log/check-log.md`
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-20-slices-1009-1018-full-test-after-first-wave-runners.md`
+
+## 2026-05-20 - Slices 1019-1028 pkgdown Check After Runners
+
+Goal:
+
+- Check pkgdown health after the first-wave and interval-heavy runner
+  documentation updates.
+
+Command:
+
+```sh
+Rscript -e "pkgdown::check_pkgdown()"
+```
+
+Result:
+
+- No problems found.
+
+Files changed:
+
+- `docs/design/41-phase-18-simulation-programme.md`
+- `docs/dev-log/after-task/2026-05-20-slices-1019-1028-pkgdown-check-after-runners.md`
+- `docs/dev-log/check-log.md`
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-20-slices-1019-1028-pkgdown-check-after-runners.md`
+
+## 2026-05-20 - Slices 1029-1038 Phase 18 Ten-Core Test Normalization
+
+Goal:
+
+- Align active Phase 18 smoke, grid-writer, runner, and bootstrap tests with
+  the requested 10-core ceiling.
+
+Change:
+
+- Updated test calls that did not need an oversized request from `20L` to
+  `10L`.
+- Used `11L` only in pure parallel-plan checks that verify clamping to 10
+  without launching workers.
+- Confirmed no command-style oversized core request remains in active test,
+  `inst/sim`, design, check-log, or after-task paths.
+
+Command:
+
+```sh
+Rscript -e "devtools::test(filter = '^phase18-(gaussian-ls-grid-writer|meta-v-grid-writer|biv-rho12-grid-writer|student-shape-grid-writer|count-mu-random-effect|random-slope-grid-writers|sim-bootstrap|sim-runner|student-shape-summary-smoke|biv-rho12-summary-smoke|first-wave-summary-smoke-runner|interval-heavy-summary-smoke-runner)$')"
+```
+
+Result:
+
+- 266 expectations passed, 0 failures, 0 warnings, 0 skips.
+- Duration: 35.0 seconds.
+
+Files changed:
+
+- `docs/design/41-phase-18-simulation-programme.md`
+- `docs/dev-log/after-task/2026-05-20-slices-1029-1038-phase18-ten-core-test-normalization.md`
+- `docs/dev-log/check-log.md`
+- Phase 18 test files covering grid writers, runners, bootstrap, first-wave
+  summary, and interval-heavy summary.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-20-slices-1029-1038-phase18-ten-core-test-normalization.md`
+
+## 2026-05-20 - Slices 1039-1048 Full Test After Ten-Core Normalization
+
+Goal:
+
+- Rerun the full package test suite after normalizing active Phase 18 tests to
+  request at most 10 cores.
+
+Command:
+
+```sh
+Rscript -e "devtools::test()"
+```
+
+Result:
+
+- 5480 expectations passed, 0 failures, 0 warnings, 0 skips.
+- Duration: 315.9 seconds.
+
+Files changed:
+
+- `docs/design/41-phase-18-simulation-programme.md`
+- `docs/dev-log/after-task/2026-05-20-slices-1039-1048-full-test-after-ten-core-normalization.md`
+- `docs/dev-log/check-log.md`
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-20-slices-1039-1048-full-test-after-ten-core-normalization.md`
+
+## 2026-05-20 - Slices 1049-1058 Light Check Vignette Source Fix
+
+Goal:
+
+- Run a light `R CMD check` gate and fix vignette-source failures exposed by
+  the first attempt.
+
+First check result:
+
+- `vignettes/convergence.Rmd` failed when sourced because example chunks
+  referenced `check_drm(fit)` without a constructed fit in the tangle stream.
+- `vignettes/large-data.Rmd` failed when sourced because example chunks
+  referenced `dat` without constructing the large example dataset in the
+  tangle stream.
+
+Change:
+
+- Added `purl=FALSE` to executable chunks in both example-style vignettes.
+- Verified direct `knitr::purl()` output for both files no longer contains the
+  problematic executable example hits.
+
+Command:
+
+```sh
+Rscript -e "devtools::check(document = FALSE, manual = FALSE, args = c('--no-build-vignettes'))"
+```
+
+Result:
+
+- 0 errors, 0 warnings, 1 note.
+- The remaining note was: unable to verify current time.
+- Duration: 5m 11.8s.
+
+Files changed:
+
+- `docs/design/41-phase-18-simulation-programme.md`
+- `docs/dev-log/after-task/2026-05-20-slices-1049-1058-light-check-vignette-source-fix.md`
+- `docs/dev-log/check-log.md`
+- `vignettes/convergence.Rmd`
+- `vignettes/large-data.Rmd`
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-20-slices-1049-1058-light-check-vignette-source-fix.md`
+
+## 2026-05-20 - Slices 1059-1068 First-Wave n_rep 3 Report Audit
+
+Goal:
+
+- Run a small real six-surface first-wave staging grid and audit the rendered
+  report before scaling.
+
+Run:
+
+```r
+phase18_run_first_wave_summary_smoke(
+  output_dir = "inst/sim/results/slice-1059-first-wave-six-surface-nrep3",
+  n_rep = 3L,
+  master_seed = 20260531L,
+  cores = 10L,
+  backend = "multicore",
+  overwrite = TRUE,
+  render = TRUE,
+  require_complete = TRUE
+)
+```
+
+Result:
+
+- Output root:
+  `inst/sim/results/slice-1059-first-wave-six-surface-nrep3/`
+- Rendered report:
+  `inst/sim/results/slice-1059-first-wave-six-surface-nrep3/first-wave-summary/report/phase18-first-wave-summary.html`
+- Aggregate rows: 43.
+- Replicate rows: 129.
+- Wald coverage rows: 19.
+- Profile coverage rows: 4.
+- Manifest rows: 27.
+- Manifest statuses: all `ok`.
+- Warning/error ledger rows: 2 warning rows, both
+  `collapsing to unique 'x' values` from the NB2 random-effect profile path.
+- Requested cores: 10 for every surface.
+- Actual workers by surface: 3, 9, 3, 3, 3, 3, 3.
+
+Report audit:
+
+- Plain-text report inspection confirmed the expected report sections and
+  warning-ledger content.
+- Florence found that the first aggregate-bias overview plot clipped long
+  parameter labels.
+- Ada changed the aggregate-bias plot to use compact row-rank labels and added
+  a table below the plot with full parameter names.
+- Extracted audit image:
+  `docs/dev-log/figure-audits/slice-1059-first-wave-six-surface-nrep3/report-image-01.png`
+
+Validation:
+
+```sh
+Rscript -e "devtools::test(filter = '^phase18-(first-wave-summary-report|first-wave-summary-smoke-runner)$')"
+```
+
+- 48 expectations passed, 0 failures, 0 warnings, 0 skips.
+
+Files changed:
+
+- `docs/design/41-phase-18-simulation-programme.md`
+- `docs/dev-log/after-task/2026-05-20-slices-1059-1068-first-wave-nrep3-report-audit.md`
+- `docs/dev-log/check-log.md`
+- `inst/sim/reports/phase18-first-wave-summary-report.Rmd`
+
+Generated artifacts:
+
+- `inst/sim/results/slice-1059-first-wave-six-surface-nrep3/`
+- `docs/dev-log/figure-audits/slice-1059-first-wave-six-surface-nrep3/report-image-01.png`
+
+Known limitations:
+
+- Local `file://` browser inspection was blocked by browser policy, so the
+  report audit used rendered HTML text, CSV tables, and extracted embedded
+  images.
+- The duplicate NB2 warning should be cleaned or de-duplicated before larger
+  reporting runs.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-20-slices-1059-1068-first-wave-nrep3-report-audit.md`
+
+## 2026-05-20 - Slices 1069-1078 Merge-Prep Consolidation
+
+Goal:
+
+- Convert the broad local slice work into a reviewable merge payload without
+  adding new model surface area.
+
+Consolidation:
+
+- Added `.gitignore` rules so bulky Ayumi CSV/RDS stress outputs and local
+  recovery checkpoints remain local-only.
+- Added `inst/sim/results/` to `.Rbuildignore`.
+- Kept package code, tests, vignettes, design docs, after-task reports, Ayumi
+  markdown summaries, local stress-test scripts, and small figure-audit images
+  in the merge payload.
+- Collapsed duplicate warning messages within each Phase 18 replicate warning
+  ledger row source, so repeated profile warnings do not duplicate
+  warning/error report rows while manifest `warning_count` remains raw.
+
+Focused validation:
+
+```sh
+Rscript -e "devtools::test(filter = '^phase18-(sim-runner|nbinom2-mu-random-effect|first-wave-summary-report|first-wave-summary-smoke-runner)$')"
+```
+
+- 162 expectations, 0 failures, 0 warnings, 0 skips.
+
+Full validation:
+
+```sh
+Rscript -e "devtools::document()"
+Rscript -e "devtools::test()"
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "devtools::check(document = FALSE, error_on = 'warning')"
+git diff --check
+```
+
+- `devtools::document()`: completed.
+- `devtools::test()`: 5480 expectations, 0 failures, 0 warnings, 0 skips.
+- `pkgdown::check_pkgdown()`: no problems found.
+- `devtools::check(document = FALSE, error_on = 'warning')`: 0 errors,
+  0 warnings, 1 NOTE. The NOTE was `unable to verify current time`.
+- `git diff --check`: clean.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-20-slices-1069-1078-merge-prep-consolidation.md`

@@ -335,8 +335,10 @@ Use these status labels:
   `docs/dev-log/after-phase/2026-05-15-phase-12-phylogenetic-correlation-foundation-closure.md`.
 - Diagnostics and intervals: direct phylogenetic SD and constant q=2
   correlation targets are profile-ready; predictor-dependent q=2 `corpair()`
-  values use `newdata`; q=4 phylogenetic correlations are derived-only for
-  intervals; `check_drm()` reports phylogenetic covariance diagnostics.
+  values use `newdata`; full q=4 phylogenetic correlations are derived-only
+  for intervals; block-diagonal q=4 fallback correlations are direct targets
+  that still need fit-specific profile diagnostics; `check_drm()` reports
+  phylogenetic covariance diagnostics.
 - User-facing docs: `vignettes/phylogenetic-spatial.Rmd`,
   `docs/design/09-phylogenetic-and-spatial-speed.md`,
   `docs/design/16-phylo-spatial-common-math.md`, and

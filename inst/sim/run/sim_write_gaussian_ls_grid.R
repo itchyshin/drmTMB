@@ -7,7 +7,9 @@ phase18_write_gaussian_ls_grid_outputs <- function(
   ),
   n_rep = 5L,
   master_seed = 20260522L,
-  overwrite = FALSE
+  overwrite = FALSE,
+  cores = 1L,
+  backend = "none"
 ) {
   if (
     !is.character(output_dir) || length(output_dir) != 1L || !nzchar(output_dir)
@@ -40,7 +42,9 @@ phase18_write_gaussian_ls_grid_outputs <- function(
     n_rep = n_rep,
     master_seed = master_seed,
     result_dir = result_dir,
-    overwrite = overwrite
+    overwrite = overwrite,
+    cores = cores,
+    backend = backend
   )
 
   utils::write.csv(summary$aggregate, paths$aggregate_csv, row.names = FALSE)
@@ -64,6 +68,10 @@ phase18_write_gaussian_ls_grid_outputs <- function(
     result_dir = result_dir,
     table_dir = table_dir,
     paths = paths,
+    artifact_manifest = phase18_grid_artifact_manifest(
+      "gaussian_ls_grid",
+      paths
+    ),
     summary = summary
   )
 }
