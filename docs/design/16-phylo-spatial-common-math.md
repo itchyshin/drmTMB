@@ -548,18 +548,47 @@ blocks, rather than treating every cross-response correlation as residual
 6. Close the coordinate-spatial foundation:
    `spatial(1 | site, coords = coords)` and one numeric
    `spatial(1 + x | site, coords = coords)` slope in univariate Gaussian `mu`.
-7. Reserve animal-model and user-supplied relatedness syntax as siblings of
-   `phylo()` and `spatial()`, while keeping the fitted path blocked until the
-   parser, matrix validation, diagnostics, profile-target labels, and recovery
-   tests exist.
+7. Keep the first fitted animal-model and user-supplied relatedness intercept
+   routes as siblings of `phylo()` and `spatial()`: `animal(1 | id, A/Ainv = ...)`
+   and `relmat(1 | id, K/Q = ...)` are Gaussian `mu` intercept slices only,
+   while pedigree construction, slopes, scale terms, bivariate covariance, and
+   `corpair()` parity remain later gates.
 8. Add spatial SPDE/GMRF fields using the same structured-effect principle.
-9. Add one phylogenetic structured slope in `mu`; then, only after recovery
+9. Add the first bivariate coordinate-spatial `mu1`/`mu2` covariance slice only
+   after the q=2 fitted contract, `corpairs()` rows, profile-target naming, and
+   simulation recovery are specified. This is the closest spatial sibling of
+   the already fitted bivariate phylogenetic `mu1`/`mu2` path.
+10. Add one phylogenetic structured slope in `mu`; then, only after recovery
    evidence, allow a maximum of two structured `mu` slopes. For spatial, the
    analogous multiple-slope and slope-correlation path starts after the
    coordinate foundation has stronger recovery evidence and after the mesh/SPDE
    route is designed.
-10. Treat structured effects in `rho12` as experimental until simulation
+11. Treat structured effects in `rho12` as experimental until simulation
    evidence shows identifiability.
+
+## Spatial Toward Phylogenetic Parity
+
+Spatial parity means matching the same statistical layer where the spatial
+covariance is well defined, not copying every phylogenetic syntax immediately.
+The current coordinate path and the tree path share internal sparse-precision
+machinery, but they do not yet share the same public fitted surface.
+
+| Structured layer | Current spatial status | Next spatial gate |
+| --- | --- | --- |
+| Univariate Gaussian `mu` intercept | Fitted for coordinates as `spatial(1 | site, coords = coords)` | Keep comparator and profile evidence current |
+| One structured `mu` slope | Fitted for coordinates as independent intercept and slope fields | Add stronger recovery and boundary diagnostics before multiple slopes |
+| Bivariate `mu1`/`mu2` q=2 location covariance, the spatial sibling of fitted `corpairs(level = "phylogenetic")` | Planned | Implement coordinate-spatial q=2 location-location covariance, then add `corpairs(level = "spatial")`, direct profile targets, and recovery tests |
+| Predictor-dependent q=2 `corpair()` regression, already fitted for phylogenetic location-location rows | Planned | Design the positive-definite loading contract for spatial rows before exposing syntax |
+| Constant q=4 location-scale block across `mu1`, `mu2`, `sigma1`, and `sigma2`, already fitted for phylogenetic rows | Planned | Wait until q=2 spatial location covariance is stable, because q=4 adds scale endpoints and six latent correlations |
+| Direct structured SD surfaces, currently implemented for `sd_phylo*()` | Planned, but should not clone the name family | Use the generic direct-SD naming decision from `random_effect_scale_formulas`, such as `sd(group, level = ...)` or another reviewed spelling |
+
+The immediate implementation lane should therefore be q=2 bivariate
+coordinate-spatial location covariance, not spatial `sigma`, spatial q=4, or
+spatial `corpair()` regression. Fisher wants that first q=2 lane to have a
+small independent simulation and a dense covariance comparator before it enters
+Phase 18 grids. Pat wants the first example to answer a simple spatial ecology
+question, such as whether nearby reefs share paired abundance and growth
+deviations, instead of presenting the covariance matrix first.
 
 ## Current Implementation Gate
 

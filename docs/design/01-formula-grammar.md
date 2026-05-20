@@ -677,10 +677,13 @@ coordinate-spatial `mu` slope:
 
 ```r
 phylo(1 | species, tree = tree)
-phylo(1 + x1 | species, tree = tree)
 spatial(1 | site, coords = coords)
 spatial(1 + depth | site, coords = coords)
 ```
+
+The matching phylogenetic one-slope spelling,
+`phylo(1 + x1 | species, tree = tree)`, remains parser/planned rather than a
+fitted model surface.
 
 Multiple structured slopes, interaction slopes, structured `sigma` effects,
 structured `rho12` effects, bivariate structured effects beyond matching
