@@ -5064,7 +5064,7 @@ build_mu_sigma_random_covariance <- function(re_mu, re_sigma) {
       cli::cli_abort(c(
         "Larger labelled covariance blocks are not implemented yet.",
         "x" = "Block {.code {block_label}} on group {.field {group_name}} would connect {.code {re_mu$dpars[matching_mu]}} with {.code {re_sigma$dpars[[labelled_sigma]]}}.",
-        "i" = "Use one same-response pair such as {.code mu1} with {.code sigma1}, or wait for the positive-definite q > 2 block parameterization."
+        "i" = "Use a same-response pair such as {.code mu1} with {.code sigma1}, or wait for the positive-definite q > 2 block parameterization."
       ))
     }
     if (
@@ -5947,7 +5947,7 @@ validate_biv_random_covariance_surface <- function(
     cli::cli_abort(c(
       "Bivariate labelled {.code mu} random effects must be part of an implemented covariance block.",
       "x" = "{.code {re_mu$dpars[[i]]}} uses block {.code {re_mu$covariance_labels[[i]]}} on group {.field {re_mu$group_names[[i]]}} without a supported partner.",
-      "i" = "Use matching {.code mu1}/{.code mu2} terms for a mean-mean block or a same-response {.code mu}/ {.code sigma} pair for the first mean-scale block."
+      "i" = "Use matching {.code mu1}/{.code mu2} terms for a mean-mean block or a same-response {.code mu}/ {.code sigma} pair for a response-specific mean-scale block."
     ))
   }
   if (length(unpaired_sigma) > 0L) {
@@ -5955,7 +5955,7 @@ validate_biv_random_covariance_surface <- function(
     cli::cli_abort(c(
       "Bivariate labelled {.code sigma} random effects must be part of an implemented covariance block.",
       "x" = "{.code {re_sigma$dpars[[i]]}} uses block {.code {re_sigma$covariance_labels[[i]]}} on group {.field {re_sigma$group_names[[i]]}} without a supported partner.",
-      "i" = "Use matching {.code sigma1}/{.code sigma2} terms for a scale-scale block or a same-response {.code mu}/ {.code sigma} pair for the first mean-scale block."
+      "i" = "Use matching {.code sigma1}/{.code sigma2} terms for a scale-scale block or a same-response {.code mu}/ {.code sigma} pair for a response-specific mean-scale block."
     ))
   }
   invisible(TRUE)
@@ -6350,6 +6350,7 @@ build_biv_parameter_random_structure <- function(
     ))
   }
   groups_present <- vapply(terms, `[[`, character(1L), "group")
+  same_parameter_cor <- FALSE
   if (length(terms) == 2L) {
     if (!identical(groups_present[[1L]], groups_present[[2L]])) {
       cli::cli_abort(c(
@@ -6357,12 +6358,7 @@ build_biv_parameter_random_structure <- function(
         "x" = "{.code {term_dpars[[1L]]}} uses {.field {groups_present[[1L]]}} but {.code {term_dpars[[2L]]}} uses {.field {groups_present[[2L]]}}."
       ))
     }
-    if (!identical(labels[[1L]], labels[[2L]])) {
-      cli::cli_abort(c(
-        "Bivariate {.code {pair}} same-parameter covariance blocks must use the same covariance-block label.",
-        "x" = "Use one response-specific {.code mu}/ {.code sigma} cross-parameter block at a time, or matching labels in both {.code {dpars[[1L]]}} and {.code {dpars[[2L]]}} for a same-parameter block."
-      ))
-    }
+    same_parameter_cor <- identical(labels[[1L]], labels[[2L]])
   }
 
   group_name <- groups_present[[1L]]
@@ -6407,7 +6403,7 @@ build_biv_parameter_random_structure <- function(
     term_id0 <- c(term_id0, rep.int(j - 1L, n_group))
     dpar_id0 <- c(dpar_id0, rep.int(present[[j]] - 1L, n_group))
     re_pos0 <- c(re_pos0, rep.int(j - 1L, n_group))
-    if (n_cols == 2L && j == 2L) {
+    if (isTRUE(same_parameter_cor) && j == 2L) {
       re_cor_id0 <- c(re_cor_id0, rep.int(0L, n_group))
       re_pair_index0 <- c(re_pair_index0, seq_len(n_group) - 1L)
     } else {
@@ -6428,8 +6424,8 @@ build_biv_parameter_random_structure <- function(
     re_pos0 = re_pos0,
     re_cor_id0 = re_cor_id0,
     re_pair_index0 = re_pair_index0,
-    n_cors = if (n_cols == 2L) 1L else 0L,
-    cor_labels = if (n_cols == 2L) {
+    n_cors = if (isTRUE(same_parameter_cor)) 1L else 0L,
+    cor_labels = if (isTRUE(same_parameter_cor)) {
       cor_label(group_name, labels[[1L]])
     } else {
       character()

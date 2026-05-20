@@ -2,6 +2,85 @@
 
 Record meaningful development checks here.
 
+## 2026-05-20 - Slice 1178a Structural-Dependence Parity And Issue Maintenance
+
+Goal: record the route order for structural-dependence docs and keep animal,
+phylo, spatial, phylo+spatial, and `relmat()` parity promises tied to issues.
+
+Team roles:
+
+- Ada integrated the article, design note, issue comments, checks, and
+  after-task report.
+- Pat and Darwin kept the reader order biological: animal first, then phylo,
+  spatial, phylo+spatial, and `relmat()`.
+- Fisher kept fitted status separate from planned parity targets.
+- Grace checked pkgdown and the rendered article.
+- Rose added issue-maintenance to the after-task loop so old promises do not
+  live only in chat.
+
+Files changed:
+
+- `vignettes/phylogenetic-spatial.Rmd`
+- `docs/design/53-structural-dependence-article-split.md`
+- `docs/design/10-after-task-protocol.md`
+- `.agents/skills/after-task-audit/SKILL.md`
+- `docs/dev-log/forgotten-promises-status-2026-05-20.md`
+- `docs/dev-log/slice-plan-1139-1238-visual-reference-convergence.md`
+- `docs/dev-log/team-improvements.md`
+- `docs/dev-log/after-task/2026-05-20-slice-1178a-structural-parity-issue-maintenance.md`
+
+What changed:
+
+- The structural-dependence article now uses the reader route animal, phylo,
+  spatial, phylo+spatial, then `relmat()`.
+- Added a parity target table saying animal, spatial, and `relmat()` should
+  eventually mirror the phylo ladder where scientifically sensible:
+  univariate location structure, bivariate q=2 location-location correlations,
+  q=4 location-scale blocks, structured `corpair()` regressions, and direct-SD
+  siblings.
+- Added planned animal q=2 and q=4 examples, explicitly marked not fitted.
+- Added `docs/design/53-structural-dependence-article-split.md` so the future
+  pkgdown split is a design decision: animal, phylo, spatial, phylo+spatial,
+  and `relmat()` pages.
+- Updated the after-task protocol and `after-task-audit` skill so meaningful
+  tasks inspect overlapping open issues before closing.
+- Commented on GitHub issues #147, #33, and #31; inspected #5 and left it
+  unchanged because it tracks a broader ordinary covariance endpoint.
+
+Issue comments:
+
+- #147: https://github.com/itchyshin/drmTMB/issues/147#issuecomment-4498392315
+- #33: https://github.com/itchyshin/drmTMB/issues/33#issuecomment-4498395841
+- #31: https://github.com/itchyshin/drmTMB/issues/31#issuecomment-4498400267
+
+Checks run:
+
+```sh
+Rscript -e "devtools::load_all('.', quiet = TRUE); rmarkdown::render('vignettes/phylogenetic-spatial.Rmd', output_dir = '/tmp/drmtmb-structural-parity', output_options = list(self_contained = FALSE), quiet = TRUE)"
+Rscript -e "pkgdown::check_pkgdown()"
+git diff --check
+rg -n "animal -> phylo|phylo\\+spatial|structural-dependence article|relmat\\(\\)|GitHub Issue Maintenance|After-Task Issue Maintenance|1178a" docs vignettes .agents/skills/after-task-audit/SKILL.md
+```
+
+Outcomes:
+
+- The article rendered successfully.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `git diff --check` passed.
+- The repository search found the new route order, split plan, and issue
+  maintenance rules in source docs.
+
+Known limitations:
+
+- No fitted animal, `relmat()`, bivariate spatial, spatial `sigma`,
+  mesh/SPDE, phylo+spatial, or structured parity implementation was added.
+- The new examples are planned syntax only and should remain non-runnable until
+  likelihoods, diagnostics, extractors, intervals, and recovery tests exist.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-20-slice-1178a-structural-parity-issue-maintenance.md`
+
 ## 2026-05-19 - Slices 373-390 Q2 Starts And Regularization Boundary
 
 Goal: test whether source-fit starts, covariance jitter, larger species sets,
@@ -32417,3 +32496,200 @@ git diff --check
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-20-slices-1069-1078-merge-prep-consolidation.md`
+
+## 2026-05-20 - Raindrop And Coverage Figure Rescue
+
+Goal:
+
+- Reopen the figure-gallery and simulation-plot grammar after reader-facing QA
+  found poor visual design, missing raw/replicate context, unclear uncertainty
+  provenance, and overuse of confidence-density styling.
+
+Changes:
+
+- Added the project-local `figure-visual-audit` skill and updated `AGENTS.md`
+  plus `docs/design/39-visualization-grammar.md` so figure quality is a shared
+  Florence/Fisher/Pat/Rose/Grace gate, not a Florence-only responsibility.
+- Replaced the coefficient confidence-cloud panel with compact raindrop-style
+  rows on a fitted coefficient scale, with a warning that shared axes require
+  standardized or commensurate predictors.
+- Replaced the correlation error-bar display with raindrop-style compatibility
+  rows on Fisher's `z` scale.
+- Changed simulation coverage and power examples to show replicate-block
+  proportions plus aggregate points and 95% binomial MCSE intervals. Raindrops
+  remain required for inference displays when intervals are central, but not
+  required for simulation operating-characteristic panels.
+- Saved inspected rendered PNGs under
+  `docs/dev-log/figure-audits/2026-05-20-raindrop-coverage-rescue/`.
+
+Validation:
+
+```sh
+Rscript -e "devtools::load_all('.', quiet = TRUE); rmarkdown::render('vignettes/figure-gallery.Rmd', output_dir = '/tmp/drmtmb-figure-rescue/figure-gallery-final3', output_options = list(self_contained = FALSE), quiet = TRUE)"
+Rscript -e "devtools::load_all('.', quiet = TRUE); rmarkdown::render('vignettes/simulation-plot-grammar.Rmd', output_dir = '/tmp/drmtmb-figure-rescue/simulation-plot-grammar-final2', output_options = list(self_contained = FALSE), quiet = TRUE)"
+Rscript -e "pkgdown::check_pkgdown()"
+git diff --check
+```
+
+- Both focused renders completed.
+- `pkgdown::check_pkgdown()`: no problems found.
+- `git diff --check`: clean.
+- Inspected:
+  - `figure-gallery-raindrop-coefficients.png`
+  - `figure-gallery-correlation-raindrops.png`
+  - `figure-gallery-coverage-blocks.png`
+  - `simulation-coverage-power-blocks.png`
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-20-raindrop-coverage-figure-rescue.md`
+
+## 2026-05-20 - Slices 1139-1238 Ledger And Bivariate Mean-Scale Blocks
+
+Goal:
+
+- Keep the post-1138 visual/reference/convergence lane tied to open PR #263 and
+  close the missing ordinary bivariate covariance combination: independent
+  same-response `mu1`/`sigma1` and `mu2`/`sigma2` blocks plus residual `rho12`.
+
+PR status:
+
+```sh
+gh pr list --state open --limit 20 --json number,title,headRefName,baseRefName,isDraft,updatedAt,url
+```
+
+- Open PR: #263, "Consolidate Ayumi stress evidence and Phase 18 staging",
+  `codex/slices-363-full-ayumi-starts` -> `main`, not draft.
+
+Changes:
+
+- Added `docs/dev-log/slice-plan-1139-1238-visual-reference-convergence.md`.
+- Updated `build_biv_parameter_random_structure()` so different labels across
+  `mu1`/`mu2` or `sigma1`/`sigma2` can remain independent when they have
+  same-response `mu`/`sigma` partners.
+- Added a bivariate Gaussian regression test for
+  `mu1`/`sigma1` label `p`, `mu2`/`sigma2` label `q`, and residual `rho12`.
+- Updated `check_drm()` to return one bivariate mean-scale covariance diagnostic
+  row per response-specific block.
+- Synchronized README, NEWS, ROADMAP, formula grammar docs, the formula grammar
+  vignette, known limitations, and generated `check_drm()` documentation.
+
+Validation:
+
+```sh
+air format R/drmTMB.R R/check.R tests/testthat/test-biv-gaussian.R
+Rscript -e "devtools::test(filter = '^biv-gaussian$|^check-drm$|^profile-targets$|^summary$')"
+Rscript -e "devtools::document()"
+Rscript -e "pkgdown::check_pkgdown()"
+git diff --check
+```
+
+- `air format`: completed.
+- Targeted tests: 1,507 expectations, 0 failures, 0 warnings, 0 skips.
+- `devtools::document()`: completed.
+- `pkgdown::check_pkgdown()`: no problems found.
+- `git diff --check`: clean.
+
+Stale wording scan:
+
+```sh
+rg -n 'one same-response|first same-response|one labelled random-intercept pair|first mean-scale block|same-response cross-parameter random-intercept covariance block' README.md NEWS.md ROADMAP.md docs/design/01-formula-grammar.md docs/dev-log/known-limitations.md vignettes/formula-grammar.Rmd R/drmTMB.R R/check.R tests/testthat/test-biv-gaussian.R
+```
+
+- The old "one pair only" wording was removed from current status docs; the
+  remaining NEWS match now says "blocks" and names the separate `p`/`q`
+  response-specific example.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-20-slices-1139-1238-ledger-and-biv-mean-scale-blocks.md`
+
+## 2026-05-20 - Slices 1159-1178 Reference And Forgotten-Promises Audit
+
+Goal:
+
+- Turn the post-1138 reference and forgotten-promise lane into a status table
+  that separates fitted, partial, planned, and blocked work.
+
+Reference checks:
+
+```sh
+sed -n '1,240p' _pkgdown.yml
+ls man/random_effect_scale_formulas.Rd man/animal.Rd man/phylo.Rd man/spatial.Rd man/relmat.Rd man/corpair.Rd man/meta_V.Rd man/rho12.Rd man/check_drm.Rd man/profile_targets.Rd man/confint.drmTMB.Rd man/plot_corpairs.Rd man/plot_parameter_surface.Rd
+```
+
+- `_pkgdown.yml` includes the formula-only and post-fit topics users need:
+  `random_effect_scale_formulas`, `animal`, `phylo`, `spatial`, `relmat`,
+  `corpair`, `rho12`, `check_drm`, `profile_targets`, `confint.drmTMB`,
+  `plot_corpairs`, and `plot_parameter_surface`.
+- The matching generated `.Rd` files exist.
+
+Promise/status scan:
+
+```sh
+rg -n 'public bootstrap|bootstrap intervals are not implemented|method = "bootstrap"|parametric-bootstrap|private parametric-bootstrap|pdHess|false convergence|Ayumi|PV2|locphylo|skew-normal|skew_t|skew-t|shape random|animal\(\)|relmat\(|profile-ready|derived_interval_unavailable' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes R/profile.R R/formula-markers.R --glob '!docs/design/archive/**'
+```
+
+- Added `docs/dev-log/forgotten-promises-status-2026-05-20.md`, covering
+  figure quality, simulation plots, inference compatibility displays,
+  reference discoverability, bivariate mean-scale blocks, `rho12` separation,
+  profile intervals, bootstrap intervals, Ayumi convergence, starts,
+  Student-t shape, skew families, animal/relmat, phylogenetic, spatial, Phase
+  18 simulations, and example coverage.
+- This audit did not open issues; it prepares the status table for issue triage.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-20-slices-1159-1178-reference-forgotten-promises-audit.md`
+
+## 2026-05-20 - Slices 1189-1208 Ayumi Current Convergence And Profile Check
+
+Goal:
+
+- Refresh the Ayumi convergence evidence on the current branch, including the
+  response-specific ordinary mean-scale block stress row and a full-species
+  Mass+Beak profile-readiness check.
+
+Changes:
+
+- Added `gradient_max` and `gradient_component` summaries to
+  `tools/ayumi-convergence-stress.R` and `tools/ayumi-mass-beak-pv2-rerun.R`.
+- Added `row5_ordinary_two_mu_sigma_80_robust`, testing independent ordinary
+  mean-scale blocks for `mu1`/`sigma1` and `mu2`/`sigma2` plus residual
+  `rho12`.
+- Added refreshed artifacts under
+  `docs/dev-log/ayumi-convergence/slices-1189-1208/`.
+
+Validation and evidence:
+
+```sh
+air format tools/ayumi-convergence-stress.R tools/ayumi-mass-beak-pv2-rerun.R
+Rscript -e "parse('tools/ayumi-convergence-stress.R'); parse('tools/ayumi-mass-beak-pv2-rerun.R')"
+DRMTMB_AYUMI_STRESS_OUT='docs/dev-log/ayumi-convergence/slices-1189-1208/lightness-current-stress' Rscript tools/ayumi-convergence-stress.R
+DRMTMB_PV2_RERUN_OUT='docs/dev-log/ayumi-convergence/slices-1189-1208/mass-beak-current' DRMTMB_PV2_MODELS='PV2_locphylo,PV2_phylo_fallback,PV2_phylo_fallback_sigma_intercept' DRMTMB_PV2_RUN_Q4=false DRMTMB_PV2_SE=true DRMTMB_PV2_ITER_MAX=2000 DRMTMB_PV2_EVAL_MAX=2000 Rscript tools/ayumi-mass-beak-pv2-rerun.R
+DRMTMB_PROFILE_FIT_RDS='docs/dev-log/ayumi-convergence/slices-1189-1208/mass-beak-current/fits.rds' DRMTMB_PROFILE_MODEL='PV2_locphylo' DRMTMB_PROFILE_OUT='docs/dev-log/ayumi-convergence/slices-1189-1208/mass-beak-locphylo-profile' DRMTMB_PROFILE_TARGETS='phylo_mean,rho12' DRMTMB_PROFILE_CORES=2 DRMTMB_PROFILE_BACKEND=multicore Rscript tools/ayumi-profile-fallback-correlations.R
+gh pr status
+gh run list --limit 12 --json databaseId,workflowName,displayTitle,headBranch,event,status,conclusion,createdAt,updatedAt,url
+gh pr view 263 --json number,title,url,isDraft,mergeStateStatus,reviewDecision,headRefName,headRefOid,baseRefName,statusCheckRollup
+```
+
+- `PV2_locphylo`: convergence 0, `pdHess = TRUE`, elapsed 121.1 seconds,
+  `rho12` response estimate -0.789, max gradient 0.0359.
+- `PV2_phylo_fallback`: convergence 1, `pdHess = FALSE`, elapsed 674.1
+  seconds, max gradient about 50.
+- `PV2_phylo_fallback_sigma_intercept`: convergence 1, `pdHess = FALSE`,
+  elapsed 533.6 seconds, max gradient about 49.
+- The ordinary two-label mean-scale lightness stress row emitted separate
+  `corpairs()` rows for `p` and `q`, but false-converged with `pdHess = FALSE`,
+  boundary `rho12`, and max gradient about 2.35e10.
+- The full-species `PV2_locphylo` profile preflight found profile-ready `rho12`
+  and phylogenetic mean-mean correlation targets, but the unbounded two-core run
+  was stopped after more than 30 minutes without producing intervals. This is
+  evidence for explicit, bounded profile workflows rather than automatic
+  profile CIs during `drmTMB()` fitting.
+- PR #263 is green on commit `414a0088`, but that Actions result is stale for
+  the current local working tree until these changes are committed and pushed.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-20-slices-1189-1208-ayumi-current-convergence-profile.md`

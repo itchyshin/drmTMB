@@ -198,7 +198,7 @@ Read status words consistently:
 | Random-effect scale models | First slice fitted for `sd(group) ~ x_group` on unlabelled Gaussian `mu` random intercepts | Fixed SD-surface coefficients are direct targets; row-specific group SD summaries are derived | Slope-specific `sd(id, dpar = "mu", coef = "x") ~ ...` is reserved and rejected |
 | Known sampling covariance | Stable for Gaussian `meta_V(V = V)`, including diagonal, dense, and row-paired bivariate known covariance; `meta_known_V(V = V)` remains a compatibility alias | `check_drm()` reports dense full `V` as a note with dimension, density, size, rank, and conditioning; fixed effects and response-scale residual summaries use the usual interval routes | Dense covariance is small-to-moderate unless sparse or block-sparse evidence is added; full dense known `V` with non-unit likelihood weights is rejected |
 | Bivariate Gaussian residual `rho12` | Stable for fixed-effect `mu1`, `mu2`, `sigma1`, `sigma2`, and predictor-dependent residual `rho12` | `rho12()` extracts response-scale residual correlations; row-specific profile intervals use `confint(..., parm = "rho12", newdata = ...)` | Residual `rho12` is not a group-level, phylogenetic, or spatial correlation |
-| Ordinary bivariate covariance and `corpairs()` | First slice fitted for matching labelled random intercepts in `mu1`/`mu2`, `sigma1`/`sigma2`, same-response `mu`/`sigma`, all-four q=4 blocks, and q=2 `corpair(..., level = "group") ~ x` | Constant q=2 SD/correlation targets are profile-ready; predictor-dependent `corpair()` values use `newdata`; q=4 unstructured-correlation rows are derived and report unavailable derived intervals | Bivariate random slopes and slope1-slope2 plasticity-syndrome correlations remain planned |
+| Ordinary bivariate covariance and `corpairs()` | First slice fitted for matching labelled random intercepts in `mu1`/`mu2`, `sigma1`/`sigma2`, one or more same-response `mu`/`sigma` blocks, all-four q=4 blocks, and q=2 `corpair(..., level = "group") ~ x` | Constant q=2 SD/correlation targets are profile-ready; same-response mean-scale blocks report one row per response-specific label/group pair; predictor-dependent `corpair()` values use `newdata`; q=4 unstructured-correlation rows are derived and report unavailable derived intervals | Bivariate random slopes and slope1-slope2 plasticity-syndrome correlations remain planned |
 | Phylogenetic structured effects | First slices fitted for univariate `mu`, bivariate `mu1`/`mu2`, labelled q=4 location-scale blocks, `sd_phylo*()` direct-SD surfaces, and q=2 phylogenetic `corpair()` regression | Direct phylogenetic SD and constant q=2 correlation targets are profile-ready; predictor-dependent `corpair()` values use `newdata`; full q=4 correlations are derived-only, while block-diagonal q=4 fallback correlations are direct targets but still need fit-specific profile diagnostics | Phylogenetic slopes, standalone or partial phylogenetic scale terms, structured `rho12`, and predictor-dependent q=4 correlations remain planned |
 | Coordinate spatial structured effects | First slice fitted for univariate Gaussian `mu`: `spatial(1 | site, coords = coords)` and one numeric `spatial(1 + x | site, coords = coords)` slope | `sdpars$mu`, `ranef("spatial_mu")`, `profile_targets()`, and `check_drm()` expose the coordinate fields | Mesh/SPDE, multiple spatial slopes, spatial slope correlations, spatial `sigma`, bivariate spatial covariance, and spatial `corpair()` remain planned |
 | Profile intervals and diagnostics | First slice for fixed effects, direct SD/correlation targets, row-specific `sigma`, `sigma1`, `sigma2`, `rho12`, and fitted q=2 `corpair()` values | Interval output uses `conf.status`, `profile.boundary`, and `profile.message`; derived q=4 rows report `derived_interval_unavailable` | Profile support is target-specific, and public bootstrap intervals are not implemented yet |
@@ -218,11 +218,12 @@ Residual `rho12` is a within-observation bivariate Gaussian correlation. It is
 not the same as a group-level correlation among individual intercepts, slopes,
 or residual-scale random effects. Univariate Gaussian `sigma` formulas now
 fit residual-scale random intercepts and independent random slopes, while
-`drmTMB` fits four first group-level covariance slices: a univariate labelled
-`mu`/`sigma` random-intercept correlation from matching `(1 | p | id)` terms,
-bivariate labelled `mu1`/`mu2` and `sigma1`/`sigma2` random-intercept
-correlations, and one same-response bivariate `mu`/`sigma` random-intercept
-correlation such as `mu1` with `sigma1`.
+`drmTMB` fits the first ordinary group-level covariance slices: univariate
+labelled `mu`/`sigma` random-intercept correlations from matching
+`(1 | p | id)` terms, bivariate labelled `mu1`/`mu2` and `sigma1`/`sigma2`
+random-intercept correlations, and one or more same-response bivariate
+`mu`/`sigma` random-intercept correlations such as `mu1` with `sigma1` using
+label `p` and `mu2` with `sigma2` using label `q`.
 
 Full double-hierarchical individual-difference models are planned work. These
 models would jointly describe individual differences in average behaviour,

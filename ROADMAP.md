@@ -141,9 +141,9 @@ distributional regression models using TMB.
   blocks in the same model with predictor-dependent residual `rho12 ~ x`; the
   same regression now checks that `summary(fit)$covariance` reports the two
   group-level covariance rows and omits residual `rho12`.
-- One same-response bivariate `mu`/`sigma` random-intercept covariance block is
-  implemented, such as matching `(1 | p | id)` terms in `mu1` and `sigma1` or
-  in `mu2` and `sigma2`.
+- One or more same-response bivariate `mu`/`sigma` random-intercept covariance
+  blocks are implemented, such as matching `(1 | p | id)` terms in `mu1` and
+  `sigma1` plus matching `(1 | q | id)` terms in `mu2` and `sigma2`.
 - Matching labelled random intercepts across all four bivariate location-scale
   parameters, `mu1`, `mu2`, `sigma1`, and `sigma2`, now fit one all-four
   intercept block and report six `corpairs()` rows: one `mu1`-`mu2` row, four
@@ -169,7 +169,7 @@ distributional regression models using TMB.
   unlabelled Gaussian `mu` random intercepts, such as `sd(id) ~ x_group` and
   `sd(site) ~ site_type`.
   The bivariate Gaussian path now fits matched labelled `mu1`/`mu2`,
-  `sigma1`/`sigma2`, and same-response `mu`/`sigma` random-intercept
+  `sigma1`/`sigma2`, one or more same-response `mu`/`sigma` random-intercept
   covariance blocks.
 - The R-side labelled covariance block registry now records the implemented
   two-member `mu`, `sigma`, and `mu`/`sigma` bridges without changing accepted
@@ -854,8 +854,9 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   locally closed. See
   `docs/dev-log/after-phase/2026-05-15-phase-11-bivariate-corpairs-foundation-closure.md`.
 - Matching labelled random intercepts in bivariate `mu1`/`mu2`,
-  `sigma1`/`sigma2`, and one same-response `mu`/`sigma` pair are implemented
-  after the fixed-effect bivariate Gaussian location-coscale model stabilized.
+  `sigma1`/`sigma2`, and one or more same-response `mu`/`sigma` pairs are
+  implemented after the fixed-effect bivariate Gaussian location-coscale model
+  stabilized.
   The ordinary q=4 all-four intercept block reports all six fitted
   `corpairs()` rows as derived summaries. Random slopes, full cross-parameter
   slope covariance, direct q=4 profile intervals, `rho12` random effects, and
@@ -1380,7 +1381,7 @@ This is the current random-effect status before the non-Gaussian revisit:
 | Ordinary Gaussian `mu` | Fitted for independent slopes, one-slope correlated blocks, and ordinary q > 2 numeric location blocks. | q=3 recovery, `sdpars$mu`, `corpars$re_cov`, `corpairs()`, `summary()`, `profile_targets()`, and direct SD profiles are covered. | Larger q blocks are advanced and sample-size hungry; q > 2 correlations remain derived-unavailable for direct profile intervals. |
 | Gaussian `sigma` | Fitted for random intercepts and multiple independent numeric slopes on `log(sigma)`. | `sdpars$sigma`, prediction contributions, direct `log_sd_sigma` profile targets, and tests cover the independent-slope boundary. | Correlated residual-scale slope blocks and labelled residual-scale slope covariance are planned. |
 | Univariate `mu`/`sigma` covariance | Fitted for one or more matched labelled random-intercept blocks. | `corpars$mu_sigma`, `corpairs(class = "mean-scale")`, `summary()`, `check_drm()`, and second-block profile tests are covered. | Slope-level mean-scale covariance is planned. |
-| Bivariate ordinary covariance | Fitted for matching labelled random intercepts in `mu1`/`mu2`, `sigma1`/`sigma2`, same-response `mu`/`sigma`, and all-four q=4 intercept blocks. | Constant q=2 correlation targets are profile-ready; q=4 correlations are derived-only with explicit unavailable interval status. | First future slope target is matching slope-only `mu1`/`mu2`; q=4 location-slope and q=8 all-four slope endpoints remain closed. |
+| Bivariate ordinary covariance | Fitted for matching labelled random intercepts in `mu1`/`mu2`, `sigma1`/`sigma2`, one or more same-response `mu`/`sigma` blocks, and all-four q=4 intercept blocks. | Constant q=2 correlation targets are profile-ready; same-response mean-scale blocks report one row per response-specific label/group pair; q=4 correlations are derived-only with explicit unavailable interval status. | First future slope target is matching slope-only `mu1`/`mu2`; q=4 location-slope and q=8 all-four slope endpoints remain closed. |
 | Phylogenetic structured effects | Intercept-level univariate, bivariate, direct-SD, q=2 correlation-regression, and q=4 location-scale paths are fitted. | Direct phylogenetic SDs and q=2 correlations have profile targets; full q=4 correlations are derived-only, while block-diagonal q=4 fallback correlations are direct targets that still need fit-specific profile diagnostics. | `phylo(1 + x | species, tree = tree)` remains planned pending recovery and diagnostics. |
 | Coordinate spatial structured effects | Fitted for univariate Gaussian `mu` intercept and one numeric slope, with independent coordinate fields. | `sdpars$mu`, `ranef("spatial_mu")`, `profile_targets()`, `check_drm()`, and a slope-field profile interval are covered. | Mesh/SPDE, multiple slopes, slope correlations, spatial `sigma`, bivariate spatial covariance, and spatial `corpair()` remain planned. |
 | Non-Gaussian families | Fixed-effect likelihoods are fitted; ordinary Poisson and NB2 `mu` random intercepts plus independent numeric slopes are fitted for non-zero-inflated count models; non-Gaussian `sigma` plus shape random effects are explicitly blocked. | Poisson and NB2 `mu` random-effect SDs appear in `sdpars$mu`, random effects, and direct `profile_targets()` rows; family-specific fixed-effect summaries and intervals exist where already implemented. | Zero-inflation, hurdle, ordinal, structured, cross-parameter covariance, non-Gaussian scale random effects, and shape random effects still need separate implementation evidence before broad simulation. |
@@ -1518,7 +1519,7 @@ Use this order unless Slice 191 evidence overturns it:
 | 265 | Simulation plot grammar | Done locally: `simulation-plot-grammar` is a Simulation & Comparison article with display contracts for bias, RMSE, coverage, power, convergence, runtime, and warning/error ledgers across continuous, proportion, count, and meta-analysis examples. |
 | 266 | Gallery source-map and QA | Done locally: the figure gallery now has a source-map table mapping each display to its fitted object or fixture, extractor or plotter, interval source, and support boundary, with render, pkgdown, and visual checks recorded. |
 | 267 | Florence closeout | Done locally: the visualization grammar now records that `plot_parameter_surface()` and `plot_corpairs()` remain the exported helpers, most gallery displays stay tutorial-level `ggplot2` recipes, and simulation/failure-ledger helpers wait for stable Phase 18 result schemas. |
-| 299 | Florence visual repair | Done locally: the gallery now draws compact confidence clouds for `mu` and `sigma` temperature effects, uses shared palettes more consistently, recolours formerly default-black discrete and empirical displays, improves status-strip label contrast, and replaces the simulation bias line plot with raincloud-style replicate clouds plus mean/MCSE intervals because estimands are categorical targets, not trajectories. |
+| 299 | Florence visual repair | Done locally: the gallery now draws raindrop-style compatibility displays for `mu`, `sigma`, and correlation intervals, uses shared palettes more consistently, recolours formerly default-black discrete and empirical displays, improves status-strip label contrast, and replaces the simulation bias line plot with raincloud-style replicate clouds plus mean/MCSE intervals because estimands are categorical targets, not trajectories. |
 | 300 | Simulation raincloud grammar | Done locally: the Simulation & Comparison plot-grammar article now shows bias as replicate-level error clouds with mean/MCSE intervals in fixed surface facets and keeps RMSE in a separate aggregate point/MCSE panel, so future Phase 18 reports have a clear visual contract before exported simulation plot helpers exist. |
 | 301 | Count gallery accuracy grammar | Done locally: the Phase 18 count-pilot gallery now uses fixed family facets for bias and RMSE, draws MCSE bars when aggregate CSVs include `bias_mcse` or `rmse_mcse`, and states that replicate-error clouds wait for replicate-level output instead of being faked from aggregate rows. |
 
@@ -1540,7 +1541,7 @@ as the whole comprehensive simulation programme.
 | 265 | Simulation plot grammar | Operating-characteristic plot design | Done locally: the Simulation & Comparison route has reusable plot grammar for bias, RMSE, coverage, power, convergence, runtime, and warning/error ledgers across continuous, proportion, count, and meta-analysis examples. |
 | 266 | Figure QA | Gallery source map | Done locally: each figure maps to the fitted object or fixture, extractor or plotter, interval source, support status, and current limitation. |
 | 267 | Florence closeout | Plot helper backlog | Done locally: the helper backlog keeps `plot_parameter_surface()` and `plot_corpairs()` as the exported helpers, leaves gallery-specific plots as tutorial recipes, and defers simulation/failure-ledger helpers until result schemas stabilize. |
-| 299 | Figure QA | Florence visual repair | Done locally: the public figure gallery now adds an interpretable confidence-cloud display, removes the misleading category-connecting line from the simulation bias panel, adds raincloud-style replicate clouds with mean/MCSE intervals, applies explicit colour to formerly default-black displays, and improves tile-label contrast for support-boundary strips. |
+| 299 | Figure QA | Florence visual repair | Done locally: the public figure gallery now adds raindrop-style compatibility displays for inference intervals, removes the misleading category-connecting line from the simulation bias panel, adds raincloud-style replicate clouds with mean/MCSE intervals, applies explicit colour to formerly default-black displays, and improves tile-label contrast for support-boundary strips. |
 | 300 | Simulation plot grammar | Raincloud and MCSE display contract | Done locally: `simulation-plot-grammar` now requires real bias reports to show replicate-level errors beside mean bias and MCSE intervals, and to keep RMSE in a separate aggregate uncertainty panel rather than mixing it with signed bias or an absolute-error cloud. |
 | 301 | Count pilot report | Apply accuracy grammar | Done locally: `phase18-count-mu-gallery.Rmd` now applies the Slice 300 accuracy contract to the count-pilot report template, with fixed family facets, aggregate MCSE bars, readable parameter-class labels, and no simulated raincloud when replicate-level rows are absent. |
 | 268 | Support audit | Pre-simulation capability matrix | Done locally: `docs/design/46-pre-simulation-readiness-matrix.md` now has one capability audit table that says which Gaussian, non-Gaussian, shape, inflation, bivariate, random-slope, meta-analysis, phylogenetic, spatial, animal, and `relmat()` surfaces are implemented, tested, planned, or unsupported before Phase 18 grids admit them. |

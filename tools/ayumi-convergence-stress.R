@@ -154,6 +154,13 @@ make_formula <- function(kind, tree = NULL) {
       sigma2 = ~temp_var_z,
       rho12 = ~tree_cover_z
     ),
+    ordinary_two_mu_sigma = bf(
+      mu1 = male_z ~ temp_z + (1 | p | species),
+      mu2 = female_z ~ temp_z + (1 | q | species),
+      sigma1 = ~ temp_var_z + (1 | p | species),
+      sigma2 = ~ temp_var_z + (1 | q | species),
+      rho12 = ~tree_cover_z
+    ),
     phylo_mean = bf(
       mu1 = male_z ~ temp_z + phylo(1 | p | species, tree = tree),
       mu2 = female_z ~ temp_z + phylo(1 | p | species, tree = tree),
@@ -183,6 +190,33 @@ make_formula <- function(kind, tree = NULL) {
       rho12 = ~tree_cover_z
     ),
     stop("Unknown formula kind: ", kind)
+  )
+}
+
+gradient_summary <- function(fit) {
+  grad <- tryCatch(fit$obj$gr(fit$opt$par), error = function(e) numeric())
+  grad_abs <- abs(grad)
+  gradient_max <- if (length(grad_abs)) {
+    max(grad_abs, na.rm = TRUE)
+  } else {
+    NA_real_
+  }
+  gradient_component <- NA_character_
+  if (length(grad_abs) && is.finite(gradient_max)) {
+    gradient_index <- which.max(grad_abs)
+    grad_names <- names(grad_abs)
+    gradient_component <- if (
+      !is.null(grad_names) && length(grad_names) >= gradient_index
+    ) {
+      grad_names[[gradient_index]]
+    } else {
+      paste0("par[", gradient_index, "]")
+    }
+  }
+  data.frame(
+    gradient_max = gradient_max,
+    gradient_component = gradient_component,
+    stringsAsFactors = FALSE
   )
 }
 
@@ -254,6 +288,7 @@ fit_scenario <- function(scenario, data_sets, trees) {
   checks <- safe_table(check_drm(fit))
   pairs <- safe_table(corpairs(fit))
   targets <- safe_table(profile_targets(fit))
+  gradients <- gradient_summary(fit)
   intervals <- if (isTRUE(scenario$profile_intervals)) {
     safe_table(corpairs(fit, conf.int = TRUE))
   } else {
@@ -269,6 +304,7 @@ fit_scenario <- function(scenario, data_sets, trees) {
       opt_message = as.character(fit$opt$message),
       pdHess = isTRUE(fit$sdr$pdHess),
       objective = as.numeric(fit$opt$objective),
+      gradients,
       check_warnings = sum(checks$status == "warning", na.rm = TRUE),
       check_errors = sum(checks$status == "error", na.rm = TRUE),
       check_notes = sum(checks$status == "note", na.rm = TRUE)
@@ -430,6 +466,14 @@ main <- function() {
       data = "aggregate_80",
       formula = "phylo_q4_rho",
       tree = "forced",
+      preset = "robust",
+      profile_intervals = FALSE
+    ),
+    list(
+      name = "row5_ordinary_two_mu_sigma_80_robust",
+      data = "row5_80",
+      formula = "ordinary_two_mu_sigma",
+      tree = "none",
       preset = "robust",
       profile_intervals = FALSE
     ),

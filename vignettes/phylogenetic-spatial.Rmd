@@ -217,15 +217,16 @@ parameter models residual correlation, such as bivariate `rho12`. Structured
 animal, phylogenetic, and spatial effects are not residual coscale terms unless
 the fitted model explicitly includes a residual `rho12` formula.
 
-## Reader route: animal, phylogeny, spatial, and known matrices
+## Reader route: animal, phylo, spatial, phylo+spatial, relmat
 
 Read this page as a five-step structural-dependence ladder. Step 1 asks whether
 individuals resemble each other because of pedigree or additive relatedness.
 Step 2 asks whether related species remain similar after fixed effects. Step 3
 asks whether nearby sites remain similar after fixed effects. Step 4 asks
 whether both species relatedness and site coordinates are needed in the same
-model. Step 5 covers lower-level known dependence matrices that do not belong
-to the named animal, phylogenetic, or spatial routes. In the current package,
+model. Step 5 is the lower-level `relmat()` route for known dependence matrices
+that do not belong to the named animal, phylogenetic, or spatial routes. In the
+current package,
 Steps 2 and 3 have fitted Gaussian paths; Steps 1, 4, and 5 are documented
 planned syntax.
 
@@ -273,10 +274,10 @@ Read the current route status this way:
 | Route | Current status | Use when | Syntax to read |
 | --- | --- | --- | --- |
 | 1. Animal | Planned marker, not fitted yet | Individuals have known additive relatedness from a pedigree or relationship matrix, and the biological question is an animal model or quantitative-genetic random effect. | `animal(1 | individual, pedigree = pedigree)`; later `animal(1 | individual, A = A)` or `animal(1 | individual, Ainv = Ainv)` |
-| 2. Phylogeny | Implemented for the listed Gaussian slices | Species share evolutionary history, and related species may have similar trait means, trait variances, or cross-trait latent correlations. | `phylo(1 | species, tree = tree)`; labelled bivariate blocks such as `phylo(1 | p | species, tree = tree)` |
+| 2. Phylo | Implemented for the listed Gaussian slices | Species share evolutionary history, and related species may have similar trait means, trait variances, or cross-trait latent correlations. | `phylo(1 | species, tree = tree)`; labelled bivariate blocks such as `phylo(1 | p | species, tree = tree)` |
 | 3. Spatial | Implemented for univariate Gaussian `mu` coordinate slices | Nearby sampling sites may share smooth deviations in the expected response or in one numeric slope such as `depth`. | `spatial(1 | site, coords = coords)`; `spatial(1 + depth | site, coords = coords)` |
-| 4. Phylogeny + spatial | Planned, not fitted yet | The same response could be structured by both species relatedness and site coordinates. | Fit separate phylogenetic and spatial sensitivity models for now; simultaneous `phylo()` plus `spatial()` in `mu` is rejected until the joint model has identifiability checks. |
-| 5. Other known dependence | Design candidate, not fitted yet | A known covariance or precision matrix does not naturally belong to animal, phylogenetic, or spatial syntax. | `relmat(1 | id, K = K)` or `relmat(1 | id, Q = Q)` in future low-level workflows. |
+| 4. Phylo + spatial | Planned, not fitted yet | The same response could be structured by both species relatedness and site coordinates. | Fit separate phylogenetic and spatial sensitivity models for now; simultaneous `phylo()` plus `spatial()` in `mu` is rejected until the joint model has identifiability checks. |
+| 5. `relmat()` | Design candidate, not fitted yet | A known covariance or precision matrix does not naturally belong to animal, phylogenetic, or spatial syntax. | `relmat(1 | id, K = K)` or `relmat(1 | id, Q = Q)` in future low-level workflows. |
 
 That status boundary is deliberate. A combined model like this is
 scientifically natural:
@@ -371,11 +372,73 @@ claims are honest. This is the same distinction as the implemented phylogenetic
 tree path: users pass `tree = tree`, and `drmTMB` builds the sparse augmented
 A-inverse internally rather than asking users to hand-write a dense tip VCV.
 
+### Parity target for animal, spatial, and relmat
+
+The long-term target is not just to parse `animal()`, `spatial()`, or
+`relmat()`. These routes should eventually answer the same classes of
+questions as the fitted phylogenetic route, whenever the corresponding
+dependence structure is scientifically meaningful and identifiable. The table
+below is a roadmap boundary, not a fitted-claim table.
+
+| Layer | Fitted phylogenetic example | Parity target for animal, spatial, and relmat |
+| --- | --- | --- |
+| Univariate location structure | `phylo(1 | species, tree = tree)` | `animal(1 | individual, pedigree = pedigree)`, `spatial(1 | site, coords = coords)`, and `relmat(1 | line, K = K)` in `mu` |
+| Bivariate location-location correlation | Matching labelled `phylo()` terms in `mu1` and `mu2`, reported by `corpairs()` | Matching labelled `animal()`, `spatial()`, or `relmat()` terms in `mu1` and `mu2`, reported as their own `corpairs()` levels |
+| Location-scale q=4 block | Matching labelled `phylo()` terms across `mu1`, `mu2`, `sigma1`, and `sigma2` | All-four endpoint blocks for animal, spatial, and relmat after positive-definite parameterization, diagnostics, profiles, and recovery tests exist |
+| Predictor-dependent structured correlation | q=2 phylogenetic `corpair(..., level = "phylogenetic") ~ ecology` | q=2 animal, spatial, and relmat `corpair()` regressions only after constant q=2 fits are stable |
+| Direct SD surfaces | `sd_phylo()`, `sd_phylo1()`, and `sd_phylo2()` | Source-specific direct-SD siblings after naming, matrix scale, and interpretation are clear |
+
+Spatial is partway up this ladder: `spatial(1 | site, coords = coords)` and
+one independent coordinate-spatial `mu` slope are fitted for univariate
+Gaussian location models. Bivariate spatial covariance, spatial `sigma`,
+spatial `corpair()`, mesh/SPDE fields, animal-model fits, and `relmat()` fits
+remain planned.
+
+The planned bivariate animal examples therefore read like the phylogenetic
+examples, but they are not runnable today:
+
+```r
+# Planned, not fitted yet:
+fit_animal_q2 <- drmTMB(
+  drm_formula(
+    mu1 = body_size ~ age + sex +
+      animal(1 | p | individual, pedigree = pedigree),
+    mu2 = beak_length ~ age + sex +
+      animal(1 | p | individual, pedigree = pedigree),
+    sigma1 = ~ sex,
+    sigma2 = ~ sex,
+    rho12 = ~ 1
+  ),
+  family = c(gaussian(), gaussian()),
+  data = growth
+)
+
+# Planned, not fitted yet:
+fit_animal_q4 <- drmTMB(
+  drm_formula(
+    mu1 = body_size ~ age + sex +
+      animal(1 | p | individual, pedigree = pedigree),
+    mu2 = beak_length ~ age + sex +
+      animal(1 | p | individual, pedigree = pedigree),
+    sigma1 = ~ sex + animal(1 | p | individual, pedigree = pedigree),
+    sigma2 = ~ sex + animal(1 | p | individual, pedigree = pedigree),
+    rho12 = ~ 1
+  ),
+  family = c(gaussian(), gaussian()),
+  data = growth
+)
+
+# Planned siblings, not fitted yet:
+spatial(1 | p | site, coords = coords)
+relmat(1 | p | line, K = G)
+relmat(1 | p | line, Q = Ginv)
+```
+
 ## Current implementation status
 
 This page separates the fitted paths from the roadmap. The fitted structural
-pieces are useful, but they are not yet the full phylogenetic, spatial, and
-phylogenetic-plus-spatial location-scale-coscale model.
+pieces are useful, but they are not yet the full animal, phylo, spatial,
+phylo+spatial, and `relmat()` location-scale-coscale ladder.
 
 | Model piece | Status | What it means |
 | --- | --- | --- |

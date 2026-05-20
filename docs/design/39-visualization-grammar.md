@@ -144,6 +144,64 @@ tutorial, gallery, or report:
 | Accessibility | Colour choices are colour-blind-friendly, line widths remain legible in print, and panels are readable at pkgdown and manuscript sizes. |
 | Composability | The helper returns an ordinary `ggplot` object and keeps the data table inspectable for custom ecology/evolution figures. |
 
+The gate is shared, not Florence-only. Florence should not be the first person
+to notice that a figure lacks the data grain or uncertainty needed for the
+claim. Fisher checks whether the plot shows raw observations, fitted-row
+predictions, replicate-level simulation errors, aggregate summaries, MCSE
+intervals, profile intervals, or missing cells on the correct scale. Pat checks
+whether a new applied reader can tell what is being compared and why some cells
+are blank. Rose checks for repeated failure patterns across figures, captions,
+NEWS, ROADMAP, check logs, and after-task reports. Grace checks that rendered
+images, not only source code, were inspected one by one before visual QA is
+called complete. Boole and Noether join when labels, formula syntax, or
+estimand names could make unsupported syntax or derived quantities look fitted.
+
+The standard is not only error prevention. Several roles need a working sense
+of visual beauty because `drmTMB` users learn distributional regression through
+figures. A good plot should make the model easier to understand than the table
+alone: the main comparison should be visually obvious, uncertainty should be
+honest but not ornamental, colours should carry stable meaning, missing or
+unsupported cells should be visibly intentional, and negative space should help
+comparison rather than leave isolated points floating. The same standard helps
+the package team: a figure that exposes failed intervals, weak support, missing
+surfaces, or incoherent estimand labels is a diagnostic tool, not just a
+presentation artifact.
+
+Every error bar, ribbon, whisker, density cloud, or shaded interval must be
+explained in the title, subtitle, caption, or nearby text. The explanation must
+name both the target and the source: for example, a 95% Wald confidence interval
+from fixed-effect SEs, a profile-likelihood confidence interval, a bootstrap
+interval, a 95% binomial MCSE interval for empirical coverage, or an RMSE MCSE
+interval. A visual interval without provenance is a misleading figure even when
+the geometry is aligned.
+
+For coefficient and correlation summaries, the gallery should use raindrop-style
+compatibility displays when an interval is central to inference. [Barrowman and
+Myers (2003)](https://doi.org/10.1198/0003130032369) introduced raindrop plots
+to show collections of likelihoods or distributions without making the interval
+look equally plausible from end to end. [Schild and Voracek
+(2014)](https://doi.org/10.1002/jrsm.1125) later evaluated rainforest plots,
+which combine forest plots with raindrop likelihood shapes and density-strip
+shading; their motivation is directly relevant to `drmTMB` inference figures
+because readers often misread confidence intervals and weights. [Xie and Singh
+(2013)](https://ideas.repec.org/a/bla/istatr/v81y2013i1p3-39.html),
+[`pvaluefunctions`](https://cran.r-universe.dev/pvaluefunctions/doc/manual.html),
+and the [`orchaRd` ecosystem](https://zenodo.org/records/7928743) are useful
+related examples of moving beyond bare intervals. In `drmTMB` prose, call these
+frequentist raindrop, confidence-distribution, or compatibility displays, never
+posterior draws, unless the plotted object is genuinely Bayesian. Simulation
+coverage and power plots do not need raindrops by default; they should first
+show replicate or replicate-block data, aggregate proportions, and named MCSE
+intervals.
+
+Shared coefficient-scale raindrop rows need the same discipline as any
+coefficient plot. They are visually comparative only when the predictors are
+standardized, share a meaningful unit, or have been converted to named
+contrasts such as "effect per 1 SD". If rows involve different predictors,
+different units, or different link scales, the figure should facet, standardize,
+or label the contrast explicitly instead of inviting a visual magnitude
+comparison that the model did not support.
+
 ## Proposed Phase 17 Data Contracts
 
 ### Prediction Grid Builder
@@ -585,14 +643,20 @@ drawable intervals only when those provenance columns name a real interval
 source, matching the rule already used by `plot_parameter_surface()`.
 
 Slice 299 reopens the gallery for visual repair after reader-facing QA. The
-confidence-distribution panel now uses a compact confidence cloud with the
+inference panels now use raindrop-style compatibility displays with the
 no-effect line, estimate, and central 66% and 95% intervals visible in the same
-facet. The simulation bias display uses raincloud-style replicate estimates
-plus mean/MCSE intervals because `beta_x`, `sigma`, `sd_intercept`, and `rho12`
-are categorical estimands, not an ordered trajectory. Gallery recipes also
-share palettes more consistently, recolour discrete and empirical summaries
-that had fallen back to default black, and improve support-strip label contrast
-so colour carries status without making the text harder to read.
+facet. Correlation summaries use the same idea on Fisher's `z` scale so `rho12`,
+ordinary group correlations, and phylogenetic correlations do not look like
+flat error-bar intervals with equal plausibility from end to end. The simulation
+bias display uses raincloud-style replicate estimates plus mean/MCSE intervals
+because `beta_x`, `sigma`, `sd_intercept`, and `rho12` are categorical
+estimands, not an ordered trajectory. Simulation coverage/power displays first
+show replicate-block proportions plus aggregate binomial MCSE intervals; they
+do not require raindrops unless a later report has a specific reason to add
+them. Gallery recipes also share palettes more consistently, recolour discrete
+and empirical summaries that had fallen back to default black, and improve
+support-strip label contrast so colour carries status without making the text
+harder to read.
 
 Slice 300 carries that simulation display rule into the Simulation & Comparison
 article. Bias panels should show replicate-level errors, not only aggregate

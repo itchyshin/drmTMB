@@ -34,6 +34,7 @@ Each report should include:
 - team learning and process improvements;
 - design-doc updates;
 - pkgdown/documentation updates;
+- GitHub issue maintenance;
 - known limitations and next actions.
 
 ## Consistency Audit
@@ -66,6 +67,17 @@ check the status inventory before closing:
 Paste the exact `rg` patterns used into the check log or after-task report. A
 generic phrase such as "stale-wording scans" is not enough for later auditors to
 know whether the inventory files were included.
+
+## GitHub Issue Maintenance
+
+Before closing a meaningful task, inspect overlapping open GitHub issues. Prefer
+updating an existing issue over opening a duplicate. Record whether the task
+commented on an issue, opened a new issue, closed an issue, or deliberately left
+the issue tracker unchanged because no open issue matched the work.
+
+Issue maintenance is part of the project memory. It should not depend on the
+user remembering which old promise, planned feature, or limitation was already
+filed.
 
 ## Prose Audit
 

@@ -73,6 +73,36 @@ issues, or pull requests.
   routing. These checks should be occasional and scoped, not a distraction from
   the active slice.
 
+## 2026-05-20 - Shared Figure Judgment Gate
+
+- Improvement implemented: poor figures are now treated as a shared team
+  failure mode rather than Florence's fault alone. Florence owns the final
+  scientific-figure standard, but Fisher must check uncertainty and data grain,
+  Pat must check reader interpretation, Rose must check repeated overclaims,
+  Grace must require rendered per-figure evidence, Darwin must keep the
+  biological question visible, and Boole/Noether must catch syntax or estimand
+  labels that make planned features look fitted.
+- Improvement implemented: added the project-local `figure-visual-audit` skill
+  for rendered one-by-one figure review. Contact sheets may guide navigation,
+  but they no longer count as sufficient evidence by themselves.
+- Improvement implemented: the visualization grammar now states the positive
+  standard as well as the error-prevention gate. Beautiful scientific figures
+  should help users understand `drmTMB` models and help the package team catch
+  failed intervals, missing support, incoherent labels, and wrong assumptions.
+
+## 2026-05-20 - After-Task Issue Maintenance
+
+- Improvement implemented: meaningful after-task reports should now inspect
+  overlapping open GitHub issues before the task is called closed.
+- Improvement implemented: Ada and Rose should prefer updating an existing
+  issue over opening a duplicate, and the report should record whether the
+  task commented on an issue, opened a new one, closed one, or deliberately left
+  the tracker unchanged.
+- Trigger: structural-dependence parity, figure-quality promises, animal-model
+  examples, bootstrap intervals, and Ayumi convergence work were spread across
+  chat, docs, and issues. The issue tracker needs to stay part of the same
+  memory loop as check logs and after-task reports.
+
 ## 2026-05-17 - Family-Block TMB Data Wiring Check
 
 - Improvement implemented: when a slice changes `make_tmb_data()` for one

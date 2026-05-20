@@ -131,6 +131,33 @@ safe_table <- function(x) {
   out
 }
 
+gradient_summary <- function(fit) {
+  grad <- tryCatch(fit$obj$gr(fit$opt$par), error = function(e) numeric())
+  grad_abs <- abs(grad)
+  gradient_max <- if (length(grad_abs)) {
+    max(grad_abs, na.rm = TRUE)
+  } else {
+    NA_real_
+  }
+  gradient_component <- NA_character_
+  if (length(grad_abs) && is.finite(gradient_max)) {
+    gradient_index <- which.max(grad_abs)
+    grad_names <- names(grad_abs)
+    gradient_component <- if (
+      !is.null(grad_names) && length(grad_names) >= gradient_index
+    ) {
+      grad_names[[gradient_index]]
+    } else {
+      paste0("par[", gradient_index, "]")
+    }
+  }
+  data.frame(
+    gradient_max = gradient_max,
+    gradient_component = gradient_component,
+    stringsAsFactors = FALSE
+  )
+}
+
 vif_values <- function(X) {
   X <- X[, colnames(X) != "(Intercept)", drop = FALSE]
   out <- numeric(ncol(X))
@@ -441,6 +468,7 @@ fit_one <- function(model, sp, tree, optimizer_control) {
   if (!is.null(fit$coefficients$rho12)) {
     rho_link <- unname(fit$coefficients$rho12[["(Intercept)"]])
   }
+  gradients <- gradient_summary(fit)
   list(
     fit = fit,
     summary = data.frame(
@@ -453,6 +481,7 @@ fit_one <- function(model, sp, tree, optimizer_control) {
       AIC = stats::AIC(fit),
       rho12_link = rho_link,
       rho12_response = tanh(rho_link),
+      gradients,
       stringsAsFactors = FALSE
     ),
     conditions = bind_tables(list(
