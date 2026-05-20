@@ -279,6 +279,45 @@ drmTMB(
 )
 ```
 
+For first-slice animal and lower-level relatedness location models:
+
+```text
+mu_i = X_mu[i, ] beta_mu + a_group[i]
+a ~ Normal(0, sd_related^2 K)
+Q = K^{-1}
+```
+
+`animal(1 | id, A = A)` and `relmat(1 | id, K = K)` accept covariance or
+relatedness matrices. `animal(1 | id, Ainv = Ainv)` and
+`relmat(1 | id, Q = Q)` accept inverse relatedness or precision matrices. The
+matrix row and column names define the latent structured-effect levels, and
+the observed grouping column must match those names. These routes reuse the
+same sparse-precision TMB prior shape as the phylogenetic and spatial
+intercept paths; the public output labels the conditional effects as
+`animal_mu` or `relmat_mu`, even though the internal TMB parameter names remain
+the generic structured-field names for this first slice.
+
+Matching R syntax:
+
+```r
+drmTMB(
+  bf(y ~ x1 + animal(1 | id, Ainv = Ainv), sigma ~ x2),
+  family = gaussian(),
+  data = dat
+)
+
+drmTMB(
+  bf(y ~ x1 + relmat(1 | line, Q = Q), sigma ~ x2),
+  family = gaussian(),
+  data = dat
+)
+```
+
+Pedigree-to-Ainv construction, structured slopes, `sigma` relatedness models,
+bivariate relatedness covariance, and relatedness `corpair()` regression remain
+planned until their likelihood, diagnostics, profile or bootstrap interval
+story, simulation recovery tests, and examples exist.
+
 The first spatial slope path keeps that covariance but uses two independent
 fields:
 

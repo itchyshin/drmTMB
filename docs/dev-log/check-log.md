@@ -2,6 +2,134 @@
 
 Record meaningful development checks here.
 
+## 2026-05-20 - Slices 1280-1364 Animal/Relmat First Slice And Current Figure Gate
+
+Goal: continue after the 1239-1278 Actions/figure-audit work without
+neglecting quality: add the first fitted known-matrix `animal()` and
+`relmat()` Gaussian location slice, keep parity claims conservative, and
+rerun the rendered figure-gallery and simulation-grammar gate.
+
+Team roles:
+
+- Ada integrated code, docs, tests, figure audit, and issue state.
+- Boole checked the formula surface and kept `animal()` / `relmat()` status
+  separate from planned slopes and pedigree construction.
+- Gauss and Noether checked the known covariance/precision contract against
+  the Gaussian random-intercept likelihood path.
+- Fisher checked extractor, profile-target, diagnostic, interval, and
+  simulation-display claims.
+- Florence inspected rendered figures as figures, not only as source code.
+- Pat and Darwin kept examples pointed at model-output interpretation.
+- Grace rebuilt pkgdown articles and ran focused checks.
+- Rose recorded the stale-audit and repeated visual-slip pattern.
+
+Files changed:
+
+- `R/drmTMB.R`
+- `R/check.R`
+- `R/formula-markers.R`
+- `R/gaussian-aggregation.R`
+- `R/phylo-utils.R`
+- `R/profile.R`
+- `tests/testthat/test-animal-relmat-gaussian.R`
+- `tests/testthat/_snaps/animal-relmat-gaussian.md`
+- `man/animal.Rd`
+- `man/relmat.Rd`
+- `README.md`
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/01-formula-grammar.md`
+- `docs/design/02-family-registry.md`
+- `docs/design/03-likelihoods.md`
+- `docs/design/34-validation-debt-register.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `docs/design/44-structured-slope-parity-gate.md`
+- `docs/design/45-cross-dpar-correlation-gate.md`
+- `docs/design/46-pre-simulation-readiness-matrix.md`
+- `docs/design/53-structural-dependence-article-split.md`
+- `vignettes/figure-gallery.Rmd`
+- `vignettes/formula-grammar.Rmd`
+- `vignettes/model-map.Rmd`
+- `vignettes/phylogenetic-spatial.Rmd`
+- `vignettes/simulation-plot-grammar.Rmd`
+- `docs/dev-log/figure-audits/2026-05-20-slices-1280-1364-structural-parity/figure-audit.md`
+- `docs/dev-log/after-task/2026-05-20-slices-1280-1364-animal-relmat-first-slice-and-figure-gate.md`
+
+What changed:
+
+- `animal(1 | id, A = A)`, `animal(1 | id, Ainv = Ainv)`,
+  `relmat(1 | id, K = K)`, and `relmat(1 | id, Q = Q)` now fit the first
+  univariate Gaussian `mu` known-relatedness random-intercept slice.
+- The fitted SD appears in `sdpars$mu`; conditional effects are available from
+  `ranef("animal_mu")` or `ranef("relmat_mu")`; direct SD targets appear in
+  `profile_targets()`; `check_drm()` reports replication, matrix type, and
+  SD-to-residual-scale diagnostics.
+- Pedigree construction, slopes, `sigma` relatedness, bivariate covariance,
+  direct-SD naming parity, and `corpairs()`/`corpair()` parity remain planned.
+- The figure gallery and simulation-plot grammar no longer contain visible
+  `geom_errorbarh()` warnings or pseudo-replicate wording. Bias displays use
+  explicit fixture replicate-error rows; coverage/power uses block proportions
+  and binomial MCSE; inference summaries use named raindrop/Wald compatibility
+  displays where appropriate.
+
+Checks run:
+
+```sh
+Rscript -e "devtools::test(filter = 'animal-relmat-gaussian', reporter = 'summary')"
+Rscript -e "devtools::document()"
+Rscript -e "devtools::load_all('.'); pkgdown::build_article('figure-gallery', lazy = FALSE, new_process = FALSE, quiet = TRUE)"
+Rscript -e "devtools::load_all('.'); pkgdown::build_article('simulation-plot-grammar', lazy = FALSE, new_process = FALSE, quiet = TRUE)"
+Rscript -e "devtools::load_all('.'); pkgdown::build_article('model-map', lazy = FALSE, new_process = FALSE, quiet = TRUE)"
+Rscript -e "devtools::load_all('.'); pkgdown::build_article('formula-grammar', lazy = FALSE, new_process = FALSE, quiet = TRUE)"
+Rscript -e "devtools::load_all('.'); pkgdown::build_article('phylogenetic-spatial', lazy = FALSE, new_process = FALSE, quiet = TRUE)"
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "devtools::test(reporter = 'summary')"
+rg -n "Warning|deprecated|geom_errorbarh|height.*translated|Error in|could not find function|pseudo-replicate|pseudo replicate|pseudo" pkgdown-site/articles/figure-gallery.html pkgdown-site/articles/simulation-plot-grammar.html pkgdown-site/articles/model-map.html pkgdown-site/articles/formula-grammar.html pkgdown-site/articles/phylogenetic-spatial.html vignettes/figure-gallery.Rmd vignettes/simulation-plot-grammar.Rmd
+rg -n "no fitted likelihood|future lower-level|Planned, not fitted yet|animal.*planned-only|relmat.*future lower-level|markers only until pedigree or known-matrix likelihoods|reserved structured-effect markers until the likelihood" pkgdown-site/articles/model-map.html pkgdown-site/articles/phylogenetic-spatial.html pkgdown-site/articles/formula-grammar.html pkgdown-site/articles/figure-gallery.html --glob "!pkgdown-site/search.json"
+Rscript -e "devtools::test(filter = 'animal-relmat-gaussian|spatial-gaussian|phylo-gaussian|profile-targets|check-drm|nongaussian-structured-boundary|package-skeleton', reporter = 'summary')"
+```
+
+Outcomes:
+
+- The targeted animal/`relmat()` test passed.
+- The focused structural test set passed locally, including animal/relmat,
+  spatial, phylo, profile-target, `check_drm`, non-Gaussian-boundary, and
+  package-skeleton tests.
+- After PR #267's first R-CMD-check run failed on stale full-suite
+  expectations, `devtools::test(reporter = "summary")` passed locally with
+  `DONE` after updating the Gaussian aggregation snapshot and animal/relmat
+  unsupported-syntax expectations.
+- `pkgdown::check_pkgdown()` reported no problems.
+- The five pkgdown articles rebuilt locally.
+- The generated-site scan found no accidental deprecated-warning or
+  pseudo-replicate output. The remaining "Warnings and failures stay visible"
+  match is an intentional simulation-section title.
+
+Issue maintenance:
+
+- Inspected #147, #58, #255, and #265.
+- #147 stays open because the branch closes only the known-matrix Gaussian
+  `mu` intercept first slice; pedigree construction, slopes, `sigma`,
+  bivariate covariance, `corpairs()`, intervals, examples, and recovery
+  simulations remain open.
+- #58 and #255 stay open because the figure repairs are a rendered gate and
+  data-grain contract repair, not the final public visualization API or full
+  Phase 18 artifact policy.
+- #265 stays open for the public bootstrap confidence-interval API.
+- Added comments:
+  - #147: https://github.com/itchyshin/drmTMB/issues/147#issuecomment-4502036396
+  - #58: https://github.com/itchyshin/drmTMB/issues/58#issuecomment-4502039264
+  - #255: https://github.com/itchyshin/drmTMB/issues/255#issuecomment-4502042474
+
+Known limitations:
+
+- No new `sd_animal*()`, `sd_spatial*()`, or `sd_relmat*()` public names were
+  added. Direct-SD parity needs a naming and interpretation design before
+  implementation.
+- The current figure gallery has watch items for support/status strips and
+  simulation diagnostics, but the major rendered inconsistencies have been
+  repaired.
+
 ## 2026-05-20 - PR #264 CI Failure And Full Gallery Visual Repair
 
 Goal: explain and repair the failed R-CMD-check run `26171357996` for PR #264,
@@ -32961,3 +33089,35 @@ Issue maintenance:
   visualization-layer ledger, and issue #255 remains the simulation artifact
   ledger. Commented on #58 and #255 with the PR #266 follow-up rather than
   opening a duplicate issue.
+
+## 2026-05-20 - PR #267 CI Warning Follow-Up
+
+Goal:
+
+- Clear the remaining R-CMD-check warning on PR #267 before continuing toward
+  later slice targets.
+
+Findings:
+
+- The second PR #267 Actions run passed the tests on macOS before failing R CMD
+  check with one warning: `methods::is()` was used for Matrix-class validation
+  without declaring `methods` in `DESCRIPTION`.
+- The stale animal/`relmat()` snapshot file also needed the generated trailing
+  newline accepted so the focused snapshot test stayed stable.
+
+Changes:
+
+- Added `methods` to `DESCRIPTION` imports.
+- Accepted the regenerated animal/`relmat()` malformed-name diagnostic snapshot
+  newline.
+
+Validation:
+
+```sh
+Rscript -e "devtools::test(filter = 'animal-relmat-gaussian|gaussian-location-scale|gaussian-aggregation', reporter = 'summary')"
+Rscript -e "devtools::check(document = FALSE, args = '--no-manual', error_on = 'warning')"
+```
+
+- Focused tests passed.
+- Local R CMD check finished with `Status: OK`, `0 errors`, `0 warnings`, and
+  `0 notes`.

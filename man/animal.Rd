@@ -12,36 +12,34 @@ animal(term, pedigree = NULL, A = NULL, Ainv = NULL)
 \item{pedigree}{Planned pedigree input from which an additive relationship
 matrix or sparse inverse will be built.}
 
-\item{A}{Planned additive relatedness or covariance matrix.}
+\item{A}{Additive relatedness or covariance matrix for the first fitted
+univariate Gaussian \code{mu} path.}
 
-\item{Ainv}{Planned sparse or dense inverse additive relatedness matrix.}
+\item{Ainv}{Sparse or dense inverse additive relatedness matrix for the first
+fitted univariate Gaussian \code{mu} path.}
 }
 \value{
 A formula marker; never evaluated by users.
 }
 \description{
-\code{animal()} marks planned pedigree or additive-relatedness animal-model
-syntax. It is the biological front door for questions such as whether
-among-individual additive genetic variance appears in the location \code{mu},
-residual scale \code{sigma}, shape or skewness, inflation, or a bivariate
-covariance. The first fitted route will be Gaussian \code{mu}, for example
-\code{animal(1 | id, pedigree = pedigree)} or the same model with a precomputed
-additive relationship matrix.
-}
-\details{
-This marker is parsed and documented so examples, design notes, and error
-messages can use the final reader-facing grammar now. It does not fit a
-model yet; current fits should use implemented ordinary random effects,
-\code{\link[=phylo]{phylo()}}, or \code{\link[=spatial]{spatial()}} where those paths match the scientific question.
+\code{animal()} marks pedigree or additive-relatedness animal-model syntax. It is
+the biological front door for questions such as whether among-individual
+additive genetic variance appears in the location \code{mu}, residual scale
+\code{sigma}, shape or skewness, inflation, or a bivariate covariance. The first
+fitted route is a univariate Gaussian \code{mu} random intercept with a
+precomputed additive relationship matrix \code{A} or inverse relationship matrix
+\code{Ainv}, for example \code{animal(1 | id, Ainv = Ainv)}. Direct pedigree-to-Ainv
+construction, structured slopes, \code{sigma} animal models, and bivariate
+covariance blocks remain planned.
 }
 \examples{
-# Planned: additive genetic variance in body size from a wild pedigree.
-bf(body_size ~ age + sex + animal(1 | id, pedigree = pedigree),
+# Fitted: additive genetic variance in body size from a precomputed Ainv.
+bf(body_size ~ age + sex + animal(1 | id, Ainv = Ainv),
   sigma ~ habitat
 )
 
 # Planned later: distributional animal model for residual predictability.
-bf(activity ~ treatment + animal(1 | id, Ainv = Ainv),
+bf(activity ~ treatment + animal(1 | id, pedigree = pedigree),
   sigma ~ treatment
 )
 }

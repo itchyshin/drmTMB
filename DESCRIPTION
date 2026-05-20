@@ -26,6 +26,7 @@ Depends:
 Imports:
     cli,
     Matrix,
+    methods,
     stats,
     TMB,
     utils

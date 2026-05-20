@@ -319,6 +319,195 @@ drm_phylo_augmented_precision <- function(
   out
 }
 
+drm_known_relatedness_precision <- function(
+  matrix,
+  group,
+  matrix_type = c("precision", "covariance"),
+  marker = "relmat",
+  object = "Q",
+  group_name = "id",
+  tolerance = sqrt(.Machine$double.eps)
+) {
+  matrix_type <- match.arg(matrix_type)
+  group <- as.character(group)
+  if (length(group) == 0L || anyNA(group) || any(!nzchar(group))) {
+    cli::cli_abort(
+      "{.fn {marker}} grouping variable {.field {group_name}} must contain non-missing labels."
+    )
+  }
+
+  mat <- drm_standardize_relatedness_matrix(
+    matrix,
+    marker = marker,
+    object = object
+  )
+  labels <- rownames(mat)
+  observed <- unique(group)
+  missing <- setdiff(observed, labels)
+  if (length(missing) > 0L) {
+    cli::cli_abort(c(
+      "{.fn {marker}} matrix {.field {object}} does not cover every observed {.field {group_name}} level.",
+      "x" = "Missing level{?s}: {.val {missing}}."
+    ))
+  }
+
+  mat <- mat[labels, labels, drop = FALSE]
+  mat_sparse <- Matrix::Matrix(mat, sparse = TRUE)
+  if (!Matrix::isSymmetric(mat_sparse, tol = tolerance)) {
+    cli::cli_abort(c(
+      "{.fn {marker}} matrix {.field {object}} must be symmetric.",
+      "x" = "Rows and columns should use the same relatedness scale and labels."
+    ))
+  }
+
+  precision <- if (identical(matrix_type, "precision")) {
+    drm_validate_known_precision_matrix(
+      mat_sparse,
+      marker = marker,
+      object = object
+    )
+  } else {
+    drm_covariance_to_known_precision(
+      mat_sparse,
+      marker = marker,
+      object = object
+    )
+  }
+
+  species_node_index <- match(observed, labels)
+  names(species_node_index) <- observed
+  out <- list(
+    precision = precision$precision,
+    log_det_precision = precision$log_det_precision,
+    matrix_type = matrix_type,
+    object = object,
+    node_labels = labels,
+    species_levels = observed,
+    species_node_index = species_node_index,
+    observation_species_index = match(group, observed)
+  )
+  class(out) <- "drm_known_relatedness_precision"
+  out
+}
+
+drm_standardize_relatedness_matrix <- function(matrix, marker, object) {
+  if (inherits(matrix, "Matrix")) {
+    if (!methods::is(matrix, "dMatrix")) {
+      cli::cli_abort(
+        "{.fn {marker}} matrix {.field {object}} must be numeric."
+      )
+    }
+    mat <- matrix
+  } else {
+    if (is.data.frame(matrix)) {
+      matrix <- as.matrix(matrix)
+    }
+    if (!is.matrix(matrix) || !is.numeric(matrix)) {
+      cli::cli_abort(c(
+        "{.fn {marker}} matrix {.field {object}} must be a numeric square matrix.",
+        "i" = "Use row and column names that match the grouping variable."
+      ))
+    }
+    mat <- matrix
+  }
+
+  if (length(dim(mat)) != 2L || nrow(mat) != ncol(mat) || nrow(mat) < 2L) {
+    cli::cli_abort(
+      "{.fn {marker}} matrix {.field {object}} must be a square matrix with at least two rows."
+    )
+  }
+  if (any(!is.finite(mat))) {
+    cli::cli_abort(
+      "{.fn {marker}} matrix {.field {object}} must contain finite numeric values."
+    )
+  }
+
+  row_labels <- rownames(mat)
+  col_labels <- colnames(mat)
+  if (
+    is.null(row_labels) ||
+      is.null(col_labels) ||
+      anyNA(row_labels) ||
+      anyNA(col_labels) ||
+      any(!nzchar(row_labels)) ||
+      any(!nzchar(col_labels))
+  ) {
+    cli::cli_abort(
+      "{.fn {marker}} matrix {.field {object}} must have non-empty row and column names."
+    )
+  }
+  if (anyDuplicated(row_labels) || anyDuplicated(col_labels)) {
+    cli::cli_abort(
+      "{.fn {marker}} matrix {.field {object}} row and column names must be unique."
+    )
+  }
+  if (!setequal(row_labels, col_labels)) {
+    cli::cli_abort(c(
+      "{.fn {marker}} matrix {.field {object}} row and column names must match.",
+      "x" = "Rows without matching columns: {.val {setdiff(row_labels, col_labels)}}.",
+      "x" = "Columns without matching rows: {.val {setdiff(col_labels, row_labels)}}."
+    ))
+  }
+  mat[, row_labels, drop = FALSE]
+}
+
+drm_validate_known_precision_matrix <- function(matrix, marker, object) {
+  precision <- Matrix::forceSymmetric(
+    Matrix::Matrix(matrix, sparse = TRUE),
+    uplo = "U"
+  )
+  chol_precision <- tryCatch(
+    Matrix::Cholesky(precision, LDL = FALSE, perm = FALSE),
+    error = function(e) NULL
+  )
+  if (is.null(chol_precision)) {
+    cli::cli_abort(c(
+      "{.fn {marker}} precision matrix {.field {object}} must be positive definite.",
+      "x" = "Check the matrix scale, ordering, and any duplicated levels."
+    ))
+  }
+  determinant <- tryCatch(
+    Matrix::determinant(precision, logarithm = TRUE),
+    error = function(e) NULL
+  )
+  if (
+    is.null(determinant) ||
+      !is.finite(as.numeric(determinant$modulus)) ||
+      determinant$sign <= 0
+  ) {
+    cli::cli_abort(
+      "{.fn {marker}} precision matrix {.field {object}} must have a positive finite determinant."
+    )
+  }
+  list(
+    precision = Matrix::drop0(precision),
+    log_det_precision = as.numeric(determinant$modulus)
+  )
+}
+
+drm_covariance_to_known_precision <- function(matrix, marker, object) {
+  covariance <- as.matrix(Matrix::forceSymmetric(
+    Matrix::Matrix(matrix, sparse = FALSE),
+    uplo = "U"
+  ))
+  chol_covariance <- tryCatch(
+    chol(covariance),
+    error = function(e) NULL
+  )
+  if (is.null(chol_covariance)) {
+    cli::cli_abort(c(
+      "{.fn {marker}} covariance matrix {.field {object}} must be positive definite.",
+      "x" = "For large or sparse relatedness models, supply a precision matrix instead."
+    ))
+  }
+  precision <- chol2inv(chol_covariance)
+  dimnames(precision) <- dimnames(covariance)
+  list(
+    precision = Matrix::drop0(Matrix::Matrix(precision, sparse = TRUE)),
+    log_det_precision = -2 * sum(log(diag(chol_covariance)))
+  )
+}
+
 drm_phylo_precision_nll <- function(effect, precision, log_sd = 0) {
   if (!inherits(precision, "drm_phylo_precision")) {
     cli::cli_abort(

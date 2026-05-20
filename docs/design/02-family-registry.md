@@ -425,12 +425,14 @@ cutpoints and the fixed latent logistic scale create their own identifiability
 and interval checks.
 
 Slice 197 keeps structured non-Gaussian random effects out of the fitted
-surface. Phylogenetic, spatial, planned animal-model, and planned `relmat()`
-markers share the same structured-effect concept, but current fitted
-structured paths are Gaussian only. Count, bounded, ordinal, shape,
-inflation, hurdle, and one-inflation structured effects should wait until the
-ordinary family-specific random-effect paths have recovery tests, interval
-targets, extractors, and diagnostic rows.
+surface. Phylogenetic, spatial, animal-model, and `relmat()` markers share the
+same structured-effect concept, but current fitted structured paths are
+Gaussian only. The first animal/`relmat()` slice fits known-matrix Gaussian
+`mu` intercepts; pedigree construction, structured slopes, scale models,
+bivariate covariance, and `corpair()` parity remain planned. Count, bounded,
+ordinal, shape, inflation, hurdle, and one-inflation structured effects should
+wait until the ordinary family-specific random-effect paths have recovery
+tests, interval targets, extractors, and diagnostic rows.
 
 ## Implemented: Poisson Mean
 

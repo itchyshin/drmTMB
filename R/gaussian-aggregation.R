@@ -130,6 +130,8 @@ validate_gaussian_aggregation_gaussian <- function(
   meta,
   mu_phylo,
   mu_spatial,
+  mu_animal,
+  mu_relmat,
   mu_re,
   sigma_re,
   sd_mu_entries,
@@ -142,10 +144,16 @@ validate_gaussian_aggregation_gaussian <- function(
       "i" = "Refit without {.code meta_known_V()} or set {.code aggregate_gaussian = FALSE}."
     ))
   }
-  if (!is.null(mu_phylo$term) || !is.null(mu_spatial$term)) {
+  structured_terms <- list(
+    mu_phylo$term,
+    mu_spatial$term,
+    mu_animal$term,
+    mu_relmat$term
+  )
+  if (any(!vapply(structured_terms, is.null, logical(1)))) {
     cli::cli_abort(c(
       "Gaussian aggregation is not implemented with structured random effects yet.",
-      "i" = "Fit the phylogenetic or spatial model without row aggregation in this phase."
+      "i" = "Fit the phylogenetic, spatial, animal, or relatedness model without row aggregation in this phase."
     ))
   }
   if (length(mu_re$terms) > 0L || length(sigma_re$terms) > 0L) {

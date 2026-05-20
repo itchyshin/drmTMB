@@ -35,7 +35,7 @@ Use these status labels:
 | `ordinary_biv_corpairs` | Ordinary bivariate covariance and `corpairs()` | partial | moderate | Add coefficient-aware bivariate slope covariance only after q=2/q=4 interval status and recovery evidence are explicit. |
 | `phylo_structured_effects` | Phylogenetic structured effects | partial | moderate | Add phylogenetic one-slope likelihood, diagnostics, and recovery evidence before teaching slopes. |
 | `spatial_coord_effects` | Coordinate spatial structured effects | partial | moderate | Add mesh/SPDE, multiple-slope, and spatial-correlation evidence before widening spatial syntax. |
-| `animal_known_relatedness` | Animal-model and user-supplied relatedness effects | blocked | high if confused with implemented phylogeny or meta-analysis known `V` | Add parser support, pedigree/`A`/`Ainv` validation, diagnostics, extractors, profile targets, and simulation recovery before advertising runnable syntax; prefer one low-level public name such as `relmat()`, not both `relmat()` and `gr()`. |
+| `animal_known_relatedness` | Animal-model and user-supplied relatedness effects | partial | high if confused with implemented phylogeny or meta-analysis known `V` | The known-matrix Gaussian `mu` intercept slice is fitted for `animal(A/Ainv)` and `relmat(K/Q)`. Keep pedigree construction, structured slopes, `sigma`, bivariate covariance, and `corpair()` parity in the debt ledger until they have diagnostics, extractors, profile targets, and simulation recovery. |
 | `profile_diagnostics` | Profile intervals and diagnostics | partial | moderate | Complete Slice 79 uncertainty-state handling and a nonlinear interval method for derived summaries. |
 | `large_data_controls` | Large-data fit controls | opt-in | moderate to high for extrapolated claims | Add non-CRAN benchmarks and compatibility tests before claiming broad scalability. |
 | `reserved_planned_neighbours` | Reserved or planned neighbours | blocked | high if advertised as runnable syntax | Keep errors and docs synchronized until implementation, tests, diagnostics, NEWS, and after-task evidence exist. |
@@ -177,9 +177,10 @@ Use these status labels:
 ### Structured non-Gaussian random effects
 
 - Matrix status: blocked with explicit messages.
-- Register status: `phylo()`, `spatial()`, planned `animal()`, and planned
-  `relmat()` markers are rejected in non-Gaussian formula routes before
-  optimization. The fitted structured-effect layer remains Gaussian-only.
+- Register status: `phylo()`, `spatial()`, `animal()`, and `relmat()` markers
+  are rejected in non-Gaussian formula routes before optimization. The fitted
+  structured-effect layer remains Gaussian-only; the first animal/`relmat()`
+  implementation is a Gaussian `mu` known-matrix intercept.
 - Evidence: `tests/testthat/test-nongaussian-structured-boundary.R` checks
   count, bounded, positive-continuous, ordinal, phylogenetic, spatial, animal,
   and `relmat()` marker boundaries.
@@ -381,19 +382,19 @@ Use these status labels:
 - Diagnostics and intervals: none. Future fits need `sdpars`, `ranef()`,
   `profile_targets()`, `corpairs()` where bivariate correlations are fitted,
   and `check_drm()` rows before they can be taught as routine.
-- User-facing docs: none beyond planned-syntax notes. A future tutorial should
-  use eco-evo examples, such as heritable trait means in a wild pedigree,
-  additive genetic variance in behavioural predictability or residual scale,
-  and bivariate genetic covariance. It should also separate additive genetic
-  relatedness from phylogenetic relatedness, spatial dependence, ordinary
-  grouped random effects, and known sampling covariance.
-- Debt: add parser support for `animal(1 | id, pedigree = ped)`,
-  `animal(1 | id, A = A)`, `animal(1 | id, Ainv = Ainv)`, optional
-  `phylo(..., A/Ainv = ...)`, and a lower-level `relmat()` route only after the
-  pedigree or matrix validation contract is settled. Recovery tests should cover
-  dense `A` versus sparse `Ainv`, row-name and level alignment, near-singular
-  matrices, weak additive variance, and separation from meta-analysis
-  `meta_V(..., V = V)`.
+- User-facing docs: the structural-dependence article now shows a fitted
+  known-matrix first slice and still keeps pedigree-derived animal models,
+  residual-scale animal models, bivariate genetic covariance, and structured
+  slopes planned. It separates additive genetic relatedness from phylogenetic
+  relatedness, spatial dependence, ordinary grouped random effects, and known
+  sampling covariance.
+- Debt: add pedigree-to-Ainv construction, structured animal/`relmat()` slopes,
+  residual-scale relatedness models, bivariate covariance, and `corpair()`
+  parity only after the matrix validation, diagnostics, profile targets, and
+  recovery evidence for each route are explicit. Recovery tests should keep
+  covering dense `A`/`K` versus sparse `Ainv`/`Q`, row-name and level alignment,
+  near-singular matrices, weak additive variance, and separation from
+  meta-analysis `meta_V(..., V = V)`.
 
 ### Profile intervals and diagnostics
 
@@ -483,7 +484,7 @@ and focused recovery tests already exist.
 | Shape, skewness, and tail random effects | Blocked for Student-t `nu`; skew-normal and skew-t are future fixed-effect-first families. | Tail shape, residual skewness, residual scale, outliers, and latent ID-level skewness can mimic each other. | Exclude random effects in `nu`, future `tau`, and future ID-level skewness such as `skew(id) ~ x`; fixed-effect skew families need their own likelihood recovery before random effects are discussed as fitted. |
 | Zero inflation, hurdle, zero-one inflation, and one inflation | Fixed-effect `zi` and `hu` paths exist for selected count families; random effects and bounded-response `zoi`/`coi` paths are blocked or planned. | Count-side random effects can mimic structural zeros; hurdle and inflation components can be weakly separated from mean, dispersion, and sampling zeros. | Exclude random effects in `zi`, `hu`, future `zoi`, and future `coi`; add fixed-effect zero-one-inflated bounded likelihoods before any random-effect simulation grid. |
 | Ordinal mixed models | Cumulative-logit fixed-effect models fit; ordinal random effects are blocked. | Cutpoint separation, sparse categories, latent-scale identification, and random-effect SD boundaries can dominate ordinary coefficient recovery. | Exclude ordinal random effects until a random-intercept cumulative-logit likelihood has `sdpars`, `ranef()`, profile targets, cutpoint stability checks, weak-SD tests, and an `ordinal::clmm` comparator. |
-| Structured non-Gaussian dependence | `phylo()`, `spatial()`, planned `animal()`, and planned `relmat()` are Gaussian-only or design-only in fitted paths. | Known dependence matrices, Laplace random effects, sparse group support, and non-Gaussian links can create boundary and runtime failures before biology is interpretable. | Exclude structured non-Gaussian effects. Add ordinary family-specific random effects first, then one structured intercept route with matrix diagnostics, extractors, profile targets, and simulation recovery. |
+| Structured non-Gaussian dependence | `phylo()`, `spatial()`, `animal()`, and `relmat()` are Gaussian-only in fitted structured paths, with animal/`relmat()` currently limited to known-matrix `mu` intercepts. | Known dependence matrices, Laplace random effects, sparse group support, and non-Gaussian links can create boundary and runtime failures before biology is interpretable. | Exclude structured non-Gaussian effects. Add ordinary family-specific random effects first, then one structured non-Gaussian intercept route with matrix diagnostics, extractors, profile targets, and simulation recovery. |
 | Cross-parameter non-Gaussian covariance | Blocked. | Correlations among `mu`, `sigma`, shape, inflation, hurdle, and structured random effects can be weakly identified and can change sign under alternative parameterizations. | Exclude from Phase 18 until each marginal random-effect path is stable and a constant-block-correlation design has extractor, `corpairs()`, direct-target, and recovery evidence. |
 | Non-Gaussian intervals | Wald fixed-effect intervals exist where covariance is available; Poisson random-effect SDs expose direct profile targets. Bootstrap intervals are not implemented. | Wald intervals can understate uncertainty for boundary SDs; profiles can be one-sided, non-monotone, or fail inner optimization. | Measure interval coverage only for currently supported fixed-effect Wald and direct profile targets. Record profile failure, `profile.boundary`, and `profile.message`; do not report derived or bootstrap coverage yet. |
 | Runtime and scale | Routine tests are small deterministic gates, not benchmarks. | Large group counts, large dense known matrices, structured dependence, and repeated refits can change runtime and convergence rates. | Keep Phase 18 grids explicit about sample size, groups, repetitions, elapsed time, convergence rate, and failure rate. Large-data claims need optional benchmarks, not CRAN tests. |
