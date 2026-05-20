@@ -2,6 +2,89 @@
 
 Record meaningful development checks here.
 
+## 2026-05-20 - PR #264 CI Failure And Full Gallery Visual Repair
+
+Goal: explain and repair the failed R-CMD-check run `26171357996` for PR #264,
+then rerun the rendered-gallery figure audit after the user pointed out that
+the earlier pass still missed visible problems.
+
+Team roles:
+
+- Ada diagnosed the failed run, repaired the test, and kept the PR trail
+  consistent.
+- Grace checked the CI failure mode and added an installed-package layout guard
+  for the runner script.
+- Florence inspected the rendered figures and upgraded the weakest gallery
+  displays.
+- Fisher checked that interval and uncertainty wording named the interval
+  source.
+- Pat checked that sparse model-output figures now help a new reader see the
+  fitted model result.
+- Rose recorded the process failure so contact sheets do not substitute for
+  one-by-one visual QA.
+
+Files changed:
+
+- `tests/testthat/test-phase18-actions-runner.R`
+- `vignettes/figure-gallery.Rmd`
+- `docs/dev-log/figure-audits/2026-05-20-full-gallery-visual-audit/figure-audit.md`
+- `docs/dev-log/figure-audits/2026-05-20-full-gallery-visual-audit/*.png`
+- `docs/dev-log/after-task/2026-05-20-slices-1239-1278-actions-figures-audit.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/team-improvements.md`
+
+What happened:
+
+- GitHub Actions run `26171357996` failed in the R-CMD-check test step on
+  macOS, Windows, and Ubuntu.
+- The failing test called
+  `../../inst/sim/run/sim_run_actions_cell.R`, which exists in the source tree
+  but not at that relative path once `R CMD check` installs the package.
+- The repaired test finds the source-tree script during local development or
+  the installed script via `system.file("sim", "run", ..., package = "drmTMB")`
+  during installed-package checks.
+- The repaired test also wraps the script path in `shQuote()` so local paths
+  with spaces, such as `Github Local`, do not break `Rscript`.
+
+Figure repairs:
+
+- Replaced the coefficient interval bars with raindrop-style Wald
+  compatibility displays.
+- Reworked sparse habitat and emmeans point-range displays into compact
+  horizontal interval displays.
+- Clarified the residual-magnitude display as absolute residuals with sigma
+  converted to expected absolute residual size.
+- Added points to the fitted among-site SD surface and kept interval absence
+  explicit.
+- Logged a rendered figure-by-figure audit with remaining watch items.
+
+Checks run:
+
+```sh
+gh run view 26171357996 --repo itchyshin/drmTMB --json databaseId,displayTitle,event,headSha,status,conclusion,url,jobs
+gh run view 26171357996 --repo itchyshin/drmTMB --log-failed
+Rscript -e "devtools::test(filter = '^phase18-actions-runner$|^phase18-sim-runner$|^phase18-sim-bootstrap$')"
+Rscript -e "devtools::load_all(quiet = TRUE); pkgdown::build_article('figure-gallery', new_process = FALSE, quiet = TRUE)"
+Rscript -e "devtools::load_all(quiet = TRUE); pkgdown::build_article('simulation-plot-grammar', new_process = FALSE, quiet = TRUE)"
+git diff --check
+```
+
+Outcomes:
+
+- Focused Phase 18 runner tests passed locally: 104 expectations, 0 failures,
+  0 warnings, 0 skips.
+- The gallery and simulation grammar articles rebuilt locally after the figure
+  repairs.
+- `git diff --check` passed.
+
+Known limitations:
+
+- This did not rerun a full local `R CMD check`; the PR rerun should verify the
+  installed-package layout on all three GitHub Actions platforms.
+- The gallery still has watch items for the emmeans support strip,
+  convergence/runtime summary, and failure ledger, but the most visible sparse
+  and misleading figures were repaired.
+
 ## 2026-05-20 - Slice 1178a Structural-Dependence Parity And Issue Maintenance
 
 Goal: record the route order for structural-dependence docs and keep animal,

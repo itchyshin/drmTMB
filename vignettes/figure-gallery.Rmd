@@ -294,11 +294,12 @@ ggplot(scale_check, aes(temperature, abs_residual, colour = habitat)) +
   )) +
   labs(
     title = "Residual magnitudes carry the scale information",
-    subtitle = "The green curve is sigma converted to expected absolute residual size",
+    subtitle = "Points are row residual magnitudes; the green curve is sigma converted to E(abs residual)",
     x = "Temperature anomaly",
-    y = "|Observed growth - fitted mu|",
+    y = "Absolute residual",
     colour = NULL
   ) +
+  coord_cartesian(ylim = c(0, NA)) +
   theme_drmtmb_gallery()
 ```
 
@@ -774,6 +775,42 @@ coefficient_intervals$level <- factor(
 coefficient_intervals <- coefficient_intervals[
   order(coefficient_intervals$parameter, coefficient_intervals$level),
 ]
+coefficient_cloud <- do.call(
+  rbind,
+  lapply(seq_len(nrow(coefficient_specs)), function(i) {
+    row <- coefficient_specs[i, ]
+    make_raindrop_distribution(
+      parameter = row$parameter,
+      estimate = row$estimate,
+      std_error = row$std_error,
+      transform = "identity"
+    )
+  })
+)
+coefficient_cloud <- merge(
+  coefficient_cloud,
+  coefficient_specs[c("parameter", "group")],
+  by = "parameter"
+)
+coefficient_cloud$parameter <- factor(
+  coefficient_cloud$parameter,
+  levels = coefficient_levels
+)
+coefficient_cloud$y_index <- as.numeric(coefficient_cloud$parameter)
+coefficient_cloud$ymin <- coefficient_cloud$y_index -
+  0.20 * coefficient_cloud$height
+coefficient_cloud$ymax <- coefficient_cloud$y_index +
+  0.20 * coefficient_cloud$height
+coefficient_intervals$parameter <- factor(
+  coefficient_intervals$parameter,
+  levels = coefficient_levels
+)
+coefficient_intervals$y_index <- as.numeric(coefficient_intervals$parameter)
+coefficient_specs$parameter <- factor(
+  coefficient_specs$parameter,
+  levels = coefficient_levels
+)
+coefficient_specs$y_index <- as.numeric(coefficient_specs$parameter)
 
 interval_group_palette <- c(
   "Fixed effects" = gallery_colour("blue"),
@@ -783,13 +820,31 @@ interval_group_palette <- c(
 
 ggplot() +
   geom_vline(xintercept = 0, linetype = "dashed", colour = "grey55") +
+  geom_ribbon(
+    data = coefficient_cloud,
+    aes(x = value, ymin = ymin, ymax = ymax, fill = group, group = parameter),
+    alpha = 0.18,
+    colour = NA
+  ) +
+  geom_line(
+    data = coefficient_cloud,
+    aes(x = value, y = ymin, colour = group, group = parameter),
+    linewidth = 0.55,
+    alpha = 0.85
+  ) +
+  geom_line(
+    data = coefficient_cloud,
+    aes(x = value, y = ymax, colour = group, group = parameter),
+    linewidth = 0.55,
+    alpha = 0.85
+  ) +
   geom_segment(
     data = coefficient_intervals[coefficient_intervals$level == "95%", ],
     aes(
       x = xmin,
       xend = xmax,
-      y = parameter,
-      yend = parameter,
+      y = y_index - 0.25,
+      yend = y_index - 0.25,
       colour = group
     ),
     linewidth = 1.0,
@@ -801,8 +856,8 @@ ggplot() +
     aes(
       x = xmin,
       xend = xmax,
-      y = parameter,
-      yend = parameter,
+      y = y_index - 0.25,
+      yend = y_index - 0.25,
       colour = group
     ),
     linewidth = 3.4,
@@ -811,14 +866,19 @@ ggplot() +
   ) +
   geom_point(
     data = coefficient_specs,
-    aes(x = estimate, y = parameter, colour = group),
+    aes(x = estimate, y = y_index, colour = group),
     size = 2.3
   ) +
   scale_colour_manual(values = interval_group_palette) +
-  scale_y_discrete(drop = FALSE) +
+  scale_fill_manual(values = interval_group_palette) +
+  scale_y_continuous(
+    breaks = seq_along(coefficient_levels),
+    labels = coefficient_levels,
+    limits = c(0.65, length(coefficient_levels) + 0.35)
+  ) +
   labs(
-    title = "Coefficient intervals separate fixed effects, SDs, and correlations",
-    subtitle = "Points are estimates; thick and thin bars show 66% and 95% Wald intervals",
+    title = "Coefficient raindrops separate fixed effects, SDs, and correlations",
+    subtitle = "Drops are Wald compatibility displays; bars show central 66% and 95% intervals",
     x = "Estimate on displayed scale",
     y = NULL,
     colour = "Parameter class"
@@ -828,7 +888,8 @@ ggplot() +
     legend.position = "bottom",
     panel.grid.major.y = element_blank(),
     panel.grid.minor = element_blank()
-  )
+  ) +
+  guides(fill = "none")
 ```
 
 A random-slope figure should show repeated site behaviour. The translucent
@@ -966,11 +1027,21 @@ plot_parameter_surface(
   scale_colour_manual(values = c(
     "Among-site SD" = gallery_colour("green")
   )) +
+  geom_point(
+    data = pred_site_sd[seq(1, nrow(pred_site_sd), length.out = 9), ],
+    aes(reef_cover, estimate),
+    inherit.aes = FALSE,
+    colour = gallery_colour("green"),
+    fill = "white",
+    shape = 21,
+    size = 1.7,
+    stroke = 0.55
+  ) +
   labs(
-    title = "Among-site SD surface",
-    subtitle = "Requested Wald intervals remain unavailable for direct random-effect SD surfaces",
+    title = "Fitted among-site SD surface",
+    subtitle = "The line is a derived SD estimate; no Wald interval is drawn for this surface yet",
     x = "Reef cover",
-    y = "Among-site SD in expected growth",
+    y = "Estimated among-site SD",
     colour = NULL
   ) +
   theme_drmtmb_gallery() +
@@ -989,7 +1060,7 @@ For a factor predictor, the same plotting helper uses interval bars rather than
 ribbons. This is useful for compact tutorial figures and estimated marginal
 comparisons.
 
-```{r discrete-comparison, fig.alt="Point interval plot comparing expected growth between reef and kelp habitats at average temperature."}
+```{r discrete-comparison, fig.height=3.1, fig.alt="Compact horizontal point interval plot comparing expected growth between reef and kelp habitats at average temperature."}
 habitat_grid <- data.frame(
   temperature = 0,
   habitat = factor(c("reef", "kelp"), levels = levels(fish$habitat))
@@ -1001,22 +1072,23 @@ pred_habitat <- predict_parameters(
   conf.int = TRUE
 )
 
-plot_parameter_surface(
-  pred_habitat,
-  x = "habitat",
-  colour = "habitat",
-  line = FALSE,
-  point = TRUE
+ggplot(pred_habitat, aes(estimate, habitat, colour = habitat)
 ) +
+  geom_segment(
+    aes(x = conf.low, xend = conf.high, yend = habitat),
+    linewidth = 0.75
+  ) +
+  geom_point(size = 2.5) +
   scale_drmtmb_colour +
   labs(
     title = "Estimated habitat contrast at average temperature",
     subtitle = "Intervals are Wald intervals from predict_parameters()",
-    x = NULL,
-    y = "Expected growth",
+    x = "Expected growth",
+    y = NULL,
     colour = "Habitat"
   ) +
-  theme_drmtmb_gallery()
+  theme_drmtmb_gallery() +
+  theme(legend.position = "bottom")
 ```
 
 ## Categorical by categorical interaction
@@ -1100,7 +1172,7 @@ figures. The same rule applies: keep the target and conditioning values
 visible. These displays are `mu` summaries, not `sigma`, fitted-response,
 random-effect, or bivariate summaries.
 
-```{r emmeans-display, eval = has_ggplot2 && requireNamespace("emmeans", quietly = TRUE), fig.alt="Point interval plot of estimated marginal mean growth for reef and kelp habitats conditioned at temperature zero."}
+```{r emmeans-display, eval = has_ggplot2 && requireNamespace("emmeans", quietly = TRUE), fig.height=3.1, fig.alt="Compact horizontal point interval plot of estimated marginal mean growth for reef and kelp habitats conditioned at temperature zero."}
 emm_habitat <- suppressMessages(
   as.data.frame(
     emmeans::emmeans(
@@ -1112,28 +1184,29 @@ emm_habitat <- suppressMessages(
   )
 )
 
-ggplot(emm_habitat, aes(habitat, emmean, colour = habitat)) +
-  geom_pointrange(
-    aes(ymin = asymp.LCL, ymax = asymp.UCL),
-    linewidth = 0.7,
-    fatten = 2.4
+ggplot(emm_habitat, aes(emmean, habitat, colour = habitat)) +
+  geom_segment(
+    aes(x = asymp.LCL, xend = asymp.UCL, yend = habitat),
+    linewidth = 0.75
   ) +
+  geom_point(size = 2.5) +
   scale_drmtmb_colour +
   labs(
     title = "Estimated marginal mean growth",
     subtitle = "Supported fixed-effect mu target, conditioned at temperature = 0",
-    x = NULL,
-    y = "Expected growth",
+    x = "Expected growth",
+    y = NULL,
     colour = "Habitat"
   ) +
-  theme_drmtmb_gallery()
+  theme_drmtmb_gallery() +
+  theme(legend.position = "bottom")
 ```
 
 `emmeans` reference grids can also condition on a factor. In the next display,
 the `mu` cell means are grouped by season, so the reader sees the fitted
 habitat contrast inside each season rather than a single averaged contrast.
 
-```{r emmeans-factor-grid, eval = has_ggplot2 && requireNamespace("emmeans", quietly = TRUE), fig.alt="Point interval plot of estimated marginal mean growth for reef and kelp habitats shown separately for dry and wet seasons."}
+```{r emmeans-factor-grid, eval = has_ggplot2 && requireNamespace("emmeans", quietly = TRUE), fig.height=3.2, fig.alt="Compact horizontal point interval plot of estimated marginal mean growth for reef and kelp habitats shown separately for dry and wet seasons."}
 emm_season <- suppressMessages(
   as.data.frame(
     emmeans::emmeans(
@@ -1143,23 +1216,31 @@ emm_season <- suppressMessages(
     )
   )
 )
+emm_season$habitat_index <- as.numeric(emm_season$habitat)
+emm_season$season_offset <- ifelse(emm_season$season == "dry", -0.08, 0.08)
+emm_season$habitat_y <- emm_season$habitat_index + emm_season$season_offset
 
-ggplot(emm_season, aes(habitat, emmean, colour = season)) +
-  geom_pointrange(
-    aes(ymin = asymp.LCL, ymax = asymp.UCL),
-    position = position_dodge(width = 0.35),
-    linewidth = 0.65,
-    fatten = 2.3
+ggplot(emm_season, aes(emmean, habitat_y, colour = season)) +
+  geom_segment(
+    aes(x = asymp.LCL, xend = asymp.UCL, yend = habitat_y),
+    linewidth = 0.7
   ) +
+  geom_point(size = 2.4) +
   scale_colour_manual(values = season_palette) +
+  scale_y_continuous(
+    breaks = seq_along(levels(emm_season$habitat)),
+    labels = levels(emm_season$habitat),
+    limits = c(0.65, length(levels(emm_season$habitat)) + 0.35)
+  ) +
   labs(
     title = "Factor-conditioned estimated marginal means",
     subtitle = "Habitat mu summaries are shown separately for each season",
-    x = "Habitat",
-    y = "Expected growth",
+    x = "Expected growth",
+    y = "Habitat",
     colour = "Season"
   ) +
-  theme_drmtmb_gallery()
+  theme_drmtmb_gallery() +
+  theme(legend.position = "bottom")
 ```
 
 For a numeric interaction, use an explicit reference grid. Here `temperature`

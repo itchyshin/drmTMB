@@ -89,6 +89,29 @@ issues, or pull requests.
   standard as well as the error-prevention gate. Beautiful scientific figures
   should help users understand `drmTMB` models and help the package team catch
   failed intervals, missing support, incoherent labels, and wrong assumptions.
+- Improvement implemented: rendered contact sheets are navigation aids only.
+  A figure is not "checked" until at least one rendered output for that figure
+  has been inspected for alignment, missing uncertainty, raw or replicate grain,
+  label honesty, and whether it teaches the fitted model result.
+- Improvement implemented: once a figure grammar is stable, every substantive
+  worked example should include a model-output figure, not just a printed
+  table. The display should name the estimand, reporting scale, uncertainty
+  source, and whether it is raw data, fitted prediction, simulation replicate
+  grain, Wald confidence, profile likelihood, bootstrap, or a support boundary.
+
+## 2026-05-20 - Installed-Layout Runner Tests
+
+- Improvement implemented: tests for `inst/` runner scripts must exercise the
+  installed-package layout as well as the source-tree layout. Use
+  `system.file()` for the installed path and source-tree fallbacks only for
+  local development.
+- Improvement implemented: paths passed to `Rscript` from tests should be
+  quoted with `shQuote()`. Local paths can include spaces, and CI failures from
+  unquoted paths are avoidable noise.
+- Trigger: PR #264 R-CMD-check run `26171357996` failed because
+  `tests/testthat/test-phase18-actions-runner.R` called a source-tree-relative
+  `../../inst/sim/run/sim_run_actions_cell.R` path that did not exist after
+  installation.
 
 ## 2026-05-20 - After-Task Issue Maintenance
 

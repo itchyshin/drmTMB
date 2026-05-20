@@ -20,6 +20,11 @@ without pretending planned model classes are already fitted.
   directories, and the project 10-core cap.
 - Added tests for dry-run parsing, core capping, and nested multicore
   rejection.
+- Repaired the Phase 18 Actions runner test after PR #264's first R-CMD-check
+  run failed under the installed-package layout.
+- Rebuilt and re-audited the rendered figure gallery after the user pointed out
+  that the earlier visual pass had still missed sparse, mislabelled, or
+  under-informative figures.
 - Updated `inst/sim/README.md`,
   `docs/design/41-phase-18-simulation-programme.md`,
   `docs/dev-log/forgotten-promises-status-2026-05-20.md`, and
@@ -69,6 +74,8 @@ syntax into fitted support.
 Rscript --vanilla inst/sim/run/sim_run_actions_cell.R --task=first_wave_summary --dry-run=true --cores=30 --backend=multicore
 Rscript --vanilla inst/sim/run/sim_run_actions_cell.R --task=interval_heavy_summary --dry-run=true --backend=none --cores=10 --bootstrap-backend=multicore --bootstrap-cores=30 --bootstrap-nsim=2 --profile-parameters=fixef:nu:w,fixef:rho12:w
 Rscript -e "devtools::test(filter = '^phase18-actions-runner$|^phase18-sim-runner$|^phase18-sim-bootstrap$')"
+Rscript -e "devtools::load_all(quiet = TRUE); pkgdown::build_article('figure-gallery', new_process = FALSE, quiet = TRUE)"
+Rscript -e "devtools::load_all(quiet = TRUE); pkgdown::build_article('simulation-plot-grammar', new_process = FALSE, quiet = TRUE)"
 ruby -e 'require "yaml"; YAML.load_file(".github/workflows/phase18-simulation-grid.yaml"); puts "ok"'
 gh api repos/actions/upload-artifact/releases --jq '.[0].tag_name'
 git diff --check
@@ -76,7 +83,10 @@ git diff --check
 
 - First-wave dry-run passed and capped a 30-core request to 10.
 - Interval-heavy dry-run passed and capped a 30-core bootstrap request to 10.
-- Focused tests passed: 102 expectations, 0 failures, 0 warnings, 0 skips.
+- Focused tests passed locally after the CI repair: 104 expectations,
+  0 failures, 0 warnings, 0 skips.
+- The figure gallery and simulation grammar articles rebuilt locally after the
+  rendered-figure repairs.
 - YAML parsing passed for the new workflow and both existing workflows.
 - `actions/upload-artifact` latest release check returned `v7.0.1`, matching
   the workflow's `actions/upload-artifact@v7` major pin.
@@ -86,7 +96,38 @@ git diff --check
 
 After PR #263 merged to `main`, the post-merge R-CMD-check run
 `26169859911` passed on macOS, Windows, and Ubuntu. The chained pkgdown run
-`26170628794` was in progress when this report was written.
+`26170628794` passed.
+
+PR #264's first R-CMD-check run, `26171357996`, failed on macOS, Windows, and
+Ubuntu. The failure was not a package build problem or a transient runner
+outage. The new test called
+`../../inst/sim/run/sim_run_actions_cell.R`, which works from the source tree
+but fails in `R CMD check` because `inst/` is installed as package files and
+the script is reached via `system.file("sim", "run", ...)`. The local path also
+contains a space, so the repaired test now quotes the `Rscript` argument with
+`shQuote()`.
+
+Grace's process correction is to test installed-file helpers through
+`system.file()` before treating a runner test as CI-ready.
+
+## Figure Audit Follow-Up
+
+The first figure audit was not strong enough. It mixed source review, selected
+rendered images, and contact-sheet navigation, but did not force a
+one-figure-at-a-time rendered visual gate. Florence and Rose recorded the
+failure mode in
+`docs/dev-log/figure-audits/2026-05-20-full-gallery-visual-audit/figure-audit.md`.
+
+Immediate gallery repairs converted the coefficient-interval display to
+raindrop-style Wald compatibility displays, made discrete and emmeans examples
+use compact horizontal interval layouts, clarified the residual-magnitude
+display, and added visible points to the fitted among-site SD surface. Remaining
+watch items are logged for the emmeans support strip, convergence/runtime
+summary, and failure ledger.
+
+Once the gallery grammar is stable, every substantive worked example should
+include a model-output figure that helps readers see what the fitted model says
+and names the estimand, reporting scale, and uncertainty source.
 
 ## Issue Maintenance
 
