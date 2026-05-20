@@ -129,6 +129,37 @@ parameter. If a plot draws a ribbon, interval bar, or shaded region, the source
 table must contain a real interval source instead of
 `interval_source = "not_available"`.
 
+### Model-Output Figures Are Part Of The Example
+
+Slice 1279 adds the positive standard that follows from the rendered-gallery
+audits: a substantive worked example should not stop at a fitted object, a
+printed coefficient table, or a prose interpretation. Once the underlying table
+contract is stable, the example should include at least one model-output figure
+that helps the reader see what the fitted model says.
+
+This does not mean every example needs a polished gallery figure. It means the
+reader should see the main estimand on the right scale with the data grain and
+uncertainty source named. A minimal example figure can be raw data plus fitted
+`mu`, a `sigma` surface with no raw-response overlay, a `rho12` or `corpairs()`
+display, a profile or bootstrap interval display, a simulation
+operating-characteristic panel, or an explicit support-boundary strip.
+
+For each example figure, check these fields before styling:
+
+| Field | Required question |
+| --- | --- |
+| Estimand | Is this `mu`, `sigma`, `nu`, `rho12`, `sd(group)`, a correlation pair, a marginal mean, a contrast, or a simulation operating characteristic? |
+| Reporting scale | Is the plotted scale the response scale, link scale, Fisher's `z` scale, probability scale, log-SD scale, or a named derived scale? |
+| Data grain | Are marks raw observations, fitted-row predictions, conditional random-effect modes, simulation replicates, replicate blocks, aggregate means, or support statuses? |
+| Uncertainty source | Are intervals Wald, profile, bootstrap, binomial MCSE, RMSE MCSE, support cutoffs, or unavailable? |
+| Missing support | Are unsupported, not-targeted, or not-yet-implemented cells visible rather than silently dropped? |
+
+Rendered inspection remains part of the contract. Source code, contact sheets,
+and successful `pkgdown` builds are not enough when the figure is the reader's
+main evidence. At least one rendered output for every changed figure should be
+opened directly and checked for clipping, alignment, empty-space misuse, legend
+fit, and whether the figure genuinely teaches the fitted model result.
+
 ### Florence Figure Gate
 
 Florence is the standing scientific figure editor for visualization work. She

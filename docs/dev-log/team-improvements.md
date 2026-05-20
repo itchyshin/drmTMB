@@ -98,6 +98,11 @@ issues, or pull requests.
   table. The display should name the estimand, reporting scale, uncertainty
   source, and whether it is raw data, fitted prediction, simulation replicate
   grain, Wald confidence, profile likelihood, bootstrap, or a support boundary.
+- Improvement implemented: live-deploy figure review must still inspect
+  individual rendered PNGs after `pkgdown` deploys. A local render or contact
+  sheet can miss clipped subtitles, captions hanging off the image, or labels
+  that become cramped at the deployed size; those are release-facing failures,
+  not cosmetic trivia.
 
 ## 2026-05-20 - Installed-Layout Runner Tests
 

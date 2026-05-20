@@ -32889,3 +32889,74 @@ Issue maintenance:
 - Opened #265, "Design public bootstrap intervals for hard fits", because the
   private Phase 18 bootstrap harness and Actions route do not yet define a
   public `confint()` bootstrap API.
+
+## 2026-05-20 - Live Deploy Figure Follow-Up
+
+Goal:
+
+- Finish the post-merge loop for PR #264: verify the post-merge checks,
+  inspect deployed pkgdown figures directly, repair any visible live-page
+  failures, and record the model-output figure standard for worked examples.
+
+Merge and deploy checks:
+
+- Merged PR #264 with squash merge. Merge commit:
+  `a868e50b443544f010d628100dafc569b05402a2`.
+- Post-merge R-CMD-check run `26175737272` passed on macOS, Ubuntu, and
+  Windows.
+- Chained pkgdown run `26176428951` passed and deployed the rebuilt site.
+- Live HTML for `articles/figure-gallery.html` and
+  `articles/simulation-plot-grammar.html` contained the updated figure titles
+  and subtitles from PR #264.
+
+Live figure audit:
+
+- Downloaded 26 deployed PNGs from the live pkgdown pages into
+  `/tmp/drmtmb-live-site-audit`.
+- Opened key deployed figures one by one, including coefficient raindrops,
+  fitted among-site SD, emmeans displays, residual magnitudes, correlation
+  raindrops, empirical marginal summaries, bias/RMSE, and coverage/power.
+- Florence and Rose found three remaining live-rendered issues:
+  `bias-rmse-display-1.png` had a clipped subtitle,
+  `coverage-power-display-1.png` had cramped inline `n=` labels, and
+  `empirical-marginal-summary-1.png` carried a long caption inside the image.
+
+Changes:
+
+- Shortened the simulation bias subtitle while preserving the pseudo-replicate
+  error and 95% MCSE explanation.
+- Removed inline `n=` labels from the coverage/power panel; the source table
+  still carries `n_interval`, and nearby prose explains that the MCSE bars use
+  that cell-level `n`.
+- Moved the empirical marginal data-grain and interval-source explanation from
+  an image caption into a two-line subtitle.
+- Added the "Model-Output Figures Are Part Of The Example" rule to
+  `docs/design/39-visualization-grammar.md`.
+- Added live-deploy evidence under
+  `docs/dev-log/figure-audits/2026-05-20-live-deploy-followup/`.
+- Updated `docs/dev-log/team-improvements.md` and added
+  `docs/dev-log/after-task/2026-05-20-live-deploy-figure-standard.md`.
+
+Validation:
+
+```sh
+Rscript -e "devtools::load_all('.', quiet = TRUE); rmarkdown::render('vignettes/simulation-plot-grammar.Rmd', output_dir = '/tmp/drmtmb-live-figure-fixes/simulation-plot-grammar', output_options = list(self_contained = FALSE), quiet = TRUE)"
+Rscript -e "devtools::load_all('.', quiet = TRUE); rmarkdown::render('vignettes/figure-gallery.Rmd', output_dir = '/tmp/drmtmb-live-figure-fixes/figure-gallery', output_options = list(self_contained = FALSE), quiet = TRUE)"
+Rscript -e "pkgdown::check_pkgdown()"
+git diff --check
+```
+
+- Opened the re-rendered
+  `bias-rmse-display-1.png`,
+  `coverage-power-display-1.png`, and
+  `empirical-marginal-summary-1.png` directly. The repaired PNGs have no
+  clipped subtitle or bottom-caption crowding, and the coverage/power geometry
+  is aligned without inline-label clutter.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `git diff --check` was clean.
+
+Issue maintenance:
+
+- Inspected open issues after the live-deploy pass. Issue #58 remains the main
+  visualization-layer ledger, and issue #255 remains the simulation artifact
+  ledger. No duplicate issue was opened for this small repair.
