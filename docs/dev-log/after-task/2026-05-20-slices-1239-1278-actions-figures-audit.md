@@ -90,6 +90,15 @@ After PR #263 merged to `main`, the post-merge R-CMD-check run
 
 ## Issue Maintenance
 
-The next PR should update the existing figure-quality, Phase 18 simulation,
-bootstrap/profile, structural-dependence, and Ayumi convergence issues rather
-than opening duplicates unless a truly new failure mode appears.
+- Updated #59 with the new manual Phase 18 Actions dispatch route.
+- Updated #58 with the figure-audit gate and shared Florence/Fisher/Pat/Grace/
+  Rose responsibilities.
+- Updated #147 with the structural-dependence parity snapshot for `animal()`,
+  `spatial()`, and `relmat()`.
+- Updated #255 with the artifact-preservation link for replicate-level
+  simulation displays.
+- Updated #31 with the future structural-dependence learning-path split.
+- Updated #4 to clarify that this PR prepares infrastructure for future
+  Ayumi-scale stress runs but does not rerun the full 6196-species model.
+- Opened #265 for the missing public bootstrap confidence-interval design,
+  because no focused issue existed for that API and failure-ledger work.

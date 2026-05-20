@@ -32798,3 +32798,11 @@ Deployment watch:
   Ubuntu after PR #263 merged to `main`.
 - Chained pkgdown run `26170628794` was still in progress when this log entry
   was updated.
+
+Issue maintenance:
+
+- Commented on #59, #58, #147, #255, #31, and #4 with the relevant PR #264
+  follow-up.
+- Opened #265, "Design public bootstrap intervals for hard fits", because the
+  private Phase 18 bootstrap harness and Actions route do not yet define a
+  public `confint()` bootstrap API.
