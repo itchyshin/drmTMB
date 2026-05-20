@@ -32,6 +32,14 @@ location random-effect scale models;
 location random-effect scale models targeting \code{mu1} and \code{mu2}.
 }
 
+The \verb{sd_phylo*()} spellings are the current implemented phylogenetic
+direct-SD interface, but they should not be treated as a pattern to clone for
+every structured-effect family. Future spatial, animal-model, and
+user-supplied relatedness direct-SD routes should prefer a generic spelling
+such as \code{sd(group, level = "spatial")}, \code{sd1(group, level = "animal")}, or a
+closely reviewed equivalent, rather than adding parallel \verb{sd_spatial*()},
+\verb{sd_animal*()}, and \verb{sd_relmat*()} families.
+
 These formulas model the standard deviation of a latent random-effect block.
 They are distinct from residual scale formulas such as \code{sigma ~ predictors}
 and from latent correlation formulas such as \code{\link[=corpair]{corpair()}}. Non-Gaussian

@@ -17,6 +17,14 @@
 #'   `sd_phylo2(species) ~ predictors` for bivariate Gaussian phylogenetic
 #'   location random-effect scale models targeting `mu1` and `mu2`.
 #'
+#' The `sd_phylo*()` spellings are the current implemented phylogenetic
+#' direct-SD interface, but they should not be treated as a pattern to clone for
+#' every structured-effect family. Future spatial, animal-model, and
+#' user-supplied relatedness direct-SD routes should prefer a generic spelling
+#' such as `sd(group, level = "spatial")`, `sd1(group, level = "animal")`, or a
+#' closely reviewed equivalent, rather than adding parallel `sd_spatial*()`,
+#' `sd_animal*()`, and `sd_relmat*()` families.
+#'
 #' These formulas model the standard deviation of a latent random-effect block.
 #' They are distinct from residual scale formulas such as `sigma ~ predictors`
 #' and from latent correlation formulas such as [corpair()]. Non-Gaussian
