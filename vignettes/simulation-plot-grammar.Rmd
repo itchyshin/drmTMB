@@ -79,7 +79,7 @@ Bias and RMSE should be plotted beside the estimand. A single average across
 all parameters hides the distinction between fixed effects, residual scale,
 random-effect SDs, and residual correlation `rho12`.
 
-```{r bias-rmse-display, fig.width=8.2, fig.height=5.1, fig.alt="Two simulation accuracy plots faceted by simulation surface: an illustrative raincloud-style bias display with pseudo-replicate errors, mean bias points, and MCSE intervals, followed by an aggregate RMSE display with MCSE intervals for four estimands."}
+```{r bias-rmse-display, fig.width=8.4, fig.height=5.2, fig.alt="Two simulation accuracy plots faceted by simulation surface: an illustrative raincloud-style bias display with pseudo-replicate errors, mean bias points, and MCSE intervals, followed by an aggregate RMSE display with MCSE intervals for four estimands."}
 accuracy_summary <- data.frame(
   surface = rep(surface_levels, each = 4),
   estimand = rep(c("beta_x", "sigma", "sd_group", "rho12"), 4),
@@ -202,10 +202,7 @@ ggplot(accuracy_replicates, aes(error, estimand)) +
   scale_fill_manual(values = surface_palette, drop = FALSE) +
   labs(
     title = "Bias displays should show replicate-level error",
-    subtitle = paste(
-      "Clouds and faint dots are illustrative pseudo-replicate errors;",
-      "large points and bars are mean bias with 95% MCSE"
-    ),
+    subtitle = "Clouds/dots: pseudo-replicate errors; points/bars: mean bias with 95% MCSE",
     x = "Estimate minus truth",
     y = NULL,
     colour = "Surface"
@@ -265,6 +262,10 @@ uncertainty interval. Real reports should plot stored replicate rows or stored
 replicate-block summaries when they are available; the fixture below illustrates
 that grammar with block-level proportions plus a binomial MCSE approximation for
 the aggregate.
+
+The example table still carries `n_interval` for each cell. The rendered plot
+keeps the `n` values out of the panel labels so the MCSE bars, points, and
+block-level dots stay aligned and readable.
 
 ```{r coverage-power-display, fig.width=8.6, fig.height=5.2, fig.alt="Faceted point plot showing illustrative coverage and power with Monte Carlo uncertainty intervals for four simulation surfaces, with one panel per surface so intervals align with their points."}
 interval_summary <- data.frame(
@@ -372,14 +373,6 @@ ggplot(interval_present, aes(value, estimand, colour = surface)) +
   ) +
   geom_point(size = 2.1, na.rm = TRUE) +
   geom_text(
-    aes(label = paste0("n=", n_interval)),
-    nudge_y = -0.25,
-    colour = "grey40",
-    size = 1.7,
-    na.rm = TRUE,
-    show.legend = FALSE
-  ) +
-  geom_text(
     data = interval_missing,
     aes(x = missing_x, y = estimand, label = "not\ntargeted"),
     colour = "grey55",
@@ -401,7 +394,7 @@ ggplot(interval_present, aes(value, estimand, colour = surface)) +
   scale_y_discrete(labels = estimand_display_labels) +
   labs(
     title = "Interval coverage and power need Monte Carlo uncertainty",
-    subtitle = "Faint dots illustrate replicate-block proportions; large points carry n and 95% binomial MCSE",
+    subtitle = "Faint dots: replicate-block proportions; points/bars: aggregate proportions with 95% binomial MCSE",
     x = "Proportion",
     y = NULL,
     colour = "Surface"

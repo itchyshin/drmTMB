@@ -1352,12 +1352,15 @@ ggplot(empirical_habitat_rowwise, aes(habitat, estimate, fill = habitat)) +
   scale_drmtmb_fill +
   labs(
     title = "Empirical marginal mu summary",
-    subtitle = "Faint fitted-row predictions show what the plug-in mean averages",
+    subtitle = paste(
+      "Faint fitted-row mu predictions are not raw responses;",
+      "points/bars average row-wise 95% Wald prediction limits",
+      sep = "\n"
+    ),
     x = NULL,
     y = "Average expected growth",
     colour = "Habitat",
-    fill = "Habitat",
-    caption = "Clouds and faint points are fitted-row mu predictions, not raw responses; error bars average row-wise 95% Wald prediction limits."
+    fill = "Habitat"
   ) +
   guides(fill = "none") +
   theme_drmtmb_gallery()
