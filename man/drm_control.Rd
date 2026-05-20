@@ -23,7 +23,8 @@ drm_control(
 \code{\link[TMB:sdreport]{TMB::sdreport()}} after optimization. Set to \code{FALSE} to keep fitted
 coefficients, fitted values, residuals, predictions, simulations, and
 profile-likelihood paths while skipping Wald standard errors,
-\code{\link[stats:vcov]{stats::vcov()}}, and Wald confidence intervals.}
+\code{\link[stats:vcov]{stats::vcov()}}, and Wald confidence intervals. Profile-likelihood
+intervals still require \code{keep_tmb_object = TRUE}.}
 
 \item{keep_data}{Logical; keep the complete-case model data in the fitted
 object. Set to \code{FALSE} to drop \code{fit$data} and \code{fit$model$data} after
@@ -39,7 +40,8 @@ matrices, terms, response vectors, offsets, and response-name metadata.}
 \item{keep_tmb_object}{Logical; keep the TMB automatic-differentiation object
 in \code{fit$obj}. Set to \code{FALSE} to reduce fitted-object size after
 optimization. \code{check_drm()} will then report the fixed-gradient check as a
-note because it cannot re-evaluate the gradient without \code{fit$obj}.}
+note because it cannot re-evaluate the gradient without \code{fit$obj}, and
+profile-likelihood confidence intervals will be unavailable.}
 
 \item{sparse_fixed}{Logical; opt-in control for sparse fixed-effect
 design matrices. The first fitted path is limited to univariate Gaussian

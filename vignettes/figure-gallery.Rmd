@@ -1441,11 +1441,11 @@ the observations span the whole moisture gradient.
 Correlation displays should keep layers separate. Residual `rho12`,
 ordinary-group correlations, phylogenetic correlations, spatial correlations,
 and future animal or `relmat()` layers are not the same parameter even when all
-are correlations. A fitted workflow should start from `corpairs(fit)`; this
-gallery uses a compact compatible table so the page builds quickly while
-preserving the same required columns.
+are correlations. A fitted workflow should start from `corpairs(fit)` and keep
+the interval provenance columns. This gallery uses a compact compatible table so
+the page builds quickly while preserving the same required columns.
 
-```{r correlation-display, fig.alt="Faceted point interval plot showing separate residual, group, and phylogenetic correlation layers with short row labels."}
+```{r correlation-display, fig.alt="Row-aligned raindrop confidence displays for residual rho12, an ordinary group correlation, and a phylogenetic correlation, each with an estimate dot, central interval bar, and separate layer label."}
 pair_table <- data.frame(
   level = c("residual", "group", "phylogenetic"),
   class = c("residual", "mean-slope", "mean-mean"),
@@ -1459,6 +1459,7 @@ pair_table <- data.frame(
   conf.low = c(-0.54, 0.12, 0.29),
   conf.high = c(-0.05, 0.68, 0.79),
   conf.status = c("wald", "profile", "profile"),
+  interval_source = c("illustrative_wald", "illustrative_profile", "illustrative_profile"),
   layer = c("Residual coscale", "Ordinary group", "Phylogenetic")
 )
 pair_table$layer <- factor(
@@ -1644,7 +1645,7 @@ Simulation figures answer different questions from model-interpretation
 figures. They should show bias, error, coverage, runtime, and failures beside
 the model surface being tested.
 
-```{r simulation-operating-characteristics, fig.width=8.6, fig.height=4.8, fig.alt="Simulation summary plots showing illustrative replicate-level bias clouds with mean and MCSE intervals, plus interval coverage bars with binomial MCSE whiskers, by estimand across Gaussian location-scale, proportion, and count surfaces."}
+```{r simulation-operating-characteristics, fig.width=8.6, fig.height=4.8, fig.alt="Simulation summary plots showing illustrative pseudo-replicate bias clouds with mean and MCSE intervals, plus interval coverage points with binomial MCSE whiskers, by estimand across Gaussian location-scale, proportion, and count surfaces."}
 sim_summary <- data.frame(
   surface = rep(
     c("Gaussian location-scale", "Proportion", "Count"),
@@ -1769,7 +1770,7 @@ ggplot(sim_rain, aes(bias_replicate, estimand_label)) +
   scale_fill_manual(values = surface_palette, drop = FALSE) +
   labs(
     title = "Bias by estimand",
-    subtitle = "Rainclouds show replicate errors; large points and bars are mean bias with 95% MCSE intervals",
+    subtitle = "Illustrative clouds show pseudo-replicate errors; large points and bars are mean bias with 95% MCSE intervals",
     x = NULL,
     y = "Estimate minus truth",
     colour = "Surface"

@@ -32693,3 +32693,65 @@ gh pr view 263 --json number,title,url,isDraft,mergeStateStatus,reviewDecision,h
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-20-slices-1189-1208-ayumi-current-convergence-profile.md`
+
+## 2026-05-20 - PR 263 pkgdown follow-up before merge
+
+Goal:
+
+- Verify that the current PR branch really renders the pkgdown articles that
+  were changed in the visual, bivariate-coscale, and profile-CI lanes.
+
+What failed first:
+
+```sh
+Rscript -e "pkgdown::build_site(new_process = FALSE, install = FALSE, preview = FALSE)"
+```
+
+- The first full local site build failed in `vignettes/bivariate-coscale.Rmd`
+  because an evaluated example used bare bivariate random-effect syntax without
+  the implemented `corpair(..., level = "group", block = "p", from = "mu1", to = "mu2") ~ 1`
+  companion. This was a real pkgdown-readiness problem.
+
+Follow-up changes:
+
+- Updated `vignettes/bivariate-coscale.Rmd` so the evaluated grouped bivariate
+  example uses the implemented ordinary q2 `corpair()` route.
+- Updated `R/control.R` and generated `man/drm_control.Rd` to say explicitly
+  that profile-likelihood intervals require `keep_tmb_object = TRUE`.
+- Tightened `figure-gallery` alt text and fixture wording for correlation
+  raindrops, interval provenance, and pseudo-replicate simulation clouds.
+- Tightened `simulation-plot-grammar` wording so fixture dots are clearly
+  illustrative pseudo-replicates or replicate-block proportions, and made
+  `n_interval` visible on the coverage/power figure.
+- Updated the Ayumi after-task report so `PV2_locphylo` is described as the
+  cleanest current anchor with gradient/replication caveats, not as caveat-free,
+  and so issue #4 is recorded as already updated.
+
+Validation:
+
+```sh
+air format R/control.R vignettes/bivariate-coscale.Rmd vignettes/figure-gallery.Rmd vignettes/simulation-plot-grammar.Rmd docs/dev-log/after-task/2026-05-20-slices-1189-1208-ayumi-current-convergence-profile.md
+Rscript -e "devtools::document()"
+Rscript -e "devtools::load_all('.', quiet = TRUE); rmarkdown::render('vignettes/bivariate-coscale.Rmd', output_dir = '/tmp/drmtmb-pkgdown-followup/bivariate-coscale2', output_options = list(self_contained = FALSE), quiet = FALSE)"
+Rscript -e "devtools::load_all('.', quiet = TRUE); rmarkdown::render('vignettes/figure-gallery.Rmd', output_dir = '/tmp/drmtmb-pkgdown-followup/figure-gallery', output_options = list(self_contained = FALSE), quiet = TRUE)"
+Rscript -e "devtools::load_all('.', quiet = TRUE); rmarkdown::render('vignettes/simulation-plot-grammar.Rmd', output_dir = '/tmp/drmtmb-pkgdown-followup/simulation-plot-grammar', output_options = list(self_contained = FALSE), quiet = TRUE)"
+Rscript -e "pkgdown::build_site(new_process = FALSE, install = TRUE, preview = FALSE)"
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "devtools::test(filter = '^biv-gaussian$|^profile-targets$|^summary$|^control$')"
+git diff --check
+```
+
+- The targeted renders passed.
+- `pkgdown::build_site(new_process = FALSE, install = TRUE, preview = FALSE)`
+  passed and wrote `articles/bivariate-coscale.html`,
+  `articles/figure-gallery.html`, and `articles/simulation-plot-grammar.html`
+  into the ignored local `pkgdown-site/` preview.
+- `pkgdown::check_pkgdown()` reported no problems.
+- Focused tests passed: 1,422 expectations, 0 failures, 0 warnings, 0 skips.
+- `git diff --check` was clean.
+
+Deployment note:
+
+- `pkgdown-site/` is ignored generated output. The public website updates only
+  after this PR is merged to `main`, `R-CMD-check` succeeds there, and the
+  `pkgdown` workflow deploys the rebuilt site.

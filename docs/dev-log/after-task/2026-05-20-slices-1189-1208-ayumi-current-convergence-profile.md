@@ -73,9 +73,12 @@ Full Mass+Beak current rerun:
 | `PV2_phylo_fallback` | 674.1 | 1 | FALSE | -4220.6 | 8499.1 | -0.720 | 50.0 |
 | `PV2_phylo_fallback_sigma_intercept` | 533.6 | 1 | FALSE | -4285.3 | 8610.5 | 0.00066 | 49.0 |
 
-The clean practical anchor remains `PV2_locphylo`: phylogenetic covariance on the
-location block, residual `rho12`, and non-phylogenetic scale. The q4/fallback
-variants are useful diagnostics but not ready for user-facing inference.
+The cleanest current practical anchor remains `PV2_locphylo`: phylogenetic
+covariance on the location block, residual `rho12`, and non-phylogenetic scale.
+It is not caveat-free: `check_drm()` still reports gradient and phylogenetic
+replication cautions that need interpretation before scientific reporting. The
+q4/fallback variants are useful diagnostics but not ready for user-facing
+inference.
 
 The lightness stress rerun showed the same pattern as earlier: simple aggregate
 models are stable, forced-tree phylogenetic mean-only models can fit but often
@@ -94,14 +97,15 @@ the convergence diagnostics correctly prevent treating the fit as inference.
 
 The refreshed evidence supports these status calls:
 
-- `PV2_locphylo` is currently the clean full-species Mass+Beak feasibility model.
+- `PV2_locphylo` is currently the cleanest full-species Mass+Beak feasibility
+  model, with gradient and phylogenetic-replication caveats.
 - q4/full scale-phylogenetic covariance variants should remain marked diagnostic
   until convergence, Hessian, and profile/bootstrap evidence improve.
 - Ordinary response-specific mean-scale blocks can be represented, but the
   current lightness stress fit is not stable enough for scientific conclusions.
-- Profile intervals are available after fitting for direct profile-ready targets,
-  but the full 6,196-species Ayumi profile attempt shows why automatic profiling
-  should not be a default model-fitting side effect.
+- Profile intervals are attemptable after fitting for direct profile-ready
+  targets, but the full 6,196-species Ayumi profile attempt shows why automatic
+  profiling should not be a default model-fitting side effect.
 
 ## GitHub Issue Maintenance
 
@@ -115,9 +119,9 @@ issues are:
 - #147 animal/relmat, because parity with phylo remains planned rather than
   implemented.
 
-The next issue action is to add the refreshed Ayumi evidence to #4 after local
-validation finishes, so GitHub records why profile intervals need explicit
-target and compute controls.
+Ada added the refreshed Ayumi evidence to #4 after local validation finished, so
+GitHub records why profile intervals need explicit target and compute controls:
+<https://github.com/itchyshin/drmTMB/issues/4#issuecomment-4499088186>.
 
 ## What Did Not Go Smoothly
 
