@@ -9,35 +9,38 @@ relmat(term, K = NULL, Q = NULL)
 \arguments{
 \item{term}{Structured random-effect term, such as \code{1 | id}.}
 
-\item{K}{Planned known relatedness or covariance matrix.}
+\item{K}{Known relatedness or covariance matrix for the first fitted
+univariate Gaussian \code{mu} path.}
 
-\item{Q}{Planned known precision or inverse covariance matrix.}
+\item{Q}{Known precision or inverse covariance matrix for the first fitted
+univariate Gaussian \code{mu} path.}
 }
 \value{
 A formula marker; never evaluated by users.
 }
 \description{
-\code{relmat()} marks planned syntax for a validated user-supplied relatedness
-matrix. It is the lower-level route for dependence structures that are not
-best named as \code{animal()}, \code{phylo()}, or \code{spatial()}: for example a genomic
-relationship matrix, a laboratory relatedness kernel, or a precision matrix
-built outside \code{drmTMB} and checked by the analyst.
+\code{relmat()} marks syntax for a validated user-supplied relatedness matrix. It
+is the lower-level route for dependence structures that are not best named as
+\code{animal()}, \code{phylo()}, or \code{spatial()}: for example a genomic relationship
+matrix, a laboratory relatedness kernel, or a precision matrix built outside
+\code{drmTMB} and checked by the analyst.
 }
 \details{
 Use \code{K} for a covariance or relatedness matrix and \code{Q} for an inverse
-covariance or precision matrix. This marker is parsed and documented, but
-does not fit a model yet. It is intentionally separate from
-\code{\link[=meta_V]{meta_V()}}, which adds known sampling covariance among observations,
-and from residual \code{rho12}, which models within-observation bivariate
-residual correlation.
+covariance or precision matrix. The first fitted route is a univariate
+Gaussian \code{mu} random intercept, for example \code{relmat(1 | line, Q = Q)}.
+Structured slopes, \code{sigma} relatedness models, and bivariate covariance
+blocks remain planned. \code{relmat()} is intentionally separate from \code{\link[=meta_V]{meta_V()}},
+which adds known sampling covariance among observations, and from residual
+\code{rho12}, which models within-observation bivariate residual correlation.
 }
 \examples{
-# Planned: a genomic relatedness matrix for among-line genetic variance.
+# Fitted: a genomic relatedness matrix for among-line genetic variance.
 bf(seed_mass ~ temperature + relmat(1 | line, K = G),
   sigma ~ temperature
 )
 
-# Planned: a user-built sparse precision for another dependence structure.
+# Fitted: a user-built sparse precision for another dependence structure.
 bf(growth ~ treatment + relmat(1 | plot, Q = Q_plot),
   sigma ~ treatment
 )

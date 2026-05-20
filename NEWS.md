@@ -1,3 +1,7 @@
+# drmTMB 0.1.3 (development)
+
+* `animal()` and `relmat()` now fit the first known-relatedness Gaussian `mu` random-intercept slice: `animal(1 | id, A = A)`, `animal(1 | id, Ainv = Ainv)`, `relmat(1 | id, K = K)`, and `relmat(1 | id, Q = Q)`. The fitted SD appears in `sdpars$mu`, conditional effects appear in `ranef("animal_mu")` or `ranef("relmat_mu")`, direct SD targets appear in `profile_targets()`, and `check_drm()` reports replication and SD-ratio diagnostics; pedigree-derived precision, structured slopes, `sigma` relatedness models, bivariate relatedness covariance, and `corpair()` parity remain planned (#147).
+
 # drmTMB 0.1.2 (2026-05-16)
 
 * `drm_control()` now has `optimizer_preset = "careful"` and `"robust"` for explicit `nlminb()` optimizer-budget presets. These expand to recorded `iter.max` and `eval.max` controls, keep the default fit fast, and can still be overridden with `optimizer = list(...)`.

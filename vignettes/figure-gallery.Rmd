@@ -1134,6 +1134,8 @@ pred_cat_cat <- predict_parameters(
 
 raw_cat_cat <- reef
 
+cat_cat_position <- position_dodge(width = 0.45)
+
 ggplot(pred_cat_cat, aes(habitat, estimate, colour = season)) +
   geom_point(
     data = raw_cat_cat,
@@ -1147,11 +1149,15 @@ ggplot(pred_cat_cat, aes(habitat, estimate, colour = season)) +
     size = 1.1,
     show.legend = FALSE
   ) +
-  geom_pointrange(
+  geom_errorbar(
     aes(ymin = conf.low, ymax = conf.high),
-    position = position_dodge(width = 0.45),
-    linewidth = 0.65,
-    fatten = 2.3
+    position = cat_cat_position,
+    width = 0.08,
+    linewidth = 0.65
+  ) +
+  geom_point(
+    position = cat_cat_position,
+    size = 2.3
   ) +
   scale_colour_manual(values = season_palette) +
   labs(
@@ -1264,12 +1270,18 @@ emm_temperature$temperature_slice <- factor(
   labels = c("cooler", "average", "warmer")
 )
 
+temperature_position <- position_dodge(width = 0.42)
+
 ggplot(emm_temperature, aes(temperature_slice, emmean, colour = habitat)) +
-  geom_pointrange(
+  geom_errorbar(
     aes(ymin = asymp.LCL, ymax = asymp.UCL),
-    position = position_dodge(width = 0.42),
-    linewidth = 0.65,
-    fatten = 2.3
+    position = temperature_position,
+    width = 0.08,
+    linewidth = 0.65
+  ) +
+  geom_point(
+    position = temperature_position,
+    size = 2.3
   ) +
   scale_drmtmb_colour +
   labs(
@@ -1337,7 +1349,7 @@ ggplot(empirical_habitat_rowwise, aes(habitat, estimate, fill = habitat)) +
     size = 0.65,
     show.legend = FALSE
   ) +
-  geom_pointrange(
+  geom_errorbar(
     data = empirical_habitat_plot,
     aes(
       y = estimate,
@@ -1345,9 +1357,14 @@ ggplot(empirical_habitat_rowwise, aes(habitat, estimate, fill = habitat)) +
       ymax = conf.high,
       colour = habitat
     ),
-    linewidth = 0.7,
-    fatten = 2.4
-) +
+    width = 0.10,
+    linewidth = 0.7
+  ) +
+  geom_point(
+    data = empirical_habitat_plot,
+    aes(y = estimate, colour = habitat),
+    size = 2.4
+  ) +
   scale_drmtmb_colour +
   scale_drmtmb_fill +
   labs(
@@ -1729,8 +1746,8 @@ Simulation figures answer different questions from model-interpretation
 figures. They should show bias, error, coverage, runtime, and failures beside
 the model surface being tested.
 
-```{r simulation-operating-characteristics, fig.width=8.6, fig.height=4.8, fig.alt="Simulation summary plots showing illustrative pseudo-replicate bias clouds with mean and MCSE intervals, plus interval coverage points with binomial MCSE whiskers, by estimand across Gaussian location-scale, proportion, and count surfaces."}
-sim_summary <- data.frame(
+```{r simulation-operating-characteristics, fig.width=8.6, fig.height=4.8, fig.alt="Simulation summary plots showing fixture replicate-error bias clouds with mean and MCSE intervals, plus interval coverage points with binomial MCSE whiskers, by estimand across Gaussian location-scale, proportion, and count surfaces."}
+sim_targets <- data.frame(
   surface = rep(
     c("Gaussian location-scale", "Proportion", "Count"),
     each = 4
@@ -1752,8 +1769,55 @@ sim_summary <- data.frame(
     0.93, 0.95, 0.89, NA
   )
 )
+sim_targets$n_rep <- 500L
+sim_targets$error_sd <- sqrt(
+  pmax(sim_targets$rmse^2 - sim_targets$bias^2, 0)
+)
+sim_bias_rows <- do.call(
+  rbind,
+  lapply(seq_len(nrow(sim_targets)), function(i) {
+    row <- sim_targets[i, ]
+    if (is.na(row$bias) || is.na(row$rmse)) {
+      return(NULL)
+    }
+    data.frame(
+      surface = row$surface,
+      estimand = row$estimand,
+      replicate = seq_len(row$n_rep),
+      bias_error = row$bias +
+        qnorm(ppoints(row$n_rep)) * row$error_sd
+    )
+  })
+)
+summarise_bias_rows <- function(rows) {
+  data.frame(
+    surface = rows$surface[1],
+    estimand = rows$estimand[1],
+    bias = mean(rows$bias_error),
+    rmse = sqrt(mean(rows$bias_error^2)),
+    error_sd = stats::sd(rows$bias_error),
+    n_rep = nrow(rows)
+  )
+}
+sim_summary <- do.call(
+  rbind,
+  lapply(
+    split(
+      sim_bias_rows,
+      interaction(sim_bias_rows$surface, sim_bias_rows$estimand, drop = TRUE)
+    ),
+    summarise_bias_rows
+  )
+)
+sim_summary <- merge(
+  sim_targets[c("surface", "estimand", "coverage")],
+  sim_summary,
+  by = c("surface", "estimand"),
+  all.x = TRUE,
+  sort = FALSE
+)
 sim_summary$n_rep <- 500L
-sim_summary$bias_mcse <- sim_summary$rmse / sqrt(sim_summary$n_rep)
+sim_summary$bias_mcse <- sim_summary$error_sd / sqrt(sim_summary$n_rep)
 sim_summary$bias_low <- sim_summary$bias - 1.96 * sim_summary$bias_mcse
 sim_summary$bias_high <- sim_summary$bias + 1.96 * sim_summary$bias_mcse
 sim_summary$coverage_mcse <- sqrt(
@@ -1786,29 +1850,24 @@ surface_facet_labels <- c(
   "Proportion" = "Proportion",
   "Count" = "Count"
 )
-display_replicates <- 45
+display_replicates <- 55
 sim_rain <- do.call(
   rbind,
-  lapply(seq_len(nrow(sim_summary)), function(i) {
-    row <- sim_summary[i, ]
-    if (is.na(row$bias)) {
+  lapply(split(sim_bias_rows, sim_bias_rows[c("surface", "estimand")]), function(rows) {
+    if (nrow(rows) == 0L) {
       return(NULL)
     }
-    data.frame(
-      surface = row$surface,
-      estimand_label = row$estimand_label,
-      bias_replicate = row$bias +
-        qnorm(ppoints(display_replicates)) * row$rmse
-    )
+    keep <- round(seq(1, nrow(rows), length.out = display_replicates))
+    rows[keep, , drop = FALSE]
   })
 )
 sim_rain$surface <- factor(sim_rain$surface, levels = levels(sim_summary$surface))
 sim_rain$estimand_label <- factor(
-  sim_rain$estimand_label,
+  estimand_labels[sim_rain$estimand],
   levels = levels(sim_summary$estimand_label)
 )
 
-ggplot(sim_rain, aes(bias_replicate, estimand_label)) +
+ggplot(sim_rain, aes(bias_error, estimand_label)) +
   geom_vline(xintercept = 0, linetype = "dashed", colour = "grey60") +
   geom_violin(
     aes(
@@ -1827,16 +1886,18 @@ ggplot(sim_rain, aes(bias_replicate, estimand_label)) +
     size = 0.75,
     show.legend = FALSE
   ) +
-  geom_segment(
+  geom_errorbar(
     data = sim_summary,
     aes(
-      x = bias_low,
-      xend = bias_high,
+      xmin = bias_low,
+      xmax = bias_high,
       y = estimand_label,
-      yend = estimand_label,
       colour = surface
     ),
-    linewidth = 0.95,
+    inherit.aes = FALSE,
+    orientation = "y",
+    width = 0.16,
+    linewidth = 0.65,
     na.rm = TRUE
   ) +
   geom_point(
@@ -1854,7 +1915,7 @@ ggplot(sim_rain, aes(bias_replicate, estimand_label)) +
   scale_fill_manual(values = surface_palette, drop = FALSE) +
   labs(
     title = "Bias by estimand",
-    subtitle = "Illustrative clouds show pseudo-replicate errors; large points and bars are mean bias with 95% MCSE intervals",
+    subtitle = "Faint dots sample fixture replicate errors; large points and bars are mean bias with 95% MCSE intervals",
     x = NULL,
     y = "Estimate minus truth",
     colour = "Surface"
@@ -1895,9 +1956,10 @@ ggplot(sim_coverage_present, aes(coverage, estimand_label, colour = surface)) +
     size = 0.75,
     inherit.aes = FALSE
   ) +
-  geom_errorbarh(
+  geom_errorbar(
     aes(xmin = coverage_low, xmax = coverage_high, colour = surface),
-    height = 0.18,
+    orientation = "y",
+    width = 0.18,
     linewidth = 0.45,
     na.rm = TRUE
   ) +

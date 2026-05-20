@@ -135,6 +135,7 @@ check_drm.drmTMB <- function(
     ),
     check_phylo_replication(object),
     check_spatial_mu_diagnostics(object),
+    check_known_relatedness_mu_diagnostics(object),
     check_phylo_direct_sd_model(object),
     check_biv_phylo_mu_covariance(object, rho_boundary = rho_boundary),
     check_biv_phylo_q4_covariance(object, rho_boundary = rho_boundary)
@@ -2116,6 +2117,112 @@ spatial_mu_diagnostic_message <- function(
   paste(
     "The coordinate spatial random intercept has replicated sites and a",
     "non-negligible fitted SD relative to the residual scale."
+  )
+}
+
+check_known_relatedness_mu_diagnostics <- function(object) {
+  structured_mu <- object$model$structured$phylo_mu
+  type <- structured_mu_type(structured_mu)
+  if (!type %in% c("animal", "relmat")) {
+    return(NULL)
+  }
+
+  index <- structured_mu$observation_node_index
+  counts <- tabulate(match(index, unique(index)))
+  min_count <- if (length(counts) > 0L) min(counts) else NA_integer_
+  weak_replication <- is.finite(min_count) && min_count < 2L
+  sd_label <- phylo_mu_sd_labels(structured_mu, object$model$model_type)
+  sd_values <- unname(object$sdpars$mu[match(
+    sd_label,
+    names(object$sdpars$mu)
+  )])
+  finite_positive_sd <- length(sd_values) == length(sd_label) &&
+    all(is.finite(sd_values)) &&
+    all(sd_values > 0)
+  residual_scale <- spatial_mu_residual_scale(object)
+  sd_ratios <- if (finite_positive_sd && is.finite(residual_scale)) {
+    sd_values / residual_scale
+  } else {
+    NA_real_
+  }
+  weak_sd <- !finite_positive_sd ||
+    any(sd_ratios[is.finite(sd_ratios)] < 0.05)
+
+  check_row(
+    paste0(type, "_mu_diagnostics"),
+    if (!finite_positive_sd) {
+      "error"
+    } else if (weak_replication || weak_sd) {
+      "note"
+    } else {
+      "ok"
+    },
+    paste0(
+      "group=",
+      structured_mu$group,
+      "; n_nodes=",
+      structured_mu$n_re,
+      "; n_observed=",
+      length(unique(index)),
+      "; min_group_n=",
+      min_count,
+      "; matrix_type=",
+      structured_mu$precision$matrix_type,
+      "; structured_sd=",
+      format_check_number(sd_values),
+      "; sd_ratio=",
+      format_check_number(sd_ratios)
+    ),
+    known_relatedness_mu_diagnostic_message(
+      type,
+      finite_positive_sd,
+      weak_replication,
+      weak_sd
+    )
+  )
+}
+
+known_relatedness_mu_diagnostic_message <- function(
+  type,
+  finite_positive_sd,
+  weak_replication,
+  weak_sd
+) {
+  label <- if (identical(type, "animal")) "animal-model" else "relatedness"
+  if (!finite_positive_sd) {
+    return(paste(
+      "The fitted",
+      label,
+      "SD is non-positive or non-finite; inspect convergence and the supplied matrix."
+    ))
+  }
+  if (weak_replication && weak_sd) {
+    return(paste(
+      "At least one observed level has fewer than two fitted observations and",
+      "the",
+      label,
+      "SD is tiny relative to residual scale; interpret the structured effect cautiously."
+    ))
+  }
+  if (weak_replication) {
+    return(paste(
+      "At least one observed level has fewer than two fitted observations;",
+      "interpret conditional",
+      label,
+      "effects and the structured SD cautiously."
+    ))
+  }
+  if (weak_sd) {
+    return(paste(
+      "The",
+      label,
+      "SD is tiny relative to residual scale; the structured effect may be weakly identified."
+    ))
+  }
+  paste(
+    "The",
+    label,
+    "random intercept has replicated observed levels and a non-negligible fitted SD relative to residual scale."
   )
 }
 

@@ -12,8 +12,8 @@ the intended one-slope syntax, but the fitted surfaces are at different stages.
 | --- | --- | --- | --- |
 | Coordinate spatial one-slope `mu` | `spatial(1 + x | site, coords = coords)` | Yes, for univariate Gaussian `mu` with independent intercept and slope fields | Can enter a focused Wave A structured-slope smoke grid |
 | Phylogenetic one-slope `mu` | `phylo(1 + x | species, tree = tree)` | No, rejected with an explicit planned-status message | Keep out of simulation until implementation, SD/profile targets, diagnostics, and recovery tests exist |
-| Animal one-slope `mu` | `animal(1 + x | id, pedigree = ped)` | No, marker/planned grammar only | Keep out of simulation until `animal()` validates pedigree/A/Ainv row names, fits at least intercepts, then one slope |
-| Generic relatedness one-slope `mu` | `relmat(1 + x | id, K = K)` or `relmat(1 + x | id, Q = Q)` | No, marker/planned grammar only | Keep out of simulation until matrix orientation, covariance/precision scale, sparse precision, and recovery tests are implemented |
+| Animal one-slope `mu` | `animal(1 + x | id, Ainv = Ainv)` | No. `animal(1 | id, A = A)` and `animal(1 | id, Ainv = Ainv)` now fit Gaussian `mu` intercepts, but structured animal slopes and pedigree construction remain planned. | Keep one-slope animal models out of simulation until slope SD/profile targets, diagnostics, and recovery tests exist |
+| Generic relatedness one-slope `mu` | `relmat(1 + x | id, K = K)` or `relmat(1 + x | id, Q = Q)` | No. `relmat(1 | id, K = K)` and `relmat(1 | id, Q = Q)` now fit Gaussian `mu` intercepts, but structured relatedness slopes remain planned. | Keep one-slope `relmat()` models out of simulation until slope orientation, covariance/precision scale, sparse precision, and recovery tests are implemented |
 
 This asymmetry is intentional. Spatial one-slope support came from the
 coordinate-spatial Gaussian path. Phylogenetic, animal, and `relmat()` slope
@@ -96,8 +96,10 @@ simulation cells should record:
 
 Phylogenetic, animal, and `relmat()` one-slope cells should appear in the
 failure ledger as planned surfaces. Slice 272 confirms parser validation for
-intercept and one numeric slope and rejection of multiple structured slopes, but
-that is not fitting evidence. These cells stay out of operating-characteristic
+intercept and one numeric slope and rejection of multiple structured slopes.
+The later animal/`relmat()` known-matrix intercept slice is fitting evidence
+only for `animal(1 | id, A/Ainv = ...)` and `relmat(1 | id, K/Q = ...)`, not
+for slope parity. These one-slope cells stay out of operating-characteristic
 tables until they also have:
 
 - validated covariance or precision input with stable row-name matching;

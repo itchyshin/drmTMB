@@ -34,8 +34,8 @@ DGP file, an opt-in stress cell, or a failure-ledger row.
 | Shape and skewness | Admitted for fixed-effect Student-t `nu` smoke, artifact-path, Wald interval, profile-smoke, and bootstrap-smoke evidence; skew-normal and skew-t remain design-only future targets | Extend the fixed-effect Student-t `nu` lane from smoke evidence to formal coverage grids after the interval evidence schema is stable | Keep `nu` random effects, future `tau` random effects, skewness random effects, and latent `skew(id) ~ ...` out |
 | Phylogenetic structured effects | Admitted for fitted Gaussian intercept/direct-SD/selected bivariate covariance subsets | Write small tree-size and phylogenetic-signal condition tables for the fitted intercept/direct-SD surfaces | Keep phylogenetic slopes, non-Gaussian phylogenetic effects, structured `rho12`, and predictor-dependent q=4 correlations out |
 | Coordinate spatial structured effects | Admitted for univariate Gaussian `mu` intercepts and one numeric coordinate-spatial slope | Extend the existing spatial one-slope smoke design with site count, observations per site, field SD, and covariate-spread conditions | Keep mesh/SPDE, multiple slopes, slope correlations, spatial `sigma`, bivariate spatial covariance, and spatial `corpair()` out |
-| `animal()` models | Failure-ledger only | Record biological questions and expected sparse-precision inputs, but do not write fitted DGP grids yet | No pedigree, `A`, or `Ainv` likelihood exists |
-| `relmat()` models | Failure-ledger only | Record lower-level `K`/`Q` use cases and matrix-validation requirements, but do not write fitted DGP grids yet | No user-supplied relatedness likelihood exists |
+| `animal()` models | Admit only the known-matrix Gaussian `mu` intercept first slice | Write a tiny `A`/`Ainv` condition table after the fitted example, diagnostics, and profile-target checks are stable | Pedigree construction, structured slopes, `sigma`, bivariate covariance, and `corpair()` parity remain failure-ledger rows |
+| `relmat()` models | Admit only the known-matrix Gaussian `mu` intercept first slice | Write a tiny `K`/`Q` condition table after matrix-validation, dense-likelihood comparison, diagnostics, and profile-target checks are stable | Structured slopes, `sigma`, bivariate covariance, and `corpair()` parity remain failure-ledger rows |
 
 Every admitted lane needs a one-page ADEMP sheet before new code: aim,
 hierarchy, true parameter values, varied conditions, estimands, fitted methods,
@@ -329,7 +329,9 @@ errors, and elapsed time by surface before the raw manifest.
 29. Slice 239 records the structured-slope parity gate: coordinate spatial has
     one fitted Gaussian `mu` slope, while phylogenetic, animal, and `relmat()`
     one-slope paths remain planned until they have implementation, diagnostics,
-    profile targets, recovery tests, and biological examples.
+    profile targets, recovery tests, and biological examples. The later
+    animal/`relmat()` known-matrix intercept slice does not change that
+    slope-parity boundary.
 30. Slice 240 records the cross-distributional-parameter correlation gate:
     residual `rho12`, constant fitted random-effect block correlations,
     predictor-dependent q=2 `corpair()` routes, and known sampling covariance
@@ -529,7 +531,9 @@ errors, and elapsed time by surface before the raw manifest.
 89. Slice 340 runs a tiny Student-t interval comparison grid to check artifact
     paths and interval status handling, not to claim formal coverage.
 90. Slice 341 adds reader-facing animal-model, Student-t, and skew-normal
-    examples while marking animal and skew-normal syntax as planned-only.
+    examples. The animal-model page now has a fitted known-matrix intercept
+    example, while pedigree construction, animal slopes, and skew-normal
+    likelihoods remain planned-only.
 91. Slice 342 records the after-task evidence and closes the gate from smoke
     interval infrastructure to the next formal simulation slices.
 92. Slice 343 adds interval diagnostics that keep method status, usable

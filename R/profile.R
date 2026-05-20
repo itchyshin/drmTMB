@@ -1086,7 +1086,10 @@ profile_sd_internal <- function(object, dpar, term) {
   ) {
     return("log_sd_re_cov")
   }
-  if (identical(dpar, "mu") && grepl("phylo\\(|spatial\\(", term)) {
+  if (
+    identical(dpar, "mu") &&
+      grepl("phylo\\(|spatial\\(|animal\\(|relmat\\(", term)
+  ) {
     return("log_sd_phylo")
   }
   if (dpar %in% c("mu", "sigma")) {

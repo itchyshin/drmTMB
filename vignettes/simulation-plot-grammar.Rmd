@@ -79,17 +79,17 @@ Bias and RMSE should be plotted beside the estimand. A single average across
 all parameters hides the distinction between fixed effects, residual scale,
 random-effect SDs, and residual correlation `rho12`.
 
-```{r bias-rmse-display, fig.width=8.4, fig.height=5.2, fig.alt="Two simulation accuracy plots faceted by simulation surface: an illustrative raincloud-style bias display with pseudo-replicate errors, mean bias points, and MCSE intervals, followed by an aggregate RMSE display with MCSE intervals for four estimands."}
-accuracy_summary <- data.frame(
+```{r bias-rmse-display, fig.width=8.4, fig.height=5.2, fig.alt="Two simulation accuracy plots faceted by simulation surface: a raincloud-style bias display with fixture replicate errors, mean bias points, and MCSE intervals, followed by an aggregate RMSE display with MCSE intervals for four estimands."}
+accuracy_targets <- data.frame(
   surface = rep(surface_levels, each = 4),
   estimand = rep(c("beta_x", "sigma", "sd_group", "rho12"), 4),
-  bias = c(
+  target_bias = c(
     0.01, -0.02, 0.03, 0.00,
     0.00, 0.01, 0.02, NA,
     0.02, NA, 0.06, NA,
     -0.01, 0.02, NA, 0.03
   ),
-  rmse = c(
+  target_rmse = c(
     0.09, 0.12, 0.18, 0.16,
     0.07, 0.09, 0.15, NA,
     0.12, NA, 0.22, NA,
@@ -102,12 +102,66 @@ accuracy_summary <- data.frame(
     300, 300, NA, 260
   )
 )
+accuracy_targets$error_sd <- sqrt(
+  pmax(accuracy_targets$target_rmse^2 - accuracy_targets$target_bias^2, 0)
+)
+accuracy_replicates <- do.call(
+  rbind,
+  lapply(seq_len(nrow(accuracy_targets)), function(i) {
+    row <- accuracy_targets[i, ]
+    if (
+      is.na(row$target_bias) ||
+        is.na(row$target_rmse) ||
+        is.na(row$n_replicate)
+    ) {
+      return(NULL)
+    }
+    data.frame(
+      surface = row$surface,
+      estimand = row$estimand,
+      replicate = seq_len(row$n_replicate),
+      error = row$target_bias +
+        qnorm(ppoints(row$n_replicate)) * row$error_sd
+    )
+  })
+)
+summarise_accuracy_rows <- function(rows) {
+  data.frame(
+    surface = rows$surface[1],
+    estimand = rows$estimand[1],
+    bias = mean(rows$error),
+    rmse = sqrt(mean(rows$error^2)),
+    error_sd = stats::sd(rows$error),
+    n_replicate = nrow(rows)
+  )
+}
+accuracy_summary <- do.call(
+  rbind,
+  lapply(
+    split(
+      accuracy_replicates,
+      interaction(accuracy_replicates$surface, accuracy_replicates$estimand, drop = TRUE)
+    ),
+    summarise_accuracy_rows
+  )
+)
+accuracy_summary <- merge(
+  accuracy_targets[c("surface", "estimand", "n_replicate")],
+  accuracy_summary,
+  by = c("surface", "estimand"),
+  all.x = TRUE,
+  sort = FALSE
+)
+accuracy_summary$n_replicate <- ifelse(
+  is.na(accuracy_summary$n_replicate.y),
+  accuracy_summary$n_replicate.x,
+  accuracy_summary$n_replicate.y
+)
+accuracy_summary$n_replicate.x <- NULL
+accuracy_summary$n_replicate.y <- NULL
 accuracy_summary$surface <- factor(
   accuracy_summary$surface,
   levels = surface_levels
-)
-accuracy_summary$error_sd <- sqrt(
-  pmax(accuracy_summary$rmse^2 - accuracy_summary$bias^2, 0)
 )
 accuracy_summary$bias_mcse <- with(
   accuracy_summary,
@@ -133,30 +187,26 @@ accuracy_summary$estimand <- factor(
 )
 
 display_replicates <- 49
-accuracy_replicates <- do.call(
+accuracy_replicate_display <- do.call(
   rbind,
-  lapply(seq_len(nrow(accuracy_summary)), function(i) {
-    row <- accuracy_summary[i, ]
-    if (is.na(row$bias) || is.na(row$rmse)) {
+  lapply(split(accuracy_replicates, accuracy_replicates[c("surface", "estimand")]), function(rows) {
+    if (nrow(rows) == 0L) {
       return(NULL)
     }
-    data.frame(
-      surface = row$surface,
-      estimand = row$estimand,
-      error = row$bias + qnorm(ppoints(display_replicates)) * row$error_sd
-    )
+    keep <- round(seq(1, nrow(rows), length.out = display_replicates))
+    rows[keep, , drop = FALSE]
   })
 )
-accuracy_replicates$surface <- factor(
-  accuracy_replicates$surface,
+accuracy_replicate_display$surface <- factor(
+  accuracy_replicate_display$surface,
   levels = surface_levels
 )
-accuracy_replicates$estimand <- factor(
-  accuracy_replicates$estimand,
+accuracy_replicate_display$estimand <- factor(
+  accuracy_replicate_display$estimand,
   levels = levels(accuracy_summary$estimand)
 )
 set.seed(20260519)
-ggplot(accuracy_replicates, aes(error, estimand)) +
+ggplot(accuracy_replicate_display, aes(error, estimand)) +
   geom_vline(xintercept = 0, linetype = "dashed", colour = "grey55") +
   geom_violin(
     aes(
@@ -175,16 +225,18 @@ ggplot(accuracy_replicates, aes(error, estimand)) +
     size = 0.65,
     show.legend = FALSE
   ) +
-  geom_segment(
+  geom_errorbar(
     data = accuracy_summary,
     aes(
-      x = bias_low,
-      xend = bias_high,
+      xmin = bias_low,
+      xmax = bias_high,
       y = estimand,
-      yend = estimand,
       colour = surface
     ),
-    linewidth = 0.85,
+    inherit.aes = FALSE,
+    orientation = "y",
+    width = 0.16,
+    linewidth = 0.65,
     na.rm = TRUE
   ) +
   geom_point(
@@ -202,7 +254,7 @@ ggplot(accuracy_replicates, aes(error, estimand)) +
   scale_fill_manual(values = surface_palette, drop = FALSE) +
   labs(
     title = "Bias displays should show replicate-level error",
-    subtitle = "Clouds/dots: pseudo-replicate errors; points/bars: mean bias with 95% MCSE",
+    subtitle = "Faint dots sample fixture replicate errors; points/bars show mean bias with 95% MCSE",
     x = "Estimate minus truth",
     y = NULL,
     colour = "Surface"
@@ -212,12 +264,13 @@ ggplot(accuracy_replicates, aes(error, estimand)) +
   theme_sim_grammar()
 
 ggplot(accuracy_summary, aes(rmse, estimand, colour = surface)) +
-  geom_errorbarh(
+  geom_errorbar(
     aes(
       xmin = rmse_low,
       xmax = rmse_high
     ),
-    height = 0.15,
+    orientation = "y",
+    width = 0.15,
     linewidth = 0.9,
     alpha = 0.9,
     na.rm = TRUE
@@ -386,8 +439,8 @@ ggplot(interval_present, aes(value, estimand, colour = surface)) +
     labeller = labeller(surface = as_labeller(surface_facet_labels))
   ) +
   scale_colour_manual(values = surface_palette, guide = "none") +
+  coord_cartesian(xlim = c(0.38, 1)) +
   scale_x_continuous(
-    limits = c(0.38, 1),
     breaks = c(0.4, 0.6, 0.8, 0.95),
     labels = c("0.40", "0.60", "0.80", "0.95")
   ) +

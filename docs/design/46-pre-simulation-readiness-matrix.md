@@ -138,8 +138,8 @@ out of operating-characteristic tables except as failure-ledger entries.
 | Meta-analysis | Implemented for Gaussian models with known sampling covariance through `meta_V(V = V)` and the compatibility alias `meta_known_V(V = V)` | Tested for vector and dense `V`, summary-smoke output, Wald rows for estimated targets, and interval safety that keeps known `V` out of confidence-interval targets | Proportional sampling-variance models, multiple variance-component meta-analysis, and phylogenetic-plus-study extensions remain planned | Admit vector and dense known-`V` Gaussian grids, with `V` treated as input data |
 | Phylogenetic models | Implemented for Gaussian `mu` intercept effects, selected bivariate `mu1`/`mu2` phylogenetic location correlations, constant q=4 location-scale blocks, and direct `sd_phylo*()` paths | Tested with profile targets, direct-SD surfaces, bivariate phylogenetic covariance rows, diagnostics, examples, one-slope parser or rejection boundaries, and the Ayumi q2 hard-case stress ledger | Phylogenetic `mu` slopes, richer q=4 predictor-dependent `corpair()` regressions, standalone structured `sigma`-`sigma` covariance, and phylogenetic non-Gaussian effects remain planned or unsupported | Admit small controlled intercept and documented direct-SD subsets; keep Ayumi-style row-level q2 stress cases in the failure/diagnostic ledger until start, profile, and Hessian evidence improves |
 | Spatial models | Implemented for coordinate spatial Gaussian `mu` intercepts and one numeric slope with independent spatial fields | Tested with a coordinate-spatial one-slope smoke surface, direct SD targets, `ranef("spatial_mu")`, diagnostics, and reader-facing boundary text | Mesh/SPDE models, multiple spatial slopes, spatial slope correlations, spatial `sigma`, bivariate spatial q=4, spatial direct-SD, and spatial `corpair()` regressions remain planned | Admit only univariate Gaussian coordinate-spatial `mu` intercept and one-slope grids |
-| `animal()` models | Exported and parsed as planned structured-effect markers, including intercept and one-slope grammar, but no fitted likelihood exists | Tested as reference/parser and unsupported-boundary surface, not as a fitted model | Pedigree, `A`, and `Ainv` animal-model likelihoods, diagnostics, profile targets, and recovery tests remain planned | Do not admit fitted animal-model grids |
-| `relmat()` models | Exported and parsed as lower-level planned known-relatedness markers, including intercept and one-slope grammar, but no fitted likelihood exists | Tested as reference/parser and unsupported-boundary surface, not as a fitted model | User-supplied `K` or `Q` fitting, matrix validation, diagnostics, profile targets, and recovery tests remain planned | Do not admit fitted `relmat()` grids |
+| `animal()` models | First slice fitted for univariate Gaussian `mu` random intercepts with known additive relatedness input through `A` or `Ainv` | Tested with known-matrix recovery, dense-likelihood comparison, matrix validation errors, `sdpars$mu`, `ranef("animal_mu")`, direct profile targets, and `check_drm()` diagnostics | Pedigree-to-Ainv construction, structured slopes, `sigma` animal models, bivariate animal covariance, and `corpair()` parity remain planned | Admit only the known-matrix Gaussian `mu` intercept smoke cell; do not admit pedigree, slope, scale, or bivariate animal grids |
+| `relmat()` models | First slice fitted for univariate Gaussian `mu` random intercepts with user-supplied relatedness covariance `K` or precision `Q` | Tested with covariance/precision equivalence, dense-likelihood comparison, matrix validation errors, `sdpars$mu`, `ranef("relmat_mu")`, direct profile targets, and `check_drm()` diagnostics | Structured slopes, `sigma` relatedness models, bivariate relatedness covariance, and `corpair()` parity remain planned | Admit only the known-matrix Gaussian `mu` intercept smoke cell; do not admit slope, scale, or bivariate `relmat()` grids |
 
 ## Current Readiness Matrix
 
@@ -156,7 +156,7 @@ out of operating-characteristic tables except as failure-ledger entries.
 | Meta-analysis with known `V` | Fitted through `meta_V(V = V)` | Vector and dense `V` DGPs, smoke runner, Wald intervals for estimated targets, and safeguards that known `V` is not an interval target | Ready for first small grids |
 | Coordinate spatial Gaussian `mu` | Fitted for intercept and one numeric slope | Spatial one-slope smoke surface, direct SD targets, and diagnostics | Ready for focused univariate Gaussian `mu` grids |
 | Phylogenetic Gaussian `mu` | Fitted for intercept and selected bivariate intercept structures | Profile targets, direct-SD surfaces, bivariate phylogenetic covariance rows, examples, and Ayumi q2 hard-case stress artifacts | Ready for small controlled intercept grids; row-level all-species q2 stress cases remain diagnostic/failure-ledger material |
-| `animal()` and `relmat()` | Parser/planned only for intercept and one-slope markers; no fitted likelihood | ASReml efficiency note, structured-slope parity gate, parser checks, and unsupported-boundary tests | Not ready |
+| `animal()` and `relmat()` | Fitted first slice for known-matrix Gaussian `mu` intercepts; one-slope markers remain parser/planned only | Known-matrix recovery, dense-likelihood comparison, validation-error tests, ASReml efficiency note, structured-slope parity gate, and reader-facing boundaries | Ready only for known-matrix Gaussian `mu` intercept smoke cells |
 | Poisson `mu` random effects | Fitted for ordinary non-zero-inflated intercepts and independent numeric slopes | Smoke runner, fixed-effect Wald intervals, direct SD profile intervals, weak-SD boundary test, and diagnostics | Ready for first small non-Gaussian `mu` grids |
 | NB2 `mu` random effects | Fitted for ordinary non-zero-inflated intercepts and independent numeric slopes | Smoke runner, fixed-effect Wald intervals, direct SD profile intervals, weak-SD boundary test, and diagnostics | Ready for first small non-Gaussian `mu` grids |
 | Zero-truncated NB2 `mu` random effects | Planned | Fixed-effect likelihood exists; random effects are blocked | Not ready |
@@ -180,10 +180,10 @@ neighbouring surface.
 
 The main blocked surfaces are not small omissions. Non-Gaussian scale random
 effects, shape/skew random effects, inflation random effects, ordinal random
-effects, mixed-response bivariate families, animal/`relmat()` models, and
-structured non-Gaussian dependence can all change identifiability and runtime.
-They should stay out of comprehensive Phase 18 tables until their own focused
-gates close.
+effects, mixed-response bivariate families, animal/`relmat()` models beyond the
+known-matrix Gaussian `mu` intercept first slice, and structured non-Gaussian
+dependence can all change identifiability and runtime. They should stay out of
+comprehensive Phase 18 tables until their own focused gates close.
 
 ## Next Surface Decisions
 
