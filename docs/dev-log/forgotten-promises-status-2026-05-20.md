@@ -5,7 +5,8 @@ figure, Ayumi, confidence-interval, shape-model, structural-dependence, and
 simulation discussions. This table is a planning and audit artifact; it should
 not be read as a claim that planned items are fitted.
 
-Open integration target: PR #263.
+Merged integration target: PR #263. Current follow-up branch:
+`codex/slices-1239-1278-actions-figures-audit`.
 
 ## Status Table
 
@@ -29,6 +30,7 @@ Open integration target: PR #263.
 | Spatial models | Partial, fitted univariate coordinate `mu` path, parity target clarified | README and docs show `spatial(1 | site, coords = coords)` and one numeric `spatial(1 + x | site, coords = coords)` slope; structural-dependence docs now treat spatial as the phylo sibling, not an afterthought | Mesh/SPDE, multiple slopes, slope correlations, spatial `sigma`, bivariate spatial covariance, and spatial `corpair()` remain planned. |
 | Structural-dependence article split | Planned docs architecture | `docs/design/53-structural-dependence-article-split.md` records the future route order: animal, phylo, spatial, phylo+spatial, then `relmat()` | Split the current umbrella article into focused pkgdown pages after the next reference and learning-path audit. |
 | Phase 18 simulations | Partial, active infrastructure | First-wave and interval-heavy smoke runners, grid writers, reports, manifests, and failure ledgers exist | Move from smoke and nrep2/nrep3 evidence to larger planned grids only for admitted surfaces; keep planned lanes in failure ledgers. |
+| Long-run simulation Actions | Implemented as manual dispatch | `.github/workflows/phase18-simulation-grid.yaml` and `inst/sim/run/sim_run_actions_cell.R` provide first-wave and interval-heavy task dispatch, artifact upload, retention days, and 10-core caps | Run manually after the branch PR is green; use artifacts for Phase 18 report evidence rather than committing bulky local outputs. |
 | Example coverage for animal, Student-t, skew-normal | Partial | Student-t examples exist; `animal()` and skew-normal are marked planned-only in examples and design inventory | Add runnable animal examples only after implementation; keep skew examples design-only until likelihood recovery passes. |
 
 ## Reference Discoverability Evidence
@@ -72,3 +74,5 @@ rendered reference index as a new user and confirm the navigation answers
    clear target and failure-ledger contract.
 6. Keep skew-normal/skew-t and animal/relmat examples planned-only until their
    likelihood and recovery evidence exists.
+7. Use the new manual Phase 18 Actions workflow for larger first-wave or
+   interval-heavy grids once the PR branch has passed ordinary R-CMD-check.

@@ -216,6 +216,12 @@ Current pilot files:
   bivariate residual `rho12` smoke surfaces as a separate interval-heavy report
   lane, keeping their Wald/profile/bootstrap artifacts out of the baseline
   first-wave runner.
+- `run/sim_run_actions_cell.R` is the GitHub Actions entrypoint for manual
+  long-run Phase 18 dispatch. It can run either the first-wave summary task or
+  the interval-heavy task, writes an RDS result beside the task artifact
+  tables, and caps requested replicate or bootstrap workers at 10 before
+  dispatch. The workflow never uses both replicate-layer multicore and
+  bootstrap-layer multicore at the same time.
 - `run/sim_summary_gaussian_mu_random_slope_smoke.R` runs a tiny ordinary
   Gaussian `mu` q=3 random-slope summary smoke grid and returns grouped bias,
   RMSE, MCSE, manifest, and warning/error ledger outputs.
