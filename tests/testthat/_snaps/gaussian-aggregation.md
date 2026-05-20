@@ -26,7 +26,7 @@
     Condition
       Error in `validate_gaussian_aggregation_gaussian()`:
       ! Gaussian aggregation is not implemented with structured random effects yet.
-      i Fit the phylogenetic or spatial model without row aggregation in this phase.
+      i Fit the phylogenetic, spatial, animal, or relatedness model without row aggregation in this phase.
 
 ---
 

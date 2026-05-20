@@ -88,6 +88,7 @@ Rscript -e "devtools::load_all('.'); pkgdown::build_article('model-map', lazy = 
 Rscript -e "devtools::load_all('.'); pkgdown::build_article('formula-grammar', lazy = FALSE, new_process = FALSE, quiet = TRUE)"
 Rscript -e "devtools::load_all('.'); pkgdown::build_article('phylogenetic-spatial', lazy = FALSE, new_process = FALSE, quiet = TRUE)"
 Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "devtools::test(reporter = 'summary')"
 rg -n "Warning|deprecated|geom_errorbarh|height.*translated|Error in|could not find function|pseudo-replicate|pseudo replicate|pseudo" \
   pkgdown-site/articles/figure-gallery.html \
   pkgdown-site/articles/simulation-plot-grammar.html \
@@ -112,6 +113,14 @@ animal/relmat, spatial, phylo, profile-target, `check_drm`,
 non-Gaussian-boundary, and package-skeleton tests.
 
 `pkgdown::check_pkgdown()` reported no problems.
+
+The first PR #267 R-CMD-check run failed on all three platforms because two
+full-test expectations still reflected the old planned-only status: a Gaussian
+aggregation snapshot did not include animal/`relmat()` in the structured-effect
+message, and the unsupported-syntax test still expected a generic marker error
+for animal/`relmat()` paths. Ada patched those test expectations and reran the
+full local test suite; `devtools::test(reporter = "summary")` completed with
+`DONE`.
 
 The generated-site warning scan had only the deliberate simulation section
 title "Warnings and failures stay visible"; no accidental deprecated ggplot
@@ -187,6 +196,9 @@ Issue comments added:
 - An early broad formatter call touched unrelated files; Ada reverted that
   unrelated drift and kept the final diff scoped to the animal/`relmat()`,
   structural-doc, and figure-gate files.
+- PR #267's first R-CMD-check run failed because old full-suite expectations
+  still described animal/`relmat()` as planned-only. The fix was a test
+  expectation/snapshot update, not a likelihood change.
 - A first article render in a new R process used the installed package and
   failed to find local `predict_parameters()`. Grace corrected the render path
   to load the source tree first.

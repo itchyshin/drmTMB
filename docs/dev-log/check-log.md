@@ -83,6 +83,7 @@ Rscript -e "devtools::load_all('.'); pkgdown::build_article('model-map', lazy = 
 Rscript -e "devtools::load_all('.'); pkgdown::build_article('formula-grammar', lazy = FALSE, new_process = FALSE, quiet = TRUE)"
 Rscript -e "devtools::load_all('.'); pkgdown::build_article('phylogenetic-spatial', lazy = FALSE, new_process = FALSE, quiet = TRUE)"
 Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "devtools::test(reporter = 'summary')"
 rg -n "Warning|deprecated|geom_errorbarh|height.*translated|Error in|could not find function|pseudo-replicate|pseudo replicate|pseudo" pkgdown-site/articles/figure-gallery.html pkgdown-site/articles/simulation-plot-grammar.html pkgdown-site/articles/model-map.html pkgdown-site/articles/formula-grammar.html pkgdown-site/articles/phylogenetic-spatial.html vignettes/figure-gallery.Rmd vignettes/simulation-plot-grammar.Rmd
 rg -n "no fitted likelihood|future lower-level|Planned, not fitted yet|animal.*planned-only|relmat.*future lower-level|markers only until pedigree or known-matrix likelihoods|reserved structured-effect markers until the likelihood" pkgdown-site/articles/model-map.html pkgdown-site/articles/phylogenetic-spatial.html pkgdown-site/articles/formula-grammar.html pkgdown-site/articles/figure-gallery.html --glob "!pkgdown-site/search.json"
 Rscript -e "devtools::test(filter = 'animal-relmat-gaussian|spatial-gaussian|phylo-gaussian|profile-targets|check-drm|nongaussian-structured-boundary|package-skeleton', reporter = 'summary')"
@@ -94,6 +95,10 @@ Outcomes:
 - The focused structural test set passed locally, including animal/relmat,
   spatial, phylo, profile-target, `check_drm`, non-Gaussian-boundary, and
   package-skeleton tests.
+- After PR #267's first R-CMD-check run failed on stale full-suite
+  expectations, `devtools::test(reporter = "summary")` passed locally with
+  `DONE` after updating the Gaussian aggregation snapshot and animal/relmat
+  unsupported-syntax expectations.
 - `pkgdown::check_pkgdown()` reported no problems.
 - The five pkgdown articles rebuilt locally.
 - The generated-site scan found no accidental deprecated-warning or

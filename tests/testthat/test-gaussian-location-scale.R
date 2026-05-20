@@ -383,6 +383,8 @@ test_that("Phase 1 rejects unsupported model syntax clearly", {
     z = seq(0, 1, length.out = 10),
     id = rep(1:2, each = 5)
   )
+  K <- diag(2)
+  rownames(K) <- colnames(K) <- c("1", "2")
 
   expect_error(
     drmTMB(bf(y ~ x), family = poisson(), data = dat),
@@ -478,7 +480,7 @@ test_that("Phase 1 rejects unsupported model syntax clearly", {
       family = gaussian(),
       data = dat
     ),
-    "Structured-effect syntax"
+    "Pedigree-derived animal-model precision"
   )
   expect_error(
     drmTMB(
@@ -486,15 +488,7 @@ test_that("Phase 1 rejects unsupported model syntax clearly", {
       family = gaussian(),
       data = dat
     ),
-    "Structured-effect syntax"
-  )
-  expect_error(
-    drmTMB(
-      bf(y ~ x + relmat(1 | id, K = K), sigma ~ 1),
-      family = gaussian(),
-      data = dat
-    ),
-    "Structured-effect syntax"
+    "Only intercept-only `animal\\(\\)` `mu` effects are implemented"
   )
   expect_error(
     drmTMB(
@@ -502,7 +496,7 @@ test_that("Phase 1 rejects unsupported model syntax clearly", {
       family = gaussian(),
       data = dat
     ),
-    "Structured-effect syntax"
+    "Only intercept-only `relmat\\(\\)` `mu` effects are implemented"
   )
   expect_error(
     drmTMB(bf(y ~ x, sd(id) ~ 1), family = gaussian(), data = dat),
