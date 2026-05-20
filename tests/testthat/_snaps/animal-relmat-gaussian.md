@@ -28,3 +28,4 @@
       ! `relmat()` matrix bad_Q row and column names must match.
       x Rows without matching columns: "missing_id".
       x Columns without matching rows: "id1".
+

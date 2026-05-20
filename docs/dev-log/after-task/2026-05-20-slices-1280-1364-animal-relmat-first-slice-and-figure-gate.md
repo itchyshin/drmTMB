@@ -104,6 +104,7 @@ rg -n "no fitted likelihood|future lower-level|Planned, not fitted yet|animal.*p
   pkgdown-site/articles/figure-gallery.html \
   --glob "!pkgdown-site/search.json"
 Rscript -e "devtools::test(filter = 'animal-relmat-gaussian|spatial-gaussian|phylo-gaussian|profile-targets|check-drm|nongaussian-structured-boundary|package-skeleton', reporter = 'summary')"
+Rscript -e "devtools::check(document = FALSE, args = '--no-manual', error_on = 'warning')"
 git diff --check
 ```
 
@@ -121,6 +122,14 @@ message, and the unsupported-syntax test still expected a generic marker error
 for animal/`relmat()` paths. Ada patched those test expectations and reran the
 full local test suite; `devtools::test(reporter = "summary")` completed with
 `DONE`.
+
+The second PR #267 R-CMD-check run reached a cleaner state: tests passed, but
+R CMD check failed with one dependency warning because `methods::is()` was used
+for Matrix-class validation without declaring `methods` in `DESCRIPTION`.
+Ada added the import, accepted the generated snapshot newline for the
+animal/`relmat()` malformed-name diagnostic, reran the focused test set, and
+then ran local R CMD check with warnings treated as failures. The local check
+finished with `Status: OK`, `0 errors`, `0 warnings`, and `0 notes`.
 
 The generated-site warning scan had only the deliberate simulation section
 title "Warnings and failures stay visible"; no accidental deprecated ggplot
@@ -199,6 +208,12 @@ Issue comments added:
 - PR #267's first R-CMD-check run failed because old full-suite expectations
   still described animal/`relmat()` as planned-only. The fix was a test
   expectation/snapshot update, not a likelihood change.
+- PR #267's second R-CMD-check run exposed a packaging warning rather than a
+  test failure: `methods::is()` needed `methods` in `DESCRIPTION`. Grace caught
+  this as package hygiene, and the local warning-as-failure check now passes.
+- The final animal/`relmat()` snapshot needs testthat's trailing blank-line
+  convention for the last snapshot block. Ada kept the snapshot in the form
+  that passes tests and R CMD check.
 - A first article render in a new R process used the installed package and
   failed to find local `predict_parameters()`. Grace corrected the render path
   to load the source tree first.

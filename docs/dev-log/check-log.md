@@ -33089,3 +33089,35 @@ Issue maintenance:
   visualization-layer ledger, and issue #255 remains the simulation artifact
   ledger. Commented on #58 and #255 with the PR #266 follow-up rather than
   opening a duplicate issue.
+
+## 2026-05-20 - PR #267 CI Warning Follow-Up
+
+Goal:
+
+- Clear the remaining R-CMD-check warning on PR #267 before continuing toward
+  later slice targets.
+
+Findings:
+
+- The second PR #267 Actions run passed the tests on macOS before failing R CMD
+  check with one warning: `methods::is()` was used for Matrix-class validation
+  without declaring `methods` in `DESCRIPTION`.
+- The stale animal/`relmat()` snapshot file also needed the generated trailing
+  newline accepted so the focused snapshot test stayed stable.
+
+Changes:
+
+- Added `methods` to `DESCRIPTION` imports.
+- Accepted the regenerated animal/`relmat()` malformed-name diagnostic snapshot
+  newline.
+
+Validation:
+
+```sh
+Rscript -e "devtools::test(filter = 'animal-relmat-gaussian|gaussian-location-scale|gaussian-aggregation', reporter = 'summary')"
+Rscript -e "devtools::check(document = FALSE, args = '--no-manual', error_on = 'warning')"
+```
+
+- Focused tests passed.
+- Local R CMD check finished with `Status: OK`, `0 errors`, `0 warnings`, and
+  `0 notes`.
