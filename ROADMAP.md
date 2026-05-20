@@ -141,9 +141,9 @@ distributional regression models using TMB.
   blocks in the same model with predictor-dependent residual `rho12 ~ x`; the
   same regression now checks that `summary(fit)$covariance` reports the two
   group-level covariance rows and omits residual `rho12`.
-- One same-response bivariate `mu`/`sigma` random-intercept covariance block is
-  implemented, such as matching `(1 | p | id)` terms in `mu1` and `sigma1` or
-  in `mu2` and `sigma2`.
+- One or more same-response bivariate `mu`/`sigma` random-intercept covariance
+  blocks are implemented, such as matching `(1 | p | id)` terms in `mu1` and
+  `sigma1` plus matching `(1 | q | id)` terms in `mu2` and `sigma2`.
 - Matching labelled random intercepts across all four bivariate location-scale
   parameters, `mu1`, `mu2`, `sigma1`, and `sigma2`, now fit one all-four
   intercept block and report six `corpairs()` rows: one `mu1`-`mu2` row, four
@@ -169,7 +169,7 @@ distributional regression models using TMB.
   unlabelled Gaussian `mu` random intercepts, such as `sd(id) ~ x_group` and
   `sd(site) ~ site_type`.
   The bivariate Gaussian path now fits matched labelled `mu1`/`mu2`,
-  `sigma1`/`sigma2`, and same-response `mu`/`sigma` random-intercept
+  `sigma1`/`sigma2`, one or more same-response `mu`/`sigma` random-intercept
   covariance blocks.
 - The R-side labelled covariance block registry now records the implemented
   two-member `mu`, `sigma`, and `mu`/`sigma` bridges without changing accepted
@@ -206,9 +206,11 @@ distributional regression models using TMB.
   double-hierarchical endpoint. Dormant q=3 scaffolds, q > 4 blocks, and q=6 or
   q=8 random-slope endpoint blocks remain invisible to ordinary
   extractor/profile output. The corresponding constant phylogenetic q=4 state
-  is now fitted for matching labelled all-four `phylo()` terms; the next
-  phylogenetic work is recovery evidence, diagnostics, and tutorial hardening.
-  q=6 and q=8 random-slope endpoint blocks can wait.
+  is now fitted for matching labelled all-four `phylo()` terms, including the
+  two-label block-diagonal fallback that separates `mu1`/`mu2` and
+  `sigma1`/`sigma2` tree blocks. The next phylogenetic work is recovery
+  evidence, diagnostics, and tutorial hardening. q=6 and q=8 random-slope
+  endpoint blocks can wait.
 - Use `docs/design/18-random-effect-scale-models.md` as the design contract:
   the implemented MVP targets one or more distinct unlabelled univariate
   Gaussian `mu` random intercepts, with group-level predictors, simulation
@@ -292,6 +294,36 @@ distributional regression models using TMB.
   weak phylogenetic-SD diagnostics, and ordinary same-species covariance
   overlap for that fitted slice. A CRAN-safe deterministic simulation now
   recovers a positive bivariate phylogenetic mean-mean correlation.
+- Full-species Ayumi stress tests keep the bivariate q2 phylogenetic path in a
+  cautious lane. The aggregate all-species q2 phylogenetic source fit
+  converges, but row-capped all-species q2 targets still false-converge with
+  residual `rho12` at the boundary under default starts, source-fit starts, and
+  modest covariance jitter. Treat those runs as convergence and identifiability
+  evidence, not as tutorial-ready biological inference. Larger data helps only
+  when it adds information that separates residual covariance from structured
+  species covariance.
+- The corrected Ayumi Issue #1 Mass + Beak PV2 rerun is the real-data anchor:
+  `Mass_z` is response 1 and `Mass_cov_z` is the fixed allometric covariate for
+  Beak. The q2 location-only phylogenetic model converges cleanly on 6,196
+  species with residual `rho12 = -0.789` and phylogenetic `mu1`-`mu2 = -0.841`.
+  The prereg phylogenetic fallback now fits as separate q2 location and scale
+  blocks, but the Ayumi Mass + Beak fit is still false-converged with
+  `pdHess = FALSE`; its scale-scale phylogenetic correlation is essentially
+  `-1`. A 10-core developer bootstrap smoke (`B = 10`) refitted all replicates
+  but retained convergence code 1 in every replicate, so the fallback remains
+  diagnostic rather than tutorial-ready inference. The all-four q4 PV2-main
+  model can be optimized with `se = FALSE`, but it remains boundary-heavy and
+  false-converged, so it belongs in the diagnostic ledger until restart,
+  simplification, or bootstrap evidence stabilizes it. A developer-only
+  parallel bootstrap prototype now supports serial, `multicore`, and `psock`
+  refits for this Mass + Beak target and clamps requested cores to at most 10.
+  A first fallback simplification that removed climate predictors from
+  `sigma1` and `sigma2` still false-converged with `pdHess = FALSE`, worse AIC,
+  and scale-scale phylogenetic correlation near `-1`, so the boundary is not
+  solved by intercept-only scale formulas. The positive-control
+  `PV2_locphylo` bootstrap using the same 10-core diagnostic script refitted all
+  ten replicates with convergence 0 and small gradients, so the clean
+  location-only phylogenetic model remains the demonstration path.
 - The first spatial fitted paths are now `spatial(1 | site, coords = coords)`
   and `spatial(1 + x | site, coords = coords)` in univariate Gaussian `mu`.
   They use a fixed exponential coordinate covariance as a small-data foundation.
@@ -315,7 +347,13 @@ distributional regression models using TMB.
   `profile_targets()` marks those q=4 correlations as derived `theta_phylo`
   targets rather than direct profile-ready atanh targets. A CRAN-safe recovery
   test now checks broad fixed-effect, SD, residual-correlation, finite-gradient,
-  and q=4 diagnostic behavior.
+  and q=4 diagnostic behavior. The block-diagonal q=4 fallback uses the same
+  endpoint-major latent vector but a block-diagonal covariance, so `corpairs()`
+  reports only the `mu1`-`mu2` and `sigma1`-`sigma2` phylogenetic rows and
+  `profile_targets()` treats those two correlations as direct tanh targets.
+  Direct means "can be attempted," not "interval-proven" for every dataset: a
+  full-species Ayumi bounded profile for the fallback mean-mean phylogenetic
+  correlation took about 512 seconds and still failed to extract a 95% interval.
 - The univariate Family B `sd_phylo(species) ~ x_species` path is implemented:
   it uses a non-centred unit tree effect, multiplies only observed tip
   contributions by species-level `tau_l = exp(W_l alpha)`, and interprets the
@@ -369,7 +407,7 @@ Phase 5 closure boundary:
 | Layer | Implemented before spatial expansion | Still planned |
 | --- | --- | --- |
 | univariate phylogenetic | `phylo(1 | species, tree = tree)` in Gaussian `mu`, `sd_phylo(species) ~ z`, profile targets and diagnostics | phylogenetic slopes, richer tree-shape recovery grids |
-| bivariate phylogenetic | matching `mu1`/`mu2` phylogenetic location correlation, constant q=4 location-scale block, q=2 predictor-dependent `corpair(..., level = "phylogenetic") ~ w`, bivariate `sd_phylo1()` / `sd_phylo2()` | q=4 predictor-dependent location-scale and scale-scale `corpair()` regressions |
+| bivariate phylogenetic | matching `mu1`/`mu2` phylogenetic location correlation, constant full and block-diagonal q=4 location-scale blocks, q=2 predictor-dependent `corpair(..., level = "phylogenetic") ~ w`, bivariate `sd_phylo1()` / `sd_phylo2()`, and Ayumi q2/q4 stress artifacts | q=4 predictor-dependent location-scale and scale-scale `corpair()` regressions; standalone structured `sigma`-`sigma` covariance is not a near-term priority |
 | coordinate spatial | `spatial(1 | site, coords = coords)` and one numeric `spatial(1 + x | site, coords = coords)` slope in univariate Gaussian `mu`, `sdpars`, `ranef("spatial_mu")`, direct profile targets, and `check_drm()` rows | mesh/SPDE, multiple spatial slopes, spatial slope correlations, spatial scale, bivariate spatial q=4, spatial direct-SD, spatial `corpair()` |
 | animal and user-supplied relatedness | design boundary only; no fitted `animal()` or `relmat()` path yet | `animal(1 | id, pedigree = ped)`, `animal(1 | id, A = A)`, `animal(1 | id, Ainv = Ainv)`, optional `phylo(..., A/Ainv = ...)` input, a lower-level `relmat()` route, diagnostics, profile targets, and recovery tests |
 | inference/output | fixed-effect SEs, direct profile-ready targets where implemented, `corpairs(conf.int = TRUE)` with explicit interval status | derived-profile intervals for q=4 correlations and richer marginal-effect/visualization helpers |
@@ -816,8 +854,9 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   locally closed. See
   `docs/dev-log/after-phase/2026-05-15-phase-11-bivariate-corpairs-foundation-closure.md`.
 - Matching labelled random intercepts in bivariate `mu1`/`mu2`,
-  `sigma1`/`sigma2`, and one same-response `mu`/`sigma` pair are implemented
-  after the fixed-effect bivariate Gaussian location-coscale model stabilized.
+  `sigma1`/`sigma2`, and one or more same-response `mu`/`sigma` pairs are
+  implemented after the fixed-effect bivariate Gaussian location-coscale model
+  stabilized.
   The ordinary q=4 all-four intercept block reports all six fitted
   `corpairs()` rows as derived summaries. Random slopes, full cross-parameter
   slope covariance, direct q=4 profile intervals, `rho12` random effects, and
@@ -1342,8 +1381,8 @@ This is the current random-effect status before the non-Gaussian revisit:
 | Ordinary Gaussian `mu` | Fitted for independent slopes, one-slope correlated blocks, and ordinary q > 2 numeric location blocks. | q=3 recovery, `sdpars$mu`, `corpars$re_cov`, `corpairs()`, `summary()`, `profile_targets()`, and direct SD profiles are covered. | Larger q blocks are advanced and sample-size hungry; q > 2 correlations remain derived-unavailable for direct profile intervals. |
 | Gaussian `sigma` | Fitted for random intercepts and multiple independent numeric slopes on `log(sigma)`. | `sdpars$sigma`, prediction contributions, direct `log_sd_sigma` profile targets, and tests cover the independent-slope boundary. | Correlated residual-scale slope blocks and labelled residual-scale slope covariance are planned. |
 | Univariate `mu`/`sigma` covariance | Fitted for one or more matched labelled random-intercept blocks. | `corpars$mu_sigma`, `corpairs(class = "mean-scale")`, `summary()`, `check_drm()`, and second-block profile tests are covered. | Slope-level mean-scale covariance is planned. |
-| Bivariate ordinary covariance | Fitted for matching labelled random intercepts in `mu1`/`mu2`, `sigma1`/`sigma2`, same-response `mu`/`sigma`, and all-four q=4 intercept blocks. | Constant q=2 correlation targets are profile-ready; q=4 correlations are derived-only with explicit unavailable interval status. | First future slope target is matching slope-only `mu1`/`mu2`; q=4 location-slope and q=8 all-four slope endpoints remain closed. |
-| Phylogenetic structured effects | Intercept-level univariate, bivariate, direct-SD, q=2 correlation-regression, and q=4 location-scale paths are fitted. | Direct phylogenetic SDs and q=2 correlations have profile targets; q=4 correlations are derived-only. | `phylo(1 + x | species, tree = tree)` remains planned pending recovery and diagnostics. |
+| Bivariate ordinary covariance | Fitted for matching labelled random intercepts in `mu1`/`mu2`, `sigma1`/`sigma2`, one or more same-response `mu`/`sigma` blocks, and all-four q=4 intercept blocks. | Constant q=2 correlation targets are profile-ready; same-response mean-scale blocks report one row per response-specific label/group pair; q=4 correlations are derived-only with explicit unavailable interval status. | First future slope target is matching slope-only `mu1`/`mu2`; q=4 location-slope and q=8 all-four slope endpoints remain closed. |
+| Phylogenetic structured effects | Intercept-level univariate, bivariate, direct-SD, q=2 correlation-regression, and q=4 location-scale paths are fitted. | Direct phylogenetic SDs and q=2 correlations have profile targets; full q=4 correlations are derived-only, while block-diagonal q=4 fallback correlations are direct targets that still need fit-specific profile diagnostics. | `phylo(1 + x | species, tree = tree)` remains planned pending recovery and diagnostics. |
 | Coordinate spatial structured effects | Fitted for univariate Gaussian `mu` intercept and one numeric slope, with independent coordinate fields. | `sdpars$mu`, `ranef("spatial_mu")`, `profile_targets()`, `check_drm()`, and a slope-field profile interval are covered. | Mesh/SPDE, multiple slopes, slope correlations, spatial `sigma`, bivariate spatial covariance, and spatial `corpair()` remain planned. |
 | Non-Gaussian families | Fixed-effect likelihoods are fitted; ordinary Poisson and NB2 `mu` random intercepts plus independent numeric slopes are fitted for non-zero-inflated count models; non-Gaussian `sigma` plus shape random effects are explicitly blocked. | Poisson and NB2 `mu` random-effect SDs appear in `sdpars$mu`, random effects, and direct `profile_targets()` rows; family-specific fixed-effect summaries and intervals exist where already implemented. | Zero-inflation, hurdle, ordinal, structured, cross-parameter covariance, non-Gaussian scale random effects, and shape random effects still need separate implementation evidence before broad simulation. |
 
@@ -1480,7 +1519,7 @@ Use this order unless Slice 191 evidence overturns it:
 | 265 | Simulation plot grammar | Done locally: `simulation-plot-grammar` is a Simulation & Comparison article with display contracts for bias, RMSE, coverage, power, convergence, runtime, and warning/error ledgers across continuous, proportion, count, and meta-analysis examples. |
 | 266 | Gallery source-map and QA | Done locally: the figure gallery now has a source-map table mapping each display to its fitted object or fixture, extractor or plotter, interval source, and support boundary, with render, pkgdown, and visual checks recorded. |
 | 267 | Florence closeout | Done locally: the visualization grammar now records that `plot_parameter_surface()` and `plot_corpairs()` remain the exported helpers, most gallery displays stay tutorial-level `ggplot2` recipes, and simulation/failure-ledger helpers wait for stable Phase 18 result schemas. |
-| 299 | Florence visual repair | Done locally: the gallery now draws compact confidence clouds for `mu` and `sigma` temperature effects, uses shared palettes more consistently, recolours formerly default-black discrete and empirical displays, improves status-strip label contrast, and replaces the simulation bias line plot with raincloud-style replicate clouds plus mean/MCSE intervals because estimands are categorical targets, not trajectories. |
+| 299 | Florence visual repair | Done locally: the gallery now draws raindrop-style compatibility displays for `mu`, `sigma`, and correlation intervals, uses shared palettes more consistently, recolours formerly default-black discrete and empirical displays, improves status-strip label contrast, and replaces the simulation bias line plot with raincloud-style replicate clouds plus mean/MCSE intervals because estimands are categorical targets, not trajectories. |
 | 300 | Simulation raincloud grammar | Done locally: the Simulation & Comparison plot-grammar article now shows bias as replicate-level error clouds with mean/MCSE intervals in fixed surface facets and keeps RMSE in a separate aggregate point/MCSE panel, so future Phase 18 reports have a clear visual contract before exported simulation plot helpers exist. |
 | 301 | Count gallery accuracy grammar | Done locally: the Phase 18 count-pilot gallery now uses fixed family facets for bias and RMSE, draws MCSE bars when aggregate CSVs include `bias_mcse` or `rmse_mcse`, and states that replicate-error clouds wait for replicate-level output instead of being faked from aggregate rows. |
 
@@ -1502,7 +1541,7 @@ as the whole comprehensive simulation programme.
 | 265 | Simulation plot grammar | Operating-characteristic plot design | Done locally: the Simulation & Comparison route has reusable plot grammar for bias, RMSE, coverage, power, convergence, runtime, and warning/error ledgers across continuous, proportion, count, and meta-analysis examples. |
 | 266 | Figure QA | Gallery source map | Done locally: each figure maps to the fitted object or fixture, extractor or plotter, interval source, support status, and current limitation. |
 | 267 | Florence closeout | Plot helper backlog | Done locally: the helper backlog keeps `plot_parameter_surface()` and `plot_corpairs()` as the exported helpers, leaves gallery-specific plots as tutorial recipes, and defers simulation/failure-ledger helpers until result schemas stabilize. |
-| 299 | Figure QA | Florence visual repair | Done locally: the public figure gallery now adds an interpretable confidence-cloud display, removes the misleading category-connecting line from the simulation bias panel, adds raincloud-style replicate clouds with mean/MCSE intervals, applies explicit colour to formerly default-black displays, and improves tile-label contrast for support-boundary strips. |
+| 299 | Figure QA | Florence visual repair | Done locally: the public figure gallery now adds raindrop-style compatibility displays for inference intervals, removes the misleading category-connecting line from the simulation bias panel, adds raincloud-style replicate clouds with mean/MCSE intervals, applies explicit colour to formerly default-black displays, and improves tile-label contrast for support-boundary strips. |
 | 300 | Simulation plot grammar | Raincloud and MCSE display contract | Done locally: `simulation-plot-grammar` now requires real bias reports to show replicate-level errors beside mean bias and MCSE intervals, and to keep RMSE in a separate aggregate uncertainty panel rather than mixing it with signed bias or an absolute-error cloud. |
 | 301 | Count pilot report | Apply accuracy grammar | Done locally: `phase18-count-mu-gallery.Rmd` now applies the Slice 300 accuracy contract to the count-pilot report template, with fixed family facets, aggregate MCSE bars, readable parameter-class labels, and no simulated raincloud when replicate-level rows are absent. |
 | 268 | Support audit | Pre-simulation capability matrix | Done locally: `docs/design/46-pre-simulation-readiness-matrix.md` now has one capability audit table that says which Gaussian, non-Gaussian, shape, inflation, bivariate, random-slope, meta-analysis, phylogenetic, spatial, animal, and `relmat()` surfaces are implemented, tested, planned, or unsupported before Phase 18 grids admit them. |
@@ -1539,7 +1578,9 @@ as the whole comprehensive simulation programme.
 
 ## Phase 18: Comprehensive Simulation, Power, Accuracy, and Coverage Evidence
 
-- Status: planned.
+- Status: staged. The reusable simulation infrastructure is partly
+  implemented locally, while broad operating-characteristic grids and public
+  bootstrap intervals remain planned.
 - Build a documented simulation programme that lets project leaders, reviewers,
   and applied readers understand when `drmTMB` is accurate enough for the
   models it claims to fit.
@@ -1568,6 +1609,44 @@ as the whole comprehensive simulation programme.
   statement must name the data-generating scenario and the uncertainty measure.
   Pat's gate: every simulation report should include an interpretation that a
   new applied user can read without reverse-engineering the code.
+- Current execution bridge: Slices 539-668 add bounded private bootstrap and
+  replicate-runner execution for the existing Phase 18 smoke surfaces. The
+  private helpers support serial execution and Unix `multicore`, cap actual
+  workers at 10 and at the number of jobs, record requested versus actual core
+  counts, and use per-replicate summary factories where profile or bootstrap
+  seeds must travel with a replicate. Slices 679-688 forward those settings
+  through the first grid and count-gallery wrappers, while keeping separate
+  bootstrap backend settings for Student-t shape and bivariate residual
+  `rho12` grids to avoid accidental nested parallelism; Slices 689-698 enforce
+  that policy when both layers would use more than one worker. Slices 699-708
+  give the admitted `meta_V(V = V)` lane the same repeatable grid-output CSV
+  and RDS artifact path as the other first-wave surfaces. Slices 709-718 give
+  the paired Poisson/NB2 `mu` random-effect lane the same repeatable artifact
+  path, including direct-SD profile interval and coverage CSVs. PSOCK remains
+  excluded from this package helper until fitted `TMB` object rebuild semantics
+  are explicit. Slices 719-728 add repeatable simple artifact writers for
+  ordinary Gaussian `mu` random slopes, independent Gaussian `sigma` random
+  slopes, and coordinate-spatial Gaussian `mu` slopes. Slices 729-738 add a
+  grid-artifact manifest helper so report staging can audit file existence and
+  CSV row counts, including empty optional interval tables; Slices 739-748 add
+  bind and status summaries across those manifests. Slices 749-758 add a
+  first-wave artifact-status writer that saves bound manifest and
+  surface-status CSVs before a report consumes the tables. Slices 759-768 add
+  the matching artifact-status report template, including a clear failure path
+  when required artifacts are missing. Slices 769-778 add a table-bundle writer
+  that combines selected first-wave CSV artifacts across grid outputs while
+  preserving source surface and artifact columns. Slices 779-788 add the first
+  first-wave summary-report skeleton over artifact status, aggregate rows,
+  interval diagnostics, interval failures, manifests, and warning/error ledgers.
+  Slices 789-798 add the orchestration helper that writes status outputs,
+  bundled tables, and an optional HTML summary report in one step. Slices
+  839-868 polish the first-wave summary report with priority columns, row caps,
+  a compact warning/error summary above the raw ledger, and a compact
+  aggregate-bias overview for quick screening. Slices 869-878 add compact
+  interval-coverage summaries for Wald, profile, and bootstrap coverage
+  artifacts when present. Slices 879-888 add run-manifest summaries for status,
+  warnings, errors, skipped rows, and elapsed time. This is simulation
+  infrastructure, not a public `confint(method = "bootstrap")` promise.
 - First three implementation slices after the blueprint: the `inst/sim/`
   skeleton and seed/cell registry are done locally in Slice 210; the Gaussian
   location-scale DGP and pilot summariser are done locally in Slice 211; the

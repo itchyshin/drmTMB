@@ -71,7 +71,7 @@ In this table, "coscale" means a model for residual correlation, currently
 | `mu1`, `mu2`, `sigma1`, `sigma2`, `rho12` | Implemented for fixed effects | Bivariate Gaussian location-coscale model with predictor-dependent residual correlation. |
 | `(1 | p | id)` in both bivariate `mu1` and `mu2` | Implemented | First bivariate group-level covariance slice: matching labelled random intercepts create `mu1`/`mu2` random-intercept SDs and one group-level correlation. |
 | `(1 | p | id)` in both bivariate `sigma1` and `sigma2` | Implemented | First bivariate residual-scale covariance slice: matching labelled random intercepts enter `log(sigma1)` and `log(sigma2)` and create one scale-scale group-level correlation. |
-| `(1 | p | id)` in same-response bivariate `mu1` and `sigma1`, or in `mu2` and `sigma2` | Implemented first slice | One matching labelled random-intercept pair creates a mean-scale group-level correlation for that response. |
+| `(1 | p | id)` in same-response bivariate `mu1` and `sigma1`, with optional independent `(1 | q | id)` in `mu2` and `sigma2` | Implemented first slice | Each matching labelled random-intercept pair creates its own response-specific mean-scale group-level correlation; residual `rho12` stays separate. |
 | `(1 | p | id)` in all four bivariate `mu1`, `mu2`, `sigma1`, and `sigma2` formulas | Implemented first slice | One ordinary q=4 random-intercept covariance block reports all six latent location-location, location-scale, and scale-scale correlations. |
 | `sd1(id) ~ x_group` or `sd2(id) ~ x_group` with the same all-four q=4 block | Rejected | This would mix the Family A joint location-scale covariance block with Family B direct location-SD regression for the same group. |
 | `family = c(gaussian(), gaussian())` | Implemented | Public bivariate Gaussian family direction; mixed composed families are planned. |
@@ -79,7 +79,8 @@ In this table, "coscale" means a model for residual correlation, currently
 | `phylo(1 | species, tree = tree)` in `mu` | Implemented | Intercept-only univariate Gaussian phylogenetic location effect; requires an ultrametric tree with branch lengths. |
 | matching `phylo(1 | species, tree = tree)` in bivariate `mu1` and `mu2` | Implemented first slice | Correlated phylogenetic random intercepts enter the two response means; `sigma1`, `sigma2`, and residual `rho12` remain ordinary fixed-effect distributional parameters. |
 | labelled `phylo(1 | p | species, tree = tree)` in matching bivariate `mu1` and `mu2` | Implemented | The label is preserved in SD, correlation, `corpairs()`, and profile-target names for the phylogenetic mean-mean path. |
-| labelled `phylo(1 | p | species, tree = tree)` in all four bivariate `mu1`, `mu2`, `sigma1`, and `sigma2` formulas | Implemented first slice | One constant q=4 phylogenetic location-scale block estimates four endpoint SDs and six latent phylogenetic correlations. Partial, unlabelled, mismatched, and slope forms remain rejected. |
+| labelled `phylo(1 | p | species, tree = tree)` in all four bivariate `mu1`, `mu2`, `sigma1`, and `sigma2` formulas | Implemented first slice | One constant q=4 phylogenetic location-scale block estimates four endpoint SDs and six latent phylogenetic correlations. Partial, unlabelled, unsupported mismatched, and slope forms remain rejected. |
+| labelled `phylo(1 | pl | species, tree = tree)` in `mu1` and `mu2` plus labelled `phylo(1 | ps | species, tree = tree)` in `sigma1` and `sigma2` | Implemented | Block-diagonal q=4 fallback: one q=2 phylogenetic mean-mean block and one independent q=2 phylogenetic scale-scale block for the same tree. It reports two `corpairs()` rows and no mean-scale phylogenetic correlations. |
 | `sd_phylo(species) ~ x_species` | Implemented | Family B direct-SD model for a univariate Gaussian phylogenetic location random effect; predictors must be constant within species and scale observed tips through the `D_tip A_tip D_tip` contract. |
 | bivariate `sd_phylo1(species) ~ x_species` / `sd_phylo2(species) ~ x_species` | Implemented | Response-specific bivariate phylogenetic location direct-SD models. They target only `mu1` and `mu2` phylogenetic location SDs, keep the latent phylogenetic location-location correlation separate, and are rejected with q=4 phylogenetic location-scale blocks. |
 | `phylo(1 | species, A = A)` or `phylo(1 | species, Ainv = Ainv)` | Planned | Future phylogenetic known-relatedness input for users who already have a validated phylogenetic covariance or precision matrix. The implemented public phylo path still requires `tree = tree`. |
@@ -203,12 +204,16 @@ The shared `p` label requests one group-level covariance block for the `mu1`
 and `mu2` random intercepts. The shared `q` label requests a separate
 scale-scale block for the `sigma1` and `sigma2` random intercepts on the
 log-`sigma` scale. Neither block is residual `rho12`: they describe
-between-group associations after the fixed effects are included. One
-same-response `mu`/`sigma` random-intercept pair is also implemented. Reusing
-the same label and group in all four `mu1`, `mu2`, `sigma1`, and `sigma2`
-formulas requests one ordinary q=4 random-intercept block with all six latent
-correlations. Bivariate random slopes and `rho12` random effects remain
-planned.
+between-group associations after the fixed effects are included. One or more
+same-response `mu`/`sigma` random-intercept pairs are also implemented when
+each response-specific pair has its own label. Reusing the same label and group
+in all four `mu1`, `mu2`, `sigma1`, and `sigma2` formulas requests one ordinary
+q=4 random-intercept block with all six latent
+correlations. For phylogenetic all-four terms, using one label for `mu1` and
+`mu2` and a different label for `sigma1` and `sigma2` requests the
+block-diagonal fallback: two independent q=2 tree blocks, with mean-mean and
+scale-scale phylogenetic correlations but no mean-scale phylogenetic rows.
+Bivariate random slopes and `rho12` random effects remain planned.
 
 The first bivariate random-slope target is intentionally narrower than the
 full endpoint. A matching slope-only location block such as
@@ -448,26 +453,29 @@ The fitted correlation is reported under `corpars$mu_sigma` and in
 `corpairs()` as a `mean-scale` row. It describes whether group deviations in
 the mean and residual scale are associated.
 
-The same pairwise bridge is implemented for one response in a bivariate
-Gaussian model:
+The same pairwise bridge is implemented for one or both responses in a
+bivariate Gaussian model:
 
 ```r
 bf(
   mu1 = y1 ~ x1 + (1 | p | id),
-  mu2 = y2 ~ x1,
+  mu2 = y2 ~ x1 + (1 | q | id),
   sigma1 = ~ x1 + (1 | p | id),
-  sigma2 = ~ x1,
+  sigma2 = ~ x1 + (1 | q | id),
   rho12 = ~ x1
 )
 ```
 
 Here the shared `p` label fits a group-level mean-scale correlation for response
 1, reported as `corpars$mu_sigma` and a `corpairs()` `mean-scale` row with
-`from_dpar = "mu1"` and `to_dpar = "sigma1"`. A matching `mu2`/`sigma2` pair is
-also supported. The larger all-four labelled block is also supported for
-intercept-only terms when the same label appears in `mu1`, `mu2`, `sigma1`, and
-`sigma2`; it reports one location-location row, four location-scale rows, and
-one scale-scale row.
+`from_dpar = "mu1"` and `to_dpar = "sigma1"`. The independent `q` label fits a
+second group-level mean-scale correlation for response 2. Because the labels
+are response-specific, this model does not add a `mu1`/`mu2` or
+`sigma1`/`sigma2` latent correlation; use matching labels in same-parameter
+formulas for those blocks. The larger all-four labelled block is also supported
+for intercept-only terms when the same label appears in `mu1`, `mu2`,
+`sigma1`, and `sigma2`; it reports one location-location row, four
+location-scale rows, and one scale-scale row.
 
 The distinction is:
 

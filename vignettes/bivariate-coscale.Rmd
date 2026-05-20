@@ -463,7 +463,8 @@ drmTMB(
     mu2 = boldness ~ food              + (1 | p | ID),
     sigma1 = ~1,
     sigma2 = ~1,
-    rho12 = ~1
+    rho12 = ~1,
+    corpair(ID, level = "group", block = "p", from = "mu1", to = "mu2") ~ 1
   ),
   family = biv_gaussian(),
   data = dat_group
@@ -540,7 +541,8 @@ fit_group <- drmTMB(
     mu2 = boldness ~ food + (1 | p | ID),
     sigma1 = ~1,
     sigma2 = ~1,
-    rho12 = ~1
+    rho12 = ~1,
+    corpair(ID, level = "group", block = "p", from = "mu1", to = "mu2") ~ 1
   ),
   family = biv_gaussian(),
   data = dat_group,

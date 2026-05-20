@@ -85,24 +85,50 @@ phase18_run_biv_rho12_smoke <- function(
   profile_level = 0.70,
   profile_args = list(ystep = 0.50),
   bootstrap_nsim = 0L,
-  bootstrap_level = 0.70
+  bootstrap_level = 0.70,
+  bootstrap_cores = 1L,
+  bootstrap_backend = "none",
+  cores = 1L,
+  backend = "none"
 ) {
   assert_positive_whole_number(n_rep, "n_rep")
+  if (
+    !is.numeric(bootstrap_nsim) ||
+      length(bootstrap_nsim) != 1L ||
+      is.na(bootstrap_nsim) ||
+      bootstrap_nsim < 0 ||
+      bootstrap_nsim != as.integer(bootstrap_nsim)
+  ) {
+    stop("`bootstrap_nsim` must be a non-negative whole number.", call. = FALSE)
+  }
+  bootstrap_plan <- NULL
+  if (bootstrap_nsim > 0L) {
+    bootstrap_plan <- phase18_bootstrap_parallel_plan(
+      nsim = as.integer(bootstrap_nsim),
+      cores = bootstrap_cores,
+      backend = bootstrap_backend
+    )
+  }
   registry <- phase18_cell_registry(
     surface = "biv_rho12",
     conditions = conditions,
     n_rep = n_rep,
     master_seed = master_seed
   )
+  runner_plan <- phase18_runner_parallel_plan(
+    n_task = nrow(registry$seeds),
+    cores = cores,
+    backend = backend
+  )
+  if (!is.null(bootstrap_plan)) {
+    phase18_assert_no_nested_parallel(runner_plan, bootstrap_plan)
+  }
 
-  results <- vector("list", nrow(registry$seeds))
-  for (i in seq_len(nrow(registry$seeds))) {
-    seed_row <- registry$seeds[i, , drop = FALSE]
-    cell <- registry$cells[seed_row$cell_index[[1L]], , drop = FALSE]
+  summarise_fun_factory <- function(cell, seed_row) {
     bootstrap_seed <- ((seed_row$seed[[1L]] + 100000L - 1L) %%
       .Machine$integer.max) +
       1L
-    summarise_fun <- function(
+    function(
       fit,
       truth,
       cell_id,
@@ -122,23 +148,22 @@ phase18_run_biv_rho12_smoke <- function(
         profile_args = profile_args,
         bootstrap_nsim = bootstrap_nsim,
         bootstrap_level = bootstrap_level,
-        bootstrap_seed = bootstrap_seed
+        bootstrap_seed = bootstrap_seed,
+        bootstrap_cores = bootstrap_cores,
+        bootstrap_backend = bootstrap_backend
       )
     }
-    results[[i]] <- phase18_run_replicate(
-      cell = cell,
-      seed_row = seed_row,
-      dgp_fun = phase18_dgp_biv_rho12_cell,
-      fit_fun = phase18_fit_biv_rho12,
-      summarise_fun = summarise_fun,
-      result_dir = result_dir,
-      overwrite = overwrite
-    )
   }
-  names(results) <- paste(
-    registry$seeds$cell_id,
-    sprintf("rep%04d", registry$seeds$replicate),
-    sep = ":"
+  results <- phase18_run_replicates(
+    cells = registry$cells,
+    seeds = registry$seeds,
+    dgp_fun = phase18_dgp_biv_rho12_cell,
+    fit_fun = phase18_fit_biv_rho12,
+    summarise_fun_factory = summarise_fun_factory,
+    result_dir = result_dir,
+    overwrite = overwrite,
+    cores = cores,
+    backend = backend
   )
 
   summary <- phase18_result_summaries(results)
@@ -146,6 +171,7 @@ phase18_run_biv_rho12_smoke <- function(
   list(
     surface = "biv_rho12",
     registry = registry,
+    parallel = attr(results, "phase18_parallel", exact = TRUE),
     results = results,
     summary = summary
   )

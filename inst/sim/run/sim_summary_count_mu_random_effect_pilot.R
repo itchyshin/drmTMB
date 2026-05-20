@@ -10,7 +10,9 @@ phase18_summarise_count_mu_re_pilot <- function(
   n_rep = 1L,
   master_seed = 20260520L,
   result_dir = NULL,
-  overwrite = FALSE
+  overwrite = FALSE,
+  cores = 1L,
+  backend = "none"
 ) {
   assert_positive_whole_number(n_rep, "n_rep")
   assert_positive_whole_number(master_seed, "master_seed")
@@ -34,14 +36,18 @@ phase18_summarise_count_mu_re_pilot <- function(
     n_rep = n_rep,
     master_seed = master_seed,
     result_dir = poisson_result_dir,
-    overwrite = overwrite
+    overwrite = overwrite,
+    cores = cores,
+    backend = backend
   )
   nbinom2 <- phase18_summarise_nbinom2_mu_re_smoke(
     conditions = nbinom2_conditions,
     n_rep = n_rep,
     master_seed = master_seed + 1L,
     result_dir = nbinom2_result_dir,
-    overwrite = overwrite
+    overwrite = overwrite,
+    cores = cores,
+    backend = backend
   )
 
   list(

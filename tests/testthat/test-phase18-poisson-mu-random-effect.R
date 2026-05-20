@@ -143,6 +143,8 @@ test_that("Phase 18 Poisson mu random-effect smoke runner summarises output", {
   )
 
   expect_identical(out$surface, "poisson_mu_random_effect")
+  expect_equal(out$run$parallel$backend, "none")
+  expect_equal(out$run$parallel$cores, 1L)
   expect_equal(nrow(out$run$summary), 4L)
   expect_equal(nrow(out$aggregate), 4L)
   expect_equal(nrow(out$manifest), 1L)

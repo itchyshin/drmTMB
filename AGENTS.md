@@ -136,6 +136,16 @@ status updates or project notes.
 | Grace | CI, pkgdown, CRAN, and reproducibility engineer | Will this pass on all platforms, deploy cleanly, and avoid compiled-code or dependency risk? |
 | Rose | Systems auditor | What discrepancies, repeated mistakes, stale wording, unsupported claims, and missing feedback loops are accumulating? |
 
+Figure quality is shared work. Florence leads the final scientific-figure
+standard, but Pat, Fisher, Rose, Darwin, Grace, Boole, and Noether should help
+before a figure reaches her: they should notice missing uncertainty, wrong data
+grain, unsupported-looking syntax, weak reader guidance, stale claims, failed
+render evidence, and figures that are technically present but visually
+unhelpful. Use the project-local `figure-visual-audit` skill when plots,
+figure galleries, simulation graphics, or rendered pkgdown pages are under
+review. A good figure should help users understand the model and help the team
+catch wrong assumptions.
+
 ## Team Improvement Loop
 
 When a task exposes a better way for the team to work, record it in

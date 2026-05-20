@@ -33,9 +33,12 @@ coherent story after code changes.
     `docs/design/01-formula-grammar.md`, `vignettes/formula-grammar.Rmd`, and
     `_pkgdown.yml` when navigation should change. Record the exact `rg`
     patterns used; do not write only "stale-wording scans".
-11. Update roadmap, NEWS, known limitations, and design docs when behaviour
+11. Inspect overlapping open GitHub issues before closing. Prefer commenting on
+    or updating an existing issue over opening a duplicate. Record issue
+    comments, new issues, closures, or the reason no issue action was needed.
+12. Update roadmap, NEWS, known limitations, and design docs when behaviour
     changed.
-12. Add a compact after-task report under `docs/dev-log/after-task/`.
+13. Add a compact after-task report under `docs/dev-log/after-task/`.
 
 ## Stale-Wording Searches
 
@@ -84,6 +87,8 @@ For new tests, verify at least one of the following:
 ## Tests Of The Tests
 
 ## Consistency Audit
+
+## GitHub Issue Maintenance
 
 ## What Did Not Go Smoothly
 

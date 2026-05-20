@@ -61,6 +61,8 @@ test_that("Phase 18 Gaussian location-scale smoke runner completes and resumes",
   expect_identical(first$surface, "gaussian_ls")
   expect_equal(nrow(first$registry$cells), 1L)
   expect_equal(length(first$results), 1L)
+  expect_equal(first$parallel$backend, "none")
+  expect_equal(first$parallel$cores, 1L)
   expect_identical(first$results[[1L]]$status, "ok")
   expect_false(first$results[[1L]]$skipped)
   expect_true(second$results[[1L]]$skipped)

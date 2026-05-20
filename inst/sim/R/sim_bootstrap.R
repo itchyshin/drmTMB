@@ -3,7 +3,9 @@ phase18_parametric_bootstrap <- function(
   statistic_fun,
   refit_fun,
   nsim = 100L,
-  seed = NULL
+  seed = NULL,
+  cores = 1L,
+  backend = "none"
 ) {
   if (!inherits(fit, "drmTMB")) {
     stop("`fit` must be a drmTMB object.", call. = FALSE)
@@ -14,9 +16,14 @@ phase18_parametric_bootstrap <- function(
   if (!is.null(seed)) {
     assert_positive_whole_number(seed, "seed")
   }
+  plan <- phase18_bootstrap_parallel_plan(
+    nsim = as.integer(nsim),
+    cores = cores,
+    backend = backend
+  )
 
   simulations <- stats::simulate(fit, nsim = nsim, seed = seed)
-  rows <- lapply(seq_len(nsim), function(i) {
+  worker <- function(i) {
     phase18_parametric_bootstrap_one(
       fit = fit,
       simulations = simulations,
@@ -24,9 +31,13 @@ phase18_parametric_bootstrap <- function(
       statistic_fun = statistic_fun,
       refit_fun = refit_fun
     )
-  })
+  }
+  rows <- phase18_bootstrap_lapply(seq_len(nsim), worker, plan)
   out <- do.call(rbind, rows)
   row.names(out) <- NULL
+  out$bootstrap_backend <- plan$backend
+  out$bootstrap_requested_cores <- plan$requested_cores
+  out$bootstrap_cores <- plan$cores
   out
 }
 
@@ -182,7 +193,9 @@ phase18_bootstrap_interval_columns <- function(
   nsim = 0L,
   conf.level = 0.70,
   seed = NULL,
-  interval_scale = "formula_coefficient"
+  interval_scale = "formula_coefficient",
+  cores = 1L,
+  backend = "none"
 ) {
   phase18_assert_summary_columns(summary, c("parameter"))
   if (
@@ -220,6 +233,9 @@ phase18_bootstrap_interval_columns <- function(
     default_status = "not_requested"
   )
   out$bootstrap.n <- 0L
+  out$bootstrap.backend <- NA_character_
+  out$bootstrap.requested_cores <- NA_integer_
+  out$bootstrap.cores <- NA_integer_
   if (identical(as.integer(nsim), 0L)) {
     return(out)
   }
@@ -231,8 +247,13 @@ phase18_bootstrap_interval_columns <- function(
     statistic_fun = statistic_fun,
     refit_fun = refit_fun,
     nsim = as.integer(nsim),
-    seed = seed
+    seed = seed,
+    cores = cores,
+    backend = backend
   )
+  out$bootstrap.backend <- unique(draws$bootstrap_backend)[[1L]]
+  out$bootstrap.requested_cores <- unique(draws$bootstrap_requested_cores)[[1L]]
+  out$bootstrap.cores <- unique(draws$bootstrap_cores)[[1L]]
   intervals <- phase18_bootstrap_percentile_intervals(
     draws,
     conf.level = conf.level
@@ -245,6 +266,53 @@ phase18_bootstrap_interval_columns <- function(
   out$bootstrap.message[ok] <- intervals$interval_message[matched[ok]]
   out$bootstrap.n[ok] <- intervals$n_bootstrap[matched[ok]]
   out
+}
+
+phase18_bootstrap_parallel_plan <- function(
+  nsim,
+  cores = 1L,
+  backend = "none"
+) {
+  assert_positive_whole_number(nsim, "nsim")
+  assert_positive_whole_number(cores, "cores")
+  if (
+    !is.character(backend) ||
+      length(backend) != 1L ||
+      !nzchar(backend)
+  ) {
+    stop("`backend` must be one non-empty character string.", call. = FALSE)
+  }
+  if (!backend %in% c("none", "multicore")) {
+    stop(
+      "`backend` must be either \"none\" or \"multicore\".",
+      call. = FALSE
+    )
+  }
+  if (identical(backend, "multicore") && .Platform$OS.type == "windows") {
+    stop(
+      "`backend = \"multicore\"` is not available on Windows.",
+      call. = FALSE
+    )
+  }
+
+  requested_cores <- as.integer(cores)
+  actual_cores <- if (identical(backend, "none")) {
+    1L
+  } else {
+    min(10L, as.integer(nsim), requested_cores)
+  }
+  list(
+    backend = backend,
+    requested_cores = requested_cores,
+    cores = actual_cores
+  )
+}
+
+phase18_bootstrap_lapply <- function(indices, worker, plan) {
+  if (identical(plan$backend, "none") || identical(plan$cores, 1L)) {
+    return(lapply(indices, worker))
+  }
+  parallel::mclapply(indices, worker, mc.cores = plan$cores)
 }
 
 phase18_empty_bootstrap_intervals <- function(parameter) {

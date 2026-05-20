@@ -47,7 +47,8 @@ An object of class \code{summary.drmTMB}.
 response-scale distributional, scale, shape, random-effect SD, correlation,
 and fitted random-effect covariance quantities when they are present.
 The covariance component reports currently fitted registry-backed rows and
-the first fitted bivariate phylogenetic \code{mu1}/\code{mu2} mean-mean row.
+fitted bivariate phylogenetic covariance rows, including q=2 mean-mean and
+q=4 endpoint rows where present.
 The derived component reports simple point-estimate variance ratios, such as
 Gaussian random-intercept repeatability and phylogenetic signal, when the
 ingredients are unambiguous. Derived confidence intervals are marked as

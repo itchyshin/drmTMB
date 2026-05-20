@@ -162,6 +162,135 @@ Design constraints before implementation:
   still be based only on the selected optimum of the final model;
 - unsupported warm-start routes must error before optimization.
 
+## Slice 373-390 Q2 Source-Start Evidence
+
+Slices 373-390 tested the future warm-start idea on Ayumi's bivariate
+phylogenetic species-effect stress case without exposing any public start API.
+The developer-only prototype compared six or eight source strategies for a
+row-capped bivariate Gaussian q2 phylogenetic target:
+
+- the current default start;
+- default covariance starts with modest jitter;
+- fixed/residual source starts;
+- ordinary species q2 source starts;
+- aggregate phylogenetic q2 source starts;
+- aggregate phylogenetic q2 source starts with modest covariance jitter.
+
+The source-fit ladder showed the distinction that matters for the public
+contract. Fixed/residual source models and aggregate phylogenetic q2 source
+models can converge on 80, 300, and all 6,196 species. Ordinary row-capped
+species q2 source models false-converged with residual `rho12` at the boundary.
+When those source fits were copied into the row-capped phylogenetic q2 target,
+every target fit still false-converged and residual `rho12` landed essentially
+at `+/-1`.
+
+| Species subset | Target rows | Tested target starts | Main target signal |
+| --- | ---: | ---: | --- |
+| 80 species | 395 | 8 | all false convergence; residual `rho12` at 1 |
+| 300 species | 1,431 | 8 | all false convergence; residual `rho12` at `+/-1` |
+| 6,196 species | 29,489 | 6 | all false convergence; residual `rho12` at 1 |
+
+The full-species run is the strongest negative result so far. Larger species
+coverage helped the aggregate phylogenetic q2 source fit, but it did not rescue
+the row-capped target because residual response-response covariance and
+phylogenetic species covariance remained poorly separated. Starts and jitter
+changed objective values, gradients, and fitted phylogenetic correlations; they
+did not produce a trustworthy non-boundary optimum.
+
+This evidence changes the warm-start design in three ways:
+
+- source-fit starts should be treated as diagnostics before they are treated as
+  convenience controls;
+- a future public `start_from` route must record copied, skipped, and jittered
+  targets because a source fit can move the optimizer to a different bad
+  boundary;
+- the first implementation should probably be deterministic restart from the
+  reported optimum, then an all-fit-style comparison table, before stochastic
+  multi-start is exposed.
+
+Regularization is a separate estimator, not a hidden start strategy. The
+mixed-model literature supports maximum-a-posteriori or penalized likelihood
+for weak variance and covariance components, and TMB-family packages such as
+`glmmTMB` and `sdmTMB` expose priors as penalized likelihood/MAP tools. If
+`drmTMB` later adds a residual-correlation or structured-correlation penalty,
+the output should be labelled as penalized/MAP, with a documented base model,
+scale, sensitivity check, and simulation coverage. It must not be described as
+ordinary maximum likelihood with better starts.
+
+## Future Bootstrap And Parallel Refit Contract
+
+Slice 391-402 added a developer-only parametric bootstrap prototype for the
+correct Ayumi Mass + Beak PV2 locphylo target. Slice 403-412 extended the same
+prototype to the block-diagonal phylogenetic fallback and capped worker use at
+10 cores. The prototype confirms that bootstrap is a practical refit and audit
+path when `TMB::sdreport()` or the Hessian is unavailable. It becomes a
+scientific uncertainty path only after the selected optimum is defensible. The
+fallback smoke run shows the danger case: it refitted all 10 replicates, but
+every replicate retained convergence code 1 and the scale-scale phylogenetic
+correlation stayed essentially at `-1`.
+
+The core invariant remains the same as for starts and profiles:
+
+```text
+Every bootstrap or profile refit must report the selected optimum, convergence
+status, gradient or diagnostic status, and the refit target values.
+```
+
+Bootstrap must not hide model-geometry decisions. In the Mass + Beak model,
+body mass is both a response and the allometric covariate for Beak. The
+prototype therefore splits the roles into `Mass_z` and `Mass_cov_z`: the former
+is simulated as a response, while the latter remains fixed as the conditioning
+covariate. Any public bootstrap route needs an equally explicit rule for
+response variables that also appear as predictors.
+
+Slice 423-432 added the matching positive-control run for the clean
+`PV2_locphylo` Mass + Beak model. With the same `B = 10`, `multicore`, and
+10-core cap, all ten refits returned convergence code 0, median maximum
+gradient was 0.043, and the bootstrap summaries stayed near residual
+`rho12 = -0.80` and phylogenetic `mu1`-`mu2 = -0.88`. The contrast with the
+fallback run is the intended bootstrap contract: refits can support uncertainty
+only when the selected model also passes convergence and gradient diagnostics.
+
+Slice 509-518 applies the same bounded-worker rule to the developer-only
+profile fallback helper. `DRMTMB_PROFILE_CORES` is capped at 10 and at the
+number of selected targets, `DRMTMB_PROFILE_BACKEND` is recorded in preflight
+metadata, and the script supports serial or Unix `multicore` profiling. It does
+not advertise PSOCK profiling because fitted `TMB` objects carry external
+pointers; cross-session workers would need a refit-or-rebuild contract before
+that backend is trustworthy.
+
+Parallel execution should be opt-in and bounded. A future API should support
+serial execution for CRAN and reproducibility, plus local worker backends for
+interactive work:
+
+```r
+confint(
+  fit,
+  method = "bootstrap",
+  R = 500,
+  parallel = "multicore",
+  workers = 10,
+  seed = 1
+)
+```
+
+or an equivalent lower-level refit helper shared by bootstrap and profile
+intervals. Design constraints before implementation:
+
+- workers must default to one in tests and CRAN-facing examples;
+- worker count must never silently exceed the requested number or the number of
+  bootstrap/profile tasks;
+- seed streams must be deterministic and recorded in the output;
+- each replicate must carry convergence, objective, gradient or `check_drm()`
+  status, and failure messages;
+- fits with false convergence, boundary correlations, or large gradients should
+  be retained as failed or warning replicates, not silently discarded;
+- bootstrap intervals for a non-PD-Hessian model should be labelled as
+  bootstrap intervals, not as Wald/profile replacements;
+- q4 boundary fits should use bootstrap first as an instability diagnostic,
+  and only later as an uncertainty summary if refits repeatedly land on a
+  defensible optimum.
+
 ## Future Fixed-Parameter Or Map Contract
 
 Fixed parameters and TMB maps are more dangerous than starts because they alter

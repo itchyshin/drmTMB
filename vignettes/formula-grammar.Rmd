@@ -64,7 +64,7 @@ In this table, "coscale" means a model for residual correlation, currently
 | `mu1`, `mu2`, `sigma1`, `sigma2`, `rho12` | Implemented for fixed effects | Bivariate Gaussian location-coscale model with predictor-dependent residual correlation. |
 | `(1 | p | id)` in both bivariate `mu1` and `mu2` | Implemented | First bivariate group-level covariance slice; `p` labels a `mu1`/`mu2` random-intercept covariance block. |
 | `(1 | p | id)` in both bivariate `sigma1` and `sigma2` | Implemented | First bivariate residual-scale covariance slice; `p` labels a `sigma1`/`sigma2` random-intercept covariance block on the log-`sigma` scale. |
-| `(1 | p | id)` in same-response bivariate `mu1` and `sigma1`, or in `mu2` and `sigma2` | Implemented first slice | One labelled random-intercept pair creates a response-specific mean-scale covariance block. |
+| `(1 | p | id)` in same-response bivariate `mu1` and `sigma1`, with optional independent `(1 | q | id)` in `mu2` and `sigma2` | Implemented first slice | Each labelled random-intercept pair creates its own response-specific mean-scale covariance block; residual `rho12` stays separate. |
 | `(1 | p | id)` in all four bivariate `mu1`, `mu2`, `sigma1`, and `sigma2` formulas | Implemented first slice | One ordinary q=4 location-scale covariance block reports all six latent random-effect correlations. |
 | `sd1(id) ~ x_group`, `sd2(id) ~ x_group` | Implemented | Family B direct SD formulas for labelled bivariate location random intercepts; not for residual-scale random effects. |
 | `family = c(gaussian(), gaussian())` | Implemented | Routes to the bivariate Gaussian engine; mixed composed families are planned. |
@@ -208,9 +208,25 @@ drm_formula(
 )
 ```
 
-Phylogenetic random slopes, phylogenetic scale terms, structured effects in
-`rho12`, animal-model slopes, lower-level `relmat()` slopes, multiple spatial
-slopes, and mesh-based spatial terms are still planned:
+Matching labelled `phylo()` terms across all four bivariate Gaussian endpoints
+fit the constant q=4 phylogenetic location-scale block. A single shared label
+estimates one full q4 tree block; using one label for `mu1`/`mu2` and another
+for `sigma1`/`sigma2` estimates the block-diagonal fallback:
+
+```r
+drm_formula(
+  mu1 = y1 ~ x + phylo(1 | pl | species, tree = tree),
+  mu2 = y2 ~ x + phylo(1 | pl | species, tree = tree),
+  sigma1 = ~ z + phylo(1 | ps | species, tree = tree),
+  sigma2 = ~ z + phylo(1 | ps | species, tree = tree),
+  rho12 = ~ 1
+)
+```
+
+Phylogenetic random slopes, standalone or partial phylogenetic scale terms,
+structured effects in `rho12`, animal-model slopes, lower-level `relmat()`
+slopes, multiple spatial slopes, and mesh-based spatial terms are still
+planned:
 
 ```r
 # planned; drmTMB() will currently reject these
@@ -268,10 +284,11 @@ drm_formula(
 The shared `p` label fits a group-level random-intercept covariance block for
 the two response means. The shared `q` label fits a separate scale-scale block
 for the two residual-scale random intercepts on the log-`sigma` scale. The
-first same-response mean-scale bridge is also implemented, using a shared label
-in `mu1` and `sigma1`, or in `mu2` and `sigma2`. Reusing the same label and
-group in all four bivariate formulas fits the first ordinary q=4
-location-scale block:
+same-response mean-scale bridge is also implemented for one or both responses:
+a shared label in `mu1` and `sigma1` gives a response-1 mean-scale row, while a
+different shared label in `mu2` and `sigma2` gives a separate response-2
+mean-scale row. Reusing the same label and group in all four bivariate formulas
+fits the first ordinary q=4 location-scale block:
 
 ```r
 drm_formula(
@@ -315,5 +332,5 @@ correlation level, group, covariance block, distributional parameters,
 responses, and random-effect coefficients. The current `corpairs(fit)` helper
 already uses this table shape for residual `rho12`, ordinary univariate
 Gaussian `mu` random-effect correlations, and the implemented bivariate
-mean-mean, scale-scale, same-response mean-scale, ordinary q=4, and
-phylogenetic mean-mean random-intercept correlations.
+mean-mean, scale-scale, response-specific mean-scale, ordinary q=4, and
+phylogenetic mean-mean and q=4 random-intercept correlations.

@@ -89,10 +89,14 @@ test_that("Phase 18 bivariate rho12 grid writer creates table artifacts", {
     output_dir = output_dir,
     conditions = conditions,
     n_rep = 1L,
-    master_seed = 218L
+    master_seed = 218L,
+    cores = 10L
   )
 
   expect_equal(out$surface, "biv_rho12_grid")
+  expect_equal(out$summary$run$parallel$backend, "none")
+  expect_equal(out$summary$run$parallel$requested_cores, 10L)
+  expect_equal(out$summary$run$parallel$cores, 1L)
   expect_true(dir.exists(out$result_dir))
   expect_true(dir.exists(out$table_dir))
   expect_true(all(file.exists(unlist(out$paths, use.names = FALSE))))
@@ -115,4 +119,28 @@ test_that("Phase 18 bivariate rho12 grid writer creates table artifacts", {
     master_seed = 218L,
     overwrite = TRUE
   ))
+})
+
+test_that("Phase 18 bivariate rho12 grid writer passes bootstrap backend args", {
+  source_phase18_biv_rho12_grid_writer()
+  output_dir <- tempfile("phase18-biv-rho12-grid-bad-bootstrap-")
+  withr::defer(unlink(output_dir, recursive = TRUE))
+
+  expect_error(
+    phase18_write_biv_rho12_grid_outputs(
+      output_dir = output_dir,
+      conditions = phase18_biv_rho12_conditions(
+        n = 180L,
+        delta0 = atanh(0.20),
+        delta1 = 0.20,
+        sigma_ratio = 1.1,
+        rho_xw = 0.1
+      ),
+      n_rep = 1L,
+      master_seed = 219L,
+      bootstrap_nsim = 1L,
+      bootstrap_backend = "psock"
+    ),
+    "none.*multicore"
+  )
 })

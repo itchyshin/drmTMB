@@ -52,8 +52,9 @@
 - Bivariate Gaussian location-scale-coscale models are implemented with `mu1`,
   `mu2`, `sigma1`, `sigma2`, and `rho12` formulas. The first group-level
   bivariate covariance slices are implemented for matching labelled
-  random-intercept terms in `mu1`/`mu2`, `sigma1`/`sigma2`, and one
-  same-response `mu`/`sigma` pair such as `mu1` with `sigma1`. The same labelled
+  random-intercept terms in `mu1`/`mu2`, `sigma1`/`sigma2`, and one or more
+  same-response `mu`/`sigma` pairs such as `mu1` with `sigma1` and `mu2` with
+  `sigma2` under separate labels. The same labelled
   random-intercept term can also be used in all four bivariate formulas to fit
   one ordinary q=4 location-scale covariance block with all six latent
   correlations. `check_drm()` reports a first q4 diagnostic for group
@@ -99,7 +100,7 @@
   residual bivariate `rho12` summaries and ordinary univariate Gaussian `mu`
   random-effect correlations, plus the implemented univariate `mu`/`sigma`
   mean-scale random-intercept correlation and bivariate `mu1`/`mu2`
-  random-intercept, `sigma1`/`sigma2` random-intercept, and same-response
+  random-intercept, `sigma1`/`sigma2` random-intercept, and response-specific
   bivariate `mu`/`sigma` random-intercept correlations. It reports all six
   ordinary q=4 all-four bivariate random-intercept correlations when that block
   is fitted, and it also reports the fitted bivariate phylogenetic mean-mean
@@ -265,8 +266,9 @@
   univariate `mu`/`sigma` random-intercept covariance block, intercept-only
   phylogenetic location effects, plus one or more unlabelled Gaussian `mu`
   random-intercept scale formulae through `sd(group) ~ x_group`, matched
-  labelled bivariate Gaussian `mu1`/`mu2`, `sigma1`/`sigma2`, and same-response
-  `mu`/`sigma` random-intercept covariance blocks, and fixed-effect univariate
+  labelled bivariate Gaussian `mu1`/`mu2`, `sigma1`/`sigma2`, and
+  response-specific `mu`/`sigma` random-intercept covariance blocks, and
+  fixed-effect univariate
   Student-t models with `mu`, `sigma`, and `nu`.
   It also supports fixed-effect univariate lognormal models with `mu` and
   `sigma` on the log-response scale, fixed-effect univariate Gamma mean-CV

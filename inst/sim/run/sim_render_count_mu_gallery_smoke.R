@@ -12,6 +12,8 @@ phase18_render_count_mu_re_gallery_smoke <- function(
   master_seed = 20260521L,
   notes = "Tiny paired count-pilot gallery smoke.",
   overwrite = FALSE,
+  cores = 1L,
+  backend = "none",
   template = system.file(
     "sim/reports/phase18-count-mu-gallery.Rmd",
     package = "drmTMB",
@@ -33,7 +35,9 @@ phase18_render_count_mu_re_gallery_smoke <- function(
     n_rep = n_rep,
     master_seed = master_seed,
     result_dir = result_dir,
-    overwrite = overwrite
+    overwrite = overwrite,
+    cores = cores,
+    backend = backend
   )
   gallery <- phase18_render_count_mu_re_gallery(
     pilot = pilot,

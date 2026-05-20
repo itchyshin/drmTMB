@@ -173,6 +173,8 @@ Type objective_function<Type>::operator()()
   DATA_IVECTOR(phylo_mu_sd_row);
   DATA_IVECTOR(phylo_mu_node_index);
   DATA_MATRIX(phylo_mu_value);
+  DATA_IVECTOR(phylo_mu_block_id);
+  DATA_INTEGER(phylo_mu_n_blocks);
   DATA_SPARSE_MATRIX(Q_phylo);
   DATA_SCALAR(log_det_Q_phylo);
   DATA_INTEGER(n_re_cov_blocks);
@@ -1570,17 +1572,6 @@ Type objective_function<Type>::operator()()
             effect(i, j) = u_phylo(j * n_phylo + i);
           }
         }
-        density::UNSTRUCTURED_CORR_t<Type> phylo_q4_density(theta_phylo);
-        matrix<Type> phylo_q4_corr = phylo_q4_density.cov();
-        matrix<Type> phylo_q4_covariance(q_phylo, q_phylo);
-        for (int a = 0; a < q_phylo; ++a) {
-          for (int b = 0; b < q_phylo; ++b) {
-            phylo_q4_covariance(a, b) =
-              sd_phylo(a) * phylo_q4_corr(a, b) * sd_phylo(b);
-          }
-        }
-        matrix<Type> covariance_inverse = phylo_q4_covariance.inverse();
-        Type log_det_covariance = log(phylo_q4_covariance.determinant());
         matrix<Type> quadratic_matrix(q_phylo, q_phylo);
         quadratic_matrix.setZero();
         for (int b = 0; b < q_phylo; ++b) {
@@ -1595,23 +1586,113 @@ Type objective_function<Type>::operator()()
             }
           }
         }
-        Type quadratic_phylo = Type(0.0);
-        for (int a = 0; a < q_phylo; ++a) {
-          for (int b = 0; b < q_phylo; ++b) {
-            quadratic_phylo += covariance_inverse(a, b) * quadratic_matrix(a, b);
+        if (phylo_mu_n_blocks > 1) {
+          matrix<Type> phylo_q4_corr(q_phylo, q_phylo);
+          matrix<Type> phylo_q4_covariance(q_phylo, q_phylo);
+          phylo_q4_corr.setZero();
+          phylo_q4_covariance.setZero();
+          for (int a = 0; a < q_phylo; ++a) {
+            phylo_q4_corr(a, a) = Type(1.0);
+            phylo_q4_covariance(a, a) = sd_phylo(a) * sd_phylo(a);
           }
+          Type quadratic_phylo = Type(0.0);
+          Type log_det_covariance = Type(0.0);
+          int theta_pos = 0;
+          for (int block = 0; block < phylo_mu_n_blocks; ++block) {
+            int first = -1;
+            int second = -1;
+            int block_size = 0;
+            for (int endpoint = 0; endpoint < q_phylo; ++endpoint) {
+              if (phylo_mu_block_id(endpoint) == block) {
+                if (block_size == 0) {
+                  first = endpoint;
+                } else if (block_size == 1) {
+                  second = endpoint;
+                }
+                block_size += 1;
+              }
+            }
+            if (block_size == 1) {
+              Type sd1 = sd_phylo(first);
+              Type block_quadratic =
+                quadratic_matrix(first, first) / (sd1 * sd1);
+              log_det_covariance += Type(2.0) * log_sd_phylo(first);
+              quadratic_phylo += block_quadratic;
+              nll += Type(0.5) * (
+                Type(n_phylo) * log(Type(2.0) * M_PI) +
+                Type(n_phylo) * Type(2.0) * log_sd_phylo(first) -
+                log_det_Q_phylo +
+                block_quadratic
+              );
+            } else if (block_size == 2) {
+              Type rho_block = Type(0.999999) * tanh(theta_phylo(theta_pos));
+              theta_pos += 1;
+              Type one_minus_rho2 =
+                Type(1.0) - rho_block * rho_block;
+              Type sd1 = sd_phylo(first);
+              Type sd2 = sd_phylo(second);
+              Type log_det_block =
+                Type(2.0) * log_sd_phylo(first) +
+                Type(2.0) * log_sd_phylo(second) +
+                log(one_minus_rho2);
+              Type inv11 = Type(1.0) / (sd1 * sd1 * one_minus_rho2);
+              Type inv22 = Type(1.0) / (sd2 * sd2 * one_minus_rho2);
+              Type inv12 = -rho_block / (sd1 * sd2 * one_minus_rho2);
+              Type block_quadratic =
+                inv11 * quadratic_matrix(first, first) +
+                Type(2.0) * inv12 * quadratic_matrix(first, second) +
+                inv22 * quadratic_matrix(second, second);
+              phylo_q4_corr(first, second) = rho_block;
+              phylo_q4_corr(second, first) = rho_block;
+              phylo_q4_covariance(first, second) = sd1 * rho_block * sd2;
+              phylo_q4_covariance(second, first) = sd1 * rho_block * sd2;
+              log_det_covariance += log_det_block;
+              quadratic_phylo += block_quadratic;
+              nll += Type(0.5) * (
+                Type(2 * n_phylo) * log(Type(2.0) * M_PI) +
+                Type(n_phylo) * log_det_block -
+                Type(2.0) * log_det_Q_phylo +
+                block_quadratic
+              );
+            }
+          }
+          REPORT(theta_phylo);
+          REPORT(phylo_q4_corr);
+          REPORT(phylo_q4_covariance);
+          REPORT(quadratic_phylo);
+          REPORT(log_det_covariance);
+          REPORT(quadratic_matrix);
+          ADREPORT(theta_phylo);
+        } else {
+          density::UNSTRUCTURED_CORR_t<Type> phylo_q4_density(theta_phylo);
+          matrix<Type> phylo_q4_corr = phylo_q4_density.cov();
+          matrix<Type> phylo_q4_covariance(q_phylo, q_phylo);
+          for (int a = 0; a < q_phylo; ++a) {
+            for (int b = 0; b < q_phylo; ++b) {
+              phylo_q4_covariance(a, b) =
+                sd_phylo(a) * phylo_q4_corr(a, b) * sd_phylo(b);
+            }
+          }
+          matrix<Type> covariance_inverse = phylo_q4_covariance.inverse();
+          Type log_det_covariance = log(phylo_q4_covariance.determinant());
+          Type quadratic_phylo = Type(0.0);
+          for (int a = 0; a < q_phylo; ++a) {
+            for (int b = 0; b < q_phylo; ++b) {
+              quadratic_phylo += covariance_inverse(a, b) * quadratic_matrix(a, b);
+            }
+          }
+          nll += Type(0.5) * (
+            Type(n_phylo * q_phylo) * log(Type(2.0) * M_PI) +
+            Type(n_phylo) * log_det_covariance -
+            Type(q_phylo) * log_det_Q_phylo +
+            quadratic_phylo
+          );
+          REPORT(theta_phylo);
+          REPORT(phylo_q4_corr);
+          REPORT(phylo_q4_covariance);
+          REPORT(quadratic_phylo);
+          ADREPORT(theta_phylo);
         }
-        nll += Type(0.5) * (
-          Type(n_phylo * q_phylo) * log(Type(2.0) * M_PI) +
-          Type(n_phylo) * log_det_covariance -
-          Type(q_phylo) * log_det_Q_phylo +
-          quadratic_phylo
-        );
-        REPORT(theta_phylo);
-        REPORT(phylo_q4_corr);
-        REPORT(phylo_q4_covariance);
-        REPORT(quadratic_phylo);
-        ADREPORT(theta_phylo);
       }
       REPORT(u_phylo);
       REPORT(log_sd_phylo);

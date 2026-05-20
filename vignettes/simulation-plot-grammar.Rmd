@@ -79,7 +79,7 @@ Bias and RMSE should be plotted beside the estimand. A single average across
 all parameters hides the distinction between fixed effects, residual scale,
 random-effect SDs, and residual correlation `rho12`.
 
-```{r bias-rmse-display, fig.width=8.2, fig.height=4.4, fig.alt="Two simulation accuracy plots faceted by simulation surface: a raincloud-style bias display with replicate-level errors, mean bias points, and MCSE intervals, followed by an aggregate RMSE display with MCSE intervals for four estimands."}
+```{r bias-rmse-display, fig.width=8.2, fig.height=5.1, fig.alt="Two simulation accuracy plots faceted by simulation surface: an illustrative raincloud-style bias display with pseudo-replicate errors, mean bias points, and MCSE intervals, followed by an aggregate RMSE display with MCSE intervals for four estimands."}
 accuracy_summary <- data.frame(
   surface = rep(surface_levels, each = 4),
   estimand = rep(c("beta_x", "sigma", "sd_group", "rho12"), 4),
@@ -203,7 +203,7 @@ ggplot(accuracy_replicates, aes(error, estimand)) +
   labs(
     title = "Bias displays should show replicate-level error",
     subtitle = paste(
-      "Clouds and faint dots are replicate errors;",
+      "Clouds and faint dots are illustrative pseudo-replicate errors;",
       "large points and bars are mean bias with 95% MCSE"
     ),
     x = "Estimate minus truth",
@@ -215,22 +215,20 @@ ggplot(accuracy_replicates, aes(error, estimand)) +
   theme_sim_grammar()
 
 ggplot(accuracy_summary, aes(rmse, estimand, colour = surface)) +
-  geom_segment(
+  geom_errorbarh(
     aes(
-      x = rmse_low,
-      xend = rmse_high,
-      y = estimand,
-      yend = estimand,
-      colour = surface
+      xmin = rmse_low,
+      xmax = rmse_high
     ),
+    height = 0.15,
     linewidth = 0.9,
-    alpha = 0.8,
+    alpha = 0.9,
     na.rm = TRUE
   ) +
   geom_point(size = 2.4, na.rm = TRUE) +
   facet_wrap(
     ~surface,
-    nrow = 1,
+    nrow = 2,
     labeller = labeller(surface = as_labeller(surface_facet_labels))
   ) +
   scale_colour_manual(values = surface_palette, drop = FALSE) +
@@ -242,9 +240,9 @@ ggplot(accuracy_summary, aes(rmse, estimand, colour = surface)) +
     colour = "Surface"
   ) +
   scale_x_continuous(
-    breaks = c(0, 0.25, 0.50, 0.75),
-    limits = c(0, 0.82),
-    expand = expansion(mult = c(0.01, 0.05))
+    breaks = c(0, 0.10, 0.20),
+    limits = c(0, 0.31),
+    expand = expansion(mult = c(0.01, 0.04))
   ) +
   scale_y_discrete(labels = estimand_display_labels) +
   guides(colour = "none") +
@@ -261,11 +259,14 @@ not a cloud whose center could be mistaken for a mean absolute error.
 
 ## Coverage and Power
 
-Coverage and power are proportions, so every point should carry the number of
-replicates that contributed to it and a Monte Carlo uncertainty interval. The
-fixture below uses a binomial MCSE approximation for display.
+Coverage and power are proportions, so every point should carry or clearly
+reference the number of replicates that contributed to it and a Monte Carlo
+uncertainty interval. Real reports should plot stored replicate rows or stored
+replicate-block summaries when they are available; the fixture below illustrates
+that grammar with block-level proportions plus a binomial MCSE approximation for
+the aggregate.
 
-```{r coverage-power-display, fig.alt="Faceted point plot showing illustrative coverage and power with Monte Carlo uncertainty intervals for four simulation surfaces."}
+```{r coverage-power-display, fig.width=8.6, fig.height=5.2, fig.alt="Faceted point plot showing illustrative coverage and power with Monte Carlo uncertainty intervals for four simulation surfaces, with one panel per surface so intervals align with their points."}
 interval_summary <- data.frame(
   surface = rep(surface_levels, each = 4),
   estimand = rep(c("beta_x", "sigma", "sd_group", "rho12"), 4),
@@ -319,25 +320,88 @@ interval_long$estimand <- factor(
   interval_long$estimand,
   levels = rev(c("beta_x", "sigma", "sd_group", "rho12"))
 )
+interval_long$missing_x <- ifelse(
+  interval_long$measure == "Coverage",
+  0.405,
+  0.405
+)
+interval_target <- unique(interval_long[c("measure", "target")])
+interval_present <- interval_long[!is.na(interval_long$value), , drop = FALSE]
+interval_missing <- interval_long[is.na(interval_long$value), , drop = FALSE]
+make_interval_blocks <- function(row, n_block = 18) {
+  block_size <- max(8L, floor(row$n_interval / n_block))
+  block_proportion <- qbinom(
+    ppoints(n_block),
+    size = block_size,
+    prob = row$value
+  ) / block_size
+  data.frame(
+    surface = row$surface,
+    estimand = row$estimand,
+    measure = row$measure,
+    block_proportion = block_proportion
+  )
+}
+interval_blocks <- do.call(
+  rbind,
+  lapply(seq_len(nrow(interval_present)), function(i) {
+    make_interval_blocks(interval_present[i, ])
+  })
+)
 
-ggplot(interval_long, aes(value, estimand, colour = surface)) +
+ggplot(interval_present, aes(value, estimand, colour = surface)) +
   geom_vline(
+    data = interval_target,
     aes(xintercept = target),
     linetype = "dashed",
-    colour = "grey55"
+    colour = "grey55",
+    inherit.aes = FALSE
+  ) +
+  geom_point(
+    data = interval_blocks,
+    aes(block_proportion, estimand, colour = surface),
+    position = position_jitter(height = 0.07, width = 0),
+    alpha = 0.18,
+    size = 0.70,
+    inherit.aes = FALSE
   ) +
   geom_segment(
     aes(x = lower, xend = upper, yend = estimand),
-    linewidth = 0.55,
+    linewidth = 0.4,
     na.rm = TRUE
   ) +
   geom_point(size = 2.1, na.rm = TRUE) +
-  facet_wrap(~measure, scales = "free_x") +
-  scale_colour_manual(values = surface_palette) +
+  geom_text(
+    aes(label = paste0("n=", n_interval)),
+    nudge_y = -0.25,
+    colour = "grey40",
+    size = 1.7,
+    na.rm = TRUE,
+    show.legend = FALSE
+  ) +
+  geom_text(
+    data = interval_missing,
+    aes(x = missing_x, y = estimand, label = "not\ntargeted"),
+    colour = "grey55",
+    size = 2.15,
+    lineheight = 0.9,
+    hjust = 0,
+    inherit.aes = FALSE
+  ) +
+  facet_grid(
+    measure ~ surface,
+    labeller = labeller(surface = as_labeller(surface_facet_labels))
+  ) +
+  scale_colour_manual(values = surface_palette, guide = "none") +
+  scale_x_continuous(
+    limits = c(0.38, 1),
+    breaks = c(0.4, 0.6, 0.8, 0.95),
+    labels = c("0.40", "0.60", "0.80", "0.95")
+  ) +
   scale_y_discrete(labels = estimand_display_labels) +
   labs(
     title = "Interval coverage and power need Monte Carlo uncertainty",
-    subtitle = "Dashed lines mark nominal coverage and a planned power benchmark",
+    subtitle = "Faint dots illustrate replicate-block proportions; large points carry n and 95% binomial MCSE",
     x = "Proportion",
     y = NULL,
     colour = "Surface"

@@ -123,6 +123,8 @@ test_that("Phase 18 spatial mu slope smoke runner summarises output", {
   )
 
   expect_identical(out$surface, "spatial_mu_slope")
+  expect_equal(out$run$parallel$backend, "none")
+  expect_equal(out$run$parallel$cores, 1L)
   expect_equal(nrow(out$run$summary), 5L)
   expect_equal(nrow(out$aggregate), 5L)
   expect_equal(nrow(out$manifest), 1L)

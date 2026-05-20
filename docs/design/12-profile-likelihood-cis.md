@@ -52,7 +52,7 @@ paths.
 | Ordinary random-effect SDs and correlations | Selected direct SD and correlation targets are profile-ready and appear in `profile_targets()`. | Align `summary()`, `corpairs()`, and target names for every fitted direct registry row. |
 | Phylogenetic SDs and q2 correlations | Implemented direct targets include the first bivariate phylogenetic `mu1`/`mu2` SD and mean-mean correlation path. | Keep phylogenetic targets separate from residual `rho12`; add clearer diagnostics for weak SDs and boundary correlations. |
 | Spatial SDs | The first univariate coordinate-spatial `mu` SD target is direct and profile-ready where the fitted object retained the TMB object. | Add coverage that spatial profile labels and diagnostics stay distinct from phylogenetic labels. |
-| q4 ordinary and phylogenetic correlations | Point estimates are reported, but q4 unstructured-correlation rows are derived targets and not direct profile-ready. | Preserve explicit unavailable statuses until a direct or fix-and-refit derived method exists. |
+| q4 ordinary and phylogenetic correlations | Point estimates are reported. Ordinary q4 and full phylogenetic q4 unstructured-correlation rows remain derived targets and not direct profile-ready; block-diagonal phylogenetic q4 fallback correlations are direct targets, but interval extraction can still fail when the likelihood profile is one-sided, boundary-limited, or numerically unstable. | Preserve explicit unavailable statuses for derived rows, and treat direct fallback rows as fit-specific diagnostics until recovery evidence is broader. |
 | ICCs, repeatability, phylogenetic signal, and other nonlinear summaries | Slice 56 adds point-estimate derived-summary rows for simple Gaussian random-intercept repeatability and phylogenetic signal. | Design a fix-and-refit or reparameterized profile path before claiming derived confidence intervals. |
 
 The linked Phase 6 tracking issue is
@@ -81,9 +81,11 @@ continues. This is an inventory update, not new inference code.
 
 The inventory rule for the next slices is simple: profile-ready means a direct
 target maps to a current TMB parameter or linear combination and the fitted
-object retained the TMB object. Predictor-row profiles are valid only after
-the user supplies `newdata`; derived summaries must stay status-only until a
-validated derived interval method exists.
+object retained the TMB object. It means the profile can be attempted, not that
+every dataset will cross the likelihood-ratio threshold on both sides.
+Predictor-row profiles are valid only after the user supplies `newdata`;
+derived summaries must stay status-only until a validated derived interval
+method exists.
 
 ## Slices 165-168 Profile Example Bridge
 

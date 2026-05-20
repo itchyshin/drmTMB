@@ -19,7 +19,9 @@
 #' `mu`/`sigma` random-intercept covariance blocks, `check_drm()` also reports
 #' group replication and whether either component is tiny relative to its
 #' interpretation scale for each independent block. If a bivariate Gaussian fit
-#' includes a matched
+#' includes one or more matched same-response labelled `mu`/`sigma`
+#' random-intercept covariance blocks, `check_drm()` reports one row per block.
+#' If a bivariate Gaussian fit includes a matched
 #' labelled `mu1`/`mu2` random-intercept covariance block, `check_drm()` reports
 #' group replication and whether either group-level SD is tiny relative to the
 #' matching residual scale. For a matched labelled `sigma1`/`sigma2` block, it
@@ -390,7 +392,7 @@ disambiguate_duplicate_labels <- function(labels) {
   if (!any(duplicated_labels)) {
     return(labels)
   }
-  sequence <- ave(seq_along(labels), labels, FUN = seq_along)
+  sequence <- stats::ave(seq_along(labels), labels, FUN = seq_along)
   labels[duplicated_labels] <- paste0(
     labels[duplicated_labels],
     "[",
@@ -1409,16 +1411,7 @@ check_biv_mu_sigma_random_effect_covariance <- function(object) {
     from_dpar = c("mu1", "mu2"),
     to_dpar = c("sigma1", "sigma2")
   )
-  if (!is.null(registry_pair)) {
-    if (isTRUE(registry_pair$complex)) {
-      return(check_row(
-        "biv_mu_sigma_random_effect_covariance",
-        "note",
-        paste0("n_pairs=", registry_pair$n_pairs),
-        "The fitted bivariate mu/sigma covariance block is more complex than the current diagnostic summary."
-      ))
-    }
-
+  if (!is.null(registry_pair) && !isTRUE(registry_pair$complex)) {
     mu_member <- registry_covariance_member(
       registry_pair,
       registry_pair$pair$from_dpar[[1L]]
@@ -1488,65 +1481,77 @@ check_biv_mu_sigma_random_effect_covariance <- function(object) {
     return(NULL)
   }
 
-  sigma_terms <- unique(re_sigma$term_id0[sigma_rows] + 1L)
-  mu_rows <- re_mu_sigma$sigma_cross_mu_index0[sigma_rows] + 1L
-  mu_terms <- unique(re_mu$term_id0[mu_rows] + 1L)
-  if (length(sigma_terms) != 1L || length(mu_terms) != 1L) {
-    return(check_row(
+  rows <- lapply(seq_len(re_mu_sigma$n_cors), function(cor_id) {
+    sigma_rows <- which(re_mu_sigma$sigma_cross_cor_id0 == cor_id - 1L)
+    if (length(sigma_rows) == 0L) {
+      return(NULL)
+    }
+
+    sigma_terms <- unique(re_sigma$term_id0[sigma_rows] + 1L)
+    mu_rows <- re_mu_sigma$sigma_cross_mu_index0[sigma_rows] + 1L
+    mu_terms <- unique(re_mu$term_id0[mu_rows] + 1L)
+    if (length(sigma_terms) != 1L || length(mu_terms) != 1L) {
+      return(check_row(
+        "biv_mu_sigma_random_effect_covariance",
+        "note",
+        paste0("n_cors=", re_mu_sigma$n_cors, "; cor_id=", cor_id),
+        "The fitted bivariate mu/sigma covariance block is more complex than the current diagnostic summary."
+      ))
+    }
+
+    sigma_term <- sigma_terms[[1L]]
+    mu_term <- mu_terms[[1L]]
+    group_counts <- tabulate(
+      re_sigma$index[, sigma_term],
+      nbins = re_sigma$n_re
+    )[sigma_rows]
+    min_count <- min(group_counts)
+    singleton_groups <- sum(group_counts < 2L)
+
+    sd_mu <- unname(object$sdpars$mu[[re_mu$labels[[mu_term]]]])
+    sd_sigma <- unname(object$sdpars$sigma[[re_sigma$labels[[sigma_term]]]])
+    sigma_values <- tryCatch(stats::sigma(object), error = function(e) e)
+    response_id <- sub("^mu", "", re_mu$dpars[[mu_term]])
+    sigma_dpar <- paste0("sigma", response_id)
+    residual_scale <- if (
+      inherits(sigma_values, "error") || !is.list(sigma_values)
+    ) {
+      NA_real_
+    } else {
+      mean(sigma_values[[sigma_dpar]], na.rm = TRUE)
+    }
+    mu_sd_ratio <- sd_mu / residual_scale
+    weak_replication <- min_count < 2L
+    weak_sd <- !is.finite(mu_sd_ratio) ||
+      !is.finite(sd_sigma) ||
+      mu_sd_ratio < 0.05 ||
+      sd_sigma < 0.05
+
+    check_row(
       "biv_mu_sigma_random_effect_covariance",
-      "note",
-      paste0("n_cors=", re_mu_sigma$n_cors),
-      "The fitted bivariate mu/sigma covariance block is more complex than the current diagnostic summary."
-    ))
+      if (weak_replication || weak_sd) "note" else "ok",
+      paste0(
+        "term=",
+        re_sigma$labels[[sigma_term]],
+        "; n_groups=",
+        length(sigma_rows),
+        "; min_group_n=",
+        min_count,
+        "; singleton_groups=",
+        singleton_groups,
+        "; mu_sd_ratio=",
+        format_check_number(mu_sd_ratio),
+        "; sigma_log_sd=",
+        format_check_number(sd_sigma)
+      ),
+      bivariate_mu_sigma_re_diagnostic_message(weak_replication, weak_sd)
+    )
+  })
+  rows <- Filter(Negate(is.null), rows)
+  if (length(rows) == 0L) {
+    return(NULL)
   }
-
-  sigma_term <- sigma_terms[[1L]]
-  mu_term <- mu_terms[[1L]]
-  group_counts <- tabulate(
-    re_sigma$index[, sigma_term],
-    nbins = re_sigma$n_re
-  )[sigma_rows]
-  min_count <- min(group_counts)
-  singleton_groups <- sum(group_counts < 2L)
-
-  sd_mu <- unname(object$sdpars$mu[[re_mu$labels[[mu_term]]]])
-  sd_sigma <- unname(object$sdpars$sigma[[re_sigma$labels[[sigma_term]]]])
-  sigma_values <- tryCatch(stats::sigma(object), error = function(e) e)
-  response_id <- sub("^mu", "", re_mu$dpars[[mu_term]])
-  sigma_dpar <- paste0("sigma", response_id)
-  residual_scale <- if (
-    inherits(sigma_values, "error") || !is.list(sigma_values)
-  ) {
-    NA_real_
-  } else {
-    mean(sigma_values[[sigma_dpar]], na.rm = TRUE)
-  }
-  mu_sd_ratio <- sd_mu / residual_scale
-  weak_replication <- min_count < 2L
-  weak_sd <- !is.finite(mu_sd_ratio) ||
-    !is.finite(sd_sigma) ||
-    mu_sd_ratio < 0.05 ||
-    sd_sigma < 0.05
-
-  check_row(
-    "biv_mu_sigma_random_effect_covariance",
-    if (weak_replication || weak_sd) "note" else "ok",
-    paste0(
-      "term=",
-      re_sigma$labels[[sigma_term]],
-      "; n_groups=",
-      length(sigma_rows),
-      "; min_group_n=",
-      min_count,
-      "; singleton_groups=",
-      singleton_groups,
-      "; mu_sd_ratio=",
-      format_check_number(mu_sd_ratio),
-      "; sigma_log_sd=",
-      format_check_number(sd_sigma)
-    ),
-    bivariate_mu_sigma_re_diagnostic_message(weak_replication, weak_sd)
-  )
+  do.call(rbind, rows)
 }
 
 bivariate_mu_sigma_re_diagnostic_message <- function(
@@ -2342,7 +2347,9 @@ check_biv_phylo_q4_covariance <- function(object, rho_boundary) {
       "group=",
       phylo_mu$group,
       "; block=",
-      phylo_mu_block(phylo_mu),
+      paste(unique(phylo_mu_endpoint_blocks(phylo_mu)), collapse = "/"),
+      "; covariance_mode=",
+      phylo_mu_covariance_mode(phylo_mu),
       "; q=4",
       "; n_species=",
       n_species,
@@ -2402,7 +2409,7 @@ bivariate_phylo_q4_diagnostic_message <- function(
   if (near_rho_boundary) {
     return(paste(
       "At least one latent phylogenetic q4 correlation is close to +/-1;",
-      "profile, simulate, or simplify before interpreting all six phylogenetic correlations."
+      "profile, simulate, or simplify before interpreting the phylogenetic correlations."
     ))
   }
   weak <- c(

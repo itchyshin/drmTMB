@@ -7,14 +7,18 @@ phase18_summarise_nbinom2_mu_re_smoke <- function(
   master_seed = 20260519L,
   result_dir = NULL,
   overwrite = FALSE,
-  by = NULL
+  by = NULL,
+  cores = 1L,
+  backend = "none"
 ) {
   run <- phase18_run_nbinom2_mu_re_smoke(
     conditions = conditions,
     n_rep = n_rep,
     master_seed = master_seed,
     result_dir = result_dir,
-    overwrite = overwrite
+    overwrite = overwrite,
+    cores = cores,
+    backend = backend
   )
   if (nrow(run$summary) == 0L) {
     stop(

@@ -86,9 +86,14 @@ animal <- function(term, pedigree = NULL, A = NULL, Ainv = NULL) {
 #' Phylogenetic structured-effect marker
 #'
 #' `phylo()` marks user-facing syntax for phylogenetic dependence. The current
-#' fitted paths support intercept-only Gaussian location effects:
-#' `phylo(1 | species, tree = tree)` in univariate `mu`, or matching terms in
-#' bivariate `mu1` and `mu2`. Structured phylogenetic slopes such as
+#' fitted paths support intercept-only Gaussian location effects,
+#' response-specific direct-SD formulas, and labelled bivariate Gaussian
+#' location-scale blocks. Use `phylo(1 | species, tree = tree)` in univariate
+#' `mu`, matching terms in bivariate `mu1` and `mu2`, or matching labelled
+#' all-four terms across `mu1`, `mu2`, `sigma1`, and `sigma2`. A single shared
+#' label estimates the full q4 block; a `mu1`/`mu2` label plus a separate
+#' `sigma1`/`sigma2` label estimates the block-diagonal fallback. Standalone
+#' univariate `sigma ~ phylo(...)` and structured phylogenetic slopes such as
 #' `phylo(1 + x | species, tree = tree)` remain planned even though the
 #' coordinate-spatial sibling already fits one numeric `mu` slope. The public
 #' `phylo()` API requires an

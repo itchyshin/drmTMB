@@ -107,8 +107,8 @@ visible:
 | Residual | `rho12_i` in `Omega_i` | Are the two responses coupled within an observation after means and scales are modelled? | implemented for fixed-effect bivariate Gaussian |
 | Phylogenetic mean | `cor(a_mu1, a_mu2)` where `[a_mu1, a_mu2] ~ MVN(0, Sigma_phylo)` | Do species with high phylogenetic deviation in trait 1 also have high phylogenetic deviation in trait 2? | implemented first fitted slice for matching intercept-only `mu1`/`mu2` `phylo()` terms |
 | Non-phylogenetic mean | `cor(c_mu1, c_mu2)` where `[c_mu1, c_mu2] ~ MVN(0, Sigma_species)` | Is there a residual among-species association beyond shared ancestry? | planned |
-| Phylogenetic scale | `cor(a_sigma1, a_sigma2)` | Do lineages that are more dispersed for one trait tend to be more dispersed for the other? | implemented first constant q=4 fitted slice |
-| Mean-scale | `cor(a_mu1, a_sigma2)` or analogous terms | Do high trait means covary with dispersion in the same or another trait? | implemented first constant q=4 fitted slice |
+| Phylogenetic scale | `cor(a_sigma1, a_sigma2)` | Do lineages that are more dispersed for one trait tend to be more dispersed for the other? | implemented for full q=4 and block-diagonal q=4 fitted slices |
+| Mean-scale | `cor(a_mu1, a_sigma2)` or analogous terms | Do high trait means covary with dispersion in the same or another trait? | implemented only in the full one-label q=4 fitted slice |
 | Spatial or site-level | `cor(z_mu1, z_mu2)` or covariance-block correlations | Do places, sites, studies, or other groups show coupled deviations across responses? | planned |
 
 The first implemented bivariate `rho12 ~ predictors` model covers the residual
@@ -134,6 +134,14 @@ reports the six row meanings through `corpairs()` so the extractor can keep
 phylogenetic correlations separate from residual
 `rho12`.
 
+The block-diagonal q=4 fallback uses the same four endpoint deviations and the
+same augmented tree precision, but splits the endpoint covariance into two
+independent q=2 blocks. With `phylo(1 | pl | species, tree = tree)` in `mu1`
+and `mu2`, plus `phylo(1 | ps | species, tree = tree)` in `sigma1` and
+`sigma2`, `corpairs()` reports only `pl` mean-mean and `ps` scale-scale rows.
+This is a technical fallback for preregistered PLSM-style models; it is not
+evidence that the scale-scale row is identifiable in a given data set.
+
 Extractor names should therefore be level-specific, for example
 `corpars$phylo`, `corpars$species`, `corpars$spatial`, or labelled
 group-level covariance blocks. Do not use bare `rho12` for these quantities.
@@ -149,9 +157,11 @@ The general long-format pair plan is in
 4. Bivariate Gaussian with phylogenetic mean covariance; non-phylogenetic mean
    covariance remains a separate grouped-random-effect layer.
 5. Bivariate location-scale with constant phylogenetic scale and mean-scale effects.
-6. Bivariate location-coscale with fixed-effect `rho12 ~ predictors` plus
+6. Block-diagonal phylogenetic q=4 fallback when the full q=4 block is too weak
+   but a protocol needs separate mean-mean and scale-scale phylogenetic rows.
+7. Bivariate location-coscale with fixed-effect `rho12 ~ predictors` plus
    phylogenetic mean and scale structure.
-7. Later only: phylogenetic effects in the `rho12` linear predictor itself.
+8. Later only: phylogenetic effects in the `rho12` linear predictor itself.
 
 The ordering matters. The coscale idea is powerful, but the models become
 weakly identified quickly. Each stage needs symbolic equations, simulation

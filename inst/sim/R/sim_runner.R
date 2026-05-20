@@ -94,6 +94,103 @@ phase18_run_replicate <- function(
   result
 }
 
+phase18_run_replicates <- function(
+  cells,
+  seeds,
+  dgp_fun,
+  fit_fun,
+  summarise_fun = NULL,
+  summarise_fun_factory = NULL,
+  result_dir = NULL,
+  overwrite = FALSE,
+  cores = 1L,
+  backend = "none"
+) {
+  if (!is.data.frame(cells) || nrow(cells) == 0L) {
+    stop("`cells` must be a non-empty data frame.", call. = FALSE)
+  }
+  if (!is.data.frame(seeds) || nrow(seeds) == 0L) {
+    stop("`seeds` must be a non-empty data frame.", call. = FALSE)
+  }
+  missing_seed <- setdiff(
+    c("cell_id", "cell_index", "replicate", "seed"),
+    names(seeds)
+  )
+  if (length(missing_seed) > 0L) {
+    stop(
+      "`seeds` must contain ",
+      paste(missing_seed, collapse = ", "),
+      ".",
+      call. = FALSE
+    )
+  }
+  phase18_assert_function(dgp_fun, "dgp_fun")
+  phase18_assert_function(fit_fun, "fit_fun")
+  if (is.null(summarise_fun_factory)) {
+    phase18_assert_function(summarise_fun, "summarise_fun")
+  } else {
+    phase18_assert_function(summarise_fun_factory, "summarise_fun_factory")
+  }
+  plan <- phase18_runner_parallel_plan(
+    n_task = nrow(seeds),
+    cores = cores,
+    backend = backend
+  )
+
+  worker <- function(i) {
+    seed_row <- seeds[i, , drop = FALSE]
+    cell_index <- seed_row$cell_index[[1L]]
+    assert_positive_whole_number(cell_index, "cell_index")
+    if (cell_index > nrow(cells)) {
+      stop(
+        "`seeds$cell_index` must refer to a row in `cells`.",
+        call. = FALSE
+      )
+    }
+    cell <- cells[cell_index, , drop = FALSE]
+    replicate_summarise_fun <- phase18_runner_summarise_fun(
+      summarise_fun = summarise_fun,
+      summarise_fun_factory = summarise_fun_factory,
+      cell = cell,
+      seed_row = seed_row
+    )
+    phase18_run_replicate(
+      cell = cell,
+      seed_row = seed_row,
+      dgp_fun = dgp_fun,
+      fit_fun = fit_fun,
+      summarise_fun = replicate_summarise_fun,
+      result_dir = result_dir,
+      overwrite = overwrite
+    )
+  }
+  results <- phase18_runner_lapply(seq_len(nrow(seeds)), worker, plan)
+  names(results) <- paste(
+    seeds$cell_id,
+    sprintf("rep%04d", seeds$replicate),
+    sep = ":"
+  )
+  attr(results, "phase18_parallel") <- plan
+  results
+}
+
+phase18_runner_summarise_fun <- function(
+  summarise_fun,
+  summarise_fun_factory,
+  cell,
+  seed_row
+) {
+  if (is.null(summarise_fun_factory)) {
+    return(summarise_fun)
+  }
+  out <- summarise_fun_factory(
+    cell = cell,
+    seed_row = seed_row
+  )
+  phase18_assert_function(out, "summarise_fun_factory()")
+  out
+}
+
 phase18_result_path <- function(result_dir, cell_id, replicate) {
   if (
     !is.character(result_dir) || length(result_dir) != 1L || !nzchar(result_dir)
@@ -276,7 +373,7 @@ phase18_result_failures <- function(results) {
         message = if (is.null(result$error)) NA_character_ else result$error
       )
     }
-    for (warning in result$warnings) {
+    for (warning in unique(result$warnings)) {
       index <- index + 1L
       rows[[index]] <- phase18_failure_row(
         result,
@@ -313,4 +410,227 @@ phase18_failure_row <- function(result, severity, message) {
     skipped = isTRUE(result$skipped),
     stringsAsFactors = FALSE
   )
+}
+
+phase18_runner_parallel_plan <- function(
+  n_task,
+  cores = 1L,
+  backend = "none"
+) {
+  assert_positive_whole_number(n_task, "n_task")
+  assert_positive_whole_number(cores, "cores")
+  if (
+    !is.character(backend) ||
+      length(backend) != 1L ||
+      !nzchar(backend)
+  ) {
+    stop("`backend` must be one non-empty character string.", call. = FALSE)
+  }
+  if (!backend %in% c("none", "multicore")) {
+    stop(
+      "`backend` must be either \"none\" or \"multicore\".",
+      call. = FALSE
+    )
+  }
+  if (identical(backend, "multicore") && .Platform$OS.type == "windows") {
+    stop(
+      "`backend = \"multicore\"` is not available on Windows.",
+      call. = FALSE
+    )
+  }
+
+  requested_cores <- as.integer(cores)
+  actual_cores <- if (identical(backend, "none")) {
+    1L
+  } else {
+    min(10L, as.integer(n_task), requested_cores)
+  }
+  list(
+    backend = backend,
+    requested_cores = requested_cores,
+    cores = actual_cores
+  )
+}
+
+phase18_runner_lapply <- function(indices, worker, plan) {
+  if (identical(plan$backend, "none") || identical(plan$cores, 1L)) {
+    return(lapply(indices, worker))
+  }
+  parallel::mclapply(indices, worker, mc.cores = plan$cores)
+}
+
+phase18_assert_no_nested_parallel <- function(outer_plan, inner_plan) {
+  if (
+    is.list(outer_plan) &&
+      is.list(inner_plan) &&
+      !is.null(outer_plan$cores) &&
+      !is.null(inner_plan$cores) &&
+      outer_plan$cores > 1L &&
+      inner_plan$cores > 1L
+  ) {
+    stop(
+      "Parallelize either the replicate layer or the bootstrap layer, not both.",
+      call. = FALSE
+    )
+  }
+  invisible(TRUE)
+}
+
+phase18_assert_simple_grid_output_dir <- function(output_dir) {
+  if (
+    !is.character(output_dir) || length(output_dir) != 1L || !nzchar(output_dir)
+  ) {
+    stop("`output_dir` must be one non-empty path string.", call. = FALSE)
+  }
+  invisible(output_dir)
+}
+
+phase18_prepare_simple_grid_dirs <- function(output_dir) {
+  dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
+  output_dir <- normalizePath(output_dir, mustWork = TRUE)
+  result_dir <- file.path(output_dir, "results")
+  table_dir <- file.path(output_dir, "tables")
+  dir.create(result_dir, recursive = TRUE, showWarnings = FALSE)
+  dir.create(table_dir, recursive = TRUE, showWarnings = FALSE)
+  list(output_dir = output_dir, result_dir = result_dir, table_dir = table_dir)
+}
+
+phase18_simple_grid_paths <- function(table_dir, prefix) {
+  list(
+    aggregate_csv = file.path(table_dir, paste0(prefix, "-aggregate.csv")),
+    replicate_csv = file.path(table_dir, paste0(prefix, "-replicates.csv")),
+    manifest_csv = file.path(table_dir, paste0(prefix, "-manifest.csv")),
+    failures_csv = file.path(table_dir, paste0(prefix, "-failures.csv"))
+  )
+}
+
+phase18_assert_simple_grid_overwrite <- function(paths, overwrite, label) {
+  path_values <- unlist(paths, use.names = FALSE)
+  existing <- path_values[file.exists(path_values)]
+  if (!overwrite && length(existing) > 0L) {
+    stop(
+      label,
+      " output already exists: ",
+      paste(existing, collapse = ", "),
+      call. = FALSE
+    )
+  }
+  invisible(paths)
+}
+
+phase18_write_simple_grid_tables <- function(summary, paths) {
+  utils::write.csv(summary$aggregate, paths$aggregate_csv, row.names = FALSE)
+  utils::write.csv(summary$replicates, paths$replicate_csv, row.names = FALSE)
+  utils::write.csv(summary$manifest, paths$manifest_csv, row.names = FALSE)
+  utils::write.csv(summary$failures, paths$failures_csv, row.names = FALSE)
+  invisible(paths)
+}
+
+phase18_grid_artifact_manifest <- function(surface, paths) {
+  if (
+    !is.character(surface) || length(surface) != 1L || !nzchar(surface)
+  ) {
+    stop("`surface` must be one non-empty character string.", call. = FALSE)
+  }
+  if (!is.list(paths) || length(paths) == 0L || is.null(names(paths))) {
+    stop("`paths` must be a named list of artifact paths.", call. = FALSE)
+  }
+  rows <- lapply(names(paths), function(artifact) {
+    path <- paths[[artifact]]
+    if (!is.character(path) || length(path) != 1L || !nzchar(path)) {
+      stop("Each artifact path must be one non-empty string.", call. = FALSE)
+    }
+    exists <- file.exists(path)
+    n_row <- NA_integer_
+    if (exists && grepl("[.]csv$", path)) {
+      n_row <- tryCatch(
+        nrow(utils::read.csv(path)),
+        error = function(e) 0L
+      )
+    }
+    data.frame(
+      surface = surface,
+      artifact = artifact,
+      path = path,
+      exists = exists,
+      n_row = n_row,
+      stringsAsFactors = FALSE
+    )
+  })
+  out <- do.call(rbind, rows)
+  row.names(out) <- NULL
+  out
+}
+
+phase18_bind_grid_artifact_manifests <- function(...) {
+  pieces <- list(...)
+  if (length(pieces) == 1L && is.list(pieces[[1L]]) && !is.data.frame(pieces[[1L]])) {
+    pieces <- pieces[[1L]]
+  }
+  pieces <- lapply(pieces, phase18_extract_grid_artifact_manifest)
+  pieces <- Filter(function(x) is.data.frame(x) && nrow(x) > 0L, pieces)
+  if (length(pieces) == 0L) {
+    return(data.frame())
+  }
+  required <- c("surface", "artifact", "path", "exists", "n_row")
+  for (piece in pieces) {
+    missing <- setdiff(required, names(piece))
+    if (length(missing) > 0L) {
+      stop(
+        "`artifact_manifest` is missing ",
+        paste(missing, collapse = ", "),
+        ".",
+        call. = FALSE
+      )
+    }
+  }
+  out <- do.call(rbind, pieces)
+  out$artifact_grain <- "grid_artifact_manifest"
+  row.names(out) <- NULL
+  out
+}
+
+phase18_extract_grid_artifact_manifest <- function(x) {
+  if (is.data.frame(x)) {
+    return(x)
+  }
+  if (is.list(x) && is.data.frame(x$artifact_manifest)) {
+    return(x$artifact_manifest)
+  }
+  stop(
+    "Each input must be an artifact manifest data frame or a grid-writer result.",
+    call. = FALSE
+  )
+}
+
+phase18_summarise_grid_artifact_manifests <- function(manifest) {
+  required <- c("surface", "artifact", "exists", "n_row")
+  missing <- setdiff(required, names(manifest))
+  if (length(missing) > 0L) {
+    stop(
+      "`manifest` is missing ",
+      paste(missing, collapse = ", "),
+      ".",
+      call. = FALSE
+    )
+  }
+  if (nrow(manifest) == 0L) {
+    return(data.frame())
+  }
+  pieces <- split(manifest, manifest$surface)
+  rows <- lapply(pieces, function(x) {
+    data.frame(
+      surface = x$surface[[1L]],
+      n_artifact = nrow(x),
+      n_present = sum(x$exists),
+      n_missing = sum(!x$exists),
+      n_empty_csv = sum(x$exists & !is.na(x$n_row) & x$n_row == 0L),
+      n_total_csv_rows = sum(x$n_row, na.rm = TRUE),
+      stringsAsFactors = FALSE
+    )
+  })
+  out <- do.call(rbind, rows)
+  out$artifact_grain <- "grid_artifact_status"
+  row.names(out) <- NULL
+  out
 }

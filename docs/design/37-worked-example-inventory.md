@@ -50,6 +50,21 @@ The inventory labels below are deliberately conservative:
 | `vignettes/large-data.Rmd` | Large-data guide | guide, not tutorial | Explains implemented storage controls, `check_drm()` expectations, aggregation boundaries, and benchmark discipline. | Keep as a guide until Phase 14 adds benchmark-backed examples. |
 | `vignettes/testing-likelihoods.Rmd` | Developer testing guide | guide, not tutorial | Explains comparator checks, simulation recovery, independent likelihood checks, and boundary tests. | Keep under Developer Notes; do not mix with applied tutorials. |
 
+## Slice 529-538 Status: Animal, Student-T, And Skew Example Promises
+
+Ada rechecked the example promise stack after the Ayumi and package-health
+slices. The status is:
+
+| Topic | Current example status | Safe reader action |
+| --- | --- | --- |
+| Animal models | `animal()` has planned marker examples in the reference page and model-map material, but no fitted animal model exists yet. | Do not add a runnable animal-model tutorial until the likelihood, diagnostics, profile targets, recovery tests, and a biological example are implemented. Use fitted ordinary, phylogenetic, or spatial sensitivity models when they answer the question. |
+| Student-t | `vignettes/robust-student.Rmd` is a worked secondary tutorial with model equation, fitted seedling example, `check_drm()`, coefficient interpretation, and Gaussian comparison. | Link users there for robust fixed-effect continuous responses with `mu`, `sigma`, and fixed-effect `nu`. |
+| Skew-normal and skew-t | `vignettes/robust-student.Rmd`, `vignettes/model-map.Rmd`, and the distribution roadmap show planned syntax and boundaries, but no fitted skew-family likelihood exists. | Keep skew examples as design-only until fixed-effect skew-normal likelihood, normal-limit checks, positive/negative skew recovery, interval evidence, and false-positive heteroscedasticity tests pass. |
+
+This is intentionally conservative. A planned marker example is useful because
+it teaches the intended grammar and the nearest fitted alternative, but it must
+not be written like a model a reader can run today.
+
 ## Slice 90 Status: Flagship Location-Scale Tutorial
 
 `vignettes/location-scale.Rmd` is the flagship worked example because it teaches

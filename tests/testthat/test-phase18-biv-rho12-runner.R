@@ -103,6 +103,8 @@ test_that("Phase 18 bivariate rho12 smoke runner completes and resumes", {
   expect_identical(first$surface, "biv_rho12")
   expect_equal(nrow(first$registry$cells), 1L)
   expect_equal(length(first$results), 1L)
+  expect_equal(first$parallel$backend, "none")
+  expect_equal(first$parallel$cores, 1L)
   expect_identical(first$results[[1L]]$status, "ok")
   expect_false(first$results[[1L]]$skipped)
   expect_true(second$results[[1L]]$skipped)
@@ -152,5 +154,30 @@ test_that("Phase 18 bivariate rho12 smoke runner validates cells", {
       n_rep = 0L
     ),
     "positive whole number"
+  )
+})
+
+test_that("Phase 18 bivariate rho12 runner rejects nested parallel bootstrap", {
+  skip_on_os("windows")
+  source_phase18_biv_rho12()
+
+  expect_error(
+    phase18_run_biv_rho12_smoke(
+      conditions = phase18_biv_rho12_conditions(
+        n = 180L,
+        delta0 = atanh(0.20),
+        delta1 = 0.20,
+        sigma_ratio = 1.1,
+        rho_xw = 0.1
+      ),
+      n_rep = 2L,
+      master_seed = 227L,
+      bootstrap_nsim = 2L,
+      cores = 2L,
+      backend = "multicore",
+      bootstrap_cores = 2L,
+      bootstrap_backend = "multicore"
+    ),
+    "either the replicate layer or the bootstrap layer"
   )
 })

@@ -21,7 +21,8 @@
 #'   [TMB::sdreport()] after optimization. Set to `FALSE` to keep fitted
 #'   coefficients, fitted values, residuals, predictions, simulations, and
 #'   profile-likelihood paths while skipping Wald standard errors,
-#'   [stats::vcov()], and Wald confidence intervals.
+#'   [stats::vcov()], and Wald confidence intervals. Profile-likelihood
+#'   intervals still require `keep_tmb_object = TRUE`.
 #' @param keep_data Logical; keep the complete-case model data in the fitted
 #'   object. Set to `FALSE` to drop `fit$data` and `fit$model$data` after
 #'   fitting. Prediction, fitted values, residuals, simulation, and basic
@@ -34,7 +35,8 @@
 #' @param keep_tmb_object Logical; keep the TMB automatic-differentiation object
 #'   in `fit$obj`. Set to `FALSE` to reduce fitted-object size after
 #'   optimization. `check_drm()` will then report the fixed-gradient check as a
-#'   note because it cannot re-evaluate the gradient without `fit$obj`.
+#'   note because it cannot re-evaluate the gradient without `fit$obj`, and
+#'   profile-likelihood confidence intervals will be unavailable.
 #' @param sparse_fixed Logical; opt-in control for sparse fixed-effect
 #'   design matrices. The first fitted path is limited to univariate Gaussian
 #'   `mu` fixed effects with no random effects and intercept-only `sigma`.

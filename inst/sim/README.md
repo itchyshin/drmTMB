@@ -23,7 +23,24 @@ parameter. Aggregate tables use `artifact_grain = "aggregate"` and carry
 `n_replicate`, bias/RMSE, MCSEs, convergence, Hessian, warning, and elapsed
 time summaries. Report templates may draw replicate-error clouds only from
 replicate-level tables; aggregate-only inputs get points, bars, and MCSE
-ranges.
+ranges. Grid-output writers return an `artifact_manifest` table with one row
+per CSV artifact, file existence, and row counts; optional interval artifacts
+that are present but empty are counted as zero rows. Manifests from multiple
+grid-writer outputs can be bound and summarized by surface before a report
+tries to read their tables, and
+`run/sim_write_first_wave_artifact_status.R` writes those bound manifest and
+status tables as first-wave report-staging artifacts. The matching
+`reports/phase18-first-wave-status-report.Rmd` template reads those two files
+before any larger simulation report tries to consume surface-specific tables.
+`run/sim_write_first_wave_table_bundle.R` then combines selected artifact
+tables across grid-writer outputs, adding source surface and artifact columns
+as the leading columns so the next report can compare surfaces without
+hand-binding CSVs. The
+`reports/phase18-first-wave-summary-report.Rmd` skeleton reads those staged
+tables into one reader-facing page, putting priority columns first and capping
+displayed rows before any publication-style figures are added.
+`run/sim_render_first_wave_summary_report.R` orchestrates the status writer,
+table-bundle writer, and optional HTML summary render in one call.
 
 Slice 292 starts the comprehensive design as a blueprint, not as a full grid.
 The scenario map in `docs/design/41-phase-18-simulation-programme.md` decides
@@ -108,11 +125,14 @@ Current pilot files:
   phylogenetic correlations separate before simulation coverage is claimed.
 - `R/sim_bootstrap.R` provides a private Phase 18 parametric-bootstrap refit
   harness, percentile interval summariser, and summary-column adapter for
-  simulation studies; it does not change public `confint()` bootstrap support.
+  simulation studies; it records requested and actual core counts in draw and
+  interval tables, and it does not change public `confint()` bootstrap support.
 - `R/sim_runner.R` runs one cell replicate, captures warnings/errors, can save
   or resume an RDS result, can reload saved result directories, can bind
   replicate-level summaries, and can reduce result lists to compact manifests
-  or warning/error ledgers.
+  or warning/error ledgers. Its private bounded execution contract supports
+  serial runs and Unix `multicore`, with actual workers capped at 10 and at the
+  number of replicate jobs.
 - `R/sim_aggregate.R` reduces parameter-level replicate summaries to grouped
   bias, RMSE, convergence, Hessian, warning, and elapsed-time summaries.
 - `R/sim_uncertainty.R` adds Monte Carlo uncertainty and explicit
@@ -152,15 +172,50 @@ Current pilot files:
 - `run/sim_write_gaussian_ls_grid.R` writes a repeatable Gaussian
   location-scale grid output folder with aggregate, replicate-level, manifest,
   failure, Wald-interval, and Wald-coverage CSVs beside the per-replicate RDS
-  results.
+  results, forwarding the private runner `cores` and `backend` settings.
+- `run/sim_write_meta_v_grid.R` writes the same repeatable artifact set for
+  the Gaussian `meta_V(V = V)` lane with vector and dense known sampling
+  covariance cells.
+- `run/sim_write_count_mu_random_effect_grid.R` writes the paired Poisson/NB2
+  `mu` random-effect artifact set with Wald and direct-SD profile interval
+  tables.
+- `run/sim_write_gaussian_mu_random_slope_grid.R`,
+  `run/sim_write_gaussian_sigma_random_slope_grid.R`, and
+  `run/sim_write_spatial_mu_slope_grid.R` write simple aggregate,
+  replicate-level, manifest, and failure-ledger artifact sets for the ordinary
+  Gaussian `mu` random-slope, independent Gaussian `sigma` random-slope, and
+  coordinate-spatial Gaussian `mu` slope lanes.
 - `run/sim_write_biv_rho12_grid.R` writes the same artifact set for the
   bivariate Gaussian residual `rho12` grid, with optional profile,
   parametric-bootstrap, combined interval-evidence, interval-diagnostics, and
-  interval-failure CSVs.
+  interval-failure CSVs. Replicate-runner and bootstrap backends are separate
+  so a run can parallelize one layer without nesting parallel work in both;
+  the runner errors if both layers would use more than one worker.
 - `run/sim_write_student_shape_grid.R` writes the same artifact set for the
   Student-t fixed-effect shape `nu` grid, with optional profile,
   parametric-bootstrap, combined interval-evidence, interval-diagnostics, and
-  interval-failure CSVs.
+  interval-failure CSVs. Replicate-runner and bootstrap backends are separate
+  for the same reason as the bivariate `rho12` grid, with the same nested-
+  parallel guard.
+- `run/sim_write_first_wave_artifact_status.R` writes bound
+  artifact-manifest and surface-status CSVs from multiple grid-writer outputs,
+  giving report templates a small preflight table before they read individual
+  simulation artifacts.
+- `run/sim_write_first_wave_table_bundle.R` writes selected first-wave artifact
+  tables combined across grid-writer outputs, preserving source surface and
+  artifact names while filling missing columns.
+- `run/sim_render_first_wave_summary_report.R` writes first-wave status and
+  table-bundle artifacts, then optionally renders the first-wave summary report
+  HTML from those staged CSVs.
+- `run/sim_run_first_wave_summary_smoke.R` executes the current Gaussian
+  location-scale, `meta_V(V = V)`, paired Poisson/NB2 `mu` random-effect, and
+  ordinary Gaussian `mu` and `sigma` random-slope, and coordinate-spatial
+  Gaussian `mu` slope first-wave smoke surfaces, stages the combined first-wave
+  summary report, and records requested versus actual worker counts.
+- `run/sim_run_interval_heavy_summary_smoke.R` executes the Student-t shape and
+  bivariate residual `rho12` smoke surfaces as a separate interval-heavy report
+  lane, keeping their Wald/profile/bootstrap artifacts out of the baseline
+  first-wave runner.
 - `run/sim_summary_gaussian_mu_random_slope_smoke.R` runs a tiny ordinary
   Gaussian `mu` q=3 random-slope summary smoke grid and returns grouped bias,
   RMSE, MCSE, manifest, and warning/error ledger outputs.
@@ -200,5 +255,13 @@ Current pilot files:
   interval methods are attached.
 - `reports/phase18-smoke-report-template.Rmd` is the first reader-facing report
   template for smoke aggregate, manifest, and warning/error ledger outputs.
+- `reports/phase18-first-wave-status-report.Rmd` is the first report-staging
+  template for checking bound artifact-manifest and surface-status CSVs before
+  larger first-wave reports read individual simulation artifacts.
+- `reports/phase18-first-wave-summary-report.Rmd` is the first table-first
+  summary skeleton for artifact status, aggregate operating-characteristic
+  rows, a compact aggregate-bias overview, interval coverage, interval
+  diagnostics, interval failures, run-manifest summaries, manifests, compact
+  warning/error summaries, and full warning/error ledgers.
 - `reports/phase18-count-mu-gallery.Rmd` is the first Florence-facing figure
   gallery template for paired Poisson/NB2 `mu` random-effect pilot outputs.

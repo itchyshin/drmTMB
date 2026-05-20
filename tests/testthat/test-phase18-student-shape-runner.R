@@ -97,6 +97,8 @@ test_that("Phase 18 Student-t shape smoke runner completes and resumes", {
   expect_identical(first$surface, "student_shape")
   expect_equal(nrow(first$registry$cells), 1L)
   expect_equal(length(first$results), 1L)
+  expect_equal(first$parallel$backend, "none")
+  expect_equal(first$parallel$cores, 1L)
   expect_identical(first$results[[1L]]$status, "ok")
   expect_false(first$results[[1L]]$skipped)
   expect_true(second$results[[1L]]$skipped)
@@ -142,5 +144,30 @@ test_that("Phase 18 Student-t shape smoke runner validates cells", {
       n_rep = 0L
     ),
     "positive whole number"
+  )
+})
+
+test_that("Phase 18 Student-t shape runner rejects nested parallel bootstrap", {
+  skip_on_os("windows")
+  source_phase18_student_shape()
+
+  expect_error(
+    phase18_run_student_shape_smoke(
+      conditions = phase18_student_shape_conditions(
+        n = 240L,
+        nu_intercept = log(6),
+        nu_slope = 0.20,
+        sigma_slope = 0.20,
+        rho_xw = 0.1
+      ),
+      n_rep = 2L,
+      master_seed = 226L,
+      bootstrap_nsim = 2L,
+      cores = 2L,
+      backend = "multicore",
+      bootstrap_cores = 2L,
+      bootstrap_backend = "multicore"
+    ),
+    "either the replicate layer or the bootstrap layer"
   )
 })

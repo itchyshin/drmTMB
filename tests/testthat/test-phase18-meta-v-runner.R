@@ -63,6 +63,8 @@ test_that("Phase 18 meta_V smoke runner completes vector and dense surfaces", {
   expect_identical(out$surface, "meta_v")
   expect_equal(nrow(out$registry$cells), 3L)
   expect_equal(length(out$results), 3L)
+  expect_equal(out$parallel$backend, "none")
+  expect_equal(out$parallel$cores, 1L)
   expect_equal(
     unname(vapply(out$results, function(result) result$status, character(1))),
     rep("ok", 3L)

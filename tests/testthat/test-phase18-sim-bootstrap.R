@@ -37,13 +37,17 @@ test_that("Phase 18 parametric bootstrap refits simulated responses", {
     statistic_fun = statistic_fun,
     refit_fun = refit_fun,
     nsim = 3L,
-    seed = 20260627L
+    seed = 20260627L,
+    cores = 10L
   )
   intervals <- phase18_bootstrap_percentile_intervals(draws)
 
   expect_equal(nrow(draws), 6L)
   expect_equal(draws$artifact_grain, rep("bootstrap", 6L))
   expect_equal(draws$status, rep("ok", 6L))
+  expect_equal(draws$bootstrap_backend, rep("none", 6L))
+  expect_equal(draws$bootstrap_requested_cores, rep(10L, 6L))
+  expect_equal(draws$bootstrap_cores, rep(1L, 6L))
   expect_equal(sort(unique(draws$parameter)), c("mu:(Intercept)", "mu:x"))
   expect_equal(nrow(intervals), 2L)
   expect_equal(intervals$interval_method, rep("parametric_bootstrap", 2L))
@@ -124,6 +128,28 @@ test_that("Phase 18 bootstrap helpers validate inputs", {
       nsim = 0L
     ),
     "positive whole number"
+  )
+  expect_equal(
+    phase18_bootstrap_parallel_plan(nsim = 25L, cores = 10L)$cores,
+    1L
+  )
+  if (.Platform$OS.type != "windows") {
+    plan <- phase18_bootstrap_parallel_plan(
+      nsim = 25L,
+      cores = 11L,
+      backend = "multicore"
+    )
+    expect_equal(plan$backend, "multicore")
+    expect_equal(plan$requested_cores, 11L)
+    expect_equal(plan$cores, 10L)
+  }
+  expect_error(
+    phase18_bootstrap_parallel_plan(nsim = 25L, cores = 11L, backend = "psock"),
+    "none.*multicore"
+  )
+  expect_error(
+    phase18_bootstrap_parallel_plan(nsim = 25L, cores = 0L),
+    "cores"
   )
   expect_error(
     phase18_bootstrap_percentile_intervals(data.frame(parameter = "x")),
