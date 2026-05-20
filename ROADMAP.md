@@ -412,6 +412,14 @@ Phase 5 closure boundary:
 | animal and user-supplied relatedness | first univariate Gaussian `mu` intercept slice for `animal(1 | id, A = A)`, `animal(1 | id, Ainv = Ainv)`, `relmat(1 | id, K = K)`, and `relmat(1 | id, Q = Q)`, with diagnostics, profile targets, and recovery tests | pedigree-to-Ainv construction, structured slopes, `sigma`, bivariate covariance, `corpair()` parity, optional `phylo(..., A/Ainv = ...)` input, and generic direct-SD naming design |
 | inference/output | fixed-effect SEs, direct profile-ready targets where implemented, `corpairs(conf.int = TRUE)` with explicit interval status | derived-profile intervals for q=4 correlations and richer marginal-effect/visualization helpers |
 
+Spatial parity now has its own ladder before implementation resumes. The next
+spatial code slice should target the smallest missing phylogenetic sibling:
+coordinate-spatial q=2 bivariate location covariance for `mu1` and `mu2`, with
+`corpairs(level = "spatial")`, direct profile-target labels, a small simulation
+recovery test, and a dense covariance comparator. Spatial q=4 location-scale,
+spatial `sigma`, spatial direct-SD surfaces, and spatial `corpair()` regression
+stay behind that q=2 gate.
+
 ## Phase 5b: Large-Data Memory Strategy
 
 - Status: first storage controls and benchmark harness implemented; Phase 5b

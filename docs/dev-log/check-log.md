@@ -33160,3 +33160,44 @@ git diff --check
 - The stale-wording scan still finds historical after-task, figure-audit,
   check-log, and recovery-checkpoint entries that were true when written; Ada
   left those archival records unchanged.
+
+## 2026-05-20 - Spatial Toward Phylo Parity Inventory
+
+Goal:
+
+- Keep spatial structured effects moving toward phylogenetic parity without
+  overclaiming current spatial support.
+
+Changes:
+
+- Added a "Spatial Toward Phylogenetic Parity" ladder to
+  `docs/design/16-phylo-spatial-common-math.md`.
+- Updated `README.md`, `ROADMAP.md`,
+  `docs/design/46-pre-simulation-readiness-matrix.md`, and
+  `docs/dev-log/forgotten-promises-status-2026-05-20.md` so the next spatial
+  gate is named as coordinate-spatial q=2 bivariate `mu1`/`mu2` covariance
+  with `corpairs(level = "spatial")`, direct profile-target labels, a small
+  simulation recovery test, and a dense covariance comparator.
+- Clarified `docs/design/01-formula-grammar.md` so
+  `phylo(1 + x1 | species, tree = tree)` is not visually grouped with fitted
+  spatial one-slope syntax.
+- Added an issue-maintenance note to
+  <https://github.com/itchyshin/drmTMB/issues/5#issuecomment-4503081661>.
+
+Validation:
+
+```sh
+Rscript -e "devtools::test(filter = 'spatial-gaussian|phylo-gaussian', reporter = 'summary')"
+Rscript -e "pkgdown::check_pkgdown()"
+rg -n 'phylo\(1 \+ x1 \| species, tree = tree\)|spatial q=4|bivariate spatial q=4|spatial direct-SD|spatial `corpair\(\)`|corpairs\(level = "spatial"\)|sd_spatial\*|sd_animal\*|sd_relmat\*' README.md ROADMAP.md docs/design docs/dev-log/forgotten-promises-status-2026-05-20.md
+rg -n 'phylo\(1 \+ x1 \| species, tree = tree\).*Fitted|spatial q=2.*Admit|spatial q=4.*implemented|bivariate spatial.*implemented|corpairs\(level = "spatial"\).*fitted' README.md ROADMAP.md docs/design docs/dev-log/forgotten-promises-status-2026-05-20.md
+git diff --check
+```
+
+- Focused phylogenetic and spatial tests passed.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `git diff --check` was clean.
+- The first scan confirmed expected planned-boundary wording. The second scan
+  returned only pre-simulation matrix rows that admit univariate coordinate
+  spatial grids while keeping q=2 bivariate spatial covariance out of admitted
+  surfaces.
