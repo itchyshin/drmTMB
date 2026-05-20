@@ -76,7 +76,8 @@ are fitted-row `mu` predictions, not raw responses.
 
 Open issues were inspected after the live-deploy pass. Issue #58 remains the
 main visualization-layer ledger, and issue #255 remains the simulation artifact
-ledger. No duplicate issue was opened for this small repair.
+ledger. Comments were added to #58 and #255 linking the PR #266 follow-up
+rather than opening a duplicate issue.
 
 ## What Did Not Go Smoothly
 

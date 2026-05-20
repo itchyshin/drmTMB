@@ -32959,4 +32959,5 @@ Issue maintenance:
 
 - Inspected open issues after the live-deploy pass. Issue #58 remains the main
   visualization-layer ledger, and issue #255 remains the simulation artifact
-  ledger. No duplicate issue was opened for this small repair.
+  ledger. Commented on #58 and #255 with the PR #266 follow-up rather than
+  opening a duplicate issue.
