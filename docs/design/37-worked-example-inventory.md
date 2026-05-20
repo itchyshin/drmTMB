@@ -57,7 +57,7 @@ slices. The status is:
 
 | Topic | Current example status | Safe reader action |
 | --- | --- | --- |
-| Animal models | `animal()` has planned marker examples in the reference page and model-map material, but no fitted animal model exists yet. | Do not add a runnable animal-model tutorial until the likelihood, diagnostics, profile targets, recovery tests, and a biological example are implemented. Use fitted ordinary, phylogenetic, or spatial sensitivity models when they answer the question. |
+| Animal models | `animal(1 | id, A = A)` and `animal(1 | id, Ainv = Ainv)` now fit the first univariate Gaussian `mu` intercept slice with diagnostics, profile targets, and recovery tests; pedigree construction, slopes, `sigma`, and bivariate covariance remain planned. | Add a small runnable animal-model example next, but keep it explicitly scoped to precomputed relatedness matrices until pedigree and broader parity paths are implemented. |
 | Student-t | `vignettes/robust-student.Rmd` is a worked secondary tutorial with model equation, fitted seedling example, `check_drm()`, coefficient interpretation, and Gaussian comparison. | Link users there for robust fixed-effect continuous responses with `mu`, `sigma`, and fixed-effect `nu`. |
 | Skew-normal and skew-t | `vignettes/robust-student.Rmd`, `vignettes/model-map.Rmd`, and the distribution roadmap show planned syntax and boundaries, but no fitted skew-family likelihood exists. | Keep skew examples as design-only until fixed-effect skew-normal likelihood, normal-limit checks, positive/negative skew recovery, interval evidence, and false-positive heteroscedasticity tests pass. |
 

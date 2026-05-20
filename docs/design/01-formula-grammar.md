@@ -549,11 +549,15 @@ constant latent phylogenetic location-location correlation, reported by
 parameter. It is not syntax for phylogenetic residual-scale SDs or q=4
 location-scale endpoint SDs.
 
-Future generic aliases can use `level` in the same spirit as `corpair()`, for
-example `sd(species, level = "phylogenetic") ~ z`. The implemented
+Future generic aliases should use `level` in the same spirit as `corpair()`,
+for example `sd(species, level = "phylogenetic") ~ z`. The implemented
 `sd_phylo()` names remain the stable public path for now because they make the
 tree-scaled `D_tip A_tip D_tip` contract explicit and avoid confusing
-phylogenetic species effects with ordinary independent species effects.
+phylogenetic species effects with ordinary independent species effects. They
+are not a template for new family-specific direct-SD spellings: spatial,
+animal-model, and user-supplied relatedness direct-SD routes should not add
+parallel `sd_spatial*()`, `sd_animal*()`, or `sd_relmat*()` names without a
+separate design decision.
 
 Reserved explicit random-effect scale targets use `dpar`, `coef`, and optional
 `block` arguments:

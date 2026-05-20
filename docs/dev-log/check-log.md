@@ -33121,3 +33121,42 @@ Rscript -e "devtools::check(document = FALSE, args = '--no-manual', error_on = '
 - Focused tests passed.
 - Local R CMD check finished with `Status: OK`, `0 errors`, `0 warnings`, and
   `0 notes`.
+
+## 2026-05-20 - Structural Direct-SD Naming Guard
+
+Goal:
+
+- Prevent the implemented `sd_phylo*()` syntax from becoming an accidental
+  template for future `sd_spatial*()`, `sd_animal*()`, and `sd_relmat*()`
+  families.
+
+Changes:
+
+- Updated `R/random-effect-scale-formulas.R` and regenerated
+  `man/random_effect_scale_formulas.Rd` to say that `sd_phylo*()` is the
+  current implemented phylogenetic direct-SD spelling, but future spatial,
+  animal, and `relmat()` direct-SD routes should use generic syntax such as
+  `sd(group, level = ...)` or a separately reviewed equivalent.
+- Updated `docs/design/01-formula-grammar.md` and
+  `docs/design/23-large-data-memory.md` with the same naming guard.
+- Updated `ROADMAP.md`, `docs/design/37-worked-example-inventory.md`, and
+  `docs/dev-log/forgotten-promises-status-2026-05-20.md` so animal/`relmat()`
+  status now reflects the merged known-matrix first slice.
+- Added after-task report
+  `docs/dev-log/after-task/2026-05-20-structural-direct-sd-naming-guard.md`.
+
+Validation:
+
+```sh
+Rscript -e "devtools::document()"
+Rscript -e "pkgdown::check_pkgdown()"
+rg -n 'no fitted animal|no fitted relmat|no fitted.*animal|no fitted.*relmat|design boundary only; no fitted|planned marker examples|no fitted `animal|no fitted `relmat' README.md ROADMAP.md docs vignettes R man
+rg -n 'sd_spatial\*\(\)|sd_animal\*\(\)|sd_relmat\*\(\)|not a naming pattern|not a template|generic direct-SD naming' R/random-effect-scale-formulas.R docs/design/01-formula-grammar.md docs/design/23-large-data-memory.md ROADMAP.md docs/dev-log/forgotten-promises-status-2026-05-20.md man/random_effect_scale_formulas.Rd
+git diff --check
+```
+
+- `pkgdown::check_pkgdown()` reported no problems.
+- `git diff --check` was clean.
+- The stale-wording scan still finds historical after-task, figure-audit,
+  check-log, and recovery-checkpoint entries that were true when written; Ada
+  left those archival records unchanged.
