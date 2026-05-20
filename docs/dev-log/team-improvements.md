@@ -103,6 +103,22 @@ issues, or pull requests.
   chat, docs, and issues. The issue tracker needs to stay part of the same
   memory loop as check logs and after-task reports.
 
+## 2026-05-20 - CI-Wait Learning Loop
+
+- Improvement implemented: long GitHub Actions waits should become bounded
+  learning or audit time. Grace keeps watching the workflow state while Ada
+  asks Jason, Florence, Fisher, Pat, Curie, or Rose to do a scoped sidecar
+  check only when it can produce a concrete artifact, issue update, or design
+  correction.
+- Improvement implemented: sibling-package scouting should have a clear
+  exchange. `gllvmTMB` showed the value of manual long-run matrix workflows
+  with per-cell artifacts and retention controls; `drmTMB` contributes the
+  stricter artifact-grain, interval-provenance, and admitted-surface gates
+  before results are plotted.
+- Boundary: the wait-time loop is not permission to start broad feature work
+  while CI is pending. If the sidecar check would change likelihoods, formula
+  grammar, or public API, it must become a normal slice with tests and review.
+
 ## 2026-05-17 - Family-Block TMB Data Wiring Check
 
 - Improvement implemented: when a slice changes `make_tmb_data()` for one

@@ -32755,3 +32755,46 @@ Deployment note:
 - `pkgdown-site/` is ignored generated output. The public website updates only
   after this PR is merged to `main`, `R-CMD-check` succeeds there, and the
   `pkgdown` workflow deploys the rebuilt site.
+
+## 2026-05-20 - Slices 1239-1278 Phase 18 Actions And Audit Scaffolding
+
+Goal:
+
+- Merge PR #263, then make Phase 18 larger-grid runs dispatchable from GitHub
+  Actions while recording the figure-quality, forgotten-promise, structural
+  parity, and issue-maintenance trail.
+
+Changes:
+
+- Added `.github/workflows/phase18-simulation-grid.yaml`.
+- Added `inst/sim/run/sim_run_actions_cell.R`.
+- Added `tests/testthat/test-phase18-actions-runner.R`.
+- Updated `inst/sim/README.md`,
+  `docs/design/41-phase-18-simulation-programme.md`,
+  `docs/dev-log/forgotten-promises-status-2026-05-20.md`, and
+  `docs/dev-log/team-improvements.md`.
+- Added
+  `docs/dev-log/figure-audits/2026-05-20-slices-1248-1253/figure-audit.md`,
+  `docs/dev-log/structural-dependence-parity-2026-05-20.md`, and the
+  after-task report for this slice set.
+
+Validation:
+
+- `Rscript --vanilla inst/sim/run/sim_run_actions_cell.R --task=first_wave_summary --dry-run=true --cores=30 --backend=multicore`:
+  passed and capped the request to 10 cores.
+- `Rscript --vanilla inst/sim/run/sim_run_actions_cell.R --task=interval_heavy_summary --dry-run=true --backend=none --cores=10 --bootstrap-backend=multicore --bootstrap-cores=30 --bootstrap-nsim=2 --profile-parameters=fixef:nu:w,fixef:rho12:w`:
+  passed and capped the bootstrap request to 10 cores.
+- `ruby -e 'require "yaml"; ARGV.each { |f| YAML.load_file(f); puts "ok #{f}" }' .github/workflows/phase18-simulation-grid.yaml .github/workflows/R-CMD-check.yaml .github/workflows/pkgdown.yaml`:
+  parsed all workflows.
+- `Rscript -e "devtools::test(filter = '^phase18-actions-runner$|^phase18-sim-runner$|^phase18-sim-bootstrap$')"`:
+  passed, 102 expectations, 0 failures, 0 warnings, 0 skips.
+- `gh api repos/actions/upload-artifact/releases --jq '.[0].tag_name'`:
+  returned `v7.0.1`.
+- `git diff --check`: clean.
+
+Deployment watch:
+
+- Post-merge R-CMD-check run `26169859911` passed on macOS, Windows, and
+  Ubuntu after PR #263 merged to `main`.
+- Chained pkgdown run `26170628794` was still in progress when this log entry
+  was updated.

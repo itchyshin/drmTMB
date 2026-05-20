@@ -1,0 +1,157 @@
+on:
+  workflow_dispatch:
+    inputs:
+      task:
+        description: "Phase 18 task"
+        required: true
+        default: "all"
+        type: choice
+        options:
+          - all
+          - first_wave_summary
+          - interval_heavy_summary
+      n_reps:
+        description: "Replicates per cell"
+        required: true
+        default: "2"
+        type: number
+      cores:
+        description: "Requested replicate workers per task; runner caps at 10"
+        required: true
+        default: "2"
+        type: number
+      backend:
+        description: "Replicate-layer backend"
+        required: true
+        default: "multicore"
+        type: choice
+        options:
+          - none
+          - multicore
+      bootstrap_nsim:
+        description: "Bootstrap draws for interval-heavy task; 0 disables"
+        required: true
+        default: "0"
+        type: number
+      bootstrap_cores:
+        description: "Requested bootstrap workers; runner caps at 10"
+        required: true
+        default: "2"
+        type: number
+      bootstrap_backend:
+        description: "Bootstrap-layer backend; keep as none if backend is multicore"
+        required: true
+        default: "none"
+        type: choice
+        options:
+          - none
+          - multicore
+      profile_parameters:
+        description: "Comma-separated direct profile targets for interval-heavy task"
+        required: false
+        default: ""
+        type: string
+      render_report:
+        description: "Render the Phase 18 HTML summary report"
+        required: true
+        default: false
+        type: boolean
+      retention_days:
+        description: "Artifact retention in days"
+        required: true
+        default: "14"
+        type: number
+
+name: Phase 18 simulation grid
+
+permissions:
+  contents: read
+
+concurrency:
+  group: phase18-simulation-grid-${{ github.ref }}-${{ inputs.task }}
+  cancel-in-progress: false
+
+jobs:
+  phase18-task:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    name: ${{ matrix.task }}
+
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        include:
+          - task: first_wave_summary
+            seed: 20260530
+          - task: interval_heavy_summary
+            seed: 20260531
+
+    env:
+      OUT_DIR: inst/sim/results/actions/${{ matrix.task }}
+
+    steps:
+      - name: Skip unselected task
+        if: ${{ inputs.task != 'all' && inputs.task != matrix.task }}
+        run: echo "Skipping ${{ matrix.task }} because task=${{ inputs.task }}."
+
+      - uses: actions/checkout@v6.0.2
+        if: ${{ inputs.task == 'all' || inputs.task == matrix.task }}
+
+      - uses: r-lib/actions/setup-pandoc@v2
+        if: ${{ inputs.task == 'all' || inputs.task == matrix.task }}
+
+      - uses: r-lib/actions/setup-r@v2
+        if: ${{ inputs.task == 'all' || inputs.task == matrix.task }}
+        with:
+          use-public-rspm: true
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        if: ${{ inputs.task == 'all' || inputs.task == matrix.task }}
+        with:
+          extra-packages: any::rmarkdown, any::knitr, local::.
+          needs: website
+
+      - name: Run Phase 18 task
+        if: ${{ inputs.task == 'all' || inputs.task == matrix.task }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          Rscript inst/sim/run/sim_run_actions_cell.R \
+            --task="${{ matrix.task }}" \
+            --output-dir="${OUT_DIR}" \
+            --n-reps="${{ inputs.n_reps }}" \
+            --cores="${{ inputs.cores }}" \
+            --backend="${{ inputs.backend }}" \
+            --master-seed="${{ matrix.seed }}" \
+            --overwrite=true \
+            --render="${{ inputs.render_report }}" \
+            --require-complete=false \
+            --profile-parameters="${{ inputs.profile_parameters }}" \
+            --bootstrap-nsim="${{ inputs.bootstrap_nsim }}" \
+            --bootstrap-cores="${{ inputs.bootstrap_cores }}" \
+            --bootstrap-backend="${{ inputs.bootstrap_backend }}" \
+            --notes="GitHub Actions Phase 18 ${{ matrix.task }} run ${{ github.run_id }}."
+
+      - name: Summarise artifact contents
+        if: ${{ inputs.task == 'all' || inputs.task == matrix.task }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          {
+            echo "### Phase 18 artifact"
+            echo
+            echo "- Task: \`${{ matrix.task }}\`"
+            echo "- Output directory: \`${OUT_DIR}\`"
+            echo "- Files:"
+            find "${OUT_DIR}" -maxdepth 4 -type f | sort | sed 's/^/- `/' | sed 's/$/`/'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload Phase 18 artifact
+        if: ${{ inputs.task == 'all' || inputs.task == matrix.task }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: phase18-${{ matrix.task }}-${{ github.run_id }}
+          path: ${{ env.OUT_DIR }}
+          if-no-files-found: error
+          retention-days: ${{ inputs.retention_days }}

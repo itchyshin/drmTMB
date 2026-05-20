@@ -727,3 +727,12 @@ errors, and elapsed time by surface before the raw manifest.
      recovery checkpoints stay out of git, and the branch passes focused
      Phase 18 validation, full package tests, pkgdown checks, and package
      checks before staging.
+157. Slices 1239-1278 merge PR #263, then add the manual
+     `.github/workflows/phase18-simulation-grid.yaml` dispatch workflow and
+     `inst/sim/run/sim_run_actions_cell.R` runner. The workflow follows the
+     sibling `gllvmTMB` production-grid lesson: manual dispatch, one artifact
+     per matrix task, `fail-fast: false`, bounded matrix parallelism, explicit
+     artifact retention, and no automatic execution on ordinary pull requests.
+     The runner caps requested replicate and bootstrap workers at 10 and
+     rejects nested multicore requests, so a bootstrap-heavy interval task
+     cannot accidentally use two parallel layers at once.
