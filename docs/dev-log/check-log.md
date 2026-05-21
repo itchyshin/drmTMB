@@ -34696,3 +34696,48 @@ Rscript -e "devtools::test(reporter = 'summary')"
 - `pkgdown::check_pkgdown()` reported no problems.
 - A final full `devtools::test()` run passed after documentation regeneration
   and the clarified `sd*()` boundary wording.
+
+## 2026-05-21 - Implementation Map
+
+Goal:
+
+- Give users and roadmap work one visible table set for what is fitted, first
+  slice, fixed-effect only, planned, or blocked across family components,
+  random effects, dependence layers, q, random slopes, `corpairs()`, `zi`, and
+  `hu`.
+
+Changes:
+
+- Added `vignettes/implementation-map.Rmd` as a Model Guides article.
+- Linked the article from `_pkgdown.yml`, `README.md`, and `model-map`.
+- Refreshed stale structured-slope status rows so the first univariate
+  Gaussian `phylo()`, `animal()`, and `relmat()` one-slope routes appear as
+  fitted, while multiple structured slopes, slope correlations, structured
+  `sigma`, structured `rho12`, and non-Gaussian structured effects remain
+  planned.
+- Added ROADMAP Slice 302 and a NEWS bullet so the map becomes a maintenance
+  surface for future parity slices.
+
+Validation:
+
+```sh
+air format _pkgdown.yml README.md ROADMAP.md NEWS.md vignettes/model-map.Rmd vignettes/implementation-map.Rmd docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-21-implementation-map.md
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "pkgdown::build_site()"
+test -f pkgdown-site/articles/implementation-map.html && rg -n "Implementation map|fixed-effect-only|zi|hu|At least one random slope" pkgdown-site/articles/implementation-map.html
+rg -n "implementation-map|Implementation map" pkgdown-site/index.html pkgdown-site/articles/index.html pkgdown-site/articles/model-map.html pkgdown-site/sitemap.xml
+rg -n 'one numeric slopes|phylo\(1 \+ x.*rejected|phylo\(1 \+ x.*parser/planned|animal\(1 \+ x.*planned marker|relmat\(1 \+ x.*planned marker|animal slopes.*planned-only|relmat.*slopes.*planned-only|phylo, animal, and relmat slopes remain planned|one-slope paths remain planned|one-slope models should remain in the failure ledger|structured animal slopes.*planned|structured relatedness slopes.*planned|one-slope markers remain parser/planned|phylo/animal/relmat planned|phylogenetic one-slope support remains planned' README.md ROADMAP.md NEWS.md docs/design vignettes R tests/testthat -g '!docs/site/**' -g '!*.html'
+git diff --check
+```
+
+- `air format` completed without output.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `pkgdown::build_site()` completed and wrote
+  `pkgdown-site/articles/implementation-map.html`.
+- The rendered-page scan found the implementation-map title, fixed-effect-only
+  wording, `zi`, `hu`, and the random-slope summary table.
+- The site navigation scan found `implementation-map` in the homepage menu,
+  articles index, model-map article, and sitemap.
+- The stale-status scan found no old planned-only claims for first one-slope
+  `phylo()`, `animal()`, or `relmat()` Gaussian `mu` paths.
+- `git diff --check` was clean.

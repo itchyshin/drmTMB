@@ -75,7 +75,7 @@ minimum first wave is:
 | Phylogenetic and spatial Gaussian | Fitted subsets | known relatedness or coordinate covariance plus Gaussian residuals | number of taxa/sites, signal size |
 | Coordinate spatial q=2 Gaussian | Fitted for matching bivariate location covariance | coordinate covariance plus Gaussian residuals, with residual `rho12` separated from spatial correlation | sites, repeats, geometry stress, spatial SD, spatial correlation |
 | Animal/relmat Gaussian relatedness | Fitted for intercept and matching q=2 location covariance | known relatedness matrix or dense animal pedigree plus Gaussian residuals, with residual `rho12` separated from structured correlation | groups, repeats, matrix conditioning, structured SD, structured correlation |
-| Structured one-slope parity | Spatial fitted; phylo/animal/relmat planned | coordinate spatial `mu` one-slope only in Wave A | sites, slope-field SD, covariate spread |
+| Structured one-slope parity | Spatial, phylo, animal, and `relmat()` fitted for univariate Gaussian `mu` one-slope paths | independent structured intercept and slope fields | sites or groups, slope-field SD, covariate spread, matrix conditioning |
 | Coordinate spatial one-slope smoke | Fitted smoke surface | `eta_mu = X beta + z0_site + x z1_site` with two independent coordinate-spatial fields | sites, observations per site, intercept-field SD, slope-field SD |
 | Gaussian meta-analysis | Fitted | `y ~ MVN(mu, V + Omega_estimated)` with vector or matrix `V` | effect sizes, dense `V`, heterogeneity |
 | Poisson `mu` random effects | Fitted smoke surface | log-mean count model with ordinary random intercepts and independent numeric slopes | groups, observations per group, mean count, SD size |

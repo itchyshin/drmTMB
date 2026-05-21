@@ -27,6 +27,8 @@ navbar:
       menu:
         - text: What can I fit today?
           href: articles/model-map.html
+        - text: Implementation map
+          href: articles/implementation-map.html
         - text: Which scale are you modelling?
           href: articles/which-scale.html
         - text: Choosing response families
@@ -154,6 +156,7 @@ articles:
   - title: Model Guides
     contents:
       - model-map
+      - implementation-map
       - which-scale
       - distribution-families
       - model-workflow
