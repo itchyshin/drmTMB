@@ -25,12 +25,15 @@ A formula marker; never evaluated by users.
 \code{animal()} marks pedigree or additive-relatedness animal-model syntax. It is
 the biological front door for questions such as whether among-individual
 additive genetic variance appears in the location \code{mu}, residual scale
-\code{sigma}, shape or skewness, inflation, or a bivariate covariance. The first
-fitted route is a univariate Gaussian \code{mu} random intercept with a
+\code{sigma}, shape or skewness, inflation, or a bivariate covariance. The fitted
+known-matrix routes are a univariate Gaussian \code{mu} random intercept with a
 precomputed additive relationship matrix \code{A} or inverse relationship matrix
-\code{Ainv}, for example \code{animal(1 | id, Ainv = Ainv)}. Direct pedigree-to-Ainv
-construction, structured slopes, \code{sigma} animal models, and bivariate
-covariance blocks remain planned.
+\code{Ainv}, for example \code{animal(1 | id, Ainv = Ainv)}, and the first bivariate
+Gaussian q=2 location covariance from matching labelled terms in \code{mu1} and
+\code{mu2}, for example \code{animal(1 | p | id, Ainv = Ainv)}. Direct
+pedigree-to-Ainv construction, structured slopes, \code{sigma} animal models,
+q=4 location-scale blocks, predictor-dependent \code{corpair()} regression, and
+generic direct-SD grammar remain planned.
 }
 \examples{
 # Fitted: additive genetic variance in body size from a precomputed Ainv.

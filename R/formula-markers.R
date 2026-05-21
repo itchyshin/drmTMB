@@ -50,12 +50,15 @@ gr <- function(group, cov) {
 #' `animal()` marks pedigree or additive-relatedness animal-model syntax. It is
 #' the biological front door for questions such as whether among-individual
 #' additive genetic variance appears in the location `mu`, residual scale
-#' `sigma`, shape or skewness, inflation, or a bivariate covariance. The first
-#' fitted route is a univariate Gaussian `mu` random intercept with a
+#' `sigma`, shape or skewness, inflation, or a bivariate covariance. The fitted
+#' known-matrix routes are a univariate Gaussian `mu` random intercept with a
 #' precomputed additive relationship matrix `A` or inverse relationship matrix
-#' `Ainv`, for example `animal(1 | id, Ainv = Ainv)`. Direct pedigree-to-Ainv
-#' construction, structured slopes, `sigma` animal models, and bivariate
-#' covariance blocks remain planned.
+#' `Ainv`, for example `animal(1 | id, Ainv = Ainv)`, and the first bivariate
+#' Gaussian q=2 location covariance from matching labelled terms in `mu1` and
+#' `mu2`, for example `animal(1 | p | id, Ainv = Ainv)`. Direct
+#' pedigree-to-Ainv construction, structured slopes, `sigma` animal models,
+#' q=4 location-scale blocks, predictor-dependent `corpair()` regression, and
+#' generic direct-SD grammar remain planned.
 #'
 #' @param term Structured random-effect term, such as `1 | id`.
 #' @param pedigree Planned pedigree input from which an additive relationship
@@ -149,12 +152,16 @@ spatial <- function(term, coords = NULL, mesh = NULL) {
 #' `drmTMB` and checked by the analyst.
 #'
 #' Use `K` for a covariance or relatedness matrix and `Q` for an inverse
-#' covariance or precision matrix. The first fitted route is a univariate
-#' Gaussian `mu` random intercept, for example `relmat(1 | line, Q = Q)`.
-#' Structured slopes, `sigma` relatedness models, and bivariate covariance
-#' blocks remain planned. `relmat()` is intentionally separate from [meta_V()],
-#' which adds known sampling covariance among observations, and from residual
-#' `rho12`, which models within-observation bivariate residual correlation.
+#' covariance or precision matrix. The fitted known-matrix routes are a
+#' univariate Gaussian `mu` random intercept, for example
+#' `relmat(1 | line, Q = Q)`, and the first bivariate Gaussian q=2 location
+#' covariance from matching labelled terms in `mu1` and `mu2`, for example
+#' `relmat(1 | p | line, Q = Q)`. Structured slopes, `sigma` relatedness
+#' models, q=4 location-scale blocks, predictor-dependent `corpair()`
+#' regression, and generic direct-SD grammar remain planned. `relmat()` is
+#' intentionally separate from [meta_V()], which adds known sampling covariance
+#' among observations, and from residual `rho12`, which models
+#' within-observation bivariate residual correlation.
 #'
 #' @param term Structured random-effect term, such as `1 | id`.
 #' @param K Known relatedness or covariance matrix for the first fitted

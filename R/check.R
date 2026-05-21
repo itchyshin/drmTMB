@@ -34,7 +34,9 @@
 #' whether the fitted phylogenetic mean-mean correlation is near the boundary,
 #' whether either phylogenetic SD is tiny relative to the matching residual
 #' scale, and whether an ordinary group-level covariance block uses the same
-#' grouping factor. If a bivariate Gaussian fit includes a phylogenetic q=4
+#' grouping factor. Matching bivariate `animal()` and `relmat()` q=2 known-matrix
+#' location effects receive the corresponding known-relatedness replication and
+#' SD-ratio diagnostics. If a bivariate Gaussian fit includes a phylogenetic q=4
 #' `mu1`/`mu2`/`sigma1`/`sigma2` block, it reports species replication,
 #' location SDs relative to residual scales, log-`sigma` SDs, and whether any
 #' latent phylogenetic correlation is near the boundary. If a univariate
@@ -2145,8 +2147,32 @@ check_known_relatedness_mu_diagnostics <- function(object) {
   } else {
     NA_real_
   }
+  finite_sd_ratios <- sd_ratios[is.finite(sd_ratios)]
+  min_sd <- if (finite_positive_sd) min(sd_values) else NA_real_
+  min_sd_ratio <- if (length(finite_sd_ratios) > 0L) {
+    min(finite_sd_ratios)
+  } else {
+    NA_real_
+  }
   weak_sd <- !finite_positive_sd ||
-    any(sd_ratios[is.finite(sd_ratios)] < 0.05)
+    any(finite_sd_ratios < 0.05)
+  sd_text <- if (length(sd_label) == 1L) {
+    paste0(
+      "; structured_sd=",
+      format_check_number(sd_values),
+      "; sd_ratio=",
+      format_check_number(sd_ratios)
+    )
+  } else {
+    paste0(
+      "; n_coef=",
+      length(sd_label),
+      "; min_structured_sd=",
+      format_check_number(min_sd),
+      "; min_sd_ratio=",
+      format_check_number(min_sd_ratio)
+    )
+  }
 
   check_row(
     paste0(type, "_mu_diagnostics"),
@@ -2168,10 +2194,7 @@ check_known_relatedness_mu_diagnostics <- function(object) {
       min_count,
       "; matrix_type=",
       structured_mu$precision$matrix_type,
-      "; structured_sd=",
-      format_check_number(sd_values),
-      "; sd_ratio=",
-      format_check_number(sd_ratios)
+      sd_text
     ),
     known_relatedness_mu_diagnostic_message(
       type,
