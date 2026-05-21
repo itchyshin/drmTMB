@@ -56,7 +56,9 @@ navbar:
           href: articles/bivariate-coscale.html
         - text: Mean effects and residual heterogeneity
           href: articles/meta-analysis.html
-        - text: Structural dependence
+        - text: Structural dependence overview
+          href: articles/structural-dependence.html
+        - text: Structural dependence details
           href: articles/phylogenetic-spatial.html
     validation:
       text: Simulation & Comparison
@@ -158,6 +160,7 @@ articles:
       - proportion-beta-binomial
       - meta-analysis
       - bivariate-coscale
+      - structural-dependence
       - phylogenetic-spatial
   - title: Simulation & Comparison
     contents:

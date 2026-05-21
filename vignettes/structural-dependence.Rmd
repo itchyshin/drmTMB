@@ -1,0 +1,62 @@
+---
+title: "Structural dependence overview"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Structural dependence overview}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+Use this overview when observations, species, individuals, sites, or lines are
+not independent after the fixed effects have been included. The goal is to
+choose the structural layer that matches the scientific question before fitting
+a model.
+
+In `drmTMB`, a structural-dependence term is a latent random effect with a known
+relationship structure. It is separate from residual coscale `rho12`, which is
+the within-observation residual correlation between two responses. Use
+`corpairs()` for fitted latent random-effect correlations and `rho12()` for
+fitted residual response-response correlations.
+
+## Pick the route
+
+| Question | Current route | Status |
+| --- | --- | --- |
+| Do related individuals share additive genetic deviations? | `animal(1 | individual, pedigree = pedigree)`, `animal(1 | individual, A = A)`, or `animal(1 | individual, Ainv = Ainv)` | Fitted first Gaussian `mu` slices, including matching q=2 bivariate location covariance. Sparse large-pedigree construction, slopes, `sigma`, q=4, and predictor-dependent `corpair()` routes remain planned. |
+| Do related species share evolutionary deviations? | `phylo(1 | species, tree = tree)` | Fitted for Gaussian `mu`, bivariate q=2 and q=4 blocks, direct phylogenetic SD surfaces, and q=2 predictor-dependent phylogenetic `corpair()` regression. |
+| Do nearby sites share smooth deviations? | `spatial(1 | site, coords = coords)` or `spatial(1 + depth | site, coords = coords)` | Fitted first coordinate-spatial Gaussian `mu` slices, including one numeric slope and matching q=2 bivariate location covariance. Mesh/SPDE, multiple slopes, `sigma`, q=4, and spatial `corpair()` routes remain planned. |
+| Does the same response need both species and site structure? | planned `phylo()` plus `spatial()` route | Planned. Fit separate sensitivity models for now; simultaneous structural layers need identifiability checks before use. |
+| Is the known matrix neither a pedigree, species tree, nor spatial coordinate surface? | `relmat(1 | id, K = K)` or `relmat(1 | id, Q = Q)` | Fitted first Gaussian `mu` slices, including matching q=2 bivariate location covariance. Slopes, `sigma`, q=4, and predictor-dependent `corpair()` routes remain planned. |
+
+## What to read next
+
+Read the detailed [structural-dependence tutorial](phylogenetic-spatial.html)
+when you need fitted examples, equations, diagnostics, and interval guidance.
+That article is still the detailed page for animal, phylogenetic, spatial,
+combined-layer, and `relmat()` material while the topic is being split into
+smaller articles.
+
+Read the [formula grammar](formula-grammar.html) when you want the compact
+implemented-versus-planned syntax table. Read the
+[figure gallery](figure-gallery.html) when you want to see how `rho12`,
+ordinary group, phylogenetic, spatial, animal-model, and `relmat()` correlation
+rows should stay visually separate.
+
+## Fitted versus planned
+
+The fitted first slices are useful for applied work, but they are not full
+parity across every structural layer. A fitted q=2 location-location row means
+that two Gaussian response means can share a latent structured correlation for
+that layer. It does not imply fitted structured slopes, scale models,
+location-scale q=4 blocks, non-Gaussian structural effects, or
+predictor-dependent `corpair()` regressions unless the route table above names
+that support explicitly.
+
+Known sampling covariance belongs to the meta-analysis route, not `relmat()`.
+Use `relmat()` for latent random-effect relatedness matrices; use
+`meta_known_V(V = V)` and the [meta-analysis documentation](meta-analysis.html)
+when the covariance matrix describes known observation-level sampling error.

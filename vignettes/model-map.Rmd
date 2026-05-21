@@ -61,7 +61,7 @@ matches the question before choosing a plot:
 | residual variability, predictability, extra heterogeneity, or dispersion | `sigma` or `sigma1` / `sigma2` | [Which scale are you modelling?](which-scale.html) |
 | among-group variation in expected response | random-effect SDs or `sd(group)` | [Which scale are you modelling?](which-scale.html) |
 | residual trait coupling after the means and residual SDs are modelled | `rho12` | [Changing residual coupling with rho12](bivariate-coscale.html) |
-| pedigree, tree, coordinate, or known-matrix dependence | `animal()`, `phylo()`, `spatial()`, or `relmat()` depending on the source | [Structural dependence](phylogenetic-spatial.html) |
+| pedigree, tree, coordinate, or known-matrix dependence | `animal()`, `phylo()`, `spatial()`, or `relmat()` depending on the source | [Structural dependence overview](structural-dependence.html) |
 | fitted interval status or boundary diagnostics | `profile_targets()`, `conf.status`, `profile.boundary`, `profile.message` | [Checking and using fitted models](model-workflow.html) |
 
 ## Stable-core matrix
@@ -128,8 +128,8 @@ Implemented one-response surfaces include:
 | Are the large residuals changing the location and scale conclusions? | fixed-effect Student-t `mu`, `sigma`, and `nu` formulas | [Robust continuous responses](robust-student.html) |
 | Is the response a strict continuous proportion or successes out of known trials? | fixed-effect `beta()` or `beta_binomial()` | [Proportions and success rates](proportion-beta-binomial.html) |
 | Does the response have known sampling variance or covariance? | Gaussian `meta_known_V(V = V)` | [Mean effects and residual heterogeneity](meta-analysis.html) |
-| Do species means remain similar after shared ancestry is included? | `phylo(1 | species, tree = tree)` in univariate Gaussian `mu` | [Structural dependence](phylogenetic-spatial.html) |
-| Do nearby sites share smooth location deviations or smooth slope differences? | `spatial(1 | site, coords = coords)` or one numeric `spatial(1 + x | site, coords = coords)` slope in univariate Gaussian `mu` | [Structural dependence](phylogenetic-spatial.html) |
+| Do species means remain similar after shared ancestry is included? | `phylo(1 | species, tree = tree)` in univariate Gaussian `mu` | [Structural dependence overview](structural-dependence.html) |
+| Do nearby sites share smooth location deviations or smooth slope differences? | `spatial(1 | site, coords = coords)` or one numeric `spatial(1 + x | site, coords = coords)` slope in univariate Gaussian `mu` | [Structural dependence overview](structural-dependence.html) |
 
 The random-effect scale terms are deliberately separate. `sigma ~ x` models
 within-observation residual SD. `sd(group) ~ x_group` models the standard
@@ -458,5 +458,5 @@ a larger covariance model than the mean-mean path.
 | a fixed-effect count example with overdispersion or structural zeros | [Count abundance and extra zeros](count-nbinom2.html) |
 | a two-response residual-correlation example | [Changing residual coupling with rho12](bivariate-coscale.html) |
 | known sampling variances or covariance | [Mean effects and residual heterogeneity](meta-analysis.html) |
-| implemented phylogenetic random intercepts or coordinate-spatial intercept/slope terms | [Structural dependence](phylogenetic-spatial.html) |
+| implemented phylogenetic random intercepts or coordinate-spatial intercept/slope terms | [Structural dependence overview](structural-dependence.html) |
 | post-fit checks, predictions, residuals, and simulation | [Checking and using fitted models](model-workflow.html) |
