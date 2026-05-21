@@ -58,6 +58,8 @@ navbar:
           href: articles/meta-analysis.html
         - text: Structural dependence overview
           href: articles/structural-dependence.html
+        - text: Animal models and relatedness
+          href: articles/animal-models.html
         - text: Structural dependence details
           href: articles/phylogenetic-spatial.html
     validation:
@@ -161,6 +163,7 @@ articles:
       - meta-analysis
       - bivariate-coscale
       - structural-dependence
+      - animal-models
       - phylogenetic-spatial
   - title: Simulation & Comparison
     contents:

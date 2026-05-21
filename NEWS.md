@@ -1,5 +1,6 @@
 # drmTMB 0.1.3.9000
 
+* The structural-dependence tutorial path now includes a focused animal-model page for the fitted `animal(pedigree/A/Ainv)` Gaussian `mu` first slices and matching q=2 bivariate location covariance, with sparse pedigrees, slopes, `sigma`, q=4, and animal `corpair()` regression kept planned.
 * The structural-dependence tutorial path now has a small overview article that helps readers choose between `animal()`, `phylo()`, coordinate `spatial()`, planned phylo-plus-spatial models, and `relmat()` before entering the longer technical tutorial.
 * The figure gallery now shows spatial, animal, and `relmat()` q=2 fitted correlation rows beside residual `rho12`, ordinary group, and phylogenetic rows, while keeping richer structured correlation regressions, q=4 blocks, and scale extensions marked as planned.
 * `animal()` now fits a dense first pedigree route for Gaussian `mu` animal effects: `animal(1 | id, pedigree = pedigree)` builds an additive relationship matrix from `id`, `dam`, and `sire` columns, and matching labelled `animal(1 | p | id, pedigree = pedigree)` terms work in the first bivariate q=2 location-covariance path. Large-pedigree sparse precision construction, structured slopes, `sigma` animal models, q=4 location-scale blocks, predictor-dependent `corpair()` regressions, and generic direct-SD grammar remain planned (#147).
