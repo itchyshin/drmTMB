@@ -2,6 +2,49 @@
 
 Record meaningful development checks here.
 
+## 2026-05-20 - Animal/Relmat Known-Matrix ADEMP Gate
+
+Goal: give the fitted known-matrix animal/`relmat()` intercept and matching
+bivariate q=2 covariance lanes an explicit Phase 18 ADEMP sheet before any
+simulation runner or broad grid is added.
+
+Team roles:
+
+- Ada kept the slice to a design/admission gate stacked after the runnable
+  examples PR.
+- Curie and Fisher named the simulation aims, estimands, replicate counts,
+  MCSE expectations, and failure-ledger rows.
+- Gauss and Noether kept structured relatedness correlation, residual `rho12`,
+  and known sampling covariance `meta_V(V = V)` in separate mathematical
+  layers.
+- Boole checked the public formula examples for `animal()` and `relmat()`
+  matrix arguments and matching q=2 labels.
+- Pat and Darwin checked whether the sheet tells applied users what the
+  simulation evidence will and will not support.
+- Grace and Rose checked the readiness matrix and Phase 18 programme for
+  fitted-versus-planned honesty.
+
+Files changed:
+
+- `docs/design/54-phase-18-animal-relmat-known-matrix-ademp.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `docs/design/46-pre-simulation-readiness-matrix.md`
+
+Checks run:
+
+```sh
+Rscript -e "pkgdown::check_pkgdown()"
+git diff --check
+rg -n 'still needs its own ADEMP sheet|until the bivariate q=2 .*ADEMP|Ready only for known-matrix Gaussian `mu` intercept smoke cells' docs/design README.md ROADMAP.md NEWS.md vignettes
+```
+
+Outcomes:
+
+- `pkgdown::check_pkgdown()` reported no problems.
+- `git diff --check` was clean.
+- The stale-wording scan found no remaining current claims that the q=2
+  animal/`relmat()` lanes still lack an ADEMP sheet.
+
 ## 2026-05-20 - Runnable Animal/Relmat Known-Matrix Examples
 
 Goal: make the structural-dependence article show runnable user-facing examples
