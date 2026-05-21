@@ -2,6 +2,52 @@
 
 Record meaningful development checks here.
 
+## 2026-05-21 - Structural-Parity Status Refresh
+
+Goal: remove stale user-facing planned wording after the post-0.1.3
+animal-pedigree, animal/`relmat()`, and spatial q=2 parity slices landed.
+
+Team roles:
+
+- Ada kept the refresh to status prose and avoided widening formula grammar.
+- Pat checked the structural-dependence tutorial from a user-reading-current
+  status perspective.
+- Fisher kept interval and coverage claims bounded to smoke/artifact evidence.
+- Grace checked fitted neighboring tests and pkgdown.
+- Rose scanned for stale "pedigree still planned" and "bivariate relmat
+  planned" wording.
+
+Files changed:
+
+- `vignettes/phylogenetic-spatial.Rmd`
+- `docs/design/53-structural-dependence-article-split.md`
+- `docs/dev-log/structural-dependence-parity-2026-05-20.md`
+
+Checks run:
+
+```sh
+rg -n 'pedigree spelling is still planned|planned pedigree construction|animal.*pedigree.*planned|bivariate.*relmat.*planned|relmat.*bivariate.*planned|spatial, animal, and `relmat\(\)` rows as planned boundaries' vignettes/phylogenetic-spatial.Rmd docs/design/53-structural-dependence-article-split.md docs/dev-log/structural-dependence-parity-2026-05-20.md docs/design/39-visualization-grammar.md README.md ROADMAP.md NEWS.md
+Rscript -e "devtools::test(filter = 'animal-relmat-gaussian|spatial-gaussian')"
+Rscript -e "pkgdown::check_pkgdown()"
+git diff --check
+```
+
+Outcomes:
+
+- The structural-dependence tutorial no longer says the animal pedigree spelling
+  is planned. It now says constant `corpairs(level = "animal")` rows are
+  fitted for matching labelled pedigree, `A`, or `Ainv` animal terms, while
+  predictor-dependent animal `corpair()` regression and sparse large-pedigree
+  precision construction remain planned.
+- The article-split design note now treats dense-pedigree animal intercepts,
+  animal q=2 covariance, and `relmat()` q=2 covariance as fitted first slices.
+- The structural-dependence parity snapshot now records the post-0.1.3 evidence
+  groups and their still-planned neighbors.
+- The focused fitted-surface tests passed 158 expectations with no warnings or
+  skips.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `git diff --check` was clean.
+
 ## 2026-05-21 - Spatial Q2 Grid Artifacts
 
 Goal: turn the coordinate-spatial q=2 smoke runner into repeatable CSV

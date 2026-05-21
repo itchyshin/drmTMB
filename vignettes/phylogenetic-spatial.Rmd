@@ -885,8 +885,11 @@ confint(
 )
 ```
 
-The pedigree spelling is still planned until `drmTMB` can construct and check
-the inverse relationship matrix itself.
+The animal q=2 path uses the same fitted-versus-planned distinction. Constant
+`corpairs(level = "animal")` rows are fitted for matching labelled
+`animal(1 | p | individual, pedigree = pedigree)`, `A`, or `Ainv` terms, but
+predictor-dependent animal `corpair()` regression and sparse large-pedigree
+precision construction remain planned.
 
 The phylogenetic q=2 path uses the same profiling interface, but the `parm`
 names the phylogenetic level:
