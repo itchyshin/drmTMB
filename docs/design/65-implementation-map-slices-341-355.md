@@ -242,6 +242,9 @@ Before closing a future implementation issue, run a role-specific review:
 - Boole checks formula grammar and parser errors;
 - Gauss and Noether check likelihood and mathematical consistency;
 - Fisher and Curie check recovery tests, diagnostics, and interval status;
+- Emmy checks extractor labels, fitted-object structure, and S3/post-fit
+  surfaces such as `corpairs()`, `summary()$covariance`, `profile_targets()`,
+  `check_drm()`, `ranef()`, `sdpars`, and `corpars`;
 - Pat and Darwin check the applied-user route and biological interpretation;
 - Grace checks pkgdown, CI, and platform risk;
 - Rose checks stale claims and after-task learning.

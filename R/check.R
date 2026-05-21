@@ -34,20 +34,21 @@
 #' whether the fitted phylogenetic mean-mean correlation is near the boundary,
 #' whether either phylogenetic SD is tiny relative to the matching residual
 #' scale, and whether an ordinary group-level covariance block uses the same
-#' grouping factor. Matching bivariate `animal()` and `relmat()` q=2 known-matrix
-#' location effects receive the corresponding known-relatedness replication and
-#' SD-ratio diagnostics. If a bivariate Gaussian fit includes a phylogenetic,
-#' animal-model, or `relmat()` q=4 `mu1`/`mu2`/`sigma1`/`sigma2` block, it
-#' reports level replication, location SDs relative to residual scales,
-#' log-`sigma` SDs, and whether any latent structured correlation is near the
-#' boundary. If a univariate
+#' grouping factor. Matching bivariate coordinate-spatial q=2, `animal()`, and
+#' `relmat()` q=2 location effects receive the corresponding structured
+#' replication and SD-ratio diagnostics. If a bivariate Gaussian fit includes a
+#' phylogenetic, coordinate-spatial, animal-model, or `relmat()` q=4
+#' `mu1`/`mu2`/`sigma1`/`sigma2` block, it reports level replication, location
+#' SDs relative to residual scales, log-`sigma` SDs, and whether any latent
+#' structured correlation is near the boundary. If a univariate
 #' Gaussian fit includes `phylo(1 | species, tree = tree)` or
 #' `phylo(1 + x | species, tree = tree)` in `mu`, it reports species
 #' replication, the fitted phylogenetic SDs, and whether the smallest
 #' phylogenetic SD is tiny relative to the residual scale. If a univariate
-#' Gaussian fit includes `spatial(1 | site, coords = coords)` in `mu`, it
-#' reports site replication, fitted coordinate range, the spatial SD, and
-#' whether the spatial SD is tiny relative to the residual scale. If a Gaussian
+#' Gaussian fit includes `spatial(1 | site, coords = coords)` or
+#' `spatial(1 + x | site, coords = coords)` in `mu`, it reports site
+#' replication, fitted coordinate range, the spatial SDs, and whether the
+#' smallest spatial SD is tiny relative to the residual scale. If a Gaussian
 #' fit includes `sd_phylo(species) ~ x_species`,
 #' `sd_phylo1(species) ~ x_species`, or
 #' `sd_phylo2(species) ~ x_species`, it reports species replication and the

@@ -167,9 +167,9 @@ rho12.drmTMB <- function(
 #' matched bivariate `mu1`/`mu2` and `sigma1`/`sigma2` random-intercept
 #' covariance blocks from `corpars`, plus fitted bivariate phylogenetic,
 #' coordinate-spatial, animal-model, and `relmat()` correlation rows. Full q4
-#' phylogenetic, animal-model, and `relmat()` blocks report six derived endpoint
-#' correlations; block-diagonal q4 fallback fits report the direct `mu1`/`mu2`
-#' and `sigma1`/`sigma2` block correlations.
+#' phylogenetic, coordinate-spatial, animal-model, and `relmat()` blocks report
+#' six derived endpoint correlations; block-diagonal q4 fallback fits report
+#' the direct `mu1`/`mu2` and `sigma1`/`sigma2` block correlations.
 #'
 #' The table is intentionally more explicit than `rho12()` or `corpars`
 #' because future double-hierarchical, phylogenetic, spatial, and study-level
