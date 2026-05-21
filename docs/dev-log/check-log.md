@@ -34428,3 +34428,53 @@ rg -n 'animal.*q=4.*planned|q=4.*animal.*planned|relmat.*q=4.*planned|q=4.*relma
   source docs no longer say animal/`relmat()` q4 is merely planned.
 - GitHub issue #147 was inspected and remains open; no issue comment was added
   from the unpushed local branch.
+
+## 2026-05-21 - Pkgdown Root Site Deployment Hotfix
+
+Goal:
+
+- Restore the public pkgdown site at `https://itchyshin.github.io/drmTMB/`
+  after the rendered site was being built under the development subdirectory.
+
+Changes:
+
+- Changed `_pkgdown.yml` from `development: mode: auto` to
+  `development: mode: release` so `pkgdown::build_site()` writes the root
+  Pages artifact for the public package URL.
+- Built the site locally from a clean `origin/main` worktree and confirmed the
+  root index is present while `pkgdown-site/dev/index.html` is absent.
+- Triggered the `pkgdown` GitHub Actions workflow from `main` after pushing the
+  hotfix commit.
+- Added after-task report
+  `docs/dev-log/after-task/2026-05-21-pkgdown-root-site-hotfix.md`.
+
+Validation:
+
+```sh
+Rscript -e "pkgdown::build_site(new_process = FALSE, install = TRUE)"
+test -f pkgdown-site/index.html && echo root-index-present || echo root-index-missing
+test -f pkgdown-site/dev/index.html && echo dev-index-present || echo dev-index-missing
+git diff --check
+Rscript -e "pkgdown::check_pkgdown()"
+rg -n 'development:\s*$|mode:\s*auto|mode:\s*release|pkgdown-site/dev|itchyshin.github.io/drmTMB/dev' _pkgdown.yml .github docs README.md NEWS.md
+gh issue list --repo itchyshin/drmTMB --state open --search 'pkgdown OR webpage OR "GitHub Pages" OR Pages' --limit 10 --json number,title,state,url
+gh workflow run pkgdown --repo itchyshin/drmTMB --ref main
+gh run view 26222653484 --repo itchyshin/drmTMB --json status,conclusion,updatedAt,url,jobs
+curl -I -L --max-time 20 https://itchyshin.github.io/drmTMB/
+curl -I -L --max-time 20 https://itchyshin.github.io/drmTMB/reference/index.html
+curl -I -L --max-time 20 https://itchyshin.github.io/drmTMB/articles/structural-dependence.html
+```
+
+- Local `pkgdown::build_site()` completed successfully.
+- The generated artifact contained `pkgdown-site/index.html` and did not contain
+  `pkgdown-site/dev/index.html`.
+- `git diff --check` was clean before the hotfix commit.
+- `pkgdown::check_pkgdown()` reported no problems.
+- The stale-routing scan found the new `mode: release` setting and no current
+  `mode: auto` or `/drmTMB/dev` deployment target.
+- The open issue search found broad docs/release issues, but no open issue
+  specifically tracking a broken pkgdown root URL.
+- GitHub Actions run `26222653484` completed successfully, including the
+  `pkgdown` and `deploy` jobs.
+- The public root URL, reference index, and structural-dependence article each
+  returned HTTP 200 after the deploy.
