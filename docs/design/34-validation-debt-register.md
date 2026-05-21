@@ -23,6 +23,14 @@ Use these status labels:
 - `blocked`: the row is reserved, rejected, or design-only until likelihood
   code, tests, diagnostics, docs, and after-task evidence exist.
 
+Map rows should record the same evidence dimensions used by the pkgdown maps:
+family or component, dependence layer, formula route, q or endpoint class,
+random-intercept support, random-slope support, cross-parameter or bivariate
+combination, extractor route, simulation status, interval status, and the
+nearest fitted user route. "Fitted" and "simulation-ready" are not synonyms.
+A fitted first slice can remain smoke/artifact-only until recovery, interval,
+and operating-characteristic evidence justify a broader claim.
+
 ## Register rows
 
 | Surface ID | Matrix row | Register status | Validation risk | Next gate |
@@ -34,8 +42,13 @@ Use these status labels:
 | `biv_residual_rho12` | Bivariate Gaussian residual `rho12` | covered | low for residual `rho12`; high if confused with latent covariance | Keep residual `rho12` separate from group, phylogenetic, and spatial correlations. |
 | `ordinary_biv_corpairs` | Ordinary bivariate covariance and `corpairs()` | partial | moderate | Matching slope-only `mu1`/`mu2` covariance is fitted; keep intercept-plus-slope, p8/q8 endpoint, and predictor-dependent slope-correlation routes blocked until recovery evidence and interval policy are explicit. |
 | `phylo_structured_effects` | Phylogenetic structured effects | partial | moderate | The first univariate Gaussian `mu` one-slope likelihood, diagnostics, and recovery evidence are fitted; keep multiple slopes, slope correlations, standalone structured `sigma`, structured `rho12`, and non-Gaussian phylogenetic effects in the debt ledger. |
-| `spatial_coord_effects` | Coordinate spatial structured effects | partial | moderate | The coordinate q=2 bivariate location covariance slice is now fitted; add mesh/SPDE, multiple-slope, q=4, spatial `sigma`, and spatial `corpair()` evidence before widening spatial syntax further. |
-| `animal_known_relatedness` | Animal-model and user-supplied relatedness effects | partial | high if confused with implemented phylogeny or meta-analysis known `V` | The Gaussian `mu` intercept and one-slope slices, matching labelled bivariate q=2 `mu1`/`mu2` location covariance, and constant all-four q=4 location-scale covariance are fitted for `animal(pedigree/A/Ainv)` and `relmat(K/Q)`. Keep sparse large-pedigree construction, multiple structured slopes, slope correlations, standalone `sigma`, predictor-dependent `corpair()` regression, non-Gaussian relatedness effects, and direct-SD grammar in the debt ledger until they have diagnostics, extractors, profile targets, and simulation recovery. |
+| `spatial_mu_coord` | Coordinate spatial univariate Gaussian `mu` | partial | moderate | Intercept and one numeric slope are fitted with direct SD targets and smoke evidence; keep mesh/SPDE, multiple slopes, slope correlations, standalone `sigma`, direct-SD surfaces, and non-Gaussian spatial effects in debt. |
+| `spatial_biv_q2` | Coordinate spatial bivariate q=2 `mu1`/`mu2` covariance | partial | moderate | q=2 location covariance is fitted and admitted for focused artifacts; keep spatial `corpair()` regression and broader bivariate spatial slopes blocked. |
+| `spatial_q4` | Coordinate spatial all-four q=4 location-scale covariance | partial | high if treated as formal coverage evidence | Constant all-four q=4 is fitted with extractor/diagnostic smoke and derived-unavailable correlation intervals; add q=4 recovery, convergence/Hessian evidence, and DGP artifacts before operating-characteristic claims. |
+| `animal_mu_relatedness` | Animal-model Gaussian `mu` intercept and one-slope effects | partial | moderate to high for sparse large pedigrees | Dense pedigree and known `A`/`Ainv` first slices are fitted; keep sparse large-pedigree construction, multiple slopes, slope correlations, standalone `sigma`, direct-SD grammar, and non-Gaussian animal effects in debt. |
+| `animal_biv_q2_q4` | Animal-model bivariate q=2 and q=4 covariance | partial | high if q=4 point estimates are read as coverage evidence | q=2 and constant q=4 are fitted for small/dense routes with smoke artifacts; q=2 has fixed-effect Wald and opt-in profile status, while q=4 correlations remain derived-unavailable. |
+| `relmat_mu_relatedness` | `relmat()` Gaussian `mu` intercept and one-slope effects | partial | moderate for matrix conditioning | Known `K`/`Q` intercept and one-slope first slices are fitted; keep multiple slopes, slope correlations, standalone `sigma`, direct-SD grammar, and non-Gaussian `relmat()` effects in debt. |
+| `relmat_biv_q2_q4` | `relmat()` bivariate q=2 and q=4 covariance | partial | high if q=4 point estimates are read as coverage evidence | q=2 and constant q=4 are fitted for known matrices with smoke artifacts; q=2 has fixed-effect Wald and opt-in profile status, while q=4 correlations remain derived-unavailable. |
 | `profile_diagnostics` | Profile intervals and diagnostics | partial | moderate | Complete Slice 79 uncertainty-state handling and a nonlinear interval method for derived summaries. |
 | `large_data_controls` | Large-data fit controls | opt-in | moderate to high for extrapolated claims | Add non-CRAN benchmarks and compatibility tests before claiming broad scalability. |
 | `reserved_planned_neighbours` | Reserved or planned neighbours | blocked | high if advertised as runnable syntax | Keep errors and docs synchronized until implementation, tests, diagnostics, NEWS, and after-task evidence exist. |
@@ -364,31 +377,47 @@ Use these status labels:
 - Diagnostics and intervals: `sdpars$mu`, `ranef("spatial_mu")`,
   `profile_targets()`, `corpairs(level = "spatial")`, `summary()$covariance`,
   and `check_drm()` expose the coordinate-spatial fields, direct spatial SD
-  targets, and the q=2 spatial mean-mean row.
+  targets, the q=2 spatial mean-mean row, and the six q=4 spatial endpoint
+  rows. q=4 spatial correlations are derived summaries with
+  `derived_interval_unavailable` status, not direct profile-proven targets.
+- Simulation tier: univariate coordinate-spatial `mu` intercept and one-slope
+  routes, plus q=2 spatial `mu1`/`mu2` location covariance, have smoke or
+  artifact evidence. Constant q=4 spatial location-scale is fitted with
+  extractor/diagnostic smoke only; it needs q=4-specific DGP, recovery,
+  convergence/Hessian, and interval-status artifacts before formal operating
+  characteristic claims.
 - User-facing docs: `vignettes/phylogenetic-spatial.Rmd`,
-  `docs/design/09-phylogenetic-and-spatial-speed.md`, and
-  `docs/design/16-phylo-spatial-common-math.md`.
+  `vignettes/spatial-models.Rmd`, `vignettes/structural-dependence.Rmd`,
+  `vignettes/implementation-map.Rmd`,
+  `docs/design/09-phylogenetic-and-spatial-speed.md`,
+  `docs/design/16-phylo-spatial-common-math.md`, and
+  `docs/design/66-implementation-map-slices-356-405.md`.
 - Check-log evidence: `docs/dev-log/check-log.md` entries "Phase 10
   coordinate spatial one-slope" and "Phase 10 spatial slope reader path";
   `docs/dev-log/after-task/2026-05-15-phase-10-coordinate-spatial-one-slope.md`;
-  `docs/dev-log/after-phase/2026-05-15-phase-10-coordinate-spatial-foundation-closure.md`.
+  `docs/dev-log/after-phase/2026-05-15-phase-10-coordinate-spatial-foundation-closure.md`;
+  `docs/dev-log/after-task/2026-05-21-spatial-q2-ademp-admission.md`;
+  `docs/dev-log/after-task/2026-05-21-spatial-q2-grid-artifacts.md`; and
+  `docs/dev-log/after-task/2026-05-21-implementation-map-slices-356-405.md`.
 - Debt: mesh/SPDE, multiple spatial slopes, spatial slope correlations,
   standalone spatial `sigma`, spatial direct-SD surfaces, spatial `corpair()`
-  regression, and non-Gaussian spatial effects remain blocked. The later
-  spatial q=4 slice adds a constant bivariate Gaussian location-scale block.
+  regression, q=4 recovery/coverage evidence, and non-Gaussian spatial effects
+  remain blocked.
 
 ### Animal-model and user-supplied relatedness effects
 
-- Matrix status: design-only.
-- Register status: blocked.
-- Evidence: no parser or likelihood tests exist yet. The current evidence is a
-  design boundary in `ROADMAP.md`, `docs/design/01-formula-grammar.md`, and
-  `docs/design/16-phylo-spatial-common-math.md`.
+- Matrix status: first slices fitted for Gaussian `mu`, q=2, and constant q=4.
+- Register status: partial.
+- Evidence: `tests/testthat/test-animal-relmat-gaussian.R`,
+  animal/`relmat()` q=2 and q=4 Phase 18 artifact tests, and dense-likelihood
+  comparison checks for the fitted small or known-matrix routes.
 - Diagnostics and intervals: known-matrix univariate `mu` intercepts and
-  matching labelled bivariate q=2 `mu1`/`mu2` location covariance now have
-  extractor rows, direct profile targets, `corpairs()` rows for q=2, and
-  `check_drm()` diagnostics. Future routes need the same evidence before they
-  can be taught as routine.
+  one-slope routes, matching labelled bivariate q=2 `mu1`/`mu2` location
+  covariance, and constant all-four q=4 location-scale covariance have
+  extractor rows, direct q=2 profile-target status, `corpairs()` rows,
+  `summary()$covariance`, and `check_drm()` diagnostics. q=2 grid artifacts
+  include fixed-effect Wald rows and opt-in profile-status rows. q=4
+  correlations are derived-unavailable for intervals.
 - User-facing docs: the structural-dependence article now shows fitted
   pedigree and known-matrix first slices, q=2 bivariate location covariance,
   and constant q=4 location-scale covariance, while still keeping sparse
@@ -398,10 +427,10 @@ Use these status labels:
   relatedness, spatial dependence, ordinary grouped random effects, and known
   sampling covariance.
 - Debt: add sparse large-pedigree construction, structured animal/`relmat()` slopes,
-  residual-scale relatedness models, q=4 location-scale covariance,
-  predictor-dependent `corpair()` regression, and direct-SD grammar only after
-  the matrix validation, diagnostics, profile targets, and recovery evidence
-  for each route are explicit. Recovery tests should keep covering dense
+  residual-scale relatedness models, predictor-dependent `corpair()`
+  regression, direct-SD grammar, and formal q=4 coverage only after the matrix
+  validation, diagnostics, profile targets, and recovery evidence for each
+  route are explicit. Recovery tests should keep covering dense
   `A`/`K` versus sparse `Ainv`/`Q`, row-name and level alignment, near-singular
   matrices, weak additive variance, and separation from meta-analysis
   `meta_V(..., V = V)`.

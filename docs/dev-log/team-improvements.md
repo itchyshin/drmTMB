@@ -118,6 +118,22 @@ issues, or pull requests.
   `mu` effects from parser/planned status to fitted status. The old
   animal/relmat unsupported-slope snapshots were no longer useful evidence.
 
+## 2026-05-21 - Map Authority And Evidence Tiers
+
+- Improvement implemented: public status pages now need distinct jobs.
+  `model-map` helps users choose a fitted route, `implementation-map` states
+  fitted-versus-planned boundaries, `source-map` points contributors to code and
+  tests, the validation-debt register records evidence, and `ROADMAP.md`
+  records sequence and future work.
+- Improvement implemented: Ada and Rose should label fitted first slices with
+  an evidence tier, such as formal small grid, smoke/artifact only,
+  interval-heavy opt-in, diagnostic/failure ledger, or planned/blocked. This
+  prevents a fitted route such as constant spatial q4 from looking like formal
+  coverage evidence.
+- Trigger: the implementation map had become useful but historically heavy,
+  and the spatial q4 fitted slice exposed stale q2-gate wording in roadmap and
+  validation ledgers.
+
 ## 2026-05-20 - Installed-Layout Runner Tests
 
 - Improvement implemented: tests for `inst/` runner scripts must exercise the
