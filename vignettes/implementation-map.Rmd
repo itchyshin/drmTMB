@@ -103,10 +103,13 @@ slope structures, not a fitted user route.
 The next implementation work should move only one boundary at a time. These are
 the most useful next lanes for users:
 
-| Roadmap lane | Why it helps users | Done when |
+| Slice | Roadmap lane | Why it helps users | Done when |
 | --- | --- | --- |
-| Generic `sd*()` design | Users should not need separate direct-SD names for phylo, spatial, animal, and `relmat()` routes forever. | The grammar, examples, tests, and stale-name migration path are explicit without breaking current `sd_phylo*()` users. |
-| p8/q8 location-scale planning | Full individual-difference location-scale slope models need a design before code. | The endpoint labels, covariance block size, positive-definite parameterization, diagnostics, and profile/derived interval policy are written before fitting. |
-| Spatial and relatedness q=4 parity | Users can ask location-scale structured questions beyond phylogeny and ordinary groups. | q=4 spatial, animal, and `relmat()` claims have likelihood code, tests, `corpairs()`, diagnostics, and docs. |
-| Non-Gaussian structured dependence | Count, ordinal, inflation, and hurdle users need honest guidance before structured models are exposed. | One family and one dependence layer pass likelihood, recovery, diagnostics, extractor, and interval-status gates before a broader claim appears. |
-| Reader-facing availability map maintenance | The pkgdown site should make fitted-versus-planned status easy to find. | This article, `model-map`, README, ROADMAP, NEWS, and the reference index agree after each substantial feature slice. |
+| 303 | Generic `sd*()` design | Users should not need separate direct-SD names for phylo, spatial, animal, and `relmat()` routes forever. | The grammar, examples, tests, and stale-name migration path are explicit without breaking current `sd_phylo*()` users. |
+| 304 | p8/q8 location-scale planning | Full individual-difference location-scale slope models need a design before code. | The endpoint labels, covariance block size, positive-definite parameterization, diagnostics, and profile/derived interval policy are written before fitting. |
+| 305 | Spatial and relatedness q=4 parity | Users can ask location-scale structured questions beyond phylogeny and ordinary groups. | q=4 spatial, animal, and `relmat()` claims have likelihood code, tests, `corpairs()`, diagnostics, and docs. |
+| 306 | q=4 interval policy | Users need to know when q=4 correlations are estimates only and when intervals are real. | Derived q=4 rows keep explicit unavailable interval status until direct or derived-profile interval evidence exists. |
+| 307 | Inflation and hurdle random-effect gate | Users with `zi`, `hu`, future `zoi`, or future `coi` models need clear fixed-effect guidance before extra latent layers are added. | These components remain fixed-effect-only or planned until use cases, recovery tests, diagnostics, prediction semantics, and interval-status rules justify random effects. |
+| 308 | Non-Gaussian structured-dependence candidate map | Count, ordinal, inflation, and hurdle users need honest guidance before structured models are exposed. | One family and one dependence layer pass likelihood, recovery, diagnostics, extractor, and interval-status gates before a broader claim appears. |
+| 309 | Reader-facing availability map maintenance | The pkgdown site should make fitted-versus-planned status easy to find. | This article, `model-map`, README, ROADMAP, NEWS, and the reference index agree after each substantial feature slice. |
+| 310 | User-route examples | Users should leave the map knowing the nearest fitted alternative. | Planned rows point to a fitted route, a design note, or a tutorial boundary rather than leaving users at a dead end. |

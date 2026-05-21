@@ -34741,3 +34741,45 @@ git diff --check
 - The stale-status scan found no old planned-only claims for first one-slope
   `phylo()`, `animal()`, or `relmat()` Gaussian `mu` paths.
 - `git diff --check` was clean.
+
+## 2026-05-21 - Implementation Map Slices 303-310
+
+Goal:
+
+- Extend the implementation map into the next planning lane without adding new
+  random effects or likelihood code, especially keeping `zi`, `hu`, future
+  `zoi`, and future `coi` random effects out of the near-term fitted surface.
+
+Changes:
+
+- Added `docs/design/62-implementation-map-slices-303-310.md` as the slice
+  ledger for generic `sd*()` design, p8/q8 planning, q=4 parity and interval
+  policy, inflation/hurdle random-effect gating, non-Gaussian structured
+  dependence planning, map maintenance, and user-route examples.
+- Updated `vignettes/implementation-map.Rmd` with slice-numbered roadmap rows
+  303-310.
+- Updated `ROADMAP.md` and `NEWS.md` so Slice 307 is explicitly a no-fit
+  decision: `zi`, `hu`, future `zoi`, and future `coi` stay fixed-effect-only
+  or planned until use cases, recovery tests, diagnostics, prediction
+  semantics, and interval-status rules justify random effects.
+
+Validation:
+
+```sh
+air format NEWS.md ROADMAP.md vignettes/implementation-map.Rmd docs/design/62-implementation-map-slices-303-310.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-21-implementation-map-slices-303-310.md
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "pkgdown::build_site()"
+rg -n "Slice 307|fixed-effect-only|zoi|coi|p8/q8|q=4 interval|Generic.*sd" pkgdown-site/articles/implementation-map.html pkgdown-site/ROADMAP.html
+rg -n 'zi.*random effects are (fitted|supported|available)|hu.*random effects are (fitted|supported|available)|zoi.*random effects are (fitted|supported|available)|coi.*random effects are (fitted|supported|available)|inflation random effects are fitted|hurdle random effects are fitted' README.md ROADMAP.md NEWS.md docs/design vignettes R tests/testthat -g '!*.html'
+git diff --check
+```
+
+- `air format` completed without output.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `pkgdown::build_site()` completed and wrote the updated implementation-map
+  and ROADMAP pages.
+- The rendered-page scan found Slice 307/no-fit, fixed-effect-only, `zoi`,
+  `coi`, p8/q8, q=4 interval, and generic `sd*()` roadmap wording.
+- The refined stale-support scan found no claims that `zi`, `hu`, future
+  `zoi`, or future `coi` random effects are fitted, supported, or available.
+- `git diff --check` was clean.
