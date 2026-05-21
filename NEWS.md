@@ -1,5 +1,6 @@
 # drmTMB 0.1.3.9000
 
+* The structural-dependence tutorial path now includes a focused `relmat()` page for fitted known-matrix Gaussian `mu` first slices and matching q=2 bivariate location covariance, while keeping slopes, `sigma`, q=4, predictor-dependent `corpair()` regression, and meta-analysis sampling covariance separate.
 * The structural-dependence tutorial path now includes a focused animal-model page for the fitted `animal(pedigree/A/Ainv)` Gaussian `mu` first slices and matching q=2 bivariate location covariance, with sparse pedigrees, slopes, `sigma`, q=4, and animal `corpair()` regression kept planned.
 * The structural-dependence tutorial path now has a small overview article that helps readers choose between `animal()`, `phylo()`, coordinate `spatial()`, planned phylo-plus-spatial models, and `relmat()` before entering the longer technical tutorial.
 * The figure gallery now shows spatial, animal, and `relmat()` q=2 fitted correlation rows beside residual `rho12`, ordinary group, and phylogenetic rows, while keeping richer structured correlation regressions, q=4 blocks, and scale extensions marked as planned.
