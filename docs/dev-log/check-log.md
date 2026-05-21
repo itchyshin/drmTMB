@@ -2,6 +2,75 @@
 
 Record meaningful development checks here.
 
+## 2026-05-20 - Animal/Relmat Bivariate Q2 Known-Matrix Parity
+
+Goal: start the post-`0.1.3` parity work by fitting the first animal-model and
+lower-level relatedness bivariate Gaussian q=2 location covariance slice from
+matching labelled known-matrix `mu1`/`mu2` terms.
+
+Team roles:
+
+- Ada coordinated the post-release scope, implementation, docs, checks, and
+  issue ledger.
+- Boole checked the matching labelled `animal()` / `relmat()` formula grammar.
+- Gauss and Noether checked that the known precision is shared across the two
+  location fields while residual `rho12` remains separate.
+- Curie and Fisher checked the dense marginal likelihood comparison, extractor
+  rows, profile targets, diagnostics, and `corpairs()` evidence.
+- Grace ran package, pkgdown, and R CMD check gates.
+- Pat and Darwin checked that the model map and structural-dependence article
+  keep applied-reader boundaries concrete.
+- Rose checked stale wording and after-task evidence.
+
+Files changed:
+
+- `R/drmTMB.R`, `R/check.R`, `R/formula-markers.R`
+- `tests/testthat/test-animal-relmat-gaussian.R`
+- `man/animal.Rd`, `man/relmat.Rd`, `man/check_drm.Rd`
+- `DESCRIPTION`, `NEWS.md`, `README.md`, `_pkgdown.yml`, `ROADMAP.md`
+- `vignettes/formula-grammar.Rmd`, `vignettes/model-map.Rmd`,
+  `vignettes/phylogenetic-spatial.Rmd`
+- `docs/design/01-formula-grammar.md`,
+  `docs/design/02-family-registry.md`,
+  `docs/design/03-likelihoods.md`,
+  `docs/design/16-phylo-spatial-common-math.md`,
+  `docs/design/34-validation-debt-register.md`,
+  `docs/design/37-worked-example-inventory.md`,
+  `docs/design/41-phase-18-simulation-programme.md`,
+  `docs/design/45-cross-dpar-correlation-gate.md`,
+  `docs/design/46-pre-simulation-readiness-matrix.md`
+- `docs/dev-log/forgotten-promises-status-2026-05-20.md`,
+  `docs/dev-log/known-limitations.md`,
+  `docs/dev-log/structural-dependence-parity-2026-05-20.md`
+
+Checks run:
+
+```sh
+air format R/check.R R/drmTMB.R R/formula-markers.R tests/testthat/test-animal-relmat-gaussian.R
+Rscript -e "devtools::document()"
+Rscript -e "devtools::test(filter = 'animal-relmat-gaussian', reporter = 'summary')"
+Rscript -e "devtools::test(filter = 'animal-relmat-gaussian|phylo-gaussian|spatial-gaussian|profile-targets|check-drm|corpairs', reporter = 'summary')"
+Rscript -e "devtools::test(reporter = 'summary')"
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "devtools::check()"
+git diff --check
+rg -n 'univariate Gaussian `mu` only|bivariate relatedness covariance|bivariate covariance remain planned|corpair\(\) parity remain planned|first animal/`relmat\(\)` slice fits known-matrix Gaussian|bivariate covariance, and `corpair`' README.md NEWS.md ROADMAP.md docs/design docs/dev-log/known-limitations.md docs/dev-log/forgotten-promises-status-2026-05-20.md vignettes R tests
+gh issue view 147 --repo itchyshin/drmTMB --json number,title,state,labels,url,body
+```
+
+Outcomes:
+
+- The focused `animal-relmat-gaussian` and broader structured-covariance test
+  sets passed.
+- The full `devtools::test(reporter = "summary")` suite passed.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `devtools::check()` passed in 4m08s with 0 errors, 0 warnings, and 0 notes.
+- `git diff --check` was clean.
+- The stale-wording scan found only the historical `0.1.3` NEWS note, a
+  non-stale generic ROADMAP line, and current first-slice wording in the family
+  registry.
+- Issue #147 remains open as the main animal/`relmat()` parity ledger.
+
 ## 2026-05-20 - 0.1.3 Release Evidence
 
 Goal: complete the `0.1.3` preview release after PR #270 passed CI by merging,

@@ -95,7 +95,14 @@
   bivariate `sd_phylo1()` / `sd_phylo2()` path is implemented as a
   location-only response-specific direct-SD model; it is not a way to model
   residual `sigma1` / `sigma2` random-effect SDs or q=4 phylogenetic
-  location-scale endpoint SDs.
+  location-scale endpoint SDs. Matching labelled `animal()` and `relmat()`
+  known-matrix terms are also fitted for the first bivariate Gaussian q=2
+  `mu1`/`mu2` location covariance when `A`/`Ainv` or `K`/`Q` is supplied.
+  Those rows use `corpars$animal` or `corpars$relmat`, `corpairs()`,
+  `summary()$covariance`, direct profile targets, and known-relatedness
+  diagnostics. Pedigree construction, animal/`relmat()` slopes, structured
+  `sigma`, q=4 location-scale blocks, predictor-dependent structured
+  `corpair()` regressions, and generic direct-SD grammar remain planned.
 - `corpairs()` currently reports only correlations that are already fitted:
   residual bivariate `rho12` summaries and ordinary univariate Gaussian `mu`
   random-effect correlations, plus the implemented univariate `mu`/`sigma`
@@ -104,8 +111,9 @@
   bivariate `mu`/`sigma` random-intercept correlations. It reports all six
   ordinary q=4 all-four bivariate random-intercept correlations when that block
   is fitted, and it also reports the fitted bivariate phylogenetic mean-mean
-  correlation and the six phylogenetic q=4 endpoint correlations when that
-  block is fitted. For the first ordinary q=2 predictor-dependent
+  correlation, the six phylogenetic q=4 endpoint correlations, and the first
+  animal/`relmat()` known-matrix q=2 location-covariance row when those blocks
+  are fitted. For the first ordinary q=2 predictor-dependent
   `corpair(id, level = "group", block = "p", from = "mu1", to = "mu2") ~ x`
   route, `corpairs()` reports the fitted mean, range, and number of group-level
   latent correlation values. Spatial and study-level correlation pairs remain
@@ -228,14 +236,16 @@
   as `phylo(1 | species, tree = tree)`. The tree must be an ultrametric
   `phylo` object with positive branch lengths, and every observed species must
   match a tip label.
-- Animal-model and generic known-relatedness structured effects have a first
-  fitted univariate Gaussian `mu` intercept slice for precomputed matrices:
+- Animal-model and generic known-relatedness structured effects have first
+  fitted known-matrix Gaussian slices: a univariate `mu` intercept for
   `animal(1 | id, A = A)`, `animal(1 | id, Ainv = Ainv)`,
-  `relmat(1 | id, K = K)`, and `relmat(1 | id, Q = Q)`. Pedigree-to-precision
-  construction, structured slopes, `sigma` relatedness models, bivariate
-  relatedness covariance, and `corpair()` parity remain planned. These
-  relatedness inputs are distinct from meta-analysis `meta_V(..., V = V)`, which
-  supplies known sampling covariance.
+  `relmat(1 | id, K = K)`, and `relmat(1 | id, Q = Q)`, plus matching labelled
+  bivariate q=2 `mu1`/`mu2` location covariance. Pedigree-to-precision
+  construction, structured slopes, `sigma` relatedness models, q=4
+  location-scale blocks, predictor-dependent `corpair()` regression, and
+  generic direct-SD grammar remain planned. These relatedness inputs are
+  distinct from meta-analysis `meta_V(..., V = V)`, which supplies known
+  sampling covariance.
 - Structured-effect markers outside the fitted paths, such as
   `phylo(1 + x | species, tree = tree)`, phylogenetic terms in `sigma`, and
   `spatial(1 | site, mesh = mesh)`, are parsed and rejected clearly, but they

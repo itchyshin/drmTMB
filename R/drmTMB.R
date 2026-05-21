@@ -2639,17 +2639,37 @@ drm_build_biv_gaussian_spec <- function(
     mu1_entry$rhs <- phylo_mu_terms$mu1$rhs
     mu2_entry$rhs <- phylo_mu_terms$mu2$rhs
   }
-  if (!is.null(spatial_mu_terms$term) && !is.null(phylo_mu_terms$term)) {
+  animal_mu_terms <- guard_biv_known_mu_terms(mu1_entry, mu2_entry, "animal")
+  mu1_entry$rhs <- animal_mu_terms$mu1$rhs
+  mu2_entry$rhs <- animal_mu_terms$mu2$rhs
+  relmat_mu_terms <- guard_biv_known_mu_terms(mu1_entry, mu2_entry, "relmat")
+  mu1_entry$rhs <- relmat_mu_terms$mu1$rhs
+  mu2_entry$rhs <- relmat_mu_terms$mu2$rhs
+
+  active_structured_mu <- list(
+    spatial = spatial_mu_terms$term,
+    phylo = phylo_mu_terms$term,
+    animal = animal_mu_terms$term,
+    relmat = relmat_mu_terms$term
+  )
+  active_structured_mu <- names(active_structured_mu)[
+    !vapply(active_structured_mu, is.null, logical(1L))
+  ]
+  if (length(active_structured_mu) > 1L) {
     cli::cli_abort(c(
       "Bivariate Gaussian models can use one structured location-covariance source at a time.",
-      "x" = "Both {.fn spatial} and {.fn phylo} location terms were supplied.",
-      "i" = "Fit either matching {.fn spatial} terms or matching {.fn phylo} terms in {.code mu1} and {.code mu2}; combined structured covariance needs a separate block design."
+      "x" = "Structured sources supplied: {.val {active_structured_mu}}.",
+      "i" = "Fit one matched structured block at a time; combined phylogenetic, spatial, animal, or relatedness covariance layers need a separate identifiability design."
     ))
   }
   structured_mu_terms <- if (!is.null(spatial_mu_terms$term)) {
     spatial_mu_terms
-  } else {
+  } else if (!is.null(phylo_mu_terms$term)) {
     phylo_mu_terms
+  } else if (!is.null(animal_mu_terms$term)) {
+    animal_mu_terms
+  } else {
+    relmat_mu_terms
   }
 
   mu1_re <- extract_random_mu_terms(mu1_entry$rhs, "mu1")
@@ -4292,6 +4312,74 @@ guard_biv_spatial_mu_terms <- function(mu1_entry, mu2_entry) {
   list(mu1 = mu1_spatial, mu2 = mu2_spatial, term = term1)
 }
 
+guard_biv_known_mu_terms <- function(mu1_entry, mu2_entry, marker) {
+  mu1_known <- extract_gaussian_mu_known_term(mu1_entry, marker)
+  mu2_known <- extract_gaussian_mu_known_term(mu2_entry, marker)
+  example_matrix_arg <- if (identical(marker, "animal")) {
+    "Ainv = Ainv"
+  } else {
+    "Q = Q"
+  }
+  has_known <- c(
+    mu1 = !is.null(mu1_known$term),
+    mu2 = !is.null(mu2_known$term)
+  )
+  if (!any(has_known)) {
+    return(list(mu1 = mu1_known, mu2 = mu2_known, term = NULL))
+  }
+  if (!all(has_known)) {
+    missing <- names(has_known)[!has_known]
+    present <- names(has_known)[has_known]
+    cli::cli_abort(c(
+      "Bivariate {.fn {marker}} location terms must be matched in {.code mu1} and {.code mu2}.",
+      "x" = "{.code {present}} contains {.fn {marker}}, but {.code {missing}} does not.",
+      "i" = "Use matching terms such as {.code mu1 = y1 ~ x + {marker}(1 | p | id, {example_matrix_arg})} and {.code mu2 = y2 ~ x + {marker}(1 | p | id, {example_matrix_arg})}."
+    ))
+  }
+
+  term1 <- mu1_known$term
+  term2 <- mu2_known$term
+  if (
+    !identical(term1$group, term2$group) ||
+      !identical(term1$object, term2$object) ||
+      !identical(term1$structure, term2$structure)
+  ) {
+    cli::cli_abort(c(
+      "Matched bivariate {.fn {marker}} location terms must use the same grouping variable and matrix object.",
+      "x" = "{.code mu1} uses {.code {marker}(1 | {term1$group}, {term1$structure} = {term1$object})}.",
+      "x" = "{.code mu2} uses {.code {marker}(1 | {term2$group}, {term2$structure} = {term2$object})}.",
+      "i" = "The first fitted bivariate {.fn {marker}} path uses one shared known precision for {.code mu1} and {.code mu2}."
+    ))
+  }
+  if (!identical(term1$covariance_label, term2$covariance_label)) {
+    block1 <- phylo_term_block(term1)
+    block2 <- phylo_term_block(term2)
+    cli::cli_abort(c(
+      "Matched bivariate {.fn {marker}} location terms must use the same covariance-block label.",
+      "x" = "{.code mu1} uses block {.code {block1}}.",
+      "x" = "{.code mu2} uses block {.code {block2}}.",
+      "i" = "Use matching terms such as {.code {marker}(1 | p | {term1$group}, {term1$structure} = {term1$object})} in both formulas, or leave both terms unlabelled."
+    ))
+  }
+
+  term1$dpars <- c("mu1", "mu2")
+  term1$q <- 2L
+  term1$covariance_mode <- "scalar"
+  term1$block_ids <- c(1L, 1L)
+  term1$block_labels <- if (is.null(term1$covariance_label)) {
+    marker
+  } else {
+    term1$covariance_label
+  }
+  term1$endpoint_blocks <- rep(term1$block_labels[[1L]], 2L)
+  term1$endpoint_covariance_labels <- if (is.null(term1$covariance_label)) {
+    rep(NA_character_, 2L)
+  } else {
+    rep(term1$covariance_label, 2L)
+  }
+  list(mu1 = mu1_known, mu2 = mu2_known, term = term1)
+}
+
 structured_mu_vars <- function(term) {
   if (is.null(term)) {
     return(character())
@@ -4632,37 +4720,57 @@ build_known_precision_mu_structure <- function(term, data, env) {
       "Internal error: failed to align observations with {.fn {marker}} relatedness nodes."
     )
   }
+  dpars <- if (is.null(term$dpars)) {
+    "mu"
+  } else {
+    term$dpars
+  }
+  q <- length(dpars)
+  endpoint_covariance_labels <- if (!is.null(term$endpoint_covariance_labels)) {
+    unname(as.character(term$endpoint_covariance_labels))
+  } else if (is.null(term$covariance_label)) {
+    rep(NA_character_, q)
+  } else {
+    rep(term$covariance_label, q)
+  }
+  block_ids <- if (!is.null(term$block_ids)) {
+    as.integer(term$block_ids)
+  } else {
+    rep(1L, q)
+  }
+  block_ids <- match(block_ids, sort(unique(block_ids)))
+  block_labels <- if (!is.null(term$block_labels)) {
+    unname(as.character(term$block_labels))
+  } else if (is.null(term$covariance_label)) {
+    marker
+  } else {
+    term$covariance_label
+  }
+  endpoint_blocks <- if (!is.null(term$endpoint_blocks)) {
+    unname(as.character(term$endpoint_blocks))
+  } else {
+    block_labels[block_ids]
+  }
+  covariance_mode <- if (!is.null(term$covariance_mode)) {
+    term$covariance_mode
+  } else {
+    "scalar"
+  }
 
   list(
     has = TRUE,
     type = marker,
     label = term$label,
     group = group,
-    block = if (is.null(term$covariance_label)) {
-      marker
-    } else {
-      term$covariance_label
-    },
+    block = paste(unique(endpoint_blocks), collapse = "/"),
     covariance_label = term$covariance_label,
-    covariance_mode = "scalar",
-    block_ids = 1L,
-    block_labels = if (is.null(term$covariance_label)) {
-      marker
-    } else {
-      term$covariance_label
-    },
-    endpoint_blocks = if (is.null(term$covariance_label)) {
-      marker
-    } else {
-      term$covariance_label
-    },
-    endpoint_covariance_labels = if (is.null(term$covariance_label)) {
-      NA_character_
-    } else {
-      term$covariance_label
-    },
-    dpars = "mu",
-    q = 1L,
+    covariance_mode = covariance_mode,
+    block_ids = block_ids,
+    block_labels = block_labels,
+    endpoint_blocks = endpoint_blocks,
+    endpoint_covariance_labels = endpoint_covariance_labels,
+    dpars = dpars,
+    q = q,
     coef_names = "(Intercept)",
     tree = NA_character_,
     structure = term$structure,

@@ -1,3 +1,7 @@
+# drmTMB 0.1.3.9000
+
+* `biv_gaussian()` now fits the first animal-model and lower-level relatedness q=2 known-matrix location covariance: matching `animal(1 | p | id, A = A)` / `animal(1 | p | id, Ainv = Ainv)` or `relmat(1 | p | id, K = K)` / `relmat(1 | p | id, Q = Q)` terms in `mu1` and `mu2`. The fitted rows appear in `sdpars$mu`, `corpars$animal` or `corpars$relmat`, `ranef("animal_mu")` or `ranef("relmat_mu")`, `corpairs()`, `summary()$covariance`, `profile_targets()`, and `check_drm()`; pedigree construction, structured slopes, `sigma` relatedness models, q=4 location-scale blocks, predictor-dependent `corpair()` regressions, and generic direct-SD grammar remain planned (#147).
+
 # drmTMB 0.1.3 (2026-05-20)
 
 * `animal()` and `relmat()` now fit the first known-relatedness Gaussian `mu` random-intercept slice: `animal(1 | id, A = A)`, `animal(1 | id, Ainv = Ainv)`, `relmat(1 | id, K = K)`, and `relmat(1 | id, Q = Q)`. The fitted SD appears in `sdpars$mu`, conditional effects appear in `ranef("animal_mu")` or `ranef("relmat_mu")`, direct SD targets appear in `profile_targets()`, and `check_drm()` reports replication and SD-ratio diagnostics; pedigree-derived precision, structured slopes, `sigma` relatedness models, bivariate relatedness covariance, and `corpair()` parity remain planned (#147).

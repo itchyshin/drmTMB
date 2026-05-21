@@ -550,16 +550,19 @@ blocks, rather than treating every cross-response correlation as residual
 6. Close the coordinate-spatial foundation:
    `spatial(1 | site, coords = coords)` and one numeric
    `spatial(1 + x | site, coords = coords)` slope in univariate Gaussian `mu`.
-7. Keep the first fitted animal-model and user-supplied relatedness intercept
-   routes as siblings of `phylo()` and `spatial()`: `animal(1 | id, A/Ainv = ...)`
-   and `relmat(1 | id, K/Q = ...)` are Gaussian `mu` intercept slices only,
-   while pedigree construction, slopes, scale terms, bivariate covariance, and
-   `corpair()` parity remain later gates.
+7. Keep the first fitted animal-model and user-supplied relatedness routes as
+   siblings of `phylo()` and `spatial()`: `animal(1 | id, A/Ainv = ...)` and
+   `relmat(1 | id, K/Q = ...)` are Gaussian `mu` intercept slices, and matching
+   labelled bivariate `mu1`/`mu2` terms fit the first q=2 location covariance.
+   Pedigree construction, slopes, scale terms, q=4 location-scale blocks,
+   predictor-dependent `corpair()` regression, and direct-SD grammar remain
+   later gates.
 8. Add spatial SPDE/GMRF fields using the same structured-effect principle.
-9. Add the first bivariate coordinate-spatial `mu1`/`mu2` covariance slice only
-   after the q=2 fitted contract, `corpairs()` rows, profile-target naming, and
-   simulation recovery are specified. This is the closest spatial sibling of
-   the already fitted bivariate phylogenetic `mu1`/`mu2` path.
+9. Keep the first bivariate coordinate-spatial `mu1`/`mu2` covariance slice as
+   the spatial sibling of the fitted bivariate phylogenetic and known-matrix
+   relatedness q=2 paths; add spatial q=4, direct-SD, and predictor-dependent
+   `corpair()` routes only after separate fitted contracts, `corpairs()` rows,
+   profile-target naming, and simulation recovery are specified.
 10. Add one phylogenetic structured slope in `mu`; then, only after recovery
    evidence, allow a maximum of two structured `mu` slopes. For spatial, the
    analogous multiple-slope and slope-correlation path starts after the

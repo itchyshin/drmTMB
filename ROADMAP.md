@@ -155,8 +155,9 @@ distributional regression models using TMB.
   double-hierarchical endpoint.
 - Bivariate random slopes, random effects in `rho12`, bivariate known-`V` plus
   random effects, multi-term cross-parameter bivariate covariance, and
-  structured bivariate covariance remain future work and are rejected before
-  optimization.
+  structured bivariate covariance beyond the fitted q=2 phylogenetic, spatial,
+  animal, and `relmat()` location slices remain future work and are rejected
+  before optimization.
 
 ## Phase 4: Mixed and Double-Hierarchical Models
 
@@ -253,10 +254,12 @@ distributional regression models using TMB.
 
 - Status: first univariate Gaussian phylogenetic location path implemented;
   first matching bivariate `mu1`/`mu2` phylogenetic location slice implemented;
-  first univariate Gaussian coordinate-based spatial location path implemented.
-  Animal-model and user-supplied relatedness inputs are design-only until the
-  shared structured-effect layer has parser, validation, extractor, profile,
-  and recovery-test evidence.
+  first univariate Gaussian coordinate-based spatial location path implemented;
+  and known-matrix `animal()` / `relmat()` Gaussian `mu` intercepts plus
+  matching bivariate q=2 location covariance are fitted. Pedigree construction,
+  structured slopes, `sigma` relatedness models, q=4 location-scale blocks,
+  predictor-dependent structured `corpair()` regressions, and generic direct-SD
+  grammar remain planned.
 - Teach structural dependence in the biological order readers are likely to
   ask for it: animal models first, then phylogenetic dependence, then spatial
   dependence, then combined phylogenetic-spatial layers, with lower-level
@@ -411,7 +414,7 @@ Phase 5 closure boundary:
 | univariate phylogenetic | `phylo(1 | species, tree = tree)` in Gaussian `mu`, `sd_phylo(species) ~ z`, profile targets and diagnostics | phylogenetic slopes, richer tree-shape recovery grids |
 | bivariate phylogenetic | matching `mu1`/`mu2` phylogenetic location correlation, constant full and block-diagonal q=4 location-scale blocks, q=2 predictor-dependent `corpair(..., level = "phylogenetic") ~ w`, bivariate `sd_phylo1()` / `sd_phylo2()`, and Ayumi q2/q4 stress artifacts | q=4 predictor-dependent location-scale and scale-scale `corpair()` regressions; standalone structured `sigma`-`sigma` covariance is not a near-term priority |
 | coordinate spatial | `spatial(1 | site, coords = coords)` and one numeric `spatial(1 + x | site, coords = coords)` slope in univariate Gaussian `mu`, plus matching bivariate `mu1`/`mu2` `spatial(1 | p | site, coords = coords)` q=2 covariance with `corpairs(level = "spatial")`; `sdpars`, `ranef("spatial_mu")`, direct profile targets, and `check_drm()` rows expose the fitted fields | mesh/SPDE, multiple spatial slopes, spatial slope correlations, spatial scale, bivariate spatial q=4, spatial direct-SD, spatial `corpair()` |
-| animal and user-supplied relatedness | first univariate Gaussian `mu` intercept slice for `animal(1 | id, A = A)`, `animal(1 | id, Ainv = Ainv)`, `relmat(1 | id, K = K)`, and `relmat(1 | id, Q = Q)`, with diagnostics, profile targets, and recovery tests | pedigree-to-Ainv construction, structured slopes, `sigma`, bivariate covariance, `corpair()` parity, optional `phylo(..., A/Ainv = ...)` input, and generic direct-SD naming design |
+| animal and user-supplied relatedness | known-matrix Gaussian `mu` intercepts for `animal(1 | id, A/Ainv = ...)` and `relmat(1 | id, K/Q = ...)`, plus matching labelled `mu1`/`mu2` q=2 location covariance with `corpairs()`, `summary()$covariance`, profile targets, diagnostics, and dense-likelihood tests | pedigree-to-Ainv construction, structured slopes, `sigma`, q=4 location-scale blocks, predictor-dependent `corpair()` regressions, optional `phylo(..., A/Ainv = ...)` input, and generic direct-SD naming design |
 | inference/output | fixed-effect SEs, direct profile-ready targets where implemented, `corpairs(conf.int = TRUE)` with explicit interval status | derived-profile intervals for q=4 correlations and richer marginal-effect/visualization helpers |
 
 Spatial parity now has its own ladder. The smallest missing phylogenetic
@@ -1527,7 +1530,7 @@ Use this order unless Slice 191 evidence overturns it:
 | 260 | Interaction plot polish | The gallery shows categorical x continuous, categorical x categorical, and continuous x continuous examples with fitted values, raw data where useful, 95% confidence intervals, and clear conditioning labels. |
 | 261 | Distributional-parameter panels | Done locally: the gallery now labels `mu` and `sigma` panels by estimand and adds fitted Student-t `nu`, zero-inflation probability `zi`, and residual `rho12` examples with explicit response-scale wording and interval provenance. |
 | 262 | Random-effect and variance-component figures | Done locally: the gallery now compares residual `sigma` with ordinary group-level intercept and slope SDs, shows conditional random-slope deviations, and plots a fitted `sd(site)` surface while keeping unavailable interval status explicit. |
-| 263 | Correlation-layer figures | Done locally before the q=2 spatial slice: the gallery facets implemented residual, ordinary group, and phylogenetic `corpairs()`-style rows, while spatial, animal, and `relmat()` rows need a follow-up gallery refresh as their fitted subsets land. |
+| 263 | Correlation-layer figures | Done locally before the q=2 spatial and known-matrix relatedness slices: the gallery facets implemented residual, ordinary group, and phylogenetic `corpairs()`-style rows, while spatial, animal, and `relmat()` rows need a follow-up gallery refresh now that their first fitted subsets have landed. |
 | 264 | `emmeans` and marginal-effects figures | Done locally: the gallery now shows the supported fixed-effect univariate `mu` `emmeans` route, factor-conditioned and interaction grids, an empirical `marginal_parameters()` summary, and unsupported boundaries for `sigma`, bivariate, zero-inflated, hurdle, ordinal, and random-effect targets. |
 | 265 | Simulation plot grammar | Done locally: `simulation-plot-grammar` is a Simulation & Comparison article with display contracts for bias, RMSE, coverage, power, convergence, runtime, and warning/error ledgers across continuous, proportion, count, and meta-analysis examples. |
 | 266 | Gallery source-map and QA | Done locally: the figure gallery now has a source-map table mapping each display to its fitted object or fixture, extractor or plotter, interval source, and support boundary, with render, pkgdown, and visual checks recorded. |
@@ -1570,7 +1573,7 @@ as the whole comprehensive simulation programme.
 | 278 | CIs and profiles | Interval hardening | Done locally: the interval contract now states which fixed-effect, scale, `rho12`, direct SD/correlation, Fisher-z simulation, derived-variance, and bootstrap routes are supported or deliberately unavailable, with Student-t `nu` fixed-effect interval and Fisher-z helper tests. |
 | 279 | Known issues | Bergmann report fixes | Done locally: invalid fixed-effect Wald variances now produce `NA` intervals with `conf.status = "wald_unavailable"`; univariate `sigma ~ phylo()` gives a targeted unsupported message; labelled q4 block-diagonal fallback is tested as separate `mu` and `sigma` q2 blocks; convergence guidance now covers long iteration histories. |
 | 280 | Meta-analysis | `meta_V(V = V)` hardening | Done locally: vector and full-matrix `meta_V(V = V)` routes now have alias and Wald fixed-effect interval coverage, `scale = "exact"` gets a targeted remove-`scale` error because additive exact known-`V` is the default, and `drmTMB()` / `meta_vcov_bivariate()` documentation now leads with `meta_V()` while keeping `meta_known_V()` as a compatibility alias. |
-| 281 | Structural dependence | Animal and `relmat()` user surface | Done locally by documentation hardening, superseded in the 0.1.3 preview line by the first fitted known-matrix slice: `animal(1 | id, A = A)`, `animal(1 | id, Ainv = Ainv)`, `relmat(1 | id, K = K)`, and `relmat(1 | id, Q = Q)` now fit Gaussian `mu` intercepts. The article still keeps observation-level known sampling covariance in `meta_V(V = V)`, not latent relatedness. |
+| 281 | Structural dependence | Animal and `relmat()` user surface | Done locally by documentation hardening, superseded after the 0.1.3 preview line by fitted known-matrix slices: `animal(1 | id, A/Ainv = ...)` and `relmat(1 | id, K/Q = ...)` fit Gaussian `mu` intercepts, and matching labelled `mu1`/`mu2` terms fit the first q=2 bivariate location covariance. The article still keeps observation-level known sampling covariance in `meta_V(V = V)`, not latent relatedness. |
 | 282 | Structural dependence | Sparse precision path | Done locally by documentation hardening: ASReml efficiency notes and user docs now separate dense covariance inputs (`A`, `K`) from sparse precision or inverse-relatedness inputs (`Ainv`, `Q`), keep `meta_V(V = V)` as observation-level sampling covariance, and block large-pedigree or large-matrix speed claims until sparse-precision recovery and benchmark evidence exists. |
 | 283 | Non-Gaussian audit | Family and parameter map | Done locally by documentation audit: `docs/design/02-family-registry.md` now lists each public family route, distributional-parameter links, shape or coscale slots, fitted random-effect allowance, and test evidence state, while correcting stale beta-binomial, Poisson, NB2, bivariate, and `meta_V()` wording. |
 | 284 | Counts | Count-model hardening | Done locally: Poisson, NB2, zero-truncated NB2, zero-inflated Poisson, zero-inflated NB2, and hurdle NB2 tests now assert fixed-effect Wald interval rows for the fitted count dpars (`mu`, `sigma`, `zi`, and `hu` where relevant), while existing Poisson/NB2 `mu` random-effect tests and Phase 18 smoke surfaces remain the fitted mixed-count evidence; the count tutorial now states that boundary explicitly. |
