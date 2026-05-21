@@ -179,7 +179,7 @@ warning/error ledger, and interval-status tables rather than being dropped.
 | 4. Methods | The intended `drmTMB` formulas for univariate and bivariate q=2 known-matrix fits are stated. |
 | 5. Performance measures | Bias, RMSE, Wald/profile coverage, response-scale error, diagnostics, convergence, warnings, runtime, and failure ledgers are defined. |
 | 6. Software/settings | Per-run session metadata remains the runner responsibility. |
-| 7. Code availability | Runnable user examples now live in the structural-dependence article, and the first q=2 DGP helper, summariser, and smoke runner live under `inst/sim/`; a grid writer and formal-condition runner remain to be added. |
+| 7. Code availability | Runnable user examples now live in the structural-dependence article, and the first q=2 DGP helper, summariser, smoke runner, and CSV grid writer live under `inst/sim/`; a formal-condition runner with interval status remains to be added. |
 | 8. Replicability | Seeded cells, replicate-level seeds, generated matrices, and matrix arguments must be saved with each replicate. |
 | 9. Real-data motivation | The structural-dependence article supplies the applied animal-model and relatedness-matrix motivation; formal reports should cite it. |
 | 10. Complete results | Manifests, matrix diagnostics, warning/error ledgers, and interval-status tables keep hard cases visible. |
