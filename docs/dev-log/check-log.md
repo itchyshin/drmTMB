@@ -2,6 +2,46 @@
 
 Record meaningful development checks here.
 
+## 2026-05-20 - Animal/Relmat Q2 Interval-Status Plan
+
+Goal: decide how the q=2 animal/`relmat()` smoke-grid artifacts should handle
+fixed-effect, residual-scale, structured-SD, structured-correlation, residual
+`rho12`, and known-matrix interval rows before interval CSVs are implemented.
+
+Team roles:
+
+- Ada kept this as a design gate stacked after the grid-writer PR.
+- Fisher separated Wald-eligible fixed effects from profile-only structured
+  SD, structured correlation, and residual `rho12` targets.
+- Noether checked that known matrices, structured correlations, and residual
+  `rho12` remain distinct mathematical layers.
+- Curie mapped the next code steps onto existing Phase 18 interval helpers.
+- Pat and Darwin checked whether a future report would tell users what the
+  intervals mean and what was not requested.
+- Rose kept failed profiles out of the model-failure bucket.
+
+Files changed:
+
+- `docs/design/55-phase-18-animal-relmat-q2-interval-status.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `docs/design/46-pre-simulation-readiness-matrix.md`
+- `docs/design/54-phase-18-animal-relmat-known-matrix-ademp.md`
+
+Checks run:
+
+```sh
+Rscript -e "pkgdown::check_pkgdown()"
+git diff --check
+rg -n 'interval coverage waits|formal-condition runner with interval status|interval artifact code remains' docs/design
+```
+
+Outcomes:
+
+- `pkgdown::check_pkgdown()` reported no problems.
+- `git diff --check` was clean.
+- The targeted wording scan found the expected readiness and code-availability
+  rows only.
+
 ## 2026-05-20 - Animal/Relmat Q2 Phase 18 Grid Writer
 
 Goal: make the animal/`relmat()` q=2 smoke runner export repeatable
