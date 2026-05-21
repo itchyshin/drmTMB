@@ -33883,3 +33883,55 @@ rg -n 'bivariate q=2 spatial needs an explicit ADEMP|fitted but waits for a dedi
 - The stale-status scan returned only the expected historical wording inside
   this new after-task report and the still-open ROADMAP note that the
   correlation-layer figure gallery needs a spatial q=2 refresh.
+
+## 2026-05-21 - Spatial Q2 Smoke Runner
+
+Goal:
+
+- Turn the newly admitted coordinate-spatial q=2 Phase 18 design into a
+  runnable seeded smoke surface.
+
+Changes:
+
+- Added `phase18_spatial_q2_conditions()` and `phase18_dgp_spatial_q2()` under
+  `inst/sim/dgp/` for bivariate Gaussian `mu1`/`mu2` coordinate-spatial
+  covariance with residual `rho12` kept separate.
+- Added `phase18_summarise_spatial_q2_fit()` under `inst/sim/fit/` to record
+  fixed `mu1`/`mu2` coefficients, public residual scales, spatial SDs, the
+  spatial q=2 correlation, and residual `rho12`.
+- Added `phase18_run_spatial_q2_smoke()` under `inst/sim/run/`, fitting the
+  admitted public syntax
+  `spatial(1 | p | site, coords = coords)` in both response formulas.
+- Added focused tests for seeded DGP reproducibility, coordinate covariance
+  truth, runner output rows, default profile-status provenance, and malformed
+  inputs.
+- Updated the Phase 18 spatial q=2 ADEMP sheet, simulation programme,
+  readiness matrix, spatial parity ladder, and `inst/sim/README.md` so the
+  status now says DGP/smoke-runner evidence exists while CSV artifacts and
+  interval-status tables remain the next gate.
+- Added after-task report
+  `docs/dev-log/after-task/2026-05-21-spatial-q2-smoke-runner.md`.
+
+Validation:
+
+```sh
+air format inst/sim/dgp/sim_dgp_spatial_q2.R inst/sim/fit/sim_summarise_spatial_q2.R inst/sim/run/sim_run_spatial_q2_smoke.R tests/testthat/test-phase18-spatial-q2-smoke.R
+Rscript -e "devtools::test(filter = 'phase18-spatial-q2-smoke')"
+Rscript -e "devtools::test(filter = 'spatial-gaussian|phase18-spatial-q2-smoke')"
+Rscript -e "pkgdown::check_pkgdown()"
+git diff --check
+rg -n 'spatial q=2.*need(s)? a dedicated DGP|broad q=2 reports still need a dedicated DGP|DGP/helper/artifact slice|formal Phase 18 DGP and writer should live|simulation programme has not decided|fitted but waits for a dedicated ADEMP|waiting for an ADEMP row' docs/design/16-phylo-spatial-common-math.md docs/design/41-phase-18-simulation-programme.md docs/design/46-pre-simulation-readiness-matrix.md docs/design/56-phase-18-spatial-q2-ademp.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-21-spatial-q2-ademp-admission.md docs/dev-log/after-task/2026-05-21-spatial-q2-smoke-runner.md inst/sim/README.md
+rg -n 'spatial q=2.*need(s)? a dedicated DGP|broad q=2 reports still need a dedicated DGP|DGP/helper/artifact slice|formal Phase 18 DGP and writer should live|simulation programme has not decided|fitted but waits for a dedicated ADEMP|waiting for an ADEMP row' docs/design/16-phylo-spatial-common-math.md docs/design/41-phase-18-simulation-programme.md docs/design/46-pre-simulation-readiness-matrix.md docs/design/56-phase-18-spatial-q2-ademp.md inst/sim/README.md
+```
+
+- The first focused test run failed because the test expected the word
+  "correlation" in a shared validator error that actually says "absolute value
+  below 1". The expectation was narrowed to the actual error text.
+- The final focused run passed 20 expectations with no warnings or skips.
+- The broader neighboring run `spatial-gaussian|phase18-spatial-q2-smoke`
+  passed 118 expectations.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `git diff --check` was clean.
+- The stale-status scan returned only the previous Slice H after-task/check-log
+  text that was true when written. Current design docs now say the DGP and
+  smoke runner exist; the current-design-only scan returned no matches.
