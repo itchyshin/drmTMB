@@ -157,6 +157,13 @@ moves only pure numeric and likelihood-kernel helpers into headers; it does not
 move `DATA_*` declarations, `PARAMETER_*` declarations, `REPORT()` calls,
 `ADREPORT()` calls, R builders, formula grammar, or public branch IDs.
 
+The ordinary Poisson q=1 phylogenetic `mu` route was added inside
+`src/drmTMB.cpp` rather than as part of that refactor. Future C++ cleanup should
+therefore update the modularization source map before moving any shared
+structured-effect prior helper, and should keep Poisson `u_phylo`,
+`log_sd_phylo`, `Q_phylo`, profile-target, `ranef()`, and `check_drm()` labels
+stable across the move.
+
 ## Validation-debt register
 
 The stable-core matrix in the README and model-map article is backed by
