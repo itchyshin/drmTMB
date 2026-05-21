@@ -2604,12 +2604,14 @@ drm_build_biv_gaussian_spec <- function(
   mu2_entry$rhs <- meta_mu2$rhs
   meta <- if (!is.null(meta_mu1$V)) meta_mu1 else meta_mu2
 
-  spatial_mu_terms <- guard_biv_spatial_mu_terms(mu1_entry, mu2_entry)
-  mu1_entry$rhs <- spatial_mu_terms$mu1$rhs
-  mu2_entry$rhs <- spatial_mu_terms$mu2$rhs
-
   structured_q4_terms <- list(
     phylo = detect_biv_phylo_q4_terms(
+      mu1_entry,
+      mu2_entry,
+      sigma1_entry,
+      sigma2_entry
+    ),
+    spatial = detect_biv_spatial_q4_terms(
       mu1_entry,
       mu2_entry,
       sigma1_entry,
@@ -2637,11 +2639,12 @@ drm_build_biv_gaussian_spec <- function(
     cli::cli_abort(c(
       "Bivariate q=4 structured location-scale blocks can use one structured source at a time.",
       "x" = "Structured q=4 sources supplied: {.val {active_structured_q4}}.",
-      "i" = "Fit one of {.fn phylo}, {.fn animal}, or {.fn relmat} first; combined structural layers need separate identifiability checks."
+      "i" = "Fit one of {.fn phylo}, {.fn spatial}, {.fn animal}, or {.fn relmat} first; combined structural layers need separate identifiability checks."
     ))
   }
 
   phylo_mu_terms <- NULL
+  spatial_mu_terms <- NULL
   animal_mu_terms <- NULL
   relmat_mu_terms <- NULL
   if (length(active_structured_q4) == 1L) {
@@ -2678,6 +2681,15 @@ drm_build_biv_gaussian_spec <- function(
         term = NULL
       )
     }
+    spatial_mu_terms <- if (identical(q4_marker, "spatial")) {
+      q4_mu_terms
+    } else {
+      list(
+        mu1 = list(rhs = mu1_entry$rhs, term = NULL),
+        mu2 = list(rhs = mu2_entry$rhs, term = NULL),
+        term = NULL
+      )
+    }
     animal_mu_terms <- if (identical(q4_marker, "animal")) {
       q4_mu_terms
     } else {
@@ -2698,6 +2710,11 @@ drm_build_biv_gaussian_spec <- function(
     }
   }
 
+  if (is.null(spatial_mu_terms)) {
+    spatial_mu_terms <- guard_biv_spatial_mu_terms(mu1_entry, mu2_entry)
+    mu1_entry$rhs <- spatial_mu_terms$mu1$rhs
+    mu2_entry$rhs <- spatial_mu_terms$mu2$rhs
+  }
   if (is.null(phylo_mu_terms)) {
     phylo_mu_terms <- guard_biv_phylo_mu_terms(mu1_entry, mu2_entry)
     mu1_entry$rhs <- phylo_mu_terms$mu1$rhs
@@ -2712,20 +2729,6 @@ drm_build_biv_gaussian_spec <- function(
     relmat_mu_terms <- guard_biv_known_mu_terms(mu1_entry, mu2_entry, "relmat")
     mu1_entry$rhs <- relmat_mu_terms$mu1$rhs
     mu2_entry$rhs <- relmat_mu_terms$mu2$rhs
-  }
-
-  spatial_q4_terms <- detect_biv_spatial_q4_attempt(
-    mu1_entry,
-    mu2_entry,
-    sigma1_entry,
-    sigma2_entry
-  )
-  if (isTRUE(spatial_q4_terms$has)) {
-    cli::cli_abort(c(
-      "Spatial q=4 location-scale blocks are planned but not implemented yet.",
-      "x" = "At least one {.code sigma1} or {.code sigma2} formula contains {.fn spatial}.",
-      "i" = "Use the fitted coordinate-spatial q=2 location path first, or fit ordinary q=4 group-level blocks while the spatial q=4 diagnostics are designed."
-    ))
   }
 
   active_structured_mu <- list(
@@ -4225,6 +4228,21 @@ detect_biv_known_q4_terms <- function(
   )
 }
 
+detect_biv_spatial_q4_terms <- function(
+  mu1_entry,
+  mu2_entry,
+  sigma1_entry,
+  sigma2_entry
+) {
+  detect_biv_structured_q4_terms(
+    mu1_entry,
+    mu2_entry,
+    sigma1_entry,
+    sigma2_entry,
+    marker = "spatial"
+  )
+}
+
 detect_biv_structured_q4_terms <- function(
   mu1_entry,
   mu2_entry,
@@ -4347,23 +4365,6 @@ detect_biv_structured_q4_terms <- function(
     labels[[1L]]
   )
   list(has = TRUE, term = term)
-}
-
-detect_biv_spatial_q4_attempt <- function(
-  mu1_entry,
-  mu2_entry,
-  sigma1_entry,
-  sigma2_entry
-) {
-  entries <- list(
-    mu1 = mu1_entry,
-    mu2 = mu2_entry,
-    sigma1 = sigma1_entry,
-    sigma2 = sigma2_entry
-  )
-  terms <- lapply(entries, single_entry_structured_term, marker = "spatial")
-  has_spatial <- !vapply(terms, is.null, logical(1L))
-  list(has = any(has_spatial[c("sigma1", "sigma2")]), term = NULL)
 }
 
 structured_marker_title <- function(marker) {

@@ -362,6 +362,133 @@ test_that("bivariate Gaussian mu supports coordinate-based spatial correlation",
   expect_equal(covariance$correlation_target, spatial_profile_names[[3L]])
 })
 
+test_that("bivariate Gaussian supports spatial q4 location-scale blocks", {
+  site_levels <- paste0("site_", seq_len(8L))
+  theta <- seq(0, 1.5 * pi, length.out = length(site_levels))
+  coords <- data.frame(
+    x = cos(theta) + seq_along(site_levels) / (3 * length(site_levels)),
+    y = sin(theta)
+  )
+  rownames(coords) <- site_levels
+  dat <- data.frame(
+    y1 = seq(-0.2, 0.5, length.out = 16L),
+    y2 = seq(0.3, -0.4, length.out = 16L),
+    x = rep(c(-1, 1), 8L),
+    z = rep(c(0, 1), each = 8L),
+    site = rep(site_levels, each = 2L)
+  )
+
+  fit_q4 <- suppressWarnings(
+    drmTMB(
+      bf(
+        mu1 = y1 ~ x + spatial(1 | p | site, coords = coords),
+        mu2 = y2 ~ x + spatial(1 | p | site, coords = coords),
+        sigma1 = ~ z + spatial(1 | p | site, coords = coords),
+        sigma2 = ~ z + spatial(1 | p | site, coords = coords),
+        rho12 = ~1
+      ),
+      family = biv_gaussian(),
+      data = dat,
+      control = drm_control(
+        se = FALSE,
+        optimizer = list(eval.max = 100, iter.max = 100)
+      )
+    )
+  )
+  q4_pairs <- corpairs(fit_q4, level = "spatial")
+  q4_pairs_ci <- corpairs(fit_q4, level = "spatial", conf.int = TRUE)
+  q4_cov <- summary(fit_q4)$covariance
+  q4_targets <- profile_targets(fit_q4)
+  q4_cor_targets <- q4_targets[
+    startsWith(q4_targets$parm, "cor:spatial:"),
+    ,
+    drop = FALSE
+  ]
+  q4_check <- check_drm(fit_q4)
+  q4_diag <- q4_check[
+    q4_check$check == "biv_spatial_q4_covariance",
+    ,
+    drop = FALSE
+  ]
+
+  expect_true(is.finite(fit_q4$opt$objective))
+  expect_equal(fit_q4$model$structured$phylo_mu$type, "spatial")
+  expect_equal(fit_q4$model$structured$phylo_mu$q, 4L)
+  expect_equal(
+    fit_q4$model$structured$phylo_mu$covariance_mode,
+    "unstructured"
+  )
+  expect_named(
+    fit_q4$sdpars$mu,
+    c(
+      "mu1:spatial(1 | p | site)",
+      "mu2:spatial(1 | p | site)",
+      "sigma1:spatial(1 | p | site)",
+      "sigma2:spatial(1 | p | site)"
+    )
+  )
+  expect_equal(sum(names(fit_q4$opt$par) == "theta_phylo"), 6L)
+  expect_equal(nrow(q4_pairs), 6L)
+  expect_equal(nrow(q4_pairs_ci), 6L)
+  expect_equal(nrow(q4_cov), 6L)
+  expect_equal(q4_pairs$level, rep("spatial", 6L))
+  expect_equal(
+    as.integer(table(q4_pairs$class)[
+      c("mean-mean", "mean-scale", "scale-scale")
+    ]),
+    c(1L, 4L, 1L)
+  )
+  expect_equal(nrow(corpairs(fit_q4, class = "location-scale")), 4L)
+  expect_equal(nrow(corpairs(fit_q4, block = "p")), 6L)
+  expect_equal(q4_cov$parameter, q4_pairs$parameter)
+  expect_equal(nrow(q4_cor_targets), 6L)
+  expect_equal(q4_cor_targets$tmb_parameter, rep("theta_phylo", 6L))
+  expect_equal(q4_cor_targets$target_type, rep("derived", 6L))
+  expect_false(any(q4_cor_targets$profile_ready))
+  expect_equal(
+    q4_cor_targets$profile_note,
+    rep("derived_unstructured_correlation", 6L)
+  )
+  expect_equal(q4_pairs_ci$profile_target, q4_cor_targets$parm)
+  expect_equal(
+    q4_pairs_ci$conf.status,
+    rep("derived_interval_unavailable", 6L)
+  )
+  expect_true(all(is.na(q4_pairs_ci$conf.low)))
+  expect_equal(nrow(q4_diag), 1L)
+  expect_match(q4_diag$value, "covariance_mode=unstructured", fixed = TRUE)
+  expect_match(q4_diag$message, "Spatial q4 location-scale")
+
+  expect_error(
+    drmTMB(
+      bf(
+        mu1 = y1 ~ x + spatial(1 | p | site, coords = coords),
+        mu2 = y2 ~ x + spatial(1 | p | site, coords = coords),
+        sigma1 = ~ z + spatial(1 | p | site, coords = coords),
+        sigma2 = ~z,
+        rho12 = ~1
+      ),
+      family = biv_gaussian(),
+      data = dat
+    ),
+    "Partial spatial location-scale blocks"
+  )
+  expect_error(
+    drmTMB(
+      bf(
+        mu1 = y1 ~ x + spatial(1 | site, coords = coords),
+        mu2 = y2 ~ x + spatial(1 | site, coords = coords),
+        sigma1 = ~ z + spatial(1 | site, coords = coords),
+        sigma2 = ~ z + spatial(1 | site, coords = coords),
+        rho12 = ~1
+      ),
+      family = biv_gaussian(),
+      data = dat
+    ),
+    "require an explicit covariance-block label"
+  )
+})
+
 test_that("Gaussian mu supports coordinate-based spatial one-slope fields", {
   sim <- new_spatial_gaussian_slope_data()
   coords <- sim$coords

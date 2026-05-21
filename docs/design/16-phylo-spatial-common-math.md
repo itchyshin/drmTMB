@@ -491,10 +491,11 @@ structured slopes, bivariate structured slopes, and slope correlations remain
 later gates. Slice 39 closes the earlier validation gap for the first
 univariate Gaussian phylogenetic one-slope path.
 Slice 187 rechecked the fitted spatial side: the slope-field SD has direct
-profile-interval coverage. The later q=2 bivariate spatial slice added matching
-`mu1`/`mu2` coordinate fields, while spatial `sigma`, spatial q=4 syntax,
-predictor-dependent spatial `corpair()` rows, and multiple spatial slopes
-remain outside the fitted surface.
+profile-interval coverage. Later bivariate spatial slices added matching
+`mu1`/`mu2` coordinate fields and a constant all-four q=4 location-scale block,
+while standalone spatial `sigma`, predictor-dependent spatial `corpair()` rows,
+non-Gaussian spatial effects, and multiple spatial slopes remain outside the
+fitted surface.
 For two-response models, the most interesting later slope correlation is a
 response-1 slope versus response-2 slope for the same covariate, matching the
 plasticity-syndrome idea in O'Dea, Noble, and Nakagawa (2021). That target needs
@@ -558,9 +559,9 @@ blocks, rather than treating every cross-response correlation as residual
    standalone scale terms, predictor-dependent `corpair()` regression, and
    direct-SD grammar remain later gates.
 8. Add spatial SPDE/GMRF fields using the same structured-effect principle.
-9. Keep the first bivariate coordinate-spatial `mu1`/`mu2` covariance slice as
-   the spatial sibling of the fitted bivariate phylogenetic and known-matrix
-   relatedness q=2 paths; add spatial q=4, direct-SD, and predictor-dependent
+9. Keep the first bivariate coordinate-spatial `mu1`/`mu2` covariance slice and
+   constant q=4 location-scale block as spatial siblings of the fitted
+   phylogenetic and known-matrix paths; add direct-SD and predictor-dependent
    `corpair()` routes only after separate fitted contracts, `corpairs()` rows,
    profile-target naming, and simulation recovery are specified.
 10. Add one phylogenetic structured slope in `mu`; then, only after recovery
@@ -584,11 +585,12 @@ machinery, and they now share the first constant q=2 bivariate location layer.
 | One structured `mu` slope | Fitted for coordinates as independent intercept and slope fields | Add stronger recovery and boundary diagnostics before multiple slopes |
 | Bivariate `mu1`/`mu2` q=2 location covariance, the spatial sibling of fitted `corpairs(level = "phylogenetic")` | Fitted for coordinates as matching `spatial(1 | p | site, coords = coords)` terms | Keep `corpairs(level = "spatial")`, direct profile targets, recovery tests, and dense covariance comparator evidence current |
 | Predictor-dependent q=2 `corpair()` regression, already fitted for phylogenetic location-location rows | Planned | Design the positive-definite loading contract for spatial rows before exposing syntax |
-| Constant q=4 location-scale block across `mu1`, `mu2`, `sigma1`, and `sigma2`, already fitted for phylogenetic rows | Planned | Wait until q=2 spatial location covariance is stable, because q=4 adds scale endpoints and six latent correlations |
+| Constant q=4 location-scale block across `mu1`, `mu2`, `sigma1`, and `sigma2`, already fitted for phylogenetic rows | Implemented first slice for coordinate spatial | Matching labelled all-four `spatial()` terms now use the shared structured q4 backend and report six derived latent correlations |
 | Direct structured SD surfaces, currently implemented for `sd_phylo*()` | Planned, but should not clone the name family | Use the generic direct-SD naming decision from `random_effect_scale_formulas`, such as `sd(group, level = ...)` or another reviewed spelling |
 
 The immediate q=2 implementation lane has now landed for coordinate-spatial
-location covariance, but it is not spatial `sigma`, spatial q=4, or spatial
+location covariance, and the constant q=4 location-scale block is fitted as a
+first slice. These routes are still not standalone spatial `sigma` or spatial
 `corpair()` regression. Fisher admits the constant q=2 lane for a focused Phase
 18 grid through `docs/design/56-phase-18-spatial-q2-ademp.md`. The first DGP
 smoke runner, CSV grid writer, fixed-effect Wald tables, and profile-status

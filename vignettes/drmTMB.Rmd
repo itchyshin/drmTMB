@@ -190,6 +190,8 @@ modelled. A random-effect correlation is a group-level quantity. Phylogenetic
 rows from `corpairs(..., level = "phylogenetic")` are structured-effect
 quantities, and the first coordinate-spatial mean-mean row is reported by
 `corpairs(..., level = "spatial")` when matching labelled spatial terms are
-fitted in `mu1` and `mu2`. Richer spatial q=4 and predictor-dependent spatial
+fitted in `mu1` and `mu2`. The constant coordinate-spatial q=4 location-scale
+block is also fitted when matching labelled spatial terms appear in all four
+`mu1`/`mu2`/`sigma1`/`sigma2` endpoints. Predictor-dependent spatial
 `corpair()` rows remain planned. Those layers should not be reported as if they
 were the same estimand.

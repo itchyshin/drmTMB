@@ -12,8 +12,8 @@ users can see which structural-dependence paths are runnable today.
 
 | Slice | Target | Decision |
 | --- | --- | --- |
-| 1 | Spatial direct-SD design gate | Keep direct spatial SD surfaces planned. Do not add `sd_spatial()` syntax until coordinate-spatial q4, mesh/SPDE scale interpretation, and prediction-grid behaviour have a clear contract. |
-| 2 | Spatial q4 admission audit | Admit as a design target only. A fitted spatial q4 block needs intercept-only matching terms across `mu1`, `mu2`, `sigma1`, and `sigma2`, plus diagnostics for weak site replication and near-boundary correlations. |
+| 1 | Spatial direct-SD design gate | Keep direct spatial SD surfaces planned. Do not add `sd_spatial()` syntax until coordinate-spatial q4, mesh/SPDE scale interpretation, and prediction-grid behaviour have a clear contract. The coordinate-spatial q4 precondition is now met, but the naming and prediction-grid questions remain. |
+| 2 | Spatial q4 admission audit | Superseded by the later fitted slice: constant spatial q4 now has intercept-only matching terms across `mu1`, `mu2`, `sigma1`, and `sigma2`, plus diagnostics for weak site replication and near-boundary correlations. |
 | 3 | Animal/relmat q4 design parity | Fitted for constant q4 location-scale blocks for `animal()` and `relmat()`. The matrix, group, and covariance-block label must match across all four endpoints. |
 | 4 | Animal/relmat direct-SD grammar decision | Keep generic direct-SD syntax planned. Do not add `sd_animal()` or `sd_relmat()` until the public naming, matrix scale, and biological interpretation are clearer. |
 | 5 | Combined phylo + spatial identifiability note | Keep simultaneous `phylo()` plus `spatial()` planned. Separate sensitivity fits are the current user route until multiple structured `mu` layers have identifiability diagnostics. |
@@ -140,15 +140,15 @@ now fitted.
 | 12 | Animal/relmat q4 summariser and runner | Done: q4 replicate summaries report fixed `mu`/`sigma` coefficients, four structured SDs, six structured correlations, and residual `rho12` |
 | 13 | Animal/relmat q4 interval-status guard | Done: requested q4 structured-correlation profile rows are marked `derived_interval_unavailable` |
 | 14 | Animal/relmat q4 grid writer | Done: q4 aggregate, replicate, manifest, failure, profile-status, interval-evidence, diagnostic, and interval-failure CSV artifacts can be written |
-| 15 | Spatial q4 fitted-status audit | Closed as planned: q=4 spatial location-scale blocks remain rejected before fitting |
+| 15 | Spatial q4 fitted-status audit | Superseded by the later fitted slice: constant q=4 spatial location-scale blocks are no longer rejected when all four labelled endpoints match |
 | 16 | Spatial direct-SD audit | Closed as planned: no direct spatial SD grammar until coordinate q4, mesh/SPDE scale, and prediction-grid semantics are designed |
 | 17 | Spatial `sigma` boundary | Closed as planned: coordinate-spatial effects remain `mu`-only except for ordinary fixed `sigma` predictors |
 | 18 | Spatial `corpair()` regression boundary | Closed as planned: spatial q=2 constant covariance is fitted, predictor-dependent spatial `corpair()` remains future work |
 | 19 | Spatial one-slope parity reminder | Done as status map: coordinate spatial has one fitted Gaussian `mu` slope; phylo/animal/relmat slopes do not |
 | 20 | Mesh/SPDE guard | Closed as planned: coordinate `coords` support does not imply mesh/SPDE support |
 | 21 | Bivariate spatial slope guard | Closed as planned: bivariate spatial slopes remain outside the fitted q=2 intercept path |
-| 22 | Spatial simulation admission line | Done as status map: admit coordinate-spatial `mu` intercept, one-slope, and q=2 bivariate location-covariance artifacts only |
-| 23 | Spatial user route | Done as guidance: fit the fitted coordinate-spatial subsets first, not q4 or mesh syntax |
+| 22 | Spatial simulation admission line | Superseded by the later q4 first slice: admit coordinate-spatial `mu` intercept, one-slope, q=2 bivariate location-covariance, and constant q4 location-scale artifacts |
+| 23 | Spatial user route | Superseded by the later q4 first slice: fit the fitted coordinate-spatial subsets first, including constant q4 when the all-four endpoint question is appropriate, not mesh or non-Gaussian syntax |
 | 24 | Direct-SD grammar across animal/relmat | Closed as planned: no `sd_animal()` or `sd_relmat()` syntax until matrix scale and biological interpretation are named |
 | 25 | Direct-SD grammar across spatial | Closed as planned: no `sd_spatial()` syntax until site versus mesh semantics are clear |
 | 26 | Combined phylo plus spatial | Closed as planned: simultaneous structured layers remain an identifiability lane, not a tutorial route |

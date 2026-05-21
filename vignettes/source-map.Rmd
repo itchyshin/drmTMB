@@ -184,12 +184,13 @@ models yet:
   cross-parameter covariance blocks beyond the currently implemented ordinary
   slope-only, ordinary intercept, phylogenetic, animal, and `relmat()`
   random-effect slices;
-- mesh/SPDE spatial fields, bivariate spatial q=4 covariance blocks, spatial
-  scale models, multiple spatial slopes, slope correlations, direct spatial SD
-  surfaces, and spatial `corpair()` regressions;
+- mesh/SPDE spatial fields, standalone spatial scale models, multiple spatial
+  slopes, slope correlations, direct spatial SD surfaces, spatial `corpair()`
+  regressions, and non-Gaussian spatial effects;
 - univariate phylogenetic or spatial effects in `sigma`, `nu`, or `rho12`,
   plus spatial effects outside the first Gaussian coordinate `mu` intercept,
-  one-slope, and bivariate q=2 location-covariance paths;
+  one-slope, bivariate q=2 location-covariance, and constant q=4
+  location-scale paths;
 - derived profile-likelihood intervals for q=4 and other indirect covariance
   summaries beyond direct profile-ready targets.
 

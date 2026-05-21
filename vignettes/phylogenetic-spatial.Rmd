@@ -224,14 +224,17 @@ location models. The one-slope path estimates independent coordinate-spatial
 intercept and slope fields with separate SDs. Matching labelled
 `spatial(1 | p | site, coords = coords)` terms in bivariate `mu1` and `mu2`
 fit the first coordinate-spatial mean-mean correlation, reported by
-`corpairs(level = "spatial")`. `animal()` and `relmat()` now fit the first
+`corpairs(level = "spatial")`; matching labelled spatial terms across `mu1`,
+`mu2`, `sigma1`, and `sigma2` fit the first constant coordinate-spatial q=4
+location-scale block. `animal()` and `relmat()` now fit the first
 univariate Gaussian location random-intercept slice when supplied with a
 pedigree, precomputed relationship, or precision matrix, such as
 `animal(1 | id, pedigree = pedigree)`, `animal(1 | id, Ainv = Ainv)`, or
 `relmat(1 | id, Q = Q)`.
 Mesh/SPDE spatial fields, combined phylogenetic-plus-spatial location models,
-multiple spatial slopes, spatial slope correlations, and predictor-dependent
-spatial or q=4 location-scale correlations remain planned
+multiple spatial slopes, spatial slope correlations, standalone spatial scale
+routes, non-Gaussian spatial effects, and predictor-dependent spatial
+correlations remain planned
 extensions.
 
 The scientific questions for the structural ladder are simple:
@@ -505,26 +508,25 @@ below is a roadmap boundary, not a fitted-claim table.
 | --- | --- | --- |
 | Univariate location structure | `phylo(1 | species, tree = tree)` | `animal(1 | individual, pedigree = pedigree)`, `spatial(1 | site, coords = coords)`, and `relmat(1 | line, K = K)` in `mu` |
 | Bivariate location-location correlation | Matching labelled `phylo()` terms in `mu1` and `mu2`, reported by `corpairs()` | Matching labelled `spatial()`, `animal()`, and `relmat()` terms now fit the first q=2 slices when their coordinate or known-matrix inputs are available |
-| Location-scale q=4 block | Matching labelled `phylo()` terms across `mu1`, `mu2`, `sigma1`, and `sigma2` | Matching labelled all-four animal and `relmat()` blocks now fit constant q=4 location-scale covariance; spatial q=4 remains planned |
+| Location-scale q=4 block | Matching labelled `phylo()` terms across `mu1`, `mu2`, `sigma1`, and `sigma2` | Matching labelled all-four spatial, animal, and `relmat()` blocks now fit constant q=4 location-scale covariance |
 | Predictor-dependent structured correlation | q=2 phylogenetic `corpair(..., level = "phylogenetic") ~ ecology` | q=2 animal, spatial, and relmat `corpair()` regressions only after constant q=2 fits are stable |
 | Direct SD surfaces | `sd_phylo()`, `sd_phylo1()`, and `sd_phylo2()` | Source-specific direct-SD siblings after naming, matrix scale, and interpretation are clear |
 
 Spatial is partway up this ladder: `spatial(1 | site, coords = coords)`, one
-independent coordinate-spatial `mu` slope, and the first bivariate
-coordinate-spatial q=2 `mu1`/`mu2` covariance are fitted. Animal and `relmat()`
-now have pedigree or known-matrix Gaussian `mu` intercepts, matching labelled
-q=2 bivariate location covariance, and matching all-four constant q=4
-location-scale covariance. Spatial `sigma`, spatial q=4, spatial `corpair()`,
-mesh/SPDE fields, sparse large-pedigree construction, animal/`relmat()` slopes,
-standalone animal/`relmat()` scale models, and animal/`relmat()`
-predictor-dependent `corpair()` routes remain planned.
+independent coordinate-spatial `mu` slope, the first bivariate
+coordinate-spatial q=2 `mu1`/`mu2` covariance, and the constant q=4
+location-scale covariance are fitted. Animal and `relmat()` now have pedigree or
+known-matrix Gaussian `mu` intercepts, matching labelled q=2 bivariate location
+covariance, and matching all-four constant q=4 location-scale covariance.
+Standalone spatial `sigma`, spatial `corpair()`, mesh/SPDE fields, sparse
+large-pedigree construction, animal/`relmat()` slopes, standalone
+animal/`relmat()` scale models, and animal/`relmat()` predictor-dependent
+`corpair()` routes remain planned.
 
-The focused animal and `relmat()` pages cover the current known-matrix q=2 and
-constant q=4 routes. The next richer animal target is a structured slope, which
-is not fitted yet:
+The focused animal, spatial, and `relmat()` pages cover the current q=2 and
+constant q=4 routes. A fitted animal q=4 block looks like:
 
 ```r
-# Planned, not fitted yet:
 fit_animal_q4 <- drmTMB(
   drm_formula(
     mu1 = body_size ~ age + sex +
@@ -539,13 +541,16 @@ fit_animal_q4 <- drmTMB(
   data = growth
 )
 
-# Fitted spatial q=2 sibling:
+# Fitted spatial q=2 and q=4 sibling terms:
 spatial(1 | p | site, coords = coords)
 
-# Fitted relatedness q=2 siblings:
+# Fitted relatedness q=2 and q=4 sibling terms:
 relmat(1 | p | line, K = G)
 relmat(1 | p | line, Q = Ginv)
 ```
+
+The next richer animal, spatial, and `relmat()` targets are structured slopes
+and predictor-dependent structured correlations, which remain planned.
 
 ## Current implementation status
 
@@ -568,7 +573,8 @@ phylo+spatial, and `relmat()` location-scale-coscale ladder.
 | `corpair(species, level = "phylogenetic", block = "p", from = "mu1", to = "mu2") ~ ecology` | Implemented for q=2 `mu1`/`mu2` | Species-level predictors model the same-species latent phylogenetic location-location correlation through a positive-definite two-field loading contract. `corpairs(level = "phylogenetic")` reports the modelled response-scale mean, range, and number of species values. |
 | `spatial(1 | site, coords = coords)` | Implemented first slice | One trait has a coordinate-based spatial random intercept in the location predictor. This is a fixed coordinate covariance foundation, not the future mesh/SPDE path. |
 | `spatial(1 + x | site, coords = coords)` | Implemented first one-slope slice | One trait has independent coordinate-spatial intercept and numeric slope fields in the location predictor. The two fields share the same coordinate precision, have separate SDs, and do not estimate an intercept-slope correlation. |
-| Matching `spatial(1 | p | site, coords = coords)` terms in bivariate `mu1` and `mu2` | Implemented first q=2 slice | Two Gaussian responses have correlated coordinate-spatial location deviations. `corpairs(level = "spatial")` and `summary()$covariance` report this mean-mean row separately from residual `rho12`; spatial q=4 and predictor-dependent spatial `corpair()` regression remain planned. |
+| Matching `spatial(1 | p | site, coords = coords)` terms in bivariate `mu1` and `mu2` | Implemented first q=2 slice | Two Gaussian responses have correlated coordinate-spatial location deviations. `corpairs(level = "spatial")` and `summary()$covariance` report this mean-mean row separately from residual `rho12`. |
+| Matching labelled `spatial()` terms in all four bivariate `mu1`, `mu2`, `sigma1`, and `sigma2` formulas | Implemented first q=4 slice | Two Gaussian responses have a constant coordinate-spatial location-scale covariance block with four endpoint SDs and six derived latent spatial correlations. |
 | `phylo(1 | species, tree = tree) + spatial(1 | site, coords = coords)` in the same `mu` formula | Planned | This is the intended third structural-dependence route, but the fitter currently stops with a planned-feature message because multiple structural `mu` layers need their own identifiability checks. |
 | `relmat(1 | id, K = K)` or `relmat(1 | id, Q = Q)` | Implemented first slice | A lower-level Gaussian `mu` random intercept for user-supplied latent relatedness covariance or precision matrices. |
 | Matching labelled `relmat(1 | p | id, K = K)` or `relmat(1 | p | id, Q = Q)` terms in bivariate `mu1` and `mu2` | Implemented first q=2 slice | Two Gaussian responses have correlated lower-level known-relatedness location deviations from the same matrix. `corpairs(level = "relmat")` reports this mean-mean row separately from residual `rho12`. |
@@ -704,8 +710,10 @@ rho12(fit_spatial_mean)
 ```
 
 Use this model when nearby sites may share paired deviations in the two response
-means. It still does not fit spatial `sigma`, spatial q=4 location-scale
-covariance, or predictor-dependent spatial `corpair()` regression.
+means. Use the q=4 spatial route only when the spatial question also involves
+constant location-scale covariance across `mu1`, `mu2`, `sigma1`, and `sigma2`.
+Standalone spatial `sigma`, predictor-dependent spatial `corpair()` regression,
+and bivariate spatial slope blocks remain planned.
 
 ### 3. Let species-level predictors change phylogenetic mean SDs
 

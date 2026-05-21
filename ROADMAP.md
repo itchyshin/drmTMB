@@ -339,8 +339,11 @@ distributional regression models using TMB.
   `check_drm()` expose those fields with spatial names. Phase 18 now has a
   smoke surface for the coordinate spatial one-slope path, covering seeded DGP,
   fit, parameter summaries, aggregate output, manifest, and failure ledger.
-  Mesh/SPDE, multiple spatial slopes, spatial slope correlations, spatial q=4,
-  spatial `sd(...)`, and spatial `corpair()` regressions remain planned.
+  Matching bivariate q=2 spatial location and constant q=4 spatial
+  location-scale blocks now use the same coordinate foundation and report through
+  `corpairs(level = "spatial")`. Mesh/SPDE, multiple spatial slopes, spatial
+  slope correlations, standalone spatial `sd(...)`, spatial `corpair()`
+  regressions, and non-Gaussian spatial effects remain planned.
 - For bivariate structured models, estimate and report level-specific
   correlations separately: residual `rho12`, phylogenetic correlations,
   non-phylogenetic species correlations, spatial field correlations, and
@@ -414,7 +417,7 @@ Phase 5 closure boundary:
 | --- | --- | --- |
 | univariate phylogenetic | `phylo(1 + x | species, tree = tree)` in Gaussian `mu`, `sd_phylo(species) ~ z`, profile targets and diagnostics | multiple phylogenetic slopes, slope correlations, structured `sigma`, and richer tree-shape recovery grids |
 | bivariate phylogenetic | matching `mu1`/`mu2` phylogenetic location correlation, constant full and block-diagonal q=4 location-scale blocks, q=2 predictor-dependent `corpair(..., level = "phylogenetic") ~ w`, bivariate `sd_phylo1()` / `sd_phylo2()`, and Ayumi q2/q4 stress artifacts | q=4 predictor-dependent location-scale and scale-scale `corpair()` regressions; standalone structured `sigma`-`sigma` covariance is not a near-term priority |
-| coordinate spatial | `spatial(1 | site, coords = coords)` and one numeric `spatial(1 + x | site, coords = coords)` slope in univariate Gaussian `mu`, plus matching bivariate `mu1`/`mu2` `spatial(1 | p | site, coords = coords)` q=2 covariance with `corpairs(level = "spatial")`; `sdpars`, `ranef("spatial_mu")`, direct profile targets, and `check_drm()` rows expose the fitted fields | mesh/SPDE, multiple spatial slopes, spatial slope correlations, spatial scale, bivariate spatial q=4, spatial direct-SD, spatial `corpair()` |
+| coordinate spatial | `spatial(1 | site, coords = coords)` and one numeric `spatial(1 + x | site, coords = coords)` slope in univariate Gaussian `mu`, matching bivariate `mu1`/`mu2` q=2 covariance, and constant all-four q=4 location-scale covariance with `corpairs(level = "spatial")`; `sdpars`, `ranef("spatial_mu")`, profile targets, and `check_drm()` rows expose the fitted fields | mesh/SPDE, multiple spatial slopes, spatial slope correlations, standalone spatial scale routes, spatial direct-SD, spatial `corpair()`, and non-Gaussian spatial effects |
 | animal and user-supplied relatedness | Gaussian `mu` intercepts and one numeric slope for `animal(1 + x | id, pedigree = ...)`, `animal(1 + x | id, A/Ainv = ...)`, and `relmat(1 + x | id, K/Q = ...)`, plus matching labelled `mu1`/`mu2` q=2 location covariance and constant all-four q=4 location-scale covariance with `corpairs()`, `summary()$covariance`, profile-target status, diagnostics, and dense-likelihood tests | sparse large-pedigree construction, multiple structured slopes, slope correlations, standalone `sigma`, predictor-dependent `corpair()` regressions, optional `phylo(..., A/Ainv = ...)` input, non-Gaussian relatedness effects, and generic direct-SD naming design |
 | inference/output | fixed-effect SEs, direct profile-ready targets where implemented, `corpairs(conf.int = TRUE)` with explicit interval status | derived-profile intervals for q=4 correlations and richer marginal-effect/visualization helpers |
 
@@ -1400,7 +1403,7 @@ This is the current random-effect status before the non-Gaussian revisit:
 | Univariate `mu`/`sigma` covariance | Fitted for one or more matched labelled random-intercept blocks. | `corpars$mu_sigma`, `corpairs(class = "mean-scale")`, `summary()`, `check_drm()`, and second-block profile tests are covered. | Slope-level mean-scale covariance is planned. |
 | Bivariate ordinary covariance | Fitted for matching labelled random intercepts in `mu1`/`mu2`, `sigma1`/`sigma2`, one or more same-response `mu`/`sigma` blocks, all-four q=4 intercept blocks, and matching slope-only `mu1`/`mu2` blocks. | Constant q=2 correlation targets and the slope-slope `mu1`/`mu2` target are profile-ready; same-response mean-scale blocks report one row per response-specific label/group pair; q=4 correlations are derived-only with explicit unavailable interval status. | Intercept-plus-slope q=4 location blocks, residual-scale slope blocks, and p8/q8 all-four slope endpoints remain closed. |
 | Phylogenetic structured effects | Univariate intercept and one-slope, bivariate, direct-SD, q=2 correlation-regression, and q=4 location-scale paths are fitted. | Direct phylogenetic SDs and q=2 correlations have profile targets; full q=4 correlations are derived-only, while block-diagonal q=4 fallback correlations are direct targets that still need fit-specific profile diagnostics. | Multiple phylogenetic slopes, slope correlations, standalone structured `sigma`, structured `rho12`, and non-Gaussian phylogenetic effects remain planned. |
-| Coordinate spatial structured effects | Fitted for univariate Gaussian `mu` intercept and one numeric slope with independent coordinate fields, plus constant bivariate Gaussian `mu1`/`mu2` q=2 location covariance. | `sdpars$mu`, `ranef("spatial_mu")`, `profile_targets()`, `check_drm()`, `corpairs(level = "spatial")`, `summary()$covariance`, a slope-field profile interval, and the q=2 dense covariance comparator are covered. | Mesh/SPDE, multiple slopes, slope correlations, spatial `sigma`, bivariate spatial q=4, spatial direct-SD, and spatial `corpair()` remain planned. |
+| Coordinate spatial structured effects | Fitted for univariate Gaussian `mu` intercept and one numeric slope with independent coordinate fields, constant bivariate Gaussian `mu1`/`mu2` q=2 location covariance, and constant q=4 location-scale covariance. | `sdpars$mu`, `ranef("spatial_mu")`, `profile_targets()`, `check_drm()`, `corpairs(level = "spatial")`, `summary()$covariance`, a slope-field profile interval, the q=2 dense covariance comparator, and q=4 extractor/diagnostic tests are covered. | Mesh/SPDE, multiple slopes, slope correlations, standalone spatial `sigma`, spatial direct-SD, spatial `corpair()`, and non-Gaussian spatial effects remain planned. |
 | Non-Gaussian families | Fixed-effect likelihoods are fitted; ordinary Poisson and NB2 `mu` random intercepts plus independent numeric slopes are fitted for non-zero-inflated count models; non-Gaussian `sigma` plus shape random effects are explicitly blocked. | Poisson and NB2 `mu` random-effect SDs appear in `sdpars$mu`, random effects, and direct `profile_targets()` rows; family-specific fixed-effect summaries and intervals exist where already implemented. | Zero-inflation, hurdle, ordinal, structured, cross-parameter covariance, non-Gaussian scale random effects, and shape random effects still need separate implementation evidence before broad simulation. |
 
 | Slice | Lane | Target Before Phase 18 |
@@ -1531,7 +1534,7 @@ Use this order unless Slice 191 evidence overturns it:
 | 260 | Interaction plot polish | The gallery shows categorical x continuous, categorical x categorical, and continuous x continuous examples with fitted values, raw data where useful, 95% confidence intervals, and clear conditioning labels. |
 | 261 | Distributional-parameter panels | Done locally: the gallery now labels `mu` and `sigma` panels by estimand and adds fitted Student-t `nu`, zero-inflation probability `zi`, and residual `rho12` examples with explicit response-scale wording and interval provenance. |
 | 262 | Random-effect and variance-component figures | Done locally: the gallery now compares residual `sigma` with ordinary group-level intercept and slope SDs, shows conditional random-slope deviations, and plots a fitted `sd(site)` surface while keeping unavailable interval status explicit. |
-| 263 | Correlation-layer figures | Done locally and refreshed after the q=2 spatial and known-matrix relatedness slices: the gallery now facets implemented residual, ordinary group, phylogenetic, spatial, animal, and `relmat()` q=2 `corpairs()`-style rows, while richer structured correlation regressions, spatial q=4 blocks, and standalone scale extensions stay planned. |
+| 263 | Correlation-layer figures | Done locally and refreshed after the q=4 spatial slice: the gallery now facets implemented residual, ordinary group, phylogenetic, spatial, animal, and `relmat()` q=2 `corpairs()`-style rows, marks spatial q=4 as partly fitted, and keeps richer structured correlation regressions plus standalone scale extensions planned. |
 | 264 | `emmeans` and marginal-effects figures | Done locally: the gallery now shows the supported fixed-effect univariate `mu` `emmeans` route, factor-conditioned and interaction grids, an empirical `marginal_parameters()` summary, and unsupported boundaries for `sigma`, bivariate, zero-inflated, hurdle, ordinal, and random-effect targets. |
 | 265 | Simulation plot grammar | Done locally: `simulation-plot-grammar` is a Simulation & Comparison article with display contracts for bias, RMSE, coverage, power, convergence, runtime, and warning/error ledgers across continuous, proportion, count, and meta-analysis examples. |
 | 266 | Gallery source-map and QA | Done locally: the figure gallery now has a source-map table mapping each display to its fitted object or fixture, extractor or plotter, interval source, and support boundary, with render, pkgdown, and visual checks recorded. |
@@ -1554,7 +1557,7 @@ Use this order unless Slice 191 evidence overturns it:
 | 314 | p8/q8 endpoint taxonomy | Done locally as planning: q2 slope-only, q4 location slope, q6 partial location-scale, and q8 all-endpoint slope covariance are separated before public syntax opens. |
 | 315 | p8/q8 parameterization risk | Done locally as planning: full q8 remains high risk because eight SDs and 28 correlations may be weakly identified; constrained or block-diagonal designs should be considered first. |
 | 316 | p8/q8 diagnostics gate | Done locally as planning: any p8/q8 route needs profile-target labels, Hessian/boundary diagnostics, recovery tests, and tutorial warnings before user claims. |
-| 317 | Structured q4 ordering | Done locally as planning: spatial q4 is the primary missing constant structured q4 parity lane; animal and `relmat()` q4 need continued diagnostics and simulation hardening rather than a new fitted claim. |
+| 317 | Structured q4 ordering | Done locally as planning and superseded by Slices 356-380: spatial q4 was the next constant structured q4 parity lane, while animal and `relmat()` q4 need continued diagnostics and simulation hardening rather than a new fitted claim. |
 | 318 | q4 interval contract | Done locally as planning: q4 rows remain estimates with explicit derived-unavailable interval status until direct or derived-profile methods are designed and tested. |
 | 319 | Non-Gaussian candidate scoring | Done locally as planning: candidate non-Gaussian structured routes are scored by family maturity, dependence layer, diagnostics, extractor impact, and user value before coding. |
 | 320 | First non-Gaussian structured candidate recommendation | Done locally as planning: start with one q1 `mu` structured intercept, likely Poisson as an algebra smoke and NB2 as the first practical count target, before slopes, zero inflation, hurdle probability, or q4. |
@@ -1593,6 +1596,56 @@ Use this order unless Slice 191 evidence overturns it:
 | 353 | User documentation checklist | Done locally as planning: future implementation issues must synchronize implementation-map, model-map, reference or tutorial docs, README when appropriate, ROADMAP, NEWS, check-log, and after-task notes. |
 | 354 | Review and issue-maintenance checklist | Done locally as planning: Ada, Boole, Gauss, Noether, Fisher, Curie, Pat, Darwin, Grace, and Rose review coverage is named before closing future implementation issues. |
 | 355 | Validation and handoff gate | Done locally as planning: pkgdown, rendered scans, stale-support scans, after-task reporting, and the next code issue must be recorded before handoff. |
+| 356 | Spatial q4 admission | Done locally: matching labelled `spatial()` terms across `mu1`, `mu2`, `sigma1`, and `sigma2` are admitted into the shared structured q4 backend. |
+| 357 | Spatial q4 parser boundaries | Done locally: partial, unlabelled, mismatched, and slope spatial q4 requests remain rejected with targeted messages. |
+| 358 | Spatial q4 extractor labels | Done locally: spatial q4 exposes four endpoint SDs and six derived latent correlations with spatial labels. |
+| 359 | Spatial q4 `corpairs()` rows | Done locally: `corpairs(level = "spatial")` reports six q4 rows and keeps them separate from residual `rho12`. |
+| 360 | Spatial q4 covariance summary | Done locally: `summary()$covariance` mirrors the six q4 spatial rows. |
+| 361 | Spatial q4 profile-target status | Done locally: direct SD rows and derived-unavailable q4 correlation rows are represented honestly in profile metadata. |
+| 362 | Spatial q4 diagnostics | Done locally: `check_drm()` reports `biv_spatial_q4_covariance` with replication, SD-ratio, boundary, and covariance-mode evidence. |
+| 363 | Spatial q4 focused test | Done locally: `test-spatial-gaussian` covers the fitted route and malformed-input neighbours. |
+| 364 | Spatial q4 user-facing table | Done locally: README, model-map, implementation-map, and structural docs mark q4 spatial as fitted first-slice support. |
+| 365 | Spatial q4 formula grammar | Done locally: formula grammar lists the supported all-four labelled spatial endpoint route. |
+| 366 | Spatial q4 tutorial route | Done locally: the coordinate-spatial article now shows q4 syntax and interval limitations. |
+| 367 | Spatial q4 figure/status sync | Done locally: the figure gallery separates fitted q2, partly fitted q4, and planned regression/scale extensions. |
+| 368 | Spatial q4 stale-scan gate | Done locally: high-traffic wording no longer says the constant spatial q4 route is only planned. |
+| 369 | Spatial q4 release note | Done locally: NEWS records the fitted route and remaining boundaries. |
+| 370 | Spatial q4 fitted-slice closeout | Done locally: the implementation claim stops at constant Gaussian bivariate location-scale intercepts. |
+| 371 | Map table sync | Done locally: the implementation map separates fitted spatial q4 from mesh, direct-SD, slope, and non-Gaussian spatial plans. |
+| 372 | Model-map sync | Done locally: the stable-core matrix includes the constant q4 spatial route. |
+| 373 | Spatial article sync | Done locally: the coordinate-spatial page gives the q4 syntax and interpretation boundary. |
+| 374 | Structural overview sync | Done locally: the structural overview routes spatial users to q2 and q4 fitted first slices. |
+| 375 | Detailed structural article sync | Done locally: the detailed structural-dependence article now lists spatial q4 parity. |
+| 376 | Formula grammar sync | Done locally: grammar docs and vignette list fitted q4 spatial syntax. |
+| 377 | Check-log and after-task sync | Done locally: the dev ledger records implementation, checks, usefulness, and limits. |
+| 378 | pkgdown sync | Done locally: pkgdown build/check and rendered scans cover the implementation-map page. |
+| 379 | PR/status sync | Done locally: the branch records spatial q4 as fitted only after tests and docs move together. |
+| 380 | Stop-implementation boundary | Done locally: no non-Gaussian structured likelihood code is fitted in this set. |
+| 381 | Non-Gaussian family inventory | Planned: list ordinary count, zero-inflated, hurdle, bounded, ordinal, robust, and mixed-response structured-dependence candidates. |
+| 382 | Non-Gaussian component inventory | Planned: keep `mu`, `sigma`, `zi`, `hu`, shape, cutpoints, and residual coscale separate. |
+| 383 | Non-Gaussian layer inventory | Planned: score `phylo()`, `spatial()`, `animal()`, and `relmat()` separately before picking a first route. |
+| 384 | Poisson q1 algebra gate | Planned: first smoke candidate is one non-zero-inflated Poisson `mu` structured intercept. |
+| 385 | NB2 q1 practical gate | Planned: first practical count candidate is one NB2 `mu` structured intercept with fixed-effect `sigma`. |
+| 386 | Zero-inflation gate | Planned: keep `zi` fixed-effect-only until use cases, diagnostics, and prediction semantics justify random effects. |
+| 387 | Hurdle gate | Planned: keep `hu` fixed-effect-only until hurdle-specific recovery and interpretation are specified. |
+| 388 | Count slope gate | Planned: correlated or structured count slopes wait until q1 intercept recovery is reliable. |
+| 389 | Non-Gaussian scale gate | Planned: count `sigma`, beta/BB scale, and continuous scale structured effects need separate scale-specific contracts. |
+| 390 | Shape and ordinal gate | Planned: Student-t `nu`, skewness, ordinal cutpoints, and ordinal scale/discrimination stay separate from count `mu` structure. |
+| 391 | Known covariance boundary | Planned: keep `meta_V(V = V)` sampling covariance separate from latent `relmat()`-style relatedness. |
+| 392 | Extractor contract | Planned: non-Gaussian structured first slices must define `sdpars`, `ranef()`, profile-target, and diagnostic names before fitting. |
+| 393 | Diagnostic contract | Planned: require convergence, Hessian, boundary, replication, SD-ratio, and family-specific checks. |
+| 394 | Simulation contract | Planned: require ADEMP conditions, ordinary comparator, recovery estimands, and failure-ledger rows. |
+| 395 | Interval contract | Planned: direct SD intervals may be first; derived correlations and non-direct summaries must show unavailable status. |
+| 396 | User-route fallback | Planned: every non-Gaussian structured request should point to fixed-effect or ordinary random-effect alternatives. |
+| 397 | Error-message gate | Planned: unsupported `zi`, `hu`, slope, q2, q4, and cross-parameter non-Gaussian structural syntax should fail early and helpfully. |
+| 398 | Formula grammar gate | Planned: do not open non-Gaussian structured grammar until fitted scope and rejected neighbours are documented. |
+| 399 | Documentation gate | Planned: implementation-map, model-map, family docs, NEWS, and check-log must move with the first fitted route. |
+| 400 | Issue-template gate | Planned: create one issue per family-layer-component combination instead of broad non-Gaussian parity. |
+| 401 | Poisson first-issue outline | Planned: issue should name one layer, one q1 `mu` intercept, simulations, diagnostics, docs, and malformed inputs. |
+| 402 | NB2 first-issue outline | Planned: issue should add overdispersion conditions and ordinary NB2 comparator evidence. |
+| 403 | `zi`/`hu` future issue outline | Planned: issue should justify why a probability-component random effect is useful before fitting. |
+| 404 | Phase 18 admission note | Planned: non-Gaussian structured routes remain outside broad simulation until one narrow route passes evidence gates. |
+| 405 | Non-Gaussian planning closeout | Planned: stop with a map and issue-ready gates, not with untested likelihood code. |
 
 ### Pre-Simulation Readiness Slice Map
 
@@ -1607,7 +1660,7 @@ as the whole comprehensive simulation programme.
 | 260 | Figure gallery | Interaction plot polish | Done locally: the gallery now shows categorical x continuous, categorical x categorical, and continuous x continuous examples with raw data where useful, fitted values, 95% confidence intervals, clear conditioning labels, alt text, and a cleaner correlation figure using `plot_corpairs(label = ...)`. |
 | 261 | Figure gallery | Distributional-parameter panels | Done locally: the gallery labels `mu` and `sigma` by estimand and adds fitted Student-t `nu`, zero-inflation probability `zi`, and residual `rho12` panels with explicit response-scale wording and interval provenance. |
 | 262 | Figure gallery | Random-effect and variance-component figures | Done locally: the gallery separates ordinary grouped SDs, random-slope summaries, `sd(group)` surfaces, residual `sigma`, and group-level SDs instead of visually collapsing them. |
-| 263 | Figure gallery | Correlation-layer figures | Done locally and refreshed after the q=2 spatial and relatedness slices: `corpairs()`-style examples distinguish implemented residual, ordinary group, phylogenetic, spatial, animal, and `relmat()` q=2 estimate rows from planned richer structured correlation paths. |
+| 263 | Figure gallery | Correlation-layer figures | Done locally and refreshed after the q=4 spatial slice: `corpairs()`-style examples distinguish implemented residual, ordinary group, phylogenetic, spatial, animal, and `relmat()` q=2 estimate rows, mark the constant spatial q=4 block as partly fitted, and keep richer structured correlation-regression paths planned. |
 | 264 | Figure gallery | `emmeans` and marginal-effects figures | Done locally: the gallery shows the supported fixed-effect univariate `mu` `emmeans` route, factor-conditioned and interaction grids, an empirical `marginal_parameters()` summary, and unsupported boundaries for `sigma`, bivariate, zero-inflated, hurdle, ordinal, and random-effect targets. |
 | 265 | Simulation plot grammar | Operating-characteristic plot design | Done locally: the Simulation & Comparison route has reusable plot grammar for bias, RMSE, coverage, power, convergence, runtime, and warning/error ledgers across continuous, proportion, count, and meta-analysis examples. |
 | 266 | Figure QA | Gallery source map | Done locally: each figure maps to the fitted object or fixture, extractor or plotter, interval source, support status, and current limitation. |
@@ -1630,7 +1683,7 @@ as the whole comprehensive simulation programme.
 | 314 | Documentation | p8/q8 endpoint taxonomy | Done locally as planning: q2, q4, q6, and q8 endpoint classes are separated before implementation. |
 | 315 | Documentation | p8/q8 parameterization risk | Done locally as planning: full unstructured q8 is marked high risk and constrained alternatives should be evaluated first. |
 | 316 | Documentation | p8/q8 diagnostics gate | Done locally as planning: profile targets, diagnostics, recovery tests, and warnings are required before p8/q8 claims. |
-| 317 | Documentation | Structured q4 ordering | Done locally as planning: spatial q4 is the primary missing constant structured q4 parity lane. |
+| 317 | Documentation | Structured q4 ordering | Done locally as planning and superseded by Slices 356-380: spatial q4 was the next constant structured q4 parity lane. |
 | 318 | Documentation | q4 interval contract | Done locally as planning: q4 intervals remain unavailable unless explicit interval evidence exists. |
 | 319 | Documentation | Non-Gaussian candidate scoring | Done locally as planning: non-Gaussian structured candidates are scored before coding. |
 | 320 | Documentation | First non-Gaussian candidate recommendation | Done locally as planning: one q1 `mu` structured intercept is the first candidate class, with Poisson as smoke and NB2 as practical target. |
@@ -1669,6 +1722,9 @@ as the whole comprehensive simulation programme.
 | 353 | Documentation | User documentation checklist | Done locally as planning: implementation-map, model-map, reference or tutorial docs, README when appropriate, ROADMAP, NEWS, check-log, and after-task notes move together after fitted-status changes. |
 | 354 | Documentation | Review and issue maintenance | Done locally as planning: future issues record Ada, Boole, Gauss, Noether, Fisher, Curie, Pat, Darwin, Grace, and Rose review coverage before closeout. |
 | 355 | Documentation | Validation and handoff gate | Done locally as planning: pkgdown, rendered scans, stale-support scans, after-task reporting, and the next code issue are required before handoff. |
+| 356-370 | Structural dependence | Spatial q4 fitted parity | Done locally: constant coordinate-spatial q4 location-scale covariance fits for all-four labelled Gaussian endpoints, with extractors, `corpairs()`, diagnostics, profile-target status, and boundary tests. |
+| 371-380 | Documentation | Spatial q4 evidence and map closeout | Done locally: public status surfaces, formula grammar, NEWS, check-log, after-task report, pkgdown, and stale scans separate fitted spatial q4 from remaining spatial plans. |
+| 381-405 | Planning | Non-Gaussian structured-dependence gates | Planned only: Poisson/NB2 q1 `mu` structured intercepts are scoped as candidate first slices, while `zi`, `hu`, scale, shape, ordinal, bounded, and mixed-response structural layers stay design-first. |
 | 268 | Support audit | Pre-simulation capability matrix | Done locally: `docs/design/46-pre-simulation-readiness-matrix.md` now has one capability audit table that says which Gaussian, non-Gaussian, shape, inflation, bivariate, random-slope, meta-analysis, phylogenetic, spatial, animal, and `relmat()` surfaces are implemented, tested, planned, or unsupported before Phase 18 grids admit them. |
 | 269 | Random slopes | Ordinary location random slopes | Done locally: a q=4 ordinary Gaussian `mu` block test now confirms multi-slope SD/correlation names, `corpairs()` classes, and profile-target status, while README/model-map/which-scale wording names q > 2 as fitted but sample-size hungry. |
 | 270 | Random slopes | Scale random effects | Done locally: a cross-group Gaussian `sigma` test now confirms two independent residual-scale slope terms, direct `log_sd_sigma` targets, and no residual-scale correlation rows, while docs keep correlated residual-scale slope blocks planned. |

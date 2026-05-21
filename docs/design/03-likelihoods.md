@@ -1473,13 +1473,12 @@ Implementation notes:
   endpoint location SD parameters only; they do not target residual `sigma1`,
   residual `sigma2`, q=4 location-scale endpoint SDs, or residual `rho12`.
 - Broader bivariate random slopes, `rho12` random effects, phylogenetic random
-  slopes, predictor-dependent q=4 phylogenetic correlations, and spatial q=4
-  blocks remain planned. The first ordinary matching slope-only `mu1`/`mu2`
-  block and the first constant intercept-only bivariate phylogenetic q=4 block
-  are implemented for matching labelled terms in `mu1`, `mu2`,
-  `sigma1`, and `sigma2`. It supports the full one-label q=4 block and the
-  two-label block-diagonal fallback with one location block and one scale
-  block.
+  slopes, and predictor-dependent q=4 phylogenetic or spatial correlations
+  remain planned. The first ordinary matching slope-only `mu1`/`mu2` block and
+  the first constant intercept-only bivariate phylogenetic/spatial q=4 blocks
+  are implemented for matching labelled terms in `mu1`, `mu2`, `sigma1`, and
+  `sigma2`. The q=4 path supports the full one-label block and the two-label
+  block-diagonal fallback where admitted by the structured layer.
 - The selected q=2 predictor-dependent phylogenetic `corpair()` contract uses
   two independent unit tree fields and species-specific loadings. For each
   species `l`, `rho_l = tanh_guard(W_l alpha)`,

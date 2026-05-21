@@ -373,8 +373,9 @@ Use these status labels:
   `docs/dev-log/after-task/2026-05-15-phase-10-coordinate-spatial-one-slope.md`;
   `docs/dev-log/after-phase/2026-05-15-phase-10-coordinate-spatial-foundation-closure.md`.
 - Debt: mesh/SPDE, multiple spatial slopes, spatial slope correlations,
-  spatial `sigma`, bivariate spatial q=4 covariance, spatial direct-SD
-  surfaces, and spatial `corpair()` regression remain blocked.
+  standalone spatial `sigma`, spatial direct-SD surfaces, spatial `corpair()`
+  regression, and non-Gaussian spatial effects remain blocked. The later
+  spatial q=4 slice adds a constant bivariate Gaussian location-scale block.
 
 ### Animal-model and user-supplied relatedness effects
 

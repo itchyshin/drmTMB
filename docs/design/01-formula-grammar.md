@@ -99,11 +99,13 @@ In this table, "coscale" means a model for residual correlation, currently
 | `phylo(1 + x1 | species, tree = tree)` | Implemented first one-slope slice | Univariate Gaussian `mu` path with independent phylogenetic intercept and slope fields; multiple phylogenetic slopes and slope correlations remain planned. |
 | `spatial(1 | site, coords = coords)` | Implemented first slice | Univariate Gaussian `mu` spatial random intercept using a fixed coordinate covariance foundation. |
 | `spatial(1 | site, mesh = mesh)` | Planned | Mesh/SPDE spatial fitting remains planned after the coordinate foundation. |
+| `spatial(1 | p | site, coords = coords)` in matching bivariate `mu1` and `mu2` | Implemented first q=2 slice | Matching labelled spatial terms estimate two location SDs and one latent coordinate-spatial mean-mean correlation. |
+| `spatial(1 | p | site, coords = coords)` in all four bivariate `mu1`, `mu2`, `sigma1`, and `sigma2` formulas | Implemented first q=4 slice | One constant coordinate-spatial location-scale block estimates four endpoint SDs and six latent spatial correlations. Partial, unlabelled, mismatched, and slope forms remain rejected. |
 | `corpair(id, level = "group", block = "p", from = "mu1", to = "mu2") ~ x_group` | Implemented | Predictor-dependent ordinary q=2 location-location latent random-effect correlation regression for matching labelled `mu1`/`mu2` random intercepts. Predictors must be constant within `id`. |
 | `corpair(species, level = "phylogenetic", block = "p", from = "mu1", to = "mu2") ~ ecology` | Implemented | Predictor-dependent phylogenetic q=2 location-location latent random-effect correlation regression for matching labelled `mu1`/`mu2` `phylo()` terms. Predictors must be constant within `species`. Location-scale, scale-scale, q=4, and spatial `corpair()` regressions remain planned. |
 | Matching slope-only `(0 + x | p | id)` in bivariate `mu1` and `mu2` | Implemented first bivariate slope slice | This route targets the slope1-slope2 plasticity-syndrome correlation without also estimating intercept-slope correlations. The fitted row is exposed through SD/correlation extractors, `corpairs()`, `summary()$covariance`, `profile_targets()`, and `check_drm()`. |
 | Intercept-plus-slope bivariate blocks such as `(1 + x | p | id)` in both `mu1` and `mu2` | Planned later | These would require a q=4 location block with intercept-intercept, intercept-slope, and slope-slope correlations. They are not opened by the first bivariate one-slope policy. |
-| All-four bivariate location-scale slope blocks across `mu1`, `mu2`, `sigma1`, and `sigma2`; spatial q4 covariance blocks; predictor-dependent phylogenetic/spatial q4 correlations; or `rho12` random effects | Planned | Requires larger structured covariance parameterizations, simulation recovery, and naming checks. Do not use all-four slope terms to request a q=8 endpoint covariance block in this phase. Do not treat intercept-slope `corpair()` rows as a near-term target; a later slope1-slope2 bivariate plasticity-syndrome target needs coefficient-aware syntax. |
+| All-four bivariate location-scale slope blocks across `mu1`, `mu2`, `sigma1`, and `sigma2`; predictor-dependent phylogenetic/spatial q4 correlations; or `rho12` random effects | Planned | Requires larger structured covariance parameterizations, simulation recovery, and naming checks. Do not use all-four slope terms to request a q=8 endpoint covariance block in this phase. Do not treat intercept-slope `corpair()` rows as a near-term target; a later slope1-slope2 bivariate plasticity-syndrome target needs coefficient-aware syntax. |
 
 ## Univariate Syntax
 
@@ -695,10 +697,10 @@ relmat(1 + x1 | id, K = K)
 Each one-slope path estimates independent intercept and slope fields with
 separate SDs and no intercept-slope correlation.
 
-Multiple structured slopes, interaction slopes, structured `sigma` effects,
-structured `rho12` effects, bivariate structured effects beyond the fitted q=2
-location paths and the fitted phylo/animal/`relmat()` constant q=4 blocks, and
-spatial q=4 blocks remain planned until the fitted paths have simulation and
+Multiple structured slopes, interaction slopes, standalone structured `sigma`
+effects, structured `rho12` effects, and bivariate structured effects beyond
+the fitted q=2 location paths and the fitted phylo/spatial/animal/`relmat()`
+constant q=4 blocks remain planned until the fitted paths have simulation and
 comparator coverage. The near-term ceiling remains two `mu` slopes.
 Intercept-slope `corpair()` rows stay distant-future; a later
 coefficient-aware design can target a bivariate slope1-slope2
@@ -854,6 +856,8 @@ Not every parameter should accept random effects at the same development stage.
 | `phylo(1 + x | species, tree = tree)` | Implemented one numeric phylogenetic random slope for univariate Gaussian `mu`; it estimates independent `phylo(1 | species)` and `phylo(0 + x | species)` fields with no slope correlation. |
 | `spatial(1 | site, coords = coords)` | Implemented first structured spatial random intercept for univariate Gaussian `mu`; coordinates define a fixed coordinate covariance foundation. Mesh/SPDE fitting remains planned. |
 | `spatial(1 + x | site, coords = coords)` | Implemented one numeric structured spatial random slope for univariate Gaussian `mu`; it estimates independent `spatial(1 | site)` and `spatial(0 + x | site)` fields with no slope correlation. Slice 187 adds direct profile-interval coverage for the slope-field SD and keeps multiple spatial slopes planned. |
+| `spatial(1 | p | site, coords = coords)` in bivariate `mu1`/`mu2` | Implemented first bivariate q=2 Gaussian location-covariance slice when matching labelled terms appear in `mu1` and `mu2`. |
+| `spatial(1 | p | site, coords = coords)` in all four bivariate `mu1`/`mu2`/`sigma1`/`sigma2` endpoints | Implemented first q=4 Gaussian location-scale slice; it reports four endpoint SDs and six derived latent spatial correlations. Mesh/SPDE, spatial slopes in bivariate blocks, standalone spatial scale terms, `corpair()` regressions, and direct-SD grammar remain planned. |
 
 ## Rules
 

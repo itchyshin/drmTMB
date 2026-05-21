@@ -34868,6 +34868,61 @@ git diff --check
   structured dependence.
 - `git diff --check` was clean.
 
+## 2026-05-21 - Implementation Map Slices 356-405
+
+Goal:
+
+- Stop fitted implementation at Slice 380 by closing the constant
+  coordinate-spatial q4 Gaussian location-scale lane, then plan Slices 381-405
+  for non-Gaussian structured dependence without opening unsupported likelihood
+  code.
+
+Changes:
+
+- Updated `R/drmTMB.R` so matching labelled `spatial()` terms across `mu1`,
+  `mu2`, `sigma1`, and `sigma2` enter the shared structured q4 backend instead
+  of hitting the earlier planned-feature abort.
+- Added focused `test-spatial-gaussian` coverage for the fitted spatial q4
+  route, including `sdpars$mu`, six `corpairs(level = "spatial")` rows,
+  `summary()$covariance`, derived profile-target status, `check_drm()` row
+  `biv_spatial_q4_covariance`, and partial/unlabelled error paths.
+- Added `docs/design/66-implementation-map-slices-356-405.md` to record the
+  fitted spatial q4 claim and the planning-only non-Gaussian structured gates.
+- Updated README, model-map, implementation-map, coordinate-spatial,
+  structural-dependence, formula-grammar, source-map, figure-gallery, ROADMAP,
+  NEWS, and selected design ledgers so spatial q4 is fitted only inside the
+  constant bivariate Gaussian all-four endpoint boundary.
+- Kept Poisson/NB2 structured q1, `zi`, `hu`, scale, shape, ordinal,
+  bounded-response, mixed-response, and non-Gaussian spatial/phylo/animal/relmat
+  structured routes as planned only.
+
+Validation:
+
+```sh
+Rscript -e "devtools::test(filter = 'spatial-gaussian')"
+air format R/drmTMB.R tests/testthat/test-spatial-gaussian.R NEWS.md ROADMAP.md README.md vignettes/implementation-map.Rmd vignettes/model-map.Rmd vignettes/spatial-models.Rmd vignettes/structural-dependence.Rmd vignettes/phylogenetic-spatial.Rmd vignettes/formula-grammar.Rmd vignettes/drmTMB.Rmd vignettes/source-map.Rmd vignettes/figure-gallery.Rmd docs/design/01-formula-grammar.md docs/design/03-likelihoods.md docs/design/09-phylogenetic-and-spatial-speed.md docs/design/16-phylo-spatial-common-math.md docs/design/28-double-hierarchical-endpoint.md docs/design/33-phase-6c-core-random-effects.md docs/design/34-validation-debt-register.md docs/design/39-visualization-grammar.md docs/design/41-phase-18-simulation-programme.md docs/design/45-cross-dpar-correlation-gate.md docs/design/46-pre-simulation-readiness-matrix.md docs/design/56-phase-18-spatial-q2-ademp.md docs/design/57-structural-parity-next-slices.md docs/design/64-implementation-map-slices-326-340.md docs/design/66-implementation-map-slices-356-405.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-21-implementation-map-slices-356-405.md
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "pkgdown::build_site()"
+rg -n "356-370|371-380|381-405|spatial q4|Spatial q4|Non-Gaussian structured planning|constant q=4" pkgdown-site/articles/implementation-map.html pkgdown-site/ROADMAP.html
+rg -n 'spatial q4.*planned but not implemented|Spatial q=4 location-scale blocks are planned|non-Gaussian structured.*now fits|Poisson.*structured.*now fits|NB2.*structured.*now fits' README.md ROADMAP.md NEWS.md docs/design vignettes R tests/testthat -g '!*.html'
+git diff --check
+```
+
+- `devtools::test(filter = 'spatial-gaussian')` passed: 125 assertions, 0
+  failures, 0 warnings, 0 skips.
+- `air format` completed without output.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `pkgdown::build_site()` completed and rebuilt `pkgdown-site`, including the
+  implementation-map, model-map, spatial-models, ROADMAP, and NEWS pages.
+- The rendered-page scan found the 356-370, 371-380, and 381-405 rows, the
+  spatial q4 fitted-parity wording, non-Gaussian structured planning wording,
+  and constant q=4 spatial text in the generated implementation-map, ROADMAP,
+  spatial-models, and model-map pages.
+- The stale-support scan found no false claims that non-Gaussian structured
+  Poisson/NB2 routes now fit and no stale "spatial q4 planned but not
+  implemented" wording in the scanned high-traffic source files.
+- `git diff --check` was clean.
+
 ## 2026-05-21 - Implementation Map Slices 341-355
 
 Goal:
