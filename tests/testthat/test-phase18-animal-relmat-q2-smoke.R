@@ -95,18 +95,21 @@ test_that("Phase 18 animal/relmat q2 smoke runner completes and resumes", {
     conditions = conditions,
     n_rep = 1L,
     master_seed = 217L,
-    result_dir = result_dir
+    result_dir = result_dir,
+    cores = 10L
   )
   second <- phase18_run_animal_relmat_q2_smoke(
     conditions = conditions,
     n_rep = 1L,
     master_seed = 217L,
-    result_dir = result_dir
+    result_dir = result_dir,
+    cores = 10L
   )
 
   expect_identical(first$surface, "animal_relmat_q2")
   expect_equal(nrow(first$registry$cells), 2L)
   expect_equal(length(first$results), 2L)
+  expect_equal(first$parallel$requested_cores, 10L)
   expect_equal(first$parallel$backend, "none")
   expect_equal(first$parallel$cores, 1L)
   expect_equal(

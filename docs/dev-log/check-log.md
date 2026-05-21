@@ -51,6 +51,9 @@ Outcomes:
 - `air format` completed without changes after the final edits.
 - The focused `phase18-animal-relmat-q2-smoke` test passed.
 - The combined `phase18.*animal|animal-relmat-gaussian` related tests passed.
+- A stacked grid-writer test exposed that the first runner version dropped the
+  requested core count after capping; the smoke test now asserts
+  `requested_cores = 10` and actual serial `cores = 1`.
 - `pkgdown::check_pkgdown()` reported no problems.
 - `devtools::check()` passed in 4m15s with 0 errors, 0 warnings, and 0 notes.
 - `git diff --check` was clean.

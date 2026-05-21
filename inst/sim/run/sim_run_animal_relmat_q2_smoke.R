@@ -152,11 +152,6 @@ phase18_run_animal_relmat_q2_smoke <- function(
     n_rep = n_rep,
     master_seed = master_seed
   )
-  runner_plan <- phase18_runner_parallel_plan(
-    n_task = nrow(registry$seeds),
-    cores = cores,
-    backend = backend
-  )
   results <- phase18_run_replicates(
     cells = registry$cells,
     seeds = registry$seeds,
@@ -165,8 +160,8 @@ phase18_run_animal_relmat_q2_smoke <- function(
     summarise_fun = phase18_summarise_animal_relmat_q2_fit,
     result_dir = result_dir,
     overwrite = overwrite,
-    cores = runner_plan$cores,
-    backend = runner_plan$backend
+    cores = cores,
+    backend = backend
   )
 
   summary <- phase18_result_summaries(results)
