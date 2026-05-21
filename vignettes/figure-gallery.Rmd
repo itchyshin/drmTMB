@@ -1540,50 +1540,91 @@ the observations span the whole moisture gradient.
 ## Fitted correlation summaries
 
 Correlation displays should keep layers separate. Residual `rho12`,
-ordinary-group correlations, phylogenetic correlations, spatial correlations,
-and future animal or `relmat()` layers are not the same parameter even when all
-are correlations. A fitted workflow should start from `corpairs(fit)` and keep
-the interval provenance columns. This gallery uses a compact compatible table so
-the page builds quickly while preserving the same required columns.
+ordinary-group correlations, phylogenetic correlations, coordinate-spatial
+correlations, animal-model correlations, and lower-level `relmat()`
+correlations are not the same parameter even when all are correlations. A
+fitted workflow should start from `corpairs(fit)` and keep the interval
+provenance columns. This gallery uses a compact compatible table so the page
+builds quickly while preserving the same required columns.
 
-```{r correlation-display, fig.alt="Row-aligned raindrop confidence displays for residual rho12, an ordinary group correlation, and a phylogenetic correlation, each with an estimate dot, central interval bar, and separate layer label."}
+```{r correlation-display, fig.height=5.6, fig.alt="Row-aligned raindrop confidence displays for residual rho12, ordinary group, phylogenetic, spatial, animal, and relmat q2 correlation rows, each with an estimate dot, interval bar, and separate layer label."}
 pair_table <- data.frame(
-  level = c("residual", "group", "phylogenetic"),
-  class = c("residual", "mean-slope", "mean-mean"),
+  level = c(
+    "residual",
+    "group",
+    "phylogenetic",
+    "spatial",
+    "animal",
+    "relmat"
+  ),
+  class = c(
+    "residual",
+    "mean-slope",
+    rep("mean-mean", 4)
+  ),
   parameter = c(
     "rho12",
     "cor((Intercept),temperature | site)",
-    "cor(mu1,mu2 | phylo | species)"
+    "cor(mu1,mu2 | phylo | species)",
+    "cor(mu1,mu2 | spatial | site)",
+    "cor(mu1,mu2 | animal | individual)",
+    "cor(mu1,mu2 | relmat | line)"
   ),
-  estimate = c(-0.32, 0.44, 0.61),
-  modelled = c(TRUE, FALSE, FALSE),
-  conf.low = c(-0.54, 0.12, 0.29),
-  conf.high = c(-0.05, 0.68, 0.79),
-  conf.status = c("wald", "profile", "profile"),
-  interval_source = c("illustrative_wald", "illustrative_profile", "illustrative_profile"),
-  layer = c("Residual coscale", "Ordinary group", "Phylogenetic")
+  estimate = c(-0.32, 0.44, 0.61, 0.38, 0.52, -0.27),
+  modelled = c(TRUE, FALSE, FALSE, FALSE, FALSE, FALSE),
+  conf.low = c(-0.54, 0.12, 0.29, 0.05, 0.17, -0.58),
+  conf.high = c(-0.05, 0.68, 0.79, 0.63, 0.74, 0.11),
+  conf.status = c("wald", rep("profile", 5)),
+  interval_source = c(
+    "illustrative_wald",
+    rep("illustrative_profile", 5)
+  ),
+  layer = c(
+    "Residual coscale",
+    "Ordinary group",
+    "Phylogenetic",
+    "Coordinate spatial",
+    "Animal model",
+    "relmat"
+  )
 )
 pair_table$layer <- factor(
   pair_table$layer,
-  levels = c("Residual coscale", "Ordinary group", "Phylogenetic")
+  levels = c(
+    "Residual coscale",
+    "Ordinary group",
+    "Phylogenetic",
+    "Coordinate spatial",
+    "Animal model",
+    "relmat"
+  )
 )
 pair_table$display <- factor(
   c(
     "Residual\nrho12",
     "Group\nintercept-slope",
-    "Phylogenetic\nlocation-location"
+    "Phylogenetic\nlocation-location",
+    "Spatial\nlocation-location",
+    "Animal\nlocation-location",
+    "relmat\nlocation-location"
   ),
   levels = c(
     "Residual\nrho12",
     "Group\nintercept-slope",
-    "Phylogenetic\nlocation-location"
+    "Phylogenetic\nlocation-location",
+    "Spatial\nlocation-location",
+    "Animal\nlocation-location",
+    "relmat\nlocation-location"
   )
 )
 
 correlation_palette <- c(
   "Residual coscale" = gallery_colour("blue"),
   "Ordinary group" = gallery_colour("green"),
-  "Phylogenetic" = gallery_colour("orange")
+  "Phylogenetic" = gallery_colour("orange"),
+  "Coordinate spatial" = gallery_colour("sky"),
+  "Animal model" = gallery_colour("pink"),
+  "relmat" = gallery_colour("charcoal")
 )
 pair_table$display <- factor(pair_table$display, levels = rev(levels(pair_table$display)))
 pair_table$row_id <- as.numeric(pair_table$display)
@@ -1663,15 +1704,17 @@ ggplot(correlation_cloud, aes(rho, ymin = ymin, ymax = ymax)) +
 The residual row is the fitted within-observation coscale `rho12`. The group
 row is a latent random-effect correlation, here an intercept-slope row from an
 ordinary grouped model. The phylogenetic row is a species-level structured
-location-location correlation. The shaded shapes are raindrop-style confidence
-displays derived from the reported correlation estimate and 95% interval on
-Fisher's `z` scale. They borrow the visual intuition of posterior-density plots
-and orchard-style summaries, but they remain frequentist compatibility displays:
-values near the centre are more compatible with the fitted estimate than values
-near the interval boundary, and the shapes are not posterior draws.
+location-location correlation. The spatial, animal, and `relmat()` rows are
+the first q=2 structured location-location rows now supported by their fitted
+subsets. The shaded shapes are raindrop-style confidence displays derived from
+the reported correlation estimate and 95% interval on Fisher's `z` scale. They
+borrow the visual intuition of posterior-density plots and orchard-style
+summaries, but they remain frequentist compatibility displays: values near the
+centre are more compatible with the fitted estimate than values near the
+interval boundary, and the shapes are not posterior draws.
 
-```{r correlation-layer-boundaries, fig.alt="Tile plot showing implemented residual, group, and phylogenetic correlation-pair layers separately from planned spatial, animal, and relmat boundaries."}
-layer_boundary <- data.frame(
+```{r correlation-layer-boundaries, fig.alt="Tile plot showing fitted q2 support for residual, ordinary group, phylogenetic, spatial, animal, and relmat correlation layers, with richer regression or q4 extensions marked as planned."}
+layer_boundary <- expand.grid(
   layer = c(
     "Residual rho12",
     "Ordinary group",
@@ -1680,50 +1723,70 @@ layer_boundary <- data.frame(
     "Animal",
     "relmat"
   ),
-  status = c(
-    "Fitted corpairs row",
-    "Fitted corpairs row",
-    "Fitted corpairs row",
-    "Planned boundary",
-    "Planned boundary",
-    "Planned boundary"
-  )
+  target = c("Constant q2 row", "Regression or q4/scale extension"),
+  KEEP.OUT.ATTRS = FALSE,
+  stringsAsFactors = FALSE
 )
+layer_boundary$status <- "Planned boundary"
+layer_boundary$status[
+  layer_boundary$target == "Constant q2 row"
+] <- "Fitted first-slice row"
+layer_boundary$status[
+  layer_boundary$layer == "Ordinary group" &
+    layer_boundary$target == "Regression or q4/scale extension"
+] <- "Partly fitted"
+layer_boundary$status[
+  layer_boundary$layer == "Phylogenetic" &
+    layer_boundary$target == "Regression or q4/scale extension"
+] <- "Partly fitted"
 layer_boundary$layer <- factor(
   layer_boundary$layer,
-  levels = rev(layer_boundary$layer)
+  levels = rev(c(
+    "Residual rho12",
+    "Ordinary group",
+    "Phylogenetic",
+    "Spatial",
+    "Animal",
+    "relmat"
+  ))
+)
+layer_boundary$target <- factor(
+  layer_boundary$target,
+  levels = c("Constant q2 row", "Regression or q4/scale extension")
 )
 layer_boundary$status <- factor(
   layer_boundary$status,
-  levels = c("Fitted corpairs row", "Planned boundary")
+  levels = c("Fitted first-slice row", "Partly fitted", "Planned boundary")
 )
-layer_boundary$status_label <- ifelse(
-  layer_boundary$status == "Fitted corpairs row",
-  "fitted\nrow",
-  "planned\nboundary"
-)
-layer_boundary$status_text_colour <- ifelse(
-  layer_boundary$status == "Fitted corpairs row",
-  "white",
-  "grey10"
+layer_boundary$status_label <- c(
+  "Fitted first-slice row" = "fitted\nq2 row",
+  "Partly fitted" = "partly\nfitted",
+  "Planned boundary" = "planned\nboundary"
+)[as.character(layer_boundary$status)]
+layer_boundary$status_text_colour <- c(
+  "Fitted first-slice row" = "white",
+  "Partly fitted" = "white",
+  "Planned boundary" = "grey10"
+)[as.character(layer_boundary$status)]
+layer_status_palette <- c(
+  "Fitted first-slice row" = gallery_colour("blue"),
+  "Partly fitted" = gallery_colour("green"),
+  "Planned boundary" = gallery_colour("yellow")
 )
 
-ggplot(layer_boundary, aes(status, layer, fill = status)) +
+ggplot(layer_boundary, aes(target, layer, fill = status)) +
   geom_tile(width = 0.82, height = 0.72, colour = "white", linewidth = 0.6) +
   geom_text(
     aes(label = status_label, colour = status_text_colour),
     size = 3.1,
     lineheight = 0.9
   ) +
-  scale_fill_manual(values = c(
-    "Fitted corpairs row" = "#0072B2",
-    "Planned boundary" = "#E69F00"
-  )) +
+  scale_fill_manual(values = layer_status_palette) +
   scale_colour_identity() +
   labs(
     title = "Correlation-layer support boundary",
-    subtitle = "Spatial, animal, and relmat rows are reserved until fitted correlation-pair evidence exists",
-    x = "Current status",
+    subtitle = "Spatial, animal, and relmat have constant q2 rows; richer structured correlation paths remain planned",
+    x = "Correlation target",
     y = NULL,
     fill = "Status"
   ) +
@@ -1734,11 +1797,11 @@ ggplot(layer_boundary, aes(status, layer, fill = status)) +
   )
 ```
 
-The status strip is not an estimate plot. Coordinate-spatial Gaussian `mu`
-slopes are fitted elsewhere, but spatial `corpairs()` rows remain planned.
-`animal()` and `relmat()` are also reserved structured-effect markers until the
-likelihood, diagnostics, profile-target, recovery-test, and example evidence
-exist.
+The status strip is not an estimate plot. It separates the fitted constant q=2
+rows from richer correlation surfaces. Spatial, animal, and `relmat()` q=2
+location-location rows now have fitted first-slice evidence. Spatial, animal,
+and `relmat()` predictor-dependent `corpair()` regressions, q=4
+location-scale blocks, and structured `sigma` correlations remain planned.
 
 ## Simulation operating characteristics
 
@@ -2074,7 +2137,7 @@ gallery_source_map <- data.frame(
     "prediction_grid(margin = \"empirical\") + marginal_parameters() + predict_parameters()",
     "ggplot2 status strip",
     "predict_parameters(dpar = \"mu\") + ggplot2",
-    "plot_corpairs()",
+    "corpairs-compatible table + ggplot2",
     "ggplot2 status strip",
     "ggplot2 fixture display"
   ),
@@ -2112,8 +2175,8 @@ gallery_source_map <- data.frame(
     "empirical marginalisation, not emmeans",
     "unsupported targets remain unsupported",
     "fixed-effect univariate mu",
-    "implemented residual, group, and phylogenetic rows",
-    "spatial, animal, and relmat rows remain planned",
+    "implemented residual, group, phylogenetic, spatial, animal, and relmat q2 rows",
+    "richer spatial, animal, and relmat correlation paths remain planned",
     "display grammar for later result articles"
   ),
   stringsAsFactors = FALSE
