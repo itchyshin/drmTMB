@@ -33839,3 +33839,47 @@ rg -n 'pedigree.*not|planned.*pedigree|pedigree.*planned|animal.*pedigree.*rejec
   rejection text, the failure-ledger sparse pedigree-to-`Ainv` note, current
   animal-only pedigree claims, and older historical check-log entries. No
   current design source claims that `relmat()` accepts `pedigree`.
+
+## 2026-05-21 - Spatial Q2 ADEMP Admission
+
+Goal:
+
+- Close the documentation gate that still described fitted coordinate-spatial
+  q=2 bivariate `mu1`/`mu2` covariance as waiting for a Phase 18 ADEMP row.
+
+Changes:
+
+- Added `docs/design/56-phase-18-spatial-q2-ademp.md` for matching
+  `spatial(1 | p | site, coords = coords)` terms in bivariate Gaussian
+  `mu1`/`mu2` formulas.
+- Updated the Phase 18 simulation programme and pre-simulation readiness
+  matrix so constant q=2 coordinate-spatial location covariance is admitted for
+  a focused grid, while mesh/SPDE, multiple spatial slopes, spatial `sigma`,
+  spatial q=4, spatial direct-SD, and spatial `corpair()` regression stay in
+  the failure ledger.
+- Updated `docs/design/16-phylo-spatial-common-math.md` so the spatial parity
+  ladder points to the new ADEMP sheet instead of saying the simulation
+  programme has not decided.
+- Added after-task report
+  `docs/dev-log/after-task/2026-05-21-spatial-q2-ademp-admission.md`.
+
+Validation:
+
+```sh
+Rscript -e "devtools::test(filter = 'spatial-gaussian')"
+Rscript -e "pkgdown::check_pkgdown()"
+git diff --check
+rg -n 'bivariate q=2 spatial needs an explicit ADEMP|fitted but waits for a dedicated ADEMP|waiting for an ADEMP row|keep bivariate q=2 spatial out of broad grids until an ADEMP row|simulation programme has not decided|spatial q=2 now needs the next gallery refresh' docs/design/16-phylo-spatial-common-math.md docs/design/41-phase-18-simulation-programme.md docs/design/46-pre-simulation-readiness-matrix.md docs/design/56-phase-18-spatial-q2-ademp.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-21-spatial-q2-ademp-admission.md README.md ROADMAP.md vignettes/phylogenetic-spatial.Rmd
+```
+
+- The focused spatial Gaussian test passed 98 expectations.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `git diff --check` was clean.
+- The focused spatial Gaussian test was selected because
+  `tests/testthat/test-spatial-gaussian.R` already fits the q=2 spatial model,
+  compares its objective to a dense covariance calculation, checks
+  `corpairs(level = "spatial")`, verifies direct profile target names, checks
+  `summary(fit)$covariance`, and exercises `simulate()`/`predict()` behavior.
+- The stale-status scan returned only the expected historical wording inside
+  this new after-task report and the still-open ROADMAP note that the
+  correlation-layer figure gallery needs a spatial q=2 refresh.

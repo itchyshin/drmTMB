@@ -589,12 +589,13 @@ machinery, and they now share the first constant q=2 bivariate location layer.
 
 The immediate q=2 implementation lane has now landed for coordinate-spatial
 location covariance, but it is not spatial `sigma`, spatial q=4, or spatial
-`corpair()` regression. Fisher keeps that q=2 lane separate from Phase 18
-admission until the simulation programme decides whether the dense covariance
-comparator and recovery test are enough for a focused grid. Pat still wants the
-first example to answer a simple spatial ecology question, such as whether
-nearby reefs share paired abundance and growth deviations, instead of presenting
-the covariance matrix first.
+`corpair()` regression. Fisher admits the constant q=2 lane for a focused Phase
+18 grid through `docs/design/56-phase-18-spatial-q2-ademp.md`, while keeping
+broad reports blocked until a dedicated DGP, manifest writer, and
+interval-status artifacts exist. Pat still wants the first example to answer a
+simple spatial ecology question, such as whether nearby reefs share paired
+abundance and growth deviations, instead of presenting the covariance matrix
+first.
 
 ## Current Implementation Gate
 
