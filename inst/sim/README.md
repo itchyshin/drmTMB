@@ -178,10 +178,14 @@ Current pilot files:
 - `run/sim_run_animal_relmat_q2_smoke.R` does the same for the known-matrix
   animal/`relmat()` q=2 bivariate location-covariance surface.
 - `run/sim_summary_animal_relmat_q2_smoke.R` reduces the animal/`relmat()`
-  q=2 smoke run into aggregate, replicate, manifest, and failure-ledger
-  tables.
+  q=2 smoke run into aggregate, replicate, manifest, failure-ledger,
+  fixed-effect Wald interval, profile-status, interval-evidence,
+  interval-diagnostics, and interval-failure tables.
 - `run/sim_write_animal_relmat_q2_grid.R` writes those tables as repeatable
-  CSV artifacts beside resumable per-replicate RDS files.
+  CSV artifacts beside resumable per-replicate RDS files. Profile requests are
+  optional; with `profile_parameters = character()`, structured SDs,
+  structured correlations, residual `rho12`, and residual `sigma1`/`sigma2`
+  rows stay visible as `not_requested`.
 - `run/sim_summary_gaussian_ls_smoke.R` runs a tiny Gaussian location-scale
   summary smoke grid and returns grouped bias, RMSE, MCSE, manifest,
   warning/error ledger, formula-coefficient Wald interval, and Wald coverage

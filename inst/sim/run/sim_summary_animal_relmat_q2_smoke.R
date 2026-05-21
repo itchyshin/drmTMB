@@ -10,6 +10,9 @@ phase18_summarise_animal_relmat_q2_smoke <- function(
   result_dir = NULL,
   overwrite = FALSE,
   by = NULL,
+  profile_parameters = character(),
+  profile_level = 0.70,
+  profile_args = list(ystep = 0.50),
   cores = 1L,
   backend = "none"
 ) {
@@ -19,6 +22,9 @@ phase18_summarise_animal_relmat_q2_smoke <- function(
     master_seed = master_seed,
     result_dir = result_dir,
     overwrite = overwrite,
+    profile_parameters = profile_parameters,
+    profile_level = profile_level,
+    profile_args = profile_args,
     cores = cores,
     backend = backend
   )
@@ -42,6 +48,50 @@ phase18_summarise_animal_relmat_q2_smoke <- function(
   )
   manifest <- phase18_result_manifest(run$results)
   failures <- phase18_result_failures(run$results)
+  wald_ready <- run$summary[
+    is.finite(run$summary$std.error),
+    ,
+    drop = FALSE
+  ]
+  wald_intervals <- if (nrow(wald_ready) == 0L) {
+    data.frame()
+  } else {
+    phase18_add_wald_intervals(
+      wald_ready,
+      interval_scale = "formula_coefficient"
+    )
+  }
+  wald_coverage <- phase18_optional_interval_coverage(
+    wald_intervals,
+    by = by
+  )
+  profile_status_rows <- run$summary[
+    !is.finite(run$summary$std.error),
+    ,
+    drop = FALSE
+  ]
+  profile_intervals <- phase18_optional_intervals_from_columns(
+    profile_status_rows,
+    prefix = "profile"
+  )
+  profile_requested <- profile_intervals[
+    profile_intervals$interval_status != "not_requested",
+    ,
+    drop = FALSE
+  ]
+  profile_coverage <- phase18_optional_interval_coverage(
+    profile_requested,
+    by = by
+  )
+  interval_evidence <- phase18_interval_evidence_table(
+    wald_intervals,
+    profile_intervals
+  )
+  interval_failures <- phase18_interval_failures(interval_evidence)
+  interval_diagnostics <- phase18_optional_interval_diagnostics(
+    interval_evidence,
+    by = unique(c(by, "interval_method"))
+  )
 
   list(
     surface = "animal_relmat_q2",
@@ -49,6 +99,13 @@ phase18_summarise_animal_relmat_q2_smoke <- function(
     aggregate = aggregate,
     replicates = run$summary,
     manifest = manifest,
-    failures = failures
+    failures = failures,
+    wald_intervals = wald_intervals,
+    wald_coverage = wald_coverage,
+    profile_intervals = profile_intervals,
+    profile_coverage = profile_coverage,
+    interval_evidence = interval_evidence,
+    interval_diagnostics = interval_diagnostics,
+    interval_failures = interval_failures
   )
 }

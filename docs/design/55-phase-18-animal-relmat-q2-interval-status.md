@@ -19,8 +19,8 @@ and residual `rho12` should not be collapsed into one coverage claim.
 
 ## Artifact Contract
 
-The next code slice should add optional interval artifacts to the q=2 grid
-writer in this order:
+The post-`0.1.3` code slice implements optional interval artifacts for the q=2
+grid writer in this order:
 
 1. Add optional `profile_parameters`, `profile_level`, and `profile_args`
    arguments to `phase18_run_animal_relmat_q2_smoke()`.
@@ -35,6 +35,16 @@ writer in this order:
 5. Keep profile parameters empty by default in CRAN-facing tests. A separate
    opt-in smoke should request only one structured SD, one structured
    correlation, and residual `rho12` before any larger profile grid runs.
+
+Implementation note: the default grid now writes fixed-effect Wald interval
+and coverage CSVs for finite formula-coefficient standard errors. It also
+writes profile interval, profile coverage, combined interval-evidence,
+interval-diagnostics, and interval-failure CSVs. With
+`profile_parameters = character()`, structured SDs, structured correlations,
+residual `rho12`, and public residual `sigma1`/`sigma2` rows remain visible as
+`not_requested`. An opt-in smoke requests `animal:sd1`, `animal:cor`, and
+`rho12` through the fitted-model profile target names, while the replicate and
+CSV rows keep the shorter reader-facing parameter labels.
 
 ## Reporting Rule
 

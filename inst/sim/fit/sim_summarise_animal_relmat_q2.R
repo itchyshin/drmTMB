@@ -4,7 +4,10 @@ phase18_summarise_animal_relmat_q2_fit <- function(
   cell_id = NA_character_,
   replicate = NA_integer_,
   elapsed = NA_real_,
-  warnings = character()
+  warnings = character(),
+  profile_parameters = character(),
+  profile_level = 0.70,
+  profile_args = list(ystep = 0.50)
 ) {
   if (is.data.frame(truth)) {
     truth <- attr(truth, "truth", exact = TRUE)
@@ -60,7 +63,7 @@ phase18_summarise_animal_relmat_q2_fit <- function(
     names(estimate)
   )
 
-  data.frame(
+  out <- data.frame(
     surface = "animal_relmat_q2",
     structured_surface = structured_surface,
     matrix_argument = truth$matrix_argument,
@@ -78,6 +81,19 @@ phase18_summarise_animal_relmat_q2_fit <- function(
     warning_count = length(warnings),
     warnings = paste(warnings, collapse = " | "),
     stringsAsFactors = FALSE
+  )
+  profile_map <- phase18_animal_relmat_q2_profile_parameter_map(
+    fit,
+    structured_surface = structured_surface,
+    parameters = profile_parameters
+  )
+  phase18_profile_interval_columns(
+    out,
+    fit = fit,
+    parameters = profile_map,
+    conf.level = profile_level,
+    interval_scale = "response",
+    profile_args = profile_args
   )
 }
 
@@ -99,4 +115,39 @@ phase18_animal_relmat_q2_fixed_effect_se <- function(fit, parameter) {
   ok <- !is.na(matched)
   out[ok] <- coefficients$std_error[matched[ok]]
   out
+}
+
+phase18_animal_relmat_q2_profile_parameter_map <- function(
+  fit,
+  structured_surface,
+  parameters = character()
+) {
+  if (!structured_surface %in% c("animal", "relmat")) {
+    stop(
+      "`structured_surface` must be animal or relmat.",
+      call. = FALSE
+    )
+  }
+  if (!is.character(parameters) || any(!nzchar(parameters))) {
+    stop("`parameters` must be a character vector.", call. = FALSE)
+  }
+
+  sd_names <- names(fit$sdpars$mu)
+  cor_names <- names(fit$corpars[[structured_surface]])
+  map <- c(
+    setNames(
+      paste0("sd:mu:", sd_names[seq_len(min(2L, length(sd_names)))]),
+      paste0(structured_surface, ":sd", seq_len(min(2L, length(sd_names))))
+    ),
+    setNames(
+      paste0("cor:", structured_surface, ":", cor_names[[1L]]),
+      paste0(structured_surface, ":cor")
+    ),
+    rho12 = "rho12"
+  )
+  map <- map[!is.na(map)]
+  if (length(parameters) == 0L) {
+    return(map[0L])
+  }
+  map[intersect(parameters, names(map))]
 }

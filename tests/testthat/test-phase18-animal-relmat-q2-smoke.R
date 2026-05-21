@@ -13,6 +13,14 @@ source_phase18_animal_relmat_q2 <- function(env = parent.frame()) {
   )
   source(
     system.file(
+      "sim/R/sim_uncertainty.R",
+      package = "drmTMB",
+      mustWork = TRUE
+    ),
+    local = env
+  )
+  source(
+    system.file(
       "sim/dgp/sim_dgp_animal_relmat_q2.R",
       package = "drmTMB",
       mustWork = TRUE
