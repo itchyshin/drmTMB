@@ -2,6 +2,76 @@
 
 Record meaningful development checks here.
 
+## 2026-05-20 - Animal/Relmat Q2 Interval Artifacts
+
+Goal: turn the animal/`relmat()` q=2 interval-status plan into repeatable CSV
+artifacts without claiming structured-effect coverage by default.
+
+Team roles:
+
+- Ada kept the slice to interval artifacts and left formula grammar unchanged.
+- Curie connected the animal/`relmat()` runner to the shared Phase 18 interval
+  helpers.
+- Fisher separated fixed-effect Wald coverage from opt-in profile evidence for
+  structured SDs, structured correlations, and residual `rho12`.
+- Gauss and Noether checked that known matrices, structured correlations, and
+  residual `rho12` remain separate covariance layers.
+- Grace kept profile work out of the default grid and guarded the opt-in smoke
+  with `skip_on_cran()`.
+- Pat and Darwin checked that applied users can see which intervals are real,
+  failed, or not requested.
+- Rose recorded the dependency wiring issue caught by the broader smoke test.
+
+Files changed:
+
+- `inst/sim/R/sim_uncertainty.R`
+- `inst/sim/fit/sim_summarise_animal_relmat_q2.R`
+- `inst/sim/run/sim_run_animal_relmat_q2_smoke.R`
+- `inst/sim/run/sim_summary_animal_relmat_q2_smoke.R`
+- `inst/sim/run/sim_write_animal_relmat_q2_grid.R`
+- `tests/testthat/test-phase18-animal-relmat-q2-grid-writer.R`
+- `tests/testthat/test-phase18-animal-relmat-q2-smoke.R`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `docs/design/46-pre-simulation-readiness-matrix.md`
+- `docs/design/54-phase-18-animal-relmat-known-matrix-ademp.md`
+- `docs/design/55-phase-18-animal-relmat-q2-interval-status.md`
+- `inst/sim/README.md`
+
+Checks run:
+
+```sh
+air format inst/sim/R/sim_uncertainty.R inst/sim/fit/sim_summarise_animal_relmat_q2.R inst/sim/run/sim_run_animal_relmat_q2_smoke.R inst/sim/run/sim_summary_animal_relmat_q2_smoke.R inst/sim/run/sim_write_animal_relmat_q2_grid.R tests/testthat/test-phase18-animal-relmat-q2-grid-writer.R
+Rscript -e "devtools::test(filter = 'phase18-animal-relmat-q2-grid-writer', reporter = 'summary')"
+Rscript -e "devtools::test(filter = 'phase18-animal-relmat-q2', reporter = 'summary')"
+Rscript -e "devtools::test(filter = 'phase18-sim-uncertainty', reporter = 'summary')"
+air format tests/testthat/test-phase18-animal-relmat-q2-smoke.R
+Rscript -e "devtools::test(filter = 'phase18-animal-relmat-q2', reporter = 'summary')"
+Rscript -e "pkgdown::check_pkgdown()"
+rg -n 'interval coverage waits|interval artifact code remains|interval-status plan|waits for opt-in profile evidence and interval-status artifacts|first q=2 DGP/smoke/grid-writer artifacts' docs/design inst/sim/README.md README.md ROADMAP.md NEWS.md vignettes
+git diff --check
+Rscript -e "devtools::check()"
+```
+
+Outcomes:
+
+- The focused grid-writer test passed, including the opt-in profile smoke.
+- The shared uncertainty-helper test passed after allowing the profile helper
+  to initialise `not_requested` rows and map display labels to fitted-model
+  profile targets.
+- The first combined `phase18-animal-relmat-q2` run exposed a test-source
+  dependency: the smoke test sourced the animal/`relmat()` summariser without
+  sourcing `sim_uncertainty.R`. Adding that source made the combined smoke and
+  grid-writer tests pass.
+- Default grid artifacts now contain fixed-effect Wald interval and coverage
+  rows; profile artifacts contain `not_requested`, `ok`, or `failed` status
+  rows without treating failed profiles as model-estimation failures.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `git diff --check` was clean.
+- The targeted stale-wording scan caught one stale ADEMP sentence saying
+  interval artifact code remained to be added; the ADEMP code-availability row
+  now points to the implemented artifacts and interval-status contract.
+- `devtools::check()` passed in 4m03s with 0 errors, 0 warnings, and 0 notes.
+
 ## 2026-05-20 - Animal/Relmat Q2 Interval-Status Plan
 
 Goal: decide how the q=2 animal/`relmat()` smoke-grid artifacts should handle

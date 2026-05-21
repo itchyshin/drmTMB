@@ -9,6 +9,9 @@ phase18_write_animal_relmat_q2_grid_outputs <- function(
   n_rep = 5L,
   master_seed = 20260525L,
   overwrite = FALSE,
+  profile_parameters = character(),
+  profile_level = 0.70,
+  profile_args = list(ystep = 0.50),
   cores = 1L,
   backend = "none"
 ) {
@@ -22,6 +25,34 @@ phase18_write_animal_relmat_q2_grid_outputs <- function(
     dirs$table_dir,
     prefix = "animal-relmat-q2"
   )
+  paths$wald_intervals_csv <- file.path(
+    dirs$table_dir,
+    "animal-relmat-q2-wald-intervals.csv"
+  )
+  paths$wald_coverage_csv <- file.path(
+    dirs$table_dir,
+    "animal-relmat-q2-wald-coverage.csv"
+  )
+  paths$profile_intervals_csv <- file.path(
+    dirs$table_dir,
+    "animal-relmat-q2-profile-intervals.csv"
+  )
+  paths$profile_coverage_csv <- file.path(
+    dirs$table_dir,
+    "animal-relmat-q2-profile-coverage.csv"
+  )
+  paths$interval_evidence_csv <- file.path(
+    dirs$table_dir,
+    "animal-relmat-q2-interval-evidence.csv"
+  )
+  paths$interval_diagnostics_csv <- file.path(
+    dirs$table_dir,
+    "animal-relmat-q2-interval-diagnostics.csv"
+  )
+  paths$interval_failures_csv <- file.path(
+    dirs$table_dir,
+    "animal-relmat-q2-interval-failures.csv"
+  )
   phase18_assert_simple_grid_overwrite(
     paths,
     overwrite,
@@ -34,10 +65,48 @@ phase18_write_animal_relmat_q2_grid_outputs <- function(
     master_seed = master_seed,
     result_dir = dirs$result_dir,
     overwrite = overwrite,
+    profile_parameters = profile_parameters,
+    profile_level = profile_level,
+    profile_args = profile_args,
     cores = cores,
     backend = backend
   )
   phase18_write_simple_grid_tables(summary, paths)
+  utils::write.csv(
+    summary$wald_intervals,
+    paths$wald_intervals_csv,
+    row.names = FALSE
+  )
+  utils::write.csv(
+    summary$wald_coverage,
+    paths$wald_coverage_csv,
+    row.names = FALSE
+  )
+  utils::write.csv(
+    summary$profile_intervals,
+    paths$profile_intervals_csv,
+    row.names = FALSE
+  )
+  utils::write.csv(
+    summary$profile_coverage,
+    paths$profile_coverage_csv,
+    row.names = FALSE
+  )
+  utils::write.csv(
+    summary$interval_evidence,
+    paths$interval_evidence_csv,
+    row.names = FALSE
+  )
+  utils::write.csv(
+    summary$interval_diagnostics,
+    paths$interval_diagnostics_csv,
+    row.names = FALSE
+  )
+  utils::write.csv(
+    summary$interval_failures,
+    paths$interval_failures_csv,
+    row.names = FALSE
+  )
 
   list(
     surface = "animal_relmat_q2_grid",

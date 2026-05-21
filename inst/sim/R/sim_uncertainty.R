@@ -376,10 +376,9 @@ phase18_profile_interval_columns <- function(
   }
   if (
     !is.character(parameters) ||
-      length(parameters) == 0L ||
       any(!nzchar(parameters))
   ) {
-    stop("`parameters` must be a non-empty character vector.", call. = FALSE)
+    stop("`parameters` must be a character vector.", call. = FALSE)
   }
   if (
     !is.numeric(conf.level) ||
@@ -409,15 +408,32 @@ phase18_profile_interval_columns <- function(
     interval_scale = interval_scale,
     default_status = "not_requested"
   )
-  rows <- which(out$parameter %in% parameters)
+  if (length(parameters) == 0L) {
+    return(out)
+  }
+  row_parameters <- parameters
+  target_parameters <- parameters
+  parameter_names <- names(parameters)
+  if (!is.null(parameter_names) && any(nzchar(parameter_names))) {
+    if (any(!nzchar(parameter_names))) {
+      stop(
+        "Named `parameters` must have one non-empty name per profile row.",
+        call. = FALSE
+      )
+    }
+    row_parameters <- parameter_names
+    target_parameters <- unname(parameters)
+  }
+  rows <- which(out$parameter %in% row_parameters)
   for (row in rows) {
+    target <- target_parameters[[match(out$parameter[[row]], row_parameters)]]
     ci <- tryCatch(
       do.call(
         stats::confint,
         c(
           list(
             object = fit,
-            parm = out$parameter[[row]],
+            parm = target,
             method = "profile",
             level = conf.level,
             trace = trace
