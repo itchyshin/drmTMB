@@ -34825,3 +34825,45 @@ git diff --check
   generic `sd*()`, non-Gaussian structured dependence, or `zi`/`hu` random
   effects are fitted.
 - `git diff --check` was clean.
+
+## 2026-05-21 - Implementation Map Slices 326-340
+
+Goal:
+
+- Turn the next implementation-map backlog into issue-ready pre-code
+  specifications without opening unsupported likelihood claims.
+
+Changes:
+
+- Added `docs/design/64-implementation-map-slices-326-340.md` as the ledger
+  for generic direct-SD issue requirements, p8/q8 endpoint registries, spatial
+  q4 pre-code checks, q4 diagnostics, Poisson/NB2 q1 structured-count
+  candidates, user-route examples, and stale-claim maintenance.
+- Updated `vignettes/implementation-map.Rmd` with the 326-340 roadmap rows and
+  expanded common planned-request examples.
+- Updated `ROADMAP.md` and `NEWS.md` to record these as pre-code slices, not
+  fitted model surfaces.
+- Added `docs/dev-log/after-task/2026-05-21-implementation-map-slices-326-340.md`
+  to record user usefulness, standing roles, checks, and boundaries.
+
+Validation:
+
+```sh
+air format NEWS.md ROADMAP.md vignettes/implementation-map.Rmd docs/design/64-implementation-map-slices-326-340.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-21-implementation-map-slices-326-340.md
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "pkgdown::build_site()"
+rg -n "326-328|329-331|332-333|334-336|spatial q4 parity|Poisson q1|NB2 q1" pkgdown-site/articles/implementation-map.html pkgdown-site/ROADMAP.html
+rg -n 'generic sd\\*.*(is implemented|now works|now accepts)|p8/q8.*(is fitted|are fitted|now fit)|spatial q4.*(is fitted|now fits)|Poisson.*structured.*now fits|NB2.*structured.*now fits|non-Gaussian structured.*now fits' README.md ROADMAP.md NEWS.md docs/design vignettes R tests/testthat -g '!*.html'
+git diff --check
+```
+
+- `air format` completed without output.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `pkgdown::build_site()` completed and wrote the updated implementation-map
+  and ROADMAP pages.
+- The rendered-page scan found the 326-328, 329-331, 332-333, and 334-336 rows,
+  plus spatial q4 and Poisson/NB2 q1 wording.
+- The stale-support scan found no false fitted claims for generic `sd*()`,
+  p8/q8, spatial q4, Poisson/NB2 structured-count routes, or non-Gaussian
+  structured dependence.
+- `git diff --check` was clean.

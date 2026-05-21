@@ -118,6 +118,11 @@ the most useful next lanes for users:
 | 317-318 | Structured q4 and interval contract | Users need to know which q4 rows are estimates and which have real intervals. | Spatial q4 parity is separated from already fitted phylo/animal/relmat q4 status, and q4 intervals remain unavailable until method evidence exists. |
 | 319-320 | Non-Gaussian structured candidate choice | Count users need a realistic first structural-dependence path. | One q1 `mu` structured intercept is chosen before slopes, q4, zero inflation, hurdle probability, or cross-parameter covariance. |
 | 321-325 | User-route and maintenance closeout | The map should help users choose a fitted route when their desired model is planned. | Common planned requests point to fixed-effect or smaller fitted alternatives, and pkgdown/stale-claim checks confirm the rendered map. |
+| 326-328 | Direct-SD pre-code spec | The next direct-SD work should be issue-ready before parser work starts. | Level-targeted generic syntax, `sd_phylo*()` compatibility, endpoint names, reference-index text, and required tests are explicit. |
+| 329-331 | p8/q8 pre-code spec | Users need a smaller, diagnosable path before all-endpoint slope covariance. | q2, q4, q6, and q8 endpoint classes and simulation gates are written before syntax opens. |
+| 332-333 | Spatial q4 pre-code spec | Spatial q4 is the main missing constant structured q4 parity lane. | Matching labelled spatial terms, extractors, `corpairs()`, diagnostics, and derived-interval status are required before code is claimed. |
+| 334-336 | Non-Gaussian structured q1 spec | Count structural dependence needs a first narrow smoke target. | Poisson q1 `mu` structured intercept is the algebra smoke; NB2 q1 `mu` structured intercept is the first practical target after overdispersion checks. |
+| 337-340 | User-route and stale-claim gate | Future implementation must keep the map useful. | Common planned requests point to fitted alternatives, and high-traffic docs plus stale scans move together after implementation. |
 
 ## Common planned requests
 
@@ -130,3 +135,5 @@ Use this table when a desired model is not fitted yet.
 | phylogenetic or spatial count dependence | ordinary Poisson/NB2 `mu` random effects when a plain group is enough; otherwise treat structural count dependence as planned | `phylo()`, `spatial()`, `animal()`, or `relmat()` inside non-Gaussian likelihoods |
 | full individual-difference location-scale slopes | fitted q2 slope-only `mu1`/`mu2` covariance, or smaller univariate pieces | p8/q8 location-scale slope covariance |
 | structured direct-SD surfaces outside phylogeny | fitted structured intercept/slope SDs and `profile_targets()` where available | generic spatial, animal, or `relmat()` direct-SD regression |
+| spatial q4 location-scale covariance | fitted q2 spatial location covariance, or fitted q4 phylo/animal/relmat if that layer matches the question | spatial q4 parity issue with extractor, diagnostic, and interval-status gates |
+| NB2 phylogenetic or spatial count model | ordinary NB2 `mu` random effects if a plain group is enough | Poisson q1 structured smoke first, then NB2 q1 structured intercept with overdispersion checks |

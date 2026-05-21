@@ -1563,6 +1563,21 @@ Use this order unless Slice 191 evidence overturns it:
 | 323 | Roadmap, NEWS, and check-log | Done locally: the ledger records this set as planning/documentation, not likelihood expansion. |
 | 324 | After-task protocol | Done locally: the after-task report records roles, usefulness, checks, and remaining boundaries. |
 | 325 | Validation | Done locally: pkgdown and stale-claim scans confirm the rendered map and guardrails. |
+| 326 | Generic direct-SD issue spec | Done locally as pre-code: `docs/design/64-implementation-map-slices-326-340.md` records the grammar, compatibility, endpoint, reference-index, and test decisions required before generic structured direct-SD parser work. |
+| 327 | Direct-SD parser boundary matrix | Done locally as pre-code: ordinary `sd(group)`, current `sd_phylo*()`, and future level-targeted structured SD routes have separate parser outcomes. |
+| 328 | Direct-SD tests and docs checklist | Done locally as pre-code: next direct-SD work requires malformed-input tests, prediction/profile rows, examples, reference docs, and stale-name scans. |
+| 329 | p8/q8 endpoint registry sketch | Done locally as pre-code: q2 slope-only, q4 location slope, q6 partial location-scale, and q8 all-endpoint slope classes are named. |
+| 330 | p8/q8 staged implementation options | Done locally as pre-code: q4 location-slope and constrained or block-diagonal routes are preferred before full q8 unstructured covariance. |
+| 331 | p8/q8 simulation gate | Done locally as pre-code: any q4/q6/q8 slope endpoint must vary group count, repeats, SD ratios, correlations, covariate spread, and boundary cases. |
+| 332 | Spatial q4 pre-code checklist | Done locally as pre-code: spatial q4 requires matching labelled terms, extractor rows, `corpairs()`, diagnostics, direct/derived interval status, and a small smoke before tutorial claims. |
+| 333 | Structured q4 diagnostics checklist | Done locally as pre-code: q4 rows need Hessian, boundary, profile-target, and derived-interval status checks before routine teaching. |
+| 334 | Poisson structured q1 smoke spec | Done locally as pre-code: the first non-Gaussian structured candidate is a q1 Poisson `mu` structured intercept smoke. |
+| 335 | NB2 structured q1 practical spec | Done locally as pre-code: NB2 `mu` q1 structured intercept is the first practical count target after Poisson smoke and overdispersion checks. |
+| 336 | Non-Gaussian structured ADEMP stub | Done locally as pre-code: the candidate needs an ADEMP sheet before simulation code enters Phase 18. |
+| 337 | User-route example expansion | Done locally: the public implementation map now gives more explicit fitted alternatives for planned direct-SD, q4, p8/q8, and non-Gaussian structured requests. |
+| 338 | Stale-claim checklist | Done locally: validation targets false fitted claims for generic `sd*()`, p8/q8, spatial q4, and non-Gaussian structured routes. |
+| 339 | Roadmap and NEWS sync | Done locally: public and dev ledgers record these as pre-code slices. |
+| 340 | After-task and validation | Done locally: the after-task report and pkgdown checks close the slice set. |
 
 ### Pre-Simulation Readiness Slice Map
 
@@ -1609,6 +1624,21 @@ as the whole comprehensive simulation programme.
 | 323 | Documentation | Roadmap, NEWS, and check-log | Done locally: public and dev ledgers match the planning-only scope. |
 | 324 | Documentation | After-task protocol | Done locally: after-task report records the scope and remaining boundaries. |
 | 325 | Documentation | Validation | Done locally: pkgdown and stale-claim scans confirm the rendered docs. |
+| 326 | Documentation | Generic direct-SD issue spec | Done locally as pre-code: `docs/design/64-implementation-map-slices-326-340.md` records the grammar, compatibility, endpoint, reference-index, and test decisions required before generic structured direct-SD parser work. |
+| 327 | Documentation | Direct-SD parser boundary matrix | Done locally as pre-code: ordinary `sd(group)`, current `sd_phylo*()`, and future level-targeted structured SD routes have separate parser outcomes. |
+| 328 | Documentation | Direct-SD tests and docs checklist | Done locally as pre-code: next direct-SD work requires malformed-input tests, prediction/profile rows, examples, reference docs, and stale-name scans. |
+| 329 | Documentation | p8/q8 endpoint registry sketch | Done locally as pre-code: q2 slope-only, q4 location slope, q6 partial location-scale, and q8 all-endpoint slope classes are named. |
+| 330 | Documentation | p8/q8 staged implementation options | Done locally as pre-code: q4 location-slope and constrained or block-diagonal routes are preferred before full q8 unstructured covariance. |
+| 331 | Documentation | p8/q8 simulation gate | Done locally as pre-code: any q4/q6/q8 slope endpoint must vary group count, repeats, SD ratios, correlations, covariate spread, and boundary cases. |
+| 332 | Documentation | Spatial q4 pre-code checklist | Done locally as pre-code: spatial q4 requires matching labelled terms, extractor rows, `corpairs()`, diagnostics, direct/derived interval status, and a small smoke before tutorial claims. |
+| 333 | Documentation | Structured q4 diagnostics checklist | Done locally as pre-code: q4 rows need Hessian, boundary, profile-target, and derived-interval status checks before routine teaching. |
+| 334 | Documentation | Poisson structured q1 smoke spec | Done locally as pre-code: the first non-Gaussian structured candidate is a q1 Poisson `mu` structured intercept smoke. |
+| 335 | Documentation | NB2 structured q1 practical spec | Done locally as pre-code: NB2 `mu` q1 structured intercept is the first practical count target after Poisson smoke and overdispersion checks. |
+| 336 | Documentation | Non-Gaussian structured ADEMP stub | Done locally as pre-code: the candidate needs an ADEMP sheet before simulation code enters Phase 18. |
+| 337 | Documentation | User-route example expansion | Done locally: the public implementation map now gives more explicit fitted alternatives for planned direct-SD, q4, p8/q8, and non-Gaussian structured requests. |
+| 338 | Documentation | Stale-claim checklist | Done locally: validation targets false fitted claims for generic `sd*()`, p8/q8, spatial q4, and non-Gaussian structured routes. |
+| 339 | Documentation | Roadmap and NEWS sync | Done locally: public and dev ledgers record these as pre-code slices. |
+| 340 | Documentation | After-task and validation | Done locally: the after-task report and pkgdown checks close the slice set. |
 | 268 | Support audit | Pre-simulation capability matrix | Done locally: `docs/design/46-pre-simulation-readiness-matrix.md` now has one capability audit table that says which Gaussian, non-Gaussian, shape, inflation, bivariate, random-slope, meta-analysis, phylogenetic, spatial, animal, and `relmat()` surfaces are implemented, tested, planned, or unsupported before Phase 18 grids admit them. |
 | 269 | Random slopes | Ordinary location random slopes | Done locally: a q=4 ordinary Gaussian `mu` block test now confirms multi-slope SD/correlation names, `corpairs()` classes, and profile-target status, while README/model-map/which-scale wording names q > 2 as fitted but sample-size hungry. |
 | 270 | Random slopes | Scale random effects | Done locally: a cross-group Gaussian `sigma` test now confirms two independent residual-scale slope terms, direct `log_sd_sigma` targets, and no residual-scale correlation rows, while docs keep correlated residual-scale slope blocks planned. |
