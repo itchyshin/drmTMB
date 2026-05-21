@@ -32,7 +32,7 @@ Use these status labels:
 | `re_scale_sd_group` | Random-effect scale models | partial | moderate | Add coefficient-specific random-slope scale likelihood, recovery tests, and diagnostics before widening `sd()` syntax. |
 | `known_sampling_covariance` | Known sampling covariance | covered/partial | moderate for dense scalability | Keep dense full `V` labelled small-to-moderate until sparse/block-sparse storage has implementation, diagnostics, and benchmark evidence. |
 | `biv_residual_rho12` | Bivariate Gaussian residual `rho12` | covered | low for residual `rho12`; high if confused with latent covariance | Keep residual `rho12` separate from group, phylogenetic, and spatial correlations. |
-| `ordinary_biv_corpairs` | Ordinary bivariate covariance and `corpairs()` | partial | moderate | Add coefficient-aware bivariate slope covariance only after q=2/q=4 interval status and recovery evidence are explicit. |
+| `ordinary_biv_corpairs` | Ordinary bivariate covariance and `corpairs()` | partial | moderate | Matching slope-only `mu1`/`mu2` covariance is fitted; keep intercept-plus-slope, p8/q8 endpoint, and predictor-dependent slope-correlation routes blocked until recovery evidence and interval policy are explicit. |
 | `phylo_structured_effects` | Phylogenetic structured effects | partial | moderate | Add phylogenetic one-slope likelihood, diagnostics, and recovery evidence before teaching slopes. |
 | `spatial_coord_effects` | Coordinate spatial structured effects | partial | moderate | The coordinate q=2 bivariate location covariance slice is now fitted; add mesh/SPDE, multiple-slope, q=4, spatial `sigma`, and spatial `corpair()` evidence before widening spatial syntax further. |
 | `animal_known_relatedness` | Animal-model and user-supplied relatedness effects | partial | high if confused with implemented phylogeny or meta-analysis known `V` | The Gaussian `mu` intercept slice, matching labelled bivariate q=2 `mu1`/`mu2` location covariance, and constant all-four q=4 location-scale covariance are fitted for `animal(pedigree/A/Ainv)` and `relmat(K/Q)`. Keep sparse large-pedigree construction, structured slopes, standalone `sigma`, predictor-dependent `corpair()` regression, and direct-SD grammar in the debt ledger until they have diagnostics, extractors, profile targets, and simulation recovery. |
@@ -320,10 +320,11 @@ Use these status labels:
 - Check-log evidence: `docs/dev-log/check-log.md` records the labelled
   covariance block assembler, q=4 scaffold, `corpairs()` output, and profile
   target namespace slices.
-- Debt: bivariate random slopes, full cross-parameter slope covariance, and
-  slope1-slope2 plasticity-syndrome correlations remain blocked until the
-  coefficient-aware `corpair()` contract has likelihood code and recovery
-  evidence.
+- Debt: broader bivariate random slopes, full cross-parameter slope covariance,
+  and predictor-dependent slope correlations remain blocked. The first
+  matching slope-only `mu1`/`mu2` covariance route is fitted, but coefficient-
+  aware `corpair()` regression and p8/q8 endpoint covariance still need
+  likelihood code and recovery evidence.
 
 ### Phylogenetic structured effects
 
@@ -472,7 +473,7 @@ Use these status labels:
   and large-data check-log entries named above.
 - Debt: coefficient-specific `sd()` slopes, random effects in `rho12`, multiple
   structured slopes, structured slope correlations, mesh/SPDE, spatial
-  `corpair()`, bivariate random slopes, mixed composed families, and other
+  `corpair()`, broader bivariate random slopes, mixed composed families, and other
   reserved neighbours need implementation, recovery tests, diagnostics,
   documentation, NEWS, check-log evidence, and an after-task report before
   moving out of blocked status.
@@ -515,7 +516,7 @@ failure-ledger rows until their own implementation and recovery evidence exists.
 | D78-04 | q=4 derived intervals | direct nonlinear interval method or fix-and-refit profile path, plus boundary and convergence status columns |
 | D78-05 | Spatial expansion | mesh/SPDE schema, projection path, precision construction, provenance, recovery tests, and diagnostics |
 | D78-06 | Phylogenetic slopes | one-slope likelihood, storage order, recovery tests, direct SD targets, and `check_drm()` rows |
-| D78-07 | Bivariate random slopes | coefficient-aware covariance registry, `corpairs()` rows, profile target policy, and recovery evidence |
+| D78-07 | Broader bivariate random slopes | coefficient-aware covariance registry beyond the matching slope-only `mu1`/`mu2` slice, `corpairs()` rows, profile target policy, and recovery evidence |
 | D78-08 | Large-data claims | non-CRAN benchmarks and compatibility tests for random effects, structured effects, known covariance, bivariate models, and non-Gaussian families |
 | D78-09 | Failed or skipped uncertainty | Slice 79 contract for `sdreport()` failures, `se = FALSE` behaviour, and summary/profile status reporting |
 

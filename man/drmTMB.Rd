@@ -78,7 +78,8 @@ numeric coordinate-spatial slope in univariate Gaussian \code{mu},
 fixed-effect bivariate Gaussian distributional models, and matched labelled
 bivariate Gaussian \code{mu1}/\code{mu2}, \code{sigma1}/\code{sigma2}, and same-response
 \code{mu}/\code{sigma} random-intercept covariance blocks, including the first
-all-four q=4 ordinary random-intercept covariance blocks and
+matching slope-only \code{mu1}/\code{mu2} covariance block, the first all-four q=4
+ordinary random-intercept covariance blocks, and
 predictor-dependent q=2 ordinary or phylogenetic \code{corpair()} regressions.
 Bivariate Gaussian location formulas may be written explicitly as
 \code{mu1 = y1 ~ ...}, \code{mu2 = y2 ~ ...}, or with \code{mvbind(y1, y2) ~ ...} shorthand

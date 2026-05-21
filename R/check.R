@@ -1266,6 +1266,14 @@ check_biv_mu_random_effect_covariance <- function(object) {
     from_dpar = "mu1",
     to_dpar = "mu2"
   )
+  if (is.null(registry_pair)) {
+    registry_pair <- registry_covariance_pair(
+      object,
+      class = "slope-slope",
+      from_dpar = "mu1",
+      to_dpar = "mu2"
+    )
+  }
   if (!is.null(registry_pair)) {
     if (isTRUE(registry_pair$complex)) {
       return(check_row(
@@ -1296,12 +1304,15 @@ check_biv_mu_random_effect_covariance <- function(object) {
     }
     weak_sd <- any(finite_sd_ratios < 0.05)
     weak_replication <- min_count < 2L
+    pair_class <- registry_pair$pair$class[[1L]]
 
     return(check_row(
       "biv_mu_random_effect_covariance",
       if (weak_replication || weak_sd) "note" else "ok",
       paste0(
-        "n_groups=",
+        "class=",
+        pair_class,
+        "; n_groups=",
         n_group,
         "; min_group_n=",
         min_count,

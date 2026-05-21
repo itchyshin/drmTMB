@@ -712,8 +712,8 @@ Current planned but not implemented syntax includes:
 - slope-specific and labelled-block random-effect scale models;
 - correlated residual-scale slope blocks in `sigma` and labelled `mu`/`sigma`
   random-slope covariance;
-- bivariate random slopes and full cross-parameter covariance blocks spanning
-  more than one pair;
+- broader bivariate random slopes and full cross-parameter covariance blocks
+  spanning more than one pair;
 - cross-formula covariance sharing from repeated labels such as
   `(1 + x | p | id)`;
 - phylogenetic slopes, standalone or partial phylogenetic scale terms,

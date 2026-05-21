@@ -2,6 +2,100 @@
 
 Record meaningful development checks here.
 
+## 2026-05-21 - Structural Parity Slices 83-140
+
+Goal: continue the post-0.1.3 parity lane by fitting the first ordinary
+bivariate slope-slope covariance slice while keeping p8/q8 location-scale
+random slopes, direct-SD unification, and non-Gaussian structural dependence
+honest as planned or guarded work.
+
+Team roles:
+
+- Ada scoped the slice to matching slope-only `mu1`/`mu2` covariance and the
+  release/handoff ledger.
+- Boole checked that the formula grammar says exactly which bivariate slope
+  syntax is fitted.
+- Gauss and Noether kept the fitted block to two slope endpoints and one
+  slope-slope correlation.
+- Curie and Fisher checked recovery, profile-target, registry, and diagnostic
+  evidence.
+- Pat and Darwin checked whether the model answers a real two-response
+  plasticity question for applied users.
+- Grace ran pkgdown and release-hygiene checks.
+- Rose kept p8/q8, non-Gaussian structured dependence, and generic `sd*()`
+  syntax out of fitted claims.
+
+Files changed:
+
+- `R/drmTMB.R`
+- `R/check.R`
+- `tests/testthat/test-biv-gaussian.R`
+- `NEWS.md`
+- `README.md`
+- `ROADMAP.md`
+- `man/drmTMB.Rd`
+- `docs/design/01-formula-grammar.md`
+- `docs/design/02-family-registry.md`
+- `docs/design/03-likelihoods.md`
+- `docs/design/04-random-effects.md`
+- `docs/design/20-coscale-correlation-pairs.md`
+- `docs/design/28-double-hierarchical-endpoint.md`
+- `docs/design/30-labelled-covariance-block-assembler.md`
+- `docs/design/33-phase-6c-core-random-effects.md`
+- `docs/design/34-validation-debt-register.md`
+- `docs/design/37-worked-example-inventory.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `docs/design/45-cross-dpar-correlation-gate.md`
+- `docs/design/46-pre-simulation-readiness-matrix.md`
+- `docs/design/52-phase-18-bivariate-rho12-ademp.md`
+- `docs/design/57-structural-parity-next-slices.md`
+- `docs/design/59-structural-slope-and-non-gaussian-map.md`
+- `docs/design/61-structural-parity-slices-83-140.md`
+- `vignettes/bivariate-coscale.Rmd`
+- `vignettes/formula-grammar.Rmd`
+- `vignettes/model-map.Rmd`
+- `vignettes/source-map.Rmd`
+- `vignettes/which-scale.Rmd`
+
+Checks run:
+
+```sh
+air format R/drmTMB.R R/check.R tests/testthat/test-biv-gaussian.R README.md NEWS.md ROADMAP.md docs/design/01-formula-grammar.md docs/design/02-family-registry.md docs/design/03-likelihoods.md docs/design/04-random-effects.md docs/design/20-coscale-correlation-pairs.md docs/design/28-double-hierarchical-endpoint.md docs/design/30-labelled-covariance-block-assembler.md docs/design/33-phase-6c-core-random-effects.md docs/design/34-validation-debt-register.md docs/design/37-worked-example-inventory.md docs/design/41-phase-18-simulation-programme.md docs/design/45-cross-dpar-correlation-gate.md docs/design/46-pre-simulation-readiness-matrix.md docs/design/52-phase-18-bivariate-rho12-ademp.md docs/design/57-structural-parity-next-slices.md docs/design/59-structural-slope-and-non-gaussian-map.md docs/design/61-structural-parity-slices-83-140.md vignettes/bivariate-coscale.Rmd vignettes/formula-grammar.Rmd vignettes/model-map.Rmd vignettes/source-map.Rmd vignettes/which-scale.Rmd
+Rscript -e "devtools::document()"
+Rscript -e "devtools::test(filter = 'biv-gaussian', reporter = 'summary')"
+Rscript -e "devtools::test(filter = 'check-drm|profile-targets', reporter = 'summary')"
+Rscript -e "devtools::test(reporter = 'summary')"
+Rscript -e "pkgdown::check_pkgdown()"
+rg -n 'Bivariate random slopes are planned|bivariate random slopes remain planned|bivariate random slopes are not|Bivariate Gaussian random slopes \| Planned|No for slopes|first future bivariate slope target|first future slope target|first planned slope path|first bivariate random-slope target.*planned|matching slope-only.*remain.*rejected|before exposing\s+bivariate random slopes' README.md ROADMAP.md NEWS.md docs/design vignettes R tests/testthat -g '!docs/site/**' -g '!*.html'
+git diff --check
+gh issue list --search 'bivariate slope OR random slope OR p8 OR q8' --limit 20
+```
+
+Outcomes:
+
+- `biv_gaussian()` now fits matching slope-only `mu1`/`mu2` blocks such as
+  `(0 + x | p | id)` in both location formulas.
+- The fitted row is labelled `cor(mu1:x,mu2:x | p | id)` and exposed through
+  `sdpars$mu`, `corpars$mu`, `corpairs()`, `summary()$covariance`,
+  `profile_targets()`, and `check_drm()`.
+- Mismatched slope-only terms such as `mu1` using `x` and `mu2` using `z`
+  error before fitting.
+- The focused bivariate, profile-target, and diagnostic filters passed.
+- Full `devtools::test(reporter = 'summary')` passed.
+- `pkgdown::check_pkgdown()` passed with no problems found.
+- The stale-wording scan returned no hits after the roadmap wording refresh.
+- Issue search found existing open issues #33, #128, #5, #147, #31, and #58,
+  so no duplicate issue was opened.
+
+Boundaries:
+
+- Intercept-plus-slope q=4 location blocks, residual-scale slope covariance,
+  all-four p8/q8 location-scale slope endpoints, predictor-dependent slope
+  `corpair()` regressions, random effects in `rho12`, generic `sd*()` direct-SD
+  unification, and non-Gaussian structured dependence remain planned.
+- The p8/q8 location-scale question should be planned before implementation
+  because a full unstructured p8 block has eight SDs and 28 correlations.
+
 ## 2026-05-21 - Structural Parity Slices 9-38
 
 Goal: continue the post-0.1.3 structural-dependence parity lane by adding
