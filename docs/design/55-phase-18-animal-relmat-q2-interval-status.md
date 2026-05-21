@@ -70,8 +70,10 @@ surface:
 
 - sparse large-pedigree `Ainv` construction;
 - structured slopes;
-- `sigma` structured effects;
-- q=4 location-scale animal/`relmat()` blocks;
+- standalone `sigma` structured effects outside the fitted all-four q=4 block;
+- broad q=4 animal/`relmat()` operating-characteristic grids beyond the focused
+  smoke and derived-target status checks in
+  `docs/design/58-phase-18-animal-relmat-q4-ademp.md`;
 - predictor-dependent `corpair()` regressions;
 - direct-SD grammar such as `sd_animal*()`;
 - non-Gaussian structured effects.

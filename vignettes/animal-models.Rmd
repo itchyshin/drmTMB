@@ -23,7 +23,8 @@ workflows, but they are not yet full parity with every `phylo()` route.
 | --- | --- | --- |
 | Does one Gaussian response have additive individual deviations? | `animal(1 | individual, pedigree = pedigree)`, `animal(1 | individual, A = A)`, or `animal(1 | individual, Ainv = Ainv)` in `mu` | Fitted first slice. Dense pedigree construction, covariance input, and precision input are supported. |
 | Do two Gaussian response means share an animal-model correlation? | matching labelled `animal(1 | p | individual, pedigree = pedigree)`, `animal(1 | p | individual, A = A)`, or `animal(1 | p | individual, Ainv = Ainv)` terms in `mu1` and `mu2` | Fitted first q=2 location-location slice. `corpairs(level = "animal")` reports the latent animal correlation separately from residual `rho12`. |
-| Does the animal effect change a slope, residual scale, or q=4 location-scale block? | examples such as `animal(1 + x | individual, pedigree = pedigree)` or matching animal terms in `sigma1` and `sigma2` | Planned. These routes need separate diagnostics, recovery tests, interval targets, and examples before use. |
+| Do animal-model deviations link means and residual scales across two responses? | the same labelled `animal(1 | p | individual, Ainv = Ainv)` term in `mu1`, `mu2`, `sigma1`, and `sigma2` | Fitted first q=4 location-scale slice. `corpairs(level = "animal")` reports six constant latent animal correlations; profile intervals for those derived correlations remain unavailable. |
+| Does the animal effect change a slope, standalone residual scale, or predictor-dependent correlation? | examples such as `animal(1 + x | individual, pedigree = pedigree)`, only `animal()` in `sigma1`, or animal `corpair()` formulas | Planned. These routes need separate diagnostics, recovery tests, interval targets, and examples before use. |
 
 The `pedigree` route expects a data frame whose identifiers match the grouping
 variable used in the formula. The `A` route uses a precomputed additive
@@ -63,6 +64,31 @@ latent animal-model correlation among individual location deviations. `rho12()`
 reports the residual correlation between the two responses after the fixed
 effects and random effects have been included.
 
+When the biological question is whether additive individual deviations in means
+and residual scales covary, use the same labelled animal term in all four
+bivariate endpoint formulas:
+
+```r
+fit_animal_q4 <- drmTMB(
+  mu1 = trait1 ~ treatment +
+    animal(1 | p | individual, Ainv = Ainv),
+  mu2 = trait2 ~ treatment +
+    animal(1 | p | individual, Ainv = Ainv),
+  sigma1 = ~ treatment +
+    animal(1 | p | individual, Ainv = Ainv),
+  sigma2 = ~ treatment +
+    animal(1 | p | individual, Ainv = Ainv),
+  data = dat,
+  family = biv_gaussian()
+)
+corpairs(fit_animal_q4, level = "animal")
+```
+
+The q=4 path is constant across individuals and responses: it estimates four
+animal endpoint standard deviations and six latent animal correlations. It is
+not a direct-SD model and it does not make the residual correlation `rho12`
+animal-structured.
+
 ## What to inspect
 
 After fitting, inspect the animal layer before interpreting it:
@@ -73,8 +99,8 @@ After fitting, inspect the animal layer before interpreting it:
 | `fit$sdpars$mu` | Read the fitted animal-model location SD. |
 | `ranef(fit, "animal_mu")` | Inspect conditional individual deviations on the fitted animal layer. |
 | `summary(fit)$covariance` | Check how the animal SD or correlation is reported beside other covariance layers. |
-| `profile_targets(fit)` | See which animal SD or q=2 correlation targets can be profiled directly. |
-| `corpairs(fit, level = "animal")` | Read the fitted q=2 animal mean-mean correlation when the model has matching bivariate animal terms. |
+| `profile_targets(fit)` | See which animal SD or q=2 correlation targets can be profiled directly; q=4 correlations are derived-only in the first slice. |
+| `corpairs(fit, level = "animal")` | Read the fitted q=2 animal mean-mean correlation, or the six q=4 animal endpoint correlations when the model has the all-four block. |
 
 If the ordinary repeatability model answers a useful sensitivity question, fit
 `(1 | individual)` as a comparison. Report it as an ordinary individual
@@ -86,8 +112,7 @@ The following animal-model routes remain planned:
 
 - sparse large-pedigree precision construction;
 - animal-model slopes such as `animal(1 + x | individual, pedigree = pedigree)`;
-- animal-model `sigma` terms;
-- q=4 animal location-scale covariance blocks;
+- standalone animal-model `sigma` terms outside the fitted all-four q=4 block;
 - predictor-dependent animal `corpair()` regressions;
 - generic direct-SD grammar for animal-model standard deviations;
 - non-Gaussian animal structured effects.

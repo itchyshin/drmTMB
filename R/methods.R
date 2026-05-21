@@ -165,10 +165,11 @@ rho12.drmTMB <- function(
 #' group-level `mu` random-effect correlations, matched univariate and
 #' same-response bivariate `mu`/`sigma` random-intercept covariance blocks, and
 #' matched bivariate `mu1`/`mu2` and `sigma1`/`sigma2` random-intercept
-#' covariance blocks from `corpars`, plus fitted bivariate phylogenetic and
-#' coordinate-spatial correlation rows. Full q4 phylogenetic blocks report six
-#' derived endpoint correlations; block-diagonal q4 fallback fits report the
-#' direct `mu1`/`mu2` and `sigma1`/`sigma2` block correlations.
+#' covariance blocks from `corpars`, plus fitted bivariate phylogenetic,
+#' coordinate-spatial, animal-model, and `relmat()` correlation rows. Full q4
+#' phylogenetic, animal-model, and `relmat()` blocks report six derived endpoint
+#' correlations; block-diagonal q4 fallback fits report the direct `mu1`/`mu2`
+#' and `sigma1`/`sigma2` block correlations.
 #'
 #' The table is intentionally more explicit than `rho12()` or `corpars`
 #' because future double-hierarchical, phylogenetic, spatial, and study-level
@@ -281,10 +282,14 @@ corpairs.drmTMB <- function(
   if (length(registry_rows) > 0L) {
     rows <- c(rows, registry_rows)
   }
+  structured_exclude <- structured_mu_corpars_keys(object)
   label_rows <- random_effect_label_corpairs(
     object,
-    exclude = covariance_block_corpars_keys(
-      object$model$random$covariance_blocks
+    exclude = c(
+      covariance_block_corpars_keys(
+        object$model$random$covariance_blocks
+      ),
+      structured_exclude
     )
   )
   if (length(label_rows) > 0L) {
@@ -1212,6 +1217,21 @@ random_effect_label_corpairs <- function(object, exclude = character()) {
     }
   }
   rows
+}
+
+structured_mu_corpars_keys <- function(object) {
+  if (
+    !identical(object$model$model_type, "biv_gaussian") ||
+      !isTRUE(object$model$structured$phylo_mu$has)
+  ) {
+    return(character())
+  }
+  cor_key <- structured_mu_correlation_key(object$model$structured$phylo_mu)
+  cor_values <- object$corpars[[cor_key]]
+  if (is.null(cor_values) || length(cor_values) == 0L) {
+    return(character())
+  }
+  paste(cor_key, seq_along(cor_values), sep = ":")
 }
 
 random_effect_corpair <- function(

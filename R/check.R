@@ -36,10 +36,15 @@
 #' scale, and whether an ordinary group-level covariance block uses the same
 #' grouping factor. Matching bivariate `animal()` and `relmat()` q=2 known-matrix
 #' location effects receive the corresponding known-relatedness replication and
-#' SD-ratio diagnostics. If a bivariate Gaussian fit includes a phylogenetic q=4
-#' `mu1`/`mu2`/`sigma1`/`sigma2` block, it reports species replication,
-#' location SDs relative to residual scales, log-`sigma` SDs, and whether any
-#' latent phylogenetic correlation is near the boundary. If a univariate
+#' SD-ratio diagnostics. If a bivariate Gaussian fit includes a phylogenetic,
+#' animal-model, or `relmat()` q=4 `mu1`/`mu2`/`sigma1`/`sigma2` block, it
+#' reports level replication, location SDs relative to residual scales,
+#' log-`sigma` SDs, and whether any latent structured correlation is near the
+#' boundary. If a univariate
+#' Gaussian fit includes `phylo(1 | species, tree = tree)` or
+#' `phylo(1 + x | species, tree = tree)` in `mu`, it reports species
+#' replication, the fitted phylogenetic SDs, and whether the smallest
+#' phylogenetic SD is tiny relative to the residual scale. If a univariate
 #' Gaussian fit includes `spatial(1 | site, coords = coords)` in `mu`, it
 #' reports site replication, fitted coordinate range, the spatial SD, and
 #' whether the spatial SD is tiny relative to the residual scale. If a Gaussian
@@ -136,11 +141,12 @@ check_drm.drmTMB <- function(
       rho_boundary = rho_boundary
     ),
     check_phylo_replication(object),
+    check_phylo_mu_diagnostics(object),
     check_spatial_mu_diagnostics(object),
     check_known_relatedness_mu_diagnostics(object),
     check_phylo_direct_sd_model(object),
     check_biv_phylo_mu_covariance(object, rho_boundary = rho_boundary),
-    check_biv_phylo_q4_covariance(object, rho_boundary = rho_boundary)
+    check_biv_structured_q4_covariance(object, rho_boundary = rho_boundary)
   )
   rows <- Filter(Negate(is.null), rows)
   out <- do.call(rbind, rows)
@@ -1992,6 +1998,122 @@ check_phylo_replication <- function(object) {
   )
 }
 
+check_phylo_mu_diagnostics <- function(object) {
+  if (!has_phylo_mu_effect(object)) {
+    return(NULL)
+  }
+
+  phylo_mu <- object$model$structured$phylo_mu
+  index <- phylo_mu$observation_node_index
+  counts <- tabulate(match(index, unique(index)))
+  min_count <- if (length(counts) > 0L) min(counts) else NA_integer_
+  n_species <- length(counts)
+  weak_replication <- is.finite(min_count) && min_count < 2L
+
+  sd_label <- phylo_mu_sd_labels(phylo_mu, object$model$model_type)
+  sd_values <- unname(object$sdpars$mu[match(
+    sd_label,
+    names(object$sdpars$mu)
+  )])
+  finite_positive_sd <- length(sd_values) == length(sd_label) &&
+    all(is.finite(sd_values)) &&
+    all(sd_values > 0)
+
+  residual_scale <- spatial_mu_residual_scale(object)
+  sd_ratios <- if (finite_positive_sd && is.finite(residual_scale)) {
+    sd_values / residual_scale
+  } else {
+    NA_real_
+  }
+  finite_sd_ratios <- sd_ratios[is.finite(sd_ratios)]
+  min_sd <- if (finite_positive_sd) min(sd_values) else NA_real_
+  min_sd_ratio <- if (length(finite_sd_ratios) > 0L) {
+    min(finite_sd_ratios)
+  } else {
+    NA_real_
+  }
+  weak_sd <- !finite_positive_sd ||
+    any(finite_sd_ratios < 0.05)
+  sd_text <- if (length(sd_label) == 1L) {
+    paste0(
+      "; phylo_sd=",
+      format_check_number(sd_values),
+      "; sd_ratio=",
+      format_check_number(sd_ratios)
+    )
+  } else {
+    paste0(
+      "; n_coef=",
+      length(sd_label),
+      "; min_phylo_sd=",
+      format_check_number(min_sd),
+      "; min_sd_ratio=",
+      format_check_number(min_sd_ratio)
+    )
+  }
+
+  check_row(
+    "phylo_mu_diagnostics",
+    if (!finite_positive_sd) {
+      "error"
+    } else if (weak_replication || weak_sd) {
+      "note"
+    } else {
+      "ok"
+    },
+    paste0(
+      "group=",
+      phylo_mu$group,
+      "; n_species=",
+      n_species,
+      "; min_species_n=",
+      min_count,
+      sd_text
+    ),
+    phylo_mu_diagnostic_message(
+      finite_positive_sd,
+      weak_replication,
+      weak_sd
+    )
+  )
+}
+
+phylo_mu_diagnostic_message <- function(
+  finite_positive_sd,
+  weak_replication,
+  weak_sd
+) {
+  if (!finite_positive_sd) {
+    return(paste(
+      "The fitted phylogenetic SD is non-positive or non-finite;",
+      "inspect convergence, tree input, and the fitted structured effect."
+    ))
+  }
+  if (weak_replication && weak_sd) {
+    return(paste(
+      "At least one species has fewer than two fitted observations and the",
+      "phylogenetic SD is tiny relative to residual scale; interpret the",
+      "phylogenetic field cautiously."
+    ))
+  }
+  if (weak_replication) {
+    return(paste(
+      "At least one species has fewer than two fitted observations;",
+      "interpret conditional phylogenetic effects and SDs cautiously."
+    ))
+  }
+  if (weak_sd) {
+    return(paste(
+      "The phylogenetic SD is tiny relative to residual scale; the structured",
+      "phylogenetic field may be weakly identified."
+    ))
+  }
+  paste(
+    "The phylogenetic random effect has replicated species and a non-negligible",
+    "fitted SD relative to residual scale."
+  )
+}
+
 check_spatial_mu_diagnostics <- function(object) {
   if (!has_spatial_mu_effect(object)) {
     return(NULL)
@@ -2429,10 +2551,10 @@ check_biv_phylo_mu_covariance <- function(object, rho_boundary) {
   )
 }
 
-check_biv_phylo_q4_covariance <- function(object, rho_boundary) {
+check_biv_structured_q4_covariance <- function(object, rho_boundary) {
   if (
     !identical(object$model$model_type, "biv_gaussian") ||
-      !has_phylo_mu_effect(object)
+      !has_structured_mu_effect(object)
   ) {
     return(NULL)
   }
@@ -2441,16 +2563,29 @@ check_biv_phylo_q4_covariance <- function(object, rho_boundary) {
   if (!identical(as.integer(phylo_mu$q), 4L)) {
     return(NULL)
   }
+  structured_type <- structured_mu_type(phylo_mu)
+  cor_key <- structured_mu_correlation_key(phylo_mu)
+  type_title <- structured_q4_diagnostic_title(structured_type)
+  count_label <- if (identical(structured_type, "phylo")) {
+    "n_species"
+  } else {
+    "n_levels"
+  }
+  min_count_label <- if (identical(structured_type, "phylo")) {
+    "min_species_n"
+  } else {
+    "min_level_n"
+  }
 
   index <- phylo_mu$observation_node_index
   counts <- tabulate(match(index, unique(index)))
   min_count <- if (length(counts) > 0L) min(counts) else NA_integer_
-  n_species <- length(counts)
-  weak_species_count <- n_species < 8L
+  n_levels <- length(counts)
+  weak_level_count <- n_levels < 8L
   weak_replication <- is.finite(min_count) && min_count < 2L
 
   sd_summaries <- bivariate_phylo_q4_sd_summaries(object, phylo_mu)
-  correlations <- object$corpars$phylo
+  correlations <- object$corpars[[cor_key]]
   max_abs_cor <- max_abs_finite_or_na(correlations)
 
   weak_location_sd <- is.finite(sd_summaries$min_location_sd_ratio) &&
@@ -2460,11 +2595,11 @@ check_biv_phylo_q4_covariance <- function(object, rho_boundary) {
   near_rho_boundary <- !is.finite(max_abs_cor) || max_abs_cor > rho_boundary
 
   check_row(
-    "biv_phylo_q4_covariance",
+    paste0("biv_", structured_type, "_q4_covariance"),
     if (near_rho_boundary) {
       "warning"
     } else if (
-      weak_species_count ||
+      weak_level_count ||
         weak_replication ||
         weak_location_sd ||
         weak_scale_sd
@@ -2481,9 +2616,13 @@ check_biv_phylo_q4_covariance <- function(object, rho_boundary) {
       "; covariance_mode=",
       phylo_mu_covariance_mode(phylo_mu),
       "; q=4",
-      "; n_species=",
-      n_species,
-      "; min_species_n=",
+      "; ",
+      count_label,
+      "=",
+      n_levels,
+      "; ",
+      min_count_label,
+      "=",
       min_count,
       "; min_location_sd_ratio=",
       format_check_number(sd_summaries$min_location_sd_ratio),
@@ -2495,8 +2634,9 @@ check_biv_phylo_q4_covariance <- function(object, rho_boundary) {
       format_check_number(rho_boundary)
     ),
     bivariate_phylo_q4_diagnostic_message(
+      type_title,
       near_rho_boundary,
-      weak_species_count,
+      weak_level_count,
       weak_replication,
       weak_location_sd,
       weak_scale_sd
@@ -2530,38 +2670,62 @@ bivariate_phylo_q4_sd_summaries <- function(object, phylo_mu) {
 }
 
 bivariate_phylo_q4_diagnostic_message <- function(
+  type_title,
   near_rho_boundary,
-  weak_species_count,
+  weak_level_count,
   weak_replication,
   weak_location_sd,
   weak_scale_sd
 ) {
   if (near_rho_boundary) {
     return(paste(
-      "At least one latent phylogenetic q4 correlation is close to +/-1;",
-      "profile, simulate, or simplify before interpreting the phylogenetic correlations."
+      "At least one latent",
+      tolower(type_title),
+      "q4 correlation is close to +/-1;",
+      "profile, simulate, or simplify before interpreting the structured correlations."
     ))
   }
   weak <- c(
-    if (weak_species_count) {
-      "few species for a four-endpoint phylogenetic block"
+    if (weak_level_count) {
+      paste("few levels for a four-endpoint", tolower(type_title), "block")
     },
     if (weak_replication) {
-      "at least one observed species has fewer than two fitted observations"
+      "at least one observed level has fewer than two fitted observations"
     },
     if (weak_location_sd) {
-      "at least one phylogenetic location SD is tiny relative to residual scale"
+      paste(
+        "at least one",
+        tolower(type_title),
+        "location SD is tiny relative to residual scale"
+      )
     },
-    if (weak_scale_sd) "at least one phylogenetic log-sigma SD is tiny"
+    if (weak_scale_sd) {
+      paste("at least one", tolower(type_title), "log-sigma SD is tiny")
+    }
   )
   if (length(weak) > 0L) {
     return(paste(
-      "Phylogenetic q4 location-scale covariance is fitted, but",
+      type_title,
+      "q4 location-scale covariance is fitted, but",
       paste(weak, collapse = "; "),
-      "so interpret all six latent phylogenetic correlations cautiously."
+      "so interpret all six latent structured correlations cautiously."
     ))
   }
-  "Phylogenetic q4 location-scale covariance has replicated species, non-negligible fitted component SDs, and latent correlations away from the boundary."
+  paste(
+    type_title,
+    "q4 location-scale covariance has replicated levels, non-negligible fitted component SDs, and latent correlations away from the boundary."
+  )
+}
+
+structured_q4_diagnostic_title <- function(structured_type) {
+  switch(
+    structured_type,
+    phylo = "Phylogenetic",
+    spatial = "Spatial",
+    animal = "Animal-model",
+    relmat = "relmat",
+    structured_type
+  )
 }
 
 bivariate_phylo_mu_has_same_group_covariance <- function(object) {

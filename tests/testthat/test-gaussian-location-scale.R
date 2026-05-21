@@ -413,11 +413,11 @@ test_that("Phase 1 rejects unsupported model syntax clearly", {
   )
   expect_error(
     drmTMB(
-      bf(y ~ x + phylo(1 + x | id, tree = tree)),
+      bf(y ~ x + phylo(1 + x + z | id, tree = tree)),
       family = gaussian(),
       data = dat
     ),
-    "intercept-only phylogenetic"
+    "intercept and one-slope structured terms"
   )
   expect_error(
     drmTMB(
@@ -481,19 +481,19 @@ test_that("Phase 1 rejects unsupported model syntax clearly", {
   )
   expect_error(
     drmTMB(
-      bf(y ~ x + animal(1 + x | id, pedigree = pedigree), sigma ~ 1),
+      bf(y ~ x + animal(1 + x + z | id, pedigree = pedigree), sigma ~ 1),
       family = gaussian(),
       data = dat
     ),
-    "Only intercept-only `animal\\(\\)` `mu` effects are implemented"
+    "intercept and one-slope structured terms"
   )
   expect_error(
     drmTMB(
-      bf(y ~ x + relmat(1 + x | id, K = K), sigma ~ 1),
+      bf(y ~ x + relmat(1 + x + z | id, K = K), sigma ~ 1),
       family = gaussian(),
       data = dat
     ),
-    "Only intercept-only `relmat\\(\\)` `mu` effects are implemented"
+    "intercept and one-slope structured terms"
   )
   expect_error(
     drmTMB(bf(y ~ x, sd(id) ~ 1), family = gaussian(), data = dat),

@@ -57,7 +57,7 @@ slices. The status is:
 
 | Topic | Current example status | Safe reader action |
 | --- | --- | --- |
-| Animal and `relmat()` known matrices | `vignettes/phylogenetic-spatial.Rmd` now has runnable known-matrix examples for univariate `animal(Ainv = Ainv)`, bivariate q=2 `animal(Ainv = Ainv)`, and bivariate q=2 `relmat(Q = Ginv)`, with `check_drm()`, `corpairs()`, and direct profile-target output in the reader path. Pedigree construction, slopes, `sigma`, q=4, predictor-dependent `corpair()`, and direct-SD grammar remain planned. | Use the article for precomputed relatedness-matrix examples; next add ADEMP sheets before admitting bivariate q=2 animal/`relmat()` grids. |
+| Animal and `relmat()` known matrices | The focused animal and `relmat()` articles now have runnable examples for univariate `animal(Ainv = Ainv)` / `relmat(Q = Q)`, bivariate q=2 location covariance, and constant q=4 location-scale covariance, with `check_drm()`, `corpairs()`, and profile-target status in the reader path. Pedigree construction, slopes, standalone `sigma`, predictor-dependent `corpair()`, and direct-SD grammar remain planned. | Use the focused structural-dependence articles for precomputed relatedness-matrix examples; next add an ADEMP q=4 addendum before admitting broad animal/`relmat()` q=4 grids. |
 | Student-t | `vignettes/robust-student.Rmd` is a worked secondary tutorial with model equation, fitted seedling example, `check_drm()`, coefficient interpretation, and Gaussian comparison. | Link users there for robust fixed-effect continuous responses with `mu`, `sigma`, and fixed-effect `nu`. |
 | Skew-normal and skew-t | `vignettes/robust-student.Rmd`, `vignettes/model-map.Rmd`, and the distribution roadmap show planned syntax and boundaries, but no fitted skew-family likelihood exists. | Keep skew examples as design-only until fixed-effect skew-normal likelihood, normal-limit checks, positive/negative skew recovery, interval evidence, and false-positive heteroscedasticity tests pass. |
 
@@ -99,8 +99,10 @@ phylogeny-plus-spatial as the planned third endpoint:
 - q=4 phylogenetic location-scale rows;
 - predictor-dependent q=2 phylogenetic `corpair()`;
 - coordinate spatial intercept and one numeric slope;
+- one numeric phylogenetic `mu` slope;
 - planned phylogeny plus spatial as a third structural-dependence endpoint;
-- mesh/SPDE and phylogenetic slopes as planned neighbours.
+- mesh/SPDE, multiple structured slopes, and slope correlations as planned
+  neighbours.
 
 The third route remains marked planned until simultaneous `phylo()` plus
 `spatial()` models have implementation and identifiability checks.

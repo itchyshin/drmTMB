@@ -104,6 +104,20 @@ issues, or pull requests.
   that become cramped at the deployed size; those are release-facing failures,
   not cosmetic trivia.
 
+## 2026-05-21 - Planned-Only Snapshot Retirement
+
+- Improvement implemented: when a planned structured-effect path becomes a
+  fitted path, tests that existed only to snapshot the old unsupported error
+  should be retired or converted to direct malformed-input assertions. Keeping
+  the old snapshot shape creates false friction and can preserve stale
+  user-facing wording after the feature is real.
+- Improvement implemented: Rose should pair each feature-promotion slice with
+  a stale-claim scan over NEWS, design docs, vignettes, R docs, and tests for
+  old planned-only phrases.
+- Trigger: Slice 39 promoted phylo, animal, and `relmat()` one-slope Gaussian
+  `mu` effects from parser/planned status to fitted status. The old
+  animal/relmat unsupported-slope snapshots were no longer useful evidence.
+
 ## 2026-05-20 - Installed-Layout Runner Tests
 
 - Improvement implemented: tests for `inst/` runner scripts must exercise the

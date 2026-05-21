@@ -68,6 +68,9 @@ Current pilot files:
 - `docs/design/54-phase-18-animal-relmat-known-matrix-ademp.md` is the
   one-page ADEMP sheet for the known-matrix animal/`relmat()` intercept and
   matching q=2 bivariate location-covariance lanes.
+- `docs/design/58-phase-18-animal-relmat-q4-ademp.md` is the focused addendum
+  for the constant all-four animal/`relmat()` q=4 location-scale smoke lane
+  and its derived-correlation interval boundary.
 - `docs/design/56-phase-18-spatial-q2-ademp.md` is the one-page ADEMP sheet for
   the constant coordinate-spatial q=2 bivariate location-covariance lane.
 - `dgp/sim_dgp_gaussian_ls.R` generates Gaussian location-scale data with
@@ -104,6 +107,10 @@ Current pilot files:
 - `dgp/sim_dgp_animal_relmat_q2.R` generates bivariate Gaussian data with a
   known animal or lower-level relatedness matrix, matching q=2 `mu1`/`mu2`
   structured effects, and residual `rho12` kept as a separate layer.
+- `dgp/sim_dgp_animal_relmat_q4.R` generates bivariate Gaussian data with a
+  known animal or lower-level relatedness matrix, matching q=4 `mu1`/`mu2`/
+  `sigma1`/`sigma2` structured effects, and residual `rho12` kept separate
+  from the six latent endpoint correlations.
 - `fit/sim_summarise_gaussian_ls.R` converts one fitted pilot model into a
   parameter-level truth/estimate/standard-error/error table.
 - `fit/sim_summarise_meta_v.R` does the same for the `meta_V(V = V)` pilot,
@@ -138,6 +145,11 @@ Current pilot files:
   coefficients, public residual scales, structured SDs, structured
   correlations, and residual `rho12` for known-matrix animal/`relmat()` q=2
   smoke fits.
+- `fit/sim_summarise_animal_relmat_q4.R` summarises fixed `mu1`, `mu2`,
+  `sigma1`, and `sigma2` coefficients, the four endpoint structured SDs, the
+  six q=4 structured correlations, and residual `rho12`; requested q=4
+  correlation intervals are marked as derived-unavailable rather than
+  profile-ready.
 - `R/sim_correlation_targets.R` classifies fitted `corpairs()` rows by their
   current profile route, keeping residual `rho12`, ordinary group, and
   phylogenetic correlations separate before simulation coverage is claimed.
@@ -187,6 +199,9 @@ Current pilot files:
   fixed-effect shape `nu` surface.
 - `run/sim_run_animal_relmat_q2_smoke.R` does the same for the known-matrix
   animal/`relmat()` q=2 bivariate location-covariance surface.
+- `run/sim_run_animal_relmat_q4_smoke.R` does the same for the constant
+  all-four known-matrix animal/`relmat()` q=4 location-scale surface, using
+  point-estimate smoke fits by default.
 - `run/sim_summary_spatial_q2_smoke.R` reduces the coordinate-spatial q=2
   smoke run into aggregate, replicate, manifest, failure-ledger, fixed-effect
   Wald interval, profile-status, interval-evidence, interval-diagnostics, and
@@ -195,6 +210,11 @@ Current pilot files:
   q=2 smoke run into aggregate, replicate, manifest, failure-ledger,
   fixed-effect Wald interval, profile-status, interval-evidence,
   interval-diagnostics, and interval-failure tables.
+- `run/sim_summary_animal_relmat_q4_smoke.R` reduces the animal/`relmat()`
+  q=4 smoke run into aggregate, replicate, manifest, failure-ledger,
+  profile-status, interval-evidence, interval-diagnostics, and
+  interval-failure tables. The default smoke writes no Wald rows because the
+  q=4 fits use `se = FALSE`.
 - `run/sim_write_spatial_q2_grid.R` writes those coordinate-spatial q=2 tables
   as repeatable CSV artifacts beside resumable per-replicate RDS files. Profile
   requests are optional; with `profile_parameters = character()`, spatial SDs,
@@ -205,6 +225,11 @@ Current pilot files:
   optional; with `profile_parameters = character()`, structured SDs,
   structured correlations, residual `rho12`, and residual `sigma1`/`sigma2`
   rows stay visible as `not_requested`.
+- `run/sim_write_animal_relmat_q4_grid.R` writes the q=4 smoke tables as
+  repeatable CSV artifacts. If a q=4 structured-correlation row is requested
+  as a profile parameter, the artifact records
+  `derived_interval_unavailable` instead of treating the derived correlation
+  as a direct profile target.
 - `run/sim_summary_gaussian_ls_smoke.R` runs a tiny Gaussian location-scale
   summary smoke grid and returns grouped bias, RMSE, MCSE, manifest,
   warning/error ledger, formula-coefficient Wald interval, and Wald coverage

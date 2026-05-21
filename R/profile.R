@@ -374,8 +374,15 @@ drm_profile_targets <- function(object) {
   for (dpar in names(object$corpars)) {
     values <- object$corpars[[dpar]]
     internal <- profile_cor_internal(dpar)
-    is_phylo_unstructured <- identical(dpar, "phylo") &&
+    is_structured_qgt2 <- dpar %in%
+      c("phylo", "spatial", "animal", "relmat") &&
       isTRUE(object$model$structured$phylo_mu$has) &&
+      identical(
+        dpar,
+        structured_mu_correlation_key(
+          object$model$structured$phylo_mu
+        )
+      ) &&
       isTRUE(object$model$structured$phylo_mu$q > 2L) &&
       !phylo_mu_is_block_diagonal(object$model$structured$phylo_mu)
     for (i in seq_along(values)) {
@@ -387,13 +394,20 @@ drm_profile_targets <- function(object) {
       }
       index <- i
       if (
-        identical(dpar, "phylo") &&
+        dpar %in%
+          c("phylo", "spatial", "animal", "relmat") &&
           isTRUE(object$model$structured$phylo_mu$has) &&
+          identical(
+            dpar,
+            structured_mu_correlation_key(
+              object$model$structured$phylo_mu
+            )
+          ) &&
           isTRUE(object$model$structured$phylo_mu$q > 2L)
       ) {
         internal <- "theta_phylo"
       }
-      if (is_phylo_unstructured) {
+      if (is_structured_qgt2) {
         status <- list(
           profile_ready = FALSE,
           profile_note = "derived_unstructured_correlation"
@@ -413,7 +427,7 @@ drm_profile_targets <- function(object) {
         tmb_parameter = internal,
         index = index,
         estimate = unname(values[[i]]),
-        link_estimate = if (is_phylo_unstructured) {
+        link_estimate = if (is_structured_qgt2) {
           NA_real_
         } else {
           guarded_correlation_link(
@@ -422,12 +436,12 @@ drm_profile_targets <- function(object) {
           )
         },
         scale = "response",
-        transformation = if (is_phylo_unstructured) {
+        transformation = if (is_structured_qgt2) {
           "unstructured_corr"
         } else {
           "tanh"
         },
-        target_type = if (is_phylo_unstructured) "derived" else "direct",
+        target_type = if (is_structured_qgt2) "derived" else "direct",
         profile_ready = status$profile_ready,
         profile_note = status$profile_note
       )))

@@ -428,10 +428,11 @@ Slice 197 keeps structured non-Gaussian random effects out of the fitted
 surface. Phylogenetic, spatial, animal-model, and `relmat()` markers share the
 same structured-effect concept, but current fitted structured paths are
 Gaussian only. The first animal/`relmat()` slice fits pedigree or known-matrix
-Gaussian `mu` intercepts and matching labelled bivariate q=2 `mu1`/`mu2`
-location covariance; sparse large-pedigree construction, structured slopes, scale models, q=4
-location-scale blocks, predictor-dependent `corpair()` regression, and
-direct-SD grammar remain planned. Count, bounded, ordinal, shape, inflation,
+Gaussian `mu` intercepts, matching labelled bivariate q=2 `mu1`/`mu2`
+location covariance, and matching all-four q=4 location-scale covariance;
+sparse large-pedigree construction, structured slopes, standalone scale models,
+predictor-dependent `corpair()` regression, and direct-SD grammar remain
+planned. Count, bounded, ordinal, shape, inflation,
 hurdle, and one-inflation structured effects should wait until the ordinary
 family-specific random-effect paths have recovery tests, interval targets,
 extractors, and diagnostic rows.

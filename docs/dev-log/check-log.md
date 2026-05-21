@@ -2,6 +2,68 @@
 
 Record meaningful development checks here.
 
+## 2026-05-21 - Structural Parity Slices 9-38
+
+Goal: continue the post-0.1.3 structural-dependence parity lane by adding
+focused animal/`relmat()` q=4 Phase 18 smoke artifacts and closing the
+spatial, direct-SD, combined-layer, random-slope, and non-Gaussian questions as
+explicit fitted-versus-planned status guards.
+
+Team roles:
+
+- Ada scoped implementation to q4 animal/`relmat()` simulation artifacts.
+- Pat checked that the new status map answers what applied users can fit now.
+- Fisher and Curie kept q4 smoke evidence separate from broad coverage claims.
+- Grace ran pkgdown and focused release-hygiene checks.
+- Rose kept derived q4 correlations, random slopes, and non-Gaussian
+  structural dependence from being overstated.
+
+Files changed:
+
+- `inst/sim/dgp/sim_dgp_animal_relmat_q4.R`
+- `inst/sim/fit/sim_summarise_animal_relmat_q4.R`
+- `inst/sim/run/sim_run_animal_relmat_q4_smoke.R`
+- `inst/sim/run/sim_summary_animal_relmat_q4_smoke.R`
+- `inst/sim/run/sim_write_animal_relmat_q4_grid.R`
+- `tests/testthat/test-phase18-animal-relmat-q4-smoke.R`
+- `tests/testthat/test-phase18-animal-relmat-q4-grid-writer.R`
+- `docs/design/58-phase-18-animal-relmat-q4-ademp.md`
+- `docs/design/59-structural-slope-and-non-gaussian-map.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `docs/design/46-pre-simulation-readiness-matrix.md`
+- `docs/design/54-phase-18-animal-relmat-known-matrix-ademp.md`
+- `docs/design/55-phase-18-animal-relmat-q2-interval-status.md`
+- `docs/design/57-structural-parity-next-slices.md`
+- `inst/sim/README.md`
+- `docs/dev-log/after-task/2026-05-21-slices-9-38-structural-parity-continuation.md`
+
+Checks run:
+
+```sh
+air format inst/sim/dgp/sim_dgp_animal_relmat_q4.R inst/sim/fit/sim_summarise_animal_relmat_q4.R inst/sim/run/sim_run_animal_relmat_q4_smoke.R inst/sim/run/sim_summary_animal_relmat_q4_smoke.R inst/sim/run/sim_write_animal_relmat_q4_grid.R tests/testthat/test-phase18-animal-relmat-q4-smoke.R tests/testthat/test-phase18-animal-relmat-q4-grid-writer.R
+air format docs/design/54-phase-18-animal-relmat-known-matrix-ademp.md docs/design/55-phase-18-animal-relmat-q2-interval-status.md docs/design/57-structural-parity-next-slices.md docs/design/58-phase-18-animal-relmat-q4-ademp.md docs/design/59-structural-slope-and-non-gaussian-map.md docs/design/41-phase-18-simulation-programme.md docs/design/46-pre-simulation-readiness-matrix.md inst/sim/README.md
+Rscript -e "devtools::test(filter = 'phase18-animal-relmat-q4', reporter = 'summary')"
+Rscript -e "devtools::test(filter = 'animal-relmat-gaussian|phase18-animal-relmat-q4', reporter = 'summary')"
+rg -n "spatial q4.*(implemented|fitted)|non-Gaussian structural.*(implemented|fitted)|phylo\\(1 \\+.*Implemented|animal\\(1 \\+.*Implemented|relmat\\(1 \\+.*Implemented|q4.*profile-ready|derived.*profile-ready" README.md NEWS.md ROADMAP.md docs/design inst/sim tests/testthat --glob "!docs/dev-log/**"
+Rscript -e "pkgdown::check_pkgdown()"
+git diff --check
+```
+
+Outcomes:
+
+- Added a seeded q4 animal/`relmat()` DGP, summariser, smoke runner, summary
+  reducer, grid writer, and focused tests.
+- The q4 summaries keep fixed `mu`/`sigma` coefficients, four structured SDs,
+  six structured correlations, and residual `rho12` as separate rows.
+- Requested q4 structured-correlation profile rows are marked
+  `derived_interval_unavailable`, so the smoke artifacts do not imply direct
+  q4 correlation intervals.
+- Added the random-slope and non-Gaussian status map. Ordinary Gaussian
+  `mu`/`sigma`, coordinate spatial Gaussian `mu`, Poisson `mu`, and NB2 `mu`
+  have fitted slope routes; phylogenetic, animal, `relmat()`, and bivariate
+  slopes remain planned. Structured non-Gaussian dependence remains planned or
+  blocked.
+
 ## 2026-05-21 - Spatial Models Article Split
 
 Goal: add a focused coordinate-spatial route page so users can find fitted
@@ -34347,6 +34409,88 @@ rg -n 'spatial q=2.*need(s)? a dedicated DGP|broad q=2 reports still need a dedi
   text that was true when written. Current design docs now say the DGP and
   smoke runner exist; the current-design-only scan returned no matches.
 
+## 2026-05-21 - Structural Parity Slices 1-8
+
+Goal:
+
+- Finish the next post-0.1.3 structural-dependence parity slices while keeping
+  fitted, admitted, and planned routes honest for applied users.
+- Diagnose the deployed pkgdown base URL after `https://itchyshin.github.io/drmTMB/`
+  returned GitHub Pages 404 while the latest workflow deploy reported success.
+
+Changes:
+
+- Added `docs/design/57-structural-parity-next-slices.md` with the slice table:
+  spatial direct-SD and q=4 remain planned, animal/`relmat()` q=4 is fitted,
+  animal/`relmat()` direct-SD remains planned, combined phylo-plus-spatial
+  remains planned, and slices 6-8 are the implementation/test/extractor
+  hardening lane.
+- `biv_gaussian()` now admits constant all-four q=4 `animal()` and `relmat()`
+  blocks when the same labelled known-matrix term appears in `mu1`, `mu2`,
+  `sigma1`, and `sigma2`.
+- Reused the structured q4 backend and kept `theta_phylo` as a derived
+  unstructured-correlation target for profile status.
+- Hardened `corpairs()` so q4 `animal()` / `relmat()` rows are reported at
+  `level = "animal"` or `level = "relmat"` without duplicate generic group rows.
+- Generalized `check_drm()` q4 diagnostics and `profile_targets()` derived q4
+  status from phylogeny to `animal()` and `relmat()`.
+- Added focused q4 tests and snapshots in
+  `tests/testthat/test-animal-relmat-gaussian.R` and
+  `tests/testthat/_snaps/animal-relmat-gaussian.md`.
+- Synchronized README, ROADMAP, NEWS, formula grammar, source map, model map,
+  animal/relmat articles, structural-dependence articles, Phase 18 design
+  ledgers, roxygen, and generated Rd files.
+- Changed `_pkgdown.yml` from `development: mode: auto` to
+  `development: mode: release` so the GitHub Pages artifact is rooted at the
+  advertised package URL instead of replacing the public site with only `dev/`.
+- Added after-task report
+  `docs/dev-log/after-task/2026-05-21-structural-parity-slices-1-8.md`.
+
+Validation:
+
+```sh
+curl -I -L --max-time 20 https://itchyshin.github.io/drmTMB/
+curl -I -L --max-time 20 https://itchyshin.github.io/drmTMB/dev/
+gh run view 26220951684 --repo itchyshin/drmTMB --json status,conclusion,updatedAt,url,jobs
+gh api repos/itchyshin/drmTMB/deployments/4768481833/statuses
+air format R/check.R R/drmTMB.R R/methods.R R/profile.R R/formula-markers.R docs/design/01-formula-grammar.md docs/design/02-family-registry.md docs/design/03-likelihoods.md docs/design/16-phylo-spatial-common-math.md docs/design/34-validation-debt-register.md docs/design/37-worked-example-inventory.md docs/design/39-visualization-grammar.md docs/design/41-phase-18-simulation-programme.md docs/design/45-cross-dpar-correlation-gate.md docs/design/46-pre-simulation-readiness-matrix.md docs/design/54-phase-18-animal-relmat-known-matrix-ademp.md docs/design/55-phase-18-animal-relmat-q2-interval-status.md docs/design/57-structural-parity-next-slices.md vignettes/animal-models.Rmd vignettes/formula-grammar.Rmd vignettes/model-map.Rmd vignettes/relmat-known-matrices.Rmd vignettes/source-map.Rmd vignettes/structural-dependence.Rmd vignettes/phylogenetic-spatial.Rmd vignettes/figure-gallery.Rmd README.md ROADMAP.md NEWS.md _pkgdown.yml
+Rscript -e "devtools::document()"
+Rscript -e "devtools::test(filter = 'animal-relmat-gaussian')"
+Rscript -e "devtools::test(filter = 'phylo-gaussian|profile-targets|check-drm|covariance-block-registry')"
+Rscript -e "pkgdown::build_site(new_process = FALSE, install = TRUE)"
+Rscript -e "pkgdown::build_home()"
+Rscript -e "pkgdown::check_pkgdown()"
+git diff --check
+test -f pkgdown-site/index.html && echo root-index-present || echo root-index-missing
+test -f pkgdown-site/dev/index.html && echo dev-index-present || echo dev-index-missing
+rg -n 'animal.*q=4.*planned|q=4.*animal.*planned|relmat.*q=4.*planned|q=4.*relmat.*planned|q=4 location-scale blocks remain planned|q=4 blocks.*planned|q=2 routes' README.md ROADMAP.md NEWS.md docs/design vignettes R | head -120
+```
+
+- The deployed base URL returned HTTP 404, while `https://itchyshin.github.io/drmTMB/dev/`
+  returned HTTP 200. The latest Actions deploy was successful and the uploaded
+  artifact contained files under `./dev/`, confirming a site-root configuration
+  problem rather than a failed pkgdown run.
+- `devtools::document()` updated `animal.Rd`, `relmat.Rd`, `corpairs.Rd`, and
+  `check_drm.Rd`.
+- `devtools::test(filter = 'animal-relmat-gaussian')` passed 89 expectations.
+- `devtools::test(filter = 'phylo-gaussian|profile-targets|check-drm|covariance-block-registry')`
+  passed 1041 expectations.
+- `pkgdown::build_site(new_process = FALSE, install = TRUE)` completed
+  successfully and wrote `pkgdown-site/index.html`; `pkgdown-site/dev/index.html`
+  was absent, as expected for the single-site root-mode configuration.
+- A first local `pkgdown::build_site(new_process = FALSE, install = FALSE)` run
+  failed in `vignettes/bivariate-coscale.Rmd` because it used an older installed
+  local package that did not understand the article's current `corpair()`
+  syntax. Re-running with `install = TRUE` rendered the site against this
+  working tree and passed.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `git diff --check` was clean.
+- The stale-status scan still returns intentional spatial-q4, slope,
+  standalone-scale, broad-grid, and historical generated-news wording. Current
+  source docs no longer say animal/`relmat()` q4 is merely planned.
+- GitHub issue #147 was inspected and remains open; no issue comment was added
+  from the unpushed local branch.
+
 ## 2026-05-21 - Pkgdown Root Site Deployment Hotfix
 
 Goal:
@@ -34396,3 +34540,65 @@ curl -I -L --max-time 20 https://itchyshin.github.io/drmTMB/articles/structural-
   `pkgdown` and `deploy` jobs.
 - The public root URL, reference index, and structural-dependence article each
   returned HTTP 200 after the deploy.
+
+## 2026-05-21 - Structural Parity Slices 39-82
+
+Goal:
+
+- Close the first post-0.1.3 structured-slope parity gap without blurring the
+  boundary between fitted Gaussian structured slopes, ordinary non-Gaussian
+  random slopes, and still-planned bivariate or structured non-Gaussian
+  dependence.
+
+Changes:
+
+- Added fitted univariate Gaussian `mu` one-slope support for
+  `phylo(1 + x | species, tree = tree)`, `animal(1 + x | id, ...)`, and
+  `relmat(1 + x | id, ...)` as independent intercept and slope fields with
+  separate SDs and no intercept-slope correlation.
+- Added `phylo_mu_diagnostics` to `check_drm()` and extended animal/relmat
+  one-slope tests to cover `sdpars$mu`, `ranef()`, `profile_targets()`, and
+  diagnostics.
+- Added an explicit guard that keeps `sd_phylo(species) ~ ...` direct-SD
+  formulas separate from `phylo(1 + x | species, tree = tree)` until
+  coefficient-specific structured-SD syntax is designed.
+- Kept the `sd*()` direct-SD direction alive: spatial, animal, and `relmat()`
+  direct-SD siblings are a future unification lane rather than removed or
+  rejected names.
+- Refreshed formula grammar, readiness, simulation, random-slope, and
+  structural-dependence status documents so the new fitted routes are not
+  described as parser-only or planned.
+- Added `docs/design/60-structural-parity-slices-39-82.md` as the slice ledger
+  and user-facing boundary for the next lanes.
+
+Validation:
+
+```sh
+Rscript -e "devtools::document()"
+air format R/drmTMB.R R/check.R R/formula-markers.R tests/testthat/test-phylo-gaussian.R tests/testthat/test-animal-relmat-gaussian.R tests/testthat/test-gaussian-location-scale.R tests/testthat/test-nbinom2-location-scale.R docs/design/01-formula-grammar.md docs/design/09-phylogenetic-and-spatial-speed.md docs/design/16-phylo-spatial-common-math.md docs/design/32-phase-6b-tutorial-source-map.md docs/design/33-phase-6c-core-random-effects.md docs/design/34-validation-debt-register.md docs/design/37-worked-example-inventory.md docs/design/41-phase-18-simulation-programme.md docs/design/44-structured-slope-parity-gate.md docs/design/46-pre-simulation-readiness-matrix.md docs/design/57-structural-parity-next-slices.md docs/design/59-structural-slope-and-non-gaussian-map.md docs/design/60-structural-parity-slices-39-82.md NEWS.md
+Rscript -e "devtools::test(filter = 'phylo-gaussian', reporter = 'summary')"
+Rscript -e "devtools::test(filter = 'animal-relmat-gaussian', reporter = 'summary')"
+Rscript -e "devtools::test(filter = 'gaussian-location-scale|nbinom2-location-scale|poisson-mean', reporter = 'summary')"
+Rscript -e "devtools::test(filter = 'profile-targets|check-drm|spatial-gaussian', reporter = 'summary')"
+git diff --check
+rg -n 'phylogenetic slopes.*remain planned|phylo\(1 \+ x.*rejected|phylo\(1 \+ x.*parser/planned|animal\(1 \+ x.*planned marker|relmat\(1 \+ x.*planned marker|animal slopes.*planned-only|relmat.*slopes.*planned-only|phylo, animal, and relmat slopes remain planned|one-slope paths remain planned|structured animal slopes.*planned|structured relatedness slopes.*planned' README.md ROADMAP.md NEWS.md docs/design vignettes R tests/testthat -g '!docs/site/**'
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "devtools::test(reporter = 'summary')"
+```
+
+- `devtools::document()` regenerated `check_drm.Rd`, `drmTMB.Rd`,
+  `animal.Rd`, `phylo.Rd`, and `relmat.Rd`.
+- `devtools::test(filter = 'phylo-gaussian')` passed.
+- `devtools::test(filter = 'animal-relmat-gaussian')` passed.
+- `devtools::test(filter = 'gaussian-location-scale|nbinom2-location-scale|poisson-mean')`
+  passed, including the adjacent truncated-NB2 file matched by the filter.
+- `devtools::test(filter = 'profile-targets|check-drm|spatial-gaussian')`
+  passed.
+- `git diff --check` was clean.
+- The stale-status scan returned only the intentional boundary that multiple
+  phylogenetic slopes remain planned; it no longer found old planned-only
+  claims for the first one-slope phylo, animal, or `relmat()` Gaussian `mu`
+  paths.
+- `pkgdown::check_pkgdown()` reported no problems.
+- A final full `devtools::test()` run passed after documentation regeneration
+  and the clarified `sd*()` boundary wording.
