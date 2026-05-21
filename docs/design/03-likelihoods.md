@@ -1472,10 +1472,11 @@ Implementation notes:
   `Cov(a1_l, a2_m) = rho_phylo tau1_l A_lm tau2_m`. These formulas replace
   endpoint location SD parameters only; they do not target residual `sigma1`,
   residual `sigma2`, q=4 location-scale endpoint SDs, or residual `rho12`.
-- Bivariate random slopes, `rho12` random effects, phylogenetic random slopes,
-  predictor-dependent q=4 phylogenetic correlations, and spatial q=4 blocks
-  remain planned. The first constant intercept-only bivariate phylogenetic q=4
-  block is implemented for matching labelled `phylo()` terms in `mu1`, `mu2`,
+- Broader bivariate random slopes, `rho12` random effects, phylogenetic random
+  slopes, predictor-dependent q=4 phylogenetic correlations, and spatial q=4
+  blocks remain planned. The first ordinary matching slope-only `mu1`/`mu2`
+  block and the first constant intercept-only bivariate phylogenetic q=4 block
+  are implemented for matching labelled terms in `mu1`, `mu2`,
   `sigma1`, and `sigma2`. It supports the full one-label q=4 block and the
   two-label block-diagonal fallback with one location block and one scale
   block.

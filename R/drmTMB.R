@@ -33,7 +33,8 @@
 #' fixed-effect bivariate Gaussian distributional models, and matched labelled
 #' bivariate Gaussian `mu1`/`mu2`, `sigma1`/`sigma2`, and same-response
 #' `mu`/`sigma` random-intercept covariance blocks, including the first
-#' all-four q=4 ordinary random-intercept covariance blocks and
+#' matching slope-only `mu1`/`mu2` covariance block, the first all-four q=4
+#' ordinary random-intercept covariance blocks, and
 #' predictor-dependent q=2 ordinary or phylogenetic `corpair()` regressions.
 #' Bivariate Gaussian location formulas may be written explicitly as
 #' `mu1 = y1 ~ ...`, `mu2 = y2 ~ ...`, or with `mvbind(y1, y2) ~ ...` shorthand
@@ -3285,7 +3286,7 @@ drm_reject_phase1_terms <- function(rhs, dpar, allow_offset = FALSE) {
       cli::cli_abort(c(
         "This bivariate random-effect syntax is not implemented.",
         "x" = "The {.code {dpar}} formula contains unsupported model terms: {.val {hits}}.",
-        "i" = "Implemented bivariate random-effect paths are matching labelled random intercepts in {.code mu1}/{.code mu2} or {.code sigma1}/{.code sigma2}.",
+        "i" = "Implemented bivariate random-effect paths are matching labelled random intercepts in {.code mu1}/{.code mu2} or {.code sigma1}/{.code sigma2}, plus matching slope-only {.code mu1}/{.code mu2} blocks such as {.code (0 + x | p | id)}.",
         "i" = "Residual {.code rho12} is a within-observation correlation, not a group-level random-effect correlation."
       ))
     }
@@ -3660,9 +3661,17 @@ format_random_mu_cor_label <- function(
   )
 }
 
-format_biv_mu_cor_label <- function(group, covariance_label) {
+format_biv_mu_cor_label <- function(
+  group,
+  covariance_label,
+  coef_name = "(Intercept)"
+) {
   paste0(
-    "cor(mu1:(Intercept),mu2:(Intercept) | ",
+    "cor(mu1:",
+    coef_name,
+    ",mu2:",
+    coef_name,
+    " | ",
     covariance_label,
     " | ",
     group,
@@ -3670,9 +3679,17 @@ format_biv_mu_cor_label <- function(group, covariance_label) {
   )
 }
 
-format_biv_sigma_cor_label <- function(group, covariance_label) {
+format_biv_sigma_cor_label <- function(
+  group,
+  covariance_label,
+  coef_name = "(Intercept)"
+) {
   paste0(
-    "cor(sigma1:(Intercept),sigma2:(Intercept) | ",
+    "cor(sigma1:",
+    coef_name,
+    ",sigma2:",
+    coef_name,
+    " | ",
     covariance_label,
     " | ",
     group,
@@ -6990,17 +7007,15 @@ build_biv_parameter_random_structure <- function(
   present <- which(n_terms == 1L)
   terms <- lapply(present, function(i) terms[[i]][[1L]])
   term_dpars <- unname(dpars[present])
-  if (
-    any(vapply(
-      terms,
-      function(term) !identical(term$type, "intercept"),
-      logical(1L)
-    ))
-  ) {
+  term_types <- vapply(terms, `[[`, character(1L), "type")
+  is_intercept_block <- all(term_types == "intercept")
+  is_biv_mu_slope_block <- identical(unname(dpars), c("mu1", "mu2")) &&
+    length(terms) == 2L &&
+    all(term_types == "slope")
+  if (!is_intercept_block && !is_biv_mu_slope_block) {
     cli::cli_abort(c(
-      "Bivariate random slopes are planned but not implemented for {.code {pair}} covariance blocks.",
-      "x" = "This phase fits matching labelled random intercepts such as {.code (1 | p | id)}.",
-      "i" = "The first future location-slope target is a matching slope-only block such as {.code (0 + x | p | id)} in {.code mu1} and {.code mu2}.",
+      "Broader bivariate random-slope covariance blocks are planned but not implemented for {.code {pair}}.",
+      "x" = "This phase fits matching labelled random intercepts such as {.code (1 | p | id)} and the matching slope-only {.code mu1}/{.code mu2} route {.code (0 + x | p | id)}.",
       "i" = "Intercept-plus-slope and all-four location-scale slope blocks stay closed until q=4 and q=8 endpoint covariance evidence exists."
     ))
   }
@@ -7030,6 +7045,16 @@ build_biv_parameter_random_structure <- function(
         "x" = "{.code {term_dpars[[1L]]}} uses {.field {groups_present[[1L]]}} but {.code {term_dpars[[2L]]}} uses {.field {groups_present[[2L]]}}."
       ))
     }
+    if (
+      isTRUE(is_biv_mu_slope_block) &&
+        !identical(terms[[1L]]$coef_names, terms[[2L]]$coef_names)
+    ) {
+      cli::cli_abort(c(
+        "Bivariate slope-only {.code mu1/mu2} random effects must use the same slope variable.",
+        "x" = "{.code mu1} uses coefficient {.val {terms[[1L]]$coef_names}}, but {.code mu2} uses {.val {terms[[2L]]$coef_names}}.",
+        "i" = "Use matching terms such as {.code (0 + x | p | id)} in both {.code mu1} and {.code mu2}."
+      ))
+    }
     same_parameter_cor <- identical(labels[[1L]], labels[[2L]])
   }
 
@@ -7054,11 +7079,7 @@ build_biv_parameter_random_structure <- function(
   n_cols <- length(terms)
   index <- matrix(NA_integer_, nrow = nrow(data), ncol = n_cols)
   value <- matrix(1, nrow = nrow(data), ncol = n_cols)
-  base_labels <- unname(vapply(
-    labels,
-    function(block_label) format_random_mu_label("1", group_name, block_label),
-    character(1L)
-  ))
+  base_labels <- unname(vapply(terms, `[[`, character(1L), "label"))
   labels_out <- paste0(term_dpars, ":", base_labels)
   groups <- rep(list(levels_group), n_cols)
   names(groups) <- labels_out
@@ -7072,6 +7093,16 @@ build_biv_parameter_random_structure <- function(
   for (j in seq_len(n_cols)) {
     offset <- (j - 1L) * n_group
     index[, j] <- offset + group_index
+    if (!identical(terms[[j]]$coef_names, "(Intercept)")) {
+      variable <- terms[[j]]$coef_names[[1L]]
+      if (!is.numeric(data[[variable]])) {
+        cli::cli_abort(c(
+          "Bivariate random-slope variable {.field {variable}} must be numeric.",
+          "x" = "Factor and multi-column bivariate random slopes are planned for a later formula-grammar pass."
+        ))
+      }
+      value[, j] <- as.numeric(data[[variable]])
+    }
     term_id0 <- c(term_id0, rep.int(j - 1L, n_group))
     dpar_id0 <- c(dpar_id0, rep.int(present[[j]] - 1L, n_group))
     re_pos0 <- c(re_pos0, rep.int(j - 1L, n_group))
@@ -7098,13 +7129,13 @@ build_biv_parameter_random_structure <- function(
     re_pair_index0 = re_pair_index0,
     n_cors = if (isTRUE(same_parameter_cor)) 1L else 0L,
     cor_labels = if (isTRUE(same_parameter_cor)) {
-      cor_label(group_name, labels[[1L]])
+      cor_label(group_name, labels[[1L]], terms[[1L]]$coef_names[[1L]])
     } else {
       character()
     },
     labels = labels_out,
     dpars = term_dpars,
-    coef_names = rep("(Intercept)", n_cols),
+    coef_names = unname(vapply(terms, `[[`, character(1L), "coef_names")),
     group_names = rep(group_name, n_cols),
     covariance_labels = labels,
     groups = groups,

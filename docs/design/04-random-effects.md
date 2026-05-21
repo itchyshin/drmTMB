@@ -334,13 +334,12 @@ for average response, mean-model slope, residual scale, and scale-model slope.
 These are group-level covariance parameters and should be named/extracted as
 group-level correlations, not as `rho12`.
 
-Slice 185 sets the first bivariate one-slope policy as a boundary, not a
-fitting claim. The first future path should be matching slope-only location
-terms, for example `(0 + x | p | id)` in both `mu1` and `mu2`, because that
-targets the slope1-slope2 plasticity-syndrome correlation without also
-estimating intercept-slope correlations. Matching `(1 + x | p | id)` terms in
-both location formulas are a later q=4 location block. Matching slope terms in
-all four `mu1`, `mu2`, `sigma1`, and `sigma2` formulas are a q=8
+Slice 83 opens the first bivariate one-slope fitted route: matching
+slope-only location terms, for example `(0 + x | p | id)` in both `mu1` and
+`mu2`. This targets the slope1-slope2 plasticity-syndrome correlation without
+also estimating intercept-slope correlations. Matching `(1 + x | p | id)`
+terms in both location formulas are a later q=4 location block. Matching slope
+terms in all four `mu1`, `mu2`, `sigma1`, and `sigma2` formulas are a q=8
 location-scale endpoint and remain deliberately closed in this phase.
 
 Initial random-intercept/slope correlations should be constant covariance-block

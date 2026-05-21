@@ -159,7 +159,7 @@ now fitted.
 | 31 | Random-slope parity map | Done: `docs/design/59-structural-slope-and-non-gaussian-map.md` maps fitted versus planned slope routes |
 | 32 | Ordinary Gaussian slope status | Done: ordinary Gaussian `mu` and `sigma` slopes stay fitted, with correlated residual-scale and bivariate slopes planned |
 | 33 | Structured slope status | Done at the time as a fitted-versus-planned map; superseded by Slice 39, which fits the phylo, animal, and relmat one-slope Gaussian `mu` sibling paths |
-| 34 | Bivariate slope status | Done: bivariate random slopes remain planned despite fitted bivariate intercept and q4 location-scale blocks |
+| 34 | Bivariate slope status | Done at the time as a boundary; superseded by Slice 83, which fits the matching slope-only `mu1`/`mu2` route while leaving broader bivariate slope blocks planned |
 | 35 | Non-Gaussian ordinary random-effect status | Done: Poisson and NB2 `mu` random intercepts and independent numeric slopes are fitted first slices |
 | 36 | Non-Gaussian structural-dependence status | Done: `phylo()`, `spatial()`, `animal()`, and `relmat()` remain Gaussian-only fitted structured routes |
 | 37 | Non-Gaussian distributional-parameter boundary | Done: non-Gaussian `sigma`, shape, inflation, hurdle, ordinal, and zero-one random effects remain planned or blocked |

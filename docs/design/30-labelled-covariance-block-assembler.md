@@ -28,8 +28,8 @@ drm_formula(
 does not ask for a sequence of unrelated bivariate conditionals. The label
 `p` asks for one group-level covariance block for `id`, with members drawn
 from the labelled random-effect terms. Slice 4 should therefore build a
-labelled block assembler before adding bivariate random slopes or claiming the
-full double-hierarchical endpoint.
+labelled block assembler before adding broad bivariate random slopes or
+claiming the full double-hierarchical endpoint.
 
 ## Scope
 

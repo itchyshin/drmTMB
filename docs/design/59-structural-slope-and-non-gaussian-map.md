@@ -8,10 +8,11 @@ structural-parity slices:
 
 The short answers are closer now, but still bounded. `drmTMB` has at least one
 fitted random-slope route for ordinary Gaussian `mu`, ordinary Gaussian
-`sigma`, coordinate spatial Gaussian `mu`, phylogenetic Gaussian `mu`,
-animal-model Gaussian `mu`, `relmat()` Gaussian `mu`, and ordinary Poisson/NB2
-`mu`. Bivariate random slopes and structured non-Gaussian dependence remain
-planned. Structural dependence is currently a Gaussian route except for
+`sigma`, the first ordinary bivariate Gaussian slope-only `mu1`/`mu2`
+covariance route, coordinate spatial Gaussian `mu`, phylogenetic Gaussian
+`mu`, animal-model Gaussian `mu`, `relmat()` Gaussian `mu`, and ordinary
+Poisson/NB2 `mu`. Broader bivariate random slopes and structured
+non-Gaussian dependence remain planned. Structural dependence is currently a Gaussian route except for
 ordinary unstructured Poisson and NB2 `mu` random effects.
 
 ## Random-Slope Parity
@@ -20,7 +21,7 @@ ordinary unstructured Poisson and NB2 `mu` random effects.
 | --- | --- | --- | --- |
 | Ordinary Gaussian `mu` group effects | Yes | Independent numeric slopes such as `(0 + x | id)` and one correlated intercept-slope block such as `(1 + x | id)`; q > 2 ordinary `mu` blocks are fitted but advanced | Bivariate slope1-slope2 covariance and broader cross-parameter slope covariance |
 | Ordinary Gaussian `sigma` group effects | Yes | Independent residual-scale slopes such as `sigma ~ z + (0 + w | id)` on the log-`sigma` predictor | Correlated residual-scale slope blocks and labelled `mu`/`sigma` slope covariance |
-| Ordinary bivariate group covariance | No for slopes | Matching labelled random intercepts in `mu1`/`mu2`, `sigma1`/`sigma2`, and constant q=4 location-scale blocks are fitted | Matching slope-only `mu1`/`mu2` blocks, intercept-plus-slope bivariate blocks, and all-four slope location-scale blocks |
+| Ordinary bivariate group covariance | Yes, first slice | Matching labelled random intercepts in `mu1`/`mu2`, `sigma1`/`sigma2`, constant q=4 intercept location-scale blocks, and matching slope-only `mu1`/`mu2` blocks are fitted | Intercept-plus-slope q=4 bivariate location blocks, residual-scale slope covariance, all-four p8/q8 slope location-scale blocks, and predictor-dependent slope `corpair()` regressions |
 | Coordinate spatial Gaussian `mu` | Yes | `spatial(1 + x | site, coords = coords)` fits independent coordinate-spatial intercept and slope fields for univariate Gaussian `mu` | Multiple spatial slopes, spatial intercept-slope correlation, bivariate spatial slopes, spatial `sigma`, mesh/SPDE |
 | Phylogenetic Gaussian effects | Yes | `phylo(1 + x | species, tree = tree)` fits independent phylogenetic intercept and slope fields for univariate Gaussian `mu`; intercept-only `mu`, matching bivariate `mu1`/`mu2`, selected q=4 location-scale, direct `sd_phylo*()`, and q=2 phylogenetic `corpair()` routes are also fitted | Multiple phylogenetic slopes, phylogenetic slope correlations, bivariate phylogenetic slopes, and phylogenetic non-Gaussian effects |
 | `animal()` Gaussian effects | Yes | `animal(1 + x | id, pedigree/A/Ainv = ...)` fits independent animal-model intercept and slope fields for univariate Gaussian `mu`; matching bivariate q=2 location covariance and constant all-four q=4 location-scale blocks are fitted | Sparse large-pedigree construction, multiple animal slopes, animal slope correlations, standalone scale models, predictor-dependent `corpair()`, direct-SD grammar |
@@ -31,9 +32,11 @@ ordinary unstructured Poisson and NB2 `mu` random effects.
 | Meta-analysis known `V` | Not a random-slope layer | `meta_V(V = V)` treats sampling covariance as known input data | Variance-component meta-analysis and phylogenetic-plus-study extensions |
 
 The practical consequence is that the first structured one-slope parity gap is
-closed for univariate Gaussian `mu`. The next slope gaps are bivariate
-slope-only covariance, intercept-plus-slope covariance, multiple structured
-slopes, slope correlations, and non-Gaussian structured effects.
+closed for univariate Gaussian `mu`, and the first ordinary bivariate
+slope-slope gap is now opened for matching `mu1`/`mu2` slopes. The next slope
+gaps are intercept-plus-slope bivariate covariance, all-four p8/q8
+location-scale covariance, multiple structured slopes, structured slope
+correlations, and non-Gaussian structured effects.
 
 ## Non-Gaussian Structural Dependence
 

@@ -290,8 +290,8 @@ can teach common interpretations:
 These names are interpretation aids. The extractor should always report the
 formal pair so users can interpret other designs without guessing.
 
-Slice 185 keeps the first bivariate random-slope target at the slope-slope
-mean row: matching slope-only `mu1`/`mu2` terms such as
+Slice 83 opens the first bivariate random-slope target at the slope-slope mean
+row: matching slope-only `mu1`/`mu2` terms such as
 `(0 + x | p | ID)`. That target is scientifically useful for plasticity
 syndromes and avoids opening intercept-slope or all-four location-scale
 correlations before the package can name, diagnose, and profile them. A
@@ -426,8 +426,9 @@ display preference, because each layer answers a different biological question.
    same-response bivariate `mu`/`sigma` random-intercept bridge.
 8. Route labelled group-level covariance through the block assembler in
    `docs/design/30-labelled-covariance-block-assembler.md` before exposing
-   bivariate random slopes. Done for the ordinary q=4 all-four bivariate
-   random-intercept block.
+   broad bivariate random slopes. Done for the ordinary q=4 all-four
+   bivariate random-intercept block and the matching slope-only `mu1`/`mu2`
+   slice.
 9. Extend the first bivariate phylogenetic mean-mean block toward full
    phylogenetic location-scale covariance, with matching non-phylogenetic
    species or individual covariance blocks.

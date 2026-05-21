@@ -17,8 +17,8 @@ predictor-dependent `rho12`, residual-scale imbalance, and mean/scale
 predictor overlap affect recovery of response-specific means, residual scales,
 and the residual coscale `rho12`; keep group-level `corpairs()`, phylogenetic
 or spatial correlations, known sampling covariance `V`, random effects in
-`rho12`, mixed-response families, and bivariate random slopes outside this
-grid.
+`rho12`, mixed-response families, and broader bivariate random slopes outside
+this residual-correlation grid.
 
 ## D - Data-Generating Mechanism
 
@@ -117,7 +117,7 @@ Report metrics by condition cell and estimand:
 | Convergence rate | `mean(converged & pdHess)` |
 | Warning rate | `mean(warning_count > 0)` |
 | Runtime | median and high quantiles of elapsed seconds |
-| Failure ledger | random effects in `rho12`, mixed-response families, bivariate random slopes, q=4/q=8 slope covariance, and structured-correlation requests reported beside the grid |
+| Failure ledger | random effects in `rho12`, mixed-response families, broader bivariate random slopes, q=4/q=8 slope covariance, and structured-correlation requests reported beside the grid |
 
 Every aggregate metric should carry an MCSE. Failed, warning-bearing, boundary,
 and interval-failed fits remain in the manifest, warning/error ledger, and

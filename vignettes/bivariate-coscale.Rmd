@@ -671,8 +671,10 @@ Other implemented ordinary bivariate random-intercept rows include
 `mu1`-`mu2` row, four mean-scale rows (`mu1`-`sigma1`, `mu1`-`sigma2`,
 `mu2`-`sigma1`, and `mu2`-`sigma2`), and one `sigma1`-`sigma2` row.
 
-Bivariate random slopes, slope1-slope2 plasticity-syndrome correlations,
-random effects in `rho12`, bivariate `meta_known_V()` plus random effects,
+The first ordinary bivariate slope-slope route is now the matching
+`(0 + x | p | id)` block in both `mu1` and `mu2`. Intercept-plus-slope
+bivariate blocks, all-four p8/q8 location-scale slope endpoints, random
+effects in `rho12`, bivariate `meta_known_V()` plus random effects,
 mixed-response families, and ordinary spatial group-level covariance remain
 future work unless a later status map says otherwise. For phylogenetic
 covariance, use the structural-dependence tutorial and keep those rows
