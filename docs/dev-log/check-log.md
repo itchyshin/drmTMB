@@ -2,6 +2,64 @@
 
 Record meaningful development checks here.
 
+## 2026-05-21 - Spatial Q2 Grid Artifacts
+
+Goal: turn the coordinate-spatial q=2 smoke runner into repeatable CSV
+artifacts without claiming formal broad coverage before a larger replicate run.
+
+Team roles:
+
+- Ada kept the slice to artifact plumbing and left formula grammar unchanged.
+- Curie added the focused grid-writer tests and input-validation checks.
+- Fisher separated fixed-effect Wald coverage from profile-status evidence for
+  spatial SDs, the spatial correlation, residual `rho12`, and residual scales.
+- Grace checked the neighboring fitted spatial tests and pkgdown.
+- Pat checked that applied users can inspect artifacts instead of reading RDS
+  internals.
+- Rose scanned for stale "CSV artifacts still missing" wording.
+
+Files changed:
+
+- `inst/sim/run/sim_summary_spatial_q2_smoke.R`
+- `inst/sim/run/sim_write_spatial_q2_grid.R`
+- `tests/testthat/test-phase18-spatial-q2-grid-writer.R`
+- `inst/sim/README.md`
+- `docs/design/16-phylo-spatial-common-math.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `docs/design/46-pre-simulation-readiness-matrix.md`
+- `docs/design/56-phase-18-spatial-q2-ademp.md`
+
+Checks run:
+
+```sh
+air format inst/sim/run/sim_summary_spatial_q2_smoke.R inst/sim/run/sim_write_spatial_q2_grid.R tests/testthat/test-phase18-spatial-q2-grid-writer.R
+Rscript -e "devtools::test(filter = 'phase18-spatial-q2-smoke|phase18-spatial-q2-grid-writer')"
+Rscript -e "devtools::test(filter = 'spatial-gaussian|phase18-spatial-q2-smoke|phase18-spatial-q2-grid-writer')"
+gh issue list --search "spatial q2 simulation OR spatial q=2 simulation OR interval-status" --limit 20
+rg -n 'broad q=2 reports still need CSV artifacts|CSV artifacts and interval-status tables remain|after a CSV artifact writer|CSV artifact writer and interval-status tables are added|A later artifact slice should add CSV writers|still need CSV artifacts|CSV writers and interval-status artifacts remain the next gate' docs/design/16-phylo-spatial-common-math.md docs/design/41-phase-18-simulation-programme.md docs/design/46-pre-simulation-readiness-matrix.md docs/design/56-phase-18-spatial-q2-ademp.md inst/sim/README.md
+Rscript -e "pkgdown::check_pkgdown()"
+git diff --check
+```
+
+Outcomes:
+
+- The focused spatial q=2 smoke/grid-writer tests passed 57 expectations with
+  no warnings or skips.
+- The neighboring spatial Gaussian run passed 155 expectations with no
+  warnings or skips.
+- The grid writer now emits aggregate, replicate, manifest, failure, Wald
+  interval, Wald coverage, profile interval, profile coverage,
+  interval-evidence, interval-diagnostics, and interval-failure CSVs.
+- Default profile rows remain explicit `not_requested` status evidence for
+  spatial SDs, the spatial correlation, residual `rho12`, and residual scales;
+  fixed-effect `mu1`/`mu2` coefficient rows receive Wald intervals.
+- The issue search found broad neighboring structured-effect and visualization
+  issues, but no dedicated spatial q=2 simulation issue needing an update for
+  this internal artifact slice.
+- The stale-wording scan returned no current-source matches.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `git diff --check` was clean.
+
 ## 2026-05-20 - Animal/Relmat Q2 Interval Artifacts
 
 Goal: turn the animal/`relmat()` q=2 interval-status plan into repeatable CSV

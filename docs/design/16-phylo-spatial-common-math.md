@@ -591,8 +591,9 @@ The immediate q=2 implementation lane has now landed for coordinate-spatial
 location covariance, but it is not spatial `sigma`, spatial q=4, or spatial
 `corpair()` regression. Fisher admits the constant q=2 lane for a focused Phase
 18 grid through `docs/design/56-phase-18-spatial-q2-ademp.md`. The first DGP
-and smoke runner now exist under `inst/sim/`; broad reports remain blocked
-until CSV artifacts and interval-status tables exist. Pat still wants the first
+smoke runner, CSV grid writer, fixed-effect Wald tables, and profile-status
+tables now exist under `inst/sim/`. Formal broad reports still need a larger
+replicate run and reader-facing interpretation. Pat still wants the first
 example to answer a simple spatial ecology question, such as whether nearby
 reefs share paired abundance and growth deviations, instead of presenting the
 covariance matrix first.
