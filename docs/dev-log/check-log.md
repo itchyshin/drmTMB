@@ -2,6 +2,50 @@
 
 Record meaningful development checks here.
 
+## 2026-05-20 - Animal/Relmat Q2 Phase 18 Grid Writer
+
+Goal: make the animal/`relmat()` q=2 smoke runner export repeatable
+aggregate, replicate, manifest, and failure-ledger CSV artifacts.
+
+Team roles:
+
+- Ada kept the grid writer stacked after the smoke runner PR.
+- Curie connected the smoke run to the standard aggregate and manifest helpers.
+- Fisher checked that the output keeps parameter-level truth and error rows
+  visible before any interval claims.
+- Emmy matched the existing simple grid-writer architecture.
+- Grace kept the test to two tiny cells and required overwrite validation.
+- Pat, Darwin, and Rose checked that readiness wording says smoke-grid
+  artifacts, not broad Phase 18 evidence.
+
+Files changed:
+
+- `inst/sim/run/sim_summary_animal_relmat_q2_smoke.R`
+- `inst/sim/run/sim_write_animal_relmat_q2_grid.R`
+- `tests/testthat/test-phase18-animal-relmat-q2-grid-writer.R`
+- `inst/sim/README.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `docs/design/46-pre-simulation-readiness-matrix.md`
+- `docs/design/54-phase-18-animal-relmat-known-matrix-ademp.md`
+
+Checks run:
+
+```sh
+air format inst/sim/run/sim_summary_animal_relmat_q2_smoke.R inst/sim/run/sim_write_animal_relmat_q2_grid.R tests/testthat/test-phase18-animal-relmat-q2-grid-writer.R
+Rscript -e "devtools::test(filter = 'phase18-animal-relmat-q2', reporter = 'summary')"
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "devtools::check()"
+git diff --check
+```
+
+Outcomes:
+
+- `air format` completed without changes after the final edits.
+- The combined `phase18-animal-relmat-q2` smoke and grid-writer tests passed.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `devtools::check()` passed in 4m01s with 0 errors, 0 warnings, and 0 notes.
+- `git diff --check` was clean.
+
 ## 2026-05-20 - Animal/Relmat Q2 Phase 18 Smoke Runner
 
 Goal: add the first executable Phase 18 smoke path for known-matrix
