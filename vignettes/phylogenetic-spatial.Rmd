@@ -158,19 +158,37 @@ simulate_animal_marker_data <- function(seed = 20260519) {
   dimnames(G) <- list(line_levels, line_levels)
   Ginv <- solve(G)
 
-  individual_effect <- as.vector(t(chol(A)) %*% rnorm(n_individual, sd = 0.35))
-  line_effect <- as.vector(t(chol(G)) %*% rnorm(length(line_levels), sd = 0.25))
-  names(individual_effect) <- individual_levels
-  names(line_effect) <- line_levels
+  individual_z_body <- rnorm(n_individual)
+  individual_z_beak <- 0.45 * individual_z_body +
+    sqrt(1 - 0.45^2) * rnorm(n_individual)
+  individual_effect_body <- as.vector(t(chol(A)) %*% individual_z_body) * 0.35
+  individual_effect_beak <- as.vector(t(chol(A)) %*% individual_z_beak) * 0.28
+  names(individual_effect_body) <- individual_levels
+  names(individual_effect_beak) <- individual_levels
 
-  sigma <- exp(-1.0 + 0.15 * (sex == "male"))
+  line_z_body <- rnorm(length(line_levels))
+  line_z_beak <- 0.35 * line_z_body +
+    sqrt(1 - 0.35^2) * rnorm(length(line_levels))
+  line_effect_body <- as.vector(t(chol(G)) %*% line_z_body) * 0.25
+  line_effect_beak <- as.vector(t(chol(G)) %*% line_z_beak) * 0.20
+  names(line_effect_body) <- line_levels
+  names(line_effect_beak) <- line_levels
+
+  sigma_body <- exp(-1.0 + 0.15 * (sex == "male"))
+  sigma_beak <- exp(-1.1 - 0.10 * (sex == "male"))
+  e_body <- rnorm(length(individual))
+  e_beak <- 0.20 * e_body + sqrt(1 - 0.20^2) * rnorm(length(individual))
   body_size <- 2.1 + 0.45 * age + 0.20 * (sex == "male") +
-    individual_effect[individual] + line_effect[breeding_line] +
-    rnorm(length(individual), sd = sigma)
+    individual_effect_body[individual] + line_effect_body[breeding_line] +
+    sigma_body * e_body
+  beak_length <- 1.4 + 0.30 * age - 0.12 * (sex == "male") +
+    individual_effect_beak[individual] + line_effect_beak[breeding_line] +
+    sigma_beak * e_beak
 
   list(
     data = data.frame(
       body_size = body_size,
+      beak_length = beak_length,
       age = age,
       sex = sex,
       individual = individual,
@@ -382,6 +400,62 @@ check_drm(fit_animal_known)
 summary(fit_animal_known)
 ```
 
+If two traits were measured on the same individuals, a matching label such as
+`p` asks whether the additive deviations in the two location predictors covary.
+That covariance is a latent animal-model row; residual `rho12` still describes
+within-observation residual correlation after the known relatedness effect is
+accounted for.
+
+```{r}
+fit_animal_q2_known <- drmTMB(
+  drm_formula(
+    mu1 = body_size ~ age + sex +
+      animal(1 | p | individual, Ainv = Ainv),
+    mu2 = beak_length ~ age + sex +
+      animal(1 | p | individual, Ainv = Ainv),
+    sigma1 = ~ sex,
+    sigma2 = ~ sex,
+    rho12 = ~ 1
+  ),
+  family = c(gaussian(), gaussian()),
+  data = growth
+)
+
+corpairs(fit_animal_q2_known, level = "animal")
+animal_q2_checks <- check_drm(fit_animal_q2_known)
+animal_q2_checks[grepl("animal|convergence|hessian", animal_q2_checks$check), ]
+```
+
+Use `relmat()` when the matrix is not naturally a pedigree, tree, or spatial
+coordinate surface. Here `Ginv` is a precision matrix for experimental breeding
+lines, so the fitted row is a lower-level relatedness covariance rather than an
+animal-model covariance.
+
+```{r}
+Ginv <- animal_example$Ginv
+
+fit_relmat_q2_known <- drmTMB(
+  drm_formula(
+    mu1 = body_size ~ age + sex +
+      relmat(1 | p | breeding_line, Q = Ginv),
+    mu2 = beak_length ~ age + sex +
+      relmat(1 | p | breeding_line, Q = Ginv),
+    sigma1 = ~ sex,
+    sigma2 = ~ sex,
+    rho12 = ~ 1
+  ),
+  family = c(gaussian(), gaussian()),
+  data = growth
+)
+
+corpairs(fit_relmat_q2_known, level = "relmat")
+relmat_q2_targets <- profile_targets(fit_relmat_q2_known)
+relmat_q2_targets[
+  grepl("relmat", relmat_q2_targets$parm),
+  c("parm", "target_type", "profile_ready")
+]
+```
+
 When the relationship matrix is unavailable, fit an ordinary grouped Gaussian
 model as a sensitivity analysis and state the omitted structure:
 
@@ -442,24 +516,10 @@ bivariate location covariance. Spatial `sigma`, spatial q=4, spatial
 animal/`relmat()` scale models, animal/`relmat()` q=4 blocks, and
 animal/`relmat()` predictor-dependent `corpair()` routes remain planned.
 
-The known-matrix bivariate animal example now reads like the phylogenetic
-example when `Ainv` is already available:
+The runnable examples above cover the current known-matrix animal and
+`relmat()` q=2 routes. The next richer animal target is not fitted yet:
 
 ```r
-fit_animal_q2 <- drmTMB(
-  drm_formula(
-    mu1 = body_size ~ age + sex +
-      animal(1 | p | individual, Ainv = Ainv),
-    mu2 = beak_length ~ age + sex +
-      animal(1 | p | individual, Ainv = Ainv),
-    sigma1 = ~ sex,
-    sigma2 = ~ sex,
-    rho12 = ~ 1
-  ),
-  family = c(gaussian(), gaussian()),
-  data = growth
-)
-
 # Planned, not fitted yet:
 fit_animal_q4 <- drmTMB(
   drm_formula(
@@ -478,7 +538,7 @@ fit_animal_q4 <- drmTMB(
 # Fitted spatial q=2 sibling:
 spatial(1 | p | site, coords = coords)
 
-# Planned relatedness siblings, not fitted yet:
+# Fitted relatedness q=2 siblings:
 relmat(1 | p | line, K = G)
 relmat(1 | p | line, Q = Ginv)
 ```
@@ -493,6 +553,7 @@ phylo+spatial, and `relmat()` location-scale-coscale ladder.
 | --- | --- | --- |
 | `animal(1 | individual, pedigree = pedigree)` | Planned marker | A future animal-model random effect using pedigree-derived additive relatedness. The marker is documented and parsed, but `drmTMB()` rejects it before fitting until pedigree-to-Ainv construction is implemented. |
 | `animal(1 | individual, A = A)` or `animal(1 | individual, Ainv = Ainv)` | Implemented first slice | A univariate Gaussian `mu` random intercept using a precomputed additive relatedness or inverse-relatedness matrix. Use `A` or `Ainv`; keep `V` for known sampling covariance in meta-analysis. |
+| Matching labelled `animal(1 | p | individual, A = A)` or `animal(1 | p | individual, Ainv = Ainv)` terms in bivariate `mu1` and `mu2` | Implemented first q=2 slice | Two Gaussian responses have correlated animal-model location deviations from the same known matrix. `corpairs(level = "animal")` reports this mean-mean row separately from residual `rho12`. |
 | `phylo(1 | species, tree = tree)` in univariate `mu` | Implemented | One trait has a phylogenetic random intercept in the location predictor. |
 | Matching `phylo(1 | species, tree = tree)` terms in bivariate `mu1` and `mu2` | Implemented first slice | Two traits have correlated phylogenetic location deviations; `corpairs(level = "phylogenetic")` reports the mean-mean row separately from residual `rho12`. |
 | Matching labelled `phylo(1 | p | species, tree = tree)` terms in bivariate `mu1` and `mu2` | Implemented | The label is preserved in SD names, the fitted mean-mean correlation, `corpairs(block = "p")`, and profile-target names. |
@@ -505,7 +566,8 @@ phylo+spatial, and `relmat()` location-scale-coscale ladder.
 | `spatial(1 + x | site, coords = coords)` | Implemented first one-slope slice | One trait has independent coordinate-spatial intercept and numeric slope fields in the location predictor. The two fields share the same coordinate precision, have separate SDs, and do not estimate an intercept-slope correlation. |
 | Matching `spatial(1 | p | site, coords = coords)` terms in bivariate `mu1` and `mu2` | Implemented first q=2 slice | Two Gaussian responses have correlated coordinate-spatial location deviations. `corpairs(level = "spatial")` and `summary()$covariance` report this mean-mean row separately from residual `rho12`; spatial q=4 and predictor-dependent spatial `corpair()` regression remain planned. |
 | `phylo(1 | species, tree = tree) + spatial(1 | site, coords = coords)` in the same `mu` formula | Planned | This is the intended third structural-dependence route, but the fitter currently stops with a planned-feature message because multiple structural `mu` layers need their own identifiability checks. |
-| `relmat(1 | id, K = K)` or matching labelled `relmat(1 | p | id, Q = Q)` terms in bivariate `mu1` and `mu2` | Implemented first slices | A lower-level Gaussian `mu` random intercept for user-supplied latent relatedness covariance or precision matrices, plus the first q=2 bivariate location covariance when the same labelled term appears in both responses. |
+| `relmat(1 | id, K = K)` or `relmat(1 | id, Q = Q)` | Implemented first slice | A lower-level Gaussian `mu` random intercept for user-supplied latent relatedness covariance or precision matrices. |
+| Matching labelled `relmat(1 | p | id, K = K)` or `relmat(1 | p | id, Q = Q)` terms in bivariate `mu1` and `mu2` | Implemented first q=2 slice | Two Gaussian responses have correlated lower-level known-relatedness location deviations from the same matrix. `corpairs(level = "relmat")` reports this mean-mean row separately from residual `rho12`. |
 | `spatial(1 | site, mesh = mesh)` | Planned | Mesh inputs will provide expert control for the scalable SPDE/GMRF spatial path. |
 
 The fitted q=2 phylogenetic correlation-regression syntax is:
