@@ -34783,3 +34783,45 @@ git diff --check
 - The refined stale-support scan found no claims that `zi`, `hu`, future
   `zoi`, or future `coi` random effects are fitted, supported, or available.
 - `git diff --check` was clean.
+
+## 2026-05-21 - Implementation Map Slices 311-325
+
+Goal:
+
+- Show and complete the next implementation-map slice set as design gates,
+  keeping the branch planning-focused while GitHub CI for PR #293 runs.
+
+Changes:
+
+- Added `docs/design/63-implementation-map-slices-311-325.md` as the ledger
+  for generic direct-SD syntax, p8/q8 endpoint taxonomy, structured q4 order,
+  q4 interval status, non-Gaussian structured-dependence candidate scoring, and
+  common user-route examples.
+- Updated `vignettes/implementation-map.Rmd` with the 311-325 roadmap rows and
+  a "Common planned requests" table.
+- Updated `ROADMAP.md` and `NEWS.md` to keep these slices explicitly
+  planning-only.
+- Added `docs/dev-log/after-task/2026-05-21-implementation-map-slices-311-325.md`
+  to record user usefulness, standing roles, checks, and boundaries.
+
+Validation:
+
+```sh
+air format NEWS.md ROADMAP.md vignettes/implementation-map.Rmd docs/design/63-implementation-map-slices-311-325.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-21-implementation-map-slices-311-325.md
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "pkgdown::build_site()"
+rg -n "311-313|314-316|317-318|319-320|Common planned requests|Poisson as an algebra smoke|NB2 as the practical count target" pkgdown-site/articles/implementation-map.html pkgdown-site/ROADMAP.html
+rg -n 'p8/q8.*are fitted for|p8/q8.*now fit|q8.*now fits|p8.*now fits|full p8.*is fitted|spatial q4.*now fits|spatial q4.*is fitted|generic sd\\*.*(is implemented|now works|now accepts)|non-Gaussian structured.*now fits|zi.*random effects are (fitted|supported|available)|hu.*random effects are (fitted|supported|available)' README.md ROADMAP.md NEWS.md docs/design vignettes R tests/testthat -g '!*.html'
+git diff --check
+```
+
+- `air format` completed without output.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `pkgdown::build_site()` completed and wrote the updated implementation-map
+  and ROADMAP pages.
+- The rendered-page scan found the 311-313, 314-316, 317-318, and 319-320 rows
+  plus the common planned-request section and first-candidate wording.
+- The refined stale-support scan found no false claims that p8/q8, spatial q4,
+  generic `sd*()`, non-Gaussian structured dependence, or `zi`/`hu` random
+  effects are fitted.
+- `git diff --check` was clean.

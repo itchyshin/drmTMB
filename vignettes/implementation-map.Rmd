@@ -113,3 +113,20 @@ the most useful next lanes for users:
 | 308 | Non-Gaussian structured-dependence candidate map | Count, ordinal, inflation, and hurdle users need honest guidance before structured models are exposed. | One family and one dependence layer pass likelihood, recovery, diagnostics, extractor, and interval-status gates before a broader claim appears. |
 | 309 | Reader-facing availability map maintenance | The pkgdown site should make fitted-versus-planned status easy to find. | This article, `model-map`, README, ROADMAP, NEWS, and the reference index agree after each substantial feature slice. |
 | 310 | User-route examples | Users should leave the map knowing the nearest fitted alternative. | Planned rows point to a fitted route, a design note, or a tutorial boundary rather than leaving users at a dead end. |
+| 311-313 | Generic direct-SD contract | Direct-SD syntax should become easier without breaking existing `sd_phylo*()` users. | Future syntax uses explicit level targeting, keeps ordinary `sd(group)` distinct, and includes compatibility and reference-index checks before implementation. |
+| 314-316 | p8/q8 endpoint gate | Full location-scale slope covariance is scientifically attractive but can be weakly identified. | q2, q4, q6, and q8 endpoints, parameterization, diagnostics, and simulation gates are explicit before code. |
+| 317-318 | Structured q4 and interval contract | Users need to know which q4 rows are estimates and which have real intervals. | Spatial q4 parity is separated from already fitted phylo/animal/relmat q4 status, and q4 intervals remain unavailable until method evidence exists. |
+| 319-320 | Non-Gaussian structured candidate choice | Count users need a realistic first structural-dependence path. | One q1 `mu` structured intercept is chosen before slopes, q4, zero inflation, hurdle probability, or cross-parameter covariance. |
+| 321-325 | User-route and maintenance closeout | The map should help users choose a fitted route when their desired model is planned. | Common planned requests point to fixed-effect or smaller fitted alternatives, and pkgdown/stale-claim checks confirm the rendered map. |
+
+## Common planned requests
+
+Use this table when a desired model is not fitted yet.
+
+| If you want... | Fit now | Planned boundary |
+| --- | --- | --- |
+| zero-inflated counts with predictors in the zero process | fixed-effect `zi ~ predictors` in the supported count family | random effects or structured dependence in `zi` |
+| hurdle counts with a modelled hurdle probability | fixed-effect `hu ~ predictors` in hurdle NB2 | random effects or structured dependence in `hu` |
+| phylogenetic or spatial count dependence | ordinary Poisson/NB2 `mu` random effects when a plain group is enough; otherwise treat structural count dependence as planned | `phylo()`, `spatial()`, `animal()`, or `relmat()` inside non-Gaussian likelihoods |
+| full individual-difference location-scale slopes | fitted q2 slope-only `mu1`/`mu2` covariance, or smaller univariate pieces | p8/q8 location-scale slope covariance |
+| structured direct-SD surfaces outside phylogeny | fitted structured intercept/slope SDs and `profile_targets()` where available | generic spatial, animal, or `relmat()` direct-SD regression |

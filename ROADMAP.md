@@ -1548,6 +1548,21 @@ Use this order unless Slice 191 evidence overturns it:
 | 308 | Non-Gaussian structured-dependence candidate map | Done locally as planning: the next non-Gaussian structured-dependence step should choose one family and one dependence layer only after ordinary likelihood, extractor, diagnostic, profile-target, and simulation gates are clear. |
 | 309 | Implementation-map maintenance gate | Done locally as process: after substantial feature slices, update implementation-map, model-map, README, ROADMAP, NEWS, and stale-claim scans together. |
 | 310 | User-route examples gate | Done locally as planning: planned rows should point users toward the nearest fitted alternative, design note, or tutorial boundary instead of making unsupported syntax look runnable. |
+| 311 | Generic `sd*()` contract | Done locally as planning: `docs/design/63-implementation-map-slices-311-325.md` records explicit level-targeted direct-SD syntax as the future direction, while keeping current `sd_phylo*()` routes compatible and ordinary `sd(group)` distinct. |
+| 312 | Direct-SD ambiguity guard | Done locally as planning: ordinary random-effect SD surfaces and future structured direct-SD routes must stay distinguishable in parsing, examples, and the reference index. |
+| 313 | Direct-SD user migration | Done locally as planning: generic direct-SD syntax needs compatibility wording, examples, and stale-name scans before users are moved away from existing `sd_phylo*()` names. |
+| 314 | p8/q8 endpoint taxonomy | Done locally as planning: q2 slope-only, q4 location slope, q6 partial location-scale, and q8 all-endpoint slope covariance are separated before public syntax opens. |
+| 315 | p8/q8 parameterization risk | Done locally as planning: full q8 remains high risk because eight SDs and 28 correlations may be weakly identified; constrained or block-diagonal designs should be considered first. |
+| 316 | p8/q8 diagnostics gate | Done locally as planning: any p8/q8 route needs profile-target labels, Hessian/boundary diagnostics, recovery tests, and tutorial warnings before user claims. |
+| 317 | Structured q4 ordering | Done locally as planning: spatial q4 is the primary missing constant structured q4 parity lane; animal and `relmat()` q4 need continued diagnostics and simulation hardening rather than a new fitted claim. |
+| 318 | q4 interval contract | Done locally as planning: q4 rows remain estimates with explicit derived-unavailable interval status until direct or derived-profile methods are designed and tested. |
+| 319 | Non-Gaussian candidate scoring | Done locally as planning: candidate non-Gaussian structured routes are scored by family maturity, dependence layer, diagnostics, extractor impact, and user value before coding. |
+| 320 | First non-Gaussian structured candidate recommendation | Done locally as planning: start with one q1 `mu` structured intercept, likely Poisson as an algebra smoke and NB2 as the first practical count target, before slopes, zero inflation, hurdle probability, or q4. |
+| 321 | User-route examples | Done locally as planning: common planned requests now point users toward fixed-effect or smaller fitted alternatives in the implementation map. |
+| 322 | Implementation-map sync | Done locally: the public map now carries the 311-325 planning rows and common planned-request table. |
+| 323 | Roadmap, NEWS, and check-log | Done locally: the ledger records this set as planning/documentation, not likelihood expansion. |
+| 324 | After-task protocol | Done locally: the after-task report records roles, usefulness, checks, and remaining boundaries. |
+| 325 | Validation | Done locally: pkgdown and stale-claim scans confirm the rendered map and guardrails. |
 
 ### Pre-Simulation Readiness Slice Map
 
@@ -1579,6 +1594,21 @@ as the whole comprehensive simulation programme.
 | 308 | Documentation | Non-Gaussian structured-dependence candidate map | Done locally as planning: choose one family and one dependence layer before any broad non-Gaussian structured-dependence claim. |
 | 309 | Documentation | Implementation-map maintenance gate | Done locally as process: high-traffic status surfaces and stale scans should move together after meaningful feature work. |
 | 310 | Documentation | User-route examples gate | Done locally as planning: unsupported rows should direct readers to the closest fitted alternative or design note. |
+| 311 | Documentation | Generic `sd*()` contract | Done locally as planning: future structured direct-SD syntax should be explicit about level and compatibility. |
+| 312 | Documentation | Direct-SD ambiguity guard | Done locally as planning: ordinary `sd(group)` and future structured direct-SD routes should not collide. |
+| 313 | Documentation | Direct-SD user migration | Done locally as planning: existing `sd_phylo*()` users keep a documented route while generic syntax is designed. |
+| 314 | Documentation | p8/q8 endpoint taxonomy | Done locally as planning: q2, q4, q6, and q8 endpoint classes are separated before implementation. |
+| 315 | Documentation | p8/q8 parameterization risk | Done locally as planning: full unstructured q8 is marked high risk and constrained alternatives should be evaluated first. |
+| 316 | Documentation | p8/q8 diagnostics gate | Done locally as planning: profile targets, diagnostics, recovery tests, and warnings are required before p8/q8 claims. |
+| 317 | Documentation | Structured q4 ordering | Done locally as planning: spatial q4 is the primary missing constant structured q4 parity lane. |
+| 318 | Documentation | q4 interval contract | Done locally as planning: q4 intervals remain unavailable unless explicit interval evidence exists. |
+| 319 | Documentation | Non-Gaussian candidate scoring | Done locally as planning: non-Gaussian structured candidates are scored before coding. |
+| 320 | Documentation | First non-Gaussian candidate recommendation | Done locally as planning: one q1 `mu` structured intercept is the first candidate class, with Poisson as smoke and NB2 as practical target. |
+| 321 | Documentation | User-route examples | Done locally as planning: common planned requests now point to fitted alternatives in the public map. |
+| 322 | Documentation | Implementation-map sync | Done locally: the public implementation map carries the 311-325 rows and examples. |
+| 323 | Documentation | Roadmap, NEWS, and check-log | Done locally: public and dev ledgers match the planning-only scope. |
+| 324 | Documentation | After-task protocol | Done locally: after-task report records the scope and remaining boundaries. |
+| 325 | Documentation | Validation | Done locally: pkgdown and stale-claim scans confirm the rendered docs. |
 | 268 | Support audit | Pre-simulation capability matrix | Done locally: `docs/design/46-pre-simulation-readiness-matrix.md` now has one capability audit table that says which Gaussian, non-Gaussian, shape, inflation, bivariate, random-slope, meta-analysis, phylogenetic, spatial, animal, and `relmat()` surfaces are implemented, tested, planned, or unsupported before Phase 18 grids admit them. |
 | 269 | Random slopes | Ordinary location random slopes | Done locally: a q=4 ordinary Gaussian `mu` block test now confirms multi-slope SD/correlation names, `corpairs()` classes, and profile-target status, while README/model-map/which-scale wording names q > 2 as fitted but sample-size hungry. |
 | 270 | Random slopes | Scale random effects | Done locally: a cross-group Gaussian `sigma` test now confirms two independent residual-scale slope terms, direct `log_sd_sigma` targets, and no residual-scale correlation rows, while docs keep correlated residual-scale slope blocks planned. |
