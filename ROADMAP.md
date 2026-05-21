@@ -1578,6 +1578,21 @@ Use this order unless Slice 191 evidence overturns it:
 | 338 | Stale-claim checklist | Done locally: validation targets false fitted claims for generic `sd*()`, p8/q8, spatial q4, and non-Gaussian structured routes. |
 | 339 | Roadmap and NEWS sync | Done locally: public and dev ledgers record these as pre-code slices. |
 | 340 | After-task and validation | Done locally: the after-task report and pkgdown checks close the slice set. |
+| 341 | Generic direct-SD issue template | Done locally as planning: `docs/design/65-implementation-map-slices-341-355.md` records the issue fields needed before generic structured direct-SD parser work starts. |
+| 342 | Generic direct-SD acceptance checklist | Done locally as planning: future direct-SD issues require parser, fit-time, prediction/profile, reference, rendered-discoverability, and stale-name checks before closing. |
+| 343 | Direct-SD migration and stale-scan recipe | Done locally as planning: existing `sd_phylo*()` users keep compatibility while future generic examples appear only for fitted layers. |
+| 344 | p8/q8 issue template | Done locally as planning: future all-endpoint location-scale slope issues must name the endpoint class, covariance structure, interval policy, diagnostics, and nearest fitted alternative. |
+| 345 | p8/q8 acceptance checklist | Done locally as planning: p8/q8-adjacent code needs recovery, malformed-input, `corpairs()`, profile-target, Hessian, boundary, and tutorial-warning evidence before user claims. |
+| 346 | Spatial q4 issue template | Done locally as planning: spatial q4 parity is specified as constant location-scale spatial intercepts, separate from mesh/SPDE, slope, direct-SD, and non-Gaussian routes. |
+| 347 | Spatial q4 acceptance checklist | Done locally as planning: spatial q4 requires endpoint-consistent likelihood, parser, extractor, diagnostics, `corpairs()`, profile-target, and pkgdown example evidence. |
+| 348 | Poisson structured q1 issue template | Done locally as planning: the first non-Gaussian structured-dependence issue is scoped to one non-zero-inflated Poisson `mu` structured intercept. |
+| 349 | Poisson structured q1 acceptance checklist | Done locally as planning: Poisson q1 structured dependence needs one named layer, guarded neighbouring syntax, simulation recovery, and first-slice docs before advertising. |
+| 350 | NB2 structured q1 issue template | Done locally as planning: NB2 q1 structured dependence is the first practical count target after Poisson smoke or an explicit safety justification. |
+| 351 | NB2 structured q1 acceptance checklist | Done locally as planning: NB2 q1 requires overdispersion-aware recovery, distinct ordinary-versus-structured labels, scale-honest reporting, guarded `zi`/`hu`, and fallback guidance. |
+| 352 | Non-Gaussian structured ADEMP gate | Done locally as planning: Poisson or NB2 structured q1 must have an ADEMP sheet before Phase 18 admits it. |
+| 353 | User documentation checklist | Done locally as planning: future implementation issues must synchronize implementation-map, model-map, reference or tutorial docs, README when appropriate, ROADMAP, NEWS, check-log, and after-task notes. |
+| 354 | Review and issue-maintenance checklist | Done locally as planning: Ada, Boole, Gauss, Noether, Fisher, Curie, Pat, Darwin, Grace, and Rose review coverage is named before closing future implementation issues. |
+| 355 | Validation and handoff gate | Done locally as planning: pkgdown, rendered scans, stale-support scans, after-task reporting, and the next code issue must be recorded before handoff. |
 
 ### Pre-Simulation Readiness Slice Map
 
@@ -1639,6 +1654,21 @@ as the whole comprehensive simulation programme.
 | 338 | Documentation | Stale-claim checklist | Done locally: validation targets false fitted claims for generic `sd*()`, p8/q8, spatial q4, and non-Gaussian structured routes. |
 | 339 | Documentation | Roadmap and NEWS sync | Done locally: public and dev ledgers record these as pre-code slices. |
 | 340 | Documentation | After-task and validation | Done locally: the after-task report and pkgdown checks close the slice set. |
+| 341 | Documentation | Generic direct-SD issue template | Done locally as planning: future generic direct-SD issues must name the target structured level, compatibility route, parser boundaries, extractor rows, reference examples, and stale-name migration path. |
+| 342 | Documentation | Generic direct-SD acceptance checklist | Done locally as planning: direct-SD work cannot close without parser, fit-time, prediction/profile, reference, rendered-discoverability, and stale-name checks. |
+| 343 | Documentation | Direct-SD migration and stale scan | Done locally as planning: current `sd_phylo*()` routes stay compatible while generic structured examples remain tied to fitted layers only. |
+| 344 | Documentation | p8/q8 issue template | Done locally as planning: p8/q8 issues must start from a named endpoint class and record covariance structure, parameter labels, interval policy, diagnostics, and fitted alternatives. |
+| 345 | Documentation | p8/q8 acceptance checklist | Done locally as planning: recovery, malformed-input, `corpairs()`, profile-target, Hessian/boundary, and tutorial-warning evidence is required before p8/q8 claims. |
+| 346 | Documentation | Spatial q4 issue template | Done locally as planning: spatial q4 parity is scoped to constant location-scale spatial intercepts, not mesh/SPDE, spatial slopes, direct-SD regression, or count models. |
+| 347 | Documentation | Spatial q4 acceptance checklist | Done locally as planning: spatial q4 needs endpoint-consistent likelihood, parser, extractor, diagnostic, `corpairs()`, profile-target, and pkgdown-example evidence. |
+| 348 | Documentation | Poisson structured q1 issue template | Done locally as planning: first non-Gaussian structured dependence is scoped to one non-zero-inflated Poisson `mu` structured intercept. |
+| 349 | Documentation | Poisson structured q1 acceptance checklist | Done locally as planning: Poisson q1 requires one named layer, guarded neighbouring syntax, simulation recovery, and first-slice docs before advertising. |
+| 350 | Documentation | NB2 structured q1 issue template | Done locally as planning: NB2 q1 is the first practical count target after the Poisson smoke or explicit safety evidence. |
+| 351 | Documentation | NB2 structured q1 acceptance checklist | Done locally as planning: NB2 q1 needs overdispersion-aware recovery, distinct labels, correct scale reporting, guarded zero-inflation/hurdle neighbours, and fallback guidance. |
+| 352 | Documentation | Non-Gaussian structured ADEMP gate | Done locally as planning: Poisson or NB2 structured q1 must have an ADEMP sheet before Phase 18 simulation admission. |
+| 353 | Documentation | User documentation checklist | Done locally as planning: implementation-map, model-map, reference or tutorial docs, README when appropriate, ROADMAP, NEWS, check-log, and after-task notes move together after fitted-status changes. |
+| 354 | Documentation | Review and issue maintenance | Done locally as planning: future issues record Ada, Boole, Gauss, Noether, Fisher, Curie, Pat, Darwin, Grace, and Rose review coverage before closeout. |
+| 355 | Documentation | Validation and handoff gate | Done locally as planning: pkgdown, rendered scans, stale-support scans, after-task reporting, and the next code issue are required before handoff. |
 | 268 | Support audit | Pre-simulation capability matrix | Done locally: `docs/design/46-pre-simulation-readiness-matrix.md` now has one capability audit table that says which Gaussian, non-Gaussian, shape, inflation, bivariate, random-slope, meta-analysis, phylogenetic, spatial, animal, and `relmat()` surfaces are implemented, tested, planned, or unsupported before Phase 18 grids admit them. |
 | 269 | Random slopes | Ordinary location random slopes | Done locally: a q=4 ordinary Gaussian `mu` block test now confirms multi-slope SD/correlation names, `corpairs()` classes, and profile-target status, while README/model-map/which-scale wording names q > 2 as fitted but sample-size hungry. |
 | 270 | Random slopes | Scale random effects | Done locally: a cross-group Gaussian `sigma` test now confirms two independent residual-scale slope terms, direct `log_sd_sigma` targets, and no residual-scale correlation rows, while docs keep correlated residual-scale slope blocks planned. |

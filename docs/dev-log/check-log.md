@@ -34867,3 +34867,46 @@ git diff --check
   p8/q8, spatial q4, Poisson/NB2 structured-count routes, or non-Gaussian
   structured dependence.
 - `git diff --check` was clean.
+
+## 2026-05-21 - Implementation Map Slices 341-355
+
+Goal:
+
+- Turn the next implementation-map backlog into implementation-ready issue
+  templates and acceptance gates without adding unsupported likelihood claims.
+
+Changes:
+
+- Added `docs/design/65-implementation-map-slices-341-355.md` as the ledger
+  for generic direct-SD issue templates, p8/q8 issue templates, spatial q4
+  issue templates, Poisson/NB2 q1 structured-count issue templates,
+  non-Gaussian structured ADEMP gates, user documentation sync, role-specific
+  review, and validation handoff.
+- Updated `vignettes/implementation-map.Rmd` with the 341-355 roadmap rows.
+- Updated `ROADMAP.md` and `NEWS.md` to record these as planning and
+  implementation-readiness slices, not fitted model surfaces.
+- Added
+  `docs/dev-log/after-task/2026-05-21-implementation-map-slices-341-355.md`
+  to record user usefulness, standing roles, checks, and remaining boundaries.
+
+Validation:
+
+```sh
+air format NEWS.md ROADMAP.md vignettes/implementation-map.Rmd docs/design/65-implementation-map-slices-341-355.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-21-implementation-map-slices-341-355.md
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "pkgdown::build_site()"
+rg -n "341-343|344-345|346-347|348-351|352-355|implementation-ready issue|acceptance checklist|Poisson q1|NB2 q1" pkgdown-site/articles/implementation-map.html pkgdown-site/ROADMAP.html
+rg -n 'generic sd\*.*(is implemented|now works|now accepts)|p8/q8.*(is fitted|are fitted|now fit)|spatial q4.*(is fitted|now fits)|Poisson.*structured.*now fits|NB2.*structured.*now fits|non-Gaussian structured.*now fits' README.md ROADMAP.md NEWS.md docs/design vignettes R tests/testthat -g '!*.html'
+git diff --check
+```
+
+- `air format` completed without output.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `pkgdown::build_site()` completed and wrote the updated implementation-map
+  and ROADMAP pages.
+- The rendered-page scan found the 341-343, 344-345, 346-347, 348-351, and
+  352-355 rows, plus Poisson/NB2 q1 wording and acceptance-checklist wording.
+- The stale-support scan found no false fitted claims for generic `sd*()`,
+  p8/q8, spatial q4, Poisson/NB2 structured-count routes, or non-Gaussian
+  structured dependence.
+- `git diff --check` was clean.
