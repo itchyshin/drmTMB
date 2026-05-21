@@ -2,6 +2,59 @@
 
 Record meaningful development checks here.
 
+## 2026-05-20 - Animal/Relmat Q2 Phase 18 Smoke Runner
+
+Goal: add the first executable Phase 18 smoke path for known-matrix
+animal/`relmat()` matching q=2 bivariate Gaussian location covariance.
+
+Team roles:
+
+- Ada kept the runner stacked after the ADEMP gate and limited it to q=2
+  smoke evidence.
+- Curie implemented the DGP, condition helper, runner, resume path, and input
+  validation tests.
+- Fisher named the fixed-effect, residual-scale, structured-SD,
+  structured-correlation, and residual-`rho12` truth/estimate rows.
+- Gauss and Noether checked that the known relatedness matrix and residual
+  `rho12` remain separate covariance layers.
+- Emmy aligned the files with the existing `inst/sim/dgp`, `inst/sim/fit`, and
+  `inst/sim/run` architecture.
+- Pat and Darwin checked that this path makes the future simulation evidence
+  interpretable to users, rather than just runnable.
+- Grace and Rose kept the test small, recorded the first failure, and checked
+  that readiness wording does not overclaim broad-grid evidence.
+
+Files changed:
+
+- `inst/sim/dgp/sim_dgp_animal_relmat_q2.R`
+- `inst/sim/fit/sim_summarise_animal_relmat_q2.R`
+- `inst/sim/run/sim_run_animal_relmat_q2_smoke.R`
+- `tests/testthat/test-phase18-animal-relmat-q2-smoke.R`
+- `inst/sim/README.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `docs/design/46-pre-simulation-readiness-matrix.md`
+- `docs/design/54-phase-18-animal-relmat-known-matrix-ademp.md`
+
+Checks run:
+
+```sh
+air format inst/sim/dgp/sim_dgp_animal_relmat_q2.R inst/sim/fit/sim_summarise_animal_relmat_q2.R inst/sim/run/sim_run_animal_relmat_q2_smoke.R tests/testthat/test-phase18-animal-relmat-q2-smoke.R
+Rscript -e "devtools::test(filter = 'phase18-animal-relmat-q2-smoke', reporter = 'summary')"
+Rscript -e "devtools::test(filter = 'phase18.*animal|animal-relmat-gaussian', reporter = 'summary')"
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "devtools::check()"
+git diff --check
+```
+
+Outcomes:
+
+- `air format` completed without changes after the final edits.
+- The focused `phase18-animal-relmat-q2-smoke` test passed.
+- The combined `phase18.*animal|animal-relmat-gaussian` related tests passed.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `devtools::check()` passed in 4m15s with 0 errors, 0 warnings, and 0 notes.
+- `git diff --check` was clean.
+
 ## 2026-05-20 - Animal/Relmat Known-Matrix ADEMP Gate
 
 Goal: give the fitted known-matrix animal/`relmat()` intercept and matching

@@ -65,6 +65,9 @@ Current pilot files:
   sheet for the bivariate Gaussian residual `rho12` lane.
 - `docs/design/53-phase-18-student-shape-ademp.md` is the one-page ADEMP
   sheet for the fixed-effect Student-t shape `nu` lane.
+- `docs/design/54-phase-18-animal-relmat-known-matrix-ademp.md` is the
+  one-page ADEMP sheet for the known-matrix animal/`relmat()` intercept and
+  matching q=2 bivariate location-covariance lanes.
 - `dgp/sim_dgp_gaussian_ls.R` generates Gaussian location-scale data with
   `mu ~ x` and `sigma ~ z`.
 - `dgp/sim_dgp_gaussian_mu_random_slope.R` generates Gaussian `mu` data with
@@ -93,6 +96,9 @@ Current pilot files:
 - `dgp/sim_dgp_student_shape.R` generates Student-t data with `mu ~ x`,
   `sigma ~ z`, and `nu ~ w`, using the fitted `nu = 2 + exp(eta_nu)` shape
   transform and optional mean-shape predictor correlation.
+- `dgp/sim_dgp_animal_relmat_q2.R` generates bivariate Gaussian data with a
+  known animal or lower-level relatedness matrix, matching q=2 `mu1`/`mu2`
+  structured effects, and residual `rho12` kept as a separate layer.
 - `fit/sim_summarise_gaussian_ls.R` converts one fitted pilot model into a
   parameter-level truth/estimate/standard-error/error table.
 - `fit/sim_summarise_meta_v.R` does the same for the `meta_V(V = V)` pilot,
@@ -120,6 +126,10 @@ Current pilot files:
   `sigma`, and `nu` coefficients on their fitted formula scales, adds optional
   profile and parametric-bootstrap interval columns, and includes a helper for
   named response-scale truth grids.
+- `fit/sim_summarise_animal_relmat_q2.R` summarises fixed `mu1`/`mu2`
+  coefficients, public residual scales, structured SDs, structured
+  correlations, and residual `rho12` for known-matrix animal/`relmat()` q=2
+  smoke fits.
 - `R/sim_correlation_targets.R` classifies fitted `corpairs()` rows by their
   current profile route, keeping residual `rho12`, ordinary group, and
   phylogenetic correlations separate before simulation coverage is claimed.
@@ -165,6 +175,8 @@ Current pilot files:
   residual-correlation surface.
 - `run/sim_run_student_shape_smoke.R` does the same for the Student-t
   fixed-effect shape `nu` surface.
+- `run/sim_run_animal_relmat_q2_smoke.R` does the same for the known-matrix
+  animal/`relmat()` q=2 bivariate location-covariance surface.
 - `run/sim_summary_gaussian_ls_smoke.R` runs a tiny Gaussian location-scale
   summary smoke grid and returns grouped bias, RMSE, MCSE, manifest,
   warning/error ledger, formula-coefficient Wald interval, and Wald coverage
