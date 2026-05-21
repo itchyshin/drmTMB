@@ -61,7 +61,7 @@ and recovery evidence.
 | `Gamma(link = "log")` | `mu` log; `sigma` log | no public `nu`; internal shape is `1 / sigma^2` | Fixed-effect only for `mu` and `sigma`; non-log Gamma links remain unsupported. | `tests/testthat/test-gamma-location-scale.R`; `tests/testthat/test-family-link-contract.R`; scale-boundary tests. |
 | `beta()` | `mu` logit; `sigma` log | no public `nu`; internal precision is `phi = 1 / sigma^2` | Fixed-effect only for strict `(0, 1)` responses. Exact 0/1 boundary mass and `zoi`/`coi` are planned. | `tests/testthat/test-beta-location-scale.R`; `tests/testthat/test-family-link-contract.R`; bounded-response boundary tests; fixed-effect Wald interval row checks. |
 | `beta_binomial()` | `mu` logit; `sigma` log | no public `nu`; internal precision is `phi = 1 / sigma^2` with row trials | Fixed-effect only for two-column `cbind(successes, failures)` responses. `mu`, `sigma`, `zoi`, and `coi` random effects are blocked. | `tests/testthat/test-beta-binomial.R`; `tests/testthat/test-family-link-contract.R`; scale and bounded-response boundary tests; fixed-effect Wald interval row checks. |
-| `poisson(link = "log")` | `mu` log | none; no modelled `sigma` | Non-zero-inflated Poisson fits fixed effects plus ordinary unlabelled `mu` random intercepts and independent numeric `mu` slopes. Correlated slopes and labelled covariance remain planned. | `tests/testthat/test-poisson-mean.R`; `tests/testthat/test-phase18-poisson-mu-random-effect.R`; comparator and profile-target checks. |
+| `poisson(link = "log")` | `mu` log | none; no modelled `sigma` | Non-zero-inflated Poisson fits fixed effects plus ordinary unlabelled `mu` random intercepts, independent numeric `mu` slopes, and the first q=1 phylogenetic `mu` intercept `phylo(1 | species, tree = tree)`. Correlated slopes, labelled covariance, phylogenetic slopes, NB2/spatial/animal/`relmat()` structured count effects, and zero-inflated structured effects remain planned. | `tests/testthat/test-poisson-mean.R`; `tests/testthat/test-nongaussian-structured-boundary.R`; `tests/testthat/test-phase18-poisson-mu-random-effect.R`; comparator and profile-target checks. |
 | `poisson(link = "log")` with `zi ~ ...` | `mu` log; `zi` logit | `zi` is structural-zero probability, not shape | Fixed-effect `mu` and fixed-effect `zi` only. Count-side and `zi` random effects are blocked for zero-inflated Poisson. | `tests/testthat/test-zi-poisson.R`; inflation-random-effect boundary tests. |
 | `nbinom2()` | `mu` log; `sigma` log | no public `nu`; internal size is `1 / sigma^2` | Non-zero-inflated NB2 fits fixed `sigma` formulas plus ordinary unlabelled `mu` random intercepts and independent numeric `mu` slopes. Correlated slopes, labelled covariance, and `sigma` random effects remain planned. | `tests/testthat/test-nbinom2-location-scale.R`; `tests/testthat/test-phase18-nbinom2-mu-random-effect.R`; scale-boundary and profile-target checks. |
 | `nbinom2()` with `zi ~ ...` | `mu` log; `sigma` log; `zi` logit | `zi` is structural-zero probability | Fixed-effect `mu`, `sigma`, and `zi` only. Count-side, `sigma`, and `zi` random effects are blocked for zero-inflated NB2. | `tests/testthat/test-zi-nbinom2.R`; inflation and scale-boundary tests. |
@@ -139,14 +139,15 @@ ordinary random-effect variation.
 
 ## Slice 190-192 Non-Gaussian Random-Effect Gate
 
-The first non-Gaussian random-effect expansion is ordinary Poisson `mu` random
+The first non-Gaussian random-effect expansion was ordinary Poisson `mu` random
 intercepts plus independent numeric slopes, not scale, shape, zero-inflation,
-hurdle, ordinal, or structured random effects. The decision remains
-intentionally narrow:
+hurdle, ordinal, or broad structured random effects. The next structured gate
+opens one ordinary Poisson q=1 phylogenetic `mu` intercept only. The decision
+remains intentionally narrow:
 
 | Priority | Family surface | Slice 192 status |
 |---|---|---|
-| 1 | Poisson `mu` | Implemented for ordinary `(1 | group)` and independent numeric `(0 + x | group)` terms in the log-mean predictor of non-zero-inflated Poisson models. Correlated slope blocks, covariance labels, zero-inflated Poisson random effects, and cross-parameter covariance remain planned. |
+| 1 | Poisson `mu` | Implemented for ordinary `(1 | group)` and independent numeric `(0 + x | group)` terms in the log-mean predictor of non-zero-inflated Poisson models. The first structured count route is also implemented for `phylo(1 | species, tree = tree)` only. Correlated slope blocks, covariance labels, phylogenetic count slopes, zero-inflated Poisson random effects, spatial/animal/`relmat()` count structure, and cross-parameter covariance remain planned. |
 | 2 | NB2 and zero-truncated NB2 `mu` | Next candidate after Poisson, retaining public `sigma` as dispersion and leaving dispersion-side random effects for a later scale gate. |
 | 3 | Lognormal, Gamma, and Student-t `mu` | Later continuous-response candidates after count recovery tests, because scale and tail parameters complicate weak-SD and boundary diagnostics. |
 | 4 | Beta and beta-binomial `mu` | Later bounded-response candidates; strict-boundary handling, denominators, and overdispersion need their own recovery grids. |

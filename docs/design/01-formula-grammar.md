@@ -81,6 +81,7 @@ In this table, "coscale" means a model for residual correlation, currently
 | labelled `phylo(1 | p | species, tree = tree)` in matching bivariate `mu1` and `mu2` | Implemented | The label is preserved in SD, correlation, `corpairs()`, and profile-target names for the phylogenetic mean-mean path. |
 | labelled `phylo(1 | p | species, tree = tree)` in all four bivariate `mu1`, `mu2`, `sigma1`, and `sigma2` formulas | Implemented first slice | One constant q=4 phylogenetic location-scale block estimates four endpoint SDs and six latent phylogenetic correlations. Partial, unlabelled, unsupported mismatched, and bivariate or q=4 slope forms remain rejected. |
 | labelled `phylo(1 | pl | species, tree = tree)` in `mu1` and `mu2` plus labelled `phylo(1 | ps | species, tree = tree)` in `sigma1` and `sigma2` | Implemented | Block-diagonal q=4 fallback: one q=2 phylogenetic mean-mean block and one independent q=2 phylogenetic scale-scale block for the same tree. It reports two `corpairs()` rows and no mean-scale phylogenetic correlations. |
+| `count ~ x + phylo(1 | species, tree = tree)`, `family = poisson(link = "log")` | Implemented first slice | Ordinary non-zero-inflated Poisson q=1 phylogenetic `mu` intercept on the log-mean scale. Phylogenetic count slopes, labelled q=2/q=4 count blocks, zero-inflated Poisson phylogeny, NB2 phylogeny, and spatial/animal/`relmat()` count structure remain planned. |
 | `sd_phylo(species) ~ x_species` | Implemented | Family B direct-SD model for a univariate Gaussian phylogenetic location random effect; predictors must be constant within species and scale observed tips through the `D_tip A_tip D_tip` contract. |
 | bivariate `sd_phylo1(species) ~ x_species` / `sd_phylo2(species) ~ x_species` | Implemented | Response-specific bivariate phylogenetic location direct-SD models. They target only `mu1` and `mu2` phylogenetic location SDs, keep the latent phylogenetic location-location correlation separate, and are rejected with q=4 phylogenetic location-scale blocks. |
 | `phylo(1 | species, A = A)` or `phylo(1 | species, Ainv = Ainv)` | Planned | Future phylogenetic known-relatedness input for users who already have a validated phylogenetic covariance or precision matrix. The implemented public phylo path still requires `tree = tree`. |
@@ -556,17 +557,19 @@ constant latent phylogenetic location-location correlation, reported by
 parameter. It is not syntax for phylogenetic residual-scale SDs or q=4
 location-scale endpoint SDs.
 
-The project keeps the `sd*()` direct-SD direction. The implemented
-`sd_phylo()` names remain the stable public path for now because they make the
-tree-scaled `D_tip A_tip D_tip` contract explicit and avoid confusing
-phylogenetic species effects with ordinary independent species effects. Future
-spatial, animal-model, and user-supplied relatedness direct-SD routes should
-extend this family deliberately, for example with `sd_spatial*()`,
-`sd_animal*()`, or `sd_relmat*()` names if their matrix scale, coefficient
-targeting, and biological interpretation are made explicit. A later generic
-alias such as `sd(species, level = "phylogenetic") ~ z` can still be considered,
-but should not replace the clear family-specific route without a separate
-design decision.
+The project direction is generic `sd*()` direct-SD grammar, not a permanent
+explosion of structure-specific helper names. The currently implemented
+`sd_phylo()`, `sd_phylo1()`, and `sd_phylo2()` names remain compatibility paths
+until a lifecycle decision says otherwise, because they make the tree-scaled
+`D_tip A_tip D_tip` contract explicit and avoid silently changing existing
+examples. The planned generic spelling is a single direct-SD family with an
+explicit dependence level, for example
+`sd(species, level = "phylogenetic") ~ z`,
+`sd(site, level = "spatial") ~ z`,
+`sd(id, level = "animal") ~ z`, and
+`sd(line, level = "relmat") ~ z`. That generic route should land only with
+parser tests, examples, reference-index discoverability, compatibility aliases,
+and a clear migration note.
 
 Reserved explicit random-effect scale targets use `dpar`, `coef`, and optional
 `block` arguments:
@@ -836,14 +839,14 @@ Not every parameter should accept random effects at the same development stage.
 
 | Parameter class | Random effects policy |
 |---|---|
-| `mu`, `mu1`, `mu2` | Yes for univariate Gaussian `mu`; random intercepts, independent numeric random slopes, and labelled or unlabelled ordinary correlated intercept-slope blocks are implemented. For non-zero-inflated Poisson models, ordinary unlabelled `mu` random intercepts and independent numeric slopes such as `(1 | id) + (0 + x | id)` are implemented on the log-mean scale, but correlated slope blocks and covariance labels remain planned. For bivariate Gaussian models, matching labelled random intercepts in `mu1` and `mu2`, such as `(1 | p | id)` in both formulas, and matching slope-only `mu1`/`mu2` blocks such as `(0 + x | p | id)` are implemented. Broader bivariate random slopes are later. |
+| `mu`, `mu1`, `mu2` | Yes for univariate Gaussian `mu`; random intercepts, independent numeric random slopes, and labelled or unlabelled ordinary correlated intercept-slope blocks are implemented. For non-zero-inflated Poisson models, ordinary unlabelled `mu` random intercepts and independent numeric slopes such as `(1 | id) + (0 + x | id)` are implemented on the log-mean scale, and the first structured route is `phylo(1 | species, tree = tree)` as a q=1 log-mean intercept. Correlated count slope blocks, covariance labels, phylogenetic count slopes, and zero-inflated structured count effects remain planned. For bivariate Gaussian models, matching labelled random intercepts in `mu1` and `mu2`, such as `(1 | p | id)` in both formulas, and matching slope-only `mu1`/`mu2` blocks such as `(0 + x | p | id)` are implemented. Broader bivariate random slopes are later. |
 | `sigma`, `sigma1`, `sigma2` | Yes for univariate Gaussian `sigma` random intercepts and independent numeric random slopes. Unlabelled terms such as `sigma ~ x + (1 | id)` and `sigma ~ x + (0 + w | id)` are independent scale effects, and multiple independent terms can be combined with zero correlations among their latent effects. Matching labelled `mu` and `sigma` intercepts such as `(1 | p | id)` fit mean-scale covariance blocks, with one row per independent matched label/group pair. For bivariate Gaussian models, matching labelled random intercepts in `sigma1` and `sigma2` are implemented as a scale-scale block. Student-t, lognormal, Gamma, beta, beta-binomial, NB2, truncated NB2, and hurdle NB2 `sigma` formulas are fixed-effect only in Slice 193; correlated residual-scale slope blocks, labelled `mu`/`sigma` slope covariance, bivariate scale slopes, and non-Gaussian scale random effects are later. |
 | `sd(group)` | Implemented for one or more distinct unlabelled univariate Gaussian `mu` random intercepts, such as `sd(id) ~ x_group` and `sd(site) ~ site_type`; predictors must be constant within group after missing-row filtering. Labelled scale targets, slopes, `sigma` random-effect scales, bivariate models, and non-Gaussian models are later. |
 | `rho12` | No random effects initially; predictor-dependent fixed effects only. |
 | `nu`; future `tau` | Fixed effects first. Random-effect bar terms in Student-t `nu` fail with a shape-specific boundary; future `nu`/`tau` random effects and ID-level skewness such as `skew(id) ~ x` need fixed-effect likelihood recovery and simulations before fitting. `tau` is reserved for a possible second shape parameter and is not current syntax. |
 | `zi`, `hu`, `zoi`, `coi` | Fixed effects first; random effects later only for high-value use cases. Poisson `mu` random intercepts and independent slopes can be fitted only without a `zi` formula in the first non-Gaussian slice. For percentage or proportion data, `zoi` and `coi` are planned for zero-one-inflated bounded-response families before random effects or covariance among these parameters are opened. |
 | `meta_known_V()` | Never; it is known sampling covariance, not an estimated parameter. |
-| `phylo(1 | species, tree = tree)` | Implemented structured random intercept for univariate Gaussian `mu`; `tree` must be an ultrametric phylogeny with branch lengths. |
+| `phylo(1 | species, tree = tree)` | Implemented structured random intercept for univariate Gaussian `mu` and ordinary Poisson `mu`; `tree` must be an ultrametric phylogeny with branch lengths. |
 | `phylo(1 | p | species, tree = tree)` | Implemented as a label for matching bivariate `mu1`/`mu2` phylogenetic location terms and for the matching all-four q=4 bivariate phylogenetic location-scale block. Partial, unlabelled, mismatched, and bivariate or q=4 slope forms remain rejected. |
 | `phylo(1 | species, A = A)` or `phylo(1 | species, Ainv = Ainv)` | Planned matrix-input sibling to the tree route; `tree = tree` remains the only implemented public phylogenetic input. |
 | `animal(1 | id, pedigree = ped)` | Implemented first slice for a univariate Gaussian `mu` animal-model random intercept using a dense additive relationship matrix built from `id`, `dam`, and `sire` columns. |

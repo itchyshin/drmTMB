@@ -2,6 +2,74 @@
 
 Record meaningful development checks here.
 
+## 2026-05-21 - `sd*()`/p8 Plan and Poisson Phylogenetic q=1 Gate
+
+Goal: complete the first four post-map slices: publish the implementation-map
+reconciliation, record the generic `sd*()` direct-SD compatibility plan, record
+the p8/q8 endpoint plan, and fit the first ordinary Poisson q=1 phylogenetic
+`mu` intercept without implying broad non-Gaussian structured parity.
+
+Team roles:
+
+- Ada integrated code, maps, source docs, validation debt, and git state.
+- Boole kept the syntax to `phylo(1 | species, tree = tree)` for ordinary
+  Poisson and checked nearby planned routes error before fitting.
+- Gauss and Noether reviewed the Poisson log-mean equation and the TMB
+  `Q_phylo` precision-prior contract.
+- Darwin and Pat kept the user route concrete: count means with phylogenetic
+  species structure, not zero inflation, overdispersion, or all structured
+  dependence.
+- Fisher and Curie kept the evidence tier at smoke/ADEMP-planning, with direct
+  `log_sd_phylo` profile target but no operating-characteristic claim.
+- Emmy checked `sdpars`, `ranef("phylo_mu")`, `profile_targets()`, and
+  `check_drm()` labels.
+- Grace watched pkgdown, roxygen, and CI for the map reconciliation PR.
+- Rose patched stale docs that still said all non-Gaussian structured
+  dependence was planned.
+
+Files changed:
+
+- `R/drmTMB.R`, `R/methods.R`, `R/formula-markers.R`, `src/drmTMB.cpp`
+- `tests/testthat/test-poisson-mean.R`,
+  `tests/testthat/test-nongaussian-structured-boundary.R`
+- `man/phylo.Rd`
+- `README.md`, `NEWS.md`
+- `vignettes/implementation-map.Rmd`, `vignettes/model-map.Rmd`,
+  `vignettes/source-map.Rmd`, `vignettes/formula-grammar.Rmd`,
+  `vignettes/distribution-families.Rmd`
+- `docs/design/01-formula-grammar.md`,
+  `docs/design/02-family-registry.md`, `docs/design/03-likelihoods.md`,
+  `docs/design/34-validation-debt-register.md`,
+  `docs/design/41-phase-18-simulation-programme.md`,
+  `docs/design/46-pre-simulation-readiness-matrix.md`,
+  `docs/design/59-structural-slope-and-non-gaussian-map.md`,
+  `docs/design/67-sdstar-p8-poisson-q1.md`
+- `docs/dev-log/team-improvements.md`
+- `docs/dev-log/after-task/2026-05-21-sdstar-p8-poisson-q1.md`
+
+Checks run:
+
+```sh
+air format R/drmTMB.R R/methods.R R/formula-markers.R src/drmTMB.cpp tests/testthat/test-poisson-mean.R tests/testthat/test-nongaussian-structured-boundary.R
+git diff --check
+Rscript -e "devtools::document()"
+Rscript -e "devtools::test(filter = 'poisson-mean|nongaussian-structured-boundary|profile-targets|check-drm', reporter = 'summary')"
+Rscript -e "devtools::test(reporter = 'summary')"
+Rscript -e "pkgdown::check_pkgdown()"
+```
+
+Outcomes:
+
+- The focused tests and full `devtools::test(reporter = "summary")` suite
+  passed.
+- `git diff --check` passed before the check-log closeout.
+- Roxygen regenerated `man/phylo.Rd`.
+- `pkgdown::check_pkgdown()` reported no problems.
+- PR #294 for the map/source-map reconciliation passed macOS, Ubuntu, and
+  Windows release checks.
+- The Poisson q=1 path is fitted but still smoke-level: direct SD target yes,
+  q=1 correlation rows no, NB2/spatial/animal/`relmat()` parity no.
+
 ## 2026-05-21 - Implementation Map Evidence Ultraplan
 
 Goal: implement the documentation/evidence-map ultraplan so users can see which

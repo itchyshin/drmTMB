@@ -72,6 +72,69 @@ new_poisson_random_slope_data <- function(
   list(data = dat, beta_mu = beta_mu, sd_x = sd_x, u_x = u_x)
 }
 
+poisson_balanced_ultrametric_tree <- function(n_tip = 16L) {
+  stopifnot(n_tip >= 2L, log2(n_tip) == floor(log2(n_tip)))
+  edges <- matrix(integer(), ncol = 2L)
+  edge_lengths <- numeric()
+  next_node <- n_tip + 1L
+
+  build <- function(tips) {
+    if (length(tips) == 1L) {
+      return(tips)
+    }
+    node <- next_node
+    next_node <<- next_node + 1L
+    mid <- length(tips) / 2L
+    left <- build(tips[seq_len(mid)])
+    right <- build(tips[seq.int(mid + 1L, length(tips))])
+    edges <<- rbind(edges, c(node, left), c(node, right))
+    edge_lengths <<- c(edge_lengths, 1, 1)
+    node
+  }
+
+  build(seq_len(n_tip))
+  structure(
+    list(
+      edge = edges,
+      edge.length = edge_lengths,
+      tip.label = paste0("sp_", seq_len(n_tip)),
+      Nnode = n_tip - 1L
+    ),
+    class = "phylo"
+  )
+}
+
+new_poisson_phylo_intercept_data <- function(
+  n_tip = 16L,
+  n_each = 18L,
+  seed = 20260641,
+  sd_phylo = 0.55
+) {
+  set.seed(seed)
+  tree <- poisson_balanced_ultrametric_tree(n_tip)
+  A <- drmTMB:::drm_phylo_tip_covariance(tree)
+  phylo_effect <- as.vector(
+    t(chol(A)) %*% stats::rnorm(n_tip, sd = sd_phylo)
+  )
+  names(phylo_effect) <- tree$tip.label
+  species <- rep(tree$tip.label, each = n_each)
+  x <- stats::rnorm(length(species))
+  beta_mu <- c(`(Intercept)` = 0.45, x = -0.25)
+  eta <- beta_mu[[1L]] + beta_mu[[2L]] * x + phylo_effect[species]
+  data <- data.frame(
+    count = stats::rpois(length(species), lambda = exp(eta)),
+    x = x,
+    species = species
+  )
+  list(
+    data = data,
+    tree = tree,
+    beta_mu = beta_mu,
+    sd_phylo = sd_phylo,
+    phylo_effect = phylo_effect
+  )
+}
+
 test_that("drmTMB fits fixed-effect Poisson mean models", {
   sim <- new_poisson_data()
 
@@ -266,6 +329,90 @@ test_that("Poisson mu supports independent random slopes", {
 
   expect_true(all(predict(fit, dpar = "mu") > 0))
   expect_equal(fitted(fit), predict(fit, dpar = "mu"), tolerance = 1e-12)
+})
+
+test_that("Poisson mu supports a q1 phylogenetic structured intercept", {
+  sim <- new_poisson_phylo_intercept_data()
+  tree <- sim$tree
+
+  fit <- drmTMB(
+    bf(count ~ x + phylo(1 | species, tree = tree)),
+    family = stats::poisson(link = "log"),
+    data = sim$data
+  )
+
+  sd_name <- "phylo(1 | species)"
+  expect_s3_class(fit, "drmTMB")
+  expect_equal(fit$model$model_type, "poisson")
+  expect_equal(fit$opt$convergence, 0)
+  expect_true(fit$sdr$pdHess)
+  expect_equal(fit$model$structured$phylo_mu$type, "phylo")
+  expect_equal(fit$model$structured$phylo_mu$q, 1L)
+  expect_named(fit$sdpars$mu, sd_name)
+  expect_gt(unname(fit$sdpars$mu[[sd_name]]), 0.02)
+  expect_lt(max(abs(coef(fit, "mu") - sim$beta_mu)), 0.30)
+
+  phylo_re <- ranef(fit, "phylo_mu")
+  expect_equal(phylo_re, fit$random_effects$phylo_mu)
+  expect_named(phylo_re$terms, sd_name)
+  expect_length(phylo_re$values, fit$model$structured$phylo_mu$n_re)
+
+  targets <- profile_targets(fit)
+  sd_target <- targets[
+    targets$parm == paste0("sd:mu:", sd_name),
+    ,
+    drop = FALSE
+  ]
+  expect_equal(nrow(sd_target), 1L)
+  expect_true(sd_target$profile_ready)
+  expect_equal(sd_target$tmb_parameter, "log_sd_phylo")
+  expect_equal(sd_target$target_type, "direct")
+
+  conditional_link <- predict(fit, dpar = "mu", type = "link")
+  fixed_link <- as.vector(fit$model$X$mu %*% fit$coefficients$mu)
+  expect_equal(
+    unname(conditional_link),
+    fixed_link + drmTMB:::phylo_mu_contribution(fit),
+    tolerance = 1e-8
+  )
+
+  chk <- check_drm(fit)
+  phylo_check <- chk[chk$check == "phylo_mu_diagnostics", ]
+  expect_equal(nrow(phylo_check), 1L)
+  expect_match(phylo_check$value, "n_species=", fixed = TRUE)
+  expect_match(phylo_check$value, "phylo_sd=", fixed = TRUE)
+})
+
+test_that("Poisson q1 phylogenetic structured intercept rejects nearby planned routes", {
+  sim <- new_poisson_phylo_intercept_data(n_tip = 8L, n_each = 5L)
+  tree <- sim$tree
+  dat <- sim$data
+  dat$id <- factor(rep(seq_len(8L), each = 5L))
+
+  expect_error(
+    drmTMB(
+      bf(count ~ x + phylo(1 + x | species, tree = tree)),
+      family = stats::poisson(link = "log"),
+      data = dat
+    ),
+    "q=1 random intercepts"
+  )
+  expect_error(
+    drmTMB(
+      bf(count ~ x + (1 | id) + phylo(1 | species, tree = tree)),
+      family = stats::poisson(link = "log"),
+      data = dat
+    ),
+    "cannot be combined"
+  )
+  expect_error(
+    drmTMB(
+      bf(count ~ x + phylo(1 | species, tree = tree), zi ~ 1),
+      family = stats::poisson(link = "log"),
+      data = dat
+    ),
+    "Zero-inflated Poisson phylogenetic random effects"
+  )
 })
 
 test_that("Poisson mu random intercept recovery handles factor predictors", {

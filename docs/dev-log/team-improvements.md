@@ -98,6 +98,18 @@ issues, or pull requests.
   table. The display should name the estimand, reporting scale, uncertainty
   source, and whether it is raw data, fitted prediction, simulation replicate
   grain, Wald confidence, profile likelihood, bootstrap, or a support boundary.
+
+## 2026-05-21 - First-Slice Claim Hygiene
+
+- Improvement implemented: when a planned surface becomes a narrow first slice,
+  Rose should search for both old false negatives and new false positives. The
+  docs must stop saying "not fitted anywhere" while still preventing the
+  opposite mistake: implying neighbouring families, dependence layers, slopes,
+  or covariance blocks are also fitted.
+- Improvement implemented: Fisher and Curie should name the evidence tier in
+  the same paragraph as the fitted claim for new structural routes. A likelihood
+  smoke test with extractors is useful, but it is not recovery or coverage
+  evidence until an ADEMP sheet and grid artifacts exist.
 - Improvement implemented: live-deploy figure review must still inspect
   individual rendered PNGs after `pkgdown` deploys. A local render or contact
   sheet can miss clipped subtitles, captions hanging off the image, or labels

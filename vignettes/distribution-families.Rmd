@@ -50,13 +50,15 @@ behind each row.
 For non-Gaussian random effects, the current fitted path is deliberately
 narrow. Ordinary Poisson and NB2 `mu` models can fit unlabelled random
 intercepts and independent numeric random slopes, such as `(1 | site)` and
-`(0 + effort | site)`, when there is no zero-inflation formula. Other
-non-Gaussian random-effect requests are still boundary checks: non-Gaussian
-`sigma` random effects, Student-t `nu` random effects, zero-inflation or
-hurdle random effects, ordinal mixed models, structured non-Gaussian effects,
-and correlated or labelled count random-slope blocks need their own likelihood
-and recovery evidence before they become
-runnable syntax. Fixed-effect Wald intervals are available where the fixed
+`(0 + effort | site)`, when there is no zero-inflation formula. Ordinary Poisson
+also has the first q=1 phylogenetic `mu` intercept route,
+`phylo(1 | species, tree = tree)`, on the log-mean scale. Other non-Gaussian
+random-effect requests are still boundary checks: non-Gaussian `sigma` random
+effects, Student-t `nu` random effects, zero-inflation or hurdle random effects,
+ordinal mixed models, NB2/spatial/animal/`relmat()` structured effects, count
+structured slopes, and correlated or labelled count random-slope blocks need
+their own likelihood and recovery evidence before they become runnable syntax.
+Fixed-effect Wald intervals are available where the fixed
 coefficient covariance is available; profile targets remain limited to direct
 optimized parameters listed by `profile_targets()`.
 

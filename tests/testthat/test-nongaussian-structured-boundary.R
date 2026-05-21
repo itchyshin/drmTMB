@@ -16,11 +16,11 @@ test_that("non-Gaussian structured effects have an explicit boundary", {
 
   expect_error(
     drmTMB(
-      bf(y ~ x + phylo(1 | id, tree = tree)),
+      bf(y ~ x + phylo(1 + x | id, tree = tree)),
       family = stats::poisson(link = "log"),
       data = dat_count
     ),
-    "Structured non-Gaussian paths"
+    "q=1 random intercepts"
   )
   expect_error(
     drmTMB(

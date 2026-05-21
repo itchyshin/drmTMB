@@ -1888,9 +1888,16 @@ drm_build_poisson_spec <- function(
     ))
   }
   mu_entry$rhs <- meta$rhs
+  mu_phylo <- extract_gaussian_mu_phylo_term(mu_entry)
+  mu_entry$rhs <- mu_phylo$rhs
   mu_re <- extract_random_mu_terms(mu_entry$rhs, mu_entry$dpar)
   mu_entry$rhs <- mu_re$rhs
   validate_poisson_mu_random_terms(mu_re$terms, has_zi = !is.null(zi_entry))
+  validate_poisson_phylo_mu_term(
+    mu_phylo$term,
+    mu_re$terms,
+    has_zi = !is.null(zi_entry)
+  )
   drm_reject_phase1_terms(mu_entry$rhs, mu_entry$dpar, allow_offset = TRUE)
   if (!is.null(zi_entry)) {
     drm_reject_phase1_terms(zi_entry$rhs, zi_entry$dpar)
@@ -1905,6 +1912,7 @@ drm_build_poisson_spec <- function(
   vars <- unique(c(
     all.vars(f_mu),
     if (!is.null(f_zi)) all.vars(f_zi),
+    phylo_mu_vars(mu_phylo$term),
     random_effect_vars(mu_re$terms)
   ))
   if (length(vars) > 0L) {
@@ -1971,6 +1979,7 @@ drm_build_poisson_spec <- function(
   has_zi <- !is.null(X_zi)
   re_mu <- build_random_mu_structure(mu_re$terms, data_model)
   sd_mu <- empty_sd_mu_structure(re_mu$n_re)
+  phylo_mu <- build_phylo_mu_structure(mu_phylo$term, data_model, env)
 
   spec <- list(
     model_type = if (has_zi) "zi_poisson" else "poisson",
@@ -1999,8 +2008,8 @@ drm_build_poisson_spec <- function(
       mu = re_mu,
       sigma = empty_random_sigma_structure(nrow(data_model))
     ),
-    random_scale = list(mu = sd_mu),
-    structured = list(phylo_mu = empty_phylo_mu_structure()),
+    random_scale = list(mu = sd_mu, phylo = empty_sd_phylo_structure()),
+    structured = list(phylo_mu = phylo_mu),
     data = data_model,
     variables = vars,
     keep = keep,
@@ -2008,10 +2017,13 @@ drm_build_poisson_spec <- function(
     start = if (has_zi) {
       zi_poisson_start(y, X_mu, X_zi, offset_mu)
     } else {
-      poisson_start(y, X_mu, offset_mu, re_mu = re_mu)
+      poisson_start(y, X_mu, offset_mu, re_mu = re_mu, phylo_mu = phylo_mu)
     },
-    map = if (has_zi) zi_poisson_map() else poisson_map(re_mu),
-    random_names = if (re_mu$n_re > 0L) "u_mu" else NULL
+    map = if (has_zi) zi_poisson_map() else poisson_map(re_mu, phylo_mu),
+    random_names = c(
+      if (re_mu$n_re > 0L) "u_mu",
+      if (isTRUE(phylo_mu$has)) "u_phylo"
+    )
   )
   spec$tmb_data <- add_covariance_block_tmb_data(
     make_tmb_data(spec),
@@ -3419,6 +3431,45 @@ validate_poisson_mu_random_terms <- function(
     ))
   }
   invisible(terms)
+}
+
+validate_poisson_phylo_mu_term <- function(
+  term,
+  ordinary_terms,
+  has_zi = FALSE
+) {
+  if (is.null(term)) {
+    return(invisible(NULL))
+  }
+  if (isTRUE(has_zi)) {
+    cli::cli_abort(c(
+      "Poisson phylogenetic {.code mu} effects are implemented only for ordinary Poisson models.",
+      "x" = "Zero-inflated Poisson phylogenetic random effects are planned but not implemented.",
+      "i" = "Fit {.code y ~ x + phylo(1 | species, tree = tree)} without a {.code zi} formula, or use fixed-effect {.code zi ~ predictors} until zero-inflated structured recovery tests exist."
+    ))
+  }
+  if (length(ordinary_terms) > 0L) {
+    cli::cli_abort(c(
+      "Poisson phylogenetic {.code mu} effects cannot be combined with ordinary {.code mu} random effects in this first gate.",
+      "x" = "The formula contains both {.fn phylo} and ordinary random-effect bar terms.",
+      "i" = "Fit the phylogenetic count model or the ordinary grouped count model separately until combined-dependence recovery tests exist."
+    ))
+  }
+  if (!is.null(term$covariance_label)) {
+    cli::cli_abort(c(
+      "Poisson phylogenetic {.code mu} effects currently support only unlabelled q=1 intercepts.",
+      "x" = "Requested labelled structured term: {.code {term$label}}.",
+      "i" = "Use {.code phylo(1 | species, tree = tree)}; labelled q=2/q=4 and predictor-dependent structured correlation routes remain planned."
+    ))
+  }
+  if (!identical(term$coef_names, "(Intercept)")) {
+    cli::cli_abort(c(
+      "Poisson phylogenetic {.code mu} effects currently support only q=1 random intercepts.",
+      "x" = "Requested structured coefficient{?s}: {.val {term$coef_names}}.",
+      "i" = "Use {.code phylo(1 | species, tree = tree)} for the first count structured-dependence gate; phylogenetic count slopes need separate recovery and diagnostics."
+    ))
+  }
+  invisible(NULL)
 }
 
 is_random_bar_call <- function(expr) {
@@ -8291,7 +8342,8 @@ poisson_start <- function(
   y,
   X_mu,
   offset_mu = rep(0, length(y)),
-  re_mu = empty_random_mu_structure(length(y))
+  re_mu = empty_random_mu_structure(length(y)),
+  phylo_mu = empty_phylo_mu_structure()
 ) {
   beta_mu <- tryCatch(
     suppressWarnings(
@@ -8309,6 +8361,7 @@ poisson_start <- function(
     beta_mu[[1L]] <- log(max(mean(y), 1e-4)) - mean(offset_mu)
   }
   mu_re_start <- poisson_mu_re_start(re_mu)
+  phylo_start <- gaussian_phylo_start(y, phylo_mu)
   c(
     list(beta_mu = beta_mu),
     list(
@@ -8329,8 +8382,8 @@ poisson_start <- function(
       beta_sigma1 = 0,
       beta_sigma2 = 0,
       beta_rho12 = 0,
-      u_phylo = 0,
-      log_sd_phylo = 0,
+      u_phylo = phylo_start$u_phylo,
+      log_sd_phylo = phylo_start$log_sd_phylo,
       eta_cor_phylo = 0
     )
   )
@@ -8347,8 +8400,11 @@ poisson_mu_re_start <- function(re_mu) {
   )
 }
 
-poisson_map <- function(re_mu = empty_random_mu_structure(1L)) {
-  out <- gaussian_ls_map(re_mu = re_mu)
+poisson_map <- function(
+  re_mu = empty_random_mu_structure(1L),
+  phylo_mu = empty_phylo_mu_structure()
+) {
+  out <- gaussian_ls_map(re_mu = re_mu, phylo_mu = phylo_mu)
   out$beta_sigma <- factor(NA)
   out
 }
@@ -9719,6 +9775,7 @@ make_tmb_data <- function(spec) {
     ))
   }
   if (identical(spec$model_type, "poisson")) {
+    phylo_mu <- spec$structured$phylo_mu
     return(list(
       model_type = 6L,
       y = spec$y,
@@ -9767,11 +9824,23 @@ make_tmb_data <- function(spec) {
       sigma_re_pair_index = -1L,
       sigma_re_cross_cor = 0L,
       sigma_re_cross_mu = 0L,
-      has_phylo_mu = 0L,
+      has_phylo_mu = as.integer(isTRUE(phylo_mu$has)),
       phylo_mu_sd_row = 0L,
-      phylo_mu_node_index = 0L,
-      Q_phylo = dummy_sparse,
-      log_det_Q_phylo = 0
+      phylo_mu_node_index = if (isTRUE(phylo_mu$has)) {
+        phylo_mu$observation_node_index0
+      } else {
+        0L
+      },
+      Q_phylo = if (isTRUE(phylo_mu$has)) {
+        phylo_mu$precision$precision
+      } else {
+        dummy_sparse
+      },
+      log_det_Q_phylo = if (isTRUE(phylo_mu$has)) {
+        phylo_mu$precision$log_det_precision
+      } else {
+        0
+      }
     ))
   }
   if (identical(spec$model_type, "zi_poisson")) {

@@ -17,20 +17,23 @@ A formula marker; never evaluated by users.
 }
 \description{
 \code{phylo()} marks user-facing syntax for phylogenetic dependence. The current
-fitted paths support intercept-only Gaussian location effects,
-response-specific direct-SD formulas, and labelled bivariate Gaussian
-location-scale blocks. Use \code{phylo(1 | species, tree = tree)} in univariate
-\code{mu}, one numeric univariate Gaussian \code{mu} slope with independent
-intercept/slope SDs, matching terms in bivariate \code{mu1} and \code{mu2}, or matching labelled
-all-four terms across \code{mu1}, \code{mu2}, \code{sigma1}, and \code{sigma2}. A single shared
-label estimates the full q4 block; a \code{mu1}/\code{mu2} label plus a separate
-\code{sigma1}/\code{sigma2} label estimates the block-diagonal fallback. Standalone
-univariate \code{sigma ~ phylo(...)}, multiple phylogenetic slopes, and
-phylogenetic slope correlations remain planned. The public
-\code{phylo()} API requires an
+fitted paths support Gaussian location effects, response-specific direct-SD
+formulas, labelled bivariate Gaussian location-scale blocks, and the first
+ordinary Poisson q=1 location effect. Use \code{phylo(1 | species, tree = tree)} in
+univariate Gaussian \code{mu} or ordinary Poisson \code{mu}, one numeric univariate
+Gaussian \code{mu} slope with independent intercept/slope SDs, matching terms in
+bivariate Gaussian \code{mu1} and \code{mu2}, or matching labelled all-four terms across
+Gaussian \code{mu1}, \code{mu2}, \code{sigma1}, and \code{sigma2}. A single shared label estimates
+the full q4 block; a \code{mu1}/\code{mu2} label plus a separate \code{sigma1}/\code{sigma2} label
+estimates the block-diagonal fallback. Standalone univariate
+\code{sigma ~ phylo(...)}, Poisson phylogenetic slopes, NB2 phylogenetic effects,
+zero-inflated phylogenetic effects, multiple phylogenetic slopes, and
+phylogenetic slope correlations remain planned. The public \code{phylo()} API
+requires an
 ultrametric tree with branch lengths and uses the Hadfield and Nakagawa
 A-inverse sparse-precision path internally.
 }
 \examples{
 bf(y ~ x + phylo(1 | species, tree = tree), sigma ~ z)
+bf(count ~ x + phylo(1 | species, tree = tree))
 }
