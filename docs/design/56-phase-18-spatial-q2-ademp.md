@@ -56,9 +56,10 @@ and must be summarized in different rows.
 | `rho12` | -0.20, 0.20 | Separates residual coscale from spatial mean-mean covariance. |
 | coordinate geometry | ring, stretched line, clustered sites | Checks whether recovery changes under simple geometry stress. |
 
-Use 20 replicates per cell for local smoke checks. Use 500 replicates per cell
-for formal fixed-effect and direct-target coverage after a dedicated DGP helper,
-runner, and summarizer write replicate-level manifests.
+Use 20 replicates per cell for local smoke checks. The first DGP, fit helper,
+summarizer, and smoke runner now live under `inst/sim/`. Use 500 replicates per
+cell for formal fixed-effect and direct-target coverage after a CSV artifact
+writer and interval-status tables are added.
 
 ## E - Estimands
 
@@ -98,8 +99,9 @@ drmTMB(
 The current test evidence includes a dense covariance comparator, direct
 profile targets for both spatial SDs and the spatial correlation,
 `corpairs(level = "spatial")`, `summary(fit)$covariance`, `simulate()`, and
-prediction checks. A first Phase 18 grid should add an `inst/sim/` DGP and
-artifact writer before broad coverage reports.
+prediction checks. The first `inst/sim/` DGP and smoke runner now exercise the
+same public spelling. A later artifact slice should add CSV writers and
+interval-status tables before broad coverage reports.
 
 ## P - Performance Measures
 
@@ -133,7 +135,7 @@ failure ledgers rather than being dropped.
 | 4. Methods | The intended `drmTMB` formula for matching bivariate spatial q=2 terms is stated. |
 | 5. Performance measures | Bias, RMSE, Wald/profile coverage, response-scale error, diagnostics, convergence, warnings, runtime, and failure ledgers are defined. |
 | 6. Software/settings | Per-run session metadata remains the runner responsibility. |
-| 7. Code availability | Current fitted-path tests live in `tests/testthat/test-spatial-gaussian.R`; a formal Phase 18 DGP and writer should live under `inst/sim/` before broad grids. |
+| 7. Code availability | Current fitted-path tests live in `tests/testthat/test-spatial-gaussian.R`; the first Phase 18 DGP, fit helper, summarizer, and smoke runner live under `inst/sim/`; CSV writers and interval-status artifacts remain the next gate before broad grids. |
 | 8. Replicability | Seeded cells, replicate-level seeds, coordinate tables, and generated covariance diagnostics must be saved with each replicate. |
 | 9. Real-data motivation | The structural-dependence article supplies the spatial ecology route; formal reports should cite it. |
 | 10. Complete results | Manifests, geometry diagnostics, warning/error ledgers, and interval-status tables keep hard cases visible. |

@@ -68,6 +68,8 @@ Current pilot files:
 - `docs/design/54-phase-18-animal-relmat-known-matrix-ademp.md` is the
   one-page ADEMP sheet for the known-matrix animal/`relmat()` intercept and
   matching q=2 bivariate location-covariance lanes.
+- `docs/design/56-phase-18-spatial-q2-ademp.md` is the one-page ADEMP sheet for
+  the constant coordinate-spatial q=2 bivariate location-covariance lane.
 - `dgp/sim_dgp_gaussian_ls.R` generates Gaussian location-scale data with
   `mu ~ x` and `sigma ~ z`.
 - `dgp/sim_dgp_gaussian_mu_random_slope.R` generates Gaussian `mu` data with
@@ -78,6 +80,9 @@ Current pilot files:
 - `dgp/sim_dgp_spatial_mu_slope.R` generates Gaussian spatial `mu` data with
   independent coordinate-spatial intercept and slope fields,
   `spatial(1 + x | site, coords = coords)`.
+- `dgp/sim_dgp_spatial_q2.R` generates bivariate Gaussian spatial `mu1`/`mu2`
+  data with matching coordinate-spatial q=2 fields and residual `rho12` kept as
+  a separate layer.
 - `dgp/sim_dgp_poisson_mu_random_effect.R` generates non-zero-inflated Poisson
   count data with ordinary log-mean random intercepts and independent numeric
   slopes, `(1 | id) + (0 + x | id)`, and its condition helper can cross
@@ -114,6 +119,9 @@ Current pilot files:
 - `fit/sim_summarise_spatial_mu_slope.R` summarises fixed `mu` coefficients,
   public residual `sigma`, and the two direct coordinate-spatial `mu` SDs for
   the intercept and slope fields.
+- `fit/sim_summarise_spatial_q2.R` summarises fixed `mu1`/`mu2` coefficients,
+  public residual scales, coordinate-spatial SDs, the spatial q=2 correlation,
+  and residual `rho12` for bivariate spatial smoke fits.
 - `fit/sim_summarise_poisson_mu_random_effect.R` summarises fixed Poisson
   `mu` coefficients and direct ordinary log-mean random-effect SDs.
 - `fit/sim_summarise_nbinom2_mu_random_effect.R` summarises fixed NB2 `mu`
@@ -165,6 +173,8 @@ Current pilot files:
   Gaussian `sigma` independent one-slope surface.
 - `run/sim_run_spatial_mu_slope_smoke.R` does the same for the coordinate
   spatial Gaussian `mu` one-slope surface.
+- `run/sim_run_spatial_q2_smoke.R` does the same for the coordinate-spatial
+  q=2 bivariate location-covariance surface.
 - `run/sim_run_poisson_mu_random_effect_smoke.R` does the same for the
   non-zero-inflated Poisson `mu` random-effect surface.
 - `run/sim_run_nbinom2_mu_random_effect_smoke.R` does the same for the
