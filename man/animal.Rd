@@ -9,8 +9,9 @@ animal(term, pedigree = NULL, A = NULL, Ainv = NULL)
 \arguments{
 \item{term}{Structured random-effect term, such as \code{1 | id}.}
 
-\item{pedigree}{Planned pedigree input from which an additive relationship
-matrix or sparse inverse will be built.}
+\item{pedigree}{Pedigree data frame with columns \code{id}, \code{dam}, and \code{sire}.
+Unknown parents can be \code{NA}, \code{""}, or \code{"0"}. The first fitted route builds
+a dense additive relationship matrix for Gaussian \code{mu} animal effects.}
 
 \item{A}{Additive relatedness or covariance matrix for the first fitted
 univariate Gaussian \code{mu} path.}
@@ -26,14 +27,17 @@ A formula marker; never evaluated by users.
 the biological front door for questions such as whether among-individual
 additive genetic variance appears in the location \code{mu}, residual scale
 \code{sigma}, shape or skewness, inflation, or a bivariate covariance. The fitted
-known-matrix routes are a univariate Gaussian \code{mu} random intercept with a
-precomputed additive relationship matrix \code{A} or inverse relationship matrix
-\code{Ainv}, for example \code{animal(1 | id, Ainv = Ainv)}, and the first bivariate
-Gaussian q=2 location covariance from matching labelled terms in \code{mu1} and
-\code{mu2}, for example \code{animal(1 | p | id, Ainv = Ainv)}. Direct
-pedigree-to-Ainv construction, structured slopes, \code{sigma} animal models,
-q=4 location-scale blocks, predictor-dependent \code{corpair()} regression, and
-generic direct-SD grammar remain planned.
+routes are a univariate Gaussian \code{mu} random intercept from a small pedigree
+data frame, precomputed additive relationship matrix \code{A}, or inverse
+relationship matrix \code{Ainv}, for example
+\code{animal(1 | id, pedigree = pedigree)} or
+\code{animal(1 | id, Ainv = Ainv)}, and the first bivariate Gaussian q=2
+location covariance from matching labelled terms in \code{mu1} and \code{mu2}, for
+example \code{animal(1 | p | id, pedigree = pedigree)}. The pedigree route builds
+a dense additive relationship matrix from \code{id}, \code{dam}, and \code{sire} columns.
+Large-pedigree sparse precision construction, structured slopes, \code{sigma}
+animal models, q=4 location-scale blocks, predictor-dependent \code{corpair()}
+regression, and generic direct-SD grammar remain planned.
 }
 \examples{
 # Fitted: additive genetic variance in body size from a precomputed Ainv.
@@ -41,7 +45,7 @@ bf(body_size ~ age + sex + animal(1 | id, Ainv = Ainv),
   sigma ~ habitat
 )
 
-# Planned later: distributional animal model for residual predictability.
+# Fitted: the same route can build a small additive matrix from a pedigree.
 bf(activity ~ treatment + animal(1 | id, pedigree = pedigree),
   sigma ~ treatment
 )

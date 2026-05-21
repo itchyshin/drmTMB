@@ -4675,14 +4675,6 @@ build_known_precision_mu_structure <- function(term, data, env) {
     return(empty_phylo_mu_structure())
   }
   marker <- term$type
-  if (identical(marker, "animal") && identical(term$structure, "pedigree")) {
-    cli::cli_abort(c(
-      "Pedigree-derived animal-model precision is planned but not implemented yet.",
-      "x" = "Requested {.code animal(1 | {term$group}, pedigree = {term$object})}.",
-      "i" = "Use a precomputed inverse relatedness matrix with {.code animal(1 | {term$group}, Ainv = Ainv)} for the first fitted animal-model path."
-    ))
-  }
-
   group <- term$group
   if (!group %in% names(data)) {
     cli::cli_abort(c(
@@ -4698,20 +4690,30 @@ build_known_precision_mu_structure <- function(term, data, env) {
     ))
   }
 
-  object <- evaluate_known_relatedness_matrix(term$object, env, marker)
-  matrix_type <- if (term$structure %in% c("Ainv", "Q")) {
-    "precision"
+  if (identical(marker, "animal") && identical(term$structure, "pedigree")) {
+    pedigree <- evaluate_animal_pedigree(term$object, env)
+    precision <- drm_pedigree_relatedness_precision(
+      pedigree,
+      group = group_values,
+      object = term$object,
+      group_name = group
+    )
   } else {
-    "covariance"
+    object <- evaluate_known_relatedness_matrix(term$object, env, marker)
+    matrix_type <- if (term$structure %in% c("Ainv", "Q")) {
+      "precision"
+    } else {
+      "covariance"
+    }
+    precision <- drm_known_relatedness_precision(
+      object,
+      group = group_values,
+      matrix_type = matrix_type,
+      marker = marker,
+      object = term$object,
+      group_name = group
+    )
   }
-  precision <- drm_known_relatedness_precision(
-    object,
-    group = group_values,
-    matrix_type = matrix_type,
-    marker = marker,
-    object = term$object,
-    group_name = group
-  )
   observation_node_index <- precision$species_node_index[
     precision$observation_species_index
   ]
@@ -4845,6 +4847,16 @@ evaluate_known_relatedness_matrix <- function(name, env, marker) {
     cli::cli_abort(c(
       "Could not find {.fn {marker}} matrix object {.field {name}}.",
       "x" = "{.fn {marker}} terms use matrix objects from the calling environment, for example {.code {marker}(1 | id, Q = Q)}."
+    ))
+  }
+  get(name, envir = env, inherits = TRUE)
+}
+
+evaluate_animal_pedigree <- function(name, env) {
+  if (!exists(name, envir = env, inherits = TRUE)) {
+    cli::cli_abort(c(
+      "Could not find {.fn animal} pedigree object {.field {name}}.",
+      "x" = "{.fn animal} pedigree terms use objects from the calling environment, for example {.code animal(1 | id, pedigree = pedigree)}."
     ))
   }
   get(name, envir = env, inherits = TRUE)

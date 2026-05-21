@@ -390,6 +390,157 @@ drm_known_relatedness_precision <- function(
   out
 }
 
+drm_pedigree_relatedness_precision <- function(
+  pedigree,
+  group,
+  object = "pedigree",
+  group_name = "id"
+) {
+  A <- drm_pedigree_additive_relationship(pedigree, object = object)
+  drm_known_relatedness_precision(
+    A,
+    group = group,
+    matrix_type = "covariance",
+    marker = "animal",
+    object = object,
+    group_name = group_name
+  )
+}
+
+drm_pedigree_additive_relationship <- function(pedigree, object = "pedigree") {
+  ped <- drm_standardize_pedigree(pedigree, object = object)
+  order <- drm_pedigree_topological_order(ped, object = object)
+  ped <- ped[order, , drop = FALSE]
+
+  n <- nrow(ped)
+  A <- matrix(0, nrow = n, ncol = n)
+  rownames(A) <- colnames(A) <- ped$id
+  dam_index <- match(ped$dam, ped$id)
+  sire_index <- match(ped$sire, ped$id)
+
+  for (i in seq_len(n)) {
+    parents <- c(dam_index[[i]], sire_index[[i]])
+    parents <- parents[!is.na(parents)]
+    if (length(parents) > 0L && any(parents >= i)) {
+      cli::cli_abort(c(
+        "{.fn animal} pedigree {.field {object}} could not be ordered from ancestors to descendants.",
+        "x" = "Individual {.val {ped$id[[i]]}} has a parent that is not available before the offspring."
+      ))
+    }
+
+    if (i > 1L) {
+      for (j in seq_len(i - 1L)) {
+        dam_relatedness <- if (is.na(dam_index[[i]])) {
+          0
+        } else {
+          A[dam_index[[i]], j]
+        }
+        sire_relatedness <- if (is.na(sire_index[[i]])) {
+          0
+        } else {
+          A[sire_index[[i]], j]
+        }
+        A[i, j] <- A[j, i] <- 0.5 * (dam_relatedness + sire_relatedness)
+      }
+    }
+
+    A[i, i] <- if (is.na(dam_index[[i]]) || is.na(sire_index[[i]])) {
+      1
+    } else {
+      1 + 0.5 * A[dam_index[[i]], sire_index[[i]]]
+    }
+  }
+
+  A
+}
+
+drm_standardize_pedigree <- function(pedigree, object = "pedigree") {
+  if (!is.data.frame(pedigree)) {
+    cli::cli_abort(c(
+      "{.fn animal} pedigree {.field {object}} must be a data frame.",
+      "x" = "Use columns {.field id}, {.field dam}, and {.field sire}; unknown parents can be {.code NA}, {.val \"\"}, or {.val \"0\"}."
+    ))
+  }
+
+  required <- c("id", "dam", "sire")
+  missing <- setdiff(required, names(pedigree))
+  if (length(missing) > 0L) {
+    cli::cli_abort(c(
+      "{.fn animal} pedigree {.field {object}} must contain {.field id}, {.field dam}, and {.field sire} columns.",
+      "x" = "Missing column{?s}: {.field {missing}}."
+    ))
+  }
+
+  ped <- data.frame(
+    id = as.character(pedigree$id),
+    dam = as.character(pedigree$dam),
+    sire = as.character(pedigree$sire),
+    stringsAsFactors = FALSE
+  )
+  ped$dam <- drm_normalize_pedigree_parent(ped$dam)
+  ped$sire <- drm_normalize_pedigree_parent(ped$sire)
+
+  if (nrow(ped) < 2L) {
+    cli::cli_abort(
+      "{.fn animal} pedigree {.field {object}} must contain at least two individuals."
+    )
+  }
+  if (anyNA(ped$id) || any(!nzchar(ped$id))) {
+    cli::cli_abort(
+      "{.fn animal} pedigree {.field {object}} {.field id} values must be non-missing labels."
+    )
+  }
+  if (anyDuplicated(ped$id)) {
+    duplicate <- ped$id[duplicated(ped$id)][[1L]]
+    cli::cli_abort(c(
+      "{.fn animal} pedigree {.field {object}} {.field id} values must be unique.",
+      "x" = "Duplicated id: {.val {duplicate}}."
+    ))
+  }
+
+  parents <- unique(stats::na.omit(c(ped$dam, ped$sire)))
+  missing_parents <- setdiff(parents, ped$id)
+  if (length(missing_parents) > 0L) {
+    cli::cli_abort(c(
+      "{.fn animal} pedigree {.field {object}} parents must appear in the {.field id} column.",
+      "x" = "Missing parent id{?s}: {.val {missing_parents}}."
+    ))
+  }
+
+  ped
+}
+
+drm_normalize_pedigree_parent <- function(parent) {
+  parent[is.na(parent) | !nzchar(parent) | parent == "0"] <- NA_character_
+  parent
+}
+
+drm_pedigree_topological_order <- function(ped, object = "pedigree") {
+  unresolved <- seq_len(nrow(ped))
+  resolved_ids <- character()
+  out <- integer()
+
+  while (length(unresolved) > 0L) {
+    ready <- unresolved[
+      (is.na(ped$dam[unresolved]) | ped$dam[unresolved] %in% resolved_ids) &
+        (is.na(ped$sire[unresolved]) | ped$sire[unresolved] %in% resolved_ids)
+    ]
+    if (length(ready) == 0L) {
+      stuck <- ped$id[unresolved]
+      cli::cli_abort(c(
+        "{.fn animal} pedigree {.field {object}} must not contain parent-offspring cycles.",
+        "x" = "Could not resolve individual{?s}: {.val {stuck}}."
+      ))
+    }
+
+    out <- c(out, ready)
+    resolved_ids <- c(resolved_ids, ped$id[ready])
+    unresolved <- setdiff(unresolved, ready)
+  }
+
+  out
+}
+
 drm_standardize_relatedness_matrix <- function(matrix, marker, object) {
   if (inherits(matrix, "Matrix")) {
     if (!methods::is(matrix, "dMatrix")) {

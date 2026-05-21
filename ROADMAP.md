@@ -255,9 +255,10 @@ distributional regression models using TMB.
 - Status: first univariate Gaussian phylogenetic location path implemented;
   first matching bivariate `mu1`/`mu2` phylogenetic location slice implemented;
   first univariate Gaussian coordinate-based spatial location path implemented;
-  and known-matrix `animal()` / `relmat()` Gaussian `mu` intercepts plus
-  matching bivariate q=2 location covariance are fitted. Pedigree construction,
-  structured slopes, `sigma` relatedness models, q=4 location-scale blocks,
+  and pedigree or known-matrix `animal()` / `relmat()` Gaussian `mu`
+  intercepts plus matching bivariate q=2 location covariance are fitted.
+  Sparse large-pedigree construction, structured slopes, `sigma` relatedness
+  models, q=4 location-scale blocks,
   predictor-dependent structured `corpair()` regressions, and generic direct-SD
   grammar remain planned.
 - Teach structural dependence in the biological order readers are likely to
@@ -280,11 +281,11 @@ distributional regression models using TMB.
   low-level wording rather than teaching both names. Keep `V` for known
   sampling covariance in the preferred `meta_V(..., V = V)` design; do not
   reuse `V` for additive genetic or phylogenetic relatedness.
-- When animal-model support becomes fitted, pair the syntax with eco-evo
-  examples rather than matrix-only demonstrations: heritable trait means in a
-  wild pedigree, additive genetic variance in behavioural predictability or
-  residual scale, and bivariate genetic covariance/evolvability examples are
-  higher-value teaching targets than an abstract `A` matrix smoke test.
+- Keep animal-model examples grounded in eco-evo questions rather than
+  matrix-only demonstrations: heritable trait means in a wild pedigree,
+  additive genetic variance in behavioural predictability or residual scale,
+  and bivariate genetic covariance/evolvability examples are higher-value
+  teaching targets than an abstract `A` matrix smoke test.
 - Implemented `phylo(1 | species, tree = tree)` for univariate Gaussian `mu`
   using an ultrametric branch-length tree, the sparse augmented A-inverse path,
   one CRAN-safe simulation recovery test, and dense marginal likelihood
@@ -414,7 +415,7 @@ Phase 5 closure boundary:
 | univariate phylogenetic | `phylo(1 | species, tree = tree)` in Gaussian `mu`, `sd_phylo(species) ~ z`, profile targets and diagnostics | phylogenetic slopes, richer tree-shape recovery grids |
 | bivariate phylogenetic | matching `mu1`/`mu2` phylogenetic location correlation, constant full and block-diagonal q=4 location-scale blocks, q=2 predictor-dependent `corpair(..., level = "phylogenetic") ~ w`, bivariate `sd_phylo1()` / `sd_phylo2()`, and Ayumi q2/q4 stress artifacts | q=4 predictor-dependent location-scale and scale-scale `corpair()` regressions; standalone structured `sigma`-`sigma` covariance is not a near-term priority |
 | coordinate spatial | `spatial(1 | site, coords = coords)` and one numeric `spatial(1 + x | site, coords = coords)` slope in univariate Gaussian `mu`, plus matching bivariate `mu1`/`mu2` `spatial(1 | p | site, coords = coords)` q=2 covariance with `corpairs(level = "spatial")`; `sdpars`, `ranef("spatial_mu")`, direct profile targets, and `check_drm()` rows expose the fitted fields | mesh/SPDE, multiple spatial slopes, spatial slope correlations, spatial scale, bivariate spatial q=4, spatial direct-SD, spatial `corpair()` |
-| animal and user-supplied relatedness | known-matrix Gaussian `mu` intercepts for `animal(1 | id, A/Ainv = ...)` and `relmat(1 | id, K/Q = ...)`, plus matching labelled `mu1`/`mu2` q=2 location covariance with `corpairs()`, `summary()$covariance`, profile targets, diagnostics, and dense-likelihood tests | pedigree-to-Ainv construction, structured slopes, `sigma`, q=4 location-scale blocks, predictor-dependent `corpair()` regressions, optional `phylo(..., A/Ainv = ...)` input, and generic direct-SD naming design |
+| animal and user-supplied relatedness | Gaussian `mu` intercepts for `animal(1 | id, pedigree = ...)`, `animal(1 | id, A/Ainv = ...)`, and `relmat(1 | id, K/Q = ...)`, plus matching labelled `mu1`/`mu2` q=2 location covariance with `corpairs()`, `summary()$covariance`, profile targets, diagnostics, and dense-likelihood tests | sparse large-pedigree construction, structured slopes, `sigma`, q=4 location-scale blocks, predictor-dependent `corpair()` regressions, optional `phylo(..., A/Ainv = ...)` input, and generic direct-SD naming design |
 | inference/output | fixed-effect SEs, direct profile-ready targets where implemented, `corpairs(conf.int = TRUE)` with explicit interval status | derived-profile intervals for q=4 correlations and richer marginal-effect/visualization helpers |
 
 Spatial parity now has its own ladder. The smallest missing phylogenetic
@@ -1412,7 +1413,7 @@ This is the current random-effect status before the non-Gaussian revisit:
 | 195 | Zero-inflation, hurdle, and one-inflation random effects | Done: `zi`, `hu`, planned `zoi`, and planned `coi` random-effect requests now receive component-specific boundaries. Fixed-effect zero-inflation and hurdle paths remain implemented; count-side random effects in zero-inflated or hurdle routes, bounded-response `zoi`/`coi` likelihoods, and covariance among `mu`, `sigma`, shape, inflation, hurdle, or one-inflation random effects remain future work until likelihood, interval, and recovery evidence exists. |
 | 196 | Ordinal mixed models | Done: cumulative-logit `mu` random-effect bar terms now have an ordinal-specific boundary. The first future ordinal mixed target remains a random intercept such as `(1 | id)`; ordinal random slopes, scale/discrimination formulas, known covariance, phylo/spatial ordinal effects, and `ordinal::clmm` comparator recovery stay planned. |
 | 197 | Structured non-Gaussian random effects | Done: phylogenetic, spatial, animal, and `relmat()` structured markers now have a structured non-Gaussian boundary. Structured count, bounded, ordinal, shape, inflation, and hurdle paths stay deferred until ordinary family-specific random effects and their intervals are stable. The first fitted animal/`relmat()` slice is Gaussian `mu` only. |
-| 197a | Animal/relmat reference surface | Done locally: `animal()` and `relmat()` are documented and parsed as structured-effect markers, the reference index leads with animal/phylo/spatial/relmat rather than `gr()`, and `gr()` is demoted to a reserved legacy marker. Slice 1280+ adds known-matrix Gaussian `mu` intercept fitting for `A`/`Ainv` and `K`/`Q`; pedigree construction and slopes remain planned. |
+| 197a | Animal/relmat reference surface | Done locally: `animal()` and `relmat()` are documented and parsed as structured-effect markers, the reference index leads with animal/phylo/spatial/relmat rather than `gr()`, and `gr()` is demoted to a reserved legacy marker. Slice 1280+ adds known-matrix Gaussian `mu` intercept fitting for `A`/`Ainv` and `K`/`Q`; the post-0.1.3 lane adds a dense pedigree first route for `animal(pedigree = ...)`; sparse large-pedigree construction and slopes remain planned. |
 | 198 | Non-Gaussian interval readiness | Done locally: `summary(conf.int = TRUE)` now handles fitted non-Gaussian paths with no summary-level parameter rows, including cumulative-logit ordinal fits with fixed effects or cutpoints only; Wald coefficient intervals remain available, empty coefficient/parameter tables keep explicit interval-status columns, and profile targets stay discoverable through `profile_targets()`/`confint()`. |
 | 199 | Reader-facing family docs | Done locally: the model map, family chooser, and structural-dependence article now show implemented, planned, and unsupported states for non-Gaussian random effects and the structural-dependence ladder: animal, phylogeny, spatial, phylogeny plus spatial, then lower-level `relmat()` known-dependence matrices. |
 | 200 | Focused non-Gaussian recovery tests | Done locally: ordinary non-zero-inflated Poisson `mu` random-effect recovery now includes a factor-predictor random-intercept case and a weak-SD boundary case that exercises `check_drm()` lower-boundary diagnostics. |

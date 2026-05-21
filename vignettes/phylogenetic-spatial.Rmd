@@ -226,8 +226,9 @@ intercept and slope fields with separate SDs. Matching labelled
 fit the first coordinate-spatial mean-mean correlation, reported by
 `corpairs(level = "spatial")`. `animal()` and `relmat()` now fit the first
 univariate Gaussian location random-intercept slice when supplied with a
-precomputed relationship or precision matrix, such as
-`animal(1 | id, Ainv = Ainv)` or `relmat(1 | id, Q = Q)`.
+pedigree, precomputed relationship, or precision matrix, such as
+`animal(1 | id, pedigree = pedigree)`, `animal(1 | id, Ainv = Ainv)`, or
+`relmat(1 | id, Q = Q)`.
 Mesh/SPDE spatial fields, combined phylogenetic-plus-spatial location models,
 multiple spatial slopes, spatial slope correlations, and predictor-dependent
 spatial or q=4 location-scale correlations remain planned
@@ -240,10 +241,10 @@ The scientific questions for the structural ladder are simple:
 > coordinate-based site deviations, or does a predictor's slope vary smoothly
 > across sites?
 
-For animal models, `individual` or `animal` indexes rows in the data and a
-precomputed additive relatedness or inverse-relatedness matrix supplies
-expected genetic similarity. Direct pedigree-to-Ainv construction remains
-planned. For phylogenetic models, `species` indexes the rows in the data and
+For animal models, `individual` or `animal` indexes rows in the data. A small
+`id`/`dam`/`sire` pedigree or a precomputed additive relatedness or
+inverse-relatedness matrix supplies expected genetic similarity. For
+phylogenetic models, `species` indexes the rows in the data and
 `tree` supplies the relatedness among those species. For spatial models, `site`
 indexes the rows in the data and `coords` supplies one coordinate pair per
 site, or one row per observation when coordinates are constant within site. In
@@ -312,16 +313,17 @@ The animal-model analogue replaces the species term with an individual
 additive effect, for example
 \(\mathbf{g} \sim \operatorname{MVN}(\mathbf{0},
 \sigma^2_{\mathrm{animal}}\mathbf{A}_{\mathrm{pedigree}})\). That is the
-meaning of `animal(1 | individual, A = A)` or
-`animal(1 | individual, Ainv = Ainv)` when the additive matrix is precomputed.
-The direct `pedigree = pedigree` route remains planned until pedigree-to-Ainv
-construction is implemented.
+meaning of `animal(1 | individual, pedigree = pedigree)`,
+`animal(1 | individual, A = A)`, or `animal(1 | individual, Ainv = Ainv)`.
+The pedigree route builds a dense additive relationship matrix for this first
+Gaussian location path; sparse large-pedigree precision construction remains
+planned.
 
 Read the current route status this way:
 
 | Route | Current status | Use when | Syntax to read |
 | --- | --- | --- | --- |
-| 1. Animal | Implemented for known-matrix Gaussian `mu` intercepts and the first matching bivariate q=2 location covariance; pedigree construction planned | Individuals have known additive relatedness from a pedigree or relationship matrix, and the biological question is an animal model or quantitative-genetic random effect. | `animal(1 | individual, A = A)`, `animal(1 | individual, Ainv = Ainv)`, or matching labelled `animal(1 | p | individual, Ainv = Ainv)` terms in `mu1` and `mu2`; later `animal(1 | individual, pedigree = pedigree)` |
+| 1. Animal | Implemented for pedigree or known-matrix Gaussian `mu` intercepts and the first matching bivariate q=2 location covariance; sparse large-pedigree construction planned | Individuals have known additive relatedness from a pedigree or relationship matrix, and the biological question is an animal model or quantitative-genetic random effect. | `animal(1 | individual, pedigree = pedigree)`, `animal(1 | individual, A = A)`, `animal(1 | individual, Ainv = Ainv)`, or matching labelled `animal(1 | p | individual, pedigree = pedigree)` / `animal(1 | p | individual, Ainv = Ainv)` terms in `mu1` and `mu2` |
 | 2. Phylo | Implemented for the listed Gaussian slices | Species share evolutionary history, and related species may have similar trait means, trait variances, or cross-trait latent correlations. | `phylo(1 | species, tree = tree)`; labelled bivariate blocks such as `phylo(1 | p | species, tree = tree)` |
 | 3. Spatial | Implemented for univariate Gaussian `mu` coordinate slices and the first bivariate q=2 `mu1`/`mu2` covariance | Nearby sampling sites may share smooth deviations in the expected response, in one numeric slope such as `depth`, or in paired response means. | `spatial(1 | site, coords = coords)`; `spatial(1 + depth | site, coords = coords)`; matching `spatial(1 | p | site, coords = coords)` terms in `mu1` and `mu2` |
 | 4. Phylo + spatial | Planned, not fitted yet | The same response could be structured by both species relatedness and site coordinates. | Fit separate phylogenetic and spatial sensitivity models for now; simultaneous `phylo()` plus `spatial()` in `mu` is rejected until the joint model has identifiability checks. |
@@ -510,10 +512,11 @@ below is a roadmap boundary, not a fitted-claim table.
 Spatial is partway up this ladder: `spatial(1 | site, coords = coords)`, one
 independent coordinate-spatial `mu` slope, and the first bivariate
 coordinate-spatial q=2 `mu1`/`mu2` covariance are fitted. Animal and `relmat()`
-now have known-matrix Gaussian `mu` intercepts and matching labelled q=2
-bivariate location covariance. Spatial `sigma`, spatial q=4, spatial
-`corpair()`, mesh/SPDE fields, pedigree construction, animal/`relmat()` slopes,
-animal/`relmat()` scale models, animal/`relmat()` q=4 blocks, and
+now have pedigree or known-matrix Gaussian `mu` intercepts and matching
+labelled q=2 bivariate location covariance. Spatial `sigma`, spatial q=4,
+spatial `corpair()`, mesh/SPDE fields, sparse large-pedigree construction,
+animal/`relmat()` slopes, animal/`relmat()` scale models,
+animal/`relmat()` q=4 blocks, and
 animal/`relmat()` predictor-dependent `corpair()` routes remain planned.
 
 The runnable examples above cover the current known-matrix animal and
@@ -551,9 +554,9 @@ phylo+spatial, and `relmat()` location-scale-coscale ladder.
 
 | Model piece | Status | What it means |
 | --- | --- | --- |
-| `animal(1 | individual, pedigree = pedigree)` | Planned marker | A future animal-model random effect using pedigree-derived additive relatedness. The marker is documented and parsed, but `drmTMB()` rejects it before fitting until pedigree-to-Ainv construction is implemented. |
-| `animal(1 | individual, A = A)` or `animal(1 | individual, Ainv = Ainv)` | Implemented first slice | A univariate Gaussian `mu` random intercept using a precomputed additive relatedness or inverse-relatedness matrix. Use `A` or `Ainv`; keep `V` for known sampling covariance in meta-analysis. |
-| Matching labelled `animal(1 | p | individual, A = A)` or `animal(1 | p | individual, Ainv = Ainv)` terms in bivariate `mu1` and `mu2` | Implemented first q=2 slice | Two Gaussian responses have correlated animal-model location deviations from the same known matrix. `corpairs(level = "animal")` reports this mean-mean row separately from residual `rho12`. |
+| `animal(1 | individual, pedigree = pedigree)` | Implemented first slice | A univariate Gaussian `mu` random intercept using a dense additive relationship matrix built from `id`, `dam`, and `sire` pedigree columns. Sparse large-pedigree precision construction remains planned. |
+| `animal(1 | individual, A = A)` or `animal(1 | individual, Ainv = Ainv)` | Implemented first slice | A univariate Gaussian `mu` random intercept using a precomputed additive relatedness or inverse-relatedness matrix. Use `pedigree`, `A`, or `Ainv`; keep `V` for known sampling covariance in meta-analysis. |
+| Matching labelled `animal(1 | p | individual, pedigree = pedigree)`, `animal(1 | p | individual, A = A)`, or `animal(1 | p | individual, Ainv = Ainv)` terms in bivariate `mu1` and `mu2` | Implemented first q=2 slice | Two Gaussian responses have correlated animal-model location deviations from the same pedigree-derived or known matrix. `corpairs(level = "animal")` reports this mean-mean row separately from residual `rho12`. |
 | `phylo(1 | species, tree = tree)` in univariate `mu` | Implemented | One trait has a phylogenetic random intercept in the location predictor. |
 | Matching `phylo(1 | species, tree = tree)` terms in bivariate `mu1` and `mu2` | Implemented first slice | Two traits have correlated phylogenetic location deviations; `corpairs(level = "phylogenetic")` reports the mean-mean row separately from residual `rho12`. |
 | Matching labelled `phylo(1 | p | species, tree = tree)` terms in bivariate `mu1` and `mu2` | Implemented | The label is preserved in SD names, the fitted mean-mean correlation, `corpairs(block = "p")`, and profile-target names. |
@@ -1676,10 +1679,10 @@ level-specific correlations such as phylogenetic mean-mean correlations,
 non-phylogenetic species correlations, spatial field correlations, and
 mean-scale correlations. These are not residual `rho12`; they should be
 reported as structural or group-level covariance summaries. For the univariate
-structural-dependence ladder, keep the implementation status visible: reserve
-`animal(pedigree = ...)` until pedigree-to-Ainv construction is fitted, use
-`animal(A/Ainv = ...)` for the known-matrix first slice, use `phylo()` when the
-species tree is the fitted dependence structure, use `spatial()` when the site
-field is the fitted dependence structure, plan combined `phylo()` plus
-`spatial()` only after joint identifiability checks, and use `relmat(K/Q = ...)`
+structural-dependence ladder, keep the implementation status visible: use
+`animal(pedigree/A/Ainv = ...)` for the animal-model first slice, use
+`phylo()` when the species tree is the fitted dependence structure, use
+`spatial()` when the site field is the fitted dependence structure, plan
+combined `phylo()` plus `spatial()` only after joint identifiability checks,
+and use `relmat(K/Q = ...)`
 for lower-level known-matrix latent random effects.

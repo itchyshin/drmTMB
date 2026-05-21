@@ -51,18 +51,22 @@ gr <- function(group, cov) {
 #' the biological front door for questions such as whether among-individual
 #' additive genetic variance appears in the location `mu`, residual scale
 #' `sigma`, shape or skewness, inflation, or a bivariate covariance. The fitted
-#' known-matrix routes are a univariate Gaussian `mu` random intercept with a
-#' precomputed additive relationship matrix `A` or inverse relationship matrix
-#' `Ainv`, for example `animal(1 | id, Ainv = Ainv)`, and the first bivariate
-#' Gaussian q=2 location covariance from matching labelled terms in `mu1` and
-#' `mu2`, for example `animal(1 | p | id, Ainv = Ainv)`. Direct
-#' pedigree-to-Ainv construction, structured slopes, `sigma` animal models,
-#' q=4 location-scale blocks, predictor-dependent `corpair()` regression, and
-#' generic direct-SD grammar remain planned.
+#' routes are a univariate Gaussian `mu` random intercept from a small pedigree
+#' data frame, precomputed additive relationship matrix `A`, or inverse
+#' relationship matrix `Ainv`, for example
+#' `animal(1 | id, pedigree = pedigree)` or
+#' `animal(1 | id, Ainv = Ainv)`, and the first bivariate Gaussian q=2
+#' location covariance from matching labelled terms in `mu1` and `mu2`, for
+#' example `animal(1 | p | id, pedigree = pedigree)`. The pedigree route builds
+#' a dense additive relationship matrix from `id`, `dam`, and `sire` columns.
+#' Large-pedigree sparse precision construction, structured slopes, `sigma`
+#' animal models, q=4 location-scale blocks, predictor-dependent `corpair()`
+#' regression, and generic direct-SD grammar remain planned.
 #'
 #' @param term Structured random-effect term, such as `1 | id`.
-#' @param pedigree Planned pedigree input from which an additive relationship
-#'   matrix or sparse inverse will be built.
+#' @param pedigree Pedigree data frame with columns `id`, `dam`, and `sire`.
+#'   Unknown parents can be `NA`, `""`, or `"0"`. The first fitted route builds
+#'   a dense additive relationship matrix for Gaussian `mu` animal effects.
 #' @param A Additive relatedness or covariance matrix for the first fitted
 #'   univariate Gaussian `mu` path.
 #' @param Ainv Sparse or dense inverse additive relatedness matrix for the first
@@ -77,7 +81,7 @@ gr <- function(group, cov) {
 #'   sigma ~ habitat
 #' )
 #'
-#' # Planned later: distributional animal model for residual predictability.
+#' # Fitted: the same route can build a small additive matrix from a pedigree.
 #' bf(activity ~ treatment + animal(1 | id, pedigree = pedigree),
 #'   sigma ~ treatment
 #' )
