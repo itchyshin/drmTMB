@@ -118,6 +118,17 @@ issues, or pull requests.
   `../../inst/sim/run/sim_run_actions_cell.R` path that did not exist after
   installation.
 
+## 2026-05-20 - Targeted Formatting In Release Slices
+
+- Improvement implemented: release-candidate slices should run `air format` on
+  the touched R files, not `air format .`, unless the task explicitly owns a
+  repository-wide formatting pass.
+- Trigger: the `0.1.3` candidate run briefly produced unrelated formatting churn
+  in simulation helpers and older tests. Ada reversed that churn and kept only
+  the spatial q=2, release metadata, documentation, and ledger files dirty.
+- Grace and Rose should check `git status --short` immediately after formatting
+  and trim accidental churn before running final release checks.
+
 ## 2026-05-20 - After-Task Issue Maintenance
 
 - Improvement implemented: meaningful after-task reports should now inspect

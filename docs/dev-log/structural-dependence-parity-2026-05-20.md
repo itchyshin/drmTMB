@@ -11,11 +11,11 @@ Purpose: keep the "same as phylo" request balanced across `animal()`,
 | --- | --- | --- |
 | Phylogenetic `mu` intercept | Fitted for univariate and selected bivariate Gaussian routes | Continue hardening profile/bootstrap diagnostics and q2/q4 examples. |
 | Phylogenetic `mu` slope | Planned | Add only after intercept covariance, diagnostics, and simulation recovery are stable. |
-| Spatial coordinate `mu` intercept and one numeric slope | Fitted for univariate Gaussian coordinate-spatial route | Add `corpairs()`/interval parity only when the fitted spatial covariance exposes the same target inventory as phylo. |
-| Spatial bivariate `mu` covariance | Planned | Mirror the phylogenetic q2 location-location route before considering scale or cross-parameter blocks. |
-| Animal `mu` intercept | Planned marker only | Start with additive genetic intercept and one small example only after pedigree or `A`/`Ainv` validation, sparse precision setup, diagnostics, and recovery tests. |
+| Spatial coordinate `mu` intercept and one numeric slope | Fitted for univariate Gaussian coordinate-spatial route | Keep mesh/SPDE, multiple slopes, scale, and slope correlations behind separate gates. |
+| Spatial bivariate `mu` covariance | First q2 coordinate slice fitted for matching labelled `mu1`/`mu2` terms | Add q4, scale, predictor-dependent `corpair()`, and richer interval evidence only after the q2 route is stable. |
+| Animal `mu` intercept | First known-matrix slice fitted for precomputed `A` or `Ainv` | Add pedigree construction, slopes, scale models, and bivariate covariance after the univariate known-matrix route is stable. |
 | Animal bivariate `mu` covariance | Planned | Same q2 location-location target as phylo, but only after the univariate animal route works. |
-| `relmat()` `mu` intercept | Planned marker only | Define the low-level known matrix contract and keep it separate from `meta_V(V = V)` known sampling covariance. |
+| `relmat()` `mu` intercept | First known-matrix slice fitted for precomputed `K` or `Q` | Keep the low-level known matrix contract separate from `meta_V(V = V)` known sampling covariance. |
 | Scale or mean-scale structured covariance | Mostly planned outside selected phylo q4 work | Do not advertise spatial, animal, or relmat scale parity until the corresponding likelihood, extractors, diagnostics, and simulations exist. |
 
 ## Order

@@ -228,47 +228,48 @@
   as `phylo(1 | species, tree = tree)`. The tree must be an ultrametric
   `phylo` object with positive branch lengths, and every observed species must
   match a tip label.
-- Animal-model and generic known-relatedness structured random effects are not
-  implemented yet. Planned syntax such as `animal(1 | id, pedigree = ped)`,
-  `animal(1 | id, A = A)`, `animal(1 | id, Ainv = Ainv)`, and a possible
-  lower-level `relmat(1 | id, K = K)` should reuse the same structured Gaussian
-  random-effect algebra as `phylo()` and `spatial()`, but the parser,
-  pedigree/matrix validation, extractor names, profile targets, diagnostics,
-  and simulation recovery tests do not exist yet. These relatedness inputs are
-  distinct from meta-analysis `meta_V(..., V = V)`, which supplies known
-  sampling covariance.
+- Animal-model and generic known-relatedness structured effects have a first
+  fitted univariate Gaussian `mu` intercept slice for precomputed matrices:
+  `animal(1 | id, A = A)`, `animal(1 | id, Ainv = Ainv)`,
+  `relmat(1 | id, K = K)`, and `relmat(1 | id, Q = Q)`. Pedigree-to-precision
+  construction, structured slopes, `sigma` relatedness models, bivariate
+  relatedness covariance, and `corpair()` parity remain planned. These
+  relatedness inputs are distinct from meta-analysis `meta_V(..., V = V)`, which
+  supplies known sampling covariance.
 - Structured-effect markers outside the fitted paths, such as
   `phylo(1 + x | species, tree = tree)`, phylogenetic terms in `sigma`, and
   `spatial(1 | site, mesh = mesh)`, are parsed and rejected clearly, but they
   are not yet routed into fitted likelihoods. The coordinate-based spatial
   paths, `spatial(1 | site, coords = coords)` and
-  `spatial(1 + x | site, coords = coords)`, are fitted only for univariate
-  Gaussian `mu` and use a fixed coordinate covariance foundation. They are not
-  the scalable mesh/SPDE route. The mesh/SPDE design gate is recorded in
-  `docs/design/09-phylogenetic-and-spatial-speed.md`, while spatial `sigma`,
-  bivariate spatial q=4 blocks, spatial slope correlations, and spatial
-  `corpair()` regressions remain planned.
+  `spatial(1 + x | site, coords = coords)`, are fitted for univariate Gaussian
+  `mu`; matching labelled bivariate `mu1`/`mu2`
+  `spatial(1 | p | site, coords = coords)` terms now fit the first q=2 spatial
+  location covariance. They are not the scalable mesh/SPDE route. The mesh/SPDE
+  design gate is recorded in `docs/design/09-phylogenetic-and-spatial-speed.md`,
+  while spatial `sigma`, bivariate spatial q=4 blocks, spatial slope
+  correlations, and spatial `corpair()` regressions remain planned.
 - Structured non-Gaussian random effects are not implemented. `phylo()`,
-  `spatial()`, planned `animal()`, and planned `relmat()` markers now error in
-  non-Gaussian routes with a structured non-Gaussian boundary. Count, bounded,
-  ordinal, shape, inflation, hurdle, and one-inflation structured effects need
-  ordinary family-specific random-effect recovery and interval evidence before
-  entering the fitted surface.
+  `spatial()`, `animal()`, and `relmat()` markers now error in non-Gaussian
+  routes with a structured non-Gaussian boundary. Count, bounded, ordinal, shape,
+  inflation, hurdle, and one-inflation structured effects need ordinary
+  family-specific random-effect recovery and interval evidence before entering
+  the fitted surface.
 - Internal phylogenetic tree validation, dense Brownian covariance comparators,
   sparse augmented Brownian precision helpers, pure-R prior checks, hidden TMB
   prior parity checks, and fitted univariate Gaussian `mu` simulation tests now
   exist.
 - The TMB template currently supports fixed effects, univariate Gaussian `mu`
   random intercepts, numeric random-slope terms, ordinary correlated
-  intercept-slope blocks with optional covariance-block labels, and univariate
+  intercept-slope blocks with optional covariance-block labels, univariate
   Gaussian residual-scale random intercepts and independent random slopes in
-  `sigma`, the first labelled
-  univariate `mu`/`sigma` random-intercept covariance block, intercept-only
-  phylogenetic location effects, plus one or more unlabelled Gaussian `mu`
-  random-intercept scale formulae through `sd(group) ~ x_group`, matched
-  labelled bivariate Gaussian `mu1`/`mu2`, `sigma1`/`sigma2`, and
-  response-specific `mu`/`sigma` random-intercept covariance blocks, and
-  fixed-effect univariate
+  `sigma`, the first labelled univariate `mu`/`sigma` random-intercept
+  covariance block, intercept-only phylogenetic location effects,
+  coordinate-spatial Gaussian `mu` intercept, one-slope, and bivariate q=2
+  location covariance, first-slice known-relatedness Gaussian `mu` intercepts,
+  plus one or more unlabelled Gaussian `mu` random-intercept scale formulae
+  through `sd(group) ~ x_group`, matched labelled bivariate Gaussian `mu1`/`mu2`,
+  `sigma1`/`sigma2`, and response-specific `mu`/`sigma` random-intercept
+  covariance blocks, and fixed-effect univariate
   Student-t models with `mu`, `sigma`, and `nu`.
   It also supports fixed-effect univariate lognormal models with `mu` and
   `sigma` on the log-response scale, fixed-effect univariate Gamma mean-CV

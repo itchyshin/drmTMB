@@ -21,9 +21,9 @@ several focused articles, in this order:
 2. Phylogenetic models: fitted `phylo()` support, bivariate q=2 and q=4
    blocks, `sd_phylo*()` surfaces, phylogenetic `corpair()`, `corpairs()`,
    diagnostics, and intervals.
-3. Spatial models: fitted coordinate-spatial `mu` intercept and one-slope
-   paths, plus the planned mesh/SPDE, bivariate, `sigma`, and spatial
-   `corpair()` extensions.
+3. Spatial models: fitted coordinate-spatial `mu` intercept, one-slope, and q=2
+   bivariate location-covariance paths, plus the planned mesh/SPDE, q=4,
+   `sigma`, and spatial `corpair()` extensions.
 4. Phylo + spatial models: planned additive structured layers with explicit
    identifiability checks before any simultaneous fit is advertised.
 5. `relmat()` and known matrices: fitted lower-level Gaussian `mu` intercepts

@@ -27,7 +27,7 @@ corpairs(object, ...)
 \code{conf.int = TRUE}.}
 
 \item{level}{Optional character vector of correlation levels to keep, such
-as \code{"residual"}, \code{"group"}, or \code{"phylogenetic"}.}
+as \code{"residual"}, \code{"group"}, \code{"phylogenetic"}, or \code{"spatial"}.}
 
 \item{group}{Optional character vector of grouping factors to keep, such as
 \code{"id"}. Residual rows have no grouping factor and are removed by this
@@ -71,10 +71,10 @@ already fitted elsewhere: residual bivariate \code{rho12}, ordinary univariate
 group-level \code{mu} random-effect correlations, matched univariate and
 same-response bivariate \code{mu}/\code{sigma} random-intercept covariance blocks, and
 matched bivariate \code{mu1}/\code{mu2} and \code{sigma1}/\code{sigma2} random-intercept
-covariance blocks from \code{corpars}, plus fitted bivariate phylogenetic
-correlation rows. Full q4 phylogenetic blocks report six derived endpoint
-correlations; block-diagonal q4 fallback fits report the direct \code{mu1}/\code{mu2}
-and \code{sigma1}/\code{sigma2} block correlations.
+covariance blocks from \code{corpars}, plus fitted bivariate phylogenetic and
+coordinate-spatial correlation rows. Full q4 phylogenetic blocks report six
+derived endpoint correlations; block-diagonal q4 fallback fits report the
+direct \code{mu1}/\code{mu2} and \code{sigma1}/\code{sigma2} block correlations.
 }
 \details{
 The table is intentionally more explicit than \code{rho12()} or \code{corpars}

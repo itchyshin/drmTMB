@@ -492,8 +492,10 @@ Slice 186 rechecked this boundary: `phylo(1 + x | species, tree = tree)` is
 still rejected, while the coordinate-spatial one-slope path is fitted. This is
 a deliberate validation gap, not a syntax synonym.
 Slice 187 rechecked the fitted spatial side: the slope-field SD has direct
-profile-interval coverage, while spatial `sigma`, bivariate spatial syntax,
-and multiple spatial slopes remain outside the fitted surface.
+profile-interval coverage. The later q=2 bivariate spatial slice added matching
+`mu1`/`mu2` coordinate fields, while spatial `sigma`, spatial q=4 syntax,
+predictor-dependent spatial `corpair()` rows, and multiple spatial slopes
+remain outside the fitted surface.
 For two-response models, the most interesting later slope correlation is a
 response-1 slope versus response-2 slope for the same covariate, matching the
 plasticity-syndrome idea in O'Dea, Noble, and Nakagawa (2021). That target needs
@@ -571,24 +573,25 @@ blocks, rather than treating every cross-response correlation as residual
 Spatial parity means matching the same statistical layer where the spatial
 covariance is well defined, not copying every phylogenetic syntax immediately.
 The current coordinate path and the tree path share internal sparse-precision
-machinery, but they do not yet share the same public fitted surface.
+machinery, and they now share the first constant q=2 bivariate location layer.
 
 | Structured layer | Current spatial status | Next spatial gate |
 | --- | --- | --- |
 | Univariate Gaussian `mu` intercept | Fitted for coordinates as `spatial(1 | site, coords = coords)` | Keep comparator and profile evidence current |
 | One structured `mu` slope | Fitted for coordinates as independent intercept and slope fields | Add stronger recovery and boundary diagnostics before multiple slopes |
-| Bivariate `mu1`/`mu2` q=2 location covariance, the spatial sibling of fitted `corpairs(level = "phylogenetic")` | Planned | Implement coordinate-spatial q=2 location-location covariance, then add `corpairs(level = "spatial")`, direct profile targets, and recovery tests |
+| Bivariate `mu1`/`mu2` q=2 location covariance, the spatial sibling of fitted `corpairs(level = "phylogenetic")` | Fitted for coordinates as matching `spatial(1 | p | site, coords = coords)` terms | Keep `corpairs(level = "spatial")`, direct profile targets, recovery tests, and dense covariance comparator evidence current |
 | Predictor-dependent q=2 `corpair()` regression, already fitted for phylogenetic location-location rows | Planned | Design the positive-definite loading contract for spatial rows before exposing syntax |
 | Constant q=4 location-scale block across `mu1`, `mu2`, `sigma1`, and `sigma2`, already fitted for phylogenetic rows | Planned | Wait until q=2 spatial location covariance is stable, because q=4 adds scale endpoints and six latent correlations |
 | Direct structured SD surfaces, currently implemented for `sd_phylo*()` | Planned, but should not clone the name family | Use the generic direct-SD naming decision from `random_effect_scale_formulas`, such as `sd(group, level = ...)` or another reviewed spelling |
 
-The immediate implementation lane should therefore be q=2 bivariate
-coordinate-spatial location covariance, not spatial `sigma`, spatial q=4, or
-spatial `corpair()` regression. Fisher wants that first q=2 lane to have a
-small independent simulation and a dense covariance comparator before it enters
-Phase 18 grids. Pat wants the first example to answer a simple spatial ecology
-question, such as whether nearby reefs share paired abundance and growth
-deviations, instead of presenting the covariance matrix first.
+The immediate q=2 implementation lane has now landed for coordinate-spatial
+location covariance, but it is not spatial `sigma`, spatial q=4, or spatial
+`corpair()` regression. Fisher keeps that q=2 lane separate from Phase 18
+admission until the simulation programme decides whether the dense covariance
+comparator and recovery test are enough for a focused grid. Pat still wants the
+first example to answer a simple spatial ecology question, such as whether
+nearby reefs share paired abundance and growth deviations, instead of presenting
+the covariance matrix first.
 
 ## Current Implementation Gate
 
@@ -673,13 +676,13 @@ phylogenetic block. Partial, unlabelled, mismatched, random-slope, multiple
 phylogenetic-block, and structured `rho12` forms remain planned or rejected.
 
 This section supersedes the older local ordering that placed spatial fields
-before structured effects in `sigma`. The current 35-slice route implements
-constant phylogenetic q=4 first because the tree-precision algebra is already
-validated for univariate `mu` and bivariate `mu1`/`mu2`. Spatial remains the
-parallel sibling lane, with the coordinate-spatial `mu` intercept and one-slope
-foundation now fitted locally and mesh/SPDE, bivariate spatial, and richer
-spatial covariance paths still planned. Spatial is not folded into residual
-`rho12` and not treated as an afterthought.
+before structured effects in `sigma`. The current route implements constant
+phylogenetic q=4 first because the tree-precision algebra is already validated
+for univariate `mu` and bivariate `mu1`/`mu2`. Spatial remains the parallel
+sibling lane, with the coordinate-spatial `mu` intercept, one-slope foundation,
+and q=2 bivariate location covariance now fitted locally. Mesh/SPDE, spatial
+q=4, spatial `sigma`, and richer spatial covariance paths still stay planned.
+Spatial is not folded into residual `rho12` and not treated as an afterthought.
 
 Let
 

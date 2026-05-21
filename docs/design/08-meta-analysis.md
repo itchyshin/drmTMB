@@ -152,7 +152,7 @@ numeric vector, diagonal matrix, block-diagonal matrix, or dense matrix, just
 as the additive `meta_V(V = V)` path accepts after model-row filtering.
 
 The proportional case is not implemented and is not a CRAN-blocking requirement
-for `0.1.2`. It is distinct from ordinary likelihood weights and would model a
+for `0.1.3`. It is distinct from ordinary likelihood weights and would model a
 sampling-error component such as:
 
 ```text
