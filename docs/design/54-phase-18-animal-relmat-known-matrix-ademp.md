@@ -6,9 +6,12 @@ This sheet records the Phase 18 design gate for known-matrix Gaussian
 (2019) and the transparent-reporting checklist of Williams et al. (2024). It is
 intentionally narrower than the full structural-dependence roadmap: this sheet
 admits the known-matrix `mu` intercept, the dense-pedigree `animal()` intercept,
-and matching bivariate q=2 `mu1`/`mu2` covariance lanes, not sparse
-large-pedigree construction, structured slopes, `sigma` structured effects, q=4
-location-scale blocks, or predictor-dependent `corpair()` regressions.
+and matching bivariate q=2 `mu1`/`mu2` covariance lanes. The constant all-four
+q=4 location-scale smoke lane is recorded separately in
+`docs/design/58-phase-18-animal-relmat-q4-ademp.md`. Sparse large-pedigree
+construction, structured slopes, standalone `sigma` structured effects,
+direct-SD grammar, and predictor-dependent `corpair()` regressions remain
+planned.
 
 ## A - Aims
 
@@ -190,7 +193,7 @@ warning/error ledger, and interval-status tables rather than being dropped.
 | 4. Methods | The intended `drmTMB` formulas for univariate and bivariate q=2 known-matrix fits and the animal-only pedigree smoke cell are stated. |
 | 5. Performance measures | Bias, RMSE, Wald/profile coverage, response-scale error, diagnostics, convergence, warnings, runtime, and failure ledgers are defined. |
 | 6. Software/settings | Per-run session metadata remains the runner responsibility. |
-| 7. Code availability | Runnable user examples now live in the structural-dependence article, and the first q=2 DGP helper, summariser, smoke runner, CSV grid writer, fixed-effect Wald artifacts, opt-in profile-status artifacts, and animal pedigree smoke cell live under `inst/sim/`; the interval-status contract is in `docs/design/55-phase-18-animal-relmat-q2-interval-status.md`. |
+| 7. Code availability | Runnable user examples now live in the structural-dependence article. The q=2 DGP helper, summariser, smoke runner, CSV grid writer, fixed-effect Wald artifacts, opt-in profile-status artifacts, and animal pedigree smoke cell live under `inst/sim/`; the interval-status contract is in `docs/design/55-phase-18-animal-relmat-q2-interval-status.md`. The q=4 smoke DGP, summariser, runner, grid writer, and derived-correlation interval-status check are recorded in `docs/design/58-phase-18-animal-relmat-q4-ademp.md`. |
 | 8. Replicability | Seeded cells, replicate-level seeds, generated matrices, matrix arguments, and animal pedigree tables must be saved with each replicate. |
 | 9. Real-data motivation | The structural-dependence article supplies the applied animal-model and relatedness-matrix motivation; formal reports should cite it. |
 | 10. Complete results | Manifests, matrix diagnostics, warning/error ledgers, and interval-status tables keep hard cases visible. |

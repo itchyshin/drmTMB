@@ -123,3 +123,44 @@ This is useful to applied users because it lets the same known relatedness
 matrix explain coupled variation in both response means and residual
 log-scales, while still keeping residual `rho12` and latent structured
 correlations separate.
+
+## Continuation To Slice 38
+
+The continuation slices keep the same rule: implement only the small surfaces
+that already have likelihood support, and close the rest as explicit
+fitted-versus-planned status guards. This table is a working ledger for the
+post-0.1.3 structural-parity lane, not a claim that every planned feature is
+now fitted.
+
+| Slice | Target | Status |
+| --- | --- | --- |
+| 9 | Rebase and publish the slice-1-to-8 branch after the pkgdown root-site hotfix | Done: branch merged `origin/main`, reran focused animal/relmat and pkgdown checks, and pushed the branch |
+| 10 | Animal/relmat q4 ADEMP addendum | Done: `docs/design/58-phase-18-animal-relmat-q4-ademp.md` names the DGP, estimands, and derived-correlation interval boundary |
+| 11 | Animal/relmat q4 DGP | Done: `phase18_dgp_animal_relmat_q4()` stores endpoint SDs, six endpoint correlations, matrix inputs, and residual `rho12` as separate truth layers |
+| 12 | Animal/relmat q4 summariser and runner | Done: q4 replicate summaries report fixed `mu`/`sigma` coefficients, four structured SDs, six structured correlations, and residual `rho12` |
+| 13 | Animal/relmat q4 interval-status guard | Done: requested q4 structured-correlation profile rows are marked `derived_interval_unavailable` |
+| 14 | Animal/relmat q4 grid writer | Done: q4 aggregate, replicate, manifest, failure, profile-status, interval-evidence, diagnostic, and interval-failure CSV artifacts can be written |
+| 15 | Spatial q4 fitted-status audit | Closed as planned: q=4 spatial location-scale blocks remain rejected before fitting |
+| 16 | Spatial direct-SD audit | Closed as planned: no direct spatial SD grammar until coordinate q4, mesh/SPDE scale, and prediction-grid semantics are designed |
+| 17 | Spatial `sigma` boundary | Closed as planned: coordinate-spatial effects remain `mu`-only except for ordinary fixed `sigma` predictors |
+| 18 | Spatial `corpair()` regression boundary | Closed as planned: spatial q=2 constant covariance is fitted, predictor-dependent spatial `corpair()` remains future work |
+| 19 | Spatial one-slope parity reminder | Done as status map: coordinate spatial has one fitted Gaussian `mu` slope; phylo/animal/relmat slopes do not |
+| 20 | Mesh/SPDE guard | Closed as planned: coordinate `coords` support does not imply mesh/SPDE support |
+| 21 | Bivariate spatial slope guard | Closed as planned: bivariate spatial slopes remain outside the fitted q=2 intercept path |
+| 22 | Spatial simulation admission line | Done as status map: admit coordinate-spatial `mu` intercept, one-slope, and q=2 bivariate location-covariance artifacts only |
+| 23 | Spatial user route | Done as guidance: fit the fitted coordinate-spatial subsets first, not q4 or mesh syntax |
+| 24 | Direct-SD grammar across animal/relmat | Closed as planned: no `sd_animal()` or `sd_relmat()` syntax until matrix scale and biological interpretation are named |
+| 25 | Direct-SD grammar across spatial | Closed as planned: no `sd_spatial()` syntax until site versus mesh semantics are clear |
+| 26 | Combined phylo plus spatial | Closed as planned: simultaneous structured layers remain an identifiability lane, not a tutorial route |
+| 27 | Combined structured source guard | Done: bivariate models still admit one structured location-covariance source at a time |
+| 28 | Known sampling `V` versus latent relatedness | Done as wording guard: `meta_V(V = V)` remains known sampling covariance, not `animal()` or `relmat()` latent structure |
+| 29 | Residual `rho12` versus latent correlations | Done as wording guard: residual coscale and structured endpoint correlations stay in separate rows |
+| 30 | q4 broad-grid boundary | Done: focused q4 smoke artifacts exist; broad operating-characteristic q4 reports still need larger replicate and interpretation work |
+| 31 | Random-slope parity map | Done: `docs/design/59-structural-slope-and-non-gaussian-map.md` maps fitted versus planned slope routes |
+| 32 | Ordinary Gaussian slope status | Done: ordinary Gaussian `mu` and `sigma` slopes stay fitted, with correlated residual-scale and bivariate slopes planned |
+| 33 | Structured slope status | Done: spatial one-slope is fitted; phylo, animal, and relmat slopes remain planned |
+| 34 | Bivariate slope status | Done: bivariate random slopes remain planned despite fitted bivariate intercept and q4 location-scale blocks |
+| 35 | Non-Gaussian ordinary random-effect status | Done: Poisson and NB2 `mu` random intercepts and independent numeric slopes are fitted first slices |
+| 36 | Non-Gaussian structural-dependence status | Done: `phylo()`, `spatial()`, `animal()`, and `relmat()` remain Gaussian-only fitted structured routes |
+| 37 | Non-Gaussian distributional-parameter boundary | Done: non-Gaussian `sigma`, shape, inflation, hurdle, ordinal, and zero-one random effects remain planned or blocked |
+| 38 | User-facing usefulness pass | Done: the status map tells applied users what to fit now and what to leave out of simulation or tutorials |

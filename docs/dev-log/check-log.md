@@ -2,6 +2,68 @@
 
 Record meaningful development checks here.
 
+## 2026-05-21 - Structural Parity Slices 9-38
+
+Goal: continue the post-0.1.3 structural-dependence parity lane by adding
+focused animal/`relmat()` q=4 Phase 18 smoke artifacts and closing the
+spatial, direct-SD, combined-layer, random-slope, and non-Gaussian questions as
+explicit fitted-versus-planned status guards.
+
+Team roles:
+
+- Ada scoped implementation to q4 animal/`relmat()` simulation artifacts.
+- Pat checked that the new status map answers what applied users can fit now.
+- Fisher and Curie kept q4 smoke evidence separate from broad coverage claims.
+- Grace ran pkgdown and focused release-hygiene checks.
+- Rose kept derived q4 correlations, random slopes, and non-Gaussian
+  structural dependence from being overstated.
+
+Files changed:
+
+- `inst/sim/dgp/sim_dgp_animal_relmat_q4.R`
+- `inst/sim/fit/sim_summarise_animal_relmat_q4.R`
+- `inst/sim/run/sim_run_animal_relmat_q4_smoke.R`
+- `inst/sim/run/sim_summary_animal_relmat_q4_smoke.R`
+- `inst/sim/run/sim_write_animal_relmat_q4_grid.R`
+- `tests/testthat/test-phase18-animal-relmat-q4-smoke.R`
+- `tests/testthat/test-phase18-animal-relmat-q4-grid-writer.R`
+- `docs/design/58-phase-18-animal-relmat-q4-ademp.md`
+- `docs/design/59-structural-slope-and-non-gaussian-map.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+- `docs/design/46-pre-simulation-readiness-matrix.md`
+- `docs/design/54-phase-18-animal-relmat-known-matrix-ademp.md`
+- `docs/design/55-phase-18-animal-relmat-q2-interval-status.md`
+- `docs/design/57-structural-parity-next-slices.md`
+- `inst/sim/README.md`
+- `docs/dev-log/after-task/2026-05-21-slices-9-38-structural-parity-continuation.md`
+
+Checks run:
+
+```sh
+air format inst/sim/dgp/sim_dgp_animal_relmat_q4.R inst/sim/fit/sim_summarise_animal_relmat_q4.R inst/sim/run/sim_run_animal_relmat_q4_smoke.R inst/sim/run/sim_summary_animal_relmat_q4_smoke.R inst/sim/run/sim_write_animal_relmat_q4_grid.R tests/testthat/test-phase18-animal-relmat-q4-smoke.R tests/testthat/test-phase18-animal-relmat-q4-grid-writer.R
+air format docs/design/54-phase-18-animal-relmat-known-matrix-ademp.md docs/design/55-phase-18-animal-relmat-q2-interval-status.md docs/design/57-structural-parity-next-slices.md docs/design/58-phase-18-animal-relmat-q4-ademp.md docs/design/59-structural-slope-and-non-gaussian-map.md docs/design/41-phase-18-simulation-programme.md docs/design/46-pre-simulation-readiness-matrix.md inst/sim/README.md
+Rscript -e "devtools::test(filter = 'phase18-animal-relmat-q4', reporter = 'summary')"
+Rscript -e "devtools::test(filter = 'animal-relmat-gaussian|phase18-animal-relmat-q4', reporter = 'summary')"
+rg -n "spatial q4.*(implemented|fitted)|non-Gaussian structural.*(implemented|fitted)|phylo\\(1 \\+.*Implemented|animal\\(1 \\+.*Implemented|relmat\\(1 \\+.*Implemented|q4.*profile-ready|derived.*profile-ready" README.md NEWS.md ROADMAP.md docs/design inst/sim tests/testthat --glob "!docs/dev-log/**"
+Rscript -e "pkgdown::check_pkgdown()"
+git diff --check
+```
+
+Outcomes:
+
+- Added a seeded q4 animal/`relmat()` DGP, summariser, smoke runner, summary
+  reducer, grid writer, and focused tests.
+- The q4 summaries keep fixed `mu`/`sigma` coefficients, four structured SDs,
+  six structured correlations, and residual `rho12` as separate rows.
+- Requested q4 structured-correlation profile rows are marked
+  `derived_interval_unavailable`, so the smoke artifacts do not imply direct
+  q4 correlation intervals.
+- Added the random-slope and non-Gaussian status map. Ordinary Gaussian
+  `mu`/`sigma`, coordinate spatial Gaussian `mu`, Poisson `mu`, and NB2 `mu`
+  have fitted slope routes; phylogenetic, animal, `relmat()`, and bivariate
+  slopes remain planned. Structured non-Gaussian dependence remains planned or
+  blocked.
+
 ## 2026-05-21 - Spatial Models Article Split
 
 Goal: add a focused coordinate-spatial route page so users can find fitted
