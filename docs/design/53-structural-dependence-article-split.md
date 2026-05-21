@@ -13,12 +13,12 @@ That is too much for one reader route.
 
 Slice 2026-05-21 adds `vignettes/structural-dependence.Rmd` as the first small
 index page. Follow-up slices add `vignettes/animal-models.Rmd` for `pedigree`,
-`A`, and `Ainv` animal-model support and
-`vignettes/relmat-known-matrices.Rmd` for lower-level known-matrix
-relatedness. These slices do not split the technical article yet; they give
-applied readers a route table, focused animal/`relmat()` landing pages, and
-links to the existing `phylogenetic-spatial.Rmd` tutorial for detailed
-examples.
+`A`, and `Ainv` animal-model support, `vignettes/phylogenetic-models.Rmd` for
+tree-based `phylo()` support, and `vignettes/relmat-known-matrices.Rmd` for
+lower-level known-matrix relatedness. These slices do not split the technical
+article yet; they give applied readers a route table, focused structural-layer
+landing pages, and links to the existing `phylogenetic-spatial.Rmd` tutorial
+for detailed examples.
 
 Future pkgdown work should continue splitting structural dependence into
 focused articles, in this order:

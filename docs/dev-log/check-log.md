@@ -2,6 +2,53 @@
 
 Record meaningful development checks here.
 
+## 2026-05-21 - Phylogenetic Models Article Split
+
+Goal: add a focused phylogenetic route page so users can find fitted
+`phylo(tree = tree)` Gaussian slices without first reading the full umbrella
+structural-dependence article.
+
+Team roles:
+
+- Ada scoped the slice to documentation and navigation.
+- Pat checked that users can find the fitted `phylo()` q=2/q=4, `sd_phylo*()`,
+  and q=2 `corpair()` routes.
+- Darwin checked that the page frames species relatedness as the scientific
+  route.
+- Grace rendered the new article and ran pkgdown.
+- Rose kept slopes, matrix-input phylogeny, combined phylo-plus-spatial layers,
+  q=4 `corpair()` regressions, and non-Gaussian phylogenetic effects planned.
+
+Files changed:
+
+- `vignettes/phylogenetic-models.Rmd`
+- `vignettes/structural-dependence.Rmd`
+- `_pkgdown.yml`
+- `docs/design/53-structural-dependence-article-split.md`
+- `docs/dev-log/after-task/2026-05-21-phylogenetic-models-article-split.md`
+- `NEWS.md`
+
+Checks run:
+
+```sh
+air format vignettes/phylogenetic-models.Rmd vignettes/structural-dependence.Rmd NEWS.md _pkgdown.yml docs/design/53-structural-dependence-article-split.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-21-phylogenetic-models-article-split.md
+Rscript -e "devtools::load_all('.', quiet = TRUE); pkgdown::build_article('phylogenetic-models', new_process = FALSE, quiet = TRUE); pkgdown::build_article('structural-dependence', new_process = FALSE, quiet = TRUE)"
+rg -n 'phylogenetic-models|Phylogenetic structured effects|phylo\\(1 \\| species|ranef\\(fit, \"phylo_mu\"\\)|sd_phylo|level = \"phylogenetic\"|phylogenetic slopes|matrix inputs|q=4 phylogenetic `corpair`' vignettes/phylogenetic-models.Rmd vignettes/structural-dependence.Rmd _pkgdown.yml NEWS.md docs/design/53-structural-dependence-article-split.md
+Rscript -e "pkgdown::check_pkgdown()"
+git diff --check
+```
+
+Outcomes:
+
+- Added `phylogenetic-models.Rmd` as the focused page for tree-based
+  phylogenetic structured effects.
+- The page documents fitted univariate `phylo()` Gaussian `mu`, bivariate q=2
+  location covariance, constant q=4 location-scale blocks, direct
+  `sd_phylo*()` surfaces, and q=2 phylogenetic `corpair()` regression.
+- The page tells readers to inspect `check_drm()`, `sdpars$mu`,
+  `ranef(fit, "phylo_mu")`, `summary()$covariance`, `profile_targets()`, and
+  `corpairs(level = "phylogenetic")`.
+
 ## 2026-05-21 - relmat Known-Matrix Article Split
 
 Goal: add a focused `relmat()` route page so users can distinguish latent
