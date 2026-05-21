@@ -348,9 +348,10 @@ Use these status labels:
 - Check-log evidence: `docs/dev-log/check-log.md` records the phylogenetic
   direct-SD, bivariate phylogenetic covariance, q=4 phylogenetic, and
   predictor-dependent q=2 phylogenetic `corpair()` slices.
-- Debt: phylogenetic slopes, standalone or partial phylogenetic scale terms,
-  structured `rho12`, predictor-dependent q=4 correlations, and longer optional
-  simulations remain planned.
+- Debt: multiple phylogenetic slopes, phylogenetic slope correlations,
+  standalone or partial phylogenetic scale terms, structured `rho12`,
+  predictor-dependent q=4 correlations, and longer optional simulations remain
+  planned.
 
 ### Coordinate spatial structured effects
 
@@ -469,11 +470,12 @@ Use these status labels:
 - Check-log evidence: planned-feature and unsupported-combination evidence is
   spread across the family, random-effect, bivariate, phylogenetic, spatial,
   and large-data check-log entries named above.
-- Debt: coefficient-specific `sd()` slopes, random effects in `rho12`,
-  phylogenetic slopes, mesh/SPDE, spatial `corpair()`, bivariate random slopes,
-  mixed composed families, and other reserved neighbours need implementation,
-  recovery tests, diagnostics, documentation, NEWS, check-log evidence, and an
-  after-task report before moving out of blocked status.
+- Debt: coefficient-specific `sd()` slopes, random effects in `rho12`, multiple
+  structured slopes, structured slope correlations, mesh/SPDE, spatial
+  `corpair()`, bivariate random slopes, mixed composed families, and other
+  reserved neighbours need implementation, recovery tests, diagnostics,
+  documentation, NEWS, check-log evidence, and an after-task report before
+  moving out of blocked status.
 
 ## Slice 201 non-Gaussian pre-simulation failure ledger
 

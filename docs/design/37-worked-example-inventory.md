@@ -99,8 +99,10 @@ phylogeny-plus-spatial as the planned third endpoint:
 - q=4 phylogenetic location-scale rows;
 - predictor-dependent q=2 phylogenetic `corpair()`;
 - coordinate spatial intercept and one numeric slope;
+- one numeric phylogenetic `mu` slope;
 - planned phylogeny plus spatial as a third structural-dependence endpoint;
-- mesh/SPDE and phylogenetic slopes as planned neighbours.
+- mesh/SPDE, multiple structured slopes, and slope correlations as planned
+  neighbours.
 
 The third route remains marked planned until simultaneous `phylo()` plus
 `spatial()` models have implementation and identifiability checks.

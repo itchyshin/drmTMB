@@ -60,12 +60,17 @@ gr <- function(group, cov) {
 #' all-four q=4 location-scale block from matching labelled terms in `mu1`,
 #' `mu2`, `sigma1`, and `sigma2`, for example
 #' `animal(1 | p | id, pedigree = pedigree)`. The pedigree route builds a dense
-#' additive relationship matrix from `id`, `dam`, and `sire` columns.
-#' Large-pedigree sparse precision construction, structured slopes, standalone
-#' `sigma` animal models, predictor-dependent `corpair()` regression, and
-#' generic direct-SD grammar remain planned.
+#' additive relationship matrix from `id`, `dam`, and `sire` columns. The
+#' univariate Gaussian `mu` path also supports one numeric slope, for example
+#' `animal(1 + x | id, pedigree = pedigree)`, as independent intercept and
+#' slope fields with separate SDs and no intercept-slope correlation.
+#' Large-pedigree sparse precision construction, multiple structured slopes,
+#' slope correlations, standalone `sigma` animal models, predictor-dependent
+#' `corpair()` regression, and animal-model `sd*()` direct-SD grammar remain
+#' planned.
 #'
-#' @param term Structured random-effect term, such as `1 | id`.
+#' @param term Structured random-effect term, such as `1 | id` or
+#'   `1 + x | id`.
 #' @param pedigree Pedigree data frame with columns `id`, `dam`, and `sire`.
 #'   Unknown parents can be `NA`, `""`, or `"0"`. The first fitted route builds
 #'   a dense additive relationship matrix for Gaussian `mu` animal effects.
@@ -97,18 +102,19 @@ animal <- function(term, pedigree = NULL, A = NULL, Ainv = NULL) {
 #' fitted paths support intercept-only Gaussian location effects,
 #' response-specific direct-SD formulas, and labelled bivariate Gaussian
 #' location-scale blocks. Use `phylo(1 | species, tree = tree)` in univariate
-#' `mu`, matching terms in bivariate `mu1` and `mu2`, or matching labelled
+#' `mu`, one numeric univariate Gaussian `mu` slope with independent
+#' intercept/slope SDs, matching terms in bivariate `mu1` and `mu2`, or matching labelled
 #' all-four terms across `mu1`, `mu2`, `sigma1`, and `sigma2`. A single shared
 #' label estimates the full q4 block; a `mu1`/`mu2` label plus a separate
 #' `sigma1`/`sigma2` label estimates the block-diagonal fallback. Standalone
-#' univariate `sigma ~ phylo(...)` and structured phylogenetic slopes such as
-#' `phylo(1 + x | species, tree = tree)` remain planned even though the
-#' coordinate-spatial sibling already fits one numeric `mu` slope. The public
+#' univariate `sigma ~ phylo(...)`, multiple phylogenetic slopes, and
+#' phylogenetic slope correlations remain planned. The public
 #' `phylo()` API requires an
 #' ultrametric tree with branch lengths and uses the Hadfield and Nakagawa
 #' A-inverse sparse-precision path internally.
 #'
-#' @param term Structured random-effect term, currently `1 | species`.
+#' @param term Structured random-effect term, currently `1 | species` or
+#'   `1 + x | species`.
 #' @param tree Ultrametric phylogeny input with branch lengths.
 #'
 #' @return A formula marker; never evaluated by users.
@@ -164,14 +170,19 @@ spatial <- function(term, coords = NULL, mesh = NULL) {
 #' covariance from matching labelled terms in `mu1` and `mu2`, and the constant
 #' all-four q=4 location-scale block from matching labelled terms in `mu1`,
 #' `mu2`, `sigma1`, and `sigma2`, for example
-#' `relmat(1 | p | line, Q = Q)`. Structured slopes, standalone `sigma`
-#' relatedness models, predictor-dependent `corpair()` regression, and generic
-#' direct-SD grammar remain planned. `relmat()` is
+#' `relmat(1 | p | line, Q = Q)`. The univariate Gaussian `mu` path also
+#' supports one numeric slope, for example `relmat(1 + x | line, Q = Q)`, as
+#' independent intercept and slope fields with separate SDs and no
+#' intercept-slope correlation. Multiple structured slopes, slope correlations,
+#' standalone `sigma` relatedness models, predictor-dependent `corpair()`
+#' regression, and relatedness `sd*()` direct-SD grammar remain planned.
+#' `relmat()` is
 #' intentionally separate from [meta_V()], which adds known sampling covariance
 #' among observations, and from residual `rho12`, which models
 #' within-observation bivariate residual correlation.
 #'
-#' @param term Structured random-effect term, such as `1 | id`.
+#' @param term Structured random-effect term, such as `1 | id` or
+#'   `1 + x | id`.
 #' @param K Known relatedness or covariance matrix for the first fitted
 #'   univariate Gaussian `mu` path.
 #' @param Q Known precision or inverse covariance matrix for the first fitted

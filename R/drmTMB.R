@@ -22,8 +22,10 @@
 #' labelled `mu`/`sigma`
 #' random-intercept covariance blocks, and one or more group-level
 #' random-effect scale formulae such as `sd(id) ~ x_group`, plus
-#' intercept-only phylogenetic random effects and `sd_phylo(species) ~ x_species`
-#' direct-SD models in univariate Gaussian location formulas, matching
+#' phylogenetic random intercepts, one numeric phylogenetic random slope, and
+#' `sd_phylo(species) ~ x_species` direct-SD models in univariate Gaussian
+#' location formulas, Gaussian `mu` animal-model and user-supplied relatedness
+#' random intercepts and one numeric random slope, matching
 #' bivariate Gaussian `mu1`/`mu2` location formulas, and matching labelled
 #' bivariate Gaussian `mu1`/`mu2`/`sigma1`/`sigma2` phylogenetic
 #' location-scale blocks, coordinate-based spatial random intercepts and one
@@ -3752,12 +3754,16 @@ extract_gaussian_mu_phylo_term <- function(entry) {
     )
   }
   phylo_term <- phylo_terms[[1L]]
-  if (!identical(phylo_term$coef_names, "(Intercept)")) {
+  phylo_coef_names <- phylo_term$coef_names
+  valid_phylo_coef <- identical(phylo_coef_names, "(Intercept)") ||
+    (length(phylo_coef_names) == 2L &&
+      identical(phylo_coef_names[[1L]], "(Intercept)") &&
+      identical(phylo_coef_names[[2L]], phylo_term$variables[[1L]]))
+  if (!valid_phylo_coef) {
     cli::cli_abort(c(
-      "Only intercept-only phylogenetic {.code mu} effects are implemented.",
+      "Only intercept-only or one-slope phylogenetic {.code mu} effects are implemented.",
       "x" = "Requested structured coefficient{?s}: {.val {phylo_term$coef_names}}.",
-      "i" = "Use {.code phylo(1 | species, tree = tree)}.",
-      "i" = "Coordinate-spatial one-slope support exists for univariate Gaussian {.code mu} via {.code spatial(1 + x | site, coords = coords)}; phylogenetic one-slope support needs separate recovery evidence before it is advertised."
+      "i" = "Use {.code phylo(1 | species, tree = tree)} or {.code phylo(1 + x | species, tree = tree)}."
     ))
   }
 
@@ -3843,12 +3849,16 @@ extract_gaussian_mu_known_term <- function(entry, marker) {
     )
   }
   known_term <- known_terms[[1L]]
-  if (!identical(known_term$coef_names, "(Intercept)")) {
+  known_coef_names <- known_term$coef_names
+  valid_known_coef <- identical(known_coef_names, "(Intercept)") ||
+    (length(known_coef_names) == 2L &&
+      identical(known_coef_names[[1L]], "(Intercept)") &&
+      identical(known_coef_names[[2L]], known_term$variables[[1L]]))
+  if (!valid_known_coef) {
     cli::cli_abort(c(
-      "Only intercept-only {.fn {marker}} {.code mu} effects are implemented.",
+      "Only intercept-only or one-slope {.fn {marker}} {.code mu} effects are implemented.",
       "x" = "Requested structured coefficient{?s}: {.val {known_term$coef_names}}.",
-      "i" = "Use {.code {marker}(1 | {known_term$group}, {known_term$structure} = {known_term$object})}.",
-      "i" = "Structured slopes need separate recovery evidence before they are advertised for {.fn {marker}}."
+      "i" = "Use {.code {marker}(1 | {known_term$group}, {known_term$structure} = {known_term$object})} or {.code {marker}(1 + x | {known_term$group}, {known_term$structure} = {known_term$object})}."
     ))
   }
 
@@ -4625,12 +4635,17 @@ build_phylo_mu_structure <- function(term, data, env) {
   if (is.null(term)) {
     return(empty_phylo_mu_structure())
   }
+  value <- structured_mu_design_matrix(term, data, marker = "phylo")
   dpars <- if (is.null(term$dpars)) {
     "mu"
   } else {
     term$dpars
   }
-  q <- length(dpars)
+  q <- if (length(dpars) > 1L) {
+    length(dpars)
+  } else {
+    ncol(value)
+  }
   endpoint_covariance_labels <- if (!is.null(term$endpoint_covariance_labels)) {
     unname(as.character(term$endpoint_covariance_labels))
   } else if (is.null(term$covariance_label)) {
@@ -4704,19 +4719,11 @@ build_phylo_mu_structure <- function(term, data, env) {
     endpoint_covariance_labels = endpoint_covariance_labels,
     dpars = dpars,
     q = q,
-    coef_names = "(Intercept)",
+    coef_names = colnames(value),
     tree = term$tree,
     n_re = nrow(precision$precision),
     precision = precision,
-    value = matrix(
-      1,
-      nrow = length(species),
-      ncol = 1L,
-      dimnames = list(
-        NULL,
-        "(Intercept)"
-      )
-    ),
+    value = value,
     observation_node_index = unname(as.integer(observation_node_index)),
     observation_node_index0 = unname(as.integer(observation_node_index - 1L)),
     node_labels = precision$node_labels,
@@ -4883,12 +4890,17 @@ build_known_precision_mu_structure <- function(term, data, env) {
       "Internal error: failed to align observations with {.fn {marker}} relatedness nodes."
     )
   }
+  value <- structured_mu_design_matrix(term, data, marker = marker)
   dpars <- if (is.null(term$dpars)) {
     "mu"
   } else {
     term$dpars
   }
-  q <- length(dpars)
+  q <- if (length(dpars) > 1L) {
+    length(dpars)
+  } else {
+    ncol(value)
+  }
   endpoint_covariance_labels <- if (!is.null(term$endpoint_covariance_labels)) {
     unname(as.character(term$endpoint_covariance_labels))
   } else if (is.null(term$covariance_label)) {
@@ -4934,18 +4946,13 @@ build_known_precision_mu_structure <- function(term, data, env) {
     endpoint_covariance_labels = endpoint_covariance_labels,
     dpars = dpars,
     q = q,
-    coef_names = "(Intercept)",
+    coef_names = colnames(value),
     tree = NA_character_,
     structure = term$structure,
     object = term$object,
     n_re = nrow(precision$precision),
     precision = precision,
-    value = matrix(
-      1,
-      nrow = length(group_values),
-      ncol = 1L,
-      dimnames = list(NULL, "(Intercept)")
-    ),
+    value = value,
     observation_node_index = unname(as.integer(observation_node_index)),
     observation_node_index0 = unname(as.integer(observation_node_index - 1L)),
     node_labels = precision$node_labels,
@@ -5250,6 +5257,13 @@ parse_sd_phylo_entry <- function(entry, phylo_term) {
       "No phylogenetic location random-effect term matches {.code {entry$dpar}}.",
       "x" = "Add {.code phylo(1 | {target$group}, tree = tree)} to the {.code mu} formula or remove {.code {entry$dpar}}.",
       "i" = "{.fn sd_phylo} targets the SD of a univariate phylogenetic location random effect."
+    ))
+  }
+  if (!identical(phylo_term$coef_names, "(Intercept)")) {
+    cli::cli_abort(c(
+      "Phylogenetic random-effect scale formulas with structured slopes are not implemented yet.",
+      "x" = "{.code {entry$dpar}} targets {.code {phylo_term$label}}, which has multiple structured coefficients.",
+      "i" = "Use {.code sd_phylo({target$group}) ~ ...} with {.code phylo(1 | {target$group}, tree = tree)}, or fit {.code phylo(1 + x | {target$group}, tree = tree)} without a direct-SD formula."
     ))
   }
   if (!identical(target$group, phylo_term$group)) {

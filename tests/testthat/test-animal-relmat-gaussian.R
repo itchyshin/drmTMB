@@ -23,6 +23,43 @@ new_known_relatedness_gaussian_data <- function(seed = 2026052001) {
   )
 }
 
+new_known_relatedness_gaussian_slope_data <- function(seed = 2026052104) {
+  set.seed(seed)
+  n_id <- 8L
+  n_each <- 7L
+  id_levels <- paste0("id", seq_len(n_id))
+  K <- outer(seq_len(n_id), seq_len(n_id), function(i, j) 0.35^abs(i - j))
+  diag(K) <- diag(K) + 0.15
+  dimnames(K) <- list(id_levels, id_levels)
+  Q <- solve(K)
+  id <- rep(id_levels, each = n_each)
+  x <- rep(seq(-1, 1, length.out = n_each), n_id)
+  sd_intercept <- 0.55
+  sd_slope <- 0.32
+  intercept_effect <- as.vector(
+    t(chol(K)) %*% stats::rnorm(n_id, sd = sd_intercept)
+  )
+  slope_effect <- as.vector(
+    t(chol(K)) %*% stats::rnorm(n_id, sd = sd_slope)
+  )
+  names(intercept_effect) <- id_levels
+  names(slope_effect) <- id_levels
+  sigma <- 0.22
+  y <- 0.25 +
+    0.45 * x +
+    intercept_effect[id] +
+    slope_effect[id] * x +
+    stats::rnorm(length(id), sd = sigma)
+  list(
+    data = data.frame(y = y, x = x, id = id),
+    K = K,
+    Q = Q,
+    sd_intercept = sd_intercept,
+    sd_slope = sd_slope,
+    sigma = sigma
+  )
+}
+
 new_animal_pedigree_gaussian_data <- function(seed = 2026052102) {
   set.seed(seed)
   pedigree <- data.frame(
@@ -392,6 +429,68 @@ test_that("Gaussian mu fits animal pedigree intercepts", {
   expect_match(animal_check$value, "matrix_type=covariance")
 })
 
+test_that("animal and relmat Gaussian mu support one structured slope", {
+  sim <- new_known_relatedness_gaussian_slope_data()
+  animal_sim <- new_animal_pedigree_gaussian_data(seed = 2026052105)
+  Q <- sim$Q
+  pedigree <- animal_sim$pedigree
+
+  fit_relmat <- drmTMB(
+    bf(y ~ x + relmat(1 + x | id, Q = Q), sigma ~ 1),
+    family = gaussian(),
+    data = sim$data
+  )
+  fit_animal <- drmTMB(
+    bf(y ~ x + animal(1 + x | id, pedigree = pedigree), sigma ~ 1),
+    family = gaussian(),
+    data = animal_sim$data
+  )
+
+  for (fit in list(fit_relmat, fit_animal)) {
+    type <- fit$model$structured$phylo_mu$type
+    key <- paste0(type, "_mu")
+    sd_names <- c(paste0(type, "(1 | id)"), paste0(type, "(0 + x | id)"))
+    expect_equal(fit$opt$convergence, 0)
+    expect_equal(fit$model$structured$phylo_mu$q, 2L)
+    expect_equal(
+      fit$model$structured$phylo_mu$coef_names,
+      c("(Intercept)", "x")
+    )
+    expect_named(fit$sdpars$mu, sd_names)
+    expect_true(all(is.finite(fit$sdpars$mu[sd_names])))
+    expect_true(all(unname(fit$sdpars$mu[sd_names]) > 0))
+    expect_equal(fit$corpars, list())
+
+    structured_re <- ranef(fit, key)
+    expect_equal(structured_re, fit$random_effects[[key]])
+    expect_named(structured_re$terms, sd_names)
+    expect_length(
+      structured_re$values,
+      2L * fit$model$structured$phylo_mu$n_re
+    )
+
+    targets <- profile_targets(fit)
+    sd_targets <- targets[
+      targets$parm %in% paste0("sd:mu:", sd_names),
+    ]
+    sd_targets <- sd_targets[
+      match(paste0("sd:mu:", sd_names), sd_targets$parm),
+    ]
+    expect_equal(sd_targets$parm, paste0("sd:mu:", sd_names))
+    expect_equal(sd_targets$tmb_parameter, rep("log_sd_phylo", 2L))
+    expect_equal(sd_targets$index, 1:2)
+    expect_equal(sd_targets$target_type, rep("direct", 2L))
+    expect_true(all(sd_targets$profile_ready))
+
+    chk <- check_drm(fit)
+    known_check <- chk[chk$check == paste0(type, "_mu_diagnostics"), ]
+    expect_equal(nrow(known_check), 1L)
+    expect_match(known_check$value, "n_coef=2", fixed = TRUE)
+    expect_match(known_check$value, "min_structured_sd=", fixed = TRUE)
+    expect_match(known_check$value, "min_sd_ratio=", fixed = TRUE)
+  }
+})
+
 test_that("bivariate Gaussian mu fits relmat and animal q2 known-matrix covariance", {
   sim <- new_biv_known_relatedness_gaussian_data()
   dat <- sim$data
@@ -719,43 +818,28 @@ test_that("animal and relmat reject unsupported or malformed known matrices", {
   bad_Q <- sim$Q
   rownames(bad_Q)[[1L]] <- "missing_id"
 
-  expect_snapshot(
-    error = TRUE,
+  expect_error(
     drmTMB(
       bf(y ~ x + animal(1 | id, pedigree = pedigree_missing_parent), sigma ~ 1),
       data = ped_sim$data
-    )
+    ),
+    "parents must appear"
   )
-  expect_snapshot(
-    error = TRUE,
+  expect_error(
     drmTMB(
       bf(y ~ x + animal(1 | id, pedigree = pedigree_cycle), sigma ~ 1),
       data = ped_sim$data
-    )
+    ),
+    "parent-offspring cycles"
   )
-  expect_snapshot(
-    error = TRUE,
-    drmTMB(
-      bf(y ~ x + animal(1 + x | id, pedigree = pedigree_valid), sigma ~ 1),
-      data = ped_sim$data
-    )
-  )
-  expect_snapshot(
-    error = TRUE,
-    drmTMB(
-      bf(y ~ x + relmat(1 + x | id, Q = Q), sigma ~ 1),
-      data = dat
-    )
-  )
-  expect_snapshot(
-    error = TRUE,
+  expect_error(
     drmTMB(
       bf(y ~ x + relmat(1 | id, Q = bad_Q), sigma ~ 1),
       data = dat
-    )
+    ),
+    "row and column names must match"
   )
-  expect_snapshot(
-    error = TRUE,
+  expect_error(
     drmTMB(
       bf(
         mu1 = y ~ x + relmat(1 | id, Q = Q),
@@ -766,10 +850,10 @@ test_that("animal and relmat reject unsupported or malformed known matrices", {
       ),
       family = biv_gaussian(),
       data = dat
-    )
+    ),
+    "Partial relmat location-scale blocks"
   )
-  expect_snapshot(
-    error = TRUE,
+  expect_error(
     drmTMB(
       bf(
         mu1 = y ~ x + animal(1 | id, Ainv = Q),
@@ -780,10 +864,10 @@ test_that("animal and relmat reject unsupported or malformed known matrices", {
       ),
       family = biv_gaussian(),
       data = dat
-    )
+    ),
+    "explicit covariance-block label"
   )
-  expect_snapshot(
-    error = TRUE,
+  expect_error(
     drmTMB(
       bf(
         mu1 = y ~ x + relmat(1 | p | id, Q = Q),
@@ -794,6 +878,7 @@ test_that("animal and relmat reject unsupported or malformed known matrices", {
       ),
       family = biv_gaussian(),
       data = dat
-    )
+    ),
+    "same covariance-block label"
   )
 })

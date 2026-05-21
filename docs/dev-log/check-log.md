@@ -34540,3 +34540,65 @@ curl -I -L --max-time 20 https://itchyshin.github.io/drmTMB/articles/structural-
   `pkgdown` and `deploy` jobs.
 - The public root URL, reference index, and structural-dependence article each
   returned HTTP 200 after the deploy.
+
+## 2026-05-21 - Structural Parity Slices 39-82
+
+Goal:
+
+- Close the first post-0.1.3 structured-slope parity gap without blurring the
+  boundary between fitted Gaussian structured slopes, ordinary non-Gaussian
+  random slopes, and still-planned bivariate or structured non-Gaussian
+  dependence.
+
+Changes:
+
+- Added fitted univariate Gaussian `mu` one-slope support for
+  `phylo(1 + x | species, tree = tree)`, `animal(1 + x | id, ...)`, and
+  `relmat(1 + x | id, ...)` as independent intercept and slope fields with
+  separate SDs and no intercept-slope correlation.
+- Added `phylo_mu_diagnostics` to `check_drm()` and extended animal/relmat
+  one-slope tests to cover `sdpars$mu`, `ranef()`, `profile_targets()`, and
+  diagnostics.
+- Added an explicit guard that keeps `sd_phylo(species) ~ ...` direct-SD
+  formulas separate from `phylo(1 + x | species, tree = tree)` until
+  coefficient-specific structured-SD syntax is designed.
+- Kept the `sd*()` direct-SD direction alive: spatial, animal, and `relmat()`
+  direct-SD siblings are a future unification lane rather than removed or
+  rejected names.
+- Refreshed formula grammar, readiness, simulation, random-slope, and
+  structural-dependence status documents so the new fitted routes are not
+  described as parser-only or planned.
+- Added `docs/design/60-structural-parity-slices-39-82.md` as the slice ledger
+  and user-facing boundary for the next lanes.
+
+Validation:
+
+```sh
+Rscript -e "devtools::document()"
+air format R/drmTMB.R R/check.R R/formula-markers.R tests/testthat/test-phylo-gaussian.R tests/testthat/test-animal-relmat-gaussian.R tests/testthat/test-gaussian-location-scale.R tests/testthat/test-nbinom2-location-scale.R docs/design/01-formula-grammar.md docs/design/09-phylogenetic-and-spatial-speed.md docs/design/16-phylo-spatial-common-math.md docs/design/32-phase-6b-tutorial-source-map.md docs/design/33-phase-6c-core-random-effects.md docs/design/34-validation-debt-register.md docs/design/37-worked-example-inventory.md docs/design/41-phase-18-simulation-programme.md docs/design/44-structured-slope-parity-gate.md docs/design/46-pre-simulation-readiness-matrix.md docs/design/57-structural-parity-next-slices.md docs/design/59-structural-slope-and-non-gaussian-map.md docs/design/60-structural-parity-slices-39-82.md NEWS.md
+Rscript -e "devtools::test(filter = 'phylo-gaussian', reporter = 'summary')"
+Rscript -e "devtools::test(filter = 'animal-relmat-gaussian', reporter = 'summary')"
+Rscript -e "devtools::test(filter = 'gaussian-location-scale|nbinom2-location-scale|poisson-mean', reporter = 'summary')"
+Rscript -e "devtools::test(filter = 'profile-targets|check-drm|spatial-gaussian', reporter = 'summary')"
+git diff --check
+rg -n 'phylogenetic slopes.*remain planned|phylo\(1 \+ x.*rejected|phylo\(1 \+ x.*parser/planned|animal\(1 \+ x.*planned marker|relmat\(1 \+ x.*planned marker|animal slopes.*planned-only|relmat.*slopes.*planned-only|phylo, animal, and relmat slopes remain planned|one-slope paths remain planned|structured animal slopes.*planned|structured relatedness slopes.*planned' README.md ROADMAP.md NEWS.md docs/design vignettes R tests/testthat -g '!docs/site/**'
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "devtools::test(reporter = 'summary')"
+```
+
+- `devtools::document()` regenerated `check_drm.Rd`, `drmTMB.Rd`,
+  `animal.Rd`, `phylo.Rd`, and `relmat.Rd`.
+- `devtools::test(filter = 'phylo-gaussian')` passed.
+- `devtools::test(filter = 'animal-relmat-gaussian')` passed.
+- `devtools::test(filter = 'gaussian-location-scale|nbinom2-location-scale|poisson-mean')`
+  passed, including the adjacent truncated-NB2 file matched by the filter.
+- `devtools::test(filter = 'profile-targets|check-drm|spatial-gaussian')`
+  passed.
+- `git diff --check` was clean.
+- The stale-status scan returned only the intentional boundary that multiple
+  phylogenetic slopes remain planned; it no longer found old planned-only
+  claims for the first one-slope phylo, animal, or `relmat()` Gaussian `mu`
+  paths.
+- `pkgdown::check_pkgdown()` reported no problems.
+- A final full `devtools::test()` run passed after documentation regeneration
+  and the clarified `sd*()` boundary wording.

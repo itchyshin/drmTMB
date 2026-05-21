@@ -63,6 +63,45 @@ new_phylo_gaussian_data <- function(
   )
 }
 
+new_phylo_gaussian_slope_data <- function(
+  seed = 20260573,
+  n_tip = 16L,
+  n_each = 8L,
+  sd_intercept = 0.55,
+  sd_slope = 0.32,
+  sigma = 0.22
+) {
+  set.seed(seed)
+  tree <- balanced_ultrametric_tree(n_tip)
+  A <- drmTMB:::drm_phylo_tip_covariance(tree)
+  phylo_intercept <- as.vector(
+    t(chol(A)) %*% stats::rnorm(n_tip, sd = sd_intercept)
+  )
+  phylo_slope <- as.vector(
+    t(chol(A)) %*% stats::rnorm(n_tip, sd = sd_slope)
+  )
+  names(phylo_intercept) <- tree$tip.label
+  names(phylo_slope) <- tree$tip.label
+
+  species <- rep(tree$tip.label, each = n_each)
+  x <- rep(seq(-1, 1, length.out = n_each), times = n_tip)
+  beta_mu <- c(`(Intercept)` = 0.4, x = -0.25)
+  y <- beta_mu[[1L]] +
+    beta_mu[[2L]] * x +
+    phylo_intercept[species] +
+    phylo_slope[species] * x +
+    stats::rnorm(length(species), sd = sigma)
+
+  list(
+    data = data.frame(y = unname(y), x = x, species = species),
+    tree = tree,
+    beta_mu = beta_mu,
+    sd_intercept = sd_intercept,
+    sd_slope = sd_slope,
+    sigma = sigma
+  )
+}
+
 new_sd_phylo_gaussian_data <- function(
   seed = 20260821,
   n_tip = 16L,
@@ -1400,20 +1439,6 @@ test_that("phylogenetic mu terms participate in missingness and validation", {
   )
 
   expect_equal(fit$nobs, nrow(dat) - 2L)
-  phylo_slope_err <- tryCatch(
-    drmTMB(
-      bf(y ~ x + phylo(1 + x | species, tree = tree), sigma ~ 1),
-      family = gaussian(),
-      data = sim$data
-    ),
-    error = identity
-  )
-  expect_s3_class(phylo_slope_err, "rlang_error")
-  expect_match(conditionMessage(phylo_slope_err), "intercept-only phylogenetic")
-  expect_match(
-    conditionMessage(phylo_slope_err),
-    "Coordinate-spatial one-slope support exists"
-  )
   expect_error(
     drmTMB(
       bf(y ~ x + phylo(1 | species, tree = missing_tree), sigma ~ 1),
@@ -1433,4 +1458,72 @@ test_that("phylogenetic mu terms participate in missingness and validation", {
   expect_s3_class(sigma_phylo_err, "rlang_error")
   expect_match(conditionMessage(sigma_phylo_err), "planned, not implemented")
   expect_match(conditionMessage(sigma_phylo_err), "sigma ~ phylo")
+  expect_error(
+    drmTMB(
+      bf(
+        y ~ x + phylo(1 + x | species, tree = tree),
+        sd_phylo(species) ~ x
+      ),
+      family = gaussian(),
+      data = sim$data
+    ),
+    "scale formulas with structured slopes"
+  )
+})
+
+test_that("Gaussian mu supports one-slope phylogenetic fields", {
+  sim <- new_phylo_gaussian_slope_data()
+  tree <- sim$tree
+
+  fit <- drmTMB(
+    bf(y ~ x + phylo(1 + x | species, tree = tree), sigma ~ 1),
+    family = gaussian(),
+    data = sim$data
+  )
+
+  sd_names <- c("phylo(1 | species)", "phylo(0 + x | species)")
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(fit$model$structured$phylo_mu$type, "phylo")
+  expect_equal(fit$model$structured$phylo_mu$q, 2L)
+  expect_equal(
+    fit$model$structured$phylo_mu$coef_names,
+    c("(Intercept)", "x")
+  )
+  expect_named(fit$sdpars$mu, sd_names)
+  expect_true(all(is.finite(fit$sdpars$mu[sd_names])))
+  expect_true(all(unname(fit$sdpars$mu[sd_names]) > 0.02))
+  expect_equal(fit$corpars, list())
+
+  phylo_re <- ranef(fit, "phylo_mu")
+  expect_equal(phylo_re, fit$random_effects$phylo_mu)
+  expect_named(phylo_re$terms, sd_names)
+  expect_length(phylo_re$values, 2L * fit$model$structured$phylo_mu$n_re)
+
+  targets <- profile_targets(fit)
+  phylo_targets <- targets[
+    targets$parm %in% paste0("sd:mu:", sd_names),
+  ]
+  phylo_targets <- phylo_targets[
+    match(paste0("sd:mu:", sd_names), phylo_targets$parm),
+  ]
+  expect_equal(phylo_targets$parm, paste0("sd:mu:", sd_names))
+  expect_equal(phylo_targets$tmb_parameter, rep("log_sd_phylo", 2L))
+  expect_equal(phylo_targets$index, 1:2)
+  expect_equal(phylo_targets$target_type, rep("direct", 2L))
+  expect_true(all(phylo_targets$profile_ready))
+
+  conditional_mu <- predict(fit, dpar = "mu", type = "link")
+  fixed_mu <- as.vector(fit$model$X$mu %*% fit$coefficients$mu)
+  expect_equal(
+    unname(conditional_mu),
+    fixed_mu + drmTMB:::phylo_mu_contribution(fit),
+    tolerance = 1e-8
+  )
+
+  chk <- check_drm(fit)
+  phylo_check <- chk[chk$check == "phylo_mu_diagnostics", ]
+  expect_equal(nrow(phylo_check), 1L)
+  expect_match(phylo_check$value, "n_coef=2", fixed = TRUE)
+  expect_match(phylo_check$value, "min_phylo_sd=", fixed = TRUE)
+  expect_match(phylo_check$value, "min_sd_ratio=", fixed = TRUE)
 })

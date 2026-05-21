@@ -42,8 +42,8 @@ If any link is missing, the surface is experimental, planned, or unsupported.
 The implemented ordinary Gaussian `mu` core now covers the random-intercept
 foundation, the first intercept-slope correlation, and unstructured numeric
 multi-slope blocks through the registry-backed q > 2 covariance path. It does
-not claim bivariate random slopes, phylogenetic slopes, slope-SD regression, or
-random effects in `rho12`.
+not claim bivariate random slopes, slope-SD regression, structured slope
+correlations, or random effects in `rho12`.
 
 ## Expansion Boundaries
 
@@ -94,7 +94,7 @@ Slice 188 publishes that gate as a pre-simulation status table:
 | Gaussian `sigma` | Multiple independent numeric slopes on `log(sigma)` | Correlated residual-scale slope blocks and labelled residual-scale slope covariance |
 | Univariate `mu`/`sigma` covariance | One or more matched labelled random-intercept blocks | Slope-level mean-scale covariance |
 | Bivariate ordinary covariance | Matching labelled random-intercept blocks and q=4 all-four intercept blocks | Matching slope-only `mu1`/`mu2`, q=4 location-slope, and q=8 all-four slope endpoints |
-| Phylogenetic structured effects | Intercept-level univariate, bivariate, direct-SD, q=2 correlation-regression, and q=4 location-scale paths | `phylo(1 + x | species, tree = tree)` and richer structured-slope covariance |
+| Phylogenetic structured effects | Intercept-level univariate, one numeric univariate `mu` slope with independent fields, bivariate, direct-SD, q=2 correlation-regression, and q=4 location-scale paths | Multiple phylogenetic slopes, bivariate phylogenetic slopes, and richer structured-slope covariance |
 | Coordinate spatial structured effects | Univariate Gaussian `mu` intercept, one numeric slope with independent coordinate fields, and constant bivariate `mu1`/`mu2` q=2 covariance | Mesh/SPDE, multiple slopes, slope correlations, spatial `sigma`, bivariate spatial q=4 covariance, spatial direct-SD surfaces, and spatial `corpair()` |
 | Non-Gaussian families | Fixed-effect likelihoods plus ordinary Poisson `mu` random intercepts and independent numeric slopes in the pre-simulation random-effect gate; non-Gaussian `sigma` random effects have a fixed-effect-only boundary | NB2 `mu` random intercepts, correlated non-Gaussian `mu` slopes, scale/shape/ZI/one-inflation/hurdle/ordinal random effects, cross-parameter covariance blocks, and structured non-Gaussian paths |
 
@@ -343,9 +343,11 @@ covariance blocks remain planned.
 
 The following remained planned or unsupported when the Phase 6c core closed:
 
-- `phylo(1 + x | species, tree = tree)` fitting;
-- `spatial(1 + x | site, coords = coords)` fitting, later completed in
-  Phase 10 for one numeric univariate Gaussian `mu` slope;
+- multiple or correlated phylogenetic structured slopes;
+- multiple or correlated spatial structured slopes; one numeric
+  `spatial(1 + x | site, coords = coords)` slope was later completed in
+  Phase 10 and one numeric `phylo(1 + x | species, tree = tree)` slope was
+  completed in the post-0.1.3 parity lane;
 - bivariate random slopes in `mu1`, `mu2`, `sigma1`, or `sigma2`;
 - slope-specific `sd(id, dpar = "mu", coef = "x") ~ x_group`;
 - random effects in `rho12`;
@@ -360,10 +362,9 @@ reader-facing examples before they can be taught as fitted behaviour.
 
 The structured one-slope rows were design-complete enough to hand forward, but
 not fitted in the Phase 6c core closure. Phase 10 later completed the
-coordinate-spatial row for one numeric univariate Gaussian `mu` slope. Slice
-186 re-audited the sibling lanes and confirmed that phylogenetic slope syntax
-is still rejected while spatial one-slope syntax is fitted. That is an
-intentional parity gap, not hidden support.
+coordinate-spatial row for one numeric univariate Gaussian `mu` slope. Slice 39
+of the post-0.1.3 parity lane then completed the phylogenetic, animal-model,
+and `relmat()` sibling rows for one numeric univariate Gaussian `mu` slope.
 Slice 187 re-audited the fitted spatial path itself and added direct
 profile-interval coverage for the `spatial(0 + x | site)` slope-field SD plus
 boundary tests for multiple slopes, spatial scale terms, and bivariate spatial
@@ -371,7 +372,7 @@ syntax.
 
 | Surface | Minimum next implementation contract | Destination |
 |---|---|---|
-| `phylo(1 + x | species, tree = tree)` | one structured `mu` slope, explicit intercept/slope storage order, simulation recovery for slope SD, `sdpars$mu` and `profile_targets()` names, and `check_drm()` replication diagnostics | Phase 12 |
+| `phylo(1 + x | species, tree = tree)` | one structured `mu` slope, explicit intercept/slope storage order, simulation recovery for slope SD, `sdpars$mu` and `profile_targets()` names, and `check_drm()` diagnostics | Post-0.1.3 parity lane, completed for one numeric univariate Gaussian `mu` slope |
 | `spatial(1 + x | site, coords = coords)` | one coordinate-spatial `mu` slope, separation from future mesh/SPDE path, simulation recovery for slope SD, `ranef()`/`sdpars` names, and coordinate diagnostics | Phase 10, completed for one numeric coordinate slope |
 | bivariate slope1-slope2 correlation | coefficient-aware `corpair()` syntax, `corpairs()` rows with `from_coef` and `to_coef`, direct-target interval status, and recovery evidence | Phase 11 or later |
 | structured slope tutorials | fitted output, interval/status columns, and biological interpretation after the model surface is stable | final tutorial pass after Phases 10-13 |

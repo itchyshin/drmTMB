@@ -41,6 +41,10 @@
 #' reports level replication, location SDs relative to residual scales,
 #' log-`sigma` SDs, and whether any latent structured correlation is near the
 #' boundary. If a univariate
+#' Gaussian fit includes `phylo(1 | species, tree = tree)` or
+#' `phylo(1 + x | species, tree = tree)` in `mu`, it reports species
+#' replication, the fitted phylogenetic SDs, and whether the smallest
+#' phylogenetic SD is tiny relative to the residual scale. If a univariate
 #' Gaussian fit includes `spatial(1 | site, coords = coords)` in `mu`, it
 #' reports site replication, fitted coordinate range, the spatial SD, and
 #' whether the spatial SD is tiny relative to the residual scale. If a Gaussian
@@ -137,6 +141,7 @@ check_drm.drmTMB <- function(
       rho_boundary = rho_boundary
     ),
     check_phylo_replication(object),
+    check_phylo_mu_diagnostics(object),
     check_spatial_mu_diagnostics(object),
     check_known_relatedness_mu_diagnostics(object),
     check_phylo_direct_sd_model(object),
@@ -1990,6 +1995,122 @@ check_phylo_replication <- function(object) {
     } else {
       "Every observed species has at least two fitted observations."
     }
+  )
+}
+
+check_phylo_mu_diagnostics <- function(object) {
+  if (!has_phylo_mu_effect(object)) {
+    return(NULL)
+  }
+
+  phylo_mu <- object$model$structured$phylo_mu
+  index <- phylo_mu$observation_node_index
+  counts <- tabulate(match(index, unique(index)))
+  min_count <- if (length(counts) > 0L) min(counts) else NA_integer_
+  n_species <- length(counts)
+  weak_replication <- is.finite(min_count) && min_count < 2L
+
+  sd_label <- phylo_mu_sd_labels(phylo_mu, object$model$model_type)
+  sd_values <- unname(object$sdpars$mu[match(
+    sd_label,
+    names(object$sdpars$mu)
+  )])
+  finite_positive_sd <- length(sd_values) == length(sd_label) &&
+    all(is.finite(sd_values)) &&
+    all(sd_values > 0)
+
+  residual_scale <- spatial_mu_residual_scale(object)
+  sd_ratios <- if (finite_positive_sd && is.finite(residual_scale)) {
+    sd_values / residual_scale
+  } else {
+    NA_real_
+  }
+  finite_sd_ratios <- sd_ratios[is.finite(sd_ratios)]
+  min_sd <- if (finite_positive_sd) min(sd_values) else NA_real_
+  min_sd_ratio <- if (length(finite_sd_ratios) > 0L) {
+    min(finite_sd_ratios)
+  } else {
+    NA_real_
+  }
+  weak_sd <- !finite_positive_sd ||
+    any(finite_sd_ratios < 0.05)
+  sd_text <- if (length(sd_label) == 1L) {
+    paste0(
+      "; phylo_sd=",
+      format_check_number(sd_values),
+      "; sd_ratio=",
+      format_check_number(sd_ratios)
+    )
+  } else {
+    paste0(
+      "; n_coef=",
+      length(sd_label),
+      "; min_phylo_sd=",
+      format_check_number(min_sd),
+      "; min_sd_ratio=",
+      format_check_number(min_sd_ratio)
+    )
+  }
+
+  check_row(
+    "phylo_mu_diagnostics",
+    if (!finite_positive_sd) {
+      "error"
+    } else if (weak_replication || weak_sd) {
+      "note"
+    } else {
+      "ok"
+    },
+    paste0(
+      "group=",
+      phylo_mu$group,
+      "; n_species=",
+      n_species,
+      "; min_species_n=",
+      min_count,
+      sd_text
+    ),
+    phylo_mu_diagnostic_message(
+      finite_positive_sd,
+      weak_replication,
+      weak_sd
+    )
+  )
+}
+
+phylo_mu_diagnostic_message <- function(
+  finite_positive_sd,
+  weak_replication,
+  weak_sd
+) {
+  if (!finite_positive_sd) {
+    return(paste(
+      "The fitted phylogenetic SD is non-positive or non-finite;",
+      "inspect convergence, tree input, and the fitted structured effect."
+    ))
+  }
+  if (weak_replication && weak_sd) {
+    return(paste(
+      "At least one species has fewer than two fitted observations and the",
+      "phylogenetic SD is tiny relative to residual scale; interpret the",
+      "phylogenetic field cautiously."
+    ))
+  }
+  if (weak_replication) {
+    return(paste(
+      "At least one species has fewer than two fitted observations;",
+      "interpret conditional phylogenetic effects and SDs cautiously."
+    ))
+  }
+  if (weak_sd) {
+    return(paste(
+      "The phylogenetic SD is tiny relative to residual scale; the structured",
+      "phylogenetic field may be weakly identified."
+    ))
+  }
+  paste(
+    "The phylogenetic random effect has replicated species and a non-negligible",
+    "fitted SD relative to residual scale."
   )
 }
 

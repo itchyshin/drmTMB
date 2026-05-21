@@ -320,12 +320,15 @@ should impose conservative defaults and diagnostics. Three or more structured
 slopes should remain a distant-future expert mode, not a near-term advertised
 feature.
 
-Slice 186 records the current parity audit. Coordinate spatial has completed
+Slice 186 records the original parity audit. Coordinate spatial first completed
 step 2 for one univariate Gaussian `mu` slope through
 `spatial(1 + x | site, coords = coords)`, using independent intercept and
-slope fields. Phylogeny has not: `phylo(1 + x | species, tree = tree)` remains
-rejected and should stay that way until its own slope-SD recovery,
-diagnostics, and profile-target naming are available.
+slope fields. Slice 39 of the post-0.1.3 parity lane then brought phylogeny to
+the same first fitted one-slope contract through
+`phylo(1 + x | species, tree = tree)`, with separate intercept-field and
+slope-field SDs, direct profile targets, `ranef()` terms, and
+`check_drm()` diagnostics. Multiple phylogenetic slopes and phylogenetic
+slope correlations remain planned.
 
 Slice 187 then rechecked the spatial side of that boundary. The fitted
 coordinate-spatial slope SD is a direct profile target, including the

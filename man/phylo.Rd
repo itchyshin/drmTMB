@@ -7,7 +7,8 @@
 phylo(term, tree)
 }
 \arguments{
-\item{term}{Structured random-effect term, currently \code{1 | species}.}
+\item{term}{Structured random-effect term, currently \code{1 | species} or
+\code{1 + x | species}.}
 
 \item{tree}{Ultrametric phylogeny input with branch lengths.}
 }
@@ -19,13 +20,13 @@ A formula marker; never evaluated by users.
 fitted paths support intercept-only Gaussian location effects,
 response-specific direct-SD formulas, and labelled bivariate Gaussian
 location-scale blocks. Use \code{phylo(1 | species, tree = tree)} in univariate
-\code{mu}, matching terms in bivariate \code{mu1} and \code{mu2}, or matching labelled
+\code{mu}, one numeric univariate Gaussian \code{mu} slope with independent
+intercept/slope SDs, matching terms in bivariate \code{mu1} and \code{mu2}, or matching labelled
 all-four terms across \code{mu1}, \code{mu2}, \code{sigma1}, and \code{sigma2}. A single shared
 label estimates the full q4 block; a \code{mu1}/\code{mu2} label plus a separate
 \code{sigma1}/\code{sigma2} label estimates the block-diagonal fallback. Standalone
-univariate \code{sigma ~ phylo(...)} and structured phylogenetic slopes such as
-\code{phylo(1 + x | species, tree = tree)} remain planned even though the
-coordinate-spatial sibling already fits one numeric \code{mu} slope. The public
+univariate \code{sigma ~ phylo(...)}, multiple phylogenetic slopes, and
+phylogenetic slope correlations remain planned. The public
 \code{phylo()} API requires an
 ultrametric tree with branch lengths and uses the Hadfield and Nakagawa
 A-inverse sparse-precision path internally.

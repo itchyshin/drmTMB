@@ -6,10 +6,13 @@ structural-parity slices:
 1. Do all random-effect types have at least one fitted random-slope route?
 2. Does structural dependence work in non-Gaussian settings?
 
-The short answers are no and mostly no. `drmTMB` has several fitted random
-slopes, but slope parity is not complete across structured effects. Structural
-dependence is currently a Gaussian route except for ordinary unstructured
-Poisson and NB2 `mu` random effects.
+The short answers are closer now, but still bounded. `drmTMB` has at least one
+fitted random-slope route for ordinary Gaussian `mu`, ordinary Gaussian
+`sigma`, coordinate spatial Gaussian `mu`, phylogenetic Gaussian `mu`,
+animal-model Gaussian `mu`, `relmat()` Gaussian `mu`, and ordinary Poisson/NB2
+`mu`. Bivariate random slopes and structured non-Gaussian dependence remain
+planned. Structural dependence is currently a Gaussian route except for
+ordinary unstructured Poisson and NB2 `mu` random effects.
 
 ## Random-Slope Parity
 
@@ -19,17 +22,18 @@ Poisson and NB2 `mu` random effects.
 | Ordinary Gaussian `sigma` group effects | Yes | Independent residual-scale slopes such as `sigma ~ z + (0 + w | id)` on the log-`sigma` predictor | Correlated residual-scale slope blocks and labelled `mu`/`sigma` slope covariance |
 | Ordinary bivariate group covariance | No for slopes | Matching labelled random intercepts in `mu1`/`mu2`, `sigma1`/`sigma2`, and constant q=4 location-scale blocks are fitted | Matching slope-only `mu1`/`mu2` blocks, intercept-plus-slope bivariate blocks, and all-four slope location-scale blocks |
 | Coordinate spatial Gaussian `mu` | Yes | `spatial(1 + x | site, coords = coords)` fits independent coordinate-spatial intercept and slope fields for univariate Gaussian `mu` | Multiple spatial slopes, spatial intercept-slope correlation, bivariate spatial slopes, spatial `sigma`, mesh/SPDE |
-| Phylogenetic Gaussian effects | No | Intercept-only `mu`, matching bivariate `mu1`/`mu2`, selected q=4 location-scale, direct `sd_phylo*()`, and q=2 phylogenetic `corpair()` routes are fitted | `phylo(1 + x | species, tree = tree)` and phylogenetic slope correlations |
-| `animal()` Gaussian effects | No | `animal()` fits Gaussian `mu` intercepts, matching bivariate q=2 location covariance, and constant all-four q=4 location-scale blocks through `pedigree`, `A`, or `Ainv` | Animal-model slopes, sparse large-pedigree construction, standalone scale models, predictor-dependent `corpair()`, direct-SD grammar |
-| `relmat()` Gaussian effects | No | `relmat()` fits Gaussian `mu` intercepts, matching bivariate q=2 location covariance, and constant all-four q=4 location-scale blocks through `K` or `Q` | `relmat()` slopes, standalone scale models, predictor-dependent `corpair()`, direct-SD grammar |
+| Phylogenetic Gaussian effects | Yes | `phylo(1 + x | species, tree = tree)` fits independent phylogenetic intercept and slope fields for univariate Gaussian `mu`; intercept-only `mu`, matching bivariate `mu1`/`mu2`, selected q=4 location-scale, direct `sd_phylo*()`, and q=2 phylogenetic `corpair()` routes are also fitted | Multiple phylogenetic slopes, phylogenetic slope correlations, bivariate phylogenetic slopes, and phylogenetic non-Gaussian effects |
+| `animal()` Gaussian effects | Yes | `animal(1 + x | id, pedigree/A/Ainv = ...)` fits independent animal-model intercept and slope fields for univariate Gaussian `mu`; matching bivariate q=2 location covariance and constant all-four q=4 location-scale blocks are fitted | Sparse large-pedigree construction, multiple animal slopes, animal slope correlations, standalone scale models, predictor-dependent `corpair()`, direct-SD grammar |
+| `relmat()` Gaussian effects | Yes | `relmat(1 + x | id, K/Q = ...)` fits independent relatedness intercept and slope fields for univariate Gaussian `mu`; matching bivariate q=2 location covariance and constant all-four q=4 location-scale blocks are fitted | Multiple `relmat()` slopes, slope correlations, standalone scale models, predictor-dependent `corpair()`, direct-SD grammar |
 | Ordinary Poisson `mu` group effects | Yes, first slice | Non-zero-inflated Poisson `mu` random intercepts and independent numeric slopes on the log-mean predictor | Correlated Poisson slopes, labelled covariance blocks, zero-inflated Poisson random effects, structured Poisson effects |
 | Ordinary NB2 `mu` group effects | Yes, first slice | Non-zero-inflated NB2 `mu` random intercepts and independent numeric slopes on the log-mean predictor | Correlated NB2 slopes, NB2 `sigma` random effects, zero-inflated NB2 random effects, structured NB2 effects |
 | `sd(group)` random-effect SD models | No slope-specific SD route | Fitted for unlabelled Gaussian `mu` random-intercept SD surfaces such as `sd(id) ~ x_group` | Coefficient-specific random-slope SD formulas such as `sd(id, coef = "x") ~ ...` |
 | Meta-analysis known `V` | Not a random-slope layer | `meta_V(V = V)` treats sampling covariance as known input data | Variance-component meta-analysis and phylogenetic-plus-study extensions |
 
-The practical consequence is that the first structured slope parity gap is
-phylogenetic, animal, and `relmat()` `mu` slopes. Spatial is ahead because the
-coordinate-spatial Gaussian path already fits one independent slope field.
+The practical consequence is that the first structured one-slope parity gap is
+closed for univariate Gaussian `mu`. The next slope gaps are bivariate
+slope-only covariance, intercept-plus-slope covariance, multiple structured
+slopes, slope correlations, and non-Gaussian structured effects.
 
 ## Non-Gaussian Structural Dependence
 

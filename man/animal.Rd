@@ -7,7 +7,8 @@
 animal(term, pedigree = NULL, A = NULL, Ainv = NULL)
 }
 \arguments{
-\item{term}{Structured random-effect term, such as \code{1 | id}.}
+\item{term}{Structured random-effect term, such as \code{1 | id} or
+\code{1 + x | id}.}
 
 \item{pedigree}{Pedigree data frame with columns \code{id}, \code{dam}, and \code{sire}.
 Unknown parents can be \code{NA}, \code{""}, or \code{"0"}. The first fitted route builds
@@ -36,10 +37,14 @@ covariance from matching labelled terms in \code{mu1} and \code{mu2}, and the co
 all-four q=4 location-scale block from matching labelled terms in \code{mu1},
 \code{mu2}, \code{sigma1}, and \code{sigma2}, for example
 \code{animal(1 | p | id, pedigree = pedigree)}. The pedigree route builds a dense
-additive relationship matrix from \code{id}, \code{dam}, and \code{sire} columns.
-Large-pedigree sparse precision construction, structured slopes, standalone
-\code{sigma} animal models, predictor-dependent \code{corpair()} regression, and
-generic direct-SD grammar remain planned.
+additive relationship matrix from \code{id}, \code{dam}, and \code{sire} columns. The
+univariate Gaussian \code{mu} path also supports one numeric slope, for example
+\code{animal(1 + x | id, pedigree = pedigree)}, as independent intercept and
+slope fields with separate SDs and no intercept-slope correlation.
+Large-pedigree sparse precision construction, multiple structured slopes,
+slope correlations, standalone \code{sigma} animal models, predictor-dependent
+\code{corpair()} regression, and animal-model \verb{sd*()} direct-SD grammar remain
+planned.
 }
 \examples{
 # Fitted: additive genetic variance in body size from a precomputed Ainv.

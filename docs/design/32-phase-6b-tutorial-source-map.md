@@ -56,7 +56,7 @@ switching between SD, variance, and predictability.
 | `vignettes/which-scale.Rmd` | Scale vocabulary guide | Slice 63 and Slice 67 | Become the main glossary for `sigma`, `sd(group)`, residual-scale random effects, random-slope SDs, likelihood weights, and known sampling variance. |
 | `vignettes/bivariate-coscale.Rmd` | Residual `rho12` tutorial | Slice 64 | Interpret `mu1` and `mu2` slopes, `sigma1` and `sigma2` slopes, and `rho12` slopes as separate biological claims. Keep residual `rho12` distinct from group-level `corpairs()`. |
 | `vignettes/meta-analysis.Rmd` | Known sampling covariance tutorial | Slice 65 | Explain mean moderator slopes, extra heterogeneity `sigma`, known sampling variance `V`, and when to report `sigma`, `sigma^2`, or total observation variance. |
-| `vignettes/phylogenetic-spatial.Rmd` | Structural-dependence tutorial | Slice 66 and Slice 91 | Separate residual `rho12`, ordinary group-level correlations, phylogenetic covariance rows, coordinate-spatial `mu` diagnostics, the first independent spatial slope SD, and the planned phylogeny-plus-spatial endpoint. Keep mesh/SPDE, spatial slope correlations, simultaneous `phylo()` plus `spatial()`, and structural `sigma` slopes planned unless implemented later. |
+| `vignettes/phylogenetic-spatial.Rmd` | Structural-dependence tutorial | Slice 66 and Slice 91 | Separate residual `rho12`, ordinary group-level correlations, phylogenetic covariance rows, coordinate-spatial `mu` diagnostics, the first independent spatial and phylogenetic slope SDs, and the planned phylogeny-plus-spatial endpoint. Keep mesh/SPDE, structured slope correlations, simultaneous `phylo()` plus `spatial()`, and structural `sigma` slopes planned unless implemented later. |
 | `vignettes/model-workflow.Rmd` | Post-fit workflow | Slice 62 and Slice 68 | Teach readers to inspect `summary()`, `profile_targets()`, `conf.status`, `profile.boundary`, `profile.message`, `corpairs()`, and `check_drm()` before interpreting bounded SD or correlation targets. |
 | `vignettes/source-map.Rmd` | Contributor source map | Slice 61 support | Keep R builders, TMB branches, tests, and docs aligned when a tutorial claims a model surface is implemented. |
 
@@ -117,8 +117,9 @@ should not disappear from examples.
 - Slices 62-68 can edit tutorials, navigation, and examples using this map.
 - Phase 6c and the structural-dependence phases should handle new random-slope
   implementation work. Ordinary fitted random slopes and the first
-  coordinate-spatial one-slope path can be interpreted, but phylogenetic slopes,
-  multiple spatial slopes, and slope correlations should stay planned.
+  coordinate-spatial, phylogenetic, animal-model, and `relmat()` one-slope
+  paths can be interpreted, but multiple structured slopes, bivariate
+  structured slopes, and slope correlations should stay planned.
 - Any new user-facing syntax needs the formula grammar updated before it is
   treated as available.
 - Any new likelihood parameterization needs the likelihood design note updated

@@ -158,7 +158,7 @@ now fitted.
 | 30 | q4 broad-grid boundary | Done: focused q4 smoke artifacts exist; broad operating-characteristic q4 reports still need larger replicate and interpretation work |
 | 31 | Random-slope parity map | Done: `docs/design/59-structural-slope-and-non-gaussian-map.md` maps fitted versus planned slope routes |
 | 32 | Ordinary Gaussian slope status | Done: ordinary Gaussian `mu` and `sigma` slopes stay fitted, with correlated residual-scale and bivariate slopes planned |
-| 33 | Structured slope status | Done: spatial one-slope is fitted; phylo, animal, and relmat slopes remain planned |
+| 33 | Structured slope status | Done at the time as a fitted-versus-planned map; superseded by Slice 39, which fits the phylo, animal, and relmat one-slope Gaussian `mu` sibling paths |
 | 34 | Bivariate slope status | Done: bivariate random slopes remain planned despite fitted bivariate intercept and q4 location-scale blocks |
 | 35 | Non-Gaussian ordinary random-effect status | Done: Poisson and NB2 `mu` random intercepts and independent numeric slopes are fitted first slices |
 | 36 | Non-Gaussian structural-dependence status | Done: `phylo()`, `spatial()`, `animal()`, and `relmat()` remain Gaussian-only fitted structured routes |

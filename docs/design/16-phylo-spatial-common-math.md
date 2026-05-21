@@ -131,11 +131,10 @@ coordinate covariance as the small-data foundation before the scalable
 mesh/SPDE route.
 
 Slice 239 records the pre-simulation structured-slope parity gate in
-`docs/design/44-structured-slope-parity-gate.md`. The current fitted status is
-not parity: coordinate spatial has one univariate Gaussian `mu` slope, while
-phylogenetic, animal, and `relmat()` one-slope paths remain planned until they
-have implementation, SD/profile targets, diagnostics, recovery tests, and
-reader-facing examples.
+`docs/design/44-structured-slope-parity-gate.md`. Slice 39 of the post-0.1.3
+parity lane closes the first univariate Gaussian `mu` one-slope gap:
+coordinate spatial, phylogenetic, animal-model, and `relmat()` effects now
+share the same independent intercept-field plus slope-field contract.
 
 The mature phylogenetic grammar should probably look like structured
 random-effect syntax rather than a bare marker:
@@ -397,13 +396,14 @@ covariance through `meta_known_V(V = V)`; the preferred roadmap spelling is
 supports univariate Gaussian `mu` random intercepts, independent numeric `mu`
 random slopes, one-slope correlated `mu` blocks, univariate Gaussian
 residual-scale random intercepts and independent random slopes in `sigma`, and
-intercept-only `phylo(1 | species, tree = tree)` in `mu`. The
-coordinate-spatial foundation now also fits
+intercept-only `phylo(1 | species, tree = tree)` and one numeric
+`phylo(1 + x | species, tree = tree)` slope in `mu`. The
+coordinate-spatial foundation also fits
 `spatial(1 | site, coords = coords)` and one numeric
 `spatial(1 + x | site, coords = coords)` slope in univariate Gaussian `mu`.
 Mesh/SPDE spatial fields, multiple spatial slopes, spatial slope correlations,
-phylogenetic slopes, and phylogenetic or spatial effects in `sigma` are still
-planned.
+multiple phylogenetic slopes, phylogenetic slope correlations, and
+phylogenetic or spatial effects in `sigma` are still planned.
 
 ## Identifiability Rule
 
@@ -484,13 +484,12 @@ Recommended staging:
 
 The first structured-slope path should treat the slope field as independent of
 the intercept field, and should not estimate intercept-slope `corpair()` rows.
-The fitted coordinate spatial one-slope path follows that rule: it estimates
-`spatial(1 | site)` and `spatial(0 + x | site)` as independent fields with a
-shared coordinate precision and separate SDs. Phylogenetic slopes, mesh/SPDE
-slopes, multiple spatial slopes, and slope correlations remain later gates.
-Slice 186 rechecked this boundary: `phylo(1 + x | species, tree = tree)` is
-still rejected, while the coordinate-spatial one-slope path is fitted. This is
-a deliberate validation gap, not a syntax synonym.
+The fitted coordinate spatial and phylogenetic one-slope paths follow that
+rule: they estimate intercept and slope fields as independent effects with a
+shared structured precision and separate SDs. Mesh/SPDE slopes, multiple
+structured slopes, bivariate structured slopes, and slope correlations remain
+later gates. Slice 39 closes the earlier validation gap for the first
+univariate Gaussian phylogenetic one-slope path.
 Slice 187 rechecked the fitted spatial side: the slope-field SD has direct
 profile-interval coverage. The later q=2 bivariate spatial slice added matching
 `mu1`/`mu2` coordinate fields, while spatial `sigma`, spatial q=4 syntax,

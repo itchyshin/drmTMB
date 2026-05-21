@@ -7,7 +7,8 @@
 relmat(term, K = NULL, Q = NULL)
 }
 \arguments{
-\item{term}{Structured random-effect term, such as \code{1 | id}.}
+\item{term}{Structured random-effect term, such as \code{1 | id} or
+\code{1 + x | id}.}
 
 \item{K}{Known relatedness or covariance matrix for the first fitted
 univariate Gaussian \code{mu} path.}
@@ -33,9 +34,13 @@ univariate Gaussian \code{mu} random intercept, for example
 covariance from matching labelled terms in \code{mu1} and \code{mu2}, and the constant
 all-four q=4 location-scale block from matching labelled terms in \code{mu1},
 \code{mu2}, \code{sigma1}, and \code{sigma2}, for example
-\code{relmat(1 | p | line, Q = Q)}. Structured slopes, standalone \code{sigma}
-relatedness models, predictor-dependent \code{corpair()} regression, and generic
-direct-SD grammar remain planned. \code{relmat()} is
+\code{relmat(1 | p | line, Q = Q)}. The univariate Gaussian \code{mu} path also
+supports one numeric slope, for example \code{relmat(1 + x | line, Q = Q)}, as
+independent intercept and slope fields with separate SDs and no
+intercept-slope correlation. Multiple structured slopes, slope correlations,
+standalone \code{sigma} relatedness models, predictor-dependent \code{corpair()}
+regression, and relatedness \verb{sd*()} direct-SD grammar remain planned.
+\code{relmat()} is
 intentionally separate from \code{\link[=meta_V]{meta_V()}}, which adds known sampling covariance
 among observations, and from residual \code{rho12}, which models
 within-observation bivariate residual correlation.

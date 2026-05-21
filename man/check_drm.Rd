@@ -77,6 +77,10 @@ animal-model, or \code{relmat()} q=4 \code{mu1}/\code{mu2}/\code{sigma1}/\code{s
 reports level replication, location SDs relative to residual scales,
 log-\code{sigma} SDs, and whether any latent structured correlation is near the
 boundary. If a univariate
+Gaussian fit includes \code{phylo(1 | species, tree = tree)} or
+\code{phylo(1 + x | species, tree = tree)} in \code{mu}, it reports species
+replication, the fitted phylogenetic SDs, and whether the smallest
+phylogenetic SD is tiny relative to the residual scale. If a univariate
 Gaussian fit includes \code{spatial(1 | site, coords = coords)} in \code{mu}, it
 reports site replication, fitted coordinate range, the spatial SD, and
 whether the spatial SD is tiny relative to the residual scale. If a Gaussian
