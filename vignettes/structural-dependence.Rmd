@@ -42,6 +42,9 @@ smaller articles.
 
 Read [animal models and additive relatedness](animal-models.html) when your
 first question is specifically about `animal()`, `pedigree`, `A`, or `Ainv`.
+Read [phylogenetic structured effects](phylogenetic-models.html) when your
+first question is specifically about `phylo()`, tree-based covariance,
+`sd_phylo*()`, or phylogenetic `corpair()` rows.
 Read [known-matrix relatedness with relmat](relmat-known-matrices.html) when
 the matrix is a lower-level latent covariance or precision matrix that does not
 belong to the animal, phylogenetic, or spatial routes.

@@ -1,0 +1,95 @@
+---
+title: "Phylogenetic structured effects"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Phylogenetic structured effects}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+Use `phylo()` when species share evolutionary history and the scientific
+question is whether related species have similar location deviations, structured
+location-scale covariance, direct phylogenetic SD surfaces, or a fitted
+phylogenetic correlation-pair regression. The fitted route uses a tree supplied
+as `tree = tree`.
+
+## What is fitted today
+
+| Question | Syntax | Status |
+| --- | --- | --- |
+| Does one Gaussian response have phylogenetic location deviations? | `phylo(1 | species, tree = tree)` in `mu` | Fitted. |
+| Do two Gaussian response means share a phylogenetic correlation? | matching `phylo(1 | species, tree = tree)` or labelled `phylo(1 | p | species, tree = tree)` terms in `mu1` and `mu2` | Fitted q=2 location-location slice. `corpairs(level = "phylogenetic")` reports the latent phylogenetic row separately from residual `rho12`. |
+| Do phylogenetic location and scale deviations form one q=4 block? | matching labelled `phylo(1 | p | species, tree = tree)` terms across `mu1`, `mu2`, `sigma1`, and `sigma2` | Fitted first constant q=4 location-scale slice. Partial, unlabelled, mismatched, and slope forms remain rejected. |
+| Do species-level predictors change the phylogenetic location SD? | `sd_phylo(species) ~ z`, `sd_phylo1(species) ~ z1`, or `sd_phylo2(species) ~ z2` | Fitted direct-SD route for phylogenetic location SD surfaces. This is not residual `sigma`. |
+| Do species-level predictors change the q=2 phylogenetic mean-mean correlation? | `corpair(species, level = "phylogenetic", block = "p", from = "mu1", to = "mu2") ~ ecology` | Fitted q=2 predictor-dependent correlation route. q=4 endpoint-specific `corpair()` regressions remain planned. |
+
+## Start with the smallest useful model
+
+For one response, start with a phylogenetic location intercept:
+
+```r
+fit_phylo <- drmTMB(
+  y ~ treatment + phylo(1 | species, tree = tree),
+  data = dat,
+  family = gaussian()
+)
+```
+
+For two response means, use matching terms and read the latent correlation with
+`corpairs()`:
+
+```r
+fit_phylo_q2 <- drmTMB(
+  mu1 = trait1 ~ treatment +
+    phylo(1 | p | species, tree = tree),
+  mu2 = trait2 ~ treatment +
+    phylo(1 | p | species, tree = tree),
+  data = dat,
+  family = biv_gaussian()
+)
+corpairs(fit_phylo_q2, level = "phylogenetic")
+rho12(fit_phylo_q2)
+```
+
+`corpairs()` reports the fitted latent phylogenetic correlation among
+species-level location deviations. `rho12()` reports the residual correlation
+between responses after fixed effects and random effects have been included.
+
+## What to inspect
+
+After fitting, inspect the phylogenetic layer before interpreting it:
+
+| Output | Use |
+| --- | --- |
+| `check_drm(fit)` | Confirm the phylogenetic layer was recognized and review tree/species diagnostics. |
+| `fit$sdpars$mu` | Read fitted phylogenetic location SDs. |
+| `ranef(fit, "phylo_mu")` | Inspect conditional species deviations on the fitted phylogenetic layer. |
+| `summary(fit)$covariance` | Check how phylogenetic SDs and correlations are reported beside other covariance layers. |
+| `profile_targets(fit)` | See which phylogenetic SD or constant q=2 correlation targets can be profiled directly. |
+| `corpairs(fit, level = "phylogenetic")` | Read fitted constant or modelled phylogenetic correlation rows. |
+
+Direct-SD terms such as `sd_phylo(species) ~ z` model species-level predictors
+of a phylogenetic location standard deviation. They do not model residual
+`sigma`, and they do not imply a q=4 location-scale block unless the matching
+q=4 `phylo()` terms are also fitted.
+
+## Boundaries
+
+The following phylogenetic routes remain planned:
+
+- phylogenetic slopes such as `phylo(1 + x | species, tree = tree)`;
+- public phylogenetic matrix inputs such as `phylo(1 | species, A = A)`;
+- simultaneous `phylo()` plus `spatial()` layers in the same formula;
+- structured random effects in residual `rho12`;
+- predictor-dependent q=4 phylogenetic `corpair()` regressions;
+- non-Gaussian phylogenetic structured effects beyond the fitted Gaussian
+  slices.
+
+Use the [structural-dependence overview](structural-dependence.html) when you
+are choosing among `animal()`, `phylo()`, `spatial()`, and `relmat()`. Use the
+detailed [structural-dependence tutorial](phylogenetic-spatial.html) when you
+need the current worked examples, equations, and broader parity ladder.

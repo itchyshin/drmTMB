@@ -60,6 +60,8 @@ navbar:
           href: articles/structural-dependence.html
         - text: Animal models and relatedness
           href: articles/animal-models.html
+        - text: Phylogenetic structured effects
+          href: articles/phylogenetic-models.html
         - text: Known-matrix relmat models
           href: articles/relmat-known-matrices.html
         - text: Structural dependence details
@@ -166,6 +168,7 @@ articles:
       - bivariate-coscale
       - structural-dependence
       - animal-models
+      - phylogenetic-models
       - relmat-known-matrices
       - phylogenetic-spatial
   - title: Simulation & Comparison
