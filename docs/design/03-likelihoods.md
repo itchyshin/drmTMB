@@ -75,7 +75,7 @@ is the current routing contract:
 | `3` | `family = student()` | `drm_build_student_ls_spec()` | Univariate Student-t location-scale-shape models with `mu`, `sigma`, and `nu = 2 + exp(eta_nu)`. |
 | `4` | `family = lognormal()` | `drm_build_lognormal_ls_spec()` | Univariate fixed-effect lognormal location-scale models for positive responses, with `mu` and `sigma` defined on the log-response scale. |
 | `5` | `family = Gamma(link = "log")` | `drm_build_gamma_ls_spec()` | Univariate fixed-effect Gamma mean-CV models for positive responses, with `mu` as the response mean and `sigma` as the coefficient of variation. |
-| `6` | `family = poisson(link = "log")` | `drm_build_poisson_spec()` | Univariate fixed-effect Poisson mean models for non-negative integer counts, with `mu` as the count mean. |
+| `6` | `family = poisson(link = "log")` | `drm_build_poisson_spec()` | Univariate Poisson mean models for non-negative integer counts, with `mu` as the count mean, including ordinary `mu` random intercepts and independent numeric slopes plus the first q=1 phylogenetic `mu` intercept. |
 | `7` | `family = nbinom2()` | `drm_build_nbinom2_spec()` | Univariate negative-binomial 2 models for overdispersed counts, with `mu` as the count mean, `sigma` as an overdispersion scale, and optional ordinary `mu` random intercepts or independent numeric slopes on the log-mean predictor. |
 | `8` | `family = poisson(link = "log")` plus `zi ~ ...` | `drm_build_poisson_spec()` | Univariate fixed-effect zero-inflated Poisson models, with `mu` as the conditional count mean and `zi` as the structural-zero probability. |
 | `9` | `family = nbinom2()` plus `zi ~ ...` | `drm_build_nbinom2_spec()` | Univariate fixed-effect zero-inflated negative-binomial 2 models, with `mu` as the conditional count mean, `sigma` as the NB2 overdispersion scale, and `zi` as the structural-zero probability. |
@@ -931,7 +931,8 @@ models are later phases.
 
 ## Implemented Poisson Mean
 
-The first count path is fixed-effect mean regression:
+The first count path is mean regression on the log scale. The fixed-effect
+version is:
 
 ```text
 y_i | mu_i ~ Poisson(mu_i)
@@ -960,12 +961,28 @@ drmTMB(
 )
 ```
 
+Ordinary unlabelled `mu` random intercepts and independent numeric slopes add
+the usual grouped latent effects to `eta_mu_i`. The first structured
+non-Gaussian path adds a q=1 phylogenetic `mu` intercept:
+
+```text
+eta_mu_i = o_i + X_mu[i, ] beta_mu + a_species[i]
+a ~ Normal(0, sd_phylo^2 A)
+```
+
+where `A` is the tree-implied phylogenetic covariance; the TMB template uses the
+sparse precision `Q_phylo`, the latent vector `u_phylo`, and the direct SD target
+`log_sd_phylo`. This route is implemented only for ordinary non-zero-inflated
+Poisson with `phylo(1 | species, tree = tree)`. It is not a labelled q=2/q=4
+count block, not a phylogenetic count slope, and not an NB2, spatial, animal, or
+`relmat()` structured count route.
+
 For Poisson fits, `predict(fit, dpar = "mu")` and `fitted(fit)` return the
 count mean. There is no fitted `sigma` distributional parameter; `sigma(fit)`
 returns a fixed unit dispersion vector for compatibility with base-R method
 expectations. The response must contain non-negative integer counts after
-missing-row filtering. Random effects, known sampling covariance,
-overdispersion, phylogenetic terms, and bivariate or mixed Poisson models are
+missing-row filtering. Known sampling covariance, overdispersion, zero-inflated
+structured effects, bivariate Poisson, and mixed-response Poisson models are
 later phases.
 
 ## Implemented Zero-Inflated Poisson Mean

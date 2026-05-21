@@ -99,17 +99,19 @@ animal <- function(term, pedigree = NULL, A = NULL, Ainv = NULL) {
 #' Phylogenetic structured-effect marker
 #'
 #' `phylo()` marks user-facing syntax for phylogenetic dependence. The current
-#' fitted paths support intercept-only Gaussian location effects,
-#' response-specific direct-SD formulas, and labelled bivariate Gaussian
-#' location-scale blocks. Use `phylo(1 | species, tree = tree)` in univariate
-#' `mu`, one numeric univariate Gaussian `mu` slope with independent
-#' intercept/slope SDs, matching terms in bivariate `mu1` and `mu2`, or matching labelled
-#' all-four terms across `mu1`, `mu2`, `sigma1`, and `sigma2`. A single shared
-#' label estimates the full q4 block; a `mu1`/`mu2` label plus a separate
-#' `sigma1`/`sigma2` label estimates the block-diagonal fallback. Standalone
-#' univariate `sigma ~ phylo(...)`, multiple phylogenetic slopes, and
-#' phylogenetic slope correlations remain planned. The public
-#' `phylo()` API requires an
+#' fitted paths support Gaussian location effects, response-specific direct-SD
+#' formulas, labelled bivariate Gaussian location-scale blocks, and the first
+#' ordinary Poisson q=1 location effect. Use `phylo(1 | species, tree = tree)` in
+#' univariate Gaussian `mu` or ordinary Poisson `mu`, one numeric univariate
+#' Gaussian `mu` slope with independent intercept/slope SDs, matching terms in
+#' bivariate Gaussian `mu1` and `mu2`, or matching labelled all-four terms across
+#' Gaussian `mu1`, `mu2`, `sigma1`, and `sigma2`. A single shared label estimates
+#' the full q4 block; a `mu1`/`mu2` label plus a separate `sigma1`/`sigma2` label
+#' estimates the block-diagonal fallback. Standalone univariate
+#' `sigma ~ phylo(...)`, Poisson phylogenetic slopes, NB2 phylogenetic effects,
+#' zero-inflated phylogenetic effects, multiple phylogenetic slopes, and
+#' phylogenetic slope correlations remain planned. The public `phylo()` API
+#' requires an
 #' ultrametric tree with branch lengths and uses the Hadfield and Nakagawa
 #' A-inverse sparse-precision path internally.
 #'
@@ -122,6 +124,7 @@ animal <- function(term, pedigree = NULL, A = NULL, Ainv = NULL) {
 #'
 #' @examples
 #' bf(y ~ x + phylo(1 | species, tree = tree), sigma ~ z)
+#' bf(count ~ x + phylo(1 | species, tree = tree))
 phylo <- function(term, tree) {
   invisible(NULL)
 }
