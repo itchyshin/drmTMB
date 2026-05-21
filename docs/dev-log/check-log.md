@@ -2,6 +2,53 @@
 
 Record meaningful development checks here.
 
+## 2026-05-21 - Spatial Models Article Split
+
+Goal: add a focused coordinate-spatial route page so users can find fitted
+`spatial(coords = coords)` Gaussian slices without first reading the full
+umbrella structural-dependence article.
+
+Team roles:
+
+- Ada scoped the slice to documentation and navigation.
+- Pat checked that users can find the fitted coordinate-spatial intercept,
+  one-slope, and q=2 bivariate routes.
+- Darwin checked that the page frames nearby sites and smooth site deviations
+  as the scientific route.
+- Grace rendered the new article and ran pkgdown.
+- Rose kept mesh/SPDE inputs, multiple slopes, spatial `sigma`, q=4 blocks,
+  direct spatial SD surfaces, spatial `corpair()` regressions, simultaneous
+  phylo-plus-spatial layers, and non-Gaussian spatial effects planned.
+
+Files changed:
+
+- `vignettes/spatial-models.Rmd`
+- `vignettes/structural-dependence.Rmd`
+- `_pkgdown.yml`
+- `docs/design/53-structural-dependence-article-split.md`
+- `docs/dev-log/after-task/2026-05-21-spatial-models-article-split.md`
+- `NEWS.md`
+
+Checks run:
+
+```sh
+air format vignettes/spatial-models.Rmd vignettes/structural-dependence.Rmd NEWS.md _pkgdown.yml docs/design/53-structural-dependence-article-split.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-21-spatial-models-article-split.md
+Rscript -e "devtools::load_all('.', quiet = TRUE); pkgdown::build_article('spatial-models', new_process = FALSE, quiet = TRUE); pkgdown::build_article('structural-dependence', new_process = FALSE, quiet = TRUE)"
+rg -n 'spatial-models|Coordinate-spatial structured effects|spatial\\(1 \\| site|spatial\\(1 \\+ depth|spatial\\(1 \\| p \\| site|ranef\\(fit, \"spatial_mu\"\\)|level = \"spatial\"|mesh|spatial `corpair`' vignettes/spatial-models.Rmd vignettes/structural-dependence.Rmd _pkgdown.yml NEWS.md docs/design/53-structural-dependence-article-split.md
+Rscript -e "pkgdown::check_pkgdown()"
+git diff --check
+```
+
+Outcomes:
+
+- Added `spatial-models.Rmd` as the focused page for coordinate-spatial
+  structured effects.
+- The page documents fitted univariate `spatial()` Gaussian `mu`, one numeric
+  spatial slope, and bivariate q=2 location covariance.
+- The page tells readers to inspect `check_drm()`, `sdpars$mu`,
+  `ranef(fit, "spatial_mu")`, `summary()$covariance`, `profile_targets()`,
+  and `corpairs(level = "spatial")`.
+
 ## 2026-05-21 - Phylogenetic Models Article Split
 
 Goal: add a focused phylogenetic route page so users can find fitted
