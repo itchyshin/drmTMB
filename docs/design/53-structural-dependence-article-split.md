@@ -14,8 +14,9 @@ That is too much for one reader route.
 Future pkgdown work should split structural dependence into a small index plus
 several focused articles, in this order:
 
-1. Animal models: fitted known-matrix `animal()` Gaussian `mu` intercepts
-   through `A` or `Ainv`, ordinary-repeatability fallbacks, planned pedigree
+1. Animal models: fitted dense-pedigree and known-matrix `animal()` Gaussian
+   `mu` intercepts, the first matching q=2 bivariate location covariance,
+   ordinary-repeatability fallbacks, planned sparse large-pedigree precision
    construction, planned structured slopes, and future additive genetic
    covariance examples.
 2. Phylogenetic models: fitted `phylo()` support, bivariate q=2 and q=4
@@ -27,9 +28,10 @@ several focused articles, in this order:
 4. Phylo + spatial models: planned additive structured layers with explicit
    identifiability checks before any simultaneous fit is advertised.
 5. `relmat()` and known matrices: fitted lower-level Gaussian `mu` intercepts
-   from user-supplied latent relatedness covariance `K` or precision `Q`,
-   with slope, scale, bivariate, and `corpair()` parity kept separate from
-   `meta_V(V = V)` known sampling covariance.
+   and matching q=2 bivariate location covariance from user-supplied latent
+   relatedness covariance `K` or precision `Q`, with slope, scale, q=4, and
+   `corpair()` parity kept separate from `meta_V(V = V)` known sampling
+   covariance.
 
 The split should keep fitted and planned status visible at the top of each
 article. It should not promote a planned route into a tutorial until the
