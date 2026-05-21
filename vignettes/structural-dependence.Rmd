@@ -26,11 +26,11 @@ fitted residual response-response correlations.
 
 | Question | Current route | Status |
 | --- | --- | --- |
-| Do related individuals share additive genetic deviations? | `animal(1 | individual, pedigree = pedigree)`, `animal(1 | individual, A = A)`, or `animal(1 | individual, Ainv = Ainv)` | Fitted first Gaussian `mu` slices, including matching q=2 bivariate location covariance. Sparse large-pedigree construction, slopes, `sigma`, q=4, and predictor-dependent `corpair()` routes remain planned. |
+| Do related individuals share additive genetic deviations? | `animal(1 | individual, pedigree = pedigree)`, `animal(1 | individual, A = A)`, or `animal(1 | individual, Ainv = Ainv)` | Fitted first Gaussian `mu` slices, including matching q=2 bivariate location covariance and constant q=4 location-scale covariance. Sparse large-pedigree construction, slopes, standalone `sigma`, and predictor-dependent `corpair()` routes remain planned. |
 | Do related species share evolutionary deviations? | `phylo(1 | species, tree = tree)` | Fitted for Gaussian `mu`, bivariate q=2 and q=4 blocks, direct phylogenetic SD surfaces, and q=2 predictor-dependent phylogenetic `corpair()` regression. |
 | Do nearby sites share smooth deviations? | `spatial(1 | site, coords = coords)` or `spatial(1 + depth | site, coords = coords)` | Fitted first coordinate-spatial Gaussian `mu` slices, including one numeric slope and matching q=2 bivariate location covariance. Mesh/SPDE, multiple slopes, `sigma`, q=4, and spatial `corpair()` routes remain planned. |
 | Does the same response need both species and site structure? | planned `phylo()` plus `spatial()` route | Planned. Fit separate sensitivity models for now; simultaneous structural layers need identifiability checks before use. |
-| Is the known matrix neither a pedigree, species tree, nor spatial coordinate surface? | `relmat(1 | id, K = K)` or `relmat(1 | id, Q = Q)` | Fitted first Gaussian `mu` slices, including matching q=2 bivariate location covariance. Slopes, `sigma`, q=4, and predictor-dependent `corpair()` routes remain planned. |
+| Is the known matrix neither a pedigree, species tree, nor spatial coordinate surface? | `relmat(1 | id, K = K)` or `relmat(1 | id, Q = Q)` | Fitted first Gaussian `mu` slices, including matching q=2 bivariate location covariance and constant q=4 location-scale covariance. Slopes, standalone `sigma`, and predictor-dependent `corpair()` routes remain planned. |
 
 ## What to read next
 
@@ -63,8 +63,9 @@ rows should stay visually separate.
 The fitted first slices are useful for applied work, but they are not full
 parity across every structural layer. A fitted q=2 location-location row means
 that two Gaussian response means can share a latent structured correlation for
-that layer. It does not imply fitted structured slopes, scale models,
-location-scale q=4 blocks, non-Gaussian structural effects, or
+that layer. A fitted q=4 route means the all-four endpoint block named above is
+available for constant location-scale covariance. Neither route implies fitted
+structured slopes, standalone scale models, non-Gaussian structural effects, or
 predictor-dependent `corpair()` regressions unless the route table above names
 that support explicitly.
 

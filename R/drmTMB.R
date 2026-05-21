@@ -2605,46 +2605,125 @@ drm_build_biv_gaussian_spec <- function(
   mu1_entry$rhs <- spatial_mu_terms$mu1$rhs
   mu2_entry$rhs <- spatial_mu_terms$mu2$rhs
 
-  phylo_q4_terms <- detect_biv_phylo_q4_terms(
-    mu1_entry,
-    mu2_entry,
-    sigma1_entry,
-    sigma2_entry
+  structured_q4_terms <- list(
+    phylo = detect_biv_phylo_q4_terms(
+      mu1_entry,
+      mu2_entry,
+      sigma1_entry,
+      sigma2_entry
+    ),
+    animal = detect_biv_known_q4_terms(
+      mu1_entry,
+      mu2_entry,
+      sigma1_entry,
+      sigma2_entry,
+      "animal"
+    ),
+    relmat = detect_biv_known_q4_terms(
+      mu1_entry,
+      mu2_entry,
+      sigma1_entry,
+      sigma2_entry,
+      "relmat"
+    )
   )
-  if (isTRUE(phylo_q4_terms$has)) {
-    if (length(sd_phylo_entries) > 0L) {
+  active_structured_q4 <- names(structured_q4_terms)[
+    vapply(structured_q4_terms, `[[`, logical(1L), "has")
+  ]
+  if (length(active_structured_q4) > 1L) {
+    cli::cli_abort(c(
+      "Bivariate q=4 structured location-scale blocks can use one structured source at a time.",
+      "x" = "Structured q=4 sources supplied: {.val {active_structured_q4}}.",
+      "i" = "Fit one of {.fn phylo}, {.fn animal}, or {.fn relmat} first; combined structural layers need separate identifiability checks."
+    ))
+  }
+
+  phylo_mu_terms <- NULL
+  animal_mu_terms <- NULL
+  relmat_mu_terms <- NULL
+  if (length(active_structured_q4) == 1L) {
+    q4_marker <- active_structured_q4[[1L]]
+    q4_terms <- structured_q4_terms[[q4_marker]]
+    if (identical(q4_marker, "phylo") && length(sd_phylo_entries) > 0L) {
       cli::cli_abort(c(
         "Do not combine bivariate {.fn sd_phylo1} / {.fn sd_phylo2} formulas with a phylogenetic q=4 location-scale block.",
         "x" = "The matching labelled {.fn phylo} terms across {.code mu1}, {.code mu2}, {.code sigma1}, and {.code sigma2} already define a Family A q=4 covariance block.",
         "i" = "Use bivariate {.fn sd_phylo1} / {.fn sd_phylo2} only with matching phylogenetic location terms in {.code mu1} and {.code mu2}."
       ))
     }
-    mu1_entry$rhs <- remove_structured_marker_terms(mu1_entry$rhs, "phylo")
-    mu2_entry$rhs <- remove_structured_marker_terms(mu2_entry$rhs, "phylo")
+    mu1_entry$rhs <- remove_structured_marker_terms(mu1_entry$rhs, q4_marker)
+    mu2_entry$rhs <- remove_structured_marker_terms(mu2_entry$rhs, q4_marker)
     sigma1_entry$rhs <- remove_structured_marker_terms(
       sigma1_entry$rhs,
-      "phylo"
+      q4_marker
     )
     sigma2_entry$rhs <- remove_structured_marker_terms(
       sigma2_entry$rhs,
-      "phylo"
+      q4_marker
     )
-    phylo_mu_terms <- list(
+    q4_mu_terms <- list(
       mu1 = list(rhs = mu1_entry$rhs, term = NULL),
       mu2 = list(rhs = mu2_entry$rhs, term = NULL),
-      term = phylo_q4_terms$term
+      term = q4_terms$term
     )
-  } else {
+    phylo_mu_terms <- if (identical(q4_marker, "phylo")) {
+      q4_mu_terms
+    } else {
+      list(
+        mu1 = list(rhs = mu1_entry$rhs, term = NULL),
+        mu2 = list(rhs = mu2_entry$rhs, term = NULL),
+        term = NULL
+      )
+    }
+    animal_mu_terms <- if (identical(q4_marker, "animal")) {
+      q4_mu_terms
+    } else {
+      list(
+        mu1 = list(rhs = mu1_entry$rhs, term = NULL),
+        mu2 = list(rhs = mu2_entry$rhs, term = NULL),
+        term = NULL
+      )
+    }
+    relmat_mu_terms <- if (identical(q4_marker, "relmat")) {
+      q4_mu_terms
+    } else {
+      list(
+        mu1 = list(rhs = mu1_entry$rhs, term = NULL),
+        mu2 = list(rhs = mu2_entry$rhs, term = NULL),
+        term = NULL
+      )
+    }
+  }
+
+  if (is.null(phylo_mu_terms)) {
     phylo_mu_terms <- guard_biv_phylo_mu_terms(mu1_entry, mu2_entry)
     mu1_entry$rhs <- phylo_mu_terms$mu1$rhs
     mu2_entry$rhs <- phylo_mu_terms$mu2$rhs
   }
-  animal_mu_terms <- guard_biv_known_mu_terms(mu1_entry, mu2_entry, "animal")
-  mu1_entry$rhs <- animal_mu_terms$mu1$rhs
-  mu2_entry$rhs <- animal_mu_terms$mu2$rhs
-  relmat_mu_terms <- guard_biv_known_mu_terms(mu1_entry, mu2_entry, "relmat")
-  mu1_entry$rhs <- relmat_mu_terms$mu1$rhs
-  mu2_entry$rhs <- relmat_mu_terms$mu2$rhs
+  if (is.null(animal_mu_terms)) {
+    animal_mu_terms <- guard_biv_known_mu_terms(mu1_entry, mu2_entry, "animal")
+    mu1_entry$rhs <- animal_mu_terms$mu1$rhs
+    mu2_entry$rhs <- animal_mu_terms$mu2$rhs
+  }
+  if (is.null(relmat_mu_terms)) {
+    relmat_mu_terms <- guard_biv_known_mu_terms(mu1_entry, mu2_entry, "relmat")
+    mu1_entry$rhs <- relmat_mu_terms$mu1$rhs
+    mu2_entry$rhs <- relmat_mu_terms$mu2$rhs
+  }
+
+  spatial_q4_terms <- detect_biv_spatial_q4_attempt(
+    mu1_entry,
+    mu2_entry,
+    sigma1_entry,
+    sigma2_entry
+  )
+  if (isTRUE(spatial_q4_terms$has)) {
+    cli::cli_abort(c(
+      "Spatial q=4 location-scale blocks are planned but not implemented yet.",
+      "x" = "At least one {.code sigma1} or {.code sigma2} formula contains {.fn spatial}.",
+      "i" = "Use the fitted coordinate-spatial q=2 location path first, or fit ordinary q=4 group-level blocks while the spatial q=4 diagnostics are designed."
+    ))
+  }
 
   active_structured_mu <- list(
     spatial = spatial_mu_terms$term,
@@ -3777,22 +3856,30 @@ extract_gaussian_mu_known_term <- function(entry, marker) {
 }
 
 entry_phylo_structured_terms <- function(entry) {
+  entry_structured_terms(entry, "phylo")
+}
+
+entry_structured_terms <- function(entry, marker) {
   Filter(
-    function(term) identical(term$type, "phylo"),
+    function(term) identical(term$type, marker),
     entry$structured
   )
 }
 
 single_entry_phylo_structured_term <- function(entry) {
-  terms <- entry_phylo_structured_terms(entry)
+  single_entry_structured_term(entry, "phylo")
+}
+
+single_entry_structured_term <- function(entry, marker) {
+  terms <- entry_structured_terms(entry, marker)
   if (length(terms) == 0L) {
     return(NULL)
   }
   if (length(terms) > 1L) {
     cli::cli_abort(c(
-      "Only one phylogenetic structured effect is allowed per distributional formula.",
-      "x" = "{.code {entry$dpar}} contains {length(terms)} {.fn phylo} terms.",
-      "i" = "The planned q=4 phylogenetic block uses one intercept-only term per endpoint."
+      "Only one {.fn {marker}} structured effect is allowed per distributional formula.",
+      "x" = "{.code {entry$dpar}} contains {length(terms)} {.fn {marker}} terms.",
+      "i" = "The q=4 structured block uses one intercept-only term per endpoint."
     ))
   }
   terms[[1L]]
@@ -4086,26 +4173,58 @@ detect_biv_phylo_q4_terms <- function(
   sigma1_entry,
   sigma2_entry
 ) {
+  detect_biv_structured_q4_terms(
+    mu1_entry,
+    mu2_entry,
+    sigma1_entry,
+    sigma2_entry,
+    marker = "phylo"
+  )
+}
+
+detect_biv_known_q4_terms <- function(
+  mu1_entry,
+  mu2_entry,
+  sigma1_entry,
+  sigma2_entry,
+  marker
+) {
+  detect_biv_structured_q4_terms(
+    mu1_entry,
+    mu2_entry,
+    sigma1_entry,
+    sigma2_entry,
+    marker = marker
+  )
+}
+
+detect_biv_structured_q4_terms <- function(
+  mu1_entry,
+  mu2_entry,
+  sigma1_entry,
+  sigma2_entry,
+  marker
+) {
   entries <- list(
     mu1 = mu1_entry,
     mu2 = mu2_entry,
     sigma1 = sigma1_entry,
     sigma2 = sigma2_entry
   )
-  terms <- lapply(entries, single_entry_phylo_structured_term)
-  has_phylo <- !vapply(terms, is.null, logical(1L))
-  if (!any(has_phylo[c("sigma1", "sigma2")])) {
+  terms <- lapply(entries, single_entry_structured_term, marker = marker)
+  has_marker <- !vapply(terms, is.null, logical(1L))
+  if (!any(has_marker[c("sigma1", "sigma2")])) {
     return(list(has = FALSE, term = NULL))
   }
 
-  if (!all(has_phylo)) {
-    present <- names(has_phylo)[has_phylo]
-    missing <- names(has_phylo)[!has_phylo]
+  marker_title <- structured_marker_title(marker)
+  if (!all(has_marker)) {
+    present <- names(has_marker)[has_marker]
+    missing <- names(has_marker)[!has_marker]
     cli::cli_abort(c(
-      "Partial phylogenetic location-scale blocks are not implemented.",
-      "x" = "{.code {present}} contain{?s} {.fn phylo}, but {.code {missing}} do{?es} not.",
-      "i" = "The current fitted bivariate phylogenetic path supports matching {.code mu1}/{.code mu2} location terms only.",
-      "i" = "For the planned Family A q=4 path, use matching labelled intercepts in {.code mu1}, {.code mu2}, {.code sigma1}, and {.code sigma2}, such as {.code phylo(1 | p | species, tree = tree)}."
+      "Partial {tolower(marker_title)} location-scale blocks are not implemented.",
+      "x" = "{.code {present}} contain{?s} {.fn {marker}}, but {.code {missing}} do{?es} not.",
+      "i" = "Use matching labelled intercepts in {.code mu1}, {.code mu2}, {.code sigma1}, and {.code sigma2}."
     ))
   }
 
@@ -4116,7 +4235,20 @@ detect_biv_phylo_q4_terms <- function(
     logical(1L)
   )
   groups <- vapply(terms, `[[`, character(1L), "group")
-  trees <- vapply(terms, `[[`, character(1L), "tree")
+  structures <- vapply(
+    terms,
+    function(term) {
+      if (!is.null(term$structure)) term$structure else "tree"
+    },
+    character(1L)
+  )
+  objects <- vapply(
+    terms,
+    function(term) {
+      if (!is.null(term$tree)) term$tree else term$object
+    },
+    character(1L)
+  )
   intercept_only <- vapply(
     terms,
     function(term) {
@@ -4129,33 +4261,34 @@ detect_biv_phylo_q4_terms <- function(
   if (!all(intercept_only)) {
     bad <- names(intercept_only)[!intercept_only]
     cli::cli_abort(c(
-      "Phylogenetic q=4 location-scale blocks are intercept-only in this phase.",
+      "{marker_title} q=4 location-scale blocks are intercept-only in this phase.",
       "x" = "{.code {bad}} include{?s} structured slope terms.",
-      "i" = "Use {.code phylo(1 | p | species, tree = tree)} in all four endpoints first."
+      "i" = "Use matching {.code {marker}(1 | p | group, ...)} terms in all four endpoints first."
     ))
   }
   if (!all(explicit_labels)) {
     unlabeled <- names(explicit_labels)[!explicit_labels]
     cli::cli_abort(c(
-      "Phylogenetic q=4 location-scale blocks require an explicit covariance-block label.",
-      "x" = "{.code {unlabeled}} use{?s} unlabelled {.fn phylo} syntax.",
-      "i" = "Use one shared label, for example {.code phylo(1 | p | species, tree = tree)}, across {.code mu1}, {.code mu2}, {.code sigma1}, and {.code sigma2}."
+      "{marker_title} q=4 location-scale blocks require an explicit covariance-block label.",
+      "x" = "{.code {unlabeled}} use{?s} unlabelled {.fn {marker}} syntax.",
+      "i" = "Use one shared label, for example {.code {marker}(1 | p | group, ...)}, across {.code mu1}, {.code mu2}, {.code sigma1}, and {.code sigma2}."
     ))
   }
-  same_tree_and_group <- length(unique(groups)) == 1L &&
-    length(unique(trees)) == 1L
+  same_source_and_group <- length(unique(groups)) == 1L &&
+    length(unique(structures)) == 1L &&
+    length(unique(objects)) == 1L
   full_q4 <- length(unique(labels)) == 1L
   block_diagonal_q4 <- identical(labels[["mu1"]], labels[["mu2"]]) &&
     identical(labels[["sigma1"]], labels[["sigma2"]]) &&
     !identical(labels[["mu1"]], labels[["sigma1"]])
 
-  if (!same_tree_and_group || !(full_q4 || block_diagonal_q4)) {
+  if (!same_source_and_group || !(full_q4 || block_diagonal_q4)) {
     cli::cli_abort(c(
-      "Phylogenetic q=4 location-scale terms need a supported block layout.",
+      "{marker_title} q=4 location-scale terms need a supported block layout.",
       "x" = "Blocks: {.val {labels}}.",
       "x" = "Groups: {.val {groups}}.",
-      "x" = "Trees: {.val {trees}}.",
-      "i" = "Use one full block, such as {.code phylo(1 | p | species, tree = tree)}, in all four endpoints.",
+      "x" = "Inputs: {.val {objects}}.",
+      "i" = "Use one full block, such as {.code {marker}(1 | p | group, ...)}, in all four endpoints.",
       "i" = "Or use the block-diagonal fallback with one label for {.code mu1}/{.code mu2} and one label for {.code sigma1}/{.code sigma2}."
     ))
   }
@@ -4181,12 +4314,40 @@ detect_biv_phylo_q4_terms <- function(
   term$endpoint_blocks <- labels
   term$endpoint_covariance_labels <- labels
   term$label <- format_structured_label(
-    "phylo",
+    marker,
     "1",
     groups[[1L]],
     labels[[1L]]
   )
   list(has = TRUE, term = term)
+}
+
+detect_biv_spatial_q4_attempt <- function(
+  mu1_entry,
+  mu2_entry,
+  sigma1_entry,
+  sigma2_entry
+) {
+  entries <- list(
+    mu1 = mu1_entry,
+    mu2 = mu2_entry,
+    sigma1 = sigma1_entry,
+    sigma2 = sigma2_entry
+  )
+  terms <- lapply(entries, single_entry_structured_term, marker = "spatial")
+  has_spatial <- !vapply(terms, is.null, logical(1L))
+  list(has = any(has_spatial[c("sigma1", "sigma2")]), term = NULL)
+}
+
+structured_marker_title <- function(marker) {
+  switch(
+    marker,
+    phylo = "Phylogenetic",
+    animal = "Animal-model",
+    relmat = "relmat",
+    spatial = "Spatial",
+    marker
+  )
 }
 
 guard_biv_phylo_mu_terms <- function(mu1_entry, mu2_entry) {

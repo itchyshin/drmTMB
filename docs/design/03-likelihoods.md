@@ -314,11 +314,13 @@ drmTMB(
 ```
 
 Matching labelled bivariate `mu1`/`mu2` terms now use the same known precision
-route to fit the first q=2 location covariance. Pedigree-to-Ainv construction,
-structured slopes, `sigma` relatedness models, q=4 location-scale blocks,
-predictor-dependent relatedness `corpair()` regression, and generic direct-SD
-grammar remain planned until their likelihood, diagnostics, profile or
-bootstrap interval story, simulation recovery tests, and examples exist.
+route to fit the first q=2 location covariance. Matching all-four labelled
+`mu1`/`mu2`/`sigma1`/`sigma2` terms fit the first constant q=4
+location-scale covariance block. Pedigree-to-Ainv construction, structured
+slopes, standalone `sigma` relatedness models, predictor-dependent relatedness
+`corpair()` regression, and generic direct-SD grammar remain planned until their
+likelihood, diagnostics, profile or bootstrap interval story, simulation
+recovery tests, and examples exist.
 
 The first spatial slope path keeps that covariance but uses two independent
 fields:

@@ -505,22 +505,23 @@ below is a roadmap boundary, not a fitted-claim table.
 | --- | --- | --- |
 | Univariate location structure | `phylo(1 | species, tree = tree)` | `animal(1 | individual, pedigree = pedigree)`, `spatial(1 | site, coords = coords)`, and `relmat(1 | line, K = K)` in `mu` |
 | Bivariate location-location correlation | Matching labelled `phylo()` terms in `mu1` and `mu2`, reported by `corpairs()` | Matching labelled `spatial()`, `animal()`, and `relmat()` terms now fit the first q=2 slices when their coordinate or known-matrix inputs are available |
-| Location-scale q=4 block | Matching labelled `phylo()` terms across `mu1`, `mu2`, `sigma1`, and `sigma2` | All-four endpoint blocks for animal, spatial, and relmat after positive-definite parameterization, diagnostics, profiles, and recovery tests exist |
+| Location-scale q=4 block | Matching labelled `phylo()` terms across `mu1`, `mu2`, `sigma1`, and `sigma2` | Matching labelled all-four animal and `relmat()` blocks now fit constant q=4 location-scale covariance; spatial q=4 remains planned |
 | Predictor-dependent structured correlation | q=2 phylogenetic `corpair(..., level = "phylogenetic") ~ ecology` | q=2 animal, spatial, and relmat `corpair()` regressions only after constant q=2 fits are stable |
 | Direct SD surfaces | `sd_phylo()`, `sd_phylo1()`, and `sd_phylo2()` | Source-specific direct-SD siblings after naming, matrix scale, and interpretation are clear |
 
 Spatial is partway up this ladder: `spatial(1 | site, coords = coords)`, one
 independent coordinate-spatial `mu` slope, and the first bivariate
 coordinate-spatial q=2 `mu1`/`mu2` covariance are fitted. Animal and `relmat()`
-now have pedigree or known-matrix Gaussian `mu` intercepts and matching
-labelled q=2 bivariate location covariance. Spatial `sigma`, spatial q=4,
-spatial `corpair()`, mesh/SPDE fields, sparse large-pedigree construction,
-animal/`relmat()` slopes, animal/`relmat()` scale models,
-animal/`relmat()` q=4 blocks, and
-animal/`relmat()` predictor-dependent `corpair()` routes remain planned.
+now have pedigree or known-matrix Gaussian `mu` intercepts, matching labelled
+q=2 bivariate location covariance, and matching all-four constant q=4
+location-scale covariance. Spatial `sigma`, spatial q=4, spatial `corpair()`,
+mesh/SPDE fields, sparse large-pedigree construction, animal/`relmat()` slopes,
+standalone animal/`relmat()` scale models, and animal/`relmat()`
+predictor-dependent `corpair()` routes remain planned.
 
-The runnable examples above cover the current known-matrix animal and
-`relmat()` q=2 routes. The next richer animal target is not fitted yet:
+The focused animal and `relmat()` pages cover the current known-matrix q=2 and
+constant q=4 routes. The next richer animal target is a structured slope, which
+is not fitted yet:
 
 ```r
 # Planned, not fitted yet:

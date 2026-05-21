@@ -51,3 +51,40 @@
       x Rows without matching columns: "missing_id".
       x Columns without matching rows: "id1".
 
+---
+
+    Code
+      drmTMB(bf(mu1 = y ~ x + relmat(1 | id, Q = Q), mu2 = y ~ x + relmat(1 | id, Q = Q),
+      sigma1 = ~ relmat(1 | id, Q = Q), sigma2 = ~1, rho12 = ~1), family = biv_gaussian(),
+      data = dat)
+    Condition
+      Error in `detect_biv_structured_q4_terms()`:
+      ! Partial relmat location-scale blocks are not implemented.
+      x `mu1`, `mu2`, and `sigma1` contains `relmat()`, but `sigma2` do not.
+      i Use matching labelled intercepts in `mu1`, `mu2`, `sigma1`, and `sigma2`.
+
+---
+
+    Code
+      drmTMB(bf(mu1 = y ~ x + animal(1 | id, Ainv = Q), mu2 = y ~ x + animal(1 | id,
+      Ainv = Q), sigma1 = ~ animal(1 | id, Ainv = Q), sigma2 = ~ animal(1 | id, Ainv = Q),
+      rho12 = ~1), family = biv_gaussian(), data = dat)
+    Condition
+      Error in `detect_biv_structured_q4_terms()`:
+      ! Animal-model q=4 location-scale blocks require an explicit covariance-block label.
+      x `mu1`, `mu2`, `sigma1`, and `sigma2` uses unlabelled `animal()` syntax.
+      i Use one shared label, for example `animal(1 | p | group, ...)`, across `mu1`, `mu2`, `sigma1`, and `sigma2`.
+
+---
+
+    Code
+      drmTMB(bf(mu1 = y ~ x + relmat(1 | p | id, Q = Q), mu2 = y ~ x + relmat(1 | q |
+        id, Q = Q), sigma1 = ~1, sigma2 = ~1, rho12 = ~1), family = biv_gaussian(),
+      data = dat)
+    Condition
+      Error in `guard_biv_known_mu_terms()`:
+      ! Matched bivariate `relmat()` location terms must use the same covariance-block label.
+      x `mu1` uses block `p`.
+      x `mu2` uses block `q`.
+      i Use matching terms such as `relmat(1 | p | id, Q = Q)` in both formulas, or leave both terms unlabelled.
+

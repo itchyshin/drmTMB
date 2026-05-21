@@ -34346,3 +34346,85 @@ rg -n 'spatial q=2.*need(s)? a dedicated DGP|broad q=2 reports still need a dedi
 - The stale-status scan returned only the previous Slice H after-task/check-log
   text that was true when written. Current design docs now say the DGP and
   smoke runner exist; the current-design-only scan returned no matches.
+
+## 2026-05-21 - Structural Parity Slices 1-8
+
+Goal:
+
+- Finish the next post-0.1.3 structural-dependence parity slices while keeping
+  fitted, admitted, and planned routes honest for applied users.
+- Diagnose the deployed pkgdown base URL after `https://itchyshin.github.io/drmTMB/`
+  returned GitHub Pages 404 while the latest workflow deploy reported success.
+
+Changes:
+
+- Added `docs/design/57-structural-parity-next-slices.md` with the slice table:
+  spatial direct-SD and q=4 remain planned, animal/`relmat()` q=4 is fitted,
+  animal/`relmat()` direct-SD remains planned, combined phylo-plus-spatial
+  remains planned, and slices 6-8 are the implementation/test/extractor
+  hardening lane.
+- `biv_gaussian()` now admits constant all-four q=4 `animal()` and `relmat()`
+  blocks when the same labelled known-matrix term appears in `mu1`, `mu2`,
+  `sigma1`, and `sigma2`.
+- Reused the structured q4 backend and kept `theta_phylo` as a derived
+  unstructured-correlation target for profile status.
+- Hardened `corpairs()` so q4 `animal()` / `relmat()` rows are reported at
+  `level = "animal"` or `level = "relmat"` without duplicate generic group rows.
+- Generalized `check_drm()` q4 diagnostics and `profile_targets()` derived q4
+  status from phylogeny to `animal()` and `relmat()`.
+- Added focused q4 tests and snapshots in
+  `tests/testthat/test-animal-relmat-gaussian.R` and
+  `tests/testthat/_snaps/animal-relmat-gaussian.md`.
+- Synchronized README, ROADMAP, NEWS, formula grammar, source map, model map,
+  animal/relmat articles, structural-dependence articles, Phase 18 design
+  ledgers, roxygen, and generated Rd files.
+- Changed `_pkgdown.yml` from `development: mode: auto` to
+  `development: mode: release` so the GitHub Pages artifact is rooted at the
+  advertised package URL instead of replacing the public site with only `dev/`.
+- Added after-task report
+  `docs/dev-log/after-task/2026-05-21-structural-parity-slices-1-8.md`.
+
+Validation:
+
+```sh
+curl -I -L --max-time 20 https://itchyshin.github.io/drmTMB/
+curl -I -L --max-time 20 https://itchyshin.github.io/drmTMB/dev/
+gh run view 26220951684 --repo itchyshin/drmTMB --json status,conclusion,updatedAt,url,jobs
+gh api repos/itchyshin/drmTMB/deployments/4768481833/statuses
+air format R/check.R R/drmTMB.R R/methods.R R/profile.R R/formula-markers.R docs/design/01-formula-grammar.md docs/design/02-family-registry.md docs/design/03-likelihoods.md docs/design/16-phylo-spatial-common-math.md docs/design/34-validation-debt-register.md docs/design/37-worked-example-inventory.md docs/design/39-visualization-grammar.md docs/design/41-phase-18-simulation-programme.md docs/design/45-cross-dpar-correlation-gate.md docs/design/46-pre-simulation-readiness-matrix.md docs/design/54-phase-18-animal-relmat-known-matrix-ademp.md docs/design/55-phase-18-animal-relmat-q2-interval-status.md docs/design/57-structural-parity-next-slices.md vignettes/animal-models.Rmd vignettes/formula-grammar.Rmd vignettes/model-map.Rmd vignettes/relmat-known-matrices.Rmd vignettes/source-map.Rmd vignettes/structural-dependence.Rmd vignettes/phylogenetic-spatial.Rmd vignettes/figure-gallery.Rmd README.md ROADMAP.md NEWS.md _pkgdown.yml
+Rscript -e "devtools::document()"
+Rscript -e "devtools::test(filter = 'animal-relmat-gaussian')"
+Rscript -e "devtools::test(filter = 'phylo-gaussian|profile-targets|check-drm|covariance-block-registry')"
+Rscript -e "pkgdown::build_site(new_process = FALSE, install = TRUE)"
+Rscript -e "pkgdown::build_home()"
+Rscript -e "pkgdown::check_pkgdown()"
+git diff --check
+test -f pkgdown-site/index.html && echo root-index-present || echo root-index-missing
+test -f pkgdown-site/dev/index.html && echo dev-index-present || echo dev-index-missing
+rg -n 'animal.*q=4.*planned|q=4.*animal.*planned|relmat.*q=4.*planned|q=4.*relmat.*planned|q=4 location-scale blocks remain planned|q=4 blocks.*planned|q=2 routes' README.md ROADMAP.md NEWS.md docs/design vignettes R | head -120
+```
+
+- The deployed base URL returned HTTP 404, while `https://itchyshin.github.io/drmTMB/dev/`
+  returned HTTP 200. The latest Actions deploy was successful and the uploaded
+  artifact contained files under `./dev/`, confirming a site-root configuration
+  problem rather than a failed pkgdown run.
+- `devtools::document()` updated `animal.Rd`, `relmat.Rd`, `corpairs.Rd`, and
+  `check_drm.Rd`.
+- `devtools::test(filter = 'animal-relmat-gaussian')` passed 89 expectations.
+- `devtools::test(filter = 'phylo-gaussian|profile-targets|check-drm|covariance-block-registry')`
+  passed 1041 expectations.
+- `pkgdown::build_site(new_process = FALSE, install = TRUE)` completed
+  successfully and wrote `pkgdown-site/index.html`; `pkgdown-site/dev/index.html`
+  was absent, as expected for the single-site root-mode configuration.
+- A first local `pkgdown::build_site(new_process = FALSE, install = FALSE)` run
+  failed in `vignettes/bivariate-coscale.Rmd` because it used an older installed
+  local package that did not understand the article's current `corpair()`
+  syntax. Re-running with `install = TRUE` rendered the site against this
+  working tree and passed.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `git diff --check` was clean.
+- The stale-status scan still returns intentional spatial-q4, slope,
+  standalone-scale, broad-grid, and historical generated-news wording. Current
+  source docs no longer say animal/`relmat()` q4 is merely planned.
+- GitHub issue #147 was inspected and remains open; no issue comment was added
+  from the unpushed local branch.

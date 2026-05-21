@@ -23,7 +23,8 @@ that belongs to the meta-analysis route.
 | --- | --- | --- |
 | Does one Gaussian response have deviations structured by a user-supplied latent covariance or precision matrix? | `relmat(1 | id, K = K)` or `relmat(1 | id, Q = Q)` in `mu` | Fitted first slice. `K` is a covariance matrix; `Q` is a precision matrix. |
 | Do two Gaussian response means share a known-matrix latent correlation? | matching labelled `relmat(1 | p | id, K = K)` or `relmat(1 | p | id, Q = Q)` terms in `mu1` and `mu2` | Fitted first q=2 location-location slice. `corpairs(level = "relmat")` reports the latent relatedness correlation separately from residual `rho12`. |
-| Does the known-matrix layer change a slope, residual scale, or q=4 location-scale block? | examples such as `relmat(1 + x | id, K = K)` or matching `relmat()` terms in `sigma1` and `sigma2` | Planned. These routes need matrix validation, diagnostics, recovery tests, interval targets, and examples before use. |
+| Does the known-matrix layer link means and residual scales across two responses? | the same labelled `relmat(1 | p | id, Q = Q)` term in `mu1`, `mu2`, `sigma1`, and `sigma2` | Fitted first q=4 location-scale slice. `corpairs(level = "relmat")` reports six constant latent relatedness correlations; profile intervals for those derived correlations remain unavailable. |
+| Does the known-matrix layer change a slope, standalone residual scale, or predictor-dependent correlation? | examples such as `relmat(1 + x | id, K = K)`, only `relmat()` in `sigma1`, or `relmat()` `corpair()` formulas | Planned. These routes need matrix validation, diagnostics, recovery tests, interval targets, and examples before use. |
 
 Use `animal()` when the matrix is additive relatedness for individual animal
 models. Use `phylo()` when the matrix comes from a species tree and the tree
@@ -62,6 +63,31 @@ rho12(fit_relmat_q2)
 unit-level location deviations. `rho12()` reports the residual correlation
 between responses after fixed effects and random effects have been included.
 
+When the scientific question is whether known-matrix deviations in means and
+residual scales covary, use the same labelled `relmat()` term in all four
+bivariate endpoint formulas:
+
+```r
+fit_relmat_q4 <- drmTMB(
+  mu1 = trait1 ~ treatment +
+    relmat(1 | p | line, Q = Q),
+  mu2 = trait2 ~ treatment +
+    relmat(1 | p | line, Q = Q),
+  sigma1 = ~ treatment +
+    relmat(1 | p | line, Q = Q),
+  sigma2 = ~ treatment +
+    relmat(1 | p | line, Q = Q),
+  data = dat,
+  family = biv_gaussian()
+)
+corpairs(fit_relmat_q4, level = "relmat")
+```
+
+The q=4 path is constant across levels and responses: it estimates four
+known-matrix endpoint standard deviations and six latent correlations. It is
+not a direct-SD model and it does not make the residual correlation `rho12`
+known-matrix structured.
+
 ## What to inspect
 
 After fitting, inspect the relatedness layer before interpreting it:
@@ -72,16 +98,15 @@ After fitting, inspect the relatedness layer before interpreting it:
 | `fit$sdpars$mu` | Read the fitted known-matrix location SD. |
 | `ranef(fit, "relmat_mu")` | Inspect conditional deviations on the fitted relatedness layer. |
 | `summary(fit)$covariance` | Check how the `relmat()` SD or q=2 correlation is reported beside other covariance layers. |
-| `profile_targets(fit)` | See which relatedness SD or q=2 correlation targets can be profiled directly. |
-| `corpairs(fit, level = "relmat")` | Read the fitted q=2 relatedness mean-mean correlation when the model has matching bivariate `relmat()` terms. |
+| `profile_targets(fit)` | See which relatedness SD or q=2 correlation targets can be profiled directly; q=4 correlations are derived-only in the first slice. |
+| `corpairs(fit, level = "relmat")` | Read the fitted q=2 relatedness mean-mean correlation, or the six q=4 relatedness endpoint correlations when the model has the all-four block. |
 
 ## Boundaries
 
 The following `relmat()` routes remain planned:
 
 - structured slopes such as `relmat(1 + x | id, K = K)`;
-- relatedness `sigma` terms;
-- q=4 location-scale covariance blocks;
+- standalone relatedness `sigma` terms outside the fitted all-four q=4 block;
 - predictor-dependent `relmat()` `corpair()` regressions;
 - generic direct-SD grammar for known-matrix standard deviations;
 - non-Gaussian known-matrix structured effects.

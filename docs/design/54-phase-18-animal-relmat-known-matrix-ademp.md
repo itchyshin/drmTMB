@@ -174,7 +174,7 @@ Report metrics by condition cell and estimand:
 | Convergence rate | `mean(converged & pdHess)` |
 | Warning rate | `mean(warning_count > 0)` |
 | Runtime | median and high quantiles of elapsed seconds |
-| Failure ledger | sparse large-pedigree construction, structured slopes, `sigma` structured effects, q=4 location-scale blocks, predictor-dependent `corpair()` regressions, direct-SD grammar, and non-Gaussian structured effects |
+| Failure ledger | sparse large-pedigree construction, structured slopes, standalone `sigma` structured effects outside the fitted all-four q=4 block, predictor-dependent `corpair()` regressions, direct-SD grammar, and non-Gaussian structured effects |
 
 Every aggregate metric should carry an MCSE. Failed, warning-bearing,
 boundary, matrix-validation, and interval-failed fits remain in the manifest,

@@ -1799,9 +1799,11 @@ ggplot(layer_boundary, aes(target, layer, fill = status)) +
 
 The status strip is not an estimate plot. It separates the fitted constant q=2
 rows from richer correlation surfaces. Spatial, animal, and `relmat()` q=2
-location-location rows now have fitted first-slice evidence. Spatial, animal,
-and `relmat()` predictor-dependent `corpair()` regressions, q=4
-location-scale blocks, and structured `sigma` correlations remain planned.
+location-location rows now have fitted first-slice evidence, and animal plus
+`relmat()` q=4 location-scale blocks have constant first-slice evidence.
+Spatial, animal, and `relmat()` predictor-dependent `corpair()` regressions,
+spatial q=4 location-scale blocks, and standalone structured `sigma`
+correlations remain planned.
 
 ## Simulation operating characteristics
 

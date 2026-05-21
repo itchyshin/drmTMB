@@ -31,13 +31,15 @@ routes are a univariate Gaussian \code{mu} random intercept from a small pedigre
 data frame, precomputed additive relationship matrix \code{A}, or inverse
 relationship matrix \code{Ainv}, for example
 \code{animal(1 | id, pedigree = pedigree)} or
-\code{animal(1 | id, Ainv = Ainv)}, and the first bivariate Gaussian q=2
-location covariance from matching labelled terms in \code{mu1} and \code{mu2}, for
-example \code{animal(1 | p | id, pedigree = pedigree)}. The pedigree route builds
-a dense additive relationship matrix from \code{id}, \code{dam}, and \code{sire} columns.
-Large-pedigree sparse precision construction, structured slopes, \code{sigma}
-animal models, q=4 location-scale blocks, predictor-dependent \code{corpair()}
-regression, and generic direct-SD grammar remain planned.
+\code{animal(1 | id, Ainv = Ainv)}, the first bivariate Gaussian q=2 location
+covariance from matching labelled terms in \code{mu1} and \code{mu2}, and the constant
+all-four q=4 location-scale block from matching labelled terms in \code{mu1},
+\code{mu2}, \code{sigma1}, and \code{sigma2}, for example
+\code{animal(1 | p | id, pedigree = pedigree)}. The pedigree route builds a dense
+additive relationship matrix from \code{id}, \code{dam}, and \code{sire} columns.
+Large-pedigree sparse precision construction, structured slopes, standalone
+\code{sigma} animal models, predictor-dependent \code{corpair()} regression, and
+generic direct-SD grammar remain planned.
 }
 \examples{
 # Fitted: additive genetic variance in body size from a precomputed Ainv.

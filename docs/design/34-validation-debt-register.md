@@ -35,7 +35,7 @@ Use these status labels:
 | `ordinary_biv_corpairs` | Ordinary bivariate covariance and `corpairs()` | partial | moderate | Add coefficient-aware bivariate slope covariance only after q=2/q=4 interval status and recovery evidence are explicit. |
 | `phylo_structured_effects` | Phylogenetic structured effects | partial | moderate | Add phylogenetic one-slope likelihood, diagnostics, and recovery evidence before teaching slopes. |
 | `spatial_coord_effects` | Coordinate spatial structured effects | partial | moderate | The coordinate q=2 bivariate location covariance slice is now fitted; add mesh/SPDE, multiple-slope, q=4, spatial `sigma`, and spatial `corpair()` evidence before widening spatial syntax further. |
-| `animal_known_relatedness` | Animal-model and user-supplied relatedness effects | partial | high if confused with implemented phylogeny or meta-analysis known `V` | The Gaussian `mu` intercept slice and matching labelled bivariate q=2 `mu1`/`mu2` location covariance are fitted for `animal(pedigree/A/Ainv)` and `relmat(K/Q)`. Keep sparse large-pedigree construction, structured slopes, `sigma`, q=4 location-scale blocks, predictor-dependent `corpair()` regression, and direct-SD grammar in the debt ledger until they have diagnostics, extractors, profile targets, and simulation recovery. |
+| `animal_known_relatedness` | Animal-model and user-supplied relatedness effects | partial | high if confused with implemented phylogeny or meta-analysis known `V` | The Gaussian `mu` intercept slice, matching labelled bivariate q=2 `mu1`/`mu2` location covariance, and constant all-four q=4 location-scale covariance are fitted for `animal(pedigree/A/Ainv)` and `relmat(K/Q)`. Keep sparse large-pedigree construction, structured slopes, standalone `sigma`, predictor-dependent `corpair()` regression, and direct-SD grammar in the debt ledger until they have diagnostics, extractors, profile targets, and simulation recovery. |
 | `profile_diagnostics` | Profile intervals and diagnostics | partial | moderate | Complete Slice 79 uncertainty-state handling and a nonlinear interval method for derived summaries. |
 | `large_data_controls` | Large-data fit controls | opt-in | moderate to high for extrapolated claims | Add non-CRAN benchmarks and compatibility tests before claiming broad scalability. |
 | `reserved_planned_neighbours` | Reserved or planned neighbours | blocked | high if advertised as runnable syntax | Keep errors and docs synchronized until implementation, tests, diagnostics, NEWS, and after-task evidence exist. |
@@ -387,8 +387,9 @@ Use these status labels:
   `check_drm()` diagnostics. Future routes need the same evidence before they
   can be taught as routine.
 - User-facing docs: the structural-dependence article now shows fitted
-  pedigree and known-matrix first slices and still keeps sparse large-pedigree
-  construction, residual-scale animal models, q=4 genetic location-scale covariance,
+  pedigree and known-matrix first slices, q=2 bivariate location covariance,
+  and constant q=4 location-scale covariance, while still keeping sparse
+  large-pedigree construction, standalone residual-scale animal models,
   predictor-dependent `corpair()` regression, direct-SD grammar, and structured
   slopes planned. It separates additive genetic relatedness from phylogenetic
   relatedness, spatial dependence, ordinary grouped random effects, and known

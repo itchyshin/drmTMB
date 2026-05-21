@@ -554,9 +554,10 @@ blocks, rather than treating every cross-response correlation as residual
    siblings of `phylo()` and `spatial()`: `animal(1 | id, A/Ainv = ...)` and
    `relmat(1 | id, K/Q = ...)` are Gaussian `mu` intercept slices, and matching
    labelled bivariate `mu1`/`mu2` terms fit the first q=2 location covariance.
-   Pedigree construction, slopes, scale terms, q=4 location-scale blocks,
-   predictor-dependent `corpair()` regression, and direct-SD grammar remain
-   later gates.
+   Matching all-four labelled `mu1`/`mu2`/`sigma1`/`sigma2` terms fit the first
+   constant q=4 location-scale block. Pedigree construction, slopes,
+   standalone scale terms, predictor-dependent `corpair()` regression, and
+   direct-SD grammar remain later gates.
 8. Add spatial SPDE/GMRF fields using the same structured-effect principle.
 9. Keep the first bivariate coordinate-spatial `mu1`/`mu2` covariance slice as
    the spatial sibling of the fitted bivariate phylogenetic and known-matrix

@@ -29,11 +29,13 @@ matrix, a laboratory relatedness kernel, or a precision matrix built outside
 Use \code{K} for a covariance or relatedness matrix and \code{Q} for an inverse
 covariance or precision matrix. The fitted known-matrix routes are a
 univariate Gaussian \code{mu} random intercept, for example
-\code{relmat(1 | line, Q = Q)}, and the first bivariate Gaussian q=2 location
-covariance from matching labelled terms in \code{mu1} and \code{mu2}, for example
-\code{relmat(1 | p | line, Q = Q)}. Structured slopes, \code{sigma} relatedness
-models, q=4 location-scale blocks, predictor-dependent \code{corpair()}
-regression, and generic direct-SD grammar remain planned. \code{relmat()} is
+\code{relmat(1 | line, Q = Q)}, the first bivariate Gaussian q=2 location
+covariance from matching labelled terms in \code{mu1} and \code{mu2}, and the constant
+all-four q=4 location-scale block from matching labelled terms in \code{mu1},
+\code{mu2}, \code{sigma1}, and \code{sigma2}, for example
+\code{relmat(1 | p | line, Q = Q)}. Structured slopes, standalone \code{sigma}
+relatedness models, predictor-dependent \code{corpair()} regression, and generic
+direct-SD grammar remain planned. \code{relmat()} is
 intentionally separate from \code{\link[=meta_V]{meta_V()}}, which adds known sampling covariance
 among observations, and from residual \code{rho12}, which models
 within-observation bivariate residual correlation.

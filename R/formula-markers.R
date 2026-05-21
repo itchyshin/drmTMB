@@ -55,13 +55,15 @@ gr <- function(group, cov) {
 #' data frame, precomputed additive relationship matrix `A`, or inverse
 #' relationship matrix `Ainv`, for example
 #' `animal(1 | id, pedigree = pedigree)` or
-#' `animal(1 | id, Ainv = Ainv)`, and the first bivariate Gaussian q=2
-#' location covariance from matching labelled terms in `mu1` and `mu2`, for
-#' example `animal(1 | p | id, pedigree = pedigree)`. The pedigree route builds
-#' a dense additive relationship matrix from `id`, `dam`, and `sire` columns.
-#' Large-pedigree sparse precision construction, structured slopes, `sigma`
-#' animal models, q=4 location-scale blocks, predictor-dependent `corpair()`
-#' regression, and generic direct-SD grammar remain planned.
+#' `animal(1 | id, Ainv = Ainv)`, the first bivariate Gaussian q=2 location
+#' covariance from matching labelled terms in `mu1` and `mu2`, and the constant
+#' all-four q=4 location-scale block from matching labelled terms in `mu1`,
+#' `mu2`, `sigma1`, and `sigma2`, for example
+#' `animal(1 | p | id, pedigree = pedigree)`. The pedigree route builds a dense
+#' additive relationship matrix from `id`, `dam`, and `sire` columns.
+#' Large-pedigree sparse precision construction, structured slopes, standalone
+#' `sigma` animal models, predictor-dependent `corpair()` regression, and
+#' generic direct-SD grammar remain planned.
 #'
 #' @param term Structured random-effect term, such as `1 | id`.
 #' @param pedigree Pedigree data frame with columns `id`, `dam`, and `sire`.
@@ -158,11 +160,13 @@ spatial <- function(term, coords = NULL, mesh = NULL) {
 #' Use `K` for a covariance or relatedness matrix and `Q` for an inverse
 #' covariance or precision matrix. The fitted known-matrix routes are a
 #' univariate Gaussian `mu` random intercept, for example
-#' `relmat(1 | line, Q = Q)`, and the first bivariate Gaussian q=2 location
-#' covariance from matching labelled terms in `mu1` and `mu2`, for example
-#' `relmat(1 | p | line, Q = Q)`. Structured slopes, `sigma` relatedness
-#' models, q=4 location-scale blocks, predictor-dependent `corpair()`
-#' regression, and generic direct-SD grammar remain planned. `relmat()` is
+#' `relmat(1 | line, Q = Q)`, the first bivariate Gaussian q=2 location
+#' covariance from matching labelled terms in `mu1` and `mu2`, and the constant
+#' all-four q=4 location-scale block from matching labelled terms in `mu1`,
+#' `mu2`, `sigma1`, and `sigma2`, for example
+#' `relmat(1 | p | line, Q = Q)`. Structured slopes, standalone `sigma`
+#' relatedness models, predictor-dependent `corpair()` regression, and generic
+#' direct-SD grammar remain planned. `relmat()` is
 #' intentionally separate from [meta_V()], which adds known sampling covariance
 #' among observations, and from residual `rho12`, which models
 #' within-observation bivariate residual correlation.
