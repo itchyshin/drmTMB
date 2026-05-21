@@ -123,7 +123,7 @@ Report metrics by condition cell and estimand:
 | Convergence rate | `mean(converged & pdHess)` |
 | Warning rate | `mean(warning_count > 0)` |
 | Runtime | median and high quantiles of elapsed seconds |
-| Failure ledger | mesh/SPDE fields, multiple spatial slopes, slope correlations, spatial `sigma`, q=4 spatial blocks, direct-SD surfaces, and spatial `corpair()` regression |
+| Failure ledger | mesh/SPDE fields, multiple spatial slopes, slope correlations, spatial `sigma`, q=4 recovery/coverage evidence, direct-SD surfaces, and spatial `corpair()` regression |
 
 Every aggregate metric should carry an MCSE. Failed, warning-bearing,
 boundary, profile-failed, and geometry-stress fits remain in the manifest and

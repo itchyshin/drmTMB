@@ -36,6 +36,47 @@ standard deviation, dispersion, or an equivalent response-family scale
 overdispersion control such as Student-t `nu`. Coscale means the residual
 correlation layer, currently `rho12` in bivariate Gaussian models.
 
+## How to read the project maps
+
+The public site has three maps with different jobs. Use `model-map` when the
+question is "what should I fit?". Use this implementation map when the question
+is "is this surface fitted or planned?". Use `source-map` when the question is
+"where are the code, tests, and docs?". The validation-debt register is the
+evidence ledger behind these pages. The roadmap records sequence and future
+work; it is not the current-status authority.
+
+Every status row should be read across the same dimensions:
+
+| Dimension | What it records |
+| --- | --- |
+| Family or component | Gaussian, Poisson, NB2, ordinal, `zi`, `hu`, shape, known `V`, or another fitted component. |
+| Dependence layer | ordinary group, phylogenetic, coordinate spatial, animal, `relmat()`, known sampling covariance, or residual `rho12`. |
+| Formula route | The public syntax that fits the row, such as `(1 + x | id)`, `spatial(1 | p | site, coords = coords)`, or `rho12 ~ x`. |
+| q or endpoint class | q=1 intercept, independent slope, q=2, q>2, q=4, or future p8/q8 endpoint work. |
+| Random-effect scope | Whether random intercepts, random slopes, and cross-parameter or bivariate combinations are fitted, first-slice, planned, or blocked. |
+| Extractor route | Which of `sdpars`, `corpars`, `ranef()`, `corpairs()`, `summary()$covariance`, `profile_targets()`, and `check_drm()` exposes the result. |
+| Evidence tier | Whether the surface has smoke evidence, artifact writers, small-grid admission, formal operating-characteristic evidence, or only diagnostic/failure-ledger evidence. |
+| Interval tier | Whether intervals are Wald fixed-effect, direct profile-ready, profile-proven, derived-unavailable, private bootstrap smoke, not requested, or unavailable. |
+| User route | What to fit now, and what smaller fitted route to use when the requested model is planned. |
+
+Simulation and interval evidence are deliberately separate from fitted support.
+A model can be fitted and still have only smoke or diagnostic evidence.
+
+| Evidence tier | Meaning |
+| --- | --- |
+| Formal small grid | Likelihood, parser, extractors, diagnostics, interval status, focused recovery tests, and an ADEMP sheet exist. |
+| Smoke/artifact only | The route is fitted and inspectable, but it does not yet have enough recovery or coverage evidence for broad claims. |
+| Interval-heavy opt-in | Profiles or private bootstrap checks are expensive or partial; status tables must show success, failure, or not-requested rows. |
+| Diagnostic/failure ledger | The fit teaches us about boundaries or hard cases, but it is not a user-facing operating-characteristic claim. |
+| Planned/blocked | Syntax or design may exist, but the fitter should reject the route or route users to a supported alternative. |
+
+Use Wald intervals only for fixed-effect formula coefficients with finite
+standard errors. Do not use them as a shortcut for public SDs, correlations,
+q=4 correlations, residual `rho12`, or weak-Hessian variance components. Direct
+profile targets can be mechanically available but still fail in a given fit.
+Bootstrap artifacts in Phase 18 are private simulation infrastructure, not a
+public `confint(method = "bootstrap")` route.
+
 ## Family and component map
 
 Use this table before combining a family with a random-effect or dependence
@@ -56,6 +97,28 @@ surface.
 `zi` and `hu` are currently fixed-effect probability components. They are
 useful for modelling extra zeros or hurdle probability, but they should not be
 read as random-effect or structured-dependence layers yet.
+
+## Current capability and evidence map
+
+This table connects fitted status to inference status. A first-slice fitted row
+is useful, but it is not the same as a formal coverage claim.
+
+| Surface | Intercepts | Slopes | Combinations | Simulation or evidence tier | Interval tier |
+| --- | --- | --- | --- | --- | --- |
+| Ordinary Gaussian `mu` | fitted | independent, one correlated slope, q>2 advanced | ordinary group covariance | formal small grids for named subsets; q>2 remains advanced | direct SD/profile targets; q>2 correlations derived-unavailable |
+| Ordinary Gaussian `sigma` | fitted | independent `log(sigma)` slopes | no correlated scale slopes yet | smoke and small-grid evidence for independent slopes | direct SD targets and Wald fixed effects |
+| `sd(group)` | fitted for unlabelled Gaussian `mu` intercept SD | no coefficient-specific slope SD yet | direct SD surface | focused recovery | coefficient intervals only where direct; row-specific SDs are derived |
+| Bivariate ordinary Gaussian | q=2 intercepts fitted | matching slope-only `mu1`/`mu2` fitted | selected q=2, same-response `mu`/`sigma`, all-four q=4 intercept blocks | q=2 admitted; q=4 smoke/diagnostic | q=2 direct profile; q=4 derived-unavailable |
+| Residual `rho12` | not a random effect | predictor-dependent fixed effects | residual coscale only | admitted and interval-heavy | direct profile; private bootstrap smoke only |
+| Phylogenetic Gaussian | `mu` intercept fitted | one `mu` slope fitted | q=2 `mu1`/`mu2` and q=4 location-scale fitted, with Ayumi hard cases diagnostic | small controlled grids; full-species hard cases stay diagnostic | direct targets for q=2; q=4 derived-unavailable |
+| Coordinate spatial Gaussian | `mu` intercept fitted | one `mu` slope fitted | q=2 `mu1`/`mu2` fitted; constant all-four q=4 fitted | q=2 admitted; q=4 extractor/diagnostic smoke only | fixed-effect Wald and opt-in profiles for q=2 artifacts; q=4 derived-unavailable |
+| Animal Gaussian | `mu` intercept fitted | one `mu` slope fitted | q=2 and q=4 fitted for small dense or known-matrix routes | q=2/q=4 smoke artifacts, not broad coverage | q=2 fixed-effect Wald plus opt-in profile status; q=4 derived-unavailable |
+| `relmat()` Gaussian | `mu` intercept fitted | one `mu` slope fitted | q=2 and q=4 fitted for known matrices | q=2/q=4 smoke artifacts, not broad coverage | same as animal |
+| Poisson/NB2 ordinary `mu` | fitted | independent numeric slopes fitted | no labelled or correlated count blocks | first small count grids | Wald fixed effects; direct SD profile artifacts |
+| Non-Gaussian structured dependence | planned | planned | no `phylo()`, `spatial()`, `animal()`, or `relmat()` count structure yet | failure ledger only | none |
+| `zi`, `hu`, future `zoi`/`coi` | fixed effects only where supported | no random effects | no covariance layer | fixed-effect tests only | Wald fixed effects where implemented |
+| Ordinal, shape, bounded scale | fixed effects only where supported | no random effects | no structured dependence | fixed-effect or family tests | fixed-effect/profile only where implemented |
+| `meta_V(V = V)` | estimated effects plus known sampling covariance | ordinary Gaussian random effects only where otherwise supported | `V` is input data, not latent dependence | formal small grids for vector/dense known `V` | never interval-target `V` |
 
 ## Random-effect and dependence map
 
@@ -100,37 +163,17 @@ slope structures, not a fitted user route.
 
 ## Roadmap use
 
-The next implementation work should move only one boundary at a time. These are
-the most useful next lanes for users:
+The next implementation work should move only one boundary at a time. The
+detailed slice history lives in the roadmap and design ledgers. This page keeps
+only the current user-facing lanes:
 
-| Slice | Roadmap lane | Why it helps users | Done when |
+| Current lane | Why it helps users | Done when |
 | --- | --- | --- |
-| 303 | Generic `sd*()` design | Users should not need separate direct-SD names for phylo, spatial, animal, and `relmat()` routes forever. | The grammar, examples, tests, and stale-name migration path are explicit without breaking current `sd_phylo*()` users. |
-| 304 | p8/q8 location-scale planning | Full individual-difference location-scale slope models need a design before code. | The endpoint labels, covariance block size, positive-definite parameterization, diagnostics, and profile/derived interval policy are written before fitting. |
-| 305 | Spatial and relatedness q=4 parity | Users can ask location-scale structured questions beyond phylogeny and ordinary groups. | q=4 spatial, animal, and `relmat()` claims have likelihood code, tests, `corpairs()`, diagnostics, and docs. |
-| 306 | q=4 interval policy | Users need to know when q=4 correlations are estimates only and when intervals are real. | Derived q=4 rows keep explicit unavailable interval status until direct or derived-profile interval evidence exists. |
-| 307 | Inflation and hurdle random-effect gate | Users with `zi`, `hu`, future `zoi`, or future `coi` models need clear fixed-effect guidance before extra latent layers are added. | These components remain fixed-effect-only or planned until use cases, recovery tests, diagnostics, prediction semantics, and interval-status rules justify random effects. |
-| 308 | Non-Gaussian structured-dependence candidate map | Count, ordinal, inflation, and hurdle users need honest guidance before structured models are exposed. | One family and one dependence layer pass likelihood, recovery, diagnostics, extractor, and interval-status gates before a broader claim appears. |
-| 309 | Reader-facing availability map maintenance | The pkgdown site should make fitted-versus-planned status easy to find. | This article, `model-map`, README, ROADMAP, NEWS, and the reference index agree after each substantial feature slice. |
-| 310 | User-route examples | Users should leave the map knowing the nearest fitted alternative. | Planned rows point to a fitted route, a design note, or a tutorial boundary rather than leaving users at a dead end. |
-| 311-313 | Generic direct-SD contract | Direct-SD syntax should become easier without breaking existing `sd_phylo*()` users. | Future syntax uses explicit level targeting, keeps ordinary `sd(group)` distinct, and includes compatibility and reference-index checks before implementation. |
-| 314-316 | p8/q8 endpoint gate | Full location-scale slope covariance is scientifically attractive but can be weakly identified. | q2, q4, q6, and q8 endpoints, parameterization, diagnostics, and simulation gates are explicit before code. |
-| 317-318 | Structured q4 and interval contract | Users need to know which q4 rows are estimates and which have real intervals. | Spatial q4 parity is separated from already fitted phylo/animal/relmat q4 status, and q4 intervals remain unavailable until method evidence exists. |
-| 319-320 | Non-Gaussian structured candidate choice | Count users need a realistic first structural-dependence path. | One q1 `mu` structured intercept is chosen before slopes, q4, zero inflation, hurdle probability, or cross-parameter covariance. |
-| 321-325 | User-route and maintenance closeout | The map should help users choose a fitted route when their desired model is planned. | Common planned requests point to fixed-effect or smaller fitted alternatives, and pkgdown/stale-claim checks confirm the rendered map. |
-| 326-328 | Direct-SD pre-code spec | The next direct-SD work should be issue-ready before parser work starts. | Level-targeted generic syntax, `sd_phylo*()` compatibility, endpoint names, reference-index text, and required tests are explicit. |
-| 329-331 | p8/q8 pre-code spec | Users need a smaller, diagnosable path before all-endpoint slope covariance. | q2, q4, q6, and q8 endpoint classes and simulation gates are written before syntax opens. |
-| 332-333 | Spatial q4 pre-code spec | Spatial q4 was the next constant structured q4 parity lane before Slices 356-380 fitted it. | Matching labelled spatial terms, extractors, `corpairs()`, diagnostics, and derived-interval status were required before code could be claimed. |
-| 334-336 | Non-Gaussian structured q1 spec | Count structural dependence needs a first narrow smoke target. | Poisson q1 `mu` structured intercept is the algebra smoke; NB2 q1 `mu` structured intercept is the first practical target after overdispersion checks. |
-| 337-340 | User-route and stale-claim gate | Future implementation must keep the map useful. | Common planned requests point to fitted alternatives, and high-traffic docs plus stale scans move together after implementation. |
-| 341-343 | Direct-SD issue templates | Generic direct-SD syntax should be implementable one structured layer at a time. | Future issues name the target level, compatibility route, parser boundaries, extractor rows, reference examples, and stale-name migration checks before code starts. |
-| 344-345 | p8/q8 issue templates | Location-scale slope covariance is useful only if users can diagnose weak information. | Each issue starts with a smaller endpoint class, names the covariance parameterization, and requires recovery, malformed-input, interval-status, and diagnostic checks. |
-| 346-347 | Spatial q4 issue templates | Spatial users needed the constant q4 parity lane without confusing it with mesh, slope, or count models. | Superseded by Slices 356-380: the fitted spatial q4 route now has matching `mu1`, `mu2`, `sigma1`, and `sigma2` terms, extractor rows, `corpairs()`, diagnostics, interval provenance, and a small smoke example. |
-| 348-351 | Poisson/NB2 structured q1 issue templates | Count users need one narrow structural-dependence path before broad non-Gaussian parity. | Poisson q1 is the algebra smoke; NB2 q1 is the practical count target, both limited to one `mu` structured intercept with guarded zero-inflation, hurdle, slope, and q4 neighbours. |
-| 352-355 | ADEMP, docs, review, and handoff gates | A fitted claim should arrive with simulation purpose, user guidance, role review, and stale-claim scans. | Future implementation issues update this map and related docs, record Ada/Boole/Gauss/Noether/Fisher/Pat/Darwin/Grace/Rose checks, and leave a validation handoff. |
-| 356-370 | Spatial q4 fitted parity | Spatial users need the same constant location-scale covariance first slice already available for phylo, animal, and `relmat()`. | Matching labelled `spatial()` terms across `mu1`, `mu2`, `sigma1`, and `sigma2` fit a q=4 block with six `corpairs(level = "spatial")` rows, `summary()$covariance`, profile-target status, `check_drm()`, and failure-path tests. |
-| 371-380 | Spatial q4 evidence and map closeout | A fitted route should be visible on pkgdown without implying broader spatial or non-Gaussian parity. | README, model-map, implementation-map, structural docs, formula grammar, ROADMAP, NEWS, check-log, after-task notes, pkgdown render, and stale-claim scans all separate fitted spatial q4 from mesh, slope, direct-SD, and count-model work. |
-| 381-405 | Non-Gaussian structured planning | Count and other non-Gaussian users need a design before likelihood code opens. | Poisson/NB2 q1 `mu` structured intercepts and broader `zi`, `hu`, scale, shape, ordinal, bounded-response, and mixed-response structured routes are planned with gates; no non-Gaussian structured likelihood is fitted in this set. |
+| Generic `sd*()` direct-SD design | Users should not need separate direct-SD names for phylo, spatial, animal, and `relmat()` routes forever. | The grammar, compatibility route for existing `sd_phylo*()` helpers, examples, tests, and reference-index plan are explicit before parser work. |
+| p8/q8 location-scale slope planning | Full individual-difference location-scale slope models are scientifically attractive but weakly identified. | q2, q4, q6, and q8 endpoint classes, parameterization, diagnostics, sample-size gates, and interval policy are written before syntax opens. |
+| q=4 interval policy | Users need to know which q=4 rows are point estimates and which have real intervals. | q=4 rows keep `derived_interval_unavailable` until a validated derived-profile or bootstrap route exists. |
+| Non-Gaussian structured q1 gate | Count users need one realistic structural-dependence path before broad non-Gaussian parity. | Poisson q1 structured `mu` intercept is the algebra smoke; NB2 q1 follows only if recovery, diagnostics, extractor rows, and interval status pass. |
+| Map and evidence maintenance | The site should help users fit a supported model rather than read a project diary. | `model-map`, this article, `source-map`, the validation-debt register, and stale scans agree after each substantial feature slice. |
 
 ## Common planned requests
 
@@ -143,5 +186,5 @@ Use this table when a desired model is not fitted yet.
 | phylogenetic or spatial count dependence | ordinary Poisson/NB2 `mu` random effects when a plain group is enough; otherwise treat structural count dependence as planned | `phylo()`, `spatial()`, `animal()`, or `relmat()` inside non-Gaussian likelihoods |
 | full individual-difference location-scale slopes | fitted q2 slope-only `mu1`/`mu2` covariance, or smaller univariate pieces | p8/q8 location-scale slope covariance |
 | structured direct-SD surfaces outside phylogeny | fitted structured intercept/slope SDs and `profile_targets()` where available | generic spatial, animal, or `relmat()` direct-SD regression |
-| spatial q4 location-scale covariance | fitted bivariate Gaussian q4 spatial location-scale block when all four endpoints use matching labelled `spatial(1 | p | site, coords = coords)` terms | mesh/SPDE, spatial slopes, standalone spatial `sigma`, direct-SD surfaces, predictor-dependent spatial `corpair()` regression, and non-Gaussian spatial routes |
+| spatial q4 location-scale covariance | fitted bivariate Gaussian q4 spatial location-scale block when all four endpoints use matching labelled `spatial(1 | p | site, coords = coords)` terms; treat current q4 evidence as extractor/diagnostic smoke | mesh/SPDE, spatial slopes, standalone spatial `sigma`, direct-SD surfaces, predictor-dependent spatial `corpair()` regression, q4 coverage evidence, and non-Gaussian spatial routes |
 | NB2 phylogenetic or spatial count model | ordinary NB2 `mu` random effects if a plain group is enough | Poisson q1 structured smoke first, then NB2 q1 structured intercept with overdispersion checks |

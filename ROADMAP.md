@@ -425,9 +425,12 @@ Spatial parity now has its own ladder. The smallest missing phylogenetic
 sibling has landed for the constant q=2 location layer:
 coordinate-spatial bivariate location covariance for `mu1` and `mu2`, with
 `corpairs(level = "spatial")`, direct profile-target labels, recovery evidence,
-and a dense covariance comparator. Spatial q=4 location-scale, spatial
-`sigma`, spatial direct-SD surfaces, and spatial `corpair()` regression stay
-behind that q=2 gate.
+and a dense covariance comparator. Constant all-four spatial q=4 location-scale
+blocks have since landed as fitted extractor/diagnostic smoke, with derived
+q=4 correlation intervals explicitly unavailable. Mesh/SPDE, multiple spatial
+slopes, standalone spatial `sigma`, spatial direct-SD surfaces, spatial
+`corpair()` regression, and non-Gaussian spatial effects remain behind their
+own evidence gates.
 
 ## Phase 5b: Large-Data Memory Strategy
 
@@ -1720,7 +1723,7 @@ as the whole comprehensive simulation programme.
 | 351 | Documentation | NB2 structured q1 acceptance checklist | Done locally as planning: NB2 q1 needs overdispersion-aware recovery, distinct labels, correct scale reporting, guarded zero-inflation/hurdle neighbours, and fallback guidance. |
 | 352 | Documentation | Non-Gaussian structured ADEMP gate | Done locally as planning: Poisson or NB2 structured q1 must have an ADEMP sheet before Phase 18 simulation admission. |
 | 353 | Documentation | User documentation checklist | Done locally as planning: implementation-map, model-map, reference or tutorial docs, README when appropriate, ROADMAP, NEWS, check-log, and after-task notes move together after fitted-status changes. |
-| 354 | Documentation | Review and issue maintenance | Done locally as planning: future issues record Ada, Boole, Gauss, Noether, Fisher, Curie, Pat, Darwin, Grace, and Rose review coverage before closeout. |
+| 354 | Documentation | Review and issue maintenance | Done locally as planning: future issues record Ada, Boole, Gauss, Noether, Fisher, Curie, Emmy, Pat, Darwin, Grace, and Rose review coverage before closeout. |
 | 355 | Documentation | Validation and handoff gate | Done locally as planning: pkgdown, rendered scans, stale-support scans, after-task reporting, and the next code issue are required before handoff. |
 | 356-370 | Structural dependence | Spatial q4 fitted parity | Done locally: constant coordinate-spatial q4 location-scale covariance fits for all-four labelled Gaussian endpoints, with extractors, `corpairs()`, diagnostics, profile-target status, and boundary tests. |
 | 371-380 | Documentation | Spatial q4 evidence and map closeout | Done locally: public status surfaces, formula grammar, NEWS, check-log, after-task report, pkgdown, and stale scans separate fitted spatial q4 from remaining spatial plans. |

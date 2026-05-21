@@ -73,9 +73,9 @@ same-response bivariate \code{mu}/\code{sigma} random-intercept covariance block
 matched bivariate \code{mu1}/\code{mu2} and \code{sigma1}/\code{sigma2} random-intercept
 covariance blocks from \code{corpars}, plus fitted bivariate phylogenetic,
 coordinate-spatial, animal-model, and \code{relmat()} correlation rows. Full q4
-phylogenetic, animal-model, and \code{relmat()} blocks report six derived endpoint
-correlations; block-diagonal q4 fallback fits report the direct \code{mu1}/\code{mu2}
-and \code{sigma1}/\code{sigma2} block correlations.
+phylogenetic, coordinate-spatial, animal-model, and \code{relmat()} blocks report
+six derived endpoint correlations; block-diagonal q4 fallback fits report
+the direct \code{mu1}/\code{mu2} and \code{sigma1}/\code{sigma2} block correlations.
 }
 \details{
 The table is intentionally more explicit than \code{rho12()} or \code{corpars}

@@ -2,6 +2,78 @@
 
 Record meaningful development checks here.
 
+## 2026-05-21 - Implementation Map Evidence Ultraplan
+
+Goal: implement the documentation/evidence-map ultraplan so users can see which
+random-effect, random-slope, q, covariance, simulation, Wald/profile/bootstrap,
+and diagnostic routes are fitted, smoke-only, planned, or blocked.
+
+Team roles:
+
+- Ada integrated maps, evidence ledgers, rendered pkgdown pages, and check-log
+  closeout.
+- Boole checked that no new formula syntax or grammar support was implied.
+- Gauss and Noether kept spatial q4 scoped to constant Gaussian location-scale
+  intercept endpoints.
+- Fisher separated Wald fixed-effect intervals, direct profile targets,
+  profile-proven intervals, derived-unavailable q4 summaries, and private
+  bootstrap smoke artifacts.
+- Curie kept simulation admission stricter than fitted support.
+- Pat and Darwin moved the model map toward scientific question, fitted syntax,
+  interpretation, and nearest planned neighbour.
+- Emmy restored extractor/API accountability for `corpairs()`,
+  `summary()$covariance`, `profile_targets()`, `check_drm()`, `ranef()`,
+  `sdpars`, and `corpars`.
+- Grace ran documentation, pkgdown, and rendered-page checks.
+- Rose patched stale q2-gate wording and recorded the authority-hierarchy
+  process improvement.
+
+Files changed:
+
+- `R/check.R`, `R/methods.R`, `man/check_drm.Rd`, `man/corpairs.Rd`
+- `README.md`, `NEWS.md`, `ROADMAP.md`
+- `vignettes/implementation-map.Rmd`, `vignettes/model-map.Rmd`,
+  `vignettes/source-map.Rmd`
+- `docs/design/02-family-registry.md`,
+  `docs/design/34-validation-debt-register.md`,
+  `docs/design/37-worked-example-inventory.md`,
+  `docs/design/46-pre-simulation-readiness-matrix.md`,
+  `docs/design/56-phase-18-spatial-q2-ademp.md`,
+  `docs/design/65-implementation-map-slices-341-355.md`
+- `docs/dev-log/team-improvements.md`
+- `docs/dev-log/after-task/2026-05-21-implementation-map-evidence-ultraplan.md`
+
+Checks run:
+
+```sh
+air format R/check.R R/methods.R README.md NEWS.md ROADMAP.md docs/design/02-family-registry.md docs/design/34-validation-debt-register.md docs/design/37-worked-example-inventory.md docs/design/46-pre-simulation-readiness-matrix.md docs/design/56-phase-18-spatial-q2-ademp.md docs/design/65-implementation-map-slices-341-355.md docs/dev-log/team-improvements.md vignettes/implementation-map.Rmd vignettes/model-map.Rmd vignettes/source-map.Rmd
+Rscript -e "devtools::document()"
+Rscript -e "devtools::test(filter = 'check-drm|corpairs|profile-targets|spatial-gaussian', reporter = 'summary')"
+git diff --check
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "pkgdown::build_site()"
+Rscript -e "devtools::test(reporter = 'summary')"
+Rscript -e "devtools::check()"
+rg -n 'How to read the project maps|Current capability and evidence map|Smoke/artifact only|q=4 spatial correlations are derived-only|extractor/diagnostic smoke|The map hierarchy is' pkgdown-site/articles/implementation-map.html pkgdown-site/articles/model-map.html pkgdown-site/articles/source-map.html pkgdown-site/reference/corpairs.html pkgdown-site/reference/check_drm.html pkgdown-site/ROADMAP.html pkgdown-site/index.html -S
+rg -n 'behind that q=2 gate|spatial q4.*stay|spatial q=4.*stay|q4 spatial blocks|spatial q=4 blocks remain planned|spatial q4.*planned but not implemented' README.md ROADMAP.md docs/design vignettes R tests/testthat pkgdown-site/articles pkgdown-site/reference pkgdown-site/ROADMAP.html pkgdown-site/index.html -S
+gh issue list --search "implementation map OR spatial q4 OR validation debt OR source map" --limit 20
+```
+
+Outcomes:
+
+- The implementation map now names the project map hierarchy, evidence
+  dimensions, simulation tiers, interval tiers, and a current capability table.
+- The model map now starts with scientific question, fitted route,
+  interpretation, and planned neighbour.
+- The source map now explicitly names coordinate-spatial q=2 and q=4 source,
+  test, and documentation routes.
+- The validation-debt register now splits spatial, animal, and `relmat()`
+  evidence rows rather than blending q2, q4, slopes, and planned neighbours.
+- ROADMAP and rendered pages no longer say the constant spatial q4 route is
+  still behind the q2 gate.
+- Spatial q4 remains fitted extractor/diagnostic smoke, not formal coverage
+  evidence; q4 correlations remain derived-unavailable for intervals.
+
 ## 2026-05-21 - Structural Parity Slices 83-140
 
 Goal: continue the post-0.1.3 parity lane by fitting the first ordinary
