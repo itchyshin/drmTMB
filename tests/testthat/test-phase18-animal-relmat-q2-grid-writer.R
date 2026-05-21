@@ -22,7 +22,7 @@ test_that("Phase 18 animal/relmat q2 grid writer creates artifacts", {
   withr::defer(unlink(output_dir, recursive = TRUE))
   conditions <- phase18_animal_relmat_q2_conditions(
     structured_surface = c("animal", "relmat"),
-    matrix_argument = "precision",
+    matrix_argument = c("precision", "pedigree"),
     n_level = 10L,
     n_per_level = 6L
   )
@@ -40,28 +40,32 @@ test_that("Phase 18 animal/relmat q2 grid writer creates artifacts", {
   expect_equal(out$summary$run$parallel$cores, 1L)
   expect_true(all(out$artifact_manifest$exists))
   expect_true(all(file.exists(unlist(out$paths, use.names = FALSE))))
-  expect_equal(nrow(out$summary$replicates), 20L)
-  expect_equal(nrow(out$summary$aggregate), 20L)
-  expect_equal(nrow(out$summary$manifest), 2L)
+  expect_equal(nrow(out$summary$replicates), 30L)
+  expect_equal(nrow(out$summary$aggregate), 30L)
+  expect_equal(nrow(out$summary$manifest), 3L)
   expect_equal(nrow(out$summary$failures), 0L)
-  expect_equal(nrow(out$summary$wald_intervals), 8L)
-  expect_equal(nrow(out$summary$wald_coverage), 8L)
-  expect_equal(nrow(out$summary$profile_intervals), 12L)
+  expect_equal(nrow(out$summary$wald_intervals), 12L)
+  expect_equal(nrow(out$summary$wald_coverage), 12L)
+  expect_equal(nrow(out$summary$profile_intervals), 18L)
   expect_equal(nrow(out$summary$profile_coverage), 0L)
-  expect_equal(nrow(out$summary$interval_evidence), 20L)
-  expect_equal(nrow(out$summary$interval_diagnostics), 20L)
-  expect_equal(nrow(out$summary$interval_failures), 12L)
+  expect_equal(nrow(out$summary$interval_evidence), 30L)
+  expect_equal(nrow(out$summary$interval_diagnostics), 30L)
+  expect_equal(nrow(out$summary$interval_failures), 18L)
+  expect_setequal(
+    unique(out$summary$replicates$matrix_argument),
+    c("pedigree", "precision")
+  )
   expect_true(all(out$summary$wald_intervals$interval_status == "ok"))
   expect_true(
     all(out$summary$profile_intervals$interval_status == "not_requested")
   )
-  expect_equal(nrow(utils::read.csv(out$paths$replicate_csv)), 20L)
-  expect_equal(nrow(utils::read.csv(out$paths$aggregate_csv)), 20L)
-  expect_equal(nrow(utils::read.csv(out$paths$manifest_csv)), 2L)
+  expect_equal(nrow(utils::read.csv(out$paths$replicate_csv)), 30L)
+  expect_equal(nrow(utils::read.csv(out$paths$aggregate_csv)), 30L)
+  expect_equal(nrow(utils::read.csv(out$paths$manifest_csv)), 3L)
   expect_equal(nrow(utils::read.csv(out$paths$failures_csv)), 0L)
-  expect_equal(nrow(utils::read.csv(out$paths$wald_intervals_csv)), 8L)
-  expect_equal(nrow(utils::read.csv(out$paths$profile_intervals_csv)), 12L)
-  expect_equal(nrow(utils::read.csv(out$paths$interval_evidence_csv)), 20L)
+  expect_equal(nrow(utils::read.csv(out$paths$wald_intervals_csv)), 12L)
+  expect_equal(nrow(utils::read.csv(out$paths$profile_intervals_csv)), 18L)
+  expect_equal(nrow(utils::read.csv(out$paths$interval_evidence_csv)), 30L)
   expect_error(
     phase18_write_animal_relmat_q2_grid_outputs(
       output_dir = output_dir,

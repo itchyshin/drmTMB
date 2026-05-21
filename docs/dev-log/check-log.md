@@ -33785,3 +33785,57 @@ Rscript -e "devtools::check(error_on = 'never')"
   release, generated `vignettes/model-map.html`, and intended
   sparse-large-pedigree or structured-slope planned-boundary wording. No
   current source docs still describe `animal(pedigree = ...)` as rejected.
+
+## 2026-05-21 - Animal Pedigree Q2 Smoke Artifacts
+
+Goal:
+
+- Add the animal-only `pedigree` spelling to the Phase 18 q=2 animal smoke and
+  artifact machinery so simulation evidence uses the same public syntax an
+  applied user would type, without extending `relmat()` beyond known matrices.
+
+Changes:
+
+- Extended `phase18_animal_relmat_q2_conditions()` and
+  `phase18_dgp_animal_relmat_q2()` with
+  `matrix_argument = "pedigree"` for `structured_surface = "animal"` only.
+- Added a deterministic small pedigree builder for the q=2 smoke DGP; the DGP
+  records the pedigree and the dense additive relationship matrix used for
+  fitting.
+- Routed the q=2 animal smoke runner through
+  `animal(1 | p | id, pedigree = pedigree)` in both `mu1` and `mu2` when the
+  condition cell requests `matrix_argument = "pedigree"`.
+- Expanded the grid-writer smoke artifact test from two cells to three cells:
+  animal precision, animal pedigree, and relmat precision. The impossible
+  relmat/pedigree cell is filtered out and has explicit validation coverage.
+- Updated the Phase 18 animal/relmat ADEMP sheet, interval-status contract,
+  simulation programme, and readiness matrix to name the dense animal pedigree
+  q=2 smoke cell while keeping sparse large-pedigree construction in the
+  failure ledger.
+- Added after-task report
+  `docs/dev-log/after-task/2026-05-21-animal-pedigree-q2-smoke-artifacts.md`.
+
+Validation:
+
+```sh
+air format inst/sim/dgp/sim_dgp_animal_relmat_q2.R inst/sim/run/sim_run_animal_relmat_q2_smoke.R tests/testthat/test-phase18-animal-relmat-q2-smoke.R tests/testthat/test-phase18-animal-relmat-q2-grid-writer.R
+Rscript -e "devtools::test(filter = 'phase18-animal-relmat-q2-smoke|phase18-animal-relmat-q2-grid-writer')"
+Rscript -e "pkgdown::check_pkgdown()"
+git diff --check
+rg -n 'known-matrix `animal\(\)` and `relmat\(\)` q=2|known-matrix Gaussian `animal\(\)` and `relmat\(\)`|matrix_argument` \| covariance, precision|Known `A`, `Ainv`, `K`, or `Q`|pedigree-to-`Ainv`|relmat\([^\n]*pedigree|matrix_argument = "pedigree".*relmat.*fit' docs/design/54-phase-18-animal-relmat-known-matrix-ademp.md docs/design/55-phase-18-animal-relmat-q2-interval-status.md docs/design/46-pre-simulation-readiness-matrix.md docs/design/41-phase-18-simulation-programme.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-21-animal-pedigree-q2-smoke-artifacts.md inst/sim tests/testthat/test-phase18-animal-relmat-q2-smoke.R tests/testthat/test-phase18-animal-relmat-q2-grid-writer.R
+rg -n 'pedigree.*not|planned.*pedigree|pedigree.*planned|animal.*pedigree.*rejected|rejected.*animal.*pedigree' docs/design/54-phase-18-animal-relmat-known-matrix-ademp.md docs/design/55-phase-18-animal-relmat-q2-interval-status.md docs/design/46-pre-simulation-readiness-matrix.md docs/design/41-phase-18-simulation-programme.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-21-animal-pedigree-q2-smoke-artifacts.md inst/sim tests/testthat/test-phase18-animal-relmat-q2-smoke.R tests/testthat/test-phase18-animal-relmat-q2-grid-writer.R
+```
+
+- The focused Phase 18 animal/relmat q2 smoke and grid-writer tests passed
+  80 expectations after the documentation ledger was updated.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `git diff --check` was clean.
+- The new tests check that the pedigree DGP matrix equals
+  `drm_pedigree_additive_relationship(pedigree)`, that the smoke runner fits
+  the public `animal(..., pedigree = pedigree)` spelling, and that
+  `relmat()`/`pedigree` requests error instead of silently becoming matrix
+  cells.
+- The stale-wording scans returned the intended `relmat()`/`pedigree`
+  rejection text, the failure-ledger sparse pedigree-to-`Ainv` note, current
+  animal-only pedigree claims, and older historical check-log entries. No
+  current design source claims that `relmat()` accepts `pedigree`.

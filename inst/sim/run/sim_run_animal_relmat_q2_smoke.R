@@ -68,6 +68,21 @@ phase18_fit_animal_relmat_q2 <- function(data, cell) {
   control <- list(eval.max = 500, iter.max = 500)
 
   if (identical(truth$structured_surface, "animal")) {
+    if (identical(truth$matrix_argument, "pedigree")) {
+      pedigree <- truth$pedigree
+      return(drmTMB(
+        bf(
+          mu1 = y1 ~ x + animal(1 | p | id, pedigree = pedigree),
+          mu2 = y2 ~ x + animal(1 | p | id, pedigree = pedigree),
+          sigma1 = ~1,
+          sigma2 = ~1,
+          rho12 = ~1
+        ),
+        family = biv_gaussian(),
+        data = data,
+        control = control
+      ))
+    }
     if (identical(truth$matrix_argument, "precision")) {
       return(drmTMB(
         bf(
