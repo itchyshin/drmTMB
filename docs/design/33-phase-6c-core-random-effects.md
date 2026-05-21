@@ -95,7 +95,7 @@ Slice 188 publishes that gate as a pre-simulation status table:
 | Univariate `mu`/`sigma` covariance | One or more matched labelled random-intercept blocks | Slope-level mean-scale covariance |
 | Bivariate ordinary covariance | Matching labelled random-intercept blocks and q=4 all-four intercept blocks | Matching slope-only `mu1`/`mu2`, q=4 location-slope, and q=8 all-four slope endpoints |
 | Phylogenetic structured effects | Intercept-level univariate, bivariate, direct-SD, q=2 correlation-regression, and q=4 location-scale paths | `phylo(1 + x | species, tree = tree)` and richer structured-slope covariance |
-| Coordinate spatial structured effects | Univariate Gaussian `mu` intercept and one numeric slope with independent coordinate fields | Mesh/SPDE, multiple slopes, slope correlations, spatial `sigma`, bivariate spatial covariance, and spatial `corpair()` |
+| Coordinate spatial structured effects | Univariate Gaussian `mu` intercept, one numeric slope with independent coordinate fields, and constant bivariate `mu1`/`mu2` q=2 covariance | Mesh/SPDE, multiple slopes, slope correlations, spatial `sigma`, bivariate spatial q=4 covariance, spatial direct-SD surfaces, and spatial `corpair()` |
 | Non-Gaussian families | Fixed-effect likelihoods plus ordinary Poisson `mu` random intercepts and independent numeric slopes in the pre-simulation random-effect gate; non-Gaussian `sigma` random effects have a fixed-effect-only boundary | NB2 `mu` random intercepts, correlated non-Gaussian `mu` slopes, scale/shape/ZI/one-inflation/hurdle/ordinal random effects, cross-parameter covariance blocks, and structured non-Gaussian paths |
 
 Slice 236 re-audits the same promise before broader Phase 18 work starts. The

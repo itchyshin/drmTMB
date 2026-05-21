@@ -1102,6 +1102,9 @@ profile_cor_internal <- function(dpar) {
   if (identical(dpar, "mu")) {
     return("eta_cor_mu")
   }
+  if (dpar %in% c("phylo", "spatial", "animal", "relmat")) {
+    return("eta_cor_phylo")
+  }
   paste0("eta_cor_", dpar)
 }
 

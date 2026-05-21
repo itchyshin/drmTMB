@@ -34,7 +34,7 @@ Use these status labels:
 | `biv_residual_rho12` | Bivariate Gaussian residual `rho12` | covered | low for residual `rho12`; high if confused with latent covariance | Keep residual `rho12` separate from group, phylogenetic, and spatial correlations. |
 | `ordinary_biv_corpairs` | Ordinary bivariate covariance and `corpairs()` | partial | moderate | Add coefficient-aware bivariate slope covariance only after q=2/q=4 interval status and recovery evidence are explicit. |
 | `phylo_structured_effects` | Phylogenetic structured effects | partial | moderate | Add phylogenetic one-slope likelihood, diagnostics, and recovery evidence before teaching slopes. |
-| `spatial_coord_effects` | Coordinate spatial structured effects | partial | moderate | Add mesh/SPDE, multiple-slope, and spatial-correlation evidence before widening spatial syntax. |
+| `spatial_coord_effects` | Coordinate spatial structured effects | partial | moderate | The coordinate q=2 bivariate location covariance slice is now fitted; add mesh/SPDE, multiple-slope, q=4, spatial `sigma`, and spatial `corpair()` evidence before widening spatial syntax further. |
 | `animal_known_relatedness` | Animal-model and user-supplied relatedness effects | partial | high if confused with implemented phylogeny or meta-analysis known `V` | The known-matrix Gaussian `mu` intercept slice is fitted for `animal(A/Ainv)` and `relmat(K/Q)`. Keep pedigree construction, structured slopes, `sigma`, bivariate covariance, and `corpair()` parity in the debt ledger until they have diagnostics, extractors, profile targets, and simulation recovery. |
 | `profile_diagnostics` | Profile intervals and diagnostics | partial | moderate | Complete Slice 79 uncertainty-state handling and a nonlinear interval method for derived summaries. |
 | `large_data_controls` | Large-data fit controls | opt-in | moderate to high for extrapolated claims | Add non-CRAN benchmarks and compatibility tests before claiming broad scalability. |
@@ -235,7 +235,8 @@ Use these status labels:
 
 ### Random-effect scale models
 
-- Matrix status: first slice.
+- Matrix status: first coordinate slices, including constant q=2 bivariate
+  location covariance.
 - Register status: partial.
 - Evidence: `tests/testthat/test-gaussian-random-effect-scale.R` and
   `tests/testthat/test-comparators.R`.
@@ -359,8 +360,9 @@ Use these status labels:
   `tests/testthat/test-profile-targets.R`, and
   `tests/testthat/test-check-drm.R`.
 - Diagnostics and intervals: `sdpars$mu`, `ranef("spatial_mu")`,
-  `profile_targets()`, and `check_drm()` expose the coordinate-spatial fields
-  and direct spatial SD targets.
+  `profile_targets()`, `corpairs(level = "spatial")`, `summary()$covariance`,
+  and `check_drm()` expose the coordinate-spatial fields, direct spatial SD
+  targets, and the q=2 spatial mean-mean row.
 - User-facing docs: `vignettes/phylogenetic-spatial.Rmd`,
   `docs/design/09-phylogenetic-and-spatial-speed.md`, and
   `docs/design/16-phylo-spatial-common-math.md`.
@@ -369,8 +371,8 @@ Use these status labels:
   `docs/dev-log/after-task/2026-05-15-phase-10-coordinate-spatial-one-slope.md`;
   `docs/dev-log/after-phase/2026-05-15-phase-10-coordinate-spatial-foundation-closure.md`.
 - Debt: mesh/SPDE, multiple spatial slopes, spatial slope correlations,
-  spatial `sigma`, bivariate spatial covariance, and spatial `corpair()` remain
-  blocked.
+  spatial `sigma`, bivariate spatial q=4 covariance, spatial direct-SD
+  surfaces, and spatial `corpair()` regression remain blocked.
 
 ### Animal-model and user-supplied relatedness effects
 

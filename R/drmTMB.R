@@ -2601,6 +2601,10 @@ drm_build_biv_gaussian_spec <- function(
   mu2_entry$rhs <- meta_mu2$rhs
   meta <- if (!is.null(meta_mu1$V)) meta_mu1 else meta_mu2
 
+  spatial_mu_terms <- guard_biv_spatial_mu_terms(mu1_entry, mu2_entry)
+  mu1_entry$rhs <- spatial_mu_terms$mu1$rhs
+  mu2_entry$rhs <- spatial_mu_terms$mu2$rhs
+
   phylo_q4_terms <- detect_biv_phylo_q4_terms(
     mu1_entry,
     mu2_entry,
@@ -2635,6 +2639,18 @@ drm_build_biv_gaussian_spec <- function(
     mu1_entry$rhs <- phylo_mu_terms$mu1$rhs
     mu2_entry$rhs <- phylo_mu_terms$mu2$rhs
   }
+  if (!is.null(spatial_mu_terms$term) && !is.null(phylo_mu_terms$term)) {
+    cli::cli_abort(c(
+      "Bivariate Gaussian models can use one structured location-covariance source at a time.",
+      "x" = "Both {.fn spatial} and {.fn phylo} location terms were supplied.",
+      "i" = "Fit either matching {.fn spatial} terms or matching {.fn phylo} terms in {.code mu1} and {.code mu2}; combined structured covariance needs a separate block design."
+    ))
+  }
+  structured_mu_terms <- if (!is.null(spatial_mu_terms$term)) {
+    spatial_mu_terms
+  } else {
+    phylo_mu_terms
+  }
 
   mu1_re <- extract_random_mu_terms(mu1_entry$rhs, "mu1")
   mu1_entry$rhs <- mu1_re$rhs
@@ -2657,7 +2673,7 @@ drm_build_biv_gaussian_spec <- function(
         length(mu2_re$terms) > 0L ||
         length(sigma1_re$terms) > 0L ||
         length(sigma2_re$terms) > 0L ||
-        !is.null(phylo_mu_terms$term))
+        !is.null(structured_mu_terms$term))
   ) {
     cli::cli_abort(c(
       "Bivariate Gaussian random effects cannot yet be combined with {.fn meta_known_V}.",
@@ -2732,7 +2748,7 @@ drm_build_biv_gaussian_spec <- function(
     unlist(lapply(f_sd_mu, all.vars), use.names = FALSE),
     unlist(lapply(f_sd_phylo, all.vars), use.names = FALSE),
     unlist(lapply(f_corpair, all.vars), use.names = FALSE),
-    phylo_mu_vars(phylo_mu_terms$term),
+    structured_mu_vars(structured_mu_terms$term),
     sd_mu_groups,
     sd_phylo_groups,
     corpair_groups,
@@ -2806,7 +2822,11 @@ drm_build_biv_gaussian_spec <- function(
     active_mu2_terms,
     data_model
   )
-  phylo_mu <- build_phylo_mu_structure(phylo_mu_terms$term, data_model, env)
+  phylo_mu <- build_structured_mu_structure(
+    structured_mu_terms$term,
+    data_model,
+    env
+  )
   re_mu$cor_model <- build_biv_mu_corpair_model(
     corpair_entries,
     f_corpair,
@@ -3910,6 +3930,27 @@ structured_mu_random_effect_key <- function(phylo_mu) {
   )
 }
 
+structured_mu_correlation_key <- function(phylo_mu) {
+  switch(
+    structured_mu_type(phylo_mu),
+    spatial = "spatial",
+    animal = "animal",
+    relmat = "relmat",
+    "phylo"
+  )
+}
+
+structured_mu_corpair_level <- function(phylo_mu) {
+  switch(
+    structured_mu_type(phylo_mu),
+    phylo = "phylogenetic",
+    spatial = "spatial",
+    animal = "animal",
+    relmat = "relmat",
+    structured_mu_type(phylo_mu)
+  )
+}
+
 phylo_mu_dpars <- function(phylo_mu) {
   dpars <- phylo_mu$dpars
   if (is.character(dpars) && length(dpars) > 0L) {
@@ -4177,6 +4218,93 @@ guard_biv_phylo_mu_terms <- function(mu1_entry, mu2_entry) {
   list(mu1 = mu1_phylo, mu2 = mu2_phylo, term = term1)
 }
 
+guard_biv_spatial_mu_terms <- function(mu1_entry, mu2_entry) {
+  mu1_spatial <- extract_gaussian_mu_spatial_term(mu1_entry)
+  mu2_spatial <- extract_gaussian_mu_spatial_term(mu2_entry)
+  has_spatial <- c(
+    mu1 = !is.null(mu1_spatial$term),
+    mu2 = !is.null(mu2_spatial$term)
+  )
+  if (!any(has_spatial)) {
+    return(list(mu1 = mu1_spatial, mu2 = mu2_spatial, term = NULL))
+  }
+  if (!all(has_spatial)) {
+    missing <- names(has_spatial)[!has_spatial]
+    present <- names(has_spatial)[has_spatial]
+    cli::cli_abort(c(
+      "Bivariate spatial location terms must be matched in {.code mu1} and {.code mu2}.",
+      "x" = "{.code {present}} contains {.fn spatial}, but {.code {missing}} does not.",
+      "i" = "Use matching terms such as {.code mu1 = y1 ~ x + spatial(1 | site, coords = coords)} and {.code mu2 = y2 ~ x + spatial(1 | site, coords = coords)}."
+    ))
+  }
+
+  term1 <- mu1_spatial$term
+  term2 <- mu2_spatial$term
+  if (
+    !identical(term1$coef_names, "(Intercept)") ||
+      !identical(term2$coef_names, "(Intercept)")
+  ) {
+    cli::cli_abort(c(
+      "Bivariate spatial location covariance currently supports intercept-only structured effects.",
+      "x" = "{.code mu1} requested structured coefficient{?s}: {.val {term1$coef_names}}.",
+      "x" = "{.code mu2} requested structured coefficient{?s}: {.val {term2$coef_names}}.",
+      "i" = "Use matching {.code spatial(1 | site, coords = coords)} terms for the first q=2 spatial path; spatial slopes remain univariate-only until separate recovery tests are added."
+    ))
+  }
+  if (
+    !identical(term1$group, term2$group) ||
+      !identical(term1$object, term2$object) ||
+      !identical(term1$structure, term2$structure)
+  ) {
+    cli::cli_abort(c(
+      "Matched bivariate spatial location terms must use the same grouping variable and coordinate object.",
+      "x" = "{.code mu1} uses {.code spatial(1 | {term1$group}, coords = {term1$object})}.",
+      "x" = "{.code mu2} uses {.code spatial(1 | {term2$group}, coords = {term2$object})}.",
+      "i" = "The first fitted bivariate spatial path uses one shared coordinate-derived precision for {.code mu1} and {.code mu2}."
+    ))
+  }
+  if (!identical(term1$covariance_label, term2$covariance_label)) {
+    block1 <- phylo_term_block(term1)
+    block2 <- phylo_term_block(term2)
+    cli::cli_abort(c(
+      "Matched bivariate spatial location terms must use the same covariance-block label.",
+      "x" = "{.code mu1} uses block {.code {block1}}.",
+      "x" = "{.code mu2} uses block {.code {block2}}.",
+      "i" = "Use matching terms such as {.code spatial(1 | p | {term1$group}, coords = {term1$object})} in both formulas, or leave both terms unlabelled."
+    ))
+  }
+
+  term1$dpars <- c("mu1", "mu2")
+  term1$q <- 2L
+  term1$covariance_mode <- "scalar"
+  term1$block_ids <- c(1L, 1L)
+  term1$block_labels <- if (is.null(term1$covariance_label)) {
+    "spatial"
+  } else {
+    term1$covariance_label
+  }
+  term1$endpoint_blocks <- rep(term1$block_labels[[1L]], 2L)
+  term1$endpoint_covariance_labels <- if (is.null(term1$covariance_label)) {
+    rep(NA_character_, 2L)
+  } else {
+    rep(term1$covariance_label, 2L)
+  }
+  list(mu1 = mu1_spatial, mu2 = mu2_spatial, term = term1)
+}
+
+structured_mu_vars <- function(term) {
+  if (is.null(term)) {
+    return(character())
+  }
+  switch(
+    term$type,
+    spatial = spatial_mu_vars(term),
+    animal = known_mu_vars(term),
+    relmat = known_mu_vars(term),
+    phylo_mu_vars(term)
+  )
+}
+
 phylo_mu_vars <- function(term) {
   if (is.null(term)) {
     return(character())
@@ -4225,6 +4353,22 @@ empty_phylo_mu_structure <- function() {
     node_labels = character(),
     species_levels = character(),
     group_levels = character()
+  )
+}
+
+build_structured_mu_structure <- function(term, data, env) {
+  if (is.null(term)) {
+    return(empty_phylo_mu_structure())
+  }
+  switch(
+    term$type,
+    spatial = build_spatial_mu_structure(term, data, env),
+    animal = build_known_precision_mu_structure(term, data, env),
+    relmat = build_known_precision_mu_structure(term, data, env),
+    phylo = build_phylo_mu_structure(term, data, env),
+    cli::cli_abort(
+      "Internal error: unknown structured-effect type {.val {term$type}}."
+    )
   )
 }
 
@@ -4368,20 +4512,61 @@ build_spatial_mu_structure <- function(term, data, env) {
     )
   }
   value <- structured_mu_design_matrix(term, data, marker = "spatial")
+  dpars <- if (is.null(term$dpars)) {
+    "mu"
+  } else {
+    term$dpars
+  }
+  q <- if (length(dpars) > 1L) {
+    length(dpars)
+  } else {
+    ncol(value)
+  }
+  endpoint_covariance_labels <- if (!is.null(term$endpoint_covariance_labels)) {
+    unname(as.character(term$endpoint_covariance_labels))
+  } else if (is.null(term$covariance_label)) {
+    rep(NA_character_, q)
+  } else {
+    rep(term$covariance_label, q)
+  }
+  block_ids <- if (!is.null(term$block_ids)) {
+    as.integer(term$block_ids)
+  } else {
+    rep(1L, q)
+  }
+  block_ids <- match(block_ids, sort(unique(block_ids)))
+  block_labels <- if (!is.null(term$block_labels)) {
+    unname(as.character(term$block_labels))
+  } else if (is.null(term$covariance_label)) {
+    "spatial"
+  } else {
+    term$covariance_label
+  }
+  endpoint_blocks <- if (!is.null(term$endpoint_blocks)) {
+    unname(as.character(term$endpoint_blocks))
+  } else {
+    block_labels[block_ids]
+  }
+  covariance_mode <- if (!is.null(term$covariance_mode)) {
+    term$covariance_mode
+  } else {
+    "scalar"
+  }
 
   list(
     has = TRUE,
     type = "spatial",
     label = term$label,
     group = group,
-    block = if (is.null(term$covariance_label)) {
-      "spatial"
-    } else {
-      term$covariance_label
-    },
+    block = paste(unique(endpoint_blocks), collapse = "/"),
     covariance_label = term$covariance_label,
-    dpars = "mu",
-    q = ncol(value),
+    covariance_mode = covariance_mode,
+    block_ids = block_ids,
+    block_labels = block_labels,
+    endpoint_blocks = endpoint_blocks,
+    endpoint_covariance_labels = endpoint_covariance_labels,
+    dpars = dpars,
+    q = q,
     coef_names = colnames(value),
     tree = NA_character_,
     structure = term$structure,
@@ -6188,7 +6373,7 @@ abort_unsupported_corpair_level <- function(entry, level) {
     cli::cli_abort(c(
       "Predictor-dependent spatial {.fn corpair} regression is planned but not fitted yet.",
       "x" = "{.code {entry$dpar}} targets a spatial latent correlation.",
-      "i" = "Fit spatial random effects only after the constant spatial covariance block is implemented and reported by {.fn corpairs}.",
+      "i" = "The current spatial bivariate path fits only a constant q=2 {.code mu1}/{.code mu2} location covariance reported by {.fn corpairs}.",
       "i" = "A future implementation must choose a positive-definite spatial covariance contract before this formula can be optimized."
     ))
   }
@@ -9952,6 +10137,7 @@ split_tmb_corpars <- function(par, spec) {
       isTRUE(spec$structured$phylo_mu$has)
   ) {
     phylo_pairs <- phylo_mu_pair_table(spec$structured$phylo_mu)
+    cor_key <- structured_mu_correlation_key(spec$structured$phylo_mu)
     if (spec$structured$phylo_mu$q > 2L) {
       theta <- unname(par$theta_phylo[seq_len(nrow(phylo_pairs))])
       if (phylo_mu_is_block_diagonal(spec$structured$phylo_mu)) {
@@ -9972,7 +10158,7 @@ split_tmb_corpars <- function(par, spec) {
       rho_phylo <- 0.999999 * tanh(unname(par$eta_cor_phylo))
     }
     names(rho_phylo) <- phylo_pairs$parameter
-    out$phylo <- rho_phylo
+    out[[cor_key]] <- rho_phylo
   }
 
   out

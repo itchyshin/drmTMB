@@ -2,6 +2,117 @@
 
 Record meaningful development checks here.
 
+## 2026-05-20 - 0.1.3 Candidate And Spatial Q2 Covariance
+
+Goal: answer the release-slice question by closing the highest-risk fitted
+piece before `0.1.3`: coordinate-spatial bivariate Gaussian `mu1`/`mu2` q=2
+location covariance, then bump the local candidate metadata to `0.1.3`.
+
+Team roles:
+
+- Ada coordinated the code, docs, release metadata, issue ledger, and final
+  evidence.
+- Boole checked that only matching intercept-only spatial terms are fitted in
+  the bivariate path.
+- Gauss and Noether checked that the structured-effect correlation stays
+  separate from residual `rho12`.
+- Curie and Fisher checked dense likelihood, profile-target, `corpairs()`,
+  prediction, simulation, and summary covariance evidence.
+- Grace ran package, pkgdown, and R CMD check gates.
+- Pat and Darwin checked the structural-dependence reader wording.
+- Rose checked stale status wording, issue state, and process lessons.
+
+Files changed:
+
+- `R/drmTMB.R`, `R/methods.R`, `R/profile.R`
+- `tests/testthat/test-spatial-gaussian.R`
+- `tests/testthat/test-gaussian-location-scale.R`
+- `man/corpairs.Rd`
+- `DESCRIPTION`, `NEWS.md`, `README.md`, `_pkgdown.yml`, `ROADMAP.md`
+- `vignettes/drmTMB.Rmd`, `vignettes/formula-grammar.Rmd`,
+  `vignettes/model-map.Rmd`, `vignettes/phylogenetic-spatial.Rmd`,
+  `vignettes/source-map.Rmd`
+- `docs/design/02-family-registry.md`,
+  `docs/design/08-meta-analysis.md`,
+  `docs/design/09-phylogenetic-and-spatial-speed.md`,
+  `docs/design/16-phylo-spatial-common-math.md`,
+  `docs/design/33-phase-6c-core-random-effects.md`,
+  `docs/design/34-validation-debt-register.md`,
+  `docs/design/37-worked-example-inventory.md`,
+  `docs/design/41-phase-18-simulation-programme.md`,
+  `docs/design/45-cross-dpar-correlation-gate.md`,
+  `docs/design/46-pre-simulation-readiness-matrix.md`,
+  `docs/design/53-structural-dependence-article-split.md`
+- `docs/dev-log/release-checklists/2026-05-20-0.1.3-preview-release.md`
+- `docs/dev-log/after-task/2026-05-20-0-1-3-candidate-and-spatial-q2.md`
+- `docs/dev-log/known-limitations.md`
+- `docs/dev-log/structural-dependence-parity-2026-05-20.md`
+- `docs/dev-log/team-improvements.md`
+
+What changed:
+
+- Matching `spatial(1 | p | site, coords = coords)` terms in bivariate Gaussian
+  `mu1` and `mu2` now fit a constant q=2 coordinate-spatial location covariance.
+- The fitted row appears through `corpars$spatial`,
+  `corpairs(level = "spatial")`, `summary(fit)$covariance`, and direct
+  `profile_targets()` labels.
+- Partial bivariate spatial terms now error with a matched-term message rather
+  than the old broad planned-structured-syntax message.
+- `DESCRIPTION`, `NEWS.md`, README install text, pkgdown version note, roadmap,
+  and getting-started install text now point to `0.1.3`.
+- Spatial q=4, spatial `sigma`, direct spatial SD surfaces, spatial
+  predictor-dependent `corpair()` regression, multiple spatial slopes, and
+  spatial slope correlations remain planned.
+- Animal/`relmat()` are explicitly first-slice known-matrix `mu` intercepts,
+  not phylogenetic-parity complete.
+
+Checks run:
+
+```sh
+git diff --check
+air format R/drmTMB.R R/methods.R R/profile.R tests/testthat/test-spatial-gaussian.R tests/testthat/test-gaussian-location-scale.R
+Rscript -e "devtools::document()"
+Rscript -e "devtools::test(filter = 'spatial-gaussian', reporter = 'summary')"
+Rscript -e "devtools::test(filter = 'spatial-gaussian|phylo-gaussian|profile-targets|check-drm|biv-gaussian|corpairs', reporter = 'summary')"
+Rscript -e "devtools::test(filter = 'gaussian-location-scale|spatial-gaussian', reporter = 'summary')"
+Rscript -e "devtools::test(filter = 'gaussian-location-scale|spatial-gaussian|animal-relmat-gaussian', reporter = 'summary')"
+Rscript -e "devtools::test(reporter = 'summary')"
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "devtools::check(document = FALSE, args = '--no-manual', error_on = 'warning')"
+rg -n "0\\.1\\.2|v0\\.1\\.2|0\\.1\\.3|v0\\.1\\.3|development" DESCRIPTION README.md _pkgdown.yml NEWS.md vignettes/drmTMB.Rmd ROADMAP.md
+```
+
+Outcomes:
+
+- Focused spatial and neighboring structural tests passed.
+- Full `devtools::test(reporter = "summary")` passed after correcting one stale
+  boundary expectation in `test-gaussian-location-scale.R`.
+- Post-bump targeted tests for `gaussian-location-scale` and `spatial-gaussian`
+  passed.
+- Final compact release tests for `animal-relmat-gaussian`,
+  `gaussian-location-scale`, and `spatial-gaussian` passed before staging.
+- Post-bump `pkgdown::check_pkgdown()` reported no problems.
+- Post-bump `devtools::check()` checked package version `0.1.3` and completed
+  with 0 errors, 0 warnings, and 1 NOTE: `unable to verify current time`.
+- `git diff --check` passed.
+
+Issue maintenance:
+
+- Inspected issue #5.
+- Added 0.1.3 candidate evidence:
+  <https://github.com/itchyshin/drmTMB/issues/5#issuecomment-4503612901>.
+- Kept #5 open because the full individual-difference covariance endpoint still
+  needs richer covariance blocks, spatial q=4, spatial `sigma`,
+  predictor-dependent spatial `corpair()`, slope correlations, simulations,
+  intervals, and reader-facing examples.
+
+Next release gates:
+
+1. Open the focused `0.1.3` candidate PR.
+2. Pass GitHub Actions R-CMD-check on macOS, Ubuntu, and Windows.
+3. Merge, tag `v0.1.3`, watch tag CI, then run
+   `Rscript tools/install-smoke.R v0.1.3 0.1.3`.
+
 ## 2026-05-20 - Slices 1280-1364 Animal/Relmat First Slice And Current Figure Gate
 
 Goal: continue after the 1239-1278 Actions/figure-audit work without

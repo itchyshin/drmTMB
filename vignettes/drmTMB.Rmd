@@ -22,7 +22,8 @@ formulae such as `sd(id) ~ x_group`, fixed-effect non-Gaussian families,
 known-covariance Gaussian meta-analysis, bivariate Gaussian residual coupling
 with `rho12 ~ predictors`, first ordinary bivariate covariance blocks,
 phylogenetic Gaussian covariance slices, and coordinate-based spatial `mu`
-intercept and one-slope fields. The articles "What can I fit today?" and
+intercept, one-slope, and q=2 bivariate location-covariance fields. The
+articles "What can I fit today?" and
 "Choosing response families" give the broader implemented map.
 
 The current package is already useful for one central workflow: write one
@@ -36,7 +37,7 @@ model matches the symbolic model you had in mind.
 
 ```r
 install.packages("pak")
-pak::pak("itchyshin/drmTMB@v0.1.2")
+pak::pak("itchyshin/drmTMB@v0.1.3")
 ```
 
 For the newest development build from `main`, use:
@@ -166,7 +167,7 @@ At a high level, the current public surface is:
 | fixed-effect bivariate Gaussian `rho12` | stable | "Changing residual coupling with rho12" |
 | ordinary bivariate covariance and `corpairs()` rows | first slice | "What can I fit today?" |
 | phylogenetic Gaussian `mu`, q=2, q=4, and direct-SD covariance slices | first slices | "Structural dependence" |
-| coordinate spatial Gaussian `mu` intercept and one numeric slope | first slice | "Structural dependence" |
+| coordinate spatial Gaussian `mu` intercept, one numeric slope, and bivariate q=2 location covariance | first slices | "Structural dependence" |
 | fitted interval status and derived-summary flags | first slice | "Checking and using fitted models" |
 
 After fitting any model, run `check_drm()` before interpreting the estimates:
@@ -187,6 +188,8 @@ The key rule is to keep correlation layers separate. A bivariate residual
 `rho12` is within-observation coupling after the two means and residual SDs are
 modelled. A random-effect correlation is a group-level quantity. Phylogenetic
 rows from `corpairs(..., level = "phylogenetic")` are structured-effect
-quantities. Coordinate spatial fits currently report field SDs and conditional
-modes; richer spatial correlation rows remain planned. Those layers should not
-be reported as if they were the same estimand.
+quantities, and the first coordinate-spatial mean-mean row is reported by
+`corpairs(..., level = "spatial")` when matching labelled spatial terms are
+fitted in `mu1` and `mu2`. Richer spatial q=4 and predictor-dependent spatial
+`corpair()` rows remain planned. Those layers should not be reported as if they
+were the same estimand.
