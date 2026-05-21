@@ -95,7 +95,7 @@ Slice 188 publishes that gate as a pre-simulation status table:
 | Univariate `mu`/`sigma` covariance | One or more matched labelled random-intercept blocks | Slope-level mean-scale covariance |
 | Bivariate ordinary covariance | Matching labelled random-intercept blocks, q=4 all-four intercept blocks, and matching slope-only `mu1`/`mu2` blocks | q=4 location-slope, residual-scale slope covariance, and q=8 all-four slope endpoints |
 | Phylogenetic structured effects | Intercept-level univariate, one numeric univariate `mu` slope with independent fields, bivariate, direct-SD, q=2 correlation-regression, and q=4 location-scale paths | Multiple phylogenetic slopes, bivariate phylogenetic slopes, and richer structured-slope covariance |
-| Coordinate spatial structured effects | Univariate Gaussian `mu` intercept, one numeric slope with independent coordinate fields, and constant bivariate `mu1`/`mu2` q=2 covariance | Mesh/SPDE, multiple slopes, slope correlations, spatial `sigma`, bivariate spatial q=4 covariance, spatial direct-SD surfaces, and spatial `corpair()` |
+| Coordinate spatial structured effects | Univariate Gaussian `mu` intercept, one numeric slope with independent coordinate fields, constant bivariate `mu1`/`mu2` q=2 covariance, and constant q=4 location-scale covariance | Mesh/SPDE, multiple slopes, slope correlations, standalone spatial `sigma`, spatial direct-SD surfaces, spatial `corpair()`, and non-Gaussian spatial effects |
 | Non-Gaussian families | Fixed-effect likelihoods plus ordinary Poisson `mu` random intercepts and independent numeric slopes in the pre-simulation random-effect gate; non-Gaussian `sigma` random effects have a fixed-effect-only boundary | NB2 `mu` random intercepts, correlated non-Gaussian `mu` slopes, scale/shape/ZI/one-inflation/hurdle/ordinal random effects, cross-parameter covariance blocks, and structured non-Gaussian paths |
 
 Slice 236 re-audits the same promise before broader Phase 18 work starts. The
@@ -106,22 +106,22 @@ current boundary is:
   advanced;
 - Gaussian `sigma` supports random intercepts and multiple independent numeric
   slopes on `log(sigma)`, not correlated scale-slope blocks;
-- coordinate spatial Gaussian `mu` has one independent numeric slope field,
-  while phylogenetic one-slope support remains planned;
+- coordinate spatial, phylogenetic, animal-model, and `relmat()` Gaussian `mu`
+  each have one independent numeric slope field;
 - broader bivariate random slopes, slope-level `mu`/`sigma` covariance, and
   q=6/q=8 bivariate location-scale slope endpoints remain outside the fitted
   surface after the matching slope-only `mu1`/`mu2` slice;
-- non-Gaussian random-slope support is currently ordinary Poisson `mu`
-  intercepts and independent numeric slopes only; NB2, scale, shape,
+- non-Gaussian random-slope support is currently ordinary Poisson and NB2 `mu`
+  intercepts and independent numeric slopes only; scale, shape,
   zero-inflation, one-inflation, hurdle, ordinal, and structured non-Gaussian
   random effects need their own recovery gates before entering comprehensive
   simulation.
 
 This means Phase 18 Wave A can simulate fitted Gaussian location-scale,
-ordinary Gaussian random-slope, coordinate-spatial one-slope, Poisson `mu`
-pilot, and `meta_V(V = V)` surfaces. It should not silently include unfitted
-bivariate slope, phylogenetic slope, non-Gaussian scale/shape, or random-effect
-correlation surfaces.
+ordinary Gaussian random-slope, structured one-slope, Poisson/NB2 `mu` pilot,
+and `meta_V(V = V)` surfaces. It should not silently include unfitted broader
+bivariate slope, non-Gaussian scale/shape, or random-effect correlation
+surfaces.
 
 ## Correlation Policy
 

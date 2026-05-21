@@ -630,10 +630,10 @@ estimate plot uses a `corpairs()`-compatible table and facets residual
 `relmat()` q=2 rows so the visual grammar does not collapse
 within-observation coscale, latent group covariance, and structured covariance
 layers. A separate status strip now marks constant q=2 rows as fitted
-first-slice rows and treats animal plus `relmat()` q=4 blocks as fitted
-constant first-slice rows, while keeping richer spatial, animal, and `relmat()`
-correlation regressions, spatial q=4 blocks, and standalone scale extensions as
-planned boundaries.
+first-slice rows and treats spatial, animal, plus `relmat()` q=4 blocks as
+fitted constant first-slice rows, while keeping richer spatial, animal, and
+`relmat()` correlation regressions plus standalone scale extensions as planned
+boundaries.
 
 Slice 264 expands the gallery's `emmeans` and marginal-summary displays. The
 implemented figure path is fixed-effect univariate `mu`: a simple habitat EMM,

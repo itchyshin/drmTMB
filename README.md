@@ -166,10 +166,10 @@ head(sigma(fit)^2) # fitted residual variances
   `phylo(1 | species, tree = tree)`, or the first coordinate-spatial path
   `spatial(1 | site, coords = coords)` plus one numeric spatial slope,
   `spatial(1 + x | site, coords = coords)`, for univariate Gaussian `mu`.
-  Matching `phylo()` terms in bivariate `mu1` and `mu2` fit the first
-  phylogenetic mean-mean correlation slice, and matching labelled all-four
-  `phylo()` terms fit the first constant q=4 phylogenetic location-scale
-  covariance block. Read
+  Matching `phylo()` or `spatial()` terms in bivariate `mu1` and `mu2` fit the
+  first structured mean-mean correlation slices, and matching labelled all-four
+  `phylo()` or `spatial()` terms fit the first constant q=4 location-scale
+  covariance blocks. Read
   [Phylogenetic and spatial structured effects](https://itchyshin.github.io/drmTMB/articles/phylogenetic-spatial.html).
 
 ## Stable-core matrix
@@ -199,9 +199,9 @@ Read status words consistently:
 | Known sampling covariance | Stable for Gaussian `meta_V(V = V)`, including diagonal, dense, and row-paired bivariate known covariance; `meta_known_V(V = V)` remains a compatibility alias | `check_drm()` reports dense full `V` as a note with dimension, density, size, rank, and conditioning; fixed effects and response-scale residual summaries use the usual interval routes | Dense covariance is small-to-moderate unless sparse or block-sparse evidence is added; full dense known `V` with non-unit likelihood weights is rejected |
 | Bivariate Gaussian residual `rho12` | Stable for fixed-effect `mu1`, `mu2`, `sigma1`, `sigma2`, and predictor-dependent residual `rho12` | `rho12()` extracts response-scale residual correlations; row-specific profile intervals use `confint(..., parm = "rho12", newdata = ...)` | Residual `rho12` is not a group-level, phylogenetic, or spatial correlation |
 | Ordinary bivariate covariance and `corpairs()` | First slice fitted for matching labelled random intercepts in `mu1`/`mu2`, `sigma1`/`sigma2`, one or more same-response `mu`/`sigma` blocks, all-four q=4 intercept blocks, matching slope-only `mu1`/`mu2` blocks, and q=2 `corpair(..., level = "group") ~ x` | Constant q=2 SD/correlation targets and the slope-slope `mu1`/`mu2` row are profile-ready; same-response mean-scale blocks report one row per response-specific label/group pair; predictor-dependent `corpair()` values use `newdata`; q=4 unstructured-correlation rows are derived and report unavailable derived intervals | Intercept-plus-slope q=4 location blocks, residual-scale slope blocks, all-four p8/q8 location-scale slope endpoints, and predictor-dependent slope `corpair()` regressions remain planned |
-| Phylogenetic structured effects | First slices fitted for univariate `mu`, bivariate `mu1`/`mu2`, labelled q=4 location-scale blocks, `sd_phylo*()` direct-SD surfaces, and q=2 phylogenetic `corpair()` regression | Direct phylogenetic SD and constant q=2 correlation targets are profile-ready; predictor-dependent `corpair()` values use `newdata`; full q=4 correlations are derived-only, while block-diagonal q=4 fallback correlations are direct targets but still need fit-specific profile diagnostics | Phylogenetic slopes, standalone or partial phylogenetic scale terms, structured `rho12`, and predictor-dependent q=4 correlations remain planned |
-| Coordinate spatial structured effects | First slices fitted for Gaussian `mu`: `spatial(1 | site, coords = coords)`, one numeric `spatial(1 + x | site, coords = coords)` slope in univariate models, and matching bivariate `mu1`/`mu2` `spatial(1 | p | site, coords = coords)` terms | `sdpars$mu`, `ranef("spatial_mu")`, `profile_targets()`, `check_drm()`, `corpairs(level = "spatial")`, and `summary()$covariance` expose the coordinate fields and q=2 spatial mean-mean row | Mesh/SPDE, multiple spatial slopes, spatial slope correlations, spatial `sigma`, spatial q=4, direct-SD surfaces, and spatial `corpair()` regression remain planned |
-| Animal and lower-level relatedness structured effects | Gaussian `mu` intercepts are fitted for `animal(1 | id, pedigree = ...)`, `animal(1 | id, A/Ainv = ...)`, and `relmat(1 | id, K/Q = ...)`; matching labelled `mu1`/`mu2` terms fit q=2 bivariate location covariance, and matching all-four `mu1`/`mu2`/`sigma1`/`sigma2` terms fit constant q=4 location-scale covariance | `sdpars$mu`, `corpars$animal` / `corpars$relmat`, `ranef("animal_mu")`, `ranef("relmat_mu")`, `corpairs()`, `summary()$covariance`, `profile_targets()`, and `check_drm()` expose the fitted structured fields; q=4 correlations are derived-only | Large-pedigree sparse precision construction, structured slopes, standalone `sigma` relatedness models, predictor-dependent `corpair()` regressions, and generic direct-SD grammar remain planned |
+| Phylogenetic structured effects | First slices fitted for univariate `mu` intercepts and one numeric slope, bivariate `mu1`/`mu2`, labelled q=4 location-scale blocks, `sd_phylo*()` direct-SD surfaces, and q=2 phylogenetic `corpair()` regression | Direct phylogenetic SD and constant q=2 correlation targets are profile-ready; predictor-dependent `corpair()` values use `newdata`; full q=4 correlations are derived-only, while block-diagonal q=4 fallback correlations are direct targets but still need fit-specific profile diagnostics | Multiple phylogenetic slopes, slope correlations, standalone or partial phylogenetic scale terms, structured `rho12`, non-Gaussian phylogenetic effects, and predictor-dependent q=4 correlations remain planned |
+| Coordinate spatial structured effects | First slices fitted for Gaussian `mu`: `spatial(1 | site, coords = coords)`, one numeric `spatial(1 + x | site, coords = coords)` slope in univariate models, matching bivariate `mu1`/`mu2` `spatial(1 | p | site, coords = coords)` terms, and matching all-four `mu1`/`mu2`/`sigma1`/`sigma2` spatial q=4 terms | `sdpars$mu`, `ranef("spatial_mu")`, `profile_targets()`, `check_drm()`, `corpairs(level = "spatial")`, and `summary()$covariance` expose the coordinate fields, the q=2 spatial mean-mean row, and the six derived q=4 spatial rows | Mesh/SPDE, multiple spatial slopes, spatial slope correlations, standalone spatial `sigma`, direct-SD surfaces, spatial `corpair()` regression, and non-Gaussian spatial effects remain planned |
+| Animal and lower-level relatedness structured effects | Gaussian `mu` intercepts and one numeric slope are fitted for `animal(1 + x | id, pedigree = ...)`, `animal(1 + x | id, A/Ainv = ...)`, and `relmat(1 + x | id, K/Q = ...)`; matching labelled `mu1`/`mu2` terms fit q=2 bivariate location covariance, and matching all-four `mu1`/`mu2`/`sigma1`/`sigma2` terms fit constant q=4 location-scale covariance | `sdpars$mu`, `corpars$animal` / `corpars$relmat`, `ranef("animal_mu")`, `ranef("relmat_mu")`, `corpairs()`, `summary()$covariance`, `profile_targets()`, and `check_drm()` expose the fitted structured fields; q=4 correlations are derived-only | Large-pedigree sparse precision construction, multiple structured slopes, slope correlations, standalone `sigma` relatedness models, predictor-dependent `corpair()` regressions, non-Gaussian relatedness effects, and generic direct-SD grammar remain planned |
 | Profile intervals and diagnostics | First slice for fixed effects, direct SD/correlation targets, row-specific `sigma`, `sigma1`, `sigma2`, `rho12`, and fitted q=2 `corpair()` values | Interval output uses `conf.status`, `profile.boundary`, and `profile.message`; derived q=4 rows report `derived_interval_unavailable` | Profile support is target-specific, and public bootstrap intervals are not implemented yet |
 | Large-data fit controls | Opt-in controls for memory-light fitted objects, sparse fixed-effect `mu` matrices, and Gaussian sufficient-statistic aggregation | `check_drm()` reports sparse design and aggregation diagnostics where fitted | These controls are first univariate Gaussian paths, not broad scalability claims |
 | Reserved or planned neighbours | Reserved/rejected or design-only for coefficient-specific `sd()` slopes, random effects in `rho12`, shape random effects, ID-level skewness such as future `skew(id) ~ x`, phylogenetic slopes, mesh/SPDE, spatial `corpair()`, broader bivariate random slopes, and mixed composed families | Planned-feature errors should fire before fitting; no interval target is advertised | These need likelihood code, recovery tests, diagnostics, documentation, and after-task evidence before use |
@@ -241,6 +241,10 @@ separate implemented models. The
 [model map](https://itchyshin.github.io/drmTMB/articles/model-map.html) shows
 how to keep those answers separate until the full phylogenetic
 location-scale double-hierarchical endpoint is implemented.
+The
+[implementation map](https://itchyshin.github.io/drmTMB/articles/implementation-map.html)
+gives the finer ledger by family, distributional parameter, dependence layer,
+q, random-slope support, `corpairs()`, `zi`, and `hu`.
 
 Spatial syntax is part of the structured-effect design. The fitted coordinate
 path supports a univariate Gaussian location random intercept,
@@ -250,10 +254,13 @@ path supports a univariate Gaussian location random intercept,
 `spatial(1 | p | site, coords = coords)` terms. The fitted spatial SDs appear in
 `sdpars$mu`, conditional effects in `ranef("spatial_mu")`, direct SD and
 correlation targets in `profile_targets()`, and the q=2 mean-mean row in
-`corpairs(level = "spatial")` and `summary()$covariance`. Mesh/SPDE fields,
-multiple spatial slopes, spatial slope correlations, spatial scale terms,
-spatial q=4 covariance blocks, and predictor-dependent spatial `corpair()`
-regression are still planned rather than landing-page workflows.
+`corpairs(level = "spatial")` and `summary()$covariance`. Matching labelled
+spatial terms across `mu1`, `mu2`, `sigma1`, and `sigma2` now fit the constant
+q=4 location-scale block and report six derived spatial covariance rows.
+Mesh/SPDE fields, multiple spatial slopes, spatial slope correlations,
+standalone spatial scale routes, direct spatial SD surfaces,
+predictor-dependent spatial `corpair()` regression, and non-Gaussian spatial
+effects are still planned rather than landing-page workflows.
 
 For uncertainty, `confint()` returns Wald intervals for fixed effects,
 including shape and coscale formula coefficients, by default when

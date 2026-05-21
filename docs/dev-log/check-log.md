@@ -34696,3 +34696,272 @@ Rscript -e "devtools::test(reporter = 'summary')"
 - `pkgdown::check_pkgdown()` reported no problems.
 - A final full `devtools::test()` run passed after documentation regeneration
   and the clarified `sd*()` boundary wording.
+
+## 2026-05-21 - Implementation Map
+
+Goal:
+
+- Give users and roadmap work one visible table set for what is fitted, first
+  slice, fixed-effect only, planned, or blocked across family components,
+  random effects, dependence layers, q, random slopes, `corpairs()`, `zi`, and
+  `hu`.
+
+Changes:
+
+- Added `vignettes/implementation-map.Rmd` as a Model Guides article.
+- Linked the article from `_pkgdown.yml`, `README.md`, and `model-map`.
+- Refreshed stale structured-slope status rows so the first univariate
+  Gaussian `phylo()`, `animal()`, and `relmat()` one-slope routes appear as
+  fitted, while multiple structured slopes, slope correlations, structured
+  `sigma`, structured `rho12`, and non-Gaussian structured effects remain
+  planned.
+- Added ROADMAP Slice 302 and a NEWS bullet so the map becomes a maintenance
+  surface for future parity slices.
+
+Validation:
+
+```sh
+air format _pkgdown.yml README.md ROADMAP.md NEWS.md vignettes/model-map.Rmd vignettes/implementation-map.Rmd docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-21-implementation-map.md
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "pkgdown::build_site()"
+test -f pkgdown-site/articles/implementation-map.html && rg -n "Implementation map|fixed-effect-only|zi|hu|At least one random slope" pkgdown-site/articles/implementation-map.html
+rg -n "implementation-map|Implementation map" pkgdown-site/index.html pkgdown-site/articles/index.html pkgdown-site/articles/model-map.html pkgdown-site/sitemap.xml
+rg -n 'one numeric slopes|phylo\(1 \+ x.*rejected|phylo\(1 \+ x.*parser/planned|animal\(1 \+ x.*planned marker|relmat\(1 \+ x.*planned marker|animal slopes.*planned-only|relmat.*slopes.*planned-only|phylo, animal, and relmat slopes remain planned|one-slope paths remain planned|one-slope models should remain in the failure ledger|structured animal slopes.*planned|structured relatedness slopes.*planned|one-slope markers remain parser/planned|phylo/animal/relmat planned|phylogenetic one-slope support remains planned' README.md ROADMAP.md NEWS.md docs/design vignettes R tests/testthat -g '!docs/site/**' -g '!*.html'
+git diff --check
+```
+
+- `air format` completed without output.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `pkgdown::build_site()` completed and wrote
+  `pkgdown-site/articles/implementation-map.html`.
+- The rendered-page scan found the implementation-map title, fixed-effect-only
+  wording, `zi`, `hu`, and the random-slope summary table.
+- The site navigation scan found `implementation-map` in the homepage menu,
+  articles index, model-map article, and sitemap.
+- The stale-status scan found no old planned-only claims for first one-slope
+  `phylo()`, `animal()`, or `relmat()` Gaussian `mu` paths.
+- `git diff --check` was clean.
+
+## 2026-05-21 - Implementation Map Slices 303-310
+
+Goal:
+
+- Extend the implementation map into the next planning lane without adding new
+  random effects or likelihood code, especially keeping `zi`, `hu`, future
+  `zoi`, and future `coi` random effects out of the near-term fitted surface.
+
+Changes:
+
+- Added `docs/design/62-implementation-map-slices-303-310.md` as the slice
+  ledger for generic `sd*()` design, p8/q8 planning, q=4 parity and interval
+  policy, inflation/hurdle random-effect gating, non-Gaussian structured
+  dependence planning, map maintenance, and user-route examples.
+- Updated `vignettes/implementation-map.Rmd` with slice-numbered roadmap rows
+  303-310.
+- Updated `ROADMAP.md` and `NEWS.md` so Slice 307 is explicitly a no-fit
+  decision: `zi`, `hu`, future `zoi`, and future `coi` stay fixed-effect-only
+  or planned until use cases, recovery tests, diagnostics, prediction
+  semantics, and interval-status rules justify random effects.
+
+Validation:
+
+```sh
+air format NEWS.md ROADMAP.md vignettes/implementation-map.Rmd docs/design/62-implementation-map-slices-303-310.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-21-implementation-map-slices-303-310.md
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "pkgdown::build_site()"
+rg -n "Slice 307|fixed-effect-only|zoi|coi|p8/q8|q=4 interval|Generic.*sd" pkgdown-site/articles/implementation-map.html pkgdown-site/ROADMAP.html
+rg -n 'zi.*random effects are (fitted|supported|available)|hu.*random effects are (fitted|supported|available)|zoi.*random effects are (fitted|supported|available)|coi.*random effects are (fitted|supported|available)|inflation random effects are fitted|hurdle random effects are fitted' README.md ROADMAP.md NEWS.md docs/design vignettes R tests/testthat -g '!*.html'
+git diff --check
+```
+
+- `air format` completed without output.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `pkgdown::build_site()` completed and wrote the updated implementation-map
+  and ROADMAP pages.
+- The rendered-page scan found Slice 307/no-fit, fixed-effect-only, `zoi`,
+  `coi`, p8/q8, q=4 interval, and generic `sd*()` roadmap wording.
+- The refined stale-support scan found no claims that `zi`, `hu`, future
+  `zoi`, or future `coi` random effects are fitted, supported, or available.
+- `git diff --check` was clean.
+
+## 2026-05-21 - Implementation Map Slices 311-325
+
+Goal:
+
+- Show and complete the next implementation-map slice set as design gates,
+  keeping the branch planning-focused while GitHub CI for PR #293 runs.
+
+Changes:
+
+- Added `docs/design/63-implementation-map-slices-311-325.md` as the ledger
+  for generic direct-SD syntax, p8/q8 endpoint taxonomy, structured q4 order,
+  q4 interval status, non-Gaussian structured-dependence candidate scoring, and
+  common user-route examples.
+- Updated `vignettes/implementation-map.Rmd` with the 311-325 roadmap rows and
+  a "Common planned requests" table.
+- Updated `ROADMAP.md` and `NEWS.md` to keep these slices explicitly
+  planning-only.
+- Added `docs/dev-log/after-task/2026-05-21-implementation-map-slices-311-325.md`
+  to record user usefulness, standing roles, checks, and boundaries.
+
+Validation:
+
+```sh
+air format NEWS.md ROADMAP.md vignettes/implementation-map.Rmd docs/design/63-implementation-map-slices-311-325.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-21-implementation-map-slices-311-325.md
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "pkgdown::build_site()"
+rg -n "311-313|314-316|317-318|319-320|Common planned requests|Poisson as an algebra smoke|NB2 as the practical count target" pkgdown-site/articles/implementation-map.html pkgdown-site/ROADMAP.html
+rg -n 'p8/q8.*are fitted for|p8/q8.*now fit|q8.*now fits|p8.*now fits|full p8.*is fitted|spatial q4.*now fits|spatial q4.*is fitted|generic sd\\*.*(is implemented|now works|now accepts)|non-Gaussian structured.*now fits|zi.*random effects are (fitted|supported|available)|hu.*random effects are (fitted|supported|available)' README.md ROADMAP.md NEWS.md docs/design vignettes R tests/testthat -g '!*.html'
+git diff --check
+```
+
+- `air format` completed without output.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `pkgdown::build_site()` completed and wrote the updated implementation-map
+  and ROADMAP pages.
+- The rendered-page scan found the 311-313, 314-316, 317-318, and 319-320 rows
+  plus the common planned-request section and first-candidate wording.
+- The refined stale-support scan found no false claims that p8/q8, spatial q4,
+  generic `sd*()`, non-Gaussian structured dependence, or `zi`/`hu` random
+  effects are fitted.
+- `git diff --check` was clean.
+
+## 2026-05-21 - Implementation Map Slices 326-340
+
+Goal:
+
+- Turn the next implementation-map backlog into issue-ready pre-code
+  specifications without opening unsupported likelihood claims.
+
+Changes:
+
+- Added `docs/design/64-implementation-map-slices-326-340.md` as the ledger
+  for generic direct-SD issue requirements, p8/q8 endpoint registries, spatial
+  q4 pre-code checks, q4 diagnostics, Poisson/NB2 q1 structured-count
+  candidates, user-route examples, and stale-claim maintenance.
+- Updated `vignettes/implementation-map.Rmd` with the 326-340 roadmap rows and
+  expanded common planned-request examples.
+- Updated `ROADMAP.md` and `NEWS.md` to record these as pre-code slices, not
+  fitted model surfaces.
+- Added `docs/dev-log/after-task/2026-05-21-implementation-map-slices-326-340.md`
+  to record user usefulness, standing roles, checks, and boundaries.
+
+Validation:
+
+```sh
+air format NEWS.md ROADMAP.md vignettes/implementation-map.Rmd docs/design/64-implementation-map-slices-326-340.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-21-implementation-map-slices-326-340.md
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "pkgdown::build_site()"
+rg -n "326-328|329-331|332-333|334-336|spatial q4 parity|Poisson q1|NB2 q1" pkgdown-site/articles/implementation-map.html pkgdown-site/ROADMAP.html
+rg -n 'generic sd\\*.*(is implemented|now works|now accepts)|p8/q8.*(is fitted|are fitted|now fit)|spatial q4.*(is fitted|now fits)|Poisson.*structured.*now fits|NB2.*structured.*now fits|non-Gaussian structured.*now fits' README.md ROADMAP.md NEWS.md docs/design vignettes R tests/testthat -g '!*.html'
+git diff --check
+```
+
+- `air format` completed without output.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `pkgdown::build_site()` completed and wrote the updated implementation-map
+  and ROADMAP pages.
+- The rendered-page scan found the 326-328, 329-331, 332-333, and 334-336 rows,
+  plus spatial q4 and Poisson/NB2 q1 wording.
+- The stale-support scan found no false fitted claims for generic `sd*()`,
+  p8/q8, spatial q4, Poisson/NB2 structured-count routes, or non-Gaussian
+  structured dependence.
+- `git diff --check` was clean.
+
+## 2026-05-21 - Implementation Map Slices 356-405
+
+Goal:
+
+- Stop fitted implementation at Slice 380 by closing the constant
+  coordinate-spatial q4 Gaussian location-scale lane, then plan Slices 381-405
+  for non-Gaussian structured dependence without opening unsupported likelihood
+  code.
+
+Changes:
+
+- Updated `R/drmTMB.R` so matching labelled `spatial()` terms across `mu1`,
+  `mu2`, `sigma1`, and `sigma2` enter the shared structured q4 backend instead
+  of hitting the earlier planned-feature abort.
+- Added focused `test-spatial-gaussian` coverage for the fitted spatial q4
+  route, including `sdpars$mu`, six `corpairs(level = "spatial")` rows,
+  `summary()$covariance`, derived profile-target status, `check_drm()` row
+  `biv_spatial_q4_covariance`, and partial/unlabelled error paths.
+- Added `docs/design/66-implementation-map-slices-356-405.md` to record the
+  fitted spatial q4 claim and the planning-only non-Gaussian structured gates.
+- Updated README, model-map, implementation-map, coordinate-spatial,
+  structural-dependence, formula-grammar, source-map, figure-gallery, ROADMAP,
+  NEWS, and selected design ledgers so spatial q4 is fitted only inside the
+  constant bivariate Gaussian all-four endpoint boundary.
+- Kept Poisson/NB2 structured q1, `zi`, `hu`, scale, shape, ordinal,
+  bounded-response, mixed-response, and non-Gaussian spatial/phylo/animal/relmat
+  structured routes as planned only.
+
+Validation:
+
+```sh
+Rscript -e "devtools::test(filter = 'spatial-gaussian')"
+air format R/drmTMB.R tests/testthat/test-spatial-gaussian.R NEWS.md ROADMAP.md README.md vignettes/implementation-map.Rmd vignettes/model-map.Rmd vignettes/spatial-models.Rmd vignettes/structural-dependence.Rmd vignettes/phylogenetic-spatial.Rmd vignettes/formula-grammar.Rmd vignettes/drmTMB.Rmd vignettes/source-map.Rmd vignettes/figure-gallery.Rmd docs/design/01-formula-grammar.md docs/design/03-likelihoods.md docs/design/09-phylogenetic-and-spatial-speed.md docs/design/16-phylo-spatial-common-math.md docs/design/28-double-hierarchical-endpoint.md docs/design/33-phase-6c-core-random-effects.md docs/design/34-validation-debt-register.md docs/design/39-visualization-grammar.md docs/design/41-phase-18-simulation-programme.md docs/design/45-cross-dpar-correlation-gate.md docs/design/46-pre-simulation-readiness-matrix.md docs/design/56-phase-18-spatial-q2-ademp.md docs/design/57-structural-parity-next-slices.md docs/design/64-implementation-map-slices-326-340.md docs/design/66-implementation-map-slices-356-405.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-21-implementation-map-slices-356-405.md
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "pkgdown::build_site()"
+rg -n "356-370|371-380|381-405|spatial q4|Spatial q4|Non-Gaussian structured planning|constant q=4" pkgdown-site/articles/implementation-map.html pkgdown-site/ROADMAP.html
+rg -n 'spatial q4.*planned but not implemented|Spatial q=4 location-scale blocks are planned|non-Gaussian structured.*now fits|Poisson.*structured.*now fits|NB2.*structured.*now fits' README.md ROADMAP.md NEWS.md docs/design vignettes R tests/testthat -g '!*.html'
+git diff --check
+```
+
+- `devtools::test(filter = 'spatial-gaussian')` passed: 125 assertions, 0
+  failures, 0 warnings, 0 skips.
+- `air format` completed without output.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `pkgdown::build_site()` completed and rebuilt `pkgdown-site`, including the
+  implementation-map, model-map, spatial-models, ROADMAP, and NEWS pages.
+- The rendered-page scan found the 356-370, 371-380, and 381-405 rows, the
+  spatial q4 fitted-parity wording, non-Gaussian structured planning wording,
+  and constant q=4 spatial text in the generated implementation-map, ROADMAP,
+  spatial-models, and model-map pages.
+- The stale-support scan found no false claims that non-Gaussian structured
+  Poisson/NB2 routes now fit and no stale "spatial q4 planned but not
+  implemented" wording in the scanned high-traffic source files.
+- `git diff --check` was clean.
+
+## 2026-05-21 - Implementation Map Slices 341-355
+
+Goal:
+
+- Turn the next implementation-map backlog into implementation-ready issue
+  templates and acceptance gates without adding unsupported likelihood claims.
+
+Changes:
+
+- Added `docs/design/65-implementation-map-slices-341-355.md` as the ledger
+  for generic direct-SD issue templates, p8/q8 issue templates, spatial q4
+  issue templates, Poisson/NB2 q1 structured-count issue templates,
+  non-Gaussian structured ADEMP gates, user documentation sync, role-specific
+  review, and validation handoff.
+- Updated `vignettes/implementation-map.Rmd` with the 341-355 roadmap rows.
+- Updated `ROADMAP.md` and `NEWS.md` to record these as planning and
+  implementation-readiness slices, not fitted model surfaces.
+- Added
+  `docs/dev-log/after-task/2026-05-21-implementation-map-slices-341-355.md`
+  to record user usefulness, standing roles, checks, and remaining boundaries.
+
+Validation:
+
+```sh
+air format NEWS.md ROADMAP.md vignettes/implementation-map.Rmd docs/design/65-implementation-map-slices-341-355.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-21-implementation-map-slices-341-355.md
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "pkgdown::build_site()"
+rg -n "341-343|344-345|346-347|348-351|352-355|implementation-ready issue|acceptance checklist|Poisson q1|NB2 q1" pkgdown-site/articles/implementation-map.html pkgdown-site/ROADMAP.html
+rg -n 'generic sd\*.*(is implemented|now works|now accepts)|p8/q8.*(is fitted|are fitted|now fit)|spatial q4.*(is fitted|now fits)|Poisson.*structured.*now fits|NB2.*structured.*now fits|non-Gaussian structured.*now fits' README.md ROADMAP.md NEWS.md docs/design vignettes R tests/testthat -g '!*.html'
+git diff --check
+```
+
+- `air format` completed without output.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `pkgdown::build_site()` completed and wrote the updated implementation-map
+  and ROADMAP pages.
+- The rendered-page scan found the 341-343, 344-345, 346-347, 348-351, and
+  352-355 rows, plus Poisson/NB2 q1 wording and acceptance-checklist wording.
+- The stale-support scan found no false fitted claims for generic `sd*()`,
+  p8/q8, spatial q4, Poisson/NB2 structured-count routes, or non-Gaussian
+  structured dependence.
+- `git diff --check` was clean.

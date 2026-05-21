@@ -87,12 +87,13 @@ In this table, "coscale" means a model for residual correlation, currently
 | `spatial(1 | site, coords = coords)` | Implemented first slice | Univariate Gaussian `mu` spatial random intercept using a fixed coordinate covariance foundation; mesh/SPDE paths remain planned. |
 | `spatial(1 + x | site, coords = coords)` | Implemented first one-slope slice | Univariate Gaussian `mu` spatial random intercept plus one numeric spatial slope. The two coordinate fields are independent and have separate SDs. |
 | `spatial(1 | p | site, coords = coords)` in matching bivariate `mu1` and `mu2` formulas | Implemented first q=2 slice | Bivariate Gaussian location covariance for two coordinate-spatial random intercept fields. `corpairs(level = "spatial")` reports the spatial mean-mean row separately from residual `rho12`. |
+| `spatial(1 | p | site, coords = coords)` in all four bivariate `mu1`, `mu2`, `sigma1`, and `sigma2` formulas | Implemented first q=4 slice | One constant coordinate-spatial location-scale block estimates four endpoint SDs and six latent spatial correlations. Partial, unlabelled, mismatched, and slope forms remain rejected. |
 | `relmat(1 + x | id, K = K)` | Planned marker grammar | Parsed as a future lower-level relatedness one-slope route, but rejected before fitting until matrix validation, diagnostics, profile targets, and recovery tests exist. |
 | `corpair(id, level = "group", block = "p", from = "mu1", to = "mu2") ~ x_group` | Implemented | Predictor-dependent ordinary q=2 location-location latent random-effect correlation regression for matching labelled `mu1`/`mu2` random intercepts. Predictors must be constant within `id`. |
 | `corpair(species, level = "phylogenetic", block = "p", from = "mu1", to = "mu2") ~ ecology` | Implemented | Predictor-dependent phylogenetic q=2 location-location latent random-effect correlation regression for matching labelled `mu1`/`mu2` `phylo()` terms. Predictors must be constant within `species`. Location-scale, scale-scale, q=4, and spatial `corpair()` regressions remain planned. |
 | Matching slope-only `(0 + x | p | id)` in bivariate `mu1` and `mu2` | Implemented first bivariate slope slice | Estimates the ordinary slope1-slope2 plasticity-syndrome correlation without intercept-slope correlations; broader bivariate slope blocks remain planned. |
-| Intercept-plus-slope bivariate blocks, all-four p8/q8 slope location-scale blocks, non-Gaussian cross-parameter covariance, spatial q=4 blocks, predictor-dependent q=4 phylogenetic/spatial correlations, or `rho12` random effects | Planned | These need a larger covariance parameterization, simulation, and naming checks before fitting. Intercept-slope `corpair()` rows are distant-future; broader slope1-slope2 correlation regressions need coefficient-aware syntax. |
-| `corpairs(fit)` | Implemented for current fitted correlations | Reports residual `rho12`, ordinary and bivariate group-level covariance rows including ordinary q=4 blocks, bivariate phylogenetic mean-mean or q=4 rows, the first bivariate coordinate-spatial mean-mean row, and the animal/`relmat()` q=2 or constant q=4 rows. |
+| Intercept-plus-slope bivariate blocks, all-four p8/q8 slope location-scale blocks, non-Gaussian cross-parameter covariance, predictor-dependent q=4 phylogenetic/spatial correlations, or `rho12` random effects | Planned | These need a larger covariance parameterization, simulation, and naming checks before fitting. Intercept-slope `corpair()` rows are distant-future; broader slope1-slope2 correlation regressions need coefficient-aware syntax. |
+| `corpairs(fit)` | Implemented for current fitted correlations | Reports residual `rho12`, ordinary and bivariate group-level covariance rows including ordinary q=4 blocks, bivariate phylogenetic mean-mean or q=4 rows, bivariate coordinate-spatial q=2 or constant q=4 rows, and the animal/`relmat()` q=2 or constant q=4 rows. |
 
 Current implemented univariate Gaussian random-effect forms include:
 
@@ -333,8 +334,8 @@ phylogenetic fields and species-specific loadings, so variable `rho_l` is a
 nonstationary phylogenetic covariance model rather than a residual-style
 correlation row. It covers `mu1`-`mu2` only; phylogenetic location-scale and
 scale-scale correlation regressions remain q=4 extensions. Bivariate random
-slopes, spatial q=4 blocks, predictor-dependent q=4 phylogenetic correlations,
-and `rho12` random effects remain planned.
+slopes, bivariate spatial slope blocks, predictor-dependent q=4 phylogenetic or
+spatial correlations, and `rho12` random effects remain planned.
 Double-hierarchical bivariate fits should continue to report correlation pairs
 in a long table, not just as unlabeled matrices. The design note
 `docs/design/20-coscale-correlation-pairs.md` records the planned labels:

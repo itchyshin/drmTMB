@@ -1713,7 +1713,7 @@ summaries, but they remain frequentist compatibility displays: values near the
 centre are more compatible with the fitted estimate than values near the
 interval boundary, and the shapes are not posterior draws.
 
-```{r correlation-layer-boundaries, fig.alt="Tile plot showing fitted q2 support for residual, ordinary group, phylogenetic, spatial, animal, and relmat correlation layers, with richer regression or q4 extensions marked as planned."}
+```{r correlation-layer-boundaries, fig.alt="Tile plot showing fitted q2 support for residual, ordinary group, phylogenetic, spatial, animal, and relmat correlation layers, with partly fitted q4 or regression extensions separated from planned boundaries."}
 layer_boundary <- expand.grid(
   layer = c(
     "Residual rho12",
@@ -1737,6 +1737,10 @@ layer_boundary$status[
 ] <- "Partly fitted"
 layer_boundary$status[
   layer_boundary$layer == "Phylogenetic" &
+    layer_boundary$target == "Regression or q4/scale extension"
+] <- "Partly fitted"
+layer_boundary$status[
+  layer_boundary$layer == "Spatial" &
     layer_boundary$target == "Regression or q4/scale extension"
 ] <- "Partly fitted"
 layer_boundary$layer <- factor(
@@ -1785,7 +1789,7 @@ ggplot(layer_boundary, aes(target, layer, fill = status)) +
   scale_colour_identity() +
   labs(
     title = "Correlation-layer support boundary",
-    subtitle = "Spatial, animal, and relmat have constant q2 rows; richer structured correlation paths remain planned",
+    subtitle = "Spatial, animal, and relmat have constant q2 rows; spatial now also has a constant q4 block",
     x = "Correlation target",
     y = NULL,
     fill = "Status"
@@ -1799,11 +1803,10 @@ ggplot(layer_boundary, aes(target, layer, fill = status)) +
 
 The status strip is not an estimate plot. It separates the fitted constant q=2
 rows from richer correlation surfaces. Spatial, animal, and `relmat()` q=2
-location-location rows now have fitted first-slice evidence, and animal plus
-`relmat()` q=4 location-scale blocks have constant first-slice evidence.
-Spatial, animal, and `relmat()` predictor-dependent `corpair()` regressions,
-spatial q=4 location-scale blocks, and standalone structured `sigma`
-correlations remain planned.
+location-location rows now have fitted first-slice evidence, and spatial,
+animal, plus `relmat()` q=4 location-scale blocks have constant first-slice
+evidence. Spatial, animal, and `relmat()` predictor-dependent `corpair()`
+regressions and standalone structured `sigma` correlations remain planned.
 
 ## Simulation operating characteristics
 

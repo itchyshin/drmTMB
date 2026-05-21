@@ -5,9 +5,11 @@ Gaussian q=2 location covariance path. It follows the ADEMP structure of Morris,
 White, and Crowther (2019) and the transparent-reporting checklist of Williams
 et al. (2024). It admits matching bivariate `mu1`/`mu2`
 `spatial(1 | p | site, coords = coords)` terms for small coordinate-spatial
-grids. It does not admit mesh/SPDE models, multiple spatial slopes, spatial
-`sigma`, bivariate spatial q=4 location-scale blocks, direct-SD surfaces, or
-spatial `corpair()` regression.
+grids. A later first slice now fits constant bivariate spatial q=4
+location-scale blocks, but this ADEMP sheet remains the q=2 admission document.
+It does not admit mesh/SPDE models, multiple spatial slopes, standalone spatial
+`sigma`, direct-SD surfaces, spatial `corpair()` regression, or non-Gaussian
+spatial effects.
 
 ## A - Aims
 

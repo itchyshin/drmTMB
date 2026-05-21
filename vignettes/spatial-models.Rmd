@@ -23,6 +23,7 @@ inputs remain planned.
 | Does one Gaussian response have smooth site-level location deviations? | `spatial(1 | site, coords = coords)` in `mu` | Fitted first coordinate-spatial intercept slice. |
 | Does one predictor have a spatially varying slope? | `spatial(1 + depth | site, coords = coords)` in `mu` | Fitted one numeric-slope slice. The intercept and slope fields are independent and have separate SDs. |
 | Do two Gaussian response means share a coordinate-spatial correlation? | matching `spatial(1 | p | site, coords = coords)` terms in `mu1` and `mu2` | Fitted q=2 location-location slice. `corpairs(level = "spatial")` reports the latent spatial row separately from residual `rho12`. |
+| Do spatial location and scale deviations covary across two Gaussian responses? | matching `spatial(1 | p | site, coords = coords)` terms in `mu1`, `mu2`, `sigma1`, and `sigma2` | Fitted constant q=4 location-scale slice. Six latent spatial rows are reported through `corpairs(level = "spatial")`; q=4 correlations are derived for intervals. |
 
 ## Start with the smallest useful model
 
@@ -68,6 +69,31 @@ site-level location deviations. `rho12()` reports the residual correlation
 between paired responses after fixed effects and random effects have been
 included.
 
+For a constant location-scale spatial block, use the same labelled `spatial()`
+term in all four bivariate Gaussian endpoints:
+
+```r
+fit_spatial_q4 <- drmTMB(
+  mu1 = trait1 ~ treatment +
+    spatial(1 | p | site, coords = coords),
+  mu2 = trait2 ~ treatment +
+    spatial(1 | p | site, coords = coords),
+  sigma1 = ~ treatment +
+    spatial(1 | p | site, coords = coords),
+  sigma2 = ~ treatment +
+    spatial(1 | p | site, coords = coords),
+  rho12 = ~ 1,
+  data = dat,
+  family = biv_gaussian()
+)
+corpairs(fit_spatial_q4, level = "spatial")
+```
+
+This q=4 route estimates four coordinate-spatial endpoint SDs and six latent
+correlations: one location-location, four location-scale, and one scale-scale
+row. It is still a constant intercept block, not a spatial slope or
+predictor-dependent spatial correlation model.
+
 ## What to inspect
 
 After fitting, inspect the spatial layer before interpreting it:
@@ -77,8 +103,8 @@ After fitting, inspect the spatial layer before interpreting it:
 | `check_drm(fit)` | Confirm the spatial layer was recognized and review coordinate/site diagnostics. |
 | `fit$sdpars$mu` | Read fitted spatial location SDs, including separate intercept and slope SDs when a one-slope model is used. |
 | `ranef(fit, "spatial_mu")` | Inspect conditional site deviations on the fitted spatial layer. |
-| `summary(fit)$covariance` | Check how spatial SDs and q=2 spatial correlations are reported beside other covariance layers. |
-| `profile_targets(fit)` | See which spatial SD or constant q=2 correlation targets can be profiled directly. |
+| `summary(fit)$covariance` | Check how spatial SDs and q=2 or q=4 spatial correlations are reported beside other covariance layers. |
+| `profile_targets(fit)` | See which spatial SD or constant q=2 correlation targets can be profiled directly, and which q=4 correlation rows are derived-unavailable for intervals. |
 | `corpairs(fit, level = "spatial")` | Read fitted constant spatial correlation rows. |
 
 The one-slope route is deliberately narrow. The formula term
@@ -93,8 +119,8 @@ The following spatial routes remain planned:
 
 - mesh or SPDE inputs such as `spatial(1 | site, mesh = mesh)`;
 - multiple spatial slopes and spatial slope correlations;
-- spatial terms in `sigma`, `nu`, zero-inflation, or `rho12`;
-- spatial q=4 location-scale blocks;
+- standalone or partial spatial terms in `sigma`, plus spatial terms in `nu`,
+  zero-inflation, or `rho12`;
 - direct spatial SD surfaces;
 - predictor-dependent spatial `corpair()` regressions;
 - simultaneous `phylo()` plus `spatial()` layers in the same formula;

@@ -1,0 +1,147 @@
+---
+title: "Implementation map"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Implementation map}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+This map answers one practical question: what model surface can an applied user
+fit today, and which neighbouring syntax is still planned? It is a status
+ledger rather than a tutorial. Start here when a model combines random effects,
+structured dependence, response-specific scale, zero inflation, hurdle
+probability, or `corpairs()`.
+
+The words below are used literally. "Fitted" means likelihood code, parser
+support, extractors or diagnostics, tests, and user-facing documentation are in
+place. "Planned" means the package may reserve syntax or describe the design,
+but an analysis should not interpret that surface yet.
+
+| Status word | Meaning |
+| --- | --- |
+| Stable | Routine fitted path with tests, diagnostics or interval status, and a reader-facing example or guide. |
+| First slice | Fitted and tested inside a deliberately narrow boundary. Stay inside the named family, formula, q, and data-shape limits. |
+| Fixed-effect only | Formula coefficients are fitted for this distributional parameter, but random effects or structured dependence for that parameter are not fitted. |
+| Planned or reserved | Syntax, roadmap wording, or a parser guard may exist, but `drmTMB()` should reject it or treat it as design-only until likelihood, tests, docs, and after-task evidence land. |
+| Unsupported or blocked | Do not use as analysis syntax; choose the nearest fitted route or check the roadmap. |
+
+Location means the expected response (`mu`, `mu1`, `mu2`). Scale means residual
+standard deviation, dispersion, or an equivalent response-family scale
+(`sigma`, `sigma1`, `sigma2`). Shape means a family-specific tail, cutpoint, or
+overdispersion control such as Student-t `nu`. Coscale means the residual
+correlation layer, currently `rho12` in bivariate Gaussian models.
+
+## Family and component map
+
+Use this table before combining a family with a random-effect or dependence
+surface.
+
+| Model family or component | Fitted formulas today | Random effects today | Dependence or correlation today | Main planned boundary |
+| --- | --- | --- | --- | --- |
+| Gaussian, one response | `mu` and `sigma` | ordinary `mu` intercepts, independent slopes, one-slope correlated blocks, q > 2 numeric `mu` blocks, `sigma` intercepts, independent `sigma` slopes, and `sd(group) ~ x` for unlabelled `mu` intercept SDs | ordinary group-level `corpairs()` rows for fitted covariance blocks | correlated `sigma` slopes, coefficient-specific `sd(group, coef = "x")`, and broad p8 location-scale slope endpoints |
+| Student-t | fixed-effect `mu`, `sigma`, and `nu` | none | none | `nu` random effects, skewness, and structured Student-t effects |
+| Lognormal, Gamma, beta, beta-binomial | fixed-effect `mu` and `sigma` or the family-specific scale | none | none | scale random effects, bounded-response known covariance, zero-one inflation, and structured dependence |
+| Poisson and NB2 | fixed-effect `mu`; NB2 also has fixed-effect `sigma` | ordinary non-zero-inflated `mu` random intercepts and independent numeric slopes | no labelled covariance, no structured dependence | correlated count slopes, zero-inflated or hurdle random effects, count `sigma` random effects, and structured count effects |
+| Zero-inflated Poisson and zero-inflated NB2 | fixed-effect `mu`; `zi ~ ...`; NB2 also has fixed-effect `sigma` | none | none | random effects in `zi`, structured zero inflation, and `corpairs()` for count latent effects |
+| Truncated NB2 and hurdle NB2 | fixed-effect `mu`; fixed-effect `sigma`; hurdle NB2 also has `hu ~ ...` | none | none | random effects in `hu`, random effects in truncated or hurdle count `mu`, and structured hurdle effects |
+| Cumulative-logit ordinal | fixed-effect ordinal location with estimated cutpoints | none | none | ordinal random effects, scale or discrimination formulas, structured ordinal effects, and bivariate ordinal models |
+| Gaussian meta-analysis | `meta_V(V = V)` or compatibility alias `meta_known_V(V = V)` | ordinary Gaussian random effects may be combined with estimated residual terms where supported | known sampling covariance is observation-level input, not a latent relatedness effect | non-Gaussian known covariance, proportional-variance `meta_V(w = w)`, sparse/block-sparse known covariance, and dense known `V` with non-unit weights |
+| Bivariate Gaussian | `mu1`, `mu2`, `sigma1`, `sigma2`, and fixed-effect `rho12` | ordinary bivariate random-intercept slices, same-response `mu`/`sigma` intercept covariance, all-four q=4 intercept blocks, and matching slope-only `mu1`/`mu2` blocks | residual `rho12()` and group-level `corpairs()` stay separate | random effects in `rho12`, mixed-response bivariate families, intercept-plus-slope q=4 blocks, and all-four p8/q8 slope endpoints |
+
+`zi` and `hu` are currently fixed-effect probability components. They are
+useful for modelling extra zeros or hurdle probability, but they should not be
+read as random-effect or structured-dependence layers yet.
+
+## Random-effect and dependence map
+
+Here q is the number of latent endpoints in one covariance block. A q=2 block
+has two endpoints, such as `mu1` and `mu2` random intercepts. A q=4 block has
+four endpoints, such as `mu1`, `mu2`, `sigma1`, and `sigma2` random intercepts.
+The p8/q8 language in the roadmap refers to future all-endpoint location-scale
+slope structures, not a fitted user route.
+
+| Layer | Fitted q and slope support | Main extractors or diagnostics | Planned or blocked neighbours |
+| --- | --- | --- | --- |
+| Ordinary Gaussian `mu` | q=1 random intercepts and independent slopes; q=2 intercept-slope correlations; q > 2 numeric `mu` blocks | `sdpars$mu`, `corpars$mu` or `corpars$re_cov`, `ranef()`, `corpairs()`, `summary()$covariance`, `profile_targets()`, `check_drm()` | q > 2 correlations are derived-unavailable for direct profile intervals and larger q blocks remain advanced |
+| Ordinary Gaussian `sigma` | q=1 residual-scale intercepts and multiple independent numeric slopes on `log(sigma)` | `sdpars$sigma`, `profile_targets()`, `check_drm()`, `sigma()` | correlated or labelled residual-scale slope covariance |
+| Random-effect SD surface | `sd(group) ~ x_group` for unlabelled Gaussian `mu` random intercepts | `predict_parameters(dpar = "sd(group)")`, `marginal_parameters()`, fixed-effect summaries | coefficient-specific `sd(group, coef = "x")`, spatial/animal/relmat direct-SD siblings, and generic `sd*()` unification |
+| Ordinary bivariate `mu1`/`mu2` | q=2 matching labelled random intercepts and q=2 matching slope-only random-slope blocks | `corpairs(class = "mean-mean")`, `summary()$covariance`, `profile_targets()`, `check_drm()` | intercept-plus-slope q=4 location blocks and predictor-dependent slope `corpair()` regressions |
+| Ordinary bivariate `sigma1`/`sigma2` | q=2 matching labelled random intercepts | `corpairs(class = "scale-scale")`, `summary()$covariance`, `profile_targets()` | scale random slopes and scale-slope covariance |
+| Same-response `mu`/`sigma` | one or more q=2 matching random-intercept blocks within a response | `corpairs(class = "mean-scale")`, `corpars$mu_sigma`, `summary()$covariance` | slope-level mean-scale covariance |
+| All-four ordinary location-scale | constant q=4 random-intercept block across `mu1`, `mu2`, `sigma1`, and `sigma2` | `corpairs()` and `summary()$covariance` report six derived latent correlations | derived q=4 interval profiles and p8/q8 random-slope endpoints |
+| Residual coscale | fixed-effect `rho12 ~ ...` | `rho12()`, `confint(..., parm = "rho12", newdata = ...)`, `summary()` | random effects or structured dependence in `rho12` |
+| Ordinary `corpair()` regression | q=2 predictor-dependent group-level correlation for an already fitted block | `corpairs(newdata = ...)`, `plot_corpairs()` | q=4 correlation regressions and slope-level `corpair()` regressions |
+| Phylogenetic `mu` | q=1 univariate intercept and one numeric slope; q=2 bivariate `mu1`/`mu2`; constant q=4 location-scale intercept block | `sdpars$mu`, `ranef("phylo_mu")`, `corpairs(level = "phylogenetic")`, `profile_targets()`, `check_drm()` | multiple phylogenetic slopes, phylogenetic slope correlations, standalone phylogenetic `sigma`, structured `rho12`, and non-Gaussian phylogenetic effects |
+| Phylogenetic direct SD | `sd_phylo()`, `sd_phylo1()`, and `sd_phylo2()` direct-SD surfaces where documented | fixed-effect summaries, prediction helpers, profile targets where direct | generic `sd*()` naming across phylo, spatial, animal, and `relmat()` remains a future unification lane |
+| Coordinate spatial `mu` | q=1 univariate intercept and one numeric slope; q=2 bivariate `mu1`/`mu2` intercept covariance; constant q=4 location-scale intercept block | `sdpars$mu`, `ranef("spatial_mu")`, `corpairs(level = "spatial")`, `summary()$covariance`, `profile_targets()`, `check_drm()` | mesh/SPDE, multiple slopes, slope correlations, standalone spatial `sigma`, direct-SD surfaces, spatial `corpair()` regression, and non-Gaussian spatial effects |
+| Animal-model `mu` | q=1 univariate intercept and one numeric slope for `pedigree`, `A`, or `Ainv`; q=2 bivariate `mu1`/`mu2`; constant q=4 location-scale intercept block | `sdpars$mu`, `ranef("animal_mu")`, `corpairs(level = "animal")`, `profile_targets()`, `check_drm()` | sparse large-pedigree construction, multiple slopes, slope correlations, standalone `sigma`, predictor-dependent `corpair()` regression, direct-SD grammar, and non-Gaussian animal effects |
+| `relmat()` known latent relatedness | q=1 univariate intercept and one numeric slope for `K` or `Q`; q=2 bivariate `mu1`/`mu2`; constant q=4 location-scale intercept block | `sdpars$mu`, `ranef("relmat_mu")`, `corpairs(level = "relmat")`, `profile_targets()`, `check_drm()` | multiple slopes, slope correlations, standalone `sigma`, predictor-dependent `corpair()` regression, direct-SD grammar, and non-Gaussian `relmat()` effects |
+| Non-Gaussian ordinary `mu` | Poisson and NB2 q=1 random intercepts and independent numeric slopes | `sdpars$mu`, `ranef()`, direct `log_sd_mu` profile targets, `check_drm()` | correlated non-Gaussian slopes, labelled covariance, structured dependence, zero-inflated/hurdle random effects, and cross-parameter covariance |
+| Non-Gaussian scale, shape, zero-inflation, and hurdle | fixed-effect formulas only where the family supports the component | fixed-effect coefficient tables and Wald intervals where implemented | random effects in `sigma`, `nu`, `zi`, `hu`, future `zoi`, future `coi`, or latent skewness |
+
+## Slope coverage at a glance
+
+| Random-effect type | At least one random slope fitted? | Current fitted scope | Not yet fitted |
+| --- | --- | --- | --- |
+| Ordinary Gaussian `mu` | Yes | independent slopes, one-slope correlated blocks, q > 2 numeric `mu` blocks | routine high-q teaching and direct q > 2 correlation profiles |
+| Ordinary Gaussian `sigma` | Yes | independent residual-scale slopes | correlated residual-scale slopes |
+| Ordinary bivariate Gaussian | Yes | matching slope-only `mu1`/`mu2` q=2 block | intercept-plus-slope q=4, same-response slope covariance, and p8/q8 all-endpoint slopes |
+| Coordinate spatial | Yes | one univariate Gaussian `mu` slope plus constant q=4 bivariate Gaussian location-scale intercepts | multiple slopes, slope correlations, spatial-sigma-only routes, and non-Gaussian spatial effects |
+| Phylogenetic | Yes | one univariate Gaussian `mu` slope | multiple slopes, slope correlations, standalone `sigma`, and non-Gaussian effects |
+| Animal-model relatedness | Yes | one univariate Gaussian `mu` slope | sparse large-pedigree slope scaling, multiple slopes, slope correlations, and standalone `sigma` |
+| `relmat()` known latent relatedness | Yes | one univariate Gaussian `mu` slope | multiple slopes, slope correlations, standalone `sigma`, and direct-SD grammar |
+| Non-Gaussian ordinary count `mu` | Yes | Poisson and NB2 independent numeric slopes | correlated slopes, zero-inflated or hurdle random effects, and structured count slopes |
+| Non-Gaussian scale, shape, `zi`, `hu`, ordinal, or bounded-response components | No | fixed effects only where implemented | random effects and structured dependence |
+
+## Roadmap use
+
+The next implementation work should move only one boundary at a time. These are
+the most useful next lanes for users:
+
+| Slice | Roadmap lane | Why it helps users | Done when |
+| --- | --- | --- |
+| 303 | Generic `sd*()` design | Users should not need separate direct-SD names for phylo, spatial, animal, and `relmat()` routes forever. | The grammar, examples, tests, and stale-name migration path are explicit without breaking current `sd_phylo*()` users. |
+| 304 | p8/q8 location-scale planning | Full individual-difference location-scale slope models need a design before code. | The endpoint labels, covariance block size, positive-definite parameterization, diagnostics, and profile/derived interval policy are written before fitting. |
+| 305 | Spatial and relatedness q=4 parity | Users can ask location-scale structured questions beyond phylogeny and ordinary groups. | q=4 spatial, animal, and `relmat()` claims have likelihood code, tests, `corpairs()`, diagnostics, and docs. |
+| 306 | q=4 interval policy | Users need to know when q=4 correlations are estimates only and when intervals are real. | Derived q=4 rows keep explicit unavailable interval status until direct or derived-profile interval evidence exists. |
+| 307 | Inflation and hurdle random-effect gate | Users with `zi`, `hu`, future `zoi`, or future `coi` models need clear fixed-effect guidance before extra latent layers are added. | These components remain fixed-effect-only or planned until use cases, recovery tests, diagnostics, prediction semantics, and interval-status rules justify random effects. |
+| 308 | Non-Gaussian structured-dependence candidate map | Count, ordinal, inflation, and hurdle users need honest guidance before structured models are exposed. | One family and one dependence layer pass likelihood, recovery, diagnostics, extractor, and interval-status gates before a broader claim appears. |
+| 309 | Reader-facing availability map maintenance | The pkgdown site should make fitted-versus-planned status easy to find. | This article, `model-map`, README, ROADMAP, NEWS, and the reference index agree after each substantial feature slice. |
+| 310 | User-route examples | Users should leave the map knowing the nearest fitted alternative. | Planned rows point to a fitted route, a design note, or a tutorial boundary rather than leaving users at a dead end. |
+| 311-313 | Generic direct-SD contract | Direct-SD syntax should become easier without breaking existing `sd_phylo*()` users. | Future syntax uses explicit level targeting, keeps ordinary `sd(group)` distinct, and includes compatibility and reference-index checks before implementation. |
+| 314-316 | p8/q8 endpoint gate | Full location-scale slope covariance is scientifically attractive but can be weakly identified. | q2, q4, q6, and q8 endpoints, parameterization, diagnostics, and simulation gates are explicit before code. |
+| 317-318 | Structured q4 and interval contract | Users need to know which q4 rows are estimates and which have real intervals. | Spatial q4 parity is separated from already fitted phylo/animal/relmat q4 status, and q4 intervals remain unavailable until method evidence exists. |
+| 319-320 | Non-Gaussian structured candidate choice | Count users need a realistic first structural-dependence path. | One q1 `mu` structured intercept is chosen before slopes, q4, zero inflation, hurdle probability, or cross-parameter covariance. |
+| 321-325 | User-route and maintenance closeout | The map should help users choose a fitted route when their desired model is planned. | Common planned requests point to fixed-effect or smaller fitted alternatives, and pkgdown/stale-claim checks confirm the rendered map. |
+| 326-328 | Direct-SD pre-code spec | The next direct-SD work should be issue-ready before parser work starts. | Level-targeted generic syntax, `sd_phylo*()` compatibility, endpoint names, reference-index text, and required tests are explicit. |
+| 329-331 | p8/q8 pre-code spec | Users need a smaller, diagnosable path before all-endpoint slope covariance. | q2, q4, q6, and q8 endpoint classes and simulation gates are written before syntax opens. |
+| 332-333 | Spatial q4 pre-code spec | Spatial q4 was the next constant structured q4 parity lane before Slices 356-380 fitted it. | Matching labelled spatial terms, extractors, `corpairs()`, diagnostics, and derived-interval status were required before code could be claimed. |
+| 334-336 | Non-Gaussian structured q1 spec | Count structural dependence needs a first narrow smoke target. | Poisson q1 `mu` structured intercept is the algebra smoke; NB2 q1 `mu` structured intercept is the first practical target after overdispersion checks. |
+| 337-340 | User-route and stale-claim gate | Future implementation must keep the map useful. | Common planned requests point to fitted alternatives, and high-traffic docs plus stale scans move together after implementation. |
+| 341-343 | Direct-SD issue templates | Generic direct-SD syntax should be implementable one structured layer at a time. | Future issues name the target level, compatibility route, parser boundaries, extractor rows, reference examples, and stale-name migration checks before code starts. |
+| 344-345 | p8/q8 issue templates | Location-scale slope covariance is useful only if users can diagnose weak information. | Each issue starts with a smaller endpoint class, names the covariance parameterization, and requires recovery, malformed-input, interval-status, and diagnostic checks. |
+| 346-347 | Spatial q4 issue templates | Spatial users needed the constant q4 parity lane without confusing it with mesh, slope, or count models. | Superseded by Slices 356-380: the fitted spatial q4 route now has matching `mu1`, `mu2`, `sigma1`, and `sigma2` terms, extractor rows, `corpairs()`, diagnostics, interval provenance, and a small smoke example. |
+| 348-351 | Poisson/NB2 structured q1 issue templates | Count users need one narrow structural-dependence path before broad non-Gaussian parity. | Poisson q1 is the algebra smoke; NB2 q1 is the practical count target, both limited to one `mu` structured intercept with guarded zero-inflation, hurdle, slope, and q4 neighbours. |
+| 352-355 | ADEMP, docs, review, and handoff gates | A fitted claim should arrive with simulation purpose, user guidance, role review, and stale-claim scans. | Future implementation issues update this map and related docs, record Ada/Boole/Gauss/Noether/Fisher/Pat/Darwin/Grace/Rose checks, and leave a validation handoff. |
+| 356-370 | Spatial q4 fitted parity | Spatial users need the same constant location-scale covariance first slice already available for phylo, animal, and `relmat()`. | Matching labelled `spatial()` terms across `mu1`, `mu2`, `sigma1`, and `sigma2` fit a q=4 block with six `corpairs(level = "spatial")` rows, `summary()$covariance`, profile-target status, `check_drm()`, and failure-path tests. |
+| 371-380 | Spatial q4 evidence and map closeout | A fitted route should be visible on pkgdown without implying broader spatial or non-Gaussian parity. | README, model-map, implementation-map, structural docs, formula grammar, ROADMAP, NEWS, check-log, after-task notes, pkgdown render, and stale-claim scans all separate fitted spatial q4 from mesh, slope, direct-SD, and count-model work. |
+| 381-405 | Non-Gaussian structured planning | Count and other non-Gaussian users need a design before likelihood code opens. | Poisson/NB2 q1 `mu` structured intercepts and broader `zi`, `hu`, scale, shape, ordinal, bounded-response, and mixed-response structured routes are planned with gates; no non-Gaussian structured likelihood is fitted in this set. |
+
+## Common planned requests
+
+Use this table when a desired model is not fitted yet.
+
+| If you want... | Fit now | Planned boundary |
+| --- | --- | --- |
+| zero-inflated counts with predictors in the zero process | fixed-effect `zi ~ predictors` in the supported count family | random effects or structured dependence in `zi` |
+| hurdle counts with a modelled hurdle probability | fixed-effect `hu ~ predictors` in hurdle NB2 | random effects or structured dependence in `hu` |
+| phylogenetic or spatial count dependence | ordinary Poisson/NB2 `mu` random effects when a plain group is enough; otherwise treat structural count dependence as planned | `phylo()`, `spatial()`, `animal()`, or `relmat()` inside non-Gaussian likelihoods |
+| full individual-difference location-scale slopes | fitted q2 slope-only `mu1`/`mu2` covariance, or smaller univariate pieces | p8/q8 location-scale slope covariance |
+| structured direct-SD surfaces outside phylogeny | fitted structured intercept/slope SDs and `profile_targets()` where available | generic spatial, animal, or `relmat()` direct-SD regression |
+| spatial q4 location-scale covariance | fitted bivariate Gaussian q4 spatial location-scale block when all four endpoints use matching labelled `spatial(1 | p | site, coords = coords)` terms | mesh/SPDE, spatial slopes, standalone spatial `sigma`, direct-SD surfaces, predictor-dependent spatial `corpair()` regression, and non-Gaussian spatial routes |
+| NB2 phylogenetic or spatial count model | ordinary NB2 `mu` random effects if a plain group is enough | Poisson q1 structured smoke first, then NB2 q1 structured intercept with overdispersion checks |
