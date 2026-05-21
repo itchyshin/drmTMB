@@ -23,6 +23,35 @@ new_known_relatedness_gaussian_data <- function(seed = 2026052001) {
   )
 }
 
+new_animal_pedigree_gaussian_data <- function(seed = 2026052102) {
+  set.seed(seed)
+  pedigree <- data.frame(
+    id = paste0("id", seq_len(8L)),
+    dam = c(NA, NA, NA, NA, "id1", "id3", "id5", "id1"),
+    sire = c(NA, NA, NA, NA, "id2", "id4", "id6", "id3"),
+    stringsAsFactors = FALSE
+  )
+  A <- drmTMB:::drm_pedigree_additive_relationship(pedigree)
+  Ainv <- solve(A)
+  id_levels <- rownames(A)
+  n_each <- 6L
+  id <- rep(id_levels, each = n_each)
+  x <- rep(seq(-1, 1, length.out = n_each), length(id_levels))
+  sd_known <- 0.60
+  sigma <- 0.20
+  known_effect <- as.vector(t(chol(A)) %*% stats::rnorm(nrow(A), sd = sd_known))
+  names(known_effect) <- id_levels
+  y <- 0.30 + 0.35 * x + known_effect[id] + stats::rnorm(length(id), sd = sigma)
+  list(
+    data = data.frame(y = y, x = x, id = id),
+    pedigree = pedigree,
+    A = A,
+    Ainv = Ainv,
+    sd_known = sd_known,
+    sigma = sigma
+  )
+}
+
 dense_known_relatedness_gaussian_nll <- function(y, mu, sigma, sd_known, K) {
   covariance <- sigma^2 * diag(length(y)) + sd_known^2 * K
   chol_covariance <- chol(covariance)
@@ -75,6 +104,50 @@ new_biv_known_relatedness_gaussian_data <- function(seed = 2026052101) {
   )
 }
 
+new_biv_animal_pedigree_gaussian_data <- function(seed = 2026052103) {
+  set.seed(seed)
+  pedigree <- data.frame(
+    id = paste0("id", seq_len(8L)),
+    dam = c(NA, NA, NA, NA, "id1", "id3", "id5", "id1"),
+    sire = c(NA, NA, NA, NA, "id2", "id4", "id6", "id3"),
+    stringsAsFactors = FALSE
+  )
+  A <- drmTMB:::drm_pedigree_additive_relationship(pedigree)
+  Ainv <- solve(A)
+  id_levels <- rownames(A)
+  n_each <- 5L
+  id <- rep(id_levels, each = n_each)
+  x <- stats::rnorm(length(id))
+  sd_known <- c(0.55, 0.45)
+  rho_known <- 0.25
+  sigma <- c(0.22, 0.24)
+  rho12_true <- -0.05
+  z1 <- stats::rnorm(nrow(A))
+  z2 <- rho_known * z1 + sqrt(1 - rho_known^2) * stats::rnorm(nrow(A))
+  known1 <- as.vector(t(chol(A)) %*% z1) * sd_known[[1L]]
+  known2 <- as.vector(t(chol(A)) %*% z2) * sd_known[[2L]]
+  names(known1) <- id_levels
+  names(known2) <- id_levels
+  e1 <- stats::rnorm(length(id))
+  e2 <- rho12_true * e1 + sqrt(1 - rho12_true^2) * stats::rnorm(length(id))
+  beta_mu1 <- c(`(Intercept)` = 0.25, x = 0.30)
+  beta_mu2 <- c(`(Intercept)` = -0.20, x = -0.20)
+  y1 <- beta_mu1[[1L]] + beta_mu1[[2L]] * x + known1[id] + sigma[[1L]] * e1
+  y2 <- beta_mu2[[1L]] + beta_mu2[[2L]] * x + known2[id] + sigma[[2L]] * e2
+  list(
+    data = data.frame(y1 = y1, y2 = y2, x = x, id = id),
+    pedigree = pedigree,
+    A = A,
+    Ainv = Ainv,
+    beta_mu1 = beta_mu1,
+    beta_mu2 = beta_mu2,
+    sd_known = sd_known,
+    rho_known = rho_known,
+    sigma = sigma,
+    rho12 = rho12_true
+  )
+}
+
 dense_biv_known_relatedness_gaussian_nll <- function(
   y1,
   y2,
@@ -112,6 +185,43 @@ dense_biv_known_relatedness_gaussian_nll <- function(
       2 * sum(log(diag(chol_covariance))) +
       sum(scaled^2))
 }
+
+test_that("animal pedigree helper builds additive relationships", {
+  pedigree <- data.frame(
+    id = c("offspring2", "dam", "sire", "offspring1"),
+    dam = c("dam", NA, NA, "dam"),
+    sire = c("sire", NA, NA, "sire"),
+    stringsAsFactors = FALSE
+  )
+  A <- drmTMB:::drm_pedigree_additive_relationship(pedigree)
+  expected <- matrix(
+    c(
+      1.0,
+      0.0,
+      0.5,
+      0.5,
+      0.0,
+      1.0,
+      0.5,
+      0.5,
+      0.5,
+      0.5,
+      1.0,
+      0.5,
+      0.5,
+      0.5,
+      0.5,
+      1.0
+    ),
+    nrow = 4L,
+    byrow = TRUE,
+    dimnames = list(
+      c("dam", "sire", "offspring2", "offspring1"),
+      c("dam", "sire", "offspring2", "offspring1")
+    )
+  )
+  expect_equal(A, expected)
+})
 
 test_that("Gaussian mu fits relmat and animal known-precision intercepts", {
   sim <- new_known_relatedness_gaussian_data()
@@ -167,6 +277,46 @@ test_that("Gaussian mu fits relmat and animal known-precision intercepts", {
     as.numeric(stats::logLik(fit_animal)),
     tolerance = 1e-5
   )
+})
+
+test_that("Gaussian mu fits animal pedigree intercepts", {
+  sim <- new_animal_pedigree_gaussian_data()
+  dat <- sim$data
+  pedigree <- sim$pedigree
+  A <- sim$A
+  Ainv <- sim$Ainv
+
+  fit_pedigree <- drmTMB(
+    bf(y ~ x + animal(1 | id, pedigree = pedigree), sigma ~ 1),
+    data = dat
+  )
+  fit_A <- drmTMB(
+    bf(y ~ x + animal(1 | id, A = A), sigma ~ 1),
+    data = dat
+  )
+  fit_Ainv <- drmTMB(
+    bf(y ~ x + animal(1 | id, Ainv = Ainv), sigma ~ 1),
+    data = dat
+  )
+
+  checks <- check_drm(fit_pedigree)
+  animal_check <- checks[checks$check == "animal_mu_diagnostics", ]
+
+  expect_equal(fit_pedigree$opt$convergence, 0)
+  expect_equal(
+    as.numeric(stats::logLik(fit_pedigree)),
+    as.numeric(stats::logLik(fit_A)),
+    tolerance = 1e-5
+  )
+  expect_equal(
+    as.numeric(stats::logLik(fit_pedigree)),
+    as.numeric(stats::logLik(fit_Ainv)),
+    tolerance = 1e-5
+  )
+  expect_named(fit_pedigree$sdpars$mu, "animal(1 | id)")
+  expect_named(fit_pedigree$random_effects, "animal_mu")
+  expect_equal(nrow(animal_check), 1L)
+  expect_match(animal_check$value, "matrix_type=covariance")
 })
 
 test_that("bivariate Gaussian mu fits relmat and animal q2 known-matrix covariance", {
@@ -297,6 +447,56 @@ test_that("bivariate Gaussian mu fits relmat and animal q2 known-matrix covarian
   )
 })
 
+test_that("bivariate Gaussian mu fits animal q2 pedigree covariance", {
+  sim <- new_biv_animal_pedigree_gaussian_data()
+  dat <- sim$data
+  pedigree <- sim$pedigree
+  A <- sim$A
+
+  fit_pedigree <- drmTMB(
+    bf(
+      mu1 = y1 ~ x + animal(1 | p | id, pedigree = pedigree),
+      mu2 = y2 ~ x + animal(1 | p | id, pedigree = pedigree),
+      sigma1 = ~1,
+      sigma2 = ~1,
+      rho12 = ~1
+    ),
+    family = biv_gaussian(),
+    data = dat,
+    control = list(eval.max = 500, iter.max = 500)
+  )
+  fit_A <- drmTMB(
+    bf(
+      mu1 = y1 ~ x + animal(1 | p | id, A = A),
+      mu2 = y2 ~ x + animal(1 | p | id, A = A),
+      sigma1 = ~1,
+      sigma2 = ~1,
+      rho12 = ~1
+    ),
+    family = biv_gaussian(),
+    data = dat,
+    control = list(eval.max = 500, iter.max = 500)
+  )
+
+  animal_pairs <- corpairs(fit_pedigree, level = "animal")
+
+  expect_equal(fit_pedigree$opt$convergence, 0)
+  expect_equal(
+    as.numeric(stats::logLik(fit_pedigree)),
+    as.numeric(stats::logLik(fit_A)),
+    tolerance = 1e-5
+  )
+  expect_named(
+    fit_pedigree$sdpars$mu,
+    c("mu1:animal(1 | p | id)", "mu2:animal(1 | p | id)")
+  )
+  expect_named(
+    fit_pedigree$corpars$animal,
+    "cor(mu1:(Intercept),mu2:(Intercept) | p | id)"
+  )
+  expect_equal(nrow(animal_pairs), 1L)
+})
+
 test_that("relmat known-precision likelihood matches dense marginal Gaussian", {
   sim <- new_known_relatedness_gaussian_data(seed = 2026052002)
   dat <- sim$data
@@ -329,19 +529,34 @@ test_that("animal and relmat reject unsupported or malformed known matrices", {
   sim <- new_known_relatedness_gaussian_data()
   dat <- sim$data
   Q <- sim$Q
-  ped <- data.frame(
-    id = unique(dat$id),
-    dam = NA_character_,
-    sire = NA_character_
-  )
+  ped_sim <- new_animal_pedigree_gaussian_data()
+  pedigree_valid <- ped_sim$pedigree
+  pedigree_missing_parent <- pedigree_valid
+  pedigree_missing_parent$dam[[5L]] <- "missing"
+  pedigree_cycle <- pedigree_valid
+  pedigree_cycle$dam[[1L]] <- "id5"
   bad_Q <- sim$Q
   rownames(bad_Q)[[1L]] <- "missing_id"
 
   expect_snapshot(
     error = TRUE,
     drmTMB(
-      bf(y ~ x + animal(1 | id, pedigree = ped), sigma ~ 1),
-      data = dat
+      bf(y ~ x + animal(1 | id, pedigree = pedigree_missing_parent), sigma ~ 1),
+      data = ped_sim$data
+    )
+  )
+  expect_snapshot(
+    error = TRUE,
+    drmTMB(
+      bf(y ~ x + animal(1 | id, pedigree = pedigree_cycle), sigma ~ 1),
+      data = ped_sim$data
+    )
+  )
+  expect_snapshot(
+    error = TRUE,
+    drmTMB(
+      bf(y ~ x + animal(1 + x | id, pedigree = pedigree_valid), sigma ~ 1),
+      data = ped_sim$data
     )
   )
   expect_snapshot(

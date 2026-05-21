@@ -1,12 +1,34 @@
 # animal and relmat reject unsupported or malformed known matrices
 
     Code
-      drmTMB(bf(y ~ x + animal(1 | id, pedigree = ped), sigma ~ 1), data = dat)
+      drmTMB(bf(y ~ x + animal(1 | id, pedigree = pedigree_missing_parent), sigma ~ 1),
+      data = ped_sim$data)
     Condition
-      Error in `build_known_precision_mu_structure()`:
-      ! Pedigree-derived animal-model precision is planned but not implemented yet.
-      x Requested `animal(1 | id, pedigree = ped)`.
-      i Use a precomputed inverse relatedness matrix with `animal(1 | id, Ainv = Ainv)` for the first fitted animal-model path.
+      Error in `drm_standardize_pedigree()`:
+      ! `animal()` pedigree pedigree_missing_parent parents must appear in the id column.
+      x Missing parent id: "missing".
+
+---
+
+    Code
+      drmTMB(bf(y ~ x + animal(1 | id, pedigree = pedigree_cycle), sigma ~ 1), data = ped_sim$
+        data)
+    Condition
+      Error in `drm_pedigree_topological_order()`:
+      ! `animal()` pedigree pedigree_cycle must not contain parent-offspring cycles.
+      x Could not resolve individuals: "id1", "id5", "id7", and "id8".
+
+---
+
+    Code
+      drmTMB(bf(y ~ x + animal(1 + x | id, pedigree = pedigree_valid), sigma ~ 1),
+      data = ped_sim$data)
+    Condition
+      Error in `extract_gaussian_mu_known_term()`:
+      ! Only intercept-only `animal()` `mu` effects are implemented.
+      x Requested structured coefficients: "(Intercept)" and "x".
+      i Use `animal(1 | id, pedigree = pedigree_valid)`.
+      i Structured slopes need separate recovery evidence before they are advertised for `animal()`.
 
 ---
 

@@ -385,6 +385,11 @@ test_that("Phase 1 rejects unsupported model syntax clearly", {
   )
   K <- diag(2)
   rownames(K) <- colnames(K) <- c("1", "2")
+  pedigree <- data.frame(
+    id = c("1", "2"),
+    dam = NA_character_,
+    sire = NA_character_
+  )
 
   expect_error(
     drmTMB(bf(y ~ x), family = poisson(), data = dat),
@@ -473,14 +478,6 @@ test_that("Phase 1 rejects unsupported model syntax clearly", {
       data = dat
     ),
     "unsupported model terms"
-  )
-  expect_error(
-    drmTMB(
-      bf(y ~ x + animal(1 | id, pedigree = pedigree), sigma ~ 1),
-      family = gaussian(),
-      data = dat
-    ),
-    "Pedigree-derived animal-model precision"
   )
   expect_error(
     drmTMB(

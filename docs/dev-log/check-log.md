@@ -33721,3 +33721,67 @@ git diff --check
   returned only pre-simulation matrix rows that admit univariate coordinate
   spatial grids while keeping q=2 bivariate spatial covariance out of admitted
   surfaces.
+
+## 2026-05-20 - Animal Pedigree First Route
+
+Goal:
+
+- Let applied animal-model users fit the already-supported Gaussian `mu`
+  animal intercept and q=2 bivariate location covariance from a plain pedigree,
+  without claiming sparse large-pedigree parity, slopes, `sigma`, q=4, or
+  predictor-dependent `corpair()` support.
+
+Changes:
+
+- Added a dense first pedigree route for `animal(1 | id, pedigree = pedigree)`.
+  Pedigrees must be data frames with `id`, `dam`, and `sire` columns; unknown
+  parents can be `NA`, `""`, or `"0"`. The route builds an additive
+  relationship matrix and reuses the existing known-relatedness precision path.
+- Added focused tests for pedigree relationship construction, univariate
+  `animal(pedigree = ...)` equivalence to `A` and `Ainv`, bivariate q=2
+  `animal(pedigree = ...)` equivalence to `A`, and malformed-pedigree errors.
+- Updated `R/formula-markers.R`, `man/animal.Rd`, `README.md`, `NEWS.md`,
+  `ROADMAP.md`, `docs/design/01-formula-grammar.md`,
+  `docs/design/02-family-registry.md`,
+  `docs/design/34-validation-debt-register.md`,
+  `docs/design/41-phase-18-simulation-programme.md`,
+  `docs/design/44-structured-slope-parity-gate.md`,
+  `docs/design/46-pre-simulation-readiness-matrix.md`,
+  `docs/design/54-phase-18-animal-relmat-known-matrix-ademp.md`,
+  `docs/design/55-phase-18-animal-relmat-q2-interval-status.md`,
+  `vignettes/formula-grammar.Rmd`, `vignettes/model-map.Rmd`, and
+  `vignettes/phylogenetic-spatial.Rmd` so fitted-versus-planned wording now
+  separates dense pedigree examples from sparse large-pedigree claims.
+- Added after-task report
+  `docs/dev-log/after-task/2026-05-20-animal-pedigree-first-route.md`.
+
+Validation:
+
+```sh
+Rscript -e "devtools::document()"
+Rscript -e "devtools::test(filter = 'animal-relmat-gaussian')"
+Rscript -e "devtools::test(filter = 'animal-relmat-gaussian|package-skeleton')"
+Rscript -e "devtools::test(filter = 'gaussian-location-scale|animal-relmat-gaussian|package-skeleton')"
+git diff --check
+rg -n 'pedigree-to-Ainv|pedigree construction|Direct pedigree|direct `pedigree|pedigree-derived precision|pedigree-derived animal models|When animal-model support becomes fitted|animal\(1 \| id, pedigree = ped\).*Planned|animal\(1 \| individual, pedigree = pedigree\).*Planned' README.md NEWS.md ROADMAP.md R docs/design vignettes tests man
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "devtools::check(error_on = 'never')"
+```
+
+- `animal-relmat-gaussian` passed 60 expectations.
+- The combined `animal-relmat-gaussian|package-skeleton` focused run passed
+  152 expectations.
+- The broader focused run
+  `gaussian-location-scale|animal-relmat-gaussian|package-skeleton` passed 232
+  expectations after updating an old planned-pedigree boundary assertion.
+- `git diff --check` was clean.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `devtools::check(error_on = "never")` finished with 0 errors, 0 warnings,
+  and 0 notes.
+- GitHub issue #147 was inspected as the active ledger. A status-comment
+  attempt failed with GitHub API 403 (`Resource not accessible by integration`),
+  so the local check log and after-task report carry the handoff.
+- The stale-wording scan returned historical `NEWS.md` text from the 0.1.3
+  release, generated `vignettes/model-map.html`, and intended
+  sparse-large-pedigree or structured-slope planned-boundary wording. No
+  current source docs still describe `animal(pedigree = ...)` as rejected.

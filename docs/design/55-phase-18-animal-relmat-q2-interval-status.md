@@ -60,7 +60,7 @@ not a model-estimation failure and not a coverage miss.
 The first interval artifact should still keep these rows outside the fitted
 surface:
 
-- pedigree-to-`Ainv` construction;
+- sparse large-pedigree `Ainv` construction;
 - structured slopes;
 - `sigma` structured effects;
 - q=4 location-scale animal/`relmat()` blocks;
