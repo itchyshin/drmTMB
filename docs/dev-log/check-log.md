@@ -2,6 +2,70 @@
 
 Record meaningful development checks here.
 
+## 2026-05-21 - Correlation Gallery Q2 Refresh
+
+Goal: refresh the figure-gallery correlation-layer displays after the spatial,
+animal-model, and `relmat()` q=2 first-slice rows landed, without implying that
+richer structured correlation regressions, q=4 blocks, or scale extensions are
+implemented.
+
+Team roles:
+
+- Ada kept the slice to user-facing visualization/status text and avoided model
+  or formula-grammar changes.
+- Florence checked the rendered correlation panels from the figure-quality
+  perspective.
+- Pat checked whether an applied reader can see which layers have fitted q=2
+  rows.
+- Fisher kept uncertainty language bounded to illustrative interval displays
+  and existing fitted-surface evidence.
+- Grace rendered both touched articles and ran pkgdown consistency checks.
+- Rose scanned for stale planned-boundary wording and formula-grammar drift.
+
+Files changed:
+
+- `vignettes/figure-gallery.Rmd`
+- `vignettes/formula-grammar.Rmd`
+- `docs/design/39-visualization-grammar.md`
+- `docs/dev-log/figure-audits/2026-05-21-correlation-gallery-q2-refresh/`
+- `docs/dev-log/after-task/2026-05-21-correlation-gallery-q2-refresh.md`
+- `NEWS.md`
+- `ROADMAP.md`
+
+Checks run:
+
+```sh
+air format vignettes/figure-gallery.Rmd vignettes/formula-grammar.Rmd NEWS.md ROADMAP.md docs/design/39-visualization-grammar.md docs/dev-log/figure-audits/2026-05-21-correlation-gallery-q2-refresh/figure-audit.md
+Rscript -e "devtools::load_all('.', quiet = TRUE); rmarkdown::render('vignettes/figure-gallery.Rmd', output_dir = '/tmp/drmtmb-correlation-gallery-q2-refresh', output_options = list(self_contained = FALSE), quiet = FALSE)"
+cp /tmp/drmtmb-correlation-gallery-q2-refresh/figure-gallery_files/figure-html/correlation-display-1.png docs/dev-log/figure-audits/2026-05-21-correlation-gallery-q2-refresh/correlation-display-1.png
+cp /tmp/drmtmb-correlation-gallery-q2-refresh/figure-gallery_files/figure-html/correlation-layer-boundaries-1.png docs/dev-log/figure-audits/2026-05-21-correlation-gallery-q2-refresh/correlation-layer-boundaries-1.png
+Rscript -e "devtools::load_all('.', quiet = TRUE); pkgdown::build_article('figure-gallery', new_process = FALSE, quiet = TRUE); pkgdown::build_article('formula-grammar', new_process = FALSE, quiet = TRUE)"
+gh issue list --search "correlation gallery OR figure gallery OR corpairs spatial animal relmat" --limit 20
+gh issue view 58 --json number,title,state,labels,body,url
+rg -n 'rows remain planned|reserved until fitted correlation-pair evidence|spatial `corpairs\(\)` rows remain planned|spatial q=2 now needs the next gallery refresh|planned boundaries for spatial, animal, and `relmat\(\)` layers|future animal or `relmat\(\)` layers' vignettes/figure-gallery.Rmd docs/design/39-visualization-grammar.md ROADMAP.md NEWS.md vignettes/formula-grammar.Rmd
+rg -n 'figure gallery|correlation-layer|corpairs|relmat|animal|spatial' docs/dev-log/known-limitations.md docs/design/01-formula-grammar.md vignettes/formula-grammar.Rmd README.md _pkgdown.yml
+Rscript -e "pkgdown::check_pkgdown()"
+git diff --check
+```
+
+Outcomes:
+
+- The figure gallery now facets residual `rho12`, ordinary group,
+  phylogenetic, coordinate-spatial, animal-model, and `relmat()` q=2
+  correlation rows in one `corpairs()`-compatible display.
+- The support strip now separates fitted constant q=2 rows from richer
+  regression or q=4/scale extensions that remain planned.
+- The formula-grammar summary now includes the animal/`relmat()` q=2 rows in
+  the compact `corpairs(fit)` status row.
+- The rendered figure-gallery article processed 47 chunks successfully, and
+  both refreshed correlation PNGs were copied into the figure-audit folder.
+- `pkgdown::build_article()` rebuilt `figure-gallery` and `formula-grammar`.
+- `pkgdown::check_pkgdown()` reported no problems.
+- The stale-wording scan returned no current-source matches.
+- `git diff --check` was clean.
+- Issue #58 is the matching broad visualization ledger. It remains open because
+  Phase 17 still covers wider helper/data-contract and simulation-output work.
+
 ## 2026-05-21 - Structural-Parity Status Refresh
 
 Goal: remove stale user-facing planned wording after the post-0.1.3
