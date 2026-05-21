@@ -1,0 +1,98 @@
+---
+title: "Known-matrix relatedness with relmat"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Known-matrix relatedness with relmat}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+Use `relmat()` when a latent random-effect layer has a known covariance or
+precision matrix that is not naturally a pedigree, a species tree, or a spatial
+coordinate surface. It is the lower-level known-relatedness route. It should not
+be used for known sampling covariance among observed effect-size estimates;
+that belongs to the meta-analysis route.
+
+## What is fitted today
+
+| Question | Syntax | Status |
+| --- | --- | --- |
+| Does one Gaussian response have deviations structured by a user-supplied latent covariance or precision matrix? | `relmat(1 | id, K = K)` or `relmat(1 | id, Q = Q)` in `mu` | Fitted first slice. `K` is a covariance matrix; `Q` is a precision matrix. |
+| Do two Gaussian response means share a known-matrix latent correlation? | matching labelled `relmat(1 | p | id, K = K)` or `relmat(1 | p | id, Q = Q)` terms in `mu1` and `mu2` | Fitted first q=2 location-location slice. `corpairs(level = "relmat")` reports the latent relatedness correlation separately from residual `rho12`. |
+| Does the known-matrix layer change a slope, residual scale, or q=4 location-scale block? | examples such as `relmat(1 + x | id, K = K)` or matching `relmat()` terms in `sigma1` and `sigma2` | Planned. These routes need matrix validation, diagnostics, recovery tests, interval targets, and examples before use. |
+
+Use `animal()` when the matrix is additive relatedness for individual animal
+models. Use `phylo()` when the matrix comes from a species tree and the tree
+route is available. Use `spatial()` when the structure is induced by sampling
+coordinates. Use `relmat()` for validated latent matrices that do not belong to
+those named routes.
+
+## Start with the smallest useful model
+
+For one response, start with the fitted location-intercept route:
+
+```r
+fit_relmat <- drmTMB(
+  y ~ treatment + relmat(1 | line, K = K),
+  data = dat,
+  family = gaussian()
+)
+```
+
+For two responses, use the same `relmat()` block label in `mu1` and `mu2`:
+
+```r
+fit_relmat_q2 <- drmTMB(
+  mu1 = trait1 ~ treatment +
+    relmat(1 | p | line, Q = Q),
+  mu2 = trait2 ~ treatment +
+    relmat(1 | p | line, Q = Q),
+  data = dat,
+  family = biv_gaussian()
+)
+corpairs(fit_relmat_q2, level = "relmat")
+rho12(fit_relmat_q2)
+```
+
+`corpairs()` reports the fitted latent known-matrix correlation among line or
+unit-level location deviations. `rho12()` reports the residual correlation
+between responses after fixed effects and random effects have been included.
+
+## What to inspect
+
+After fitting, inspect the relatedness layer before interpreting it:
+
+| Output | Use |
+| --- | --- |
+| `check_drm(fit)` | Confirm the `relmat()` layer was recognized and review matrix/replication diagnostics. |
+| `fit$sdpars$mu` | Read the fitted known-matrix location SD. |
+| `ranef(fit, "relmat_mu")` | Inspect conditional deviations on the fitted relatedness layer. |
+| `summary(fit)$covariance` | Check how the `relmat()` SD or q=2 correlation is reported beside other covariance layers. |
+| `profile_targets(fit)` | See which relatedness SD or q=2 correlation targets can be profiled directly. |
+| `corpairs(fit, level = "relmat")` | Read the fitted q=2 relatedness mean-mean correlation when the model has matching bivariate `relmat()` terms. |
+
+## Boundaries
+
+The following `relmat()` routes remain planned:
+
+- structured slopes such as `relmat(1 + x | id, K = K)`;
+- relatedness `sigma` terms;
+- q=4 location-scale covariance blocks;
+- predictor-dependent `relmat()` `corpair()` regressions;
+- generic direct-SD grammar for known-matrix standard deviations;
+- non-Gaussian known-matrix structured effects.
+
+Known sampling covariance is a different model layer. If the matrix describes
+known observation-level uncertainty for effect-size estimates, use
+`meta_V(V = V)` and the [meta-analysis documentation](meta-analysis.html)
+instead of `relmat()`. The older `meta_known_V(V = V)` spelling remains a
+compatibility alias, not a separate relatedness route.
+
+Use the [structural-dependence overview](structural-dependence.html) when you
+are choosing among `animal()`, `phylo()`, `spatial()`, and `relmat()`. Use the
+detailed [structural-dependence tutorial](phylogenetic-spatial.html) when you
+need the current fitted examples, equations, and broader parity ladder.

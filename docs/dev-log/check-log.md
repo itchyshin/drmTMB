@@ -2,6 +2,56 @@
 
 Record meaningful development checks here.
 
+## 2026-05-21 - relmat Known-Matrix Article Split
+
+Goal: add a focused `relmat()` route page so users can distinguish latent
+known-matrix relatedness from animal, phylogenetic, spatial, and meta-analysis
+covariance routes.
+
+Team roles:
+
+- Ada scoped the slice to documentation and navigation.
+- Pat checked that users can find the fitted `K` and `Q` routes without
+  reading the full umbrella article.
+- Darwin checked that the page explains when `relmat()` is biologically less
+  specific than `animal()`, `phylo()`, or `spatial()`.
+- Grace rendered the new article and ran pkgdown.
+- Rose kept slopes, `sigma`, q=4, `corpair()` regression, direct-SD grammar,
+  non-Gaussian effects, and known sampling covariance out of fitted claims.
+
+Files changed:
+
+- `vignettes/relmat-known-matrices.Rmd`
+- `vignettes/structural-dependence.Rmd`
+- `_pkgdown.yml`
+- `docs/design/53-structural-dependence-article-split.md`
+- `docs/dev-log/after-task/2026-05-21-relmat-known-matrix-article-split.md`
+- `NEWS.md`
+
+Checks run:
+
+```sh
+air format vignettes/relmat-known-matrices.Rmd vignettes/structural-dependence.Rmd NEWS.md _pkgdown.yml docs/design/53-structural-dependence-article-split.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-21-relmat-known-matrix-article-split.md
+Rscript -e "devtools::load_all('.', quiet = TRUE); pkgdown::build_article('relmat-known-matrices', new_process = FALSE, quiet = TRUE); pkgdown::build_article('structural-dependence', new_process = FALSE, quiet = TRUE)"
+rg -n 'relmat-known-matrices|Known-matrix relatedness with relmat|relmat\\(1 \\| id|relmat\\(1 \\| p \\| id|ranef\\(fit, \"relmat_mu\"\\)|meta_V\\(V = V\\)|meta_known_V\\(V = V\\)|relatedness `sigma`|relmat.*corpair' vignettes/relmat-known-matrices.Rmd vignettes/structural-dependence.Rmd _pkgdown.yml NEWS.md docs/design/53-structural-dependence-article-split.md
+Rscript -e "pkgdown::check_pkgdown()"
+git diff --check
+```
+
+Outcomes:
+
+- Added `relmat-known-matrices.Rmd` as the focused page for lower-level
+  known-matrix relatedness.
+- The page documents fitted univariate `relmat()` Gaussian `mu` intercepts and
+  matching bivariate q=2 location covariance for covariance `K` and precision
+  `Q` inputs.
+- The page tells readers to inspect `check_drm()`, `sdpars$mu`,
+  `ranef(fit, "relmat_mu")`, `summary()$covariance`, `profile_targets()`, and
+  `corpairs(level = "relmat")`.
+- The page keeps known sampling covariance in the meta-analysis route via
+  preferred `meta_V(V = V)`, with `meta_known_V(V = V)` only as a compatibility
+  alias.
+
 ## 2026-05-21 - Animal Models Article Split
 
 Goal: add the first focused structural-dependence route page for applied users

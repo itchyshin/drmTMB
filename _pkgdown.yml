@@ -60,6 +60,8 @@ navbar:
           href: articles/structural-dependence.html
         - text: Animal models and relatedness
           href: articles/animal-models.html
+        - text: Known-matrix relmat models
+          href: articles/relmat-known-matrices.html
         - text: Structural dependence details
           href: articles/phylogenetic-spatial.html
     validation:
@@ -164,6 +166,7 @@ articles:
       - bivariate-coscale
       - structural-dependence
       - animal-models
+      - relmat-known-matrices
       - phylogenetic-spatial
   - title: Simulation & Comparison
     contents:
