@@ -1,6 +1,6 @@
 phase18_animal_relmat_q2_conditions <- function(
   structured_surface = c("animal", "relmat"),
-  matrix_argument = c("precision", "covariance"),
+  matrix_argument = c("precision", "covariance", "pedigree"),
   n_level = 10L,
   n_per_level = 6L,
   matrix_decay = 0.40,
@@ -22,7 +22,7 @@ phase18_animal_relmat_q2_conditions <- function(
   )
   matrix_argument <- match.arg(
     matrix_argument,
-    choices = c("precision", "covariance"),
+    choices = c("precision", "covariance", "pedigree"),
     several.ok = TRUE
   )
   conditions <- expand.grid(
@@ -40,6 +40,18 @@ phase18_animal_relmat_q2_conditions <- function(
     KEEP.OUT.ATTRS = FALSE,
     stringsAsFactors = FALSE
   )
+  conditions <- conditions[
+    !(conditions$structured_surface == "relmat" &
+      conditions$matrix_argument == "pedigree"),
+    ,
+    drop = FALSE
+  ]
+  if (nrow(conditions) == 0L) {
+    stop(
+      "`matrix_argument = \"pedigree\"` is only available for `structured_surface = \"animal\"`.",
+      call. = FALSE
+    )
+  }
   conditions$beta_mu1_intercept <- beta_mu1_intercept
   conditions$beta_mu1_x <- beta_mu1_x
   conditions$beta_mu2_intercept <- beta_mu2_intercept
@@ -51,7 +63,7 @@ phase18_dgp_animal_relmat_q2 <- function(
   n_level,
   n_per_level,
   surface = c("animal", "relmat"),
-  matrix_argument = c("precision", "covariance"),
+  matrix_argument = c("precision", "covariance", "pedigree"),
   matrix_decay = 0.40,
   beta_mu1 = c("(Intercept)" = 0.25, x = 0.35),
   beta_mu2 = c("(Intercept)" = -0.15, x = -0.25),
@@ -67,6 +79,12 @@ phase18_dgp_animal_relmat_q2 <- function(
   assert_positive_whole_number(n_per_level, "n_per_level")
   surface <- match.arg(surface)
   matrix_argument <- match.arg(matrix_argument)
+  if (identical(matrix_argument, "pedigree") && !identical(surface, "animal")) {
+    stop(
+      "`matrix_argument = \"pedigree\"` is only available for `surface = \"animal\"`.",
+      call. = FALSE
+    )
+  }
   assert_phase18_correlation(matrix_decay, "matrix_decay")
   if (matrix_decay < 0) {
     stop("`matrix_decay` must be non-negative.", call. = FALSE)
@@ -102,13 +120,19 @@ phase18_dgp_animal_relmat_q2 <- function(
 
   draw <- function() {
     id_levels <- paste0("id", seq_len(n_level))
-    K <- outer(
-      seq_len(n_level),
-      seq_len(n_level),
-      function(i, j) matrix_decay^abs(i - j)
-    )
-    diag(K) <- 1
-    dimnames(K) <- list(id_levels, id_levels)
+    pedigree <- NULL
+    if (identical(matrix_argument, "pedigree")) {
+      pedigree <- phase18_animal_relmat_q2_pedigree(id_levels)
+      K <- drmTMB:::drm_pedigree_additive_relationship(pedigree)
+    } else {
+      K <- outer(
+        seq_len(n_level),
+        seq_len(n_level),
+        function(i, j) matrix_decay^abs(i - j)
+      )
+      diag(K) <- 1
+      dimnames(K) <- list(id_levels, id_levels)
+    }
     Q <- solve(K)
 
     id <- rep(id_levels, each = n_per_level)
@@ -154,6 +178,7 @@ phase18_dgp_animal_relmat_q2 <- function(
       rho12 = rho12,
       K = K,
       Q = Q,
+      pedigree = pedigree,
       n_level = n_level,
       n_per_level = n_per_level,
       matrix_decay = matrix_decay
@@ -166,4 +191,28 @@ phase18_dgp_animal_relmat_q2 <- function(
   } else {
     phase18_with_seed(seed, draw)
   }
+}
+
+phase18_animal_relmat_q2_pedigree <- function(id_levels) {
+  id_levels <- as.character(id_levels)
+  if (length(id_levels) < 2L || anyNA(id_levels) || any(!nzchar(id_levels))) {
+    stop(
+      "`id_levels` must contain at least two non-missing labels.",
+      call. = FALSE
+    )
+  }
+  dam <- rep(NA_character_, length(id_levels))
+  sire <- rep(NA_character_, length(id_levels))
+  if (length(id_levels) >= 3L) {
+    for (i in seq.int(3L, length(id_levels))) {
+      dam[[i]] <- id_levels[[i - 2L]]
+      sire[[i]] <- id_levels[[i - 1L]]
+    }
+  }
+  data.frame(
+    id = id_levels,
+    dam = dam,
+    sire = sire,
+    stringsAsFactors = FALSE
+  )
 }

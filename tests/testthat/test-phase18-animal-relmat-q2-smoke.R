@@ -78,6 +78,22 @@ test_that("Phase 18 animal/relmat q2 DGP records known-matrix truth", {
     dat$rho12 * dat$sigma1 * dat$sigma2,
     tolerance = 1e-12
   )
+
+  ped_dat <- phase18_dgp_animal_relmat_q2(
+    n_level = 8L,
+    n_per_level = 5L,
+    surface = "animal",
+    matrix_argument = "pedigree",
+    seed = 20260631L
+  )
+  ped_truth <- attr(ped_dat, "truth", exact = TRUE)
+  expect_s3_class(ped_truth$pedigree, "data.frame")
+  expect_named(ped_truth$pedigree, c("id", "dam", "sire"))
+  expect_equal(
+    ped_truth$K,
+    drmTMB:::drm_pedigree_additive_relationship(ped_truth$pedigree)
+  )
+  expect_equal(ped_truth$Q, solve(ped_truth$K), tolerance = 1e-10)
 })
 
 test_that("Phase 18 animal/relmat q2 smoke runner completes and resumes", {
@@ -163,6 +179,57 @@ test_that("Phase 18 animal/relmat q2 smoke runner completes and resumes", {
   expect_equal(second$summary, first$summary)
 })
 
+test_that("Phase 18 animal q2 smoke runner fits pedigree spelling", {
+  source_phase18_animal_relmat_q2()
+  conditions <- phase18_animal_relmat_q2_conditions(
+    structured_surface = "animal",
+    matrix_argument = "pedigree",
+    n_level = 8L,
+    n_per_level = 5L,
+    matrix_decay = 0.40,
+    sd_struct1 = 0.55,
+    sd_struct2 = 0.45,
+    rho_struct = 0.25,
+    sigma1 = 0.22,
+    sigma2 = 0.24,
+    rho12 = -0.05
+  )
+
+  result <- phase18_run_animal_relmat_q2_smoke(
+    conditions = conditions,
+    n_rep = 1L,
+    master_seed = 219L
+  )
+
+  expect_equal(nrow(result$registry$cells), 1L)
+  expect_equal(result$registry$cells$matrix_argument, "pedigree")
+  expect_equal(
+    unname(vapply(
+      result$results,
+      function(result) result$status,
+      character(1)
+    )),
+    "ok"
+  )
+  expect_equal(unique(result$summary$structured_surface), "animal")
+  expect_equal(unique(result$summary$matrix_argument), "pedigree")
+  expect_setequal(
+    result$summary$parameter,
+    c(
+      "mu1:(Intercept)",
+      "mu1:x",
+      "mu2:(Intercept)",
+      "mu2:x",
+      "sigma1",
+      "sigma2",
+      "animal:sd1",
+      "animal:sd2",
+      "animal:cor",
+      "rho12"
+    )
+  )
+})
+
 test_that("Phase 18 animal/relmat q2 smoke helpers validate inputs", {
   source_phase18_animal_relmat_q2()
 
@@ -177,6 +244,22 @@ test_that("Phase 18 animal/relmat q2 smoke helpers validate inputs", {
   expect_error(
     phase18_dgp_animal_relmat_q2(8L, 5L, matrix_decay = -0.1),
     "non-negative"
+  )
+  expect_error(
+    phase18_dgp_animal_relmat_q2(
+      8L,
+      5L,
+      surface = "relmat",
+      matrix_argument = "pedigree"
+    ),
+    "only available"
+  )
+  expect_error(
+    phase18_animal_relmat_q2_conditions(
+      structured_surface = "relmat",
+      matrix_argument = "pedigree"
+    ),
+    "only available"
   )
   expect_error(
     phase18_dgp_animal_relmat_q2_cell(

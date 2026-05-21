@@ -1,27 +1,29 @@
-# Phase 18 Animal/Relmat Known-Matrix ADEMP Sheet
+# Phase 18 Animal/Relmat Known-Matrix and Pedigree ADEMP Sheet
 
 This sheet records the Phase 18 design gate for known-matrix Gaussian
-`animal()` and `relmat()` models. It follows the ADEMP structure of Morris,
-White, and Crowther (2019) and the transparent-reporting checklist of Williams
-et al. (2024). It is intentionally narrower than the full structural-dependence
-roadmap: this sheet admits the known-matrix `mu` intercept and matching
-bivariate q=2 `mu1`/`mu2` covariance lanes, not sparse large-pedigree
-construction, structured slopes, `sigma` structured effects, q=4
+`animal()` and `relmat()` models, plus the dense first pedigree spelling for
+`animal()`. It follows the ADEMP structure of Morris, White, and Crowther
+(2019) and the transparent-reporting checklist of Williams et al. (2024). It is
+intentionally narrower than the full structural-dependence roadmap: this sheet
+admits the known-matrix `mu` intercept, the dense-pedigree `animal()` intercept,
+and matching bivariate q=2 `mu1`/`mu2` covariance lanes, not sparse
+large-pedigree construction, structured slopes, `sigma` structured effects, q=4
 location-scale blocks, or predictor-dependent `corpair()` regressions.
 
 ## A - Aims
 
 Primary aim: estimate bias, RMSE, interval coverage status, convergence rate,
-diagnostic rate, and runtime for Gaussian known-matrix `animal()` and
-`relmat()` location random-effect models, including matching bivariate q=2
-`mu1`/`mu2` covariance blocks.
+diagnostic rate, and runtime for Gaussian known-matrix `animal()`/`relmat()`
+location random-effect models and the dense first `animal(pedigree = ...)`
+route, including matching bivariate q=2 `mu1`/`mu2` covariance blocks.
 
 Secondary aims: compare covariance-input and precision-input spelling
-(`A`/`Ainv` for `animal()`, `K`/`Q` for `relmat()`), measure how group count,
-replication, structured-effect SD, structured correlation, residual
-correlation `rho12`, and matrix conditioning affect recovery, and keep latent
-relatedness covariance separate from known sampling covariance `meta_V(V = V)`
-and residual coscale `rho12`.
+(`A`/`Ainv` for `animal()`, `K`/`Q` for `relmat()`), check the animal-only
+`pedigree` spelling against the same additive relationship matrix, measure how
+group count, replication, structured-effect SD, structured correlation,
+residual correlation `rho12`, and matrix conditioning affect recovery, and keep
+latent relatedness covariance separate from known sampling covariance
+`meta_V(V = V)` and residual coscale `rho12`.
 
 ## D - Data-Generating Mechanism
 
@@ -38,6 +40,12 @@ Q_group = inverse(K_group)
 The `animal()` lane names this matrix `A` and its precision `Ainv`; the
 `relmat()` lane names the same mathematical object `K` and `Q`. The matrix is
 an input, not an estimated parameter.
+
+The animal-only pedigree lane builds `K_group` from a deterministic pedigree
+table with `id`, `dam`, and `sire` columns, then sends the resulting additive
+relationship matrix through the same dense animal-model likelihood. This keeps
+the public `animal(1 | p | individual, pedigree = pedigree)` spelling in the
+smoke artifacts without claiming sparse large-pedigree construction.
 
 For the univariate intercept lane:
 
@@ -75,7 +83,7 @@ summarised in different rows.
 | Factor | Initial levels | Reason |
 | --- | --- | --- |
 | `surface` | `animal`, `relmat` | Animal-model covariance and lower-level relatedness covariance share the same matrix algebra but use different public syntax. |
-| `matrix_argument` | covariance, precision | Checks `A` versus `Ainv` and `K` versus `Q` spelling without changing the estimand. |
+| `matrix_argument` | covariance, precision, pedigree | Checks `A` versus `Ainv`, `K` versus `Q`, and the animal-only `pedigree` spelling without changing the estimand. |
 | `n_level` | 18, 48 | Small and moderate numbers of related groups or individuals. |
 | `n_per_level` | 3, 8 | Weak versus stronger within-level replication for structured-effect SD recovery. |
 | `sd_struct` or `sd_struct1`, `sd_struct2` | 0.20, 0.55 | Small and moderate latent relatedness signal. |
@@ -96,7 +104,7 @@ helper, runner, and summariser write replicate-level manifests.
 | Structured SD | `sd_struct`, `sd_struct1`, `sd_struct2` | `sdpars$mu` rows for `animal` or `relmat`; direct profile targets when present |
 | Structured q=2 correlation | `rho_struct` | `corpars$animal` or `corpars$relmat`; `corpairs(fit, level = "animal")` or `corpairs(fit, level = "relmat")` |
 | Residual correlation | `rho12` | `rho12(fit)` and `profile_targets()` rows for residual-correlation targets |
-| Known relatedness matrix | supplied `A`, `Ainv`, `K`, or `Q` | no estimator; matrix diagnostics only |
+| Known relatedness matrix | supplied `A`, `Ainv`, `K`, `Q`, or dense pedigree-derived `A` | no estimator for the input; matrix diagnostics only |
 
 The primary operating-characteristic rows stay on the fitted link or direct
 profile-target scale. Response-scale summaries for structured SDs and
@@ -141,8 +149,11 @@ drmTMB(
 )
 ```
 
-and mirror it with `relmat(1 | p | line, Q = Q)`. The first formal grid should
-not add MCMCglmm, ASReml, pedigree-to-`Ainv`, or `brms` comparators. A
+and mirror it with `relmat(1 | p | line, Q = Q)`. The animal pedigree smoke
+cell fits the same q=2 model with
+`animal(1 | p | individual, pedigree = pedigree)` in both response formulas.
+The first formal grid should not add MCMCglmm, ASReml, sparse
+pedigree-to-`Ainv`, or `brms` comparators. A
 comparator can be added later only if it targets the same known matrix,
 structured SD, structured correlation, residual scale, and residual `rho12`
 layers.
@@ -173,14 +184,14 @@ warning/error ledger, and interval-status tables rather than being dropped.
 
 | Item | Coverage in this sheet |
 | --- | --- |
-| 1. Aims | Primary and secondary aims name the known-matrix `animal()`/`relmat()` surfaces and exclude broader structured-dependence goals. |
-| 2. DGP | The known matrix, univariate intercept hierarchy, bivariate q=2 hierarchy, residual covariance, and varied factors are explicit. |
+| 1. Aims | Primary and secondary aims name the known-matrix `animal()`/`relmat()` surfaces, the dense animal pedigree spelling, and the excluded broader structured-dependence goals. |
+| 2. DGP | The known matrix, dense pedigree-derived animal matrix, univariate intercept hierarchy, bivariate q=2 hierarchy, residual covariance, and varied factors are explicit. |
 | 3. Estimands | Fixed effects, residual scales, structured SDs, structured correlations, residual `rho12`, and non-estimated matrix inputs are separated. |
-| 4. Methods | The intended `drmTMB` formulas for univariate and bivariate q=2 known-matrix fits are stated. |
+| 4. Methods | The intended `drmTMB` formulas for univariate and bivariate q=2 known-matrix fits and the animal-only pedigree smoke cell are stated. |
 | 5. Performance measures | Bias, RMSE, Wald/profile coverage, response-scale error, diagnostics, convergence, warnings, runtime, and failure ledgers are defined. |
 | 6. Software/settings | Per-run session metadata remains the runner responsibility. |
-| 7. Code availability | Runnable user examples now live in the structural-dependence article, and the first q=2 DGP helper, summariser, smoke runner, CSV grid writer, fixed-effect Wald artifacts, and opt-in profile-status artifacts live under `inst/sim/`; the interval-status contract is in `docs/design/55-phase-18-animal-relmat-q2-interval-status.md`. |
-| 8. Replicability | Seeded cells, replicate-level seeds, generated matrices, and matrix arguments must be saved with each replicate. |
+| 7. Code availability | Runnable user examples now live in the structural-dependence article, and the first q=2 DGP helper, summariser, smoke runner, CSV grid writer, fixed-effect Wald artifacts, opt-in profile-status artifacts, and animal pedigree smoke cell live under `inst/sim/`; the interval-status contract is in `docs/design/55-phase-18-animal-relmat-q2-interval-status.md`. |
+| 8. Replicability | Seeded cells, replicate-level seeds, generated matrices, matrix arguments, and animal pedigree tables must be saved with each replicate. |
 | 9. Real-data motivation | The structural-dependence article supplies the applied animal-model and relatedness-matrix motivation; formal reports should cite it. |
 | 10. Complete results | Manifests, matrix diagnostics, warning/error ledgers, and interval-status tables keep hard cases visible. |
 | 11. Monte Carlo uncertainty | The formal grid target is 500 replicates per cell for about one percentage point coefficient-coverage MCSE; profile-target coverage may need a smaller first grid if runtime is high. |

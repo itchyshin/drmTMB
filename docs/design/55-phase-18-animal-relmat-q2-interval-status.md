@@ -1,10 +1,11 @@
 # Phase 18 Animal/Relmat Q2 Interval-Status Plan
 
 This note decides the first interval-status contract for the known-matrix
-`animal()` and `relmat()` q=2 bivariate Gaussian smoke grid. It sits after the
-ADEMP sheet and grid writer. The goal is to keep the first exported artifacts
-honest: fixed-effect recovery, structured SD recovery, structured correlation,
-and residual `rho12` should not be collapsed into one coverage claim.
+`animal()`/`relmat()` q=2 bivariate Gaussian smoke grid and the animal-only
+dense pedigree spelling. It sits after the ADEMP sheet and grid writer. The
+goal is to keep the first exported artifacts honest: fixed-effect recovery,
+structured SD recovery, structured correlation, and residual `rho12` should not
+be collapsed into one coverage claim.
 
 ## Interval Rows
 
@@ -15,7 +16,7 @@ and residual `rho12` should not be collapsed into one coverage claim.
 | `animal:sd1`, `animal:sd2`, `relmat:sd1`, `relmat:sd2` | Direct profile target, opt-in only | These are boundary-sensitive variance-component targets. Wald intervals on the public SD scale would look convenient but are not yet justified. |
 | `animal:cor`, `relmat:cor` | Direct profile target, opt-in only | Fisher-z Wald intervals need an explicit standard-error source for the structured correlation; until then the fitted-model profile route is the honest interval path. |
 | `rho12` | Direct profile target, opt-in only | Residual `rho12` is a different covariance layer from the structured animal/`relmat()` correlation and should keep its own interval rows. |
-| Known `A`, `Ainv`, `K`, or `Q` | no interval row | The relatedness matrix is supplied data, not an estimated target. |
+| Known pedigree, `A`, `Ainv`, `K`, or `Q` | no interval row | The relatedness or pedigree input is supplied data, not an estimated target. |
 
 ## Artifact Contract
 
@@ -46,14 +47,21 @@ residual `rho12`, and public residual `sigma1`/`sigma2` rows remain visible as
 `rho12` through the fitted-model profile target names, while the replicate and
 CSV rows keep the shorter reader-facing parameter labels.
 
+Implementation note: `matrix_argument = "pedigree"` is animal-only in this
+grid. `phase18_animal_relmat_q2_conditions()` removes impossible
+`relmat()`/`pedigree` combinations and errors when that is the only requested
+combination; the DGP helper also errors if `surface = "relmat"` is paired with
+`matrix_argument = "pedigree"`.
+
 ## Reporting Rule
 
 Reports may describe q=2 animal/`relmat()` smoke-grid artifacts once aggregate,
-replicate, manifest, and failure CSVs exist. They should not report interval
-coverage for structured SDs, structured correlations, or residual `rho12` until
-the interval-evidence table records how many requested profiles succeeded,
-failed, or were not requested. A failed profile is an interval-method result,
-not a model-estimation failure and not a coverage miss.
+replicate, manifest, and failure CSVs exist, and may name the animal pedigree
+cell only as the dense first `animal(pedigree = ...)` route. They should not
+report interval coverage for structured SDs, structured correlations, or
+residual `rho12` until the interval-evidence table records how many requested
+profiles succeeded, failed, or were not requested. A failed profile is an
+interval-method result, not a model-estimation failure and not a coverage miss.
 
 ## Failure Ledger
 
