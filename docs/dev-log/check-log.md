@@ -2,6 +2,56 @@
 
 Record meaningful development checks here.
 
+## 2026-05-21 - Structural-Dependence Overview Index
+
+Goal: give applied readers a small route-selection page before the long
+structural-dependence tutorial, without splitting or rewriting the detailed
+technical article in the same slice.
+
+Team roles:
+
+- Ada scoped the slice to pkgdown navigation and reader routing.
+- Pat checked whether a new applied user can choose among `animal()`,
+  `phylo()`, coordinate `spatial()`, planned phylo-plus-spatial models, and
+  `relmat()`.
+- Darwin checked that the route labels map to biological questions rather than
+  implementation categories alone.
+- Grace rendered the touched articles and ran pkgdown.
+- Rose kept fitted-versus-planned wording visible in the overview.
+
+Files changed:
+
+- `vignettes/structural-dependence.Rmd`
+- `vignettes/drmTMB.Rmd`
+- `vignettes/model-map.Rmd`
+- `_pkgdown.yml`
+- `docs/design/53-structural-dependence-article-split.md`
+- `docs/dev-log/after-task/2026-05-21-structural-dependence-overview-index.md`
+- `NEWS.md`
+
+Checks run:
+
+```sh
+air format vignettes/structural-dependence.Rmd vignettes/drmTMB.Rmd vignettes/model-map.Rmd NEWS.md _pkgdown.yml docs/design/53-structural-dependence-article-split.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-21-structural-dependence-overview-index.md
+Rscript -e "devtools::load_all('.', quiet = TRUE); pkgdown::build_article('structural-dependence', new_process = FALSE, quiet = TRUE); pkgdown::build_article('drmTMB', new_process = FALSE, quiet = TRUE); pkgdown::build_article('model-map', new_process = FALSE, quiet = TRUE)"
+gh issue view 31 --json number,title,state,labels,body,url
+rg -n 'Structural dependence\]\(phylogenetic-spatial\.html\)|Structural dependence overview|structural-dependence\.html|Structural dependence details' vignettes/drmTMB.Rmd vignettes/model-map.Rmd vignettes/structural-dependence.Rmd _pkgdown.yml
+Rscript -e "pkgdown::check_pkgdown()"
+git diff --check
+```
+
+Outcomes:
+
+- Added `structural-dependence.Rmd` as a compact overview with a route table
+  for animal, phylogenetic, coordinate-spatial, planned phylo-plus-spatial, and
+  `relmat()` models.
+- Updated the Getting Started and model-map routes to point to the overview as
+  the first structural-dependence stop.
+- Kept the existing `phylogenetic-spatial.Rmd` article as the detailed page and
+  recorded that the article split has started with a navigation slice only.
+- Issue #31 is the matching learning-path ledger. It remains open because the
+  full Phase 6b tutorial/source-map audit is larger than this index slice.
+
 ## 2026-05-21 - Correlation Gallery Q2 Refresh
 
 Goal: refresh the figure-gallery correlation-layer displays after the spatial,

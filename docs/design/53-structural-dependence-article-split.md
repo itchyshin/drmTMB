@@ -2,7 +2,7 @@
 
 Date: 2026-05-20
 
-Status: planned documentation architecture.
+Status: first navigation slice started.
 
 The current `phylogenetic-spatial.Rmd` article is an umbrella article. It now
 has to teach fitted and planned animal syntax, fitted phylogenetic slices,
@@ -11,8 +11,13 @@ partial spatial support, future combined phylogenetic-plus-spatial models,
 `corpairs()`, direct phylogenetic SD surfaces, and profile-interval targets.
 That is too much for one reader route.
 
-Future pkgdown work should split structural dependence into a small index plus
-several focused articles, in this order:
+Slice 2026-05-21 adds `vignettes/structural-dependence.Rmd` as the first small
+index page. It does not split the technical article yet; it gives applied
+readers a route table and sends detailed examples to the existing
+`phylogenetic-spatial.Rmd` tutorial.
+
+Future pkgdown work should continue splitting structural dependence into
+focused articles, in this order:
 
 1. Animal models: fitted dense-pedigree and known-matrix `animal()` Gaussian
    `mu` intercepts, the first matching q=2 bivariate location covariance,
