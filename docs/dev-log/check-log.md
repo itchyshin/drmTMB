@@ -2,6 +2,55 @@
 
 Record meaningful development checks here.
 
+## 2026-05-21 - Animal Models Article Split
+
+Goal: add the first focused structural-dependence route page for applied users
+who need the fitted `animal()` pedigree, `A`, or `Ainv` Gaussian `mu` slices.
+
+Team roles:
+
+- Ada scoped the slice to documentation and navigation.
+- Pat checked that users can find the fitted animal route without reading the
+  full umbrella article.
+- Darwin kept the page framed around additive relatedness and animal-model
+  questions.
+- Grace rendered the new article and ran pkgdown.
+- Rose kept sparse pedigrees, slopes, `sigma`, q=4, and animal `corpair()`
+  regression marked as planned.
+
+Files changed:
+
+- `vignettes/animal-models.Rmd`
+- `vignettes/structural-dependence.Rmd`
+- `_pkgdown.yml`
+- `docs/design/53-structural-dependence-article-split.md`
+- `docs/dev-log/after-task/2026-05-21-animal-models-article-split.md`
+- `NEWS.md`
+
+Checks run:
+
+```sh
+air format vignettes/animal-models.Rmd vignettes/structural-dependence.Rmd NEWS.md _pkgdown.yml docs/design/53-structural-dependence-article-split.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-21-animal-models-article-split.md
+Rscript -e "devtools::load_all('.', quiet = TRUE); pkgdown::build_article('animal-models', new_process = FALSE, quiet = TRUE); pkgdown::build_article('structural-dependence', new_process = FALSE, quiet = TRUE)"
+rg -n 'animal-models|Animal models and additive relatedness|animal\\(1 \\| individual|animal\\(1 \\| p \\| individual|ranef\\(fit, \"animal_mu\"\\)|sparse large-pedigree|animal.*corpair' vignettes/animal-models.Rmd vignettes/structural-dependence.Rmd _pkgdown.yml NEWS.md docs/design/53-structural-dependence-article-split.md
+Rscript -e "pkgdown::check_pkgdown()"
+git diff --check
+```
+
+Outcomes:
+
+- Added `animal-models.Rmd` as the first focused route page after the
+  structural-dependence overview.
+- The page documents fitted univariate `animal()` Gaussian `mu` intercepts and
+  matching bivariate q=2 location covariance for `pedigree`, `A`, and `Ainv`.
+- The page tells readers to inspect `check_drm()`, `sdpars$mu`,
+  `ranef(fit, "animal_mu")`, `summary()$covariance`, `profile_targets()`, and
+  `corpairs(level = "animal")`.
+- Planned animal-model neighbors remain explicit: sparse large-pedigree
+  precision construction, slopes, `sigma`, q=4 blocks, predictor-dependent
+  animal `corpair()` regressions, direct-SD grammar, and non-Gaussian
+  structured effects.
+
 ## 2026-05-21 - Structural-Dependence Overview Index
 
 Goal: give applied readers a small route-selection page before the long

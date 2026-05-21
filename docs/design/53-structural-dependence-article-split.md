@@ -12,9 +12,11 @@ partial spatial support, future combined phylogenetic-plus-spatial models,
 That is too much for one reader route.
 
 Slice 2026-05-21 adds `vignettes/structural-dependence.Rmd` as the first small
-index page. It does not split the technical article yet; it gives applied
-readers a route table and sends detailed examples to the existing
-`phylogenetic-spatial.Rmd` tutorial.
+index page. A follow-up slice adds `vignettes/animal-models.Rmd` as the first
+focused route page for `pedigree`, `A`, and `Ainv` animal-model support. These
+slices do not split the technical article yet; they give applied readers a
+route table, an animal-model landing page, and links to the existing
+`phylogenetic-spatial.Rmd` tutorial for detailed examples.
 
 Future pkgdown work should continue splitting structural dependence into
 focused articles, in this order:

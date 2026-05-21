@@ -40,6 +40,9 @@ That article is still the detailed page for animal, phylogenetic, spatial,
 combined-layer, and `relmat()` material while the topic is being split into
 smaller articles.
 
+Read [animal models and additive relatedness](animal-models.html) when your
+first question is specifically about `animal()`, `pedigree`, `A`, or `Ainv`.
+
 Read the [formula grammar](formula-grammar.html) when you want the compact
 implemented-versus-planned syntax table. Read the
 [figure gallery](figure-gallery.html) when you want to see how `rho12`,
