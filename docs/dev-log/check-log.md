@@ -2,6 +2,44 @@
 
 Record meaningful development checks here.
 
+## 2026-05-20 - 0.1.3 Release Evidence
+
+Goal: complete the `0.1.3` preview release after PR #270 passed CI by merging,
+tagging, watching tag CI, running the install smoke, and recording release
+evidence.
+
+What changed:
+
+- PR #270, "Prepare 0.1.3 preview candidate", merged to `main` at `f410d065`.
+- Annotated tag `v0.1.3` was pushed with message `drmTMB 0.1.3 preview`.
+- The release checklist now records PR CI, main CI, tag CI, pkgdown deploy, and
+  install-smoke evidence.
+- Animal/`relmat()` phylogenetic parity remains explicitly post-`0.1.3` work.
+
+Checks run:
+
+```sh
+gh pr checks 270 --watch --interval 30
+gh run watch 26198145314 --exit-status --interval 30
+git tag -a v0.1.3 -m "drmTMB 0.1.3 preview" && git push origin v0.1.3
+gh run watch 26198578993 --exit-status --interval 30
+gh run view 26198571230 --json status,conclusion,url,jobs
+Rscript tools/install-smoke.R v0.1.3 0.1.3
+```
+
+Outcomes:
+
+- PR CI run `26197684642` passed on macOS in 7m08s, Ubuntu in 9m57s, and Windows
+  in 13m11s.
+- Main R-CMD-check run `26198145314` passed on macOS in 6m45s, Ubuntu in 10m52s,
+  and Windows in 12m48s.
+- Tag R-CMD-check run `26198578993` passed on macOS in 8m56s, Ubuntu in 9m58s,
+  and Windows in 11m39s.
+- pkgdown run `26198571230` completed successfully; both build and deploy jobs
+  passed.
+- `Rscript tools/install-smoke.R v0.1.3 0.1.3` passed; it installed
+  `drmTMB 0.1.3` from GitHub ref `f410d06` and confirmed the tagged version.
+
 ## 2026-05-20 - 0.1.3 Candidate And Spatial Q2 Covariance
 
 Goal: answer the release-slice question by closing the highest-risk fitted
