@@ -2,6 +2,55 @@
 
 Record meaningful development checks here.
 
+## 2026-05-20 - Runnable Animal/Relmat Known-Matrix Examples
+
+Goal: make the structural-dependence article show runnable user-facing examples
+for the post-`0.1.3` animal/`relmat()` known-matrix routes, including the new
+matching bivariate q=2 covariance slice.
+
+Team roles:
+
+- Ada coordinated the example slice and kept it separate from the next
+  simulation-design lane.
+- Pat and Darwin checked whether an applied user can run the examples and tell
+  animal-model covariance, lower-level relatedness covariance, residual
+  `rho12`, and `meta_V(V = V)` apart.
+- Boole checked the example syntax for matching labels and source-specific
+  matrix arguments.
+- Curie and Fisher checked that the examples expose `check_drm()`,
+  `corpairs()`, and direct profile-target evidence.
+- Grace ran vignette render, pkgdown, focused tests, and R CMD check.
+- Rose checked the worked-example inventory and Phase 18 simulation programme
+  no longer say the examples are still missing.
+
+Files changed:
+
+- `vignettes/phylogenetic-spatial.Rmd`
+- `docs/design/37-worked-example-inventory.md`
+- `docs/design/41-phase-18-simulation-programme.md`
+
+Checks run:
+
+```sh
+Rscript -e "devtools::load_all(); rmarkdown::render('vignettes/phylogenetic-spatial.Rmd', output_file = tempfile(fileext = '.html'), quiet = TRUE)"
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "devtools::test(filter = 'animal-relmat-gaussian', reporter = 'summary')"
+Rscript -e "devtools::check()"
+git diff --check
+rg -n 'Add small runnable animal|fitted example, diagnostics|known-matrix bivariate animal example|Planned relatedness siblings|relmat\(1 \| p \| line, Q = Ginv\).*not fitted|example.*next' docs/design/37-worked-example-inventory.md docs/design/41-phase-18-simulation-programme.md vignettes/phylogenetic-spatial.Rmd README.md ROADMAP.md NEWS.md
+```
+
+Outcomes:
+
+- Source-tree rendering of `vignettes/phylogenetic-spatial.Rmd` passed.
+- `pkgdown::check_pkgdown()` reported no problems.
+- The focused `animal-relmat-gaussian` test passed.
+- `devtools::check()` passed in 4m10s with 0 errors, 0 warnings, and 0 notes.
+- `git diff --check` was clean.
+- The stale-wording scan found only historical or non-blocking roadmap/example
+  references; current worked-example and Phase 18 status rows now point to
+  ADEMP as the next gate.
+
 ## 2026-05-20 - Animal/Relmat Bivariate Q2 Known-Matrix Parity
 
 Goal: start the post-`0.1.3` parity work by fitting the first animal-model and
