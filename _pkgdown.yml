@@ -62,6 +62,8 @@ navbar:
           href: articles/animal-models.html
         - text: Phylogenetic structured effects
           href: articles/phylogenetic-models.html
+        - text: Coordinate-spatial structured effects
+          href: articles/spatial-models.html
         - text: Known-matrix relmat models
           href: articles/relmat-known-matrices.html
         - text: Structural dependence details
@@ -169,6 +171,7 @@ articles:
       - structural-dependence
       - animal-models
       - phylogenetic-models
+      - spatial-models
       - relmat-known-matrices
       - phylogenetic-spatial
   - title: Simulation & Comparison
