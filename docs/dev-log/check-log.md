@@ -2,6 +2,53 @@
 
 Record meaningful development checks here.
 
+## 2026-05-21 - C++ Modularization Plan Refresh
+
+Goal: answer the post-Poisson-q1 question about whether the C++ modularization
+plan had been executed, and repair the developer-facing source map so future
+refactors see the new structured-count boundary.
+
+Team roles:
+
+- Ada kept this as a documentation/source-map correction rather than another
+  likelihood change.
+- Gauss and Noether checked that the C++ wording names the actual TMB contract:
+  `u_phylo`, `log_sd_phylo`, `Q_phylo`, `log_det_Q_phylo`, and
+  `phylo_mu_contribution`.
+- Emmy checked the ABI and extractor-label warnings for `ranef()`,
+  `profile_targets()`, and `check_drm()`.
+- Grace kept the validation scope to docs-focused checks.
+- Rose flagged the drift: the feature landed in `src/drmTMB.cpp`, but
+  `docs/design/36-cpp-modularization-source-map.md` still treated count-family
+  movement as a generic later branch move.
+
+Files changed:
+
+- `docs/design/36-cpp-modularization-source-map.md`
+- `vignettes/source-map.Rmd`
+- `docs/dev-log/after-task/2026-05-21-cpp-plan-refresh.md`
+
+Checks run:
+
+```sh
+git diff --check
+Rscript -e "pkgdown::check_pkgdown()"
+```
+
+Outcomes:
+
+- The C++ plan now says plainly that ordinary Poisson q=1 phylogenetic `mu`
+  support landed inside `src/drmTMB.cpp` and did not perform the planned header
+  split.
+- The next C++ refactor is still pure-helper-first: do not move branch-specific
+  linear-predictor updates, report names, profile targets, or R-to-TMB ABI
+  declarations until the helper and report contract is designed.
+- `model_type = 6` is now separated from the other count branches in the branch
+  inventory because it has both ordinary count random effects and the first
+  structured count route.
+- `git diff --check` passed, and `pkgdown::check_pkgdown()` reported no
+  problems.
+
 ## 2026-05-21 - `sd*()`/p8 Plan and Poisson Phylogenetic q=1 Gate
 
 Goal: complete the first four post-map slices: publish the implementation-map

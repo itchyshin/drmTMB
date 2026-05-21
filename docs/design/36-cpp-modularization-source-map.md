@@ -11,6 +11,13 @@ of the likelihood, formula grammar, or random-effect contract.
 include headers from `src/` and keep the package as one TMB template unless a
 separate design decision approves multiple templates.
 
+The ordinary Poisson q=1 phylogenetic `mu` intercept added after this source map
+was written did not execute the C++ split. It deliberately updated
+`src/drmTMB.cpp` in place so the first non-Gaussian structured route could keep
+the existing R-to-TMB ABI, report names, profile-target labels, and extractor
+contracts stable. The modularization plan therefore remains open, but its count
+and structured-effect rows now need to account for that fitted path.
+
 ## Current Template Shape
 
 The current template has four kinds of code interleaved in one file:
@@ -19,6 +26,7 @@ The current template has four kinds of code interleaved in one file:
 | --- | --- | --- | --- |
 | Stable scalar helpers | `drm_log1p_pos()`, `drm_log1mexp()`, inverse-logit log helpers, and NB2 count-kernel helpers | `src/drm_numeric.hpp` and `src/drm_count_kernels.hpp` | `test-count-kernels.R`, count-family tests, family-link tests |
 | TMB data and parameter declarations | The R-to-TMB ABI for all model families, random effects, known covariance, aggregation, hidden probes, and reports | Keep in `src/drmTMB.cpp` | `test-package-skeleton.R`, full `devtools::test()` |
+| Structured-effect branch glue | Family-specific `eta` updates, precision-prior attachment, random-effect reports, and direct SD `ADREPORT()` targets for phylogenetic, spatial, animal, `relmat()`, and the first Poisson q=1 phylogenetic route | Keep branch glue in `src/drmTMB.cpp`; later only pure prior helpers may move to `src/drm_structured_effects.hpp` | `test-phylo-gaussian.R`, `test-spatial-gaussian.R`, `test-animal-relmat-gaussian.R`, `test-poisson-mean.R`, `test-profile-targets.R`, `test-check-drm.R` |
 | Hidden probe branches | `model_type` 93 to 99 branches for isolated phylogenetic and covariance-block algebra checks | Later `src/drm_test_probes.hpp` after branch inventory is complete | `test-phylo-utils.R`, `test-covariance-block-registry.R` |
 | Public likelihood branches | `model_type` 1 to 14 branches for fitted families | Later family headers after pure kernels are extracted | family tests, comparator tests, profile and summary tests |
 
@@ -66,6 +74,15 @@ Poisson pieces. The branch-specific `REPORT()` and `ADREPORT()` calls should
 stay in `src/drmTMB.cpp` until there is a small report object or naming
 contract that tests can inspect directly.
 
+`src/drm_structured_effects.hpp` is a later candidate for pure precision-prior
+helpers shared by Gaussian phylogenetic, coordinate-spatial, animal,
+`relmat()`, hidden-probe, and ordinary Poisson q=1 phylogenetic routes. It
+should not own branch-specific linear-predictor updates, `DATA_*` or
+`PARAMETER_*` declarations, `REPORT()`/`ADREPORT()` calls, extractor labels, or
+the decision about which families may accept a structured term. Those stay in
+`src/drmTMB.cpp` and the R builders until the report and ABI contract is
+explicitly designed.
+
 ## Hidden Branch Inventory
 
 Hidden branches are test fixtures, not public families. They should move only
@@ -93,7 +110,17 @@ Public fitted branches should move only after pure helper extraction is green:
 | `model_type = 1` Gaussian | `src/drm_gaussian.hpp` only after random-effect helpers are stable | `test-gaussian-location-scale.R`, `test-gaussian-random-intercepts.R`, `test-gaussian-random-effect-scale.R`, `test-meta-known-v.R`, `test-phylo-gaussian.R`, `test-spatial-gaussian.R`, `test-gaussian-aggregation.R` |
 | `model_type = 2` bivariate Gaussian | `src/drm_bivariate_gaussian.hpp` | `test-biv-gaussian.R`, `test-corpairs.R`, `test-profile-targets.R`, `test-summary.R` |
 | `model_type = 3`, `4`, `5`, `10`, `13`, `14` continuous/proportion/ordinal families | `src/drm_continuous_kernels.hpp` first, branch movement later | corresponding family tests plus `test-family-link-contract.R` |
-| `model_type = 6`, `7`, `8`, `9`, `11`, `12` count families | `src/drm_count_kernels.hpp` first, branch movement later | `test-count-kernels.R`, count-family tests, `test-comparators.R` |
+| `model_type = 6` ordinary Poisson | `src/drm_count_kernels.hpp` first for pure count pieces; branch movement later | `test-poisson-mean.R`, `test-nongaussian-structured-boundary.R`, `test-profile-targets.R`, `test-check-drm.R`, `test-count-kernels.R` |
+| `model_type = 7`, `8`, `9`, `11`, `12` remaining count families | `src/drm_count_kernels.hpp` first, branch movement later | `test-count-kernels.R`, count-family tests, `test-comparators.R` |
+
+The `model_type = 6` branch now includes fixed-effect Poisson, ordinary
+non-zero-inflated `mu` random effects, and the first ordinary Poisson q=1
+phylogenetic `mu` intercept. That does not make `src/drm_count_kernels.hpp` the
+home for structured random-effect logic. Count-kernel extraction can still move
+pure log-density helpers, but the Poisson phylogenetic linear-predictor
+contribution, sparse precision-prior attachment, and direct `log_sd_phylo`
+reporting should remain with the branch until a structured-effect helper
+contract exists.
 
 ## What Should Not Move Yet
 
@@ -109,6 +136,9 @@ Do not move these pieces in the first modularization pass:
   extraction logic;
 - phylogenetic and spatial output labels, especially the current internal reuse
   of `u_phylo` for the first coordinate-spatial `mu` effect;
+- Poisson q=1 phylogenetic ABI pieces, including `u_phylo`, `log_sd_phylo`,
+  `Q_phylo`, `log_det_Q_phylo`, `phylo_mu_node_index`, `phylo_mu_value`,
+  `sd_phylo`, `quadratic`, and `phylo_mu_contribution`;
 - hidden probe behavior, until the hidden-branch inventory in this note and
   `docs/design/03-likelihoods.md` stays synchronized.
 
