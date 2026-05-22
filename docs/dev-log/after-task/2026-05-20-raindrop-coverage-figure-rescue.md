@@ -70,6 +70,11 @@ Rendered images inspected and saved:
 - `docs/dev-log/figure-audits/2026-05-20-raindrop-coverage-rescue/figure-gallery-coverage-blocks.png`
 - `docs/dev-log/figure-audits/2026-05-20-raindrop-coverage-rescue/simulation-coverage-power-blocks.png`
 
+The legacy `figure-gallery-correlation-raindrops.png` filename was refreshed
+on 2026-05-22 to show the later Confidence Eye default. The older
+filled-point/CI-line correlation display should not be used as current visual
+evidence.
+
 ## Remaining Limitations
 
 - The simulation replicate-block dots in the gallery and grammar article are

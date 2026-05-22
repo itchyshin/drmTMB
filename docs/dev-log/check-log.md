@@ -72,6 +72,8 @@ Outcomes:
   residual, group, phylogenetic, spatial, animal, and `relmat()` rows use pale
   confidence regions and hollow circles without default CI bars or row guide
   lines.
+- The older tracked correlation-display audit PNG was refreshed too, because
+  it still showed the rejected filled-point and CI-line hybrid.
 - The bivariate-coscale quick `corpairs()` plot now relies on the helper's
   hollow point estimates instead of overlaying a second point layer.
 - Focused `plot-corpairs`, `corpairs`, and `predict-parameters` tests passed.

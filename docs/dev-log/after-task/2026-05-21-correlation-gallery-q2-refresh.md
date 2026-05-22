@@ -56,6 +56,10 @@ git diff --check
 - The rendered `correlation-display-1.png` and
   `correlation-layer-boundaries-1.png` were copied into the figure-audit folder
   and inspected visually.
+- The tracked `correlation-display-1.png` audit artifact was refreshed on
+  2026-05-22 after the old filled-point/CI-line hybrid was rejected. The
+  current artifact follows the Confidence Eye default: pale confidence regions,
+  hollow point estimates, no CI bars, and no row guide lines.
 - `pkgdown::build_article()` rebuilt the touched `figure-gallery` and
   `formula-grammar` articles.
 - `pkgdown::check_pkgdown()` reported no problems.

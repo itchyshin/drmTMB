@@ -25,19 +25,26 @@ Rendered panels copied here for durable audit evidence:
 - `correlation-display-1.png`
 - `correlation-layer-boundaries-1.png`
 
+The `correlation-display-1.png` artifact was refreshed on 2026-05-22 after
+the earlier raindrop/CI-line hybrid was rejected. The current artifact uses the
+Confidence Eye default: pale finite confidence regions, hollow point-estimate
+circles, no horizontal CI bars, and no row guide lines through the eyes.
+
 ## Figure Inventory
 
 | Rendered figure | Visual data grain | Uncertainty source | Verdict |
 | --- | --- | --- | --- |
-| `correlation-display-1.png` | `corpairs()`-compatible illustrative rows for residual, ordinary group, phylogenetic, spatial, animal, and `relmat()` q=2 correlations | finite illustrative Wald/profile bounds on the guarded atanh-style correlation-link scale | Acceptable: six layers are visible and separated; legend and row labels fit. |
+| `correlation-display-1.png` | `corpairs()`-compatible illustrative rows for residual, ordinary group, phylogenetic, spatial, animal, and `relmat()` q=2 correlations | finite illustrative Wald/profile bounds on the guarded atanh-style correlation-link scale | Refreshed: six layers use the Confidence Eye default, with pale regions and hollow estimates only. |
 | `correlation-layer-boundaries-1.png` | support-status strip, not estimates | no intervals; status only | Acceptable: constant q=2 rows are fitted first slices, while richer regression or q4/scale extensions remain planned. |
 
 ## Florence Notes
 
-The six-row raindrop panel remains legible at the rendered vignette size. The
-support-boundary strip is intentionally categorical rather than inferential. It
-uses blue for fitted q=2 rows, green for partly fitted richer paths, and yellow
-for planned boundaries; the label contrast is sufficient in the rendered PNG.
+The six-row Confidence Eye panel is legible at the rendered vignette size and
+no longer shows filled points, horizontal CI bars, or row guide lines through
+the eyes. The support-boundary strip is intentionally categorical rather than
+inferential. It uses blue for fitted q=2 rows, green for partly fitted richer
+paths, and yellow for planned boundaries; the label contrast is sufficient in
+the rendered PNG.
 
 ## Fisher And Rose Notes
 

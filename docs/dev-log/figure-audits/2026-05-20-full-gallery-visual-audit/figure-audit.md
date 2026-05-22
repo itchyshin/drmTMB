@@ -60,7 +60,7 @@ helps a reader see what the fitted model says.
 | `coefficient-intervals-1.png` | repaired | Now uses raindrop compatibility displays; fixed the grouping artifact from an intermediate draft. |
 | `confidence-distribution-slopes-1.png` | acceptable | Raindrop display is appropriate for fitted coefficient compatibility. |
 | `cont-cont-interaction-1.png` | acceptable | Raw observations, fitted lines, and uncertainty bands are visible. |
-| `correlation-display-1.png` | acceptable | Correlation rows use raindrop confidence displays rather than plain bars. |
+| `correlation-display-1.png` | superseded | The older raindrop confidence display was later rejected for the correlation-row default; use the refreshed Confidence Eye artifact with pale regions and hollow estimates. |
 | `correlation-layer-boundaries-1.png` | acceptable | Planned and fitted support are visually separated. |
 | `discrete-comparison-1.png` | repaired | Horizontal interval display avoids the sparse two-point vertical plot. |
 | `emmeans-boundary-strip-1.png` | watch | Honest support boundary, but still dense; revisit when the emmeans article is split. |

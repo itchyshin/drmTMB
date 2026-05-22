@@ -188,6 +188,10 @@ issues, or pull requests.
   the eyes. For Confidence Eye defaults, Florence and Fisher should treat
   horizontal row lines as interval-like clutter: remove them unless the figure
   has a separate reason to show lane guides.
+- Trigger: an older tracked audit PNG still showed the rejected filled-point
+  and CI-line hybrid after the live article figure had been repaired. Rendered
+  audit artifacts are part of the project surface when they are shown to the
+  user; refresh them or label them as rejected/before-state evidence.
 
 ## 2026-05-20 - Installed-Layout Runner Tests
 
