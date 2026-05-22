@@ -851,6 +851,19 @@ profile-likelihood intervals are preferable to symmetric Wald intervals because
 SDs are positive, correlations are bounded, and intervals can be asymmetric or
 one-sided near a boundary.
 
+That does not mean the fast route is absent. Use the default Wald table as a
+quick screen, especially before a long phylogenetic or spatial profile:
+
+```r
+confint(fit_phylo_mean, parm = "variance_components")
+```
+
+This direct Wald route uses the fitted log-SD scale for SD targets and the
+guarded atanh correlation-link scale for direct correlation targets before
+returning intervals on the reported scale. Treat it as a local approximation:
+if the SD is near zero, the correlation is near a boundary, or the row is a key
+biological target, follow it with a targeted profile.
+
 For implemented direct targets, use `profile_targets()` to find the target name
 and `confint(..., method = "profile")` to request the interval:
 
@@ -858,13 +871,21 @@ and `confint(..., method = "profile")` to request the interval:
 profile_targets(fit_phylo_mean, ready_only = TRUE)
 
 phylo_cor <- "cor:phylo:cor(mu1:(Intercept),mu2:(Intercept) | phylo | species)"
-confint(fit_phylo_mean, parm = phylo_cor, method = "profile")
+confint(
+  fit_phylo_mean,
+  parm = phylo_cor,
+  method = "profile",
+  profile_precision = "fast"
+)
 ```
 
 Profile interval rows include `conf.status = "profile"`. They also include
 `profile.boundary` and `profile.message`, so an interval that reaches a lower
 SD boundary or approaches a correlation boundary is marked before you treat it
-as a symmetric, well-behaved 95% interval.
+as a symmetric, well-behaved 95% interval. `profile_precision = "fast"` is a
+quicker first pass that uses coarser `TMB::tmbprofile()` controls; rerun with
+the default precision when the first pass is important enough for final
+reporting.
 
 The second kind is uncertainty in conditional random-effect modes, such as the
 species-specific fitted deviations. Those intervals are useful for caterpillar

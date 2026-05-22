@@ -90,6 +90,17 @@ This launch note does not claim any figure was visually inspected after render.
   bootstrap is limited to selected `confint()` targets; and derived or
   non-`confint()` bootstrap routes remain unavailable.
 
+2026-05-21 structural-dependence interval pass:
+
+- The rendered `phylogenetic-spatial` page has no active article figures beyond
+  the pkgdown logo, so this pass focused on prose and code-example consistency.
+- The page now shows `confint(..., parm = "variance_components")` as the quick
+  direct Wald screen for structured SD/correlation targets before a long
+  profile.
+- The profile example now shows `profile_precision = "fast"` as the first-pass
+  control for long phylogenetic or spatial targets while keeping the final
+  reporting caveat: boundary-sensitive rows still need profile diagnostics.
+
 ## Next Tables To Fill
 
 Function/reference table columns:

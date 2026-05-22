@@ -2,6 +2,63 @@
 
 Record meaningful development checks here.
 
+## 2026-05-21 - Structural Dependence Fast CI Clarification
+
+Goal: continue the comprehensive page audit by rendering
+`phylogenetic-spatial` and making its covariance-interval guidance show both
+the fast direct Wald screen and the targeted profile route for long structured
+targets.
+
+Team roles:
+
+- Ada kept this to article guidance and audit evidence.
+- Fisher separated routine fast intervals from final boundary-sensitive
+  profile checks.
+- Gauss and Noether checked the SD log-scale and correlation atanh-scale
+  wording.
+- Pat checked that an applied user can find the fast option before waiting on a
+  phylogenetic profile.
+- Grace rendered the article and confirmed there are no active article figures
+  beyond the pkgdown logo.
+- Rose recorded this as audit progress rather than a new modelling claim.
+
+Files changed:
+
+- `vignettes/phylogenetic-spatial.Rmd`
+- `docs/dev-log/audits/2026-05-21-function-page-figure-audit.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-21-structural-dependence-fast-ci.md`
+
+Checks run:
+
+```sh
+air format vignettes/phylogenetic-spatial.Rmd docs/dev-log/audits/2026-05-21-function-page-figure-audit.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-21-structural-dependence-fast-ci.md
+Rscript -e "devtools::load_all(quiet = TRUE); pkgdown::build_article('phylogenetic-spatial', new_process = FALSE, quiet = TRUE)"
+rg -n 'phylogenetic-spatial_files/figure-html|<img' pkgdown-site/articles/phylogenetic-spatial.html
+rg -n 'confint\(fit_phylo_mean, parm = "variance_components"\)|profile_precision = "fast"|quick direct Wald screen|Use Wald intervals only|not a public `confint\(method = "bootstrap"\)` route' vignettes/phylogenetic-spatial.Rmd pkgdown-site/articles/phylogenetic-spatial.html -S
+Rscript -e "devtools::test(filter = 'profile-targets|phylo-gaussian|spatial-gaussian', reporter = 'summary')"
+git diff --check
+Rscript -e "pkgdown::check_pkgdown()"
+gh issue list --search "phylogenetic spatial profile CI OR profile_precision OR confidence interval" --limit 20
+```
+
+Outcomes:
+
+- The rendered structural-dependence page has no active article figures beyond
+  the pkgdown logo.
+- The structured-interval section now shows
+  `confint(fit_phylo_mean, parm = "variance_components")` as a quick direct
+  Wald screen before a long profile run.
+- The profile example now includes `profile_precision = "fast"` as the quicker
+  first pass for long phylogenetic or spatial SD/correlation targets.
+- The article still tells users to treat boundary-sensitive SD and correlation
+  rows as profile-diagnostic targets before final reporting.
+- Focused `profile-targets`, `phylo-gaussian`, and `spatial-gaussian` tests,
+  `git diff --check`, and `pkgdown::check_pkgdown()` passed.
+- GitHub issue search found related learning-path, structured-slope,
+  visualization, and bootstrap ledgers; none were closed by this narrow text
+  clarification.
+
 ## 2026-05-21 - Implementation Map Interval Sync
 
 Goal: continue the comprehensive page audit by rendering `model-map` and
