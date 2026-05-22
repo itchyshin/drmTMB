@@ -27,10 +27,16 @@ Contact sheets:
 - `figure-gallery-contact-1.png`
 - `figure-gallery-contact-2.png`
 - `simulation-plot-grammar-contact.png`
+- `confidence-eye-correlation-display-fixed.png`
 
 The contact sheets were generated from rendered `pkgdown-site/articles/*`
 figure PNGs. The two changed `bivariate-coscale` figures were also inspected
 individually after rerendering.
+
+`confidence-eye-correlation-display-fixed.png` is the canonical rendered
+Confidence Eye evidence for this repair. It uses a new filename so the app and
+review notes do not reuse cached thumbnails from rejected raindrop/CI-line
+drafts.
 
 ## Rejected Draft
 
@@ -90,7 +96,8 @@ and inspect the figure before recording it as fixed.
 - Fix: repaired the six-row correlation display itself: pale finite confidence
   regions, hollow point-estimate circles, no outer outline, no default CI bar,
   no row guide line through the eyes, and row labels that name the correlation
-  layer.
+  layer. The fixed render is saved as
+  `confidence-eye-correlation-display-fixed.png`.
 
 ## Remaining Figure Work
 

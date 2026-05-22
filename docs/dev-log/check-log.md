@@ -74,6 +74,9 @@ Outcomes:
   lines.
 - The older tracked correlation-display audit PNG was refreshed too, because
   it still showed the rejected filled-point and CI-line hybrid.
+- A new canonical evidence image,
+  `confidence-eye-correlation-display-fixed.png`, was added so future review
+  can point to an uncached filename.
 - The bivariate-coscale quick `corpairs()` plot now relies on the helper's
   hollow point estimates instead of overlaying a second point layer.
 - Focused `plot-corpairs`, `corpairs`, and `predict-parameters` tests passed.

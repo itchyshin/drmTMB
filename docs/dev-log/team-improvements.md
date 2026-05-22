@@ -192,6 +192,9 @@ issues, or pull requests.
   and CI-line hybrid after the live article figure had been repaired. Rendered
   audit artifacts are part of the project surface when they are shown to the
   user; refresh them or label them as rejected/before-state evidence.
+- Trigger: reusing the same PNG path in the chat caused the app to show a
+  cached old thumbnail. When a visual correction is the point of the task, use
+  a fresh evidence filename for the final proof image.
 
 ## 2026-05-20 - Installed-Layout Runner Tests
 

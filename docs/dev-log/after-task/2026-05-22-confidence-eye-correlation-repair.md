@@ -43,6 +43,9 @@ optional display variant.
 - Refreshed the older tracked correlation-display audit artifact so the repo no
   longer preserves the rejected filled-point and CI-line hybrid as if it were a
   current target.
+- Added a new canonical evidence image,
+  `confidence-eye-correlation-display-fixed.png`, to avoid cached thumbnails
+  from older rejected artifact names.
 - Removed a stale overlay point layer from the bivariate-coscale quick
   `corpairs()` plot and let the helper draw the hollow estimates.
 - Updated NEWS, visualization grammar, figure-audit notes, and the team
