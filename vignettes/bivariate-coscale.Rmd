@@ -400,7 +400,7 @@ The same response-scale result can be visualised as a `rho12` curve. Here the
 ribbon is a 95% Wald interval from `predict_parameters()`; if an interval
 column is unavailable, the plot should not silently imply uncertainty.
 
-```{r bivariate-coscale-rho12-curve, fig.width = 6, fig.height = 4, fig.cap = "Fitted residual `rho12` over disturbance after modelling response-specific means and residual SDs; the ribbon is a 95% Wald confidence interval.", fig.alt = "Line plot of fitted residual rho12 correlation over disturbance with a pale 95 percent Wald confidence ribbon, increasing from negative to positive values and crossing zero near average disturbance."}
+```{r bivariate-coscale-rho12-curve, fig.width = 6, fig.height = 4, fig.cap = "Fitted residual `rho12` over disturbance after modelling response-specific means and residual SDs; the ribbon is a 95% Wald confidence interval and the dotted line marks zero residual correlation.", fig.alt = "Line plot of fitted residual rho12 correlation over disturbance with a pale 95 percent Wald confidence ribbon and a dotted zero line, increasing from negative to positive values and crossing zero near average disturbance."}
 rho_grid <- data.frame(
   food = 0,
   temperature = 0,
@@ -431,11 +431,13 @@ if (requireNamespace("ggplot2", quietly = TRUE)) {
       x = "Disturbance",
       y = "Fitted residual correlation (rho12)",
       title = "Residual coupling changes with disturbance",
-      subtitle = "Ribbon is a 95% Wald interval for fitted rho12"
+      subtitle = "Ribbon is a 95% Wald interval; dotted line marks rho12 = 0"
     ) +
     ggplot2::theme_minimal(base_size = 11) +
     ggplot2::theme(
       panel.grid.minor = ggplot2::element_blank(),
+      plot.title = ggplot2::element_text(face = "bold"),
+      plot.subtitle = ggplot2::element_text(colour = "grey30"),
       plot.background = ggplot2::element_rect(fill = "white", colour = NA),
       panel.background = ggplot2::element_rect(fill = "white", colour = NA)
     )
@@ -654,23 +656,25 @@ The optional plotting helper consumes that explicit table. Faceting by `level`
 keeps the residual `rho12` row visually separate from the group-level
 random-intercept correlation:
 
-```{r bivariate-coscale-group-corpairs-plot, fig.width = 6.6, fig.height = 3.4, fig.cap = "`corpairs()` Confidence Eye display separating residual `rho12` from the individual-level mean-mean random-intercept correlation; eyes are 95% profile intervals on the response-correlation scale.", fig.alt = "Confidence Eye plot comparing residual rho12 correlation with the individual-level mean-mean random-intercept correlation. Each row has a pale horizontal eye spanning a 95 percent profile interval and a hollow point estimate on a correlation scale from minus one to one."}
+```{r bivariate-coscale-group-corpairs-plot, fig.width = 6.6, fig.height = 3.4, fig.cap = "`corpairs()` Confidence Eye display separating residual `rho12` from the individual-level mean-mean random-intercept correlation; eyes are 95% profile intervals on the response-correlation scale and the dotted line marks zero correlation.", fig.alt = "Confidence Eye plot comparing residual rho12 correlation with the individual-level mean-mean random-intercept correlation. Each row has a pale horizontal eye spanning a 95 percent profile interval, a hollow point estimate, and a dotted zero line on a correlation scale from minus one to one."}
 if (requireNamespace("ggplot2", quietly = TRUE)) {
   pair_plot_table <- pair_table
   pair_plot_table$display_label <- ifelse(
     pair_plot_table$level == "residual",
-    "Residual rho12",
-    "Individual mean-mean"
+    "Residual\nrho12",
+    "Individual\nmean-mean"
   )
   plot_corpairs(pair_plot_table, label = "display_label", facet = NULL) +
     ggplot2::labs(
       title = "Residual and individual-level correlations are separate",
-      subtitle = "Eyes are 95% profile intervals; rows name the correlation layer",
+      subtitle = "Eyes are 95% profile intervals; dotted line marks zero correlation",
       colour = NULL
     ) +
     ggplot2::theme_minimal(base_size = 11) +
     ggplot2::theme(
       panel.grid.minor = ggplot2::element_blank(),
+      plot.title = ggplot2::element_text(face = "bold"),
+      plot.subtitle = ggplot2::element_text(colour = "grey30"),
       legend.position = "none"
     )
 }

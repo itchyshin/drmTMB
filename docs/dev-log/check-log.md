@@ -2,6 +2,65 @@
 
 Record meaningful development checks here.
 
+## 2026-05-22 - Rendered Figure QA Slices 31-35
+
+Goal: continue the rendered-figure QA sequence after PR #303 by improving the
+referenced `model-workflow` and `bivariate-coscale` article figures without
+changing their estimands or inventing uncertainty.
+
+Roles: Ada merged PR #303 and started a clean branch. Florence inspected the
+changed rendered article PNGs. Fisher checked that raw points, fitted
+distributional-parameter surfaces, Wald ribbons, Wald bars, line/ribbon
+correlation curves, and Confidence Eyes matched named uncertainty provenance.
+Pat and Darwin checked reader decoding. Grace checked rendered article output
+and alt text. Noether checked axes against estimands. Curie checked that
+prediction-table rows were not conflated with raw observations. Rose watched
+for one-rule-fits-all drift. These were role perspectives, not spawned agents.
+
+Files changed:
+
+- `vignettes/model-workflow.Rmd`
+- `vignettes/bivariate-coscale.Rmd`
+- `docs/dev-log/audits/2026-05-22-rendered-figure-qa-slices-31-35.md`
+- `docs/dev-log/after-task/2026-05-22-rendered-figure-qa-slices-31-35.md`
+- `docs/dev-log/check-log.md`
+
+Commands run:
+
+```sh
+gh pr merge 303 --squash --delete-branch --subject "Polish reference figure QA slices (#303)"
+git checkout -b codex/rendered-figure-qa-31-35
+air format vignettes/model-workflow.Rmd vignettes/bivariate-coscale.Rmd
+Rscript -e "devtools::load_all(quiet = TRUE); pkgdown::build_article('model-workflow', new_process = FALSE, quiet = TRUE); pkgdown::build_article('bivariate-coscale', new_process = FALSE, quiet = TRUE)"
+Rscript tools/fix-pkgdown-reference-alt.R pkgdown-site
+Rscript -e "devtools::test(filter = 'plot-parameter-surface|plot-corpairs')"
+git diff --check
+Rscript -e "pkgdown::check_pkgdown()"
+```
+
+Result:
+
+- The `model-workflow` raw growth figure now states that it shows raw response
+  values and no model interval.
+- The `model-workflow` fitted `mu` and `sigma` temperature figures now name
+  the fitted estimands and 95% Wald bands in visible plot text, captions, and
+  alt text.
+- The combined `model-workflow` distributional-surface figure now names 95%
+  Wald bands and the fact that `sigma` is shared across habitats.
+- The `model-workflow` habitat contrast now uses the habitat palette and labels
+  points as fitted `mu` estimates with 90% Wald intervals.
+- The `bivariate-coscale` residual `rho12` curve now names the dotted zero line
+  while keeping its line-and-ribbon grammar.
+- The `bivariate-coscale` correlation Confidence Eye now uses readable
+  multi-line row labels and names the profile intervals plus dotted zero line.
+- The two articles rebuilt successfully, the reference alt-text post-processor
+  completed cleanly, article-image alt-text inspection found 0 missing alt
+  attributes across 7 referenced images, targeted plot-helper tests passed
+  with 88 passing expectations, `git diff --check` was clean, and
+  `pkgdown::check_pkgdown()` found no problems.
+
+Next action: open the PR and update issue #58.
+
 ## 2026-05-22 - Rendered Figure QA Slices 26-30
 
 Goal: continue the rendered-figure QA sequence after PR #302 by polishing the
