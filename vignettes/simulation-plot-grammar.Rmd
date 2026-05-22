@@ -79,7 +79,7 @@ Bias and RMSE should be plotted beside the estimand. A single average across
 all parameters hides the distinction between fixed effects, residual scale,
 random-effect SDs, and residual correlation `rho12`.
 
-```{r bias-rmse-display, fig.width=8.4, fig.height=5.2, fig.alt="Two simulation accuracy plots faceted by simulation surface: a raincloud-style bias display with fixture replicate errors, mean bias points, and MCSE intervals, followed by an aggregate RMSE display with MCSE intervals for four estimands."}
+```{r bias-rmse-display, fig.width=8.4, fig.height=5.2, fig.cap="Simulation accuracy fixture for bias and RMSE; faint marks are sampled replicate errors, points are aggregate summaries, and bars are 95% Monte Carlo standard-error intervals.", fig.alt="Two simulation accuracy plots faceted by simulation surface: a raincloud-style bias display with fixture replicate errors, mean bias points, and MCSE intervals, followed by an aggregate RMSE display with MCSE intervals for four estimands."}
 accuracy_targets <- data.frame(
   surface = rep(surface_levels, each = 4),
   estimand = rep(c("beta_x", "sigma", "sd_group", "rho12"), 4),
@@ -215,7 +215,7 @@ accuracy_replicate_display$estimand <- factor(
 )
 set.seed(20260519)
 ggplot(accuracy_replicate_display, aes(error, estimand)) +
-  geom_vline(xintercept = 0, linetype = "dashed", colour = "grey55") +
+  geom_vline(xintercept = 0, linetype = "dotted", colour = "grey55") +
   geom_violin(
     aes(
       fill = surface
@@ -355,7 +355,7 @@ The example table still carries `n_interval` for each cell. The rendered plot
 keeps the `n` values out of the panel labels so the MCSE bars, points, and
 block-level dots stay aligned and readable.
 
-```{r coverage-power-display, fig.width=8.6, fig.height=5.2, fig.alt="Faceted point plot showing illustrative coverage and power with Monte Carlo uncertainty intervals for four simulation surfaces, with one panel per surface so intervals align with their points."}
+```{r coverage-power-display, fig.width=8.6, fig.height=5.2, fig.cap="Coverage and power fixture; faint dots are replicate-block proportions, points are aggregate proportions, and horizontal bars are 95% binomial MCSE intervals.", fig.alt="Faceted point plot showing illustrative coverage and power with Monte Carlo uncertainty intervals for four simulation surfaces, with one panel per surface so intervals align with their points."}
 interval_summary <- data.frame(
   surface = rep(surface_levels, each = 4),
   estimand = rep(c("beta_x", "sigma", "sd_group", "rho12"), 4),
@@ -442,7 +442,7 @@ ggplot(interval_present, aes(value, estimand, colour = surface)) +
   geom_vline(
     data = interval_target,
     aes(xintercept = target),
-    linetype = "dashed",
+    linetype = "dotted",
     colour = "grey55",
     inherit.aes = FALSE
   ) +
@@ -499,7 +499,7 @@ Convergence, positive-definite Hessian status, and runtime should sit beside
 accuracy. A surface with low bias but frequent warnings or high runtime is not
 ready for broad claims.
 
-```{r convergence-runtime-display, fig.alt="Faceted plot showing illustrative convergence rate, Hessian rate, median runtime, and high runtime quantile by simulation surface."}
+```{r convergence-runtime-display, fig.cap="Simulation readiness fixture for fit status and runtime; proportions, medians, and high runtime quantiles are separate checks.", fig.alt="Faceted plot showing illustrative convergence rate, Hessian rate, median runtime, and high runtime quantile by simulation surface."}
 run_summary <- data.frame(
   surface = surface_levels,
   convergence_rate = c(0.98, 0.96, 0.90, 0.95),
@@ -572,7 +572,7 @@ because a few difficult cells can dominate overnight simulation planning.
 Failures and warnings are data. They should be summarised by surface and
 condition instead of filtered away before plotting.
 
-```{r failure-ledger-display, fig.alt="Stacked bar plot showing illustrative ok, warning, error, boundary, and skipped replicate counts by simulation surface."}
+```{r failure-ledger-display, fig.cap="Failure-ledger fixture showing replicate counts by status; warnings, boundary cases, errors, and skipped cells remain visible instead of being filtered out.", fig.alt="Stacked bar plot showing illustrative ok, warning, error, boundary, and skipped replicate counts by simulation surface."}
 failure_ledger <- data.frame(
   surface = rep(surface_levels, each = 5),
   status = rep(c("ok", "warning", "boundary", "error", "skipped"), 4),

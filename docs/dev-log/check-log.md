@@ -2,6 +2,69 @@
 
 Record meaningful development checks here.
 
+## 2026-05-22 - Article Figure QA Slices 3-5
+
+Goal: finish the agreed first five figure-QA steps by merging PR #297, starting
+from a fresh `main` branch, and polishing the next three rendered articles:
+`model-workflow`, `bivariate-coscale`, and `simulation-plot-grammar`.
+
+Team roles:
+
+- Ada reset the branch surface after PR #297 merged and kept this work to
+  article-level figure captions and reference-line styles.
+- Florence inspected the rendered PNGs and checked that only the right figures
+  inherited the Confidence Eye lesson.
+- Fisher checked that captions name the correct uncertainty source or absence
+  of interval evidence, and caught the grouped correlation display as needing
+  interval evidence rather than points alone.
+- Pat checked that raw data, fitted estimates, simulation replicates, and
+  status counts remain distinguishable for applied readers.
+- Darwin protected raw-data and simulation displays from one-rule-fits-all
+  polishing.
+- Grace rebuilt the articles, ran browser QA, and checked pkgdown.
+- Rose recorded the evidence-grain rule and the stale-figure-directory caveat.
+
+Files changed:
+
+- `vignettes/model-workflow.Rmd`
+- `vignettes/bivariate-coscale.Rmd`
+- `vignettes/simulation-plot-grammar.Rmd`
+- `docs/dev-log/audits/2026-05-22-article-figure-qa-slices-3-5.md`
+- `docs/dev-log/after-task/2026-05-22-article-figure-qa-slices-3-5.md`
+- `docs/dev-log/check-log.md`
+
+Checks run:
+
+```sh
+air format vignettes/model-workflow.Rmd vignettes/bivariate-coscale.Rmd vignettes/simulation-plot-grammar.Rmd
+Rscript -e "devtools::load_all(quiet = TRUE); for (article in c('model-workflow','bivariate-coscale','simulation-plot-grammar')) pkgdown::build_article(article, new_process = FALSE, quiet = TRUE)"
+python3 -m http.server 8473 --bind 127.0.0.1 -d pkgdown-site
+gh issue list --search "figure caption pkgdown visualization" --limit 20
+Rscript -e "pkgdown::check_pkgdown()"
+git diff --check
+```
+
+Browser QA over `http://127.0.0.1:8473/` found 5 content images, 0
+missing alt texts, and 5 captions in `model-workflow`; 2 images, 0 missing alt
+texts, and 2 captions in `bivariate-coscale`; and 5 images, 0 missing alt
+texts, and 5 captions in `simulation-plot-grammar`.
+
+Outcomes:
+
+- PR #297 was merged before this work, so the branch now starts from a fresh
+  `main`.
+- The next three figure-heavy articles now have captions that name the
+  inferential object, data grain, and uncertainty source.
+- `rho12`, bias, coverage, and power reference lines use dotted styling where
+  zero or target values are the visual anchor.
+- The `bivariate-coscale` grouped `corpairs()` plot now draws 95% profile
+  Confidence Eyes for both the residual `rho12` row and the individual-level
+  mean-mean correlation row.
+- `gh issue list --search "figure caption pkgdown visualization" --limit 20`
+  returned no matching open issues.
+- `pkgdown::check_pkgdown()` reported no problems and `git diff --check` was
+  clean.
+
 ## 2026-05-22 - First Four Figure-PR Slices
 
 Goal: start the next slice set after the Confidence Eye cleanup by keeping the

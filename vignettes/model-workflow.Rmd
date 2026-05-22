@@ -699,7 +699,7 @@ The first optional plotting helper consumes that table directly. For a figure,
 use a denser grid than the small printed table and request intervals before
 plotting:
 
-```{r temperature-surface-plot, fig.alt = "Faceted fitted mu and sigma surfaces over temperature. The mu facet has separate kelp and reef lines, while the sigma facet uses one grey line because habitat is not in the sigma formula."}
+```{r temperature-surface-plot, fig.cap = "Fitted response-scale `mu` and `sigma` surfaces from `predict_parameters()`; `mu` varies by habitat, while `sigma` is shared because habitat is not in the scale formula.", fig.alt = "Faceted fitted mu and sigma surfaces over temperature. The mu facet has separate kelp and reef lines, while the sigma facet uses one grey line because habitat is not in the sigma formula."}
 temperature_plot_grid <- prediction_grid(
   fit,
   focal = c("temperature", "habitat"),
@@ -749,7 +749,7 @@ For a discrete focal predictor, the same interval columns draw interval bars
 rather than a ribbon. This example asks for 90% Wald intervals, so the table
 records `conf.level = 0.9` on rows where `conf.status = "wald"`:
 
-```{r habitat-contrast-plot, fig.width = 5.8, fig.height = 2.7, fig.alt = "Two habitat-level fitted mu estimates with vertical Wald confidence intervals at temperature zero."}
+```{r habitat-contrast-plot, fig.width = 5.8, fig.height = 2.7, fig.cap = "Fitted habitat-level `mu` estimates at temperature zero; vertical intervals are 90% Wald confidence intervals requested from `predict_parameters()`.", fig.alt = "Two habitat-level fitted mu estimates with vertical Wald confidence intervals at temperature zero."}
 habitat_plot_grid <- prediction_grid(
   fit,
   focal = "habitat",
@@ -788,7 +788,7 @@ decisions inside a plot.
 For reports, pair model surfaces with the raw response pattern. The raw-data
 panel uses the observed response scale:
 
-```{r raw-growth-plot, fig.alt = "Observed growth values over temperature, coloured by habitat, showing the raw response pattern before model surfaces are drawn."}
+```{r raw-growth-plot, fig.cap = "Raw response-scale growth observations by temperature and habitat, shown before the fitted distributional-parameter surfaces.", fig.alt = "Observed growth values over temperature, coloured by habitat, showing the raw response pattern before model surfaces are drawn."}
 if (requireNamespace("ggplot2", quietly = TRUE)) {
   ggplot2::ggplot(
     fish,
@@ -813,7 +813,7 @@ Wald fixed-effect intervals in `pred_temperature`; if those columns were absent
 or marked `interval_source = "not_available"`, the helper would draw only
 lines and points:
 
-```{r mu-temperature-plot, fig.alt = "Fitted mu response-scale surface over temperature with separate kelp and reef Wald confidence bands."}
+```{r mu-temperature-plot, fig.cap = "Fitted response-scale `mu` surface by habitat; ribbons are Wald confidence bands from the prediction table.", fig.alt = "Fitted mu response-scale surface over temperature with separate kelp and reef Wald confidence bands."}
 if (requireNamespace("ggplot2", quietly = TRUE)) {
   plot_parameter_surface(
     pred_temperature,
@@ -831,7 +831,7 @@ Because `sigma ~ temperature` has no habitat term, the `sigma` plot keeps one
 row per temperature. That avoids drawing two identical habitat lines on top of
 each other.
 
-```{r sigma-temperature-plot, fig.alt = "Fitted sigma response-scale surface over temperature with one Wald confidence band because habitat is not in the sigma formula."}
+```{r sigma-temperature-plot, fig.cap = "Fitted response-scale `sigma` surface over temperature; one band is drawn because the scale formula has no habitat term.", fig.alt = "Fitted sigma response-scale surface over temperature with one Wald confidence band because habitat is not in the sigma formula."}
 if (requireNamespace("ggplot2", quietly = TRUE)) {
   pred_sigma_temperature <- pred_temperature[
     pred_temperature$dpar == "sigma" & pred_temperature$habitat == "reef",
