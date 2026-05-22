@@ -267,7 +267,7 @@ table with one row per distributional parameter, and
 `plot_parameter_surface()` draws estimate lines plus finite interval bands when
 they are present.
 
-```{r parameter-surface, fig.cap="Fitted response-scale `mu` and `sigma` surfaces; `sigma` is shared across habitats because the scale formula contains temperature but not habitat.", fig.alt="Two-panel plot showing fitted expected growth surfaces by habitat and a shared residual standard deviation surface along temperature."}
+```{r parameter-surface, fig.cap="Fitted response-scale `mu` and `sigma` surfaces; ribbons are 95% Wald confidence bands from `predict_parameters()`, and `sigma` is shared across habitats because the scale formula contains temperature but not habitat.", fig.alt="Two-panel line and ribbon plot showing fitted expected growth surfaces by habitat and a shared residual standard deviation surface along temperature, with Wald confidence bands."}
 pred_surface <- rbind(
   pred_mu,
   pred_sigma[pred_sigma$habitat == levels(fish$habitat)[1], , drop = FALSE]
@@ -284,7 +284,8 @@ plot_parameter_surface(
   x = "temperature",
   colour = "surface_group",
   dpar = c("mu", "sigma"),
-  facet = "panel"
+  facet = "panel",
+  point = FALSE
 ) +
   scale_colour_manual(
     values = surface_group_palette,
@@ -296,7 +297,7 @@ plot_parameter_surface(
   ) +
   labs(
     title = "Mean and residual-scale surfaces",
-    subtitle = "The sigma surface is shared because sigma ~ temperature",
+    subtitle = "Wald bands from predict_parameters(); sigma is shared",
     x = "Temperature anomaly",
     y = "Estimate on response scale",
     colour = NULL
@@ -1051,7 +1052,7 @@ ggplot() +
   )) +
   labs(
     title = "Site trajectories show random slopes",
-    subtitle = "Grey points are repeated site observations; the dark line is the population slope",
+    subtitle = "Lines are conditional modes, not interval uncertainty",
     x = "Temperature anomaly",
     y = "Growth",
     colour = "Site slope"
@@ -1063,7 +1064,7 @@ A direct `sd(site) ~ reef_cover` formula asks a third question: does a
 site-level predictor change the among-site SD in expected growth? The
 prediction table keeps this target as `sd(site)`, not residual `sigma`.
 
-```{r random-effect-sd-surface, fig.cap="Fitted among-site random-intercept SD surface along reef cover; the rug shows site-level support and no Wald band is drawn for this derived surface.", fig.alt="Line plot showing a fitted among-site random-intercept SD surface along reef cover, with no confidence band because modelled random-effect SD surfaces do not yet supply Wald intervals."}
+```{r random-effect-sd-surface, fig.cap="Fitted among-site random-intercept SD surface along reef cover; the rug shows site-level support, and no band is drawn because the table reports `conf.status = \"wald_unavailable\"` for this derived surface.", fig.alt="Line plot showing a fitted among-site random-intercept SD surface along reef cover, with rug marks for site support and no confidence band because profile or bootstrap intervals are needed for this derived surface."}
 set.seed(2622)
 n_sd_site <- 28
 n_sd_each <- 5
@@ -1131,7 +1132,7 @@ plot_parameter_surface(
   ) +
   labs(
     title = "Fitted among-site SD surface",
-    subtitle = "Rug marks site-level support; no Wald interval is drawn yet",
+    subtitle = "Rug marks support; profile/bootstrap intervals needed",
     x = "Reef cover",
     y = "Estimated among-site SD",
     colour = NULL
@@ -2191,8 +2192,8 @@ gallery_source_map <- data.frame(
     "Mean with confidence band",
     "mu and sigma surfaces",
     "nu, zi, and rho12 panels",
-    "Variance-component dot plot",
-    "Conditional random-slope deviations",
+    "Variance-component Confidence Eye",
+    "Conditional random-slope modes",
     "sd(site) surface",
     "Discrete habitat comparison",
     "Categorical interaction",
@@ -2246,11 +2247,11 @@ gallery_source_map <- data.frame(
   ),
   interval_source = c(
     "Wald intervals from predict_parameters()",
-    "Wald intervals when finite",
+    "Wald bands from predict_parameters()",
     "Wald intervals from each fitted parameter table",
-    "Point estimates only",
-    "Conditional modes only",
-    "conf.status = \"wald_unavailable\"",
+    "Wald regions shaped on log-SD scale",
+    "No intervals; conditional modes only",
+    "conf.status = \"wald_unavailable\"; no band",
     "Wald intervals from predict_parameters()",
     "Wald intervals from predict_parameters()",
     "asymptotic emmeans intervals",

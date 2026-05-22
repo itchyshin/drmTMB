@@ -2,6 +2,61 @@
 
 Record meaningful development checks here.
 
+## 2026-05-22 - Rendered Figure QA Slices 21-25
+
+Goal: continue the rendered-figure QA sequence after PR #301 by improving the
+next gallery figures whose uncertainty or estimate geometry needed clearer
+visual contracts.
+
+Roles: Ada merged PR #301 and kept the next branch narrow. Florence inspected
+the changed rendered gallery PNGs. Fisher checked that ribbons, Confidence
+Eyes, and no-interval displays matched named uncertainty provenance. Curie
+checked that conditional modes, prediction-grid rows, and fitted surfaces were
+not conflated. Pat and Darwin checked reader decoding. Grace checked referenced
+rendered images against stale generated artifacts. Noether checked labels
+against estimands. Rose watched for one-rule-fits-all drift. These were role
+perspectives, not spawned agents.
+
+Files changed:
+
+- `vignettes/figure-gallery.Rmd`
+- `docs/dev-log/audits/2026-05-22-rendered-figure-qa-slices-21-25.md`
+- `docs/dev-log/after-task/2026-05-22-rendered-figure-qa-slices-21-25.md`
+- `docs/dev-log/check-log.md`
+
+Commands run:
+
+```sh
+gh pr merge 301 --squash --delete-branch --subject "Polish simulation figure QA slices (#301)"
+git checkout -b codex/rendered-figure-qa-21-25
+air format vignettes/figure-gallery.Rmd
+Rscript -e "devtools::load_all(quiet = TRUE); pkgdown::build_article('figure-gallery', new_process = FALSE, quiet = TRUE)"
+Rscript tools/fix-pkgdown-reference-alt.R pkgdown-site
+Rscript -e "devtools::test(filter = 'plot-parameter-surface|plot-corpairs')"
+Rscript -e "pkgdown::check_pkgdown()"
+git diff --check
+```
+
+Result:
+
+- The gallery `parameter-surface` figure now shows fitted lines and 95% Wald
+  ribbons from `predict_parameters()` without dense grid-point overlays.
+- The random-slope trajectory figure now labels its lines as conditional modes,
+  not interval uncertainty.
+- The direct `sd(site)` surface now explicitly says profile/bootstrap intervals
+  are needed and records the `conf.status = "wald_unavailable"` boundary in the
+  source map.
+- Existing coefficient, variance-component, and correlation Confidence Eyes
+  retained their row-wise uncertainty grammar, dotted zero references where
+  meaningful, and hollow point-estimate circles.
+- The `figure-gallery` article rebuilt successfully, the reference alt-text
+  post-processor completed cleanly, targeted plot-helper tests passed with 88
+  passing expectations, `pkgdown::check_pkgdown()` found no problems, and
+  `git diff --check` was clean.
+
+Next action: open the PR, update issue #58, then continue the rendered-figure
+sweep with slices 26-30 after merge.
+
 ## 2026-05-22 - Rendered Figure QA Slices 16-20
 
 Goal: continue the rendered-figure QA sequence after PR #300 by fixing the
