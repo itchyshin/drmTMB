@@ -29,8 +29,8 @@ A model is defined by:
 1. one or two response formulas;
 2. one formula for every estimated distributional parameter;
 3. optional known-covariance formula markers such as `meta_known_V(V = V)`;
-4. optional structural dependence terms such as `gr()`, `phylo()`, and
-   `spatial()`;
+4. optional structural dependence terms such as `animal()`, `phylo()`,
+   `spatial()`, and `relmat()`;
 5. a family object that defines parameters, links, likelihood, simulation, and
    starting values.
 

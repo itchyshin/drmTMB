@@ -116,8 +116,8 @@ reference:
       - spatial
       - relmat
       - corpair
-  - title: Reserved marker internals
-    desc: Older reserved formula markers kept out of the main reader path.
+  - title: Deprecated marker internals
+    desc: Older deprecated formula markers kept out of the main reader path.
     contents:
       - gr
   - title: Model fitting and post-fit tools

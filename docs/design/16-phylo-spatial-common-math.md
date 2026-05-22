@@ -171,9 +171,9 @@ animal(1 | id, A = A_ped)
 animal(1 | id, Ainv = Ainv_ped)
 ```
 
-The lower-level escape hatch, if added, should avoid a vague name such as
-`user()`. A name such as `relmat()` keeps the object of inference visible and
-is clearer than teaching both `relmat()` and the older reserved `gr()` wording:
+The lower-level escape hatch should avoid a vague name such as `user()`.
+`relmat()` keeps the object of inference visible and is the public low-level
+name; the older `gr()` marker is deprecated legacy syntax:
 
 ```r
 relmat(1 | id, K = K_user)

@@ -24,7 +24,7 @@ rewrite.
 | Families | `beta()`, `beta_binomial()`, `cumulative_logit()`, `student()`, `lognormal()`, `nbinom2()`, `truncated_nbinom2()`, `biv_gaussian()` | Present under "Model specification" | Family-specific likelihood and interval tests | Keep; family pages need a later stale-claim pass against the implementation map. |
 | Meta-analysis helpers | `meta_V()`, `meta_known_V()`, `meta_vcov_bivariate()` | Present under "Model specification" | `test-meta-known-v.R`, `test-meta-vcov.R`, Phase 18 meta-V tests | Keep; audit should watch the word "stacked" here because it is a storage convention, not the user-facing centre of the package. |
 | Structured markers | `animal()`, `phylo()`, `spatial()`, `relmat()`, `corpair()` | Present under "Structured-effect markers" | Structured Gaussian, q2/q4, profile-target, and diagnostic tests | Keep; pages must continue to distinguish fitted q1/q2/q4 slices from planned neighbours. |
-| Reserved marker | `gr()` | Present under "Reserved marker internals" | Boundary tests through formula grammar and unsupported syntax | Review later; exported reserved syntax is visible, so the page must stay out of the main reader path. |
+| Deprecated marker | `gr()` | Present under "Deprecated marker internals" | Direct deprecation-warning test and formula-grammar boundary coverage | Keep out of the main reader path; direct calls warn and new known-relatedness formulas should use `relmat()`. |
 | Diagnostics and intervals | `check_drm()`, `confint.drmTMB()`, `profile_targets()` | Present under "Model fitting and post-fit tools" | `test-check-drm.R`, `test-profile-targets.R`, `test-summary.R` | High priority; this surface just changed and needs rendered reference review after pkgdown build. |
 | Extractors | `fixef()`, `ranef()`, `rho12()`, plus S3 `fitted()`, `predict()`, `residuals()`, `sigma()`, `simulate()`, `summary()`, `weights()`, `vcov()`, `logLik()`, `nobs()`, `df.residual()`, `deviance()` | Present directly or through grouped topics | Extractor, prediction, summary, bivariate, and structured tests | Keep; grouped S3 pages need a later consistency pass for interval/status vocabulary. |
 | Prediction tables | `prediction_grid()`, `predict_parameters()`, `marginal_parameters()` | Present under "Model fitting and post-fit tools" | `test-prediction-grid.R`, `test-predict-parameters.R`, `test-marginal-parameters.R` | Keep; current audit fixed wording so modelled SD surfaces are not called direct targets. |
@@ -41,8 +41,9 @@ rewrite.
    receive Wald intervals through `confint()`, while fitted `sd(group)` surfaces
    on a grid remain modelled/derived surfaces with unavailable Wald bands. The
    wording was changed to "modelled random-effect SD surfaces".
-3. `gr()` remains exported but intentionally demoted in pkgdown. That is
-   acceptable for now, but it should be revisited before a public release.
+3. `gr()` remains exported for compatibility but is now explicitly deprecated
+   and demoted in pkgdown. New user-facing examples should use `relmat()`,
+   `animal()`, `phylo()`, or `spatial()`.
 4. The generated `pkgdown-site` can be stale after source edits. Before any
    deploy, rebuild the site and re-run a rendered-page stale-wording scan.
 
@@ -89,6 +90,6 @@ rewrite.
    `predict_parameters()` prose and examples.
 2. Check every exported reference page for one runnable minimal example, or an
    explicit reason no example is appropriate.
-3. Decide whether `gr()` should remain exported or move further into reserved
-   documentation before release.
+3. Keep `gr()` deprecated and out of the main reader path; revisit removal only
+   with a separate compatibility decision before release.
 4. Add a compact example-status table for all exported topics.

@@ -26,22 +26,29 @@ meta_known_V <- function(V) {
   invisible(NULL)
 }
 
-#' Legacy reserved known-covariance group effect marker
+#' Deprecated legacy known-covariance group effect marker
 #'
-#' `gr()` is an older reserved marker for group-level effects with a
-#' user-supplied covariance matrix. New user-facing documentation should prefer
-#' the biological and matrix-specific structured-effect markers: [animal()] for
-#' pedigree or additive-relatedness animal models, [phylo()] for phylogenetic
-#' dependence, [spatial()] for spatial dependence, and [relmat()] for a
-#' validated user-supplied relatedness or precision matrix. `gr()` remains
-#' reserved while that clearer surface is completed.
+#' `gr()` is deprecated as a public formula marker in `drmTMB 0.1.3.9000`.
+#' Use [relmat()] for a validated lower-level user-supplied relatedness or
+#' precision matrix, [animal()] for pedigree or additive-relatedness animal
+#' models, [phylo()] for phylogenetic dependence, or [spatial()] for spatial
+#' dependence. The exported `gr()` placeholder remains only for compatibility
+#' with older design notes and should not be used in new model formulas.
 #'
 #' @param group Grouping factor.
 #' @param cov Known covariance or precision structure.
 #'
 #' @return A formula marker; never evaluated by users.
+#' @keywords internal
 #' @export
 gr <- function(group, cov) {
+  .Deprecated(
+    msg = paste(
+      "`gr()` is deprecated as a public drmTMB formula marker.",
+      "Use `relmat()` for lower-level known relatedness matrices,",
+      "or `animal()`, `phylo()`, or `spatial()` for biological structured effects."
+    )
+  )
   invisible(NULL)
 }
 

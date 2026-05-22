@@ -2,6 +2,62 @@
 
 Record meaningful development checks here.
 
+## 2026-05-21 - Deprecated Legacy gr() Marker
+
+Goal: close the reference-audit decision about the old `gr()` marker by
+deprecating it as public syntax while keeping a compatibility placeholder.
+
+Team roles:
+
+- Ada kept this as a small API/documentation compatibility slice.
+- Boole checked that `relmat()` remains the public low-level known-relatedness
+  syntax and that biological routes stay `animal()`, `phylo()`, and
+  `spatial()`.
+- Emmy checked the exported marker and pkgdown grouping boundary.
+- Grace regenerated roxygen and reference pages.
+- Rose updated the audit ledger so `gr()` is no longer left as a future
+  undecided item.
+
+Files changed:
+
+- `R/formula-markers.R`
+- `tests/testthat/test-package-skeleton.R`
+- `_pkgdown.yml`
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/00-vision.md`
+- `docs/design/01-formula-grammar.md`
+- `docs/design/09-phylogenetic-and-spatial-speed.md`
+- `docs/design/16-phylo-spatial-common-math.md`
+- `docs/dev-log/audits/2026-05-21-function-reference-inventory.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-21-gr-deprecation.md`
+- `man/gr.Rd`
+
+Checks run:
+
+```sh
+air format R/formula-markers.R tests/testthat/test-package-skeleton.R _pkgdown.yml NEWS.md ROADMAP.md docs/design/00-vision.md docs/design/01-formula-grammar.md docs/design/09-phylogenetic-and-spatial-speed.md docs/design/16-phylo-spatial-common-math.md docs/dev-log/audits/2026-05-21-function-reference-inventory.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-21-gr-deprecation.md
+Rscript -e "devtools::document()"
+Rscript -e "devtools::test(filter = 'package-skeleton|gaussian-location-scale|formula-grammar', reporter = 'summary')"
+Rscript -e "pkgdown::build_reference()"
+rg -n 'gr\(\)|deprecated|Deprecated marker internals|relmat\(\)' R/formula-markers.R man/gr.Rd _pkgdown.yml NEWS.md ROADMAP.md docs/design/00-vision.md docs/design/01-formula-grammar.md docs/design/09-phylogenetic-and-spatial-speed.md docs/design/16-phylo-spatial-common-math.md docs/dev-log/audits/2026-05-21-function-reference-inventory.md pkgdown-site/reference/gr.html pkgdown-site/reference/index.html -S
+git diff --check
+Rscript -e "pkgdown::check_pkgdown()"
+gh issue list --search "gr deprecated OR relmat gr OR reserved marker" --limit 20
+```
+
+Outcomes:
+
+- Direct calls to `gr()` now warn that the public marker is deprecated while
+  returning the same no-op placeholder value for compatibility.
+- `relmat()` is now named consistently as the public low-level route for
+  validated known-relatedness matrices.
+- The pkgdown reference index groups `gr()` under deprecated marker internals,
+  away from the main structured-effect reader path.
+- No formula grammar, likelihood, or TMB implementation changed.
+- Issue search found no matching open issue to close.
+
 ## 2026-05-21 - Reference Plot Helper Examples
 
 Goal: continue the comprehensive function/reference/figure audit by improving
