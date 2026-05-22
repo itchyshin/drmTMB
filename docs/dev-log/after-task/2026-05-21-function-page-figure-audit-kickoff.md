@@ -29,6 +29,9 @@ review targets.
 The figure audit kickoff is recorded in
 `docs/dev-log/figure-audits/2026-05-21-audit-kickoff/figure-audit.md`. Five
 high-risk figures were inspected directly from rendered PNGs.
+The first small figure fix is included: unsupported cells in the simulation
+bias panel now say "not targeted", and the coverage-panel subtitle names faint
+block dots as replicate-block coverage values.
 
 ## Mathematical And Visual Contract
 
@@ -92,10 +95,12 @@ issues or keep them in the existing dev-log lane.
 
 ## What Did Not Go Smoothly
 
-The rendered gallery surfaced exactly the kind of wording drift the audit was
-meant to catch: old interval language survived in figure subtitles and alt
-text after the CI contract changed. This confirms that figure review needs
-Fisher, Rose, Pat, and Grace before Florence does final visual polish.
+The rendered gallery surfaced exactly the kind of wording drift and missing
+support display the audit was meant to catch: old interval language survived in
+figure subtitles and alt text after the CI contract changed, and the simulation
+bias panel had unsupported cells that looked empty until labelled. This
+confirms that figure review needs Fisher, Rose, Pat, and Grace before Florence
+does final visual polish.
 
 ## Known Limitations
 
@@ -108,6 +113,5 @@ rendered-image and rendered-page review.
 
 1. Commit this kickoff slice.
 2. Continue the rendered figure audit with the rest of `figure-gallery`.
-3. Add explicit "not targeted" labels to the simulation bias panel.
-4. Reduce legend weight in coefficient and correlation raindrop displays.
-5. Rebuild the full pkgdown site before any deploy or PR closeout.
+3. Reduce legend weight in coefficient and correlation raindrop displays.
+4. Rebuild the full pkgdown site before any deploy or PR closeout.

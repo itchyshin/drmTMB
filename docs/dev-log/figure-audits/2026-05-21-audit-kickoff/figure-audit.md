@@ -23,8 +23,8 @@ The second render happened after editing the correlation-display wording.
 | `figure-gallery` | `random-effect-sd-surface` | `pkgdown-site/articles/figure-gallery_files/figure-html/random-effect-sd-surface-1.png` | Fitted `sd(site)` surface on a reef-cover grid | None drawn; table reports unavailable Wald surface intervals | Correct boundary, but sparse and visually plain. Keep for now; improve in a later polish pass. |
 | `figure-gallery` | `coefficient-intervals` | `pkgdown-site/articles/figure-gallery_files/figure-html/coefficient-intervals-1.png` | Wald compatibility display for fixed effects, SDs, and a correlation row | 66% and 95% Wald intervals | Mostly readable. The bottom legend is large and the correlation row dominates the x-range; later polish should reduce visual weight. |
 | `figure-gallery` | `correlation-display` | `pkgdown-site/articles/figure-gallery_files/figure-html/correlation-display-1.png` | Illustrative `corpairs()`-like correlation rows | Illustrative Wald/profile intervals transformed through a guarded correlation-link scale | Fixed during this pass: replaced Fisher-z wording with guarded correlation-link wording. Visual structure is usable but should be revisited for legend density. |
-| `figure-gallery` | `simulation-operating-characteristics` figure 1 | `pkgdown-site/articles/figure-gallery_files/figure-html/simulation-operating-characteristics-1.png` | Fixture replicate errors plus aggregate bias points | Mean bias with 95% MCSE intervals | Good data-grain disclosure. Missing/not-targeted cells are visible as blanks but should be labelled more explicitly in the bias panel. |
-| `figure-gallery` | `simulation-operating-characteristics` figure 2 | `pkgdown-site/articles/figure-gallery_files/figure-html/simulation-operating-characteristics-2.png` | Coverage block dots plus aggregate coverage points | 95% binomial MCSE intervals | Stronger than the bias panel because "not targeted" labels are visible. Needs caption wording that explains block dots more plainly. |
+| `figure-gallery` | `simulation-operating-characteristics` figure 1 | `pkgdown-site/articles/figure-gallery_files/figure-html/simulation-operating-characteristics-1.png` | Fixture replicate errors plus aggregate bias points | Mean bias with 95% MCSE intervals | Fixed during this pass: unsupported cells now say "not targeted" instead of appearing as silent blanks. |
+| `figure-gallery` | `simulation-operating-characteristics` figure 2 | `pkgdown-site/articles/figure-gallery_files/figure-html/simulation-operating-characteristics-2.png` | Coverage block dots plus aggregate coverage points | 95% binomial MCSE intervals | Fixed during this pass: subtitle now explains that faint block dots sample replicate-block coverage. |
 
 ## Immediate Fixes
 
@@ -34,7 +34,11 @@ The second render happened after editing the correlation-display wording.
    `docs/design/39-visualization-grammar.md`.
 2. Changed the correlation-display subtitle and prose from Fisher-z wording to
    guarded correlation-link wording in `vignettes/figure-gallery.Rmd`.
-3. Re-rendered `figure-gallery` and confirmed the rendered correlation figure
+3. Added "not targeted" labels to the simulation bias panel so unsupported
+   surface-estimand cells are visible rather than blank.
+4. Reworded the coverage-panel subtitle so faint block dots are explicitly
+   replicate-block coverage values.
+5. Re-rendered `figure-gallery` and confirmed the rendered correlation figure
    now says "guarded correlation-link scale".
 
 ## Florence-Led Next Fixes
@@ -42,14 +46,12 @@ The second render happened after editing the correlation-display wording.
 These should be handled after the initial inventory, not squeezed into this
 kickoff slice:
 
-1. Add explicit "not targeted" labels to the simulation bias panel wherever
-   blank cells represent missing support rather than missing data.
-2. Reduce legend weight in the coefficient and correlation raindrop figures.
-3. Make the random-effect SD surface less visually empty, while still avoiding
+1. Reduce legend weight in the coefficient and correlation raindrop figures.
+2. Make the random-effect SD surface less visually empty, while still avoiding
    raw-response points on an SD axis.
-4. Review all gallery figures one by one, not just the five high-risk figures
+3. Review all gallery figures one by one, not just the five high-risk figures
    inspected here.
-5. For public-facing pages, avoid over-centering storage or stacked-vector
+4. For public-facing pages, avoid over-centering storage or stacked-vector
    mechanics. Those details belong in mechanics notes, not headline visual
    narratives.
 

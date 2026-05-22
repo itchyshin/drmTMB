@@ -1935,6 +1935,7 @@ sim_rain$estimand_label <- factor(
   estimand_labels[sim_rain$estimand],
   levels = levels(sim_summary$estimand_label)
 )
+sim_bias_missing <- sim_summary[is.na(sim_summary$bias), , drop = FALSE]
 
 ggplot(sim_rain, aes(bias_error, estimand_label)) +
   geom_vline(xintercept = 0, linetype = "dashed", colour = "grey60") +
@@ -1974,6 +1975,15 @@ ggplot(sim_rain, aes(bias_error, estimand_label)) +
     aes(bias, estimand_label, colour = surface),
     size = 2.6,
     na.rm = TRUE
+  ) +
+  geom_text(
+    data = sim_bias_missing,
+    aes(x = -0.47, y = estimand_label, label = "not\ntargeted"),
+    colour = "grey55",
+    size = 2.25,
+    lineheight = 0.9,
+    hjust = 0,
+    inherit.aes = FALSE
   ) +
   facet_wrap(
     ~surface,
@@ -2055,7 +2065,7 @@ ggplot(sim_coverage_present, aes(coverage, estimand_label, colour = surface)) +
   scale_colour_manual(values = surface_palette, drop = FALSE) +
   labs(
     title = "Interval coverage",
-    subtitle = "Block dots; large points and bars show coverage with 95% binomial MCSE",
+    subtitle = "Faint block dots sample replicate-block coverage; large points and bars show 95% binomial MCSE",
     x = "Empirical coverage",
     y = NULL,
     colour = "Surface"

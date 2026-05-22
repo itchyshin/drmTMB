@@ -60,9 +60,12 @@ Outcomes:
 - Two figure/prose inconsistencies were fixed: modelled `sd(site)` surfaces are
   no longer called direct SD targets, and the correlation-display figure now
   says guarded correlation-link scale rather than Fisher-z scale.
+- The simulation bias panel now labels unsupported cells as "not targeted",
+  and the coverage-panel subtitle names faint block dots as replicate-block
+  coverage values.
 - The figure audit is started, not complete. Remaining Florence-led fixes
-  include explicit "not targeted" labels in the simulation bias panel, lighter
-  legends in raindrop displays, and a full one-by-one rendered gallery audit.
+  include lighter legends in raindrop displays, a less visually empty
+  random-effect SD surface, and a full one-by-one rendered gallery audit.
 
 ## 2026-05-21 - gllvmTMB CI Audit and Comprehensive Audit Launch
 
