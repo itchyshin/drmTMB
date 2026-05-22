@@ -482,7 +482,7 @@ fixed-effect `mu`/`sigma` grid, then contrasts it with a fitted direct
 `sd(site)` surface whose requested Wald intervals report
 `conf.status = "wald_unavailable"`. The intended reader action is concrete:
 formula-based fixed-effect surfaces can carry Wald bands on explicit grids;
-direct random-effect SD surfaces stay line-only until a validated profile or
+modelled random-effect SD surfaces stay line-only until a validated profile or
 bootstrap route exists.
 
 Slice 160 adds the discrete-x display boundary to the reader-facing workflow.

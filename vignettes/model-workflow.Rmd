@@ -508,8 +508,8 @@ grid values. By default, prediction tables are point-estimate summaries with
 `conf.int = TRUE` on an explicit `newdata` grid, ordinary fixed-effect
 distributional parameters receive Wald fixed-effect intervals with
 `conf.status = "wald"` and `interval_source = "wald"`. Rows that cannot receive
-that interval, such as direct random-effect SD surfaces, keep an explicit
-unavailable status instead of silently drawing a band.
+that interval, such as modelled random-effect SD surfaces evaluated on a grid,
+keep an explicit unavailable status instead of silently drawing a band.
 
 ## Predict a random-effect SD surface
 
@@ -575,7 +575,7 @@ sd_site_surface
 
 The table reports the `random-effect-sd-model` component. Its estimates are
 random-intercept SDs, not residual SDs and not raw responses. If you request a
-Wald interval for this direct random-effect SD surface, the table keeps the
+Wald interval for this modelled random-effect SD surface, the table keeps the
 point estimate and marks the interval status explicitly:
 
 ```{r}

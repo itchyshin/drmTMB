@@ -980,7 +980,7 @@ A direct `sd(site) ~ reef_cover` formula asks a third question: does a
 site-level predictor change the among-site SD in expected growth? The
 prediction table keeps this target as `sd(site)`, not residual `sigma`.
 
-```{r random-effect-sd-surface, fig.alt="Line plot showing a fitted among-site random-intercept SD surface along reef cover, with no confidence band because direct random-effect SD surfaces do not yet supply Wald intervals."}
+```{r random-effect-sd-surface, fig.alt="Line plot showing a fitted among-site random-intercept SD surface along reef cover, with no confidence band because modelled random-effect SD surfaces do not yet supply Wald intervals."}
 set.seed(2622)
 n_sd_site <- 28
 n_sd_each <- 5
@@ -1689,7 +1689,7 @@ ggplot(correlation_cloud, aes(rho, ymin = ymin, ymax = ymax)) +
   ) +
   labs(
     title = "Correlation rows can use raindrop confidence displays",
-    subtitle = "Drops use the 95% likelihood cutoff on Fisher's z scale; points mark fitted correlations",
+    subtitle = "Drops use a guarded correlation-link scale; points mark fitted correlations",
     x = "Correlation estimate",
     y = NULL,
     colour = "Layer"
@@ -1707,11 +1707,12 @@ ordinary grouped model. The phylogenetic row is a species-level structured
 location-location correlation. The spatial, animal, and `relmat()` rows are
 the first q=2 structured location-location rows now supported by their fitted
 subsets. The shaded shapes are raindrop-style confidence displays derived from
-the reported correlation estimate and 95% interval on Fisher's `z` scale. They
-borrow the visual intuition of posterior-density plots and orchard-style
-summaries, but they remain frequentist compatibility displays: values near the
-centre are more compatible with the fitted estimate than values near the
-interval boundary, and the shapes are not posterior draws.
+the reported correlation estimate and 95% interval on the same guarded
+atanh-style correlation-link scale used by the fitted parameter. They borrow
+the visual intuition of posterior-density plots and orchard-style summaries,
+but they remain frequentist compatibility displays: values near the centre are
+more compatible with the fitted estimate than values near the interval
+boundary, and the shapes are not posterior draws.
 
 ```{r correlation-layer-boundaries, fig.alt="Tile plot showing fitted q2 support for residual, ordinary group, phylogenetic, spatial, animal, and relmat correlation layers, with partly fitted q4 or regression extensions separated from planned boundaries."}
 layer_boundary <- expand.grid(
@@ -2171,7 +2172,7 @@ gallery_source_map <- data.frame(
     "fixed-effect shape, inflation, and residual rho12",
     "ordinary Gaussian random-slope fit",
     "shrunken deviations, not variance intervals",
-    "direct random-effect SD surface without Wald bands",
+    "modelled random-effect SD surface without Wald bands",
     "fixed-effect univariate mu",
     "fixed-effect univariate mu",
     "fixed-effect univariate mu only",

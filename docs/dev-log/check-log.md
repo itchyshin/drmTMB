@@ -2,6 +2,68 @@
 
 Record meaningful development checks here.
 
+## 2026-05-21 - Function Inventory and Figure Audit Kickoff
+
+Goal: begin the real comprehensive audit after packaging the CI/C++/audit-map
+branch: inventory exported functions and pkgdown pages, then start the
+rendered figure audit without pretending the full figure review is finished.
+
+Team roles:
+
+- Ada packaged the prior work into three commits, then opened the first
+  function/page/figure audit slice.
+- Emmy checked exported functions, S3 methods, man pages, and pkgdown
+  reference grouping.
+- Pat and Rose checked page status, stale interval wording, and reader-facing
+  drift.
+- Florence led the rendered-figure standard, with Fisher checking uncertainty
+  source and visual data grain.
+- Grace ran full validation before the packaging commits and rendered the
+  high-priority figure pages from the local package.
+
+Files changed:
+
+- `vignettes/model-workflow.Rmd`
+- `vignettes/figure-gallery.Rmd`
+- `docs/design/39-visualization-grammar.md`
+- `docs/dev-log/audits/2026-05-21-function-reference-inventory.md`
+- `docs/dev-log/audits/2026-05-21-page-status-inventory.md`
+- `docs/dev-log/figure-audits/2026-05-21-audit-kickoff/figure-audit.md`
+- `docs/dev-log/check-log.md`
+
+Checks run:
+
+```sh
+git status --short --branch
+git log -5 --oneline
+Rscript -e "devtools::test(reporter = 'summary')"
+Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"
+Rscript -e "devtools::load_all(quiet = TRUE); pkgdown::build_article('figure-gallery', new_process = FALSE, quiet = FALSE); pkgdown::build_article('model-workflow', new_process = FALSE, quiet = FALSE)"
+Rscript -e "devtools::load_all(quiet = TRUE); pkgdown::build_article('figure-gallery', new_process = FALSE, quiet = FALSE)"
+rg -n 'direct random-effect SD surface|direct random-effect SD surfaces|Fisher.s z scale|Fisher-z.*public|stacked' vignettes/figure-gallery.Rmd vignettes/model-workflow.Rmd docs/design/39-visualization-grammar.md pkgdown-site/articles/figure-gallery.html pkgdown-site/articles/model-workflow.html -S
+git diff --check
+```
+
+Outcomes:
+
+- The validated CI/C++/audit-map work is committed in three commits:
+  `1b889134` C++ helpers, `42929588` fast direct CI routes, and `8f2fd999`
+  CI/figure audit maps.
+- The function inventory found 32 exported names, 26 registered S3 methods,
+  40 man topics, and no exported function missing from `_pkgdown.yml`.
+- The first page inventory identified `model-workflow`, `figure-gallery`,
+  `model-map`, `implementation-map`, `phylogenetic-spatial`, and
+  `simulation-plot-grammar` as the highest-risk rendered pages.
+- The rendered figure kickoff inspected five high-risk gallery figures:
+  random-effect SD surface, coefficient intervals, correlation display, bias
+  simulation panel, and coverage simulation panel.
+- Two figure/prose inconsistencies were fixed: modelled `sd(site)` surfaces are
+  no longer called direct SD targets, and the correlation-display figure now
+  says guarded correlation-link scale rather than Fisher-z scale.
+- The figure audit is started, not complete. Remaining Florence-led fixes
+  include explicit "not targeted" labels in the simulation bias panel, lighter
+  legends in raindrop displays, and a full one-by-one rendered gallery audit.
+
 ## 2026-05-21 - gllvmTMB CI Audit and Comprehensive Audit Launch
 
 Goal: answer the follow-up question about whether `gllvmTMB` had a faster
