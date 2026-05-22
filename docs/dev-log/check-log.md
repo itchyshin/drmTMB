@@ -2,6 +2,63 @@
 
 Record meaningful development checks here.
 
+## 2026-05-21 - Reference Plot Helper Examples
+
+Goal: continue the comprehensive function/reference/figure audit by improving
+the rendered `plot_parameter_surface()` and `plot_corpairs()` reference
+examples.
+
+Team roles:
+
+- Ada kept this to reference examples and rendered evidence.
+- Florence judged the generated reference PNGs rather than accepting runnable
+  example code as enough.
+- Fisher checked that interval provenance remained explicit in the fixture
+  tables.
+- Pat checked whether the examples teach the helper contract without a
+  pathological toy fit.
+- Emmy checked that the helpers still consume compatible tables and do not grow
+  new API.
+- Grace regenerated Rd and reference pages.
+- Rose recorded the fragile-toy-model pattern for later reference audits.
+
+Files changed:
+
+- `R/plot-parameter-surface.R`
+- `R/plot-corpairs.R`
+- `man/plot_parameter_surface.Rd`
+- `man/plot_corpairs.Rd`
+- `docs/dev-log/audits/2026-05-21-function-reference-inventory.md`
+- `docs/dev-log/figure-audits/2026-05-21-reference-plot-helpers/figure-audit.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-21-reference-plot-helper-examples.md`
+
+Checks run:
+
+```sh
+air format R/plot-parameter-surface.R R/plot-corpairs.R docs/dev-log/audits/2026-05-21-function-reference-inventory.md docs/dev-log/figure-audits/2026-05-21-reference-plot-helpers/figure-audit.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-21-reference-plot-helper-examples.md
+Rscript -e "devtools::document()"
+Rscript -e "pkgdown::build_reference()"
+find pkgdown-site/reference -maxdepth 1 \( -name 'plot_*.png' -o -name '*corpairs*.png' -o -name '*surface*.png' \) -print -exec file {} \;
+rg -n 'theme_minimal|sigma block|phylo mu1-mu2|conf.status = "wald"|plot_parameter_surface\(pred|plot_corpairs\(pairs' R/plot-parameter-surface.R R/plot-corpairs.R man/plot_parameter_surface.Rd man/plot_corpairs.Rd pkgdown-site/reference/plot_parameter_surface.html pkgdown-site/reference/plot_corpairs.html -S
+Rscript -e "devtools::test(filter = 'plot-parameter-surface|plot-corpairs|predict-parameters|corpairs', reporter = 'summary')"
+git diff --check
+Rscript -e "pkgdown::check_pkgdown()"
+gh issue list --search "plot helper reference figure OR visualization layer OR corpairs predict_parameters" --limit 20
+```
+
+Outcomes:
+
+- `plot_parameter_surface()` now uses a controlled compatible long table with
+  sensible `mu` and `sigma` response-scale ranges and visible Wald ribbons.
+- `plot_corpairs()` now uses short labels and four rows, including point-only
+  and profile-interval rows, so the rendered reference figure is not visually
+  empty.
+- The helper APIs did not change.
+- The rendered reference PNGs were inspected after `pkgdown::build_reference()`.
+- Issue search found #58; it remains open as the broader visualization-layer
+  ledger.
+
 ## 2026-05-21 - Reference CI Fast Examples
 
 Goal: continue the comprehensive function/reference audit by making the

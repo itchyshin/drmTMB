@@ -53,18 +53,29 @@ display interval status attached to the plotted data.
 }
 \examples{
 pairs <- data.frame(
-  level = c("residual", "group"),
-  class = c("residual", "mean-slope"),
-  parameter = c("rho12", "cor((Intercept),x | p | id)"),
-  estimate = c(0.25, 0.45),
-  modelled = c(FALSE, FALSE),
-  conf.low = c(NA, 0.10),
-  conf.high = c(NA, 0.72),
-  conf.status = c("not_requested", "profile"),
-  interval_source = c("not_available", "profile")
+  level = c("residual", "group", "phylo", "group"),
+  class = c("residual", "mean-slope", "structured", "scale-scale"),
+  parameter = c(
+    "rho12",
+    "cor((Intercept),x | p | id)",
+    "cor(mu1,mu2 | species)",
+    "cor(sigma1,sigma2 | site)"
+  ),
+  label = c(
+    "residual rho12",
+    "mean-slope cor",
+    "phylo mu1-mu2",
+    "sigma block"
+  ),
+  estimate = c(0.25, 0.45, -0.30, 0.12),
+  modelled = c(FALSE, FALSE, FALSE, FALSE),
+  conf.low = c(NA, 0.10, -0.55, -0.12),
+  conf.high = c(NA, 0.72, -0.08, 0.34),
+  conf.status = c("not_requested", "profile", "profile", "profile"),
+  interval_source = c("not_available", "profile", "profile", "profile")
 )
 if (requireNamespace("ggplot2", quietly = TRUE)) {
-  plot_corpairs(pairs)
-  plot_corpairs(pairs, facet = "level")
+  plot_corpairs(pairs, label = "label") +
+    ggplot2::theme_minimal(base_size = 11)
 }
 }

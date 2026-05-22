@@ -71,10 +71,22 @@ rewrite.
   `drmTMB` is to keep fast direct intervals first in the docs and present
   bootstrap as a targeted refit tool, not as the default answer for every row.
 
+2026-05-21 plot-helper reference pass:
+
+- Inspected `plot_parameter_surface-1.png` and `plot_corpairs-1.png` after
+  rebuilding reference pages.
+- Replaced the `plot_parameter_surface()` example's fragile tiny model fit with
+  a controlled compatible prediction table, because the old rendered `sigma`
+  panel used an absurd scale and looked like a broken plot.
+- Reworked the `plot_corpairs()` example from a sparse faceted two-row display
+  into a compact four-row table with short labels and visible profile intervals.
+- Recorded rendered-image evidence in
+  `docs/dev-log/figure-audits/2026-05-21-reference-plot-helpers/figure-audit.md`.
+
 ## Next Function Audit Actions
 
-1. Continue rendered reference inspection with `corpairs()`,
-   `predict_parameters()`, and the plot helper pages.
+1. Continue rendered reference inspection with `corpairs()` and
+   `predict_parameters()` prose and examples.
 2. Check every exported reference page for one runnable minimal example, or an
    explicit reason no example is appropriate.
 3. Decide whether `gr()` should remain exported or move further into reserved

@@ -40,20 +40,32 @@
 #' @return A `ggplot` object.
 #'
 #' @examples
-#' dat <- data.frame(
-#'   y = c(0.2, 0.5, 1.1, 1.4, 1.8, 2.2),
-#'   x = c(-1, -0.5, 0, 0.5, 1, 1.5)
-#' )
-#' fit <- drmTMB(bf(y ~ x, sigma ~ x), data = dat)
-#' grid <- data.frame(x = seq(-1, 1.5, length.out = 6))
-#' pred <- predict_parameters(
-#'   fit,
-#'   newdata = grid,
-#'   dpar = c("mu", "sigma"),
-#'   conf.int = TRUE
+#' x <- seq(-1, 1.5, length.out = 8)
+#' pred <- rbind(
+#'   data.frame(
+#'     dpar = "mu",
+#'     type = "response",
+#'     estimate = 1 + 0.5 * x,
+#'     conf.low = 0.85 + 0.5 * x,
+#'     conf.high = 1.15 + 0.5 * x,
+#'     conf.status = "wald",
+#'     interval_source = "wald",
+#'     x = x
+#'   ),
+#'   data.frame(
+#'     dpar = "sigma",
+#'     type = "response",
+#'     estimate = 0.55 + 0.08 * x,
+#'     conf.low = 0.47 + 0.08 * x,
+#'     conf.high = 0.63 + 0.08 * x,
+#'     conf.status = "wald",
+#'     interval_source = "wald",
+#'     x = x
+#'   )
 #' )
 #' if (requireNamespace("ggplot2", quietly = TRUE)) {
-#'   plot_parameter_surface(pred, x = "x")
+#'   plot_parameter_surface(pred, x = "x") +
+#'     ggplot2::theme_minimal(base_size = 11)
 #' }
 #' @export
 plot_parameter_surface <- function(
