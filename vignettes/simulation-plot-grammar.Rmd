@@ -185,6 +185,14 @@ accuracy_summary$estimand <- factor(
   accuracy_summary$estimand,
   levels = rev(c("beta_x", "sigma", "sd_group", "rho12"))
 )
+accuracy_missing <- accuracy_summary[
+  is.na(accuracy_summary$bias) | is.na(accuracy_summary$rmse),
+  ,
+  drop = FALSE
+]
+accuracy_missing$missing_label <- "not\ntargeted"
+accuracy_missing$bias_missing_x <- 0.50
+accuracy_missing$rmse_missing_x <- 0.22
 
 display_replicates <- 49
 accuracy_replicate_display <- do.call(
@@ -245,6 +253,19 @@ ggplot(accuracy_replicate_display, aes(error, estimand)) +
     size = 2.4,
     na.rm = TRUE
   ) +
+  geom_text(
+    data = accuracy_missing,
+    aes(
+      x = bias_missing_x,
+      y = estimand,
+      label = missing_label
+    ),
+    colour = "grey55",
+    size = 2.25,
+    lineheight = 0.9,
+    hjust = 0,
+    inherit.aes = FALSE
+  ) +
   facet_wrap(
     ~surface,
     nrow = 1,
@@ -276,6 +297,19 @@ ggplot(accuracy_summary, aes(rmse, estimand, colour = surface)) +
     na.rm = TRUE
   ) +
   geom_point(size = 2.4, na.rm = TRUE) +
+  geom_text(
+    data = accuracy_missing,
+    aes(
+      x = rmse_missing_x,
+      y = estimand,
+      label = missing_label
+    ),
+    colour = "grey55",
+    size = 2.25,
+    lineheight = 0.9,
+    hjust = 0,
+    inherit.aes = FALSE
+  ) +
   facet_wrap(
     ~surface,
     nrow = 2,
@@ -299,13 +333,14 @@ ggplot(accuracy_summary, aes(rmse, estimand, colour = surface)) +
   theme_sim_grammar()
 ```
 
-The missing rows are part of the message. A count pilot should not quietly fill
-`rho12` with zeros, and a proportion example should not invent a random-effect
-SD if that surface was not fitted. Real bias reports should replace the fixture
-quantiles above with one row per replicate estimate or error, then overplot the
-aggregate mean and MCSE interval produced by the Phase 18 summary helpers. RMSE
-should remain an aggregate root-mean-square summary with its own MCSE interval,
-not a cloud whose center could be mistaken for a mean absolute error.
+The missing rows are part of the message, so unsupported cells stay visible as
+`not targeted` lanes. A count pilot should not quietly fill `rho12` with zeros,
+and a proportion example should not invent a random-effect SD if that surface
+was not fitted. Real bias reports should replace the fixture quantiles above
+with one row per replicate estimate or error, then overplot the aggregate mean
+and MCSE interval produced by the Phase 18 summary helpers. RMSE should remain
+an aggregate root-mean-square summary with its own MCSE interval, not a cloud
+whose center could be mistaken for a mean absolute error.
 
 ## Coverage and Power
 

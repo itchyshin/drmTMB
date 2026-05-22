@@ -2,6 +2,61 @@
 
 Record meaningful development checks here.
 
+## 2026-05-21 - Simulation Plot Grammar Rendered Pass
+
+Goal: continue the comprehensive function/page/figure audit by inspecting the
+rendered `simulation-plot-grammar` figures and making unsupported simulation
+cells visible instead of silently blank.
+
+Team roles:
+
+- Ada kept this as a rendered-page correction, not a new simulation claim.
+- Florence inspected the active PNGs as scientific figures rather than source
+  chunks.
+- Fisher checked that fixture replicate rows, aggregate RMSE, MCSE intervals,
+  and unsupported cells were not blurred together.
+- Curie checked that the display contract still matches Phase 18 artifact
+  grain.
+- Pat checked whether a reader can tell unsupported from omitted.
+- Grace rebuilt the article and inventoried active HTML image references.
+- Rose recorded the repeated missing-cell pattern in the audit ledger.
+
+Files changed:
+
+- `vignettes/simulation-plot-grammar.Rmd`
+- `docs/dev-log/audits/2026-05-21-function-page-figure-audit.md`
+- `docs/dev-log/figure-audits/2026-05-21-simulation-plot-grammar/figure-audit.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-21-simulation-plot-grammar-rendered-pass.md`
+
+Checks run:
+
+```sh
+air format vignettes/simulation-plot-grammar.Rmd docs/dev-log/audits/2026-05-21-function-page-figure-audit.md docs/dev-log/figure-audits/2026-05-21-simulation-plot-grammar/figure-audit.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-21-simulation-plot-grammar-rendered-pass.md
+Rscript -e "devtools::load_all(quiet = TRUE); pkgdown::build_article('simulation-plot-grammar', new_process = FALSE, quiet = TRUE)"
+rg -n 'simulation-plot-grammar_files/figure-html|<img' pkgdown-site/articles/simulation-plot-grammar.html -S
+rg -n 'not targeted|replicate-block proportions|unsupported cells stay visible|fixture replicate errors|RMSE and 95% MCSE' vignettes/simulation-plot-grammar.Rmd pkgdown-site/articles/simulation-plot-grammar.html -S
+git diff --check
+Rscript -e "pkgdown::check_pkgdown()"
+gh issue list --search "simulation plot grammar OR simulation figures OR replicate-level simulation artifacts OR uncertainty displays" --limit 20
+```
+
+Outcomes:
+
+- The active rendered page references five article figures:
+  `bias-rmse-display-1.png`, `bias-rmse-display-2.png`,
+  `coverage-power-display-1.png`, `convergence-runtime-display-1.png`, and
+  `failure-ledger-display-1.png`.
+- Bias and RMSE panels now show grey `not targeted` labels for unsupported
+  surface/estimand cells.
+- Coverage/power already showed missing cells and retained replicate-block
+  dots plus binomial MCSE intervals.
+- The convergence/runtime and failure-ledger panels were inspected after
+  render; the failure ledger remains a later polish item, not this slice's
+  main target.
+- GitHub issue search found #255, #59, #58, and #61; none were closed by this
+  narrow rendered-page pass.
+
 ## 2026-05-21 - Structural Dependence Fast CI Clarification
 
 Goal: continue the comprehensive page audit by rendering

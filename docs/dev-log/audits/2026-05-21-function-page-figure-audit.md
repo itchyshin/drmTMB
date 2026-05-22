@@ -101,6 +101,20 @@ This launch note does not claim any figure was visually inspected after render.
   control for long phylogenetic or spatial targets while keeping the final
   reporting caveat: boundary-sensitive rows still need profile diagnostics.
 
+2026-05-21 simulation-plot-grammar pass:
+
+- Active rendered images were inventoried from
+  `pkgdown-site/articles/simulation-plot-grammar.html`.
+- Five active figures were inspected one by one: bias, RMSE, coverage/power,
+  convergence/runtime, and the failure ledger.
+- The bias and RMSE panels now label unsupported cells as `not targeted`, so
+  count `sigma`, count `rho12`, proportion `rho12`, and meta-analysis
+  `sd(group)` do not disappear as silent blanks.
+- Coverage/power already had visible `not targeted` labels and retained its
+  replicate-block and binomial-MCSE grammar.
+- The failure ledger remains a watch item rather than the next redesign target;
+  the immediate fix was the missing-cell inconsistency.
+
 ## Next Tables To Fill
 
 Function/reference table columns:
