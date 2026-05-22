@@ -180,14 +180,18 @@ spatial <- function(term, coords = NULL, mesh = NULL) {
 #' User-supplied relatedness structured-effect marker
 #'
 #' `relmat()` marks syntax for a validated user-supplied relatedness matrix. It
-#' is the lower-level route for dependence structures that are not best named as
-#' `animal()`, `phylo()`, or `spatial()`: for example a genomic relationship
-#' matrix, a laboratory relatedness kernel, or a precision matrix built outside
-#' `drmTMB` and checked by the analyst.
+#' is the lower-level route for latent group-level dependence structures that
+#' are not best named as `animal()`, `phylo()`, or `spatial()`: for example a
+#' genomic relationship matrix, a laboratory relatedness kernel, or a graph,
+#' river-network, areal, or Gaussian Markov random-field precision matrix built
+#' outside `drmTMB` and checked by the analyst. If the matrix is known sampling
+#' covariance among observed estimates, use [meta_V()] instead.
 #'
 #' Use `K` for a covariance or relatedness matrix and `Q` for an inverse
-#' covariance or precision matrix. The fitted known-matrix routes are a
-#' univariate Gaussian `mu` random intercept, for example
+#' covariance or precision matrix. A correlation matrix with diagonal 1 is a
+#' natural `K` input because the fitted relatedness SD supplies the latent
+#' variance scale. The fitted known-matrix routes are a univariate Gaussian
+#' `mu` random intercept, for example
 #' `relmat(1 | line, Q = Q)`, the first bivariate Gaussian q=2 location
 #' covariance from matching labelled terms in `mu1` and `mu2`, and the constant
 #' all-four q=4 location-scale block from matching labelled terms in `mu1`,

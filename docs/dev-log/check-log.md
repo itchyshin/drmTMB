@@ -2,6 +2,70 @@
 
 Record meaningful development checks here.
 
+## 2026-05-22 - relmat Use-Case Clarification
+
+Goal: make the `relmat()` article convincing about when a covariance,
+correlation, or precision matrix belongs in a latent known-matrix
+random-effect layer rather than in meta-analysis sampling covariance.
+
+Team roles:
+
+- Ada kept this as a public documentation clarification with no likelihood,
+  parser, or TMB change.
+- Boole checked the syntax boundary between `relmat(1 | id, K = K)`,
+  `relmat(1 | id, Q = Q)`, `animal()`, `phylo()`, `spatial()`, and
+  `meta_V(V = V)`.
+- Fisher checked that the new equations separate latent group-level covariance
+  from observation-level known sampling covariance.
+- Pat checked that the page now gives concrete examples rather than only an
+  abstract matrix description.
+- Grace rebuilt the reference page, the relmat article, and the full pkgdown
+  site.
+- Rose checked that the issue remains tied to the broader animal/relmat and
+  tutorial ledgers rather than being treated as complete feature work.
+
+Files changed:
+
+- `R/formula-markers.R`
+- `man/relmat.Rd`
+- `vignettes/relmat-known-matrices.Rmd`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-22-relmat-use-cases.md`
+
+Checks run:
+
+```sh
+air format R/formula-markers.R vignettes/relmat-known-matrices.Rmd
+Rscript -e "devtools::document()"
+Rscript -e "pkgdown::build_reference()"
+Rscript -e "devtools::load_all(quiet = TRUE); pkgdown::build_article('relmat-known-matrices', new_process = FALSE, quiet = TRUE)"
+rg -n 'When is|Choosing|Two concrete examples|Genomic or marker-based|graph, network, river|correlation matrix with diagonal 1|known sampling covariance|fit_grm\$sdpars\$mu' vignettes/relmat-known-matrices.Rmd man/relmat.Rd pkgdown-site/articles/relmat-known-matrices.html pkgdown-site/reference/relmat.html -S
+Rscript -e "devtools::test(filter = 'package-skeleton|animal-relmat-gaussian|check-drm', reporter = 'summary')"
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "pkgdown::build_site()"
+git diff --check
+gh issue list --search "relmat known matrix K Q covariance precision" --limit 20
+```
+
+Outcomes:
+
+- The relmat article now states the latent model explicitly:
+  `u_id ~ N(0, sd_relmat^2 K)` or
+  `u_id ~ N(0, sd_relmat^2 Q^-1)`.
+- The page now says a correlation matrix with diagonal 1 is often the clearest
+  `K` input because the fitted relatedness SD supplies the latent variance
+  scale.
+- The page now separates four use cases: marker/genomic relatedness, lab or
+  ecological kernels, precomputed inverse relatedness, and external
+  graph/network/river/areal/GMRF precision matrices.
+- Two concrete examples were added: a genomic relationship matrix among lines
+  and a river-network precision matrix among reaches.
+- The reference docs now say `relmat()` is for latent group-level structure,
+  while `meta_V(V = V)` is for known sampling covariance among observed
+  estimates.
+- Focused tests, pkgdown checks, and the full pkgdown site build passed.
+- Issue search found #147 and #31 as broader open ledgers; no issue was closed.
+
 ## 2026-05-22 - Reference And Figure Audit 30-Slice Closeout
 
 Goal: finish the next function-reference and figure-gallery audit slices by
