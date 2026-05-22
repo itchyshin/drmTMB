@@ -2,6 +2,66 @@
 
 Record meaningful development checks here.
 
+## 2026-05-22 - Rendered Figure QA Slices 26-30
+
+Goal: continue the rendered-figure QA sequence after PR #302 by polishing the
+next gallery and generated-reference figures whose visible uncertainty contract
+was still ambiguous or visually heavier than needed.
+
+Roles: Ada merged PR #302 and kept the next branch narrow. Florence inspected
+the changed rendered gallery and reference PNGs. Fisher checked that
+Confidence Eyes, Wald ribbons, Wald bars, raw points, and plug-in summaries
+matched named uncertainty provenance. Pat and Darwin checked reader decoding.
+Grace checked the pkgdown render path. Noether checked labels against
+estimands. Curie checked data-grain distinctions. Rose watched for
+one-rule-fits-all drift. These were role perspectives, not spawned agents.
+
+Files changed:
+
+- `R/plot-corpairs.R`
+- `R/plot-parameter-surface.R`
+- `man/plot_corpairs.Rd`
+- `man/plot_parameter_surface.Rd`
+- `vignettes/figure-gallery.Rmd`
+- `docs/dev-log/audits/2026-05-22-rendered-figure-qa-slices-26-30.md`
+- `docs/dev-log/after-task/2026-05-22-rendered-figure-qa-slices-26-30.md`
+- `docs/dev-log/check-log.md`
+
+Commands run:
+
+```sh
+gh pr merge 302 --squash --delete-branch --subject "Polish gallery figure QA slices (#302)"
+git checkout -b codex/rendered-figure-qa-26-30
+air format R/plot-corpairs.R R/plot-parameter-surface.R vignettes/figure-gallery.Rmd
+Rscript -e "devtools::document(); devtools::load_all(quiet = TRUE); pkgdown::build_reference(topics = c('plot_corpairs', 'plot_parameter_surface'), lazy = FALSE, preview = FALSE); pkgdown::build_article('figure-gallery', new_process = FALSE, quiet = TRUE)"
+Rscript tools/fix-pkgdown-reference-alt.R pkgdown-site
+Rscript -e "devtools::test(filter = 'plot-parameter-surface|plot-corpairs')"
+git diff --check
+Rscript -e "pkgdown::check_pkgdown()"
+```
+
+Result:
+
+- The gallery categorical-by-categorical figure now separates raw observations,
+  fitted `mu` cell means, and 95% Wald intervals in the caption, alt text, and
+  rendered subtitle.
+- The gallery empirical marginal summary now labels large points as plug-in
+  means and bars as averaged row-wise Wald limits rather than implying a full
+  marginal-mean interval.
+- The gallery continuous-by-continuous interaction now names its ribbons as
+  95% Wald bands at three moisture slices.
+- The `plot_corpairs()` reference example now renders closer to the target
+  Confidence Eye display, with multi-line labels, no redundant legend, hollow
+  points, and a visible dotted zero line.
+- The `plot_parameter_surface()` reference example now renders as fitted lines
+  and Wald ribbons without grid-point clutter.
+- The reference topics and `figure-gallery` article rebuilt successfully, the
+  reference alt-text post-processor completed cleanly, targeted plot-helper
+  tests passed with 88 passing expectations, `git diff --check` was clean, and
+  `pkgdown::check_pkgdown()` found no problems.
+
+Next action: open the PR and update issue #58.
+
 ## 2026-05-22 - Rendered Figure QA Slices 21-25
 
 Goal: continue the rendered-figure QA sequence after PR #301 by improving the

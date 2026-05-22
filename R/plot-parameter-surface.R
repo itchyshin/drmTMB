@@ -64,7 +64,11 @@
 #'   )
 #' )
 #' if (requireNamespace("ggplot2", quietly = TRUE)) {
-#'   plot_parameter_surface(pred, x = "x") +
+#'   plot_parameter_surface(pred, x = "x", point = FALSE) +
+#'     ggplot2::labs(
+#'       title = "Predicted parameter surfaces",
+#'       subtitle = "Ribbons are Wald intervals from the supplied table"
+#'     ) +
 #'     ggplot2::theme_minimal(base_size = 11)
 #' }
 #' @export
