@@ -1688,20 +1688,14 @@ drm_standard_error_status <- function(object) {
   )
 }
 
-#' @export
-logLik.drmTMB <- function(object, ...) {
-  out <- object$logLik
-  attr(out, "df") <- object$df
-  attr(out, "nobs") <- object$nobs
-  class(out) <- "logLik"
-  out
-}
-
 #' Extract standard model-fit quantities
 #'
 #' These methods expose `drmTMB` fits to standard base-R model summary and
 #' comparison helpers.
 #'
+#' `logLik()` returns a `"logLik"` object with `df` and `nobs` attributes so
+#' [stats::AIC()] and [stats::BIC()] use the fitted likelihood, optimized
+#' top-level parameter count, and fitted-row count consistently.
 #' `nobs()` returns the number of fitted rows after complete-case filtering.
 #' `df.residual()` returns `nobs - df`, where `df` is the number of optimized
 #' top-level parameters recorded in `logLik()`. `deviance()` returns
@@ -1712,9 +1706,37 @@ logLik.drmTMB <- function(object, ...) {
 #' @param object A `drmTMB` fit.
 #' @param ... Reserved for future extractor options.
 #'
-#' @return Numeric scalar.
+#' @return `logLik()` returns an object of class `"logLik"`. The other methods
+#'   return numeric scalars.
+#'
+#' @examples
+#' set.seed(20260524)
+#' n <- 36
+#' x <- seq(-1.5, 1.5, length.out = n)
+#' dat <- data.frame(
+#'   y = 0.3 + 0.6 * x + rnorm(n, sd = 0.7),
+#'   x = x
+#' )
+#' fit <- drmTMB(bf(y ~ x, sigma ~ 1), data = dat)
+#'
+#' logLik(fit)
+#' nobs(fit)
+#' df.residual(fit)
+#' deviance(fit)
+#' AIC(fit)
+#' BIC(fit)
 #' @name model-fit-extractors
 NULL
+
+#' @rdname model-fit-extractors
+#' @export
+logLik.drmTMB <- function(object, ...) {
+  out <- object$logLik
+  attr(out, "df") <- object$df
+  attr(out, "nobs") <- object$nobs
+  class(out) <- "logLik"
+  out
+}
 
 #' @rdname model-fit-extractors
 #' @export

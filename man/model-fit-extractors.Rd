@@ -2,11 +2,14 @@
 % Please edit documentation in R/methods.R
 \name{model-fit-extractors}
 \alias{model-fit-extractors}
+\alias{logLik.drmTMB}
 \alias{nobs.drmTMB}
 \alias{df.residual.drmTMB}
 \alias{deviance.drmTMB}
 \title{Extract standard model-fit quantities}
 \usage{
+\method{logLik}{drmTMB}(object, ...)
+
 \method{nobs}{drmTMB}(object, ...)
 
 \method{df.residual}{drmTMB}(object, ...)
@@ -19,17 +22,38 @@
 \item{...}{Reserved for future extractor options.}
 }
 \value{
-Numeric scalar.
+\code{logLik()} returns an object of class \code{"logLik"}. The other methods
+return numeric scalars.
 }
 \description{
 These methods expose \code{drmTMB} fits to standard base-R model summary and
 comparison helpers.
 }
 \details{
+\code{logLik()} returns a \code{"logLik"} object with \code{df} and \code{nobs} attributes so
+\code{\link[stats:AIC]{stats::AIC()}} and \code{\link[stats:BIC]{stats::BIC()}} use the fitted likelihood, optimized
+top-level parameter count, and fitted-row count consistently.
 \code{nobs()} returns the number of fitted rows after complete-case filtering.
 \code{df.residual()} returns \code{nobs - df}, where \code{df} is the number of optimized
 top-level parameters recorded in \code{logLik()}. \code{deviance()} returns
 \code{-2 * logLik}; for these likelihood-based distributional models this is an
 absolute negative twice log-likelihood value, not a saturated-model GLM
 deviance.
+}
+\examples{
+set.seed(20260524)
+n <- 36
+x <- seq(-1.5, 1.5, length.out = n)
+dat <- data.frame(
+  y = 0.3 + 0.6 * x + rnorm(n, sd = 0.7),
+  x = x
+)
+fit <- drmTMB(bf(y ~ x, sigma ~ 1), data = dat)
+
+logLik(fit)
+nobs(fit)
+df.residual(fit)
+deviance(fit)
+AIC(fit)
+BIC(fit)
 }

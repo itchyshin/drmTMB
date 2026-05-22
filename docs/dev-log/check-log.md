@@ -2,6 +2,55 @@
 
 Record meaningful development checks here.
 
+## 2026-05-22 - Reference Model-Fit Extractors
+
+Goal: continue the comprehensive function/reference audit by fixing the grouped
+model-fit extractor page.
+
+Team roles:
+
+- Ada kept this as a reference-page slice with no behavior change.
+- Pat checked that the example shows the base-R model-comparison path users
+  expect.
+- Fisher checked that `deviance()` is described as negative twice log
+  likelihood, not a saturated-model GLM deviance.
+- Emmy checked that `logLik.drmTMB` is now represented in the grouped Rd topic.
+- Grace regenerated Rd and rebuilt the reference page.
+- Rose updated the function-reference audit so grouped model-fit extractors are
+  no longer the next open target.
+
+Files changed:
+
+- `R/methods.R`
+- `man/model-fit-extractors.Rd`
+- `docs/dev-log/audits/2026-05-21-function-reference-inventory.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-22-reference-model-fit-extractors.md`
+
+Checks run:
+
+```sh
+Rscript -e "devtools::document()"
+Rscript -e 'devtools::load_all(quiet = TRUE); set.seed(20260524); n <- 36; x <- seq(-1.5, 1.5, length.out = n); dat <- data.frame(y = 0.3 + 0.6 * x + rnorm(n, sd = 0.7), x = x); fit <- drmTMB(bf(y ~ x, sigma ~ 1), data = dat); print(logLik(fit)); print(nobs(fit)); print(df.residual(fit)); print(deviance(fit)); print(AIC(fit)); print(BIC(fit))'
+air format R/methods.R
+Rscript -e "devtools::test(filter = 'gaussian-location-scale|biv-gaussian|student-location-scale', reporter = 'summary')"
+Rscript -e "pkgdown::build_reference()"
+rg -n 'logLik\(\)|AIC\(|BIC\(|complete-case|negative twice log-likelihood|logLik.drmTMB|df.residual\(fit\)' R/methods.R man/model-fit-extractors.Rd pkgdown-site/reference/model-fit-extractors.html -S
+git diff --check
+Rscript -e "pkgdown::check_pkgdown()"
+gh issue list --search "model-fit extractors logLik AIC BIC reference" --limit 20
+```
+
+Outcomes:
+
+- `logLik.drmTMB` is now part of the grouped model-fit extractor reference
+  topic, with usage and alias entries.
+- The page now states that `logLik()` carries `df` and `nobs` attributes for
+  `AIC()` and `BIC()`.
+- The example uses a non-degenerate Gaussian location-scale fit and shows
+  `logLik()`, `nobs()`, `df.residual()`, `deviance()`, `AIC()`, and `BIC()`.
+- Issue search found no matching open issue to close.
+
 ## 2026-05-22 - Reference Grid And Marginal Examples
 
 Goal: continue the comprehensive function/reference audit by improving the

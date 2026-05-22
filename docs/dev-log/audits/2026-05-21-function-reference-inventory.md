@@ -55,6 +55,10 @@ rewrite.
    degenerate toy fits. The refreshed examples now use the same stable
    location-scale fixture, show finite Wald rows through `predict_parameters()`,
    and show empirical-grid averaging through `marginal_parameters()`.
+7. The grouped model-fit extractor page omitted the documented `logLik()`
+   method from the topic aliases and usage. The refreshed page now documents
+   `logLik()`, `nobs()`, `df.residual()`, `deviance()`, `AIC()`, and `BIC()` as
+   one likelihood-comparison path.
 
 ## Rendered Reference Follow-Up
 
@@ -96,7 +100,8 @@ rewrite.
 ## Next Function Audit Actions
 
 1. Continue rendered reference inspection with grouped model-fit extractor
-   prose and examples.
+   adjacent S3 pages: `fitted()`, `predict()`, `residuals()`, `sigma()`,
+   `simulate()`, `weights()`, `fixef()`, `ranef()`, `rho12()`, and `vcov()`.
 2. Check every exported reference page for one runnable minimal example, or an
    explicit reason no example is appropriate.
 3. Keep `gr()` deprecated and out of the main reader path; revisit removal only
