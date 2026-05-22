@@ -22,7 +22,8 @@ optional display variant.
 - Pat checked that the rendered figures now read without duplicated labels or
   hidden implementation history.
 - Florence checked the visual grammar: pale confidence region, hollow estimate
-  circle, no default CI bar, no outer eye outline.
+  circle, no default CI bar, no outer eye outline, and no row guide line
+  running through the eye.
 - Grace rebuilt the reference page, affected articles, full pkgdown site, and
   focused tests.
 - Rose recorded the process failure and the new gate: figure QA must name the
@@ -38,7 +39,7 @@ optional display variant.
 - Regenerated `man/plot_corpairs.Rd`.
 - Repaired the figure-gallery correlation-row display so residual, group,
   phylogenetic, spatial, animal, and `relmat()` rows use pale confidence
-  regions plus hollow estimates, with no default CI bars.
+  regions plus hollow estimates, with no default CI bars or row guide lines.
 - Removed a stale overlay point layer from the bivariate-coscale quick
   `corpairs()` plot and let the helper draw the hollow estimates.
 - Updated NEWS, visualization grammar, figure-audit notes, and the team
@@ -47,7 +48,7 @@ optional display variant.
 ## Validation
 
 ```sh
-air format R/plot-corpairs.R tests/testthat/test-plot-corpairs.R vignettes/figure-gallery.Rmd NEWS.md docs/design/39-visualization-grammar.md docs/dev-log/team-improvements.md docs/dev-log/figure-audits/2026-05-22-article-figures/README.md
+air format R/plot-corpairs.R tests/testthat/test-plot-corpairs.R vignettes/figure-gallery.Rmd NEWS.md docs/design/39-visualization-grammar.md docs/dev-log/check-log.md docs/dev-log/team-improvements.md docs/dev-log/after-task/2026-05-22-confidence-eye-correlation-repair.md docs/dev-log/figure-audits/2026-05-22-article-figures/README.md
 Rscript -e "devtools::document()"
 Rscript -e "devtools::test(filter = 'plot-corpairs', reporter = 'summary')"
 Rscript -e "devtools::load_all(quiet = TRUE); pkgdown::build_reference(topics = 'plot_corpairs', lazy = FALSE, preview = FALSE); pkgdown::build_article('figure-gallery', new_process = FALSE, quiet = TRUE)"

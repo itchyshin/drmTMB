@@ -34,6 +34,7 @@ test_that("plot_corpairs() returns a ggplot for corpairs tables", {
   expect_gt(nrow(built$data[[2L]]), 2L)
   expect_equal(length(unique(built$data[[2L]]$group)), 2L)
   expect_equal(nrow(built$data[[3L]]), 3L)
+  expect_s3_class(out$theme$panel.grid.major.y, "element_blank")
 
   unsupported <- pairs
   unsupported$interval_source <- "not_available"

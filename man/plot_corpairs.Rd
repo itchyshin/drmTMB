@@ -83,6 +83,10 @@ pairs <- data.frame(
 )
 if (requireNamespace("ggplot2", quietly = TRUE)) {
   plot_corpairs(pairs, label = "label") +
-    ggplot2::theme_minimal(base_size = 11)
+    ggplot2::theme_minimal(base_size = 11) +
+    ggplot2::theme(
+      panel.grid.major.y = ggplot2::element_blank(),
+      panel.grid.minor.y = ggplot2::element_blank()
+    )
 }
 }

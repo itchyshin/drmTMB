@@ -184,6 +184,10 @@ issues, or pull requests.
   figure QA, the active target must be named by rendered image path, chunk name,
   and title before edits begin, so Ada, Boole, Noether, Fisher, Pat, Grace,
   Florence, and Rose are judging the same artifact.
+- Trigger: the next rendered check still left row guide lines running through
+  the eyes. For Confidence Eye defaults, Florence and Fisher should treat
+  horizontal row lines as interval-like clutter: remove them unless the figure
+  has a separate reason to show lane guides.
 
 ## 2026-05-20 - Installed-Layout Runner Tests
 

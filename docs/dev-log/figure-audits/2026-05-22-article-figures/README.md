@@ -85,10 +85,12 @@ and inspect the figure before recording it as fixed.
   Fisher's `z`/atanh scale.
 - Problem: the first edit relabelled a cluttered existing display instead of
   designing from the Confidence Eye grammar. A later draft still showed black
-  interval bars and filled points, which contradicted the default design.
+  interval bars, filled points, and then row guide lines through the eyes,
+  which contradicted the default design.
 - Fix: repaired the six-row correlation display itself: pale finite confidence
   regions, hollow point-estimate circles, no outer outline, no default CI bar,
-  and row labels that name the correlation layer.
+  no row guide line through the eyes, and row labels that name the correlation
+  layer.
 
 ## Remaining Figure Work
 

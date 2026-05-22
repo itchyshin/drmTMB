@@ -59,7 +59,11 @@
 #' )
 #' if (requireNamespace("ggplot2", quietly = TRUE)) {
 #'   plot_corpairs(pairs, label = "label") +
-#'     ggplot2::theme_minimal(base_size = 11)
+#'     ggplot2::theme_minimal(base_size = 11) +
+#'     ggplot2::theme(
+#'       panel.grid.major.y = ggplot2::element_blank(),
+#'       panel.grid.minor.y = ggplot2::element_blank()
+#'     )
 #' }
 #' @export
 plot_corpairs <- function(
@@ -158,6 +162,10 @@ plot_corpairs <- function(
       x = "Correlation estimate",
       y = NULL,
       colour = colour
+    ) +
+    ggplot2::theme(
+      panel.grid.major.y = ggplot2::element_blank(),
+      panel.grid.minor.y = ggplot2::element_blank()
     )
 }
 

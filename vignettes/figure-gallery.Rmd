@@ -1569,11 +1569,6 @@ correlation_cloud <- do.call(
 )
 
 ggplot() +
-  geom_hline(
-    yintercept = pair_table$row_id,
-    colour = "grey90",
-    linewidth = 0.4
-  ) +
   geom_vline(
     xintercept = seq(-1, 1, by = 0.5),
     colour = "grey92",

@@ -24,7 +24,8 @@ Team roles:
   duplicated labels or internal helper history.
 - Florence checked the final rendered target for the desired visual grammar:
   pale confidence regions, hollow circles, no default CI bars, and no outer
-  eye outlines.
+  eye outlines. After a further rendered check, Florence rejected row guide
+  lines running through the eyes too.
 - Grace rebuilt the reference page, affected articles, full pkgdown site, and
   ran focused tests.
 - Rose recorded the process failure: figure QA must name the rendered image
@@ -47,7 +48,7 @@ Files changed:
 Checks run:
 
 ```sh
-air format R/plot-corpairs.R tests/testthat/test-plot-corpairs.R vignettes/figure-gallery.Rmd NEWS.md docs/design/39-visualization-grammar.md docs/dev-log/team-improvements.md docs/dev-log/figure-audits/2026-05-22-article-figures/README.md
+air format R/plot-corpairs.R tests/testthat/test-plot-corpairs.R vignettes/figure-gallery.Rmd NEWS.md docs/design/39-visualization-grammar.md docs/dev-log/check-log.md docs/dev-log/team-improvements.md docs/dev-log/after-task/2026-05-22-confidence-eye-correlation-repair.md docs/dev-log/figure-audits/2026-05-22-article-figures/README.md
 Rscript -e "devtools::document()"
 Rscript -e "devtools::test(filter = 'plot-corpairs', reporter = 'summary')"
 Rscript -e "devtools::load_all(quiet = TRUE); pkgdown::build_reference(topics = 'plot_corpairs', lazy = FALSE, preview = FALSE); pkgdown::build_article('figure-gallery', new_process = FALSE, quiet = TRUE)"
@@ -69,7 +70,8 @@ Outcomes:
   `interval_style = "line"`; they are no longer the default.
 - The figure-gallery correlation-row display now matches the intended design:
   residual, group, phylogenetic, spatial, animal, and `relmat()` rows use pale
-  confidence regions and hollow circles without default CI bars.
+  confidence regions and hollow circles without default CI bars or row guide
+  lines.
 - The bivariate-coscale quick `corpairs()` plot now relies on the helper's
   hollow point estimates instead of overlaying a second point layer.
 - Focused `plot-corpairs`, `corpairs`, and `predict-parameters` tests passed.
