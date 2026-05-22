@@ -46,10 +46,10 @@
 #'     "cor(sigma1,sigma2 | site)"
 #'   ),
 #'   label = c(
-#'     "residual rho12",
-#'     "mean-slope cor",
-#'     "phylo mu1-mu2",
-#'     "sigma block"
+#'     "Residual\nrho12",
+#'     "Group\nmean-slope cor",
+#'     "Phylogenetic\nmu1-mu2",
+#'     "Group\nsigma block"
 #'   ),
 #'   estimate = c(0.25, 0.45, -0.30, 0.12),
 #'   modelled = c(FALSE, FALSE, FALSE, FALSE),
@@ -59,12 +59,20 @@
 #'   interval_source = rep("profile", 4)
 #' )
 #' if (requireNamespace("ggplot2", quietly = TRUE)) {
+#'   pair_palette <- c(
+#'     group = "#D55E00",
+#'     phylo = "#009E73",
+#'     residual = "#0072B2"
+#'   )
 #'   plot_corpairs(pairs, label = "label") +
+#'     ggplot2::scale_colour_manual(values = pair_palette) +
+#'     ggplot2::scale_fill_manual(values = pair_palette) +
 #'     ggplot2::theme_minimal(base_size = 11) +
 #'     ggplot2::theme(
 #'       panel.grid.major.y = ggplot2::element_blank(),
 #'       panel.grid.minor.y = ggplot2::element_blank()
-#'     )
+#'     ) +
+#'     ggplot2::guides(colour = "none")
 #' }
 #' @export
 plot_corpairs <- function(
