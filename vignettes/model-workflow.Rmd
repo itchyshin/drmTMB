@@ -8,7 +8,64 @@ vignette: >
 ---
 
 ```{r, include = FALSE}
-knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 7,
+  fig.height = 4.1,
+  dpi = 144
+)
+
+workflow_theme <- function() {
+  ggplot2::theme_minimal(base_size = 11) +
+    ggplot2::theme(
+      panel.grid.minor = ggplot2::element_blank(),
+      panel.grid.major.x = ggplot2::element_line(
+        colour = "grey90",
+        linewidth = 0.3
+      ),
+      panel.grid.major.y = ggplot2::element_line(
+        colour = "grey87",
+        linewidth = 0.35
+      ),
+      axis.title = ggplot2::element_text(colour = "grey15"),
+      axis.text = ggplot2::element_text(colour = "grey25"),
+      strip.background = ggplot2::element_rect(fill = "grey92", colour = NA),
+      strip.text = ggplot2::element_text(face = "bold", colour = "grey15"),
+      legend.position = "bottom",
+      legend.title = ggplot2::element_text(colour = "grey20")
+    )
+}
+
+workflow_habitat_scales <- function() {
+  list(
+    ggplot2::scale_colour_manual(
+      values = c("reef" = "#0072B2", "kelp" = "#D55E00")
+    ),
+    ggplot2::scale_fill_manual(
+      values = c("reef" = "#0072B2", "kelp" = "#D55E00")
+    )
+  )
+}
+
+workflow_distributional_scales <- function() {
+  list(
+    ggplot2::scale_colour_manual(
+      values = c(
+        "kelp" = "#D55E00",
+        "reef" = "#0072B2",
+        "sigma (habitat not in formula)" = "grey35"
+      )
+    ),
+    ggplot2::scale_fill_manual(
+      values = c(
+        "kelp" = "#D55E00",
+        "reef" = "#0072B2",
+        "sigma (habitat not in formula)" = "grey35"
+      )
+    )
+  )
+}
 ```
 
 After fitting a distributional model, the next question is not only "what are
@@ -639,7 +696,7 @@ The first optional plotting helper consumes that table directly. For a figure,
 use a denser grid than the small printed table and request intervals before
 plotting:
 
-```{r}
+```{r temperature-surface-plot, fig.alt = "Faceted fitted mu and sigma surfaces over temperature. The mu facet has separate kelp and reef lines, while the sigma facet uses one grey line because habitat is not in the sigma formula."}
 temperature_plot_grid <- prediction_grid(
   fit,
   focal = c("temperature", "habitat"),
@@ -661,7 +718,27 @@ unique(pred_temperature[, c(
 )])
 
 if (requireNamespace("ggplot2", quietly = TRUE)) {
-  plot_parameter_surface(pred_temperature, x = "temperature", colour = "habitat")
+  pred_temperature_display <- pred_temperature[
+    pred_temperature$dpar == "mu" | pred_temperature$habitat == "reef",
+  ]
+  pred_temperature_display$display <- ifelse(
+    pred_temperature_display$dpar == "sigma",
+    "sigma (habitat not in formula)",
+    as.character(pred_temperature_display$habitat)
+  )
+  pred_temperature_display$display <- factor(
+    pred_temperature_display$display,
+    levels = c("kelp", "reef", "sigma (habitat not in formula)")
+  )
+
+  plot_parameter_surface(
+    pred_temperature_display,
+    x = "temperature",
+    colour = "display"
+  ) +
+    workflow_distributional_scales() +
+    workflow_theme() +
+    ggplot2::labs(colour = NULL)
 }
 ```
 
@@ -669,7 +746,7 @@ For a discrete focal predictor, the same interval columns draw interval bars
 rather than a ribbon. This example asks for 90% Wald intervals, so the table
 records `conf.level = 0.9` on rows where `conf.status = "wald"`:
 
-```{r}
+```{r habitat-contrast-plot, fig.width = 5.8, fig.height = 2.7, fig.alt = "Two habitat-level fitted mu estimates with vertical Wald confidence intervals at temperature zero."}
 habitat_plot_grid <- prediction_grid(
   fit,
   focal = "habitat",
@@ -692,7 +769,8 @@ unique(pred_habitat[, c(
 )])
 
 if (requireNamespace("ggplot2", quietly = TRUE)) {
-  plot_parameter_surface(pred_habitat, x = "habitat", line = FALSE)
+  plot_parameter_surface(pred_habitat, x = "habitat", line = FALSE) +
+    workflow_theme()
 }
 ```
 
@@ -707,18 +785,20 @@ decisions inside a plot.
 For reports, pair model surfaces with the raw response pattern. The raw-data
 panel uses the observed response scale:
 
-```{r}
+```{r raw-growth-plot, fig.alt = "Observed growth values over temperature, coloured by habitat, showing the raw response pattern before model surfaces are drawn."}
 if (requireNamespace("ggplot2", quietly = TRUE)) {
   ggplot2::ggplot(
     fish,
     ggplot2::aes(x = temperature, y = growth, colour = habitat)
   ) +
-    ggplot2::geom_point(alpha = 0.65) +
+    ggplot2::geom_point(alpha = 0.68, size = 1.8) +
+    workflow_habitat_scales() +
     ggplot2::labs(
       x = "Temperature",
       y = "Observed growth",
       colour = "Habitat"
-    )
+    ) +
+    workflow_theme()
 }
 ```
 
@@ -730,7 +810,7 @@ Wald fixed-effect intervals in `pred_temperature`; if those columns were absent
 or marked `interval_source = "not_available"`, the helper would draw only
 lines and points:
 
-```{r}
+```{r mu-temperature-plot, fig.alt = "Fitted mu response-scale surface over temperature with separate kelp and reef Wald confidence bands."}
 if (requireNamespace("ggplot2", quietly = TRUE)) {
   plot_parameter_surface(
     pred_temperature,
@@ -738,19 +818,29 @@ if (requireNamespace("ggplot2", quietly = TRUE)) {
     colour = "habitat",
     dpar = "mu",
     facet = NULL
-  )
+  ) +
+    workflow_habitat_scales() +
+    workflow_theme()
 }
 ```
 
-```{r}
+Because `sigma ~ temperature` has no habitat term, the `sigma` plot keeps one
+row per temperature. That avoids drawing two identical habitat lines on top of
+each other.
+
+```{r sigma-temperature-plot, fig.alt = "Fitted sigma response-scale surface over temperature with one Wald confidence band because habitat is not in the sigma formula."}
 if (requireNamespace("ggplot2", quietly = TRUE)) {
+  pred_sigma_temperature <- pred_temperature[
+    pred_temperature$dpar == "sigma" & pred_temperature$habitat == "reef",
+  ]
+
   plot_parameter_surface(
-    pred_temperature,
+    pred_sigma_temperature,
     x = "temperature",
-    colour = "habitat",
     dpar = "sigma",
     facet = NULL
-  )
+  ) +
+    workflow_theme()
 }
 ```
 

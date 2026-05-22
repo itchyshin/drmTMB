@@ -63,6 +63,21 @@ Each rendered figure should get a row with source chunk, estimand, visual data
 grain, uncertainty source, missing-cell display, reader risk, verdict, and fix.
 This launch note does not claim any figure was visually inspected after render.
 
+## Progress Updates
+
+2026-05-21 model-workflow pass:
+
+- Active rendered images were inventoried from
+  `pkgdown-site/articles/model-workflow.html`, because the ignored pkgdown
+  figure directory retained stale `unnamed-chunk-*` PNGs from earlier renders.
+- Five active figures now have named chunks and figure alt text:
+  `temperature-surface-plot`, `habitat-contrast-plot`, `raw-growth-plot`,
+  `mu-temperature-plot`, and `sigma-temperature-plot`.
+- The `sigma` displays no longer colour duplicated habitat rows for a model
+  whose scale formula is `sigma ~ temperature`.
+- Detailed figure evidence is in
+  `docs/dev-log/figure-audits/2026-05-21-model-workflow/figure-audit.md`.
+
 ## Next Tables To Fill
 
 Function/reference table columns:

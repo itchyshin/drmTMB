@@ -146,6 +146,22 @@ issues, or pull requests.
   and the spatial q4 fitted slice exposed stale q2-gate wording in roadmap and
   validation ledgers.
 
+## 2026-05-21 - Active HTML Figure Inventory
+
+- Improvement implemented: rendered pkgdown figure audits should inventory the
+  active `<img>` references in the rebuilt HTML before counting PNGs in the
+  ignored figure directory. The directory can retain stale files from earlier
+  chunk labels, which makes the figure count look larger than the page a reader
+  actually sees.
+- Improvement implemented: when a figure uses a shared plotting helper, Fisher
+  and Noether should still check that the displayed aesthetics match the fitted
+  formula. A legend can imply an unsupported model term even when the plotted
+  intervals and estimates are numerically correct.
+- Trigger: the `model-workflow` page initially appeared to have 18 rendered
+  PNGs, but only five were active in the HTML. The old `sigma` panels also
+  coloured duplicate habitat rows even though the model was `sigma ~
+  temperature`.
+
 ## 2026-05-20 - Installed-Layout Runner Tests
 
 - Improvement implemented: tests for `inst/` runner scripts must exercise the

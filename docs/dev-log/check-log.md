@@ -2,6 +2,65 @@
 
 Record meaningful development checks here.
 
+## 2026-05-21 - Model Workflow Rendered Figure Pass
+
+Goal: continue the comprehensive audit by inspecting the active rendered
+`model-workflow` figures, fixing a formula/display mismatch in the `sigma`
+panels, and recording the page-level figure evidence.
+
+Team roles:
+
+- Ada kept the slice focused on the rendered workflow article.
+- Florence judged the plots against the reader-facing figure standard rather
+  than accepting default ggplot output.
+- Fisher checked that habitat colour did not imply a `sigma` formula term that
+  was not fitted.
+- Pat checked whether the figures explain the fastest post-fit workflow to an
+  applied reader.
+- Grace rebuilt the article and inventoried active HTML image references.
+- Rose recorded the stale-pkgdown-image lesson in the audit and team log.
+
+Files changed:
+
+- `vignettes/model-workflow.Rmd`
+- `docs/dev-log/audits/2026-05-21-function-page-figure-audit.md`
+- `docs/dev-log/figure-audits/2026-05-21-model-workflow/figure-audit.md`
+- `docs/dev-log/team-improvements.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-21-model-workflow-rendered-pass.md`
+
+Checks run:
+
+```sh
+Rscript -e "devtools::load_all(quiet = TRUE); pkgdown::build_article('model-workflow', new_process = FALSE, quiet = TRUE)"
+air format vignettes/model-workflow.Rmd docs/dev-log/audits/2026-05-21-function-page-figure-audit.md docs/dev-log/figure-audits/2026-05-21-model-workflow/figure-audit.md docs/dev-log/team-improvements.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-21-model-workflow-rendered-pass.md
+Rscript -e "devtools::load_all(quiet = TRUE); pkgdown::build_article('model-workflow', new_process = FALSE, quiet = TRUE)"
+rg -n "model-workflow_files/figure-html|<img" pkgdown-site/articles/model-workflow.html
+rg -n 'sigma \(habitat not in formula\)|Because `sigma ~ temperature` has no habitat term|fig.alt' vignettes/model-workflow.Rmd pkgdown-site/articles/model-workflow.html -S
+git diff --check
+Rscript -e "pkgdown::check_pkgdown()"
+gh issue list --search "model workflow figure OR figure audit OR confidence interval" --limit 20
+Rscript -e "devtools::test(filter = 'plot-parameter-surface|predict-parameters', reporter = 'summary')"
+```
+
+Outcomes:
+
+- The active rendered `model-workflow` page now references five named figures,
+  each with figure alt text.
+- The combined `mu`/`sigma` display now uses habitat colour only where habitat
+  is in the fitted formula. The `sigma` panel uses a neutral line labelled
+  "sigma (habitat not in formula)".
+- The standalone `sigma` surface now filters duplicate habitat rows and
+  explains why one line is shown.
+- The two-point habitat contrast, raw-data panel, and fitted `mu` panel now use
+  the article theme and stable colour palette.
+- The audit records that active HTML image references, not ignored pkgdown
+  directory listings, are the authoritative figure inventory after chunk labels
+  change.
+- GitHub issue search found #58 as the broad visualization ledger; it remains
+  open because this slice only fixes the `model-workflow` article figures.
+- Focused `plot-parameter-surface` and `predict-parameters` tests passed.
+
 ## 2026-05-21 - Figure Gallery Rendered Pass
 
 Goal: complete the first full rendered pass through `figure-gallery` after the
