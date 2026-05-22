@@ -3,7 +3,7 @@
 #' `marginal_parameters()` averages predicted distributional parameters over
 #' fitted rows or a supplied `newdata` grid. It is a simple plug-in summary
 #' layer built on [predict_parameters()], intended for interpretation tables and
-#' future emmeans-style marginalisation or plotting helpers.
+#' plotting helpers that need averages rather than row-level predictions.
 #'
 #' This helper does not compute uncertainty, contrasts, or profile intervals.
 #' It reports unweighted averages of already-predicted parameter values. For
@@ -34,15 +34,19 @@
 #'   `interval_source`.
 #'
 #' @examples
-#' dat <- data.frame(
-#'   y = c(0.2, 0.5, 1.1, 1.4, 1.8, 2.2),
-#'   x = c(-1, -0.5, 0, 0.5, 1, 1.5),
-#'   habitat = factor(rep(c("reef", "sand"), each = 3))
-#' )
+#' set.seed(20260523)
+#' n <- 48
+#' x <- seq(-1.5, 1.5, length.out = n)
+#' habitat <- factor(rep(c("reef", "sand"), length.out = n))
+#' eta <- 0.4 + 0.7 * x + ifelse(habitat == "reef", 0.25, -0.15)
+#' sigma <- exp(-0.35 + 0.15 * x)
+#' dat <- data.frame(y = eta + rnorm(n, sd = sigma), x = x, habitat = habitat)
 #' fit <- drmTMB(bf(y ~ x + habitat, sigma ~ x), data = dat)
-#' grid <- expand.grid(
-#'   x = c(0, 1),
-#'   habitat = levels(dat$habitat)
+#' grid <- prediction_grid(
+#'   fit,
+#'   focal = "habitat",
+#'   at = list(habitat = levels(dat$habitat)),
+#'   margin = "empirical"
 #' )
 #' marginal_parameters(fit, newdata = grid, dpar = c("mu", "sigma"), by = "habitat")
 #' @export

@@ -2,6 +2,61 @@
 
 Record meaningful development checks here.
 
+## 2026-05-22 - Reference Grid And Marginal Examples
+
+Goal: continue the comprehensive function/reference audit by improving the
+`prediction_grid()` and `marginal_parameters()` reference pages.
+
+Team roles:
+
+- Ada kept this as a reference-prose/example slice with no behavior change.
+- Pat checked that the examples show the choice between adjusted prediction
+  grids and empirical averaging.
+- Fisher checked that the example interval rows are finite and do not imply
+  marginal uncertainty support.
+- Emmy checked that `prediction_grid()`, `predict_parameters()`, and
+  `marginal_parameters()` still compose through their current table contracts.
+- Grace regenerated Rd and rebuilt the reference pages.
+- Rose updated the function-reference audit so grid/marginal pages are no
+  longer listed as the next open target.
+
+Files changed:
+
+- `R/prediction-grid.R`
+- `R/marginal-parameters.R`
+- `man/prediction_grid.Rd`
+- `man/marginal_parameters.Rd`
+- `docs/dev-log/audits/2026-05-21-function-reference-inventory.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-22-reference-grid-marginal-parameters.md`
+
+Checks run:
+
+```sh
+Rscript -e "devtools::document()"
+Rscript -e 'devtools::load_all(quiet = TRUE); set.seed(20260523); n <- 48; x <- seq(-1.5, 1.5, length.out = n); habitat <- factor(rep(c("reef", "sand"), length.out = n)); eta <- 0.4 + 0.7 * x + ifelse(habitat == "reef", 0.25, -0.15); sigma <- exp(-0.35 + 0.15 * x); dat <- data.frame(y = eta + rnorm(n, sd = sigma), x = x, habitat = habitat); fit <- drmTMB(bf(y ~ x + habitat, sigma ~ x), data = dat); grid <- prediction_grid(fit, focal = "x", at = list(x = c(-1, 0, 1)), condition = list(habitat = "reef")); print(predict_parameters(fit, newdata = grid, dpar = c("mu", "sigma"), conf.int = TRUE)); empirical_grid <- prediction_grid(fit, focal = "habitat", at = list(habitat = levels(dat$habitat)), margin = "empirical"); print(marginal_parameters(fit, newdata = empirical_grid, dpar = "mu", by = "habitat")); print(marginal_parameters(fit, newdata = empirical_grid, dpar = c("mu", "sigma"), by = "habitat"))'
+air format R/prediction-grid.R R/marginal-parameters.R
+Rscript -e "devtools::test(filter = 'prediction-grid|marginal-parameters|predict-parameters|plot-parameter-surface', reporter = 'summary')"
+Rscript -e "pkgdown::build_reference()"
+rg -n 'mean_reference|empirical|averages rather than row-level predictions|finite|wald|marginal_parameters\\(|prediction_grid\\(' R/prediction-grid.R R/marginal-parameters.R man/prediction_grid.Rd man/marginal_parameters.Rd pkgdown-site/reference/prediction_grid.html pkgdown-site/reference/marginal_parameters.html -S
+git diff --check
+Rscript -e "pkgdown::check_pkgdown()"
+gh issue list --search "prediction_grid marginal_parameters reference OR prediction marginal examples" --limit 20
+```
+
+Outcomes:
+
+- `prediction_grid()` now states when to use `mean_reference` versus
+  `empirical` grids.
+- `prediction_grid()` shows a stable adjusted-prediction example that feeds
+  finite Wald rows through `predict_parameters()`.
+- `marginal_parameters()` now says it is for averages rather than row-level
+  predictions and no longer frames plotting helpers as future-only.
+- `marginal_parameters()` now demonstrates empirical-grid averaging by
+  habitat with explicit point-only interval provenance.
+- Issue search found #58; it remains open as the broader visualization-layer
+  ledger.
+
 ## 2026-05-22 - Reference Correlation And Prediction Examples
 
 Goal: continue the comprehensive function/reference audit by making the

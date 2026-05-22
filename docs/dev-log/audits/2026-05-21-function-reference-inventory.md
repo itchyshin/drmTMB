@@ -51,6 +51,10 @@ rewrite.
    `rho12()` versus `corpairs()`, when to use `marginal_parameters()` rather
    than row-level predictions, and why profile intervals should be filtered
    before running on large models.
+6. The `prediction_grid()` and `marginal_parameters()` examples used tiny
+   degenerate toy fits. The refreshed examples now use the same stable
+   location-scale fixture, show finite Wald rows through `predict_parameters()`,
+   and show empirical-grid averaging through `marginal_parameters()`.
 
 ## Rendered Reference Follow-Up
 
@@ -91,8 +95,8 @@ rewrite.
 
 ## Next Function Audit Actions
 
-1. Continue rendered reference inspection with `prediction_grid()`,
-   `marginal_parameters()`, and grouped model-fit extractor prose and examples.
+1. Continue rendered reference inspection with grouped model-fit extractor
+   prose and examples.
 2. Check every exported reference page for one runnable minimal example, or an
    explicit reason no example is appropriate.
 3. Keep `gr()` deprecated and out of the main reader path; revisit removal only
