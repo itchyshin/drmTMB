@@ -2,6 +2,59 @@
 
 Record meaningful development checks here.
 
+## 2026-05-22 - First Four Figure-PR Slices
+
+Goal: start the next slice set after the Confidence Eye cleanup by keeping the
+existing draft PR as the review surface, rebuilding the figure-heavy articles,
+auditing rendered alt text, and adding explicit captions to the
+`figure-gallery` article.
+
+Team roles:
+
+- Ada kept the scope to the first four slices rather than reopening the whole
+  25-slice backlog at once.
+- Florence checked that captions reinforce the case-by-case visual grammar.
+- Fisher checked that captions name the correct uncertainty source or absence
+  of interval evidence.
+- Pat checked that readers can distinguish raw observations, fitted rows,
+  point summaries, support boundaries, and simulation replicates.
+- Grace rebuilt the relevant pkgdown articles and ran browser QA over a local
+  static server.
+- Rose recorded the split between alt text and captions as a future guardrail.
+
+Files changed:
+
+- `vignettes/figure-gallery.Rmd`
+- `docs/dev-log/audits/2026-05-22-first-four-slices-pr-qa.md`
+- `docs/dev-log/after-task/2026-05-22-first-four-slices-pr-qa.md`
+- `docs/dev-log/check-log.md`
+
+Checks run:
+
+```sh
+air format vignettes/figure-gallery.Rmd
+Rscript -e "devtools::load_all(quiet = TRUE); for (article in c('figure-gallery','model-workflow','bivariate-coscale','simulation-plot-grammar')) pkgdown::build_article(article, new_process = FALSE, quiet = TRUE)"
+python3 -m http.server 8472 --bind 127.0.0.1 -d pkgdown-site
+Rscript -e "pkgdown::check_pkgdown()"
+```
+
+Browser QA over `http://127.0.0.1:8472/` found 21 content images, 0 missing
+alt texts, and 21 captions in `figure-gallery`; 5 images and 0 missing alt
+texts in `model-workflow`; 2 images and 0 missing alt texts in
+`bivariate-coscale`; and 5 images and 0 missing alt texts in
+`simulation-plot-grammar`.
+
+Outcomes:
+
+- Draft PR #297 already exists for `codex/cpp-helper-extraction`, so this work
+  updates that PR rather than opening a duplicate.
+- All 21 `figure-gallery` figures now have explicit captions naming the
+  inferential target, data grain, scale, and uncertainty source or boundary.
+- The other three figure-heavy articles passed the first alt-text audit; their
+  page-specific caption or figure-polish passes remain separate queued slices.
+- `pkgdown::check_pkgdown()` reported no problems after the caption and audit
+  updates.
+
 ## 2026-05-22 - Confidence Eye Gallery Cleanup
 
 Goal: repair the remaining figure-gallery Confidence Eye examples after the

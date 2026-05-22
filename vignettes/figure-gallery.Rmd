@@ -184,7 +184,7 @@ Start with the figure most readers expect: raw observations, fitted mean, and a
 categorical-by-continuous interaction: the temperature slope differs by
 habitat.
 
-```{r location-scale-fit, fig.alt="Scatterplot of simulated growth against temperature for two habitats, with fitted mean lines and 95 percent confidence bands for each habitat."}
+```{r location-scale-fit, fig.cap="Raw observations and fitted `mu` surfaces for a Gaussian location-scale model; ribbons are 95% Wald confidence bands from `predict_parameters()`.", fig.alt="Scatterplot of simulated growth against temperature for two habitats, with fitted mean lines and 95 percent confidence bands for each habitat."}
 set.seed(2591)
 n <- 160
 habitat_levels <- c("reef", "kelp")
@@ -267,7 +267,7 @@ table with one row per distributional parameter, and
 `plot_parameter_surface()` draws estimate lines plus finite interval bands when
 they are present.
 
-```{r parameter-surface, fig.alt="Two-panel plot showing fitted expected growth surfaces by habitat and a shared residual standard deviation surface along temperature."}
+```{r parameter-surface, fig.cap="Fitted response-scale `mu` and `sigma` surfaces; `sigma` is shared across habitats because the scale formula contains temperature but not habitat.", fig.alt="Two-panel plot showing fitted expected growth surfaces by habitat and a shared residual standard deviation surface along temperature."}
 pred_surface <- rbind(
   pred_mu,
   pred_sigma[pred_sigma$habitat == levels(fish$habitat)[1], , drop = FALSE]
@@ -314,7 +314,7 @@ magnitude after subtracting the fitted `mu`: under a Gaussian model,
 `E(|residual|) = sigma * sqrt(2 / pi)`. This keeps the observed scatter visible
 without putting raw response points on a `sigma` axis.
 
-```{r residual-scale-observed-check, fig.alt="Scatterplot of absolute residual magnitudes against temperature, with a fitted expected absolute residual curve derived from the residual sigma surface."}
+```{r residual-scale-observed-check, fig.cap="Observed absolute residual magnitudes compared with the fitted expectation implied by the response-scale `sigma` surface.", fig.alt="Scatterplot of absolute residual magnitudes against temperature, with a fitted expected absolute residual curve derived from the residual sigma surface."}
 pred_row_growth <- predict_parameters(
   fit_growth,
   newdata = fish,
@@ -378,7 +378,7 @@ common or standardized; coefficients for different predictors or different
 units should be faceted, standardized, or converted to a named contrast before
 visual comparison.
 
-```{r confidence-distribution-slopes, fig.width=7.2, fig.height=3.1, fig.alt="Confidence Eye rows for the fitted mu temperature slope and log residual SD temperature effect, with a shared no-effect reference line, pale finite confidence regions, and hollow point-estimate circles."}
+```{r confidence-distribution-slopes, fig.width=7.2, fig.height=3.1, fig.cap="Confidence Eye display for fixed-effect slope estimates; pale regions are finite 95% Wald confidence regions and hollow circles are point estimates.", fig.alt="Confidence Eye rows for the fitted mu temperature slope and log residual SD temperature effect, with a shared no-effect reference line, pale finite confidence regions, and hollow point-estimate circles."}
 coef_growth <- summary(fit_growth)$coefficients
 confidence_curves <- rbind(
   make_confidence_eye_distribution(
@@ -459,7 +459,7 @@ questions and often live on bounded response scales. The next panel set uses
 three fitted models and the same plotting helper, but each panel names the
 estimand explicitly.
 
-```{r shape-inflation-rho12-panels, fig.alt="Three-panel plot showing a Student-t degrees-of-freedom shape parameter, a zero-inflation probability, and a residual rho12 correlation along a predictor gradient with 95 percent confidence bands."}
+```{r shape-inflation-rho12-panels, fig.cap="Response-scale distributional-parameter panels for `nu`, `zi`, and residual `rho12`; ribbons are 95% Wald confidence bands.", fig.alt="Three-panel plot showing a Student-t degrees-of-freedom shape parameter, a zero-inflation probability, and a residual rho12 correlation along a predictor gradient with 95 percent confidence bands."}
 set.seed(2594)
 n_tail <- 2500
 tail_dat <- data.frame(tail_pressure = runif(n_tail, -1.5, 1.5))
@@ -611,7 +611,7 @@ figures. Residual `sigma` is the observation-level standard deviation. A
 group-level SD, such as the SD of site intercepts or temperature slopes, is
 among-group variation in a fitted random effect.
 
-```{r random-effect-variance-components, fig.height=3.05, fig.alt="Confidence Eye plot comparing residual sigma, among-site intercept SD, and among-site temperature-slope SD, with pale finite Wald confidence regions and hollow point-estimate circles."}
+```{r random-effect-variance-components, fig.height=3.05, fig.cap="Confidence Eye display for residual and among-site standard deviations; SD intervals are shaped on the fitted log-SD scale and displayed as SDs.", fig.alt="Confidence Eye plot comparing residual sigma, among-site intercept SD, and among-site temperature-slope SD, with pale finite Wald confidence regions and hollow point-estimate circles."}
 set.seed(2621)
 n_site <- 24
 n_site_obs <- 6
@@ -793,7 +793,7 @@ classes. Fixed effects use their fitted coefficient scale, SDs are shaped on the
 log-SD scale and shown back as SDs, and the correlation is shaped on Fisher's
 `z` scale and shown back as a correlation.
 
-```{r coefficient-intervals, fig.height=4.4, fig.alt="Compact Confidence Eye display showing fixed effects, residual and group-level standard deviations, and the random intercept-slope correlation as pale finite confidence regions with hollow point-estimate circles."}
+```{r coefficient-intervals, fig.height=4.4, fig.cap="Mixed-parameter Confidence Eye display; fixed effects use fitted-scale Wald intervals, SD rows use log-SD shaping, and the correlation row uses Fisher-z shaping.", fig.alt="Compact Confidence Eye display showing fixed effects, residual and group-level standard deviations, and the random intercept-slope correlation as pale finite confidence regions with hollow point-estimate circles."}
 fixed_rows <- summary(fit_re_slopes)$coefficients
 parameter_rows <- summary(fit_re_slopes)$parameters
 coefficient_specs <- data.frame(
@@ -980,7 +980,7 @@ lines below are conditional site-level trajectories: each site borrows strength
 from the population fit, but sites can still differ in both intercept and
 temperature slope.
 
-```{r random-slope-modes, fig.alt="Repeated-measures random-slope plot with grey observed site data, translucent site-level fitted trajectories, and a darker population-average fitted line."}
+```{r random-slope-modes, fig.cap="Repeated-measures raw observations with conditional site trajectories and the population-average fitted trend; the figure shows fitted modes, not interval uncertainty.", fig.alt="Repeated-measures random-slope plot with grey observed site data, translucent site-level fitted trajectories, and a darker population-average fitted line."}
 site_intercept <- ranef(fit_re_slopes, "mu")$terms[[
   "(1 + temperature | site):(Intercept)"
 ]]
@@ -1063,7 +1063,7 @@ A direct `sd(site) ~ reef_cover` formula asks a third question: does a
 site-level predictor change the among-site SD in expected growth? The
 prediction table keeps this target as `sd(site)`, not residual `sigma`.
 
-```{r random-effect-sd-surface, fig.alt="Line plot showing a fitted among-site random-intercept SD surface along reef cover, with no confidence band because modelled random-effect SD surfaces do not yet supply Wald intervals."}
+```{r random-effect-sd-surface, fig.cap="Fitted among-site random-intercept SD surface along reef cover; the rug shows site-level support and no Wald band is drawn for this derived surface.", fig.alt="Line plot showing a fitted among-site random-intercept SD surface along reef cover, with no confidence band because modelled random-effect SD surfaces do not yet supply Wald intervals."}
 set.seed(2622)
 n_sd_site <- 28
 n_sd_each <- 5
@@ -1153,7 +1153,7 @@ For a factor predictor, the same plotting helper uses interval bars rather than
 ribbons. This is useful for compact tutorial figures and estimated marginal
 comparisons.
 
-```{r discrete-comparison, fig.height=2.05, fig.alt="Compact horizontal point interval plot comparing expected growth between reef and kelp habitats at average temperature."}
+```{r discrete-comparison, fig.height=2.05, fig.cap="Fitted habitat means at average temperature; points and horizontal intervals are response-scale Wald summaries from `predict_parameters()`.", fig.alt="Compact horizontal point interval plot comparing expected growth between reef and kelp habitats at average temperature."}
 habitat_grid <- data.frame(
   temperature = 0,
   habitat = factor(c("reef", "kelp"), levels = levels(fish$habitat))
@@ -1193,7 +1193,7 @@ position dodging so the uncertainty intervals do not sit on top of each other.
 Raw observations can sit behind the intervals when they help readers see the
 data support for each cell.
 
-```{r cat-cat-interaction, fig.alt="Categorical by categorical interaction plot showing raw growth observations and fitted growth intervals for each habitat and season combination."}
+```{r cat-cat-interaction, fig.cap="Habitat-by-season fitted mean summaries over raw observations; intervals are Wald intervals for the fitted `mu` cells.", fig.alt="Categorical by categorical interaction plot showing raw growth observations and fitted growth intervals for each habitat and season combination."}
 set.seed(2592)
 n_cell <- 30
 reef <- expand.grid(
@@ -1273,7 +1273,7 @@ figures. The same rule applies: keep the target and conditioning values
 visible. These displays are `mu` summaries, not `sigma`, fitted-response,
 random-effect, or bivariate summaries.
 
-```{r emmeans-display, eval = has_ggplot2 && requireNamespace("emmeans", quietly = TRUE), fig.height=2.05, fig.alt="Compact horizontal point interval plot of estimated marginal mean growth for reef and kelp habitats conditioned at temperature zero."}
+```{r emmeans-display, eval = has_ggplot2 && requireNamespace("emmeans", quietly = TRUE), fig.height=2.05, fig.cap="Estimated marginal mean `mu` summaries for habitat at temperature zero, using the `emmeans` bridge for fixed-effect univariate means.", fig.alt="Compact horizontal point interval plot of estimated marginal mean growth for reef and kelp habitats conditioned at temperature zero."}
 emm_habitat <- suppressMessages(
   as.data.frame(
     emmeans::emmeans(
@@ -1309,7 +1309,7 @@ ggplot(emm_habitat, aes(emmean, habitat, colour = habitat)) +
 the `mu` cell means are grouped by season, so the reader sees the fitted
 habitat contrast inside each season rather than a single averaged contrast.
 
-```{r emmeans-factor-grid, eval = has_ggplot2 && requireNamespace("emmeans", quietly = TRUE), fig.height=2.45, fig.alt="Compact horizontal point interval plot of estimated marginal mean growth for reef and kelp habitats shown separately for dry and wet seasons."}
+```{r emmeans-factor-grid, eval = has_ggplot2 && requireNamespace("emmeans", quietly = TRUE), fig.height=2.45, fig.cap="Season-conditioned estimated marginal mean `mu` summaries; intervals come from the `emmeans` fixed-effect reference grid.", fig.alt="Compact horizontal point interval plot of estimated marginal mean growth for reef and kelp habitats shown separately for dry and wet seasons."}
 emm_season <- suppressMessages(
   as.data.frame(
     emmeans::emmeans(
@@ -1352,7 +1352,7 @@ For a numeric interaction, use an explicit reference grid. Here `temperature`
 is held at three named values so the habitat contrast does not hide the
 conditioning rule.
 
-```{r emmeans-interaction-grid, eval = has_ggplot2 && requireNamespace("emmeans", quietly = TRUE), fig.height=3.35, fig.alt="Point interval plot of estimated marginal mean growth for reef and kelp habitats at three temperature values."}
+```{r emmeans-interaction-grid, eval = has_ggplot2 && requireNamespace("emmeans", quietly = TRUE), fig.height=3.35, fig.cap="Estimated marginal mean `mu` trends for habitat across three named temperature values; intervals are fixed-effect `emmeans` intervals.", fig.alt="Point interval plot of estimated marginal mean growth for reef and kelp habitats at three temperature values."}
 emm_temperature <- suppressMessages(
   as.data.frame(
     emmeans::emmeans(
@@ -1399,7 +1399,7 @@ itself is still a plug-in point summary, so the interval bars below are a
 display approximation: they average row-wise Wald prediction limits from
 `predict_parameters(conf.int = TRUE)` within each habitat.
 
-```{r empirical-marginal-summary, fig.alt="Point-and-interval plot of empirical marginal expected growth for reef and kelp habitats, where points are plug-in marginal means and bars average row-wise Wald prediction limits."}
+```{r empirical-marginal-summary, fig.cap="Empirical marginal `mu` summaries by habitat; faint marks are fitted-row predictions and bars average row-wise Wald limits as a display approximation.", fig.alt="Point-and-interval plot of empirical marginal expected growth for reef and kelp habitats, where points are plug-in marginal means and bars average row-wise Wald prediction limits."}
 empirical_habitat_grid <- prediction_grid(
   fit_growth,
   focal = "habitat",
@@ -1482,7 +1482,7 @@ current `emmeans` bridge is for fixed-effect univariate `mu`; other targets
 should use parameter prediction, `corpairs()`, profile intervals, or a future
 feature-specific design.
 
-```{r emmeans-boundary-strip, fig.height=3.6, fig.alt="Marker plot showing fixed-effect univariate mu as the supported emmeans target and sigma, bivariate, zero-inflated, hurdle, ordinal, and random-effect targets as boundary routes with alternatives named beside each marker."}
+```{r emmeans-boundary-strip, fig.height=3.6, fig.cap="Support-boundary strip for `emmeans`; fixed-effect univariate `mu` is supported, while other targets show the fitted route to use instead.", fig.alt="Marker plot showing fixed-effect univariate mu as the supported emmeans target and sigma, bivariate, zero-inflated, hurdle, ordinal, and random-effect targets as boundary routes with alternatives named beside each marker."}
 emmeans_boundary <- data.frame(
   target = c(
     "Fixed-effect univariate mu",
@@ -1583,7 +1583,7 @@ For two continuous predictors, choose scientifically meaningful slices of one
 predictor and show fitted slopes across the other. The values should be named
 in the legend so the reader can interpret the conditioning.
 
-```{r cont-cont-interaction, fig.alt="Continuous by continuous interaction plot showing raw observations in grey and fitted temperature slopes at low, average, and high moisture with confidence bands."}
+```{r cont-cont-interaction, fig.cap="Continuous-by-continuous fitted `mu` interaction over raw observations; ribbons are 95% Wald confidence bands at low, average, and high moisture.", fig.alt="Continuous by continuous interaction plot showing raw observations in grey and fitted temperature slopes at low, average, and high moisture with confidence bands."}
 set.seed(2593)
 n_cc <- 180
 soil <- data.frame(
@@ -1678,7 +1678,7 @@ Fisher's `z` scale for correlations. The hollow circle marks the estimate.
 Rows without finite bounds should remain point-only diagnostics; the plot
 should not invent an eye.
 
-```{r correlation-display, fig.width=7.6, fig.height=5.4, fig.alt="Correlation-row Confidence Eye plot for residual rho12, group intercept-slope, phylogenetic, spatial, animal, and relmat location-location rows, with pale finite confidence regions and hollow point-estimate circles."}
+```{r correlation-display, fig.width=7.6, fig.height=5.4, fig.cap="Correlation-row Confidence Eye display; finite 95% regions are shaped on Fisher's z scale and shown on the correlation scale.", fig.alt="Correlation-row Confidence Eye plot for residual rho12, group intercept-slope, phylogenetic, spatial, animal, and relmat location-location rows, with pale finite confidence regions and hollow point-estimate circles."}
 pair_table <- data.frame(
   level = c("residual", "group", "phylogenetic", "spatial", "animal", "relmat"),
   class = c(
@@ -1821,7 +1821,7 @@ Rows with finite bounds get default Confidence Eyes. Rows without finite bounds
 should be shown as point-only diagnostics. This prevents the plot from implying
 uncertainty evidence that the fitted object or extractor did not provide.
 
-```{r correlation-layer-boundaries, fig.height=3.7, fig.alt="Marker plot showing fitted q2 support for residual, ordinary group, phylogenetic, spatial, animal, and relmat correlation layers, with partial richer q4 or regression routes separated from planned residual-rho12 boundaries."}
+```{r correlation-layer-boundaries, fig.height=3.7, fig.cap="Support-boundary strip for correlation layers; fitted q=2 rows, partial richer q=4 or regression rows, and planned residual-`rho12` routes are kept separate.", fig.alt="Marker plot showing fitted q2 support for residual, ordinary group, phylogenetic, spatial, animal, and relmat correlation layers, with partial richer q4 or regression routes separated from planned residual-rho12 boundaries."}
 layer_boundary <- expand.grid(
   layer = c(
     "Residual rho12",
@@ -1902,7 +1902,7 @@ Simulation figures answer different questions from model-interpretation
 figures. They should show bias, error, coverage, runtime, and failures beside
 the model surface being tested.
 
-```{r simulation-operating-characteristics, fig.width=8.6, fig.height=4.8, fig.alt="Simulation summary plots showing fixture replicate-error bias clouds with mean and MCSE intervals, plus interval coverage points with binomial MCSE whiskers, by estimand across Gaussian location-scale, proportion, and count surfaces."}
+```{r simulation-operating-characteristics, fig.width=8.6, fig.height=4.8, fig.cap="Simulation grammar fixture showing replicate-error bias clouds with MCSE intervals and coverage block proportions with binomial MCSE whiskers.", fig.alt="Simulation summary plots showing fixture replicate-error bias clouds with mean and MCSE intervals, plus interval coverage points with binomial MCSE whiskers, by estimand across Gaussian location-scale, proportion, and count surfaces."}
 sim_targets <- data.frame(
   surface = rep(
     c("Gaussian location-scale", "Proportion", "Count"),
