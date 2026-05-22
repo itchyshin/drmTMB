@@ -31,9 +31,17 @@ test_that("plot_corpairs() returns a ggplot for corpairs tables", {
   expect_match(out$data$.drmTMB_pair_label[[1L]], "residual")
   expect_length(out$layers, 3L)
   built <- ggplot2::ggplot_build(out)
+  expect_equal(unique(built$data[[1L]]$linetype), "dotted")
   expect_gt(nrow(built$data[[2L]]), 2L)
   expect_equal(length(unique(built$data[[2L]]$group)), 2L)
+  expect_equal(
+    max(built$data[[2L]]$ymax - built$data[[2L]]$ymin),
+    0.34,
+    tolerance = 0.01
+  )
   expect_equal(nrow(built$data[[3L]]), 3L)
+  expect_equal(unique(built$data[[3L]]$size), 3.1)
+  expect_equal(unique(built$data[[3L]]$stroke), 1.1)
   expect_s3_class(out$theme$panel.grid.major.y, "element_blank")
 
   unsupported <- pairs

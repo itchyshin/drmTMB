@@ -22,8 +22,8 @@ optional display variant.
 - Pat checked that the rendered figures now read without duplicated labels or
   hidden implementation history.
 - Florence checked the visual grammar: pale confidence region, hollow estimate
-  circle, no default CI bar, no outer eye outline, and no row guide line
-  running through the eye.
+  circle, no default CI bar, and no outer eye outline. Subtle row guides are
+  acceptable when they read as lane guides rather than interval bars.
 - Grace rebuilt the reference page, affected articles, full pkgdown site, and
   focused tests.
 - Rose recorded the process failure and the new gate: figure QA must name the
@@ -39,7 +39,7 @@ optional display variant.
 - Regenerated `man/plot_corpairs.Rd`.
 - Repaired the figure-gallery correlation-row display so residual, group,
   phylogenetic, spatial, animal, and `relmat()` rows use pale confidence
-  regions plus hollow estimates, with no default CI bars or row guide lines.
+  regions plus hollow estimates, with no default CI bars.
 - Refreshed the older tracked correlation-display audit artifact so the repo no
   longer preserves the rejected filled-point and CI-line hybrid as if it were a
   current target.

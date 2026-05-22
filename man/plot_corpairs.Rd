@@ -54,9 +54,10 @@ The helper draws one hollow point per correlation row. If the table contains
 finite \code{conf.low} and \code{conf.high} bounds plus interval provenance columns
 that describe a real interval, the default draws a pale Confidence Eye for
 those rows only, using a guarded Fisher-z/atanh correlation scale to shape
-the eye. Rows without supported bounds remain visible as point estimates and
-keep their display interval status attached to the plotted data. Set
-\code{interval_style = "line"} for a conventional CI-line variant.
+the eye. The zero-correlation reference is dotted. Rows without supported
+bounds remain visible as point estimates and keep their display interval
+status attached to the plotted data. Set \code{interval_style = "line"} for a
+conventional CI-line variant.
 }
 \examples{
 pairs <- data.frame(

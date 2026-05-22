@@ -2,6 +2,102 @@
 
 Record meaningful development checks here.
 
+## 2026-05-22 - Confidence Eye Gallery Cleanup
+
+Goal: repair the remaining figure-gallery Confidence Eye examples after the
+rejected correlation-row draft kept resurfacing from stale rendered artifacts,
+then complete a case-by-case visual triage of the remaining gallery figures.
+
+Team roles:
+
+- Ada kept the target fixed to the rendered `figure-gallery` PNGs and stopped
+  treating contact sheets as sufficient evidence. After the case-by-case review,
+  Ada kept Confidence Eyes only for the row-wise interval summaries rather than
+  applying them to line plots, raw-data displays, or simulation summaries.
+- Florence enforced the default Confidence Eye contract: pale finite confidence
+  region, hollow estimate circle, vertical scale grid, dotted zero line where
+  zero is meaningful, no filled dots, no CI bars, no outlines, and no in-plot
+  title/subtitle. The Confidence Eye row displays keep the bottom axis for a
+  consistent scale anchor.
+- Fisher checked that fixed-effect rows use Wald intervals on the fitted
+  coefficient scale, SD rows are shaped on the log-SD scale, and correlation
+  rows are shaped on Fisher's `z`/atanh scale.
+- Pat and Darwin checked the broader principle: raw data remain warranted when
+  they show sample grain, spread, outliers, repeated-measures structure, or the
+  biological pattern behind a fitted summary.
+- Grace rebuilt the figure-gallery article and refreshed the stale
+  `pkgdown-site/dev` mirror before evidence images were copied, then ran the
+  full `devtools::test()` suite before commit.
+- Rose recorded the failure mode: stale local-site and audit PNGs can become
+  misleading project evidence if they are not refreshed or labelled rejected,
+  and one good figure should not become a universal plotting rule.
+
+Files changed:
+
+- `vignettes/figure-gallery.Rmd`
+- `R/plot-corpairs.R`
+- `NEWS.md`
+- `docs/design/39-visualization-grammar.md`
+- `docs/dev-log/team-improvements.md`
+- `docs/dev-log/figure-audits/2026-05-22-article-figures/README.md`
+- `docs/dev-log/figure-audits/2026-05-20-raindrop-coverage-rescue/figure-gallery-correlation-raindrops.png`
+- `docs/dev-log/figure-audits/2026-05-20-raindrop-coverage-rescue/figure-gallery-raindrop-coefficients.png`
+- `docs/dev-log/figure-audits/2026-05-21-correlation-gallery-q2-refresh/correlation-display-1.png`
+- `docs/dev-log/figure-audits/2026-05-22-article-figures/confidence-eye-correlation-display-fixed.png`
+- `docs/dev-log/figure-audits/2026-05-22-article-figures/figure-gallery-coefficient-confidence-eye.png`
+- `docs/dev-log/figure-audits/2026-05-22-article-figures/figure-gallery-variance-confidence-eye.png`
+- `docs/dev-log/figure-audits/2026-05-22-article-figures/figure-gallery-mixed-confidence-eye.png`
+- `docs/dev-log/figure-audits/2026-05-22-article-figures/figure-gallery-location-scale-fit-polished.png`
+- `docs/dev-log/figure-audits/2026-05-22-article-figures/figure-gallery-parameter-surface-polished.png`
+- `docs/dev-log/figure-audits/2026-05-22-article-figures/figure-gallery-residual-scale-check-polished.png`
+- `docs/dev-log/figure-audits/2026-05-22-article-figures/figure-gallery-random-effect-sd-surface-polished.png`
+- `docs/dev-log/figure-audits/2026-05-22-article-figures/figure-gallery-discrete-comparison-polished.png`
+- `docs/dev-log/figure-audits/2026-05-22-article-figures/figure-gallery-cat-cat-interaction-polished.png`
+- `docs/dev-log/figure-audits/2026-05-22-article-figures/figure-gallery-emmeans-display-polished.png`
+- `docs/dev-log/figure-audits/2026-05-22-article-figures/figure-gallery-emmeans-factor-grid-polished.png`
+- `docs/dev-log/figure-audits/2026-05-22-article-figures/figure-gallery-emmeans-interaction-grid-polished.png`
+- `docs/dev-log/figure-audits/2026-05-22-article-figures/figure-gallery-emmeans-boundary-polished.png`
+- `docs/dev-log/figure-audits/2026-05-22-article-figures/figure-gallery-correlation-boundaries-polished.png`
+- `docs/dev-log/figure-audits/2026-05-22-article-figures/figure-gallery-simulation-bias-polished.png`
+- `docs/dev-log/figure-audits/2026-05-22-article-figures/figure-gallery-simulation-coverage-polished.png`
+
+Checks run:
+
+```sh
+air format R/plot-corpairs.R vignettes/figure-gallery.Rmd docs/design/39-visualization-grammar.md docs/dev-log/figure-audits/2026-05-22-article-figures/README.md docs/dev-log/team-improvements.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-22-confidence-eye-gallery-cleanup.md man/plot_corpairs.Rd NEWS.md
+Rscript -e "devtools::document()"
+Rscript -e "devtools::load_all(quiet = TRUE); pkgdown::build_article('figure-gallery', new_process = FALSE, quiet = TRUE)"
+Rscript -e "devtools::test(filter = 'plot-corpairs', reporter = 'summary')"
+Rscript -e "devtools::test(reporter = 'summary')"
+git diff --check
+Rscript -e "pkgdown::check_pkgdown()"
+```
+
+Outcomes:
+
+- The live `figure-gallery` coefficient, variance-component, mixed-parameter,
+  and correlation-row Confidence Eye figures now use the clean default visual
+  grammar rather than the rejected filled-point/CI-line draft. The
+  variance-component figure remains the closest visual anchor; the coefficient,
+  mixed-parameter, and correlation-row evidence images were refreshed to match
+  its bottom-axis, slim-lens, hollow-point treatment.
+- The stale `pkgdown-site/dev` mirror was refreshed from the current public
+  article render.
+- The remaining non-Confidence-Eye gallery figures were inspected one by one.
+  Raw-data, model-surface, point-summary, simulation, and support-boundary
+  displays kept their purpose-specific grammar.
+- The direct prediction and `emmeans` point-summary family was polished with a
+  compact point-interval theme and clearer titles; the temperature-slice EMM
+  display now uses connected trends plus intervals.
+- The broader gallery theme was softened, the parameter-surface example now
+  labels `sigma ~ temperature` as a shared sigma curve, support rugs and
+  support-boundary strips were tightened, and simulation target/reference lines
+  now use dotted styling.
+- The focused `plot-corpairs` tests and full `devtools::test()` suite passed
+  after the helper geometry and gallery source changes.
+- `git diff --check` was clean and `pkgdown::check_pkgdown()` reported no
+  problems.
+
 ## 2026-05-22 - Confidence Eye Correlation Plot Repair
 
 Goal: repair the rejected Confidence Eye figure work by fixing the actual
@@ -24,8 +120,7 @@ Team roles:
   duplicated labels or internal helper history.
 - Florence checked the final rendered target for the desired visual grammar:
   pale confidence regions, hollow circles, no default CI bars, and no outer
-  eye outlines. After a further rendered check, Florence rejected row guide
-  lines running through the eyes too.
+  eye outlines.
 - Grace rebuilt the reference page, affected articles, full pkgdown site, and
   ran focused tests.
 - Rose recorded the process failure: figure QA must name the rendered image
@@ -70,8 +165,7 @@ Outcomes:
   `interval_style = "line"`; they are no longer the default.
 - The figure-gallery correlation-row display now matches the intended design:
   residual, group, phylogenetic, spatial, animal, and `relmat()` rows use pale
-  confidence regions and hollow circles without default CI bars or row guide
-  lines.
+  confidence regions and hollow circles without default CI bars.
 - The older tracked correlation-display audit PNG was refreshed too, because
   it still showed the rejected filled-point and CI-line hybrid.
 - A new canonical evidence image,

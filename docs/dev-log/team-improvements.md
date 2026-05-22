@@ -165,12 +165,11 @@ issues, or pull requests.
 ## 2026-05-22 - Confidence Eye Default
 
 - Improvement implemented: Confidence Eye plots are the default visual grammar
-  for finite-interval compatibility displays that need more than a flat CI bar.
-  The default should be a pale 95% confidence or compatibility region plus a
-  hollow point-estimate circle. It does not require an outer outline or a
-  separate CI bar, but optional CI lines or caps are acceptable for
-  print-accessibility, diagnostics, or reader preference when they do not
-  crowd the main estimate-plus-uncertainty message.
+  for finite-interval displays that need more than a flat CI bar. The default
+  is a pale finite confidence region plus a hollow point-estimate circle. It
+  does not use filled points, outer outlines, center bars, or separate CI bars.
+  Optional CI lines or caps are acceptable only for explicitly labelled
+  print-accessibility, diagnostic, or reader-preference variants.
 - Improvement implemented: Fisher should keep the statistical provenance
   explicit: Wald intervals use the model scale or response scale stated in the
   figure, correlations use a Fisher-z/`atanh` scale when finite bounds are
@@ -184,10 +183,10 @@ issues, or pull requests.
   figure QA, the active target must be named by rendered image path, chunk name,
   and title before edits begin, so Ada, Boole, Noether, Fisher, Pat, Grace,
   Florence, and Rose are judging the same artifact.
-- Trigger: the next rendered check still left row guide lines running through
-  the eyes. For Confidence Eye defaults, Florence and Fisher should treat
-  horizontal row lines as interval-like clutter: remove them unless the figure
-  has a separate reason to show lane guides.
+- Trigger: a later rendered check was over-interpreted as banning row guides.
+  For Confidence Eye defaults, Florence and Fisher should allow subtle row
+  guides when they help row tracking, but reject dark lines that read like CI
+  bars or compete with the pale confidence region.
 - Trigger: an older tracked audit PNG still showed the rejected filled-point
   and CI-line hybrid after the live article figure had been repaired. Rendered
   audit artifacts are part of the project surface when they are shown to the
@@ -195,6 +194,28 @@ issues, or pull requests.
 - Trigger: reusing the same PNG path in the chat caused the app to show a
   cached old thumbnail. When a visual correction is the point of the task, use
   a fresh evidence filename for the final proof image.
+- Trigger: `pkgdown-site/dev/articles/figure-gallery_files/` still contained
+  an older rejected PNG after `pkgdown::build_article()` refreshed only the
+  public `pkgdown-site/articles/` copy. Grace should check both rendered mirrors
+  before visual evidence is shown from local site files.
+- Trigger: the mixed coefficient/SD/correlation display still looked wrong
+  after the pure correlation figure was fixed. Florence should reject faceted
+  or strip-labelled Confidence Eye examples unless the facets solve a genuine
+  reader problem; the default should start from the clean reference image.
+- Trigger: later comparison against the reference image showed that the
+  coefficient and SD examples still used fatter eye geometry than the accepted
+  correlation display. Florence should treat eye half-height and hollow-point
+  size as part of the visual contract, not incidental ggplot tuning.
+- Trigger: the variance-component Confidence Eye was the closest accepted
+  example and used a bottom axis that helped anchor the scale. Keep bottom-axis
+  treatment consistent across the Confidence Eye row-display family unless a
+  specific figure has a stronger reason to omit it.
+- Trigger: the repair discussion exposed a broader failure mode: turning one
+  good figure into a universal rule. Use case-by-case visual grammar. Raw-data
+  figures, fitted model estimates, row-wise interval summaries, simulation
+  summaries, and support-boundary strips need different geometry, but each
+  family should keep consistent colours, labels, uncertainty provenance, and
+  axis language.
 
 ## 2026-05-20 - Installed-Layout Runner Tests
 

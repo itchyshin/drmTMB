@@ -206,6 +206,27 @@ interval, a 95% binomial MCSE interval for empirical coverage, or an RMSE MCSE
 interval. A visual interval without provenance is a misleading figure even when
 the geometry is aligned.
 
+The gallery should not apply one visual rule to every figure. Start from the
+figure's purpose and data grain. Raw observations are warranted, and sometimes
+preferred, when they help the reader see sample support, spread, outliers,
+replicate structure, or the biological pattern behind the fitted summary. When
+the figure makes an inferential claim, pair the estimate with uncertainty if the
+model, extractor, or simulation artifact provides it. Slopes can use fitted
+lines with confidence bands, cell means and contrasts can use points with
+intervals, simulation summaries can use replicate dots plus aggregate MCSE
+intervals, and selected row-wise inference summaries can use Confidence Eyes.
+If the artifact does not provide an interval, keep the estimate point-only and
+label the support boundary instead of inventing uncertainty.
+
+Consistency still matters, but it should be class-specific rather than global.
+Use consistent colours, labels, interval provenance, and axis language within a
+figure family, then let the purpose choose the geometry. Pat and Darwin should
+protect raw-data displays when those data are the evidence a reader needs.
+Fisher should check whether the uncertainty source matches the claim and data
+grain. Florence should judge whether the rendered result has a clear visual
+hierarchy. Rose should catch repeated drift, such as applying Confidence Eyes to
+line plots or hiding available raw observations behind a summary-only display.
+
 For coefficient and correlation summaries, the gallery should use Confidence
 Eye displays when an interval is central to inference. [Barrowman and Myers
 (2003)](https://doi.org/10.1198/0003130032369) introduced raindrop plots to
@@ -219,11 +240,19 @@ because readers often misread confidence intervals and weights. [Xie and Singh
 [`pvaluefunctions`](https://cran.r-universe.dev/pvaluefunctions/doc/manual.html),
 and the [`orchaRd` ecosystem](https://zenodo.org/records/7928743) are useful
 related examples of moving beyond bare intervals. In `drmTMB` prose, a
-Confidence Eye means a frequentist confidence or compatibility display, not a
-posterior density, unless the plotted object is genuinely Bayesian. Simulation
-coverage and power plots do not need Confidence Eyes by default; they should
-first show replicate or replicate-block data, aggregate proportions, and named
-MCSE intervals.
+Confidence Eye means a frequentist confidence display, not a posterior density,
+unless the plotted object is genuinely Bayesian. The default grammar is a pale
+finite confidence region plus a hollow point-estimate circle, with a dotted
+zero reference line where zero is a meaningful null value. The default eye is a
+slim lens: use the same half-height across related row displays so one figure
+does not look like a different visual grammar from the next. It does not add
+filled points, outlines, CI bars, or in-plot titles/subtitles. Keep the bottom
+axis when it helps readers anchor the displayed scale, and keep that choice
+consistent within a row-display family. Subtle row guides are acceptable when
+they read as lane guides rather than interval bars. Simulation coverage and
+power plots do not need Confidence Eyes by default; they should first show
+replicate or replicate-block data, aggregate proportions, and named MCSE
+intervals.
 
 Shared coefficient-scale Confidence Eye rows need the same discipline as any
 coefficient plot. They are visually comparative only when the predictors are
@@ -675,19 +704,26 @@ drawable intervals only when those provenance columns name a real interval
 source, matching the rule already used by `plot_parameter_surface()`.
 
 Slice 299 reopens the gallery for visual repair after reader-facing QA. The
-inference panels now use Confidence Eye displays: pale 95% confidence or
-compatibility regions with hollow point-estimate circles. The visual idea is
-related to raindrop plots, but the default `drmTMB` grammar is deliberately
-frequentist and quiet: the eye plus estimate carries the primary message, with
-a no-effect reference line only where it aids interpretation. Correlation
-summaries use the same idea on Fisher's `z` scale so `rho12`, ordinary group
-correlations, and structured correlation rows do not look like flat error-bar
-intervals with equal plausibility from end to end. Optional outlines or
-interval bars are allowed as print-accessibility, diagnostic, or
-reader-preference variants, but they should not be required for the default
-teaching figure. The simulation bias display uses raincloud-style replicate
-estimates plus mean/MCSE intervals because `beta_x`, `sigma`, `sd_intercept`,
-and `rho12` are categorical estimands, not an ordered trajectory. Simulation
+inference panels now use Confidence Eye displays: pale finite 95% confidence
+regions with hollow point-estimate circles. The visual idea is related to
+raindrop plots, but the default `drmTMB` grammar is deliberately frequentist
+and quiet: the eye plus estimate carries the primary message, and a dotted zero
+reference line is mandatory where zero is a meaningful null value. Default
+examples should not carry filled points, outlines, CI bars, or titles/subtitles
+inside the plotting panel. The default rendered lens should stay slim and
+consistent across coefficient, SD, and correlation rows; in the gallery, these
+row displays also keep a bottom axis as the common scale anchor. Subtle row
+guides are acceptable when they help row tracking and do not look like CI
+segments. SD summaries use log-SD scale for
+the eye shape and report back on the SD scale; correlation
+summaries use Fisher's `z` scale so `rho12`, ordinary group correlations, and
+structured correlation rows do not look like flat error-bar intervals with
+equal plausibility from end to end. Optional outlines or interval bars are
+allowed as print-accessibility, diagnostic, or reader-preference variants, but
+they should not be required for the default teaching figure. The simulation bias display
+uses raincloud-style replicate estimates plus mean/MCSE intervals because
+`beta_x`, `sigma`, `sd_intercept`, and `rho12` are categorical estimands, not an
+ordered trajectory. Simulation
 coverage/power displays first show replicate-block proportions plus aggregate
 binomial MCSE intervals; they do not require Confidence Eyes unless a later
 report has a specific reason to add them. Gallery recipes also share palettes
@@ -747,9 +783,11 @@ The helper should satisfy these rules:
   `interval_source`;
 - add a display status such as `not_requested` when a plain `corpairs(fit)`
   table lacks interval columns, instead of implying that intervals were checked;
-- draw point estimates for all rows but draw interval segments only when
-  `conf.low` and `conf.high` are finite and the interval provenance columns name
-  a supported interval source;
+- draw hollow point estimates for all rows but draw default Confidence Eye
+  regions only when `conf.low` and `conf.high` are finite and the interval
+  provenance columns name a supported interval source;
+- keep conventional CI segments available only as an explicit optional
+  `interval_style = "line"` variant;
 - label or facet by `level` so residual, ordinary group-level, phylogenetic,
   spatial, and future study-level correlations are not visually collapsed;
 - keep derived q=4 or covariance-product rows visibly separate from direct

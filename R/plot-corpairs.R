@@ -9,9 +9,10 @@
 #' finite `conf.low` and `conf.high` bounds plus interval provenance columns
 #' that describe a real interval, the default draws a pale Confidence Eye for
 #' those rows only, using a guarded Fisher-z/atanh correlation scale to shape
-#' the eye. Rows without supported bounds remain visible as point estimates and
-#' keep their display interval status attached to the plotted data. Set
-#' `interval_style = "line"` for a conventional CI-line variant.
+#' the eye. The zero-correlation reference is dotted. Rows without supported
+#' bounds remain visible as point estimates and keep their display interval
+#' status attached to the plotted data. Set `interval_style = "line"` for a
+#' conventional CI-line variant.
 #'
 #' @param data A data frame returned by [corpairs()], or a compatible table with
 #'   columns `level`, `class`, `parameter`, `estimate`, and `modelled`.
@@ -97,7 +98,7 @@ plot_corpairs <- function(
   out <- ggplot2::ggplot(data, mapping) +
     ggplot2::geom_vline(
       xintercept = 0,
-      linetype = "dashed",
+      linetype = "dotted",
       colour = "grey70",
       linewidth = 0.3
     )
@@ -143,8 +144,8 @@ plot_corpairs <- function(
     ggplot2::geom_point(
       shape = 21,
       fill = "white",
-      size = 2.4,
-      stroke = 0.9,
+      size = 3.1,
+      stroke = 1.1,
       na.rm = TRUE
     ) +
     ggplot2::scale_y_continuous(
@@ -313,7 +314,7 @@ plot_corpairs_eye_mapping <- function(has_fill) {
   do.call(ggplot2::aes, args)
 }
 
-plot_corpairs_eye_data <- function(data, level = 0.95, n = 160, height = 0.26) {
+plot_corpairs_eye_data <- function(data, level = 0.95, n = 160, height = 0.17) {
   if (nrow(data) == 0L) {
     return(data.frame())
   }
@@ -339,8 +340,9 @@ plot_corpairs_eye_row <- function(row, level, n, height) {
     z_estimate + sqrt(2 * cutoff) * z_se,
     length.out = n
   )
-  compatibility <- pmax(cutoff - 0.5 * ((z - z_estimate) / z_se)^2, 0)
-  half_height <- height * compatibility / cutoff
+  half_height <- height *
+    pmax(cutoff - 0.5 * ((z - z_estimate) / z_se)^2, 0) /
+    cutoff
   out <- data.frame(
     .drmTMB_eye_x = tanh(z),
     .drmTMB_eye_ymin = row$.drmTMB_pair_y - half_height,
