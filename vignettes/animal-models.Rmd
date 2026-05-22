@@ -64,6 +64,20 @@ latent animal-model correlation among individual location deviations. `rho12()`
 reports the residual correlation between the two responses after the fixed
 effects and random effects have been included.
 
+For reports, do not leave the q=2 animal correlation as a lone dot when interval
+evidence is available. Request interval provenance first, then plot the
+explicit table:
+
+```r
+animal_pairs <- corpairs(fit_animal_q2, level = "animal", conf.int = TRUE)
+plot_corpairs(animal_pairs)
+```
+
+That plot should be read as an animal-layer correlation display, not as a
+residual `rho12` plot. The q=4 rows below are different: current q=4 animal
+correlations are derived rows, so their tables may expose point estimates and
+`conf.status` without profile Confidence Eyes.
+
 When the biological question is whether additive individual deviations in means
 and residual scales covary, use the same labelled animal term in all four
 bivariate endpoint formulas:

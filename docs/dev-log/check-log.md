@@ -2,6 +2,80 @@
 
 Record meaningful development checks here.
 
+## 2026-05-22 - Rendered Figure QA Slices 6-10
+
+Goal: continue the figure QA sequence after PR #298 by improving the next
+structural-correlation displays and the core `plot_corpairs()` reference
+example.
+
+Team roles:
+
+- Ada merged PR #298, reset to a fresh branch, and kept this slice to rendered
+  structural-correlation displays plus the reference example.
+- Florence inspected the rendered animal, `relmat()`, `plot_corpairs()`, and
+  `plot_parameter_surface()` PNGs.
+- Fisher checked that direct q=2 correlation rows show profile intervals when
+  available, while q=4 derived rows do not claim unsupported intervals.
+- Pat checked that the leaf pages tell applied readers what to request before
+  plotting.
+- Darwin checked that animal-model and known-matrix layers stay separate from
+  residual `rho12`.
+- Boole checked that examples use public `corpairs(..., conf.int = TRUE)` and
+  `plot_corpairs()` syntax.
+- Noether checked that axis and captions name the latent animal or known-matrix
+  correlation scale.
+- Grace rebuilt the target articles and reference pages.
+- Rose recorded the one-sided `relmat()` profile failure mode and the
+  reference-page alt-text limitation.
+
+Files changed:
+
+- `R/plot-corpairs.R`
+- `man/plot_corpairs.Rd`
+- `vignettes/phylogenetic-spatial.Rmd`
+- `vignettes/animal-models.Rmd`
+- `vignettes/relmat-known-matrices.Rmd`
+- `docs/dev-log/audits/2026-05-22-rendered-figure-qa-slices-6-10.md`
+- `docs/dev-log/after-task/2026-05-22-rendered-figure-qa-slices-6-10.md`
+- `docs/dev-log/check-log.md`
+
+Checks run:
+
+```sh
+gh pr merge 298 --squash --delete-branch --subject "Add article figure captions and QA notes (#298)"
+git switch main
+git pull --ff-only
+git switch -c codex/rendered-figure-qa-6-10
+air format R/plot-corpairs.R vignettes/phylogenetic-spatial.Rmd vignettes/animal-models.Rmd vignettes/relmat-known-matrices.Rmd
+Rscript -e "devtools::document()"
+Rscript -e "devtools::load_all(quiet = TRUE); for (article in c('phylogenetic-spatial','animal-models','relmat-known-matrices')) pkgdown::build_article(article, new_process = FALSE, quiet = TRUE); pkgdown::build_reference(topics = c('plot_corpairs','predict_parameters','plot_parameter_surface'), lazy = TRUE)"
+Rscript -e "devtools::test(filter = 'plot-corpairs')"
+Rscript -e "pkgdown::check_pkgdown()"
+git diff --check
+```
+
+Rendered-page checks found 2 content images, 0 missing alt texts, and 2
+captions in `phylogenetic-spatial`. The two new images are profile Confidence
+Eyes for q=2 animal and `relmat()` latent correlation rows. The
+`animal-models` and `relmat-known-matrices` leaf pages remain figureless route
+pages, but they now give the interval-aware plotting pattern. The
+`plot_corpairs()` reference example now renders all four example rows with
+Confidence Eyes.
+
+Outcomes:
+
+- PR #298 was merged before this work, so this branch starts from current
+  `main`.
+- The structural detail page now has real rendered q=2 animal and `relmat()`
+  Confidence Eyes with captions and alt text.
+- The `plot_corpairs()` reference example no longer teaches a point-only
+  residual row when interval evidence is available.
+- A small `relmat()` profile-boundary failure mode was caught during visual
+  inspection and fixed by using a deterministic example seed with finite
+  profile bounds.
+- `pkgdown::check_pkgdown()` reported no problems and `git diff --check` was
+  clean.
+
 ## 2026-05-22 - Article Figure QA Slices 3-5
 
 Goal: finish the agreed first five figure-QA steps by merging PR #297, starting

@@ -388,7 +388,7 @@ sampling covariance among
 observations or effect-size estimates.
 
 ```{r}
-animal_example <- simulate_animal_marker_data()
+animal_example <- simulate_animal_marker_data(seed = 1)
 growth <- animal_example$data
 Ainv <- animal_example$Ainv
 
@@ -426,9 +426,34 @@ fit_animal_q2_known <- drmTMB(
   data = growth
 )
 
-corpairs(fit_animal_q2_known, level = "animal")
+animal_q2_pairs <- corpairs(
+  fit_animal_q2_known,
+  level = "animal",
+  conf.int = TRUE,
+  ystep = 0.5,
+  ytol = 2
+)
+animal_q2_pairs
 animal_q2_checks <- check_drm(fit_animal_q2_known)
 animal_q2_checks[grepl("animal|convergence|hessian", animal_q2_checks$check), ]
+```
+
+```{r animal-q2-correlation-eye, fig.width = 6, fig.height = 2.3, fig.cap = "Animal-model q=2 location-location correlation from `corpairs()`; the Confidence Eye is a 95% profile interval on the latent animal-correlation scale.", fig.alt = "Single-row Confidence Eye for the animal-model mean-mean correlation. The horizontal eye spans the 95 percent profile interval, with a hollow point estimate to the right of the dotted zero reference line."}
+if (requireNamespace("ggplot2", quietly = TRUE)) {
+  animal_q2_display <- animal_q2_pairs
+  animal_q2_display$display_label <- "Animal\nmu1-mu2"
+  plot_corpairs(
+    animal_q2_display,
+    colour = NULL,
+    label = "display_label",
+    facet = NULL
+  ) +
+    ggplot2::theme_minimal(base_size = 11) +
+    ggplot2::theme(
+      panel.grid.minor = ggplot2::element_blank(),
+      legend.position = "none"
+    )
+}
 ```
 
 Use `relmat()` when the matrix is not naturally a pedigree, tree, or spatial
@@ -453,12 +478,37 @@ fit_relmat_q2_known <- drmTMB(
   data = growth
 )
 
-corpairs(fit_relmat_q2_known, level = "relmat")
+relmat_q2_pairs <- corpairs(
+  fit_relmat_q2_known,
+  level = "relmat",
+  conf.int = TRUE,
+  ystep = 0.5,
+  ytol = 2
+)
+relmat_q2_pairs
 relmat_q2_targets <- profile_targets(fit_relmat_q2_known)
 relmat_q2_targets[
   grepl("relmat", relmat_q2_targets$parm),
   c("parm", "target_type", "profile_ready")
 ]
+```
+
+```{r relmat-q2-correlation-eye, fig.width = 6, fig.height = 2.3, fig.cap = "`relmat()` q=2 location-location correlation from `corpairs()`; the Confidence Eye is a 95% profile interval on the latent known-matrix correlation scale.", fig.alt = "Single-row Confidence Eye for the known-matrix relmat mean-mean correlation. The horizontal eye spans the 95 percent profile interval, with a hollow point estimate to the right of the dotted zero reference line."}
+if (requireNamespace("ggplot2", quietly = TRUE)) {
+  relmat_q2_display <- relmat_q2_pairs
+  relmat_q2_display$display_label <- "relmat\nmu1-mu2"
+  plot_corpairs(
+    relmat_q2_display,
+    colour = NULL,
+    label = "display_label",
+    facet = NULL
+  ) +
+    ggplot2::theme_minimal(base_size = 11) +
+    ggplot2::theme(
+      panel.grid.minor = ggplot2::element_blank(),
+      legend.position = "none"
+    )
+}
 ```
 
 When the relationship matrix is unavailable, fit an ordinary grouped Gaussian
