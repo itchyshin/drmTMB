@@ -31,13 +31,26 @@ test_that("plot_corpairs() returns a ggplot for corpairs tables", {
   expect_match(out$data$.drmTMB_pair_label[[1L]], "residual")
   expect_length(out$layers, 3L)
   built <- ggplot2::ggplot_build(out)
-  expect_equal(nrow(built$data[[2L]]), 2L)
+  expect_gt(nrow(built$data[[2L]]), 2L)
+  expect_equal(length(unique(built$data[[2L]]$group)), 2L)
   expect_equal(nrow(built$data[[3L]]), 3L)
 
   unsupported <- pairs
   unsupported$interval_source <- "not_available"
   out_no_interval <- plot_corpairs(unsupported)
   expect_length(out_no_interval$layers, 2L)
+})
+
+test_that("plot_corpairs() keeps conventional CI lines optional", {
+  testthat::skip_if_not_installed("ggplot2")
+  pairs <- new_plot_corpairs_table()
+
+  out <- plot_corpairs(pairs, interval_style = "line")
+
+  expect_s3_class(out, "ggplot")
+  built <- ggplot2::ggplot_build(out)
+  expect_equal(nrow(built$data[[2L]]), 2L)
+  expect_equal(nrow(built$data[[3L]]), 3L)
 })
 
 test_that("plot_corpairs() can facet correlation rows", {
@@ -65,7 +78,8 @@ test_that("plot_corpairs() accepts concise publication labels", {
   expect_s3_class(out, "ggplot")
   expect_equal(out$data$.drmTMB_pair_label, pairs$display)
   built <- ggplot2::ggplot_build(out)
-  expect_equal(nrow(built$data[[2L]]), 2L)
+  expect_gt(nrow(built$data[[2L]]), 2L)
+  expect_equal(length(unique(built$data[[2L]]$group)), 2L)
   expect_equal(nrow(built$data[[3L]]), 3L)
 })
 
@@ -128,6 +142,10 @@ test_that("plot_corpairs() validates inputs", {
   expect_error(
     plot_corpairs(pairs, interval = NA),
     "TRUE or FALSE"
+  )
+  expect_error(
+    plot_corpairs(pairs, interval_style = "bars"),
+    "eye.*line|line.*eye"
   )
   expect_error(
     plot_corpairs(pairs, unknown = TRUE),

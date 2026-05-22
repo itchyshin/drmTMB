@@ -396,26 +396,63 @@ and residual SDs, the fitted residual activity-boldness correlation increased
 with disturbance." That sentence tells the reader which correlation has been
 modelled.
 
-The same response-scale result can be visualised as a `rho12` curve:
+The same response-scale result can be visualised as a `rho12` curve. Here the
+ribbon is a 95% Wald interval from `predict_parameters()`; if an interval
+column is unavailable, the plot should not silently imply uncertainty.
 
-```{r bivariate-coscale-rho12-curve, fig.width = 6, fig.height = 4}
+```{r bivariate-coscale-rho12-curve, fig.width = 6, fig.height = 4, fig.alt = "Line plot of fitted residual rho12 correlation over disturbance with a pale 95 percent Wald confidence ribbon, increasing from negative to positive values and crossing zero near average disturbance."}
 rho_grid <- data.frame(
   food = 0,
   temperature = 0,
   disturbance = seq(-2, 2, length.out = 80)
 )
-rho_grid$rho12 <- rho12(fit_biv, newdata = rho_grid)
-
-plot(
-  rho12 ~ disturbance,
-  data = rho_grid,
-  type = "l",
-  lwd = 2,
-  ylim = c(-1, 1),
-  xlab = "Disturbance",
-  ylab = "Fitted residual correlation (rho12)"
+rho_pred <- predict_parameters(
+  fit_biv,
+  newdata = rho_grid,
+  dpar = "rho12",
+  conf.int = TRUE
 )
-abline(h = 0, lty = 2, col = "grey60")
+rho_grid$rho12 <- rho_pred$estimate
+rho_grid$conf.low <- rho_pred$conf.low
+rho_grid$conf.high <- rho_pred$conf.high
+
+if (requireNamespace("ggplot2", quietly = TRUE)) {
+  ggplot2::ggplot(rho_grid, ggplot2::aes(disturbance, rho12)) +
+    ggplot2::geom_hline(yintercept = 0, linetype = "dashed", colour = "grey60") +
+    ggplot2::geom_ribbon(
+      ggplot2::aes(ymin = conf.low, ymax = conf.high),
+      fill = "#006D77",
+      alpha = 0.18,
+      colour = NA
+    ) +
+    ggplot2::geom_line(linewidth = 0.9, colour = "#006D77") +
+    ggplot2::coord_cartesian(ylim = c(-1, 1)) +
+    ggplot2::labs(
+      x = "Disturbance",
+      y = "Fitted residual correlation (rho12)",
+      title = "Residual coupling changes with disturbance",
+      subtitle = "Ribbon is a 95% Wald interval for fitted rho12"
+    ) +
+    ggplot2::theme_minimal(base_size = 11) +
+    ggplot2::theme(
+      panel.grid.minor = ggplot2::element_blank(),
+      plot.background = ggplot2::element_rect(fill = "white", colour = NA),
+      panel.background = ggplot2::element_rect(fill = "white", colour = NA)
+    )
+} else {
+  old_par <- graphics::par(bg = "white")
+  on.exit(graphics::par(old_par), add = TRUE)
+  plot(
+    rho12 ~ disturbance,
+    data = rho_grid,
+    type = "l",
+    lwd = 2,
+    ylim = c(-1, 1),
+    xlab = "Disturbance",
+    ylab = "Fitted residual correlation (rho12)"
+  )
+  abline(h = 0, lty = 2, col = "grey60")
+}
 ```
 
 In this example, a positive `disturbance` coefficient for `rho12` means that
@@ -587,9 +624,25 @@ The optional plotting helper consumes that explicit table. Faceting by `level`
 keeps the residual `rho12` row visually separate from the group-level
 random-intercept correlation:
 
-```{r bivariate-coscale-group-corpairs-plot, fig.width = 6, fig.height = 4}
+```{r bivariate-coscale-group-corpairs-plot, fig.width = 6.6, fig.height = 3.4, fig.alt = "Point-only plot comparing the residual rho12 correlation with the individual-level mean-mean random-intercept correlation, using compact row labels and hollow point estimates, with no confidence intervals drawn."}
 if (requireNamespace("ggplot2", quietly = TRUE)) {
-  plot_corpairs(pair_table, facet = "level")
+  pair_plot_table <- pair_table
+  pair_plot_table$display_label <- ifelse(
+    pair_plot_table$level == "residual",
+    "Residual rho12",
+    "Individual mean-mean"
+  )
+  plot_corpairs(pair_plot_table, label = "display_label", facet = NULL) +
+    ggplot2::labs(
+      title = "Residual and individual-level correlations are separate",
+      subtitle = "Points are fitted correlations; intervals are not drawn in this quick example",
+      colour = "Layer"
+    ) +
+    ggplot2::theme_minimal(base_size = 11) +
+    ggplot2::theme(
+      panel.grid.minor = ggplot2::element_blank(),
+      legend.position = "bottom"
+    )
 }
 ```
 

@@ -206,10 +206,10 @@ interval, a 95% binomial MCSE interval for empirical coverage, or an RMSE MCSE
 interval. A visual interval without provenance is a misleading figure even when
 the geometry is aligned.
 
-For coefficient and correlation summaries, the gallery should use raindrop-style
-compatibility displays when an interval is central to inference. [Barrowman and
-Myers (2003)](https://doi.org/10.1198/0003130032369) introduced raindrop plots
-to show collections of likelihoods or distributions without making the interval
+For coefficient and correlation summaries, the gallery should use Confidence
+Eye displays when an interval is central to inference. [Barrowman and Myers
+(2003)](https://doi.org/10.1198/0003130032369) introduced raindrop plots to
+show collections of likelihoods or distributions without making the interval
 look equally plausible from end to end. [Schild and Voracek
 (2014)](https://doi.org/10.1002/jrsm.1125) later evaluated rainforest plots,
 which combine forest plots with raindrop likelihood shapes and density-strip
@@ -218,14 +218,14 @@ because readers often misread confidence intervals and weights. [Xie and Singh
 (2013)](https://ideas.repec.org/a/bla/istatr/v81y2013i1p3-39.html),
 [`pvaluefunctions`](https://cran.r-universe.dev/pvaluefunctions/doc/manual.html),
 and the [`orchaRd` ecosystem](https://zenodo.org/records/7928743) are useful
-related examples of moving beyond bare intervals. In `drmTMB` prose, call these
-frequentist raindrop, confidence-distribution, or compatibility displays, never
-posterior draws, unless the plotted object is genuinely Bayesian. Simulation
-coverage and power plots do not need raindrops by default; they should first
-show replicate or replicate-block data, aggregate proportions, and named MCSE
-intervals.
+related examples of moving beyond bare intervals. In `drmTMB` prose, a
+Confidence Eye means a frequentist confidence or compatibility display, not a
+posterior density, unless the plotted object is genuinely Bayesian. Simulation
+coverage and power plots do not need Confidence Eyes by default; they should
+first show replicate or replicate-block data, aggregate proportions, and named
+MCSE intervals.
 
-Shared coefficient-scale raindrop rows need the same discipline as any
+Shared coefficient-scale Confidence Eye rows need the same discipline as any
 coefficient plot. They are visually comparative only when the predictors are
 standardized, share a meaningful unit, or have been converted to named
 contrasts such as "effect per 1 SD". If rows involve different predictors,
@@ -675,20 +675,25 @@ drawable intervals only when those provenance columns name a real interval
 source, matching the rule already used by `plot_parameter_surface()`.
 
 Slice 299 reopens the gallery for visual repair after reader-facing QA. The
-inference panels now use raindrop-style compatibility displays with the
-no-effect line, estimate, and central 66% and 95% intervals visible in the same
-facet. Correlation summaries use the same idea on Fisher's `z` scale so `rho12`,
-ordinary group correlations, and phylogenetic correlations do not look like
-flat error-bar intervals with equal plausibility from end to end. The simulation
-bias display uses raincloud-style replicate estimates plus mean/MCSE intervals
-because `beta_x`, `sigma`, `sd_intercept`, and `rho12` are categorical
-estimands, not an ordered trajectory. Simulation coverage/power displays first
-show replicate-block proportions plus aggregate binomial MCSE intervals; they
-do not require raindrops unless a later report has a specific reason to add
-them. Gallery recipes also share palettes more consistently, recolour discrete
-and empirical summaries that had fallen back to default black, and improve
-support-strip label contrast so colour carries status without making the text
-harder to read.
+inference panels now use Confidence Eye displays: pale 95% confidence or
+compatibility regions with hollow point-estimate circles. The visual idea is
+related to raindrop plots, but the default `drmTMB` grammar is deliberately
+frequentist and quiet: the eye plus estimate carries the primary message, with
+a no-effect reference line only where it aids interpretation. Correlation
+summaries use the same idea on Fisher's `z` scale so `rho12`, ordinary group
+correlations, and structured correlation rows do not look like flat error-bar
+intervals with equal plausibility from end to end. Optional outlines or
+interval bars are allowed as print-accessibility, diagnostic, or
+reader-preference variants, but they should not be required for the default
+teaching figure. The simulation bias display uses raincloud-style replicate
+estimates plus mean/MCSE intervals because `beta_x`, `sigma`, `sd_intercept`,
+and `rho12` are categorical estimands, not an ordered trajectory. Simulation
+coverage/power displays first show replicate-block proportions plus aggregate
+binomial MCSE intervals; they do not require Confidence Eyes unless a later
+report has a specific reason to add them. Gallery recipes also share palettes
+more consistently, recolour discrete and empirical summaries that had fallen
+back to default black, and improve support-strip label contrast so colour
+carries status without making the text harder to read.
 
 Slice 300 carries that simulation display rule into the Simulation & Comparison
 article. Bias panels should show replicate-level errors, not only aggregate
@@ -764,13 +769,15 @@ consumes a `predict_parameters()` table, maps one explicit x-axis column to
 or slopes.
 
 Slice 113 implements `plot_corpairs()` after the Slice 112 preflight. It
-consumes a `corpairs()` table, draws one point per correlation row, adds
-interval segments only for rows with finite `conf.low` and `conf.high` bounds
-whose `conf.status` and `interval_source` mark a real interval, and keeps
-correlation `level`, `class`, display interval status, and interval source
-attached to the plotted data. It does not compute correlation pairs, run profile
-intervals, or collapse residual, ordinary group-level, phylogenetic, spatial,
-and future study-level correlations into one unnamed layer.
+consumes a `corpairs()` table, draws one hollow point per correlation row, and
+uses Confidence Eye regions by default for rows with finite `conf.low` and
+`conf.high` bounds whose `conf.status` and `interval_source` mark a real
+interval. Conventional CI segments are an optional `interval_style = "line"`
+variant, not the default. The helper keeps correlation `level`, `class`,
+display interval status, and interval source attached to the plotted data. It
+does not compute correlation pairs, run profile intervals, or collapse
+residual, ordinary group-level, phylogenetic, spatial, and future study-level
+correlations into one unnamed layer.
 
 Slice 114 adds optional faceting to `plot_corpairs()`. The default remains a
 single panel with row labels that include `level`, `class`, and `parameter`;

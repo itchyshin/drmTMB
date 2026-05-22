@@ -10,6 +10,7 @@ plot_corpairs(
   facet = NULL,
   label = NULL,
   interval = TRUE,
+  interval_style = c("eye", "line"),
   ...
 )
 }
@@ -33,6 +34,10 @@ from \code{level}, \code{class}, and \code{parameter}.}
 \item{interval}{Logical; draw finite \code{conf.low}/\code{conf.high} intervals when
 those columns are present.}
 
+\item{interval_style}{Character scalar. \code{"eye"} draws the default Confidence
+Eye region plus hollow point estimate. \code{"line"} draws conventional interval
+segments. Ignored when \code{interval = FALSE}.}
+
 \item{...}{Reserved for future options.}
 }
 \value{
@@ -45,11 +50,13 @@ a correlation layer. Build the table first with \code{\link[=corpairs]{corpairs(
 table to this helper.
 }
 \details{
-The helper draws one point per correlation row. If the table contains finite
-\code{conf.low} and \code{conf.high} bounds plus interval provenance columns that
-describe a real interval, it draws interval segments for those rows only. Rows
-without supported bounds remain visible as point estimates and keep their
-display interval status attached to the plotted data.
+The helper draws one hollow point per correlation row. If the table contains
+finite \code{conf.low} and \code{conf.high} bounds plus interval provenance columns
+that describe a real interval, the default draws a pale Confidence Eye for
+those rows only, using a guarded Fisher-z/atanh correlation scale to shape
+the eye. Rows without supported bounds remain visible as point estimates and
+keep their display interval status attached to the plotted data. Set
+\code{interval_style = "line"} for a conventional CI-line variant.
 }
 \examples{
 pairs <- data.frame(

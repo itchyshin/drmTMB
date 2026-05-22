@@ -162,6 +162,29 @@ issues, or pull requests.
   coloured duplicate habitat rows even though the model was `sigma ~
   temperature`.
 
+## 2026-05-22 - Confidence Eye Default
+
+- Improvement implemented: Confidence Eye plots are the default visual grammar
+  for finite-interval compatibility displays that need more than a flat CI bar.
+  The default should be a pale 95% confidence or compatibility region plus a
+  hollow point-estimate circle. It does not require an outer outline or a
+  separate CI bar, but optional CI lines or caps are acceptable for
+  print-accessibility, diagnostics, or reader preference when they do not
+  crowd the main estimate-plus-uncertainty message.
+- Improvement implemented: Fisher should keep the statistical provenance
+  explicit: Wald intervals use the model scale or response scale stated in the
+  figure, correlations use a Fisher-z/`atanh` scale when finite bounds are
+  transformed, and the display is not a Bayesian posterior density.
+- Trigger: the first figure-gallery Confidence Eye pass showed that adding
+  bars and outlines by default made the display less memorable than the
+  user-facing idea needed. The later failed render with duplicated axis labels
+  showed that figure code is not evidence; every changed figure needs direct
+  rendered-image inspection before prose is rewritten.
+- Trigger: the follow-up correction briefly chased the wrong figure chunk. For
+  figure QA, the active target must be named by rendered image path, chunk name,
+  and title before edits begin, so Ada, Boole, Noether, Fisher, Pat, Grace,
+  Florence, and Rose are judging the same artifact.
+
 ## 2026-05-20 - Installed-Layout Runner Tests
 
 - Improvement implemented: tests for `inst/` runner scripts must exercise the

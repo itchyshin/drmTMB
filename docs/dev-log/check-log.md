@@ -2,6 +2,80 @@
 
 Record meaningful development checks here.
 
+## 2026-05-22 - Confidence Eye Correlation Plot Repair
+
+Goal: repair the rejected Confidence Eye figure work by fixing the actual
+correlation-row display and the exported `plot_corpairs()` helper, so the
+default visual grammar is a pale finite confidence region plus a hollow point
+estimate, with conventional CI lines available only as an optional variant.
+
+Team roles:
+
+- Ada re-scoped after the wrong figure was being discussed and named the exact
+  rendered target, chunk, and helper before editing further.
+- Boole checked the `ggplot2` data mapping, including explicit ribbon grouping
+  and the effect of switching `plot_corpairs()` to numeric y positions.
+- Noether checked that correlation rows use the guarded Fisher-z/atanh scale
+  for the eye shape and return to the correlation scale on the x-axis.
+- Fisher kept interval provenance explicit: finite bounds with supported
+  `conf.status` and `interval_source` get eyes; unsupported rows remain
+  point-only.
+- Pat checked that the rendered figure no longer asks users to decode
+  duplicated labels or internal helper history.
+- Florence checked the final rendered target for the desired visual grammar:
+  pale confidence regions, hollow circles, no default CI bars, and no outer
+  eye outlines.
+- Grace rebuilt the reference page, affected articles, full pkgdown site, and
+  ran focused tests.
+- Rose recorded the process failure: figure QA must name the rendered image
+  path, chunk name, and title before the team starts editing or reviewing.
+
+Files changed:
+
+- `R/plot-corpairs.R`
+- `tests/testthat/test-plot-corpairs.R`
+- `man/plot_corpairs.Rd`
+- `vignettes/figure-gallery.Rmd`
+- `vignettes/bivariate-coscale.Rmd`
+- `vignettes/location-scale.Rmd`
+- `NEWS.md`
+- `docs/design/39-visualization-grammar.md`
+- `docs/dev-log/audits/2026-05-22-rendered-article-checklist.md`
+- `docs/dev-log/team-improvements.md`
+- `docs/dev-log/figure-audits/2026-05-22-article-figures/README.md`
+
+Checks run:
+
+```sh
+air format R/plot-corpairs.R tests/testthat/test-plot-corpairs.R vignettes/figure-gallery.Rmd NEWS.md docs/design/39-visualization-grammar.md docs/dev-log/team-improvements.md docs/dev-log/figure-audits/2026-05-22-article-figures/README.md
+Rscript -e "devtools::document()"
+Rscript -e "devtools::test(filter = 'plot-corpairs', reporter = 'summary')"
+Rscript -e "devtools::load_all(quiet = TRUE); pkgdown::build_reference(topics = 'plot_corpairs', lazy = FALSE, preview = FALSE); pkgdown::build_article('figure-gallery', new_process = FALSE, quiet = TRUE)"
+Rscript -e "devtools::load_all(quiet = TRUE); pkgdown::build_article('bivariate-coscale', new_process = FALSE, quiet = TRUE); pkgdown::build_article('location-scale', new_process = FALSE, quiet = TRUE)"
+Rscript -e "devtools::test(filter = 'plot-corpairs|corpairs|predict-parameters', reporter = 'summary')"
+git diff --check
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "pkgdown::build_site()"
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "devtools::test(reporter = 'summary')"
+```
+
+Outcomes:
+
+- `plot_corpairs()` now defaults to Confidence Eye regions for finite,
+  provenance-supported correlation intervals and hollow point estimates for all
+  rows.
+- Conventional CI segments remain available through
+  `interval_style = "line"`; they are no longer the default.
+- The figure-gallery correlation-row display now matches the intended design:
+  residual, group, phylogenetic, spatial, animal, and `relmat()` rows use pale
+  confidence regions and hollow circles without default CI bars.
+- The bivariate-coscale quick `corpairs()` plot now relies on the helper's
+  hollow point estimates instead of overlaying a second point layer.
+- Focused `plot-corpairs`, `corpairs`, and `predict-parameters` tests passed.
+- Full pkgdown build and `pkgdown::check_pkgdown()` passed.
+- Full `devtools::test(reporter = "summary")` passed.
+
 ## 2026-05-22 - Rendered Article Checklist And Start Here Audit
 
 Goal: begin the article audit sweep proper by recording a rendered-page
