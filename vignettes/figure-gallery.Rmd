@@ -588,7 +588,7 @@ figures. Residual `sigma` is the observation-level standard deviation. A
 group-level SD, such as the SD of site intercepts or temperature slopes, is
 among-group variation in a fitted random effect.
 
-```{r random-effect-variance-components, fig.alt="Dot plot comparing residual sigma, among-site intercept SD, and among-site temperature-slope SD on their fitted response-scale units."}
+```{r random-effect-variance-components, fig.height=2.6, fig.alt="Dot plot comparing residual sigma, among-site intercept SD, and among-site temperature-slope SD on their fitted response-scale units."}
 set.seed(2621)
 n_site <- 24
 n_site_obs <- 6
@@ -1069,7 +1069,7 @@ For a factor predictor, the same plotting helper uses interval bars rather than
 ribbons. This is useful for compact tutorial figures and estimated marginal
 comparisons.
 
-```{r discrete-comparison, fig.height=3.1, fig.alt="Compact horizontal point interval plot comparing expected growth between reef and kelp habitats at average temperature."}
+```{r discrete-comparison, fig.height=2.45, fig.alt="Compact horizontal point interval plot comparing expected growth between reef and kelp habitats at average temperature."}
 habitat_grid <- data.frame(
   temperature = 0,
   habitat = factor(c("reef", "kelp"), levels = levels(fish$habitat))
@@ -1094,10 +1094,10 @@ ggplot(pred_habitat, aes(estimate, habitat, colour = habitat)
     subtitle = "Intervals are Wald intervals from predict_parameters()",
     x = "Expected growth",
     y = NULL,
-    colour = "Habitat"
+    colour = NULL
   ) +
   theme_drmtmb_gallery() +
-  theme(legend.position = "bottom")
+  guides(colour = "none")
 ```
 
 ## Categorical by categorical interaction
@@ -1187,7 +1187,7 @@ figures. The same rule applies: keep the target and conditioning values
 visible. These displays are `mu` summaries, not `sigma`, fitted-response,
 random-effect, or bivariate summaries.
 
-```{r emmeans-display, eval = has_ggplot2 && requireNamespace("emmeans", quietly = TRUE), fig.height=3.1, fig.alt="Compact horizontal point interval plot of estimated marginal mean growth for reef and kelp habitats conditioned at temperature zero."}
+```{r emmeans-display, eval = has_ggplot2 && requireNamespace("emmeans", quietly = TRUE), fig.height=2.45, fig.alt="Compact horizontal point interval plot of estimated marginal mean growth for reef and kelp habitats conditioned at temperature zero."}
 emm_habitat <- suppressMessages(
   as.data.frame(
     emmeans::emmeans(
@@ -1211,17 +1211,17 @@ ggplot(emm_habitat, aes(emmean, habitat, colour = habitat)) +
     subtitle = "Supported fixed-effect mu target, conditioned at temperature = 0",
     x = "Expected growth",
     y = NULL,
-    colour = "Habitat"
+    colour = NULL
   ) +
   theme_drmtmb_gallery() +
-  theme(legend.position = "bottom")
+  guides(colour = "none")
 ```
 
 `emmeans` reference grids can also condition on a factor. In the next display,
 the `mu` cell means are grouped by season, so the reader sees the fitted
 habitat contrast inside each season rather than a single averaged contrast.
 
-```{r emmeans-factor-grid, eval = has_ggplot2 && requireNamespace("emmeans", quietly = TRUE), fig.height=3.2, fig.alt="Compact horizontal point interval plot of estimated marginal mean growth for reef and kelp habitats shown separately for dry and wet seasons."}
+```{r emmeans-factor-grid, eval = has_ggplot2 && requireNamespace("emmeans", quietly = TRUE), fig.height=2.8, fig.alt="Compact horizontal point interval plot of estimated marginal mean growth for reef and kelp habitats shown separately for dry and wet seasons."}
 emm_season <- suppressMessages(
   as.data.frame(
     emmeans::emmeans(

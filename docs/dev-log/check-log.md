@@ -2,6 +2,51 @@
 
 Record meaningful development checks here.
 
+## 2026-05-21 - Figure Gallery Rendered Pass
+
+Goal: complete the first full rendered pass through `figure-gallery` after the
+gllvmTMB-informed polish, compact the sparse point-interval panels, and record
+which figures still need later Florence redesign.
+
+Team roles:
+
+- Ada kept this to rendered figure polish and audit evidence.
+- Florence inspected the remaining gallery PNGs for visual hierarchy and
+  wasted space.
+- Pat checked whether row labels and legends were doing redundant work.
+- Fisher kept the interval and visual-data-grain claims unchanged.
+- Rose recorded watchlist figures rather than pretending the gallery is now
+  publication-polished.
+- Grace re-rendered the article after the compact-panel edits.
+
+Files changed:
+
+- `vignettes/figure-gallery.Rmd`
+- `docs/dev-log/figure-audits/2026-05-21-audit-kickoff/figure-audit.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-21-figure-gallery-rendered-pass.md`
+
+Checks run:
+
+```sh
+Rscript -e "devtools::load_all(quiet = TRUE); pkgdown::build_article('figure-gallery', new_process = FALSE, quiet = TRUE)"
+git diff --check
+Rscript -e "pkgdown::check_pkgdown()"
+```
+
+Outcomes:
+
+- All 21 rendered `figure-gallery` PNGs were inventoried and inspected
+  directly.
+- Sparse point-interval panels are more compact: random-effect SD components,
+  `predict_parameters()` habitat contrasts, the simple `emmeans` display, and
+  the factor-conditioned `emmeans` display no longer waste as much vertical
+  space.
+- Redundant habitat legends were removed where the y-axis row labels already
+  say `reef` and `kelp`.
+- Two status-tile figures remain on the Florence watchlist:
+  `emmeans-boundary-strip` and `correlation-layer-boundaries`.
+
 ## 2026-05-21 - gllvmTMB-Informed Figure Polish
 
 Goal: continue Step 3 of the comprehensive audit by learning from the local
