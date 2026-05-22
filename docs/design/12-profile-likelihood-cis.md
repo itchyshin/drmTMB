@@ -7,18 +7,30 @@ variance and correlation quantities.
 
 ## Current Status
 
-Profile-likelihood confidence intervals are partly implemented. `confint(fit)`
-returns Wald fixed-effect intervals by default, and
+Confidence intervals are implemented in three bounded routes. `confint(fit)`
+uses the fast Wald route by default when `TMB::sdreport()` is available: fixed
+effects, direct constant scale targets, random-effect SDs, random-effect
+correlations, and constant residual `rho12` targets all receive direct
+interval rows when the fitted object exposes the needed TMB parameter and
+covariance. SD Wald intervals are computed on the fitted log-SD scale and then
+exponentiated. Correlation Wald intervals are computed on the fitted
+correlation-link scale, equivalent to a guarded Fisher z/atanh scale, and then
+transformed back to correlations.
+
 `confint(fit, parm = "fixef:mu:x", method = "profile")` profiles explicit
-direct targets. Direct ordinary random-effect SD, ordinary random-effect
-correlation, and phylogenetic `mu` SD targets are transformed back to the
-response scale. Constant `sigma`, `sigma1`, `sigma2`, and residual `rho12` can
-also be profiled as direct response-scale targets with names such as
-`parm = "sigma"` or `parm = "rho12"`. When `sigma`, `sigma1`, `sigma2`, or
-`rho12` depends on predictors, use `confint()` with `method = "profile"` and
-`newdata` to profile each supplied row. The corresponding `rho12` call profiles
-the fixed-effect linear predictor for that row and transforms the interval to
-the response scale. The first direct covariance rows are also profile-ready:
+direct targets when likelihood shape matters. `profile_precision = "fast"`
+sets coarser `TMB::tmbprofile()` controls (`ystep = 0.5`, `ytol = 2`) unless
+the caller supplies those controls directly, so long-running variance-component
+profiles can start with a quick first pass. Direct ordinary random-effect SD,
+ordinary random-effect correlation, and phylogenetic `mu` SD targets are
+transformed back to the response scale. Constant `sigma`, `sigma1`, `sigma2`,
+and residual `rho12` can also be profiled as direct response-scale targets with
+names such as `parm = "sigma"` or `parm = "rho12"`. When `sigma`, `sigma1`,
+`sigma2`, or `rho12` depends on predictors, use `confint()` with
+`method = "profile"` and `newdata` to profile each supplied row. The
+corresponding `rho12` call profiles the fixed-effect linear predictor for that
+row and transforms the interval to the response scale. The first direct
+covariance rows are also profile-ready:
 the univariate and same-response bivariate `mu`/`sigma` random-intercept
 correlations in `corpars$mu_sigma`, the bivariate `mu1`/`mu2` random-intercept
 correlation in `corpars$mu`, and the bivariate `sigma1`/`sigma2`
@@ -31,11 +43,14 @@ direct profile intervals to the same parameter rows shown in
 `summary(fit)$parameters`. `corpairs(conf.int = TRUE)` can attach
 profile-likelihood intervals to fitted correlation-pair rows when their target
 is profile-ready, and it records explicit status values for rows that are not
-ready yet. `profile_targets(fit)` lists fitted-object target names and
+ready yet. `confint(..., method = "bootstrap")` runs parametric simulate/refit
+percentile intervals for selected direct targets and records successful and
+failed refits; `summary()` and `corpairs()` do not yet expose bootstrap
+intervals directly. `profile_targets(fit)` lists fitted-object target names and
 readiness notes; row-specific `newdata` targets are generated at call time.
 Transformed ordinal, modelled group-SD, custom multi-row contrasts, conditional
-random-effect mode intervals, and derived summary profile intervals remain
-planned.
+random-effect mode intervals, and derived summary profile/bootstrap intervals
+remain planned.
 
 ## Phase 6 Slice 51 Target Audit
 
@@ -47,9 +62,9 @@ paths.
 | Surface | Current interval status | Next Phase 6 work |
 | --- | --- | --- |
 | Fixed-effect coefficients | Wald intervals by default when `TMB::sdreport()` is computed; selected direct profile targets are available by explicit `fixef:<dpar>:<coef>` names. | Audit target names across families and improve failure messages for unsupported targets. |
-| Constant residual scale and residual `rho12` | Direct profile intervals are available for constant `sigma`, `sigma1`, `sigma2`, and `rho12`. | Keep response-scale transformations explicit and test boundary behavior. |
+| Constant residual scale and residual `rho12` | Wald intervals are returned by the default direct route, and direct profile intervals are available for constant `sigma`, `sigma1`, `sigma2`, and `rho12`. | Keep response-scale transformations explicit and test boundary behavior. |
 | Predictor-dependent response-scale values | `confint(..., method = "profile", newdata = ...)` profiles supplied rows for scale, residual `rho12`, and fitted q2 `corpair()` values. | Slice 54 adds focused tests for bivariate `sigma1`/`sigma2`, q2 ordinary and phylogenetic `corpair()` rows, and ambiguous `newdata` requests. |
-| Ordinary random-effect SDs and correlations | Selected direct SD and correlation targets are profile-ready and appear in `profile_targets()`. | Align `summary()`, `corpairs()`, and target names for every fitted direct registry row. |
+| Ordinary random-effect SDs and correlations | Selected direct SD and correlation targets receive default Wald intervals, are profile-ready, and appear in `profile_targets()`. | Align `summary()`, `corpairs()`, and target names for every fitted direct registry row. |
 | Phylogenetic SDs and q2 correlations | Implemented direct targets include the first bivariate phylogenetic `mu1`/`mu2` SD and mean-mean correlation path. | Keep phylogenetic targets separate from residual `rho12`; add clearer diagnostics for weak SDs and boundary correlations. |
 | Spatial SDs | The first univariate coordinate-spatial `mu` SD target is direct and profile-ready where the fitted object retained the TMB object. | Add coverage that spatial profile labels and diagnostics stay distinct from phylogenetic labels. |
 | q4 ordinary and phylogenetic correlations | Point estimates are reported. Ordinary q4 and full phylogenetic q4 unstructured-correlation rows remain derived targets and not direct profile-ready; block-diagonal phylogenetic q4 fallback correlations are direct targets, but interval extraction can still fail when the likelihood profile is one-sided, boundary-limited, or numerically unstable. | Preserve explicit unavailable statuses for derived rows, and treat direct fallback rows as fit-specific diagnostics until recovery evidence is broader. |
@@ -68,10 +83,10 @@ continues. This is an inventory update, not new inference code.
 
 | Surface | Public target pattern | Direct profile status | Interval status to show elsewhere |
 | --- | --- | --- | --- |
-| Fixed-effect coefficients | `fixef:<dpar>:<coef>` | Direct and profile-ready when the TMB object is retained. `confint(fit)` still returns Wald intervals by default. | `wald` for default fixed-effect CIs; `profile` when explicitly profiled. |
-| Constant distributional parameters | `sigma`, `sigma1`, `sigma2`, `rho12` | Direct only when the corresponding formula is constant. | `profile_ready` in summaries unless requested; `profile` after a successful profile. |
+| Fixed-effect coefficients | `fixef:<dpar>:<coef>` | Direct and profile-ready when the TMB object is retained. `confint(fit)` returns Wald intervals by default. | `wald` for default fixed-effect CIs; `profile` when explicitly profiled. |
+| Constant distributional parameters | `sigma`, `sigma1`, `sigma2`, `rho12` | Direct only when the corresponding formula is constant. | `wald` by default when the optimized covariance is available; `profile_ready` in summaries unless requested; `profile` after a successful profile. |
 | Predictor-dependent scale or residual correlation rows | Generated by `confint(..., method = "profile", newdata = ...)` for `sigma`, `sigma1`, `sigma2`, and `rho12`. | Row-specific direct linear-combination profiles are generated at call time, not listed as fitted-object targets. | `newdata_required` for fitted surface summaries until a supplied row is profiled. |
-| Ordinary random-effect SDs and correlations | `sd:mu:<term>`, `sd:sigma:<term>`, `cor:mu:<pair>`, `cor:mu_sigma:<pair>` | Direct where the fitted block maps to a stored SD or correlation parameter. | `profile_ready` or `profile`; unavailable rows must explain the missing direct target. |
+| Ordinary random-effect SDs and correlations | `sd:mu:<term>`, `sd:sigma:<term>`, `cor:mu:<pair>`, `cor:mu_sigma:<pair>` | Direct where the fitted block maps to a stored SD or correlation parameter. | `wald` by default when the optimized covariance is available; `profile_ready` or `profile` for selected profile runs; unavailable rows must explain the missing direct target. |
 | Modelled group-level SD surfaces | `fixef:sd(group):<coef>` for the scale-model coefficients; fitted `sd(group)` rows are derived surfaces. | Coefficients are direct; fitted group-SD rows are derived and not direct profile targets. | `wald_unavailable` or `derived_interval_unavailable`, depending on the table. |
 | Bivariate q2 random-effect covariance rows | `sd:mu:mu1:<term>`, `sd:mu:mu2:<term>`, `cor:mu:<pair>`, and matching `sigma1`/`sigma2` rows where implemented. | Direct for the implemented q2 block parameters. | `profile_ready` or `profile` for direct rows. |
 | q4 ordinary or phylogenetic covariance rows | `corpairs()` and covariance-summary rows, but no direct q4 public profile target for derived unstructured correlations yet. | Derived, because reported endpoint correlations are functions of a larger covariance parameterization. | `derived_interval_unavailable`. |
@@ -130,8 +145,9 @@ profile intervals.
 
 Slices 169-176 close the profile/bootstrap revisit before the Gaussian
 random-slope block. The implemented claim is narrower than "all intervals are
-done": direct Wald and profile intervals have a stable status vocabulary, while
-derived q4 and bootstrap intervals remain blocked.
+done": direct Wald, direct profile, and direct `confint()` bootstrap intervals
+have a stable status vocabulary, while derived q4 intervals remain blocked and
+bootstrap intervals are not yet routed through `summary()` or `corpairs()`.
 
 Slice 169 fixes the q4 boundary. Ordinary and phylogenetic q4 endpoint
 correlations are reported from a fitted four-dimensional covariance block. A
@@ -153,7 +169,8 @@ fix-and-refit derived-profile method exists, q4 correlations and covariance
 products must stay `derived_interval_unavailable`.
 
 Slice 170 audits parametric bootstrap feasibility. A safe bootstrap interval
-method needs four pieces before it can become a public `method` value:
+method needs four pieces before it can become a public `confint()` method
+value:
 
 1. a deterministic simulation-and-refit harness that preserves formula
    preprocessing, offsets, known covariance, structured effects, and
@@ -164,22 +181,27 @@ method needs four pieces before it can become a public `method` value:
    failed target extraction;
 4. runtime controls and reproducibility rules for long bootstrap runs.
 
-That audit does not pass yet for a package-level bootstrap API. Therefore
-Slices 171-172 do not add `method = "bootstrap"` or bootstrap interval-status
-columns. Requests for `method = "bootstrap"` or
-`method = "parametric_bootstrap"` now fail before fitting intervals, with a
-message that current methods are `wald` and `profile`.
+The first public route now passes this audit only for selected direct
+`confint()` targets. `confint(..., method = "bootstrap")` simulates from the
+fitted model, refits each simulated response with `se = FALSE` by default,
+extracts the same direct target names, returns percentile intervals, and
+records successful and failed refits. `method = "parametric_bootstrap"` still
+fails before interval work begins. Bootstrap intervals for `summary()`,
+`corpairs()`, prediction tables, derived q4 correlations, repeatability, and
+phylogenetic signal remain separate work.
 
 Slice 173 keeps the evidence target modest. The focused tests for this gate
-check the status vocabulary, unsupported-bootstrap errors, q4 derived status
-rows, and the existing direct profile paths. Coverage simulations comparing
-Wald, profile, and bootstrap intervals remain a later long-run simulation task.
+check the status vocabulary, unsupported-parametric-bootstrap errors, q4
+derived status rows, the existing direct profile paths, and a tiny
+simulate/refit bootstrap smoke path. Coverage simulations comparing Wald,
+profile, and bootstrap intervals remain a later long-run simulation task.
 
 Slice 174 records diagnostics boundaries. Profile rows can report
 `profile.boundary` and `profile.message`; failed profile construction names
 boundary, one-sided, non-monotone, and failed-inner-optimization profiles as
-possible causes. Failed bootstrap is not a table status yet because bootstrap
-requests do not enter an interval table.
+possible causes. Bootstrap rows report `bootstrap.n`, `bootstrap.failed`,
+`bootstrap.parallel`, and `bootstrap.workers` so failed refits remain visible
+beside returned intervals.
 
 Slice 175 centralizes the current interval vocabulary with internal helpers:
 
@@ -188,14 +210,17 @@ interval_status_levels()
 interval_source_levels()
 ```
 
-The current status values are `wald`, `profile`, `profile_ready`,
+The current status values are `wald`, `profile`, `bootstrap`, `profile_ready`,
 `newdata_required`, `derived_interval_unavailable`, `wald_unavailable`,
-`target_unavailable`, `profile_unavailable`, and `not_requested`. The current
-interval-source values are `wald`, `profile`, and `not_available`.
+`bootstrap_unavailable`, `target_unavailable`, `profile_unavailable`, and
+`not_requested`. The current interval-source values are `wald`, `profile`,
+`bootstrap`, and `not_available`.
 
 Slice 176 closes this gate by keeping the next work honest: derived q4
-intervals and bootstrap intervals are not implemented, but their absence is now
-documented, tested at the method boundary, and visible in status-bearing output.
+intervals are not implemented, and bootstrap intervals are still direct
+`confint()` targets rather than a package-wide interval route. Those limits are
+documented, tested at the method boundary, and visible in status-bearing
+output.
 
 The first implementation must therefore start from a stable target inventory,
 not from ad hoc parameter names in the C++ template. Public targets should be
@@ -306,8 +331,9 @@ memory-light fitted-object rows against this contract.
 ## Phase 6 Slice 57 Output Integration
 
 Slice 57 adds the first shared interval-status vocabulary to returned tables.
-Successful `confint()` rows now include `conf.status = "wald"` or
-`conf.status = "profile"` alongside the existing `method` column. When
+Successful `confint()` rows now include `conf.status = "wald"`,
+`conf.status = "profile"`, or `conf.status = "bootstrap"` alongside the
+existing `method` column. When
 `summary(conf.int = TRUE)` attaches interval columns, fixed-effect and parameter
 tables also carry `conf.status` so the reader can distinguish these states:
 
@@ -315,17 +341,22 @@ tables also carry `conf.status` so the reader can distinguish these states:
 | --- | --- |
 | `wald` | A Wald interval was returned for this row. |
 | `profile` | A profile-likelihood interval was returned for this row. |
+| `bootstrap` | A simulate/refit bootstrap interval was returned for this direct `confint()` target. |
 | `profile_ready` | The row is a direct profile target, but this summary call did not request that target. |
 | `newdata_required` | The row is a fitted surface summary; use `confint(..., newdata = ...)` to profile a supplied row. |
 | `derived_interval_unavailable` | The point estimate is derived from multiple quantities and has no validated derived-interval method yet. |
 | `wald_unavailable` | Wald intervals are not reported for this non-fixed-effect summary row, or fixed-effect Wald uncertainty is unavailable because `TMB::sdreport()` was skipped or failed. |
+| `bootstrap_unavailable` | Fewer than two bootstrap refits returned a finite target estimate. |
 | `target_unavailable` | The row is a descriptive range or other summary with no current direct interval target. |
 
-This does not make Wald intervals the default for variance components or
-correlations. It only makes the output tables say why an interval is present or
-absent. `profile_targets()` remains the inventory for deciding which direct
-targets can be passed to `confint(..., method = "profile")`; `corpairs()` keeps
-its existing `conf.status` column for latent and residual correlation-pair rows.
+Wald intervals are now the fast default for direct variance-component and
+correlation targets when the optimized covariance is available. They are a
+screening and reporting route, not proof that boundary or skewed likelihood
+uncertainty is symmetric. `profile_targets()` remains the inventory for
+deciding which direct targets can be passed to
+`confint(..., method = "profile")` or selected for
+`confint(..., method = "bootstrap")`; `corpairs()` keeps its existing
+`conf.status` column for latent and residual correlation-pair rows.
 
 Slice 106 adds local delta-method standard errors to direct response-scale
 `summary()` parameter rows when `TMB::sdreport()` succeeds. These standard
@@ -685,8 +716,10 @@ flagged as near-boundary intervals.
   Detect these cases and fall back to a plotted profile or parametric bootstrap.
 - Constrained inner optimizations can fail near boundaries. Retry with perturbed
   starts before falling back.
-- Wald intervals for variance components and correlations should not be the main
-  default because they are often poor near boundaries.
+- Wald intervals for variance components and correlations are the fast default
+  for direct targets, but near-boundary or skewed likelihoods should be checked
+  with targeted profiles or bootstrap refits before treating the bounds as
+  final scientific evidence.
 
 ## First Implementation Slice
 
@@ -713,18 +746,29 @@ confint(fit, parm = "fixef:mu:x", method = "profile")
 ```
 
 By default, `confint(fit)` returns fast Wald intervals for fixed-effect
-coefficients on their link scales. Profile intervals must be requested by name
-because they can be slow. The profile path wraps `TMB::tmbprofile()` for ready
+coefficients and direct response-scale targets when the optimized covariance is
+available. SD intervals use the fitted log-SD scale and correlations use the
+guarded Fisher-z/atanh scale before being transformed back. Profile intervals
+must be requested by name because they can be slow; for long phylogenetic or
+spatial SD targets, `profile_precision = "fast"` gives a quicker first-pass
+profile by passing coarser `ystep` and `ytol` controls to
+`TMB::tmbprofile()`. The profile path wraps `TMB::tmbprofile()` for ready
 fixed-effect, constant distributional-scale, ordinary random-effect SD,
 ordinary random-effect correlation, phylogenetic `mu` SD, constant residual
 `rho12`, univariate `mu`/`sigma` random-intercept covariance target rows,
 bivariate Gaussian group-level `mu1`/`mu2` random-intercept SD and correlation
 target rows, and row-specific `newdata` profiles for predictor-dependent
 `sigma`, `sigma1`, `sigma2`, `rho12`, and fitted ordinary or phylogenetic q=2
-`corpair()` values. `summary(conf.int = TRUE, method = "profile")` reuses the same direct
-target table when `ci_parm` names one of these rows. Unsupported
+`corpair()` values. `summary(conf.int = TRUE, method = "profile")` reuses the
+same direct target table when `ci_parm` names one of these rows. Unsupported
 ordinal-transform, modelled group-SD, custom multi-row contrast, and
 derived-summary targets still fail before doing expensive optimization.
+
+`confint(..., method = "bootstrap")` is a separate simulate/refit route for
+direct targets. It skips `TMB::sdreport()` during bootstrap refits by default,
+because percentile intervals use refit point estimates. It should be reserved
+for selected targets and audited with its refit counts, not used as a silent
+replacement for the fast Wald table.
 
 The first fitted targets should be direct parameters in this order:
 
@@ -833,6 +877,8 @@ Profile-likelihood support is done only when these checks exist:
 - a small diagnostic grid agrees with the `uniroot()` bounds in at least one
   simple model;
 - unsupported derived targets fail with a clear available-target message;
+- `confint(..., method = "bootstrap")` returns direct-target intervals with
+  successful and failed refit counts;
 - long simulations compare profile, Wald, and bootstrap coverage for a small
   set of variance components.
 
@@ -844,16 +890,19 @@ than a broad interval-engine rewrite. The implemented fitted-model rules are:
 | Target | Current route | Current boundary |
 | --- | --- | --- |
 | Fixed-effect `mu`, `sigma`, `nu`, `zi`, `hu`, and `rho12` coefficients | `confint(fit)` or `summary(fit, conf.int = TRUE)` returns Wald intervals on the fitted link scale when standard errors are available; explicit fixed-effect profile targets are also direct `profile_targets()` rows. | The coefficient interval is not a response-scale fitted-value interval. For Student-t `nu`, `fixef:nu:x` is on the `log(nu - 2)` coefficient scale. |
-| Constant `sigma`, `sigma1`, `sigma2`, and residual `rho12` | `confint(..., method = "profile", parm = "sigma")` or `parm = "rho12"` profiles the direct target and reports response-scale endpoints. | Available only for constant formulae; predictor-dependent rows need `newdata`. |
+| Constant `sigma`, `sigma1`, `sigma2`, and residual `rho12` | `confint(fit)` returns default Wald intervals when the optimized covariance is available; `confint(..., method = "profile", parm = "sigma")` or `parm = "rho12"` profiles the direct target and reports response-scale endpoints. | Available only for constant formulae; predictor-dependent rows need `newdata`. |
 | Predictor-dependent `sigma`, `sigma1`, `sigma2`, and residual `rho12` | `confint(..., method = "profile", parm = <dpar>, newdata = grid)` profiles one supplied row at a time and reports response-scale endpoints. | There is no single fitted-object response-scale target without a named row. |
-| Random-effect SDs and direct q2 correlations | Direct `sd:*` and `cor:*` rows marked `profile_ready` can be profiled and are transformed back to SD or correlation scale. | q4 unstructured endpoint correlations, covariance products, repeatability, and phylogenetic signal remain derived-status rows. |
-| Fisher-z Wald correlation intervals | `phase18_add_correlation_fisher_z_intervals()` is available for Phase 18 simulation and coverage tables when a summary already supplies a correlation estimate and standard error. | This is not a public fitted-model `confint()` default and does not replace profile intervals for fitted correlation inference. |
-| Bootstrap intervals | Requests for `method = "bootstrap"` or `method = "parametric_bootstrap"` error before interval work begins. | A simulation/refit harness, target extractor, failure ledger, and runtime controls are still required before a public bootstrap interval API. |
+| Random-effect SDs and direct q2 correlations | `confint(fit)` returns default Wald intervals when the optimized covariance is available; direct `sd:*` rows use log-SD intervals and direct `cor:*` rows use guarded Fisher-z/atanh intervals. Rows marked `profile_ready` can also be profiled and are transformed back to SD or correlation scale. | q4 unstructured endpoint correlations, covariance products, repeatability, and phylogenetic signal remain derived-status rows. |
+| Fisher-z Wald correlation intervals | Direct fitted-model correlation targets now use the same guarded Fisher-z/atanh principle as the Phase 18 helper, then transform endpoints back to the correlation scale. | This is a fast direct-target route; profile or bootstrap intervals are still preferred when boundary likelihood shape is the scientific concern. |
+| Bootstrap intervals | `confint(..., method = "bootstrap")` simulates, refits, extracts selected direct targets, and returns percentile intervals with refit success/failure counts. `method = "parametric_bootstrap"` still errors before interval work begins. | This is a direct `confint()` route only; `summary()`, `corpairs()`, prediction tables, and derived summaries still need separate bootstrap integration. |
 
 The practical rule for reports is to use Wald intervals for routine fixed-effect
-coefficients, profile intervals for direct fitted SD, scale, and correlation
-targets, and explicit simulation producers when Fisher-z Wald correlation
-coverage is the scientific target. Any variance, covariance, or nonlinear
-summary that combines several fitted quantities must keep
+coefficients and for fast direct scale, SD, and correlation screening; use
+targeted profile intervals when likelihood shape matters, with
+`profile_precision = "fast"` as the quick first-pass setting for long
+variance-component profiles; use bootstrap intervals when refit-based
+uncertainty is worth the runtime and the refit ledger is inspected. Any
+variance, covariance, or nonlinear summary that combines several fitted
+quantities must keep
 `derived_interval_unavailable` until a fix-and-refit or reparameterized derived
 profile method is implemented and tested.

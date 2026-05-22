@@ -198,7 +198,10 @@ test_that("summary() reports derived repeatability and interval status", {
   expect_equal(derived[parm, "conf.status"], "not_requested")
 
   profiled <- summary(fit, conf.int = TRUE, method = "wald")
-  expect_equal(profiled$parameters["sigma", "conf.status"], "wald_unavailable")
+  expect_equal(profiled$parameters["sigma", "conf.status"], "wald")
+  expect_equal(profiled$parameters["sd:mu:(1 | id)", "conf.status"], "wald")
+  expect_true(is.finite(profiled$parameters["sigma", "conf.low"]))
+  expect_true(is.finite(profiled$parameters["sd:mu:(1 | id)", "conf.low"]))
   expect_equal(
     profiled$derived[parm, "conf.status"],
     "derived_interval_unavailable"
@@ -459,7 +462,15 @@ test_that("summary() reports univariate phylogenetic signal as derived", {
   expect_equal(profiled$derived[parm, "quantity"], "phylogenetic_signal")
   expect_equal(profiled$derived[parm, "level"], "phylogenetic")
   expect_equal(profiled$derived[parm, "estimate"], expected, tolerance = 1e-12)
-  expect_equal(profiled$parameters["sigma", "conf.status"], "wald_unavailable")
+  expect_equal(profiled$parameters["sigma", "conf.status"], "wald")
+  expect_equal(
+    profiled$parameters["sd:mu:phylo(1 | species)", "conf.status"],
+    "wald"
+  )
+  expect_true(is.finite(profiled$parameters["sigma", "conf.low"]))
+  expect_true(is.finite(
+    profiled$parameters["sd:mu:phylo(1 | species)", "conf.low"]
+  ))
   expect_equal(
     profiled$derived[parm, "conf.status"],
     "derived_interval_unavailable"
@@ -672,7 +683,7 @@ test_that("summary() intervals handle ordinal fits without parameter rows", {
   expect_equal(nrow(smry_intercept$confint), 0L)
 })
 
-test_that("summary() adds Wald intervals to fixed effects only", {
+test_that("summary() adds Wald intervals to fixed effects and direct parameters", {
   set.seed(20260514)
   dat <- data.frame(y = stats::rnorm(60), x = stats::rnorm(60))
   fit <- drmTMB(bf(y ~ x, sigma ~ 1), family = gaussian(), data = dat)
@@ -683,12 +694,13 @@ test_that("summary() adds Wald intervals to fixed effects only", {
   expect_true(all(is.finite(smry$coefficients$conf.low)))
   expect_true(all(is.finite(smry$coefficients$conf.high)))
   expect_true("conf.low" %in% names(smry$parameters))
-  expect_true(all(is.na(smry$parameters$conf.low)))
+  expect_true(all(is.finite(smry$parameters$conf.low)))
+  expect_true(all(is.finite(smry$parameters$conf.high)))
   expect_equal(
     smry$coefficients$conf.status,
     rep("wald", nrow(smry$coefficients))
   )
-  expect_equal(smry$parameters$conf.status, "wald_unavailable")
+  expect_equal(smry$parameters$conf.status, "wald")
   expect_equal(smry$conf.method, "wald")
 })
 

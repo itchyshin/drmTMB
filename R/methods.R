@@ -2419,31 +2419,40 @@ sigma.drmTMB <- function(object, ...) {
 #' include delta-method standard errors; descriptive fitted ranges and derived
 #' variance ratios do not.
 #' Confidence intervals are opt-in: fast Wald intervals are available for fixed
-#' effects, and slower profile-likelihood intervals are available for selected
-#' direct profile targets. Profile summaries keep Wald intervals for fixed
-#' effects unless fixed-effect profile targets are selected. Interval-aware
-#' tables include `conf.status` so rows without intervals can say whether an
-#' interval was not requested, needs `newdata`, is ready but unselected, or is
-#' currently unavailable. Use `summary(fit, conf.int = TRUE)` for fixed-effect
-#' Wald confidence intervals, and use `method = "profile"` with `ci_parm` for
-#' direct response-scale targets such as `sigma`, `rho12`, or a random-effect
-#' SD.
+#' effects and direct response-scale parameter rows, and slower
+#' profile-likelihood intervals are available for selected direct profile
+#' targets. Profile summaries keep Wald intervals for fixed effects unless
+#' fixed-effect profile targets are selected. Interval-aware tables include
+#' `conf.status` so rows without intervals can say whether an interval was not
+#' requested, needs `newdata`, is ready but unselected, or is currently
+#' unavailable. Use `summary(fit, conf.int = TRUE)` for fixed-effect and direct
+#' parameter Wald confidence intervals, and use `method = "profile"` with
+#' `ci_parm` for direct response-scale targets such as `sigma`, `rho12`, or a
+#' random-effect SD. Correlation Wald intervals use the fitted TMB
+#' correlation-link scale, equivalent to a guarded Fisher z/atanh transform,
+#' before returning lower and upper bounds on the correlation scale.
 #'
 #' @param object A `drmTMB` fit.
 #' @param conf.int Logical; include confidence intervals when `TRUE`.
 #' @param level Confidence level for intervals.
 #' @param method Interval method used when `conf.int = TRUE`: `"wald"` for
-#'   fixed-effect intervals or `"profile"` for profile-likelihood intervals on
-#'   selected direct targets. Parametric bootstrap intervals are not implemented
-#'   yet.
+#'   fast direct intervals or `"profile"` for profile-likelihood intervals on
+#'   selected direct targets. `summary()` does not run bootstrap intervals yet;
+#'   use `confint(..., method = "bootstrap")` for the current direct-target
+#'   bootstrap route.
 #' @param ci_parm Optional character or integer vector selecting confidence
-#'   interval targets. For `method = "wald"`, targets must be fixed effects. For
-#'   `method = "profile"`, targets use the [profile_targets()] namespace, such
-#'   as `"sigma"`, `"rho12"`, `"sd:mu:(1 | id)"`, or
-#'   `"cor:mu:cor((Intercept),x | id)"`. `NULL` selects all fixed effects for
-#'   Wald intervals and all currently ready direct targets for profile
-#'   intervals.
+#'   interval targets. For `method = "wald"` and `method = "profile"`, targets
+#'   use the [profile_targets()] namespace, such as `"sigma"`, `"rho12"`,
+#'   `"sd:mu:(1 | id)"`, or `"cor:mu:cor((Intercept),x | id)"`. `NULL` selects
+#'   all direct Wald-ready targets for Wald intervals and currently ready direct
+#'   non-fixed targets for profile intervals. This keeps large profile runs
+#'   focused on scale, variance-component, and correlation rows unless
+#'   fixed-effect profile targets are requested explicitly.
 #' @param trace Logical; passed to [TMB::tmbprofile()] for profile intervals.
+#' @param profile_precision Profile-control shortcut used with
+#'   `method = "profile"`. `"default"` leaves [TMB::tmbprofile()] controls
+#'   unchanged, while `"fast"` supplies `ystep = 0.5` and `ytol = 2` unless the
+#'   caller supplies those controls in `...`.
 #' @param ... Additional arguments passed to [TMB::tmbprofile()] when
 #'   `conf.int = TRUE` and `method = "profile"`.
 #'
@@ -2463,12 +2472,18 @@ summary.drmTMB <- function(
   method = c("wald", "profile"),
   ci_parm = NULL,
   trace = FALSE,
+  profile_precision = c("default", "fast"),
   ...
 ) {
+  profile_precision_missing <- missing(profile_precision)
   validate_summary_conf_int(conf.int)
   validate_summary_trace(trace)
   validate_profile_level(level)
   method <- validate_interval_method(method, c("wald", "profile"), "summary()")
+  profile_precision <- resolve_profile_precision(
+    profile_precision,
+    missing_arg = profile_precision_missing
+  )
 
   dots <- list(...)
   if (!conf.int && length(dots) > 0L) {
@@ -2508,6 +2523,7 @@ summary.drmTMB <- function(
         ci_parm = ci_parm,
         level = level,
         trace = trace,
+        profile_precision = profile_precision,
         ...
       )
       coefficient_ci <- summary_profile_coefficient_ci(
@@ -3075,12 +3091,15 @@ drm_summary_profile_confint <- function(
   ci_parm,
   level,
   trace,
+  profile_precision = c("default", "fast"),
   ...
 ) {
   targets <- drm_profile_targets(object)
   if (is.null(ci_parm)) {
     targets <- targets[
-      targets$target_type == "direct" & targets$profile_ready,
+      targets$target_type == "direct" &
+        targets$profile_ready &
+        targets$target_class != "fixed-effect",
       ,
       drop = FALSE
     ]
@@ -3089,12 +3108,18 @@ drm_summary_profile_confint <- function(
     }
     ci_parm <- targets$parm
   }
-  drm_profile_confint(
-    object,
-    parm = ci_parm,
-    level = level,
-    trace = trace,
-    ...
+  profile_args <- profile_precision_args(profile_precision, list(...))
+  do.call(
+    drm_profile_confint,
+    c(
+      list(
+        object = object,
+        parm = ci_parm,
+        level = level,
+        trace = trace
+      ),
+      profile_args
+    )
   )
 }
 

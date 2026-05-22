@@ -11,6 +11,7 @@
   method = c("wald", "profile"),
   ci_parm = NULL,
   trace = FALSE,
+  profile_precision = c("default", "fast"),
   ...
 )
 }
@@ -22,19 +23,26 @@
 \item{level}{Confidence level for intervals.}
 
 \item{method}{Interval method used when \code{conf.int = TRUE}: \code{"wald"} for
-fixed-effect intervals or \code{"profile"} for profile-likelihood intervals on
-selected direct targets. Parametric bootstrap intervals are not implemented
-yet.}
+fast direct intervals or \code{"profile"} for profile-likelihood intervals on
+selected direct targets. \code{summary()} does not run bootstrap intervals yet;
+use \code{confint(..., method = "bootstrap")} for the current direct-target
+bootstrap route.}
 
 \item{ci_parm}{Optional character or integer vector selecting confidence
-interval targets. For \code{method = "wald"}, targets must be fixed effects. For
-\code{method = "profile"}, targets use the \code{\link[=profile_targets]{profile_targets()}} namespace, such
-as \code{"sigma"}, \code{"rho12"}, \code{"sd:mu:(1 | id)"}, or
-\code{"cor:mu:cor((Intercept),x | id)"}. \code{NULL} selects all fixed effects for
-Wald intervals and all currently ready direct targets for profile
-intervals.}
+interval targets. For \code{method = "wald"} and \code{method = "profile"}, targets
+use the \code{\link[=profile_targets]{profile_targets()}} namespace, such as \code{"sigma"}, \code{"rho12"},
+\code{"sd:mu:(1 | id)"}, or \code{"cor:mu:cor((Intercept),x | id)"}. \code{NULL} selects
+all direct Wald-ready targets for Wald intervals and currently ready direct
+non-fixed targets for profile intervals. This keeps large profile runs
+focused on scale, variance-component, and correlation rows unless
+fixed-effect profile targets are requested explicitly.}
 
 \item{trace}{Logical; passed to \code{\link[TMB:tmbprofile]{TMB::tmbprofile()}} for profile intervals.}
+
+\item{profile_precision}{Profile-control shortcut used with
+\code{method = "profile"}. \code{"default"} leaves \code{\link[TMB:tmbprofile]{TMB::tmbprofile()}} controls
+unchanged, while \code{"fast"} supplies \code{ystep = 0.5} and \code{ytol = 2} unless the
+caller supplies those controls in \code{...}.}
 
 \item{...}{Additional arguments passed to \code{\link[TMB:tmbprofile]{TMB::tmbprofile()}} when
 \code{conf.int = TRUE} and \code{method = "profile"}.}
@@ -57,15 +65,18 @@ When \code{TMB::sdreport()} succeeds, direct response-scale parameter rows also
 include delta-method standard errors; descriptive fitted ranges and derived
 variance ratios do not.
 Confidence intervals are opt-in: fast Wald intervals are available for fixed
-effects, and slower profile-likelihood intervals are available for selected
-direct profile targets. Profile summaries keep Wald intervals for fixed
-effects unless fixed-effect profile targets are selected. Interval-aware
-tables include \code{conf.status} so rows without intervals can say whether an
-interval was not requested, needs \code{newdata}, is ready but unselected, or is
-currently unavailable. Use \code{summary(fit, conf.int = TRUE)} for fixed-effect
-Wald confidence intervals, and use \code{method = "profile"} with \code{ci_parm} for
-direct response-scale targets such as \code{sigma}, \code{rho12}, or a random-effect
-SD.
+effects and direct response-scale parameter rows, and slower
+profile-likelihood intervals are available for selected direct profile
+targets. Profile summaries keep Wald intervals for fixed effects unless
+fixed-effect profile targets are selected. Interval-aware tables include
+\code{conf.status} so rows without intervals can say whether an interval was not
+requested, needs \code{newdata}, is ready but unselected, or is currently
+unavailable. Use \code{summary(fit, conf.int = TRUE)} for fixed-effect and direct
+parameter Wald confidence intervals, and use \code{method = "profile"} with
+\code{ci_parm} for direct response-scale targets such as \code{sigma}, \code{rho12}, or a
+random-effect SD. Correlation Wald intervals use the fitted TMB
+correlation-link scale, equivalent to a guarded Fisher z/atanh transform,
+before returning lower and upper bounds on the correlation scale.
 }
 \examples{
 dat <- data.frame(y = c(0.2, 0.5, 1.1, 1.4), x = c(-1, 0, 1, 2))

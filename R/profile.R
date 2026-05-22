@@ -1,7 +1,14 @@
 #' Confidence intervals for fitted model parameters
 #'
 #' `confint()` returns confidence intervals for a fitted `drmTMB` model. Wald
-#' intervals are fast and are returned for fixed-effect coefficients by default.
+#' intervals are fast and are returned for fixed-effect coefficients and direct
+#' response-scale parameter targets by default. Direct Wald targets include
+#' constant residual-scale, random-effect standard-deviation, random-effect
+#' correlation, and constant residual-correlation rows when the fitted TMB
+#' parameter and `TMB::sdreport()` covariance are available.
+#' Correlation Wald intervals are computed on the fitted TMB correlation-link
+#' scale, equivalent to a guarded Fisher z/atanh transform, and then returned on
+#' the correlation scale.
 #' Profile-likelihood intervals are slower because nuisance parameters are
 #' re-optimized; this first public profile path supports explicit fixed-effect,
 #' constant distributional-scale, random-effect standard-deviation,
@@ -26,18 +33,34 @@
 #'
 #' @param object A `drmTMB` fit.
 #' @param parm Optional character or integer vector selecting interval targets.
-#'   `NULL` selects all fixed effects for Wald intervals. Profile intervals
-#'   require explicit target names.
+#'   `NULL` selects all direct Wald-ready targets for Wald intervals. Profile
+#'   intervals require explicit target names or target-set shortcuts. Supported
+#'   shortcuts are `"fixed_effects"`, `"random_effects"`,
+#'   `"variance_components"`, and `"correlations"`.
 #' @param level Confidence level.
-#' @param method Interval method: `"wald"` or `"profile"`. Parametric bootstrap
-#'   intervals are not implemented yet. If `newdata` is supplied and `method` is
-#'   omitted, `method = "profile"` is used.
+#' @param method Interval method: `"wald"`, `"profile"`, or `"bootstrap"`. If
+#'   `newdata` is supplied and `method` is omitted, `method = "profile"` is
+#'   used.
 #' @param newdata Optional data frame for response-scale profile intervals for
 #'   predictor-dependent `sigma`, `sigma1`, `sigma2`, `rho12`, or fitted
 #'   `corpair()` values. Each row is profiled separately by profiling its
 #'   fixed-effect linear predictor and then transforming the interval to the
 #'   response scale.
 #' @param trace Logical; passed to [TMB::tmbprofile()] for profile intervals.
+#' @param profile_precision Profile-control shortcut. `"default"` leaves
+#'   [TMB::tmbprofile()] controls unchanged. `"fast"` supplies
+#'   `ystep = 0.5` and `ytol = 2` unless the caller supplies those controls in
+#'   `...`, giving a quicker first-pass profile for long variance-component or
+#'   correlation targets.
+#' @param R Number of parametric-bootstrap refits when
+#'   `method = "bootstrap"`.
+#' @param seed Optional seed for bootstrap simulation.
+#' @param parallel Bootstrap backend: `"none"` or Unix `"multicore"`.
+#' @param workers Requested bootstrap workers. Multicore execution is capped at
+#'   the number of bootstrap refits and at 10 workers.
+#' @param refit_control Optional [drm_control()] object used for bootstrap
+#'   refits. The default skips `TMB::sdreport()` and drops the TMB object because
+#'   bootstrap intervals use refit point estimates.
 #' @param ... Additional arguments passed to [TMB::tmbprofile()] when
 #'   `method = "profile"`. `drmTMB` supplies the profiled `obj`, `name`,
 #'   `lincomb`, and `trace` arguments internally; set the profile target with
@@ -46,7 +69,7 @@
 #' @return A data frame with columns `parm`, `level`, `lower`, `upper`,
 #'   `scale`, `transformation`, `tmb_parameter`, `index`, `method`, and
 #'   `conf.status`, `profile.boundary`, and `profile.message`. Successful rows
-#'   currently use `conf.status = "wald"` or `conf.status = "profile"`;
+#'   currently use `conf.status = "wald"`, `"profile"`, or `"bootstrap"`;
 #'   profile rows mark intervals that land near a lower SD boundary or
 #'   correlation boundary.
 #'
@@ -59,17 +82,37 @@ confint.drmTMB <- function(
   object,
   parm = NULL,
   level = 0.95,
-  method = c("wald", "profile"),
+  method = c("wald", "profile", "bootstrap"),
   newdata = NULL,
   trace = FALSE,
+  profile_precision = c("default", "fast"),
+  R = 199L,
+  seed = NULL,
+  parallel = c("none", "multicore"),
+  workers = 1L,
+  refit_control = NULL,
   ...
 ) {
+  profile_precision_missing <- missing(profile_precision)
+  parallel_missing <- missing(parallel)
   method_missing <- missing(method)
-  method <- validate_interval_method(method, c("wald", "profile"), "confint()")
+  method <- validate_interval_method(
+    method,
+    c("wald", "profile", "bootstrap"),
+    "confint()"
+  )
   if (!is.null(newdata) && method_missing) {
     method <- "profile"
   }
   validate_profile_level(level)
+  profile_precision <- resolve_profile_precision(
+    profile_precision,
+    missing_arg = profile_precision_missing
+  )
+  parallel <- resolve_bootstrap_parallel(
+    parallel,
+    missing_arg = parallel_missing
+  )
 
   if (identical(method, "wald")) {
     if (!is.null(newdata)) {
@@ -86,14 +129,54 @@ confint.drmTMB <- function(
     return(drm_wald_confint(object, parm = parm, level = level))
   }
 
-  if (!is.null(newdata)) {
-    return(drm_profile_response_newdata_confint(
+  if (identical(method, "bootstrap")) {
+    bootstrap_parallel <- parallel
+    if (!is.null(newdata)) {
+      cli::cli_abort(
+        "{.arg newdata} is not used when {.code method = \"bootstrap\"}."
+      )
+    }
+    dots <- list(...)
+    if (length(dots) > 0L) {
+      cli::cli_abort(
+        "Additional arguments in {.arg ...} are only used when {.code method = \"profile\"}."
+      )
+    }
+    targets <- profile_match_confint_targets(
+      drm_profile_targets(object)[
+        wald_supported_targets(drm_profile_targets(object)),
+        ,
+        drop = FALSE
+      ],
+      parm,
+      fixed_only = FALSE
+    )
+    return(drm_bootstrap_confint(
       object,
-      parm = parm,
-      newdata = newdata,
+      targets = targets,
       level = level,
-      trace = trace,
-      ...
+      R = R,
+      seed = seed,
+      parallel = bootstrap_parallel,
+      workers = workers,
+      refit_control = refit_control
+    ))
+  }
+
+  if (!is.null(newdata)) {
+    profile_args <- profile_precision_args(profile_precision, list(...))
+    return(do.call(
+      drm_profile_response_newdata_confint,
+      c(
+        list(
+          object = object,
+          parm = parm,
+          newdata = newdata,
+          level = level,
+          trace = trace
+        ),
+        profile_args
+      )
     ))
   }
 
@@ -109,12 +192,18 @@ confint.drmTMB <- function(
     parm,
     fixed_only = FALSE
   )
-  drm_profile_confint(
-    object,
-    parm = targets$parm,
-    level = level,
-    trace = trace,
-    ...
+  profile_args <- profile_precision_args(profile_precision, list(...))
+  do.call(
+    drm_profile_confint,
+    c(
+      list(
+        object = object,
+        parm = targets$parm,
+        level = level,
+        trace = trace
+      ),
+      profile_args
+    )
   )
 }
 
@@ -189,7 +278,9 @@ validate_interval_method <- function(method, choices, caller) {
     cli::cli_abort("{.arg method} must be a single character value.")
   }
 
-  if (method %in% c("bootstrap", "parametric_bootstrap")) {
+  if (
+    method %in% c("bootstrap", "parametric_bootstrap") && !method %in% choices
+  ) {
     cli::cli_abort(c(
       "{.arg method} = {.val {method}} is not implemented for {.fn {caller}} intervals yet.",
       i = "Current interval methods are {.val {choices}}.",
@@ -206,14 +297,45 @@ validate_interval_method <- function(method, choices, caller) {
   choices[[matched]]
 }
 
+resolve_profile_precision <- function(profile_precision, missing_arg = FALSE) {
+  if (isTRUE(missing_arg)) {
+    return("default")
+  }
+  match.arg(profile_precision, c("default", "fast"))
+}
+
+resolve_bootstrap_parallel <- function(parallel, missing_arg = FALSE) {
+  if (isTRUE(missing_arg)) {
+    return("none")
+  }
+  match.arg(parallel, c("none", "multicore"))
+}
+
+profile_precision_args <- function(profile_precision = "default", dots) {
+  profile_precision <- match.arg(profile_precision, c("default", "fast"))
+  profile_check_tmbprofile_dots_list(dots)
+  if (identical(profile_precision, "default")) {
+    return(dots)
+  }
+  if (!"ystep" %in% names(dots)) {
+    dots$ystep <- 0.5
+  }
+  if (!"ytol" %in% names(dots)) {
+    dots$ytol <- 2
+  }
+  dots
+}
+
 interval_status_levels <- function() {
   c(
     "wald",
     "profile",
+    "bootstrap",
     "profile_ready",
     "newdata_required",
     "derived_interval_unavailable",
     "wald_unavailable",
+    "bootstrap_unavailable",
     "target_unavailable",
     "profile_unavailable",
     "not_requested"
@@ -221,7 +343,7 @@ interval_status_levels <- function() {
 }
 
 interval_source_levels <- function() {
-  c("wald", "profile", "not_available")
+  c("wald", "profile", "bootstrap", "not_available")
 }
 
 drm_profile_targets <- function(object) {
@@ -637,29 +759,45 @@ drm_profile_response_newdata_confint <- function(
 
 drm_wald_confint <- function(object, parm, level) {
   targets <- drm_profile_targets(object)
-  targets <- targets[targets$target_class == "fixed-effect", , drop = FALSE]
+  targets <- targets[wald_supported_targets(targets), , drop = FALSE]
   targets <- profile_match_confint_targets(
     targets,
     parm,
-    fixed_only = TRUE
+    fixed_only = FALSE
   )
   if (nrow(targets) == 0L) {
     return(empty_confint_table(method = "wald"))
   }
 
-  estimates <- unlist(object$coefficients, use.names = FALSE)
-  variances <- diag(stats::vcov(object))
-  se <- profile_wald_standard_errors(variances)
-  labels <- coefficient_labels(object)
+  cov_fixed <- drm_sdreport_cov_fixed(object)
   z <- stats::qnorm((1 + level) / 2)
-  rows <- profile_target_positions(targets, labels)
-  interval_ready <- is.finite(estimates[rows]) & is.finite(se[rows])
+  positions <- profile_target_opt_positions(object, targets)
+  variances <- rep(NA_real_, nrow(targets))
+  in_covariance <- !is.na(positions) & positions <= nrow(cov_fixed)
+  variances[in_covariance] <- cov_fixed[
+    cbind(positions[in_covariance], positions[in_covariance])
+  ]
+  se <- profile_wald_standard_errors(variances)
+  interval_ready <- is.finite(targets$link_estimate) & is.finite(se)
   lower <- rep(NA_real_, nrow(targets))
   upper <- rep(NA_real_, nrow(targets))
-  lower[interval_ready] <- estimates[rows][interval_ready] -
-    z * se[rows][interval_ready]
-  upper[interval_ready] <- estimates[rows][interval_ready] +
-    z * se[rows][interval_ready]
+  if (any(interval_ready)) {
+    link_lower <- targets$link_estimate[interval_ready] -
+      z * se[interval_ready]
+    link_upper <- targets$link_estimate[interval_ready] +
+      z * se[interval_ready]
+    transformed <- mapply(
+      function(lo, hi, row) {
+        profile_transform_interval(c(lo, hi), targets[row, , drop = FALSE])
+      },
+      link_lower,
+      link_upper,
+      which(interval_ready),
+      SIMPLIFY = FALSE
+    )
+    lower[interval_ready] <- vapply(transformed, `[[`, numeric(1L), 1L)
+    upper[interval_ready] <- vapply(transformed, `[[`, numeric(1L), 2L)
+  }
 
   out <- data.frame(
     parm = targets$parm,
@@ -678,6 +816,285 @@ drm_wald_confint <- function(object, parm, level) {
   )
   row.names(out) <- NULL
   out
+}
+
+drm_bootstrap_confint <- function(
+  object,
+  targets,
+  level,
+  R,
+  seed,
+  parallel,
+  workers,
+  refit_control
+) {
+  validate_profile_level(level)
+  R <- validate_bootstrap_replicates(R)
+  plan <- bootstrap_parallel_plan(R, parallel = parallel, workers = workers)
+  refit_control <- bootstrap_refit_control(refit_control)
+  if (nrow(targets) == 0L) {
+    return(empty_confint_table(method = "bootstrap"))
+  }
+  if (is.null(object$data)) {
+    cli::cli_abort(c(
+      "Bootstrap confidence intervals require the fitted model data.",
+      i = "Refit with {.code drm_control(keep_data = TRUE)} before using {.code method = \"bootstrap\"}."
+    ))
+  }
+
+  simulations <- stats::simulate(object, nsim = R, seed = seed)
+  target_names <- targets$parm
+  worker <- function(index) {
+    bootstrap_refit_one(
+      object = object,
+      simulations = simulations,
+      index = index,
+      target_names = target_names,
+      refit_control = refit_control
+    )
+  }
+  rows <- bootstrap_lapply(seq_len(R), worker, plan)
+  draws <- do.call(rbind, rows)
+  row.names(draws) <- NULL
+
+  probs <- c((1 - level) / 2, (1 + level) / 2)
+  intervals <- lapply(seq_len(nrow(targets)), function(i) {
+    target <- targets[i, , drop = FALSE]
+    target_draws <- draws[draws$parm == target$parm, , drop = FALSE]
+    finite <- is.finite(target_draws$estimate) & target_draws$refit_ok
+    n_ok <- sum(finite)
+    failed <- nrow(target_draws) - n_ok
+    if (n_ok < 2L) {
+      lower <- NA_real_
+      upper <- NA_real_
+      status <- "bootstrap_unavailable"
+      message <- "fewer than two successful bootstrap refits"
+    } else {
+      qs <- stats::quantile(
+        target_draws$estimate[finite],
+        probs = probs,
+        names = FALSE,
+        type = 8
+      )
+      lower <- qs[[1L]]
+      upper <- qs[[2L]]
+      status <- "bootstrap"
+      message <- paste0(n_ok, "/", nrow(target_draws), " successful refits")
+    }
+    data.frame(
+      parm = target$parm,
+      level = level,
+      lower = lower,
+      upper = upper,
+      scale = target$scale,
+      transformation = target$transformation,
+      tmb_parameter = target$tmb_parameter,
+      index = target$index,
+      method = "bootstrap",
+      conf.status = status,
+      profile.boundary = NA,
+      profile.message = message,
+      bootstrap.n = n_ok,
+      bootstrap.failed = failed,
+      bootstrap.parallel = plan$backend,
+      bootstrap.workers = plan$workers,
+      stringsAsFactors = FALSE
+    )
+  })
+  out <- do.call(rbind, intervals)
+  row.names(out) <- NULL
+  out
+}
+
+validate_bootstrap_replicates <- function(R) {
+  if (
+    !is.numeric(R) ||
+      length(R) != 1L ||
+      is.na(R) ||
+      !is.finite(R) ||
+      R < 1L ||
+      R != as.integer(R)
+  ) {
+    cli::cli_abort("{.arg R} must be a positive whole number.")
+  }
+  as.integer(R)
+}
+
+bootstrap_parallel_plan <- function(R, parallel, workers) {
+  if (
+    !is.character(parallel) ||
+      length(parallel) != 1L ||
+      is.na(parallel) ||
+      !parallel %in% c("none", "multicore")
+  ) {
+    cli::cli_abort(
+      "{.arg parallel} must be one of {.val none} or {.val multicore}."
+    )
+  }
+  if (
+    !is.numeric(workers) ||
+      length(workers) != 1L ||
+      is.na(workers) ||
+      !is.finite(workers) ||
+      workers < 1L ||
+      workers != as.integer(workers)
+  ) {
+    cli::cli_abort("{.arg workers} must be a positive whole number.")
+  }
+  workers <- as.integer(workers)
+  if (identical(parallel, "multicore") && .Platform$OS.type == "windows") {
+    cli::cli_abort(
+      "{.code parallel = \"multicore\"} is not available on Windows."
+    )
+  }
+  actual_workers <- if (identical(parallel, "none")) {
+    1L
+  } else {
+    min(10L, R, workers)
+  }
+  list(backend = parallel, workers = actual_workers)
+}
+
+bootstrap_refit_control <- function(refit_control) {
+  if (is.null(refit_control)) {
+    return(drm_control(
+      se = FALSE,
+      keep_tmb_object = FALSE,
+      optimizer_preset = "default"
+    ))
+  }
+  drm_parse_control(refit_control)
+}
+
+bootstrap_lapply <- function(indices, worker, plan) {
+  if (identical(plan$backend, "none") || identical(plan$workers, 1L)) {
+    return(lapply(indices, worker))
+  }
+  parallel::mclapply(indices, worker, mc.cores = plan$workers)
+}
+
+bootstrap_refit_one <- function(
+  object,
+  simulations,
+  index,
+  target_names,
+  refit_control
+) {
+  out <- bootstrap_empty_draws(index, target_names)
+  data <- bootstrap_response_data(object, simulations, index)
+  refit <- tryCatch(
+    {
+      bootstrap_weights <- object$model$weights
+      drmTMB(
+        formula = object$formula,
+        family = object$family,
+        data = data,
+        weights = bootstrap_weights,
+        control = refit_control
+      )
+    },
+    error = function(err) err
+  )
+  if (inherits(refit, "error")) {
+    out$refit_message <- conditionMessage(refit)
+    return(out)
+  }
+  refit_ok <- isTRUE(refit$opt$convergence == 0L)
+  refit_targets <- drm_profile_targets(refit)
+  matched <- match(target_names, refit_targets$parm)
+  has_target <- !is.na(matched)
+  out$refit_convergence <- refit$opt$convergence
+  out$refit_ok <- refit_ok & has_target
+  out$refit_message <- if (refit_ok) "ok" else refit$opt$message
+  out$estimate[has_target] <- refit_targets$estimate[matched[has_target]]
+  out
+}
+
+bootstrap_empty_draws <- function(index, target_names) {
+  data.frame(
+    bootstrap = index,
+    parm = target_names,
+    estimate = NA_real_,
+    refit_ok = FALSE,
+    refit_convergence = NA_integer_,
+    refit_message = "not run",
+    stringsAsFactors = FALSE
+  )
+}
+
+bootstrap_response_data <- function(object, simulations, index) {
+  data <- object$data
+  if (identical(object$model$model_type, "biv_gaussian")) {
+    response_names <- bivariate_response_names(object)
+    sim_y1 <- paste0("sim_", index, "_y1")
+    sim_y2 <- paste0("sim_", index, "_y2")
+    if (!all(c(sim_y1, sim_y2) %in% names(simulations))) {
+      cli::cli_abort(
+        "Internal error: bivariate bootstrap simulations are missing response columns."
+      )
+    }
+    data[[response_names[[1L]]]] <- simulations[[sim_y1]]
+    data[[response_names[[2L]]]] <- simulations[[sim_y2]]
+    return(data)
+  }
+  response <- response_name_from_model_frame(
+    object,
+    "mu",
+    fallback = NA_character_
+  )
+  if (
+    !is.character(response) ||
+      length(response) != 1L ||
+      is.na(response) ||
+      !response %in% names(data)
+  ) {
+    cli::cli_abort(
+      "Bootstrap confidence intervals require a stored response column in the fitted data."
+    )
+  }
+  sim_col <- paste0("sim_", index)
+  if (!sim_col %in% names(simulations)) {
+    cli::cli_abort(
+      "Internal error: bootstrap simulations are missing response column {.val {sim_col}}."
+    )
+  }
+  data[[response]] <- simulations[[sim_col]]
+  data
+}
+
+wald_supported_targets <- function(targets) {
+  targets$target_type == "direct" &
+    targets$target_class %in%
+      c(
+        "fixed-effect",
+        "distributional-scale",
+        "random-effect-sd",
+        "random-effect-correlation",
+        "residual-correlation"
+      ) &
+    targets$transformation %in%
+      c("linear_predictor", "exp", "tanh", "rho12_tanh")
+}
+
+profile_target_opt_positions <- function(object, targets) {
+  opt_names <- names(object$opt$par)
+  vapply(
+    seq_len(nrow(targets)),
+    function(i) {
+      target <- targets[i, , drop = FALSE]
+      internal <- target$tmb_parameter[[1L]]
+      index <- target$index[[1L]]
+      if (is.na(internal) || is.na(index)) {
+        return(NA_integer_)
+      }
+      hits <- which(opt_names == internal)
+      if (length(hits) < index) {
+        return(NA_integer_)
+      }
+      hits[[index]]
+    },
+    integer(1L)
+  )
 }
 
 profile_wald_standard_errors <- function(variances) {
@@ -768,7 +1185,10 @@ drm_profile_target_confint <- function(
 }
 
 profile_check_tmbprofile_dots <- function(...) {
-  dots <- list(...)
+  profile_check_tmbprofile_dots_list(list(...))
+}
+
+profile_check_tmbprofile_dots_list <- function(dots) {
   if (!length(dots)) {
     return(invisible(NULL))
   }
@@ -1188,6 +1608,7 @@ profile_match_confint_targets <- function(targets, parm, fixed_only) {
   if (is.null(parm)) {
     return(targets)
   }
+  parm <- profile_expand_confint_target_sets(targets, parm)
   if (is.numeric(parm)) {
     if (
       any(!is.finite(parm)) ||
@@ -1227,6 +1648,37 @@ profile_match_confint_targets <- function(targets, parm, fixed_only) {
     ))
   }
   targets[index, , drop = FALSE]
+}
+
+profile_expand_confint_target_sets <- function(targets, parm) {
+  if (!is.character(parm)) {
+    return(parm)
+  }
+  alias_rows <- list(
+    fixed_effects = targets$target_class == "fixed-effect",
+    `fixed-effects` = targets$target_class == "fixed-effect",
+    random_effects = targets$target_class %in%
+      c("random-effect-sd", "random-effect-correlation"),
+    `random-effects` = targets$target_class %in%
+      c("random-effect-sd", "random-effect-correlation"),
+    variance_components = targets$target_class %in%
+      c("distributional-scale", "random-effect-sd"),
+    `variance-components` = targets$target_class %in%
+      c("distributional-scale", "random-effect-sd"),
+    correlations = targets$target_class %in%
+      c("random-effect-correlation", "residual-correlation")
+  )
+  expanded <- unlist(
+    lapply(parm, function(one) {
+      rows <- alias_rows[[one]]
+      if (is.null(rows)) {
+        return(one)
+      }
+      targets$parm[rows]
+    }),
+    use.names = FALSE
+  )
+  unique(expanded)
 }
 
 profile_newdata_dpar <- function(object, parm) {
