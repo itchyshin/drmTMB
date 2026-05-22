@@ -46,6 +46,11 @@ rewrite.
    `animal()`, `phylo()`, or `spatial()`.
 4. The generated `pkgdown-site` can be stale after source edits. Before any
    deploy, rebuild the site and re-run a rendered-page stale-wording scan.
+5. The `corpairs()` and `predict_parameters()` reference pages were correct but
+   thin on fast reader paths. The refreshed prose now tells users when to use
+   `rho12()` versus `corpairs()`, when to use `marginal_parameters()` rather
+   than row-level predictions, and why profile intervals should be filtered
+   before running on large models.
 
 ## Rendered Reference Follow-Up
 
@@ -86,8 +91,8 @@ rewrite.
 
 ## Next Function Audit Actions
 
-1. Continue rendered reference inspection with `corpairs()` and
-   `predict_parameters()` prose and examples.
+1. Continue rendered reference inspection with `prediction_grid()`,
+   `marginal_parameters()`, and grouped model-fit extractor prose and examples.
 2. Check every exported reference page for one runnable minimal example, or an
    explicit reason no example is appropriate.
 3. Keep `gr()` deprecated and out of the main reader path; revisit removal only

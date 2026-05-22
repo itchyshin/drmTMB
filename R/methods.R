@@ -160,7 +160,7 @@ rho12.drmTMB <- function(
 #' Extract fitted correlation pairs
 #'
 #' `corpairs()` returns a long table of fitted correlation pairs from a
-#' `drmTMB` model. The first implementation reports correlations that are
+#' `drmTMB` model. The current implementation reports correlations that are
 #' already fitted elsewhere: residual bivariate `rho12`, ordinary univariate
 #' group-level `mu` random-effect correlations, matched univariate and
 #' same-response bivariate `mu`/`sigma` random-intercept covariance blocks, and
@@ -171,9 +171,17 @@ rho12.drmTMB <- function(
 #' six derived endpoint correlations; block-diagonal q4 fallback fits report
 #' the direct `mu1`/`mu2` and `sigma1`/`sigma2` block correlations.
 #'
-#' The table is intentionally more explicit than `rho12()` or `corpars`
-#' because future double-hierarchical, phylogenetic, spatial, and study-level
-#' models will contain several scientifically different correlations.
+#' Use `corpairs()` when the question is about correlations among fitted
+#' residual, ordinary group-level, phylogenetic, coordinate-spatial,
+#' animal-model, or `relmat()` latent effects. Use [rho12()] when the only
+#' target is the residual correlation curve of a bivariate model.
+#'
+#' The table is intentionally more explicit than `rho12()` or `corpars` because
+#' double-hierarchical, phylogenetic, spatial, animal-model, and lower-level
+#' relatedness models can contain several scientifically different
+#' correlations. Profile intervals are opt-in and can be slow; filter with
+#' `level`, `group`, `block`, or `class` before requesting `conf.int = TRUE` on
+#' large models. Bootstrap intervals are not a `corpairs()` route.
 #'
 #' @param object A `drmTMB` fit.
 #' @param level Optional character vector of correlation levels to keep, such
@@ -239,7 +247,12 @@ rho12.drmTMB <- function(
 #'   family = c(gaussian(), gaussian()),
 #'   data = dat
 #' )
-#' corpairs(fit)
+#' pairs <- corpairs(fit)
+#' pairs
+#' corpairs(fit, level = "residual")
+#'
+#' # Profile intervals are opt-in and can be slow for large models.
+#' # corpairs(fit, level = "residual", conf.int = TRUE)
 #' @export
 corpairs <- function(object, ...) {
   UseMethod("corpairs")

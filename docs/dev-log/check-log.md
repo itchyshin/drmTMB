@@ -2,6 +2,63 @@
 
 Record meaningful development checks here.
 
+## 2026-05-22 - Reference Correlation And Prediction Examples
+
+Goal: continue the comprehensive function/reference audit by making the
+`corpairs()` and `predict_parameters()` reference pages clearer about fast
+reader paths, interval provenance, and when to choose related extractors.
+
+Team roles:
+
+- Ada kept this as a reference-prose/example slice with no behavior change.
+- Pat checked that applied users can tell when to use `rho12()`, `corpairs()`,
+  `predict_parameters()`, or `marginal_parameters()`.
+- Fisher checked that interval wording does not imply bootstrap or broad
+  profile support for derived correlation tables.
+- Emmy checked that the extractor and plotting-table contracts stay coherent.
+- Grace regenerated Rd and rebuilt the reference pages.
+- Rose updated the function-reference audit so this target is no longer the
+  next open item.
+
+Files changed:
+
+- `R/methods.R`
+- `R/predict-parameters.R`
+- `man/corpairs.Rd`
+- `man/predict_parameters.Rd`
+- `docs/dev-log/audits/2026-05-21-function-reference-inventory.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-22-reference-corpairs-predict-parameters.md`
+
+Checks run:
+
+```sh
+Rscript -e "devtools::document()"
+Rscript -e 'devtools::load_all(quiet = TRUE); set.seed(1); n <- 40; x <- rnorm(n); z1 <- rnorm(n); z2 <- rnorm(n); mu1 <- 0.2 + 0.5 * x; mu2 <- -0.1 + 0.4 * x; sigma1 <- exp(-0.2 + 0.15 * z1); sigma2 <- exp(0.1 - 0.1 * z2); rho <- 0.35; e1 <- rnorm(n); e2 <- rho * e1 + sqrt(1 - rho^2) * rnorm(n); dat <- data.frame(y1 = mu1 + sigma1 * e1, y2 = mu2 + sigma2 * e2, x = x, z1 = z1, z2 = z2); fit <- drmTMB(bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~ z1, sigma2 = ~ z2, rho12 = ~ 1), family = c(gaussian(), gaussian()), data = dat); pairs <- corpairs(fit); print(pairs); print(corpairs(fit, level = "residual")); set.seed(20260522); n <- 36; x <- seq(-1.5, 1.5, length.out = n); sigma <- exp(-0.35 + 0.2 * x); dat <- data.frame(y = 0.4 + 0.7 * x + rnorm(n, sd = sigma), x = x); fit <- drmTMB(bf(y ~ x, sigma ~ x), data = dat); grid <- data.frame(x = c(-1, 0, 1)); pred <- predict_parameters(fit, newdata = grid, dpar = c("mu", "sigma"), conf.int = TRUE); print(pred); print(predict_parameters(fit, newdata = grid, dpar = "sigma", type = "link", include_newdata = FALSE, conf.int = TRUE))'
+air format R/methods.R R/predict-parameters.R
+Rscript -e "devtools::test(filter = 'corpairs|predict-parameters|plot-parameter-surface|plot-corpairs', reporter = 'summary')"
+Rscript -e "pkgdown::build_reference()"
+rg -n 'Bootstrap intervals are not a `corpairs\\(\\)` route|Use `rho12\\(\\)`|Use `marginal_parameters\\(\\)`|Profile intervals are opt-in|delta method|wald' R/methods.R R/predict-parameters.R man/corpairs.Rd man/predict_parameters.Rd pkgdown-site/reference/corpairs.html pkgdown-site/reference/predict_parameters.html -S
+git diff --check
+Rscript -e "pkgdown::check_pkgdown()"
+gh issue list --search "corpairs predict_parameters reference OR correlation prediction examples" --limit 20
+```
+
+Outcomes:
+
+- `corpairs()` now tells readers to use `rho12()` for the residual-correlation
+  curve and `corpairs()` for fitted residual, group, phylogenetic, spatial,
+  animal, and `relmat()` correlation rows.
+- `corpairs()` now explicitly says profile intervals are opt-in, should be
+  filtered before long runs, and bootstrap intervals are not a `corpairs()`
+  route.
+- `predict_parameters()` now points row-level prediction users to
+  `marginal_parameters()` when they actually need averages over rows.
+- The `predict_parameters()` example now uses a stable enough toy fit to show
+  finite Wald intervals rather than `wald_unavailable`.
+- Issue search found #58; it remains open as the broader visualization-layer
+  ledger.
+
 ## 2026-05-21 - Deprecated Legacy gr() Marker
 
 Goal: close the reference-audit decision about the old `gr()` marker by
