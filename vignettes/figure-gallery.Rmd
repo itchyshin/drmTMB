@@ -1397,7 +1397,7 @@ current `emmeans` bridge is for fixed-effect univariate `mu`; other targets
 should use parameter prediction, `corpairs()`, profile intervals, or a future
 feature-specific design.
 
-```{r emmeans-boundary-strip, fig.alt="Tile plot showing fixed-effect univariate mu as the supported emmeans target and sigma, bivariate, zero-inflated, hurdle, ordinal, and random-effect targets as unsupported boundaries."}
+```{r emmeans-boundary-strip, fig.alt="Marker plot showing fixed-effect univariate mu as the supported emmeans target and sigma, bivariate, zero-inflated, hurdle, ordinal, and random-effect targets as boundary routes with alternatives named beside each marker."}
 emmeans_boundary <- data.frame(
   target = c(
     "Fixed-effect univariate mu",
@@ -1416,6 +1416,14 @@ emmeans_boundary <- data.frame(
     "Unsupported boundary"
   )
 )
+emmeans_boundary$route <- c(
+  "supported EMMs",
+  "predict_parameters()",
+  "separate bivariate design",
+  "family-specific marginal route",
+  "ordinal support later",
+  "ranef(), profile_targets()"
+)
 emmeans_boundary$target <- factor(
   emmeans_boundary$target,
   levels = rev(emmeans_boundary$target)
@@ -1426,36 +1434,59 @@ emmeans_boundary$status <- factor(
 )
 emmeans_boundary$status_label <- ifelse(
   emmeans_boundary$status == "Supported emmeans route",
-  "supported\nmu EMM",
-  "unsupported\nboundary"
-)
-emmeans_boundary$status_text_colour <- ifelse(
-  emmeans_boundary$status == "Supported emmeans route",
-  "white",
-  "grey10"
+  "supported",
+  "boundary"
 )
 
-ggplot(emmeans_boundary, aes(status, target, fill = status)) +
-  geom_tile(width = 0.84, height = 0.72, colour = "white", linewidth = 0.6) +
+ggplot(emmeans_boundary, aes(y = target)) +
+  geom_segment(
+    aes(x = 0.92, xend = 2.35, yend = target),
+    colour = "grey86",
+    linewidth = 0.35
+  ) +
+  geom_point(
+    aes(x = 1, fill = status),
+    shape = 21,
+    size = 4.2,
+    colour = "white",
+    stroke = 0.8
+  ) +
   geom_text(
-    aes(label = status_label, colour = status_text_colour),
-    size = 3.1,
-    lineheight = 0.9
+    aes(x = 1.14, label = status_label, colour = status),
+    hjust = 0,
+    size = 3.2,
+    fontface = "bold"
+  ) +
+  geom_text(
+    aes(x = 1.65, label = route),
+    hjust = 0,
+    size = 3.05,
+    colour = "grey25"
   ) +
   scale_fill_manual(values = c(
     "Supported emmeans route" = "#0072B2",
     "Unsupported boundary" = "#E69F00"
   )) +
-  scale_colour_identity() +
+  scale_colour_manual(values = c(
+    "Supported emmeans route" = "#0072B2",
+    "Unsupported boundary" = "#8A5700"
+  )) +
+  scale_x_continuous(
+    limits = c(0.86, 2.55),
+    breaks = c(1.14, 1.65),
+    labels = c("Status", "Current route")
+  ) +
   labs(
     title = "Current emmeans support boundary",
     subtitle = "Only fixed-effect univariate mu is advertised as an emmeans target",
-    x = "Current status",
+    x = NULL,
     y = NULL,
     fill = "Status"
   ) +
   theme_drmtmb_gallery() +
   theme(
+    axis.text.x = element_text(size = 9, face = "bold", colour = "grey35"),
+    axis.ticks.x = element_blank(),
     panel.grid = element_blank(),
     legend.position = "none"
   )
@@ -1724,7 +1755,7 @@ but they remain frequentist compatibility displays: values near the centre are
 more compatible with the fitted estimate than values near the interval
 boundary, and the shapes are not posterior draws.
 
-```{r correlation-layer-boundaries, fig.alt="Tile plot showing fitted q2 support for residual, ordinary group, phylogenetic, spatial, animal, and relmat correlation layers, with partly fitted q4 or regression extensions separated from planned boundaries."}
+```{r correlation-layer-boundaries, fig.alt="Marker plot showing fitted q2 support for residual, ordinary group, phylogenetic, spatial, animal, and relmat correlation layers, with partial richer q4 or regression routes separated from planned residual-rho12 boundaries."}
 layer_boundary <- expand.grid(
   layer = c(
     "Residual rho12",
@@ -1743,15 +1774,13 @@ layer_boundary$status[
   layer_boundary$target == "Constant q2 row"
 ] <- "Fitted first-slice row"
 layer_boundary$status[
-  layer_boundary$layer == "Ordinary group" &
-    layer_boundary$target == "Regression or q4/scale extension"
-] <- "Partly fitted"
-layer_boundary$status[
-  layer_boundary$layer == "Phylogenetic" &
-    layer_boundary$target == "Regression or q4/scale extension"
-] <- "Partly fitted"
-layer_boundary$status[
-  layer_boundary$layer == "Spatial" &
+  layer_boundary$layer %in% c(
+    "Ordinary group",
+    "Phylogenetic",
+    "Spatial",
+    "Animal",
+    "relmat"
+  ) &
     layer_boundary$target == "Regression or q4/scale extension"
 ] <- "Partly fitted"
 layer_boundary$layer <- factor(
@@ -1774,40 +1803,64 @@ layer_boundary$status <- factor(
   levels = c("Fitted first-slice row", "Partly fitted", "Planned boundary")
 )
 layer_boundary$status_label <- c(
-  "Fitted first-slice row" = "fitted\nq2 row",
-  "Partly fitted" = "partly\nfitted",
-  "Planned boundary" = "planned\nboundary"
+  "Fitted first-slice row" = "fitted",
+  "Partly fitted" = "partial",
+  "Planned boundary" = "planned"
 )[as.character(layer_boundary$status)]
-layer_boundary$status_text_colour <- c(
-  "Fitted first-slice row" = "white",
-  "Partly fitted" = "white",
-  "Planned boundary" = "grey10"
+layer_boundary$status_colour <- c(
+  "Fitted first-slice row" = gallery_colour("blue"),
+  "Partly fitted" = gallery_colour("green"),
+  "Planned boundary" = "#8A5700"
 )[as.character(layer_boundary$status)]
+layer_boundary$status_x <- ifelse(
+  layer_boundary$target == "Constant q2 row",
+  1,
+  2
+)
 layer_status_palette <- c(
   "Fitted first-slice row" = gallery_colour("blue"),
   "Partly fitted" = gallery_colour("green"),
   "Planned boundary" = gallery_colour("yellow")
 )
 
-ggplot(layer_boundary, aes(target, layer, fill = status)) +
-  geom_tile(width = 0.82, height = 0.72, colour = "white", linewidth = 0.6) +
+ggplot(layer_boundary, aes(y = layer)) +
+  geom_segment(
+    aes(x = 0.85, xend = 2.55, yend = layer),
+    colour = "grey90",
+    linewidth = 0.35
+  ) +
+  geom_point(
+    aes(x = status_x, fill = status),
+    shape = 21,
+    size = 4.8,
+    colour = "white",
+    stroke = 0.9
+  ) +
   geom_text(
-    aes(label = status_label, colour = status_text_colour),
-    size = 3.1,
-    lineheight = 0.9
+    aes(x = status_x + 0.09, label = status_label, colour = status_colour),
+    hjust = 0,
+    size = 3.25,
+    fontface = "bold"
   ) +
   scale_fill_manual(values = layer_status_palette) +
   scale_colour_identity() +
+  scale_x_continuous(
+    limits = c(0.8, 2.75),
+    breaks = c(1, 2),
+    labels = c("Constant q2 row", "Richer q4 or regression route")
+  ) +
   labs(
     title = "Correlation-layer support boundary",
-    subtitle = "Spatial, animal, and relmat have constant q2 rows; spatial now also has a constant q4 block",
-    x = "Correlation target",
+    subtitle = "Constant q2 rows are fitted; richer q4 or regression routes are partial except residual rho12",
+    x = NULL,
     y = NULL,
     fill = "Status"
   ) +
   theme_drmtmb_gallery() +
   theme(
-    panel.grid = element_blank(),
+    axis.text.x = element_text(size = 9, colour = "grey25"),
+    panel.grid.major.x = element_blank(),
+    panel.grid.major.y = element_line(colour = "grey91"),
     legend.position = "none"
   )
 ```

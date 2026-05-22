@@ -37,3 +37,8 @@ Fitted values are returned for the original fitted rows. Use \code{\link[=predic
 new data or for non-location distributional parameters such as \code{sigma} or
 \code{rho12}.
 }
+\examples{
+dat <- data.frame(y = c(0.2, 0.5, 1.1, 1.4), x = c(-1, 0, 1, 2))
+fit <- drmTMB(bf(y ~ x, sigma ~ 1), data = dat)
+fitted(fit)
+}

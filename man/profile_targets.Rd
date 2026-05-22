@@ -36,8 +36,15 @@ correlation summaries are derived targets; block-diagonal phylogenetic q4
 fallback correlations are direct targets, but a direct target can still fail
 on a weak, boundary-limited, or one-sided profile.
 }
+\details{
+Use \code{ready_only = TRUE} for the fastest inspection path before calling
+\code{confint(..., method = "profile")}. Use the \code{target_class} column to filter
+fixed effects, random-effect SDs, residual correlations, and other
+variance-component rows before a long profile run.
+}
 \examples{
 dat <- data.frame(y = c(0.2, 0.5, 1.1, 1.4), x = c(-1, 0, 1, 2))
 fit <- drmTMB(bf(y ~ x, sigma ~ 1), data = dat)
 profile_targets(fit)
+profile_targets(fit, ready_only = TRUE)
 }

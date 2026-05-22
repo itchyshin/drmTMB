@@ -59,6 +59,21 @@ rewrite.
    method from the topic aliases and usage. The refreshed page now documents
    `logLik()`, `nobs()`, `df.residual()`, `deviance()`, `AIC()`, and `BIC()` as
    one likelihood-comparison path.
+8. The next adjacent S3 pass found public reference topics without examples:
+   `drmTMB`, `fitted.drmTMB`, `fixef`, `ranef`, `rho12`, and
+   `weights.drmTMB`. The roxygen sources now give each of those pages a small
+   runnable example. `gr()` remains example-free by design because it is a
+   deprecated compatibility marker, and `drmTMB-package` remains a package
+   overview topic rather than a function page.
+9. The `vcov.drmTMB` S3 method was registered but did not appear in a public
+   Rd topic. It now shares the grouped model-fit extractor page with
+   `logLik()`, `nobs()`, `df.residual()`, `deviance()`, `AIC()`, and `BIC()`.
+10. The two watchlist status-tile figures in the figure gallery were heavier
+    than they needed to be. The refreshed `emmeans` and correlation-boundary
+    chunks use lighter status-matrix displays, and the correlation matrix now
+    marks ordinary, phylogenetic, spatial, animal, and `relmat()` q4 or
+    regression extensions as partly fitted rather than leaving animal and
+    `relmat()` behind stale planned-only colouring.
 
 ## Rendered Reference Follow-Up
 
@@ -97,13 +112,54 @@ rewrite.
 - Recorded rendered-image evidence in
   `docs/dev-log/figure-audits/2026-05-21-reference-plot-helpers/figure-audit.md`.
 
+## Reference Example Status Table
+
+This table records the compact example audit after the 2026-05-22 adjacent S3
+pass. "Runnable" means the Rd topic contains an `\examples{}` block after
+roxygen regeneration. "Overview" and "deprecated" are explicit reasons for no
+example.
+
+| Topic | Public surface | Example status |
+| --- | --- | --- |
+| `drmTMB-package` | Package overview | Overview page; no runnable example expected. |
+| `drmTMB` | Main model-fitting function | Runnable Gaussian location-scale example. |
+| `drm_control` | Optimizer and storage control | Runnable example. |
+| `drm_formula` / `bf` | Formula constructors | Runnable syntax examples. |
+| `meta_V` / `meta_known_V` | Known sampling covariance marker | Runnable syntax examples. |
+| `meta_vcov_bivariate` | Bivariate known covariance helper | Runnable example. |
+| `beta`, `beta_binomial`, `cumulative_logit`, `student`, `lognormal`, `nbinom2`, `truncated_nbinom2`, `biv_gaussian` | Family constructors | Runnable constructor examples. |
+| `animal`, `phylo`, `spatial`, `relmat`, `corpair` | Structured-effect markers | Runnable syntax examples. |
+| `random_effect_scale_formulas` | `sd*()` formula syntax topic | Runnable syntax examples. |
+| `gr` | Deprecated marker placeholder | Deprecated compatibility topic; no example expected. |
+| `check_drm` | Fit diagnostics | Runnable example. |
+| `confint.drmTMB` | Wald, profile, and bootstrap intervals | Runnable fast-Wald and fast-profile examples; bootstrap shown as commented long-run route. |
+| `profile_targets` | Interval target inventory | Runnable example, including `ready_only = TRUE`. |
+| `corpairs` | Correlation-pair table | Runnable bivariate example. |
+| `fitted.drmTMB` | Fitted response summaries | Runnable example. |
+| `fixef` | Fixed-effect coefficients | Runnable example. |
+| `ranef` | Conditional random-effect estimates | Runnable random-intercept example. |
+| `rho12` | Residual bivariate correlation | Runnable bivariate example. |
+| `weights.drmTMB` | Likelihood weights | Runnable weighted-fit example. |
+| `predict.drmTMB`, `predict_parameters`, `prediction_grid`, `marginal_parameters` | Prediction helpers | Runnable examples. |
+| `residuals.drmTMB`, `sigma.drmTMB`, `simulate.drmTMB`, `summary.drmTMB` | Post-fit extractors and summaries | Runnable examples. |
+| `model-fit-extractors` | `logLik()`, `nobs()`, `df.residual()`, `deviance()`, `AIC()`, `BIC()`, `vcov()` | Runnable likelihood-comparison and covariance example. |
+| `plot_parameter_surface`, `plot_corpairs` | Optional plot helpers | Runnable table-driven plotting examples with rendered PNG evidence. |
+
+The repeatable local command for this table is:
+
+```sh
+Rscript tools/reference-audit.R
+```
+
 ## Next Function Audit Actions
 
-1. Continue rendered reference inspection with grouped model-fit extractor
-   adjacent S3 pages: `fitted()`, `predict()`, `residuals()`, `sigma()`,
-   `simulate()`, `weights()`, `fixef()`, `ranef()`, `rho12()`, and `vcov()`.
-2. Check every exported reference page for one runnable minimal example, or an
-   explicit reason no example is appropriate.
-3. Keep `gr()` deprecated and out of the main reader path; revisit removal only
+1. Rebuild and inspect the changed adjacent S3 reference pages:
+   `drmTMB()`, `fitted()`, `fixef()`, `ranef()`, `rho12()`, `weights()`, and
+   grouped `vcov()`.
+2. Keep `gr()` deprecated and out of the main reader path; revisit removal only
    with a separate compatibility decision before release.
-4. Add a compact example-status table for all exported topics.
+3. Continue the stale-claim pass through family, meta-helper, structured-marker,
+   and formula-construction pages against the implementation map.
+4. Keep rendered visual checks active for `model-workflow`, `model-map`,
+   `implementation-map`, `simulation-plot-grammar`, and
+   `phylogenetic-spatial`.

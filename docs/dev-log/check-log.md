@@ -2,6 +2,108 @@
 
 Record meaningful development checks here.
 
+## 2026-05-22 - Reference And Figure Audit 30-Slice Closeout
+
+Goal: finish the next function-reference and figure-gallery audit slices by
+making model-fit extractors easier to discover, clearing stale status wording,
+fixing clipped status-matrix figures, and leaving a repeatable reference-audit
+script for future comprehensive passes.
+
+Team roles:
+
+- Ada coordinated the closeout as a documentation, reference, and figure QA
+  pass with no likelihood or formula-grammar implementation change.
+- Boole checked that the public formula examples still use the current
+  `phylo()`, `spatial()`, `animal()`, and `relmat()` routes rather than
+  resurrecting deprecated `gr()` syntax.
+- Emmy checked the S3 extractor surface, including `vcov.drmTMB`,
+  `fixef()`, `ranef()`, `weights()`, `rho12()`, and `fitted()`.
+- Fisher checked interval wording: fast Wald remains the routine fixed-effect
+  path; profile should be filtered with `profile_targets(ready_only = TRUE)`
+  and `profile_precision = "fast"` before long phylogenetic, spatial, animal,
+  or relatedness runs.
+- Florence rechecked the rendered status-boundary figures after the first
+  version clipped labels; the repaired version moves text beside markers.
+- Pat checked that examples are runnable and start from applied-user tasks.
+- Grace ran roxygen, examples, full tests, pkgdown checks/builds, and
+  `devtools::check()`.
+- Rose updated the audit ledger, stale-wording scans, and remaining figure
+  limits.
+
+Files changed:
+
+- `R/check.R`
+- `R/drmTMB.R`
+- `R/formula-markers.R`
+- `R/methods.R`
+- `R/profile.R`
+- `man/check_drm.Rd`
+- `man/confint.drmTMB.Rd`
+- `man/drmTMB.Rd`
+- `man/fitted.drmTMB.Rd`
+- `man/fixef.Rd`
+- `man/model-fit-extractors.Rd`
+- `man/profile_targets.Rd`
+- `man/ranef.Rd`
+- `man/rho12.Rd`
+- `man/spatial.Rd`
+- `man/weights.drmTMB.Rd`
+- `vignettes/figure-gallery.Rmd`
+- `vignettes/formula-grammar.Rmd`
+- `tools/reference-audit.R`
+- `docs/dev-log/audits/2026-05-21-function-reference-inventory.md`
+- `docs/dev-log/figure-audits/2026-05-21-audit-kickoff/figure-audit.md`
+- `docs/dev-log/figure-audits/2026-05-21-correlation-gallery-q2-refresh/figure-audit.md`
+- `docs/dev-log/figure-audits/2026-05-22-status-matrix-reference-pass/figure-audit.md`
+- `docs/dev-log/figure-audits/2026-05-22-status-matrix-reference-pass/*.png`
+- `docs/dev-log/after-task/2026-05-22-reference-figure-audit-30-slices.md`
+
+Checks run:
+
+```sh
+air format R/check.R R/drmTMB.R R/formula-markers.R R/methods.R R/profile.R vignettes/figure-gallery.Rmd vignettes/formula-grammar.Rmd docs/dev-log/audits/2026-05-21-function-reference-inventory.md docs/dev-log/figure-audits/2026-05-21-audit-kickoff/figure-audit.md docs/dev-log/figure-audits/2026-05-21-correlation-gallery-q2-refresh/figure-audit.md docs/dev-log/figure-audits/2026-05-22-status-matrix-reference-pass/figure-audit.md tools/reference-audit.R
+Rscript -e "devtools::document()"
+Rscript tools/reference-audit.R
+Rscript -e "pkgdown::build_reference()"
+Rscript -e "devtools::load_all(quiet = TRUE); pkgdown::build_article('figure-gallery', new_process = FALSE, quiet = TRUE)"
+rg -n 'Tile plot showing|bivariate spatial blocks remain planned|Fisher.s `z`|fitted q2 rows; spatial now also has a constant q4 block|fitted q2 row' R man vignettes docs/dev-log/figure-audits docs/dev-log/audits -S
+git diff --check
+Rscript -e "devtools::test(reporter = 'summary')"
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "pkgdown::build_site()"
+Rscript -e "devtools::check()"
+gh issue list --search "reference audit OR figure gallery OR visualization layer OR confidence intervals OR profile_targets" --limit 20
+```
+
+Outcomes:
+
+- All reference topics now have runnable examples except the package overview
+  and deprecated `gr()` marker, which are intentionally example-free.
+- `vcov.drmTMB` is documented in the grouped model-fit extractor page.
+- The extractor examples now cover `drmTMB()`, `fixef()`, `ranef()`,
+  `weights()`, `rho12()`, `fitted()`, and `vcov()`.
+- `confint()` and `profile_targets()` now make the fast path clearer:
+  ordinary fixed-effect work can use default Wald intervals, while expensive
+  variance and correlation profiles should be filtered and can start with
+  `profile_precision = "fast"`.
+- `check_drm()` now says Hessian or `sdreport()` warnings are inference and
+  identifiability signals, not automatic proof that point estimates are
+  unusable.
+- `spatial()` and the formula grammar now name the current q=2 and first
+  q=4 structured routes more accurately.
+- The two status-boundary figures in the figure gallery were rerendered and
+  inspected as PNGs after the first repair still clipped text.
+- `Rscript tools/reference-audit.R`, `git diff --check`, full
+  `devtools::test(reporter = "summary")`, `pkgdown::check_pkgdown()`, and
+  `pkgdown::build_site()` passed.
+- `devtools::check()` completed with 0 errors, 0 warnings, and 1 NOTE:
+  `checking for future file timestamps ... unable to verify current time`.
+- Issue search found #58, #255, #31, #147, #265, #128, #33, #5, and #61 as
+  broader overlapping ledgers; no issue was closed by this documentation and
+  figure closeout.
+- A future "Confidence Eye" visual-design idea was recorded as a separate
+  figure-language direction, not part of the current status-matrix repair.
+
 ## 2026-05-22 - Reference Model-Fit Extractors
 
 Goal: continue the comprehensive function/reference audit by fixing the grouped

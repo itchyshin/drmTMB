@@ -67,9 +67,11 @@
 #' response-scale quantities. A `note` records something to inspect, such as
 #' dropped rows or a singly observed random-effect level. A `warning` means the
 #' fitted model may still be useful but needs inspection before inference. An
-#' `error` means at least one basic diagnostic failed. For programmatic checks,
-#' the returned object has `attr(x, "ok") == TRUE` only when no rows have
-#' `warning` or `error` status.
+#' `error` means at least one basic diagnostic failed. A Hessian or
+#' `sdreport()` warning is therefore an inference and identifiability signal,
+#' not automatic proof that fitted point estimates are unusable. For
+#' programmatic checks, the returned object has `attr(x, "ok") == TRUE` only
+#' when no rows have `warning` or `error` status.
 #'
 #' @param object A `drmTMB` fit.
 #' @param gradient_tolerance Maximum absolute fixed-parameter gradient treated

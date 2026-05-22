@@ -52,6 +52,17 @@ print.drmTMB <- function(x, ...) {
 #' @return A named numeric vector when `dpar` is supplied, otherwise a named
 #'   list of coefficient vectors.
 #' @export
+#'
+#' @examples
+#' set.seed(20260525)
+#' dat <- data.frame(
+#'   y = 0.2 + 0.6 * seq(-1, 1, length.out = 24) + rnorm(24, sd = 0.5),
+#'   x = seq(-1, 1, length.out = 24)
+#' )
+#' fit <- drmTMB(bf(y ~ x, sigma ~ x), data = dat)
+#' fixef(fit)
+#' fixef(fit, "mu")
+#' coef(fit, "sigma")
 fixef <- function(object, ...) {
   UseMethod("fixef")
 }
@@ -79,6 +90,20 @@ fixef.drmTMB <- function(object, dpar = NULL, ...) {
 #' @return A named list of random-effect blocks when `dpar = NULL`, otherwise
 #'   one random-effect block.
 #' @export
+#'
+#' @examples
+#' set.seed(20260525)
+#' id <- factor(rep(letters[1:8], each = 8))
+#' x <- rep(seq(-1, 1, length.out = 8), times = 8)
+#' u <- rnorm(nlevels(id), sd = 0.9)
+#' dat <- data.frame(
+#'   y = 0.2 + 0.7 * x + u[id] + rnorm(length(x), sd = 0.3),
+#'   x = x,
+#'   id = id
+#' )
+#' fit <- drmTMB(bf(y ~ x + (1 | id), sigma ~ 1), data = dat)
+#' names(ranef(fit))
+#' head(ranef(fit, "mu")$terms[["(1 | id)"]])
 ranef <- function(object, ...) {
   UseMethod("ranef")
 }
@@ -116,6 +141,15 @@ ranef.drmTMB <- function(object, dpar = NULL, ...) {
 #'   complete response pair for bivariate Gaussian models.
 #' @importFrom stats weights
 #' @export
+#'
+#' @examples
+#' dat <- data.frame(
+#'   y = c(0.2, 0.5, 1.1, 1.4),
+#'   x = c(-1, 0, 1, 2),
+#'   w = c(1, 1, 0.5, 2)
+#' )
+#' fit <- drmTMB(bf(y ~ x, sigma ~ 1), data = dat, weights = w)
+#' weights(fit)
 weights.drmTMB <- function(object, ...) {
   object$model$weights
 }
@@ -136,6 +170,25 @@ weights.drmTMB <- function(object, ...) {
 #' @return A numeric vector of residual correlations, or Fisher-z-like linear
 #'   predictors when `type = "link"`.
 #' @export
+#'
+#' @examples
+#' set.seed(20260525)
+#' n <- 36
+#' x <- seq(-1, 1, length.out = n)
+#' e1 <- rnorm(n)
+#' e2 <- 0.4 * e1 + sqrt(1 - 0.4^2) * rnorm(n)
+#' dat <- data.frame(
+#'   y1 = 0.2 + 0.5 * x + e1,
+#'   y2 = -0.1 + 0.3 * x + e2,
+#'   x = x
+#' )
+#' fit <- drmTMB(
+#'   bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~ 1, sigma2 = ~ 1, rho12 = ~ x),
+#'   family = biv_gaussian(),
+#'   data = dat
+#' )
+#' head(rho12(fit))
+#' rho12(fit, newdata = data.frame(x = c(-0.5, 0, 0.5)))
 rho12 <- function(object, ...) {
   UseMethod("rho12")
 }
@@ -1554,6 +1607,11 @@ response_name_from_model_frame <- function(object, dpar, fallback) {
 #' @return A numeric vector for univariate fits, or a two-column matrix for
 #'   bivariate Gaussian fits.
 #' @export
+#'
+#' @examples
+#' dat <- data.frame(y = c(0.2, 0.5, 1.1, 1.4), x = c(-1, 0, 1, 2))
+#' fit <- drmTMB(bf(y ~ x, sigma ~ 1), data = dat)
+#' fitted(fit)
 fitted.drmTMB <- function(object, ...) {
   drm_fitted_response(object)
 }
@@ -1567,6 +1625,7 @@ coef.drmTMB <- function(object, dpar = NULL, ...) {
   object$coefficients[[dpar]]
 }
 
+#' @rdname model-fit-extractors
 #' @export
 vcov.drmTMB <- function(object, ...) {
   cov_fixed <- drm_sdreport_cov_fixed(object)
@@ -1701,7 +1760,10 @@ drm_standard_error_status <- function(object) {
 #' top-level parameters recorded in `logLik()`. `deviance()` returns
 #' `-2 * logLik`; for these likelihood-based distributional models this is an
 #' absolute negative twice log-likelihood value, not a saturated-model GLM
-#' deviance.
+#' deviance. `vcov()` returns the fixed-effect covariance matrix from
+#' `TMB::sdreport()` with rows and columns labelled by distributional
+#' parameter and coefficient. It intentionally does not include random-effect
+#' conditional modes or derived response-scale quantities.
 #'
 #' @param object A `drmTMB` fit.
 #' @param ... Reserved for future extractor options.
@@ -1725,6 +1787,7 @@ drm_standard_error_status <- function(object) {
 #' deviance(fit)
 #' AIC(fit)
 #' BIC(fit)
+#' vcov(fit)
 #' @name model-fit-extractors
 NULL
 

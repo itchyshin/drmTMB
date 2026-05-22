@@ -29,7 +29,7 @@ Rendered panels copied here for durable audit evidence:
 
 | Rendered figure | Visual data grain | Uncertainty source | Verdict |
 | --- | --- | --- | --- |
-| `correlation-display-1.png` | `corpairs()`-compatible illustrative rows for residual, ordinary group, phylogenetic, spatial, animal, and `relmat()` q=2 correlations | finite illustrative Wald/profile bounds on Fisher's `z` scale | Acceptable: six layers are visible and separated; legend and row labels fit. |
+| `correlation-display-1.png` | `corpairs()`-compatible illustrative rows for residual, ordinary group, phylogenetic, spatial, animal, and `relmat()` q=2 correlations | finite illustrative Wald/profile bounds on the guarded atanh-style correlation-link scale | Acceptable: six layers are visible and separated; legend and row labels fit. |
 | `correlation-layer-boundaries-1.png` | support-status strip, not estimates | no intervals; status only | Acceptable: constant q=2 rows are fitted first slices, while richer regression or q4/scale extensions remain planned. |
 
 ## Florence Notes

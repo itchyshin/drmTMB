@@ -108,6 +108,12 @@ correlation, \code{parm = "rho12"} profiles the residual correlation and reports
 the interval on the response correlation scale. For fits with constant
 \code{sigma}, \code{sigma1}, or \code{sigma2}, \code{parm = "sigma"} and friends report
 response-scale intervals.
+
+The fastest routine route is \code{confint(fit)}, which uses Wald intervals for
+fixed effects and direct response-scale targets. For long phylogenetic,
+spatial, animal-model, or relatedness fits, profile only the needed
+variance-component or correlation rows and start with
+\code{profile_precision = "fast"} before spending time on a denser profile.
 }
 \examples{
 dat <- data.frame(y = c(0.2, 0.5, 1.1, 1.4), x = c(-1, 0, 1, 2))

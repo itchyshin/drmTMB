@@ -31,6 +31,12 @@
 #' `sigma`, `sigma1`, or `sigma2`, `parm = "sigma"` and friends report
 #' response-scale intervals.
 #'
+#' The fastest routine route is `confint(fit)`, which uses Wald intervals for
+#' fixed effects and direct response-scale targets. For long phylogenetic,
+#' spatial, animal-model, or relatedness fits, profile only the needed
+#' variance-component or correlation rows and start with
+#' `profile_precision = "fast"` before spending time on a denser profile.
+#'
 #' @param object A `drmTMB` fit.
 #' @param parm Optional character or integer vector selecting interval targets.
 #'   `NULL` selects all direct Wald-ready targets for Wald intervals. Profile
@@ -221,6 +227,11 @@ confint.drmTMB <- function(
 #' fallback correlations are direct targets, but a direct target can still fail
 #' on a weak, boundary-limited, or one-sided profile.
 #'
+#' Use `ready_only = TRUE` for the fastest inspection path before calling
+#' `confint(..., method = "profile")`. Use the `target_class` column to filter
+#' fixed effects, random-effect SDs, residual correlations, and other
+#' variance-component rows before a long profile run.
+#'
 #' @param object A `drmTMB` fit.
 #' @param ready_only Logical; if `TRUE`, return only targets whose
 #'   `profile_ready` column is `TRUE`.
@@ -243,6 +254,7 @@ confint.drmTMB <- function(
 #' dat <- data.frame(y = c(0.2, 0.5, 1.1, 1.4), x = c(-1, 0, 1, 2))
 #' fit <- drmTMB(bf(y ~ x, sigma ~ 1), data = dat)
 #' profile_targets(fit)
+#' profile_targets(fit, ready_only = TRUE)
 #' @export
 profile_targets <- function(object, ready_only = FALSE) {
   if (!inherits(object, "drmTMB")) {

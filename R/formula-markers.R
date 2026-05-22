@@ -144,9 +144,13 @@ phylo <- function(term, tree) {
 #' frame with one row per site or one row per observation. The univariate
 #' Gaussian location path also supports one numeric slope,
 #' `spatial(1 + x | site, coords = coords)`, as independent intercept and slope
-#' fields with separate SDs and no intercept-slope correlation. Mesh inputs,
-#' scale formulas, multiple structured slopes, slope correlations, and bivariate
-#' spatial blocks remain planned.
+#' fields with separate SDs and no intercept-slope correlation. Matching
+#' labelled bivariate Gaussian `mu1`/`mu2` terms fit the first q=2
+#' coordinate-spatial location covariance, and matching labelled all-four
+#' `mu1`/`mu2`/`sigma1`/`sigma2` terms fit the first constant q=4
+#' location-scale block. Mesh inputs, standalone spatial scale formulas,
+#' multiple structured slopes, slope correlations, predictor-dependent spatial
+#' `corpair()` regression, and non-Gaussian spatial effects remain planned.
 #'
 #' @param term Structured random-effect term, such as `1 | site`.
 #' @param coords Coordinate object, such as a data frame or matrix of spatial
@@ -159,6 +163,14 @@ phylo <- function(term, tree) {
 #' @examples
 #' # Fitted for univariate Gaussian mu with coords:
 #' bf(y ~ x + spatial(1 | site, coords = coords), sigma ~ z)
+#' # Fitted first q=2 bivariate spatial location block:
+#' bf(
+#'   mu1 = y1 ~ x + spatial(1 | p | site, coords = coords),
+#'   mu2 = y2 ~ x + spatial(1 | p | site, coords = coords),
+#'   sigma1 = ~ 1,
+#'   sigma2 = ~ 1,
+#'   rho12 = ~ 1
+#' )
 #' # Planned:
 #' bf(y ~ x + spatial(1 | site, mesh = mesh), sigma ~ z)
 spatial <- function(term, coords = NULL, mesh = NULL) {

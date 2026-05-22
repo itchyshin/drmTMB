@@ -103,9 +103,11 @@ Use \code{check_drm()} before interpreting coefficients, fitted values, or
 response-scale quantities. A \code{note} records something to inspect, such as
 dropped rows or a singly observed random-effect level. A \code{warning} means the
 fitted model may still be useful but needs inspection before inference. An
-\code{error} means at least one basic diagnostic failed. For programmatic checks,
-the returned object has \code{attr(x, "ok") == TRUE} only when no rows have
-\code{warning} or \code{error} status.
+\code{error} means at least one basic diagnostic failed. A Hessian or
+\code{sdreport()} warning is therefore an inference and identifiability signal,
+not automatic proof that fitted point estimates are unusable. For
+programmatic checks, the returned object has \code{attr(x, "ok") == TRUE} only
+when no rows have \code{warning} or \code{error} status.
 }
 \examples{
 set.seed(1)

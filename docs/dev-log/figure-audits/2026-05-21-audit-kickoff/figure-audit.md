@@ -20,6 +20,10 @@ polish pass: lighter raindrop legends and a site-support rug for the
 modelled `sd(site)` surface.
 The fourth render happened after the full gallery pass compacted sparse
 point-interval panels.
+The fifth render happened on 2026-05-22 after the two status-boundary
+watchlist panels were redesigned as lighter status matrices. Durable evidence
+for that pass lives under
+`docs/dev-log/figure-audits/2026-05-22-status-matrix-reference-pass/`.
 
 ## Directly Inspected Figures
 
@@ -52,9 +56,9 @@ directly during the next pass. The additional findings were:
 | `emmeans-factor-grid` | Improved during this pass: reduced height while retaining the season legend because the row labels do not encode season. |
 | `emmeans-interaction-grid` | Pass. The temperature slices and habitat colours are readable. |
 | `empirical-marginal-summary` | Pass. The subtitle names fitted-row predictions and averaged row-wise Wald limits, not raw responses. |
-| `emmeans-boundary-strip` | Watchlist. The support boundary is explicit but visually heavy; redesign as a lighter status matrix later. |
+| `emmeans-boundary-strip` | Improved on 2026-05-22: redesigned as a lighter status matrix with a status marker and current route. |
 | `cont-cont-interaction` | Pass. Raw observations, fitted slices, and confidence bands are readable. |
-| `correlation-layer-boundaries` | Watchlist. The support boundary is explicit but uses large status tiles; later polish should make it lighter and more scannable. |
+| `correlation-layer-boundaries` | Improved on 2026-05-22: redesigned as a lighter status matrix and corrected stale animal/`relmat()` partial-support colouring. |
 
 ## Immediate Fixes
 
@@ -85,17 +89,14 @@ directly during the next pass. The additional findings were:
 
 ## Florence-Led Next Fixes
 
-These should be handled after the initial inventory, not squeezed into this
-kickoff slice:
+These remain after the 2026-05-22 status-matrix repair:
 
-1. Redesign the `emmeans` and correlation support-boundary tile plots as
-   lighter status matrices.
-2. For public-facing pages, avoid over-centering storage or stacked-vector
+1. For public-facing pages, avoid over-centering storage or stacked-vector
    mechanics. Those details belong in mechanics notes, not headline visual
    narratives.
-3. Design an interval route for modelled `sd(group) ~ x` surfaces before
+2. Design an interval route for modelled `sd(group) ~ x` surfaces before
    drawing ribbons or whiskers around those fitted curves.
-4. Move the rendered audit from `figure-gallery` to `model-workflow`, then the
+3. Move the rendered audit from `figure-gallery` to `model-workflow`, then the
    capability-map pages.
 
 ## Boundary

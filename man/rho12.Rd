@@ -29,3 +29,22 @@ bivariate Gaussian \code{drmTMB} fit. By default it returns the response-scale
 correlation. Use \code{type = "link"} for the Fisher-z-like linear predictor
 whose response transform is \code{0.99999999 * tanh(eta)}.
 }
+\examples{
+set.seed(20260525)
+n <- 36
+x <- seq(-1, 1, length.out = n)
+e1 <- rnorm(n)
+e2 <- 0.4 * e1 + sqrt(1 - 0.4^2) * rnorm(n)
+dat <- data.frame(
+  y1 = 0.2 + 0.5 * x + e1,
+  y2 = -0.1 + 0.3 * x + e2,
+  x = x
+)
+fit <- drmTMB(
+  bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~ 1, sigma2 = ~ 1, rho12 = ~ x),
+  family = biv_gaussian(),
+  data = dat
+)
+head(rho12(fit))
+rho12(fit, newdata = data.frame(x = c(-0.5, 0, 0.5)))
+}
