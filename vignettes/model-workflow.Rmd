@@ -74,7 +74,10 @@ distributional parameters, predicts to meaningful covariate values, examines
 residuals, and simulates from the fitted model.
 
 This article uses a small growth example, but the same workflow applies to
-other Gaussian location-scale models in `drmTMB`.
+other Gaussian location-scale models in `drmTMB`. In the `Start Here` path,
+read it after the getting-started fit and the model-status map: this page is
+where estimates become checked tables, predictions, intervals, residuals, and
+simulation checks.
 
 ## Fit the model
 

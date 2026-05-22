@@ -16,6 +16,10 @@ tutorial. Use it when you want to know whether a model is implemented, which
 article to read next, and which syntax belongs to the current package rather
 than the roadmap.
 
+If you have not fit a model yet, begin with
+[Distributional regression with drmTMB](drmTMB.html), then return here when you
+need the implemented-versus-planned boundary.
+
 The main design rule is one formula per distributional parameter. For one
 response, the most common parameters are the location `mu`, the residual scale
 `sigma`, and family-specific shape or zero-inflation parameters. For two

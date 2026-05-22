@@ -2,6 +2,79 @@
 
 Record meaningful development checks here.
 
+## 2026-05-22 - Rendered Article Checklist And Start Here Audit
+
+Goal: begin the article audit sweep proper by recording a rendered-page
+checklist for all 26 pkgdown articles and tightening the `Start Here` triad:
+`drmTMB`, `model-map`, and `model-workflow`.
+
+Team roles:
+
+- Ada kept the slice to rendered inventory and first-user prose edits, with no
+  formula grammar, likelihood, or API change.
+- Pat checked that a new applied reader sees a first model, a status map, and a
+  post-fit workflow in that order.
+- Darwin checked that the opening pages start from scientific questions rather
+  than a feature ledger.
+- Fisher checked that the checklist records CI/profile/bootstrap and interval
+  status as audit risks rather than treating pkgdown success as statistical
+  validation.
+- Florence checked that figure-heavy pages are explicitly queued for direct
+  rendered-image audit instead of being silently passed from source inspection.
+- Boole and Noether checked that the Start Here edits did not imply new syntax
+  or change the parameter contract.
+- Emmy checked that the `model-map` remains the capability authority and
+  `model-workflow` remains the post-fit extractor/interval hub.
+- Grace rebuilt the three touched articles and the full pkgdown site.
+- Rose recorded stale-status scans and kept related GitHub issues open as
+  broader ledgers.
+
+Files changed:
+
+- `vignettes/drmTMB.Rmd`
+- `vignettes/model-map.Rmd`
+- `vignettes/model-workflow.Rmd`
+- `docs/dev-log/audits/2026-05-22-rendered-article-checklist.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-22-rendered-start-here-audit.md`
+
+Checks run:
+
+```sh
+air format vignettes/drmTMB.Rmd vignettes/model-map.Rmd vignettes/model-workflow.Rmd docs/dev-log/audits/2026-05-22-rendered-article-checklist.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-22-rendered-start-here-audit.md
+Rscript -e "devtools::load_all(quiet = TRUE); pkgdown::build_article('drmTMB', new_process = FALSE, quiet = TRUE); pkgdown::build_article('model-map', new_process = FALSE, quiet = TRUE); pkgdown::build_article('model-workflow', new_process = FALSE, quiet = TRUE)"
+Rscript -e "pkgdown::build_site()"
+Rscript -e "pkgdown::check_pkgdown()"
+rg -n 'Start here when you want to fit a first model|broader implemented map lives|If you have not fit a model yet|In the `Start Here` path|Rendered Article Checklist|bivariate-coscale|simulation-plot-grammar' vignettes/drmTMB.Rmd vignettes/model-map.Rmd vignettes/model-workflow.Rmd docs/dev-log/audits/2026-05-22-rendered-article-checklist.md pkgdown-site/articles/drmTMB.html pkgdown-site/articles/model-map.html pkgdown-site/articles/model-workflow.html -S
+rg -n 'bootstrap|profile_precision|variance_components|random_effects|correlations|Wald|Fisher|atanh|log-SD|derived_interval_unavailable|gr\(|meta_known_V|meta_V|spatial q=4|q=4 spatial|Poisson q=1|ordinary Poisson|profile_targets|conf\.status' vignettes/drmTMB.Rmd vignettes/model-map.Rmd vignettes/model-workflow.Rmd -S
+rg -n 'gr\(|meta_known_V|meta_V|bootstrap|profile_precision|variance_components|random_effects|correlations|Fisher|atanh|log-SD|derived_interval_unavailable|Poisson q=1|q=4 spatial|spatial q=4' R man tests/testthat -S
+gh issue list --search "article audit OR tutorial navigation OR figure gallery OR confidence eye OR profile bootstrap" --limit 20
+git diff --check
+```
+
+Outcomes:
+
+- The new rendered checklist covers all 26 pkgdown articles, their current
+  navigation group, rendered title, rendered figure count, first verdict, and
+  next audit action.
+- `drmTMB` now opens with the first-user task: fit a first model, check the
+  fitted object, and find the next article.
+- `model-map` now tells users who have not fitted a model yet to start with
+  the getting-started article before using the status map.
+- `model-workflow` now states its role in the Start Here path: checked tables,
+  predictions, intervals, residuals, and simulation checks after the first fit
+  and status map.
+- Full pkgdown build and `pkgdown::check_pkgdown()` passed.
+- The rendered search found the new Start Here text in generated HTML.
+- Stale-status scans confirmed that the triad mentions bootstrap as
+  `confint()` direct-target support, keeps `summary(..., method = "bootstrap")`
+  unsupported, names `profile_precision = "fast"`, uses log-SD language for
+  SD intervals, and names the guarded Fisher-z/atanh scale for correlations.
+- Issue search found #31, #58, #255, #265, #57, #4, and #147 as related open
+  ledgers. None were closed by this slice.
+- Figure follow-ups were recorded for `figure-gallery`,
+  `simulation-plot-grammar`, `bivariate-coscale`, and `model-workflow`.
+
 ## 2026-05-22 - Article Audit Sweep Map And Navigation Slice
 
 Goal: start the comprehensive article audit with a durable map, a bounded
