@@ -2,6 +2,77 @@
 
 Record meaningful development checks here.
 
+## 2026-05-22 - Rendered Figure QA Slices 16-20
+
+Goal: continue the rendered-figure QA sequence after PR #300 by fixing the
+generated-reference alt-text gap and improving the next simulation figures whose
+geometry did not match their data grain.
+
+Roles: Ada merged PR #300 and kept the next branch narrow. Florence inspected
+the rendered reference, simulation, structural, and gallery PNGs. Fisher checked
+that uncertainty shapes stayed tied to named interval sources. Curie checked
+that simulation figures showed replicate, block, aggregate, status, or count
+data at the right grain. Pat and Darwin checked reader decoding. Grace checked
+pkgdown rendering and workflow placement. Noether checked labels against
+estimands and units. Rose watched for one-rule-fits-all drift. These were role
+perspectives, not spawned agents.
+
+Files changed:
+
+- `.github/workflows/pkgdown.yaml`
+- `tools/fix-pkgdown-reference-alt.R`
+- `vignettes/simulation-plot-grammar.Rmd`
+- `docs/design/39-visualization-grammar.md`
+- `docs/dev-log/audits/2026-05-22-rendered-figure-qa-slices-16-20.md`
+- `docs/dev-log/after-task/2026-05-22-rendered-figure-qa-slices-16-20.md`
+- `docs/dev-log/check-log.md`
+
+Commands run:
+
+```sh
+gh pr merge 300 --squash --delete-branch --subject "Polish rendered workflow figure slices (#300)"
+git checkout -b codex/rendered-figure-qa-16-20
+air format .github/workflows/pkgdown.yaml vignettes/simulation-plot-grammar.Rmd tools/fix-pkgdown-reference-alt.R
+Rscript -e "devtools::load_all(quiet = TRUE); pkgdown::build_reference(topics = c('plot_corpairs', 'plot_parameter_surface'), lazy = FALSE, preview = FALSE); pkgdown::build_article('simulation-plot-grammar', new_process = FALSE, quiet = TRUE)"
+Rscript tools/fix-pkgdown-reference-alt.R pkgdown-site
+Rscript tools/fix-pkgdown-reference-alt.R pkgdown-site
+R CMD INSTALL .
+Rscript -e "pkgdown::build_site(new_process = FALSE, install = FALSE, preview = FALSE)"
+Rscript tools/fix-pkgdown-favicon-mime.R pkgdown-site
+Rscript tools/fix-pkgdown-reference-alt.R pkgdown-site
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "devtools::test(filter = 'plot-parameter-surface|plot-corpairs')"
+git diff --check
+```
+
+Rendered inventory after post-processing found 5 article images and 0 missing
+alt text in `simulation-plot-grammar`; 2 article images and 0 missing alt text
+in `phylogenetic-spatial`; 21 article images and 0 missing alt text in
+`figure-gallery`; and 1 image with 0 missing alt text on each of the
+`plot_corpairs()` and `plot_parameter_surface()` reference pages after the new
+post-build script ran.
+
+Result:
+
+- The pkgdown deploy workflow now applies explicit alt text to the two generated
+  plotting-reference example images after `pkgdown::build_site()`.
+- The simulation convergence/runtime figure now separates fit-status
+  proportions from runtime summaries by row, avoiding a large legend and mixed
+  unit confusion.
+- The simulation failure-ledger figure now shows status counts as separate rows
+  instead of stacked slivers, so warnings, boundaries, errors, and skipped cells
+  remain visible.
+- `docs/design/39-visualization-grammar.md` now records the current decision
+  table for raw data, fitted surfaces, fitted contrasts, Confidence Eyes,
+  simulation MCSE displays, readiness summaries, and failure ledgers.
+- The full pkgdown site build passed after refreshing the local installed
+  package to match the GitHub Actions `local::.` setup. `pkgdown::check_pkgdown()`
+  found no problems, targeted plot-helper tests passed with 88 passing
+  expectations, and `git diff --check` was clean.
+
+Next action: open the PR, update issue #58, then continue the rendered-figure
+sweep after this slice merges.
+
 ## 2026-05-22 - Rendered Figure QA Slices 11-15
 
 Goal: continue the rendered-figure QA sequence after PR #299 by improving the

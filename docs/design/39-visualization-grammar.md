@@ -749,6 +749,27 @@ facets, readable parameter-class labels, and horizontal MCSE bars when
 replicate-error clouds only after the result schema exposes replicate-level
 errors beside the aggregate rows.
 
+The rendered figure QA slices 16-20 turn the case-by-case rule into a compact
+decision table for the current public examples:
+
+| Visual object | Reader purpose | Default display | Uncertainty or support cue |
+| --- | --- | --- | --- |
+| Raw response patterns | See the observed data grain before model summaries | Raw points, optionally with fitted `mu` lines | Raw data are not converted to compatibility eyes |
+| Fitted continuous `mu`, `sigma`, shape, zero-inflation, or `rho12` surfaces | Follow response-scale fitted estimates over a covariate | Lines plus ribbons from `plot_parameter_surface()` or article recipes | Wald confidence bands only when prediction tables carry finite interval columns and provenance |
+| Fitted discrete contrasts or `emmeans` summaries | Compare a few fitted cells or marginal means | Compact horizontal point intervals | Wald or reference-grid intervals named in captions |
+| Direct coefficient, SD, and correlation rows | Compare finite model-estimate intervals row by row | Confidence Eyes with hollow point estimates and dotted zero lines when zero is meaningful | Fixed-effect Wald, log-SD Wald, Fisher-z Wald, or profile intervals, named by source |
+| Derived or unsupported q=4 correlation rows | Keep boundaries visible without overclaiming intervals | Point or status rows rather than eyes | `conf.status`/`interval_source` or support labels explain why an eye is absent |
+| Simulation bias | Check replicate-level signed error beside aggregate mean bias | Faint replicate-error marks plus aggregate point and MCSE bar | 95% MCSE intervals; no Confidence Eye |
+| Simulation RMSE | Check aggregate root mean-square error | Aggregate point and MCSE bar in fixed surface facets | 95% RMSE MCSE interval; no fake replicate cloud |
+| Simulation coverage and power | Check operating characteristics against targets | Replicate-block dots plus aggregate point and binomial MCSE bar | Dotted target line plus 95% binomial MCSE interval |
+| Simulation convergence and runtime | Keep readiness separate from accuracy | Row-wise status and runtime summaries | No interval by default; rows separate proportions from seconds |
+| Failure ledgers | Keep rare warnings, boundaries, errors, and skipped cells visible | Separate status rows by surface | Counts are the data; do not hide rare statuses as stacked slivers |
+
+Generated pkgdown reference examples are a special accessibility case. `downlit`
+currently emits reference example plots with empty `alt` attributes, so the
+deployed site post-processes the two current plotting-reference images after
+`pkgdown::build_site()` rather than making roxygen examples noisier for users.
+
 | Display pattern | Current decision | Export only after |
 | --- | --- | --- |
 | Raw data plus fitted `mu` lines and confidence bands | Tutorial recipe | A repeated need for one grammar across multiple articles and a stable raw-data overlay policy |
