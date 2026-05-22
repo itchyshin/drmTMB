@@ -499,7 +499,7 @@ Convergence, positive-definite Hessian status, and runtime should sit beside
 accuracy. A surface with low bias but frequent warnings or high runtime is not
 ready for broad claims.
 
-```{r convergence-runtime-display, fig.cap="Simulation readiness fixture for fit status and runtime; proportions, medians, and high runtime quantiles are separate checks.", fig.alt="Faceted plot showing illustrative convergence rate, Hessian rate, median runtime, and high runtime quantile by simulation surface."}
+```{r convergence-runtime-display, fig.width=8.6, fig.height=4.6, fig.cap="Simulation readiness fixture for fit status and runtime; proportions, medians, and high runtime quantiles are separate checks shown on their own rows.", fig.alt="Faceted readiness plot with one row each for convergence, positive-definite Hessian rate, median runtime, and high runtime quantile by simulation surface."}
 run_summary <- data.frame(
   surface = surface_levels,
   convergence_rate = c(0.98, 0.96, 0.90, 0.95),
@@ -544,23 +544,48 @@ run_long$measure <- factor(
     "90th percentile runtime"
   )
 )
+run_long$measure_label <- factor(
+  run_long$measure,
+  levels = rev(levels(run_long$measure))
+)
 
-ggplot(run_long, aes(value, surface, fill = measure)) +
-  geom_col(position = position_dodge(width = 0.72), width = 0.64) +
-  facet_wrap(~panel, scales = "free_x") +
-  scale_fill_manual(values = c(
+ggplot(run_long, aes(value, measure_label, colour = measure)) +
+  geom_segment(
+    aes(x = 0, xend = value, yend = measure_label),
+    linewidth = 1.2,
+    lineend = "round"
+  ) +
+  geom_point(size = 2.6) +
+  facet_grid(
+    panel ~ surface,
+    scales = "free",
+    space = "free_y",
+    labeller = labeller(surface = as_labeller(surface_facet_labels))
+  ) +
+  scale_colour_manual(values = c(
     "Converged" = "#0072B2",
     "pdHess" = "#56B4E9",
     "Median runtime" = "#009E73",
     "90th percentile runtime" = "#E69F00"
   )) +
+  scale_y_discrete(labels = c(
+    "Converged" = "converged",
+    "pdHess" = "pdHess",
+    "Median runtime" = "median",
+    "90th percentile runtime" = "90th pct."
+  )) +
+  scale_x_continuous(
+    breaks = c(0, 0.5, 1),
+    expand = expansion(mult = c(0, 0.04))
+  ) +
   labs(
     title = "Convergence and runtime belong beside accuracy",
-    subtitle = "Fast successful fits and stable uncertainty are separate checks",
-    x = "Value",
+    subtitle = "Rows keep fit-status proportions separate from runtime summaries",
+    x = "Proportion or seconds",
     y = NULL,
-    fill = "Measure"
+    colour = "Measure"
   ) +
+  guides(colour = "none") +
   theme_sim_grammar()
 ```
 
@@ -572,7 +597,7 @@ because a few difficult cells can dominate overnight simulation planning.
 Failures and warnings are data. They should be summarised by surface and
 condition instead of filtered away before plotting.
 
-```{r failure-ledger-display, fig.cap="Failure-ledger fixture showing replicate counts by status; warnings, boundary cases, errors, and skipped cells remain visible instead of being filtered out.", fig.alt="Stacked bar plot showing illustrative ok, warning, error, boundary, and skipped replicate counts by simulation surface."}
+```{r failure-ledger-display, fig.width=8.6, fig.height=4.2, fig.cap="Failure-ledger fixture showing replicate counts by status; warnings, boundary cases, errors, and skipped cells remain visible as separate rows instead of stacked slivers.", fig.alt="Faceted horizontal bar plot showing illustrative ok, warning, boundary, error, and skipped replicate counts as separate rows by simulation surface."}
 failure_ledger <- data.frame(
   surface = rep(surface_levels, each = 5),
   status = rep(c("ok", "warning", "boundary", "error", "skipped"), 4),
@@ -588,9 +613,18 @@ failure_ledger$status <- factor(
   failure_ledger$status,
   levels = c("ok", "warning", "boundary", "error", "skipped")
 )
+failure_ledger$status_label <- factor(
+  failure_ledger$status,
+  levels = rev(levels(failure_ledger$status))
+)
 
-ggplot(failure_ledger, aes(surface, count, fill = status)) +
-  geom_col(width = 0.7) +
+ggplot(failure_ledger, aes(count, status_label, fill = status)) +
+  geom_col(width = 0.64) +
+  facet_wrap(
+    ~surface,
+    nrow = 1,
+    labeller = labeller(surface = as_labeller(surface_facet_labels))
+  ) +
   scale_fill_manual(values = c(
     "ok" = "#009E73",
     "warning" = "#E69F00",
@@ -598,13 +632,25 @@ ggplot(failure_ledger, aes(surface, count, fill = status)) +
     "error" = "#D55E00",
     "skipped" = "#999999"
   )) +
+  scale_y_discrete(labels = c(
+    "ok" = "ok",
+    "warning" = "warning",
+    "boundary" = "boundary",
+    "error" = "error",
+    "skipped" = "skipped"
+  )) +
+  scale_x_continuous(
+    breaks = c(0, 25, 100, 200, 300),
+    expand = expansion(mult = c(0, 0.04))
+  ) +
   labs(
     title = "Warnings and failures stay visible",
-    subtitle = "Failure ledgers keep hard cells in the evidence trail",
-    x = NULL,
-    y = "Replicate count",
+    subtitle = "Separate rows keep rare statuses readable beside the dominant ok count",
+    x = "Replicate count",
+    y = NULL,
     fill = "Status"
   ) +
+  guides(fill = "none") +
   theme_sim_grammar()
 ```
 
