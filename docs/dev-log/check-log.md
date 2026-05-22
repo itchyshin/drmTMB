@@ -2,6 +2,65 @@
 
 Record meaningful development checks here.
 
+## 2026-05-21 - Reference CI Fast Examples
+
+Goal: continue the comprehensive function/reference audit by making the
+`confint()` and `summary()` reference pages show the fast direct CI workflow
+and the `profile_precision = "fast"` option explicitly.
+
+Team roles:
+
+- Ada kept this as a reference-page slice after the rendered figure pass.
+- Jason checked local `gllvmTMB` source for what it actually does before
+  borrowing any language.
+- Fisher checked the default order: fast Wald first, targeted profile second,
+  bootstrap only when refit-based uncertainty is worth the cost.
+- Gauss and Noether checked that the examples still match the log-SD and
+  guarded Fisher z/atanh correlation-link contract.
+- Emmy checked the S3 reference boundary: `confint()` gets bootstrap examples,
+  while `summary()` still points users to `confint(..., method = "bootstrap")`.
+- Grace regenerated Rd and rebuilt the pkgdown reference pages.
+- Rose recorded the stale-generated-reference pattern.
+
+Files changed:
+
+- `R/profile.R`
+- `R/methods.R`
+- `man/confint.drmTMB.Rd`
+- `man/summary.drmTMB.Rd`
+- `docs/dev-log/audits/2026-05-21-function-reference-inventory.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-21-reference-ci-fast-examples.md`
+
+Checks run:
+
+```sh
+air format R/profile.R R/methods.R docs/dev-log/audits/2026-05-21-function-reference-inventory.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-21-reference-ci-fast-examples.md
+Rscript -e "devtools::document()"
+Rscript -e "pkgdown::build_reference()"
+Rscript -e "devtools::load_all(quiet = TRUE); dat <- data.frame(y = c(0.2, 0.5, 1.1, 1.4), x = c(-1, 0, 1, 2)); fit <- drmTMB(bf(y ~ x, sigma ~ 1), data = dat); print(confint(fit)); print(confint(fit, parm = 'variance_components')); print(confint(fit, parm = 'sigma', method = 'profile', profile_precision = 'fast')); print(summary(fit, conf.int = TRUE, method = 'profile', ci_parm = 'sigma', profile_precision = 'fast'))"
+rg -n 'confint\(fit|variance_components|profile_precision = "fast"|method = "bootstrap"|bootstrap intervals are not implemented|not implemented yet' R/profile.R R/methods.R man/confint.drmTMB.Rd man/summary.drmTMB.Rd pkgdown-site/reference/confint.drmTMB.html pkgdown-site/reference/summary.drmTMB.html -S
+Rscript -e "devtools::test(filter = 'profile-targets|summary', reporter = 'summary')"
+git diff --check
+Rscript -e "pkgdown::check_pkgdown()"
+gh issue list --search "bootstrap intervals OR confidence interval OR profile" --limit 20
+```
+
+Outcomes:
+
+- The `confint()` reference examples now show the fast direct Wald default,
+  the `variance_components` shortcut, a targeted fast profile call, and a
+  commented direct-target bootstrap call.
+- The `summary()` profile example now uses `profile_precision = "fast"`.
+- The documented toy-model calls completed, including the fast profile example.
+- Rebuilding reference pages removed stale local HTML that still said bootstrap
+  intervals were not implemented for `confint()`.
+- The local `gllvmTMB` source check found fixed-effect Wald `confint()` and a
+  simulation path designed for parametric-bootstrap redraws; the drmTMB docs
+  now make the fast direct path obvious while keeping bootstrap targeted.
+- Issue search found #265, #58, #4, #255, #147, #33, #5, #60, #128, and #31;
+  none were closed by this reference-page example slice.
+
 ## 2026-05-21 - Simulation Plot Grammar Rendered Pass
 
 Goal: continue the comprehensive function/page/figure audit by inspecting the

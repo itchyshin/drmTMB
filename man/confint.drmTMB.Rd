@@ -113,4 +113,8 @@ response-scale intervals.
 dat <- data.frame(y = c(0.2, 0.5, 1.1, 1.4), x = c(-1, 0, 1, 2))
 fit <- drmTMB(bf(y ~ x, sigma ~ 1), data = dat)
 confint(fit)
+confint(fit, parm = "variance_components")
+confint(fit, parm = "sigma", method = "profile", profile_precision = "fast")
+# Direct-target parametric bootstrap is available when refit cost is worth it:
+# confint(fit, parm = "sigma", method = "bootstrap", R = 99)
 }

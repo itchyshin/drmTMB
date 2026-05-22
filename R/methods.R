@@ -2463,7 +2463,13 @@ sigma.drmTMB <- function(object, ...) {
 #' fit <- drmTMB(bf(y ~ x, sigma ~ 1), data = dat)
 #' summary(fit)
 #' summary(fit, conf.int = TRUE)
-#' summary(fit, conf.int = TRUE, method = "profile", ci_parm = "sigma")
+#' summary(
+#'   fit,
+#'   conf.int = TRUE,
+#'   method = "profile",
+#'   ci_parm = "sigma",
+#'   profile_precision = "fast"
+#' )
 #' @export
 summary.drmTMB <- function(
   object,

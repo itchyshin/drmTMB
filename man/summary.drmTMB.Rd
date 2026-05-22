@@ -83,5 +83,11 @@ dat <- data.frame(y = c(0.2, 0.5, 1.1, 1.4), x = c(-1, 0, 1, 2))
 fit <- drmTMB(bf(y ~ x, sigma ~ 1), data = dat)
 summary(fit)
 summary(fit, conf.int = TRUE)
-summary(fit, conf.int = TRUE, method = "profile", ci_parm = "sigma")
+summary(
+  fit,
+  conf.int = TRUE,
+  method = "profile",
+  ci_parm = "sigma",
+  profile_precision = "fast"
+)
 }

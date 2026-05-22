@@ -46,13 +46,37 @@ rewrite.
 4. The generated `pkgdown-site` can be stale after source edits. Before any
    deploy, rebuild the site and re-run a rendered-page stale-wording scan.
 
+## Rendered Reference Follow-Up
+
+2026-05-21 CI reference pass:
+
+- Checked the high-risk generated reference pages for `confint()`, `summary()`,
+  `profile_targets()`, `corpairs()`, `predict_parameters()`, and the plot
+  helpers.
+- Rebuilt the local reference pages with `pkgdown::build_reference()` before
+  judging the HTML. The stale local `confint()` page had still said bootstrap
+  intervals were not implemented; the rebuilt page now shows
+  `method = c("wald", "profile", "bootstrap")`, `profile_precision =
+  c("default", "fast")`, and bootstrap arguments.
+- Updated `confint()` examples to show `confint(fit)`,
+  `confint(fit, parm = "variance_components")`, a fast targeted profile, and a
+  commented direct-target bootstrap call.
+- Updated the `summary()` profile example to use `profile_precision = "fast"`.
+- Ran the new examples on the toy model. Default Wald, the variance-component
+  shortcut, fast profile for `sigma`, and the summary fast-profile example all
+  completed.
+- Source-only `gllvmTMB` comparison: local `confint.gllvmTMB_multi()` is a
+  fixed-effect Wald helper, while `simulate.gllvmTMB_multi()` documents
+  unconditional redraws as the parametric-bootstrap path. The usable lesson for
+  `drmTMB` is to keep fast direct intervals first in the docs and present
+  bootstrap as a targeted refit tool, not as the default answer for every row.
+
 ## Next Function Audit Actions
 
-1. Render the reference index and inspect the `confint`, `summary`,
-   `profile_targets`, `corpairs`, `predict_parameters`, and plot helper pages.
+1. Continue rendered reference inspection with `corpairs()`,
+   `predict_parameters()`, and the plot helper pages.
 2. Check every exported reference page for one runnable minimal example, or an
    explicit reason no example is appropriate.
 3. Decide whether `gr()` should remain exported or move further into reserved
    documentation before release.
-4. Add a pkgdown reference-page screenshot or rendered HTML scan to the next
-   audit ledger.
+4. Add a compact example-status table for all exported topics.
