@@ -18,16 +18,23 @@ the existing R-to-TMB ABI, report names, profile-target labels, and extractor
 contracts stable. The modularization plan therefore remains open, but its count
 and structured-effect rows now need to account for that fitted path.
 
+The first modularization slice has now moved only branch-free helper code:
+stable scalar transforms live in `src/drm_numeric.h`, and NB2 count-kernel
+helpers live in `src/drm_count_kernels.h`. The compiled package still has one
+TMB entry point, and branch bodies, reports, `ADREPORT()` names, `DATA_*` and
+`PARAMETER_*` declarations, R builders, and public syntax remain in their
+previous homes.
+
 ## Current Template Shape
 
 The current template has four kinds of code interleaved in one file:
 
 | Current code region | Main responsibility | Proposed first home | Primary gates |
 | --- | --- | --- | --- |
-| Stable scalar helpers | `drm_log1p_pos()`, `drm_log1mexp()`, inverse-logit log helpers, and NB2 count-kernel helpers | `src/drm_numeric.hpp` and `src/drm_count_kernels.hpp` | `test-count-kernels.R`, count-family tests, family-link tests |
+| Stable scalar helpers | `drm_log1p_pos()`, `drm_log1mexp()`, inverse-logit log helpers, and NB2 count-kernel helpers | `src/drm_numeric.h` and `src/drm_count_kernels.h` | `test-count-kernels.R`, count-family tests, family-link tests |
 | TMB data and parameter declarations | The R-to-TMB ABI for all model families, random effects, known covariance, aggregation, hidden probes, and reports | Keep in `src/drmTMB.cpp` | `test-package-skeleton.R`, full `devtools::test()` |
-| Structured-effect branch glue | Family-specific `eta` updates, precision-prior attachment, random-effect reports, and direct SD `ADREPORT()` targets for phylogenetic, spatial, animal, `relmat()`, and the first Poisson q=1 phylogenetic route | Keep branch glue in `src/drmTMB.cpp`; later only pure prior helpers may move to `src/drm_structured_effects.hpp` | `test-phylo-gaussian.R`, `test-spatial-gaussian.R`, `test-animal-relmat-gaussian.R`, `test-poisson-mean.R`, `test-profile-targets.R`, `test-check-drm.R` |
-| Hidden probe branches | `model_type` 93 to 99 branches for isolated phylogenetic and covariance-block algebra checks | Later `src/drm_test_probes.hpp` after branch inventory is complete | `test-phylo-utils.R`, `test-covariance-block-registry.R` |
+| Structured-effect branch glue | Family-specific `eta` updates, precision-prior attachment, random-effect reports, and direct SD `ADREPORT()` targets for phylogenetic, spatial, animal, `relmat()`, and the first Poisson q=1 phylogenetic route | Keep branch glue in `src/drmTMB.cpp`; later only pure prior helpers may move to `src/drm_structured_effects.h` | `test-phylo-gaussian.R`, `test-spatial-gaussian.R`, `test-animal-relmat-gaussian.R`, `test-poisson-mean.R`, `test-profile-targets.R`, `test-check-drm.R` |
+| Hidden probe branches | `model_type` 93 to 99 branches for isolated phylogenetic and covariance-block algebra checks | Later `src/drm_test_probes.h` after branch inventory is complete | `test-phylo-utils.R`, `test-covariance-block-registry.R` |
 | Public likelihood branches | `model_type` 1 to 14 branches for fitted families | Later family headers after pure kernels are extracted | family tests, comparator tests, profile and summary tests |
 
 The immediate refactor should move only pure helpers: functions whose return
@@ -39,42 +46,43 @@ or mutate shared branch state.
 Use header-only C++ files included by `src/drmTMB.cpp`:
 
 ```text
-src/drm_numeric.hpp
-src/drm_count_kernels.hpp
-src/drm_continuous_kernels.hpp
-src/drm_random_effects.hpp
-src/drm_structured_effects.hpp
-src/drm_bivariate_gaussian.hpp
-src/drm_test_probes.hpp
+src/drm_numeric.h
+src/drm_count_kernels.h
+src/drm_continuous_kernels.h
+src/drm_random_effects.h
+src/drm_structured_effects.h
+src/drm_bivariate_gaussian.h
+src/drm_test_probes.h
 ```
 
-The first extraction should be:
+The first extraction now owns:
 
 ```text
-src/drm_numeric.hpp
+src/drm_numeric.h
   drm_log1p_pos()
+  drm_log1p_exp_stable()
   drm_log1mexp()
   drm_log_inv_logit()
   drm_log1m_inv_logit()
   drm_log_inv_logit_diff()
 
-src/drm_count_kernels.hpp
+src/drm_count_kernels.h
   drm_nbinom2_log_count_product()
   drm_nbinom2_log_density()
   drm_nbinom2_log_p0()
 ```
 
-That extraction should not change any branch body except replacing local helper
+That extraction changed no branch body except replacing local helper
 definitions with `#include` directives.
 
 Later extractions can move pure density kernels before moving whole branches.
-For example, `drm_continuous_kernels.hpp` can own row log-density helpers for
+For example, `drm_continuous_kernels.h` can own row log-density helpers for
 Student-t, lognormal, Gamma, beta, beta-binomial, cumulative-logit, and
 Poisson pieces. The branch-specific `REPORT()` and `ADREPORT()` calls should
 stay in `src/drmTMB.cpp` until there is a small report object or naming
 contract that tests can inspect directly.
 
-`src/drm_structured_effects.hpp` is a later candidate for pure precision-prior
+`src/drm_structured_effects.h` is a later candidate for pure precision-prior
 helpers shared by Gaussian phylogenetic, coordinate-spatial, animal,
 `relmat()`, hidden-probe, and ordinary Poisson q=1 phylogenetic routes. It
 should not own branch-specific linear-predictor updates, `DATA_*` or
@@ -107,15 +115,15 @@ Public fitted branches should move only after pure helper extraction is green:
 
 | TMB branch | Candidate header | Must-pass focused tests before broader checks |
 | --- | --- | --- |
-| `model_type = 1` Gaussian | `src/drm_gaussian.hpp` only after random-effect helpers are stable | `test-gaussian-location-scale.R`, `test-gaussian-random-intercepts.R`, `test-gaussian-random-effect-scale.R`, `test-meta-known-v.R`, `test-phylo-gaussian.R`, `test-spatial-gaussian.R`, `test-gaussian-aggregation.R` |
-| `model_type = 2` bivariate Gaussian | `src/drm_bivariate_gaussian.hpp` | `test-biv-gaussian.R`, `test-corpairs.R`, `test-profile-targets.R`, `test-summary.R` |
-| `model_type = 3`, `4`, `5`, `10`, `13`, `14` continuous/proportion/ordinal families | `src/drm_continuous_kernels.hpp` first, branch movement later | corresponding family tests plus `test-family-link-contract.R` |
-| `model_type = 6` ordinary Poisson | `src/drm_count_kernels.hpp` first for pure count pieces; branch movement later | `test-poisson-mean.R`, `test-nongaussian-structured-boundary.R`, `test-profile-targets.R`, `test-check-drm.R`, `test-count-kernels.R` |
-| `model_type = 7`, `8`, `9`, `11`, `12` remaining count families | `src/drm_count_kernels.hpp` first, branch movement later | `test-count-kernels.R`, count-family tests, `test-comparators.R` |
+| `model_type = 1` Gaussian | `src/drm_gaussian.h` only after random-effect helpers are stable | `test-gaussian-location-scale.R`, `test-gaussian-random-intercepts.R`, `test-gaussian-random-effect-scale.R`, `test-meta-known-v.R`, `test-phylo-gaussian.R`, `test-spatial-gaussian.R`, `test-gaussian-aggregation.R` |
+| `model_type = 2` bivariate Gaussian | `src/drm_bivariate_gaussian.h` | `test-biv-gaussian.R`, `test-corpairs.R`, `test-profile-targets.R`, `test-summary.R` |
+| `model_type = 3`, `4`, `5`, `10`, `13`, `14` continuous/proportion/ordinal families | `src/drm_continuous_kernels.h` first, branch movement later | corresponding family tests plus `test-family-link-contract.R` |
+| `model_type = 6` ordinary Poisson | `src/drm_count_kernels.h` first for pure count pieces; branch movement later | `test-poisson-mean.R`, `test-nongaussian-structured-boundary.R`, `test-profile-targets.R`, `test-check-drm.R`, `test-count-kernels.R` |
+| `model_type = 7`, `8`, `9`, `11`, `12` remaining count families | `src/drm_count_kernels.h` first, branch movement later | `test-count-kernels.R`, count-family tests, `test-comparators.R` |
 
 The `model_type = 6` branch now includes fixed-effect Poisson, ordinary
 non-zero-inflated `mu` random effects, and the first ordinary Poisson q=1
-phylogenetic `mu` intercept. That does not make `src/drm_count_kernels.hpp` the
+phylogenetic `mu` intercept. That does not make `src/drm_count_kernels.h` the
 home for structured random-effect logic. Count-kernel extraction can still move
 pure log-density helpers, but the Poisson phylogenetic linear-predictor
 contribution, sparse precision-prior attachment, and direct `log_sd_phylo`
@@ -150,7 +158,7 @@ Do not move these pieces in the first modularization pass:
    `ADREPORT()` calls.
 3. Add tiny internal helper tests only when a helper has a non-obvious
    numerical boundary. Prefer objective-level tests when possible.
-4. Move hidden probe branches into `src/drm_test_probes.hpp` only after their
+4. Move hidden probe branches into `src/drm_test_probes.h` only after their
    reports and branch IDs are checked by source-map tests or focused `rg`
    scans.
 5. Consider moving public branch bodies only after report ownership is designed
